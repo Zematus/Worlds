@@ -24,4 +24,9 @@ public abstract class MathUtility {
 	
 		return GetCartesianCoordinates(sphericalVector.x, sphericalVector.y, sphericalVector.z);
 	}
+
+	public static float MixValues (float a, float b, float weightB) {
+	
+		return (b * weightB) + (a * (1f - weightB));
+	}
 }

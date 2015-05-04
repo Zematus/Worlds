@@ -34,6 +34,7 @@ public class Manager {
 		int width = 200;
 		int height = 100;
 		int seed = Random.Range(0, int.MaxValue);
+		//int seed = 0;
 
 		World world = new World(width, height, seed);
 		world.Generate();
@@ -54,7 +55,7 @@ public class Manager {
 		{
 			for (int j = 0; j < sizeY; j++)
 			{
-				texture.SetPixel(i, j, GenerateColorFromTerrainCell(world.terrain[i][j]));
+				texture.SetPixel(i, j, GenerateColorFromTerrainCell(world.Terrain[i][j]));
 			}
 		}
 		
