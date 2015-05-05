@@ -30,37 +30,37 @@ public class PerlinNoise {
 		int fy = (int)(Mathf.Floor(y));
 		int fz = (int)(Mathf.Floor(z));
 		
-		int X = fx & 255;                  // FIND UNIT CUBE THAT
-		int Y = fy & 255;                // CONTAINS POINT.
+		int X = fx & 255;
+		int Y = fy & 255;
 		int Z = fz & 255;
 
-		x -= Mathf.Floor(x);                                // FIND RELATIVE X,Y,Z
-		y -= Mathf.Floor(y);                                // OF POINT IN CUBE.
+		x -= Mathf.Floor(x);
+		y -= Mathf.Floor(y); 
 		z -= Mathf.Floor(z);
 
-		float u = fade(x);                               // COMPUTE FADE CURVES
-		float v = fade(y);                               // FOR EACH OF X,Y,Z.
+		float u = fade(x);
+		float v = fade(y);
 		float w = fade(z);
 
 		int A = p[X]+Y;
 		int AA = p[A]+Z;
-		int AB = p[A+1]+Z;      // HASH COORDINATES OF
+		int AB = p[A+1]+Z;
 
 		int B = p[X+1]+Y;
 		int BA = p[B]+Z;
-		int BB = p[B+1]+Z;      // THE 8 CUBE CORNERS,
+		int BB = p[B+1]+Z;
 		
 		return scale(
 			lerp(w, 
 		     	lerp(v, 
 		     		lerp(u,
-		     			grad(p[AA], x, y, z),  // AND ADD
-		     			grad(p[BA], x-1, y, z)), // BLENDED
-		     		lerp(u, grad(p[AB], x, y-1, z),  // RESULTS
-		     			grad(p[BB ], x-1, y-1, z))),// FROM  8
+		     			grad(p[AA], x, y, z),
+		     			grad(p[BA], x-1, y, z)),
+		     		lerp(u, grad(p[AB], x, y-1, z),
+		     			grad(p[BB ], x-1, y-1, z))),
 		     	lerp(v, lerp(u, 
-		             		grad(p[AA+1], x, y, z-1),  // CORNERS
-	             			grad(p[BA+1], x-1, y, z-1)), // OF CUBE
+		             		grad(p[AA+1], x, y, z-1),
+	             			grad(p[BA+1], x-1, y, z-1)),
 		     		lerp(u, grad(p[AB+1], x, y-1, z-1),
 		     grad(p[BB+1], x-1, y-1, z-1)))));
 	}
@@ -77,8 +77,8 @@ public class PerlinNoise {
 
 	private static float grad (int hash, float x, float y, float z) {
 
-		int h = hash & 15;                      // CONVERT LO 4 BITS OF HASH CODE
-		float u = (h < 8) ? x : y;                 // INTO 12 GRADIENT DIRECTIONS.
+		int h = hash & 15;
+		float u = (h < 8) ? x : y;
 		float v = (h < 4) ? y : ((h == 12) || (h == 14)) ? x : z;
 
 		return (((h & 1) == 0) ? u : -u) + (((h & 2) == 0) ? v : -v);

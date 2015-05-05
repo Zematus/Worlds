@@ -31,10 +31,10 @@ public class Manager {
 
 	public static World GenerateNewWorld () {
 
-		int width = 200;
-		int height = 100;
+		int width = 400;
+		int height = 200;
 		int seed = Random.Range(0, int.MaxValue);
-		//int seed = 0;
+		//int seed = 4;
 
 		World world = new World(width, height, seed);
 		world.Generate();
@@ -87,11 +87,18 @@ public class Manager {
 
 	private static Color GenerateAltitudeColor (float altitude) {
 		
-		if (altitude < 0) return Color.blue;
+		float value;
 		
-		float span = World.MaxAltitude - World.MinAltitude;
+		if (altitude < 0) {
+			
+			value = (2 - altitude / World.MinAltitude) / 2f;
+
+			Color blue = Color.blue;
+			
+			return new Color(blue.r * value, blue.g * value, blue.b * value);
+		}
 		
-		float value = (altitude - World.MinAltitude) / span;
+		value = (1 + altitude / World.MaxAltitude) / 2f;
 		
 		Color brown = new Color(0.58f, 0.29f, 0);
 		
