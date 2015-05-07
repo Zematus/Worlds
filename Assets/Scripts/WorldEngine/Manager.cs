@@ -93,16 +93,27 @@ public class Manager {
 			
 			value = (2 - altitude / World.MinAltitude) / 2f;
 
-			Color blue = Color.blue;
+			Color color1 = Color.blue;
 			
-			return new Color(blue.r * value, blue.g * value, blue.b * value);
+			return new Color(color1.r * value, color1.g * value, color1.b * value);
 		}
 		
+//		if (altitude > (World.MaxAltitude/2.75f)) {
+//			
+//			return Color.red;
+//		}
+//		else
+//		{
+//			return Color.black;
+//		}
+		
 		value = (1 + altitude / World.MaxAltitude) / 2f;
+		//value = altitude / World.MaxAltitude;
 		
-		Color brown = new Color(0.58f, 0.29f, 0);
+		Color color2 = new Color(0.58f, 0.29f, 0);
+		//Color color2 = Color.white;
 		
-		return new Color(brown.r * value, brown.g * value, brown.b * value);
+		return new Color(color2.r * value, color2.g * value, color2.b * value);
 	}
 	
 	private static Color GenerateRainfallColor (float rainfall) {
