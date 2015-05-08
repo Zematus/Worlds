@@ -133,21 +133,33 @@ public class World {
 			{
 				float alpha = (j / (float)sizeY) * Mathf.PI;
 
+				float value = 0;
+
 				float continentValue = GetContinentModifier(i, j);
 				float value1 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius1, offset1);
 				float value2 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius2, offset2);
 				float value3 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius3, offset3);
 				float value4 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius4, offset4);
 				float value5 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius5, offset5);
-
-				float value = MathUtility.MixValues(value1, value2, MountainRangeMixFactor);
-				value = GetMountainRangeNoiseFromRandomNoise(value);
-
-				value = MathUtility.MixValues(value, continentValue, ContinentFactor);
-
+				
+				//value = MathUtility.MixValues(value, continentValue, ContinentFactor);
+				value = continentValue;
 				value = MathUtility.MixValues(value, value3, TerrainNoiseFactor1);
 				value = value * MathUtility.MixValues(1, value4, TerrainNoiseFactor2);
 				value = value * MathUtility.MixValues(1, value5, TerrainNoiseFactor3);
+
+				value = (value * 0.2f) + 0.4f;
+				
+				float valueM = MathUtility.MixValues(value1, value2, MountainRangeMixFactor);
+				valueM = GetMountainRangeNoiseFromRandomNoise(valueM);
+				valueM = MathUtility.MixValues(valueM, value3, TerrainNoiseFactor1);
+				valueM = valueM * MathUtility.MixValues(1, value4, TerrainNoiseFactor2);
+				valueM = valueM * MathUtility.MixValues(1, value5, TerrainNoiseFactor3);
+				valueM = 2 * valueM * value;
+				
+				//value = MathUtility.MixValues(value, valueM, 0.25f);
+				
+				value = valueM;
 				
 				Terrain[i][j].Altitude = CalculateAltitude(value);
 			}
