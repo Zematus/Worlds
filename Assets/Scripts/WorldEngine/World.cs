@@ -5,6 +5,7 @@ public class TerrainCell {
 
 	public float Altitude;
 	public float Rainfall;
+	public float RainAcc;
 }
 
 public class World {
@@ -13,7 +14,8 @@ public class World {
 	public const float ContinentFactor = 0.75f;
 	//public const float ContinentFactor = 0.5f;
 	//public const float ContinentFactor = 0f;
-	public const float ContinentWidthFactor = 5f;
+	public const float ContinentMinWidthFactor = 3f;
+	public const float ContinentMaxWidthFactor = 7f;
 
 	public const float MinAltitude = -10000;
 	public const float MaxAltitude = 10000;
@@ -36,6 +38,7 @@ public class World {
 	public TerrainCell[][] Terrain;
 
 	private Vector2[] _continentOffsets;
+	private float[] _continentWidths;
 
 	public World(int width, int height, int seed) {
 	
@@ -60,12 +63,13 @@ public class World {
 		}
 
 		_continentOffsets = new Vector2[NumContinents];
+		_continentWidths = new float[NumContinents];
 	}
 
 	public void Generate () {
 
 		GenerateTerrainAltitude();
-		//GenerateTerrainRainfall();
+		GenerateTerrainRainfall2();
 	}
 
 	private void GenerateContinents () {
@@ -75,6 +79,7 @@ public class World {
 			_continentOffsets[i] = new Vector2(
 				Mathf.Repeat(Random.Range(Width*i*2/5, Width*(i + 2)*2/5), Width),
 				Random.Range(Height * 1f/6f, Height * 5f/6f));
+			_continentWidths[i] = Random.Range(ContinentMinWidthFactor, ContinentMaxWidthFactor);
 		}
 	}
 	
@@ -98,7 +103,9 @@ public class World {
 
 			float dist = new Vector2(distX, distY).magnitude;
 
-			float value = Mathf.Max(0, 1f - ContinentWidthFactor*dist/((float)Width));
+			float continentWidth = _continentWidths[i];
+
+			float value = Mathf.Max(0, 1f - continentWidth*dist/((float)Width));
 
 			maxValue = Mathf.Max(maxValue, value);
 		}
@@ -192,6 +199,46 @@ public class World {
 		float span = MaxAltitude - MinAltitude;
 
 		return (value * span) + MinAltitude;
+	}
+	
+	private void GenerateTerrainRainfall2 () {
+		
+		int sizeX = Width;
+		int sizeY = Height;
+
+		int maxCycles = 25;
+
+		float accRainFactor = 2f;
+		float rainfallFactor = 0.1f;
+
+		for (int c = 0; c < maxCycles; c++)
+		{
+			for (int i = 0; i < sizeX; i++)
+			{
+				int prevI = (i + 1) % Width;
+
+				for (int j = 0; j < sizeY; j++)
+				{
+					float widthFactor = Mathf.Sin(Mathf.PI * j / sizeY);
+
+					TerrainCell cell = Terrain[i][j];
+					cell.RainAcc = 0;
+
+					if (cell.Altitude < 0)
+					{
+						cell.RainAcc += widthFactor * accRainFactor * MaxRainfall;
+					}
+					
+					TerrainCell prevCell = Terrain[prevI][j];
+
+					cell.RainAcc += prevCell.RainAcc;
+					cell.Rainfall += cell.RainAcc * rainfallFactor;
+					cell.RainAcc -= cell.Rainfall;
+
+					cell.RainAcc = Mathf.Max(cell.RainAcc, 0);
+				}
+			}
+		}
 	}
 	
 	private void GenerateTerrainRainfall () {
