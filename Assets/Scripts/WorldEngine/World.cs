@@ -206,10 +206,10 @@ public class World {
 		int sizeX = Width;
 		int sizeY = Height;
 
-		int maxCycles = 25;
+		int maxCycles = Width;
 
-		float accRainFactor = 2f;
-		float rainfallFactor = 0.1f;
+		float accRainFactor = 0.002f;
+		float rainfallFactor = 0.025f;
 
 		for (int c = 0; c < maxCycles; c++)
 		{
@@ -231,9 +231,13 @@ public class World {
 					
 					TerrainCell prevCell = Terrain[prevI][j];
 
+					float diffAlt = Mathf.Max(0, Mathf.Max(0, cell.Altitude) - Mathf.Max(0, prevCell.Altitude));
+					float finalRainFactor = Mathf.Min(1, rainfallFactor + (diffAlt / MaxAltitude)) * 0.1f;
+
 					cell.RainAcc += prevCell.RainAcc;
-					cell.Rainfall += cell.RainAcc * rainfallFactor;
-					cell.RainAcc -= cell.Rainfall;
+					float accRainfall = cell.RainAcc * finalRainFactor;
+					cell.Rainfall += accRainfall / (widthFactor + 0.001f);
+					cell.RainAcc -= accRainfall;
 
 					cell.RainAcc = Mathf.Max(cell.RainAcc, 0);
 				}
