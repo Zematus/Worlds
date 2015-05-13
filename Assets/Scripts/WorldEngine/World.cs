@@ -6,6 +6,7 @@ public class TerrainCell {
 	public float Altitude;
 	public float Rainfall;
 	public float RainAcc;
+	public float PrevRainAcc;
 }
 
 public class World {
@@ -206,22 +207,45 @@ public class World {
 		int sizeX = Width;
 		int sizeY = Height;
 
-		int maxCycles = Width;
+		int maxCycles = Width/5;
 
-		float accRainFactor = 0.002f;
-		float rainfallFactor = 0.025f;
+		float accRainFactor = 0.06f;
+		float rainfallFactor = 0.005f;
+		float rainfallAltFactor = 0.05f;
 
 		for (int c = 0; c < maxCycles; c++)
 		{
 			for (int i = 0; i < sizeX; i++)
 			{
-				int prevI = (i + 1) % Width;
-
+				int prevI = (i - 1 + Width) % Width;
+				
 				for (int j = 0; j < sizeY; j++)
 				{
+					int prevJ = j;
+
+					if (j < (sizeY / 4))
+					{
+						prevJ = j + 1;
+						prevI = (i + 1) % Width;
+					}
+					else if (j < (sizeY / 2))
+					{
+						prevJ = j - 1;
+					}
+					else if (j < ((sizeY * 3) / 4))
+					{
+						prevJ = j + 1;
+						prevI = (i + 1) % Width;
+					}
+					else
+					{
+						prevJ = j - 1;
+					}
+
 					float widthFactor = Mathf.Sin(Mathf.PI * j / sizeY);
 
 					TerrainCell cell = Terrain[i][j];
+					cell.PrevRainAcc = cell.RainAcc;
 					cell.RainAcc = 0;
 
 					if (cell.Altitude < 0)
@@ -229,14 +253,17 @@ public class World {
 						cell.RainAcc += widthFactor * accRainFactor * MaxRainfall;
 					}
 					
-					TerrainCell prevCell = Terrain[prevI][j];
+					TerrainCell prevCell = Terrain[prevI][prevJ];
 
-					float diffAlt = Mathf.Max(0, Mathf.Max(0, cell.Altitude) - Mathf.Max(0, prevCell.Altitude));
-					float finalRainFactor = Mathf.Min(1, rainfallFactor + (diffAlt / MaxAltitude)) * 0.1f;
+					float altDiff = Mathf.Max(0, cell.Altitude) - Mathf.Max(0, prevCell.Altitude);
+					float altitudeFactor = Mathf.Max(0, (rainfallAltFactor * altDiff / MaxAltitude));
+					float finalRainFactor = Mathf.Min(1, rainfallFactor + altitudeFactor);
 
-					cell.RainAcc += prevCell.RainAcc;
+					cell.RainAcc += prevCell.PrevRainAcc;
+					cell.RainAcc = Mathf.Min(cell.RainAcc, MaxRainfall / rainfallFactor);
+
 					float accRainfall = cell.RainAcc * finalRainFactor;
-					cell.Rainfall += accRainfall / (widthFactor + 0.001f);
+					cell.Rainfall += accRainfall;// / (widthFactor + 0.001f);
 					cell.RainAcc -= accRainfall;
 
 					cell.RainAcc = Mathf.Max(cell.RainAcc, 0);
