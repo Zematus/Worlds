@@ -9,6 +9,8 @@ public class Manager {
 
 	private Texture2D _currentTexture = null;
 
+	private static bool _rainfallVisible = false;
+
 	public static World CurrentWorld { 
 		get {
 
@@ -28,6 +30,11 @@ public class Manager {
 			return _manager._currentTexture; 
 		}
 	}
+	
+	public static void RefreshTexture () { 
+
+		GenerateTextureFromWorld(CurrentWorld);
+	}
 
 	public static World GenerateNewWorld () {
 
@@ -42,6 +49,11 @@ public class Manager {
 		_manager._currentWorld = world;
 
 		return world;
+	}
+
+	public static void SetRainfallVisible (bool value) {
+	
+		_rainfallVisible = value;
 	}
 	
 	public static Texture2D GenerateTextureFromWorld (World world) {
@@ -74,7 +86,12 @@ public class Manager {
 	private static Color GenerateColorFromTerrainCell (TerrainCell cell) {
 
 		Color altitudeColor = GenerateAltitudeContourColor(cell.Altitude);
-		Color rainfallColor = GenerateRainfallColor(cell.Rainfall);
+		Color rainfallColor = Color.black;
+
+		if (_rainfallVisible)
+		{
+			rainfallColor = GenerateRainfallColor(cell.Rainfall);
+		}
 
 		float normalizedRainfall = NormalizeRainfall(cell.Rainfall);
 

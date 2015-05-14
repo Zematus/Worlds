@@ -1,6 +1,13 @@
 ﻿using UnityEngine;
 using System.Collections;
 
+public class Biome {
+
+	public float Altitude;
+	public float Rainfall;
+	public float Temperature;
+}
+
 public class TerrainCell {
 
 	public float Altitude;
@@ -70,7 +77,7 @@ public class World {
 	public void Generate () {
 
 		GenerateTerrainAltitude();
-		GenerateTerrainRainfall2();
+		GenerateTerrainRainfall();
 	}
 
 	private void GenerateContinents () {
@@ -217,20 +224,19 @@ public class World {
 		{
 			for (int i = 0; i < sizeX; i++)
 			{
-				int prevI = (i - 1 + Width) % Width;
-				
 				for (int j = 0; j < sizeY; j++)
 				{
+					int prevI = (i - 1 + Width) % Width;
 					int prevJ = j;
 
 					if (j < (sizeY / 4))
 					{
 						prevJ = j + 1;
-						prevI = (i + 1) % Width;
 					}
 					else if (j < (sizeY / 2))
 					{
 						prevJ = j - 1;
+						prevI = (i + 1) % Width;
 					}
 					else if (j < ((sizeY * 3) / 4))
 					{
@@ -242,15 +248,13 @@ public class World {
 						prevJ = j - 1;
 					}
 
-					float widthFactor = Mathf.Sin(Mathf.PI * j / sizeY);
-
 					TerrainCell cell = Terrain[i][j];
 					cell.PrevRainAcc = cell.RainAcc;
 					cell.RainAcc = 0;
 
 					if (cell.Altitude < 0)
 					{
-						cell.RainAcc += widthFactor * accRainFactor * MaxRainfall;
+						cell.RainAcc += accRainFactor * MaxRainfall;
 					}
 					
 					TerrainCell prevCell = Terrain[prevI][prevJ];
@@ -263,7 +267,7 @@ public class World {
 					cell.RainAcc = Mathf.Min(cell.RainAcc, MaxRainfall / rainfallFactor);
 
 					float accRainfall = cell.RainAcc * finalRainFactor;
-					cell.Rainfall += accRainfall;// / (widthFactor + 0.001f);
+					cell.Rainfall += accRainfall;
 					cell.RainAcc -= accRainfall;
 
 					cell.RainAcc = Mathf.Max(cell.RainAcc, 0);
