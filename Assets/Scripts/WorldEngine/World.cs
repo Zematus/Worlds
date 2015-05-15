@@ -12,6 +12,8 @@ public class TerrainCell {
 
 	public float Altitude;
 	public float Rainfall;
+	public float Temperature;
+
 	public float RainAcc;
 	public float PrevRainAcc;
 }
@@ -34,9 +36,13 @@ public class World {
 	public const float TerrainNoiseFactor2 = 0.15f;
 	public const float TerrainNoiseFactor3 = 0.1f;
 	
-	public const float MinRainfall = -10;
+	public const float MinRainfall = -20;
 	public const float MaxRainfall = 100;
 	public const float RainfallAltitudeFactor = 1.0f;
+	
+	public const float MinTemperature = -100;
+	public const float MaxTemperature = 100;
+	public const float TemperatureAltitudeFactor = 1.0f;
 
 	public int Width { get; private set; }
 	public int Height { get; private set; }
@@ -78,6 +84,7 @@ public class World {
 
 		GenerateTerrainAltitude();
 		GenerateTerrainRainfall();
+		GenerateTerrainTemperature();
 	}
 
 	private void GenerateContinents () {
@@ -159,7 +166,7 @@ public class World {
 				valueA = valueA * MathUtility.MixValues(1, value4, TerrainNoiseFactor2);
 				valueA = valueA * MathUtility.MixValues(1, value5, TerrainNoiseFactor3);
 
-				float valueB = (valueA * 0.2f) + 0.4f;
+				float valueB = (valueA * 0.04f) + 0.48f;
 				
 				float valueC = MathUtility.MixValues(value1, value2, MountainRangeMixFactor);
 				valueC = GetMountainRangeNoiseFromRandomNoise(valueC);
@@ -306,6 +313,38 @@ public class World {
 		}
 	}
 	
+	private void GenerateTerrainTemperature () {
+		
+		int sizeX = Width;
+		int sizeY = Height;
+		
+		float radius = 2f;
+		
+		Vector3 offset = GenerateRandomOffsetVector();
+		
+		for (int i = 0; i < sizeX; i++)
+		{
+			float beta = (i / (float)sizeX) * Mathf.PI * 2;
+			
+			for (int j = 0; j < sizeY; j++)
+			{
+				TerrainCell cell = Terrain[i][j];
+				
+				float alpha = (j / (float)sizeY) * Mathf.PI;
+				
+				float value = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius, offset);
+
+				float latitudeModifier = (alpha * 0.8f) + (value * 0.2f * Mathf.PI);
+				
+				float baseTemperature = CalculateTemperature(Mathf.Sin(latitudeModifier));
+				
+				float altitudeFactor = Mathf.Clamp((cell.Altitude / MaxAltitude) * TemperatureAltitudeFactor, 0f, 1f);
+				
+				cell.Temperature = baseTemperature * (1f - altitudeFactor);
+			}
+		}
+	}
+	
 	private float CalculateRainfall (float value) {
 		
 		float span = MaxRainfall - MinRainfall;
@@ -315,5 +354,16 @@ public class World {
 		rainfall = Mathf.Clamp(rainfall, 0, MaxRainfall);
 		
 		return rainfall;
+	}
+	
+	private float CalculateTemperature (float value) {
+		
+		float span = MaxTemperature - MinTemperature;
+		
+		float temperature = (value * span) + MinTemperature;
+		
+		temperature = Mathf.Clamp(temperature, 0, MaxTemperature);
+		
+		return temperature;
 	}
 }

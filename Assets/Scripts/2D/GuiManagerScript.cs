@@ -6,6 +6,9 @@ public class GuiManagerScript : MonoBehaviour {
 
 	public Text MapViewButtonText;
 	public Text RainfallViewButtonText;
+	public Text TemperatureViewButtonText;
+
+	public Text InfoPanelText;
 
 	public RawImage MapImage;
 
@@ -13,6 +16,8 @@ public class GuiManagerScript : MonoBehaviour {
 	public MapScript MapScript;
 
 	private bool _viewRainfall = false;
+	private bool _viewTemperature = false;
+
 	private bool _updateTexture = false;
 
 	// Use this for initialization
@@ -20,6 +25,9 @@ public class GuiManagerScript : MonoBehaviour {
 		
 		UpdateMapViewButtonText();
 		UpdateRainfallViewButtonText();
+		UpdateTemperatureViewButtonText();
+
+		InfoPanelText.text = "test text, test text, test text";
 	}
 	
 	// Update is called once per frame
@@ -30,6 +38,8 @@ public class GuiManagerScript : MonoBehaviour {
 			_updateTexture = false;
 
 			Manager.SetRainfallVisible(_viewRainfall);
+			Manager.SetTemperatureVisible(_viewTemperature);
+
 			Manager.RefreshTexture();
 
 			PlanetScript.UpdateTexture();
@@ -74,6 +84,27 @@ public class GuiManagerScript : MonoBehaviour {
 		else
 		{
 			RainfallViewButtonText.text = "Hide Rainfall";
+		}
+	}
+	
+	public void UpdateTemperatureView () {
+		
+		_updateTexture = true;
+		
+		_viewTemperature = !_viewTemperature;
+		
+		UpdateTemperatureViewButtonText();
+	}
+	
+	public void UpdateTemperatureViewButtonText () {
+		
+		if (!_viewTemperature)
+		{
+			TemperatureViewButtonText.text = "View Temp";
+		}
+		else
+		{
+			TemperatureViewButtonText.text = "Hide Temp";
 		}
 	}
 }
