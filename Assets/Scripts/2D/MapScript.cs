@@ -9,15 +9,15 @@ public class MapScript : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 
-		UpdateTexture();
+		RefreshTexture();
 	}
 	
 	// Update is called once per frame
 	void Update () {
-	
+
 	}
 	
-	public void UpdateTexture () {
+	public void RefreshTexture () {
 		
 		Texture2D texture = Manager.CurrentTexture;
 		
