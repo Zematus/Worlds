@@ -40,8 +40,8 @@ public class World {
 	public const float MaxRainfall = 100;
 	public const float RainfallAltitudeFactor = 1.0f;
 	
-	public const float MinTemperature = -100;
-	public const float MaxTemperature = 100;
+	public const float MinTemperature = -50;
+	public const float MaxTemperature = 30;
 	public const float TemperatureAltitudeFactor = 1.0f;
 
 	public int Width { get; private set; }
@@ -338,7 +338,7 @@ public class World {
 				
 				float baseTemperature = CalculateTemperature(Mathf.Sin(latitudeModifier));
 				
-				float altitudeFactor = Mathf.Clamp((cell.Altitude / MaxAltitude) * TemperatureAltitudeFactor, 0f, 1f);
+				float altitudeFactor = (cell.Altitude / MaxAltitude) * 2.5f * TemperatureAltitudeFactor;
 				
 				cell.Temperature = baseTemperature * (1f - altitudeFactor);
 			}
@@ -362,7 +362,7 @@ public class World {
 		
 		float temperature = (value * span) + MinTemperature;
 		
-		temperature = Mathf.Clamp(temperature, 0, MaxTemperature);
+		temperature = Mathf.Clamp(temperature, MinTemperature, MaxTemperature);
 		
 		return temperature;
 	}

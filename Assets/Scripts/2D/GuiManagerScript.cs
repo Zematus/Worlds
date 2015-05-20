@@ -127,7 +127,10 @@ public class GuiManagerScript : MonoBehaviour {
 
 		TerrainCell cell = Manager.CurrentWorld.Terrain[longitude][latitude];
 		
-		InfoPanelText.text = "Position: " + mapPosition + ", Altitude: " + cell.Altitude;
+		InfoPanelText.text = "Position: " + mapPosition;
+		InfoPanelText.text += "\nAltitude: " + cell.Altitude;
+		InfoPanelText.text += "\nRainfall: " + cell.Rainfall;
+		InfoPanelText.text += "\nTemperature: " + cell.Temperature;
 	}
 	
 	public bool GetMapCoordinatesFromCursor (out Vector2 point) {
