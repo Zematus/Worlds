@@ -60,8 +60,8 @@ public class GuiManagerScript : MonoBehaviour {
 	}
 
 	public void UpdateMapView () {
-	
-		MapImage.enabled = !MapImage.enabled;
+
+		MapScript.SetVisible(!MapScript.IsVisible());
 
 		UpdateMapViewButtonText();
 	}
