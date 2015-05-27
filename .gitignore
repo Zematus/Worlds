@@ -15,6 +15,7 @@ Worlds_Data/
 /*.booproj
 /*.exe
 /*.dll
+/test_world*.xml
 
 #Unity3D Generated File On Crash Reports
 sysinfo.txt

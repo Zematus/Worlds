@@ -1,5 +1,8 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Xml;
+using System.Xml.Serialization;
+using System.IO;
 
 public class Manager {
 
@@ -45,11 +48,33 @@ public class Manager {
 		//int seed = 4;
 
 		World world = new World(width, height, seed);
+
+		world.Initialize();
 		world.Generate();
 
 		_manager._currentWorld = world;
 
 		return world;
+	}
+	
+	public static void SaveWorld () {
+
+		XmlSerializer serializer = new XmlSerializer(typeof(World));
+		FileStream stream = new FileStream("test_world.xml", FileMode.Create);
+
+		serializer.Serialize(stream, _manager._currentWorld);
+
+		stream.Close();
+	}
+	
+	public static void LoadWorld () {
+
+		XmlSerializer serializer = new XmlSerializer(typeof(World));
+		FileStream stream = new FileStream("test_world.xml", FileMode.Open);
+
+		_manager._currentWorld = serializer.Deserialize(stream) as World;
+
+		stream.Close();
 	}
 
 	public static void SetRainfallVisible (bool value) {

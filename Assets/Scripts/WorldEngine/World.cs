@@ -1,23 +1,34 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Xml;
+using System.Xml.Serialization;
 
 public class Biome {
 
+	[XmlAttribute]
 	public float Altitude;
+	[XmlAttribute]
 	public float Rainfall;
+	[XmlAttribute]
 	public float Temperature;
 }
 
 public class TerrainCell {
-
+	
+	[XmlAttribute]
 	public float Altitude;
+	[XmlAttribute]
 	public float Rainfall;
+	[XmlAttribute]
 	public float Temperature;
 
+	[XmlIgnore]
 	public float RainAcc;
+	[XmlIgnore]
 	public float PrevRainAcc;
 }
 
+[XmlRoot]
 public class World {
 
 	public const int NumContinents = 7;
@@ -43,10 +54,13 @@ public class World {
 	public const float MinTemperature = -50;
 	public const float MaxTemperature = 30;
 	public const float TemperatureAltitudeFactor = 1.0f;
-
+	
+	[XmlAttribute]
 	public int Width { get; private set; }
+	[XmlAttribute]
 	public int Height { get; private set; }
-
+	
+	[XmlAttribute]
 	public int Seed { get; private set; }
 
 	public TerrainCell[][] Terrain;
@@ -54,13 +68,16 @@ public class World {
 	private Vector2[] _continentOffsets;
 	private float[] _continentWidths;
 
-	public World(int width, int height, int seed) {
+	private bool _initialized = false;
+
+	public World () {
+	}
+
+	public World (int width, int height, int seed) {
 	
 		Width = width;
 		Height = height;
 		Seed = seed;
-		
-		Random.seed = Seed;
 
 		Terrain = new TerrainCell[width][];
 
@@ -78,6 +95,16 @@ public class World {
 
 		_continentOffsets = new Vector2[NumContinents];
 		_continentWidths = new float[NumContinents];
+	}
+
+	public void Initialize () {
+
+		if (_initialized)
+			return;
+
+		_initialized = true;
+
+		Random.seed = Seed;
 	}
 
 	public void Generate () {

@@ -58,6 +58,26 @@ public class GuiManagerScript : MonoBehaviour {
 			}
 		}
 	}
+	
+	public void GenerateWorld () {
+
+		Manager.GenerateNewWorld();
+		
+		_updateTexture = true;
+
+	}
+
+	public void SaveWorld () {
+
+		Manager.SaveWorld ();
+	}
+	
+	public void LoadWorld () {
+		
+		Manager.LoadWorld();
+		
+		_updateTexture = true;
+	}
 
 	public void UpdateMapView () {
 
