@@ -5,6 +5,8 @@ using System.Collections;
 
 public class GuiManagerScript : MonoBehaviour {
 
+	public CanvasGroup NonModalCanvasGroup;
+
 	public Text MapViewButtonText;
 	public Text RainfallViewButtonText;
 	public Text TemperatureViewButtonText;
@@ -15,6 +17,8 @@ public class GuiManagerScript : MonoBehaviour {
 
 	public PlanetScript PlanetScript;
 	public MapScript MapScript;
+	
+	public FileDialogPanelScript FileDialogPanelScript;
 
 	private bool _viewRainfall = false;
 	private bool _viewTemperature = false;
@@ -27,73 +31,110 @@ public class GuiManagerScript : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 
-		UpdateMapViewButtonText();
-		UpdateRainfallViewButtonText();
-		UpdateTemperatureViewButtonText();
+		UpdateMapViewButtonText ();
+		UpdateRainfallViewButtonText ();
+		UpdateTemperatureViewButtonText ();
+
+		SetInfoPanelData (0, 0);
+
+		FileDialogPanelScript.SetVisible (false);
 	}
 	
 	// Update is called once per frame
 	void Update () {
 	
-		if (_updateTexture)
-		{
+		if (_updateTexture) {
 			_updateTexture = false;
 
-			Manager.SetRainfallVisible(_viewRainfall);
-			Manager.SetTemperatureVisible(_viewTemperature);
+			Manager.SetRainfallVisible (_viewRainfall);
+			Manager.SetTemperatureVisible (_viewTemperature);
 
-			Manager.RefreshTexture();
+			Manager.RefreshTexture ();
 
-			PlanetScript.UpdateTexture();
-			MapScript.RefreshTexture();
+			PlanetScript.UpdateTexture ();
+			MapScript.RefreshTexture ();
 		}
 
-		if (MapImage.enabled)
-		{
+		if (MapImage.enabled) {
 			Vector2 point;
 
-			if (GetMapCoordinatesFromCursor(out point))
-			{
-				SetInfoPanelData(point);
+			if (GetMapCoordinatesFromCursor (out point)) {
+				SetInfoPanelData (point);
 			}
 		}
 	}
 	
 	public void GenerateWorld () {
 
-		Manager.GenerateNewWorld();
+		Manager.GenerateNewWorld ();
 		
 		_updateTexture = true;
 
 	}
 
-	public void SaveWorld () {
+	private void SetEnabledModalSaveDialog (bool value) {
+		
+		NonModalCanvasGroup.blocksRaycasts = !value;
+		FileDialogPanelScript.SetVisible (value);
+	}
 
-		Manager.SaveWorld ();
+	public void SaveWorldAs () {
+		
+		int seed = Manager.CurrentWorld.Seed;
+		
+		string worldName = "test_world";
+
+		FileDialogPanelScript.SetDialogText ("Save World As...");
+		FileDialogPanelScript.SetWorldName (worldName);
+		
+		FileDialogPanelScript.SetAction(() => {
+			
+			worldName = FileDialogPanelScript.GetWorldName ();
+			
+			string path = "Worlds\\" + worldName + ".xml";
+				Manager.SaveWorld (path);
+			
+			SetEnabledModalSaveDialog (false);
+		});
+		
+		SetEnabledModalSaveDialog (true);
 	}
 	
 	public void LoadWorld () {
 		
-		Manager.LoadWorld();
+		NonModalCanvasGroup.blocksRaycasts = false;
 		
-		_updateTexture = true;
+		FileDialogPanelScript.SetDialogText ("Load World...");
+		FileDialogPanelScript.SetWorldName ("");
+		FileDialogPanelScript.SetVisible (true);
+		
+		FileDialogPanelScript.SetAction(() => {
+			
+			string worldName = FileDialogPanelScript.GetWorldName ();
+			
+			string path = "Worlds\\" + worldName + ".xml";
+			Manager.LoadWorld (path);
+			
+			SetEnabledModalSaveDialog (false);
+			
+			_updateTexture = true;
+		});
+		
+		SetEnabledModalSaveDialog (true);
 	}
 
 	public void UpdateMapView () {
 
-		MapScript.SetVisible(!MapScript.IsVisible());
+		MapScript.SetVisible (!MapScript.IsVisible());
 
-		UpdateMapViewButtonText();
+		UpdateMapViewButtonText ();
 	}
 
 	public void UpdateMapViewButtonText () {
 		
-		if (MapImage.enabled)
-		{
+		if (MapImage.enabled) {
 			MapViewButtonText.text = "View World";
-		}
-		else
-		{
+		} else {
 			MapViewButtonText.text = "View Map";
 		}
 	}
@@ -104,17 +145,14 @@ public class GuiManagerScript : MonoBehaviour {
 
 		_viewRainfall = !_viewRainfall;
 		
-		UpdateRainfallViewButtonText();
+		UpdateRainfallViewButtonText ();
 	}
 	
 	public void UpdateRainfallViewButtonText () {
 		
-		if (!_viewRainfall)
-		{
+		if (!_viewRainfall) {
 			RainfallViewButtonText.text = "View Rainfall";
-		}
-		else
-		{
+		} else {
 			RainfallViewButtonText.text = "Hide Rainfall";
 		}
 	}
@@ -125,19 +163,26 @@ public class GuiManagerScript : MonoBehaviour {
 		
 		_viewTemperature = !_viewTemperature;
 		
-		UpdateTemperatureViewButtonText();
+		UpdateTemperatureViewButtonText ();
 	}
 	
 	public void UpdateTemperatureViewButtonText () {
 		
-		if (!_viewTemperature)
-		{
+		if (!_viewTemperature) {
 			TemperatureViewButtonText.text = "View Temp";
-		}
-		else
-		{
+		} else {
 			TemperatureViewButtonText.text = "Hide Temp";
 		}
+	}
+	
+	public void SetInfoPanelData (int longitude, int latitude) {
+		
+		TerrainCell cell = Manager.CurrentWorld.Terrain[longitude][latitude];
+		
+		InfoPanelText.text = string.Format("Position: [{0},{1}]", longitude, latitude);
+		InfoPanelText.text += "\nAltitude: " + cell.Altitude;
+		InfoPanelText.text += "\nRainfall: " + cell.Rainfall;
+		InfoPanelText.text += "\nTemperature: " + cell.Temperature;
 	}
 	
 	public void SetInfoPanelData (Vector2 mapPosition) {
@@ -145,34 +190,29 @@ public class GuiManagerScript : MonoBehaviour {
 		int longitude = (int)mapPosition.x;
 		int latitude = (int)mapPosition.y;
 
-		TerrainCell cell = Manager.CurrentWorld.Terrain[longitude][latitude];
-		
-		InfoPanelText.text = "Position: " + mapPosition;
-		InfoPanelText.text += "\nAltitude: " + cell.Altitude;
-		InfoPanelText.text += "\nRainfall: " + cell.Rainfall;
-		InfoPanelText.text += "\nTemperature: " + cell.Temperature;
+		SetInfoPanelData (longitude, latitude);
 	}
 	
 	public bool GetMapCoordinatesFromCursor (out Vector2 point) {
 		
 		Rect mapImageRect = MapImage.rectTransform.rect;
 
-		Vector3 mapMousePos = MapImage.rectTransform.InverseTransformPoint(Input.mousePosition);
+		Vector3 mapMousePos = MapImage.rectTransform.InverseTransformPoint (Input.mousePosition);
 		
-		Vector2 mousePos = new Vector2(mapMousePos.x, mapMousePos.y);
+		Vector2 mousePos = new Vector2 (mapMousePos.x, mapMousePos.y);
 
-		if (mapImageRect.Contains(mousePos))
-		{
+		if (mapImageRect.Contains (mousePos)) {
+
 			Vector2 relPos = mousePos - mapImageRect.min;
 
-			Vector2 uvPos = new Vector2(relPos.x / mapImageRect.size.x, relPos.y / mapImageRect.size.y);
+			Vector2 uvPos = new Vector2 (relPos.x / mapImageRect.size.x, relPos.y / mapImageRect.size.y);
 
 			uvPos += MapImage.uvRect.min;
 
-			float worldLong = Mathf.Repeat(uvPos.x * Manager.CurrentWorld.Width, Manager.CurrentWorld.Width);
+			float worldLong = Mathf.Repeat (uvPos.x * Manager.CurrentWorld.Width, Manager.CurrentWorld.Width);
 			float worldLat = uvPos.y * Manager.CurrentWorld.Height;
 
-			point = new Vector2(Mathf.Floor(worldLong), Mathf.Floor(worldLat));
+			point = new Vector2 (Mathf.Floor(worldLong), Mathf.Floor(worldLat));
 
 			return true;
 		}
@@ -184,7 +224,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 	public void DebugEvent (BaseEventData data) {
 
-		Debug.Log(data.ToString());
+		Debug.Log (data.ToString());
 	}
 	
 	public void DragMap (BaseEventData data) {

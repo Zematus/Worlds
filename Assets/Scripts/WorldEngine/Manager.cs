@@ -57,20 +57,20 @@ public class Manager {
 		return world;
 	}
 	
-	public static void SaveWorld () {
+	public static void SaveWorld (string path) {
 
 		XmlSerializer serializer = new XmlSerializer(typeof(World));
-		FileStream stream = new FileStream("test_world.xml", FileMode.Create);
+		FileStream stream = new FileStream(path, FileMode.Create);
 
 		serializer.Serialize(stream, _manager._currentWorld);
 
 		stream.Close();
 	}
 	
-	public static void LoadWorld () {
+	public static void LoadWorld (string path) {
 
 		XmlSerializer serializer = new XmlSerializer(typeof(World));
-		FileStream stream = new FileStream("test_world.xml", FileMode.Open);
+		FileStream stream = new FileStream(path, FileMode.Open);
 
 		_manager._currentWorld = serializer.Deserialize(stream) as World;
 
