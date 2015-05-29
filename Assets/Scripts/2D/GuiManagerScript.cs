@@ -18,7 +18,8 @@ public class GuiManagerScript : MonoBehaviour {
 	public PlanetScript PlanetScript;
 	public MapScript MapScript;
 	
-	public FileDialogPanelScript FileDialogPanelScript;
+	public SaveFileDialogPanelScript SaveFileDialogPanelScript;
+	public LoadFileDialogPanelScript LoadFileDialogPanelScript;
 
 	private bool _viewRainfall = false;
 	private bool _viewTemperature = false;
@@ -37,7 +38,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 		SetInfoPanelData (0, 0);
 
-		FileDialogPanelScript.SetVisible (false);
+		SaveFileDialogPanelScript.SetVisible (false);
 	}
 	
 	// Update is called once per frame
@@ -75,7 +76,13 @@ public class GuiManagerScript : MonoBehaviour {
 	private void SetEnabledModalSaveDialog (bool value) {
 		
 		NonModalCanvasGroup.blocksRaycasts = !value;
-		FileDialogPanelScript.SetVisible (value);
+		SaveFileDialogPanelScript.SetVisible (value);
+	}
+	
+	private void SetEnabledModalLoadDialog (bool value) {
+		
+		NonModalCanvasGroup.blocksRaycasts = !value;
+		LoadFileDialogPanelScript.SetVisible (value);
 	}
 
 	public void SaveWorldAs () {
@@ -84,12 +91,12 @@ public class GuiManagerScript : MonoBehaviour {
 		
 		string worldName = "test_world";
 
-		FileDialogPanelScript.SetDialogText ("Save World As...");
-		FileDialogPanelScript.SetWorldName (worldName);
+		SaveFileDialogPanelScript.SetDialogText ("Save World As...");
+		SaveFileDialogPanelScript.SetWorldName (worldName);
 		
-		FileDialogPanelScript.SetAction(() => {
+		SaveFileDialogPanelScript.SetAction(() => {
 			
-			worldName = FileDialogPanelScript.GetWorldName ();
+			worldName = SaveFileDialogPanelScript.GetWorldName ();
 			
 			string path = "Saves\\" + worldName + ".xml";
 				Manager.SaveWorld (path);
@@ -97,7 +104,7 @@ public class GuiManagerScript : MonoBehaviour {
 			SetEnabledModalSaveDialog (false);
 		});
 		
-		FileDialogPanelScript.SetCancelAction(() => {
+		SaveFileDialogPanelScript.SetCancelAction(() => {
 			
 			SetEnabledModalSaveDialog (false);
 		});
@@ -109,23 +116,27 @@ public class GuiManagerScript : MonoBehaviour {
 		
 		NonModalCanvasGroup.blocksRaycasts = false;
 		
-		FileDialogPanelScript.SetDialogText ("Load World...");
-		FileDialogPanelScript.SetWorldName ("");
-		FileDialogPanelScript.SetVisible (true);
+		LoadFileDialogPanelScript.SetDialogText ("Load World...");
+		LoadFileDialogPanelScript.SetVisible (true);
 		
-		FileDialogPanelScript.SetAction(() => {
+		LoadFileDialogPanelScript.SetAction(() => {
 			
-			string worldName = FileDialogPanelScript.GetWorldName ();
+			string worldName = SaveFileDialogPanelScript.GetWorldName ();
 			
 			string path = "Saves\\" + worldName + ".xml";
 			Manager.LoadWorld (path);
 			
-			SetEnabledModalSaveDialog (false);
+			SetEnabledModalLoadDialog (false);
 			
 			_updateTexture = true;
 		});
 		
-		SetEnabledModalSaveDialog (true);
+		LoadFileDialogPanelScript.SetCancelAction(() => {
+			
+			SetEnabledModalLoadDialog (false);
+		});
+		
+		SetEnabledModalLoadDialog (true);
 	}
 
 	public void UpdateMapView () {

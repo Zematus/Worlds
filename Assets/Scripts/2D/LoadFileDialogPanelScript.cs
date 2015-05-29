@@ -3,7 +3,7 @@ using UnityEngine.Events;
 using UnityEngine.UI;
 using System.Collections;
 
-public class FileDialogPanelScript : MonoBehaviour {
+public class LoadFileDialogPanelScript : MonoBehaviour {
 
 	public CanvasGroup ModalPanelCanvasGroup;
 
