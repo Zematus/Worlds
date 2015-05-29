@@ -11,6 +11,7 @@ public class FileDialogPanelScript : MonoBehaviour {
 	public InputField NameInputField;
 
 	public Button ActionButton;
+	public Button CancelActionButton;
 
 	// Use this for initialization
 	void Start () {
@@ -49,5 +50,11 @@ public class FileDialogPanelScript : MonoBehaviour {
 
 		ActionButton.onClick.RemoveAllListeners ();
 		ActionButton.onClick.AddListener (action);
+	}
+	
+	public void SetCancelAction (UnityAction cancelAction) {
+		
+		CancelActionButton.onClick.RemoveAllListeners ();
+		CancelActionButton.onClick.AddListener (cancelAction);
 	}
 }
