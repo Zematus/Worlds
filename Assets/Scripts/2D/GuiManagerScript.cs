@@ -38,7 +38,8 @@ public class GuiManagerScript : MonoBehaviour {
 
 		SetInfoPanelData (0, 0);
 
-		SaveFileDialogPanelScript.SetVisible (false);
+		SetEnabledModalSaveDialog (false);
+		SetEnabledModalLoadDialog (false);
 	}
 	
 	// Update is called once per frame
@@ -86,12 +87,9 @@ public class GuiManagerScript : MonoBehaviour {
 	}
 
 	public void SaveWorldAs () {
-		
-		int seed = Manager.CurrentWorld.Seed;
-		
+
 		string worldName = "test_world";
 
-		SaveFileDialogPanelScript.SetDialogText ("Save World As...");
 		SaveFileDialogPanelScript.SetWorldName (worldName);
 		
 		SaveFileDialogPanelScript.SetAction(() => {
@@ -113,12 +111,7 @@ public class GuiManagerScript : MonoBehaviour {
 	}
 	
 	public void LoadWorld () {
-		
-		NonModalCanvasGroup.blocksRaycasts = false;
-		
-		LoadFileDialogPanelScript.SetDialogText ("Load World...");
-		LoadFileDialogPanelScript.SetVisible (true);
-		
+
 		LoadFileDialogPanelScript.SetAction(() => {
 			
 			string worldName = SaveFileDialogPanelScript.GetWorldName ();
