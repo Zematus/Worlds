@@ -96,7 +96,7 @@ public class GuiManagerScript : MonoBehaviour {
 			
 			worldName = SaveFileDialogPanelScript.GetWorldName ();
 			
-			string path = "Saves\\" + worldName + ".xml";
+			string path = @"Saves\" + worldName + ".xml";
 				Manager.SaveWorld (path);
 			
 			SetEnabledModalSaveDialog (false);
@@ -116,7 +116,7 @@ public class GuiManagerScript : MonoBehaviour {
 			
 			string worldName = SaveFileDialogPanelScript.GetWorldName ();
 			
-			string path = "Saves\\" + worldName + ".xml";
+			string path = @"Saves\" + worldName + ".xml";
 			Manager.LoadWorld (path);
 			
 			SetEnabledModalLoadDialog (false);

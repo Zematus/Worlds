@@ -3,6 +3,7 @@ using UnityEngine.Events;
 using UnityEngine.UI;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 
 public class LoadFileDialogPanelScript : MonoBehaviour {
 
@@ -21,16 +22,38 @@ public class LoadFileDialogPanelScript : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-	
-		WorldNameButtons.Add (WorldNameButtonPrefab);
 
-		AddWorldNameButton ("test");
-		AddWorldNameButton ("test 2");
+		WorldNameButtons.Add (WorldNameButtonPrefab);
 	}
 	
 	// Update is called once per frame
 	void Update () {
 	
+	}
+
+	private void LoadFileNames () {
+	
+		string[] files = Directory.GetFiles(@"Saves\", "*.XML");
+
+		int i = 0;
+
+		foreach (string file in files) {
+
+			string name = file.Split(new char[] {'\\', '.'})[1];
+
+			SetWorldNameButton(name, i);
+
+			i++;
+		}
+	}
+
+	private void SetWorldNameButton (string name, int index) {
+	
+		if (index < WorldNameButtons.Count) {
+			WorldNameButtons[index].GetComponentInChildren<Text> ().text = name;
+		} else {
+			AddWorldNameButton (name);
+		}
 	}
 
 	private void AddWorldNameButton (string name) {
@@ -45,6 +68,25 @@ public class LoadFileDialogPanelScript : MonoBehaviour {
 		ActionButtonCanvas.transform.SetAsLastSibling ();
 	}
 
+	private void RemoveWorldNameButtons () {
+
+		bool first = true;
+
+		foreach (Button button in WorldNameButtons) {
+		
+			if (first) {
+				first = false;
+				continue;
+			}
+
+			GameObject.Destroy(button.gameObject);
+		}
+
+		WorldNameButtons.Clear ();
+
+		WorldNameButtons.Add (WorldNameButtonPrefab);
+	}
+
 	public void SetDialogText (string text) {
 
 		DialogText.text = text;
@@ -56,6 +98,12 @@ public class LoadFileDialogPanelScript : MonoBehaviour {
 		ModalPanelCanvasGroup.blocksRaycasts = value;
 	
 		gameObject.SetActive (value);
+
+		if (value) {
+			LoadFileNames ();
+		} else {
+			RemoveWorldNameButtons ();
+		}
 	}
 
 	public void SetAction (UnityAction action) {
