@@ -46,7 +46,7 @@ public class SaveFileDialogPanelScript : MonoBehaviour {
 		gameObject.SetActive (value);
 	}
 
-	public void SetAction (UnityAction action) {
+	public void SetSaveAction (UnityAction action) {
 
 		ActionButton.onClick.RemoveAllListeners ();
 		ActionButton.onClick.AddListener (action);

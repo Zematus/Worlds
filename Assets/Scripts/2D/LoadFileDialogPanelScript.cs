@@ -13,12 +13,14 @@ public class LoadFileDialogPanelScript : MonoBehaviour {
 
 	public Button WorldNameButtonPrefab;
 
-	public Button ActionButton;
 	public Button CancelActionButton;
 
 	public Canvas ActionButtonCanvas;
 
 	private List<Button> WorldNameButtons = new List<Button>();
+
+	private UnityAction _loadAction;
+	private string _fileToLoad;
 
 	// Use this for initialization
 	void Start () {
@@ -31,17 +33,22 @@ public class LoadFileDialogPanelScript : MonoBehaviour {
 	
 	}
 
+	public string GetFilenameToLoad () {
+
+		return _fileToLoad;
+	}
+
 	private void LoadFileNames () {
 	
-		string[] files = Directory.GetFiles(@"Saves\", "*.XML");
+		string[] files = Directory.GetFiles (@"Saves\", "*.XML");
 
 		int i = 0;
 
 		foreach (string file in files) {
 
-			string name = file.Split(new char[] {'\\', '.'})[1];
+			string name = file.Split (new char[] {'\\', '.'})[1];
 
-			SetWorldNameButton(name, i);
+			SetWorldNameButton (name, i);
 
 			i++;
 		}
@@ -49,14 +56,28 @@ public class LoadFileDialogPanelScript : MonoBehaviour {
 
 	private void SetWorldNameButton (string name, int index) {
 	
+		Button button;
+
 		if (index < WorldNameButtons.Count) {
-			WorldNameButtons[index].GetComponentInChildren<Text> ().text = name;
+			button = WorldNameButtons[index];
+			button.GetComponentInChildren<Text> ().text = name;
+
 		} else {
-			AddWorldNameButton (name);
+			button = AddWorldNameButton (name);
 		}
+		
+		button.onClick.RemoveAllListeners ();
+
+		string filename = @"Saves\" + name + ".XML";
+
+		button.onClick.AddListener (() => {
+
+			_fileToLoad = filename;
+			_loadAction ();
+		});
 	}
 
-	private void AddWorldNameButton (string name) {
+	private Button AddWorldNameButton (string name) {
 	
 		Button newButton = Instantiate (WorldNameButtonPrefab) as Button;
 
@@ -66,6 +87,8 @@ public class LoadFileDialogPanelScript : MonoBehaviour {
 		WorldNameButtons.Add (newButton);
 
 		ActionButtonCanvas.transform.SetAsLastSibling ();
+
+		return newButton;
 	}
 
 	private void RemoveWorldNameButtons () {
@@ -106,10 +129,9 @@ public class LoadFileDialogPanelScript : MonoBehaviour {
 		}
 	}
 
-	public void SetAction (UnityAction action) {
+	public void SetLoadAction (UnityAction action) {
 
-		ActionButton.onClick.RemoveAllListeners ();
-		ActionButton.onClick.AddListener (action);
+		_loadAction = action;
 	}
 	
 	public void SetCancelAction (UnityAction cancelAction) {
