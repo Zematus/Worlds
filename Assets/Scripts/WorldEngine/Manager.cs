@@ -109,11 +109,6 @@ public class Manager {
 		return texture;
 	}
 	
-	private static Color GenerateGreyScaleColor (float value) {
-		
-		return new Color(value,value,value);
-	}
-	
 	private static Color GenerateColorFromTerrainCell (TerrainCell cell) {
 
 		Color altitudeColor = GenerateAltitudeContourColor(cell.Altitude);
@@ -124,25 +119,33 @@ public class Manager {
 		float g = altitudeColor.g;
 		float b = altitudeColor.b;
 
+		int normalizer = 1;
+
 		if (_rainfallVisible)
 		{
-			rainfallColor = GenerateRainfallColor(cell.Rainfall);
-			float normalizedRainfall = NormalizeRainfall(cell.Rainfall);
+			rainfallColor = GenerateRainfallContourColor(cell.Rainfall);
 			
-			r = (r * (1f - normalizedRainfall)) + (rainfallColor.r * normalizedRainfall);
-			g = (g * (1f - normalizedRainfall)) + (rainfallColor.g * normalizedRainfall);
-			b = (b * (1f - normalizedRainfall)) + (rainfallColor.b * normalizedRainfall);
+			normalizer++;
+			
+			r = (r + rainfallColor.r);
+			g = (g + rainfallColor.g);
+			b = (b + rainfallColor.b);
 		}
 		
 		if (_temperatureVisible)
 		{
-			temperatureColor = GenerateTemperatureColor(cell.Temperature);
-			float normalizedTemperature = NormalizeTemperature(cell.Temperature);
+			temperatureColor = GenerateTemperatureContourColor(cell.Temperature);
 			
-			r = (r * (1f - normalizedTemperature)) + (temperatureColor.r * normalizedTemperature);
-			g = (g * (1f - normalizedTemperature)) + (temperatureColor.g * normalizedTemperature);
-			b = (b * (1f - normalizedTemperature)) + (temperatureColor.b * normalizedTemperature);
+			normalizer++;
+			
+			r = (r + temperatureColor.r);
+			g = (g + temperatureColor.g);
+			b = (b + temperatureColor.b);
 		}
+
+		r /= (float)normalizer;
+		g /= (float)normalizer;
+		b /= (float)normalizer;
 		
 		return new Color(r, g, b);
 	}
@@ -153,15 +156,14 @@ public class Manager {
 		
 		if (altitude < 0) {
 			
-			value = (2 - altitude / World.MinAltitude) / 2f;
+			value = (2 - altitude / World.MinPossibleAltitude) / 2f;
 
 			Color color1 = Color.blue;
 			
 			return new Color(color1.r * value, color1.g * value, color1.b * value);
 		}
 		
-		value = (1 + altitude / World.MaxAltitude) / 2f;
-		//value = altitude / World.MaxAltitude;
+		value = (1 + altitude / World.MaxPossibleAltitude) / 2f;
 		
 		Color color2 = new Color(0.58f, 0.29f, 0);
 		//Color color2 = Color.white;
@@ -177,7 +179,7 @@ public class Manager {
 		
 		if (altitude < 0) {
 			
-			value = (2 - altitude / World.MinAltitude) / 2f;
+			value = (2 - altitude / World.MinPossibleAltitude) / 2f;
 			
 			color = Color.blue;
 			
@@ -186,7 +188,7 @@ public class Manager {
 
 		float shadeValue = 1.0f;
 
-		value = altitude / World.MaxAltitude;
+		value = altitude / CurrentWorld.MaxAltitude;
 
 		while (shadeValue > value)
 		{
@@ -198,22 +200,62 @@ public class Manager {
 		return color;
 	}
 	
+	private static Color GenerateRainfallContourColor (float rainfall) {
+		
+		float value;
+		
+		Color color = Color.green;
+		
+		float shadeValue = 1.0f;
+		
+		value = rainfall / CurrentWorld.MaxRainfall;
+		
+		while (shadeValue > value)
+		{
+			shadeValue -= 0.1f;
+		}
+		
+		color = new Color(color.r * shadeValue, color.g * shadeValue, color.b * shadeValue);
+		
+		return color;
+	}
+	
 	private static Color GenerateRainfallColor (float rainfall) {
 		
 		if (rainfall < 0) return Color.black;
 		
-		float value = rainfall / World.MaxRainfall;
+		float value = rainfall / World.MaxPossibleRainfall;
 		
 		Color green = Color.green;
 		
 		return new Color(green.r * value, green.g * value, green.b * value);
 	}
 	
+	private static Color GenerateTemperatureContourColor (float rainfall) {
+		
+		float span = CurrentWorld.MaxTemperature - CurrentWorld.MinTemperature;
+		
+		float value;
+		
+		float shadeValue = 1f;
+		
+		value = (rainfall - CurrentWorld.MinTemperature) / span;
+		
+		while (shadeValue > value)
+		{
+			shadeValue -= 0.1f;
+		}
+		
+		Color color = new Color(shadeValue, 0, 1f - shadeValue);
+		
+		return color;
+	}
+	
 	private static Color GenerateTemperatureColor (float temperature) {
 
-		float span = World.MaxTemperature - World.MinTemperature;
+		float span = World.MaxPossibleTemperature - World.MinPossibleTemperature;
 
-		float value = (temperature - World.MinTemperature) / span;
+		float value = (temperature - World.MinPossibleTemperature) / span;
 		
 		return new Color(value, 1f - value, 0);
 	}
@@ -222,13 +264,13 @@ public class Manager {
 		
 		if (rainfall < 0) return 0;
 		
-		return rainfall / World.MaxRainfall;
+		return rainfall / World.MaxPossibleRainfall;
 	}
 	
 	private static float NormalizeTemperature (float temperature) {
 		
-		float span = World.MaxTemperature - World.MinTemperature;
+		float span = World.MaxPossibleTemperature - World.MinPossibleTemperature;
 		
-		return (temperature - World.MinTemperature) / span;
+		return (temperature - World.MinPossibleTemperature) / span;
 	}
 }
