@@ -120,7 +120,7 @@ public class World {
 	public void Generate () {
 
 		GenerateTerrainAltitude();
-		GenerateTerrainRainfall3();
+		GenerateTerrainRainfall2();
 		GenerateTerrainTemperature();
 	}
 
@@ -257,73 +257,6 @@ public class World {
 		return (value * span) + MinPossibleAltitude;
 	}
 	
-	private void GenerateTerrainRainfall2 () {
-		
-		int sizeX = Width;
-		int sizeY = Height;
-
-		int maxCycles = Width/5;
-
-		float accRainFactor = 0.06f;
-		float rainfallFactor = 0.005f;
-		float rainfallAltFactor = 0.05f;
-
-		for (int c = 0; c < maxCycles; c++)
-		{
-			for (int i = 0; i < sizeX; i++)
-			{
-				for (int j = 0; j < sizeY; j++)
-				{
-					int prevI = (i - 1 + Width) % Width;
-					int prevJ = j;
-
-					if (j < (sizeY / 4))
-					{
-						prevJ = j + 1;
-					}
-					else if (j < (sizeY / 2))
-					{
-						prevJ = j - 1;
-						prevI = (i + 1) % Width;
-					}
-					else if (j < ((sizeY * 3) / 4))
-					{
-						prevJ = j + 1;
-						prevI = (i + 1) % Width;
-					}
-					else
-					{
-						prevJ = j - 1;
-					}
-
-					TerrainCell cell = Terrain[i][j];
-					cell.PrevRainAcc = cell.RainAcc;
-					cell.RainAcc = 0;
-
-					if (cell.Altitude < 0)
-					{
-						cell.RainAcc += accRainFactor * MaxPossibleRainfall;
-					}
-					
-					TerrainCell prevCell = Terrain[prevI][prevJ];
-
-					float altDiff = Mathf.Max(0, cell.Altitude) - Mathf.Max(0, prevCell.Altitude);
-					float altitudeFactor = Mathf.Max(0, (rainfallAltFactor * altDiff / MaxPossibleAltitude));
-					float finalRainFactor = Mathf.Min(1, rainfallFactor + altitudeFactor);
-
-					cell.RainAcc += prevCell.PrevRainAcc;
-					cell.RainAcc = Mathf.Min(cell.RainAcc, MaxPossibleRainfall / rainfallFactor);
-
-					float accRainfall = cell.RainAcc * finalRainFactor;
-					cell.Rainfall += accRainfall;
-					cell.RainAcc -= accRainfall;
-
-					cell.RainAcc = Mathf.Max(cell.RainAcc, 0);
-				}
-			}
-		}
-	}
-	
 	private void GenerateTerrainRainfall () {
 		
 		int sizeX = Width;
@@ -354,7 +287,7 @@ public class World {
 		}
 	}
 	
-	private void GenerateTerrainRainfall3 () {
+	private void GenerateTerrainRainfall2 () {
 		
 		int sizeX = Width;
 		int sizeY = Height;
@@ -372,19 +305,27 @@ public class World {
 				TerrainCell cell = Terrain[i][j];
 				
 				float alpha = (j / (float)sizeY) * Mathf.PI;
+				
+				float value = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius, offset);
 
-				float latitudeModifier = Mathf.Sin(2*alpha);
+				float latitudeFactor = (alpha * 0.9f) + (value * 0.2f * Mathf.PI) - 0.1f;
+				float latitudeModifier1 = (1.5f * Mathf.Sin(latitudeFactor)) - 0.5f;
+				float latitudeModifier2 = Mathf.Cos(latitudeFactor);
 
-				int diffCellX = (Width + i + (int)Mathf.Floor(latitudeModifier*Width/50f)) % Width;
+				int offCellX = (Width + i + (int)Mathf.Floor(latitudeModifier2 * Width/20f)) % Width;
+				int offCellX2 = (Width + i + (int)Mathf.Floor(latitudeModifier2 * Width/10f)) % Width;
 
-				TerrainCell diffCell = Terrain[diffCellX][j];
+				TerrainCell offCell = Terrain[offCellX][j];
+				TerrainCell offCell2 = Terrain[offCellX2][j];
 
 				float altitude = Mathf.Max(0, cell.Altitude);
-				float diffAltitude = Mathf.Max(0, diffCell.Altitude);
+				float offAltitude = Mathf.Max(0, offCell.Altitude);
+				float offAltitude2 = Mathf.Max(0, offCell2.Altitude);
 
-				float altitudeFactor = Mathf.Max(0, 2f * (altitude - diffAltitude) / MaxPossibleAltitude);
+				float altitudeModifier =  1f * (altitude - (offAltitude * 1.5f) - (offAltitude2 * 1.5f)) / MaxPossibleAltitude;
+				float normalizedRainfall = (0.4f * latitudeModifier1) + (0.6f * altitudeModifier);
 
-				float rainfall = Mathf.Min(MaxPossibleRainfall, CalculateRainfall(altitudeFactor));
+				float rainfall = Mathf.Min(MaxPossibleRainfall, CalculateRainfall(normalizedRainfall));
 				cell.Rainfall = rainfall;
 
 				if (rainfall > MaxRainfall) MaxRainfall = rainfall;
