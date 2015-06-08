@@ -1,17 +1,8 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
-
-public class Biome {
-
-	[XmlAttribute]
-	public float Altitude;
-	[XmlAttribute]
-	public float Rainfall;
-	[XmlAttribute]
-	public float Temperature;
-}
 
 public class TerrainCell {
 	
@@ -22,10 +13,7 @@ public class TerrainCell {
 	[XmlAttribute]
 	public float Temperature;
 
-	[XmlIgnore]
-	public float RainAcc;
-	[XmlIgnore]
-	public float PrevRainAcc;
+	public List<Biome> Biomes;
 }
 
 [XmlRoot]
@@ -368,6 +356,42 @@ public class World {
 				if (temperature < MinTemperature) MinTemperature = temperature;
 			}
 		}
+	}
+
+	private void GenerateTerrainBiome () {
+		
+		int sizeX = Width;
+		int sizeY = Height;
+		
+		for (int i = 0; i < sizeX; i++) {
+
+			for (int j = 0; j < sizeY; j++) {
+
+				TerrainCell cell = Terrain [i] [j];
+
+
+			}
+		}
+	}
+
+	private float GetBiomePresence (TerrainCell cell, Biome biome) {
+
+		float altitudeSpan = biome.MaxAltitude - biome.MinAltitude;
+
+		float altitudeDiff = cell.Altitude - biome.MinAltitude;
+
+		if (altitudeDiff < 0)
+			return 0f;
+
+		float altitudeFactor = altitudeDiff / altitudeSpan;
+		
+		if (altitudeFactor > 1)
+			return 0f;
+
+		if (altitudeFactor > 0.5f)
+			altitudeFactor = 1f - altitudeFactor;
+
+		return altitudeFactor;
 	}
 	
 	private float CalculateRainfall (float value) {
