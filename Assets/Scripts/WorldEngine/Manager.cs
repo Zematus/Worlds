@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 using System.IO;
@@ -14,6 +15,7 @@ public class Manager {
 
 	private static bool _rainfallVisible = false;
 	private static bool _temperatureVisible = false;
+	private static bool _biomesVisible = false;
 
 	public static World CurrentWorld { 
 		get {
@@ -87,6 +89,11 @@ public class Manager {
 		_temperatureVisible = value;
 	}
 	
+	public static void SetBiomesVisible (bool value) {
+		
+		_biomesVisible = value;
+	}
+	
 	public static Texture2D GenerateTextureFromWorld (World world) {
 		
 		int sizeX = world.Width;
@@ -110,6 +117,11 @@ public class Manager {
 	}
 	
 	private static Color GenerateColorFromTerrainCell (TerrainCell cell) {
+
+		if (_biomesVisible) {
+
+			return GenerateBiomeColor (cell);
+		}
 
 		Color altitudeColor = GenerateAltitudeContourColor(cell.Altitude);
 		Color rainfallColor = Color.black;
@@ -169,6 +181,23 @@ public class Manager {
 		//Color color2 = Color.white;
 		
 		return new Color(color2.r * value, color2.g * value, color2.b * value);
+	}
+	
+	private static Color GenerateBiomeColor (TerrainCell cell) {
+		
+		Color color = Color.black;
+
+		foreach (KeyValuePair<Biome, float> pair in cell.BiomePresences)
+		{
+			Color biomeColor = pair.Key.Color;
+			float biomePresence = pair.Value;
+
+			color.r += biomeColor.r / biomePresence;
+			color.g += biomeColor.g / biomePresence;
+			color.b += biomeColor.b / biomePresence;
+		}
+		
+		return color;
 	}
 	
 	private static Color GenerateAltitudeContourColor (float altitude) {

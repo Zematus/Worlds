@@ -6,7 +6,8 @@ using System.Xml.Serialization;
 public class Biome {
 	
 	public static Biome Ocean = new Biome(
-		"Ocean", 
+		"Ocean",
+		Color.blue,
 		World.MinPossibleAltitude, 
 		0, 
 		World.MinPossibleRainfall,
@@ -16,6 +17,7 @@ public class Biome {
 
 	public static Biome IceCap = new Biome(
 		"Ice Cap", 
+		Color.white,
 		World.MinPossibleAltitude, 
 		World.MaxPossibleAltitude, 
 		World.MinPossibleRainfall,
@@ -25,6 +27,7 @@ public class Biome {
 	
 	public static Biome Grassland = new Biome(
 		"Grassland", 
+		Color.green,
 		0, 
 		World.MaxPossibleAltitude, 
 		World.MinPossibleRainfall,
@@ -57,12 +60,16 @@ public class Biome {
 	[XmlAttribute]
 	public float MaxTemperature;
 
+	public Color Color;
+
 	public Biome () {
 	}
 
-	public Biome (string name, float minAltitude, float maxAltitude, float minRainfall, float maxRainfall, float minTemperature, float maxTemperature) {
+	public Biome (string name, Color color, float minAltitude, float maxAltitude, float minRainfall, float maxRainfall, float minTemperature, float maxTemperature) {
 
 		Name = name;
+
+		Color = color;
 
 		MinAltitude = minAltitude;
 		MaxAltitude = maxAltitude;

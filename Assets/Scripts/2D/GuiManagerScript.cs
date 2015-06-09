@@ -10,6 +10,7 @@ public class GuiManagerScript : MonoBehaviour {
 	public Text MapViewButtonText;
 	public Text RainfallViewButtonText;
 	public Text TemperatureViewButtonText;
+	public Text BiomeViewButtonText;
 
 	public Text InfoPanelText;
 
@@ -23,6 +24,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 	private bool _viewRainfall = false;
 	private bool _viewTemperature = false;
+	private bool _viewBiomes = false;
 
 	private bool _updateTexture = false;
 
@@ -35,6 +37,7 @@ public class GuiManagerScript : MonoBehaviour {
 		UpdateMapViewButtonText ();
 		UpdateRainfallViewButtonText ();
 		UpdateTemperatureViewButtonText ();
+		UpdateBiomeViewButtonText ();
 
 		SetInfoPanelData (0, 0);
 
@@ -50,6 +53,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 			Manager.SetRainfallVisible (_viewRainfall);
 			Manager.SetTemperatureVisible (_viewTemperature);
+			Manager.SetBiomesVisible (_viewBiomes);
 
 			Manager.RefreshTexture ();
 
@@ -179,6 +183,24 @@ public class GuiManagerScript : MonoBehaviour {
 			TemperatureViewButtonText.text = "View Temp";
 		} else {
 			TemperatureViewButtonText.text = "Hide Temp";
+		}
+	}
+	
+	public void UpdateBiomeView () {
+		
+		_updateTexture = true;
+		
+		_viewBiomes = !_viewBiomes;
+		
+		UpdateBiomeViewButtonText ();
+	}
+	
+	public void UpdateBiomeViewButtonText () {
+		
+		if (!_viewBiomes) {
+			BiomeViewButtonText.text = "View Biomes";
+		} else {
+			BiomeViewButtonText.text = "Hide Biomes";
 		}
 	}
 	

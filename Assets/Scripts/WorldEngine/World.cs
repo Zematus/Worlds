@@ -13,7 +13,7 @@ public class TerrainCell {
 	[XmlAttribute]
 	public float Temperature;
 
-	public List<Biome> Biomes;
+	public Dictionary<Biome, float> BiomePresences;
 }
 
 [XmlRoot]
@@ -107,9 +107,10 @@ public class World {
 
 	public void Generate () {
 
-		GenerateTerrainAltitude();
-		GenerateTerrainRainfall2();
-		GenerateTerrainTemperature();
+		GenerateTerrainAltitude ();
+		GenerateTerrainRainfall2 ();
+		GenerateTerrainTemperature ();
+		GenerateTerrainBiome ();
 	}
 
 	private void GenerateContinents () {
@@ -369,12 +370,41 @@ public class World {
 
 				TerrainCell cell = Terrain [i] [j];
 
+				float totalPresence = 0;
 
+				Dictionary<Biome, float> biomePresences = new Dictionary<Biome, float> ();
+
+				foreach (Biome biome in Biome.Biomes) {
+
+					float presence = GetBiomePresence (cell, biome);
+
+					if (presence <= 0) continue;
+
+					biomePresences.Add(biome, presence);
+
+					totalPresence += presence;
+				}
+
+				foreach (Biome biome in Biome.Biomes)
+				{
+					float presence = 0;
+
+					if (biomePresences.TryGetValue(biome, out presence))
+					{
+						biomePresences[biome] = presence/totalPresence;
+					}
+				}
+
+				cell.BiomePresences = biomePresences;
 			}
 		}
 	}
 
 	private float GetBiomePresence (TerrainCell cell, Biome biome) {
+
+		float presence = 0;
+
+		// Altitude
 
 		float altitudeSpan = biome.MaxAltitude - biome.MinAltitude;
 
@@ -391,7 +421,47 @@ public class World {
 		if (altitudeFactor > 0.5f)
 			altitudeFactor = 1f - altitudeFactor;
 
-		return altitudeFactor;
+		presence += altitudeFactor;
+
+		// Rainfall
+		
+		float rainfallSpan = biome.MaxRainfall - biome.MinRainfall;
+		
+		float rainfallDiff = cell.Rainfall - biome.MinRainfall;
+		
+		if (rainfallDiff < 0)
+			return 0f;
+		
+		float rainfallFactor = rainfallDiff / rainfallSpan;
+		
+		if (rainfallFactor > 1)
+			return 0f;
+		
+		if (rainfallFactor > 0.5f)
+			rainfallFactor = 1f - rainfallFactor;
+		
+		presence += rainfallFactor;
+		
+		// Temperature
+		
+		float temperatureSpan = biome.MaxTemperature - biome.MinTemperature;
+		
+		float temperatureDiff = cell.Temperature - biome.MinTemperature;
+		
+		if (temperatureDiff < 0)
+			return 0f;
+		
+		float temperatureFactor = temperatureDiff / temperatureSpan;
+		
+		if (temperatureFactor > 1)
+			return 0f;
+		
+		if (temperatureFactor > 0.5f)
+			temperatureFactor = 1f - temperatureFactor;
+		
+		presence += temperatureFactor;
+
+		return presence;
 	}
 	
 	private float CalculateRainfall (float value) {
