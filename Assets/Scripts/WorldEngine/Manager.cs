@@ -16,6 +16,14 @@ public class Manager {
 	private static bool _rainfallVisible = false;
 	private static bool _temperatureVisible = false;
 	private static bool _biomesVisible = false;
+	
+	private static List<Color> _biomePalette = new List<Color>();
+
+	public static void SetBiomePalette (IEnumerable<Color> colors) {
+
+		_biomePalette.Clear ();
+		_biomePalette.AddRange (colors);
+	}
 
 	public static World CurrentWorld { 
 		get {
@@ -189,12 +197,12 @@ public class Manager {
 
 		foreach (KeyValuePair<Biome, float> pair in cell.BiomePresences)
 		{
-			Color biomeColor = pair.Key.Color;
+			Color biomeColor = _biomePalette[pair.Key.ColorId];
 			float biomePresence = pair.Value;
 
-			color.r += biomeColor.r / biomePresence;
-			color.g += biomeColor.g / biomePresence;
-			color.b += biomeColor.b / biomePresence;
+			color.r += biomeColor.r * biomePresence;
+			color.g += biomeColor.g * biomePresence;
+			color.b += biomeColor.b * biomePresence;
 		}
 		
 		return color;

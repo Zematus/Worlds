@@ -2,6 +2,7 @@
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using System.Collections;
+using System.Collections.Generic;
 
 public class GuiManagerScript : MonoBehaviour {
 
@@ -21,6 +22,8 @@ public class GuiManagerScript : MonoBehaviour {
 	
 	public SaveFileDialogPanelScript SaveFileDialogPanelScript;
 	public LoadFileDialogPanelScript LoadFileDialogPanelScript;
+
+	public BiomePaletteScript BiomePaletteScript;
 
 	private bool _viewRainfall = false;
 	private bool _viewTemperature = false;
@@ -43,6 +46,8 @@ public class GuiManagerScript : MonoBehaviour {
 
 		SetEnabledModalSaveDialog (false);
 		SetEnabledModalLoadDialog (false);
+
+		Manager.SetBiomePalette (BiomePaletteScript.Colors);
 	}
 	
 	// Update is called once per frame
@@ -212,6 +217,15 @@ public class GuiManagerScript : MonoBehaviour {
 		InfoPanelText.text += "\nAltitude: " + cell.Altitude;
 		InfoPanelText.text += "\nRainfall: " + cell.Rainfall;
 		InfoPanelText.text += "\nTemperature: " + cell.Temperature;
+		InfoPanelText.text += "\n";
+
+		foreach (KeyValuePair<Biome, float> pair in cell.BiomePresences) {
+
+			int percentage = (int)(pair.Value * 100);
+
+			InfoPanelText.text += "\nBiome: " + pair.Key.Name;
+			InfoPanelText.text += " (" + percentage + "%)";
+		}
 	}
 	
 	public void SetInfoPanelData (Vector2 mapPosition) {
