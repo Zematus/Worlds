@@ -38,7 +38,6 @@ public class World {
 	
 	public const float MinPossibleRainfall = 0;
 	public const float MaxPossibleRainfall = 7500;
-	public const float RainfallAltitudeFactor = 1.0f;
 	public const float RainfallDrynessOffsetFactor = 0.005f;
 	
 	public const float MinPossibleTemperature = -60;
@@ -282,10 +281,11 @@ public class World {
 				float offAltitude = Mathf.Max(0, offCell.Altitude);
 				float offAltitude2 = Mathf.Max(0, offCell2.Altitude);
 
-				float altitudeModifier =  1f * (altitude - (offAltitude * 1.5f) - (offAltitude2 * 1.5f)) / MaxPossibleAltitude;
-				float normalizedRainfall = (0.33f * latitudeModifier1) + (0.66f * altitudeModifier);
+				float altitudeModifier = (altitude - (offAltitude * 1.5f) - (offAltitude2 * 1.5f)) / MaxPossibleAltitude;
+				float rainfallValue = MathUtility.MixValues(latitudeModifier1, altitudeModifier, 0.63f);
+				//rainfallValue = MathUtility.MixValues(rainfallValue * rainfallValue, rainfallValue, 0.3f);
 
-				float rainfall = Mathf.Min(MaxPossibleRainfall, CalculateRainfall(normalizedRainfall));
+				float rainfall = Mathf.Min(MaxPossibleRainfall, CalculateRainfall(rainfallValue));
 				cell.Rainfall = rainfall;
 
 				if (rainfall > MaxRainfall) MaxRainfall = rainfall;

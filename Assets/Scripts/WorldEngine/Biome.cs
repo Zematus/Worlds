@@ -35,13 +35,13 @@ public class Biome {
 		-5f,
 		World.MaxPossibleTemperature);
 	
-	public static Biome TemperateForest = new Biome(
-		"Temperate Forest", 
+	public static Biome Forest = new Biome(
+		"Forest", 
 		3,
 		0, 
 		World.MaxPossibleAltitude, 
 		975f,
-		World.MaxPossibleRainfall,
+		2475f,
 		-5f,
 		World.MaxPossibleTemperature);
 	
@@ -50,7 +50,7 @@ public class Biome {
 		4,
 		0, 
 		World.MaxPossibleAltitude, 
-		275f,
+		475f,
 		World.MaxPossibleRainfall,
 		-15f,
 		-0f);
@@ -71,7 +71,17 @@ public class Biome {
 		0, 
 		World.MaxPossibleAltitude, 
 		World.MinPossibleRainfall,
-		125f,
+		275f,
+		-5f,
+		World.MaxPossibleTemperature);
+	
+	public static Biome Rainforest = new Biome(
+		"Rainforest", 
+		7,
+		0, 
+		World.MaxPossibleAltitude, 
+		1975f,
+		World.MaxPossibleRainfall,
 		-5f,
 		World.MaxPossibleTemperature);
 
@@ -80,10 +90,11 @@ public class Biome {
 		IceCap,
 		Ocean,
 		Grassland,
-		TemperateForest,
+		Forest,
 		Taiga,
 		Tundra,
-		Desert
+		Desert,
+		Rainforest
 	};
 	
 	[XmlAttribute]
