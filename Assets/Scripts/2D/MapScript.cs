@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
 
@@ -31,7 +31,7 @@ public class MapScript : MonoBehaviour {
 	
 	public void RefreshTexture () {
 		
-		Texture2D texture = Manager.CurrentTexture;
+		Texture2D texture = Manager.CurrentMapTexture;
 		
 		Image.texture = texture;
 	}

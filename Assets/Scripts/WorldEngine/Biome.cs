@@ -10,9 +10,9 @@ public class Biome {
 		0,
 		World.MinPossibleAltitude, 
 		World.MaxPossibleAltitude, 
-		World.MinPossibleRainfall,
+		World.MinPossibleRainfall - 1f,
 		World.MaxPossibleRainfall,
-		World.MinPossibleTemperature,
+		World.MinPossibleTemperature - 1f,
 		-15f);
 	
 	public static Biome Ocean = new Biome(
@@ -20,10 +20,10 @@ public class Biome {
 		1,
 		World.MinPossibleAltitude, 
 		0, 
-		World.MinPossibleRainfall,
+		World.MinPossibleRainfall - 1f,
 		World.MaxPossibleRainfall,
 		-15f,
-		World.MaxPossibleTemperature);
+		World.MaxPossibleTemperature + 1f);
 	
 	public static Biome Grassland = new Biome(
 		"Grassland",
@@ -33,7 +33,7 @@ public class Biome {
 		25f,
 		1475f,
 		-5f,
-		World.MaxPossibleTemperature);
+		World.MaxPossibleTemperature + 1f);
 	
 	public static Biome Forest = new Biome(
 		"Forest", 
@@ -43,13 +43,13 @@ public class Biome {
 		975f,
 		2475f,
 		-5f,
-		World.MaxPossibleTemperature);
+		World.MaxPossibleTemperature + 1f);
 	
 	public static Biome Taiga = new Biome(
 		"Taiga", 
 		4,
 		0, 
-		World.MaxPossibleAltitude, 
+		World.MaxPossibleAltitude,
 		475f,
 		World.MaxPossibleRainfall,
 		-15f,
@@ -60,7 +60,7 @@ public class Biome {
 		5,
 		0, 
 		World.MaxPossibleAltitude, 
-		World.MinPossibleRainfall,
+		World.MinPossibleRainfall - 1f,
 		725f,
 		-20f,
 		-0f);
@@ -70,10 +70,10 @@ public class Biome {
 		6,
 		0, 
 		World.MaxPossibleAltitude, 
-		World.MinPossibleRainfall,
+		World.MinPossibleRainfall - 1f,
 		275f,
 		-5f,
-		World.MaxPossibleTemperature);
+		World.MaxPossibleTemperature + 1f);
 	
 	public static Biome Rainforest = new Biome(
 		"Rainforest", 
@@ -83,7 +83,7 @@ public class Biome {
 		1975f,
 		World.MaxPossibleRainfall,
 		-5f,
-		World.MaxPossibleTemperature);
+		World.MaxPossibleTemperature + 1f);
 
 	public static Biome[] Biomes = new Biome[] {
 

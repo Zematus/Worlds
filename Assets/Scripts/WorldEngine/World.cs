@@ -13,7 +13,8 @@ public class TerrainCell {
 	[XmlAttribute]
 	public float Temperature;
 
-	public Dictionary<Biome, float> BiomePresences;
+	public List<Biome> Biomes = new List<Biome>();
+	public List<float> BiomePresences = new List<float>();
 }
 
 [XmlRoot]
@@ -40,7 +41,7 @@ public class World {
 	public const float MaxPossibleRainfall = 7500;
 	public const float RainfallDrynessOffsetFactor = 0.005f;
 	
-	public const float MinPossibleTemperature = -60;
+	public const float MinPossibleTemperature = -35;
 	public const float MaxPossibleTemperature = 30;
 	public const float TemperatureAltitudeFactor = 1f;
 	
@@ -65,6 +66,7 @@ public class World {
 
 	private Vector2[] _continentOffsets;
 	private float[] _continentWidths;
+	private float[] _continentHeights;
 
 	private bool _initialized = false;
 
@@ -92,6 +94,7 @@ public class World {
 		}
 
 		_continentOffsets = new Vector2[NumContinents];
+		_continentHeights = new float[NumContinents];
 		_continentWidths = new float[NumContinents];
 	}
 
@@ -121,6 +124,7 @@ public class World {
 				Mathf.Repeat(Random.Range(Width*i*2/5, Width*(i + 2)*2/5), Width),
 				Random.Range(Height * 1f/6f, Height * 5f/6f));
 			_continentWidths[i] = Random.Range(ContinentMinWidthFactor, ContinentMaxWidthFactor);
+			_continentHeights[i] = Random.Range(ContinentMinWidthFactor, ContinentMaxWidthFactor);
 		}
 	}
 	
@@ -141,12 +145,13 @@ public class World {
 			distX *= betaFactor;
 
 			float distY = Mathf.Abs(contY - y);
-
-			float dist = new Vector2(distX, distY).magnitude;
-
+			
 			float continentWidth = _continentWidths[i];
+			float continentHeight = _continentHeights[i];
 
-			float value = Mathf.Max(0, 1f - continentWidth*dist/((float)Width));
+			float dist = new Vector2(distX*continentWidth, distY*continentHeight).magnitude;
+
+			float value = Mathf.Max(0, 1f - dist/((float)Width));
 
 			maxValue = Mathf.Max(maxValue, value);
 		}
@@ -361,18 +366,17 @@ public class World {
 
 					if (biomePresences.TryGetValue(biome, out presence))
 					{
-						biomePresences[biome] = presence/totalPresence;
+						cell.Biomes.Add(biome);
+						cell.BiomePresences.Add(presence/totalPresence);
 					}
 				}
-
-				cell.BiomePresences = biomePresences;
 			}
 		}
 	}
 
 	private float GetBiomePresence (TerrainCell cell, Biome biome) {
 
-		float presence = 0;
+		float presence = 1f;
 
 		// Altitude
 
@@ -381,17 +385,17 @@ public class World {
 		float altitudeDiff = cell.Altitude - biome.MinAltitude;
 
 		if (altitudeDiff < 0)
-			return 0f;
+			return -1f;
 
 		float altitudeFactor = altitudeDiff / altitudeSpan;
 		
 		if (altitudeFactor > 1)
-			return 0f;
+			return -1f;
 
 		if (altitudeFactor > 0.5f)
 			altitudeFactor = 1f - altitudeFactor;
 
-		presence += altitudeFactor;
+		presence *= altitudeFactor;
 
 		// Rainfall
 		
@@ -400,17 +404,17 @@ public class World {
 		float rainfallDiff = cell.Rainfall - biome.MinRainfall;
 		
 		if (rainfallDiff < 0)
-			return 0f;
+			return -1f;
 		
 		float rainfallFactor = rainfallDiff / rainfallSpan;
 		
 		if (rainfallFactor > 1)
-			return 0f;
+			return -1f;
 		
 		if (rainfallFactor > 0.5f)
 			rainfallFactor = 1f - rainfallFactor;
 		
-		presence += rainfallFactor;
+		presence *= rainfallFactor;
 		
 		// Temperature
 		
@@ -419,17 +423,17 @@ public class World {
 		float temperatureDiff = cell.Temperature - biome.MinTemperature;
 		
 		if (temperatureDiff < 0)
-			return 0f;
+			return -1f;
 		
 		float temperatureFactor = temperatureDiff / temperatureSpan;
 		
 		if (temperatureFactor > 1)
-			return 0f;
+			return -1f;
 		
 		if (temperatureFactor > 0.5f)
 			temperatureFactor = 1f - temperatureFactor;
 		
-		presence += temperatureFactor;
+		presence *= temperatureFactor;
 
 		return presence;
 	}

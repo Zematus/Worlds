@@ -11,7 +11,8 @@ public class Manager {
 
 	private World _currentWorld = null;
 
-	private Texture2D _currentTexture = null;
+	private Texture2D _currentSphereTexture = null;
+	private Texture2D _currentMapTexture = null;
 
 	private static bool _rainfallVisible = false;
 	private static bool _temperatureVisible = false;
@@ -35,19 +36,28 @@ public class Manager {
 		}
 	}
 	
-	public static Texture2D CurrentTexture { 
+	public static Texture2D CurrentSphereTexture { 
 		get {
 			
-			if (_manager._currentTexture == null)
-				GenerateTextureFromWorld(CurrentWorld);
+			if (_manager._currentSphereTexture == null) RefreshTextures();
 			
-			return _manager._currentTexture; 
+			return _manager._currentSphereTexture; 
 		}
 	}
 	
-	public static void RefreshTexture () { 
+	public static Texture2D CurrentMapTexture { 
+		get {
+			
+			if (_manager._currentMapTexture == null) RefreshTextures();
+			
+			return _manager._currentMapTexture; 
+		}
+	}
+	
+	public static void RefreshTextures () { 
 
-		GenerateTextureFromWorld(CurrentWorld);
+		GenerateSphereTextureFromWorld(CurrentWorld);
+		GenerateMapTextureFromWorld(CurrentWorld);
 	}
 
 	public static World GenerateNewWorld () {
@@ -102,7 +112,7 @@ public class Manager {
 		_biomesVisible = value;
 	}
 	
-	public static Texture2D GenerateTextureFromWorld (World world) {
+	public static Texture2D GenerateMapTextureFromWorld (World world) {
 		
 		int sizeX = world.Width;
 		int sizeY = world.Height;
@@ -113,12 +123,12 @@ public class Manager {
 		{
 			for (int j = 0; j < sizeY; j++)
 			{
-				if (((i % 20) == 0) || ((j % 20) == 0)) {
-
-					texture.SetPixel(i, j, Color.black);
-
-					continue;
-				}
+//				if (((i % 20) == 0) || ((j % 20) == 0)) {
+//
+//					texture.SetPixel(i, j, Color.black);
+//
+//					continue;
+//				}
 
 				texture.SetPixel(i, j, GenerateColorFromTerrainCell(world.Terrain[i][j]));
 			}
@@ -126,7 +136,40 @@ public class Manager {
 		
 		texture.Apply();
 
-		_manager._currentTexture = texture;
+		_manager._currentMapTexture = texture;
+		
+		return texture;
+	}
+	
+	public static Texture2D GenerateSphereTextureFromWorld (World world) {
+		
+		int sizeX = world.Width;
+		int sizeY = world.Height*2;
+		
+		Texture2D texture = new Texture2D(sizeX, sizeY, TextureFormat.ARGB32, false);
+		
+		for (int i = 0; i < sizeX; i++)
+		{
+			for (int j = 0; j < sizeY; j++)
+			{
+				float factorJ = (1f - Mathf.Cos(Mathf.PI*(float)j/(float)sizeY))/2f;
+
+				int trueJ = (int)(world.Height * factorJ);
+
+//				if (((i % 20) == 0) || (((int)trueJ % 20) == 0)) {
+//					
+//					texture.SetPixel(i, j, Color.black);
+//					
+//					continue;
+//				}
+				
+				texture.SetPixel(i, j, GenerateColorFromTerrainCell(world.Terrain[i][trueJ]));
+			}
+		}
+		
+		texture.Apply();
+		
+		_manager._currentSphereTexture = texture;
 		
 		return texture;
 	}
@@ -201,12 +244,12 @@ public class Manager {
 	private static Color GenerateBiomeColor (TerrainCell cell) {
 		
 		Color color = Color.black;
-
-		foreach (KeyValuePair<Biome, float> pair in cell.BiomePresences)
-		{
-			Color biomeColor = _biomePalette[pair.Key.ColorId];
-			float biomePresence = pair.Value;
-
+		
+		for (int i = 0; i < cell.Biomes.Count; i++) {
+			
+			Color biomeColor = _biomePalette[cell.Biomes[i].ColorId];
+			float biomePresence = cell.BiomePresences[i];
+			
 			color.r += biomeColor.r * biomePresence;
 			color.g += biomeColor.g * biomePresence;
 			color.b += biomeColor.b * biomePresence;

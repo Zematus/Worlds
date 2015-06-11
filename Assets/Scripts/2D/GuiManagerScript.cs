@@ -60,7 +60,7 @@ public class GuiManagerScript : MonoBehaviour {
 			Manager.SetTemperatureVisible (_viewTemperature);
 			Manager.SetBiomesVisible (_viewBiomes);
 
-			Manager.RefreshTexture ();
+			Manager.RefreshTextures ();
 
 			PlanetScript.UpdateTexture ();
 			MapScript.RefreshTexture ();
@@ -219,11 +219,11 @@ public class GuiManagerScript : MonoBehaviour {
 		InfoPanelText.text += "\nTemperature: " + cell.Temperature;
 		InfoPanelText.text += "\n";
 
-		foreach (KeyValuePair<Biome, float> pair in cell.BiomePresences) {
-
-			int percentage = (int)(pair.Value * 100);
-
-			InfoPanelText.text += "\nBiome: " + pair.Key.Name;
+		for (int i = 0; i < cell.Biomes.Count; i++)
+		{
+			int percentage = (int)(cell.BiomePresences[i] * 100);
+			
+			InfoPanelText.text += "\nBiome: " + cell.Biomes[i].Name;
 			InfoPanelText.text += " (" + percentage + "%)";
 		}
 	}
