@@ -22,6 +22,7 @@ public class GuiManagerScript : MonoBehaviour {
 	
 	public SaveFileDialogPanelScript SaveFileDialogPanelScript;
 	public LoadFileDialogPanelScript LoadFileDialogPanelScript;
+	public OverlayDialogPanelScript OverlayDialogPanelScript;
 
 	public BiomePaletteScript BiomePaletteScript;
 
@@ -38,8 +39,6 @@ public class GuiManagerScript : MonoBehaviour {
 	void Start () {
 
 		UpdateMapViewButtonText ();
-		UpdateRainfallViewButtonText ();
-		UpdateTemperatureViewButtonText ();
 		UpdateBiomeViewButtonText ();
 
 		SetInfoPanelData (0, 0);
@@ -94,6 +93,27 @@ public class GuiManagerScript : MonoBehaviour {
 		NonModalCanvasGroup.blocksRaycasts = !value;
 		LoadFileDialogPanelScript.SetVisible (value);
 	}
+	
+	private void SetEnabledModalOverlayDialog (bool value) {
+		
+		NonModalCanvasGroup.blocksRaycasts = !value;
+		OverlayDialogPanelScript.SetVisible (value);
+	}
+
+	public void SaveAction () {
+		
+		string worldName = SaveFileDialogPanelScript.GetWorldName ();
+		
+		string path = @"Saves\" + worldName + ".xml";
+		Manager.SaveWorld (path);
+		
+		SetEnabledModalSaveDialog (false);
+	}
+
+	public void CancelSaveAction () {
+		
+		SetEnabledModalSaveDialog (false);
+	}
 
 	public void SaveWorldAs () {
 
@@ -101,42 +121,40 @@ public class GuiManagerScript : MonoBehaviour {
 
 		SaveFileDialogPanelScript.SetWorldName (worldName);
 		
-		SaveFileDialogPanelScript.SetSaveAction(() => {
-			
-			worldName = SaveFileDialogPanelScript.GetWorldName ();
-			
-			string path = @"Saves\" + worldName + ".xml";
-				Manager.SaveWorld (path);
-			
-			SetEnabledModalSaveDialog (false);
-		});
-		
-		SaveFileDialogPanelScript.SetCancelAction(() => {
-			
-			SetEnabledModalSaveDialog (false);
-		});
-		
 		SetEnabledModalSaveDialog (true);
 	}
 	
-	public void LoadWorld () {
-
-		LoadFileDialogPanelScript.SetLoadAction(() => {
-			
-			string path = LoadFileDialogPanelScript.GetFilenameToLoad();
-			Manager.LoadWorld (path);
-			
-			SetEnabledModalLoadDialog (false);
-			
-			_updateTexture = true;
-		});
+	public void LoadAction () {
 		
-		LoadFileDialogPanelScript.SetCancelAction(() => {
-			
-			SetEnabledModalLoadDialog (false);
-		});
+		string path = LoadFileDialogPanelScript.GetFilenameToLoad();
+		Manager.LoadWorld (path);
+		
+		SetEnabledModalLoadDialog (false);
+		
+		_updateTexture = true;
+	}
+	
+	public void CancelLoadAction () {
+		
+		SetEnabledModalLoadDialog (false);
+	}
+	
+	public void LoadWorld () {
 		
 		SetEnabledModalLoadDialog (true);
+	}
+	
+	public void CloseOverlayMenuAction () {
+
+		UpdateRainfallView (OverlayDialogPanelScript.RainfallToggle.isOn);
+		UpdateTemperatureView (OverlayDialogPanelScript.TemperatureToggle.isOn);
+		
+		SetEnabledModalOverlayDialog (false);
+	}
+	
+	public void SelectOverlays () {
+		
+		SetEnabledModalOverlayDialog (true);
 	}
 
 	public void UpdateMapView () {
@@ -155,40 +173,18 @@ public class GuiManagerScript : MonoBehaviour {
 		}
 	}
 	
-	public void UpdateRainfallView () {
+	public void UpdateRainfallView (bool value) {
 
-		_updateTexture = true;
+		_updateTexture |= _viewRainfall ^ value;
 
-		_viewRainfall = !_viewRainfall;
-		
-		UpdateRainfallViewButtonText ();
+		_viewRainfall = value;
 	}
 	
-	public void UpdateRainfallViewButtonText () {
+	public void UpdateTemperatureView (bool value) {
 		
-		if (!_viewRainfall) {
-			RainfallViewButtonText.text = "View Rainfall";
-		} else {
-			RainfallViewButtonText.text = "Hide Rainfall";
-		}
-	}
-	
-	public void UpdateTemperatureView () {
+		_updateTexture |= _viewTemperature ^ value;
 		
-		_updateTexture = true;
-		
-		_viewTemperature = !_viewTemperature;
-		
-		UpdateTemperatureViewButtonText ();
-	}
-	
-	public void UpdateTemperatureViewButtonText () {
-		
-		if (!_viewTemperature) {
-			TemperatureViewButtonText.text = "View Temp";
-		} else {
-			TemperatureViewButtonText.text = "Hide Temp";
-		}
+		_viewTemperature = value;
 	}
 	
 	public void UpdateBiomeView () {
