@@ -9,9 +9,6 @@ public class GuiManagerScript : MonoBehaviour {
 	public CanvasGroup NonModalCanvasGroup;
 
 	public Text MapViewButtonText;
-	public Text RainfallViewButtonText;
-	public Text TemperatureViewButtonText;
-	public Text BiomeViewButtonText;
 
 	public Text InfoPanelText;
 
@@ -23,12 +20,13 @@ public class GuiManagerScript : MonoBehaviour {
 	public SaveFileDialogPanelScript SaveFileDialogPanelScript;
 	public LoadFileDialogPanelScript LoadFileDialogPanelScript;
 	public OverlayDialogPanelScript OverlayDialogPanelScript;
+	public ViewsDialogPanelScript ViewsDialogPanelScript;
 
 	public BiomePaletteScript BiomePaletteScript;
 
 	private bool _viewRainfall = false;
 	private bool _viewTemperature = false;
-	private bool _viewBiomes = false;
+	private PlanetView _planetView = PlanetView.Biomes;
 
 	private bool _updateTexture = false;
 
@@ -39,7 +37,6 @@ public class GuiManagerScript : MonoBehaviour {
 	void Start () {
 
 		UpdateMapViewButtonText ();
-		UpdateBiomeViewButtonText ();
 
 		SetInfoPanelData (0, 0);
 
@@ -47,6 +44,8 @@ public class GuiManagerScript : MonoBehaviour {
 		SetEnabledModalLoadDialog (false);
 
 		Manager.SetBiomePalette (BiomePaletteScript.Colors);
+
+		_updateTexture = true;
 	}
 	
 	// Update is called once per frame
@@ -57,7 +56,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 			Manager.SetRainfallVisible (_viewRainfall);
 			Manager.SetTemperatureVisible (_viewTemperature);
-			Manager.SetBiomesVisible (_viewBiomes);
+			Manager.SetPlanetView (_planetView);
 
 			Manager.RefreshTextures ();
 
@@ -99,12 +98,18 @@ public class GuiManagerScript : MonoBehaviour {
 		NonModalCanvasGroup.blocksRaycasts = !value;
 		OverlayDialogPanelScript.SetVisible (value);
 	}
+	
+	private void SetEnabledModalViewsDialog (bool value) {
+		
+		NonModalCanvasGroup.blocksRaycasts = !value;
+		ViewsDialogPanelScript.SetVisible (value);
+	}
 
 	public void SaveAction () {
 		
 		string worldName = SaveFileDialogPanelScript.GetWorldName ();
 		
-		string path = @"Saves\" + worldName + ".xml";
+		string path = @"Saves\" + worldName + ".plt";
 		Manager.SaveWorld (path);
 		
 		SetEnabledModalSaveDialog (false);
@@ -156,6 +161,11 @@ public class GuiManagerScript : MonoBehaviour {
 		
 		SetEnabledModalOverlayDialog (true);
 	}
+	
+	public void SelectViews () {
+		
+		SetEnabledModalViewsDialog (true);
+	}
 
 	public void UpdateMapView () {
 
@@ -187,22 +197,22 @@ public class GuiManagerScript : MonoBehaviour {
 		_viewTemperature = value;
 	}
 	
-	public void UpdateBiomeView () {
+	public void SetBiomeView () {
 		
-		_updateTexture = true;
+		_updateTexture |= _planetView != PlanetView.Biomes;
 		
-		_viewBiomes = !_viewBiomes;
+		_planetView = PlanetView.Biomes;
 		
-		UpdateBiomeViewButtonText ();
+		SetEnabledModalViewsDialog (false);
 	}
 	
-	public void UpdateBiomeViewButtonText () {
+	public void SetElevationView () {
 		
-		if (!_viewBiomes) {
-			BiomeViewButtonText.text = "View Biomes";
-		} else {
-			BiomeViewButtonText.text = "Hide Biomes";
-		}
+		_updateTexture |= _planetView != PlanetView.Elevation;
+		
+		_planetView = PlanetView.Elevation;
+		
+		SetEnabledModalViewsDialog (false);
 	}
 	
 	public void SetInfoPanelData (int longitude, int latitude) {

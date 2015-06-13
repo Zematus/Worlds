@@ -40,7 +40,7 @@ public class LoadFileDialogPanelScript : MonoBehaviour {
 
 	private void LoadFileNames () {
 	
-		string[] files = Directory.GetFiles (@"Saves\", "*.XML");
+		string[] files = Directory.GetFiles (@"Saves\", "*.PLT");
 
 		int i = 0;
 
@@ -68,7 +68,7 @@ public class LoadFileDialogPanelScript : MonoBehaviour {
 		
 		button.onClick.RemoveAllListeners ();
 
-		string filename = @"Saves\" + name + ".XML";
+		string filename = @"Saves\" + name + ".PLT";
 
 		button.onClick.AddListener (() => {
 

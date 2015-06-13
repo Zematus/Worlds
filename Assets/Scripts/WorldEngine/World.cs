@@ -21,15 +21,11 @@ public class TerrainCell {
 public class World {
 
 	public const int NumContinents = 7;
-	public const float ContinentFactor = 0.75f;
-	//public const float ContinentFactor = 0.5f;
-	//public const float ContinentFactor = 0f;
-	public const float ContinentMinWidthFactor = 3f;
-	public const float ContinentMaxWidthFactor = 7f;
+	public const float ContinentMinWidthFactor = 2.5f;
+	public const float ContinentMaxWidthFactor = 6f;
 
 	public const float MinPossibleAltitude = -15000;
 	public const float MaxPossibleAltitude = 15000;
-	//public const float MountainRangeMixFactor = 0.1f;
 	public const float MountainRangeMixFactor = 0.075f;
 	public const float MountainRangeWidthFactor = 25f;
 	public const float TerrainNoiseFactor1 = 0.15f;

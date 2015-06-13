@@ -5,6 +5,12 @@ using System.Xml;
 using System.Xml.Serialization;
 using System.IO;
 
+public enum PlanetView {
+
+	Elevation,
+	Biomes
+}
+
 public class Manager {
 
 	private static Manager _manager = new Manager();
@@ -16,7 +22,7 @@ public class Manager {
 
 	private static bool _rainfallVisible = false;
 	private static bool _temperatureVisible = false;
-	private static bool _biomesVisible = false;
+	private static PlanetView _planetView = PlanetView.Biomes;
 	
 	private static List<Color> _biomePalette = new List<Color>();
 
@@ -107,9 +113,9 @@ public class Manager {
 		_temperatureVisible = value;
 	}
 	
-	public static void SetBiomesVisible (bool value) {
+	public static void SetPlanetView (PlanetView value) {
 		
-		_biomesVisible = value;
+		_planetView = value;
 	}
 	
 	public static Texture2D GenerateMapTextureFromWorld (World world) {
@@ -176,7 +182,7 @@ public class Manager {
 	
 	private static Color GenerateColorFromTerrainCell (TerrainCell cell) {
 
-		if (_biomesVisible) {
+		if (_planetView == PlanetView.Biomes) {
 
 			return GenerateBiomeColor (cell);
 		}
@@ -244,6 +250,11 @@ public class Manager {
 	private static Color GenerateBiomeColor (TerrainCell cell) {
 		
 		Color color = Color.black;
+		
+		if (_biomePalette.Count == 0) {
+			
+			return color;
+		}
 		
 		for (int i = 0; i < cell.Biomes.Count; i++) {
 			
