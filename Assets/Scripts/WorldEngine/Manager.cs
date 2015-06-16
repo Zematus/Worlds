@@ -182,41 +182,49 @@ public class Manager {
 	
 	private static Color GenerateColorFromTerrainCell (TerrainCell cell) {
 
+		Color baseColor = Color.black;
+
 		if (_planetView == PlanetView.Biomes) {
-
-			return GenerateBiomeColor (cell);
+			baseColor = GenerateBiomeColor (cell);
+		} else {
+			baseColor = GenerateAltitudeContourColor(cell.Altitude);
 		}
-
-		Color altitudeColor = GenerateAltitudeContourColor(cell.Altitude);
-		Color rainfallColor = Color.black;
-		Color temperatureColor = Color.black;
 		
-		float r = altitudeColor.r;
-		float g = altitudeColor.g;
-		float b = altitudeColor.b;
+		float r = baseColor.r;
+		float g = baseColor.g;
+		float b = baseColor.b;
 
 		int normalizer = 1;
 
+		if (_rainfallVisible || _temperatureVisible) {
+
+			float grey = (r + g + b) / 3f;
+
+			r = grey;
+			g = grey;
+			b = grey;
+		}
+
 		if (_rainfallVisible)
 		{
-			rainfallColor = GenerateRainfallContourColor(cell.Rainfall);
+			Color rainfallColor = GenerateRainfallContourColor(cell.Rainfall);
 			
-			normalizer++;
+			normalizer += 2;
 			
-			r = (r + rainfallColor.r);
-			g = (g + rainfallColor.g);
-			b = (b + rainfallColor.b);
+			r = (r + rainfallColor.r * 2);
+			g = (g + rainfallColor.g * 2);
+			b = (b + rainfallColor.b * 2);
 		}
 		
 		if (_temperatureVisible)
 		{
-			temperatureColor = GenerateTemperatureContourColor(cell.Temperature);
+			Color temperatureColor = GenerateTemperatureContourColor(cell.Temperature);
 			
-			normalizer++;
+			normalizer += 2;
 			
-			r = (r + temperatureColor.r);
-			g = (g + temperatureColor.g);
-			b = (b + temperatureColor.b);
+			r = (r + temperatureColor.r * 2);
+			g = (g + temperatureColor.g * 2);
+			b = (b + temperatureColor.b * 2);
 		}
 
 		r /= (float)normalizer;
