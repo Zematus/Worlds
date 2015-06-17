@@ -100,6 +100,8 @@ public class Manager {
 
 		_manager._currentWorld = serializer.Deserialize(stream) as World;
 
+		_manager._currentWorld.FinalizeInit ();
+
 		stream.Close();
 	}
 
@@ -179,6 +181,61 @@ public class Manager {
 		
 		return texture;
 	}
+
+	private static Dictionary<string, TerrainCell> GetNeighborCells (World world, int longitude, int latitude) {
+	
+		Dictionary<string, TerrainCell> neighbors = new Dictionary<string, TerrainCell> ();
+
+		if (latitude > 0) {
+			
+			neighbors.Add("northwest", world.Terrain[longitude - 1][latitude - 1]);
+			neighbors.Add("north", world.Terrain[longitude][latitude - 1]);
+			neighbors.Add("northeast", world.Terrain[longitude + 1][latitude - 1]);
+		}
+		
+		neighbors.Add("west", world.Terrain[longitude - 1][latitude]);
+		neighbors.Add("east", world.Terrain[longitude + 1][latitude]);
+		
+		if (latitude < (world.Height - 1)) {
+			
+			neighbors.Add("southwest", world.Terrain[longitude - 1][latitude + 1]);
+			neighbors.Add("south", world.Terrain[longitude][latitude + 1]);
+			neighbors.Add("southeast", world.Terrain[longitude + 1][latitude + 1]);
+		}
+		
+		return neighbors;
+	}
+
+	private static float GetSlant (TerrainCell cell) {
+
+		Dictionary<string, TerrainCell> neighbors = GetNeighborCells (cell.World, cell.Longitude, cell.Latitude);
+
+		float altitude = float.MinValue;
+		float wAltitude = float.MinValue;
+
+		neighbors.TryGetValue ("west", out altitude);
+		wAltitude = Mathf.Max (wAltitude, altitude);
+		
+		neighbors.TryGetValue ("northwest", out altitude);
+		wAltitude = Mathf.Max (wAltitude, altitude);
+		
+		neighbors.TryGetValue ("north", out altitude);
+		wAltitude = Mathf.Max (wAltitude, altitude);
+
+		altitude = float.MinValue;
+		float eAltitude = float.MinValue;
+		
+		neighbors.TryGetValue ("east", out altitude);
+		eAltitude = Mathf.Max (eAltitude, altitude);
+		
+		neighbors.TryGetValue ("southeast", out altitude);
+		eAltitude = Mathf.Max (eAltitude, altitude);
+		
+		neighbors.TryGetValue ("south", out altitude);
+		eAltitude = Mathf.Max (eAltitude, altitude);
+	
+		return wAltitude - eAltitude;
+	}
 	
 	private static Color GenerateColorFromTerrainCell (TerrainCell cell) {
 
@@ -196,35 +253,35 @@ public class Manager {
 
 		int normalizer = 1;
 
-		if (_rainfallVisible || _temperatureVisible) {
-
-			float grey = (r + g + b) / 3f;
-
-			r = grey;
-			g = grey;
-			b = grey;
-		}
+//		if (_rainfallVisible || _temperatureVisible) {
+//
+//			float grey = (r + g + b) / 3f;
+//
+//			r = grey;
+//			g = grey;
+//			b = grey;
+//		}
 
 		if (_rainfallVisible)
 		{
 			Color rainfallColor = GenerateRainfallContourColor(cell.Rainfall);
 			
-			normalizer += 2;
+			normalizer += 1;
 			
-			r = (r + rainfallColor.r * 2);
-			g = (g + rainfallColor.g * 2);
-			b = (b + rainfallColor.b * 2);
+			r = (r + rainfallColor.r * 1);
+			g = (g + rainfallColor.g * 1);
+			b = (b + rainfallColor.b * 1);
 		}
 		
 		if (_temperatureVisible)
 		{
 			Color temperatureColor = GenerateTemperatureContourColor(cell.Temperature);
 			
-			normalizer += 2;
+			normalizer += 1;
 			
-			r = (r + temperatureColor.r * 2);
-			g = (g + temperatureColor.g * 2);
-			b = (b + temperatureColor.b * 2);
+			r = (r + temperatureColor.r * 1);
+			g = (g + temperatureColor.g * 1);
+			b = (b + temperatureColor.b * 1);
 		}
 
 		r /= (float)normalizer;
@@ -250,7 +307,6 @@ public class Manager {
 		value = (1 + altitude / World.MaxPossibleAltitude) / 2f;
 		
 		Color color2 = new Color(0.58f, 0.29f, 0);
-		//Color color2 = Color.white;
 		
 		return new Color(color2.r * value, color2.g * value, color2.b * value);
 	}

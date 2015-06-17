@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 
 public class GuiManagerScript : MonoBehaviour {
 
@@ -13,6 +14,8 @@ public class GuiManagerScript : MonoBehaviour {
 	public Text InfoPanelText;
 
 	public RawImage MapImage;
+
+	public Button LoadButton;
 
 	public PlanetScript PlanetScript;
 	public MapScript MapScript;
@@ -42,6 +45,10 @@ public class GuiManagerScript : MonoBehaviour {
 
 		SetEnabledModalSaveDialog (false);
 		SetEnabledModalLoadDialog (false);
+		SetEnabledModalOverlayDialog (false);
+		SetEnabledModalViewsDialog (false);
+
+		LoadButton.interactable = HasFilesToLoad ();
 
 		Manager.SetBiomePalette (BiomePaletteScript.Colors);
 
@@ -81,6 +88,13 @@ public class GuiManagerScript : MonoBehaviour {
 
 	}
 
+	private bool HasFilesToLoad () {
+		
+		string[] files = Directory.GetFiles (@"Saves\", "*.PLNT");
+
+		return files.Length > 0;
+	}
+
 	private void SetEnabledModalSaveDialog (bool value) {
 		
 		NonModalCanvasGroup.blocksRaycasts = !value;
@@ -109,8 +123,10 @@ public class GuiManagerScript : MonoBehaviour {
 		
 		string worldName = SaveFileDialogPanelScript.GetWorldName ();
 		
-		string path = @"Saves\" + worldName + ".plt";
+		string path = @"Saves\" + worldName + ".plnt";
 		Manager.SaveWorld (path);
+		
+		LoadButton.interactable = HasFilesToLoad ();
 		
 		SetEnabledModalSaveDialog (false);
 	}
@@ -147,6 +163,8 @@ public class GuiManagerScript : MonoBehaviour {
 	public void LoadWorld () {
 		
 		SetEnabledModalLoadDialog (true);
+
+		LoadFileDialogPanelScript.SetLoadAction (LoadAction);
 	}
 	
 	public void CloseOverlayMenuAction () {

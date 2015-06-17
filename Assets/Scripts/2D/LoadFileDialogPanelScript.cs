@@ -25,7 +25,6 @@ public class LoadFileDialogPanelScript : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 
-		WorldNameButtons.Add (WorldNameButtonPrefab);
 	}
 	
 	// Update is called once per frame
@@ -39,8 +38,10 @@ public class LoadFileDialogPanelScript : MonoBehaviour {
 	}
 
 	private void LoadFileNames () {
+		
+		WorldNameButtons.Add (WorldNameButtonPrefab);
 	
-		string[] files = Directory.GetFiles (@"Saves\", "*.PLT");
+		string[] files = Directory.GetFiles (@"Saves\", "*.PLNT");
 
 		int i = 0;
 
@@ -68,7 +69,7 @@ public class LoadFileDialogPanelScript : MonoBehaviour {
 		
 		button.onClick.RemoveAllListeners ();
 
-		string filename = @"Saves\" + name + ".PLT";
+		string filename = @"Saves\" + name + ".PLNT";
 
 		button.onClick.AddListener (() => {
 
@@ -106,8 +107,6 @@ public class LoadFileDialogPanelScript : MonoBehaviour {
 		}
 
 		WorldNameButtons.Clear ();
-
-		WorldNameButtons.Add (WorldNameButtonPrefab);
 	}
 
 	public void SetDialogText (string text) {

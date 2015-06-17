@@ -5,7 +5,15 @@ using System.Xml;
 using System.Xml.Serialization;
 
 public class TerrainCell {
+
+	[XmlIgnore]
+	public World World;
 	
+	[XmlAttribute]
+	public float Longitude;
+	[XmlAttribute]
+	public float Latitude;
+
 	[XmlAttribute]
 	public float Altitude;
 	[XmlAttribute]
@@ -83,7 +91,12 @@ public class World {
 
 			for (int j = 0; j < height; j++)
 			{
-				column[j] = new TerrainCell();
+				TerrainCell cell = new TerrainCell();
+				cell.World = this;
+				cell.Longitude = i;
+				cell.Latitude = j;
+
+				column[j] = cell;
 			}
 
 			Terrain[i] = column;
@@ -92,6 +105,18 @@ public class World {
 		_continentOffsets = new Vector2[NumContinents];
 		_continentHeights = new float[NumContinents];
 		_continentWidths = new float[NumContinents];
+	}
+
+	public void FinalizeInit () {
+		
+		for (int i = 0; i < Width; i++)
+		{
+			for (int j = 0; j < Height; j++)
+			{
+				TerrainCell cell = Terrain[i][j];
+				cell.World = this;
+			}
+		}
 	}
 
 	public void Initialize () {
