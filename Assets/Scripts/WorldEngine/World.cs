@@ -10,9 +10,9 @@ public class TerrainCell {
 	public World World;
 	
 	[XmlAttribute]
-	public float Longitude;
+	public int Longitude;
 	[XmlAttribute]
-	public float Latitude;
+	public int Latitude;
 
 	[XmlAttribute]
 	public float Altitude;

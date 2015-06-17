@@ -213,26 +213,26 @@ public class Manager {
 		float altitude = float.MinValue;
 		float wAltitude = float.MinValue;
 
-		neighbors.TryGetValue ("west", out altitude);
-		wAltitude = Mathf.Max (wAltitude, altitude);
-		
-		neighbors.TryGetValue ("northwest", out altitude);
-		wAltitude = Mathf.Max (wAltitude, altitude);
-		
-		neighbors.TryGetValue ("north", out altitude);
-		wAltitude = Mathf.Max (wAltitude, altitude);
+//		neighbors.TryGetValue ("west", out altitude);
+//		wAltitude = Mathf.Max (wAltitude, altitude);
+//		
+//		neighbors.TryGetValue ("northwest", out altitude);
+//		wAltitude = Mathf.Max (wAltitude, altitude);
+//		
+//		neighbors.TryGetValue ("north", out altitude);
+//		wAltitude = Mathf.Max (wAltitude, altitude);
 
 		altitude = float.MinValue;
 		float eAltitude = float.MinValue;
 		
-		neighbors.TryGetValue ("east", out altitude);
-		eAltitude = Mathf.Max (eAltitude, altitude);
-		
-		neighbors.TryGetValue ("southeast", out altitude);
-		eAltitude = Mathf.Max (eAltitude, altitude);
-		
-		neighbors.TryGetValue ("south", out altitude);
-		eAltitude = Mathf.Max (eAltitude, altitude);
+//		neighbors.TryGetValue ("east", out altitude);
+//		eAltitude = Mathf.Max (eAltitude, altitude);
+//		
+//		neighbors.TryGetValue ("southeast", out altitude);
+//		eAltitude = Mathf.Max (eAltitude, altitude);
+//		
+//		neighbors.TryGetValue ("south", out altitude);
+//		eAltitude = Mathf.Max (eAltitude, altitude);
 	
 		return wAltitude - eAltitude;
 	}
