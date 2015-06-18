@@ -186,21 +186,24 @@ public class Manager {
 	
 		Dictionary<string, TerrainCell> neighbors = new Dictionary<string, TerrainCell> ();
 
+		int wLongitude = (world.Width + longitude - 1) % world.Width;
+		int eLongitude = (longitude + 1) % world.Width;
+
 		if (latitude > 0) {
 			
-			neighbors.Add("northwest", world.Terrain[longitude - 1][latitude - 1]);
+			neighbors.Add("northwest", world.Terrain[wLongitude][latitude - 1]);
 			neighbors.Add("north", world.Terrain[longitude][latitude - 1]);
-			neighbors.Add("northeast", world.Terrain[longitude + 1][latitude - 1]);
+			neighbors.Add("northeast", world.Terrain[eLongitude][latitude - 1]);
 		}
 		
-		neighbors.Add("west", world.Terrain[longitude - 1][latitude]);
-		neighbors.Add("east", world.Terrain[longitude + 1][latitude]);
+		neighbors.Add("west", world.Terrain[wLongitude][latitude]);
+		neighbors.Add("east", world.Terrain[eLongitude][latitude]);
 		
 		if (latitude < (world.Height - 1)) {
 			
-			neighbors.Add("southwest", world.Terrain[longitude - 1][latitude + 1]);
+			neighbors.Add("southwest", world.Terrain[wLongitude][latitude + 1]);
 			neighbors.Add("south", world.Terrain[longitude][latitude + 1]);
-			neighbors.Add("southeast", world.Terrain[longitude + 1][latitude + 1]);
+			neighbors.Add("southeast", world.Terrain[eLongitude][latitude + 1]);
 		}
 		
 		return neighbors;
@@ -210,29 +213,53 @@ public class Manager {
 
 		Dictionary<string, TerrainCell> neighbors = GetNeighborCells (cell.World, cell.Longitude, cell.Latitude);
 
-		float altitude = float.MinValue;
-		float wAltitude = float.MinValue;
+		float wAltitude = 0;
+		float eAltitude = 0;
 
-//		neighbors.TryGetValue ("west", out altitude);
-//		wAltitude = Mathf.Max (wAltitude, altitude);
-//		
-//		neighbors.TryGetValue ("northwest", out altitude);
-//		wAltitude = Mathf.Max (wAltitude, altitude);
-//		
-//		neighbors.TryGetValue ("north", out altitude);
-//		wAltitude = Mathf.Max (wAltitude, altitude);
+		int c = 0;
+		TerrainCell nCell = null;
 
-		altitude = float.MinValue;
-		float eAltitude = float.MinValue;
+		if (neighbors.TryGetValue ("west", out nCell)) {
+			
+			wAltitude += nCell.Altitude;
+			c++;
+		}
 		
-//		neighbors.TryGetValue ("east", out altitude);
-//		eAltitude = Mathf.Max (eAltitude, altitude);
-//		
-//		neighbors.TryGetValue ("southeast", out altitude);
-//		eAltitude = Mathf.Max (eAltitude, altitude);
-//		
-//		neighbors.TryGetValue ("south", out altitude);
-//		eAltitude = Mathf.Max (eAltitude, altitude);
+		if (neighbors.TryGetValue ("northwest", out nCell)) {
+			
+			wAltitude += nCell.Altitude;
+			c++;
+		}
+		
+		if (neighbors.TryGetValue ("north", out nCell)) {
+			
+			wAltitude += nCell.Altitude;
+			c++;
+		}
+
+		wAltitude /= (float)c;
+
+		c = 0;
+		
+		if (neighbors.TryGetValue ("east", out nCell)) {
+			
+			eAltitude += nCell.Altitude;
+			c++;
+		}
+		
+		if (neighbors.TryGetValue ("southeast", out nCell)) {
+			
+			eAltitude += nCell.Altitude;
+			c++;
+		}
+		
+		if (neighbors.TryGetValue ("south", out nCell)) {
+			
+			eAltitude += nCell.Altitude;
+			c++;
+		}
+		
+		eAltitude /= (float)c;
 	
 		return wAltitude - eAltitude;
 	}
@@ -312,6 +339,13 @@ public class Manager {
 	}
 	
 	private static Color GenerateBiomeColor (TerrainCell cell) {
+
+		float slant = GetSlant (cell);
+		float altDiff = CurrentWorld.MaxAltitude - CurrentWorld.MinAltitude;
+
+		float slantFactor = Mathf.Min (1f, (4f + (10f * slant / altDiff)) / 5f);
+
+		float altitudeFactor = Mathf.Min (1f, (0.5f + ((cell.Altitude - CurrentWorld.MinAltitude) / altDiff)) / 1.5f);
 		
 		Color color = Color.black;
 		
@@ -330,7 +364,7 @@ public class Manager {
 			color.b += biomeColor.b * biomePresence;
 		}
 		
-		return color;
+		return color * slantFactor * altitudeFactor;
 	}
 	
 	private static Color GenerateAltitudeContourColor (float altitude) {
