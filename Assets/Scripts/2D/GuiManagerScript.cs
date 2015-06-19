@@ -36,8 +36,12 @@ public class GuiManagerScript : MonoBehaviour {
 	private Vector2 _beginDragPosition;
 	private Rect _beginDragMapUvRect;
 
+	private string _worldName;
+
 	// Use this for initialization
 	void Start () {
+
+		GenerateWorld ();
 
 		UpdateMapViewButtonText ();
 
@@ -83,6 +87,8 @@ public class GuiManagerScript : MonoBehaviour {
 	public void GenerateWorld () {
 
 		Manager.GenerateNewWorld ();
+
+		_worldName = "world_" + Manager.CurrentWorld.Seed;
 		
 		_updateTexture = true;
 
@@ -121,9 +127,9 @@ public class GuiManagerScript : MonoBehaviour {
 
 	public void SaveAction () {
 		
-		string worldName = SaveFileDialogPanelScript.GetWorldName ();
+		_worldName = SaveFileDialogPanelScript.GetWorldName ();
 		
-		string path = @"Saves\" + worldName + ".plnt";
+		string path = @"Saves\" + _worldName + ".plnt";
 		Manager.SaveWorld (path);
 		
 		LoadButton.interactable = HasFilesToLoad ();
@@ -138,17 +144,17 @@ public class GuiManagerScript : MonoBehaviour {
 
 	public void SaveWorldAs () {
 
-		string worldName = "test_world";
-
-		SaveFileDialogPanelScript.SetWorldName (worldName);
+		SaveFileDialogPanelScript.SetWorldName (_worldName);
 		
 		SetEnabledModalSaveDialog (true);
 	}
 	
 	public void LoadAction () {
 		
-		string path = LoadFileDialogPanelScript.GetFilenameToLoad();
+		string path = LoadFileDialogPanelScript.GetFilenameToLoad ();
 		Manager.LoadWorld (path);
+
+		_worldName = Path.GetFileNameWithoutExtension (path);
 		
 		SetEnabledModalLoadDialog (false);
 		
@@ -229,6 +235,15 @@ public class GuiManagerScript : MonoBehaviour {
 		_updateTexture |= _planetView != PlanetView.Elevation;
 		
 		_planetView = PlanetView.Elevation;
+		
+		SetEnabledModalViewsDialog (false);
+	}
+	
+	public void SetCoastlineView () {
+		
+		_updateTexture |= _planetView != PlanetView.Coastlines;
+		
+		_planetView = PlanetView.Coastlines;
 		
 		SetEnabledModalViewsDialog (false);
 	}

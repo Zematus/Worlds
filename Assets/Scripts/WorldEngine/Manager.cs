@@ -8,7 +8,8 @@ using System.IO;
 public enum PlanetView {
 
 	Elevation,
-	Biomes
+	Biomes,
+	Coastlines
 }
 
 public class Manager {
@@ -181,6 +182,11 @@ public class Manager {
 		
 		return texture;
 	}
+	
+	private static Dictionary<string, TerrainCell> GetNeighborCells (TerrainCell cell) {
+
+		return GetNeighborCells (cell.World, cell.Longitude, cell.Latitude);
+	}
 
 	private static Dictionary<string, TerrainCell> GetNeighborCells (World world, int longitude, int latitude) {
 	
@@ -189,21 +195,21 @@ public class Manager {
 		int wLongitude = (world.Width + longitude - 1) % world.Width;
 		int eLongitude = (longitude + 1) % world.Width;
 
-		if (latitude > 0) {
+		if (latitude < (world.Height - 1)) {
 			
-			neighbors.Add("northwest", world.Terrain[wLongitude][latitude - 1]);
-			neighbors.Add("north", world.Terrain[longitude][latitude - 1]);
-			neighbors.Add("northeast", world.Terrain[eLongitude][latitude - 1]);
+			neighbors.Add("northwest", world.Terrain[wLongitude][latitude + 1]);
+			neighbors.Add("north", world.Terrain[longitude][latitude + 1]);
+			neighbors.Add("northeast", world.Terrain[eLongitude][latitude + 1]);
 		}
 		
 		neighbors.Add("west", world.Terrain[wLongitude][latitude]);
 		neighbors.Add("east", world.Terrain[eLongitude][latitude]);
 		
-		if (latitude < (world.Height - 1)) {
+		if (latitude > 0) {
 			
-			neighbors.Add("southwest", world.Terrain[wLongitude][latitude + 1]);
-			neighbors.Add("south", world.Terrain[longitude][latitude + 1]);
-			neighbors.Add("southeast", world.Terrain[eLongitude][latitude + 1]);
+			neighbors.Add("southwest", world.Terrain[wLongitude][latitude - 1]);
+			neighbors.Add("south", world.Terrain[longitude][latitude - 1]);
+			neighbors.Add("southeast", world.Terrain[eLongitude][latitude - 1]);
 		}
 		
 		return neighbors;
@@ -211,7 +217,7 @@ public class Manager {
 
 	private static float GetSlant (TerrainCell cell) {
 
-		Dictionary<string, TerrainCell> neighbors = GetNeighborCells (cell.World, cell.Longitude, cell.Latitude);
+		Dictionary<string, TerrainCell> neighbors = GetNeighborCells (cell);
 
 		float wAltitude = 0;
 		float eAltitude = 0;
@@ -225,13 +231,13 @@ public class Manager {
 			c++;
 		}
 		
-		if (neighbors.TryGetValue ("northwest", out nCell)) {
+		if (neighbors.TryGetValue ("southwest", out nCell)) {
 			
 			wAltitude += nCell.Altitude;
 			c++;
 		}
 		
-		if (neighbors.TryGetValue ("north", out nCell)) {
+		if (neighbors.TryGetValue ("south", out nCell)) {
 			
 			wAltitude += nCell.Altitude;
 			c++;
@@ -247,13 +253,13 @@ public class Manager {
 			c++;
 		}
 		
-		if (neighbors.TryGetValue ("southeast", out nCell)) {
+		if (neighbors.TryGetValue ("northeast", out nCell)) {
 			
 			eAltitude += nCell.Altitude;
 			c++;
 		}
 		
-		if (neighbors.TryGetValue ("south", out nCell)) {
+		if (neighbors.TryGetValue ("north", out nCell)) {
 			
 			eAltitude += nCell.Altitude;
 			c++;
@@ -264,14 +270,68 @@ public class Manager {
 		return wAltitude - eAltitude;
 	}
 	
+	private static bool IsCoastlinePart (TerrainCell cell) {
+
+		if (cell.Altitude <= 0)
+			return false;
+		
+		Dictionary<string, TerrainCell> neighbors = GetNeighborCells (cell);
+
+		TerrainCell nCell = null;
+		
+		if (neighbors.TryGetValue ("west", out nCell)) {
+			
+			if (nCell.Altitude <= 0) return true;
+		}
+		
+		if (neighbors.TryGetValue ("northwest", out nCell)) {
+			
+			if (nCell.Altitude <= 0) return true;
+		}
+		
+		if (neighbors.TryGetValue ("north", out nCell)) {
+			
+			if (nCell.Altitude <= 0) return true;
+		}
+		
+		if (neighbors.TryGetValue ("northeast", out nCell)) {
+			
+			if (nCell.Altitude <= 0) return true;
+		}
+		
+		if (neighbors.TryGetValue ("east", out nCell)) {
+			
+			if (nCell.Altitude <= 0) return true;
+		}
+		
+		if (neighbors.TryGetValue ("southeast", out nCell)) {
+			
+			if (nCell.Altitude <= 0) return true;
+		}
+		
+		if (neighbors.TryGetValue ("south", out nCell)) {
+			
+			if (nCell.Altitude <= 0) return true;
+		}
+		
+		if (neighbors.TryGetValue ("southwest", out nCell)) {
+			
+			if (nCell.Altitude <= 0) return true;
+		}
+
+		return false;
+	}
+	
 	private static Color GenerateColorFromTerrainCell (TerrainCell cell) {
 
 		Color baseColor = Color.black;
 
 		if (_planetView == PlanetView.Biomes) {
 			baseColor = GenerateBiomeColor (cell);
-		} else {
+		} else if (_planetView == PlanetView.Elevation) {
 			baseColor = GenerateAltitudeContourColor(cell.Altitude);
+		} else {
+			baseColor = GenerateCoastlineColor(cell);
 		}
 		
 		float r = baseColor.r;
@@ -316,6 +376,21 @@ public class Manager {
 		b /= (float)normalizer;
 		
 		return new Color(r, g, b);
+	}
+	
+	private static Color GenerateCoastlineColor (TerrainCell cell) {
+		
+		if (IsCoastlinePart (cell)) {
+
+			return Color.black;
+		}
+
+		if (cell.Altitude > 0) {
+
+			return Color.white * 0.5f + Color.grey * 0.5f;
+		}
+
+		return Color.white;
 	}
 
 	private static Color GenerateAltitudeColor (float altitude) {
