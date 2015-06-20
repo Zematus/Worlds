@@ -26,11 +26,18 @@ public class Manager {
 	private static PlanetView _planetView = PlanetView.Biomes;
 	
 	private static List<Color> _biomePalette = new List<Color>();
+	private static List<Color> _mapPalette = new List<Color>();
 
 	public static void SetBiomePalette (IEnumerable<Color> colors) {
 
 		_biomePalette.Clear ();
 		_biomePalette.AddRange (colors);
+	}
+	
+	public static void SetMapPalette (IEnumerable<Color> colors) {
+		
+		_mapPalette.Clear ();
+		_mapPalette.AddRange (colors);
 	}
 
 	public static World CurrentWorld { 
@@ -270,7 +277,7 @@ public class Manager {
 		return wAltitude - eAltitude;
 	}
 	
-	private static bool IsCoastlinePart (TerrainCell cell) {
+	private static bool IsCoastline (TerrainCell cell) {
 
 		if (cell.Altitude <= 0)
 			return false;
@@ -322,6 +329,58 @@ public class Manager {
 		return false;
 	}
 	
+	private static bool IsNearCoastline (TerrainCell cell) {
+		
+		if (cell.Altitude > 0)
+			return false;
+		
+		Dictionary<string, TerrainCell> neighbors = GetNeighborCells (cell);
+		
+		TerrainCell nCell = null;
+		
+		if (neighbors.TryGetValue ("west", out nCell)) {
+			
+			if (nCell.Altitude > 0) return true;
+		}
+		
+		if (neighbors.TryGetValue ("northwest", out nCell)) {
+			
+			if (nCell.Altitude > 0) return true;
+		}
+		
+		if (neighbors.TryGetValue ("north", out nCell)) {
+			
+			if (nCell.Altitude > 0) return true;
+		}
+		
+		if (neighbors.TryGetValue ("northeast", out nCell)) {
+			
+			if (nCell.Altitude > 0) return true;
+		}
+		
+		if (neighbors.TryGetValue ("east", out nCell)) {
+			
+			if (nCell.Altitude > 0) return true;
+		}
+		
+		if (neighbors.TryGetValue ("southeast", out nCell)) {
+			
+			if (nCell.Altitude > 0) return true;
+		}
+		
+		if (neighbors.TryGetValue ("south", out nCell)) {
+			
+			if (nCell.Altitude > 0) return true;
+		}
+		
+		if (neighbors.TryGetValue ("southwest", out nCell)) {
+			
+			if (nCell.Altitude > 0) return true;
+		}
+		
+		return false;
+	}
+	
 	private static Color GenerateColorFromTerrainCell (TerrainCell cell) {
 
 		Color baseColor = Color.black;
@@ -340,57 +399,79 @@ public class Manager {
 
 		int normalizer = 1;
 
-//		if (_rainfallVisible || _temperatureVisible) {
-//
-//			float grey = (r + g + b) / 3f;
-//
-//			r = grey;
-//			g = grey;
-//			b = grey;
-//		}
+		if (_rainfallVisible || _temperatureVisible) {
+
+			float grey = (r + g + b) / 3f;
+
+			r = grey;
+			g = grey;
+			b = grey;
+		}
 
 		if (_rainfallVisible)
 		{
-			Color rainfallColor = GenerateRainfallContourColor(cell.Rainfall);
+			Color rainfallColor = GenerateRainfallColor(cell.Rainfall);
 			
 			normalizer += 1;
 			
-			r = (r + rainfallColor.r * 1);
-			g = (g + rainfallColor.g * 1);
-			b = (b + rainfallColor.b * 1);
+			r += rainfallColor.r;
+			g += rainfallColor.g;
+			b += rainfallColor.b;
 		}
 		
 		if (_temperatureVisible)
 		{
-			Color temperatureColor = GenerateTemperatureContourColor(cell.Temperature);
+			Color temperatureColor = GenerateTemperatureColor(cell.Temperature);
 			
 			normalizer += 1;
 			
-			r = (r + temperatureColor.r * 1);
-			g = (g + temperatureColor.g * 1);
-			b = (b + temperatureColor.b * 1);
+			r += temperatureColor.r;
+			g += temperatureColor.g;
+			b += temperatureColor.b;
 		}
 
 		r /= (float)normalizer;
 		g /= (float)normalizer;
 		b /= (float)normalizer;
 		
-		return new Color(r, g, b);
+		Color resultColor = new Color (r, g, b);
+		
+		return resultColor;
 	}
 	
 	private static Color GenerateCoastlineColor (TerrainCell cell) {
 		
-		if (IsCoastlinePart (cell)) {
-
+		if (_mapPalette.Count == 0) {
+			
 			return Color.black;
+		}
+		
+		if (IsCoastline (cell)) {
+			
+			return _mapPalette[2];
+		}
+		
+		if (IsNearCoastline (cell)) {
+			
+			return _mapPalette[3];
 		}
 
 		if (cell.Altitude > 0) {
 
-			return Color.white * 0.5f + Color.grey * 0.5f;
+			float slant = GetSlant (cell);
+			float altDiff = CurrentWorld.MaxAltitude - CurrentWorld.MinAltitude;
+
+			float slantFactor = Mathf.Min(1, -(500 * slant / altDiff));
+			
+			if (slantFactor > 0.9f) {
+
+				return (_mapPalette[4] * slantFactor) + (_mapPalette[1] * (1 - slantFactor));
+			}
+
+			return _mapPalette[1];
 		}
 
-		return Color.white;
+		return _mapPalette[0];
 	}
 
 	private static Color GenerateAltitudeColor (float altitude) {
@@ -408,7 +489,7 @@ public class Manager {
 		
 		value = (1 + altitude / World.MaxPossibleAltitude) / 2f;
 		
-		Color color2 = new Color(0.58f, 0.29f, 0);
+		Color color2 = new Color(1f, 0.6f, 0);
 		
 		return new Color(color2.r * value, color2.g * value, color2.b * value);
 	}
@@ -443,28 +524,26 @@ public class Manager {
 	}
 	
 	private static Color GenerateAltitudeContourColor (float altitude) {
-		
-		float value;
 
-		Color color = Color.white;
+		Color color = new Color(1, 0.6f, 0);
+		
+		float shadeValue = 1.0f;
+		
+		float value = Mathf.Max(0, altitude / CurrentWorld.MaxAltitude);
 		
 		if (altitude < 0) {
 			
-			value = (2 - altitude / World.MinPossibleAltitude) / 2f;
+			value = Mathf.Max(0, (1f - altitude / CurrentWorld.MinAltitude));
 			
 			color = Color.blue;
-			
-			return new Color(color.r * value, color.g * value, color.b * value);
 		}
-
-		float shadeValue = 1.0f;
-
-		value = altitude / CurrentWorld.MaxAltitude;
 
 		while (shadeValue > value)
 		{
-			shadeValue -= 0.1f;
+			shadeValue -= 0.15f;
 		}
+
+		shadeValue = 0.5f * shadeValue + 0.5f;
 
 		color = new Color(color.r * shadeValue, color.g * shadeValue, color.b * shadeValue);
 		
@@ -479,7 +558,7 @@ public class Manager {
 		
 		float shadeValue = 1.0f;
 		
-		value = rainfall / CurrentWorld.MaxRainfall;
+		value = Mathf.Max(0, rainfall / CurrentWorld.MaxRainfall);
 		
 		while (shadeValue > value)
 		{
@@ -528,7 +607,7 @@ public class Manager {
 
 		float value = (temperature - World.MinPossibleTemperature) / span;
 		
-		return new Color(value, 1f - value, 0);
+		return new Color(value, 0, 1f - value);
 	}
 	
 	private static float NormalizeRainfall (float rainfall) {

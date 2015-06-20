@@ -25,7 +25,8 @@ public class GuiManagerScript : MonoBehaviour {
 	public OverlayDialogPanelScript OverlayDialogPanelScript;
 	public ViewsDialogPanelScript ViewsDialogPanelScript;
 
-	public BiomePaletteScript BiomePaletteScript;
+	public PaletteScript BiomePaletteScript;
+	public PaletteScript MapPaletteScript;
 
 	private bool _viewRainfall = false;
 	private bool _viewTemperature = false;
@@ -55,6 +56,7 @@ public class GuiManagerScript : MonoBehaviour {
 		LoadButton.interactable = HasFilesToLoad ();
 
 		Manager.SetBiomePalette (BiomePaletteScript.Colors);
+		Manager.SetMapPalette (MapPaletteScript.Colors);
 
 		_updateTexture = true;
 	}
