@@ -20,7 +20,7 @@ public class LoadFileDialogPanelScript : MonoBehaviour {
 	private List<Button> WorldNameButtons = new List<Button>();
 
 	private UnityAction _loadAction;
-	private string _fileToLoad;
+	private string _pathToLoad;
 
 	// Use this for initialization
 	void Start () {
@@ -32,16 +32,18 @@ public class LoadFileDialogPanelScript : MonoBehaviour {
 	
 	}
 
-	public string GetFilenameToLoad () {
+	public string GetPathToLoad () {
 
-		return _fileToLoad;
+		return _pathToLoad;
 	}
 
 	private void LoadFileNames () {
 		
 		WorldNameButtons.Add (WorldNameButtonPrefab);
+
+		string dirPath = Manager.SavePath;
 	
-		string[] files = Directory.GetFiles (@"Saves\", "*.PLNT");
+		string[] files = Directory.GetFiles (dirPath, "*.PLNT");
 
 		int i = 0;
 
@@ -69,11 +71,11 @@ public class LoadFileDialogPanelScript : MonoBehaviour {
 		
 		button.onClick.RemoveAllListeners ();
 
-		string filename = @"Saves\" + name + ".PLNT";
+		string path = Manager.SavePath + name + ".PLNT";
 
 		button.onClick.AddListener (() => {
 
-			_fileToLoad = filename;
+			_pathToLoad = path;
 			_loadAction ();
 		});
 	}

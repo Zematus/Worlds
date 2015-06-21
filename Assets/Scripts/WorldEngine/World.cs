@@ -293,7 +293,7 @@ public class World {
 				
 				float value = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius, offset);
 
-				float latitudeFactor = (alpha * 0.9f) + (value * 0.2f * Mathf.PI) - 0.1f;
+				float latitudeFactor = alpha + (((value * 2) - 1f) * Mathf.PI * 0.1f);
 				float latitudeModifier1 = (1.5f * Mathf.Sin(latitudeFactor)) - 0.5f;
 				float latitudeModifier2 = Mathf.Cos(latitudeFactor);
 
@@ -303,13 +303,13 @@ public class World {
 				TerrainCell offCell = Terrain[offCellX][j];
 				TerrainCell offCell2 = Terrain[offCellX2][j];
 
-				float altitude = Mathf.Max(0, cell.Altitude);
+				float altitudeValue = Mathf.Max(0, cell.Altitude);
 				float offAltitude = Mathf.Max(0, offCell.Altitude);
 				float offAltitude2 = Mathf.Max(0, offCell2.Altitude);
 
-				float altitudeModifier = (altitude - (offAltitude * 1.5f) - (offAltitude2 * 1.5f)) / MaxPossibleAltitude;
+				float altitudeModifier = (altitudeValue - (offAltitude * 1.5f) - (offAltitude2 * 1.0f)) / MaxPossibleAltitude;
 				float rainfallValue = MathUtility.MixValues(latitudeModifier1, altitudeModifier, 0.63f);
-				//rainfallValue = MathUtility.MixValues(rainfallValue * rainfallValue, rainfallValue, 0.3f);
+				rainfallValue = MathUtility.MixValues(rainfallValue * rainfallValue, rainfallValue, 0.85f);
 
 				float rainfall = Mathf.Min(MaxPossibleRainfall, CalculateRainfall(rainfallValue));
 				cell.Rainfall = rainfall;

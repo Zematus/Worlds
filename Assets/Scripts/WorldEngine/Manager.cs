@@ -27,6 +27,20 @@ public class Manager {
 	
 	private static List<Color> _biomePalette = new List<Color>();
 	private static List<Color> _mapPalette = new List<Color>();
+	
+	public static string SavePath { get; private set; }
+
+	private Manager () {
+
+		string path = Path.GetFullPath (@"Saves\");
+
+		if (!Directory.Exists (path)) {
+
+			Directory.CreateDirectory(path);
+		}
+
+		SavePath = path;
+	}
 
 	public static void SetBiomePalette (IEnumerable<Color> colors) {
 
@@ -461,9 +475,9 @@ public class Manager {
 			float slant = GetSlant (cell);
 			float altDiff = CurrentWorld.MaxAltitude - CurrentWorld.MinAltitude;
 
-			float slantFactor = Mathf.Min(1, -(500 * slant / altDiff));
+			float slantFactor = Mathf.Min(1, -(20 * slant / altDiff));
 			
-			if (slantFactor > 0.9f) {
+			if (slantFactor > 0.1f) {
 
 				return (_mapPalette[4] * slantFactor) + (_mapPalette[1] * (1 - slantFactor));
 			}

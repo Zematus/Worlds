@@ -97,8 +97,10 @@ public class GuiManagerScript : MonoBehaviour {
 	}
 
 	private bool HasFilesToLoad () {
+
+		string dirPath = Manager.SavePath;
 		
-		string[] files = Directory.GetFiles (@"Saves\", "*.PLNT");
+		string[] files = Directory.GetFiles (dirPath, "*.PLNT");
 
 		return files.Length > 0;
 	}
@@ -131,7 +133,8 @@ public class GuiManagerScript : MonoBehaviour {
 		
 		_worldName = SaveFileDialogPanelScript.GetWorldName ();
 		
-		string path = @"Saves\" + _worldName + ".plnt";
+		string path = Manager.SavePath + _worldName + ".plnt";
+
 		Manager.SaveWorld (path);
 		
 		LoadButton.interactable = HasFilesToLoad ();
@@ -153,7 +156,7 @@ public class GuiManagerScript : MonoBehaviour {
 	
 	public void LoadAction () {
 		
-		string path = LoadFileDialogPanelScript.GetFilenameToLoad ();
+		string path = LoadFileDialogPanelScript.GetPathToLoad ();
 		Manager.LoadWorld (path);
 
 		_worldName = Path.GetFileNameWithoutExtension (path);
