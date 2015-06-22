@@ -23,7 +23,8 @@ public class GuiManagerScript : MonoBehaviour {
 	public SaveFileDialogPanelScript SaveFileDialogPanelScript;
 	public LoadFileDialogPanelScript LoadFileDialogPanelScript;
 	public OverlayDialogPanelScript OverlayDialogPanelScript;
-	public ViewsDialogPanelScript ViewsDialogPanelScript;
+	public DialogPanelScript ViewsDialogPanelScript;
+	public DialogPanelScript MainMenuDialogPanelScript;
 
 	public PaletteScript BiomePaletteScript;
 	public PaletteScript MapPaletteScript;
@@ -52,6 +53,7 @@ public class GuiManagerScript : MonoBehaviour {
 		SetEnabledModalLoadDialog (false);
 		SetEnabledModalOverlayDialog (false);
 		SetEnabledModalViewsDialog (false);
+		SetEnabledModalMainMenuDialog (false);
 
 		LoadButton.interactable = HasFilesToLoad ();
 
@@ -87,6 +89,8 @@ public class GuiManagerScript : MonoBehaviour {
 	}
 	
 	public void GenerateWorld () {
+
+		SetEnabledModalMainMenuDialog (false);
 
 		Manager.GenerateNewWorld ();
 
@@ -128,6 +132,12 @@ public class GuiManagerScript : MonoBehaviour {
 		NonModalCanvasGroup.blocksRaycasts = !value;
 		ViewsDialogPanelScript.SetVisible (value);
 	}
+	
+	private void SetEnabledModalMainMenuDialog (bool value) {
+		
+		NonModalCanvasGroup.blocksRaycasts = !value;
+		MainMenuDialogPanelScript.SetVisible (value);
+	}
 
 	public void SaveAction () {
 		
@@ -148,6 +158,8 @@ public class GuiManagerScript : MonoBehaviour {
 	}
 
 	public void SaveWorldAs () {
+
+		SetEnabledModalMainMenuDialog (false);
 
 		SaveFileDialogPanelScript.SetWorldName (_worldName);
 		
@@ -172,6 +184,8 @@ public class GuiManagerScript : MonoBehaviour {
 	}
 	
 	public void LoadWorld () {
+
+		SetEnabledModalMainMenuDialog (false);
 		
 		SetEnabledModalLoadDialog (true);
 
@@ -194,6 +208,11 @@ public class GuiManagerScript : MonoBehaviour {
 	public void SelectViews () {
 		
 		SetEnabledModalViewsDialog (true);
+	}
+	
+	public void OpenMainMenu () {
+		
+		SetEnabledModalMainMenuDialog (true);
 	}
 
 	public void UpdateMapView () {

@@ -49,7 +49,7 @@ public class LoadFileDialogPanelScript : MonoBehaviour {
 
 		foreach (string file in files) {
 
-			string name = file.Split (new char[] {'\\', '.'})[1];
+			string name = Path.GetFileNameWithoutExtension(file);
 
 			SetWorldNameButton (name, i);
 
