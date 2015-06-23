@@ -7,8 +7,6 @@ using System.IO;
 
 public class GuiManagerScript : MonoBehaviour {
 
-	public CanvasGroup NonModalCanvasGroup;
-
 	public Text MapViewButtonText;
 
 	public Text InfoPanelText;
@@ -110,32 +108,27 @@ public class GuiManagerScript : MonoBehaviour {
 	}
 
 	private void SetEnabledModalSaveDialog (bool value) {
-		
-		NonModalCanvasGroup.blocksRaycasts = !value;
+
 		SaveFileDialogPanelScript.SetVisible (value);
 	}
 	
 	private void SetEnabledModalLoadDialog (bool value) {
-		
-		NonModalCanvasGroup.blocksRaycasts = !value;
+
 		LoadFileDialogPanelScript.SetVisible (value);
 	}
 	
 	private void SetEnabledModalOverlayDialog (bool value) {
-		
-		NonModalCanvasGroup.blocksRaycasts = !value;
+
 		OverlayDialogPanelScript.SetVisible (value);
 	}
 	
 	private void SetEnabledModalViewsDialog (bool value) {
-		
-		NonModalCanvasGroup.blocksRaycasts = !value;
+
 		ViewsDialogPanelScript.SetVisible (value);
 	}
 	
 	private void SetEnabledModalMainMenuDialog (bool value) {
-		
-		NonModalCanvasGroup.blocksRaycasts = !value;
+
 		MainMenuDialogPanelScript.SetVisible (value);
 	}
 

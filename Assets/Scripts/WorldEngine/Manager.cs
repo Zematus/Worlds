@@ -122,7 +122,7 @@ public class Manager {
 
 		_manager._currentWorld = serializer.Deserialize(stream) as World;
 
-		_manager._currentWorld.FinalizeInit ();
+		_manager._currentWorld.FinalizeLoading ();
 
 		stream.Close();
 	}

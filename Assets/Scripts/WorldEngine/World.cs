@@ -58,6 +58,9 @@ public class World {
 	public float MaxTemperature = MinPossibleTemperature;
 	public float MinTemperature = MaxPossibleTemperature;
 	
+	[XmlIgnore]
+	public bool Ready { get; private set; }
+	
 	[XmlAttribute]
 	public int Width { get; private set; }
 	[XmlAttribute]
@@ -75,9 +78,13 @@ public class World {
 	private bool _initialized = false;
 
 	public World () {
+
+		Ready = false;
 	}
 
 	public World (int width, int height, int seed) {
+
+		Ready = false;
 	
 		Width = width;
 		Height = height;
@@ -107,7 +114,7 @@ public class World {
 		_continentWidths = new float[NumContinents];
 	}
 
-	public void FinalizeInit () {
+	public void FinalizeLoading () {
 		
 		for (int i = 0; i < Width; i++)
 		{
@@ -117,6 +124,8 @@ public class World {
 				cell.World = this;
 			}
 		}
+
+		Ready = true;
 	}
 
 	public void Initialize () {
@@ -134,7 +143,9 @@ public class World {
 		GenerateTerrainAltitude ();
 		GenerateTerrainRainfall ();
 		GenerateTerrainTemperature ();
-		GenerateTerrainBiome ();
+		GenerateTerrainBiomes ();
+		
+		Ready = true;
 	}
 
 	private void GenerateContinents () {
@@ -355,7 +366,7 @@ public class World {
 		}
 	}
 
-	private void GenerateTerrainBiome () {
+	private void GenerateTerrainBiomes () {
 		
 		int sizeX = Width;
 		int sizeY = Height;
@@ -364,7 +375,7 @@ public class World {
 
 			for (int j = 0; j < sizeY; j++) {
 
-				TerrainCell cell = Terrain [i] [j];
+				TerrainCell cell = Terrain[i][j];
 
 				float totalPresence = 0;
 
