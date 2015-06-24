@@ -149,17 +149,20 @@ public class World {
 	}
 
 	private void GenerateContinents () {
-
-		for (int i = 0; i < NumContinents; i++) {
-
-			Manager.EnqueueTaskAndWait (() => {
+		
+		Manager.EnqueueTaskAndWait (() => {
+			
+			for (int i = 0; i < NumContinents; i++) {
+				
 				_continentOffsets[i] = new Vector2(
 					Mathf.Repeat(Random.Range(Width*i*2/5, Width*(i + 2)*2/5), Width),
 					Random.Range(Height * 1f/6f, Height * 5f/6f));
 				_continentWidths[i] = Random.Range(ContinentMinWidthFactor, ContinentMaxWidthFactor);
 				_continentHeights[i] = Random.Range(ContinentMinWidthFactor, ContinentMaxWidthFactor);
-			});
-		}
+			}
+			
+			return true;
+		});
 	}
 	
 	private float GetContinentModifier (int x, int y) {
@@ -206,11 +209,11 @@ public class World {
 		float radius4 = 8f;
 		float radius5 = 16f;
 
-		Vector3 offset1 = GenerateRandomOffsetVector();
-		Vector3 offset2 = GenerateRandomOffsetVector();
-		Vector3 offset3 = GenerateRandomOffsetVector();
-		Vector3 offset4 = GenerateRandomOffsetVector();
-		Vector3 offset5 = GenerateRandomOffsetVector();
+		ManagerTask<Vector3> offset1 = GenerateRandomOffsetVector();
+		ManagerTask<Vector3> offset2 = GenerateRandomOffsetVector();
+		ManagerTask<Vector3> offset3 = GenerateRandomOffsetVector();
+		ManagerTask<Vector3> offset4 = GenerateRandomOffsetVector();
+		ManagerTask<Vector3> offset5 = GenerateRandomOffsetVector();
 		
 		for (int i = 0; i < sizeX; i++)
 		{
@@ -252,15 +255,11 @@ public class World {
 		}
 	}
 
-	private Vector3 GenerateRandomOffsetVector () {
+	private ManagerTask<Vector3> GenerateRandomOffsetVector () {
 
-		Vector3 offsetVector = Vector3.zero;
-
-		Manager.EnqueueTaskAndWait (() => {
-			offsetVector = Random.insideUnitSphere * 1000;
+		return Manager.EnqueueTask (() => {
+			return Random.insideUnitSphere * 1000;
 		});
-
-		return offsetVector;
 	}
 
 	private float GetRandomNoiseFromPolarCoordinates (float alpha, float beta, float radius, Vector3 offset) {
@@ -298,7 +297,7 @@ public class World {
 		
 		float radius = 2f;
 		
-		Vector3 offset = GenerateRandomOffsetVector();
+		ManagerTask<Vector3> offset = GenerateRandomOffsetVector();
 		
 		for (int i = 0; i < sizeX; i++)
 		{
@@ -346,7 +345,7 @@ public class World {
 		
 		float radius = 2f;
 		
-		Vector3 offset = GenerateRandomOffsetVector();
+		ManagerTask<Vector3> offset = GenerateRandomOffsetVector();
 		
 		for (int i = 0; i < sizeX; i++)
 		{

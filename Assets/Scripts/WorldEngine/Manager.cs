@@ -13,17 +13,24 @@ public enum PlanetView {
 	Coastlines
 }
 
-public delegate void ManagerTaskDelegate ();
+public delegate T ManagerTaskDelegate<T> ();
 
-public class ManagerTask {
+public interface IManagerTask {
+
+	void Execute ();
+}
+
+public class ManagerTask<T> : IManagerTask {
 
 	public const int SleepTime = 100;
 
 	public bool IsRunning { get; private set; }
 
-	private ManagerTaskDelegate _taskDelegate;
+	private ManagerTaskDelegate<T> _taskDelegate;
 
-	public ManagerTask (ManagerTaskDelegate taskDelegate) {
+	private T _result;
+
+	public ManagerTask (ManagerTaskDelegate<T> taskDelegate) {
 
 		IsRunning = true;
 	
@@ -32,7 +39,7 @@ public class ManagerTask {
 
 	public void Execute () {
 	
-		_taskDelegate ();
+		_result = _taskDelegate ();
 
 		IsRunning = false;
 	}
@@ -43,6 +50,20 @@ public class ManagerTask {
 		
 			Thread.Sleep (SleepTime);
 		}
+	}
+
+	public T Result {
+
+		get {
+			if (IsRunning) Wait ();
+
+			return _result;
+		}
+	}
+
+	public static implicit operator T(ManagerTask<T> task) {
+
+		return task.Result;
 	}
 }
 
@@ -64,7 +85,7 @@ public class Manager {
 	private Texture2D _currentSphereTexture = null;
 	private Texture2D _currentMapTexture = null;
 
-	private Queue<ManagerTask> _taskQueue = new Queue<ManagerTask>();
+	private Queue<IManagerTask> _taskQueue = new Queue<IManagerTask>();
 
 	private Manager () {
 
@@ -88,24 +109,24 @@ public class Manager {
 	
 	public static bool ExecuteNextTask () {
 
-		ManagerTask taskHolder;
+		IManagerTask task;
 		
 		lock (_manager._taskQueue) {
 
 			if (_manager._taskQueue.Count <= 0)
 				return false;
 			
-			taskHolder = _manager._taskQueue.Dequeue();
+			task = _manager._taskQueue.Dequeue();
 		}
 
-		taskHolder.Execute ();
+		task.Execute ();
 
 		return true;
 	}
 
-	public static ManagerTask EnqueueTask (ManagerTaskDelegate taskDelegate) {
+	public static ManagerTask<T> EnqueueTask<T> (ManagerTaskDelegate<T> taskDelegate) {
 
-		ManagerTask task = new ManagerTask (taskDelegate);
+		ManagerTask<T> task = new ManagerTask<T> (taskDelegate);
 
 		lock (_manager._taskQueue) {
 		
@@ -115,7 +136,7 @@ public class Manager {
 		return task;
 	}
 	
-	public static void EnqueueTaskAndWait (ManagerTaskDelegate taskDelegate) {
+	public static void EnqueueTaskAndWait<T> (ManagerTaskDelegate<T> taskDelegate) {
 		
 		EnqueueTask (taskDelegate).Wait ();
 	}
