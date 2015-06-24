@@ -150,13 +150,15 @@ public class World {
 
 	private void GenerateContinents () {
 
-		for (int i = 0; i < NumContinents; i++)
-		{
-			_continentOffsets[i] = new Vector2(
-				Mathf.Repeat(Random.Range(Width*i*2/5, Width*(i + 2)*2/5), Width),
-				Random.Range(Height * 1f/6f, Height * 5f/6f));
-			_continentWidths[i] = Random.Range(ContinentMinWidthFactor, ContinentMaxWidthFactor);
-			_continentHeights[i] = Random.Range(ContinentMinWidthFactor, ContinentMaxWidthFactor);
+		for (int i = 0; i < NumContinents; i++) {
+
+			Manager.EnqueueTaskAndWait (() => {
+				_continentOffsets[i] = new Vector2(
+					Mathf.Repeat(Random.Range(Width*i*2/5, Width*(i + 2)*2/5), Width),
+					Random.Range(Height * 1f/6f, Height * 5f/6f));
+				_continentWidths[i] = Random.Range(ContinentMinWidthFactor, ContinentMaxWidthFactor);
+				_continentHeights[i] = Random.Range(ContinentMinWidthFactor, ContinentMaxWidthFactor);
+			});
 		}
 	}
 	
@@ -251,8 +253,14 @@ public class World {
 	}
 
 	private Vector3 GenerateRandomOffsetVector () {
-	
-		return Random.insideUnitSphere * 1000;
+
+		Vector3 offsetVector = Vector3.zero;
+
+		Manager.EnqueueTaskAndWait (() => {
+			offsetVector = Random.insideUnitSphere * 1000;
+		});
+
+		return offsetVector;
 	}
 
 	private float GetRandomNoiseFromPolarCoordinates (float alpha, float beta, float radius, Vector3 offset) {

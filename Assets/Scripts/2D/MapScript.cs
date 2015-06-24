@@ -10,7 +10,7 @@ public class MapScript : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 
-		RefreshTexture();
+		//RefreshTexture();
 	}
 	
 	// Update is called once per frame

@@ -63,6 +63,12 @@ public class GuiManagerScript : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
+
+		Manager.ExecuteTasks (100);
+
+		if (!Manager.CurrentWorld.Ready) {
+			return;
+		}
 	
 		if (_updateTexture) {
 			_updateTexture = false;
@@ -90,7 +96,8 @@ public class GuiManagerScript : MonoBehaviour {
 
 		SetEnabledModalMainMenuDialog (false);
 
-		Manager.GenerateNewWorld ();
+		//Manager.GenerateNewWorld ();
+		Manager.GenerateNewWorldAsync ();
 
 		_worldName = "world_" + Manager.CurrentWorld.Seed;
 		

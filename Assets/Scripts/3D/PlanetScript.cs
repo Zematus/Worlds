@@ -6,7 +6,7 @@ public class PlanetScript : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 
-		UpdateTexture();
+		//UpdateTexture();
 	}
 	
 	// Update is called once per frame

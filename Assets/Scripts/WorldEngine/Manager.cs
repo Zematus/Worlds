@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 using System.IO;
+using System.Threading;
 
 public enum PlanetView {
 
@@ -12,14 +13,44 @@ public enum PlanetView {
 	Coastlines
 }
 
+public delegate void ManagerTaskDelegate ();
+
+public class ManagerTask {
+
+	public const int SleepTime = 100;
+
+	public bool IsRunning { get; private set; }
+
+	private ManagerTaskDelegate _taskDelegate;
+
+	public ManagerTask (ManagerTaskDelegate taskDelegate) {
+
+		IsRunning = true;
+	
+		_taskDelegate = taskDelegate;
+	}
+
+	public void Execute () {
+	
+		_taskDelegate ();
+
+		IsRunning = false;
+	}
+
+	public void Wait () {
+	
+		while (IsRunning) {
+		
+			Thread.Sleep (SleepTime);
+		}
+	}
+}
+
 public class Manager {
+	
+	public static string SavePath { get; private set; }
 
 	private static Manager _manager = new Manager();
-
-	private World _currentWorld = null;
-
-	private Texture2D _currentSphereTexture = null;
-	private Texture2D _currentMapTexture = null;
 
 	private static bool _rainfallVisible = false;
 	private static bool _temperatureVisible = false;
@@ -28,7 +59,12 @@ public class Manager {
 	private static List<Color> _biomePalette = new List<Color>();
 	private static List<Color> _mapPalette = new List<Color>();
 	
-	public static string SavePath { get; private set; }
+	private World _currentWorld = null;
+	
+	private Texture2D _currentSphereTexture = null;
+	private Texture2D _currentMapTexture = null;
+
+	private Queue<ManagerTask> _taskQueue = new Queue<ManagerTask>();
 
 	private Manager () {
 
@@ -40,6 +76,48 @@ public class Manager {
 		}
 
 		SavePath = path;
+	}
+	
+	public static void ExecuteTasks (int count) {
+
+		for (int i = 0; i < count; i++) {
+		
+			if (!ExecuteNextTask ()) break;
+		}
+	}
+	
+	public static bool ExecuteNextTask () {
+
+		ManagerTask taskHolder;
+		
+		lock (_manager._taskQueue) {
+
+			if (_manager._taskQueue.Count <= 0)
+				return false;
+			
+			taskHolder = _manager._taskQueue.Dequeue();
+		}
+
+		taskHolder.Execute ();
+
+		return true;
+	}
+
+	public static ManagerTask EnqueueTask (ManagerTaskDelegate taskDelegate) {
+
+		ManagerTask task = new ManagerTask (taskDelegate);
+
+		lock (_manager._taskQueue) {
+		
+			_manager._taskQueue.Enqueue(task);
+		}
+
+		return task;
+	}
+	
+	public static void EnqueueTaskAndWait (ManagerTaskDelegate taskDelegate) {
+		
+		EnqueueTask (taskDelegate).Wait ();
 	}
 
 	public static void SetBiomePalette (IEnumerable<Color> colors) {
@@ -57,27 +135,20 @@ public class Manager {
 	public static World CurrentWorld { 
 		get {
 
-			if (_manager._currentWorld == null)
-				GenerateNewWorld();
-
 			return _manager._currentWorld; 
 		}
 	}
 	
 	public static Texture2D CurrentSphereTexture { 
 		get {
-			
-			if (_manager._currentSphereTexture == null) RefreshTextures();
-			
+
 			return _manager._currentSphereTexture; 
 		}
 	}
 	
 	public static Texture2D CurrentMapTexture { 
 		get {
-			
-			if (_manager._currentMapTexture == null) RefreshTextures();
-			
+
 			return _manager._currentMapTexture; 
 		}
 	}
@@ -103,6 +174,31 @@ public class Manager {
 		_manager._currentWorld = world;
 
 		return world;
+	}
+	
+	public static World GenerateNewWorldAsync () {
+		
+		int width = 400;
+		int height = 200;
+		int seed = Random.Range(0, int.MaxValue);
+		//int seed = 4;
+		
+		World world = new World(width, height, seed);
+		
+		world.Initialize();
+
+		ThreadPool.QueueUserWorkItem (GenerateWorldCallback, world);
+		
+		_manager._currentWorld = world;
+		
+		return world;
+	}
+
+	public static void GenerateWorldCallback (object threadContext) {
+
+		World world = threadContext as World;
+
+		world.Generate ();
 	}
 	
 	public static void SaveWorld (string path) {
