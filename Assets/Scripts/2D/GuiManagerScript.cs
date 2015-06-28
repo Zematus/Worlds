@@ -23,6 +23,7 @@ public class GuiManagerScript : MonoBehaviour {
 	public OverlayDialogPanelScript OverlayDialogPanelScript;
 	public DialogPanelScript ViewsDialogPanelScript;
 	public DialogPanelScript MainMenuDialogPanelScript;
+	public ProgressDialogPanelScript ProgressDialogPanelScript;
 
 	public PaletteScript BiomePaletteScript;
 	public PaletteScript MapPaletteScript;
@@ -38,20 +39,23 @@ public class GuiManagerScript : MonoBehaviour {
 
 	private string _worldName;
 
+	private bool _generatingWorld = false;
+
 	// Use this for initialization
 	void Start () {
-
-		GenerateWorld ();
-
-		UpdateMapViewButtonText ();
-
-		SetInfoPanelData (0, 0);
-
+		
 		SetEnabledModalSaveDialog (false);
 		SetEnabledModalLoadDialog (false);
 		SetEnabledModalOverlayDialog (false);
 		SetEnabledModalViewsDialog (false);
 		SetEnabledModalMainMenuDialog (false);
+		SetEnabledModalProgressDialog (false);
+		
+		GenerateWorld ();
+
+		UpdateMapViewButtonText ();
+
+		SetInfoPanelData (0, 0);
 
 		LoadButton.interactable = HasFilesToLoad ();
 
@@ -68,6 +72,11 @@ public class GuiManagerScript : MonoBehaviour {
 
 		if (!Manager.CurrentWorld.Ready) {
 			return;
+		}
+
+		if (_generatingWorld) {
+			SetEnabledModalProgressDialog (false);
+			_generatingWorld = false;
 		}
 	
 		if (_updateTexture) {
@@ -91,13 +100,30 @@ public class GuiManagerScript : MonoBehaviour {
 			}
 		}
 	}
+
+	public void GenerationProgressUpdate (float value, string message = null) {
+	
+		Manager.EnqueueTask (() => {
+
+			if (message != null) ProgressDialogPanelScript.SetDialogText (message);
+
+			ProgressDialogPanelScript.SetProgress (value);
+
+			return true;
+		});
+	}
 	
 	public void GenerateWorld () {
 
 		SetEnabledModalMainMenuDialog (false);
 
-		//Manager.GenerateNewWorld ();
-		Manager.GenerateNewWorldAsync ();
+		SetEnabledModalProgressDialog (true);
+
+		ProgressDialogPanelScript.SetDialogText ("Generating World...");
+
+		_generatingWorld = true;
+
+		Manager.GenerateNewWorldAsync (GenerationProgressUpdate);
 
 		_worldName = "world_" + Manager.CurrentWorld.Seed;
 		
@@ -137,6 +163,11 @@ public class GuiManagerScript : MonoBehaviour {
 	private void SetEnabledModalMainMenuDialog (bool value) {
 
 		MainMenuDialogPanelScript.SetVisible (value);
+	}
+	
+	private void SetEnabledModalProgressDialog (bool value) {
+		
+		ProgressDialogPanelScript.SetVisible (value);
 	}
 
 	public void SaveAction () {

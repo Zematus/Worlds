@@ -197,7 +197,7 @@ public class Manager {
 		return world;
 	}
 	
-	public static World GenerateNewWorldAsync () {
+	public static World GenerateNewWorldAsync (ProgressCastDelegate progressCastMethod = null) {
 		
 		int width = 400;
 		int height = 200;
@@ -205,6 +205,9 @@ public class Manager {
 		//int seed = 4;
 		
 		World world = new World(width, height, seed);
+
+		if (progressCastMethod != null)
+			world.ProgressCastMethod = progressCastMethod;
 		
 		world.Initialize();
 
@@ -215,9 +218,9 @@ public class Manager {
 		return world;
 	}
 
-	public static void GenerateWorldCallback (object threadContext) {
+	public static void GenerateWorldCallback (object state) {
 
-		World world = threadContext as World;
+		World world = state as World;
 
 		world.Generate ();
 	}

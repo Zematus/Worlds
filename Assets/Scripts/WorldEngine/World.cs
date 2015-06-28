@@ -21,9 +21,23 @@ public class TerrainCell {
 	[XmlAttribute]
 	public float Temperature;
 
+
 	public List<Biome> Biomes = new List<Biome>();
 	public List<float> BiomePresences = new List<float>();
+	
+	[XmlIgnore]
+	public bool Created;
+	[XmlIgnore]
+	public bool AltitudeSet;
+	[XmlIgnore]
+	public bool RainfallSet;
+	[XmlIgnore]
+	public bool TemperatureSet;
+	[XmlIgnore]
+	public bool BiomesSet;
 }
+
+public delegate void ProgressCastDelegate (float value, string message = null);
 
 [XmlRoot]
 public class World {
@@ -61,6 +75,9 @@ public class World {
 	[XmlIgnore]
 	public bool Ready { get; private set; }
 	
+	[XmlIgnore]
+	public ProgressCastDelegate ProgressCastMethod { get; set; }
+	
 	[XmlAttribute]
 	public int Width { get; private set; }
 	[XmlAttribute]
@@ -78,11 +95,15 @@ public class World {
 	private bool _initialized = false;
 
 	public World () {
+		
+		ProgressCastMethod = (value, message) => {};
 
 		Ready = false;
 	}
 
 	public World (int width, int height, int seed) {
+
+		ProgressCastMethod = (value, message) => {};
 
 		Ready = false;
 	
@@ -140,11 +161,24 @@ public class World {
 
 	public void Generate () {
 
+		ProgressCastMethod (0, "Generating Terrain...");
+
 		GenerateTerrainAltitude ();
+		
+		ProgressCastMethod (0.25f, "Calculating Rainfall...");
+
 		GenerateTerrainRainfall ();
+		
+		ProgressCastMethod (0.5f, "Calculating Temperatures...");
+
 		GenerateTerrainTemperature ();
+		
+		ProgressCastMethod (0.75f, "Generating Biomes...");
+
 		GenerateTerrainBiomes ();
 		
+		ProgressCastMethod (1, "Finalizing...");
+
 		Ready = true;
 	}
 
@@ -252,14 +286,14 @@ public class World {
 				if (altitude > MaxAltitude) MaxAltitude = altitude;
 				if (altitude < MinAltitude) MinAltitude = altitude;
 			}
+
+			ProgressCastMethod (0.25f * (i + 1)/(float)sizeX);
 		}
 	}
 
 	private ManagerTask<Vector3> GenerateRandomOffsetVector () {
 
-		return Manager.EnqueueTask (() => {
-			return Random.insideUnitSphere * 1000;
-		});
+		return Manager.EnqueueTask (() => Random.insideUnitSphere * 1000);
 	}
 
 	private float GetRandomNoiseFromPolarCoordinates (float alpha, float beta, float radius, Vector3 offset) {
@@ -335,6 +369,8 @@ public class World {
 				if (rainfall > MaxRainfall) MaxRainfall = rainfall;
 				if (rainfall < MinRainfall) MinRainfall = rainfall;
 			}
+			
+			ProgressCastMethod (0.25f + 0.25f * (i + 1)/(float)sizeX);
 		}
 	}
 	
@@ -370,6 +406,8 @@ public class World {
 				if (temperature > MaxTemperature) MaxTemperature = temperature;
 				if (temperature < MinTemperature) MinTemperature = temperature;
 			}
+			
+			ProgressCastMethod (0.5f + 0.25f * (i + 1)/(float)sizeX);
 		}
 	}
 
@@ -410,6 +448,8 @@ public class World {
 					}
 				}
 			}
+			
+			ProgressCastMethod (0.75f + 0.25f * (i + 1)/(float)sizeX);
 		}
 	}
 
