@@ -80,12 +80,26 @@ public class Manager {
 	private static List<Color> _biomePalette = new List<Color>();
 	private static List<Color> _mapPalette = new List<Color>();
 	
+	private ProgressCastDelegate _progressCastMethod = null;
+	
 	private World _currentWorld = null;
 	
 	private Texture2D _currentSphereTexture = null;
 	private Texture2D _currentMapTexture = null;
 
 	private Queue<IManagerTask> _taskQueue = new Queue<IManagerTask>();
+
+	private bool _worldReady = false;
+
+	private int _cellLoadCount = 0;
+	private int _cellsToLoad = 0;
+	
+	public static bool WorldReady {
+
+		get {
+			return _manager._worldReady;
+		}
+	}
 
 	private Manager () {
 
@@ -180,49 +194,39 @@ public class Manager {
 		GenerateMapTextureFromWorld(CurrentWorld);
 	}
 
-	public static World GenerateNewWorld () {
+	public static void GenerateNewWorld () {
 
 		int width = 400;
 		int height = 200;
-		int seed = Random.Range(0, int.MaxValue);
-		//int seed = 4;
+
+		ManagerTask<int> seed = Manager.EnqueueTask (() => Random.Range (0, int.MaxValue));
 
 		World world = new World(width, height, seed);
+		
+		if (_manager._progressCastMethod != null)
+			world.ProgressCastMethod = _manager._progressCastMethod;
 
-		world.Initialize();
-		world.Generate();
+		world.Initialize ();
+		world.Generate ();
+		world.FinalizeGeneration ();
 
 		_manager._currentWorld = world;
-
-		return world;
 	}
 	
-	public static World GenerateNewWorldAsync (ProgressCastDelegate progressCastMethod = null) {
-		
-		int width = 400;
-		int height = 200;
-		int seed = Random.Range(0, int.MaxValue);
-		//int seed = 4;
-		
-		World world = new World(width, height, seed);
+	public static void GenerateNewWorldAsync (ProgressCastDelegate progressCastMethod = null) {
 
-		if (progressCastMethod != null)
-			world.ProgressCastMethod = progressCastMethod;
+		_manager._worldReady = false;
 		
-		world.Initialize();
+		_manager._progressCastMethod = progressCastMethod;
 
-		ThreadPool.QueueUserWorkItem (GenerateWorldCallback, world);
-		
-		_manager._currentWorld = world;
-		
-		return world;
+		ThreadPool.QueueUserWorkItem (GenerateWorldCallback);
 	}
 
 	public static void GenerateWorldCallback (object state) {
 
-		World world = state as World;
-
-		world.Generate ();
+		GenerateNewWorld ();
+		
+		_manager._worldReady = true;
 	}
 	
 	public static void SaveWorld (string path) {
@@ -236,15 +240,53 @@ public class Manager {
 	}
 	
 	public static void LoadWorld (string path) {
+		
+		ResetWorldLoadTrack ();
 
 		XmlSerializer serializer = new XmlSerializer(typeof(World));
 		FileStream stream = new FileStream(path, FileMode.Open);
 
 		_manager._currentWorld = serializer.Deserialize(stream) as World;
 
-		_manager._currentWorld.FinalizeLoading ();
+		_manager._currentWorld.FinalizeLoad ();
 
 		stream.Close();
+	}
+	
+	public static void LoadWorldAsync (string path, ProgressCastDelegate progressCastMethod = null) {
+		
+		_manager._worldReady = false;
+		
+		_manager._progressCastMethod = progressCastMethod;
+		
+		ThreadPool.QueueUserWorkItem (LoadWorldCallback, path);
+	}
+	
+	public static void LoadWorldCallback (object state) {
+		
+		string path = state as string;
+		
+		LoadWorld (path);
+		
+		_manager._worldReady = true;
+	}
+
+	public static void ResetWorldLoadTrack () {
+		
+		_manager._cellLoadCount = 0;
+		_manager._cellsToLoad = 200*400;
+	}
+	
+	public static void UpdateWorldLoadTrack () {
+		
+		_manager._cellLoadCount += 1;
+
+		float value = _manager._cellLoadCount / (float)_manager._cellsToLoad;
+		
+		if (_manager._progressCastMethod == null)
+			return;
+
+		_manager._progressCastMethod (Mathf.Min(1, value));
 	}
 
 	public static void SetRainfallVisible (bool value) {

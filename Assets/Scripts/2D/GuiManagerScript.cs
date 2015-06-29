@@ -5,6 +5,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 
+public delegate void PostPreparationOperation ();
+
 public class GuiManagerScript : MonoBehaviour {
 
 	public Text MapViewButtonText;
@@ -39,7 +41,9 @@ public class GuiManagerScript : MonoBehaviour {
 
 	private string _worldName;
 
-	private bool _generatingWorld = false;
+	private bool _preparingWorld = false;
+
+	private PostPreparationOperation _postPreparationOperation = null;
 
 	// Use this for initialization
 	void Start () {
@@ -55,7 +59,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 		UpdateMapViewButtonText ();
 
-		SetInfoPanelData (0, 0);
+		//SetInfoPanelData (0, 0);
 
 		LoadButton.interactable = HasFilesToLoad ();
 
@@ -70,13 +74,17 @@ public class GuiManagerScript : MonoBehaviour {
 
 		Manager.ExecuteTasks (100);
 
-		if (!Manager.CurrentWorld.Ready) {
+		if (!Manager.WorldReady) {
 			return;
 		}
 
-		if (_generatingWorld) {
+		if (_preparingWorld) {
+
+			if (_postPreparationOperation != null) 
+				_postPreparationOperation ();
+
 			SetEnabledModalProgressDialog (false);
-			_generatingWorld = false;
+			_preparingWorld = false;
 		}
 	
 		if (_updateTexture) {
@@ -101,7 +109,7 @@ public class GuiManagerScript : MonoBehaviour {
 		}
 	}
 
-	public void GenerationProgressUpdate (float value, string message = null) {
+	public void ProgressUpdate (float value, string message = null) {
 	
 		Manager.EnqueueTask (() => {
 
@@ -119,16 +127,19 @@ public class GuiManagerScript : MonoBehaviour {
 
 		SetEnabledModalProgressDialog (true);
 
-		ProgressDialogPanelScript.SetDialogText ("Generating World...");
+		ProgressUpdate (0, "Generating World...");
 
-		_generatingWorld = true;
+		_preparingWorld = true;
 
-		Manager.GenerateNewWorldAsync (GenerationProgressUpdate);
+		Manager.GenerateNewWorldAsync (ProgressUpdate);
 
-		_worldName = "world_" + Manager.CurrentWorld.Seed;
+		_postPreparationOperation = () => {
+			_worldName = "world_" + Manager.CurrentWorld.Seed;
+
+			_postPreparationOperation = null;
+		};
 		
 		_updateTexture = true;
-
 	}
 
 	private bool HasFilesToLoad () {
@@ -199,12 +210,19 @@ public class GuiManagerScript : MonoBehaviour {
 	
 	public void LoadAction () {
 		
+		SetEnabledModalLoadDialog (false);
+		
+		SetEnabledModalProgressDialog (true);
+		
+		ProgressUpdate (0, "Loading World...");
+		
 		string path = LoadFileDialogPanelScript.GetPathToLoad ();
-		Manager.LoadWorld (path);
-
+		
+		Manager.LoadWorldAsync (path, ProgressUpdate);
+		
 		_worldName = Path.GetFileNameWithoutExtension (path);
 		
-		SetEnabledModalLoadDialog (false);
+		_preparingWorld = true;
 		
 		_updateTexture = true;
 	}

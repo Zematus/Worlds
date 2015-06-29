@@ -21,20 +21,21 @@ public class TerrainCell {
 	[XmlAttribute]
 	public float Temperature;
 
+	[XmlAttribute]
+	public bool Ready;
 
 	public List<Biome> Biomes = new List<Biome>();
 	public List<float> BiomePresences = new List<float>();
+
+	public TerrainCell () {
 	
-	[XmlIgnore]
-	public bool Created;
-	[XmlIgnore]
-	public bool AltitudeSet;
-	[XmlIgnore]
-	public bool RainfallSet;
-	[XmlIgnore]
-	public bool TemperatureSet;
-	[XmlIgnore]
-	public bool BiomesSet;
+		Manager.UpdateWorldLoadTrack ();
+	}
+	
+	public TerrainCell (bool update) {
+		
+		if (update) Manager.UpdateWorldLoadTrack ();
+	}
 }
 
 public delegate void ProgressCastDelegate (float value, string message = null);
@@ -119,10 +120,12 @@ public class World {
 
 			for (int j = 0; j < height; j++)
 			{
-				TerrainCell cell = new TerrainCell();
+				TerrainCell cell = new TerrainCell (false);
 				cell.World = this;
 				cell.Longitude = i;
 				cell.Latitude = j;
+
+				cell.Ready = false;
 
 				column[j] = cell;
 			}
@@ -135,7 +138,7 @@ public class World {
 		_continentWidths = new float[NumContinents];
 	}
 
-	public void FinalizeLoading () {
+	public void FinalizeLoad () {
 		
 		for (int i = 0; i < Width; i++)
 		{
@@ -148,6 +151,20 @@ public class World {
 
 		Ready = true;
 	}
+	
+	public void FinalizeGeneration () {
+		
+		for (int i = 0; i < Width; i++)
+		{
+			for (int j = 0; j < Height; j++)
+			{
+				TerrainCell cell = Terrain[i][j];
+				cell.Ready = true;
+			}
+		}
+		
+		Ready = true;
+	}
 
 	public void Initialize () {
 
@@ -156,7 +173,11 @@ public class World {
 
 		_initialized = true;
 
-		Random.seed = Seed;
+		Manager.EnqueueTaskAndWait (() => {
+
+			Random.seed = Seed;
+			return true;
+		});
 	}
 
 	public void Generate () {
