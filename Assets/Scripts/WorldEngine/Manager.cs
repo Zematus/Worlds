@@ -68,6 +68,9 @@ public class ManagerTask<T> : IManagerTask {
 }
 
 public class Manager {
+
+	public const int WorldWidth = 400;
+	public const int WorldHeight = 200;
 	
 	public static string SavePath { get; private set; }
 
@@ -196,12 +199,9 @@ public class Manager {
 
 	public static void GenerateNewWorld () {
 
-		int width = 400;
-		int height = 200;
-
 		ManagerTask<int> seed = Manager.EnqueueTask (() => Random.Range (0, int.MaxValue));
 
-		World world = new World(width, height, seed);
+		World world = new World(WorldWidth, WorldWidth, seed);
 		
 		if (_manager._progressCastMethod != null)
 			world.ProgressCastMethod = _manager._progressCastMethod;
@@ -219,14 +219,12 @@ public class Manager {
 		
 		_manager._progressCastMethod = progressCastMethod;
 
-		ThreadPool.QueueUserWorkItem (GenerateWorldCallback);
-	}
-
-	public static void GenerateWorldCallback (object state) {
-
-		GenerateNewWorld ();
-		
-		_manager._worldReady = true;
+		ThreadPool.QueueUserWorkItem (state => {
+			
+			GenerateNewWorld ();
+			
+			_manager._worldReady = true;
+		});
 	}
 	
 	public static void SaveWorld (string path) {
@@ -237,6 +235,20 @@ public class Manager {
 		serializer.Serialize(stream, _manager._currentWorld);
 
 		stream.Close();
+	}
+	
+	public static void SaveWorldAsync (string path, ProgressCastDelegate progressCastMethod = null) {
+		
+		_manager._worldReady = false;
+		
+		_manager._progressCastMethod = progressCastMethod;
+		
+		ThreadPool.QueueUserWorkItem (state => {
+			
+			SaveWorld (path);
+			
+			_manager._worldReady = true;
+		});
 	}
 	
 	public static void LoadWorld (string path) {
@@ -259,22 +271,18 @@ public class Manager {
 		
 		_manager._progressCastMethod = progressCastMethod;
 		
-		ThreadPool.QueueUserWorkItem (LoadWorldCallback, path);
-	}
-	
-	public static void LoadWorldCallback (object state) {
-		
-		string path = state as string;
-		
-		LoadWorld (path);
-		
-		_manager._worldReady = true;
+		ThreadPool.QueueUserWorkItem (state => {
+			
+			LoadWorld (path);
+			
+			_manager._worldReady = true;
+		});
 	}
 
 	public static void ResetWorldLoadTrack () {
 		
 		_manager._cellLoadCount = 0;
-		_manager._cellsToLoad = 200*400;
+		_manager._cellsToLoad = WorldWidth*WorldHeight;
 	}
 	
 	public static void UpdateWorldLoadTrack () {

@@ -26,6 +26,7 @@ public class GuiManagerScript : MonoBehaviour {
 	public DialogPanelScript ViewsDialogPanelScript;
 	public DialogPanelScript MainMenuDialogPanelScript;
 	public ProgressDialogPanelScript ProgressDialogPanelScript;
+	public ActivityDialogPanelScript ActivityDialogPanelScript;
 
 	public PaletteScript BiomePaletteScript;
 	public PaletteScript MapPaletteScript;
@@ -43,7 +44,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 	private bool _preparingWorld = false;
 
-	private PostPreparationOperation _postPreparationOperation = null;
+	private PostPreparationOperation _postPreparationOp = null;
 
 	// Use this for initialization
 	void Start () {
@@ -54,6 +55,7 @@ public class GuiManagerScript : MonoBehaviour {
 		SetEnabledModalViewsDialog (false);
 		SetEnabledModalMainMenuDialog (false);
 		SetEnabledModalProgressDialog (false);
+		SetEnabledModalActivityDialog (false);
 		
 		GenerateWorld ();
 
@@ -80,10 +82,11 @@ public class GuiManagerScript : MonoBehaviour {
 
 		if (_preparingWorld) {
 
-			if (_postPreparationOperation != null) 
-				_postPreparationOperation ();
+			if (_postPreparationOp != null) 
+				_postPreparationOp ();
 
 			SetEnabledModalProgressDialog (false);
+			SetEnabledModalActivityDialog (false);
 			_preparingWorld = false;
 		}
 	
@@ -133,10 +136,11 @@ public class GuiManagerScript : MonoBehaviour {
 
 		Manager.GenerateNewWorldAsync (ProgressUpdate);
 
-		_postPreparationOperation = () => {
+		_postPreparationOp = () => {
+
 			_worldName = "world_" + Manager.CurrentWorld.Seed;
 
-			_postPreparationOperation = null;
+			_postPreparationOp = null;
 		};
 		
 		_updateTexture = true;
@@ -180,18 +184,34 @@ public class GuiManagerScript : MonoBehaviour {
 		
 		ProgressDialogPanelScript.SetVisible (value);
 	}
+	
+	private void SetEnabledModalActivityDialog (bool value) {
+		
+		ActivityDialogPanelScript.SetVisible (value);
+	}
 
 	public void SaveAction () {
+		
+		SetEnabledModalSaveDialog (false);
+		
+		SetEnabledModalActivityDialog (true);
+		
+		ActivityDialogPanelScript.SetDialogText ("Saving World...");
 		
 		_worldName = SaveFileDialogPanelScript.GetWorldName ();
 		
 		string path = Manager.SavePath + _worldName + ".plnt";
 
-		Manager.SaveWorld (path);
+		Manager.SaveWorldAsync (path);
 		
-		LoadButton.interactable = HasFilesToLoad ();
+		_preparingWorld = true;
 		
-		SetEnabledModalSaveDialog (false);
+		_postPreparationOp = () => {
+
+			LoadButton.interactable = HasFilesToLoad ();
+			
+			_postPreparationOp = null;
+		};
 	}
 
 	public void CancelSaveAction () {
