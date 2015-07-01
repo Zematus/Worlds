@@ -15,7 +15,7 @@ public class LoadFileDialogPanelScript : MonoBehaviour {
 
 	public Button CancelActionButton;
 
-	public Canvas ActionButtonCanvas;
+	public Transform ActionButtonPanelTransform;
 
 	private List<Button> WorldNameButtons = new List<Button>();
 
@@ -89,7 +89,7 @@ public class LoadFileDialogPanelScript : MonoBehaviour {
 
 		WorldNameButtons.Add (newButton);
 
-		ActionButtonCanvas.transform.SetAsLastSibling ();
+		ActionButtonPanelTransform.SetAsLastSibling ();
 
 		return newButton;
 	}
