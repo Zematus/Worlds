@@ -8,20 +8,20 @@ public class Biome {
 	public static Biome IceCap = new Biome(
 		"Ice Cap", 
 		0,
-		World.MinPossibleAltitude, 
-		World.MaxPossibleAltitude, 
+		World.MinPossibleAltitude - 1f, 
+		World.MaxPossibleAltitude + 1f, 
 		World.MinPossibleRainfall - 1f,
-		World.MaxPossibleRainfall,
+		World.MaxPossibleRainfall + 1f,
 		World.MinPossibleTemperature - 1f,
 		-15f);
 	
 	public static Biome Ocean = new Biome(
 		"Ocean",
 		1,
-		World.MinPossibleAltitude, 
+		World.MinPossibleAltitude - 1f, 
 		0, 
 		World.MinPossibleRainfall - 1f,
-		World.MaxPossibleRainfall,
+		World.MaxPossibleRainfall + 1f,
 		-15f,
 		World.MaxPossibleTemperature + 1f);
 	
@@ -29,7 +29,7 @@ public class Biome {
 		"Grassland",
 		2,
 		0, 
-		World.MaxPossibleAltitude, 
+		World.MaxPossibleAltitude + 1f, 
 		25f,
 		1475f,
 		-5f,
@@ -39,7 +39,7 @@ public class Biome {
 		"Forest", 
 		3,
 		0, 
-		World.MaxPossibleAltitude, 
+		World.MaxPossibleAltitude + 1f, 
 		975f,
 		2475f,
 		-5f,
@@ -49,9 +49,9 @@ public class Biome {
 		"Taiga", 
 		4,
 		0, 
-		World.MaxPossibleAltitude,
+		World.MaxPossibleAltitude + 1f,
 		475f,
-		World.MaxPossibleRainfall,
+		World.MaxPossibleRainfall + 1f,
 		-15f,
 		-0f);
 	
@@ -59,7 +59,7 @@ public class Biome {
 		"Tundra", 
 		5,
 		0, 
-		World.MaxPossibleAltitude, 
+		World.MaxPossibleAltitude + 1f, 
 		World.MinPossibleRainfall - 1f,
 		725f,
 		-20f,
@@ -69,7 +69,7 @@ public class Biome {
 		"Desert", 
 		6,
 		0, 
-		World.MaxPossibleAltitude, 
+		World.MaxPossibleAltitude + 1f, 
 		World.MinPossibleRainfall - 1f,
 		275f,
 		-5f,
@@ -79,9 +79,9 @@ public class Biome {
 		"Rainforest", 
 		7,
 		0, 
-		World.MaxPossibleAltitude, 
+		World.MaxPossibleAltitude + 1f, 
 		1975f,
-		World.MaxPossibleRainfall,
+		World.MaxPossibleRainfall + 1f,
 		-5f,
 		World.MaxPossibleTemperature + 1f);
 

@@ -184,7 +184,7 @@ public class World {
 
 		ProgressCastMethod (0, "Generating Terrain...");
 
-		GenerateTerrainAltitude ();
+		GenerateTerrainAltitude2 ();
 		
 		ProgressCastMethod (0.25f, "Calculating Rainfall...");
 
@@ -224,31 +224,54 @@ public class World {
 
 		float maxValue = 0;
 
-		float betaFactor = Mathf.Sin(Mathf.PI * y / Height);
-
 		for (int i = 0; i < NumContinents; i++)
 		{
-			Vector2 continentOffset = _continentOffsets[i];
-			float contX = continentOffset.x;
-			float contY = continentOffset.y;
+			float dist = GetContinentDistance(i, x, y);
 
-			float distX = Mathf.Min(Mathf.Abs(contX - x), Mathf.Abs(Width + contX - x));
-			distX = Mathf.Min(distX, Mathf.Abs(contX - x - Width));
-			distX *= betaFactor;
-
-			float distY = Mathf.Abs(contY - y);
-			
-			float continentWidth = _continentWidths[i];
-			float continentHeight = _continentHeights[i];
-
-			float dist = new Vector2(distX*continentWidth, distY*continentHeight).magnitude;
-
-			float value = Mathf.Max(0, 1f - dist/((float)Width));
+			float value = Mathf.Clamp(1f - dist/((float)Width), 0 , 1);
 
 			maxValue = Mathf.Max(maxValue, value);
 		}
 
 		return maxValue;
+	}
+	
+	private float GetContinentModifier2 (int x, int y) {
+
+		float minValue = 1;
+		
+		for (int i = 0; i < NumContinents; i++)
+		{
+			float dist = GetContinentDistance(i, x, y);
+			
+			float value = Mathf.Clamp(1f - dist/((float)Width), -1 , 1);
+			value *= value;
+			value = 1 - value;
+
+			minValue = Mathf.Min(minValue, value);
+		}
+		
+		return minValue;
+	}
+
+	private float GetContinentDistance (int id, int x, int y) {
+		
+		float betaFactor = Mathf.Sin(Mathf.PI * y / Height);
+
+		Vector2 continentOffset = _continentOffsets[id];
+		float contX = continentOffset.x;
+		float contY = continentOffset.y;
+		
+		float distX = Mathf.Min(Mathf.Abs(contX - x), Mathf.Abs(Width + contX - x));
+		distX = Mathf.Min(distX, Mathf.Abs(contX - x - Width));
+		distX *= betaFactor;
+		
+		float distY = Mathf.Abs(contY - y);
+		
+		float continentWidth = _continentWidths[id];
+		float continentHeight = _continentHeights[id];
+		
+		return new Vector2(distX*continentWidth, distY*continentHeight).magnitude;
 	}
 
 	private void GenerateTerrainAltitude () {
@@ -301,13 +324,33 @@ public class World {
 				valueD = MathUtility.MixValues(valueD, valueC, 0.1f);
 				valueD = MathUtility.MixValues(valueD, valueB, 0.1f);
 
-				float altitude = CalculateAltitude(valueD);
-				Terrain[i][j].Altitude = altitude;
-
-				if (altitude > MaxAltitude) MaxAltitude = altitude;
-				if (altitude < MinAltitude) MinAltitude = altitude;
+				CalculateAndSetAltitude(i, j, valueD);
 			}
 
+			ProgressCastMethod (0.25f * (i + 1)/(float)sizeX);
+		}
+	}
+	
+	private void GenerateTerrainAltitude2 () {
+		
+		GenerateContinents();
+		
+		int sizeX = Width;
+		int sizeY = Height;
+		
+		for (int i = 0; i < sizeX; i++)
+		{
+			float beta = (i / (float)sizeX) * Mathf.PI * 2;
+			
+			for (int j = 0; j < sizeY; j++)
+			{
+				float alpha = (j / (float)sizeY) * Mathf.PI;
+				
+				float valueA = Mathf.Min(1, GetContinentModifier2(i, j));
+				
+				CalculateAndSetAltitude(i, j, valueA);
+			}
+			
 			ProgressCastMethod (0.25f * (i + 1)/(float)sizeX);
 		}
 	}
@@ -343,6 +386,15 @@ public class World {
 		float span = MaxPossibleAltitude - MinPossibleAltitude;
 
 		return (value * span) + MinPossibleAltitude;
+	}
+	
+	private void CalculateAndSetAltitude (int longitude, int latitude, float value) {
+		
+		float altitude = CalculateAltitude(value);
+		Terrain[longitude][latitude].Altitude = altitude;
+		
+		if (altitude > MaxAltitude) MaxAltitude = altitude;
+		if (altitude < MinAltitude) MinAltitude = altitude;
 	}
 	
 	private void GenerateTerrainRainfall () {
