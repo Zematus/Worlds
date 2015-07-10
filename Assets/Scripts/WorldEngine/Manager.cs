@@ -146,8 +146,8 @@ public class Manager {
 		ManagerTask<T> task = new ManagerTask<T> (taskDelegate);
 
 		lock (_manager._taskQueue) {
-		
-			_manager._taskQueue.Enqueue(task);
+	
+			_manager._taskQueue.Enqueue (task);
 		}
 
 		return task;

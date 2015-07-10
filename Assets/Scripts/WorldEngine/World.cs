@@ -211,7 +211,7 @@ public class World {
 				
 				_continentOffsets[i] = new Vector2(
 					Mathf.Repeat(Random.Range(Width*i*2/5, Width*(i + 2)*2/5), Width),
-					Random.Range(Height * 1f/6f, Height * 5f/6f));
+					Random.Range(Height * 1f/10f, Height * 9f/10f));
 				_continentWidths[i] = Random.Range(ContinentMinWidthFactor, ContinentMaxWidthFactor);
 				_continentHeights[i] = Random.Range(ContinentMinWidthFactor, ContinentMaxWidthFactor);
 			}
@@ -238,20 +238,21 @@ public class World {
 	
 	private float GetContinentModifier2 (int x, int y) {
 
-		float minValue = 1;
+		float minDist = float.MaxValue;
 		
 		for (int i = 0; i < NumContinents; i++)
 		{
 			float dist = GetContinentDistance(i, x, y);
-			
-			float value = Mathf.Clamp(1f - dist/((float)Width), -1 , 1);
-			value *= value;
-			value = 1 - value;
-
-			minValue = Mathf.Min(minValue, value);
+			minDist = Mathf.Min(minDist, dist);
 		}
 		
-		return minValue;
+		float value = Mathf.Clamp(1 - minDist/((float)Width), -1 , 1);
+		value = Mathf.Abs(value);
+		value = 1 - value;
+		value *= value;
+//		value *= value;
+		
+		return value;
 	}
 
 	private float GetContinentDistance (int id, int x, int y) {
@@ -337,6 +338,13 @@ public class World {
 		
 		int sizeX = Width;
 		int sizeY = Height;
+
+		float offsetFactor = 30;
+
+		// Bigger value equals zoom out
+		float radius1 = 4f;
+		
+		ManagerTask<Vector3> offset1 = GenerateRandomOffsetVector();
 		
 		for (int i = 0; i < sizeX; i++)
 		{
@@ -345,8 +353,11 @@ public class World {
 			for (int j = 0; j < sizeY; j++)
 			{
 				float alpha = (j / (float)sizeY) * Mathf.PI;
+
+				float value1 = Mathf.Floor(GetRandomNoiseFromPolarCoordinates(alpha, beta, radius1, offset1) * offsetFactor);
 				
-				float valueA = Mathf.Min(1, GetContinentModifier2(i, j));
+				float valueA = Mathf.Min(1, GetContinentModifier2(i + (int)value1, j + (int)value1));
+				//float valueA = Mathf.Min(1, GetContinentModifier2(i, j));
 				
 				CalculateAndSetAltitude(i, j, valueA);
 			}
