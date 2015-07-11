@@ -19,7 +19,7 @@ public class Biome {
 		"Ocean",
 		1,
 		World.MinPossibleAltitude - 1f, 
-		0, 
+		0.01f, 
 		World.MinPossibleRainfall - 1f,
 		World.MaxPossibleRainfall + 1f,
 		-15f,

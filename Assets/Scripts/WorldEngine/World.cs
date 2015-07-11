@@ -54,7 +54,7 @@ public class World {
 	public const float TerrainNoiseFactor1 = 0.15f;
 	public const float TerrainNoiseFactor2 = 0.15f;
 	public const float TerrainNoiseFactor3 = 0.1f;
-	public const float TerrainNoiseFactor4 = 2.5f;
+	public const float TerrainNoiseFactor4 = 1f;
 	
 	public const float MinPossibleRainfall = 0;
 	public const float MaxPossibleRainfall = 7500;
@@ -184,7 +184,7 @@ public class World {
 
 		ProgressCastMethod (0, "Generating Terrain...");
 
-		GenerateTerrainAltitude2 ();
+		GenerateTerrainAltitude ();
 		
 		ProgressCastMethod (0.25f, "Calculating Rainfall...");
 
@@ -236,24 +236,24 @@ public class World {
 		return maxValue;
 	}
 	
-	private float GetContinentModifier2 (int x, int y) {
-
-		float minDist = float.MaxValue;
-		
-		for (int i = 0; i < NumContinents; i++)
-		{
-			float dist = GetContinentDistance(i, x, y);
-			minDist = Mathf.Min(minDist, dist);
-		}
-		
-		float value = Mathf.Clamp(1 - minDist/((float)Width), -1 , 1);
-		value = Mathf.Abs(value);
-		value = 1 - value;
-		value *= value;
+//	private float GetContinentModifier2 (int x, int y) {
+//
+//		float minDist = float.MaxValue;
+//		
+//		for (int i = 0; i < NumContinents; i++)
+//		{
+//			float dist = GetContinentDistance(i, x, y);
+//			minDist = Mathf.Min(minDist, dist);
+//		}
+//		
+//		float value = Mathf.Clamp(1 - minDist/((float)Width), -1 , 1);
+//		value = Mathf.Abs(value);
+//		value = 1 - value;
 //		value *= value;
-		
-		return value;
-	}
+////		value *= value;
+//		
+//		return value;
+//	}
 
 	private float GetContinentDistance (int id, int x, int y) {
 		
@@ -287,12 +287,14 @@ public class World {
 		float radius3 = 4f;
 		float radius4 = 8f;
 		float radius5 = 16f;
+		float radius6 = 64f;
 
 		ManagerTask<Vector3> offset1 = GenerateRandomOffsetVector();
 		ManagerTask<Vector3> offset2 = GenerateRandomOffsetVector();
 		ManagerTask<Vector3> offset3 = GenerateRandomOffsetVector();
 		ManagerTask<Vector3> offset4 = GenerateRandomOffsetVector();
 		ManagerTask<Vector3> offset5 = GenerateRandomOffsetVector();
+		ManagerTask<Vector3> offset6 = GenerateRandomOffsetVector();
 		
 		for (int i = 0; i < sizeX; i++)
 		{
@@ -307,23 +309,28 @@ public class World {
 				float value3 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius3, offset3);
 				float value4 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius4, offset4);
 				float value5 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius5, offset5);
+				float value6 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius6, offset6);
 
 				float valueA = GetContinentModifier(i, j);
 				valueA = MathUtility.MixValues(valueA, value3, TerrainNoiseFactor1);
 				valueA = valueA * MathUtility.MixValues(1, value4, TerrainNoiseFactor2);
 				valueA = valueA * MathUtility.MixValues(1, value5, TerrainNoiseFactor3);
+				valueA = valueA * MathUtility.MixValues(1, value6, 0.02f);
 
 				float valueB = (valueA * 0.04f) + 0.48f;
 				
 				float valueC = MathUtility.MixValues(value1, value2, MountainRangeMixFactor);
 				valueC = GetMountainRangeNoiseFromRandomNoise(valueC);
 				valueC = MathUtility.MixValues(valueC, value3, TerrainNoiseFactor1 * TerrainNoiseFactor4);
-				valueC = valueC * MathUtility.MixValues(1, value4, TerrainNoiseFactor2 * TerrainNoiseFactor4);
-				valueC = valueC * MathUtility.MixValues(1, value5, TerrainNoiseFactor3 * TerrainNoiseFactor4);
-				
-				float valueD = MathUtility.MixValues(valueA, valueC, 0.25f);
-				valueD = MathUtility.MixValues(valueD, valueC, 0.1f);
-				valueD = MathUtility.MixValues(valueD, valueB, 0.1f);
+				valueC = MathUtility.MixValues(valueC, value4, TerrainNoiseFactor2 * TerrainNoiseFactor4);
+				valueC = MathUtility.MixValues(valueC, value5, TerrainNoiseFactor3 * TerrainNoiseFactor4);
+				valueC = MathUtility.MixValues(valueC, value6, 0.02f);
+
+				float valueD;
+				valueD = MathUtility.MixValues(valueC, valueA, 0.5f);
+				valueD = MathUtility.MixValues(valueB, valueD, 0.25f);
+				//valueD = MathUtility.MixValues(valueB, valueC, 0.25f);
+				//valueD = MathUtility.MixValues(valueD, valueA, 0.25f);
 
 				CalculateAndSetAltitude(i, j, valueD);
 			}
@@ -332,39 +339,50 @@ public class World {
 		}
 	}
 	
-	private void GenerateTerrainAltitude2 () {
-		
-		GenerateContinents();
-		
-		int sizeX = Width;
-		int sizeY = Height;
-
-		float offsetFactor = 30;
-
-		// Bigger value equals zoom out
-		float radius1 = 4f;
-		
-		ManagerTask<Vector3> offset1 = GenerateRandomOffsetVector();
-		
-		for (int i = 0; i < sizeX; i++)
-		{
-			float beta = (i / (float)sizeX) * Mathf.PI * 2;
-			
-			for (int j = 0; j < sizeY; j++)
-			{
-				float alpha = (j / (float)sizeY) * Mathf.PI;
-
-				float value1 = Mathf.Floor(GetRandomNoiseFromPolarCoordinates(alpha, beta, radius1, offset1) * offsetFactor);
-				
-				float valueA = Mathf.Min(1, GetContinentModifier2(i + (int)value1, j + (int)value1));
-				//float valueA = Mathf.Min(1, GetContinentModifier2(i, j));
-				
-				CalculateAndSetAltitude(i, j, valueA);
-			}
-			
-			ProgressCastMethod (0.25f * (i + 1)/(float)sizeX);
-		}
-	}
+//	private void GenerateTerrainAltitude2 () {
+//		
+//		GenerateContinents();
+//		
+//		int sizeX = Width;
+//		int sizeY = Height;
+//
+//		float offsetFactor = 30;
+//
+//		// Bigger value equals zoom out
+//		float radius1 = 4f;
+//		float radius2 = 1f;
+//		float radius3 = 4f;
+//		float radius4 = 64f;
+//		
+//		ManagerTask<Vector3> offset1 = GenerateRandomOffsetVector();
+//		ManagerTask<Vector3> offset2 = GenerateRandomOffsetVector();
+//		ManagerTask<Vector3> offset3 = GenerateRandomOffsetVector();
+//		ManagerTask<Vector3> offset4 = GenerateRandomOffsetVector();
+//		
+//		for (int i = 0; i < sizeX; i++)
+//		{
+//			float beta = (i / (float)sizeX) * Mathf.PI * 2;
+//			
+//			for (int j = 0; j < sizeY; j++)
+//			{
+//				float alpha = (j / (float)sizeY) * Mathf.PI;
+//
+//				int value1 = (int)Mathf.Floor(GetRandomNoiseFromPolarCoordinates(alpha, beta, radius1, offset1) * offsetFactor);
+//				float value2 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius2, offset2);
+//				float value3 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius3, offset3);
+//				float value4 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius4, offset4);
+//				
+//				float valueA = Mathf.Min(1, GetContinentModifier2(i + value1, j + value1));
+//				float valueB = MathUtility.MixValues(valueA, value2, 0.5f);
+//				float valueC = MathUtility.MixValues(valueB, value3, 0.1f);
+//				float valueD = MathUtility.MixValues(valueC, value4, 0.02f);
+//				
+//				CalculateAndSetAltitude(i, j, valueD);
+//			}
+//			
+//			ProgressCastMethod (0.25f * (i + 1)/(float)sizeX);
+//		}
+//	}
 
 	private ManagerTask<Vector3> GenerateRandomOffsetVector () {
 
