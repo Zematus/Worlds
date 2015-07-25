@@ -43,7 +43,7 @@ public delegate void ProgressCastDelegate (float value, string message = null);
 [XmlRoot]
 public class World {
 
-	public const int NumContinents = 7;
+	public const int NumContinents = 5;
 	public const float ContinentMinWidthFactor = 2.5f;
 	public const float ContinentMaxWidthFactor = 6f;
 
@@ -317,7 +317,7 @@ public class World {
 				valueA = valueA * MathUtility.MixValues(1, value5, TerrainNoiseFactor3);
 				valueA = valueA * MathUtility.MixValues(1, value6, 0.02f);
 
-				float valueB = (valueA * 0.04f) + 0.48f;
+				float valueB = MathUtility.MixValues(valueA, (valueA * 0.04f) + 0.48f, valueA);
 				
 				float valueC = MathUtility.MixValues(value1, value2, MountainRangeMixFactor);
 				valueC = GetMountainRangeNoiseFromRandomNoise(valueC);
@@ -327,10 +327,10 @@ public class World {
 				valueC = MathUtility.MixValues(valueC, value6, 0.02f);
 
 				float valueD;
-				valueD = MathUtility.MixValues(valueC, valueA, 0.5f);
+				//valueD = MathUtility.MixValues(valueC, valueA, 0.5f);
+				valueD = MathUtility.MixValues(valueC, valueA, 0.25f);
+				//valueD = MathUtility.MixValues(valueB, valueD, 0.25f);
 				valueD = MathUtility.MixValues(valueB, valueD, 0.25f);
-				//valueD = MathUtility.MixValues(valueB, valueC, 0.25f);
-				//valueD = MathUtility.MixValues(valueD, valueA, 0.25f);
 
 				CalculateAndSetAltitude(i, j, valueD);
 			}
@@ -400,12 +400,13 @@ public class World {
 
 		noise = (noise * 2) - 1;
 		
-		float value1 = -Mathf.Exp(-Mathf.Pow(noise*MountainRangeWidthFactor + 1, 2));
-		float value2 = Mathf.Exp(-Mathf.Pow(noise*MountainRangeWidthFactor - 1, 2));
-		float value3 = -Mathf.Exp(-Mathf.Pow(noise*MountainRangeWidthFactor + MountainRangeWidthFactor/2f, 2));
-		float value4 = Mathf.Exp(-Mathf.Pow(noise*MountainRangeWidthFactor - MountainRangeWidthFactor/2f, 2));
+		float value1 = -Mathf.Exp (-Mathf.Pow (noise * MountainRangeWidthFactor + 1f, 2));
+		float value2 = Mathf.Exp(-Mathf.Pow(noise * MountainRangeWidthFactor - 1f, 2));
+		//float value3 = -Mathf.Exp(-Mathf.Pow(noise*MountainRangeWidthFactor + MountainRangeWidthFactor/2f, 2));
+		//float value4 = Mathf.Exp(-Mathf.Pow(noise*MountainRangeWidthFactor - MountainRangeWidthFactor/2f, 2));
 		
-		float value = (value1 + value2 + value3 + value4 + 1) / 2f;
+		float value = (value1 + value2 + 1) / 2f;
+		//float value = (value1 + value2 + value3 + value4 + 1) / 2f;
 		
 		return value;
 	}
