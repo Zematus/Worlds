@@ -43,9 +43,9 @@ public delegate void ProgressCastDelegate (float value, string message = null);
 [XmlRoot]
 public class World {
 
-	public const int NumContinents = 7;
-	public const float ContinentMinWidthFactor = 2.5f;
-	public const float ContinentMaxWidthFactor = 6f;
+	public const int NumContinents = 5;
+	public const float ContinentMinWidthFactor = 3.5f;
+	public const float ContinentMaxWidthFactor = 5.5f;
 
 	public const float MinPossibleAltitude = -15000;
 	public const float MaxPossibleAltitude = 15000;
@@ -54,7 +54,7 @@ public class World {
 	public const float TerrainNoiseFactor1 = 0.15f;
 	public const float TerrainNoiseFactor2 = 0.15f;
 	public const float TerrainNoiseFactor3 = 0.1f;
-	public const float TerrainNoiseFactor4 = 2.5f;
+	public const float TerrainNoiseFactor4 = 1f;
 	
 	public const float MinPossibleRainfall = 0;
 	public const float MaxPossibleRainfall = 7500;
@@ -204,6 +204,8 @@ public class World {
 	}
 
 	private void GenerateContinents () {
+
+		float latitudeFactor = 6f;
 		
 		Manager.EnqueueTaskAndWait (() => {
 			
@@ -211,9 +213,9 @@ public class World {
 				
 				_continentOffsets[i] = new Vector2(
 					Mathf.Repeat(Random.Range(Width*i*2/5, Width*(i + 2)*2/5), Width),
-					Random.Range(Height * 1f/6f, Height * 5f/6f));
+					Random.Range(Height * 1f/latitudeFactor, Height * (latitudeFactor - 1f)/latitudeFactor));
 				_continentWidths[i] = Random.Range(ContinentMinWidthFactor, ContinentMaxWidthFactor);
-				_continentHeights[i] = Random.Range(ContinentMinWidthFactor, ContinentMaxWidthFactor);
+				_continentHeights[i] = Random.Range(ContinentMinWidthFactor, ContinentMaxWidthFactor) / 2f;
 			}
 			
 			return true;
@@ -224,31 +226,36 @@ public class World {
 
 		float maxValue = 0;
 
-		float betaFactor = Mathf.Sin(Mathf.PI * y / Height);
-
 		for (int i = 0; i < NumContinents; i++)
 		{
-			Vector2 continentOffset = _continentOffsets[i];
-			float contX = continentOffset.x;
-			float contY = continentOffset.y;
+			float dist = GetContinentDistance(i, x, y);
 
-			float distX = Mathf.Min(Mathf.Abs(contX - x), Mathf.Abs(Width + contX - x));
-			distX = Mathf.Min(distX, Mathf.Abs(contX - x - Width));
-			distX *= betaFactor;
-
-			float distY = Mathf.Abs(contY - y);
-			
-			float continentWidth = _continentWidths[i];
-			float continentHeight = _continentHeights[i];
-
-			float dist = new Vector2(distX*continentWidth, distY*continentHeight).magnitude;
-
-			float value = Mathf.Max(0, 1f - dist/((float)Width));
+			float value = Mathf.Clamp(1f - dist/((float)Width), 0 , 1);
 
 			maxValue = Mathf.Max(maxValue, value);
 		}
 
 		return maxValue;
+	}
+
+	private float GetContinentDistance (int id, int x, int y) {
+		
+		float betaFactor = Mathf.Sin(Mathf.PI * y / Height);
+
+		Vector2 continentOffset = _continentOffsets[id];
+		float contX = continentOffset.x;
+		float contY = continentOffset.y;
+		
+		float distX = Mathf.Min(Mathf.Abs(contX - x), Mathf.Abs(Width + contX - x));
+		distX = Mathf.Min(distX, Mathf.Abs(contX - x - Width));
+		distX *= betaFactor;
+		
+		float distY = Mathf.Abs(contY - y);
+		
+		float continentWidth = _continentWidths[id];
+		float continentHeight = _continentHeights[id];
+		
+		return new Vector2(distX*continentWidth, distY*continentHeight).magnitude;
 	}
 
 	private void GenerateTerrainAltitude () {
@@ -259,16 +266,18 @@ public class World {
 		int sizeY = Height;
 
 		float radius1 = 0.5f;
-		float radius2 = 4f;
+		float radius2 = 8f;
 		float radius3 = 4f;
 		float radius4 = 8f;
 		float radius5 = 16f;
+		float radius6 = 64f;
 
 		ManagerTask<Vector3> offset1 = GenerateRandomOffsetVector();
 		ManagerTask<Vector3> offset2 = GenerateRandomOffsetVector();
 		ManagerTask<Vector3> offset3 = GenerateRandomOffsetVector();
 		ManagerTask<Vector3> offset4 = GenerateRandomOffsetVector();
 		ManagerTask<Vector3> offset5 = GenerateRandomOffsetVector();
+		ManagerTask<Vector3> offset6 = GenerateRandomOffsetVector();
 		
 		for (int i = 0; i < sizeX; i++)
 		{
@@ -283,29 +292,30 @@ public class World {
 				float value3 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius3, offset3);
 				float value4 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius4, offset4);
 				float value5 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius5, offset5);
+				float value6 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius6, offset6);
 
 				float valueA = GetContinentModifier(i, j);
-				valueA = MathUtility.MixValues(valueA, value3, TerrainNoiseFactor1);
+				valueA = MathUtility.MixValues(valueA, value3, TerrainNoiseFactor1 * 2f);
 				valueA = valueA * MathUtility.MixValues(1, value4, TerrainNoiseFactor2);
 				valueA = valueA * MathUtility.MixValues(1, value5, TerrainNoiseFactor3);
+				valueA = valueA * MathUtility.MixValues(1, value6, 0.02f);
 
-				float valueB = (valueA * 0.04f) + 0.48f;
+				float valueB = MathUtility.MixValues(valueA, (valueA * 0.04f) + 0.48f, valueA/2f);
 				
-				float valueC = MathUtility.MixValues(value1, value2, MountainRangeMixFactor);
-				valueC = GetMountainRangeNoiseFromRandomNoise(valueC);
+				float valueC = MathUtility.MixValues(value1, value2, MountainRangeMixFactor * 0.75f);
+				valueC = GetMountainRangeNoiseFromRandomNoise(valueC, MountainRangeWidthFactor);
 				valueC = MathUtility.MixValues(valueC, value3, TerrainNoiseFactor1 * TerrainNoiseFactor4);
-				valueC = valueC * MathUtility.MixValues(1, value4, TerrainNoiseFactor2 * TerrainNoiseFactor4);
-				valueC = valueC * MathUtility.MixValues(1, value5, TerrainNoiseFactor3 * TerrainNoiseFactor4);
-				
-				float valueD = MathUtility.MixValues(valueA, valueC, 0.25f);
-				valueD = MathUtility.MixValues(valueD, valueC, 0.1f);
-				valueD = MathUtility.MixValues(valueD, valueB, 0.1f);
+				valueC = MathUtility.MixValues(valueC, value4, TerrainNoiseFactor2 * TerrainNoiseFactor4);
+				valueC = MathUtility.MixValues(valueC, value5, TerrainNoiseFactor3 * TerrainNoiseFactor4);
+				valueC = MathUtility.MixValues(valueC, value6, 0.02f);
 
-				float altitude = CalculateAltitude(valueD);
-				Terrain[i][j].Altitude = altitude;
+				float valueD;
+				//valueD = MathUtility.MixValues(valueC, valueA, 0.5f);
+				valueD = MathUtility.MixValues(valueC, valueA, 0.25f);
+				//valueD = MathUtility.MixValues(valueB, valueD, 0.25f);
+				valueD = MathUtility.MixValues(valueB, valueD, 0.25f);
 
-				if (altitude > MaxAltitude) MaxAltitude = altitude;
-				if (altitude < MinAltitude) MinAltitude = altitude;
+				CalculateAndSetAltitude(i, j, valueD);
 			}
 
 			ProgressCastMethod (0.25f * (i + 1)/(float)sizeX);
@@ -324,16 +334,14 @@ public class World {
 		return PerlinNoise.GetValue(pos.x, pos.y, pos.z);
 	}
 	
-	private float GetMountainRangeNoiseFromRandomNoise(float noise) {
+	private float GetMountainRangeNoiseFromRandomNoise(float noise, float widthFactor) {
 
 		noise = (noise * 2) - 1;
 		
-		float value1 = -Mathf.Exp(-Mathf.Pow(noise*MountainRangeWidthFactor + 1, 2));
-		float value2 = Mathf.Exp(-Mathf.Pow(noise*MountainRangeWidthFactor - 1, 2));
-		float value3 = -Mathf.Exp(-Mathf.Pow(noise*MountainRangeWidthFactor + MountainRangeWidthFactor/2f, 2));
-		float value4 = Mathf.Exp(-Mathf.Pow(noise*MountainRangeWidthFactor - MountainRangeWidthFactor/2f, 2));
+		float value1 = -Mathf.Exp (-Mathf.Pow (noise * widthFactor + 1f, 2));
+		float value2 = Mathf.Exp(-Mathf.Pow(noise * widthFactor - 1f, 2));
 		
-		float value = (value1 + value2 + value3 + value4 + 1) / 2f;
+		float value = (value1 + value2 + 1) / 2f;
 		
 		return value;
 	}
@@ -343,6 +351,15 @@ public class World {
 		float span = MaxPossibleAltitude - MinPossibleAltitude;
 
 		return (value * span) + MinPossibleAltitude;
+	}
+	
+	private void CalculateAndSetAltitude (int longitude, int latitude, float value) {
+		
+		float altitude = CalculateAltitude(value);
+		Terrain[longitude][latitude].Altitude = altitude;
+		
+		if (altitude > MaxAltitude) MaxAltitude = altitude;
+		if (altitude < MinAltitude) MinAltitude = altitude;
 	}
 	
 	private void GenerateTerrainRainfall () {

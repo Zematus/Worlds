@@ -342,6 +342,12 @@ public class GuiManagerScript : MonoBehaviour {
 	}
 	
 	public void SetInfoPanelData (int longitude, int latitude) {
+
+		if ((longitude < 0) || (longitude >= Manager.CurrentWorld.Width))
+			return;
+		
+		if ((latitude < 0) || (latitude >= Manager.CurrentWorld.Height))
+			return;
 		
 		TerrainCell cell = Manager.CurrentWorld.Terrain[longitude][latitude];
 		
