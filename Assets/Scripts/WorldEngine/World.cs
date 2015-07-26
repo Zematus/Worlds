@@ -44,8 +44,8 @@ public delegate void ProgressCastDelegate (float value, string message = null);
 public class World {
 
 	public const int NumContinents = 5;
-	public const float ContinentMinWidthFactor = 2.5f;
-	public const float ContinentMaxWidthFactor = 6f;
+	public const float ContinentMinWidthFactor = 3.5f;
+	public const float ContinentMaxWidthFactor = 5.5f;
 
 	public const float MinPossibleAltitude = -15000;
 	public const float MaxPossibleAltitude = 15000;
@@ -204,6 +204,8 @@ public class World {
 	}
 
 	private void GenerateContinents () {
+
+		float latitudeFactor = 6f;
 		
 		Manager.EnqueueTaskAndWait (() => {
 			
@@ -211,9 +213,9 @@ public class World {
 				
 				_continentOffsets[i] = new Vector2(
 					Mathf.Repeat(Random.Range(Width*i*2/5, Width*(i + 2)*2/5), Width),
-					Random.Range(Height * 1f/10f, Height * 9f/10f));
+					Random.Range(Height * 1f/latitudeFactor, Height * (latitudeFactor - 1f)/latitudeFactor));
 				_continentWidths[i] = Random.Range(ContinentMinWidthFactor, ContinentMaxWidthFactor);
-				_continentHeights[i] = Random.Range(ContinentMinWidthFactor, ContinentMaxWidthFactor);
+				_continentHeights[i] = Random.Range(ContinentMinWidthFactor, ContinentMaxWidthFactor) / 2f;
 			}
 			
 			return true;
@@ -235,25 +237,6 @@ public class World {
 
 		return maxValue;
 	}
-	
-//	private float GetContinentModifier2 (int x, int y) {
-//
-//		float minDist = float.MaxValue;
-//		
-//		for (int i = 0; i < NumContinents; i++)
-//		{
-//			float dist = GetContinentDistance(i, x, y);
-//			minDist = Mathf.Min(minDist, dist);
-//		}
-//		
-//		float value = Mathf.Clamp(1 - minDist/((float)Width), -1 , 1);
-//		value = Mathf.Abs(value);
-//		value = 1 - value;
-//		value *= value;
-////		value *= value;
-//		
-//		return value;
-//	}
 
 	private float GetContinentDistance (int id, int x, int y) {
 		
@@ -283,7 +266,7 @@ public class World {
 		int sizeY = Height;
 
 		float radius1 = 0.5f;
-		float radius2 = 4f;
+		float radius2 = 8f;
 		float radius3 = 4f;
 		float radius4 = 8f;
 		float radius5 = 16f;
@@ -312,15 +295,15 @@ public class World {
 				float value6 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius6, offset6);
 
 				float valueA = GetContinentModifier(i, j);
-				valueA = MathUtility.MixValues(valueA, value3, TerrainNoiseFactor1);
+				valueA = MathUtility.MixValues(valueA, value3, TerrainNoiseFactor1 * 2f);
 				valueA = valueA * MathUtility.MixValues(1, value4, TerrainNoiseFactor2);
 				valueA = valueA * MathUtility.MixValues(1, value5, TerrainNoiseFactor3);
 				valueA = valueA * MathUtility.MixValues(1, value6, 0.02f);
 
-				float valueB = MathUtility.MixValues(valueA, (valueA * 0.04f) + 0.48f, valueA);
+				float valueB = MathUtility.MixValues(valueA, (valueA * 0.04f) + 0.48f, valueA/2f);
 				
-				float valueC = MathUtility.MixValues(value1, value2, MountainRangeMixFactor);
-				valueC = GetMountainRangeNoiseFromRandomNoise(valueC);
+				float valueC = MathUtility.MixValues(value1, value2, MountainRangeMixFactor * 0.75f);
+				valueC = GetMountainRangeNoiseFromRandomNoise(valueC, MountainRangeWidthFactor);
 				valueC = MathUtility.MixValues(valueC, value3, TerrainNoiseFactor1 * TerrainNoiseFactor4);
 				valueC = MathUtility.MixValues(valueC, value4, TerrainNoiseFactor2 * TerrainNoiseFactor4);
 				valueC = MathUtility.MixValues(valueC, value5, TerrainNoiseFactor3 * TerrainNoiseFactor4);
@@ -338,51 +321,6 @@ public class World {
 			ProgressCastMethod (0.25f * (i + 1)/(float)sizeX);
 		}
 	}
-	
-//	private void GenerateTerrainAltitude2 () {
-//		
-//		GenerateContinents();
-//		
-//		int sizeX = Width;
-//		int sizeY = Height;
-//
-//		float offsetFactor = 30;
-//
-//		// Bigger value equals zoom out
-//		float radius1 = 4f;
-//		float radius2 = 1f;
-//		float radius3 = 4f;
-//		float radius4 = 64f;
-//		
-//		ManagerTask<Vector3> offset1 = GenerateRandomOffsetVector();
-//		ManagerTask<Vector3> offset2 = GenerateRandomOffsetVector();
-//		ManagerTask<Vector3> offset3 = GenerateRandomOffsetVector();
-//		ManagerTask<Vector3> offset4 = GenerateRandomOffsetVector();
-//		
-//		for (int i = 0; i < sizeX; i++)
-//		{
-//			float beta = (i / (float)sizeX) * Mathf.PI * 2;
-//			
-//			for (int j = 0; j < sizeY; j++)
-//			{
-//				float alpha = (j / (float)sizeY) * Mathf.PI;
-//
-//				int value1 = (int)Mathf.Floor(GetRandomNoiseFromPolarCoordinates(alpha, beta, radius1, offset1) * offsetFactor);
-//				float value2 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius2, offset2);
-//				float value3 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius3, offset3);
-//				float value4 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius4, offset4);
-//				
-//				float valueA = Mathf.Min(1, GetContinentModifier2(i + value1, j + value1));
-//				float valueB = MathUtility.MixValues(valueA, value2, 0.5f);
-//				float valueC = MathUtility.MixValues(valueB, value3, 0.1f);
-//				float valueD = MathUtility.MixValues(valueC, value4, 0.02f);
-//				
-//				CalculateAndSetAltitude(i, j, valueD);
-//			}
-//			
-//			ProgressCastMethod (0.25f * (i + 1)/(float)sizeX);
-//		}
-//	}
 
 	private ManagerTask<Vector3> GenerateRandomOffsetVector () {
 
@@ -396,17 +334,14 @@ public class World {
 		return PerlinNoise.GetValue(pos.x, pos.y, pos.z);
 	}
 	
-	private float GetMountainRangeNoiseFromRandomNoise(float noise) {
+	private float GetMountainRangeNoiseFromRandomNoise(float noise, float widthFactor) {
 
 		noise = (noise * 2) - 1;
 		
-		float value1 = -Mathf.Exp (-Mathf.Pow (noise * MountainRangeWidthFactor + 1f, 2));
-		float value2 = Mathf.Exp(-Mathf.Pow(noise * MountainRangeWidthFactor - 1f, 2));
-		//float value3 = -Mathf.Exp(-Mathf.Pow(noise*MountainRangeWidthFactor + MountainRangeWidthFactor/2f, 2));
-		//float value4 = Mathf.Exp(-Mathf.Pow(noise*MountainRangeWidthFactor - MountainRangeWidthFactor/2f, 2));
+		float value1 = -Mathf.Exp (-Mathf.Pow (noise * widthFactor + 1f, 2));
+		float value2 = Mathf.Exp(-Mathf.Pow(noise * widthFactor - 1f, 2));
 		
 		float value = (value1 + value2 + 1) / 2f;
-		//float value = (value1 + value2 + value3 + value4 + 1) / 2f;
 		
 		return value;
 	}
