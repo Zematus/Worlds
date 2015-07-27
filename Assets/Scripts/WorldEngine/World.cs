@@ -57,12 +57,12 @@ public class World {
 	public const float TerrainNoiseFactor4 = 1f;
 	
 	public const float MinPossibleRainfall = 0;
-	public const float MaxPossibleRainfall = 7500;
+	public const float MaxPossibleRainfall = 13000;
 	public const float RainfallDrynessOffsetFactor = 0.005f;
 	
 	public const float MinPossibleTemperature = -35;
 	public const float MaxPossibleTemperature = 30;
-	public const float TemperatureAltitudeFactor = 1f;
+	public const float TemperatureAltitudeFactor = 2.05f;
 	
 	public float MaxAltitude = MinPossibleAltitude;
 	public float MinAltitude = MaxPossibleAltitude;
@@ -274,6 +274,8 @@ public class World {
 
 		ManagerTask<Vector3> offset1 = GenerateRandomOffsetVector();
 		ManagerTask<Vector3> offset2 = GenerateRandomOffsetVector();
+		ManagerTask<Vector3> offset1b = GenerateRandomOffsetVector();
+		ManagerTask<Vector3> offset2b = GenerateRandomOffsetVector();
 		ManagerTask<Vector3> offset3 = GenerateRandomOffsetVector();
 		ManagerTask<Vector3> offset4 = GenerateRandomOffsetVector();
 		ManagerTask<Vector3> offset5 = GenerateRandomOffsetVector();
@@ -289,6 +291,8 @@ public class World {
 
 				float value1 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius1, offset1);
 				float value2 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius2, offset2);
+				float value1b = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius1, offset1b);
+				float value2b = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius2, offset2b);
 				float value3 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius3, offset3);
 				float value4 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius4, offset4);
 				float value5 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius5, offset5);
@@ -299,21 +303,21 @@ public class World {
 				valueA = valueA * MathUtility.MixValues(1, value4, TerrainNoiseFactor2);
 				valueA = valueA * MathUtility.MixValues(1, value5, TerrainNoiseFactor3);
 				valueA = valueA * MathUtility.MixValues(1, value6, 0.02f);
-
-				float valueB = MathUtility.MixValues(valueA, (valueA * 0.04f) + 0.48f, valueA/2f);
 				
-				float valueC = MathUtility.MixValues(value1, value2, MountainRangeMixFactor * 0.75f);
+				float valueC = MathUtility.MixValues(value1, value2, MountainRangeMixFactor * 0.65f);
 				valueC = GetMountainRangeNoiseFromRandomNoise(valueC, MountainRangeWidthFactor);
+				float valueCb = MathUtility.MixValues(value1b, value2b, MountainRangeMixFactor * 0.65f);
+				valueCb = GetMountainRangeNoiseFromRandomNoise(valueCb, MountainRangeWidthFactor);
+				valueC = MathUtility.MixValues(valueC, valueCb, 0.5f);
+
 				valueC = MathUtility.MixValues(valueC, value3, TerrainNoiseFactor1 * TerrainNoiseFactor4);
 				valueC = MathUtility.MixValues(valueC, value4, TerrainNoiseFactor2 * TerrainNoiseFactor4);
 				valueC = MathUtility.MixValues(valueC, value5, TerrainNoiseFactor3 * TerrainNoiseFactor4);
 				valueC = MathUtility.MixValues(valueC, value6, 0.02f);
+				
+				float valueB = MathUtility.MixValues(valueA, (valueA * 0.02f) + 0.49f, valueA - Mathf.Max(0, (2 * valueC) - 1));
 
-				float valueD;
-				//valueD = MathUtility.MixValues(valueC, valueA, 0.5f);
-				valueD = MathUtility.MixValues(valueC, valueA, 0.25f);
-				//valueD = MathUtility.MixValues(valueB, valueD, 0.25f);
-				valueD = MathUtility.MixValues(valueB, valueD, 0.25f);
+				float valueD = MathUtility.MixValues(valueB, valueC, 0.26f);
 
 				CalculateAndSetAltitude(i, j, valueD);
 			}
@@ -340,7 +344,7 @@ public class World {
 		
 		float value1 = -Mathf.Exp (-Mathf.Pow (noise * widthFactor + 1f, 2));
 		float value2 = Mathf.Exp(-Mathf.Pow(noise * widthFactor - 1f, 2));
-		
+
 		float value = (value1 + value2 + 1) / 2f;
 		
 		return value;
@@ -389,16 +393,22 @@ public class World {
 
 				int offCellX = (Width + i + (int)Mathf.Floor(latitudeModifier2 * Width/20f)) % Width;
 				int offCellX2 = (Width + i + (int)Mathf.Floor(latitudeModifier2 * Width/10f)) % Width;
+				int offCellY = j + (int)Mathf.Floor(latitudeModifier2 * Height/10f);
+				//int offCellY2 = j + (int)Mathf.Floor(latitudeModifier2 * Height/5f);
 
 				TerrainCell offCell = Terrain[offCellX][j];
 				TerrainCell offCell2 = Terrain[offCellX2][j];
+				TerrainCell offCell3 = Terrain[i][offCellY];
 
 				float altitudeValue = Mathf.Max(0, cell.Altitude);
 				float offAltitude = Mathf.Max(0, offCell.Altitude);
 				float offAltitude2 = Mathf.Max(0, offCell2.Altitude);
-
-				float altitudeModifier = (altitudeValue - (offAltitude * 1.5f) - (offAltitude2 * 1.0f)) / MaxPossibleAltitude;
-				float rainfallValue = MathUtility.MixValues(latitudeModifier1, altitudeModifier, 0.63f);
+				float offAltitude3 = Mathf.Max(0, offCell3.Altitude);
+				
+				//float altitudeModifier = (altitudeValue - (offAltitude * 1.5f) - (offAltitude2 * 1.0f))) / MaxPossibleAltitude;
+				float altitudeModifier = (altitudeValue - (offAltitude * 0.75f) - (offAltitude2 * 0.75f) - (offAltitude3 * 0.75f) - (MaxPossibleAltitude * 0.07f)) / MaxPossibleAltitude;
+				//float rainfallValue = MathUtility.MixValues(latitudeModifier1, altitudeModifier, 0.63f);
+				float rainfallValue = MathUtility.MixValues(latitudeModifier1, altitudeModifier, 0.7f);
 				rainfallValue = MathUtility.MixValues(rainfallValue * rainfallValue, rainfallValue, 0.85f);
 
 				float rainfall = Mathf.Min(MaxPossibleRainfall, CalculateRainfall(rainfallValue));
