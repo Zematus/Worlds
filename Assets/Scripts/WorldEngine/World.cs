@@ -394,7 +394,6 @@ public class World {
 				int offCellX = (Width + i + (int)Mathf.Floor(latitudeModifier2 * Width/20f)) % Width;
 				int offCellX2 = (Width + i + (int)Mathf.Floor(latitudeModifier2 * Width/10f)) % Width;
 				int offCellY = j + (int)Mathf.Floor(latitudeModifier2 * Height/10f);
-				//int offCellY2 = j + (int)Mathf.Floor(latitudeModifier2 * Height/5f);
 
 				TerrainCell offCell = Terrain[offCellX][j];
 				TerrainCell offCell2 = Terrain[offCellX2][j];
@@ -404,10 +403,8 @@ public class World {
 				float offAltitude = Mathf.Max(0, offCell.Altitude);
 				float offAltitude2 = Mathf.Max(0, offCell2.Altitude);
 				float offAltitude3 = Mathf.Max(0, offCell3.Altitude);
-				
-				//float altitudeModifier = (altitudeValue - (offAltitude * 1.5f) - (offAltitude2 * 1.0f))) / MaxPossibleAltitude;
+
 				float altitudeModifier = (altitudeValue - (offAltitude * 0.75f) - (offAltitude2 * 0.75f) - (offAltitude3 * 0.75f) - (MaxPossibleAltitude * 0.07f)) / MaxPossibleAltitude;
-				//float rainfallValue = MathUtility.MixValues(latitudeModifier1, altitudeModifier, 0.63f);
 				float rainfallValue = MathUtility.MixValues(latitudeModifier1, altitudeModifier, 0.7f);
 				rainfallValue = MathUtility.MixValues(rainfallValue * rainfallValue, rainfallValue, 0.85f);
 
