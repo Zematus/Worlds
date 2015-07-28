@@ -43,21 +43,15 @@ public delegate void ProgressCastDelegate (float value, string message = null);
 [XmlRoot]
 public class World {
 
-	public const int NumContinents = 5;
-	public const float ContinentMinWidthFactor = 4.5f;
-	public const float ContinentMaxWidthFactor = 6.5f;
+	public const int NumContinents = 6;
+	public const float ContinentMinWidthFactor = 5f;
+	public const float ContinentMaxWidthFactor = 7f;
 
 	public const float MinPossibleAltitude = -15000;
 	public const float MaxPossibleAltitude = 15000;
-//	public const float MountainRangeMixFactor = 0.075f;
-//	public const float MountainRangeWidthFactor = 25f;
-//	public const float TerrainNoiseFactor1 = 0.15f;
-//	public const float TerrainNoiseFactor2 = 0.15f;
-//	public const float TerrainNoiseFactor3 = 0.1f;
-//	public const float TerrainNoiseFactor4 = 1f;
 	
 	public const float MinPossibleRainfall = 0;
-	public const float MaxPossibleRainfall = 15000;
+	public const float MaxPossibleRainfall = 13000;
 	public const float RainfallDrynessOffsetFactor = 0.005f;
 	
 	public const float MinPossibleTemperature = -35;
@@ -190,7 +184,11 @@ public class World {
 
 		GenerateTerrainRainfall ();
 		
-		ProgressCastMethod (0.5f, "Calculating Temperatures...");
+//		ProgressCastMethod (0.40f, "Generating Rivers...");
+//		
+//		GenerateTerrainRivers ();
+		
+		ProgressCastMethod (0.50f, "Calculating Temperatures...");
 
 		GenerateTerrainTemperature ();
 		
@@ -198,7 +196,7 @@ public class World {
 
 		GenerateTerrainBiomes ();
 		
-		ProgressCastMethod (1, "Finalizing...");
+		ProgressCastMethod (1.0f, "Finalizing...");
 
 		Ready = true;
 	}
@@ -272,6 +270,8 @@ public class World {
 		float radius5 = 16f;
 		float radius6 = 64f;
 		float radius7 = 128f;
+		float radius8 = 1f;
+		float radius9 = 1f;
 
 		ManagerTask<Vector3> offset1 = GenerateRandomOffsetVector();
 		ManagerTask<Vector3> offset2 = GenerateRandomOffsetVector();
@@ -282,6 +282,8 @@ public class World {
 		ManagerTask<Vector3> offset5 = GenerateRandomOffsetVector();
 		ManagerTask<Vector3> offset6 = GenerateRandomOffsetVector();
 		ManagerTask<Vector3> offset7 = GenerateRandomOffsetVector();
+		ManagerTask<Vector3> offset8 = GenerateRandomOffsetVector();
+		ManagerTask<Vector3> offset9 = GenerateRandomOffsetVector();
 		
 		for (int i = 0; i < sizeX; i++)
 		{
@@ -300,21 +302,27 @@ public class World {
 				float value5 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius5, offset5);
 				float value6 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius6, offset6);
 				float value7 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius7, offset7);
+				float value8 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius8, offset8);
+				float value9 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius9, offset9);
+
+				value8 = value8 * 1.5f + 0.25f;
 
 				float valueA = GetContinentModifier(i, j);
-				valueA = MathUtility.MixValues(valueA, value3, 0.22f);
-				valueA = MathUtility.MixValues(valueA, value4, 0.15f);
-				valueA = MathUtility.MixValues(valueA, value5, 0.1f);
-				valueA = MathUtility.MixValues(valueA, value6, 0.03f);
-				valueA = MathUtility.MixValues(valueA, value7, 0.005f);
+				valueA = MathUtility.MixValues(valueA, value3, 0.22f * value8);
+				valueA = MathUtility.MixValues(valueA, value4, 0.15f * value8);
+				valueA = MathUtility.MixValues(valueA, value5, 0.1f * value8);
+				valueA = MathUtility.MixValues(valueA, value6, 0.03f * value8);
+				valueA = MathUtility.MixValues(valueA, value7, 0.005f * value8);
 				
-				float valueC = MathUtility.MixValues(value1, value2, 0.04f);
+				float valueC = MathUtility.MixValues(value1, value9, 0.5f * value8);
+				valueC = MathUtility.MixValues(valueC, value2, 0.04f * value8);
 				valueC = GetMountainRangeNoiseFromRandomNoise(valueC, 25);
-				float valueCb = MathUtility.MixValues(value1b, value2b, 0.04f);
+				float valueCb = MathUtility.MixValues(value1b, value9, 0.5f * value8);
+				valueCb = MathUtility.MixValues(valueCb, value2b, 0.04f * value8);
 				valueCb = GetMountainRangeNoiseFromRandomNoise(valueCb, 25);
-				valueC = MathUtility.MixValues(valueC, valueCb, 0.5f);
+				valueC = MathUtility.MixValues(valueC, valueCb, 0.5f * value8);
 
-				valueC = MathUtility.MixValues(valueC, value3, 0.35f);
+				valueC = MathUtility.MixValues(valueC, value3, 0.35f * value8);
 				valueC = MathUtility.MixValues(valueC, value4, 0.075f);
 				valueC = MathUtility.MixValues(valueC, value5, 0.05f);
 				valueC = MathUtility.MixValues(valueC, value6, 0.02f);
@@ -322,7 +330,7 @@ public class World {
 				
 				float valueB = MathUtility.MixValues(valueA, (valueA * 0.02f) + 0.49f, valueA - Mathf.Max(0, (2 * valueC) - 1));
 
-				float valueD = MathUtility.MixValues(valueB, valueC, 0.26f);
+				float valueD = MathUtility.MixValues(valueB, valueC, 0.26f * value8);
 
 				CalculateAndSetAltitude(i, j, valueD);
 			}
@@ -330,6 +338,56 @@ public class World {
 			ProgressCastMethod (0.25f * (i + 1)/(float)sizeX);
 		}
 	}
+	
+//	private void GenerateTerrainRivers () {
+//
+//		int sizeX = Width;
+//		int sizeY = Height;
+//		
+//		float radius1 = 4f;
+//		float radius2 = 12f;
+//		
+//		ManagerTask<Vector3> offset1 = GenerateRandomOffsetVector();
+//		ManagerTask<Vector3> offset2 = GenerateRandomOffsetVector();
+//		
+//		for (int i = 0; i < sizeX; i++) {
+//
+//			float beta = (i / (float)sizeX) * Mathf.PI * 2;
+//			
+//			for (int j = 0; j < sizeY; j++) {
+//
+//				TerrainCell cell = Terrain[i][j];
+//				
+//				float alpha = (j / (float)sizeY) * Mathf.PI;
+//				
+//				float value1 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius1, offset1);
+//				float value2 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius2, offset2);
+//				
+//				float altitudeValue = cell.Altitude;
+//				float rainfallValue = cell.Rainfall;
+//
+//				float altitudeFactor = Mathf.Max(0, altitudeValue / MaxPossibleAltitude);
+//				float depthFactor = Mathf.Max(0, altitudeValue / MinPossibleAltitude);
+//				float altitudeFactor1 = Mathf.Clamp(10f * altitudeFactor, 0.25f , 1);
+//				float rainfallFactor = Mathf.Max(0, rainfallValue / MaxPossibleRainfall);
+//
+//				float valueA = MathUtility.MixValues(value2, value1, altitudeFactor1);
+//				valueA = GetRiverNoiseFromRandomNoise(valueA, 25);
+//
+//				if (altitudeValue >= 0) {
+//					valueA = valueA * Mathf.Max(1 - altitudeFactor * rainfallFactor * 2.5f, 0);
+//				} else {
+//					valueA = valueA * Mathf.Max(1 - depthFactor * 8, 0);
+//				}
+//
+//				float altitudeMod = valueA * MaxPossibleAltitude * 0.1f;
+//
+//				cell.Altitude -= altitudeMod;
+//			}
+//			
+//			ProgressCastMethod (0.40f + 0.20f * (i + 1)/(float)sizeX);
+//		}
+//	}
 
 	private ManagerTask<Vector3> GenerateRandomOffsetVector () {
 
@@ -351,6 +409,17 @@ public class World {
 		float value2 = Mathf.Exp(-Mathf.Pow(noise * widthFactor - 1f, 2));
 
 		float value = (value1 + value2 + 1) / 2f;
+		
+		return value;
+	}
+	
+	private float GetRiverNoiseFromRandomNoise(float noise, float widthFactor) {
+		
+		noise = (noise * 2) - 1;
+
+		float value = Mathf.Exp(-Mathf.Pow(noise * widthFactor, 2));
+		
+		value = (value + 1) / 2f;
 		
 		return value;
 	}
@@ -376,9 +445,11 @@ public class World {
 		int sizeX = Width;
 		int sizeY = Height;
 		
-		float radius = 2f;
+		float radius1 = 2f;
+		float radius2 = 1f;
 		
-		ManagerTask<Vector3> offset = GenerateRandomOffsetVector();
+		ManagerTask<Vector3> offset1 = GenerateRandomOffsetVector();
+		ManagerTask<Vector3> offset2 = GenerateRandomOffsetVector();
 		
 		for (int i = 0; i < sizeX; i++)
 		{
@@ -390,9 +461,12 @@ public class World {
 				
 				float alpha = (j / (float)sizeY) * Mathf.PI;
 				
-				float value = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius, offset);
+				float value1 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius1, offset1);
+				float value2 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius2, offset2);
 
-				float latitudeFactor = alpha + (((value * 2) - 1f) * Mathf.PI * 0.1f);
+				value2 = value2 * 1.5f + 0.25f;
+
+				float latitudeFactor = alpha + (((value1 * 2) - 1f) * Mathf.PI * 0.2f);
 				float latitudeModifier1 = (1.5f * Mathf.Sin(latitudeFactor)) - 0.5f;
 				float latitudeModifier2 = Mathf.Cos(latitudeFactor);
 
@@ -421,7 +495,7 @@ public class World {
 				                          (offAltitude3 * 0.5f) -
 				                          (offAltitude4 * 0.4f) - 
 				                          (offAltitude5 * 0.5f) + 
-				                          (MaxPossibleAltitude * 0.075f) -
+				                          (MaxPossibleAltitude * 0.12f * value2) -
 				                          (altitudeValue * 0.25f)) / MaxPossibleAltitude;
 				float rainfallValue = MathUtility.MixValues(latitudeModifier1, altitudeModifier, 0.85f);
 				rainfallValue = MathUtility.MixValues(rainfallValue * rainfallValue, rainfallValue, 0.85f);
@@ -470,7 +544,7 @@ public class World {
 				if (temperature < MinTemperature) MinTemperature = temperature;
 			}
 			
-			ProgressCastMethod (0.5f + 0.25f * (i + 1)/(float)sizeX);
+			ProgressCastMethod (0.50f + 0.25f * (i + 1)/(float)sizeX);
 		}
 	}
 
