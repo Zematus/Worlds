@@ -45,7 +45,7 @@ public class World {
 
 	public const int NumContinents = 6;
 	public const float ContinentMinWidthFactor = 5f;
-	public const float ContinentMaxWidthFactor = 7f;
+	public const float ContinentMaxWidthFactor = 8f;
 
 	public const float MinPossibleAltitude = -15000;
 	public const float MaxPossibleAltitude = 15000;
@@ -495,10 +495,10 @@ public class World {
 				                          (offAltitude3 * 0.5f) -
 				                          (offAltitude4 * 0.4f) - 
 				                          (offAltitude5 * 0.5f) + 
-				                          (MaxPossibleAltitude * 0.12f * value2) -
+				                          (MaxPossibleAltitude * 0.18f * value2) -
 				                          (altitudeValue * 0.25f)) / MaxPossibleAltitude;
 				float rainfallValue = MathUtility.MixValues(latitudeModifier1, altitudeModifier, 0.85f);
-				rainfallValue = MathUtility.MixValues(rainfallValue * rainfallValue, rainfallValue, 0.85f);
+				rainfallValue = MathUtility.MixValues(Mathf.Abs(rainfallValue) * rainfallValue, rainfallValue, 0.75f);
 
 				float rainfall = Mathf.Min(MaxPossibleRainfall, CalculateRainfall(rainfallValue));
 				cell.Rainfall = rainfall;

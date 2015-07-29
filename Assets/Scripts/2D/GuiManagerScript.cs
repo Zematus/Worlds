@@ -124,6 +124,11 @@ public class GuiManagerScript : MonoBehaviour {
 		});
 	}
 	
+	public void Continue () {
+		
+		SetEnabledModalMainMenuDialog (false);
+	}
+	
 	public void GenerateWorld () {
 
 		SetEnabledModalMainMenuDialog (false);

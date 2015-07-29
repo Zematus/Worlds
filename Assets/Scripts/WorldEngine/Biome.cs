@@ -30,8 +30,8 @@ public class Biome {
 		2,
 		0, 
 		World.MaxPossibleAltitude + 1f, 
-		25f,
-		1475f,
+		15f,
+		1575f,
 		-5f,
 		World.MaxPossibleTemperature + 1f);
 	
@@ -40,8 +40,8 @@ public class Biome {
 		3,
 		0, 
 		World.MaxPossibleAltitude + 1f, 
-		975f,
-		2475f,
+		1375f,
+		2975f,
 		-5f,
 		World.MaxPossibleTemperature + 1f);
 	
@@ -71,7 +71,7 @@ public class Biome {
 		0, 
 		World.MaxPossibleAltitude + 1f, 
 		World.MinPossibleRainfall - 1f,
-		275f,
+		675f,
 		-5f,
 		World.MaxPossibleTemperature + 1f);
 	
@@ -80,7 +80,7 @@ public class Biome {
 		7,
 		0, 
 		World.MaxPossibleAltitude + 1f, 
-		1975f,
+		1775f,
 		World.MaxPossibleRainfall + 1f,
 		-5f,
 		World.MaxPossibleTemperature + 1f);
