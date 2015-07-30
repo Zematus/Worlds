@@ -44,8 +44,10 @@ public delegate void ProgressCastDelegate (float value, string message = null);
 public class World {
 
 	public const int NumContinents = 6;
-	public const float ContinentMinWidthFactor = 5f;
+	public const float ContinentMinWidthFactor = 6f;
 	public const float ContinentMaxWidthFactor = 8f;
+//	public const float ContinentMinWidthFactor = 3f;
+//	public const float ContinentMaxWidthFactor = 6f;
 
 	public const float MinPossibleAltitude = -15000;
 	public const float MaxPossibleAltitude = 15000;
@@ -230,7 +232,20 @@ public class World {
 
 			float value = Mathf.Clamp(1f - dist/((float)Width), 0 , 1);
 
-			maxValue = Mathf.Max(maxValue, value);
+			float otherValue = value;
+
+			if (maxValue < value) {
+
+				otherValue = maxValue;
+				maxValue = value;
+			}
+
+			float valueMod = otherValue;
+			otherValue *= 2;
+			otherValue = Mathf.Min(1, otherValue);
+			
+			//maxValue = MathUtility.MixValues(maxValue, otherValue, Mathf.Min(1, valueMod));
+			maxValue = MathUtility.MixValues(maxValue, otherValue, valueMod);
 		}
 
 		return maxValue;
@@ -330,9 +345,10 @@ public class World {
 				
 				float valueB = MathUtility.MixValues(valueA, (valueA * 0.02f) + 0.49f, valueA - Mathf.Max(0, (2 * valueC) - 1));
 
-				float valueD = MathUtility.MixValues(valueB, valueC, 0.26f * value8);
+				float valueD = MathUtility.MixValues(valueB, valueC, 0.225f * value8);
 
 				CalculateAndSetAltitude(i, j, valueD);
+				//CalculateAndSetAltitude(i, j, valueA);
 			}
 
 			ProgressCastMethod (0.25f * (i + 1)/(float)sizeX);

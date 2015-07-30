@@ -73,6 +73,8 @@ public class Manager {
 	public const int WorldHeight = 200;
 	
 	public static string SavePath { get; private set; }
+	
+	public static string WorldName { get; set; }
 
 	private static Manager _manager = new Manager();
 

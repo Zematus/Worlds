@@ -40,8 +40,6 @@ public class GuiManagerScript : MonoBehaviour {
 	private Vector2 _beginDragPosition;
 	private Rect _beginDragMapUvRect;
 
-	private string _worldName;
-
 	private bool _preparingWorld = false;
 
 	private PostPreparationOperation _postPreparationOp = null;
@@ -57,11 +55,12 @@ public class GuiManagerScript : MonoBehaviour {
 		SetEnabledModalProgressDialog (false);
 		SetEnabledModalActivityDialog (false);
 		
-		GenerateWorld ();
+		if (!Manager.WorldReady) {
+
+			GenerateWorld ();
+		}
 
 		UpdateMapViewButtonText ();
-
-		//SetInfoPanelData (0, 0);
 
 		LoadButton.interactable = HasFilesToLoad ();
 
@@ -143,7 +142,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 		_postPreparationOp = () => {
 
-			_worldName = "world_" + Manager.CurrentWorld.Seed;
+			Manager.WorldName = "world_" + Manager.CurrentWorld.Seed;
 
 			_postPreparationOp = null;
 		};
@@ -203,9 +202,9 @@ public class GuiManagerScript : MonoBehaviour {
 		
 		ActivityDialogPanelScript.SetDialogText ("Saving World...");
 		
-		_worldName = SaveFileDialogPanelScript.GetWorldName ();
+		Manager.WorldName = SaveFileDialogPanelScript.GetWorldName ();
 		
-		string path = Manager.SavePath + _worldName + ".plnt";
+		string path = Manager.SavePath + Manager.WorldName + ".plnt";
 
 		Manager.SaveWorldAsync (path);
 		
@@ -228,7 +227,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 		SetEnabledModalMainMenuDialog (false);
 
-		SaveFileDialogPanelScript.SetWorldName (_worldName);
+		SaveFileDialogPanelScript.SetWorldName (Manager.WorldName);
 		
 		SetEnabledModalSaveDialog (true);
 	}
@@ -245,7 +244,7 @@ public class GuiManagerScript : MonoBehaviour {
 		
 		Manager.LoadWorldAsync (path, ProgressUpdate);
 		
-		_worldName = Path.GetFileNameWithoutExtension (path);
+		Manager.WorldName = Path.GetFileNameWithoutExtension (path);
 		
 		_preparingWorld = true;
 		
