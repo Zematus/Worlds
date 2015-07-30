@@ -95,6 +95,13 @@ public class StartGuiManagerScript : MonoBehaviour {
 		_preparingWorld = true;
 	}
 	
+	public void CancelLoadAction () {
+		
+		SetEnabledModalLoadDialog (false);
+		
+		SetEnabledModalMainMenuDialog (true);
+	}
+	
 	public void GenerateWorld () {
 		
 		SetEnabledModalMainMenuDialog (false);
@@ -125,5 +132,10 @@ public class StartGuiManagerScript : MonoBehaviour {
 			
 			return true;
 		});
+	}
+	
+	public void Exit () {
+		
+		Application.Quit();
 	}
 }

@@ -128,6 +128,11 @@ public class GuiManagerScript : MonoBehaviour {
 		SetEnabledModalMainMenuDialog (false);
 	}
 	
+	public void Exit () {
+		
+		Application.Quit();
+	}
+	
 	public void GenerateWorld () {
 
 		SetEnabledModalMainMenuDialog (false);

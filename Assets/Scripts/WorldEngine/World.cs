@@ -43,11 +43,9 @@ public delegate void ProgressCastDelegate (float value, string message = null);
 [XmlRoot]
 public class World {
 
-	public const int NumContinents = 6;
-	public const float ContinentMinWidthFactor = 6f;
-	public const float ContinentMaxWidthFactor = 8f;
-//	public const float ContinentMinWidthFactor = 3f;
-//	public const float ContinentMaxWidthFactor = 6f;
+	public const int NumContinents = 9;
+	public const float ContinentMinWidthFactor = 5f;
+	public const float ContinentMaxWidthFactor = 16f;
 
 	public const float MinPossibleAltitude = -15000;
 	public const float MaxPossibleAltitude = 15000;
@@ -90,6 +88,9 @@ public class World {
 	private float[] _continentHeights;
 
 	private bool _initialized = false;
+
+	private const float _progressIncrement = 0.25f;
+	private float _accumulatedProgress = 0;
 
 	public World () {
 		
@@ -178,27 +179,27 @@ public class World {
 
 	public void Generate () {
 
-		ProgressCastMethod (0, "Generating Terrain...");
+		ProgressCastMethod (_accumulatedProgress, "Generating Terrain...");
 
 		GenerateTerrainAltitude ();
 		
-		ProgressCastMethod (0.25f, "Calculating Rainfall...");
+		ProgressCastMethod (_accumulatedProgress, "Calculating Rainfall...");
 
 		GenerateTerrainRainfall ();
 		
-//		ProgressCastMethod (0.40f, "Generating Rivers...");
+//		ProgressCastMethod (_accumulatedProgress, "Generating Rivers...");
 //		
 //		GenerateTerrainRivers ();
 		
-		ProgressCastMethod (0.50f, "Calculating Temperatures...");
+		ProgressCastMethod (_accumulatedProgress, "Calculating Temperatures...");
 
 		GenerateTerrainTemperature ();
 		
-		ProgressCastMethod (0.75f, "Generating Biomes...");
+		ProgressCastMethod (_accumulatedProgress, "Generating Biomes...");
 
 		GenerateTerrainBiomes ();
 		
-		ProgressCastMethod (1.0f, "Finalizing...");
+		ProgressCastMethod (_accumulatedProgress, "Finalizing...");
 
 		Ready = true;
 	}
@@ -243,8 +244,7 @@ public class World {
 			float valueMod = otherValue;
 			otherValue *= 2;
 			otherValue = Mathf.Min(1, otherValue);
-			
-			//maxValue = MathUtility.MixValues(maxValue, otherValue, Mathf.Min(1, valueMod));
+
 			maxValue = MathUtility.MixValues(maxValue, otherValue, valueMod);
 		}
 
@@ -351,59 +351,63 @@ public class World {
 				//CalculateAndSetAltitude(i, j, valueA);
 			}
 
-			ProgressCastMethod (0.25f * (i + 1)/(float)sizeX);
+			ProgressCastMethod (_accumulatedProgress + _progressIncrement * (i + 1)/(float)sizeX);
 		}
+
+		_accumulatedProgress += _progressIncrement;
 	}
 	
-//	private void GenerateTerrainRivers () {
-//
-//		int sizeX = Width;
-//		int sizeY = Height;
-//		
-//		float radius1 = 4f;
-//		float radius2 = 12f;
-//		
-//		ManagerTask<Vector3> offset1 = GenerateRandomOffsetVector();
-//		ManagerTask<Vector3> offset2 = GenerateRandomOffsetVector();
-//		
-//		for (int i = 0; i < sizeX; i++) {
-//
-//			float beta = (i / (float)sizeX) * Mathf.PI * 2;
-//			
-//			for (int j = 0; j < sizeY; j++) {
-//
-//				TerrainCell cell = Terrain[i][j];
-//				
-//				float alpha = (j / (float)sizeY) * Mathf.PI;
-//				
-//				float value1 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius1, offset1);
-//				float value2 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius2, offset2);
-//				
-//				float altitudeValue = cell.Altitude;
-//				float rainfallValue = cell.Rainfall;
-//
-//				float altitudeFactor = Mathf.Max(0, altitudeValue / MaxPossibleAltitude);
-//				float depthFactor = Mathf.Max(0, altitudeValue / MinPossibleAltitude);
-//				float altitudeFactor1 = Mathf.Clamp(10f * altitudeFactor, 0.25f , 1);
-//				float rainfallFactor = Mathf.Max(0, rainfallValue / MaxPossibleRainfall);
-//
-//				float valueA = MathUtility.MixValues(value2, value1, altitudeFactor1);
-//				valueA = GetRiverNoiseFromRandomNoise(valueA, 25);
-//
-//				if (altitudeValue >= 0) {
-//					valueA = valueA * Mathf.Max(1 - altitudeFactor * rainfallFactor * 2.5f, 0);
-//				} else {
-//					valueA = valueA * Mathf.Max(1 - depthFactor * 8, 0);
-//				}
-//
-//				float altitudeMod = valueA * MaxPossibleAltitude * 0.1f;
-//
-//				cell.Altitude -= altitudeMod;
-//			}
-//			
-//			ProgressCastMethod (0.40f + 0.20f * (i + 1)/(float)sizeX);
-//		}
-//	}
+	private void GenerateTerrainRivers () {
+
+		int sizeX = Width;
+		int sizeY = Height;
+		
+		float radius1 = 4f;
+		float radius2 = 12f;
+		
+		ManagerTask<Vector3> offset1 = GenerateRandomOffsetVector();
+		ManagerTask<Vector3> offset2 = GenerateRandomOffsetVector();
+		
+		for (int i = 0; i < sizeX; i++) {
+
+			float beta = (i / (float)sizeX) * Mathf.PI * 2;
+			
+			for (int j = 0; j < sizeY; j++) {
+
+				TerrainCell cell = Terrain[i][j];
+				
+				float alpha = (j / (float)sizeY) * Mathf.PI;
+				
+				float value1 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius1, offset1);
+				float value2 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius2, offset2);
+				
+				float altitudeValue = cell.Altitude;
+				float rainfallValue = cell.Rainfall;
+
+				float altitudeFactor = Mathf.Max(0, altitudeValue / MaxPossibleAltitude);
+				float depthFactor = Mathf.Max(0, altitudeValue / MinPossibleAltitude);
+				float altitudeFactor1 = Mathf.Clamp(10f * altitudeFactor, 0.25f , 1);
+				float rainfallFactor = Mathf.Max(0, rainfallValue / MaxPossibleRainfall);
+
+				float valueA = MathUtility.MixValues(value2, value1, altitudeFactor1);
+				valueA = GetRiverNoiseFromRandomNoise(valueA, 25);
+
+				if (altitudeValue >= 0) {
+					valueA = valueA * Mathf.Max(1 - altitudeFactor * rainfallFactor * 2.5f, 0);
+				} else {
+					valueA = valueA * Mathf.Max(1 - depthFactor * 8, 0);
+				}
+
+				float altitudeMod = valueA * MaxPossibleAltitude * 0.1f;
+
+				cell.Altitude -= altitudeMod;
+			}
+			
+			ProgressCastMethod (_accumulatedProgress + _progressIncrement * (i + 1)/(float)sizeX);
+		}
+		
+		_accumulatedProgress += _progressIncrement;
+	}
 
 	private ManagerTask<Vector3> GenerateRandomOffsetVector () {
 
@@ -523,8 +527,10 @@ public class World {
 				if (rainfall < MinRainfall) MinRainfall = rainfall;
 			}
 			
-			ProgressCastMethod (0.25f + 0.25f * (i + 1)/(float)sizeX);
+			ProgressCastMethod (_accumulatedProgress + _progressIncrement * (i + 1)/(float)sizeX);
 		}
+		
+		_accumulatedProgress += _progressIncrement;
 	}
 	
 	private void GenerateTerrainTemperature () {
@@ -560,8 +566,10 @@ public class World {
 				if (temperature < MinTemperature) MinTemperature = temperature;
 			}
 			
-			ProgressCastMethod (0.50f + 0.25f * (i + 1)/(float)sizeX);
+			ProgressCastMethod (_accumulatedProgress + _progressIncrement * (i + 1)/(float)sizeX);
 		}
+		
+		_accumulatedProgress += _progressIncrement;
 	}
 
 	private void GenerateTerrainBiomes () {
@@ -602,8 +610,10 @@ public class World {
 				}
 			}
 			
-			ProgressCastMethod (0.75f + 0.25f * (i + 1)/(float)sizeX);
+			ProgressCastMethod (_accumulatedProgress + _progressIncrement * (i + 1)/(float)sizeX);
 		}
+		
+		_accumulatedProgress += _progressIncrement;
 	}
 
 	private float GetBiomePresence (TerrainCell cell, Biome biome) {
