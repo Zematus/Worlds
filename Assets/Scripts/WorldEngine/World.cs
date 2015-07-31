@@ -45,7 +45,7 @@ public class World {
 
 	public const int NumContinents = 9;
 	public const float ContinentMinWidthFactor = 5f;
-	public const float ContinentMaxWidthFactor = 16f;
+	public const float ContinentMaxWidthFactor = 12f;
 
 	public const float MinPossibleAltitude = -15000;
 	public const float MaxPossibleAltitude = 15000;
@@ -205,19 +205,35 @@ public class World {
 	}
 
 	private void GenerateContinents () {
-
-		float latitudeFactor = 6f;
+		
+		float longitudeFactor = 1 / 5f;
+		float latitudeFactor = 1 / 6f;
 		
 		Manager.EnqueueTaskAndWait (() => {
 			
+			Vector2 prevPos = new Vector2(Random.Range(0, Width*4*longitudeFactor),
+			                              Random.Range(Height * latitudeFactor, Height * ((1/latitudeFactor) - 1f) * latitudeFactor));
+			
 			for (int i = 0; i < NumContinents; i++) {
 				
-				_continentOffsets[i] = new Vector2(
-					Mathf.Repeat(Random.Range(Width*i*2/5, Width*(i + 2)*2/5), Width),
-					Random.Range(Height * 1f/latitudeFactor, Height * (latitudeFactor - 1f)/latitudeFactor));
+				_continentOffsets[i] = prevPos;
 				_continentWidths[i] = Random.Range(ContinentMinWidthFactor, ContinentMaxWidthFactor);
 				_continentHeights[i] = Random.Range(ContinentMinWidthFactor, ContinentMaxWidthFactor) / 2f;
+
+				Vector2 newVector = new Vector2(
+					Mathf.Repeat(prevPos.x + Random.Range(Width * longitudeFactor, Width * 5 * longitudeFactor), Width),
+					Random.Range(Height * latitudeFactor, Height * ((1/latitudeFactor) - 1f) * latitudeFactor));
+				prevPos = newVector;
 			}
+			
+//			for (int i = 0; i < NumContinents; i++) {
+//				
+//				_continentOffsets[i] = new Vector2(
+//						Mathf.Repeat(Random.Range(Width*i*longitudeFactor, Width*(i + 2)*longitudeFactor), Width),
+//						Random.Range(Height * latitudeFactor, Height * ((1/latitudeFactor) - 1f) * latitudeFactor));
+//				_continentWidths[i] = Random.Range(ContinentMinWidthFactor, ContinentMaxWidthFactor);
+//				_continentHeights[i] = Random.Range(ContinentMinWidthFactor, ContinentMaxWidthFactor) / 2f;
+//			}
 			
 			return true;
 		});
@@ -285,7 +301,7 @@ public class World {
 		float radius5 = 16f;
 		float radius6 = 64f;
 		float radius7 = 128f;
-		float radius8 = 1f;
+		float radius8 = 1.5f;
 		float radius9 = 1f;
 
 		ManagerTask<Vector3> offset1 = GenerateRandomOffsetVector();
@@ -348,7 +364,7 @@ public class World {
 				float valueD = MathUtility.MixValues(valueB, valueC, 0.225f * value8);
 
 				CalculateAndSetAltitude(i, j, valueD);
-				//CalculateAndSetAltitude(i, j, valueA);
+//				CalculateAndSetAltitude(i, j, valueA);
 			}
 
 			ProgressCastMethod (_accumulatedProgress + _progressIncrement * (i + 1)/(float)sizeX);
