@@ -13,6 +13,8 @@ public class TerrainCell {
 	public int Longitude;
 	[XmlAttribute]
 	public int Latitude;
+	[XmlAttribute]
+	public int LocalIteration;
 
 	[XmlAttribute]
 	public float Altitude;
@@ -36,6 +38,22 @@ public class TerrainCell {
 		
 		if (update) Manager.UpdateWorldLoadTrack ();
 	}
+
+	public int GetNextLocalRandomInt () {
+
+		int x = Mathf.Abs (World.Seed + Longitude);
+		int y = Mathf.Abs (World.Seed + Latitude);
+		int z = Mathf.Abs (World.Seed + World.Iteration + LocalIteration);
+
+		LocalIteration++;
+
+		return PerlinNoise.GetPermutationValue(x, y, z);
+	}
+	
+	public float GetNextLocalRandomFloat () {
+		
+		return GetNextLocalRandomInt() / (float)PerlinNoise.MaxPermutationValue;
+	}
 }
 
 public delegate void ProgressCastDelegate (float value, string message = null);
@@ -43,9 +61,9 @@ public delegate void ProgressCastDelegate (float value, string message = null);
 [XmlRoot]
 public class World {
 
-	public const int NumContinents = 9;
-	public const float ContinentMinWidthFactor = 5f;
-	public const float ContinentMaxWidthFactor = 12f;
+	public const int NumContinents = 12;
+	public const float ContinentMinWidthFactor = 5.7f;
+	public const float ContinentMaxWidthFactor = 8.7f;
 
 	public const float MinPossibleAltitude = -15000;
 	public const float MaxPossibleAltitude = 15000;
@@ -72,6 +90,9 @@ public class World {
 	
 	[XmlIgnore]
 	public ProgressCastDelegate ProgressCastMethod { get; set; }
+	
+	[XmlAttribute]
+	public int Iteration { get; private set; }
 	
 	[XmlAttribute]
 	public int Width { get; private set; }
@@ -109,6 +130,8 @@ public class World {
 		Height = height;
 		Seed = seed;
 
+		Iteration = 0;
+
 		Terrain = new TerrainCell[width][];
 
 		for (int i = 0; i < width; i++)
@@ -121,6 +144,7 @@ public class World {
 				cell.World = this;
 				cell.Longitude = i;
 				cell.Latitude = j;
+				cell.LocalIteration = 0;
 
 				cell.Ready = false;
 
@@ -206,31 +230,42 @@ public class World {
 
 	private void GenerateContinents () {
 		
-		float longitudeFactor = 1 / 5f;
-		float latitudeFactor = 1 / 6f;
+		float longitudeFactor = 15f;
+		float latitudeFactor = 6f;
 		
 		Manager.EnqueueTaskAndWait (() => {
 			
-			Vector2 prevPos = new Vector2(Random.Range(0, Width*4*longitudeFactor),
-			                              Random.Range(Height * latitudeFactor, Height * ((1/latitudeFactor) - 1f) * latitudeFactor));
-			
+			Vector2 prevPos = new Vector2(Random.Range(0, Width * (longitudeFactor - 1f) / longitudeFactor),
+			                              Random.Range(Height / latitudeFactor, Height * (latitudeFactor - 1f) / latitudeFactor));
+
 			for (int i = 0; i < NumContinents; i++) {
+
+				int widthOff = Random.Range(0, 2) * 3;
 				
 				_continentOffsets[i] = prevPos;
-				_continentWidths[i] = Random.Range(ContinentMinWidthFactor, ContinentMaxWidthFactor);
-				_continentHeights[i] = Random.Range(ContinentMinWidthFactor, ContinentMaxWidthFactor) / 2f;
+				_continentWidths[i] = Random.Range(ContinentMinWidthFactor + widthOff, ContinentMaxWidthFactor + widthOff);
+				_continentHeights[i] = Random.Range(ContinentMinWidthFactor + widthOff, ContinentMaxWidthFactor + widthOff) / 2f;
+
+				float yPos = Random.Range(Height / latitudeFactor, Height * (latitudeFactor - 1f) / latitudeFactor);
 
 				Vector2 newVector = new Vector2(
-					Mathf.Repeat(prevPos.x + Random.Range(Width * longitudeFactor, Width * 5 * longitudeFactor), Width),
-					Random.Range(Height * latitudeFactor, Height * ((1/latitudeFactor) - 1f) * latitudeFactor));
+					Mathf.Repeat(prevPos.x + Random.Range(Width / longitudeFactor, Width * 2 / longitudeFactor), Width),
+					yPos);
+				
+				if (i % 3 == 2) {
+					newVector = new Vector2(
+						Mathf.Repeat(prevPos.x + Random.Range(Width * 4 / longitudeFactor, Width * 6 / longitudeFactor), Width),
+						yPos);
+				}
+
 				prevPos = newVector;
 			}
 			
 //			for (int i = 0; i < NumContinents; i++) {
 //				
 //				_continentOffsets[i] = new Vector2(
-//						Mathf.Repeat(Random.Range(Width*i*longitudeFactor, Width*(i + 2)*longitudeFactor), Width),
-//						Random.Range(Height * latitudeFactor, Height * ((1/latitudeFactor) - 1f) * latitudeFactor));
+//						Mathf.Repeat(Random.Range(Width*i/longitudeFactor, Width*(i + 2)/longitudeFactor), Width),
+//						Random.Range(Height / latitudeFactor, Height * (latitudeFactor - 1f) / latitudeFactor));
 //				_continentWidths[i] = Random.Range(ContinentMinWidthFactor, ContinentMaxWidthFactor);
 //				_continentHeights[i] = Random.Range(ContinentMinWidthFactor, ContinentMaxWidthFactor) / 2f;
 //			}
@@ -294,7 +329,7 @@ public class World {
 		int sizeX = Width;
 		int sizeY = Height;
 
-		float radius1 = 0.5f;
+		float radius1 = 0.75f;
 		float radius2 = 8f;
 		float radius3 = 4f;
 		float radius4 = 8f;
@@ -483,9 +518,11 @@ public class World {
 		
 		float radius1 = 2f;
 		float radius2 = 1f;
+		float radius3 = 16f;
 		
 		ManagerTask<Vector3> offset1 = GenerateRandomOffsetVector();
 		ManagerTask<Vector3> offset2 = GenerateRandomOffsetVector();
+		ManagerTask<Vector3> offset3 = GenerateRandomOffsetVector();
 		
 		for (int i = 0; i < sizeX; i++)
 		{
@@ -499,10 +536,13 @@ public class World {
 				
 				float value1 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius1, offset1);
 				float value2 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius2, offset2);
+				float value3 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius3, offset3);
 
 				value2 = value2 * 1.5f + 0.25f;
 
-				float latitudeFactor = alpha + (((value1 * 2) - 1f) * Mathf.PI * 0.2f);
+				float valueA = MathUtility.MixValues(value1, value3, 0.15f);
+
+				float latitudeFactor = alpha + (((valueA * 2) - 1f) * Mathf.PI * 0.2f);
 				float latitudeModifier1 = (1.5f * Mathf.Sin(latitudeFactor)) - 0.5f;
 				float latitudeModifier2 = Mathf.Cos(latitudeFactor);
 
@@ -554,9 +594,11 @@ public class World {
 		int sizeX = Width;
 		int sizeY = Height;
 		
-		float radius = 2f;
+		float radius1 = 2f;
+		float radius2 = 16f;
 		
-		ManagerTask<Vector3> offset = GenerateRandomOffsetVector();
+		ManagerTask<Vector3> offset1 = GenerateRandomOffsetVector();
+		ManagerTask<Vector3> offset2 = GenerateRandomOffsetVector();
 		
 		for (int i = 0; i < sizeX; i++)
 		{
@@ -568,9 +610,10 @@ public class World {
 				
 				float alpha = (j / (float)sizeY) * Mathf.PI;
 				
-				float value = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius, offset);
+				float value1 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius1, offset1);
+				float value2 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius2, offset2);
 
-				float latitudeModifier = (alpha * 0.9f) + (value * 0.1f * Mathf.PI);
+				float latitudeModifier = (alpha * 0.9f) + ((value1 + value2) * 0.05f * Mathf.PI);
 				
 				float altitudeFactor = Mathf.Max(0, (cell.Altitude / MaxPossibleAltitude) * TemperatureAltitudeFactor);
 				
