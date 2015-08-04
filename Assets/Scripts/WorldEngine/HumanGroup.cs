@@ -15,8 +15,6 @@ public class HumanGroup {
 	public TerrainCell Cell;
 
 	public HumanGroup () {
-		
-		
 	}
 
 	public HumanGroup (int id, int initialPopulation) {

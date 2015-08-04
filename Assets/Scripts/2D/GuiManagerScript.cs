@@ -33,7 +33,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 	private bool _viewRainfall = false;
 	private bool _viewTemperature = false;
-	private PlanetView _planetView = PlanetView.Biomes;
+	private PlanetView _planetView = PlanetView.Population;
 
 	private bool _updateTexture = false;
 
@@ -321,6 +321,15 @@ public class GuiManagerScript : MonoBehaviour {
 		_updateTexture |= _viewTemperature ^ value;
 		
 		_viewTemperature = value;
+	}
+	
+	public void SetPopulationView () {
+		
+		_updateTexture |= _planetView != PlanetView.Population;
+		
+		_planetView = PlanetView.Population;
+		
+		SetEnabledModalViewsDialog (false);
 	}
 	
 	public void SetBiomeView () {

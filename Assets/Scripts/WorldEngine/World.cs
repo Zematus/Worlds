@@ -4,62 +4,12 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
-public class TerrainCell {
-
-	[XmlIgnore]
-	public World World;
-	
-	[XmlAttribute]
-	public int Longitude;
-	[XmlAttribute]
-	public int Latitude;
-	[XmlAttribute]
-	public int LocalIteration;
-
-	[XmlAttribute]
-	public float Altitude;
-	[XmlAttribute]
-	public float Rainfall;
-	[XmlAttribute]
-	public float Temperature;
-
-	[XmlAttribute]
-	public bool Ready;
-
-	public List<Biome> Biomes = new List<Biome>();
-	public List<float> BiomePresences = new List<float>();
-
-	public TerrainCell () {
-	
-		Manager.UpdateWorldLoadTrack ();
-	}
-	
-	public TerrainCell (bool update) {
-		
-		if (update) Manager.UpdateWorldLoadTrack ();
-	}
-
-	public int GetNextLocalRandomInt () {
-
-		int x = Mathf.Abs (World.Seed + Longitude);
-		int y = Mathf.Abs (World.Seed + Latitude);
-		int z = Mathf.Abs (World.Seed + World.Iteration + LocalIteration);
-
-		LocalIteration++;
-
-		return PerlinNoise.GetPermutationValue(x, y, z);
-	}
-	
-	public float GetNextLocalRandomFloat () {
-		
-		return GetNextLocalRandomInt() / (float)PerlinNoise.MaxPermutationValue;
-	}
-}
-
 public delegate void ProgressCastDelegate (float value, string message = null);
 
 [XmlRoot]
 public class World {
+	
+	public const float Circumference = 40075; // In kilometers;
 
 	public const int NumContinents = 12;
 	public const float ContinentMinWidthFactor = 5.7f;
@@ -75,7 +25,7 @@ public class World {
 	public const float MinPossibleTemperature = -35;
 	public const float MaxPossibleTemperature = 30;
 	public const float TemperatureAltitudeFactor = 2.05f;
-	
+
 	public float MaxAltitude = MinPossibleAltitude;
 	public float MinAltitude = MaxPossibleAltitude;
 	
@@ -103,6 +53,8 @@ public class World {
 	public int Seed { get; private set; }
 
 	public TerrainCell[][] Terrain;
+	
+	private const float _progressIncrement = 0.25f;
 
 	private Vector2[] _continentOffsets;
 	private float[] _continentWidths;
@@ -110,8 +62,9 @@ public class World {
 
 	private bool _initialized = false;
 
-	private const float _progressIncrement = 0.25f;
 	private float _accumulatedProgress = 0;
+
+	private float _cellMaxWidth;
 
 	public World () {
 		
@@ -130,6 +83,8 @@ public class World {
 		Height = height;
 		Seed = seed;
 
+		_cellMaxWidth = Circumference / Width;
+
 		Iteration = 0;
 
 		Terrain = new TerrainCell[width][];
@@ -140,11 +95,16 @@ public class World {
 
 			for (int j = 0; j < height; j++)
 			{
+				float alpha = (j / (float)height) * Mathf.PI;
+
 				TerrainCell cell = new TerrainCell (false);
 				cell.World = this;
 				cell.Longitude = i;
 				cell.Latitude = j;
 				cell.LocalIteration = 0;
+
+				cell.Height = _cellMaxWidth;
+				cell.Width = Mathf.Sin(alpha) * _cellMaxWidth;
 
 				cell.Ready = false;
 
@@ -222,6 +182,10 @@ public class World {
 		ProgressCastMethod (_accumulatedProgress, "Generating Biomes...");
 
 		GenerateTerrainBiomes ();
+		
+		ProgressCastMethod (_accumulatedProgress, "Setting Initial Human Groups...");
+
+		SetInitialHumanGroups ();
 		
 		ProgressCastMethod (_accumulatedProgress, "Finalizing...");
 
@@ -459,6 +423,11 @@ public class World {
 		
 		_accumulatedProgress += _progressIncrement;
 	}
+	
+	private ManagerTask<int> GenerateRandomInteger (int min, int max) {
+		
+		return Manager.EnqueueTask (() => Random.Range(min, max));
+	}
 
 	private ManagerTask<Vector3> GenerateRandomOffsetVector () {
 
@@ -648,7 +617,7 @@ public class World {
 
 				foreach (Biome biome in Biome.Biomes) {
 
-					float presence = GetBiomePresence (cell, biome);
+					float presence = CalculateBiomePresence (cell, biome);
 
 					if (presence <= 0) continue;
 
@@ -669,13 +638,39 @@ public class World {
 				}
 			}
 			
-			ProgressCastMethod (_accumulatedProgress + _progressIncrement * (i + 1)/(float)sizeX);
+			ProgressCastMethod (_accumulatedProgress + 0.20f * (i + 1)/(float)sizeX);
 		}
 		
-		_accumulatedProgress += _progressIncrement;
+		_accumulatedProgress += 0.20f;
+	}
+	
+	private void SetInitialHumanGroups () {
+
+		int maxGroups = 5;
+		int groupCount = 0;
+
+		float minPresence = 0.10f;
+
+		while (groupCount < maxGroups) {
+
+			ManagerTask<int> i = GenerateRandomInteger(0, Width);
+			ManagerTask<int> j = GenerateRandomInteger(0, Height);
+
+			TerrainCell cell = Terrain[i][j];
+
+			float biomePresence = cell.GetBiomePresence(Biome.Grassland);
+
+			if (biomePresence < minPresence) continue;
+
+			cell.HumanGroups.Add(new HumanGroup(groupCount++, 1000));
+
+			ProgressCastMethod (_accumulatedProgress + 0.05f * groupCount/(float)maxGroups);
+		}
+		
+		_accumulatedProgress += 0.05f;
 	}
 
-	private float GetBiomePresence (TerrainCell cell, Biome biome) {
+	private float CalculateBiomePresence (TerrainCell cell, Biome biome) {
 
 		float presence = 1f;
 

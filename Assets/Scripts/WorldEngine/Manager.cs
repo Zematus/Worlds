@@ -10,7 +10,8 @@ public enum PlanetView {
 
 	Elevation,
 	Biomes,
-	Coastlines
+	Coastlines,
+	Population
 }
 
 public delegate T ManagerTaskDelegate<T> ();
@@ -80,7 +81,7 @@ public class Manager {
 
 	private static bool _rainfallVisible = false;
 	private static bool _temperatureVisible = false;
-	private static PlanetView _planetView = PlanetView.Biomes;
+	private static PlanetView _planetView = PlanetView.Population;
 	
 	private static List<Color> _biomePalette = new List<Color>();
 	private static List<Color> _mapPalette = new List<Color>();
@@ -571,12 +572,26 @@ public class Manager {
 
 		Color baseColor = Color.black;
 
-		if (_planetView == PlanetView.Biomes) {
+		switch (_planetView) {
+		
+		case PlanetView.Population:
+			baseColor = GeneratePopulationColor (cell);
+			break;
+			
+		case PlanetView.Biomes:
 			baseColor = GenerateBiomeColor (cell);
-		} else if (_planetView == PlanetView.Elevation) {
-			baseColor = GenerateAltitudeContourColor(cell.Altitude);
-		} else {
-			baseColor = GenerateCoastlineColor(cell);
+			break;
+			
+		case PlanetView.Elevation:
+			baseColor = GenerateAltitudeContourColor (cell.Altitude);
+			break;
+			
+		case PlanetView.Coastlines:
+			baseColor = GenerateCoastlineColor (cell);
+			break;
+
+		default:
+			throw new System.Exception("Unsupported Planet View Type");
 		}
 		
 		float r = baseColor.r;
@@ -704,6 +719,38 @@ public class Manager {
 			color.r += biomeColor.r * biomePresence;
 			color.g += biomeColor.g * biomePresence;
 			color.b += biomeColor.b * biomePresence;
+		}
+		
+		return color * slantFactor * altitudeFactor;
+	}
+	
+	private static Color GeneratePopulationColor (TerrainCell cell) {
+		
+		float slant = GetSlant (cell);
+		float altDiff = CurrentWorld.MaxAltitude - CurrentWorld.MinAltitude;
+		
+		float slantFactor = Mathf.Min (1f, (4f + (10f * slant / altDiff)) / 5f);
+		
+		float altitudeFactor = Mathf.Min (1f, (0.5f + ((cell.Altitude - CurrentWorld.MinAltitude) / altDiff)) / 1.5f);
+		
+		Color color = GenerateBiomeColor(cell);
+
+		float greyscale = (color.r + color.g + color.b) / 4.5f + 0.25f;
+
+		color.r = greyscale;
+		color.g = greyscale;
+		color.b = greyscale;
+
+		float totalPopulation = 0;
+		
+		for (int i = 0; i < cell.HumanGroups.Count; i++) {
+
+			totalPopulation += cell.HumanGroups[i].Population;
+		}
+
+		if (totalPopulation > 0) {
+			
+			color = Color.green;
 		}
 		
 		return color * slantFactor * altitudeFactor;
