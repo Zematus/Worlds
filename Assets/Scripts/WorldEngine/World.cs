@@ -55,6 +55,8 @@ public class World {
 	public TerrainCell[][] Terrain;
 	
 	private const float _progressIncrement = 0.25f;
+	
+	private List<HumanGroup> _groupsToUpdate = new List<HumanGroup>();
 
 	private Vector2[] _continentOffsets;
 	private float[] _continentWidths;
@@ -119,6 +121,25 @@ public class World {
 		_continentWidths = new float[NumContinents];
 	}
 
+	public void Iterate () {
+
+		HumanGroup[] currentGroupsToUpdate = _groupsToUpdate.ToArray();
+		
+		_groupsToUpdate.Clear ();
+	
+		foreach (HumanGroup group in currentGroupsToUpdate) {
+		
+			group.Update();
+		}
+
+		Iteration++;
+	}
+
+	public void AddGroupToUpdate (HumanGroup group) {
+	
+		_groupsToUpdate.Add (group);
+	}
+
 	public void FinalizeLoad () {
 		
 		for (int i = 0; i < Width; i++)
@@ -127,6 +148,8 @@ public class World {
 			{
 				TerrainCell cell = Terrain[i][j];
 				cell.World = this;
+
+				cell.FinalizeLoad();
 			}
 		}
 
@@ -515,8 +538,8 @@ public class World {
 				float latitudeModifier1 = (1.5f * Mathf.Sin(latitudeFactor)) - 0.5f;
 				float latitudeModifier2 = Mathf.Cos(latitudeFactor);
 
-				int offCellX = (Width + i + (int)Mathf.Floor(latitudeModifier2 * Width/20f)) % Width;
-				int offCellX2 = (Width + i + (int)Mathf.Floor(latitudeModifier2 * Width/15f)) % Width;
+				int offCellX = (Width + i + (int)Mathf.Floor(latitudeModifier2 * Width/40f)) % Width;
+				int offCellX2 = (Width + i + (int)Mathf.Floor(latitudeModifier2 * Width/20f)) % Width;
 				int offCellX3 = (Width + i + (int)Mathf.Floor(latitudeModifier2 * Width/10f)) % Width;
 				int offCellX4 = (Width + i + (int)Mathf.Floor(latitudeModifier2 * Width/5f)) % Width;
 				int offCellY = j + (int)Mathf.Floor(latitudeModifier2 * Height/10f);
@@ -540,7 +563,7 @@ public class World {
 				                          (offAltitude3 * 0.5f) -
 				                          (offAltitude4 * 0.4f) - 
 				                          (offAltitude5 * 0.5f) + 
-				                          (MaxPossibleAltitude * 0.18f * value2) -
+				                          (MaxPossibleAltitude * 0.17f * value2) -
 				                          (altitudeValue * 0.25f)) / MaxPossibleAltitude;
 				float rainfallValue = MathUtility.MixValues(latitudeModifier1, altitudeModifier, 0.85f);
 				rainfallValue = MathUtility.MixValues(Mathf.Abs(rainfallValue) * rainfallValue, rainfallValue, 0.75f);
@@ -662,7 +685,11 @@ public class World {
 
 			if (biomePresence < minPresence) continue;
 
-			cell.HumanGroups.Add(new HumanGroup(groupCount++, 1000));
+			HumanGroup group = new HumanGroup(this, cell, groupCount++, 1000);
+
+			cell.HumanGroups.Add(group);
+
+			_groupsToUpdate.Add(group);
 
 			ProgressCastMethod (_accumulatedProgress + 0.05f * groupCount/(float)maxGroups);
 		}

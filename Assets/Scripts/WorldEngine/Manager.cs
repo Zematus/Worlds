@@ -725,21 +725,14 @@ public class Manager {
 	}
 	
 	private static Color GeneratePopulationColor (TerrainCell cell) {
-		
-		float slant = GetSlant (cell);
-		float altDiff = CurrentWorld.MaxAltitude - CurrentWorld.MinAltitude;
-		
-		float slantFactor = Mathf.Min (1f, (4f + (10f * slant / altDiff)) / 5f);
-		
-		float altitudeFactor = Mathf.Min (1f, (0.5f + ((cell.Altitude - CurrentWorld.MinAltitude) / altDiff)) / 1.5f);
-		
+
 		Color color = GenerateBiomeColor(cell);
 
-		float greyscale = (color.r + color.g + color.b) / 4.5f + 0.25f;
+		float greyscale = (color.r + color.g + color.b);// * 4 / 3;
 
-		color.r = greyscale;
-		color.g = greyscale;
-		color.b = greyscale;
+		color.r = (greyscale + color.r) / 6f;
+		color.g = (greyscale + color.g) / 6f;
+		color.b = (greyscale + color.b) / 6f;
 
 		float totalPopulation = 0;
 		
@@ -752,8 +745,8 @@ public class Manager {
 			
 			color = Color.green;
 		}
-		
-		return color * slantFactor * altitudeFactor;
+
+		return color;
 	}
 	
 	private static Color GenerateAltitudeContourColor (float altitude) {

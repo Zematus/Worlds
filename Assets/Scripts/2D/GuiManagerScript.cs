@@ -87,6 +87,10 @@ public class GuiManagerScript : MonoBehaviour {
 			SetEnabledModalProgressDialog (false);
 			SetEnabledModalActivityDialog (false);
 			_preparingWorld = false;
+
+		} else {
+
+			Manager.CurrentWorld.Iterate();
 		}
 	
 		if (_updateTexture) {
@@ -366,10 +370,15 @@ public class GuiManagerScript : MonoBehaviour {
 		
 		if ((latitude < 0) || (latitude >= Manager.CurrentWorld.Height))
 			return;
+
+		World world = Manager.CurrentWorld;
+
+		InfoPanelText.text = "Iteration: " + world.Iteration;
+		InfoPanelText.text += "\n";
 		
-		TerrainCell cell = Manager.CurrentWorld.Terrain[longitude][latitude];
+		TerrainCell cell = world.Terrain[longitude][latitude];
 		
-		InfoPanelText.text = string.Format("Position: [{0},{1}]", longitude, latitude);
+		InfoPanelText.text += string.Format("\nPosition: [{0},{1}]", longitude, latitude);
 		InfoPanelText.text += "\nAltitude: " + cell.Altitude;
 		InfoPanelText.text += "\nRainfall: " + cell.Rainfall;
 		InfoPanelText.text += "\nTemperature: " + cell.Temperature;

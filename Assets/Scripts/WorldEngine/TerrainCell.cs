@@ -74,4 +74,13 @@ public class TerrainCell {
 
 		return 0;
 	}
+
+	public void FinalizeLoad () {
+
+		foreach (HumanGroup group in HumanGroups) {
+		
+			group.World = World;
+			group.Cell = this;
+		}
+	}
 }
