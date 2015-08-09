@@ -50,9 +50,9 @@ public class Biome {
 		4,
 		0, 
 		World.MaxPossibleAltitude + 1f,
-		475f,
+		275f,
 		World.MaxPossibleRainfall + 1f,
-		-15f,
+		-20f,
 		-0f);
 	
 	public static Biome Tundra = new Biome(
@@ -61,7 +61,7 @@ public class Biome {
 		0, 
 		World.MaxPossibleAltitude + 1f, 
 		World.MinPossibleRainfall - 1f,
-		725f,
+		1275f,
 		-20f,
 		-0f);
 	

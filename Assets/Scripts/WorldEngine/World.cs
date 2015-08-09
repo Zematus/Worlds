@@ -24,7 +24,6 @@ public class World {
 	
 	public const float MinPossibleTemperature = -35;
 	public const float MaxPossibleTemperature = 30;
-	public const float TemperatureAltitudeFactor = 2.05f;
 
 	public float MaxAltitude = MinPossibleAltitude;
 	public float MinAltitude = MaxPossibleAltitude;
@@ -317,6 +316,7 @@ public class World {
 		int sizeY = Height;
 
 		float radius1 = 0.75f;
+		float radius1b = 1.25f;
 		float radius2 = 8f;
 		float radius3 = 4f;
 		float radius4 = 8f;
@@ -348,7 +348,7 @@ public class World {
 
 				float value1 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius1, offset1);
 				float value2 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius2, offset2);
-				float value1b = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius1, offset1b);
+				float value1b = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius1b, offset1b);
 				float value2b = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius2, offset2b);
 				float value3 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius3, offset3);
 				float value4 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius4, offset4);
@@ -375,7 +375,7 @@ public class World {
 				valueCb = GetMountainRangeNoiseFromRandomNoise(valueCb, 25);
 				valueC = MathUtility.MixValues(valueC, valueCb, 0.5f * value8);
 
-				valueC = MathUtility.MixValues(valueC, value3, 0.35f * value8);
+				valueC = MathUtility.MixValues(valueC, value3, 0.45f * value8);
 				valueC = MathUtility.MixValues(valueC, value4, 0.075f);
 				valueC = MathUtility.MixValues(valueC, value5, 0.05f);
 				valueC = MathUtility.MixValues(valueC, value6, 0.02f);
@@ -607,7 +607,7 @@ public class World {
 
 				float latitudeModifier = (alpha * 0.9f) + ((value1 + value2) * 0.05f * Mathf.PI);
 				
-				float altitudeFactor = Mathf.Max(0, (cell.Altitude / MaxPossibleAltitude) * TemperatureAltitudeFactor);
+				float altitudeFactor = Mathf.Max(0, (cell.Altitude / MaxPossibleAltitude) * 2.0f);
 				
 				float temperature = CalculateTemperature(Mathf.Sin(latitudeModifier) - altitudeFactor);
 
