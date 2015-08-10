@@ -670,31 +670,44 @@ public class World {
 	private void SetInitialHumanGroups () {
 
 		int maxGroups = 5;
-		int groupCount = 0;
 
 		float minPresence = 0.10f;
+		
+		int sizeX = Width;
+		int sizeY = Height;
 
-		while (groupCount < maxGroups) {
+		List<TerrainCell> SuitableCells = new List<TerrainCell> ();
+		
+		for (int i = 0; i < sizeX; i++) {
+			
+			for (int j = 0; j < sizeY; j++) {
+				
+				TerrainCell cell = Terrain [i] [j];
+				
+				float biomePresence = cell.GetBiomePresence(Biome.Grassland);
+				
+				if (biomePresence < minPresence) continue;
 
-			ManagerTask<int> i = GenerateRandomInteger(0, Width);
-			ManagerTask<int> j = GenerateRandomInteger(0, Height);
-
-			TerrainCell cell = Terrain[i][j];
-
-			float biomePresence = cell.GetBiomePresence(Biome.Grassland);
-
-			if (biomePresence < minPresence) continue;
-
-			HumanGroup group = new HumanGroup(this, cell, groupCount++, 1000);
-
-			cell.HumanGroups.Add(group);
-
-			_groupsToUpdate.Add(group);
-
-			ProgressCastMethod (_accumulatedProgress + 0.05f * groupCount/(float)maxGroups);
+				SuitableCells.Add(cell);
+			}
+			
+			ProgressCastMethod (_accumulatedProgress + 0.05f * (i + 1)/(float)sizeX);
 		}
 		
 		_accumulatedProgress += 0.05f;
+
+		for (int i = 0; i < maxGroups; i++) {
+			
+			ManagerTask<int> n = GenerateRandomInteger(0, SuitableCells.Count);
+
+			TerrainCell cell = SuitableCells[n];
+
+			HumanGroup group = new HumanGroup(this, cell, i, 1000);
+			
+			cell.HumanGroups.Add(group);
+			
+			_groupsToUpdate.Add(group);
+		}
 	}
 
 	private float CalculateBiomePresence (TerrainCell cell, Biome biome) {
