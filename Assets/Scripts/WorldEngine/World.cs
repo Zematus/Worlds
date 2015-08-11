@@ -244,7 +244,7 @@ public class World {
 				
 				_continentOffsets[i] = prevPos;
 				_continentWidths[i] = Random.Range(ContinentMinWidthFactor + widthOff, ContinentMaxWidthFactor + widthOff);
-				_continentHeights[i] = Random.Range(ContinentMinWidthFactor + widthOff, ContinentMaxWidthFactor + widthOff) / 2f;
+				_continentHeights[i] = Random.Range(ContinentMinWidthFactor + widthOff, ContinentMaxWidthFactor + widthOff);
 
 				float yPos = Random.Range(Height / latitudeFactor, Height * (latitudeFactor - 1f) / latitudeFactor);
 

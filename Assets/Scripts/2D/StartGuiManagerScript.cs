@@ -18,6 +18,8 @@ public class StartGuiManagerScript : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 
+		Manager.UpdateMainThreadReference ();
+
 		SetEnabledModalLoadDialog (false);
 		SetEnabledModalProgressDialog (false);
 		SetEnabledModalMainMenuDialog (true);
