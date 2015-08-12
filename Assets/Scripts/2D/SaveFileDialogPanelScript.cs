@@ -28,12 +28,12 @@ public class SaveFileDialogPanelScript : MonoBehaviour {
 		DialogText.text = text;
 	}
 	
-	public void SetWorldName (string name) {
+	public void SetName (string name) {
 		
 		NameInputField.text = name;
 	}
 	
-	public string GetWorldName () {
+	public string GetName () {
 		
 		return NameInputField.text;
 	}
@@ -44,17 +44,5 @@ public class SaveFileDialogPanelScript : MonoBehaviour {
 		ModalPanelCanvasGroup.blocksRaycasts = value;
 	
 		gameObject.SetActive (value);
-	}
-
-	public void SetSaveAction (UnityAction action) {
-
-		ActionButton.onClick.RemoveAllListeners ();
-		ActionButton.onClick.AddListener (action);
-	}
-	
-	public void SetCancelAction (UnityAction cancelAction) {
-		
-		CancelActionButton.onClick.RemoveAllListeners ();
-		CancelActionButton.onClick.AddListener (cancelAction);
 	}
 }

@@ -21,10 +21,12 @@ public class GuiManagerScript : MonoBehaviour {
 	public MapScript MapScript;
 	
 	public SaveFileDialogPanelScript SaveFileDialogPanelScript;
+	public SaveFileDialogPanelScript ExportMapDialogPanelScript;
 	public LoadFileDialogPanelScript LoadFileDialogPanelScript;
 	public OverlayDialogPanelScript OverlayDialogPanelScript;
 	public DialogPanelScript ViewsDialogPanelScript;
 	public DialogPanelScript MainMenuDialogPanelScript;
+	public DialogPanelScript OptionsDialogPanelScript;
 	public ProgressDialogPanelScript ProgressDialogPanelScript;
 	public ActivityDialogPanelScript ActivityDialogPanelScript;
 
@@ -46,14 +48,18 @@ public class GuiManagerScript : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
+
+		Manager.UpdateMainThreadReference ();
 		
-		SetEnabledModalSaveDialog (false);
-		SetEnabledModalLoadDialog (false);
-		SetEnabledModalOverlayDialog (false);
-		SetEnabledModalViewsDialog (false);
-		SetEnabledModalMainMenuDialog (false);
-		SetEnabledModalProgressDialog (false);
-		SetEnabledModalActivityDialog (false);
+		SaveFileDialogPanelScript.SetVisible (false);
+		ExportMapDialogPanelScript.SetVisible (false);
+		LoadFileDialogPanelScript.SetVisible (false);
+		OverlayDialogPanelScript.SetVisible (false);
+		ViewsDialogPanelScript.SetVisible (false);
+		MainMenuDialogPanelScript.SetVisible (false);
+		ProgressDialogPanelScript.SetVisible (false);
+		ActivityDialogPanelScript.SetVisible (false);
+		OptionsDialogPanelScript.SetVisible (false);
 		
 		if (!Manager.WorldReady) {
 
@@ -84,8 +90,8 @@ public class GuiManagerScript : MonoBehaviour {
 			if (_postPreparationOp != null) 
 				_postPreparationOp ();
 
-			SetEnabledModalProgressDialog (false);
-			SetEnabledModalActivityDialog (false);
+			ProgressDialogPanelScript.SetVisible (false);
+			ActivityDialogPanelScript.SetVisible (false);
 			_preparingWorld = false;
 
 		} else {
@@ -127,9 +133,14 @@ public class GuiManagerScript : MonoBehaviour {
 		});
 	}
 	
-	public void Continue () {
+	public void CloseMainMenu () {
 		
-		SetEnabledModalMainMenuDialog (false);
+		MainMenuDialogPanelScript.SetVisible (false);
+	}
+	
+	public void CloseOptionsMenu () {
+		
+		OptionsDialogPanelScript.SetVisible (false);
 	}
 	
 	public void Exit () {
@@ -139,9 +150,9 @@ public class GuiManagerScript : MonoBehaviour {
 	
 	public void GenerateWorld () {
 
-		SetEnabledModalMainMenuDialog (false);
+		MainMenuDialogPanelScript.SetVisible (false);
 
-		SetEnabledModalProgressDialog (true);
+		ProgressDialogPanelScript.SetVisible (true);
 
 		ProgressUpdate (0, "Generating World...");
 
@@ -167,51 +178,64 @@ public class GuiManagerScript : MonoBehaviour {
 
 		return files.Length > 0;
 	}
-
-	private void SetEnabledModalSaveDialog (bool value) {
-
-		SaveFileDialogPanelScript.SetVisible (value);
-	}
 	
-	private void SetEnabledModalLoadDialog (bool value) {
-
-		LoadFileDialogPanelScript.SetVisible (value);
-	}
-	
-	private void SetEnabledModalOverlayDialog (bool value) {
-
-		OverlayDialogPanelScript.SetVisible (value);
-	}
-	
-	private void SetEnabledModalViewsDialog (bool value) {
-
-		ViewsDialogPanelScript.SetVisible (value);
-	}
-	
-	private void SetEnabledModalMainMenuDialog (bool value) {
-
-		MainMenuDialogPanelScript.SetVisible (value);
-	}
-	
-	private void SetEnabledModalProgressDialog (bool value) {
+	public void ExportMapAction () {
 		
-		ProgressDialogPanelScript.SetVisible (value);
+		ExportMapDialogPanelScript.SetVisible (false);
+		
+		ActivityDialogPanelScript.SetVisible (true);
+		
+		ActivityDialogPanelScript.SetDialogText ("Exporting map to PNG file...");
+		
+		string imageName = ExportMapDialogPanelScript.GetName ();
+		
+		string path = Manager.ExportPath + imageName + ".png";
+		
+		Manager.ExportMapTextureToFileAsync (path, MapImage.uvRect);
+		
+		_preparingWorld = true;
 	}
 	
-	private void SetEnabledModalActivityDialog (bool value) {
+	public void CancelExportAction () {
 		
-		ActivityDialogPanelScript.SetVisible (value);
+		ExportMapDialogPanelScript.SetVisible (false);
+	}
+	
+	public void ExportImageAs () {
+		
+		OptionsDialogPanelScript.SetVisible (false);
+		
+		string planetViewStr = "";
+		
+		switch (_planetView) {
+		case PlanetView.Biomes: planetViewStr = "_biomes"; break;
+		case PlanetView.Coastlines: planetViewStr = "_coastlines"; break;
+		case PlanetView.Elevation: planetViewStr = "_elevation"; break;
+		case PlanetView.Population: planetViewStr = "_population"; break;
+		default: throw new System.Exception("Unexpected planet view type: " + _planetView);
+		}
+		
+		string planetOverlayStr = "";
+		
+		if (_viewRainfall)
+			planetOverlayStr = "_rainfall";
+		else if (_viewTemperature)
+			planetOverlayStr = "_temperature";
+
+		ExportMapDialogPanelScript.SetName (Manager.WorldName + planetViewStr + planetOverlayStr);
+		
+		ExportMapDialogPanelScript.SetVisible (true);
 	}
 
 	public void SaveAction () {
 		
-		SetEnabledModalSaveDialog (false);
+		SaveFileDialogPanelScript.SetVisible (false);
 		
-		SetEnabledModalActivityDialog (true);
+		ActivityDialogPanelScript.SetVisible (true);
 		
 		ActivityDialogPanelScript.SetDialogText ("Saving World...");
 		
-		Manager.WorldName = SaveFileDialogPanelScript.GetWorldName ();
+		Manager.WorldName = SaveFileDialogPanelScript.GetName ();
 		
 		string path = Manager.SavePath + Manager.WorldName + ".plnt";
 
@@ -229,23 +253,23 @@ public class GuiManagerScript : MonoBehaviour {
 
 	public void CancelSaveAction () {
 		
-		SetEnabledModalSaveDialog (false);
+		SaveFileDialogPanelScript.SetVisible (false);
 	}
 
 	public void SaveWorldAs () {
 
-		SetEnabledModalMainMenuDialog (false);
+		MainMenuDialogPanelScript.SetVisible (false);
 
-		SaveFileDialogPanelScript.SetWorldName (Manager.WorldName);
+		SaveFileDialogPanelScript.SetName (Manager.WorldName);
 		
-		SetEnabledModalSaveDialog (true);
+		SaveFileDialogPanelScript.SetVisible (true);
 	}
 	
 	public void LoadAction () {
 		
-		SetEnabledModalLoadDialog (false);
+		LoadFileDialogPanelScript.SetVisible (false);
 		
-		SetEnabledModalProgressDialog (true);
+		ProgressDialogPanelScript.SetVisible (true);
 		
 		ProgressUpdate (0, "Loading World...");
 		
@@ -262,14 +286,14 @@ public class GuiManagerScript : MonoBehaviour {
 	
 	public void CancelLoadAction () {
 		
-		SetEnabledModalLoadDialog (false);
+		LoadFileDialogPanelScript.SetVisible (false);
 	}
 	
 	public void LoadWorld () {
 
-		SetEnabledModalMainMenuDialog (false);
+		MainMenuDialogPanelScript.SetVisible (false);
 		
-		SetEnabledModalLoadDialog (true);
+		LoadFileDialogPanelScript.SetVisible (true);
 
 		LoadFileDialogPanelScript.SetLoadAction (LoadAction);
 	}
@@ -279,22 +303,27 @@ public class GuiManagerScript : MonoBehaviour {
 		UpdateRainfallView (OverlayDialogPanelScript.RainfallToggle.isOn);
 		UpdateTemperatureView (OverlayDialogPanelScript.TemperatureToggle.isOn);
 		
-		SetEnabledModalOverlayDialog (false);
+		OverlayDialogPanelScript.SetVisible (false);
 	}
 	
 	public void SelectOverlays () {
 		
-		SetEnabledModalOverlayDialog (true);
+		OverlayDialogPanelScript.SetVisible (true);
 	}
 	
 	public void SelectViews () {
 		
-		SetEnabledModalViewsDialog (true);
+		ViewsDialogPanelScript.SetVisible (true);
 	}
 	
 	public void OpenMainMenu () {
 		
-		SetEnabledModalMainMenuDialog (true);
+		MainMenuDialogPanelScript.SetVisible (true);
+	}
+
+	public void OpenOptionsMenu () {
+		
+		OptionsDialogPanelScript.SetVisible (true);
 	}
 
 	public void UpdateMapView () {
@@ -333,7 +362,7 @@ public class GuiManagerScript : MonoBehaviour {
 		
 		_planetView = PlanetView.Population;
 		
-		SetEnabledModalViewsDialog (false);
+		ViewsDialogPanelScript.SetVisible (false);
 	}
 	
 	public void SetBiomeView () {
@@ -342,7 +371,7 @@ public class GuiManagerScript : MonoBehaviour {
 		
 		_planetView = PlanetView.Biomes;
 		
-		SetEnabledModalViewsDialog (false);
+		ViewsDialogPanelScript.SetVisible (false);
 	}
 	
 	public void SetElevationView () {
@@ -351,7 +380,7 @@ public class GuiManagerScript : MonoBehaviour {
 		
 		_planetView = PlanetView.Elevation;
 		
-		SetEnabledModalViewsDialog (false);
+		ViewsDialogPanelScript.SetVisible (false);
 	}
 	
 	public void SetCoastlineView () {
@@ -360,7 +389,7 @@ public class GuiManagerScript : MonoBehaviour {
 		
 		_planetView = PlanetView.Coastlines;
 		
-		SetEnabledModalViewsDialog (false);
+		ViewsDialogPanelScript.SetVisible (false);
 	}
 	
 	public void SetInfoPanelData (int longitude, int latitude) {

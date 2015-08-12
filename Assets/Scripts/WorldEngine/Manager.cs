@@ -46,7 +46,7 @@ public class ManagerTask<T> : IManagerTask {
 	}
 
 	public void Wait () {
-	
+
 		while (IsRunning) {
 		
 			Thread.Sleep (SleepTime);
@@ -73,7 +73,10 @@ public class Manager {
 	public const int WorldWidth = 400;
 	public const int WorldHeight = 200;
 	
+	public static Thread MainThread { get; private set; }
+	
 	public static string SavePath { get; private set; }
+	public static string ExportPath { get; private set; }
 	
 	public static string WorldName { get; set; }
 
@@ -106,17 +109,40 @@ public class Manager {
 			return _manager._worldReady;
 		}
 	}
+	
+	public static void UpdateMainThreadReference () {
+		
+		MainThread = Thread.CurrentThread;
+	}
 
 	private Manager () {
 
+		InitializeSavePath ();
+		InitializeExportPath ();
+	}
+
+	private void InitializeSavePath () {
+		
 		string path = Path.GetFullPath (@"Saves\");
-
+		
 		if (!Directory.Exists (path)) {
-
+			
 			Directory.CreateDirectory(path);
 		}
-
+		
 		SavePath = path;
+	}
+	
+	private void InitializeExportPath () {
+		
+		string path = Path.GetFullPath (@"Images\");
+		
+		if (!Directory.Exists (path)) {
+			
+			Directory.CreateDirectory(path);
+		}
+		
+		ExportPath = path;
 	}
 	
 	public static void ExecuteTasks (int count) {
@@ -148,9 +174,13 @@ public class Manager {
 
 		ManagerTask<T> task = new ManagerTask<T> (taskDelegate);
 
-		lock (_manager._taskQueue) {
-	
-			_manager._taskQueue.Enqueue (task);
+		if (MainThread == Thread.CurrentThread) {
+			task.Execute ();
+		} else {
+			lock (_manager._taskQueue) {
+				
+				_manager._taskQueue.Enqueue (task);
+			}
 		}
 
 		return task;
@@ -194,6 +224,59 @@ public class Manager {
 		}
 	}
 	
+	public static void ExportMapTextureToFile (string path, Rect uvRect) {
+
+		Texture2D mapTexture = _manager._currentMapTexture;
+		Texture2D exportTexture = null;
+
+		Manager.EnqueueTaskAndWait (() => {
+			int width = mapTexture.width;
+			int height = mapTexture.height;
+
+			int xOffset = (int)Mathf.Floor (uvRect.x * width);
+
+			exportTexture = new Texture2D (
+				width,
+				height,
+				mapTexture.format,
+				false);
+
+			for (int i = 0; i < width; i++) {
+				for (int j = 0; j < height; j++) {
+
+					int finalX = (i + xOffset) % width;
+
+					exportTexture.SetPixel (i, j, mapTexture.GetPixel (finalX, j));
+				}
+			}
+
+			return true;
+		});
+		
+		ManagerTask<byte[]> bytes = Manager.EnqueueTask (() => exportTexture.EncodeToPNG ());
+
+		File.WriteAllBytes(path, bytes);
+
+		Manager.EnqueueTaskAndWait (() => {
+			Object.Destroy (exportTexture);
+			return true;
+		});
+	}
+	
+	public static void ExportMapTextureToFileAsync (string path, Rect uvRect, ProgressCastDelegate progressCastMethod = null) {
+		
+		_manager._worldReady = false;
+		
+		_manager._progressCastMethod = progressCastMethod;
+		
+		ThreadPool.QueueUserWorkItem (state => {
+			
+			ExportMapTextureToFile (path, uvRect);
+			
+			_manager._worldReady = true;
+		});
+	}
+	
 	public static void RefreshTextures () { 
 
 		GenerateSphereTextureFromWorld(CurrentWorld);
@@ -204,7 +287,7 @@ public class Manager {
 
 		ManagerTask<int> seed = Manager.EnqueueTask (() => Random.Range (0, int.MaxValue));
 
-		World world = new World(WorldWidth, WorldWidth, seed);
+		World world = new World(WorldWidth, WorldHeight, seed);
 		
 		if (_manager._progressCastMethod != null)
 			world.ProgressCastMethod = _manager._progressCastMethod;
@@ -320,12 +403,12 @@ public class Manager {
 		int sizeX = world.Width;
 		int sizeY = world.Height;
 		
-		Texture2D texture = new Texture2D(sizeX, sizeY, TextureFormat.ARGB32, false);
+		int r = 4;
 		
-		for (int i = 0; i < sizeX; i++)
-		{
-			for (int j = 0; j < sizeY; j++)
-			{
+		Texture2D texture = new Texture2D(sizeX*r, sizeY*r, TextureFormat.ARGB32, false);
+		
+		for (int i = 0; i < sizeX; i++) {
+			for (int j = 0; j < sizeY; j++) {
 //				if (((i % 20) == 0) || ((j % 20) == 0)) {
 //
 //					texture.SetPixel(i, j, Color.black);
@@ -333,7 +416,14 @@ public class Manager {
 //					continue;
 //				}
 
-				texture.SetPixel(i, j, GenerateColorFromTerrainCell(world.Terrain[i][j]));
+				Color cellColor = GenerateColorFromTerrainCell(world.Terrain[i][j]);
+
+				for (int m = 0; m < r; m++) {
+					for (int n = 0; n < r; n++) {
+
+						texture.SetPixel(i*r + m, j*r + n, cellColor);
+					}
+				}
 			}
 		}
 		
@@ -349,7 +439,9 @@ public class Manager {
 		int sizeX = world.Width;
 		int sizeY = world.Height*2;
 		
-		Texture2D texture = new Texture2D(sizeX, sizeY, TextureFormat.ARGB32, false);
+		int r = 4;
+		
+		Texture2D texture = new Texture2D(sizeX*r, sizeY*r, TextureFormat.ARGB32, false);
 		
 		for (int i = 0; i < sizeX; i++)
 		{
@@ -365,8 +457,15 @@ public class Manager {
 //					
 //					continue;
 //				}
+
+				Color cellColor = GenerateColorFromTerrainCell(world.Terrain[i][trueJ]);
 				
-				texture.SetPixel(i, j, GenerateColorFromTerrainCell(world.Terrain[i][trueJ]));
+				for (int m = 0; m < r; m++) {
+					for (int n = 0; n < r; n++) {
+						
+						texture.SetPixel(i*r + m, j*r + n, cellColor);
+					}
+				}
 			}
 		}
 		
