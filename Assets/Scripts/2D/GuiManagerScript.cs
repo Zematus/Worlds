@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using System.Collections;
@@ -407,18 +407,36 @@ public class GuiManagerScript : MonoBehaviour {
 		
 		TerrainCell cell = world.Terrain[longitude][latitude];
 		
-		InfoPanelText.text += string.Format("\nPosition: [{0},{1}]", longitude, latitude);
-		InfoPanelText.text += "\nAltitude: " + cell.Altitude;
-		InfoPanelText.text += "\nRainfall: " + cell.Rainfall;
-		InfoPanelText.text += "\nTemperature: " + cell.Temperature;
+		InfoPanelText.text += string.Format("\nPosition: Longitude {0}, Latitude {1}", longitude, latitude);
+		InfoPanelText.text += "\nAltitude: " + cell.Altitude + " meters";
+		InfoPanelText.text += "\nRainfall: " + cell.Rainfall + " mm/month";
+		InfoPanelText.text += "\nTemperature: " + cell.Temperature + " C";
 		InfoPanelText.text += "\n";
 
-		for (int i = 0; i < cell.Biomes.Count; i++)
+		for (int i = 0; i < cell.PresentBiomeNames.Count; i++)
 		{
 			int percentage = (int)(cell.BiomePresences[i] * 100);
 			
-			InfoPanelText.text += "\nBiome: " + cell.Biomes[i].Name;
+			InfoPanelText.text += "\nBiome: " + cell.PresentBiomeNames[i];
 			InfoPanelText.text += " (" + percentage + "%)";
+		}
+
+		InfoPanelText.text += "\n";
+		InfoPanelText.text += "\nSurvivability: " + (cell.Survivability*100) + "%";
+		InfoPanelText.text += "\nForaging Capacity: " + (cell.ForagingCapacity*100) + "%";
+		InfoPanelText.text += "\nMax Forage Possible: " + cell.MaxForage + " Units";
+
+		int population = 0;
+
+		foreach (HumanGroup group in cell.HumanGroups) {
+		
+			population += group.Population;
+		}
+
+		if (population > 0) {
+			
+			InfoPanelText.text += "\n";
+			InfoPanelText.text += "\nPopulation: " + population;
 		}
 	}
 	

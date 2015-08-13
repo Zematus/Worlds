@@ -25,6 +25,8 @@ public class World {
 	public const float MinPossibleTemperature = -35;
 	public const float MaxPossibleTemperature = 30;
 
+	public const float StartPopulationDensity = 2;
+
 	public float MaxAltitude = MinPossibleAltitude;
 	public float MinAltitude = MaxPossibleAltitude;
 	
@@ -107,6 +109,8 @@ public class World {
 				cell.Height = _cellMaxWidth;
 				cell.Width = Mathf.Sin(alpha) * _cellMaxWidth;
 
+				cell.Area = _cellMaxWidth * cell.Width;
+
 				cell.Ready = false;
 
 				column[j] = cell;
@@ -146,6 +150,7 @@ public class World {
 			for (int j = 0; j < Height; j++)
 			{
 				TerrainCell cell = Terrain[i][j];
+
 				cell.World = this;
 
 				cell.FinalizeLoad();
@@ -162,6 +167,7 @@ public class World {
 			for (int j = 0; j < Height; j++)
 			{
 				TerrainCell cell = Terrain[i][j];
+
 				cell.Ready = true;
 			}
 		}
@@ -607,7 +613,7 @@ public class World {
 
 				float latitudeModifier = (alpha * 0.9f) + ((value1 + value2) * 0.05f * Mathf.PI);
 				
-				float altitudeFactor = Mathf.Max(0, (cell.Altitude / MaxPossibleAltitude) * 2.0f);
+				float altitudeFactor = Mathf.Max(0, (cell.Altitude / MaxPossibleAltitude) * 2f);
 				
 				float temperature = CalculateTemperature(Mathf.Sin(latitudeModifier) - altitudeFactor);
 
@@ -636,29 +642,40 @@ public class World {
 
 				float totalPresence = 0;
 
-				Dictionary<Biome, float> biomePresences = new Dictionary<Biome, float> ();
+				Dictionary<string, float> biomePresences = new Dictionary<string, float> ();
 
-				foreach (Biome biome in Biome.Biomes) {
+				foreach (Biome biome in Biome.Biomes.Values) {
 
 					float presence = CalculateBiomePresence (cell, biome);
 
 					if (presence <= 0) continue;
 
-					biomePresences.Add(biome, presence);
+					biomePresences.Add(biome.Name, presence);
 
 					totalPresence += presence;
 				}
 
-				foreach (Biome biome in Biome.Biomes)
+				cell.Survivability = 0;
+				cell.ForagingCapacity = 0;
+
+				foreach (Biome biome in Biome.Biomes.Values)
 				{
 					float presence = 0;
 
-					if (biomePresences.TryGetValue(biome, out presence))
+					if (biomePresences.TryGetValue(biome.Name, out presence))
 					{
-						cell.Biomes.Add(biome);
-						cell.BiomePresences.Add(presence/totalPresence);
+						cell.PresentBiomeNames.Add(biome.Name);
+
+						presence = presence/totalPresence;
+
+						cell.BiomePresences.Add(presence);
+
+						cell.Survivability += biome.Survivability * presence;
+						cell.ForagingCapacity += biome.ForagingCapacity * presence;
 					}
 				}
+
+				cell.MaxForage = cell.Area * cell.ForagingCapacity * TerrainCell.MaxForageFactor;
 			}
 			
 			ProgressCastMethod (_accumulatedProgress + 0.20f * (i + 1)/(float)sizeX);
@@ -702,7 +719,9 @@ public class World {
 
 			TerrainCell cell = SuitableCells[n];
 
-			HumanGroup group = new HumanGroup(this, cell, i, 1000);
+			int population = (int)Mathf.Floor(StartPopulationDensity * cell.Area);
+
+			HumanGroup group = new HumanGroup(this, cell, i, population);
 			
 			cell.HumanGroups.Add(group);
 			

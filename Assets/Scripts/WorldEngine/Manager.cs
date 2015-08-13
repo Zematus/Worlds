@@ -810,9 +810,13 @@ public class Manager {
 			return color;
 		}
 		
-		for (int i = 0; i < cell.Biomes.Count; i++) {
+		for (int i = 0; i < cell.PresentBiomeNames.Count; i++) {
+
+			string biomeName = cell.PresentBiomeNames[i];
+
+			Biome biome = Biome.Biomes[biomeName];
 			
-			Color biomeColor = _biomePalette[cell.Biomes[i].ColorId];
+			Color biomeColor = _biomePalette[biome.ColorId];
 			float biomePresence = cell.BiomePresences[i];
 			
 			color.r += biomeColor.r * biomePresence;

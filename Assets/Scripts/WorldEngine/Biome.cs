@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
@@ -13,7 +14,9 @@ public class Biome {
 		World.MinPossibleRainfall - 1f,
 		World.MaxPossibleRainfall + 1f,
 		World.MinPossibleTemperature - 1f,
-		-15f);
+		-15f,
+		0.02f/3.5f,
+		0.02f);
 	
 	public static Biome Ocean = new Biome(
 		"Ocean",
@@ -23,7 +26,9 @@ public class Biome {
 		World.MinPossibleRainfall - 1f,
 		World.MaxPossibleRainfall + 1f,
 		-15f,
-		World.MaxPossibleTemperature + 1f);
+		World.MaxPossibleTemperature + 1f,
+		0.0f,
+		0.0f);
 	
 	public static Biome Grassland = new Biome(
 		"Grassland",
@@ -33,7 +38,9 @@ public class Biome {
 		15f,
 		1575f,
 		-5f,
-		World.MaxPossibleTemperature + 1f);
+		World.MaxPossibleTemperature + 1f,
+		1.0f/3.5f,
+		0.4f);
 	
 	public static Biome Forest = new Biome(
 		"Forest", 
@@ -43,7 +50,9 @@ public class Biome {
 		1375f,
 		2975f,
 		-5f,
-		World.MaxPossibleTemperature + 1f);
+		World.MaxPossibleTemperature + 1f,
+		0.8f/3.5f,
+		0.6f);
 	
 	public static Biome Taiga = new Biome(
 		"Taiga", 
@@ -53,7 +62,9 @@ public class Biome {
 		275f,
 		World.MaxPossibleRainfall + 1f,
 		-20f,
-		-0f);
+		-0f,
+		0.4f/3.5f,
+		0.4f);
 	
 	public static Biome Tundra = new Biome(
 		"Tundra", 
@@ -63,7 +74,9 @@ public class Biome {
 		World.MinPossibleRainfall - 1f,
 		1275f,
 		-20f,
-		-0f);
+		-0f,
+		0.2f/3.5f,
+		0.2f);
 	
 	public static Biome Desert = new Biome(
 		"Desert", 
@@ -73,7 +86,9 @@ public class Biome {
 		World.MinPossibleRainfall - 1f,
 		675f,
 		-5f,
-		World.MaxPossibleTemperature + 1f);
+		World.MaxPossibleTemperature + 1f,
+		0.1f/3.5f,
+		0.1f);
 	
 	public static Biome Rainforest = new Biome(
 		"Rainforest", 
@@ -83,44 +98,52 @@ public class Biome {
 		1775f,
 		World.MaxPossibleRainfall + 1f,
 		-5f,
-		World.MaxPossibleTemperature + 1f);
+		World.MaxPossibleTemperature + 1f,
+		0.6f/3.5f,
+		0.8f);
 
-	public static Biome[] Biomes = new Biome[] {
+	public static Dictionary<string, Biome> Biomes = new Dictionary<string, Biome>() {
 
-		IceCap,
-		Ocean,
-		Grassland,
-		Forest,
-		Taiga,
-		Tundra,
-		Desert,
-		Rainforest
+		{"Ice Cap", IceCap},
+		{"Ocean", Ocean},
+		{"Grassland", Grassland},
+		{"Forest", Forest},
+		{"Taiga", Taiga},
+		{"Tundra", Tundra},
+		{"Desert", Desert},
+		{"Rainforest", Rainforest}
 	};
-	
-	[XmlAttribute]
+
 	public string Name;
 
-	[XmlAttribute]
 	public float MinAltitude;
-	[XmlAttribute]
 	public float MaxAltitude;
 
-	[XmlAttribute]
 	public float MinRainfall;
-	[XmlAttribute]
 	public float MaxRainfall;
 
-	[XmlAttribute]
 	public float MinTemperature;
-	[XmlAttribute]
 	public float MaxTemperature;
+
+	public float Survivability;
+	public float ForagingCapacity;
 
 	public int ColorId;
 
 	public Biome () {
 	}
 
-	public Biome (string name, int colorId, float minAltitude, float maxAltitude, float minRainfall, float maxRainfall, float minTemperature, float maxTemperature) {
+	public Biome (
+		string name, 
+		int colorId, 
+		float minAltitude, 
+		float maxAltitude, 
+		float minRainfall, 
+		float maxRainfall, 
+		float minTemperature, 
+		float maxTemperature,
+		float survivability,
+		float foragingCapacity) {
 
 		Name = name;
 
@@ -132,5 +155,7 @@ public class Biome {
 		MaxRainfall = maxRainfall;
 		MinTemperature = minTemperature;
 		MaxTemperature = maxTemperature;
+		Survivability = survivability;
+		ForagingCapacity = foragingCapacity;
 	}
 }
