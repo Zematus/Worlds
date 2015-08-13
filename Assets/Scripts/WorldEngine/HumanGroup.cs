@@ -11,6 +11,8 @@ public class HumanGroup {
 
 	public const float NaturalDeathRate = 0.03f; // more or less 0.5/half-life (22.87 years for paleolitic life expectancy of 33 years)
 	public const float NaturalBirthRate = 0.105f; // Should cancel out death rate in perfect circumstances (hunter-gathererers in grasslands)
+	public const float MinChangeRate = -0.99f; // Should cancel out death rate in perfect circumstances (hunter-gathererers in grasslands)
+	public const float NaturalChangeFactor = 1 - HumanGroup.NaturalBirthRate + HumanGroup.NaturalDeathRate;
 	
 	[XmlAttribute]
 	public int Id;
@@ -22,6 +24,9 @@ public class HumanGroup {
 	public TerrainCell Cell;
 	[XmlIgnore]
 	public World World;
+
+	[XmlIgnore]
+	public static float InitialPopulationFactor = NaturalChangeFactor / Biome.Grassland.ForagingCapacity;
 
 	public HumanGroup () {
 	}
@@ -38,28 +43,39 @@ public class HumanGroup {
 
 	public void Update () {
 
+		ModifyPopulation ();
+
 		World.AddGroupToUpdate (this);
 	}
 
 	public float GetProductionFactor () {
 
-		float baseForage = Population * Cell.ForagingCapacity;
+		if (Population == 0)
+			return 0;
 
-		float factor = Cell.ForagingCapacity * (1 + 2 * Cell.MaxForage) / (1 + Cell.MaxForage + baseForage);
-
-		// Pop * FCapacity * 2 * MaxForage / (MaxForage + Pop * FCapacity)
+		float factor = Cell.MaxForage * Cell.ForagingCapacity / Population;
 
 		return factor;
 	}
 	
 	public float GetPopulationChangeRate () {
 
-		//death rate modifier from resource availability = resources/population
-
 		float productionFactor = GetProductionFactor ();
 
-		float deathRateModifiers = Cell.Survivability * productionFactor;
+		float survivabilityFactor = Cell.Survivability * (productionFactor / NaturalChangeFactor);
+
+		float survivabilityDeathRate = Mathf.Max(0, 1 - survivabilityFactor);
+
+		float starvationDeathRate = Mathf.Max(0, 1 - productionFactor); // productionFactor should be 1 - (NaturalBirthRate - NaturalDeathRate)
 		
-		return NaturalBirthRate - NaturalDeathRate / deathRateModifiers;
+		// Death rate can't be lower than the natural death rate
+		return NaturalBirthRate - NaturalDeathRate - starvationDeathRate - survivabilityDeathRate;
+	}
+
+	public void ModifyPopulation () {
+
+		float changeRate = Mathf.Max(MinChangeRate, GetPopulationChangeRate ());
+
+		Population += (int)Mathf.Floor(Population * changeRate);
 	}
 }

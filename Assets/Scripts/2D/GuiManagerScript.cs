@@ -75,6 +75,9 @@ public class GuiManagerScript : MonoBehaviour {
 
 		_updateTexture = true;
 	}
+
+	private const float maxAccTime = 1;
+	private float accDeltaTime = 0;
 	
 	// Update is called once per frame
 	void Update () {
@@ -96,7 +99,14 @@ public class GuiManagerScript : MonoBehaviour {
 
 		} else {
 
-			Manager.CurrentWorld.Iterate();
+			accDeltaTime += Time.deltaTime;
+
+			if (accDeltaTime > maxAccTime) {
+
+				Manager.CurrentWorld.Iterate();
+
+				accDeltaTime -= maxAccTime;
+			}
 		}
 	
 		if (_updateTexture) {

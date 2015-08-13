@@ -25,7 +25,7 @@ public class World {
 	public const float MinPossibleTemperature = -35;
 	public const float MaxPossibleTemperature = 30;
 
-	public const float StartPopulationDensity = 2;
+	public const float StartPopulationDensity = 0.5f;
 
 	public float MaxAltitude = MinPossibleAltitude;
 	public float MinAltitude = MaxPossibleAltitude;
@@ -633,6 +633,8 @@ public class World {
 		
 		int sizeX = Width;
 		int sizeY = Height;
+
+		//float initialPopulationFactor = (1 - HumanGroup.NaturalBirthRate + HumanGroup.NaturalDeathRate) / Biome.Grassland.ForagingCapacity;
 		
 		for (int i = 0; i < sizeX; i++) {
 
@@ -675,7 +677,7 @@ public class World {
 					}
 				}
 
-				cell.MaxForage = cell.Area * cell.ForagingCapacity * TerrainCell.MaxForageFactor;
+				cell.MaxForage = cell.Area * TerrainCell.MaxForageFactor * cell.ForagingCapacity * HumanGroup.InitialPopulationFactor;
 			}
 			
 			ProgressCastMethod (_accumulatedProgress + 0.20f * (i + 1)/(float)sizeX);
@@ -688,7 +690,7 @@ public class World {
 
 		int maxGroups = 5;
 
-		float minPresence = 0.10f;
+		float minPresence = 0.50f;
 		
 		int sizeX = Width;
 		int sizeY = Height;
