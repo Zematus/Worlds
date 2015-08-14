@@ -32,10 +32,9 @@ public class GuiManagerScript : MonoBehaviour {
 
 	public PaletteScript BiomePaletteScript;
 	public PaletteScript MapPaletteScript;
-
-	private bool _viewRainfall = false;
-	private bool _viewTemperature = false;
-	private PlanetView _planetView = PlanetView.Population;
+	
+	private PlanetView _planetView = PlanetView.Biomes;
+	private PlanetOverlay _planetOverlay = PlanetOverlay.None;
 
 	private bool _updateTexture = false;
 
@@ -112,8 +111,7 @@ public class GuiManagerScript : MonoBehaviour {
 		if (_updateTexture) {
 			_updateTexture = false;
 
-			Manager.SetRainfallVisible (_viewRainfall);
-			Manager.SetTemperatureVisible (_viewTemperature);
+			Manager.SetPlanetOverlay (_planetOverlay);
 			Manager.SetPlanetView (_planetView);
 
 			Manager.RefreshTextures ();
@@ -221,16 +219,18 @@ public class GuiManagerScript : MonoBehaviour {
 		case PlanetView.Biomes: planetViewStr = "_biomes"; break;
 		case PlanetView.Coastlines: planetViewStr = "_coastlines"; break;
 		case PlanetView.Elevation: planetViewStr = "_elevation"; break;
-		case PlanetView.Population: planetViewStr = "_population"; break;
 		default: throw new System.Exception("Unexpected planet view type: " + _planetView);
 		}
 		
-		string planetOverlayStr = "";
+		string planetOverlayStr;
 		
-		if (_viewRainfall)
-			planetOverlayStr = "_rainfall";
-		else if (_viewTemperature)
-			planetOverlayStr = "_temperature";
+		switch (_planetOverlay) {
+		case PlanetOverlay.None: planetOverlayStr = ""; break;
+		case PlanetOverlay.Rainfall: planetOverlayStr = "_rainfall"; break;
+		case PlanetOverlay.Temperature: planetOverlayStr = "_temperature"; break;
+		case PlanetOverlay.Population: planetOverlayStr = "_population"; break;
+		default: throw new System.Exception("Unexpected planet overlay type: " + _planetOverlay);
+		}
 
 		ExportMapDialogPanelScript.SetName (Manager.WorldName + planetViewStr + planetOverlayStr);
 		
@@ -310,8 +310,15 @@ public class GuiManagerScript : MonoBehaviour {
 	
 	public void CloseOverlayMenuAction () {
 
-		UpdateRainfallView (OverlayDialogPanelScript.RainfallToggle.isOn);
-		UpdateTemperatureView (OverlayDialogPanelScript.TemperatureToggle.isOn);
+		if (OverlayDialogPanelScript.RainfallToggle.isOn) {
+			SetRainfallOverlay ();
+		} else if (OverlayDialogPanelScript.TemperatureToggle.isOn) {
+			SetTemperatureOverlay ();
+		} else if (OverlayDialogPanelScript.PopulationToggle.isOn) {
+			SetPopulationOverlay ();
+		} else {
+			UnsetOverlay();
+		}
 		
 		OverlayDialogPanelScript.SetVisible (false);
 	}
@@ -352,27 +359,32 @@ public class GuiManagerScript : MonoBehaviour {
 		}
 	}
 	
-	public void UpdateRainfallView (bool value) {
+	public void SetRainfallOverlay () {
 
-		_updateTexture |= _viewRainfall ^ value;
+		_updateTexture |= _planetOverlay != PlanetOverlay.Rainfall;
 
-		_viewRainfall = value;
+		_planetOverlay = PlanetOverlay.Rainfall;
 	}
 	
-	public void UpdateTemperatureView (bool value) {
+	public void SetTemperatureOverlay () {
 		
-		_updateTexture |= _viewTemperature ^ value;
+		_updateTexture |= _planetOverlay != PlanetOverlay.Temperature;
 		
-		_viewTemperature = value;
+		_planetOverlay = PlanetOverlay.Temperature;
 	}
 	
-	public void SetPopulationView () {
+	public void SetPopulationOverlay () {
 		
-		_updateTexture |= _planetView != PlanetView.Population;
+		_updateTexture |= _planetOverlay != PlanetOverlay.Population;
 		
-		_planetView = PlanetView.Population;
+		_planetOverlay = PlanetOverlay.Population;
+	}
+	
+	public void UnsetOverlay () {
 		
-		ViewsDialogPanelScript.SetVisible (false);
+		_updateTexture |= _planetOverlay != PlanetOverlay.None;
+		
+		_planetOverlay = PlanetOverlay.None;
 	}
 	
 	public void SetBiomeView () {

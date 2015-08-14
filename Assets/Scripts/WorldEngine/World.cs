@@ -58,6 +58,7 @@ public class World {
 	private const float _progressIncrement = 0.25f;
 	
 	private List<HumanGroup> _groupsToUpdate = new List<HumanGroup>();
+	private List<HumanGroup> _groupsToRemove = new List<HumanGroup>();
 
 	private Vector2[] _continentOffsets;
 	private float[] _continentWidths;
@@ -135,12 +136,24 @@ public class World {
 			group.Update();
 		}
 
+		foreach (HumanGroup group in _groupsToRemove) {
+			
+			group.Destroy();
+		}
+
+		_groupsToRemove.Clear ();
+
 		Iteration++;
 	}
 
 	public void AddGroupToUpdate (HumanGroup group) {
 	
 		_groupsToUpdate.Add (group);
+	}
+	
+	public void AddGroupToRemove (HumanGroup group) {
+		
+		_groupsToRemove.Add (group);
 	}
 
 	public void FinalizeLoad () {
@@ -725,9 +738,9 @@ public class World {
 
 			HumanGroup group = new HumanGroup(this, cell, i, population);
 			
-			cell.HumanGroups.Add(group);
+			cell.HumanGroups.Add (group);
 			
-			_groupsToUpdate.Add(group);
+			_groupsToUpdate.Add (group);
 		}
 	}
 

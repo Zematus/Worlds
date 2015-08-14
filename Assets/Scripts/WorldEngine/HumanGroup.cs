@@ -45,7 +45,16 @@ public class HumanGroup {
 
 		ModifyPopulation ();
 
-		World.AddGroupToUpdate (this);
+		if (Population > 0) {
+			World.AddGroupToUpdate (this);
+		} else {
+			World.AddGroupToRemove (this);
+		}
+	}
+
+	public void Destroy () {
+
+		Cell.HumanGroups.Remove (this);
 	}
 
 	public float GetProductionFactor () {

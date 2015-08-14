@@ -10,7 +10,14 @@ public enum PlanetView {
 
 	Elevation,
 	Biomes,
-	Coastlines,
+	Coastlines
+}
+
+public enum PlanetOverlay {
+
+	None,
+	Temperature,
+	Rainfall,
 	Population
 }
 
@@ -82,9 +89,8 @@ public class Manager {
 
 	private static Manager _manager = new Manager();
 
-	private static bool _rainfallVisible = false;
-	private static bool _temperatureVisible = false;
-	private static PlanetView _planetView = PlanetView.Population;
+	private static PlanetView _planetView = PlanetView.Biomes;
+	private static PlanetOverlay _planetOverlay = PlanetOverlay.None;
 	
 	private static List<Color> _biomePalette = new List<Color>();
 	private static List<Color> _mapPalette = new List<Color>();
@@ -383,14 +389,9 @@ public class Manager {
 		_manager._progressCastMethod (Mathf.Min(1, value));
 	}
 
-	public static void SetRainfallVisible (bool value) {
+	public static void SetPlanetOverlay (PlanetOverlay value) {
 	
-		_rainfallVisible = value;
-	}
-	
-	public static void SetTemperatureVisible (bool value) {
-		
-		_temperatureVisible = value;
+		_planetOverlay = value;
 	}
 	
 	public static void SetPlanetView (PlanetView value) {
@@ -669,74 +670,50 @@ public class Manager {
 	
 	private static Color GenerateColorFromTerrainCell (TerrainCell cell) {
 
-		Color baseColor = Color.black;
+		Color color = Color.black;
 
 		switch (_planetView) {
-		
-		case PlanetView.Population:
-			baseColor = GeneratePopulationColor (cell);
-			break;
 			
 		case PlanetView.Biomes:
-			baseColor = GenerateBiomeColor (cell);
+			color = GenerateBiomeColor (cell);
 			break;
 			
 		case PlanetView.Elevation:
-			baseColor = GenerateAltitudeContourColor (cell.Altitude);
+			color = GenerateAltitudeContourColor (cell.Altitude);
 			break;
 			
 		case PlanetView.Coastlines:
-			baseColor = GenerateCoastlineColor (cell);
+			color = GenerateCoastlineColor (cell);
 			break;
 
 		default:
 			throw new System.Exception("Unsupported Planet View Type");
 		}
+
+		switch (_planetOverlay) {
 		
-		float r = baseColor.r;
-		float g = baseColor.g;
-		float b = baseColor.b;
+		case PlanetOverlay.None:
+			break;
 
-		int normalizer = 1;
-
-		if (_rainfallVisible || _temperatureVisible) {
-
-			float grey = (r + g + b) / 3f;
-
-			r = grey;
-			g = grey;
-			b = grey;
+		case PlanetOverlay.Population:
+			color = SetPopulationOverlayColor(cell, color);
+			break;
+			
+		case PlanetOverlay.Temperature:
+			color = SetTemperatureOverlayColor(cell, color);
+			break;
+			
+		case PlanetOverlay.Rainfall:
+			color = SetRainfallOverlayColor(cell, color);
+			break;
+			
+		default:
+			throw new System.Exception("Unsupported Planet Overlay Type");
 		}
 
-		if (_rainfallVisible)
-		{
-			Color rainfallColor = GenerateRainfallColor(cell.Rainfall);
-			
-			normalizer += 1;
-			
-			r += rainfallColor.r;
-			g += rainfallColor.g;
-			b += rainfallColor.b;
-		}
+		color.a = 1;
 		
-		if (_temperatureVisible)
-		{
-			Color temperatureColor = GenerateTemperatureColor(cell.Temperature);
-			
-			normalizer += 1;
-			
-			r += temperatureColor.r;
-			g += temperatureColor.g;
-			b += temperatureColor.b;
-		}
-
-		r /= (float)normalizer;
-		g /= (float)normalizer;
-		b /= (float)normalizer;
-		
-		Color resultColor = new Color (r, g, b);
-		
-		return resultColor;
+		return color;
 	}
 	
 	private static Color GenerateCoastlineColor (TerrainCell cell) {
@@ -827,9 +804,7 @@ public class Manager {
 		return color * slantFactor * altitudeFactor;
 	}
 	
-	private static Color GeneratePopulationColor (TerrainCell cell) {
-
-		Color color = GenerateBiomeColor(cell);
+	private static Color SetPopulationOverlayColor (TerrainCell cell, Color color) {
 
 		float greyscale = (color.r + color.g + color.b);// * 4 / 3;
 
@@ -846,9 +821,54 @@ public class Manager {
 
 		if (totalPopulation > 0) {
 			
-			color = Color.green;
+			color = Color.red;
 		}
 
+		return color;
+	}
+	
+	private static Color SetTemperatureOverlayColor (TerrainCell cell, Color color) {
+		
+		float greyscale = (color.r + color.g + color.b);// * 4 / 3;
+		
+		color.r = (greyscale + color.r) / 6f;
+		color.g = (greyscale + color.g) / 6f;
+		color.b = (greyscale + color.b) / 6f;
+
+		Color addColor;
+		
+		float span = World.MaxPossibleTemperature - World.MinPossibleTemperature;
+		
+		float value = (cell.Temperature - World.MinPossibleTemperature) / span;
+		
+		addColor = new Color(value, 0, 1f - value);
+		
+		color += addColor * 2f / 3f;
+		
+		return color;
+	}
+	
+	private static Color SetRainfallOverlayColor (TerrainCell cell, Color color) {
+		
+		float greyscale = (color.r + color.g + color.b);// * 4 / 3;
+		
+		color.r = (greyscale + color.r) / 6f;
+		color.g = (greyscale + color.g) / 6f;
+		color.b = (greyscale + color.b) / 6f;
+		
+		Color addColor = Color.black;
+		
+		if (cell.Rainfall > 0) {
+			
+			float value = cell.Rainfall / World.MaxPossibleRainfall;
+			
+			addColor = Color.green;
+			
+			addColor = new Color (addColor.r * value, addColor.g * value, addColor.b * value);
+		}
+
+		color += addColor * 2f / 3f;
+		
 		return color;
 	}
 	
@@ -899,18 +919,7 @@ public class Manager {
 		return color;
 	}
 	
-	private static Color GenerateRainfallColor (float rainfall) {
-		
-		if (rainfall < 0) return Color.black;
-		
-		float value = rainfall / World.MaxPossibleRainfall;
-		
-		Color green = Color.green;
-		
-		return new Color(green.r * value, green.g * value, green.b * value);
-	}
-	
-	private static Color GenerateTemperatureContourColor (float rainfall) {
+	private static Color GenerateTemperatureContourColor (float temperature) {
 		
 		float span = CurrentWorld.MaxTemperature - CurrentWorld.MinTemperature;
 		
@@ -918,7 +927,7 @@ public class Manager {
 		
 		float shadeValue = 1f;
 		
-		value = (rainfall - CurrentWorld.MinTemperature) / span;
+		value = (temperature - CurrentWorld.MinTemperature) / span;
 		
 		while (shadeValue > value)
 		{
@@ -928,15 +937,6 @@ public class Manager {
 		Color color = new Color(shadeValue, 0, 1f - shadeValue);
 		
 		return color;
-	}
-	
-	private static Color GenerateTemperatureColor (float temperature) {
-
-		float span = World.MaxPossibleTemperature - World.MinPossibleTemperature;
-
-		float value = (temperature - World.MinPossibleTemperature) / span;
-		
-		return new Color(value, 0, 1f - value);
 	}
 	
 	private static float NormalizeRainfall (float rainfall) {
