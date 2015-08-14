@@ -1,0 +1,19 @@
+Done work-items:
+ - Exclusive Overlay Application
+ - Population as an Overlay
+
+Next Release work-items:
+ - Group Migrations
+ - World Customization
+   - Mean Temperature
+   - Mean Rainfall
+   - Seal Level
+ - Custom Seed for World Creation
+
+Future work-items:
+ - Different World Sizes (400x200, 800x400, 1600x800)
+ - Current date time display
+ - Time Speed Control
+ - Customizable Group Location Start
+ - More control of displayed information (terrain and population data)
+ - Customizable Window Size
