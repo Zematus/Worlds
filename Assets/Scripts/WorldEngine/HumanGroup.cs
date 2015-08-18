@@ -52,7 +52,9 @@ public class HumanGroup {
 			return;
 		}
 
-		World.InsertEventToHappen (new UpdateGroupEvent (World, World.CurrentDate + 10, this));
+		int nextDate = World.CurrentDate + 50 + Cell.GetNextLocalRandomInt (50);
+
+		World.InsertEventToHappen (new UpdateGroupEvent (World, nextDate, this));
 	}
 
 	public void Destroy () {

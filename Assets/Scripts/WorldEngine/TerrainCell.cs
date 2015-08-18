@@ -58,7 +58,9 @@ public class TerrainCell {
 		if (update) Manager.UpdateWorldLoadTrack ();
 	}
 
-	public int GetNextLocalRandomInt () {
+	public int GetNextLocalRandomInt (int maxValue = PerlinNoise.MaxPermutationValue) {
+
+		maxValue = Mathf.Min (PerlinNoise.MaxPermutationValue, maxValue);
 
 		int x = Mathf.Abs (World.Seed + Longitude);
 		int y = Mathf.Abs (World.Seed + Latitude);
@@ -66,7 +68,7 @@ public class TerrainCell {
 
 		LocalIteration++;
 
-		return PerlinNoise.GetPermutationValue(x, y, z);
+		return PerlinNoise.GetPermutationValue(x, y, z) % maxValue;
 	}
 	
 	public float GetNextLocalRandomFloat () {

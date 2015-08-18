@@ -181,7 +181,6 @@ public class World {
 		// Skip to Next Event's Date
 		//
 
-		
 		if (EventsToHappen.Count > 0) {
 
 			WorldEvent futureEventToHappen = EventsToHappen [0];
@@ -208,9 +207,11 @@ public class World {
 			if (eventToHappen.TriggerDate >= EventsToHappen[i].TriggerDate) {
 
 				EventsToHappen.Insert(i + 1, eventToHappen);
-				break;
+				return;
 			}
 		}
+		
+		EventsToHappen.Insert(0, eventToHappen);
 	}
 	
 	public void AddGroup (HumanGroup group) {
