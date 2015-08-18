@@ -424,7 +424,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 		World world = Manager.CurrentWorld;
 
-		InfoPanelText.text = "Iteration: " + world.Iteration;
+		InfoPanelText.text = "Year: " + world.CurrentDate;
 		InfoPanelText.text += "\n";
 		
 		TerrainCell cell = world.Terrain[longitude][latitude];

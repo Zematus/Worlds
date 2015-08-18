@@ -43,7 +43,7 @@ public class World {
 	public ProgressCastDelegate ProgressCastMethod { get; set; }
 	
 	[XmlAttribute]
-	public int Iteration { get; private set; }
+	public int CurrentDate { get; private set; }
 	
 	[XmlAttribute]
 	public int Width { get; private set; }
@@ -54,9 +54,13 @@ public class World {
 	public int Seed { get; private set; }
 
 	public TerrainCell[][] Terrain;
-	
+
+	public List<WorldEvent> EventsToHappen = new List<WorldEvent> ();
+		
 	private const float _progressIncrement = 0.25f;
 	
+	private List<HumanGroup> _groups = new List<HumanGroup>();
+
 	private List<HumanGroup> _groupsToUpdate = new List<HumanGroup>();
 	private List<HumanGroup> _groupsToRemove = new List<HumanGroup>();
 
@@ -89,7 +93,7 @@ public class World {
 
 		_cellMaxWidth = Circumference / Width;
 
-		Iteration = 0;
+		CurrentDate = 0;
 
 		Terrain = new TerrainCell[width][];
 
@@ -126,6 +130,36 @@ public class World {
 	}
 
 	public void Iterate () {
+		
+		//
+		// Evaluate Events that will happen currently
+		//
+
+		int DateToSkipTo = CurrentDate + 1;
+
+		while (true) {
+
+			if (EventsToHappen.Count <= 0) break;
+		
+			WorldEvent eventToHappen = EventsToHappen[0];
+
+			if (eventToHappen.TriggerDate > CurrentDate) {
+
+				DateToSkipTo = eventToHappen.TriggerDate;
+				break;
+			}
+
+			EventsToHappen.Remove(eventToHappen);
+
+			if (eventToHappen.CanTrigger())
+			{
+				eventToHappen.Trigger();
+			}
+		}
+		
+		//
+		// Update Human Groups that need updating
+		//
 
 		HumanGroup[] currentGroupsToUpdate = _groupsToUpdate.ToArray();
 		
@@ -143,7 +177,60 @@ public class World {
 
 		_groupsToRemove.Clear ();
 
-		Iteration++;
+		//
+		// Skip to Next Event's Date
+		//
+
+		
+		if (EventsToHappen.Count > 0) {
+
+			WorldEvent futureEventToHappen = EventsToHappen [0];
+			
+			if (futureEventToHappen.TriggerDate > DateToSkipTo) {
+				
+				DateToSkipTo = futureEventToHappen.TriggerDate;
+			}
+		}
+
+		CurrentDate = DateToSkipTo;
+	}
+
+	public void InsertEventToHappen (WorldEvent eventToHappen) {
+
+		if (EventsToHappen.Count == 0) {
+
+			EventsToHappen.Add(eventToHappen);
+			return;
+		}
+
+		for (int i = EventsToHappen.Count - 1; i >= 0; i--) {
+		
+			if (eventToHappen.TriggerDate >= EventsToHappen[i].TriggerDate) {
+
+				EventsToHappen.Insert(i + 1, eventToHappen);
+				break;
+			}
+		}
+	}
+	
+	public void AddGroup (HumanGroup group) {
+		
+		_groups.Add (group);
+	}
+	
+	public void RemoveGroup (HumanGroup group) {
+		
+		_groups.Remove (group);
+	}
+	
+	public HumanGroup FindGroup (int id) {
+
+		foreach (HumanGroup group in _groups) {
+		
+			if (group.Id == id) return group;
+		}
+
+		return null;
 	}
 
 	public void AddGroupToUpdate (HumanGroup group) {
@@ -169,6 +256,21 @@ public class World {
 				cell.FinalizeLoad();
 			}
 		}
+
+		foreach (WorldEvent eventToHappen in EventsToHappen) {
+		
+			eventToHappen.World = this;
+
+			eventToHappen.FinalizeLoad();
+		}
+
+		EventsToHappen.Sort ((a, b) => {
+
+			if (a.TriggerDate < b.TriggerDate) return -1;
+			if (a.TriggerDate > b.TriggerDate) return 1;
+
+			return 0;
+		});
 
 		Ready = true;
 	}
@@ -737,10 +839,8 @@ public class World {
 			int population = (int)Mathf.Floor(StartPopulationDensity * cell.Area);
 
 			HumanGroup group = new HumanGroup(this, cell, i, population);
-			
-			cell.HumanGroups.Add (group);
-			
-			_groupsToUpdate.Add (group);
+
+			InsertEventToHappen(new UpdateGroupEvent(this, 0, group));
 		}
 	}
 

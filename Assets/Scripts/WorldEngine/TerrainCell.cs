@@ -62,7 +62,7 @@ public class TerrainCell {
 
 		int x = Mathf.Abs (World.Seed + Longitude);
 		int y = Mathf.Abs (World.Seed + Latitude);
-		int z = Mathf.Abs (World.Seed + World.Iteration + LocalIteration);
+		int z = Mathf.Abs (World.Seed + World.CurrentDate + LocalIteration);
 
 		LocalIteration++;
 
@@ -95,6 +95,8 @@ public class TerrainCell {
 		
 			group.World = World;
 			group.Cell = this;
+
+			World.AddGroup(group);
 		}
 	}
 }

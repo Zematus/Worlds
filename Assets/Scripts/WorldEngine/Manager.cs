@@ -108,7 +108,9 @@ public class Manager {
 
 	private int _cellLoadCount = 0;
 	private int _cellsToLoad = 0;
-	
+
+	public XmlAttributeOverrides AttributeOverrides { get; private set; }
+
 	public static bool WorldReady {
 
 		get {
@@ -125,6 +127,8 @@ public class Manager {
 
 		InitializeSavePath ();
 		InitializeExportPath ();
+
+		AttributeOverrides = GenerateAttributeOverrides ();
 	}
 
 	private void InitializeSavePath () {
@@ -321,7 +325,7 @@ public class Manager {
 	
 	public static void SaveWorld (string path) {
 
-		XmlSerializer serializer = new XmlSerializer(typeof(World));
+		XmlSerializer serializer = new XmlSerializer(typeof(World), _manager.AttributeOverrides);
 		FileStream stream = new FileStream(path, FileMode.Create);
 
 		serializer.Serialize(stream, _manager._currentWorld);
@@ -347,7 +351,7 @@ public class Manager {
 		
 		ResetWorldLoadTrack ();
 
-		XmlSerializer serializer = new XmlSerializer(typeof(World));
+		XmlSerializer serializer = new XmlSerializer(typeof(World), _manager.AttributeOverrides);
 		FileStream stream = new FileStream(path, FileMode.Open);
 
 		_manager._currentWorld = serializer.Deserialize(stream) as World;
@@ -951,5 +955,22 @@ public class Manager {
 		float span = World.MaxPossibleTemperature - World.MinPossibleTemperature;
 		
 		return (temperature - World.MinPossibleTemperature) / span;
+	}
+
+	private static XmlAttributeOverrides GenerateAttributeOverrides () {
+
+		XmlAttributes attrs = new XmlAttributes();
+
+		XmlElementAttribute attr = new XmlElementAttribute();
+		attr.ElementName = "UpdateGroupEvent";
+		attr.Type = typeof(UpdateGroupEvent);
+
+		attrs.XmlElements.Add(attr);
+
+		XmlAttributeOverrides attrOverrides = new XmlAttributeOverrides();
+
+		attrOverrides.Add(typeof(World), "EventsToHappen", attrs);
+
+		return attrOverrides;
 	}
 }

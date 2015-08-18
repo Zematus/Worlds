@@ -3,10 +3,6 @@ using System.Collections;
 using System.Xml;
 using System.Xml.Serialization;
 
-public class WorldEvent {
-
-}
-
 public class HumanGroup {
 
 	public const float NaturalDeathRate = 0.03f; // more or less 0.5/half-life (22.87 years for paleolitic life expectancy of 33 years)
@@ -19,6 +15,9 @@ public class HumanGroup {
 	
 	[XmlAttribute]
 	public int Population;
+	
+	[XmlAttribute]
+	public bool StillPresent = true;
 	
 	[XmlIgnore]
 	public TerrainCell Cell;
@@ -36,6 +35,9 @@ public class HumanGroup {
 		World = world;
 		Cell = cell;
 
+		World.AddGroup (this);
+		Cell.HumanGroups.Add (this);
+
 		Id = id;
 	
 		Population = initialPopulation;
@@ -45,16 +47,20 @@ public class HumanGroup {
 
 		ModifyPopulation ();
 
-		if (Population > 0) {
-			World.AddGroupToUpdate (this);
-		} else {
+		if (Population <= 0) {
 			World.AddGroupToRemove (this);
+			return;
 		}
+
+		World.InsertEventToHappen (new UpdateGroupEvent (World, World.CurrentDate + 10, this));
 	}
 
 	public void Destroy () {
 
 		Cell.HumanGroups.Remove (this);
+		World.RemoveGroup (this);
+
+		StillPresent = false;
 	}
 
 	public float GetProductionFactor () {
