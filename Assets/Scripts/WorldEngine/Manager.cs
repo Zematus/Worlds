@@ -293,9 +293,9 @@ public class Manager {
 		GenerateMapTextureFromWorld(CurrentWorld);
 	}
 
-	public static void GenerateNewWorld () {
+	public static void GenerateNewWorld (int seed) {
 
-		ManagerTask<int> seed = Manager.EnqueueTask (() => Random.Range (0, int.MaxValue));
+		//ManagerTask<int> seed = Manager.EnqueueTask (() => Random.Range (0, int.MaxValue));
 
 		World world = new World(WorldWidth, WorldHeight, seed);
 		
@@ -309,7 +309,7 @@ public class Manager {
 		_manager._currentWorld = world;
 	}
 	
-	public static void GenerateNewWorldAsync (ProgressCastDelegate progressCastMethod = null) {
+	public static void GenerateNewWorldAsync (int seed, ProgressCastDelegate progressCastMethod = null) {
 
 		_manager._worldReady = false;
 		
@@ -317,7 +317,7 @@ public class Manager {
 
 		ThreadPool.QueueUserWorkItem (state => {
 			
-			GenerateNewWorld ();
+			GenerateNewWorld (seed);
 			
 			_manager._worldReady = true;
 		});

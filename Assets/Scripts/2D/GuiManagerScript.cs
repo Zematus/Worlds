@@ -20,8 +20,8 @@ public class GuiManagerScript : MonoBehaviour {
 	public PlanetScript PlanetScript;
 	public MapScript MapScript;
 	
-	public SaveFileDialogPanelScript SaveFileDialogPanelScript;
-	public SaveFileDialogPanelScript ExportMapDialogPanelScript;
+	public TextInputDialogPanelScript SaveFileDialogPanelScript;
+	public TextInputDialogPanelScript ExportMapDialogPanelScript;
 	public LoadFileDialogPanelScript LoadFileDialogPanelScript;
 	public OverlayDialogPanelScript OverlayDialogPanelScript;
 	public DialogPanelScript ViewsDialogPanelScript;
@@ -29,6 +29,8 @@ public class GuiManagerScript : MonoBehaviour {
 	public DialogPanelScript OptionsDialogPanelScript;
 	public ProgressDialogPanelScript ProgressDialogPanelScript;
 	public ActivityDialogPanelScript ActivityDialogPanelScript;
+	public TextInputDialogPanelScript SetSeedDialogPanelScript;
+	public TextInputDialogPanelScript MessageDialogPanelScript;
 
 	public PaletteScript BiomePaletteScript;
 	public PaletteScript MapPaletteScript;
@@ -59,10 +61,12 @@ public class GuiManagerScript : MonoBehaviour {
 		ProgressDialogPanelScript.SetVisible (false);
 		ActivityDialogPanelScript.SetVisible (false);
 		OptionsDialogPanelScript.SetVisible (false);
+		SetSeedDialogPanelScript.SetVisible (false);
+		MessageDialogPanelScript.SetVisible (false);
 		
 		if (!Manager.WorldReady) {
 
-			GenerateWorld ();
+			GenerateWorld (false);
 		}
 
 		UpdateMapViewButtonText ();
@@ -155,10 +159,52 @@ public class GuiManagerScript : MonoBehaviour {
 		
 		Application.Quit();
 	}
-	
-	public void GenerateWorld () {
 
+	public void SetGenerationSeed () {
+		
 		MainMenuDialogPanelScript.SetVisible (false);
+
+		int seed = Random.Range (0, int.MaxValue);
+		
+		SetSeedDialogPanelScript.SetName (seed.ToString());
+
+		SetSeedDialogPanelScript.SetVisible (true);
+
+	}
+	
+	public void CancelGenerateAction () {
+		
+		SetSeedDialogPanelScript.SetVisible (false);
+	}
+	
+	public void CloseSeedErrorMessageAction () {
+		
+		MessageDialogPanelScript.SetVisible (false);
+
+		SetGenerationSeed ();
+	}
+	
+	public void GenerateWorld (bool getSeedInput = true) {
+		
+		SetSeedDialogPanelScript.SetVisible (false);
+
+		int seed = Random.Range (0, int.MaxValue);
+
+		if (getSeedInput) {
+			string seedStr = SetSeedDialogPanelScript.GetName ();
+
+			if (!int.TryParse (seedStr, out seed)) {
+
+				MessageDialogPanelScript.SetVisible (true);
+				return;
+			}
+
+			if (seed < 0) {
+
+				MessageDialogPanelScript.SetVisible (true);
+				return;
+			}
+		}
 
 		ProgressDialogPanelScript.SetVisible (true);
 
@@ -166,7 +212,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 		_preparingWorld = true;
 
-		Manager.GenerateNewWorldAsync (ProgressUpdate);
+		Manager.GenerateNewWorldAsync (seed, ProgressUpdate);
 
 		_postPreparationOp = () => {
 

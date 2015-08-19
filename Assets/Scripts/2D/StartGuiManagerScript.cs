@@ -10,6 +10,8 @@ public class StartGuiManagerScript : MonoBehaviour {
 	public LoadFileDialogPanelScript LoadFileDialogPanelScript;
 	public DialogPanelScript MainMenuDialogPanelScript;
 	public ProgressDialogPanelScript ProgressDialogPanelScript;
+	public TextInputDialogPanelScript SetSeedDialogPanelScript;
+	public TextInputDialogPanelScript MessageDialogPanelScript;
 	
 	private bool _preparingWorld = false;
 	
@@ -22,6 +24,8 @@ public class StartGuiManagerScript : MonoBehaviour {
 
 		SetEnabledModalLoadDialog (false);
 		SetEnabledModalProgressDialog (false);
+		SetSeedDialogPanelScript.SetVisible (false);
+		MessageDialogPanelScript.SetVisible (false);
 		SetEnabledModalMainMenuDialog (true);
 		
 		LoadButton.interactable = HasFilesToLoad ();
@@ -104,9 +108,51 @@ public class StartGuiManagerScript : MonoBehaviour {
 		SetEnabledModalMainMenuDialog (true);
 	}
 	
-	public void GenerateWorld () {
+	public void SetGenerationSeed () {
 		
-		SetEnabledModalMainMenuDialog (false);
+		MainMenuDialogPanelScript.SetVisible (false);
+		
+		int seed = Random.Range (0, int.MaxValue);
+		
+		SetSeedDialogPanelScript.SetName (seed.ToString());
+		
+		SetSeedDialogPanelScript.SetVisible (true);
+		
+	}
+	
+	public void CancelGenerateAction () {
+		
+		SetSeedDialogPanelScript.SetVisible (false);
+	}
+	
+	public void CloseSeedErrorMessageAction () {
+		
+		MessageDialogPanelScript.SetVisible (false);
+		
+		SetGenerationSeed ();
+	}
+	
+	public void GenerateWorld (bool getSeedInput = true) {
+		
+		SetSeedDialogPanelScript.SetVisible (false);
+		
+		int seed = Random.Range (0, int.MaxValue);
+		
+		if (getSeedInput) {
+			string seedStr = SetSeedDialogPanelScript.GetName ();
+			
+			if (!int.TryParse (seedStr, out seed)) {
+				
+				MessageDialogPanelScript.SetVisible (true);
+				return;
+			}
+			
+			if (seed < 0) {
+				
+				MessageDialogPanelScript.SetVisible (true);
+				return;
+			}
+		}
 		
 		SetEnabledModalProgressDialog (true);
 		
@@ -114,7 +160,7 @@ public class StartGuiManagerScript : MonoBehaviour {
 		
 		_preparingWorld = true;
 		
-		Manager.GenerateNewWorldAsync (ProgressUpdate);
+		Manager.GenerateNewWorldAsync (0, ProgressUpdate);
 		
 		_postPreparationOp = () => {
 			
