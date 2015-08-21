@@ -79,7 +79,7 @@ public class GuiManagerScript : MonoBehaviour {
 		_updateTexture = true;
 	}
 
-	private const float maxAccTime = 1;
+	private const float maxAccTime = 0.1f;
 	private float accDeltaTime = 0;
 	
 	// Update is called once per frame
@@ -118,10 +118,14 @@ public class GuiManagerScript : MonoBehaviour {
 			Manager.SetPlanetOverlay (_planetOverlay);
 			Manager.SetPlanetView (_planetView);
 
-			Manager.RefreshTextures ();
+			Manager.GenerateTextures ();
 
 			PlanetScript.UpdateTexture ();
 			MapScript.RefreshTexture ();
+
+		} else {
+
+			Manager.UpdateTextures ();
 		}
 
 		if (MapImage.enabled) {

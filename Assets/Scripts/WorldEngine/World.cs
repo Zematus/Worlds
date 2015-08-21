@@ -53,6 +53,8 @@ public class World {
 	[XmlAttribute]
 	public int Seed { get; private set; }
 
+	public int CurrentGroupId { get; private set; }
+
 	public TerrainCell[][] Terrain;
 
 	public List<WorldEvent> EventsToHappen = new List<WorldEvent> ();
@@ -60,7 +62,7 @@ public class World {
 	private const float _progressIncrement = 0.25f;
 	
 	private List<HumanGroup> _groups = new List<HumanGroup>();
-
+	
 	private List<HumanGroup> _groupsToUpdate = new List<HumanGroup>();
 	private List<HumanGroup> _groupsToRemove = new List<HumanGroup>();
 
@@ -90,6 +92,8 @@ public class World {
 		Width = width;
 		Height = height;
 		Seed = seed;
+
+		CurrentGroupId = 0;
 
 		_cellMaxWidth = Circumference / Width;
 
@@ -122,6 +126,14 @@ public class World {
 			}
 
 			Terrain[i] = column;
+		}
+		
+		for (int i = 0; i < width; i++) {
+
+			for (int j = 0; j < height; j++) {
+
+				Terrain[i][j].InitializeNeighbors();
+			}
 		}
 
 		_continentOffsets = new Vector2[NumContinents];
@@ -166,11 +178,19 @@ public class World {
 		_groupsToUpdate.Clear ();
 	
 		foreach (HumanGroup group in currentGroupsToUpdate) {
+			
+			Manager.AddUpdatedCell(group.Cell);
 		
 			group.Update();
 		}
+		
+		//
+		// Remove Human Groups that need removing
+		//
 
 		foreach (HumanGroup group in _groupsToRemove) {
+			
+			Manager.AddUpdatedCell(group.Cell);
 			
 			group.Destroy();
 		}
@@ -804,7 +824,7 @@ public class World {
 	
 	private void SetInitialHumanGroups () {
 
-		int maxGroups = 5;
+		int maxGroups = 1;
 
 		float minPresence = 0.50f;
 		
@@ -839,10 +859,13 @@ public class World {
 
 			int population = (int)Mathf.Floor(StartPopulationDensity * cell.Area);
 
-			HumanGroup group = new HumanGroup(this, cell, i, population);
-
-			InsertEventToHappen(new UpdateGroupEvent(this, 0, group));
+			AddGroup(new HumanGroup(this, cell, population));
 		}
+	}
+
+	public int GenerateGroupId () {
+	
+		return ++CurrentGroupId;
 	}
 
 	private float CalculateBiomePresence (TerrainCell cell, Biome biome) {

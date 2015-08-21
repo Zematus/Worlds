@@ -30,17 +30,20 @@ public class HumanGroup {
 	public HumanGroup () {
 	}
 
-	public HumanGroup (World world, TerrainCell cell, int id, int initialPopulation) {
+	public HumanGroup (World world, TerrainCell cell, int initialPopulation) {
 
 		World = world;
 		Cell = cell;
 
-		World.AddGroup (this);
 		Cell.HumanGroups.Add (this);
 
-		Id = id;
+		Id = World.GenerateGroupId();
 	
 		Population = initialPopulation;
+		
+		int nextDate = World.CurrentDate + 20 + Cell.GetNextLocalRandomInt (40);
+		
+		World.InsertEventToHappen (new UpdateGroupEvent (World, nextDate, this));
 	}
 
 	public void Update () {
@@ -52,9 +55,34 @@ public class HumanGroup {
 			return;
 		}
 
-		int nextDate = World.CurrentDate + 50 + Cell.GetNextLocalRandomInt (50);
+		float chanceOfMigration = 0.25f;
+
+		float migrationRoll = Cell.GetNextLocalRandomFloat ();
+
+		if (migrationRoll < chanceOfMigration) {
+
+			PerformMigration();
+		}
+
+		int nextDate = World.CurrentDate + 20 + Cell.GetNextLocalRandomInt (40);
 
 		World.InsertEventToHappen (new UpdateGroupEvent (World, nextDate, this));
+	}
+
+	public void PerformMigration () {
+
+		float percentToMigrate = 0.5f * Cell.GetNextLocalRandomFloat ();
+	
+		int popToMigrate = (int)(percentToMigrate * Population);
+
+		if (popToMigrate < 1)
+			return;
+
+		int index = Cell.GetNextLocalRandomInt (Cell.Neighbors.Count);
+		
+		TerrainCell targetCell = Cell.Neighbors[index];
+
+		World.AddGroup(new HumanGroup(World, targetCell, popToMigrate));
 	}
 
 	public void Destroy () {

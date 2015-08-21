@@ -85,8 +85,10 @@ public class PerlinNoise {
 		int C = _permutation [X + 2] + Y;
 		int CA = _permutation [C] + Z;
 		int CB = _permutation [CA];
+
+		int value = AB + (BB * 256) + (CB * 256 * 256);
 		
-		return AB + (BB * 256) + (CB * 256 * 256);
+		return value;
 	}
 
 	public static float GetValue (float x, float y, float z) {

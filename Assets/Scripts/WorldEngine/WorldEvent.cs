@@ -12,6 +12,7 @@ public abstract class WorldEvent {
 	public int TriggerDate;
 
 	public WorldEvent () {
+
 	}
 
 	public WorldEvent (World world, int triggerDate) {
@@ -41,6 +42,7 @@ public class UpdateGroupEvent : WorldEvent {
 	public HumanGroup Group;
 
 	public UpdateGroupEvent () {
+
 	}
 
 	public UpdateGroupEvent (World world, int triggerDate, HumanGroup group) : base (world, triggerDate) {

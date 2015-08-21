@@ -42,6 +42,9 @@ public class TerrainCell {
 	
 	[XmlIgnore]
 	public float Area;
+	
+	[XmlIgnore]
+	public List<TerrainCell> Neighbors { get; private set; }
 
 	public List<string> PresentBiomeNames = new List<string>();
 	public List<float> BiomePresences = new List<float>();
@@ -72,8 +75,10 @@ public class TerrainCell {
 	}
 	
 	public float GetNextLocalRandomFloat () {
+
+		int value = GetNextLocalRandomInt ();
 		
-		return GetNextLocalRandomInt() / (float)PerlinNoise.MaxPermutationValue;
+		return value / (float)PerlinNoise.MaxPermutationValue;
 	}
 
 	public float GetBiomePresence (Biome biome) {
@@ -92,6 +97,8 @@ public class TerrainCell {
 	}
 
 	public void FinalizeLoad () {
+		
+		InitializeNeighbors ();
 
 		foreach (HumanGroup group in HumanGroups) {
 		
@@ -100,5 +107,87 @@ public class TerrainCell {
 
 			World.AddGroup(group);
 		}
+	}
+
+	public void InitializeNeighbors () {
+		
+		Neighbors = GetNeighborCells ();
+	}
+
+	private TerrainCell GetNeighborCell (int direction) {
+
+		int latitude = Latitude;
+		int longitude = Longitude;
+
+		switch (direction) {
+
+		case 0:
+			latitude++;
+			break;
+		case 1:
+			latitude++;
+			longitude++;
+			break;
+		case 2:
+			longitude++;
+			break;
+		case 3:
+			latitude--;
+			longitude++;
+			break;
+		case 4:
+			latitude--;
+			break;
+		case 5:
+			latitude--;
+			longitude--;
+			break;
+		case 6:
+			longitude--;
+			break;
+		case 7:
+			latitude++;
+			longitude--;
+			break;
+
+		default:
+			throw new System.Exception ("Unexpected direction: " + direction);
+		}
+
+		if ((latitude < 0) || (latitude >= World.Height)) {
+		
+			return null;
+		}
+
+		longitude = (int)Mathf.Repeat (longitude, World.Width);
+
+		return World.Terrain [longitude] [latitude];
+	}
+	
+	public List<TerrainCell> GetNeighborCells () {
+		
+		List<TerrainCell> neighbors = new List<TerrainCell> ();
+		
+		int wLongitude = (World.Width + Longitude - 1) % World.Width;
+		int eLongitude = (Longitude + 1) % World.Width;
+		
+		if (Latitude < (World.Height - 1)) {
+			
+			neighbors.Add(World.Terrain[wLongitude][Latitude + 1]);
+			neighbors.Add(World.Terrain[Longitude][Latitude + 1]);
+			neighbors.Add(World.Terrain[eLongitude][Latitude + 1]);
+		}
+		
+		neighbors.Add(World.Terrain[wLongitude][Latitude]);
+		neighbors.Add(World.Terrain[eLongitude][Latitude]);
+		
+		if (Latitude > 0) {
+			
+			neighbors.Add(World.Terrain[wLongitude][Latitude - 1]);
+			neighbors.Add(World.Terrain[Longitude][Latitude - 1]);
+			neighbors.Add(World.Terrain[eLongitude][Latitude - 1]);
+		}
+		
+		return neighbors;
 	}
 }

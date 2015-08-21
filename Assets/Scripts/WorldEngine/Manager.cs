@@ -86,6 +86,10 @@ public class Manager {
 	public static string ExportPath { get; private set; }
 	
 	public static string WorldName { get; set; }
+	
+	public static HashSet<TerrainCell> UpdatedCells { get; private set; }
+	
+	public static int PixelToCellRatio = 4;
 
 	private static Manager _manager = new Manager();
 
@@ -129,6 +133,8 @@ public class Manager {
 		InitializeExportPath ();
 
 		AttributeOverrides = GenerateAttributeOverrides ();
+
+		UpdatedCells = new HashSet<TerrainCell> ();
 	}
 
 	private void InitializeSavePath () {
@@ -287,10 +293,15 @@ public class Manager {
 		});
 	}
 	
-	public static void RefreshTextures () { 
+	public static void GenerateTextures () { 
 
 		GenerateSphereTextureFromWorld(CurrentWorld);
 		GenerateMapTextureFromWorld(CurrentWorld);
+	}
+
+	public static void AddUpdatedCell (TerrainCell cell) {
+	
+		UpdatedCells.Add(cell);
 	}
 
 	public static void GenerateNewWorld (int seed) {
@@ -402,24 +413,55 @@ public class Manager {
 		
 		_planetView = value;
 	}
+
+	public static void UpdateTextures () {
+
+		UpdateMapTexture (CurrentMapTexture);
+		UpdateSphereTexture (CurrentSphereTexture);
+
+		UpdatedCells.Clear ();
+	}
+
+	public static void UpdateMapTexture (Texture2D texture) {
+		
+		foreach (TerrainCell cell in UpdatedCells) {
+			
+			UpdateMapTextureFromCell (texture, cell);
+		}
+
+		texture.Apply (false);
+	}
+	
+	public static void UpdateMapTextureFromCell (Texture2D texture, TerrainCell cell) {
+		
+		World world = cell.World;
+		
+		int r = PixelToCellRatio;
+		
+		int i = cell.Longitude;
+		int j = cell.Latitude;
+		
+		Color cellColor = GenerateColorFromTerrainCell(world.Terrain[i][j]);
+		
+		for (int m = 0; m < r; m++) {
+			for (int n = 0; n < r; n++) {
+				
+				texture.SetPixel(i*r + m, j*r + n, cellColor);
+			}
+		}
+	}
 	
 	public static Texture2D GenerateMapTextureFromWorld (World world) {
 		
 		int sizeX = world.Width;
 		int sizeY = world.Height;
 		
-		int r = 4;
+		int r = PixelToCellRatio;
 		
 		Texture2D texture = new Texture2D(sizeX*r, sizeY*r, TextureFormat.ARGB32, false);
 		
 		for (int i = 0; i < sizeX; i++) {
 			for (int j = 0; j < sizeY; j++) {
-//				if (((i % 20) == 0) || ((j % 20) == 0)) {
-//
-//					texture.SetPixel(i, j, Color.black);
-//
-//					continue;
-//				}
 
 				Color cellColor = GenerateColorFromTerrainCell(world.Terrain[i][j]);
 
@@ -438,13 +480,48 @@ public class Manager {
 		
 		return texture;
 	}
+
+	public static void UpdateSphereTexture (Texture2D texture) {
+
+		foreach (TerrainCell cell in UpdatedCells) {
+
+			UpdateSphereTextureFromCell (texture, cell);
+		}
+		
+		texture.Apply (false);
+	}
+
+	public static void UpdateSphereTextureFromCell (Texture2D texture, TerrainCell cell) {
+
+		World world = cell.World;
+
+		int sizeY = world.Height*2;
+		
+		int r = PixelToCellRatio;
+
+		int i = cell.Longitude;
+		int j = cell.Latitude;
+
+		float factorJ = (1f - Mathf.Cos(Mathf.PI*(float)j/(float)sizeY))/2f;
+		
+		int trueJ = (int)(world.Height * factorJ);
+		
+		Color cellColor = GenerateColorFromTerrainCell(world.Terrain[i][trueJ]);
+		
+		for (int m = 0; m < r; m++) {
+			for (int n = 0; n < r; n++) {
+				
+				texture.SetPixel(i*r + m, j*r + n, cellColor);
+			}
+		}
+	}
 	
 	public static Texture2D GenerateSphereTextureFromWorld (World world) {
 		
 		int sizeX = world.Width;
 		int sizeY = world.Height*2;
 		
-		int r = 4;
+		int r = PixelToCellRatio;
 		
 		Texture2D texture = new Texture2D(sizeX*r, sizeY*r, TextureFormat.ARGB32, false);
 		
@@ -455,13 +532,6 @@ public class Manager {
 				float factorJ = (1f - Mathf.Cos(Mathf.PI*(float)j/(float)sizeY))/2f;
 
 				int trueJ = (int)(world.Height * factorJ);
-
-//				if (((i % 20) == 0) || (((int)trueJ % 20) == 0)) {
-//					
-//					texture.SetPixel(i, j, Color.black);
-//					
-//					continue;
-//				}
 
 				Color cellColor = GenerateColorFromTerrainCell(world.Terrain[i][trueJ]);
 				
@@ -964,7 +1034,7 @@ public class Manager {
 		XmlElementAttribute attr = new XmlElementAttribute();
 		attr.ElementName = "UpdateGroupEvent";
 		attr.Type = typeof(UpdateGroupEvent);
-
+		
 		attrs.XmlElements.Add(attr);
 
 		XmlAttributeOverrides attrOverrides = new XmlAttributeOverrides();

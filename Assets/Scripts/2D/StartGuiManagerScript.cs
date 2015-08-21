@@ -160,7 +160,7 @@ public class StartGuiManagerScript : MonoBehaviour {
 		
 		_preparingWorld = true;
 		
-		Manager.GenerateNewWorldAsync (0, ProgressUpdate);
+		Manager.GenerateNewWorldAsync (seed, ProgressUpdate);
 		
 		_postPreparationOp = () => {
 			
