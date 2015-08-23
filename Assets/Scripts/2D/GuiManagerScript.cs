@@ -38,7 +38,7 @@ public class GuiManagerScript : MonoBehaviour {
 	private PlanetView _planetView = PlanetView.Biomes;
 	private PlanetOverlay _planetOverlay = PlanetOverlay.None;
 
-	private bool _updateTexture = false;
+	private bool _regenTextures = false;
 
 	private Vector2 _beginDragPosition;
 	private Rect _beginDragMapUvRect;
@@ -46,6 +46,12 @@ public class GuiManagerScript : MonoBehaviour {
 	private bool _preparingWorld = false;
 
 	private PostPreparationOperation _postPreparationOp = null;
+	
+	private const float _maxAccTime = 0.1f;
+	private const int _iterationsPerRefresh = 10;
+
+	private float _accDeltaTime = 0;
+	private int _accIterations = 0;
 
 	// Use this for initialization
 	void Start () {
@@ -76,11 +82,8 @@ public class GuiManagerScript : MonoBehaviour {
 		Manager.SetBiomePalette (BiomePaletteScript.Colors);
 		Manager.SetMapPalette (MapPaletteScript.Colors);
 
-		_updateTexture = true;
+		_regenTextures = true;
 	}
-
-	private const float maxAccTime = 0.1f;
-	private float accDeltaTime = 0;
 	
 	// Update is called once per frame
 	void Update () {
@@ -90,6 +93,8 @@ public class GuiManagerScript : MonoBehaviour {
 		if (!Manager.WorldReady) {
 			return;
 		}
+
+		bool updateTextures = false;
 
 		if (_preparingWorld) {
 
@@ -102,30 +107,41 @@ public class GuiManagerScript : MonoBehaviour {
 
 		} else {
 
-			accDeltaTime += Time.deltaTime;
+			_accDeltaTime += Time.deltaTime;
 
-			if (accDeltaTime > maxAccTime) {
+			if (_accDeltaTime > _maxAccTime) {
 
 				Manager.CurrentWorld.Iterate();
 
-				accDeltaTime -= maxAccTime;
+				updateTextures = true;
+
+				_accDeltaTime -= _maxAccTime;
+
+				_accIterations++;
 			}
 		}
 	
-		if (_updateTexture) {
-			_updateTexture = false;
+		if (_regenTextures) {
+			_regenTextures = false;
 
 			Manager.SetPlanetOverlay (_planetOverlay);
 			Manager.SetPlanetView (_planetView);
 
 			Manager.GenerateTextures ();
 
-			PlanetScript.UpdateTexture ();
+			PlanetScript.RefreshTexture ();
 			MapScript.RefreshTexture ();
 
-		} else {
+		} else if (updateTextures) {
 
-			Manager.UpdateTextures ();
+			if (_accIterations >= _iterationsPerRefresh)
+			{
+				_accIterations -= _iterationsPerRefresh;
+				
+				if (_planetOverlay == PlanetOverlay.Population) {
+					Manager.UpdateTextures ();
+				}
+			}
 		}
 
 		if (MapImage.enabled) {
@@ -225,7 +241,7 @@ public class GuiManagerScript : MonoBehaviour {
 			_postPreparationOp = null;
 		};
 		
-		_updateTexture = true;
+		_regenTextures = true;
 	}
 
 	private bool HasFilesToLoad () {
@@ -341,7 +357,7 @@ public class GuiManagerScript : MonoBehaviour {
 		
 		_preparingWorld = true;
 		
-		_updateTexture = true;
+		_regenTextures = true;
 	}
 	
 	public void CancelLoadAction () {
@@ -411,35 +427,35 @@ public class GuiManagerScript : MonoBehaviour {
 	
 	public void SetRainfallOverlay () {
 
-		_updateTexture |= _planetOverlay != PlanetOverlay.Rainfall;
+		_regenTextures |= _planetOverlay != PlanetOverlay.Rainfall;
 
 		_planetOverlay = PlanetOverlay.Rainfall;
 	}
 	
 	public void SetTemperatureOverlay () {
 		
-		_updateTexture |= _planetOverlay != PlanetOverlay.Temperature;
+		_regenTextures |= _planetOverlay != PlanetOverlay.Temperature;
 		
 		_planetOverlay = PlanetOverlay.Temperature;
 	}
 	
 	public void SetPopulationOverlay () {
 		
-		_updateTexture |= _planetOverlay != PlanetOverlay.Population;
+		_regenTextures |= _planetOverlay != PlanetOverlay.Population;
 		
 		_planetOverlay = PlanetOverlay.Population;
 	}
 	
 	public void UnsetOverlay () {
 		
-		_updateTexture |= _planetOverlay != PlanetOverlay.None;
+		_regenTextures |= _planetOverlay != PlanetOverlay.None;
 		
 		_planetOverlay = PlanetOverlay.None;
 	}
 	
 	public void SetBiomeView () {
 		
-		_updateTexture |= _planetView != PlanetView.Biomes;
+		_regenTextures |= _planetView != PlanetView.Biomes;
 		
 		_planetView = PlanetView.Biomes;
 		
@@ -448,7 +464,7 @@ public class GuiManagerScript : MonoBehaviour {
 	
 	public void SetElevationView () {
 		
-		_updateTexture |= _planetView != PlanetView.Elevation;
+		_regenTextures |= _planetView != PlanetView.Elevation;
 		
 		_planetView = PlanetView.Elevation;
 		
@@ -457,7 +473,7 @@ public class GuiManagerScript : MonoBehaviour {
 	
 	public void SetCoastlineView () {
 		
-		_updateTexture |= _planetView != PlanetView.Coastlines;
+		_regenTextures |= _planetView != PlanetView.Coastlines;
 		
 		_planetView = PlanetView.Coastlines;
 		
@@ -500,7 +516,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 		int population = 0;
 
-		foreach (HumanGroup group in cell.HumanGroups) {
+		foreach (CellGroup group in cell.Groups) {
 		
 			population += group.Population;
 		}

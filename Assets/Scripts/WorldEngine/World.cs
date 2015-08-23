@@ -35,6 +35,8 @@ public class World {
 
 	public float MaxTemperature = MinPossibleTemperature;
 	public float MinTemperature = MaxPossibleTemperature;
+
+	public CellGroup MostPopulousGroup = null;
 	
 	[XmlIgnore]
 	public bool Ready { get; private set; }
@@ -61,10 +63,12 @@ public class World {
 		
 	private const float _progressIncrement = 0.25f;
 	
-	private List<HumanGroup> _groups = new List<HumanGroup>();
+	private List<CellGroup> _groups = new List<CellGroup>();
 	
-	private List<HumanGroup> _groupsToUpdate = new List<HumanGroup>();
-	private List<HumanGroup> _groupsToRemove = new List<HumanGroup>();
+	private List<CellGroup> _groupsToUpdate = new List<CellGroup>();
+	private List<CellGroup> _groupsToRemove = new List<CellGroup>();
+
+	private List<MigratingGroup> _migratingGroups = new List<MigratingGroup> ();
 
 	private Vector2[] _continentOffsets;
 	private float[] _continentWidths;
@@ -141,6 +145,21 @@ public class World {
 		_continentWidths = new float[NumContinents];
 	}
 
+	public void UpdateMostPopulousGroup (CellGroup contenderGroup) {
+	
+		if (MostPopulousGroup == null) {
+
+			MostPopulousGroup = contenderGroup;
+			return;
+		}
+
+		if (MostPopulousGroup.Population < contenderGroup.Population) {
+			
+			MostPopulousGroup = contenderGroup;
+			return;
+		}
+	}
+
 	public void Iterate () {
 		
 		//
@@ -170,14 +189,14 @@ public class World {
 		}
 		
 		//
-		// Update Human Groups that need updating
+		// Update Human Groups
 		//
 
-		HumanGroup[] currentGroupsToUpdate = _groupsToUpdate.ToArray();
+		CellGroup[] currentGroupsToUpdate = _groupsToUpdate.ToArray();
 		
 		_groupsToUpdate.Clear ();
 	
-		foreach (HumanGroup group in currentGroupsToUpdate) {
+		foreach (CellGroup group in currentGroupsToUpdate) {
 			
 			Manager.AddUpdatedCell(group.Cell);
 		
@@ -185,10 +204,25 @@ public class World {
 		}
 		
 		//
-		// Remove Human Groups that need removing
+		// Migrate Human Groups
+		//
+		
+		MigratingGroup[] currentGroupsToMigrate = _migratingGroups.ToArray();
+		
+		_migratingGroups.Clear ();
+		
+		foreach (MigratingGroup group in currentGroupsToMigrate) {
+			
+			Manager.AddUpdatedCell(group.TargetCell);
+
+			group.AddToCell();
+		}
+		
+		//
+		// Remove Human Groups
 		//
 
-		foreach (HumanGroup group in _groupsToRemove) {
+		foreach (CellGroup group in _groupsToRemove) {
 			
 			Manager.AddUpdatedCell(group.Cell);
 			
@@ -234,19 +268,24 @@ public class World {
 		EventsToHappen.Insert(0, eventToHappen);
 	}
 	
-	public void AddGroup (HumanGroup group) {
+	public void AddMigratingGroup (MigratingGroup group) {
+		
+		_migratingGroups.Add (group);
+	}
+	
+	public void AddGroup (CellGroup group) {
 		
 		_groups.Add (group);
 	}
 	
-	public void RemoveGroup (HumanGroup group) {
+	public void RemoveGroup (CellGroup group) {
 		
 		_groups.Remove (group);
 	}
 	
-	public HumanGroup FindGroup (int id) {
+	public CellGroup FindGroup (int id) {
 
-		foreach (HumanGroup group in _groups) {
+		foreach (CellGroup group in _groups) {
 		
 			if (group.Id == id) return group;
 		}
@@ -254,12 +293,12 @@ public class World {
 		return null;
 	}
 
-	public void AddGroupToUpdate (HumanGroup group) {
+	public void AddGroupToUpdate (CellGroup group) {
 	
 		_groupsToUpdate.Add (group);
 	}
 	
-	public void AddGroupToRemove (HumanGroup group) {
+	public void AddGroupToRemove (CellGroup group) {
 		
 		_groupsToRemove.Add (group);
 	}
@@ -813,7 +852,7 @@ public class World {
 					}
 				}
 
-				cell.MaxForage = cell.Area * TerrainCell.MaxForageFactor * cell.ForagingCapacity * HumanGroup.InitialPopulationFactor;
+				cell.MaxForage = cell.Area * TerrainCell.MaxForageFactor * cell.ForagingCapacity * CellGroup.InitialPopulationFactor;
 			}
 			
 			ProgressCastMethod (_accumulatedProgress + 0.20f * (i + 1)/(float)sizeX);
@@ -859,7 +898,7 @@ public class World {
 
 			int population = (int)Mathf.Floor(StartPopulationDensity * cell.Area);
 
-			AddGroup(new HumanGroup(this, cell, population));
+			AddGroup(new CellGroup(this, cell, population));
 		}
 	}
 

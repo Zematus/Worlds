@@ -49,7 +49,7 @@ public class TerrainCell {
 	public List<string> PresentBiomeNames = new List<string>();
 	public List<float> BiomePresences = new List<float>();
 
-	public List<HumanGroup> HumanGroups = new List<HumanGroup>();
+	public List<CellGroup> Groups = new List<CellGroup>();
 
 	public TerrainCell () {
 	
@@ -100,7 +100,7 @@ public class TerrainCell {
 		
 		InitializeNeighbors ();
 
-		foreach (HumanGroup group in HumanGroups) {
+		foreach (CellGroup group in Groups) {
 		
 			group.World = World;
 			group.Cell = this;

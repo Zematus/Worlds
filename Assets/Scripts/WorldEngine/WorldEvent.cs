@@ -39,13 +39,13 @@ public class UpdateGroupEvent : WorldEvent {
 	public int GroupId;
 
 	[XmlIgnore]
-	public HumanGroup Group;
+	public CellGroup Group;
 
 	public UpdateGroupEvent () {
 
 	}
 
-	public UpdateGroupEvent (World world, int triggerDate, HumanGroup group) : base (world, triggerDate) {
+	public UpdateGroupEvent (World world, int triggerDate, CellGroup group) : base (world, triggerDate) {
 
 		Group = group;
 		GroupId = Group.Id;

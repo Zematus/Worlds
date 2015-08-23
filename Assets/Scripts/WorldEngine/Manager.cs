@@ -105,6 +105,9 @@ public class Manager {
 	
 	private Texture2D _currentSphereTexture = null;
 	private Texture2D _currentMapTexture = null;
+	
+	private Color32[] _currentSphereTextureColors = null;
+	private Color32[] _currentMapTextureColors = null;
 
 	private Queue<IManagerTask> _taskQueue = new Queue<IManagerTask>();
 
@@ -416,25 +419,34 @@ public class Manager {
 
 	public static void UpdateTextures () {
 
-		UpdateMapTexture (CurrentMapTexture);
-		UpdateSphereTexture (CurrentSphereTexture);
+		UpdateMapTextureColors (_manager._currentMapTextureColors);
+		CurrentMapTexture.SetPixels32 (_manager._currentMapTextureColors);
+		
+		//CurrentMapTexture.Compress (true);
+		CurrentMapTexture.Apply ();
+
+		UpdateSphereTextureColors (_manager._currentSphereTextureColors);
+		CurrentSphereTexture.SetPixels32 (_manager._currentSphereTextureColors);
+		
+		//CurrentSphereTexture.Compress (true);
+		CurrentSphereTexture.Apply ();
 
 		UpdatedCells.Clear ();
 	}
 
-	public static void UpdateMapTexture (Texture2D texture) {
+	public static void UpdateMapTextureColors (Color32[] textureColors) {
 		
 		foreach (TerrainCell cell in UpdatedCells) {
 			
-			UpdateMapTextureFromCell (texture, cell);
+			UpdateMapTextureColorsFromCell (textureColors, cell);
 		}
-
-		texture.Apply (false);
 	}
 	
-	public static void UpdateMapTextureFromCell (Texture2D texture, TerrainCell cell) {
+	public static void UpdateMapTextureColorsFromCell (Color32[] textureColors, TerrainCell cell) {
 		
 		World world = cell.World;
+
+		int sizeX = world.Width;
 		
 		int r = PixelToCellRatio;
 		
@@ -446,17 +458,24 @@ public class Manager {
 		for (int m = 0; m < r; m++) {
 			for (int n = 0; n < r; n++) {
 				
-				texture.SetPixel(i*r + m, j*r + n, cellColor);
+				int offsetY = sizeX * r * (j*r + n);
+				int offsetX = i*r + m;
+				
+				textureColors[offsetY + offsetX] = cellColor;
 			}
 		}
 	}
 	
 	public static Texture2D GenerateMapTextureFromWorld (World world) {
 		
+		UpdatedCells.Clear ();
+		
 		int sizeX = world.Width;
 		int sizeY = world.Height;
 		
 		int r = PixelToCellRatio;
+		
+		Color32[] textureColors = new Color32[sizeX * sizeY * r * r];
 		
 		Texture2D texture = new Texture2D(sizeX*r, sizeY*r, TextureFormat.ARGB32, false);
 		
@@ -467,34 +486,40 @@ public class Manager {
 
 				for (int m = 0; m < r; m++) {
 					for (int n = 0; n < r; n++) {
-
-						texture.SetPixel(i*r + m, j*r + n, cellColor);
+						
+						int offsetY = sizeX * r * (j*r + n);
+						int offsetX = i*r + m;
+						
+						textureColors[offsetY + offsetX] = cellColor;
 					}
 				}
 			}
 		}
 		
-		texture.Apply();
+		texture.SetPixels32 (textureColors);
 
+		//texture.Compress (true);
+		texture.Apply();
+		
+		_manager._currentMapTextureColors = textureColors;
 		_manager._currentMapTexture = texture;
 		
 		return texture;
 	}
 
-	public static void UpdateSphereTexture (Texture2D texture) {
+	public static void UpdateSphereTextureColors (Color32[] textureColors) {
 
 		foreach (TerrainCell cell in UpdatedCells) {
 
-			UpdateSphereTextureFromCell (texture, cell);
+			UpdateSphereTextureColorsFromCell (textureColors, cell);
 		}
-		
-		texture.Apply (false);
 	}
 
-	public static void UpdateSphereTextureFromCell (Texture2D texture, TerrainCell cell) {
+	public static void UpdateSphereTextureColorsFromCell (Color32[] textureColors, TerrainCell cell) {
 
 		World world = cell.World;
-
+		
+		int sizeX = world.Width;
 		int sizeY = world.Height*2;
 		
 		int r = PixelToCellRatio;
@@ -511,17 +536,24 @@ public class Manager {
 		for (int m = 0; m < r; m++) {
 			for (int n = 0; n < r; n++) {
 				
-				texture.SetPixel(i*r + m, j*r + n, cellColor);
+				int offsetY = sizeX * r * (j*r + n);
+				int offsetX = i*r + m;
+				
+				textureColors[offsetY + offsetX] = cellColor;
 			}
 		}
 	}
 	
 	public static Texture2D GenerateSphereTextureFromWorld (World world) {
+
+		UpdatedCells.Clear ();
 		
 		int sizeX = world.Width;
 		int sizeY = world.Height*2;
 		
 		int r = PixelToCellRatio;
+		
+		Color32[] textureColors = new Color32[sizeX * sizeY * r * r];
 		
 		Texture2D texture = new Texture2D(sizeX*r, sizeY*r, TextureFormat.ARGB32, false);
 		
@@ -537,15 +569,22 @@ public class Manager {
 				
 				for (int m = 0; m < r; m++) {
 					for (int n = 0; n < r; n++) {
-						
-						texture.SetPixel(i*r + m, j*r + n, cellColor);
+
+						int offsetY = sizeX * r * (j*r + n);
+						int offsetX = i*r + m;
+
+						textureColors[offsetY + offsetX] = cellColor;
 					}
 				}
 			}
 		}
-		
+
+		texture.SetPixels32 (textureColors);
+
+		//texture.Compress (true);
 		texture.Apply();
-		
+
+		_manager._currentSphereTextureColors = textureColors;
 		_manager._currentSphereTexture = texture;
 		
 		return texture;
@@ -886,16 +925,23 @@ public class Manager {
 		color.g = (greyscale + color.g) / 6f;
 		color.b = (greyscale + color.b) / 6f;
 
+		int MaxPopulation = CurrentWorld.MostPopulousGroup.Population;
+
+		if (MaxPopulation <= 0)
+			return color;
+
 		float totalPopulation = 0;
 		
-		for (int i = 0; i < cell.HumanGroups.Count; i++) {
+		for (int i = 0; i < cell.Groups.Count; i++) {
 
-			totalPopulation += cell.HumanGroups[i].Population;
+			totalPopulation += cell.Groups[i].Population;
 		}
 
 		if (totalPopulation > 0) {
+
+			float value = totalPopulation / MaxPopulation;
 			
-			color = Color.red;
+			color = (color * (1 - value)) + (Color.red * value);
 		}
 
 		return color;

@@ -5,6 +5,8 @@ Done work-items:
 
 Next Release work-items:
  - Group Migrations
+   - Target Cell Biome should affect chances of migration
+ - Data Panel should update always
  - World Customization
    - Mean Temperature
    - Mean Rainfall
