@@ -47,8 +47,8 @@ public class GuiManagerScript : MonoBehaviour {
 
 	private PostPreparationOperation _postPreparationOp = null;
 	
-	private const float _maxAccTime = 0.1f;
-	private const int _iterationsPerRefresh = 10;
+	private const float _maxAccTime = 0.001f;
+	private const int _iterationsPerRefresh = 5;
 
 	private float _accDeltaTime = 0;
 	private int _accIterations = 0;

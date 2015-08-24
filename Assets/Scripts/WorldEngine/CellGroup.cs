@@ -60,7 +60,7 @@ public class CellGroup : HumanGroup {
 			return;
 		}
 
-		float chanceOfMigration = 0.5f;
+		float chanceOfMigration = 1f;
 
 		float migrationRoll = Cell.GetNextLocalRandomFloat ();
 

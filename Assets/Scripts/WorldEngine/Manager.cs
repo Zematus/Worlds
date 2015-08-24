@@ -927,6 +927,8 @@ public class Manager {
 
 		int MaxPopulation = CurrentWorld.MostPopulousGroup.Population;
 
+		float MaxPopFactor = MaxPopulation / 10f;
+
 		if (MaxPopulation <= 0)
 			return color;
 
@@ -939,9 +941,10 @@ public class Manager {
 
 		if (totalPopulation > 0) {
 
-			float value = totalPopulation / MaxPopulation;
+			float value = (totalPopulation + MaxPopFactor) / (MaxPopulation + MaxPopFactor);
 			
 			color = (color * (1 - value)) + (Color.red * value);
+//			color = Color.red;
 		}
 
 		return color;
