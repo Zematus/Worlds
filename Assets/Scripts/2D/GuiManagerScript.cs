@@ -515,16 +515,21 @@ public class GuiManagerScript : MonoBehaviour {
 		InfoPanelText.text += "\nMax Forage Possible: " + cell.MaxForage + " Units";
 
 		int population = 0;
+		float meanStress = 0;
 
 		foreach (CellGroup group in cell.Groups) {
 		
 			population += group.Population;
+			meanStress += group.Stress;
 		}
 
 		if (population > 0) {
+
+			meanStress /= cell.Groups.Count;
 			
 			InfoPanelText.text += "\n";
 			InfoPanelText.text += "\nPopulation: " + population;
+			InfoPanelText.text += "\nStress: " + meanStress;
 		}
 	}
 	

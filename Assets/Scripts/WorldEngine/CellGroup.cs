@@ -16,6 +16,9 @@ public class CellGroup : HumanGroup {
 	[XmlAttribute]
 	public bool StillPresent = true;
 	
+	[XmlAttribute]
+	public float Stress = 0;
+	
 	[XmlIgnore]
 	public TerrainCell Cell;
 
@@ -60,7 +63,11 @@ public class CellGroup : HumanGroup {
 			return;
 		}
 
-		float chanceOfMigration = 1f;
+		float areaFactor = 1 - Cell.Area / TerrainCell.MaxArea;
+
+		float nomadismPreferenceFactor = 0.5f;
+
+		float chanceOfMigration = Mathf.Clamp (nomadismPreferenceFactor + Stress + areaFactor, 0, 1);
 
 		float migrationRoll = Cell.GetNextLocalRandomFloat ();
 
@@ -85,9 +92,16 @@ public class CellGroup : HumanGroup {
 		if (popToMigrate < 1)
 			return;
 
-		int index = Cell.GetNextLocalRandomInt (Cell.Neighbors.Count);
-		
-		TerrainCell targetCell = Cell.Neighbors[index];
+		float score = Cell.GetNextLocalRandomFloat ();
+
+		TerrainCell targetCell = MathUtility.WeightedSelection (score, Cell.Neighbors, (x) => x.Survivability * (1 - x.GetStress()));
+
+//		int index = Cell.GetNextLocalRandomInt (Cell.Neighbors.Count);
+//		
+//		TerrainCell targetCell = Cell.Neighbors[index];
+
+		if (targetCell == null)
+			return;
 
 		World.AddMigratingGroup (new MigratingGroup (World, popToMigrate, targetCell));
 	}
@@ -119,14 +133,20 @@ public class CellGroup : HumanGroup {
 		float survivabilityDeathRate = Mathf.Max(0, 1 - survivabilityFactor);
 
 		float starvationDeathRate = Mathf.Max(0, 1 - productionFactor); // productionFactor should be 1 - (NaturalBirthRate - NaturalDeathRate)
+
+		float unnaturalDeathRate = starvationDeathRate + survivabilityDeathRate;
+		
+		Stress = Mathf.Clamp(unnaturalDeathRate, 0, 1);
 		
 		// Death rate can't be lower than the natural death rate
-		return NaturalBirthRate - NaturalDeathRate - starvationDeathRate - survivabilityDeathRate;
+		return NaturalBirthRate - NaturalDeathRate - unnaturalDeathRate;
 	}
 
 	public void ModifyPopulation () {
 
-		float changeRate = Mathf.Max(MinChangeRate, GetPopulationChangeRate ());
+		float popChangeRate = GetPopulationChangeRate ();
+
+		float changeRate = Mathf.Max(MinChangeRate, popChangeRate);
 
 		Population += (int)Mathf.Floor(Population * changeRate);
 	}

@@ -44,6 +44,9 @@ public class TerrainCell {
 	public float Area;
 	
 	[XmlIgnore]
+	public static float MaxArea;
+	
+	[XmlIgnore]
 	public List<TerrainCell> Neighbors { get; private set; }
 
 	public List<string> PresentBiomeNames = new List<string>();
@@ -82,8 +85,6 @@ public class TerrainCell {
 	}
 
 	public float GetBiomePresence (Biome biome) {
-		
-		Area = Height * Width;
 
 		for (int i = 0; i < PresentBiomeNames.Count; i++) {
 
@@ -94,6 +95,23 @@ public class TerrainCell {
 		}
 
 		return 0;
+	}
+
+	public float GetStress () {
+		
+		if (Groups.Count <= 0)
+			return 0;
+
+		float totalStress = 0;
+		
+		foreach (CellGroup group in Groups) {
+			
+			totalStress += group.Stress;
+		}
+
+		totalStress /= (float)Groups.Count;
+
+		return totalStress;
 	}
 
 	public void FinalizeLoad () {

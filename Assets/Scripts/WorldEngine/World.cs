@@ -78,7 +78,7 @@ public class World {
 
 	private float _accumulatedProgress = 0;
 
-	private float _cellMaxWidth;
+	private float _cellMaxSideLength;
 
 	public World () {
 		
@@ -99,8 +99,9 @@ public class World {
 
 		CurrentGroupId = 0;
 
-		_cellMaxWidth = Circumference / Width;
-
+		_cellMaxSideLength = Circumference / Width;
+		TerrainCell.MaxArea = _cellMaxSideLength * _cellMaxSideLength;
+		
 		CurrentDate = 0;
 
 		Terrain = new TerrainCell[width][];
@@ -119,10 +120,10 @@ public class World {
 				cell.Latitude = j;
 				cell.LocalIteration = 0;
 
-				cell.Height = _cellMaxWidth;
-				cell.Width = Mathf.Sin(alpha) * _cellMaxWidth;
+				cell.Height = _cellMaxSideLength;
+				cell.Width = Mathf.Sin(alpha) * _cellMaxSideLength;
 
-				cell.Area = _cellMaxWidth * cell.Width;
+				cell.Area = cell.Height * cell.Width;
 
 				cell.Ready = false;
 
@@ -305,6 +306,9 @@ public class World {
 
 	public void FinalizeLoad () {
 		
+		_cellMaxSideLength = Circumference / Width;
+		TerrainCell.MaxArea = _cellMaxSideLength * _cellMaxSideLength;
+		
 		for (int i = 0; i < Width; i++)
 		{
 			for (int j = 0; j < Height; j++)
@@ -312,6 +316,8 @@ public class World {
 				TerrainCell cell = Terrain[i][j];
 
 				cell.World = this;
+				
+				cell.Area = cell.Height * cell.Width;
 
 				cell.FinalizeLoad();
 			}
