@@ -927,7 +927,7 @@ public class Manager {
 
 		int MaxPopulation = CurrentWorld.MostPopulousGroup.Population;
 
-		float MaxPopFactor = MaxPopulation / 10f;
+		float MaxPopFactor = MaxPopulation / 5f;
 
 		if (MaxPopulation <= 0)
 			return color;

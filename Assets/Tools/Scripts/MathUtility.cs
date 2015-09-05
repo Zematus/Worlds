@@ -60,7 +60,7 @@ public abstract class MathUtility {
 		
 			for (int j = 0; j < length; j++)
 			{
-				weights[i] = 1 / length;
+				weights[j] = 1 / length;
 			}
 
 			totalWeight = 1;

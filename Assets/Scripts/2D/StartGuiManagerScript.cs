@@ -10,8 +10,9 @@ public class StartGuiManagerScript : MonoBehaviour {
 	public LoadFileDialogPanelScript LoadFileDialogPanelScript;
 	public DialogPanelScript MainMenuDialogPanelScript;
 	public ProgressDialogPanelScript ProgressDialogPanelScript;
-	public TextInputDialogPanelScript SetSeedDialogPanelScript;
+	public WorldCustomizationDialogPanelScript SetSeedDialogPanelScript;
 	public TextInputDialogPanelScript MessageDialogPanelScript;
+	public WorldCustomizationDialogPanelScript CustomizeWorldDialogPanelScript;
 	
 	private bool _preparingWorld = false;
 	
@@ -22,11 +23,12 @@ public class StartGuiManagerScript : MonoBehaviour {
 
 		Manager.UpdateMainThreadReference ();
 
-		SetEnabledModalLoadDialog (false);
-		SetEnabledModalProgressDialog (false);
+		LoadFileDialogPanelScript.SetVisible (false);
+		ProgressDialogPanelScript.SetVisible (false);
 		SetSeedDialogPanelScript.SetVisible (false);
 		MessageDialogPanelScript.SetVisible (false);
-		SetEnabledModalMainMenuDialog (true);
+		CustomizeWorldDialogPanelScript.SetVisible (false);
+		MainMenuDialogPanelScript.SetVisible (true);
 		
 		LoadButton.interactable = HasFilesToLoad ();
 	}
@@ -60,35 +62,20 @@ public class StartGuiManagerScript : MonoBehaviour {
 		return files.Length > 0;
 	}
 	
-	private void SetEnabledModalLoadDialog (bool value) {
-		
-		LoadFileDialogPanelScript.SetVisible (value);
-	}
-	
-	private void SetEnabledModalMainMenuDialog (bool value) {
-		
-		MainMenuDialogPanelScript.SetVisible (value);
-	}
-	
-	private void SetEnabledModalProgressDialog (bool value) {
-		
-		ProgressDialogPanelScript.SetVisible (value);
-	}
-	
 	public void LoadWorld () {
 		
-		SetEnabledModalMainMenuDialog (false);
+		MainMenuDialogPanelScript.SetVisible (false);
 		
-		SetEnabledModalLoadDialog (true);
+		LoadFileDialogPanelScript.SetVisible (true);
 		
 		LoadFileDialogPanelScript.SetLoadAction (LoadAction);
 	}
 	
 	public void LoadAction () {
 		
-		SetEnabledModalLoadDialog (false);
+		LoadFileDialogPanelScript.SetVisible (false);
 		
-		SetEnabledModalProgressDialog (true);
+		ProgressDialogPanelScript.SetVisible (true);
 		
 		ProgressUpdate (0, "Loading World...");
 		
@@ -103,9 +90,9 @@ public class StartGuiManagerScript : MonoBehaviour {
 	
 	public void CancelLoadAction () {
 		
-		SetEnabledModalLoadDialog (false);
+		LoadFileDialogPanelScript.SetVisible (false);
 		
-		SetEnabledModalMainMenuDialog (true);
+		MainMenuDialogPanelScript.SetVisible (true);
 	}
 	
 	public void SetGenerationSeed () {
@@ -114,7 +101,7 @@ public class StartGuiManagerScript : MonoBehaviour {
 		
 		int seed = Random.Range (0, int.MaxValue);
 		
-		SetSeedDialogPanelScript.SetName (seed.ToString());
+		SetSeedDialogPanelScript.SetSeedStr (seed.ToString());
 		
 		SetSeedDialogPanelScript.SetVisible (true);
 		
@@ -139,7 +126,7 @@ public class StartGuiManagerScript : MonoBehaviour {
 		int seed = Random.Range (0, int.MaxValue);
 		
 		if (getSeedInput) {
-			string seedStr = SetSeedDialogPanelScript.GetName ();
+			string seedStr = SetSeedDialogPanelScript.GetSeedString ();
 			
 			if (!int.TryParse (seedStr, out seed)) {
 				
@@ -154,7 +141,7 @@ public class StartGuiManagerScript : MonoBehaviour {
 			}
 		}
 		
-		SetEnabledModalProgressDialog (true);
+		ProgressDialogPanelScript.SetVisible (true);
 		
 		ProgressUpdate (0, "Generating World...");
 		
@@ -168,6 +155,29 @@ public class StartGuiManagerScript : MonoBehaviour {
 			
 			_postPreparationOp = null;
 		};
+	}
+	
+	public void CustomizeGeneration () {
+		
+		SetSeedDialogPanelScript.SetVisible (false);
+		
+		int seed = 0;
+
+		string seedStr = SetSeedDialogPanelScript.GetSeedString ();
+		
+		if (!int.TryParse (seedStr, out seed)) {
+			
+			MessageDialogPanelScript.SetVisible (true);
+			return;
+		}
+		
+		if (seed < 0) {
+			
+			MessageDialogPanelScript.SetVisible (true);
+			return;
+		}
+		
+		CustomizeWorldDialogPanelScript.SetVisible (true);
 	}
 	
 	public void ProgressUpdate (float value, string message = null) {

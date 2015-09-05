@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
@@ -7,7 +8,7 @@ public class CellGroup : HumanGroup {
 
 	public const float NaturalDeathRate = 0.03f; // more or less 0.5/half-life (22.87 years for paleolitic life expectancy of 33 years)
 	public const float NaturalBirthRate = 0.105f; // Should cancel out death rate in perfect circumstances (hunter-gathererers in grasslands)
-	public const float MinChangeRate = -0.99f; // Should cancel out death rate in perfect circumstances (hunter-gathererers in grasslands)
+	public const float MinChangeRate = -1.0f; // Should cancel out death rate in perfect circumstances (hunter-gathererers in grasslands)
 	public const float NaturalChangeFactor = 1 - CellGroup.NaturalBirthRate + CellGroup.NaturalDeathRate;
 	
 	[XmlAttribute]
@@ -63,18 +64,25 @@ public class CellGroup : HumanGroup {
 			return;
 		}
 
-		float areaFactor = 1 - Cell.Area / TerrainCell.MaxArea;
+//		//float areaFactor = 1 - Cell.Area / TerrainCell.MaxArea;
+//
+//		float nomadismPreferenceFactor = 0.1f;
+//		float stressFactor = Stress * 1;
+//
+//		//float chanceOfMigration = Mathf.Clamp (nomadismPreferenceFactor + Stress + areaFactor, 0, 1);
+//		float chanceOfMigration = Mathf.Clamp (nomadismPreferenceFactor + stressFactor, 0, 1);
+//
+//		float migrationRoll = Cell.GetNextLocalRandomFloat ();
+//
+//		if (migrationRoll < chanceOfMigration) {
 
-		float nomadismPreferenceFactor = 0.5f;
-
-		float chanceOfMigration = Mathf.Clamp (nomadismPreferenceFactor + Stress + areaFactor, 0, 1);
-
-		float migrationRoll = Cell.GetNextLocalRandomFloat ();
-
-		if (migrationRoll < chanceOfMigration) {
-
-			PerformMigration();
+		PerformMigration();
+		
+		if (Population <= 0) {
+			World.AddGroupToRemove (this);
+			return;
 		}
+//		}
 
 		int nextDate = World.CurrentDate + 20 + Cell.GetNextLocalRandomInt (40);
 
@@ -85,7 +93,7 @@ public class CellGroup : HumanGroup {
 
 	public void PerformMigration () {
 
-		float percentToMigrate = 0.5f * Cell.GetNextLocalRandomFloat ();
+		float percentToMigrate = 0.1f * Cell.GetNextLocalRandomFloat ();
 	
 		int popToMigrate = (int)(percentToMigrate * Population);
 
@@ -94,14 +102,32 @@ public class CellGroup : HumanGroup {
 
 		float score = Cell.GetNextLocalRandomFloat ();
 
-		TerrainCell targetCell = MathUtility.WeightedSelection (score, Cell.Neighbors, (x) => x.Survivability * (1 - x.GetStress()));
+		List<TerrainCell> possibleTargetCells = new List<TerrainCell> (Cell.Neighbors);
+		possibleTargetCells.Add (Cell);
 
-//		int index = Cell.GetNextLocalRandomInt (Cell.Neighbors.Count);
-//		
-//		TerrainCell targetCell = Cell.Neighbors[index];
+		float noMigrationPreference = 5;
+
+		TerrainCell targetCell = MathUtility.WeightedSelection (score, possibleTargetCells, (x) => {
+
+			float areaFactor = Cell.Area / TerrainCell.MaxArea;
+			float altitudeFactor = 3 * (1 - (x.Altitude / World.MaxPossibleAltitude));
+			float stressFactor = 5 * (1 - x.GetStress());
+			float survabilityFactor = x.Survivability; 
+
+			float cellValue = survabilityFactor * stressFactor * altitudeFactor * areaFactor;
+
+			if (x == Cell) cellValue *= noMigrationPreference;
+
+			return cellValue;
+		});
+
+		if (targetCell == Cell)
+			return;
 
 		if (targetCell == null)
 			return;
+
+		Population -= popToMigrate;
 
 		World.AddMigratingGroup (new MigratingGroup (World, popToMigrate, targetCell));
 	}
@@ -148,6 +174,6 @@ public class CellGroup : HumanGroup {
 
 		float changeRate = Mathf.Max(MinChangeRate, popChangeRate);
 
-		Population += (int)Mathf.Floor(Population * changeRate);
+		Population += Mathf.CeilToInt(Population * changeRate);
 	}
 }

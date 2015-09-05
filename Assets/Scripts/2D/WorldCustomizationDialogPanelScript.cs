@@ -3,12 +3,12 @@ using UnityEngine.Events;
 using UnityEngine.UI;
 using System.Collections;
 
-public class TextInputDialogPanelScript : MonoBehaviour {
+public class WorldCustomizationDialogPanelScript : MonoBehaviour {
 
 	public CanvasGroup ModalPanelCanvasGroup;
 
 	public Text DialogText;
-	public InputField NameInputField;
+	public InputField SeedInputField;
 
 	// Use this for initialization
 	void Start () {
@@ -25,14 +25,14 @@ public class TextInputDialogPanelScript : MonoBehaviour {
 		DialogText.text = text;
 	}
 	
-	public void SetName (string name) {
+	public void SetSeedStr (string seedStr) {
 		
-		NameInputField.text = name;
+		SeedInputField.text = seedStr;
 	}
 	
-	public string GetName () {
+	public string GetSeedString () {
 		
-		return NameInputField.text;
+		return SeedInputField.text;
 	}
 
 	public void SetVisible (bool value) {
