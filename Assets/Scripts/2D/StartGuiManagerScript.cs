@@ -110,6 +110,9 @@ public class StartGuiManagerScript : MonoBehaviour {
 	public void CancelGenerateAction () {
 		
 		SetSeedDialogPanelScript.SetVisible (false);
+		CustomizeWorldDialogPanelScript.SetVisible (false);
+
+		MainMenuDialogPanelScript.SetVisible (true);
 	}
 	
 	public void CloseSeedErrorMessageAction () {
@@ -122,6 +125,7 @@ public class StartGuiManagerScript : MonoBehaviour {
 	public void GenerateWorld (bool getSeedInput = true) {
 		
 		SetSeedDialogPanelScript.SetVisible (false);
+		CustomizeWorldDialogPanelScript.SetVisible (false);
 		
 		int seed = Random.Range (0, int.MaxValue);
 		
@@ -160,24 +164,12 @@ public class StartGuiManagerScript : MonoBehaviour {
 	public void CustomizeGeneration () {
 		
 		SetSeedDialogPanelScript.SetVisible (false);
-		
-		int seed = 0;
 
 		string seedStr = SetSeedDialogPanelScript.GetSeedString ();
 		
-		if (!int.TryParse (seedStr, out seed)) {
-			
-			MessageDialogPanelScript.SetVisible (true);
-			return;
-		}
-		
-		if (seed < 0) {
-			
-			MessageDialogPanelScript.SetVisible (true);
-			return;
-		}
-		
 		CustomizeWorldDialogPanelScript.SetVisible (true);
+
+		CustomizeWorldDialogPanelScript.SetSeedStr (seedStr);
 	}
 	
 	public void ProgressUpdate (float value, string message = null) {
