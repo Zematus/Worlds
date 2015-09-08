@@ -29,8 +29,9 @@ public class GuiManagerScript : MonoBehaviour {
 	public DialogPanelScript OptionsDialogPanelScript;
 	public ProgressDialogPanelScript ProgressDialogPanelScript;
 	public ActivityDialogPanelScript ActivityDialogPanelScript;
-	public TextInputDialogPanelScript SetSeedDialogPanelScript;
 	public TextInputDialogPanelScript MessageDialogPanelScript;
+	public WorldCustomizationDialogPanelScript SetSeedDialogPanelScript;
+	public WorldCustomizationDialogPanelScript CustomizeWorldDialogPanelScript;
 
 	public PaletteScript BiomePaletteScript;
 	public PaletteScript MapPaletteScript;
@@ -72,7 +73,7 @@ public class GuiManagerScript : MonoBehaviour {
 		
 		if (!Manager.WorldReady) {
 
-			GenerateWorld (false);
+			GenerateWorld ();
 		}
 
 		UpdateMapViewButtonText ();
@@ -186,7 +187,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 		int seed = Random.Range (0, int.MaxValue);
 		
-		SetSeedDialogPanelScript.SetName (seed.ToString());
+		SetSeedDialogPanelScript.SetSeedString (seed.ToString());
 
 		SetSeedDialogPanelScript.SetVisible (true);
 
@@ -195,6 +196,7 @@ public class GuiManagerScript : MonoBehaviour {
 	public void CancelGenerateAction () {
 		
 		SetSeedDialogPanelScript.SetVisible (false);
+		CustomizeWorldDialogPanelScript.SetVisible (false);
 	}
 	
 	public void CloseSeedErrorMessageAction () {
@@ -204,44 +206,94 @@ public class GuiManagerScript : MonoBehaviour {
 		SetGenerationSeed ();
 	}
 	
-	public void GenerateWorld (bool getSeedInput = true) {
-		
-		SetSeedDialogPanelScript.SetVisible (false);
+	public void GenerateWorld () {
 
 		int seed = Random.Range (0, int.MaxValue);
-
-		if (getSeedInput) {
-			string seedStr = SetSeedDialogPanelScript.GetName ();
-
-			if (!int.TryParse (seedStr, out seed)) {
-
-				MessageDialogPanelScript.SetVisible (true);
-				return;
-			}
-
-			if (seed < 0) {
-
-				MessageDialogPanelScript.SetVisible (true);
-				return;
-			}
+		
+		GenerateWorldInternal (seed);
+	}
+	
+	public void GenerateWorldWithCustomSeed () {
+		
+		SetSeedDialogPanelScript.SetVisible (false);
+		
+		int seed = 0;
+		string seedStr = SetSeedDialogPanelScript.GetSeedString ();
+		
+		if (!int.TryParse (seedStr, out seed)) {
+			
+			MessageDialogPanelScript.SetVisible (true);
+			return;
 		}
-
+		
+		if (seed < 0) {
+			
+			MessageDialogPanelScript.SetVisible (true);
+			return;
+		}
+		
+		GenerateWorldInternal (seed);
+	}
+	
+	public void GenerateWorldWithCustomParameters () {
+		
+		CustomizeWorldDialogPanelScript.SetVisible (false);
+		
+		Manager.TemperatureOffset = CustomizeWorldDialogPanelScript.TemperatureOffset;
+		Manager.RainfallOffset = CustomizeWorldDialogPanelScript.RainfallOffset;
+		Manager.SeaLevelOffset = CustomizeWorldDialogPanelScript.SeaLevelOffset;
+		
+		int seed = 0;
+		string seedStr = CustomizeWorldDialogPanelScript.GetSeedString ();
+		
+		if (!int.TryParse (seedStr, out seed)) {
+			
+			MessageDialogPanelScript.SetVisible (true);
+			return;
+		}
+		
+		if (seed < 0) {
+			
+			MessageDialogPanelScript.SetVisible (true);
+			return;
+		}
+		
+		GenerateWorldInternal (seed);
+	}
+	
+	private void GenerateWorldInternal (int seed) {
+		
 		ProgressDialogPanelScript.SetVisible (true);
-
+		
 		ProgressUpdate (0, "Generating World...");
-
+		
 		_preparingWorld = true;
-
+		
 		Manager.GenerateNewWorldAsync (seed, ProgressUpdate);
-
+		
 		_postPreparationOp = () => {
-
+			
 			Manager.WorldName = "world_" + Manager.CurrentWorld.Seed;
-
+			
 			_postPreparationOp = null;
 		};
 		
 		_regenTextures = true;
+	}
+	
+	public void CustomizeGeneration () {
+		
+		SetSeedDialogPanelScript.SetVisible (false);
+		
+		string seedStr = SetSeedDialogPanelScript.GetSeedString ();
+		
+		CustomizeWorldDialogPanelScript.SetVisible (true);
+		
+		CustomizeWorldDialogPanelScript.SetSeedString (seedStr);
+		
+		CustomizeWorldDialogPanelScript.SetTemperatureOffset(Manager.TemperatureOffset);
+		CustomizeWorldDialogPanelScript.SetRainfallOffset(Manager.RainfallOffset);
+		CustomizeWorldDialogPanelScript.SetSeaLevelOffset(Manager.SeaLevelOffset);
 	}
 
 	private bool HasFilesToLoad () {

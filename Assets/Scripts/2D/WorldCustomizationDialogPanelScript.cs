@@ -22,9 +22,32 @@ public class WorldCustomizationDialogPanelScript : MonoBehaviour {
 	public Slider SeaLevelSlider;
 	public float SeaLevelOffset = 0;
 
+	private float _minTemperatureOffset = -50;
+	private float _maxTemperatureOffset = 50;
+	
+	private float _minRainfallOffset = -5000;
+	private float _maxRainfallOffset = 5000;
+	
+	private float _minSeaLevelOffset = -10000;
+	private float _maxSeaLevelOffset = 10000;
+
 	// Use this for initialization
 	void Start () {
 	
+		if (TemperatureSlider != null) {
+			TemperatureSlider.minValue = _minTemperatureOffset;
+			TemperatureSlider.maxValue = _maxTemperatureOffset;
+		}
+		
+		if (RainfallSlider != null) {
+			RainfallSlider.minValue = _minRainfallOffset;
+			RainfallSlider.maxValue = _maxRainfallOffset;
+		}
+		
+		if (SeaLevelSlider != null) {
+			SeaLevelSlider.minValue = _minSeaLevelOffset;
+			SeaLevelSlider.maxValue = _maxSeaLevelOffset;
+		}
 	}
 	
 	// Update is called once per frame
@@ -37,9 +60,30 @@ public class WorldCustomizationDialogPanelScript : MonoBehaviour {
 		DialogText.text = text;
 	}
 	
-	public void SetSeedStr (string seedStr) {
+	public void SetSeedString (string seedStr) {
 		
 		SeedInputField.text = seedStr;
+	}
+	
+	public void SetTemperatureOffset (float offset) {
+
+		TemperatureOffset = offset;
+		TemperatureInputField.text = offset.ToString ();
+		TemperatureSlider.value = offset;
+	}
+	
+	public void SetRainfallOffset (float offset) {
+		
+		RainfallOffset = offset;
+		RainfallInputField.text = offset.ToString ();
+		RainfallSlider.value = offset;
+	}
+	
+	public void SetSeaLevelOffset (float offset) {
+		
+		SeaLevelOffset = offset;
+		SeaLevelInputField.text = offset.ToString ();
+		SeaLevelSlider.value = offset;
 	}
 	
 	public string GetSeedString () {
@@ -55,12 +99,21 @@ public class WorldCustomizationDialogPanelScript : MonoBehaviour {
 		gameObject.SetActive (value);
 	}
 
+	public void SeedValueChange () {
+
+		int value = 0;
+	
+		int.TryParse (SeedInputField.text, out value);
+
+		SeedInputField.text = value.ToString ();
+	}
+
 	public void TemperatureValueChange (bool fromField) {
 
 		float value = 0;
 
-		float minOffset = -30;
-		float maxOffset = 30;
+		float minOffset = _minTemperatureOffset;
+		float maxOffset = _maxTemperatureOffset;
 
 		if (fromField) {
 
@@ -83,8 +136,8 @@ public class WorldCustomizationDialogPanelScript : MonoBehaviour {
 		
 		float value = 0;
 		
-		float minOffset = -5000;
-		float maxOffset = 5000;
+		float minOffset = _minRainfallOffset;
+		float maxOffset = _maxRainfallOffset;
 		
 		if (fromField) {
 			
@@ -107,8 +160,8 @@ public class WorldCustomizationDialogPanelScript : MonoBehaviour {
 		
 		float value = 0;
 		
-		float minOffset = -5000;
-		float maxOffset = 5000;
+		float minOffset = _minSeaLevelOffset;
+		float maxOffset = _maxSeaLevelOffset;
 		
 		if (fromField) {
 			

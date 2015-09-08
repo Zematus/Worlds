@@ -90,6 +90,10 @@ public class Manager {
 	public static HashSet<TerrainCell> UpdatedCells { get; private set; }
 	
 	public static int PixelToCellRatio = 4;
+	
+	public static float TemperatureOffset = 0;
+	public static float RainfallOffset = 0;
+	public static float SeaLevelOffset = 0;
 
 	private static Manager _manager = new Manager();
 
@@ -870,14 +874,14 @@ public class Manager {
 		
 		if (altitude < 0) {
 			
-			value = (2 - altitude / World.MinPossibleAltitude) / 2f;
+			value = (2 - altitude / World.MinPossibleAltitude - Manager.SeaLevelOffset) / 2f;
 
 			Color color1 = Color.blue;
 			
 			return new Color(color1.r * value, color1.g * value, color1.b * value);
 		}
 		
-		value = (1 + altitude / World.MaxPossibleAltitude) / 2f;
+		value = (1 + altitude / (World.MaxPossibleAltitude - Manager.SeaLevelOffset)) / 2f;
 		
 		Color color2 = new Color(1f, 0.6f, 0);
 		
@@ -962,7 +966,7 @@ public class Manager {
 		
 		float span = World.MaxPossibleTemperature - World.MinPossibleTemperature;
 		
-		float value = (cell.Temperature - World.MinPossibleTemperature) / span;
+		float value = (cell.Temperature - (World.MinPossibleTemperature + Manager.TemperatureOffset)) / span;
 		
 		addColor = new Color(value, 0, 1f - value);
 		
@@ -983,7 +987,7 @@ public class Manager {
 		
 		if (cell.Rainfall > 0) {
 			
-			float value = cell.Rainfall / World.MaxPossibleRainfall;
+			float value = cell.Rainfall / World.MaxPossibleRainfall + Manager.RainfallOffset;
 			
 			addColor = Color.green;
 			
@@ -1060,20 +1064,6 @@ public class Manager {
 		Color color = new Color(shadeValue, 0, 1f - shadeValue);
 		
 		return color;
-	}
-	
-	private static float NormalizeRainfall (float rainfall) {
-		
-		if (rainfall < 0) return 0;
-		
-		return rainfall / World.MaxPossibleRainfall;
-	}
-	
-	private static float NormalizeTemperature (float temperature) {
-		
-		float span = World.MaxPossibleTemperature - World.MinPossibleTemperature;
-		
-		return (temperature - World.MinPossibleTemperature) / span;
 	}
 
 	private static XmlAttributeOverrides GenerateAttributeOverrides () {

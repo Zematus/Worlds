@@ -26,15 +26,24 @@ public class World {
 	public const float MaxPossibleTemperature = 30;
 
 	public const float StartPopulationDensity = 0.5f;
-
-	public float MaxAltitude = MinPossibleAltitude;
-	public float MinAltitude = MaxPossibleAltitude;
 	
-	public float MaxRainfall = MinPossibleRainfall;
-	public float MinRainfall = MaxPossibleRainfall;
+	public float MinPossibleAltitudeWithOffset = MinPossibleAltitude - Manager.SeaLevelOffset;
+	public float MaxPossibleAltitudeWithOffset = MaxPossibleAltitude - Manager.SeaLevelOffset;
+	
+	public float MinPossibleRainfallWithOffset = MinPossibleRainfall + Manager.RainfallOffset;
+	public float MaxPossibleRainfallWithOffset = MaxPossibleRainfall + Manager.RainfallOffset;
+	
+	public float MinPossibleTemperatureWithOffset = MinPossibleTemperature + Manager.TemperatureOffset;
+	public float MaxPossibleTemperatureWithOffset = MaxPossibleTemperature + Manager.TemperatureOffset;
 
-	public float MaxTemperature = MinPossibleTemperature;
-	public float MinTemperature = MaxPossibleTemperature;
+	public float MaxAltitude = float.MinValue;
+	public float MinAltitude = float.MaxValue;
+	
+	public float MaxRainfall = float.MinValue;
+	public float MinRainfall = float.MaxValue;
+
+	public float MaxTemperature = float.MinValue;
+	public float MinTemperature = float.MaxValue;
 
 	public CellGroup MostPopulousGroup = null;
 	
@@ -582,57 +591,57 @@ public class World {
 		_accumulatedProgress += _progressIncrement;
 	}
 	
-	private void GenerateTerrainRivers () {
-
-		int sizeX = Width;
-		int sizeY = Height;
-		
-		float radius1 = 4f;
-		float radius2 = 12f;
-		
-		ManagerTask<Vector3> offset1 = GenerateRandomOffsetVector();
-		ManagerTask<Vector3> offset2 = GenerateRandomOffsetVector();
-		
-		for (int i = 0; i < sizeX; i++) {
-
-			float beta = (i / (float)sizeX) * Mathf.PI * 2;
-			
-			for (int j = 0; j < sizeY; j++) {
-
-				TerrainCell cell = Terrain[i][j];
-				
-				float alpha = (j / (float)sizeY) * Mathf.PI;
-				
-				float value1 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius1, offset1);
-				float value2 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius2, offset2);
-				
-				float altitudeValue = cell.Altitude;
-				float rainfallValue = cell.Rainfall;
-
-				float altitudeFactor = Mathf.Max(0, altitudeValue / MaxPossibleAltitude);
-				float depthFactor = Mathf.Max(0, altitudeValue / MinPossibleAltitude);
-				float altitudeFactor1 = Mathf.Clamp(10f * altitudeFactor, 0.25f , 1);
-				float rainfallFactor = Mathf.Max(0, rainfallValue / MaxPossibleRainfall);
-
-				float valueA = MathUtility.MixValues(value2, value1, altitudeFactor1);
-				valueA = GetRiverNoiseFromRandomNoise(valueA, 25);
-
-				if (altitudeValue >= 0) {
-					valueA = valueA * Mathf.Max(1 - altitudeFactor * rainfallFactor * 2.5f, 0);
-				} else {
-					valueA = valueA * Mathf.Max(1 - depthFactor * 8, 0);
-				}
-
-				float altitudeMod = valueA * MaxPossibleAltitude * 0.1f;
-
-				cell.Altitude -= altitudeMod;
-			}
-			
-			ProgressCastMethod (_accumulatedProgress + _progressIncrement * (i + 1)/(float)sizeX);
-		}
-		
-		_accumulatedProgress += _progressIncrement;
-	}
+//	private void GenerateTerrainRivers () {
+//
+//		int sizeX = Width;
+//		int sizeY = Height;
+//		
+//		float radius1 = 4f;
+//		float radius2 = 12f;
+//		
+//		ManagerTask<Vector3> offset1 = GenerateRandomOffsetVector();
+//		ManagerTask<Vector3> offset2 = GenerateRandomOffsetVector();
+//		
+//		for (int i = 0; i < sizeX; i++) {
+//
+//			float beta = (i / (float)sizeX) * Mathf.PI * 2;
+//			
+//			for (int j = 0; j < sizeY; j++) {
+//
+//				TerrainCell cell = Terrain[i][j];
+//				
+//				float alpha = (j / (float)sizeY) * Mathf.PI;
+//				
+//				float value1 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius1, offset1);
+//				float value2 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius2, offset2);
+//				
+//				float altitudeValue = cell.Altitude;
+//				float rainfallValue = cell.Rainfall;
+//
+//				float altitudeFactor = Mathf.Max(0, altitudeValue / MaxPossibleAltitude);
+//				float depthFactor = Mathf.Max(0, altitudeValue / MinPossibleAltitude);
+//				float altitudeFactor1 = Mathf.Clamp(10f * altitudeFactor, 0.25f , 1);
+//				float rainfallFactor = Mathf.Max(0, rainfallValue / MaxPossibleRainfall);
+//
+//				float valueA = MathUtility.MixValues(value2, value1, altitudeFactor1);
+//				valueA = GetRiverNoiseFromRandomNoise(valueA, 25);
+//
+//				if (altitudeValue >= 0) {
+//					valueA = valueA * Mathf.Max(1 - altitudeFactor * rainfallFactor * 2.5f, 0);
+//				} else {
+//					valueA = valueA * Mathf.Max(1 - depthFactor * 8, 0);
+//				}
+//
+//				float altitudeMod = valueA * MaxPossibleAltitude * 0.1f;
+//
+//				cell.Altitude -= altitudeMod;
+//			}
+//			
+//			ProgressCastMethod (_accumulatedProgress + _progressIncrement * (i + 1)/(float)sizeX);
+//		}
+//		
+//		_accumulatedProgress += _progressIncrement;
+//	}
 	
 	private ManagerTask<int> GenerateRandomInteger (int min, int max) {
 		
@@ -678,7 +687,13 @@ public class World {
 	
 		float span = MaxPossibleAltitude - MinPossibleAltitude;
 
-		return (value * span) + MinPossibleAltitude;
+		float altitude = (value * span) + MinPossibleAltitude;
+
+		altitude -= Manager.SeaLevelOffset;
+
+		altitude = Mathf.Clamp (altitude, MinPossibleAltitudeWithOffset, MaxPossibleAltitudeWithOffset);
+
+		return altitude;
 	}
 	
 	private void CalculateAndSetAltitude (int longitude, int latitude, float value) {
@@ -896,6 +911,9 @@ public class World {
 		
 		_accumulatedProgress += 0.05f;
 
+		if (SuitableCells.Count <= 0)
+			return;
+
 		for (int i = 0; i < maxGroups; i++) {
 			
 			ManagerTask<int> n = GenerateRandomInteger(0, SuitableCells.Count);
@@ -921,12 +939,18 @@ public class World {
 
 		float altitudeSpan = biome.MaxAltitude - biome.MinAltitude;
 
+
 		float altitudeDiff = cell.Altitude - biome.MinAltitude;
 
 		if (altitudeDiff < 0)
 			return -1f;
 
 		float altitudeFactor = altitudeDiff / altitudeSpan;
+
+		if (float.IsInfinity (altitudeSpan)) {
+
+			altitudeFactor = 0.5f;
+		}
 		
 		if (altitudeFactor > 1)
 			return -1f;
@@ -934,7 +958,7 @@ public class World {
 		if (altitudeFactor > 0.5f)
 			altitudeFactor = 1f - altitudeFactor;
 
-		presence *= altitudeFactor;
+		presence *= altitudeFactor*2;
 
 		// Rainfall
 		
@@ -947,13 +971,18 @@ public class World {
 		
 		float rainfallFactor = rainfallDiff / rainfallSpan;
 		
+		if (float.IsInfinity (rainfallSpan)) {
+			
+			rainfallFactor = 0.5f;
+		}
+		
 		if (rainfallFactor > 1)
 			return -1f;
 		
 		if (rainfallFactor > 0.5f)
 			rainfallFactor = 1f - rainfallFactor;
 		
-		presence *= rainfallFactor;
+		presence *= rainfallFactor*2;
 		
 		// Temperature
 		
@@ -966,13 +995,18 @@ public class World {
 		
 		float temperatureFactor = temperatureDiff / temperatureSpan;
 		
+		if (float.IsInfinity (temperatureSpan)) {
+			
+			temperatureFactor = 0.5f;
+		}
+		
 		if (temperatureFactor > 1)
 			return -1f;
 		
 		if (temperatureFactor > 0.5f)
 			temperatureFactor = 1f - temperatureFactor;
 		
-		presence *= temperatureFactor;
+		presence *= temperatureFactor*2;
 
 		return presence;
 	}
@@ -985,7 +1019,9 @@ public class World {
 
 		float rainfall = (value * span) + MinPossibleRainfall - drynessOffset;
 
-		rainfall = Mathf.Clamp(rainfall, 0, MaxPossibleRainfall);
+		rainfall += Manager.RainfallOffset;
+
+		rainfall = Mathf.Clamp(rainfall, 0, MaxPossibleRainfallWithOffset);
 		
 		return rainfall;
 	}
@@ -995,8 +1031,10 @@ public class World {
 		float span = MaxPossibleTemperature - MinPossibleTemperature;
 		
 		float temperature = (value * span) + MinPossibleTemperature;
+
+		temperature += Manager.TemperatureOffset;
 		
-		temperature = Mathf.Clamp(temperature, MinPossibleTemperature, MaxPossibleTemperature);
+		temperature = Mathf.Clamp(temperature, MinPossibleTemperatureWithOffset, MaxPossibleTemperatureWithOffset);
 		
 		return temperature;
 	}
