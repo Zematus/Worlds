@@ -22,8 +22,8 @@ public class World {
 	public const float MaxPossibleRainfall = 13000;
 	public const float RainfallDrynessOffsetFactor = 0.005f;
 	
-	public const float MinPossibleTemperature = -35;
-	public const float MaxPossibleTemperature = 30;
+	public const float MinPossibleTemperature = -40;
+	public const float MaxPossibleTemperature = 50;
 
 	public const float StartPopulationDensity = 0.5f;
 	
@@ -64,7 +64,7 @@ public class World {
 	[XmlAttribute]
 	public int Seed { get; private set; }
 
-	public int CurrentGroupId { get; private set; }
+	public int CurrentCellGroupId { get; private set; }
 
 	public TerrainCell[][] Terrain;
 
@@ -106,7 +106,7 @@ public class World {
 		Height = height;
 		Seed = seed;
 
-		CurrentGroupId = 0;
+		CurrentCellGroupId = 0;
 
 		_cellMaxSideLength = Circumference / Width;
 		TerrainCell.MaxArea = _cellMaxSideLength * _cellMaxSideLength;
@@ -293,7 +293,7 @@ public class World {
 		_groups.Remove (group);
 	}
 	
-	public CellGroup FindGroup (int id) {
+	public CellGroup FindCellGroup (int id) {
 
 		foreach (CellGroup group in _groups) {
 		
@@ -808,10 +808,16 @@ public class World {
 				float value2 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius2, offset2);
 
 				float latitudeModifier = (alpha * 0.9f) + ((value1 + value2) * 0.05f * Mathf.PI);
+
+				float altitudeSpan = MaxPossibleAltitude - MinPossibleAltitude;
+
+				float absAltitude = cell.Altitude - MinPossibleAltitudeWithOffset;
 				
-				float altitudeFactor = Mathf.Max(0, (cell.Altitude / MaxPossibleAltitude) * 2f);
+				float altitudeFactor1 = (absAltitude / altitudeSpan) * 0.7f;
+				float altitudeFactor2 = Mathf.Max(0, (cell.Altitude / MaxPossibleAltitude) * 1.3f);
+				float altitudeFactor3 = -0.18f;
 				
-				float temperature = CalculateTemperature(Mathf.Sin(latitudeModifier) - altitudeFactor);
+				float temperature = CalculateTemperature(Mathf.Sin(latitudeModifier) - altitudeFactor1 - altitudeFactor2 - altitudeFactor3);
 
 				cell.Temperature = temperature;
 				
@@ -926,9 +932,9 @@ public class World {
 		}
 	}
 
-	public int GenerateGroupId () {
+	public int GenerateCellGroupId () {
 	
-		return ++CurrentGroupId;
+		return ++CurrentCellGroupId;
 	}
 
 	private float CalculateBiomePresence (TerrainCell cell, Biome biome) {

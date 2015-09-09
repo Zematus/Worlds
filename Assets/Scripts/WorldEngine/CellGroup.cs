@@ -39,11 +39,11 @@ public class CellGroup : HumanGroup {
 
 		Cell.Groups.Add (this);
 
-		Id = World.GenerateGroupId();
+		Id = World.GenerateCellGroupId();
 		
-		int nextDate = World.CurrentDate + 20 + Cell.GetNextLocalRandomInt (40);
+		int nextDate = World.CurrentDate + 20;
 		
-		World.InsertEventToHappen (new UpdateGroupEvent (World, nextDate, this));
+		World.InsertEventToHappen (new UpdateCellGroupEvent (World, nextDate, this));
 		
 		World.UpdateMostPopulousGroup (this);
 	}
@@ -64,34 +64,16 @@ public class CellGroup : HumanGroup {
 			return;
 		}
 
-//		//float areaFactor = 1 - Cell.Area / TerrainCell.MaxArea;
-//
-//		float nomadismPreferenceFactor = 0.1f;
-//		float stressFactor = Stress * 1;
-//
-//		//float chanceOfMigration = Mathf.Clamp (nomadismPreferenceFactor + Stress + areaFactor, 0, 1);
-//		float chanceOfMigration = Mathf.Clamp (nomadismPreferenceFactor + stressFactor, 0, 1);
-//
-//		float migrationRoll = Cell.GetNextLocalRandomFloat ();
-//
-//		if (migrationRoll < chanceOfMigration) {
+		ConsiderMigration();
 
-		PerformMigration();
-		
-		if (Population <= 0) {
-			World.AddGroupToRemove (this);
-			return;
-		}
-//		}
+		int nextDate = World.CurrentDate + 20;
 
-		int nextDate = World.CurrentDate + 20 + Cell.GetNextLocalRandomInt (40);
-
-		World.InsertEventToHappen (new UpdateGroupEvent (World, nextDate, this));
+		World.InsertEventToHappen (new UpdateCellGroupEvent (World, nextDate, this));
 		
 		World.UpdateMostPopulousGroup (this);
 	}
 
-	public void PerformMigration () {
+	public void ConsiderMigration () {
 
 		float percentToMigrate = 0.1f * Cell.GetNextLocalRandomFloat ();
 	
@@ -126,10 +108,12 @@ public class CellGroup : HumanGroup {
 
 		if (targetCell == null)
 			return;
+		
+		int nextDate = World.CurrentDate + 3;
 
-		Population -= popToMigrate;
-
-		World.AddMigratingGroup (new MigratingGroup (World, popToMigrate, targetCell));
+		MigratingGroup migratingGroup = new MigratingGroup (World, popToMigrate, this, targetCell);
+		
+		World.InsertEventToHappen (new MigrateGroupEvent (World, nextDate, migratingGroup));
 	}
 
 	public void Destroy () {

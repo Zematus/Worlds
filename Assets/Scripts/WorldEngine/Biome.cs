@@ -24,7 +24,7 @@ public class Biome {
 		MaxBiomeRainfall,
 		MinBiomeTemperature,
 		-15f,
-		0.1f,
+		0.0f,
 		0.02f);
 	
 	public static Biome Ocean = new Biome(
@@ -60,7 +60,7 @@ public class Biome {
 		2975f,
 		-5f,
 		MaxBiomeTemperature,
-		0.8f,
+		0.4f,
 		0.6f);
 	
 	public static Biome Taiga = new Biome(
@@ -72,7 +72,7 @@ public class Biome {
 		MaxBiomeRainfall,
 		-20f,
 		-0f,
-		0.6f,
+		0.2f,
 		0.4f);
 	
 	public static Biome Tundra = new Biome(
@@ -84,7 +84,7 @@ public class Biome {
 		1275f,
 		-20f,
 		-0f,
-		0.3f,
+		0.0f,
 		0.2f);
 	
 	public static Biome Desert = new Biome(
@@ -96,7 +96,7 @@ public class Biome {
 		675f,
 		-5f,
 		MaxBiomeTemperature,
-		0.2f,
+		0.0f,
 		0.1f);
 	
 	public static Biome Rainforest = new Biome(
@@ -108,7 +108,7 @@ public class Biome {
 		MaxBiomeRainfall,
 		-5f,
 		MaxBiomeTemperature,
-		0.6f,
+		0.2f,
 		0.8f);
 
 	public static Dictionary<string, Biome> Biomes = new Dictionary<string, Biome>() {

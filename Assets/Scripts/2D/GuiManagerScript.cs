@@ -146,11 +146,7 @@ public class GuiManagerScript : MonoBehaviour {
 		}
 
 		if (MapImage.enabled) {
-			Vector2 point;
-
-			if (GetMapCoordinatesFromCursor (out point)) {
-				SetInfoPanelData (point);
-			}
+			UpdateInfoPanel();
 		}
 	}
 
@@ -531,25 +527,37 @@ public class GuiManagerScript : MonoBehaviour {
 		
 		ViewsDialogPanelScript.SetVisible (false);
 	}
-	
-	public void SetInfoPanelData (int longitude, int latitude) {
 
-		if ((longitude < 0) || (longitude >= Manager.CurrentWorld.Width))
+	public void UpdateInfoPanel () {
+		
+		World world = Manager.CurrentWorld;
+		
+		InfoPanelText.text = "Year: " + world.CurrentDate;
+
+		Vector2 point;
+		
+		if (GetMapCoordinatesFromCursor (out point)) {
+			AddCellDataToInfoPanel (point);
+		}
+	}
+	
+	public void AddCellDataToInfoPanel (int longitude, int latitude) {
+		
+		World world = Manager.CurrentWorld;
+		
+		if ((longitude < 0) || (longitude >= world.Width))
 			return;
 		
-		if ((latitude < 0) || (latitude >= Manager.CurrentWorld.Height))
+		if ((latitude < 0) || (latitude >= world.Height))
 			return;
 
-		World world = Manager.CurrentWorld;
-
-		InfoPanelText.text = "Year: " + world.CurrentDate;
 		InfoPanelText.text += "\n";
 		
 		TerrainCell cell = world.Terrain[longitude][latitude];
 		
 		InfoPanelText.text += string.Format("\nPosition: Longitude {0}, Latitude {1}", longitude, latitude);
 		InfoPanelText.text += "\nAltitude: " + cell.Altitude + " meters";
-		InfoPanelText.text += "\nRainfall: " + cell.Rainfall + " mm/month";
+		InfoPanelText.text += "\nRainfall: " + cell.Rainfall + " mm / year";
 		InfoPanelText.text += "\nTemperature: " + cell.Temperature + " C";
 		InfoPanelText.text += "\n";
 
@@ -585,12 +593,12 @@ public class GuiManagerScript : MonoBehaviour {
 		}
 	}
 	
-	public void SetInfoPanelData (Vector2 mapPosition) {
+	public void AddCellDataToInfoPanel (Vector2 mapPosition) {
 
 		int longitude = (int)mapPosition.x;
 		int latitude = (int)mapPosition.y;
 
-		SetInfoPanelData (longitude, latitude);
+		AddCellDataToInfoPanel (longitude, latitude);
 	}
 	
 	public bool GetMapCoordinatesFromCursor (out Vector2 point) {

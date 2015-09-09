@@ -7,20 +7,42 @@ public class MigratingGroup : HumanGroup {
 
 	public TerrainCell TargetCell;
 
+	public CellGroup SourceGroup;
+
 	public MigratingGroup () {
 	}
 
-	public MigratingGroup (World world, int population, TerrainCell targetCell) : base (world, population) {
+	public MigratingGroup (World world, int population, CellGroup sourceGroup, TerrainCell targetCell) : base (world, population) {
 
 		TargetCell = targetCell;
+		SourceGroup = sourceGroup;
 	}
 
 	public void AddToCell () {
 
-		if (TargetCell.Groups.Count > 0) {
-		
-			TargetCell.Groups[0].MergeGroup(this);
+		if (SourceGroup == null)
 			return;
+
+		if (!SourceGroup.StillPresent)
+			return;
+
+		if (SourceGroup.Population < Population)
+			Population = SourceGroup.Population;
+
+		SourceGroup.Population -= Population;
+
+		if (SourceGroup.Population == 0) {
+		
+			World.AddGroupToRemove (SourceGroup);
+		}
+
+		foreach (CellGroup group in TargetCell.Groups) {
+
+			if (group.StillPresent) {
+
+				group.MergeGroup(this);
+				return;
+			}
 		}
 
 		World.AddGroup (new CellGroup (this));

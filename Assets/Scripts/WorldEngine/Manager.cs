@@ -929,12 +929,15 @@ public class Manager {
 		color.g = (greyscale + color.g) / 6f;
 		color.b = (greyscale + color.b) / 6f;
 
-		int MaxPopulation = CurrentWorld.MostPopulousGroup.Population;
+		if (CurrentWorld.MostPopulousGroup == null)
+			return color;
 
-		float MaxPopFactor = MaxPopulation / 5f;
+		int MaxPopulation = CurrentWorld.MostPopulousGroup.Population;
 
 		if (MaxPopulation <= 0)
 			return color;
+		
+		float MaxPopFactor = MaxPopulation / 5f;
 
 		float totalPopulation = 0;
 		
@@ -1071,8 +1074,14 @@ public class Manager {
 		XmlAttributes attrs = new XmlAttributes();
 
 		XmlElementAttribute attr = new XmlElementAttribute();
-		attr.ElementName = "UpdateGroupEvent";
-		attr.Type = typeof(UpdateGroupEvent);
+		attr.ElementName = "UpdateCellGroupEvent";
+		attr.Type = typeof(UpdateCellGroupEvent);
+		
+		attrs.XmlElements.Add(attr);
+
+		attr = new XmlElementAttribute();
+		attr.ElementName = "MigrateGroupEvent";
+		attr.Type = typeof(MigrateGroupEvent);
 		
 		attrs.XmlElements.Add(attr);
 

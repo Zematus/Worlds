@@ -33,7 +33,7 @@ public abstract class WorldEvent {
 	public abstract void Trigger ();
 }
 
-public class UpdateGroupEvent : WorldEvent {
+public class UpdateCellGroupEvent : WorldEvent {
 	
 	[XmlAttribute]
 	public int GroupId;
@@ -41,11 +41,11 @@ public class UpdateGroupEvent : WorldEvent {
 	[XmlIgnore]
 	public CellGroup Group;
 
-	public UpdateGroupEvent () {
+	public UpdateCellGroupEvent () {
 
 	}
 
-	public UpdateGroupEvent (World world, int triggerDate, CellGroup group) : base (world, triggerDate) {
+	public UpdateCellGroupEvent (World world, int triggerDate, CellGroup group) : base (world, triggerDate) {
 
 		Group = group;
 		GroupId = Group.Id;
@@ -61,11 +61,39 @@ public class UpdateGroupEvent : WorldEvent {
 
 	public override void FinalizeLoad () {
 
-		Group = World.FindGroup (GroupId);
+		Group = World.FindCellGroup (GroupId);
 	}
 
 	public override void Trigger () {
 
 		World.AddGroupToUpdate (Group);
+	}
+}
+
+public class MigrateGroupEvent : WorldEvent {
+	
+	[XmlAttribute]
+	public MigratingGroup Group;
+	
+	public MigrateGroupEvent () {
+		
+	}
+	
+	public MigrateGroupEvent (World world, int triggerDate, MigratingGroup group) : base (world, triggerDate) {
+		
+		Group = group;
+	}
+	
+	public override bool CanTrigger () {
+		
+		if (Group == null)
+			return false;
+		
+		return true;
+	}
+	
+	public override void Trigger () {
+
+		World.AddMigratingGroup (Group);
 	}
 }
