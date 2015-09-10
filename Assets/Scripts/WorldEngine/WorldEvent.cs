@@ -96,4 +96,9 @@ public class MigrateGroupEvent : WorldEvent {
 
 		World.AddMigratingGroup (Group);
 	}
+
+	public override void FinalizeLoad () {
+
+		Group.FinalizeLoad ();
+	}
 }

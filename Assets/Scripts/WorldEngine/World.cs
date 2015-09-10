@@ -53,6 +53,9 @@ public class World {
 	[XmlIgnore]
 	public ProgressCastDelegate ProgressCastMethod { get; set; }
 	
+	[XmlIgnore]
+	public HumanGroup TaggedGroup = null;
+	
 	[XmlAttribute]
 	public int CurrentDate { get; private set; }
 	
@@ -348,6 +351,21 @@ public class World {
 		});
 
 		Ready = true;
+	}
+
+	public void TagGroup (HumanGroup group) {
+	
+		UntagGroup ();
+		
+		TaggedGroup = group;
+
+		group.IsTagged = true;
+	}
+	
+	public void UntagGroup () {
+		
+		if (TaggedGroup != null)
+			TaggedGroup.IsTagged = false;
 	}
 	
 	public void FinalizeGeneration () {
@@ -920,6 +938,8 @@ public class World {
 		if (SuitableCells.Count <= 0)
 			return;
 
+		bool first = true;
+
 		for (int i = 0; i < maxGroups; i++) {
 			
 			ManagerTask<int> n = GenerateRandomInteger(0, SuitableCells.Count);
@@ -928,7 +948,15 @@ public class World {
 
 			int population = (int)Mathf.Floor(StartPopulationDensity * cell.Area);
 
-			AddGroup(new CellGroup(this, cell, population));
+			CellGroup group = new CellGroup(this, cell, population);
+
+			AddGroup(group);
+
+			if (first) {
+				TagGroup(group);
+
+				first = false;
+			}
 		}
 	}
 

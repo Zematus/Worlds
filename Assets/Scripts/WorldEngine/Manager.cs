@@ -943,7 +943,12 @@ public class Manager {
 		
 		for (int i = 0; i < cell.Groups.Count; i++) {
 
-			totalPopulation += cell.Groups[i].Population;
+			CellGroup group = cell.Groups[i];
+
+			if (group.IsTagged)
+				return Color.green;
+
+			totalPopulation += group.Population;
 		}
 
 		if (totalPopulation > 0) {

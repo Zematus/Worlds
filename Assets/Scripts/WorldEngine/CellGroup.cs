@@ -68,6 +68,11 @@ public class CellGroup : HumanGroup {
 
 		int nextDate = World.CurrentDate + 20;
 
+//		if (IsTagged) {
+//		
+//			bool debug = true;
+//		}
+
 		World.InsertEventToHappen (new UpdateCellGroupEvent (World, nextDate, this));
 		
 		World.UpdateMostPopulousGroup (this);
@@ -109,7 +114,7 @@ public class CellGroup : HumanGroup {
 		if (targetCell == null)
 			return;
 		
-		int nextDate = World.CurrentDate + 3;
+		int nextDate = World.CurrentDate + targetCell.GetTravelTime();
 
 		MigratingGroup migratingGroup = new MigratingGroup (World, popToMigrate, this, targetCell);
 		
@@ -159,5 +164,36 @@ public class CellGroup : HumanGroup {
 		float changeRate = Mathf.Max(MinChangeRate, popChangeRate);
 
 		Population += Mathf.CeilToInt(Population * changeRate);
+	}
+
+	public int CalculateOptimalPopulation () {
+
+		////// CALCULATION NOTES:
+		/// 
+		/// survivabilityFactor = Cell.Survivability * Cell.MaxForage * Cell.ForagingCapacity / Population
+		/// 
+		/// unnaturalDeathRate = 1 - survivabilityFactor
+		/// 
+		/// 0 = NaturalBirthRate - NaturalDeathRate - unnaturalDeathRate
+		/// 
+		/// Population * unnaturalDeathRate = Population - (Cell.Survivability * Cell.MaxForage * Cell.ForagingCapacity)
+		/// 
+		/// (1 - unnaturalDeathRate) * Population = Cell.Survivability * Cell.MaxForage * Cell.ForagingCapacity
+		/// 
+		/// Population = Cell.Survivability * Cell.MaxForage * Cell.ForagingCapacity / (1 - unnaturalDeathRate)
+		/// 
+		/// unnaturalDeathRate = NaturalBirthRate - NaturalDeathRate
+		/// 
+		/// Population = Cell.Survivability * Cell.MaxForage * Cell.ForagingCapacity / (1 - NaturalBirthRate + NaturalDeathRate)
+		/// 
+		////// END NOTES
+
+		float survivabilityFactor = Cell.Survivability * Cell.MaxForage * Cell.ForagingCapacity;
+
+		float changeRateFactor = 1 + NaturalDeathRate - NaturalBirthRate;
+
+		int optimalPopulation = (int)Mathf.Floor (survivabilityFactor / changeRateFactor);
+
+		return optimalPopulation;
 	}
 }

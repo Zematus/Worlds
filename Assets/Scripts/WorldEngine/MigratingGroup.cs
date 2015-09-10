@@ -41,10 +41,21 @@ public class MigratingGroup : HumanGroup {
 			if (group.StillPresent) {
 
 				group.MergeGroup(this);
+
+				if (SourceGroup.IsTagged) {
+					World.TagGroup (group);
+				}
+
 				return;
 			}
 		}
 
-		World.AddGroup (new CellGroup (this));
+		CellGroup newGroup = new CellGroup (this);
+
+		World.AddGroup (newGroup);
+		
+		if (SourceGroup.IsTagged) {
+			World.TagGroup (newGroup);
+		}
 	}
 }

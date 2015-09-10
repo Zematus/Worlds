@@ -97,6 +97,13 @@ public class TerrainCell {
 		return 0;
 	}
 
+	public int GetTravelTime () {
+	
+		int travelTime = 3;
+
+		return travelTime;
+	}
+
 	public float GetStress () {
 		
 		if (Groups.Count <= 0)
@@ -124,6 +131,8 @@ public class TerrainCell {
 			group.Cell = this;
 
 			World.AddGroup(group);
+
+			group.FinalizeLoad ();
 		}
 	}
 

@@ -74,6 +74,8 @@ public class GuiManagerScript : MonoBehaviour {
 		if (!Manager.WorldReady) {
 
 			GenerateWorld ();
+
+			_planetOverlay = PlanetOverlay.Population;
 		}
 
 		UpdateMapViewButtonText ();
