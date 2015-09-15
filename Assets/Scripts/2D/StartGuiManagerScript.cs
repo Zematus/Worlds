@@ -16,6 +16,9 @@ public class StartGuiManagerScript : MonoBehaviour {
 	
 	private bool _preparingWorld = false;
 	
+	private string _progressMessage = null;
+	private float _progressValue = 0;
+	
 	private PostPreparationOperation _postPreparationOp = null;
 
 	// Use this for initialization
@@ -38,6 +41,13 @@ public class StartGuiManagerScript : MonoBehaviour {
 		
 		Manager.ExecuteTasks (100);
 		
+		if (_preparingWorld) {
+		
+			if (_progressMessage != null) ProgressDialogPanelScript.SetDialogText (_progressMessage);
+			
+			ProgressDialogPanelScript.SetProgress (_progressValue);
+		}
+		
 		if (!Manager.WorldReady) {
 			return;
 		}
@@ -48,6 +58,8 @@ public class StartGuiManagerScript : MonoBehaviour {
 				_postPreparationOp ();
 
 			_preparingWorld = false;
+
+			Debug.Log ("Finished loading level");
 			
 			Application.LoadLevel ("WorldView");
 		}
@@ -77,7 +89,7 @@ public class StartGuiManagerScript : MonoBehaviour {
 		
 		ProgressDialogPanelScript.SetVisible (true);
 		
-		ProgressUpdate (0, "Loading World...");
+		ProgressUpdate (0, "Loading World...", true);
 		
 		string path = LoadFileDialogPanelScript.GetPathToLoad ();
 		
@@ -174,7 +186,7 @@ public class StartGuiManagerScript : MonoBehaviour {
 
 		ProgressDialogPanelScript.SetVisible (true);
 		
-		ProgressUpdate (0, "Generating World...");
+		ProgressUpdate (0, "Generating World...", true);
 		
 		_preparingWorld = true;
 		
@@ -203,16 +215,15 @@ public class StartGuiManagerScript : MonoBehaviour {
 		CustomizeWorldDialogPanelScript.SetSeaLevelOffset(Manager.SeaLevelOffset);
 	}
 	
-	public void ProgressUpdate (float value, string message = null) {
+	public void ProgressUpdate (float value, string message = null, bool reset = false) {
 		
-		Manager.EnqueueTask (() => {
-			
-			if (message != null) ProgressDialogPanelScript.SetDialogText (message);
-			
-			ProgressDialogPanelScript.SetProgress (value);
-			
-			return true;
-		});
+		if (reset || (value >= _progressValue)) {
+
+			if (message != null) 
+				_progressMessage = message;
+
+			_progressValue = value;
+		}
 	}
 	
 	public void Exit () {

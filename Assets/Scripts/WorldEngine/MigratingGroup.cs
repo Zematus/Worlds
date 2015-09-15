@@ -27,6 +27,8 @@ public class MigratingGroup : HumanGroup {
 		TargetCell = targetCell;
 		SourceGroup = sourceGroup;
 
+		SourceGroupId = SourceGroup.Id;
+
 		TargetCellLongitude = TargetCell.Longitude;
 		TargetCellLatitude = TargetCell.Latitude;
 	}

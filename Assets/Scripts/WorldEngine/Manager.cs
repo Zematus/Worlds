@@ -429,6 +429,8 @@ public class Manager {
 
 		float value = _loadTicks / (float)_totalLoadTicks;
 		
+		//Debug.Log ("Load progress: " + value);
+		
 		if (_manager._progressCastMethod == null)
 			return;
 
@@ -443,6 +445,8 @@ public class Manager {
 		_loadTicks += 1;
 		
 		float value = _loadTicks / (float)_totalLoadTicks;
+		
+		//Debug.Log ("Load progress: " + value);
 		
 		if (_manager._progressCastMethod == null)
 			return;

@@ -47,6 +47,9 @@ public class GuiManagerScript : MonoBehaviour {
 	private Rect _beginDragMapUvRect;
 
 	private bool _preparingWorld = false;
+	
+	private string _progressMessage = null;
+	private float _progressValue = 0;
 
 	private PostPreparationOperation _postPreparationOp = null;
 	
@@ -94,6 +97,13 @@ public class GuiManagerScript : MonoBehaviour {
 		UpdateMenus ();
 
 		Manager.ExecuteTasks (100);
+		
+		if (_preparingWorld) {
+			
+			if (_progressMessage != null) ProgressDialogPanelScript.SetDialogText (_progressMessage);
+			
+			ProgressDialogPanelScript.SetProgress (_progressValue);
+		}
 
 		if (!Manager.WorldReady) {
 			return;
@@ -154,16 +164,15 @@ public class GuiManagerScript : MonoBehaviour {
 		}
 	}
 
-	public void ProgressUpdate (float value, string message = null) {
-	
-		Manager.EnqueueTask (() => {
-
-			if (message != null) ProgressDialogPanelScript.SetDialogText (message);
-
-			ProgressDialogPanelScript.SetProgress (value);
-
-			return true;
-		});
+	public void ProgressUpdate (float value, string message = null, bool reset = false) {
+		
+		if (reset || (value >= _progressValue)) {
+			
+			if (message != null) 
+				_progressMessage = message;
+			
+			_progressValue = value;
+		}
 	}
 	
 	public void CloseMainMenu () {
@@ -265,7 +274,7 @@ public class GuiManagerScript : MonoBehaviour {
 		
 		ProgressDialogPanelScript.SetVisible (true);
 		
-		ProgressUpdate (0, "Generating World...");
+		ProgressUpdate (0, "Generating World...", true);
 		
 		_preparingWorld = true;
 		
@@ -399,7 +408,7 @@ public class GuiManagerScript : MonoBehaviour {
 		
 		ProgressDialogPanelScript.SetVisible (true);
 		
-		ProgressUpdate (0, "Loading World...");
+		ProgressUpdate (0, "Loading World...", true);
 		
 		string path = LoadFileDialogPanelScript.GetPathToLoad ();
 		
