@@ -37,7 +37,9 @@ public class GuiManagerScript : MonoBehaviour {
 	public PaletteScript MapPaletteScript;
 	
 	private PlanetView _planetView = PlanetView.Biomes;
-	private PlanetOverlay _planetOverlay = PlanetOverlay.None;
+	private PlanetOverlay _planetOverlay = PlanetOverlay.Population;
+
+	private bool menusNeedUpdate = true;
 
 	private bool _regenTextures = false;
 
@@ -74,8 +76,6 @@ public class GuiManagerScript : MonoBehaviour {
 		if (!Manager.WorldReady) {
 
 			GenerateWorld ();
-
-			_planetOverlay = PlanetOverlay.Population;
 		}
 
 		UpdateMapViewButtonText ();
@@ -90,6 +90,8 @@ public class GuiManagerScript : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
+
+		UpdateMenus ();
 
 		Manager.ExecuteTasks (100);
 
@@ -437,6 +439,39 @@ public class GuiManagerScript : MonoBehaviour {
 		}
 		
 		OverlayDialogPanelScript.SetVisible (false);
+	}
+	
+	public void UpdateMenus () {
+
+		if (!menusNeedUpdate)
+			return;
+
+		menusNeedUpdate = false;
+
+		OverlayDialogPanelScript.PopulationToggle.isOn = false;
+		OverlayDialogPanelScript.RainfallToggle.isOn = false;
+		OverlayDialogPanelScript.TemperatureToggle.isOn = false;
+
+		switch (_planetOverlay) {
+		
+		case PlanetOverlay.Population:
+			OverlayDialogPanelScript.PopulationToggle.isOn = true;
+			break;
+			
+		case PlanetOverlay.Rainfall:
+			OverlayDialogPanelScript.RainfallToggle.isOn = true;
+			break;
+			
+		case PlanetOverlay.Temperature:
+			OverlayDialogPanelScript.TemperatureToggle.isOn = true;
+			break;
+			
+		case PlanetOverlay.None:
+			break;
+			
+		default:
+			throw new System.Exception ("Unhandled Planet Overlay type: " + _planetOverlay);
+		}
 	}
 	
 	public void SelectOverlays () {

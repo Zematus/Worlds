@@ -13,6 +13,7 @@ public abstract class WorldEvent {
 
 	public WorldEvent () {
 
+		Manager.UpdateWorldLoadTrackEventCount ();
 	}
 
 	public WorldEvent (World world, int triggerDate) {
@@ -71,8 +72,7 @@ public class UpdateCellGroupEvent : WorldEvent {
 }
 
 public class MigrateGroupEvent : WorldEvent {
-	
-	[XmlAttribute]
+
 	public MigratingGroup Group;
 	
 	public MigrateGroupEvent () {
@@ -98,6 +98,8 @@ public class MigrateGroupEvent : WorldEvent {
 	}
 
 	public override void FinalizeLoad () {
+
+		Group.World = World;
 
 		Group.FinalizeLoad ();
 	}

@@ -45,6 +45,9 @@ public class World {
 	public float MaxTemperature = float.MinValue;
 	public float MinTemperature = float.MaxValue;
 
+	public int MostPopulousGroupId = -1;
+	
+	[XmlIgnore]
 	public CellGroup MostPopulousGroup = null;
 	
 	[XmlIgnore]
@@ -63,6 +66,9 @@ public class World {
 	public int Width { get; private set; }
 	[XmlAttribute]
 	public int Height { get; private set; }
+
+	[XmlAttribute]
+	public int EventsToHappenCount { get; private set; }
 	
 	[XmlAttribute]
 	public int Seed { get; private set; }
@@ -95,6 +101,8 @@ public class World {
 	public World () {
 		
 		ProgressCastMethod = (value, message) => {};
+
+		Manager.LoadingWorld = this;
 
 		Ready = false;
 	}
@@ -163,13 +171,16 @@ public class World {
 		if (MostPopulousGroup == null) {
 
 			MostPopulousGroup = contenderGroup;
-			return;
-		}
 
-		if (MostPopulousGroup.Population < contenderGroup.Population) {
+		} else if (MostPopulousGroup.Population < contenderGroup.Population) {
 			
 			MostPopulousGroup = contenderGroup;
-			return;
+		}
+		
+		if (MostPopulousGroup != null) {
+			MostPopulousGroupId = MostPopulousGroup.Id;
+		} else {
+			MostPopulousGroupId = -1;
 		}
 	}
 
@@ -194,6 +205,7 @@ public class World {
 			}
 
 			EventsToHappen.Remove(eventToHappen);
+			EventsToHappenCount--;
 
 			if (eventToHappen.CanTrigger())
 			{
@@ -262,6 +274,8 @@ public class World {
 	}
 
 	public void InsertEventToHappen (WorldEvent eventToHappen) {
+
+		EventsToHappenCount++;
 
 		if (EventsToHappen.Count == 0) {
 
@@ -349,6 +363,14 @@ public class World {
 
 			return 0;
 		});
+
+		if (MostPopulousGroupId > -1) {
+		
+			MostPopulousGroup = FindCellGroup(MostPopulousGroupId);
+
+			if (MostPopulousGroup == null)
+				MostPopulousGroupId = -1;
+		}
 
 		Ready = true;
 	}

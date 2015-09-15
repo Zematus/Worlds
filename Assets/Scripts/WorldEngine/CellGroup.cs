@@ -6,6 +6,8 @@ using System.Xml.Serialization;
 
 public class CellGroup : HumanGroup {
 
+	public const int GenerationSpan = 20;
+
 	public const float NaturalDeathRate = 0.03f; // more or less 0.5/half-life (22.87 years for paleolitic life expectancy of 33 years)
 	public const float NaturalBirthRate = 0.105f; // Should cancel out death rate in perfect circumstances (hunter-gathererers in grasslands)
 	public const float MinChangeRate = -1.0f; // Should cancel out death rate in perfect circumstances (hunter-gathererers in grasslands)
@@ -21,16 +23,20 @@ public class CellGroup : HumanGroup {
 	public float Stress = 0;
 	
 	[XmlIgnore]
-	public TerrainCell Cell;
-
-	[XmlIgnore]
 	public static float InitialPopulationFactor = NaturalChangeFactor / Biome.Grassland.ForagingCapacity;
+	
+	[XmlIgnore]
+	public TerrainCell Cell;
+	
+	[XmlIgnore]
+	public float OptimalPopulation;
 
 	public CellGroup () {
 	}
 	
 	public CellGroup (MigratingGroup migratingGroup) : this(migratingGroup.World, migratingGroup.TargetCell, migratingGroup.Population) {
 
+		OptimalPopulation = CalculateOptimalPopulation ();
 	}
 
 	public CellGroup (World world, TerrainCell cell, int initialPopulation) : base(world, initialPopulation) {
@@ -41,11 +47,13 @@ public class CellGroup : HumanGroup {
 
 		Id = World.GenerateCellGroupId();
 		
-		int nextDate = World.CurrentDate + 20;
+		int nextDate = World.CurrentDate + GenerationSpan;
 		
 		World.InsertEventToHappen (new UpdateCellGroupEvent (World, nextDate, this));
 		
 		World.UpdateMostPopulousGroup (this);
+		
+		OptimalPopulation = CalculateOptimalPopulation ();
 	}
 
 	public void MergeGroup (MigratingGroup group) {
@@ -53,6 +61,8 @@ public class CellGroup : HumanGroup {
 		Population += group.Population;
 		
 		World.UpdateMostPopulousGroup (this);
+		
+		OptimalPopulation = CalculateOptimalPopulation ();
 	}
 
 	public void Update () {
@@ -66,7 +76,7 @@ public class CellGroup : HumanGroup {
 
 		ConsiderMigration();
 
-		int nextDate = World.CurrentDate + 20;
+		int nextDate = World.CurrentDate + GenerationSpan;
 
 //		if (IsTagged) {
 //		
@@ -158,6 +168,8 @@ public class CellGroup : HumanGroup {
 	}
 
 	public void ModifyPopulation () {
+		
+		OptimalPopulation = CalculateOptimalPopulation ();
 
 		float popChangeRate = GetPopulationChangeRate ();
 
@@ -195,5 +207,23 @@ public class CellGroup : HumanGroup {
 		int optimalPopulation = (int)Mathf.Floor (survivabilityFactor / changeRateFactor);
 
 		return optimalPopulation;
+	}
+
+	public int PopulationAfterTime (int time) { // in years
+
+		// better equation to use : pf = op-op (1-pi/op)^(2^t) where op : optimal pop, pi : initial pop, pf : final pop, t : time
+
+		if (Population == OptimalPopulation)
+			return Population;
+		
+		float naturalChangeRateFactor = NaturalBirthRate - NaturalDeathRate;
+
+		if (Population < OptimalPopulation) {
+		}
+
+		if (Population > OptimalPopulation) {
+		}
+
+		return 0;
 	}
 }

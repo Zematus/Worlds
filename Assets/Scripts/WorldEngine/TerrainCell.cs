@@ -56,12 +56,12 @@ public class TerrainCell {
 
 	public TerrainCell () {
 	
-		Manager.UpdateWorldLoadTrack ();
+		Manager.UpdateWorldLoadTrackCellCount ();
 	}
 	
 	public TerrainCell (bool update) {
 		
-		if (update) Manager.UpdateWorldLoadTrack ();
+		if (update) Manager.UpdateWorldLoadTrackCellCount ();
 	}
 
 	public int GetNextLocalRandomInt (int maxValue = PerlinNoise.MaxPermutationValue) {

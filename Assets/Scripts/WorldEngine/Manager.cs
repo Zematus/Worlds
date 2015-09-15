@@ -95,6 +95,12 @@ public class Manager {
 	public static float RainfallOffset = 0;
 	public static float SeaLevelOffset = 0;
 
+	public static bool DisplayTaggedGroup = false;
+	
+	public static bool _isLoadReady = false;
+	
+	public static World LoadingWorld = null;
+
 	private static Manager _manager = new Manager();
 
 	private static PlanetView _planetView = PlanetView.Biomes;
@@ -102,6 +108,12 @@ public class Manager {
 	
 	private static List<Color> _biomePalette = new List<Color>();
 	private static List<Color> _mapPalette = new List<Color>();
+	
+	private static int _cellsToLoad = 0;
+	private static int _eventsToLoad = 0;
+	
+	private static int _totalLoadTicks = 0;
+	private static int _loadTicks = 0;
 	
 	private ProgressCastDelegate _progressCastMethod = null;
 	
@@ -116,9 +128,6 @@ public class Manager {
 	private Queue<IManagerTask> _taskQueue = new Queue<IManagerTask>();
 
 	private bool _worldReady = false;
-
-	private int _cellLoadCount = 0;
-	private int _cellsToLoad = 0;
 
 	public XmlAttributeOverrides AttributeOverrides { get; private set; }
 
@@ -376,6 +385,8 @@ public class Manager {
 
 		_manager._currentWorld.FinalizeLoad ();
 
+		LoadingWorld = null;
+
 		stream.Close();
 	}
 	
@@ -394,20 +405,48 @@ public class Manager {
 	}
 
 	public static void ResetWorldLoadTrack () {
-		
-		_manager._cellLoadCount = 0;
-		_manager._cellsToLoad = WorldWidth*WorldHeight;
+
+		_isLoadReady = false;
+	}
+
+	public static void InitializeWorldLoadTrack () {
+
+		_isLoadReady = true;
+	
+		_cellsToLoad = LoadingWorld.Width*LoadingWorld.Height;
+		_eventsToLoad = LoadingWorld.EventsToHappenCount;
+
+		_totalLoadTicks = _cellsToLoad + _eventsToLoad;
+		_loadTicks = 0;
 	}
 	
-	public static void UpdateWorldLoadTrack () {
-		
-		_manager._cellLoadCount += 1;
+	public static void UpdateWorldLoadTrackCellCount () {
 
-		float value = _manager._cellLoadCount / (float)_manager._cellsToLoad;
+		if (!_isLoadReady)
+			InitializeWorldLoadTrack ();
+		
+		_loadTicks += 1;
+
+		float value = _loadTicks / (float)_totalLoadTicks;
 		
 		if (_manager._progressCastMethod == null)
 			return;
 
+		_manager._progressCastMethod (Mathf.Min(1, value));
+	}
+	
+	public static void UpdateWorldLoadTrackEventCount () {
+		
+		if (!_isLoadReady)
+			InitializeWorldLoadTrack ();
+		
+		_loadTicks += 1;
+		
+		float value = _loadTicks / (float)_totalLoadTicks;
+		
+		if (_manager._progressCastMethod == null)
+			return;
+		
 		_manager._progressCastMethod (Mathf.Min(1, value));
 	}
 
@@ -447,8 +486,14 @@ public class Manager {
 	}
 	
 	public static void UpdateMapTextureColorsFromCell (Color32[] textureColors, TerrainCell cell) {
-		
+
+		if (cell == null)
+			throw new System.Exception ("cell is null");
+
 		World world = cell.World;
+		
+		if (world == null)
+			throw new System.Exception ("world is null");
 
 		int sizeX = world.Width;
 		
@@ -945,7 +990,7 @@ public class Manager {
 
 			CellGroup group = cell.Groups[i];
 
-			if (group.IsTagged)
+			if (group.IsTagged && DisplayTaggedGroup)
 				return Color.green;
 
 			totalPopulation += group.Population;

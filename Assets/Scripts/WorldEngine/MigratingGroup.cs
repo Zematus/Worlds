@@ -5,8 +5,18 @@ using System.Xml.Serialization;
 
 public class MigratingGroup : HumanGroup {
 
+	[XmlAttribute]
+	public int TargetCellLongitude;
+	[XmlAttribute]
+	public int TargetCellLatitude;
+	
+	[XmlAttribute]
+	public int SourceGroupId;
+	
+	[XmlIgnore]
 	public TerrainCell TargetCell;
-
+	
+	[XmlIgnore]
 	public CellGroup SourceGroup;
 
 	public MigratingGroup () {
@@ -16,6 +26,9 @@ public class MigratingGroup : HumanGroup {
 
 		TargetCell = targetCell;
 		SourceGroup = sourceGroup;
+
+		TargetCellLongitude = TargetCell.Longitude;
+		TargetCellLatitude = TargetCell.Latitude;
 	}
 
 	public void AddToCell () {
@@ -57,5 +70,14 @@ public class MigratingGroup : HumanGroup {
 		if (SourceGroup.IsTagged) {
 			World.TagGroup (newGroup);
 		}
+	}
+	
+	public override void FinalizeLoad () {
+
+		base.FinalizeLoad ();
+		
+		TargetCell = World.Terrain[TargetCellLongitude][TargetCellLatitude];
+		
+		SourceGroup = World.FindCellGroup (SourceGroupId);
 	}
 }
