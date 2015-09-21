@@ -11,7 +11,12 @@ public class CellGroup : HumanGroup {
 	public const float NaturalDeathRate = 0.03f; // more or less 0.5/half-life (22.87 years for paleolitic life expectancy of 33 years)
 	public const float NaturalBirthRate = 0.105f; // Should cancel out death rate in perfect circumstances (hunter-gathererers in grasslands)
 	public const float MinChangeRate = -1.0f; // Should cancel out death rate in perfect circumstances (hunter-gathererers in grasslands)
-	public const float NaturalChangeFactor = 1 - CellGroup.NaturalBirthRate + CellGroup.NaturalDeathRate;
+
+	public const float NaturalGrowthRate = NaturalBirthRate - NaturalDeathRate;
+	
+	public const float PopulationConstant = 100;
+
+//	public const float NaturalChangeFactor = 1 - CellGroup.NaturalBirthRate + CellGroup.NaturalDeathRate;
 	
 	[XmlAttribute]
 	public int Id;
@@ -22,24 +27,31 @@ public class CellGroup : HumanGroup {
 	[XmlAttribute]
 	public float Stress = 0;
 	
-	[XmlIgnore]
-	public static float InitialPopulationFactor = NaturalChangeFactor / Biome.Grassland.ForagingCapacity;
+	[XmlAttribute]
+	public int LastUpdateDate;
+	
+//	[XmlIgnore]
+//	public static float InitialPopulationFactor = NaturalChangeFactor / Biome.Grassland.ForagingCapacity;
 	
 	[XmlIgnore]
 	public TerrainCell Cell;
 	
 	[XmlIgnore]
-	public float OptimalPopulation;
+	public int OptimalPopulation;
 
 	public CellGroup () {
 	}
 	
 	public CellGroup (MigratingGroup migratingGroup) : this(migratingGroup.World, migratingGroup.TargetCell, migratingGroup.Population) {
 
-		OptimalPopulation = CalculateOptimalPopulation ();
+		LastUpdateDate = World.CurrentDate;
+
+		CalculateOptimalPopulation ();
 	}
 
 	public CellGroup (World world, TerrainCell cell, int initialPopulation) : base(world, initialPopulation) {
+		
+		LastUpdateDate = World.CurrentDate;
 
 		Cell = cell;
 
@@ -53,7 +65,7 @@ public class CellGroup : HumanGroup {
 		
 		World.UpdateMostPopulousGroup (this);
 		
-		OptimalPopulation = CalculateOptimalPopulation ();
+		CalculateOptimalPopulation ();
 	}
 
 	public void MergeGroup (MigratingGroup group) {
@@ -62,7 +74,7 @@ public class CellGroup : HumanGroup {
 		
 		World.UpdateMostPopulousGroup (this);
 		
-		OptimalPopulation = CalculateOptimalPopulation ();
+		CalculateOptimalPopulation ();
 	}
 
 	public void Update () {
@@ -139,89 +151,86 @@ public class CellGroup : HumanGroup {
 		StillPresent = false;
 	}
 
-	public float GetProductionFactor () {
-
-		if (Population == 0)
-			return 0;
-
-		float factor = Cell.MaxForage * Cell.ForagingCapacity / Population;
-
-		return factor;
-	}
-	
-	public float GetPopulationChangeRate () {
-
-		float productionFactor = GetProductionFactor ();
-
-		float survivabilityFactor = Cell.Survivability * (productionFactor / NaturalChangeFactor);
-
-		float survivabilityDeathRate = Mathf.Max(0, 1 - survivabilityFactor);
-
-		float starvationDeathRate = Mathf.Max(0, 1 - productionFactor); // productionFactor should be 1 - (NaturalBirthRate - NaturalDeathRate)
-
-		float unnaturalDeathRate = starvationDeathRate + survivabilityDeathRate;
-		
-		Stress = Mathf.Clamp(unnaturalDeathRate, 0, 1);
-		
-		// Death rate can't be lower than the natural death rate
-		return NaturalBirthRate - NaturalDeathRate - unnaturalDeathRate;
-	}
+//	public float GetProductionFactor () {
+//
+//		if (Population == 0)
+//			return 0;
+//
+//		float factor = Cell.MaxForage * Cell.ForagingCapacity / Population;
+//
+//		return factor;
+//	}
+//	
+//	public float GetPopulationChangeRate () {
+//
+//		float productionFactor = GetProductionFactor ();
+//
+//		float survivabilityFactor = Cell.Survivability * (productionFactor / NaturalChangeFactor);
+//
+//		float survivabilityDeathRate = Mathf.Max(0, 1 - survivabilityFactor);
+//
+//		float starvationDeathRate = Mathf.Max(0, 1 - productionFactor); // productionFactor should be 1 - (NaturalBirthRate - NaturalDeathRate)
+//
+//		float unnaturalDeathRate = starvationDeathRate + survivabilityDeathRate;
+//		
+//		Stress = Mathf.Clamp(unnaturalDeathRate, 0, 1);
+//		
+//		// Death rate can't be lower than the natural death rate
+//		return NaturalBirthRate - NaturalDeathRate - unnaturalDeathRate;
+//	}
 
 	public void ModifyPopulation () {
+
+		int dateSpan = World.CurrentDate - LastUpdateDate;
+
+		PopulationAfterTime (dateSpan);
 		
-		OptimalPopulation = CalculateOptimalPopulation ();
-
-		float popChangeRate = GetPopulationChangeRate ();
-
-		float changeRate = Mathf.Max(MinChangeRate, popChangeRate);
-
-		Population += Mathf.CeilToInt(Population * changeRate);
+//		OptimalPopulation = CalculateOptimalPopulation ();
+//
+//		float popChangeRate = GetPopulationChangeRate ();
+//
+//		float changeRate = Mathf.Max(MinChangeRate, popChangeRate);
+//
+//		Population += Mathf.CeilToInt(Population * changeRate);
 	}
 
 	public int CalculateOptimalPopulation () {
 
-		////// CALCULATION NOTES:
-		/// 
-		/// survivabilityFactor = Cell.Survivability * Cell.MaxForage * Cell.ForagingCapacity / Population
-		/// 
-		/// unnaturalDeathRate = 1 - survivabilityFactor
-		/// 
-		/// 0 = NaturalBirthRate - NaturalDeathRate - unnaturalDeathRate
-		/// 
-		/// Population * unnaturalDeathRate = Population - (Cell.Survivability * Cell.MaxForage * Cell.ForagingCapacity)
-		/// 
-		/// (1 - unnaturalDeathRate) * Population = Cell.Survivability * Cell.MaxForage * Cell.ForagingCapacity
-		/// 
-		/// Population = Cell.Survivability * Cell.MaxForage * Cell.ForagingCapacity / (1 - unnaturalDeathRate)
-		/// 
-		/// unnaturalDeathRate = NaturalBirthRate - NaturalDeathRate
-		/// 
-		/// Population = Cell.Survivability * Cell.MaxForage * Cell.ForagingCapacity / (1 - NaturalBirthRate + NaturalDeathRate)
-		/// 
-		////// END NOTES
+		float populationCapacityFactor = PopulationConstant * Cell.Area * Cell.ForagingCapacity * Cell.Survivability;
 
-		float survivabilityFactor = Cell.Survivability * Cell.MaxForage * Cell.ForagingCapacity;
+		OptimalPopulation = (int)Mathf.Floor (populationCapacityFactor);
 
-		float changeRateFactor = 1 + NaturalDeathRate - NaturalBirthRate;
+//		float survivabilityFactor = Cell.Survivability * Cell.MaxForage * Cell.ForagingCapacity;
+//
+//		float changeRateFactor = 1 + NaturalDeathRate - NaturalBirthRate;
+//
+//		int optimalPopulation = (int)Mathf.Floor (survivabilityFactor / changeRateFactor);
 
-		int optimalPopulation = (int)Mathf.Floor (survivabilityFactor / changeRateFactor);
-
-		return optimalPopulation;
+		return OptimalPopulation;
 	}
 
 	public int PopulationAfterTime (int time) { // in years
 
-		// better equation to use : pf = op-op (1-pi/op)^(2^t) where op : optimal pop, pi : initial pop, pf : final pop, t : time
-
 		if (Population == OptimalPopulation)
 			return Population;
 		
-		float naturalChangeRateFactor = NaturalBirthRate - NaturalDeathRate;
+		float timeFactor = NaturalGrowthRate * time / (float)GenerationSpan;
 
 		if (Population < OptimalPopulation) {
+			
+			float geometricTimeFactor = Mathf.Pow(2, timeFactor);
+			float populationFactor = 1 - Population/(float)OptimalPopulation;
+
+			Population = (int)Mathf.Floor(OptimalPopulation * (1 - Mathf.Pow(populationFactor, geometricTimeFactor)));
+
+			return Population;
 		}
 
 		if (Population > OptimalPopulation) {
+
+			Population = (int)Mathf.Floor(OptimalPopulation + (Population - OptimalPopulation) * Mathf.Exp (-timeFactor));
+			
+			return Population;
 		}
 
 		return 0;

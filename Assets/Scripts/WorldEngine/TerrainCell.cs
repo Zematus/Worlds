@@ -29,8 +29,8 @@ public class TerrainCell {
 	public float Survivability;
 	[XmlAttribute]
 	public float ForagingCapacity;
-	[XmlAttribute]
-	public float MaxForage;
+//	[XmlAttribute]
+//	public float MaxForage;
 
 	[XmlAttribute]
 	public float Height;

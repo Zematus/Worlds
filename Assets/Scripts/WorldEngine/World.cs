@@ -919,7 +919,7 @@ public class World {
 					}
 				}
 
-				cell.MaxForage = cell.Area * TerrainCell.MaxForageFactor * cell.ForagingCapacity * CellGroup.InitialPopulationFactor;
+//				cell.MaxForage = cell.Area * TerrainCell.MaxForageFactor * cell.ForagingCapacity * CellGroup.InitialPopulationFactor;
 			}
 			
 			ProgressCastMethod (_accumulatedProgress + 0.20f * (i + 1)/(float)sizeX);

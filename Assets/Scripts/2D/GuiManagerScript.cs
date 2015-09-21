@@ -618,7 +618,7 @@ public class GuiManagerScript : MonoBehaviour {
 		InfoPanelText.text += "\n";
 		InfoPanelText.text += "\nSurvivability: " + (cell.Survivability*100) + "%";
 		InfoPanelText.text += "\nForaging Capacity: " + (cell.ForagingCapacity*100) + "%";
-		InfoPanelText.text += "\nMax Forage Possible: " + cell.MaxForage + " Units";
+//		InfoPanelText.text += "\nMax Forage Possible: " + cell.MaxForage + " Units";
 
 		int population = 0;
 		float meanStress = 0;
