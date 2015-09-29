@@ -600,6 +600,8 @@ public class GuiManagerScript : MonoBehaviour {
 		InfoPanelText.text += "\n";
 		
 		TerrainCell cell = world.Terrain[longitude][latitude];
+
+		world.SetObservedCell (cell);
 		
 		InfoPanelText.text += string.Format("\nPosition: Longitude {0}, Latitude {1}", longitude, latitude);
 		InfoPanelText.text += "\nAltitude: " + cell.Altitude + " meters";
@@ -618,24 +620,25 @@ public class GuiManagerScript : MonoBehaviour {
 		InfoPanelText.text += "\n";
 		InfoPanelText.text += "\nSurvivability: " + (cell.Survivability*100) + "%";
 		InfoPanelText.text += "\nForaging Capacity: " + (cell.ForagingCapacity*100) + "%";
-//		InfoPanelText.text += "\nMax Forage Possible: " + cell.MaxForage + " Units";
 
 		int population = 0;
-		float meanStress = 0;
+		int optimalPopulation = 0;
+		int lastUpdateDate = 0;
 
 		foreach (CellGroup group in cell.Groups) {
 		
 			population += group.Population;
-			meanStress += group.Stress;
+			optimalPopulation += group.OptimalPopulation;
+
+			lastUpdateDate = Mathf.Max(lastUpdateDate, group.LastUpdateDate);
 		}
 
 		if (population > 0) {
-
-			meanStress /= cell.Groups.Count;
 			
 			InfoPanelText.text += "\n";
 			InfoPanelText.text += "\nPopulation: " + population;
-			InfoPanelText.text += "\nStress: " + meanStress;
+			InfoPanelText.text += "\nOptimal Population: " + optimalPopulation;
+			InfoPanelText.text += "\nLast Update Date: " + lastUpdateDate;
 		}
 	}
 	

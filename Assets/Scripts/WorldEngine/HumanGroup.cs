@@ -6,9 +6,6 @@ using System.Xml.Serialization;
 public abstract class HumanGroup {
 	
 	[XmlAttribute]
-	public int Population;
-	
-	[XmlAttribute]
 	public bool IsTagged;
 
 	[XmlIgnore]
@@ -17,13 +14,11 @@ public abstract class HumanGroup {
 	public HumanGroup () {
 	}
 
-	public HumanGroup (World world, int population) {
+	public HumanGroup (World world) {
 
 		IsTagged = false;
 
 		World = world;
-	
-		Population = population;
 	}
 
 	public virtual void FinalizeLoad () {

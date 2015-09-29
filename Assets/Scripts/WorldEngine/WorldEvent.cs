@@ -57,6 +57,9 @@ public class UpdateCellGroupEvent : WorldEvent {
 		if (Group == null)
 			return false;
 
+		if (Group.NextUpdateDate != TriggerDate)
+			return false;
+
 		return Group.StillPresent;
 	}
 

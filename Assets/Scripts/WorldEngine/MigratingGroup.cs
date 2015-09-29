@@ -4,6 +4,9 @@ using System.Xml;
 using System.Xml.Serialization;
 
 public class MigratingGroup : HumanGroup {
+	
+	[XmlAttribute]
+	public float PercentPopulation;
 
 	[XmlAttribute]
 	public int TargetCellLongitude;
@@ -22,7 +25,9 @@ public class MigratingGroup : HumanGroup {
 	public MigratingGroup () {
 	}
 
-	public MigratingGroup (World world, int population, CellGroup sourceGroup, TerrainCell targetCell) : base (world, population) {
+	public MigratingGroup (World world, float percentPopulation, CellGroup sourceGroup, TerrainCell targetCell) : base (world) {
+
+		PercentPopulation = percentPopulation;
 
 		TargetCell = targetCell;
 		SourceGroup = sourceGroup;
@@ -40,22 +45,17 @@ public class MigratingGroup : HumanGroup {
 
 		if (!SourceGroup.StillPresent)
 			return;
-
-		if (SourceGroup.Population < Population)
-			Population = SourceGroup.Population;
-
-		SourceGroup.Population -= Population;
-
-		if (SourceGroup.Population == 0) {
 		
-			World.AddGroupToRemove (SourceGroup);
-		}
+		int splitPopulation = SourceGroup.SplitGroup(this);
+
+		if (splitPopulation <= 0)
+			return;
 
 		foreach (CellGroup group in TargetCell.Groups) {
 
 			if (group.StillPresent) {
 
-				group.MergeGroup(this);
+				group.MergeGroup(this, splitPopulation);
 
 				if (SourceGroup.IsTagged) {
 					World.TagGroup (group);
@@ -65,7 +65,7 @@ public class MigratingGroup : HumanGroup {
 			}
 		}
 
-		CellGroup newGroup = new CellGroup (this);
+		CellGroup newGroup = new CellGroup (this, splitPopulation);
 
 		World.AddGroup (newGroup);
 		

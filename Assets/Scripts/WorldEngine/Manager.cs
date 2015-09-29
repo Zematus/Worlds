@@ -1005,7 +1005,6 @@ public class Manager {
 			float value = (totalPopulation + MaxPopFactor) / (MaxPopulation + MaxPopFactor);
 			
 			color = (color * (1 - value)) + (Color.red * value);
-//			color = Color.red;
 		}
 
 		return color;

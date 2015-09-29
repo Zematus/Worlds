@@ -16,7 +16,10 @@ public class CellGroup : HumanGroup {
 	
 	public const float PopulationConstant = 100;
 
-//	public const float NaturalChangeFactor = 1 - CellGroup.NaturalBirthRate + CellGroup.NaturalDeathRate;
+	public const float TravelTimeFactor = 1;
+	
+	[XmlAttribute]
+	public int Population;
 	
 	[XmlAttribute]
 	public int Id;
@@ -25,31 +28,27 @@ public class CellGroup : HumanGroup {
 	public bool StillPresent = true;
 	
 	[XmlAttribute]
-	public float Stress = 0;
-	
-	[XmlAttribute]
 	public int LastUpdateDate;
 	
-//	[XmlIgnore]
-//	public static float InitialPopulationFactor = NaturalChangeFactor / Biome.Grassland.ForagingCapacity;
+	[XmlAttribute]
+	public int NextUpdateDate;
+	
+	[XmlAttribute]
+	public int OptimalPopulation;
 	
 	[XmlIgnore]
 	public TerrainCell Cell;
-	
-	[XmlIgnore]
-	public int OptimalPopulation;
 
 	public CellGroup () {
 	}
 	
-	public CellGroup (MigratingGroup migratingGroup) : this(migratingGroup.World, migratingGroup.TargetCell, migratingGroup.Population) {
+	public CellGroup (MigratingGroup migratingGroup, int splitPopulation) : this(migratingGroup.World, migratingGroup.TargetCell, splitPopulation) {
 
-		LastUpdateDate = World.CurrentDate;
-
-		CalculateOptimalPopulation ();
 	}
 
-	public CellGroup (World world, TerrainCell cell, int initialPopulation) : base(world, initialPopulation) {
+	public CellGroup (World world, TerrainCell cell, int initialPopulation) : base(world) {
+
+		Population = initialPopulation;
 		
 		LastUpdateDate = World.CurrentDate;
 
@@ -59,73 +58,98 @@ public class CellGroup : HumanGroup {
 
 		Id = World.GenerateCellGroupId();
 		
-		int nextDate = World.CurrentDate + GenerationSpan;
+		NextUpdateDate = CalculateNextUpdateDate();
 		
-		World.InsertEventToHappen (new UpdateCellGroupEvent (World, nextDate, this));
+		World.InsertEventToHappen (new UpdateCellGroupEvent (World, NextUpdateDate, this));
 		
 		World.UpdateMostPopulousGroup (this);
 		
 		CalculateOptimalPopulation ();
 	}
 
-	public void MergeGroup (MigratingGroup group) {
+	public void MergeGroup (MigratingGroup group, int splitPopulation) {
+		
+		UpdatePopulation ();
 	
-		Population += group.Population;
+		Population += splitPopulation;
 		
-		World.UpdateMostPopulousGroup (this);
+		if (Population <= 0) {
+			throw new System.Exception ("Population after migration merge shouldn't be 0 or less.");
+		}
 		
-		CalculateOptimalPopulation ();
+		SetupForNextUpdate ();
+	}
+	
+	public int SplitGroup (MigratingGroup group) {
+		
+		UpdatePopulation ();
+
+		int splitPopulation = (int)Mathf.Floor(Population * group.PercentPopulation);
+		
+		Population -= splitPopulation;
+		
+		SetupForNextUpdate ();
+
+		return splitPopulation;
 	}
 
 	public void Update () {
 
-		ModifyPopulation ();
+		UpdatePopulation ();
 
+		SetupForNextUpdate ();
+	}
+
+	public void SetupForNextUpdate () {
+		
 		if (Population <= 0) {
 			World.AddGroupToRemove (this);
 			return;
 		}
-
-		ConsiderMigration();
-
-		int nextDate = World.CurrentDate + GenerationSpan;
-
-//		if (IsTagged) {
-//		
-//			bool debug = true;
-//		}
-
-		World.InsertEventToHappen (new UpdateCellGroupEvent (World, nextDate, this));
 		
 		World.UpdateMostPopulousGroup (this);
+		
+		CalculateOptimalPopulation ();
+		
+		ConsiderMigration();
+		
+		//		if (IsTagged) {
+		//		
+		//			bool debug = true;
+		//		}
+		
+		NextUpdateDate = CalculateNextUpdateDate();
+		
+		World.InsertEventToHappen (new UpdateCellGroupEvent (World, NextUpdateDate, this));
 	}
 
 	public void ConsiderMigration () {
 
-		float percentToMigrate = 0.1f * Cell.GetNextLocalRandomFloat ();
-	
-		int popToMigrate = (int)(percentToMigrate * Population);
-
-		if (popToMigrate < 1)
-			return;
+		float percentToMigrate = 0.25f + 0.5f * Cell.GetNextLocalRandomFloat ();
 
 		float score = Cell.GetNextLocalRandomFloat ();
 
 		List<TerrainCell> possibleTargetCells = new List<TerrainCell> (Cell.Neighbors);
 		possibleTargetCells.Add (Cell);
 
-		float noMigrationPreference = 5;
+		float noMigrationPreference = 10f;
 
-		TerrainCell targetCell = MathUtility.WeightedSelection (score, possibleTargetCells, (x) => {
+		TerrainCell targetCell = MathUtility.WeightedSelection (score, possibleTargetCells, (c) => {
 
 			float areaFactor = Cell.Area / TerrainCell.MaxArea;
-			float altitudeFactor = 3 * (1 - (x.Altitude / World.MaxPossibleAltitude));
-			float stressFactor = 5 * (1 - x.GetStress());
-			float survabilityFactor = x.Survivability; 
+			float altitudeFactor = 1 - (c.Altitude / World.MaxPossibleAltitude);
 
-			float cellValue = survabilityFactor * stressFactor * altitudeFactor * areaFactor;
+			float stressFactor = 1 - c.CalculatePopulationStress();
+			stressFactor *= stressFactor;
 
-			if (x == Cell) cellValue *= noMigrationPreference;
+			float survabilityFactor = c.Survivability; 
+
+			float cellValue = survabilityFactor * altitudeFactor * areaFactor * stressFactor;
+
+			if (c == Cell) {
+				cellValue *= noMigrationPreference;
+				cellValue += noMigrationPreference;
+			}
 
 			return cellValue;
 		});
@@ -135,10 +159,15 @@ public class CellGroup : HumanGroup {
 
 		if (targetCell == null)
 			return;
-		
-		int nextDate = World.CurrentDate + targetCell.GetTravelTime();
 
-		MigratingGroup migratingGroup = new MigratingGroup (World, popToMigrate, this, targetCell);
+		if (targetCell.Survivability <= 0)
+			return;
+
+		int travelTime = (int)Mathf.Ceil(TravelTimeFactor / targetCell.Survivability);
+		
+		int nextDate = World.CurrentDate + travelTime;
+
+		MigratingGroup migratingGroup = new MigratingGroup (World, percentToMigrate, this, targetCell);
 		
 		World.InsertEventToHappen (new MigrateGroupEvent (World, nextDate, migratingGroup));
 	}
@@ -151,47 +180,13 @@ public class CellGroup : HumanGroup {
 		StillPresent = false;
 	}
 
-//	public float GetProductionFactor () {
-//
-//		if (Population == 0)
-//			return 0;
-//
-//		float factor = Cell.MaxForage * Cell.ForagingCapacity / Population;
-//
-//		return factor;
-//	}
-//	
-//	public float GetPopulationChangeRate () {
-//
-//		float productionFactor = GetProductionFactor ();
-//
-//		float survivabilityFactor = Cell.Survivability * (productionFactor / NaturalChangeFactor);
-//
-//		float survivabilityDeathRate = Mathf.Max(0, 1 - survivabilityFactor);
-//
-//		float starvationDeathRate = Mathf.Max(0, 1 - productionFactor); // productionFactor should be 1 - (NaturalBirthRate - NaturalDeathRate)
-//
-//		float unnaturalDeathRate = starvationDeathRate + survivabilityDeathRate;
-//		
-//		Stress = Mathf.Clamp(unnaturalDeathRate, 0, 1);
-//		
-//		// Death rate can't be lower than the natural death rate
-//		return NaturalBirthRate - NaturalDeathRate - unnaturalDeathRate;
-//	}
-
-	public void ModifyPopulation () {
+	public void UpdatePopulation () {
 
 		int dateSpan = World.CurrentDate - LastUpdateDate;
 
 		PopulationAfterTime (dateSpan);
 		
-//		OptimalPopulation = CalculateOptimalPopulation ();
-//
-//		float popChangeRate = GetPopulationChangeRate ();
-//
-//		float changeRate = Mathf.Max(MinChangeRate, popChangeRate);
-//
-//		Population += Mathf.CeilToInt(Population * changeRate);
+		LastUpdateDate = World.CurrentDate;
 	}
 
 	public int CalculateOptimalPopulation () {
@@ -200,17 +195,25 @@ public class CellGroup : HumanGroup {
 
 		OptimalPopulation = (int)Mathf.Floor (populationCapacityFactor);
 
-//		float survivabilityFactor = Cell.Survivability * Cell.MaxForage * Cell.ForagingCapacity;
-//
-//		float changeRateFactor = 1 + NaturalDeathRate - NaturalBirthRate;
-//
-//		int optimalPopulation = (int)Mathf.Floor (survivabilityFactor / changeRateFactor);
-
 		return OptimalPopulation;
+	}
+
+	public int CalculateNextUpdateDate () {
+
+		int populationFactor = 1 + Mathf.Abs (OptimalPopulation - Population);
+
+		populationFactor = (int)Mathf.Max((1000 + OptimalPopulation) / (float)populationFactor, 1);
+
+		return World.CurrentDate + GenerationSpan * populationFactor;
 	}
 
 	public int PopulationAfterTime (int time) { // in years
 
+//		if (Cell.IsObserved) {
+//		
+//			bool debug = true;
+//		}
+		
 		if (Population == OptimalPopulation)
 			return Population;
 		

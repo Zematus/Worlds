@@ -6,8 +6,6 @@ using System.Xml.Serialization;
 
 public class TerrainCell {
 
-	public const float MaxForageFactor = 2/0.4f;
-
 	[XmlIgnore]
 	public World World;
 	
@@ -29,8 +27,6 @@ public class TerrainCell {
 	public float Survivability;
 	[XmlAttribute]
 	public float ForagingCapacity;
-//	[XmlAttribute]
-//	public float MaxForage;
 
 	[XmlAttribute]
 	public float Height;
@@ -45,6 +41,9 @@ public class TerrainCell {
 	
 	[XmlIgnore]
 	public static float MaxArea;
+	
+	[XmlIgnore]
+	public bool IsObserved = false;
 	
 	[XmlIgnore]
 	public List<TerrainCell> Neighbors { get; private set; }
@@ -97,30 +96,6 @@ public class TerrainCell {
 		return 0;
 	}
 
-	public int GetTravelTime () {
-	
-		int travelTime = 3;
-
-		return travelTime;
-	}
-
-	public float GetStress () {
-		
-		if (Groups.Count <= 0)
-			return 0;
-
-		float totalStress = 0;
-		
-		foreach (CellGroup group in Groups) {
-			
-			totalStress += group.Stress;
-		}
-
-		totalStress /= (float)Groups.Count;
-
-		return totalStress;
-	}
-
 	public void FinalizeLoad () {
 		
 		InitializeNeighbors ();
@@ -134,6 +109,24 @@ public class TerrainCell {
 
 			group.FinalizeLoad ();
 		}
+	}
+
+	public float CalculatePopulationStress () {
+	
+		foreach (CellGroup group in Groups) {
+			
+			if (group.StillPresent) {
+
+				float groupStress = 1;
+
+				if (group.OptimalPopulation > 0)
+					groupStress = group.Population / (float)group.OptimalPopulation;
+
+				return Mathf.Min (1, groupStress);
+			}
+		}
+
+		return 0;
 	}
 
 	public void InitializeNeighbors () {

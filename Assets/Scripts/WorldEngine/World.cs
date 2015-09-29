@@ -59,6 +59,9 @@ public class World {
 	[XmlIgnore]
 	public HumanGroup TaggedGroup = null;
 	
+	[XmlIgnore]
+	public TerrainCell ObservedCell = null;
+	
 	[XmlAttribute]
 	public int CurrentDate { get; private set; }
 	
@@ -321,11 +324,17 @@ public class World {
 	}
 
 	public void AddGroupToUpdate (CellGroup group) {
+
+		if (_groupsToUpdate.Contains (group))
+			return;
 	
 		_groupsToUpdate.Add (group);
 	}
 	
 	public void AddGroupToRemove (CellGroup group) {
+		
+		if (_groupsToRemove.Contains (group))
+			return;
 		
 		_groupsToRemove.Add (group);
 	}
@@ -388,6 +397,17 @@ public class World {
 		
 		if (TaggedGroup != null)
 			TaggedGroup.IsTagged = false;
+	}
+	
+	public void SetObservedCell (TerrainCell cell) {
+		
+		if (ObservedCell != null)
+			ObservedCell.IsObserved = false;
+		
+		ObservedCell = cell;
+		
+		if (cell != null)
+			cell.IsObserved = true;
 	}
 	
 	public void FinalizeGeneration () {
