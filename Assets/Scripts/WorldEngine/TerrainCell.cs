@@ -122,6 +122,8 @@ public class TerrainCell {
 				if (group.OptimalPopulation > 0)
 					groupStress = group.Population / (float)group.OptimalPopulation;
 
+				groupStress = 0.25f + (0.75f * groupStress);
+
 				return Mathf.Min (1, groupStress);
 			}
 		}

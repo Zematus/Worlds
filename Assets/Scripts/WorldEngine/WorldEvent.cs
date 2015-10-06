@@ -75,20 +75,49 @@ public class UpdateCellGroupEvent : WorldEvent {
 }
 
 public class MigrateGroupEvent : WorldEvent {
+	
+	public static int EventCount = 0;
+	
+	public static float MeanTravelTime = 0;
+	
+	[XmlAttribute]
+	public int TravelTime;
 
 	public MigratingGroup Group;
 	
 	public MigrateGroupEvent () {
-		
+
+		EventCount++;
 	}
 	
-	public MigrateGroupEvent (World world, int triggerDate, MigratingGroup group) : base (world, triggerDate) {
+	public MigrateGroupEvent (World world, int triggerDate, int travelTime, MigratingGroup group) : base (world, triggerDate) {
+
+		TravelTime = travelTime;
 		
 		Group = group;
+		
+		float TravelTimeSum = (MeanTravelTime * EventCount) + travelTime;
+
+		EventCount++;
+
+		MeanTravelTime = TravelTimeSum / (float)EventCount;
 	}
 	
 	public override bool CanTrigger () {
 		
+		float TravelTimeSub = (MeanTravelTime * EventCount) - TravelTime;
+		
+		EventCount--;
+
+		if (EventCount > 0) {
+		
+			MeanTravelTime = TravelTimeSub / (float)EventCount;
+
+		} else {
+
+			MeanTravelTime = 0;
+		}
+
 		if (Group == null)
 			return false;
 		

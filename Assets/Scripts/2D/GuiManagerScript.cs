@@ -585,6 +585,10 @@ public class GuiManagerScript : MonoBehaviour {
 		if (GetMapCoordinatesFromCursor (out point)) {
 			AddCellDataToInfoPanel (point);
 		}
+		
+		InfoPanelText.text += "\n";
+		InfoPanelText.text += "\nNumber of Migration Events: " + MigrateGroupEvent.EventCount;
+		InfoPanelText.text += "\nMean Migration Travel Time: " + MigrateGroupEvent.MeanTravelTime;
 	}
 	
 	public void AddCellDataToInfoPanel (int longitude, int latitude) {
@@ -624,6 +628,7 @@ public class GuiManagerScript : MonoBehaviour {
 		int population = 0;
 		int optimalPopulation = 0;
 		int lastUpdateDate = 0;
+		int nextUpdateDate = 0;
 
 		foreach (CellGroup group in cell.Groups) {
 		
@@ -631,6 +636,7 @@ public class GuiManagerScript : MonoBehaviour {
 			optimalPopulation += group.OptimalPopulation;
 
 			lastUpdateDate = Mathf.Max(lastUpdateDate, group.LastUpdateDate);
+			nextUpdateDate = Mathf.Max(nextUpdateDate, group.NextUpdateDate);
 		}
 
 		if (population > 0) {
@@ -639,6 +645,7 @@ public class GuiManagerScript : MonoBehaviour {
 			InfoPanelText.text += "\nPopulation: " + population;
 			InfoPanelText.text += "\nOptimal Population: " + optimalPopulation;
 			InfoPanelText.text += "\nLast Update Date: " + lastUpdateDate;
+			InfoPanelText.text += "\nNext Update Date: " + nextUpdateDate;
 		}
 	}
 	

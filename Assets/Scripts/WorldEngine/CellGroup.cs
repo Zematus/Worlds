@@ -14,7 +14,7 @@ public class CellGroup : HumanGroup {
 
 	public const float NaturalGrowthRate = NaturalBirthRate - NaturalDeathRate;
 	
-	public const float PopulationConstant = 100;
+	public const float PopulationConstant = 10;
 
 	public const float TravelTimeFactor = 1;
 	
@@ -125,14 +125,14 @@ public class CellGroup : HumanGroup {
 
 	public void ConsiderMigration () {
 
-		float percentToMigrate = 0.25f + 0.5f * Cell.GetNextLocalRandomFloat ();
+		float percentToMigrate = 0.5f * Cell.GetNextLocalRandomFloat ();
 
 		float score = Cell.GetNextLocalRandomFloat ();
 
 		List<TerrainCell> possibleTargetCells = new List<TerrainCell> (Cell.Neighbors);
 		possibleTargetCells.Add (Cell);
 
-		float noMigrationPreference = 10f;
+		float noMigrationPreference = 3f;
 
 		TerrainCell targetCell = MathUtility.WeightedSelection (score, possibleTargetCells, (c) => {
 
@@ -140,6 +140,7 @@ public class CellGroup : HumanGroup {
 			float altitudeFactor = 1 - (c.Altitude / World.MaxPossibleAltitude);
 
 			float stressFactor = 1 - c.CalculatePopulationStress();
+			stressFactor *= stressFactor;
 			stressFactor *= stressFactor;
 
 			float survabilityFactor = c.Survivability; 
@@ -163,13 +164,16 @@ public class CellGroup : HumanGroup {
 		if (targetCell.Survivability <= 0)
 			return;
 
-		int travelTime = (int)Mathf.Ceil(TravelTimeFactor / targetCell.Survivability);
+		//float survivabilityFactor = 0.75f + (targetCell.Survivability)/4f;
+		float survivabilityFactor = targetCell.Survivability;
+
+		int travelTime = (int)Mathf.Ceil(TravelTimeFactor / survivabilityFactor);
 		
 		int nextDate = World.CurrentDate + travelTime;
 
 		MigratingGroup migratingGroup = new MigratingGroup (World, percentToMigrate, this, targetCell);
 		
-		World.InsertEventToHappen (new MigrateGroupEvent (World, nextDate, migratingGroup));
+		World.InsertEventToHappen (new MigrateGroupEvent (World, nextDate, travelTime, migratingGroup));
 	}
 
 	public void Destroy () {
