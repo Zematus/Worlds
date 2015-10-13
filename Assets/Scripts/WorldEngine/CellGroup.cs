@@ -35,6 +35,8 @@ public class CellGroup : HumanGroup {
 	
 	[XmlAttribute]
 	public int OptimalPopulation;
+
+	public Culture Culture;
 	
 	[XmlIgnore]
 	public TerrainCell Cell;
@@ -42,11 +44,11 @@ public class CellGroup : HumanGroup {
 	public CellGroup () {
 	}
 	
-	public CellGroup (MigratingGroup migratingGroup, int splitPopulation) : this(migratingGroup.World, migratingGroup.TargetCell, splitPopulation) {
+	public CellGroup (MigratingGroup migratingGroup, int splitPopulation, Culture splitCulture) : this(migratingGroup.World, migratingGroup.TargetCell, splitPopulation, splitCulture) {
 
 	}
 
-	public CellGroup (World world, TerrainCell cell, int initialPopulation) : base(world) {
+	public CellGroup (World world, TerrainCell cell, int initialPopulation, Culture baseCulture) : base(world) {
 
 		Population = initialPopulation;
 		
@@ -57,6 +59,10 @@ public class CellGroup : HumanGroup {
 		Cell.Groups.Add (this);
 
 		Id = World.GenerateCellGroupId();
+
+		Culture = new Culture (baseCulture);
+
+		InitializeBiomeSurvivalSkills ();
 		
 		NextUpdateDate = CalculateNextUpdateDate();
 		
@@ -67,15 +73,34 @@ public class CellGroup : HumanGroup {
 		CalculateOptimalPopulation ();
 	}
 
-	public void MergeGroup (MigratingGroup group, int splitPopulation) {
+	public void InitializeBiomeSurvivalSkills () {
+
+		foreach (string biome in Cell.PresentBiomeNames) {
+		
+			string skillId = BiomeSurvivalSkill.GenerateId (biome);
+
+			if (Culture.GetSkill (skillId) == null) {
+				
+				Culture.Skills.Add (new BiomeSurvivalSkill (biome, 0.0f));
+			}
+		}
+	}
+
+	public void MergeGroup (MigratingGroup group, int splitPopulation, Culture splitCulture) {
 		
 		UpdatePopulation ();
-	
-		Population += splitPopulation;
+
+		int newPopulation = Population + splitPopulation;
 		
-		if (Population <= 0) {
+		if (newPopulation <= 0) {
 			throw new System.Exception ("Population after migration merge shouldn't be 0 or less.");
 		}
+
+		float percentage = splitPopulation / (float)newPopulation;
+	
+		Population = newPopulation;
+
+		Culture.MergeCulture (splitCulture, percentage);
 		
 		SetupForNextUpdate ();
 	}

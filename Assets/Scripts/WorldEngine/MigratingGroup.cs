@@ -51,11 +51,13 @@ public class MigratingGroup : HumanGroup {
 		if (splitPopulation <= 0)
 			return;
 
+		Culture splitCulture = SourceGroup.Culture;
+
 		foreach (CellGroup group in TargetCell.Groups) {
 
 			if (group.StillPresent) {
 
-				group.MergeGroup(this, splitPopulation);
+				group.MergeGroup(this, splitPopulation, splitCulture);
 
 				if (SourceGroup.IsTagged) {
 					World.TagGroup (group);
@@ -65,7 +67,7 @@ public class MigratingGroup : HumanGroup {
 			}
 		}
 
-		CellGroup newGroup = new CellGroup (this, splitPopulation);
+		CellGroup newGroup = new CellGroup (this, splitPopulation, splitCulture);
 
 		World.AddGroup (newGroup);
 		
