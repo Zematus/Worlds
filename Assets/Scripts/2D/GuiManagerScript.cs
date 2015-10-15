@@ -630,6 +630,8 @@ public class GuiManagerScript : MonoBehaviour {
 		int lastUpdateDate = 0;
 		int nextUpdateDate = 0;
 
+		List<CulturalSkill> cellCulturalSkills = new List<CulturalSkill> ();
+
 		foreach (CellGroup group in cell.Groups) {
 		
 			population += group.Population;
@@ -637,6 +639,11 @@ public class GuiManagerScript : MonoBehaviour {
 
 			lastUpdateDate = Mathf.Max(lastUpdateDate, group.LastUpdateDate);
 			nextUpdateDate = Mathf.Max(nextUpdateDate, group.NextUpdateDate);
+
+			foreach (CulturalSkill skill in group.Culture.Skills) {
+
+				cellCulturalSkills.Add(skill);
+			}
 		}
 
 		if (population > 0) {
@@ -646,6 +653,14 @@ public class GuiManagerScript : MonoBehaviour {
 			InfoPanelText.text += "\nOptimal Population: " + optimalPopulation;
 			InfoPanelText.text += "\nLast Update Date: " + lastUpdateDate;
 			InfoPanelText.text += "\nNext Update Date: " + nextUpdateDate;
+
+			InfoPanelText.text += "\n";
+			InfoPanelText.text += "\nCultural Skills";
+
+			foreach (CulturalSkill skill in cellCulturalSkills) {
+				
+				InfoPanelText.text += "\n\t" + skill.Id + " - Value: " + skill.Value;
+			}
 		}
 	}
 	

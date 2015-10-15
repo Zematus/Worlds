@@ -88,7 +88,7 @@ public class CellGroup : HumanGroup {
 
 	public void MergeGroup (MigratingGroup group, int splitPopulation, Culture splitCulture) {
 		
-		UpdatePopulation ();
+		UpdateInternal ();
 
 		int newPopulation = Population + splitPopulation;
 		
@@ -107,7 +107,7 @@ public class CellGroup : HumanGroup {
 	
 	public int SplitGroup (MigratingGroup group) {
 		
-		UpdatePopulation ();
+		UpdateInternal ();
 
 		int splitPopulation = (int)Mathf.Floor(Population * group.PercentPopulation);
 		
@@ -120,7 +120,7 @@ public class CellGroup : HumanGroup {
 
 	public void Update () {
 
-		UpdatePopulation ();
+		UpdateInternal ();
 
 		SetupForNextUpdate ();
 	}
@@ -189,7 +189,6 @@ public class CellGroup : HumanGroup {
 		if (targetCell.Survivability <= 0)
 			return;
 
-		//float survivabilityFactor = 0.75f + (targetCell.Survivability)/4f;
 		float survivabilityFactor = targetCell.Survivability;
 
 		int travelTime = (int)Mathf.Ceil(TravelTimeFactor / survivabilityFactor);
@@ -209,13 +208,24 @@ public class CellGroup : HumanGroup {
 		StillPresent = false;
 	}
 
-	public void UpdatePopulation () {
+	private void UpdateInternal () {
+		
+		int timeSpan = World.CurrentDate - LastUpdateDate;
 
-		int dateSpan = World.CurrentDate - LastUpdateDate;
-
-		PopulationAfterTime (dateSpan);
+		UpdatePopulation (timeSpan);
+		UpdateCulture (timeSpan);
 		
 		LastUpdateDate = World.CurrentDate;
+	}
+	
+	private void UpdatePopulation (int timeSpan) {
+		
+		Population = PopulationAfterTime (timeSpan);
+	}
+	
+	private void UpdateCulture (int timeSpan) {
+		
+		Culture.Update (this, timeSpan);
 	}
 
 	public int CalculateOptimalPopulation () {
@@ -242,27 +252,29 @@ public class CellGroup : HumanGroup {
 //		
 //			bool debug = true;
 //		}
+
+		int population = Population;
 		
-		if (Population == OptimalPopulation)
-			return Population;
+		if (population == OptimalPopulation)
+			return population;
 		
 		float timeFactor = NaturalGrowthRate * time / (float)GenerationSpan;
 
-		if (Population < OptimalPopulation) {
+		if (population < OptimalPopulation) {
 			
 			float geometricTimeFactor = Mathf.Pow(2, timeFactor);
 			float populationFactor = 1 - Population/(float)OptimalPopulation;
 
-			Population = (int)Mathf.Floor(OptimalPopulation * (1 - Mathf.Pow(populationFactor, geometricTimeFactor)));
+			population = (int)Mathf.Floor(OptimalPopulation * (1 - Mathf.Pow(populationFactor, geometricTimeFactor)));
 
-			return Population;
+			return population;
 		}
 
-		if (Population > OptimalPopulation) {
+		if (population > OptimalPopulation) {
 
-			Population = (int)Mathf.Floor(OptimalPopulation + (Population - OptimalPopulation) * Mathf.Exp (-timeFactor));
+			population = (int)Mathf.Floor(OptimalPopulation + (Population - OptimalPopulation) * Mathf.Exp (-timeFactor));
 			
-			return Population;
+			return population;
 		}
 
 		return 0;

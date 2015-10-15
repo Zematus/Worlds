@@ -38,7 +38,7 @@ public abstract class CulturalSkill {
 		Value *= percentage;
 	}
 	
-	public abstract void AdaptationEffect (CellGroup group, int timeTranspired);
+	public abstract void Update (CellGroup group, int timeSpan);
 }
 
 public class BiomeSurvivalSkill : CulturalSkill {
@@ -63,22 +63,15 @@ public class BiomeSurvivalSkill : CulturalSkill {
 		Biome = baseSkill.Biome;
 	}
 	
-	public override void AdaptationEffect (CellGroup group, int timeTranspired) {
+	public override void Update (CellGroup group, int timeSpan) {
 
 		TerrainCell cell = group.Cell;
 
-		float targetValue = cell.GetNextLocalRandomFloat ();
-
-		float timeEffect = timeTranspired / (float)(timeTranspired + TimeEffectConstant);
+		float timeEffect = timeSpan / (float)(timeSpan + TimeEffectConstant);
 		
-//		float presence = cell.GetBiomePresence (Biome);
-//
-//		float factorA = 1 - Mathf.Abs (targetValue - presence);
-//		float factorB = Mathf.Abs (Value - presence);
-//
-//		float presenceFactor = factorA * factorB * timeEffect;
-//
-//		Value = (Value * (1 - presenceFactor)) + (targetValue * presenceFactor);
+		float presence = cell.GetBiomePresence (Biome);
+		
+		float targetValue = cell.GetNextLocalRandomFloat () * (Value - presence) + presence;
 		
 		Value = (Value * (1 - timeEffect)) + (targetValue * timeEffect);
 	}
@@ -123,6 +116,14 @@ public class Culture {
 			} else {
 				skill.MergeSkill (sourceSkill, percentage);
 			}
+		}
+	}
+
+	public void Update (CellGroup group, int timeSpan) {
+
+		foreach (CulturalSkill skill in Skills) {
+		
+			skill.Update (group, timeSpan);
 		}
 	}
 }

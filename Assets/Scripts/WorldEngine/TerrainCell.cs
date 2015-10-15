@@ -85,14 +85,19 @@ public class TerrainCell {
 
 	public float GetBiomePresence (Biome biome) {
 
+		return GetBiomePresence (biome.Name);
+	}
+	
+	public float GetBiomePresence (string biomeName) {
+		
 		for (int i = 0; i < PresentBiomeNames.Count; i++) {
-
-			if (biome.Name == PresentBiomeNames[i])
+			
+			if (biomeName == PresentBiomeNames[i])
 			{
 				return BiomePresences[i];
 			}
 		}
-
+		
 		return 0;
 	}
 
