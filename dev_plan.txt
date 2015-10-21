@@ -2,8 +2,6 @@ Done work-items:
  - Exclusive Overlay Application
  - Population as an Overlay
  - Custom Seed for World Creation
-
-Next Release work-items:
  - Group Migrations
    - Target Cell Biome should affect chances of migration
  - Data Panel should update always
@@ -11,6 +9,13 @@ Next Release work-items:
    - Mean Temperature
    - Mean Rainfall
    - Seal Level
+ - Groups should factor cultural adaptation for next update calculation (how far from reaching optimal skill value, etc)
+
+Next Release work-items:
+ - Groups that where recently formed or received migrating population should have and increased frequency of triggering another migration (restleness)
+ - Foraging capacity should be affected by rainfall
+ - Should add accessibility to biomes
+ - Add desertic tundra
 
 Future work-items:
  - Different World Sizes (400x200, 800x400, 1600x800)

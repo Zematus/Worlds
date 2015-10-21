@@ -39,6 +39,7 @@ public abstract class CulturalSkill {
 	}
 	
 	public abstract void Update (CellGroup group, int timeSpan);
+	public abstract float AdaptationLevel (CellGroup group);
 }
 
 public class BiomeSurvivalSkill : CulturalSkill {
@@ -62,18 +63,38 @@ public class BiomeSurvivalSkill : CulturalSkill {
 
 		Biome = baseSkill.Biome;
 	}
-	
+
 	public override void Update (CellGroup group, int timeSpan) {
 
 		TerrainCell cell = group.Cell;
+		
+		float presence = cell.GetBiomePresence (Biome);
+
+		float randomModifier = presence - cell.GetNextLocalRandomFloat ();
+
+		float targetValue = 0;
+
+		if (randomModifier > 0) {
+			targetValue = Value + (1 - Value) * randomModifier;
+		} else {
+			targetValue = Value * (1 + randomModifier);
+		}
 
 		float timeEffect = timeSpan / (float)(timeSpan + TimeEffectConstant);
 		
-		float presence = cell.GetBiomePresence (Biome);
-		
-		float targetValue = cell.GetNextLocalRandomFloat () * (Value - presence) + presence;
-		
 		Value = (Value * (1 - timeEffect)) + (targetValue * timeEffect);
+	}
+
+	public override float AdaptationLevel (CellGroup group) {
+		
+		TerrainCell cell = group.Cell;
+		
+		float presence = cell.GetBiomePresence (Biome);
+
+		if (presence == Value)
+			return 1;
+
+		return 1 - Mathf.Abs (Value - presence);
 	}
 }
 
@@ -125,5 +146,20 @@ public class Culture {
 		
 			skill.Update (group, timeSpan);
 		}
+	}
+
+	public float SkillAdaptationLevel (CellGroup group) {
+
+		if (Skills.Count == 0)
+			throw new System.Exception ("Group has no cultural skills");
+
+		float totalAdaptationLevel = 0;
+
+		foreach (CulturalSkill skill in Skills) {
+			
+			totalAdaptationLevel += skill.AdaptationLevel (group);
+		}
+
+		return totalAdaptationLevel / (float)Skills.Count;
 	}
 }

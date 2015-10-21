@@ -81,6 +81,8 @@ public class World {
 	public TerrainCell[][] Terrain;
 
 	public List<WorldEvent> EventsToHappen = new List<WorldEvent> ();
+	
+	private HashSet<CellGroup> _updatedGroups = new HashSet<CellGroup>();
 		
 	private const float _progressIncrement = 0.25f;
 	
@@ -186,6 +188,11 @@ public class World {
 			MostPopulousGroupId = -1;
 		}
 	}
+	
+	public void AddUpdatedGroup (CellGroup group) {
+		
+		_updatedGroups.Add (group);
+	}
 
 	public void Iterate () {
 		
@@ -225,8 +232,6 @@ public class World {
 		_groupsToUpdate.Clear ();
 	
 		foreach (CellGroup group in currentGroupsToUpdate) {
-			
-			Manager.AddUpdatedCell(group.Cell);
 		
 			group.Update();
 		}
@@ -241,18 +246,31 @@ public class World {
 		
 		foreach (MigratingGroup group in currentGroupsToMigrate) {
 			
-			Manager.AddUpdatedCell(group.TargetCell);
-
-			group.AddToCell();
+			group.SplitFromSourceGroup();
 		}
+		
+		foreach (MigratingGroup group in currentGroupsToMigrate) {
+
+			group.MoveToCell();
+		}
+		
+		//
+		// Set next group updates
+		//
+		
+		foreach (CellGroup group in _updatedGroups) {
+			
+			group.SetupForNextUpdate ();
+			Manager.AddUpdatedCell (group.Cell);
+		}
+
+		_updatedGroups.Clear ();
 		
 		//
 		// Remove Human Groups
 		//
 
 		foreach (CellGroup group in _groupsToRemove) {
-			
-			Manager.AddUpdatedCell(group.Cell);
 			
 			group.Destroy();
 		}
@@ -306,6 +324,8 @@ public class World {
 	public void AddGroup (CellGroup group) {
 		
 		_groups.Add (group);
+
+		Manager.AddUpdatedCell (group.Cell);
 	}
 	
 	public void RemoveGroup (CellGroup group) {

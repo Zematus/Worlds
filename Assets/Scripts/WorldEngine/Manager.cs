@@ -1123,6 +1123,10 @@ public class Manager {
 	}
 
 	private static XmlAttributeOverrides GenerateAttributeOverrides () {
+		
+		XmlAttributeOverrides attrOverrides = new XmlAttributeOverrides();
+
+		// Add GroupEvent Attributes
 
 		XmlAttributes attrs = new XmlAttributes();
 
@@ -1138,9 +1142,19 @@ public class Manager {
 		
 		attrs.XmlElements.Add(attr);
 
-		XmlAttributeOverrides attrOverrides = new XmlAttributeOverrides();
-
 		attrOverrides.Add(typeof(World), "EventsToHappen", attrs);
+		
+		// Add CulturalSkill Attributes
+		
+		attrs = new XmlAttributes();
+		
+		attr = new XmlElementAttribute();
+		attr.ElementName = "BiomeSurvivalSkill";
+		attr.Type = typeof(BiomeSurvivalSkill);
+		
+		attrs.XmlElements.Add(attr);
+		
+		attrOverrides.Add(typeof(Culture), "Skills", attrs);
 
 		return attrOverrides;
 	}

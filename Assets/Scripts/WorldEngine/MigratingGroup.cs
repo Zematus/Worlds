@@ -21,6 +21,11 @@ public class MigratingGroup : HumanGroup {
 	
 	[XmlIgnore]
 	public CellGroup SourceGroup;
+	
+	[XmlIgnore]
+	public int SplitPopulation = 0;
+	[XmlIgnore]
+	public Culture SplitCulture;
 
 	public MigratingGroup () {
 	}
@@ -37,27 +42,35 @@ public class MigratingGroup : HumanGroup {
 		TargetCellLongitude = TargetCell.Longitude;
 		TargetCellLatitude = TargetCell.Latitude;
 	}
-
-	public void AddToCell () {
-
-		if (SourceGroup == null)
-			return;
-
-		if (!SourceGroup.StillPresent)
-			return;
+	
+	public bool SplitFromSourceGroup () {
 		
-		int splitPopulation = SourceGroup.SplitGroup(this);
+		if (SourceGroup == null)
+			return false;
+		
+		if (!SourceGroup.StillPresent)
+			return false;
+		
+		SplitPopulation = SourceGroup.SplitGroup(this);
+		
+		if (SplitPopulation <= 0)
+			return false;
+		
+		SplitCulture = SourceGroup.Culture;
 
-		if (splitPopulation <= 0)
+		return true;
+	}
+
+	public void MoveToCell () {
+		
+		if (SplitPopulation <= 0)
 			return;
-
-		Culture splitCulture = SourceGroup.Culture;
 
 		foreach (CellGroup group in TargetCell.Groups) {
 
 			if (group.StillPresent) {
 
-				group.MergeGroup(this, splitPopulation, splitCulture);
+				group.MergeGroup(this, SplitPopulation, SplitCulture);
 
 				if (SourceGroup.IsTagged) {
 					World.TagGroup (group);
@@ -67,7 +80,7 @@ public class MigratingGroup : HumanGroup {
 			}
 		}
 
-		CellGroup newGroup = new CellGroup (this, splitPopulation, splitCulture);
+		CellGroup newGroup = new CellGroup (this, SplitPopulation, SplitCulture);
 
 		World.AddGroup (newGroup);
 		

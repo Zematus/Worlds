@@ -45,7 +45,6 @@ public class CellGroup : HumanGroup {
 	}
 	
 	public CellGroup (MigratingGroup migratingGroup, int splitPopulation, Culture splitCulture) : this(migratingGroup.World, migratingGroup.TargetCell, splitPopulation, splitCulture) {
-
 	}
 
 	public CellGroup (World world, TerrainCell cell, int initialPopulation, Culture baseCulture) : base(world) {
@@ -70,7 +69,7 @@ public class CellGroup : HumanGroup {
 		
 		World.UpdateMostPopulousGroup (this);
 		
-		CalculateOptimalPopulation ();
+		OptimalPopulation = CalculateOptimalPopulation (Cell);
 	}
 
 	public void InitializeBiomeSurvivalSkills () {
@@ -101,8 +100,6 @@ public class CellGroup : HumanGroup {
 		Population = newPopulation;
 
 		Culture.MergeCulture (splitCulture, percentage);
-		
-		SetupForNextUpdate ();
 	}
 	
 	public int SplitGroup (MigratingGroup group) {
@@ -112,8 +109,6 @@ public class CellGroup : HumanGroup {
 		int splitPopulation = (int)Mathf.Floor(Population * group.PercentPopulation);
 		
 		Population -= splitPopulation;
-		
-		SetupForNextUpdate ();
 
 		return splitPopulation;
 	}
@@ -121,8 +116,6 @@ public class CellGroup : HumanGroup {
 	public void Update () {
 
 		UpdateInternal ();
-
-		SetupForNextUpdate ();
 	}
 
 	public void SetupForNextUpdate () {
@@ -134,7 +127,7 @@ public class CellGroup : HumanGroup {
 		
 		World.UpdateMostPopulousGroup (this);
 		
-		CalculateOptimalPopulation ();
+		OptimalPopulation = CalculateOptimalPopulation (Cell);
 		
 		ConsiderMigration();
 		
@@ -150,7 +143,7 @@ public class CellGroup : HumanGroup {
 
 	public void ConsiderMigration () {
 
-		float percentToMigrate = 0.5f * Cell.GetNextLocalRandomFloat ();
+		float percentToMigrate = 0.25f * Cell.GetNextLocalRandomFloat ();
 
 		float score = Cell.GetNextLocalRandomFloat ();
 
@@ -168,9 +161,14 @@ public class CellGroup : HumanGroup {
 			stressFactor *= stressFactor;
 			stressFactor *= stressFactor;
 
-			float survabilityFactor = c.Survivability; 
+			float cSurvivability = 0;
+			float cForagingCapacity = 0;
 
-			float cellValue = survabilityFactor * altitudeFactor * areaFactor * stressFactor;
+			CalculateAdaptionToCell (c, out cForagingCapacity, out cSurvivability);
+
+			float adaptionFactor = cSurvivability * cForagingCapacity; 
+
+			float cellValue = adaptionFactor * altitudeFactor * areaFactor * stressFactor;
 
 			if (c == Cell) {
 				cellValue *= noMigrationPreference;
@@ -185,13 +183,18 @@ public class CellGroup : HumanGroup {
 
 		if (targetCell == null)
 			return;
+		
+		float cellSurvivability = 0;
+		float cellForagingCapacity = 0;
+		
+		CalculateAdaptionToCell (targetCell, out cellForagingCapacity, out cellSurvivability);
 
-		if (targetCell.Survivability <= 0)
+		float travelFactor = cellSurvivability * cellSurvivability * cellSurvivability;
+
+		if (cellSurvivability <= 0)
 			return;
 
-		float survivabilityFactor = targetCell.Survivability;
-
-		int travelTime = (int)Mathf.Ceil(TravelTimeFactor / survivabilityFactor);
+		int travelTime = (int)Mathf.Ceil(TravelTimeFactor / travelFactor);
 		
 		int nextDate = World.CurrentDate + travelTime;
 
@@ -212,10 +215,15 @@ public class CellGroup : HumanGroup {
 		
 		int timeSpan = World.CurrentDate - LastUpdateDate;
 
+		if (timeSpan <= 0)
+			return;
+
 		UpdatePopulation (timeSpan);
 		UpdateCulture (timeSpan);
 		
 		LastUpdateDate = World.CurrentDate;
+		
+		World.AddUpdatedGroup (this);
 	}
 	
 	private void UpdatePopulation (int timeSpan) {
@@ -228,22 +236,64 @@ public class CellGroup : HumanGroup {
 		Culture.Update (this, timeSpan);
 	}
 
-	public int CalculateOptimalPopulation () {
+	public int CalculateOptimalPopulation (TerrainCell cell) {
 
-		float populationCapacityFactor = PopulationConstant * Cell.Area * Cell.ForagingCapacity * Cell.Survivability;
+		int optimalPopulation = 0;
 
-		OptimalPopulation = (int)Mathf.Floor (populationCapacityFactor);
+		float modifiedForagingCapacity = 0;
+		float modifiedSurvivability = 0;
 
-		return OptimalPopulation;
+		CalculateAdaptionToCell (cell, out modifiedForagingCapacity, out modifiedSurvivability);
+
+		float populationCapacityFactor = PopulationConstant * cell.Area * modifiedForagingCapacity * modifiedSurvivability;
+
+		optimalPopulation = (int)Mathf.Floor (populationCapacityFactor);
+
+		return optimalPopulation;
+	}
+
+	public void CalculateAdaptionToCell (TerrainCell cell, out float foragingCapacity, out float survivability) {
+
+		float modifiedForagingCapacity = 0;
+		float modifiedSurvivability = 0;
+		
+		foreach (CulturalSkill skill in Culture.Skills) {
+			
+			float skillValue = skill.Value;
+			
+			if (skill is BiomeSurvivalSkill) {
+				
+				BiomeSurvivalSkill biomeSurvivalSkill = skill as BiomeSurvivalSkill;
+				
+				string biomeName = biomeSurvivalSkill.Biome;
+				
+				float biomePresence = cell.GetBiomePresence(biomeName);
+				
+				if (biomePresence > 0)
+				{
+					Biome biome = Biome.Biomes[biomeName];
+					
+					modifiedForagingCapacity += biome.ForagingCapacity * skillValue * biomePresence;
+					modifiedSurvivability += (biome.Survivability + skillValue * (1 - biome.Survivability)) * biomePresence;
+				}
+			}
+		}
+
+		foragingCapacity = modifiedForagingCapacity;
+		survivability = modifiedSurvivability;
 	}
 
 	public int CalculateNextUpdateDate () {
 
-		int populationFactor = 1 + Mathf.Abs (OptimalPopulation - Population);
+		float skillLevelFactor = (1 + 99 * Culture.SkillAdaptationLevel (this)) / 100f;
 
-		populationFactor = (int)Mathf.Max((1000 + OptimalPopulation) / (float)populationFactor, 1);
+		float populationFactor = 1 + Mathf.Abs (OptimalPopulation - Population);
 
-		return World.CurrentDate + GenerationSpan * populationFactor;
+		float mixFactor = skillLevelFactor * (2000 + OptimalPopulation) / populationFactor;
+
+		int finalFactor = (int)Mathf.Max(mixFactor, 1);
+
+		return World.CurrentDate + GenerationSpan * finalFactor;
 	}
 
 	public int PopulationAfterTime (int time) { // in years
