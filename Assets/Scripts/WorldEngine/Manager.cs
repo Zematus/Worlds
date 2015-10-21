@@ -13,6 +13,14 @@ public enum PlanetView {
 	Coastlines
 }
 
+public enum PlanetOverlay {
+
+	None,
+	Temperature,
+	Rainfall,
+	Population
+}
+
 public delegate T ManagerTaskDelegate<T> ();
 
 public interface IManagerTask {
@@ -78,15 +86,34 @@ public class Manager {
 	public static string ExportPath { get; private set; }
 	
 	public static string WorldName { get; set; }
+	
+	public static HashSet<TerrainCell> UpdatedCells { get; private set; }
+	
+	public static int PixelToCellRatio = 4;
+	
+	public static float TemperatureOffset = 0;
+	public static float RainfallOffset = 0;
+	public static float SeaLevelOffset = 0;
+
+	public static bool DisplayTaggedGroup = false;
+	
+	public static bool _isLoadReady = false;
+	
+	public static World LoadingWorld = null;
 
 	private static Manager _manager = new Manager();
 
-	private static bool _rainfallVisible = false;
-	private static bool _temperatureVisible = false;
 	private static PlanetView _planetView = PlanetView.Biomes;
+	private static PlanetOverlay _planetOverlay = PlanetOverlay.None;
 	
 	private static List<Color> _biomePalette = new List<Color>();
 	private static List<Color> _mapPalette = new List<Color>();
+	
+	private static int _cellsToLoad = 0;
+	private static int _eventsToLoad = 0;
+	
+	private static int _totalLoadTicks = 0;
+	private static int _loadTicks = 0;
 	
 	private ProgressCastDelegate _progressCastMethod = null;
 	
@@ -94,14 +121,16 @@ public class Manager {
 	
 	private Texture2D _currentSphereTexture = null;
 	private Texture2D _currentMapTexture = null;
+	
+	private Color32[] _currentSphereTextureColors = null;
+	private Color32[] _currentMapTextureColors = null;
 
 	private Queue<IManagerTask> _taskQueue = new Queue<IManagerTask>();
 
 	private bool _worldReady = false;
 
-	private int _cellLoadCount = 0;
-	private int _cellsToLoad = 0;
-	
+	public XmlAttributeOverrides AttributeOverrides { get; private set; }
+
 	public static bool WorldReady {
 
 		get {
@@ -118,6 +147,10 @@ public class Manager {
 
 		InitializeSavePath ();
 		InitializeExportPath ();
+
+		AttributeOverrides = GenerateAttributeOverrides ();
+
+		UpdatedCells = new HashSet<TerrainCell> ();
 	}
 
 	private void InitializeSavePath () {
@@ -276,15 +309,20 @@ public class Manager {
 		});
 	}
 	
-	public static void RefreshTextures () { 
+	public static void GenerateTextures () { 
 
 		GenerateSphereTextureFromWorld(CurrentWorld);
 		GenerateMapTextureFromWorld(CurrentWorld);
 	}
 
-	public static void GenerateNewWorld () {
+	public static void AddUpdatedCell (TerrainCell cell) {
+	
+		UpdatedCells.Add(cell);
+	}
 
-		ManagerTask<int> seed = Manager.EnqueueTask (() => Random.Range (0, int.MaxValue));
+	public static void GenerateNewWorld (int seed) {
+
+		//ManagerTask<int> seed = Manager.EnqueueTask (() => Random.Range (0, int.MaxValue));
 
 		World world = new World(WorldWidth, WorldHeight, seed);
 		
@@ -298,7 +336,7 @@ public class Manager {
 		_manager._currentWorld = world;
 	}
 	
-	public static void GenerateNewWorldAsync (ProgressCastDelegate progressCastMethod = null) {
+	public static void GenerateNewWorldAsync (int seed, ProgressCastDelegate progressCastMethod = null) {
 
 		_manager._worldReady = false;
 		
@@ -306,7 +344,7 @@ public class Manager {
 
 		ThreadPool.QueueUserWorkItem (state => {
 			
-			GenerateNewWorld ();
+			GenerateNewWorld (seed);
 			
 			_manager._worldReady = true;
 		});
@@ -314,7 +352,7 @@ public class Manager {
 	
 	public static void SaveWorld (string path) {
 
-		XmlSerializer serializer = new XmlSerializer(typeof(World));
+		XmlSerializer serializer = new XmlSerializer(typeof(World), _manager.AttributeOverrides);
 		FileStream stream = new FileStream(path, FileMode.Create);
 
 		serializer.Serialize(stream, _manager._currentWorld);
@@ -340,12 +378,14 @@ public class Manager {
 		
 		ResetWorldLoadTrack ();
 
-		XmlSerializer serializer = new XmlSerializer(typeof(World));
+		XmlSerializer serializer = new XmlSerializer(typeof(World), _manager.AttributeOverrides);
 		FileStream stream = new FileStream(path, FileMode.Open);
 
 		_manager._currentWorld = serializer.Deserialize(stream) as World;
 
 		_manager._currentWorld.FinalizeLoad ();
+
+		LoadingWorld = null;
 
 		stream.Close();
 	}
@@ -365,80 +405,208 @@ public class Manager {
 	}
 
 	public static void ResetWorldLoadTrack () {
-		
-		_manager._cellLoadCount = 0;
-		_manager._cellsToLoad = WorldWidth*WorldHeight;
+
+		_isLoadReady = false;
+	}
+
+	public static void InitializeWorldLoadTrack () {
+
+		_isLoadReady = true;
+	
+		_cellsToLoad = LoadingWorld.Width*LoadingWorld.Height;
+		_eventsToLoad = LoadingWorld.EventsToHappenCount;
+
+		_totalLoadTicks = _cellsToLoad + _eventsToLoad;
+		_loadTicks = 0;
 	}
 	
-	public static void UpdateWorldLoadTrack () {
-		
-		_manager._cellLoadCount += 1;
+	public static void UpdateWorldLoadTrackCellCount () {
 
-		float value = _manager._cellLoadCount / (float)_manager._cellsToLoad;
+		if (!_isLoadReady)
+			InitializeWorldLoadTrack ();
+		
+		_loadTicks += 1;
+
+		float value = _loadTicks / (float)_totalLoadTicks;
+		
+		//Debug.Log ("Load progress: " + value);
 		
 		if (_manager._progressCastMethod == null)
 			return;
 
 		_manager._progressCastMethod (Mathf.Min(1, value));
 	}
-
-	public static void SetRainfallVisible (bool value) {
 	
-		_rainfallVisible = value;
-	}
-	
-	public static void SetTemperatureVisible (bool value) {
+	public static void UpdateWorldLoadTrackEventCount () {
 		
-		_temperatureVisible = value;
+		if (!_isLoadReady)
+			InitializeWorldLoadTrack ();
+		
+		_loadTicks += 1;
+		
+		float value = _loadTicks / (float)_totalLoadTicks;
+		
+		//Debug.Log ("Load progress: " + value);
+		
+		if (_manager._progressCastMethod == null)
+			return;
+		
+		_manager._progressCastMethod (Mathf.Min(1, value));
+	}
+
+	public static void SetPlanetOverlay (PlanetOverlay value) {
+	
+		_planetOverlay = value;
 	}
 	
 	public static void SetPlanetView (PlanetView value) {
 		
 		_planetView = value;
 	}
+
+	public static void UpdateTextures () {
+
+		UpdateMapTextureColors (_manager._currentMapTextureColors);
+		CurrentMapTexture.SetPixels32 (_manager._currentMapTextureColors);
+		
+		//CurrentMapTexture.Compress (true);
+		CurrentMapTexture.Apply ();
+
+		UpdateSphereTextureColors (_manager._currentSphereTextureColors);
+		CurrentSphereTexture.SetPixels32 (_manager._currentSphereTextureColors);
+		
+		//CurrentSphereTexture.Compress (true);
+		CurrentSphereTexture.Apply ();
+
+		UpdatedCells.Clear ();
+	}
+
+	public static void UpdateMapTextureColors (Color32[] textureColors) {
+		
+		foreach (TerrainCell cell in UpdatedCells) {
+			
+			UpdateMapTextureColorsFromCell (textureColors, cell);
+		}
+	}
+	
+	public static void UpdateMapTextureColorsFromCell (Color32[] textureColors, TerrainCell cell) {
+
+		if (cell == null)
+			throw new System.Exception ("cell is null");
+
+		World world = cell.World;
+		
+		if (world == null)
+			throw new System.Exception ("world is null");
+
+		int sizeX = world.Width;
+		
+		int r = PixelToCellRatio;
+		
+		int i = cell.Longitude;
+		int j = cell.Latitude;
+		
+		Color cellColor = GenerateColorFromTerrainCell(world.Terrain[i][j]);
+		
+		for (int m = 0; m < r; m++) {
+			for (int n = 0; n < r; n++) {
+				
+				int offsetY = sizeX * r * (j*r + n);
+				int offsetX = i*r + m;
+				
+				textureColors[offsetY + offsetX] = cellColor;
+			}
+		}
+	}
 	
 	public static Texture2D GenerateMapTextureFromWorld (World world) {
+		
+		UpdatedCells.Clear ();
 		
 		int sizeX = world.Width;
 		int sizeY = world.Height;
 		
-		int r = 4;
+		int r = PixelToCellRatio;
+		
+		Color32[] textureColors = new Color32[sizeX * sizeY * r * r];
 		
 		Texture2D texture = new Texture2D(sizeX*r, sizeY*r, TextureFormat.ARGB32, false);
 		
 		for (int i = 0; i < sizeX; i++) {
 			for (int j = 0; j < sizeY; j++) {
-//				if (((i % 20) == 0) || ((j % 20) == 0)) {
-//
-//					texture.SetPixel(i, j, Color.black);
-//
-//					continue;
-//				}
 
 				Color cellColor = GenerateColorFromTerrainCell(world.Terrain[i][j]);
 
 				for (int m = 0; m < r; m++) {
 					for (int n = 0; n < r; n++) {
-
-						texture.SetPixel(i*r + m, j*r + n, cellColor);
+						
+						int offsetY = sizeX * r * (j*r + n);
+						int offsetX = i*r + m;
+						
+						textureColors[offsetY + offsetX] = cellColor;
 					}
 				}
 			}
 		}
 		
-		texture.Apply();
+		texture.SetPixels32 (textureColors);
 
+		//texture.Compress (true);
+		texture.Apply();
+		
+		_manager._currentMapTextureColors = textureColors;
 		_manager._currentMapTexture = texture;
 		
 		return texture;
 	}
-	
-	public static Texture2D GenerateSphereTextureFromWorld (World world) {
+
+	public static void UpdateSphereTextureColors (Color32[] textureColors) {
+
+		foreach (TerrainCell cell in UpdatedCells) {
+
+			UpdateSphereTextureColorsFromCell (textureColors, cell);
+		}
+	}
+
+	public static void UpdateSphereTextureColorsFromCell (Color32[] textureColors, TerrainCell cell) {
+
+		World world = cell.World;
 		
 		int sizeX = world.Width;
 		int sizeY = world.Height*2;
 		
-		int r = 4;
+		int r = PixelToCellRatio;
+
+		int i = cell.Longitude;
+		int j = cell.Latitude;
+
+		float factorJ = (1f - Mathf.Cos(Mathf.PI*(float)j/(float)sizeY))/2f;
+		
+		int trueJ = (int)(world.Height * factorJ);
+		
+		Color cellColor = GenerateColorFromTerrainCell(world.Terrain[i][trueJ]);
+		
+		for (int m = 0; m < r; m++) {
+			for (int n = 0; n < r; n++) {
+				
+				int offsetY = sizeX * r * (j*r + n);
+				int offsetX = i*r + m;
+				
+				textureColors[offsetY + offsetX] = cellColor;
+			}
+		}
+	}
+	
+	public static Texture2D GenerateSphereTextureFromWorld (World world) {
+
+		UpdatedCells.Clear ();
+		
+		int sizeX = world.Width;
+		int sizeY = world.Height*2;
+		
+		int r = PixelToCellRatio;
+		
+		Color32[] textureColors = new Color32[sizeX * sizeY * r * r];
 		
 		Texture2D texture = new Texture2D(sizeX*r, sizeY*r, TextureFormat.ARGB32, false);
 		
@@ -450,26 +618,26 @@ public class Manager {
 
 				int trueJ = (int)(world.Height * factorJ);
 
-//				if (((i % 20) == 0) || (((int)trueJ % 20) == 0)) {
-//					
-//					texture.SetPixel(i, j, Color.black);
-//					
-//					continue;
-//				}
-
 				Color cellColor = GenerateColorFromTerrainCell(world.Terrain[i][trueJ]);
 				
 				for (int m = 0; m < r; m++) {
 					for (int n = 0; n < r; n++) {
-						
-						texture.SetPixel(i*r + m, j*r + n, cellColor);
+
+						int offsetY = sizeX * r * (j*r + n);
+						int offsetX = i*r + m;
+
+						textureColors[offsetY + offsetX] = cellColor;
 					}
 				}
 			}
 		}
-		
+
+		texture.SetPixels32 (textureColors);
+
+		//texture.Compress (true);
 		texture.Apply();
-		
+
+		_manager._currentSphereTextureColors = textureColors;
 		_manager._currentSphereTexture = texture;
 		
 		return texture;
@@ -668,60 +836,50 @@ public class Manager {
 	
 	private static Color GenerateColorFromTerrainCell (TerrainCell cell) {
 
-		Color baseColor = Color.black;
+		Color color = Color.black;
 
-		if (_planetView == PlanetView.Biomes) {
-			baseColor = GenerateBiomeColor (cell);
-		} else if (_planetView == PlanetView.Elevation) {
-			baseColor = GenerateAltitudeContourColor(cell.Altitude);
-		} else {
-			baseColor = GenerateCoastlineColor(cell);
-		}
-		
-		float r = baseColor.r;
-		float g = baseColor.g;
-		float b = baseColor.b;
+		switch (_planetView) {
+			
+		case PlanetView.Biomes:
+			color = GenerateBiomeColor (cell);
+			break;
+			
+		case PlanetView.Elevation:
+			color = GenerateAltitudeContourColor (cell.Altitude);
+			break;
+			
+		case PlanetView.Coastlines:
+			color = GenerateCoastlineColor (cell);
+			break;
 
-		int normalizer = 1;
-
-		if (_rainfallVisible || _temperatureVisible) {
-
-			float grey = (r + g + b) / 3f;
-
-			r = grey;
-			g = grey;
-			b = grey;
+		default:
+			throw new System.Exception("Unsupported Planet View Type");
 		}
 
-		if (_rainfallVisible)
-		{
-			Color rainfallColor = GenerateRainfallColor(cell.Rainfall);
-			
-			normalizer += 1;
-			
-			r += rainfallColor.r;
-			g += rainfallColor.g;
-			b += rainfallColor.b;
-		}
+		switch (_planetOverlay) {
 		
-		if (_temperatureVisible)
-		{
-			Color temperatureColor = GenerateTemperatureColor(cell.Temperature);
+		case PlanetOverlay.None:
+			break;
+
+		case PlanetOverlay.Population:
+			color = SetPopulationOverlayColor(cell, color);
+			break;
 			
-			normalizer += 1;
+		case PlanetOverlay.Temperature:
+			color = SetTemperatureOverlayColor(cell, color);
+			break;
 			
-			r += temperatureColor.r;
-			g += temperatureColor.g;
-			b += temperatureColor.b;
+		case PlanetOverlay.Rainfall:
+			color = SetRainfallOverlayColor(cell, color);
+			break;
+			
+		default:
+			throw new System.Exception("Unsupported Planet Overlay Type");
 		}
 
-		r /= (float)normalizer;
-		g /= (float)normalizer;
-		b /= (float)normalizer;
+		color.a = 1;
 		
-		Color resultColor = new Color (r, g, b);
-		
-		return resultColor;
+		return color;
 	}
 	
 	private static Color GenerateCoastlineColor (TerrainCell cell) {
@@ -765,14 +923,14 @@ public class Manager {
 		
 		if (altitude < 0) {
 			
-			value = (2 - altitude / World.MinPossibleAltitude) / 2f;
+			value = (2 - altitude / World.MinPossibleAltitude - Manager.SeaLevelOffset) / 2f;
 
 			Color color1 = Color.blue;
 			
 			return new Color(color1.r * value, color1.g * value, color1.b * value);
 		}
 		
-		value = (1 + altitude / World.MaxPossibleAltitude) / 2f;
+		value = (1 + altitude / (World.MaxPossibleAltitude - Manager.SeaLevelOffset)) / 2f;
 		
 		Color color2 = new Color(1f, 0.6f, 0);
 		
@@ -795,9 +953,13 @@ public class Manager {
 			return color;
 		}
 		
-		for (int i = 0; i < cell.Biomes.Count; i++) {
+		for (int i = 0; i < cell.PresentBiomeNames.Count; i++) {
+
+			string biomeName = cell.PresentBiomeNames[i];
+
+			Biome biome = Biome.Biomes[biomeName];
 			
-			Color biomeColor = _biomePalette[cell.Biomes[i].ColorId];
+			Color biomeColor = _biomePalette[biome.ColorId];
 			float biomePresence = cell.BiomePresences[i];
 			
 			color.r += biomeColor.r * biomePresence;
@@ -806,6 +968,91 @@ public class Manager {
 		}
 		
 		return color * slantFactor * altitudeFactor;
+	}
+	
+	private static Color SetPopulationOverlayColor (TerrainCell cell, Color color) {
+
+		float greyscale = (color.r + color.g + color.b);// * 4 / 3;
+
+		color.r = (greyscale + color.r) / 6f;
+		color.g = (greyscale + color.g) / 6f;
+		color.b = (greyscale + color.b) / 6f;
+
+		if (CurrentWorld.MostPopulousGroup == null)
+			return color;
+
+		int MaxPopulation = CurrentWorld.MostPopulousGroup.Population;
+
+		if (MaxPopulation <= 0)
+			return color;
+		
+		float MaxPopFactor = MaxPopulation / 5f;
+
+		float totalPopulation = 0;
+		
+		for (int i = 0; i < cell.Groups.Count; i++) {
+
+			CellGroup group = cell.Groups[i];
+
+			if (group.IsTagged && DisplayTaggedGroup)
+				return Color.green;
+
+			totalPopulation += group.Population;
+		}
+
+		if (totalPopulation > 0) {
+
+			float value = (totalPopulation + MaxPopFactor) / (MaxPopulation + MaxPopFactor);
+			
+			color = (color * (1 - value)) + (Color.red * value);
+		}
+
+		return color;
+	}
+	
+	private static Color SetTemperatureOverlayColor (TerrainCell cell, Color color) {
+		
+		float greyscale = (color.r + color.g + color.b);// * 4 / 3;
+		
+		color.r = (greyscale + color.r) / 6f;
+		color.g = (greyscale + color.g) / 6f;
+		color.b = (greyscale + color.b) / 6f;
+
+		Color addColor;
+		
+		float span = World.MaxPossibleTemperature - World.MinPossibleTemperature;
+		
+		float value = (cell.Temperature - (World.MinPossibleTemperature + Manager.TemperatureOffset)) / span;
+		
+		addColor = new Color(value, 0, 1f - value);
+		
+		color += addColor * 2f / 3f;
+		
+		return color;
+	}
+	
+	private static Color SetRainfallOverlayColor (TerrainCell cell, Color color) {
+		
+		float greyscale = (color.r + color.g + color.b);// * 4 / 3;
+		
+		color.r = (greyscale + color.r) / 6f;
+		color.g = (greyscale + color.g) / 6f;
+		color.b = (greyscale + color.b) / 6f;
+		
+		Color addColor = Color.black;
+		
+		if (cell.Rainfall > 0) {
+			
+			float value = cell.Rainfall / World.MaxPossibleRainfall + Manager.RainfallOffset;
+			
+			addColor = Color.green;
+			
+			addColor = new Color (addColor.r * value, addColor.g * value, addColor.b * value);
+		}
+
+		color += addColor * 2f / 3f;
+		
+		return color;
 	}
 	
 	private static Color GenerateAltitudeContourColor (float altitude) {
@@ -855,18 +1102,7 @@ public class Manager {
 		return color;
 	}
 	
-	private static Color GenerateRainfallColor (float rainfall) {
-		
-		if (rainfall < 0) return Color.black;
-		
-		float value = rainfall / World.MaxPossibleRainfall;
-		
-		Color green = Color.green;
-		
-		return new Color(green.r * value, green.g * value, green.b * value);
-	}
-	
-	private static Color GenerateTemperatureContourColor (float rainfall) {
+	private static Color GenerateTemperatureContourColor (float temperature) {
 		
 		float span = CurrentWorld.MaxTemperature - CurrentWorld.MinTemperature;
 		
@@ -874,7 +1110,7 @@ public class Manager {
 		
 		float shadeValue = 1f;
 		
-		value = (rainfall - CurrentWorld.MinTemperature) / span;
+		value = (temperature - CurrentWorld.MinTemperature) / span;
 		
 		while (shadeValue > value)
 		{
@@ -885,27 +1121,41 @@ public class Manager {
 		
 		return color;
 	}
-	
-	private static Color GenerateTemperatureColor (float temperature) {
 
-		float span = World.MaxPossibleTemperature - World.MinPossibleTemperature;
+	private static XmlAttributeOverrides GenerateAttributeOverrides () {
+		
+		XmlAttributeOverrides attrOverrides = new XmlAttributeOverrides();
 
-		float value = (temperature - World.MinPossibleTemperature) / span;
+		// Add GroupEvent Attributes
+
+		XmlAttributes attrs = new XmlAttributes();
+
+		XmlElementAttribute attr = new XmlElementAttribute();
+		attr.ElementName = "UpdateCellGroupEvent";
+		attr.Type = typeof(UpdateCellGroupEvent);
 		
-		return new Color(value, 0, 1f - value);
-	}
-	
-	private static float NormalizeRainfall (float rainfall) {
+		attrs.XmlElements.Add(attr);
+
+		attr = new XmlElementAttribute();
+		attr.ElementName = "MigrateGroupEvent";
+		attr.Type = typeof(MigrateGroupEvent);
 		
-		if (rainfall < 0) return 0;
+		attrs.XmlElements.Add(attr);
+
+		attrOverrides.Add(typeof(World), "EventsToHappen", attrs);
 		
-		return rainfall / World.MaxPossibleRainfall;
-	}
-	
-	private static float NormalizeTemperature (float temperature) {
+		// Add CulturalSkill Attributes
 		
-		float span = World.MaxPossibleTemperature - World.MinPossibleTemperature;
+		attrs = new XmlAttributes();
 		
-		return (temperature - World.MinPossibleTemperature) / span;
+		attr = new XmlElementAttribute();
+		attr.ElementName = "BiomeSurvivalSkill";
+		attr.Type = typeof(BiomeSurvivalSkill);
+		
+		attrs.XmlElements.Add(attr);
+		
+		attrOverrides.Add(typeof(Culture), "Skills", attrs);
+
+		return attrOverrides;
 	}
 }

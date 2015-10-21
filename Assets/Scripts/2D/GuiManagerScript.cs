@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using System.Collections;
@@ -20,8 +20,8 @@ public class GuiManagerScript : MonoBehaviour {
 	public PlanetScript PlanetScript;
 	public MapScript MapScript;
 	
-	public SaveFileDialogPanelScript SaveFileDialogPanelScript;
-	public SaveFileDialogPanelScript ExportMapDialogPanelScript;
+	public TextInputDialogPanelScript SaveFileDialogPanelScript;
+	public TextInputDialogPanelScript ExportMapDialogPanelScript;
 	public LoadFileDialogPanelScript LoadFileDialogPanelScript;
 	public OverlayDialogPanelScript OverlayDialogPanelScript;
 	public DialogPanelScript ViewsDialogPanelScript;
@@ -29,22 +29,35 @@ public class GuiManagerScript : MonoBehaviour {
 	public DialogPanelScript OptionsDialogPanelScript;
 	public ProgressDialogPanelScript ProgressDialogPanelScript;
 	public ActivityDialogPanelScript ActivityDialogPanelScript;
+	public TextInputDialogPanelScript MessageDialogPanelScript;
+	public WorldCustomizationDialogPanelScript SetSeedDialogPanelScript;
+	public WorldCustomizationDialogPanelScript CustomizeWorldDialogPanelScript;
 
 	public PaletteScript BiomePaletteScript;
 	public PaletteScript MapPaletteScript;
-
-	private bool _viewRainfall = false;
-	private bool _viewTemperature = false;
+	
 	private PlanetView _planetView = PlanetView.Biomes;
+	private PlanetOverlay _planetOverlay = PlanetOverlay.Population;
 
-	private bool _updateTexture = false;
+	private bool menusNeedUpdate = true;
+
+	private bool _regenTextures = false;
 
 	private Vector2 _beginDragPosition;
 	private Rect _beginDragMapUvRect;
 
 	private bool _preparingWorld = false;
+	
+	private string _progressMessage = null;
+	private float _progressValue = 0;
 
 	private PostPreparationOperation _postPreparationOp = null;
+	
+	private const float _maxAccTime = 0.0f;
+	private const int _iterationsPerRefresh = 5;
+
+	private float _accDeltaTime = 0;
+	private int _accIterations = 0;
 
 	// Use this for initialization
 	void Start () {
@@ -60,6 +73,8 @@ public class GuiManagerScript : MonoBehaviour {
 		ProgressDialogPanelScript.SetVisible (false);
 		ActivityDialogPanelScript.SetVisible (false);
 		OptionsDialogPanelScript.SetVisible (false);
+		SetSeedDialogPanelScript.SetVisible (false);
+		MessageDialogPanelScript.SetVisible (false);
 		
 		if (!Manager.WorldReady) {
 
@@ -73,17 +88,28 @@ public class GuiManagerScript : MonoBehaviour {
 		Manager.SetBiomePalette (BiomePaletteScript.Colors);
 		Manager.SetMapPalette (MapPaletteScript.Colors);
 
-		_updateTexture = true;
+		_regenTextures = true;
 	}
 	
 	// Update is called once per frame
 	void Update () {
 
+		UpdateMenus ();
+
 		Manager.ExecuteTasks (100);
+		
+		if (_preparingWorld) {
+			
+			if (_progressMessage != null) ProgressDialogPanelScript.SetDialogText (_progressMessage);
+			
+			ProgressDialogPanelScript.SetProgress (_progressValue);
+		}
 
 		if (!Manager.WorldReady) {
 			return;
 		}
+
+		bool updateTextures = false;
 
 		if (_preparingWorld) {
 
@@ -93,40 +119,66 @@ public class GuiManagerScript : MonoBehaviour {
 			ProgressDialogPanelScript.SetVisible (false);
 			ActivityDialogPanelScript.SetVisible (false);
 			_preparingWorld = false;
+
+		} else {
+
+			_accDeltaTime += Time.deltaTime;
+
+			if (_accDeltaTime > _maxAccTime) {
+
+				int minDateSpan = 20;
+				int lastUpdateDate = Manager.CurrentWorld.CurrentDate;
+
+				while ((lastUpdateDate + minDateSpan) >= Manager.CurrentWorld.CurrentDate) {
+
+					Manager.CurrentWorld.Iterate();
+
+					updateTextures = true;
+
+					_accDeltaTime -= _maxAccTime;
+				}
+				
+				_accIterations++;
+			}
 		}
 	
-		if (_updateTexture) {
-			_updateTexture = false;
+		if (_regenTextures) {
+			_regenTextures = false;
 
-			Manager.SetRainfallVisible (_viewRainfall);
-			Manager.SetTemperatureVisible (_viewTemperature);
+			Manager.SetPlanetOverlay (_planetOverlay);
 			Manager.SetPlanetView (_planetView);
 
-			Manager.RefreshTextures ();
+			Manager.GenerateTextures ();
 
-			PlanetScript.UpdateTexture ();
+			PlanetScript.RefreshTexture ();
 			MapScript.RefreshTexture ();
+
+		} else if (updateTextures) {
+
+			if (_accIterations >= _iterationsPerRefresh)
+			{
+				_accIterations -= _iterationsPerRefresh;
+				
+				if (_planetOverlay == PlanetOverlay.Population) {
+					Manager.UpdateTextures ();
+				}
+			}
 		}
 
 		if (MapImage.enabled) {
-			Vector2 point;
-
-			if (GetMapCoordinatesFromCursor (out point)) {
-				SetInfoPanelData (point);
-			}
+			UpdateInfoPanel();
 		}
 	}
 
-	public void ProgressUpdate (float value, string message = null) {
-	
-		Manager.EnqueueTask (() => {
-
-			if (message != null) ProgressDialogPanelScript.SetDialogText (message);
-
-			ProgressDialogPanelScript.SetProgress (value);
-
-			return true;
-		});
+	public void ProgressUpdate (float value, string message = null, bool reset = false) {
+		
+		if (reset || (value >= _progressValue)) {
+			
+			if (message != null) 
+				_progressMessage = message;
+			
+			_progressValue = value;
+		}
 	}
 	
 	public void CloseMainMenu () {
@@ -143,27 +195,120 @@ public class GuiManagerScript : MonoBehaviour {
 		
 		Application.Quit();
 	}
+
+	public void SetGenerationSeed () {
+		
+		MainMenuDialogPanelScript.SetVisible (false);
+
+		int seed = Random.Range (0, int.MaxValue);
+		
+		SetSeedDialogPanelScript.SetSeedString (seed.ToString());
+
+		SetSeedDialogPanelScript.SetVisible (true);
+
+	}
+	
+	public void CancelGenerateAction () {
+		
+		SetSeedDialogPanelScript.SetVisible (false);
+		CustomizeWorldDialogPanelScript.SetVisible (false);
+	}
+	
+	public void CloseSeedErrorMessageAction () {
+		
+		MessageDialogPanelScript.SetVisible (false);
+
+		SetGenerationSeed ();
+	}
 	
 	public void GenerateWorld () {
 
-		MainMenuDialogPanelScript.SetVisible (false);
-
+		int seed = Random.Range (0, int.MaxValue);
+		
+		GenerateWorldInternal (seed);
+	}
+	
+	public void GenerateWorldWithCustomSeed () {
+		
+		SetSeedDialogPanelScript.SetVisible (false);
+		
+		int seed = 0;
+		string seedStr = SetSeedDialogPanelScript.GetSeedString ();
+		
+		if (!int.TryParse (seedStr, out seed)) {
+			
+			MessageDialogPanelScript.SetVisible (true);
+			return;
+		}
+		
+		if (seed < 0) {
+			
+			MessageDialogPanelScript.SetVisible (true);
+			return;
+		}
+		
+		GenerateWorldInternal (seed);
+	}
+	
+	public void GenerateWorldWithCustomParameters () {
+		
+		CustomizeWorldDialogPanelScript.SetVisible (false);
+		
+		Manager.TemperatureOffset = CustomizeWorldDialogPanelScript.TemperatureOffset;
+		Manager.RainfallOffset = CustomizeWorldDialogPanelScript.RainfallOffset;
+		Manager.SeaLevelOffset = CustomizeWorldDialogPanelScript.SeaLevelOffset;
+		
+		int seed = 0;
+		string seedStr = CustomizeWorldDialogPanelScript.GetSeedString ();
+		
+		if (!int.TryParse (seedStr, out seed)) {
+			
+			MessageDialogPanelScript.SetVisible (true);
+			return;
+		}
+		
+		if (seed < 0) {
+			
+			MessageDialogPanelScript.SetVisible (true);
+			return;
+		}
+		
+		GenerateWorldInternal (seed);
+	}
+	
+	private void GenerateWorldInternal (int seed) {
+		
 		ProgressDialogPanelScript.SetVisible (true);
-
-		ProgressUpdate (0, "Generating World...");
-
+		
+		ProgressUpdate (0, "Generating World...", true);
+		
 		_preparingWorld = true;
-
-		Manager.GenerateNewWorldAsync (ProgressUpdate);
-
+		
+		Manager.GenerateNewWorldAsync (seed, ProgressUpdate);
+		
 		_postPreparationOp = () => {
-
+			
 			Manager.WorldName = "world_" + Manager.CurrentWorld.Seed;
-
+			
 			_postPreparationOp = null;
 		};
 		
-		_updateTexture = true;
+		_regenTextures = true;
+	}
+	
+	public void CustomizeGeneration () {
+		
+		SetSeedDialogPanelScript.SetVisible (false);
+		
+		string seedStr = SetSeedDialogPanelScript.GetSeedString ();
+		
+		CustomizeWorldDialogPanelScript.SetVisible (true);
+		
+		CustomizeWorldDialogPanelScript.SetSeedString (seedStr);
+		
+		CustomizeWorldDialogPanelScript.SetTemperatureOffset(Manager.TemperatureOffset);
+		CustomizeWorldDialogPanelScript.SetRainfallOffset(Manager.RainfallOffset);
+		CustomizeWorldDialogPanelScript.SetSeaLevelOffset(Manager.SeaLevelOffset);
 	}
 
 	private bool HasFilesToLoad () {
@@ -210,12 +355,15 @@ public class GuiManagerScript : MonoBehaviour {
 		default: throw new System.Exception("Unexpected planet view type: " + _planetView);
 		}
 		
-		string planetOverlayStr = "";
+		string planetOverlayStr;
 		
-		if (_viewRainfall)
-			planetOverlayStr = "_rainfall";
-		else if (_viewTemperature)
-			planetOverlayStr = "_temperature";
+		switch (_planetOverlay) {
+		case PlanetOverlay.None: planetOverlayStr = ""; break;
+		case PlanetOverlay.Rainfall: planetOverlayStr = "_rainfall"; break;
+		case PlanetOverlay.Temperature: planetOverlayStr = "_temperature"; break;
+		case PlanetOverlay.Population: planetOverlayStr = "_population"; break;
+		default: throw new System.Exception("Unexpected planet overlay type: " + _planetOverlay);
+		}
 
 		ExportMapDialogPanelScript.SetName (Manager.WorldName + planetViewStr + planetOverlayStr);
 		
@@ -266,7 +414,7 @@ public class GuiManagerScript : MonoBehaviour {
 		
 		ProgressDialogPanelScript.SetVisible (true);
 		
-		ProgressUpdate (0, "Loading World...");
+		ProgressUpdate (0, "Loading World...", true);
 		
 		string path = LoadFileDialogPanelScript.GetPathToLoad ();
 		
@@ -276,7 +424,7 @@ public class GuiManagerScript : MonoBehaviour {
 		
 		_preparingWorld = true;
 		
-		_updateTexture = true;
+		_regenTextures = true;
 	}
 	
 	public void CancelLoadAction () {
@@ -295,10 +443,50 @@ public class GuiManagerScript : MonoBehaviour {
 	
 	public void CloseOverlayMenuAction () {
 
-		UpdateRainfallView (OverlayDialogPanelScript.RainfallToggle.isOn);
-		UpdateTemperatureView (OverlayDialogPanelScript.TemperatureToggle.isOn);
+		if (OverlayDialogPanelScript.RainfallToggle.isOn) {
+			SetRainfallOverlay ();
+		} else if (OverlayDialogPanelScript.TemperatureToggle.isOn) {
+			SetTemperatureOverlay ();
+		} else if (OverlayDialogPanelScript.PopulationToggle.isOn) {
+			SetPopulationOverlay ();
+		} else {
+			UnsetOverlay();
+		}
 		
 		OverlayDialogPanelScript.SetVisible (false);
+	}
+	
+	public void UpdateMenus () {
+
+		if (!menusNeedUpdate)
+			return;
+
+		menusNeedUpdate = false;
+
+		OverlayDialogPanelScript.PopulationToggle.isOn = false;
+		OverlayDialogPanelScript.RainfallToggle.isOn = false;
+		OverlayDialogPanelScript.TemperatureToggle.isOn = false;
+
+		switch (_planetOverlay) {
+		
+		case PlanetOverlay.Population:
+			OverlayDialogPanelScript.PopulationToggle.isOn = true;
+			break;
+			
+		case PlanetOverlay.Rainfall:
+			OverlayDialogPanelScript.RainfallToggle.isOn = true;
+			break;
+			
+		case PlanetOverlay.Temperature:
+			OverlayDialogPanelScript.TemperatureToggle.isOn = true;
+			break;
+			
+		case PlanetOverlay.None:
+			break;
+			
+		default:
+			throw new System.Exception ("Unhandled Planet Overlay type: " + _planetOverlay);
+		}
 	}
 	
 	public void SelectOverlays () {
@@ -337,23 +525,37 @@ public class GuiManagerScript : MonoBehaviour {
 		}
 	}
 	
-	public void UpdateRainfallView (bool value) {
+	public void SetRainfallOverlay () {
 
-		_updateTexture |= _viewRainfall ^ value;
+		_regenTextures |= _planetOverlay != PlanetOverlay.Rainfall;
 
-		_viewRainfall = value;
+		_planetOverlay = PlanetOverlay.Rainfall;
 	}
 	
-	public void UpdateTemperatureView (bool value) {
+	public void SetTemperatureOverlay () {
 		
-		_updateTexture |= _viewTemperature ^ value;
+		_regenTextures |= _planetOverlay != PlanetOverlay.Temperature;
 		
-		_viewTemperature = value;
+		_planetOverlay = PlanetOverlay.Temperature;
+	}
+	
+	public void SetPopulationOverlay () {
+		
+		_regenTextures |= _planetOverlay != PlanetOverlay.Population;
+		
+		_planetOverlay = PlanetOverlay.Population;
+	}
+	
+	public void UnsetOverlay () {
+		
+		_regenTextures |= _planetOverlay != PlanetOverlay.None;
+		
+		_planetOverlay = PlanetOverlay.None;
 	}
 	
 	public void SetBiomeView () {
 		
-		_updateTexture |= _planetView != PlanetView.Biomes;
+		_regenTextures |= _planetView != PlanetView.Biomes;
 		
 		_planetView = PlanetView.Biomes;
 		
@@ -362,7 +564,7 @@ public class GuiManagerScript : MonoBehaviour {
 	
 	public void SetElevationView () {
 		
-		_updateTexture |= _planetView != PlanetView.Elevation;
+		_regenTextures |= _planetView != PlanetView.Elevation;
 		
 		_planetView = PlanetView.Elevation;
 		
@@ -371,44 +573,127 @@ public class GuiManagerScript : MonoBehaviour {
 	
 	public void SetCoastlineView () {
 		
-		_updateTexture |= _planetView != PlanetView.Coastlines;
+		_regenTextures |= _planetView != PlanetView.Coastlines;
 		
 		_planetView = PlanetView.Coastlines;
 		
 		ViewsDialogPanelScript.SetVisible (false);
 	}
-	
-	public void SetInfoPanelData (int longitude, int latitude) {
 
-		if ((longitude < 0) || (longitude >= Manager.CurrentWorld.Width))
+	public void UpdateInfoPanel () {
+		
+		World world = Manager.CurrentWorld;
+		
+		InfoPanelText.text = "Year: " + world.CurrentDate;
+
+		Vector2 point;
+		
+		if (GetMapCoordinatesFromCursor (out point)) {
+			AddCellDataToInfoPanel (point);
+		}
+		
+		InfoPanelText.text += "\n";
+		InfoPanelText.text += "\nNumber of Migration Events: " + MigrateGroupEvent.EventCount;
+		InfoPanelText.text += "\nMean Migration Travel Time: " + MigrateGroupEvent.MeanTravelTime;
+	}
+	
+	public void AddCellDataToInfoPanel (int longitude, int latitude) {
+		
+		World world = Manager.CurrentWorld;
+		
+		if ((longitude < 0) || (longitude >= world.Width))
 			return;
 		
-		if ((latitude < 0) || (latitude >= Manager.CurrentWorld.Height))
+		if ((latitude < 0) || (latitude >= world.Height))
 			return;
+
+		InfoPanelText.text += "\n";
 		
-		TerrainCell cell = Manager.CurrentWorld.Terrain[longitude][latitude];
+		TerrainCell cell = world.Terrain[longitude][latitude];
+
+		world.SetObservedCell (cell);
 		
-		InfoPanelText.text = string.Format("Position: [{0},{1}]", longitude, latitude);
-		InfoPanelText.text += "\nAltitude: " + cell.Altitude;
-		InfoPanelText.text += "\nRainfall: " + cell.Rainfall;
-		InfoPanelText.text += "\nTemperature: " + cell.Temperature;
+		InfoPanelText.text += string.Format("\nPosition: Longitude {0}, Latitude {1}", longitude, latitude);
+		InfoPanelText.text += "\nAltitude: " + cell.Altitude + " meters";
+		InfoPanelText.text += "\nRainfall: " + cell.Rainfall + " mm / year";
+		InfoPanelText.text += "\nTemperature: " + cell.Temperature + " C";
 		InfoPanelText.text += "\n";
 
-		for (int i = 0; i < cell.Biomes.Count; i++)
+		for (int i = 0; i < cell.PresentBiomeNames.Count; i++)
 		{
 			int percentage = (int)(cell.BiomePresences[i] * 100);
 			
-			InfoPanelText.text += "\nBiome: " + cell.Biomes[i].Name;
+			InfoPanelText.text += "\nBiome: " + cell.PresentBiomeNames[i];
 			InfoPanelText.text += " (" + percentage + "%)";
+		}
+
+		InfoPanelText.text += "\n";
+		InfoPanelText.text += "\nSurvivability: " + (cell.Survivability*100) + "%";
+		InfoPanelText.text += "\nForaging Capacity: " + (cell.ForagingCapacity*100) + "%";
+
+		int population = 0;
+		int optimalPopulation = 0;
+		int lastUpdateDate = 0;
+		int nextUpdateDate = 0;
+
+		float modifiedSurvivability = 0;
+		float modifiedForagingCapacity = 0;
+
+		List<CulturalSkill> cellCulturalSkills = new List<CulturalSkill> ();
+
+		foreach (CellGroup group in cell.Groups) {
+		
+			population += group.Population;
+			optimalPopulation += group.OptimalPopulation;
+
+			float groupSurvivability = 0;
+			float groupForagingCapacity = 0;
+
+			group.CalculateAdaptionToCell (cell, out groupForagingCapacity, out groupSurvivability);
+
+			modifiedSurvivability += groupSurvivability;
+			modifiedForagingCapacity += groupForagingCapacity;
+
+			lastUpdateDate = Mathf.Max(lastUpdateDate, group.LastUpdateDate);
+			nextUpdateDate = Mathf.Max(nextUpdateDate, group.NextUpdateDate);
+
+			foreach (CulturalSkill skill in group.Culture.Skills) {
+
+				cellCulturalSkills.Add(skill);
+			}
+		}
+
+		if (population > 0) {
+			
+			InfoPanelText.text += "\n";
+			InfoPanelText.text += "\nPopulation: " + population;
+			InfoPanelText.text += "\nOptimal Population: " + optimalPopulation;
+			
+			InfoPanelText.text += "\n";
+			InfoPanelText.text += "\nModified Survivability: " + (modifiedSurvivability*100) + "%";
+			InfoPanelText.text += "\nModified Foraging Capacity: " + (modifiedForagingCapacity*100) + "%";
+			
+			InfoPanelText.text += "\n";
+			InfoPanelText.text += "\nLast Update Date: " + lastUpdateDate;
+			InfoPanelText.text += "\nNext Update Date: " + nextUpdateDate;
+			InfoPanelText.text += "\nTime between updates: " + (nextUpdateDate - lastUpdateDate);
+
+			InfoPanelText.text += "\n";
+			InfoPanelText.text += "\nCultural Skills";
+
+			foreach (CulturalSkill skill in cellCulturalSkills) {
+				
+				InfoPanelText.text += "\n\t" + skill.Id + " - Value: " + skill.Value;
+			}
 		}
 	}
 	
-	public void SetInfoPanelData (Vector2 mapPosition) {
+	public void AddCellDataToInfoPanel (Vector2 mapPosition) {
 
 		int longitude = (int)mapPosition.x;
 		int latitude = (int)mapPosition.y;
 
-		SetInfoPanelData (longitude, latitude);
+		AddCellDataToInfoPanel (longitude, latitude);
 	}
 	
 	public bool GetMapCoordinatesFromCursor (out Vector2 point) {

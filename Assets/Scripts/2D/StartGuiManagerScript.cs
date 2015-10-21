@@ -10,8 +10,14 @@ public class StartGuiManagerScript : MonoBehaviour {
 	public LoadFileDialogPanelScript LoadFileDialogPanelScript;
 	public DialogPanelScript MainMenuDialogPanelScript;
 	public ProgressDialogPanelScript ProgressDialogPanelScript;
+	public TextInputDialogPanelScript MessageDialogPanelScript;
+	public WorldCustomizationDialogPanelScript SetSeedDialogPanelScript;
+	public WorldCustomizationDialogPanelScript CustomizeWorldDialogPanelScript;
 	
 	private bool _preparingWorld = false;
+	
+	private string _progressMessage = null;
+	private float _progressValue = 0;
 	
 	private PostPreparationOperation _postPreparationOp = null;
 
@@ -20,9 +26,12 @@ public class StartGuiManagerScript : MonoBehaviour {
 
 		Manager.UpdateMainThreadReference ();
 
-		SetEnabledModalLoadDialog (false);
-		SetEnabledModalProgressDialog (false);
-		SetEnabledModalMainMenuDialog (true);
+		LoadFileDialogPanelScript.SetVisible (false);
+		ProgressDialogPanelScript.SetVisible (false);
+		SetSeedDialogPanelScript.SetVisible (false);
+		MessageDialogPanelScript.SetVisible (false);
+		CustomizeWorldDialogPanelScript.SetVisible (false);
+		MainMenuDialogPanelScript.SetVisible (true);
 		
 		LoadButton.interactable = HasFilesToLoad ();
 	}
@@ -31,6 +40,13 @@ public class StartGuiManagerScript : MonoBehaviour {
 	void Update () {
 		
 		Manager.ExecuteTasks (100);
+		
+		if (_preparingWorld) {
+		
+			if (_progressMessage != null) ProgressDialogPanelScript.SetDialogText (_progressMessage);
+			
+			ProgressDialogPanelScript.SetProgress (_progressValue);
+		}
 		
 		if (!Manager.WorldReady) {
 			return;
@@ -42,6 +58,8 @@ public class StartGuiManagerScript : MonoBehaviour {
 				_postPreparationOp ();
 
 			_preparingWorld = false;
+
+			Debug.Log ("Finished loading level");
 			
 			Application.LoadLevel ("WorldView");
 		}
@@ -56,37 +74,22 @@ public class StartGuiManagerScript : MonoBehaviour {
 		return files.Length > 0;
 	}
 	
-	private void SetEnabledModalLoadDialog (bool value) {
-		
-		LoadFileDialogPanelScript.SetVisible (value);
-	}
-	
-	private void SetEnabledModalMainMenuDialog (bool value) {
-		
-		MainMenuDialogPanelScript.SetVisible (value);
-	}
-	
-	private void SetEnabledModalProgressDialog (bool value) {
-		
-		ProgressDialogPanelScript.SetVisible (value);
-	}
-	
 	public void LoadWorld () {
 		
-		SetEnabledModalMainMenuDialog (false);
+		MainMenuDialogPanelScript.SetVisible (false);
 		
-		SetEnabledModalLoadDialog (true);
+		LoadFileDialogPanelScript.SetVisible (true);
 		
 		LoadFileDialogPanelScript.SetLoadAction (LoadAction);
 	}
 	
 	public void LoadAction () {
 		
-		SetEnabledModalLoadDialog (false);
+		LoadFileDialogPanelScript.SetVisible (false);
 		
-		SetEnabledModalProgressDialog (true);
+		ProgressDialogPanelScript.SetVisible (true);
 		
-		ProgressUpdate (0, "Loading World...");
+		ProgressUpdate (0, "Loading World...", true);
 		
 		string path = LoadFileDialogPanelScript.GetPathToLoad ();
 		
@@ -99,22 +102,95 @@ public class StartGuiManagerScript : MonoBehaviour {
 	
 	public void CancelLoadAction () {
 		
-		SetEnabledModalLoadDialog (false);
+		LoadFileDialogPanelScript.SetVisible (false);
 		
-		SetEnabledModalMainMenuDialog (true);
+		MainMenuDialogPanelScript.SetVisible (true);
 	}
 	
-	public void GenerateWorld () {
+	public void SetGenerationSeed () {
 		
-		SetEnabledModalMainMenuDialog (false);
+		MainMenuDialogPanelScript.SetVisible (false);
 		
-		SetEnabledModalProgressDialog (true);
+		int seed = Random.Range (0, int.MaxValue);
 		
-		ProgressUpdate (0, "Generating World...");
+		SetSeedDialogPanelScript.SetSeedString (seed.ToString());
+		
+		SetSeedDialogPanelScript.SetVisible (true);
+		
+	}
+	
+	public void CancelGenerateAction () {
+		
+		SetSeedDialogPanelScript.SetVisible (false);
+		CustomizeWorldDialogPanelScript.SetVisible (false);
+
+		MainMenuDialogPanelScript.SetVisible (true);
+	}
+	
+	public void CloseSeedErrorMessageAction () {
+		
+		MessageDialogPanelScript.SetVisible (false);
+		
+		SetGenerationSeed ();
+	}
+	
+	public void GenerateWorldWithCustomSeed () {
+		
+		SetSeedDialogPanelScript.SetVisible (false);
+		
+		int seed = 0;
+		string seedStr = SetSeedDialogPanelScript.GetSeedString ();
+		
+		if (!int.TryParse (seedStr, out seed)) {
+			
+			MessageDialogPanelScript.SetVisible (true);
+			return;
+		}
+		
+		if (seed < 0) {
+			
+			MessageDialogPanelScript.SetVisible (true);
+			return;
+		}
+		
+		GenerateWorldInternal (seed);
+	}
+	
+	public void GenerateWorldWithCustomParameters () {
+
+		CustomizeWorldDialogPanelScript.SetVisible (false);
+		
+		Manager.TemperatureOffset = CustomizeWorldDialogPanelScript.TemperatureOffset;
+		Manager.RainfallOffset = CustomizeWorldDialogPanelScript.RainfallOffset;
+		Manager.SeaLevelOffset = CustomizeWorldDialogPanelScript.SeaLevelOffset;
+		
+		int seed = 0;
+		string seedStr = CustomizeWorldDialogPanelScript.GetSeedString ();
+
+		if (!int.TryParse (seedStr, out seed)) {
+			
+			MessageDialogPanelScript.SetVisible (true);
+			return;
+		}
+		
+		if (seed < 0) {
+			
+			MessageDialogPanelScript.SetVisible (true);
+			return;
+		}
+
+		GenerateWorldInternal (seed);
+	}
+
+	private void GenerateWorldInternal (int seed) {
+
+		ProgressDialogPanelScript.SetVisible (true);
+		
+		ProgressUpdate (0, "Generating World...", true);
 		
 		_preparingWorld = true;
 		
-		Manager.GenerateNewWorldAsync (ProgressUpdate);
+		Manager.GenerateNewWorldAsync (seed, ProgressUpdate);
 		
 		_postPreparationOp = () => {
 			
@@ -124,16 +200,30 @@ public class StartGuiManagerScript : MonoBehaviour {
 		};
 	}
 	
-	public void ProgressUpdate (float value, string message = null) {
+	public void CustomizeGeneration () {
 		
-		Manager.EnqueueTask (() => {
-			
-			if (message != null) ProgressDialogPanelScript.SetDialogText (message);
-			
-			ProgressDialogPanelScript.SetProgress (value);
-			
-			return true;
-		});
+		SetSeedDialogPanelScript.SetVisible (false);
+
+		string seedStr = SetSeedDialogPanelScript.GetSeedString ();
+		
+		CustomizeWorldDialogPanelScript.SetVisible (true);
+
+		CustomizeWorldDialogPanelScript.SetSeedString (seedStr);
+
+		CustomizeWorldDialogPanelScript.SetTemperatureOffset(Manager.TemperatureOffset);
+		CustomizeWorldDialogPanelScript.SetRainfallOffset(Manager.RainfallOffset);
+		CustomizeWorldDialogPanelScript.SetSeaLevelOffset(Manager.SeaLevelOffset);
+	}
+	
+	public void ProgressUpdate (float value, string message = null, bool reset = false) {
+		
+		if (reset || (value >= _progressValue)) {
+
+			if (message != null) 
+				_progressMessage = message;
+
+			_progressValue = value;
+		}
 	}
 	
 	public void Exit () {

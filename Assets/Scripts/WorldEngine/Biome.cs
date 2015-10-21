@@ -1,126 +1,158 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
 public class Biome {
 
+	public static float MinBiomeTemperature = World.MinPossibleTemperature*3 - 1;
+	public static float MaxBiomeTemperature = World.MaxPossibleTemperature*3 + 1;
+	
+	public static float MinBiomeRainfall = World.MinPossibleRainfall*3 - 1;
+	public static float MaxBiomeRainfall = World.MaxPossibleRainfall*3 + 1;
+	
+	public static float MinBiomeAltitude = World.MinPossibleAltitude*3 - 1;
+	public static float MaxBiomeAltitude = World.MaxPossibleAltitude*3 + 1;
+
 	public static Biome IceCap = new Biome(
 		"Ice Cap", 
 		0,
-		World.MinPossibleAltitude - 1f, 
-		World.MaxPossibleAltitude + 1f, 
-		World.MinPossibleRainfall - 1f,
-		World.MaxPossibleRainfall + 1f,
-		World.MinPossibleTemperature - 1f,
-		-15f);
+		MinBiomeAltitude, 
+		MaxBiomeAltitude, 
+		MinBiomeRainfall,
+		MaxBiomeRainfall,
+		MinBiomeTemperature,
+		-15f,
+		0.0f,
+		0.02f);
 	
 	public static Biome Ocean = new Biome(
 		"Ocean",
 		1,
-		World.MinPossibleAltitude - 1f, 
+		MinBiomeAltitude, 
 		0.01f, 
-		World.MinPossibleRainfall - 1f,
-		World.MaxPossibleRainfall + 1f,
+		MinBiomeRainfall,
+		MaxBiomeRainfall,
 		-15f,
-		World.MaxPossibleTemperature + 1f);
+		MaxBiomeTemperature,
+		0.0f,
+		0.0f);
 	
 	public static Biome Grassland = new Biome(
 		"Grassland",
 		2,
 		0, 
-		World.MaxPossibleAltitude + 1f, 
+		MaxBiomeAltitude, 
 		15f,
 		1575f,
 		-5f,
-		World.MaxPossibleTemperature + 1f);
+		MaxBiomeTemperature,
+		1.0f,
+		0.4f);
 	
 	public static Biome Forest = new Biome(
 		"Forest", 
 		3,
 		0, 
-		World.MaxPossibleAltitude + 1f, 
+		MaxBiomeAltitude, 
 		1375f,
 		2975f,
 		-5f,
-		World.MaxPossibleTemperature + 1f);
+		MaxBiomeTemperature,
+		0.4f,
+		0.6f);
 	
 	public static Biome Taiga = new Biome(
 		"Taiga", 
 		4,
 		0, 
-		World.MaxPossibleAltitude + 1f,
-		475f,
-		World.MaxPossibleRainfall + 1f,
-		-15f,
-		-0f);
+		MaxBiomeAltitude,
+		275f,
+		MaxBiomeRainfall,
+		-20f,
+		-0f,
+		0.2f,
+		0.4f);
 	
 	public static Biome Tundra = new Biome(
 		"Tundra", 
 		5,
 		0, 
-		World.MaxPossibleAltitude + 1f, 
-		World.MinPossibleRainfall - 1f,
-		725f,
+		MaxBiomeAltitude, 
+		MinBiomeRainfall,
+		1275f,
 		-20f,
-		-0f);
+		-0f,
+		0.0f,
+		0.2f);
 	
 	public static Biome Desert = new Biome(
 		"Desert", 
 		6,
 		0, 
-		World.MaxPossibleAltitude + 1f, 
-		World.MinPossibleRainfall - 1f,
+		MaxBiomeAltitude, 
+		MinBiomeRainfall,
 		675f,
 		-5f,
-		World.MaxPossibleTemperature + 1f);
+		MaxBiomeTemperature,
+		0.0f,
+		0.1f);
 	
 	public static Biome Rainforest = new Biome(
 		"Rainforest", 
 		7,
 		0, 
-		World.MaxPossibleAltitude + 1f, 
+		MaxBiomeAltitude, 
 		1775f,
-		World.MaxPossibleRainfall + 1f,
+		MaxBiomeRainfall,
 		-5f,
-		World.MaxPossibleTemperature + 1f);
+		MaxBiomeTemperature,
+		0.2f,
+		0.8f);
 
-	public static Biome[] Biomes = new Biome[] {
+	public static Dictionary<string, Biome> Biomes = new Dictionary<string, Biome>() {
 
-		IceCap,
-		Ocean,
-		Grassland,
-		Forest,
-		Taiga,
-		Tundra,
-		Desert,
-		Rainforest
+		{"Ice Cap", IceCap},
+		{"Ocean", Ocean},
+		{"Grassland", Grassland},
+		{"Forest", Forest},
+		{"Taiga", Taiga},
+		{"Tundra", Tundra},
+		{"Desert", Desert},
+		{"Rainforest", Rainforest}
 	};
-	
-	[XmlAttribute]
+
 	public string Name;
 
-	[XmlAttribute]
 	public float MinAltitude;
-	[XmlAttribute]
 	public float MaxAltitude;
 
-	[XmlAttribute]
 	public float MinRainfall;
-	[XmlAttribute]
 	public float MaxRainfall;
 
-	[XmlAttribute]
 	public float MinTemperature;
-	[XmlAttribute]
 	public float MaxTemperature;
+
+	public float Survivability;
+	public float ForagingCapacity;
 
 	public int ColorId;
 
 	public Biome () {
 	}
 
-	public Biome (string name, int colorId, float minAltitude, float maxAltitude, float minRainfall, float maxRainfall, float minTemperature, float maxTemperature) {
+	public Biome (
+		string name, 
+		int colorId, 
+		float minAltitude, 
+		float maxAltitude, 
+		float minRainfall, 
+		float maxRainfall, 
+		float minTemperature, 
+		float maxTemperature,
+		float survivability,
+		float foragingCapacity) {
 
 		Name = name;
 
@@ -132,5 +164,7 @@ public class Biome {
 		MaxRainfall = maxRainfall;
 		MinTemperature = minTemperature;
 		MaxTemperature = maxTemperature;
+		Survivability = survivability;
+		ForagingCapacity = foragingCapacity;
 	}
 }

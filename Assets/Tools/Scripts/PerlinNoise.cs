@@ -48,7 +48,7 @@ public class PerlinNoise {
 		51,145,235,249,14,239,107,49,192,214,31,181,199,106,157,184,84,204,176,115,
 		121,50,45,127,4,150,254,138,236,205,93,222,114,67,29,24,72,243,141,128,195,
 		78,66,215,61,156,180
-	}; 
+	};
 
 	public static int GetPermutationValue (float x, float y, float z) {
 
@@ -60,10 +60,19 @@ public class PerlinNoise {
 		int fx = (int)(Mathf.Floor (x));
 		int fy = (int)(Mathf.Floor (y));
 		int fz = (int)(Mathf.Floor (z));
+
+		return GetPermutationValue(fx, fy, fz);
+	}
+	
+	public static int GetPermutationValue (int x, int y, int z) {
 		
-		int X = fx & 255;
-		int Y = fy & 255;
-		int Z = fz & 255;
+		int X = x & 255;
+		int Y = y & 255;
+		int Z = z & 255;
+		
+//		int oX = x % 255;
+//		int oY = y % 255;
+//		int oZ = z % 255;
 		
 		int A = _permutation [X] + Y;
 		int AA = _permutation [A] + Z;
@@ -77,7 +86,9 @@ public class PerlinNoise {
 		int CA = _permutation [C] + Z;
 		int CB = _permutation [CA];
 
-		return AB + (BB * 256) + (CB * 256 * 256);
+		int value = AB + (BB * 256) + (CB * 256 * 256);
+		
+		return value;
 	}
 
 	public static float GetValue (float x, float y, float z) {

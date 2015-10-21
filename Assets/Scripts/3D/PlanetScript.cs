@@ -14,7 +14,7 @@ public class PlanetScript : MonoBehaviour {
 		transform.Rotate(Vector3.up * Time.deltaTime * 10);
 	}
 
-	public void UpdateTexture () {
+	public void RefreshTexture () {
 		
 		Texture2D texture = Manager.CurrentSphereTexture;
 		

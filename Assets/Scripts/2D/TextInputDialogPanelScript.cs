@@ -3,15 +3,12 @@ using UnityEngine.Events;
 using UnityEngine.UI;
 using System.Collections;
 
-public class SaveFileDialogPanelScript : MonoBehaviour {
+public class TextInputDialogPanelScript : MonoBehaviour {
 
 	public CanvasGroup ModalPanelCanvasGroup;
 
 	public Text DialogText;
 	public InputField NameInputField;
-
-	public Button ActionButton;
-	public Button CancelActionButton;
 
 	// Use this for initialization
 	void Start () {

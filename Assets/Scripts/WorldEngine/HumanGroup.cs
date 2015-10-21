@@ -3,26 +3,29 @@ using System.Collections;
 using System.Xml;
 using System.Xml.Serialization;
 
-public class HumanGroup {
+public abstract class HumanGroup {
 	
 	[XmlAttribute]
-	public int Id;
-	
-	[XmlAttribute]
-	public int Population;
-	
+	public bool IsTagged;
+
 	[XmlIgnore]
-	public TerrainCell Cell;
+	public World World;
 
 	public HumanGroup () {
-		
-		
 	}
 
-	public HumanGroup (int id, int initialPopulation) {
+	public HumanGroup (World world) {
 
-		Id = id;
-	
-		Population = initialPopulation;
+		IsTagged = false;
+
+		World = world;
+	}
+
+	public virtual void FinalizeLoad () {
+
+		if (IsTagged) {
+		
+			World.TagGroup (this);
+		}
 	}
 }
