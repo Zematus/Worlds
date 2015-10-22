@@ -12,6 +12,7 @@ public class OverlayDialogPanelScript : MonoBehaviour {
 	public Toggle RainfallToggle;
 	public Toggle TemperatureToggle;
 	public Toggle PopulationToggle;
+	public Toggle CulturalSkillToggle;
 
 	public Button CloseActionButton;
 

@@ -39,6 +39,8 @@ public class GuiManagerScript : MonoBehaviour {
 	private PlanetView _planetView = PlanetView.Biomes;
 	private PlanetOverlay _planetOverlay = PlanetOverlay.Population;
 
+	private string _planetOverlaySubtype = null;
+
 	private bool menusNeedUpdate = true;
 
 	private bool _regenTextures = false;
@@ -158,8 +160,9 @@ public class GuiManagerScript : MonoBehaviour {
 			if (_accIterations >= _iterationsPerRefresh)
 			{
 				_accIterations -= _iterationsPerRefresh;
-				
-				if (_planetOverlay == PlanetOverlay.Population) {
+
+				if ((_planetOverlay == PlanetOverlay.Population) || 
+				    (_planetOverlay == PlanetOverlay.CulturalSkill)) {
 					Manager.UpdateTextures ();
 				}
 			}
@@ -362,6 +365,9 @@ public class GuiManagerScript : MonoBehaviour {
 		case PlanetOverlay.Rainfall: planetOverlayStr = "_rainfall"; break;
 		case PlanetOverlay.Temperature: planetOverlayStr = "_temperature"; break;
 		case PlanetOverlay.Population: planetOverlayStr = "_population"; break;
+		case PlanetOverlay.CulturalSkill: 
+			planetOverlayStr = "_cultural_skill_" + _planetOverlaySubtype; 
+			break;
 		default: throw new System.Exception("Unexpected planet overlay type: " + _planetOverlay);
 		}
 
@@ -449,6 +455,8 @@ public class GuiManagerScript : MonoBehaviour {
 			SetTemperatureOverlay ();
 		} else if (OverlayDialogPanelScript.PopulationToggle.isOn) {
 			SetPopulationOverlay ();
+		} else if (OverlayDialogPanelScript.CulturalSkillToggle.isOn) {
+			SetCulturalSkillOverlay ();
 		} else {
 			UnsetOverlay();
 		}
@@ -463,11 +471,16 @@ public class GuiManagerScript : MonoBehaviour {
 
 		menusNeedUpdate = false;
 
+		OverlayDialogPanelScript.CulturalSkillToggle.isOn = false;
 		OverlayDialogPanelScript.PopulationToggle.isOn = false;
 		OverlayDialogPanelScript.RainfallToggle.isOn = false;
 		OverlayDialogPanelScript.TemperatureToggle.isOn = false;
 
 		switch (_planetOverlay) {
+			
+		case PlanetOverlay.CulturalSkill:
+			OverlayDialogPanelScript.CulturalSkillToggle.isOn = true;
+			break;
 		
 		case PlanetOverlay.Population:
 			OverlayDialogPanelScript.PopulationToggle.isOn = true;
@@ -544,6 +557,13 @@ public class GuiManagerScript : MonoBehaviour {
 		_regenTextures |= _planetOverlay != PlanetOverlay.Population;
 		
 		_planetOverlay = PlanetOverlay.Population;
+	}
+	
+	public void SetCulturalSkillOverlay () {
+		
+		_regenTextures |= _planetOverlay != PlanetOverlay.CulturalSkill;
+		
+		_planetOverlay = PlanetOverlay.CulturalSkill;
 	}
 	
 	public void UnsetOverlay () {
@@ -630,6 +650,7 @@ public class GuiManagerScript : MonoBehaviour {
 		InfoPanelText.text += "\n";
 		InfoPanelText.text += "\nSurvivability: " + (cell.Survivability*100) + "%";
 		InfoPanelText.text += "\nForaging Capacity: " + (cell.ForagingCapacity*100) + "%";
+		InfoPanelText.text += "\nAccessibility: " + (cell.Accessibility*100) + "%";
 
 		int population = 0;
 		int optimalPopulation = 0;
@@ -670,8 +691,8 @@ public class GuiManagerScript : MonoBehaviour {
 			InfoPanelText.text += "\nOptimal Population: " + optimalPopulation;
 			
 			InfoPanelText.text += "\n";
-			InfoPanelText.text += "\nModified Survivability: " + (modifiedSurvivability*100) + "%";
-			InfoPanelText.text += "\nModified Foraging Capacity: " + (modifiedForagingCapacity*100) + "%";
+			InfoPanelText.text += "\nModified Survivability: " + modifiedSurvivability.ToString("#.##%");
+			InfoPanelText.text += "\nModified Foraging Capacity: " + modifiedForagingCapacity.ToString("#.##%");
 			
 			InfoPanelText.text += "\n";
 			InfoPanelText.text += "\nLast Update Date: " + lastUpdateDate;
@@ -683,7 +704,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 			foreach (CulturalSkill skill in cellCulturalSkills) {
 				
-				InfoPanelText.text += "\n\t" + skill.Id + " - Value: " + skill.Value;
+				InfoPanelText.text += "\n\t" + skill.Id + " - Value: " + skill.Value.ToString("0.000");
 			}
 		}
 	}

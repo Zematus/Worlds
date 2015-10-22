@@ -14,20 +14,37 @@ public class Biome {
 	
 	public static float MinBiomeAltitude = World.MinPossibleAltitude*3 - 1;
 	public static float MaxBiomeAltitude = World.MaxPossibleAltitude*3 + 1;
-
+	
 	public static Biome IceCap = new Biome(
-		"Ice Cap", 
+		"Ice Cap",
+		"Ice_Cap",
 		0,
 		MinBiomeAltitude, 
-		MaxBiomeAltitude, 
+		0, 
 		MinBiomeRainfall,
 		MaxBiomeRainfall,
 		MinBiomeTemperature,
 		-15f,
 		0.0f,
-		0.02f);
+		0.01f,
+		0.5f);
+
+	public static Biome Glacier = new Biome(
+		"Glacier",
+		"Glacier",
+		0,
+		0, 
+		MaxBiomeAltitude, 
+		15f,
+		MaxBiomeRainfall,
+		MinBiomeTemperature,
+		-15f,
+		0.0f,
+		0.01f,
+		0.5f);
 	
 	public static Biome Ocean = new Biome(
+		"Ocean",
 		"Ocean",
 		1,
 		MinBiomeAltitude, 
@@ -37,70 +54,96 @@ public class Biome {
 		-15f,
 		MaxBiomeTemperature,
 		0.0f,
+		0.0f,
 		0.0f);
 	
 	public static Biome Grassland = new Biome(
+		"Grassland",
 		"Grassland",
 		2,
 		0, 
 		MaxBiomeAltitude, 
 		15f,
 		1575f,
-		-5f,
+		-10f,
 		MaxBiomeTemperature,
 		1.0f,
-		0.4f);
+		0.4f,
+		1.0f);
 	
 	public static Biome Forest = new Biome(
-		"Forest", 
+		"Forest",
+		"Forest",
 		3,
 		0, 
 		MaxBiomeAltitude, 
 		1375f,
 		2975f,
-		-5f,
+		-10f,
 		MaxBiomeTemperature,
 		0.4f,
+		0.6f,
 		0.6f);
 	
 	public static Biome Taiga = new Biome(
-		"Taiga", 
+		"Taiga",
+		"Taiga",
 		4,
 		0, 
 		MaxBiomeAltitude,
-		275f,
+		1375f,
 		MaxBiomeRainfall,
 		-20f,
 		-0f,
 		0.2f,
+		0.4f,
 		0.4f);
 	
 	public static Biome Tundra = new Biome(
-		"Tundra", 
+		"Tundra",
+		"Tundra",
 		5,
 		0, 
 		MaxBiomeAltitude, 
-		MinBiomeRainfall,
-		1275f,
+		15f,
+		1575f,
 		-20f,
 		-0f,
 		0.0f,
-		0.2f);
+		0.1f,
+		1.0f);
+	
+	public static Biome DeserticTundra = new Biome(
+		"Desertic Tundra",
+		"Desertic_Tundra",
+		8,
+		0, 
+		MaxBiomeAltitude, 
+		MinBiomeRainfall,
+		675f,
+		MinBiomeTemperature,
+		-0f,
+		0.0f,
+		0.02f,
+		0.8f);
 	
 	public static Biome Desert = new Biome(
-		"Desert", 
+		"Desert",
+		"Desert",
 		6,
 		0, 
 		MaxBiomeAltitude, 
 		MinBiomeRainfall,
 		675f,
-		-5f,
+		-10f,
 		MaxBiomeTemperature,
 		0.0f,
-		0.1f);
+		0.01f,
+		0.8f);
 	
 	public static Biome Rainforest = new Biome(
-		"Rainforest", 
+		"Rainforest",
+		"Rainforest",
 		7,
 		0, 
 		MaxBiomeAltitude, 
@@ -109,21 +152,25 @@ public class Biome {
 		-5f,
 		MaxBiomeTemperature,
 		0.2f,
-		0.8f);
+		0.8f,
+		0.2f);
 
 	public static Dictionary<string, Biome> Biomes = new Dictionary<string, Biome>() {
-
+		
+		{"Glacier", Glacier},
 		{"Ice Cap", IceCap},
 		{"Ocean", Ocean},
 		{"Grassland", Grassland},
 		{"Forest", Forest},
 		{"Taiga", Taiga},
 		{"Tundra", Tundra},
+		{"Desertic Tundra", DeserticTundra},
 		{"Desert", Desert},
 		{"Rainforest", Rainforest}
 	};
 
 	public string Name;
+	public string Id;
 
 	public float MinAltitude;
 	public float MaxAltitude;
@@ -136,6 +183,7 @@ public class Biome {
 
 	public float Survivability;
 	public float ForagingCapacity;
+	public float Accessibility;
 
 	public int ColorId;
 
@@ -144,6 +192,7 @@ public class Biome {
 
 	public Biome (
 		string name, 
+		string id, 
 		int colorId, 
 		float minAltitude, 
 		float maxAltitude, 
@@ -152,9 +201,11 @@ public class Biome {
 		float minTemperature, 
 		float maxTemperature,
 		float survivability,
-		float foragingCapacity) {
+		float foragingCapacity,
+		float accessibility) {
 
 		Name = name;
+		Id = id;
 
 		ColorId = colorId;
 
@@ -166,5 +217,6 @@ public class Biome {
 		MaxTemperature = maxTemperature;
 		Survivability = survivability;
 		ForagingCapacity = foragingCapacity;
+		Accessibility = accessibility;
 	}
 }

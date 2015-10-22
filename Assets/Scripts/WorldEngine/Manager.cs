@@ -18,7 +18,8 @@ public enum PlanetOverlay {
 	None,
 	Temperature,
 	Rainfall,
-	Population
+	Population,
+	CulturalSkill
 }
 
 public delegate T ManagerTaskDelegate<T> ();
@@ -105,6 +106,7 @@ public class Manager {
 
 	private static PlanetView _planetView = PlanetView.Biomes;
 	private static PlanetOverlay _planetOverlay = PlanetOverlay.None;
+	private static string _planetOverlaySubtype = null;
 	
 	private static List<Color> _biomePalette = new List<Color>();
 	private static List<Color> _mapPalette = new List<Color>();
@@ -865,6 +867,10 @@ public class Manager {
 			color = SetPopulationOverlayColor(cell, color);
 			break;
 			
+		case PlanetOverlay.CulturalSkill:
+			color = SetCulturalSkillOverlayColor(cell, color);
+			break;
+			
 		case PlanetOverlay.Temperature:
 			color = SetTemperatureOverlayColor(cell, color);
 			break;
@@ -1007,6 +1013,46 @@ public class Manager {
 			color = (color * (1 - value)) + (Color.red * value);
 		}
 
+		return color;
+	}
+	
+	private static Color SetCulturalSkillOverlayColor (TerrainCell cell, Color color) {
+		
+		float greyscale = (color.r + color.g + color.b);// * 4 / 3;
+		
+		color.r = (greyscale + color.r) / 6f;
+		color.g = (greyscale + color.g) / 6f;
+		color.b = (greyscale + color.b) / 6f;
+		
+		if (CurrentWorld.MostPopulousGroup == null)
+			return color;
+		
+		int MaxPopulation = CurrentWorld.MostPopulousGroup.Population;
+		
+		if (MaxPopulation <= 0)
+			return color;
+		
+		float MaxPopFactor = MaxPopulation / 5f;
+		
+		float totalPopulation = 0;
+		
+		for (int i = 0; i < cell.Groups.Count; i++) {
+			
+			CellGroup group = cell.Groups[i];
+			
+			if (group.IsTagged && DisplayTaggedGroup)
+				return Color.green;
+			
+			totalPopulation += group.Population;
+		}
+		
+		if (totalPopulation > 0) {
+			
+			float value = (totalPopulation + MaxPopFactor) / (MaxPopulation + MaxPopFactor);
+			
+			color = (color * (1 - value)) + (Color.red * value);
+		}
+		
 		return color;
 	}
 	

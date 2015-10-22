@@ -941,6 +941,7 @@ public class World {
 
 				cell.Survivability = 0;
 				cell.ForagingCapacity = 0;
+				cell.Accessibility = 0;
 
 				foreach (Biome biome in Biome.Biomes.Values)
 				{
@@ -956,6 +957,7 @@ public class World {
 
 						cell.Survivability += biome.Survivability * presence;
 						cell.ForagingCapacity += biome.ForagingCapacity * presence;
+						cell.Accessibility += biome.Accessibility * presence;
 					}
 				}
 
@@ -1014,10 +1016,10 @@ public class World {
 
 			for (int j = 0; j < cell.PresentBiomeNames.Count; j++) {
 
-				string biome = cell.PresentBiomeNames[j];
+				string biomeName = cell.PresentBiomeNames[j];
 				float presence = cell.BiomePresences[j];
 
-				baseCulture.Skills.Add (new BiomeSurvivalSkill (biome, presence));
+				baseCulture.Skills.Add (new BiomeSurvivalSkill (Biome.Biomes[biomeName], presence));
 			} 
 
 			CellGroup group = new CellGroup(this, cell, population, baseCulture);

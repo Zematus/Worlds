@@ -40,6 +40,11 @@ public class CellGroup : HumanGroup {
 	
 	[XmlIgnore]
 	public TerrainCell Cell;
+	
+	[XmlIgnore]
+	public float CellMigrationValue;
+	[XmlIgnore]
+	public float TotalMigrationValue;
 
 	public CellGroup () {
 	}
@@ -74,7 +79,9 @@ public class CellGroup : HumanGroup {
 
 	public void InitializeBiomeSurvivalSkills () {
 
-		foreach (string biome in Cell.PresentBiomeNames) {
+		foreach (string biomeName in Cell.PresentBiomeNames) {
+
+			Biome biome = Biome.Biomes[biomeName];
 		
 			string skillId = BiomeSurvivalSkill.GenerateId (biome);
 
@@ -143,14 +150,15 @@ public class CellGroup : HumanGroup {
 
 	public void ConsiderMigration () {
 
-		float percentToMigrate = 0.25f * Cell.GetNextLocalRandomFloat ();
-
 		float score = Cell.GetNextLocalRandomFloat ();
 
 		List<TerrainCell> possibleTargetCells = new List<TerrainCell> (Cell.Neighbors);
 		possibleTargetCells.Add (Cell);
 
-		float noMigrationPreference = 3f;
+		float noMigrationPreference = 20f;
+
+		CellMigrationValue = 0;
+		TotalMigrationValue = 0;
 
 		TerrainCell targetCell = MathUtility.WeightedSelection (score, possibleTargetCells, (c) => {
 
@@ -173,23 +181,42 @@ public class CellGroup : HumanGroup {
 			if (c == Cell) {
 				cellValue *= noMigrationPreference;
 				cellValue += noMigrationPreference;
+
+				cellValue *= cForagingCapacity;
+
+				CellMigrationValue += cellValue;
 			}
+
+			TotalMigrationValue += cellValue;
 
 			return cellValue;
 		});
+		
+		if (TotalMigrationValue <= 0) {
+			CellMigrationValue = 1;
+		} else {
+			CellMigrationValue /= TotalMigrationValue;
+		}
+		
+		float percentToMigrate = (1 - CellMigrationValue) * Cell.GetNextLocalRandomFloat ();
 
 		if (targetCell == Cell)
 			return;
 
 		if (targetCell == null)
 			return;
+
+//		if (percentToMigrate > 0.5f) {
+//		
+//			bool debug = true;
+//		}
 		
 		float cellSurvivability = 0;
 		float cellForagingCapacity = 0;
 		
 		CalculateAdaptionToCell (targetCell, out cellForagingCapacity, out cellSurvivability);
 
-		float travelFactor = cellSurvivability * cellSurvivability * cellSurvivability;
+		float travelFactor = cellSurvivability * cellSurvivability * targetCell.Accessibility;
 
 		if (cellSurvivability <= 0)
 			return;
@@ -285,11 +312,13 @@ public class CellGroup : HumanGroup {
 
 	public int CalculateNextUpdateDate () {
 
+		float migrationFactor = 0.1f + (CellMigrationValue * 0.9f);
+
 		float skillLevelFactor = (1 + 99 * Culture.SkillAdaptationLevel (this)) / 100f;
 
 		float populationFactor = 1 + Mathf.Abs (OptimalPopulation - Population);
 
-		float mixFactor = skillLevelFactor * (2000 + OptimalPopulation) / populationFactor;
+		float mixFactor = migrationFactor * skillLevelFactor * (10000 + OptimalPopulation) / populationFactor;
 
 		int finalFactor = (int)Mathf.Max(mixFactor, 1);
 

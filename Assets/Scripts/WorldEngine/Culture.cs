@@ -49,14 +49,14 @@ public class BiomeSurvivalSkill : CulturalSkill {
 	[XmlAttribute]
 	public string Biome;
 
-	public static string GenerateId (string biome) {
+	public static string GenerateId (Biome biome) {
 	
-		return "BiomeSurvivalSkill : " + biome;
+		return "BiomeSurvivalSkill_" + biome.Id;
 	}
 
-	public BiomeSurvivalSkill (string biome, float value) : base (GenerateId (biome), value) {
+	public BiomeSurvivalSkill (Biome biome, float value) : base (GenerateId (biome), value) {
 	
-		Biome = biome;
+		Biome = biome.Name;
 	}
 
 	public BiomeSurvivalSkill (BiomeSurvivalSkill baseSkill) : base (baseSkill.Id, baseSkill.Value) {
