@@ -100,22 +100,34 @@ public class BiomeSurvivalSkill : CulturalSkill {
 
 public class Culture {
 
-	public List<CulturalSkill> Skills = new List<CulturalSkill> ();
+	private List<CulturalSkill> _skills = new List<CulturalSkill> ();
 
 	public Culture () {
 	}
 
 	public Culture (Culture baseCulture) {
 
-		foreach (CulturalSkill skill in baseCulture.Skills) {
+		foreach (CulturalSkill skill in baseCulture._skills) {
 
-			Skills.Add (CulturalSkill.Clone (skill));
+			_skills.Add (CulturalSkill.Clone (skill));
 		}
+	}
+
+	public ICollection<CulturalSkill> GetSkills () {
+	
+		return _skills;
+	}
+
+	public void AddSkill (CulturalSkill skill) {
+
+		Manager.CurrentWorld.AddExistingCulturalSkillId (skill.Id);
+	
+		_skills.Add (skill);
 	}
 
 	public CulturalSkill GetSkill (string id) {
 
-		foreach (CulturalSkill skill in Skills) {
+		foreach (CulturalSkill skill in _skills) {
 		
 			if (skill.Id == id) return skill;
 		}
@@ -125,7 +137,7 @@ public class Culture {
 
 	public void MergeCulture (Culture sourceCulture, float percentage) {
 
-		foreach (CulturalSkill sourceSkill in sourceCulture.Skills) {
+		foreach (CulturalSkill sourceSkill in sourceCulture._skills) {
 		
 			CulturalSkill skill = GetSkill (sourceSkill.Id);
 
@@ -133,7 +145,7 @@ public class Culture {
 				skill = CulturalSkill.Clone (sourceSkill);
 				skill.ModifyValue (percentage);
 
-				Skills.Add (skill);
+				_skills.Add (skill);
 			} else {
 				skill.MergeSkill (sourceSkill, percentage);
 			}
@@ -142,7 +154,7 @@ public class Culture {
 
 	public void Update (CellGroup group, int timeSpan) {
 
-		foreach (CulturalSkill skill in Skills) {
+		foreach (CulturalSkill skill in _skills) {
 		
 			skill.Update (group, timeSpan);
 		}
@@ -150,16 +162,16 @@ public class Culture {
 
 	public float SkillAdaptationLevel (CellGroup group) {
 
-		if (Skills.Count == 0)
+		if (_skills.Count == 0)
 			throw new System.Exception ("Group has no cultural skills");
 
 		float totalAdaptationLevel = 0;
 
-		foreach (CulturalSkill skill in Skills) {
+		foreach (CulturalSkill skill in _skills) {
 			
 			totalAdaptationLevel += skill.AdaptationLevel (group);
 		}
 
-		return totalAdaptationLevel / (float)Skills.Count;
+		return totalAdaptationLevel / (float)_skills.Count;
 	}
 }

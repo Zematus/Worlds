@@ -87,7 +87,7 @@ public class CellGroup : HumanGroup {
 
 			if (Culture.GetSkill (skillId) == null) {
 				
-				Culture.Skills.Add (new BiomeSurvivalSkill (biome, 0.0f));
+				Culture.AddSkill (new BiomeSurvivalSkill (biome, 0.0f));
 			}
 		}
 	}
@@ -284,7 +284,7 @@ public class CellGroup : HumanGroup {
 		float modifiedForagingCapacity = 0;
 		float modifiedSurvivability = 0;
 		
-		foreach (CulturalSkill skill in Culture.Skills) {
+		foreach (CulturalSkill skill in Culture.GetSkills ()) {
 			
 			float skillValue = skill.Value;
 			

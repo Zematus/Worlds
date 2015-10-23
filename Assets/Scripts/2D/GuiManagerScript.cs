@@ -38,8 +38,7 @@ public class GuiManagerScript : MonoBehaviour {
 	
 	private PlanetView _planetView = PlanetView.Biomes;
 	private PlanetOverlay _planetOverlay = PlanetOverlay.Population;
-
-	private string _planetOverlaySubtype = null;
+	private string _planetOverlaySubtype = "None";
 
 	private bool menusNeedUpdate = true;
 
@@ -678,7 +677,7 @@ public class GuiManagerScript : MonoBehaviour {
 			lastUpdateDate = Mathf.Max(lastUpdateDate, group.LastUpdateDate);
 			nextUpdateDate = Mathf.Max(nextUpdateDate, group.NextUpdateDate);
 
-			foreach (CulturalSkill skill in group.Culture.Skills) {
+			foreach (CulturalSkill skill in group.Culture.GetSkills ()) {
 
 				cellCulturalSkills.Add(skill);
 			}

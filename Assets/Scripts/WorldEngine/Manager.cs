@@ -106,7 +106,7 @@ public class Manager {
 
 	private static PlanetView _planetView = PlanetView.Biomes;
 	private static PlanetOverlay _planetOverlay = PlanetOverlay.None;
-	private static string _planetOverlaySubtype = null;
+	private static string _planetOverlaySubtype = "BiomeSurvivalSkill_Grassland";
 	
 	private static List<Color> _biomePalette = new List<Color>();
 	private static List<Color> _mapPalette = new List<Color>();
@@ -978,7 +978,7 @@ public class Manager {
 	
 	private static Color SetPopulationOverlayColor (TerrainCell cell, Color color) {
 
-		float greyscale = (color.r + color.g + color.b);// * 4 / 3;
+		float greyscale = (color.r + color.g + color.b);
 
 		color.r = (greyscale + color.r) / 6f;
 		color.g = (greyscale + color.g) / 6f;
@@ -1018,22 +1018,16 @@ public class Manager {
 	
 	private static Color SetCulturalSkillOverlayColor (TerrainCell cell, Color color) {
 		
-		float greyscale = (color.r + color.g + color.b);// * 4 / 3;
+		float greyscale = (color.r + color.g + color.b);
 		
 		color.r = (greyscale + color.r) / 6f;
 		color.g = (greyscale + color.g) / 6f;
 		color.b = (greyscale + color.b) / 6f;
-		
-		if (CurrentWorld.MostPopulousGroup == null)
+
+		if (_planetOverlaySubtype == "None")
 			return color;
-		
-		int MaxPopulation = CurrentWorld.MostPopulousGroup.Population;
-		
-		if (MaxPopulation <= 0)
-			return color;
-		
-		float MaxPopFactor = MaxPopulation / 5f;
-		
+
+		float skillLevel = 0;
 		float totalPopulation = 0;
 		
 		for (int i = 0; i < cell.Groups.Count; i++) {
@@ -1042,15 +1036,18 @@ public class Manager {
 			
 			if (group.IsTagged && DisplayTaggedGroup)
 				return Color.green;
+
+			CulturalSkill skill = group.Culture.GetSkill(_planetOverlaySubtype);
 			
 			totalPopulation += group.Population;
+			skillLevel += group.Population * skill.Value;
 		}
 		
 		if (totalPopulation > 0) {
 			
-			float value = (totalPopulation + MaxPopFactor) / (MaxPopulation + MaxPopFactor);
+			float value = 0.1f + 0.9f * skillLevel / totalPopulation;
 			
-			color = (color * (1 - value)) + (Color.red * value);
+			color = (color * (1 - value)) + (Color.cyan * value);
 		}
 		
 		return color;

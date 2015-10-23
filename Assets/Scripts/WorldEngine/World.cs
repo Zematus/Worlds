@@ -103,6 +103,8 @@ public class World {
 
 	private float _cellMaxSideLength;
 
+	private HashSet<string> _existingCulturalSkillIds = new HashSet<string>();
+
 	public World () {
 		
 		ProgressCastMethod = (value, message) => {};
@@ -169,6 +171,11 @@ public class World {
 		_continentOffsets = new Vector2[NumContinents];
 		_continentHeights = new float[NumContinents];
 		_continentWidths = new float[NumContinents];
+	}
+
+	public void AddExistingCulturalSkillId (string skillId) {
+	
+		_existingCulturalSkillIds.Add (skillId);
 	}
 
 	public void UpdateMostPopulousGroup (CellGroup contenderGroup) {
@@ -1019,7 +1026,7 @@ public class World {
 				string biomeName = cell.PresentBiomeNames[j];
 				float presence = cell.BiomePresences[j];
 
-				baseCulture.Skills.Add (new BiomeSurvivalSkill (Biome.Biomes[biomeName], presence));
+				baseCulture.AddSkill (new BiomeSurvivalSkill (Biome.Biomes[biomeName], presence));
 			} 
 
 			CellGroup group = new CellGroup(this, cell, population, baseCulture);
