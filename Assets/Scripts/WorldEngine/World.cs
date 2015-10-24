@@ -82,7 +82,7 @@ public class World {
 
 	public List<WorldEvent> EventsToHappen = new List<WorldEvent> ();
 	
-	private HashSet<CellGroup> _updatedGroups = new HashSet<CellGroup>();
+	private HashSet<CellGroup> _updatedGroups = new HashSet<CellGroup> ();
 		
 	private const float _progressIncrement = 0.25f;
 	
@@ -103,7 +103,7 @@ public class World {
 
 	private float _cellMaxSideLength;
 
-	private HashSet<string> _existingCulturalSkillIds = new HashSet<string>();
+	private HashSet<string> _existingCulturalSkillIds = new HashSet<string> ();
 
 	public World () {
 		
@@ -1019,17 +1019,15 @@ public class World {
 
 			int population = (int)Mathf.Floor(StartPopulationDensity * cell.Area);
 
-			Culture baseCulture = new Culture();
-
+			CellGroup group = new CellGroup(this, cell, population);
+			
 			for (int j = 0; j < cell.PresentBiomeNames.Count; j++) {
-
+				
 				string biomeName = cell.PresentBiomeNames[j];
 				float presence = cell.BiomePresences[j];
-
-				baseCulture.AddSkill (new BiomeSurvivalSkill (Biome.Biomes[biomeName], presence));
+				
+				group.Culture.AddSkill (new BiomeSurvivalSkill (Biome.Biomes[biomeName], presence));
 			} 
-
-			CellGroup group = new CellGroup(this, cell, population, baseCulture);
 
 			AddGroup(group);
 

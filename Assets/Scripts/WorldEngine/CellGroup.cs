@@ -36,7 +36,7 @@ public class CellGroup : HumanGroup {
 	[XmlAttribute]
 	public int OptimalPopulation;
 
-	public Culture Culture;
+	public CellCulture Culture;
 	
 	[XmlIgnore]
 	public TerrainCell Cell;
@@ -49,10 +49,10 @@ public class CellGroup : HumanGroup {
 	public CellGroup () {
 	}
 	
-	public CellGroup (MigratingGroup migratingGroup, int splitPopulation, Culture splitCulture) : this(migratingGroup.World, migratingGroup.TargetCell, splitPopulation, splitCulture) {
+	public CellGroup (MigratingGroup migratingGroup, int splitPopulation, CellCulture splitCulture) : this(migratingGroup.World, migratingGroup.TargetCell, splitPopulation, splitCulture) {
 	}
 
-	public CellGroup (World world, TerrainCell cell, int initialPopulation, Culture baseCulture) : base(world) {
+	public CellGroup (World world, TerrainCell cell, int initialPopulation, CellCulture baseCulture = null) : base(world) {
 
 		Population = initialPopulation;
 		
@@ -64,7 +64,11 @@ public class CellGroup : HumanGroup {
 
 		Id = World.GenerateCellGroupId();
 
-		Culture = new Culture (baseCulture);
+		if (baseCulture == null) {
+			Culture = new CellCulture (this);
+		} else {
+			Culture = new CellCulture (this, baseCulture);
+		}
 
 		InitializeBiomeSurvivalSkills ();
 		
@@ -92,7 +96,7 @@ public class CellGroup : HumanGroup {
 		}
 	}
 
-	public void MergeGroup (MigratingGroup group, int splitPopulation, Culture splitCulture) {
+	public void MergeGroup (MigratingGroup group, int splitPopulation, CellCulture splitCulture) {
 		
 		UpdateInternal ();
 
@@ -260,7 +264,7 @@ public class CellGroup : HumanGroup {
 	
 	private void UpdateCulture (int timeSpan) {
 		
-		Culture.Update (this, timeSpan);
+		Culture.Update (timeSpan);
 	}
 
 	public int CalculateOptimalPopulation (TerrainCell cell) {
@@ -284,7 +288,7 @@ public class CellGroup : HumanGroup {
 		float modifiedForagingCapacity = 0;
 		float modifiedSurvivability = 0;
 		
-		foreach (CulturalSkill skill in Culture.GetSkills ()) {
+		foreach (CulturalSkill skill in Culture.Skills) {
 			
 			float skillValue = skill.Value;
 			
@@ -312,13 +316,15 @@ public class CellGroup : HumanGroup {
 
 	public int CalculateNextUpdateDate () {
 
+		float randomFactor = Cell.GetNextLocalRandomFloat ();
+
 		float migrationFactor = 0.1f + (CellMigrationValue * 0.9f);
 
-		float skillLevelFactor = (1 + 99 * Culture.SkillAdaptationLevel (this)) / 100f;
+		float skillLevelFactor = (1 + 99 * Culture.SkillAdaptationLevel ()) / 100f;
 
 		float populationFactor = 1 + Mathf.Abs (OptimalPopulation - Population);
 
-		float mixFactor = migrationFactor * skillLevelFactor * (10000 + OptimalPopulation) / populationFactor;
+		float mixFactor = randomFactor * migrationFactor * skillLevelFactor * (10000 + OptimalPopulation) / populationFactor;
 
 		int finalFactor = (int)Mathf.Max(mixFactor, 1);
 
@@ -357,5 +363,12 @@ public class CellGroup : HumanGroup {
 		}
 
 		return 0;
+	}
+	
+	public override void FinalizeLoad () {
+
+		base.FinalizeLoad ();
+
+		Culture.Group = this;
 	}
 }

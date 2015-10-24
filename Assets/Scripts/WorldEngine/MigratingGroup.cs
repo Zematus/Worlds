@@ -25,7 +25,7 @@ public class MigratingGroup : HumanGroup {
 	[XmlIgnore]
 	public int SplitPopulation = 0;
 	[XmlIgnore]
-	public Culture SplitCulture;
+	public CellCulture SplitCulture;
 
 	public MigratingGroup () {
 	}

@@ -98,80 +98,106 @@ public class BiomeSurvivalSkill : CulturalSkill {
 	}
 }
 
-public class Culture {
-
+public abstract class Culture {
+	
 	private List<CulturalSkill> _skills = new List<CulturalSkill> ();
-
+	
 	public Culture () {
 	}
-
+	
 	public Culture (Culture baseCulture) {
-
+		
 		foreach (CulturalSkill skill in baseCulture._skills) {
-
+			
 			_skills.Add (CulturalSkill.Clone (skill));
 		}
 	}
-
-	public ICollection<CulturalSkill> GetSkills () {
 	
-		return _skills;
+	public ICollection<CulturalSkill> Skills {
+
+		get {
+			return _skills;
+		}
 	}
-
-	public void AddSkill (CulturalSkill skill) {
-
-		Manager.CurrentWorld.AddExistingCulturalSkillId (skill.Id);
 	
+	protected void AddSkill (World world, CulturalSkill skill) {
+		
+		world.AddExistingCulturalSkillId (skill.Id);
+		
 		_skills.Add (skill);
 	}
-
+	
 	public CulturalSkill GetSkill (string id) {
-
-		foreach (CulturalSkill skill in _skills) {
 		
+		foreach (CulturalSkill skill in _skills) {
+			
 			if (skill.Id == id) return skill;
 		}
-
+		
 		return null;
 	}
-
+	
 	public void MergeCulture (Culture sourceCulture, float percentage) {
-
-		foreach (CulturalSkill sourceSkill in sourceCulture._skills) {
 		
+		foreach (CulturalSkill sourceSkill in sourceCulture._skills) {
+			
 			CulturalSkill skill = GetSkill (sourceSkill.Id);
-
+			
 			if (skill == null) {
 				skill = CulturalSkill.Clone (sourceSkill);
 				skill.ModifyValue (percentage);
-
+				
 				_skills.Add (skill);
 			} else {
 				skill.MergeSkill (sourceSkill, percentage);
 			}
 		}
 	}
+}
 
-	public void Update (CellGroup group, int timeSpan) {
+public class CellCulture : Culture {
 
-		foreach (CulturalSkill skill in _skills) {
+	[XmlIgnore]
+	public CellGroup Group;
+
+	public CellCulture () : base () {
+	}
+
+	public CellCulture (CellGroup group) : base () {
+
+		Group = group;
+	}
+
+	public CellCulture (CellGroup group, Culture baseCulture) : base (baseCulture) {
+
+		Group = group;
+	}
+	
+	public void AddSkill (CulturalSkill skill) {
 		
-			skill.Update (group, timeSpan);
+		AddSkill (Group.World, skill);
+	}
+
+	public void Update (int timeSpan) {
+
+		foreach (CulturalSkill skill in Skills) {
+		
+			skill.Update (Group, timeSpan);
 		}
 	}
 
-	public float SkillAdaptationLevel (CellGroup group) {
+	public float SkillAdaptationLevel () {
 
-		if (_skills.Count == 0)
+		if (Skills.Count == 0)
 			throw new System.Exception ("Group has no cultural skills");
 
 		float totalAdaptationLevel = 0;
 
-		foreach (CulturalSkill skill in _skills) {
+		foreach (CulturalSkill skill in Skills) {
 			
-			totalAdaptationLevel += skill.AdaptationLevel (group);
+			totalAdaptationLevel += skill.AdaptationLevel (Group);
 		}
 
-		return totalAdaptationLevel / (float)_skills.Count;
+		return totalAdaptationLevel / (float)Skills.Count;
 	}
 }

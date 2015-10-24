@@ -1197,7 +1197,7 @@ public class Manager {
 		
 		attrs.XmlElements.Add(attr);
 		
-		attrOverrides.Add(typeof(Culture), "Skills", attrs);
+		attrOverrides.Add(typeof(CellCulture), "Skills", attrs);
 
 		return attrOverrides;
 	}

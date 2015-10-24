@@ -677,7 +677,7 @@ public class GuiManagerScript : MonoBehaviour {
 			lastUpdateDate = Mathf.Max(lastUpdateDate, group.LastUpdateDate);
 			nextUpdateDate = Mathf.Max(nextUpdateDate, group.NextUpdateDate);
 
-			foreach (CulturalSkill skill in group.Culture.GetSkills ()) {
+			foreach (CulturalSkill skill in group.Culture.Skills) {
 
 				cellCulturalSkills.Add(skill);
 			}
