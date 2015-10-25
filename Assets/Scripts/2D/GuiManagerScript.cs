@@ -35,6 +35,8 @@ public class GuiManagerScript : MonoBehaviour {
 
 	public PaletteScript BiomePaletteScript;
 	public PaletteScript MapPaletteScript;
+
+	public SelectionPanelScript SelectionPanelScript;
 	
 	private PlanetView _planetView = PlanetView.Biomes;
 	private PlanetOverlay _planetOverlay = PlanetOverlay.Population;
@@ -447,6 +449,9 @@ public class GuiManagerScript : MonoBehaviour {
 	}
 	
 	public void CloseOverlayMenuAction () {
+		
+		SelectionPanelScript.RemoveAllOptions ();
+		SelectionPanelScript.SetVisible (false);
 
 		if (OverlayDialogPanelScript.RainfallToggle.isOn) {
 			SetRainfallOverlay ();
@@ -474,11 +479,15 @@ public class GuiManagerScript : MonoBehaviour {
 		OverlayDialogPanelScript.PopulationToggle.isOn = false;
 		OverlayDialogPanelScript.RainfallToggle.isOn = false;
 		OverlayDialogPanelScript.TemperatureToggle.isOn = false;
+		
+		SelectionPanelScript.SetVisible (false);
 
 		switch (_planetOverlay) {
 			
 		case PlanetOverlay.CulturalSkill:
 			OverlayDialogPanelScript.CulturalSkillToggle.isOn = true;
+
+			SelectionPanelScript.SetVisible (true);
 			break;
 		
 		case PlanetOverlay.Population:
@@ -563,6 +572,15 @@ public class GuiManagerScript : MonoBehaviour {
 		_regenTextures |= _planetOverlay != PlanetOverlay.CulturalSkill;
 		
 		_planetOverlay = PlanetOverlay.CulturalSkill;
+
+		SelectionPanelScript.Title.text = "Displayed Cultural Skill:";
+
+		SelectionPanelScript.AddOption ("test", (x) => Debug.Log ("test state: " + x));
+		SelectionPanelScript.AddOption ("test2", (x) => Debug.Log ("test2 state: " + x));
+
+		SelectionPanelScript.SetStateOption ("test", true);
+
+		SelectionPanelScript.SetVisible (true);
 	}
 	
 	public void UnsetOverlay () {
