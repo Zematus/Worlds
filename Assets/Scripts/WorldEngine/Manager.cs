@@ -106,7 +106,7 @@ public class Manager {
 
 	private static PlanetView _planetView = PlanetView.Biomes;
 	private static PlanetOverlay _planetOverlay = PlanetOverlay.None;
-	private static string _planetOverlaySubtype = "BiomeSurvivalSkill_Grassland";
+	private static string _planetOverlaySubtype = "None";
 	
 	private static List<Color> _biomePalette = new List<Color>();
 	private static List<Color> _mapPalette = new List<Color>();

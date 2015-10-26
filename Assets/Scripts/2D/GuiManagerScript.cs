@@ -575,10 +575,23 @@ public class GuiManagerScript : MonoBehaviour {
 
 		SelectionPanelScript.Title.text = "Displayed Cultural Skill:";
 
-		SelectionPanelScript.AddOption ("test", (x) => Debug.Log ("test state: " + x));
-		SelectionPanelScript.AddOption ("test2", (x) => Debug.Log ("test2 state: " + x));
+		foreach (CulturalSkillInfo skillInfo in Manager.CurrentWorld.CulturalSkillInfoList) {
 
-		SelectionPanelScript.SetStateOption ("test", true);
+			string skillName = skillInfo.Name;
+			string skillId = skillInfo.Id;
+			
+			SelectionPanelScript.AddOption (skillName, (state) => {
+				if (state) {
+					_planetOverlaySubtype = skillId;
+				} else if (_planetOverlaySubtype == skillId) {
+					_planetOverlaySubtype = "None";
+				}
+			});
+
+			if (_planetOverlaySubtype == skillId) {
+				SelectionPanelScript.SetStateOption (skillName, true);
+			}
+		}
 
 		SelectionPanelScript.SetVisible (true);
 	}

@@ -4,17 +4,38 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
-public abstract class CulturalSkill {
+public class CulturalSkillInfo {
 
 	[XmlAttribute]
 	public string Id;
 	
 	[XmlAttribute]
+	public string Name;
+	
+	public CulturalSkillInfo () {
+	}
+	
+	public CulturalSkillInfo (string id, string name) {
+		
+		Id = id;
+		
+		Name = name;
+	}
+	
+	public CulturalSkillInfo (CulturalSkillInfo baseInfo) {
+		
+		Id = baseInfo.Id;
+		
+		Name = baseInfo.Name;
+	}
+}
+
+public abstract class CulturalSkill : CulturalSkillInfo {
+	
+	[XmlAttribute]
 	public float Value;
 
-	public CulturalSkill (string id, float value) {
-	
-		Id = id;
+	public CulturalSkill (string id, string name, float value) : base (id, name) {
 
 		Value = value;
 	}
@@ -53,13 +74,18 @@ public class BiomeSurvivalSkill : CulturalSkill {
 	
 		return "BiomeSurvivalSkill_" + biome.Id;
 	}
+	
+	public static string GenerateName (Biome biome) {
+		
+		return biome.Name + " Survival";
+	}
 
-	public BiomeSurvivalSkill (Biome biome, float value) : base (GenerateId (biome), value) {
+	public BiomeSurvivalSkill (Biome biome, float value) : base (GenerateId (biome), GenerateName (biome), value) {
 	
 		Biome = biome.Name;
 	}
 
-	public BiomeSurvivalSkill (BiomeSurvivalSkill baseSkill) : base (baseSkill.Id, baseSkill.Value) {
+	public BiomeSurvivalSkill (BiomeSurvivalSkill baseSkill) : base (baseSkill.Id, baseSkill.Name, baseSkill.Value) {
 
 		Biome = baseSkill.Biome;
 	}
@@ -122,7 +148,7 @@ public abstract class Culture {
 	
 	protected void AddSkill (World world, CulturalSkill skill) {
 		
-		world.AddExistingCulturalSkillId (skill.Id);
+		world.AddExistingCulturalSkillId (skill);
 		
 		_skills.Add (skill);
 	}

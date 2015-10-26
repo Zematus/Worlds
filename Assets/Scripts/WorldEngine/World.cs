@@ -79,6 +79,10 @@ public class World {
 	public int CurrentCellGroupId { get; private set; }
 
 	public TerrainCell[][] Terrain;
+	
+	public List<CulturalSkillInfo> CulturalSkillInfoList = new List<CulturalSkillInfo> ();
+
+	private HashSet<string> _culturalSkillInfoIdList = new HashSet<string> ();
 
 	public List<WorldEvent> EventsToHappen = new List<WorldEvent> ();
 	
@@ -102,8 +106,6 @@ public class World {
 	private float _accumulatedProgress = 0;
 
 	private float _cellMaxSideLength;
-
-	private HashSet<string> _existingCulturalSkillIds = new HashSet<string> ();
 
 	public World () {
 		
@@ -173,9 +175,13 @@ public class World {
 		_continentWidths = new float[NumContinents];
 	}
 
-	public void AddExistingCulturalSkillId (string skillId) {
+	public void AddExistingCulturalSkillId (CulturalSkillInfo baseInfo) {
+
+		if (_culturalSkillInfoIdList.Contains (baseInfo.Id))
+			return;
 	
-		_existingCulturalSkillIds.Add (skillId);
+		CulturalSkillInfoList.Add (new CulturalSkillInfo (baseInfo));
+		_culturalSkillInfoIdList.Add (baseInfo.Id);
 	}
 
 	public void UpdateMostPopulousGroup (CellGroup contenderGroup) {
@@ -406,6 +412,11 @@ public class World {
 
 			if (MostPopulousGroup == null)
 				MostPopulousGroupId = -1;
+		}
+
+		foreach (CulturalSkillInfo skillInfo in CulturalSkillInfoList) {
+		
+			_culturalSkillInfoIdList.Add (skillInfo.Id);
 		}
 
 		Ready = true;
