@@ -296,7 +296,7 @@ public class CellGroup : HumanGroup {
 				
 				BiomeSurvivalSkill biomeSurvivalSkill = skill as BiomeSurvivalSkill;
 				
-				string biomeName = biomeSurvivalSkill.Biome;
+				string biomeName = biomeSurvivalSkill.BiomeName;
 				
 				float biomePresence = cell.GetBiomePresence(biomeName);
 				
@@ -320,7 +320,7 @@ public class CellGroup : HumanGroup {
 
 		float migrationFactor = 0.1f + (CellMigrationValue * 0.9f);
 
-		float skillLevelFactor = (1 + 99 * Culture.SkillAdaptationLevel ()) / 100f;
+		float skillLevelFactor = (1 + 99 * Culture.MinimumSkillAdaptationLevel ()) / 100f;
 
 		float populationFactor = 1 + Mathf.Abs (OptimalPopulation - Population);
 

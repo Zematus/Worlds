@@ -65,10 +65,12 @@ public abstract class CulturalSkill : CulturalSkillInfo {
 
 public class BiomeSurvivalSkill : CulturalSkill {
 
-	public const float TimeEffectConstant = CellGroup.GenerationSpan * 100;
+	public const float TimeEffectConstant = CellGroup.GenerationSpan * 500;
 	
 	[XmlAttribute]
-	public string Biome;
+	public string BiomeName;
+
+	//private float _biomeSurvivalEffect;
 
 	public static string GenerateId (Biome biome) {
 	
@@ -82,19 +84,23 @@ public class BiomeSurvivalSkill : CulturalSkill {
 
 	public BiomeSurvivalSkill (Biome biome, float value) : base (GenerateId (biome), GenerateName (biome), value) {
 	
-		Biome = biome.Name;
+		BiomeName = biome.Name;
+
+		//_biomeSurvivalEffect = 0.2f + 0.8f * Biome.Biomes [BiomeName].Survivability;
 	}
 
 	public BiomeSurvivalSkill (BiomeSurvivalSkill baseSkill) : base (baseSkill.Id, baseSkill.Name, baseSkill.Value) {
 
-		Biome = baseSkill.Biome;
+		BiomeName = baseSkill.BiomeName;
+		
+		//_biomeSurvivalEffect = 0.2f + 0.8f * Biome.Biomes [BiomeName].Survivability;
 	}
 
 	public override void Update (CellGroup group, int timeSpan) {
 
 		TerrainCell cell = group.Cell;
 		
-		float presence = cell.GetBiomePresence (Biome);
+		float presence = cell.GetBiomePresence (BiomeName);
 
 		float randomModifier = presence - cell.GetNextLocalRandomFloat ();
 
@@ -106,16 +112,20 @@ public class BiomeSurvivalSkill : CulturalSkill {
 			targetValue = Value * (1 + randomModifier);
 		}
 
-		float timeEffect = timeSpan / (float)(timeSpan + TimeEffectConstant);
+		float presenceEffect = Mathf.Abs (Value - presence);
 		
-		Value = (Value * (1 - timeEffect)) + (targetValue * timeEffect);
+		float timeEffect = timeSpan / (float)(timeSpan + TimeEffectConstant);
+
+		float factor = timeEffect * presenceEffect;
+		
+		Value = (Value * (1 - factor)) + (targetValue * factor);
 	}
 
 	public override float AdaptationLevel (CellGroup group) {
 		
 		TerrainCell cell = group.Cell;
 		
-		float presence = cell.GetBiomePresence (Biome);
+		float presence = cell.GetBiomePresence (BiomeName);
 
 		if (presence == Value)
 			return 1;
@@ -212,7 +222,7 @@ public class CellCulture : Culture {
 		}
 	}
 
-	public float SkillAdaptationLevel () {
+	public float AverageSkillAdaptationLevel () {
 
 		if (Skills.Count == 0)
 			throw new System.Exception ("Group has no cultural skills");
@@ -225,5 +235,24 @@ public class CellCulture : Culture {
 		}
 
 		return totalAdaptationLevel / (float)Skills.Count;
+	}
+	
+	public float MinimumSkillAdaptationLevel () {
+		
+		if (Skills.Count == 0)
+			throw new System.Exception ("Group has no cultural skills");
+		
+		float minAdaptationLevel = 1f;
+		
+		foreach (CulturalSkill skill in Skills) {
+			
+			float level = skill.AdaptationLevel (Group);
+
+			if (level < minAdaptationLevel) {
+				minAdaptationLevel = level;
+			}
+		}
+		
+		return minAdaptationLevel;
 	}
 }

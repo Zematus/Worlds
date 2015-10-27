@@ -1031,14 +1031,6 @@ public class World {
 			int population = (int)Mathf.Floor(StartPopulationDensity * cell.Area);
 
 			CellGroup group = new CellGroup(this, cell, population);
-			
-			for (int j = 0; j < cell.PresentBiomeNames.Count; j++) {
-				
-				string biomeName = cell.PresentBiomeNames[j];
-				float presence = cell.BiomePresences[j];
-				
-				group.Culture.AddSkill (new BiomeSurvivalSkill (Biome.Biomes[biomeName], presence));
-			} 
 
 			AddGroup(group);
 

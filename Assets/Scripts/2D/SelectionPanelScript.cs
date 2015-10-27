@@ -29,8 +29,20 @@ public class SelectionPanelScript : MonoBehaviour {
 		
 		gameObject.SetActive (value);
 	}
+	
+	public bool IsVisible () {
+		
+		return gameObject.activeInHierarchy;
+	}
 
 	public void AddOption (string text, UnityAction<bool> call) {
+
+		foreach (Toggle existingToggle in Toggles) {
+			
+			SelectionToggleScript existingToggleScript = existingToggle.gameObject.GetComponent<SelectionToggleScript> ();
+
+			if (existingToggleScript.Label.text == text) return;
+		}
 
 		Toggle toggle = GameObject.Instantiate (PrototypeToggle) as Toggle;
 

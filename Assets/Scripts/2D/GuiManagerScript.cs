@@ -123,6 +123,8 @@ public class GuiManagerScript : MonoBehaviour {
 			ActivityDialogPanelScript.SetVisible (false);
 			_preparingWorld = false;
 
+			SelectionPanelScript.RemoveAllOptions ();
+
 		} else {
 
 			_accDeltaTime += Time.deltaTime;
@@ -148,7 +150,7 @@ public class GuiManagerScript : MonoBehaviour {
 		if (_regenTextures) {
 			_regenTextures = false;
 
-			Manager.SetPlanetOverlay (_planetOverlay);
+			Manager.SetPlanetOverlay (_planetOverlay, _planetOverlaySubtype);
 			Manager.SetPlanetView (_planetView);
 
 			Manager.GenerateTextures ();
@@ -171,6 +173,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 		if (MapImage.enabled) {
 			UpdateInfoPanel();
+			UpdateSelectionMenu();
 		}
 	}
 
@@ -586,6 +589,8 @@ public class GuiManagerScript : MonoBehaviour {
 				} else if (_planetOverlaySubtype == skillId) {
 					_planetOverlaySubtype = "None";
 				}
+
+				_regenTextures = true;
 			});
 
 			if (_planetOverlaySubtype == skillId) {
@@ -594,6 +599,35 @@ public class GuiManagerScript : MonoBehaviour {
 		}
 
 		SelectionPanelScript.SetVisible (true);
+	}
+
+	public void UpdateSelectionMenu () {
+
+		if (!SelectionPanelScript.IsVisible ())
+			return;
+
+		if (_planetOverlay == PlanetOverlay.CulturalSkill) {
+			
+			foreach (CulturalSkillInfo skillInfo in Manager.CurrentWorld.CulturalSkillInfoList) {
+				
+				string skillName = skillInfo.Name;
+				string skillId = skillInfo.Id;
+				
+				SelectionPanelScript.AddOption (skillName, (state) => {
+					if (state) {
+						_planetOverlaySubtype = skillId;
+					} else if (_planetOverlaySubtype == skillId) {
+						_planetOverlaySubtype = "None";
+					}
+					
+					_regenTextures = true;
+				});
+				
+				if (_planetOverlaySubtype == skillId) {
+					SelectionPanelScript.SetStateOption (skillName, true);
+				}
+			}
+		}
 	}
 	
 	public void UnsetOverlay () {
@@ -644,7 +678,7 @@ public class GuiManagerScript : MonoBehaviour {
 		
 		InfoPanelText.text += "\n";
 		InfoPanelText.text += "\nNumber of Migration Events: " + MigrateGroupEvent.EventCount;
-		InfoPanelText.text += "\nMean Migration Travel Time: " + MigrateGroupEvent.MeanTravelTime;
+		InfoPanelText.text += "\nMean Migration Travel Time: " + MigrateGroupEvent.MeanTravelTime.ToString("0.0");
 	}
 	
 	public void AddCellDataToInfoPanel (int longitude, int latitude) {
@@ -678,9 +712,9 @@ public class GuiManagerScript : MonoBehaviour {
 		}
 
 		InfoPanelText.text += "\n";
-		InfoPanelText.text += "\nSurvivability: " + (cell.Survivability*100) + "%";
-		InfoPanelText.text += "\nForaging Capacity: " + (cell.ForagingCapacity*100) + "%";
-		InfoPanelText.text += "\nAccessibility: " + (cell.Accessibility*100) + "%";
+		InfoPanelText.text += "\nSurvivability: " + cell.Survivability.ToString("#.##%");
+		InfoPanelText.text += "\nForaging Capacity: " + cell.ForagingCapacity.ToString("#.##%");
+		InfoPanelText.text += "\nAccessibility: " + cell.Accessibility.ToString("#.##%");
 
 		int population = 0;
 		int optimalPopulation = 0;

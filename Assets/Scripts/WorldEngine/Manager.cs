@@ -456,9 +456,10 @@ public class Manager {
 		_manager._progressCastMethod (Mathf.Min(1, value));
 	}
 
-	public static void SetPlanetOverlay (PlanetOverlay value) {
+	public static void SetPlanetOverlay (PlanetOverlay value, string planetOverlaySubtype = "None") {
 	
 		_planetOverlay = value;
+		_planetOverlaySubtype = planetOverlaySubtype;
 	}
 	
 	public static void SetPlanetView (PlanetView value) {
@@ -1040,7 +1041,10 @@ public class Manager {
 			CulturalSkill skill = group.Culture.GetSkill(_planetOverlaySubtype);
 			
 			totalPopulation += group.Population;
-			skillLevel += group.Population * skill.Value;
+
+			if (skill != null) {
+				skillLevel += group.Population * skill.Value;
+			}
 		}
 		
 		if (totalPopulation > 0) {
