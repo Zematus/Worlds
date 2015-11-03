@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 using System.Xml;
 using System.Xml.Serialization;
@@ -93,7 +93,7 @@ public class MigratingGroup : HumanGroup {
 
 		base.FinalizeLoad ();
 		
-		TargetCell = World.Terrain[TargetCellLongitude][TargetCellLatitude];
+		TargetCell = World.TerrainCells[TargetCellLongitude][TargetCellLatitude];
 		
 		SourceGroup = World.FindCellGroup (SourceGroupId);
 	}

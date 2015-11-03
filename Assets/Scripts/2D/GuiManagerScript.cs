@@ -693,7 +693,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 		InfoPanelText.text += "\n";
 		
-		TerrainCell cell = world.Terrain[longitude][latitude];
+		TerrainCell cell = world.TerrainCells[longitude][latitude];
 
 		world.SetObservedCell (cell);
 		

@@ -100,7 +100,7 @@ public class Manager {
 	
 	public static bool _isLoadReady = false;
 	
-	public static World LoadingWorld = null;
+	public static World WorldBeingLoaded = null;
 
 	private static Manager _manager = new Manager();
 
@@ -111,7 +111,7 @@ public class Manager {
 	private static List<Color> _biomePalette = new List<Color>();
 	private static List<Color> _mapPalette = new List<Color>();
 	
-	private static int _cellsToLoad = 0;
+	//private static int _cellsToLoad = 0;
 	private static int _eventsToLoad = 0;
 	
 	private static int _totalLoadTicks = 0;
@@ -383,11 +383,15 @@ public class Manager {
 		XmlSerializer serializer = new XmlSerializer(typeof(World), _manager.AttributeOverrides);
 		FileStream stream = new FileStream(path, FileMode.Open);
 
-		_manager._currentWorld = serializer.Deserialize(stream) as World;
+		World world = serializer.Deserialize(stream) as World;
 
-		_manager._currentWorld.FinalizeLoad ();
+		world.Initialize ();
+		world.GenerateTerrain ();
+		world.FinalizeLoad ();
 
-		LoadingWorld = null;
+		_manager._currentWorld = world;
+
+		WorldBeingLoaded = null;
 
 		stream.Close();
 	}
@@ -415,29 +419,30 @@ public class Manager {
 
 		_isLoadReady = true;
 	
-		_cellsToLoad = LoadingWorld.Width*LoadingWorld.Height;
-		_eventsToLoad = LoadingWorld.EventsToHappenCount;
+		//_cellsToLoad = LoadingWorld.Width*LoadingWorld.Height;
+		_eventsToLoad = WorldBeingLoaded.EventsToHappenCount;
 
-		_totalLoadTicks = _cellsToLoad + _eventsToLoad;
+		//_totalLoadTicks = _cellsToLoad + _eventsToLoad;
+		_totalLoadTicks = _eventsToLoad;
 		_loadTicks = 0;
 	}
 	
-	public static void UpdateWorldLoadTrackCellCount () {
-
-		if (!_isLoadReady)
-			InitializeWorldLoadTrack ();
-		
-		_loadTicks += 1;
-
-		float value = _loadTicks / (float)_totalLoadTicks;
-		
-		//Debug.Log ("Load progress: " + value);
-		
-		if (_manager._progressCastMethod == null)
-			return;
-
-		_manager._progressCastMethod (Mathf.Min(1, value));
-	}
+//	public static void UpdateWorldLoadTrackCellCount () {
+//
+//		if (!_isLoadReady)
+//			InitializeWorldLoadTrack ();
+//		
+//		_loadTicks += 1;
+//
+//		float value = _loadTicks / (float)_totalLoadTicks;
+//		
+//		//Debug.Log ("Load progress: " + value);
+//		
+//		if (_manager._progressCastMethod == null)
+//			return;
+//
+//		_manager._progressCastMethod (Mathf.Min(1, value));
+//	}
 	
 	public static void UpdateWorldLoadTrackEventCount () {
 		
@@ -446,7 +451,7 @@ public class Manager {
 		
 		_loadTicks += 1;
 		
-		float value = _loadTicks / (float)_totalLoadTicks;
+		float value = 0.5f * _loadTicks / (float)_totalLoadTicks;
 		
 		//Debug.Log ("Load progress: " + value);
 		
@@ -509,7 +514,7 @@ public class Manager {
 		int i = cell.Longitude;
 		int j = cell.Latitude;
 		
-		Color cellColor = GenerateColorFromTerrainCell(world.Terrain[i][j]);
+		Color cellColor = GenerateColorFromTerrainCell(world.TerrainCells[i][j]);
 		
 		for (int m = 0; m < r; m++) {
 			for (int n = 0; n < r; n++) {
@@ -538,7 +543,7 @@ public class Manager {
 		for (int i = 0; i < sizeX; i++) {
 			for (int j = 0; j < sizeY; j++) {
 
-				Color cellColor = GenerateColorFromTerrainCell(world.Terrain[i][j]);
+				Color cellColor = GenerateColorFromTerrainCell(world.TerrainCells[i][j]);
 
 				for (int m = 0; m < r; m++) {
 					for (int n = 0; n < r; n++) {
@@ -587,7 +592,7 @@ public class Manager {
 		
 		int trueJ = (int)(world.Height * factorJ);
 		
-		Color cellColor = GenerateColorFromTerrainCell(world.Terrain[i][trueJ]);
+		Color cellColor = GenerateColorFromTerrainCell(world.TerrainCells[i][trueJ]);
 		
 		for (int m = 0; m < r; m++) {
 			for (int n = 0; n < r; n++) {
@@ -621,7 +626,7 @@ public class Manager {
 
 				int trueJ = (int)(world.Height * factorJ);
 
-				Color cellColor = GenerateColorFromTerrainCell(world.Terrain[i][trueJ]);
+				Color cellColor = GenerateColorFromTerrainCell(world.TerrainCells[i][trueJ]);
 				
 				for (int m = 0; m < r; m++) {
 					for (int n = 0; n < r; n++) {
@@ -660,19 +665,19 @@ public class Manager {
 
 		if (latitude < (world.Height - 1)) {
 			
-			neighbors.Add("northwest", world.Terrain[wLongitude][latitude + 1]);
-			neighbors.Add("north", world.Terrain[longitude][latitude + 1]);
-			neighbors.Add("northeast", world.Terrain[eLongitude][latitude + 1]);
+			neighbors.Add("northwest", world.TerrainCells[wLongitude][latitude + 1]);
+			neighbors.Add("north", world.TerrainCells[longitude][latitude + 1]);
+			neighbors.Add("northeast", world.TerrainCells[eLongitude][latitude + 1]);
 		}
 		
-		neighbors.Add("west", world.Terrain[wLongitude][latitude]);
-		neighbors.Add("east", world.Terrain[eLongitude][latitude]);
+		neighbors.Add("west", world.TerrainCells[wLongitude][latitude]);
+		neighbors.Add("east", world.TerrainCells[eLongitude][latitude]);
 		
 		if (latitude > 0) {
 			
-			neighbors.Add("southwest", world.Terrain[wLongitude][latitude - 1]);
-			neighbors.Add("south", world.Terrain[longitude][latitude - 1]);
-			neighbors.Add("southeast", world.Terrain[eLongitude][latitude - 1]);
+			neighbors.Add("southwest", world.TerrainCells[wLongitude][latitude - 1]);
+			neighbors.Add("south", world.TerrainCells[longitude][latitude - 1]);
+			neighbors.Add("southeast", world.TerrainCells[eLongitude][latitude - 1]);
 		}
 		
 		return neighbors;
@@ -1175,33 +1180,33 @@ public class Manager {
 
 		// Add GroupEvent Attributes
 
-		XmlAttributes attrs = new XmlAttributes();
-
-		XmlElementAttribute attr = new XmlElementAttribute();
-		attr.ElementName = "UpdateCellGroupEvent";
-		attr.Type = typeof(UpdateCellGroupEvent);
-		
-		attrs.XmlElements.Add(attr);
-
-		attr = new XmlElementAttribute();
-		attr.ElementName = "MigrateGroupEvent";
-		attr.Type = typeof(MigrateGroupEvent);
-		
-		attrs.XmlElements.Add(attr);
-
-		attrOverrides.Add(typeof(World), "EventsToHappen", attrs);
+//		XmlAttributes attrs = new XmlAttributes();
+//
+//		XmlElementAttribute attr = new XmlElementAttribute();
+//		attr.ElementName = "UpdateCellGroupEvent";
+//		attr.Type = typeof(UpdateCellGroupEvent);
+//		
+//		attrs.XmlElements.Add(attr);
+//
+//		attr = new XmlElementAttribute();
+//		attr.ElementName = "MigrateGroupEvent";
+//		attr.Type = typeof(MigrateGroupEvent);
+//		
+//		attrs.XmlElements.Add(attr);
+//
+//		attrOverrides.Add(typeof(World), "EventsToHappen", attrs);
 		
 		// Add CulturalSkill Attributes
 		
-		attrs = new XmlAttributes();
-		
-		attr = new XmlElementAttribute();
-		attr.ElementName = "BiomeSurvivalSkill";
-		attr.Type = typeof(BiomeSurvivalSkill);
-		
-		attrs.XmlElements.Add(attr);
-		
-		attrOverrides.Add(typeof(CellCulture), "Skills", attrs);
+//		attrs = new XmlAttributes();
+//		
+//		attr = new XmlElementAttribute();
+//		attr.ElementName = "BiomeSurvivalSkill";
+//		attr.Type = typeof(BiomeSurvivalSkill);
+//		
+//		attrs.XmlElements.Add(attr);
+//		
+//		attrOverrides.Add(typeof(Culture), "Skills", attrs);
 
 		return attrOverrides;
 	}

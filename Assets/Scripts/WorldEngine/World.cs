@@ -10,11 +10,11 @@ public delegate void ProgressCastDelegate (float value, string message = null);
 public class World {
 	
 	public const float Circumference = 40075; // In kilometers;
-
+	
 	public const int NumContinents = 12;
 	public const float ContinentMinWidthFactor = 5.7f;
 	public const float ContinentMaxWidthFactor = 8.7f;
-
+	
 	public const float MinPossibleAltitude = -15000;
 	public const float MaxPossibleAltitude = 15000;
 	
@@ -24,28 +24,61 @@ public class World {
 	
 	public const float MinPossibleTemperature = -40;
 	public const float MaxPossibleTemperature = 50;
-
+	
 	public const float StartPopulationDensity = 0.5f;
 	
+	[XmlAttribute]
+	public int Width { get; private set; }
+	[XmlAttribute]
+	public int Height { get; private set; }
+	
+	[XmlAttribute]
+	public int Seed { get; private set; }
+	
+	[XmlAttribute]
+	public int CurrentDate { get; private set; }
+	
+	[XmlAttribute]
+	public int CurrentCellGroupId { get; private set; }
+
+	[XmlArrayItem(Type = typeof(UpdateCellGroupEvent)),
+	 XmlArrayItem(Type = typeof(MigrateGroupEvent))]
+	public List<WorldEvent> EventsToHappen = new List<WorldEvent> ();
+	
+	public List<CellGroup> CellGroups = new List<CellGroup> ();
+	
+	[XmlIgnore]
 	public float MinPossibleAltitudeWithOffset = MinPossibleAltitude - Manager.SeaLevelOffset;
+	[XmlIgnore]
 	public float MaxPossibleAltitudeWithOffset = MaxPossibleAltitude - Manager.SeaLevelOffset;
 	
+	[XmlIgnore]
 	public float MinPossibleRainfallWithOffset = MinPossibleRainfall + Manager.RainfallOffset;
+	[XmlIgnore]
 	public float MaxPossibleRainfallWithOffset = MaxPossibleRainfall + Manager.RainfallOffset;
 	
+	[XmlIgnore]
 	public float MinPossibleTemperatureWithOffset = MinPossibleTemperature + Manager.TemperatureOffset;
+	[XmlIgnore]
 	public float MaxPossibleTemperatureWithOffset = MaxPossibleTemperature + Manager.TemperatureOffset;
-
+	
+	[XmlIgnore]
 	public float MaxAltitude = float.MinValue;
+	[XmlIgnore]
 	public float MinAltitude = float.MaxValue;
 	
+	[XmlIgnore]
 	public float MaxRainfall = float.MinValue;
+	[XmlIgnore]
 	public float MinRainfall = float.MaxValue;
-
+	
+	[XmlIgnore]
 	public float MaxTemperature = float.MinValue;
+	[XmlIgnore]
 	public float MinTemperature = float.MaxValue;
-
-	public int MostPopulousGroupId = -1;
+	
+	[XmlIgnore]
+	public TerrainCell[][] TerrainCells;
 	
 	[XmlIgnore]
 	public CellGroup MostPopulousGroup = null;
@@ -62,35 +95,17 @@ public class World {
 	[XmlIgnore]
 	public TerrainCell ObservedCell = null;
 	
-	[XmlAttribute]
-	public int CurrentDate { get; private set; }
-	
-	[XmlAttribute]
-	public int Width { get; private set; }
-	[XmlAttribute]
-	public int Height { get; private set; }
-
-	[XmlAttribute]
+	[XmlIgnore]
 	public int EventsToHappenCount { get; private set; }
 	
-	[XmlAttribute]
-	public int Seed { get; private set; }
-
-	public int CurrentCellGroupId { get; private set; }
-
-	public TerrainCell[][] Terrain;
-	
+	[XmlIgnore]
 	public List<CulturalSkillInfo> CulturalSkillInfoList = new List<CulturalSkillInfo> ();
-
+	
 	private HashSet<string> _culturalSkillInfoIdList = new HashSet<string> ();
-
-	public List<WorldEvent> EventsToHappen = new List<WorldEvent> ();
 	
 	private HashSet<CellGroup> _updatedGroups = new HashSet<CellGroup> ();
 		
-	private const float _progressIncrement = 0.25f;
-	
-	private List<CellGroup> _groups = new List<CellGroup>();
+	private float _progressIncrement = 0.25f;
 	
 	private List<CellGroup> _groupsToUpdate = new List<CellGroup>();
 	private List<CellGroup> _groupsToRemove = new List<CellGroup>();
@@ -101,81 +116,89 @@ public class World {
 	private float[] _continentWidths;
 	private float[] _continentHeights;
 
-	private bool _initialized = false;
-
 	private float _accumulatedProgress = 0;
 
 	private float _cellMaxSideLength;
 
 	public World () {
+
+		Manager.WorldBeingLoaded = this;
 		
 		ProgressCastMethod = (value, message) => {};
-
-		Manager.LoadingWorld = this;
-
+		
 		Ready = false;
 	}
 
 	public World (int width, int height, int seed) {
-
+		
 		ProgressCastMethod = (value, message) => {};
-
+		
 		Ready = false;
-	
+		
 		Width = width;
 		Height = height;
 		Seed = seed;
-
+		
+		CurrentDate = 0;
+		
 		CurrentCellGroupId = 0;
-
+	}
+	
+	public void Initialize () {
+		
 		_cellMaxSideLength = Circumference / Width;
 		TerrainCell.MaxArea = _cellMaxSideLength * _cellMaxSideLength;
 		
-		CurrentDate = 0;
-
-		Terrain = new TerrainCell[width][];
-
-		for (int i = 0; i < width; i++)
+		TerrainCells = new TerrainCell[Width][];
+		
+		for (int i = 0; i < Width; i++)
 		{
-			TerrainCell[] column = new TerrainCell[height];
-
-			for (int j = 0; j < height; j++)
+			TerrainCell[] column = new TerrainCell[Height];
+			
+			for (int j = 0; j < Height; j++)
 			{
-				float alpha = (j / (float)height) * Mathf.PI;
-
-				TerrainCell cell = new TerrainCell (false);
+				float alpha = (j / (float)Height) * Mathf.PI;
+				
+//				TerrainCell cell = new TerrainCell (false);
+				TerrainCell cell = new TerrainCell ();
 				cell.World = this;
 				cell.Longitude = i;
 				cell.Latitude = j;
 				cell.LocalIteration = 0;
-
+				
 				cell.Height = _cellMaxSideLength;
 				cell.Width = Mathf.Sin(alpha) * _cellMaxSideLength;
-
+				
 				cell.Area = cell.Height * cell.Width;
-
+				
 				cell.Ready = false;
-
+				
 				column[j] = cell;
 			}
-
-			Terrain[i] = column;
+			
+			TerrainCells[i] = column;
 		}
 		
-		for (int i = 0; i < width; i++) {
-
-			for (int j = 0; j < height; j++) {
-
-				Terrain[i][j].InitializeNeighbors();
+		for (int i = 0; i < Width; i++) {
+			
+			for (int j = 0; j < Height; j++) {
+				
+				TerrainCells[i][j].InitializeNeighbors();
 			}
 		}
-
+		
 		_continentOffsets = new Vector2[NumContinents];
 		_continentHeights = new float[NumContinents];
 		_continentWidths = new float[NumContinents];
+		
+		Manager.EnqueueTaskAndWait (() => {
+			
+			Random.seed = Seed;
+			return true;
+		});
 	}
 
-	public void AddExistingCulturalSkillId (CulturalSkillInfo baseInfo) {
+	public void AddExistingCulturalSkillInfo (CulturalSkillInfo baseInfo) {
 
 		if (_culturalSkillInfoIdList.Contains (baseInfo.Id))
 			return;
@@ -194,17 +217,16 @@ public class World {
 			
 			MostPopulousGroup = contenderGroup;
 		}
-		
-		if (MostPopulousGroup != null) {
-			MostPopulousGroupId = MostPopulousGroup.Id;
-		} else {
-			MostPopulousGroupId = -1;
-		}
 	}
 	
 	public void AddUpdatedGroup (CellGroup group) {
 		
 		_updatedGroups.Add (group);
+	}
+	
+	public TerrainCell GetCell (int longitude, int latitude) {
+		
+		return TerrainCells[longitude][latitude];
 	}
 
 	public void Iterate () {
@@ -335,20 +357,20 @@ public class World {
 	}
 	
 	public void AddGroup (CellGroup group) {
-		
-		_groups.Add (group);
+
+		CellGroups.Add (group);
 
 		Manager.AddUpdatedCell (group.Cell);
 	}
 	
 	public void RemoveGroup (CellGroup group) {
 		
-		_groups.Remove (group);
+		CellGroups.Remove (group);
 	}
 	
 	public CellGroup FindCellGroup (int id) {
 
-		foreach (CellGroup group in _groups) {
+		foreach (CellGroup group in CellGroups) {
 		
 			if (group.Id == id) return group;
 		}
@@ -374,21 +396,28 @@ public class World {
 
 	public void FinalizeLoad () {
 		
-		_cellMaxSideLength = Circumference / Width;
-		TerrainCell.MaxArea = _cellMaxSideLength * _cellMaxSideLength;
+//		s_cellMaxSideLength = Circumference / Width;
+//		TerrainCell.MaxArea = _cellMaxSideLength * _cellMaxSideLength;
 		
-		for (int i = 0; i < Width; i++)
-		{
-			for (int j = 0; j < Height; j++)
-			{
-				TerrainCell cell = Terrain[i][j];
-
-				cell.World = this;
-				
-				cell.Area = cell.Height * cell.Width;
-
-				cell.FinalizeLoad();
-			}
+//		for (int i = 0; i < Width; i++)
+//		{
+//			for (int j = 0; j < Height; j++)
+//			{
+//				TerrainCell cell = TerrainCells[i][j];
+//
+//				cell.World = this;
+//				
+//				cell.Area = cell.Height * cell.Width;
+//
+//				cell.FinalizeLoad();
+//			}
+//		}
+		
+		foreach (CellGroup group in CellGroups) {
+			
+			group.World = this;
+			
+			group.FinalizeLoad();
 		}
 
 		foreach (WorldEvent eventToHappen in EventsToHappen) {
@@ -405,14 +434,6 @@ public class World {
 
 			return 0;
 		});
-
-		if (MostPopulousGroupId > -1) {
-		
-			MostPopulousGroup = FindCellGroup(MostPopulousGroupId);
-
-			if (MostPopulousGroup == null)
-				MostPopulousGroupId = -1;
-		}
 
 		foreach (CulturalSkillInfo skillInfo in CulturalSkillInfoList) {
 		
@@ -454,7 +475,7 @@ public class World {
 		{
 			for (int j = 0; j < Height; j++)
 			{
-				TerrainCell cell = Terrain[i][j];
+				TerrainCell cell = TerrainCells[i][j];
 
 				cell.Ready = true;
 			}
@@ -462,50 +483,39 @@ public class World {
 		
 		Ready = true;
 	}
-
-	public void Initialize () {
-
-		if (_initialized)
-			return;
-
-		_initialized = true;
-
-		Manager.EnqueueTaskAndWait (() => {
-
-			Random.seed = Seed;
-			return true;
-		});
+	
+	public void GenerateTerrain () {
+		
+		ProgressCastMethod (_accumulatedProgress, "Generating Terrain...");
+		
+		GenerateTerrainAltitude ();
+		
+		ProgressCastMethod (_accumulatedProgress, "Calculating Rainfall...");
+		
+		GenerateTerrainRainfall ();
+		
+		//		ProgressCastMethod (_accumulatedProgress, "Generating Rivers...");
+		//		
+		//		GenerateTerrainRivers ();
+		
+		ProgressCastMethod (_accumulatedProgress, "Calculating Temperatures...");
+		
+		GenerateTerrainTemperature ();
+		
+		ProgressCastMethod (_accumulatedProgress, "Generating Biomes...");
+		
+		GenerateTerrainBiomes ();
 	}
 
 	public void Generate () {
 
-		ProgressCastMethod (_accumulatedProgress, "Generating Terrain...");
-
-		GenerateTerrainAltitude ();
-		
-		ProgressCastMethod (_accumulatedProgress, "Calculating Rainfall...");
-
-		GenerateTerrainRainfall ();
-		
-//		ProgressCastMethod (_accumulatedProgress, "Generating Rivers...");
-//		
-//		GenerateTerrainRivers ();
-		
-		ProgressCastMethod (_accumulatedProgress, "Calculating Temperatures...");
-
-		GenerateTerrainTemperature ();
-		
-		ProgressCastMethod (_accumulatedProgress, "Generating Biomes...");
-
-		GenerateTerrainBiomes ();
+		GenerateTerrain ();
 		
 		ProgressCastMethod (_accumulatedProgress, "Setting Initial Human Groups...");
 
 		SetInitialHumanGroups ();
 		
 		ProgressCastMethod (_accumulatedProgress, "Finalizing...");
-
-		Ready = true;
 	}
 
 	private void GenerateContinents () {
@@ -797,7 +807,7 @@ public class World {
 	private void CalculateAndSetAltitude (int longitude, int latitude, float value) {
 		
 		float altitude = CalculateAltitude(value);
-		Terrain[longitude][latitude].Altitude = altitude;
+		TerrainCells[longitude][latitude].Altitude = altitude;
 		
 		if (altitude > MaxAltitude) MaxAltitude = altitude;
 		if (altitude < MinAltitude) MinAltitude = altitude;
@@ -822,7 +832,7 @@ public class World {
 			
 			for (int j = 0; j < sizeY; j++)
 			{
-				TerrainCell cell = Terrain[i][j];
+				TerrainCell cell = TerrainCells[i][j];
 				
 				float alpha = (j / (float)sizeY) * Mathf.PI;
 				
@@ -844,11 +854,11 @@ public class World {
 				int offCellX4 = (Width + i + (int)Mathf.Floor(latitudeModifier2 * Width/5f)) % Width;
 				int offCellY = j + (int)Mathf.Floor(latitudeModifier2 * Height/10f);
 
-				TerrainCell offCell = Terrain[offCellX][j];
-				TerrainCell offCell2 = Terrain[offCellX2][j];
-				TerrainCell offCell3 = Terrain[offCellX3][j];
-				TerrainCell offCell4 = Terrain[offCellX4][j];
-				TerrainCell offCell5 = Terrain[i][offCellY];
+				TerrainCell offCell = TerrainCells[offCellX][j];
+				TerrainCell offCell2 = TerrainCells[offCellX2][j];
+				TerrainCell offCell3 = TerrainCells[offCellX3][j];
+				TerrainCell offCell4 = TerrainCells[offCellX4][j];
+				TerrainCell offCell5 = TerrainCells[i][offCellY];
 
 				float altitudeValue = Mathf.Max(0, cell.Altitude);
 				float offAltitude = Mathf.Max(0, offCell.Altitude);
@@ -898,7 +908,7 @@ public class World {
 			
 			for (int j = 0; j < sizeY; j++)
 			{
-				TerrainCell cell = Terrain[i][j];
+				TerrainCell cell = TerrainCells[i][j];
 				
 				float alpha = (j / (float)sizeY) * Mathf.PI;
 				
@@ -940,7 +950,7 @@ public class World {
 
 			for (int j = 0; j < sizeY; j++) {
 
-				TerrainCell cell = Terrain[i][j];
+				TerrainCell cell = TerrainCells[i][j];
 
 				float totalPresence = 0;
 
@@ -1003,7 +1013,7 @@ public class World {
 			
 			for (int j = 0; j < sizeY; j++) {
 				
-				TerrainCell cell = Terrain [i] [j];
+				TerrainCell cell = TerrainCells [i] [j];
 				
 				float biomePresence = cell.GetBiomePresence(Biome.Grassland);
 				

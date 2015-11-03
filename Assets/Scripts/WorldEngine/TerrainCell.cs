@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using System.Xml;
@@ -57,13 +57,13 @@ public class TerrainCell {
 
 	public TerrainCell () {
 	
-		Manager.UpdateWorldLoadTrackCellCount ();
+//		Manager.UpdateWorldLoadTrackCellCount ();
 	}
 	
-	public TerrainCell (bool update) {
-		
-		if (update) Manager.UpdateWorldLoadTrackCellCount ();
-	}
+//	public TerrainCell (bool update) {
+//		
+//		if (update) Manager.UpdateWorldLoadTrackCellCount ();
+//	}
 
 	public int GetNextLocalRandomInt (int maxValue = PerlinNoise.MaxPermutationValue) {
 
@@ -190,7 +190,7 @@ public class TerrainCell {
 
 		longitude = (int)Mathf.Repeat (longitude, World.Width);
 
-		return World.Terrain [longitude] [latitude];
+		return World.TerrainCells [longitude] [latitude];
 	}
 	
 	public List<TerrainCell> GetNeighborCells () {
@@ -202,19 +202,19 @@ public class TerrainCell {
 		
 		if (Latitude < (World.Height - 1)) {
 			
-			neighbors.Add(World.Terrain[wLongitude][Latitude + 1]);
-			neighbors.Add(World.Terrain[Longitude][Latitude + 1]);
-			neighbors.Add(World.Terrain[eLongitude][Latitude + 1]);
+			neighbors.Add(World.TerrainCells[wLongitude][Latitude + 1]);
+			neighbors.Add(World.TerrainCells[Longitude][Latitude + 1]);
+			neighbors.Add(World.TerrainCells[eLongitude][Latitude + 1]);
 		}
 		
-		neighbors.Add(World.Terrain[wLongitude][Latitude]);
-		neighbors.Add(World.Terrain[eLongitude][Latitude]);
+		neighbors.Add(World.TerrainCells[wLongitude][Latitude]);
+		neighbors.Add(World.TerrainCells[eLongitude][Latitude]);
 		
 		if (Latitude > 0) {
 			
-			neighbors.Add(World.Terrain[wLongitude][Latitude - 1]);
-			neighbors.Add(World.Terrain[Longitude][Latitude - 1]);
-			neighbors.Add(World.Terrain[eLongitude][Latitude - 1]);
+			neighbors.Add(World.TerrainCells[wLongitude][Latitude - 1]);
+			neighbors.Add(World.TerrainCells[Longitude][Latitude - 1]);
+			neighbors.Add(World.TerrainCells[eLongitude][Latitude - 1]);
 		}
 		
 		return neighbors;

@@ -34,6 +34,9 @@ public abstract class CulturalSkill : CulturalSkillInfo {
 	
 	[XmlAttribute]
 	public float Value;
+	
+	public CulturalSkill () {
+	}
 
 	public CulturalSkill (string id, string name, float value) : base (id, name) {
 
@@ -65,7 +68,7 @@ public abstract class CulturalSkill : CulturalSkillInfo {
 
 public class BiomeSurvivalSkill : CulturalSkill {
 
-	public const float TimeEffectConstant = CellGroup.GenerationSpan * 500;
+	public const float TimeEffectConstant = CellGroup.GenerationTime * 500;
 	
 	[XmlAttribute]
 	public string BiomeName;
@@ -80,6 +83,9 @@ public class BiomeSurvivalSkill : CulturalSkill {
 	public static string GenerateName (Biome biome) {
 		
 		return biome.Name + " Survival";
+	}
+	
+	public BiomeSurvivalSkill () {
 	}
 
 	public BiomeSurvivalSkill (Biome biome, float value) : base (GenerateId (biome), GenerateName (biome), value) {
@@ -135,37 +141,31 @@ public class BiomeSurvivalSkill : CulturalSkill {
 }
 
 public abstract class Culture {
-	
-	private List<CulturalSkill> _skills = new List<CulturalSkill> ();
+
+	[XmlArrayItem(Type = typeof(BiomeSurvivalSkill))]
+	public List<CulturalSkill> Skills = new List<CulturalSkill> ();
 	
 	public Culture () {
 	}
 	
 	public Culture (Culture baseCulture) {
 		
-		foreach (CulturalSkill skill in baseCulture._skills) {
+		foreach (CulturalSkill skill in baseCulture.Skills) {
 			
-			_skills.Add (CulturalSkill.Clone (skill));
-		}
-	}
-	
-	public ICollection<CulturalSkill> Skills {
-
-		get {
-			return _skills;
+			Skills.Add (CulturalSkill.Clone (skill));
 		}
 	}
 	
 	protected void AddSkill (World world, CulturalSkill skill) {
 		
-		world.AddExistingCulturalSkillId (skill);
+		world.AddExistingCulturalSkillInfo (skill);
 		
-		_skills.Add (skill);
+		Skills.Add (skill);
 	}
 	
 	public CulturalSkill GetSkill (string id) {
 		
-		foreach (CulturalSkill skill in _skills) {
+		foreach (CulturalSkill skill in Skills) {
 			
 			if (skill.Id == id) return skill;
 		}
@@ -175,7 +175,7 @@ public abstract class Culture {
 	
 	public void MergeCulture (Culture sourceCulture, float percentage) {
 		
-		foreach (CulturalSkill sourceSkill in sourceCulture._skills) {
+		foreach (CulturalSkill sourceSkill in sourceCulture.Skills) {
 			
 			CulturalSkill skill = GetSkill (sourceSkill.Id);
 			
@@ -183,7 +183,7 @@ public abstract class Culture {
 				skill = CulturalSkill.Clone (sourceSkill);
 				skill.ModifyValue (percentage);
 				
-				_skills.Add (skill);
+				Skills.Add (skill);
 			} else {
 				skill.MergeSkill (sourceSkill, percentage);
 			}
@@ -196,7 +196,7 @@ public class CellCulture : Culture {
 	[XmlIgnore]
 	public CellGroup Group;
 
-	public CellCulture () : base () {
+	public CellCulture () {
 	}
 
 	public CellCulture (CellGroup group) : base () {

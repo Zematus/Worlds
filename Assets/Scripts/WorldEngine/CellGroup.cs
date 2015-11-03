@@ -6,7 +6,7 @@ using System.Xml.Serialization;
 
 public class CellGroup : HumanGroup {
 
-	public const int GenerationSpan = 20;
+	public const int GenerationTime = 25;
 
 	public const float NaturalDeathRate = 0.03f; // more or less 0.5/half-life (22.87 years for paleolitic life expectancy of 33 years)
 	public const float NaturalBirthRate = 0.105f; // Should cancel out death rate in perfect circumstances (hunter-gathererers in grasslands)
@@ -35,6 +35,11 @@ public class CellGroup : HumanGroup {
 	
 	[XmlAttribute]
 	public int OptimalPopulation;
+	
+	[XmlAttribute]
+	public int CellLongitude;
+	[XmlAttribute]
+	public int CellLatitude;
 
 	public CellCulture Culture;
 	
@@ -59,8 +64,12 @@ public class CellGroup : HumanGroup {
 		LastUpdateDate = World.CurrentDate;
 
 		Cell = cell;
+		CellLongitude = cell.Longitude;
+		CellLatitude = cell.Latitude;
 
 		Cell.Groups.Add (this);
+
+		World.AddGroup (this);
 
 		Id = World.GenerateCellGroupId();
 
@@ -328,7 +337,7 @@ public class CellGroup : HumanGroup {
 
 		int finalFactor = (int)Mathf.Max(mixFactor, 1);
 
-		return World.CurrentDate + GenerationSpan * finalFactor;
+		return World.CurrentDate + GenerationTime * finalFactor;
 	}
 
 	public int PopulationAfterTime (int time) { // in years
@@ -343,7 +352,7 @@ public class CellGroup : HumanGroup {
 		if (population == OptimalPopulation)
 			return population;
 		
-		float timeFactor = NaturalGrowthRate * time / (float)GenerationSpan;
+		float timeFactor = NaturalGrowthRate * time / (float)GenerationTime;
 
 		if (population < OptimalPopulation) {
 			
@@ -368,6 +377,12 @@ public class CellGroup : HumanGroup {
 	public override void FinalizeLoad () {
 
 		base.FinalizeLoad ();
+
+		Cell = World.GetCell (CellLongitude, CellLatitude);
+
+		Cell.Groups.Add (this);
+		
+		World.UpdateMostPopulousGroup (this);
 
 		Culture.Group = this;
 	}
