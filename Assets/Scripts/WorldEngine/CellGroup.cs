@@ -151,11 +151,6 @@ public class CellGroup : HumanGroup {
 		
 		ConsiderMigration();
 		
-		//		if (IsTagged) {
-		//		
-		//			bool debug = true;
-		//		}
-		
 		NextUpdateDate = CalculateNextUpdateDate();
 		
 		World.InsertEventToHappen (new UpdateCellGroupEvent (World, NextUpdateDate, this));
@@ -218,11 +213,6 @@ public class CellGroup : HumanGroup {
 
 		if (targetCell == null)
 			return;
-
-//		if (percentToMigrate > 0.5f) {
-//		
-//			bool debug = true;
-//		}
 		
 		float cellSurvivability = 0;
 		float cellForagingCapacity = 0;
@@ -341,11 +331,6 @@ public class CellGroup : HumanGroup {
 	}
 
 	public int PopulationAfterTime (int time) { // in years
-
-//		if (Cell.IsObserved) {
-//		
-//			bool debug = true;
-//		}
 
 		int population = Population;
 		

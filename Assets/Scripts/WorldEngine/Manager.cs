@@ -110,8 +110,7 @@ public class Manager {
 	
 	private static List<Color> _biomePalette = new List<Color>();
 	private static List<Color> _mapPalette = new List<Color>();
-	
-	//private static int _cellsToLoad = 0;
+
 	private static int _eventsToLoad = 0;
 	
 	private static int _totalLoadTicks = 0;
@@ -324,8 +323,6 @@ public class Manager {
 
 	public static void GenerateNewWorld (int seed) {
 
-		//ManagerTask<int> seed = Manager.EnqueueTask (() => Random.Range (0, int.MaxValue));
-
 		World world = new World(WorldWidth, WorldHeight, seed);
 		
 		if (_manager._progressCastMethod != null)
@@ -333,7 +330,6 @@ public class Manager {
 
 		world.Initialize ();
 		world.Generate ();
-		world.FinalizeGeneration ();
 
 		_manager._currentWorld = world;
 	}
@@ -419,30 +415,11 @@ public class Manager {
 
 		_isLoadReady = true;
 	
-		//_cellsToLoad = LoadingWorld.Width*LoadingWorld.Height;
 		_eventsToLoad = WorldBeingLoaded.EventsToHappenCount;
 
-		//_totalLoadTicks = _cellsToLoad + _eventsToLoad;
 		_totalLoadTicks = _eventsToLoad;
 		_loadTicks = 0;
 	}
-	
-//	public static void UpdateWorldLoadTrackCellCount () {
-//
-//		if (!_isLoadReady)
-//			InitializeWorldLoadTrack ();
-//		
-//		_loadTicks += 1;
-//
-//		float value = _loadTicks / (float)_totalLoadTicks;
-//		
-//		//Debug.Log ("Load progress: " + value);
-//		
-//		if (_manager._progressCastMethod == null)
-//			return;
-//
-//		_manager._progressCastMethod (Mathf.Min(1, value));
-//	}
 	
 	public static void UpdateWorldLoadTrackEventCount () {
 		
@@ -1195,18 +1172,6 @@ public class Manager {
 //		attrs.XmlElements.Add(attr);
 //
 //		attrOverrides.Add(typeof(World), "EventsToHappen", attrs);
-		
-		// Add CulturalSkill Attributes
-		
-//		attrs = new XmlAttributes();
-//		
-//		attr = new XmlElementAttribute();
-//		attr.ElementName = "BiomeSurvivalSkill";
-//		attr.Type = typeof(BiomeSurvivalSkill);
-//		
-//		attrs.XmlElements.Add(attr);
-//		
-//		attrOverrides.Add(typeof(Culture), "Skills", attrs);
 
 		return attrOverrides;
 	}

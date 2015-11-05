@@ -46,6 +46,8 @@ public class World {
 	public List<WorldEvent> EventsToHappen = new List<WorldEvent> ();
 	
 	public List<CellGroup> CellGroups = new List<CellGroup> ();
+
+	public List<TerrainCellChanges> TerrainCellChangesList = new List<TerrainCellChanges> ();
 	
 	[XmlIgnore]
 	public float MinPossibleAltitudeWithOffset = MinPossibleAltitude - Manager.SeaLevelOffset;
@@ -84,9 +86,6 @@ public class World {
 	public CellGroup MostPopulousGroup = null;
 	
 	[XmlIgnore]
-	public bool Ready { get; private set; }
-	
-	[XmlIgnore]
 	public ProgressCastDelegate ProgressCastMethod { get; set; }
 	
 	[XmlIgnore]
@@ -100,6 +99,8 @@ public class World {
 	
 	[XmlIgnore]
 	public List<CulturalSkillInfo> CulturalSkillInfoList = new List<CulturalSkillInfo> ();
+
+	private HashSet<int> _terrainCellChangesListIndexes = new HashSet<int> ();
 	
 	private HashSet<string> _culturalSkillInfoIdList = new HashSet<string> ();
 	
@@ -125,15 +126,11 @@ public class World {
 		Manager.WorldBeingLoaded = this;
 		
 		ProgressCastMethod = (value, message) => {};
-		
-		Ready = false;
 	}
 
 	public World (int width, int height, int seed) {
 		
 		ProgressCastMethod = (value, message) => {};
-		
-		Ready = false;
 		
 		Width = width;
 		Height = height;
@@ -158,20 +155,11 @@ public class World {
 			for (int j = 0; j < Height; j++)
 			{
 				float alpha = (j / (float)Height) * Mathf.PI;
-				
-//				TerrainCell cell = new TerrainCell (false);
-				TerrainCell cell = new TerrainCell ();
-				cell.World = this;
-				cell.Longitude = i;
-				cell.Latitude = j;
-				cell.LocalIteration = 0;
-				
-				cell.Height = _cellMaxSideLength;
-				cell.Width = Mathf.Sin(alpha) * _cellMaxSideLength;
-				
-				cell.Area = cell.Height * cell.Width;
-				
-				cell.Ready = false;
+
+				float cellHeight = _cellMaxSideLength;
+				float cellWidth = Mathf.Sin(alpha) * _cellMaxSideLength;
+
+				TerrainCell cell = new TerrainCell (this, i, j, cellHeight, cellWidth);
 				
 				column[j] = cell;
 			}
@@ -196,6 +184,30 @@ public class World {
 			Random.seed = Seed;
 			return true;
 		});
+	}
+
+	public void AddTerrainCellChanges (TerrainCellChanges changes) {
+	
+		int index = changes.Longitude + (changes.Latitude * Width);
+
+		if (!_terrainCellChangesListIndexes.Add (index))
+			return;
+
+		TerrainCellChangesList.Add (changes);
+	}
+
+	public TerrainCellChanges GetTerrainCellChanges (TerrainCell cell) {
+
+		foreach (TerrainCellChanges changes in TerrainCellChangesList) {
+
+			if ((changes.Longitude == cell.Longitude) && 
+			    (changes.Latitude == cell.Latitude))
+			{
+				return changes;
+			}
+		}
+
+		return null;
 	}
 
 	public void AddExistingCulturalSkillInfo (CulturalSkillInfo baseInfo) {
@@ -395,23 +407,13 @@ public class World {
 	}
 
 	public void FinalizeLoad () {
+
+		foreach (TerrainCellChanges changes in TerrainCellChangesList) {
 		
-//		s_cellMaxSideLength = Circumference / Width;
-//		TerrainCell.MaxArea = _cellMaxSideLength * _cellMaxSideLength;
-		
-//		for (int i = 0; i < Width; i++)
-//		{
-//			for (int j = 0; j < Height; j++)
-//			{
-//				TerrainCell cell = TerrainCells[i][j];
-//
-//				cell.World = this;
-//				
-//				cell.Area = cell.Height * cell.Width;
-//
-//				cell.FinalizeLoad();
-//			}
-//		}
+			int index = changes.Longitude + changes.Latitude * Width;
+
+			_terrainCellChangesListIndexes.Add (index);
+		}
 		
 		foreach (CellGroup group in CellGroups) {
 			
@@ -439,8 +441,6 @@ public class World {
 		
 			_culturalSkillInfoIdList.Add (skillInfo.Id);
 		}
-
-		Ready = true;
 	}
 
 	public void TagGroup (HumanGroup group) {
@@ -467,21 +467,6 @@ public class World {
 		
 		if (cell != null)
 			cell.IsObserved = true;
-	}
-	
-	public void FinalizeGeneration () {
-		
-		for (int i = 0; i < Width; i++)
-		{
-			for (int j = 0; j < Height; j++)
-			{
-				TerrainCell cell = TerrainCells[i][j];
-
-				cell.Ready = true;
-			}
-		}
-		
-		Ready = true;
 	}
 	
 	public void GenerateTerrain () {
@@ -943,8 +928,6 @@ public class World {
 		
 		int sizeX = Width;
 		int sizeY = Height;
-
-		//float initialPopulationFactor = (1 - HumanGroup.NaturalBirthRate + HumanGroup.NaturalDeathRate) / Biome.Grassland.ForagingCapacity;
 		
 		for (int i = 0; i < sizeX; i++) {
 
@@ -989,7 +972,6 @@ public class World {
 					}
 				}
 
-//				cell.MaxForage = cell.Area * TerrainCell.MaxForageFactor * cell.ForagingCapacity * CellGroup.InitialPopulationFactor;
 			}
 			
 			ProgressCastMethod (_accumulatedProgress + 0.20f * (i + 1)/(float)sizeX);

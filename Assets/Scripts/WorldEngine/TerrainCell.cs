@@ -4,17 +4,36 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
-public class TerrainCell {
+public class TerrainCellChanges {
 
-	[XmlIgnore]
-	public World World;
-	
 	[XmlAttribute]
 	public int Longitude;
 	[XmlAttribute]
 	public int Latitude;
 	[XmlAttribute]
-	public int LocalIteration;
+	public int LocalIteration = 0;
+
+	public TerrainCellChanges () {
+	}
+	
+	public TerrainCellChanges (TerrainCell cell) {
+
+		Longitude = cell.Longitude;
+		Latitude = cell.Latitude;
+	}
+}
+
+public class TerrainCell {
+	
+	[XmlAttribute]
+	public int Longitude;
+	[XmlAttribute]
+	public int Latitude;
+	
+	[XmlAttribute]
+	public float Height;
+	[XmlAttribute]
+	public float Width;
 
 	[XmlAttribute]
 	public float Altitude;
@@ -29,17 +48,17 @@ public class TerrainCell {
 	public float ForagingCapacity;
 	[XmlAttribute]
 	public float Accessibility;
-
-	[XmlAttribute]
-	public float Height;
-	[XmlAttribute]
-	public float Width;
-
-	[XmlAttribute]
-	public bool Ready;
+	
+	public List<string> PresentBiomeNames = new List<string>();
+	public List<float> BiomePresences = new List<float>();
+	
+	public List<CellGroup> Groups = new List<CellGroup>();
 	
 	[XmlIgnore]
 	public float Area;
+	
+	[XmlIgnore]
+	public World World;
 	
 	[XmlIgnore]
 	public static float MaxArea;
@@ -49,21 +68,57 @@ public class TerrainCell {
 	
 	[XmlIgnore]
 	public List<TerrainCell> Neighbors { get; private set; }
+	
+	[XmlIgnore]
+	private TerrainCellChanges _changes = null;
 
-	public List<string> PresentBiomeNames = new List<string>();
-	public List<float> BiomePresences = new List<float>();
+	public int LocalIteration {
 
-	public List<CellGroup> Groups = new List<CellGroup>();
+		get {
+
+			TerrainCellChanges changes = GetChanges ();
+
+			return changes.LocalIteration;
+		}
+
+		set {
+			
+			TerrainCellChanges changes = GetChanges ();
+
+			changes.LocalIteration = value;
+
+			World.AddTerrainCellChanges (changes);
+		}
+	}
 
 	public TerrainCell () {
 	
-//		Manager.UpdateWorldLoadTrackCellCount ();
 	}
+
+	public TerrainCell (World world, int longitude, int latitude, float height, float width) {
 	
-//	public TerrainCell (bool update) {
-//		
-//		if (update) Manager.UpdateWorldLoadTrackCellCount ();
-//	}
+		World = world;
+		Longitude = longitude;
+		Latitude = latitude;
+
+		Height = height;
+		Width = width;
+
+		Area = height * width;
+	}
+
+	public TerrainCellChanges GetChanges () {
+		
+		if (_changes == null) {
+			
+			_changes = World.GetTerrainCellChanges (this);
+			
+			if (_changes == null)
+				_changes = new TerrainCellChanges (this);
+		}
+
+		return _changes;
+	}
 
 	public int GetNextLocalRandomInt (int maxValue = PerlinNoise.MaxPermutationValue) {
 
