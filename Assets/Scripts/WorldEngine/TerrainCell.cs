@@ -14,6 +14,8 @@ public class TerrainCellChanges {
 	public int LocalIteration = 0;
 
 	public TerrainCellChanges () {
+		
+		Manager.UpdateWorldLoadTrackEventCount ();
 	}
 	
 	public TerrainCellChanges (TerrainCell cell) {
@@ -92,7 +94,7 @@ public class TerrainCell {
 	}
 
 	public TerrainCell () {
-	
+
 	}
 
 	public TerrainCell (World world, int longitude, int latitude, float height, float width) {

@@ -110,8 +110,6 @@ public class Manager {
 	
 	private static List<Color> _biomePalette = new List<Color>();
 	private static List<Color> _mapPalette = new List<Color>();
-
-	private static int _eventsToLoad = 0;
 	
 	private static int _totalLoadTicks = 0;
 	private static int _loadTicks = 0;
@@ -328,7 +326,7 @@ public class Manager {
 		if (_manager._progressCastMethod != null)
 			world.ProgressCastMethod = _manager._progressCastMethod;
 
-		world.Initialize ();
+		world.Initialize (0f, 0.25f);
 		world.Generate ();
 
 		_manager._currentWorld = world;
@@ -380,8 +378,11 @@ public class Manager {
 		FileStream stream = new FileStream(path, FileMode.Open);
 
 		World world = serializer.Deserialize(stream) as World;
+		
+		if (_manager._progressCastMethod != null)
+			world.ProgressCastMethod = _manager._progressCastMethod;
 
-		world.Initialize ();
+		world.Initialize (0.25f, 0.25f);
 		world.GenerateTerrain ();
 		world.FinalizeLoad ();
 
@@ -414,10 +415,11 @@ public class Manager {
 	public static void InitializeWorldLoadTrack () {
 
 		_isLoadReady = true;
-	
-		_eventsToLoad = WorldBeingLoaded.EventsToHappenCount;
 
-		_totalLoadTicks = _eventsToLoad;
+		_totalLoadTicks = WorldBeingLoaded.EventsToHappenCount;
+		_totalLoadTicks += WorldBeingLoaded.CellGroupsCount;
+		_totalLoadTicks += WorldBeingLoaded.TerrainCellChangesListCount;
+
 		_loadTicks = 0;
 	}
 	
@@ -428,7 +430,7 @@ public class Manager {
 		
 		_loadTicks += 1;
 		
-		float value = 0.5f * _loadTicks / (float)_totalLoadTicks;
+		float value = 0.25f * _loadTicks / (float)_totalLoadTicks;
 		
 		//Debug.Log ("Load progress: " + value);
 		

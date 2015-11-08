@@ -52,6 +52,8 @@ public class CellGroup : HumanGroup {
 	public float TotalMigrationValue;
 
 	public CellGroup () {
+		
+		Manager.UpdateWorldLoadTrackEventCount ();
 	}
 	
 	public CellGroup (MigratingGroup migratingGroup, int splitPopulation, CellCulture splitCulture) : this(migratingGroup.World, migratingGroup.TargetCell, splitPopulation, splitCulture) {

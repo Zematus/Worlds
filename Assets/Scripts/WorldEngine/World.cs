@@ -40,6 +40,15 @@ public class World {
 	
 	[XmlAttribute]
 	public int CurrentCellGroupId { get; private set; }
+	
+	[XmlAttribute]
+	public int EventsToHappenCount { get; private set; }
+	
+	[XmlAttribute]
+	public int CellGroupsCount { get; private set; }
+	
+	[XmlAttribute]
+	public int TerrainCellChangesListCount { get; private set; }
 
 	[XmlArrayItem(Type = typeof(UpdateCellGroupEvent)),
 	 XmlArrayItem(Type = typeof(MigrateGroupEvent))]
@@ -95,9 +104,6 @@ public class World {
 	public TerrainCell ObservedCell = null;
 	
 	[XmlIgnore]
-	public int EventsToHappenCount { get; private set; }
-	
-	[XmlIgnore]
 	public List<CulturalSkillInfo> CulturalSkillInfoList = new List<CulturalSkillInfo> ();
 
 	private HashSet<int> _terrainCellChangesListIndexes = new HashSet<int> ();
@@ -105,8 +111,6 @@ public class World {
 	private HashSet<string> _culturalSkillInfoIdList = new HashSet<string> ();
 	
 	private HashSet<CellGroup> _updatedGroups = new HashSet<CellGroup> ();
-		
-	private float _progressIncrement = 0.25f;
 	
 	private List<CellGroup> _groupsToUpdate = new List<CellGroup>();
 	private List<CellGroup> _groupsToRemove = new List<CellGroup>();
@@ -116,6 +120,8 @@ public class World {
 	private Vector2[] _continentOffsets;
 	private float[] _continentWidths;
 	private float[] _continentHeights;
+	
+	private float _progressIncrement = 0.25f;
 
 	private float _accumulatedProgress = 0;
 
@@ -129,7 +135,7 @@ public class World {
 	}
 
 	public World (int width, int height, int seed) {
-		
+
 		ProgressCastMethod = (value, message) => {};
 		
 		Width = width;
@@ -137,11 +143,16 @@ public class World {
 		Seed = seed;
 		
 		CurrentDate = 0;
-		
 		CurrentCellGroupId = 0;
+		EventsToHappenCount = 0;
+		CellGroupsCount = 0;
+		TerrainCellChangesListCount = 0;
 	}
 	
-	public void Initialize () {
+	public void Initialize (float acumulatedProgress, float progressIncrement) {
+
+		_accumulatedProgress = acumulatedProgress;
+		_progressIncrement = progressIncrement;
 		
 		_cellMaxSideLength = Circumference / Width;
 		TerrainCell.MaxArea = _cellMaxSideLength * _cellMaxSideLength;
@@ -194,6 +205,8 @@ public class World {
 			return;
 
 		TerrainCellChangesList.Add (changes);
+
+		TerrainCellChangesListCount++;
 	}
 
 	public TerrainCellChanges GetTerrainCellChanges (TerrainCell cell) {
@@ -259,6 +272,11 @@ public class World {
 
 				DateToSkipTo = eventToHappen.TriggerDate;
 				break;
+			}
+
+			if (eventToHappen.TriggerDate == 5908) {
+
+				bool debug = true;
 			}
 
 			EventsToHappen.Remove(eventToHappen);
@@ -373,11 +391,15 @@ public class World {
 		CellGroups.Add (group);
 
 		Manager.AddUpdatedCell (group.Cell);
+
+		CellGroupsCount++;
 	}
 	
 	public void RemoveGroup (CellGroup group) {
 		
 		CellGroups.Remove (group);
+		
+		CellGroupsCount--;
 	}
 	
 	public CellGroup FindCellGroup (int id) {
