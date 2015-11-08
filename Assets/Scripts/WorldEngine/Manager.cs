@@ -977,21 +977,19 @@ public class Manager {
 		
 		float MaxPopFactor = MaxPopulation / 5f;
 
-		float totalPopulation = 0;
+		float population = 0;
+
+		if (cell.Group != null) {
+
+			population = cell.Group.Population;
 		
-		for (int i = 0; i < cell.Groups.Count; i++) {
-
-			CellGroup group = cell.Groups[i];
-
-			if (group.IsTagged && DisplayTaggedGroup)
+			if (cell.Group.IsTagged && DisplayTaggedGroup)
 				return Color.green;
-
-			totalPopulation += group.Population;
 		}
 
-		if (totalPopulation > 0) {
+		if (population > 0) {
 
-			float value = (totalPopulation + MaxPopFactor) / (MaxPopulation + MaxPopFactor);
+			float value = (population + MaxPopFactor) / (MaxPopulation + MaxPopFactor);
 			
 			color = (color * (1 - value)) + (Color.red * value);
 		}
@@ -1011,27 +1009,25 @@ public class Manager {
 			return color;
 
 		float skillLevel = 0;
-		float totalPopulation = 0;
-		
-		for (int i = 0; i < cell.Groups.Count; i++) {
+		float population = 0;
+
+		if (cell.Group != null) {
 			
-			CellGroup group = cell.Groups[i];
-			
-			if (group.IsTagged && DisplayTaggedGroup)
+			if (cell.Group.IsTagged && DisplayTaggedGroup)
 				return Color.green;
 
-			CulturalSkill skill = group.Culture.GetSkill(_planetOverlaySubtype);
+			CulturalSkill skill = cell.Group.Culture.GetSkill(_planetOverlaySubtype);
 			
-			totalPopulation += group.Population;
+			population = cell.Group.Population;
 
 			if (skill != null) {
-				skillLevel += group.Population * skill.Value;
+				skillLevel = cell.Group.Population * skill.Value;
 			}
 		}
 		
-		if (totalPopulation > 0) {
+		if (population > 0) {
 			
-			float value = 0.1f + 0.9f * skillLevel / totalPopulation;
+			float value = 0.1f + 0.9f * skillLevel / population;
 			
 			color = (color * (1 - value)) + (Color.cyan * value);
 		}

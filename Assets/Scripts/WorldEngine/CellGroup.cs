@@ -67,7 +67,7 @@ public class CellGroup : HumanGroup {
 		CellLongitude = cell.Longitude;
 		CellLatitude = cell.Latitude;
 
-		Cell.Groups.Add (this);
+		Cell.Group = this;
 
 		World.AddGroup (this);
 
@@ -235,7 +235,7 @@ public class CellGroup : HumanGroup {
 
 	public void Destroy () {
 
-		Cell.Groups.Remove (this);
+		Cell.Group = null;
 		World.RemoveGroup (this);
 
 		StillPresent = false;
@@ -365,7 +365,7 @@ public class CellGroup : HumanGroup {
 
 		Cell = World.GetCell (CellLongitude, CellLatitude);
 
-		Cell.Groups.Add (this);
+		Cell.Group = this;
 		
 		World.UpdateMostPopulousGroup (this);
 

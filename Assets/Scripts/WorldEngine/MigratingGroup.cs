@@ -66,14 +66,14 @@ public class MigratingGroup : HumanGroup {
 		if (SplitPopulation <= 0)
 			return;
 
-		foreach (CellGroup group in TargetCell.Groups) {
+		if (TargetCell.Group != null) {
 
-			if (group.StillPresent) {
+			if (TargetCell.Group.StillPresent) {
 
-				group.MergeGroup(this, SplitPopulation, SplitCulture);
+				TargetCell.Group.MergeGroup(this, SplitPopulation, SplitCulture);
 
 				if (SourceGroup.IsTagged) {
-					World.TagGroup (group);
+					World.TagGroup (TargetCell.Group);
 				}
 
 				return;

@@ -721,54 +721,40 @@ public class GuiManagerScript : MonoBehaviour {
 		int lastUpdateDate = 0;
 		int nextUpdateDate = 0;
 
-		float modifiedSurvivability = 0;
-		float modifiedForagingCapacity = 0;
-
-		List<CulturalSkill> cellCulturalSkills = new List<CulturalSkill> ();
-
-		foreach (CellGroup group in cell.Groups) {
+		if (cell.Group != null) {
 		
-			population += group.Population;
-			optimalPopulation += group.OptimalPopulation;
+			float modifiedSurvivability = 0;
+			float modifiedForagingCapacity = 0;
 
-			float groupSurvivability = 0;
-			float groupForagingCapacity = 0;
+			population = cell.Group.Population;
+			optimalPopulation = cell.Group.OptimalPopulation;
+			lastUpdateDate = cell.Group.LastUpdateDate;
+			nextUpdateDate = cell.Group.NextUpdateDate;
+		
+			cell.Group.CalculateAdaptionToCell (cell, out modifiedForagingCapacity, out modifiedSurvivability);
 
-			group.CalculateAdaptionToCell (cell, out groupForagingCapacity, out groupSurvivability);
-
-			modifiedSurvivability += groupSurvivability;
-			modifiedForagingCapacity += groupForagingCapacity;
-
-			lastUpdateDate = Mathf.Max(lastUpdateDate, group.LastUpdateDate);
-			nextUpdateDate = Mathf.Max(nextUpdateDate, group.NextUpdateDate);
-
-			foreach (CulturalSkill skill in group.Culture.Skills) {
-
-				cellCulturalSkills.Add(skill);
-			}
-		}
-
-		if (population > 0) {
-			
-			InfoPanelText.text += "\n";
-			InfoPanelText.text += "\nPopulation: " + population;
-			InfoPanelText.text += "\nOptimal Population: " + optimalPopulation;
-			
-			InfoPanelText.text += "\n";
-			InfoPanelText.text += "\nModified Survivability: " + modifiedSurvivability.ToString("#.##%");
-			InfoPanelText.text += "\nModified Foraging Capacity: " + modifiedForagingCapacity.ToString("#.##%");
-			
-			InfoPanelText.text += "\n";
-			InfoPanelText.text += "\nLast Update Date: " + lastUpdateDate;
-			InfoPanelText.text += "\nNext Update Date: " + nextUpdateDate;
-			InfoPanelText.text += "\nTime between updates: " + (nextUpdateDate - lastUpdateDate);
-
-			InfoPanelText.text += "\n";
-			InfoPanelText.text += "\nCultural Skills";
-
-			foreach (CulturalSkill skill in cellCulturalSkills) {
+			if (population > 0) {
 				
-				InfoPanelText.text += "\n\t" + skill.Id + " - Value: " + skill.Value.ToString("0.000");
+				InfoPanelText.text += "\n";
+				InfoPanelText.text += "\nPopulation: " + population;
+				InfoPanelText.text += "\nOptimal Population: " + optimalPopulation;
+				
+				InfoPanelText.text += "\n";
+				InfoPanelText.text += "\nModified Survivability: " + modifiedSurvivability.ToString("#.##%");
+				InfoPanelText.text += "\nModified Foraging Capacity: " + modifiedForagingCapacity.ToString("#.##%");
+				
+				InfoPanelText.text += "\n";
+				InfoPanelText.text += "\nLast Update Date: " + lastUpdateDate;
+				InfoPanelText.text += "\nNext Update Date: " + nextUpdateDate;
+				InfoPanelText.text += "\nTime between updates: " + (nextUpdateDate - lastUpdateDate);
+
+				InfoPanelText.text += "\n";
+				InfoPanelText.text += "\nCultural Skills";
+
+				foreach (CulturalSkill skill in cell.Group.Culture.Skills) {
+					
+					InfoPanelText.text += "\n\t" + skill.Id + " - Value: " + skill.Value.ToString("0.000");
+				}
 			}
 		}
 	}

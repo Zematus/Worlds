@@ -52,7 +52,7 @@ public class TerrainCell {
 	public List<string> PresentBiomeNames = new List<string>();
 	public List<float> BiomePresences = new List<float>();
 	
-	public List<CellGroup> Groups = new List<CellGroup>();
+	public CellGroup Group;
 	
 	[XmlIgnore]
 	public float Area;
@@ -162,32 +162,29 @@ public class TerrainCell {
 		
 		InitializeNeighbors ();
 
-		foreach (CellGroup group in Groups) {
+		if (Group != null) {
 		
-			group.World = World;
-			group.Cell = this;
+			Group.World = World;
+			Group.Cell = this;
 
-			World.AddGroup(group);
+			World.AddGroup(Group);
 
-			group.FinalizeLoad ();
+			Group.FinalizeLoad ();
 		}
 	}
 
 	public float CalculatePopulationStress () {
-	
-		foreach (CellGroup group in Groups) {
-			
-			if (group.StillPresent) {
+		
+		if ((Group != null) && (Group.StillPresent)) {
 
-				float groupStress = 1;
+			float groupStress = 1;
 
-				if (group.OptimalPopulation > 0)
-					groupStress = group.Population / (float)group.OptimalPopulation;
+			if (Group.OptimalPopulation > 0)
+				groupStress = Group.Population / (float)Group.OptimalPopulation;
 
-				groupStress = 0.25f + (0.75f * groupStress);
+			groupStress = 0.25f + (0.75f * groupStress);
 
-				return Mathf.Min (1, groupStress);
-			}
+			return Mathf.Min (1, groupStress);
 		}
 
 		return 0;
