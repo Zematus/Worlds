@@ -50,6 +50,9 @@ public class CellGroup : HumanGroup {
 	public float CellMigrationValue;
 	[XmlIgnore]
 	public float TotalMigrationValue;
+	
+	[XmlIgnore]
+	public bool DebugTagged = false;
 
 	public CellGroup () {
 		
@@ -70,8 +73,6 @@ public class CellGroup : HumanGroup {
 		CellLatitude = cell.Latitude;
 
 		Cell.Group = this;
-
-		World.AddGroup (this);
 
 		Id = World.GenerateCellGroupId();
 

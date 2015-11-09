@@ -6,7 +6,7 @@ using System.Xml.Serialization;
 public abstract class HumanGroup {
 	
 	[XmlAttribute]
-	public bool IsTagged;
+	public bool MigrationTagged;
 
 	[XmlIgnore]
 	public World World;
@@ -16,16 +16,16 @@ public abstract class HumanGroup {
 
 	public HumanGroup (World world) {
 
-		IsTagged = false;
+		MigrationTagged = false;
 
 		World = world;
 	}
 
 	public virtual void FinalizeLoad () {
 
-		if (IsTagged) {
+		if (MigrationTagged) {
 		
-			World.TagGroup (this);
+			World.MigrationTagGroup (this);
 		}
 	}
 }

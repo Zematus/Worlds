@@ -98,7 +98,7 @@ public class World {
 	public ProgressCastDelegate ProgressCastMethod { get; set; }
 	
 	[XmlIgnore]
-	public HumanGroup TaggedGroup = null;
+	public HumanGroup MigrationTaggedGroup = null;
 	
 	[XmlIgnore]
 	public TerrainCell ObservedCell = null;
@@ -112,8 +112,8 @@ public class World {
 	
 	private HashSet<CellGroup> _updatedGroups = new HashSet<CellGroup> ();
 	
-	private List<CellGroup> _groupsToUpdate = new List<CellGroup>();
-	private List<CellGroup> _groupsToRemove = new List<CellGroup>();
+	private HashSet<CellGroup> _groupsToUpdate = new HashSet<CellGroup>();
+	private HashSet<CellGroup> _groupsToRemove = new HashSet<CellGroup>();
 
 	private List<MigratingGroup> _migratingGroups = new List<MigratingGroup> ();
 
@@ -274,11 +274,6 @@ public class World {
 				break;
 			}
 
-			if (eventToHappen.TriggerDate == 5908) {
-
-				bool debug = true;
-			}
-
 			EventsToHappen.Remove(eventToHappen);
 			EventsToHappenCount--;
 
@@ -291,15 +286,13 @@ public class World {
 		//
 		// Update Human Groups
 		//
-
-		CellGroup[] currentGroupsToUpdate = _groupsToUpdate.ToArray();
-		
-		_groupsToUpdate.Clear ();
 	
-		foreach (CellGroup group in currentGroupsToUpdate) {
+		foreach (CellGroup group in _groupsToUpdate) {
 		
 			group.Update();
 		}
+		
+		_groupsToUpdate.Clear ();
 		
 		//
 		// Migrate Human Groups
@@ -413,17 +406,11 @@ public class World {
 	}
 
 	public void AddGroupToUpdate (CellGroup group) {
-
-		if (_groupsToUpdate.Contains (group))
-			return;
 	
 		_groupsToUpdate.Add (group);
 	}
 	
 	public void AddGroupToRemove (CellGroup group) {
-		
-		if (_groupsToRemove.Contains (group))
-			return;
 		
 		_groupsToRemove.Add (group);
 	}
@@ -465,19 +452,19 @@ public class World {
 		}
 	}
 
-	public void TagGroup (HumanGroup group) {
+	public void MigrationTagGroup (HumanGroup group) {
 	
-		UntagGroup ();
+		MigrationUntagGroup ();
 		
-		TaggedGroup = group;
+		MigrationTaggedGroup = group;
 
-		group.IsTagged = true;
+		group.MigrationTagged = true;
 	}
 	
-	public void UntagGroup () {
+	public void MigrationUntagGroup () {
 		
-		if (TaggedGroup != null)
-			TaggedGroup.IsTagged = false;
+		if (MigrationTaggedGroup != null)
+			MigrationTaggedGroup.MigrationTagged = false;
 	}
 	
 	public void SetObservedCell (TerrainCell cell) {
@@ -1049,7 +1036,7 @@ public class World {
 			AddGroup(group);
 
 			if (first) {
-				TagGroup(group);
+				MigrationTagGroup(group);
 
 				first = false;
 			}

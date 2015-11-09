@@ -795,11 +795,6 @@ public class GuiManagerScript : MonoBehaviour {
 
 		return false;
 	}
-
-	public void DebugEvent (BaseEventData data) {
-
-		Debug.Log (data.ToString());
-	}
 	
 	public void DragMap (BaseEventData data) {
 		

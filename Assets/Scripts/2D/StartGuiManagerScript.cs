@@ -58,8 +58,6 @@ public class StartGuiManagerScript : MonoBehaviour {
 				_postPreparationOp ();
 
 			_preparingWorld = false;
-
-			Debug.Log ("Finished loading level");
 			
 			Application.LoadLevel ("WorldView");
 		}

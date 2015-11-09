@@ -96,7 +96,9 @@ public class Manager {
 	public static float RainfallOffset = 0;
 	public static float SeaLevelOffset = 0;
 
-	public static bool DisplayTaggedGroup = false;
+	public static bool DisplayMigrationTaggedGroup = false;
+	
+	public static bool DisplayDebugTaggedGroups = false;
 	
 	public static bool _isLoadReady = false;
 	
@@ -431,8 +433,6 @@ public class Manager {
 		_loadTicks += 1;
 		
 		float value = 0.25f * _loadTicks / (float)_totalLoadTicks;
-		
-		//Debug.Log ("Load progress: " + value);
 		
 		if (_manager._progressCastMethod == null)
 			return;
@@ -985,7 +985,10 @@ public class Manager {
 
 			population = cell.Group.Population;
 		
-			if (cell.Group.IsTagged && DisplayTaggedGroup)
+			if (cell.Group.MigrationTagged && DisplayMigrationTaggedGroup)
+				return Color.green;
+
+			if (cell.Group.DebugTagged && DisplayDebugTaggedGroups)
 				return Color.green;
 		}
 
@@ -1014,9 +1017,6 @@ public class Manager {
 		float population = 0;
 
 		if (cell.Group != null) {
-			
-			if (cell.Group.IsTagged && DisplayTaggedGroup)
-				return Color.green;
 
 			CulturalSkill skill = cell.Group.Culture.GetSkill(_planetOverlaySubtype);
 			

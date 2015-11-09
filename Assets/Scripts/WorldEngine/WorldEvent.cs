@@ -66,6 +66,7 @@ public class UpdateCellGroupEvent : WorldEvent {
 	public override void FinalizeLoad () {
 
 		Group = World.FindCellGroup (GroupId);
+		Group.DebugTagged = true;
 	}
 
 	public override void Trigger () {

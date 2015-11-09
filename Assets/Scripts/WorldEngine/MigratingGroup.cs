@@ -72,8 +72,8 @@ public class MigratingGroup : HumanGroup {
 
 				TargetCell.Group.MergeGroup(this, SplitPopulation, SplitCulture);
 
-				if (SourceGroup.IsTagged) {
-					World.TagGroup (TargetCell.Group);
+				if (SourceGroup.MigrationTagged) {
+					World.MigrationTagGroup (TargetCell.Group);
 				}
 
 				return;
@@ -84,8 +84,8 @@ public class MigratingGroup : HumanGroup {
 
 		World.AddGroup (newGroup);
 		
-		if (SourceGroup.IsTagged) {
-			World.TagGroup (newGroup);
+		if (SourceGroup.MigrationTagged) {
+			World.MigrationTagGroup (newGroup);
 		}
 	}
 	
