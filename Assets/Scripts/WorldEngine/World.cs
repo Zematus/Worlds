@@ -27,6 +27,9 @@ public class World {
 	
 	public const float StartPopulationDensity = 0.5f;
 	
+	public const int MinStartingPopulation = 100;
+	public const int MaxStartingPopulation = 100000;
+	
 	[XmlAttribute]
 	public int Width { get; private set; }
 	[XmlAttribute]
@@ -255,9 +258,12 @@ public class World {
 	}
 
 	public void Iterate () {
+
+		if (CellGroupsCount <= 0)
+			return;
 		
 		//
-		// Evaluate Events that will happen currently
+		// Evaluate Events that will happen at the current date
 		//
 
 		int DateToSkipTo = CurrentDate + 1;
@@ -505,11 +511,69 @@ public class World {
 
 		GenerateTerrain ();
 		
-		ProgressCastMethod (_accumulatedProgress, "Setting Initial Human Groups...");
-
-		SetInitialHumanGroups ();
-		
 		ProgressCastMethod (_accumulatedProgress, "Finalizing...");
+	}
+	
+	public void GenerateHumanGroup (int longitude, int latitude, int initialPopulation) {
+			
+		TerrainCell cell = GetCell (longitude, latitude);
+		
+		CellGroup group = new CellGroup(this, cell, initialPopulation);
+		
+		AddGroup(group);
+	}
+
+	public void GenerateRandomHumanGroups (int maxGroups, int initialPopulation) {
+
+		ProgressCastMethod (_accumulatedProgress, "Adding Random Human Groups...");
+		
+		float minPresence = 0.50f;
+		
+		int sizeX = Width;
+		int sizeY = Height;
+		
+		List<TerrainCell> SuitableCells = new List<TerrainCell> ();
+		
+		for (int i = 0; i < sizeX; i++) {
+			
+			for (int j = 0; j < sizeY; j++) {
+				
+				TerrainCell cell = TerrainCells [i] [j];
+				
+				float biomePresence = cell.GetBiomePresence(Biome.Grassland);
+				
+				if (biomePresence < minPresence) continue;
+				
+				SuitableCells.Add(cell);
+			}
+			
+			ProgressCastMethod (_accumulatedProgress + _progressIncrement * (i + 1)/(float)sizeX);
+		}
+		
+		_accumulatedProgress += _progressIncrement;
+
+		maxGroups = Mathf.Min (SuitableCells.Count, maxGroups);
+		
+		bool first = true;
+		
+		for (int i = 0; i < maxGroups; i++) {
+			
+			ManagerTask<int> n = GenerateRandomInteger(0, SuitableCells.Count);
+			
+			TerrainCell cell = SuitableCells[n];
+			
+			//int population = (int)Mathf.Floor(StartPopulationDensity * cell.Area);
+			
+			CellGroup group = new CellGroup(this, cell, initialPopulation);
+			
+			AddGroup(group);
+			
+			if (first) {
+				MigrationTagGroup(group);
+				
+				first = false;
+			}
+		}
 	}
 
 	private void GenerateContinents () {
@@ -983,64 +1047,10 @@ public class World {
 
 			}
 			
-			ProgressCastMethod (_accumulatedProgress + 0.20f * (i + 1)/(float)sizeX);
+			ProgressCastMethod (_accumulatedProgress + _progressIncrement * (i + 1)/(float)sizeX);
 		}
 		
-		_accumulatedProgress += 0.20f;
-	}
-	
-	private void SetInitialHumanGroups () {
-
-		int maxGroups = 1;
-
-		float minPresence = 0.50f;
-		
-		int sizeX = Width;
-		int sizeY = Height;
-
-		List<TerrainCell> SuitableCells = new List<TerrainCell> ();
-		
-		for (int i = 0; i < sizeX; i++) {
-			
-			for (int j = 0; j < sizeY; j++) {
-				
-				TerrainCell cell = TerrainCells [i] [j];
-				
-				float biomePresence = cell.GetBiomePresence(Biome.Grassland);
-				
-				if (biomePresence < minPresence) continue;
-
-				SuitableCells.Add(cell);
-			}
-			
-			ProgressCastMethod (_accumulatedProgress + 0.05f * (i + 1)/(float)sizeX);
-		}
-		
-		_accumulatedProgress += 0.05f;
-
-		if (SuitableCells.Count <= 0)
-			return;
-
-		bool first = true;
-
-		for (int i = 0; i < maxGroups; i++) {
-			
-			ManagerTask<int> n = GenerateRandomInteger(0, SuitableCells.Count);
-
-			TerrainCell cell = SuitableCells[n];
-
-			int population = (int)Mathf.Floor(StartPopulationDensity * cell.Area);
-
-			CellGroup group = new CellGroup(this, cell, population);
-
-			AddGroup(group);
-
-			if (first) {
-				MigrationTagGroup(group);
-
-				first = false;
-			}
-		}
+		_accumulatedProgress += _progressIncrement;
 	}
 
 	public int GenerateCellGroupId () {

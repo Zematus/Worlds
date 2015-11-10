@@ -127,15 +127,41 @@ public class Manager {
 	private Color32[] _currentMapTextureColors = null;
 
 	private Queue<IManagerTask> _taskQueue = new Queue<IManagerTask>();
-
+	
+	private bool _performingAsyncTask = false;
+	private bool _simulationRunning = false;
 	private bool _worldReady = false;
 
 	public XmlAttributeOverrides AttributeOverrides { get; private set; }
+	
+	public static bool PerformingAsyncTask {
+		
+		get {
+			return _manager._performingAsyncTask;
+		}
+	}
 
-	public static bool WorldReady {
+	public static bool SimulationRunning {
 
 		get {
+			return _manager._simulationRunning;
+		}
+	}
+
+	public static bool WorldReady {
+		
+		get {
 			return _manager._worldReady;
+		}
+	}
+	
+	public static bool SimulationCanRun {
+		
+		get {
+
+			bool canRun = (_manager._currentWorld.CellGroupsCount > 0);
+
+			return canRun;
 		}
 	}
 	
@@ -176,6 +202,11 @@ public class Manager {
 		}
 		
 		ExportPath = path;
+	}
+	
+	public static void InterruptSimulation (bool state) {
+		
+		_manager._simulationRunning = !state;
 	}
 	
 	public static void ExecuteTasks (int count) {
@@ -298,15 +329,22 @@ public class Manager {
 	
 	public static void ExportMapTextureToFileAsync (string path, Rect uvRect, ProgressCastDelegate progressCastMethod = null) {
 		
-		_manager._worldReady = false;
+		_manager._simulationRunning = false;
+		_manager._performingAsyncTask = true;
 		
 		_manager._progressCastMethod = progressCastMethod;
+		
+		if (_manager._progressCastMethod == null) {
+		
+			_manager._progressCastMethod = (value, message) => {};
+		}
 		
 		ThreadPool.QueueUserWorkItem (state => {
 			
 			ExportMapTextureToFile (path, uvRect);
 			
-			_manager._worldReady = true;
+			_manager._performingAsyncTask = false;
+			_manager._simulationRunning = true;
 		});
 	}
 	
@@ -321,30 +359,70 @@ public class Manager {
 		UpdatedCells.Add(cell);
 	}
 
+	public static void GenerateRandomHumanGroup (int initialPopulation) {
+
+		World world = _manager._currentWorld;
+		
+		if (_manager._progressCastMethod == null) {
+			world.ProgressCastMethod = (value, message) => {};
+		} else {
+			world.ProgressCastMethod = _manager._progressCastMethod;
+		}
+
+		world.GenerateRandomHumanGroups (1, initialPopulation);
+	}
+	
+	public static void GenerateHumanGroup (int longitude, int latitude, int initialPopulation) {
+		
+		World world = _manager._currentWorld;
+		
+		if (_manager._progressCastMethod == null) {
+			world.ProgressCastMethod = (value, message) => {};
+		} else {
+			world.ProgressCastMethod = _manager._progressCastMethod;
+		}
+		
+		world.GenerateHumanGroup (longitude, latitude, initialPopulation);
+	}
+
 	public static void GenerateNewWorld (int seed) {
+
+		_manager._worldReady = false;
 
 		World world = new World(WorldWidth, WorldHeight, seed);
 		
-		if (_manager._progressCastMethod != null)
+		if (_manager._progressCastMethod == null) {
+			world.ProgressCastMethod = (value, message) => {};
+		} else {
 			world.ProgressCastMethod = _manager._progressCastMethod;
+		}
 
 		world.Initialize (0f, 0.25f);
 		world.Generate ();
 
 		_manager._currentWorld = world;
+
+		_manager._worldReady = true;
 	}
 	
 	public static void GenerateNewWorldAsync (int seed, ProgressCastDelegate progressCastMethod = null) {
 
-		_manager._worldReady = false;
+		_manager._simulationRunning = false;
+		_manager._performingAsyncTask = true;
 		
 		_manager._progressCastMethod = progressCastMethod;
+
+		if (_manager._progressCastMethod == null) {
+			
+			_manager._progressCastMethod = (value, message) => {};
+		}
 
 		ThreadPool.QueueUserWorkItem (state => {
 			
 			GenerateNewWorld (seed);
 			
-			_manager._worldReady = true;
+			_manager._performingAsyncTask = false;
+			_manager._simulationRunning = true;
 		});
 	}
 	
@@ -360,19 +438,28 @@ public class Manager {
 	
 	public static void SaveWorldAsync (string path, ProgressCastDelegate progressCastMethod = null) {
 		
-		_manager._worldReady = false;
+		_manager._simulationRunning = false;
+		_manager._performingAsyncTask = true;
 		
 		_manager._progressCastMethod = progressCastMethod;
+		
+		if (_manager._progressCastMethod == null) {
+			
+			_manager._progressCastMethod = (value, message) => {};
+		}
 		
 		ThreadPool.QueueUserWorkItem (state => {
 			
 			SaveWorld (path);
 			
-			_manager._worldReady = true;
+			_manager._performingAsyncTask = false;
+			_manager._simulationRunning = true;
 		});
 	}
 	
 	public static void LoadWorld (string path) {
+
+		_manager._worldReady = false;
 		
 		ResetWorldLoadTrack ();
 
@@ -381,31 +468,48 @@ public class Manager {
 
 		World world = serializer.Deserialize(stream) as World;
 		
-		if (_manager._progressCastMethod != null)
+		stream.Close();
+		
+		if (_manager._progressCastMethod == null) {
+			world.ProgressCastMethod = (value, message) => {};
+		} else {
 			world.ProgressCastMethod = _manager._progressCastMethod;
+		}
 
 		world.Initialize (0.25f, 0.25f);
 		world.GenerateTerrain ();
+		
+		if (_manager._progressCastMethod != null) {
+			_manager._progressCastMethod (1f, "Finalizing...");
+		}
+
 		world.FinalizeLoad ();
 
 		_manager._currentWorld = world;
 
 		WorldBeingLoaded = null;
 
-		stream.Close();
+		_manager._worldReady = true;
 	}
 	
 	public static void LoadWorldAsync (string path, ProgressCastDelegate progressCastMethod = null) {
 		
-		_manager._worldReady = false;
+		_manager._simulationRunning = false;
+		_manager._performingAsyncTask = true;
 		
 		_manager._progressCastMethod = progressCastMethod;
+		
+		if (_manager._progressCastMethod == null) {
+			
+			_manager._progressCastMethod = (value, message) => {};
+		}
 		
 		ThreadPool.QueueUserWorkItem (state => {
 			
 			LoadWorld (path);
 			
-			_manager._worldReady = true;
+			_manager._performingAsyncTask = false;
+			_manager._simulationRunning = true;
 		});
 	}
 
@@ -434,10 +538,9 @@ public class Manager {
 		
 		float value = 0.25f * _loadTicks / (float)_totalLoadTicks;
 		
-		if (_manager._progressCastMethod == null)
-			return;
-		
-		_manager._progressCastMethod (Mathf.Min(1, value));
+		if (_manager._progressCastMethod != null) {
+			_manager._progressCastMethod (Mathf.Min (1, value));
+		}
 	}
 
 	public static void SetPlanetOverlay (PlanetOverlay value, string planetOverlaySubtype = "None") {

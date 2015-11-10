@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
 using System.IO;
@@ -19,7 +19,7 @@ public class StartGuiManagerScript : MonoBehaviour {
 	private string _progressMessage = null;
 	private float _progressValue = 0;
 	
-	private PostPreparationOperation _postPreparationOp = null;
+	private PostProgressOperation _postProgressOp = null;
 
 	// Use this for initialization
 	void Start () {
@@ -54,8 +54,8 @@ public class StartGuiManagerScript : MonoBehaviour {
 		
 		if (_preparingWorld) {
 			
-			if (_postPreparationOp != null) 
-				_postPreparationOp ();
+			if (_postProgressOp != null) 
+				_postProgressOp ();
 
 			_preparingWorld = false;
 			
@@ -190,11 +190,11 @@ public class StartGuiManagerScript : MonoBehaviour {
 		
 		Manager.GenerateNewWorldAsync (seed, ProgressUpdate);
 		
-		_postPreparationOp = () => {
+		_postProgressOp = () => {
 			
 			Manager.WorldName = "world_" + Manager.CurrentWorld.Seed;
 			
-			_postPreparationOp = null;
+			_postProgressOp = null;
 		};
 	}
 	

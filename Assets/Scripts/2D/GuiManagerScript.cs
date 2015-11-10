@@ -5,7 +5,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 
-public delegate void PostPreparationOperation ();
+public delegate void PostProgressOperation ();
+
+public delegate void MouseClickOperation (Vector2 position);
 
 public class GuiManagerScript : MonoBehaviour {
 
@@ -32,6 +34,7 @@ public class GuiManagerScript : MonoBehaviour {
 	public TextInputDialogPanelScript MessageDialogPanelScript;
 	public WorldCustomizationDialogPanelScript SetSeedDialogPanelScript;
 	public WorldCustomizationDialogPanelScript CustomizeWorldDialogPanelScript;
+	public AddPopulationDialogScript AddPopulationDialogScript;
 
 	public PaletteScript BiomePaletteScript;
 	public PaletteScript MapPaletteScript;
@@ -49,12 +52,14 @@ public class GuiManagerScript : MonoBehaviour {
 	private Vector2 _beginDragPosition;
 	private Rect _beginDragMapUvRect;
 
-	private bool _preparingWorld = false;
+	private bool _displayProgressDialogs = false;
 	
 	private string _progressMessage = null;
 	private float _progressValue = 0;
 
-	private PostPreparationOperation _postPreparationOp = null;
+	private PostProgressOperation _postProgressOp = null;
+
+	private MouseClickOperation _mapLeftClickOperation = null;
 	
 	private const float _maxAccTime = 0.0f;
 	private const int _iterationsPerRefresh = 5;
@@ -77,7 +82,9 @@ public class GuiManagerScript : MonoBehaviour {
 		ActivityDialogPanelScript.SetVisible (false);
 		OptionsDialogPanelScript.SetVisible (false);
 		SetSeedDialogPanelScript.SetVisible (false);
+		CustomizeWorldDialogPanelScript.SetVisible (false);
 		MessageDialogPanelScript.SetVisible (false);
+		AddPopulationDialogScript.SetVisible (false);
 		
 		if (!Manager.WorldReady) {
 
@@ -101,37 +108,45 @@ public class GuiManagerScript : MonoBehaviour {
 
 		Manager.ExecuteTasks (100);
 		
-		if (_preparingWorld) {
+		if (_displayProgressDialogs) {
 			
 			if (_progressMessage != null) ProgressDialogPanelScript.SetDialogText (_progressMessage);
 			
 			ProgressDialogPanelScript.SetProgress (_progressValue);
 		}
-
+		
 		if (!Manager.WorldReady) {
 			return;
 		}
+		
+		if (Manager.PerformingAsyncTask) {
+			return;
+		}
 
-		bool updateTextures = false;
-
-		if (_preparingWorld) {
-
-			if (_postPreparationOp != null) 
-				_postPreparationOp ();
+		if (_displayProgressDialogs) {
 
 			ProgressDialogPanelScript.SetVisible (false);
 			ActivityDialogPanelScript.SetVisible (false);
-			_preparingWorld = false;
+			_displayProgressDialogs = false;
+			
+			if (_postProgressOp != null) 
+				_postProgressOp ();
 
-			SelectionPanelScript.RemoveAllOptions ();
+		}
+		
+		bool updateTextures = false;
 
-		} else {
-
+		if (_maxAccTime > 0) {
 			_accDeltaTime += Time.deltaTime;
+		} else {
+			_accDeltaTime = 1;
+		}
 
-			if (_accDeltaTime > _maxAccTime) {
+		if (_accDeltaTime > _maxAccTime) {
 
-				int minDateSpan = 20;
+			if (Manager.SimulationCanRun && Manager.SimulationRunning) {
+
+				int minDateSpan = CellGroup.GenerationTime;
 				int lastUpdateDate = Manager.CurrentWorld.CurrentDate;
 
 				while ((lastUpdateDate + minDateSpan) >= Manager.CurrentWorld.CurrentDate) {
@@ -140,11 +155,11 @@ public class GuiManagerScript : MonoBehaviour {
 
 					updateTextures = true;
 
-					_accDeltaTime -= _maxAccTime;
 				}
-				
-				_accIterations++;
 			}
+			
+			_accDeltaTime -= _maxAccTime;
+			_accIterations++;
 		}
 	
 		if (_regenTextures) {
@@ -191,6 +206,8 @@ public class GuiManagerScript : MonoBehaviour {
 	public void CloseMainMenu () {
 		
 		MainMenuDialogPanelScript.SetVisible (false);
+		
+		Manager.InterruptSimulation (false);
 	}
 	
 	public void CloseOptionsMenu () {
@@ -212,6 +229,8 @@ public class GuiManagerScript : MonoBehaviour {
 		SetSeedDialogPanelScript.SetSeedString (seed.ToString());
 
 		SetSeedDialogPanelScript.SetVisible (true);
+		
+		Manager.InterruptSimulation (true);
 
 	}
 	
@@ -219,6 +238,8 @@ public class GuiManagerScript : MonoBehaviour {
 		
 		SetSeedDialogPanelScript.SetVisible (false);
 		CustomizeWorldDialogPanelScript.SetVisible (false);
+		
+		Manager.InterruptSimulation (false);
 	}
 	
 	public void CloseSeedErrorMessageAction () {
@@ -289,18 +310,103 @@ public class GuiManagerScript : MonoBehaviour {
 		
 		ProgressUpdate (0, "Generating World...", true);
 		
-		_preparingWorld = true;
-		
 		Manager.GenerateNewWorldAsync (seed, ProgressUpdate);
 		
-		_postPreparationOp = () => {
+		_postProgressOp = () => {
 			
 			Manager.WorldName = "world_" + Manager.CurrentWorld.Seed;
 			
-			_postPreparationOp = null;
+			SelectionPanelScript.RemoveAllOptions ();
+
+			SetInitialPopulation();
+			
+			_postProgressOp = null;
 		};
 		
+		_displayProgressDialogs = true;
+		
 		_regenTextures = true;
+	}
+
+	private void SetInitialPopulation () {
+
+		AddPopulationDialogScript.SetDialogText ("Add Initial Population Group");
+
+		int defaultPopulationValue = (int)Mathf.Ceil (World.StartPopulationDensity * TerrainCell.MaxArea);
+
+		defaultPopulationValue = Mathf.Clamp (defaultPopulationValue, World.MinStartingPopulation, World.MaxStartingPopulation);
+
+		AddPopulationDialogScript.SetPopulationValue (defaultPopulationValue);
+	
+		AddPopulationDialogScript.SetVisible (true);
+		
+		Manager.InterruptSimulation (true);
+	}
+
+	public void CancelPopulationPlacement () {
+		
+		AddPopulationDialogScript.SetVisible (false);
+	}
+	
+	public void RandomPopulationPlacement () {
+
+		int population = AddPopulationDialogScript.Population;
+		
+		AddPopulationDialogScript.SetVisible (false);
+
+		if (population <= 0)
+			return;
+
+		Manager.GenerateRandomHumanGroup (population);
+		
+		Manager.InterruptSimulation (false);
+	}
+	
+	public void SelectPopulationPlacement () {
+		
+		int population = AddPopulationDialogScript.Population;
+		
+		AddPopulationDialogScript.SetVisible (false);
+		
+		if (population <= 0)
+			return;
+
+		_mapLeftClickOperation = (position) => {
+			
+			Vector2 point;
+			
+			if (GetMapCoordinatesFromCursor (out point)) {
+				if (AddPopulationGroupAtPosition (point, population))
+				{
+					_mapLeftClickOperation = null;
+					
+					Manager.InterruptSimulation (false);
+				}
+			}
+		};
+	}
+	
+	public bool AddPopulationGroupAtPosition (Vector2 mapPosition, int population) {
+
+		World world = Manager.CurrentWorld;
+		
+		int longitude = (int)mapPosition.x;
+		int latitude = (int)mapPosition.y;
+		
+		if ((longitude < 0) || (longitude >= world.Width))
+			return false;
+		
+		if ((latitude < 0) || (latitude >= world.Height))
+			return false;
+
+		TerrainCell cell = world.GetCell (longitude, latitude);
+
+		if (cell.Altitude <= Biome.Ocean.MaxAltitude)
+			return false;
+
+		Manager.GenerateHumanGroup (longitude, latitude, population);
+
+		return true;
 	}
 	
 	public void CustomizeGeneration () {
@@ -316,6 +422,8 @@ public class GuiManagerScript : MonoBehaviour {
 		CustomizeWorldDialogPanelScript.SetTemperatureOffset(Manager.TemperatureOffset);
 		CustomizeWorldDialogPanelScript.SetRainfallOffset(Manager.RainfallOffset);
 		CustomizeWorldDialogPanelScript.SetSeaLevelOffset(Manager.SeaLevelOffset);
+		
+		Manager.InterruptSimulation (true);
 	}
 
 	private bool HasFilesToLoad () {
@@ -341,7 +449,7 @@ public class GuiManagerScript : MonoBehaviour {
 		
 		Manager.ExportMapTextureToFileAsync (path, MapImage.uvRect);
 		
-		_preparingWorld = true;
+		_displayProgressDialogs = true;
 	}
 	
 	public void CancelExportAction () {
@@ -394,19 +502,21 @@ public class GuiManagerScript : MonoBehaviour {
 
 		Manager.SaveWorldAsync (path);
 		
-		_preparingWorld = true;
-		
-		_postPreparationOp = () => {
+		_postProgressOp = () => {
 
 			LoadButton.interactable = HasFilesToLoad ();
 			
-			_postPreparationOp = null;
+			_postProgressOp = null;
 		};
+		
+		_displayProgressDialogs = true;
 	}
 
 	public void CancelSaveAction () {
 		
 		SaveFileDialogPanelScript.SetVisible (false);
+		
+		Manager.InterruptSimulation (false);
 	}
 
 	public void SaveWorldAs () {
@@ -416,6 +526,8 @@ public class GuiManagerScript : MonoBehaviour {
 		SaveFileDialogPanelScript.SetName (Manager.WorldName);
 		
 		SaveFileDialogPanelScript.SetVisible (true);
+
+		Manager.InterruptSimulation (true);
 	}
 	
 	public void LoadAction () {
@@ -432,7 +544,14 @@ public class GuiManagerScript : MonoBehaviour {
 		
 		Manager.WorldName = Path.GetFileNameWithoutExtension (path);
 		
-		_preparingWorld = true;
+		_postProgressOp = () => {
+			
+			SelectionPanelScript.RemoveAllOptions ();
+			
+			_postProgressOp = null;
+		};
+		
+		_displayProgressDialogs = true;
 		
 		_regenTextures = true;
 	}
@@ -440,6 +559,8 @@ public class GuiManagerScript : MonoBehaviour {
 	public void CancelLoadAction () {
 		
 		LoadFileDialogPanelScript.SetVisible (false);
+		
+		Manager.InterruptSimulation (false);
 	}
 	
 	public void LoadWorld () {
@@ -449,6 +570,8 @@ public class GuiManagerScript : MonoBehaviour {
 		LoadFileDialogPanelScript.SetVisible (true);
 
 		LoadFileDialogPanelScript.SetLoadAction (LoadAction);
+		
+		Manager.InterruptSimulation (true);
 	}
 	
 	public void CloseOverlayMenuAction () {
@@ -526,6 +649,8 @@ public class GuiManagerScript : MonoBehaviour {
 	public void OpenMainMenu () {
 		
 		MainMenuDialogPanelScript.SetVisible (true);
+		
+		Manager.InterruptSimulation (true);
 	}
 
 	public void OpenOptionsMenu () {
@@ -801,6 +926,9 @@ public class GuiManagerScript : MonoBehaviour {
 		Rect mapImageRect = MapImage.rectTransform.rect;
 		
 		PointerEventData pointerData = data as PointerEventData;
+		
+		if (pointerData.button != PointerEventData.InputButton.Right)
+			return;
 
 		Vector2 delta = pointerData.position - _beginDragPosition;
 
@@ -816,10 +944,26 @@ public class GuiManagerScript : MonoBehaviour {
 		
 		PointerEventData pointerData = data as PointerEventData;
 
+		if (pointerData.button != PointerEventData.InputButton.Right)
+			return;
+
 		_beginDragPosition = pointerData.position;
 		_beginDragMapUvRect = MapImage.uvRect;
 	}
 	
 	public void EndDragMap (BaseEventData data) {
+	}
+	
+	public void SelectCellOnMap (BaseEventData data) {
+		
+		PointerEventData pointerData = data as PointerEventData;
+		
+		if (pointerData.button != PointerEventData.InputButton.Left)
+			return;
+
+		if (_mapLeftClickOperation != null) {
+		
+			_mapLeftClickOperation (pointerData.position);
+		}
 	}
 }
