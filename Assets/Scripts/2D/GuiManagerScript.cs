@@ -89,6 +89,9 @@ public class GuiManagerScript : MonoBehaviour {
 		if (!Manager.WorldReady) {
 
 			GenerateWorld ();
+		} else if (!Manager.SimulationCanRun) {
+
+			SetInitialPopulation();
 		}
 
 		UpdateMapViewButtonText ();
@@ -547,6 +550,11 @@ public class GuiManagerScript : MonoBehaviour {
 		_postProgressOp = () => {
 			
 			SelectionPanelScript.RemoveAllOptions ();
+
+			if (!Manager.SimulationCanRun) {
+				
+				SetInitialPopulation();
+			}
 			
 			_postProgressOp = null;
 		};
