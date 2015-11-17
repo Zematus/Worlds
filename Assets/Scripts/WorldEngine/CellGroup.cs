@@ -19,7 +19,7 @@ public class CellGroup : HumanGroup {
 	public const float TravelTimeFactor = 1;
 	
 	[XmlAttribute]
-	public int Population;
+	public float ExactPopulation;
 	
 	[XmlAttribute]
 	public int Id;
@@ -53,6 +53,15 @@ public class CellGroup : HumanGroup {
 	
 	[XmlIgnore]
 	public bool DebugTagged = false;
+	
+	[XmlIgnore]
+	public int Population {
+
+		get {
+
+			return (int)Mathf.Floor(ExactPopulation);
+		}
+	}
 
 	public CellGroup () {
 		
@@ -64,7 +73,7 @@ public class CellGroup : HumanGroup {
 
 	public CellGroup (World world, TerrainCell cell, int initialPopulation, CellCulture baseCulture = null) : base(world) {
 
-		Population = initialPopulation;
+		ExactPopulation = initialPopulation;
 		
 		LastUpdateDate = World.CurrentDate;
 
@@ -112,15 +121,15 @@ public class CellGroup : HumanGroup {
 		
 		UpdateInternal ();
 
-		int newPopulation = Population + splitPopulation;
+		float newPopulation = Population + splitPopulation;
 		
 		if (newPopulation <= 0) {
 			throw new System.Exception ("Population after migration merge shouldn't be 0 or less.");
 		}
 
-		float percentage = splitPopulation / (float)newPopulation;
+		float percentage = splitPopulation / newPopulation;
 	
-		Population = newPopulation;
+		ExactPopulation = newPopulation;
 
 		Culture.MergeCulture (splitCulture, percentage);
 	}
@@ -131,7 +140,7 @@ public class CellGroup : HumanGroup {
 
 		int splitPopulation = (int)Mathf.Floor(Population * group.PercentPopulation);
 		
-		Population -= splitPopulation;
+		ExactPopulation -= splitPopulation;
 
 		return splitPopulation;
 	}
@@ -143,7 +152,7 @@ public class CellGroup : HumanGroup {
 
 	public void SetupForNextUpdate () {
 		
-		if (Population <= 0) {
+		if (Population < 2) {
 			World.AddGroupToRemove (this);
 			return;
 		}
@@ -261,7 +270,7 @@ public class CellGroup : HumanGroup {
 	
 	private void UpdatePopulation (int timeSpan) {
 		
-		Population = PopulationAfterTime (timeSpan);
+		ExactPopulation = PopulationAfterTime (timeSpan);
 	}
 	
 	private void UpdateCulture (int timeSpan) {
@@ -333,9 +342,9 @@ public class CellGroup : HumanGroup {
 		return World.CurrentDate + GenerationTime * finalFactor;
 	}
 
-	public int PopulationAfterTime (int time) { // in years
+	public float PopulationAfterTime (int time) { // in years
 
-		int population = Population;
+		float population = ExactPopulation;
 		
 		if (population == OptimalPopulation)
 			return population;
@@ -345,16 +354,16 @@ public class CellGroup : HumanGroup {
 		if (population < OptimalPopulation) {
 			
 			float geometricTimeFactor = Mathf.Pow(2, timeFactor);
-			float populationFactor = 1 - Population/(float)OptimalPopulation;
+			float populationFactor = 1 - ExactPopulation/(float)OptimalPopulation;
 
-			population = (int)Mathf.Floor(OptimalPopulation * (1 - Mathf.Pow(populationFactor, geometricTimeFactor)));
+			population = OptimalPopulation * (1 - Mathf.Pow(populationFactor, geometricTimeFactor));
 
 			return population;
 		}
 
 		if (population > OptimalPopulation) {
 
-			population = (int)Mathf.Floor(OptimalPopulation + (Population - OptimalPopulation) * Mathf.Exp (-timeFactor));
+			population = OptimalPopulation + (ExactPopulation - OptimalPopulation) * Mathf.Exp (-timeFactor);
 			
 			return population;
 		}

@@ -40,6 +40,11 @@ public class GuiManagerScript : MonoBehaviour {
 	public PaletteScript MapPaletteScript;
 
 	public SelectionPanelScript SelectionPanelScript;
+
+	public QuickTipPanelScript QuickTipPanelScript;
+
+	private bool _displayedTip_mapScroll = false;
+	private bool _displayedTip_initialPopulation = false;
 	
 	private PlanetView _planetView = PlanetView.Biomes;
 	private PlanetOverlay _planetOverlay = PlanetOverlay.Population;
@@ -85,13 +90,18 @@ public class GuiManagerScript : MonoBehaviour {
 		CustomizeWorldDialogPanelScript.SetVisible (false);
 		MessageDialogPanelScript.SetVisible (false);
 		AddPopulationDialogScript.SetVisible (false);
+
+		QuickTipPanelScript.SetVisible (false);
 		
 		if (!Manager.WorldReady) {
 
 			GenerateWorld ();
 		} else if (!Manager.SimulationCanRun) {
 
-			SetInitialPopulation();
+			SetInitialPopulation ();
+		} else {
+
+			DisplayTip_MapScroll ();
 		}
 
 		UpdateMapViewButtonText ();
@@ -349,6 +359,8 @@ public class GuiManagerScript : MonoBehaviour {
 	public void CancelPopulationPlacement () {
 		
 		AddPopulationDialogScript.SetVisible (false);
+
+		DisplayTip_MapScroll ();
 	}
 	
 	public void RandomPopulationPlacement () {
@@ -363,6 +375,8 @@ public class GuiManagerScript : MonoBehaviour {
 		Manager.GenerateRandomHumanGroup (population);
 		
 		Manager.InterruptSimulation (false);
+		
+		DisplayTip_MapScroll ();
 	}
 	
 	public void SelectPopulationPlacement () {
@@ -374,6 +388,8 @@ public class GuiManagerScript : MonoBehaviour {
 		if (population <= 0)
 			return;
 
+		DisplayTip_InitialPopulationPlacement ();
+
 		_mapLeftClickOperation = (position) => {
 			
 			Vector2 point;
@@ -384,6 +400,8 @@ public class GuiManagerScript : MonoBehaviour {
 					_mapLeftClickOperation = null;
 					
 					Manager.InterruptSimulation (false);
+
+					DisplayTip_MapScroll();
 				}
 			}
 		};
@@ -410,6 +428,50 @@ public class GuiManagerScript : MonoBehaviour {
 		Manager.GenerateHumanGroup (longitude, latitude, population);
 
 		return true;
+	}
+
+	public void DisplayTip_InitialPopulationPlacement () {
+		
+		if (_displayedTip_initialPopulation) {
+			
+			QuickTipPanelScript.SetVisible (false);
+			return;
+		}
+
+		string message = "Left click on any non-ocean position in the map to place the initial population group\n";
+
+		if (!_displayedTip_mapScroll) {
+		
+			message += "Right click and drag with the mouse to scroll the map left or right\n";
+		}
+
+		message += "\n(Click anywhere on this message to close)";
+	
+		QuickTipPanelScript.SetText (message);
+		QuickTipPanelScript.Reset (10);
+
+		QuickTipPanelScript.SetVisible (true);
+		
+		_displayedTip_initialPopulation = true;
+		_displayedTip_mapScroll = true;
+	}
+	
+	public void DisplayTip_MapScroll () {
+
+		if (_displayedTip_mapScroll) {
+			
+			QuickTipPanelScript.SetVisible (false);
+			return;
+		}
+		
+		QuickTipPanelScript.SetText (
+			"Right click and drag with the mouse to scroll the map left or right\n" +
+			"\n(Click anywhere on this message to close)");
+		QuickTipPanelScript.Reset (10);
+		
+		QuickTipPanelScript.SetVisible (true);
+
+		_displayedTip_mapScroll = true;
 	}
 	
 	public void CustomizeGeneration () {
