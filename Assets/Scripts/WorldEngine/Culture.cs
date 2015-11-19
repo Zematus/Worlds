@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using System.Xml;
@@ -30,26 +30,36 @@ public class CulturalSkillInfo {
 	}
 }
 
+public static class CulturalSkillHelper {
+
+	public static CulturalSkill CopyWithGroup (this CulturalSkill skill, CellGroup group) {
+		
+		System.Type skillType = skill.GetType ();
+		
+		System.Reflection.ConstructorInfo cInfo = skillType.GetConstructor (new System.Type[] {typeof(CellGroup), skillType});
+		
+		return cInfo.Invoke (new object[] {group, skill}) as CulturalSkill;
+	}
+}
+
 public abstract class CulturalSkill : CulturalSkillInfo {
 	
 	[XmlAttribute]
 	public float Value;
 	
+	[XmlAttribute]
+	public float AdaptationLevel;
+
+	[XmlIgnore]
+	public CellGroup Group;
+	
 	public CulturalSkill () {
 	}
 
-	public CulturalSkill (string id, string name, float value) : base (id, name) {
+	public CulturalSkill (CellGroup group, string id, string name, float value) : base (id, name) {
 
+		Group = group;
 		Value = value;
-	}
-
-	public static CulturalSkill Clone (CulturalSkill skill) {
-
-		System.Type skillType = skill.GetType ();
-	
-		System.Reflection.ConstructorInfo cInfo = skillType.GetConstructor (new System.Type[] {skillType});
-
-		return cInfo.Invoke (new object[] {skill}) as CulturalSkill;
 	}
 
 	public void MergeSkill (CulturalSkill skill, float percentage) {
@@ -61,9 +71,12 @@ public abstract class CulturalSkill : CulturalSkillInfo {
 		
 		Value *= percentage;
 	}
-	
-	public abstract void Update (CellGroup group, int timeSpan);
-	public abstract float AdaptationLevel (CellGroup group);
+
+	public virtual void FinalizeLoad () {
+
+	}
+
+	public abstract void Update (int timeSpan);
 }
 
 public class BiomeSurvivalSkill : CulturalSkill {
@@ -72,8 +85,8 @@ public class BiomeSurvivalSkill : CulturalSkill {
 	
 	[XmlAttribute]
 	public string BiomeName;
-
-	//private float _biomeSurvivalEffect;
+	
+	private float _neighborhoodBiomePresence;
 
 	public static string GenerateId (Biome biome) {
 	
@@ -86,29 +99,60 @@ public class BiomeSurvivalSkill : CulturalSkill {
 	}
 	
 	public BiomeSurvivalSkill () {
+
 	}
 
-	public BiomeSurvivalSkill (Biome biome, float value) : base (GenerateId (biome), GenerateName (biome), value) {
+	public BiomeSurvivalSkill (CellGroup group, Biome biome, float value) : base (group, GenerateId (biome), GenerateName (biome), value) {
 	
 		BiomeName = biome.Name;
-
-		//_biomeSurvivalEffect = 0.2f + 0.8f * Biome.Biomes [BiomeName].Survivability;
+		
+		CalculateNeighborhoodBiomePresence ();
 	}
 
-	public BiomeSurvivalSkill (BiomeSurvivalSkill baseSkill) : base (baseSkill.Id, baseSkill.Name, baseSkill.Value) {
+	public BiomeSurvivalSkill (CellGroup group, BiomeSurvivalSkill baseSkill) : base (group, baseSkill.Id, baseSkill.Name, baseSkill.Value) {
 
 		BiomeName = baseSkill.BiomeName;
 		
-		//_biomeSurvivalEffect = 0.2f + 0.8f * Biome.Biomes [BiomeName].Survivability;
+		CalculateNeighborhoodBiomePresence ();
 	}
 
-	public override void Update (CellGroup group, int timeSpan) {
+	public override void FinalizeLoad () {
 
-		TerrainCell cell = group.Cell;
+		base.FinalizeLoad ();
+
+		CalculateNeighborhoodBiomePresence ();
+	}
+	
+	public void CalculateNeighborhoodBiomePresence () {
+
+		int groupCellBonus = 4;
+		int cellCount = groupCellBonus;
 		
-		float presence = cell.GetBiomePresence (BiomeName);
+		TerrainCell groupCell = Group.Cell;
+		
+		float totalPresence = groupCell.GetBiomePresence (BiomeName) * groupCellBonus;
+		
+		groupCell.GetNeighborCells ().ForEach (c => {
+			
+			totalPresence += c.GetBiomePresence (BiomeName);
+			cellCount++;
+		});
+		
+		_neighborhoodBiomePresence = totalPresence / cellCount;
 
-		float randomModifier = presence - cell.GetNextLocalRandomFloat ();
+		if ((_neighborhoodBiomePresence < 0) || (_neighborhoodBiomePresence > 1)) {
+		
+			throw new System.Exception ("Neighborhood Biome Presence outside range: " + _neighborhoodBiomePresence);
+		}
+		
+		AdaptationLevel = 1 - Mathf.Abs (Value - _neighborhoodBiomePresence);
+	}
+
+	public override void Update (int timeSpan) {
+
+		TerrainCell groupCell = Group.Cell;
+
+		float randomModifier = _neighborhoodBiomePresence - groupCell.GetNextLocalRandomFloat ();
 
 		float targetValue = 0;
 
@@ -118,25 +162,15 @@ public class BiomeSurvivalSkill : CulturalSkill {
 			targetValue = Value * (1 + randomModifier);
 		}
 
-		float presenceEffect = Mathf.Abs (Value - presence);
+		float presenceEffect = Mathf.Abs (Value - _neighborhoodBiomePresence);
 		
 		float timeEffect = timeSpan / (float)(timeSpan + TimeEffectConstant);
 
 		float factor = timeEffect * presenceEffect;
 		
 		Value = (Value * (1 - factor)) + (targetValue * factor);
-	}
 
-	public override float AdaptationLevel (CellGroup group) {
-		
-		TerrainCell cell = group.Cell;
-		
-		float presence = cell.GetBiomePresence (BiomeName);
-
-		if (presence == Value)
-			return 1;
-
-		return 1 - Mathf.Abs (Value - presence);
+		AdaptationLevel = 1 - Mathf.Abs (Value - _neighborhoodBiomePresence);
 	}
 }
 
@@ -146,14 +180,6 @@ public abstract class Culture {
 	public List<CulturalSkill> Skills = new List<CulturalSkill> ();
 	
 	public Culture () {
-	}
-	
-	public Culture (Culture baseCulture) {
-		
-		foreach (CulturalSkill skill in baseCulture.Skills) {
-			
-			Skills.Add (CulturalSkill.Clone (skill));
-		}
 	}
 	
 	protected void AddSkill (World world, CulturalSkill skill) {
@@ -172,23 +198,6 @@ public abstract class Culture {
 		
 		return null;
 	}
-	
-	public void MergeCulture (Culture sourceCulture, float percentage) {
-		
-		foreach (CulturalSkill sourceSkill in sourceCulture.Skills) {
-			
-			CulturalSkill skill = GetSkill (sourceSkill.Id);
-			
-			if (skill == null) {
-				skill = CulturalSkill.Clone (sourceSkill);
-				skill.ModifyValue (percentage);
-				
-				Skills.Add (skill);
-			} else {
-				skill.MergeSkill (sourceSkill, percentage);
-			}
-		}
-	}
 }
 
 public class CellCulture : Culture {
@@ -204,21 +213,40 @@ public class CellCulture : Culture {
 		Group = group;
 	}
 
-	public CellCulture (CellGroup group, Culture baseCulture) : base (baseCulture) {
+	public CellCulture (CellGroup group, CellCulture baseCulture) {
 
 		Group = group;
+		
+		baseCulture.Skills.ForEach (s => Skills.Add (s.CopyWithGroup (group)));
 	}
 	
 	public void AddSkill (CulturalSkill skill) {
 		
 		AddSkill (Group.World, skill);
 	}
+	
+	public void MergeCulture (CellCulture sourceCulture, float percentage) {
+
+		sourceCulture.Skills.ForEach (s => {
+			
+			CulturalSkill skill = GetSkill (s.Id);
+			
+			if (skill == null) {
+				skill = s.CopyWithGroup (s.Group);
+				skill.ModifyValue (percentage);
+				
+				Skills.Add (skill);
+			} else {
+				skill.MergeSkill (s, percentage);
+			}
+		});
+	}
 
 	public void Update (int timeSpan) {
 
 		foreach (CulturalSkill skill in Skills) {
 		
-			skill.Update (Group, timeSpan);
+			skill.Update (timeSpan);
 		}
 	}
 
@@ -231,7 +259,7 @@ public class CellCulture : Culture {
 
 		foreach (CulturalSkill skill in Skills) {
 			
-			totalAdaptationLevel += skill.AdaptationLevel (Group);
+			totalAdaptationLevel += skill.AdaptationLevel;
 		}
 
 		return totalAdaptationLevel / (float)Skills.Count;
@@ -246,7 +274,7 @@ public class CellCulture : Culture {
 		
 		foreach (CulturalSkill skill in Skills) {
 			
-			float level = skill.AdaptationLevel (Group);
+			float level = skill.AdaptationLevel;
 
 			if (level < minAdaptationLevel) {
 				minAdaptationLevel = level;
@@ -254,5 +282,14 @@ public class CellCulture : Culture {
 		}
 		
 		return minAdaptationLevel;
+	}
+	
+	public void FinalizeLoad () {
+
+		Skills.ForEach (s => {
+
+			s.Group = Group;
+			s.FinalizeLoad ();
+		});
 	}
 }

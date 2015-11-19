@@ -72,6 +72,10 @@ public class GuiManagerScript : MonoBehaviour {
 	private float _accDeltaTime = 0;
 	private int _accIterations = 0;
 
+	private int _mapUpdateCount = 0;
+	private int _lastMapUpdateCount = 0;
+	private float _timeSinceLastMapUpdate = 0;
+
 	// Use this for initialization
 	void Start () {
 
@@ -117,6 +121,16 @@ public class GuiManagerScript : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 
+		_timeSinceLastMapUpdate += Time.deltaTime;
+
+		if (_timeSinceLastMapUpdate > 1) {
+		
+			_lastMapUpdateCount = _mapUpdateCount;
+			_mapUpdateCount = 0;
+
+			_timeSinceLastMapUpdate -= 1;
+		}
+
 		UpdateMenus ();
 
 		Manager.ExecuteTasks (100);
@@ -149,26 +163,29 @@ public class GuiManagerScript : MonoBehaviour {
 		
 		bool updateTextures = false;
 
-		if (_maxAccTime > 0) {
-			_accDeltaTime += Time.deltaTime;
-		} else {
-			_accDeltaTime = 1;
-		}
+		_accDeltaTime += Time.deltaTime;
 
 		if (_accDeltaTime > _maxAccTime) {
 
 			if (Manager.SimulationCanRun && Manager.SimulationRunning) {
 
-				int minDateSpan = CellGroup.GenerationTime;
+				int minDateSpan = CellGroup.GenerationTime * 1000;
 				int lastUpdateDate = Manager.CurrentWorld.CurrentDate;
+
+				float startIterations = Time.realtimeSinceStartup;
+				float maxDeltaIterations = 0.02f;
 
 				while ((lastUpdateDate + minDateSpan) >= Manager.CurrentWorld.CurrentDate) {
 
 					Manager.CurrentWorld.Iterate();
 
-					updateTextures = true;
+					float deltaIterations = Time.realtimeSinceStartup - startIterations;
 
+					if (deltaIterations > maxDeltaIterations)
+						break;
 				}
+				
+				updateTextures = true;
 			}
 			
 			_accDeltaTime -= _maxAccTime;
@@ -186,6 +203,8 @@ public class GuiManagerScript : MonoBehaviour {
 			PlanetScript.RefreshTexture ();
 			MapScript.RefreshTexture ();
 
+			_mapUpdateCount++;
+
 		} else if (updateTextures) {
 
 			if (_accIterations >= _iterationsPerRefresh)
@@ -195,6 +214,8 @@ public class GuiManagerScript : MonoBehaviour {
 				if ((_planetOverlay == PlanetOverlay.Population) || 
 				    (_planetOverlay == PlanetOverlay.CulturalSkill)) {
 					Manager.UpdateTextures ();
+					
+					_mapUpdateCount++;
 				}
 			}
 		}
@@ -874,6 +895,9 @@ public class GuiManagerScript : MonoBehaviour {
 		InfoPanelText.text += "\n";
 		InfoPanelText.text += "\nNumber of Migration Events: " + MigrateGroupEvent.EventCount;
 		InfoPanelText.text += "\nMean Migration Travel Time: " + MigrateGroupEvent.MeanTravelTime.ToString("0.0");
+		
+		InfoPanelText.text += "\n";
+		InfoPanelText.text += "\nMUPS: " + _lastMapUpdateCount;
 	}
 	
 	public void AddCellDataToInfoPanel (int longitude, int latitude) {
@@ -900,16 +924,16 @@ public class GuiManagerScript : MonoBehaviour {
 
 		for (int i = 0; i < cell.PresentBiomeNames.Count; i++)
 		{
-			int percentage = (int)(cell.BiomePresences[i] * 100);
+			float percentage = cell.BiomePresences[i];
 			
 			InfoPanelText.text += "\nBiome: " + cell.PresentBiomeNames[i];
-			InfoPanelText.text += " (" + percentage + "%)";
+			InfoPanelText.text += " (" + percentage.ToString ("P") + ")";
 		}
 
 		InfoPanelText.text += "\n";
-		InfoPanelText.text += "\nSurvivability: " + cell.Survivability.ToString("#.##%");
-		InfoPanelText.text += "\nForaging Capacity: " + cell.ForagingCapacity.ToString("#.##%");
-		InfoPanelText.text += "\nAccessibility: " + cell.Accessibility.ToString("#.##%");
+		InfoPanelText.text += "\nSurvivability: " + cell.Survivability.ToString("P");
+		InfoPanelText.text += "\nForaging Capacity: " + cell.ForagingCapacity.ToString("P");
+		InfoPanelText.text += "\nAccessibility: " + cell.Accessibility.ToString("P");
 
 		int population = 0;
 		int optimalPopulation = 0;
@@ -935,8 +959,8 @@ public class GuiManagerScript : MonoBehaviour {
 				InfoPanelText.text += "\nOptimal Population: " + optimalPopulation;
 				
 				InfoPanelText.text += "\n";
-				InfoPanelText.text += "\nModified Survivability: " + modifiedSurvivability.ToString("#.##%");
-				InfoPanelText.text += "\nModified Foraging Capacity: " + modifiedForagingCapacity.ToString("#.##%");
+				InfoPanelText.text += "\nModified Survivability: " + modifiedSurvivability.ToString("P");
+				InfoPanelText.text += "\nModified Foraging Capacity: " + modifiedForagingCapacity.ToString("P");
 				
 				InfoPanelText.text += "\n";
 				InfoPanelText.text += "\nLast Update Date: " + lastUpdateDate;

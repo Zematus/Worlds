@@ -48,11 +48,14 @@ public class CellGroup : HumanGroup {
 	
 	[XmlIgnore]
 	public float CellMigrationValue;
-	[XmlIgnore]
-	public float TotalMigrationValue;
 	
 	[XmlIgnore]
 	public bool DebugTagged = false;
+
+	//DEBUG stuff
+	private static float _DEBUG_SmallestAltitudeDeltaFactor = float.MaxValue;
+	private static float _DEBUG_targetCellAltitude;
+	private static float _DEBUG_sourceCellAltitude;
 	
 	[XmlIgnore]
 	public int Population {
@@ -112,7 +115,7 @@ public class CellGroup : HumanGroup {
 
 			if (Culture.GetSkill (skillId) == null) {
 				
-				Culture.AddSkill (new BiomeSurvivalSkill (biome, 0.0f));
+				Culture.AddSkill (new BiomeSurvivalSkill (this, biome, 0.0f));
 			}
 		}
 	}
@@ -167,6 +170,27 @@ public class CellGroup : HumanGroup {
 		
 		World.InsertEventToHappen (new UpdateCellGroupEvent (World, NextUpdateDate, this));
 	}
+	
+	private float CalculateAltitudeDeltaMigrationFactor (TerrainCell targetCell) {
+
+		float altitudeModifier = targetCell.Altitude / World.MaxPossibleAltitude;
+
+		float altitudeDeltaModifier = 5 * altitudeModifier;
+		float maxAltitudeDelta = Cell.Area / altitudeDeltaModifier;
+		float minAltitudeDelta = -Cell.Area / (altitudeDeltaModifier * 5);
+		float altitudeDelta = Mathf.Clamp (targetCell.Altitude - Cell.Altitude, minAltitudeDelta, maxAltitudeDelta);
+		float altitudeDeltaFactor = 1 - ((altitudeDelta - minAltitudeDelta) / (maxAltitudeDelta - minAltitudeDelta));
+
+		if (altitudeDeltaFactor < _DEBUG_SmallestAltitudeDeltaFactor) {
+
+			_DEBUG_SmallestAltitudeDeltaFactor = altitudeDeltaFactor;
+
+			_DEBUG_targetCellAltitude = targetCell.Altitude;
+			_DEBUG_sourceCellAltitude = Cell.Altitude;
+		}
+		
+		return altitudeDeltaFactor;
+	}
 
 	public void ConsiderMigration () {
 
@@ -178,12 +202,15 @@ public class CellGroup : HumanGroup {
 		float noMigrationPreference = 20f;
 
 		CellMigrationValue = 0;
-		TotalMigrationValue = 0;
+		float totalMigrationValue = 0;
 
 		TerrainCell targetCell = MathUtility.WeightedSelection (score, possibleTargetCells, (c) => {
 
 			float areaFactor = Cell.Area / TerrainCell.MaxArea;
-			float altitudeFactor = 1 - (c.Altitude / World.MaxPossibleAltitude);
+
+			float altitudeDeltaFactor = CalculateAltitudeDeltaMigrationFactor (c);
+			altitudeDeltaFactor *= altitudeDeltaFactor;
+			altitudeDeltaFactor *= altitudeDeltaFactor;
 
 			float stressFactor = 1 - c.CalculatePopulationStress();
 			stressFactor *= stressFactor;
@@ -196,7 +223,7 @@ public class CellGroup : HumanGroup {
 
 			float adaptionFactor = cSurvivability * cForagingCapacity; 
 
-			float cellValue = adaptionFactor * altitudeFactor * areaFactor * stressFactor;
+			float cellValue = adaptionFactor * altitudeDeltaFactor * areaFactor * stressFactor;
 
 			if (c == Cell) {
 				cellValue *= noMigrationPreference;
@@ -207,15 +234,15 @@ public class CellGroup : HumanGroup {
 				CellMigrationValue += cellValue;
 			}
 
-			TotalMigrationValue += cellValue;
+			totalMigrationValue += cellValue;
 
 			return cellValue;
 		});
 		
-		if (TotalMigrationValue <= 0) {
+		if (totalMigrationValue <= 0) {
 			CellMigrationValue = 1;
 		} else {
-			CellMigrationValue /= TotalMigrationValue;
+			CellMigrationValue /= totalMigrationValue;
 		}
 		
 		float percentToMigrate = (1 - CellMigrationValue) * Cell.GetNextLocalRandomFloat ();
@@ -231,7 +258,13 @@ public class CellGroup : HumanGroup {
 		
 		CalculateAdaptionToCell (targetCell, out cellForagingCapacity, out cellSurvivability);
 
-		float travelFactor = cellSurvivability * cellSurvivability * targetCell.Accessibility;
+		float cellAltitudeDeltaFactor = CalculateAltitudeDeltaMigrationFactor (targetCell);
+
+		float travelFactor = 
+			cellAltitudeDeltaFactor * cellAltitudeDeltaFactor *
+			cellSurvivability * cellSurvivability *  targetCell.Accessibility;
+
+		travelFactor = Mathf.Clamp (travelFactor, 0.0001f, 1);
 
 		if (cellSurvivability <= 0)
 			return;
@@ -320,9 +353,11 @@ public class CellGroup : HumanGroup {
 				}
 			}
 		}
+		
+		float altitudeSurvivabilityFactor = 1 - (cell.Altitude / World.MaxPossibleAltitude);
 
 		foragingCapacity = modifiedForagingCapacity;
-		survivability = modifiedSurvivability;
+		survivability = modifiedSurvivability * altitudeSurvivabilityFactor;
 	}
 
 	public int CalculateNextUpdateDate () {
@@ -382,5 +417,6 @@ public class CellGroup : HumanGroup {
 		World.UpdateMostPopulousGroup (this);
 
 		Culture.Group = this;
+		Culture.FinalizeLoad ();
 	}
 }

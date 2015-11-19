@@ -52,6 +52,9 @@ public class World {
 	
 	[XmlAttribute]
 	public int TerrainCellChangesListCount { get; private set; }
+	
+	[XmlAttribute]
+	public List<CulturalSkillInfo> CulturalSkillInfoList = new List<CulturalSkillInfo> ();
 
 	[XmlArrayItem(Type = typeof(UpdateCellGroupEvent)),
 	 XmlArrayItem(Type = typeof(MigrateGroupEvent))]
@@ -105,9 +108,6 @@ public class World {
 	
 	[XmlIgnore]
 	public TerrainCell ObservedCell = null;
-	
-	[XmlIgnore]
-	public List<CulturalSkillInfo> CulturalSkillInfoList = new List<CulturalSkillInfo> ();
 
 	private HashSet<int> _terrainCellChangesListIndexes = new HashSet<int> ();
 	
@@ -423,26 +423,24 @@ public class World {
 
 	public void FinalizeLoad () {
 
-		foreach (TerrainCellChanges changes in TerrainCellChangesList) {
-		
-			int index = changes.Longitude + changes.Latitude * Width;
-
+		TerrainCellChangesList.ForEach (c => {
+			
+			int index = c.Longitude + c.Latitude * Width;
+			
 			_terrainCellChangesListIndexes.Add (index);
-		}
-		
-		foreach (CellGroup group in CellGroups) {
-			
-			group.World = this;
-			
-			group.FinalizeLoad();
-		}
+		});
 
-		foreach (WorldEvent eventToHappen in EventsToHappen) {
-		
-			eventToHappen.World = this;
+		CellGroups.ForEach (g => {
 
-			eventToHappen.FinalizeLoad();
-		}
+			g.World = this;
+			g.FinalizeLoad ();
+		});
+
+		EventsToHappen.ForEach (e => {
+
+			e.World = this;
+			e.FinalizeLoad ();
+		});
 
 		EventsToHappen.Sort ((a, b) => {
 
@@ -452,10 +450,7 @@ public class World {
 			return 0;
 		});
 
-		foreach (CulturalSkillInfo skillInfo in CulturalSkillInfoList) {
-		
-			_culturalSkillInfoIdList.Add (skillInfo.Id);
-		}
+		CulturalSkillInfoList.ForEach (s => _culturalSkillInfoIdList.Add (s.Id));
 	}
 
 	public void MigrationTagGroup (HumanGroup group) {
@@ -1045,6 +1040,9 @@ public class World {
 					}
 				}
 
+				float altitudeSurvivabilityFactor = 1 - (cell.Altitude / MaxPossibleAltitude);
+
+				cell.Survivability *= altitudeSurvivabilityFactor;
 			}
 			
 			ProgressCastMethod (_accumulatedProgress + _progressIncrement * (i + 1)/(float)sizeX);
