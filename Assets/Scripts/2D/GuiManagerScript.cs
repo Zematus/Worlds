@@ -200,7 +200,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 			Manager.GenerateTextures ();
 
-			PlanetScript.RefreshTexture ();
+			//PlanetScript.RefreshTexture ();
 			MapScript.RefreshTexture ();
 
 			_mapUpdateCount++;

@@ -52,8 +52,7 @@ public class World {
 	
 	[XmlAttribute]
 	public int TerrainCellChangesListCount { get; private set; }
-	
-	[XmlAttribute]
+
 	public List<CulturalSkillInfo> CulturalSkillInfoList = new List<CulturalSkillInfo> ();
 
 	[XmlArrayItem(Type = typeof(UpdateCellGroupEvent)),

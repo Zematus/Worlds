@@ -199,7 +199,7 @@ public class CellGroup : HumanGroup {
 		List<TerrainCell> possibleTargetCells = new List<TerrainCell> (Cell.Neighbors);
 		possibleTargetCells.Add (Cell);
 
-		float noMigrationPreference = 20f;
+		float noMigrationPreference = 10f;
 
 		CellMigrationValue = 0;
 		float totalMigrationValue = 0;

@@ -350,7 +350,7 @@ public class Manager {
 	
 	public static void GenerateTextures () { 
 
-		GenerateSphereTextureFromWorld(CurrentWorld);
+		//GenerateSphereTextureFromWorld(CurrentWorld);
 		GenerateMapTextureFromWorld(CurrentWorld);
 	}
 
@@ -558,15 +558,13 @@ public class Manager {
 
 		UpdateMapTextureColors (_manager._currentMapTextureColors);
 		CurrentMapTexture.SetPixels32 (_manager._currentMapTextureColors);
-		
-		//CurrentMapTexture.Compress (true);
+
 		CurrentMapTexture.Apply ();
 
-		UpdateSphereTextureColors (_manager._currentSphereTextureColors);
-		CurrentSphereTexture.SetPixels32 (_manager._currentSphereTextureColors);
-		
-		//CurrentSphereTexture.Compress (true);
-		CurrentSphereTexture.Apply ();
+//		UpdateSphereTextureColors (_manager._currentSphereTextureColors);
+//		CurrentSphereTexture.SetPixels32 (_manager._currentSphereTextureColors);
+//
+//		CurrentSphereTexture.Apply ();
 
 		UpdatedCells.Clear ();
 	}
@@ -641,7 +639,6 @@ public class Manager {
 		
 		texture.SetPixels32 (textureColors);
 
-		//texture.Compress (true);
 		texture.Apply();
 		
 		_manager._currentMapTextureColors = textureColors;
@@ -724,7 +721,6 @@ public class Manager {
 
 		texture.SetPixels32 (textureColors);
 
-		//texture.Compress (true);
 		texture.Apply();
 
 		_manager._currentSphereTextureColors = textureColors;
