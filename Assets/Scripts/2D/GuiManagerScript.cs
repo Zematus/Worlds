@@ -212,7 +212,8 @@ public class GuiManagerScript : MonoBehaviour {
 				_accIterations -= _iterationsPerRefresh;
 
 				if ((_planetOverlay == PlanetOverlay.Population) || 
-				    (_planetOverlay == PlanetOverlay.CulturalSkill)) {
+				    (_planetOverlay == PlanetOverlay.CulturalSkill) || 
+				    (_planetOverlay == PlanetOverlay.CulturalKnowledge)) {
 					Manager.UpdateTextures ();
 					
 					_mapUpdateCount++;
@@ -566,6 +567,9 @@ public class GuiManagerScript : MonoBehaviour {
 		case PlanetOverlay.CulturalSkill: 
 			planetOverlayStr = "_cultural_skill_" + _planetOverlaySubtype; 
 			break;
+		case PlanetOverlay.CulturalKnowledge: 
+			planetOverlayStr = "_cultural_knowledge_" + _planetOverlaySubtype; 
+			break;
 		default: throw new System.Exception("Unexpected planet overlay type: " + _planetOverlay);
 		}
 
@@ -678,6 +682,8 @@ public class GuiManagerScript : MonoBehaviour {
 			SetPopulationOverlay ();
 		} else if (OverlayDialogPanelScript.CulturalSkillToggle.isOn) {
 			SetCulturalSkillOverlay ();
+		} else if (OverlayDialogPanelScript.CulturalKnowledgeToggle.isOn) {
+			SetCulturalKnowledgeOverlay ();
 		} else {
 			UnsetOverlay();
 		}
@@ -691,7 +697,8 @@ public class GuiManagerScript : MonoBehaviour {
 			return;
 
 		menusNeedUpdate = false;
-
+		
+		OverlayDialogPanelScript.CulturalKnowledgeToggle.isOn = false;
 		OverlayDialogPanelScript.CulturalSkillToggle.isOn = false;
 		OverlayDialogPanelScript.PopulationToggle.isOn = false;
 		OverlayDialogPanelScript.RainfallToggle.isOn = false;
@@ -700,6 +707,12 @@ public class GuiManagerScript : MonoBehaviour {
 		SelectionPanelScript.SetVisible (false);
 
 		switch (_planetOverlay) {
+			
+		case PlanetOverlay.CulturalKnowledge:
+			OverlayDialogPanelScript.CulturalKnowledgeToggle.isOn = true;
+			
+			SelectionPanelScript.SetVisible (true);
+			break;
 			
 		case PlanetOverlay.CulturalSkill:
 			OverlayDialogPanelScript.CulturalSkillToggle.isOn = true;
@@ -816,6 +829,37 @@ public class GuiManagerScript : MonoBehaviour {
 
 		SelectionPanelScript.SetVisible (true);
 	}
+	
+	public void SetCulturalKnowledgeOverlay () {
+		
+		_regenTextures |= _planetOverlay != PlanetOverlay.CulturalKnowledge;
+		
+		_planetOverlay = PlanetOverlay.CulturalKnowledge;
+		
+		SelectionPanelScript.Title.text = "Displayed Cultural Knowledge:";
+		
+		foreach (CulturalKnowledgeInfo knowledgeInfo in Manager.CurrentWorld.CulturalKnowledgeInfoList) {
+			
+			string knowledgeName = knowledgeInfo.Name;
+			string knowledgeId = knowledgeInfo.Id;
+			
+			SelectionPanelScript.AddOption (knowledgeName, (state) => {
+				if (state) {
+					_planetOverlaySubtype = knowledgeId;
+				} else if (_planetOverlaySubtype == knowledgeId) {
+					_planetOverlaySubtype = "None";
+				}
+				
+				_regenTextures = true;
+			});
+			
+			if (_planetOverlaySubtype == knowledgeId) {
+				SelectionPanelScript.SetStateOption (knowledgeName, true);
+			}
+		}
+		
+		SelectionPanelScript.SetVisible (true);
+	}
 
 	public void UpdateSelectionMenu () {
 
@@ -841,6 +885,29 @@ public class GuiManagerScript : MonoBehaviour {
 				
 				if (_planetOverlaySubtype == skillId) {
 					SelectionPanelScript.SetStateOption (skillName, true);
+				}
+			}
+		}
+		
+		if (_planetOverlay == PlanetOverlay.CulturalKnowledge) {
+			
+			foreach (CulturalKnowledgeInfo knowledgeInfo in Manager.CurrentWorld.CulturalKnowledgeInfoList) {
+				
+				string knowledgeName = knowledgeInfo.Name;
+				string knowledgeId = knowledgeInfo.Id;
+				
+				SelectionPanelScript.AddOption (knowledgeName, (state) => {
+					if (state) {
+						_planetOverlaySubtype = knowledgeId;
+					} else if (_planetOverlaySubtype == knowledgeId) {
+						_planetOverlaySubtype = "None";
+					}
+					
+					_regenTextures = true;
+				});
+				
+				if (_planetOverlaySubtype == knowledgeId) {
+					SelectionPanelScript.SetStateOption (knowledgeName, true);
 				}
 			}
 		}
@@ -967,12 +1034,42 @@ public class GuiManagerScript : MonoBehaviour {
 				InfoPanelText.text += "\nNext Update Date: " + nextUpdateDate;
 				InfoPanelText.text += "\nTime between updates: " + (nextUpdateDate - lastUpdateDate);
 
-				InfoPanelText.text += "\n";
-				InfoPanelText.text += "\nCultural Skills";
+				bool firstSkill = true;
 
 				foreach (CulturalSkill skill in cell.Group.Culture.Skills) {
+
+					float skillValue = skill.Value;
+
+					if (skillValue >= 0.001) {
+
+						if (firstSkill) {
+							InfoPanelText.text += "\n";
+							InfoPanelText.text += "\nCultural Skills";
+
+							firstSkill = false;
+						}
+
+						InfoPanelText.text += "\n\t" + skill.Id + " - Value: " + skill.Value.ToString("0.000");
+					}
+				}
+
+				bool firstKnowledge = true;
+				
+				foreach (CulturalKnowledge knowledge in cell.Group.Culture.Knowledges) {
 					
-					InfoPanelText.text += "\n\t" + skill.Id + " - Value: " + skill.Value.ToString("0.000");
+					float knowledgeValue = knowledge.Value;
+					
+					if (knowledgeValue >= 0.001) {
+						
+						if (firstKnowledge) {
+							InfoPanelText.text += "\n";
+							InfoPanelText.text += "\nCultural Knowledges";
+							
+							firstKnowledge = false;
+						}
+
+						InfoPanelText.text += "\n\t" + knowledge.Id + " - Value: " + knowledge.Value.ToString("0.000");
+					}
 				}
 			}
 		}

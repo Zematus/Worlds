@@ -4,180 +4,13 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
-public class CulturalSkillInfo {
-
-	[XmlAttribute]
-	public string Id;
-	
-	[XmlAttribute]
-	public string Name;
-	
-	public CulturalSkillInfo () {
-	}
-	
-	public CulturalSkillInfo (string id, string name) {
-		
-		Id = id;
-		
-		Name = name;
-	}
-	
-	public CulturalSkillInfo (CulturalSkillInfo baseInfo) {
-		
-		Id = baseInfo.Id;
-		
-		Name = baseInfo.Name;
-	}
-}
-
-public static class CulturalSkillHelper {
-
-	public static CulturalSkill CopyWithGroup (this CulturalSkill skill, CellGroup group) {
-		
-		System.Type skillType = skill.GetType ();
-		
-		System.Reflection.ConstructorInfo cInfo = skillType.GetConstructor (new System.Type[] {typeof(CellGroup), skillType});
-		
-		return cInfo.Invoke (new object[] {group, skill}) as CulturalSkill;
-	}
-}
-
-public abstract class CulturalSkill : CulturalSkillInfo {
-	
-	[XmlAttribute]
-	public float Value;
-	
-	[XmlAttribute]
-	public float AdaptationLevel;
-
-	[XmlIgnore]
-	public CellGroup Group;
-	
-	public CulturalSkill () {
-	}
-
-	public CulturalSkill (CellGroup group, string id, string name, float value) : base (id, name) {
-
-		Group = group;
-		Value = value;
-	}
-
-	public void MergeSkill (CulturalSkill skill, float percentage) {
-	
-		Value = Value * (1f - percentage) + skill.Value * percentage;
-	}
-	
-	public void ModifyValue (float percentage) {
-		
-		Value *= percentage;
-	}
-
-	public virtual void FinalizeLoad () {
-
-	}
-
-	public abstract void Update (int timeSpan);
-}
-
-public class BiomeSurvivalSkill : CulturalSkill {
-
-	public const float TimeEffectConstant = CellGroup.GenerationTime * 500;
-	
-	[XmlAttribute]
-	public string BiomeName;
-	
-	private float _neighborhoodBiomePresence;
-
-	public static string GenerateId (Biome biome) {
-	
-		return "BiomeSurvivalSkill_" + biome.Id;
-	}
-	
-	public static string GenerateName (Biome biome) {
-		
-		return biome.Name + " Survival";
-	}
-	
-	public BiomeSurvivalSkill () {
-
-	}
-
-	public BiomeSurvivalSkill (CellGroup group, Biome biome, float value) : base (group, GenerateId (biome), GenerateName (biome), value) {
-	
-		BiomeName = biome.Name;
-		
-		CalculateNeighborhoodBiomePresence ();
-	}
-
-	public BiomeSurvivalSkill (CellGroup group, BiomeSurvivalSkill baseSkill) : base (group, baseSkill.Id, baseSkill.Name, baseSkill.Value) {
-
-		BiomeName = baseSkill.BiomeName;
-		
-		CalculateNeighborhoodBiomePresence ();
-	}
-
-	public override void FinalizeLoad () {
-
-		base.FinalizeLoad ();
-
-		CalculateNeighborhoodBiomePresence ();
-	}
-	
-	public void CalculateNeighborhoodBiomePresence () {
-
-		int groupCellBonus = 4;
-		int cellCount = groupCellBonus;
-		
-		TerrainCell groupCell = Group.Cell;
-		
-		float totalPresence = groupCell.GetBiomePresence (BiomeName) * groupCellBonus;
-		
-		groupCell.GetNeighborCells ().ForEach (c => {
-			
-			totalPresence += c.GetBiomePresence (BiomeName);
-			cellCount++;
-		});
-		
-		_neighborhoodBiomePresence = totalPresence / cellCount;
-
-		if ((_neighborhoodBiomePresence < 0) || (_neighborhoodBiomePresence > 1)) {
-		
-			throw new System.Exception ("Neighborhood Biome Presence outside range: " + _neighborhoodBiomePresence);
-		}
-		
-		AdaptationLevel = 1 - Mathf.Abs (Value - _neighborhoodBiomePresence);
-	}
-
-	public override void Update (int timeSpan) {
-
-		TerrainCell groupCell = Group.Cell;
-
-		float randomModifier = _neighborhoodBiomePresence - groupCell.GetNextLocalRandomFloat ();
-
-		float targetValue = 0;
-
-		if (randomModifier > 0) {
-			targetValue = Value + (1 - Value) * randomModifier;
-		} else {
-			targetValue = Value * (1 + randomModifier);
-		}
-
-		float presenceEffect = Mathf.Abs (Value - _neighborhoodBiomePresence);
-		
-		float timeEffect = timeSpan / (float)(timeSpan + TimeEffectConstant);
-
-		float factor = timeEffect * presenceEffect;
-		
-		Value = (Value * (1 - factor)) + (targetValue * factor);
-
-		AdaptationLevel = 1 - Mathf.Abs (Value - _neighborhoodBiomePresence);
-	}
-}
-
 public abstract class Culture {
 
 	[XmlArrayItem(Type = typeof(BiomeSurvivalSkill))]
 	public List<CulturalSkill> Skills = new List<CulturalSkill> ();
+	
+	[XmlArrayItem(Type = typeof(ShipbuildingKnowledge))]
+	public List<CulturalKnowledge> Knowledges = new List<CulturalKnowledge> ();
 	
 	public Culture () {
 	}
@@ -189,11 +22,28 @@ public abstract class Culture {
 		Skills.Add (skill);
 	}
 	
+	protected void AddKnowledge (World world, CulturalKnowledge knowledge) {
+		
+		world.AddExistingCulturalKnowledgeInfo (knowledge);
+		
+		Knowledges.Add (knowledge);
+	}
+	
 	public CulturalSkill GetSkill (string id) {
 		
 		foreach (CulturalSkill skill in Skills) {
 			
 			if (skill.Id == id) return skill;
+		}
+		
+		return null;
+	}
+	
+	public CulturalKnowledge GetKnowledge (string id) {
+		
+		foreach (CulturalKnowledge knowledge in Knowledges) {
+			
+			if (knowledge.Id == id) return knowledge;
 		}
 		
 		return null;
@@ -204,6 +54,11 @@ public class CellCulture : Culture {
 
 	[XmlIgnore]
 	public CellGroup Group;
+	
+	[XmlIgnore]
+	public Dictionary<string, CulturalSkill> SkillsToLearn = new Dictionary<string, CulturalSkill> ();
+	[XmlIgnore]
+	public Dictionary<string, CulturalKnowledge> KnowledgesToLearn = new Dictionary<string, CulturalKnowledge> ();
 
 	public CellCulture () {
 	}
@@ -220,9 +75,20 @@ public class CellCulture : Culture {
 		baseCulture.Skills.ForEach (s => Skills.Add (s.CopyWithGroup (group)));
 	}
 	
-	public void AddSkill (CulturalSkill skill) {
+	public void AddSkillToLearn (CulturalSkill skill) {
+
+		if (SkillsToLearn.ContainsKey (skill.Id))
+			return;
+
+		SkillsToLearn.Add (skill.Id, skill);
+	}
+	
+	public void AddKnowledgeToLearn (CulturalKnowledge knowledge) {
 		
-		AddSkill (Group.World, skill);
+		if (KnowledgesToLearn.ContainsKey (knowledge.Id))
+			return;
+
+		KnowledgesToLearn.Add (knowledge.Id, knowledge);
 	}
 	
 	public void MergeCulture (CellCulture sourceCulture, float percentage) {
@@ -232,12 +98,26 @@ public class CellCulture : Culture {
 			CulturalSkill skill = GetSkill (s.Id);
 			
 			if (skill == null) {
-				skill = s.CopyWithGroup (s.Group);
+				skill = s.CopyWithGroup (Group);
 				skill.ModifyValue (percentage);
 				
 				Skills.Add (skill);
 			} else {
-				skill.MergeSkill (s, percentage);
+				skill.Merge (s, percentage);
+			}
+		});
+		
+		sourceCulture.Knowledges.ForEach (k => {
+			
+			CulturalKnowledge knowledge = GetKnowledge (k.Id);
+			
+			if (knowledge == null) {
+				knowledge = k.CopyWithGroup (Group);
+				knowledge.ModifyValue (percentage);
+				
+				Knowledges.Add (knowledge);
+			} else {
+				knowledge.Merge (k, percentage);
 			}
 		});
 	}
@@ -248,27 +128,27 @@ public class CellCulture : Culture {
 		
 			skill.Update (timeSpan);
 		}
-	}
 
-	public float AverageSkillAdaptationLevel () {
-
-		if (Skills.Count == 0)
-			throw new System.Exception ("Group has no cultural skills");
-
-		float totalAdaptationLevel = 0;
-
-		foreach (CulturalSkill skill in Skills) {
+		foreach (CulturalKnowledge knowledge in Knowledges) {
 			
-			totalAdaptationLevel += skill.AdaptationLevel;
+			knowledge.Update (timeSpan);
 		}
 
-		return totalAdaptationLevel / (float)Skills.Count;
+		foreach (CulturalSkill skill in SkillsToLearn.Values) {
+		
+			AddSkill (Group.World, skill);
+		}
+		
+		foreach (CulturalKnowledge knowledge in KnowledgesToLearn.Values) {
+			
+			AddKnowledge (Group.World, knowledge);
+		}
+
+		SkillsToLearn.Clear ();
+		KnowledgesToLearn.Clear ();
 	}
 	
 	public float MinimumSkillAdaptationLevel () {
-		
-		if (Skills.Count == 0)
-			throw new System.Exception ("Group has no cultural skills");
 		
 		float minAdaptationLevel = 1f;
 		
@@ -284,12 +164,34 @@ public class CellCulture : Culture {
 		return minAdaptationLevel;
 	}
 	
+	public float MinimumKnowledgeProgressLevel () {
+		
+		float minProgressLevel = 1f;
+		
+		foreach (CulturalKnowledge knowledge in Knowledges) {
+			
+			float level = knowledge.GetModifiedProgressLevel ();
+			
+			if (level < minProgressLevel) {
+				minProgressLevel = level;
+			}
+		}
+		
+		return minProgressLevel;
+	}
+	
 	public void FinalizeLoad () {
 
 		Skills.ForEach (s => {
 
 			s.Group = Group;
 			s.FinalizeLoad ();
+		});
+
+		Knowledges.ForEach (k => {
+
+			k.Group = Group;
+			k.FinalizeLoad ();
 		});
 	}
 }

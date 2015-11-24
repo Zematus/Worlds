@@ -45,9 +45,6 @@ public class MigratingGroup : HumanGroup {
 	
 	public bool SplitFromSourceGroup () {
 		
-		if (SourceGroup == null)
-			return false;
-		
 		if (!SourceGroup.StillPresent)
 			return false;
 		

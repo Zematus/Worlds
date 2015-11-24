@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using System.Xml;
@@ -19,7 +19,8 @@ public enum PlanetOverlay {
 	Temperature,
 	Rainfall,
 	Population,
-	CulturalSkill
+	CulturalSkill,
+	CulturalKnowledge
 }
 
 public delegate T ManagerTaskDelegate<T> ();
@@ -955,6 +956,10 @@ public class Manager {
 			color = SetCulturalSkillOverlayColor(cell, color);
 			break;
 			
+		case PlanetOverlay.CulturalKnowledge:
+			color = SetCulturalKnowledgeOverlayColor(cell, color);
+			break;
+			
 		case PlanetOverlay.Temperature:
 			color = SetTemperatureOverlayColor(cell, color);
 			break;
@@ -1112,7 +1117,7 @@ public class Manager {
 		if (_planetOverlaySubtype == "None")
 			return color;
 
-		float skillLevel = 0;
+		float skillValue = 0;
 		float population = 0;
 
 		if (cell.Group != null) {
@@ -1122,13 +1127,54 @@ public class Manager {
 			population = cell.Group.Population;
 
 			if (skill != null) {
-				skillLevel = cell.Group.Population * skill.Value;
+				skillValue = skill.Value;
 			}
 		}
 		
-		if (population > 0) {
+		if ((population > 0) && (skillValue >= 0.001f)) {
 			
-			float value = 0.1f + 0.9f * skillLevel / population;
+			float value = 0.1f + 0.9f * skillValue;
+			
+			color = (color * (1 - value)) + (Color.cyan * value);
+		}
+		
+		return color;
+	}
+	
+	private static Color SetCulturalKnowledgeOverlayColor (TerrainCell cell, Color color) {
+		
+		float greyscale = (color.r + color.g + color.b);
+		
+		color.r = (greyscale + color.r) / 6f;
+		color.g = (greyscale + color.g) / 6f;
+		color.b = (greyscale + color.b) / 6f;
+		
+		if (_planetOverlaySubtype == "None")
+			return color;
+		
+		float normalizedValue = 0;
+		float population = 0;
+		
+		if (cell.Group != null) {
+			
+			CulturalKnowledge knowledge = cell.Group.Culture.GetKnowledge(_planetOverlaySubtype);
+			
+			population = cell.Group.Population;
+			
+			if (knowledge != null) {
+				
+				float highestAsymptote = knowledge.GetHighestAsymptote ();
+				
+				if (highestAsymptote <= 0)
+					throw new System.Exception ("Highest Asymptote is less or equal to 0");
+
+				normalizedValue = knowledge.Value / highestAsymptote;
+			}
+		}
+		
+		if ((population > 0) && (normalizedValue >= 0.001f)) {
+			
+			float value = 0.1f + 0.9f * normalizedValue;
 			
 			color = (color * (1 - value)) + (Color.cyan * value);
 		}

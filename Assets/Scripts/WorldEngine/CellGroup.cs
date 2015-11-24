@@ -40,6 +40,11 @@ public class CellGroup : HumanGroup {
 	public int CellLongitude;
 	[XmlAttribute]
 	public int CellLatitude;
+	
+	[XmlAttribute]
+	public bool HasMigrationEvent = false;
+	[XmlAttribute]
+	public bool HasKnowledgeTransferEvent = false;
 
 	public CellCulture Culture;
 	
@@ -103,11 +108,20 @@ public class CellGroup : HumanGroup {
 		World.UpdateMostPopulousGroup (this);
 		
 		OptimalPopulation = CalculateOptimalPopulation (Cell);
+
+		if (ShipbuildingDiscoveryEvent.CanSpawnIn (this)) {
+
+			int triggerDate = ShipbuildingDiscoveryEvent.CalculateTriggerDate (this);
+			
+			World.InsertEventToHappen (new ShipbuildingDiscoveryEvent (World, triggerDate, this));
+		}
 	}
 
 	public void InitializeBiomeSurvivalSkills () {
 
-		foreach (string biomeName in Cell.PresentBiomeNames) {
+		foreach (string biomeName in GetPresentBiomesInNeighborhood ()) {
+			
+			if (biomeName == "Ocean") continue;
 
 			Biome biome = Biome.Biomes[biomeName];
 		
@@ -115,9 +129,29 @@ public class CellGroup : HumanGroup {
 
 			if (Culture.GetSkill (skillId) == null) {
 				
-				Culture.AddSkill (new BiomeSurvivalSkill (this, biome, 0.0f));
+				Culture.AddSkillToLearn (new BiomeSurvivalSkill (this, biome));
 			}
 		}
+	}
+
+	public HashSet<string> GetPresentBiomesInNeighborhood () {
+	
+		HashSet<string> biomeNames = new HashSet<string> ();
+		
+		foreach (string biomeName in Cell.PresentBiomeNames) {
+
+			biomeNames.Add (biomeName);
+		}
+
+		foreach (TerrainCell neighborCell in Cell.GetNeighborCells ()) {
+			
+			foreach (string biomeName in neighborCell.PresentBiomeNames) {
+				
+				biomeNames.Add (biomeName);
+			}
+		}
+
+		return biomeNames;
 	}
 
 	public void MergeGroup (MigratingGroup group, int splitPopulation, CellCulture splitCulture) {
@@ -164,11 +198,35 @@ public class CellGroup : HumanGroup {
 		
 		OptimalPopulation = CalculateOptimalPopulation (Cell);
 		
-		ConsiderMigration();
+		ConsiderMigration ();
+
+		ConsiderKnowledgeTransfer ();
 		
-		NextUpdateDate = CalculateNextUpdateDate();
+		NextUpdateDate = CalculateNextUpdateDate ();
 		
 		World.InsertEventToHappen (new UpdateCellGroupEvent (World, NextUpdateDate, this));
+	}
+
+	public void ConsiderKnowledgeTransfer () {
+
+		if (HasKnowledgeTransferEvent)
+			return;
+	
+		float transferValue = 0;
+
+		CellGroup targetGroup = KnowledgeTransferEvent.DiscoverTargetGroup (this, out transferValue);
+
+		if (targetGroup == null)
+			return;
+
+		if (transferValue <= 0)
+			return;
+
+		int triggerDate = KnowledgeTransferEvent.CalculateTriggerDate (this, transferValue);
+
+		World.InsertEventToHappen (new KnowledgeTransferEvent (World, triggerDate, this, targetGroup));
+
+		HasKnowledgeTransferEvent = true;
 	}
 	
 	private float CalculateAltitudeDeltaMigrationFactor (TerrainCell targetCell) {
@@ -194,12 +252,15 @@ public class CellGroup : HumanGroup {
 
 	public void ConsiderMigration () {
 
+		if (HasMigrationEvent)
+			return;
+
 		float score = Cell.GetNextLocalRandomFloat ();
 
 		List<TerrainCell> possibleTargetCells = new List<TerrainCell> (Cell.Neighbors);
 		possibleTargetCells.Add (Cell);
 
-		float noMigrationPreference = 10f;
+		float noMigrationPreference = 5f;
 
 		CellMigrationValue = 0;
 		float totalMigrationValue = 0;
@@ -276,6 +337,8 @@ public class CellGroup : HumanGroup {
 		MigratingGroup migratingGroup = new MigratingGroup (World, percentToMigrate, this, targetCell);
 		
 		World.InsertEventToHappen (new MigrateGroupEvent (World, nextDate, travelTime, migratingGroup));
+
+		HasMigrationEvent = true;
 	}
 
 	public void Destroy () {
@@ -364,13 +427,16 @@ public class CellGroup : HumanGroup {
 
 		float randomFactor = Cell.GetNextLocalRandomFloat ();
 
-		float migrationFactor = 0.1f + (CellMigrationValue * 0.9f);
+		float migrationFactor = CellMigrationValue;
 
-		float skillLevelFactor = (1 + 99 * Culture.MinimumSkillAdaptationLevel ()) / 100f;
+		float skillLevelFactor = Culture.MinimumSkillAdaptationLevel ();
+		
+		float knowledgeLevelFactor = Culture.MinimumKnowledgeProgressLevel ();
 
 		float populationFactor = 1 + Mathf.Abs (OptimalPopulation - Population);
+		populationFactor = (10000 + OptimalPopulation) / populationFactor;
 
-		float mixFactor = randomFactor * migrationFactor * skillLevelFactor * (10000 + OptimalPopulation) / populationFactor;
+		float mixFactor = randomFactor * migrationFactor * skillLevelFactor * knowledgeLevelFactor * populationFactor;
 
 		int finalFactor = (int)Mathf.Max(mixFactor, 1);
 

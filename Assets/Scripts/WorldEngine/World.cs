@@ -53,15 +53,18 @@ public class World {
 	[XmlAttribute]
 	public int TerrainCellChangesListCount { get; private set; }
 
-	public List<CulturalSkillInfo> CulturalSkillInfoList = new List<CulturalSkillInfo> ();
-
 	[XmlArrayItem(Type = typeof(UpdateCellGroupEvent)),
-	 XmlArrayItem(Type = typeof(MigrateGroupEvent))]
+	 XmlArrayItem(Type = typeof(MigrateGroupEvent)),
+	 XmlArrayItem(Type = typeof(ShipbuildingDiscoveryEvent)),
+	 XmlArrayItem(Type = typeof(KnowledgeTransferEvent))]
 	public List<WorldEvent> EventsToHappen = new List<WorldEvent> ();
 	
 	public List<CellGroup> CellGroups = new List<CellGroup> ();
 
 	public List<TerrainCellChanges> TerrainCellChangesList = new List<TerrainCellChanges> ();
+	
+	public List<CulturalSkillInfo> CulturalSkillInfoList = new List<CulturalSkillInfo> ();
+	public List<CulturalKnowledgeInfo> CulturalKnowledgeInfoList = new List<CulturalKnowledgeInfo> ();
 	
 	[XmlIgnore]
 	public float MinPossibleAltitudeWithOffset = MinPossibleAltitude - Manager.SeaLevelOffset;
@@ -107,10 +110,13 @@ public class World {
 	
 	[XmlIgnore]
 	public TerrainCell ObservedCell = null;
+	
+	private List<IGroupAction> _groupActionsToPerform = new List<IGroupAction> ();
 
 	private HashSet<int> _terrainCellChangesListIndexes = new HashSet<int> ();
 	
 	private HashSet<string> _culturalSkillInfoIdList = new HashSet<string> ();
+	private HashSet<string> _culturalSkillKnowledgeIdList = new HashSet<string> ();
 	
 	private HashSet<CellGroup> _updatedGroups = new HashSet<CellGroup> ();
 	
@@ -225,6 +231,11 @@ public class World {
 		return null;
 	}
 
+	public void AddGroupActionToPerform (KnowledgeTransferAction action) {
+	
+		_groupActionsToPerform.Add (action);
+	}
+
 	public void AddExistingCulturalSkillInfo (CulturalSkillInfo baseInfo) {
 
 		if (_culturalSkillInfoIdList.Contains (baseInfo.Id))
@@ -232,6 +243,15 @@ public class World {
 	
 		CulturalSkillInfoList.Add (new CulturalSkillInfo (baseInfo));
 		_culturalSkillInfoIdList.Add (baseInfo.Id);
+	}
+	
+	public void AddExistingCulturalKnowledgeInfo (CulturalKnowledgeInfo baseInfo) {
+		
+		if (_culturalSkillKnowledgeIdList.Contains (baseInfo.Id))
+			return;
+		
+		CulturalKnowledgeInfoList.Add (new CulturalKnowledgeInfo (baseInfo));
+		_culturalSkillKnowledgeIdList.Add (baseInfo.Id);
 	}
 
 	public void UpdateMostPopulousGroup (CellGroup contenderGroup) {
@@ -316,6 +336,17 @@ public class World {
 
 			group.MoveToCell();
 		}
+		
+		//
+		// Perform Group Actions
+		//
+
+		foreach (IGroupAction action in _groupActionsToPerform) {
+		
+			action.Perform ();
+		}
+
+		_groupActionsToPerform.Clear ();
 		
 		//
 		// Set next group updates
@@ -450,6 +481,7 @@ public class World {
 		});
 
 		CulturalSkillInfoList.ForEach (s => _culturalSkillInfoIdList.Add (s.Id));
+		CulturalKnowledgeInfoList.ForEach (k => _culturalSkillKnowledgeIdList.Add (k.Id));
 	}
 
 	public void MigrationTagGroup (HumanGroup group) {
