@@ -39,7 +39,7 @@ public abstract class CulturalKnowledge : CulturalKnowledgeInfo {
 	public float ProgressLevel;
 	
 	[XmlAttribute]
-	protected float Asymptote = 0;
+	protected float Asymptote;
 
 	[XmlIgnore]
 	public CellGroup Group;
@@ -124,7 +124,7 @@ public abstract class CulturalKnowledge : CulturalKnowledgeInfo {
 		ProgressLevel = Value / Asymptote;
 	}
 
-	private void RecalculateAsymptoteInternal () {
+	protected void RecalculateAsymptoteInternal () {
 
 		RecalculateAsymptote ();
 		UpdateProgressLevel ();
@@ -187,7 +187,7 @@ public class ShipbuildingKnowledge : CulturalKnowledge {
 		
 		float totalPresence = groupCell.GetBiomePresence ("Ocean") * groupCellBonus;
 		
-		groupCell.GetNeighborCells ().ForEach (c => {
+		groupCell.Neighbors.ForEach (c => {
 			
 			totalPresence += c.GetBiomePresence ("Ocean");
 			cellCount++;
@@ -227,12 +227,11 @@ public class ShipbuildingKnowledge : CulturalKnowledge {
 		
 		Value = (Value * (1 - factor)) + (targetValue * factor);
 
+		RecalculateAsymptoteInternal ();
+
 		if (Value > Asymptote) {
-		
 			throw new System.Exception ("Value higher than asymptote: " + Value);
 		}
-
-		UpdateProgressLevel ();
 	}
 
 	public override void RecalculateAsymptote ()

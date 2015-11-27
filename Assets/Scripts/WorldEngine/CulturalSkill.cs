@@ -130,7 +130,7 @@ public class BiomeSurvivalSkill : CulturalSkill {
 		
 		float totalPresence = groupCell.GetBiomePresence (BiomeName) * groupCellBonus;
 		
-		groupCell.GetNeighborCells ().ForEach (c => {
+		groupCell.Neighbors.ForEach (c => {
 			
 			totalPresence += c.GetBiomePresence (BiomeName);
 			cellCount++;

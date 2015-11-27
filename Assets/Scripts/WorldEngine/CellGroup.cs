@@ -17,6 +17,9 @@ public class CellGroup : HumanGroup {
 	public const float PopulationConstant = 10;
 
 	public const float TravelTimeFactor = 1;
+
+	public const float MinKnowledgeValue = 1f;
+	public const float MinKnowledgeTransferValue = 0.05f;
 	
 	[XmlAttribute]
 	public float ExactPopulation;
@@ -143,7 +146,7 @@ public class CellGroup : HumanGroup {
 			biomeNames.Add (biomeName);
 		}
 
-		foreach (TerrainCell neighborCell in Cell.GetNeighborCells ()) {
+		foreach (TerrainCell neighborCell in Cell.Neighbors) {
 			
 			foreach (string biomeName in neighborCell.PresentBiomeNames) {
 				
@@ -185,6 +188,11 @@ public class CellGroup : HumanGroup {
 	public void Update () {
 
 		UpdateInternal ();
+	}
+
+	public void PostUpdate () {
+	
+		Culture.PostUpdate ();
 	}
 
 	public void SetupForNextUpdate () {
@@ -255,8 +263,6 @@ public class CellGroup : HumanGroup {
 		if (HasMigrationEvent)
 			return;
 
-		float score = Cell.GetNextLocalRandomFloat ();
-
 		List<TerrainCell> possibleTargetCells = new List<TerrainCell> (Cell.Neighbors);
 		possibleTargetCells.Add (Cell);
 
@@ -265,7 +271,7 @@ public class CellGroup : HumanGroup {
 		CellMigrationValue = 0;
 		float totalMigrationValue = 0;
 
-		TerrainCell targetCell = MathUtility.WeightedSelection (score, possibleTargetCells, (c) => {
+		TerrainCell targetCell = CollectionUtility.WeightedSelection (possibleTargetCells, (c) => {
 
 			float areaFactor = Cell.Area / TerrainCell.MaxArea;
 
@@ -298,7 +304,7 @@ public class CellGroup : HumanGroup {
 			totalMigrationValue += cellValue;
 
 			return cellValue;
-		});
+		}, Cell.GetNextLocalRandomFloat);
 		
 		if (totalMigrationValue <= 0) {
 			CellMigrationValue = 1;
@@ -359,6 +365,8 @@ public class CellGroup : HumanGroup {
 		UpdatePopulation (timeSpan);
 		UpdateCulture (timeSpan);
 		
+		AbsorbKnowledgeFromNeighbors ();
+		
 		LastUpdateDate = World.CurrentDate;
 		
 		World.AddUpdatedGroup (this);
@@ -372,6 +380,58 @@ public class CellGroup : HumanGroup {
 	private void UpdateCulture (int timeSpan) {
 		
 		Culture.Update (timeSpan);
+	}
+
+	private void AbsorbKnowledgeFromNeighbors () {
+	
+		GetNeighborGroups ().ForEach (g => {
+			
+			float populationFactor = Mathf.Min (1, g.Population / (float)Population);
+
+			g.Culture.Knowledges.ForEach (k => {
+
+				if (k.Value < MinKnowledgeValue) return;
+
+				Culture.TransferKnowledge (k, populationFactor);
+			});
+		});
+	}
+
+	public List<CellGroup> GetNeighborGroups () {
+
+		return Cell.Neighbors.FindAll (c => c.Group != null).Process (c => c.Group);
+	}
+
+	public static float CalculateKnowledgeTransferValue (CellGroup sourceGroup, CellGroup targetGroup) {
+		
+		float maxTransferValue = 0;
+		
+		if (sourceGroup == null)
+			return maxTransferValue;
+		
+		if (targetGroup == null)
+			return maxTransferValue;
+		
+		if (!sourceGroup.StillPresent)
+			return maxTransferValue;
+		
+		if (!targetGroup.StillPresent)
+			return maxTransferValue;
+		
+		foreach (CulturalKnowledge sourceKnowledge in sourceGroup.Culture.Knowledges) {
+			
+			if (sourceKnowledge.Value <= MinKnowledgeValue) continue;
+			
+			CulturalKnowledge targetKnowledge = targetGroup.Culture.GetKnowledge (sourceKnowledge.Id);
+			
+			if (targetKnowledge == null) {
+				maxTransferValue = 1;
+			} else {
+				maxTransferValue = Mathf.Max (maxTransferValue, 1 - (targetKnowledge.Value / sourceKnowledge.Value));
+			}
+		}
+		
+		return maxTransferValue;
 	}
 
 	public int CalculateOptimalPopulation (TerrainCell cell) {

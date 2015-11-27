@@ -247,7 +247,7 @@ public class TerrainCell {
 		return World.TerrainCells [longitude] [latitude];
 	}
 	
-	public List<TerrainCell> GetNeighborCells () {
+	private List<TerrainCell> GetNeighborCells () {
 		
 		List<TerrainCell> neighbors = new List<TerrainCell> ();
 		

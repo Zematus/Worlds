@@ -6,6 +6,8 @@ using System.Xml.Serialization;
 
 public abstract class WorldEvent {
 
+	public static int EventCount = 0;
+
 	[XmlIgnore]
 	public World World;
 	
@@ -14,16 +16,22 @@ public abstract class WorldEvent {
 
 	public WorldEvent () {
 
+		EventCount++;
+
 		Manager.UpdateWorldLoadTrackEventCount ();
 	}
 
 	public WorldEvent (World world, int triggerDate) {
+		
+		EventCount++;
 
 		World = world;
 		TriggerDate = triggerDate;
 	}
 
 	public virtual bool CanTrigger () {
+
+		EventCount--;
 
 		return true;
 	}
@@ -54,6 +62,12 @@ public class UpdateCellGroupEvent : WorldEvent {
 	}
 
 	public override bool CanTrigger () {
+		
+		if (!base.CanTrigger ())
+			return false;
+
+		if (Group == null)
+			return false;
 
 		if (Group.NextUpdateDate != TriggerDate)
 			return false;
@@ -75,9 +89,9 @@ public class UpdateCellGroupEvent : WorldEvent {
 
 public class MigrateGroupEvent : WorldEvent {
 	
-	public static int EventCount = 0;
+	public static int MigrationEventCount = 0;
 	
-	public static float MeanTravelTime = 0;
+	public static float TotalTravelTime = 0;
 	
 	[XmlAttribute]
 	public int TravelTime;
@@ -85,8 +99,15 @@ public class MigrateGroupEvent : WorldEvent {
 	public MigratingGroup Group;
 	
 	public MigrateGroupEvent () {
-
-		EventCount++;
+		
+		MigrationEventCount++;
+		
+//		TotalTravelTime += TravelTime;
+//
+//		if (TotalTravelTime <= 0) {
+//		
+//			throw new System.Exception ("Total travel time can't be equal or less than 0");
+//		}
 	}
 	
 	public MigrateGroupEvent (World world, int triggerDate, int travelTime, MigratingGroup group) : base (world, triggerDate) {
@@ -95,29 +116,28 @@ public class MigrateGroupEvent : WorldEvent {
 		
 		Group = group;
 		
-		float TravelTimeSum = (MeanTravelTime * EventCount) + travelTime;
-
-		EventCount++;
-
-		MeanTravelTime = TravelTimeSum / (float)EventCount;
+		MigrationEventCount++;
+		
+		TotalTravelTime += TravelTime;
+		
+		if (TotalTravelTime <= 0) {
+			
+			throw new System.Exception ("Total travel time can't be equal or less than 0");
+		}
 	}
 	
 	public override bool CanTrigger () {
 		
+		MigrationEventCount--;
+		
+		TotalTravelTime -= TravelTime;
+		
+		TotalTravelTime = Mathf.Max (0, TotalTravelTime);
+		
 		Group.SourceGroup.HasMigrationEvent = false;
 		
-		float TravelTimeSub = (MeanTravelTime * EventCount) - TravelTime;
-		
-		EventCount--;
-
-		if (EventCount > 0) {
-		
-			MeanTravelTime = TravelTimeSub / (float)EventCount;
-
-		} else {
-
-			MeanTravelTime = 0;
-		}
+		if (!base.CanTrigger ())
+			return false;
 		
 		return true;
 	}
@@ -181,6 +201,12 @@ public class ShipbuildingDiscoveryEvent : WorldEvent {
 	
 	public override bool CanTrigger () {
 		
+		if (!base.CanTrigger ())
+			return false;
+		
+		if (Group == null)
+			return false;
+		
 		if (!Group.StillPresent)
 			return false;
 		
@@ -204,8 +230,8 @@ public class ShipbuildingDiscoveryEvent : WorldEvent {
 
 public class KnowledgeTransferEvent : WorldEvent {
 	
-	public const float MinKnowledgeValue = 1f;
-	public const float MinTransferValue = 0.1f;
+	public static int KnowledgeTransferEventCount = 0;
+
 	public const int MaxDateSpanToTrigger = CellGroup.GenerationTime * 10;
 	
 	[XmlAttribute]
@@ -220,9 +246,12 @@ public class KnowledgeTransferEvent : WorldEvent {
 	
 	public KnowledgeTransferEvent () {
 		
+		KnowledgeTransferEventCount++;
 	}
 	
 	public KnowledgeTransferEvent (World world, int triggerDate, CellGroup sourceGroup, CellGroup targetGroup) : base (world, triggerDate) {
+		
+		KnowledgeTransferEventCount++;
 		
 		SourceGroup = sourceGroup;
 		SourceGroupId = SourceGroup.Id;
@@ -230,54 +259,34 @@ public class KnowledgeTransferEvent : WorldEvent {
 		TargetGroup = targetGroup;
 		TargetGroupId = TargetGroup.Id;
 	}
-
-	public static float CalculateTransferValue (CellGroup sourceGroup, CellGroup targetGroup) {
-
-		float transferValue = float.MinValue;
-
-		if (!sourceGroup.StillPresent)
-			return transferValue;
-
-		if (!targetGroup.StillPresent)
-			return transferValue;
-
-		transferValue = 0;
-		
-		foreach (CulturalKnowledge sourceKnowledge in sourceGroup.Culture.Knowledges) {
-			
-			if (sourceKnowledge.Value <= MinKnowledgeValue) continue;
-			
-			CulturalKnowledge targetKnowledge = targetGroup.Culture.GetKnowledge (sourceKnowledge.Id);
-			
-			if (targetKnowledge == null) {
-				transferValue += 1;
-			} else {
-				transferValue += Mathf.Max (0, 1 - (2 * targetKnowledge.Value / sourceKnowledge.Value));
-			}
-		}
-
-		return transferValue;
-	}
 	
 	public static CellGroup DiscoverTargetGroup (CellGroup sourceGroup, out float targetTransferValue) {
 
-		CellGroup targetGroup = null;
+		TerrainCell sourceCell = sourceGroup.Cell;
 
-		targetTransferValue = MinTransferValue;
+		Dictionary<CellGroup, float> groupValuePairs = new Dictionary<CellGroup, float> ();
 
-		foreach (TerrainCell neighborCell in sourceGroup.Cell.GetNeighborCells ()) {
-		
-			CellGroup neighborGroup = neighborCell.Group;
+		sourceCell.Neighbors.ForEach (c => {
 
-			if (neighborGroup == null) continue;
-
-			float neighborTransferValue = CalculateTransferValue (sourceGroup, neighborGroup);
+			if (c.Group == null) return;
 			
-			if (neighborTransferValue > targetTransferValue) {
-				targetTransferValue = neighborTransferValue;
-				targetGroup = neighborGroup;
-			}
-		}
+			float transferValue = CellGroup.CalculateKnowledgeTransferValue (sourceGroup, c.Group);
+
+			groupValuePairs.Add (c.Group, transferValue);
+		});
+
+		CellGroup targetGroup = CollectionUtility.WeightedSelection (groupValuePairs, sourceCell.GetNextLocalRandomFloat);
+
+		targetTransferValue = 0;
+
+		if (targetGroup == null)
+			return null;
+
+		if (!groupValuePairs.TryGetValue (targetGroup, out targetTransferValue))
+			return null;
+
+		if (targetTransferValue < CellGroup.MinKnowledgeTransferValue)
+			return null;
 		
 		return targetGroup;
 	}
@@ -294,10 +303,15 @@ public class KnowledgeTransferEvent : WorldEvent {
 	}
 	
 	public override bool CanTrigger () {
-
+		
+		KnowledgeTransferEventCount--;
+		
 		SourceGroup.HasKnowledgeTransferEvent = false;
 		
-		return (0 < CalculateTransferValue(SourceGroup, TargetGroup));
+		if (!base.CanTrigger ())
+			return false;
+		
+		return (0 < CellGroup.CalculateKnowledgeTransferValue(SourceGroup, TargetGroup));
 	}
 	
 	public override void FinalizeLoad () {
@@ -309,7 +323,6 @@ public class KnowledgeTransferEvent : WorldEvent {
 	public override void Trigger () {
 
 		World.AddGroupActionToPerform (new KnowledgeTransferAction (SourceGroup, TargetGroup));
-		World.AddGroupToUpdate (SourceGroup);
 		World.AddGroupToUpdate (TargetGroup);
 	}
 }

@@ -349,6 +349,15 @@ public class World {
 		_groupActionsToPerform.Clear ();
 		
 		//
+		// Perform post update ops
+		//
+		
+		foreach (CellGroup group in _updatedGroups) {
+			
+			group.PostUpdate ();
+		}
+		
+		//
 		// Set next group updates
 		//
 		

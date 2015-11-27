@@ -51,6 +51,8 @@ public abstract class Culture {
 }
 
 public class CellCulture : Culture {
+	
+	public const float BaseKnowledgeTransferFactor = 0.25f;
 
 	[XmlIgnore]
 	public CellGroup Group;
@@ -133,9 +135,12 @@ public class CellCulture : Culture {
 			
 			knowledge.Update (timeSpan);
 		}
+	}
 
-		foreach (CulturalSkill skill in SkillsToLearn.Values) {
+	public void PostUpdate () {
 		
+		foreach (CulturalSkill skill in SkillsToLearn.Values) {
+			
 			AddSkill (Group.World, skill);
 		}
 		
@@ -143,9 +148,30 @@ public class CellCulture : Culture {
 			
 			AddKnowledge (Group.World, knowledge);
 		}
-
+		
 		SkillsToLearn.Clear ();
 		KnowledgesToLearn.Clear ();
+	}
+	
+	public void TransferKnowledge (CulturalKnowledge sourceKnowledge, float factor) {
+		
+		CulturalKnowledge localKnowledge = GetKnowledge (sourceKnowledge.Id);
+		
+		if (localKnowledge == null) {
+			
+			localKnowledge = sourceKnowledge.CopyWithGroup (Group);
+			localKnowledge.Value = 0;
+			
+			AddKnowledgeToLearn (localKnowledge);
+		}
+		
+		float transferValueRate = localKnowledge.Value / sourceKnowledge.Value;
+		
+		if (transferValueRate >= 1) return;
+		
+		float transferFactor = BaseKnowledgeTransferFactor * (1 - transferValueRate);
+		
+		localKnowledge.IncreaseValue (localKnowledge.Value, transferFactor * factor);
 	}
 	
 	public float MinimumSkillAdaptationLevel () {
