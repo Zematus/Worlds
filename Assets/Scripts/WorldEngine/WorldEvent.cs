@@ -232,7 +232,7 @@ public class KnowledgeTransferEvent : WorldEvent {
 	
 	public static int KnowledgeTransferEventCount = 0;
 
-	public const int MaxDateSpanToTrigger = CellGroup.GenerationTime * 10;
+	public const int MaxDateSpanToTrigger = CellGroup.GenerationTime * 200;
 	
 	[XmlAttribute]
 	public int SourceGroupId;
@@ -266,13 +266,11 @@ public class KnowledgeTransferEvent : WorldEvent {
 
 		Dictionary<CellGroup, float> groupValuePairs = new Dictionary<CellGroup, float> ();
 
-		sourceCell.Neighbors.ForEach (c => {
-
-			if (c.Group == null) return;
+		sourceGroup.Neighbors.ForEach (g => {
 			
-			float transferValue = CellGroup.CalculateKnowledgeTransferValue (sourceGroup, c.Group);
+			float transferValue = CellGroup.CalculateKnowledgeTransferValue (sourceGroup, g);
 
-			groupValuePairs.Add (c.Group, transferValue);
+			groupValuePairs.Add (g, transferValue);
 		});
 
 		CellGroup targetGroup = CollectionUtility.WeightedSelection (groupValuePairs, sourceCell.GetNextLocalRandomFloat);

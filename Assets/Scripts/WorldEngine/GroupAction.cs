@@ -22,11 +22,6 @@ public class KnowledgeTransferAction : IGroupAction {
 
 	public void Perform () {
 
-		float populationFactor = Mathf.Min (1, SourceGroup.Population / (float)TargetGroup.Population);
-
-		foreach (CulturalKnowledge sourceKnowledge in SourceGroup.Culture.Knowledges) {
-			
-			TargetGroup.Culture.TransferKnowledge (sourceKnowledge, populationFactor);
-		}
+		TargetGroup.AbsorbKnowledgeFrom (SourceGroup);
 	}
 }

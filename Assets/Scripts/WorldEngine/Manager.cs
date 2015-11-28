@@ -1133,7 +1133,7 @@ public class Manager {
 		
 		if ((population > 0) && (skillValue >= 0.001f)) {
 			
-			float value = 0.1f + 0.9f * skillValue;
+			float value = 0.05f + 0.95f * skillValue;
 			
 			color = (color * (1 - value)) + (Color.cyan * value);
 		}
@@ -1174,7 +1174,7 @@ public class Manager {
 		
 		if ((population > 0) && (normalizedValue >= 0.001f)) {
 			
-			float value = 0.1f + 0.9f * normalizedValue;
+			float value = 0.05f + 0.95f * normalizedValue;
 			
 			color = (color * (1 - value)) + (Color.cyan * value);
 		}

@@ -19,7 +19,7 @@ public class CellGroup : HumanGroup {
 	public const float TravelTimeFactor = 1;
 
 	public const float MinKnowledgeValue = 1f;
-	public const float MinKnowledgeTransferValue = 0.05f;
+	public const float MinKnowledgeTransferValue = 0.25f;
 	
 	[XmlAttribute]
 	public float ExactPopulation;
@@ -59,11 +59,9 @@ public class CellGroup : HumanGroup {
 	
 	[XmlIgnore]
 	public bool DebugTagged = false;
-
-	//DEBUG stuff
-	private static float _DEBUG_SmallestAltitudeDeltaFactor = float.MaxValue;
-	private static float _DEBUG_targetCellAltitude;
-	private static float _DEBUG_sourceCellAltitude;
+	
+	[XmlIgnore]
+	public List<CellGroup> Neighbors;
 	
 	[XmlIgnore]
 	public int Population {
@@ -101,6 +99,10 @@ public class CellGroup : HumanGroup {
 		} else {
 			Culture = new CellCulture (this, baseCulture);
 		}
+		
+		Neighbors = cell.Neighbors.FindAll (c => c.Group != null).Process (c => c.Group);
+
+		Neighbors.ForEach (g => g.AddNeighbor (this));
 
 		InitializeBiomeSurvivalSkills ();
 		
@@ -118,6 +120,28 @@ public class CellGroup : HumanGroup {
 			
 			World.InsertEventToHappen (new ShipbuildingDiscoveryEvent (World, triggerDate, this));
 		}
+	}
+
+	public void AddNeighbor (CellGroup group) {
+
+		if (group == null)
+			return;
+
+		if (!group.StillPresent)
+			return;
+
+		if (Neighbors.Contains (group))
+			return;
+	
+		Neighbors.Add (group);
+	}
+	
+	public void RemoveNeighbor (CellGroup group) {
+		
+		if (!Neighbors.Contains (group))
+			return;
+		
+		Neighbors.Remove (group);
 	}
 
 	public void InitializeBiomeSurvivalSkills () {
@@ -246,14 +270,6 @@ public class CellGroup : HumanGroup {
 		float minAltitudeDelta = -Cell.Area / (altitudeDeltaModifier * 5);
 		float altitudeDelta = Mathf.Clamp (targetCell.Altitude - Cell.Altitude, minAltitudeDelta, maxAltitudeDelta);
 		float altitudeDeltaFactor = 1 - ((altitudeDelta - minAltitudeDelta) / (maxAltitudeDelta - minAltitudeDelta));
-
-		if (altitudeDeltaFactor < _DEBUG_SmallestAltitudeDeltaFactor) {
-
-			_DEBUG_SmallestAltitudeDeltaFactor = altitudeDeltaFactor;
-
-			_DEBUG_targetCellAltitude = targetCell.Altitude;
-			_DEBUG_sourceCellAltitude = Cell.Altitude;
-		}
 		
 		return altitudeDeltaFactor;
 	}
@@ -352,6 +368,8 @@ public class CellGroup : HumanGroup {
 		Cell.Group = null;
 		World.RemoveGroup (this);
 
+		Neighbors.ForEach (g => RemoveNeighbor (this));
+
 		StillPresent = false;
 	}
 
@@ -384,22 +402,19 @@ public class CellGroup : HumanGroup {
 
 	private void AbsorbKnowledgeFromNeighbors () {
 	
-		GetNeighborGroups ().ForEach (g => {
-			
-			float populationFactor = Mathf.Min (1, g.Population / (float)Population);
-
-			g.Culture.Knowledges.ForEach (k => {
-
-				if (k.Value < MinKnowledgeValue) return;
-
-				Culture.TransferKnowledge (k, populationFactor);
-			});
-		});
+		Neighbors.ForEach (g => AbsorbKnowledgeFrom (g));
 	}
 
-	public List<CellGroup> GetNeighborGroups () {
-
-		return Cell.Neighbors.FindAll (c => c.Group != null).Process (c => c.Group);
+	public void AbsorbKnowledgeFrom (CellGroup group) {
+		
+		float populationFactor = Mathf.Min (1, group.Population / (float)Population);
+		
+		group.Culture.Knowledges.ForEach (k => {
+			
+			if (k.Value < MinKnowledgeValue) return;
+			
+			Culture.TransferKnowledge (k, populationFactor);
+		});
 	}
 
 	public static float CalculateKnowledgeTransferValue (CellGroup sourceGroup, CellGroup targetGroup) {
@@ -539,6 +554,10 @@ public class CellGroup : HumanGroup {
 		Cell = World.GetCell (CellLongitude, CellLatitude);
 
 		Cell.Group = this;
+
+		Neighbors = Cell.Neighbors.FindAll (c => c.Group != null).Process (c => c.Group);
+		
+		Neighbors.ForEach (g => g.AddNeighbor (this));
 		
 		World.UpdateMostPopulousGroup (this);
 

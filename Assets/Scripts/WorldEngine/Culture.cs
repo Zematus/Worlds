@@ -52,7 +52,7 @@ public abstract class Culture {
 
 public class CellCulture : Culture {
 	
-	public const float BaseKnowledgeTransferFactor = 0.25f;
+	public const float BaseKnowledgeTransferFactor = 0.1f;
 
 	[XmlIgnore]
 	public CellGroup Group;
@@ -165,13 +165,9 @@ public class CellCulture : Culture {
 			AddKnowledgeToLearn (localKnowledge);
 		}
 		
-		float transferValueRate = localKnowledge.Value / sourceKnowledge.Value;
+		if (localKnowledge.Value >= sourceKnowledge.Value) return;
 		
-		if (transferValueRate >= 1) return;
-		
-		float transferFactor = BaseKnowledgeTransferFactor * (1 - transferValueRate);
-		
-		localKnowledge.IncreaseValue (localKnowledge.Value, transferFactor * factor);
+		localKnowledge.IncreaseValue (sourceKnowledge.Value, BaseKnowledgeTransferFactor * factor);
 	}
 	
 	public float MinimumSkillAdaptationLevel () {

@@ -140,7 +140,7 @@ public class ShipbuildingKnowledge : CulturalKnowledge {
 	public const string ShipbuildingKnowledgeId = "ShipbuildingKnowledge";
 	public const string ShipbuildingKnowledgeName = "Shipbuilding Knowledge";
 
-	public const float TimeEffectConstant = CellGroup.GenerationTime * 1000;
+	public const float TimeEffectConstant = CellGroup.GenerationTime * 500;
 
 	public static float HighestAsymptote = 0;
 
@@ -246,9 +246,8 @@ public class ShipbuildingKnowledge : CulturalKnowledge {
 
 	public override float GetModifiedProgressLevel ()
 	{
-		if (_neighborhoodOceanPresence <= 0)
-			return 1;
+		float oceanPresenceFactor = (_neighborhoodOceanPresence * 0.5f) + 0.5f;
 
-		return Mathf.Min (ProgressLevel / _neighborhoodOceanPresence, 1);
+		return Mathf.Min (ProgressLevel / oceanPresenceFactor, 1);
 	}
 }
