@@ -55,13 +55,22 @@ public abstract class CulturalKnowledge : CulturalKnowledgeInfo {
 		RecalculateAsymptoteInternal ();
 	}
 	
-	public CulturalKnowledge CopyWithGroup (CellGroup group) {
+	public CulturalKnowledge GenerateCopy (CellGroup targetGroup) {
 		
 		System.Type knowledgeType = this.GetType ();
 		
 		System.Reflection.ConstructorInfo cInfo = knowledgeType.GetConstructor (new System.Type[] {typeof(CellGroup), knowledgeType});
 		
-		return cInfo.Invoke (new object[] {group, this}) as CulturalKnowledge;
+		return cInfo.Invoke (new object[] {targetGroup, this}) as CulturalKnowledge;
+	}
+	
+	public CulturalKnowledge GenerateCopy (CellGroup targetGroup, float initialValue) {
+		
+		System.Type knowledgeType = this.GetType ();
+		
+		System.Reflection.ConstructorInfo cInfo = knowledgeType.GetConstructor (new System.Type[] {typeof(CellGroup), knowledgeType, typeof(float)});
+		
+		return cInfo.Invoke (new object[] {targetGroup, this, initialValue}) as CulturalKnowledge;
 	}
 	
 	public float GetHighestAsymptote () {
@@ -132,7 +141,8 @@ public abstract class CulturalKnowledge : CulturalKnowledgeInfo {
 	
 	public abstract void Update (int timeSpan);
 	public abstract void RecalculateAsymptote ();
-	public abstract float GetModifiedProgressLevel ();
+	public abstract float CalculateModifiedProgressLevel ();
+	public abstract float CalculateTransferFactor ();
 }
 
 public class ShipbuildingKnowledge : CulturalKnowledge {
@@ -160,6 +170,11 @@ public class ShipbuildingKnowledge : CulturalKnowledge {
 	}
 
 	public ShipbuildingKnowledge (CellGroup group, ShipbuildingKnowledge baseKnowledge) : base (group, baseKnowledge.Id, baseKnowledge.Name, baseKnowledge.Value) {
+		
+		CalculateNeighborhoodOceanPresence ();
+	}
+	
+	public ShipbuildingKnowledge (CellGroup group, ShipbuildingKnowledge baseKnowledge, float initialValue) : base (group, baseKnowledge.Id, baseKnowledge.Name, initialValue) {
 		
 		CalculateNeighborhoodOceanPresence ();
 	}
@@ -207,9 +222,11 @@ public class ShipbuildingKnowledge : CulturalKnowledge {
 
 		TerrainCell groupCell = Group.Cell;
 
-		float randomModifierFactor1 = 0.5f;
+		float randomModifierFactor1 = 0.75f;
 		float randomModifierFactor2 = 1f;
-		float randomModifier = randomModifierFactor2 * _neighborhoodOceanPresence - (randomModifierFactor1 * groupCell.GetNextLocalRandomFloat ());
+		float randomModifier = randomModifierFactor1 * groupCell.GetNextLocalRandomFloat ();
+		randomModifier = randomModifierFactor2 * (_neighborhoodOceanPresence - randomModifier);
+		randomModifier = Mathf.Clamp (randomModifier, -1, 1);
 
 		float targetValue = 0;
 
@@ -244,10 +261,15 @@ public class ShipbuildingKnowledge : CulturalKnowledge {
 		}
 	}
 
-	public override float GetModifiedProgressLevel ()
+	public override float CalculateModifiedProgressLevel ()
 	{
-		float oceanPresenceFactor = (_neighborhoodOceanPresence * 0.5f) + 0.5f;
+		float oceanPresenceFactor = (_neighborhoodOceanPresence * 0.9f) + 0.1f;
 
 		return Mathf.Min (ProgressLevel / oceanPresenceFactor, 1);
+	}
+
+	public override float CalculateTransferFactor ()
+	{
+		return (_neighborhoodOceanPresence * 0.9f) + 0.1f;
 	}
 }

@@ -50,13 +50,13 @@ public abstract class CulturalSkill : CulturalSkillInfo {
 		Value = value;
 	}
 	
-	public CulturalSkill CopyWithGroup (CellGroup group) {
+	public CulturalSkill GenerateCopy (CellGroup targetGroup) {
 		
 		System.Type skillType = this.GetType ();
 		
 		System.Reflection.ConstructorInfo cInfo = skillType.GetConstructor (new System.Type[] {typeof(CellGroup), skillType});
 		
-		return cInfo.Invoke (new object[] {group, this}) as CulturalSkill;
+		return cInfo.Invoke (new object[] {targetGroup, this}) as CulturalSkill;
 	}
 
 	public void Merge (CulturalSkill skill, float percentage) {

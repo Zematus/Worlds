@@ -65,6 +65,7 @@ public class World {
 	
 	public List<CulturalSkillInfo> CulturalSkillInfoList = new List<CulturalSkillInfo> ();
 	public List<CulturalKnowledgeInfo> CulturalKnowledgeInfoList = new List<CulturalKnowledgeInfo> ();
+	public List<string> CulturalDiscoveryList = new List<string> ();
 	
 	[XmlIgnore]
 	public float MinPossibleAltitudeWithOffset = MinPossibleAltitude - Manager.SeaLevelOffset;
@@ -252,6 +253,14 @@ public class World {
 		
 		CulturalKnowledgeInfoList.Add (new CulturalKnowledgeInfo (baseInfo));
 		_culturalSkillKnowledgeIdList.Add (baseInfo.Id);
+	}
+	
+	public void AddExistingCulturalDiscoveryInfo (string discovery) {
+		
+		if (CulturalDiscoveryList.Contains (discovery))
+			return;
+		
+		CulturalDiscoveryList.Add (discovery);
 	}
 
 	public void UpdateMostPopulousGroup (CellGroup contenderGroup) {

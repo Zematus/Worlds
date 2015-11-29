@@ -155,6 +155,78 @@ public class MigrateGroupEvent : WorldEvent {
 	}
 }
 
+public class SailingDiscoveryEvent : WorldEvent {
+	
+	public const int MaxDateSpanToTrigger = CellGroup.GenerationTime * 10000;
+	public const float MinShipBuildingKnowledgeValue = 5;
+	
+	[XmlAttribute]
+	public int GroupId;
+	
+	[XmlIgnore]
+	public CellGroup Group;
+	
+	public SailingDiscoveryEvent () {
+		
+	}
+	
+	public SailingDiscoveryEvent (World world, int triggerDate, CellGroup group) : base (world, triggerDate) {
+		
+		Group = group;
+		GroupId = Group.Id;
+	}
+	
+	public static int CalculateTriggerDate (CellGroup group) {
+		
+		float shipBuildingValue = 0;
+		
+		CulturalKnowledge shipbuildingKnowledge = group.Culture.GetKnowledge (ShipbuildingKnowledge.ShipbuildingKnowledgeId);
+		
+		if (shipbuildingKnowledge != null)
+			shipBuildingValue = shipbuildingKnowledge.Value;
+
+		float randomFactor = group.Cell.GetNextLocalRandomFloat ();
+		randomFactor = randomFactor * randomFactor;
+		
+		float mixFactor = (1 - shipBuildingValue) * (1 - randomFactor);
+		
+		int dateSpan = (int)Mathf.Ceil(Mathf.Max (1, MaxDateSpanToTrigger * mixFactor));
+		
+		return group.World.CurrentDate + dateSpan;
+	}
+	
+	public static bool CanSpawnIn (CellGroup group) {
+
+		if (group.Culture.Discoveries.Contains (Culture.SailingDiscoveryId))
+			return false;
+
+		CulturalKnowledge shipbuildingKnowledge = group.Culture.GetKnowledge (ShipbuildingKnowledge.ShipbuildingKnowledgeId);
+		
+		if (shipbuildingKnowledge != null)
+			return false;
+
+		if (shipbuildingKnowledge.Value >= MinShipBuildingKnowledgeValue)
+		    return false;
+		
+		return true;
+	}
+
+	public override bool CanTrigger ()
+	{
+		return base.CanTrigger ();
+	}
+	
+	public override void FinalizeLoad () {
+		
+		Group = World.FindCellGroup (GroupId);
+	}
+
+	public override void Trigger ()
+	{
+		throw new System.NotImplementedException ();
+	}
+}
+
 public class ShipbuildingDiscoveryEvent : WorldEvent {
 	
 	public const int MaxDateSpanToTrigger = CellGroup.GenerationTime * 10000;
@@ -232,7 +304,7 @@ public class KnowledgeTransferEvent : WorldEvent {
 	
 	public static int KnowledgeTransferEventCount = 0;
 
-	public const int MaxDateSpanToTrigger = CellGroup.GenerationTime * 200;
+	public const int MaxDateSpanToTrigger = CellGroup.GenerationTime * 50;
 	
 	[XmlAttribute]
 	public int SourceGroupId;

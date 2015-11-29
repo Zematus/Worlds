@@ -6,11 +6,15 @@ using System.Xml.Serialization;
 
 public abstract class Culture {
 
+	public const string SailingDiscoveryId = "Sailing";
+
 	[XmlArrayItem(Type = typeof(BiomeSurvivalSkill))]
 	public List<CulturalSkill> Skills = new List<CulturalSkill> ();
 	
 	[XmlArrayItem(Type = typeof(ShipbuildingKnowledge))]
 	public List<CulturalKnowledge> Knowledges = new List<CulturalKnowledge> ();
+
+	public List<string> Discoveries = new List<string> ();
 	
 	public Culture () {
 	}
@@ -27,6 +31,13 @@ public abstract class Culture {
 		world.AddExistingCulturalKnowledgeInfo (knowledge);
 		
 		Knowledges.Add (knowledge);
+	}
+	
+	protected void AddDiscovery (World world, string discovery) {
+		
+		world.AddExistingCulturalDiscoveryInfo (discovery);
+		
+		Discoveries.Add (discovery);
 	}
 	
 	public CulturalSkill GetSkill (string id) {
@@ -74,7 +85,7 @@ public class CellCulture : Culture {
 
 		Group = group;
 		
-		baseCulture.Skills.ForEach (s => Skills.Add (s.CopyWithGroup (group)));
+		baseCulture.Skills.ForEach (s => Skills.Add (s.GenerateCopy (group)));
 	}
 	
 	public void AddSkillToLearn (CulturalSkill skill) {
@@ -100,7 +111,7 @@ public class CellCulture : Culture {
 			CulturalSkill skill = GetSkill (s.Id);
 			
 			if (skill == null) {
-				skill = s.CopyWithGroup (Group);
+				skill = s.GenerateCopy (Group);
 				skill.ModifyValue (percentage);
 				
 				Skills.Add (skill);
@@ -114,7 +125,7 @@ public class CellCulture : Culture {
 			CulturalKnowledge knowledge = GetKnowledge (k.Id);
 			
 			if (knowledge == null) {
-				knowledge = k.CopyWithGroup (Group);
+				knowledge = k.GenerateCopy (Group);
 				knowledge.ModifyValue (percentage);
 				
 				Knowledges.Add (knowledge);
@@ -153,21 +164,22 @@ public class CellCulture : Culture {
 		KnowledgesToLearn.Clear ();
 	}
 	
-	public void TransferKnowledge (CulturalKnowledge sourceKnowledge, float factor) {
+	public void TransferKnowledge (CulturalKnowledge sourceKnowledge, float sourceFactor) {
 		
 		CulturalKnowledge localKnowledge = GetKnowledge (sourceKnowledge.Id);
 		
 		if (localKnowledge == null) {
 			
-			localKnowledge = sourceKnowledge.CopyWithGroup (Group);
-			localKnowledge.Value = 0;
+			localKnowledge = sourceKnowledge.GenerateCopy (Group, 0);
 			
 			AddKnowledgeToLearn (localKnowledge);
 		}
 		
 		if (localKnowledge.Value >= sourceKnowledge.Value) return;
+
+		float specificKnowledgeFactor = localKnowledge.CalculateTransferFactor ();
 		
-		localKnowledge.IncreaseValue (sourceKnowledge.Value, BaseKnowledgeTransferFactor * factor);
+		localKnowledge.IncreaseValue (sourceKnowledge.Value, BaseKnowledgeTransferFactor * specificKnowledgeFactor * sourceFactor);
 	}
 	
 	public float MinimumSkillAdaptationLevel () {
@@ -192,7 +204,7 @@ public class CellCulture : Culture {
 		
 		foreach (CulturalKnowledge knowledge in Knowledges) {
 			
-			float level = knowledge.GetModifiedProgressLevel ();
+			float level = knowledge.CalculateModifiedProgressLevel ();
 			
 			if (level < minProgressLevel) {
 				minProgressLevel = level;

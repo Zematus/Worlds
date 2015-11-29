@@ -64,6 +64,9 @@ public class CellGroup : HumanGroup {
 	public List<CellGroup> Neighbors;
 	
 	[XmlIgnore]
+	public List<WorldEvent> AssociatedEvents = new List<WorldEvent> ();
+	
+	[XmlIgnore]
 	public int Population {
 
 		get {
@@ -383,7 +386,7 @@ public class CellGroup : HumanGroup {
 		UpdatePopulation (timeSpan);
 		UpdateCulture (timeSpan);
 		
-		AbsorbKnowledgeFromNeighbors ();
+//		AbsorbKnowledgeFromNeighbors ();
 		
 		LastUpdateDate = World.CurrentDate;
 		
@@ -400,10 +403,10 @@ public class CellGroup : HumanGroup {
 		Culture.Update (timeSpan);
 	}
 
-	private void AbsorbKnowledgeFromNeighbors () {
-	
-		Neighbors.ForEach (g => AbsorbKnowledgeFrom (g));
-	}
+//	private void AbsorbKnowledgeFromNeighbors () {
+//	
+//		Neighbors.ForEach (g => AbsorbKnowledgeFrom (g));
+//	}
 
 	public void AbsorbKnowledgeFrom (CellGroup group) {
 		
