@@ -45,6 +45,9 @@ public class World {
 	public int CurrentCellGroupId { get; private set; }
 	
 	[XmlAttribute]
+	public int CurrentEventId { get; private set; }
+	
+	[XmlAttribute]
 	public int EventsToHappenCount { get; private set; }
 	
 	[XmlAttribute]
@@ -153,6 +156,7 @@ public class World {
 		
 		CurrentDate = 0;
 		CurrentCellGroupId = 0;
+		CurrentEventId = 0;
 		EventsToHappenCount = 0;
 		CellGroupsCount = 0;
 		TerrainCellChangesListCount = 0;
@@ -308,13 +312,15 @@ public class World {
 				break;
 			}
 
-			EventsToHappen.Remove(eventToHappen);
+			EventsToHappen.Remove (eventToHappen);
 			EventsToHappenCount--;
 
-			if (eventToHappen.CanTrigger())
+			if (eventToHappen.CanTrigger ())
 			{
-				eventToHappen.Trigger();
+				eventToHappen.Trigger ();
 			}
+
+			eventToHappen.Destroy ();
 		}
 		
 		//
@@ -1103,6 +1109,11 @@ public class World {
 	public int GenerateCellGroupId () {
 	
 		return ++CurrentCellGroupId;
+	}
+	
+	public int GenerateEventId () {
+		
+		return ++CurrentEventId;
 	}
 
 	private float CalculateBiomePresence (TerrainCell cell, Biome biome) {

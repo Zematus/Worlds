@@ -13,6 +13,9 @@ public abstract class WorldEvent {
 	
 	[XmlAttribute]
 	public int TriggerDate;
+	
+	[XmlAttribute]
+	public int Id;
 
 	public WorldEvent () {
 
@@ -27,58 +30,96 @@ public abstract class WorldEvent {
 
 		World = world;
 		TriggerDate = triggerDate;
+
+		Id = World.GenerateEventId ();
 	}
 
 	public virtual bool CanTrigger () {
 
-		EventCount--;
-
 		return true;
 	}
-	
+
 	public virtual void FinalizeLoad () {
 
 	}
 
 	public abstract void Trigger ();
+
+	public void Destroy () {
+		
+		EventCount--;
+
+		DestroyInternal ();
+	}
+
+	protected virtual void DestroyInternal () {
+	
+	}
 }
 
-public class UpdateCellGroupEvent : WorldEvent {
+public abstract class CellGroupEvent : WorldEvent {
 	
 	[XmlAttribute]
 	public int GroupId;
-
+	
 	[XmlIgnore]
 	public CellGroup Group;
+	
+	public CellGroupEvent () {
+		
+	}
+	
+	public CellGroupEvent (CellGroup group, int triggerDate) : base (group.World, triggerDate) {
+		
+		Group = group;
+		GroupId = Group.Id;
+		
+		Group.AddAssociatedEvent (this);
+	}
+
+	public override bool CanTrigger () {
+
+		if (Group == null)
+			return false;
+		
+		return Group.StillPresent;
+	}
+	
+	public override void FinalizeLoad () {
+		
+		Group = World.FindCellGroup (GroupId);
+		
+		Group.AddAssociatedEvent (this);
+	}
+	
+	protected override void DestroyInternal ()
+	{
+		if (Group == null)
+			return;
+		
+		Group.RemoveAssociatedEvent (Id);
+	}
+}
+
+public class UpdateCellGroupEvent : CellGroupEvent {
 
 	public UpdateCellGroupEvent () {
 
 	}
 
-	public UpdateCellGroupEvent (World world, int triggerDate, CellGroup group) : base (world, triggerDate) {
+	public UpdateCellGroupEvent (CellGroup group, int triggerDate) : base (group, triggerDate) {
 
-		Group = group;
-		GroupId = Group.Id;
 	}
 
 	public override bool CanTrigger () {
-		
-		if (!base.CanTrigger ())
-			return false;
 
-		if (Group == null)
+		if (!base.CanTrigger ())
 			return false;
 
 		if (Group.NextUpdateDate != TriggerDate)
 			return false;
 
-		return Group.StillPresent;
-	}
-
-	public override void FinalizeLoad () {
-
-		Group = World.FindCellGroup (GroupId);
-		Group.DebugTagged = true;
+		return true;
 	}
 
 	public override void Trigger () {
@@ -91,7 +132,7 @@ public class MigrateGroupEvent : WorldEvent {
 	
 	public static int MigrationEventCount = 0;
 	
-	public static float TotalTravelTime = 0;
+//	public static float TotalTravelTime = 0;
 	
 	[XmlAttribute]
 	public int TravelTime;
@@ -118,26 +159,15 @@ public class MigrateGroupEvent : WorldEvent {
 		
 		MigrationEventCount++;
 		
-		TotalTravelTime += TravelTime;
-		
-		if (TotalTravelTime <= 0) {
-			
-			throw new System.Exception ("Total travel time can't be equal or less than 0");
-		}
+//		TotalTravelTime += TravelTime;
+//		
+//		if (TotalTravelTime <= 0) {
+//			
+//			throw new System.Exception ("Total travel time can't be equal or less than 0");
+//		}
 	}
 	
 	public override bool CanTrigger () {
-		
-		MigrationEventCount--;
-		
-		TotalTravelTime -= TravelTime;
-		
-		TotalTravelTime = Mathf.Max (0, TotalTravelTime);
-		
-		Group.SourceGroup.HasMigrationEvent = false;
-		
-		if (!base.CanTrigger ())
-			return false;
 		
 		return true;
 	}
@@ -153,27 +183,34 @@ public class MigrateGroupEvent : WorldEvent {
 
 		Group.FinalizeLoad ();
 	}
+
+	protected override void DestroyInternal ()
+	{
+		MigrationEventCount--;
+		
+//		TotalTravelTime -= TravelTime;
+//		
+//		TotalTravelTime = Mathf.Max (0, TotalTravelTime);
+
+		if (Group.SourceGroup != null) {
+			
+			Group.SourceGroup.HasMigrationEvent = false;
+		}
+	}
 }
 
-public class SailingDiscoveryEvent : WorldEvent {
+public class SailingDiscoveryEvent : CellGroupEvent {
 	
 	public const int MaxDateSpanToTrigger = CellGroup.GenerationTime * 10000;
 	public const float MinShipBuildingKnowledgeValue = 5;
-	
-	[XmlAttribute]
-	public int GroupId;
-	
-	[XmlIgnore]
-	public CellGroup Group;
+	public const float OptimalShipBuildingKnowledgeValue = 10;
 	
 	public SailingDiscoveryEvent () {
 		
 	}
 	
-	public SailingDiscoveryEvent (World world, int triggerDate, CellGroup group) : base (world, triggerDate) {
-		
-		Group = group;
-		GroupId = Group.Id;
+	public SailingDiscoveryEvent (CellGroup group, int triggerDate) : base (group, triggerDate) {
+
 	}
 	
 	public static int CalculateTriggerDate (CellGroup group) {
@@ -187,8 +224,11 @@ public class SailingDiscoveryEvent : WorldEvent {
 
 		float randomFactor = group.Cell.GetNextLocalRandomFloat ();
 		randomFactor = randomFactor * randomFactor;
+
+		float shipBuildingFactor = (shipBuildingValue - MinShipBuildingKnowledgeValue) / (OptimalShipBuildingKnowledgeValue - MinShipBuildingKnowledgeValue);
+		shipBuildingFactor = Mathf.Clamp01 (shipBuildingFactor);
 		
-		float mixFactor = (1 - shipBuildingValue) * (1 - randomFactor);
+		float mixFactor = (1 - shipBuildingFactor) * (1 - randomFactor);
 		
 		int dateSpan = (int)Mathf.Ceil(Mathf.Max (1, MaxDateSpanToTrigger * mixFactor));
 		
@@ -200,29 +240,30 @@ public class SailingDiscoveryEvent : WorldEvent {
 		if (group.Culture.Discoveries.Contains (Culture.SailingDiscoveryId))
 			return false;
 
-		CulturalKnowledge shipbuildingKnowledge = group.Culture.GetKnowledge (ShipbuildingKnowledge.ShipbuildingKnowledgeId);
-		
-		if (shipbuildingKnowledge != null)
-			return false;
+//		CulturalKnowledge shipbuildingKnowledge = group.Culture.GetKnowledge (ShipbuildingKnowledge.ShipbuildingKnowledgeId);
+//		
+//		if (shipbuildingKnowledge != null)
+//			return false;
+//
+//		if (shipbuildingKnowledge.Value < MinShipBuildingKnowledgeValue)
+//		    return false;
 
-		if (shipbuildingKnowledge.Value >= MinShipBuildingKnowledgeValue)
-		    return false;
+		if (group.GetAssociatedEvents (typeof(SailingDiscoveryEvent)).Count > 0)
+			return false;
 		
 		return true;
 	}
 
-	public override bool CanTrigger ()
-	{
-		return base.CanTrigger ();
-	}
-	
-	public override void FinalizeLoad () {
-		
-		Group = World.FindCellGroup (GroupId);
+	public override bool CanTrigger () {
+
+		if (!base.CanTrigger ())
+			return false;
+
+		return true;
 	}
 
-	public override void Trigger ()
-	{
+	public override void Trigger () {
+
 		throw new System.NotImplementedException ();
 	}
 }
@@ -245,6 +286,8 @@ public class ShipbuildingDiscoveryEvent : WorldEvent {
 		
 		Group = group;
 		GroupId = Group.Id;
+
+		Group.AddAssociatedEvent (this);
 	}
 	
 	public static int CalculateTriggerDate (CellGroup group) {
@@ -273,9 +316,6 @@ public class ShipbuildingDiscoveryEvent : WorldEvent {
 	
 	public override bool CanTrigger () {
 		
-		if (!base.CanTrigger ())
-			return false;
-		
 		if (Group == null)
 			return false;
 		
@@ -291,12 +331,22 @@ public class ShipbuildingDiscoveryEvent : WorldEvent {
 	public override void FinalizeLoad () {
 		
 		Group = World.FindCellGroup (GroupId);
+		
+		Group.AddAssociatedEvent (this);
 	}
 	
 	public override void Trigger () {
 		
 		Group.Culture.AddKnowledgeToLearn (new ShipbuildingKnowledge (Group));
 		World.AddGroupToUpdate (Group);
+	}
+
+	protected override void DestroyInternal ()
+	{
+		if (Group == null)
+			return;
+
+		Group.RemoveAssociatedEvent (Id);
 	}
 }
 
@@ -330,6 +380,9 @@ public class KnowledgeTransferEvent : WorldEvent {
 		
 		TargetGroup = targetGroup;
 		TargetGroupId = TargetGroup.Id;
+
+		SourceGroup.AddAssociatedEvent (this);
+		TargetGroup.AddAssociatedEvent (this);
 	}
 	
 	public static CellGroup DiscoverTargetGroup (CellGroup sourceGroup, out float targetTransferValue) {
@@ -350,6 +403,9 @@ public class KnowledgeTransferEvent : WorldEvent {
 		targetTransferValue = 0;
 
 		if (targetGroup == null)
+			return null;
+		
+		if (!targetGroup.StillPresent)
 			return null;
 
 		if (!groupValuePairs.TryGetValue (targetGroup, out targetTransferValue))
@@ -374,13 +430,6 @@ public class KnowledgeTransferEvent : WorldEvent {
 	
 	public override bool CanTrigger () {
 		
-		KnowledgeTransferEventCount--;
-		
-		SourceGroup.HasKnowledgeTransferEvent = false;
-		
-		if (!base.CanTrigger ())
-			return false;
-		
 		return (0 < CellGroup.CalculateKnowledgeTransferValue(SourceGroup, TargetGroup));
 	}
 	
@@ -388,11 +437,30 @@ public class KnowledgeTransferEvent : WorldEvent {
 		
 		SourceGroup = World.FindCellGroup (SourceGroupId);
 		TargetGroup = World.FindCellGroup (TargetGroupId);
+		
+		SourceGroup.AddAssociatedEvent (this);
+		TargetGroup.AddAssociatedEvent (this);
 	}
 	
 	public override void Trigger () {
 
 		World.AddGroupActionToPerform (new KnowledgeTransferAction (SourceGroup, TargetGroup));
 		World.AddGroupToUpdate (TargetGroup);
+	}
+
+	protected override void DestroyInternal ()
+	{
+		KnowledgeTransferEventCount--;
+		
+		if (SourceGroup != null) {
+
+			SourceGroup.RemoveAssociatedEvent (Id);
+			SourceGroup.HasKnowledgeTransferEvent = false;
+		}
+
+		if (TargetGroup != null) {
+
+			TargetGroup.RemoveAssociatedEvent (Id);
+		}
 	}
 }

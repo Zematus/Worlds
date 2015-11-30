@@ -62,9 +62,8 @@ public class CellGroup : HumanGroup {
 	
 	[XmlIgnore]
 	public List<CellGroup> Neighbors;
-	
-	[XmlIgnore]
-	public List<WorldEvent> AssociatedEvents = new List<WorldEvent> ();
+
+	private Dictionary<int, WorldEvent> _associatedEvents = new Dictionary<int, WorldEvent> ();
 	
 	[XmlIgnore]
 	public int Population {
@@ -111,7 +110,7 @@ public class CellGroup : HumanGroup {
 		
 		NextUpdateDate = CalculateNextUpdateDate();
 		
-		World.InsertEventToHappen (new UpdateCellGroupEvent (World, NextUpdateDate, this));
+		World.InsertEventToHappen (new UpdateCellGroupEvent (this, NextUpdateDate));
 		
 		World.UpdateMostPopulousGroup (this);
 		
@@ -123,6 +122,34 @@ public class CellGroup : HumanGroup {
 			
 			World.InsertEventToHappen (new ShipbuildingDiscoveryEvent (World, triggerDate, this));
 		}
+	}
+
+	public void AddAssociatedEvent (WorldEvent e) {
+
+		_associatedEvents.Add (e.Id, e);
+	}
+	
+	public WorldEvent GetAssociatedEvent (int id) {
+
+		WorldEvent e;
+
+		if (!_associatedEvents.TryGetValue (id, out e))
+			return null;
+
+		return e;
+	}
+	
+	public List<WorldEvent> GetAssociatedEvents (System.Type eventType) {
+		
+		return _associatedEvents.Process (p => p.Value).FindAll (e => e.GetType () == eventType);
+	}
+
+	public void RemoveAssociatedEvent (int id) {
+	
+		if (!_associatedEvents.ContainsKey (id))
+			return;
+
+		_associatedEvents.Remove (id);
 	}
 
 	public void AddNeighbor (CellGroup group) {
@@ -239,7 +266,7 @@ public class CellGroup : HumanGroup {
 		
 		NextUpdateDate = CalculateNextUpdateDate ();
 		
-		World.InsertEventToHappen (new UpdateCellGroupEvent (World, NextUpdateDate, this));
+		World.InsertEventToHappen (new UpdateCellGroupEvent (this, NextUpdateDate));
 	}
 
 	public void ConsiderKnowledgeTransfer () {
