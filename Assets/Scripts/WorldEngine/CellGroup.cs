@@ -18,7 +18,6 @@ public class CellGroup : HumanGroup {
 
 	public const float TravelTimeFactor = 1;
 
-	public const float MinKnowledgeValue = 1f;
 	public const float MinKnowledgeTransferValue = 0.25f;
 	
 	[XmlAttribute]
@@ -116,11 +115,11 @@ public class CellGroup : HumanGroup {
 		
 		OptimalPopulation = CalculateOptimalPopulation (Cell);
 
-		if (ShipbuildingDiscoveryEvent.CanSpawnIn (this)) {
+		if (BoatMakingDiscoveryEvent.CanSpawnIn (this)) {
 
-			int triggerDate = ShipbuildingDiscoveryEvent.CalculateTriggerDate (this);
+			int triggerDate = BoatMakingDiscoveryEvent.CalculateTriggerDate (this);
 			
-			World.InsertEventToHappen (new ShipbuildingDiscoveryEvent (World, triggerDate, this));
+			World.InsertEventToHappen (new BoatMakingDiscoveryEvent (this, triggerDate));
 		}
 	}
 
@@ -286,7 +285,7 @@ public class CellGroup : HumanGroup {
 
 		int triggerDate = KnowledgeTransferEvent.CalculateTriggerDate (this, transferValue);
 
-		World.InsertEventToHappen (new KnowledgeTransferEvent (World, triggerDate, this, targetGroup));
+		World.InsertEventToHappen (new KnowledgeTransferEvent (this, targetGroup, triggerDate));
 
 		HasKnowledgeTransferEvent = true;
 	}
@@ -441,42 +440,13 @@ public class CellGroup : HumanGroup {
 		
 		group.Culture.Knowledges.ForEach (k => {
 			
-			if (k.Value < MinKnowledgeValue) return;
-			
 			Culture.TransferKnowledge (k, populationFactor);
 		});
-	}
 
-	public static float CalculateKnowledgeTransferValue (CellGroup sourceGroup, CellGroup targetGroup) {
-		
-		float maxTransferValue = 0;
-		
-		if (sourceGroup == null)
-			return maxTransferValue;
-		
-		if (targetGroup == null)
-			return maxTransferValue;
-		
-		if (!sourceGroup.StillPresent)
-			return maxTransferValue;
-		
-		if (!targetGroup.StillPresent)
-			return maxTransferValue;
-		
-		foreach (CulturalKnowledge sourceKnowledge in sourceGroup.Culture.Knowledges) {
+		group.Culture.Discoveries.ForEach (d => {
 			
-			if (sourceKnowledge.Value <= MinKnowledgeValue) continue;
-			
-			CulturalKnowledge targetKnowledge = targetGroup.Culture.GetKnowledge (sourceKnowledge.Id);
-			
-			if (targetKnowledge == null) {
-				maxTransferValue = 1;
-			} else {
-				maxTransferValue = Mathf.Max (maxTransferValue, 1 - (targetKnowledge.Value / sourceKnowledge.Value));
-			}
-		}
-		
-		return maxTransferValue;
+			Culture.TransferDiscovery (d);
+		});
 	}
 
 	public int CalculateOptimalPopulation (TerrainCell cell) {

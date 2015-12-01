@@ -237,16 +237,10 @@ public class SailingDiscoveryEvent : CellGroupEvent {
 	
 	public static bool CanSpawnIn (CellGroup group) {
 
-		if (group.Culture.Discoveries.Contains (Culture.SailingDiscoveryId))
-			return false;
+		CulturalDiscovery discovery = group.Culture.GetDiscovery (SailingDiscovery.SailingDiscoveryId);
 
-//		CulturalKnowledge shipbuildingKnowledge = group.Culture.GetKnowledge (ShipbuildingKnowledge.ShipbuildingKnowledgeId);
-//		
-//		if (shipbuildingKnowledge != null)
-//			return false;
-//
-//		if (shipbuildingKnowledge.Value < MinShipBuildingKnowledgeValue)
-//		    return false;
+		if (discovery != null)
+			return false;
 
 		if (group.GetAssociatedEvents (typeof(SailingDiscoveryEvent)).Count > 0)
 			return false;
@@ -258,36 +252,40 @@ public class SailingDiscoveryEvent : CellGroupEvent {
 
 		if (!base.CanTrigger ())
 			return false;
+		
+		CulturalDiscovery discovery = Group.Culture.GetDiscovery (SailingDiscovery.SailingDiscoveryId);
+		
+		if (discovery != null)
+			return false;
+		
+		CulturalKnowledge shipbuildingKnowledge = Group.Culture.GetKnowledge (ShipbuildingKnowledge.ShipbuildingKnowledgeId);
+		
+		if (shipbuildingKnowledge == null)
+			return false;
+
+		if (shipbuildingKnowledge.Value < MinShipBuildingKnowledgeValue)
+		    return false;
 
 		return true;
 	}
 
 	public override void Trigger () {
 
-		throw new System.NotImplementedException ();
+		Group.Culture.AddDiscoveryToFind (new SailingDiscovery ());
+		World.AddGroupToUpdate (Group);
 	}
 }
 
-public class ShipbuildingDiscoveryEvent : WorldEvent {
+public class BoatMakingDiscoveryEvent : CellGroupEvent {
 	
 	public const int MaxDateSpanToTrigger = CellGroup.GenerationTime * 10000;
 	
-	[XmlAttribute]
-	public int GroupId;
-	
-	[XmlIgnore]
-	public CellGroup Group;
-	
-	public ShipbuildingDiscoveryEvent () {
+	public BoatMakingDiscoveryEvent () {
 		
 	}
 	
-	public ShipbuildingDiscoveryEvent (World world, int triggerDate, CellGroup group) : base (world, triggerDate) {
-		
-		Group = group;
-		GroupId = Group.Id;
+	public BoatMakingDiscoveryEvent (CellGroup group, int triggerDate) : base (group, triggerDate) {
 
-		Group.AddAssociatedEvent (this);
 	}
 	
 	public static int CalculateTriggerDate (CellGroup group) {
@@ -316,10 +314,7 @@ public class ShipbuildingDiscoveryEvent : WorldEvent {
 	
 	public override bool CanTrigger () {
 		
-		if (Group == null)
-			return false;
-		
-		if (!Group.StillPresent)
+		if (!base.CanTrigger ())
 			return false;
 		
 		if (Group.Culture.GetKnowledge (ShipbuildingKnowledge.ShipbuildingKnowledgeId) != null)
@@ -328,41 +323,23 @@ public class ShipbuildingDiscoveryEvent : WorldEvent {
 		return true;
 	}
 	
-	public override void FinalizeLoad () {
-		
-		Group = World.FindCellGroup (GroupId);
-		
-		Group.AddAssociatedEvent (this);
-	}
-	
 	public override void Trigger () {
 		
+		Group.Culture.AddDiscoveryToFind (new BoatMakingDiscovery ());
 		Group.Culture.AddKnowledgeToLearn (new ShipbuildingKnowledge (Group));
 		World.AddGroupToUpdate (Group);
 	}
-
-	protected override void DestroyInternal ()
-	{
-		if (Group == null)
-			return;
-
-		Group.RemoveAssociatedEvent (Id);
-	}
 }
 
-public class KnowledgeTransferEvent : WorldEvent {
+public class KnowledgeTransferEvent : CellGroupEvent {
 	
 	public static int KnowledgeTransferEventCount = 0;
 
 	public const int MaxDateSpanToTrigger = CellGroup.GenerationTime * 50;
-	
-	[XmlAttribute]
-	public int SourceGroupId;
+
 	[XmlAttribute]
 	public int TargetGroupId;
-	
-	[XmlIgnore]
-	public CellGroup SourceGroup;
+
 	[XmlIgnore]
 	public CellGroup TargetGroup;
 	
@@ -371,17 +348,15 @@ public class KnowledgeTransferEvent : WorldEvent {
 		KnowledgeTransferEventCount++;
 	}
 	
-	public KnowledgeTransferEvent (World world, int triggerDate, CellGroup sourceGroup, CellGroup targetGroup) : base (world, triggerDate) {
+	public KnowledgeTransferEvent (CellGroup sourceGroup, CellGroup targetGroup, int triggerDate) : base (sourceGroup, triggerDate) {
 		
 		KnowledgeTransferEventCount++;
-		
-		SourceGroup = sourceGroup;
-		SourceGroupId = SourceGroup.Id;
+
+		sourceGroup.HasKnowledgeTransferEvent = true;
 		
 		TargetGroup = targetGroup;
 		TargetGroupId = TargetGroup.Id;
 
-		SourceGroup.AddAssociatedEvent (this);
 		TargetGroup.AddAssociatedEvent (this);
 	}
 	
@@ -393,7 +368,7 @@ public class KnowledgeTransferEvent : WorldEvent {
 
 		sourceGroup.Neighbors.ForEach (g => {
 			
-			float transferValue = CellGroup.CalculateKnowledgeTransferValue (sourceGroup, g);
+			float transferValue = CellCulture.CalculateKnowledgeTransferValue (sourceGroup, g);
 
 			groupValuePairs.Add (g, transferValue);
 		});
@@ -430,21 +405,21 @@ public class KnowledgeTransferEvent : WorldEvent {
 	
 	public override bool CanTrigger () {
 		
-		return (0 < CellGroup.CalculateKnowledgeTransferValue(SourceGroup, TargetGroup));
+		return (0 < CellCulture.CalculateKnowledgeTransferValue(Group, TargetGroup));
 	}
 	
 	public override void FinalizeLoad () {
-		
-		SourceGroup = World.FindCellGroup (SourceGroupId);
+
+		base.FinalizeLoad ();
+
 		TargetGroup = World.FindCellGroup (TargetGroupId);
-		
-		SourceGroup.AddAssociatedEvent (this);
+
 		TargetGroup.AddAssociatedEvent (this);
 	}
 	
 	public override void Trigger () {
 
-		World.AddGroupActionToPerform (new KnowledgeTransferAction (SourceGroup, TargetGroup));
+		World.AddGroupActionToPerform (new KnowledgeTransferAction (Group, TargetGroup));
 		World.AddGroupToUpdate (TargetGroup);
 	}
 
@@ -452,10 +427,10 @@ public class KnowledgeTransferEvent : WorldEvent {
 	{
 		KnowledgeTransferEventCount--;
 		
-		if (SourceGroup != null) {
+		if (Group != null) {
 
-			SourceGroup.RemoveAssociatedEvent (Id);
-			SourceGroup.HasKnowledgeTransferEvent = false;
+			Group.RemoveAssociatedEvent (Id);
+			Group.HasKnowledgeTransferEvent = false;
 		}
 
 		if (TargetGroup != null) {

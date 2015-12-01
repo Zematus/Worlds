@@ -58,7 +58,8 @@ public class World {
 
 	[XmlArrayItem(Type = typeof(UpdateCellGroupEvent)),
 	 XmlArrayItem(Type = typeof(MigrateGroupEvent)),
-	 XmlArrayItem(Type = typeof(ShipbuildingDiscoveryEvent)),
+	 XmlArrayItem(Type = typeof(SailingDiscoveryEvent)),
+	 XmlArrayItem(Type = typeof(BoatMakingDiscoveryEvent)),
 	 XmlArrayItem(Type = typeof(KnowledgeTransferEvent))]
 	public List<WorldEvent> EventsToHappen = new List<WorldEvent> ();
 	
@@ -68,7 +69,7 @@ public class World {
 	
 	public List<CulturalSkillInfo> CulturalSkillInfoList = new List<CulturalSkillInfo> ();
 	public List<CulturalKnowledgeInfo> CulturalKnowledgeInfoList = new List<CulturalKnowledgeInfo> ();
-	public List<string> CulturalDiscoveryList = new List<string> ();
+	public List<CulturalDiscoveryInfo> CulturalDiscoveryInfoList = new List<CulturalDiscoveryInfo> ();
 	
 	[XmlIgnore]
 	public float MinPossibleAltitudeWithOffset = MinPossibleAltitude - Manager.SeaLevelOffset;
@@ -119,8 +120,9 @@ public class World {
 
 	private HashSet<int> _terrainCellChangesListIndexes = new HashSet<int> ();
 	
-	private HashSet<string> _culturalSkillInfoIdList = new HashSet<string> ();
-	private HashSet<string> _culturalSkillKnowledgeIdList = new HashSet<string> ();
+	private HashSet<string> _culturalSkillIdList = new HashSet<string> ();
+	private HashSet<string> _culturalKnowledgeIdList = new HashSet<string> ();
+	private HashSet<string> _culturalDiscoveryIdList = new HashSet<string> ();
 	
 	private HashSet<CellGroup> _updatedGroups = new HashSet<CellGroup> ();
 	
@@ -243,28 +245,29 @@ public class World {
 
 	public void AddExistingCulturalSkillInfo (CulturalSkillInfo baseInfo) {
 
-		if (_culturalSkillInfoIdList.Contains (baseInfo.Id))
+		if (_culturalSkillIdList.Contains (baseInfo.Id))
 			return;
 	
 		CulturalSkillInfoList.Add (new CulturalSkillInfo (baseInfo));
-		_culturalSkillInfoIdList.Add (baseInfo.Id);
+		_culturalSkillIdList.Add (baseInfo.Id);
 	}
 	
 	public void AddExistingCulturalKnowledgeInfo (CulturalKnowledgeInfo baseInfo) {
 		
-		if (_culturalSkillKnowledgeIdList.Contains (baseInfo.Id))
+		if (_culturalKnowledgeIdList.Contains (baseInfo.Id))
 			return;
 		
 		CulturalKnowledgeInfoList.Add (new CulturalKnowledgeInfo (baseInfo));
-		_culturalSkillKnowledgeIdList.Add (baseInfo.Id);
+		_culturalKnowledgeIdList.Add (baseInfo.Id);
 	}
 	
-	public void AddExistingCulturalDiscoveryInfo (string discovery) {
+	public void AddExistingCulturalDiscoveryInfo (CulturalDiscoveryInfo baseInfo) {
 		
-		if (CulturalDiscoveryList.Contains (discovery))
+		if (_culturalDiscoveryIdList.Contains (baseInfo.Id))
 			return;
 		
-		CulturalDiscoveryList.Add (discovery);
+		CulturalDiscoveryInfoList.Add (new CulturalDiscoveryInfo (baseInfo));
+		_culturalDiscoveryIdList.Add (baseInfo.Id);
 	}
 
 	public void UpdateMostPopulousGroup (CellGroup contenderGroup) {
@@ -504,8 +507,9 @@ public class World {
 			return 0;
 		});
 
-		CulturalSkillInfoList.ForEach (s => _culturalSkillInfoIdList.Add (s.Id));
-		CulturalKnowledgeInfoList.ForEach (k => _culturalSkillKnowledgeIdList.Add (k.Id));
+		CulturalSkillInfoList.ForEach (s => _culturalSkillIdList.Add (s.Id));
+		CulturalKnowledgeInfoList.ForEach (k => _culturalKnowledgeIdList.Add (k.Id));
+		CulturalDiscoveryInfoList.ForEach (d => _culturalDiscoveryIdList.Add (d.Id));
 	}
 
 	public void MigrationTagGroup (HumanGroup group) {

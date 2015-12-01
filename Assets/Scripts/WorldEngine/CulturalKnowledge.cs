@@ -45,14 +45,13 @@ public abstract class CulturalKnowledge : CulturalKnowledgeInfo {
 	public CellGroup Group;
 	
 	public CulturalKnowledge () {
+
 	}
 
 	public CulturalKnowledge (CellGroup group, string id, string name, float value) : base (id, name) {
 
 		Group = group;
 		Value = value;
-
-		RecalculateAsymptoteInternal ();
 	}
 	
 	public CulturalKnowledge GenerateCopy (CellGroup targetGroup) {
@@ -81,17 +80,20 @@ public abstract class CulturalKnowledge : CulturalKnowledgeInfo {
 		
 		return (float)fInfo.GetValue (this);
 	}
+	
+	public void SetHighestAsymptote (float value) {
+		
+		System.Type knowledgeType = this.GetType ();
+		
+		System.Reflection.FieldInfo fInfo = knowledgeType.GetField ("HighestAsymptote");
+		
+		float currentValue = (float)fInfo.GetValue (this);
+		fInfo.SetValue (this, Mathf.Max (value, currentValue));
+	}
 
 	public void Merge (CulturalKnowledge knowledge, float percentage) {
 	
 		Value = Value * (1f - percentage) + knowledge.Value * percentage;
-
-		RecalculateAsymptoteInternal ();
-		
-		if (Value > Asymptote) {
-			
-			throw new System.Exception ("Value higher than asymptote: " + Value);
-		}
 	}
 	
 	public void IncreaseValue (float targetValue, float percentage) {
@@ -100,55 +102,63 @@ public abstract class CulturalKnowledge : CulturalKnowledgeInfo {
 
 			Value += (targetValue - Value) * percentage;
 		}
-		
-		RecalculateAsymptoteInternal ();
-		
-		if (Value > Asymptote) {
-			
-			throw new System.Exception ("Value higher than asymptote: " + Value);
-		}
 	}
 	
 	public void ModifyValue (float percentage) {
 		
 		Value *= percentage;
-		
-		RecalculateAsymptoteInternal ();
-		
-		if (Value > Asymptote) {
-			
-			throw new System.Exception ("Value higher than asymptote: " + Value);
-		}
 	}
 
 	public virtual void FinalizeLoad () {
 
 	}
 	
-	public void UpdateProgressLevel ()
-	{
+	public void UpdateProgressLevel () {
+
 		if (Asymptote <= 0)
 			throw new System.Exception ("Asymptote is equal or less than 0");
 
 		ProgressLevel = Value / Asymptote;
 	}
+	
+	public void RecalculateAsymptote () {
 
-	protected void RecalculateAsymptoteInternal () {
+		Asymptote = 0;
+		
+		Group.Culture.Discoveries.ForEach (d => Asymptote = Mathf.Max (CalculateAsymptoteInternal (d), Asymptote));
 
-		RecalculateAsymptote ();
 		UpdateProgressLevel ();
+
+		SetHighestAsymptote (Asymptote);
 	}
 	
-	public abstract void Update (int timeSpan);
-	public abstract void RecalculateAsymptote ();
+	public void CalculateAndSetAsymptote (CulturalDiscovery discovery) {
+
+		Asymptote = Mathf.Max (CalculateAsymptoteInternal (discovery), Asymptote);
+
+		UpdateProgressLevel ();
+		
+		SetHighestAsymptote (Asymptote);
+	}
+
+	public void Update (int timeSpan) {
+
+		UpdateInternal (timeSpan);
+		
+		UpdateProgressLevel ();
+	}
+
+	protected abstract void UpdateInternal (int timeSpan);
 	public abstract float CalculateModifiedProgressLevel ();
 	public abstract float CalculateTransferFactor ();
+	
+	protected abstract float CalculateAsymptoteInternal (CulturalDiscovery discovery);
 }
 
 public class ShipbuildingKnowledge : CulturalKnowledge {
 
 	public const string ShipbuildingKnowledgeId = "ShipbuildingKnowledge";
-	public const string ShipbuildingKnowledgeName = "Shipbuilding Knowledge";
+	public const string ShipbuildingKnowledgeName = "Shipbuilding";
 
 	public const float TimeEffectConstant = CellGroup.GenerationTime * 500;
 
@@ -218,7 +228,7 @@ public class ShipbuildingKnowledge : CulturalKnowledge {
 		return neighborhoodPresence;
 	}
 
-	public override void Update (int timeSpan) {
+	protected override void UpdateInternal (int timeSpan) {
 
 		TerrainCell groupCell = Group.Cell;
 
@@ -243,22 +253,19 @@ public class ShipbuildingKnowledge : CulturalKnowledge {
 		float factor = timeEffect * _neighborhoodOceanPresence;
 		
 		Value = (Value * (1 - factor)) + (targetValue * factor);
-
-		RecalculateAsymptoteInternal ();
-
-		if (Value > Asymptote) {
-			throw new System.Exception ("Value higher than asymptote: " + Value);
-		}
 	}
 
-	public override void RecalculateAsymptote ()
+	protected override float CalculateAsymptoteInternal (CulturalDiscovery discovery)
 	{
-		Asymptote = 10;
-		
-		if (Asymptote > HighestAsymptote) {
-			
-			HighestAsymptote = Asymptote;
+		switch (discovery.Id) {
+
+		case BoatMakingDiscovery.BoatMakingDiscoveryId:
+			return 10;
+		case SailingDiscovery.SailingDiscoveryId:
+			return 30;
 		}
+
+		return 0;
 	}
 
 	public override float CalculateModifiedProgressLevel ()
