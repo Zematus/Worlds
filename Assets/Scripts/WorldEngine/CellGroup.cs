@@ -48,6 +48,8 @@ public class CellGroup : HumanGroup {
 	[XmlAttribute]
 	public bool HasKnowledgeTransferEvent = false;
 
+	public List<string> Flags = new List<string> ();
+
 	public CellCulture Culture;
 	
 	[XmlIgnore]
@@ -62,7 +64,9 @@ public class CellGroup : HumanGroup {
 	[XmlIgnore]
 	public List<CellGroup> Neighbors;
 
-	private Dictionary<int, WorldEvent> _associatedEvents = new Dictionary<int, WorldEvent> ();
+//	private Dictionary<int, WorldEvent> _associatedEvents = new Dictionary<int, WorldEvent> ();
+	
+	private HashSet<string> _flags = new HashSet<string> ();
 	
 	[XmlIgnore]
 	public int Population {
@@ -101,7 +105,7 @@ public class CellGroup : HumanGroup {
 			Culture = new CellCulture (this, baseCulture);
 		}
 		
-		Neighbors = cell.Neighbors.FindAll (c => c.Group != null).Process (c => c.Group);
+		Neighbors = new List<CellGroup>(cell.Neighbors.FindAll (c => c.Group != null).Process (c => c.Group));
 
 		Neighbors.ForEach (g => g.AddNeighbor (this));
 
@@ -123,33 +127,63 @@ public class CellGroup : HumanGroup {
 		}
 	}
 
-	public void AddAssociatedEvent (WorldEvent e) {
-
-		_associatedEvents.Add (e.Id, e);
-	}
+	public void SetFlag (string flag) {
 	
-	public WorldEvent GetAssociatedEvent (int id) {
-
-		WorldEvent e;
-
-		if (!_associatedEvents.TryGetValue (id, out e))
-			return null;
-
-		return e;
-	}
-	
-	public List<WorldEvent> GetAssociatedEvents (System.Type eventType) {
-		
-		return _associatedEvents.Process (p => p.Value).FindAll (e => e.GetType () == eventType);
-	}
-
-	public void RemoveAssociatedEvent (int id) {
-	
-		if (!_associatedEvents.ContainsKey (id))
+		if (_flags.Contains (flag))
 			return;
 
-		_associatedEvents.Remove (id);
+		_flags.Add (flag);
+		Flags.Add (flag);
 	}
+
+	public bool IsFlagSet (string flag) {
+	
+		return _flags.Contains (flag);
+	}
+
+	public void UnsetFlag (string flag) {
+	
+		if (!_flags.Contains (flag))
+			return;
+
+		_flags.Remove (flag);
+		Flags.Remove (flag);
+	}
+
+//	public void AddAssociatedEvent (WorldEvent e) {
+//
+////		_associatedEvents.Add (e.Id, e);
+//	}
+//	
+//	public WorldEvent GetAssociatedEvent (int id) {
+//
+//		WorldEvent e;
+//
+//		if (!_associatedEvents.TryGetValue (id, out e))
+//			return null;
+//
+//		return e;
+//	}
+//	
+//	public IEnumerable<WorldEvent> GetAssociatedEvents (System.Type eventType) {
+//
+//		foreach (WorldEvent e in _associatedEvents.Values) {
+//
+//			if (e.GetType () != eventType) continue;
+//		
+//			yield return e;
+//		}
+//		
+//		//return _associatedEvents.Process (p => p.Value).FindAll (e => e.GetType () == eventType);
+//	}
+//
+//	public void RemoveAssociatedEvent (int id) {
+//	
+////		if (!_associatedEvents.ContainsKey (id))
+////			return;
+////
+////		_associatedEvents.Remove (id);
+//	}
 
 	public void AddNeighbor (CellGroup group) {
 
@@ -303,53 +337,57 @@ public class CellGroup : HumanGroup {
 		return altitudeDeltaFactor;
 	}
 
+	public float CalculateMigrationValue (TerrainCell cell) {
+		
+		float areaFactor = cell.Area / TerrainCell.MaxArea;
+		
+		float altitudeDeltaFactor = CalculateAltitudeDeltaMigrationFactor (cell);
+		altitudeDeltaFactor *= altitudeDeltaFactor;
+		altitudeDeltaFactor *= altitudeDeltaFactor;
+		
+		float stressFactor = 1 - cell.CalculatePopulationStress();
+		stressFactor *= stressFactor;
+		stressFactor *= stressFactor;
+		
+		float cSurvivability = 0;
+		float cForagingCapacity = 0;
+		
+		CalculateAdaptionToCell (cell, out cForagingCapacity, out cSurvivability);
+		
+		float adaptionFactor = cSurvivability * cForagingCapacity; 
+		
+		float cellValue = adaptionFactor * altitudeDeltaFactor * areaFactor * stressFactor;
+
+		return cellValue;
+	}
+	
 	public void ConsiderMigration () {
 
 		if (HasMigrationEvent)
 			return;
-
-		List<TerrainCell> possibleTargetCells = new List<TerrainCell> (Cell.Neighbors);
-		possibleTargetCells.Add (Cell);
+		
+		Dictionary<TerrainCell, float> cellValuePairs = new Dictionary<TerrainCell, float> ();
 
 		float noMigrationPreference = 5f;
 
-		CellMigrationValue = 0;
-		float totalMigrationValue = 0;
+		CellMigrationValue = CalculateMigrationValue (Cell);
+		CellMigrationValue *= noMigrationPreference;
+		CellMigrationValue += noMigrationPreference;
+		
+		float totalMigrationValue = CellMigrationValue;
 
-		TerrainCell targetCell = CollectionUtility.WeightedSelection (possibleTargetCells, (c) => {
+		cellValuePairs.Add (Cell, CellMigrationValue);
 
-			float areaFactor = Cell.Area / TerrainCell.MaxArea;
-
-			float altitudeDeltaFactor = CalculateAltitudeDeltaMigrationFactor (c);
-			altitudeDeltaFactor *= altitudeDeltaFactor;
-			altitudeDeltaFactor *= altitudeDeltaFactor;
-
-			float stressFactor = 1 - c.CalculatePopulationStress();
-			stressFactor *= stressFactor;
-			stressFactor *= stressFactor;
-
-			float cSurvivability = 0;
-			float cForagingCapacity = 0;
-
-			CalculateAdaptionToCell (c, out cForagingCapacity, out cSurvivability);
-
-			float adaptionFactor = cSurvivability * cForagingCapacity; 
-
-			float cellValue = adaptionFactor * altitudeDeltaFactor * areaFactor * stressFactor;
-
-			if (c == Cell) {
-				cellValue *= noMigrationPreference;
-				cellValue += noMigrationPreference;
-
-				cellValue *= cForagingCapacity;
-
-				CellMigrationValue += cellValue;
-			}
-
+		Cell.Neighbors.ForEach (c => {
+			
+			float cellValue = CalculateMigrationValue (c);
+			
 			totalMigrationValue += cellValue;
+			
+			cellValuePairs.Add (c, cellValue);
+		});
 
-			return cellValue;
-		}, Cell.GetNextLocalRandomFloat);
+		TerrainCell targetCell = CollectionUtility.WeightedSelection (cellValuePairs, totalMigrationValue, Cell.GetNextLocalRandomFloat);
 		
 		if (totalMigrationValue <= 0) {
 			CellMigrationValue = 1;
@@ -440,12 +478,12 @@ public class CellGroup : HumanGroup {
 		
 		group.Culture.Knowledges.ForEach (k => {
 			
-			Culture.TransferKnowledge (k, populationFactor);
+			Culture.AbsorbKnowledgeFrom (k, populationFactor);
 		});
 
 		group.Culture.Discoveries.ForEach (d => {
 			
-			Culture.TransferDiscovery (d);
+			Culture.AbsorbDiscoveryFrom (d);
 		});
 	}
 
@@ -551,11 +589,13 @@ public class CellGroup : HumanGroup {
 
 		base.FinalizeLoad ();
 
+		Flags.ForEach (f => _flags.Add (f));
+
 		Cell = World.GetCell (CellLongitude, CellLatitude);
 
 		Cell.Group = this;
 
-		Neighbors = Cell.Neighbors.FindAll (c => c.Group != null).Process (c => c.Group);
+		Neighbors = new List<CellGroup> (Cell.Neighbors.FindAll (c => c.Group != null).Process (c => c.Group));
 		
 		Neighbors.ForEach (g => g.AddNeighbor (this));
 		

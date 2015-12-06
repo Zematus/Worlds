@@ -69,6 +69,9 @@ public class BoatMakingDiscovery : CulturalDiscovery {
 }
 
 public class SailingDiscovery : CulturalDiscovery {
+
+	public const float MinShipBuildingKnowledgeValue = 3;
+	public const float OptimalShipBuildingKnowledgeValue = 10;
 	
 	public const string SailingDiscoveryId = "SailingDiscovery";
 	public const string SailingDiscoveryName = "Sailing";
@@ -84,7 +87,7 @@ public class SailingDiscovery : CulturalDiscovery {
 		if (knowledge == null)
 			return false;
 		
-		if (knowledge.Value < 3)
+		if (knowledge.Value < MinShipBuildingKnowledgeValue)
 			return false;
 		
 		return true;

@@ -15,59 +15,82 @@ public abstract class Culture {
 	[XmlArrayItem(Type = typeof(BoatMakingDiscovery))]
 	[XmlArrayItem(Type = typeof(SailingDiscovery))]
 	public List<CulturalDiscovery> Discoveries = new List<CulturalDiscovery> ();
+
+	private Dictionary<string, CulturalSkill> _skills = new Dictionary<string, CulturalSkill> ();
+	private Dictionary<string, CulturalKnowledge> _knowledges = new Dictionary<string, CulturalKnowledge> ();
+	private Dictionary<string, CulturalDiscovery> _discoveries = new Dictionary<string, CulturalDiscovery> ();
 	
 	public Culture () {
 	}
 	
 	protected void AddSkill (World world, CulturalSkill skill) {
+
+		if (_skills.ContainsKey (skill.Id))
+			return;
 		
 		world.AddExistingCulturalSkillInfo (skill);
-		
+
 		Skills.Add (skill);
+		_skills.Add (skill.Id, skill);
 	}
 	
 	protected void AddKnowledge (World world, CulturalKnowledge knowledge) {
 		
-		world.AddExistingCulturalKnowledgeInfo (knowledge);
+		if (_knowledges.ContainsKey (knowledge.Id))
+			return;
 		
+		world.AddExistingCulturalKnowledgeInfo (knowledge);
+
 		Knowledges.Add (knowledge);
+		_knowledges.Add (knowledge.Id, knowledge);
 	}
 	
 	protected void AddDiscovery (World world, CulturalDiscovery discovery) {
 		
-		world.AddExistingCulturalDiscoveryInfo (discovery);
+		if (_discoveries.ContainsKey (discovery.Id))
+			return;
 		
+		world.AddExistingCulturalDiscoveryInfo (discovery);
+
 		Discoveries.Add (discovery);
+		_discoveries.Add (discovery.Id, discovery);
 	}
 	
 	public CulturalSkill GetSkill (string id) {
+
+		CulturalSkill skill = null;
+
+		if (!_skills.TryGetValue (id, out skill))
+			return null;
 		
-		foreach (CulturalSkill skill in Skills) {
-			
-			if (skill.Id == id) return skill;
-		}
-		
-		return null;
+		return skill;
 	}
 	
 	public CulturalKnowledge GetKnowledge (string id) {
 		
-		foreach (CulturalKnowledge knowledge in Knowledges) {
-			
-			if (knowledge.Id == id) return knowledge;
-		}
+		CulturalKnowledge knowledge = null;
 		
-		return null;
+		if (!_knowledges.TryGetValue (id, out knowledge))
+			return null;
+		
+		return knowledge;
 	}
 	
 	public CulturalDiscovery GetDiscovery (string id) {
 		
-		foreach (CulturalDiscovery discovery in Discoveries) {
-			
-			if (discovery.Id == id) return discovery;
-		}
+		CulturalDiscovery discovery = null;
 		
-		return null;
+		if (!_discoveries.TryGetValue (id, out discovery))
+			return null;
+		
+		return discovery;
+	}
+
+	public virtual void FinalizeLoad () {
+
+		Skills.ForEach (s => _skills.Add (s.Id, s));
+		Knowledges.ForEach (k => _knowledges.Add (k.Id, k));
+		Discoveries.ForEach (d => _discoveries.Add (d.Id, d));
 	}
 }
 
@@ -98,7 +121,27 @@ public class CellCulture : Culture {
 
 		Group = group;
 		
-		baseCulture.Skills.ForEach (s => Skills.Add (s.GenerateCopy (group)));
+		baseCulture.Skills.ForEach (s => AddSkill (s.GenerateCopy (group)));
+		baseCulture.Knowledges.ForEach (k => AddKnowledge (k.GenerateCopy (group)));
+		baseCulture.Discoveries.ForEach (d => {
+			AddDiscovery (d.GenerateCopy ());
+			Knowledges.ForEach (k => k.CalculateAndSetAsymptote (d));
+		});
+	}
+
+	protected void AddSkill (CulturalSkill skill) {
+	
+		AddSkill (Group.World, skill);
+	}
+	
+	protected void AddKnowledge (CulturalKnowledge knowledge) {
+		
+		AddKnowledge (Group.World, knowledge);
+	}
+	
+	protected void AddDiscovery (CulturalDiscovery discovery) {
+		
+		AddDiscovery (Group.World, discovery);
 	}
 	
 	public void AddSkillToLearn (CulturalSkill skill) {
@@ -135,7 +178,7 @@ public class CellCulture : Culture {
 				skill = s.GenerateCopy (Group);
 				skill.ModifyValue (percentage);
 				
-				Skills.Add (skill);
+				AddSkillToLearn (skill);
 			} else {
 				skill.Merge (s, percentage);
 			}
@@ -149,7 +192,7 @@ public class CellCulture : Culture {
 				knowledge = k.GenerateCopy (Group);
 				knowledge.ModifyValue (percentage);
 				
-				Knowledges.Add (knowledge);
+				AddKnowledgeToLearn (knowledge);
 			} else {
 				knowledge.Merge (k, percentage);
 			}
@@ -160,14 +203,9 @@ public class CellCulture : Culture {
 			CulturalDiscovery discovery = GetDiscovery (d.Id);
 			
 			if (discovery == null) {
-
-				if (!d.CanBeHold (sourceCulture.Group)) return;
-
 				discovery = d.GenerateCopy ();
 				
-				Discoveries.Add (discovery);
-
-				Knowledges.ForEach (k => k.CalculateAndSetAsymptote (discovery));
+				AddDiscoveryToFind (discovery);
 			}
 		});
 	}
@@ -210,19 +248,19 @@ public class CellCulture : Culture {
 		
 		foreach (CulturalSkill skill in SkillsToLearn.Values) {
 			
-			AddSkill (Group.World, skill);
+			AddSkill (skill);
 		}
 		
 		foreach (CulturalKnowledge knowledge in KnowledgesToLearn.Values) {
 			
-			AddKnowledge (Group.World, knowledge);
+			AddKnowledge (knowledge);
 		}
 		
 		foreach (CulturalDiscovery discovery in DiscoveriesToFind.Values) {
 			
 			if (!discovery.CanBeHold (Group)) continue;
 			
-			AddDiscovery (Group.World, discovery);
+			AddDiscovery (discovery);
 
 			Knowledges.ForEach (k => k.CalculateAndSetAsymptote (discovery));
 		}
@@ -264,7 +302,7 @@ public class CellCulture : Culture {
 		return maxTransferValue;
 	}
 	
-	public void TransferKnowledge (CulturalKnowledge sourceKnowledge, float sourceFactor) {
+	public void AbsorbKnowledgeFrom (CulturalKnowledge sourceKnowledge, float sourceFactor) {
 		
 		if (sourceKnowledge.Value < MinKnowledgeValue) return;
 		
@@ -284,7 +322,7 @@ public class CellCulture : Culture {
 		localKnowledge.IncreaseValue (sourceKnowledge.Value, BaseKnowledgeTransferFactor * specificKnowledgeFactor * sourceFactor);
 	}
 	
-	public void TransferDiscovery (CulturalDiscovery sourceDiscovery) {
+	public void AbsorbDiscoveryFrom (CulturalDiscovery sourceDiscovery) {
 		
 		CulturalDiscovery localDiscovery = GetDiscovery (sourceDiscovery.Id);
 		
@@ -328,7 +366,9 @@ public class CellCulture : Culture {
 		return minProgressLevel;
 	}
 	
-	public void FinalizeLoad () {
+	public override void FinalizeLoad () {
+
+		base.FinalizeLoad ();
 
 		Skills.ForEach (s => {
 

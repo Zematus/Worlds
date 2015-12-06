@@ -253,6 +253,19 @@ public class ShipbuildingKnowledge : CulturalKnowledge {
 		float factor = timeEffect * _neighborhoodOceanPresence;
 		
 		Value = (Value * (1 - factor)) + (targetValue * factor);
+
+		if (Value < SailingDiscoveryEvent.MinShipBuildingKnowledgeSpawnEventValue)
+			return;
+		
+		if (Value > SailingDiscoveryEvent.OptimalShipBuildingKnowledgeValue)
+			return;
+
+		if (SailingDiscoveryEvent.CanSpawnIn (Group)) {
+			
+			int triggerDate = SailingDiscoveryEvent.CalculateTriggerDate (Group);
+			
+			Group.World.InsertEventToHappen (new SailingDiscoveryEvent (Group, triggerDate));
+		}
 	}
 
 	protected override float CalculateAsymptoteInternal (CulturalDiscovery discovery)

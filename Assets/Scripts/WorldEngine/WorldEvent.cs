@@ -74,7 +74,7 @@ public abstract class CellGroupEvent : WorldEvent {
 		Group = group;
 		GroupId = Group.Id;
 		
-		Group.AddAssociatedEvent (this);
+//		Group.AddAssociatedEvent (this);
 	}
 
 	public override bool CanTrigger () {
@@ -89,7 +89,7 @@ public abstract class CellGroupEvent : WorldEvent {
 		
 		Group = World.FindCellGroup (GroupId);
 		
-		Group.AddAssociatedEvent (this);
+//		Group.AddAssociatedEvent (this);
 	}
 	
 	protected override void DestroyInternal ()
@@ -97,7 +97,7 @@ public abstract class CellGroupEvent : WorldEvent {
 		if (Group == null)
 			return;
 		
-		Group.RemoveAssociatedEvent (Id);
+//		Group.RemoveAssociatedEvent (Id);
 	}
 }
 
@@ -202,15 +202,19 @@ public class MigrateGroupEvent : WorldEvent {
 public class SailingDiscoveryEvent : CellGroupEvent {
 	
 	public const int MaxDateSpanToTrigger = CellGroup.GenerationTime * 10000;
-	public const float MinShipBuildingKnowledgeValue = 5;
-	public const float OptimalShipBuildingKnowledgeValue = 10;
+	public const float MinShipBuildingKnowledgeSpawnEventValue = 5;
+	public const float MinShipBuildingKnowledgeValue = SailingDiscovery.MinShipBuildingKnowledgeValue;
+	public const float OptimalShipBuildingKnowledgeValue = SailingDiscovery.OptimalShipBuildingKnowledgeValue;
+
+	public const string EventSetFlag = "SailingDiscoveryEvent_Set";
 	
 	public SailingDiscoveryEvent () {
 		
 	}
 	
 	public SailingDiscoveryEvent (CellGroup group, int triggerDate) : base (group, triggerDate) {
-
+		
+		Group.SetFlag (EventSetFlag);
 	}
 	
 	public static int CalculateTriggerDate (CellGroup group) {
@@ -237,12 +241,10 @@ public class SailingDiscoveryEvent : CellGroupEvent {
 	
 	public static bool CanSpawnIn (CellGroup group) {
 
-		CulturalDiscovery discovery = group.Culture.GetDiscovery (SailingDiscovery.SailingDiscoveryId);
-
-		if (discovery != null)
+		if (group.Culture.GetDiscovery (SailingDiscovery.SailingDiscoveryId) != null)
 			return false;
 
-		if (group.GetAssociatedEvents (typeof(SailingDiscoveryEvent)).Count > 0)
+		if (group.IsFlagSet (EventSetFlag))
 			return false;
 		
 		return true;
@@ -273,6 +275,13 @@ public class SailingDiscoveryEvent : CellGroupEvent {
 
 		Group.Culture.AddDiscoveryToFind (new SailingDiscovery ());
 		World.AddGroupToUpdate (Group);
+	}
+
+	protected override void DestroyInternal ()
+	{
+		Group.UnsetFlag (EventSetFlag);
+
+		base.DestroyInternal ();
 	}
 }
 
@@ -357,7 +366,7 @@ public class KnowledgeTransferEvent : CellGroupEvent {
 		TargetGroup = targetGroup;
 		TargetGroupId = TargetGroup.Id;
 
-		TargetGroup.AddAssociatedEvent (this);
+//		TargetGroup.AddAssociatedEvent (this);
 	}
 	
 	public static CellGroup DiscoverTargetGroup (CellGroup sourceGroup, out float targetTransferValue) {
@@ -366,14 +375,16 @@ public class KnowledgeTransferEvent : CellGroupEvent {
 
 		Dictionary<CellGroup, float> groupValuePairs = new Dictionary<CellGroup, float> ();
 
+		float totalTransferValue = 0;
 		sourceGroup.Neighbors.ForEach (g => {
 			
 			float transferValue = CellCulture.CalculateKnowledgeTransferValue (sourceGroup, g);
+			totalTransferValue += transferValue;
 
 			groupValuePairs.Add (g, transferValue);
 		});
 
-		CellGroup targetGroup = CollectionUtility.WeightedSelection (groupValuePairs, sourceCell.GetNextLocalRandomFloat);
+		CellGroup targetGroup = CollectionUtility.WeightedSelection (groupValuePairs, totalTransferValue, sourceCell.GetNextLocalRandomFloat);
 
 		targetTransferValue = 0;
 
@@ -414,7 +425,7 @@ public class KnowledgeTransferEvent : CellGroupEvent {
 
 		TargetGroup = World.FindCellGroup (TargetGroupId);
 
-		TargetGroup.AddAssociatedEvent (this);
+//		TargetGroup.AddAssociatedEvent (this);
 	}
 	
 	public override void Trigger () {
@@ -429,13 +440,13 @@ public class KnowledgeTransferEvent : CellGroupEvent {
 		
 		if (Group != null) {
 
-			Group.RemoveAssociatedEvent (Id);
+//			Group.RemoveAssociatedEvent (Id);
 			Group.HasKnowledgeTransferEvent = false;
 		}
 
 		if (TargetGroup != null) {
 
-			TargetGroup.RemoveAssociatedEvent (Id);
+//			TargetGroup.RemoveAssociatedEvent (Id);
 		}
 	}
 }

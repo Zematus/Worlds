@@ -1082,6 +1082,20 @@ public class GuiManagerScript : MonoBehaviour {
 						InfoPanelText.text += "\n\t" + knowledge.Id + " - Value: " + knowledge.Value.ToString("0.000");
 					}
 				}
+				
+				bool firstDiscovery = true;
+				
+				foreach (CulturalDiscovery discovery in cell.Group.Culture.Discoveries) {
+
+					if (firstDiscovery) {
+						InfoPanelText.text += "\n";
+						InfoPanelText.text += "\nCultural Discoveries";
+						
+						firstDiscovery = false;
+					}
+					
+					InfoPanelText.text += "\n\t" + discovery.Id;
+				}
 			}
 		}
 	}
