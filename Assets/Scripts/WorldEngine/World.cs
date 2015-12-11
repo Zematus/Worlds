@@ -288,7 +288,13 @@ public class World {
 	}
 	
 	public TerrainCell GetCell (int longitude, int latitude) {
+
+		if ((longitude < 0) || (longitude >= Width))
+			return null;
 		
+		if ((latitude < 0) || (latitude >= Height))
+			return null;
+
 		return TerrainCells[longitude][latitude];
 	}
 
