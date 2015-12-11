@@ -65,6 +65,8 @@ public class GuiManagerScript : MonoBehaviour {
 	private PostProgressOperation _postProgressOp = null;
 
 	private MouseClickOperation _mapLeftClickOperation = null;
+
+	private TerrainCell _selectedCell = null;
 	
 	private const float _maxAccTime = 0.0f;
 	private const int _iterationsPerRefresh = 5;
@@ -96,6 +98,8 @@ public class GuiManagerScript : MonoBehaviour {
 		AddPopulationDialogScript.SetVisible (false);
 
 		QuickTipPanelScript.SetVisible (false);
+
+		_mapLeftClickOperation = SelectCell_ClickOperation;
 		
 		if (!Manager.WorldReady) {
 
@@ -400,6 +404,19 @@ public class GuiManagerScript : MonoBehaviour {
 		
 		DisplayTip_MapScroll ();
 	}
+
+	public void SelectCell_ClickOperation (Vector2 position) {
+
+		Vector2 mapCoordinates;
+
+		if (!GetMapCoordinatesFromMousePosition (position, out mapCoordinates))
+			return;
+
+		int longitude = (int)mapCoordinates.x;
+		int latitude = (int)mapCoordinates.y;
+
+		_selectedCell = Manager.CurrentWorld.GetCell (longitude, latitude);
+	}
 	
 	public void SelectPopulationPlacement () {
 		
@@ -416,10 +433,10 @@ public class GuiManagerScript : MonoBehaviour {
 			
 			Vector2 point;
 			
-			if (GetMapCoordinatesFromCursor (out point)) {
+			if (GetMapCoordinatesFromMousePosition (out point)) {
 				if (AddPopulationGroupAtPosition (point, population))
 				{
-					_mapLeftClickOperation = null;
+					_mapLeftClickOperation = SelectCell_ClickOperation;
 					
 					Manager.InterruptSimulation (false);
 
@@ -953,11 +970,15 @@ public class GuiManagerScript : MonoBehaviour {
 		
 		InfoPanelText.text = "Year: " + world.CurrentDate;
 
-		Vector2 point;
-		
-		if (GetMapCoordinatesFromCursor (out point)) {
-			AddCellDataToInfoPanel (point);
+		if (_selectedCell != null) {
+			AddCellDataToInfoPanel (_selectedCell);
 		}
+//
+//		Vector2 point;
+//		
+//		if (GetMapCoordinatesFromMousePosition (out point)) {
+//			AddCellDataToInfoPanel (point);
+//		}
 		
 		InfoPanelText.text += "\n";
 		InfoPanelText.text += "\nNumber of Events: " + WorldEvent.EventCount;
@@ -980,19 +1001,23 @@ public class GuiManagerScript : MonoBehaviour {
 	
 	public void AddCellDataToInfoPanel (int longitude, int latitude) {
 		
+		TerrainCell cell = Manager.CurrentWorld.GetCell (longitude, latitude);
+		
+		if (cell == null) return;
+
+		AddCellDataToInfoPanel (cell);
+	}
+	
+	public void AddCellDataToInfoPanel (TerrainCell cell) {
+		
 		World world = Manager.CurrentWorld;
+
+		int longitude = cell.Longitude;
+		int latitude = cell.Latitude;
 		
-		if ((longitude < 0) || (longitude >= world.Width))
-			return;
-		
-		if ((latitude < 0) || (latitude >= world.Height))
-			return;
+		world.SetObservedCell (cell);
 
 		InfoPanelText.text += "\n";
-		
-		TerrainCell cell = world.TerrainCells[longitude][latitude];
-
-		world.SetObservedCell (cell);
 		
 		InfoPanelText.text += string.Format("\nPosition: Longitude {0}, Latitude {1}", longitude, latitude);
 		InfoPanelText.text += "\nAltitude: " + cell.Altitude + " meters";
@@ -1107,34 +1132,39 @@ public class GuiManagerScript : MonoBehaviour {
 
 		AddCellDataToInfoPanel (longitude, latitude);
 	}
-	
-	public bool GetMapCoordinatesFromCursor (out Vector2 point) {
-		
+
+	public bool GetMapCoordinatesFromMousePosition (Vector2 mousePosition, out Vector2 mapPosition) {
+
 		Rect mapImageRect = MapImage.rectTransform.rect;
-
-		Vector3 mapMousePos = MapImage.rectTransform.InverseTransformPoint (Input.mousePosition);
 		
-		Vector2 mousePos = new Vector2 (mapMousePos.x, mapMousePos.y);
-
-		if (mapImageRect.Contains (mousePos)) {
-
-			Vector2 relPos = mousePos - mapImageRect.min;
-
+		Vector3 positionOverMapRect3D = MapImage.rectTransform.InverseTransformPoint (mousePosition);
+		
+		Vector2 positionOverMapRect = new Vector2 (positionOverMapRect3D.x, positionOverMapRect3D.y);
+		
+		if (mapImageRect.Contains (positionOverMapRect)) {
+			
+			Vector2 relPos = positionOverMapRect - mapImageRect.min;
+			
 			Vector2 uvPos = new Vector2 (relPos.x / mapImageRect.size.x, relPos.y / mapImageRect.size.y);
-
+			
 			uvPos += MapImage.uvRect.min;
-
+			
 			float worldLong = Mathf.Repeat (uvPos.x * Manager.CurrentWorld.Width, Manager.CurrentWorld.Width);
 			float worldLat = uvPos.y * Manager.CurrentWorld.Height;
-
-			point = new Vector2 (Mathf.Floor(worldLong), Mathf.Floor(worldLat));
-
+			
+			mapPosition = new Vector2 (Mathf.Floor(worldLong), Mathf.Floor(worldLat));
+			
 			return true;
 		}
-
-		point = -Vector2.one;
-
+		
+		mapPosition = -Vector2.one;
+		
 		return false;
+	}
+	
+	public bool GetMapCoordinatesFromMousePosition (out Vector2 mapPosition) {
+
+		return GetMapCoordinatesFromMousePosition (Input.mousePosition, out mapPosition);
 	}
 	
 	public void DragMap (BaseEventData data) {
