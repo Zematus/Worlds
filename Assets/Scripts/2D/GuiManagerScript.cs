@@ -62,9 +62,9 @@ public class GuiManagerScript : MonoBehaviour {
 	private string _progressMessage = null;
 	private float _progressValue = 0;
 
-	private PostProgressOperation _postProgressOp = null;
+	private event PostProgressOperation _postProgressOp = null;
 
-	private MouseClickOperation _mapLeftClickOperation = null;
+	private event MouseClickOperation _mapLeftClickOp = null;
 
 	private TerrainCell _selectedCell = null;
 	
@@ -99,7 +99,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 		QuickTipPanelScript.SetVisible (false);
 
-		_mapLeftClickOperation = SelectCell_ClickOperation;
+		_mapLeftClickOp += ClickOp_SelectCell;
 		
 		if (!Manager.WorldReady) {
 
@@ -162,7 +162,6 @@ public class GuiManagerScript : MonoBehaviour {
 			
 			if (_postProgressOp != null) 
 				_postProgressOp ();
-
 		}
 		
 		bool updateTextures = false;
@@ -342,6 +341,17 @@ public class GuiManagerScript : MonoBehaviour {
 		
 		GenerateWorldInternal (seed);
 	}
+
+	private void PostProgressOp_GenerateWorld () {
+		
+		Manager.WorldName = "world_" + Manager.CurrentWorld.Seed;
+		
+		SelectionPanelScript.RemoveAllOptions ();
+		
+		SetInitialPopulation();
+		
+		_postProgressOp -= PostProgressOp_GenerateWorld;
+	}
 	
 	private void GenerateWorldInternal (int seed) {
 		
@@ -350,17 +360,8 @@ public class GuiManagerScript : MonoBehaviour {
 		ProgressUpdate (0, "Generating World...", true);
 		
 		Manager.GenerateNewWorldAsync (seed, ProgressUpdate);
-		
-		_postProgressOp = () => {
-			
-			Manager.WorldName = "world_" + Manager.CurrentWorld.Seed;
-			
-			SelectionPanelScript.RemoveAllOptions ();
 
-			SetInitialPopulation();
-			
-			_postProgressOp = null;
-		};
+		_postProgressOp += PostProgressOp_GenerateWorld;
 		
 		_displayProgressDialogs = true;
 		
@@ -405,7 +406,7 @@ public class GuiManagerScript : MonoBehaviour {
 		DisplayTip_MapScroll ();
 	}
 
-	public void SelectCell_ClickOperation (Vector2 position) {
+	public void ClickOp_SelectCell (Vector2 position) {
 
 		Vector2 mapCoordinates;
 
@@ -416,6 +417,24 @@ public class GuiManagerScript : MonoBehaviour {
 		int latitude = (int)mapCoordinates.y;
 
 		_selectedCell = Manager.CurrentWorld.GetCell (longitude, latitude);
+	}
+
+	public void ClickOp_SelectPopulationPlacement (Vector2 position) {
+
+		int population = AddPopulationDialogScript.Population;
+
+		Vector2 point;
+		
+		if (GetMapCoordinatesFromMousePosition (out point)) {
+			if (AddPopulationGroupAtPosition (point, population)) {
+				
+				Manager.InterruptSimulation (false);
+				
+				DisplayTip_MapScroll();
+
+				_mapLeftClickOp -= ClickOp_SelectPopulationPlacement;
+			}
+		}
 	}
 	
 	public void SelectPopulationPlacement () {
@@ -429,21 +448,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 		DisplayTip_InitialPopulationPlacement ();
 
-		_mapLeftClickOperation = (position) => {
-			
-			Vector2 point;
-			
-			if (GetMapCoordinatesFromMousePosition (out point)) {
-				if (AddPopulationGroupAtPosition (point, population))
-				{
-					_mapLeftClickOperation = SelectCell_ClickOperation;
-					
-					Manager.InterruptSimulation (false);
-
-					DisplayTip_MapScroll();
-				}
-			}
-		};
+		_mapLeftClickOp += ClickOp_SelectPopulationPlacement;
 	}
 	
 	public bool AddPopulationGroupAtPosition (Vector2 mapPosition, int population) {
@@ -595,6 +600,13 @@ public class GuiManagerScript : MonoBehaviour {
 		ExportMapDialogPanelScript.SetVisible (true);
 	}
 
+	public void PostProgressOp_SaveAction () {
+
+		LoadButton.interactable = HasFilesToLoad ();
+		
+		_postProgressOp -= PostProgressOp_SaveAction;
+	}
+
 	public void SaveAction () {
 		
 		SaveFileDialogPanelScript.SetVisible (false);
@@ -608,13 +620,8 @@ public class GuiManagerScript : MonoBehaviour {
 		string path = Manager.SavePath + Manager.WorldName + ".plnt";
 
 		Manager.SaveWorldAsync (path);
-		
-		_postProgressOp = () => {
 
-			LoadButton.interactable = HasFilesToLoad ();
-			
-			_postProgressOp = null;
-		};
+		_postProgressOp += PostProgressOp_SaveAction;
 		
 		_displayProgressDialogs = true;
 	}
@@ -636,6 +643,18 @@ public class GuiManagerScript : MonoBehaviour {
 
 		Manager.InterruptSimulation (true);
 	}
+
+	public void PostPogressOp_LoadAction () {
+		
+		SelectionPanelScript.RemoveAllOptions ();
+		
+		if (!Manager.SimulationCanRun) {
+			
+			SetInitialPopulation();
+		}
+		
+		_postProgressOp -= PostPogressOp_LoadAction;
+	}
 	
 	public void LoadAction () {
 		
@@ -651,17 +670,7 @@ public class GuiManagerScript : MonoBehaviour {
 		
 		Manager.WorldName = Path.GetFileNameWithoutExtension (path);
 		
-		_postProgressOp = () => {
-			
-			SelectionPanelScript.RemoveAllOptions ();
-
-			if (!Manager.SimulationCanRun) {
-				
-				SetInitialPopulation();
-			}
-			
-			_postProgressOp = null;
-		};
+		_postProgressOp += PostPogressOp_LoadAction;
 		
 		_displayProgressDialogs = true;
 		
@@ -1207,9 +1216,9 @@ public class GuiManagerScript : MonoBehaviour {
 		if (pointerData.button != PointerEventData.InputButton.Left)
 			return;
 
-		if (_mapLeftClickOperation != null) {
+		if (_mapLeftClickOp != null) {
 		
-			_mapLeftClickOperation (pointerData.position);
+			_mapLeftClickOp (pointerData.position);
 		}
 	}
 }
