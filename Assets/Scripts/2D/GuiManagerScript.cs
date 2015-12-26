@@ -43,6 +43,8 @@ public class GuiManagerScript : MonoBehaviour {
 
 	public QuickTipPanelScript QuickTipPanelScript;
 
+	private bool _simulationGuiPause = false;
+
 	private bool _displayedTip_mapScroll = false;
 	private bool _displayedTip_initialPopulation = false;
 	
@@ -245,7 +247,7 @@ public class GuiManagerScript : MonoBehaviour {
 		
 		MainMenuDialogPanelScript.SetVisible (false);
 		
-		Manager.InterruptSimulation (false);
+		InterruptSimulation (false);
 	}
 	
 	public void CloseOptionsMenu () {
@@ -268,7 +270,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 		SetSeedDialogPanelScript.SetVisible (true);
 		
-		Manager.InterruptSimulation (true);
+		InterruptSimulation (true);
 
 	}
 	
@@ -277,7 +279,7 @@ public class GuiManagerScript : MonoBehaviour {
 		SetSeedDialogPanelScript.SetVisible (false);
 		CustomizeWorldDialogPanelScript.SetVisible (false);
 		
-		Manager.InterruptSimulation (false);
+		InterruptSimulation (false);
 	}
 	
 	public void CloseSeedErrorMessageAction () {
@@ -380,7 +382,7 @@ public class GuiManagerScript : MonoBehaviour {
 	
 		AddPopulationDialogScript.SetVisible (true);
 		
-		Manager.InterruptSimulation (true);
+		InterruptSimulation (true);
 	}
 
 	public void CancelPopulationPlacement () {
@@ -401,7 +403,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 		Manager.GenerateRandomHumanGroup (population);
 		
-		Manager.InterruptSimulation (false);
+		InterruptSimulation (false);
 		
 		DisplayTip_MapScroll ();
 	}
@@ -428,7 +430,7 @@ public class GuiManagerScript : MonoBehaviour {
 		if (GetMapCoordinatesFromMousePosition (out point)) {
 			if (AddPopulationGroupAtPosition (point, population)) {
 				
-				Manager.InterruptSimulation (false);
+				InterruptSimulation (false);
 				
 				DisplayTip_MapScroll();
 
@@ -532,7 +534,7 @@ public class GuiManagerScript : MonoBehaviour {
 		CustomizeWorldDialogPanelScript.SetRainfallOffset(Manager.RainfallOffset);
 		CustomizeWorldDialogPanelScript.SetSeaLevelOffset(Manager.SeaLevelOffset);
 		
-		Manager.InterruptSimulation (true);
+		InterruptSimulation (true);
 	}
 
 	private bool HasFilesToLoad () {
@@ -630,7 +632,7 @@ public class GuiManagerScript : MonoBehaviour {
 		
 		SaveFileDialogPanelScript.SetVisible (false);
 		
-		Manager.InterruptSimulation (false);
+		InterruptSimulation (false);
 	}
 
 	public void SaveWorldAs () {
@@ -641,7 +643,7 @@ public class GuiManagerScript : MonoBehaviour {
 		
 		SaveFileDialogPanelScript.SetVisible (true);
 
-		Manager.InterruptSimulation (true);
+		InterruptSimulation (true);
 	}
 
 	public void PostPogressOp_LoadAction () {
@@ -681,7 +683,7 @@ public class GuiManagerScript : MonoBehaviour {
 		
 		LoadFileDialogPanelScript.SetVisible (false);
 		
-		Manager.InterruptSimulation (false);
+		InterruptSimulation (false);
 	}
 	
 	public void LoadWorld () {
@@ -691,8 +693,8 @@ public class GuiManagerScript : MonoBehaviour {
 		LoadFileDialogPanelScript.SetVisible (true);
 
 		LoadFileDialogPanelScript.SetLoadAction (LoadAction);
-		
-		Manager.InterruptSimulation (true);
+
+		InterruptSimulation (true);
 	}
 	
 	public void CloseOverlayMenuAction () {
@@ -780,12 +782,24 @@ public class GuiManagerScript : MonoBehaviour {
 		
 		MainMenuDialogPanelScript.SetVisible (true);
 		
-		Manager.InterruptSimulation (true);
+		InterruptSimulation (true);
 	}
 
 	public void OpenOptionsMenu () {
 		
 		OptionsDialogPanelScript.SetVisible (true);
+	}
+
+	public void PauseSimulation (bool state) {
+
+		_simulationGuiPause = state;
+
+		Manager.InterruptSimulation (state);
+	}
+
+	public void InterruptSimulation (bool state) {
+
+		Manager.InterruptSimulation (state || _simulationGuiPause);
 	}
 
 	public void UpdateMapView () {
