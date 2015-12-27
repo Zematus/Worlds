@@ -1,9 +1,13 @@
 using UnityEngine;
-using UnityEngine.UI;
+using UnityEngine.Events;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+
+[System.Serializable]
+public class MessageEvent : UnityEvent <string> {}
 
 public delegate void PostProgressOperation ();
 
@@ -42,6 +46,10 @@ public class GuiManagerScript : MonoBehaviour {
 	public SelectionPanelScript SelectionPanelScript;
 
 	public QuickTipPanelScript QuickTipPanelScript;
+	
+	public ToggleEvent OnSimulationInterrupted;
+	
+	public MessageEvent OnSimulationSpeedChanged;
 
 	private bool _simulationGuiPause = false;
 
@@ -790,7 +798,18 @@ public class GuiManagerScript : MonoBehaviour {
 		OptionsDialogPanelScript.SetVisible (true);
 	}
 
+	public void SetSimulationSpeed (bool state) {
+
+		if (state == true) {
+			OnSimulationSpeedChanged.Invoke ("Running");
+		} else {
+			OnSimulationSpeedChanged.Invoke ("Stopped");
+		}
+	}
+
 	public void PauseSimulation (bool state) {
+
+		SetSimulationSpeed (!state);
 
 		_simulationGuiPause = state;
 
@@ -798,6 +817,10 @@ public class GuiManagerScript : MonoBehaviour {
 	}
 
 	public void InterruptSimulation (bool state) {
+		
+		SetSimulationSpeed (!state);
+
+		OnSimulationInterrupted.Invoke (state);
 
 		Manager.InterruptSimulation (state || _simulationGuiPause);
 	}
