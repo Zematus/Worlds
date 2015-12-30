@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 using System.Collections;
 using System.IO;
 
@@ -59,7 +60,7 @@ public class StartGuiManagerScript : MonoBehaviour {
 
 			_preparingWorld = false;
 			
-			Application.LoadLevel ("WorldView");
+			SceneManager.LoadScene ("WorldView");
 		}
 	}
 	
