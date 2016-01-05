@@ -9,6 +9,9 @@ using System.IO;
 [System.Serializable]
 public class MessageEvent : UnityEvent <string> {}
 
+[System.Serializable]
+public class ToggleEvent : UnityEvent <bool> {}
+
 public delegate void PostProgressOperation ();
 
 public delegate void MouseClickOperation (Vector2 position);
@@ -78,18 +81,24 @@ public class GuiManagerScript : MonoBehaviour {
 
 	private TerrainCell _selectedCell = null;
 	
-	private const float _maxAccTime = 0.0f;
-	private const int _iterationsPerRefresh = 5;
+	private const float _maxAccTime = 1.0f;
 
 	private float _accDeltaTime = 0;
-	private int _accIterations = 0;
+	private int _simulationDateSpan = 0;
 
 	private int _mapUpdateCount = 0;
 	private int _lastMapUpdateCount = 0;
 	private float _timeSinceLastMapUpdate = 0;
 
+	private int[] _maxSpeedOptions = new int[] {1, 10, 100, 1000, int.MaxValue};
+	private int _finalMaxSpeedOption;
+	private int _selectedMaxSpeedOption;
+
 	// Use this for initialization
 	void Start () {
+		
+		_finalMaxSpeedOption = _maxSpeedOptions.Length - 1;
+		_selectedMaxSpeedOption = _finalMaxSpeedOption;
 
 		Manager.UpdateMainThreadReference ();
 		
@@ -176,11 +185,19 @@ public class GuiManagerScript : MonoBehaviour {
 		
 		bool updateTextures = false;
 
-		_accDeltaTime += Time.deltaTime;
+		if (Manager.SimulationCanRun && Manager.SimulationRunning) {
 
-		if (_accDeltaTime > _maxAccTime) {
+			int maxSpeed = _maxSpeedOptions [_selectedMaxSpeedOption];
 
-			if (Manager.SimulationCanRun && Manager.SimulationRunning) {
+			_accDeltaTime += Time.deltaTime;
+
+			if (_accDeltaTime > _maxAccTime) {
+
+				_accDeltaTime -= _maxAccTime;
+				_simulationDateSpan = 0;
+			}
+
+			if (_simulationDateSpan < maxSpeed) {
 
 				int minDateSpan = CellGroup.GenerationTime * 1000;
 				int lastUpdateDate = Manager.CurrentWorld.CurrentDate;
@@ -190,19 +207,19 @@ public class GuiManagerScript : MonoBehaviour {
 
 				while ((lastUpdateDate + minDateSpan) >= Manager.CurrentWorld.CurrentDate) {
 
-					Manager.CurrentWorld.Iterate();
+					_simulationDateSpan += Manager.CurrentWorld.Iterate ();
 
 					float deltaIterations = Time.realtimeSinceStartup - startIterations;
+
+					if (_simulationDateSpan >= maxSpeed)
+						break;
 
 					if (deltaIterations > maxDeltaIterations)
 						break;
 				}
-				
+
 				updateTextures = true;
 			}
-			
-			_accDeltaTime -= _maxAccTime;
-			_accIterations++;
 		}
 	
 		if (_regenTextures) {
@@ -220,17 +237,12 @@ public class GuiManagerScript : MonoBehaviour {
 
 		} else if (updateTextures) {
 
-			if (_accIterations >= _iterationsPerRefresh)
-			{
-				_accIterations -= _iterationsPerRefresh;
+			if ((_planetOverlay == PlanetOverlay.Population) || 
+				(_planetOverlay == PlanetOverlay.CulturalSkill) || 
+				(_planetOverlay == PlanetOverlay.CulturalKnowledge)) {
+				Manager.UpdateTextures ();
 
-				if ((_planetOverlay == PlanetOverlay.Population) || 
-				    (_planetOverlay == PlanetOverlay.CulturalSkill) || 
-				    (_planetOverlay == PlanetOverlay.CulturalKnowledge)) {
-					Manager.UpdateTextures ();
-					
-					_mapUpdateCount++;
-				}
+				_mapUpdateCount++;
 			}
 		}
 
@@ -359,6 +371,10 @@ public class GuiManagerScript : MonoBehaviour {
 		SelectionPanelScript.RemoveAllOptions ();
 		
 		SetInitialPopulation();
+
+		_selectedMaxSpeedOption = _finalMaxSpeedOption;
+
+		Manager.CurrentWorld.SetMaxYearsToSkip (_maxSpeedOptions[_selectedMaxSpeedOption]);
 		
 		_postProgressOp -= PostProgressOp_GenerateWorld;
 	}
@@ -654,7 +670,44 @@ public class GuiManagerScript : MonoBehaviour {
 		InterruptSimulation (true);
 	}
 
-	public void PostPogressOp_LoadAction () {
+	public void GetMaxSpeedOptionFromCurrentWorld () {
+
+		int maxSpeed = Manager.CurrentWorld.MaxYearsToSkip;
+
+		for (int i = 0; i < _maxSpeedOptions.Length; i++) {
+
+			if (maxSpeed <= _maxSpeedOptions [i]) {
+
+				_selectedMaxSpeedOption = i;
+
+				Manager.CurrentWorld.SetMaxYearsToSkip (_maxSpeedOptions [i]);
+
+				break;
+			}
+		}
+	}
+
+	public void IncreaseMaxSpeed () {
+	
+		if (_selectedMaxSpeedOption == _finalMaxSpeedOption)
+			return;
+
+		_selectedMaxSpeedOption++;
+
+		Manager.CurrentWorld.SetMaxYearsToSkip (_maxSpeedOptions [_selectedMaxSpeedOption]);
+	}
+
+	public void DecreaseMaxSpeed () {
+
+		if (_selectedMaxSpeedOption == 0)
+			return;
+
+		_selectedMaxSpeedOption--;
+
+		Manager.CurrentWorld.SetMaxYearsToSkip (_maxSpeedOptions [_selectedMaxSpeedOption]);
+	}
+
+	public void PostProgressOp_LoadAction () {
 		
 		SelectionPanelScript.RemoveAllOptions ();
 		
@@ -662,8 +715,10 @@ public class GuiManagerScript : MonoBehaviour {
 			
 			SetInitialPopulation();
 		}
+
+		GetMaxSpeedOptionFromCurrentWorld ();
 		
-		_postProgressOp -= PostPogressOp_LoadAction;
+		_postProgressOp -= PostProgressOp_LoadAction;
 	}
 	
 	public void LoadAction () {
@@ -680,7 +735,7 @@ public class GuiManagerScript : MonoBehaviour {
 		
 		Manager.WorldName = Path.GetFileNameWithoutExtension (path);
 		
-		_postProgressOp += PostPogressOp_LoadAction;
+		_postProgressOp += PostProgressOp_LoadAction;
 		
 		_displayProgressDialogs = true;
 		

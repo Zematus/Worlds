@@ -1,11 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
-using System;
 using System.Collections;
-
-[Serializable]
-public class ToggleEvent : UnityEvent <bool> {}
 
 public class ToggleButtonScript : MonoBehaviour {
 
@@ -53,7 +49,7 @@ public class ToggleButtonScript : MonoBehaviour {
 
 		_partialCheck = state;
 
-		UncheckImage.enabled = !IsOn && !_partialCheck;
-		PartialCheckImage.enabled = !IsOn && _partialCheck;
+		UncheckImage.enabled = !IsOn && !state;
+		PartialCheckImage.enabled = !IsOn && state;
 	}
 }

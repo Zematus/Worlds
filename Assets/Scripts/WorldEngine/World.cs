@@ -40,6 +40,9 @@ public class World {
 	
 	[XmlAttribute]
 	public int CurrentDate { get; private set; }
+
+	[XmlAttribute]
+	public int MaxYearsToSkip { get; private set; }
 	
 	[XmlAttribute]
 	public int CurrentCellGroupId { get; private set; }
@@ -157,6 +160,7 @@ public class World {
 		Seed = seed;
 		
 		CurrentDate = 0;
+		MaxYearsToSkip = int.MaxValue;
 		CurrentCellGroupId = 0;
 		CurrentEventId = 0;
 		EventsToHappenCount = 0;
@@ -298,16 +302,21 @@ public class World {
 		return TerrainCells[longitude][latitude];
 	}
 
-	public void Iterate () {
+	public void SetMaxYearsToSkip (int value) {
+	
+		MaxYearsToSkip = Mathf.Max (value, 1);
+	}
+
+	public int Iterate () {
 
 		if (CellGroupsCount <= 0)
-			return;
+			return 0;
 		
 		//
 		// Evaluate Events that will happen at the current date
 		//
 
-		int DateToSkipTo = CurrentDate + 1;
+		int dateToSkipTo = CurrentDate + 1;
 
 		while (true) {
 
@@ -317,7 +326,7 @@ public class World {
 
 			if (eventToHappen.TriggerDate > CurrentDate) {
 
-				DateToSkipTo = eventToHappen.TriggerDate;
+				dateToSkipTo = Mathf.Min (eventToHappen.TriggerDate, CurrentDate + MaxYearsToSkip);
 				break;
 			}
 
@@ -412,13 +421,17 @@ public class World {
 
 			WorldEvent futureEventToHappen = EventsToHappen [0];
 			
-			if (futureEventToHappen.TriggerDate > DateToSkipTo) {
+			if (futureEventToHappen.TriggerDate > dateToSkipTo) {
 				
-				DateToSkipTo = futureEventToHappen.TriggerDate;
+				dateToSkipTo = futureEventToHappen.TriggerDate;
 			}
 		}
 
-		CurrentDate = DateToSkipTo;
+		int dateSpan = dateToSkipTo - CurrentDate;
+
+		CurrentDate = dateToSkipTo;
+
+		return dateSpan;
 	}
 
 	public void InsertEventToHappen (WorldEvent eventToHappen) {
