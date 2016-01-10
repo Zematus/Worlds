@@ -6,12 +6,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 
-[System.Serializable]
-public class MessageEvent : UnityEvent <string> {}
-
-[System.Serializable]
-public class ToggleEvent : UnityEvent <bool> {}
-
 public delegate void PostProgressOperation ();
 
 public delegate void MouseClickOperation (Vector2 position);
@@ -51,8 +45,11 @@ public class GuiManagerScript : MonoBehaviour {
 	public QuickTipPanelScript QuickTipPanelScript;
 	
 	public ToggleEvent OnSimulationInterrupted;
+
+	public ToggleEvent OnFirstMaxSpeedOptionSet;
+	public ToggleEvent OnLastMaxSpeedOptionSet;
 	
-	public MessageEvent OnSimulationSpeedChanged;
+	public SpeedChangeEvent OnSimulationSpeedChanged;
 
 	private bool _simulationGuiPause = false;
 
@@ -90,15 +87,22 @@ public class GuiManagerScript : MonoBehaviour {
 	private int _lastMapUpdateCount = 0;
 	private float _timeSinceLastMapUpdate = 0;
 
-	private int[] _maxSpeedOptions = new int[] {1, 10, 100, 1000, int.MaxValue};
-	private int _finalMaxSpeedOption;
-	private int _selectedMaxSpeedOption;
+	private Speed[] _maxSpeedOptions = new Speed[] {
+		Speed.Slowest, 
+		Speed.Slow, 
+		Speed.Normal, 
+		Speed.Fast, 
+		Speed.Fastest
+	};
+
+	private int _lastMaxSpeedOptionIndex;
+	private int _selectedMaxSpeedOptionIndex;
 
 	// Use this for initialization
 	void Start () {
 		
-		_finalMaxSpeedOption = _maxSpeedOptions.Length - 1;
-		_selectedMaxSpeedOption = _finalMaxSpeedOption;
+		_lastMaxSpeedOptionIndex = _maxSpeedOptions.Length - 1;
+		_selectedMaxSpeedOptionIndex = _lastMaxSpeedOptionIndex;
 
 		Manager.UpdateMainThreadReference ();
 		
@@ -187,7 +191,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 		if (Manager.SimulationCanRun && Manager.SimulationRunning) {
 
-			int maxSpeed = _maxSpeedOptions [_selectedMaxSpeedOption];
+			Speed maxSpeed = _maxSpeedOptions [_selectedMaxSpeedOptionIndex];
 
 			_accDeltaTime += Time.deltaTime;
 
@@ -372,9 +376,9 @@ public class GuiManagerScript : MonoBehaviour {
 		
 		SetInitialPopulation();
 
-		_selectedMaxSpeedOption = _finalMaxSpeedOption;
+		_selectedMaxSpeedOptionIndex = _lastMaxSpeedOptionIndex;
 
-		Manager.CurrentWorld.SetMaxYearsToSkip (_maxSpeedOptions[_selectedMaxSpeedOption]);
+		SetMaxSpeedOption (_selectedMaxSpeedOptionIndex);
 		
 		_postProgressOp -= PostProgressOp_GenerateWorld;
 	}
@@ -678,9 +682,9 @@ public class GuiManagerScript : MonoBehaviour {
 
 			if (maxSpeed <= _maxSpeedOptions [i]) {
 
-				_selectedMaxSpeedOption = i;
+				_selectedMaxSpeedOptionIndex = i;
 
-				Manager.CurrentWorld.SetMaxYearsToSkip (_maxSpeedOptions [i]);
+				SetMaxSpeedOption (_selectedMaxSpeedOptionIndex);
 
 				break;
 			}
@@ -688,23 +692,45 @@ public class GuiManagerScript : MonoBehaviour {
 	}
 
 	public void IncreaseMaxSpeed () {
+
+		if (_simulationGuiPause) {
+			return;
+		}
 	
-		if (_selectedMaxSpeedOption == _finalMaxSpeedOption)
+		if (_selectedMaxSpeedOptionIndex == _lastMaxSpeedOptionIndex)
 			return;
 
-		_selectedMaxSpeedOption++;
+		_selectedMaxSpeedOptionIndex++;
 
-		Manager.CurrentWorld.SetMaxYearsToSkip (_maxSpeedOptions [_selectedMaxSpeedOption]);
+		SetMaxSpeedOption (_selectedMaxSpeedOptionIndex);
 	}
 
 	public void DecreaseMaxSpeed () {
 
-		if (_selectedMaxSpeedOption == 0)
+		if (_simulationGuiPause) {
+			return;
+		}
+
+		if (_selectedMaxSpeedOptionIndex == 0)
 			return;
 
-		_selectedMaxSpeedOption--;
+		_selectedMaxSpeedOptionIndex--;
 
-		Manager.CurrentWorld.SetMaxYearsToSkip (_maxSpeedOptions [_selectedMaxSpeedOption]);
+		SetMaxSpeedOption (_selectedMaxSpeedOptionIndex);
+	}
+
+	public void SetMaxSpeedOption (int speedOptionIndex) {
+
+		_selectedMaxSpeedOptionIndex = speedOptionIndex;
+
+		OnFirstMaxSpeedOptionSet.Invoke (_selectedMaxSpeedOptionIndex == 0);
+		OnLastMaxSpeedOptionSet.Invoke (_selectedMaxSpeedOptionIndex == _lastMaxSpeedOptionIndex);
+
+		Speed selectedSpeed = _maxSpeedOptions [speedOptionIndex];
+
+		Manager.CurrentWorld.SetMaxYearsToSkip (selectedSpeed);
+
+		OnSimulationSpeedChanged.Invoke (selectedSpeed);
 	}
 
 	public void PostProgressOp_LoadAction () {
@@ -853,18 +879,21 @@ public class GuiManagerScript : MonoBehaviour {
 		OptionsDialogPanelScript.SetVisible (true);
 	}
 
-	public void SetSimulationSpeed (bool state) {
+	public void SetSimulationSpeedStopped (bool state) {
 
-		if (state == true) {
-			OnSimulationSpeedChanged.Invoke ("Running");
+		if (state) {
+			OnSimulationSpeedChanged.Invoke (Speed.Stopped);
 		} else {
-			OnSimulationSpeedChanged.Invoke ("Stopped");
+			OnSimulationSpeedChanged.Invoke (_maxSpeedOptions[_selectedMaxSpeedOptionIndex]);
 		}
 	}
 
 	public void PauseSimulation (bool state) {
 
-		SetSimulationSpeed (!state);
+		SetSimulationSpeedStopped (state);
+
+		OnFirstMaxSpeedOptionSet.Invoke (state || (_selectedMaxSpeedOptionIndex == 0));
+		OnLastMaxSpeedOptionSet.Invoke (state || (_selectedMaxSpeedOptionIndex == _lastMaxSpeedOptionIndex));
 
 		_simulationGuiPause = state;
 
@@ -873,7 +902,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 	public void InterruptSimulation (bool state) {
 		
-		SetSimulationSpeed (!state);
+		SetSimulationSpeedStopped (state);
 
 		OnSimulationInterrupted.Invoke (state);
 

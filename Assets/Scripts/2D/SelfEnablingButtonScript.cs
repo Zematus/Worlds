@@ -2,9 +2,9 @@
 using UnityEngine.UI;
 using System.Collections;
 
-public class SpeedPanelScript : MonoBehaviour {
+public class SelfEnablingButtonScript : MonoBehaviour {
 
-	public Text Message;
+	public Button Button;
 
 	// Use this for initialization
 	void Start () {
@@ -16,8 +16,8 @@ public class SpeedPanelScript : MonoBehaviour {
 	
 	}
 
-	public void SetSpeedMessage (Speed speed) {
+	public void Disable (bool value) {
 
-		Message.text = speed;
+		Button.interactable = !value;
 	}
 }
