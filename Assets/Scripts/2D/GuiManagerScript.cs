@@ -52,6 +52,7 @@ public class GuiManagerScript : MonoBehaviour {
 	public SpeedChangeEvent OnSimulationSpeedChanged;
 
 	private bool _simulationGuiPause = false;
+	private bool _simulationGuiInterruption = false;
 
 	private bool _displayedTip_mapScroll = false;
 	private bool _displayedTip_initialPopulation = false;
@@ -79,6 +80,7 @@ public class GuiManagerScript : MonoBehaviour {
 	private TerrainCell _selectedCell = null;
 	
 	private const float _maxAccTime = 1.0f;
+	private const float _maxDeltaTimeIterations = 0.02f;
 
 	private float _accDeltaTime = 0;
 	private int _simulationDateSpan = 0;
@@ -206,21 +208,26 @@ public class GuiManagerScript : MonoBehaviour {
 				int minDateSpan = CellGroup.GenerationTime * 1000;
 				int lastUpdateDate = Manager.CurrentWorld.CurrentDate;
 
-				float startIterations = Time.realtimeSinceStartup;
-				float maxDeltaIterations = 0.02f;
+				float startTimeIterations = Time.realtimeSinceStartup;
+
+				int maxDateSpanBetweenUpdates = (int)Mathf.Ceil(maxSpeed * _maxDeltaTimeIterations);
+
+				int dateSpan = 0;
 
 				while ((lastUpdateDate + minDateSpan) >= Manager.CurrentWorld.CurrentDate) {
 
-					_simulationDateSpan += Manager.CurrentWorld.Iterate ();
+					dateSpan += Manager.CurrentWorld.Iterate ();
 
-					float deltaIterations = Time.realtimeSinceStartup - startIterations;
+					float deltaTimeIterations = Time.realtimeSinceStartup - startTimeIterations;
 
-					if (_simulationDateSpan >= maxSpeed)
+					if (dateSpan >= maxDateSpanBetweenUpdates)
 						break;
 
-					if (deltaIterations > maxDeltaIterations)
+					if (deltaTimeIterations > _maxDeltaTimeIterations)
 						break;
 				}
+
+				_simulationDateSpan += dateSpan;
 
 				updateTextures = true;
 			}
@@ -723,8 +730,8 @@ public class GuiManagerScript : MonoBehaviour {
 
 		_selectedMaxSpeedOptionIndex = speedOptionIndex;
 
-		OnFirstMaxSpeedOptionSet.Invoke (_selectedMaxSpeedOptionIndex == 0);
-		OnLastMaxSpeedOptionSet.Invoke (_selectedMaxSpeedOptionIndex == _lastMaxSpeedOptionIndex);
+		OnFirstMaxSpeedOptionSet.Invoke (_simulationGuiInterruption || (_selectedMaxSpeedOptionIndex == 0));
+		OnLastMaxSpeedOptionSet.Invoke (_simulationGuiInterruption || (_selectedMaxSpeedOptionIndex == _lastMaxSpeedOptionIndex));
 
 		Speed selectedSpeed = _maxSpeedOptions [speedOptionIndex];
 
@@ -905,6 +912,10 @@ public class GuiManagerScript : MonoBehaviour {
 		SetSimulationSpeedStopped (state);
 
 		OnSimulationInterrupted.Invoke (state);
+		OnFirstMaxSpeedOptionSet.Invoke (state || (_selectedMaxSpeedOptionIndex == 0));
+		OnLastMaxSpeedOptionSet.Invoke (state || (_selectedMaxSpeedOptionIndex == _lastMaxSpeedOptionIndex));
+
+		_simulationGuiInterruption = state;
 
 		Manager.InterruptSimulation (state || _simulationGuiPause);
 	}

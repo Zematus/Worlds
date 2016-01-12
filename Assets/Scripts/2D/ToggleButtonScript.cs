@@ -51,5 +51,7 @@ public class ToggleButtonScript : MonoBehaviour {
 
 		UncheckImage.enabled = !IsOn && !state;
 		PartialCheckImage.enabled = !IsOn && state;
+
+		Toggle.interactable = !state;
 	}
 }
