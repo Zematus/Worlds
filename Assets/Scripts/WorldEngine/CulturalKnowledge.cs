@@ -211,12 +211,12 @@ public class ShipbuildingKnowledge : CulturalKnowledge {
 		TerrainCell groupCell = group.Cell;
 		
 		float totalPresence = groupCell.GetBiomePresence ("Ocean") * groupCellBonus;
-		
-		groupCell.Neighbors.ForEach (c => {
+
+		foreach (TerrainCell c in groupCell.Neighbors.Values) {
 			
 			totalPresence += c.GetBiomePresence ("Ocean");
 			cellCount++;
-		});
+		}
 		
 		neighborhoodPresence = totalPresence / cellCount;
 		

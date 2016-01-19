@@ -4,6 +4,18 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
+public enum Direction {
+
+	North = 0,
+	Northeast = 1,
+	East = 2,
+	Southeast = 3,
+	South = 4,
+	Southwest = 5,
+	West = 6,
+	Northwest = 7
+}
+
 public class TerrainCellChanges {
 
 	[XmlAttribute]
@@ -50,6 +62,9 @@ public class TerrainCell {
 	public float ForagingCapacity;
 	[XmlAttribute]
 	public float Accessibility;
+
+	[XmlAttribute]
+	public bool IsPartOfCoastline;
 	
 	public List<string> PresentBiomeNames = new List<string>();
 	public List<float> BiomePresences = new List<float>();
@@ -69,7 +84,7 @@ public class TerrainCell {
 	public bool IsObserved = false;
 	
 	[XmlIgnore]
-	public List<TerrainCell> Neighbors { get; private set; }
+	public Dictionary<Direction, TerrainCell> Neighbors { get; private set; }
 	
 	[XmlIgnore]
 	private TerrainCellChanges _changes = null;
@@ -194,83 +209,70 @@ public class TerrainCell {
 
 	public void InitializeNeighbors () {
 		
-		Neighbors = GetNeighborCells ();
+		Neighbors = FindNeighborCells ();
 	}
 
-	private TerrainCell GetNeighborCell (int direction) {
+	public void InitializeMiscellaneous () {
 
-		int latitude = Latitude;
-		int longitude = Longitude;
+		IsPartOfCoastline = FindIfCoastline ();
+	}
 
-		switch (direction) {
+	public TerrainCell GetNeighborCell (Direction direction) {
 
-		case 0:
-			latitude++;
-			break;
-		case 1:
-			latitude++;
-			longitude++;
-			break;
-		case 2:
-			longitude++;
-			break;
-		case 3:
-			latitude--;
-			longitude++;
-			break;
-		case 4:
-			latitude--;
-			break;
-		case 5:
-			latitude--;
-			longitude--;
-			break;
-		case 6:
-			longitude--;
-			break;
-		case 7:
-			latitude++;
-			longitude--;
-			break;
+		TerrainCell nCell;
 
-		default:
-			throw new System.Exception ("Unexpected direction: " + direction);
-		}
-
-		if ((latitude < 0) || (latitude >= World.Height)) {
-		
+		if (!Neighbors.TryGetValue (direction, out nCell))
 			return null;
-		}
 
-		longitude = (int)Mathf.Repeat (longitude, World.Width);
-
-		return World.TerrainCells [longitude] [latitude];
+		return nCell;
 	}
 	
-	private List<TerrainCell> GetNeighborCells () {
+	private Dictionary<Direction,TerrainCell> FindNeighborCells () {
 		
-		List<TerrainCell> neighbors = new List<TerrainCell> ();
+		Dictionary<Direction,TerrainCell> neighbors = new Dictionary<Direction,TerrainCell> ();
 		
 		int wLongitude = (World.Width + Longitude - 1) % World.Width;
 		int eLongitude = (Longitude + 1) % World.Width;
 		
 		if (Latitude < (World.Height - 1)) {
 			
-			neighbors.Add(World.TerrainCells[wLongitude][Latitude + 1]);
-			neighbors.Add(World.TerrainCells[Longitude][Latitude + 1]);
-			neighbors.Add(World.TerrainCells[eLongitude][Latitude + 1]);
+			neighbors.Add(Direction.Northwest, World.TerrainCells[wLongitude][Latitude + 1]);
+			neighbors.Add(Direction.North, World.TerrainCells[Longitude][Latitude + 1]);
+			neighbors.Add(Direction.Northeast, World.TerrainCells[eLongitude][Latitude + 1]);
 		}
 		
-		neighbors.Add(World.TerrainCells[wLongitude][Latitude]);
-		neighbors.Add(World.TerrainCells[eLongitude][Latitude]);
+		neighbors.Add(Direction.West, World.TerrainCells[wLongitude][Latitude]);
+		neighbors.Add(Direction.East, World.TerrainCells[eLongitude][Latitude]);
 		
 		if (Latitude > 0) {
 			
-			neighbors.Add(World.TerrainCells[wLongitude][Latitude - 1]);
-			neighbors.Add(World.TerrainCells[Longitude][Latitude - 1]);
-			neighbors.Add(World.TerrainCells[eLongitude][Latitude - 1]);
+			neighbors.Add(Direction.Southwest, World.TerrainCells[wLongitude][Latitude - 1]);
+			neighbors.Add(Direction.South, World.TerrainCells[Longitude][Latitude - 1]);
+			neighbors.Add(Direction.Southeast, World.TerrainCells[eLongitude][Latitude - 1]);
 		}
 		
 		return neighbors;
+	}
+
+	private bool FindIfCoastline () {
+
+		if (Altitude <= 0) {
+
+			foreach (TerrainCell nCell in Neighbors.Values) {
+				
+				if (nCell.Altitude > 0)
+					return true;
+			}
+
+		} else {
+
+			foreach (TerrainCell nCell in Neighbors.Values) {
+
+				if (nCell.Altitude <= 0)
+					return true;
+			}
+		}
+
+		return false;
 	}
 }

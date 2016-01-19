@@ -168,7 +168,7 @@ public class World {
 		TerrainCellChangesListCount = 0;
 	}
 	
-	public void Initialize (float acumulatedProgress, float progressIncrement) {
+	public void StartInitialization (float acumulatedProgress, float progressIncrement) {
 
 		_accumulatedProgress = acumulatedProgress;
 		_progressIncrement = progressIncrement;
@@ -200,8 +200,10 @@ public class World {
 		for (int i = 0; i < Width; i++) {
 			
 			for (int j = 0; j < Height; j++) {
+
+				TerrainCell cell = TerrainCells [i] [j];
 				
-				TerrainCells[i][j].InitializeNeighbors();
+				cell.InitializeNeighbors();
 			}
 		}
 		
@@ -214,6 +216,19 @@ public class World {
 			Random.seed = Seed;
 			return true;
 		});
+	}
+
+	public void FinishInitialization () {
+
+		for (int i = 0; i < Width; i++) {
+
+			for (int j = 0; j < Height; j++) {
+
+				TerrainCell cell = TerrainCells [i] [j];
+
+				cell.InitializeMiscellaneous();
+			}
+		}
 	}
 
 	public void AddTerrainCellChanges (TerrainCellChanges changes) {
@@ -289,6 +304,11 @@ public class World {
 	public void AddUpdatedGroup (CellGroup group) {
 		
 		_updatedGroups.Add (group);
+	}
+
+	public TerrainCell GetCell (WorldPosition position) {
+	
+		return GetCell (position.Longitude, position.Latitude);
 	}
 	
 	public TerrainCell GetCell (int longitude, int latitude) {

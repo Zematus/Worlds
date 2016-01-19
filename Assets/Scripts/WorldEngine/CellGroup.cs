@@ -105,7 +105,7 @@ public class CellGroup : HumanGroup {
 			Culture = new CellCulture (this, baseCulture);
 		}
 		
-		Neighbors = new List<CellGroup>(cell.Neighbors.FindAll (c => c.Group != null).Process (c => c.Group));
+		Neighbors = new List<CellGroup>(new List<TerrainCell>(cell.Neighbors.Values).FindAll (c => c.Group != null).Process (c => c.Group));
 
 		Neighbors.ForEach (g => g.AddNeighbor (this));
 
@@ -233,7 +233,7 @@ public class CellGroup : HumanGroup {
 			biomeNames.Add (biomeName);
 		}
 
-		foreach (TerrainCell neighborCell in Cell.Neighbors) {
+		foreach (TerrainCell neighborCell in Cell.Neighbors.Values) {
 			
 			foreach (string biomeName in neighborCell.PresentBiomeNames) {
 				
@@ -378,14 +378,14 @@ public class CellGroup : HumanGroup {
 
 		cellValuePairs.Add (Cell, CellMigrationValue);
 
-		Cell.Neighbors.ForEach (c => {
+		foreach (TerrainCell c in Cell.Neighbors.Values) {
 			
 			float cellValue = CalculateMigrationValue (c);
 			
 			totalMigrationValue += cellValue;
 			
 			cellValuePairs.Add (c, cellValue);
-		});
+		}
 
 		TerrainCell targetCell = CollectionUtility.WeightedSelection (cellValuePairs, totalMigrationValue, Cell.GetNextLocalRandomFloat);
 		
@@ -595,7 +595,7 @@ public class CellGroup : HumanGroup {
 
 		Cell.Group = this;
 
-		Neighbors = new List<CellGroup> (Cell.Neighbors.FindAll (c => c.Group != null).Process (c => c.Group));
+		Neighbors = new List<CellGroup> (new List<TerrainCell>(Cell.Neighbors.Values).FindAll (c => c.Group != null).Process (c => c.Group));
 		
 		Neighbors.ForEach (g => g.AddNeighbor (this));
 		

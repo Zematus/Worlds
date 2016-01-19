@@ -398,8 +398,9 @@ public class Manager {
 			world.ProgressCastMethod = _manager._progressCastMethod;
 		}
 
-		world.Initialize (0f, 0.25f);
+		world.StartInitialization (0f, 0.25f);
 		world.Generate ();
+		world.FinishInitialization ();
 
 		_manager._currentWorld = world;
 
@@ -477,8 +478,9 @@ public class Manager {
 			world.ProgressCastMethod = _manager._progressCastMethod;
 		}
 
-		world.Initialize (0.25f, 0.25f);
+		world.StartInitialization (0.25f, 0.25f);
 		world.GenerateTerrain ();
+		world.FinishInitialization ();
 		
 		if (_manager._progressCastMethod != null) {
 			_manager._progressCastMethod (1f, "Finalizing...");
@@ -729,42 +731,10 @@ public class Manager {
 		
 		return texture;
 	}
-	
-	private static Dictionary<string, TerrainCell> GetNeighborCells (TerrainCell cell) {
-
-		return GetNeighborCells (cell.World, cell.Longitude, cell.Latitude);
-	}
-
-	private static Dictionary<string, TerrainCell> GetNeighborCells (World world, int longitude, int latitude) {
-	
-		Dictionary<string, TerrainCell> neighbors = new Dictionary<string, TerrainCell> ();
-
-		int wLongitude = (world.Width + longitude - 1) % world.Width;
-		int eLongitude = (longitude + 1) % world.Width;
-
-		if (latitude < (world.Height - 1)) {
-			
-			neighbors.Add("northwest", world.TerrainCells[wLongitude][latitude + 1]);
-			neighbors.Add("north", world.TerrainCells[longitude][latitude + 1]);
-			neighbors.Add("northeast", world.TerrainCells[eLongitude][latitude + 1]);
-		}
-		
-		neighbors.Add("west", world.TerrainCells[wLongitude][latitude]);
-		neighbors.Add("east", world.TerrainCells[eLongitude][latitude]);
-		
-		if (latitude > 0) {
-			
-			neighbors.Add("southwest", world.TerrainCells[wLongitude][latitude - 1]);
-			neighbors.Add("south", world.TerrainCells[longitude][latitude - 1]);
-			neighbors.Add("southeast", world.TerrainCells[eLongitude][latitude - 1]);
-		}
-		
-		return neighbors;
-	}
 
 	private static float GetSlant (TerrainCell cell) {
 
-		Dictionary<string, TerrainCell> neighbors = GetNeighborCells (cell);
+		Dictionary<Direction, TerrainCell> neighbors = cell.Neighbors;
 
 		float wAltitude = 0;
 		float eAltitude = 0;
@@ -772,19 +742,19 @@ public class Manager {
 		int c = 0;
 		TerrainCell nCell = null;
 
-		if (neighbors.TryGetValue ("west", out nCell)) {
+		if (neighbors.TryGetValue (Direction.West, out nCell)) {
 			
 			wAltitude += nCell.Altitude;
 			c++;
 		}
 		
-		if (neighbors.TryGetValue ("southwest", out nCell)) {
+		if (neighbors.TryGetValue (Direction.Southwest, out nCell)) {
 			
 			wAltitude += nCell.Altitude;
 			c++;
 		}
 		
-		if (neighbors.TryGetValue ("south", out nCell)) {
+		if (neighbors.TryGetValue (Direction.South, out nCell)) {
 			
 			wAltitude += nCell.Altitude;
 			c++;
@@ -794,19 +764,19 @@ public class Manager {
 
 		c = 0;
 		
-		if (neighbors.TryGetValue ("east", out nCell)) {
+		if (neighbors.TryGetValue (Direction.East, out nCell)) {
 			
 			eAltitude += nCell.Altitude;
 			c++;
 		}
 		
-		if (neighbors.TryGetValue ("northeast", out nCell)) {
+		if (neighbors.TryGetValue (Direction.Northeast, out nCell)) {
 			
 			eAltitude += nCell.Altitude;
 			c++;
 		}
 		
-		if (neighbors.TryGetValue ("north", out nCell)) {
+		if (neighbors.TryGetValue (Direction.North, out nCell)) {
 			
 			eAltitude += nCell.Altitude;
 			c++;
@@ -817,108 +787,20 @@ public class Manager {
 		return wAltitude - eAltitude;
 	}
 	
-	private static bool IsCoastline (TerrainCell cell) {
+	private static bool IsCoastSea (TerrainCell cell) {
 
 		if (cell.Altitude <= 0)
 			return false;
-		
-		Dictionary<string, TerrainCell> neighbors = GetNeighborCells (cell);
 
-		TerrainCell nCell = null;
-		
-		if (neighbors.TryGetValue ("west", out nCell)) {
-			
-			if (nCell.Altitude <= 0) return true;
-		}
-		
-		if (neighbors.TryGetValue ("northwest", out nCell)) {
-			
-			if (nCell.Altitude <= 0) return true;
-		}
-		
-		if (neighbors.TryGetValue ("north", out nCell)) {
-			
-			if (nCell.Altitude <= 0) return true;
-		}
-		
-		if (neighbors.TryGetValue ("northeast", out nCell)) {
-			
-			if (nCell.Altitude <= 0) return true;
-		}
-		
-		if (neighbors.TryGetValue ("east", out nCell)) {
-			
-			if (nCell.Altitude <= 0) return true;
-		}
-		
-		if (neighbors.TryGetValue ("southeast", out nCell)) {
-			
-			if (nCell.Altitude <= 0) return true;
-		}
-		
-		if (neighbors.TryGetValue ("south", out nCell)) {
-			
-			if (nCell.Altitude <= 0) return true;
-		}
-		
-		if (neighbors.TryGetValue ("southwest", out nCell)) {
-			
-			if (nCell.Altitude <= 0) return true;
-		}
-
-		return false;
+		return cell.IsPartOfCoastline;
 	}
 	
-	private static bool IsNearCoastline (TerrainCell cell) {
+	private static bool IsCoastLand (TerrainCell cell) {
 		
 		if (cell.Altitude > 0)
 			return false;
 		
-		Dictionary<string, TerrainCell> neighbors = GetNeighborCells (cell);
-		
-		TerrainCell nCell = null;
-		
-		if (neighbors.TryGetValue ("west", out nCell)) {
-			
-			if (nCell.Altitude > 0) return true;
-		}
-		
-		if (neighbors.TryGetValue ("northwest", out nCell)) {
-			
-			if (nCell.Altitude > 0) return true;
-		}
-		
-		if (neighbors.TryGetValue ("north", out nCell)) {
-			
-			if (nCell.Altitude > 0) return true;
-		}
-		
-		if (neighbors.TryGetValue ("northeast", out nCell)) {
-			
-			if (nCell.Altitude > 0) return true;
-		}
-		
-		if (neighbors.TryGetValue ("east", out nCell)) {
-			
-			if (nCell.Altitude > 0) return true;
-		}
-		
-		if (neighbors.TryGetValue ("southeast", out nCell)) {
-			
-			if (nCell.Altitude > 0) return true;
-		}
-		
-		if (neighbors.TryGetValue ("south", out nCell)) {
-			
-			if (nCell.Altitude > 0) return true;
-		}
-		
-		if (neighbors.TryGetValue ("southwest", out nCell)) {
-			
-			if (nCell.Altitude > 0) return true;
-		}
-		
-		return false;
+		return cell.IsPartOfCoastline;
 	}
 	
 	private static Color GenerateColorFromTerrainCell (TerrainCell cell) {
@@ -984,12 +866,12 @@ public class Manager {
 			return Color.black;
 		}
 		
-		if (IsCoastline (cell)) {
+		if (IsCoastSea (cell)) {
 			
 			return _mapPalette[2];
 		}
 		
-		if (IsNearCoastline (cell)) {
+		if (IsCoastLand (cell)) {
 			
 			return _mapPalette[3];
 		}
