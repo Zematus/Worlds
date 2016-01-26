@@ -48,6 +48,10 @@ public class CellGroup : HumanGroup {
 	[XmlAttribute]
 	public bool HasKnowledgeTransferEvent = false;
 
+	public Route SeaMigrationRoute = null;
+
+	public List<Route> KnownRoutes = new List<Route>();
+
 	public List<string> Flags = new List<string> ();
 
 	public CellCulture Culture;
@@ -72,7 +76,6 @@ public class CellGroup : HumanGroup {
 	public int Population {
 
 		get {
-
 			return (int)Mathf.Floor(ExactPopulation);
 		}
 	}
@@ -108,6 +111,8 @@ public class CellGroup : HumanGroup {
 		Neighbors = new List<CellGroup>(new List<TerrainCell>(cell.Neighbors.Values).FindAll (c => c.Group != null).Process (c => c.Group));
 
 		Neighbors.ForEach (g => g.AddNeighbor (this));
+
+		GenerateSeaMigrationRoute ();
 
 		InitializeBiomeSurvivalSkills ();
 		
@@ -293,7 +298,7 @@ public class CellGroup : HumanGroup {
 		
 		OptimalPopulation = CalculateOptimalPopulation (Cell);
 		
-		ConsiderMigration ();
+		ConsiderLandMigration ();
 
 		ConsiderKnowledgeTransfer ();
 		
@@ -360,8 +365,29 @@ public class CellGroup : HumanGroup {
 
 		return cellValue;
 	}
+
+	public void GenerateSeaMigrationRoute () {
+
+		if (!Cell.IsPartOfCoastline)
+			return;
+
+		Route route = new Route (Cell);
+
+		if (route.LastCell == null)
+			return;
+
+		if (route.LastCell == route.FirstCell)
+			return;
+
+		if (route.FirstCell.Neighbors.ContainsValue (route.LastCell))
+			return;
+
+		SeaMigrationRoute = route;
+
+		KnownRoutes.Add (SeaMigrationRoute);
+	}
 	
-	public void ConsiderMigration () {
+	public void ConsiderLandMigration () {
 
 		if (HasMigrationEvent)
 			return;
@@ -603,5 +629,15 @@ public class CellGroup : HumanGroup {
 
 		Culture.Group = this;
 		Culture.FinalizeLoad ();
+
+		if (SeaMigrationRoute != null) {
+			KnownRoutes.Add (SeaMigrationRoute);
+		}
+
+		foreach (Route r in KnownRoutes) {
+		
+			r.World = World;
+			r.FinalizeLoad ();
+		}
 	}
 }

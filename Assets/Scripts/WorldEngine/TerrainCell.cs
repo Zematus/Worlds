@@ -16,6 +16,20 @@ public enum Direction {
 	Northwest = 7
 }
 
+public struct WorldPosition {
+
+	[XmlAttribute]
+	public int Longitude;
+	[XmlAttribute]
+	public int Latitude;
+
+	public WorldPosition (int longitude, int latitude) {
+
+		Longitude = longitude;
+		Latitude = latitude;
+	}
+}
+
 public class TerrainCellChanges {
 
 	[XmlAttribute]
@@ -122,6 +136,14 @@ public class TerrainCell {
 		Width = width;
 
 		Area = height * width;
+	}
+
+	public WorldPosition Position {
+
+		get { 
+		
+			return new WorldPosition (Longitude, Latitude);
+		}
 	}
 
 	public TerrainCellChanges GetChanges () {

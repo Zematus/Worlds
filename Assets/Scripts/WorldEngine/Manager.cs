@@ -557,6 +557,14 @@ public class Manager {
 		_planetView = value;
 	}
 
+	public static void DisplayCellData (TerrainCell cell) {
+	
+		DisplayCellDataOnMapTexture (_manager._currentMapTextureColors, cell);
+		CurrentMapTexture.SetPixels32 (_manager._currentMapTextureColors);
+
+		CurrentMapTexture.Apply ();
+	}
+
 	public static void UpdateTextures () {
 
 		UpdateMapTextureColors (_manager._currentMapTextureColors);
@@ -579,16 +587,76 @@ public class Manager {
 			UpdateMapTextureColorsFromCell (textureColors, cell);
 		}
 	}
+
+	public static void DisplayCellDataOnMapTexture (Color32[] textureColors, TerrainCell cell) {
+
+		CellGroup cellGroup = cell.Group; 
+
+		if (cellGroup != null) {
+
+			foreach (Route route in cellGroup.KnownRoutes) {
+			
+				DisplayRouteOnMapTexture (textureColors, route);
+			}
+		}
+
+		World world = cell.World;
+
+		int sizeX = world.Width;
+
+		int r = PixelToCellRatio;
+
+		int i = cell.Longitude;
+		int j = cell.Latitude;
+
+		Color cellColor = GenerateColorFromTerrainCell(cell);
+		cellColor = new Color (0.5f + (cellColor.r * 0.5f), 0.5f + (cellColor.g * 0.5f), 0.5f + (cellColor.b * 0.5f));
+
+		for (int m = 0; m < r; m++) {
+			for (int n = 0; n < r; n++) {
+
+				int offsetY = sizeX * r * (j*r + n);
+				int offsetX = i*r + m;
+
+				textureColors[offsetY + offsetX] = cellColor;
+			}
+		}
+
+		UpdatedCells.Add (cell);
+	}
+
+	public static void DisplayRouteOnMapTexture (Color32[] textureColors, Route route) {
+
+		World world = route.World;
+
+		int sizeX = world.Width;
+
+		int r = PixelToCellRatio;
+
+		foreach (TerrainCell cell in route.Cells) {
+
+			int i = cell.Longitude;
+			int j = cell.Latitude;
+
+			Color cellColor = Color.green;
+
+			for (int m = 0; m < r; m++) {
+				for (int n = 0; n < r; n++) {
+
+					int offsetY = sizeX * r * (j * r + n);
+					int offsetX = i * r + m;
+
+					textureColors [offsetY + offsetX] = cellColor;
+				}
+			}
+
+			UpdatedCells.Add (cell);
+		}
+	}
 	
 	public static void UpdateMapTextureColorsFromCell (Color32[] textureColors, TerrainCell cell) {
 
-		if (cell == null)
-			throw new System.Exception ("cell is null");
-
 		World world = cell.World;
-		
-		if (world == null)
-			throw new System.Exception ("world is null");
 
 		int sizeX = world.Width;
 		
@@ -597,7 +665,7 @@ public class Manager {
 		int i = cell.Longitude;
 		int j = cell.Latitude;
 		
-		Color cellColor = GenerateColorFromTerrainCell(world.TerrainCells[i][j]);
+		Color cellColor = GenerateColorFromTerrainCell(cell);
 		
 		for (int m = 0; m < r; m++) {
 			for (int n = 0; n < r; n++) {

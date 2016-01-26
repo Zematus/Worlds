@@ -4,28 +4,21 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
-public struct WorldPosition {
-
-	[XmlAttribute]
-	public int Longitude;
-	[XmlAttribute]
-	public int Latitude;
-
-	public WorldPosition (int longitude, int latitude) {
-	
-		Longitude = longitude;
-		Latitude = latitude;
-	}
-}
-
 public class Route {
+
+	public List<WorldPosition> CellPositions = new List<WorldPosition> ();
 
 	[XmlIgnore]
 	public World World;
 
-	public List<WorldPosition> CellPositions = new List<WorldPosition> ();
+	[XmlIgnore]
+	public TerrainCell FirstCell;
 
-	private List<TerrainCell> _cells = new List<TerrainCell> ();
+	[XmlIgnore]
+	public TerrainCell LastCell;
+
+	[XmlIgnore]
+	public List<TerrainCell> Cells = new List<TerrainCell> ();
 
 	private bool _isTraversingSea = false;
 	private Direction _traverseDirection;
@@ -33,11 +26,42 @@ public class Route {
 	private float _currentCoastPreference = 4;
 	private float _currentEndRoutePreference = 0;
 
-	public static Route BuildSeaRoute (TerrainCell startCell) {
-
-		return null;
+	public Route () {
+	
 	}
 
+	public Route (TerrainCell startCell) {
+
+		World = startCell.World;
+
+		FirstCell = startCell;
+	
+		AddCell (startCell);
+
+		TerrainCell nextCell = startCell;
+
+		while (true) {
+		
+			nextCell = ChooseNextSeaCell (nextCell);
+
+			if (nextCell == null)
+				break;
+
+			AddCell (nextCell);
+
+			if (nextCell.GetBiomePresence (Biome.Ocean) <= 0)
+				break;
+		}
+
+		LastCell = nextCell;
+	}
+
+	public void AddCell (TerrainCell cell) {
+	
+		Cells.Add (cell);
+		CellPositions.Add (cell.Position);
+	}
+		
 	public TerrainCell ChooseNextSeaCell (TerrainCell currentCell) {
 
 		if (_isTraversingSea)
@@ -53,49 +77,85 @@ public class Route {
 		if (nextCell == null)
 			return null;
 
-		if (nextCell.GetBiomePresence (Biome.Ocean) > 0)
-			return nextCell;
+		if (nextCell.IsPartOfCoastline) {
+			
+			_currentCoastPreference += 4;
+			_currentEndRoutePreference += 0.1f;
 
-		_currentCoastPreference += 4;
-		_currentEndRoutePreference += 0.1f;
+			_isTraversingSea = false;
+		}
 
-		return ChooseNextCoastalCell (currentCell);
+		return nextCell;
 	}
 
 	public TerrainCell ChooseNextCoastalCell (TerrainCell currentCell) {
 
 		float totalWeight = 0;
 
-		Dictionary<TerrainCell, float> weights = new Dictionary<TerrainCell, float> ();
+		Dictionary<KeyValuePair<Direction, TerrainCell>, float> weights = new Dictionary<KeyValuePair<Direction, TerrainCell>, float> ();
 
-		weights.Add (currentCell, _currentEndRoutePreference);
+		foreach (KeyValuePair<Direction, TerrainCell> nPair in currentCell.Neighbors) {
 
-		totalWeight += _currentEndRoutePreference;
+			TerrainCell nCell = nPair.Value;
 
-		foreach (TerrainCell nCell in currentCell.Neighbors.Values) {
-
-			if (_cells.Contains (nCell))
+			if (Cells.Contains (nCell))
 				continue;
 
-			float weight = nCell.GetBiomePresence (Biome.Ocean);
+			float oceanPresence = nCell.GetBiomePresence (Biome.Ocean);
+
+			float weight = oceanPresence;
 
 			if (nCell.IsPartOfCoastline)
 				weight *= _currentCoastPreference;
 
-			weights.Add (nCell, weight);
+			weight += (1f - oceanPresence) * _currentEndRoutePreference;
+
+			weights.Add (nPair, weight);
 
 			totalWeight += weight;
 		}
 
-		TerrainCell targetCell = CollectionUtility.WeightedSelection (weights, totalWeight, currentCell.GetNextLocalRandomFloat);
+		KeyValuePair<Direction, TerrainCell> targetPair = CollectionUtility.WeightedSelection (weights, totalWeight, currentCell.GetNextLocalRandomFloat);
+
+		if (!targetPair.Value.IsPartOfCoastline) {
+		
+			_isTraversingSea = true;
+			_traverseDirection = targetPair.Key;
+		}
 
 		_currentEndRoutePreference += 0.1f;
 
-		return targetCell;
+		return targetPair.Value;
 	}
 
 	public bool ContainsCell (TerrainCell cell) {
 	
-		return _cells.Contains (cell);
+		return Cells.Contains (cell);
+	}
+
+	public void FinalizeLoad () {
+
+		TerrainCell currentCell = null;
+
+		bool first = true;
+	
+		foreach (WorldPosition p in CellPositions) {
+
+			currentCell = World.GetCell (p);
+
+			if (currentCell == null) {
+				throw new System.Exception ("Unable to find terrain cell at [" + currentCell.Longitude + "," + currentCell.Latitude + "]");
+			}
+
+			if (first) {
+
+				FirstCell = currentCell;
+				first = false;
+			}
+
+			Cells.Add (currentCell);
+		}
+
+		LastCell = currentCell;
 	}
 }

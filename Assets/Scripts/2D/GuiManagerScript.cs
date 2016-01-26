@@ -257,6 +257,8 @@ public class GuiManagerScript : MonoBehaviour {
 			}
 		}
 
+		DisplaySelectedCellOverlay ();
+
 		if (MapImage.enabled) {
 			UpdateInfoPanel();
 			UpdateSelectionMenu();
@@ -1103,6 +1105,14 @@ public class GuiManagerScript : MonoBehaviour {
 		_planetView = PlanetView.Coastlines;
 		
 		ViewsDialogPanelScript.SetVisible (false);
+	}
+
+	public void DisplaySelectedCellOverlay () {
+	
+		if (_selectedCell == null)
+			return;
+
+		Manager.DisplayCellData (_selectedCell);
 	}
 
 	public void UpdateInfoPanel () {
