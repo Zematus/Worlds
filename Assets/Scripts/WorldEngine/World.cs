@@ -175,6 +175,7 @@ public class World {
 		
 		_cellMaxSideLength = Circumference / Width;
 		TerrainCell.MaxArea = _cellMaxSideLength * _cellMaxSideLength;
+		TerrainCell.MaxWidth = _cellMaxSideLength;
 		
 		TerrainCells = new TerrainCell[Width][];
 		

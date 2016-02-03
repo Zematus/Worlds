@@ -93,6 +93,9 @@ public class TerrainCell {
 	
 	[XmlIgnore]
 	public static float MaxArea;
+
+	[XmlIgnore]
+	public static float MaxWidth;
 	
 	[XmlIgnore]
 	public bool IsObserved = false;

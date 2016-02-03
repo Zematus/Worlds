@@ -16,9 +16,9 @@ public class CellGroup : HumanGroup {
 	
 	public const float PopulationConstant = 10;
 
-	public const float TravelTimeFactor = 1;
-
 	public const float MinKnowledgeTransferValue = 0.25f;
+
+	public const float TravelWidthFactor = TerrainCell.MaxWidth;
 	
 	[XmlAttribute]
 	public float ExactPopulation;
@@ -50,17 +50,21 @@ public class CellGroup : HumanGroup {
 
 	public Route SeaMigrationRoute = null;
 
-	public List<Route> KnownRoutes = new List<Route>();
-
 	public List<string> Flags = new List<string> ();
 
 	public CellCulture Culture;
+
+	[XmlIgnore]
+	public List<Route> KnownRoutes = new List<Route>();
 	
 	[XmlIgnore]
 	public TerrainCell Cell;
 	
 	[XmlIgnore]
 	public float CellMigrationValue;
+
+	[XmlIgnore]
+	public float TotalMigrationValue;
 	
 	[XmlIgnore]
 	public bool DebugTagged = false;
@@ -71,6 +75,8 @@ public class CellGroup : HumanGroup {
 //	private Dictionary<int, WorldEvent> _associatedEvents = new Dictionary<int, WorldEvent> ();
 	
 	private HashSet<string> _flags = new HashSet<string> ();
+
+	private float _noMigrationPreference = 5f;
 	
 	[XmlIgnore]
 	public int Population {
@@ -111,8 +117,6 @@ public class CellGroup : HumanGroup {
 		Neighbors = new List<CellGroup>(new List<TerrainCell>(cell.Neighbors.Values).FindAll (c => c.Group != null).Process (c => c.Group));
 
 		Neighbors.ForEach (g => g.AddNeighbor (this));
-
-		GenerateSeaMigrationRoute ();
 
 		InitializeBiomeSurvivalSkills ();
 		
@@ -264,6 +268,8 @@ public class CellGroup : HumanGroup {
 		ExactPopulation = newPopulation;
 
 		Culture.MergeCulture (splitCulture, percentage);
+
+		TriggerInterference ();
 	}
 	
 	public int SplitGroup (MigratingGroup group) {
@@ -297,6 +303,8 @@ public class CellGroup : HumanGroup {
 		World.UpdateMostPopulousGroup (this);
 		
 		OptimalPopulation = CalculateOptimalPopulation (Cell);
+
+		CalculateLocalMigrationValue ();
 		
 		ConsiderLandMigration ();
 
@@ -366,6 +374,16 @@ public class CellGroup : HumanGroup {
 		return cellValue;
 	}
 
+	public void TriggerInterference () {
+	
+		EraseSeaMigrationRoute ();
+	}
+
+	public void EraseSeaMigrationRoute () {
+	
+		SeaMigrationRoute = null;
+	}
+
 	public void GenerateSeaMigrationRoute () {
 
 		if (!Cell.IsPartOfCoastline)
@@ -383,8 +401,15 @@ public class CellGroup : HumanGroup {
 			return;
 
 		SeaMigrationRoute = route;
+	}
 
-		KnownRoutes.Add (SeaMigrationRoute);
+	public void CalculateLocalMigrationValue () {
+
+		CellMigrationValue = CalculateMigrationValue (Cell);
+		CellMigrationValue *= _noMigrationPreference;
+		CellMigrationValue += _noMigrationPreference;
+
+		TotalMigrationValue = CellMigrationValue;
 	}
 	
 	public void ConsiderLandMigration () {
@@ -394,34 +419,18 @@ public class CellGroup : HumanGroup {
 		
 		Dictionary<TerrainCell, float> cellValuePairs = new Dictionary<TerrainCell, float> ();
 
-		float noMigrationPreference = 5f;
-
-		CellMigrationValue = CalculateMigrationValue (Cell);
-		CellMigrationValue *= noMigrationPreference;
-		CellMigrationValue += noMigrationPreference;
-		
-		float totalMigrationValue = CellMigrationValue;
-
 		cellValuePairs.Add (Cell, CellMigrationValue);
 
 		foreach (TerrainCell c in Cell.Neighbors.Values) {
 			
 			float cellValue = CalculateMigrationValue (c);
 			
-			totalMigrationValue += cellValue;
+			TotalMigrationValue += cellValue;
 			
 			cellValuePairs.Add (c, cellValue);
 		}
 
-		TerrainCell targetCell = CollectionUtility.WeightedSelection (cellValuePairs, totalMigrationValue, Cell.GetNextLocalRandomFloat);
-		
-		if (totalMigrationValue <= 0) {
-			CellMigrationValue = 1;
-		} else {
-			CellMigrationValue /= totalMigrationValue;
-		}
-		
-		float percentToMigrate = (1 - CellMigrationValue) * Cell.GetNextLocalRandomFloat ();
+		TerrainCell targetCell = CollectionUtility.WeightedSelection (cellValuePairs, TotalMigrationValue, Cell.GetNextLocalRandomFloat);
 
 		if (targetCell == Cell)
 			return;
@@ -429,10 +438,15 @@ public class CellGroup : HumanGroup {
 		if (targetCell == null)
 			return;
 		
+		float percentToMigrate = (1 - CellMigrationValue/TotalMigrationValue) * Cell.GetNextLocalRandomFloat ();
+		
 		float cellSurvivability = 0;
 		float cellForagingCapacity = 0;
 		
 		CalculateAdaptionToCell (targetCell, out cellForagingCapacity, out cellSurvivability);
+
+		if (cellSurvivability <= 0)
+			return;
 
 		float cellAltitudeDeltaFactor = CalculateAltitudeDeltaMigrationFactor (targetCell);
 
@@ -442,15 +456,62 @@ public class CellGroup : HumanGroup {
 
 		travelFactor = Mathf.Clamp (travelFactor, 0.0001f, 1);
 
-		if (cellSurvivability <= 0)
-			return;
-
-		int travelTime = (int)Mathf.Ceil(TravelTimeFactor / travelFactor);
+		int travelTime = (int)Mathf.Ceil(Cell.Width / (TravelWidthFactor * travelFactor));
 		
 		int nextDate = World.CurrentDate + travelTime;
 
 		MigratingGroup migratingGroup = new MigratingGroup (World, percentToMigrate, this, targetCell);
 		
+		World.InsertEventToHappen (new MigrateGroupEvent (World, nextDate, travelTime, migratingGroup));
+
+		HasMigrationEvent = true;
+	}
+
+	public void ConsiderSeaMigration () {
+
+		if (HasMigrationEvent)
+			return;
+
+		if (SeaMigrationRoute == null) {
+		
+			GenerateSeaMigrationRoute ();
+
+			if (SeaMigrationRoute == null)
+				return;
+		}
+
+		TerrainCell targetCell = SeaMigrationRoute.LastCell;
+
+		if (targetCell == Cell)
+			return;
+
+		if (targetCell == null)
+			return;
+
+		TotalMigrationValue += CalculateMigrationValue (targetCell);
+
+		float percentToMigrate = (1 - CellMigrationValue/TotalMigrationValue) * Cell.GetNextLocalRandomFloat ();
+
+		float cellSurvivability = 0;
+		float cellForagingCapacity = 0;
+
+		CalculateAdaptionToCell (targetCell, out cellForagingCapacity, out cellSurvivability);
+
+		if (cellSurvivability <= 0)
+			return;
+
+		float travelFactor = cellSurvivability * cellSurvivability *  targetCell.Accessibility;
+
+		travelFactor = Mathf.Clamp (travelFactor, 0.0001f, 1);
+
+		float routeLength = SeaMigrationRoute.Length;
+
+		int travelTime = (int)Mathf.Ceil(routeLength / (TravelWidthFactor * travelFactor));
+
+		int nextDate = World.CurrentDate + travelTime;
+
+		MigratingGroup migratingGroup = new MigratingGroup (World, percentToMigrate, this, targetCell);
+
 		World.InsertEventToHappen (new MigrateGroupEvent (World, nextDate, travelTime, migratingGroup));
 
 		HasMigrationEvent = true;
@@ -566,7 +627,7 @@ public class CellGroup : HumanGroup {
 
 		float randomFactor = Cell.GetNextLocalRandomFloat ();
 
-		float migrationFactor = CellMigrationValue;
+		float migrationFactor = CellMigrationValue/TotalMigrationValue;
 
 		float skillLevelFactor = Culture.MinimumSkillAdaptationLevel ();
 		
@@ -631,13 +692,9 @@ public class CellGroup : HumanGroup {
 		Culture.FinalizeLoad ();
 
 		if (SeaMigrationRoute != null) {
-			KnownRoutes.Add (SeaMigrationRoute);
-		}
-
-		foreach (Route r in KnownRoutes) {
-		
-			r.World = World;
-			r.FinalizeLoad ();
+			
+			SeaMigrationRoute.World = World;
+			SeaMigrationRoute.FinalizeLoad ();
 		}
 	}
 }
