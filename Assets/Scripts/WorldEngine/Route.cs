@@ -45,12 +45,10 @@ public class Route {
 		AddCell (startCell);
 
 		TerrainCell nextCell = startCell;
-		TerrainCell previousCell;
 		Direction nextDirection;
 
 		while (true) {
-		
-			previousCell = nextCell;
+
 			nextCell = ChooseNextSeaCell (nextCell, out nextDirection);
 
 			if (nextCell == null)
@@ -171,6 +169,11 @@ public class Route {
 
 		TerrainCell targetCell = targetPair.Value;
 		direction = targetPair.Key;
+
+		if (targetCell == null) {
+
+			throw new System.Exception ("targetCell is null");
+		}
 
 		if (!targetCell.IsPartOfCoastline) {
 		

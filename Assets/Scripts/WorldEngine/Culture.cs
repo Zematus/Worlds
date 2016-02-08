@@ -7,6 +7,7 @@ using System.Xml.Serialization;
 public abstract class Culture {
 
 	[XmlArrayItem(Type = typeof(BiomeSurvivalSkill))]
+	[XmlArrayItem(Type = typeof(SeafaringSkill))]
 	public List<CulturalSkill> Skills = new List<CulturalSkill> ();
 	
 	[XmlArrayItem(Type = typeof(ShipbuildingKnowledge))]

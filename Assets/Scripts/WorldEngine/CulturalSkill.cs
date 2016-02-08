@@ -179,3 +179,93 @@ public class BiomeSurvivalSkill : CulturalSkill {
 		AdaptationLevel = 1 - Mathf.Abs (Value - _neighborhoodBiomePresence);
 	}
 }
+
+public class SeafaringSkill : CulturalSkill {
+
+	public const float TimeEffectConstant = CellGroup.GenerationTime * 500;
+
+	public const string SeafaringSkillId = "SeafaringSkill";
+
+	public const string SeafaringSkillName = "Seafaring";
+
+	private float _neighborhoodOceanPresence;
+
+	public SeafaringSkill () {
+
+	}
+
+	public SeafaringSkill (CellGroup group, float value = 0f) : base (group, SeafaringSkillId, SeafaringSkillName, value) {
+
+		CalculateNeighborhoodOceanPresence ();
+	}
+
+	public SeafaringSkill (CellGroup group, SeafaringSkill baseSkill) : base (group, baseSkill.Id, baseSkill.Name, baseSkill.Value) {
+
+		CalculateNeighborhoodOceanPresence ();
+	}
+
+	public override void FinalizeLoad () {
+
+		base.FinalizeLoad ();
+
+		CalculateNeighborhoodOceanPresence ();
+	}
+
+	public void CalculateNeighborhoodOceanPresence () {
+
+		int groupCellBonus = 1;
+		int cellCount = groupCellBonus;
+
+		TerrainCell groupCell = Group.Cell;
+
+		float totalPresence = groupCell.GetBiomePresence (Biome.Ocean.Name) * groupCellBonus;
+
+		foreach (TerrainCell c in groupCell.Neighbors.Values) {
+
+			totalPresence += c.GetBiomePresence (Biome.Ocean.Name);
+			cellCount++;
+		}
+
+		_neighborhoodOceanPresence = totalPresence / cellCount;
+
+		if ((_neighborhoodOceanPresence < 0) || (_neighborhoodOceanPresence > 1)) {
+
+			throw new System.Exception ("Neighborhood Ocean Presence outside range: " + _neighborhoodOceanPresence);
+		}
+
+		UpdateAdaptationLevel ();
+	}
+
+	public override void Update (int timeSpan) {
+
+		TerrainCell groupCell = Group.Cell;
+
+		float randomModifierFactor = 1f;
+		float randomModifier = randomModifierFactor * _neighborhoodOceanPresence - groupCell.GetNextLocalRandomFloat ();
+
+		float targetValue = 0;
+
+		if (randomModifier > 0) {
+			targetValue = Value + (1 - Value) * randomModifier;
+		} else {
+			targetValue = Value * (1 + randomModifier);
+		}
+
+		targetValue = Mathf.Clamp01 (targetValue);
+
+		float presenceEffect = Mathf.Abs (Value - _neighborhoodOceanPresence);
+
+		float timeEffect = timeSpan / (float)(timeSpan + TimeEffectConstant);
+
+		float factor = timeEffect * presenceEffect;
+
+		Value = (Value * (1 - factor)) + (targetValue * factor);
+
+		UpdateAdaptationLevel ();
+	}
+
+	public override void UpdateAdaptationLevel ()
+	{
+		AdaptationLevel = 1 - Mathf.Abs (Value - _neighborhoodOceanPresence);
+	}
+}

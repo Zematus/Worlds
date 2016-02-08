@@ -18,7 +18,10 @@ public class CellGroup : HumanGroup {
 
 	public const float MinKnowledgeTransferValue = 0.25f;
 
-	public const float TravelWidthFactor = TerrainCell.MaxWidth;
+	public const float SeaTravelBaseFactor = 0.025f;
+
+	[XmlIgnore]
+	public static float TravelWidthFactor;
 	
 	[XmlAttribute]
 	public float ExactPopulation;
@@ -47,6 +50,9 @@ public class CellGroup : HumanGroup {
 	public bool HasMigrationEvent = false;
 	[XmlAttribute]
 	public bool HasKnowledgeTransferEvent = false;
+
+	[XmlAttribute]
+	public float SeaTravelFactor = 0;
 
 	public Route SeaMigrationRoute = null;
 
@@ -118,7 +124,7 @@ public class CellGroup : HumanGroup {
 
 		Neighbors.ForEach (g => g.AddNeighbor (this));
 
-		InitializeBiomeSurvivalSkills ();
+		InitializeDefaultSkills ();
 		
 		NextUpdateDate = CalculateNextUpdateDate();
 		
@@ -216,19 +222,27 @@ public class CellGroup : HumanGroup {
 		Neighbors.Remove (group);
 	}
 
-	public void InitializeBiomeSurvivalSkills () {
+	public void InitializeDefaultSkills () {
 
 		foreach (string biomeName in GetPresentBiomesInNeighborhood ()) {
 			
-			if (biomeName == "Ocean") continue;
+			if (biomeName == Biome.Ocean.Name) {
 
-			Biome biome = Biome.Biomes[biomeName];
-		
-			string skillId = BiomeSurvivalSkill.GenerateId (biome);
+				if (Culture.GetSkill (SeafaringSkill.SeafaringSkillId) == null) {
 
-			if (Culture.GetSkill (skillId) == null) {
+					Culture.AddSkillToLearn (new SeafaringSkill (this));
+				}
+
+			} else {
 				
-				Culture.AddSkillToLearn (new BiomeSurvivalSkill (this, biome));
+				Biome biome = Biome.Biomes[biomeName];
+
+				string skillId = BiomeSurvivalSkill.GenerateId (biome);
+
+				if (Culture.GetSkill (skillId) == null) {
+
+					Culture.AddSkillToLearn (new BiomeSurvivalSkill (this, biome));
+				}
 			}
 		}
 	}
@@ -307,6 +321,7 @@ public class CellGroup : HumanGroup {
 		CalculateLocalMigrationValue ();
 		
 		ConsiderLandMigration ();
+		ConsiderSeaMigration ();
 
 		ConsiderKnowledgeTransfer ();
 		
@@ -469,6 +484,9 @@ public class CellGroup : HumanGroup {
 
 	public void ConsiderSeaMigration () {
 
+		if (SeaTravelFactor <= 0)
+			return;
+
 		if (HasMigrationEvent)
 			return;
 
@@ -500,13 +518,16 @@ public class CellGroup : HumanGroup {
 		if (cellSurvivability <= 0)
 			return;
 
-		float travelFactor = cellSurvivability * cellSurvivability *  targetCell.Accessibility;
-
-		travelFactor = Mathf.Clamp (travelFactor, 0.0001f, 1);
-
 		float routeLength = SeaMigrationRoute.Length;
 
-		int travelTime = (int)Mathf.Ceil(routeLength / (TravelWidthFactor * travelFactor));
+		float successChance = SeaTravelFactor / (SeaTravelFactor + routeLength);
+
+		float attemptValue = Cell.GetNextLocalRandomFloat ();
+
+		if (attemptValue >= successChance)
+			return;
+
+		int travelTime = (int)Mathf.Ceil(routeLength / SeaTravelFactor);
 
 		int nextDate = World.CurrentDate + travelTime;
 
@@ -536,6 +557,8 @@ public class CellGroup : HumanGroup {
 
 		UpdatePopulation (timeSpan);
 		UpdateCulture (timeSpan);
+
+		UpdateTravelFactors ();
 		
 //		AbsorbKnowledgeFromNeighbors ();
 		
@@ -552,6 +575,30 @@ public class CellGroup : HumanGroup {
 	private void UpdateCulture (int timeSpan) {
 		
 		Culture.Update (timeSpan);
+	}
+
+	public void UpdateTravelFactors () {
+
+		float seafaringValue = 0;
+		float shipbuildingValue = 0;
+
+		foreach (CulturalSkill skill in Culture.Skills) {
+
+			if (skill is SeafaringSkill) {
+
+				seafaringValue = skill.Value;
+			}
+		}
+
+		foreach (CulturalKnowledge knowledge in Culture.Knowledges) {
+
+			if (knowledge is ShipbuildingKnowledge) {
+
+				shipbuildingValue = knowledge.Value;
+			}
+		}
+
+		SeaTravelFactor = SeaTravelBaseFactor * seafaringValue * shipbuildingValue * TravelWidthFactor;
 	}
 
 //	private void AbsorbKnowledgeFromNeighbors () {
