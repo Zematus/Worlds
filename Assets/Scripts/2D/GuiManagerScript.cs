@@ -61,7 +61,9 @@ public class GuiManagerScript : MonoBehaviour {
 	private PlanetOverlay _planetOverlay = PlanetOverlay.Population;
 	private string _planetOverlaySubtype = "None";
 
-	private bool menusNeedUpdate = true;
+	private bool _displayRoutes = false;
+
+	private bool _menusNeedUpdate = true;
 
 	private bool _regenTextures = false;
 
@@ -238,6 +240,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 			Manager.SetPlanetOverlay (_planetOverlay, _planetOverlaySubtype);
 			Manager.SetPlanetView (_planetView);
+			Manager.SetDisplayRoutes (_displayRoutes);
 
 			Manager.GenerateTextures ();
 
@@ -378,6 +381,8 @@ public class GuiManagerScript : MonoBehaviour {
 	}
 
 	private void PostProgressOp_GenerateWorld () {
+
+		ResetUIElements ();
 		
 		Manager.WorldName = "world_" + Manager.CurrentWorld.Seed;
 		
@@ -405,6 +410,11 @@ public class GuiManagerScript : MonoBehaviour {
 		_displayProgressDialogs = true;
 		
 		_regenTextures = true;
+	}
+
+	private void ResetUIElements () {
+	
+		_selectedCell = null;
 	}
 
 	private void SetInitialPopulation () {
@@ -743,6 +753,8 @@ public class GuiManagerScript : MonoBehaviour {
 	}
 
 	public void PostProgressOp_LoadAction () {
+
+		ResetUIElements ();
 		
 		SelectionPanelScript.RemoveAllOptions ();
 		
@@ -813,22 +825,25 @@ public class GuiManagerScript : MonoBehaviour {
 		} else {
 			UnsetOverlay();
 		}
+
+		SetRouteDisplayOverlay (OverlayDialogPanelScript.DisplayRoutesToggle.isOn);
 		
 		OverlayDialogPanelScript.SetVisible (false);
 	}
 	
 	public void UpdateMenus () {
 
-		if (!menusNeedUpdate)
+		if (!_menusNeedUpdate)
 			return;
 
-		menusNeedUpdate = false;
+		_menusNeedUpdate = false;
 		
 		OverlayDialogPanelScript.CulturalKnowledgeToggle.isOn = false;
 		OverlayDialogPanelScript.CulturalSkillToggle.isOn = false;
 		OverlayDialogPanelScript.PopulationToggle.isOn = false;
 		OverlayDialogPanelScript.RainfallToggle.isOn = false;
 		OverlayDialogPanelScript.TemperatureToggle.isOn = false;
+		OverlayDialogPanelScript.DisplayRoutesToggle.isOn = false;
 		
 		SelectionPanelScript.SetVisible (false);
 
@@ -864,6 +879,8 @@ public class GuiManagerScript : MonoBehaviour {
 		default:
 			throw new System.Exception ("Unhandled Planet Overlay type: " + _planetOverlay);
 		}
+
+		OverlayDialogPanelScript.DisplayRoutesToggle.isOn = _displayRoutes;
 	}
 	
 	public void SelectOverlays () {
@@ -957,6 +974,13 @@ public class GuiManagerScript : MonoBehaviour {
 		_regenTextures |= _planetOverlay != PlanetOverlay.Population;
 		
 		_planetOverlay = PlanetOverlay.Population;
+	}
+
+	public void SetRouteDisplayOverlay (bool value) {
+
+		_regenTextures |= _displayRoutes != value;
+
+		_displayRoutes = value;
 	}
 	
 	public void SetCulturalSkillOverlay () {

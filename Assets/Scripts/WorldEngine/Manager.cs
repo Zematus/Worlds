@@ -116,6 +116,8 @@ public class Manager {
 	
 	private static int _totalLoadTicks = 0;
 	private static int _loadTicks = 0;
+
+	private static bool _displayRoutes = false;
 	
 	private ProgressCastDelegate _progressCastMethod = null;
 	
@@ -551,6 +553,11 @@ public class Manager {
 		_planetOverlay = value;
 		_planetOverlaySubtype = planetOverlaySubtype;
 	}
+
+	public static void SetDisplayRoutes (bool value) {
+	
+		_displayRoutes = value;
+	}
 	
 	public static void SetPlanetView (PlanetView value) {
 		
@@ -592,12 +599,9 @@ public class Manager {
 
 		CellGroup cellGroup = cell.Group; 
 
-		if (cellGroup != null) {
+		if ((cellGroup != null) && (cellGroup.SeaMigrationRoute != null)) {
 
-			foreach (Route route in cellGroup.KnownRoutes) {
-			
-				DisplayRouteOnMapTexture (textureColors, route);
-			}
+			DisplayRouteOnMapTexture (textureColors, cellGroup.SeaMigrationRoute);
 		}
 
 		World world = cell.World;
@@ -638,7 +642,7 @@ public class Manager {
 			int i = cell.Longitude;
 			int j = cell.Latitude;
 
-			Color cellColor = Color.green;
+			Color cellColor = Color.cyan;
 
 			for (int m = 0; m < r; m++) {
 				for (int n = 0; n < r; n++) {
@@ -872,6 +876,11 @@ public class Manager {
 	}
 	
 	private static Color GenerateColorFromTerrainCell (TerrainCell cell) {
+
+		if (_displayRoutes && cell.HasCrossingRoutes) {
+		
+			return Color.magenta;
+		}
 
 		Color color = Color.black;
 

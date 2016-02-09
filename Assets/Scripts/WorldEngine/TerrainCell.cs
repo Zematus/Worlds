@@ -79,23 +79,27 @@ public class TerrainCell {
 
 	[XmlAttribute]
 	public bool IsPartOfCoastline;
-	
+
+	public static float MaxArea;
+
+	public static float MaxWidth;
+
 	public List<string> PresentBiomeNames = new List<string>();
 	public List<float> BiomePresences = new List<float>();
 	
 	public CellGroup Group;
+
+	[XmlIgnore]
+	public List<Route> CrossingRoutes = new List<Route>();
+
+	[XmlIgnore]
+	public bool HasCrossingRoutes = false;
 	
 	[XmlIgnore]
 	public float Area;
 	
 	[XmlIgnore]
 	public World World;
-	
-	[XmlIgnore]
-	public static float MaxArea;
-
-	[XmlIgnore]
-	public static float MaxWidth;
 	
 	[XmlIgnore]
 	public bool IsObserved = false;
@@ -147,6 +151,20 @@ public class TerrainCell {
 		
 			return new WorldPosition (Longitude, Latitude);
 		}
+	}
+
+	public void AddCrossingRoute (Route route) {
+	
+		CrossingRoutes.Add (route);
+
+		HasCrossingRoutes = true;
+	}
+
+	public void RemoveCrossingRoute (Route route) {
+
+		CrossingRoutes.Remove (route);
+
+		HasCrossingRoutes = CrossingRoutes.Count > 0;
 	}
 
 	public TerrainCellChanges GetChanges () {

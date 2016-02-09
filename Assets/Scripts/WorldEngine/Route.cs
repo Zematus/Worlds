@@ -11,6 +11,9 @@ public class Route {
 	[XmlAttribute]
 	public float Length = 0;
 
+	[XmlAttribute]
+	public bool Consolidated = false;
+
 	[XmlIgnore]
 	public World World;
 
@@ -63,6 +66,32 @@ public class Route {
 		}
 
 		LastCell = nextCell;
+	}
+
+	public void Destroy () {
+
+		if (!Consolidated)
+			return;
+	
+		foreach (TerrainCell cell in Cells) {
+		
+			cell.RemoveCrossingRoute (this);
+			Manager.AddUpdatedCell (cell);
+		}
+	}
+
+	public void Consolidate () {
+
+		if (Consolidated)
+			return;
+
+		foreach (TerrainCell cell in Cells) {
+
+			cell.AddCrossingRoute (this);
+			Manager.AddUpdatedCell (cell);
+		}
+
+		Consolidated = true;
 	}
 
 	public float CalculateDistance (TerrainCell cell, Direction direction) {
@@ -214,6 +243,13 @@ public class Route {
 			}
 
 			Cells.Add (currentCell);
+		}
+
+		if (Consolidated) {
+		
+			foreach (TerrainCell cell in Cells) {
+				cell.AddCrossingRoute (this);
+			}
 		}
 
 		LastCell = currentCell;

@@ -15,6 +15,8 @@ public class OverlayDialogPanelScript : MonoBehaviour {
 	public Toggle CulturalSkillToggle;
 	public Toggle CulturalKnowledgeToggle;
 
+	public Toggle DisplayRoutesToggle;
+
 	public Button CloseActionButton;
 
 	// Use this for initialization

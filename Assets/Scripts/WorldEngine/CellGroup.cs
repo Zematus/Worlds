@@ -59,9 +59,6 @@ public class CellGroup : HumanGroup {
 	public List<string> Flags = new List<string> ();
 
 	public CellCulture Culture;
-
-	[XmlIgnore]
-	public List<Route> KnownRoutes = new List<Route>();
 	
 	[XmlIgnore]
 	public TerrainCell Cell;
@@ -396,6 +393,10 @@ public class CellGroup : HumanGroup {
 
 	public void EraseSeaMigrationRoute () {
 	
+		if (SeaMigrationRoute == null)
+			return;
+
+		SeaMigrationRoute.Destroy ();
 		SeaMigrationRoute = null;
 	}
 
@@ -406,16 +407,25 @@ public class CellGroup : HumanGroup {
 
 		Route route = new Route (Cell);
 
+		bool invalidRoute = false;
+
 		if (route.LastCell == null)
-			return;
+			invalidRoute = true;
 
 		if (route.LastCell == route.FirstCell)
-			return;
+			invalidRoute = true;
 
 		if (route.FirstCell.Neighbors.ContainsValue (route.LastCell))
+			invalidRoute = true;
+
+		if (invalidRoute) {
+		
+			route.Destroy ();
 			return;
+		}
 
 		SeaMigrationRoute = route;
+		SeaMigrationRoute.Consolidate ();
 	}
 
 	public void CalculateLocalMigrationValue () {
@@ -544,6 +554,8 @@ public class CellGroup : HumanGroup {
 		World.RemoveGroup (this);
 
 		Neighbors.ForEach (g => RemoveNeighbor (this));
+
+		EraseSeaMigrationRoute ();
 
 		StillPresent = false;
 	}
