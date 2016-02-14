@@ -20,7 +20,8 @@ public enum PlanetOverlay {
 	Rainfall,
 	Population,
 	CulturalSkill,
-	CulturalKnowledge
+	CulturalKnowledge,
+	CulturalDiscovery
 }
 
 public delegate T ManagerTaskDelegate<T> ();
@@ -918,6 +919,10 @@ public class Manager {
 		case PlanetOverlay.CulturalKnowledge:
 			color = SetCulturalKnowledgeOverlayColor(cell, color);
 			break;
+
+		case PlanetOverlay.CulturalDiscovery:
+			color = SetCulturalDiscoveryOverlayColor(cell, color);
+			break;
 			
 		case PlanetOverlay.Temperature:
 			color = SetTemperatureOverlayColor(cell, color);
@@ -1138,6 +1143,42 @@ public class Manager {
 			color = (color * (1 - value)) + (Color.cyan * value);
 		}
 		
+		return color;
+	}
+
+	private static Color SetCulturalDiscoveryOverlayColor (TerrainCell cell, Color color) {
+
+		float greyscale = (color.r + color.g + color.b);
+
+		color.r = (greyscale + color.r) / 6f;
+		color.g = (greyscale + color.g) / 6f;
+		color.b = (greyscale + color.b) / 6f;
+
+		if (_planetOverlaySubtype == "None")
+			return color;
+
+		float normalizedValue = 0;
+		float population = 0;
+
+		if (cell.Group != null) {
+
+			CulturalDiscovery discovery = cell.Group.Culture.GetDiscovery(_planetOverlaySubtype);
+
+			population = cell.Group.Population;
+
+			if (discovery != null) {
+
+				normalizedValue = 1;
+			}
+		}
+
+		if ((population > 0) && (normalizedValue >= 0.001f)) {
+
+			float value = 0.05f + 0.95f * normalizedValue;
+
+			color = (color * (1 - value)) + (Color.cyan * value);
+		}
+
 		return color;
 	}
 	

@@ -253,7 +253,8 @@ public class GuiManagerScript : MonoBehaviour {
 
 			if ((_planetOverlay == PlanetOverlay.Population) || 
 				(_planetOverlay == PlanetOverlay.CulturalSkill) || 
-				(_planetOverlay == PlanetOverlay.CulturalKnowledge)) {
+				(_planetOverlay == PlanetOverlay.CulturalKnowledge) || 
+				(_planetOverlay == PlanetOverlay.CulturalDiscovery)) {
 				Manager.UpdateTextures ();
 
 				_mapUpdateCount++;
@@ -641,6 +642,9 @@ public class GuiManagerScript : MonoBehaviour {
 		case PlanetOverlay.CulturalKnowledge: 
 			planetOverlayStr = "_cultural_knowledge_" + _planetOverlaySubtype; 
 			break;
+		case PlanetOverlay.CulturalDiscovery: 
+			planetOverlayStr = "_cultural_discovery_" + _planetOverlaySubtype; 
+			break;
 		default: throw new System.Exception("Unexpected planet overlay type: " + _planetOverlay);
 		}
 
@@ -822,6 +826,8 @@ public class GuiManagerScript : MonoBehaviour {
 			SetCulturalSkillOverlay ();
 		} else if (OverlayDialogPanelScript.CulturalKnowledgeToggle.isOn) {
 			SetCulturalKnowledgeOverlay ();
+		} else if (OverlayDialogPanelScript.CulturalDiscoveryToggle.isOn) {
+			SetCulturalDiscoveryOverlay ();
 		} else {
 			UnsetOverlay();
 		}
@@ -837,7 +843,8 @@ public class GuiManagerScript : MonoBehaviour {
 			return;
 
 		_menusNeedUpdate = false;
-		
+
+		OverlayDialogPanelScript.CulturalDiscoveryToggle.isOn = false;
 		OverlayDialogPanelScript.CulturalKnowledgeToggle.isOn = false;
 		OverlayDialogPanelScript.CulturalSkillToggle.isOn = false;
 		OverlayDialogPanelScript.PopulationToggle.isOn = false;
@@ -848,6 +855,12 @@ public class GuiManagerScript : MonoBehaviour {
 		SelectionPanelScript.SetVisible (false);
 
 		switch (_planetOverlay) {
+
+		case PlanetOverlay.CulturalDiscovery:
+			OverlayDialogPanelScript.CulturalDiscoveryToggle.isOn = true;
+
+			SelectionPanelScript.SetVisible (true);
+			break;
 			
 		case PlanetOverlay.CulturalKnowledge:
 			OverlayDialogPanelScript.CulturalKnowledgeToggle.isOn = true;
@@ -1045,6 +1058,37 @@ public class GuiManagerScript : MonoBehaviour {
 		SelectionPanelScript.SetVisible (true);
 	}
 
+	public void SetCulturalDiscoveryOverlay () {
+
+		_regenTextures |= _planetOverlay != PlanetOverlay.CulturalDiscovery;
+
+		_planetOverlay = PlanetOverlay.CulturalDiscovery;
+
+		SelectionPanelScript.Title.text = "Displayed Cultural Discovery:";
+
+		foreach (CulturalDiscoveryInfo discoveryInfo in Manager.CurrentWorld.CulturalDiscoveryInfoList) {
+
+			string discoveryName = discoveryInfo.Name;
+			string discoveryId = discoveryInfo.Id;
+
+			SelectionPanelScript.AddOption (discoveryName, (state) => {
+				if (state) {
+					_planetOverlaySubtype = discoveryId;
+				} else if (_planetOverlaySubtype == discoveryId) {
+					_planetOverlaySubtype = "None";
+				}
+
+				_regenTextures = true;
+			});
+
+			if (_planetOverlaySubtype == discoveryId) {
+				SelectionPanelScript.SetStateOption (discoveryName, true);
+			}
+		}
+
+		SelectionPanelScript.SetVisible (true);
+	}
+
 	public void UpdateSelectionMenu () {
 
 		if (!SelectionPanelScript.IsVisible ())
@@ -1092,6 +1136,29 @@ public class GuiManagerScript : MonoBehaviour {
 				
 				if (_planetOverlaySubtype == knowledgeId) {
 					SelectionPanelScript.SetStateOption (knowledgeName, true);
+				}
+			}
+		}
+
+		if (_planetOverlay == PlanetOverlay.CulturalDiscovery) {
+
+			foreach (CulturalDiscoveryInfo discoveryInfo in Manager.CurrentWorld.CulturalDiscoveryInfoList) {
+
+				string discoveryName = discoveryInfo.Name;
+				string discoveryId = discoveryInfo.Id;
+
+				SelectionPanelScript.AddOption (discoveryName, (state) => {
+					if (state) {
+						_planetOverlaySubtype = discoveryId;
+					} else if (_planetOverlaySubtype == discoveryId) {
+						_planetOverlaySubtype = "None";
+					}
+
+					_regenTextures = true;
+				});
+
+				if (_planetOverlaySubtype == discoveryId) {
+					SelectionPanelScript.SetStateOption (discoveryName, true);
 				}
 			}
 		}
