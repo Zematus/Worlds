@@ -39,7 +39,7 @@ public abstract class CulturalKnowledge : CulturalKnowledgeInfo {
 	public float ProgressLevel;
 	
 	[XmlAttribute]
-	protected float Asymptote;
+	public float Asymptote;
 
 	[XmlIgnore]
 	public CellGroup Group;

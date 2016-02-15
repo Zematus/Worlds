@@ -59,20 +59,24 @@ public class World {
 	[XmlAttribute]
 	public int TerrainCellChangesListCount { get; private set; }
 
+	// Start wonky segment (save failures might happen here)
+
 	[XmlArrayItem(Type = typeof(UpdateCellGroupEvent)),
 	 XmlArrayItem(Type = typeof(MigrateGroupEvent)),
 	 XmlArrayItem(Type = typeof(SailingDiscoveryEvent)),
 	 XmlArrayItem(Type = typeof(BoatMakingDiscoveryEvent)),
 	 XmlArrayItem(Type = typeof(KnowledgeTransferEvent))]
 	public List<WorldEvent> EventsToHappen = new List<WorldEvent> ();
-	
+
 	public List<CellGroup> CellGroups = new List<CellGroup> ();
 
 	public List<TerrainCellChanges> TerrainCellChangesList = new List<TerrainCellChanges> ();
-	
+
 	public List<CulturalSkillInfo> CulturalSkillInfoList = new List<CulturalSkillInfo> ();
 	public List<CulturalKnowledgeInfo> CulturalKnowledgeInfoList = new List<CulturalKnowledgeInfo> ();
 	public List<CulturalDiscoveryInfo> CulturalDiscoveryInfoList = new List<CulturalDiscoveryInfo> ();
+
+	// End wonky segment 
 	
 	[XmlIgnore]
 	public float MinPossibleAltitudeWithOffset = MinPossibleAltitude - Manager.SeaLevelOffset;

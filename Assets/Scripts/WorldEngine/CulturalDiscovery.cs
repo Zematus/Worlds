@@ -11,6 +11,9 @@ public class CulturalDiscoveryInfo {
 	
 	[XmlAttribute]
 	public string Name;
+
+	public CulturalDiscoveryInfo () {
+	}
 	
 	public CulturalDiscoveryInfo (string id, string name) {
 		
