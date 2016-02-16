@@ -764,7 +764,11 @@ public class GuiManagerScript : MonoBehaviour {
 		
 		if (!Manager.SimulationCanRun) {
 			
-			SetInitialPopulation();
+			SetInitialPopulation ();
+
+		} else {
+
+			InterruptSimulation (false);
 		}
 
 		GetMaxSpeedOptionFromCurrentWorld ();
