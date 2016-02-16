@@ -645,6 +645,9 @@ public class GuiManagerScript : MonoBehaviour {
 		case PlanetOverlay.CulturalDiscovery: 
 			planetOverlayStr = "_cultural_discovery_" + _planetOverlaySubtype; 
 			break;
+		case PlanetOverlay.MiscellaneousData: 
+			planetOverlayStr = _planetOverlaySubtype; 
+			break;
 		default: throw new System.Exception("Unexpected planet overlay type: " + _planetOverlay);
 		}
 
@@ -832,6 +835,8 @@ public class GuiManagerScript : MonoBehaviour {
 			SetCulturalKnowledgeOverlay ();
 		} else if (OverlayDialogPanelScript.CulturalDiscoveryToggle.isOn) {
 			SetCulturalDiscoveryOverlay ();
+		} else if (OverlayDialogPanelScript.MiscellaneousDataToggle.isOn) {
+			SetMiscellaneousDataOverlay ();
 		} else {
 			UnsetOverlay();
 		}
@@ -848,6 +853,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 		_menusNeedUpdate = false;
 
+		OverlayDialogPanelScript.MiscellaneousDataToggle.isOn = false;
 		OverlayDialogPanelScript.CulturalDiscoveryToggle.isOn = false;
 		OverlayDialogPanelScript.CulturalKnowledgeToggle.isOn = false;
 		OverlayDialogPanelScript.CulturalSkillToggle.isOn = false;
@@ -859,6 +865,12 @@ public class GuiManagerScript : MonoBehaviour {
 		SelectionPanelScript.SetVisible (false);
 
 		switch (_planetOverlay) {
+
+		case PlanetOverlay.MiscellaneousData:
+			OverlayDialogPanelScript.MiscellaneousDataToggle.isOn = true;
+
+			SelectionPanelScript.SetVisible (true);
+			break;
 
 		case PlanetOverlay.CulturalDiscovery:
 			OverlayDialogPanelScript.CulturalDiscoveryToggle.isOn = true;
@@ -1010,22 +1022,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 		foreach (CulturalSkillInfo skillInfo in Manager.CurrentWorld.CulturalSkillInfoList) {
 
-			string skillName = skillInfo.Name;
-			string skillId = skillInfo.Id;
-			
-			SelectionPanelScript.AddOption (skillName, (state) => {
-				if (state) {
-					_planetOverlaySubtype = skillId;
-				} else if (_planetOverlaySubtype == skillId) {
-					_planetOverlaySubtype = "None";
-				}
-
-				_regenTextures = true;
-			});
-
-			if (_planetOverlaySubtype == skillId) {
-				SelectionPanelScript.SetStateOption (skillName, true);
-			}
+			AddSelectionPanelOption (skillInfo.Name, skillInfo.Id);
 		}
 
 		SelectionPanelScript.SetVisible (true);
@@ -1040,23 +1037,8 @@ public class GuiManagerScript : MonoBehaviour {
 		SelectionPanelScript.Title.text = "Displayed Cultural Knowledge:";
 		
 		foreach (CulturalKnowledgeInfo knowledgeInfo in Manager.CurrentWorld.CulturalKnowledgeInfoList) {
-			
-			string knowledgeName = knowledgeInfo.Name;
-			string knowledgeId = knowledgeInfo.Id;
-			
-			SelectionPanelScript.AddOption (knowledgeName, (state) => {
-				if (state) {
-					_planetOverlaySubtype = knowledgeId;
-				} else if (_planetOverlaySubtype == knowledgeId) {
-					_planetOverlaySubtype = "None";
-				}
-				
-				_regenTextures = true;
-			});
-			
-			if (_planetOverlaySubtype == knowledgeId) {
-				SelectionPanelScript.SetStateOption (knowledgeName, true);
-			}
+
+			AddSelectionPanelOption (knowledgeInfo.Name, knowledgeInfo.Id);
 		}
 		
 		SelectionPanelScript.SetVisible (true);
@@ -1072,23 +1054,38 @@ public class GuiManagerScript : MonoBehaviour {
 
 		foreach (CulturalDiscoveryInfo discoveryInfo in Manager.CurrentWorld.CulturalDiscoveryInfoList) {
 
-			string discoveryName = discoveryInfo.Name;
-			string discoveryId = discoveryInfo.Id;
-
-			SelectionPanelScript.AddOption (discoveryName, (state) => {
-				if (state) {
-					_planetOverlaySubtype = discoveryId;
-				} else if (_planetOverlaySubtype == discoveryId) {
-					_planetOverlaySubtype = "None";
-				}
-
-				_regenTextures = true;
-			});
-
-			if (_planetOverlaySubtype == discoveryId) {
-				SelectionPanelScript.SetStateOption (discoveryName, true);
-			}
+			AddSelectionPanelOption (discoveryInfo.Name, discoveryInfo.Id);
 		}
+
+		SelectionPanelScript.SetVisible (true);
+	}
+
+	public void AddSelectionPanelOption (string optionName, string optionId) {
+
+		SelectionPanelScript.AddOption (optionName, (state) => {
+			if (state) {
+				_planetOverlaySubtype = optionId;
+			} else if (_planetOverlaySubtype == optionId) {
+				_planetOverlaySubtype = "None";
+			}
+
+			_regenTextures = true;
+		});
+
+		if (_planetOverlaySubtype == optionId) {
+			SelectionPanelScript.SetStateOption (optionName, true);
+		}
+	}
+
+	public void SetMiscellaneousDataOverlay () {
+
+		_regenTextures |= _planetOverlay != PlanetOverlay.MiscellaneousData;
+
+		_planetOverlay = PlanetOverlay.MiscellaneousData;
+
+		SelectionPanelScript.Title.text = "Displayed Miscellaneous Data:";
+
+		AddSelectionPanelOption ("Arability", "Arability");
 
 		SelectionPanelScript.SetVisible (true);
 	}
@@ -1101,70 +1098,24 @@ public class GuiManagerScript : MonoBehaviour {
 		if (_planetOverlay == PlanetOverlay.CulturalSkill) {
 			
 			foreach (CulturalSkillInfo skillInfo in Manager.CurrentWorld.CulturalSkillInfoList) {
-				
-				string skillName = skillInfo.Name;
-				string skillId = skillInfo.Id;
-				
-				SelectionPanelScript.AddOption (skillName, (state) => {
-					if (state) {
-						_planetOverlaySubtype = skillId;
-					} else if (_planetOverlaySubtype == skillId) {
-						_planetOverlaySubtype = "None";
-					}
-					
-					_regenTextures = true;
-				});
-				
-				if (_planetOverlaySubtype == skillId) {
-					SelectionPanelScript.SetStateOption (skillName, true);
-				}
+
+				AddSelectionPanelOption (skillInfo.Name, skillInfo.Id);
 			}
-		}
-		
-		if (_planetOverlay == PlanetOverlay.CulturalKnowledge) {
+		} else if (_planetOverlay == PlanetOverlay.CulturalKnowledge) {
 			
 			foreach (CulturalKnowledgeInfo knowledgeInfo in Manager.CurrentWorld.CulturalKnowledgeInfoList) {
-				
-				string knowledgeName = knowledgeInfo.Name;
-				string knowledgeId = knowledgeInfo.Id;
-				
-				SelectionPanelScript.AddOption (knowledgeName, (state) => {
-					if (state) {
-						_planetOverlaySubtype = knowledgeId;
-					} else if (_planetOverlaySubtype == knowledgeId) {
-						_planetOverlaySubtype = "None";
-					}
-					
-					_regenTextures = true;
-				});
-				
-				if (_planetOverlaySubtype == knowledgeId) {
-					SelectionPanelScript.SetStateOption (knowledgeName, true);
-				}
-			}
-		}
 
-		if (_planetOverlay == PlanetOverlay.CulturalDiscovery) {
+				AddSelectionPanelOption (knowledgeInfo.Name, knowledgeInfo.Id);
+			}
+		} else if (_planetOverlay == PlanetOverlay.CulturalDiscovery) {
 
 			foreach (CulturalDiscoveryInfo discoveryInfo in Manager.CurrentWorld.CulturalDiscoveryInfoList) {
 
-				string discoveryName = discoveryInfo.Name;
-				string discoveryId = discoveryInfo.Id;
-
-				SelectionPanelScript.AddOption (discoveryName, (state) => {
-					if (state) {
-						_planetOverlaySubtype = discoveryId;
-					} else if (_planetOverlaySubtype == discoveryId) {
-						_planetOverlaySubtype = "None";
-					}
-
-					_regenTextures = true;
-				});
-
-				if (_planetOverlaySubtype == discoveryId) {
-					SelectionPanelScript.SetStateOption (discoveryName, true);
-				}
+				AddSelectionPanelOption (discoveryInfo.Name, discoveryInfo.Id);
 			}
+		} else if (_planetOverlay == PlanetOverlay.MiscellaneousData) {
+
+			AddSelectionPanelOption ("Arability", "Arability");
 		}
 	}
 	
@@ -1283,6 +1234,7 @@ public class GuiManagerScript : MonoBehaviour {
 		InfoPanelText.text += "\nSurvivability: " + cell.Survivability.ToString("P");
 		InfoPanelText.text += "\nForaging Capacity: " + cell.ForagingCapacity.ToString("P");
 		InfoPanelText.text += "\nAccessibility: " + cell.Accessibility.ToString("P");
+		InfoPanelText.text += "\nArability: " + cell.Arability.ToString("P");
 
 		int population = 0;
 		int optimalPopulation = 0;

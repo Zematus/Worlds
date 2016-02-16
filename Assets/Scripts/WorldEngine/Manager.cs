@@ -21,7 +21,8 @@ public enum PlanetOverlay {
 	Population,
 	CulturalSkill,
 	CulturalKnowledge,
-	CulturalDiscovery
+	CulturalDiscovery,
+	MiscellaneousData
 }
 
 public delegate T ManagerTaskDelegate<T> ();
@@ -900,7 +901,7 @@ public class Manager {
 			break;
 
 		default:
-			throw new System.Exception("Unsupported Planet View Type");
+			throw new System.Exception ("Unsupported Planet View Type");
 		}
 
 		switch (_planetOverlay) {
@@ -909,27 +910,31 @@ public class Manager {
 			break;
 
 		case PlanetOverlay.Population:
-			color = SetPopulationOverlayColor(cell, color);
+			color = SetPopulationOverlayColor (cell, color);
 			break;
 			
 		case PlanetOverlay.CulturalSkill:
-			color = SetCulturalSkillOverlayColor(cell, color);
+			color = SetCulturalSkillOverlayColor (cell, color);
 			break;
 			
 		case PlanetOverlay.CulturalKnowledge:
-			color = SetCulturalKnowledgeOverlayColor(cell, color);
+			color = SetCulturalKnowledgeOverlayColor (cell, color);
 			break;
 
 		case PlanetOverlay.CulturalDiscovery:
-			color = SetCulturalDiscoveryOverlayColor(cell, color);
+			color = SetCulturalDiscoveryOverlayColor (cell, color);
+			break;
+
+		case PlanetOverlay.MiscellaneousData:
+			color = SetMiscellanousDataOverlayColor (cell, color);
 			break;
 			
 		case PlanetOverlay.Temperature:
-			color = SetTemperatureOverlayColor(cell, color);
+			color = SetTemperatureOverlayColor (cell, color);
 			break;
 			
 		case PlanetOverlay.Rainfall:
-			color = SetRainfallOverlayColor(cell, color);
+			color = SetRainfallOverlayColor (cell, color);
 			break;
 			
 		default:
@@ -1180,6 +1185,42 @@ public class Manager {
 		}
 
 		return color;
+	}
+
+	private static Color SetArabilityOverlayColor (TerrainCell cell, Color color) {
+
+		float greyscale = (color.r + color.g + color.b);
+
+		color.r = (greyscale + color.r) / 6f;
+		color.g = (greyscale + color.g) / 6f;
+		color.b = (greyscale + color.b) / 6f;
+
+		if (_planetOverlaySubtype == "None")
+			return color;
+
+		float normalizedValue = cell.Arability;
+
+		if (normalizedValue >= 0.001f) {
+
+			float value = 0.05f + 0.95f * normalizedValue;
+
+			color = (color * (1 - value)) + (Color.cyan * value);
+		}
+
+		return color;
+	}
+
+	private static Color SetMiscellanousDataOverlayColor (TerrainCell cell, Color color) {
+
+		switch (_planetOverlaySubtype) {
+
+		case "Arability":
+
+			return SetArabilityOverlayColor (cell, color);
+
+		default:
+			throw new System.Exception ("Unhandled miscellaneous data overlay subtype: " + _planetOverlaySubtype);
+		}
 	}
 	
 	private static Color SetTemperatureOverlayColor (TerrainCell cell, Color color) {

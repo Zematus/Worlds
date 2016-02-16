@@ -15,6 +15,7 @@ public class OverlayDialogPanelScript : MonoBehaviour {
 	public Toggle CulturalSkillToggle;
 	public Toggle CulturalKnowledgeToggle;
 	public Toggle CulturalDiscoveryToggle;
+	public Toggle MiscellaneousDataToggle;
 
 	public Toggle DisplayRoutesToggle;
 

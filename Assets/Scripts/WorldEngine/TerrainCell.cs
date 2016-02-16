@@ -76,6 +76,8 @@ public class TerrainCell {
 	public float ForagingCapacity;
 	[XmlAttribute]
 	public float Accessibility;
+	[XmlAttribute]
+	public float Arability;
 
 	[XmlAttribute]
 	public bool IsPartOfCoastline;

@@ -1125,6 +1125,7 @@ public class World {
 				cell.Survivability = 0;
 				cell.ForagingCapacity = 0;
 				cell.Accessibility = 0;
+				cell.Arability = 0;
 
 				foreach (Biome biome in Biome.Biomes.Values)
 				{
@@ -1141,6 +1142,7 @@ public class World {
 						cell.Survivability += biome.Survivability * presence;
 						cell.ForagingCapacity += biome.ForagingCapacity * presence;
 						cell.Accessibility += biome.Accessibility * presence;
+						cell.Arability += biome.Arability * presence;
 					}
 				}
 

@@ -293,3 +293,142 @@ public class ShipbuildingKnowledge : CulturalKnowledge {
 		return (_neighborhoodOceanPresence * 0.9f) + 0.1f;
 	}
 }
+
+public class AgricultureKnowledge : CulturalKnowledge {
+
+	public const string AgricultureKnowledgeId = "AgricultureKnowledge";
+	public const string AgricultureKnowledgeName = "Agriculture";
+
+	public const float TimeEffectConstant = CellGroup.GenerationTime * 500;
+
+	public static float HighestAsymptote = 0;
+
+	private float _neighborhoodOceanPresence;
+
+	public AgricultureKnowledge () {
+
+		if (Asymptote > HighestAsymptote) {
+
+			HighestAsymptote = Asymptote;
+		}
+	}
+
+	public AgricultureKnowledge (CellGroup group, float value = 0f) : base (group, AgricultureKnowledgeId, AgricultureKnowledgeName, value) {
+
+		CalculateNeighborhoodOceanPresence ();
+	}
+
+	public AgricultureKnowledge (CellGroup group, ShipbuildingKnowledge baseKnowledge) : base (group, baseKnowledge.Id, baseKnowledge.Name, baseKnowledge.Value) {
+
+		CalculateNeighborhoodOceanPresence ();
+	}
+
+	public AgricultureKnowledge (CellGroup group, ShipbuildingKnowledge baseKnowledge, float initialValue) : base (group, baseKnowledge.Id, baseKnowledge.Name, initialValue) {
+
+		CalculateNeighborhoodOceanPresence ();
+	}
+
+	public override void FinalizeLoad () {
+
+		base.FinalizeLoad ();
+
+		CalculateNeighborhoodOceanPresence ();
+	}
+
+	public void CalculateNeighborhoodOceanPresence () {
+
+		_neighborhoodOceanPresence = CalculateNeighborhoodOceanPresenceIn (Group);
+	}
+
+	public static float CalculateNeighborhoodOceanPresenceIn (CellGroup group) {
+
+		float neighborhoodPresence;
+
+		int groupCellBonus = 1;
+		int cellCount = groupCellBonus;
+
+		TerrainCell groupCell = group.Cell;
+
+		float totalPresence = groupCell.GetBiomePresence ("Ocean") * groupCellBonus;
+
+		foreach (TerrainCell c in groupCell.Neighbors.Values) {
+
+			totalPresence += c.GetBiomePresence ("Ocean");
+			cellCount++;
+		}
+
+		neighborhoodPresence = totalPresence / cellCount;
+
+		if ((neighborhoodPresence < 0) || (neighborhoodPresence > 1)) {
+
+			throw new System.Exception ("Neighborhood Ocean Presence outside range: " + neighborhoodPresence);
+		}
+
+		return neighborhoodPresence;
+	}
+
+	protected override void UpdateInternal (int timeSpan) {
+
+		TerrainCell groupCell = Group.Cell;
+
+		float randomModifierFactor1 = 0.75f;
+		float randomModifierFactor2 = 1f;
+		float randomModifier = randomModifierFactor1 * groupCell.GetNextLocalRandomFloat ();
+		randomModifier = randomModifierFactor2 * (_neighborhoodOceanPresence - randomModifier);
+		randomModifier = Mathf.Clamp (randomModifier, -1, 1);
+
+		float targetValue = 0;
+
+		if (randomModifier > 0) {
+			targetValue = Value + (Asymptote - Value) * randomModifier;
+		} else {
+			targetValue = Value * (1 + randomModifier);
+		}
+
+		targetValue = Mathf.Clamp (targetValue, 0, Asymptote);
+
+		float timeEffect = timeSpan / (float)(timeSpan + TimeEffectConstant);
+
+		float factor = timeEffect * _neighborhoodOceanPresence;
+
+		Value = (Value * (1 - factor)) + (targetValue * factor);
+
+		if (Value < SailingDiscoveryEvent.MinShipBuildingKnowledgeSpawnEventValue)
+			return;
+
+		if (Value > SailingDiscoveryEvent.OptimalShipBuildingKnowledgeValue)
+			return;
+
+		if (SailingDiscoveryEvent.CanSpawnIn (Group)) {
+
+			int triggerDate = SailingDiscoveryEvent.CalculateTriggerDate (Group);
+
+			Group.World.InsertEventToHappen (new SailingDiscoveryEvent (Group, triggerDate));
+		}
+	}
+
+	protected override float CalculateAsymptoteInternal (CulturalDiscovery discovery)
+	{
+		switch (discovery.Id) {
+
+		case BoatMakingDiscovery.BoatMakingDiscoveryId:
+			return 10;
+		case SailingDiscovery.SailingDiscoveryId:
+			return 30;
+		}
+
+		return 0;
+	}
+
+	public override float CalculateModifiedProgressLevel ()
+	{
+		float oceanPresenceFactor = (_neighborhoodOceanPresence * 0.9f) + 0.1f;
+
+		return Mathf.Min (ProgressLevel / oceanPresenceFactor, 1);
+	}
+
+	public override float CalculateTransferFactor ()
+	{
+		return (_neighborhoodOceanPresence * 0.9f) + 0.1f;
+	}
+}
