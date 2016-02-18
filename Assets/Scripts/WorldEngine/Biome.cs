@@ -27,8 +27,7 @@ public class Biome {
 		-15f,
 		0.0f,
 		0.01f,
-		0.5f,
-		0.0f);
+		0.5f);
 
 	public static Biome Glacier = new Biome(
 		"Glacier",
@@ -42,8 +41,7 @@ public class Biome {
 		-15f,
 		0.0f,
 		0.01f,
-		0.5f,
-		0.0f);
+		0.5f);
 	
 	public static Biome Ocean = new Biome(
 		"Ocean",
@@ -55,7 +53,6 @@ public class Biome {
 		MaxBiomeRainfall,
 		-15f,
 		MaxBiomeTemperature,
-		0.0f,
 		0.0f,
 		0.0f,
 		0.0f);
@@ -72,7 +69,6 @@ public class Biome {
 		MaxBiomeTemperature,
 		1.0f,
 		0.4f,
-		1.0f,
 		1.0f);
 	
 	public static Biome Forest = new Biome(
@@ -87,8 +83,7 @@ public class Biome {
 		MaxBiomeTemperature,
 		0.4f,
 		0.6f,
-		0.6f,
-		0.3f);
+		0.6f);
 	
 	public static Biome Taiga = new Biome(
 		"Taiga",
@@ -102,8 +97,7 @@ public class Biome {
 		-0f,
 		0.2f,
 		0.4f,
-		0.4f,
-		0.2f);
+		0.4f);
 	
 	public static Biome Tundra = new Biome(
 		"Tundra",
@@ -117,8 +111,7 @@ public class Biome {
 		-0f,
 		0.0f,
 		0.1f,
-		1.0f,
-		0.0f);
+		1.0f);
 	
 	public static Biome DeserticTundra = new Biome(
 		"Desertic Tundra",
@@ -132,8 +125,7 @@ public class Biome {
 		-0f,
 		0.0f,
 		0.04f,
-		0.8f,
-		0.0f);
+		0.8f);
 	
 	public static Biome Desert = new Biome(
 		"Desert",
@@ -147,8 +139,7 @@ public class Biome {
 		MaxBiomeTemperature,
 		0.0f,
 		0.02f,
-		0.8f,
-		0.0f);
+		0.8f);
 	
 	public static Biome Rainforest = new Biome(
 		"Rainforest",
@@ -162,8 +153,7 @@ public class Biome {
 		MaxBiomeTemperature,
 		0.2f,
 		0.8f,
-		0.2f,
-		0.1f);
+		0.2f);
 
 	public static Dictionary<string, Biome> Biomes = new Dictionary<string, Biome>() {
 		
@@ -194,7 +184,6 @@ public class Biome {
 	public float Survivability;
 	public float ForagingCapacity;
 	public float Accessibility;
-	public float Arability;
 
 	public int ColorId;
 
@@ -213,8 +202,7 @@ public class Biome {
 		float maxTemperature,
 		float survivability,
 		float foragingCapacity,
-		float accessibility,
-		float arability) {
+		float accessibility) {
 
 		Name = name;
 		Id = id;
@@ -230,6 +218,5 @@ public class Biome {
 		Survivability = survivability;
 		ForagingCapacity = foragingCapacity;
 		Accessibility = accessibility;
-		Arability = arability;
 	}
 }

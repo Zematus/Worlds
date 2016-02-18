@@ -402,7 +402,7 @@ public class Manager {
 			world.ProgressCastMethod = _manager._progressCastMethod;
 		}
 
-		world.StartInitialization (0f, 0.25f);
+		world.StartInitialization (0f, 0.20f);
 		world.Generate ();
 		world.FinishInitialization ();
 
@@ -482,7 +482,7 @@ public class Manager {
 			world.ProgressCastMethod = _manager._progressCastMethod;
 		}
 
-		world.StartInitialization (0.25f, 0.25f);
+		world.StartInitialization (0.20f, 0.20f);
 		world.GenerateTerrain ();
 		world.FinishInitialization ();
 		
@@ -566,9 +566,9 @@ public class Manager {
 		_planetView = value;
 	}
 
-	public static void DisplayCellData (TerrainCell cell) {
+	public static void DisplayCellData (TerrainCell cell, bool showData) {
 	
-		DisplayCellDataOnMapTexture (_manager._currentMapTextureColors, cell);
+		DisplayCellDataOnMapTexture (_manager._currentMapTextureColors, cell, showData);
 		CurrentMapTexture.SetPixels32 (_manager._currentMapTextureColors);
 
 		CurrentMapTexture.Apply ();
@@ -597,13 +597,13 @@ public class Manager {
 		}
 	}
 
-	public static void DisplayCellDataOnMapTexture (Color32[] textureColors, TerrainCell cell) {
+	public static void DisplayCellDataOnMapTexture (Color32[] textureColors, TerrainCell cell, bool showData) {
 
 		CellGroup cellGroup = cell.Group; 
 
 		if ((cellGroup != null) && (cellGroup.SeaMigrationRoute != null)) {
 
-			DisplayRouteOnMapTexture (textureColors, cellGroup.SeaMigrationRoute);
+			DisplayRouteOnMapTexture (textureColors, cellGroup.SeaMigrationRoute, showData);
 		}
 
 		World world = cell.World;
@@ -616,22 +616,25 @@ public class Manager {
 		int j = cell.Latitude;
 
 		Color cellColor = GenerateColorFromTerrainCell(cell);
-		cellColor = new Color (0.5f + (cellColor.r * 0.5f), 0.5f + (cellColor.g * 0.5f), 0.5f + (cellColor.b * 0.5f));
+
+		if (showData) {
+			cellColor = new Color (0.5f + (cellColor.r * 0.5f), 0.5f + (cellColor.g * 0.5f), 0.5f + (cellColor.b * 0.5f));
+		}
 
 		for (int m = 0; m < r; m++) {
 			for (int n = 0; n < r; n++) {
 
-				int offsetY = sizeX * r * (j*r + n);
-				int offsetX = i*r + m;
+				int offsetY = sizeX * r * (j * r + n);
+				int offsetX = i * r + m;
 
-				textureColors[offsetY + offsetX] = cellColor;
+				textureColors [offsetY + offsetX] = cellColor;
 			}
 		}
 
 		UpdatedCells.Add (cell);
 	}
 
-	public static void DisplayRouteOnMapTexture (Color32[] textureColors, Route route) {
+	public static void DisplayRouteOnMapTexture (Color32[] textureColors, Route route, bool showRoute) {
 
 		World world = route.World;
 
@@ -645,6 +648,11 @@ public class Manager {
 			int j = cell.Latitude;
 
 			Color cellColor = Color.cyan;
+
+			if (!showRoute) {
+
+				cellColor = GenerateColorFromTerrainCell(cell);
+			}
 
 			for (int m = 0; m < r; m++) {
 				for (int n = 0; n < r; n++) {
@@ -1215,8 +1223,10 @@ public class Manager {
 		switch (_planetOverlaySubtype) {
 
 		case "Arability":
-
 			return SetArabilityOverlayColor (cell, color);
+
+		case "None":
+			return color;
 
 		default:
 			throw new System.Exception ("Unhandled miscellaneous data overlay subtype: " + _planetOverlaySubtype);

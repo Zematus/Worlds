@@ -79,6 +79,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 	private event MouseClickOperation _mapLeftClickOp = null;
 
+	private TerrainCell _previousSelectedCell = null;
 	private TerrainCell _selectedCell = null;
 	
 	private const float _maxAccTime = 1.0f;
@@ -466,7 +467,16 @@ public class GuiManagerScript : MonoBehaviour {
 		int longitude = (int)mapCoordinates.x;
 		int latitude = (int)mapCoordinates.y;
 
-		_selectedCell = Manager.CurrentWorld.GetCell (longitude, latitude);
+		TerrainCell selectedCell = Manager.CurrentWorld.GetCell (longitude, latitude);
+
+		_previousSelectedCell = _selectedCell;
+
+		if (_previousSelectedCell == selectedCell) {
+			_selectedCell = null;
+		} else {
+			_selectedCell = selectedCell;
+		}
+
 	}
 
 	public void ClickOp_SelectPopulationPlacement (Vector2 position) {
@@ -1154,11 +1164,18 @@ public class GuiManagerScript : MonoBehaviour {
 	}
 
 	public void DisplaySelectedCellOverlay () {
+
+		if (_previousSelectedCell == _selectedCell)
+			return;
+
+		if (_previousSelectedCell != null) {
+			Manager.DisplayCellData (_previousSelectedCell, false);
+		}
 	
 		if (_selectedCell == null)
 			return;
 
-		Manager.DisplayCellData (_selectedCell);
+		Manager.DisplayCellData (_selectedCell, true);
 	}
 
 	public void UpdateInfoPanel () {

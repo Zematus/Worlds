@@ -91,6 +91,7 @@ public class PerlinNoise {
 		return value;
 	}
 
+	// Returns a value between 0 and 1
 	public static float GetValue (float x, float y, float z) {
 		
 //		int[] p = new int[512];

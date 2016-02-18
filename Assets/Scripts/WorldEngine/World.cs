@@ -24,6 +24,12 @@ public class World {
 	
 	public const float MinPossibleTemperature = -40;
 	public const float MaxPossibleTemperature = 50;
+
+	public const float OptimalRainfallForArability = 1000;
+	public const float OptimalTemperatureForArability = 30;
+	public const float MaxRainfallForArability = 7000;
+	public const float MinRainfallForArability = 0;
+	public const float MinTemperatureForArability = -15;
 	
 	public const float StartPopulationDensity = 0.5f;
 	
@@ -604,6 +610,10 @@ public class World {
 		ProgressCastMethod (_accumulatedProgress, "Generating Biomes...");
 		
 		GenerateTerrainBiomes ();
+
+		ProgressCastMethod (_accumulatedProgress, "Generating Arability...");
+
+		GenerateTerrainArability ();
 	}
 
 	public void Generate () {
@@ -918,6 +928,7 @@ public class World {
 		return Manager.EnqueueTask (() => Random.insideUnitSphere * 1000);
 	}
 
+	// Returns a value between 0 and 1
 	private float GetRandomNoiseFromPolarCoordinates (float alpha, float beta, float radius, Vector3 offset) {
 
 		Vector3 pos = MathUtility.GetCartesianCoordinates(alpha,beta,radius) + offset;
@@ -1096,6 +1107,44 @@ public class World {
 		_accumulatedProgress += _progressIncrement;
 	}
 
+	private void GenerateTerrainArability () {
+
+		int sizeX = Width;
+		int sizeY = Height;
+
+		float radius = 2f;
+
+		ManagerTask<Vector3> offset = GenerateRandomOffsetVector();
+
+		for (int i = 0; i < sizeX; i++)
+		{
+			float beta = (i / (float)sizeX) * Mathf.PI * 2;
+
+			for (int j = 0; j < sizeY; j++)
+			{
+				TerrainCell cell = TerrainCells[i][j];
+
+				float alpha = (j / (float)sizeY) * Mathf.PI;
+
+				float baseArability = CalculateCellBaseArability (cell);
+
+				cell.Arability = 0;
+
+				if (baseArability <= 0)
+					continue;
+
+				// This simulates things like stoniness, impracticality of drainage, excessive salts, etc.
+				float noiseFactor = 0.0f + 1.0f * GetRandomNoiseFromPolarCoordinates(alpha, beta, radius, offset);
+
+				cell.Arability = baseArability * noiseFactor;
+			}
+
+			ProgressCastMethod (_accumulatedProgress + _progressIncrement * (i + 1)/(float)sizeX);
+		}
+
+		_accumulatedProgress += _progressIncrement;
+	}
+
 	private void GenerateTerrainBiomes () {
 		
 		int sizeX = Width;
@@ -1125,7 +1174,6 @@ public class World {
 				cell.Survivability = 0;
 				cell.ForagingCapacity = 0;
 				cell.Accessibility = 0;
-				cell.Arability = 0;
 
 				foreach (Biome biome in Biome.Biomes.Values)
 				{
@@ -1142,7 +1190,6 @@ public class World {
 						cell.Survivability += biome.Survivability * presence;
 						cell.ForagingCapacity += biome.ForagingCapacity * presence;
 						cell.Accessibility += biome.Accessibility * presence;
-						cell.Arability += biome.Arability * presence;
 					}
 				}
 
@@ -1165,6 +1212,32 @@ public class World {
 	public int GenerateEventId () {
 		
 		return ++CurrentEventId;
+	}
+
+	private float CalculateCellBaseArability (TerrainCell cell) {
+
+		float landFactor = 1 - cell.GetBiomePresence (Biome.Ocean);
+
+		if (landFactor == 0)
+			return 0;
+
+		float rainfallFactor = 0;
+
+		if (cell.Rainfall > OptimalRainfallForArability) {
+		
+			rainfallFactor = (MaxRainfallForArability - cell.Rainfall) / (MaxRainfallForArability - OptimalRainfallForArability);
+
+		} else {
+			
+			rainfallFactor = (cell.Rainfall - MinRainfallForArability) / (OptimalRainfallForArability - MinRainfallForArability);
+		}
+
+		rainfallFactor = Mathf.Clamp01 (rainfallFactor);
+
+		float temperatureFactor = (cell.Temperature - MinTemperatureForArability) / (OptimalTemperatureForArability - MinTemperatureForArability);
+		temperatureFactor = Mathf.Clamp01 (temperatureFactor);
+
+		return rainfallFactor * temperatureFactor * landFactor;
 	}
 
 	private float CalculateBiomePresence (TerrainCell cell, Biome biome) {
