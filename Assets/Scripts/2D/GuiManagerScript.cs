@@ -61,6 +61,8 @@ public class GuiManagerScript : MonoBehaviour {
 	private PlanetOverlay _planetOverlay = PlanetOverlay.Population;
 	private string _planetOverlaySubtype = "None";
 
+	private Dictionary<PlanetOverlay, string> _planetOverlaySubtypeCache = new Dictionary<PlanetOverlay, string> ();
+
 	private bool _displayRoutes = false;
 
 	private bool _menusNeedUpdate = true;
@@ -643,8 +645,8 @@ public class GuiManagerScript : MonoBehaviour {
 		
 		switch (_planetOverlay) {
 		case PlanetOverlay.None: planetOverlayStr = ""; break;
-		case PlanetOverlay.Rainfall: planetOverlayStr = "_rainfall"; break;
-		case PlanetOverlay.Temperature: planetOverlayStr = "_temperature"; break;
+//		case PlanetOverlay.Rainfall: planetOverlayStr = "_rainfall"; break;
+//		case PlanetOverlay.Temperature: planetOverlayStr = "_temperature"; break;
 		case PlanetOverlay.Population: planetOverlayStr = "_population"; break;
 		case PlanetOverlay.CulturalSkill: 
 			planetOverlayStr = "_cultural_skill_" + _planetOverlaySubtype; 
@@ -833,11 +835,12 @@ public class GuiManagerScript : MonoBehaviour {
 		SelectionPanelScript.RemoveAllOptions ();
 		SelectionPanelScript.SetVisible (false);
 
-		if (OverlayDialogPanelScript.RainfallToggle.isOn) {
-			SetRainfallOverlay ();
-		} else if (OverlayDialogPanelScript.TemperatureToggle.isOn) {
-			SetTemperatureOverlay ();
-		} else if (OverlayDialogPanelScript.PopulationToggle.isOn) {
+//		if (OverlayDialogPanelScript.RainfallToggle.isOn) {
+//			SetRainfallOverlay ();
+//		} else if (OverlayDialogPanelScript.TemperatureToggle.isOn) {
+//			SetTemperatureOverlay ();
+//		} else
+		if (OverlayDialogPanelScript.PopulationToggle.isOn) {
 			SetPopulationOverlay ();
 		} else if (OverlayDialogPanelScript.CulturalSkillToggle.isOn) {
 			SetCulturalSkillOverlay ();
@@ -868,8 +871,8 @@ public class GuiManagerScript : MonoBehaviour {
 		OverlayDialogPanelScript.CulturalKnowledgeToggle.isOn = false;
 		OverlayDialogPanelScript.CulturalSkillToggle.isOn = false;
 		OverlayDialogPanelScript.PopulationToggle.isOn = false;
-		OverlayDialogPanelScript.RainfallToggle.isOn = false;
-		OverlayDialogPanelScript.TemperatureToggle.isOn = false;
+//		OverlayDialogPanelScript.RainfallToggle.isOn = false;
+//		OverlayDialogPanelScript.TemperatureToggle.isOn = false;
 		OverlayDialogPanelScript.DisplayRoutesToggle.isOn = false;
 		
 		SelectionPanelScript.SetVisible (false);
@@ -904,13 +907,13 @@ public class GuiManagerScript : MonoBehaviour {
 			OverlayDialogPanelScript.PopulationToggle.isOn = true;
 			break;
 			
-		case PlanetOverlay.Rainfall:
-			OverlayDialogPanelScript.RainfallToggle.isOn = true;
-			break;
-			
-		case PlanetOverlay.Temperature:
-			OverlayDialogPanelScript.TemperatureToggle.isOn = true;
-			break;
+//		case PlanetOverlay.Rainfall:
+//			OverlayDialogPanelScript.RainfallToggle.isOn = true;
+//			break;
+//			
+//		case PlanetOverlay.Temperature:
+//			OverlayDialogPanelScript.TemperatureToggle.isOn = true;
+//			break;
 			
 		case PlanetOverlay.None:
 			break;
@@ -994,19 +997,19 @@ public class GuiManagerScript : MonoBehaviour {
 		}
 	}
 	
-	public void SetRainfallOverlay () {
-
-		_regenTextures |= _planetOverlay != PlanetOverlay.Rainfall;
-
-		_planetOverlay = PlanetOverlay.Rainfall;
-	}
-	
-	public void SetTemperatureOverlay () {
-		
-		_regenTextures |= _planetOverlay != PlanetOverlay.Temperature;
-		
-		_planetOverlay = PlanetOverlay.Temperature;
-	}
+//	public void SetRainfallOverlay () {
+//
+//		_regenTextures |= _planetOverlay != PlanetOverlay.Rainfall;
+//
+//		_planetOverlay = PlanetOverlay.Rainfall;
+//	}
+//	
+//	public void SetTemperatureOverlay () {
+//		
+//		_regenTextures |= _planetOverlay != PlanetOverlay.Temperature;
+//		
+//		_planetOverlay = PlanetOverlay.Temperature;
+//	}
 	
 	public void SetPopulationOverlay () {
 		
@@ -1021,12 +1024,27 @@ public class GuiManagerScript : MonoBehaviour {
 
 		_displayRoutes = value;
 	}
+
+	public void ChangePlanetOverlay (PlanetOverlay value) {
+
+		_regenTextures |= _planetOverlay != value;
+
+		if (_regenTextures && (_planetOverlay != PlanetOverlay.None)) {
+
+			_planetOverlaySubtypeCache[_planetOverlay] = _planetOverlaySubtype;
+		}
+
+		_planetOverlay = value;
+
+		if (!_planetOverlaySubtypeCache.TryGetValue (_planetOverlay, out _planetOverlaySubtype)) {
+		
+			_planetOverlaySubtype = "None";
+		}
+	}
 	
 	public void SetCulturalSkillOverlay () {
-		
-		_regenTextures |= _planetOverlay != PlanetOverlay.CulturalSkill;
-		
-		_planetOverlay = PlanetOverlay.CulturalSkill;
+
+		ChangePlanetOverlay (PlanetOverlay.CulturalSkill);
 
 		SelectionPanelScript.Title.text = "Displayed Cultural Skill:";
 
@@ -1039,10 +1057,8 @@ public class GuiManagerScript : MonoBehaviour {
 	}
 	
 	public void SetCulturalKnowledgeOverlay () {
-		
-		_regenTextures |= _planetOverlay != PlanetOverlay.CulturalKnowledge;
-		
-		_planetOverlay = PlanetOverlay.CulturalKnowledge;
+
+		ChangePlanetOverlay (PlanetOverlay.CulturalKnowledge);
 		
 		SelectionPanelScript.Title.text = "Displayed Cultural Knowledge:";
 		
@@ -1056,9 +1072,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 	public void SetCulturalDiscoveryOverlay () {
 
-		_regenTextures |= _planetOverlay != PlanetOverlay.CulturalDiscovery;
-
-		_planetOverlay = PlanetOverlay.CulturalDiscovery;
+		ChangePlanetOverlay (PlanetOverlay.CulturalDiscovery);
 
 		SelectionPanelScript.Title.text = "Displayed Cultural Discovery:";
 
@@ -1066,6 +1080,19 @@ public class GuiManagerScript : MonoBehaviour {
 
 			AddSelectionPanelOption (discoveryInfo.Name, discoveryInfo.Id);
 		}
+
+		SelectionPanelScript.SetVisible (true);
+	}
+
+	public void SetMiscellaneousDataOverlay () {
+
+		ChangePlanetOverlay (PlanetOverlay.MiscellaneousData);
+
+		SelectionPanelScript.Title.text = "Displayed Miscellaneous Data:";
+
+		AddSelectionPanelOption ("Rainfall", "Rainfall");
+		AddSelectionPanelOption ("Temperature", "Temperature");
+		AddSelectionPanelOption ("Arability", "Arability");
 
 		SelectionPanelScript.SetVisible (true);
 	}
@@ -1085,19 +1112,6 @@ public class GuiManagerScript : MonoBehaviour {
 		if (_planetOverlaySubtype == optionId) {
 			SelectionPanelScript.SetStateOption (optionName, true);
 		}
-	}
-
-	public void SetMiscellaneousDataOverlay () {
-
-		_regenTextures |= _planetOverlay != PlanetOverlay.MiscellaneousData;
-
-		_planetOverlay = PlanetOverlay.MiscellaneousData;
-
-		SelectionPanelScript.Title.text = "Displayed Miscellaneous Data:";
-
-		AddSelectionPanelOption ("Arability", "Arability");
-
-		SelectionPanelScript.SetVisible (true);
 	}
 
 	public void UpdateSelectionMenu () {
@@ -1125,6 +1139,8 @@ public class GuiManagerScript : MonoBehaviour {
 			}
 		} else if (_planetOverlay == PlanetOverlay.MiscellaneousData) {
 
+			AddSelectionPanelOption ("Rainfall", "Rainfall");
+			AddSelectionPanelOption ("Temperature", "Temperature");
 			AddSelectionPanelOption ("Arability", "Arability");
 		}
 	}

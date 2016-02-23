@@ -16,8 +16,8 @@ public enum PlanetView {
 public enum PlanetOverlay {
 
 	None,
-	Temperature,
-	Rainfall,
+//	Temperature,
+//	Rainfall,
 	Population,
 	CulturalSkill,
 	CulturalKnowledge,
@@ -937,13 +937,13 @@ public class Manager {
 			color = SetMiscellanousDataOverlayColor (cell, color);
 			break;
 			
-		case PlanetOverlay.Temperature:
-			color = SetTemperatureOverlayColor (cell, color);
-			break;
-			
-		case PlanetOverlay.Rainfall:
-			color = SetRainfallOverlayColor (cell, color);
-			break;
+//		case PlanetOverlay.Temperature:
+//			color = SetTemperatureOverlayColor (cell, color);
+//			break;
+//			
+//		case PlanetOverlay.Rainfall:
+//			color = SetRainfallOverlayColor (cell, color);
+//			break;
 			
 		default:
 			throw new System.Exception("Unsupported Planet Overlay Type");
@@ -1221,6 +1221,12 @@ public class Manager {
 	private static Color SetMiscellanousDataOverlayColor (TerrainCell cell, Color color) {
 
 		switch (_planetOverlaySubtype) {
+
+		case "Rainfall":
+			return SetRainfallOverlayColor (cell, color);
+
+		case "Temperature":
+			return SetTemperatureOverlayColor (cell, color);
 
 		case "Arability":
 			return SetArabilityOverlayColor (cell, color);
