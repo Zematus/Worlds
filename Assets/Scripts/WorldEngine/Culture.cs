@@ -15,6 +15,7 @@ public abstract class Culture {
 	
 	[XmlArrayItem(Type = typeof(BoatMakingDiscovery))]
 	[XmlArrayItem(Type = typeof(SailingDiscovery))]
+	[XmlArrayItem(Type = typeof(PlantCultivationDiscovery))]
 	public List<CulturalDiscovery> Discoveries = new List<CulturalDiscovery> ();
 
 	private Dictionary<string, CulturalSkill> _skills = new Dictionary<string, CulturalSkill> ();
@@ -123,11 +124,8 @@ public class CellCulture : Culture {
 		Group = group;
 		
 		baseCulture.Skills.ForEach (s => AddSkill (s.GenerateCopy (group)));
+		baseCulture.Discoveries.ForEach (d => AddDiscovery (d.GenerateCopy ()));
 		baseCulture.Knowledges.ForEach (k => AddKnowledge (k.GenerateCopy (group)));
-		baseCulture.Discoveries.ForEach (d => {
-			AddDiscovery (d.GenerateCopy ());
-			Knowledges.ForEach (k => k.CalculateAndSetAsymptote (d));
-		});
 	}
 
 	protected void AddSkill (CulturalSkill skill) {
@@ -229,7 +227,7 @@ public class CellCulture : Culture {
 		
 		foreach (CulturalDiscovery discovery in discoveries) {
 			
-			if (discovery.CanBeHold (Group)) continue;
+			if (discovery.CanBeHeld (Group)) continue;
 
 			Discoveries.Remove (discovery);
 
@@ -255,15 +253,19 @@ public class CellCulture : Culture {
 		foreach (CulturalKnowledge knowledge in KnowledgesToLearn.Values) {
 			
 			AddKnowledge (knowledge);
+
+			knowledge.RecalculateAsymptote ();
 		}
 		
 		foreach (CulturalDiscovery discovery in DiscoveriesToFind.Values) {
 			
-			if (!discovery.CanBeHold (Group)) continue;
+			if (!discovery.CanBeHeld (Group)) continue;
 			
 			AddDiscovery (discovery);
 
-			Knowledges.ForEach (k => k.CalculateAndSetAsymptote (discovery));
+			Knowledges.ForEach (k => {
+				k.CalculateAsymptote (discovery);
+			});
 		}
 		
 		SkillsToLearn.Clear ();

@@ -53,6 +53,13 @@ public abstract class CulturalKnowledge : CulturalKnowledgeInfo {
 		Group = group;
 		Value = value;
 	}
+
+	public CulturalKnowledge (CellGroup group, string id, string name, float value, float asymptote) : base (id, name) {
+
+		Group = group;
+		Value = value;
+		Asymptote = asymptote;
+	}
 	
 	public CulturalKnowledge GenerateCopy (CellGroup targetGroup) {
 		
@@ -115,30 +122,40 @@ public abstract class CulturalKnowledge : CulturalKnowledgeInfo {
 	
 	public void UpdateProgressLevel () {
 
-		if (Asymptote <= 0)
-			throw new System.Exception ("Asymptote is equal or less than 0");
+		ProgressLevel = 0;
 
-		ProgressLevel = Value / Asymptote;
+		if (Asymptote > 0)
+			ProgressLevel = Value / Asymptote;
 	}
 	
 	public void RecalculateAsymptote () {
 
 		Asymptote = 0;
-		
+
+		try {
 		Group.Culture.Discoveries.ForEach (d => Asymptote = Mathf.Max (CalculateAsymptoteInternal (d), Asymptote));
+		} catch {
+		
+			bool debug = true;
+		}
 
 		UpdateProgressLevel ();
 
 		SetHighestAsymptote (Asymptote);
 	}
-	
-	public void CalculateAndSetAsymptote (CulturalDiscovery discovery) {
 
-		Asymptote = Mathf.Max (CalculateAsymptoteInternal (discovery), Asymptote);
+	public void CalculateAsymptote (CulturalDiscovery discovery) {
 
-		UpdateProgressLevel ();
-		
-		SetHighestAsymptote (Asymptote);
+		float newAsymptote = CalculateAsymptoteInternal (discovery);
+
+		if (newAsymptote > Asymptote) {
+
+			Asymptote = newAsymptote;
+
+			UpdateProgressLevel ();
+
+			SetHighestAsymptote (Asymptote);
+		}
 	}
 
 	public void Update (int timeSpan) {
@@ -179,7 +196,7 @@ public class ShipbuildingKnowledge : CulturalKnowledge {
 		CalculateNeighborhoodOceanPresence ();
 	}
 
-	public ShipbuildingKnowledge (CellGroup group, ShipbuildingKnowledge baseKnowledge) : base (group, baseKnowledge.Id, baseKnowledge.Name, baseKnowledge.Value) {
+	public ShipbuildingKnowledge (CellGroup group, ShipbuildingKnowledge baseKnowledge) : base (group, baseKnowledge.Id, baseKnowledge.Name, baseKnowledge.Value, baseKnowledge.Asymptote) {
 		
 		CalculateNeighborhoodOceanPresence ();
 	}
@@ -318,7 +335,7 @@ public class AgricultureKnowledge : CulturalKnowledge {
 		CalculateNeighborhoodOceanPresence ();
 	}
 
-	public AgricultureKnowledge (CellGroup group, ShipbuildingKnowledge baseKnowledge) : base (group, baseKnowledge.Id, baseKnowledge.Name, baseKnowledge.Value) {
+	public AgricultureKnowledge (CellGroup group, ShipbuildingKnowledge baseKnowledge) : base (group, baseKnowledge.Id, baseKnowledge.Name, baseKnowledge.Value, baseKnowledge.Asymptote) {
 
 		CalculateNeighborhoodOceanPresence ();
 	}

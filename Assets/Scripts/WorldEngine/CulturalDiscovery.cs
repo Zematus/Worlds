@@ -45,7 +45,7 @@ public abstract class CulturalDiscovery : CulturalDiscoveryInfo {
 		return cInfo.Invoke (new object[] {}) as CulturalDiscovery;
 	}
 
-	public abstract bool CanBeHold (CellGroup group);
+	public abstract bool CanBeHeld (CellGroup group);
 }
 
 public class BoatMakingDiscovery : CulturalDiscovery {
@@ -57,7 +57,7 @@ public class BoatMakingDiscovery : CulturalDiscovery {
 
 	}
 
-	public override bool CanBeHold (CellGroup group)
+	public override bool CanBeHeld (CellGroup group)
 	{
 		CulturalKnowledge knowledge = group.Culture.GetKnowledge (ShipbuildingKnowledge.ShipbuildingKnowledgeId);
 
@@ -83,7 +83,7 @@ public class SailingDiscovery : CulturalDiscovery {
 		
 	}
 	
-	public override bool CanBeHold (CellGroup group)
+	public override bool CanBeHeld (CellGroup group)
 	{
 		CulturalKnowledge knowledge = group.Culture.GetKnowledge (ShipbuildingKnowledge.ShipbuildingKnowledgeId);
 		
@@ -93,6 +93,29 @@ public class SailingDiscovery : CulturalDiscovery {
 		if (knowledge.Value < MinShipBuildingKnowledgeValue)
 			return false;
 		
+		return true;
+	}
+}
+
+public class PlantCultivationDiscovery : CulturalDiscovery {
+
+	public const string PlantCultivationDiscoveryId = "PlantCultivationDiscovery";
+	public const string PlantCultivationDiscoveryName = "Plant Cultivation";
+
+	public PlantCultivationDiscovery () : base (PlantCultivationDiscoveryId, PlantCultivationDiscoveryName) {
+
+	}
+
+	public override bool CanBeHeld (CellGroup group)
+	{
+//		CulturalKnowledge knowledge = group.Culture.GetKnowledge (ShipbuildingKnowledge.ShipbuildingKnowledgeId);
+//
+//		if (knowledge == null)
+//			return false;
+//
+//		if (knowledge.Value < 0)
+//			return false;
+
 		return true;
 	}
 }

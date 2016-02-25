@@ -131,11 +131,23 @@ public class CellGroup : HumanGroup {
 		
 		OptimalPopulation = CalculateOptimalPopulation (Cell);
 
+		InitializeDefaultEvents ();
+	}
+
+	public void InitializeDefaultEvents () {
+
 		if (BoatMakingDiscoveryEvent.CanSpawnIn (this)) {
 
 			int triggerDate = BoatMakingDiscoveryEvent.CalculateTriggerDate (this);
-			
+
 			World.InsertEventToHappen (new BoatMakingDiscoveryEvent (this, triggerDate));
+		}
+
+		if (PlantCultivationDiscoveryEvent.CanSpawnIn (this)) {
+
+			int triggerDate = PlantCultivationDiscoveryEvent.CalculateTriggerDate (this);
+
+			World.InsertEventToHappen (new PlantCultivationDiscoveryEvent (this, triggerDate));
 		}
 	}
 

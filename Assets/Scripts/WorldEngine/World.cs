@@ -67,11 +67,12 @@ public class World {
 
 	// Start wonky segment (save failures might happen here)
 
-	[XmlArrayItem(Type = typeof(UpdateCellGroupEvent)),
-	 XmlArrayItem(Type = typeof(MigrateGroupEvent)),
-	 XmlArrayItem(Type = typeof(SailingDiscoveryEvent)),
-	 XmlArrayItem(Type = typeof(BoatMakingDiscoveryEvent)),
-	 XmlArrayItem(Type = typeof(KnowledgeTransferEvent))]
+	[XmlArrayItem (Type = typeof(UpdateCellGroupEvent)),
+		XmlArrayItem (Type = typeof(MigrateGroupEvent)),
+		XmlArrayItem (Type = typeof(SailingDiscoveryEvent)),
+		XmlArrayItem (Type = typeof(BoatMakingDiscoveryEvent)),
+		XmlArrayItem (Type = typeof(PlantCultivationDiscoveryEvent)),
+		XmlArrayItem (Type = typeof(KnowledgeTransferEvent))]
 	public List<WorldEvent> EventsToHappen = new List<WorldEvent> ();
 
 	public List<CellGroup> CellGroups = new List<CellGroup> ();

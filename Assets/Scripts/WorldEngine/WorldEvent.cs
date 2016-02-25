@@ -340,6 +340,61 @@ public class BoatMakingDiscoveryEvent : CellGroupEvent {
 	}
 }
 
+public class PlantCultivationDiscoveryEvent : CellGroupEvent {
+
+	public const int MaxDateSpanToTrigger = CellGroup.GenerationTime * 100000;
+
+	public PlantCultivationDiscoveryEvent () {
+
+	}
+
+	public PlantCultivationDiscoveryEvent (CellGroup group, int triggerDate) : base (group, triggerDate) {
+
+	}
+
+	public static int CalculateTriggerDate (CellGroup group) {
+
+		float arability = group.Cell.Arability;
+
+		float randomFactor = group.Cell.GetNextLocalRandomFloat ();
+		randomFactor = randomFactor * randomFactor;
+
+		float mixFactor = 0.1f + (0.9f * ((1 - arability) * (1 - randomFactor)));
+
+		int dateSpan = (int)Mathf.Ceil(Mathf.Max (1, MaxDateSpanToTrigger * mixFactor));
+
+		return group.World.CurrentDate + dateSpan;
+	}
+
+	public static bool CanSpawnIn (CellGroup group) {
+
+		if (group.Culture.GetKnowledge (AgricultureKnowledge.AgricultureKnowledgeId) != null)
+			return false;
+
+		float arability = group.Cell.Arability;
+
+		return (arability > 0);
+	}
+
+	public override bool CanTrigger () {
+
+		if (!base.CanTrigger ())
+			return false;
+
+		if (Group.Culture.GetKnowledge (AgricultureKnowledge.AgricultureKnowledgeId) != null)
+			return false;
+
+		return true;
+	}
+
+	public override void Trigger () {
+
+		Group.Culture.AddDiscoveryToFind (new PlantCultivationDiscovery ());
+		//Group.Culture.AddKnowledgeToLearn (new AgricultureKnowledge (Group));
+		World.AddGroupToUpdate (Group);
+	}
+}
+
 public class KnowledgeTransferEvent : CellGroupEvent {
 	
 	public static int KnowledgeTransferEventCount = 0;
