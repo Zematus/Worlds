@@ -108,13 +108,13 @@ public class PlantCultivationDiscovery : CulturalDiscovery {
 
 	public override bool CanBeHeld (CellGroup group)
 	{
-//		CulturalKnowledge knowledge = group.Culture.GetKnowledge (ShipbuildingKnowledge.ShipbuildingKnowledgeId);
-//
-//		if (knowledge == null)
-//			return false;
-//
-//		if (knowledge.Value < 0)
-//			return false;
+		CulturalKnowledge knowledge = group.Culture.GetKnowledge (AgricultureKnowledge.AgricultureKnowledgeId);
+
+		if (knowledge == null)
+			return false;
+
+		if (knowledge.Value < 0)
+			return false;
 
 		return true;
 	}

@@ -332,34 +332,34 @@ public class CellGroup : HumanGroup {
 		ConsiderLandMigration ();
 		ConsiderSeaMigration ();
 
-		ConsiderKnowledgeTransfer ();
+//		ConsiderKnowledgeTransfer ();
 		
 		NextUpdateDate = CalculateNextUpdateDate ();
 		
 		World.InsertEventToHappen (new UpdateCellGroupEvent (this, NextUpdateDate));
 	}
 
-	public void ConsiderKnowledgeTransfer () {
-
-		if (HasKnowledgeTransferEvent)
-			return;
-	
-		float transferValue = 0;
-
-		CellGroup targetGroup = KnowledgeTransferEvent.DiscoverTargetGroup (this, out transferValue);
-
-		if (targetGroup == null)
-			return;
-
-		if (transferValue <= 0)
-			return;
-
-		int triggerDate = KnowledgeTransferEvent.CalculateTriggerDate (this, transferValue);
-
-		World.InsertEventToHappen (new KnowledgeTransferEvent (this, targetGroup, triggerDate));
-
-		HasKnowledgeTransferEvent = true;
-	}
+//	public void ConsiderKnowledgeTransfer () {
+//
+//		if (HasKnowledgeTransferEvent)
+//			return;
+//	
+//		float transferValue = 0;
+//
+//		CellGroup targetGroup = KnowledgeTransferEvent.DiscoverTargetGroup (this, out transferValue);
+//
+//		if (targetGroup == null)
+//			return;
+//
+//		if (transferValue <= 0)
+//			return;
+//
+//		int triggerDate = KnowledgeTransferEvent.CalculateTriggerDate (this, transferValue);
+//
+//		World.InsertEventToHappen (new KnowledgeTransferEvent (this, targetGroup, triggerDate));
+//
+//		HasKnowledgeTransferEvent = true;
+//	}
 	
 	private float CalculateAltitudeDeltaMigrationFactor (TerrainCell targetCell) {
 

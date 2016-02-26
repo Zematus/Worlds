@@ -342,7 +342,7 @@ public class BoatMakingDiscoveryEvent : CellGroupEvent {
 
 public class PlantCultivationDiscoveryEvent : CellGroupEvent {
 
-	public const int MaxDateSpanToTrigger = CellGroup.GenerationTime * 100000;
+	public const int MaxDateSpanToTrigger = CellGroup.GenerationTime * 50000;
 
 	public PlantCultivationDiscoveryEvent () {
 
@@ -354,12 +354,12 @@ public class PlantCultivationDiscoveryEvent : CellGroupEvent {
 
 	public static int CalculateTriggerDate (CellGroup group) {
 
-		float arability = group.Cell.Arability;
+		float terrainFactor = group.Cell.Arability * group.Cell.Accessibility;
 
 		float randomFactor = group.Cell.GetNextLocalRandomFloat ();
 		randomFactor = randomFactor * randomFactor;
 
-		float mixFactor = 0.1f + (0.9f * ((1 - arability) * (1 - randomFactor)));
+		float mixFactor = 0.1f + (0.9f * ((1 - terrainFactor) * (1 - randomFactor)));
 
 		int dateSpan = (int)Mathf.Ceil(Mathf.Max (1, MaxDateSpanToTrigger * mixFactor));
 
@@ -390,7 +390,7 @@ public class PlantCultivationDiscoveryEvent : CellGroupEvent {
 	public override void Trigger () {
 
 		Group.Culture.AddDiscoveryToFind (new PlantCultivationDiscovery ());
-		//Group.Culture.AddKnowledgeToLearn (new AgricultureKnowledge (Group));
+		Group.Culture.AddKnowledgeToLearn (new AgricultureKnowledge (Group));
 		World.AddGroupToUpdate (Group);
 	}
 }

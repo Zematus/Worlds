@@ -132,12 +132,7 @@ public abstract class CulturalKnowledge : CulturalKnowledgeInfo {
 
 		Asymptote = 0;
 
-		try {
 		Group.Culture.Discoveries.ForEach (d => Asymptote = Mathf.Max (CalculateAsymptoteInternal (d), Asymptote));
-		} catch {
-		
-			bool debug = true;
-		}
 
 		UpdateProgressLevel ();
 
@@ -271,16 +266,21 @@ public class ShipbuildingKnowledge : CulturalKnowledge {
 		
 		Value = (Value * (1 - factor)) + (targetValue * factor);
 
+		TryGenerateSailingDiscoveryEvent ();
+	}
+
+	private void TryGenerateSailingDiscoveryEvent () {
+
 		if (Value < SailingDiscoveryEvent.MinShipBuildingKnowledgeSpawnEventValue)
 			return;
-		
+
 		if (Value > SailingDiscoveryEvent.OptimalShipBuildingKnowledgeValue)
 			return;
 
 		if (SailingDiscoveryEvent.CanSpawnIn (Group)) {
-			
+
 			int triggerDate = SailingDiscoveryEvent.CalculateTriggerDate (Group);
-			
+
 			Group.World.InsertEventToHappen (new SailingDiscoveryEvent (Group, triggerDate));
 		}
 	}
@@ -320,7 +320,7 @@ public class AgricultureKnowledge : CulturalKnowledge {
 
 	public static float HighestAsymptote = 0;
 
-	private float _neighborhoodOceanPresence;
+	private float _terrainFactor;
 
 	public AgricultureKnowledge () {
 
@@ -332,56 +332,34 @@ public class AgricultureKnowledge : CulturalKnowledge {
 
 	public AgricultureKnowledge (CellGroup group, float value = 0f) : base (group, AgricultureKnowledgeId, AgricultureKnowledgeName, value) {
 
-		CalculateNeighborhoodOceanPresence ();
+		CalculateTerrainFactor ();
 	}
 
-	public AgricultureKnowledge (CellGroup group, ShipbuildingKnowledge baseKnowledge) : base (group, baseKnowledge.Id, baseKnowledge.Name, baseKnowledge.Value, baseKnowledge.Asymptote) {
+	public AgricultureKnowledge (CellGroup group, AgricultureKnowledge baseKnowledge) : base (group, baseKnowledge.Id, baseKnowledge.Name, baseKnowledge.Value, baseKnowledge.Asymptote) {
 
-		CalculateNeighborhoodOceanPresence ();
+		CalculateTerrainFactor ();
 	}
 
-	public AgricultureKnowledge (CellGroup group, ShipbuildingKnowledge baseKnowledge, float initialValue) : base (group, baseKnowledge.Id, baseKnowledge.Name, initialValue) {
+	public AgricultureKnowledge (CellGroup group, AgricultureKnowledge baseKnowledge, float initialValue) : base (group, baseKnowledge.Id, baseKnowledge.Name, initialValue) {
 
-		CalculateNeighborhoodOceanPresence ();
+		CalculateTerrainFactor ();
 	}
 
 	public override void FinalizeLoad () {
 
 		base.FinalizeLoad ();
 
-		CalculateNeighborhoodOceanPresence ();
+		CalculateTerrainFactor ();
 	}
 
-	public void CalculateNeighborhoodOceanPresence () {
+	public void CalculateTerrainFactor () {
 
-		_neighborhoodOceanPresence = CalculateNeighborhoodOceanPresenceIn (Group);
+		_terrainFactor = CalculateTerrainFactorIn (Group);
 	}
 
-	public static float CalculateNeighborhoodOceanPresenceIn (CellGroup group) {
+	public static float CalculateTerrainFactorIn (CellGroup group) {
 
-		float neighborhoodPresence;
-
-		int groupCellBonus = 1;
-		int cellCount = groupCellBonus;
-
-		TerrainCell groupCell = group.Cell;
-
-		float totalPresence = groupCell.GetBiomePresence ("Ocean") * groupCellBonus;
-
-		foreach (TerrainCell c in groupCell.Neighbors.Values) {
-
-			totalPresence += c.GetBiomePresence ("Ocean");
-			cellCount++;
-		}
-
-		neighborhoodPresence = totalPresence / cellCount;
-
-		if ((neighborhoodPresence < 0) || (neighborhoodPresence > 1)) {
-
-			throw new System.Exception ("Neighborhood Ocean Presence outside range: " + neighborhoodPresence);
-		}
-
-		return neighborhoodPresence;
+		return group.Cell.Arability * group.Cell.Accessibility;;
 	}
 
 	protected override void UpdateInternal (int timeSpan) {
@@ -391,7 +369,7 @@ public class AgricultureKnowledge : CulturalKnowledge {
 		float randomModifierFactor1 = 0.75f;
 		float randomModifierFactor2 = 1f;
 		float randomModifier = randomModifierFactor1 * groupCell.GetNextLocalRandomFloat ();
-		randomModifier = randomModifierFactor2 * (_neighborhoodOceanPresence - randomModifier);
+		randomModifier = randomModifierFactor2 * (_terrainFactor - randomModifier);
 		randomModifier = Mathf.Clamp (randomModifier, -1, 1);
 
 		float targetValue = 0;
@@ -406,32 +384,17 @@ public class AgricultureKnowledge : CulturalKnowledge {
 
 		float timeEffect = timeSpan / (float)(timeSpan + TimeEffectConstant);
 
-		float factor = timeEffect * _neighborhoodOceanPresence;
+		float factor = timeEffect * _terrainFactor;
 
 		Value = (Value * (1 - factor)) + (targetValue * factor);
-
-		if (Value < SailingDiscoveryEvent.MinShipBuildingKnowledgeSpawnEventValue)
-			return;
-
-		if (Value > SailingDiscoveryEvent.OptimalShipBuildingKnowledgeValue)
-			return;
-
-		if (SailingDiscoveryEvent.CanSpawnIn (Group)) {
-
-			int triggerDate = SailingDiscoveryEvent.CalculateTriggerDate (Group);
-
-			Group.World.InsertEventToHappen (new SailingDiscoveryEvent (Group, triggerDate));
-		}
 	}
 
 	protected override float CalculateAsymptoteInternal (CulturalDiscovery discovery)
 	{
 		switch (discovery.Id) {
 
-		case BoatMakingDiscovery.BoatMakingDiscoveryId:
+		case PlantCultivationDiscovery.PlantCultivationDiscoveryId:
 			return 10;
-		case SailingDiscovery.SailingDiscoveryId:
-			return 30;
 		}
 
 		return 0;
@@ -439,13 +402,13 @@ public class AgricultureKnowledge : CulturalKnowledge {
 
 	public override float CalculateModifiedProgressLevel ()
 	{
-		float oceanPresenceFactor = (_neighborhoodOceanPresence * 0.9f) + 0.1f;
+		float modifiedTerrainFactor = (_terrainFactor * 0.9f) + 0.1f;
 
-		return Mathf.Min (ProgressLevel / oceanPresenceFactor, 1);
+		return Mathf.Min (ProgressLevel / modifiedTerrainFactor, 1);
 	}
 
 	public override float CalculateTransferFactor ()
 	{
-		return (_neighborhoodOceanPresence * 0.9f) + 0.1f;
+		return (_terrainFactor * 0.9f) + 0.1f;
 	}
 }

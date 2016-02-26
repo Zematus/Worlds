@@ -6,16 +6,17 @@ using System.Xml.Serialization;
 
 public abstract class Culture {
 
-	[XmlArrayItem(Type = typeof(BiomeSurvivalSkill))]
-	[XmlArrayItem(Type = typeof(SeafaringSkill))]
+	[XmlArrayItem(Type = typeof(BiomeSurvivalSkill)),
+		XmlArrayItem(Type = typeof(SeafaringSkill))]
 	public List<CulturalSkill> Skills = new List<CulturalSkill> ();
 	
-	[XmlArrayItem(Type = typeof(ShipbuildingKnowledge))]
+	[XmlArrayItem(Type = typeof(ShipbuildingKnowledge)),
+		XmlArrayItem(Type = typeof(AgricultureKnowledge))]
 	public List<CulturalKnowledge> Knowledges = new List<CulturalKnowledge> ();
 	
-	[XmlArrayItem(Type = typeof(BoatMakingDiscovery))]
-	[XmlArrayItem(Type = typeof(SailingDiscovery))]
-	[XmlArrayItem(Type = typeof(PlantCultivationDiscovery))]
+	[XmlArrayItem(Type = typeof(BoatMakingDiscovery)),
+		XmlArrayItem(Type = typeof(SailingDiscovery)),
+		XmlArrayItem(Type = typeof(PlantCultivationDiscovery))]
 	public List<CulturalDiscovery> Discoveries = new List<CulturalDiscovery> ();
 
 	private Dictionary<string, CulturalSkill> _skills = new Dictionary<string, CulturalSkill> ();

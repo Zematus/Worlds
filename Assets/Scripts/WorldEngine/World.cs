@@ -69,10 +69,10 @@ public class World {
 
 	[XmlArrayItem (Type = typeof(UpdateCellGroupEvent)),
 		XmlArrayItem (Type = typeof(MigrateGroupEvent)),
+//		XmlArrayItem (Type = typeof(KnowledgeTransferEvent)),
 		XmlArrayItem (Type = typeof(SailingDiscoveryEvent)),
 		XmlArrayItem (Type = typeof(BoatMakingDiscoveryEvent)),
-		XmlArrayItem (Type = typeof(PlantCultivationDiscoveryEvent)),
-		XmlArrayItem (Type = typeof(KnowledgeTransferEvent))]
+		XmlArrayItem (Type = typeof(PlantCultivationDiscoveryEvent))]
 	public List<WorldEvent> EventsToHappen = new List<WorldEvent> ();
 
 	public List<CellGroup> CellGroups = new List<CellGroup> ();
