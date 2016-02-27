@@ -131,6 +131,8 @@ public class Manager {
 	private Color32[] _currentSphereTextureColors = null;
 	private Color32[] _currentMapTextureColors = null;
 
+	private float?[,] _currentCellSlants;
+
 	private Queue<IManagerTask> _taskQueue = new Queue<IManagerTask>();
 	
 	private bool _performingAsyncTask = false;
@@ -408,6 +410,8 @@ public class Manager {
 
 		_manager._currentWorld = world;
 
+		_manager._currentCellSlants = new float?[world.Width, world.Height];
+
 		_manager._worldReady = true;
 	}
 	
@@ -433,6 +437,8 @@ public class Manager {
 	}
 	
 	public static void SaveWorld (string path) {
+
+		_manager._currentWorld.Synchronize ();
 
 		XmlSerializer serializer = new XmlSerializer(typeof(World), _manager.AttributeOverrides);
 		FileStream stream = new FileStream(path, FileMode.Create);
@@ -493,6 +499,8 @@ public class Manager {
 		world.FinalizeLoad ();
 
 		_manager._currentWorld = world;
+
+		_manager._currentCellSlants = new float?[world.Width, world.Height];
 
 		WorldBeingLoaded = null;
 
@@ -816,6 +824,11 @@ public class Manager {
 
 	private static float GetSlant (TerrainCell cell) {
 
+		if (_manager._currentCellSlants [cell.Longitude, cell.Latitude] != null) {
+		
+			return _manager._currentCellSlants [cell.Longitude, cell.Latitude].Value;
+		}
+
 		Dictionary<Direction, TerrainCell> neighbors = cell.Neighbors;
 
 		float wAltitude = 0;
@@ -865,8 +878,12 @@ public class Manager {
 		}
 		
 		eAltitude /= (float)c;
+
+		float value = wAltitude - eAltitude;
+
+		_manager._currentCellSlants [cell.Longitude, cell.Latitude] = value;
 	
-		return wAltitude - eAltitude;
+		return value;
 	}
 	
 	private static bool IsCoastSea (TerrainCell cell) {
@@ -1354,24 +1371,6 @@ public class Manager {
 	private static XmlAttributeOverrides GenerateAttributeOverrides () {
 		
 		XmlAttributeOverrides attrOverrides = new XmlAttributeOverrides();
-
-		// Add GroupEvent Attributes
-
-//		XmlAttributes attrs = new XmlAttributes();
-//
-//		XmlElementAttribute attr = new XmlElementAttribute();
-//		attr.ElementName = "UpdateCellGroupEvent";
-//		attr.Type = typeof(UpdateCellGroupEvent);
-//		
-//		attrs.XmlElements.Add(attr);
-//
-//		attr = new XmlElementAttribute();
-//		attr.ElementName = "MigrateGroupEvent";
-//		attr.Type = typeof(MigrateGroupEvent);
-//		
-//		attrs.XmlElements.Add(attr);
-//
-//		attrOverrides.Add(typeof(World), "EventsToHappen", attrs);
 
 		return attrOverrides;
 	}

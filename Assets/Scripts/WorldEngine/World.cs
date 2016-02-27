@@ -73,7 +73,7 @@ public class World {
 		XmlArrayItem (Type = typeof(SailingDiscoveryEvent)),
 		XmlArrayItem (Type = typeof(BoatMakingDiscoveryEvent)),
 		XmlArrayItem (Type = typeof(PlantCultivationDiscoveryEvent))]
-	public List<WorldEvent> EventsToHappen = new List<WorldEvent> ();
+	public List<WorldEvent> EventsToHappen;
 
 	public List<CellGroup> CellGroups = new List<CellGroup> ();
 
@@ -129,6 +129,8 @@ public class World {
 	
 	[XmlIgnore]
 	public TerrainCell ObservedCell = null;
+
+	private BinaryTree<int, WorldEvent> _eventsToHappen = new BinaryTree<int, WorldEvent> ();
 	
 	private List<IGroupAction> _groupActionsToPerform = new List<IGroupAction> ();
 
@@ -244,6 +246,11 @@ public class World {
 		}
 	}
 
+	public void Synchronize () {
+	
+		EventsToHappen = _eventsToHappen.Values;
+	}
+
 	public void AddTerrainCellChanges (TerrainCellChanges changes) {
 	
 		int index = changes.Longitude + (changes.Latitude * Width);
@@ -353,9 +360,9 @@ public class World {
 
 		while (true) {
 
-			if (EventsToHappen.Count <= 0) break;
+			if (_eventsToHappen.Count <= 0) break;
 		
-			WorldEvent eventToHappen = EventsToHappen[0];
+			WorldEvent eventToHappen = _eventsToHappen.Leftmost;
 
 			if (eventToHappen.TriggerDate > CurrentDate) {
 
@@ -363,7 +370,7 @@ public class World {
 				break;
 			}
 
-			EventsToHappen.Remove (eventToHappen);
+			_eventsToHappen.RemoveLeftmost ();
 			EventsToHappenCount--;
 
 			if (eventToHappen.CanTrigger ())
@@ -450,9 +457,9 @@ public class World {
 		// Skip to Next Event's Date
 		//
 
-		if (EventsToHappen.Count > 0) {
+		if (_eventsToHappen.Count > 0) {
 
-			WorldEvent futureEventToHappen = EventsToHappen [0];
+			WorldEvent futureEventToHappen = _eventsToHappen.Leftmost;
 			
 			if (futureEventToHappen.TriggerDate > dateToSkipTo) {
 				
@@ -471,22 +478,7 @@ public class World {
 
 		EventsToHappenCount++;
 
-		if (EventsToHappen.Count == 0) {
-
-			EventsToHappen.Add(eventToHappen);
-			return;
-		}
-
-		for (int i = EventsToHappen.Count - 1; i >= 0; i--) {
-		
-			if (eventToHappen.TriggerDate >= EventsToHappen[i].TriggerDate) {
-
-				EventsToHappen.Insert(i + 1, eventToHappen);
-				return;
-			}
-		}
-		
-		EventsToHappen.Insert(0, eventToHappen);
+		_eventsToHappen.Insert (eventToHappen.TriggerDate, eventToHappen);
 	}
 	
 	public void AddMigratingGroup (MigratingGroup group) {
@@ -549,14 +541,8 @@ public class World {
 
 			e.World = this;
 			e.FinalizeLoad ();
-		});
 
-		EventsToHappen.Sort ((a, b) => {
-
-			if (a.TriggerDate < b.TriggerDate) return -1;
-			if (a.TriggerDate > b.TriggerDate) return 1;
-
-			return 0;
+			_eventsToHappen.Insert (e.TriggerDate, e);
 		});
 
 		CulturalSkillInfoList.ForEach (s => _culturalSkillIdList.Add (s.Id));
