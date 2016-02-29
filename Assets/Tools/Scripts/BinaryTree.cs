@@ -32,7 +32,13 @@ public class BinaryTree<TKey, TValue> {
 
 	public TValue Leftmost { 
 		get { 
-			return _leftmostItem.Value;
+			try {
+				return _leftmostItem.Value;
+			} catch {
+				bool debug = true;
+
+				throw;
+			}
 		} 
 	}
 
@@ -145,6 +151,8 @@ public class BinaryTree<TKey, TValue> {
 		} else {
 			_rightmostItem = _rightmostItem.Left;
 			_root = _rightmostItem;
+
+			_rightmostItem.Parent = null;
 		}
 
 		while (_rightmostItem.Right != null) {
@@ -185,6 +193,8 @@ public class BinaryTree<TKey, TValue> {
 		} else {
 			_leftmostItem = _leftmostItem.Right;
 			_root = _leftmostItem;
+
+			_leftmostItem.Parent = null;
 		}
 
 		while (_leftmostItem.Left != null) {

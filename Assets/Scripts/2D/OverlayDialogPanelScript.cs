@@ -9,8 +9,6 @@ public class OverlayDialogPanelScript : MonoBehaviour {
 
 	public Text DialogText;
 
-//	public Toggle RainfallToggle;
-//	public Toggle TemperatureToggle;
 	public Toggle PopulationToggle;
 	public Toggle CulturalSkillToggle;
 	public Toggle CulturalKnowledgeToggle;

@@ -74,7 +74,36 @@ public abstract class CulturalSkill : CulturalSkillInfo {
 	}
 
 	public abstract void Update (int timeSpan);
-	public abstract void UpdateAdaptationLevel ();
+
+	protected void UpdateValue (int timeSpan, float timeEffectFactor, float specificModifier) {
+
+		TerrainCell groupCell = Group.Cell;
+
+		float randomModifier = groupCell.GetNextLocalRandomFloat ();
+		randomModifier *= randomModifier;
+		float randomFactor = specificModifier - randomModifier;
+
+		float maxTargetValue = 1.0f;
+		float minTargetValue = -0.2f;
+		float targetValue = 0;
+
+		if (randomFactor > 0) {
+			targetValue = Value + (maxTargetValue - Value) * randomFactor;
+		} else {
+			targetValue = Value - (minTargetValue - Value) * randomFactor;
+		}
+
+		float timeEffect = timeSpan / (float)(timeSpan + timeEffectFactor);
+
+		Value = (Value * (1 - timeEffect)) + (targetValue * timeEffect);
+
+		Value = Mathf.Clamp01 (Value);
+	}
+
+	protected void RecalculateAdaptation (float targetValue)
+	{
+		AdaptationLevel = 1 - Mathf.Abs (Value - targetValue);
+	}
 }
 
 public class BiomeSurvivalSkill : CulturalSkill {
@@ -123,7 +152,7 @@ public class BiomeSurvivalSkill : CulturalSkill {
 	
 	public void CalculateNeighborhoodBiomePresence () {
 
-		int groupCellBonus = 4;
+		int groupCellBonus = 2;
 		int cellCount = groupCellBonus;
 		
 		TerrainCell groupCell = Group.Cell;
@@ -142,41 +171,15 @@ public class BiomeSurvivalSkill : CulturalSkill {
 		
 			throw new System.Exception ("Neighborhood Biome Presence outside range: " + _neighborhoodBiomePresence);
 		}
-		
-		UpdateAdaptationLevel ();
+
+		RecalculateAdaptation (_neighborhoodBiomePresence);
 	}
 
 	public override void Update (int timeSpan) {
 
-		TerrainCell groupCell = Group.Cell;
+		UpdateValue (timeSpan, TimeEffectConstant, _neighborhoodBiomePresence);
 
-		float randomModifierFactor = 1f;
-		float randomModifier = randomModifierFactor * _neighborhoodBiomePresence - groupCell.GetNextLocalRandomFloat ();
-
-		float targetValue = 0;
-
-		if (randomModifier > 0) {
-			targetValue = Value + (1 - Value) * randomModifier;
-		} else {
-			targetValue = Value * (1 + randomModifier);
-		}
-
-		targetValue = Mathf.Clamp01 (targetValue);
-
-		float presenceEffect = Mathf.Abs (Value - _neighborhoodBiomePresence);
-		
-		float timeEffect = timeSpan / (float)(timeSpan + TimeEffectConstant);
-
-		float factor = timeEffect * presenceEffect;
-		
-		Value = (Value * (1 - factor)) + (targetValue * factor);
-
-		UpdateAdaptationLevel ();
-	}
-
-	public override void UpdateAdaptationLevel ()
-	{
-		AdaptationLevel = 1 - Mathf.Abs (Value - _neighborhoodBiomePresence);
+		RecalculateAdaptation (_neighborhoodBiomePresence);
 	}
 }
 
@@ -233,39 +236,13 @@ public class SeafaringSkill : CulturalSkill {
 			throw new System.Exception ("Neighborhood Ocean Presence outside range: " + _neighborhoodOceanPresence);
 		}
 
-		UpdateAdaptationLevel ();
+		RecalculateAdaptation (_neighborhoodOceanPresence);
 	}
 
 	public override void Update (int timeSpan) {
 
-		TerrainCell groupCell = Group.Cell;
+		UpdateValue (timeSpan, TimeEffectConstant, _neighborhoodOceanPresence);
 
-		float randomModifierFactor = 1f;
-		float randomModifier = randomModifierFactor * _neighborhoodOceanPresence - groupCell.GetNextLocalRandomFloat ();
-
-		float targetValue = 0;
-
-		if (randomModifier > 0) {
-			targetValue = Value + (1 - Value) * randomModifier;
-		} else {
-			targetValue = Value * (1 + randomModifier);
-		}
-
-		targetValue = Mathf.Clamp01 (targetValue);
-
-		float presenceEffect = Mathf.Abs (Value - _neighborhoodOceanPresence);
-
-		float timeEffect = timeSpan / (float)(timeSpan + TimeEffectConstant);
-
-		float factor = timeEffect * presenceEffect;
-
-		Value = (Value * (1 - factor)) + (targetValue * factor);
-
-		UpdateAdaptationLevel ();
-	}
-
-	public override void UpdateAdaptationLevel ()
-	{
-		AdaptationLevel = 1 - Mathf.Abs (Value - _neighborhoodOceanPresence);
+		RecalculateAdaptation (_neighborhoodOceanPresence);
 	}
 }

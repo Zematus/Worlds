@@ -133,6 +133,8 @@ public class Manager {
 
 	private float?[,] _currentCellSlants;
 
+	private int _currentMaxUpdateSpan = 0;
+
 	private Queue<IManagerTask> _taskQueue = new Queue<IManagerTask>();
 	
 	private bool _performingAsyncTask = false;
@@ -412,6 +414,8 @@ public class Manager {
 
 		_manager._currentCellSlants = new float?[world.Width, world.Height];
 
+		_manager._currentMaxUpdateSpan = 0;
+
 		_manager._worldReady = true;
 	}
 	
@@ -501,6 +505,8 @@ public class Manager {
 		_manager._currentWorld = world;
 
 		_manager._currentCellSlants = new float?[world.Width, world.Height];
+
+		_manager._currentMaxUpdateSpan = 0;
 
 		WorldBeingLoaded = null;
 
@@ -1125,7 +1131,7 @@ public class Manager {
 			}
 		}
 		
-		if ((population > 0) && (skillValue >= 0.001f)) {
+		if ((population > 0) && (skillValue >= 0.001)) {
 			
 			float value = 0.05f + 0.95f * skillValue;
 			
@@ -1220,9 +1226,6 @@ public class Manager {
 		color.g = (greyscale + color.g) / 6f;
 		color.b = (greyscale + color.b) / 6f;
 
-		if (_planetOverlaySubtype == "None")
-			return color;
-
 		float normalizedValue = cell.Arability;
 
 		if (normalizedValue >= 0.001f) {
@@ -1230,6 +1233,45 @@ public class Manager {
 			float value = 0.05f + 0.95f * normalizedValue;
 
 			color = (color * (1 - value)) + (Color.cyan * value);
+		}
+
+		return color;
+	}
+
+	private static Color SetUpdateSpanOverlayColor (TerrainCell cell, Color color) {
+
+		float greyscale = (color.r + color.g + color.b);
+
+		color.r = (greyscale + color.r) / 6f;
+		color.g = (greyscale + color.g) / 6f;
+		color.b = (greyscale + color.b) / 6f;
+
+		float normalizedValue = 0;
+		float population = 0;
+
+		if (cell.Group != null) {
+
+			population = cell.Group.Population;
+
+			int lastUpdateDate = cell.Group.LastUpdateDate;
+			int nextUpdateDate = cell.Group.NextUpdateDate;
+			int updateSpan = nextUpdateDate - lastUpdateDate;
+
+			if (_manager._currentMaxUpdateSpan < updateSpan)
+				_manager._currentMaxUpdateSpan = updateSpan;
+
+			float maxUpdateSpan = Mathf.Min (_manager._currentMaxUpdateSpan, 10000);
+
+			normalizedValue = 1f - (float)updateSpan / maxUpdateSpan;
+
+			normalizedValue = Mathf.Clamp01 (normalizedValue);
+		}
+
+		if ((population > 0) && (normalizedValue > 0)) {
+
+			float value = normalizedValue;
+
+			color = (color * (1 - value)) + (Color.red * value);
 		}
 
 		return color;
@@ -1247,6 +1289,9 @@ public class Manager {
 
 		case "Arability":
 			return SetArabilityOverlayColor (cell, color);
+
+		case "UpdateSpan":
+			return SetUpdateSpanOverlayColor (cell, color);
 
 		case "None":
 			return color;

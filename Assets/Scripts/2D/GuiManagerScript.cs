@@ -257,7 +257,8 @@ public class GuiManagerScript : MonoBehaviour {
 			if ((_planetOverlay == PlanetOverlay.Population) || 
 				(_planetOverlay == PlanetOverlay.CulturalSkill) || 
 				(_planetOverlay == PlanetOverlay.CulturalKnowledge) || 
-				(_planetOverlay == PlanetOverlay.CulturalDiscovery)) {
+				(_planetOverlay == PlanetOverlay.CulturalDiscovery) || 
+				((_planetOverlay == PlanetOverlay.MiscellaneousData) && (_planetOverlaySubtype == "UpdateSpan"))) {
 				Manager.UpdateTextures ();
 
 				_mapUpdateCount++;
@@ -835,11 +836,6 @@ public class GuiManagerScript : MonoBehaviour {
 		SelectionPanelScript.RemoveAllOptions ();
 		SelectionPanelScript.SetVisible (false);
 
-//		if (OverlayDialogPanelScript.RainfallToggle.isOn) {
-//			SetRainfallOverlay ();
-//		} else if (OverlayDialogPanelScript.TemperatureToggle.isOn) {
-//			SetTemperatureOverlay ();
-//		} else
 		if (OverlayDialogPanelScript.PopulationToggle.isOn) {
 			SetPopulationOverlay ();
 		} else if (OverlayDialogPanelScript.CulturalSkillToggle.isOn) {
@@ -871,8 +867,6 @@ public class GuiManagerScript : MonoBehaviour {
 		OverlayDialogPanelScript.CulturalKnowledgeToggle.isOn = false;
 		OverlayDialogPanelScript.CulturalSkillToggle.isOn = false;
 		OverlayDialogPanelScript.PopulationToggle.isOn = false;
-//		OverlayDialogPanelScript.RainfallToggle.isOn = false;
-//		OverlayDialogPanelScript.TemperatureToggle.isOn = false;
 		OverlayDialogPanelScript.DisplayRoutesToggle.isOn = false;
 		
 		SelectionPanelScript.SetVisible (false);
@@ -906,14 +900,6 @@ public class GuiManagerScript : MonoBehaviour {
 		case PlanetOverlay.Population:
 			OverlayDialogPanelScript.PopulationToggle.isOn = true;
 			break;
-			
-//		case PlanetOverlay.Rainfall:
-//			OverlayDialogPanelScript.RainfallToggle.isOn = true;
-//			break;
-//			
-//		case PlanetOverlay.Temperature:
-//			OverlayDialogPanelScript.TemperatureToggle.isOn = true;
-//			break;
 			
 		case PlanetOverlay.None:
 			break;
@@ -1093,6 +1079,7 @@ public class GuiManagerScript : MonoBehaviour {
 		AddSelectionPanelOption ("Rainfall", "Rainfall");
 		AddSelectionPanelOption ("Temperature", "Temperature");
 		AddSelectionPanelOption ("Arability", "Arability");
+		AddSelectionPanelOption ("Update Span", "UpdateSpan");
 
 		SelectionPanelScript.SetVisible (true);
 	}
@@ -1142,6 +1129,7 @@ public class GuiManagerScript : MonoBehaviour {
 			AddSelectionPanelOption ("Rainfall", "Rainfall");
 			AddSelectionPanelOption ("Temperature", "Temperature");
 			AddSelectionPanelOption ("Arability", "Arability");
+			AddSelectionPanelOption ("Update Span", "UpdateSpan");
 		}
 	}
 	

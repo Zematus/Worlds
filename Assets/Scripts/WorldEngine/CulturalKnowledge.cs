@@ -165,6 +165,30 @@ public abstract class CulturalKnowledge : CulturalKnowledgeInfo {
 	public abstract float CalculateTransferFactor ();
 	
 	protected abstract float CalculateAsymptoteInternal (CulturalDiscovery discovery);
+
+	protected void UpdateValue (int timeSpan, float timeEffectFactor, float specificModifier) {
+
+		TerrainCell groupCell = Group.Cell;
+
+		float randomModifier = groupCell.GetNextLocalRandomFloat ();
+		randomModifier *= randomModifier;
+		float randomFactor = specificModifier - randomModifier;
+		randomFactor = Mathf.Clamp (randomFactor, -1, 1);
+
+		float maxTargetValue = Asymptote;
+		float minTargetValue = -0.2f;
+		float targetValue = 0;
+
+		if (randomFactor > 0) {
+			targetValue = Value + (maxTargetValue - Value) * randomFactor;
+		} else {
+			targetValue = Value - (minTargetValue - Value) * randomFactor;
+		}
+
+		float timeEffect = timeSpan / (float)(timeSpan + timeEffectFactor);
+
+		Value = (Value * (1 - timeEffect)) + (targetValue * timeEffect);
+	}
 }
 
 public class ShipbuildingKnowledge : CulturalKnowledge {
@@ -242,29 +266,7 @@ public class ShipbuildingKnowledge : CulturalKnowledge {
 
 	protected override void UpdateInternal (int timeSpan) {
 
-		TerrainCell groupCell = Group.Cell;
-
-		float randomModifierFactor1 = 0.75f;
-		float randomModifierFactor2 = 1f;
-		float randomModifier = randomModifierFactor1 * groupCell.GetNextLocalRandomFloat ();
-		randomModifier = randomModifierFactor2 * (_neighborhoodOceanPresence - randomModifier);
-		randomModifier = Mathf.Clamp (randomModifier, -1, 1);
-
-		float targetValue = 0;
-
-		if (randomModifier > 0) {
-			targetValue = Value + (Asymptote - Value) * randomModifier;
-		} else {
-			targetValue = Value * (1 + randomModifier);
-		}
-		
-		targetValue = Mathf.Clamp (targetValue, 0, Asymptote);
-		
-		float timeEffect = timeSpan / (float)(timeSpan + TimeEffectConstant);
-
-		float factor = timeEffect * _neighborhoodOceanPresence;
-		
-		Value = (Value * (1 - factor)) + (targetValue * factor);
+		UpdateValue (timeSpan, TimeEffectConstant, _neighborhoodOceanPresence * 1.5f);
 
 		TryGenerateSailingDiscoveryEvent ();
 	}
@@ -364,29 +366,7 @@ public class AgricultureKnowledge : CulturalKnowledge {
 
 	protected override void UpdateInternal (int timeSpan) {
 
-		TerrainCell groupCell = Group.Cell;
-
-		float randomModifierFactor1 = 0.75f;
-		float randomModifierFactor2 = 1f;
-		float randomModifier = randomModifierFactor1 * groupCell.GetNextLocalRandomFloat ();
-		randomModifier = randomModifierFactor2 * (_terrainFactor - randomModifier);
-		randomModifier = Mathf.Clamp (randomModifier, -1, 1);
-
-		float targetValue = 0;
-
-		if (randomModifier > 0) {
-			targetValue = Value + (Asymptote - Value) * randomModifier;
-		} else {
-			targetValue = Value * (1 + randomModifier);
-		}
-
-		targetValue = Mathf.Clamp (targetValue, 0, Asymptote);
-
-		float timeEffect = timeSpan / (float)(timeSpan + TimeEffectConstant);
-
-		float factor = timeEffect * _terrainFactor;
-
-		Value = (Value * (1 - factor)) + (targetValue * factor);
+		UpdateValue (timeSpan, TimeEffectConstant, _terrainFactor * 1.5f);
 	}
 
 	protected override float CalculateAsymptoteInternal (CulturalDiscovery discovery)
