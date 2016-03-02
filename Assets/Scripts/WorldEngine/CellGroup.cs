@@ -19,9 +19,6 @@ public class CellGroup : HumanGroup {
 	public const float MinKnowledgeTransferValue = 0.25f;
 
 	public const float SeaTravelBaseFactor = 0.025f;
-
-	[XmlIgnore]
-	public static float TravelWidthFactor;
 	
 	[XmlAttribute]
 	public float ExactPopulation;
@@ -59,6 +56,12 @@ public class CellGroup : HumanGroup {
 	public List<string> Flags = new List<string> ();
 
 	public CellCulture Culture;
+
+	[XmlIgnore]
+	public float EffectivePopulation = 0; // The population that tentatively would have been productive between an especific timespan
+
+	[XmlIgnore]
+	public static float TravelWidthFactor;
 	
 	[XmlIgnore]
 	public TerrainCell Cell;
@@ -581,6 +584,7 @@ public class CellGroup : HumanGroup {
 
 		UpdatePopulation (timeSpan);
 		UpdateCulture (timeSpan);
+		UpdateTerrainFarmlandPercentage (timeSpan);
 
 		UpdateTravelFactors ();
 		
@@ -592,13 +596,64 @@ public class CellGroup : HumanGroup {
 	}
 	
 	private void UpdatePopulation (int timeSpan) {
+
+		float prevPopulation = ExactPopulation;
 		
 		ExactPopulation = PopulationAfterTime (timeSpan);
+
+		// This is a very rough estimate, it assume linear growth and ignores any other internal or external factor
+		EffectivePopulation = Mathf.Min (ExactPopulation, prevPopulation) + 0.5f * (Mathf.Abs (ExactPopulation - prevPopulation));
 	}
 	
 	private void UpdateCulture (int timeSpan) {
 		
 		Culture.Update (timeSpan);
+	}
+
+	private void UpdateTerrainFarmlandPercentage (int timeSpan) {
+
+		CulturalKnowledge agriculturalKnowledge = Culture.GetKnowledge (AgricultureKnowledge.AgricultureKnowledgeId);
+
+		float farmlandPercentage = Cell.FarmlandPercentage;
+
+//		float farmlandDegradation = 0.01f * farmlandPercentage;
+//
+//		farmlandPercentage -= farmlandDegradation;
+
+		if (agriculturalKnowledge == null) {
+
+//			Cell.FarmlandPercentage = farmlandPercentage;
+
+			return;
+		}
+
+		float farmlandArea = farmlandPercentage * Cell.Area;
+
+		float maxPossibleFarmlandArea = Cell.Area * Cell.Accessibility;
+
+		float availableAreaToFarm = maxPossibleFarmlandArea - farmlandArea;
+
+		if (availableAreaToFarm <= 0)
+			return;
+
+		float techEfficiencyFactor = agriculturalKnowledge.Value / 10000f;
+
+		float maxGeneratedFarmlandAreaPossible = EffectivePopulation * techEfficiencyFactor * timeSpan;
+
+		float actualGeneratedPercentage = maxGeneratedFarmlandAreaPossible / (availableAreaToFarm + maxGeneratedFarmlandAreaPossible);
+
+		float actualGeneratedFarmlandArea = availableAreaToFarm * actualGeneratedPercentage;
+
+		float percentageToAdd = actualGeneratedFarmlandArea / Cell.Area;
+
+		farmlandPercentage += percentageToAdd;
+
+		if (farmlandPercentage > 1) {
+		
+			throw System.Exception ("farmlandPercentage greater than 1");
+		}
+
+		Cell.FarmlandPercentage = farmlandPercentage;
 	}
 
 	public void UpdateTravelFactors () {
@@ -695,6 +750,11 @@ public class CellGroup : HumanGroup {
 	}
 
 	public int CalculateNextUpdateDate () {
+
+		if (Cell.IsSelected) {
+		
+			bool debug = true;
+		}
 
 		float randomFactor = Cell.GetNextLocalRandomFloat ();
 

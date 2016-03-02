@@ -64,9 +64,6 @@ public class BoatMakingDiscovery : CulturalDiscovery {
 		if (knowledge == null)
 			return false;
 
-		if (knowledge.Value < 0)
-			return false;
-
 		return true;
 	}
 }
@@ -111,9 +108,6 @@ public class PlantCultivationDiscovery : CulturalDiscovery {
 		CulturalKnowledge knowledge = group.Culture.GetKnowledge (AgricultureKnowledge.AgricultureKnowledgeId);
 
 		if (knowledge == null)
-			return false;
-
-		if (knowledge.Value < 0)
 			return false;
 
 		return true;

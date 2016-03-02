@@ -177,6 +177,11 @@ public class Route {
 
 			TerrainCell nCell = nPair.Value;
 
+			if (nCell == null) {
+
+				throw new System.Exception ("nCell is null");
+			}
+
 			if (Cells.Contains (nCell))
 				continue;
 

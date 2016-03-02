@@ -39,6 +39,9 @@ public class TerrainCellChanges {
 	[XmlAttribute]
 	public int LocalIteration = 0;
 
+	[XmlAttribute]
+	public float FarmlandPercentage;
+
 	public TerrainCellChanges () {
 		
 		Manager.UpdateWorldLoadTrackEventCount ();
@@ -102,6 +105,9 @@ public class TerrainCell {
 	
 	[XmlIgnore]
 	public World World;
+
+	[XmlIgnore]
+	public bool IsSelected = false;
 	
 	[XmlIgnore]
 	public bool IsObserved = false;
@@ -126,6 +132,25 @@ public class TerrainCell {
 			TerrainCellChanges changes = GetChanges ();
 
 			changes.LocalIteration = value;
+
+			World.AddTerrainCellChanges (changes);
+		}
+	}
+
+	public float FarmlandPercentage {
+
+		get {
+
+			TerrainCellChanges changes = GetChanges ();
+
+			return changes.FarmlandPercentage;
+		}
+
+		set {
+
+			TerrainCellChanges changes = GetChanges ();
+
+			changes.FarmlandPercentage = value;
 
 			World.AddTerrainCellChanges (changes);
 		}

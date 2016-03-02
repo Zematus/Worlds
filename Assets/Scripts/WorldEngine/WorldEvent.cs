@@ -300,6 +300,7 @@ public class BoatMakingDiscoveryEvent : CellGroupEvent {
 	public static int CalculateTriggerDate (CellGroup group) {
 		
 		float oceanPresence = ShipbuildingKnowledge.CalculateNeighborhoodOceanPresenceIn (group);
+		oceanPresence *= oceanPresence;
 		
 		float randomFactor = group.Cell.GetNextLocalRandomFloat ();
 		randomFactor = randomFactor * randomFactor;
@@ -355,6 +356,7 @@ public class PlantCultivationDiscoveryEvent : CellGroupEvent {
 	public static int CalculateTriggerDate (CellGroup group) {
 
 		float terrainFactor = group.Cell.Arability * group.Cell.Accessibility;
+		terrainFactor *= terrainFactor;
 
 		float randomFactor = group.Cell.GetNextLocalRandomFloat ();
 		randomFactor = randomFactor * randomFactor;

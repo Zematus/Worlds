@@ -36,6 +36,15 @@ public abstract class Culture {
 		Skills.Add (skill);
 		_skills.Add (skill.Id, skill);
 	}
+
+	protected void RemoveSkill (World world, CulturalSkill skill) {
+
+		if (!_skills.ContainsKey (skill.Id))
+			return;
+
+		Skills.Remove (skill);
+		_skills.Remove (skill.Id);
+	}
 	
 	protected void AddKnowledge (World world, CulturalKnowledge knowledge) {
 		
@@ -47,6 +56,15 @@ public abstract class Culture {
 		Knowledges.Add (knowledge);
 		_knowledges.Add (knowledge.Id, knowledge);
 	}
+
+	protected void RemoveKnowledge (World world, CulturalKnowledge knowledge) {
+
+		if (!_knowledges.ContainsKey (knowledge.Id))
+			return;
+
+		Knowledges.Remove (knowledge);
+		_knowledges.Remove (knowledge.Id);
+	}
 	
 	protected void AddDiscovery (World world, CulturalDiscovery discovery) {
 		
@@ -57,6 +75,15 @@ public abstract class Culture {
 
 		Discoveries.Add (discovery);
 		_discoveries.Add (discovery.Id, discovery);
+	}
+
+	protected void RemoveDiscovery (World world, CulturalDiscovery discovery) {
+
+		if (!_discoveries.ContainsKey (discovery.Id))
+			return;
+
+		Discoveries.Remove (discovery);
+		_discoveries.Remove (discovery.Id);
 	}
 	
 	public CulturalSkill GetSkill (string id) {
@@ -133,15 +160,30 @@ public class CellCulture : Culture {
 	
 		AddSkill (Group.World, skill);
 	}
+
+	protected void RemoveSkill (CulturalSkill skill) {
+
+		RemoveSkill (Group.World, skill);
+	}
 	
 	protected void AddKnowledge (CulturalKnowledge knowledge) {
 		
 		AddKnowledge (Group.World, knowledge);
 	}
+
+	protected void RemoveKnowledge (CulturalKnowledge knowledge) {
+
+		RemoveKnowledge (Group.World, knowledge);
+	}
 	
 	protected void AddDiscovery (CulturalDiscovery discovery) {
 		
 		AddDiscovery (Group.World, discovery);
+	}
+
+	protected void RemoveDiscovery (CulturalDiscovery discovery) {
+
+		RemoveDiscovery (Group.World, discovery);
 	}
 	
 	public void AddSkillToLearn (CulturalSkill skill) {
@@ -217,9 +259,18 @@ public class CellCulture : Culture {
 			skill.Update (timeSpan);
 		}
 
-		foreach (CulturalKnowledge knowledge in Knowledges) {
+		CulturalKnowledge[] knowledges = Knowledges.ToArray ();
+
+		foreach (CulturalKnowledge knowledge in knowledges) {
 			
 			knowledge.Update (timeSpan);
+
+			if (knowledge.WillBeLost ()) {
+
+				RemoveKnowledge (knowledge);
+
+				knowledge.LossConsequences ();
+			}
 		}
 
 		bool discoveriesLost = false;
@@ -230,7 +281,7 @@ public class CellCulture : Culture {
 			
 			if (discovery.CanBeHeld (Group)) continue;
 
-			Discoveries.Remove (discovery);
+			RemoveDiscovery (discovery);
 
 			discoveriesLost = true;
 		}
@@ -360,7 +411,7 @@ public class CellCulture : Culture {
 		
 		foreach (CulturalKnowledge knowledge in Knowledges) {
 			
-			float level = knowledge.CalculateModifiedProgressLevel ();
+			float level = knowledge.CalculateExpectedProgressLevel ();
 			
 			if (level < minProgressLevel) {
 				minProgressLevel = level;

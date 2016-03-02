@@ -31,6 +31,8 @@ public class CulturalKnowledgeInfo {
 }
 
 public abstract class CulturalKnowledge : CulturalKnowledgeInfo {
+
+	public const float MinValue = 0.001f;
 	
 	[XmlAttribute]
 	public float Value;
@@ -160,12 +162,6 @@ public abstract class CulturalKnowledge : CulturalKnowledgeInfo {
 		UpdateProgressLevel ();
 	}
 
-	protected abstract void UpdateInternal (int timeSpan);
-	public abstract float CalculateModifiedProgressLevel ();
-	public abstract float CalculateTransferFactor ();
-	
-	protected abstract float CalculateAsymptoteInternal (CulturalDiscovery discovery);
-
 	protected void UpdateValue (int timeSpan, float timeEffectFactor, float specificModifier) {
 
 		TerrainCell groupCell = Group.Cell;
@@ -189,6 +185,15 @@ public abstract class CulturalKnowledge : CulturalKnowledgeInfo {
 
 		Value = (Value * (1 - timeEffect)) + (targetValue * timeEffect);
 	}
+
+	public abstract float CalculateExpectedProgressLevel ();
+	public abstract float CalculateTransferFactor ();
+
+	public abstract bool WillBeLost ();
+	public abstract void LossConsequences ();
+
+	protected abstract void UpdateInternal (int timeSpan);
+	protected abstract float CalculateAsymptoteInternal (CulturalDiscovery discovery);
 }
 
 public class ShipbuildingKnowledge : CulturalKnowledge {
@@ -300,16 +305,42 @@ public class ShipbuildingKnowledge : CulturalKnowledge {
 		return 0;
 	}
 
-	public override float CalculateModifiedProgressLevel ()
+	public override float CalculateExpectedProgressLevel ()
 	{
-		float oceanPresenceFactor = (_neighborhoodOceanPresence * 0.9f) + 0.1f;
+		if (_neighborhoodOceanPresence <= 0)
+			return 1;
 
-		return Mathf.Min (ProgressLevel / oceanPresenceFactor, 1);
+		return Mathf.Min (ProgressLevel / _neighborhoodOceanPresence, 1);
 	}
 
 	public override float CalculateTransferFactor ()
 	{
 		return (_neighborhoodOceanPresence * 0.9f) + 0.1f;
+	}
+
+	public override bool WillBeLost ()
+	{
+		if (Value < 0) {
+
+			return true;
+		}
+
+		if ((Value < MinValue) && (_neighborhoodOceanPresence <= 0)) {
+
+			return true;
+		}
+
+		return false;
+	}
+
+	public override void LossConsequences ()
+	{
+		if (BoatMakingDiscoveryEvent.CanSpawnIn (Group)) {
+
+			int triggerDate = BoatMakingDiscoveryEvent.CalculateTriggerDate (Group);
+
+			Group.World.InsertEventToHappen (new BoatMakingDiscoveryEvent (Group, triggerDate));
+		}
 	}
 }
 
@@ -380,15 +411,41 @@ public class AgricultureKnowledge : CulturalKnowledge {
 		return 0;
 	}
 
-	public override float CalculateModifiedProgressLevel ()
+	public override float CalculateExpectedProgressLevel ()
 	{
-		float modifiedTerrainFactor = (_terrainFactor * 0.9f) + 0.1f;
+		if (_terrainFactor <= 0)
+			return 1;
 
-		return Mathf.Min (ProgressLevel / modifiedTerrainFactor, 1);
+		return Mathf.Min (ProgressLevel / _terrainFactor, 1);
 	}
 
 	public override float CalculateTransferFactor ()
 	{
 		return (_terrainFactor * 0.9f) + 0.1f;
+	}
+
+	public override bool WillBeLost ()
+	{
+		if (Value < 0) {
+		
+			return true;
+		}
+
+		if ((Value < MinValue) && (_terrainFactor <= 0)) {
+
+			return true;
+		}
+
+		return false;
+	}
+
+	public override void LossConsequences ()
+	{
+		if (PlantCultivationDiscoveryEvent.CanSpawnIn (Group)) {
+
+			int triggerDate = PlantCultivationDiscoveryEvent.CalculateTriggerDate (Group);
+
+			Group.World.InsertEventToHappen (new PlantCultivationDiscoveryEvent (Group, triggerDate));
+		}
 	}
 }

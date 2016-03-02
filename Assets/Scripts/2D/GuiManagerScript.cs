@@ -474,10 +474,15 @@ public class GuiManagerScript : MonoBehaviour {
 
 		_previousSelectedCell = _selectedCell;
 
+		if (_previousSelectedCell != null) {
+			_previousSelectedCell.IsSelected = false;
+		}
+
 		if (_previousSelectedCell == selectedCell) {
 			_selectedCell = null;
 		} else {
 			_selectedCell = selectedCell;
+			selectedCell.IsSelected = true;
 		}
 
 	}
