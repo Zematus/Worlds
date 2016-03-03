@@ -177,11 +177,6 @@ public class Route {
 
 			TerrainCell nCell = nPair.Value;
 
-			if (nCell == null) {
-
-				throw new System.Exception ("nCell is null");
-			}
-
 			if (Cells.Contains (nCell))
 				continue;
 
@@ -197,6 +192,20 @@ public class Route {
 			weights.Add (nPair, weight);
 
 			totalWeight += weight;
+		}
+
+		if (weights.Count == 0) {
+
+			direction = Direction.South;
+		
+			return null;
+		}
+
+		if (totalWeight <= 0) {
+
+			direction = Direction.South;
+		
+			return null;
 		}
 
 		KeyValuePair<Direction, TerrainCell> targetPair = CollectionUtility.WeightedSelection (weights, totalWeight, FirstCell.GetNextLocalRandomFloat);

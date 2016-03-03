@@ -25,6 +25,13 @@ public enum PlanetOverlay {
 	MiscellaneousData
 }
 
+public enum OverlayColorId {
+
+	None = -1,
+	Arability = 0,
+	Farmland = 1
+}
+
 public delegate T ManagerTaskDelegate<T> ();
 
 public interface IManagerTask {
@@ -81,6 +88,8 @@ public class ManagerTask<T> : IManagerTask {
 
 public class Manager {
 
+	public const float ProgressIncrement = 0.20f;
+
 	public const int WorldWidth = 400;
 	public const int WorldHeight = 200;
 	
@@ -115,6 +124,7 @@ public class Manager {
 	
 	private static List<Color> _biomePalette = new List<Color>();
 	private static List<Color> _mapPalette = new List<Color>();
+	private static List<Color> _overlayPalette = new List<Color>();
 	
 	private static int _totalLoadTicks = 0;
 	private static int _loadTicks = 0;
@@ -276,6 +286,12 @@ public class Manager {
 		_mapPalette.AddRange (colors);
 	}
 
+	public static void SetOverlayPalette (IEnumerable<Color> colors) {
+
+		_overlayPalette.Clear ();
+		_overlayPalette.AddRange (colors);
+	}
+
 	public static World CurrentWorld { 
 		get {
 
@@ -406,7 +422,7 @@ public class Manager {
 			world.ProgressCastMethod = _manager._progressCastMethod;
 		}
 
-		world.StartInitialization (0f, 0.20f);
+		world.StartInitialization (0f, ProgressIncrement);
 		world.Generate ();
 		world.FinishInitialization ();
 
@@ -492,7 +508,9 @@ public class Manager {
 			world.ProgressCastMethod = _manager._progressCastMethod;
 		}
 
-		world.StartInitialization (0.20f, 0.20f);
+		float initialProgressIncrement = ProgressIncrement;
+
+		world.StartInitialization (initialProgressIncrement, ProgressIncrement);
 		world.GenerateTerrain ();
 		world.FinishInitialization ();
 		
@@ -557,7 +575,7 @@ public class Manager {
 		
 		_loadTicks += 1;
 		
-		float value = 0.25f * _loadTicks / (float)_totalLoadTicks;
+		float value = ProgressIncrement * _loadTicks / (float)_totalLoadTicks;
 		
 		if (_manager._progressCastMethod != null) {
 			_manager._progressCastMethod (Mathf.Min (1, value));
@@ -960,14 +978,6 @@ public class Manager {
 			color = SetMiscellanousDataOverlayColor (cell, color);
 			break;
 			
-//		case PlanetOverlay.Temperature:
-//			color = SetTemperatureOverlayColor (cell, color);
-//			break;
-//			
-//		case PlanetOverlay.Rainfall:
-//			color = SetRainfallOverlayColor (cell, color);
-//			break;
-			
 		default:
 			throw new System.Exception("Unsupported Planet Overlay Type");
 		}
@@ -1218,6 +1228,11 @@ public class Manager {
 		return color;
 	}
 
+	private static Color GetOverlayColor (OverlayColorId id) {
+	
+		return _overlayPalette [(int)id];
+	}
+
 	private static Color SetArabilityOverlayColor (TerrainCell cell, Color color) {
 
 		float greyscale = (color.r + color.g + color.b);
@@ -1232,7 +1247,27 @@ public class Manager {
 
 			float value = 0.05f + 0.95f * normalizedValue;
 
-			color = (color * (1 - value)) + (Color.cyan * value);
+			color = (color * (1 - value)) + (GetOverlayColor(OverlayColorId.Arability) * value);
+		}
+
+		return color;
+	}
+
+	private static Color SetFarmlandOverlayColor (TerrainCell cell, Color color) {
+
+		float greyscale = (color.r + color.g + color.b);
+
+		color.r = (greyscale + color.r) / 6f;
+		color.g = (greyscale + color.g) / 6f;
+		color.b = (greyscale + color.b) / 6f;
+
+		float normalizedValue = cell.FarmlandPercentage;
+
+		if (normalizedValue >= 0.001f) {
+
+			float value = 0.05f + 0.95f * normalizedValue;
+
+			color = (color * (1 - value)) + (GetOverlayColor(OverlayColorId.Farmland) * value);
 		}
 
 		return color;
@@ -1289,6 +1324,9 @@ public class Manager {
 
 		case "Arability":
 			return SetArabilityOverlayColor (cell, color);
+
+		case "Farmland":
+			return SetFarmlandOverlayColor (cell, color);
 
 		case "UpdateSpan":
 			return SetUpdateSpanOverlayColor (cell, color);

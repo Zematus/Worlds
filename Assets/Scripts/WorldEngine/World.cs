@@ -242,6 +242,8 @@ public class World {
 				TerrainCell cell = TerrainCells [i] [j];
 
 				cell.InitializeMiscellaneous();
+
+				SetTerrainCellChanges (cell);
 			}
 		}
 	}
@@ -249,9 +251,21 @@ public class World {
 	public void Synchronize () {
 	
 		EventsToHappen = _eventsToHappen.Values;
+
+		for (int i = 0; i < Width; i++) {
+
+			for (int j = 0; j < Height; j++) {
+
+				TerrainCell cell = TerrainCells [i] [j];
+
+				GetTerrainCellChanges (cell);
+			}
+		}
 	}
 
-	public void AddTerrainCellChanges (TerrainCellChanges changes) {
+	public void GetTerrainCellChanges (TerrainCell cell) {
+
+		TerrainCellChanges changes = cell.GetChanges ();
 	
 		int index = changes.Longitude + (changes.Latitude * Width);
 
@@ -263,18 +277,16 @@ public class World {
 		TerrainCellChangesListCount++;
 	}
 
-	public TerrainCellChanges GetTerrainCellChanges (TerrainCell cell) {
+	public void SetTerrainCellChanges (TerrainCell cell) {
 
 		foreach (TerrainCellChanges changes in TerrainCellChangesList) {
 
 			if ((changes.Longitude == cell.Longitude) && 
 			    (changes.Latitude == cell.Latitude))
 			{
-				return changes;
+				cell.SetChanges (changes);
 			}
 		}
-
-		return null;
 	}
 
 	public void AddGroupActionToPerform (KnowledgeTransferAction action) {

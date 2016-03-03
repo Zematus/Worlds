@@ -51,6 +51,9 @@ public class TerrainCellChanges {
 
 		Longitude = cell.Longitude;
 		Latitude = cell.Latitude;
+
+		LocalIteration = cell.LocalIteration;
+		FarmlandPercentage = cell.FarmlandPercentage;
 	}
 }
 
@@ -85,6 +88,11 @@ public class TerrainCell {
 	[XmlAttribute]
 	public bool IsPartOfCoastline;
 
+	[XmlAttribute]
+	public int LocalIteration = 0;
+	[XmlAttribute]
+	public float FarmlandPercentage = 0;
+
 	public static float MaxArea;
 
 	public static float MaxWidth;
@@ -114,47 +122,6 @@ public class TerrainCell {
 	
 	[XmlIgnore]
 	public Dictionary<Direction, TerrainCell> Neighbors { get; private set; }
-	
-	[XmlIgnore]
-	private TerrainCellChanges _changes = null;
-
-	public int LocalIteration {
-
-		get {
-
-			TerrainCellChanges changes = GetChanges ();
-
-			return changes.LocalIteration;
-		}
-
-		set {
-			
-			TerrainCellChanges changes = GetChanges ();
-
-			changes.LocalIteration = value;
-
-			World.AddTerrainCellChanges (changes);
-		}
-	}
-
-	public float FarmlandPercentage {
-
-		get {
-
-			TerrainCellChanges changes = GetChanges ();
-
-			return changes.FarmlandPercentage;
-		}
-
-		set {
-
-			TerrainCellChanges changes = GetChanges ();
-
-			changes.FarmlandPercentage = value;
-
-			World.AddTerrainCellChanges (changes);
-		}
-	}
 
 	public TerrainCell () {
 
@@ -180,6 +147,19 @@ public class TerrainCell {
 		}
 	}
 
+	public TerrainCellChanges GetChanges () {
+
+		TerrainCellChanges changes = new TerrainCellChanges (this);
+
+		return changes;
+	}
+
+	public void SetChanges (TerrainCellChanges changes) {
+
+		LocalIteration = changes.LocalIteration;
+		FarmlandPercentage = changes.FarmlandPercentage;
+	}
+
 	public void AddCrossingRoute (Route route) {
 	
 		CrossingRoutes.Add (route);
@@ -192,19 +172,6 @@ public class TerrainCell {
 		CrossingRoutes.Remove (route);
 
 		HasCrossingRoutes = CrossingRoutes.Count > 0;
-	}
-
-	public TerrainCellChanges GetChanges () {
-		
-		if (_changes == null) {
-			
-			_changes = World.GetTerrainCellChanges (this);
-			
-			if (_changes == null)
-				_changes = new TerrainCellChanges (this);
-		}
-
-		return _changes;
 	}
 
 	public int GetNextLocalRandomInt (int maxValue = PerlinNoise.MaxPermutationValue) {

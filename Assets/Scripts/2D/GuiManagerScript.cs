@@ -39,6 +39,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 	public PaletteScript BiomePaletteScript;
 	public PaletteScript MapPaletteScript;
+	public PaletteScript OverlayPaletteScript;
 
 	public SelectionPanelScript SelectionPanelScript;
 
@@ -148,6 +149,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 		Manager.SetBiomePalette (BiomePaletteScript.Colors);
 		Manager.SetMapPalette (MapPaletteScript.Colors);
+		Manager.SetOverlayPalette (OverlayPaletteScript.Colors);
 
 		_regenTextures = true;
 	}
@@ -258,7 +260,8 @@ public class GuiManagerScript : MonoBehaviour {
 				(_planetOverlay == PlanetOverlay.CulturalSkill) || 
 				(_planetOverlay == PlanetOverlay.CulturalKnowledge) || 
 				(_planetOverlay == PlanetOverlay.CulturalDiscovery) || 
-				((_planetOverlay == PlanetOverlay.MiscellaneousData) && (_planetOverlaySubtype == "UpdateSpan"))) {
+				((_planetOverlay == PlanetOverlay.MiscellaneousData) && 
+					((_planetOverlaySubtype == "UpdateSpan") || (_planetOverlaySubtype == "Farmland")))) {
 				Manager.UpdateTextures ();
 
 				_mapUpdateCount++;
@@ -1084,6 +1087,7 @@ public class GuiManagerScript : MonoBehaviour {
 		AddSelectionPanelOption ("Rainfall", "Rainfall");
 		AddSelectionPanelOption ("Temperature", "Temperature");
 		AddSelectionPanelOption ("Arability", "Arability");
+		AddSelectionPanelOption ("Farmland", "Farmland");
 		AddSelectionPanelOption ("Update Span", "UpdateSpan");
 
 		SelectionPanelScript.SetVisible (true);
@@ -1134,6 +1138,7 @@ public class GuiManagerScript : MonoBehaviour {
 			AddSelectionPanelOption ("Rainfall", "Rainfall");
 			AddSelectionPanelOption ("Temperature", "Temperature");
 			AddSelectionPanelOption ("Arability", "Arability");
+			AddSelectionPanelOption ("Farmland", "Farmland");
 			AddSelectionPanelOption ("Update Span", "UpdateSpan");
 		}
 	}
@@ -1261,6 +1266,11 @@ public class GuiManagerScript : MonoBehaviour {
 		InfoPanelText.text += "\nForaging Capacity: " + cell.ForagingCapacity.ToString("P");
 		InfoPanelText.text += "\nAccessibility: " + cell.Accessibility.ToString("P");
 		InfoPanelText.text += "\nArability: " + cell.Arability.ToString("P");
+
+		if (cell.FarmlandPercentage > 0) {
+			InfoPanelText.text += "\n";
+			InfoPanelText.text += "\nFarmland Percentage: " + cell.FarmlandPercentage.ToString ("P");
+		}
 
 		int population = 0;
 		int optimalPopulation = 0;

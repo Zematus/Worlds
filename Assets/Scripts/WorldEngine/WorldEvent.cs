@@ -287,7 +287,7 @@ public class SailingDiscoveryEvent : CellGroupEvent {
 
 public class BoatMakingDiscoveryEvent : CellGroupEvent {
 	
-	public const int MaxDateSpanToTrigger = CellGroup.GenerationTime * 10000;
+	public const int DateSpanFactorConstant = CellGroup.GenerationTime * 10000;
 	
 	public BoatMakingDiscoveryEvent () {
 		
@@ -300,16 +300,26 @@ public class BoatMakingDiscoveryEvent : CellGroupEvent {
 	public static int CalculateTriggerDate (CellGroup group) {
 		
 		float oceanPresence = ShipbuildingKnowledge.CalculateNeighborhoodOceanPresenceIn (group);
-		oceanPresence *= oceanPresence;
-		
+
 		float randomFactor = group.Cell.GetNextLocalRandomFloat ();
 		randomFactor = randomFactor * randomFactor;
-		
-		float mixFactor = (1 - oceanPresence) * (1 - randomFactor);
-		
-		int dateSpan = (int)Mathf.Ceil(Mathf.Max (1, MaxDateSpanToTrigger * mixFactor));
-		
-		return group.World.CurrentDate + dateSpan;
+
+		float dateSpan = (1 - randomFactor) * DateSpanFactorConstant;
+
+		if (oceanPresence > 0) {
+
+			dateSpan /= oceanPresence;
+		} else {
+
+			throw new System.Exception ("Can't calculate valid trigger date");
+		}
+
+		int targetCurrentDate = (int)Mathf.Min (int.MaxValue, group.World.CurrentDate + dateSpan);
+
+		if (targetCurrentDate <= group.World.CurrentDate)
+			targetCurrentDate = int.MaxValue;
+
+		return targetCurrentDate;
 	}
 	
 	public static bool CanSpawnIn (CellGroup group) {
@@ -343,7 +353,7 @@ public class BoatMakingDiscoveryEvent : CellGroupEvent {
 
 public class PlantCultivationDiscoveryEvent : CellGroupEvent {
 
-	public const int MaxDateSpanToTrigger = CellGroup.GenerationTime * 50000;
+	public const int DateSpanFactorConstant = CellGroup.GenerationTime * 50000;
 
 	public PlantCultivationDiscoveryEvent () {
 
@@ -355,17 +365,27 @@ public class PlantCultivationDiscoveryEvent : CellGroupEvent {
 
 	public static int CalculateTriggerDate (CellGroup group) {
 
-		float terrainFactor = group.Cell.Arability * group.Cell.Accessibility;
-		terrainFactor *= terrainFactor;
+		float terrainFactor = group.Cell.Arability * group.Cell.Accessibility * group.Cell.Accessibility;
 
 		float randomFactor = group.Cell.GetNextLocalRandomFloat ();
 		randomFactor = randomFactor * randomFactor;
 
-		float mixFactor = 0.1f + (0.9f * ((1 - terrainFactor) * (1 - randomFactor)));
+		float dateSpan = (1 - randomFactor) * DateSpanFactorConstant;
 
-		int dateSpan = (int)Mathf.Ceil(Mathf.Max (1, MaxDateSpanToTrigger * mixFactor));
+		if (terrainFactor > 0) {
 
-		return group.World.CurrentDate + dateSpan;
+			dateSpan /= terrainFactor;
+		} else {
+
+			throw new System.Exception ("Can't calculate valid trigger date");
+		}
+
+		int targetCurrentDate = (int)Mathf.Min (int.MaxValue, group.World.CurrentDate + dateSpan);
+
+		if (targetCurrentDate <= group.World.CurrentDate)
+			targetCurrentDate = int.MaxValue;
+
+		return targetCurrentDate;
 	}
 
 	public static bool CanSpawnIn (CellGroup group) {

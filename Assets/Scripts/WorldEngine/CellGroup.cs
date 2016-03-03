@@ -58,9 +58,6 @@ public class CellGroup : HumanGroup {
 	public CellCulture Culture;
 
 	[XmlIgnore]
-	public float EffectivePopulation = 0; // The population that tentatively would have been productive between an especific timespan
-
-	[XmlIgnore]
 	public static float TravelWidthFactor;
 	
 	[XmlIgnore]
@@ -582,9 +579,9 @@ public class CellGroup : HumanGroup {
 		if (timeSpan <= 0)
 			return;
 
+		UpdateTerrainFarmlandPercentage (timeSpan);
 		UpdatePopulation (timeSpan);
 		UpdateCulture (timeSpan);
-		UpdateTerrainFarmlandPercentage (timeSpan);
 
 		UpdateTravelFactors ();
 		
@@ -596,13 +593,8 @@ public class CellGroup : HumanGroup {
 	}
 	
 	private void UpdatePopulation (int timeSpan) {
-
-		float prevPopulation = ExactPopulation;
 		
 		ExactPopulation = PopulationAfterTime (timeSpan);
-
-		// This is a very rough estimate, it assume linear growth and ignores any other internal or external factor
-		EffectivePopulation = Mathf.Min (ExactPopulation, prevPopulation) + 0.5f * (Mathf.Abs (ExactPopulation - prevPopulation));
 	}
 	
 	private void UpdateCulture (int timeSpan) {
@@ -629,7 +621,7 @@ public class CellGroup : HumanGroup {
 
 		float farmlandArea = farmlandPercentage * Cell.Area;
 
-		float maxPossibleFarmlandArea = Cell.Area * Cell.Accessibility;
+		float maxPossibleFarmlandArea = Cell.Area * Cell.Arability * Cell.Accessibility * Cell.Accessibility;
 
 		float availableAreaToFarm = maxPossibleFarmlandArea - farmlandArea;
 
@@ -638,7 +630,7 @@ public class CellGroup : HumanGroup {
 
 		float techEfficiencyFactor = agriculturalKnowledge.Value / 10000f;
 
-		float maxGeneratedFarmlandAreaPossible = EffectivePopulation * techEfficiencyFactor * timeSpan;
+		float maxGeneratedFarmlandAreaPossible = Population * techEfficiencyFactor * timeSpan;
 
 		float actualGeneratedPercentage = maxGeneratedFarmlandAreaPossible / (availableAreaToFarm + maxGeneratedFarmlandAreaPossible);
 
@@ -650,7 +642,7 @@ public class CellGroup : HumanGroup {
 
 		if (farmlandPercentage > 1) {
 		
-			throw System.Exception ("farmlandPercentage greater than 1");
+			throw new System.Exception ("farmlandPercentage greater than 1");
 		}
 
 		Cell.FarmlandPercentage = farmlandPercentage;

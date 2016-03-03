@@ -392,7 +392,7 @@ public class AgricultureKnowledge : CulturalKnowledge {
 
 	public static float CalculateTerrainFactorIn (CellGroup group) {
 
-		return group.Cell.Arability * group.Cell.Accessibility;;
+		return group.Cell.Arability * group.Cell.Accessibility * group.Cell.Accessibility;
 	}
 
 	protected override void UpdateInternal (int timeSpan) {
