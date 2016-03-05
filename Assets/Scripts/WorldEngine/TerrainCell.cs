@@ -36,11 +36,13 @@ public class TerrainCellChanges {
 	public int Longitude;
 	[XmlAttribute]
 	public int Latitude;
-	[XmlAttribute]
-	public int LocalIteration = 0;
 
 	[XmlAttribute]
-	public float FarmlandPercentage;
+	public int LocalIteration = 0;
+	[XmlAttribute]
+	public float FarmlandPercentage = 0;
+
+	public List<string> Flags = new List<string> ();
 
 	public TerrainCellChanges () {
 		
@@ -123,6 +125,8 @@ public class TerrainCell {
 	[XmlIgnore]
 	public Dictionary<Direction, TerrainCell> Neighbors { get; private set; }
 
+	private HashSet<string> _flags = new HashSet<string> ();
+
 	public TerrainCell () {
 
 	}
@@ -149,7 +153,15 @@ public class TerrainCell {
 
 	public TerrainCellChanges GetChanges () {
 
+		// If there where no changes there's no need to create a TerrainCellChanges object
+		if ((LocalIteration == 0) && 
+			(FarmlandPercentage == 0) && 
+			(_flags.Count == 0))
+			return null;
+
 		TerrainCellChanges changes = new TerrainCellChanges (this);
+
+		changes.Flags.AddRange (_flags);
 
 		return changes;
 	}
@@ -158,6 +170,32 @@ public class TerrainCell {
 
 		LocalIteration = changes.LocalIteration;
 		FarmlandPercentage = changes.FarmlandPercentage;
+
+		foreach (string flag in changes.Flags) {
+		
+			_flags.Add (flag);
+		}
+	}
+
+	public void SetFlag (string flag) {
+
+		if (_flags.Contains (flag))
+			return;
+
+		_flags.Add (flag);
+	}
+
+	public bool IsFlagSet (string flag) {
+
+		return _flags.Contains (flag);
+	}
+
+	public void UnsetFlag (string flag) {
+
+		if (!_flags.Contains (flag))
+			return;
+
+		_flags.Remove (flag);
 	}
 
 	public void AddCrossingRoute (Route route) {

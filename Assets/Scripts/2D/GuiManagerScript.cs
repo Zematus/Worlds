@@ -1246,8 +1246,11 @@ public class GuiManagerScript : MonoBehaviour {
 		world.SetObservedCell (cell);
 
 		InfoPanelText.text += "\n";
+
+		float cellArea = cell.Area;
 		
 		InfoPanelText.text += string.Format("\nPosition: Longitude {0}, Latitude {1}", longitude, latitude);
+		InfoPanelText.text += "\nArea: " + cellArea + " Km^2";
 		InfoPanelText.text += "\nAltitude: " + cell.Altitude + " meters";
 		InfoPanelText.text += "\nRainfall: " + cell.Rainfall + " mm / year";
 		InfoPanelText.text += "\nTemperature: " + cell.Temperature + " C";
@@ -1267,9 +1270,14 @@ public class GuiManagerScript : MonoBehaviour {
 		InfoPanelText.text += "\nAccessibility: " + cell.Accessibility.ToString("P");
 		InfoPanelText.text += "\nArability: " + cell.Arability.ToString("P");
 
+		float farmlandPercentage = 0;
+
 		if (cell.FarmlandPercentage > 0) {
+
+			farmlandPercentage = cell.FarmlandPercentage;
+
 			InfoPanelText.text += "\n";
-			InfoPanelText.text += "\nFarmland Percentage: " + cell.FarmlandPercentage.ToString ("P");
+			InfoPanelText.text += "\nFarmland Percentage: " + farmlandPercentage.ToString ("P");
 		}
 
 		int population = 0;
@@ -1294,10 +1302,18 @@ public class GuiManagerScript : MonoBehaviour {
 				InfoPanelText.text += "\n";
 				InfoPanelText.text += "\nPopulation: " + population;
 				InfoPanelText.text += "\nOptimal Population: " + optimalPopulation;
+				InfoPanelText.text += "\nPop Density: " + (population / cellArea).ToString ("0.000") + " Pop / Km^2";
+
+				if (cell.FarmlandPercentage > 0) {
+
+					float farmlandArea = farmlandPercentage * cellArea;
+
+					InfoPanelText.text += "\nFarmland Area per Pop: " + (farmlandArea / (float)population).ToString ("0.000") + " Km^2 / Pop";
+				}
 				
 				InfoPanelText.text += "\n";
-				InfoPanelText.text += "\nModified Survivability: " + modifiedSurvivability.ToString("P");
-				InfoPanelText.text += "\nModified Foraging Capacity: " + modifiedForagingCapacity.ToString("P");
+				InfoPanelText.text += "\nModified Survivability: " + modifiedSurvivability.ToString ("P");
+				InfoPanelText.text += "\nModified Foraging Capacity: " + modifiedForagingCapacity.ToString ("P");
 				
 				InfoPanelText.text += "\n";
 				InfoPanelText.text += "\nLast Update Date: " + lastUpdateDate;
@@ -1319,7 +1335,7 @@ public class GuiManagerScript : MonoBehaviour {
 							firstSkill = false;
 						}
 
-						InfoPanelText.text += "\n\t" + skill.Id + " - Value: " + skill.Value.ToString("0.000");
+						InfoPanelText.text += "\n\t" + skill.Id + " - Value: " + skill.Value.ToString ("0.000");
 					}
 				}
 
@@ -1338,7 +1354,7 @@ public class GuiManagerScript : MonoBehaviour {
 							firstKnowledge = false;
 						}
 
-						InfoPanelText.text += "\n\t" + knowledge.Id + " - Value: " + knowledge.Value.ToString("0.000");
+						InfoPanelText.text += "\n\t" + knowledge.Id + " - Value: " + knowledge.Value.ToString ("0.000");
 					}
 				}
 				

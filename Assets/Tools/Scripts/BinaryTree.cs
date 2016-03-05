@@ -11,6 +11,8 @@ public class BinaryTreeNode<TKey, TValue> {
 
 	public TKey Key { get; set; }
 	public TValue Value { get; set; }
+
+	public bool Marked { get; set; }
 }
 
 public class BinaryTree<TKey, TValue> {
@@ -64,6 +66,7 @@ public class BinaryTree<TKey, TValue> {
 
 		item.Key = key;
 		item.Value = value;
+		item.Marked = false;
 
 		if (_root == null) {
 
@@ -211,9 +214,52 @@ public class BinaryTree<TKey, TValue> {
 
 			List<TValue> values = new List<TValue> (Count);
 
-			while (_leftmostItem != null) {
-			
-				values.Add (RemoveLeftmost ());
+			// Copy items to list from leftmost to rightmost, marking all inserted items along the way
+			BinaryTreeNode <TKey, TValue> currentNode = _leftmostItem;
+
+			while (currentNode != null) {
+
+				if ((currentNode.Left != null) && (!currentNode.Left.Marked)) {
+				
+					currentNode = currentNode.Left;
+					continue;
+				}
+
+				if (!currentNode.Marked) {
+					values.Add (currentNode.Value);
+
+					currentNode.Marked = true;
+				}
+
+				if ((currentNode.Right != null) && (!currentNode.Right.Marked)) {
+
+					currentNode = currentNode.Right;
+					continue;
+				}
+
+				currentNode = currentNode.Parent;
+			}
+
+			// Remove mark from all copied items
+			currentNode = _leftmostItem;
+
+			while (currentNode != null) {
+
+				if ((currentNode.Left != null) && (currentNode.Left.Marked)) {
+
+					currentNode = currentNode.Left;
+					continue;
+				}
+
+				currentNode.Marked = false;
+
+				if ((currentNode.Right != null) && (currentNode.Right.Marked)) {
+
+					currentNode = currentNode.Right;
+					continue;
+				}
+
+				currentNode = currentNode.Parent;
 			}
 
 			return values;

@@ -57,6 +57,108 @@ public abstract class WorldEvent {
 	}
 }
 
+public abstract class CellEvent : WorldEvent {
+
+	[XmlAttribute]
+	public int CellLongitude;
+	[XmlAttribute]
+	public int CellLatitude;
+
+	[XmlIgnore]
+	public TerrainCell Cell;
+
+	public CellEvent () {
+
+	}
+
+	public CellEvent (TerrainCell cell, int triggerDate) : base (cell.World, triggerDate) {
+
+		Cell = cell;
+		CellLongitude = cell.Longitude;
+		CellLatitude = cell.Latitude;
+	}
+}
+
+public class FarmDegradationEvent : CellEvent {
+
+	public const string EventSetFlag = "FarmDegradationEvent_Set";
+	
+	public const int MaxDateSpanToTrigger = CellGroup.GenerationTime * 8;
+
+	public const float DegradationFactor = 0.1f;
+	public const float MinFarmLandPercentage = 0.001f;
+
+	public FarmDegradationEvent () {
+
+	}
+
+	public FarmDegradationEvent (TerrainCell cell, int triggerDate) : base (cell, triggerDate) {
+
+		cell.SetFlag (EventSetFlag);
+	}
+
+	public static bool CanSpawnIn (TerrainCell cell) {
+
+		if (cell.IsFlagSet (EventSetFlag))
+			return false;
+
+		if (cell.FarmlandPercentage <= 0)
+			return false;
+
+		return true;
+	}
+
+	public static int CalculateTriggerDate (TerrainCell cell) {
+
+		float randomFactor = cell.GetNextLocalRandomFloat ();
+		randomFactor = randomFactor * randomFactor;
+
+		return cell.World.CurrentDate + (int)Mathf.Max(1, (MaxDateSpanToTrigger * (1 - randomFactor)));
+	}
+
+	public override void Trigger ()
+	{
+		float farmlandDegradation = DegradationFactor * Cell.FarmlandPercentage;
+
+
+		float farmlandPercentage = Cell.FarmlandPercentage - farmlandDegradation;
+
+		if (farmlandPercentage < MinFarmLandPercentage)
+			farmlandPercentage = 0;
+
+		Cell.FarmlandPercentage = farmlandPercentage;
+	}
+
+	public override bool CanTrigger () {
+
+		return (Cell.FarmlandPercentage > 0);
+	}
+
+	public override void FinalizeLoad () {
+
+		Cell = World.GetCell (CellLongitude, CellLatitude);
+
+		if (Cell == null) {
+		
+			throw new System.Exception ("Cell is null");
+		}
+	}
+
+	protected override void DestroyInternal ()
+	{
+		Cell.UnsetFlag (EventSetFlag);
+
+		if (CanSpawnIn (Cell)) {
+
+			int nextTriggerDate = CalculateTriggerDate (Cell);
+
+			World.InsertEventToHappen (new FarmDegradationEvent (Cell, nextTriggerDate));
+		}
+
+		base.DestroyInternal ();
+	}
+}
+
 public abstract class CellGroupEvent : WorldEvent {
 	
 	[XmlAttribute]
@@ -132,8 +234,6 @@ public class MigrateGroupEvent : WorldEvent {
 	
 	public static int MigrationEventCount = 0;
 	
-//	public static float TotalTravelTime = 0;
-	
 	[XmlAttribute]
 	public int TravelTime;
 
@@ -142,13 +242,6 @@ public class MigrateGroupEvent : WorldEvent {
 	public MigrateGroupEvent () {
 		
 		MigrationEventCount++;
-		
-//		TotalTravelTime += TravelTime;
-//
-//		if (TotalTravelTime <= 0) {
-//		
-//			throw new System.Exception ("Total travel time can't be equal or less than 0");
-//		}
 	}
 	
 	public MigrateGroupEvent (World world, int triggerDate, int travelTime, MigratingGroup group) : base (world, triggerDate) {
@@ -158,13 +251,6 @@ public class MigrateGroupEvent : WorldEvent {
 		Group = group;
 		
 		MigrationEventCount++;
-		
-//		TotalTravelTime += TravelTime;
-//		
-//		if (TotalTravelTime <= 0) {
-//			
-//			throw new System.Exception ("Total travel time can't be equal or less than 0");
-//		}
 	}
 	
 	public override bool CanTrigger () {
@@ -187,10 +273,6 @@ public class MigrateGroupEvent : WorldEvent {
 	protected override void DestroyInternal ()
 	{
 		MigrationEventCount--;
-		
-//		TotalTravelTime -= TravelTime;
-//		
-//		TotalTravelTime = Mathf.Max (0, TotalTravelTime);
 
 		if (Group.SourceGroup != null) {
 			
@@ -200,8 +282,9 @@ public class MigrateGroupEvent : WorldEvent {
 }
 
 public class SailingDiscoveryEvent : CellGroupEvent {
-	
-	public const int MaxDateSpanToTrigger = CellGroup.GenerationTime * 10000;
+
+	public const int DateSpanFactorConstant = CellGroup.GenerationTime * 10000;
+
 	public const float MinShipBuildingKnowledgeSpawnEventValue = 5;
 	public const float MinShipBuildingKnowledgeValue = SailingDiscovery.MinShipBuildingKnowledgeValue;
 	public const float OptimalShipBuildingKnowledgeValue = SailingDiscovery.OptimalShipBuildingKnowledgeValue;
@@ -230,13 +313,16 @@ public class SailingDiscoveryEvent : CellGroupEvent {
 		randomFactor = randomFactor * randomFactor;
 
 		float shipBuildingFactor = (shipBuildingValue - MinShipBuildingKnowledgeValue) / (OptimalShipBuildingKnowledgeValue - MinShipBuildingKnowledgeValue);
-		shipBuildingFactor = Mathf.Clamp01 (shipBuildingFactor);
-		
-		float mixFactor = (1 - shipBuildingFactor) * (1 - randomFactor);
-		
-		int dateSpan = (int)Mathf.Ceil(Mathf.Max (1, MaxDateSpanToTrigger * mixFactor));
-		
-		return group.World.CurrentDate + dateSpan;
+		shipBuildingFactor = Mathf.Clamp01 (shipBuildingFactor) + 0.001f;
+
+		float dateSpan = (1 - randomFactor) * DateSpanFactorConstant / shipBuildingFactor;
+
+		int targetCurrentDate = (int)Mathf.Min (int.MaxValue, group.World.CurrentDate + dateSpan);
+
+		if (targetCurrentDate <= group.World.CurrentDate)
+			targetCurrentDate = int.MaxValue;
+
+		return targetCurrentDate;
 	}
 	
 	public static bool CanSpawnIn (CellGroup group) {

@@ -72,7 +72,8 @@ public class World {
 //		XmlArrayItem (Type = typeof(KnowledgeTransferEvent)),
 		XmlArrayItem (Type = typeof(SailingDiscoveryEvent)),
 		XmlArrayItem (Type = typeof(BoatMakingDiscoveryEvent)),
-		XmlArrayItem (Type = typeof(PlantCultivationDiscoveryEvent))]
+		XmlArrayItem (Type = typeof(PlantCultivationDiscoveryEvent)),
+		XmlArrayItem (Type = typeof(FarmDegradationEvent))]
 	public List<WorldEvent> EventsToHappen;
 
 	public List<CellGroup> CellGroups = new List<CellGroup> ();
@@ -242,15 +243,21 @@ public class World {
 				TerrainCell cell = TerrainCells [i] [j];
 
 				cell.InitializeMiscellaneous();
-
-				SetTerrainCellChanges (cell);
 			}
+		}
+
+		foreach (TerrainCellChanges changes in TerrainCellChangesList) {
+
+			SetTerrainCellChanges (changes);
 		}
 	}
 
 	public void Synchronize () {
 	
 		EventsToHappen = _eventsToHappen.Values;
+
+		TerrainCellChangesList.Clear ();
+		TerrainCellChangesListCount = 0;
 
 		for (int i = 0; i < Width; i++) {
 
@@ -266,6 +273,9 @@ public class World {
 	public void GetTerrainCellChanges (TerrainCell cell) {
 
 		TerrainCellChanges changes = cell.GetChanges ();
+
+		if (changes == null)
+			return;
 	
 		int index = changes.Longitude + (changes.Latitude * Width);
 
@@ -277,16 +287,11 @@ public class World {
 		TerrainCellChangesListCount++;
 	}
 
-	public void SetTerrainCellChanges (TerrainCell cell) {
+	public void SetTerrainCellChanges (TerrainCellChanges changes) {
 
-		foreach (TerrainCellChanges changes in TerrainCellChangesList) {
+		TerrainCell cell = TerrainCells [changes.Longitude] [changes.Latitude];
 
-			if ((changes.Longitude == cell.Longitude) && 
-			    (changes.Latitude == cell.Latitude))
-			{
-				cell.SetChanges (changes);
-			}
-		}
+		cell.SetChanges (changes);
 	}
 
 	public void AddGroupActionToPerform (KnowledgeTransferAction action) {

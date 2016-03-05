@@ -608,13 +608,7 @@ public class CellGroup : HumanGroup {
 
 		float farmlandPercentage = Cell.FarmlandPercentage;
 
-//		float farmlandDegradation = 0.01f * farmlandPercentage;
-//
-//		farmlandPercentage -= farmlandDegradation;
-
 		if (agriculturalKnowledge == null) {
-
-//			Cell.FarmlandPercentage = farmlandPercentage;
 
 			return;
 		}
@@ -646,6 +640,13 @@ public class CellGroup : HumanGroup {
 		}
 
 		Cell.FarmlandPercentage = farmlandPercentage;
+
+		if (FarmDegradationEvent.CanSpawnIn (Cell)) {
+
+			int nextTriggerDate = FarmDegradationEvent.CalculateTriggerDate (Cell);
+
+			World.InsertEventToHappen (new FarmDegradationEvent (Cell, nextTriggerDate));
+		}
 	}
 
 	public void UpdateTravelFactors () {
