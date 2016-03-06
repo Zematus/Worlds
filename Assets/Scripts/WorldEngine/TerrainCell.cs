@@ -265,22 +265,22 @@ public class TerrainCell {
 		}
 	}
 
-	public float CalculatePopulationStress () {
-		
-		if ((Group != null) && (Group.StillPresent)) {
-
-			float groupStress = 1;
-
-			if (Group.OptimalPopulation > 0)
-				groupStress = Group.Population / (float)Group.OptimalPopulation;
-
-			groupStress = 0.50f + (0.50f * groupStress);
-
-			return Mathf.Min (1, groupStress);
-		}
-
-		return 0;
-	}
+//	public float CalculatePopulationStress () {
+//		
+//		if ((Group != null) && (Group.StillPresent)) {
+//
+//			float groupStress = 1;
+//
+//			if (Group.OptimalPopulation > 0)
+//				groupStress = Group.Population / (float)Group.OptimalPopulation;
+//
+//			groupStress = 0.50f + (0.50f * groupStress);
+//
+//			return Mathf.Min (1, groupStress);
+//		}
+//
+//		return 0;
+//	}
 
 	public void InitializeNeighbors () {
 		

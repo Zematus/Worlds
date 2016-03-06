@@ -447,5 +447,12 @@ public class AgricultureKnowledge : CulturalKnowledge {
 
 			Group.World.InsertEventToHappen (new PlantCultivationDiscoveryEvent (Group, triggerDate));
 		}
+
+		if (FarmDegradationEvent.CanSpawnIn (Group.Cell)) {
+
+			int triggerDate = FarmDegradationEvent.CalculateTriggerDate (Group.Cell);
+
+			Group.World.InsertEventToHappen (new FarmDegradationEvent (Group.Cell, triggerDate));
+		}
 	}
 }

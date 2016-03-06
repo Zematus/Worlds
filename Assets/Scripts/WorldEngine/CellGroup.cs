@@ -14,7 +14,8 @@ public class CellGroup : HumanGroup {
 
 	public const float NaturalGrowthRate = NaturalBirthRate - NaturalDeathRate;
 	
-	public const float PopulationConstant = 10;
+	public const float PopulationForagingConstant = 10;
+	public const float PopulationFarmingConstant = 2;
 
 	public const float MinKnowledgeTransferValue = 0.25f;
 
@@ -382,18 +383,44 @@ public class CellGroup : HumanGroup {
 		altitudeDeltaFactor *= altitudeDeltaFactor;
 		altitudeDeltaFactor *= altitudeDeltaFactor;
 		
-		float stressFactor = 1 - cell.CalculatePopulationStress();
-		stressFactor *= stressFactor;
-		stressFactor *= stressFactor;
-		
-		float cSurvivability = 0;
-		float cForagingCapacity = 0;
-		
-		CalculateAdaptionToCell (cell, out cForagingCapacity, out cSurvivability);
-		
-		float adaptionFactor = cSurvivability * cForagingCapacity; 
-		
-		float cellValue = adaptionFactor * altitudeDeltaFactor * areaFactor * stressFactor;
+//		float stressFactor = 1 - cell.CalculatePopulationStress();
+//		stressFactor *= stressFactor;
+//		stressFactor *= stressFactor;
+//		
+//		float cSurvivability = 0;
+//		float cForagingCapacity = 0;
+//		
+//		CalculateAdaptionToCell (cell, out cForagingCapacity, out cSurvivability);
+//		
+//		float adaptionFactor = cSurvivability * cForagingCapacity;
+//
+//		float cellValue = adaptionFactor * altitudeDeltaFactor * areaFactor * stressFactor;
+
+		int cellOptimalPopulation = OptimalPopulation;
+
+		if (cell != Cell) {
+			cellOptimalPopulation = CalculateOptimalPopulation (cell);
+		}
+
+		int existingPopulation = 0;
+
+		if (cell.Group != null) {
+			existingPopulation = cell.Group.Population;
+		}
+
+		float carryingCapacityFactor = 1f - (float)existingPopulation / (float)cellOptimalPopulation;
+
+		carryingCapacityFactor = Mathf.Clamp01 (carryingCapacityFactor);
+
+		float popDifferenceFactor = 1f;
+
+		if (cell != Cell) {
+			popDifferenceFactor = 1f - (float)existingPopulation / (float)Population;
+		}
+
+		popDifferenceFactor = Mathf.Clamp01 (popDifferenceFactor);
+
+		float cellValue = altitudeDeltaFactor * areaFactor * carryingCapacityFactor * popDifferenceFactor;
 
 		return cellValue;
 	}
@@ -570,6 +597,13 @@ public class CellGroup : HumanGroup {
 		EraseSeaMigrationRoute ();
 
 		StillPresent = false;
+
+		if (FarmDegradationEvent.CanSpawnIn (Cell)) {
+
+			int triggerDate = FarmDegradationEvent.CalculateTriggerDate (Cell);
+
+			World.InsertEventToHappen (new FarmDegradationEvent (Cell, triggerDate));
+		}
 	}
 
 	private void UpdateInternal () {
@@ -640,13 +674,6 @@ public class CellGroup : HumanGroup {
 		}
 
 		Cell.FarmlandPercentage = farmlandPercentage;
-
-		if (FarmDegradationEvent.CanSpawnIn (Cell)) {
-
-			int nextTriggerDate = FarmDegradationEvent.CalculateTriggerDate (Cell);
-
-			World.InsertEventToHappen (new FarmDegradationEvent (Cell, nextTriggerDate));
-		}
 	}
 
 	public void UpdateTravelFactors () {
@@ -702,11 +729,31 @@ public class CellGroup : HumanGroup {
 
 		CalculateAdaptionToCell (cell, out modifiedForagingCapacity, out modifiedSurvivability);
 
-		float populationCapacityFactor = PopulationConstant * cell.Area * modifiedForagingCapacity * modifiedSurvivability;
+		float populationCapacityByForaging = PopulationForagingConstant * cell.Area * modifiedForagingCapacity;
 
-		optimalPopulation = (int)Mathf.Floor (populationCapacityFactor);
+		float farmingCapacity = CalculateFarmingCapacity (cell);
+
+		float populationCapacityByFarming = PopulationFarmingConstant * cell.Area * farmingCapacity;
+
+		float populationCapacity = (populationCapacityByForaging + populationCapacityByFarming) * modifiedSurvivability;
+
+		optimalPopulation = (int)Mathf.Floor (populationCapacity);
 
 		return optimalPopulation;
+	}
+
+	public float CalculateFarmingCapacity (TerrainCell cell) {
+
+		float capacityFactor = 0;
+	
+		CulturalKnowledge agricultureKnowledge = Culture.GetKnowledge (AgricultureKnowledge.AgricultureKnowledgeId);
+
+		if (agricultureKnowledge == null)
+			return capacityFactor;
+
+		capacityFactor = cell.FarmlandPercentage * agricultureKnowledge.Value;
+
+		return capacityFactor;
 	}
 
 	public void CalculateAdaptionToCell (TerrainCell cell, out float foragingCapacity, out float survivability) {
@@ -738,7 +785,9 @@ public class CellGroup : HumanGroup {
 		
 		float altitudeSurvivabilityFactor = 1 - (cell.Altitude / World.MaxPossibleAltitude);
 
-		foragingCapacity = modifiedForagingCapacity;
+		modifiedSurvivability = (modifiedSurvivability * (1 - cell.FarmlandPercentage)) + cell.FarmlandPercentage;
+
+		foragingCapacity = modifiedForagingCapacity * (1 - cell.FarmlandPercentage);
 		survivability = modifiedSurvivability * altitudeSurvivabilityFactor;
 	}
 

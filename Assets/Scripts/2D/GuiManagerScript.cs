@@ -1270,11 +1270,9 @@ public class GuiManagerScript : MonoBehaviour {
 		InfoPanelText.text += "\nAccessibility: " + cell.Accessibility.ToString("P");
 		InfoPanelText.text += "\nArability: " + cell.Arability.ToString("P");
 
-		float farmlandPercentage = 0;
+		float farmlandPercentage = cell.FarmlandPercentage;
 
-		if (cell.FarmlandPercentage > 0) {
-
-			farmlandPercentage = cell.FarmlandPercentage;
+		if (farmlandPercentage > 0) {
 
 			InfoPanelText.text += "\n";
 			InfoPanelText.text += "\nFarmland Percentage: " + farmlandPercentage.ToString ("P");

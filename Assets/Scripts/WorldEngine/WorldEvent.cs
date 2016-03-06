@@ -105,7 +105,18 @@ public class FarmDegradationEvent : CellEvent {
 		if (cell.FarmlandPercentage <= 0)
 			return false;
 
-		return true;
+		CellGroup cellGroup = cell.Group;
+
+		if (cellGroup == null)
+			return true;
+
+		if (!cellGroup.StillPresent)
+			return true;
+
+		if (cellGroup.Culture.GetKnowledge (AgricultureKnowledge.AgricultureKnowledgeId) == null)
+			return true;
+
+		return false;
 	}
 
 	public static int CalculateTriggerDate (TerrainCell cell) {
