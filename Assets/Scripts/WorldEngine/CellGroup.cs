@@ -648,18 +648,27 @@ public class CellGroup : HumanGroup {
 
 		float maxPossibleFarmlandArea = Cell.Area * AgricultureKnowledge.CalculateTerrainFactorIn (Cell);
 
-		float availableAreaToFarm = maxPossibleFarmlandArea - farmlandArea;
+		float farmingCapacity = CalculateFarmingCapacity (Cell);
 
-		if (availableAreaToFarm <= 0)
+		float maxPopulationCapacityByFarming = PopulationFarmingConstant * Cell.Area * farmingCapacity;
+
+		float requiredFarmlandFactor = 1f - maxPopulationCapacityByFarming / Population;
+
+		if (requiredFarmlandFactor <= 0)
+			return;
+
+		float necessaryAreaToFarm = (maxPossibleFarmlandArea - farmlandArea) * requiredFarmlandFactor;
+
+		if (necessaryAreaToFarm <= 0)
 			return;
 
 		float techEfficiencyFactor = agricultureKnowledge.Value / 100000f;
 
-		float maxGeneratedFarmlandAreaPossible = Population * techEfficiencyFactor * timeSpan;
+		float farmlandGenerationFactor = Population * techEfficiencyFactor * timeSpan;
 
-		float actualGeneratedPercentage = maxGeneratedFarmlandAreaPossible / (availableAreaToFarm + maxGeneratedFarmlandAreaPossible);
+		float actualGeneratedPercentage = farmlandGenerationFactor / (necessaryAreaToFarm + farmlandGenerationFactor);
 
-		float actualGeneratedFarmlandArea = availableAreaToFarm * actualGeneratedPercentage;
+		float actualGeneratedFarmlandArea = necessaryAreaToFarm * actualGeneratedPercentage;
 
 		float percentageToAdd = actualGeneratedFarmlandArea / Cell.Area;
 

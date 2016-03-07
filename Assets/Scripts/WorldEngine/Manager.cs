@@ -1245,7 +1245,7 @@ public class Manager {
 
 		if (normalizedValue >= 0.001f) {
 
-			float value = 0.05f + 0.95f * normalizedValue;
+			float value = 0.02f + 0.98f * normalizedValue;
 
 			color = (color * (1 - value)) + (GetOverlayColor(OverlayColorId.Arability) * value);
 		}
@@ -1265,7 +1265,7 @@ public class Manager {
 
 		if (normalizedValue >= 0.001f) {
 
-			float value = 0.05f + 0.95f * normalizedValue;
+			float value = 0.02f + 0.98f * normalizedValue;
 
 			color = (color * (1 - value)) + (GetOverlayColor(OverlayColorId.Farmland) * value);
 		}
