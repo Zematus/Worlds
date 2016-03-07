@@ -450,7 +450,7 @@ public class BoatMakingDiscoveryEvent : CellGroupEvent {
 
 public class PlantCultivationDiscoveryEvent : CellGroupEvent {
 
-	public const int DateSpanFactorConstant = CellGroup.GenerationTime * 50000;
+	public const int DateSpanFactorConstant = CellGroup.GenerationTime * 200000;
 
 	public PlantCultivationDiscoveryEvent () {
 
@@ -462,7 +462,7 @@ public class PlantCultivationDiscoveryEvent : CellGroupEvent {
 
 	public static int CalculateTriggerDate (CellGroup group) {
 
-		float terrainFactor = group.Cell.Arability * group.Cell.Accessibility * group.Cell.Accessibility;
+		float terrainFactor = AgricultureKnowledge.CalculateTerrainFactorIn (group.Cell);
 
 		float randomFactor = group.Cell.GetNextLocalRandomFloat ();
 		randomFactor = randomFactor * randomFactor;

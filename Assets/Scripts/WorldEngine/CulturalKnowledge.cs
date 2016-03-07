@@ -202,6 +202,7 @@ public class ShipbuildingKnowledge : CulturalKnowledge {
 	public const string ShipbuildingKnowledgeName = "Shipbuilding";
 
 	public const float TimeEffectConstant = CellGroup.GenerationTime * 500;
+	public const float NeighborhoodOceanPresenceModifier = 1.5f;
 
 	public static float HighestAsymptote = 0;
 
@@ -271,7 +272,7 @@ public class ShipbuildingKnowledge : CulturalKnowledge {
 
 	protected override void UpdateInternal (int timeSpan) {
 
-		UpdateValue (timeSpan, TimeEffectConstant, _neighborhoodOceanPresence * 1.5f);
+		UpdateValue (timeSpan, TimeEffectConstant, _neighborhoodOceanPresence * NeighborhoodOceanPresenceModifier);
 
 		TryGenerateSailingDiscoveryEvent ();
 	}
@@ -349,7 +350,8 @@ public class AgricultureKnowledge : CulturalKnowledge {
 	public const string AgricultureKnowledgeId = "AgricultureKnowledge";
 	public const string AgricultureKnowledgeName = "Agriculture";
 
-	public const float TimeEffectConstant = CellGroup.GenerationTime * 500;
+	public const float TimeEffectConstant = CellGroup.GenerationTime * 2000;
+	public const float TerrainFactorModifier = 1.5f;
 
 	public static float HighestAsymptote = 0;
 
@@ -387,17 +389,17 @@ public class AgricultureKnowledge : CulturalKnowledge {
 
 	public void CalculateTerrainFactor () {
 
-		_terrainFactor = CalculateTerrainFactorIn (Group);
+		_terrainFactor = CalculateTerrainFactorIn (Group.Cell);
 	}
 
-	public static float CalculateTerrainFactorIn (CellGroup group) {
+	public static float CalculateTerrainFactorIn (TerrainCell cell) {
 
-		return group.Cell.Arability * group.Cell.Accessibility * group.Cell.Accessibility;
+		return cell.Arability * cell.Accessibility * cell.Accessibility;
 	}
 
 	protected override void UpdateInternal (int timeSpan) {
 
-		UpdateValue (timeSpan, TimeEffectConstant, _terrainFactor * 1.5f);
+		UpdateValue (timeSpan, TimeEffectConstant, _terrainFactor * TerrainFactorModifier);
 	}
 
 	protected override float CalculateAsymptoteInternal (CulturalDiscovery discovery)

@@ -80,7 +80,7 @@ public class CellGroup : HumanGroup {
 	
 	private HashSet<string> _flags = new HashSet<string> ();
 
-	private float _noMigrationPreference = 5f;
+	private float _noMigrationFactor = 0.0032f;
 	
 	[XmlIgnore]
 	public int Population {
@@ -376,51 +376,46 @@ public class CellGroup : HumanGroup {
 	}
 
 	public float CalculateMigrationValue (TerrainCell cell) {
+
+		if (Cell.IsSelected) {
+		
+			bool debug = true;
+		}
 		
 		float areaFactor = cell.Area / TerrainCell.MaxArea;
 		
 		float altitudeDeltaFactor = CalculateAltitudeDeltaMigrationFactor (cell);
 		altitudeDeltaFactor *= altitudeDeltaFactor;
 		altitudeDeltaFactor *= altitudeDeltaFactor;
-		
-//		float stressFactor = 1 - cell.CalculatePopulationStress();
-//		stressFactor *= stressFactor;
-//		stressFactor *= stressFactor;
-//		
-//		float cSurvivability = 0;
-//		float cForagingCapacity = 0;
-//		
-//		CalculateAdaptionToCell (cell, out cForagingCapacity, out cSurvivability);
-//		
-//		float adaptionFactor = cSurvivability * cForagingCapacity;
-//
-//		float cellValue = adaptionFactor * altitudeDeltaFactor * areaFactor * stressFactor;
-
-		int cellOptimalPopulation = OptimalPopulation;
-
-		if (cell != Cell) {
-			cellOptimalPopulation = CalculateOptimalPopulation (cell);
-		}
 
 		int existingPopulation = 0;
 
-		if (cell.Group != null) {
-			existingPopulation = cell.Group.Population;
-		}
-
-		float carryingCapacityFactor = 1f - (float)existingPopulation / (float)cellOptimalPopulation;
-
-		carryingCapacityFactor = Mathf.Clamp01 (carryingCapacityFactor);
-
 		float popDifferenceFactor = 1f;
 
-		if (cell != Cell) {
-			popDifferenceFactor = 1f - (float)existingPopulation / (float)Population;
+		if (cell.Group != null) {
+			existingPopulation = cell.Group.Population;
+
+			popDifferenceFactor = (float)Population / (float)(Population + existingPopulation);
 		}
 
-		popDifferenceFactor = Mathf.Clamp01 (popDifferenceFactor);
+		int cellOptimalPopulation = OptimalPopulation;
 
-		float cellValue = altitudeDeltaFactor * areaFactor * carryingCapacityFactor * popDifferenceFactor;
+		float noMigrationFactor = 1;
+
+		if (cell != Cell) {
+			cellOptimalPopulation = CalculateOptimalPopulation (cell);
+
+			noMigrationFactor = _noMigrationFactor;
+		}
+
+		float carryingCapacityFactor = 0;
+
+		if (cellOptimalPopulation + existingPopulation > 0) {
+
+			carryingCapacityFactor = (float)cellOptimalPopulation / (float)(cellOptimalPopulation + existingPopulation);
+		}
+
+		float cellValue = altitudeDeltaFactor * areaFactor * carryingCapacityFactor * popDifferenceFactor * noMigrationFactor;
 
 		return cellValue;
 	}
@@ -470,8 +465,6 @@ public class CellGroup : HumanGroup {
 	public void CalculateLocalMigrationValue () {
 
 		CellMigrationValue = CalculateMigrationValue (Cell);
-		CellMigrationValue *= _noMigrationPreference;
-		CellMigrationValue += _noMigrationPreference;
 
 		TotalMigrationValue = CellMigrationValue;
 	}
@@ -501,8 +494,12 @@ public class CellGroup : HumanGroup {
 
 		if (targetCell == null)
 			return;
-		
-		float percentToMigrate = (1 - CellMigrationValue/TotalMigrationValue) * Cell.GetNextLocalRandomFloat ();
+
+		float percentToMigrate = Cell.GetNextLocalRandomFloat ();
+
+		if (TotalMigrationValue > 0) {
+			percentToMigrate *= (1 - CellMigrationValue / TotalMigrationValue);
+		}
 		
 		float cellSurvivability = 0;
 		float cellForagingCapacity = 0;
@@ -638,25 +635,25 @@ public class CellGroup : HumanGroup {
 
 	private void UpdateTerrainFarmlandPercentage (int timeSpan) {
 
-		CulturalKnowledge agriculturalKnowledge = Culture.GetKnowledge (AgricultureKnowledge.AgricultureKnowledgeId);
+		CulturalKnowledge agricultureKnowledge = Culture.GetKnowledge (AgricultureKnowledge.AgricultureKnowledgeId);
 
 		float farmlandPercentage = Cell.FarmlandPercentage;
 
-		if (agriculturalKnowledge == null) {
+		if (agricultureKnowledge == null) {
 
 			return;
 		}
 
 		float farmlandArea = farmlandPercentage * Cell.Area;
 
-		float maxPossibleFarmlandArea = Cell.Area * Cell.Arability * Cell.Accessibility * Cell.Accessibility;
+		float maxPossibleFarmlandArea = Cell.Area * AgricultureKnowledge.CalculateTerrainFactorIn (Cell);
 
 		float availableAreaToFarm = maxPossibleFarmlandArea - farmlandArea;
 
 		if (availableAreaToFarm <= 0)
 			return;
 
-		float techEfficiencyFactor = agriculturalKnowledge.Value / 10000f;
+		float techEfficiencyFactor = agricultureKnowledge.Value / 100000f;
 
 		float maxGeneratedFarmlandAreaPossible = Population * techEfficiencyFactor * timeSpan;
 
