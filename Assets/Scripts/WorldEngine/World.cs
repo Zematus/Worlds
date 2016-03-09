@@ -61,9 +61,18 @@ public class World {
 	
 	[XmlAttribute]
 	public int CellGroupsCount { get; private set; }
-	
+
 	[XmlAttribute]
 	public int TerrainCellChangesListCount { get; private set; }
+
+	[XmlAttribute]
+	public float SeaLevelOffset { get; private set; }
+
+	[XmlAttribute]
+	public float RainfallOffset { get; private set; }
+
+	[XmlAttribute]
+	public float TemperatureOffset { get; private set; }
 
 	// Start wonky segment (save failures might happen here)
 
@@ -180,9 +189,17 @@ public class World {
 		EventsToHappenCount = 0;
 		CellGroupsCount = 0;
 		TerrainCellChangesListCount = 0;
+
+		SeaLevelOffset = Manager.SeaLevelOffset;
+		RainfallOffset = Manager.RainfallOffset;
+		TemperatureOffset = Manager.TemperatureOffset;
 	}
 	
 	public void StartInitialization (float acumulatedProgress, float progressIncrement) {
+
+		Manager.SeaLevelOffset = SeaLevelOffset;
+		Manager.RainfallOffset = RainfallOffset;
+		Manager.TemperatureOffset = TemperatureOffset;
 
 		_accumulatedProgress = acumulatedProgress;
 		_progressIncrement = progressIncrement;

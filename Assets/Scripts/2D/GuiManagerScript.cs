@@ -108,6 +108,8 @@ public class GuiManagerScript : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
+
+		Manager.LoadAppSettings (@"Worlds.settings");
 		
 		_lastMaxSpeedOptionIndex = _maxSpeedOptions.Length - 1;
 		_selectedMaxSpeedOptionIndex = _lastMaxSpeedOptionIndex;
@@ -152,6 +154,11 @@ public class GuiManagerScript : MonoBehaviour {
 		Manager.SetOverlayPalette (OverlayPaletteScript.Colors);
 
 		_regenTextures = true;
+	}
+
+	void OnDestroy () {
+
+		Manager.SaveAppSettings (@"Worlds.settings");
 	}
 	
 	// Update is called once per frame

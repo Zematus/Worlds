@@ -86,6 +86,30 @@ public class ManagerTask<T> : IManagerTask {
 	}
 }
 
+public class AppSettings {
+
+	public float TemperatureOffset = 0;
+	public float RainfallOffset = 0;
+	public float SeaLevelOffset = 0;
+
+	public AppSettings () {
+	}
+
+	public void Put () {
+
+		TemperatureOffset = Manager.TemperatureOffset;
+		RainfallOffset = Manager.RainfallOffset;
+		SeaLevelOffset = Manager.SeaLevelOffset;
+	}
+
+	public void Take () {
+
+		Manager.TemperatureOffset = TemperatureOffset;
+		Manager.RainfallOffset = RainfallOffset;
+		Manager.SeaLevelOffset = SeaLevelOffset;
+	}
+}
+
 public class Manager {
 
 	public const float ProgressIncrement = 0.20f;
@@ -455,6 +479,35 @@ public class Manager {
 			_manager._simulationRunning = true;
 		});
 	}
+
+	public static void SaveAppSettings (string path) {
+
+		AppSettings settings = new AppSettings ();
+
+		settings.Put ();
+
+		XmlSerializer serializer = new XmlSerializer(typeof(AppSettings));
+		FileStream stream = new FileStream(path, FileMode.Create);
+
+		serializer.Serialize(stream, settings);
+
+		stream.Close ();
+	}
+
+	public static void LoadAppSettings (string path) {
+
+		if (!File.Exists (path))
+			return;
+
+		XmlSerializer serializer = new XmlSerializer(typeof(AppSettings));
+		FileStream stream = new FileStream(path, FileMode.Open);
+
+		AppSettings settings = serializer.Deserialize(stream) as AppSettings;
+
+		stream.Close ();
+
+		settings.Take ();
+	}
 	
 	public static void SaveWorld (string path) {
 
@@ -465,7 +518,7 @@ public class Manager {
 
 		serializer.Serialize(stream, _manager._currentWorld);
 
-		stream.Close();
+		stream.Close ();
 	}
 	
 	public static void SaveWorldAsync (string path, ProgressCastDelegate progressCastMethod = null) {
@@ -500,7 +553,7 @@ public class Manager {
 
 		World world = serializer.Deserialize(stream) as World;
 		
-		stream.Close();
+		stream.Close ();
 		
 		if (_manager._progressCastMethod == null) {
 			world.ProgressCastMethod = (value, message) => {};

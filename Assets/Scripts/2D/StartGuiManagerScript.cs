@@ -25,6 +25,8 @@ public class StartGuiManagerScript : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 
+		Manager.LoadAppSettings (@"Worlds.settings");
+
 		Manager.UpdateMainThreadReference ();
 
 		LoadFileDialogPanelScript.SetVisible (false);
@@ -35,6 +37,11 @@ public class StartGuiManagerScript : MonoBehaviour {
 		MainMenuDialogPanelScript.SetVisible (true);
 		
 		LoadButton.interactable = HasFilesToLoad ();
+	}
+
+	void OnDestroy () {
+
+		Manager.SaveAppSettings (@"Worlds.settings");
 	}
 	
 	// Update is called once per frame
