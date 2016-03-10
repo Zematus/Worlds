@@ -450,7 +450,7 @@ public class BoatMakingDiscoveryEvent : CellGroupEvent {
 
 public class PlantCultivationDiscoveryEvent : CellGroupEvent {
 
-	public const int DateSpanFactorConstant = CellGroup.GenerationTime * 200000;
+	public const int DateSpanFactorConstant = CellGroup.GenerationTime * 300000;
 
 	public PlantCultivationDiscoveryEvent () {
 

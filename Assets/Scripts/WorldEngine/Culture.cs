@@ -6,6 +6,10 @@ using System.Xml.Serialization;
 
 public abstract class Culture {
 
+	[XmlArrayItem(Type = typeof(ForagingActivity)),
+		XmlArrayItem(Type = typeof(FarmingActivity))]
+	public List<CulturalActivity> Activities = new List<CulturalActivity> ();
+
 	[XmlArrayItem(Type = typeof(BiomeSurvivalSkill)),
 		XmlArrayItem(Type = typeof(SeafaringSkill))]
 	public List<CulturalSkill> Skills = new List<CulturalSkill> ();
@@ -19,11 +23,32 @@ public abstract class Culture {
 		XmlArrayItem(Type = typeof(PlantCultivationDiscovery))]
 	public List<CulturalDiscovery> Discoveries = new List<CulturalDiscovery> ();
 
+	private Dictionary<string, CulturalActivity> _activities = new Dictionary<string, CulturalActivity> ();
 	private Dictionary<string, CulturalSkill> _skills = new Dictionary<string, CulturalSkill> ();
 	private Dictionary<string, CulturalKnowledge> _knowledges = new Dictionary<string, CulturalKnowledge> ();
 	private Dictionary<string, CulturalDiscovery> _discoveries = new Dictionary<string, CulturalDiscovery> ();
 	
 	public Culture () {
+	}
+
+	protected void AddActivity (World world, CulturalActivity activity) {
+
+		if (_activities.ContainsKey (activity.Id))
+			return;
+
+		world.AddExistingCulturalActivityInfo (activity);
+
+		Activities.Add (activity);
+		_activities.Add (activity.Id, activity);
+	}
+
+	protected void RemoveActivity (World world, CulturalActivity activity) {
+
+		if (!_activities.ContainsKey (activity.Id))
+			return;
+
+		Activities.Remove (activity);
+		_activities.Remove (activity.Id);
 	}
 	
 	protected void AddSkill (World world, CulturalSkill skill) {
@@ -85,6 +110,16 @@ public abstract class Culture {
 		Discoveries.Remove (discovery);
 		_discoveries.Remove (discovery.Id);
 	}
+
+	public CulturalActivity GetActivity (string id) {
+
+		CulturalActivity activity = null;
+
+		if (!_activities.TryGetValue (id, out activity))
+			return null;
+
+		return activity;
+	}
 	
 	public CulturalSkill GetSkill (string id) {
 
@@ -118,6 +153,7 @@ public abstract class Culture {
 
 	public virtual void FinalizeLoad () {
 
+		Activities.ForEach (a => _activities.Add (a.Id, a));
 		Skills.ForEach (s => _skills.Add (s.Id, s));
 		Knowledges.ForEach (k => _knowledges.Add (k.Id, k));
 		Discoveries.ForEach (d => _discoveries.Add (d.Id, d));

@@ -81,6 +81,8 @@ public class CellGroup : HumanGroup {
 	private HashSet<string> _flags = new HashSet<string> ();
 
 	private float _noMigrationFactor = 0.0032f;
+
+	Dictionary<TerrainCell, float> _cellMigrationValues = new Dictionary<TerrainCell, float> ();
 	
 	[XmlIgnore]
 	public int Population {
@@ -474,20 +476,18 @@ public class CellGroup : HumanGroup {
 		if (HasMigrationEvent)
 			return;
 		
-		Dictionary<TerrainCell, float> cellValuePairs = new Dictionary<TerrainCell, float> ();
-
-		cellValuePairs.Add (Cell, CellMigrationValue);
+		_cellMigrationValues [Cell] = CellMigrationValue;
 
 		foreach (TerrainCell c in Cell.Neighbors.Values) {
 			
 			float cellValue = CalculateMigrationValue (c);
 			
 			TotalMigrationValue += cellValue;
-			
-			cellValuePairs.Add (c, cellValue);
+
+			_cellMigrationValues [c] = cellValue;
 		}
 
-		TerrainCell targetCell = CollectionUtility.WeightedSelection (cellValuePairs, TotalMigrationValue, Cell.GetNextLocalRandomFloat);
+		TerrainCell targetCell = CollectionUtility.WeightedSelection (_cellMigrationValues, TotalMigrationValue, Cell.GetNextLocalRandomFloat);
 
 		if (targetCell == Cell)
 			return;

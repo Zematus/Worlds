@@ -89,6 +89,7 @@ public class World {
 
 	public List<TerrainCellChanges> TerrainCellChangesList = new List<TerrainCellChanges> ();
 
+	public List<CulturalActivityInfo> CulturalActivityInfoList = new List<CulturalActivityInfo> ();
 	public List<CulturalSkillInfo> CulturalSkillInfoList = new List<CulturalSkillInfo> ();
 	public List<CulturalKnowledgeInfo> CulturalKnowledgeInfoList = new List<CulturalKnowledgeInfo> ();
 	public List<CulturalDiscoveryInfo> CulturalDiscoveryInfoList = new List<CulturalDiscoveryInfo> ();
@@ -145,7 +146,8 @@ public class World {
 	private List<IGroupAction> _groupActionsToPerform = new List<IGroupAction> ();
 
 	private HashSet<int> _terrainCellChangesListIndexes = new HashSet<int> ();
-	
+
+	private HashSet<string> _culturalActivityIdList = new HashSet<string> ();
 	private HashSet<string> _culturalSkillIdList = new HashSet<string> ();
 	private HashSet<string> _culturalKnowledgeIdList = new HashSet<string> ();
 	private HashSet<string> _culturalDiscoveryIdList = new HashSet<string> ();
@@ -314,6 +316,15 @@ public class World {
 	public void AddGroupActionToPerform (KnowledgeTransferAction action) {
 	
 		_groupActionsToPerform.Add (action);
+	}
+
+	public void AddExistingCulturalActivityInfo (CulturalActivityInfo baseInfo) {
+
+		if (_culturalActivityIdList.Contains (baseInfo.Id))
+			return;
+
+		CulturalActivityInfoList.Add (new CulturalActivityInfo (baseInfo));
+		_culturalActivityIdList.Add (baseInfo.Id);
 	}
 
 	public void AddExistingCulturalSkillInfo (CulturalSkillInfo baseInfo) {
@@ -1202,11 +1213,9 @@ public class World {
 
 					if (biomePresences.TryGetValue(biome.Name, out presence))
 					{
-						cell.PresentBiomeNames.Add(biome.Name);
-
 						presence = presence/totalPresence;
 
-						cell.BiomePresences.Add(presence);
+						cell.AddBiomePresence (biome.Name, presence);
 
 						cell.Survivability += biome.Survivability * presence;
 						cell.ForagingCapacity += biome.ForagingCapacity * presence;

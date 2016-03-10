@@ -127,6 +127,8 @@ public class TerrainCell {
 
 	private HashSet<string> _flags = new HashSet<string> ();
 
+	private Dictionary<string, float> _biomePresences = new Dictionary<string, float> ();
+
 	public TerrainCell () {
 
 	}
@@ -236,21 +238,31 @@ public class TerrainCell {
 
 		return GetBiomePresence (biome.Name);
 	}
+
+	public void AddBiomePresence (string biomeName, float presence) {
+
+		PresentBiomeNames.Add (biomeName);
+		BiomePresences.Add (presence);
+
+		_biomePresences [biomeName] = presence;
+	}
 	
 	public float GetBiomePresence (string biomeName) {
+
+		float value = 0;
+
+		if (!_biomePresences.TryGetValue (biomeName, out value))
+			return 0;
 		
-		for (int i = 0; i < PresentBiomeNames.Count; i++) {
-			
-			if (biomeName == PresentBiomeNames[i])
-			{
-				return BiomePresences[i];
-			}
-		}
-		
-		return 0;
+		return value;
 	}
 
 	public void FinalizeLoad () {
+
+		for (int i = 0; i < BiomePresences.Count; i++) {
+		
+			_biomePresences [PresentBiomeNames [i]] = BiomePresences [i];
+		}
 		
 		InitializeNeighbors ();
 
