@@ -6,8 +6,6 @@ using System.Xml.Serialization;
 
 public abstract class Culture {
 
-	[XmlArrayItem(Type = typeof(ForagingActivity)),
-		XmlArrayItem(Type = typeof(FarmingActivity))]
 	public List<CulturalActivity> Activities = new List<CulturalActivity> ();
 
 	[XmlArrayItem(Type = typeof(BiomeSurvivalSkill)),
@@ -167,7 +165,9 @@ public class CellCulture : Culture {
 
 	[XmlIgnore]
 	public CellGroup Group;
-	
+
+	[XmlIgnore]
+	public Dictionary<string, CulturalActivity> ActivitiesToPerform = new Dictionary<string, CulturalActivity> ();
 	[XmlIgnore]
 	public Dictionary<string, CulturalSkill> SkillsToLearn = new Dictionary<string, CulturalSkill> ();
 	[XmlIgnore]
@@ -186,10 +186,21 @@ public class CellCulture : Culture {
 	public CellCulture (CellGroup group, CellCulture baseCulture) {
 
 		Group = group;
-		
+
+		baseCulture.Activities.ForEach (a => AddActivity (a.GenerateCopy (group)));
 		baseCulture.Skills.ForEach (s => AddSkill (s.GenerateCopy (group)));
 		baseCulture.Discoveries.ForEach (d => AddDiscovery (d.GenerateCopy ()));
 		baseCulture.Knowledges.ForEach (k => AddKnowledge (k.GenerateCopy (group)));
+	}
+
+	protected void AddActivity (CulturalActivity activity) {
+
+		AddActivity (Group.World, activity);
+	}
+
+	protected void RemoveActivity (CulturalActivity activity) {
+
+		RemoveActivity (Group.World, activity);
 	}
 
 	protected void AddSkill (CulturalSkill skill) {
@@ -221,6 +232,14 @@ public class CellCulture : Culture {
 
 		RemoveDiscovery (Group.World, discovery);
 	}
+
+	public void AddActivityToPerform (CulturalActivity activity) {
+
+		if (ActivitiesToPerform.ContainsKey (activity.Id))
+			return;
+
+		ActivitiesToPerform.Add (activity.Id, activity);
+	}
 	
 	public void AddSkillToLearn (CulturalSkill skill) {
 
@@ -247,6 +266,20 @@ public class CellCulture : Culture {
 	}
 	
 	public void MergeCulture (CellCulture sourceCulture, float percentage) {
+
+		sourceCulture.Activities.ForEach (a => {
+
+			CulturalActivity activity = GetActivity (a.Id);
+
+			if (activity == null) {
+				activity = a.GenerateCopy (Group);
+				activity.ModifyValue (percentage);
+
+				AddActivityToPerform (activity);
+			} else {
+				activity.Merge (a, percentage);
+			}
+		});
 
 		sourceCulture.Skills.ForEach (s => {
 			
@@ -290,6 +323,11 @@ public class CellCulture : Culture {
 
 	public void Update (int timeSpan) {
 
+		foreach (CulturalActivity activity in Activities) {
+
+			activity.Update (timeSpan);
+		}
+
 		foreach (CulturalSkill skill in Skills) {
 		
 			skill.Update (timeSpan);
@@ -332,6 +370,11 @@ public class CellCulture : Culture {
 	}
 
 	public void PostUpdate () {
+
+		foreach (CulturalActivity activity in ActivitiesToPerform.Values) {
+
+			AddActivity (activity);
+		}
 		
 		foreach (CulturalSkill skill in SkillsToLearn.Values) {
 			
@@ -355,7 +398,8 @@ public class CellCulture : Culture {
 				k.CalculateAsymptote (discovery);
 			});
 		}
-		
+
+		ActivitiesToPerform.Clear ();
 		SkillsToLearn.Clear ();
 		KnowledgesToLearn.Clear ();
 		DiscoveriesToFind.Clear ();
@@ -460,6 +504,11 @@ public class CellCulture : Culture {
 	public override void FinalizeLoad () {
 
 		base.FinalizeLoad ();
+
+		Activities.ForEach (a => {
+		
+			a.Group = Group;
+		});
 
 		Skills.ForEach (s => {
 

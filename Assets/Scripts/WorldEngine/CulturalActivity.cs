@@ -31,6 +31,14 @@ public class CulturalActivityInfo {
 }
 
 public abstract class CulturalActivity : CulturalActivityInfo {
+
+	public const float TimeEffectConstant = CellGroup.GenerationTime * 500;
+
+	public const string ForagingActivityId = "ForagingActivity";
+	public const string FarmingActivityId = "FarmingActivity";
+
+	public const string ForagingActivityName = "Foraging";
+	public const string FarmingActivityName = "Farming";
 	
 	[XmlAttribute]
 	public float Value;
@@ -41,19 +49,15 @@ public abstract class CulturalActivity : CulturalActivityInfo {
 	public CulturalActivity () {
 	}
 
-	public CulturalActivity (CellGroup group, string id, string name, float value) : base (id, name) {
+	public CulturalActivity (CellGroup group, string id, string name, float value = 0) : base (id, name) {
 
 		Group = group;
 		Value = value;
 	}
-	
+
 	public CulturalActivity GenerateCopy (CellGroup targetGroup) {
-		
-		System.Type activityType = this.GetType ();
-		
-		System.Reflection.ConstructorInfo cInfo = activityType.GetConstructor (new System.Type[] {typeof(CellGroup), activityType});
-		
-		return cInfo.Invoke (new object[] {targetGroup, this}) as CulturalActivity;
+
+		return new CulturalActivity (targetGroup, Id, Name, Value);
 	}
 
 	public void Merge (CulturalActivity activity, float percentage) {
@@ -66,13 +70,7 @@ public abstract class CulturalActivity : CulturalActivityInfo {
 		Value *= percentage;
 	}
 
-	public virtual void FinalizeLoad () {
-
-	}
-
-	public abstract void Update (int timeSpan);
-
-	protected void UpdateValue (int timeSpan, float timeEffectFactor) {
+	public void Update (int timeSpan) {
 
 		TerrainCell groupCell = Group.Cell;
 
@@ -90,72 +88,10 @@ public abstract class CulturalActivity : CulturalActivityInfo {
 			targetValue = Value - (minTargetValue - Value) * randomFactor;
 		}
 
-		float timeEffect = timeSpan / (float)(timeSpan + timeEffectFactor);
+		float timeEffect = timeSpan / (float)(timeSpan + TimeEffectConstant);
 
 		Value = (Value * (1 - timeEffect)) + (targetValue * timeEffect);
 
 		Value = Mathf.Clamp01 (Value);
-	}
-}
-
-public class ForagingActivity : CulturalActivity {
-
-	public const float TimeEffectConstant = CellGroup.GenerationTime * 500;
-
-	public const string ForagingActivityId = "ForagingActivity";
-
-	public const string ForagingActivityName = "Foraging";
-
-	public ForagingActivity () {
-
-	}
-
-	public ForagingActivity (CellGroup group, float value = 0f) : base (group, ForagingActivityId, ForagingActivityName, value) {
-
-	}
-
-	public ForagingActivity (CellGroup group, SeafaringSkill baseSkill) : base (group, baseSkill.Id, baseSkill.Name, baseSkill.Value) {
-
-	}
-
-	public override void FinalizeLoad () {
-
-		base.FinalizeLoad ();
-	}
-
-	public override void Update (int timeSpan) {
-
-		UpdateValue (timeSpan, TimeEffectConstant);
-	}
-}
-
-public class FarmingActivity : CulturalActivity {
-
-	public const float TimeEffectConstant = CellGroup.GenerationTime * 500;
-
-	public const string FarmingActivityId = "FarmingActivity";
-
-	public const string FarmingActivityName = "Farming";
-
-	public FarmingActivity () {
-
-	}
-
-	public FarmingActivity (CellGroup group, float value = 0f) : base (group, FarmingActivityId, FarmingActivityName, value) {
-
-	}
-
-	public FarmingActivity (CellGroup group, SeafaringSkill baseSkill) : base (group, baseSkill.Id, baseSkill.Name, baseSkill.Value) {
-
-	}
-
-	public override void FinalizeLoad () {
-
-		base.FinalizeLoad ();
-	}
-
-	public override void Update (int timeSpan) {
-
-		UpdateValue (timeSpan, TimeEffectConstant);
 	}
 }
