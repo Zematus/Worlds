@@ -203,6 +203,16 @@ public class CellCulture : Culture {
 		RemoveActivity (Group.World, activity);
 	}
 
+	public void RemoveActivity (string activityId) {
+
+		CulturalActivity activity = GetActivity (activityId);
+
+		if (activity == null)
+			return;
+
+		RemoveActivity (Group.World, activity);
+	}
+
 	protected void AddSkill (CulturalSkill skill) {
 	
 		AddSkill (Group.World, skill);

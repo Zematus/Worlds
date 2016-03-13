@@ -124,6 +124,7 @@ public class CellGroup : HumanGroup {
 
 		Neighbors.ForEach (g => g.AddNeighbor (this));
 
+		InitializeDefaultActivities ();
 		InitializeDefaultSkills ();
 		
 		NextUpdateDate = CalculateNextUpdateDate();
@@ -152,6 +153,11 @@ public class CellGroup : HumanGroup {
 
 			World.InsertEventToHappen (new PlantCultivationDiscoveryEvent (this, triggerDate));
 		}
+	}
+
+	public void InitializeDefaultActivities () {
+
+		Culture.AddActivityToPerform (CulturalActivity.CreateForagingActivity (this));
 	}
 
 	public void SetFlag (string flag) {

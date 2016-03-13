@@ -443,6 +443,8 @@ public class AgricultureKnowledge : CulturalKnowledge {
 
 	public override void LossConsequences ()
 	{
+		Group.Culture.RemoveActivity (CulturalActivity.FarmingActivityId);
+
 		if (PlantCultivationDiscoveryEvent.CanSpawnIn (Group)) {
 
 			int triggerDate = PlantCultivationDiscoveryEvent.CalculateTriggerDate (Group);

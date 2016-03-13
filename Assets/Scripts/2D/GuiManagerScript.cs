@@ -264,6 +264,7 @@ public class GuiManagerScript : MonoBehaviour {
 		} else if (updateTextures) {
 
 			if ((_planetOverlay == PlanetOverlay.Population) || 
+				(_planetOverlay == PlanetOverlay.CulturalActivity) || 
 				(_planetOverlay == PlanetOverlay.CulturalSkill) || 
 				(_planetOverlay == PlanetOverlay.CulturalKnowledge) || 
 				(_planetOverlay == PlanetOverlay.CulturalDiscovery) || 
@@ -664,6 +665,9 @@ public class GuiManagerScript : MonoBehaviour {
 //		case PlanetOverlay.Rainfall: planetOverlayStr = "_rainfall"; break;
 //		case PlanetOverlay.Temperature: planetOverlayStr = "_temperature"; break;
 		case PlanetOverlay.Population: planetOverlayStr = "_population"; break;
+		case PlanetOverlay.CulturalActivity: 
+			planetOverlayStr = "_cultural_activity_" + _planetOverlaySubtype; 
+			break;
 		case PlanetOverlay.CulturalSkill: 
 			planetOverlayStr = "_cultural_skill_" + _planetOverlaySubtype; 
 			break;
@@ -853,6 +857,8 @@ public class GuiManagerScript : MonoBehaviour {
 
 		if (OverlayDialogPanelScript.PopulationToggle.isOn) {
 			SetPopulationOverlay ();
+		} else if (OverlayDialogPanelScript.CulturalActivityToggle.isOn) {
+			SetCulturalActivityOverlay ();
 		} else if (OverlayDialogPanelScript.CulturalSkillToggle.isOn) {
 			SetCulturalSkillOverlay ();
 		} else if (OverlayDialogPanelScript.CulturalKnowledgeToggle.isOn) {
@@ -881,6 +887,7 @@ public class GuiManagerScript : MonoBehaviour {
 		OverlayDialogPanelScript.CulturalDiscoveryToggle.isOn = false;
 		OverlayDialogPanelScript.CulturalKnowledgeToggle.isOn = false;
 		OverlayDialogPanelScript.CulturalSkillToggle.isOn = false;
+		OverlayDialogPanelScript.CulturalActivityToggle.isOn = false;
 		OverlayDialogPanelScript.PopulationToggle.isOn = false;
 		OverlayDialogPanelScript.DisplayRoutesToggle.isOn = false;
 		
@@ -908,6 +915,12 @@ public class GuiManagerScript : MonoBehaviour {
 			
 		case PlanetOverlay.CulturalSkill:
 			OverlayDialogPanelScript.CulturalSkillToggle.isOn = true;
+
+			SelectionPanelScript.SetVisible (true);
+			break;
+
+		case PlanetOverlay.CulturalActivity:
+			OverlayDialogPanelScript.CulturalActivityToggle.isOn = true;
 
 			SelectionPanelScript.SetVisible (true);
 			break;
@@ -1042,12 +1055,26 @@ public class GuiManagerScript : MonoBehaviour {
 			_planetOverlaySubtype = "None";
 		}
 	}
+
+	public void SetCulturalActivityOverlay () {
+
+		ChangePlanetOverlay (PlanetOverlay.CulturalActivity);
+
+		SelectionPanelScript.Title.text = "Displayed Activity:";
+
+		foreach (CulturalActivityInfo activityInfo in Manager.CurrentWorld.CulturalActivityInfoList) {
+
+			AddSelectionPanelOption (activityInfo.Name, activityInfo.Id);
+		}
+
+		SelectionPanelScript.SetVisible (true);
+	}
 	
 	public void SetCulturalSkillOverlay () {
 
 		ChangePlanetOverlay (PlanetOverlay.CulturalSkill);
 
-		SelectionPanelScript.Title.text = "Displayed Cultural Skill:";
+		SelectionPanelScript.Title.text = "Displayed Skill:";
 
 		foreach (CulturalSkillInfo skillInfo in Manager.CurrentWorld.CulturalSkillInfoList) {
 
@@ -1061,7 +1088,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 		ChangePlanetOverlay (PlanetOverlay.CulturalKnowledge);
 		
-		SelectionPanelScript.Title.text = "Displayed Cultural Knowledge:";
+		SelectionPanelScript.Title.text = "Displayed Knowledge:";
 		
 		foreach (CulturalKnowledgeInfo knowledgeInfo in Manager.CurrentWorld.CulturalKnowledgeInfoList) {
 
@@ -1075,7 +1102,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 		ChangePlanetOverlay (PlanetOverlay.CulturalDiscovery);
 
-		SelectionPanelScript.Title.text = "Displayed Cultural Discovery:";
+		SelectionPanelScript.Title.text = "Displayed Discovery:";
 
 		foreach (CulturalDiscoveryInfo discoveryInfo in Manager.CurrentWorld.CulturalDiscoveryInfoList) {
 
@@ -1122,7 +1149,13 @@ public class GuiManagerScript : MonoBehaviour {
 		if (!SelectionPanelScript.IsVisible ())
 			return;
 
-		if (_planetOverlay == PlanetOverlay.CulturalSkill) {
+		if (_planetOverlay == PlanetOverlay.CulturalActivity) {
+
+			foreach (CulturalActivityInfo activityInfo in Manager.CurrentWorld.CulturalActivityInfoList) {
+
+				AddSelectionPanelOption (activityInfo.Name, activityInfo.Id);
+			}
+		} else if (_planetOverlay == PlanetOverlay.CulturalSkill) {
 			
 			foreach (CulturalSkillInfo skillInfo in Manager.CurrentWorld.CulturalSkillInfoList) {
 
@@ -1325,6 +1358,25 @@ public class GuiManagerScript : MonoBehaviour {
 				InfoPanelText.text += "\nNext Update Date: " + nextUpdateDate;
 				InfoPanelText.text += "\nTime between updates: " + (nextUpdateDate - lastUpdateDate);
 
+				bool firstActivity = true;
+
+				foreach (CulturalActivity activity in cell.Group.Culture.Activities) {
+
+					float activityValue = activity.Value;
+
+					if (activityValue >= 0.001) {
+
+						if (firstActivity) {
+							InfoPanelText.text += "\n";
+							InfoPanelText.text += "\nActivities";
+
+							firstActivity = false;
+						}
+
+						InfoPanelText.text += "\n\t" + activity.Id + " - Value: " + activity.Value.ToString ("0.000");
+					}
+				}
+
 				bool firstSkill = true;
 
 				foreach (CulturalSkill skill in cell.Group.Culture.Skills) {
@@ -1335,7 +1387,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 						if (firstSkill) {
 							InfoPanelText.text += "\n";
-							InfoPanelText.text += "\nCultural Skills";
+							InfoPanelText.text += "\nSkills";
 
 							firstSkill = false;
 						}
@@ -1354,7 +1406,7 @@ public class GuiManagerScript : MonoBehaviour {
 						
 						if (firstKnowledge) {
 							InfoPanelText.text += "\n";
-							InfoPanelText.text += "\nCultural Knowledges";
+							InfoPanelText.text += "\nKnowledges";
 							
 							firstKnowledge = false;
 						}
@@ -1369,7 +1421,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 					if (firstDiscovery) {
 						InfoPanelText.text += "\n";
-						InfoPanelText.text += "\nCultural Discoveries";
+						InfoPanelText.text += "\nDiscoveries";
 						
 						firstDiscovery = false;
 					}

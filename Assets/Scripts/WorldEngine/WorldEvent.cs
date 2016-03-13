@@ -508,6 +508,7 @@ public class PlantCultivationDiscoveryEvent : CellGroupEvent {
 
 	public override void Trigger () {
 
+		Group.Culture.AddActivityToPerform (CulturalActivity.CreateFarmingActivity (Group));
 		Group.Culture.AddDiscoveryToFind (new PlantCultivationDiscovery ());
 		Group.Culture.AddKnowledgeToLearn (new AgricultureKnowledge (Group));
 		World.AddGroupToUpdate (Group);

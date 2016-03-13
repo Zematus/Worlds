@@ -19,6 +19,7 @@ public enum PlanetOverlay {
 //	Temperature,
 //	Rainfall,
 	Population,
+	CulturalActivity,
 	CulturalSkill,
 	CulturalKnowledge,
 	CulturalDiscovery,
@@ -1014,6 +1015,10 @@ public class Manager {
 		case PlanetOverlay.Population:
 			color = SetPopulationOverlayColor (cell, color);
 			break;
+
+		case PlanetOverlay.CulturalActivity:
+			color = SetCulturalActivityOverlayColor (cell, color);
+			break;
 			
 		case PlanetOverlay.CulturalSkill:
 			color = SetCulturalSkillOverlayColor (cell, color);
@@ -1164,6 +1169,41 @@ public class Manager {
 			float value = (population + MaxPopFactor) / (MaxPopulation + MaxPopFactor);
 			
 			color = (color * (1 - value)) + (Color.red * value);
+		}
+
+		return color;
+	}
+
+	private static Color SetCulturalActivityOverlayColor (TerrainCell cell, Color color) {
+
+		float greyscale = (color.r + color.g + color.b);
+
+		color.r = (greyscale + color.r) / 6f;
+		color.g = (greyscale + color.g) / 6f;
+		color.b = (greyscale + color.b) / 6f;
+
+		if (_planetOverlaySubtype == "None")
+			return color;
+
+		float activityValue = 0;
+		float population = 0;
+
+		if (cell.Group != null) {
+
+			CulturalActivity activity = cell.Group.Culture.GetActivity(_planetOverlaySubtype);
+
+			population = cell.Group.Population;
+
+			if (activity != null) {
+				activityValue = activity.Value;
+			}
+		}
+
+		if ((population > 0) && (activityValue >= 0.001)) {
+
+			float value = 0.05f + 0.95f * activityValue;
+
+			color = (color * (1 - value)) + (Color.cyan * value);
 		}
 
 		return color;

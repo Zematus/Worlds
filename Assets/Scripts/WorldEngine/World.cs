@@ -590,6 +590,7 @@ public class World {
 			_eventsToHappen.Insert (e.TriggerDate, e);
 		});
 
+		CulturalActivityInfoList.ForEach (a => _culturalActivityIdList.Add (a.Id));
 		CulturalSkillInfoList.ForEach (s => _culturalSkillIdList.Add (s.Id));
 		CulturalKnowledgeInfoList.ForEach (k => _culturalKnowledgeIdList.Add (k.Id));
 		CulturalDiscoveryInfoList.ForEach (d => _culturalDiscoveryIdList.Add (d.Id));
