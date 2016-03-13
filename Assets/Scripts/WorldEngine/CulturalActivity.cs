@@ -30,7 +30,7 @@ public class CulturalActivityInfo {
 	}
 }
 
-public abstract class CulturalActivity : CulturalActivityInfo {
+public class CulturalActivity : CulturalActivityInfo {
 
 	public const float TimeEffectConstant = CellGroup.GenerationTime * 500;
 
@@ -45,14 +45,24 @@ public abstract class CulturalActivity : CulturalActivityInfo {
 
 	[XmlIgnore]
 	public CellGroup Group;
-	
+
 	public CulturalActivity () {
 	}
 
-	public CulturalActivity (CellGroup group, string id, string name, float value = 0) : base (id, name) {
+	private CulturalActivity (CellGroup group, string id, string name, float value) : base (id, name) {
 
 		Group = group;
 		Value = value;
+	}
+
+	public static CulturalActivity CreateForagingActivity (CellGroup group, float value = 0) {
+	
+		return new CulturalActivity (group, ForagingActivityId, ForagingActivityName, value);
+	}
+
+	public static CulturalActivity CreateFarmingActivity (CellGroup group, float value = 0) {
+
+		return new CulturalActivity (group, FarmingActivityId, FarmingActivityName, value);
 	}
 
 	public CulturalActivity GenerateCopy (CellGroup targetGroup) {
