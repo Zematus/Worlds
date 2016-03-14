@@ -16,9 +16,6 @@ public enum PlanetView {
 public enum PlanetOverlay {
 
 	None,
-//	Temperature,
-//	Rainfall,
-	Population,
 	CulturalActivity,
 	CulturalSkill,
 	CulturalKnowledge,
@@ -1012,10 +1009,6 @@ public class Manager {
 		case PlanetOverlay.None:
 			break;
 
-		case PlanetOverlay.Population:
-			color = SetPopulationOverlayColor (cell, color);
-			break;
-
 		case PlanetOverlay.CulturalActivity:
 			color = SetCulturalActivityOverlayColor (cell, color);
 			break;
@@ -1132,6 +1125,46 @@ public class Manager {
 		
 		return color * slantFactor * altitudeFactor;
 	}
+
+	private static Color SetPopulationChangeOverlayColor (TerrainCell cell, Color color) {
+
+		float greyscale = (color.r + color.g + color.b);
+
+		color.r = (greyscale + color.r) / 6f;
+		color.g = (greyscale + color.g) / 6f;
+		color.b = (greyscale + color.b) / 6f;
+
+		float deltaLimitFactor = 0.02f;
+
+		float prevPopulation = 0;
+		float population = 0;
+
+		float delta = 0;
+
+		if (cell.Group != null) {
+
+			prevPopulation = cell.Group.PreviousPopulation;
+			population = cell.Group.Population;
+
+			delta = population - prevPopulation;
+		}
+
+		if (delta > 0) {
+
+			float value = delta / (population * deltaLimitFactor);
+			value = Mathf.Clamp01 (value);
+
+			color = (color * (1 - value)) + (Color.green * value);
+		} else if (delta < 0) {
+			
+			float value = -delta / (prevPopulation * deltaLimitFactor);
+			value = Mathf.Clamp01 (value);
+
+			color = (color * (1 - value)) + (Color.red * value);
+		}
+
+		return color;
+	}
 	
 	private static Color SetPopulationOverlayColor (TerrainCell cell, Color color) {
 
@@ -1185,7 +1218,7 @@ public class Manager {
 		if (_planetOverlaySubtype == "None")
 			return color;
 
-		float activityValue = 0;
+		float activityContribution = 0;
 		float population = 0;
 
 		if (cell.Group != null) {
@@ -1195,13 +1228,13 @@ public class Manager {
 			population = cell.Group.Population;
 
 			if (activity != null) {
-				activityValue = activity.Value;
+				activityContribution = activity.Contribution;
 			}
 		}
 
-		if ((population > 0) && (activityValue >= 0.001)) {
+		if ((population > 0) && (activityContribution >= 0.001)) {
 
-			float value = 0.05f + 0.95f * activityValue;
+			float value = 0.05f + 0.95f * activityContribution;
 
 			color = (color * (1 - value)) + (Color.cyan * value);
 		}
@@ -1408,6 +1441,12 @@ public class Manager {
 	private static Color SetMiscellanousDataOverlayColor (TerrainCell cell, Color color) {
 
 		switch (_planetOverlaySubtype) {
+
+		case "Population":
+			return SetPopulationOverlayColor (cell, color);
+
+		case "PopulationChange":
+			return SetPopulationChangeOverlayColor (cell, color);
 
 		case "Rainfall":
 			return SetRainfallOverlayColor (cell, color);

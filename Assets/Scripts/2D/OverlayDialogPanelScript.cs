@@ -9,7 +9,6 @@ public class OverlayDialogPanelScript : MonoBehaviour {
 
 	public Text DialogText;
 
-	public Toggle PopulationToggle;
 	public Toggle CulturalActivityToggle;
 	public Toggle CulturalSkillToggle;
 	public Toggle CulturalKnowledgeToggle;

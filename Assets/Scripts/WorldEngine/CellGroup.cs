@@ -20,6 +20,9 @@ public class CellGroup : HumanGroup {
 	public const float MinKnowledgeTransferValue = 0.25f;
 
 	public const float SeaTravelBaseFactor = 0.025f;
+
+	[XmlAttribute]
+	public float PreviousExactPopulation;
 	
 	[XmlAttribute]
 	public float ExactPopulation;
@@ -80,11 +83,17 @@ public class CellGroup : HumanGroup {
 	
 	private HashSet<string> _flags = new HashSet<string> ();
 
-	private float _noMigrationFactor = 0.0032f;
+	private float _noMigrationFactor = 0.005f;
 
 	Dictionary<TerrainCell, float> _cellMigrationValues = new Dictionary<TerrainCell, float> ();
-	
-	[XmlIgnore]
+
+	public int PreviousPopulation {
+
+		get {
+			return (int)Mathf.Floor(PreviousExactPopulation);
+		}
+	}
+
 	public int Population {
 
 		get {
@@ -102,6 +111,7 @@ public class CellGroup : HumanGroup {
 
 	public CellGroup (World world, TerrainCell cell, int initialPopulation, CellCulture baseCulture = null) : base(world) {
 
+		PreviousExactPopulation = 0;
 		ExactPopulation = initialPopulation;
 		
 		LastUpdateDate = World.CurrentDate;
@@ -296,7 +306,7 @@ public class CellGroup : HumanGroup {
 		}
 
 		float percentage = splitPopulation / newPopulation;
-	
+
 		ExactPopulation = newPopulation;
 
 		Culture.MergeCulture (splitCulture, percentage);
@@ -391,14 +401,14 @@ public class CellGroup : HumanGroup {
 		}
 		
 		float areaFactor = cell.Area / TerrainCell.MaxArea;
-		
+
 		float altitudeDeltaFactor = CalculateAltitudeDeltaMigrationFactor (cell);
 		altitudeDeltaFactor *= altitudeDeltaFactor;
 		altitudeDeltaFactor *= altitudeDeltaFactor;
 
 		int existingPopulation = 0;
 
-		float popDifferenceFactor = 1f;
+		float popDifferenceFactor = 1;
 
 		if (cell.Group != null) {
 			existingPopulation = cell.Group.Population;
@@ -416,11 +426,13 @@ public class CellGroup : HumanGroup {
 			noMigrationFactor = _noMigrationFactor;
 		}
 
-		float carryingCapacityFactor = 0;
+		float carryingCapacityFactor = 1;
 
 		if (cellOptimalPopulation + existingPopulation > 0) {
 
 			carryingCapacityFactor = (float)cellOptimalPopulation / (float)(cellOptimalPopulation + existingPopulation);
+			carryingCapacityFactor *= carryingCapacityFactor;
+			carryingCapacityFactor *= carryingCapacityFactor;
 		}
 
 		float cellValue = altitudeDeltaFactor * areaFactor * carryingCapacityFactor * popDifferenceFactor * noMigrationFactor;
@@ -502,6 +514,7 @@ public class CellGroup : HumanGroup {
 			return;
 
 		float percentToMigrate = Cell.GetNextLocalRandomFloat ();
+		percentToMigrate *= percentToMigrate;
 
 		if (TotalMigrationValue > 0) {
 			percentToMigrate *= (1 - CellMigrationValue / TotalMigrationValue);
@@ -610,6 +623,8 @@ public class CellGroup : HumanGroup {
 	}
 
 	private void UpdateInternal () {
+
+		PreviousExactPopulation = ExactPopulation;
 		
 		int timeSpan = World.CurrentDate - LastUpdateDate;
 
@@ -639,24 +654,36 @@ public class CellGroup : HumanGroup {
 		Culture.Update (timeSpan);
 	}
 
+	private float GetActivityContribution (string activityId) {
+	
+		CulturalActivity activity = Culture.GetActivity (activityId);
+
+		if (activity == null)
+			return 0;
+
+		return activity.Contribution;
+	}
+
 	private void UpdateTerrainFarmlandPercentage (int timeSpan) {
 
 		CulturalKnowledge agricultureKnowledge = Culture.GetKnowledge (AgricultureKnowledge.AgricultureKnowledgeId);
-
-		float farmlandPercentage = Cell.FarmlandPercentage;
 
 		if (agricultureKnowledge == null) {
 
 			return;
 		}
 
+		float farmlandPercentage = Cell.FarmlandPercentage;
+
 		float techValue = Mathf.Sqrt(agricultureKnowledge.Value);
 
-		float areaPerFarmWorker = techValue / 25f;
+		float areaPerFarmWorker = techValue / 5f;
 
 		float terrainFactor = AgricultureKnowledge.CalculateTerrainFactorIn (Cell);
 
-		float maxWorkableFarmlandArea = areaPerFarmWorker * Population * terrainFactor;
+		float farmingPopulation = GetActivityContribution (CulturalActivity.FarmingActivityId) * Population;
+
+		float maxWorkableFarmlandArea = areaPerFarmWorker * farmingPopulation * terrainFactor;
 
 		float maxPossibleFarmlandArea = Cell.Area * terrainFactor;
 
@@ -669,9 +696,9 @@ public class CellGroup : HumanGroup {
 		if (necessaryAreaToFarm <= 0)
 			return;
 
-		float techGenerationFactor = techValue / 25000f;
+		float techGenerationFactor = techValue / 5f;
 
-		float farmlandGenerationFactor = Population * techGenerationFactor * timeSpan;
+		float farmlandGenerationFactor = farmingPopulation * techGenerationFactor * timeSpan;
 
 		float actualGeneratedPercentage = farmlandGenerationFactor / (necessaryAreaToFarm + farmlandGenerationFactor);
 
@@ -740,13 +767,21 @@ public class CellGroup : HumanGroup {
 		float modifiedForagingCapacity = 0;
 		float modifiedSurvivability = 0;
 
+		float foragingContribution = GetActivityContribution (CulturalActivity.ForagingActivityId);
+
 		CalculateAdaptionToCell (cell, out modifiedForagingCapacity, out modifiedSurvivability);
 
-		float populationCapacityByForaging = PopulationForagingConstant * cell.Area * modifiedForagingCapacity;
+		float populationCapacityByForaging = foragingContribution * PopulationForagingConstant * cell.Area * modifiedForagingCapacity;
 
-		float farmingCapacity = CalculateFarmingCapacity (cell);
+		float farmingContribution = GetActivityContribution (CulturalActivity.FarmingActivityId);
+		float populationCapacityByFarming = 0;
 
-		float populationCapacityByFarming = PopulationFarmingConstant * cell.Area * farmingCapacity;
+		if (farmingContribution > 0) {
+
+			float farmingCapacity = CalculateFarmingCapacity (cell);
+
+			populationCapacityByFarming = farmingContribution * PopulationFarmingConstant * cell.Area * farmingCapacity;
+		}
 
 		float populationCapacity = (populationCapacityByForaging + populationCapacityByFarming) * modifiedSurvivability;
 

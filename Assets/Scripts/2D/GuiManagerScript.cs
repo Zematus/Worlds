@@ -59,8 +59,8 @@ public class GuiManagerScript : MonoBehaviour {
 	private bool _displayedTip_initialPopulation = false;
 	
 	private PlanetView _planetView = PlanetView.Biomes;
-	private PlanetOverlay _planetOverlay = PlanetOverlay.Population;
-	private string _planetOverlaySubtype = "None";
+	private PlanetOverlay _planetOverlay = PlanetOverlay.MiscellaneousData;
+	private string _planetOverlaySubtype = "Population";
 
 	private Dictionary<PlanetOverlay, string> _planetOverlaySubtypeCache = new Dictionary<PlanetOverlay, string> ();
 
@@ -263,13 +263,15 @@ public class GuiManagerScript : MonoBehaviour {
 
 		} else if (updateTextures) {
 
-			if ((_planetOverlay == PlanetOverlay.Population) || 
-				(_planetOverlay == PlanetOverlay.CulturalActivity) || 
+			if ((_planetOverlay == PlanetOverlay.CulturalActivity) || 
 				(_planetOverlay == PlanetOverlay.CulturalSkill) || 
 				(_planetOverlay == PlanetOverlay.CulturalKnowledge) || 
-				(_planetOverlay == PlanetOverlay.CulturalDiscovery) || 
-				((_planetOverlay == PlanetOverlay.MiscellaneousData) && 
-					((_planetOverlaySubtype == "UpdateSpan") || (_planetOverlaySubtype == "Farmland")))) {
+				(_planetOverlay == PlanetOverlay.CulturalDiscovery) || (
+					(_planetOverlay == PlanetOverlay.MiscellaneousData) && (
+						(_planetOverlaySubtype == "UpdateSpan") || 
+						(_planetOverlaySubtype == "Farmland") || 
+						(_planetOverlaySubtype == "Population") || 
+						(_planetOverlaySubtype == "PopulationChange")))) {
 				Manager.UpdateTextures ();
 
 				_mapUpdateCount++;
@@ -662,9 +664,6 @@ public class GuiManagerScript : MonoBehaviour {
 		
 		switch (_planetOverlay) {
 		case PlanetOverlay.None: planetOverlayStr = ""; break;
-//		case PlanetOverlay.Rainfall: planetOverlayStr = "_rainfall"; break;
-//		case PlanetOverlay.Temperature: planetOverlayStr = "_temperature"; break;
-		case PlanetOverlay.Population: planetOverlayStr = "_population"; break;
 		case PlanetOverlay.CulturalActivity: 
 			planetOverlayStr = "_cultural_activity_" + _planetOverlaySubtype; 
 			break;
@@ -855,9 +854,7 @@ public class GuiManagerScript : MonoBehaviour {
 		SelectionPanelScript.RemoveAllOptions ();
 		SelectionPanelScript.SetVisible (false);
 
-		if (OverlayDialogPanelScript.PopulationToggle.isOn) {
-			SetPopulationOverlay ();
-		} else if (OverlayDialogPanelScript.CulturalActivityToggle.isOn) {
+		if (OverlayDialogPanelScript.CulturalActivityToggle.isOn) {
 			SetCulturalActivityOverlay ();
 		} else if (OverlayDialogPanelScript.CulturalSkillToggle.isOn) {
 			SetCulturalSkillOverlay ();
@@ -888,7 +885,6 @@ public class GuiManagerScript : MonoBehaviour {
 		OverlayDialogPanelScript.CulturalKnowledgeToggle.isOn = false;
 		OverlayDialogPanelScript.CulturalSkillToggle.isOn = false;
 		OverlayDialogPanelScript.CulturalActivityToggle.isOn = false;
-		OverlayDialogPanelScript.PopulationToggle.isOn = false;
 		OverlayDialogPanelScript.DisplayRoutesToggle.isOn = false;
 		
 		SelectionPanelScript.SetVisible (false);
@@ -923,10 +919,6 @@ public class GuiManagerScript : MonoBehaviour {
 			OverlayDialogPanelScript.CulturalActivityToggle.isOn = true;
 
 			SelectionPanelScript.SetVisible (true);
-			break;
-		
-		case PlanetOverlay.Population:
-			OverlayDialogPanelScript.PopulationToggle.isOn = true;
 			break;
 			
 		case PlanetOverlay.None:
@@ -1009,27 +1001,6 @@ public class GuiManagerScript : MonoBehaviour {
 		} else {
 			MapViewButtonText.text = "View Map";
 		}
-	}
-	
-//	public void SetRainfallOverlay () {
-//
-//		_regenTextures |= _planetOverlay != PlanetOverlay.Rainfall;
-//
-//		_planetOverlay = PlanetOverlay.Rainfall;
-//	}
-//	
-//	public void SetTemperatureOverlay () {
-//		
-//		_regenTextures |= _planetOverlay != PlanetOverlay.Temperature;
-//		
-//		_planetOverlay = PlanetOverlay.Temperature;
-//	}
-	
-	public void SetPopulationOverlay () {
-		
-		_regenTextures |= _planetOverlay != PlanetOverlay.Population;
-		
-		_planetOverlay = PlanetOverlay.Population;
 	}
 
 	public void SetRouteDisplayOverlay (bool value) {
@@ -1118,6 +1089,9 @@ public class GuiManagerScript : MonoBehaviour {
 
 		SelectionPanelScript.Title.text = "Displayed Miscellaneous Data:";
 
+		AddSelectionPanelOption ("Population", "Population");
+		AddSelectionPanelOption ("Population Change", "PopulationChange");
+		AddSelectionPanelOption ("Rainfall", "Rainfall");
 		AddSelectionPanelOption ("Rainfall", "Rainfall");
 		AddSelectionPanelOption ("Temperature", "Temperature");
 		AddSelectionPanelOption ("Arability", "Arability");
@@ -1175,6 +1149,8 @@ public class GuiManagerScript : MonoBehaviour {
 			}
 		} else if (_planetOverlay == PlanetOverlay.MiscellaneousData) {
 
+			AddSelectionPanelOption ("Population", "Population");
+			AddSelectionPanelOption ("Population Change", "PopulationChange");
 			AddSelectionPanelOption ("Rainfall", "Rainfall");
 			AddSelectionPanelOption ("Temperature", "Temperature");
 			AddSelectionPanelOption ("Arability", "Arability");
@@ -1338,6 +1314,7 @@ public class GuiManagerScript : MonoBehaviour {
 			if (population > 0) {
 				
 				InfoPanelText.text += "\n";
+				InfoPanelText.text += "\nPrevious Population: " + cell.Group.PreviousPopulation;
 				InfoPanelText.text += "\nPopulation: " + population;
 				InfoPanelText.text += "\nOptimal Population: " + optimalPopulation;
 				InfoPanelText.text += "\nPop Density: " + (population / cellArea).ToString ("0.000") + " Pop / Km^2";
@@ -1362,9 +1339,9 @@ public class GuiManagerScript : MonoBehaviour {
 
 				foreach (CulturalActivity activity in cell.Group.Culture.Activities) {
 
-					float activityValue = activity.Value;
+					float activityContribution = activity.Contribution;
 
-					if (activityValue >= 0.001) {
+					if (activityContribution >= 0.001) {
 
 						if (firstActivity) {
 							InfoPanelText.text += "\n";
@@ -1373,7 +1350,7 @@ public class GuiManagerScript : MonoBehaviour {
 							firstActivity = false;
 						}
 
-						InfoPanelText.text += "\n\t" + activity.Id + " - Value: " + activity.Value.ToString ("0.000");
+						InfoPanelText.text += "\n\t" + activity.Id + " - Contribution: " + activity.Contribution.ToString ("P");
 					}
 				}
 

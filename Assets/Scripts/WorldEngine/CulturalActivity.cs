@@ -43,6 +43,9 @@ public class CulturalActivity : CulturalActivityInfo {
 	[XmlAttribute]
 	public float Value;
 
+	[XmlAttribute]
+	public float Contribution = 0;
+
 	[XmlIgnore]
 	public CellGroup Group;
 
@@ -84,9 +87,11 @@ public class CulturalActivity : CulturalActivityInfo {
 
 		TerrainCell groupCell = Group.Cell;
 
+		float changeSpeedFactor = 0.005f;
+
 		float randomModifier = groupCell.GetNextLocalRandomFloat ();
 		randomModifier = 1f - (randomModifier * 2f);
-		float randomFactor = 0.2f * randomModifier;
+		float randomFactor = changeSpeedFactor * randomModifier;
 
 		float maxTargetValue = 1f;
 		float minTargetValue = 0f;

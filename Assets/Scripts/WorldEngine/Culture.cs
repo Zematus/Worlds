@@ -333,9 +333,21 @@ public class CellCulture : Culture {
 
 	public void Update (int timeSpan) {
 
+		float totalValue = 0;
+
 		foreach (CulturalActivity activity in Activities) {
 
 			activity.Update (timeSpan);
+			totalValue += activity.Value;
+		}
+
+		foreach (CulturalActivity activity in Activities) {
+
+			if (totalValue > 0) {
+				activity.Contribution = activity.Value / totalValue;
+			} else {
+				activity.Contribution = 1f / Activities.Count;
+			}
 		}
 
 		foreach (CulturalSkill skill in Skills) {
