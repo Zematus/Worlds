@@ -26,7 +26,7 @@ public class Biome {
 		MinBiomeTemperature,
 		-15f,
 		0.0f,
-		0.01f,
+		0.0001f,
 		0.5f);
 
 	public static Biome Glacier = new Biome(
@@ -40,7 +40,7 @@ public class Biome {
 		MinBiomeTemperature,
 		-15f,
 		0.0f,
-		0.01f,
+		0.0001f,
 		0.5f);
 	
 	public static Biome Ocean = new Biome(
@@ -96,7 +96,7 @@ public class Biome {
 		-20f,
 		-0f,
 		0.2f,
-		0.4f,
+		0.2f,
 		0.4f);
 	
 	public static Biome Tundra = new Biome(
@@ -110,7 +110,7 @@ public class Biome {
 		-20f,
 		-0f,
 		0.0f,
-		0.1f,
+		0.02f,
 		1.0f);
 	
 	public static Biome DeserticTundra = new Biome(
@@ -124,7 +124,7 @@ public class Biome {
 		MinBiomeTemperature,
 		-0f,
 		0.0f,
-		0.04f,
+		0.0002f,
 		0.8f);
 	
 	public static Biome Desert = new Biome(
@@ -138,7 +138,7 @@ public class Biome {
 		-10f,
 		MaxBiomeTemperature,
 		0.0f,
-		0.02f,
+		0.0004f,
 		0.8f);
 	
 	public static Biome Rainforest = new Biome(

@@ -15,7 +15,7 @@ public class CellGroup : HumanGroup {
 	public const float NaturalGrowthRate = NaturalBirthRate - NaturalDeathRate;
 	
 	public const float PopulationForagingConstant = 10;
-	public const float PopulationFarmingConstant = 2;
+	public const float PopulationFarmingConstant = 40;
 
 	public const float MinKnowledgeTransferValue = 0.25f;
 
@@ -83,7 +83,7 @@ public class CellGroup : HumanGroup {
 	
 	private HashSet<string> _flags = new HashSet<string> ();
 
-	private float _noMigrationFactor = 0.005f;
+	private float _noMigrationFactor = 0.002f;
 
 	Dictionary<TerrainCell, float> _cellMigrationValues = new Dictionary<TerrainCell, float> ();
 
@@ -414,7 +414,11 @@ public class CellGroup : HumanGroup {
 			existingPopulation = cell.Group.Population;
 
 			popDifferenceFactor = (float)Population / (float)(Population + existingPopulation);
+			popDifferenceFactor *= popDifferenceFactor;
+			popDifferenceFactor *= popDifferenceFactor;
 		}
+
+		popDifferenceFactor *= 10;
 
 		int cellOptimalPopulation = OptimalPopulation;
 
@@ -426,16 +430,15 @@ public class CellGroup : HumanGroup {
 			noMigrationFactor = _noMigrationFactor;
 		}
 
-		float carryingCapacityFactor = 1;
-
-		if (cellOptimalPopulation + existingPopulation > 0) {
-
-			carryingCapacityFactor = (float)cellOptimalPopulation / (float)(cellOptimalPopulation + existingPopulation);
-			carryingCapacityFactor *= carryingCapacityFactor;
-			carryingCapacityFactor *= carryingCapacityFactor;
-		}
-
-		float cellValue = altitudeDeltaFactor * areaFactor * carryingCapacityFactor * popDifferenceFactor * noMigrationFactor;
+//		float carryingCapacityFactor = 0;
+//
+//		if (cellOptimalPopulation + existingPopulation > 0) {
+//
+//			carryingCapacityFactor = (float)cellOptimalPopulation / (float)(cellOptimalPopulation + existingPopulation);
+//		}
+//
+//		float cellValue = altitudeDeltaFactor * areaFactor * carryingCapacityFactor * popDifferenceFactor * noMigrationFactor;
+		float cellValue = altitudeDeltaFactor * areaFactor * popDifferenceFactor * noMigrationFactor;
 
 		return cellValue;
 	}
@@ -666,6 +669,11 @@ public class CellGroup : HumanGroup {
 
 	private void UpdateTerrainFarmlandPercentage (int timeSpan) {
 
+		if (Cell.IsSelected) {
+		
+			bool debug = true;
+		}
+
 		CulturalKnowledge agricultureKnowledge = Culture.GetKnowledge (AgricultureKnowledge.AgricultureKnowledgeId);
 
 		if (agricultureKnowledge == null) {
@@ -683,7 +691,7 @@ public class CellGroup : HumanGroup {
 
 		float farmingPopulation = GetActivityContribution (CulturalActivity.FarmingActivityId) * Population;
 
-		float maxWorkableFarmlandArea = areaPerFarmWorker * farmingPopulation * terrainFactor;
+		float maxWorkableFarmlandArea = areaPerFarmWorker * farmingPopulation;
 
 		float maxPossibleFarmlandArea = Cell.Area * terrainFactor;
 
@@ -799,7 +807,9 @@ public class CellGroup : HumanGroup {
 		if (agricultureKnowledge == null)
 			return capacityFactor;
 
-		capacityFactor = cell.FarmlandPercentage * agricultureKnowledge.Value;
+		float techFactor = Mathf.Sqrt(agricultureKnowledge.Value);
+
+		capacityFactor = cell.FarmlandPercentage * techFactor;
 
 		return capacityFactor;
 	}

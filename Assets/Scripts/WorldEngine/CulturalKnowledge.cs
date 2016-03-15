@@ -216,7 +216,7 @@ public class ShipbuildingKnowledge : CulturalKnowledge {
 		}
 	}
 
-	public ShipbuildingKnowledge (CellGroup group, float value = 0f) : base (group, ShipbuildingKnowledgeId, ShipbuildingKnowledgeName, value) {
+	public ShipbuildingKnowledge (CellGroup group, float value = 1f) : base (group, ShipbuildingKnowledgeId, ShipbuildingKnowledgeName, value) {
 		
 		CalculateNeighborhoodOceanPresence ();
 	}
@@ -365,7 +365,7 @@ public class AgricultureKnowledge : CulturalKnowledge {
 		}
 	}
 
-	public AgricultureKnowledge (CellGroup group, float value = 0f) : base (group, AgricultureKnowledgeId, AgricultureKnowledgeName, value) {
+	public AgricultureKnowledge (CellGroup group, float value = 1f) : base (group, AgricultureKnowledgeId, AgricultureKnowledgeName, value) {
 
 		CalculateTerrainFactor ();
 	}

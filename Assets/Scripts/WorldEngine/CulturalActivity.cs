@@ -87,7 +87,7 @@ public class CulturalActivity : CulturalActivityInfo {
 
 		TerrainCell groupCell = Group.Cell;
 
-		float changeSpeedFactor = 0.005f;
+		float changeSpeedFactor = 0.001f;
 
 		float randomModifier = groupCell.GetNextLocalRandomFloat ();
 		randomModifier = 1f - (randomModifier * 2f);
