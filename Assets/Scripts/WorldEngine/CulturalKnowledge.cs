@@ -132,7 +132,7 @@ public abstract class CulturalKnowledge : CulturalKnowledgeInfo {
 	
 	public void RecalculateAsymptote () {
 
-		Asymptote = 0;
+		Asymptote = CalculateBaseAsymptote ();
 
 		Group.Culture.Discoveries.ForEach (d => Asymptote = Mathf.Max (CalculateAsymptoteInternal (d), Asymptote));
 
@@ -194,12 +194,16 @@ public abstract class CulturalKnowledge : CulturalKnowledgeInfo {
 
 	protected abstract void UpdateInternal (int timeSpan);
 	protected abstract float CalculateAsymptoteInternal (CulturalDiscovery discovery);
+	protected abstract float CalculateBaseAsymptote ();
 }
 
 public class ShipbuildingKnowledge : CulturalKnowledge {
 
 	public const string ShipbuildingKnowledgeId = "ShipbuildingKnowledge";
 	public const string ShipbuildingKnowledgeName = "Shipbuilding";
+
+	public const float MinKnowledgeValueForSailing = 3;
+	public const float OptimalKnowledgeValueForSailing = 10;
 
 	public const float TimeEffectConstant = CellGroup.GenerationTime * 500;
 	public const float NeighborhoodOceanPresenceModifier = 1.5f;
@@ -311,7 +315,7 @@ public class ShipbuildingKnowledge : CulturalKnowledge {
 		if (_neighborhoodOceanPresence <= 0)
 			return 1;
 
-		return Mathf.Min (ProgressLevel / _neighborhoodOceanPresence, 1);
+		return Mathf.Clamp (ProgressLevel / _neighborhoodOceanPresence, MinValue, 1);
 	}
 
 	public override float CalculateTransferFactor ()
@@ -342,6 +346,11 @@ public class ShipbuildingKnowledge : CulturalKnowledge {
 
 			Group.World.InsertEventToHappen (new BoatMakingDiscoveryEvent (Group, triggerDate));
 		}
+	}
+
+	protected override float CalculateBaseAsymptote ()
+	{
+		return 0;
 	}
 }
 
@@ -418,7 +427,7 @@ public class AgricultureKnowledge : CulturalKnowledge {
 		if (_terrainFactor <= 0)
 			return 1;
 
-		return Mathf.Min (ProgressLevel / _terrainFactor, 1);
+		return Mathf.Clamp (ProgressLevel / _terrainFactor, MinValue, 1);
 	}
 
 	public override float CalculateTransferFactor ()
@@ -458,5 +467,126 @@ public class AgricultureKnowledge : CulturalKnowledge {
 
 			Group.World.InsertEventToHappen (new FarmDegradationEvent (Group.Cell, triggerDate));
 		}
+	}
+
+	protected override float CalculateBaseAsymptote ()
+	{
+		return 0;
+	}
+}
+
+public class SocialOrganizationKnowledge : CulturalKnowledge {
+
+	public const string SocialOrganizationKnowledgeId = "SocialOrganizationKnowledge";
+	public const string SocialOrganizationKnowledgeName = "Social Organization";
+
+	public const float MinKnowledgeValueForTribalism = 5;
+	public const float OptimalKnowledgeValueForTribalism = 10;
+
+	public const float TimeEffectConstant = CellGroup.GenerationTime * 500;
+	public const float PopulationDensityModifier = 10000f;
+
+	public static float HighestAsymptote = 0;
+
+	public SocialOrganizationKnowledge () {
+
+		if (Asymptote > HighestAsymptote) {
+
+			HighestAsymptote = Asymptote;
+		}
+	}
+
+	public SocialOrganizationKnowledge (CellGroup group, float value = 1f) : base (group, SocialOrganizationKnowledgeId, SocialOrganizationKnowledgeName, value) {
+
+	}
+
+	public SocialOrganizationKnowledge (CellGroup group, SocialOrganizationKnowledge baseKnowledge) : base (group, baseKnowledge.Id, baseKnowledge.Name, baseKnowledge.Value, baseKnowledge.Asymptote) {
+
+	}
+
+	public SocialOrganizationKnowledge (CellGroup group, SocialOrganizationKnowledge baseKnowledge, float initialValue) : base (group, baseKnowledge.Id, baseKnowledge.Name, initialValue) {
+
+	}
+
+	public override void FinalizeLoad () {
+
+		base.FinalizeLoad ();
+	}
+
+	protected float CalculatePopulationFactor () {
+
+		float population = Group.Population;
+
+		float popFactor = population / (population + (PopulationDensityModifier * Asymptote));
+		popFactor = 0.1f + popFactor * 0.9f;
+
+		return popFactor;
+	}
+
+	protected override void UpdateInternal (int timeSpan) {
+
+		float populationFactor = CalculatePopulationFactor ();
+
+		UpdateValue (timeSpan, TimeEffectConstant, populationFactor);
+
+		TryGenerateTribalismDiscoveryEvent ();
+	}
+
+	private void TryGenerateTribalismDiscoveryEvent () {
+
+		if (Value < TribalismDiscoveryEvent.MinSocialOrganizationKnowledgeSpawnEventValue)
+			return;
+
+		if (Value > TribalismDiscoveryEvent.OptimalSocialOrganizationKnowledgeValue)
+			return;
+
+		if (TribalismDiscoveryEvent.CanSpawnIn (Group)) {
+
+			int triggerDate = TribalismDiscoveryEvent.CalculateTriggerDate (Group);
+
+			Group.World.InsertEventToHappen (new TribalismDiscoveryEvent (Group, triggerDate));
+		}
+	}
+
+	protected override float CalculateAsymptoteInternal (CulturalDiscovery discovery)
+	{
+		switch (discovery.Id) {
+
+		case TribalismDiscovery.TribalismDiscoveryId:
+			return 30;
+		}
+
+		return 0;
+	}
+
+	public override float CalculateExpectedProgressLevel ()
+	{
+		float populationFactor = CalculatePopulationFactor ();
+
+		if (populationFactor <= 0)
+			return 1;
+
+		return Mathf.Clamp (ProgressLevel / populationFactor, MinValue, 1);
+	}
+
+	public override float CalculateTransferFactor ()
+	{
+		float populationFactor = CalculatePopulationFactor ();
+
+		return (populationFactor * 0.9f) + 0.1f;
+	}
+
+	public override bool WillBeLost ()
+	{
+		return false;
+	}
+
+	public override void LossConsequences ()
+	{
+	}
+
+	protected override float CalculateBaseAsymptote ()
+	{
+		return 10;
 	}
 }

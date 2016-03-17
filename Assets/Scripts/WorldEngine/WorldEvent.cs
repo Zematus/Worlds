@@ -85,7 +85,7 @@ public class FarmDegradationEvent : CellEvent {
 	
 	public const int MaxDateSpanToTrigger = CellGroup.GenerationTime * 8;
 
-	public const float DegradationFactor = 0.1f;
+	public const float DegradationFactor = 0.25f;
 	public const float MinFarmLandPercentage = 0.001f;
 
 	public FarmDegradationEvent () {
@@ -297,8 +297,8 @@ public class SailingDiscoveryEvent : CellGroupEvent {
 	public const int DateSpanFactorConstant = CellGroup.GenerationTime * 10000;
 
 	public const float MinShipBuildingKnowledgeSpawnEventValue = 5;
-	public const float MinShipBuildingKnowledgeValue = SailingDiscovery.MinShipBuildingKnowledgeValue;
-	public const float OptimalShipBuildingKnowledgeValue = SailingDiscovery.OptimalShipBuildingKnowledgeValue;
+	public const float MinShipBuildingKnowledgeValue = ShipbuildingKnowledge.MinKnowledgeValueForSailing;
+	public const float OptimalShipBuildingKnowledgeValue = ShipbuildingKnowledge.OptimalKnowledgeValueForSailing;
 
 	public const string EventSetFlag = "SailingDiscoveryEvent_Set";
 	
@@ -371,6 +371,96 @@ public class SailingDiscoveryEvent : CellGroupEvent {
 	public override void Trigger () {
 
 		Group.Culture.AddDiscoveryToFind (new SailingDiscovery ());
+		World.AddGroupToUpdate (Group);
+	}
+
+	protected override void DestroyInternal ()
+	{
+		Group.UnsetFlag (EventSetFlag);
+
+		base.DestroyInternal ();
+	}
+}
+
+public class TribalismDiscoveryEvent : CellGroupEvent {
+
+	public const int DateSpanFactorConstant = CellGroup.GenerationTime * 10000;
+
+	public const float MinSocialOrganizationKnowledgeSpawnEventValue = 5;
+	public const float MinSocialOrganizationKnowledgeValue = SocialOrganizationKnowledge.MinKnowledgeValueForTribalism;
+	public const float OptimalSocialOrganizationKnowledgeValue = SocialOrganizationKnowledge.OptimalKnowledgeValueForTribalism;
+
+	public const string EventSetFlag = "TribalismDiscoveryEvent_Set";
+
+	public TribalismDiscoveryEvent () {
+
+	}
+
+	public TribalismDiscoveryEvent (CellGroup group, int triggerDate) : base (group, triggerDate) {
+
+		Group.SetFlag (EventSetFlag);
+	}
+
+	public static int CalculateTriggerDate (CellGroup group) {
+
+		float socialOrganizationValue = 0;
+
+		CulturalKnowledge socialOrganizationKnowledge = group.Culture.GetKnowledge (SocialOrganizationKnowledge.SocialOrganizationKnowledgeId);
+
+		if (socialOrganizationKnowledge != null)
+			socialOrganizationValue = socialOrganizationKnowledge.Value;
+
+		float randomFactor = group.Cell.GetNextLocalRandomFloat ();
+		randomFactor = randomFactor * randomFactor;
+
+		float socialOrganizationFactor = (socialOrganizationValue - MinSocialOrganizationKnowledgeValue) / (OptimalSocialOrganizationKnowledgeValue - MinSocialOrganizationKnowledgeValue);
+		socialOrganizationFactor = Mathf.Clamp01 (socialOrganizationFactor) + 0.001f;
+
+		float dateSpan = (1 - randomFactor) * DateSpanFactorConstant / socialOrganizationFactor;
+
+		int targetCurrentDate = (int)Mathf.Min (int.MaxValue, group.World.CurrentDate + dateSpan);
+
+		if (targetCurrentDate <= group.World.CurrentDate)
+			targetCurrentDate = int.MaxValue;
+
+		return targetCurrentDate;
+	}
+
+	public static bool CanSpawnIn (CellGroup group) {
+
+		if (group.Culture.GetDiscovery (TribalismDiscovery.TribalismDiscoveryId) != null)
+			return false;
+
+		if (group.IsFlagSet (EventSetFlag))
+			return false;
+
+		return true;
+	}
+
+	public override bool CanTrigger () {
+
+		if (!base.CanTrigger ())
+			return false;
+
+		CulturalDiscovery discovery = Group.Culture.GetDiscovery (TribalismDiscovery.TribalismDiscoveryId);
+
+		if (discovery != null)
+			return false;
+
+		CulturalKnowledge socialOrganizationKnowledge = Group.Culture.GetKnowledge (SocialOrganizationKnowledge.SocialOrganizationKnowledgeId);
+
+		if (socialOrganizationKnowledge == null)
+			return false;
+
+		if (socialOrganizationKnowledge.Value < MinSocialOrganizationKnowledgeValue)
+			return false;
+
+		return true;
+	}
+
+	public override void Trigger () {
+
+		Group.Culture.AddDiscoveryToFind (new TribalismDiscovery ());
 		World.AddGroupToUpdate (Group);
 	}
 

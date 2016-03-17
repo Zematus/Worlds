@@ -81,6 +81,7 @@ public class World {
 //		XmlArrayItem (Type = typeof(KnowledgeTransferEvent)),
 		XmlArrayItem (Type = typeof(SailingDiscoveryEvent)),
 		XmlArrayItem (Type = typeof(BoatMakingDiscoveryEvent)),
+		XmlArrayItem (Type = typeof(TribalismDiscoveryEvent)),
 		XmlArrayItem (Type = typeof(PlantCultivationDiscoveryEvent)),
 		XmlArrayItem (Type = typeof(FarmDegradationEvent))]
 	public List<WorldEvent> EventsToHappen;

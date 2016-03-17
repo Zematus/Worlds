@@ -13,11 +13,13 @@ public abstract class Culture {
 	public List<CulturalSkill> Skills = new List<CulturalSkill> ();
 	
 	[XmlArrayItem(Type = typeof(ShipbuildingKnowledge)),
-		XmlArrayItem(Type = typeof(AgricultureKnowledge))]
+		XmlArrayItem(Type = typeof(AgricultureKnowledge)),
+		XmlArrayItem(Type = typeof(SocialOrganizationKnowledge))]
 	public List<CulturalKnowledge> Knowledges = new List<CulturalKnowledge> ();
 	
 	[XmlArrayItem(Type = typeof(BoatMakingDiscovery)),
 		XmlArrayItem(Type = typeof(SailingDiscovery)),
+		XmlArrayItem(Type = typeof(TribalismDiscovery)),
 		XmlArrayItem(Type = typeof(PlantCultivationDiscovery))]
 	public List<CulturalDiscovery> Discoveries = new List<CulturalDiscovery> ();
 

@@ -69,9 +69,6 @@ public class BoatMakingDiscovery : CulturalDiscovery {
 }
 
 public class SailingDiscovery : CulturalDiscovery {
-
-	public const float MinShipBuildingKnowledgeValue = 3;
-	public const float OptimalShipBuildingKnowledgeValue = 10;
 	
 	public const string SailingDiscoveryId = "SailingDiscovery";
 	public const string SailingDiscoveryName = "Sailing";
@@ -87,9 +84,32 @@ public class SailingDiscovery : CulturalDiscovery {
 		if (knowledge == null)
 			return false;
 		
-		if (knowledge.Value < MinShipBuildingKnowledgeValue)
+		if (knowledge.Value < ShipbuildingKnowledge.MinKnowledgeValueForSailing)
 			return false;
 		
+		return true;
+	}
+}
+
+public class TribalismDiscovery : CulturalDiscovery {
+
+	public const string TribalismDiscoveryId = "TribalismDiscovery";
+	public const string TribalismDiscoveryName = "Tribalism";
+
+	public TribalismDiscovery () : base (TribalismDiscoveryId, TribalismDiscoveryName) {
+
+	}
+
+	public override bool CanBeHeld (CellGroup group)
+	{
+		CulturalKnowledge knowledge = group.Culture.GetKnowledge (SocialOrganizationKnowledge.SocialOrganizationKnowledgeId);
+
+		if (knowledge == null)
+			return false;
+
+		if (knowledge.Value < SocialOrganizationKnowledge.MinKnowledgeValueForTribalism)
+			return false;
+
 		return true;
 	}
 }

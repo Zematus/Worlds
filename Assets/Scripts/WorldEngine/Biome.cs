@@ -82,7 +82,7 @@ public class Biome {
 		-10f,
 		MaxBiomeTemperature,
 		0.4f,
-		0.6f,
+		0.5f,
 		0.6f);
 	
 	public static Biome Taiga = new Biome(
@@ -152,7 +152,7 @@ public class Biome {
 		-5f,
 		MaxBiomeTemperature,
 		0.2f,
-		0.8f,
+		0.6f,
 		0.2f);
 
 	public static Dictionary<string, Biome> Biomes = new Dictionary<string, Biome>() {

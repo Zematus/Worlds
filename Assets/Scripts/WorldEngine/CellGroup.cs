@@ -136,6 +136,7 @@ public class CellGroup : HumanGroup {
 
 		InitializeDefaultActivities ();
 		InitializeDefaultSkills ();
+		InitializeDefaultKnowledges ();
 		
 		NextUpdateDate = CalculateNextUpdateDate();
 		
@@ -168,6 +169,11 @@ public class CellGroup : HumanGroup {
 	public void InitializeDefaultActivities () {
 
 		Culture.AddActivityToPerform (CulturalActivity.CreateForagingActivity (this));
+	}
+
+	public void InitializeDefaultKnowledges () {
+
+		Culture.AddKnowledgeToLearn (new SocialOrganizationKnowledge (this));
 	}
 
 	public void SetFlag (string flag) {
@@ -420,12 +426,12 @@ public class CellGroup : HumanGroup {
 
 		popDifferenceFactor *= 10;
 
-		int cellOptimalPopulation = OptimalPopulation;
+//		int cellOptimalPopulation = OptimalPopulation;
 
 		float noMigrationFactor = 1;
 
 		if (cell != Cell) {
-			cellOptimalPopulation = CalculateOptimalPopulation (cell);
+//			cellOptimalPopulation = CalculateOptimalPopulation (cell);
 
 			noMigrationFactor = _noMigrationFactor;
 		}
