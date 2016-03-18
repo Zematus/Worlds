@@ -95,6 +95,8 @@ public class World {
 	public List<CulturalKnowledgeInfo> CulturalKnowledgeInfoList = new List<CulturalKnowledgeInfo> ();
 	public List<CulturalDiscoveryInfo> CulturalDiscoveryInfoList = new List<CulturalDiscoveryInfo> ();
 
+	public List<Polity> ExistingPolities = new List<Polity> ();
+
 	// End wonky segment 
 	
 	[XmlIgnore]
@@ -581,6 +583,12 @@ public class World {
 
 			g.World = this;
 			g.FinalizeLoad ();
+		});
+
+		ExistingPolities.ForEach (p => {
+		
+			p.World = this;
+			p.FinalizeLoad ();
 		});
 
 		EventsToHappen.ForEach (e => {
