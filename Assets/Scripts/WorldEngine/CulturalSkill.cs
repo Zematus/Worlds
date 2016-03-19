@@ -30,7 +30,7 @@ public class CulturalSkillInfo {
 	}
 }
 
-public abstract class CulturalSkill : CulturalSkillInfo {
+public abstract class CulturalSkill : CulturalSkillInfo, Synchronizable {
 	
 	[XmlAttribute]
 	public float Value;
@@ -67,6 +67,10 @@ public abstract class CulturalSkill : CulturalSkillInfo {
 	public void ModifyValue (float percentage) {
 		
 		Value *= percentage;
+	}
+
+	public virtual void Synchronize () {
+
 	}
 
 	public virtual void FinalizeLoad () {

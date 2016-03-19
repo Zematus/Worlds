@@ -4,79 +4,134 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
-public abstract class Polity {
+public abstract class Polity : Synchronizable {
 
-	public WorldPosition CoreCellPosition;
+	[XmlAttribute]
+	public int Id;
 
-	public List<WorldPosition> TerritoryPositions = new List<WorldPosition> ();
+	public int CoreGroupId;
+
+	public List<int> InfluencedGroupIds;
+
+	public Territory Territory = new Territory ();
 
 	[XmlIgnore]
 	public World World;
 
 	[XmlIgnore]
-	public TerrainCell CoreCell;
+	public CellGroup CoreGroup;
 
-	private HashSet<TerrainCell> _territory = new HashSet<TerrainCell> ();
+	[XmlIgnore]
+	public List<CellGroup> InfluencedGroups = new List<CellGroup> ();
 
 	public Polity () {
 	
 	}
 
-	public Polity (TerrainCell coreCell) {
+	public Polity (CellGroup group) {
 
-		World = coreCell.World;
+		World = group.World;
 
-		SetCoreCell (coreCell);
+		Id = World.GeneratePolityId ();
 
-		AddCellToTerritory (coreCell);
+		SetCoreGroup (group);
 	}
 
-	public void SetCoreCell (TerrainCell cell) {
+	public void SetCoreGroup (CellGroup group) {
 
-		CoreCell = cell;
+		CoreGroup = group;
 
-		CoreCellPosition = cell.Position;
+		CoreGroupId = group.Id;
+
+		Territory.AddCell (group.Cell);
 	}
 
-	public bool AddCellToTerritory (TerrainCell cell) {
+	public virtual void Synchronize () {
 
-		if (!_territory.Add (cell))
+		InfluencedGroupIds = new List<int> (InfluencedGroups.Count);
+
+		foreach (CellGroup g in InfluencedGroups) {
+
+			InfluencedGroupIds.Add (g.Id);
+		}
+	}
+
+	public virtual void FinalizeLoad () {
+
+		CoreGroup = World.GetCellGroup (CoreGroupId);
+
+		if (CoreGroup == null) {
+			throw new System.Exception ("Missing Group with Id " + CoreGroupId);
+		}
+
+		foreach (int id in InfluencedGroupIds) {
+
+			CellGroup group = World.GetCellGroup (id);
+
+			if (group == null) {
+				throw new System.Exception ("Missing Group with Id " + id);
+			}
+
+			InfluencedGroups.Add (group);
+		}
+	}
+}
+
+public class Territory {
+
+	public List<WorldPosition> CellPositions = new List<WorldPosition> ();
+
+	[XmlIgnore]
+	public World World;
+
+	private HashSet<TerrainCell> _cells = new HashSet<TerrainCell> ();
+
+	public Territory () {
+	
+	}
+
+	public Territory (World world) {
+
+		World = world;
+	}
+
+	public bool AddCell (TerrainCell cell) {
+
+		if (!_cells.Add (cell))
 			return false;
 
-		TerritoryPositions.Add (cell.Position);
+		CellPositions.Add (cell.Position);
+
+		cell.AddEncompassingTerritory (this);
 
 		return true;
 	}
 
-	public bool RemoveCellToTerritory (TerrainCell cell) {
+	public bool RemoveCell (TerrainCell cell) {
 
-		if (!_territory.Remove (cell))
+		if (!_cells.Remove (cell))
 			return false;
 
-		TerritoryPositions.Remove (cell.Position);
+		CellPositions.Remove (cell.Position);
+
+		cell.RemoveEncompassingTerritory (this);
 
 		return true;
 	}
 
 	public void FinalizeLoad () {
 
-		CoreCell = World.GetCell (CoreCellPosition);
-
-		if (CoreCell == null) {
-
-			throw new System.Exception ("Terrain cell missing at position " + CoreCellPosition.Longitude + "," + CoreCellPosition.Latitude);
-		}
-
-		foreach (WorldPosition position in TerritoryPositions) {
+		foreach (WorldPosition position in CellPositions) {
 
 			TerrainCell cell = World.GetCell (position);
 
 			if (cell == null) {
-			
-				throw new System.Exception ("Terrain cell missing at position " + position.Longitude + "," + position.Latitude);
+				throw new System.Exception ("Cell missing at position " + position.Longitude + "," + position.Latitude);
 			}
 		
-			_territory.Add (cell);
+			_cells.Add (cell);
+
+			cell.AddEncompassingTerritory (this);
 		}
 	}
 }

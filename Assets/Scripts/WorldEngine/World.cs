@@ -6,8 +6,14 @@ using System.Xml.Serialization;
 
 public delegate void ProgressCastDelegate (float value, string message = null);
 
+public interface Synchronizable {
+
+	void Synchronize ();
+	void FinalizeLoad ();
+}
+
 [XmlRoot]
-public class World {
+public class World : Synchronizable {
 	
 	public const float Circumference = 40075; // In kilometers;
 	
@@ -55,6 +61,9 @@ public class World {
 	
 	[XmlAttribute]
 	public int CurrentEventId { get; private set; }
+
+	[XmlAttribute]
+	public int CurrentPolityId { get; private set; }
 	
 	[XmlAttribute]
 	public int EventsToHappenCount { get; private set; }
@@ -86,8 +95,6 @@ public class World {
 		XmlArrayItem (Type = typeof(FarmDegradationEvent))]
 	public List<WorldEvent> EventsToHappen;
 
-	public List<CellGroup> CellGroups = new List<CellGroup> ();
-
 	public List<TerrainCellChanges> TerrainCellChangesList = new List<TerrainCellChanges> ();
 
 	public List<CulturalActivityInfo> CulturalActivityInfoList = new List<CulturalActivityInfo> ();
@@ -95,7 +102,8 @@ public class World {
 	public List<CulturalKnowledgeInfo> CulturalKnowledgeInfoList = new List<CulturalKnowledgeInfo> ();
 	public List<CulturalDiscoveryInfo> CulturalDiscoveryInfoList = new List<CulturalDiscoveryInfo> ();
 
-	public List<Polity> ExistingPolities = new List<Polity> ();
+	public List<CellGroup> CellGroups;
+	public List<Polity> Polities;
 
 	// End wonky segment 
 	
@@ -162,6 +170,9 @@ public class World {
 
 	private List<MigratingGroup> _migratingGroups = new List<MigratingGroup> ();
 
+	public Dictionary<int, CellGroup> _cellGroups = new Dictionary<int, CellGroup> ();
+	public Dictionary<int, Polity> _polities = new Dictionary<int, Polity> ();
+
 	private Vector2[] _continentOffsets;
 	private float[] _continentWidths;
 	private float[] _continentHeights;
@@ -191,6 +202,7 @@ public class World {
 		MaxYearsToSkip = int.MaxValue;
 		CurrentCellGroupId = 0;
 		CurrentEventId = 0;
+		CurrentPolityId = 0;
 		EventsToHappenCount = 0;
 		CellGroupsCount = 0;
 		TerrainCellChangesListCount = 0;
@@ -277,6 +289,14 @@ public class World {
 	public void Synchronize () {
 	
 		EventsToHappen = _eventsToHappen.Values;
+
+		CellGroups = new List<CellGroup> (_cellGroups.Values);
+		Polities = new List<Polity> (_polities.Values);
+
+		foreach (Polity p in Polities) {
+		
+			p.Synchronize ();
+		}
 
 		TerrainCellChangesList.Clear ();
 		TerrainCellChangesListCount = 0;
@@ -536,7 +556,7 @@ public class World {
 	
 	public void AddGroup (CellGroup group) {
 
-		CellGroups.Add (group);
+		_cellGroups.Add (group.Id, group);
 
 		Manager.AddUpdatedCell (group.Cell);
 
@@ -544,20 +564,20 @@ public class World {
 	}
 	
 	public void RemoveGroup (CellGroup group) {
-		
-		CellGroups.Remove (group);
+
+		_cellGroups.Remove (group.Id);
 		
 		CellGroupsCount--;
 	}
 	
-	public CellGroup FindCellGroup (int id) {
+	public CellGroup GetCellGroup (int id) {
 
-		foreach (CellGroup group in CellGroups) {
-		
-			if (group.Id == id) return group;
-		}
+		CellGroup group;
 
-		return null;
+		if (!_cellGroups.TryGetValue (id, out group))
+			return null;
+
+		return group;
 	}
 
 	public void AddGroupToUpdate (CellGroup group) {
@@ -568,6 +588,16 @@ public class World {
 	public void AddGroupToRemove (CellGroup group) {
 		
 		_groupsToRemove.Add (group);
+	}
+
+	public Polity GetPolity (int id) {
+
+		Polity polity;
+
+		if (!_polities.TryGetValue (id, out polity))
+			return null;
+
+		return polity;
 	}
 
 	public void FinalizeLoad () {
@@ -583,12 +613,16 @@ public class World {
 
 			g.World = this;
 			g.FinalizeLoad ();
+
+			_cellGroups.Add (g.Id, g);
 		});
 
-		ExistingPolities.ForEach (p => {
+		Polities.ForEach (p => {
 		
 			p.World = this;
 			p.FinalizeLoad ();
+
+			_polities.Add (p.Id, p);
 		});
 
 		EventsToHappen.ForEach (e => {
@@ -1252,6 +1286,11 @@ public class World {
 	public int GenerateEventId () {
 		
 		return ++CurrentEventId;
+	}
+
+	public int GeneratePolityId () {
+
+		return ++CurrentPolityId;
 	}
 
 	private float CalculateCellBaseArability (TerrainCell cell) {

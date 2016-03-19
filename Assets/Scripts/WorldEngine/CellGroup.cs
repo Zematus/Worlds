@@ -61,6 +61,9 @@ public class CellGroup : HumanGroup {
 
 	public CellCulture Culture;
 
+	public List<int> InfluencingPolityIds;
+	public List<float> PolityInfluenceValues;
+
 	[XmlIgnore]
 	public static float TravelWidthFactor;
 	
@@ -78,6 +81,9 @@ public class CellGroup : HumanGroup {
 	
 	[XmlIgnore]
 	public List<CellGroup> Neighbors;
+
+	[XmlIgnore]
+	public Dictionary<Polity, float> PolityInfluences = new Dictionary<Polity, float> ();
 
 //	private Dictionary<int, WorldEvent> _associatedEvents = new Dictionary<int, WorldEvent> ();
 	
@@ -908,6 +914,20 @@ public class CellGroup : HumanGroup {
 
 		return 0;
 	}
+
+	public override void Synchronize () {
+
+		InfluencingPolityIds = new List<int> (PolityInfluences.Count);
+		PolityInfluenceValues = new List<float> (PolityInfluences.Count);
+
+		foreach (KeyValuePair <Polity, float> pair in PolityInfluences) {
+		
+			InfluencingPolityIds.Add (pair.Key.Id);
+			PolityInfluenceValues.Add (pair.Value);
+		} 
+		
+		base.Synchronize ();
+	}
 	
 	public override void FinalizeLoad () {
 
@@ -932,6 +952,19 @@ public class CellGroup : HumanGroup {
 			
 			SeaMigrationRoute.World = World;
 			SeaMigrationRoute.FinalizeLoad ();
+		}
+
+		for (int i = 0; i < InfluencingPolityIds.Count; i++) {
+
+			int id = InfluencingPolityIds [i];
+			float value = PolityInfluenceValues [i];
+
+			Polity polity = World.GetPolity (id);
+
+			if (polity == null)
+				throw new System.Exception ("Unable to find Polity with Id " + id);
+
+			PolityInfluences.Add (polity, value);
 		}
 	}
 }

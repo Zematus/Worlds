@@ -95,6 +95,6 @@ public class MigratingGroup : HumanGroup {
 		
 		TargetCell = World.TerrainCells[TargetCellLongitude][TargetCellLatitude];
 		
-		SourceGroup = World.FindCellGroup (SourceGroupId);
+		SourceGroup = World.GetCellGroup (SourceGroupId);
 	}
 }

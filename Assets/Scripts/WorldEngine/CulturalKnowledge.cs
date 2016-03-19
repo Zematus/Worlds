@@ -30,7 +30,7 @@ public class CulturalKnowledgeInfo {
 	}
 }
 
-public abstract class CulturalKnowledge : CulturalKnowledgeInfo {
+public abstract class CulturalKnowledge : CulturalKnowledgeInfo, Synchronizable {
 
 	public const float MinValue = 0.001f;
 	
@@ -116,6 +116,10 @@ public abstract class CulturalKnowledge : CulturalKnowledgeInfo {
 	public void ModifyValue (float percentage) {
 		
 		Value *= percentage;
+	}
+
+	public virtual void Synchronize () {
+
 	}
 
 	public virtual void FinalizeLoad () {

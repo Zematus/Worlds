@@ -3,7 +3,7 @@ using System.Collections;
 using System.Xml;
 using System.Xml.Serialization;
 
-public abstract class HumanGroup {
+public abstract class HumanGroup : Synchronizable {
 	
 	[XmlAttribute]
 	public bool MigrationTagged;
@@ -19,6 +19,9 @@ public abstract class HumanGroup {
 		MigrationTagged = false;
 
 		World = world;
+	}
+
+	public virtual void Synchronize () {
 	}
 
 	public virtual void FinalizeLoad () {

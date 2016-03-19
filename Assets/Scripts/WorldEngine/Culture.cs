@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
-public abstract class Culture {
+public abstract class Culture : Synchronizable {
 
 	public List<CulturalActivity> Activities = new List<CulturalActivity> ();
 
@@ -149,6 +149,9 @@ public abstract class Culture {
 			return null;
 		
 		return discovery;
+	}
+
+	public virtual void Synchronize () {
 	}
 
 	public virtual void FinalizeLoad () {

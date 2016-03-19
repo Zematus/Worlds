@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
-public abstract class WorldEvent {
+public abstract class WorldEvent : Synchronizable {
 
 	public static int EventCount = 0;
 
@@ -37,6 +37,10 @@ public abstract class WorldEvent {
 	public virtual bool CanTrigger () {
 
 		return true;
+	}
+
+	public virtual void Synchronize () {
+
 	}
 
 	public virtual void FinalizeLoad () {
@@ -200,7 +204,7 @@ public abstract class CellGroupEvent : WorldEvent {
 	
 	public override void FinalizeLoad () {
 		
-		Group = World.FindCellGroup (GroupId);
+		Group = World.GetCellGroup (GroupId);
 		
 //		Group.AddAssociatedEvent (this);
 	}
@@ -688,7 +692,7 @@ public class KnowledgeTransferEvent : CellGroupEvent {
 
 		base.FinalizeLoad ();
 
-		TargetGroup = World.FindCellGroup (TargetGroupId);
+		TargetGroup = World.GetCellGroup (TargetGroupId);
 
 //		TargetGroup.AddAssociatedEvent (this);
 	}

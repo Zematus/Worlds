@@ -59,7 +59,7 @@ public class TerrainCellChanges {
 	}
 }
 
-public class TerrainCell {
+public class TerrainCell : Synchronizable {
 	
 	[XmlAttribute]
 	public int Longitude;
@@ -105,6 +105,9 @@ public class TerrainCell {
 	public CellGroup Group;
 
 	[XmlIgnore]
+	public List<Territory> EncompassingTerritories = new List<Territory>();
+
+	[XmlIgnore]
 	public List<Route> CrossingRoutes = new List<Route>();
 
 	[XmlIgnore]
@@ -148,9 +151,18 @@ public class TerrainCell {
 	public WorldPosition Position {
 
 		get { 
-		
 			return new WorldPosition (Longitude, Latitude);
 		}
+	}
+
+	public void AddEncompassingTerritory (Territory territory) {
+	
+		EncompassingTerritories.Add (territory);
+	}
+
+	public void RemoveEncompassingTerritory (Territory territory) {
+
+		EncompassingTerritories.Remove (territory);
 	}
 
 	public TerrainCellChanges GetChanges () {
@@ -255,6 +267,9 @@ public class TerrainCell {
 			return 0;
 		
 		return value;
+	}
+
+	public void Synchronize () {
 	}
 
 	public void FinalizeLoad () {
