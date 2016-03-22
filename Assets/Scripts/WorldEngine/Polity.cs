@@ -21,36 +21,54 @@ public abstract class Polity : Synchronizable {
 	[XmlIgnore]
 	public CellGroup CoreGroup;
 
-	[XmlIgnore]
-	public List<CellGroup> InfluencedGroups = new List<CellGroup> ();
+	private HashSet<CellGroup> _influencedGroups = new HashSet<CellGroup> ();
 
 	public Polity () {
 	
 	}
 
-	public Polity (CellGroup group) {
+	public Polity (CellGroup coreGroup, float coreGroupInfluence) {
 
-		World = group.World;
+		World = coreGroup.World;
 
 		Id = World.GeneratePolityId ();
 
-		SetCoreGroup (group);
+		AddInfluencedGroup (coreGroup);
+
+		SetCoreGroup (coreGroup);
+
+		coreGroup.SetPolityInfluence (this, coreGroupInfluence);
 	}
 
 	public void SetCoreGroup (CellGroup group) {
 
+		if (!_influencedGroups.Contains (group))
+			throw new System.Exception ("Group is not part of polity's influenced groups");
+
 		CoreGroup = group;
 
 		CoreGroupId = group.Id;
+	}
+
+	public void AddInfluencedGroup (CellGroup group) {
+	
+		_influencedGroups.Add (group);
 
 		Territory.AddCell (group.Cell);
 	}
 
+	public void RemoveInfluencedGroup (CellGroup group) {
+
+		_influencedGroups.Remove (group);
+
+		Territory.RemoveCell (group.Cell);
+	}
+
 	public virtual void Synchronize () {
 
-		InfluencedGroupIds = new List<int> (InfluencedGroups.Count);
+		InfluencedGroupIds = new List<int> (_influencedGroups.Count);
 
-		foreach (CellGroup g in InfluencedGroups) {
+		foreach (CellGroup g in _influencedGroups) {
 
 			InfluencedGroupIds.Add (g.Id);
 		}
@@ -58,7 +76,7 @@ public abstract class Polity : Synchronizable {
 
 	public virtual void FinalizeLoad () {
 
-		CoreGroup = World.GetCellGroup (CoreGroupId);
+		CoreGroup = World.GetGroup (CoreGroupId);
 
 		if (CoreGroup == null) {
 			throw new System.Exception ("Missing Group with Id " + CoreGroupId);
@@ -66,15 +84,19 @@ public abstract class Polity : Synchronizable {
 
 		foreach (int id in InfluencedGroupIds) {
 
-			CellGroup group = World.GetCellGroup (id);
+			CellGroup group = World.GetGroup (id);
 
 			if (group == null) {
 				throw new System.Exception ("Missing Group with Id " + id);
 			}
 
-			InfluencedGroups.Add (group);
+			_influencedGroups.Add (group);
 		}
 	}
+
+	public abstract float MigrationValue (TerrainCell targetCell, float sourceRelativeInfluence);
+	public abstract void MergingEffects (CellGroup targetGroup, float sourceInfluence, float percentOfTarget);
+	public abstract void UpdateEffects (CellGroup group, float influence, int timeSpan);
 }
 
 public class Territory {

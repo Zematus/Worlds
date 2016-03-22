@@ -484,7 +484,7 @@ public class SocialOrganizationKnowledge : CulturalKnowledge {
 	public const string SocialOrganizationKnowledgeId = "SocialOrganizationKnowledge";
 	public const string SocialOrganizationKnowledgeName = "Social Organization";
 
-	public const float MinKnowledgeValueForTribalism = 5;
+	public const float MinKnowledgeValueForTribalism = 4;
 	public const float OptimalKnowledgeValueForTribalism = 10;
 
 	public const float TimeEffectConstant = CellGroup.GenerationTime * 500;

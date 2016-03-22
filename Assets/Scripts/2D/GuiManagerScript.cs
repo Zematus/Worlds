@@ -1335,6 +1335,30 @@ public class GuiManagerScript : MonoBehaviour {
 				InfoPanelText.text += "\nNext Update Date: " + nextUpdateDate;
 				InfoPanelText.text += "\nTime between updates: " + (nextUpdateDate - lastUpdateDate);
 
+				bool firstPolity = true;
+
+				float totalInfluence = cell.Group.TotalPolityInfluence;
+
+				if (totalInfluence > 0) {
+					foreach (KeyValuePair<Polity, float> pair in cell.Group.PolityInfluences) {
+
+						Polity polity = pair.Key;
+						float relativeInfluence = pair.Value / totalInfluence;
+
+						if (relativeInfluence >= 0.001) {
+
+							if (firstPolity) {
+								InfoPanelText.text += "\n";
+								InfoPanelText.text += "\nPolities";
+
+								firstPolity = false;
+							}
+
+							InfoPanelText.text += "\n\tPolity[" + polity.Id + "] - Influence: " + relativeInfluence.ToString ("P");
+						}
+					}
+				}
+
 				bool firstActivity = true;
 
 				foreach (CulturalActivity activity in cell.Group.Culture.Activities) {

@@ -55,6 +55,9 @@ public class CellGroup : HumanGroup {
 	[XmlAttribute]
 	public float SeaTravelFactor = 0;
 
+	[XmlAttribute]
+	public float TotalPolityInfluence = 0;
+
 	public Route SeaMigrationRoute = null;
 
 	public List<string> Flags = new List<string> ();
@@ -307,21 +310,29 @@ public class CellGroup : HumanGroup {
 		return biomeNames;
 	}
 
-	public void MergeGroup (MigratingGroup group, int splitPopulation, CellCulture splitCulture) {
+	public void MergeGroup (MigratingGroup group) {
 		
 		UpdateInternal ();
 
-		float newPopulation = Population + splitPopulation;
+		float newPopulation = Population + group.Population;
 		
 		if (newPopulation <= 0) {
 			throw new System.Exception ("Population after migration merge shouldn't be 0 or less.");
 		}
 
-		float percentage = splitPopulation / newPopulation;
+		float percentage = group.Population / newPopulation;
 
 		ExactPopulation = newPopulation;
 
-		Culture.MergeCulture (splitCulture, percentage);
+		Culture.MergeCulture (group.Culture, percentage);
+
+		foreach (KeyValuePair <Polity, float> pair in group.PolityInfluences) {
+		
+			Polity polity = pair.Key;
+			float influence = pair.Value;
+
+			polity.MergingEffects (this, influence, percentage);
+		}
 
 		TriggerInterference ();
 	}
@@ -428,29 +439,27 @@ public class CellGroup : HumanGroup {
 			popDifferenceFactor = (float)Population / (float)(Population + existingPopulation);
 			popDifferenceFactor *= popDifferenceFactor;
 			popDifferenceFactor *= popDifferenceFactor;
+
 		}
 
 		popDifferenceFactor *= 10;
 
-//		int cellOptimalPopulation = OptimalPopulation;
+		float polityInfluenceFactor = 1;
+
+		foreach (KeyValuePair<Polity, float> pair in PolityInfluences) {
+
+			float influenceFactor = pair.Key.MigrationValue (cell, pair.Value) * 50;
+
+			polityInfluenceFactor += influenceFactor;
+		}
 
 		float noMigrationFactor = 1;
 
 		if (cell != Cell) {
-//			cellOptimalPopulation = CalculateOptimalPopulation (cell);
-
 			noMigrationFactor = _noMigrationFactor;
 		}
 
-//		float carryingCapacityFactor = 0;
-//
-//		if (cellOptimalPopulation + existingPopulation > 0) {
-//
-//			carryingCapacityFactor = (float)cellOptimalPopulation / (float)(cellOptimalPopulation + existingPopulation);
-//		}
-//
-//		float cellValue = altitudeDeltaFactor * areaFactor * carryingCapacityFactor * popDifferenceFactor * noMigrationFactor;
-		float cellValue = altitudeDeltaFactor * areaFactor * popDifferenceFactor * noMigrationFactor;
+		float cellValue = altitudeDeltaFactor * areaFactor * popDifferenceFactor * noMigrationFactor * polityInfluenceFactor;
 
 		return cellValue;
 	}
@@ -649,6 +658,7 @@ public class CellGroup : HumanGroup {
 		UpdateTerrainFarmlandPercentage (timeSpan);
 		UpdatePopulation (timeSpan);
 		UpdateCulture (timeSpan);
+		UpdatePolities (timeSpan);
 
 		UpdateTravelFactors ();
 		
@@ -667,6 +677,29 @@ public class CellGroup : HumanGroup {
 	private void UpdateCulture (int timeSpan) {
 		
 		Culture.Update (timeSpan);
+	}
+
+	private void UpdatePolities (int timeSpan) {
+
+		foreach (KeyValuePair <Polity, float> pair in PolityInfluences) {
+		
+			Polity polity = pair.Key;
+			float influence = pair.Value;
+
+			polity.UpdateEffects (this, influence, timeSpan);
+		}
+	}
+
+	public void LostTribalism () {
+
+		List <Polity> polities = new List<Polity> (PolityInfluences.Keys);
+
+		foreach (Polity polity in polities) {
+
+			if (polity is Tribe) {
+				SetPolityInfluence (polity, 0);
+			}
+		}
 	}
 
 	private float GetActivityContribution (string activityId) {
@@ -765,20 +798,20 @@ public class CellGroup : HumanGroup {
 //		Neighbors.ForEach (g => AbsorbKnowledgeFrom (g));
 //	}
 
-	public void AbsorbKnowledgeFrom (CellGroup group) {
-		
-		float populationFactor = Mathf.Min (1, group.Population / (float)Population);
-		
-		group.Culture.Knowledges.ForEach (k => {
-			
-			Culture.AbsorbKnowledgeFrom (k, populationFactor);
-		});
-
-		group.Culture.Discoveries.ForEach (d => {
-			
-			Culture.AbsorbDiscoveryFrom (d);
-		});
-	}
+//	public void AbsorbKnowledgeFrom (CellGroup group) {
+//		
+//		float populationFactor = Mathf.Min (1, group.Population / (float)Population);
+//		
+//		group.Culture.Knowledges.ForEach (k => {
+//			
+//			Culture.AbsorbKnowledgeFrom (k, populationFactor);
+//		});
+//
+//		group.Culture.Discoveries.ForEach (d => {
+//			
+//			Culture.AbsorbDiscoveryFrom (d);
+//		});
+//	}
 
 	public int CalculateOptimalPopulation (TerrainCell cell) {
 
@@ -915,6 +948,44 @@ public class CellGroup : HumanGroup {
 		return 0;
 	}
 
+	public float GetPolityInfluence (Polity polity) {
+
+		float influence;
+
+		PolityInfluences.TryGetValue (polity, out influence);
+
+		return influence;
+	}
+
+	public void SetPolityInfluence (Polity polity, float influence) {
+
+		float currentInfluence = GetPolityInfluence (polity);
+
+		TotalPolityInfluence -= currentInfluence;
+
+		if (influence <= 0) {
+			PolityInfluences.Remove (polity);
+
+			polity.RemoveInfluencedGroup (this);
+		} else {
+			PolityInfluences [polity] = influence;
+
+			polity.AddInfluencedGroup (this);
+
+			TotalPolityInfluence += influence;
+		}
+	}
+
+	public float GetRelativePolityInfluence (Polity polity) {
+	
+		float absoluteInfluence = GetPolityInfluence (polity);
+
+		if (TotalPolityInfluence <= 0)
+			return 0;
+
+		return absoluteInfluence / TotalPolityInfluence;
+	}
+
 	public override void Synchronize () {
 
 		InfluencingPolityIds = new List<int> (PolityInfluences.Count);
@@ -945,6 +1016,7 @@ public class CellGroup : HumanGroup {
 		
 		World.UpdateMostPopulousGroup (this);
 
+		Culture.World = World;
 		Culture.Group = this;
 		Culture.FinalizeLoad ();
 

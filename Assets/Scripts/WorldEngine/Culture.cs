@@ -4,8 +4,12 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
-public abstract class Culture : Synchronizable {
+public class Culture : Synchronizable {
 
+	[XmlIgnore]
+	public World World;
+
+	[XmlArrayItem(Type = typeof(CulturalActivity))]
 	public List<CulturalActivity> Activities = new List<CulturalActivity> ();
 
 	[XmlArrayItem(Type = typeof(BiomeSurvivalSkill)),
@@ -31,18 +35,23 @@ public abstract class Culture : Synchronizable {
 	public Culture () {
 	}
 
-	protected void AddActivity (World world, CulturalActivity activity) {
+	public Culture (World world) {
+
+		World = world;
+	}
+
+	protected void AddActivity (CulturalActivity activity) {
 
 		if (_activities.ContainsKey (activity.Id))
 			return;
 
-		world.AddExistingCulturalActivityInfo (activity);
+		World.AddExistingCulturalActivityInfo (activity);
 
 		Activities.Add (activity);
 		_activities.Add (activity.Id, activity);
 	}
 
-	protected void RemoveActivity (World world, CulturalActivity activity) {
+	protected void RemoveActivity (CulturalActivity activity) {
 
 		if (!_activities.ContainsKey (activity.Id))
 			return;
@@ -50,19 +59,29 @@ public abstract class Culture : Synchronizable {
 		Activities.Remove (activity);
 		_activities.Remove (activity.Id);
 	}
+
+	public void RemoveActivity (string activityId) {
+
+		CulturalActivity activity = GetActivity (activityId);
+
+		if (activity == null)
+			return;
+
+		RemoveActivity (activity);
+	}
 	
-	protected void AddSkill (World world, CulturalSkill skill) {
+	protected void AddSkill (CulturalSkill skill) {
 
 		if (_skills.ContainsKey (skill.Id))
 			return;
 		
-		world.AddExistingCulturalSkillInfo (skill);
+		World.AddExistingCulturalSkillInfo (skill);
 
 		Skills.Add (skill);
 		_skills.Add (skill.Id, skill);
 	}
 
-	protected void RemoveSkill (World world, CulturalSkill skill) {
+	protected void RemoveSkill (CulturalSkill skill) {
 
 		if (!_skills.ContainsKey (skill.Id))
 			return;
@@ -71,18 +90,18 @@ public abstract class Culture : Synchronizable {
 		_skills.Remove (skill.Id);
 	}
 	
-	protected void AddKnowledge (World world, CulturalKnowledge knowledge) {
+	protected void AddKnowledge (CulturalKnowledge knowledge) {
 		
 		if (_knowledges.ContainsKey (knowledge.Id))
 			return;
 		
-		world.AddExistingCulturalKnowledgeInfo (knowledge);
+		World.AddExistingCulturalKnowledgeInfo (knowledge);
 
 		Knowledges.Add (knowledge);
 		_knowledges.Add (knowledge.Id, knowledge);
 	}
 
-	protected void RemoveKnowledge (World world, CulturalKnowledge knowledge) {
+	protected void RemoveKnowledge (CulturalKnowledge knowledge) {
 
 		if (!_knowledges.ContainsKey (knowledge.Id))
 			return;
@@ -91,18 +110,18 @@ public abstract class Culture : Synchronizable {
 		_knowledges.Remove (knowledge.Id);
 	}
 	
-	protected void AddDiscovery (World world, CulturalDiscovery discovery) {
+	protected void AddDiscovery (CulturalDiscovery discovery) {
 		
 		if (_discoveries.ContainsKey (discovery.Id))
 			return;
 		
-		world.AddExistingCulturalDiscoveryInfo (discovery);
+		World.AddExistingCulturalDiscoveryInfo (discovery);
 
 		Discoveries.Add (discovery);
 		_discoveries.Add (discovery.Id, discovery);
 	}
 
-	protected void RemoveDiscovery (World world, CulturalDiscovery discovery) {
+	protected void RemoveDiscovery (CulturalDiscovery discovery) {
 
 		if (!_discoveries.ContainsKey (discovery.Id))
 			return;
@@ -183,69 +202,19 @@ public class CellCulture : Culture {
 	public CellCulture () {
 	}
 
-	public CellCulture (CellGroup group) : base () {
+	public CellCulture (CellGroup group) : base (group.World) {
 
 		Group = group;
 	}
 
-	public CellCulture (CellGroup group, CellCulture baseCulture) {
+	public CellCulture (CellGroup group, Culture sourceCulture) : base (group.World) {
 
 		Group = group;
 
-		baseCulture.Activities.ForEach (a => AddActivity (a.GenerateCopy (group)));
-		baseCulture.Skills.ForEach (s => AddSkill (s.GenerateCopy (group)));
-		baseCulture.Discoveries.ForEach (d => AddDiscovery (d.GenerateCopy ()));
-		baseCulture.Knowledges.ForEach (k => AddKnowledge (k.GenerateCopy (group)));
-	}
-
-	protected void AddActivity (CulturalActivity activity) {
-
-		AddActivity (Group.World, activity);
-	}
-
-	protected void RemoveActivity (CulturalActivity activity) {
-
-		RemoveActivity (Group.World, activity);
-	}
-
-	public void RemoveActivity (string activityId) {
-
-		CulturalActivity activity = GetActivity (activityId);
-
-		if (activity == null)
-			return;
-
-		RemoveActivity (Group.World, activity);
-	}
-
-	protected void AddSkill (CulturalSkill skill) {
-	
-		AddSkill (Group.World, skill);
-	}
-
-	protected void RemoveSkill (CulturalSkill skill) {
-
-		RemoveSkill (Group.World, skill);
-	}
-	
-	protected void AddKnowledge (CulturalKnowledge knowledge) {
-		
-		AddKnowledge (Group.World, knowledge);
-	}
-
-	protected void RemoveKnowledge (CulturalKnowledge knowledge) {
-
-		RemoveKnowledge (Group.World, knowledge);
-	}
-	
-	protected void AddDiscovery (CulturalDiscovery discovery) {
-		
-		AddDiscovery (Group.World, discovery);
-	}
-
-	protected void RemoveDiscovery (CulturalDiscovery discovery) {
-
-		RemoveDiscovery (Group.World, discovery);
+		sourceCulture.Activities.ForEach (a => AddActivity (a.GenerateCopy (group)));
+		sourceCulture.Skills.ForEach (s => AddSkill (s.GenerateCopy (group)));
+		sourceCulture.Discoveries.ForEach (d => AddDiscovery (d.GenerateCopy ()));
+		sourceCulture.Knowledges.ForEach (k => AddKnowledge (k.GenerateCopy (group)));
 	}
 
 	public void AddActivityToPerform (CulturalActivity activity) {
@@ -384,6 +353,8 @@ public class CellCulture : Culture {
 
 			RemoveDiscovery (discovery);
 
+			discovery.LossConsequences (Group);
+
 			discoveriesLost = true;
 		}
 
@@ -391,7 +362,7 @@ public class CellCulture : Culture {
 
 			foreach (CulturalKnowledge knowledge in Knowledges) {
 				
-				knowledge.RecalculateAsymptote ();
+				(knowledge as CulturalKnowledge).RecalculateAsymptote ();
 			}
 		}
 	}
@@ -422,7 +393,7 @@ public class CellCulture : Culture {
 			AddDiscovery (discovery);
 
 			Knowledges.ForEach (k => {
-				k.CalculateAsymptote (discovery);
+				(k as CulturalKnowledge).CalculateAsymptote (discovery);
 			});
 		}
 
@@ -464,37 +435,37 @@ public class CellCulture : Culture {
 		return maxTransferValue;
 	}
 	
-	public void AbsorbKnowledgeFrom (CulturalKnowledge sourceKnowledge, float sourceFactor) {
-		
-		if (sourceKnowledge.Value < MinKnowledgeValue) return;
-		
-		CulturalKnowledge localKnowledge = GetKnowledge (sourceKnowledge.Id);
-		
-		if (localKnowledge == null) {
-			
-			localKnowledge = sourceKnowledge.GenerateCopy (Group, 0);
-			
-			AddKnowledgeToLearn (localKnowledge);
-		}
-		
-		if (localKnowledge.Value >= sourceKnowledge.Value) return;
-
-		float specificKnowledgeFactor = localKnowledge.CalculateTransferFactor ();
-		
-		localKnowledge.IncreaseValue (sourceKnowledge.Value, BaseKnowledgeTransferFactor * specificKnowledgeFactor * sourceFactor);
-	}
-	
-	public void AbsorbDiscoveryFrom (CulturalDiscovery sourceDiscovery) {
-		
-		CulturalDiscovery localDiscovery = GetDiscovery (sourceDiscovery.Id);
-		
-		if (localDiscovery == null) {
-			
-			localDiscovery = sourceDiscovery.GenerateCopy ();
-			
-			AddDiscoveryToFind (localDiscovery);
-		}
-	}
+//	public void AbsorbKnowledgeFrom (CulturalKnowledge sourceKnowledge, float sourceFactor) {
+//		
+//		if (sourceKnowledge.Value < MinKnowledgeValue) return;
+//		
+//		CulturalKnowledge localKnowledge = GetKnowledge (sourceKnowledge.Id);
+//		
+//		if (localKnowledge == null) {
+//			
+//			localKnowledge = sourceKnowledge.GenerateCopy (Group, 0);
+//			
+//			AddKnowledgeToLearn (localKnowledge);
+//		}
+//		
+//		if (localKnowledge.Value >= sourceKnowledge.Value) return;
+//
+//		float specificKnowledgeFactor = localKnowledge.CalculateTransferFactor ();
+//		
+//		localKnowledge.IncreaseValue (sourceKnowledge.Value, BaseKnowledgeTransferFactor * specificKnowledgeFactor * sourceFactor);
+//	}
+//	
+//	public void AbsorbDiscoveryFrom (CulturalDiscovery sourceDiscovery) {
+//		
+//		CulturalDiscovery localDiscovery = GetDiscovery (sourceDiscovery.Id);
+//		
+//		if (localDiscovery == null) {
+//			
+//			localDiscovery = sourceDiscovery.GenerateCopy ();
+//			
+//			AddDiscoveryToFind (localDiscovery);
+//		}
+//	}
 	
 	public float MinimumSkillAdaptationLevel () {
 		

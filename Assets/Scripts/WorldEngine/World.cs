@@ -336,10 +336,10 @@ public class World : Synchronizable {
 		cell.SetChanges (changes);
 	}
 
-	public void AddGroupActionToPerform (KnowledgeTransferAction action) {
-	
-		_groupActionsToPerform.Add (action);
-	}
+//	public void AddGroupActionToPerform (KnowledgeTransferAction action) {
+//	
+//		_groupActionsToPerform.Add (action);
+//	}
 
 	public void AddExistingCulturalActivityInfo (CulturalActivityInfo baseInfo) {
 
@@ -570,12 +570,11 @@ public class World : Synchronizable {
 		CellGroupsCount--;
 	}
 	
-	public CellGroup GetCellGroup (int id) {
+	public CellGroup GetGroup (int id) {
 
 		CellGroup group;
 
-		if (!_cellGroups.TryGetValue (id, out group))
-			return null;
+		_cellGroups.TryGetValue (id, out group);
 
 		return group;
 	}
@@ -590,12 +589,16 @@ public class World : Synchronizable {
 		_groupsToRemove.Add (group);
 	}
 
+	public void AddPolity (Polity polity) {
+
+		_polities.Add (polity.Id, polity);
+	}
+
 	public Polity GetPolity (int id) {
 
 		Polity polity;
 
-		if (!_polities.TryGetValue (id, out polity))
-			return null;
+		_polities.TryGetValue (id, out polity);
 
 		return polity;
 	}

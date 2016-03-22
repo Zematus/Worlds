@@ -46,6 +46,10 @@ public abstract class CulturalDiscovery : CulturalDiscoveryInfo {
 	}
 
 	public abstract bool CanBeHeld (CellGroup group);
+
+	public virtual void LossConsequences (CellGroup group) {
+		
+	}
 }
 
 public class BoatMakingDiscovery : CulturalDiscovery {
@@ -111,6 +115,13 @@ public class TribalismDiscovery : CulturalDiscovery {
 			return false;
 
 		return true;
+	}
+
+	public override void LossConsequences (CellGroup group)
+	{
+		group.LostTribalism ();
+		
+		base.LossConsequences (group);
 	}
 }
 

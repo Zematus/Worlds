@@ -204,7 +204,7 @@ public abstract class CellGroupEvent : WorldEvent {
 	
 	public override void FinalizeLoad () {
 		
-		Group = World.GetCellGroup (GroupId);
+		Group = World.GetGroup (GroupId);
 		
 //		Group.AddAssociatedEvent (this);
 	}
@@ -465,6 +465,9 @@ public class TribalismDiscoveryEvent : CellGroupEvent {
 	public override void Trigger () {
 
 		Group.Culture.AddDiscoveryToFind (new TribalismDiscovery ());
+
+		World.AddPolity (Tribe.GenerateNewTribe (Group));
+
 		World.AddGroupToUpdate (Group);
 	}
 
@@ -609,113 +612,113 @@ public class PlantCultivationDiscoveryEvent : CellGroupEvent {
 	}
 }
 
-public class KnowledgeTransferEvent : CellGroupEvent {
-	
-	public static int KnowledgeTransferEventCount = 0;
-
-	public const int MaxDateSpanToTrigger = CellGroup.GenerationTime * 50;
-
-	[XmlAttribute]
-	public int TargetGroupId;
-
-	[XmlIgnore]
-	public CellGroup TargetGroup;
-	
-	public KnowledgeTransferEvent () {
-		
-		KnowledgeTransferEventCount++;
-	}
-	
-	public KnowledgeTransferEvent (CellGroup sourceGroup, CellGroup targetGroup, int triggerDate) : base (sourceGroup, triggerDate) {
-		
-		KnowledgeTransferEventCount++;
-
-		sourceGroup.HasKnowledgeTransferEvent = true;
-		
-		TargetGroup = targetGroup;
-		TargetGroupId = TargetGroup.Id;
-
-//		TargetGroup.AddAssociatedEvent (this);
-	}
-	
-	public static CellGroup DiscoverTargetGroup (CellGroup sourceGroup, out float targetTransferValue) {
-
-		TerrainCell sourceCell = sourceGroup.Cell;
-
-		Dictionary<CellGroup, float> groupValuePairs = new Dictionary<CellGroup, float> ();
-
-		float totalTransferValue = 0;
-		sourceGroup.Neighbors.ForEach (g => {
-			
-			float transferValue = CellCulture.CalculateKnowledgeTransferValue (sourceGroup, g);
-			totalTransferValue += transferValue;
-
-			groupValuePairs.Add (g, transferValue);
-		});
-
-		CellGroup targetGroup = CollectionUtility.WeightedSelection (groupValuePairs, totalTransferValue, sourceCell.GetNextLocalRandomFloat);
-
-		targetTransferValue = 0;
-
-		if (targetGroup == null)
-			return null;
-		
-		if (!targetGroup.StillPresent)
-			return null;
-
-		if (!groupValuePairs.TryGetValue (targetGroup, out targetTransferValue))
-			return null;
-
-		if (targetTransferValue < CellGroup.MinKnowledgeTransferValue)
-			return null;
-		
-		return targetGroup;
-	}
-	
-	public static int CalculateTriggerDate (CellGroup group, float targetTransferValue) {
-		
-		float randomFactor = group.Cell.GetNextLocalRandomFloat ();
-		
-		float mixFactor = (1 - targetTransferValue * randomFactor);
-		
-		int dateSpan = (int)Mathf.Ceil(Mathf.Max (1, MaxDateSpanToTrigger * mixFactor));
-		
-		return group.World.CurrentDate + dateSpan;
-	}
-	
-	public override bool CanTrigger () {
-		
-		return (0 < CellCulture.CalculateKnowledgeTransferValue(Group, TargetGroup));
-	}
-	
-	public override void FinalizeLoad () {
-
-		base.FinalizeLoad ();
-
-		TargetGroup = World.GetCellGroup (TargetGroupId);
-
-//		TargetGroup.AddAssociatedEvent (this);
-	}
-	
-	public override void Trigger () {
-
-		World.AddGroupActionToPerform (new KnowledgeTransferAction (Group, TargetGroup));
-		World.AddGroupToUpdate (TargetGroup);
-	}
-
-	protected override void DestroyInternal ()
-	{
-		KnowledgeTransferEventCount--;
-		
-		if (Group != null) {
-
-//			Group.RemoveAssociatedEvent (Id);
-			Group.HasKnowledgeTransferEvent = false;
-		}
-
-		if (TargetGroup != null) {
-
-//			TargetGroup.RemoveAssociatedEvent (Id);
-		}
-	}
-}
+//public class KnowledgeTransferEvent : CellGroupEvent {
+//	
+//	public static int KnowledgeTransferEventCount = 0;
+//
+//	public const int MaxDateSpanToTrigger = CellGroup.GenerationTime * 50;
+//
+//	[XmlAttribute]
+//	public int TargetGroupId;
+//
+//	[XmlIgnore]
+//	public CellGroup TargetGroup;
+//	
+//	public KnowledgeTransferEvent () {
+//		
+//		KnowledgeTransferEventCount++;
+//	}
+//	
+//	public KnowledgeTransferEvent (CellGroup sourceGroup, CellGroup targetGroup, int triggerDate) : base (sourceGroup, triggerDate) {
+//		
+//		KnowledgeTransferEventCount++;
+//
+//		sourceGroup.HasKnowledgeTransferEvent = true;
+//		
+//		TargetGroup = targetGroup;
+//		TargetGroupId = TargetGroup.Id;
+//
+////		TargetGroup.AddAssociatedEvent (this);
+//	}
+//	
+//	public static CellGroup DiscoverTargetGroup (CellGroup sourceGroup, out float targetTransferValue) {
+//
+//		TerrainCell sourceCell = sourceGroup.Cell;
+//
+//		Dictionary<CellGroup, float> groupValuePairs = new Dictionary<CellGroup, float> ();
+//
+//		float totalTransferValue = 0;
+//		sourceGroup.Neighbors.ForEach (g => {
+//			
+//			float transferValue = CellCulture.CalculateKnowledgeTransferValue (sourceGroup, g);
+//			totalTransferValue += transferValue;
+//
+//			groupValuePairs.Add (g, transferValue);
+//		});
+//
+//		CellGroup targetGroup = CollectionUtility.WeightedSelection (groupValuePairs, totalTransferValue, sourceCell.GetNextLocalRandomFloat);
+//
+//		targetTransferValue = 0;
+//
+//		if (targetGroup == null)
+//			return null;
+//		
+//		if (!targetGroup.StillPresent)
+//			return null;
+//
+//		if (!groupValuePairs.TryGetValue (targetGroup, out targetTransferValue))
+//			return null;
+//
+//		if (targetTransferValue < CellGroup.MinKnowledgeTransferValue)
+//			return null;
+//		
+//		return targetGroup;
+//	}
+//	
+//	public static int CalculateTriggerDate (CellGroup group, float targetTransferValue) {
+//		
+//		float randomFactor = group.Cell.GetNextLocalRandomFloat ();
+//		
+//		float mixFactor = (1 - targetTransferValue * randomFactor);
+//		
+//		int dateSpan = (int)Mathf.Ceil(Mathf.Max (1, MaxDateSpanToTrigger * mixFactor));
+//		
+//		return group.World.CurrentDate + dateSpan;
+//	}
+//	
+//	public override bool CanTrigger () {
+//		
+//		return (0 < CellCulture.CalculateKnowledgeTransferValue(Group, TargetGroup));
+//	}
+//	
+//	public override void FinalizeLoad () {
+//
+//		base.FinalizeLoad ();
+//
+//		TargetGroup = World.GetGroup (TargetGroupId);
+//
+////		TargetGroup.AddAssociatedEvent (this);
+//	}
+//	
+//	public override void Trigger () {
+//
+//		World.AddGroupActionToPerform (new KnowledgeTransferAction (Group, TargetGroup));
+//		World.AddGroupToUpdate (TargetGroup);
+//	}
+//
+//	protected override void DestroyInternal ()
+//	{
+//		KnowledgeTransferEventCount--;
+//		
+//		if (Group != null) {
+//
+////			Group.RemoveAssociatedEvent (Id);
+//			Group.HasKnowledgeTransferEvent = false;
+//		}
+//
+//		if (TargetGroup != null) {
+//
+////			TargetGroup.RemoveAssociatedEvent (Id);
+//		}
+//	}
+//}

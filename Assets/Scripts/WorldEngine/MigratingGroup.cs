@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
@@ -23,9 +24,13 @@ public class MigratingGroup : HumanGroup {
 	public CellGroup SourceGroup;
 	
 	[XmlIgnore]
-	public int SplitPopulation = 0;
+	public int Population = 0;
+
 	[XmlIgnore]
-	public CellCulture SplitCulture;
+	public CellCulture Culture;
+
+	[XmlIgnore]
+	public Dictionary <Polity, float> PolityInfluences;
 
 	public MigratingGroup () {
 	}
@@ -51,26 +56,28 @@ public class MigratingGroup : HumanGroup {
 		if (!SourceGroup.StillPresent)
 			return false;
 		
-		SplitPopulation = SourceGroup.SplitGroup(this);
+		Population = SourceGroup.SplitGroup(this);
 		
-		if (SplitPopulation <= 0)
+		if (Population <= 0)
 			return false;
 		
-		SplitCulture = SourceGroup.Culture;
+		Culture = new CellCulture(SourceGroup, SourceGroup.Culture);
+
+		PolityInfluences = new Dictionary<Polity, float> (SourceGroup.PolityInfluences);
 
 		return true;
 	}
 
 	public void MoveToCell () {
 		
-		if (SplitPopulation <= 0)
+		if (Population <= 0)
 			return;
 
 		if (TargetCell.Group != null) {
 
 			if (TargetCell.Group.StillPresent) {
 
-				TargetCell.Group.MergeGroup(this, SplitPopulation, SplitCulture);
+				TargetCell.Group.MergeGroup(this);
 
 				if (SourceGroup.MigrationTagged) {
 					World.MigrationTagGroup (TargetCell.Group);
@@ -80,7 +87,7 @@ public class MigratingGroup : HumanGroup {
 			}
 		}
 
-		CellGroup newGroup = new CellGroup (this, SplitPopulation, SplitCulture);
+		CellGroup newGroup = new CellGroup (this, Population, Culture);
 
 		World.AddGroup (newGroup);
 		
@@ -95,6 +102,6 @@ public class MigratingGroup : HumanGroup {
 		
 		TargetCell = World.TerrainCells[TargetCellLongitude][TargetCellLatitude];
 		
-		SourceGroup = World.GetCellGroup (SourceGroupId);
+		SourceGroup = World.GetGroup (SourceGroupId);
 	}
 }
