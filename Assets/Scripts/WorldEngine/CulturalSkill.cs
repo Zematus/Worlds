@@ -112,7 +112,7 @@ public abstract class CulturalSkill : CulturalSkillInfo, Synchronizable {
 
 public class BiomeSurvivalSkill : CulturalSkill {
 
-	public const float TimeEffectConstant = CellGroup.GenerationTime * 500;
+	public const float TimeEffectConstant = CellGroup.GenerationTime * 1500;
 	
 	[XmlAttribute]
 	public string BiomeName;

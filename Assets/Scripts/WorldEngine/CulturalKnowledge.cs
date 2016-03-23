@@ -365,6 +365,7 @@ public class AgricultureKnowledge : CulturalKnowledge {
 
 	public const float TimeEffectConstant = CellGroup.GenerationTime * 2000;
 	public const float TerrainFactorModifier = 1.5f;
+	public const float MinAccesibility = 0.2f;
 
 	public static float HighestAsymptote = 0;
 
@@ -407,7 +408,9 @@ public class AgricultureKnowledge : CulturalKnowledge {
 
 	public static float CalculateTerrainFactorIn (TerrainCell cell) {
 
-		return cell.Arability * cell.Accessibility * cell.Accessibility;
+		float accesibilityFactor = (cell.Accessibility - MinAccesibility) / (1f - MinAccesibility);
+
+		return Mathf.Clamp01 (cell.Arability * cell.Accessibility * accesibilityFactor);
 	}
 
 	protected override void UpdateInternal (int timeSpan) {

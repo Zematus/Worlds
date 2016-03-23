@@ -13,21 +13,20 @@ public class MigratingGroup : HumanGroup {
 	public int TargetCellLongitude;
 	[XmlAttribute]
 	public int TargetCellLatitude;
+
+	[XmlAttribute]
+	public int Population = 0;
 	
 	[XmlAttribute]
 	public int SourceGroupId;
+
+	public CellCulture Culture;
 	
 	[XmlIgnore]
 	public TerrainCell TargetCell;
 	
 	[XmlIgnore]
 	public CellGroup SourceGroup;
-	
-	[XmlIgnore]
-	public int Population = 0;
-
-	[XmlIgnore]
-	public CellCulture Culture;
 
 	[XmlIgnore]
 	public Dictionary <Polity, float> PolityInfluences;

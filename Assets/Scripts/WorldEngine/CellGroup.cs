@@ -448,7 +448,12 @@ public class CellGroup : HumanGroup {
 
 		foreach (KeyValuePair<Polity, float> pair in PolityInfluences) {
 
-			float influenceFactor = pair.Key.MigrationValue (cell, pair.Value) * 50;
+			float relativeInfluence = pair.Value / TotalPolityInfluence;
+
+			float influenceFactor = pair.Key.MigrationValue (cell, relativeInfluence);
+
+			influenceFactor *= influenceFactor;
+			influenceFactor *= influenceFactor * 50 / _noMigrationFactor;
 
 			polityInfluenceFactor += influenceFactor;
 		}
@@ -536,13 +541,6 @@ public class CellGroup : HumanGroup {
 
 		if (targetCell == null)
 			return;
-
-		float percentToMigrate = Cell.GetNextLocalRandomFloat ();
-		percentToMigrate *= percentToMigrate;
-
-		if (TotalMigrationValue > 0) {
-			percentToMigrate *= (1 - CellMigrationValue / TotalMigrationValue);
-		}
 		
 		float cellSurvivability = 0;
 		float cellForagingCapacity = 0;
@@ -563,10 +561,8 @@ public class CellGroup : HumanGroup {
 		int travelTime = (int)Mathf.Ceil(Cell.Width / (TravelWidthFactor * travelFactor));
 		
 		int nextDate = World.CurrentDate + travelTime;
-
-		MigratingGroup migratingGroup = new MigratingGroup (World, percentToMigrate, this, targetCell);
 		
-		World.InsertEventToHappen (new MigrateGroupEvent (World, nextDate, travelTime, migratingGroup));
+		World.InsertEventToHappen (new MigrateGroupEvent (this, targetCell, nextDate));
 
 		HasMigrationEvent = true;
 	}
@@ -597,8 +593,6 @@ public class CellGroup : HumanGroup {
 
 		TotalMigrationValue += CalculateMigrationValue (targetCell);
 
-		float percentToMigrate = (1 - CellMigrationValue/TotalMigrationValue) * Cell.GetNextLocalRandomFloat ();
-
 		float cellSurvivability = 0;
 		float cellForagingCapacity = 0;
 
@@ -620,9 +614,7 @@ public class CellGroup : HumanGroup {
 
 		int nextDate = World.CurrentDate + travelTime;
 
-		MigratingGroup migratingGroup = new MigratingGroup (World, percentToMigrate, this, targetCell);
-
-		World.InsertEventToHappen (new MigrateGroupEvent (World, nextDate, travelTime, migratingGroup));
+		World.InsertEventToHappen (new MigrateGroupEvent (this, targetCell, nextDate));
 
 		HasMigrationEvent = true;
 	}
@@ -836,7 +828,9 @@ public class CellGroup : HumanGroup {
 			populationCapacityByFarming = farmingContribution * PopulationFarmingConstant * cell.Area * farmingCapacity;
 		}
 
-		float populationCapacity = (populationCapacityByForaging + populationCapacityByFarming) * modifiedSurvivability;
+		float accesibilityFactor = 0.25f + 0.75f * cell.Accessibility; 
+
+		float populationCapacity = (populationCapacityByForaging + populationCapacityByFarming) * modifiedSurvivability * accesibilityFactor;
 
 		optimalPopulation = (int)Mathf.Floor (populationCapacity);
 

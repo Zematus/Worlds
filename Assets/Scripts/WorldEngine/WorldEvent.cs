@@ -245,53 +245,63 @@ public class UpdateCellGroupEvent : CellGroupEvent {
 	}
 }
 
-public class MigrateGroupEvent : WorldEvent {
+public class MigrateGroupEvent : CellGroupEvent {
 	
 	public static int MigrationEventCount = 0;
-	
-	[XmlAttribute]
-	public int TravelTime;
 
-	public MigratingGroup Group;
+	[XmlAttribute]
+	public int TargetCellLongitude;
+	[XmlAttribute]
+	public int TargetCellLatitude;
+
+	[XmlIgnore]
+	public TerrainCell TargetCell;
 	
 	public MigrateGroupEvent () {
 		
 		MigrationEventCount++;
 	}
 	
-	public MigrateGroupEvent (World world, int triggerDate, int travelTime, MigratingGroup group) : base (world, triggerDate) {
-
-		TravelTime = travelTime;
-		
-		Group = group;
+	public MigrateGroupEvent (CellGroup group, TerrainCell targetCell, int triggerDate) : base (group, triggerDate) {
 		
 		MigrationEventCount++;
+
+		TargetCell = targetCell;
+
+		TargetCellLongitude = TargetCell.Longitude;
+		TargetCellLatitude = TargetCell.Latitude;
 	}
 	
 	public override bool CanTrigger () {
 		
 		return true;
 	}
-	
+
 	public override void Trigger () {
 
-		World.AddMigratingGroup (Group);
+		float percentToMigrate = (1 - Group.CellMigrationValue/Group.TotalMigrationValue) * Group.Cell.GetNextLocalRandomFloat ();
+
+		percentToMigrate = Mathf.Clamp01 (percentToMigrate);
+
+		MigratingGroup migratingGroup = new MigratingGroup (World, percentToMigrate, Group, TargetCell);
+
+		World.AddMigratingGroup (migratingGroup);
 	}
 
 	public override void FinalizeLoad () {
 
-		Group.World = World;
+		base.FinalizeLoad ();
 
-		Group.FinalizeLoad ();
+		TargetCell = World.TerrainCells[TargetCellLongitude][TargetCellLatitude];
 	}
 
 	protected override void DestroyInternal ()
 	{
 		MigrationEventCount--;
 
-		if (Group.SourceGroup != null) {
+		if (Group != null) {
 			
-			Group.SourceGroup.HasMigrationEvent = false;
+			Group.HasMigrationEvent = false;
 		}
 	}
 }
@@ -388,7 +398,7 @@ public class SailingDiscoveryEvent : CellGroupEvent {
 
 public class TribalismDiscoveryEvent : CellGroupEvent {
 
-	public const int DateSpanFactorConstant = CellGroup.GenerationTime * 10000;
+	public const int DateSpanFactorConstant = CellGroup.GenerationTime * 20000;
 
 	public const float MinSocialOrganizationKnowledgeSpawnEventValue = 5;
 	public const float MinSocialOrganizationKnowledgeValue = SocialOrganizationKnowledge.MinKnowledgeValueForTribalism;
@@ -547,7 +557,7 @@ public class BoatMakingDiscoveryEvent : CellGroupEvent {
 
 public class PlantCultivationDiscoveryEvent : CellGroupEvent {
 
-	public const int DateSpanFactorConstant = CellGroup.GenerationTime * 300000;
+	public const int DateSpanFactorConstant = CellGroup.GenerationTime * 600000;
 
 	public PlantCultivationDiscoveryEvent () {
 
@@ -587,9 +597,9 @@ public class PlantCultivationDiscoveryEvent : CellGroupEvent {
 		if (group.Culture.GetKnowledge (AgricultureKnowledge.AgricultureKnowledgeId) != null)
 			return false;
 
-		float arability = group.Cell.Arability;
+		float terrainFactor = AgricultureKnowledge.CalculateTerrainFactorIn (group.Cell);
 
-		return (arability > 0);
+		return (terrainFactor > 0);
 	}
 
 	public override bool CanTrigger () {
