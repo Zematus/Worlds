@@ -133,7 +133,10 @@ public class CellGroup : HumanGroup {
 
 		Id = World.GenerateCellGroupId();
 
+		bool initialGroup = false;
+
 		if (baseCulture == null) {
+			initialGroup = true;
 			Culture = new CellCulture (this);
 		} else {
 			Culture = new CellCulture (this, baseCulture);
@@ -143,17 +146,19 @@ public class CellGroup : HumanGroup {
 
 		Neighbors.ForEach (g => g.AddNeighbor (this));
 
-		InitializeDefaultActivities ();
-		InitializeDefaultSkills ();
-		InitializeDefaultKnowledges ();
+		InitializeDefaultActivities (initialGroup);
+		InitializeDefaultSkills (initialGroup);
+		InitializeDefaultKnowledges (initialGroup);
+
+		OptimalPopulation = CalculateOptimalPopulation (Cell);
+
+		InitializeLocalMigrationValue ();
 		
 		NextUpdateDate = CalculateNextUpdateDate();
 		
 		World.InsertEventToHappen (new UpdateCellGroupEvent (this, NextUpdateDate));
 		
 		World.UpdateMostPopulousGroup (this);
-		
-		OptimalPopulation = CalculateOptimalPopulation (Cell);
 
 		InitializeDefaultEvents ();
 	}
@@ -175,14 +180,18 @@ public class CellGroup : HumanGroup {
 		}
 	}
 
-	public void InitializeDefaultActivities () {
+	public void InitializeDefaultActivities (bool initialGroup) {
 
-		Culture.AddActivityToPerform (CulturalActivity.CreateForagingActivity (this));
+		if (initialGroup) {
+			Culture.AddActivityToPerform (CulturalActivity.CreateForagingActivity (this, 1f, 1f));
+		}
 	}
 
-	public void InitializeDefaultKnowledges () {
+	public void InitializeDefaultKnowledges (bool initialGroup) {
 
-		Culture.AddKnowledgeToLearn (new SocialOrganizationKnowledge (this));
+		if (initialGroup) {
+			Culture.AddKnowledgeToLearn (new SocialOrganizationKnowledge (this));
+		}
 	}
 
 	public void SetFlag (string flag) {
@@ -265,10 +274,15 @@ public class CellGroup : HumanGroup {
 		Neighbors.Remove (group);
 	}
 
-	public void InitializeDefaultSkills () {
+	public void InitializeDefaultSkills (bool initialGroup) {
+
+		float baseValue = 0;
+		if (initialGroup) {
+			baseValue = 1f;
+		}
 
 		foreach (string biomeName in GetPresentBiomesInNeighborhood ()) {
-			
+
 			if (biomeName == Biome.Ocean.Name) {
 
 				if (Culture.GetSkill (SeafaringSkill.SeafaringSkillId) == null) {
@@ -277,14 +291,14 @@ public class CellGroup : HumanGroup {
 				}
 
 			} else {
-				
+
 				Biome biome = Biome.Biomes[biomeName];
 
 				string skillId = BiomeSurvivalSkill.GenerateId (biome);
 
 				if (Culture.GetSkill (skillId) == null) {
 
-					Culture.AddSkillToLearn (new BiomeSurvivalSkill (this, biome));
+					Culture.AddSkillToLearn (new BiomeSurvivalSkill (this, biome, baseValue));
 				}
 			}
 		}
@@ -426,8 +440,7 @@ public class CellGroup : HumanGroup {
 		float areaFactor = cell.Area / TerrainCell.MaxArea;
 
 		float altitudeDeltaFactor = CalculateAltitudeDeltaMigrationFactor (cell);
-		altitudeDeltaFactor *= altitudeDeltaFactor;
-		altitudeDeltaFactor *= altitudeDeltaFactor;
+		altitudeDeltaFactor = Mathf.Pow (altitudeDeltaFactor, 4);
 
 		int existingPopulation = 0;
 
@@ -437,8 +450,7 @@ public class CellGroup : HumanGroup {
 			existingPopulation = cell.Group.Population;
 
 			popDifferenceFactor = (float)Population / (float)(Population + existingPopulation);
-			popDifferenceFactor *= popDifferenceFactor;
-			popDifferenceFactor *= popDifferenceFactor;
+			popDifferenceFactor = Mathf.Pow (popDifferenceFactor, 4);
 
 		}
 
@@ -452,19 +464,28 @@ public class CellGroup : HumanGroup {
 
 			float influenceFactor = pair.Key.MigrationValue (cell, relativeInfluence);
 
-			influenceFactor *= influenceFactor;
-			influenceFactor *= influenceFactor * 50 / _noMigrationFactor;
+			influenceFactor = Mathf.Pow (influenceFactor, 4) * 50 / _noMigrationFactor;
 
 			polityInfluenceFactor += influenceFactor;
 		}
 
 		float noMigrationFactor = 1;
 
+		float optimalPopulation = OptimalPopulation;
+
 		if (cell != Cell) {
 			noMigrationFactor = _noMigrationFactor;
+
+			optimalPopulation = CalculateOptimalPopulation (cell);
 		}
 
-		float cellValue = altitudeDeltaFactor * areaFactor * popDifferenceFactor * noMigrationFactor * polityInfluenceFactor;
+		float optimalPopulationFactor = 0;
+
+		if (optimalPopulation > 0) {
+			optimalPopulationFactor = optimalPopulation / (existingPopulation + optimalPopulation);
+		}
+
+		float cellValue = altitudeDeltaFactor * areaFactor * popDifferenceFactor * noMigrationFactor * polityInfluenceFactor * optimalPopulationFactor;
 
 		return cellValue;
 	}
@@ -509,6 +530,13 @@ public class CellGroup : HumanGroup {
 
 		SeaMigrationRoute = route;
 		SeaMigrationRoute.Consolidate ();
+	}
+
+	public void InitializeLocalMigrationValue () {
+
+		CellMigrationValue = 1;
+
+		TotalMigrationValue = 1;
 	}
 
 	public void CalculateLocalMigrationValue () {
@@ -896,8 +924,14 @@ public class CellGroup : HumanGroup {
 		}
 
 		float randomFactor = Cell.GetNextLocalRandomFloat ();
+		randomFactor = 1f - Mathf.Pow (randomFactor, 4);
 
-		float migrationFactor = CellMigrationValue/TotalMigrationValue;
+		float migrationFactor = 0;
+
+		if (TotalMigrationValue > 0) {
+			migrationFactor = CellMigrationValue / TotalMigrationValue;
+			migrationFactor = Mathf.Pow (migrationFactor, 4);
+		}
 
 		float skillLevelFactor = Culture.MinimumSkillAdaptationLevel ();
 		

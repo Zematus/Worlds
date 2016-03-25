@@ -26,6 +26,11 @@ public class Tribe : Polity {
 		return newTribe;
 	}
 
+	public override float CalculateUpdateSpanFactor (TerrainCell cell, float relativeInfluence)
+	{
+		throw new System.NotImplementedException ();
+	}
+
 	public override float MigrationValue (TerrainCell targetCell, float sourceRelativeInfluence)
 	{
 		sourceRelativeInfluence = Mathf.Max (sourceRelativeInfluence, 0);

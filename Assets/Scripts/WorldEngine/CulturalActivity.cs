@@ -52,25 +52,26 @@ public class CulturalActivity : CulturalActivityInfo {
 	public CulturalActivity () {
 	}
 
-	private CulturalActivity (CellGroup group, string id, string name, float value) : base (id, name) {
+	private CulturalActivity (CellGroup group, string id, string name, float value, float contribution) : base (id, name) {
 
 		Group = group;
 		Value = value;
+		Contribution = contribution;
 	}
 
-	public static CulturalActivity CreateForagingActivity (CellGroup group, float value = 0) {
+	public static CulturalActivity CreateForagingActivity (CellGroup group, float value = 0, float contribution = 0) {
 	
-		return new CulturalActivity (group, ForagingActivityId, ForagingActivityName, value);
+		return new CulturalActivity (group, ForagingActivityId, ForagingActivityName, value, contribution);
 	}
 
-	public static CulturalActivity CreateFarmingActivity (CellGroup group, float value = 0) {
+	public static CulturalActivity CreateFarmingActivity (CellGroup group, float value = 0, float contribution = 0) {
 
-		return new CulturalActivity (group, FarmingActivityId, FarmingActivityName, value);
+		return new CulturalActivity (group, FarmingActivityId, FarmingActivityName, value, contribution);
 	}
 
 	public CulturalActivity GenerateCopy (CellGroup targetGroup) {
 
-		return new CulturalActivity (targetGroup, Id, Name, Value);
+		return new CulturalActivity (targetGroup, Id, Name, Value, 0);
 	}
 
 	public void Merge (CulturalActivity activity, float percentage) {
