@@ -59,6 +59,12 @@ public class Tribe : Polity {
 	}
 
 	public override void UpdateEffects (CellGroup group, float influence, int timeSpan) {
+
+		if (group.Culture.GetDiscovery (TribalismDiscovery.TribalismDiscoveryId) == null) {
 		
+			group.SetPolityInfluence (this, Polity.MinPolityInfluence);
+
+			return;
+		}
 	}
 }

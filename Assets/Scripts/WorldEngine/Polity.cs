@@ -4,14 +4,34 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
-public abstract class Polity : Synchronizable {
+public class PolityInfluence {
 
 	[XmlAttribute]
-	public int Id;
+	public long PolityId;
+	[XmlAttribute]
+	public float Value;
 
-	public int CoreGroupId;
+	[XmlIgnore]
+	public Polity Polity;
 
-	public List<int> InfluencedGroupIds;
+	public PolityInfluence (Polity polity, float value) {
+	
+		PolityId = polity.Id;
+		Polity = polity;
+		Value = value;
+	}
+}
+
+public abstract class Polity : Synchronizable {
+
+	public const float MinPolityInfluence = 0.001f;
+
+	[XmlAttribute]
+	public long Id;
+
+	public long CoreGroupId;
+
+	public List<long> InfluencedGroupIds;
 
 	public Territory Territory = new Territory ();
 
@@ -66,7 +86,7 @@ public abstract class Polity : Synchronizable {
 
 	public virtual void Synchronize () {
 
-		InfluencedGroupIds = new List<int> (_influencedGroups.Count);
+		InfluencedGroupIds = new List<long> (_influencedGroups.Count);
 
 		foreach (CellGroup g in _influencedGroups) {
 

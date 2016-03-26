@@ -57,13 +57,13 @@ public class World : Synchronizable {
 	public int MaxYearsToSkip { get; private set; }
 	
 	[XmlAttribute]
-	public int CurrentCellGroupId { get; private set; }
+	public long CurrentCellGroupId { get; private set; }
 	
 	[XmlAttribute]
-	public int CurrentEventId { get; private set; }
+	public long CurrentEventId { get; private set; }
 
 	[XmlAttribute]
-	public int CurrentPolityId { get; private set; }
+	public long CurrentPolityId { get; private set; }
 	
 	[XmlAttribute]
 	public int EventsToHappenCount { get; private set; }
@@ -91,6 +91,7 @@ public class World : Synchronizable {
 		XmlArrayItem (Type = typeof(SailingDiscoveryEvent)),
 		XmlArrayItem (Type = typeof(BoatMakingDiscoveryEvent)),
 		XmlArrayItem (Type = typeof(TribalismDiscoveryEvent)),
+		XmlArrayItem (Type = typeof(TribeFormationEvent)),
 		XmlArrayItem (Type = typeof(PlantCultivationDiscoveryEvent)),
 		XmlArrayItem (Type = typeof(FarmDegradationEvent))]
 	public List<WorldEvent> EventsToHappen;
@@ -162,6 +163,8 @@ public class World : Synchronizable {
 	private HashSet<string> _culturalSkillIdList = new HashSet<string> ();
 	private HashSet<string> _culturalKnowledgeIdList = new HashSet<string> ();
 	private HashSet<string> _culturalDiscoveryIdList = new HashSet<string> ();
+
+	private Dictionary<long, CellGroup> _cellGroups = new Dictionary<long, CellGroup> ();
 	
 	private HashSet<CellGroup> _updatedGroups = new HashSet<CellGroup> ();
 	
@@ -170,8 +173,7 @@ public class World : Synchronizable {
 
 	private List<MigratingGroup> _migratingGroups = new List<MigratingGroup> ();
 
-	public Dictionary<int, CellGroup> _cellGroups = new Dictionary<int, CellGroup> ();
-	public Dictionary<int, Polity> _polities = new Dictionary<int, Polity> ();
+	private Dictionary<long, Polity> _polities = new Dictionary<long, Polity> ();
 
 	private Vector2[] _continentOffsets;
 	private float[] _continentWidths;
@@ -570,7 +572,7 @@ public class World : Synchronizable {
 		CellGroupsCount--;
 	}
 	
-	public CellGroup GetGroup (int id) {
+	public CellGroup GetGroup (long id) {
 
 		CellGroup group;
 
@@ -594,7 +596,7 @@ public class World : Synchronizable {
 		_polities.Add (polity.Id, polity);
 	}
 
-	public Polity GetPolity (int id) {
+	public Polity GetPolity (long id) {
 
 		Polity polity;
 
@@ -1281,17 +1283,17 @@ public class World : Synchronizable {
 		_accumulatedProgress += _progressIncrement;
 	}
 
-	public int GenerateCellGroupId () {
+	public long GenerateCellGroupId () {
 	
 		return ++CurrentCellGroupId;
 	}
 	
-	public int GenerateEventId () {
+	public long GenerateEventId () {
 		
 		return ++CurrentEventId;
 	}
 
-	public int GeneratePolityId () {
+	public long GeneratePolityId () {
 
 		return ++CurrentPolityId;
 	}

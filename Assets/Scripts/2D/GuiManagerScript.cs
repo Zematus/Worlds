@@ -1340,10 +1340,10 @@ public class GuiManagerScript : MonoBehaviour {
 				float totalInfluence = cell.Group.TotalPolityInfluence;
 
 				if (totalInfluence > 0) {
-					foreach (KeyValuePair<Polity, float> pair in cell.Group.PolityInfluences) {
+					foreach (PolityInfluence polityInfluence in cell.Group.GetPolityInfluences ()) {
 
-						Polity polity = pair.Key;
-						float relativeInfluence = pair.Value / totalInfluence;
+						Polity polity = polityInfluence.Polity;
+						float relativeInfluence = polityInfluence.Value / totalInfluence;
 
 						if (relativeInfluence >= 0.001) {
 

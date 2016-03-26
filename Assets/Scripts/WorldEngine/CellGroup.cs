@@ -28,7 +28,7 @@ public class CellGroup : HumanGroup {
 	public float ExactPopulation;
 	
 	[XmlAttribute]
-	public int Id;
+	public long Id;
 	
 	[XmlAttribute]
 	public bool StillPresent = true;
@@ -49,8 +49,8 @@ public class CellGroup : HumanGroup {
 	
 	[XmlAttribute]
 	public bool HasMigrationEvent = false;
-	[XmlAttribute]
-	public bool HasKnowledgeTransferEvent = false;
+//	[XmlAttribute]
+//	public bool HasKnowledgeTransferEvent = false;
 
 	[XmlAttribute]
 	public float SeaTravelFactor = 0;
@@ -64,8 +64,7 @@ public class CellGroup : HumanGroup {
 
 	public CellCulture Culture;
 
-	public List<int> InfluencingPolityIds;
-	public List<float> PolityInfluenceValues;
+	public List<PolityInfluence> PolityInfluences;
 
 	[XmlIgnore]
 	public static float TravelWidthFactor;
@@ -78,15 +77,14 @@ public class CellGroup : HumanGroup {
 
 	[XmlIgnore]
 	public float TotalMigrationValue;
-	
+
 	[XmlIgnore]
 	public bool DebugTagged = false;
-	
+
 	[XmlIgnore]
 	public List<CellGroup> Neighbors;
 
-	[XmlIgnore]
-	public Dictionary<Polity, float> PolityInfluences = new Dictionary<Polity, float> ();
+	private Dictionary<long, PolityInfluence> _polityInfluences = new Dictionary<long, PolityInfluence> ();
 
 //	private Dictionary<int, WorldEvent> _associatedEvents = new Dictionary<int, WorldEvent> ();
 	
@@ -116,6 +114,11 @@ public class CellGroup : HumanGroup {
 	}
 	
 	public CellGroup (MigratingGroup migratingGroup, int splitPopulation, CellCulture splitCulture) : this(migratingGroup.World, migratingGroup.TargetCell, splitPopulation, splitCulture) {
+
+		foreach (PolityInfluence p in migratingGroup.PolityInfluences) {
+
+			_polityInfluences.Add (p.PolityId, p);
+		}
 	}
 
 	public CellGroup (World world, TerrainCell cell, int initialPopulation, CellCulture baseCulture = null) : base(world) {
@@ -340,10 +343,10 @@ public class CellGroup : HumanGroup {
 
 		Culture.MergeCulture (group.Culture, percentage);
 
-		foreach (KeyValuePair <Polity, float> pair in group.PolityInfluences) {
+		foreach (PolityInfluence p in group.PolityInfluences) {
 		
-			Polity polity = pair.Key;
-			float influence = pair.Value;
+			Polity polity = p.Polity;
+			float influence = p.Value;
 
 			polity.MergingEffects (this, influence, percentage);
 		}
@@ -458,11 +461,11 @@ public class CellGroup : HumanGroup {
 
 		float polityInfluenceFactor = 1;
 
-		foreach (KeyValuePair<Polity, float> pair in PolityInfluences) {
+		foreach (PolityInfluence polityInfluence in _polityInfluences.Values) {
 
-			float relativeInfluence = pair.Value / TotalPolityInfluence;
+			float relativeInfluence = polityInfluence.Value / TotalPolityInfluence;
 
-			float influenceFactor = pair.Key.MigrationValue (cell, relativeInfluence);
+			float influenceFactor = polityInfluence.Polity.MigrationValue (cell, relativeInfluence);
 
 			influenceFactor = Mathf.Pow (influenceFactor, 4) * 50 / _noMigrationFactor;
 
@@ -701,24 +704,22 @@ public class CellGroup : HumanGroup {
 
 	private void UpdatePolities (int timeSpan) {
 
-		foreach (KeyValuePair <Polity, float> pair in PolityInfluences) {
+		PolityInfluence[] polityInfluences = new PolityInfluence[_polityInfluences.Count];
+		_polityInfluences.Values.CopyTo (polityInfluences, 0);
+
+		foreach (PolityInfluence polityInfluence in polityInfluences) {
 		
-			Polity polity = pair.Key;
-			float influence = pair.Value;
+			Polity polity = polityInfluence.Polity;
+			float influence = polityInfluence.Value;
 
 			polity.UpdateEffects (this, influence, timeSpan);
 		}
-	}
 
-	public void LostTribalism () {
+		if (TribeFormationEvent.CanSpawnIn (this)) {
 
-		List <Polity> polities = new List<Polity> (PolityInfluences.Keys);
+			int triggerDate = TribeFormationEvent.CalculateTriggerDate (this);
 
-		foreach (Polity polity in polities) {
-
-			if (polity is Tribe) {
-				SetPolityInfluence (polity, 0);
-			}
+			World.InsertEventToHappen (new TribeFormationEvent (this, triggerDate));
 		}
 	}
 
@@ -976,29 +977,55 @@ public class CellGroup : HumanGroup {
 		return 0;
 	}
 
+	public ICollection<PolityInfluence> GetPolityInfluences () {
+
+		return _polityInfluences.Values;
+	}
+
 	public float GetPolityInfluence (Polity polity) {
 
-		float influence;
+		PolityInfluence polityInfluence;
 
-		PolityInfluences.TryGetValue (polity, out influence);
+		if (!_polityInfluences.TryGetValue (polity.Id, out polityInfluence))
+			return 0;
 
-		return influence;
+		return polityInfluence.Value;
 	}
 
 	public void SetPolityInfluence (Polity polity, float influence) {
 
-		float currentInfluence = GetPolityInfluence (polity);
+		PolityInfluence polityInfluence;
+
+		_polityInfluences.TryGetValue (polity.Id, out polityInfluence);
+
+		if (polityInfluence == null) {
+			if (influence > Polity.MinPolityInfluence) {
+
+				_polityInfluences.Add (polity.Id, new PolityInfluence (polity, influence));
+
+				TotalPolityInfluence += influence;
+
+				polity.AddInfluencedGroup (this);
+			}
+
+			return;
+		}
+
+		float currentInfluence = polityInfluence.Value;
 
 		TotalPolityInfluence -= currentInfluence;
 
-		if (influence <= 0) {
-			PolityInfluences.Remove (polity);
+		if (influence <= Polity.MinPolityInfluence) {
+
+			influence = 0;
+			
+			_polityInfluences.Remove (polityInfluence.PolityId);
 
 			polity.RemoveInfluencedGroup (this);
-		} else {
-			PolityInfluences [polity] = influence;
+		}
 
-			polity.AddInfluencedGroup (this);
+		if (currentInfluence > influence) {
+			polityInfluence.Value = influence;
 
 			TotalPolityInfluence += influence;
 		}
@@ -1016,14 +1043,7 @@ public class CellGroup : HumanGroup {
 
 	public override void Synchronize () {
 
-		InfluencingPolityIds = new List<int> (PolityInfluences.Count);
-		PolityInfluenceValues = new List<float> (PolityInfluences.Count);
-
-		foreach (KeyValuePair <Polity, float> pair in PolityInfluences) {
-		
-			InfluencingPolityIds.Add (pair.Key.Id);
-			PolityInfluenceValues.Add (pair.Value);
-		} 
+		PolityInfluences = new List<PolityInfluence> (_polityInfluences.Values);
 		
 		base.Synchronize ();
 	}
@@ -1054,17 +1074,15 @@ public class CellGroup : HumanGroup {
 			SeaMigrationRoute.FinalizeLoad ();
 		}
 
-		for (int i = 0; i < InfluencingPolityIds.Count; i++) {
+		PolityInfluences.ForEach (p => {
+		
+			p.Polity = World.GetPolity (p.PolityId);
 
-			int id = InfluencingPolityIds [i];
-			float value = PolityInfluenceValues [i];
+			if (p.Polity == null) { 
+				throw new System.Exception ("Missing polity with id:" + p.PolityId);
+			}
 
-			Polity polity = World.GetPolity (id);
-
-			if (polity == null)
-				throw new System.Exception ("Unable to find Polity with Id " + id);
-
-			PolityInfluences.Add (polity, value);
-		}
+			_polityInfluences.Add (p.PolityId, p);
+		});
 	}
 }

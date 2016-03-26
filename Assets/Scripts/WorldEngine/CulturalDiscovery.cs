@@ -116,13 +116,6 @@ public class TribalismDiscovery : CulturalDiscovery {
 
 		return true;
 	}
-
-	public override void LossConsequences (CellGroup group)
-	{
-		group.LostTribalism ();
-		
-		base.LossConsequences (group);
-	}
 }
 
 public class PlantCultivationDiscovery : CulturalDiscovery {

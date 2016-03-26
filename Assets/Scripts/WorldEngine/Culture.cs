@@ -199,6 +199,11 @@ public class CellCulture : Culture {
 	[XmlIgnore]
 	public Dictionary<string, CulturalDiscovery> DiscoveriesToFind = new Dictionary<string, CulturalDiscovery> ();
 
+	private List<CulturalActivity> _activitiesToLose = new List<CulturalActivity> ();
+	private List<CulturalSkill> _skillsToLose = new List<CulturalSkill> ();
+	private List<CulturalKnowledge> _knowledgesToLose = new List<CulturalKnowledge> ();
+	private List<CulturalDiscovery> _discoveriesToLose = new List<CulturalDiscovery> ();
+
 	public CellCulture () {
 	}
 
@@ -337,37 +342,47 @@ public class CellCulture : Culture {
 
 			if (knowledge.WillBeLost ()) {
 
-				RemoveKnowledge (knowledge);
-
-				knowledge.LossConsequences ();
+				_knowledgesToLose.Add (knowledge);
 			}
 		}
-
-		bool discoveriesLost = false;
 
 		CulturalDiscovery[] discoveries = Discoveries.ToArray ();
 		
 		foreach (CulturalDiscovery discovery in discoveries) {
 			
-			if (discovery.CanBeHeld (Group)) continue;
+			if (discovery.CanBeHeld (Group))
+				continue;
 
-			RemoveDiscovery (discovery);
-
-			discovery.LossConsequences (Group);
-
-			discoveriesLost = true;
-		}
-
-		if (discoveriesLost) {
-
-			foreach (CulturalKnowledge knowledge in Knowledges) {
-				
-				(knowledge as CulturalKnowledge).RecalculateAsymptote ();
-			}
+			_discoveriesToLose.Add (discovery);
 		}
 	}
 
 	public void PostUpdate () {
+
+		bool discoveriesLost = false;
+
+		_activitiesToLose.ForEach (a => RemoveActivity (a));
+		_skillsToLose.ForEach (s => RemoveSkill (s));
+		_knowledgesToLose.ForEach (k => {
+			RemoveKnowledge (k);
+			k.LossConsequences ();
+		});
+		_discoveriesToLose.ForEach (d => {
+			RemoveDiscovery (d);
+			d.LossConsequences (Group);
+			discoveriesLost = true;
+		});
+
+		if (discoveriesLost) {
+			foreach (CulturalKnowledge knowledge in Knowledges) {
+				(knowledge as CulturalKnowledge).RecalculateAsymptote ();
+			}
+		}
+
+		_activitiesToLose.Clear ();
+		_skillsToLose.Clear ();
+		_knowledgesToLose.Clear ();
+		_discoveriesToLose.Clear ();
 
 		foreach (CulturalActivity activity in ActivitiesToPerform.Values) {
 
@@ -403,37 +418,37 @@ public class CellCulture : Culture {
 		DiscoveriesToFind.Clear ();
 	}
 	
-	public static float CalculateKnowledgeTransferValue (CellGroup sourceGroup, CellGroup targetGroup) {
-		
-		float maxTransferValue = 0;
-		
-		if (sourceGroup == null)
-			return maxTransferValue;
-		
-		if (targetGroup == null)
-			return maxTransferValue;
-		
-		if (!sourceGroup.StillPresent)
-			return maxTransferValue;
-		
-		if (!targetGroup.StillPresent)
-			return maxTransferValue;
-		
-		foreach (CulturalKnowledge sourceKnowledge in sourceGroup.Culture.Knowledges) {
-			
-			if (sourceKnowledge.Value <= MinKnowledgeValue) continue;
-			
-			CulturalKnowledge targetKnowledge = targetGroup.Culture.GetKnowledge (sourceKnowledge.Id);
-			
-			if (targetKnowledge == null) {
-				maxTransferValue = 1;
-			} else {
-				maxTransferValue = Mathf.Max (maxTransferValue, 1 - (targetKnowledge.Value / sourceKnowledge.Value));
-			}
-		}
-		
-		return maxTransferValue;
-	}
+//	public static float CalculateKnowledgeTransferValue (CellGroup sourceGroup, CellGroup targetGroup) {
+//		
+//		float maxTransferValue = 0;
+//		
+//		if (sourceGroup == null)
+//			return maxTransferValue;
+//		
+//		if (targetGroup == null)
+//			return maxTransferValue;
+//		
+//		if (!sourceGroup.StillPresent)
+//			return maxTransferValue;
+//		
+//		if (!targetGroup.StillPresent)
+//			return maxTransferValue;
+//		
+//		foreach (CulturalKnowledge sourceKnowledge in sourceGroup.Culture.Knowledges) {
+//			
+//			if (sourceKnowledge.Value <= MinKnowledgeValue) continue;
+//			
+//			CulturalKnowledge targetKnowledge = targetGroup.Culture.GetKnowledge (sourceKnowledge.Id);
+//			
+//			if (targetKnowledge == null) {
+//				maxTransferValue = 1;
+//			} else {
+//				maxTransferValue = Mathf.Max (maxTransferValue, 1 - (targetKnowledge.Value / sourceKnowledge.Value));
+//			}
+//		}
+//		
+//		return maxTransferValue;
+//	}
 	
 //	public void AbsorbKnowledgeFrom (CulturalKnowledge sourceKnowledge, float sourceFactor) {
 //		

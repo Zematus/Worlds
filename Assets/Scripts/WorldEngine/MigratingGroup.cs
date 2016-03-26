@@ -18,7 +18,7 @@ public class MigratingGroup : HumanGroup {
 	public int Population = 0;
 	
 	[XmlAttribute]
-	public int SourceGroupId;
+	public long SourceGroupId;
 
 	public CellCulture Culture;
 	
@@ -29,7 +29,7 @@ public class MigratingGroup : HumanGroup {
 	public CellGroup SourceGroup;
 
 	[XmlIgnore]
-	public Dictionary <Polity, float> PolityInfluences;
+	public List <PolityInfluence> PolityInfluences;
 
 	public MigratingGroup () {
 	}
@@ -62,7 +62,12 @@ public class MigratingGroup : HumanGroup {
 		
 		Culture = new CellCulture(SourceGroup, SourceGroup.Culture);
 
-		PolityInfluences = new Dictionary<Polity, float> (SourceGroup.PolityInfluences);
+		PolityInfluences = new List<PolityInfluence> ();
+
+		foreach (PolityInfluence p in SourceGroup.GetPolityInfluences ()) {
+
+			PolityInfluences.Add (new PolityInfluence (p.Polity, p.Value));
+		}
 
 		return true;
 	}
