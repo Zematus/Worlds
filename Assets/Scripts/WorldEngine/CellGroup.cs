@@ -975,9 +975,14 @@ public class CellGroup : HumanGroup {
 		return 0;
 	}
 
-	public ICollection<PolityInfluence> GetPolityInfluences () {
+	public int GetPolityInfluencesCount () {
 
-		return _polityInfluences.Values;
+		return _polityInfluences.Count;
+	}
+
+	public List<PolityInfluence> GetPolityInfluences () {
+
+		return new List<PolityInfluence> (_polityInfluences.Values);
 	}
 
 	public float GetPolityInfluenceValue (Polity polity) {
