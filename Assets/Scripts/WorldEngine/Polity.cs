@@ -57,7 +57,7 @@ public abstract class Polity : Synchronizable {
 
 		SetCoreGroup (coreGroup);
 
-		coreGroup.SetPolityInfluence (this, coreGroupInfluence);
+		coreGroup.SetPolityInfluenceValue (this, coreGroupInfluence);
 	}
 
 	public void SetCoreGroup (CellGroup group) {
@@ -114,7 +114,6 @@ public abstract class Polity : Synchronizable {
 		}
 	}
 
-	public abstract float CalculateUpdateSpanFactor (TerrainCell cell, float relativeInfluence);
 	public abstract float MigrationValue (TerrainCell targetCell, float sourceRelativeInfluence);
 	public abstract void MergingEffects (CellGroup targetGroup, float sourceInfluence, float percentOfTarget);
 	public abstract void UpdateEffects (CellGroup group, float influence, int timeSpan);

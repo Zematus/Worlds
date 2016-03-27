@@ -56,7 +56,7 @@ public class CellGroup : HumanGroup {
 	public float SeaTravelFactor = 0;
 
 	[XmlAttribute]
-	public float TotalPolityInfluence = 0;
+	public float TotalPolityInfluenceValue = 0;
 
 	public Route SeaMigrationRoute = null;
 
@@ -463,11 +463,9 @@ public class CellGroup : HumanGroup {
 
 		foreach (PolityInfluence polityInfluence in _polityInfluences.Values) {
 
-			float relativeInfluence = polityInfluence.Value / TotalPolityInfluence;
+			float influenceFactor = polityInfluence.Polity.MigrationValue (cell, polityInfluence.Value);
 
-			float influenceFactor = polityInfluence.Polity.MigrationValue (cell, relativeInfluence);
-
-			influenceFactor = Mathf.Pow (influenceFactor, 4) * 50 / _noMigrationFactor;
+			influenceFactor = Mathf.Pow (influenceFactor, 4) * 150 / _noMigrationFactor;
 
 			polityInfluenceFactor += influenceFactor;
 		}
@@ -982,7 +980,7 @@ public class CellGroup : HumanGroup {
 		return _polityInfluences.Values;
 	}
 
-	public float GetPolityInfluence (Polity polity) {
+	public float GetPolityInfluenceValue (Polity polity) {
 
 		PolityInfluence polityInfluence;
 
@@ -992,18 +990,23 @@ public class CellGroup : HumanGroup {
 		return polityInfluence.Value;
 	}
 
-	public void SetPolityInfluence (Polity polity, float influence) {
+	public void SetPolityInfluenceValue (Polity polity, float influenceValue) {
 
 		PolityInfluence polityInfluence;
 
 		_polityInfluences.TryGetValue (polity.Id, out polityInfluence);
 
 		if (polityInfluence == null) {
-			if (influence > Polity.MinPolityInfluence) {
+			if (influenceValue > Polity.MinPolityInfluence) {
 
-				_polityInfluences.Add (polity.Id, new PolityInfluence (polity, influence));
+				_polityInfluences.Add (polity.Id, new PolityInfluence (polity, influenceValue));
 
-				TotalPolityInfluence += influence;
+				TotalPolityInfluenceValue += influenceValue;
+
+				if (TotalPolityInfluenceValue > 1f) {
+				
+					throw new System.Exception ("Total influence value greater than 1: " + TotalPolityInfluenceValue);
+				}
 
 				polity.AddInfluencedGroup (this);
 			}
@@ -1011,34 +1014,29 @@ public class CellGroup : HumanGroup {
 			return;
 		}
 
-		float currentInfluence = polityInfluence.Value;
+		float currentInfluenceValue = polityInfluence.Value;
 
-		TotalPolityInfluence -= currentInfluence;
+		TotalPolityInfluenceValue -= currentInfluenceValue;
 
-		if (influence <= Polity.MinPolityInfluence) {
+		if (influenceValue <= Polity.MinPolityInfluence) {
 
-			influence = 0;
+			influenceValue = 0;
 			
 			_polityInfluences.Remove (polityInfluence.PolityId);
 
 			polity.RemoveInfluencedGroup (this);
 		}
 
-		if (currentInfluence > influence) {
-			polityInfluence.Value = influence;
+		if (currentInfluenceValue > influenceValue) {
+			polityInfluence.Value = influenceValue;
 
-			TotalPolityInfluence += influence;
+			TotalPolityInfluenceValue += influenceValue;
+
+			if (TotalPolityInfluenceValue > 1f) {
+
+				throw new System.Exception ("Total influence value greater than 1: " + TotalPolityInfluenceValue);
+			}
 		}
-	}
-
-	public float GetRelativePolityInfluence (Polity polity) {
-	
-		float absoluteInfluence = GetPolityInfluence (polity);
-
-		if (TotalPolityInfluence <= 0)
-			return 0;
-
-		return absoluteInfluence / TotalPolityInfluence;
 	}
 
 	public override void Synchronize () {

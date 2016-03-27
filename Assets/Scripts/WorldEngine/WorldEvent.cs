@@ -476,7 +476,10 @@ public class TribalismDiscoveryEvent : CellGroupEvent {
 
 		Group.Culture.AddDiscoveryToFind (new TribalismDiscovery ());
 
-		World.AddPolity (Tribe.GenerateNewTribe (Group));
+		if (Group.GetPolityInfluences ().Count <= 0) {
+
+			World.AddPolity (Tribe.GenerateNewTribe (Group));
+		}
 
 		World.AddGroupToUpdate (Group);
 	}
@@ -552,6 +555,9 @@ public class TribeFormationEvent : CellGroupEvent {
 		CulturalDiscovery discovery = Group.Culture.GetDiscovery (TribalismDiscovery.TribalismDiscoveryId);
 
 		if (discovery == null)
+			return false;
+
+		if (Group.GetPolityInfluences ().Count > 0)
 			return false;
 
 		return true;

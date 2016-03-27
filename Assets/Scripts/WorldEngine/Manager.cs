@@ -1126,6 +1126,46 @@ public class Manager {
 		return color * slantFactor * altitudeFactor;
 	}
 
+	private static Color SetPoliticalOverlayColor (TerrainCell cell, Color color) {
+
+		float greyscale = (color.r + color.g + color.b);
+
+		color.r = (greyscale + color.r) / 6f;
+		color.g = (greyscale + color.g) / 6f;
+		color.b = (greyscale + color.b) / 6f;
+
+		float deltaLimitFactor = 0.02f;
+
+		float prevPopulation = 0;
+		float population = 0;
+
+		float delta = 0;
+
+		if (cell.Group != null) {
+
+			prevPopulation = cell.Group.PreviousPopulation;
+			population = cell.Group.Population;
+
+			delta = population - prevPopulation;
+		}
+
+		if (delta > 0) {
+
+			float value = delta / (population * deltaLimitFactor);
+			value = Mathf.Clamp01 (value);
+
+			color = (color * (1 - value)) + (Color.green * value);
+		} else if (delta < 0) {
+
+			float value = -delta / (prevPopulation * deltaLimitFactor);
+			value = Mathf.Clamp01 (value);
+
+			color = (color * (1 - value)) + (Color.red * value);
+		}
+
+		return color;
+	}
+
 	private static Color SetPopulationChangeOverlayColor (TerrainCell cell, Color color) {
 
 		float greyscale = (color.r + color.g + color.b);
@@ -1447,6 +1487,9 @@ public class Manager {
 
 		case "PopulationChange":
 			return SetPopulationChangeOverlayColor (cell, color);
+
+		case "Political":
+			return SetPoliticalOverlayColor (cell, color);
 
 		case "Rainfall":
 			return SetRainfallOverlayColor (cell, color);

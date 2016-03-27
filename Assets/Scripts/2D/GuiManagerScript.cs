@@ -271,7 +271,8 @@ public class GuiManagerScript : MonoBehaviour {
 						(_planetOverlaySubtype == "UpdateSpan") || 
 						(_planetOverlaySubtype == "Farmland") || 
 						(_planetOverlaySubtype == "Population") || 
-						(_planetOverlaySubtype == "PopulationChange")))) {
+						(_planetOverlaySubtype == "PopulationChange") || 
+						(_planetOverlaySubtype == "Political")))) {
 				Manager.UpdateTextures ();
 
 				_mapUpdateCount++;
@@ -1091,7 +1092,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 		AddSelectionPanelOption ("Population", "Population");
 		AddSelectionPanelOption ("Population Change", "PopulationChange");
-		AddSelectionPanelOption ("Rainfall", "Rainfall");
+		AddSelectionPanelOption ("Political", "Political");
 		AddSelectionPanelOption ("Rainfall", "Rainfall");
 		AddSelectionPanelOption ("Temperature", "Temperature");
 		AddSelectionPanelOption ("Arability", "Arability");
@@ -1151,6 +1152,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 			AddSelectionPanelOption ("Population", "Population");
 			AddSelectionPanelOption ("Population Change", "PopulationChange");
+			AddSelectionPanelOption ("Political", "Political");
 			AddSelectionPanelOption ("Rainfall", "Rainfall");
 			AddSelectionPanelOption ("Temperature", "Temperature");
 			AddSelectionPanelOption ("Arability", "Arability");
@@ -1337,25 +1339,21 @@ public class GuiManagerScript : MonoBehaviour {
 
 				bool firstPolity = true;
 
-				float totalInfluence = cell.Group.TotalPolityInfluence;
+				foreach (PolityInfluence polityInfluence in cell.Group.GetPolityInfluences ()) {
 
-				if (totalInfluence > 0) {
-					foreach (PolityInfluence polityInfluence in cell.Group.GetPolityInfluences ()) {
+					Polity polity = polityInfluence.Polity;
+					float influenceValue = polityInfluence.Value;
 
-						Polity polity = polityInfluence.Polity;
-						float relativeInfluence = polityInfluence.Value / totalInfluence;
+					if (influenceValue >= 0.001) {
 
-						if (relativeInfluence >= 0.001) {
+						if (firstPolity) {
+							InfoPanelText.text += "\n";
+							InfoPanelText.text += "\nPolities";
 
-							if (firstPolity) {
-								InfoPanelText.text += "\n";
-								InfoPanelText.text += "\nPolities";
-
-								firstPolity = false;
-							}
-
-							InfoPanelText.text += "\n\tPolity[" + polity.Id + "] - Influence: " + relativeInfluence.ToString ("P");
+							firstPolity = false;
 						}
+
+						InfoPanelText.text += "\n\tPolity[" + polity.Id + "] - Influence: " + influenceValue.ToString ("P");
 					}
 				}
 

@@ -26,43 +26,46 @@ public class Tribe : Polity {
 		return newTribe;
 	}
 
-	public override float CalculateUpdateSpanFactor (TerrainCell cell, float relativeInfluence)
+	public override float MigrationValue (TerrainCell targetCell, float sourceInfluenceValue)
 	{
-		throw new System.NotImplementedException ();
-	}
-
-	public override float MigrationValue (TerrainCell targetCell, float sourceRelativeInfluence)
-	{
-		sourceRelativeInfluence = Mathf.Max (sourceRelativeInfluence, 0);
+		sourceInfluenceValue = Mathf.Max (sourceInfluenceValue, 0);
 
 		CellGroup targetGroup = targetCell.Group;
 
-		float groupRelativeInfluence = 0.0001f;
+		float groupTotalInfluenceValue = 0.0001f;
 
 		if (targetGroup != null) {
 
-			groupRelativeInfluence = Mathf.Max (targetGroup.GetRelativePolityInfluence (this), groupRelativeInfluence);
+			groupTotalInfluenceValue = Mathf.Max (targetGroup.TotalPolityInfluenceValue, groupTotalInfluenceValue);
 		}
 
-		float influenceFactor = sourceRelativeInfluence / (groupRelativeInfluence + sourceRelativeInfluence);
+		float influenceFactor = sourceInfluenceValue / (groupTotalInfluenceValue + sourceInfluenceValue);
 
 		return Mathf.Clamp01 (influenceFactor);
 	}
 
-	public override void MergingEffects (CellGroup targetGroup, float sourceInfluence, float percentOfTarget) {
+	public override void MergingEffects (CellGroup targetGroup, float sourceValue, float percentOfTarget) {
 
-		float currentInfluence = targetGroup.GetPolityInfluence (this);
+		foreach (PolityInfluence pInfluence in targetGroup.GetPolityInfluences ()) {
 
-		float newInfluence = (currentInfluence * (1 - percentOfTarget)) + (sourceInfluence * percentOfTarget);
+			float currentValue = pInfluence.Value;
 
-		targetGroup.SetPolityInfluence (this, newInfluence);
+			float newValue = currentValue * (1 - percentOfTarget);
+
+			if (Id == pInfluence.PolityId) {
+			
+				newValue += sourceValue * percentOfTarget;
+			}
+
+			targetGroup.SetPolityInfluenceValue (pInfluence.Polity, newValue);
+		}
 	}
 
 	public override void UpdateEffects (CellGroup group, float influence, int timeSpan) {
 
 		if (group.Culture.GetDiscovery (TribalismDiscovery.TribalismDiscoveryId) == null) {
 		
-			group.SetPolityInfluence (this, Polity.MinPolityInfluence);
+			group.SetPolityInfluenceValue (this, 0);
 
 			return;
 		}
