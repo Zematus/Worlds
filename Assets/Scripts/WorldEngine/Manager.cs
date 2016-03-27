@@ -1128,42 +1128,84 @@ public class Manager {
 
 	private static Color SetPoliticalOverlayColor (TerrainCell cell, Color color) {
 
-		float greyscale = (color.r + color.g + color.b);
+		float greyscale = 1 + (color.r + color.g + color.b);
 
-		color.r = (greyscale + color.r) / 6f;
-		color.g = (greyscale + color.g) / 6f;
-		color.b = (greyscale + color.b) / 6f;
-
-		float deltaLimitFactor = 0.02f;
-
-		float prevPopulation = 0;
-		float population = 0;
-
-		float delta = 0;
+		color.r = (greyscale + color.r) / 9f;
+		color.g = (greyscale + color.g) / 9f;
+		color.b = (greyscale + color.b) / 9f;
 
 		if (cell.Group != null) {
 
-			prevPopulation = cell.Group.PreviousPopulation;
-			population = cell.Group.Population;
+			foreach (PolityInfluence p in cell.Group.GetPolityInfluences ()) {
 
-			delta = population - prevPopulation;
-		}
+				Color polityColor = GenerateColorFromId (p.PolityId);
+				polityColor *= p.Value;
 
-		if (delta > 0) {
+				color.r += polityColor.r * (1 - color.r);
+				color.g += polityColor.g * (1 - color.g);
+				color.b += polityColor.b * (1 - color.b);
+			}
+		} else {
 
-			float value = delta / (population * deltaLimitFactor);
-			value = Mathf.Clamp01 (value);
-
-			color = (color * (1 - value)) + (Color.green * value);
-		} else if (delta < 0) {
-
-			float value = -delta / (prevPopulation * deltaLimitFactor);
-			value = Mathf.Clamp01 (value);
-
-			color = (color * (1 - value)) + (Color.red * value);
+			color.r /= 2f;
+			color.g /= 2f;
+			color.b /= 2f;
 		}
 
 		return color;
+	}
+
+	private static Color GenerateColorFromId (long id) {
+	
+		long primaryColor = id % 3;
+		long secondaryColor = (id / 3) % 2;
+		float secondaryColorIntensity = ((id / 6) % 256) / 256f;
+		float tertiaryColorIntensity = secondaryColorIntensity * ((id / (6 * 256)) % 256) / 256f;
+
+		float red = 0;
+		float green = 0;
+		float blue = 0;
+
+		switch (primaryColor) {
+		case 0:
+			red = 1;
+
+			if (secondaryColor == 0) {
+				green = secondaryColorIntensity;
+				blue = tertiaryColorIntensity;
+			} else {
+				blue = secondaryColorIntensity;
+				green = tertiaryColorIntensity;
+			}
+
+			break;
+		case 1:
+			green = 1;
+
+			if (secondaryColor == 0) {
+				blue = secondaryColorIntensity;
+				red = tertiaryColorIntensity;
+			} else {
+				red = secondaryColorIntensity;
+				blue = tertiaryColorIntensity;
+			}
+
+			break;
+		case 2:
+			blue = 1;
+
+			if (secondaryColor == 0) {
+				red = secondaryColorIntensity;
+				green = tertiaryColorIntensity;
+			} else {
+				green = secondaryColorIntensity;
+				red = tertiaryColorIntensity;
+			}
+
+			break;
+		}
+
+		return new Color (red, green, blue);
 	}
 
 	private static Color SetPopulationChangeOverlayColor (TerrainCell cell, Color color) {
@@ -1196,7 +1238,7 @@ public class Manager {
 
 			color = (color * (1 - value)) + (Color.green * value);
 		} else if (delta < 0) {
-			
+
 			float value = -delta / (prevPopulation * deltaLimitFactor);
 			value = Mathf.Clamp01 (value);
 
