@@ -1127,16 +1127,25 @@ public class Manager {
 	}
 
 	private static Color SetPoliticalOverlayColor (TerrainCell cell, Color color) {
-
-		float greyscale = 1 + (color.r + color.g + color.b);
+		
+		float greyscale = (color.r + color.g + color.b);
 
 		color.r = (greyscale + color.r) / 9f;
 		color.g = (greyscale + color.g) / 9f;
 		color.b = (greyscale + color.b) / 9f;
 
+		if (cell.GetBiomePresence (Biome.Ocean) >= 1f) {
+
+			return color;
+		}
+
 		if (cell.Group != null) {
 
+			bool hasPolities = false;
+
 			foreach (PolityInfluence p in cell.Group.GetPolityInfluences ()) {
+
+				hasPolities = true;
 
 				Color polityColor = GenerateColorFromId (p.PolityId);
 				polityColor *= p.Value;
@@ -1145,11 +1154,19 @@ public class Manager {
 				color.g += polityColor.g * (1 - color.g);
 				color.b += polityColor.b * (1 - color.b);
 			}
-		} else {
 
-			color.r /= 2f;
-			color.g /= 2f;
-			color.b /= 2f;
+			if (!hasPolities) {
+
+				if (cell.Group.Culture.GetDiscovery (TribalismDiscovery.TribalismDiscoveryId) != null) {
+					color.r += 4 / 9f;
+					color.g += 4 / 9f;
+					color.b += 4 / 9f;
+				} else {
+					color.r += 1 / 9f;
+					color.g += 1 / 9f;
+					color.b += 1 / 9f;
+				}
+			}
 		}
 
 		return color;
