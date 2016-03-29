@@ -1141,31 +1141,36 @@ public class Manager {
 
 		if (cell.Group != null) {
 
-			bool hasPolities = false;
+			int polityCount = 0;
+			float totalInfluenceValueFactor = 0;
 
+			Color mixedPolityColor = Color.black;
 			foreach (PolityInfluence p in cell.Group.GetPolityInfluences ()) {
 
-				hasPolities = true;
+				polityCount++;
+
+				float influenceValueFactor = 0.2f + p.Value;
 
 				Color polityColor = GenerateColorFromId (p.PolityId);
-				polityColor *= p.Value;
+				polityColor *= influenceValueFactor;
+				totalInfluenceValueFactor += 1.2f;
 
-				color.r += polityColor.r * (1 - color.r);
-				color.g += polityColor.g * (1 - color.g);
-				color.b += polityColor.b * (1 - color.b);
+				mixedPolityColor += polityColor;
 			}
 
-			if (!hasPolities) {
+			if (polityCount > 0) {
 
-				if (cell.Group.Culture.GetDiscovery (TribalismDiscovery.TribalismDiscoveryId) != null) {
-					color.r += 4 / 9f;
-					color.g += 4 / 9f;
-					color.b += 4 / 9f;
-				} else {
-					color.r += 1 / 9f;
-					color.g += 1 / 9f;
-					color.b += 1 / 9f;
-				}
+				mixedPolityColor /= totalInfluenceValueFactor;
+
+				color.r += mixedPolityColor.r * (1 - color.r);
+				color.g += mixedPolityColor.g * (1 - color.g);
+				color.b += mixedPolityColor.b * (1 - color.b);
+
+			} else {
+
+				color.r += 2 / 9f;
+				color.g += 2 / 9f;
+				color.b += 2 / 9f;
 			}
 		}
 
@@ -1175,9 +1180,9 @@ public class Manager {
 	private static Color GenerateColorFromId (long id) {
 	
 		long primaryColor = id % 3;
-		long secondaryColor = (id / 3) % 2;
-		float secondaryColorIntensity = ((id / 6) % 256) / 256f;
-		float tertiaryColorIntensity = secondaryColorIntensity * ((id / (6 * 256)) % 256) / 256f;
+		float secondaryColorIntensity = (id / 3) % 2;
+		long secondaryColor = (id / 6) % 2;
+		float tertiaryColorIntensity = (id / 12) % 4 / 4f;
 
 		float red = 0;
 		float green = 0;

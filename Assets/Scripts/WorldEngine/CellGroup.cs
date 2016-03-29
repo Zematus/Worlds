@@ -465,7 +465,7 @@ public class CellGroup : HumanGroup {
 
 			float influenceFactor = polityInfluence.Polity.MigrationValue (cell, polityInfluence.Value);
 
-			influenceFactor = Mathf.Pow (influenceFactor, 4) * 150 / _noMigrationFactor;
+			influenceFactor = Mathf.Exp (influenceFactor * 15) / _noMigrationFactor;
 
 			polityInfluenceFactor += influenceFactor;
 		}

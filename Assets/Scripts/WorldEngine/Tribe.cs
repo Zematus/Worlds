@@ -48,17 +48,23 @@ public class Tribe : Polity {
 
 		foreach (PolityInfluence pInfluence in targetGroup.GetPolityInfluences ()) {
 
-			float currentValue = pInfluence.Value;
+			float influenceValue = pInfluence.Value;
 
-			float newValue = currentValue * (1 - percentOfTarget);
+			float newInfluenceValue = influenceValue * (1 - percentOfTarget);
 
-			if (Id == pInfluence.PolityId) {
-			
-				newValue += sourceValue * percentOfTarget;
-			}
-
-			targetGroup.SetPolityInfluenceValue (pInfluence.Polity, newValue);
+			targetGroup.SetPolityInfluenceValue (pInfluence.Polity, newInfluenceValue);
 		}
+
+		if (sourceValue > 0.5f) {
+		
+			bool debug = true;
+		}
+
+		float currentValue = targetGroup.GetPolityInfluenceValue (this);
+
+		float newValue = currentValue + (sourceValue * percentOfTarget);
+
+		targetGroup.SetPolityInfluenceValue (this, newValue);
 	}
 
 	public override void UpdateEffects (CellGroup group, float influence, int timeSpan) {
