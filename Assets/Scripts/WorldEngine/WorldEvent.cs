@@ -280,6 +280,7 @@ public class MigrateGroupEvent : CellGroupEvent {
 	public override void Trigger () {
 
 		float percentToMigrate = (1 - Group.CellMigrationValue/Group.TotalMigrationValue) * Group.Cell.GetNextLocalRandomFloat ();
+		percentToMigrate = Mathf.Pow (percentToMigrate, 4);
 
 		percentToMigrate = Mathf.Clamp01 (percentToMigrate);
 

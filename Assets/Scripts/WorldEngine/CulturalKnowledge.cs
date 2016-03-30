@@ -520,21 +520,37 @@ public class SocialOrganizationKnowledge : CulturalKnowledge {
 		base.FinalizeLoad ();
 	}
 
-	protected float CalculatePopulationFactor () {
+	private float CalculatePopulationFactor () {
+
+		float areaFactor = Group.Cell.Area / TerrainCell.MaxArea;
 
 		float population = Group.Population;
+		float popFactor = population * areaFactor;
 
-		float popFactor = population / (population + (PopulationDensityModifier * Asymptote));
-		popFactor = 0.1f + popFactor * 0.9f;
+		float densityFactor = PopulationDensityModifier * Asymptote * areaFactor;
 
-		return popFactor;
+		float finalPopFactor = popFactor / (popFactor + densityFactor);
+		finalPopFactor = 0.1f + finalPopFactor * 0.9f;
+
+		return finalPopFactor;
+	}
+
+	private float CalculatePolityInfluenceFactor () {
+
+		float totalInfluence = Group.TotalPolityInfluenceValue * 0.4f;
+
+		return totalInfluence;
 	}
 
 	protected override void UpdateInternal (int timeSpan) {
 
 		float populationFactor = CalculatePopulationFactor ();
 
-		UpdateValue (timeSpan, TimeEffectConstant, populationFactor);
+		float influenceFactor = CalculatePolityInfluenceFactor ();
+
+		float totalFactor = populationFactor + influenceFactor * (1 - populationFactor);
+
+		UpdateValue (timeSpan, TimeEffectConstant, totalFactor);
 
 		TryGenerateTribalismDiscoveryEvent ();
 	}

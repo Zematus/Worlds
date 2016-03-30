@@ -90,7 +90,7 @@ public class CellGroup : HumanGroup {
 	
 	private HashSet<string> _flags = new HashSet<string> ();
 
-	private float _noMigrationFactor = 0.002f;
+	private float _noMigrationFactor = 0.01f;
 
 	Dictionary<TerrainCell, float> _cellMigrationValues = new Dictionary<TerrainCell, float> ();
 
@@ -435,9 +435,11 @@ public class CellGroup : HumanGroup {
 
 	public float CalculateMigrationValue (TerrainCell cell) {
 
-		if (Cell.IsSelected) {
+		if (cell.IsSelected) {
 		
-			bool debug = true;
+			if (_polityInfluences.Count > 0) {
+				bool debug = true;
+			}
 		}
 		
 		float areaFactor = cell.Area / TerrainCell.MaxArea;
@@ -454,21 +456,25 @@ public class CellGroup : HumanGroup {
 
 			popDifferenceFactor = (float)Population / (float)(Population + existingPopulation);
 			popDifferenceFactor = Mathf.Pow (popDifferenceFactor, 4);
-
 		}
 
 		popDifferenceFactor *= 10;
 
 		float polityInfluenceFactor = 1;
 
-		foreach (PolityInfluence polityInfluence in _polityInfluences.Values) {
+		if (_polityInfluences.Count > 0) {
+			polityInfluenceFactor = 0;
 
-			float influenceFactor = polityInfluence.Polity.MigrationValue (cell, polityInfluence.Value);
+			foreach (PolityInfluence polityInfluence in _polityInfluences.Values) {
 
-			influenceFactor = Mathf.Exp (influenceFactor * 15) / _noMigrationFactor;
+				float influenceFactor = polityInfluence.Polity.MigrationValue (cell, polityInfluence.Value);
+				influenceFactor = Mathf.Pow (influenceFactor, 8);
 
-			polityInfluenceFactor += influenceFactor;
+				polityInfluenceFactor += influenceFactor;
+			}
 		}
+
+		polityInfluenceFactor *= 10;
 
 		float noMigrationFactor = 1;
 
@@ -486,7 +492,13 @@ public class CellGroup : HumanGroup {
 			optimalPopulationFactor = optimalPopulation / (existingPopulation + optimalPopulation);
 		}
 
-		float cellValue = altitudeDeltaFactor * areaFactor * popDifferenceFactor * noMigrationFactor * polityInfluenceFactor * optimalPopulationFactor;
+		float secondaryOptimalPopulationFactor = 0;
+
+		if (optimalPopulation > 0) {
+			secondaryOptimalPopulationFactor = optimalPopulation / (OptimalPopulation + optimalPopulation);
+		}
+
+		float cellValue = altitudeDeltaFactor * areaFactor * popDifferenceFactor * noMigrationFactor * polityInfluenceFactor * optimalPopulationFactor * secondaryOptimalPopulationFactor;
 
 		return cellValue;
 	}
@@ -997,6 +1009,11 @@ public class CellGroup : HumanGroup {
 
 	public void SetPolityInfluenceValue (Polity polity, float influenceValue) {
 
+		if (Cell.IsSelected) {
+
+			bool debug = true;
+		}
+
 		PolityInfluence polityInfluence;
 
 		_polityInfluences.TryGetValue (polity.Id, out polityInfluence);
@@ -1024,23 +1041,21 @@ public class CellGroup : HumanGroup {
 		TotalPolityInfluenceValue -= currentInfluenceValue;
 
 		if (influenceValue <= Polity.MinPolityInfluence) {
-
-			influenceValue = 0;
 			
 			_polityInfluences.Remove (polityInfluence.PolityId);
 
 			polity.RemoveInfluencedGroup (this);
+
+			return;
 		}
 
-		if (currentInfluenceValue > influenceValue) {
-			polityInfluence.Value = influenceValue;
+		polityInfluence.Value = influenceValue;
 
-			TotalPolityInfluenceValue += influenceValue;
+		TotalPolityInfluenceValue += influenceValue;
 
-			if (TotalPolityInfluenceValue > 1f) {
+		if (TotalPolityInfluenceValue > 1f) {
 
-				throw new System.Exception ("Total influence value greater than 1: " + TotalPolityInfluenceValue);
-			}
+			throw new System.Exception ("Total influence value greater than 1: " + TotalPolityInfluenceValue);
 		}
 	}
 

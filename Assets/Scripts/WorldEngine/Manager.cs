@@ -1158,6 +1158,10 @@ public class Manager {
 				mixedPolityColor += polityColor;
 			}
 
+			color.r += 1 / 9f;
+			color.g += 1 / 9f;
+			color.b += 1 / 9f;
+
 			if (polityCount > 0) {
 
 				mixedPolityColor /= totalInfluenceValueFactor;
@@ -1166,11 +1170,6 @@ public class Manager {
 				color.g += mixedPolityColor.g * (1 - color.g);
 				color.b += mixedPolityColor.b * (1 - color.b);
 
-			} else {
-
-				color.r += 2 / 9f;
-				color.g += 2 / 9f;
-				color.b += 2 / 9f;
 			}
 		}
 

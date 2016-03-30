@@ -32,14 +32,32 @@ public class Tribe : Polity {
 
 		CellGroup targetGroup = targetCell.Group;
 
-		float groupTotalInfluenceValue = 0.0001f;
+		float groupTotalInfluenceValue = 0;
+
+//		float popFactor = 0;
+		float socialOrgFactor = 0;
+//		float socialOrgFactor = 1;
 
 		if (targetGroup != null) {
 
-			groupTotalInfluenceValue = Mathf.Max (targetGroup.TotalPolityInfluenceValue, groupTotalInfluenceValue);
+//			float areaFactor = targetCell.Area / TerrainCell.MaxArea;
+//
+//			float densityFactor = SocialOrganizationKnowledge.PopulationDensityModifier * areaFactor / 10;
+//
+//			popFactor = areaFactor * targetGroup.Population / (targetGroup.Population + densityFactor);
+
+			CulturalKnowledge socialOrgKnowledge = targetGroup.Culture.GetKnowledge (SocialOrganizationKnowledge.SocialOrganizationKnowledgeId);
+
+			socialOrgFactor = Mathf.Clamp01 (socialOrgKnowledge.Value / SocialOrganizationKnowledge.MinKnowledgeValueForTribalism);
+			socialOrgFactor = 1 - Mathf.Pow (1 - socialOrgFactor, 2);
+
+			groupTotalInfluenceValue = targetGroup.TotalPolityInfluenceValue;
 		}
 
-		float influenceFactor = sourceInfluenceValue / (groupTotalInfluenceValue + sourceInfluenceValue);
+		float sourceInfluenceFactor = 0.05f + (sourceInfluenceValue * 0.95f);
+
+		//float influenceFactor = popFactor * sourceInfluenceValue / (groupTotalInfluenceValue + sourceInfluenceFactor);
+		float influenceFactor = socialOrgFactor * sourceInfluenceValue / (groupTotalInfluenceValue + sourceInfluenceFactor);
 
 		return Mathf.Clamp01 (influenceFactor);
 	}
@@ -63,6 +81,11 @@ public class Tribe : Polity {
 		float currentValue = targetGroup.GetPolityInfluenceValue (this);
 
 		float newValue = currentValue + (sourceValue * percentOfTarget);
+
+		if (targetGroup.Cell.IsSelected) {
+		
+			bool debug = true;
+		}
 
 		targetGroup.SetPolityInfluenceValue (this, newValue);
 	}

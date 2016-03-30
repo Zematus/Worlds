@@ -136,7 +136,7 @@ public class GuiManagerScript : MonoBehaviour {
 		
 		if (!Manager.WorldReady) {
 
-			GenerateWorld ();
+			GenerateWorld (false, 407252633);
 		} else if (!Manager.SimulationCanRun) {
 
 			SetInitialPopulation ();
@@ -344,9 +344,11 @@ public class GuiManagerScript : MonoBehaviour {
 		SetGenerationSeed ();
 	}
 	
-	public void GenerateWorld () {
+	public void GenerateWorld (bool randomSeed = true, int seed = 0) {
 
-		int seed = Random.Range (0, int.MaxValue);
+		if (randomSeed) {
+			seed = Random.Range (0, int.MaxValue);
+		}
 		
 		GenerateWorldInternal (seed);
 	}
