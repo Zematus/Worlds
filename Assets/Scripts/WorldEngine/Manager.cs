@@ -1142,6 +1142,52 @@ public class Manager {
 		if (cell.Group != null) {
 
 			int polityCount = 0;
+
+			float maxInfluenceValue = 0;
+			Color highestInfluencePolityColor = Color.black;
+
+			foreach (PolityInfluence p in cell.Group.GetPolityInfluences ()) {
+
+				polityCount++;
+
+				if (maxInfluenceValue < p.Value) {
+
+					maxInfluenceValue = p.Value;
+					highestInfluencePolityColor = GenerateColorFromId (p.PolityId);
+				}
+			}
+
+			color.r += 1.5f / 9f;
+			color.g += 1.5f / 9f;
+			color.b += 1.5f / 9f;
+
+			if (polityCount > 0) {
+
+				color.r += highestInfluencePolityColor.r * (1 - color.r);
+				color.g += highestInfluencePolityColor.g * (1 - color.g);
+				color.b += highestInfluencePolityColor.b * (1 - color.b);
+			}
+		}
+
+		return color;
+	}
+
+	private static Color SetPolityInfluenceOverlayColor (TerrainCell cell, Color color) {
+
+		float greyscale = (color.r + color.g + color.b);
+
+		color.r = (greyscale + color.r) / 9f;
+		color.g = (greyscale + color.g) / 9f;
+		color.b = (greyscale + color.b) / 9f;
+
+		if (cell.GetBiomePresence (Biome.Ocean) >= 1f) {
+
+			return color;
+		}
+
+		if (cell.Group != null) {
+
+			int polityCount = 0;
 			float totalInfluenceValueFactor = 0;
 
 			Color mixedPolityColor = Color.black;
@@ -1158,9 +1204,9 @@ public class Manager {
 				mixedPolityColor += polityColor;
 			}
 
-			color.r += 1 / 9f;
-			color.g += 1 / 9f;
-			color.b += 1 / 9f;
+			color.r += 1.5f / 9f;
+			color.g += 1.5f / 9f;
+			color.b += 1.5f / 9f;
 
 			if (polityCount > 0) {
 
@@ -1553,6 +1599,9 @@ public class Manager {
 
 		case "Political":
 			return SetPoliticalOverlayColor (cell, color);
+
+		case "PolityInfluences":
+			return SetPolityInfluenceOverlayColor (cell, color);
 
 		case "Rainfall":
 			return SetRainfallOverlayColor (cell, color);

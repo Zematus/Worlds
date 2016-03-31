@@ -38,6 +38,11 @@ public class MigratingGroup : HumanGroup {
 
 		PercentPopulation = percentPopulation;
 
+		if (float.IsNaN (percentPopulation)) {
+		
+			bool debug = true;
+		}
+
 		TargetCell = targetCell;
 		SourceGroup = sourceGroup;
 

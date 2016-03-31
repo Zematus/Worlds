@@ -104,7 +104,16 @@ public class CellGroup : HumanGroup {
 	public int Population {
 
 		get {
-			return (int)Mathf.Floor(ExactPopulation);
+			int population = (int)Mathf.Floor(ExactPopulation);
+
+			#if DEBUG
+			if (population < -1000) {
+			
+				Debug.Break ();
+			}
+			#endif
+
+			return population;
 		}
 	}
 
@@ -332,14 +341,17 @@ public class CellGroup : HumanGroup {
 		UpdateInternal ();
 
 		float newPopulation = Population + group.Population;
-		
-		if (newPopulation <= 0) {
-			throw new System.Exception ("Population after migration merge shouldn't be 0 or less.");
-		}
 
 		float percentage = group.Population / newPopulation;
 
 		ExactPopulation = newPopulation;
+
+		#if DEBUG
+		if (Population < -1000) {
+
+			Debug.Break ();
+		}
+		#endif
 
 		Culture.MergeCulture (group.Culture, percentage);
 
@@ -361,6 +373,11 @@ public class CellGroup : HumanGroup {
 		int splitPopulation = (int)Mathf.Floor(Population * group.PercentPopulation);
 		
 		ExactPopulation -= splitPopulation;
+
+		if (Population < -1000) {
+
+			bool debug = true;
+		}
 
 		return splitPopulation;
 	}
@@ -759,7 +776,9 @@ public class CellGroup : HumanGroup {
 
 		float farmlandPercentage = Cell.FarmlandPercentage;
 
-		float techValue = Mathf.Sqrt(agricultureKnowledge.Value);
+		float knowledgeValue = Mathf.Max (agricultureKnowledge.Value, 0);
+
+		float techValue = Mathf.Sqrt(knowledgeValue);
 
 		float areaPerFarmWorker = techValue / 5f;
 
@@ -796,6 +815,13 @@ public class CellGroup : HumanGroup {
 		
 			throw new System.Exception ("farmlandPercentage greater than 1");
 		}
+
+		#if DEBUG
+		if (float.IsNaN(farmlandPercentage)) {
+
+			Debug.Break ();
+		}
+		#endif
 
 		Cell.FarmlandPercentage = farmlandPercentage;
 	}
@@ -872,6 +898,13 @@ public class CellGroup : HumanGroup {
 		float populationCapacity = (populationCapacityByForaging + populationCapacityByFarming) * modifiedSurvivability * accesibilityFactor;
 
 		optimalPopulation = (int)Mathf.Floor (populationCapacity);
+
+		#if DEBUG
+		if (optimalPopulation < -1000) {
+
+			Debug.Break ();
+		}
+		#endif
 
 		return optimalPopulation;
 	}
@@ -974,12 +1007,26 @@ public class CellGroup : HumanGroup {
 
 			population = OptimalPopulation * (1 - Mathf.Pow(populationFactor, geometricTimeFactor));
 
+			#if DEBUG
+			if ((int)population < -1000) {
+
+				Debug.Break ();
+			}
+			#endif
+
 			return population;
 		}
 
 		if (population > OptimalPopulation) {
 
 			population = OptimalPopulation + (ExactPopulation - OptimalPopulation) * Mathf.Exp (-timeFactor);
+
+			#if DEBUG
+			if ((int)population < -1000) {
+
+				Debug.Break ();
+			}
+			#endif
 			
 			return population;
 		}

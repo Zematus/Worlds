@@ -141,6 +141,13 @@ public class FarmDegradationEvent : CellEvent {
 		if (farmlandPercentage < MinFarmLandPercentage)
 			farmlandPercentage = 0;
 
+		#if DEBUG
+		if (float.IsNaN(farmlandPercentage)) {
+
+			Debug.Break ();
+		}
+		#endif
+
 		Cell.FarmlandPercentage = farmlandPercentage;
 	}
 
@@ -273,11 +280,19 @@ public class MigrateGroupEvent : CellGroupEvent {
 	}
 	
 	public override bool CanTrigger () {
+
+		if (Group.TotalMigrationValue <= 0)
+			return false;
 		
 		return true;
 	}
 
 	public override void Trigger () {
+
+		if (Group.TotalMigrationValue <= 0) {
+		
+			throw new System.Exception ("Total Migration Value equal or less than zero: " + Group.TotalMigrationValue);
+		}
 
 		float percentToMigrate = (1 - Group.CellMigrationValue/Group.TotalMigrationValue) * Group.Cell.GetNextLocalRandomFloat ();
 		percentToMigrate = Mathf.Pow (percentToMigrate, 4);

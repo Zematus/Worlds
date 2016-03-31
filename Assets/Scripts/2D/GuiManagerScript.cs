@@ -272,7 +272,8 @@ public class GuiManagerScript : MonoBehaviour {
 						(_planetOverlaySubtype == "Farmland") || 
 						(_planetOverlaySubtype == "Population") || 
 						(_planetOverlaySubtype == "PopulationChange") || 
-						(_planetOverlaySubtype == "Political")))) {
+						(_planetOverlaySubtype == "Political") || 
+						(_planetOverlaySubtype == "PolityInfluences")))) {
 				Manager.UpdateTextures ();
 
 				_mapUpdateCount++;
@@ -1095,6 +1096,7 @@ public class GuiManagerScript : MonoBehaviour {
 		AddSelectionPanelOption ("Population", "Population");
 		AddSelectionPanelOption ("Population Change", "PopulationChange");
 		AddSelectionPanelOption ("Political", "Political");
+		AddSelectionPanelOption ("Polity Influences", "PolityInfluences");
 		AddSelectionPanelOption ("Rainfall", "Rainfall");
 		AddSelectionPanelOption ("Temperature", "Temperature");
 		AddSelectionPanelOption ("Arability", "Arability");
@@ -1155,6 +1157,7 @@ public class GuiManagerScript : MonoBehaviour {
 			AddSelectionPanelOption ("Population", "Population");
 			AddSelectionPanelOption ("Population Change", "PopulationChange");
 			AddSelectionPanelOption ("Political", "Political");
+			AddSelectionPanelOption ("Polity Influences", "PolityInfluences");
 			AddSelectionPanelOption ("Rainfall", "Rainfall");
 			AddSelectionPanelOption ("Temperature", "Temperature");
 			AddSelectionPanelOption ("Arability", "Arability");
