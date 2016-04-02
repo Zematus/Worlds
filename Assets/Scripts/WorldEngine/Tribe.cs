@@ -73,19 +73,23 @@ public class Tribe : Polity {
 			targetGroup.SetPolityInfluenceValue (pInfluence.Polity, newInfluenceValue);
 		}
 
+		#if DEBUG
 		if (sourceValue > 0.5f) {
 		
 			bool debug = true;
 		}
+		#endif
 
 		float currentValue = targetGroup.GetPolityInfluenceValue (this);
 
 		float newValue = currentValue + (sourceValue * percentOfTarget);
 
+		#if DEBUG
 		if (targetGroup.Cell.IsSelected) {
 		
 			bool debug = true;
 		}
+		#endif
 
 		targetGroup.SetPolityInfluenceValue (this, newValue);
 	}

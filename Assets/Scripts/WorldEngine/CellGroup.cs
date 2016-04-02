@@ -195,7 +195,7 @@ public class CellGroup : HumanGroup {
 	public void InitializeDefaultActivities (bool initialGroup) {
 
 		if (initialGroup) {
-			Culture.AddActivityToPerform (CulturalActivity.CreateForagingActivity (this, 1f, 1f));
+			Culture.AddActivityToPerform (CellCulturalActivity.CreateForagingActivity (this, 1f, 1f));
 		}
 	}
 
@@ -374,10 +374,11 @@ public class CellGroup : HumanGroup {
 		
 		ExactPopulation -= splitPopulation;
 
+		#if DEBUG
 		if (Population < -1000) {
-
-			bool debug = true;
+			Debug.Break ();
 		}
+		#endif
 
 		return splitPopulation;
 	}
@@ -452,12 +453,13 @@ public class CellGroup : HumanGroup {
 
 	public float CalculateMigrationValue (TerrainCell cell) {
 
+		#if DEBUG
 		if (cell.IsSelected) {
-		
 			if (_polityInfluences.Count > 0) {
 				bool debug = true;
 			}
 		}
+		#endif
 		
 		float areaFactor = cell.Area / TerrainCell.MaxArea;
 
@@ -752,7 +754,7 @@ public class CellGroup : HumanGroup {
 
 	private float GetActivityContribution (string activityId) {
 	
-		CulturalActivity activity = Culture.GetActivity (activityId);
+		CellCulturalActivity activity = Culture.GetActivity (activityId) as CellCulturalActivity;
 
 		if (activity == null)
 			return 0;
@@ -762,10 +764,12 @@ public class CellGroup : HumanGroup {
 
 	private void UpdateTerrainFarmlandPercentage (int timeSpan) {
 
+		#if DEBUG
 		if (Cell.IsSelected) {
 		
 			bool debug = true;
 		}
+		#endif
 
 		CulturalKnowledge agricultureKnowledge = Culture.GetKnowledge (AgricultureKnowledge.AgricultureKnowledgeId);
 
@@ -784,7 +788,7 @@ public class CellGroup : HumanGroup {
 
 		float terrainFactor = AgricultureKnowledge.CalculateTerrainFactorIn (Cell);
 
-		float farmingPopulation = GetActivityContribution (CulturalActivity.FarmingActivityId) * Population;
+		float farmingPopulation = GetActivityContribution (CellCulturalActivity.FarmingActivityId) * Population;
 
 		float maxWorkableFarmlandArea = areaPerFarmWorker * farmingPopulation;
 
@@ -831,7 +835,7 @@ public class CellGroup : HumanGroup {
 		float seafaringValue = 0;
 		float shipbuildingValue = 0;
 
-		foreach (CulturalSkill skill in Culture.Skills) {
+		foreach (CellCulturalSkill skill in Culture.Skills) {
 
 			if (skill is SeafaringSkill) {
 
@@ -839,7 +843,7 @@ public class CellGroup : HumanGroup {
 			}
 		}
 
-		foreach (CulturalKnowledge knowledge in Culture.Knowledges) {
+		foreach (CellCulturalKnowledge knowledge in Culture.Knowledges) {
 
 			if (knowledge is ShipbuildingKnowledge) {
 
@@ -877,13 +881,13 @@ public class CellGroup : HumanGroup {
 		float modifiedForagingCapacity = 0;
 		float modifiedSurvivability = 0;
 
-		float foragingContribution = GetActivityContribution (CulturalActivity.ForagingActivityId);
+		float foragingContribution = GetActivityContribution (CellCulturalActivity.ForagingActivityId);
 
 		CalculateAdaptionToCell (cell, out modifiedForagingCapacity, out modifiedSurvivability);
 
 		float populationCapacityByForaging = foragingContribution * PopulationForagingConstant * cell.Area * modifiedForagingCapacity;
 
-		float farmingContribution = GetActivityContribution (CulturalActivity.FarmingActivityId);
+		float farmingContribution = GetActivityContribution (CellCulturalActivity.FarmingActivityId);
 		float populationCapacityByFarming = 0;
 
 		if (farmingContribution > 0) {
@@ -930,7 +934,7 @@ public class CellGroup : HumanGroup {
 		float modifiedForagingCapacity = 0;
 		float modifiedSurvivability = 0;
 		
-		foreach (CulturalSkill skill in Culture.Skills) {
+		foreach (CellCulturalSkill skill in Culture.Skills) {
 			
 			float skillValue = skill.Value;
 			
@@ -962,10 +966,11 @@ public class CellGroup : HumanGroup {
 
 	public int CalculateNextUpdateDate () {
 
+		#if DEBUG
 		if (Cell.IsSelected) {
-		
 			bool debug = true;
 		}
+		#endif
 
 		float randomFactor = Cell.GetNextLocalRandomFloat ();
 		randomFactor = 1f - Mathf.Pow (randomFactor, 4);
@@ -1056,10 +1061,12 @@ public class CellGroup : HumanGroup {
 
 	public void SetPolityInfluenceValue (Polity polity, float influenceValue) {
 
+		#if DEBUG
 		if (Cell.IsSelected) {
 
 			bool debug = true;
 		}
+		#endif
 
 		PolityInfluence polityInfluence;
 

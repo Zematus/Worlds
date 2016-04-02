@@ -858,13 +858,13 @@ public class GuiManagerScript : MonoBehaviour {
 		SelectionPanelScript.RemoveAllOptions ();
 		SelectionPanelScript.SetVisible (false);
 
-		if (OverlayDialogPanelScript.CulturalActivityToggle.isOn) {
+		if (OverlayDialogPanelScript.GroupCulturalActivityToggle.isOn) {
 			SetCulturalActivityOverlay ();
-		} else if (OverlayDialogPanelScript.CulturalSkillToggle.isOn) {
+		} else if (OverlayDialogPanelScript.GroupCulturalSkillToggle.isOn) {
 			SetCulturalSkillOverlay ();
-		} else if (OverlayDialogPanelScript.CulturalKnowledgeToggle.isOn) {
+		} else if (OverlayDialogPanelScript.GroupCulturalKnowledgeToggle.isOn) {
 			SetCulturalKnowledgeOverlay ();
-		} else if (OverlayDialogPanelScript.CulturalDiscoveryToggle.isOn) {
+		} else if (OverlayDialogPanelScript.GroupCulturalDiscoveryToggle.isOn) {
 			SetCulturalDiscoveryOverlay ();
 		} else if (OverlayDialogPanelScript.MiscellaneousDataToggle.isOn) {
 			SetMiscellaneousDataOverlay ();
@@ -885,10 +885,10 @@ public class GuiManagerScript : MonoBehaviour {
 		_menusNeedUpdate = false;
 
 		OverlayDialogPanelScript.MiscellaneousDataToggle.isOn = false;
-		OverlayDialogPanelScript.CulturalDiscoveryToggle.isOn = false;
-		OverlayDialogPanelScript.CulturalKnowledgeToggle.isOn = false;
-		OverlayDialogPanelScript.CulturalSkillToggle.isOn = false;
-		OverlayDialogPanelScript.CulturalActivityToggle.isOn = false;
+		OverlayDialogPanelScript.GroupCulturalDiscoveryToggle.isOn = false;
+		OverlayDialogPanelScript.GroupCulturalKnowledgeToggle.isOn = false;
+		OverlayDialogPanelScript.GroupCulturalSkillToggle.isOn = false;
+		OverlayDialogPanelScript.GroupCulturalActivityToggle.isOn = false;
 		OverlayDialogPanelScript.DisplayRoutesToggle.isOn = false;
 		
 		SelectionPanelScript.SetVisible (false);
@@ -902,25 +902,25 @@ public class GuiManagerScript : MonoBehaviour {
 			break;
 
 		case PlanetOverlay.CulturalDiscovery:
-			OverlayDialogPanelScript.CulturalDiscoveryToggle.isOn = true;
+			OverlayDialogPanelScript.GroupCulturalDiscoveryToggle.isOn = true;
 
 			SelectionPanelScript.SetVisible (true);
 			break;
 			
 		case PlanetOverlay.CulturalKnowledge:
-			OverlayDialogPanelScript.CulturalKnowledgeToggle.isOn = true;
+			OverlayDialogPanelScript.GroupCulturalKnowledgeToggle.isOn = true;
 			
 			SelectionPanelScript.SetVisible (true);
 			break;
 			
 		case PlanetOverlay.CulturalSkill:
-			OverlayDialogPanelScript.CulturalSkillToggle.isOn = true;
+			OverlayDialogPanelScript.GroupCulturalSkillToggle.isOn = true;
 
 			SelectionPanelScript.SetVisible (true);
 			break;
 
 		case PlanetOverlay.CulturalActivity:
-			OverlayDialogPanelScript.CulturalActivityToggle.isOn = true;
+			OverlayDialogPanelScript.GroupCulturalActivityToggle.isOn = true;
 
 			SelectionPanelScript.SetVisible (true);
 			break;
@@ -1079,7 +1079,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 		SelectionPanelScript.Title.text = "Displayed Discovery:";
 
-		foreach (CulturalDiscoveryInfo discoveryInfo in Manager.CurrentWorld.CulturalDiscoveryInfoList) {
+		foreach (CulturalDiscovery discoveryInfo in Manager.CurrentWorld.CulturalDiscoveryInfoList) {
 
 			AddSelectionPanelOption (discoveryInfo.Name, discoveryInfo.Id);
 		}
@@ -1148,7 +1148,7 @@ public class GuiManagerScript : MonoBehaviour {
 			}
 		} else if (_planetOverlay == PlanetOverlay.CulturalDiscovery) {
 
-			foreach (CulturalDiscoveryInfo discoveryInfo in Manager.CurrentWorld.CulturalDiscoveryInfoList) {
+			foreach (CulturalDiscovery discoveryInfo in Manager.CurrentWorld.CulturalDiscoveryInfoList) {
 
 				AddSelectionPanelOption (discoveryInfo.Name, discoveryInfo.Id);
 			}
@@ -1364,7 +1364,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 				bool firstActivity = true;
 
-				foreach (CulturalActivity activity in cell.Group.Culture.Activities) {
+				foreach (CellCulturalActivity activity in cell.Group.Culture.Activities) {
 
 					float activityContribution = activity.Contribution;
 
@@ -1383,7 +1383,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 				bool firstSkill = true;
 
-				foreach (CulturalSkill skill in cell.Group.Culture.Skills) {
+				foreach (CellCulturalSkill skill in cell.Group.Culture.Skills) {
 
 					float skillValue = skill.Value;
 
@@ -1402,7 +1402,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 				bool firstKnowledge = true;
 				
-				foreach (CulturalKnowledge knowledge in cell.Group.Culture.Knowledges) {
+				foreach (CellCulturalKnowledge knowledge in cell.Group.Culture.Knowledges) {
 					
 					float knowledgeValue = knowledge.Value;
 					
@@ -1421,7 +1421,7 @@ public class GuiManagerScript : MonoBehaviour {
 				
 				bool firstDiscovery = true;
 				
-				foreach (CulturalDiscovery discovery in cell.Group.Culture.Discoveries) {
+				foreach (CellCulturalDiscovery discovery in cell.Group.Culture.Discoveries) {
 
 					if (firstDiscovery) {
 						InfoPanelText.text += "\n";

@@ -9,7 +9,7 @@ public class Culture : Synchronizable {
 	[XmlIgnore]
 	public World World;
 
-	[XmlArrayItem(Type = typeof(CulturalActivity))]
+	[XmlArrayItem(Type = typeof(CellCulturalActivity))]
 	public List<CulturalActivity> Activities = new List<CulturalActivity> ();
 
 	[XmlArrayItem(Type = typeof(BiomeSurvivalSkill)),
@@ -182,27 +182,50 @@ public class Culture : Synchronizable {
 	}
 }
 
+public class PolityCulture : Culture {
+
+	[XmlIgnore]
+	public Polity Polity;
+
+	public PolityCulture () {
+	
+	}
+
+	public PolityCulture (Polity polity) : base (polity.World) {
+
+		Polity = polity;
+
+		CellGroup coreGroup = Polity.CoreGroup;
+		CellCulture coreCulture = coreGroup.Culture;
+
+		coreCulture.Activities.ForEach (a => AddActivity (new CulturalActivity (a)));
+		coreCulture.Skills.ForEach (s => AddSkill (new CulturalSkill (s)));
+		coreCulture.Knowledges.ForEach (k => AddKnowledge (new CulturalKnowledge (k)));
+		coreCulture.Discoveries.ForEach (d => AddDiscovery (new CulturalDiscovery (d)));
+	}
+}
+
 public class CellCulture : Culture {
 	
 	public const float MinKnowledgeValue = 1f;
-	public const float BaseKnowledgeTransferFactor = 0.1f;
+//	public const float BaseKnowledgeTransferFactor = 0.1f;
 
 	[XmlIgnore]
 	public CellGroup Group;
 
 	[XmlIgnore]
-	public Dictionary<string, CulturalActivity> ActivitiesToPerform = new Dictionary<string, CulturalActivity> ();
+	public Dictionary<string, CellCulturalActivity> ActivitiesToPerform = new Dictionary<string, CellCulturalActivity> ();
 	[XmlIgnore]
-	public Dictionary<string, CulturalSkill> SkillsToLearn = new Dictionary<string, CulturalSkill> ();
+	public Dictionary<string, CellCulturalSkill> SkillsToLearn = new Dictionary<string, CellCulturalSkill> ();
 	[XmlIgnore]
-	public Dictionary<string, CulturalKnowledge> KnowledgesToLearn = new Dictionary<string, CulturalKnowledge> ();
+	public Dictionary<string, CellCulturalKnowledge> KnowledgesToLearn = new Dictionary<string, CellCulturalKnowledge> ();
 	[XmlIgnore]
-	public Dictionary<string, CulturalDiscovery> DiscoveriesToFind = new Dictionary<string, CulturalDiscovery> ();
+	public Dictionary<string, CellCulturalDiscovery> DiscoveriesToFind = new Dictionary<string, CellCulturalDiscovery> ();
 
-	private List<CulturalActivity> _activitiesToLose = new List<CulturalActivity> ();
-	private List<CulturalSkill> _skillsToLose = new List<CulturalSkill> ();
-	private List<CulturalKnowledge> _knowledgesToLose = new List<CulturalKnowledge> ();
-	private List<CulturalDiscovery> _discoveriesToLose = new List<CulturalDiscovery> ();
+	private List<CellCulturalActivity> _activitiesToLose = new List<CellCulturalActivity> ();
+	private List<CellCulturalSkill> _skillsToLose = new List<CellCulturalSkill> ();
+	private List<CellCulturalKnowledge> _knowledgesToLose = new List<CellCulturalKnowledge> ();
+	private List<CellCulturalDiscovery> _discoveriesToLose = new List<CellCulturalDiscovery> ();
 
 	public CellCulture () {
 	}
@@ -212,17 +235,17 @@ public class CellCulture : Culture {
 		Group = group;
 	}
 
-	public CellCulture (CellGroup group, Culture sourceCulture) : base (group.World) {
+	public CellCulture (CellGroup group, CellCulture sourceCulture) : base (group.World) {
 
 		Group = group;
 
-		sourceCulture.Activities.ForEach (a => AddActivity (a.GenerateCopy (group)));
-		sourceCulture.Skills.ForEach (s => AddSkill (s.GenerateCopy (group)));
-		sourceCulture.Discoveries.ForEach (d => AddDiscovery (d.GenerateCopy ()));
-		sourceCulture.Knowledges.ForEach (k => AddKnowledge (k.GenerateCopy (group)));
+		sourceCulture.Activities.ForEach (a => AddActivity (((CellCulturalActivity)a).GenerateCopy (group)));
+		sourceCulture.Skills.ForEach (s => AddSkill (((CellCulturalSkill)s).GenerateCopy (group)));
+		sourceCulture.Discoveries.ForEach (d => AddDiscovery (((CellCulturalDiscovery)d).GenerateCopy ()));
+		sourceCulture.Knowledges.ForEach (k => AddKnowledge (((CellCulturalKnowledge)k).GenerateCopy (group)));
 	}
 
-	public void AddActivityToPerform (CulturalActivity activity) {
+	public void AddActivityToPerform (CellCulturalActivity activity) {
 
 		if (ActivitiesToPerform.ContainsKey (activity.Id))
 			return;
@@ -230,7 +253,7 @@ public class CellCulture : Culture {
 		ActivitiesToPerform.Add (activity.Id, activity);
 	}
 	
-	public void AddSkillToLearn (CulturalSkill skill) {
+	public void AddSkillToLearn (CellCulturalSkill skill) {
 
 		if (SkillsToLearn.ContainsKey (skill.Id))
 			return;
@@ -238,7 +261,7 @@ public class CellCulture : Culture {
 		SkillsToLearn.Add (skill.Id, skill);
 	}
 	
-	public void AddKnowledgeToLearn (CulturalKnowledge knowledge) {
+	public void AddKnowledgeToLearn (CellCulturalKnowledge knowledge) {
 		
 		if (KnowledgesToLearn.ContainsKey (knowledge.Id))
 			return;
@@ -246,7 +269,7 @@ public class CellCulture : Culture {
 		KnowledgesToLearn.Add (knowledge.Id, knowledge);
 	}
 	
-	public void AddDiscoveryToFind (CulturalDiscovery discovery) {
+	public void AddDiscoveryToFind (CellCulturalDiscovery discovery) {
 		
 		if (DiscoveriesToFind.ContainsKey (discovery.Id))
 			return;
@@ -256,9 +279,9 @@ public class CellCulture : Culture {
 	
 	public void MergeCulture (CellCulture sourceCulture, float percentage) {
 
-		sourceCulture.Activities.ForEach (a => {
+		foreach (CellCulturalActivity a in sourceCulture.Activities) {
 
-			CulturalActivity activity = GetActivity (a.Id);
+			CellCulturalActivity activity = GetActivity (a.Id) as CellCulturalActivity;
 
 			if (activity == null) {
 				activity = a.GenerateCopy (Group);
@@ -268,11 +291,11 @@ public class CellCulture : Culture {
 			} else {
 				activity.Merge (a, percentage);
 			}
-		});
+		}
 
-		sourceCulture.Skills.ForEach (s => {
+		foreach (CellCulturalSkill s in sourceCulture.Skills) {
 			
-			CulturalSkill skill = GetSkill (s.Id);
+			CellCulturalSkill skill = GetSkill (s.Id) as CellCulturalSkill;
 			
 			if (skill == null) {
 				skill = s.GenerateCopy (Group);
@@ -282,11 +305,11 @@ public class CellCulture : Culture {
 			} else {
 				skill.Merge (s, percentage);
 			}
-		});
-		
-		sourceCulture.Knowledges.ForEach (k => {
+		}
+
+		foreach (CellCulturalKnowledge k in sourceCulture.Knowledges) {
 			
-			CulturalKnowledge knowledge = GetKnowledge (k.Id);
+			CellCulturalKnowledge knowledge = GetKnowledge (k.Id) as CellCulturalKnowledge;
 			
 			if (knowledge == null) {
 				knowledge = k.GenerateCopy (Group);
@@ -296,31 +319,31 @@ public class CellCulture : Culture {
 			} else {
 				knowledge.Merge (k, percentage);
 			}
-		});
+		}
 
-		sourceCulture.Discoveries.ForEach (d => {
+		foreach (CellCulturalDiscovery d in sourceCulture.Discoveries) {
 
-			CulturalDiscovery discovery = GetDiscovery (d.Id);
+			CellCulturalDiscovery discovery = GetDiscovery (d.Id) as CellCulturalDiscovery;
 			
 			if (discovery == null) {
 				discovery = d.GenerateCopy ();
 				
 				AddDiscoveryToFind (discovery);
 			}
-		});
+		}
 	}
 
 	public void Update (int timeSpan) {
 
 		float totalValue = 0;
 
-		foreach (CulturalActivity activity in Activities) {
+		foreach (CellCulturalActivity activity in Activities) {
 
 			activity.Update (timeSpan);
 			totalValue += activity.Value;
 		}
 
-		foreach (CulturalActivity activity in Activities) {
+		foreach (CellCulturalActivity activity in Activities) {
 
 			if (totalValue > 0) {
 				activity.Contribution = activity.Value / totalValue;
@@ -329,14 +352,14 @@ public class CellCulture : Culture {
 			}
 		}
 
-		foreach (CulturalSkill skill in Skills) {
+		foreach (CellCulturalSkill skill in Skills) {
 		
 			skill.Update (timeSpan);
 		}
 
 		CulturalKnowledge[] knowledges = Knowledges.ToArray ();
 
-		foreach (CulturalKnowledge knowledge in knowledges) {
+		foreach (CellCulturalKnowledge knowledge in knowledges) {
 			
 			knowledge.Update (timeSpan);
 
@@ -348,7 +371,7 @@ public class CellCulture : Culture {
 
 		CulturalDiscovery[] discoveries = Discoveries.ToArray ();
 		
-		foreach (CulturalDiscovery discovery in discoveries) {
+		foreach (CellCulturalDiscovery discovery in discoveries) {
 			
 			if (discovery.CanBeHeld (Group))
 				continue;
@@ -374,8 +397,8 @@ public class CellCulture : Culture {
 		});
 
 		if (discoveriesLost) {
-			foreach (CulturalKnowledge knowledge in Knowledges) {
-				(knowledge as CulturalKnowledge).RecalculateAsymptote ();
+			foreach (CellCulturalKnowledge knowledge in Knowledges) {
+				(knowledge as CellCulturalKnowledge).RecalculateAsymptote ();
 			}
 		}
 
@@ -384,32 +407,32 @@ public class CellCulture : Culture {
 		_knowledgesToLose.Clear ();
 		_discoveriesToLose.Clear ();
 
-		foreach (CulturalActivity activity in ActivitiesToPerform.Values) {
+		foreach (CellCulturalActivity activity in ActivitiesToPerform.Values) {
 
 			AddActivity (activity);
 		}
 		
-		foreach (CulturalSkill skill in SkillsToLearn.Values) {
+		foreach (CellCulturalSkill skill in SkillsToLearn.Values) {
 			
 			AddSkill (skill);
 		}
 		
-		foreach (CulturalKnowledge knowledge in KnowledgesToLearn.Values) {
+		foreach (CellCulturalKnowledge knowledge in KnowledgesToLearn.Values) {
 			
 			AddKnowledge (knowledge);
 
 			knowledge.RecalculateAsymptote ();
 		}
 		
-		foreach (CulturalDiscovery discovery in DiscoveriesToFind.Values) {
+		foreach (CellCulturalDiscovery discovery in DiscoveriesToFind.Values) {
 			
 			if (!discovery.CanBeHeld (Group)) continue;
 			
 			AddDiscovery (discovery);
 
-			Knowledges.ForEach (k => {
-				(k as CulturalKnowledge).CalculateAsymptote (discovery);
-			});
+			foreach (CellCulturalKnowledge knowledge in Knowledges) {
+				knowledge.CalculateAsymptote (discovery);
+			}
 		}
 
 		ActivitiesToPerform.Clear ();
@@ -486,7 +509,7 @@ public class CellCulture : Culture {
 		
 		float minAdaptationLevel = 1f;
 		
-		foreach (CulturalSkill skill in Skills) {
+		foreach (CellCulturalSkill skill in Skills) {
 			
 			float level = skill.AdaptationLevel;
 
@@ -502,7 +525,7 @@ public class CellCulture : Culture {
 		
 		float minProgressLevel = 1f;
 		
-		foreach (CulturalKnowledge knowledge in Knowledges) {
+		foreach (CellCulturalKnowledge knowledge in Knowledges) {
 			
 			float level = knowledge.CalculateExpectedProgressLevel ();
 			
@@ -518,21 +541,19 @@ public class CellCulture : Culture {
 
 		base.FinalizeLoad ();
 
-		Activities.ForEach (a => {
-		
+		foreach (CellCulturalActivity a in Activities) {
 			a.Group = Group;
-		});
+		}
 
-		Skills.ForEach (s => {
-
+		foreach (CellCulturalSkill s in Skills) {
+			
 			s.Group = Group;
 			s.FinalizeLoad ();
-		});
-
-		Knowledges.ForEach (k => {
-
+		}
+		foreach (CellCulturalKnowledge k in Knowledges) {
+			
 			k.Group = Group;
 			k.FinalizeLoad ();
-		});
+		}
 	}
 }

@@ -30,10 +30,26 @@ public class CulturalSkillInfo {
 	}
 }
 
-public abstract class CulturalSkill : CulturalSkillInfo, Synchronizable {
-	
+public class CulturalSkill : CulturalSkillInfo {
+
 	[XmlAttribute]
 	public float Value;
+
+	public CulturalSkill () {
+	}
+
+	public CulturalSkill (string id, string name, float value) : base (id, name) {
+
+		Value = value;
+	}
+
+	public CulturalSkill (CulturalSkill baseSkill) : base (baseSkill) {
+
+		Value = baseSkill.Value;
+	}
+}
+
+public abstract class CellCulturalSkill : CulturalSkill, Synchronizable {
 	
 	[XmlAttribute]
 	public float AdaptationLevel;
@@ -41,25 +57,24 @@ public abstract class CulturalSkill : CulturalSkillInfo, Synchronizable {
 	[XmlIgnore]
 	public CellGroup Group;
 	
-	public CulturalSkill () {
+	public CellCulturalSkill () {
 	}
 
-	public CulturalSkill (CellGroup group, string id, string name, float value) : base (id, name) {
+	public CellCulturalSkill (CellGroup group, string id, string name, float value) : base (id, name, value) {
 
 		Group = group;
-		Value = value;
 	}
 	
-	public CulturalSkill GenerateCopy (CellGroup targetGroup) {
+	public CellCulturalSkill GenerateCopy (CellGroup targetGroup) {
 		
 		System.Type skillType = this.GetType ();
 		
 		System.Reflection.ConstructorInfo cInfo = skillType.GetConstructor (new System.Type[] {typeof(CellGroup), skillType});
 		
-		return cInfo.Invoke (new object[] {targetGroup, this}) as CulturalSkill;
+		return cInfo.Invoke (new object[] {targetGroup, this}) as CellCulturalSkill;
 	}
 
-	public void Merge (CulturalSkill skill, float percentage) {
+	public void Merge (CellCulturalSkill skill, float percentage) {
 	
 		Value = Value * (1f - percentage) + skill.Value * percentage;
 	}
@@ -110,7 +125,7 @@ public abstract class CulturalSkill : CulturalSkillInfo, Synchronizable {
 	}
 }
 
-public class BiomeSurvivalSkill : CulturalSkill {
+public class BiomeSurvivalSkill : CellCulturalSkill {
 
 	public const float TimeEffectConstant = CellGroup.GenerationTime * 1500;
 	
@@ -187,7 +202,7 @@ public class BiomeSurvivalSkill : CulturalSkill {
 	}
 }
 
-public class SeafaringSkill : CulturalSkill {
+public class SeafaringSkill : CellCulturalSkill {
 
 	public const float TimeEffectConstant = CellGroup.GenerationTime * 500;
 

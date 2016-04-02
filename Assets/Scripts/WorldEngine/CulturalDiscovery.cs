@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
-public class CulturalDiscoveryInfo {
+public class CulturalDiscovery {
 	
 	[XmlAttribute]
 	public string Id;
@@ -12,17 +12,17 @@ public class CulturalDiscoveryInfo {
 	[XmlAttribute]
 	public string Name;
 
-	public CulturalDiscoveryInfo () {
+	public CulturalDiscovery () {
 	}
 	
-	public CulturalDiscoveryInfo (string id, string name) {
+	public CulturalDiscovery (string id, string name) {
 		
 		Id = id;
 		
 		Name = name;
 	}
 	
-	public CulturalDiscoveryInfo (CulturalDiscoveryInfo baseDiscovery) {
+	public CulturalDiscovery (CulturalDiscovery baseDiscovery) {
 		
 		Id = baseDiscovery.Id;
 		
@@ -30,19 +30,19 @@ public class CulturalDiscoveryInfo {
 	}
 }
 
-public abstract class CulturalDiscovery : CulturalDiscoveryInfo {
+public abstract class CellCulturalDiscovery : CulturalDiscovery {
 	
-	public CulturalDiscovery (string id, string name) : base (id, name) {
+	public CellCulturalDiscovery (string id, string name) : base (id, name) {
 
 	}
 	
-	public CulturalDiscovery GenerateCopy () {
+	public CellCulturalDiscovery GenerateCopy () {
 		
 		System.Type discoveryType = this.GetType ();
 		
 		System.Reflection.ConstructorInfo cInfo = discoveryType.GetConstructor (new System.Type[] {});
 		
-		return cInfo.Invoke (new object[] {}) as CulturalDiscovery;
+		return cInfo.Invoke (new object[] {}) as CellCulturalDiscovery;
 	}
 
 	public abstract bool CanBeHeld (CellGroup group);
@@ -52,7 +52,7 @@ public abstract class CulturalDiscovery : CulturalDiscoveryInfo {
 	}
 }
 
-public class BoatMakingDiscovery : CulturalDiscovery {
+public class BoatMakingDiscovery : CellCulturalDiscovery {
 
 	public const string BoatMakingDiscoveryId = "BoatMakingDiscovery";
 	public const string BoatMakingDiscoveryName = "Boat Making";
@@ -72,7 +72,7 @@ public class BoatMakingDiscovery : CulturalDiscovery {
 	}
 }
 
-public class SailingDiscovery : CulturalDiscovery {
+public class SailingDiscovery : CellCulturalDiscovery {
 	
 	public const string SailingDiscoveryId = "SailingDiscovery";
 	public const string SailingDiscoveryName = "Sailing";
@@ -95,7 +95,7 @@ public class SailingDiscovery : CulturalDiscovery {
 	}
 }
 
-public class TribalismDiscovery : CulturalDiscovery {
+public class TribalismDiscovery : CellCulturalDiscovery {
 
 	public const string TribalismDiscoveryId = "TribalismDiscovery";
 	public const string TribalismDiscoveryName = "Tribalism";
@@ -118,7 +118,7 @@ public class TribalismDiscovery : CulturalDiscovery {
 	}
 }
 
-public class PlantCultivationDiscovery : CulturalDiscovery {
+public class PlantCultivationDiscovery : CellCulturalDiscovery {
 
 	public const string PlantCultivationDiscoveryId = "PlantCultivationDiscovery";
 	public const string PlantCultivationDiscoveryName = "Plant Cultivation";

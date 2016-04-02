@@ -32,6 +32,25 @@ public class CulturalActivityInfo {
 
 public class CulturalActivity : CulturalActivityInfo {
 
+	[XmlAttribute]
+	public float Value;
+
+	public CulturalActivity () {
+	}
+
+	public CulturalActivity (string id, string name, float value) : base (id, name) {
+
+		Value = value;
+	}
+
+	public CulturalActivity (CulturalActivity baseActivity) : base (baseActivity) {
+
+		Value = baseActivity.Value;
+	}
+}
+
+public class CellCulturalActivity : CulturalActivity {
+
 	public const float TimeEffectConstant = CellGroup.GenerationTime * 500;
 
 	public const string ForagingActivityId = "ForagingActivity";
@@ -39,9 +58,6 @@ public class CulturalActivity : CulturalActivityInfo {
 
 	public const string ForagingActivityName = "Foraging";
 	public const string FarmingActivityName = "Farming";
-	
-	[XmlAttribute]
-	public float Value;
 
 	[XmlAttribute]
 	public float Contribution = 0;
@@ -49,32 +65,31 @@ public class CulturalActivity : CulturalActivityInfo {
 	[XmlIgnore]
 	public CellGroup Group;
 
-	public CulturalActivity () {
+	public CellCulturalActivity () {
 	}
 
-	private CulturalActivity (CellGroup group, string id, string name, float value, float contribution) : base (id, name) {
+	private CellCulturalActivity (CellGroup group, string id, string name, float value, float contribution) : base (id, name, value) {
 
 		Group = group;
-		Value = value;
 		Contribution = contribution;
 	}
 
-	public static CulturalActivity CreateForagingActivity (CellGroup group, float value = 0, float contribution = 0) {
+	public static CellCulturalActivity CreateForagingActivity (CellGroup group, float value = 0, float contribution = 0) {
 	
-		return new CulturalActivity (group, ForagingActivityId, ForagingActivityName, value, contribution);
+		return new CellCulturalActivity (group, ForagingActivityId, ForagingActivityName, value, contribution);
 	}
 
-	public static CulturalActivity CreateFarmingActivity (CellGroup group, float value = 0, float contribution = 0) {
+	public static CellCulturalActivity CreateFarmingActivity (CellGroup group, float value = 0, float contribution = 0) {
 
-		return new CulturalActivity (group, FarmingActivityId, FarmingActivityName, value, contribution);
+		return new CellCulturalActivity (group, FarmingActivityId, FarmingActivityName, value, contribution);
 	}
 
-	public CulturalActivity GenerateCopy (CellGroup targetGroup) {
+	public CellCulturalActivity GenerateCopy (CellGroup targetGroup) {
 
-		return new CulturalActivity (targetGroup, Id, Name, Value, 0);
+		return new CellCulturalActivity (targetGroup, Id, Name, Value, 0);
 	}
 
-	public void Merge (CulturalActivity activity, float percentage) {
+	public void Merge (CellCulturalActivity activity, float percentage) {
 	
 		Value = Value * (1f - percentage) + activity.Value * percentage;
 	}

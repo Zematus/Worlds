@@ -30,12 +30,28 @@ public class CulturalKnowledgeInfo {
 	}
 }
 
-public abstract class CulturalKnowledge : CulturalKnowledgeInfo, Synchronizable {
+public class CulturalKnowledge : CulturalKnowledgeInfo {
 
-	public const float MinValue = 0.001f;
-	
 	[XmlAttribute]
 	public float Value;
+
+	public CulturalKnowledge () {
+	}
+
+	public CulturalKnowledge (string id, string name, float value) : base (id, name) {
+
+		Value = value;
+	}
+
+	public CulturalKnowledge (CulturalKnowledge baseKnowledge) : base (baseKnowledge) {
+
+		Value = baseKnowledge.Value;
+	}
+}
+
+public abstract class CellCulturalKnowledge : CulturalKnowledge, Synchronizable {
+
+	public const float MinValue = 0.001f;
 	
 	[XmlAttribute]
 	public float ProgressLevel;
@@ -46,39 +62,37 @@ public abstract class CulturalKnowledge : CulturalKnowledgeInfo, Synchronizable 
 	[XmlIgnore]
 	public CellGroup Group;
 	
-	public CulturalKnowledge () {
+	public CellCulturalKnowledge () {
 
 	}
 
-	public CulturalKnowledge (CellGroup group, string id, string name, float value) : base (id, name) {
+	public CellCulturalKnowledge (CellGroup group, string id, string name, float value) : base (id, name, value) {
 
 		Group = group;
-		Value = value;
 	}
 
-	public CulturalKnowledge (CellGroup group, string id, string name, float value, float asymptote) : base (id, name) {
+	public CellCulturalKnowledge (CellGroup group, string id, string name, float value, float asymptote) : base (id, name, value) {
 
 		Group = group;
-		Value = value;
 		Asymptote = asymptote;
 	}
 	
-	public CulturalKnowledge GenerateCopy (CellGroup targetGroup) {
+	public CellCulturalKnowledge GenerateCopy (CellGroup targetGroup) {
 		
 		System.Type knowledgeType = this.GetType ();
 		
 		System.Reflection.ConstructorInfo cInfo = knowledgeType.GetConstructor (new System.Type[] {typeof(CellGroup), knowledgeType});
 		
-		return cInfo.Invoke (new object[] {targetGroup, this}) as CulturalKnowledge;
+		return cInfo.Invoke (new object[] {targetGroup, this}) as CellCulturalKnowledge;
 	}
 	
-	public CulturalKnowledge GenerateCopy (CellGroup targetGroup, float initialValue) {
+	public CellCulturalKnowledge GenerateCopy (CellGroup targetGroup, float initialValue) {
 		
 		System.Type knowledgeType = this.GetType ();
 		
 		System.Reflection.ConstructorInfo cInfo = knowledgeType.GetConstructor (new System.Type[] {typeof(CellGroup), knowledgeType, typeof(float)});
 		
-		return cInfo.Invoke (new object[] {targetGroup, this, initialValue}) as CulturalKnowledge;
+		return cInfo.Invoke (new object[] {targetGroup, this, initialValue}) as CellCulturalKnowledge;
 	}
 	
 	public float GetHighestAsymptote () {
@@ -100,7 +114,7 @@ public abstract class CulturalKnowledge : CulturalKnowledgeInfo, Synchronizable 
 		fInfo.SetValue (this, Mathf.Max (value, currentValue));
 	}
 
-	public void Merge (CulturalKnowledge knowledge, float percentage) {
+	public void Merge (CellCulturalKnowledge knowledge, float percentage) {
 	
 		Value = Value * (1f - percentage) + knowledge.Value * percentage;
 	}
@@ -145,7 +159,7 @@ public abstract class CulturalKnowledge : CulturalKnowledgeInfo, Synchronizable 
 		SetHighestAsymptote (Asymptote);
 	}
 
-	public void CalculateAsymptote (CulturalDiscovery discovery) {
+	public void CalculateAsymptote (CellCulturalDiscovery discovery) {
 
 		float newAsymptote = CalculateAsymptoteInternal (discovery);
 
@@ -201,7 +215,7 @@ public abstract class CulturalKnowledge : CulturalKnowledgeInfo, Synchronizable 
 	protected abstract float CalculateBaseAsymptote ();
 }
 
-public class ShipbuildingKnowledge : CulturalKnowledge {
+public class ShipbuildingKnowledge : CellCulturalKnowledge {
 
 	public const string ShipbuildingKnowledgeId = "ShipbuildingKnowledge";
 	public const string ShipbuildingKnowledgeName = "Shipbuilding";
@@ -358,7 +372,7 @@ public class ShipbuildingKnowledge : CulturalKnowledge {
 	}
 }
 
-public class AgricultureKnowledge : CulturalKnowledge {
+public class AgricultureKnowledge : CellCulturalKnowledge {
 
 	public const string AgricultureKnowledgeId = "AgricultureKnowledge";
 	public const string AgricultureKnowledgeName = "Agriculture";
@@ -459,7 +473,7 @@ public class AgricultureKnowledge : CulturalKnowledge {
 
 	public override void LossConsequences ()
 	{
-		Group.Culture.RemoveActivity (CulturalActivity.FarmingActivityId);
+		Group.Culture.RemoveActivity (CellCulturalActivity.FarmingActivityId);
 
 		if (PlantCultivationDiscoveryEvent.CanSpawnIn (Group)) {
 
@@ -482,7 +496,7 @@ public class AgricultureKnowledge : CulturalKnowledge {
 	}
 }
 
-public class SocialOrganizationKnowledge : CulturalKnowledge {
+public class SocialOrganizationKnowledge : CellCulturalKnowledge {
 
 	public const string SocialOrganizationKnowledgeId = "SocialOrganizationKnowledge";
 	public const string SocialOrganizationKnowledgeName = "Social Organization";

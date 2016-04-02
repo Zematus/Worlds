@@ -1372,7 +1372,7 @@ public class Manager {
 
 		if (cell.Group != null) {
 
-			CulturalActivity activity = cell.Group.Culture.GetActivity(_planetOverlaySubtype);
+			CellCulturalActivity activity = cell.Group.Culture.GetActivity(_planetOverlaySubtype) as CellCulturalActivity;
 
 			population = cell.Group.Population;
 
@@ -1407,7 +1407,7 @@ public class Manager {
 
 		if (cell.Group != null) {
 
-			CulturalSkill skill = cell.Group.Culture.GetSkill(_planetOverlaySubtype);
+			CellCulturalSkill skill = cell.Group.Culture.GetSkill(_planetOverlaySubtype) as CellCulturalSkill;
 			
 			population = cell.Group.Population;
 
@@ -1442,7 +1442,7 @@ public class Manager {
 		
 		if (cell.Group != null) {
 			
-			CulturalKnowledge knowledge = cell.Group.Culture.GetKnowledge(_planetOverlaySubtype);
+			CellCulturalKnowledge knowledge = cell.Group.Culture.GetKnowledge(_planetOverlaySubtype) as CellCulturalKnowledge;
 			
 			population = cell.Group.Population;
 			

@@ -34,13 +34,18 @@ public class BinaryTree<TKey, TValue> {
 
 	public TValue Leftmost { 
 		get { 
+
+			#if DEBUG
 			try {
 				return _leftmostItem.Value;
 			} catch {
-				bool debug = true;
+				Debug.Break ();
 
 				throw;
 			}
+			#else
+			return _leftmostItem.Value;
+			#endif
 		} 
 	}
 

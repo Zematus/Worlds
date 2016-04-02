@@ -101,7 +101,7 @@ public class World : Synchronizable {
 	public List<CulturalActivityInfo> CulturalActivityInfoList = new List<CulturalActivityInfo> ();
 	public List<CulturalSkillInfo> CulturalSkillInfoList = new List<CulturalSkillInfo> ();
 	public List<CulturalKnowledgeInfo> CulturalKnowledgeInfoList = new List<CulturalKnowledgeInfo> ();
-	public List<CulturalDiscoveryInfo> CulturalDiscoveryInfoList = new List<CulturalDiscoveryInfo> ();
+	public List<CulturalDiscovery> CulturalDiscoveryInfoList = new List<CulturalDiscovery> ();
 
 	public List<CellGroup> CellGroups;
 	public List<Polity> Polities;
@@ -370,12 +370,12 @@ public class World : Synchronizable {
 		_culturalKnowledgeIdList.Add (baseInfo.Id);
 	}
 	
-	public void AddExistingCulturalDiscoveryInfo (CulturalDiscoveryInfo baseInfo) {
+	public void AddExistingCulturalDiscoveryInfo (CulturalDiscovery baseInfo) {
 		
 		if (_culturalDiscoveryIdList.Contains (baseInfo.Id))
 			return;
 		
-		CulturalDiscoveryInfoList.Add (new CulturalDiscoveryInfo (baseInfo));
+		CulturalDiscoveryInfoList.Add (new CulturalDiscovery (baseInfo));
 		_culturalDiscoveryIdList.Add (baseInfo.Id);
 	}
 

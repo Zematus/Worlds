@@ -35,6 +35,8 @@ public abstract class Polity : Synchronizable {
 
 	public Territory Territory = new Territory ();
 
+	public PolityCulture Culture;
+
 	[XmlIgnore]
 	public World World;
 
@@ -56,6 +58,8 @@ public abstract class Polity : Synchronizable {
 		AddInfluencedGroup (coreGroup);
 
 		SetCoreGroup (coreGroup);
+
+		Culture = new PolityCulture (this);
 
 		coreGroup.SetPolityInfluenceValue (this, coreGroupInfluence);
 	}
@@ -86,6 +90,8 @@ public abstract class Polity : Synchronizable {
 
 	public virtual void Synchronize () {
 
+		Culture.Synchronize ();
+
 		InfluencedGroupIds = new List<long> (_influencedGroups.Count);
 
 		foreach (CellGroup g in _influencedGroups) {
@@ -112,6 +118,9 @@ public abstract class Polity : Synchronizable {
 
 			_influencedGroups.Add (group);
 		}
+
+		Culture.Polity = this;
+		Culture.FinalizeLoad ();
 	}
 
 	public abstract float MigrationValue (TerrainCell targetCell, float sourceRelativeInfluence);
