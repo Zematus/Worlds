@@ -16,11 +16,19 @@ public enum PlanetView {
 public enum PlanetOverlay {
 
 	None,
-	CulturalActivity,
-	CulturalSkill,
-	CulturalKnowledge,
-	CulturalDiscovery,
-	MiscellaneousData
+	PopDensity,
+	Farmland,
+	PopCulturalActivity,
+	PopCulturalSkill,
+	PopCulturalKnowledge,
+	PopCulturalDiscovery,
+	PolityTerritory,
+	PolityInfluence,
+	PolityCulturalActivity,
+	PolityCulturalSkill,
+	PolityCulturalKnowledge,
+	PolityCulturalDiscovery,
+//	MiscellaneousData
 }
 
 public enum OverlayColorId {
@@ -1009,25 +1017,25 @@ public class Manager {
 		case PlanetOverlay.None:
 			break;
 
-		case PlanetOverlay.CulturalActivity:
+		case PlanetOverlay.PopCulturalActivity:
 			color = SetCulturalActivityOverlayColor (cell, color);
 			break;
 			
-		case PlanetOverlay.CulturalSkill:
+		case PlanetOverlay.PopCulturalSkill:
 			color = SetCulturalSkillOverlayColor (cell, color);
 			break;
 			
-		case PlanetOverlay.CulturalKnowledge:
+		case PlanetOverlay.PopCulturalKnowledge:
 			color = SetCulturalKnowledgeOverlayColor (cell, color);
 			break;
 
-		case PlanetOverlay.CulturalDiscovery:
+		case PlanetOverlay.PopCulturalDiscovery:
 			color = SetCulturalDiscoveryOverlayColor (cell, color);
 			break;
 
-		case PlanetOverlay.MiscellaneousData:
-			color = SetMiscellanousDataOverlayColor (cell, color);
-			break;
+//		case PlanetOverlay.MiscellaneousData:
+//			color = SetMiscellanousDataOverlayColor (cell, color);
+//			break;
 			
 		default:
 			throw new System.Exception("Unsupported Planet Overlay Type");

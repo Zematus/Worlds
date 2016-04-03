@@ -59,8 +59,8 @@ public class GuiManagerScript : MonoBehaviour {
 	private bool _displayedTip_initialPopulation = false;
 	
 	private PlanetView _planetView = PlanetView.Biomes;
-	private PlanetOverlay _planetOverlay = PlanetOverlay.MiscellaneousData;
-	private string _planetOverlaySubtype = "Population";
+	private PlanetOverlay _planetOverlay = PlanetOverlay.PopDensity;
+	private string _planetOverlaySubtype = "None";
 
 	private Dictionary<PlanetOverlay, string> _planetOverlaySubtypeCache = new Dictionary<PlanetOverlay, string> ();
 
@@ -263,17 +263,19 @@ public class GuiManagerScript : MonoBehaviour {
 
 		} else if (updateTextures) {
 
-			if ((_planetOverlay == PlanetOverlay.CulturalActivity) || 
-				(_planetOverlay == PlanetOverlay.CulturalSkill) || 
-				(_planetOverlay == PlanetOverlay.CulturalKnowledge) || 
-				(_planetOverlay == PlanetOverlay.CulturalDiscovery) || (
-					(_planetOverlay == PlanetOverlay.MiscellaneousData) && (
-						(_planetOverlaySubtype == "UpdateSpan") || 
-						(_planetOverlaySubtype == "Farmland") || 
-						(_planetOverlaySubtype == "Population") || 
-						(_planetOverlaySubtype == "PopulationChange") || 
-						(_planetOverlaySubtype == "Political") || 
-						(_planetOverlaySubtype == "PolityInfluences")))) {
+			if ((_planetOverlay == PlanetOverlay.PopCulturalActivity) || 
+				(_planetOverlay == PlanetOverlay.PopCulturalSkill) || 
+				(_planetOverlay == PlanetOverlay.PopCulturalKnowledge) || 
+				(_planetOverlay == PlanetOverlay.PopCulturalDiscovery) 
+//				|| (
+//					(_planetOverlay == PlanetOverlay.MiscellaneousData) && (
+//						(_planetOverlaySubtype == "UpdateSpan") || 
+//						(_planetOverlaySubtype == "Farmland") || 
+//						(_planetOverlaySubtype == "Population") || 
+//						(_planetOverlaySubtype == "PopulationChange") || 
+//						(_planetOverlaySubtype == "Political") || 
+//						(_planetOverlaySubtype == "PolityInfluences")))
+			) {
 				Manager.UpdateTextures ();
 
 				_mapUpdateCount++;
@@ -668,21 +670,21 @@ public class GuiManagerScript : MonoBehaviour {
 		
 		switch (_planetOverlay) {
 		case PlanetOverlay.None: planetOverlayStr = ""; break;
-		case PlanetOverlay.CulturalActivity: 
+		case PlanetOverlay.PopCulturalActivity: 
 			planetOverlayStr = "_cultural_activity_" + _planetOverlaySubtype; 
 			break;
-		case PlanetOverlay.CulturalSkill: 
+		case PlanetOverlay.PopCulturalSkill: 
 			planetOverlayStr = "_cultural_skill_" + _planetOverlaySubtype; 
 			break;
-		case PlanetOverlay.CulturalKnowledge: 
+		case PlanetOverlay.PopCulturalKnowledge: 
 			planetOverlayStr = "_cultural_knowledge_" + _planetOverlaySubtype; 
 			break;
-		case PlanetOverlay.CulturalDiscovery: 
+		case PlanetOverlay.PopCulturalDiscovery: 
 			planetOverlayStr = "_cultural_discovery_" + _planetOverlaySubtype; 
 			break;
-		case PlanetOverlay.MiscellaneousData: 
-			planetOverlayStr = _planetOverlaySubtype; 
-			break;
+//		case PlanetOverlay.MiscellaneousData: 
+//			planetOverlayStr = _planetOverlaySubtype; 
+//			break;
 		default: throw new System.Exception("Unexpected planet overlay type: " + _planetOverlay);
 		}
 
@@ -858,16 +860,20 @@ public class GuiManagerScript : MonoBehaviour {
 		SelectionPanelScript.RemoveAllOptions ();
 		SelectionPanelScript.SetVisible (false);
 
-		if (OverlayDialogPanelScript.GroupCulturalActivityToggle.isOn) {
-			SetCulturalActivityOverlay ();
-		} else if (OverlayDialogPanelScript.GroupCulturalSkillToggle.isOn) {
+		if (OverlayDialogPanelScript.PopDensityToggle.isOn) {
+			SetPopCulturalActivityOverlay ();
+		} else if (OverlayDialogPanelScript.FarmlandToggle.isOn) {
+			SetPopCulturalActivityOverlay ();
+		} else if (OverlayDialogPanelScript.PopCulturalActivityToggle.isOn) {
+			SetPopCulturalActivityOverlay ();
+		} else if (OverlayDialogPanelScript.PopCulturalSkillToggle.isOn) {
 			SetCulturalSkillOverlay ();
-		} else if (OverlayDialogPanelScript.GroupCulturalKnowledgeToggle.isOn) {
+		} else if (OverlayDialogPanelScript.PopCulturalKnowledgeToggle.isOn) {
 			SetCulturalKnowledgeOverlay ();
-		} else if (OverlayDialogPanelScript.GroupCulturalDiscoveryToggle.isOn) {
+		} else if (OverlayDialogPanelScript.PopCulturalDiscoveryToggle.isOn) {
 			SetCulturalDiscoveryOverlay ();
-		} else if (OverlayDialogPanelScript.MiscellaneousDataToggle.isOn) {
-			SetMiscellaneousDataOverlay ();
+//		} else if (OverlayDialogPanelScript.MiscellaneousDataToggle.isOn) {
+//			SetMiscellaneousDataOverlay ();
 		} else {
 			UnsetOverlay();
 		}
@@ -884,43 +890,43 @@ public class GuiManagerScript : MonoBehaviour {
 
 		_menusNeedUpdate = false;
 
-		OverlayDialogPanelScript.MiscellaneousDataToggle.isOn = false;
-		OverlayDialogPanelScript.GroupCulturalDiscoveryToggle.isOn = false;
-		OverlayDialogPanelScript.GroupCulturalKnowledgeToggle.isOn = false;
-		OverlayDialogPanelScript.GroupCulturalSkillToggle.isOn = false;
-		OverlayDialogPanelScript.GroupCulturalActivityToggle.isOn = false;
+//		OverlayDialogPanelScript.MiscellaneousDataToggle.isOn = false;
+		OverlayDialogPanelScript.PopCulturalDiscoveryToggle.isOn = false;
+		OverlayDialogPanelScript.PopCulturalKnowledgeToggle.isOn = false;
+		OverlayDialogPanelScript.PopCulturalSkillToggle.isOn = false;
+		OverlayDialogPanelScript.PopCulturalActivityToggle.isOn = false;
 		OverlayDialogPanelScript.DisplayRoutesToggle.isOn = false;
 		
 		SelectionPanelScript.SetVisible (false);
 
 		switch (_planetOverlay) {
 
-		case PlanetOverlay.MiscellaneousData:
-			OverlayDialogPanelScript.MiscellaneousDataToggle.isOn = true;
+//		case PlanetOverlay.MiscellaneousData:
+//			OverlayDialogPanelScript.MiscellaneousDataToggle.isOn = true;
+//
+//			SelectionPanelScript.SetVisible (true);
+//			break;
 
-			SelectionPanelScript.SetVisible (true);
-			break;
-
-		case PlanetOverlay.CulturalDiscovery:
-			OverlayDialogPanelScript.GroupCulturalDiscoveryToggle.isOn = true;
+		case PlanetOverlay.PopCulturalDiscovery:
+			OverlayDialogPanelScript.PopCulturalDiscoveryToggle.isOn = true;
 
 			SelectionPanelScript.SetVisible (true);
 			break;
 			
-		case PlanetOverlay.CulturalKnowledge:
-			OverlayDialogPanelScript.GroupCulturalKnowledgeToggle.isOn = true;
+		case PlanetOverlay.PopCulturalKnowledge:
+			OverlayDialogPanelScript.PopCulturalKnowledgeToggle.isOn = true;
 			
 			SelectionPanelScript.SetVisible (true);
 			break;
 			
-		case PlanetOverlay.CulturalSkill:
-			OverlayDialogPanelScript.GroupCulturalSkillToggle.isOn = true;
+		case PlanetOverlay.PopCulturalSkill:
+			OverlayDialogPanelScript.PopCulturalSkillToggle.isOn = true;
 
 			SelectionPanelScript.SetVisible (true);
 			break;
 
-		case PlanetOverlay.CulturalActivity:
-			OverlayDialogPanelScript.GroupCulturalActivityToggle.isOn = true;
+		case PlanetOverlay.PopCulturalActivity:
+			OverlayDialogPanelScript.PopCulturalActivityToggle.isOn = true;
 
 			SelectionPanelScript.SetVisible (true);
 			break;
@@ -1031,9 +1037,9 @@ public class GuiManagerScript : MonoBehaviour {
 		}
 	}
 
-	public void SetCulturalActivityOverlay () {
+	public void SetPopCulturalActivityOverlay () {
 
-		ChangePlanetOverlay (PlanetOverlay.CulturalActivity);
+		ChangePlanetOverlay (PlanetOverlay.PopCulturalActivity);
 
 		SelectionPanelScript.Title.text = "Displayed Activity:";
 
@@ -1047,7 +1053,7 @@ public class GuiManagerScript : MonoBehaviour {
 	
 	public void SetCulturalSkillOverlay () {
 
-		ChangePlanetOverlay (PlanetOverlay.CulturalSkill);
+		ChangePlanetOverlay (PlanetOverlay.PopCulturalSkill);
 
 		SelectionPanelScript.Title.text = "Displayed Skill:";
 
@@ -1061,7 +1067,7 @@ public class GuiManagerScript : MonoBehaviour {
 	
 	public void SetCulturalKnowledgeOverlay () {
 
-		ChangePlanetOverlay (PlanetOverlay.CulturalKnowledge);
+		ChangePlanetOverlay (PlanetOverlay.PopCulturalKnowledge);
 		
 		SelectionPanelScript.Title.text = "Displayed Knowledge:";
 		
@@ -1075,7 +1081,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 	public void SetCulturalDiscoveryOverlay () {
 
-		ChangePlanetOverlay (PlanetOverlay.CulturalDiscovery);
+		ChangePlanetOverlay (PlanetOverlay.PopCulturalDiscovery);
 
 		SelectionPanelScript.Title.text = "Displayed Discovery:";
 
@@ -1087,24 +1093,24 @@ public class GuiManagerScript : MonoBehaviour {
 		SelectionPanelScript.SetVisible (true);
 	}
 
-	public void SetMiscellaneousDataOverlay () {
-
-		ChangePlanetOverlay (PlanetOverlay.MiscellaneousData);
-
-		SelectionPanelScript.Title.text = "Displayed Miscellaneous Data:";
-
-		AddSelectionPanelOption ("Population", "Population");
-		AddSelectionPanelOption ("Population Change", "PopulationChange");
-		AddSelectionPanelOption ("Political", "Political");
-		AddSelectionPanelOption ("Polity Influences", "PolityInfluences");
-		AddSelectionPanelOption ("Rainfall", "Rainfall");
-		AddSelectionPanelOption ("Temperature", "Temperature");
-		AddSelectionPanelOption ("Arability", "Arability");
-		AddSelectionPanelOption ("Farmland", "Farmland");
-		AddSelectionPanelOption ("Update Span", "UpdateSpan");
-
-		SelectionPanelScript.SetVisible (true);
-	}
+//	public void SetMiscellaneousDataOverlay () {
+//
+//		ChangePlanetOverlay (PlanetOverlay.MiscellaneousData);
+//
+//		SelectionPanelScript.Title.text = "Displayed Miscellaneous Data:";
+//
+//		AddSelectionPanelOption ("Population", "Population");
+//		AddSelectionPanelOption ("Population Change", "PopulationChange");
+//		AddSelectionPanelOption ("Political", "Political");
+//		AddSelectionPanelOption ("Polity Influences", "PolityInfluences");
+//		AddSelectionPanelOption ("Rainfall", "Rainfall");
+//		AddSelectionPanelOption ("Temperature", "Temperature");
+//		AddSelectionPanelOption ("Arability", "Arability");
+//		AddSelectionPanelOption ("Farmland", "Farmland");
+//		AddSelectionPanelOption ("Update Span", "UpdateSpan");
+//
+//		SelectionPanelScript.SetVisible (true);
+//	}
 
 	public void AddSelectionPanelOption (string optionName, string optionId) {
 
@@ -1128,41 +1134,41 @@ public class GuiManagerScript : MonoBehaviour {
 		if (!SelectionPanelScript.IsVisible ())
 			return;
 
-		if (_planetOverlay == PlanetOverlay.CulturalActivity) {
+		if (_planetOverlay == PlanetOverlay.PopCulturalActivity) {
 
 			foreach (CulturalActivityInfo activityInfo in Manager.CurrentWorld.CulturalActivityInfoList) {
 
 				AddSelectionPanelOption (activityInfo.Name, activityInfo.Id);
 			}
-		} else if (_planetOverlay == PlanetOverlay.CulturalSkill) {
+		} else if (_planetOverlay == PlanetOverlay.PopCulturalSkill) {
 			
 			foreach (CulturalSkillInfo skillInfo in Manager.CurrentWorld.CulturalSkillInfoList) {
 
 				AddSelectionPanelOption (skillInfo.Name, skillInfo.Id);
 			}
-		} else if (_planetOverlay == PlanetOverlay.CulturalKnowledge) {
+		} else if (_planetOverlay == PlanetOverlay.PopCulturalKnowledge) {
 			
 			foreach (CulturalKnowledgeInfo knowledgeInfo in Manager.CurrentWorld.CulturalKnowledgeInfoList) {
 
 				AddSelectionPanelOption (knowledgeInfo.Name, knowledgeInfo.Id);
 			}
-		} else if (_planetOverlay == PlanetOverlay.CulturalDiscovery) {
+		} else if (_planetOverlay == PlanetOverlay.PopCulturalDiscovery) {
 
 			foreach (CulturalDiscovery discoveryInfo in Manager.CurrentWorld.CulturalDiscoveryInfoList) {
 
 				AddSelectionPanelOption (discoveryInfo.Name, discoveryInfo.Id);
 			}
-		} else if (_planetOverlay == PlanetOverlay.MiscellaneousData) {
-
-			AddSelectionPanelOption ("Population", "Population");
-			AddSelectionPanelOption ("Population Change", "PopulationChange");
-			AddSelectionPanelOption ("Political", "Political");
-			AddSelectionPanelOption ("Polity Influences", "PolityInfluences");
-			AddSelectionPanelOption ("Rainfall", "Rainfall");
-			AddSelectionPanelOption ("Temperature", "Temperature");
-			AddSelectionPanelOption ("Arability", "Arability");
-			AddSelectionPanelOption ("Farmland", "Farmland");
-			AddSelectionPanelOption ("Update Span", "UpdateSpan");
+//		} else if (_planetOverlay == PlanetOverlay.MiscellaneousData) {
+//
+//			AddSelectionPanelOption ("Population", "Population");
+//			AddSelectionPanelOption ("Population Change", "PopulationChange");
+//			AddSelectionPanelOption ("Political", "Political");
+//			AddSelectionPanelOption ("Polity Influences", "PolityInfluences");
+//			AddSelectionPanelOption ("Rainfall", "Rainfall");
+//			AddSelectionPanelOption ("Temperature", "Temperature");
+//			AddSelectionPanelOption ("Arability", "Arability");
+//			AddSelectionPanelOption ("Farmland", "Farmland");
+//			AddSelectionPanelOption ("Update Span", "UpdateSpan");
 		}
 	}
 	

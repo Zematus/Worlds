@@ -9,18 +9,26 @@ public class OverlayDialogPanelScript : MonoBehaviour {
 
 	public Text DialogText;
 
-	public Transform GroupDataSubPanel;
-	public Transform PolityDataSubPanel;
+	public Toggle PopDensityToggle;
+	public Toggle FarmlandToggle;
+	public Toggle PopCulturalActivityToggle;
+	public Toggle PopCulturalSkillToggle;
+	public Toggle PopCulturalKnowledgeToggle;
+	public Toggle PopCulturalDiscoveryToggle;
 
-	public Toggle GroupCulturalActivityToggle;
-	public Toggle GroupCulturalSkillToggle;
-	public Toggle GroupCulturalKnowledgeToggle;
-	public Toggle GroupCulturalDiscoveryToggle;
+	public Toggle TerritoriesToggle;
+	public Toggle InfluenceToggle;
 	public Toggle PolityCulturalActivityToggle;
 	public Toggle PolityCulturalSkillToggle;
 	public Toggle PolityCulturalKnowledgeToggle;
 	public Toggle PolityCulturalDiscoveryToggle;
-	public Toggle MiscellaneousDataToggle;
+
+	public Toggle TemperatureToggle;
+	public Toggle RainfallToggle;
+	public Toggle ArabilityToggle;
+
+	public Toggle PopChangeToggle;
+	public Toggle UpdateSpanToggle;
 
 	public Toggle DisplayRoutesToggle;
 
