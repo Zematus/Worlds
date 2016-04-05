@@ -17,7 +17,7 @@ public enum PlanetOverlay {
 
 	None,
 	PopDensity,
-	Farmland,
+	FarmlandDistribution,
 	PopCulturalActivity,
 	PopCulturalSkill,
 	PopCulturalKnowledge,
@@ -28,7 +28,11 @@ public enum PlanetOverlay {
 	PolityCulturalSkill,
 	PolityCulturalKnowledge,
 	PolityCulturalDiscovery,
-//	MiscellaneousData
+	Temperature,
+	Rainfall,
+	Arability,
+	PopChange,
+	UpdateSpan
 }
 
 public enum OverlayColorId {
@@ -1017,25 +1021,73 @@ public class Manager {
 		case PlanetOverlay.None:
 			break;
 
+		case PlanetOverlay.PopDensity:
+			color = SetPopulationDensityOverlayColor (cell, color);
+			break;
+
+		case PlanetOverlay.FarmlandDistribution:
+			color = SetFarmlandOverlayColor (cell, color);
+			break;
+
 		case PlanetOverlay.PopCulturalActivity:
-			color = SetCulturalActivityOverlayColor (cell, color);
+			color = SetPopCulturalActivityOverlayColor (cell, color);
 			break;
 			
 		case PlanetOverlay.PopCulturalSkill:
-			color = SetCulturalSkillOverlayColor (cell, color);
+			color = SetPopCulturalSkillOverlayColor (cell, color);
 			break;
 			
 		case PlanetOverlay.PopCulturalKnowledge:
-			color = SetCulturalKnowledgeOverlayColor (cell, color);
+			color = SetPopCulturalKnowledgeOverlayColor (cell, color);
 			break;
 
 		case PlanetOverlay.PopCulturalDiscovery:
-			color = SetCulturalDiscoveryOverlayColor (cell, color);
+			color = SetPopCulturalDiscoveryOverlayColor (cell, color);
 			break;
 
-//		case PlanetOverlay.MiscellaneousData:
-//			color = SetMiscellanousDataOverlayColor (cell, color);
-//			break;
+		case PlanetOverlay.PolityTerritory:
+			color = SetPolityTerritoryOverlayColor (cell, color);
+			break;
+
+		case PlanetOverlay.PolityInfluence:
+			color = SetPolityInfluenceOverlayColor (cell, color);
+			break;
+
+		case PlanetOverlay.PolityCulturalActivity:
+			color = SetPolityCulturalActivityOverlayColor (cell, color);
+			break;
+
+		case PlanetOverlay.PolityCulturalSkill:
+			color = SetPolityCulturalSkillOverlayColor (cell, color);
+			break;
+
+		case PlanetOverlay.PolityCulturalKnowledge:
+			color = SetPolityCulturalKnowledgeOverlayColor (cell, color);
+			break;
+
+		case PlanetOverlay.PolityCulturalDiscovery:
+			color = SetPolityCulturalDiscoveryOverlayColor (cell, color);
+			break;
+
+		case PlanetOverlay.Temperature:
+			color = SetTemperatureOverlayColor (cell, color);
+			break;
+
+		case PlanetOverlay.Rainfall:
+			color = SetRainfallOverlayColor (cell, color);
+			break;
+
+		case PlanetOverlay.Arability:
+			color = SetArabilityOverlayColor (cell, color);
+			break;
+
+		case PlanetOverlay.PopChange:
+			color = SetPopulationChangeOverlayColor (cell, color);
+			break;
+
+		case PlanetOverlay.UpdateSpan:
+			color = SetUpdateSpanOverlayColor (cell, color);
+			break;
 			
 		default:
 			throw new System.Exception("Unsupported Planet Overlay Type");
@@ -1134,7 +1186,7 @@ public class Manager {
 		return color * slantFactor * altitudeFactor;
 	}
 
-	private static Color SetPoliticalOverlayColor (TerrainCell cell, Color color) {
+	private static Color SetPolityTerritoryOverlayColor (TerrainCell cell, Color color) {
 		
 		float greyscale = (color.r + color.g + color.b);
 
@@ -1323,7 +1375,7 @@ public class Manager {
 		return color;
 	}
 	
-	private static Color SetPopulationOverlayColor (TerrainCell cell, Color color) {
+	private static Color SetPopulationDensityOverlayColor (TerrainCell cell, Color color) {
 
 		float greyscale = (color.r + color.g + color.b);
 
@@ -1338,8 +1390,10 @@ public class Manager {
 
 		if (MaxPopulation <= 0)
 			return color;
+
+		float areaFactor = cell.Area/TerrainCell.MaxArea;
 		
-		float MaxPopFactor = MaxPopulation / 5f;
+		float MaxPopFactor = areaFactor * MaxPopulation / 5f;
 
 		float population = 0;
 
@@ -1364,7 +1418,42 @@ public class Manager {
 		return color;
 	}
 
-	private static Color SetCulturalActivityOverlayColor (TerrainCell cell, Color color) {
+	private static Color SetPopCulturalActivityOverlayColor (TerrainCell cell, Color color) {
+
+		float greyscale = (color.r + color.g + color.b);
+
+		color.r = (greyscale + color.r) / 6f;
+		color.g = (greyscale + color.g) / 6f;
+		color.b = (greyscale + color.b) / 6f;
+
+		if (_planetOverlaySubtype == "None")
+			return color;
+
+		float activityContribution = 0;
+		float population = 0;
+
+		if (cell.Group != null) {
+
+			CellCulturalActivity activity = cell.Group.Culture.GetActivity(_planetOverlaySubtype) as CellCulturalActivity;
+
+			population = cell.Group.Population;
+
+			if (activity != null) {
+				activityContribution = activity.Contribution;
+			}
+		}
+
+		if ((population > 0) && (activityContribution >= 0.001)) {
+
+			float value = 0.05f + 0.95f * activityContribution;
+
+			color = (color * (1 - value)) + (Color.cyan * value);
+		}
+
+		return color;
+	}
+
+	private static Color SetPolityCulturalActivityOverlayColor (TerrainCell cell, Color color) {
 
 		float greyscale = (color.r + color.g + color.b);
 
@@ -1399,7 +1488,7 @@ public class Manager {
 		return color;
 	}
 	
-	private static Color SetCulturalSkillOverlayColor (TerrainCell cell, Color color) {
+	private static Color SetPopCulturalSkillOverlayColor (TerrainCell cell, Color color) {
 		
 		float greyscale = (color.r + color.g + color.b);
 		
@@ -1433,8 +1522,43 @@ public class Manager {
 		
 		return color;
 	}
+
+	private static Color SetPolityCulturalSkillOverlayColor (TerrainCell cell, Color color) {
+
+		float greyscale = (color.r + color.g + color.b);
+
+		color.r = (greyscale + color.r) / 6f;
+		color.g = (greyscale + color.g) / 6f;
+		color.b = (greyscale + color.b) / 6f;
+
+		if (_planetOverlaySubtype == "None")
+			return color;
+
+		float skillValue = 0;
+		float population = 0;
+
+		if (cell.Group != null) {
+
+			CellCulturalSkill skill = cell.Group.Culture.GetSkill(_planetOverlaySubtype) as CellCulturalSkill;
+
+			population = cell.Group.Population;
+
+			if (skill != null) {
+				skillValue = skill.Value;
+			}
+		}
+
+		if ((population > 0) && (skillValue >= 0.001)) {
+
+			float value = 0.05f + 0.95f * skillValue;
+
+			color = (color * (1 - value)) + (Color.cyan * value);
+		}
+
+		return color;
+	}
 	
-	private static Color SetCulturalKnowledgeOverlayColor (TerrainCell cell, Color color) {
+	private static Color SetPopCulturalKnowledgeOverlayColor (TerrainCell cell, Color color) {
 		
 		float greyscale = (color.r + color.g + color.b);
 		
@@ -1475,7 +1599,84 @@ public class Manager {
 		return color;
 	}
 
-	private static Color SetCulturalDiscoveryOverlayColor (TerrainCell cell, Color color) {
+	private static Color SetPolityCulturalKnowledgeOverlayColor (TerrainCell cell, Color color) {
+
+		float greyscale = (color.r + color.g + color.b);
+
+		color.r = (greyscale + color.r) / 6f;
+		color.g = (greyscale + color.g) / 6f;
+		color.b = (greyscale + color.b) / 6f;
+
+		if (_planetOverlaySubtype == "None")
+			return color;
+
+		float normalizedValue = 0;
+		float population = 0;
+
+		if (cell.Group != null) {
+
+			CellCulturalKnowledge knowledge = cell.Group.Culture.GetKnowledge(_planetOverlaySubtype) as CellCulturalKnowledge;
+
+			population = cell.Group.Population;
+
+			if (knowledge != null) {
+
+				float highestAsymptote = knowledge.GetHighestAsymptote ();
+
+				if (highestAsymptote <= 0)
+					throw new System.Exception ("Highest Asymptote is less or equal to 0");
+
+				normalizedValue = knowledge.Value / highestAsymptote;
+			}
+		}
+
+		if ((population > 0) && (normalizedValue >= 0.001f)) {
+
+			float value = 0.05f + 0.95f * normalizedValue;
+
+			color = (color * (1 - value)) + (Color.cyan * value);
+		}
+
+		return color;
+	}
+
+	private static Color SetPopCulturalDiscoveryOverlayColor (TerrainCell cell, Color color) {
+
+		float greyscale = (color.r + color.g + color.b);
+
+		color.r = (greyscale + color.r) / 6f;
+		color.g = (greyscale + color.g) / 6f;
+		color.b = (greyscale + color.b) / 6f;
+
+		if (_planetOverlaySubtype == "None")
+			return color;
+
+		float normalizedValue = 0;
+		float population = 0;
+
+		if (cell.Group != null) {
+
+			CulturalDiscovery discovery = cell.Group.Culture.GetDiscovery(_planetOverlaySubtype);
+
+			population = cell.Group.Population;
+
+			if (discovery != null) {
+
+				normalizedValue = 1;
+			}
+		}
+
+		if ((population > 0) && (normalizedValue >= 0.001f)) {
+
+			float value = 0.05f + 0.95f * normalizedValue;
+
+			color = (color * (1 - value)) + (Color.cyan * value);
+		}
+
+		return color;
+	}
+
+	private static Color SetPolityCulturalDiscoveryOverlayColor (TerrainCell cell, Color color) {
 
 		float greyscale = (color.r + color.g + color.b);
 
@@ -1600,13 +1801,13 @@ public class Manager {
 		switch (_planetOverlaySubtype) {
 
 		case "Population":
-			return SetPopulationOverlayColor (cell, color);
+			return SetPopulationDensityOverlayColor (cell, color);
 
 		case "PopulationChange":
 			return SetPopulationChangeOverlayColor (cell, color);
 
 		case "Political":
-			return SetPoliticalOverlayColor (cell, color);
+			return SetPolityTerritoryOverlayColor (cell, color);
 
 		case "PolityInfluences":
 			return SetPolityInfluenceOverlayColor (cell, color);

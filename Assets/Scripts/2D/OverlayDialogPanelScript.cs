@@ -9,6 +9,11 @@ public class OverlayDialogPanelScript : MonoBehaviour {
 
 	public Text DialogText;
 
+	public Toggle PopDataToggle;
+	public Toggle PolityDataToggle;
+	public Toggle MiscDataToggle;
+	public Toggle DebugDataToggle;
+
 	public Toggle PopDensityToggle;
 	public Toggle FarmlandToggle;
 	public Toggle PopCulturalActivityToggle;
