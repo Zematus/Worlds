@@ -1344,9 +1344,9 @@ public class GuiManagerScript : MonoBehaviour {
 			}
 		} else if (_planetOverlay == PlanetOverlay.PolityCulturalActivity) {
 
-			foreach (CulturalSkillInfo skillInfo in Manager.CurrentWorld.CulturalSkillInfoList) {
+			foreach (CulturalActivityInfo activityInfo in Manager.CurrentWorld.CulturalActivityInfoList) {
 
-				AddSelectionPanelOption (skillInfo.Name, skillInfo.Id);
+				AddSelectionPanelOption (activityInfo.Name, activityInfo.Id);
 			}
 		} else if (_planetOverlay == PlanetOverlay.PolityCulturalSkill) {
 
@@ -1356,15 +1356,15 @@ public class GuiManagerScript : MonoBehaviour {
 			}
 		} else if (_planetOverlay == PlanetOverlay.PolityCulturalKnowledge) {
 
-			foreach (CulturalSkillInfo skillInfo in Manager.CurrentWorld.CulturalSkillInfoList) {
+			foreach (CulturalKnowledgeInfo knowledgeInfo in Manager.CurrentWorld.CulturalKnowledgeInfoList) {
 
-				AddSelectionPanelOption (skillInfo.Name, skillInfo.Id);
+				AddSelectionPanelOption (knowledgeInfo.Name, knowledgeInfo.Id);
 			}
-		} else if (_planetOverlay == PlanetOverlay.PolityCulturalKnowledge) {
+		} else if (_planetOverlay == PlanetOverlay.PolityCulturalDiscovery) {
 
-			foreach (CulturalSkillInfo skillInfo in Manager.CurrentWorld.CulturalSkillInfoList) {
+			foreach (CulturalDiscovery discoveryInfo in Manager.CurrentWorld.CulturalDiscoveryInfoList) {
 
-				AddSelectionPanelOption (skillInfo.Name, skillInfo.Id);
+				AddSelectionPanelOption (discoveryInfo.Name, discoveryInfo.Id);
 			}
 		}
 	}
