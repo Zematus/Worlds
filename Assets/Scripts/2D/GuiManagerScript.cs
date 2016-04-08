@@ -897,9 +897,9 @@ public class GuiManagerScript : MonoBehaviour {
 
 		InterruptSimulation (true);
 	}
-	
-	public void CloseOverlayMenuAction () {
-		
+
+	public void ChangePlanetOverlayToSelected () {
+
 		SelectionPanelScript.RemoveAllOptions ();
 		SelectionPanelScript.SetVisible (false);
 
@@ -942,6 +942,11 @@ public class GuiManagerScript : MonoBehaviour {
 		}
 
 		SetRouteDisplayOverlay (OverlayDialogPanelScript.DisplayRoutesToggle.isOn);
+	}
+	
+	public void CloseOverlayMenuAction () {
+
+		ChangePlanetOverlayToSelected ();
 		
 		OverlayDialogPanelScript.SetVisible (false);
 	}
