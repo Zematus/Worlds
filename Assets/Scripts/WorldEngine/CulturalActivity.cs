@@ -35,17 +35,22 @@ public class CulturalActivity : CulturalActivityInfo {
 	[XmlAttribute]
 	public float Value;
 
+	[XmlAttribute]
+	public float Contribution = 0;
+
 	public CulturalActivity () {
 	}
 
-	public CulturalActivity (string id, string name, float value) : base (id, name) {
+	public CulturalActivity (string id, string name, float value, float contribution) : base (id, name) {
 
 		Value = value;
+		Contribution = contribution;
 	}
 
 	public CulturalActivity (CulturalActivity baseActivity) : base (baseActivity) {
 
 		Value = baseActivity.Value;
+		Contribution = baseActivity.Contribution;
 	}
 }
 
@@ -59,19 +64,15 @@ public class CellCulturalActivity : CulturalActivity {
 	public const string ForagingActivityName = "Foraging";
 	public const string FarmingActivityName = "Farming";
 
-	[XmlAttribute]
-	public float Contribution = 0;
-
 	[XmlIgnore]
 	public CellGroup Group;
 
 	public CellCulturalActivity () {
 	}
 
-	private CellCulturalActivity (CellGroup group, string id, string name, float value, float contribution) : base (id, name, value) {
+	private CellCulturalActivity (CellGroup group, string id, string name, float value, float contribution) : base (id, name, value, contribution) {
 
 		Group = group;
-		Contribution = contribution;
 	}
 
 	public static CellCulturalActivity CreateForagingActivity (CellGroup group, float value = 0, float contribution = 0) {

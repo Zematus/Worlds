@@ -1464,26 +1464,43 @@ public class Manager {
 		if (_planetOverlaySubtype == "None")
 			return color;
 
-		float activityContribution = 0;
-		float population = 0;
+		if (cell.Group == null)
+			return color;
+		int polityCount = 0;
 
-		if (cell.Group != null) {
+		float maxInfluenceValue = 0;
 
-			CellCulturalActivity activity = cell.Group.Culture.GetActivity(_planetOverlaySubtype) as CellCulturalActivity;
+		Polity highestInfluencePolity = null;
 
-			population = cell.Group.Population;
+		foreach (PolityInfluence p in cell.Group.GetPolityInfluences ()) {
 
-			if (activity != null) {
-				activityContribution = activity.Contribution;
+			polityCount++;
+
+			if (maxInfluenceValue < p.Value) {
+
+				maxInfluenceValue = p.Value;
+				highestInfluencePolity = p.Polity;
 			}
 		}
 
-		if ((population > 0) && (activityContribution >= 0.001)) {
+		if (polityCount <= 0)
+			return color;
 
-			float value = 0.05f + 0.95f * activityContribution;
+		CulturalActivity activity = highestInfluencePolity.Culture.GetActivity(_planetOverlaySubtype);
 
-			color = (color * (1 - value)) + (Color.cyan * value);
-		}
+		if (activity == null)
+			return color;
+
+		float activityContribution = 0;
+
+		activityContribution = activity.Contribution;
+
+		if (activityContribution < 0.001f)
+			return color;
+
+		float value = 0.05f + 0.95f * activityContribution;
+
+		color = (color * (1 - value)) + (Color.cyan * value);
 
 		return color;
 	}
@@ -1534,26 +1551,44 @@ public class Manager {
 		if (_planetOverlaySubtype == "None")
 			return color;
 
-		float skillValue = 0;
-		float population = 0;
+		if (cell.Group == null)
+			return color;
+		
+		int polityCount = 0;
 
-		if (cell.Group != null) {
+		float maxInfluenceValue = 0;
 
-			CellCulturalSkill skill = cell.Group.Culture.GetSkill(_planetOverlaySubtype) as CellCulturalSkill;
+		Polity highestInfluencePolity = null;
 
-			population = cell.Group.Population;
+		foreach (PolityInfluence p in cell.Group.GetPolityInfluences ()) {
 
-			if (skill != null) {
-				skillValue = skill.Value;
+			polityCount++;
+
+			if (maxInfluenceValue < p.Value) {
+
+				maxInfluenceValue = p.Value;
+				highestInfluencePolity = p.Polity;
 			}
 		}
 
-		if ((population > 0) && (skillValue >= 0.001)) {
+		if (polityCount <= 0)
+			return color;
 
-			float value = 0.05f + 0.95f * skillValue;
+		CulturalSkill skill = highestInfluencePolity.Culture.GetSkill(_planetOverlaySubtype);
 
-			color = (color * (1 - value)) + (Color.cyan * value);
-		}
+		if (skill == null)
+			return color;
+
+		float skillValue = 0;
+
+		skillValue = skill.Value;
+
+		if (skillValue < 0.001)
+			return color;
+
+		float value = 0.05f + 0.95f * skillValue;
+
+		color = (color * (1 - value)) + (Color.cyan * value);
 
 		return color;
 	}
@@ -1610,32 +1645,54 @@ public class Manager {
 		if (_planetOverlaySubtype == "None")
 			return color;
 
-		float normalizedValue = 0;
-		float population = 0;
+		if (cell.Group == null)
+			return color;
 
-		if (cell.Group != null) {
+		int polityCount = 0;
 
-			CellCulturalKnowledge knowledge = cell.Group.Culture.GetKnowledge(_planetOverlaySubtype) as CellCulturalKnowledge;
+		float maxInfluenceValue = 0;
 
-			population = cell.Group.Population;
+		Polity highestInfluencePolity = null;
 
-			if (knowledge != null) {
+		foreach (PolityInfluence p in cell.Group.GetPolityInfluences ()) {
 
-				float highestAsymptote = knowledge.GetHighestAsymptote ();
+			polityCount++;
 
-				if (highestAsymptote <= 0)
-					throw new System.Exception ("Highest Asymptote is less or equal to 0");
+			if (maxInfluenceValue < p.Value) {
 
-				normalizedValue = knowledge.Value / highestAsymptote;
+				maxInfluenceValue = p.Value;
+				highestInfluencePolity = p.Polity;
 			}
 		}
 
-		if ((population > 0) && (normalizedValue >= 0.001f)) {
+		if (polityCount <= 0)
+			return color;
 
-			float value = 0.05f + 0.95f * normalizedValue;
+		CulturalKnowledge knowledge = highestInfluencePolity.Culture.GetKnowledge(_planetOverlaySubtype);
 
-			color = (color * (1 - value)) + (Color.cyan * value);
-		}
+		CellCulturalKnowledge cellKnowledge = highestInfluencePolity.CoreGroup.Culture.GetKnowledge(_planetOverlaySubtype) as CellCulturalKnowledge;
+
+		if (knowledge == null)
+			return color;
+		
+		if (cellKnowledge == null)
+			return color;
+
+		float normalizedValue = 0;
+
+		float highestAsymptote = cellKnowledge.GetHighestAsymptote ();
+
+		if (highestAsymptote <= 0)
+			throw new System.Exception ("Highest Asymptote is less or equal to 0");
+
+		normalizedValue = knowledge.Value / highestAsymptote;
+
+		if (normalizedValue < 0.001)
+			return color;
+
+		float value = 0.05f + 0.95f * normalizedValue;
+
+		color = (color * (1 - value)) + (Color.cyan * value);
 
 		return color;
 	}
@@ -1668,9 +1725,7 @@ public class Manager {
 
 		if ((population > 0) && (normalizedValue >= 0.001f)) {
 
-			float value = 0.05f + 0.95f * normalizedValue;
-
-			color = (color * (1 - value)) + (Color.cyan * value);
+			color = (color * (1 - normalizedValue)) + (Color.cyan * normalizedValue);
 		}
 
 		return color;
@@ -1687,27 +1742,37 @@ public class Manager {
 		if (_planetOverlaySubtype == "None")
 			return color;
 
-		float normalizedValue = 0;
-		float population = 0;
+		if (cell.Group == null)
+			return color;
 
-		if (cell.Group != null) {
+		int polityCount = 0;
 
-			CulturalDiscovery discovery = cell.Group.Culture.GetDiscovery(_planetOverlaySubtype);
+		float maxInfluenceValue = 0;
 
-			population = cell.Group.Population;
+		Polity highestInfluencePolity = null;
 
-			if (discovery != null) {
+		foreach (PolityInfluence p in cell.Group.GetPolityInfluences ()) {
 
-				normalizedValue = 1;
+			polityCount++;
+
+			if (maxInfluenceValue < p.Value) {
+
+				maxInfluenceValue = p.Value;
+				highestInfluencePolity = p.Polity;
 			}
 		}
 
-		if ((population > 0) && (normalizedValue >= 0.001f)) {
+		if (polityCount <= 0)
+			return color;
 
-			float value = 0.05f + 0.95f * normalizedValue;
+		CulturalDiscovery discovery = highestInfluencePolity.Culture.GetDiscovery(_planetOverlaySubtype);
 
-			color = (color * (1 - value)) + (Color.cyan * value);
-		}
+		if (discovery == null)
+			return color;
+
+		float normalizedValue = 1;
+
+		color = (color * (1 - normalizedValue)) + (Color.cyan * normalizedValue);
 
 		return color;
 	}
