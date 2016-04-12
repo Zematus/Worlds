@@ -66,7 +66,6 @@ public class CellGroup : HumanGroup {
 
 	public List<PolityInfluence> PolityInfluences;
 
-	[XmlIgnore]
 	public static float TravelWidthFactor;
 	
 	[XmlIgnore]
@@ -83,6 +82,9 @@ public class CellGroup : HumanGroup {
 
 	[XmlIgnore]
 	public List<CellGroup> Neighbors;
+
+	[XmlIgnore]
+	public PolityInfluence HighestPolityInfluence = null;
 
 	private Dictionary<long, PolityInfluence> _polityInfluences = new Dictionary<long, PolityInfluence> ();
 
@@ -127,6 +129,8 @@ public class CellGroup : HumanGroup {
 		foreach (PolityInfluence p in migratingGroup.PolityInfluences) {
 
 			_polityInfluences.Add (p.PolityId, p);
+
+			ValidateHighestPolityInfluence (p);
 		}
 	}
 
@@ -173,6 +177,21 @@ public class CellGroup : HumanGroup {
 		World.UpdateMostPopulousGroup (this);
 
 		InitializeDefaultEvents ();
+	}
+
+	public bool ValidateHighestPolityInfluence (PolityInfluence influence) {
+
+		if (HighestPolityInfluence == null) {
+			HighestPolityInfluence = influence;
+			return true;
+		}
+
+		if (HighestPolityInfluence.Value < influence.Value) {
+			HighestPolityInfluence = influence;
+			return true;
+		}
+
+		return false;
 	}
 
 	public void InitializeDefaultEvents () {
@@ -1075,7 +1094,11 @@ public class CellGroup : HumanGroup {
 		if (polityInfluence == null) {
 			if (influenceValue > Polity.MinPolityInfluence) {
 
-				_polityInfluences.Add (polity.Id, new PolityInfluence (polity, influenceValue));
+				polityInfluence = new PolityInfluence (polity, influenceValue);
+
+				_polityInfluences.Add (polity.Id, polityInfluence);
+
+				ValidateHighestPolityInfluence (polityInfluence);
 
 				TotalPolityInfluenceValue += influenceValue;
 
@@ -1100,6 +1123,9 @@ public class CellGroup : HumanGroup {
 
 			polity.RemoveInfluencedGroup (this);
 
+			if (polityInfluence == HighestPolityInfluence)
+				FindHighestPolityInfluence ();
+
 			return;
 		}
 
@@ -1110,6 +1136,21 @@ public class CellGroup : HumanGroup {
 		if (TotalPolityInfluenceValue > 1f) {
 
 			throw new System.Exception ("Total influence value greater than 1: " + TotalPolityInfluenceValue);
+		}
+
+		if (!(ValidateHighestPolityInfluence (polityInfluence)) && 
+			(polityInfluence == HighestPolityInfluence) && 
+			(currentInfluenceValue > influenceValue))
+			FindHighestPolityInfluence ();
+	}
+
+	public void FindHighestPolityInfluence () {
+	
+		HighestPolityInfluence = null;
+
+		foreach (PolityInfluence p in _polityInfluences.Values) {
+		
+			ValidateHighestPolityInfluence (p);
 		}
 	}
 
@@ -1155,6 +1196,8 @@ public class CellGroup : HumanGroup {
 			}
 
 			_polityInfluences.Add (p.PolityId, p);
+
+			ValidateHighestPolityInfluence (p);
 		});
 	}
 }
