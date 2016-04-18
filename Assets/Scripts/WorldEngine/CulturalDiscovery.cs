@@ -30,6 +30,20 @@ public class CulturalDiscovery {
 	}
 }
 
+public class PolityCulturalDiscovery : CulturalDiscovery {
+
+	[XmlAttribute]
+	public int PresenceCount = 0;
+
+	public PolityCulturalDiscovery (string id, string name) : base (id, name) {
+	
+	}
+
+	public PolityCulturalDiscovery (CulturalDiscovery baseDiscovery) : base (baseDiscovery) {
+
+	}
+}
+
 public abstract class CellCulturalDiscovery : CulturalDiscovery {
 	
 	public CellCulturalDiscovery (string id, string name) : base (id, name) {

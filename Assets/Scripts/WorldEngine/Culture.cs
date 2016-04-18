@@ -21,7 +21,8 @@ public class Culture : Synchronizable {
 		XmlArrayItem(Type = typeof(SocialOrganizationKnowledge))]
 	public List<CulturalKnowledge> Knowledges = new List<CulturalKnowledge> ();
 	
-	[XmlArrayItem(Type = typeof(BoatMakingDiscovery)),
+	[XmlArrayItem(Type = typeof(PolityCulturalDiscovery)),
+		XmlArrayItem(Type = typeof(BoatMakingDiscovery)),
 		XmlArrayItem(Type = typeof(SailingDiscovery)),
 		XmlArrayItem(Type = typeof(TribalismDiscovery)),
 		XmlArrayItem(Type = typeof(PlantCultivationDiscovery))]
@@ -202,6 +203,145 @@ public class PolityCulture : Culture {
 		coreCulture.Skills.ForEach (s => AddSkill (new CulturalSkill (s)));
 		coreCulture.Knowledges.ForEach (k => AddKnowledge (new CulturalKnowledge (k)));
 		coreCulture.Discoveries.ForEach (d => AddDiscovery (new CulturalDiscovery (d)));
+	}
+
+	public void AddGroupCulture (CellGroup group) {
+
+		float influenceValue = group.GetPolityInfluenceValue (Polity);
+
+		if (influenceValue <= 0) {
+
+			throw new System.Exception ("Polity has zero or less influence value in group: " + influenceValue);
+		}
+
+		if (Polity.TotalGroupInfluenceValue <= 0) {
+		
+			throw new System.Exception ("Polity's TotalGroupInfluenceValue equal or less than 0: " + Polity.TotalGroupInfluenceValue);
+		}
+
+		float influenceFactor = influenceValue / Polity.TotalGroupInfluenceValue;
+		float reverseInfluenceFactor = 1f - influenceFactor;
+
+		foreach (CulturalActivity groupActivity in group.Culture.Activities) {
+		
+			CulturalActivity activity = GetActivity (groupActivity.Id);
+
+			if (activity == null) {
+			
+				activity = new CulturalActivity (groupActivity);
+				activity.Value *= influenceFactor;
+				activity.Contribution *= influenceFactor;
+
+				AddActivity (activity);
+
+			} else {
+			
+				activity.Value = (activity.Value * reverseInfluenceFactor) + (groupActivity.Value * influenceFactor);
+				activity.Contribution = (activity.Contribution * reverseInfluenceFactor) + (groupActivity.Contribution * influenceFactor);
+			}
+		}
+
+		foreach (CulturalSkill groupSkill in group.Culture.Skills) {
+
+			CulturalSkill skill = GetSkill (groupSkill.Id);
+
+			if (skill == null) {
+
+				skill = new CulturalSkill (groupSkill);
+				skill.Value *= influenceFactor;
+
+				AddSkill (skill);
+
+			} else {
+
+				skill.Value = (skill.Value * reverseInfluenceFactor) + (groupSkill.Value * influenceFactor);
+			}
+		}
+
+		foreach (CulturalKnowledge groupKnowledge in group.Culture.Knowledges) {
+
+			CulturalKnowledge knowledge = GetKnowledge (groupKnowledge.Id);
+
+			if (knowledge == null) {
+
+				knowledge = new CulturalKnowledge (groupKnowledge);
+				knowledge.Value *= influenceFactor;
+
+				AddKnowledge (knowledge);
+
+			} else {
+
+				knowledge.Value = (knowledge.Value * reverseInfluenceFactor) + (groupKnowledge.Value * influenceFactor);
+			}
+		}
+
+		foreach (CulturalDiscovery groupDiscovery in group.Culture.Discoveries) {
+
+			PolityCulturalDiscovery discovery = GetDiscovery (groupDiscovery.Id) as PolityCulturalDiscovery;
+
+			if (discovery == null) {
+
+				discovery = new PolityCulturalDiscovery (groupDiscovery);
+
+				AddDiscovery (discovery);
+			}
+
+			discovery.PresenceCount++;
+		}
+	}
+
+	public void RemoveGroupCulture (CellGroup group) {
+
+		float influenceValue = group.GetPolityInfluenceValue (Polity);
+
+		if (influenceValue <= 0) {
+
+			throw new System.Exception ("Polity has zero or less influence value in group: " + influenceValue);
+		}
+
+		if (Polity.TotalGroupInfluenceValue <= 0) {
+
+			throw new System.Exception ("Polity's TotalGroupInfluenceValue equal or less than 0: " + Polity.TotalGroupInfluenceValue);
+		}
+
+		float influenceFactor = influenceValue / Polity.TotalGroupInfluenceValue;
+		float reverseInfluenceFactor = 1f - influenceFactor;
+
+		foreach (CulturalActivity groupActivity in group.Culture.Activities) {
+
+			CulturalActivity activity = GetActivity (groupActivity.Id);
+
+			activity.Value -= groupActivity.Value * influenceFactor;
+			activity.Contribution -= groupActivity.Contribution * influenceFactor;
+
+			activity.Value /= reverseInfluenceFactor;
+			activity.Contribution /= reverseInfluenceFactor;
+		}
+
+		foreach (CulturalSkill groupSkill in group.Culture.Skills) {
+
+			CulturalSkill skill = GetSkill (groupSkill.Id);
+
+			skill.Value -= groupSkill.Value * influenceFactor;
+
+			skill.Value /= reverseInfluenceFactor;
+		}
+
+		foreach (CulturalKnowledge groupKnowledge in group.Culture.Knowledges) {
+
+			CulturalKnowledge knowledge = GetKnowledge (groupKnowledge.Id);
+
+			knowledge.Value -= groupKnowledge.Value * influenceFactor;
+
+			knowledge.Value /= reverseInfluenceFactor;
+		}
+
+		foreach (CulturalDiscovery groupDiscovery in group.Culture.Discoveries) {
+
+			PolityCulturalDiscovery discovery = GetDiscovery (groupDiscovery.Id) as PolityCulturalDiscovery;
+
+			discovery.PresenceCount--;
+		}
 	}
 }
 

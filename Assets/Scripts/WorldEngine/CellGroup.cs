@@ -1101,6 +1101,7 @@ public class CellGroup : HumanGroup {
 				ValidateHighestPolityInfluence (polityInfluence);
 
 				TotalPolityInfluenceValue += influenceValue;
+				polity.TotalGroupInfluenceValue += influenceValue;
 
 				if (TotalPolityInfluenceValue > 1f) {
 				
@@ -1116,6 +1117,7 @@ public class CellGroup : HumanGroup {
 		float currentInfluenceValue = polityInfluence.Value;
 
 		TotalPolityInfluenceValue -= currentInfluenceValue;
+		polity.TotalGroupInfluenceValue -= currentInfluenceValue;
 
 		if (influenceValue <= Polity.MinPolityInfluence) {
 			
@@ -1132,6 +1134,7 @@ public class CellGroup : HumanGroup {
 		polityInfluence.Value = influenceValue;
 
 		TotalPolityInfluenceValue += influenceValue;
+		polity.TotalGroupInfluenceValue += influenceValue;
 
 		if (TotalPolityInfluenceValue > 1f) {
 

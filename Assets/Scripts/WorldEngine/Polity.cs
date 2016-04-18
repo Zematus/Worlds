@@ -29,7 +29,11 @@ public abstract class Polity : Synchronizable {
 	[XmlAttribute]
 	public long Id;
 
+	[XmlAttribute]
 	public long CoreGroupId;
+
+	[XmlAttribute]
+	public float TotalGroupInfluenceValue = 0;
 
 	public List<long> InfluencedGroupIds;
 
@@ -49,7 +53,7 @@ public abstract class Polity : Synchronizable {
 	
 	}
 
-	public Polity (CellGroup coreGroup, float coreGroupInfluence) {
+	public Polity (CellGroup coreGroup, float coreGroupInfluenceValue) {
 
 		World = coreGroup.World;
 
@@ -61,7 +65,7 @@ public abstract class Polity : Synchronizable {
 
 		Culture = new PolityCulture (this);
 
-		coreGroup.SetPolityInfluenceValue (this, coreGroupInfluence);
+		coreGroup.SetPolityInfluenceValue (this, coreGroupInfluenceValue);
 	}
 
 	public void SetCoreGroup (CellGroup group) {
