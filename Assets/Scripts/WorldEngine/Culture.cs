@@ -202,7 +202,11 @@ public class PolityCulture : Culture {
 		coreCulture.Activities.ForEach (a => AddActivity (new CulturalActivity (a)));
 		coreCulture.Skills.ForEach (s => AddSkill (new CulturalSkill (s)));
 		coreCulture.Knowledges.ForEach (k => AddKnowledge (new CulturalKnowledge (k)));
-		coreCulture.Discoveries.ForEach (d => AddDiscovery (new CulturalDiscovery (d)));
+		coreCulture.Discoveries.ForEach (d => {
+			PolityCulturalDiscovery discovery = new PolityCulturalDiscovery (d);
+			AddDiscovery (discovery);
+			discovery.PresenceCount++;
+		});
 	}
 
 	public void AddGroupCulture (CellGroup group) {
@@ -339,6 +343,12 @@ public class PolityCulture : Culture {
 		foreach (CulturalDiscovery groupDiscovery in group.Culture.Discoveries) {
 
 			PolityCulturalDiscovery discovery = GetDiscovery (groupDiscovery.Id) as PolityCulturalDiscovery;
+
+			#if DEBUG
+			if (discovery == null) {
+				Debug.Break ();
+			}
+			#endif
 
 			discovery.PresenceCount--;
 		}

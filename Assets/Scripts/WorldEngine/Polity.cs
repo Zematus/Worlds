@@ -59,13 +59,11 @@ public abstract class Polity : Synchronizable {
 
 		Id = World.GeneratePolityId ();
 
-		AddInfluencedGroup (coreGroup);
+		coreGroup.SetPolityInfluenceValue (this, coreGroupInfluenceValue);
 
 		SetCoreGroup (coreGroup);
 
 		Culture = new PolityCulture (this);
-
-		coreGroup.SetPolityInfluenceValue (this, coreGroupInfluenceValue);
 	}
 
 	public void SetCoreGroup (CellGroup group) {

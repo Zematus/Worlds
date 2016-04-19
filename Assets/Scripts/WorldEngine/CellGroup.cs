@@ -410,6 +410,19 @@ public class CellGroup : HumanGroup {
 	public void PostUpdate () {
 	
 		Culture.PostUpdate ();
+
+		PostUpdatePolities ();
+	}
+
+	private void PostUpdatePolities () {
+
+		// Reintegrate the group's influence after all changes to the group's culture have been made.
+		foreach (PolityInfluence polityInfluence in _polityInfluences.Values) {
+
+			Polity polity = polityInfluence.Polity;
+
+			polity.Culture.AddGroupCulture (this);
+		}
 	}
 
 	public void SetupForNextUpdate () {
@@ -699,6 +712,18 @@ public class CellGroup : HumanGroup {
 	}
 
 	public void Destroy () {
+		
+		PolityInfluence[] polityInfluences = new PolityInfluence[_polityInfluences.Count];
+		_polityInfluences.Values.CopyTo (polityInfluences, 0);
+
+		foreach (PolityInfluence polityInfluence in polityInfluences) {
+
+			Polity polity = polityInfluence.Polity;
+
+			polity.Culture.RemoveGroupCulture (this);
+
+			polity.RemoveInfluencedGroup (this);
+		}
 
 		Cell.Group = null;
 		World.RemoveGroup (this);
@@ -718,6 +743,8 @@ public class CellGroup : HumanGroup {
 	}
 
 	private void UpdateInternal () {
+
+		PreUpdate ();
 
 		PreviousExactPopulation = ExactPopulation;
 		
@@ -748,6 +775,23 @@ public class CellGroup : HumanGroup {
 	private void UpdateCulture (int timeSpan) {
 		
 		Culture.Update (timeSpan);
+	}
+
+	private void PreUpdate () {
+
+		PreUpdatePolities ();
+	}
+
+	private void PreUpdatePolities () {
+
+		// To update the polity culture it's better just to remove the influence of the group on the polity culture before updating the group's culture.
+		// Then we can reintegrate the group's influence after all changes to the group's culture have been made.
+		foreach (PolityInfluence polityInfluence in _polityInfluences.Values) {
+
+			Polity polity = polityInfluence.Polity;
+
+			polity.Culture.RemoveGroupCulture (this);
+		}
 	}
 
 	private void UpdatePolities (int timeSpan) {
@@ -1116,9 +1160,6 @@ public class CellGroup : HumanGroup {
 
 		float currentInfluenceValue = polityInfluence.Value;
 
-		TotalPolityInfluenceValue -= currentInfluenceValue;
-		polity.TotalGroupInfluenceValue -= currentInfluenceValue;
-
 		if (influenceValue <= Polity.MinPolityInfluence) {
 			
 			_polityInfluences.Remove (polityInfluence.PolityId);
@@ -1128,8 +1169,14 @@ public class CellGroup : HumanGroup {
 			if (polityInfluence == HighestPolityInfluence)
 				FindHighestPolityInfluence ();
 
+			TotalPolityInfluenceValue -= currentInfluenceValue;
+			polity.TotalGroupInfluenceValue -= currentInfluenceValue;
+
 			return;
 		}
+
+		TotalPolityInfluenceValue -= currentInfluenceValue;
+		polity.TotalGroupInfluenceValue -= currentInfluenceValue;
 
 		polityInfluence.Value = influenceValue;
 
