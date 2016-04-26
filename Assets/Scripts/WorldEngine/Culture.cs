@@ -201,7 +201,19 @@ public class PolityCulture : Culture {
 
 		coreCulture.Activities.ForEach (a => AddActivity (new CulturalActivity (a)));
 		coreCulture.Skills.ForEach (s => AddSkill (new CulturalSkill (s)));
-		coreCulture.Knowledges.ForEach (k => AddKnowledge (new CulturalKnowledge (k)));
+
+		coreCulture.Knowledges.ForEach (k => {
+			CulturalKnowledge knowledge = new CulturalKnowledge (k);
+			AddKnowledge (knowledge);
+
+			#if DEBUG
+			if (float.IsNaN(knowledge.Value)) {
+
+				Debug.Break ();
+			}
+			#endif
+		});
+
 		coreCulture.Discoveries.ForEach (d => {
 			PolityCulturalDiscovery discovery = new PolityCulturalDiscovery (d);
 			AddDiscovery (discovery);
@@ -273,9 +285,30 @@ public class PolityCulture : Culture {
 
 				AddKnowledge (knowledge);
 
+				#if DEBUG
+				if (float.IsNaN(knowledge.Value)) {
+
+					Debug.Break ();
+				}
+				#endif
+
 			} else {
+				
+				#if DEBUG
+				if (float.IsNaN(knowledge.Value)) {
+
+					Debug.Break ();
+				}
+				#endif
 
 				knowledge.Value = (knowledge.Value * reverseInfluenceFactor) + (groupKnowledge.Value * influenceFactor);
+
+				#if DEBUG
+				if (float.IsNaN(knowledge.Value)) {
+
+					Debug.Break ();
+				}
+				#endif
 			}
 		}
 
@@ -318,8 +351,10 @@ public class PolityCulture : Culture {
 			activity.Value -= groupActivity.Value * influenceFactor;
 			activity.Contribution -= groupActivity.Contribution * influenceFactor;
 
-			activity.Value /= reverseInfluenceFactor;
-			activity.Contribution /= reverseInfluenceFactor;
+			if (reverseInfluenceFactor > 0) {
+				activity.Value /= reverseInfluenceFactor;
+				activity.Contribution /= reverseInfluenceFactor;
+			}
 		}
 
 		foreach (CulturalSkill groupSkill in group.Culture.Skills) {
@@ -328,7 +363,9 @@ public class PolityCulture : Culture {
 
 			skill.Value -= groupSkill.Value * influenceFactor;
 
-			skill.Value /= reverseInfluenceFactor;
+			if (reverseInfluenceFactor > 0) {
+				skill.Value /= reverseInfluenceFactor;
+			}
 		}
 
 		foreach (CulturalKnowledge groupKnowledge in group.Culture.Knowledges) {
@@ -337,7 +374,9 @@ public class PolityCulture : Culture {
 
 			knowledge.Value -= groupKnowledge.Value * influenceFactor;
 
-			knowledge.Value /= reverseInfluenceFactor;
+			if (reverseInfluenceFactor > 0) {
+				knowledge.Value /= reverseInfluenceFactor;
+			}
 		}
 
 		foreach (CulturalDiscovery groupDiscovery in group.Culture.Discoveries) {
