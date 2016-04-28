@@ -94,6 +94,8 @@ public class CellGroup : HumanGroup {
 
 	private float _noMigrationFactor = 0.01f;
 
+	private bool _alreadyUpdated = false;
+
 	Dictionary<TerrainCell, float> _cellMigrationValues = new Dictionary<TerrainCell, float> ();
 
 	public int PreviousPopulation {
@@ -412,6 +414,8 @@ public class CellGroup : HumanGroup {
 		Culture.PostUpdate ();
 
 		PostUpdatePolities ();
+
+		_alreadyUpdated = false;
 	}
 
 	private void PostUpdatePolities () {
@@ -743,6 +747,11 @@ public class CellGroup : HumanGroup {
 	}
 
 	private void UpdateInternal () {
+
+		if (_alreadyUpdated)
+			return;
+
+		_alreadyUpdated = true;
 
 		PreUpdate ();
 

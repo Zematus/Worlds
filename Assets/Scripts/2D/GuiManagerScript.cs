@@ -502,6 +502,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 		if (_previousSelectedCell != null) {
 			_previousSelectedCell.IsSelected = false;
+			_previousSelectedCell.World.SelectedCell = null;
 		}
 
 		if (_previousSelectedCell == selectedCell) {
@@ -509,6 +510,7 @@ public class GuiManagerScript : MonoBehaviour {
 		} else {
 			_selectedCell = selectedCell;
 			selectedCell.IsSelected = true;
+			selectedCell.World.SelectedCell = selectedCell;
 		}
 
 	}

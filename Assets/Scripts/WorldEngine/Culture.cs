@@ -196,6 +196,17 @@ public class PolityCulture : Culture {
 
 		Polity = polity;
 
+		#if DEBUG
+		if (World.SelectedCell != null && 
+			World.SelectedCell.Group != null) {
+
+			if (World.SelectedCell.Group.GetPolityInfluenceValue (Polity) > 0) {
+
+				Debug.Log ("Debug Selected");
+			}
+		}
+		#endif
+
 		CellGroup coreGroup = Polity.CoreGroup;
 		CellCulture coreCulture = coreGroup.Culture;
 
@@ -222,6 +233,17 @@ public class PolityCulture : Culture {
 	}
 
 	public void AddGroupCulture (CellGroup group) {
+
+		#if DEBUG
+		if (World.SelectedCell != null && 
+			World.SelectedCell.Group != null) {
+
+			if (World.SelectedCell.Group.GetPolityInfluenceValue (Polity) > 0) {
+
+				Debug.Log ("Debug Selected");
+			}
+		}
+		#endif
 
 		float influenceValue = group.GetPolityInfluenceValue (Polity);
 
@@ -293,13 +315,6 @@ public class PolityCulture : Culture {
 				#endif
 
 			} else {
-				
-				#if DEBUG
-				if (float.IsNaN(knowledge.Value)) {
-
-					Debug.Break ();
-				}
-				#endif
 
 				knowledge.Value = (knowledge.Value * reverseInfluenceFactor) + (groupKnowledge.Value * influenceFactor);
 
@@ -328,6 +343,17 @@ public class PolityCulture : Culture {
 	}
 
 	public void RemoveGroupCulture (CellGroup group) {
+
+		#if DEBUG
+		if (World.SelectedCell != null && 
+			World.SelectedCell.Group != null) {
+
+			if (World.SelectedCell.Group.GetPolityInfluenceValue (Polity) > 0) {
+
+				Debug.Log ("Debug Selected");
+			}
+		}
+		#endif
 
 		float influenceValue = group.GetPolityInfluenceValue (Polity);
 

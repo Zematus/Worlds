@@ -107,6 +107,9 @@ public class World : Synchronizable {
 	public List<Polity> Polities;
 
 	// End wonky segment 
+
+	[XmlIgnore]
+	public TerrainCell SelectedCell = null;
 	
 	[XmlIgnore]
 	public float MinPossibleAltitudeWithOffset = MinPossibleAltitude - Manager.SeaLevelOffset;
