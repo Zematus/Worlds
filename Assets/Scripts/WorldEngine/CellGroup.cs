@@ -404,6 +404,11 @@ public class CellGroup : HumanGroup {
 		return splitPopulation;
 	}
 
+	public void PreUpdate () {
+
+		PreUpdatePolities ();
+	}
+
 	public void Update () {
 
 		UpdateInternal ();
@@ -753,8 +758,6 @@ public class CellGroup : HumanGroup {
 
 		_alreadyUpdated = true;
 
-		PreUpdate ();
-
 		PreviousExactPopulation = ExactPopulation;
 		
 		int timeSpan = World.CurrentDate - LastUpdateDate;
@@ -784,11 +787,6 @@ public class CellGroup : HumanGroup {
 	private void UpdateCulture (int timeSpan) {
 		
 		Culture.Update (timeSpan);
-	}
-
-	private void PreUpdate () {
-
-		PreUpdatePolities ();
 	}
 
 	private void PreUpdatePolities () {

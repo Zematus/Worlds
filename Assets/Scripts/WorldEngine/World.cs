@@ -170,7 +170,8 @@ public class World : Synchronizable {
 	private Dictionary<long, CellGroup> _cellGroups = new Dictionary<long, CellGroup> ();
 	
 	private HashSet<CellGroup> _updatedGroups = new HashSet<CellGroup> ();
-	
+
+	private HashSet<CellGroup> _groupsToPreUpdate = new HashSet<CellGroup>();
 	private HashSet<CellGroup> _groupsToUpdate = new HashSet<CellGroup>();
 	private HashSet<CellGroup> _groupsToRemove = new HashSet<CellGroup>();
 
@@ -453,6 +454,17 @@ public class World : Synchronizable {
 
 			eventToHappen.Destroy ();
 		}
+
+		//
+		// Preupdate groups that need it
+		//
+
+		foreach (CellGroup group in _groupsToPreUpdate) {
+
+			group.PreUpdate ();
+		}
+
+		_groupsToPreUpdate.Clear ();
 		
 		//
 		// Update Human Groups
@@ -460,7 +472,7 @@ public class World : Synchronizable {
 	
 		foreach (CellGroup group in _groupsToUpdate) {
 		
-			group.Update();
+			group.Update ();
 		}
 		
 		_groupsToUpdate.Clear ();
@@ -557,6 +569,14 @@ public class World : Synchronizable {
 	public void AddMigratingGroup (MigratingGroup group) {
 		
 		_migratingGroups.Add (group);
+
+		// Source Group needs to be prepared for pre-upgrade
+		_groupsToPreUpdate.Add (group.SourceGroup);
+
+		// If Target Group is present, it also needs to be prepared for pre-upgrade
+		if (group.TargetCell.Group != null) {
+			_groupsToPreUpdate.Add (group.TargetCell.Group);
+		}
 	}
 	
 	public void AddGroup (CellGroup group) {
@@ -586,6 +606,7 @@ public class World : Synchronizable {
 
 	public void AddGroupToUpdate (CellGroup group) {
 	
+		_groupsToPreUpdate.Add (group);
 		_groupsToUpdate.Add (group);
 	}
 	
