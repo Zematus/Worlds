@@ -232,7 +232,72 @@ public class PolityCulture : Culture {
 		});
 	}
 
-	public void AddGroupCulture (CellGroup group) {
+	public void Update () {
+
+		ResetAttributeValues ();
+
+		AddGroupCultures ();
+
+		NormalizeAttributeValues ();
+	}
+
+	private void ResetAttributeValues () {
+
+		foreach (CulturalActivity activity in Activities) {
+
+			activity.Value = 0;
+			activity.Contribution = 0;
+		}
+
+		foreach (CulturalSkill skill in Skills) {
+
+			skill.Value = 0;
+		}
+
+		foreach (CulturalKnowledge knowledge in Knowledges) {
+
+			knowledge.Value = 0;
+		}
+
+		foreach (PolityCulturalDiscovery discovery in Discoveries) {
+
+			discovery.PresenceCount = 0;
+		}
+	}
+
+	private void NormalizeAttributeValues () {
+
+		if (Polity.TotalGroupInfluenceValue <= 0)
+			return;
+
+		float totalGroupInfluenceValue = Polity.TotalGroupInfluenceValue;
+
+		foreach (CulturalActivity activity in Activities) {
+
+			activity.Value /= totalGroupInfluenceValue;
+			activity.Contribution /= totalGroupInfluenceValue;
+		}
+
+		foreach (CulturalSkill skill in Skills) {
+
+			skill.Value /= totalGroupInfluenceValue;
+		}
+
+		foreach (CulturalKnowledge knowledge in Knowledges) {
+
+			knowledge.Value /= totalGroupInfluenceValue;
+		}
+	}
+
+	private void AddGroupCultures () {
+	
+		foreach (CellGroup group in Polity.InfluencedGroups) {
+		
+			AddGroupCulture (group);
+		}
+	}
+
+	private void AddGroupCulture (CellGroup group) {
 
 		#if DEBUG
 		if (World.SelectedCell != null && 
@@ -252,14 +317,6 @@ public class PolityCulture : Culture {
 			throw new System.Exception ("Polity has zero or less influence value in group: " + influenceValue);
 		}
 
-		if (Polity.TotalGroupInfluenceValue <= 0) {
-		
-			throw new System.Exception ("Polity's TotalGroupInfluenceValue equal or less than 0: " + Polity.TotalGroupInfluenceValue);
-		}
-
-		float influenceFactor = influenceValue / Polity.TotalGroupInfluenceValue;
-		float reverseInfluenceFactor = 1f - influenceFactor;
-
 		foreach (CulturalActivity groupActivity in group.Culture.Activities) {
 		
 			CulturalActivity activity = GetActivity (groupActivity.Id);
@@ -267,15 +324,15 @@ public class PolityCulture : Culture {
 			if (activity == null) {
 			
 				activity = new CulturalActivity (groupActivity);
-				activity.Value *= influenceFactor;
-				activity.Contribution *= influenceFactor;
+				activity.Value *= influenceValue;
+				activity.Contribution *= influenceValue;
 
 				AddActivity (activity);
 
 			} else {
 			
-				activity.Value = (activity.Value * reverseInfluenceFactor) + (groupActivity.Value * influenceFactor);
-				activity.Contribution = (activity.Contribution * reverseInfluenceFactor) + (groupActivity.Contribution * influenceFactor);
+				activity.Value += groupActivity.Value * influenceValue;
+				activity.Contribution += groupActivity.Contribution * influenceValue;
 			}
 		}
 
@@ -286,13 +343,13 @@ public class PolityCulture : Culture {
 			if (skill == null) {
 
 				skill = new CulturalSkill (groupSkill);
-				skill.Value *= influenceFactor;
+				skill.Value *= influenceValue;
 
 				AddSkill (skill);
 
 			} else {
 
-				skill.Value = (skill.Value * reverseInfluenceFactor) + (groupSkill.Value * influenceFactor);
+				skill.Value += groupSkill.Value * influenceValue;
 			}
 		}
 
@@ -303,27 +360,13 @@ public class PolityCulture : Culture {
 			if (knowledge == null) {
 
 				knowledge = new CulturalKnowledge (groupKnowledge);
-				knowledge.Value *= influenceFactor;
+				knowledge.Value *= influenceValue;
 
 				AddKnowledge (knowledge);
 
-				#if DEBUG
-				if (float.IsNaN(knowledge.Value)) {
-
-					Debug.Break ();
-				}
-				#endif
-
 			} else {
-
-				knowledge.Value = (knowledge.Value * reverseInfluenceFactor) + (groupKnowledge.Value * influenceFactor);
-
-				#if DEBUG
-				if (float.IsNaN(knowledge.Value)) {
-
-					Debug.Break ();
-				}
-				#endif
+				
+				knowledge.Value += groupKnowledge.Value * influenceValue;
 			}
 		}
 
@@ -339,83 +382,6 @@ public class PolityCulture : Culture {
 			}
 
 			discovery.PresenceCount++;
-		}
-	}
-
-	public void RemoveGroupCulture (CellGroup group) {
-
-		#if DEBUG
-		if (World.SelectedCell != null && 
-			World.SelectedCell.Group != null) {
-
-			if (World.SelectedCell.Group.GetPolityInfluenceValue (Polity) > 0) {
-
-				Debug.Log ("Debug Selected");
-			}
-		}
-		#endif
-
-		float influenceValue = group.GetPolityInfluenceValue (Polity);
-
-		if (influenceValue <= 0) {
-
-			throw new System.Exception ("Polity has zero or less influence value in group: " + influenceValue);
-		}
-
-		if (Polity.TotalGroupInfluenceValue <= 0) {
-
-			throw new System.Exception ("Polity's TotalGroupInfluenceValue equal or less than 0: " + Polity.TotalGroupInfluenceValue);
-		}
-
-		float influenceFactor = influenceValue / Polity.TotalGroupInfluenceValue;
-		float reverseInfluenceFactor = 1f - influenceFactor;
-
-		foreach (CulturalActivity groupActivity in group.Culture.Activities) {
-
-			CulturalActivity activity = GetActivity (groupActivity.Id);
-
-			activity.Value -= groupActivity.Value * influenceFactor;
-			activity.Contribution -= groupActivity.Contribution * influenceFactor;
-
-			if (reverseInfluenceFactor > 0) {
-				activity.Value /= reverseInfluenceFactor;
-				activity.Contribution /= reverseInfluenceFactor;
-			}
-		}
-
-		foreach (CulturalSkill groupSkill in group.Culture.Skills) {
-
-			CulturalSkill skill = GetSkill (groupSkill.Id);
-
-			skill.Value -= groupSkill.Value * influenceFactor;
-
-			if (reverseInfluenceFactor > 0) {
-				skill.Value /= reverseInfluenceFactor;
-			}
-		}
-
-		foreach (CulturalKnowledge groupKnowledge in group.Culture.Knowledges) {
-
-			CulturalKnowledge knowledge = GetKnowledge (groupKnowledge.Id);
-
-			knowledge.Value -= groupKnowledge.Value * influenceFactor;
-
-			if (reverseInfluenceFactor > 0) {
-				knowledge.Value /= reverseInfluenceFactor;
-			}
-		}
-
-		foreach (CulturalDiscovery groupDiscovery in group.Culture.Discoveries) {
-
-			PolityCulturalDiscovery discovery = GetDiscovery (groupDiscovery.Id) as PolityCulturalDiscovery;
-
-			#if DEBUG
-			if (discovery == null) {
-				Debug.Break ();
-			}
-			#endif
-
-			discovery.PresenceCount--;
 		}
 	}
 }

@@ -47,7 +47,8 @@ public abstract class Polity : Synchronizable {
 	[XmlIgnore]
 	public CellGroup CoreGroup;
 
-	private HashSet<CellGroup> _influencedGroups = new HashSet<CellGroup> ();
+	[XmlIgnore]
+	public HashSet<CellGroup> InfluencedGroups = new HashSet<CellGroup> ();
 
 	public Polity () {
 	
@@ -68,7 +69,7 @@ public abstract class Polity : Synchronizable {
 
 	public void SetCoreGroup (CellGroup group) {
 
-		if (!_influencedGroups.Contains (group))
+		if (!InfluencedGroups.Contains (group))
 			throw new System.Exception ("Group is not part of polity's influenced groups");
 
 		CoreGroup = group;
@@ -76,16 +77,21 @@ public abstract class Polity : Synchronizable {
 		CoreGroupId = group.Id;
 	}
 
+	public void Update () {
+	
+		Culture.Update ();
+	}
+
 	public void AddInfluencedGroup (CellGroup group) {
 	
-		_influencedGroups.Add (group);
+		InfluencedGroups.Add (group);
 
 		Territory.AddCell (group.Cell);
 	}
 
 	public void RemoveInfluencedGroup (CellGroup group) {
 
-		_influencedGroups.Remove (group);
+		InfluencedGroups.Remove (group);
 
 		Territory.RemoveCell (group.Cell);
 	}
@@ -94,9 +100,9 @@ public abstract class Polity : Synchronizable {
 
 		Culture.Synchronize ();
 
-		InfluencedGroupIds = new List<long> (_influencedGroups.Count);
+		InfluencedGroupIds = new List<long> (InfluencedGroups.Count);
 
-		foreach (CellGroup g in _influencedGroups) {
+		foreach (CellGroup g in InfluencedGroups) {
 
 			InfluencedGroupIds.Add (g.Id);
 		}
@@ -118,7 +124,7 @@ public abstract class Polity : Synchronizable {
 				throw new System.Exception ("Missing Group with Id " + id);
 			}
 
-			_influencedGroups.Add (group);
+			InfluencedGroups.Add (group);
 		}
 
 		Culture.Polity = this;

@@ -87,7 +87,6 @@ public class World : Synchronizable {
 
 	[XmlArrayItem (Type = typeof(UpdateCellGroupEvent)),
 		XmlArrayItem (Type = typeof(MigrateGroupEvent)),
-//		XmlArrayItem (Type = typeof(KnowledgeTransferEvent)),
 		XmlArrayItem (Type = typeof(SailingDiscoveryEvent)),
 		XmlArrayItem (Type = typeof(BoatMakingDiscoveryEvent)),
 		XmlArrayItem (Type = typeof(TribalismDiscoveryEvent)),
@@ -171,11 +170,12 @@ public class World : Synchronizable {
 	
 	private HashSet<CellGroup> _updatedGroups = new HashSet<CellGroup> ();
 
-	private HashSet<CellGroup> _groupsToPreUpdate = new HashSet<CellGroup>();
 	private HashSet<CellGroup> _groupsToUpdate = new HashSet<CellGroup>();
 	private HashSet<CellGroup> _groupsToRemove = new HashSet<CellGroup>();
 
 	private List<MigratingGroup> _migratingGroups = new List<MigratingGroup> ();
+
+	private HashSet<Polity> _politiesToUpdate = new HashSet<Polity>();
 
 	private Dictionary<long, Polity> _polities = new Dictionary<long, Polity> ();
 
@@ -455,16 +455,14 @@ public class World : Synchronizable {
 			eventToHappen.Destroy ();
 		}
 
-		//
-		// Preupdate groups that need it
-		//
-
-		foreach (CellGroup group in _groupsToPreUpdate) {
-
-			group.PreUpdate ();
-		}
-
-		_groupsToPreUpdate.Clear ();
+//		//
+//		// Preupdate groups that need it
+//		//
+//
+//		foreach (CellGroup group in _groupsToUpdate) {
+//
+//			group.PreUpdate ();
+//		}
 		
 		//
 		// Update Human Groups
@@ -514,6 +512,17 @@ public class World : Synchronizable {
 			
 			group.PostUpdate ();
 		}
+
+		//
+		// Remove Human Groups that have been set to be removed
+		//
+
+		foreach (CellGroup group in _groupsToRemove) {
+
+			group.Destroy ();
+		}
+
+		_groupsToRemove.Clear ();
 		
 		//
 		// Set next group updates
@@ -526,17 +535,17 @@ public class World : Synchronizable {
 		}
 
 		_updatedGroups.Clear ();
-		
+
 		//
-		// Remove Human Groups
+		// Update Polities
 		//
 
-		foreach (CellGroup group in _groupsToRemove) {
-			
-			group.Destroy();
+		foreach (Polity polity in _politiesToUpdate) {
+
+			polity.Update ();
 		}
 
-		_groupsToRemove.Clear ();
+		_politiesToUpdate.Clear ();
 
 		//
 		// Skip to Next Event's Date
@@ -571,11 +580,11 @@ public class World : Synchronizable {
 		_migratingGroups.Add (group);
 
 		// Source Group needs to be prepared for pre-upgrade
-		_groupsToPreUpdate.Add (group.SourceGroup);
+		_groupsToUpdate.Add (group.SourceGroup);
 
 		// If Target Group is present, it also needs to be prepared for pre-upgrade
 		if (group.TargetCell.Group != null) {
-			_groupsToPreUpdate.Add (group.TargetCell.Group);
+			_groupsToUpdate.Add (group.TargetCell.Group);
 		}
 	}
 	
@@ -606,7 +615,6 @@ public class World : Synchronizable {
 
 	public void AddGroupToUpdate (CellGroup group) {
 	
-		_groupsToPreUpdate.Add (group);
 		_groupsToUpdate.Add (group);
 	}
 	
@@ -627,6 +635,11 @@ public class World : Synchronizable {
 		_polities.TryGetValue (id, out polity);
 
 		return polity;
+	}
+
+	public void AddPolityToUpdate (Polity polity) {
+
+		_politiesToUpdate.Add (polity);
 	}
 
 	public void FinalizeLoad () {

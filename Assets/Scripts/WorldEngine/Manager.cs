@@ -1509,7 +1509,8 @@ public class Manager {
 
 		if (IsPolityBorderingNonControlledCells (highestPolityInfluence, cell)) {
 
-			addedColor = Color.blue;
+			// A slightly bluer shade of cyan
+			addedColor = new Color (0, 0.75f, 1.0f);
 		}
 
 		color = (color * (1 - value)) + (addedColor * value);
@@ -1593,7 +1594,8 @@ public class Manager {
 
 		if (IsPolityBorderingNonControlledCells (highestPolityInfluence, cell)) {
 
-			addedColor = Color.blue;
+			// A slightly bluer shade of cyan
+			addedColor = new Color (0, 0.75f, 1.0f);
 		}
 
 		color = (color * (1 - value)) + (addedColor * value);
@@ -1696,7 +1698,8 @@ public class Manager {
 
 		if (IsPolityBorderingNonControlledCells (highestPolityInfluence, cell)) {
 
-			addedColor = Color.blue;
+			// A slightly bluer shade of cyan
+			addedColor = new Color (0, 0.75f, 1.0f);
 		}
 
 		color = (color * (1 - value)) + (addedColor * value);
@@ -1773,7 +1776,8 @@ public class Manager {
 
 		if (IsPolityBorderingNonControlledCells (highestPolityInfluence, cell)) {
 
-			addedColor = Color.blue;
+			// A slightly bluer shade of cyan
+			addedColor = new Color (0, 0.75f, 1.0f);
 		}
 
 		float normalizedValue = 1;

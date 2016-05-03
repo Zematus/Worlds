@@ -1453,9 +1453,6 @@ public class GuiManagerScript : MonoBehaviour {
 		InfoPanelText.text += "\nNumber of Migration Events: " + MigrateGroupEvent.MigrationEventCount;
 //		InfoPanelText.text += "\nMean Migration Travel Time: " + meanTravelTime.ToString("0.0");
 		
-//		InfoPanelText.text += "\n";
-//		InfoPanelText.text += "\nNumber of Knowledge Transfer Events: " + KnowledgeTransferEvent.KnowledgeTransferEventCount;
-		
 		InfoPanelText.text += "\n";
 		InfoPanelText.text += "\nMUPS: " + _lastMapUpdateCount;
 	}

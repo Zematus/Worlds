@@ -49,8 +49,6 @@ public class CellGroup : HumanGroup {
 	
 	[XmlAttribute]
 	public bool HasMigrationEvent = false;
-//	[XmlAttribute]
-//	public bool HasKnowledgeTransferEvent = false;
 
 	[XmlAttribute]
 	public float SeaTravelFactor = 0;
@@ -95,6 +93,8 @@ public class CellGroup : HumanGroup {
 	private float _noMigrationFactor = 0.01f;
 
 	private bool _alreadyUpdated = false;
+
+	private bool _destroyed = false;
 
 	Dictionary<TerrainCell, float> _cellMigrationValues = new Dictionary<TerrainCell, float> ();
 
@@ -358,8 +358,6 @@ public class CellGroup : HumanGroup {
 	}
 
 	public void MergeGroup (MigratingGroup group) {
-		
-		UpdateInternal ();
 
 		float newPopulation = Population + group.Population;
 
@@ -388,8 +386,6 @@ public class CellGroup : HumanGroup {
 	}
 	
 	public int SplitGroup (MigratingGroup group) {
-		
-		UpdateInternal ();
 
 		int splitPopulation = (int)Mathf.Floor(Population * group.PercentPopulation);
 		
@@ -404,42 +400,26 @@ public class CellGroup : HumanGroup {
 		return splitPopulation;
 	}
 
-	public void PreUpdate () {
-
-		PreUpdatePolities ();
-	}
-
-	public void Update () {
-
-		UpdateInternal ();
-	}
+//	public void PreUpdate () {
+//
+//	}
 
 	public void PostUpdate () {
-	
-		Culture.PostUpdate ();
-
-		PostUpdatePolities ();
 
 		_alreadyUpdated = false;
-	}
 
-	private void PostUpdatePolities () {
-
-		// Reintegrate the group's influence after all changes to the group's culture have been made.
-		foreach (PolityInfluence polityInfluence in _polityInfluences.Values) {
-
-			Polity polity = polityInfluence.Polity;
-
-			polity.Culture.AddGroupCulture (this);
-		}
-	}
-
-	public void SetupForNextUpdate () {
-		
 		if (Population < 2) {
 			World.AddGroupToRemove (this);
 			return;
 		}
+	
+		Culture.PostUpdate ();
+	}
+
+	public void SetupForNextUpdate () {
+
+		if (_destroyed)
+			return;
 		
 		World.UpdateMostPopulousGroup (this);
 		
@@ -449,35 +429,11 @@ public class CellGroup : HumanGroup {
 		
 		ConsiderLandMigration ();
 		ConsiderSeaMigration ();
-
-//		ConsiderKnowledgeTransfer ();
 		
 		NextUpdateDate = CalculateNextUpdateDate ();
 		
 		World.InsertEventToHappen (new UpdateCellGroupEvent (this, NextUpdateDate));
 	}
-
-//	public void ConsiderKnowledgeTransfer () {
-//
-//		if (HasKnowledgeTransferEvent)
-//			return;
-//	
-//		float transferValue = 0;
-//
-//		CellGroup targetGroup = KnowledgeTransferEvent.DiscoverTargetGroup (this, out transferValue);
-//
-//		if (targetGroup == null)
-//			return;
-//
-//		if (transferValue <= 0)
-//			return;
-//
-//		int triggerDate = KnowledgeTransferEvent.CalculateTriggerDate (this, transferValue);
-//
-//		World.InsertEventToHappen (new KnowledgeTransferEvent (this, targetGroup, triggerDate));
-//
-//		HasKnowledgeTransferEvent = true;
-//	}
 	
 	private float CalculateAltitudeDeltaMigrationFactor (TerrainCell targetCell) {
 
@@ -721,6 +677,8 @@ public class CellGroup : HumanGroup {
 	}
 
 	public void Destroy () {
+
+		_destroyed = true;
 		
 		PolityInfluence[] polityInfluences = new PolityInfluence[_polityInfluences.Count];
 		_polityInfluences.Values.CopyTo (polityInfluences, 0);
@@ -728,8 +686,6 @@ public class CellGroup : HumanGroup {
 		foreach (PolityInfluence polityInfluence in polityInfluences) {
 
 			Polity polity = polityInfluence.Polity;
-
-			polity.Culture.RemoveGroupCulture (this);
 
 			polity.RemoveInfluencedGroup (this);
 		}
@@ -751,7 +707,7 @@ public class CellGroup : HumanGroup {
 		}
 	}
 
-	private void UpdateInternal () {
+	public void Update () {
 
 		if (_alreadyUpdated)
 			return;
@@ -772,11 +728,36 @@ public class CellGroup : HumanGroup {
 
 		UpdateTravelFactors ();
 		
-//		AbsorbKnowledgeFromNeighbors ();
-		
 		LastUpdateDate = World.CurrentDate;
+
+		SetPolityUpdates ();
 		
 		World.AddUpdatedGroup (this);
+	}
+
+	private void SetPolityUpdates () {
+	
+		foreach (PolityInfluence pi in _polityInfluences.Values) {
+		
+			SetPolityUpdate (pi);
+		}
+	}
+
+	private void SetPolityUpdate (PolityInfluence pi) {
+
+		Polity p = pi.Polity;
+
+		if (p.TotalGroupInfluenceValue <= 0)
+			return;
+
+		float chanceFactor = pi.Value / p.TotalGroupInfluenceValue;
+
+		float rollValue = Cell.GetNextLocalRandomFloat ();
+
+		if (rollValue > chanceFactor)
+			return;
+
+		World.AddPolityToUpdate (p);
 	}
 	
 	private void UpdatePopulation (int timeSpan) {
@@ -787,18 +768,6 @@ public class CellGroup : HumanGroup {
 	private void UpdateCulture (int timeSpan) {
 		
 		Culture.Update (timeSpan);
-	}
-
-	private void PreUpdatePolities () {
-
-		// To update the polity culture it's better just to remove the influence of the group on the polity culture before updating the group's culture.
-		// Then we can reintegrate the group's influence after all changes to the group's culture have been made.
-		foreach (PolityInfluence polityInfluence in _polityInfluences.Values) {
-
-			Polity polity = polityInfluence.Polity;
-
-			polity.Culture.RemoveGroupCulture (this);
-		}
 	}
 
 	private void UpdatePolities (int timeSpan) {
@@ -923,26 +892,6 @@ public class CellGroup : HumanGroup {
 
 		SeaTravelFactor = SeaTravelBaseFactor * seafaringValue * shipbuildingValue * TravelWidthFactor;
 	}
-
-//	private void AbsorbKnowledgeFromNeighbors () {
-//	
-//		Neighbors.ForEach (g => AbsorbKnowledgeFrom (g));
-//	}
-
-//	public void AbsorbKnowledgeFrom (CellGroup group) {
-//		
-//		float populationFactor = Mathf.Min (1, group.Population / (float)Population);
-//		
-//		group.Culture.Knowledges.ForEach (k => {
-//			
-//			Culture.AbsorbKnowledgeFrom (k, populationFactor);
-//		});
-//
-//		group.Culture.Discoveries.ForEach (d => {
-//			
-//			Culture.AbsorbDiscoveryFrom (d);
-//		});
-//	}
 
 	public int CalculateOptimalPopulation (TerrainCell cell) {
 
