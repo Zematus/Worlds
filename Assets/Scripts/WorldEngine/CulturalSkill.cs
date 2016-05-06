@@ -60,9 +60,19 @@ public abstract class CellCulturalSkill : CulturalSkill, Synchronizable {
 	public CellCulturalSkill () {
 	}
 
-	public CellCulturalSkill (CellGroup group, string id, string name, float value) : base (id, name, value) {
+	protected CellCulturalSkill (CellGroup group, string id, string name, float value = 0) : base (id, name, value) {
 
 		Group = group;
+	}
+
+	public static CellCulturalSkill CreateCellInstance (CellGroup group, CulturalSkill baseSkill) {
+
+		if (BiomeSurvivalSkill.IsBiomeSurvivalSkill (baseSkill)) {
+		
+			return new BiomeSurvivalSkill (group, baseSkill);
+		}
+
+		throw new System.Exception ("Unexpected CulturalSkill type: " + baseSkill.Id);
 	}
 	
 	public CellCulturalSkill GenerateCopy (CellGroup targetGroup) {
@@ -148,7 +158,7 @@ public class BiomeSurvivalSkill : CellCulturalSkill {
 
 	}
 
-	public BiomeSurvivalSkill (CellGroup group, Biome biome, float value = 0f) : base (group, GenerateId (biome), GenerateName (biome), value) {
+	public BiomeSurvivalSkill (CellGroup group, Biome biome, float value) : base (group, GenerateId (biome), GenerateName (biome), value) {
 	
 		BiomeName = biome.Name;
 		
@@ -160,6 +170,23 @@ public class BiomeSurvivalSkill : CellCulturalSkill {
 		BiomeName = baseSkill.BiomeName;
 		
 		CalculateNeighborhoodBiomePresence ();
+	}
+
+	public BiomeSurvivalSkill (CellGroup group, CulturalSkill baseSkill) : base (group, baseSkill.Id, baseSkill.Name, baseSkill.Value) {
+
+		int suffixIndex = baseSkill.Name.IndexOf (" Survival");
+
+		BiomeName = baseSkill.Name.Substring (0, suffixIndex);
+
+		CalculateNeighborhoodBiomePresence ();
+	}
+
+	public static bool IsBiomeSurvivalSkill (CulturalSkill skill) {
+
+		if (skill.Id.Contains ("BiomeSurvivalSkill_"))
+			return true;
+
+		return false;
 	}
 
 	public override void FinalizeLoad () {
