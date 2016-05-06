@@ -70,9 +70,14 @@ public class CellCulturalActivity : CulturalActivity {
 	public CellCulturalActivity () {
 	}
 
-	private CellCulturalActivity (CellGroup group, string id, string name, float value, float contribution) : base (id, name, value, contribution) {
+	private CellCulturalActivity (CellGroup group, string id, string name, float value = 0, float contribution = 0) : base (id, name, value, contribution) {
 
 		Group = group;
+	}
+
+	public static CellCulturalActivity CreateCellInstance (CellGroup group, CulturalActivity baseActivity) {
+	
+		return new CellCulturalActivity (group, baseActivity.Id, baseActivity.Name);
 	}
 
 	public static CellCulturalActivity CreateForagingActivity (CellGroup group, float value = 0, float contribution = 0) {
@@ -123,6 +128,24 @@ public class CellCulturalActivity : CulturalActivity {
 		float timeEffect = timeSpan / (float)(timeSpan + TimeEffectConstant);
 
 		Value = (Value * (1 - timeEffect)) + (targetValue * timeEffect);
+
+		Value = Mathf.Clamp01 (Value);
+	}
+
+	public void PolityCulturalInfluence (CulturalActivity polityActivity, PolityInfluence polityInfluence, int timeSpan) {
+
+		float targetValue = polityActivity.Value;
+		float influenceEffect = polityInfluence.Value;
+
+		TerrainCell groupCell = Group.Cell;
+
+		float randomEffect = groupCell.GetNextLocalRandomFloat ();
+
+		float timeEffect = timeSpan / (float)(timeSpan + TimeEffectConstant);
+
+		float change = (targetValue - Value) * influenceEffect * timeEffect * randomEffect;
+
+		Value += change;
 
 		Value = Mathf.Clamp01 (Value);
 	}

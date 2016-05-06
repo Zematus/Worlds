@@ -724,7 +724,7 @@ public class CellGroup : HumanGroup {
 		UpdateTerrainFarmlandPercentage (timeSpan);
 		UpdatePopulation (timeSpan);
 		UpdateCulture (timeSpan);
-		UpdatePolities (timeSpan);
+		PolityUpdateEffects (timeSpan);
 
 		UpdateTravelFactors ();
 		
@@ -770,7 +770,15 @@ public class CellGroup : HumanGroup {
 		Culture.Update (timeSpan);
 	}
 
-	private void UpdatePolities (int timeSpan) {
+	private void PolitiesCulturalInfluence (int timeSpan) {
+	
+		foreach (PolityInfluence pi in _polityInfluences.Values) {
+		
+			Culture.PolityCulturalInfluence (pi, timeSpan);
+		}
+	}
+
+	private void PolityUpdateEffects (int timeSpan) {
 
 		PolityInfluence[] polityInfluences = new PolityInfluence[_polityInfluences.Count];
 		_polityInfluences.Values.CopyTo (polityInfluences, 0);

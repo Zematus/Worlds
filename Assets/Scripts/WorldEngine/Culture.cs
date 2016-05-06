@@ -516,18 +516,18 @@ public class CellCulture : Culture {
 
 	public void Update (int timeSpan) {
 
-		float totalValue = 0;
+		float totalActivityValue = 0;
 
 		foreach (CellCulturalActivity activity in Activities) {
 
 			activity.Update (timeSpan);
-			totalValue += activity.Value;
+			totalActivityValue += activity.Value;
 		}
 
 		foreach (CellCulturalActivity activity in Activities) {
 
-			if (totalValue > 0) {
-				activity.Contribution = activity.Value / totalValue;
+			if (totalActivityValue > 0) {
+				activity.Contribution = activity.Value / totalActivityValue;
 			} else {
 				activity.Contribution = 1f / Activities.Count;
 			}
@@ -554,6 +554,72 @@ public class CellCulture : Culture {
 		
 		foreach (CellCulturalDiscovery discovery in discoveries) {
 			
+			if (discovery.CanBeHeld (Group))
+				continue;
+
+			_discoveriesToLose.Add (discovery);
+		}
+	}
+
+	public void PolityCulturalInfluence (PolityInfluence polityInfluence, int timeSpan) {
+
+		PolityCulture polityCulture = polityInfluence.Polity.Culture;
+
+		float totalActivityValue = 0;
+
+		foreach (CulturalActivity polityActivity in polityCulture.Activities) {
+
+			CellCulturalActivity cellActivity = GetActivity (polityActivity.Id) as CellCulturalActivity;
+
+			if (cellActivity == null) {
+			
+				cellActivity = CellCulturalActivity.CreateCellInstance (Group, polityActivity);
+				AddActivityToPerform (cellActivity);
+			}
+
+			cellActivity.PolityCulturalInfluence (polityActivity, polityInfluence, timeSpan);
+			totalActivityValue += cellActivity.Value;
+		}
+
+		foreach (CellCulturalActivity activity in Activities) {
+
+			if (totalActivityValue > 0) {
+				activity.Contribution = activity.Value / totalActivityValue;
+			} else {
+				activity.Contribution = 1f / Activities.Count;
+			}
+		}
+
+		foreach (CulturalSkill politySkill in polityCulture.Skills) {
+
+			CellCulturalSkill cellSkill = GetSkill (politySkill.Id) as CellCulturalSkill;
+
+			if (cellSkill == null) {
+
+				cellSkill = CellCulturalSkill.CreateCellInstance (Group, politySkill);
+				AddSkillToLearn (cellSkill);
+			}
+
+			// TODO: replace with cellSkill.PolityCulturalInfluence ()
+			cellSkill.Update (timeSpan);
+		}
+
+		CulturalKnowledge[] knowledges = Knowledges.ToArray ();
+
+		foreach (CellCulturalKnowledge knowledge in knowledges) {
+
+			knowledge.Update (timeSpan);
+
+			if (knowledge.WillBeLost ()) {
+
+				_knowledgesToLose.Add (knowledge);
+			}
+		}
+
+		CulturalDiscovery[] discoveries = Discoveries.ToArray ();
+
+		foreach (CellCulturalDiscovery discovery in discoveries) {
+
 			if (discovery.CanBeHeld (Group))
 				continue;
 
