@@ -65,16 +65,16 @@ public abstract class CellCulturalSkill : CulturalSkill, Synchronizable {
 		Group = group;
 	}
 
-	public static CellCulturalSkill CreateCellInstance (CellGroup group, CulturalSkill baseSkill) {
+	public static CellCulturalSkill CreateCellInstance (CellGroup group, CulturalSkill baseSkill, float initialValue) {
 
 		if (BiomeSurvivalSkill.IsBiomeSurvivalSkill (baseSkill)) {
 		
-			return new BiomeSurvivalSkill (group, baseSkill);
+			return new BiomeSurvivalSkill (group, baseSkill, initialValue);
 		}
 
 		if (SeafaringSkill.IsSeafaringSkill (baseSkill)) {
 
-			return new SeafaringSkill (group, baseSkill);
+			return new SeafaringSkill (group, baseSkill, initialValue);
 		}
 
 		throw new System.Exception ("Unexpected CulturalSkill type: " + baseSkill.Id);
@@ -199,7 +199,7 @@ public class BiomeSurvivalSkill : CellCulturalSkill {
 		CalculateNeighborhoodBiomePresence ();
 	}
 
-	public BiomeSurvivalSkill (CellGroup group, CulturalSkill baseSkill) : base (group, baseSkill.Id, baseSkill.Name, baseSkill.Value) {
+	public BiomeSurvivalSkill (CellGroup group, CulturalSkill baseSkill, float initialValue) : base (group, baseSkill.Id, baseSkill.Name, initialValue) {
 
 		int suffixIndex = baseSkill.Name.IndexOf (" Survival");
 
@@ -210,10 +210,7 @@ public class BiomeSurvivalSkill : CellCulturalSkill {
 
 	public static bool IsBiomeSurvivalSkill (CulturalSkill skill) {
 
-		if (skill.Id.Contains (BiomeSurvivalSkillIdPrefix))
-			return true;
-
-		return false;
+		return skill.Id.Contains (BiomeSurvivalSkillIdPrefix);
 	}
 
 	public override void FinalizeLoad () {
@@ -287,17 +284,14 @@ public class SeafaringSkill : CellCulturalSkill {
 		CalculateNeighborhoodOceanPresence ();
 	}
 
-	public SeafaringSkill (CellGroup group, CulturalSkill baseSkill) : base (group, baseSkill.Id, baseSkill.Name, baseSkill.Value) {
+	public SeafaringSkill (CellGroup group, CulturalSkill baseSkill, float initialValue) : base (group, baseSkill.Id, baseSkill.Name, initialValue) {
 
 		CalculateNeighborhoodOceanPresence ();
 	}
 
 	public static bool IsSeafaringSkill (CulturalSkill skill) {
 
-		if (skill.Id.Contains (SeafaringSkillId))
-			return true;
-
-		return false;
+		return skill.Id.Contains (SeafaringSkillId);
 	}
 
 	public override void FinalizeLoad () {

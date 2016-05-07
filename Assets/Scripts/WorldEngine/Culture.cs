@@ -573,9 +573,7 @@ public class CellCulture : Culture {
 
 			if (cellActivity == null) {
 			
-				cellActivity = CellCulturalActivity.CreateCellInstance (Group, polityActivity);
-
-				cellActivity.Value = 0;
+				cellActivity = CellCulturalActivity.CreateCellInstance (Group, polityActivity, 0, 0);
 				AddActivityToPerform (cellActivity);
 			}
 
@@ -598,9 +596,7 @@ public class CellCulture : Culture {
 
 			if (cellSkill == null) {
 
-				cellSkill = CellCulturalSkill.CreateCellInstance (Group, politySkill);
-
-				cellSkill.Value = 0;
+				cellSkill = CellCulturalSkill.CreateCellInstance (Group, politySkill, 0);
 				AddSkillToLearn (cellSkill);
 			}
 
@@ -613,9 +609,7 @@ public class CellCulture : Culture {
 
 			if (cellKnowledge == null) {
 
-				cellKnowledge = CellCulturalKnowledge.CreateCellInstance (Group, polityKnowledge);
-
-				cellKnowledge.Value = 0;
+				cellKnowledge = CellCulturalKnowledge.CreateCellInstance (Group, polityKnowledge, 0);
 				AddKnowledgeToLearn (cellKnowledge);
 			}
 

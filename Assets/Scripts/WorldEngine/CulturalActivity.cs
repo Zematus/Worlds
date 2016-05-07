@@ -75,9 +75,9 @@ public class CellCulturalActivity : CulturalActivity {
 		Group = group;
 	}
 
-	public static CellCulturalActivity CreateCellInstance (CellGroup group, CulturalActivity baseActivity) {
+	public static CellCulturalActivity CreateCellInstance (CellGroup group, CulturalActivity baseActivity, float initialValue, float initialContribution) {
 	
-		return new CellCulturalActivity (group, baseActivity.Id, baseActivity.Name, baseActivity.Value, baseActivity.Contribution);
+		return new CellCulturalActivity (group, baseActivity.Id, baseActivity.Name, initialValue, initialContribution);
 	}
 
 	public static CellCulturalActivity CreateForagingActivity (CellGroup group, float value = 0, float contribution = 0) {

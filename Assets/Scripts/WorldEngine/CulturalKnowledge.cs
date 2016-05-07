@@ -76,6 +76,26 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, Synchronizable 
 		Group = group;
 		Asymptote = asymptote;
 	}
+
+	public static CellCulturalKnowledge CreateCellInstance (CellGroup group, CulturalKnowledge baseKnowledge, float initialValue) {
+
+		if (ShipbuildingKnowledge.IsShipbuildingKnowledge (baseKnowledge)) {
+
+			return new ShipbuildingKnowledge (group, baseKnowledge, initialValue);
+		}
+
+		if (AgricultureKnowledge.IsAgricultureKnowledge (baseKnowledge)) {
+
+			return new AgricultureKnowledge (group, baseKnowledge, initialValue);
+		}
+
+		if (SocialOrganizationKnowledge.IsSocialOrganizationKnowledge (baseKnowledge)) {
+
+			return new SocialOrganizationKnowledge (group, baseKnowledge, initialValue);
+		}
+
+		throw new System.Exception ("Unexpected CulturalKnowledge type: " + baseKnowledge.Id);
+	}
 	
 	public CellCulturalKnowledge GenerateCopy (CellGroup targetGroup) {
 		
@@ -180,7 +200,7 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, Synchronizable 
 		UpdateProgressLevel ();
 	}
 
-	protected void UpdateValue (int timeSpan, float timeEffectFactor, float specificModifier) {
+	protected void UpdateValueInternal (int timeSpan, float timeEffectFactor, float specificModifier) {
 
 		TerrainCell groupCell = Group.Cell;
 
@@ -202,6 +222,24 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, Synchronizable 
 		float timeEffect = timeSpan / (float)(timeSpan + timeEffectFactor);
 
 		Value = (Value * (1 - timeEffect)) + (targetValue * timeEffect);
+	}
+
+	public abstract void PolityCulturalInfluence (CulturalKnowledge polityKnowledge, PolityInfluence polityInfluence, int timeSpan);
+
+	protected void PolityCulturalInfluenceInternal (CulturalKnowledge polityKnowledge, PolityInfluence polityInfluence, int timeSpan, float timeEffectFactor) {
+
+		float targetValue = polityKnowledge.Value;
+		float influenceEffect = polityInfluence.Value;
+
+		TerrainCell groupCell = Group.Cell;
+
+		float randomEffect = groupCell.GetNextLocalRandomFloat ();
+
+		float timeEffect = timeSpan / (float)(timeSpan + timeEffectFactor);
+
+		float change = (targetValue - Value) * influenceEffect * timeEffect * randomEffect;
+
+		Value += change;
 	}
 
 	public abstract float CalculateExpectedProgressLevel ();
@@ -253,6 +291,16 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge {
 		CalculateNeighborhoodOceanPresence ();
 	}
 
+	public ShipbuildingKnowledge (CellGroup group, CulturalKnowledge baseKnowledge, float initialValue) : base (group, baseKnowledge.Id, baseKnowledge.Name, initialValue) {
+
+		CalculateNeighborhoodOceanPresence ();
+	}
+
+	public static bool IsShipbuildingKnowledge (CulturalKnowledge knowledge) {
+
+		return knowledge.Id.Contains (ShipbuildingKnowledgeId);
+	}
+
 	public override void FinalizeLoad () {
 
 		base.FinalizeLoad ();
@@ -294,7 +342,14 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge {
 
 	protected override void UpdateInternal (int timeSpan) {
 
-		UpdateValue (timeSpan, TimeEffectConstant, _neighborhoodOceanPresence * NeighborhoodOceanPresenceModifier);
+		UpdateValueInternal (timeSpan, TimeEffectConstant, _neighborhoodOceanPresence * NeighborhoodOceanPresenceModifier);
+
+		TryGenerateSailingDiscoveryEvent ();
+	}
+
+	public override void PolityCulturalInfluence (CulturalKnowledge polityKnowledge, PolityInfluence polityInfluence, int timeSpan) {
+
+		PolityCulturalInfluenceInternal (polityKnowledge, polityInfluence, timeSpan, TimeEffectConstant);
 
 		TryGenerateSailingDiscoveryEvent ();
 	}
@@ -408,6 +463,16 @@ public class AgricultureKnowledge : CellCulturalKnowledge {
 		CalculateTerrainFactor ();
 	}
 
+	public AgricultureKnowledge (CellGroup group, CulturalKnowledge baseKnowledge, float initialValue) : base (group, baseKnowledge.Id, baseKnowledge.Name, initialValue) {
+
+		CalculateTerrainFactor ();
+	}
+
+	public static bool IsAgricultureKnowledge (CulturalKnowledge knowledge) {
+
+		return knowledge.Id.Contains (AgricultureKnowledgeId);
+	}
+
 	public override void FinalizeLoad () {
 
 		base.FinalizeLoad ();
@@ -429,7 +494,12 @@ public class AgricultureKnowledge : CellCulturalKnowledge {
 
 	protected override void UpdateInternal (int timeSpan) {
 
-		UpdateValue (timeSpan, TimeEffectConstant, _terrainFactor * TerrainFactorModifier);
+		UpdateValueInternal (timeSpan, TimeEffectConstant, _terrainFactor * TerrainFactorModifier);
+	}
+
+	public override void PolityCulturalInfluence (CulturalKnowledge polityKnowledge, PolityInfluence polityInfluence, int timeSpan) {
+
+		PolityCulturalInfluenceInternal (polityKnowledge, polityInfluence, timeSpan, TimeEffectConstant);
 	}
 
 	protected override float CalculateAsymptoteInternal (CulturalDiscovery discovery)
@@ -529,6 +599,15 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge {
 
 	}
 
+	public SocialOrganizationKnowledge (CellGroup group, CulturalKnowledge baseKnowledge, float initialValue) : base (group, baseKnowledge.Id, baseKnowledge.Name, initialValue) {
+
+	}
+
+	public static bool IsSocialOrganizationKnowledge (CulturalKnowledge knowledge) {
+
+		return knowledge.Id.Contains (SocialOrganizationKnowledgeId);
+	}
+
 	public override void FinalizeLoad () {
 
 		base.FinalizeLoad ();
@@ -564,7 +643,14 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge {
 
 		float totalFactor = populationFactor + influenceFactor * (1 - populationFactor);
 
-		UpdateValue (timeSpan, TimeEffectConstant, totalFactor);
+		UpdateValueInternal (timeSpan, TimeEffectConstant, totalFactor);
+
+		TryGenerateTribalismDiscoveryEvent ();
+	}
+
+	public override void PolityCulturalInfluence (CulturalKnowledge polityKnowledge, PolityInfluence polityInfluence, int timeSpan) {
+
+		PolityCulturalInfluenceInternal (polityKnowledge, polityInfluence, timeSpan, TimeEffectConstant);
 
 		TryGenerateTribalismDiscoveryEvent ();
 	}
