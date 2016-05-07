@@ -574,6 +574,8 @@ public class CellCulture : Culture {
 			if (cellActivity == null) {
 			
 				cellActivity = CellCulturalActivity.CreateCellInstance (Group, polityActivity);
+
+				cellActivity.Value = 0;
 				AddActivityToPerform (cellActivity);
 			}
 
@@ -597,23 +599,27 @@ public class CellCulture : Culture {
 			if (cellSkill == null) {
 
 				cellSkill = CellCulturalSkill.CreateCellInstance (Group, politySkill);
+
+				cellSkill.Value = 0;
 				AddSkillToLearn (cellSkill);
 			}
 
-			// TODO: replace with cellSkill.PolityCulturalInfluence ()
-			cellSkill.Update (timeSpan);
+			cellSkill.PolityCulturalInfluence (politySkill, polityInfluence, timeSpan);
 		}
 
-		CulturalKnowledge[] knowledges = Knowledges.ToArray ();
+		foreach (CulturalKnowledge polityKnowledge in polityCulture.Knowledges) {
 
-		foreach (CellCulturalKnowledge knowledge in knowledges) {
+			CellCulturalKnowledge cellKnowledge = GetKnowledge (polityKnowledge.Id) as CellCulturalKnowledge;
 
-			knowledge.Update (timeSpan);
+			if (cellKnowledge == null) {
 
-			if (knowledge.WillBeLost ()) {
+				cellKnowledge = CellCulturalKnowledge.CreateCellInstance (Group, polityKnowledge);
 
-				_knowledgesToLose.Add (knowledge);
+				cellKnowledge.Value = 0;
+				AddKnowledgeToLearn (cellKnowledge);
 			}
+
+			cellKnowledge.PolityCulturalInfluence (polityKnowledge, polityInfluence, timeSpan);
 		}
 
 		CulturalDiscovery[] discoveries = Discoveries.ToArray ();

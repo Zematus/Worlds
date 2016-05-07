@@ -72,6 +72,11 @@ public abstract class CellCulturalSkill : CulturalSkill, Synchronizable {
 			return new BiomeSurvivalSkill (group, baseSkill);
 		}
 
+		if (SeafaringSkill.IsSeafaringSkill (baseSkill)) {
+
+			return new SeafaringSkill (group, baseSkill);
+		}
+
 		throw new System.Exception ("Unexpected CulturalSkill type: " + baseSkill.Id);
 	}
 	
@@ -104,7 +109,7 @@ public abstract class CellCulturalSkill : CulturalSkill, Synchronizable {
 
 	public abstract void Update (int timeSpan);
 
-	protected void UpdateValue (int timeSpan, float timeEffectFactor, float specificModifier) {
+	protected void UpdateInternal (int timeSpan, float timeEffectFactor, float specificModifier) {
 
 		TerrainCell groupCell = Group.Cell;
 
@@ -129,6 +134,26 @@ public abstract class CellCulturalSkill : CulturalSkill, Synchronizable {
 		Value = Mathf.Clamp01 (Value);
 	}
 
+	public abstract void PolityCulturalInfluence (CulturalSkill politySkill, PolityInfluence polityInfluence, int timeSpan);
+
+	protected void PolityCulturalInfluenceInternal (CulturalSkill politySkill, PolityInfluence polityInfluence, int timeSpan, float timeEffectFactor) {
+
+		float targetValue = politySkill.Value;
+		float influenceEffect = polityInfluence.Value;
+
+		TerrainCell groupCell = Group.Cell;
+
+		float randomEffect = groupCell.GetNextLocalRandomFloat ();
+
+		float timeEffect = timeSpan / (float)(timeSpan + timeEffectFactor);
+
+		float change = (targetValue - Value) * influenceEffect * timeEffect * randomEffect;
+
+		Value += change;
+
+		Value = Mathf.Clamp01 (Value);
+	}
+
 	protected void RecalculateAdaptation (float targetValue)
 	{
 		AdaptationLevel = 1 - Mathf.Abs (Value - targetValue);
@@ -138,6 +163,8 @@ public abstract class CellCulturalSkill : CulturalSkill, Synchronizable {
 public class BiomeSurvivalSkill : CellCulturalSkill {
 
 	public const float TimeEffectConstant = CellGroup.GenerationTime * 1500;
+
+	public const string BiomeSurvivalSkillIdPrefix = "BiomeSurvivalSkill_";
 	
 	[XmlAttribute]
 	public string BiomeName;
@@ -146,7 +173,7 @@ public class BiomeSurvivalSkill : CellCulturalSkill {
 
 	public static string GenerateId (Biome biome) {
 	
-		return "BiomeSurvivalSkill_" + biome.Id;
+		return BiomeSurvivalSkillIdPrefix + biome.Id;
 	}
 	
 	public static string GenerateName (Biome biome) {
@@ -183,7 +210,7 @@ public class BiomeSurvivalSkill : CellCulturalSkill {
 
 	public static bool IsBiomeSurvivalSkill (CulturalSkill skill) {
 
-		if (skill.Id.Contains ("BiomeSurvivalSkill_"))
+		if (skill.Id.Contains (BiomeSurvivalSkillIdPrefix))
 			return true;
 
 		return false;
@@ -223,7 +250,14 @@ public class BiomeSurvivalSkill : CellCulturalSkill {
 
 	public override void Update (int timeSpan) {
 
-		UpdateValue (timeSpan, TimeEffectConstant, _neighborhoodBiomePresence);
+		UpdateInternal (timeSpan, TimeEffectConstant, _neighborhoodBiomePresence);
+
+		RecalculateAdaptation (_neighborhoodBiomePresence);
+	}
+
+	public override void PolityCulturalInfluence (CulturalSkill politySkill, PolityInfluence polityInfluence, int timeSpan) {
+
+		PolityCulturalInfluenceInternal (politySkill, polityInfluence, timeSpan, TimeEffectConstant);
 
 		RecalculateAdaptation (_neighborhoodBiomePresence);
 	}
@@ -251,6 +285,19 @@ public class SeafaringSkill : CellCulturalSkill {
 	public SeafaringSkill (CellGroup group, SeafaringSkill baseSkill) : base (group, baseSkill.Id, baseSkill.Name, baseSkill.Value) {
 
 		CalculateNeighborhoodOceanPresence ();
+	}
+
+	public SeafaringSkill (CellGroup group, CulturalSkill baseSkill) : base (group, baseSkill.Id, baseSkill.Name, baseSkill.Value) {
+
+		CalculateNeighborhoodOceanPresence ();
+	}
+
+	public static bool IsSeafaringSkill (CulturalSkill skill) {
+
+		if (skill.Id.Contains (SeafaringSkillId))
+			return true;
+
+		return false;
 	}
 
 	public override void FinalizeLoad () {
@@ -287,7 +334,14 @@ public class SeafaringSkill : CellCulturalSkill {
 
 	public override void Update (int timeSpan) {
 
-		UpdateValue (timeSpan, TimeEffectConstant, _neighborhoodOceanPresence);
+		UpdateInternal (timeSpan, TimeEffectConstant, _neighborhoodOceanPresence);
+
+		RecalculateAdaptation (_neighborhoodOceanPresence);
+	}
+
+	public override void PolityCulturalInfluence (CulturalSkill politySkill, PolityInfluence polityInfluence, int timeSpan) {
+
+		PolityCulturalInfluenceInternal (politySkill, polityInfluence, timeSpan, TimeEffectConstant);
 
 		RecalculateAdaptation (_neighborhoodOceanPresence);
 	}
