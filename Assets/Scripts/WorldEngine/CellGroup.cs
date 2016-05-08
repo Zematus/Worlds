@@ -724,6 +724,7 @@ public class CellGroup : HumanGroup {
 		UpdateTerrainFarmlandPercentage (timeSpan);
 		UpdatePopulation (timeSpan);
 		UpdateCulture (timeSpan);
+		PolitiesCulturalInfluence (timeSpan);
 		PolityUpdateEffects (timeSpan);
 
 		UpdateTravelFactors ();

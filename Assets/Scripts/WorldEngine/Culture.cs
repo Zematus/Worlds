@@ -616,14 +616,15 @@ public class CellCulture : Culture {
 			cellKnowledge.PolityCulturalInfluence (polityKnowledge, polityInfluence, timeSpan);
 		}
 
-		CulturalDiscovery[] discoveries = Discoveries.ToArray ();
+		foreach (PolityCulturalDiscovery polityDiscovery in polityCulture.Discoveries) {
 
-		foreach (CellCulturalDiscovery discovery in discoveries) {
+			CellCulturalDiscovery cellDiscovery = GetDiscovery (polityDiscovery.Id) as CellCulturalDiscovery;
 
-			if (discovery.CanBeHeld (Group))
-				continue;
+			if (cellDiscovery == null) {
 
-			_discoveriesToLose.Add (discovery);
+				cellDiscovery = CellCulturalDiscovery.CreateCellInstance (polityDiscovery);
+				AddDiscoveryToFind (cellDiscovery);
+			}
 		}
 	}
 

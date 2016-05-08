@@ -49,6 +49,31 @@ public abstract class CellCulturalDiscovery : CulturalDiscovery {
 	public CellCulturalDiscovery (string id, string name) : base (id, name) {
 
 	}
+
+	public static CellCulturalDiscovery CreateCellInstance (CulturalDiscovery baseDiscovery) {
+
+		if (BoatMakingDiscovery.IsBoatMakingDiscovery (baseDiscovery)) {
+
+			return new BoatMakingDiscovery ();
+		}
+
+		if (SailingDiscovery.IsSailingDiscovery (baseDiscovery)) {
+
+			return new SailingDiscovery ();
+		}
+
+		if (PlantCultivationDiscovery.IsPlantCultivationDiscovery (baseDiscovery)) {
+
+			return new PlantCultivationDiscovery ();
+		}
+
+		if (TribalismDiscovery.IsTribalismDiscovery (baseDiscovery)) {
+
+			return new TribalismDiscovery ();
+		}
+
+		throw new System.Exception ("Unexpected CulturalDiscovery type: " + baseDiscovery.Id);
+	}
 	
 	public CellCulturalDiscovery GenerateCopy () {
 		
@@ -75,6 +100,11 @@ public class BoatMakingDiscovery : CellCulturalDiscovery {
 
 	}
 
+	public static bool IsBoatMakingDiscovery (CulturalDiscovery discovery) {
+
+		return discovery.Id.Contains (BoatMakingDiscoveryId);
+	}
+
 	public override bool CanBeHeld (CellGroup group)
 	{
 		CulturalKnowledge knowledge = group.Culture.GetKnowledge (ShipbuildingKnowledge.ShipbuildingKnowledgeId);
@@ -93,6 +123,11 @@ public class SailingDiscovery : CellCulturalDiscovery {
 	
 	public SailingDiscovery () : base (SailingDiscoveryId, SailingDiscoveryName) {
 		
+	}
+
+	public static bool IsSailingDiscovery (CulturalDiscovery discovery) {
+
+		return discovery.Id.Contains (SailingDiscoveryId);
 	}
 	
 	public override bool CanBeHeld (CellGroup group)
@@ -118,6 +153,11 @@ public class TribalismDiscovery : CellCulturalDiscovery {
 
 	}
 
+	public static bool IsTribalismDiscovery (CulturalDiscovery discovery) {
+
+		return discovery.Id.Contains (TribalismDiscoveryId);
+	}
+
 	public override bool CanBeHeld (CellGroup group)
 	{
 		CulturalKnowledge knowledge = group.Culture.GetKnowledge (SocialOrganizationKnowledge.SocialOrganizationKnowledgeId);
@@ -139,6 +179,11 @@ public class PlantCultivationDiscovery : CellCulturalDiscovery {
 
 	public PlantCultivationDiscovery () : base (PlantCultivationDiscoveryId, PlantCultivationDiscoveryName) {
 
+	}
+
+	public static bool IsPlantCultivationDiscovery (CulturalDiscovery discovery) {
+
+		return discovery.Id.Contains (PlantCultivationDiscoveryId);
 	}
 
 	public override bool CanBeHeld (CellGroup group)
