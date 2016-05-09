@@ -950,7 +950,9 @@ public class CellGroup : HumanGroup {
 		if (agricultureKnowledge == null)
 			return capacityFactor;
 
-		float techFactor = Mathf.Sqrt(agricultureKnowledge.Value);
+		float value = Mathf.Max (0, agricultureKnowledge.Value);
+
+		float techFactor = Mathf.Sqrt(value);
 
 		capacityFactor = cell.FarmlandPercentage * techFactor;
 

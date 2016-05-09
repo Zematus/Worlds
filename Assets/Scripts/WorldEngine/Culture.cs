@@ -614,6 +614,11 @@ public class CellCulture : Culture {
 			}
 
 			cellKnowledge.PolityCulturalInfluence (polityKnowledge, polityInfluence, timeSpan);
+
+			if (cellKnowledge.WillBeLost ()) {
+
+				_knowledgesToLose.Add (cellKnowledge);
+			}
 		}
 
 		foreach (PolityCulturalDiscovery polityDiscovery in polityCulture.Discoveries) {
