@@ -131,9 +131,9 @@ public abstract class Polity : Synchronizable {
 		Culture.FinalizeLoad ();
 	}
 
-	public abstract float MigrationValue (TerrainCell targetCell, float sourceRelativeInfluence);
-	public abstract void MergingEffects (CellGroup targetGroup, float sourceInfluence, float percentOfTarget);
-	public abstract void UpdateEffects (CellGroup group, float influence, int timeSpan);
+	public abstract float MigrationValue (TerrainCell targetCell, float sourceValue);
+	public abstract void MergingEffects (CellGroup targetGroup, float sourceValue, float percentOfTarget);
+	public abstract void UpdateEffects (CellGroup group, float influenceValue, int timeSpan);
 }
 
 public class Territory {

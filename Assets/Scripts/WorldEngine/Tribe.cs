@@ -6,6 +6,8 @@ using System.Xml.Serialization;
 
 public class Tribe : Polity {
 
+	public const float TimeEffectConstant = CellGroup.GenerationTime * 15000;
+
 	public const float BaseCoreInfluence = 0.5f;
 
 	public Tribe () : base () {
@@ -26,25 +28,17 @@ public class Tribe : Polity {
 		return newTribe;
 	}
 
-	public override float MigrationValue (TerrainCell targetCell, float sourceInfluenceValue)
+	public override float MigrationValue (TerrainCell targetCell, float sourceValue)
 	{
-		sourceInfluenceValue = Mathf.Max (sourceInfluenceValue, 0);
+		sourceValue = Mathf.Max (sourceValue, 0);
 
 		CellGroup targetGroup = targetCell.Group;
 
 		float groupTotalInfluenceValue = 0;
 
-//		float popFactor = 0;
 		float socialOrgFactor = 0;
-//		float socialOrgFactor = 1;
 
 		if (targetGroup != null) {
-
-//			float areaFactor = targetCell.Area / TerrainCell.MaxArea;
-//
-//			float densityFactor = SocialOrganizationKnowledge.PopulationDensityModifier * areaFactor / 10;
-//
-//			popFactor = areaFactor * targetGroup.Population / (targetGroup.Population + densityFactor);
 
 			CulturalKnowledge socialOrgKnowledge = targetGroup.Culture.GetKnowledge (SocialOrganizationKnowledge.SocialOrganizationKnowledgeId);
 
@@ -54,10 +48,9 @@ public class Tribe : Polity {
 			groupTotalInfluenceValue = targetGroup.TotalPolityInfluenceValue;
 		}
 
-		float sourceInfluenceFactor = 0.05f + (sourceInfluenceValue * 0.95f);
+		float sourceInfluenceFactor = 0.05f + (sourceValue * 0.95f);
 
-		//float influenceFactor = popFactor * sourceInfluenceValue / (groupTotalInfluenceValue + sourceInfluenceFactor);
-		float influenceFactor = socialOrgFactor * sourceInfluenceValue / (groupTotalInfluenceValue + sourceInfluenceFactor);
+		float influenceFactor = socialOrgFactor * sourceValue / (groupTotalInfluenceValue + sourceInfluenceFactor);
 
 		return Mathf.Clamp01 (influenceFactor);
 	}
@@ -94,7 +87,7 @@ public class Tribe : Polity {
 		targetGroup.SetPolityInfluenceValue (this, newValue);
 	}
 
-	public override void UpdateEffects (CellGroup group, float influence, int timeSpan) {
+	public override void UpdateEffects (CellGroup group, float influenceValue, int timeSpan) {
 
 		if (group.Culture.GetDiscovery (TribalismDiscovery.TribalismDiscoveryId) == null) {
 		
@@ -102,5 +95,28 @@ public class Tribe : Polity {
 
 			return;
 		}
+
+		TerrainCell groupCell = group.Cell;
+
+		float maxTargetValue = 1.0f;
+		float minTargetValue = -0.2f;
+
+		float randomModifier = groupCell.GetNextLocalRandomFloat ();
+		float randomFactor = randomModifier - 0.5f;
+		float targetValue = 0;
+
+		if (randomFactor > 0) {
+			targetValue = influenceValue + (maxTargetValue - influenceValue) * randomFactor;
+		} else {
+			targetValue = influenceValue - (minTargetValue - influenceValue) * randomFactor;
+		}
+
+		float timeEffect = timeSpan / (float)(timeSpan + TimeEffectConstant);
+
+		influenceValue = (influenceValue * (1 - timeEffect)) + (targetValue * timeEffect);
+
+		influenceValue = Mathf.Clamp01 (influenceValue);
+
+		group.SetPolityInfluenceValue (this, influenceValue);
 	}
 }
