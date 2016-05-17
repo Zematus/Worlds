@@ -43,7 +43,14 @@ public class OverlayDialogPanelScript : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
+
+		bool debugState = false;
+
+		#if DEBUG
+		debugState = true;
+		#endif
 	
+		DebugDataToggle.gameObject.SetActive (debugState);
 	}
 	
 	// Update is called once per frame

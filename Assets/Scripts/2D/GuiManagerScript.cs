@@ -1434,13 +1434,8 @@ public class GuiManagerScript : MonoBehaviour {
 		if (_selectedCell != null) {
 			AddCellDataToInfoPanel (_selectedCell);
 		}
-//
-//		Vector2 point;
-//		
-//		if (GetMapCoordinatesFromMousePosition (out point)) {
-//			AddCellDataToInfoPanel (point);
-//		}
-		
+
+		#if DEBUG
 		InfoPanelText.text += "\n";
 		InfoPanelText.text += "\nNumber of Events: " + WorldEvent.EventCount;
 
@@ -1455,6 +1450,7 @@ public class GuiManagerScript : MonoBehaviour {
 		
 		InfoPanelText.text += "\n";
 		InfoPanelText.text += "\nMUPS: " + _lastMapUpdateCount;
+		#endif
 	}
 	
 	public void AddCellDataToInfoPanel (int longitude, int latitude) {
