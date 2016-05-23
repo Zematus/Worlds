@@ -1435,7 +1435,10 @@ public class GuiManagerScript : MonoBehaviour {
 			AddCellDataToInfoPanel (_selectedCell);
 		}
 
+		InfoPanelText.text += "\n";
+
 		#if DEBUG
+		InfoPanelText.text += "\n -- Debug Data -- ";
 		InfoPanelText.text += "\n";
 		InfoPanelText.text += "\nNumber of Events: " + WorldEvent.EventCount;
 
@@ -1450,6 +1453,7 @@ public class GuiManagerScript : MonoBehaviour {
 		
 		InfoPanelText.text += "\n";
 		InfoPanelText.text += "\nMUPS: " + _lastMapUpdateCount;
+		InfoPanelText.text += "\n";
 		#endif
 	}
 	
@@ -1461,89 +1465,131 @@ public class GuiManagerScript : MonoBehaviour {
 
 		AddCellDataToInfoPanel (cell);
 	}
-	
-	public void AddCellDataToInfoPanel (TerrainCell cell) {
-		
-		World world = Manager.CurrentWorld;
 
-		int longitude = cell.Longitude;
-		int latitude = cell.Latitude;
+	public void AddCellDataToInfoPanel_Terrain (TerrainCell cell) {
 		
-		world.SetObservedCell (cell);
+		float cellArea = cell.Area;
 
 		InfoPanelText.text += "\n";
+		InfoPanelText.text += "\n -- Cell Terrain Data -- ";
 
-		float cellArea = cell.Area;
-		
-		InfoPanelText.text += string.Format("\nPosition: Longitude {0}, Latitude {1}", longitude, latitude);
+		InfoPanelText.text += "\n";
 		InfoPanelText.text += "\nArea: " + cellArea + " Km^2";
 		InfoPanelText.text += "\nAltitude: " + cell.Altitude + " meters";
 		InfoPanelText.text += "\nRainfall: " + cell.Rainfall + " mm / year";
 		InfoPanelText.text += "\nTemperature: " + cell.Temperature + " C";
 		InfoPanelText.text += "\n";
 
-		for (int i = 0; i < cell.PresentBiomeNames.Count; i++)
-		{
-			float percentage = cell.BiomePresences[i];
-			
-			InfoPanelText.text += "\nBiome: " + cell.PresentBiomeNames[i];
+		for (int i = 0; i < cell.PresentBiomeNames.Count; i++) {
+			float percentage = cell.BiomePresences [i];
+
+			InfoPanelText.text += "\nBiome: " + cell.PresentBiomeNames [i];
 			InfoPanelText.text += " (" + percentage.ToString ("P") + ")";
 		}
 
 		InfoPanelText.text += "\n";
-		InfoPanelText.text += "\nSurvivability: " + cell.Survivability.ToString("P");
-		InfoPanelText.text += "\nForaging Capacity: " + cell.ForagingCapacity.ToString("P");
-		InfoPanelText.text += "\nAccessibility: " + cell.Accessibility.ToString("P");
-		InfoPanelText.text += "\nArability: " + cell.Arability.ToString("P");
+		InfoPanelText.text += "\nSurvivability: " + cell.Survivability.ToString ("P");
+		InfoPanelText.text += "\nForaging Capacity: " + cell.ForagingCapacity.ToString ("P");
+		InfoPanelText.text += "\nAccessibility: " + cell.Accessibility.ToString ("P");
+		InfoPanelText.text += "\nArability: " + cell.Arability.ToString ("P");
+	}
 
+	public void AddCellDataToInfoPanel_FarmlandDistribution (TerrainCell cell) {
+
+		float cellArea = cell.Area;
 		float farmlandPercentage = cell.FarmlandPercentage;
 
 		if (farmlandPercentage > 0) {
 
 			InfoPanelText.text += "\n";
+			InfoPanelText.text += "\n -- Cell Farmland Distribution Data -- ";
+
+			InfoPanelText.text += "\n";
 			InfoPanelText.text += "\nFarmland Percentage: " + farmlandPercentage.ToString ("P");
 		}
 
-		int population = 0;
-		int optimalPopulation = 0;
-		int lastUpdateDate = 0;
-		int nextUpdateDate = 0;
-
 		if (cell.Group != null) {
-		
-			float modifiedSurvivability = 0;
-			float modifiedForagingCapacity = 0;
 
-			population = cell.Group.Population;
-			optimalPopulation = cell.Group.OptimalPopulation;
-			lastUpdateDate = cell.Group.LastUpdateDate;
-			nextUpdateDate = cell.Group.NextUpdateDate;
-		
-			cell.Group.CalculateAdaptionToCell (cell, out modifiedForagingCapacity, out modifiedSurvivability);
+			int population = cell.Group.Population;
 
 			if (population > 0) {
 				
-				InfoPanelText.text += "\n";
-				InfoPanelText.text += "\nPrevious Population: " + cell.Group.PreviousPopulation;
-				InfoPanelText.text += "\nPopulation: " + population;
-				InfoPanelText.text += "\nOptimal Population: " + optimalPopulation;
-				InfoPanelText.text += "\nPop Density: " + (population / cellArea).ToString ("0.000") + " Pop / Km^2";
-
 				if (cell.FarmlandPercentage > 0) {
 
 					float farmlandArea = farmlandPercentage * cellArea;
 
+					InfoPanelText.text += "\n";
 					InfoPanelText.text += "\nFarmland Area per Pop: " + (farmlandArea / (float)population).ToString ("0.000") + " Km^2 / Pop";
 				}
-				
+			}
+		}
+	}
+
+	public void AddCellDataToInfoPanel_PopDensity (TerrainCell cell) {
+
+		float cellArea = cell.Area;
+
+		if (cell.Group != null) {
+
+			int population = cell.Group.Population;
+
+			if (population > 0) {
+
+				int optimalPopulation = cell.Group.OptimalPopulation;
+
+				InfoPanelText.text += "\n";
+				InfoPanelText.text += "\n -- Group Population Density Data -- ";
+
+				InfoPanelText.text += "\n";
+				InfoPanelText.text += "\nPopulation: " + population;
+				InfoPanelText.text += "\nPrevious Population: " + cell.Group.PreviousPopulation;
+				InfoPanelText.text += "\nOptimal Population: " + optimalPopulation;
+				InfoPanelText.text += "\nPop Density: " + (population / cellArea).ToString ("0.000") + " Pop / Km^2";
+
+				float modifiedSurvivability = 0;
+				float modifiedForagingCapacity = 0;
+
+				cell.Group.CalculateAdaptionToCell (cell, out modifiedForagingCapacity, out modifiedSurvivability);
+
 				InfoPanelText.text += "\n";
 				InfoPanelText.text += "\nModified Survivability: " + modifiedSurvivability.ToString ("P");
 				InfoPanelText.text += "\nModified Foraging Capacity: " + modifiedForagingCapacity.ToString ("P");
-				
+			}
+		}
+	}
+
+	public void AddCellDataToInfoPanel_UpdateSpan (TerrainCell cell) {
+
+		if (cell.Group != null) {
+
+			int population = cell.Group.Population;
+
+			if (population > 0) {
+
+				int lastUpdateDate = cell.Group.LastUpdateDate;
+				int nextUpdateDate = cell.Group.NextUpdateDate;
+
+				InfoPanelText.text += "\n";
+				InfoPanelText.text += "\n -- Group Update Span Data -- ";
+
 				InfoPanelText.text += "\n";
 				InfoPanelText.text += "\nLast Update Date: " + lastUpdateDate;
 				InfoPanelText.text += "\nNext Update Date: " + nextUpdateDate;
 				InfoPanelText.text += "\nTime between updates: " + (nextUpdateDate - lastUpdateDate);
+			}
+		}
+	}
+
+	public void AddCellDataToInfoPanel_PolityInfluence (TerrainCell cell) {
+
+		if (cell.Group != null) {
+
+			int population = cell.Group.Population;
+
+			if (population > 0) {
+
+				InfoPanelText.text += "\n";
+				InfoPanelText.text += "\n -- Group Polity Influence Data -- ";
 
 				bool firstPolity = true;
 
@@ -1564,6 +1610,20 @@ public class GuiManagerScript : MonoBehaviour {
 						InfoPanelText.text += "\n\tPolity[" + polity.Id + "] - Influence: " + influenceValue.ToString ("P");
 					}
 				}
+			}
+		}
+	}
+
+	public void AddCellDataToInfoPanel_PopCulturalActivity (TerrainCell cell) {
+
+		if (cell.Group != null) {
+
+			int population = cell.Group.Population;
+
+			if (population > 0) {
+
+				InfoPanelText.text += "\n";
+				InfoPanelText.text += "\n -- Group Activity Data -- ";
 
 				bool firstActivity = true;
 
@@ -1583,6 +1643,20 @@ public class GuiManagerScript : MonoBehaviour {
 						InfoPanelText.text += "\n\t" + activity.Id + " - Contribution: " + activity.Contribution.ToString ("P");
 					}
 				}
+			}
+		}
+	}
+
+	public void AddCellDataToInfoPanel_PopCulturalSkill (TerrainCell cell) {
+
+		if (cell.Group != null) {
+
+			int population = cell.Group.Population;
+
+			if (population > 0) {
+
+				InfoPanelText.text += "\n";
+				InfoPanelText.text += "\n -- Group Skill Data -- ";
 
 				bool firstSkill = true;
 
@@ -1602,40 +1676,132 @@ public class GuiManagerScript : MonoBehaviour {
 						InfoPanelText.text += "\n\t" + skill.Id + " - Value: " + skill.Value.ToString ("0.000");
 					}
 				}
+			}
+		}
+	}
+
+	public void AddCellDataToInfoPanel_PopCulturalKnowledge (TerrainCell cell) {
+
+		if (cell.Group != null) {
+
+			int population = cell.Group.Population;
+
+			if (population > 0) {
+
+				InfoPanelText.text += "\n";
+				InfoPanelText.text += "\n -- Group Knowledge Data -- ";
 
 				bool firstKnowledge = true;
-				
+
 				foreach (CellCulturalKnowledge knowledge in cell.Group.Culture.Knowledges) {
-					
+
 					float knowledgeValue = knowledge.Value;
-					
+
 					if (knowledgeValue >= 0.001) {
-						
+
 						if (firstKnowledge) {
 							InfoPanelText.text += "\n";
 							InfoPanelText.text += "\nKnowledges";
-							
+
 							firstKnowledge = false;
 						}
 
 						InfoPanelText.text += "\n\t" + knowledge.Id + " - Value: " + knowledge.Value.ToString ("0.000");
 					}
 				}
-				
+			}
+		}
+	}
+
+	public void AddCellDataToInfoPanel_PopCulturalDiscovery (TerrainCell cell) {
+
+		if (cell.Group != null) {
+
+			int population = cell.Group.Population;
+
+			if (population > 0) {
+
+				InfoPanelText.text += "\n";
+				InfoPanelText.text += "\n -- Group Discovery Data -- ";
+
 				bool firstDiscovery = true;
-				
+
 				foreach (CellCulturalDiscovery discovery in cell.Group.Culture.Discoveries) {
 
 					if (firstDiscovery) {
 						InfoPanelText.text += "\n";
 						InfoPanelText.text += "\nDiscoveries";
-						
+
 						firstDiscovery = false;
 					}
-					
+
 					InfoPanelText.text += "\n\t" + discovery.Id;
 				}
 			}
+		}
+	}
+	
+	public void AddCellDataToInfoPanel (TerrainCell cell) {
+		
+		World world = Manager.CurrentWorld;
+
+		int longitude = cell.Longitude;
+		int latitude = cell.Latitude;
+		
+		world.SetObservedCell (cell);
+
+		InfoPanelText.text += "\n";
+		InfoPanelText.text += string.Format ("\nPosition: Longitude {0}, Latitude {1}", longitude, latitude);
+
+		float cellArea = cell.Area;
+
+		if ((_planetOverlay == PlanetOverlay.None) || 
+			(_planetOverlay == PlanetOverlay.Rainfall) || 
+			(_planetOverlay == PlanetOverlay.Arability) || 
+			(_planetOverlay == PlanetOverlay.Temperature)) {
+
+			AddCellDataToInfoPanel_Terrain (cell);
+		}
+
+		if (_planetOverlay == PlanetOverlay.FarmlandDistribution) {
+
+			AddCellDataToInfoPanel_FarmlandDistribution (cell);
+		}
+
+		if ((_planetOverlay == PlanetOverlay.PopDensity) || 
+			(_planetOverlay == PlanetOverlay.PopChange)) {
+		
+			AddCellDataToInfoPanel_PopDensity (cell);
+		}
+
+		if (_planetOverlay == PlanetOverlay.UpdateSpan) {
+
+			AddCellDataToInfoPanel_UpdateSpan (cell);
+		}
+
+		if (_planetOverlay == PlanetOverlay.PolityInfluence) {
+
+			AddCellDataToInfoPanel_PolityInfluence (cell);
+		}
+
+		if (_planetOverlay == PlanetOverlay.PopCulturalActivity) {
+
+			AddCellDataToInfoPanel_PopCulturalActivity (cell);
+		}
+
+		if (_planetOverlay == PlanetOverlay.PopCulturalSkill) {
+
+			AddCellDataToInfoPanel_PopCulturalSkill (cell);
+		}
+
+		if (_planetOverlay == PlanetOverlay.PopCulturalKnowledge) {
+
+			AddCellDataToInfoPanel_PopCulturalKnowledge (cell);
+		}
+
+		if (_planetOverlay == PlanetOverlay.PopCulturalDiscovery) {
+
+			AddCellDataToInfoPanel_PopCulturalDiscovery (cell);
 		}
 	}
 	
