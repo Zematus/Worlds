@@ -1472,8 +1472,8 @@ public class GuiManagerScript : MonoBehaviour {
 
 		InfoPanelText.text += "\n";
 		InfoPanelText.text += "\n -- Cell Terrain Data -- ";
-
 		InfoPanelText.text += "\n";
+
 		InfoPanelText.text += "\nArea: " + cellArea + " Km^2";
 		InfoPanelText.text += "\nAltitude: " + cell.Altitude + " meters";
 		InfoPanelText.text += "\nRainfall: " + cell.Rainfall + " mm / year";
@@ -1503,25 +1503,33 @@ public class GuiManagerScript : MonoBehaviour {
 
 			InfoPanelText.text += "\n";
 			InfoPanelText.text += "\n -- Cell Farmland Distribution Data -- ";
-
 			InfoPanelText.text += "\n";
+
 			InfoPanelText.text += "\nFarmland Percentage: " + farmlandPercentage.ToString ("P");
+			InfoPanelText.text += "\n";
 		}
 
-		if (cell.Group != null) {
+		if (cell.Group == null) {
 
-			int population = cell.Group.Population;
+			InfoPanelText.text += "\n\tNo population at location";
 
-			if (population > 0) {
-				
-				if (cell.FarmlandPercentage > 0) {
+			return;
+		}
 
-					float farmlandArea = farmlandPercentage * cellArea;
+		int population = cell.Group.Population;
 
-					InfoPanelText.text += "\n";
-					InfoPanelText.text += "\nFarmland Area per Pop: " + (farmlandArea / (float)population).ToString ("0.000") + " Km^2 / Pop";
-				}
-			}
+		if (population <= 0) {
+
+			InfoPanelText.text += "\n\tNo population at location";
+
+			return;
+		}
+
+		if (cell.FarmlandPercentage > 0) {
+
+			float farmlandArea = farmlandPercentage * cellArea;
+
+			InfoPanelText.text += "\nFarmland Area per Pop: " + (farmlandArea / (float)population).ToString ("0.000") + " Km^2 / Pop";
 		}
 	}
 
@@ -1529,215 +1537,501 @@ public class GuiManagerScript : MonoBehaviour {
 
 		float cellArea = cell.Area;
 
-		if (cell.Group != null) {
+		InfoPanelText.text += "\n";
+		InfoPanelText.text += "\n -- Group Population Density Data -- ";
+		InfoPanelText.text += "\n";
 
-			int population = cell.Group.Population;
+		if (cell.Group == null) {
 
-			if (population > 0) {
+			InfoPanelText.text += "\n\tNo population at location";
 
-				int optimalPopulation = cell.Group.OptimalPopulation;
-
-				InfoPanelText.text += "\n";
-				InfoPanelText.text += "\n -- Group Population Density Data -- ";
-
-				InfoPanelText.text += "\n";
-				InfoPanelText.text += "\nPopulation: " + population;
-				InfoPanelText.text += "\nPrevious Population: " + cell.Group.PreviousPopulation;
-				InfoPanelText.text += "\nOptimal Population: " + optimalPopulation;
-				InfoPanelText.text += "\nPop Density: " + (population / cellArea).ToString ("0.000") + " Pop / Km^2";
-
-				float modifiedSurvivability = 0;
-				float modifiedForagingCapacity = 0;
-
-				cell.Group.CalculateAdaptionToCell (cell, out modifiedForagingCapacity, out modifiedSurvivability);
-
-				InfoPanelText.text += "\n";
-				InfoPanelText.text += "\nModified Survivability: " + modifiedSurvivability.ToString ("P");
-				InfoPanelText.text += "\nModified Foraging Capacity: " + modifiedForagingCapacity.ToString ("P");
-			}
+			return;
 		}
+
+		int population = cell.Group.Population;
+
+		if (population <= 0) {
+
+			InfoPanelText.text += "\n\tNo population at location";
+
+			return;
+		}
+
+		int optimalPopulation = cell.Group.OptimalPopulation;
+
+		InfoPanelText.text += "\nPopulation: " + population;
+		InfoPanelText.text += "\nPrevious Population: " + cell.Group.PreviousPopulation;
+		InfoPanelText.text += "\nOptimal Population: " + optimalPopulation;
+		InfoPanelText.text += "\nPop Density: " + (population / cellArea).ToString ("0.000") + " Pop / Km^2";
+
+		float modifiedSurvivability = 0;
+		float modifiedForagingCapacity = 0;
+
+		cell.Group.CalculateAdaptionToCell (cell, out modifiedForagingCapacity, out modifiedSurvivability);
+
+		InfoPanelText.text += "\n";
+		InfoPanelText.text += "\nModified Survivability: " + modifiedSurvivability.ToString ("P");
+		InfoPanelText.text += "\nModified Foraging Capacity: " + modifiedForagingCapacity.ToString ("P");
 	}
 
 	public void AddCellDataToInfoPanel_UpdateSpan (TerrainCell cell) {
 
-		if (cell.Group != null) {
+		InfoPanelText.text += "\n";
+		InfoPanelText.text += "\n -- Group Update Span Data -- ";
+		InfoPanelText.text += "\n";
 
-			int population = cell.Group.Population;
+		if (cell.Group == null) {
 
-			if (population > 0) {
+			InfoPanelText.text += "\n\tNo population at location";
 
-				int lastUpdateDate = cell.Group.LastUpdateDate;
-				int nextUpdateDate = cell.Group.NextUpdateDate;
-
-				InfoPanelText.text += "\n";
-				InfoPanelText.text += "\n -- Group Update Span Data -- ";
-
-				InfoPanelText.text += "\n";
-				InfoPanelText.text += "\nLast Update Date: " + lastUpdateDate;
-				InfoPanelText.text += "\nNext Update Date: " + nextUpdateDate;
-				InfoPanelText.text += "\nTime between updates: " + (nextUpdateDate - lastUpdateDate);
-			}
+			return;
 		}
+
+		int population = cell.Group.Population;
+
+		if (population <= 0) {
+
+			InfoPanelText.text += "\n\tNo population at location";
+
+			return;
+		}
+
+		int lastUpdateDate = cell.Group.LastUpdateDate;
+		int nextUpdateDate = cell.Group.NextUpdateDate;
+
+		InfoPanelText.text += "\nLast Update Date: " + lastUpdateDate;
+		InfoPanelText.text += "\nNext Update Date: " + nextUpdateDate;
+		InfoPanelText.text += "\nTime between updates: " + (nextUpdateDate - lastUpdateDate);
 	}
 
 	public void AddCellDataToInfoPanel_PolityInfluence (TerrainCell cell) {
 
-		if (cell.Group != null) {
+		InfoPanelText.text += "\n";
+		InfoPanelText.text += "\n -- Group Polity Influence Data -- ";
+		InfoPanelText.text += "\n";
 
-			int population = cell.Group.Population;
+		if (cell.Group == null) {
 
-			if (population > 0) {
+			InfoPanelText.text += "\n\tNo population at location";
 
-				InfoPanelText.text += "\n";
-				InfoPanelText.text += "\n -- Group Polity Influence Data -- ";
+			return;
+		}
 
-				bool firstPolity = true;
+		int population = cell.Group.Population;
 
-				foreach (PolityInfluence polityInfluence in cell.Group.GetPolityInfluences ()) {
+		if (population <= 0) {
 
-					Polity polity = polityInfluence.Polity;
-					float influenceValue = polityInfluence.Value;
+			InfoPanelText.text += "\n\tNo population at location";
 
-					if (influenceValue >= 0.001) {
+			return;
+		}
 
-						if (firstPolity) {
-							InfoPanelText.text += "\n";
-							InfoPanelText.text += "\nPolities";
+		bool firstPolity = true;
 
-							firstPolity = false;
-						}
+		foreach (PolityInfluence polityInfluence in cell.Group.GetPolityInfluences ()) {
 
-						InfoPanelText.text += "\n\tPolity[" + polity.Id + "] - Influence: " + influenceValue.ToString ("P");
-					}
+			Polity polity = polityInfluence.Polity;
+			float influenceValue = polityInfluence.Value;
+
+			if (influenceValue >= 0.001) {
+
+				if (firstPolity) {
+					InfoPanelText.text += "\nPolities:";
+
+					firstPolity = false;
 				}
+
+				InfoPanelText.text += "\n\tPolity[" + polity.Id + "] - Influence: " + influenceValue.ToString ("P");
+			}
+		}
+	}
+
+	public void AddCellDataToInfoPanel_PolityTerritory (TerrainCell cell) {
+
+		InfoPanelText.text += "\n";
+		InfoPanelText.text += "\n -- Group Polity Territory Data -- ";
+		InfoPanelText.text += "\n";
+
+		if (cell.Group == null) {
+
+			InfoPanelText.text += "\n\tNo population at location";
+
+			return;
+		}
+
+		int population = cell.Group.Population;
+
+		if (population <= 0) {
+
+			InfoPanelText.text += "\n\tNo population at location";
+
+			return;
+		}
+
+		PolityInfluence polityInfluence = cell.Group.HighestPolityInfluence;
+
+
+		if (polityInfluence == null) {
+
+			InfoPanelText.text += "\n\tGroup not part of a polity";
+
+			return;
+		}
+
+		InfoPanelText.text += "\n\tPart of polity " + polityInfluence.PolityId;
+	}
+
+	public void AddCellDataToInfoPanel_PolityCulturalActivity (TerrainCell cell) {
+
+		InfoPanelText.text += "\n";
+		InfoPanelText.text += "\n -- Polity Activity Data -- ";
+		InfoPanelText.text += "\n";
+
+		if (cell.Group == null) {
+
+			InfoPanelText.text += "\n\tNo population at location";
+
+			return;
+		}
+
+		int population = cell.Group.Population;
+
+		if (population <= 0) {
+
+			InfoPanelText.text += "\n\tNo population at location";
+
+			return;
+		}
+
+		PolityInfluence polityInfluence = cell.Group.HighestPolityInfluence;
+
+		if (polityInfluence == null) {
+
+			InfoPanelText.text += "\n\tGroup not part of a polity";
+
+			return;
+		}
+
+		bool firstActivity = true;
+
+		foreach (CulturalActivity activity in polityInfluence.Polity.Culture.Activities) {
+
+			float activityContribution = activity.Contribution;
+
+			if (activityContribution >= 0.001) {
+
+				if (firstActivity) {
+					InfoPanelText.text += "\nActivities:";
+
+					firstActivity = false;
+				}
+
+				InfoPanelText.text += "\n\t" + activity.Id + " - Contribution: " + activity.Contribution.ToString ("P");
 			}
 		}
 	}
 
 	public void AddCellDataToInfoPanel_PopCulturalActivity (TerrainCell cell) {
 
-		if (cell.Group != null) {
+		InfoPanelText.text += "\n";
+		InfoPanelText.text += "\n -- Group Activity Data -- ";
+		InfoPanelText.text += "\n";
 
-			int population = cell.Group.Population;
+		if (cell.Group == null) {
 
-			if (population > 0) {
+			InfoPanelText.text += "\n\tNo population at location";
 
-				InfoPanelText.text += "\n";
-				InfoPanelText.text += "\n -- Group Activity Data -- ";
+			return;
+		}
 
-				bool firstActivity = true;
+		int population = cell.Group.Population;
 
-				foreach (CellCulturalActivity activity in cell.Group.Culture.Activities) {
+		if (population <= 0) {
 
-					float activityContribution = activity.Contribution;
+			InfoPanelText.text += "\n\tNo population at location";
 
-					if (activityContribution >= 0.001) {
+			return;
+		}
 
-						if (firstActivity) {
-							InfoPanelText.text += "\n";
-							InfoPanelText.text += "\nActivities";
+		bool firstActivity = true;
 
-							firstActivity = false;
-						}
+		foreach (CulturalActivity activity in cell.Group.Culture.Activities) {
 
-						InfoPanelText.text += "\n\t" + activity.Id + " - Contribution: " + activity.Contribution.ToString ("P");
-					}
+			float activityContribution = activity.Contribution;
+
+			if (activityContribution >= 0.001) {
+
+				if (firstActivity) {
+					InfoPanelText.text += "\nActivities:";
+
+					firstActivity = false;
 				}
+
+				InfoPanelText.text += "\n\t" + activity.Id + " - Contribution: " + activity.Contribution.ToString ("P");
+			}
+		}
+	}
+
+	public void AddCellDataToInfoPanel_PolityCulturalSkill (TerrainCell cell) {
+
+		InfoPanelText.text += "\n";
+		InfoPanelText.text += "\n -- Polity Skill Data -- ";
+		InfoPanelText.text += "\n";
+
+		if (cell.Group == null) {
+
+			InfoPanelText.text += "\n\tNo population at location";
+
+			return;
+		}
+
+		int population = cell.Group.Population;
+
+		if (population <= 0) {
+
+			InfoPanelText.text += "\n\tNo population at location";
+
+			return;
+		}
+
+		PolityInfluence polityInfluence = cell.Group.HighestPolityInfluence;
+
+		if (polityInfluence == null) {
+
+			InfoPanelText.text += "\n\tGroup not part of a polity";
+
+			return;
+		}
+
+		bool firstSkill = true;
+
+		foreach (CulturalSkill skill in polityInfluence.Polity.Culture.Skills) {
+
+			float skillValue = skill.Value;
+
+			if (skillValue >= 0.001) {
+
+				if (firstSkill) {
+					InfoPanelText.text += "\nSkills:";
+
+					firstSkill = false;
+				}
+
+				InfoPanelText.text += "\n\t" + skill.Id + " - Value: " + skill.Value.ToString ("0.000");
 			}
 		}
 	}
 
 	public void AddCellDataToInfoPanel_PopCulturalSkill (TerrainCell cell) {
 
-		if (cell.Group != null) {
+		InfoPanelText.text += "\n";
+		InfoPanelText.text += "\n -- Group Skill Data -- ";
+		InfoPanelText.text += "\n";
 
-			int population = cell.Group.Population;
+		if (cell.Group == null) {
 
-			if (population > 0) {
+			InfoPanelText.text += "\n\tNo population at location";
 
-				InfoPanelText.text += "\n";
-				InfoPanelText.text += "\n -- Group Skill Data -- ";
+			return;
+		}
 
-				bool firstSkill = true;
+		int population = cell.Group.Population;
 
-				foreach (CellCulturalSkill skill in cell.Group.Culture.Skills) {
+		if (population <= 0) {
 
-					float skillValue = skill.Value;
+			InfoPanelText.text += "\n\tNo population at location";
 
-					if (skillValue >= 0.001) {
+			return;
+		}
 
-						if (firstSkill) {
-							InfoPanelText.text += "\n";
-							InfoPanelText.text += "\nSkills";
+		bool firstSkill = true;
 
-							firstSkill = false;
-						}
+		foreach (CulturalSkill skill in cell.Group.Culture.Skills) {
 
-						InfoPanelText.text += "\n\t" + skill.Id + " - Value: " + skill.Value.ToString ("0.000");
-					}
+			float skillValue = skill.Value;
+
+			if (skillValue >= 0.001) {
+
+				if (firstSkill) {
+					InfoPanelText.text += "\nSkills:";
+
+					firstSkill = false;
 				}
+
+				InfoPanelText.text += "\n\t" + skill.Id + " - Value: " + skill.Value.ToString ("0.000");
+			}
+		}
+	}
+
+	public void AddCellDataToInfoPanel_PolityCulturalKnowledge (TerrainCell cell) {
+
+		InfoPanelText.text += "\n";
+		InfoPanelText.text += "\n -- Polity Knowledge Data -- ";
+		InfoPanelText.text += "\n";
+
+		if (cell.Group == null) {
+
+			InfoPanelText.text += "\n\tNo population at location";
+
+			return;
+		}
+
+		int population = cell.Group.Population;
+
+		if (population <= 0) {
+
+			InfoPanelText.text += "\n\tNo population at location";
+
+			return;
+		}
+
+		PolityInfluence polityInfluence = cell.Group.HighestPolityInfluence;
+
+		if (polityInfluence == null) {
+
+			InfoPanelText.text += "\n\tGroup not part of a polity";
+
+			return;
+		}
+
+		bool firstKnowledge = true;
+
+		foreach (CulturalKnowledge knowledge in polityInfluence.Polity.Culture.Knowledges) {
+
+			float knowledgeValue = knowledge.Value;
+
+			if (knowledgeValue >= 0.001) {
+
+				if (firstKnowledge) {
+					InfoPanelText.text += "\nKnowledges:";
+
+					firstKnowledge = false;
+				}
+
+				InfoPanelText.text += "\n\t" + knowledge.Id + " - Value: " + knowledge.Value.ToString ("0.000");
 			}
 		}
 	}
 
 	public void AddCellDataToInfoPanel_PopCulturalKnowledge (TerrainCell cell) {
 
-		if (cell.Group != null) {
+		InfoPanelText.text += "\n";
+		InfoPanelText.text += "\n -- Group Knowledge Data -- ";
+		InfoPanelText.text += "\n";
 
-			int population = cell.Group.Population;
+		if (cell.Group == null) {
 
-			if (population > 0) {
+			InfoPanelText.text += "\n\tNo population at location";
 
-				InfoPanelText.text += "\n";
-				InfoPanelText.text += "\n -- Group Knowledge Data -- ";
+			return;
+		}
 
-				bool firstKnowledge = true;
+		int population = cell.Group.Population;
 
-				foreach (CellCulturalKnowledge knowledge in cell.Group.Culture.Knowledges) {
+		if (population <= 0) {
 
-					float knowledgeValue = knowledge.Value;
+			InfoPanelText.text += "\n\tNo population at location";
 
-					if (knowledgeValue >= 0.001) {
+			return;
+		}
 
-						if (firstKnowledge) {
-							InfoPanelText.text += "\n";
-							InfoPanelText.text += "\nKnowledges";
+		bool firstKnowledge = true;
 
-							firstKnowledge = false;
-						}
+		foreach (CulturalKnowledge knowledge in cell.Group.Culture.Knowledges) {
 
-						InfoPanelText.text += "\n\t" + knowledge.Id + " - Value: " + knowledge.Value.ToString ("0.000");
-					}
+			float knowledgeValue = knowledge.Value;
+
+			if (knowledgeValue >= 0.001) {
+
+				if (firstKnowledge) {
+					InfoPanelText.text += "\nKnowledges:";
+
+					firstKnowledge = false;
 				}
+
+				InfoPanelText.text += "\n\t" + knowledge.Id + " - Value: " + knowledge.Value.ToString ("0.000");
 			}
+		}
+	}
+
+	public void AddCellDataToInfoPanel_PolityCulturalDiscovery (TerrainCell cell) {
+
+		InfoPanelText.text += "\n";
+		InfoPanelText.text += "\n -- Polity Discovery Data -- ";
+		InfoPanelText.text += "\n";
+
+		if (cell.Group == null) {
+
+			InfoPanelText.text += "\n\tNo population at location";
+
+			return;
+		}
+
+		int population = cell.Group.Population;
+
+		if (population <= 0) {
+
+			InfoPanelText.text += "\n\tNo population at location";
+
+			return;
+		}
+
+		PolityInfluence polityInfluence = cell.Group.HighestPolityInfluence;
+
+		if (polityInfluence == null) {
+
+			InfoPanelText.text += "\n\tGroup not part of a polity";
+
+			return;
+		}
+
+		bool firstDiscovery = true;
+
+		foreach (CulturalDiscovery discovery in polityInfluence.Polity.Culture.Discoveries) {
+
+			if (firstDiscovery) {
+				InfoPanelText.text += "\nDiscoveries:";
+
+				firstDiscovery = false;
+			}
+
+			InfoPanelText.text += "\n\t" + discovery.Id;
 		}
 	}
 
 	public void AddCellDataToInfoPanel_PopCulturalDiscovery (TerrainCell cell) {
 
-		if (cell.Group != null) {
+		InfoPanelText.text += "\n";
+		InfoPanelText.text += "\n -- Group Discovery Data -- ";
+		InfoPanelText.text += "\n";
 
-			int population = cell.Group.Population;
+		if (cell.Group == null) {
 
-			if (population > 0) {
+			InfoPanelText.text += "\n\tNo population at location";
 
-				InfoPanelText.text += "\n";
-				InfoPanelText.text += "\n -- Group Discovery Data -- ";
+			return;
+		}
 
-				bool firstDiscovery = true;
+		int population = cell.Group.Population;
 
-				foreach (CellCulturalDiscovery discovery in cell.Group.Culture.Discoveries) {
+		if (population <= 0) {
 
-					if (firstDiscovery) {
-						InfoPanelText.text += "\n";
-						InfoPanelText.text += "\nDiscoveries";
+			InfoPanelText.text += "\n\tNo population at location";
 
-						firstDiscovery = false;
-					}
+			return;
+		}
 
-					InfoPanelText.text += "\n\t" + discovery.Id;
-				}
+		bool firstDiscovery = true;
+
+		foreach (CulturalDiscovery discovery in cell.Group.Culture.Discoveries) {
+
+			if (firstDiscovery) {
+				InfoPanelText.text += "\nDiscoveries:";
+
+				firstDiscovery = false;
 			}
+
+			InfoPanelText.text += "\n\t" + discovery.Id;
 		}
 	}
 	
@@ -1784,9 +2078,24 @@ public class GuiManagerScript : MonoBehaviour {
 			AddCellDataToInfoPanel_PolityInfluence (cell);
 		}
 
+		if (_planetOverlay == PlanetOverlay.PolityTerritory) {
+
+			AddCellDataToInfoPanel_PolityTerritory (cell);
+		}
+
+		if (_planetOverlay == PlanetOverlay.PolityCulturalActivity) {
+
+			AddCellDataToInfoPanel_PolityCulturalActivity (cell);
+		}
+
 		if (_planetOverlay == PlanetOverlay.PopCulturalActivity) {
 
 			AddCellDataToInfoPanel_PopCulturalActivity (cell);
+		}
+
+		if (_planetOverlay == PlanetOverlay.PolityCulturalSkill) {
+
+			AddCellDataToInfoPanel_PolityCulturalSkill (cell);
 		}
 
 		if (_planetOverlay == PlanetOverlay.PopCulturalSkill) {
@@ -1794,9 +2103,19 @@ public class GuiManagerScript : MonoBehaviour {
 			AddCellDataToInfoPanel_PopCulturalSkill (cell);
 		}
 
+		if (_planetOverlay == PlanetOverlay.PolityCulturalKnowledge) {
+
+			AddCellDataToInfoPanel_PolityCulturalKnowledge (cell);
+		}
+
 		if (_planetOverlay == PlanetOverlay.PopCulturalKnowledge) {
 
 			AddCellDataToInfoPanel_PopCulturalKnowledge (cell);
+		}
+
+		if (_planetOverlay == PlanetOverlay.PolityCulturalDiscovery) {
+
+			AddCellDataToInfoPanel_PolityCulturalDiscovery (cell);
 		}
 
 		if (_planetOverlay == PlanetOverlay.PopCulturalDiscovery) {
