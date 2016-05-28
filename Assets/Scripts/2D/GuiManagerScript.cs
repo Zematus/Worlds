@@ -1679,6 +1679,11 @@ public class GuiManagerScript : MonoBehaviour {
 		}
 
 		InfoPanelText.text += "\n\tPart of polity " + polityInfluence.PolityId;
+		InfoPanelText.text += "\n";
+
+		int totalPopulation = (int)Mathf.Floor(polityInfluence.Polity.TotalPopulation);
+
+		InfoPanelText.text += "\n\tPolity population: " + totalPopulation;
 	}
 
 	public void AddCellDataToInfoPanel_PolityCulturalActivity (TerrainCell cell) {

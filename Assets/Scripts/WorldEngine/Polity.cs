@@ -35,6 +35,9 @@ public abstract class Polity : Synchronizable {
 	[XmlAttribute]
 	public float TotalGroupInfluenceValue = 0;
 
+	[XmlAttribute]
+	public float TotalPopulation = 0;
+
 	public List<long> InfluencedGroupIds;
 
 	public Territory Territory = new Territory ();
@@ -78,8 +81,20 @@ public abstract class Polity : Synchronizable {
 	}
 
 	public void Update () {
+
+		RunPopulationCensus ();
 	
 		Culture.Update ();
+	}
+
+	public void RunPopulationCensus () {
+
+		TotalPopulation = 0;
+	
+		foreach (CellGroup group in InfluencedGroups) {
+
+			TotalPopulation += group.Population * group.GetPolityInfluenceValue (this);
+		}
 	}
 
 	public void AddInfluencedGroup (CellGroup group) {
