@@ -211,7 +211,11 @@ public class GuiManagerScript : MonoBehaviour {
 		
 		bool updateTextures = false;
 
-		if (Manager.SimulationCanRun && Manager.SimulationRunning) {
+		bool simulationState = Manager.SimulationCanRun && Manager.SimulationRunning;
+
+		InterruptSimulation (!simulationState && !_simulationGuiPause);
+
+		if (simulationState) {
 
 			Speed maxSpeed = _maxSpeedOptions [_selectedMaxSpeedOptionIndex];
 
@@ -1139,7 +1143,14 @@ public class GuiManagerScript : MonoBehaviour {
 	}
 
 	public void InterruptSimulation (bool state) {
-		
+
+		SetPauseGui (state);
+
+		Manager.InterruptSimulation (state || _simulationGuiPause);
+	}
+
+	public void SetPauseGui (bool state) {
+
 		SetSimulationSpeedStopped (state);
 
 		OnSimulationInterrupted.Invoke (state);
@@ -1147,8 +1158,6 @@ public class GuiManagerScript : MonoBehaviour {
 		OnLastMaxSpeedOptionSet.Invoke (state || (_selectedMaxSpeedOptionIndex == _lastMaxSpeedOptionIndex));
 
 		_simulationGuiInterruption = state;
-
-		Manager.InterruptSimulation (state || _simulationGuiPause);
 	}
 
 	public void UpdateMapView () {

@@ -10,7 +10,7 @@ public class Tribe : Polity {
 
 	public const float BaseCoreInfluence = 0.5f;
 
-	public Tribe () : base () {
+	public Tribe () {
 
 	}
 

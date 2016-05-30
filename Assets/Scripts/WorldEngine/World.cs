@@ -103,6 +103,8 @@ public class World : Synchronizable {
 	public List<CulturalDiscovery> CulturalDiscoveryInfoList = new List<CulturalDiscovery> ();
 
 	public List<CellGroup> CellGroups;
+
+	[XmlArrayItem (Type = typeof(Tribe))]
 	public List<Polity> Polities;
 
 	// End wonky segment 
@@ -296,7 +298,18 @@ public class World : Synchronizable {
 	
 		EventsToHappen = _eventsToHappen.Values;
 
+		foreach (WorldEvent e in EventsToHappen) {
+
+			e.Synchronize ();
+		}
+
 		CellGroups = new List<CellGroup> (_cellGroups.Values);
+
+		foreach (CellGroup g in CellGroups) {
+
+			g.Synchronize ();
+		}
+
 		Polities = new List<Polity> (_polities.Values);
 
 		foreach (Polity p in Polities) {

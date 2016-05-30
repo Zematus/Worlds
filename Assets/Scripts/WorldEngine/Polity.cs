@@ -14,6 +14,10 @@ public class PolityInfluence {
 	[XmlIgnore]
 	public Polity Polity;
 
+	public PolityInfluence () {
+
+	}
+
 	public PolityInfluence (Polity polity, float value) {
 	
 		PolityId = polity.Id;

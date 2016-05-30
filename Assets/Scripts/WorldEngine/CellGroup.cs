@@ -1173,6 +1173,8 @@ public class CellGroup : HumanGroup {
 
 	public override void Synchronize () {
 
+		Culture.Synchronize ();
+
 		PolityInfluences = new List<PolityInfluence> (_polityInfluences.Values);
 		
 		base.Synchronize ();

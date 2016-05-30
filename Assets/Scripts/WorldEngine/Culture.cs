@@ -9,14 +9,17 @@ public class Culture : Synchronizable {
 	[XmlIgnore]
 	public World World;
 
-	[XmlArrayItem(Type = typeof(CellCulturalActivity))]
+	[XmlArrayItem(Type = typeof(CulturalActivity)),
+		XmlArrayItem(Type = typeof(CellCulturalActivity))]
 	public List<CulturalActivity> Activities = new List<CulturalActivity> ();
 
-	[XmlArrayItem(Type = typeof(BiomeSurvivalSkill)),
+	[XmlArrayItem(Type = typeof(CulturalSkill)),
+		XmlArrayItem(Type = typeof(BiomeSurvivalSkill)),
 		XmlArrayItem(Type = typeof(SeafaringSkill))]
 	public List<CulturalSkill> Skills = new List<CulturalSkill> ();
 	
-	[XmlArrayItem(Type = typeof(ShipbuildingKnowledge)),
+	[XmlArrayItem(Type = typeof(CulturalKnowledge)),
+		XmlArrayItem(Type = typeof(ShipbuildingKnowledge)),
 		XmlArrayItem(Type = typeof(AgricultureKnowledge)),
 		XmlArrayItem(Type = typeof(SocialOrganizationKnowledge))]
 	public List<CulturalKnowledge> Knowledges = new List<CulturalKnowledge> ();
@@ -172,6 +175,7 @@ public class Culture : Synchronizable {
 	}
 
 	public virtual void Synchronize () {
+		
 	}
 
 	public virtual void FinalizeLoad () {
@@ -788,6 +792,20 @@ public class CellCulture : Culture {
 		}
 		
 		return minProgressLevel;
+	}
+
+	public override void Synchronize () {
+
+		foreach (CellCulturalSkill s in Skills) {
+
+			s.Synchronize ();
+		}
+		foreach (CellCulturalKnowledge k in Knowledges) {
+
+			k.Synchronize ();
+		}
+
+		base.Synchronize ();
 	}
 	
 	public override void FinalizeLoad () {

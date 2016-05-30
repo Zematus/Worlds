@@ -35,6 +35,10 @@ public class PolityCulturalDiscovery : CulturalDiscovery {
 	[XmlAttribute]
 	public int PresenceCount = 0;
 
+	public PolityCulturalDiscovery () {
+
+	}
+
 	public PolityCulturalDiscovery (string id, string name) : base (id, name) {
 	
 	}
