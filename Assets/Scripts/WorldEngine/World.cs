@@ -178,6 +178,7 @@ public class World : Synchronizable {
 	private List<MigratingGroup> _migratingGroups = new List<MigratingGroup> ();
 
 	private HashSet<Polity> _politiesToUpdate = new HashSet<Polity>();
+	private HashSet<Polity> _politiesToRemove = new HashSet<Polity>();
 
 	private Dictionary<long, Polity> _polities = new Dictionary<long, Polity> ();
 
@@ -561,6 +562,17 @@ public class World : Synchronizable {
 		_politiesToUpdate.Clear ();
 
 		//
+		// Remove Polities that have been set to be removed
+		//
+
+		foreach (Polity polity in _politiesToRemove) {
+
+			polity.Destroy ();
+		}
+
+		_politiesToRemove.Clear ();
+
+		//
 		// Skip to Next Event's Date
 		//
 
@@ -641,6 +653,11 @@ public class World : Synchronizable {
 		_polities.Add (polity.Id, polity);
 	}
 
+	public void RemovePolity (Polity polity) {
+
+		_polities.Remove (polity.Id);
+	}
+
 	public Polity GetPolity (long id) {
 
 		Polity polity;
@@ -655,6 +672,11 @@ public class World : Synchronizable {
 		_politiesToUpdate.Add (polity);
 	}
 
+	public void AddPolityToRemove (Polity polity) {
+
+		_politiesToRemove.Add (polity);
+	}
+
 	public void FinalizeLoad () {
 
 		TerrainCellChangesList.ForEach (c => {
@@ -664,20 +686,28 @@ public class World : Synchronizable {
 			_terrainCellChangesListIndexes.Add (index);
 		});
 
+		Polities.ForEach (p => {
+
+			p.World = this;
+
+			_polities.Add (p.Id, p);
+		});
+
 		CellGroups.ForEach (g => {
 
 			g.World = this;
-			g.FinalizeLoad ();
 
 			_cellGroups.Add (g.Id, g);
 		});
 
 		Polities.ForEach (p => {
-		
-			p.World = this;
-			p.FinalizeLoad ();
 
-			_polities.Add (p.Id, p);
+			p.FinalizeLoad ();
+		});
+
+		CellGroups.ForEach (g => {
+			
+			g.FinalizeLoad ();
 		});
 
 		EventsToHappen.ForEach (e => {

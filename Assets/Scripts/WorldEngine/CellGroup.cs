@@ -1171,6 +1171,21 @@ public class CellGroup : HumanGroup {
 		}
 	}
 
+	public void RemovePolityInfluence (Polity polity) {
+
+		PolityInfluence pi = null;
+
+		if (!_polityInfluences.TryGetValue (polity.Id, out pi)) {
+		
+			throw new System.Exception ("Polity not actually influencing group");
+		}
+
+		_polityInfluences.Remove (polity.Id);
+
+		TotalPolityInfluenceValue -= pi.Value;
+		polity.TotalGroupInfluenceValue -= pi.Value;
+	}
+
 	public override void Synchronize () {
 
 		Culture.Synchronize ();

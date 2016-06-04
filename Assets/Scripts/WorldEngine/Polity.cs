@@ -74,6 +74,16 @@ public abstract class Polity : Synchronizable {
 		Culture = new PolityCulture (this);
 	}
 
+	public void Destroy () {
+		
+		World.RemovePolity (this);
+
+		foreach (CellGroup group in InfluencedGroups) {
+
+			group.RemovePolityInfluence (this);
+		}
+	}
+
 	public void SetCoreGroup (CellGroup group) {
 
 		if (!InfluencedGroups.Contains (group))
@@ -85,6 +95,13 @@ public abstract class Polity : Synchronizable {
 	}
 
 	public void Update () {
+
+		if (InfluencedGroups.Count <= 0) {
+		
+			World.AddPolityToRemove (this);
+
+			return;
+		}
 
 		RunPopulationCensus ();
 	
