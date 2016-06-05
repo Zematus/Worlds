@@ -163,6 +163,7 @@ public abstract class Polity : Synchronizable {
 			InfluencedGroups.Add (group);
 		}
 
+		Culture.World = World;
 		Culture.Polity = this;
 		Culture.FinalizeLoad ();
 	}
