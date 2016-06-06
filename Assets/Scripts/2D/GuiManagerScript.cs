@@ -166,6 +166,99 @@ public class GuiManagerScript : MonoBehaviour {
 
 		Manager.SaveAppSettings (@"Worlds.settings");
 	}
+
+	// TODO: Refactor this stuff into a proper test suite
+	// TEST CODE:
+	#if DEBUG
+
+	public bool RunTests = true;
+
+	private bool _runningTests = true;
+	private bool _testFinished = false;
+
+	private bool _exitUpdate = false;
+
+	public delegate void TestDelegate ();
+
+	private TestDelegate _currentTestDelegate = null;
+
+	private string _testState = "Initialization";
+
+	private void TestSaveLoadFunction () {
+
+		string path = Manager.SavePath + Manager.WorldName + ".plnt";
+	
+		switch (_testState) {
+
+		case "Initialization":
+
+			World world = Manager.CurrentWorld;
+
+			if (world == null) {
+			
+				return;
+			}
+
+			if (world.CurrentDate < 100) {
+			
+				return;
+			}
+
+			Manager.WorldName = "TestSaveLoad";
+
+			_testState = "Save";
+			_exitUpdate = true;
+			return;
+
+		case "Save":
+
+			ActivityDialogPanelScript.SetVisible (true);
+
+			ActivityDialogPanelScript.SetDialogText ("Saving World...");
+
+			Manager.SaveWorldAsync (path);
+
+			_postProgressOp += PostProgressOp_SaveAction;
+
+			_displayProgressDialogs = true;
+
+			_testState = "Load";
+			_exitUpdate = true;
+			return;
+
+		case "Load":
+
+			ProgressDialogPanelScript.SetVisible (true);
+
+			ProgressUpdate (0, "Loading World...", true);
+
+			Manager.LoadWorldAsync (path, ProgressUpdate);
+
+			Manager.WorldName = Path.GetFileNameWithoutExtension (path);
+
+			_postProgressOp += PostProgressOp_LoadAction;
+
+			_displayProgressDialogs = true;
+
+			_regenTextures = true;
+
+			_testState = "Cleanup";
+			_exitUpdate = true;
+			return;
+
+		case "Cleanup":
+			
+			_testFinished = true;
+
+			return;
+
+		default:
+			throw new System.Exception ("Unhandled test state: " + _testState);
+		}
+	}
+
+	#endif
+	// END TEST CODE
 	
 	// Update is called once per frame
 	void Update () {
@@ -208,6 +301,30 @@ public class GuiManagerScript : MonoBehaviour {
 			if (_postProgressOp != null) 
 				_postProgressOp ();
 		}
+
+		// TODO: Refactor this stuff into a proper test suite
+		// TEST CODE:
+		#if DEBUG
+		if (RunTests && _runningTests) {
+
+			_currentTestDelegate = TestSaveLoadFunction;
+
+			_currentTestDelegate ();
+
+			if (_testFinished) {
+
+				_runningTests = false;
+			}
+
+			if (_exitUpdate) {
+
+				_exitUpdate = false;
+
+				return;
+			}
+		}
+		#endif
+		// END TEST CODE
 		
 		bool updateTextures = false;
 
