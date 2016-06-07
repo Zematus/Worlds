@@ -184,15 +184,21 @@ public class GuiManagerScript : MonoBehaviour {
 
 	private string _testState = "Initialization";
 
+	private int _eventCountBeforeSave;
+	private int _eventCountAfterSave;
+	private int _eventCountAfterLoad;
+
+	private int _saveDate;
+
 	private void TestSaveLoadFunction () {
+
+		World world = Manager.CurrentWorld;
 
 		string path = Manager.SavePath + Manager.WorldName + ".plnt";
 	
 		switch (_testState) {
 
 		case "Initialization":
-
-			World world = Manager.CurrentWorld;
 
 			if (world == null) {
 			
@@ -204,7 +210,20 @@ public class GuiManagerScript : MonoBehaviour {
 				return;
 			}
 
+			_saveDate = world.CurrentDate;
+
+			Debug.Log ("Save Date: " + _saveDate);
+
 			Manager.WorldName = "TestSaveLoad";
+
+			_testState = "BeforeSave";
+			_exitUpdate = true;
+			return;
+
+		case "BeforeSave":
+
+			_eventCountBeforeSave = world.EventsToHappenCount;
+			Debug.Log ("Number of Events before save: " + _eventCountBeforeSave);
 
 			_testState = "Save";
 			_exitUpdate = true;
@@ -221,6 +240,43 @@ public class GuiManagerScript : MonoBehaviour {
 			_postProgressOp += PostProgressOp_SaveAction;
 
 			_displayProgressDialogs = true;
+
+			_testState = "AfterSave";
+			_exitUpdate = true;
+			return;
+
+		case "AfterSave":
+
+			_eventCountAfterSave = world.EventsToHappen.Count;
+			Debug.Log ("Number of Events after save: " + _eventCountAfterSave);
+
+			_testState = "EvaluateAfterSave";
+			_exitUpdate = true;
+			return;
+
+		case "EvaluateAfterSave":
+
+			if (_eventCountBeforeSave != _eventCountAfterSave) {
+
+				Debug.LogError ("Number of events before and after save are different");
+
+			} else {
+
+				Debug.Log ("Number of Events remain equal after save");
+			}
+
+			_testState = "EvaluateNextTickAfterSave";
+			_exitUpdate = true;
+			return;
+
+		case "EvaluateNextTickAfterSave":
+
+			if (world.CurrentDate == _saveDate) {
+
+				return;
+			}
+
+			Debug.Log ("Current Date: " + world.CurrentDate);
 
 			_testState = "Load";
 			_exitUpdate = true;
@@ -241,6 +297,43 @@ public class GuiManagerScript : MonoBehaviour {
 			_displayProgressDialogs = true;
 
 			_regenTextures = true;
+
+			_testState = "AfterLoad";
+			_exitUpdate = true;
+			return;
+
+		case "AfterLoad":
+
+			_eventCountAfterLoad = world.EventsToHappen.Count;
+			Debug.Log ("Number of Events after load: " + _eventCountAfterLoad);
+
+			_testState = "EvaluateAfterLoad";
+			_exitUpdate = true;
+			return;
+
+		case "EvaluateAfterLoad":
+
+			if (_eventCountAfterLoad != _eventCountAfterSave) {
+			
+				Debug.LogError ("Number of events after load different from after save");
+
+			} else {
+
+				Debug.Log ("Number of Events remain equal after load");
+			}
+
+			_testState = "EvaluateNextTickAfterLoad";
+			_exitUpdate = true;
+			return;
+
+		case "EvaluateNextTickAfterLoad":
+
+			if (world.CurrentDate == _saveDate) {
+
+				return;
+			}
+
+			Debug.Log ("Current Date: " + world.CurrentDate);
 
 			_testState = "Cleanup";
 			_exitUpdate = true;
@@ -314,6 +407,9 @@ public class GuiManagerScript : MonoBehaviour {
 			if (_testFinished) {
 
 				_runningTests = false;
+
+				Debug.Log ("Finished Tests!");
+				Debug.Break ();
 			}
 
 			if (_exitUpdate) {
@@ -539,8 +635,23 @@ public class GuiManagerScript : MonoBehaviour {
 		Manager.WorldName = "world_" + Manager.CurrentWorld.Seed;
 		
 		SelectionPanelScript.RemoveAllOptions ();
-		
-		SetInitialPopulation();
+
+		// TODO: Refactor this stuff into a proper test suite
+		// TEST CODE:
+		#if DEBUG
+
+		if (RunTests && _runningTests) {
+			SetInitialPopulationForTests ();
+		} else {
+			SetInitialPopulation ();
+		}
+
+		#else
+
+		SetInitialPopulation ();
+
+		#endif
+		// END TEST CODE
 
 		_selectedMaxSpeedOptionIndex = _lastMaxSpeedOptionIndex;
 
@@ -567,6 +678,17 @@ public class GuiManagerScript : MonoBehaviour {
 	private void ResetUIElements () {
 	
 		_selectedCell = null;
+	}
+
+	public void SetInitialPopulationForTests () {
+
+		int population = (int)Mathf.Ceil (World.StartPopulationDensity * TerrainCell.MaxArea);
+
+		Manager.GenerateRandomHumanGroup (population);
+
+		InterruptSimulation (false);
+
+		DisplayTip_MapScroll ();
 	}
 
 	private void SetInitialPopulation () {
