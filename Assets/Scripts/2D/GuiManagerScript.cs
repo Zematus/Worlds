@@ -76,6 +76,8 @@ public class GuiManagerScript : MonoBehaviour {
 
 	private bool _regenTextures = false;
 
+	private bool _resetOverlays = true;
+
 	private Vector2 _beginDragPosition;
 	private Rect _beginDragMapUvRect;
 
@@ -472,6 +474,18 @@ public class GuiManagerScript : MonoBehaviour {
 	
 		if (_regenTextures) {
 			_regenTextures = false;
+
+			if (_resetOverlays) {	
+				_resetOverlays = false;
+
+				_planetView = PlanetView.Biomes;
+
+				#if DEBUG
+				_planetOverlay = PlanetOverlay.UpdateSpan;
+				#else
+				_planetOverlay = PlanetOverlay.PopDensity;
+				#endif
+			}
 
 			Manager.SetPlanetOverlay (_planetOverlay, _planetOverlaySubtype);
 			Manager.SetPlanetView (_planetView);
