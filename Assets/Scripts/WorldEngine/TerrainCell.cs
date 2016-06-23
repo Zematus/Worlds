@@ -60,6 +60,12 @@ public class TerrainCellChanges {
 }
 
 public class TerrainCell : Synchronizable {
+
+	#if DEBUG
+
+	public static int LastRandomInteger = 0; 
+
+	#endif
 	
 	[XmlAttribute]
 	public int Longitude;
@@ -236,7 +242,15 @@ public class TerrainCell : Synchronizable {
 
 		LocalIteration++;
 
-		return PerlinNoise.GetPermutationValue(x, y, z) % maxValue;
+		int value = PerlinNoise.GetPermutationValue(x, y, z) % maxValue;
+
+		#if DEBUG
+
+		LastRandomInteger = value;
+
+		#endif
+
+		return value;
 	}
 	
 	public float GetNextLocalRandomFloat () {

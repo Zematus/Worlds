@@ -14,6 +14,8 @@ public interface Synchronizable {
 
 [XmlRoot]
 public class World : Synchronizable {
+
+	public const int MaxPossibleYearsToSkip = int.MaxValue / 100;
 	
 	public const float Circumference = 40075; // In kilometers;
 	
@@ -46,7 +48,7 @@ public class World : Synchronizable {
 	public int Width { get; private set; }
 	[XmlAttribute]
 	public int Height { get; private set; }
-	
+
 	[XmlAttribute]
 	public int Seed { get; private set; }
 	
@@ -208,7 +210,7 @@ public class World : Synchronizable {
 		Seed = seed;
 		
 		CurrentDate = 0;
-		MaxYearsToSkip = int.MaxValue;
+		MaxYearsToSkip = MaxPossibleYearsToSkip;
 		CurrentCellGroupId = 0;
 		CurrentEventId = 0;
 		CurrentPolityId = 0;
@@ -454,7 +456,14 @@ public class World : Synchronizable {
 
 			if (eventToHappen.TriggerDate > CurrentDate) {
 
-				dateToSkipTo = Mathf.Min (eventToHappen.TriggerDate, CurrentDate + MaxYearsToSkip);
+				int maxDate = CurrentDate + MaxYearsToSkip;
+
+				if (maxDate < 0) {
+					throw new System.Exception ("Surpassed date limit (Int32.MaxValue)");
+					Debug.Break ();
+				}
+
+				dateToSkipTo = Mathf.Min (eventToHappen.TriggerDate, maxDate);
 				break;
 			}
 
@@ -580,7 +589,7 @@ public class World : Synchronizable {
 
 			WorldEvent futureEventToHappen = _eventsToHappen.Leftmost;
 			
-			if (futureEventToHappen.TriggerDate > dateToSkipTo) {
+			if (futureEventToHappen.TriggerDate < dateToSkipTo) {
 				
 				dateToSkipTo = futureEventToHappen.TriggerDate;
 			}

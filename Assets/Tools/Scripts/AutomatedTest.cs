@@ -30,11 +30,28 @@ public class SaveLoadTest : AutomatedTest {
 		Load
 	}
 
+	private const int _skipBeforeSave = 1;
+	private const int _firstOffsetAfter = 1;
+	private const int _secondOffsetAfter = 1;
+
 	private int _eventCountBeforeSave;
 	private int _eventCountAfterSave;
 	private int _eventCountAfterLoad;
 
+	private int _eventCountAfterSaveOffset1;
+	private int _eventCountAfterSaveOffset2;
+
+	private int _eventCountAfterLoadOffset1;
+	private int _eventCountAfterLoadOffset2;
+
+	private int _lastRandomIntegerAfterSave1;
+	private int _lastRandomIntegerAfterSave2;
+
+	private int _lastRandomIntegerAfterLoad1;
+	private int _lastRandomIntegerAfterLoad2;
+
 	private int _saveDate;
+	private int _saveDatePlusOffset;
 
 	private bool _result = true;
 
@@ -62,6 +79,8 @@ public class SaveLoadTest : AutomatedTest {
 			
 				_savePath = Manager.SavePath + "TestSaveLoad.plnt";
 
+				Debug.Log ("Generating world...");
+
 				Manager.GenerateNewWorldAsync (407252633);
 
 				State = TestState.Running;
@@ -82,9 +101,9 @@ public class SaveLoadTest : AutomatedTest {
 
 			_world = Manager.CurrentWorld;
 
-			Debug.Log ("Pushing simulation forward at least 100 years...");
+			Debug.Log ("Pushing simulation forward before save...");
 
-			while (_world.CurrentDate < 100) {
+			while (_world.CurrentDate < _skipBeforeSave) {
 
 				Manager.CurrentWorld.Iterate ();
 			}
@@ -93,8 +112,14 @@ public class SaveLoadTest : AutomatedTest {
 
 			Debug.Log ("Save Date: " + _saveDate);
 
+			#if DEBUG
+			Debug.Log ("Last Random Integer: " + TerrainCell.LastRandomInteger);
+			#endif
+
 			_eventCountBeforeSave = _world.EventsToHappenCount;
 			Debug.Log ("Number of Events before save: " + _eventCountBeforeSave);
+
+			Debug.Log ("Saving world...");
 
 			Manager.SaveWorldAsync (_savePath);
 
@@ -122,14 +147,43 @@ public class SaveLoadTest : AutomatedTest {
 				Debug.Log ("Number of Events remain equal after save");
 			}
 
-			Debug.Log ("Pushing simulation forward...");
+			Debug.Log ("Pushing simulation forward after save...");
 
-			while (_world.CurrentDate < (_saveDate + 100)) {
+			while (_world.CurrentDate < (_saveDate + _firstOffsetAfter)) {
+
+				Manager.CurrentWorld.Iterate ();
+			}
+
+			_saveDatePlusOffset = _world.CurrentDate;
+
+			Debug.Log ("Current Date: " + _world.CurrentDate);
+
+			_eventCountAfterSaveOffset1 = _world.EventsToHappenCount;
+			Debug.Log ("Number of Events after save with offset 1: " + _eventCountAfterSaveOffset1);
+
+			#if DEBUG
+			_lastRandomIntegerAfterSave1 = TerrainCell.LastRandomInteger;
+			Debug.Log ("Last Random Integer after Save with offset 1: " + _lastRandomIntegerAfterSave1);
+			#endif
+
+			Debug.Log ("Pushing simulation forward after save again...");
+
+			while (_world.CurrentDate < (_saveDatePlusOffset + _secondOffsetAfter)) {
 
 				Manager.CurrentWorld.Iterate ();
 			}
 
 			Debug.Log ("Current Date: " + _world.CurrentDate);
+
+			_eventCountAfterSaveOffset2 = _world.EventsToHappenCount;
+			Debug.Log ("Number of Events after save with offset 2: " + _eventCountAfterSaveOffset2);
+
+			#if DEBUG
+			_lastRandomIntegerAfterSave2 = TerrainCell.LastRandomInteger;
+			Debug.Log ("Last Random Integer after Save with offset 2: " + _lastRandomIntegerAfterSave2);
+			#endif
+
+			Debug.Log ("Loading world...");
 
 			Manager.LoadWorldAsync (_savePath);
 
@@ -161,14 +215,83 @@ public class SaveLoadTest : AutomatedTest {
 				Debug.Log ("Number of Events remain equal after load");
 			}
 
-			Debug.Log ("Pushing simulation forward...");
+			Debug.Log ("Pushing simulation forward after load...");
 
-			while (_world.CurrentDate < (_saveDate + 100)) {
+			while (_world.CurrentDate < (_saveDate + _firstOffsetAfter)) {
 
 				Manager.CurrentWorld.Iterate ();
 			}
 
 			Debug.Log ("Current Date: " + _world.CurrentDate);
+
+			_eventCountAfterLoadOffset1 = _world.EventsToHappenCount;
+			Debug.Log ("Number of Events after load with offset 1: " + _eventCountAfterLoadOffset1);
+
+			if (_eventCountAfterSaveOffset1 != _eventCountAfterLoadOffset1) {
+
+				Debug.LogError ("First number of events after load with offset not equal to : " + _eventCountAfterSaveOffset1);
+
+				_result = false;
+
+			} else {
+
+				Debug.Log ("First number of events after load with offset equal");
+			}
+
+			#if DEBUG
+			_lastRandomIntegerAfterLoad1 = TerrainCell.LastRandomInteger;
+			Debug.Log ("Last Random Integer after Load with offset 1: " + _lastRandomIntegerAfterLoad1);
+
+			if (_lastRandomIntegerAfterSave1 != _lastRandomIntegerAfterLoad1) {
+
+				Debug.LogError ("First last random integer after load not equal to : " + _lastRandomIntegerAfterSave1);
+
+				_result = false;
+
+			} else {
+
+				Debug.Log ("First last random integer after load equal");
+			}
+			#endif
+
+			Debug.Log ("Pushing simulation forward after load again...");
+
+			while (_world.CurrentDate < (_saveDatePlusOffset + _secondOffsetAfter)) {
+
+				Manager.CurrentWorld.Iterate ();
+			}
+
+			Debug.Log ("Current Date: " + _world.CurrentDate);
+
+			_eventCountAfterLoadOffset2 = _world.EventsToHappenCount;
+			Debug.Log ("Number of Events after load with offset 2: " + _eventCountAfterLoadOffset2);
+
+			if (_eventCountAfterSaveOffset2 != _eventCountAfterLoadOffset2) {
+
+				Debug.LogError ("Second number of events after load with offset not equal to : " + _eventCountAfterSaveOffset2);
+
+				_result = false;
+
+			} else {
+
+				Debug.Log ("Second number of events after load with offset equal");
+			}
+
+			#if DEBUG
+			_lastRandomIntegerAfterLoad2 = TerrainCell.LastRandomInteger;
+			Debug.Log ("Last Random Integer after Load with offset 2: " + _lastRandomIntegerAfterLoad2);
+
+			if (_lastRandomIntegerAfterSave2 != _lastRandomIntegerAfterLoad2) {
+
+				Debug.LogError ("Second last random integer after load not equal to : " + _lastRandomIntegerAfterSave2);
+
+				_result = false;
+
+			} else {
+
+				Debug.Log ("Second last random integer after load equal");
+			}
+			#endif
 
 			if (_result)
 				State = TestState.Succeded;
