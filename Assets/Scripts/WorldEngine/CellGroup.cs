@@ -56,6 +56,12 @@ public class CellGroup : HumanGroup {
 	[XmlAttribute]
 	public float TotalPolityInfluenceValue = 0;
 
+	[XmlAttribute]
+	public float CellMigrationValue;
+
+	[XmlAttribute]
+	public float TotalMigrationValue;
+
 	public Route SeaMigrationRoute = null;
 
 	public List<string> Flags = new List<string> ();
@@ -68,12 +74,6 @@ public class CellGroup : HumanGroup {
 	
 	[XmlIgnore]
 	public TerrainCell Cell;
-	
-	[XmlIgnore]
-	public float CellMigrationValue;
-
-	[XmlIgnore]
-	public float TotalMigrationValue;
 
 	[XmlIgnore]
 	public bool DebugTagged = false;

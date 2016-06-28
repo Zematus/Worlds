@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public enum TestState {
 
@@ -10,6 +11,8 @@ public enum TestState {
 }
 
 public abstract class AutomatedTest {
+
+	public string Name { get; protected set; }
 
 	public TestState State { get; protected set; }
 
@@ -30,9 +33,9 @@ public class SaveLoadTest : AutomatedTest {
 		Load
 	}
 
-	private const int _skipBeforeSave = 1;
-	private const int _firstOffsetAfter = 1;
-	private const int _secondOffsetAfter = 1;
+	private int _initialSkip = 80;
+	private int _firstOffset = 1;
+	private int _secondOffset = 1;
 
 	private int _eventCountBeforeSave;
 	private int _eventCountAfterSave;
@@ -50,8 +53,17 @@ public class SaveLoadTest : AutomatedTest {
 	private int _lastRandomIntegerAfterLoad1;
 	private int _lastRandomIntegerAfterLoad2;
 
+	private int _numGroupsAfterSaveOffset2;
+	private int _numGroupsAfterLoadOffset2;
+
+	private int _numPolitiesAfterSaveOffset2;
+	private int _numPolitiesAfterLoadOffset2;
+
 	private int _saveDate;
 	private int _saveDatePlusOffset;
+
+	private TestRecorder _saveRecorder = new TestRecorder ();
+	private TestRecorder _loadRecorder = new TestRecorder ();
 
 	private bool _result = true;
 
@@ -61,8 +73,25 @@ public class SaveLoadTest : AutomatedTest {
 
 	private Stage _stage = Stage.Generation;
 
-	public SaveLoadTest () {
-		
+	private bool _validateRecording = false;
+
+	public SaveLoadTest (int initialSkip, int firstOffset, int secondOffset, bool validateRecording) {
+
+		_initialSkip = initialSkip;
+		_firstOffset = firstOffset;
+		_secondOffset = secondOffset;
+
+		_validateRecording = validateRecording;
+
+		Name = "Save/Load Test with initialSkip: " + initialSkip
+			+ ", firstOffset: " + firstOffset
+			+ ",  _secondOffset: " + _secondOffset;
+
+		if (_validateRecording) {
+			Name += " with recording validation";
+		} else {
+			Name += " without recording validation";
+		}
 	}
 
 	public override void Run () {
@@ -87,7 +116,6 @@ public class SaveLoadTest : AutomatedTest {
 			}
 
 			if (!Manager.WorldReady) {
-
 				return;
 			}
 
@@ -103,7 +131,7 @@ public class SaveLoadTest : AutomatedTest {
 
 			Debug.Log ("Pushing simulation forward before save...");
 
-			while (_world.CurrentDate < _skipBeforeSave) {
+			while (_world.CurrentDate < _initialSkip) {
 
 				Manager.CurrentWorld.Iterate ();
 			}
@@ -133,6 +161,10 @@ public class SaveLoadTest : AutomatedTest {
 				return;
 			}
 
+			if (_validateRecording) {
+				Manager.Recorder = _saveRecorder;
+			}
+
 			_eventCountAfterSave = _world.EventsToHappen.Count;
 			Debug.Log ("Number of Events after save: " + _eventCountAfterSave);
 
@@ -149,7 +181,7 @@ public class SaveLoadTest : AutomatedTest {
 
 			Debug.Log ("Pushing simulation forward after save...");
 
-			while (_world.CurrentDate < (_saveDate + _firstOffsetAfter)) {
+			while (_world.CurrentDate < (_saveDate + _firstOffset)) {
 
 				Manager.CurrentWorld.Iterate ();
 			}
@@ -168,7 +200,7 @@ public class SaveLoadTest : AutomatedTest {
 
 			Debug.Log ("Pushing simulation forward after save again...");
 
-			while (_world.CurrentDate < (_saveDatePlusOffset + _secondOffsetAfter)) {
+			while (_world.CurrentDate < (_saveDatePlusOffset + _secondOffset)) {
 
 				Manager.CurrentWorld.Iterate ();
 			}
@@ -183,6 +215,11 @@ public class SaveLoadTest : AutomatedTest {
 			Debug.Log ("Last Random Integer after Save with offset 2: " + _lastRandomIntegerAfterSave2);
 			#endif
 
+			_numGroupsAfterSaveOffset2 = _world.CellGroupCount;
+			_numPolitiesAfterSaveOffset2 = _world.PolityCount;
+			Debug.Log ("Number of Cell Groups after save with offset 2: " + _numGroupsAfterSaveOffset2);
+			Debug.Log ("Number of Polities after save with offset 2: " + _numPolitiesAfterSaveOffset2);
+
 			Debug.Log ("Loading world...");
 
 			Manager.LoadWorldAsync (_savePath);
@@ -195,6 +232,10 @@ public class SaveLoadTest : AutomatedTest {
 
 			if (Manager.PerformingAsyncTask) {
 				return;
+			}
+
+			if (_validateRecording) {
+				Manager.Recorder = _loadRecorder;
 			}
 
 			_world = Manager.CurrentWorld;
@@ -217,7 +258,7 @@ public class SaveLoadTest : AutomatedTest {
 
 			Debug.Log ("Pushing simulation forward after load...");
 
-			while (_world.CurrentDate < (_saveDate + _firstOffsetAfter)) {
+			while (_world.CurrentDate < (_saveDate + _firstOffset)) {
 
 				Manager.CurrentWorld.Iterate ();
 			}
@@ -242,21 +283,24 @@ public class SaveLoadTest : AutomatedTest {
 			_lastRandomIntegerAfterLoad1 = TerrainCell.LastRandomInteger;
 			Debug.Log ("Last Random Integer after Load with offset 1: " + _lastRandomIntegerAfterLoad1);
 
-			if (_lastRandomIntegerAfterSave1 != _lastRandomIntegerAfterLoad1) {
-
-				Debug.LogError ("First last random integer after load not equal to : " + _lastRandomIntegerAfterSave1);
-
-				_result = false;
-
-			} else {
-
-				Debug.Log ("First last random integer after load equal");
-			}
+			/// NOTE: TerrainCell.LastRandomInteger might not be consistent because the order in which events are executed for a particular date might change after Load
+			/// 	this shouldn't have any effect on the simulation
+			/// 
+//			if (_lastRandomIntegerAfterSave1 != _lastRandomIntegerAfterLoad1) {
+//
+//				Debug.LogError ("First last random integer after load not equal to : " + _lastRandomIntegerAfterSave1);
+//
+//				_result = false;
+//
+//			} else {
+//
+//				Debug.Log ("First last random integer after load equal");
+//			}
 			#endif
 
 			Debug.Log ("Pushing simulation forward after load again...");
 
-			while (_world.CurrentDate < (_saveDatePlusOffset + _secondOffsetAfter)) {
+			while (_world.CurrentDate < (_saveDatePlusOffset + _secondOffset)) {
 
 				Manager.CurrentWorld.Iterate ();
 			}
@@ -281,17 +325,95 @@ public class SaveLoadTest : AutomatedTest {
 			_lastRandomIntegerAfterLoad2 = TerrainCell.LastRandomInteger;
 			Debug.Log ("Last Random Integer after Load with offset 2: " + _lastRandomIntegerAfterLoad2);
 
-			if (_lastRandomIntegerAfterSave2 != _lastRandomIntegerAfterLoad2) {
+			/// NOTE: TerrainCell.LastRandomInteger might not be consistent because the order in which events are executed for a particular date might change after Load
+			/// 	this shouldn't have any effect on the simulation
+			/// 
+//			if (_lastRandomIntegerAfterSave2 != _lastRandomIntegerAfterLoad2) {
+//
+//				Debug.LogError ("Second last random integer after load not equal to : " + _lastRandomIntegerAfterSave2);
+//
+//				_result = false;
+//
+//			} else {
+//
+//				Debug.Log ("Second last random integer after load equal");
+//			}
+			#endif
 
-				Debug.LogError ("Second last random integer after load not equal to : " + _lastRandomIntegerAfterSave2);
+			_numGroupsAfterLoadOffset2 = _world.CellGroupCount;
+			Debug.Log ("Number of Cell Groups after load with offset 2: " + _numGroupsAfterLoadOffset2);
+
+			if (_numGroupsAfterSaveOffset2 != _numGroupsAfterLoadOffset2) {
+
+				Debug.LogError ("Second number of cell groups after load with offset not equal to : " + _numGroupsAfterSaveOffset2);
 
 				_result = false;
 
 			} else {
 
-				Debug.Log ("Second last random integer after load equal");
+				Debug.Log ("Second number of cell groups after load with offset equal");
 			}
-			#endif
+
+			_numPolitiesAfterLoadOffset2 = _world.PolityCount;
+			Debug.Log ("Number of Polities after load with offset 2: " + _numPolitiesAfterLoadOffset2);
+
+			if (_numPolitiesAfterSaveOffset2 != _numPolitiesAfterLoadOffset2) {
+
+				Debug.LogError ("Second number of polities after load with offset not equal to : " + _numPolitiesAfterSaveOffset2);
+
+				_result = false;
+
+			} else {
+
+				Debug.Log ("Second number of polities after load with offset equal");
+			}
+
+			if (_validateRecording) {
+				int saveEntryCount = _saveRecorder.GetEntryCount ();
+				int loadEntryCount = _loadRecorder.GetEntryCount ();
+
+				int minEntries = Mathf.Min (saveEntryCount, loadEntryCount);
+
+				if (saveEntryCount != loadEntryCount) {
+
+					Debug.LogError ("Number of Test Recorder entries different: save=" + saveEntryCount + " load=" + loadEntryCount);
+				} else {
+					Debug.Log ("Number of Test Recorder entries: " + saveEntryCount);
+				}
+
+				int maxEntryErrors = 5;
+				int entryErrorCount = 0;
+
+				foreach (KeyValuePair<string,string> pair in _saveRecorder.RecordedData) {
+			
+					string entryKey = pair.Key;
+					string saveEntry = pair.Value;
+					string loadEntry = _loadRecorder.Recover (entryKey);
+
+					if (saveEntry != loadEntry) {
+					
+						if (entryErrorCount < maxEntryErrors) {
+							Debug.LogError ("Entries with key [" + entryKey + "] different...\n\tSave entry: " + saveEntry + "\n\tLoad entry: " + loadEntry);
+						}
+
+						entryErrorCount++;
+					}
+				}
+
+				entryErrorCount += Mathf.Abs (saveEntryCount - loadEntryCount);
+
+				if (entryErrorCount > maxEntryErrors) {
+					Debug.LogError ("Entry errors not displayed: " + (entryErrorCount - maxEntryErrors));
+				}
+
+				if (entryErrorCount > 0) {
+					Debug.LogError ("Total entry error count: " + entryErrorCount);
+				} else {
+					Debug.Log ("Total entry error count: " + entryErrorCount);
+				}
+
+				Manager.Recorder = DefaultRecorder.Default;
+			}
 
 			if (_result)
 				State = TestState.Succeded;

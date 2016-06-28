@@ -126,6 +126,10 @@ public class Manager {
 
 	public const int WorldWidth = 400;
 	public const int WorldHeight = 200;
+
+	public static bool RecordingEnabled = false;
+
+	public static IRecorder Recorder = DefaultRecorder.Default;
 	
 	public static Thread MainThread { get; private set; }
 	
@@ -212,7 +216,7 @@ public class Manager {
 		
 		get {
 
-			bool canRun = (_manager._currentWorld.CellGroupsCount > 0);
+			bool canRun = (_manager._currentWorld.CellGroupCount > 0);
 
 			return canRun;
 		}
@@ -625,7 +629,7 @@ public class Manager {
 		_isLoadReady = true;
 
 		_totalLoadTicks = WorldBeingLoaded.EventsToHappenCount;
-		_totalLoadTicks += WorldBeingLoaded.CellGroupsCount;
+		_totalLoadTicks += WorldBeingLoaded.CellGroupCount;
 		_totalLoadTicks += WorldBeingLoaded.TerrainCellChangesListCount;
 
 		_loadTicks = 0;

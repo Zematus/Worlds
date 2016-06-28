@@ -71,7 +71,10 @@ public class World : Synchronizable {
 	public int EventsToHappenCount { get; private set; }
 	
 	[XmlAttribute]
-	public int CellGroupsCount { get; private set; }
+	public int CellGroupCount { get; private set; }
+
+	[XmlAttribute]
+	public int PolityCount { get; private set; }
 
 	[XmlAttribute]
 	public int TerrainCellChangesListCount { get; private set; }
@@ -215,7 +218,8 @@ public class World : Synchronizable {
 		CurrentEventId = 0;
 		CurrentPolityId = 0;
 		EventsToHappenCount = 0;
-		CellGroupsCount = 0;
+		CellGroupCount = 0;
+		PolityCount = 0;
 		TerrainCellChangesListCount = 0;
 
 		SeaLevelOffset = Manager.SeaLevelOffset;
@@ -439,7 +443,7 @@ public class World : Synchronizable {
 
 	public int Iterate () {
 
-		if (CellGroupsCount <= 0)
+		if (CellGroupCount <= 0)
 			return 0;
 		
 		//
@@ -628,14 +632,14 @@ public class World : Synchronizable {
 
 		Manager.AddUpdatedCell (group.Cell);
 
-		CellGroupsCount++;
+		CellGroupCount++;
 	}
 	
 	public void RemoveGroup (CellGroup group) {
 
 		_cellGroups.Remove (group.Id);
 		
-		CellGroupsCount--;
+		CellGroupCount--;
 	}
 	
 	public CellGroup GetGroup (long id) {
@@ -660,11 +664,15 @@ public class World : Synchronizable {
 	public void AddPolity (Polity polity) {
 
 		_polities.Add (polity.Id, polity);
+
+		PolityCount++;
 	}
 
 	public void RemovePolity (Polity polity) {
 
 		_polities.Remove (polity.Id);
+
+		PolityCount--;
 	}
 
 	public Polity GetPolity (long id) {

@@ -4,7 +4,8 @@ using System.Collections;
 public class TestRunnerScript : MonoBehaviour {
 
 	public AutomatedTest[] tests = new AutomatedTest[] {
-		new SaveLoadTest ()
+		new SaveLoadTest (80, 1, 1, true),
+		new SaveLoadTest (100000, 200000, 200000, false)
 	};
 
 	private int _prevTestIndex = -1;
@@ -14,6 +15,8 @@ public class TestRunnerScript : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
+
+		Manager.RecordingEnabled = true;
 
 		Debug.Log ("Running Tests...\n");
 	}
@@ -35,7 +38,7 @@ public class TestRunnerScript : MonoBehaviour {
 
 			if (_prevTestIndex != _testIndex) {
 				
-				Debug.Log ("Executing test: " + _testIndex);
+				Debug.Log ("Executing test: " + _testIndex + " - " + test.Name);
 
 				_prevTestIndex = _testIndex;
 			}

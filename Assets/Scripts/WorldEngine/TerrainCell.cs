@@ -240,15 +240,21 @@ public class TerrainCell : Synchronizable {
 		int y = Mathf.Abs (World.Seed + Latitude);
 		int z = Mathf.Abs (World.Seed + World.CurrentDate + LocalIteration);
 
-		LocalIteration++;
-
 		int value = PerlinNoise.GetPermutationValue(x, y, z) % maxValue;
 
 		#if DEBUG
 
-		LastRandomInteger = value;
+		if (Manager.RecordingEnabled) {
+			LastRandomInteger = value;
+
+			string key = "Long:" + Longitude + "-Lat:" + Latitude + "-Date:" + World.CurrentDate + "-LocalIteration:" + LocalIteration;
+
+			Manager.Recorder.Record (key, "LastRandomInteger:" + value);
+		}
 
 		#endif
+
+		LocalIteration++;
 
 		return value;
 	}
