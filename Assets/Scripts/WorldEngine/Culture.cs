@@ -295,7 +295,7 @@ public class PolityCulture : Culture {
 
 	private void AddGroupCultures () {
 	
-		foreach (CellGroup group in Polity.InfluencedGroups) {
+		foreach (CellGroup group in Polity.InfluencedGroups.Values) {
 		
 			AddGroupCulture (group);
 		}

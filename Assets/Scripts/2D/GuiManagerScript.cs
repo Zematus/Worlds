@@ -1706,18 +1706,31 @@ public class GuiManagerScript : MonoBehaviour {
 
 
 		if (polityInfluence == null) {
-
 			InfoPanelText.text += "\n\tGroup not part of a polity";
-
 			return;
 		}
 
 		InfoPanelText.text += "\n\tPart of polity " + polityInfluence.PolityId;
 		InfoPanelText.text += "\n";
 
-		int totalPopulation = (int)Mathf.Floor(polityInfluence.Polity.TotalPopulation);
+		Polity polity = polityInfluence.Polity;
+
+		int totalPopulation = (int)Mathf.Floor(polity.TotalPopulation);
 
 		InfoPanelText.text += "\n\tPolity population: " + totalPopulation;
+		InfoPanelText.text += "\n";
+
+		float percentageOfPopulation = cell.Group.GetPolityInfluenceValue (polity);
+		int influencedPopulation = (int)Mathf.Floor(population * percentageOfPopulation);
+
+		float percentageOfPolity = 1;
+
+		if (totalPopulation > 0) {
+			percentageOfPolity = influencedPopulation / (float)totalPopulation;
+		}
+
+		InfoPanelText.text += "\n\tInfluenced population: " + influencedPopulation;
+		InfoPanelText.text += "\n\tPercentage of polity population: " + percentageOfPolity.ToString ("P");
 	}
 
 	public void AddCellDataToInfoPanel_PolityCulturalActivity (TerrainCell cell) {

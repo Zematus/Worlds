@@ -751,12 +751,15 @@ public class CellGroup : HumanGroup {
 		if (p.TotalGroupInfluenceValue <= 0)
 			return;
 
-		float chanceFactor = pi.Value / p.TotalGroupInfluenceValue;
+		if (p.CoreGroup != this) {
 
-		float rollValue = Cell.GetNextLocalRandomFloat ();
+			float chanceFactor = pi.Value / p.TotalGroupInfluenceValue;
 
-		if (rollValue > chanceFactor)
-			return;
+			float rollValue = Cell.GetNextLocalRandomFloat ();
+
+			if (rollValue > chanceFactor)
+				return;
+		}
 
 		World.AddPolityToUpdate (p);
 	}

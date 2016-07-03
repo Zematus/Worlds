@@ -1232,11 +1232,19 @@ public class Manager {
 
 			if (highestPolityInfluence != null) {
 
+				Polity polity = highestPolityInfluence.Polity;
+
 				Color highestInfluencePolityColor = GenerateColorFromId (highestPolityInfluence.PolityId);
 
-				if (IsPolityBorderingNonControlledCells (highestPolityInfluence, cell)) {
-				
-					highestInfluencePolityColor /= 2f;
+				bool isPolityBorder = IsPolityBorderingNonControlledCells (highestPolityInfluence, cell);
+				bool isCoreGroup = polity.CoreGroup == cell.Group;
+
+				if (!isCoreGroup) {
+					if (!isPolityBorder) {
+						highestInfluencePolityColor /= 2.5f;
+					} else {
+						highestInfluencePolityColor /= 1.75f;
+					}
 				}
 
 				color.r = highestInfluencePolityColor.r;
