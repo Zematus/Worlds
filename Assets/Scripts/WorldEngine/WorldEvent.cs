@@ -542,14 +542,17 @@ public class TribeFormationEvent : CellGroupEvent {
 		float socialOrganizationFactor = (socialOrganizationValue - MinSocialOrganizationKnowledgeValue) / (OptimalSocialOrganizationKnowledgeValue - MinSocialOrganizationKnowledgeValue);
 		socialOrganizationFactor = Mathf.Clamp01 (socialOrganizationFactor) + 0.001f;
 
-		float dateSpan = (1 - randomFactor) * DateSpanFactorConstant / socialOrganizationFactor;
+		float influenceFactor = group.TotalPolityInfluenceValue;
+		influenceFactor = Mathf.Pow(1 - influenceFactor * 0.95f, 4);
 
-		int targetCurrentDate = (int)Mathf.Min (int.MaxValue, group.World.CurrentDate + dateSpan);
+		float dateSpan = (1 - randomFactor) * DateSpanFactorConstant / (socialOrganizationFactor * influenceFactor);
 
-		if (targetCurrentDate <= group.World.CurrentDate)
-			targetCurrentDate = int.MaxValue;
+		int targetDate = (int)Mathf.Min (int.MaxValue, group.World.CurrentDate + dateSpan);
 
-		return targetCurrentDate;
+		if (targetDate <= group.World.CurrentDate)
+			targetDate = int.MaxValue;
+
+		return targetDate;
 	}
 
 	public static bool CanSpawnIn (CellGroup group) {
@@ -573,7 +576,12 @@ public class TribeFormationEvent : CellGroupEvent {
 		if (discovery == null)
 			return false;
 
-		if (Group.GetPolityInfluencesCount () > 0)
+		float influenceFactor = Mathf.Min(1, Group.TotalPolityInfluenceValue * 3f);
+		influenceFactor = Mathf.Pow (1 - influenceFactor, 4);
+
+		float rollValue = Group.Cell.GetNextLocalRandomFloat ();
+
+		if (rollValue > influenceFactor)
 			return false;
 
 		return true;

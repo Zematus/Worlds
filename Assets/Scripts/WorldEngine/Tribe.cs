@@ -20,6 +20,8 @@ public class Tribe : Polity {
 
 		float randomValue = coreGroup.Cell.GetNextLocalRandomFloat ();
 		float coreInfluence = BaseCoreInfluence + randomValue * (1 - BaseCoreInfluence);
+
+		coreInfluence *= 1 - coreGroup.TotalPolityInfluenceValue;
 	
 		Tribe newTribe = new Tribe (coreGroup, coreInfluence);
 

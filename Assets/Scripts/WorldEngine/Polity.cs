@@ -206,7 +206,8 @@ public abstract class Polity : Synchronizable {
 
 	public virtual float MigrationValue (TerrainCell targetCell, float sourceValue)
 	{
-		sourceValue = Mathf.Max (sourceValue, 0);
+		if (sourceValue <= 0)
+			return 0;
 
 		CellGroup targetGroup = targetCell.Group;
 
@@ -224,9 +225,9 @@ public abstract class Polity : Synchronizable {
 			groupTotalInfluenceValue = targetGroup.TotalPolityInfluenceValue;
 		}
 
-		float sourceInfluenceFactor = 0.05f + (sourceValue * 0.95f);
+		float sourceValueFactor = 0.05f + (sourceValue * 0.95f);
 
-		float influenceFactor = socialOrgFactor * sourceValue / (groupTotalInfluenceValue + sourceInfluenceFactor);
+		float influenceFactor = socialOrgFactor * sourceValue / (groupTotalInfluenceValue + sourceValueFactor);
 
 		return Mathf.Clamp01 (influenceFactor);
 	}
