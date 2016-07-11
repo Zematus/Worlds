@@ -4,8 +4,9 @@ using System.Collections;
 public class TestRunnerScript : MonoBehaviour {
 
 	public AutomatedTest[] tests = new AutomatedTest[] {
-		new SaveLoadTest (80, 1, 1, true),
-		new SaveLoadTest (100000, 200000, 200000, false)
+//		new SaveLoadTest (80, 1, 1, true),
+//		new SaveLoadTest (100000, 200000, 200000, false),
+		new LanguageGenerationTest ()
 	};
 
 	private int _prevTestIndex = -1;

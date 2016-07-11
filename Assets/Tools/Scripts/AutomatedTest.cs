@@ -24,6 +24,70 @@ public abstract class AutomatedTest {
 	}
 }
 
+public class LanguageGenerationTest : AutomatedTest {
+
+	public LanguageGenerationTest () {
+	
+		Name = "Languange Generation Test";
+	}
+
+	public float GetRandomFloat () {
+	
+		return Random.Range (0, int.MaxValue) / (float)int.MaxValue;
+	}
+
+	public override void Run ()
+	{
+		State = TestState.Running;
+
+//		for (int i = 0; i < 10; i++) {
+//
+//			Language.CharacterGroup charGroup = Language.GenerateRandomCharacterGroup (Language.OnsetLetters, 1.0f, 0.25f, GetRandomFloat);
+//
+//			Debug.Log ("Generated Character Group: " + charGroup.Characters + ", Chance: " + charGroup.Weight);
+//		}
+
+//		Language.CharacterGroup[] onsetGroups = Language.GenerateCharacterGroups (Language.OnsetLetters, 0.7f, 0.25f, GetRandomFloat, 10);
+//		Language.CharacterGroup[] nucleusGroups = Language.GenerateCharacterGroups (Language.NucleusLetters, 1.0f, 0.35f, GetRandomFloat, 5);
+//		Language.CharacterGroup[] codaGroups = Language.GenerateCharacterGroups (Language.CodaLetters, 0.5f, 0.25f, GetRandomFloat, 4);
+//
+////		for (int i = 0; i < 100; i++) {
+////			string syllabe = Language.GenerateRandomSyllable (onsetGroups, nucleusGroups, codaGroups, GetRandomFloat);
+////
+////			Debug.Log ("Generated Syllabe: " + syllabe);
+////		}
+//
+//		string[] startSyllables = Language.GenerateSyllables (onsetGroups, nucleusGroups, codaGroups, GetRandomFloat, 50);
+//		string[] nextSyllables = Language.GenerateSyllables (onsetGroups, nucleusGroups, codaGroups, GetRandomFloat, 50);
+//
+//		for (int i = 0; i < 100; i++) {
+//			string word = Language.GenerateSimpleWord (startSyllables, nextSyllables, 0.25f, GetRandomFloat);
+//
+//			Debug.Log ("Generated Word: " + word);
+//		}
+
+		for (int i = 0; i < 5; i++) {
+			Language language = new Language ();
+
+			language.GenerateGeneralArticleProperties (GetRandomFloat);
+			language.GenerateArticleSyllables (GetRandomFloat);
+			language.GenerateArticles (GetRandomFloat);
+
+			string entry = "Articles Set " + i;
+			entry += "\nGeneral properties: " + language.GeneralArticleProperties;
+
+			foreach (KeyValuePair<string, Language.Word> pair in language.Articles) {
+
+				entry += "\n\t" + pair.Key + " : " + pair.Value.String;
+			}
+
+			Debug.Log (entry);
+		}
+
+		State = TestState.Succeded;
+	}
+}
+
 public class SaveLoadTest : AutomatedTest {
 
 	public enum Stage {
