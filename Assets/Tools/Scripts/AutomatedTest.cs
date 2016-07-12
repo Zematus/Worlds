@@ -69,17 +69,33 @@ public class LanguageGenerationTest : AutomatedTest {
 		for (int i = 0; i < 5; i++) {
 			Language language = new Language ();
 
-			language.GenerateGeneralArticleProperties (GetRandomFloat);
-			language.GenerateArticleSyllables (GetRandomFloat);
-			language.GenerateArticles (GetRandomFloat);
+			language.GenerateAllArticleProperties (GetRandomFloat);
+			language.GenerateAllArticleSyllables (GetRandomFloat);
+			language.GenerateAllArticles (GetRandomFloat);
 
-			string entry = "Articles Set " + i;
-			entry += "\nGeneral properties: " + language.GeneralArticleProperties;
+			string entry = "Test Language " + i;
+			entry += "\nDefinite article properties: " + Language.ArticlePropertiesToString (language.DefiniteArticleProperties);
+			entry += "\nDefinite articles:";
+			foreach (KeyValuePair<string, Language.Word> pair in language.DefiniteArticles) {
 
-			foreach (KeyValuePair<string, Language.Word> pair in language.Articles) {
-
-				entry += "\n\t" + pair.Key + " : " + pair.Value.String;
+				entry += "\n    " + pair.Key + " : " + pair.Value.String;
 			}
+			entry += "\n";
+
+			entry += "\nIndefinite article properties: " + Language.ArticlePropertiesToString (language.IndefiniteArticleProperties);
+			entry += "\nIndefinite articles:";
+			foreach (KeyValuePair<string, Language.Word> pair in language.IndefiniteArticles) {
+
+				entry += "\n    " + pair.Key + " : " + pair.Value.String;
+			}
+			entry += "\n";
+
+			language.GenerateSimpleNounSyllables (GetRandomFloat);
+
+			language.GenerateSimpleNoun ("tree", GetRandomFloat, false, true);
+			language.GenerateSimpleNoun ("river", GetRandomFloat, false, true);
+			language.GenerateSimpleNoun ("man", GetRandomFloat, false, false, false);
+			language.GenerateSimpleNoun ("woman", GetRandomFloat, false, false, true);
 
 			Debug.Log (entry);
 		}
