@@ -69,26 +69,41 @@ public class LanguageGenerationTest : AutomatedTest {
 		for (int i = 0; i < 5; i++) {
 			Language language = new Language ();
 
+			language.GenerateLanguageProperties (GetRandomFloat);
+
 			language.GenerateAllArticleProperties (GetRandomFloat);
 			language.GenerateAllArticleSyllables (GetRandomFloat);
 			language.GenerateAllArticles (GetRandomFloat);
 
 			string entry = "Test Language " + i;
-			entry += "\nDefinite article properties: " + Language.ArticlePropertiesToString (language.DefiniteArticleProperties);
-			entry += "\nDefinite articles:";
-			foreach (KeyValuePair<string, Language.Word> pair in language.DefiniteArticles) {
 
-				entry += "\n    " + pair.Key + " : " + pair.Value.String;
+			if ((language.Properties & Language.GeneralProperties.HasDefiniteArticles) == Language.GeneralProperties.HasDefiniteArticles) {
+				
+				entry += "\nDefinite article properties: " + Language.ArticlePropertiesToString (language.DefiniteArticleProperties);
+				entry += "\nDefinite articles:";
+				foreach (KeyValuePair<string, Language.Word> pair in language.DefiniteArticles) {
+
+					entry += "\n    " + pair.Key + " : " + pair.Value.String;
+				}
+				entry += "\n";
+			} else {
+				
+				entry += "\nLanguage has no definite articles";
 			}
-			entry += "\n";
 
-			entry += "\nIndefinite article properties: " + Language.ArticlePropertiesToString (language.IndefiniteArticleProperties);
-			entry += "\nIndefinite articles:";
-			foreach (KeyValuePair<string, Language.Word> pair in language.IndefiniteArticles) {
+			if ((language.Properties & Language.GeneralProperties.HasIndefiniteArticles) == Language.GeneralProperties.HasIndefiniteArticles) {
+				
+				entry += "\nIndefinite article properties: " + Language.ArticlePropertiesToString (language.IndefiniteArticleProperties);
+				entry += "\nIndefinite articles:";
+				foreach (KeyValuePair<string, Language.Word> pair in language.IndefiniteArticles) {
 
-				entry += "\n    " + pair.Key + " : " + pair.Value.String;
+					entry += "\n    " + pair.Key + " : " + pair.Value.String;
+				}
+				entry += "\n";
+			} else {
+				
+				entry += "\nLanguage has no indefinite articles";
 			}
-			entry += "\n";
 
 			language.GenerateSimpleNounSyllables (GetRandomFloat);
 
