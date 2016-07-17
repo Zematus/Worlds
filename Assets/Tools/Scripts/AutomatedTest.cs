@@ -76,6 +76,7 @@ public class LanguageGenerationTest : AutomatedTest {
 			language.GenerateAllArticles (GetRandomFloat);
 
 			string entry = "Test Language " + i;
+			entry += "\n";
 
 			if ((language.Properties & Language.GeneralProperties.HasDefiniteArticles) == Language.GeneralProperties.HasDefiniteArticles) {
 				
@@ -85,11 +86,11 @@ public class LanguageGenerationTest : AutomatedTest {
 
 					entry += "\n    " + pair.Key + " : " + pair.Value.String;
 				}
-				entry += "\n";
 			} else {
 				
 				entry += "\nLanguage has no definite articles";
 			}
+			entry += "\n";
 
 			if ((language.Properties & Language.GeneralProperties.HasIndefiniteArticles) == Language.GeneralProperties.HasIndefiniteArticles) {
 				
@@ -99,18 +100,44 @@ public class LanguageGenerationTest : AutomatedTest {
 
 					entry += "\n    " + pair.Key + " : " + pair.Value.String;
 				}
-				entry += "\n";
 			} else {
 				
 				entry += "\nLanguage has no indefinite articles";
 			}
+			entry += "\n";
 
 			language.GenerateSimpleNounSyllables (GetRandomFloat);
 
 			language.GenerateSimpleNoun ("tree", GetRandomFloat, false, true);
+			language.GenerateSimpleNoun ("forest", GetRandomFloat, false, true);
 			language.GenerateSimpleNoun ("river", GetRandomFloat, false, true);
+			language.GenerateSimpleNoun ("town", GetRandomFloat, false, true);
+			language.GenerateSimpleNoun ("stones", GetRandomFloat, true, true);
+			language.GenerateSimpleNoun ("mountain", GetRandomFloat, false, true);
+			language.GenerateSimpleNoun ("desert", GetRandomFloat, false, true);
+			language.GenerateSimpleNoun ("clouds", GetRandomFloat, true, true);
+			// language.GenerateSimpleNoun ("water", GetRandomFloat, false, true); --- 'water' is a very special case in english (no 'a water')
 			language.GenerateSimpleNoun ("man", GetRandomFloat, false, false, false);
 			language.GenerateSimpleNoun ("woman", GetRandomFloat, false, false, true);
+			language.GenerateSimpleNoun ("person", GetRandomFloat, false, true);
+			language.GenerateSimpleNoun ("boys", GetRandomFloat, true, false, false);
+			language.GenerateSimpleNoun ("girls", GetRandomFloat, true, false, true);
+			language.GenerateSimpleNoun ("children", GetRandomFloat, true, true);
+
+			entry += "\nSimple nouns:";
+			entry += "\n";
+			foreach (KeyValuePair<string, Language.Word> pair in language.SimpleNouns) {
+
+				entry += "\n    " + pair.Key + " : " + pair.Value.String + " (Properties: " + Language.WordPropertiesToString (pair.Value.Properties) + ")";
+				entry += "\n";
+
+				Language.Phrase phrase = language.BuildNounPhrase (pair.Key, false);
+				entry += "\n        Sample definite noun phrase: " + phrase.Text + " (Meaning: " + phrase.Meaning + ")";
+				phrase = language.BuildNounPhrase (pair.Key, true);
+				entry += "\n        Sample indefinite noun phrase: " + phrase.Text + " (Meaning: " + phrase.Meaning + ")";
+				entry += "\n";
+			}
+			entry += "\n";
 
 			Debug.Log (entry);
 		}

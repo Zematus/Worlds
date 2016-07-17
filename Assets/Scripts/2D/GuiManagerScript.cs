@@ -2099,8 +2099,6 @@ public class GuiManagerScript : MonoBehaviour {
 		InfoPanelText.text += "\n";
 		InfoPanelText.text += string.Format ("\nPosition: Longitude {0}, Latitude {1}", longitude, latitude);
 
-		float cellArea = cell.Area;
-
 		if ((_planetOverlay == PlanetOverlay.None) || 
 			(_planetOverlay == PlanetOverlay.Rainfall) || 
 			(_planetOverlay == PlanetOverlay.Arability) || 
