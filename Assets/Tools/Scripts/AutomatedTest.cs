@@ -80,7 +80,7 @@ public class LanguageGenerationTest : AutomatedTest {
 
 			if ((language.Properties & Language.GeneralProperties.HasDefiniteArticles) == Language.GeneralProperties.HasDefiniteArticles) {
 				
-				entry += "\nDefinite article properties: " + Language.ArticlePropertiesToString (language.DefiniteArticleProperties);
+				entry += "\nDefinite article properties: " + Language.NounAdjuntPropertiesToString (language.DefiniteArticleProperties);
 				entry += "\nDefinite articles:";
 				foreach (KeyValuePair<string, Language.Word> pair in language.DefiniteArticles) {
 
@@ -94,7 +94,7 @@ public class LanguageGenerationTest : AutomatedTest {
 
 			if ((language.Properties & Language.GeneralProperties.HasIndefiniteArticles) == Language.GeneralProperties.HasIndefiniteArticles) {
 				
-				entry += "\nIndefinite article properties: " + Language.ArticlePropertiesToString (language.IndefiniteArticleProperties);
+				entry += "\nIndefinite article properties: " + Language.NounAdjuntPropertiesToString (language.IndefiniteArticleProperties);
 				entry += "\nIndefinite articles:";
 				foreach (KeyValuePair<string, Language.Word> pair in language.IndefiniteArticles) {
 
@@ -103,6 +103,23 @@ public class LanguageGenerationTest : AutomatedTest {
 			} else {
 				
 				entry += "\nLanguage has no indefinite articles";
+			}
+			entry += "\n";
+
+			language.GenerateAdpositionProperties (GetRandomFloat);
+			language.GenerateAdpositionSyllables (GetRandomFloat);
+
+			language.GenerateAdposition ("from", GetRandomFloat);
+			language.GenerateAdposition ("to", GetRandomFloat);
+			language.GenerateAdposition ("within", GetRandomFloat);
+			language.GenerateAdposition ("above", GetRandomFloat);
+			language.GenerateAdposition ("below", GetRandomFloat);
+			language.GenerateAdposition ("beyond", GetRandomFloat);
+
+			entry += "\nExample adpositions:";
+			foreach (KeyValuePair<string, Language.Word> pair in language.Adpositions) {
+
+				entry += "\n    " + pair.Key + " : " + pair.Value.String;
 			}
 			entry += "\n";
 
@@ -116,7 +133,7 @@ public class LanguageGenerationTest : AutomatedTest {
 			language.GenerateSimpleNoun ("mountain", GetRandomFloat, false, true);
 			language.GenerateSimpleNoun ("desert", GetRandomFloat, false, true);
 			language.GenerateSimpleNoun ("clouds", GetRandomFloat, true, true);
-			// language.GenerateSimpleNoun ("water", GetRandomFloat, false, true); --- 'water' is a very special case in english (no 'a water')
+			// language.GenerateSimpleNoun ("water", GetRandomFloat, false, true); --- 'water' is a very special case in english (uncountable noun)
 			language.GenerateSimpleNoun ("man", GetRandomFloat, false, false, false);
 			language.GenerateSimpleNoun ("woman", GetRandomFloat, false, false, true);
 			language.GenerateSimpleNoun ("person", GetRandomFloat, false, true);
@@ -124,19 +141,47 @@ public class LanguageGenerationTest : AutomatedTest {
 			language.GenerateSimpleNoun ("girls", GetRandomFloat, true, false, true);
 			language.GenerateSimpleNoun ("children", GetRandomFloat, true, true);
 
-			entry += "\nSimple nouns:";
+			entry += "\nExample nouns:";
 			entry += "\n";
-			foreach (KeyValuePair<string, Language.Word> pair in language.SimpleNouns) {
+			foreach (KeyValuePair<string, Language.Word> pair in language.Nouns) {
 
 				entry += "\n    " + pair.Key + " : " + pair.Value.String + " (Properties: " + Language.WordPropertiesToString (pair.Value.Properties) + ")";
 				entry += "\n";
 
-				Language.Phrase phrase = language.BuildNounPhrase (pair.Key, false);
+				Language.Phrase phrase = language.BuildArticulatedNounPhrase (pair.Key, false);
 				entry += "\n        Sample definite noun phrase: " + phrase.Text + " (Meaning: " + phrase.Meaning + ")";
-				phrase = language.BuildNounPhrase (pair.Key, true);
+				phrase = language.BuildArticulatedNounPhrase (pair.Key, true);
 				entry += "\n        Sample indefinite noun phrase: " + phrase.Text + " (Meaning: " + phrase.Meaning + ")";
 				entry += "\n";
 			}
+			entry += "\n";
+
+			entry += "\nExample noun phrases:";
+			entry += "\n";
+
+			Language.Phrase prePhrase = language.BuildArticulatedNounPhrase ("woman", false);
+			Language.Phrase complementPhrase = language.BuildArticulatedNounPhrase ("town", false);
+			Language.Phrase postPhrase = language.BuildAdpositionalPhrase ("from", complementPhrase);
+			Language.Phrase mergedPhrase = language.MergePhrases (prePhrase, postPhrase);
+			language.LocalizePhrase (mergedPhrase);
+
+			entry += "\n    " + mergedPhrase.Text + " (" + mergedPhrase.Meaning + ")";
+
+			prePhrase = language.BuildArticulatedNounPhrase ("children", false);
+			complementPhrase = language.BuildArticulatedNounPhrase ("clouds", false);
+			postPhrase = language.BuildAdpositionalPhrase ("above", complementPhrase);
+			mergedPhrase = language.MergePhrases (prePhrase, postPhrase);
+			language.LocalizePhrase (mergedPhrase);
+
+			entry += "\n    " + mergedPhrase.Text + " (" + mergedPhrase.Meaning + ")";
+
+			prePhrase = language.BuildArticulatedNounPhrase ("tree", true);
+			complementPhrase = language.BuildArticulatedNounPhrase ("forest", false);
+			postPhrase = language.BuildAdpositionalPhrase ("within", complementPhrase);
+			mergedPhrase = language.MergePhrases (prePhrase, postPhrase);
+			language.LocalizePhrase (mergedPhrase);
+
+			entry += "\n    " + mergedPhrase.Text + " (" + mergedPhrase.Meaning + ")";
 			entry += "\n";
 
 			Debug.Log (entry);
