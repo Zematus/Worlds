@@ -93,6 +93,10 @@ public abstract class CellCulturalDiscovery : CulturalDiscovery {
 	public virtual void LossConsequences (CellGroup group) {
 		
 	}
+
+	public virtual void GainConsequences (CellGroup group) {
+		
+	}
 }
 
 public class BoatMakingDiscovery : CellCulturalDiscovery {
@@ -173,6 +177,18 @@ public class TribalismDiscovery : CellCulturalDiscovery {
 			return false;
 
 		return true;
+	}
+
+	public override void GainConsequences (CellGroup group)
+	{
+		base.GainConsequences (group);
+
+		Region newRegion = Region.TryGenerateRegion (group.Cell);
+
+		if (newRegion != null) {
+		
+			group.World.AddRegion (newRegion);
+		}
 	}
 }
 

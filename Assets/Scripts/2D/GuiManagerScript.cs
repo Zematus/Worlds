@@ -300,7 +300,8 @@ public class GuiManagerScript : MonoBehaviour {
 				(_planetOverlay == PlanetOverlay.PolityCulturalSkill) ||
 				(_planetOverlay == PlanetOverlay.PolityCulturalDiscovery) ||
 				(_planetOverlay == PlanetOverlay.PopChange) ||
-				(_planetOverlay == PlanetOverlay.UpdateSpan)) {
+				(_planetOverlay == PlanetOverlay.UpdateSpan) ||
+				(_planetOverlay == PlanetOverlay.Region)) {
 				Manager.UpdateTextures ();
 
 				_mapUpdateCount++;
@@ -753,6 +754,9 @@ public class GuiManagerScript : MonoBehaviour {
 		case PlanetOverlay.Arability: 
 			planetOverlayStr = "_arability"; 
 			break;
+		case PlanetOverlay.Region: 
+			planetOverlayStr = "_region"; 
+			break;
 		case PlanetOverlay.PopChange: 
 			planetOverlayStr = "_population_change"; 
 			break;
@@ -964,6 +968,8 @@ public class GuiManagerScript : MonoBehaviour {
 			ChangePlanetOverlay (PlanetOverlay.Rainfall);
 		} else if (OverlayDialogPanelScript.ArabilityToggle.isOn) {
 			ChangePlanetOverlay (PlanetOverlay.Arability);
+		} else if (OverlayDialogPanelScript.RegionToggle.isOn) {
+			ChangePlanetOverlay (PlanetOverlay.Region);
 		} else if (OverlayDialogPanelScript.PopChangeToggle.isOn) {
 			ChangePlanetOverlay (PlanetOverlay.PopChange);
 		} else if (OverlayDialogPanelScript.UpdateSpanToggle.isOn) {
@@ -1011,6 +1017,7 @@ public class GuiManagerScript : MonoBehaviour {
 		OverlayDialogPanelScript.TemperatureToggle.isOn = false;
 		OverlayDialogPanelScript.RainfallToggle.isOn = false;
 		OverlayDialogPanelScript.ArabilityToggle.isOn = false;
+		OverlayDialogPanelScript.RegionToggle.isOn = false;
 
 		OverlayDialogPanelScript.PopChangeToggle.isOn = false;
 		OverlayDialogPanelScript.UpdateSpanToggle.isOn = false;
@@ -1101,6 +1108,11 @@ public class GuiManagerScript : MonoBehaviour {
 
 		case PlanetOverlay.Arability:
 			OverlayDialogPanelScript.ArabilityToggle.isOn = true;
+			OverlayDialogPanelScript.MiscDataToggle.isOn = true;
+			break;
+
+		case PlanetOverlay.Region:
+			OverlayDialogPanelScript.RegionToggle.isOn = true;
 			OverlayDialogPanelScript.MiscDataToggle.isOn = true;
 			break;
 
@@ -1526,6 +1538,15 @@ public class GuiManagerScript : MonoBehaviour {
 		InfoPanelText.text += "\nForaging Capacity: " + cell.ForagingCapacity.ToString ("P");
 		InfoPanelText.text += "\nAccessibility: " + cell.Accessibility.ToString ("P");
 		InfoPanelText.text += "\nArability: " + cell.Arability.ToString ("P");
+		InfoPanelText.text += "\n";
+
+		Region region = cell.Region;
+
+		if (region == null) {
+			InfoPanelText.text += "\nCell doesn't belong to any known region";
+		} else {
+			InfoPanelText.text += "\nCell is part of region: " + region.Id;
+		}
 	}
 
 	public void AddCellDataToInfoPanel_FarmlandDistribution (TerrainCell cell) {
@@ -2102,7 +2123,8 @@ public class GuiManagerScript : MonoBehaviour {
 		if ((_planetOverlay == PlanetOverlay.None) || 
 			(_planetOverlay == PlanetOverlay.Rainfall) || 
 			(_planetOverlay == PlanetOverlay.Arability) || 
-			(_planetOverlay == PlanetOverlay.Temperature)) {
+			(_planetOverlay == PlanetOverlay.Temperature) || 
+			(_planetOverlay == PlanetOverlay.Region)) {
 
 			AddCellDataToInfoPanel_Terrain (cell);
 		}

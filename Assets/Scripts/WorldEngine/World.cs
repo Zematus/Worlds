@@ -66,6 +66,9 @@ public class World : Synchronizable {
 
 	[XmlAttribute]
 	public long CurrentPolityId { get; private set; }
+
+	[XmlAttribute]
+	public long CurrentRegionId { get; private set; }
 	
 	[XmlAttribute]
 	public int EventsToHappenCount { get; private set; }
@@ -75,6 +78,9 @@ public class World : Synchronizable {
 
 	[XmlAttribute]
 	public int PolityCount { get; private set; }
+
+	[XmlAttribute]
+	public int RegionCount { get; private set; }
 
 	[XmlAttribute]
 	public int TerrainCellChangesListCount { get; private set; }
@@ -111,6 +117,8 @@ public class World : Synchronizable {
 
 	[XmlArrayItem (Type = typeof(Tribe))]
 	public List<Polity> Polities;
+
+	public List<Region> Regions;
 
 	// End wonky segment 
 
@@ -187,6 +195,8 @@ public class World : Synchronizable {
 
 	private Dictionary<long, Polity> _polities = new Dictionary<long, Polity> ();
 
+	private Dictionary<long, Region> _regions = new Dictionary<long, Region> ();
+
 	private Vector2[] _continentOffsets;
 	private float[] _continentWidths;
 	private float[] _continentHeights;
@@ -217,9 +227,11 @@ public class World : Synchronizable {
 		CurrentCellGroupId = 0;
 		CurrentEventId = 0;
 		CurrentPolityId = 0;
+		CurrentRegionId = 0;
 		EventsToHappenCount = 0;
 		CellGroupCount = 0;
 		PolityCount = 0;
+		RegionCount = 0;
 		TerrainCellChangesListCount = 0;
 
 		SeaLevelOffset = Manager.SeaLevelOffset;
@@ -322,6 +334,13 @@ public class World : Synchronizable {
 		foreach (Polity p in Polities) {
 		
 			p.Synchronize ();
+		}
+
+		Regions = new List<Region> (_regions.Values);
+
+		foreach (Region r in Regions) {
+
+			r.Synchronize ();
 		}
 
 		TerrainCellChangesList.Clear ();
@@ -661,6 +680,29 @@ public class World : Synchronizable {
 		_groupsToRemove.Add (group);
 	}
 
+	public void AddRegion (Region region) {
+
+		_regions.Add (region.Id, region);
+
+		RegionCount++;
+	}
+
+	public void RemoveRegion (Region region) {
+
+		_regions.Remove (region.Id);
+
+		RegionCount--;
+	}
+
+	public Region GetRegion (long id) {
+
+		Region region;
+
+		_regions.TryGetValue (id, out region);
+
+		return region;
+	}
+
 	public void AddPolity (Polity polity) {
 
 		_polities.Add (polity.Id, polity);
@@ -703,6 +745,13 @@ public class World : Synchronizable {
 			_terrainCellChangesListIndexes.Add (index);
 		});
 
+		Regions.ForEach (r => {
+
+			r.World = this;
+
+			_regions.Add (r.Id, r);
+		});
+
 		Polities.ForEach (p => {
 
 			p.World = this;
@@ -715,6 +764,11 @@ public class World : Synchronizable {
 			g.World = this;
 
 			_cellGroups.Add (g.Id, g);
+		});
+
+		Regions.ForEach (r => {
+
+			r.FinalizeLoad ();
 		});
 
 		Polities.ForEach (p => {
@@ -1393,6 +1447,11 @@ public class World : Synchronizable {
 	public long GeneratePolityId () {
 
 		return ++CurrentPolityId;
+	}
+
+	public long GenerateRegionId () {
+
+		return ++CurrentRegionId;
 	}
 
 	private float CalculateCellBaseArability (TerrainCell cell) {

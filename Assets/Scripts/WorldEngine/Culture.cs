@@ -687,6 +687,8 @@ public class CellCulture : Culture {
 			
 			AddDiscovery (discovery);
 
+			discovery.GainConsequences (Group);
+
 			foreach (CellCulturalKnowledge knowledge in Knowledges) {
 				knowledge.CalculateAsymptote (discovery);
 			}

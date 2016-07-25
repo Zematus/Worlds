@@ -177,6 +177,8 @@ public abstract class Polity : Synchronizable {
 
 		Culture.Synchronize ();
 
+		Territory.Synchronize ();
+
 		InfluencedGroupIds = new List<long> (InfluencedGroups.Keys);
 	}
 
@@ -198,6 +200,8 @@ public abstract class Polity : Synchronizable {
 
 			InfluencedGroups.Add (group.Id, group);
 		}
+
+		Territory.FinalizeLoad ();
 
 		Culture.World = World;
 		Culture.Polity = this;
@@ -291,9 +295,9 @@ public abstract class Polity : Synchronizable {
 	}
 }
 
-public class Territory {
+public class Territory : Synchronizable {
 
-	public List<WorldPosition> CellPositions = new List<WorldPosition> ();
+	public List<WorldPosition> CellPositions;
 
 	[XmlIgnore]
 	public World World;
@@ -314,8 +318,6 @@ public class Territory {
 		if (!_cells.Add (cell))
 			return false;
 
-		CellPositions.Add (cell.Position);
-
 		cell.AddEncompassingTerritory (this);
 
 		return true;
@@ -326,11 +328,19 @@ public class Territory {
 		if (!_cells.Remove (cell))
 			return false;
 
-		CellPositions.Remove (cell.Position);
-
 		cell.RemoveEncompassingTerritory (this);
 
 		return true;
+	}
+
+	public void Synchronize () {
+	
+		CellPositions = new List<WorldPosition> (_cells.Count);
+
+		foreach (TerrainCell cell in _cells) {
+
+			CellPositions.Add (cell.Position);
+		}
 	}
 
 	public void FinalizeLoad () {

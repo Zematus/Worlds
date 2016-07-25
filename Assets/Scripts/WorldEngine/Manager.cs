@@ -31,6 +31,7 @@ public enum PlanetOverlay {
 	Temperature,
 	Rainfall,
 	Arability,
+	Region,
 	PopChange,
 	UpdateSpan
 }
@@ -1085,6 +1086,10 @@ public class Manager {
 			color = SetArabilityOverlayColor (cell, color);
 			break;
 
+		case PlanetOverlay.Region:
+			color = SetRegionOverlayColor (cell, color);
+			break;
+
 		case PlanetOverlay.PopChange:
 			color = SetPopulationChangeOverlayColor (cell, color);
 			break;
@@ -1190,7 +1195,50 @@ public class Manager {
 		return color * slantFactor * altitudeFactor;
 	}
 
-	private static bool IsPolityBorderingNonControlledCells (PolityInfluence polityInfluence, TerrainCell cell) {
+	private static bool IsRegionBorder (Region region, TerrainCell cell) {
+
+		foreach (TerrainCell nCell in cell.Neighbors.Values) {
+
+			if (nCell.Region != region)
+				return true;
+		}
+
+		return false;
+	}
+
+	private static Color SetRegionOverlayColor (TerrainCell cell, Color color) {
+
+		Color biomeColor = color;
+
+		float greyscale = (color.r + color.g + color.b);
+
+		color.r = (greyscale + color.r) / 6f;
+		color.g = (greyscale + color.g) / 6f;
+		color.b = (greyscale + color.b) / 6f;
+
+		Region region = cell.Region;
+
+		if (region != null) {
+
+			Color regionIdColor = GenerateColorFromId (region.Id);
+
+			Color regionColor = (biomeColor * 0.85f) + (regionIdColor * 0.15f);
+
+			bool isRegionBorder = IsRegionBorder (region, cell);
+
+			if (!isRegionBorder) {
+				regionColor /= 1.5f;
+			}
+
+			color.r = regionColor.r;
+			color.g = regionColor.g;
+			color.b = regionColor.b;
+		}
+
+		return color;
+	}
+
+	private static bool IsPolityBorder (PolityInfluence polityInfluence, TerrainCell cell) {
 
 		foreach (TerrainCell nCell in cell.Neighbors.Values) {
 		
@@ -1236,7 +1284,7 @@ public class Manager {
 
 				Color highestInfluencePolityColor = GenerateColorFromId (highestPolityInfluence.PolityId);
 
-				bool isPolityBorder = IsPolityBorderingNonControlledCells (highestPolityInfluence, cell);
+				bool isPolityBorder = IsPolityBorder (highestPolityInfluence, cell);
 				bool isCoreGroup = polity.CoreGroup == cell.Group;
 
 				if (!isCoreGroup) {
@@ -1519,7 +1567,7 @@ public class Manager {
 
 		Color addedColor = Color.cyan;
 
-		if (IsPolityBorderingNonControlledCells (highestPolityInfluence, cell)) {
+		if (IsPolityBorder (highestPolityInfluence, cell)) {
 
 			// A slightly bluer shade of cyan
 			addedColor = new Color (0, 0.75f, 1.0f);
@@ -1604,7 +1652,7 @@ public class Manager {
 
 		Color addedColor = Color.cyan;
 
-		if (IsPolityBorderingNonControlledCells (highestPolityInfluence, cell)) {
+		if (IsPolityBorder (highestPolityInfluence, cell)) {
 
 			// A slightly bluer shade of cyan
 			addedColor = new Color (0, 0.75f, 1.0f);
@@ -1708,7 +1756,7 @@ public class Manager {
 
 		Color addedColor = Color.cyan;
 
-		if (IsPolityBorderingNonControlledCells (highestPolityInfluence, cell)) {
+		if (IsPolityBorder (highestPolityInfluence, cell)) {
 
 			// A slightly bluer shade of cyan
 			addedColor = new Color (0, 0.75f, 1.0f);
@@ -1786,7 +1834,7 @@ public class Manager {
 
 		Color addedColor = Color.cyan;
 
-		if (IsPolityBorderingNonControlledCells (highestPolityInfluence, cell)) {
+		if (IsPolityBorder (highestPolityInfluence, cell)) {
 
 			// A slightly bluer shade of cyan
 			addedColor = new Color (0, 0.75f, 1.0f);

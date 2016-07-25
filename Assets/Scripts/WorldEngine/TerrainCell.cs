@@ -101,6 +101,11 @@ public class TerrainCell : Synchronizable {
 	[XmlAttribute]
 	public float FarmlandPercentage = 0;
 
+	[XmlAttribute]
+	public string BiomeWithMostPresence = null;
+	[XmlAttribute]
+	public float MostBiomePresence = 0;
+
 	public static float MaxArea;
 
 	public static float MaxWidth;
@@ -109,6 +114,9 @@ public class TerrainCell : Synchronizable {
 	public List<float> BiomePresences = new List<float>();
 	
 	public CellGroup Group;
+
+	[XmlIgnore]
+	public Region Region = null;
 
 	[XmlIgnore]
 	public List<Territory> EncompassingTerritories = new List<Territory>();
@@ -277,6 +285,12 @@ public class TerrainCell : Synchronizable {
 		BiomePresences.Add (presence);
 
 		_biomePresences [biomeName] = presence;
+
+		if (MostBiomePresence < presence) {
+		
+			MostBiomePresence = presence;
+			BiomeWithMostPresence = biomeName;
+		}
 	}
 	
 	public float GetBiomePresence (string biomeName) {
