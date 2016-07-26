@@ -76,7 +76,7 @@ public class Route {
 		foreach (TerrainCell cell in Cells) {
 		
 			cell.RemoveCrossingRoute (this);
-			Manager.AddUpdatedCell (cell);
+			Manager.AddUpdatedCell (cell, CellUpdateType.Route);
 		}
 	}
 
@@ -88,7 +88,7 @@ public class Route {
 		foreach (TerrainCell cell in Cells) {
 
 			cell.AddCrossingRoute (this);
-			Manager.AddUpdatedCell (cell);
+			Manager.AddUpdatedCell (cell, CellUpdateType.Route);
 		}
 
 		Consolidated = true;

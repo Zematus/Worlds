@@ -155,6 +155,8 @@ public class Manager {
 	
 	public static World WorldBeingLoaded = null;
 
+	private static CellUpdateType _observableUpdateTypes = CellUpdateType.Group;
+
 	private static Manager _manager = new Manager();
 
 	private static PlanetView _planetView = PlanetView.Biomes;
@@ -418,9 +420,12 @@ public class Manager {
 		GenerateMapTextureFromWorld(CurrentWorld);
 	}
 
-	public static void AddUpdatedCell (TerrainCell cell) {
-	
-		UpdatedCells.Add(cell);
+	public static void AddUpdatedCell (TerrainCell cell, CellUpdateType updateType) {
+
+		if ((_observableUpdateTypes & updateType) == updateType) {
+			
+			UpdatedCells.Add (cell);
+		}
 	}
 
 	public static void GenerateRandomHumanGroup (int initialPopulation) {
@@ -651,12 +656,25 @@ public class Manager {
 	}
 
 	public static void SetPlanetOverlay (PlanetOverlay value, string planetOverlaySubtype = "None") {
+
+		if (value == PlanetOverlay.Region) {
+			_observableUpdateTypes &= CellUpdateType.Group;
+			_observableUpdateTypes |= CellUpdateType.Region;
+		} else {
+			_observableUpdateTypes |= CellUpdateType.Group;
+			_observableUpdateTypes &= ~CellUpdateType.Region;
+		}
 	
 		_planetOverlay = value;
 		_planetOverlaySubtype = planetOverlaySubtype;
 	}
 
 	public static void SetDisplayRoutes (bool value) {
+
+		if (value)
+			_observableUpdateTypes |= CellUpdateType.Route;
+		else
+			_observableUpdateTypes &= ~CellUpdateType.Route;
 	
 		_displayRoutes = value;
 	}

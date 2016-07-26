@@ -16,6 +16,14 @@ public enum Direction {
 	Northwest = 7
 }
 
+public enum CellUpdateType {
+
+	None = 0x0,
+	Route = 0x2,
+	Region = 0x1,
+	Group = 0x4
+}
+
 public struct WorldPosition {
 
 	[XmlAttribute]

@@ -5,15 +5,10 @@ using System.Xml.Serialization;
 
 public class Region : Synchronizable {
 
-	public const int MinRegionSize = 0;
-	public const float MinBiomePresence = 0.2f;
-	public const float MinBiomePresenceStart = 0.2f;
-	public const float BaseMaxAltitudeDifference = 2000;
-	public const int AltitudeRoundnessTarget = 1000;
+	public const float BaseMaxAltitudeDifference = 3000;
+	public const int AltitudeRoundnessTarget = 6000;
 
-//	public const float AltitudeDifferenceDistanceFactor = 0.01f;
-
-	public const float MinClosedness = 0.8f;
+	public const float MaxClosedness = 1.0f; // 0.8f;
 
 	public long Id;
 
@@ -41,6 +36,7 @@ public class Region : Synchronizable {
 			return false;
 
 		cell.Region = this;
+		Manager.AddUpdatedCell (cell, CellUpdateType.Region);
 
 		return true;
 	}
@@ -51,6 +47,7 @@ public class Region : Synchronizable {
 			return false;
 
 		cell.Region = null;
+		Manager.AddUpdatedCell (cell, CellUpdateType.Region);
 
 		return true;
 	}
@@ -86,9 +83,6 @@ public class Region : Synchronizable {
 		if (startCell.Region != null)
 			return null;
 
-		if (startCell.MostBiomePresence < MinBiomePresenceStart)
-			return null;
-
 		Region region = TryGenerateBiomeRegion (startCell, startCell.BiomeWithMostPresence);
 
 		return region;
@@ -100,7 +94,6 @@ public class Region : Synchronizable {
 
 		// round the base altitude
 		float baseAltitude = AltitudeRoundnessTarget * Mathf.Round (startCell.Altitude / AltitudeRoundnessTarget);
-//		float baseAltitude = startCell.Altitude;
 
 		HashSet<TerrainCell> acceptedCells = new HashSet<TerrainCell> ();
 		HashSet<TerrainCell> unacceptedCells = new HashSet<TerrainCell> ();
@@ -125,39 +118,35 @@ public class Region : Synchronizable {
 			if (cellsToExplore.Count <= 0)
 				break;
 
-			float closedness = cellsToExplore.Count / (float)(cellsToExplore.Count + borderCells);
+			float closedness = 1 - cellsToExplore.Count / (float)(cellsToExplore.Count + borderCells);
 
 			foreach (TerrainCell cell in cellsToExplore) {
 
-//				float meanWidth = (startCell.Width + cell.Width) / 2f;
-//				int longDifference = Mathf.Abs (startCell.Position.Longitude - cell.Position.Longitude);
-//				float distanceLong = Mathf.Min(cell.World.Width - longDifference, longDifference) * meanWidth;
-//				float distanceLat = Mathf.Abs (startCell.Latitude - cell.Latitude) * cell.Height;
-//				float distance = Mathf.Sqrt(Mathf.Pow(distanceLat, 2) + Mathf.Pow(distanceLong, 2));
-//
-//				float maxAltitudeDifference = BaseMaxAltitudeDifference / (1 + AltitudeDifferenceDistanceFactor * distance);
+				float closednessFactor = 1;
+				float cutOffFactor = 2;
 
-				float closednessFactor = closedness / MinClosedness - MinClosedness * 0.2f;
+				if (MaxClosedness < 1) {
+					closednessFactor = (1 + MaxClosedness / cutOffFactor) * (1 - closedness) / (1 - MaxClosedness) - MaxClosedness / cutOffFactor;
+				}
 
 				float maxAltitudeDifference = BaseMaxAltitudeDifference * closednessFactor;
 
 				bool accepted = false;
 
-				if ((cell.Region == null) &&
-				    (cell.BiomeWithMostPresence == biomeName) &&
-				    (cell.MostBiomePresence >= MinBiomePresence)) {
+				string cellBiomeName = cell.BiomeWithMostPresence;
 
-//					if ((closedness > MinClosedness) ||
-//						(Mathf.Abs (cell.Altitude - baseAltitude) < maxAltitudeDifference)) {
-//					if (closedness > MinClosedness) {
+				if ((cell.Region == null) && (cellBiomeName == biomeName)) {
+
 					if (Mathf.Abs (cell.Altitude - baseAltitude) < maxAltitudeDifference) {
-				
+
 						accepted = true;
 						acceptedCells.Add (cell);
 						addedAcceptedCells = true;
 						regionSize++;
 
-						foreach (TerrainCell ncell in cell.Neighbors.Values) {
+						foreach (KeyValuePair<Direction, TerrainCell> pair in cell.Neighbors) {
+
+							TerrainCell ncell = pair.Value;
 
 							if (cellsToExplore.Contains (ncell))
 								continue;
@@ -181,9 +170,6 @@ public class Region : Synchronizable {
 
 			cellsToExplore = nextCellsToExplore;
 		}
-
-		if (regionSize < MinRegionSize)
-			return null;
 
 		Region region = new Region (startCell.World);
 

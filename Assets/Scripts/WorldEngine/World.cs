@@ -577,7 +577,7 @@ public class World : Synchronizable {
 		foreach (CellGroup group in _updatedGroups) {
 			
 			group.SetupForNextUpdate ();
-			Manager.AddUpdatedCell (group.Cell);
+			Manager.AddUpdatedCell (group.Cell, CellUpdateType.Group);
 		}
 
 		_updatedGroups.Clear ();
@@ -649,7 +649,7 @@ public class World : Synchronizable {
 
 		_cellGroups.Add (group.Id, group);
 
-		Manager.AddUpdatedCell (group.Cell);
+		Manager.AddUpdatedCell (group.Cell, CellUpdateType.Group);
 
 		CellGroupCount++;
 	}
