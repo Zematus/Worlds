@@ -1549,6 +1549,43 @@ public class GuiManagerScript : MonoBehaviour {
 		}
 	}
 
+	public void AddCellDataToInfoPanel_Region (TerrainCell cell) {
+
+		Region region = cell.Region;
+
+		InfoPanelText.text += "\n";
+		InfoPanelText.text += "\n -- Region Terrain Data -- ";
+		InfoPanelText.text += "\n";
+
+		if (region == null) {
+			InfoPanelText.text += "\nCell doesn't belong to any known region";
+
+			return;
+		} else {
+			InfoPanelText.text += "\nRegion: " + region.Id;
+		}
+
+		InfoPanelText.text += "\n";
+		InfoPanelText.text += "\nTotal Area: " + region.TotalArea + " Km^2";
+		InfoPanelText.text += "\nAverage Altitude: " + region.AverageAltitude + " meters";
+		InfoPanelText.text += "\nAverage Rainfall: " + region.AverageRainfall + " mm / year";
+		InfoPanelText.text += "\nAverage Temperature: " + region.AverageTemperature + " C";
+		InfoPanelText.text += "\n";
+
+		for (int i = 0; i < region.PresentBiomeNames.Count; i++) {
+			float percentage = region.BiomePresences [i];
+
+			InfoPanelText.text += "\nBiome: " + region.PresentBiomeNames [i];
+			InfoPanelText.text += " (" + percentage.ToString ("P") + ")";
+		}
+
+		InfoPanelText.text += "\n";
+		InfoPanelText.text += "\nAverage Survivability: " + region.AverageSurvivability.ToString ("P");
+		InfoPanelText.text += "\nAverage Foraging Capacity: " + region.AverageForagingCapacity.ToString ("P");
+		InfoPanelText.text += "\nAverage Accessibility: " + region.AverageAccessibility.ToString ("P");
+		InfoPanelText.text += "\nAverage Arability: " + region.AverageArability.ToString ("P");
+	}
+
 	public void AddCellDataToInfoPanel_FarmlandDistribution (TerrainCell cell) {
 
 		float cellArea = cell.Area;
@@ -2123,10 +2160,14 @@ public class GuiManagerScript : MonoBehaviour {
 		if ((_planetOverlay == PlanetOverlay.None) || 
 			(_planetOverlay == PlanetOverlay.Rainfall) || 
 			(_planetOverlay == PlanetOverlay.Arability) || 
-			(_planetOverlay == PlanetOverlay.Temperature) || 
-			(_planetOverlay == PlanetOverlay.Region)) {
+			(_planetOverlay == PlanetOverlay.Temperature)) {
 
 			AddCellDataToInfoPanel_Terrain (cell);
+		}
+
+		if (_planetOverlay == PlanetOverlay.Region) {
+
+			AddCellDataToInfoPanel_Region (cell);
 		}
 
 		if (_planetOverlay == PlanetOverlay.FarmlandDistribution) {

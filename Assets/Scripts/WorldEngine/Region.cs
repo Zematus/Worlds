@@ -10,14 +10,49 @@ public class Region : Synchronizable {
 
 	public const float MaxClosedness = 1.0f; // 0.8f;
 
+	[XmlAttribute]
 	public long Id;
 
 	public List<WorldPosition> CellPositions;
 
 	[XmlIgnore]
+	public float AverageAltitude = 0;
+	[XmlIgnore]
+	public float AverageRainfall = 0;
+	[XmlIgnore]
+	public float AverageTemperature = 0;
+
+	[XmlIgnore]
+	public float AverageSurvivability = 0;
+	[XmlIgnore]
+	public float AverageForagingCapacity = 0;
+	[XmlIgnore]
+	public float AverageAccessibility = 0;
+	[XmlIgnore]
+	public float AverageArability = 0;
+
+	[XmlIgnore]
+	public float AverageFarmlandPercentage = 0;
+
+	[XmlIgnore]
+	public float TotalArea = 0;
+
+	[XmlIgnore]
+	public string BiomeWithMostPresence = null;
+	[XmlIgnore]
+	public float MostBiomePresence = 0;
+
+	[XmlIgnore]
 	public World World;
 
+	[XmlIgnore]
+	public List<string> PresentBiomeNames = new List<string>();
+	[XmlIgnore]
+	public List<float> BiomePresences = new List<float>();
+
 	private HashSet<TerrainCell> _cells = new HashSet<TerrainCell> ();
+
+	private Dictionary<string, float> _biomePresences;
 
 	public Region () {
 
@@ -39,6 +74,74 @@ public class Region : Synchronizable {
 		Manager.AddUpdatedCell (cell, CellUpdateType.Region);
 
 		return true;
+	}
+
+	public void CalculateAttributes () {
+
+		bool first = true;
+
+		Dictionary<string, float> biomePresences = new Dictionary<string, float> ();
+
+		foreach (TerrainCell cell in _cells) {
+			
+			float cellArea = cell.Area;
+
+			AverageAltitude += cell.Altitude * cellArea;
+			AverageRainfall += cell.Rainfall * cellArea;
+			AverageTemperature += cell.Temperature * cellArea;
+
+			AverageSurvivability += cell.Survivability * cellArea;
+			AverageForagingCapacity += cell.ForagingCapacity * cellArea;
+			AverageAccessibility += cell.Accessibility * cellArea;
+			AverageArability += cell.Arability * cellArea;
+
+			AverageFarmlandPercentage += cell.FarmlandPercentage * cellArea;
+
+			foreach (string biomeName in cell.PresentBiomeNames) {
+
+				float presence = cell.GetBiomePresence(biomeName) * cellArea;
+
+				if (biomePresences.ContainsKey (biomeName)) {
+					biomePresences [biomeName] += presence;
+				} else {
+					biomePresences.Add (biomeName, presence);
+				}
+			}
+
+			TotalArea += cellArea;
+		}
+
+		AverageAltitude /= TotalArea;
+		AverageRainfall /= TotalArea;
+		AverageTemperature /= TotalArea;
+
+		AverageSurvivability /= TotalArea;
+		AverageForagingCapacity /= TotalArea;
+		AverageAccessibility /= TotalArea;
+		AverageArability /= TotalArea;
+
+		AverageFarmlandPercentage /= TotalArea;
+
+		PresentBiomeNames = new List<string> (biomePresences.Count);
+		BiomePresences = new List<float> (biomePresences.Count);
+
+		_biomePresences = new Dictionary<string, float> (biomePresences.Count);
+
+		foreach (KeyValuePair<string, float> pair in biomePresences) {
+
+			float presence = pair.Value / TotalArea;
+
+			PresentBiomeNames.Add (pair.Key);
+			BiomePresences.Add (presence);
+
+			_biomePresences.Add (pair.Key, presence);
+
+			if (MostBiomePresence < presence) {
+			
+				MostBiomePresence = presence;
+				BiomeWithMostPresence = pair.Key;
+			}
+		}
 	}
 
 	public bool RemoveCell (TerrainCell cell) {
@@ -76,6 +179,8 @@ public class Region : Synchronizable {
 
 			cell.Region = this;
 		}
+
+		CalculateAttributes ();
 	}
 
 	public static Region TryGenerateRegion (TerrainCell startCell) {
@@ -177,6 +282,8 @@ public class Region : Synchronizable {
 			
 			region.AddCell (cell);
 		}
+
+		region.CalculateAttributes ();
 
 		return region;
 	}
