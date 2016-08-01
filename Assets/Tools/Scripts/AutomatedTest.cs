@@ -539,8 +539,6 @@ public class SaveLoadTest : AutomatedTest {
 				int saveEntryCount = _saveRecorder.GetEntryCount ();
 				int loadEntryCount = _loadRecorder.GetEntryCount ();
 
-				int minEntries = Mathf.Min (saveEntryCount, loadEntryCount);
-
 				if (saveEntryCount != loadEntryCount) {
 
 					Debug.LogError ("Number of Test Recorder entries different: save=" + saveEntryCount + " load=" + loadEntryCount);
