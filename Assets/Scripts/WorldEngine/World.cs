@@ -118,6 +118,7 @@ public class World : Synchronizable {
 	[XmlArrayItem (Type = typeof(Tribe))]
 	public List<Polity> Polities;
 
+	[XmlArrayItem (Type = typeof(CellRegion))]
 	public List<Region> Regions;
 
 	// End wonky segment 
@@ -482,8 +483,8 @@ public class World : Synchronizable {
 				int maxDate = CurrentDate + MaxYearsToSkip;
 
 				if (maxDate < 0) {
-					throw new System.Exception ("Surpassed date limit (Int32.MaxValue)");
 					Debug.Break ();
+					throw new System.Exception ("Surpassed date limit (Int32.MaxValue)");
 				}
 
 				dateToSkipTo = Mathf.Min (eventToHappen.TriggerDate, maxDate);
@@ -921,11 +922,17 @@ public class World : Synchronizable {
 		
 		float longitudeFactor = 15f;
 		float latitudeFactor = 6f;
+
+		float minLatitude = Height / latitudeFactor;
+		float maxLatitude = Height * (latitudeFactor - 1f) / latitudeFactor;
 		
 		Manager.EnqueueTaskAndWait (() => {
 			
-			Vector2 prevPos = new Vector2(Random.Range(0, Width * (longitudeFactor - 1f) / longitudeFactor),
-			                              Random.Range(Height / latitudeFactor, Height * (latitudeFactor - 1f) / latitudeFactor));
+			Vector2 prevPos = new Vector2(
+				Random.Range(0, Width),
+				Random.Range(minLatitude, maxLatitude));
+
+			//Vector2 prevPrevPos = prevPos;
 
 			for (int i = 0; i < NumContinents; i++) {
 
@@ -935,29 +942,18 @@ public class World : Synchronizable {
 				_continentWidths[i] = Random.Range(ContinentMinWidthFactor + widthOff, ContinentMaxWidthFactor + widthOff);
 				_continentHeights[i] = Random.Range(ContinentMinWidthFactor + widthOff, ContinentMaxWidthFactor + widthOff);
 
-				float yPos = Random.Range(Height / latitudeFactor, Height * (latitudeFactor - 1f) / latitudeFactor);
+				float xPos = Mathf.Repeat(prevPos.x + Random.Range(Width / longitudeFactor, Width * 2 / longitudeFactor), Width);
+				float yPos = Random.Range(minLatitude, maxLatitude);
 
-				Vector2 newVector = new Vector2(
-					Mathf.Repeat(prevPos.x + Random.Range(Width / longitudeFactor, Width * 2 / longitudeFactor), Width),
-					yPos);
-				
 				if (i % 3 == 2) {
-					newVector = new Vector2(
-						Mathf.Repeat(prevPos.x + Random.Range(Width * 4 / longitudeFactor, Width * 6 / longitudeFactor), Width),
-						yPos);
+					xPos = Mathf.Repeat(prevPos.x + Random.Range(Width * 4 / longitudeFactor, Width * 5 / longitudeFactor), Width);
 				}
 
-				prevPos = newVector;
+				Vector2 newPos = new Vector2(xPos, yPos);
+
+				//prevPrevPos = prevPos;
+				prevPos = newPos;
 			}
-			
-//			for (int i = 0; i < NumContinents; i++) {
-//				
-//				_continentOffsets[i] = new Vector2(
-//						Mathf.Repeat(Random.Range(Width*i/longitudeFactor, Width*(i + 2)/longitudeFactor), Width),
-//						Random.Range(Height / latitudeFactor, Height * (latitudeFactor - 1f) / latitudeFactor));
-//				_continentWidths[i] = Random.Range(ContinentMinWidthFactor, ContinentMaxWidthFactor);
-//				_continentHeights[i] = Random.Range(ContinentMinWidthFactor, ContinentMaxWidthFactor) / 2f;
-//			}
 			
 			return true;
 		});
@@ -1078,15 +1074,15 @@ public class World : Synchronizable {
 				valueCb = GetMountainRangeNoiseFromRandomNoise(valueCb, 25);
 				valueC = MathUtility.MixValues(valueC, valueCb, 0.5f * value8);
 
-				valueC = MathUtility.MixValues(valueC, value3, 0.45f * value8);
+				valueC = MathUtility.MixValues(valueC, value3, 0.55f * value8);
 				valueC = MathUtility.MixValues(valueC, value4, 0.075f);
 				valueC = MathUtility.MixValues(valueC, value5, 0.05f);
 				valueC = MathUtility.MixValues(valueC, value6, 0.02f);
 				valueC = MathUtility.MixValues(valueC, value7, 0.01f);
 				
-				float valueB = MathUtility.MixValues(valueA, (valueA * 0.02f) + 0.49f, valueA - Mathf.Max(0, (2 * valueC) - 1));
+				float valueB = MathUtility.MixValues (valueA, (valueA * 0.02f) + 0.49f, Mathf.Max(0, 0.9f * valueA - Mathf.Max(0, (2f * valueC) - 1)));
 
-				float valueD = MathUtility.MixValues(valueB, valueC, 0.225f * value8);
+				float valueD = MathUtility.MixValues (valueB, valueC, 0.225f * value8);
 
 				CalculateAndSetAltitude(i, j, valueD);
 //				CalculateAndSetAltitude(i, j, valueA);

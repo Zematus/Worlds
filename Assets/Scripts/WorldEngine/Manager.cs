@@ -1215,13 +1215,7 @@ public class Manager {
 
 	private static bool IsRegionBorder (Region region, TerrainCell cell) {
 
-		foreach (TerrainCell nCell in cell.Neighbors.Values) {
-
-			if (nCell.Region != region)
-				return true;
-		}
-
-		return false;
+		return region.IsBorderCell (cell);
 	}
 
 	private static Color SetRegionOverlayColor (TerrainCell cell, Color color) {
@@ -1375,9 +1369,9 @@ public class Manager {
 	private static Color GenerateColorFromId (long id) {
 	
 		long primaryColor = id % 3;
-		float secondaryColorIntensity = (id / 3) % 2;
-		long secondaryColor = (id / 6) % 2;
-		float tertiaryColorIntensity = (id / 12) % 4 / 4f;
+		float secondaryColorIntensity = ((id / 3) % 4) / 3f;
+		float tertiaryColorIntensity = (id / 12) % 2 / 2f;
+		long secondaryColor = (id / 24) % 2;
 
 		float red = 0;
 		float green = 0;

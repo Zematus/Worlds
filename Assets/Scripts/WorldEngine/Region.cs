@@ -3,17 +3,51 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Xml.Serialization;
 
-public class Region : Synchronizable {
+public enum RegionAttribute {
+	Glacier,
+	IceCap,
+	Ocean,
+	Grassland,
+	Forest,
+	Taiga,
+	Tundra,
+	Desert,
+	Rainforest,
+	Jungle,
+	Valley,
+	Highlands,
+	Range,
+	Hills,
+	Mountains,
+	Basin,
+	Plain,
+	Delta,
+	Peninsula,
+	Island,
+	Archipelago,
+	Chanel,
+	Gulf,
+	Sound,
+	Lake,
+	Sea,
+	Continent,
+	Strait
+}
 
-	public const float BaseMaxAltitudeDifference = 3000;
-	public const int AltitudeRoundnessTarget = 6000;
+public abstract class Region : Synchronizable {
 
-	public const float MaxClosedness = 1.0f; // 0.8f;
+	public const float BaseMaxAltitudeDifference = 1000;
+	public const int AltitudeRoundnessTarget = 2000;
+
+	public const float MaxClosedness = 0.5f;
+
+	public List<RegionAttribute> Attributes = new List<RegionAttribute>();
 
 	[XmlAttribute]
 	public long Id;
 
-	public List<WorldPosition> CellPositions;
+	[XmlIgnore]
+	public World World;
 
 	[XmlIgnore]
 	public float AverageAltitude = 0;
@@ -43,16 +77,21 @@ public class Region : Synchronizable {
 	public float MostBiomePresence = 0;
 
 	[XmlIgnore]
-	public World World;
-
-	[XmlIgnore]
 	public List<string> PresentBiomeNames = new List<string>();
 	[XmlIgnore]
 	public List<float> BiomePresences = new List<float>();
 
-	private HashSet<TerrainCell> _cells = new HashSet<TerrainCell> ();
+	[XmlIgnore]
+	public float AverageBorderAltitude = 0;
+	[XmlIgnore]
+	public float MinAltitude = float.MaxValue;
+	[XmlIgnore]
+	public float MaxAltitude = float.MinValue;
 
-	private Dictionary<string, float> _biomePresences;
+	[XmlIgnore]
+	public HashSet<TerrainCell> BorderCells = new HashSet<TerrainCell> ();
+
+	protected Dictionary<string, float> _biomePresences;
 
 	public Region () {
 
@@ -63,6 +102,163 @@ public class Region : Synchronizable {
 		World = world;
 
 		Id = World.GenerateRegionId ();
+	}
+
+	public Region (World world, int id) {
+
+		World = world;
+
+		Id = id;
+	}
+
+	public bool IsBorderCell (TerrainCell cell) {
+
+		return BorderCells.Contains (cell);
+	}
+
+	public abstract void Synchronize ();
+
+	public abstract void FinalizeLoad ();
+
+	public static Region TryGenerateRegion (TerrainCell startCell) {
+
+		if (startCell.Region != null)
+			return null;
+
+		Region region = TryGenerateBiomeRegion (startCell, startCell.BiomeWithMostPresence);
+
+		return region;
+	}
+
+	public static Region TryGenerateBiomeRegion (TerrainCell startCell, string biomeName) {
+
+		int regionSize = 1;
+
+		// round the base altitude
+		float baseAltitude = AltitudeRoundnessTarget * Mathf.Round (startCell.Altitude / AltitudeRoundnessTarget);
+
+		HashSet<TerrainCell> acceptedCells = new HashSet<TerrainCell> ();
+		HashSet<TerrainCell> unacceptedCells = new HashSet<TerrainCell> ();
+
+		acceptedCells.Add (startCell);
+
+		HashSet<TerrainCell> cellsToExplore = new HashSet<TerrainCell> ();
+
+		foreach (TerrainCell cell in startCell.Neighbors.Values) {
+
+			cellsToExplore.Add (cell);
+		}
+
+		bool addedAcceptedCells = true;
+
+		int borderCells = 0;
+
+		float maxClosedness = 0;
+
+		while (addedAcceptedCells) {
+			HashSet<TerrainCell> nextCellsToExplore = new HashSet<TerrainCell> ();
+			addedAcceptedCells = false;
+
+			if (cellsToExplore.Count <= 0)
+				break;
+
+			float closedness = 1 - cellsToExplore.Count / (float)(cellsToExplore.Count + borderCells);
+
+			if (closedness > maxClosedness)
+				maxClosedness = closedness;
+
+			foreach (TerrainCell cell in cellsToExplore) {
+
+				float closednessFactor = 1;
+				float cutOffFactor = 2;
+
+				if (MaxClosedness < 1) {
+					closednessFactor = (1 + MaxClosedness / cutOffFactor) * (1 - closedness) / (1 - MaxClosedness) - MaxClosedness / cutOffFactor;
+				}
+
+				float maxAltitudeDifference = BaseMaxAltitudeDifference * closednessFactor;
+
+				bool accepted = false;
+
+				string cellBiomeName = cell.BiomeWithMostPresence;
+
+				if ((cell.Region == null) && (cellBiomeName == biomeName)) {
+
+					if (Mathf.Abs (cell.Altitude - baseAltitude) < maxAltitudeDifference) {
+
+						accepted = true;
+						acceptedCells.Add (cell);
+						addedAcceptedCells = true;
+						regionSize++;
+
+						foreach (KeyValuePair<Direction, TerrainCell> pair in cell.Neighbors) {
+
+							TerrainCell ncell = pair.Value;
+
+							if (cellsToExplore.Contains (ncell))
+								continue;
+
+							if (unacceptedCells.Contains (ncell))
+								continue;
+
+							if (acceptedCells.Contains (ncell))
+								continue;
+
+							nextCellsToExplore.Add (ncell);
+						}
+					}
+				}
+
+				if (!accepted) {
+					unacceptedCells.Add (cell);
+					borderCells++;
+				}
+			}
+
+			cellsToExplore = nextCellsToExplore;
+		}
+
+		CellRegion region = new CellRegion (startCell.World);
+
+		foreach (TerrainCell cell in acceptedCells) {
+
+			region.AddCell (cell);
+		}
+
+		region.EvaluateAttributes ();
+
+		return region;
+	}
+
+	public static Region TrySplitRegion (Region region) {
+
+		return null;
+	}
+}
+
+//public class SuperRegion : Region {
+//
+//	public SuperRegion () {
+//
+//	}
+//
+//	public SuperRegion (World world, int id) : base (world, id) {
+//
+//	}
+//}
+
+public class CellRegion : Region {
+
+	public List<WorldPosition> CellPositions;
+
+	private HashSet<TerrainCell> _cells = new HashSet<TerrainCell> ();
+
+	public CellRegion () {
+
+	}
+
+	public CellRegion (World world) : base (world) {
+		
 	}
 
 	public bool AddCell (TerrainCell cell) {
@@ -76,13 +272,35 @@ public class Region : Synchronizable {
 		return true;
 	}
 
-	public void CalculateAttributes () {
+	public static bool ValidateIfBorderCell (Region region, TerrainCell cell) {
 
-		bool first = true;
+		foreach (TerrainCell nCell in cell.Neighbors.Values) {
+
+			if (nCell.Region != region)
+				return true;
+		}
+
+		return false;
+	}
+
+	public void EvaluateAttributes () {
 
 		Dictionary<string, float> biomePresences = new Dictionary<string, float> ();
 
 		foreach (TerrainCell cell in _cells) {
+
+			if (ValidateIfBorderCell (this, cell)) {
+			
+				BorderCells.Add (cell);
+			}
+
+			if (MinAltitude > cell.Altitude) {
+				MinAltitude = cell.Altitude;
+			}
+
+			if (MaxAltitude < cell.Altitude) {
+				MaxAltitude = cell.Altitude;
+			}
 			
 			float cellArea = cell.Area;
 
@@ -142,6 +360,26 @@ public class Region : Synchronizable {
 				BiomeWithMostPresence = pair.Key;
 			}
 		}
+
+		EvaluateBorderAttributes ();
+
+		DefineAttributes ();
+	}
+
+	public void EvaluateBorderAttributes () {
+
+		float totalBorderArea = 0;
+
+		foreach (TerrainCell cell in BorderCells) {
+
+			float cellArea = cell.Area;
+
+			AverageBorderAltitude += cell.Altitude * cellArea;
+
+			totalBorderArea += cellArea;
+		}
+
+		AverageBorderAltitude /= totalBorderArea;
 	}
 
 	public bool RemoveCell (TerrainCell cell) {
@@ -155,7 +393,7 @@ public class Region : Synchronizable {
 		return true;
 	}
 
-	public void Synchronize () {
+	public override void Synchronize () {
 
 		CellPositions = new List<WorldPosition> (_cells.Count);
 
@@ -165,7 +403,7 @@ public class Region : Synchronizable {
 		}
 	}
 
-	public void FinalizeLoad () {
+	public override void FinalizeLoad () {
 
 		foreach (WorldPosition position in CellPositions) {
 
@@ -180,111 +418,69 @@ public class Region : Synchronizable {
 			cell.Region = this;
 		}
 
-		CalculateAttributes ();
+		EvaluateAttributes ();
 	}
 
-	public static Region TryGenerateRegion (TerrainCell startCell) {
+	private void DefineAttributes () {
 
-		if (startCell.Region != null)
-			return null;
+		if (AverageAltitude > (AverageBorderAltitude + 100f)) {
 
-		Region region = TryGenerateBiomeRegion (startCell, startCell.BiomeWithMostPresence);
-
-		return region;
-	}
-
-	public static Region TryGenerateBiomeRegion (TerrainCell startCell, string biomeName) {
-
-		int regionSize = 1;
-
-		// round the base altitude
-		float baseAltitude = AltitudeRoundnessTarget * Mathf.Round (startCell.Altitude / AltitudeRoundnessTarget);
-
-		HashSet<TerrainCell> acceptedCells = new HashSet<TerrainCell> ();
-		HashSet<TerrainCell> unacceptedCells = new HashSet<TerrainCell> ();
-
-		acceptedCells.Add (startCell);
-
-		HashSet<TerrainCell> cellsToExplore = new HashSet<TerrainCell> ();
-
-		foreach (TerrainCell cell in startCell.Neighbors.Values) {
-
-			cellsToExplore.Add (cell);
+			Attributes.Add (RegionAttribute.Highlands);
 		}
 
-		bool addedAcceptedCells = true;
+		if (AverageAltitude < (AverageBorderAltitude - 100f)) {
 
-		int borderCells = 0;
+			Attributes.Add (RegionAttribute.Valley);
 
-		while (addedAcceptedCells) {
-			HashSet<TerrainCell> nextCellsToExplore = new HashSet<TerrainCell> ();
-			addedAcceptedCells = false;
+			if (AverageRainfall > 1000) {
 
-			if (cellsToExplore.Count <= 0)
+				Attributes.Add (RegionAttribute.Basin);
+			}
+		}
+
+		if (MostBiomePresence > 0.65f) {
+		
+			switch (BiomeWithMostPresence) {
+
+			case "Desert":
+				Attributes.Add (RegionAttribute.Desert);
 				break;
 
-			float closedness = 1 - cellsToExplore.Count / (float)(cellsToExplore.Count + borderCells);
+			case "Desertic Tundra":
+				Attributes.Add (RegionAttribute.Desert);
+				break;
 
-			foreach (TerrainCell cell in cellsToExplore) {
+			case "Forest":
+				Attributes.Add (RegionAttribute.Forest);
+				break;
 
-				float closednessFactor = 1;
-				float cutOffFactor = 2;
+			case "Glacier":
+				Attributes.Add (RegionAttribute.Glacier);
+				break;
 
-				if (MaxClosedness < 1) {
-					closednessFactor = (1 + MaxClosedness / cutOffFactor) * (1 - closedness) / (1 - MaxClosedness) - MaxClosedness / cutOffFactor;
-				}
+			case "Grassland":
+				Attributes.Add (RegionAttribute.Grassland);
+				break;
 
-				float maxAltitudeDifference = BaseMaxAltitudeDifference * closednessFactor;
+			case "Ice Cap":
+				Attributes.Add (RegionAttribute.IceCap);
+				break;
 
-				bool accepted = false;
+			case "Rainforest":
+				Attributes.Add (RegionAttribute.Rainforest);
 
-				string cellBiomeName = cell.BiomeWithMostPresence;
+				if (AverageTemperature > 20)
+					Attributes.Add (RegionAttribute.Jungle);
+				break;
 
-				if ((cell.Region == null) && (cellBiomeName == biomeName)) {
+			case "Taiga":
+				Attributes.Add (RegionAttribute.Taiga);
+				break;
 
-					if (Mathf.Abs (cell.Altitude - baseAltitude) < maxAltitudeDifference) {
-
-						accepted = true;
-						acceptedCells.Add (cell);
-						addedAcceptedCells = true;
-						regionSize++;
-
-						foreach (KeyValuePair<Direction, TerrainCell> pair in cell.Neighbors) {
-
-							TerrainCell ncell = pair.Value;
-
-							if (cellsToExplore.Contains (ncell))
-								continue;
-
-							if (unacceptedCells.Contains (ncell))
-								continue;
-
-							if (acceptedCells.Contains (ncell))
-								continue;
-
-							nextCellsToExplore.Add (ncell);
-						}
-					}
-				}
-
-				if (!accepted) {
-					unacceptedCells.Add (cell);
-					borderCells++;
-				}
+			case "Tundra":
+				Attributes.Add (RegionAttribute.Tundra);
+				break;
 			}
-
-			cellsToExplore = nextCellsToExplore;
 		}
-
-		Region region = new Region (startCell.World);
-
-		foreach (TerrainCell cell in acceptedCells) {
-			
-			region.AddCell (cell);
-		}
-
-		region.CalculateAttributes ();
-
-		return region;
 	}
 }
