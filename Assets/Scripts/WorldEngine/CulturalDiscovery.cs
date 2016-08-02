@@ -189,6 +189,16 @@ public class TribalismDiscovery : CellCulturalDiscovery {
 		
 			group.World.AddRegion (newRegion);
 		}
+
+		foreach (TerrainCell cell in group.Cell.Neighbors.Values) {
+
+			Region newNeighboorRegion = Region.TryGenerateRegion (group.Cell);
+
+			if (newNeighboorRegion != null) {
+
+				group.World.AddRegion (newNeighboorRegion);
+			}
+		}
 	}
 }
 

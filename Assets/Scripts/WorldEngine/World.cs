@@ -1080,9 +1080,13 @@ public class World : Synchronizable {
 				valueC = MathUtility.MixValues(valueC, value6, 0.02f);
 				valueC = MathUtility.MixValues(valueC, value7, 0.01f);
 				
-				float valueB = MathUtility.MixValues (valueA, (valueA * 0.02f) + 0.49f, Mathf.Max(0, 0.9f * valueA - Mathf.Max(0, (2f * valueC) - 1)));
+//				float valueB = MathUtility.MixValues (valueA, (valueA * 0.02f) + 0.49f, Mathf.Max(0, 0.9f * valueA - Mathf.Max(0, (2f * valueC) - 1)));
+//
+//				float valueD = MathUtility.MixValues (valueB, valueC, 0.225f * value8);
 
-				float valueD = MathUtility.MixValues (valueB, valueC, 0.225f * value8);
+				float valueB = MathUtility.MixValues (valueA, valueC, 0.35f * value8);
+
+				float valueD = MathUtility.MixValues (valueB, (valueA * 0.02f) + 0.49f, Mathf.Clamp01(1.3f * valueA - Mathf.Max(0, (2.5f * valueC) - 1)));
 
 				CalculateAndSetAltitude(i, j, valueD);
 //				CalculateAndSetAltitude(i, j, valueA);

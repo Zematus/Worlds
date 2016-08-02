@@ -1215,7 +1215,7 @@ public class Manager {
 
 	private static bool IsRegionBorder (Region region, TerrainCell cell) {
 
-		return region.IsBorderCell (cell);
+		return region.IsInnerBorderCell (cell);
 	}
 
 	private static Color SetRegionOverlayColor (TerrainCell cell, Color color) {

@@ -31,7 +31,8 @@ public enum RegionAttribute {
 	Lake,
 	Sea,
 	Continent,
-	Strait
+	Strait,
+	Coast
 }
 
 public abstract class Region : Synchronizable {
@@ -82,14 +83,15 @@ public abstract class Region : Synchronizable {
 	public List<float> BiomePresences = new List<float>();
 
 	[XmlIgnore]
-	public float AverageBorderAltitude = 0;
+	public float AverageOuterBorderAltitude = 0;
 	[XmlIgnore]
 	public float MinAltitude = float.MaxValue;
 	[XmlIgnore]
 	public float MaxAltitude = float.MinValue;
-
 	[XmlIgnore]
-	public HashSet<TerrainCell> BorderCells = new HashSet<TerrainCell> ();
+	public float CoastPercentage = 0;
+	[XmlIgnore]
+	public float OceanPercentage = 0;
 
 	protected Dictionary<string, float> _biomePresences;
 
@@ -111,10 +113,7 @@ public abstract class Region : Synchronizable {
 		Id = id;
 	}
 
-	public bool IsBorderCell (TerrainCell cell) {
-
-		return BorderCells.Contains (cell);
-	}
+	public abstract bool IsInnerBorderCell (TerrainCell cell);
 
 	public abstract void Synchronize ();
 
@@ -122,6 +121,9 @@ public abstract class Region : Synchronizable {
 
 	public static Region TryGenerateRegion (TerrainCell startCell) {
 
+		if (startCell.GetBiomePresence (Biome.Ocean) >= 1)
+			return null;
+		
 		if (startCell.Region != null)
 			return null;
 
@@ -253,6 +255,10 @@ public class CellRegion : Region {
 
 	private HashSet<TerrainCell> _cells = new HashSet<TerrainCell> ();
 
+	private HashSet<TerrainCell> _innerBorderCells = new HashSet<TerrainCell> ();
+
+	private HashSet<TerrainCell> _outerBorderCells = new HashSet<TerrainCell> ();
+
 	public CellRegion () {
 
 	}
@@ -272,26 +278,49 @@ public class CellRegion : Region {
 		return true;
 	}
 
-	public static bool ValidateIfBorderCell (Region region, TerrainCell cell) {
+	public override bool IsInnerBorderCell (TerrainCell cell) {
 
-		foreach (TerrainCell nCell in cell.Neighbors.Values) {
-
-			if (nCell.Region != region)
-				return true;
-		}
-
-		return false;
+		return _innerBorderCells.Contains (cell);
 	}
 
 	public void EvaluateAttributes () {
 
 		Dictionary<string, float> biomePresences = new Dictionary<string, float> ();
 
+		float oceanicArea = 0;
+		float coastalOuterBorderArea = 0;
+		float outerBorderArea = 0;
+
 		foreach (TerrainCell cell in _cells) {
 
-			if (ValidateIfBorderCell (this, cell)) {
-			
-				BorderCells.Add (cell);
+			float cellArea = cell.Area;
+
+			bool isInnerBorder = false;
+
+			bool isNotFullyOceanic = (cell.GetBiomePresence (Biome.Ocean) < 1);
+
+			foreach (TerrainCell nCell in cell.Neighbors.Values) {
+
+				if (nCell.Region != this) {
+					isInnerBorder = true;
+
+					if (_outerBorderCells.Add (nCell)) {
+
+						float nCellArea = nCell.Area;
+
+						outerBorderArea += nCellArea;
+						AverageOuterBorderAltitude += cell.Altitude * nCellArea;
+
+						if (isNotFullyOceanic && (nCell.GetBiomePresence (Biome.Ocean) >= 1)) {
+						
+							coastalOuterBorderArea += nCellArea;
+						}
+					}
+				}
+			}
+
+			if (isInnerBorder) {
+				_innerBorderCells.Add (cell);
 			}
 
 			if (MinAltitude > cell.Altitude) {
@@ -301,8 +330,6 @@ public class CellRegion : Region {
 			if (MaxAltitude < cell.Altitude) {
 				MaxAltitude = cell.Altitude;
 			}
-			
-			float cellArea = cell.Area;
 
 			AverageAltitude += cell.Altitude * cellArea;
 			AverageRainfall += cell.Rainfall * cellArea;
@@ -317,12 +344,16 @@ public class CellRegion : Region {
 
 			foreach (string biomeName in cell.PresentBiomeNames) {
 
-				float presence = cell.GetBiomePresence(biomeName) * cellArea;
+				float presenceArea = cell.GetBiomePresence(biomeName) * cellArea;
 
 				if (biomePresences.ContainsKey (biomeName)) {
-					biomePresences [biomeName] += presence;
+					biomePresences [biomeName] += presenceArea;
 				} else {
-					biomePresences.Add (biomeName, presence);
+					biomePresences.Add (biomeName, presenceArea);
+				}
+
+				if (biomeName == Biome.Ocean.Name) {
+					oceanicArea += presenceArea;
 				}
 			}
 
@@ -339,6 +370,12 @@ public class CellRegion : Region {
 		AverageArability /= TotalArea;
 
 		AverageFarmlandPercentage /= TotalArea;
+
+		OceanPercentage = oceanicArea / TotalArea;
+
+		AverageOuterBorderAltitude /= outerBorderArea;
+
+		CoastPercentage = coastalOuterBorderArea / outerBorderArea;
 
 		PresentBiomeNames = new List<string> (biomePresences.Count);
 		BiomePresences = new List<float> (biomePresences.Count);
@@ -361,25 +398,7 @@ public class CellRegion : Region {
 			}
 		}
 
-		EvaluateBorderAttributes ();
-
 		DefineAttributes ();
-	}
-
-	public void EvaluateBorderAttributes () {
-
-		float totalBorderArea = 0;
-
-		foreach (TerrainCell cell in BorderCells) {
-
-			float cellArea = cell.Area;
-
-			AverageBorderAltitude += cell.Altitude * cellArea;
-
-			totalBorderArea += cellArea;
-		}
-
-		AverageBorderAltitude /= totalBorderArea;
 	}
 
 	public bool RemoveCell (TerrainCell cell) {
@@ -423,12 +442,22 @@ public class CellRegion : Region {
 
 	private void DefineAttributes () {
 
-		if (AverageAltitude > (AverageBorderAltitude + 100f)) {
+		if ((CoastPercentage > 0.35f) && (CoastPercentage < 0.65f)) {
+			Attributes.Add (RegionAttribute.Coast);
+
+		} else if ((CoastPercentage >= 0.65f) && (CoastPercentage < 1f)) {
+			Attributes.Add (RegionAttribute.Peninsula);
+
+		} else if (CoastPercentage >= 1f) {
+			Attributes.Add (RegionAttribute.Island);
+		}
+
+		if (AverageAltitude > (AverageOuterBorderAltitude + 200f)) {
 
 			Attributes.Add (RegionAttribute.Highlands);
 		}
 
-		if (AverageAltitude < (AverageBorderAltitude - 100f)) {
+		if (AverageAltitude < (AverageOuterBorderAltitude - 200f)) {
 
 			Attributes.Add (RegionAttribute.Valley);
 

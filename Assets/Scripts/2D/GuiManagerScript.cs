@@ -1580,6 +1580,12 @@ public class GuiManagerScript : MonoBehaviour {
 
 		InfoPanelText.text += "\n";
 		InfoPanelText.text += "\nTotal Area: " + region.TotalArea + " Km^2";
+
+		InfoPanelText.text += "\n";
+		InfoPanelText.text += "\nCoast Percentage: " + region.CoastPercentage.ToString ("P");
+		InfoPanelText.text += "\nOcean Percentage: " + region.OceanPercentage.ToString ("P");
+
+		InfoPanelText.text += "\n";
 		InfoPanelText.text += "\nAverage Altitude: " + region.AverageAltitude + " meters";
 		InfoPanelText.text += "\nAverage Rainfall: " + region.AverageRainfall + " mm / year";
 		InfoPanelText.text += "\nAverage Temperature: " + region.AverageTemperature + " C";
@@ -1587,7 +1593,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 		InfoPanelText.text += "\nMin Region Altitude: " + region.MinAltitude + " meters";
 		InfoPanelText.text += "\nMax Region Altitude: " + region.MaxAltitude + " meters";
-		InfoPanelText.text += "\nAverage Border Altitude: " + region.AverageBorderAltitude + " meters";
+		InfoPanelText.text += "\nAverage Border Altitude: " + region.AverageOuterBorderAltitude + " meters";
 		InfoPanelText.text += "\n";
 
 		for (int i = 0; i < region.PresentBiomeNames.Count; i++) {
