@@ -155,7 +155,7 @@ public class Manager {
 	
 	public static World WorldBeingLoaded = null;
 
-	private static CellUpdateType _observableUpdateTypes = CellUpdateType.Group;
+	private static CellUpdateType _observableUpdateTypes = CellUpdateType.Cell | CellUpdateType.Group;
 
 	private static Manager _manager = new Manager();
 
@@ -658,7 +658,7 @@ public class Manager {
 	public static void SetPlanetOverlay (PlanetOverlay value, string planetOverlaySubtype = "None") {
 
 		if (value == PlanetOverlay.Region) {
-			_observableUpdateTypes &= CellUpdateType.Group;
+			_observableUpdateTypes &= ~CellUpdateType.Group;
 			_observableUpdateTypes |= CellUpdateType.Region;
 		} else {
 			_observableUpdateTypes |= CellUpdateType.Group;
@@ -684,13 +684,53 @@ public class Manager {
 		_planetView = value;
 	}
 
-	public static void DisplayCellData (TerrainCell cell, bool showData) {
-	
-		DisplayCellDataOnMapTexture (_manager._currentMapTextureColors, cell, showData);
-		CurrentMapTexture.SetPixels32 (_manager._currentMapTextureColors);
+	public static void SetSelectedCell (TerrainCell cell) {
 
-		CurrentMapTexture.Apply ();
+		if (CurrentWorld.SelectedCell != null) {
+
+			AddUpdatedCell (CurrentWorld.SelectedCell, CellUpdateType.Cell);
+		
+			CurrentWorld.SelectedCell.IsSelected = false;
+			CurrentWorld.SelectedCell = null;
+		}
+
+		if (CurrentWorld.SelectedRegion != null) {
+
+			foreach (TerrainCell regionCell in CurrentWorld.SelectedRegion.GetCells ()) {
+				AddUpdatedCell (regionCell, CellUpdateType.Region);
+			}
+
+			CurrentWorld.SelectedRegion.IsSelected = false;
+			CurrentWorld.SelectedRegion = null;
+		}
+
+		if (cell == null)
+			return;
+
+		CurrentWorld.SelectedCell = cell;
+		CurrentWorld.SelectedCell.IsSelected = true;
+
+		AddUpdatedCell (CurrentWorld.SelectedCell, CellUpdateType.Cell);
+
+		if (cell.Region != null) {
+
+			CurrentWorld.SelectedRegion = cell.Region;
+			CurrentWorld.SelectedRegion.IsSelected = true;
+
+			foreach (TerrainCell regionCell in CurrentWorld.SelectedRegion.GetCells ()) {
+				AddUpdatedCell (regionCell, CellUpdateType.Region);
+			}
+		}
 	}
+
+	//TODO: delete commented function
+//	public static void DisplayCellData (TerrainCell cell, bool showData) {
+//	
+//		DisplayCellDataOnMapTexture (_manager._currentMapTextureColors, cell, showData);
+//		CurrentMapTexture.SetPixels32 (_manager._currentMapTextureColors);
+//
+//		CurrentMapTexture.Apply ();
+//	}
 
 	public static void UpdateTextures () {
 
@@ -699,6 +739,7 @@ public class Manager {
 
 		CurrentMapTexture.Apply ();
 
+		// TODO: Reenable this part for globe view
 //		UpdateSphereTextureColors (_manager._currentSphereTextureColors);
 //		CurrentSphereTexture.SetPixels32 (_manager._currentSphereTextureColors);
 //
@@ -785,6 +826,20 @@ public class Manager {
 			UpdatedCells.Add (cell);
 		}
 	}
+
+	public static bool CellShouldBeHighlighted (TerrainCell cell) {
+
+		if (cell.IsSelected)
+			return true;
+	
+		if (_planetOverlay == PlanetOverlay.Region) {
+		
+			if ((cell.Region != null) && cell.Region.IsSelected)
+				return true;
+		}
+
+		return false;
+	}
 	
 	public static void UpdateMapTextureColorsFromCell (Color32[] textureColors, TerrainCell cell) {
 
@@ -798,6 +853,11 @@ public class Manager {
 		int j = cell.Latitude;
 		
 		Color cellColor = GenerateColorFromTerrainCell(cell);
+
+		if (CellShouldBeHighlighted (cell)) {
+		
+			cellColor = cellColor * 0.5f + Color.white * 0.5f;
+		}
 		
 		for (int m = 0; m < r; m++) {
 			for (int n = 0; n < r; n++) {

@@ -90,8 +90,9 @@ public class GuiManagerScript : MonoBehaviour {
 
 	private event MouseClickOperation _mapLeftClickOp = null;
 
-	private TerrainCell _previousSelectedCell = null;
-	private TerrainCell _selectedCell = null;
+	// TODO: delete next two lines
+//	private TerrainCell _previousSelectedCell = null;
+//	private TerrainCell _selectedCell = null;
 	
 	private const float _maxAccTime = 1.0f;
 	private const float _maxDeltaTimeIterations = 0.02f;
@@ -308,7 +309,8 @@ public class GuiManagerScript : MonoBehaviour {
 			}
 		}
 
-		DisplaySelectedCellOverlay ();
+		// TODO: Remove next line
+//		DisplaySelectedCellOverlay ();
 
 		if (MapImage.enabled) {
 			UpdateInfoPanel();
@@ -432,7 +434,8 @@ public class GuiManagerScript : MonoBehaviour {
 
 	private void PostProgressOp_GenerateWorld () {
 
-		ResetUIElements ();
+		// TODO: delete next line
+//		ResetUIElements ();
 		
 		Manager.WorldName = "world_" + Manager.CurrentWorld.Seed;
 		
@@ -462,10 +465,11 @@ public class GuiManagerScript : MonoBehaviour {
 		_regenTextures = true;
 	}
 
-	private void ResetUIElements () {
-	
-		_selectedCell = null;
-	}
+	// TODO: delete function
+//	private void ResetUIElements () {
+//	
+//		_selectedCell = null;
+//	}
 
 	public void SetInitialPopulationForTests () {
 
@@ -528,21 +532,23 @@ public class GuiManagerScript : MonoBehaviour {
 
 		TerrainCell selectedCell = Manager.CurrentWorld.GetCell (longitude, latitude);
 
-		_previousSelectedCell = _selectedCell;
+		Manager.SetSelectedCell (selectedCell);
 
-		if (_previousSelectedCell != null) {
-			_previousSelectedCell.IsSelected = false;
-			_previousSelectedCell.World.SelectedCell = null;
-		}
-
-		if (_previousSelectedCell == selectedCell) {
-			_selectedCell = null;
-		} else {
-			_selectedCell = selectedCell;
-			selectedCell.IsSelected = true;
-			selectedCell.World.SelectedCell = selectedCell;
-		}
-
+		// TODO: delete next commented lines
+//		_previousSelectedCell = _selectedCell;
+//
+//		if (_previousSelectedCell != null) {
+//			_previousSelectedCell.IsSelected = false;
+//			_previousSelectedCell.World.SelectedCell = null;
+//		}
+//
+//		if (_previousSelectedCell == selectedCell) {
+//			_selectedCell = null;
+//		} else {
+//			_selectedCell = selectedCell;
+//			selectedCell.IsSelected = true;
+//			selectedCell.World.SelectedCell = selectedCell;
+//		}
 	}
 
 	public void ClickOp_SelectPopulationPlacement (Vector2 position) {
@@ -876,7 +882,8 @@ public class GuiManagerScript : MonoBehaviour {
 
 	public void PostProgressOp_LoadAction () {
 
-		ResetUIElements ();
+		// TODO: delete next commented line
+//		ResetUIElements ();
 		
 		SelectionPanelScript.RemoveAllOptions ();
 		
@@ -1456,20 +1463,21 @@ public class GuiManagerScript : MonoBehaviour {
 		ViewsDialogPanelScript.SetVisible (false);
 	}
 
-	public void DisplaySelectedCellOverlay () {
-
-		if (_previousSelectedCell == _selectedCell)
-			return;
-
-		if (_previousSelectedCell != null) {
-			Manager.DisplayCellData (_previousSelectedCell, false);
-		}
-	
-		if (_selectedCell == null)
-			return;
-
-		Manager.DisplayCellData (_selectedCell, true);
-	}
+	// TODO: delete commented function
+//	public void DisplaySelectedCellOverlay () {
+//
+//		if (_previousSelectedCell == _selectedCell)
+//			return;
+//
+//		if (_previousSelectedCell != null) {
+//			Manager.DisplayCellData (_previousSelectedCell, false);
+//		}
+//	
+//		if (_selectedCell == null)
+//			return;
+//
+//		Manager.DisplayCellData (_selectedCell, true);
+//	}
 
 	public void UpdateInfoPanel () {
 		
@@ -1477,8 +1485,8 @@ public class GuiManagerScript : MonoBehaviour {
 		
 		InfoPanelText.text = "Year: " + world.CurrentDate;
 
-		if (_selectedCell != null) {
-			AddCellDataToInfoPanel (_selectedCell);
+		if (Manager.CurrentWorld.SelectedCell != null) {
+			AddCellDataToInfoPanel (Manager.CurrentWorld.SelectedCell);
 		}
 
 		InfoPanelText.text += "\n";
@@ -2175,8 +2183,6 @@ public class GuiManagerScript : MonoBehaviour {
 
 		int longitude = cell.Longitude;
 		int latitude = cell.Latitude;
-		
-		world.SetObservedCell (cell);
 
 		InfoPanelText.text += "\n";
 		InfoPanelText.text += string.Format ("\nPosition: Longitude {0}, Latitude {1}", longitude, latitude);

@@ -19,9 +19,10 @@ public enum Direction {
 public enum CellUpdateType {
 
 	None = 0x0,
-	Route = 0x2,
-	Region = 0x1,
-	Group = 0x4
+	Cell = 0x1,
+	Group = 0x2,
+	Region = 0x4,
+	Route = 0x8,
 }
 
 public struct WorldPosition {
@@ -143,9 +144,6 @@ public class TerrainCell : Synchronizable {
 
 	[XmlIgnore]
 	public bool IsSelected = false;
-	
-	[XmlIgnore]
-	public bool IsObserved = false;
 	
 	[XmlIgnore]
 	public Dictionary<Direction, TerrainCell> Neighbors { get; private set; }

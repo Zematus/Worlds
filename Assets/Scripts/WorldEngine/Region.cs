@@ -51,6 +51,9 @@ public abstract class Region : Synchronizable {
 	public World World;
 
 	[XmlIgnore]
+	public bool IsSelected = false;
+
+	[XmlIgnore]
 	public float AverageAltitude = 0;
 	[XmlIgnore]
 	public float AverageRainfall = 0;
@@ -112,6 +115,8 @@ public abstract class Region : Synchronizable {
 
 		Id = id;
 	}
+
+	public abstract ICollection<TerrainCell> GetCells ();
 
 	public abstract bool IsInnerBorderCell (TerrainCell cell);
 
@@ -276,6 +281,11 @@ public class CellRegion : Region {
 		Manager.AddUpdatedCell (cell, CellUpdateType.Region);
 
 		return true;
+	}
+
+	public override ICollection<TerrainCell> GetCells () {
+
+		return _cells;
 	}
 
 	public override bool IsInnerBorderCell (TerrainCell cell) {

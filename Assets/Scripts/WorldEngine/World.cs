@@ -125,6 +125,8 @@ public class World : Synchronizable {
 
 	[XmlIgnore]
 	public TerrainCell SelectedCell = null;
+	[XmlIgnore]
+	public Region SelectedRegion = null;
 	
 	[XmlIgnore]
 	public float MinPossibleAltitudeWithOffset = MinPossibleAltitude - Manager.SeaLevelOffset;
@@ -167,9 +169,6 @@ public class World : Synchronizable {
 	
 	[XmlIgnore]
 	public HumanGroup MigrationTaggedGroup = null;
-	
-	[XmlIgnore]
-	public TerrainCell ObservedCell = null;
 
 	private BinaryTree<int, WorldEvent> _eventsToHappen = new BinaryTree<int, WorldEvent> ();
 	
@@ -809,17 +808,6 @@ public class World : Synchronizable {
 		
 		if (MigrationTaggedGroup != null)
 			MigrationTaggedGroup.MigrationTagged = false;
-	}
-	
-	public void SetObservedCell (TerrainCell cell) {
-		
-		if (ObservedCell != null)
-			ObservedCell.IsObserved = false;
-		
-		ObservedCell = cell;
-		
-		if (cell != null)
-			cell.IsObserved = true;
 	}
 	
 	public void GenerateTerrain () {
