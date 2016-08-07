@@ -212,6 +212,10 @@ public class PolityCulture : Culture {
 		#endif
 
 		CellGroup coreGroup = Polity.CoreGroup;
+
+		if (coreGroup == null)
+			throw new System.Exception ("CoreGroup can't be null at this point");
+
 		CellCulture coreCulture = coreGroup.Culture;
 
 		coreCulture.Activities.ForEach (a => AddActivity (new CulturalActivity (a)));

@@ -30,13 +30,6 @@ public class Tribe : Polity {
 
 	public override void UpdateInternal ()
 	{
-		RelocateCore ();
-	}
-
-	public void RelocateCore () {
-
-		CellGroup mostInfluencedPopGroup = GetGroupWithMostInfluencedPop ();
-
-		SetCoreGroup (mostInfluencedPopGroup);
+		TryRelocateCore ();
 	}
 }

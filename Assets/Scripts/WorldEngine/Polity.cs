@@ -46,7 +46,7 @@ public abstract class Polity : Synchronizable {
 
 	public List<long> InfluencedGroupIds;
 
-	public Territory Territory = new Territory ();
+	public Territory Territory;
 
 	public PolityCulture Culture;
 
@@ -61,7 +61,9 @@ public abstract class Polity : Synchronizable {
 
 	private Dictionary<long, float> _influencedPopPerGroup = new Dictionary<long, float> ();
 
-	private bool _updating = false;
+	private bool _populationCensusUpdated = false;
+
+	private bool _coreGroupIsValid = true;
 
 	public Polity () {
 	
@@ -70,6 +72,8 @@ public abstract class Polity : Synchronizable {
 	public Polity (CellGroup coreGroup, float coreGroupInfluenceValue) {
 
 		World = coreGroup.World;
+
+		Territory = new Territory (World);
 
 		Id = World.GeneratePolityId ();
 
@@ -102,8 +106,6 @@ public abstract class Polity : Synchronizable {
 
 	public void Update () {
 
-		_updating = true;
-
 		if (InfluencedGroups.Count <= 0) {
 		
 			World.AddPolityToRemove (this);
@@ -113,11 +115,28 @@ public abstract class Polity : Synchronizable {
 
 		RunPopulationCensus ();
 
+		_populationCensusUpdated = true;
+
 		UpdateInternal ();
 	
 		Culture.Update ();
 
-		_updating = false;
+		if (!_coreGroupIsValid) {
+
+			if (!TryRelocateCore ()) {
+
+				// We were unable to find a new core for the polity
+				World.AddPolityToRemove (this);
+
+				_populationCensusUpdated = false;
+
+				return;
+			}
+
+			_coreGroupIsValid = true;
+		}
+
+		_populationCensusUpdated = false;
 	}
 
 	public abstract void UpdateInternal ();
@@ -140,7 +159,7 @@ public abstract class Polity : Synchronizable {
 
 	protected CellGroup GetGroupWithMostInfluencedPop () {
 
-		if (!_updating)
+		if (!_populationCensusUpdated)
 			Debug.LogWarning ("This function should only be called within polity updates after executing RunPopulationCensus");
 
 		CellGroup groupWithMostInfluencedPop = null;
@@ -160,6 +179,9 @@ public abstract class Polity : Synchronizable {
 	}
 
 	public void AddInfluencedGroup (CellGroup group) {
+
+		if (!group.RunningFunction_SetPolityInfluence)
+			Debug.LogWarning ("AddInfluencedGroup should only be called withn SetPolityInfluence");
 	
 		InfluencedGroups.Add (group.Id, group);
 
@@ -168,9 +190,17 @@ public abstract class Polity : Synchronizable {
 
 	public void RemoveInfluencedGroup (CellGroup group) {
 
+		if (!group.RunningFunction_SetPolityInfluence)
+			Debug.LogWarning ("RemoveInfluencedGroup should only be called withn SetPolityInfluence");
+
 		InfluencedGroups.Remove (group.Id);
 
 		Territory.RemoveCell (group.Cell);
+
+		if (group == CoreGroup) {
+
+			_coreGroupIsValid = false;
+		}
 	}
 
 	public virtual void Synchronize () {
@@ -201,6 +231,8 @@ public abstract class Polity : Synchronizable {
 			InfluencedGroups.Add (group.Id, group);
 		}
 
+		Territory.World = World;
+		Territory.Polity = this;
 		Territory.FinalizeLoad ();
 
 		Culture.World = World;
@@ -272,11 +304,13 @@ public abstract class Polity : Synchronizable {
 
 		TerrainCell groupCell = group.Cell;
 
-		float maxTargetValue = 1.0f;
-		float minTargetValue = -0.2f;
+		float maxInfluenceValue = 1 - group.TotalPolityInfluenceValue + influenceValue;
+
+		float maxTargetValue = maxInfluenceValue;
+		float minTargetValue = -0.2f * maxInfluenceValue;
 
 		float randomModifier = groupCell.GetNextLocalRandomFloat ();
-		float randomFactor = randomModifier - 0.5f;
+		float randomFactor = 2 * randomModifier - 1f;
 		float targetValue = 0;
 
 		if (randomFactor > 0) {
@@ -289,73 +323,21 @@ public abstract class Polity : Synchronizable {
 
 		influenceValue = (influenceValue * (1 - timeEffect)) + (targetValue * timeEffect);
 
-		influenceValue = Mathf.Clamp01 (influenceValue);
-
 		group.SetPolityInfluenceValue (this, influenceValue);
 	}
-}
 
-public class Territory : Synchronizable {
+	// TODO: This function should be overriden in children
+	public virtual bool TryRelocateCore () {
 
-	public List<WorldPosition> CellPositions;
+		CellGroup mostInfluencedPopGroup = GetGroupWithMostInfluencedPop ();
 
-	[XmlIgnore]
-	public World World;
-
-	private HashSet<TerrainCell> _cells = new HashSet<TerrainCell> ();
-
-	public Territory () {
-	
-	}
-
-	public Territory (World world) {
-
-		World = world;
-	}
-
-	public bool AddCell (TerrainCell cell) {
-
-		if (!_cells.Add (cell))
-			return false;
-
-		cell.AddEncompassingTerritory (this);
-
-		return true;
-	}
-
-	public bool RemoveCell (TerrainCell cell) {
-
-		if (!_cells.Remove (cell))
-			return false;
-
-		cell.RemoveEncompassingTerritory (this);
-
-		return true;
-	}
-
-	public void Synchronize () {
-	
-		CellPositions = new List<WorldPosition> (_cells.Count);
-
-		foreach (TerrainCell cell in _cells) {
-
-			CellPositions.Add (cell.Position);
-		}
-	}
-
-	public void FinalizeLoad () {
-
-		foreach (WorldPosition position in CellPositions) {
-
-			TerrainCell cell = World.GetCell (position);
-
-			if (cell == null) {
-				throw new System.Exception ("Cell missing at position " + position.Longitude + "," + position.Latitude);
-			}
+		if (mostInfluencedPopGroup == null) {
 		
-			_cells.Add (cell);
-
-			cell.AddEncompassingTerritory (this);
+			return false;
 		}
+
+		SetCoreGroup (mostInfluencedPopGroup);
+
+		return true;
 	}
 }

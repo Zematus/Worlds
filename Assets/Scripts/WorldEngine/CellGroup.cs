@@ -84,6 +84,9 @@ public class CellGroup : HumanGroup {
 	[XmlIgnore]
 	public PolityInfluence HighestPolityInfluence = null;
 
+	[XmlIgnore]
+	public bool RunningFunction_SetPolityInfluence = false;
+
 	private Dictionary<long, PolityInfluence> _polityInfluences = new Dictionary<long, PolityInfluence> ();
 
 //	private Dictionary<int, WorldEvent> _associatedEvents = new Dictionary<int, WorldEvent> ();
@@ -679,16 +682,8 @@ public class CellGroup : HumanGroup {
 	public void Destroy () {
 
 		_destroyed = true;
-		
-		PolityInfluence[] polityInfluences = new PolityInfluence[_polityInfluences.Count];
-		_polityInfluences.Values.CopyTo (polityInfluences, 0);
 
-		foreach (PolityInfluence polityInfluence in polityInfluences) {
-
-			Polity polity = polityInfluence.Polity;
-
-			polity.RemoveInfluencedGroup (this);
-		}
+		RemovePolityInfluences ();
 
 		Cell.Group = null;
 		World.RemoveGroup (this);
@@ -707,6 +702,22 @@ public class CellGroup : HumanGroup {
 		}
 	}
 
+	public void RemovePolityInfluences () {
+
+		// Make sure any influencing polity gets updated if necessary
+		SetPolityUpdates ();
+
+		PolityInfluence[] polityInfluences = new PolityInfluence[_polityInfluences.Count];
+		_polityInfluences.Values.CopyTo (polityInfluences, 0);
+
+		foreach (PolityInfluence polityInfluence in polityInfluences) {
+
+			Polity polity = polityInfluence.Polity;
+
+			SetPolityInfluenceValue (polity, 0);
+		}
+	}
+
 	public void Update () {
 
 		if (_alreadyUpdated)
@@ -721,6 +732,9 @@ public class CellGroup : HumanGroup {
 		if (timeSpan <= 0)
 			return;
 
+		// Should do this before modifying the polity influence (otherwise might never get the polity updated if the influence reaches zero)
+		SetPolityUpdates ();
+
 		UpdateTerrainFarmlandPercentage (timeSpan);
 		UpdatePopulation (timeSpan);
 		UpdateCulture (timeSpan);
@@ -730,8 +744,6 @@ public class CellGroup : HumanGroup {
 		UpdateTravelFactors ();
 		
 		LastUpdateDate = World.CurrentDate;
-
-		SetPolityUpdates ();
 		
 		World.AddUpdatedGroup (this);
 	}
@@ -740,20 +752,31 @@ public class CellGroup : HumanGroup {
 	
 		foreach (PolityInfluence pi in _polityInfluences.Values) {
 		
-			SetPolityUpdate (pi);
+			SetPolityUpdate (pi.Polity, pi.Value);
 		}
 	}
 
-	private void SetPolityUpdate (PolityInfluence pi) {
+//	public void SetPolityUpdate (Polity p) {
+//
+//		PolityInfluence pi;
+//
+//		if (!_polityInfluences.TryGetValue (p, out pi)) {
+//		
+//			return;
+//		}
+//
+//		SetPolityUpdate (pi.Polity, pi.Value);
+//	}
 
-		Polity p = pi.Polity;
+	public void SetPolityUpdate (Polity p, float influenceValue) {
 
 		if (p.TotalGroupInfluenceValue <= 0)
 			return;
 
+		// If group is not the core group then there's a chance no polity update will happen
 		if (p.CoreGroup != this) {
 
-			float chanceFactor = pi.Value / p.TotalGroupInfluenceValue;
+			float chanceFactor = influenceValue / p.TotalGroupInfluenceValue;
 
 			float rollValue = Cell.GetNextLocalRandomFloat ();
 
@@ -1094,6 +1117,8 @@ public class CellGroup : HumanGroup {
 
 	public void SetPolityInfluenceValue (Polity polity, float influenceValue) {
 
+		RunningFunction_SetPolityInfluence = true;
+
 		#if DEBUG
 		if (Cell.IsSelected) {
 
@@ -1125,6 +1150,8 @@ public class CellGroup : HumanGroup {
 				polity.AddInfluencedGroup (this);
 			}
 
+			RunningFunction_SetPolityInfluence = false;
+
 			return;
 		}
 
@@ -1141,6 +1168,8 @@ public class CellGroup : HumanGroup {
 
 			TotalPolityInfluenceValue -= currentInfluenceValue;
 			polity.TotalGroupInfluenceValue -= currentInfluenceValue;
+
+			RunningFunction_SetPolityInfluence = false;
 
 			return;
 		}
@@ -1162,6 +1191,8 @@ public class CellGroup : HumanGroup {
 			(polityInfluence == HighestPolityInfluence) && 
 			(currentInfluenceValue > influenceValue))
 			FindHighestPolityInfluence ();
+
+		RunningFunction_SetPolityInfluence = false;
 	}
 
 	public void FindHighestPolityInfluence () {
