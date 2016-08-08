@@ -26,7 +26,7 @@ public class PolityInfluence {
 	}
 }
 
-public abstract class Polity : Synchronizable {
+public abstract class Polity : ISynchronizable {
 
 	public const float TimeEffectConstant = CellGroup.GenerationTime * 15000;
 
@@ -61,7 +61,9 @@ public abstract class Polity : Synchronizable {
 
 	private Dictionary<long, float> _influencedPopPerGroup = new Dictionary<long, float> ();
 
+	#if DEBUG
 	private bool _populationCensusUpdated = false;
+	#endif
 
 	private bool _coreGroupIsValid = true;
 
@@ -159,8 +161,10 @@ public abstract class Polity : Synchronizable {
 
 	protected CellGroup GetGroupWithMostInfluencedPop () {
 
+		#if DEBUG
 		if (!_populationCensusUpdated)
 			Debug.LogWarning ("This function should only be called within polity updates after executing RunPopulationCensus");
+		#endif
 
 		CellGroup groupWithMostInfluencedPop = null;
 		float maxInfluencedGroupPopulation = 0;
@@ -180,8 +184,10 @@ public abstract class Polity : Synchronizable {
 
 	public void AddInfluencedGroup (CellGroup group) {
 
+		#if DEBUG
 		if (!group.RunningFunction_SetPolityInfluence)
 			Debug.LogWarning ("AddInfluencedGroup should only be called withn SetPolityInfluence");
+		#endif
 	
 		InfluencedGroups.Add (group.Id, group);
 
@@ -190,8 +196,10 @@ public abstract class Polity : Synchronizable {
 
 	public void RemoveInfluencedGroup (CellGroup group) {
 
+		#if DEBUG
 		if (!group.RunningFunction_SetPolityInfluence)
 			Debug.LogWarning ("RemoveInfluencedGroup should only be called withn SetPolityInfluence");
+		#endif
 
 		InfluencedGroups.Remove (group.Id);
 

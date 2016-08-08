@@ -82,9 +82,9 @@ public class LanguageGenerationTest : AutomatedTest {
 				
 				entry += "\nDefinite article properties: " + Language.NounAdjuntPropertiesToString (language.DefiniteArticleProperties);
 				entry += "\nDefinite articles:";
-				foreach (KeyValuePair<string, Language.Word> pair in language.DefiniteArticles) {
+				foreach (Language.WordMeaningPair pair in language.DefiniteArticles) {
 
-					entry += "\n    " + pair.Key + " : " + pair.Value.String;
+					entry += "\n    " + pair.Meaning + " : " + pair.Word.Value;
 				}
 			} else {
 				
@@ -96,9 +96,9 @@ public class LanguageGenerationTest : AutomatedTest {
 				
 				entry += "\nIndefinite article properties: " + Language.NounAdjuntPropertiesToString (language.IndefiniteArticleProperties);
 				entry += "\nIndefinite articles:";
-				foreach (KeyValuePair<string, Language.Word> pair in language.IndefiniteArticles) {
+				foreach (Language.WordMeaningPair pair in language.IndefiniteArticles) {
 
-					entry += "\n    " + pair.Key + " : " + pair.Value.String;
+					entry += "\n    " + pair.Meaning + " : " + pair.Word.Value;
 				}
 			} else {
 				
@@ -117,9 +117,9 @@ public class LanguageGenerationTest : AutomatedTest {
 			language.GenerateAdposition ("beyond", GetRandomFloat);
 
 			entry += "\nExample adpositions:";
-			foreach (KeyValuePair<string, Language.Word> pair in language.Adpositions) {
+			foreach (Language.WordMeaningPair pair in language.Adpositions) {
 
-				entry += "\n    " + pair.Key + " : " + pair.Value.String;
+				entry += "\n    " + pair.Meaning + " : " + pair.Word.Value;
 			}
 			entry += "\n";
 
@@ -143,14 +143,14 @@ public class LanguageGenerationTest : AutomatedTest {
 
 			entry += "\nExample nouns:";
 			entry += "\n";
-			foreach (KeyValuePair<string, Language.Word> pair in language.Nouns) {
+			foreach (Language.WordMeaningPair pair in language.Nouns) {
 
-				entry += "\n    " + pair.Key + " : " + pair.Value.String + " (Properties: " + Language.WordPropertiesToString (pair.Value.Properties) + ")";
+				entry += "\n    " + pair.Meaning + " : " + pair.Word.Value + " (Properties: " + Language.WordPropertiesToString (pair.Word.Properties) + ")";
 				entry += "\n";
 
-				Language.Phrase phrase = language.BuildArticulatedNounPhrase (pair.Key, false);
+				Language.Phrase phrase = language.BuildArticulatedNounPhrase (pair.Meaning, false);
 				entry += "\n        Sample definite noun phrase: " + phrase.Text + " (Meaning: " + phrase.Meaning + ")";
-				phrase = language.BuildArticulatedNounPhrase (pair.Key, true);
+				phrase = language.BuildArticulatedNounPhrase (pair.Meaning, true);
 				entry += "\n        Sample indefinite noun phrase: " + phrase.Text + " (Meaning: " + phrase.Meaning + ")";
 				entry += "\n";
 			}

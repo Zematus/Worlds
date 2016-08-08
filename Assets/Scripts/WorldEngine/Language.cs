@@ -3,15 +3,37 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Linq;
+using System.Xml.Serialization;
 
-public class Language {
+public class Language : ISynchronizable {
+
+	[XmlAttribute]
+	public long Id;
+
+	[XmlIgnore]
+	public World World;
 
 	public delegate float GetRandomFloatDelegate ();
 
 	public class Phrase {
 
+		[XmlAttribute]
 		public string Text;
+		[XmlAttribute]
 		public string Meaning;
+	}
+
+	public class WordMeaningPair {
+
+		public Word Word;
+		[XmlAttribute]
+		public string Meaning;
+
+		public WordMeaningPair (Word word, string meaning) {
+
+			Word = word;
+			Meaning = meaning;
+		}
 	}
 
 	public class Word {
@@ -19,7 +41,8 @@ public class Language {
 		public WordType Type;
 		public WordProperties Properties;
 
-		public string String;
+		[XmlAttribute]
+		public string Value;
 	}
 
 	public enum WordType
@@ -104,10 +127,15 @@ public class Language {
 	public string[] SimpleNounWordStartSyllables;
 	public string[] SimpleNounWordNextSyllables;
 
-	public Dictionary<string, Word> DefiniteArticles;
-	public Dictionary<string, Word> IndefiniteArticles;
-	public Dictionary<string, Word> Adpositions = new Dictionary<string, Word> ();
-	public Dictionary<string, Word> Nouns = new Dictionary<string, Word> ();
+	public List<WordMeaningPair> DefiniteArticles;
+	public List<WordMeaningPair> IndefiniteArticles;
+	public List<WordMeaningPair> Adpositions = new List<WordMeaningPair> ();
+	public List<WordMeaningPair> Nouns = new List<WordMeaningPair> ();
+
+	private Dictionary<string, Word> _definiteArticles;
+	private Dictionary<string, Word> _indefiniteArticles;
+	private Dictionary<string, Word> _adpositions = new Dictionary<string, Word> ();
+	private Dictionary<string, Word> _nouns = new Dictionary<string, Word> ();
 
 	public static CharacterGroup GenerateCharacterGroup (char[] characterSet, float startAddLetterChance, float addLetterChanceDecay, GetRandomFloatDelegate getRandomFloat) {
 
@@ -335,7 +363,7 @@ public class Language {
 	public static Word GenerateArticle (string[] startSyllables, string[] nextSyllables, WordProperties properties, GetRandomFloatDelegate getRandomFloat) {
 
 		Word word = new Word ();
-		word.String = GenerateSimpleWord (startSyllables, nextSyllables, 0.0f, getRandomFloat);
+		word.Value = GenerateSimpleWord (startSyllables, nextSyllables, 0.0f, getRandomFloat);
 		word.Properties = properties;
 		word.Type = WordType.Article;
 
@@ -526,11 +554,23 @@ public class Language {
 
 	public void GenerateAllArticles (GetRandomFloatDelegate getRandomFloat) {
 
-		if ((Properties & GeneralProperties.HasDefiniteArticles) == GeneralProperties.HasDefiniteArticles)
-			DefiniteArticles = GenerateArticles (ArticleStartSyllables, ArticleNextSyllables, DefiniteArticleProperties, getRandomFloat);
+		if ((Properties & GeneralProperties.HasDefiniteArticles) == GeneralProperties.HasDefiniteArticles) {
+			_definiteArticles = GenerateArticles (ArticleStartSyllables, ArticleNextSyllables, DefiniteArticleProperties, getRandomFloat);
 
-		if ((Properties & GeneralProperties.HasIndefiniteArticles) == GeneralProperties.HasIndefiniteArticles)
-			IndefiniteArticles = GenerateArticles (ArticleStartSyllables, ArticleNextSyllables, IndefiniteArticleProperties, getRandomFloat);
+			foreach (KeyValuePair<string, Word> pair in _definiteArticles) {
+			
+				DefiniteArticles.Add (new WordMeaningPair (pair.Value, pair.Key));
+			}
+		}
+
+		if ((Properties & GeneralProperties.HasIndefiniteArticles) == GeneralProperties.HasIndefiniteArticles) {
+			_indefiniteArticles = GenerateArticles (ArticleStartSyllables, ArticleNextSyllables, IndefiniteArticleProperties, getRandomFloat);
+
+			foreach (KeyValuePair<string, Word> pair in _indefiniteArticles) {
+
+				IndefiniteArticles.Add (new WordMeaningPair (pair.Value, pair.Key));
+			}
+		}
 	}
 
 	public void GenerateAdpositionProperties (GetRandomFloatDelegate getRandomFloat) {
@@ -551,11 +591,13 @@ public class Language {
 	public void GenerateAdposition (string relation, GetRandomFloatDelegate getRandomFloat) {
 
 		Word word = new Word ();
-		word.String = GenerateSimpleWord (AdpositionStartSyllables, AdpositionNextSyllables, 0.5f, getRandomFloat);
+		word.Value = GenerateSimpleWord (AdpositionStartSyllables, AdpositionNextSyllables, 0.5f, getRandomFloat);
 		word.Properties = WordProperties.None;
 		word.Type = WordType.Adposition;
 
-		Adpositions.Add (relation, word);
+		_adpositions.Add (relation, word);
+
+		Adpositions.Add (new WordMeaningPair (word, relation));
 	}
 
 	public void GenerateSimpleNounSyllables (GetRandomFloatDelegate getRandomFloat) {
@@ -576,19 +618,21 @@ public class Language {
 	public void GenerateSimpleNoun (string meaning, WordProperties properties, GetRandomFloatDelegate getRandomFloat) {
 
 		Word word = new Word ();
-		word.String = GenerateSimpleWord (SimpleNounWordStartSyllables, SimpleNounWordNextSyllables, 0.5f, getRandomFloat);
+		word.Value = GenerateSimpleWord (SimpleNounWordStartSyllables, SimpleNounWordNextSyllables, 0.5f, getRandomFloat);
 		word.Properties = properties;
 		word.Type = WordType.Noun;
 
-		Nouns.Add (meaning, word);
+		_nouns.Add (meaning, word);
+
+		Nouns.Add (new WordMeaningPair (word, meaning));
 	}
 
 	public Word GetAppropiateArticle (WordProperties nounProperties, bool useIndefiniteArticles) {
 
-		Dictionary <string, Word> articles = DefiniteArticles;
+		Dictionary <string, Word> articles = _definiteArticles;
 
 		if (useIndefiniteArticles)
-			articles = IndefiniteArticles;
+			articles = _indefiniteArticles;
 
 		Word article = null;
 
@@ -633,7 +677,7 @@ public class Language {
 	
 		Word word = null;
 
-		if (!Nouns.TryGetValue (noun, out word)) {
+		if (!_nouns.TryGetValue (noun, out word)) {
 
 			return phrase;
 		}
@@ -659,7 +703,7 @@ public class Language {
 			meaning = "the " + noun;
 		}
 
-		string text = word.String;
+		string text = word.Value;
 
 		NounAdjuntProperties articleProperties;
 
@@ -684,7 +728,7 @@ public class Language {
 
 		if (hasArticles) {
 			Word article = GetAppropiateArticle (word.Properties, useIndefiniteArticles);
-			string articleString = article.String;
+			string articleString = article.Value;
 		
 			if ((articleProperties & NounAdjuntProperties.GoesAfterNoun) == NounAdjuntProperties.GoesAfterNoun) {
 		
@@ -730,7 +774,7 @@ public class Language {
 
 		Word adposition = null;
 
-		if (!Adpositions.TryGetValue (relation, out adposition)) {
+		if (!_adpositions.TryGetValue (relation, out adposition)) {
 
 			return phrase;
 		}
@@ -745,28 +789,28 @@ public class Language {
 
 				if ((AdpositionProperties & NounAdjuntProperties.IsLinkedWithDash) == NounAdjuntProperties.IsLinkedWithDash) {
 
-					text += "-" + adposition.String;
+					text += "-" + adposition.Value;
 				} else {
 
-					text += adposition.String;
+					text += adposition.Value;
 				}
 			} else {
 
-				text += " " + adposition.String;
+				text += " " + adposition.Value;
 			}
 		} else {
 			if ((AdpositionProperties & NounAdjuntProperties.IsAppended) == NounAdjuntProperties.IsAppended) {
 
 				if ((AdpositionProperties & NounAdjuntProperties.IsLinkedWithDash) == NounAdjuntProperties.IsLinkedWithDash) {
 
-					text = adposition.String + "-" + text;
+					text = adposition.Value + "-" + text;
 				} else {
 
-					text = adposition.String + text;
+					text = adposition.Value + text;
 				}
 			} else {
 
-				text = adposition.String + " " + text;
+				text = adposition.Value + " " + text;
 			}
 		}
 
@@ -791,5 +835,31 @@ public class Language {
 
 		phrase.Text = phrase.Text.First().ToString().ToUpper() + phrase.Text.Substring(1);
 		phrase.Meaning = phrase.Meaning.First().ToString().ToUpper() + phrase.Meaning.Substring(1);
+	}
+
+	public void Synchronize () {
+		
+	}
+
+	public void FinalizeLoad () {
+
+		_definiteArticles = new Dictionary<string, Word> (DefiniteArticles.Count);
+		_indefiniteArticles = new Dictionary<string, Word> (IndefiniteArticles.Count);
+
+		foreach (WordMeaningPair pair in DefiniteArticles) {
+			_definiteArticles.Add (pair.Meaning, pair.Word);
+		}
+
+		foreach (WordMeaningPair pair in IndefiniteArticles) {
+			_indefiniteArticles.Add (pair.Meaning, pair.Word);
+		}
+
+		foreach (WordMeaningPair pair in Adpositions) {
+			_adpositions.Add (pair.Meaning, pair.Word);
+		}
+
+		foreach (WordMeaningPair pair in Nouns) {
+			_nouns.Add (pair.Meaning, pair.Word);
+		}
 	}
 }

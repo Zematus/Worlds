@@ -178,28 +178,6 @@ public class TribalismDiscovery : CellCulturalDiscovery {
 
 		return true;
 	}
-
-	public override void GainConsequences (CellGroup group)
-	{
-		base.GainConsequences (group);
-
-		Region newRegion = Region.TryGenerateRegion (group.Cell);
-
-		if (newRegion != null) {
-		
-			group.World.AddRegion (newRegion);
-		}
-
-		foreach (TerrainCell cell in group.Cell.Neighbors.Values) {
-
-			Region newNeighboorRegion = Region.TryGenerateRegion (group.Cell);
-
-			if (newNeighboorRegion != null) {
-
-				group.World.AddRegion (newNeighboorRegion);
-			}
-		}
-	}
 }
 
 public class PlantCultivationDiscovery : CellCulturalDiscovery {

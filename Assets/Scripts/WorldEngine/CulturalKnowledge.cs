@@ -49,7 +49,7 @@ public class CulturalKnowledge : CulturalKnowledgeInfo {
 	}
 }
 
-public abstract class CellCulturalKnowledge : CulturalKnowledge, Synchronizable {
+public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable {
 
 	public const float MinValue = 0.001f;
 	

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
-public abstract class WorldEvent : Synchronizable {
+public abstract class WorldEvent : ISynchronizable {
 
 	public static int EventCount = 0;
 
@@ -406,7 +406,9 @@ public class SailingDiscoveryEvent : CellGroupEvent {
 
 	protected override void DestroyInternal ()
 	{
-		Group.UnsetFlag (EventSetFlag);
+		if (Group != null) {
+			Group.UnsetFlag (EventSetFlag);
+		}
 
 		base.DestroyInternal ();
 	}
@@ -502,7 +504,9 @@ public class TribalismDiscoveryEvent : CellGroupEvent {
 
 	protected override void DestroyInternal ()
 	{
-		Group.UnsetFlag (EventSetFlag);
+		if (Group != null) {
+			Group.UnsetFlag (EventSetFlag);
+		}
 
 		base.DestroyInternal ();
 	}
@@ -596,7 +600,9 @@ public class TribeFormationEvent : CellGroupEvent {
 
 	protected override void DestroyInternal ()
 	{
-		Group.UnsetFlag (EventSetFlag);
+		if (Group != null) {
+			Group.UnsetFlag (EventSetFlag);
+		}
 
 		base.DestroyInternal ();
 	}

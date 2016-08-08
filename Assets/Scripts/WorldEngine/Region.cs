@@ -35,17 +35,65 @@ public enum RegionAttribute {
 	Coast
 }
 
-public abstract class Region : Synchronizable {
+public class Name : ISynchronizable {
+
+	[XmlAttribute]
+	public long LanguageId;
+
+	[XmlAttribute]
+	public string Value;
+	[XmlAttribute]
+	public string Meaning;
+
+	[XmlIgnore]
+	public World World;
+
+	[XmlIgnore]
+	public Language Language;
+
+	public Name () {
+		
+	}
+
+	public Name (string value, string meaning, Language language) {
+
+		World = language.World;
+
+		LanguageId = language.Id;
+		Language = language;
+
+		Value = value;
+		Meaning = meaning;
+	}
+
+	public void Synchronize () {
+
+	}
+
+	public void FinalizeLoad () {
+
+		Language = World.GetLanguage (LanguageId);
+
+		if (Language == null) {
+		
+			throw new System.Exception ("Language can't be null");
+		}
+	}
+}
+
+public abstract class Region : ISynchronizable {
 
 	public const float BaseMaxAltitudeDifference = 1000;
 	public const int AltitudeRoundnessTarget = 2000;
 
 	public const float MaxClosedness = 0.5f;
 
-	public List<RegionAttribute> Attributes = new List<RegionAttribute>();
-
 	[XmlAttribute]
 	public long Id;
+
+	public Name Name;
+
+	public List<RegionAttribute> Attributes = new List<RegionAttribute>();
 
 	[XmlIgnore]
 	public World World;
@@ -120,9 +168,25 @@ public abstract class Region : Synchronizable {
 
 	public abstract bool IsInnerBorderCell (TerrainCell cell);
 
-	public abstract void Synchronize ();
+	public virtual void Synchronize () {
 
-	public abstract void FinalizeLoad ();
+//		if (Name == null) {
+//		
+//			throw new System.Exception ("Name can't be null");
+//		}
+//
+//		Name.Synchronize ();
+	}
+
+	public virtual void FinalizeLoad () {
+
+//		if (Name == null) {
+//
+//			throw new System.Exception ("Name can't be null");
+//		}
+//
+//		Name.FinalizeLoad ();
+	}
 
 	public static Region TryGenerateRegion (TerrainCell startCell) {
 
@@ -430,9 +494,13 @@ public class CellRegion : Region {
 
 			CellPositions.Add (cell.Position);
 		}
+
+		base.Synchronize ();
 	}
 
 	public override void FinalizeLoad () {
+
+		base.FinalizeLoad ();
 
 		foreach (WorldPosition position in CellPositions) {
 

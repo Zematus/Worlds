@@ -2178,8 +2178,6 @@ public class GuiManagerScript : MonoBehaviour {
 	}
 	
 	public void AddCellDataToInfoPanel (TerrainCell cell) {
-		
-		World world = Manager.CurrentWorld;
 
 		int longitude = cell.Longitude;
 		int latitude = cell.Latitude;

@@ -49,7 +49,7 @@ public class CulturalSkill : CulturalSkillInfo {
 	}
 }
 
-public abstract class CellCulturalSkill : CulturalSkill, Synchronizable {
+public abstract class CellCulturalSkill : CulturalSkill, ISynchronizable {
 	
 	[XmlAttribute]
 	public float AdaptationLevel;

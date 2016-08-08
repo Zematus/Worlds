@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
-public class Culture : Synchronizable {
+public class Culture : ISynchronizable {
 
 	[XmlIgnore]
 	public World World;

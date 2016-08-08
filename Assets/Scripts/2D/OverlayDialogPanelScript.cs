@@ -38,8 +38,6 @@ public class OverlayDialogPanelScript : MonoBehaviour {
 
 	public Toggle DisplayRoutesToggle;
 
-	private Toggle _activeToogle = null;
-
 	public Button CloseActionButton;
 
 	// Use this for initialization

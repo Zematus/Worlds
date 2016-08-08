@@ -68,7 +68,7 @@ public class TerrainCellChanges {
 	}
 }
 
-public class TerrainCell : Synchronizable {
+public class TerrainCell : ISynchronizable {
 
 	#if DEBUG
 

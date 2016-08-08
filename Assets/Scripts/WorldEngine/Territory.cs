@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
-public class Territory : Synchronizable {
+public class Territory : ISynchronizable {
 
 	public List<WorldPosition> CellPositions;
 
@@ -31,6 +31,22 @@ public class Territory : Synchronizable {
 			return false;
 
 		cell.AddEncompassingTerritory (this);
+
+		Region cellRegion = cell.Region;
+
+		if (cellRegion == null) {
+
+			cellRegion = Region.TryGenerateRegion (cell);
+
+			if (cellRegion != null) {
+				World.AddRegion (cellRegion);
+			}
+		}
+
+		if (cellRegion != null) {
+		
+
+		}
 
 		return true;
 	}

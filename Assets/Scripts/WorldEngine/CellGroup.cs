@@ -84,8 +84,10 @@ public class CellGroup : HumanGroup {
 	[XmlIgnore]
 	public PolityInfluence HighestPolityInfluence = null;
 
+	#if DEBUG
 	[XmlIgnore]
 	public bool RunningFunction_SetPolityInfluence = false;
+	#endif
 
 	private Dictionary<long, PolityInfluence> _polityInfluences = new Dictionary<long, PolityInfluence> ();
 

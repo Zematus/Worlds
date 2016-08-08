@@ -6,14 +6,14 @@ using System.Xml.Serialization;
 
 public delegate void ProgressCastDelegate (float value, string message = null);
 
-public interface Synchronizable {
+public interface ISynchronizable {
 
 	void Synchronize ();
 	void FinalizeLoad ();
 }
 
 [XmlRoot]
-public class World : Synchronizable {
+public class World : ISynchronizable {
 
 	public const int MaxPossibleYearsToSkip = int.MaxValue / 100;
 	
@@ -83,6 +83,9 @@ public class World : Synchronizable {
 	public int RegionCount { get; private set; }
 
 	[XmlAttribute]
+	public int LanguageCount { get; private set; }
+
+	[XmlAttribute]
 	public int TerrainCellChangesListCount { get; private set; }
 
 	[XmlAttribute]
@@ -120,6 +123,8 @@ public class World : Synchronizable {
 
 	[XmlArrayItem (Type = typeof(CellRegion))]
 	public List<Region> Regions;
+
+	public List<Language> Languages;
 
 	// End wonky segment 
 
@@ -196,6 +201,8 @@ public class World : Synchronizable {
 	private Dictionary<long, Polity> _polities = new Dictionary<long, Polity> ();
 
 	private Dictionary<long, Region> _regions = new Dictionary<long, Region> ();
+
+	private Dictionary<long, Language> _languages = new Dictionary<long, Language> ();
 
 	private Vector2[] _continentOffsets;
 	private float[] _continentWidths;
@@ -343,6 +350,13 @@ public class World : Synchronizable {
 			r.Synchronize ();
 		}
 
+		Languages = new List<Language> (_languages.Values);
+
+		foreach (Language l in Languages) {
+
+			l.Synchronize ();
+		}
+
 		TerrainCellChangesList.Clear ();
 		TerrainCellChangesListCount = 0;
 
@@ -482,7 +496,11 @@ public class World : Synchronizable {
 				int maxDate = CurrentDate + MaxYearsToSkip;
 
 				if (maxDate < 0) {
+					
+					#if DEBUG
 					Debug.Break ();
+					#endif
+
 					throw new System.Exception ("Surpassed date limit (Int32.MaxValue)");
 				}
 
@@ -680,6 +698,29 @@ public class World : Synchronizable {
 		_groupsToRemove.Add (group);
 	}
 
+	public void AddLanguage (Language language) {
+
+		_languages.Add (language.Id, language);
+
+		LanguageCount++;
+	}
+
+	public void RemoveLanguage (Region language) {
+
+		_languages.Remove (language.Id);
+
+		LanguageCount--;
+	}
+
+	public Language GetLanguage (long id) {
+
+		Language language;
+
+		_languages.TryGetValue (id, out language);
+
+		return language;
+	}
+
 	public void AddRegion (Region region) {
 
 		_regions.Add (region.Id, region);
@@ -745,6 +786,13 @@ public class World : Synchronizable {
 			_terrainCellChangesListIndexes.Add (index);
 		});
 
+		Languages.ForEach (l => {
+
+			l.World = this;
+
+			_languages.Add (l.Id, l);
+		});
+
 		Regions.ForEach (r => {
 
 			r.World = this;
@@ -764,6 +812,11 @@ public class World : Synchronizable {
 			g.World = this;
 
 			_cellGroups.Add (g.Id, g);
+		});
+
+		Languages.ForEach (l => {
+
+			l.FinalizeLoad ();
 		});
 
 		Regions.ForEach (r => {
