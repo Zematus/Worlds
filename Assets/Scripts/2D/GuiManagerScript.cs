@@ -1576,13 +1576,13 @@ public class GuiManagerScript : MonoBehaviour {
 		InfoPanelText.text += "\nAttributes: ";
 
 		bool first = true;
-		foreach (RegionAttribute attr in region.Attributes) {
+		foreach (string attrName in region.AttributeNames) {
 
 			if (first) {
-				InfoPanelText.text += attr.ToString ();
+				InfoPanelText.text += attrName;
 				first = false;
 			} else {
-				InfoPanelText.text += ", " + attr.ToString ();
+				InfoPanelText.text += ", " + attrName;
 			}
 		}
 

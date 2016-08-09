@@ -290,6 +290,16 @@ public class CellGroup : HumanGroup {
 ////		_associatedEvents.Remove (id);
 //	}
 
+	public int GetNextLocalRandomInt (int maxValue = PerlinNoise.MaxPermutationValue) {
+	
+		return Cell.GetNextLocalRandomInt (maxValue);
+	}
+
+	public float GetNextLocalRandomFloat () {
+
+		return Cell.GetNextLocalRandomFloat ();
+	}
+
 	public void AddNeighbor (CellGroup group) {
 
 		if (group == null)
