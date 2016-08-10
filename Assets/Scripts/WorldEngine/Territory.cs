@@ -20,9 +20,10 @@ public class Territory : ISynchronizable {
 
 	}
 
-	public Territory (World world) {
+	public Territory (Polity polity) {
 
-		World = world;
+		World = polity.World;
+		Polity = polity;
 	}
 
 	public bool AddCell (TerrainCell cell) {
@@ -37,15 +38,11 @@ public class Territory : ISynchronizable {
 		if (cellRegion == null) {
 
 			cellRegion = Region.TryGenerateRegion (cell);
+			cellRegion.GenerateName (Polity);
 
 			if (cellRegion != null) {
 				World.AddRegion (cellRegion);
 			}
-		}
-
-		if (cellRegion != null) {
-		
-
 		}
 
 		return true;

@@ -3,13 +3,11 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Xml.Serialization;
 using System.Text.RegularExpressions;
+using System.Linq;
 
 public class RegionAttribute {
 
-	public delegate float GetRandomFloatDelegate ();
-
-	private static Regex RemovableWordPartRegex = new Regex (@"(?<break> )?\{(?<word>.+?)\}"); 
-	private static Regex WordPartTypeRegex = new Regex (@"\[(?<type>\w+)\](?<word>[\w\'\-]+)"); 
+	public delegate int GetRandomIntDelegate (int maxValue);
 
 	public string Name;
 
@@ -79,7 +77,7 @@ public class RegionAttribute {
 
 	private void GenerateVariations (string variant) {
 
-		Match match = RemovableWordPartRegex.Match (variant);
+		Match match = Language.OptionalWordPartRegex.Match (variant);
 
 		if (!match.Success) {
 		
@@ -108,11 +106,11 @@ public class RegionAttribute {
 		}
 	}
 
-	public string GetRandomVariation (GetRandomFloatDelegate getRandomFloat) {
+	public string GetRandomVariation (GetRandomIntDelegate getRandomInt) {
 
+		int index = getRandomInt (Variations.Count);
 
-
-		return null;
+		return Variations[index];
 	}
 }
 
@@ -389,21 +387,48 @@ public abstract class Region : ISynchronizable {
 		return region;
 	}
 
-	public static Region TrySplitRegion (Region region) {
-
-		return null;
-	}
-
 	protected void AddAttribute (RegionAttribute attr) {
 	
 		AttributeNames.Add (attr.Name);
 		_attributes.Add (attr);
 	}
 
-	public void GenerateRegionName (Polity polity) {
+	public void GenerateName (Polity polity) {
 	
 		CellGroup coreGroup = polity.CoreGroup;
 
+		if (_attributes.Count <= 0) {
+		
+			Name = "The Region";
+			return;
+		}
+
+		List<RegionAttribute> attributes = new List<RegionAttribute> (_attributes);
+
+		int index = coreGroup.GetNextLocalRandomInt (attributes.Count);
+
+		RegionAttribute primaryAttribute = attributes [index];
+
+		attributes.RemoveAt (index);
+
+		string primaryTitle = primaryAttribute.GetRandomVariation (coreGroup.GetNextLocalRandomInt);
+		primaryTitle = " " + Language.MakeFirstLetterUpper (Language.CleanConstructCharacters(primaryTitle));
+
+		string secondaryTitle = string.Empty;
+
+		if ((attributes.Count > 0) && (coreGroup.GetNextLocalRandomFloat () < 0.5f)) {
+
+			index = coreGroup.GetNextLocalRandomInt (attributes.Count);
+
+			RegionAttribute secondaryAttribute = attributes [index];
+
+			attributes.RemoveAt (index);
+
+			secondaryTitle = secondaryAttribute.GetRandomVariation (coreGroup.GetNextLocalRandomInt);
+			secondaryTitle = " " + Language.MakeFirstLetterUpper (Language.CleanConstructCharacters(secondaryTitle));
+		}
+
+		Name = "The" + secondaryTitle + primaryTitle;
 	}
 }
 

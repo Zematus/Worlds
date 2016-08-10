@@ -1553,7 +1553,7 @@ public class GuiManagerScript : MonoBehaviour {
 		if (region == null) {
 			InfoPanelText.text += "\nCell doesn't belong to any known region";
 		} else {
-			InfoPanelText.text += "\nCell is part of region: " + region.Id;
+			InfoPanelText.text += "\nCell is part of region[" + region.Id + "]: " + region.Name;
 		}
 	}
 
@@ -1570,7 +1570,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 			return;
 		} else {
-			InfoPanelText.text += "\nRegion: " + region.Id;
+			InfoPanelText.text += "\nRegion[" + region.Id + "]: " + region.Name;
 		}
 		InfoPanelText.text += "\n";
 		InfoPanelText.text += "\nAttributes: ";

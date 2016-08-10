@@ -75,13 +75,14 @@ public abstract class Polity : ISynchronizable {
 
 		World = coreGroup.World;
 
-		Territory = new Territory (World);
+		Territory = new Territory (this);
 
 		Id = World.GeneratePolityId ();
 
-		coreGroup.SetPolityInfluenceValue (this, coreGroupInfluenceValue);
+		CoreGroup = coreGroup;
+		CoreGroupId = coreGroup.Id;
 
-		SetCoreGroup (coreGroup);
+		coreGroup.SetPolityInfluenceValue (this, coreGroupInfluenceValue);
 
 		Culture = new PolityCulture (this);
 	}
@@ -102,7 +103,6 @@ public abstract class Polity : ISynchronizable {
 			throw new System.Exception ("Group is not part of polity's influenced groups");
 
 		CoreGroup = group;
-
 		CoreGroupId = group.Id;
 	}
 

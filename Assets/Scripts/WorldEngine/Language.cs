@@ -99,7 +99,11 @@ public class Language : ISynchronizable {
 
 	public static char[] CodaLetters = new char[] { 'b', 'c', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'm', 'n', 'p', 'q', 'r', 's', 't', 'v', 'w', 'x', 'y', 'z' };
 
-	private static Regex startsWithNucleus = new Regex (@"^[aeiou]w*"); 
+
+	public static Regex OptionalWordPartRegex = new Regex (@"(?<break> )?\{(?<word>.+?)\}"); 
+	public static Regex WordPartTypeRegex = new Regex (@"\[(?<type>\w+)\](?<word>[\w\'\-]+)"); 
+
+	private static Regex NucleousStartRegex = new Regex (@"^[aeiou]w*"); 
 
 	public class CharacterGroup : CollectionUtility.ElementWeightPair<string> {
 
@@ -696,7 +700,7 @@ public class Language : ISynchronizable {
 
 			} else {
 
-				if (startsWithNucleus.IsMatch (noun)) {
+				if (NucleousStartRegex.IsMatch (noun)) {
 					meaning = "an " + noun;
 				} else {
 					meaning = "a " + noun;
@@ -835,11 +839,30 @@ public class Language : ISynchronizable {
 		return phrase;
 	}
 
+	public static string MakeFirstLetterUpper (string sentence) {
+
+		return sentence.First().ToString().ToUpper() + sentence.Substring(1);
+	}
+
+	public static string CleanConstructCharacters (string sentence) {
+
+		while (true) {
+			Match match = WordPartTypeRegex.Match (sentence);
+
+			if (!match.Success)
+				break;
+
+			sentence = sentence.Replace (match.Value, match.Groups["word"].Value);
+		}
+
+		return sentence.Replace (":", string.Empty);
+	}
+
 	// For now it will only make the first letter in the phrase uppercase
 	public void LocalizePhrase (Phrase phrase) {
 
-		phrase.Text = phrase.Text.First().ToString().ToUpper() + phrase.Text.Substring(1);
-		phrase.Meaning = phrase.Meaning.First().ToString().ToUpper() + phrase.Meaning.Substring(1);
+		phrase.Text = MakeFirstLetterUpper (phrase.Text);
+		phrase.Meaning = MakeFirstLetterUpper (phrase.Meaning);
 	}
 
 	public void Synchronize () {
