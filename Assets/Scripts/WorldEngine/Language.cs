@@ -25,9 +25,14 @@ public class Language : ISynchronizable {
 
 	public class WordMeaningPair {
 
-		public Word Word;
 		[XmlAttribute]
 		public string Meaning;
+
+		public Word Word;
+
+		public WordMeaningPair () {
+			
+		}
 
 		public WordMeaningPair (Word word, string meaning) {
 
