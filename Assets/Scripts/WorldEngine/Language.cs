@@ -10,17 +10,14 @@ public class Language : ISynchronizable {
 	[XmlAttribute]
 	public long Id;
 
-	[XmlIgnore]
-	public World World;
-
 	public delegate float GetRandomFloatDelegate ();
 
 	public class Phrase {
 
 		[XmlAttribute]
-		public string Text;
-		[XmlAttribute]
 		public string Meaning;
+		[XmlAttribute]
+		public string Text;
 	}
 
 	public class WordMeaningPair {
@@ -50,47 +47,88 @@ public class Language : ISynchronizable {
 		public string Value;
 	}
 
+	public class WordPart {
+
+		public string Value;
+		public List<string> Attributes = new List<string> ();
+	}
+
+	public static class WordPartAttributeId {
+
+		public const string NounPluralizer = "npl";
+		public const string FemenineNoun = "fn";
+		public const string MasculineNoun = "mn";
+		public const string NeutralNoun = "nn";
+	}
+
 	public enum WordType
 	{
 		Article,
+		Pluralizer,
 		Adposition,
 		Noun
 	}
 
 	public enum GeneralProperties 
 	{
-		HasDefiniteArticles = 0x01,
-		HasIndefiniteArticles = 0x02
+		HasDefiniteSingularArticles = 0x001,
+		HasDefinitePluralArticles = 0x002,
+		HasIndefiniteSingularArticles = 0x004,
+		HasIndefinitePluralArticles = 0x008
+	}
+
+	public enum GeneralGenderProperties 
+	{
+		None = 0x00,
+		FemenineIsDerivedFromMasculine = 0x01,
+		NeutralIsDerivedFromMasculine = 0x02,
+		NeutralIsDerivedFromFemenine = 0x04
+	}
+
+	public enum GeneralTypeProperties 
+	{
+		None = 0x00,
+		IsGendered = 0x01,
+		HasNeutral = 0x02,
+		CanBeIndefinite = 0x04,
+		CanBePlural = 0x08
 	}
 
 	public enum NounAdjuntProperties
 	{
-		None = 0x0000,
-		CanBePlural = 0x0001,
-		IsGendered = 0x0002,
-		HasNeutral = 0x0004,
-		IsFemenineNeutral = 0x0008,
-		IsAppended = 0x0010,
-		GoesAfterNoun = 0x0020,
-		IsLinkedWithDash = 0x0040,
+		None = 0x00,
+		IsAffixed = 0x01,
+		GoesAfterNoun = 0x02,
+		IsLinkedWithDash = 0x04
 	}
 
 	public enum WordProperties
 	{
 		None = 0x00,
-		IsPlural = 0x01,
-		IsFemenine = 0x02,
-		IsNeutral = 0x04
+		Plural = 0x01,
+		Indefinite = 0x02,
+		Femenine = 0x04,
+		Neutral = 0x08,
+		Irregular = 0x10
 	}
 
-	public static class ArticleTypes
+	public static class ArticleType
 	{
-		public const string SingularMasculine = "SingularMasculine";
-		public const string SingularFemenine = "SingularFemenine";
-		public const string SingularNeutral = "SingularNeutral";
-		public const string PluralMasculine = "PluralMasculine";
-		public const string PluralFemenine = "PluralFemenine";
-		public const string PluralNeutral = "PluralNeutral";
+		public const string Masculine = "Masculine";
+		public const string Femenine = "Femenine";
+		public const string Neutral = "Neutral";
+		public const string DefiniteSingularMasculine = "DefiniteSingularMasculine";
+		public const string DefiniteSingularFemenine = "DefiniteSingularFemenine";
+		public const string DefiniteSingularNeutral = "DefiniteSingularNeutral";
+		public const string DefinitePluralMasculine = "DefinitePluralMasculine";
+		public const string DefinitePluralFemenine = "DefinitePluralFemenine";
+		public const string DefinitePluralNeutral = "DefinitePluralNeutral";
+		public const string IndefiniteSingularMasculine = "IndefiniteSingularMasculine";
+		public const string IndefiniteSingularFemenine = "IndefiniteSingularFemenine";
+		public const string IndefiniteSingularNeutral = "IndefiniteSingularNeutral";
+		public const string IndefinitePluralMasculine = "IndefinitePluralMasculine";
+		public const string IndefinitePluralFemenine = "IndefinitePluralFemenine";
+		public const string IndefinitePluralNeutral = "IndefinitePluralNeutral";
 	}
 
 	public static char[] OnsetLetters = new char[] { 'b', 'c', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'm', 'n', 'p', 'q', 'r', 's', 't', 'v', 'w', 'x', 'y', 'z' };
@@ -99,9 +137,8 @@ public class Language : ISynchronizable {
 
 	public static char[] CodaLetters = new char[] { 'b', 'c', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'm', 'n', 'p', 'q', 'r', 's', 't', 'v', 'w', 'x', 'y', 'z' };
 
-
 	public static Regex OptionalWordPartRegex = new Regex (@"(?<break> )?\{(?<word>.+?)\}"); 
-	public static Regex WordPartTypeRegex = new Regex (@"\[(?<type>\w+)\](?<word>[\w\'\-]+)"); 
+	public static Regex WordPartTypeRegex = new Regex (@"\[(?<attr>\w+)\](?:\[w+\])*(?<word>[\w\'\-]*)"); 
 
 	private static Regex NucleousStartRegex = new Regex (@"^[aeiou]w*"); 
 
@@ -121,11 +158,15 @@ public class Language : ISynchronizable {
 	}
 
 	public GeneralProperties Properties;
+	public GeneralGenderProperties GenderProperties;
 
-	public NounAdjuntProperties DefiniteArticleProperties;
-	public NounAdjuntProperties IndefiniteArticleProperties;
+	public GeneralTypeProperties ArticleTypeProperties;
+	public GeneralTypeProperties AdpositionTypeProperties;
+	public GeneralTypeProperties PluralizerTypeProperties;
 
-	public NounAdjuntProperties AdpositionProperties;
+	public NounAdjuntProperties ArticleAdjuntProperties;
+	public NounAdjuntProperties AdpositionAdjuntProperties;
+	public NounAdjuntProperties PluralizerAdjuntProperties;
 
 	public string[] ArticleStartSyllables;
 	public string[] ArticleNextSyllables;
@@ -133,18 +174,26 @@ public class Language : ISynchronizable {
 	public string[] AdpositionStartSyllables;
 	public string[] AdpositionNextSyllables;
 
+	public string[] PluralizerStartSyllables;
+	public string[] PluralizerNextSyllables;
+
 	public string[] SimpleNounWordStartSyllables;
 	public string[] SimpleNounWordNextSyllables;
 
-	public List<WordMeaningPair> DefiniteArticles;
-	public List<WordMeaningPair> IndefiniteArticles;
+	public List<WordMeaningPair> Articles;
+	public List<WordMeaningPair> Pluralizers;
 	public List<WordMeaningPair> Adpositions = new List<WordMeaningPair> ();
 	public List<WordMeaningPair> Nouns = new List<WordMeaningPair> ();
 
-	private Dictionary<string, Word> _definiteArticles;
-	private Dictionary<string, Word> _indefiniteArticles;
+	private Dictionary<string, Word> _articles;
+	private Dictionary<string, Word> _pluralizers;
 	private Dictionary<string, Word> _adpositions = new Dictionary<string, Word> ();
 	private Dictionary<string, Word> _nouns = new Dictionary<string, Word> ();
+
+	public Language (long id) {
+	
+		Id = id;
+	}
 
 	public static CharacterGroup GenerateCharacterGroup (char[] characterSet, float startAddLetterChance, float addLetterChanceDecay, GetRandomFloatDelegate getRandomFloat) {
 
@@ -235,12 +284,15 @@ public class Language : ISynchronizable {
 			string[] syllables = nextSyllables;
 
 			if (first) {
-
 				syllables = startSyllables;
 				first = false;
 			}
 
-			int syllableIndex = (int)Mathf.Floor(syllables.Length * getRandomFloat ());
+			int syllableIndex = (int)Mathf.Floor (syllables.Length * getRandomFloat ());
+
+			if (syllableIndex == syllables.Length) {
+				throw new System.Exception ("syllable index out of bounds");
+			}
 
 			word += syllables[syllableIndex];
 
@@ -250,32 +302,40 @@ public class Language : ISynchronizable {
 		return word;
 	}
 
+	public static string GenerateDerivatedWord (
+		string rootWord, 
+		float noChangeChance, 
+		float replaceChance, 
+		string[] startSyllables, 
+		string[] nextSyllables, 
+		float addSyllableChanceDecay, 
+		GetRandomFloatDelegate getRandomFloat) {
+
+		float randomFloat = getRandomFloat ();
+
+		if (randomFloat < noChangeChance)
+			return rootWord;
+
+		if (randomFloat >= (1f - replaceChance)) {
+		
+			return GenerateSimpleWord (startSyllables, nextSyllables, addSyllableChanceDecay, getRandomFloat);
+		}
+
+		if (getRandomFloat () < 0.5f) {
+		
+			return GenerateSimpleWord (startSyllables, nextSyllables, addSyllableChanceDecay, getRandomFloat) + rootWord;
+		}
+
+		return rootWord + GenerateSimpleWord (nextSyllables, nextSyllables, addSyllableChanceDecay, getRandomFloat);
+	}
+
 	public static NounAdjuntProperties GenerateNounAdjuntProperties (GetRandomFloatDelegate getRandomFloat) {
 
 		NounAdjuntProperties properties = NounAdjuntProperties.None;
 
 		if (getRandomFloat () < 0.5f) {
-		
-			properties |= NounAdjuntProperties.CanBePlural;
-		}
 
-		if (getRandomFloat () < 0.5f) {
-
-			properties |= NounAdjuntProperties.IsGendered;
-
-			if (getRandomFloat () < 0.33f) {
-
-				properties |= NounAdjuntProperties.HasNeutral;
-
-			} else if (getRandomFloat () < 0.5f) {
-
-				properties |= NounAdjuntProperties.IsFemenineNeutral;
-			}
-		}
-
-		if (getRandomFloat () < 0.5f) {
-
-			properties |= NounAdjuntProperties.IsAppended;
+			properties |= NounAdjuntProperties.IsAffixed;
 
 			if (getRandomFloat () < 0.5f) {
 
@@ -300,49 +360,13 @@ public class Language : ISynchronizable {
 
 		bool multipleProperties = false;
 
-		if ((properties & NounAdjuntProperties.IsGendered) == NounAdjuntProperties.IsGendered) {
-			
-			output += "IsGendered";
-			multipleProperties = true;
-		}
-
-		if ((properties & NounAdjuntProperties.CanBePlural) == NounAdjuntProperties.CanBePlural) {
+		if ((properties & NounAdjuntProperties.IsAffixed) == NounAdjuntProperties.IsAffixed) {
 
 			if (multipleProperties) {
 				output += " | ";
 			}
 
-			output += "CanBePlural";
-			multipleProperties = true;
-		}
-
-		if ((properties & NounAdjuntProperties.HasNeutral) == NounAdjuntProperties.HasNeutral) {
-
-			if (multipleProperties) {
-				output += " | ";
-			}
-
-			output += "HasNeutral";
-			multipleProperties = true;
-		}
-
-		if ((properties & NounAdjuntProperties.IsFemenineNeutral) == NounAdjuntProperties.IsFemenineNeutral) {
-
-			if (multipleProperties) {
-				output += " | ";
-			}
-
-			output += "IsFemenineNeutral";
-			multipleProperties = true;
-		}
-
-		if ((properties & NounAdjuntProperties.IsAppended) == NounAdjuntProperties.IsAppended) {
-
-			if (multipleProperties) {
-				output += " | ";
-			}
-
-			output += "IsAppended";
+			output += "IsAffixed";
 			multipleProperties = true;
 		}
 
@@ -379,105 +403,181 @@ public class Language : ISynchronizable {
 		return word;
 	}
 
-	public static Dictionary<string, Word> GenerateArticles (string[] startSyllables, string[] nextSyllables, NounAdjuntProperties articleProperties, GetRandomFloatDelegate getRandomFloat) {
+	public static Word GenerateDerivatedArticle (
+		Word rootArticle, 
+		string[] startSyllables, 
+		string[] nextSyllables, 
+		WordProperties properties, 
+		GetRandomFloatDelegate getRandomFloat) {
 
-		WordProperties wordProperties = WordProperties.None;
+		Word word = new Word ();
+		word.Value = GenerateDerivatedWord (rootArticle.Value, 0.4f, 0.5f, startSyllables, nextSyllables, 0.0f, getRandomFloat);
+		word.Properties = rootArticle.Properties | properties;
+		word.Type = WordType.Article;
+
+		return word;
+	}
+
+	public static void GenerateGenderedArticles (
+		Word root,
+		string[] startSyllables, 
+		string[] nextSyllables,
+		GetRandomFloatDelegate getRandomFloat, 
+		out Word masculine, 
+		out Word femenine,
+		out Word neutral) {
+
+		Word firstVariant = GenerateDerivatedArticle (root, startSyllables, nextSyllables, WordProperties.None, getRandomFloat);
+
+		Word secondVariant;
+		if (getRandomFloat () < 0.5f) {
+			secondVariant = GenerateDerivatedArticle (root, startSyllables, nextSyllables, WordProperties.None, getRandomFloat);
+		} else {
+			secondVariant = GenerateDerivatedArticle (firstVariant, startSyllables, nextSyllables, WordProperties.None, getRandomFloat);
+		}
+
+		float randomFloat = getRandomFloat ();
+
+		if (randomFloat < 0.33f) {
+			masculine = root;
+
+			if (getRandomFloat () < 0.5f) {
+				femenine = firstVariant;
+				neutral = secondVariant;
+			} else {
+				femenine = secondVariant;
+				neutral = firstVariant;
+			}
+
+		} else if (randomFloat < 0.66f) {
+			masculine = firstVariant;
+
+			if (getRandomFloat () < 0.5f) {
+				femenine = root;
+				neutral = secondVariant;
+			} else {
+				femenine = secondVariant;
+				neutral = root;
+			}
+
+		}else {
+			masculine = secondVariant;
+
+			if (getRandomFloat () < 0.5f) {
+				femenine = firstVariant;
+				neutral = root;
+			} else {
+				femenine = root;
+				neutral = firstVariant;
+			}
+		}
+
+		femenine.Properties |= WordProperties.Femenine;
+		neutral.Properties |= WordProperties.Neutral;
+	}
+
+	public static Dictionary<string, Word> GenerateArticles (
+		string[] startSyllables, 
+		string[] nextSyllables, 
+		GeneralProperties generalProperties, 
+		NounAdjuntProperties articleProperties, 
+		GetRandomFloatDelegate getRandomFloat) {
 
 		Dictionary<string, Word> articles = new Dictionary<string, Word> ();
 
-		Word singularMasculine = GenerateArticle (startSyllables, nextSyllables, wordProperties, getRandomFloat);
-		Word singularFemenine = singularMasculine;
-		Word singularNeutral = singularMasculine;
-		Word pluralMasculine = singularMasculine;
-		Word pluralFemenine = singularMasculine;
-		Word pluralNeutral = singularMasculine;
+		Word root = GenerateArticle (startSyllables, nextSyllables, WordProperties.None, getRandomFloat);
 
-		if ((articleProperties & NounAdjuntProperties.IsGendered) == NounAdjuntProperties.IsGendered) {
-			wordProperties = WordProperties.IsFemenine;
+		Word definite = GenerateDerivatedArticle (root, startSyllables, nextSyllables, WordProperties.None, getRandomFloat);
+		Word indefinite = GenerateDerivatedArticle (root, startSyllables, nextSyllables, WordProperties.Indefinite, getRandomFloat);
 
-			singularFemenine = GenerateArticle (startSyllables, nextSyllables, wordProperties, getRandomFloat);
-			pluralFemenine = singularFemenine;
+		if ((generalProperties & GeneralProperties.HasDefiniteSingularArticles) == GeneralProperties.HasDefiniteSingularArticles) {
 
-			if ((articleProperties & NounAdjuntProperties.HasNeutral) == NounAdjuntProperties.HasNeutral) {
-				wordProperties = WordProperties.IsNeutral;
+			Word definiteSingular = GenerateDerivatedArticle (definite, startSyllables, nextSyllables, WordProperties.None, getRandomFloat);
 
-				singularNeutral = GenerateArticle (startSyllables, nextSyllables, wordProperties, getRandomFloat);
-				pluralNeutral = singularNeutral;
-			}
+			Word femenine, masculine, neutral;
+			GenerateGenderedArticles (definiteSingular, startSyllables, nextSyllables, getRandomFloat, out masculine, out femenine, out neutral);
+
+			articles.Add (ArticleType.DefiniteSingularFemenine, femenine);
+			articles.Add (ArticleType.DefiniteSingularMasculine, masculine);
+			articles.Add (ArticleType.DefiniteSingularNeutral, neutral);
 		}
 
-		if ((articleProperties & NounAdjuntProperties.CanBePlural) == NounAdjuntProperties.CanBePlural) {
-			wordProperties = WordProperties.IsPlural;
+		if ((generalProperties & GeneralProperties.HasDefinitePluralArticles) == GeneralProperties.HasDefinitePluralArticles) {
 
-			pluralMasculine = GenerateArticle (startSyllables, nextSyllables, wordProperties, getRandomFloat);
-			pluralFemenine = pluralMasculine;
-			pluralNeutral = pluralMasculine;
+			Word definitePlural = GenerateDerivatedArticle (definite, startSyllables, nextSyllables, WordProperties.Plural, getRandomFloat);
 
-			if ((articleProperties & NounAdjuntProperties.IsGendered) == NounAdjuntProperties.IsGendered) {
-				wordProperties = WordProperties.IsFemenine | WordProperties.IsPlural;
+			Word femenine, masculine, neutral;
+			GenerateGenderedArticles (definitePlural, startSyllables, nextSyllables, getRandomFloat, out masculine, out femenine, out neutral);
 
-				pluralFemenine = GenerateArticle (startSyllables, nextSyllables, wordProperties, getRandomFloat);
-
-				if ((articleProperties & NounAdjuntProperties.HasNeutral) == NounAdjuntProperties.HasNeutral) {
-					wordProperties = WordProperties.IsNeutral | WordProperties.IsPlural;
-
-					pluralNeutral = GenerateArticle (startSyllables, nextSyllables, wordProperties, getRandomFloat);
-				}
-			}
+			articles.Add (ArticleType.DefinitePluralFemenine, femenine);
+			articles.Add (ArticleType.DefinitePluralMasculine, masculine);
+			articles.Add (ArticleType.DefinitePluralNeutral, neutral);
 		}
 
-		if ((articleProperties & NounAdjuntProperties.IsFemenineNeutral) == NounAdjuntProperties.IsFemenineNeutral) {
+		if ((generalProperties & GeneralProperties.HasIndefiniteSingularArticles) == GeneralProperties.HasIndefiniteSingularArticles) {
 
-			singularNeutral = singularFemenine;
-			pluralNeutral = pluralFemenine;
+			Word indefiniteSingular = GenerateDerivatedArticle (indefinite, startSyllables, nextSyllables, WordProperties.None, getRandomFloat);
+
+			Word femenine, masculine, neutral;
+			GenerateGenderedArticles (indefiniteSingular, startSyllables, nextSyllables, getRandomFloat, out masculine, out femenine, out neutral);
+
+			articles.Add (ArticleType.IndefiniteSingularFemenine, femenine);
+			articles.Add (ArticleType.IndefiniteSingularMasculine, masculine);
+			articles.Add (ArticleType.IndefiniteSingularNeutral, neutral);
 		}
 
-		articles.Add (ArticleTypes.SingularMasculine, singularMasculine);
-		articles.Add (ArticleTypes.SingularFemenine, singularFemenine);
-		articles.Add (ArticleTypes.SingularNeutral, singularNeutral);
-		articles.Add (ArticleTypes.PluralMasculine, pluralMasculine);
-		articles.Add (ArticleTypes.PluralFemenine, pluralFemenine);
-		articles.Add (ArticleTypes.PluralNeutral, pluralNeutral);
+		if ((generalProperties & GeneralProperties.HasIndefinitePluralArticles) == GeneralProperties.HasIndefinitePluralArticles) {
+
+			Word indefinitePlural = GenerateDerivatedArticle (indefinite, startSyllables, nextSyllables, WordProperties.Plural, getRandomFloat);
+
+			Word femenine, masculine, neutral;
+			GenerateGenderedArticles (indefinitePlural, startSyllables, nextSyllables, getRandomFloat, out masculine, out femenine, out neutral);
+
+			articles.Add (ArticleType.IndefinitePluralFemenine, femenine);
+			articles.Add (ArticleType.IndefinitePluralMasculine, masculine);
+			articles.Add (ArticleType.IndefinitePluralNeutral, neutral);
+		}
 
 		return articles;
 	}
 
-	public static Dictionary<string, Word> GenerateArticles2 (string[] startSyllables, string[] nextSyllables, NounAdjuntProperties articleProperties, GetRandomFloatDelegate getRandomFloat) {
-
-		WordProperties wordProperties = WordProperties.None;
-
-		Dictionary<string, Word> articles = new Dictionary<string, Word> ();
-
-		Word baseArticle = GenerateArticle (startSyllables, nextSyllables, wordProperties, getRandomFloat);
-
-		return null;
-	}
-
-	public static WordProperties GenerateWordProperties (GetRandomFloatDelegate getRandomFloat, bool isPlural, bool randomGender = false, bool isFemenine = false, bool isNeutral = false) {
+	public static WordProperties GenerateWordProperties (
+		GetRandomFloatDelegate getRandomFloat, 
+		bool isPlural, 
+		bool randomGender = false, 
+		bool isFemenine = false, 
+		bool isNeutral = false, 
+		bool canBeIrregular = false) {
 
 		WordProperties properties = WordProperties.None;
 
 		if (isPlural) {
-			properties |= WordProperties.IsPlural;
+			properties |= WordProperties.Plural;
 		}
 
 		if (randomGender) {
 
-			float chance = getRandomFloat ();
+			float genderChance = getRandomFloat ();
 
-			if (chance >= 0.66f) {
+			if (genderChance >= 0.66f) {
 				isNeutral = true;
-			} else if (chance >= 0.33f) {
+			} else if (genderChance >= 0.33f) {
 				isFemenine = true;
 			}
 		}
 
 		if (isFemenine) {
-			properties |= WordProperties.IsFemenine;
+			properties |= WordProperties.Femenine;
 		}
 
 		if (isNeutral) {
-			properties |= WordProperties.IsNeutral;
+			properties |= WordProperties.Neutral;
+		}
+
+		float irregularChance = getRandomFloat ();
+
+		if ((canBeIrregular) && (irregularChance >= 0.01f)) {
+			properties |= WordProperties.Irregular;
 		}
 
 		return properties;
@@ -492,7 +592,7 @@ public class Language : ISynchronizable {
 
 		bool multipleProperties = false;
 
-		if ((properties & WordProperties.IsFemenine) == WordProperties.IsFemenine) {
+		if ((properties & WordProperties.Femenine) == WordProperties.Femenine) {
 
 			if (multipleProperties) {
 				output += " | ";
@@ -502,7 +602,7 @@ public class Language : ISynchronizable {
 			multipleProperties = true;
 		}
 
-		if ((properties & WordProperties.IsNeutral) == WordProperties.IsNeutral) {
+		if ((properties & WordProperties.Neutral) == WordProperties.Neutral) {
 
 			if (multipleProperties) {
 				output += " | ";
@@ -512,7 +612,7 @@ public class Language : ISynchronizable {
 			multipleProperties = true;
 		}
 
-		if ((properties & WordProperties.IsPlural) == WordProperties.IsPlural) {
+		if ((properties & WordProperties.Plural) == WordProperties.Plural) {
 
 			if (multipleProperties) {
 				output += " | ";
@@ -522,36 +622,48 @@ public class Language : ISynchronizable {
 			multipleProperties = true;
 		}
 
+		if ((properties & WordProperties.Irregular) == WordProperties.Irregular) {
+
+			if (multipleProperties) {
+				output += " | ";
+			}
+
+			output += "IsIrregular";
+			multipleProperties = true;
+		}
+
 		return output;
 	}
 
-	public void GenerateLanguageProperties (GetRandomFloatDelegate getRandomFloat) {
+	public void GenerateGeneralProperties (GetRandomFloatDelegate getRandomFloat) {
 
 		if (getRandomFloat () < 0.75f) {
 
-			Properties |= GeneralProperties.HasDefiniteArticles;
+			Properties |= GeneralProperties.HasDefiniteSingularArticles;
 		}
 
 		if (getRandomFloat () < 0.75f) {
 
-			Properties |= GeneralProperties.HasIndefiniteArticles;
+			Properties |= GeneralProperties.HasDefinitePluralArticles;
+		}
+
+		if (getRandomFloat () < 0.75f) {
+
+			Properties |= GeneralProperties.HasIndefiniteSingularArticles;
+		}
+
+		if (getRandomFloat () < 0.75f) {
+
+			Properties |= GeneralProperties.HasIndefinitePluralArticles;
 		}
 	}
 
-	public void GenerateAllArticleProperties (GetRandomFloatDelegate getRandomFloat) {
+	public void GenerateArticleProperties (GetRandomFloatDelegate getRandomFloat) {
 
-		if ((Properties & GeneralProperties.HasDefiniteArticles) == GeneralProperties.HasDefiniteArticles)
-			DefiniteArticleProperties = GenerateNounAdjuntProperties (getRandomFloat);
-
-		if ((Properties & GeneralProperties.HasIndefiniteArticles) == GeneralProperties.HasIndefiniteArticles)
-		IndefiniteArticleProperties = GenerateNounAdjuntProperties (getRandomFloat);
+		ArticleAdjuntProperties = GenerateNounAdjuntProperties (getRandomFloat);
 	}
 
-	public void GenerateAllArticleSyllables (GetRandomFloatDelegate getRandomFloat) {
-
-		if (((Properties & GeneralProperties.HasDefiniteArticles) != GeneralProperties.HasDefiniteArticles) &&
-		    ((Properties & GeneralProperties.HasIndefiniteArticles) != GeneralProperties.HasIndefiniteArticles))
-			return;
+	public void GenerateArticleSyllables (GetRandomFloatDelegate getRandomFloat) {
 
 		CharacterGroup[] onsetGroups = Language.GenerateCharacterGroups (Language.OnsetLetters, 0.7f, 0.1f, getRandomFloat, 10);
 		CharacterGroup[] nucleusGroups = Language.GenerateCharacterGroups (Language.NucleusLetters, 1.0f, 0.35f, getRandomFloat, 5);
@@ -563,28 +675,48 @@ public class Language : ISynchronizable {
 
 	public void GenerateAllArticles (GetRandomFloatDelegate getRandomFloat) {
 
-		if ((Properties & GeneralProperties.HasDefiniteArticles) == GeneralProperties.HasDefiniteArticles) {
-			_definiteArticles = GenerateArticles (ArticleStartSyllables, ArticleNextSyllables, DefiniteArticleProperties, getRandomFloat);
+		_articles = GenerateArticles (ArticleStartSyllables, ArticleNextSyllables, Properties, ArticleAdjuntProperties, getRandomFloat);
 
-			foreach (KeyValuePair<string, Word> pair in _definiteArticles) {
-			
-				DefiniteArticles.Add (new WordMeaningPair (pair.Value, pair.Key));
-			}
+		Articles = new List<WordMeaningPair> (_articles.Count);
+
+		foreach (KeyValuePair<string, Word> pair in _articles) {
+		
+			Articles.Add (new WordMeaningPair (pair.Value, pair.Key));
 		}
+	}
 
-		if ((Properties & GeneralProperties.HasIndefiniteArticles) == GeneralProperties.HasIndefiniteArticles) {
-			_indefiniteArticles = GenerateArticles (ArticleStartSyllables, ArticleNextSyllables, IndefiniteArticleProperties, getRandomFloat);
+	public void GeneratePluralizerProperties (GetRandomFloatDelegate getRandomFloat) {
 
-			foreach (KeyValuePair<string, Word> pair in _indefiniteArticles) {
+		PluralizerAdjuntProperties = GenerateNounAdjuntProperties (getRandomFloat);
+	}
 
-				IndefiniteArticles.Add (new WordMeaningPair (pair.Value, pair.Key));
-			}
-		}
+	public void GeneratePluralizerSyllables (GetRandomFloatDelegate getRandomFloat) {
+
+		CharacterGroup[] onsetGroups = Language.GenerateCharacterGroups (Language.OnsetLetters, 0.2f, 0.1f, getRandomFloat, 5);
+		CharacterGroup[] nucleusGroups = Language.GenerateCharacterGroups (Language.NucleusLetters, 0.5f, 0.35f, getRandomFloat, 10);
+		CharacterGroup[] codaGroups = Language.GenerateCharacterGroups (Language.CodaLetters, 0.75f, 0.2f, getRandomFloat, 20);
+
+		PluralizerStartSyllables = GenerateSyllables (onsetGroups, nucleusGroups, codaGroups, getRandomFloat, 10);
+		PluralizerNextSyllables = GenerateSyllables (onsetGroups, nucleusGroups, codaGroups, getRandomFloat, 10);
+	}
+
+	public void GeneratePluralizers (GetRandomFloatDelegate getRandomFloat) {
+
+		Word word = new Word ();
+		word.Value = GenerateSimpleWord (PluralizerStartSyllables, PluralizerNextSyllables, 0.1f, getRandomFloat);
+		word.Properties = WordProperties.None;
+		word.Type = WordType.Pluralizer;
+
+		_pluralizers = new Dictionary<string, Word> ();
+		_pluralizers.Add ("neutral", word);
+
+		Pluralizers = new List<WordMeaningPair> ();
+		Pluralizers.Add (new WordMeaningPair (word, "neutral"));
 	}
 
 	public void GenerateAdpositionProperties (GetRandomFloatDelegate getRandomFloat) {
 
-		AdpositionProperties = GenerateNounAdjuntProperties (getRandomFloat);
+		AdpositionAdjuntProperties = GenerateNounAdjuntProperties (getRandomFloat);
 	}
 
 	public void GenerateAdpositionSyllables (GetRandomFloatDelegate getRandomFloat) {
@@ -619,12 +751,17 @@ public class Language : ISynchronizable {
 		SimpleNounWordNextSyllables = Language.GenerateSyllables (onsetGroups, nucleusGroups, codaGroups, getRandomFloat, 200);
 	}
 
-	public void GenerateSimpleNoun (string meaning, GetRandomFloatDelegate getRandomFloat, bool isPlural, bool randomGender, bool isFemenine = false, bool isNeutral = false) {
+	public Word GenerateSimpleNoun (string meaning, GetRandomFloatDelegate getRandomFloat, bool isPlural, bool randomGender, bool isFemenine = false, bool isNeutral = false, bool canBeIrregular = true) {
 
-		GenerateSimpleNoun (meaning, GenerateWordProperties (getRandomFloat, isPlural, randomGender, isFemenine, isNeutral), getRandomFloat);
+		return GenerateSimpleNoun (meaning, GenerateWordProperties (getRandomFloat, isPlural, randomGender, isFemenine, isNeutral, canBeIrregular), getRandomFloat);
 	}
 
-	public void GenerateSimpleNoun (string meaning, WordProperties properties, GetRandomFloatDelegate getRandomFloat) {
+	public Word GenerateSimpleNoun (string meaning, WordProperties properties, GetRandomFloatDelegate getRandomFloat) {
+
+		if (_nouns.ContainsKey (meaning)) {
+		
+			return _nouns [meaning];
+		}
 
 		Word word = new Word ();
 		word.Value = GenerateSimpleWord (SimpleNounWordStartSyllables, SimpleNounWordNextSyllables, 0.5f, getRandomFloat);
@@ -634,53 +771,82 @@ public class Language : ISynchronizable {
 		_nouns.Add (meaning, word);
 
 		Nouns.Add (new WordMeaningPair (word, meaning));
+
+		return word;
 	}
 
-	public Word GetAppropiateArticle (WordProperties nounProperties, bool useIndefiniteArticles) {
-
-		Dictionary <string, Word> articles = _definiteArticles;
-
-		if (useIndefiniteArticles)
-			articles = _indefiniteArticles;
+	public Word GetAppropiateArticle (WordProperties nounProperties, bool useIndefiniteForm) {
 
 		Word article = null;
 
-		if ((nounProperties & WordProperties.IsPlural) == WordProperties.IsPlural) {
+		if (useIndefiniteForm) {
+			if ((nounProperties & WordProperties.Plural) == WordProperties.Plural) {
 
-			if ((nounProperties & WordProperties.IsFemenine) == WordProperties.IsFemenine) {
+				if ((nounProperties & WordProperties.Femenine) == WordProperties.Femenine) {
 
-				article = articles [ArticleTypes.PluralFemenine];
+					article = _articles [ArticleType.IndefinitePluralFemenine];
 
-			} else if ((nounProperties & WordProperties.IsNeutral) == WordProperties.IsNeutral) {
+				} else if ((nounProperties & WordProperties.Neutral) == WordProperties.Neutral) {
 
-				article = articles [ArticleTypes.PluralNeutral];
+					article = _articles [ArticleType.IndefinitePluralNeutral];
 
+				} else {
+
+					article = _articles [ArticleType.IndefinitePluralMasculine];
+
+				}
 			} else {
 
-				article = articles [ArticleTypes.PluralMasculine];
+				if ((nounProperties & WordProperties.Femenine) == WordProperties.Femenine) {
 
+					article = _articles [ArticleType.IndefiniteSingularFemenine];
+
+				} else if ((nounProperties & WordProperties.Neutral) == WordProperties.Neutral) {
+
+					article = _articles [ArticleType.IndefiniteSingularNeutral];
+
+				} else {
+
+					article = _articles [ArticleType.IndefiniteSingularMasculine];
+				}
 			}
 		} else {
+			if ((nounProperties & WordProperties.Plural) == WordProperties.Plural) {
 
-			if ((nounProperties & WordProperties.IsFemenine) == WordProperties.IsFemenine) {
+				if ((nounProperties & WordProperties.Femenine) == WordProperties.Femenine) {
 
-				article = articles [ArticleTypes.SingularFemenine];
+					article = _articles [ArticleType.DefinitePluralFemenine];
 
-			} else if ((nounProperties & WordProperties.IsNeutral) == WordProperties.IsNeutral) {
+				} else if ((nounProperties & WordProperties.Neutral) == WordProperties.Neutral) {
 
-				article = articles [ArticleTypes.SingularNeutral];
+					article = _articles [ArticleType.DefinitePluralNeutral];
 
+				} else {
+
+					article = _articles [ArticleType.DefinitePluralMasculine];
+
+				}
 			} else {
 
-				article = articles [ArticleTypes.SingularMasculine];
+				if ((nounProperties & WordProperties.Femenine) == WordProperties.Femenine) {
 
+					article = _articles [ArticleType.DefiniteSingularFemenine];
+
+				} else if ((nounProperties & WordProperties.Neutral) == WordProperties.Neutral) {
+
+					article = _articles [ArticleType.DefiniteSingularNeutral];
+
+				} else {
+
+					article = _articles [ArticleType.DefiniteSingularMasculine];
+				}
 			}
 		}
 
 		return article;
 	}
 
-	public Phrase BuildArticulatedNounPhrase (string noun, bool useIndefiniteArticles) {
+	public Phrase BuildArticulatedNounPhrase (string noun, bool useIndefiniteForm) {
 
 		Phrase phrase = new Phrase ();
 	
@@ -691,11 +857,13 @@ public class Language : ISynchronizable {
 			return phrase;
 		}
 
+		bool usePluralForm = ((word.Properties & WordProperties.Plural) == WordProperties.Plural);
+
 		string meaning;
 
-		if (useIndefiniteArticles) {
+		if (useIndefiniteForm) {
 
-			if ((word.Properties & WordProperties.IsPlural) == WordProperties.IsPlural) {
+			if (usePluralForm) {
 				meaning = noun;
 
 			} else {
@@ -714,36 +882,45 @@ public class Language : ISynchronizable {
 
 		string text = word.Value;
 
-		NounAdjuntProperties articleProperties;
-
 		bool hasArticles = false;
 
-		if (useIndefiniteArticles) {
-			if ((Properties & GeneralProperties.HasIndefiniteArticles) == GeneralProperties.HasIndefiniteArticles) {
+		if (usePluralForm) {
+			if (useIndefiniteForm) {
+				if ((Properties & GeneralProperties.HasIndefinitePluralArticles) == GeneralProperties.HasIndefinitePluralArticles) {
 
-				hasArticles = true;
+					hasArticles = true;
+				}
+
+			} else {
+				if ((Properties & GeneralProperties.HasDefinitePluralArticles) == GeneralProperties.HasDefinitePluralArticles) {
+
+					hasArticles = true;
+				}
 			}
-
-			articleProperties = IndefiniteArticleProperties;
-
 		} else {
-			if ((Properties & GeneralProperties.HasDefiniteArticles) == GeneralProperties.HasDefiniteArticles) {
+			if (useIndefiniteForm) {
+				if ((Properties & GeneralProperties.HasIndefiniteSingularArticles) == GeneralProperties.HasIndefiniteSingularArticles) {
 
-				hasArticles = true;
+					hasArticles = true;
+				}
+
+			} else {
+				if ((Properties & GeneralProperties.HasDefiniteSingularArticles) == GeneralProperties.HasDefiniteSingularArticles) {
+
+					hasArticles = true;
+				}
 			}
-
-			articleProperties = DefiniteArticleProperties;
 		}
 
 		if (hasArticles) {
-			Word article = GetAppropiateArticle (word.Properties, useIndefiniteArticles);
+			Word article = GetAppropiateArticle (word.Properties, useIndefiniteForm);
 			string articleString = article.Value;
 		
-			if ((articleProperties & NounAdjuntProperties.GoesAfterNoun) == NounAdjuntProperties.GoesAfterNoun) {
+			if ((ArticleAdjuntProperties & NounAdjuntProperties.GoesAfterNoun) == NounAdjuntProperties.GoesAfterNoun) {
 		
-				if ((articleProperties & NounAdjuntProperties.IsAppended) == NounAdjuntProperties.IsAppended) {
+				if ((ArticleAdjuntProperties & NounAdjuntProperties.IsAffixed) == NounAdjuntProperties.IsAffixed) {
 
-					if ((articleProperties & NounAdjuntProperties.IsLinkedWithDash) == NounAdjuntProperties.IsLinkedWithDash) {
+					if ((ArticleAdjuntProperties & NounAdjuntProperties.IsLinkedWithDash) == NounAdjuntProperties.IsLinkedWithDash) {
 
 						text += "-" + articleString;
 					} else {
@@ -755,9 +932,9 @@ public class Language : ISynchronizable {
 					text += " " + articleString;
 				}
 			} else {
-				if ((articleProperties & NounAdjuntProperties.IsAppended) == NounAdjuntProperties.IsAppended) {
+				if ((ArticleAdjuntProperties & NounAdjuntProperties.IsAffixed) == NounAdjuntProperties.IsAffixed) {
 
-					if ((articleProperties & NounAdjuntProperties.IsLinkedWithDash) == NounAdjuntProperties.IsLinkedWithDash) {
+					if ((ArticleAdjuntProperties & NounAdjuntProperties.IsLinkedWithDash) == NounAdjuntProperties.IsLinkedWithDash) {
 
 						text = articleString + "-" + text;
 					} else {
@@ -792,11 +969,11 @@ public class Language : ISynchronizable {
 
 		string text = complementPhrase.Text;
 
-		if ((AdpositionProperties & NounAdjuntProperties.GoesAfterNoun) == NounAdjuntProperties.GoesAfterNoun) {
+		if ((AdpositionAdjuntProperties & NounAdjuntProperties.GoesAfterNoun) == NounAdjuntProperties.GoesAfterNoun) {
 
-			if ((AdpositionProperties & NounAdjuntProperties.IsAppended) == NounAdjuntProperties.IsAppended) {
+			if ((AdpositionAdjuntProperties & NounAdjuntProperties.IsAffixed) == NounAdjuntProperties.IsAffixed) {
 
-				if ((AdpositionProperties & NounAdjuntProperties.IsLinkedWithDash) == NounAdjuntProperties.IsLinkedWithDash) {
+				if ((AdpositionAdjuntProperties & NounAdjuntProperties.IsLinkedWithDash) == NounAdjuntProperties.IsLinkedWithDash) {
 
 					text += "-" + adposition.Value;
 				} else {
@@ -808,9 +985,9 @@ public class Language : ISynchronizable {
 				text += " " + adposition.Value;
 			}
 		} else {
-			if ((AdpositionProperties & NounAdjuntProperties.IsAppended) == NounAdjuntProperties.IsAppended) {
+			if ((AdpositionAdjuntProperties & NounAdjuntProperties.IsAffixed) == NounAdjuntProperties.IsAffixed) {
 
-				if ((AdpositionProperties & NounAdjuntProperties.IsLinkedWithDash) == NounAdjuntProperties.IsLinkedWithDash) {
+				if ((AdpositionAdjuntProperties & NounAdjuntProperties.IsLinkedWithDash) == NounAdjuntProperties.IsLinkedWithDash) {
 
 					text = adposition.Value + "-" + text;
 				} else {
@@ -839,23 +1016,80 @@ public class Language : ISynchronizable {
 		return phrase;
 	}
 
+	public Phrase GenerateNounTranslation (string word, GetRandomFloatDelegate getRandomFloat) {
+
+		string[] wordParts = word.Split (new char[] { ':' });
+
+		List<Word> translatedParts = new List<Word> (wordParts.Length);
+
+		foreach (string wordPart in wordParts) {
+		
+			WordPart parsedPart = ParseWordPart (wordPart);
+
+			if (parsedPart.Attributes.Contains (WordPartAttributeId.NounPluralizer)) {
+			
+				translatedParts.Add (_pluralizers ["neutral"]);
+
+			} else {
+
+				bool hasRandomGender = true;
+				bool isFemenineNoun = true;
+				bool isNeutralNoun = true;
+
+				if (parsedPart.Attributes.Contains (WordPartAttributeId.FemenineNoun)) {
+					hasRandomGender = false;
+					isFemenineNoun = true;
+				} else if (parsedPart.Attributes.Contains (WordPartAttributeId.FemenineNoun)) {
+					hasRandomGender = false;
+				} else if (parsedPart.Attributes.Contains (WordPartAttributeId.NeutralNoun)) {
+					hasRandomGender = false;
+					isNeutralNoun = true;
+				}
+
+				translatedParts.Add (GenerateSimpleNoun (parsedPart.Value, getRandomFloat, false, hasRandomGender, isFemenineNoun, isNeutralNoun));
+			}
+		}
+
+		return null;
+	}
+
+	public static WordPart ParseWordPart (string wordPart) {
+
+		WordPart parsedWordPart = new WordPart ();
+
+		while (true) {
+			Match match = WordPartTypeRegex.Match (wordPart);
+
+			if (!match.Success)
+				break;
+
+			wordPart = wordPart.Replace (match.Value, match.Groups ["word"].Value);
+
+			parsedWordPart.Attributes.Add (match.Groups ["attr"].Value);
+		}
+
+		parsedWordPart.Value = wordPart;
+
+		return parsedWordPart;
+	}
+
 	public static string MakeFirstLetterUpper (string sentence) {
 
 		return sentence.First().ToString().ToUpper() + sentence.Substring(1);
 	}
 
-	public static string CleanConstructCharacters (string sentence) {
+	public static string CleanConstructCharacters (string phrase) {
 
 		while (true) {
-			Match match = WordPartTypeRegex.Match (sentence);
+			Match match = WordPartTypeRegex.Match (phrase);
 
 			if (!match.Success)
 				break;
 
-			sentence = sentence.Replace (match.Value, match.Groups["word"].Value);
+			phrase = phrase.Replace (match.Value, match.Groups["word"].Value);
 		}
 
-		return sentence.Replace (":", string.Empty);
+		return phrase.Replace (":", string.Empty);
 	}
 
 	// For now it will only make the first letter in the phrase uppercase
@@ -871,15 +1105,10 @@ public class Language : ISynchronizable {
 
 	public void FinalizeLoad () {
 
-		_definiteArticles = new Dictionary<string, Word> (DefiniteArticles.Count);
-		_indefiniteArticles = new Dictionary<string, Word> (IndefiniteArticles.Count);
+		_articles = new Dictionary<string, Word> (Articles.Count);
 
-		foreach (WordMeaningPair pair in DefiniteArticles) {
-			_definiteArticles.Add (pair.Meaning, pair.Word);
-		}
-
-		foreach (WordMeaningPair pair in IndefiniteArticles) {
-			_indefiniteArticles.Add (pair.Meaning, pair.Word);
+		foreach (WordMeaningPair pair in Articles) {
+			_articles.Add (pair.Meaning, pair.Word);
 		}
 
 		foreach (WordMeaningPair pair in Adpositions) {

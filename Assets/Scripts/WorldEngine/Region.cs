@@ -134,9 +134,9 @@ public class Name : ISynchronizable {
 		
 	}
 
-	public Name (string value, string meaning, Language language) {
+	public Name (string value, string meaning, Language language, World world) {
 
-		World = language.World;
+		World = world;
 
 		LanguageId = language.Id;
 		Language = language;

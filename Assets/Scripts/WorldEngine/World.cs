@@ -69,6 +69,9 @@ public class World : ISynchronizable {
 
 	[XmlAttribute]
 	public long CurrentRegionId { get; private set; }
+
+	[XmlAttribute]
+	public long CurrentLanguageId { get; private set; }
 	
 	[XmlAttribute]
 	public int EventsToHappenCount { get; private set; }
@@ -235,6 +238,7 @@ public class World : ISynchronizable {
 		CurrentEventId = 0;
 		CurrentPolityId = 0;
 		CurrentRegionId = 0;
+		CurrentLanguageId = 0;
 		EventsToHappenCount = 0;
 		CellGroupCount = 0;
 		PolityCount = 0;
@@ -787,8 +791,6 @@ public class World : ISynchronizable {
 		});
 
 		Languages.ForEach (l => {
-
-			l.World = this;
 
 			_languages.Add (l.Id, l);
 		});
@@ -1493,6 +1495,11 @@ public class World : ISynchronizable {
 	public long GenerateRegionId () {
 
 		return ++CurrentRegionId;
+	}
+
+	public long GenerateLanguageId () {
+
+		return ++CurrentLanguageId;
 	}
 
 	private float CalculateCellBaseArability (TerrainCell cell) {

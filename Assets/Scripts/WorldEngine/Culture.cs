@@ -6,8 +6,14 @@ using System.Xml.Serialization;
 
 public class Culture : ISynchronizable {
 
+	[XmlAttribute]
+	public long LanguageId = -1;
+
 	[XmlIgnore]
 	public World World;
+
+	[XmlIgnore]
+	public Language Language { get; protected set; }
 
 	[XmlArrayItem(Type = typeof(CulturalActivity)),
 		XmlArrayItem(Type = typeof(CellCulturalActivity))]
@@ -40,6 +46,15 @@ public class Culture : ISynchronizable {
 	}
 
 	public Culture (World world) {
+
+		Language = null;
+
+		World = world;
+	}
+
+	public Culture (World world, Language language) {
+
+		Language = language;
 
 		World = world;
 	}
@@ -175,7 +190,9 @@ public class Culture : ISynchronizable {
 	}
 
 	public virtual void Synchronize () {
-		
+
+		if (Language != null)
+			LanguageId = Language.Id;
 	}
 
 	public virtual void FinalizeLoad () {
@@ -184,6 +201,10 @@ public class Culture : ISynchronizable {
 		Skills.ForEach (s => _skills.Add (s.Id, s));
 		Knowledges.ForEach (k => _knowledges.Add (k.Id, k));
 		Discoveries.ForEach (d => _discoveries.Add (d.Id, d));
+
+		if (LanguageId != -1) {
+			Language = World.GetLanguage (LanguageId);
+		}
 	}
 }
 
@@ -238,6 +259,32 @@ public class PolityCulture : Culture {
 			AddDiscovery (discovery);
 			discovery.PresenceCount++;
 		});
+
+		Language = coreCulture.Language;
+
+		if (Language == null) {
+		
+			GenerateNewLanguage ();
+		}
+	}
+
+	private float GetNextRandomFloat () {
+
+		return Polity.CoreGroup.GetNextLocalRandomFloat ();
+	}
+
+	private void GenerateNewLanguage () {
+	
+		Language = new Language (World.GenerateLanguageId ());
+
+		Language.GenerateGeneralProperties (GetNextRandomFloat);
+
+		Language.GenerateArticleProperties (GetNextRandomFloat);
+		Language.GenerateArticleSyllables (GetNextRandomFloat);
+		Language.GenerateAllArticles (GetNextRandomFloat);
+
+		Language.GenerateAdpositionProperties (GetNextRandomFloat);
+		Language.GenerateAdpositionSyllables (GetNextRandomFloat);
 	}
 
 	public void Update () {
@@ -424,7 +471,7 @@ public class CellCulture : Culture {
 		Group = group;
 	}
 
-	public CellCulture (CellGroup group, CellCulture sourceCulture) : base (group.World) {
+	public CellCulture (CellGroup group, CellCulture sourceCulture) : base (group.World, sourceCulture.Language) {
 
 		Group = group;
 
