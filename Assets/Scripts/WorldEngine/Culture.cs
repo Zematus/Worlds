@@ -277,9 +277,9 @@ public class PolityCulture : Culture {
 	
 		Language = new Language (World.GenerateLanguageId ());
 
-		Language.GenerateGeneralProperties (GetNextRandomFloat);
-
 		Language.GenerateArticleProperties (GetNextRandomFloat);
+
+		Language.GenerateArticleAdjunctionProperties (GetNextRandomFloat);
 		Language.GenerateArticleSyllables (GetNextRandomFloat);
 		Language.GenerateAllArticles (GetNextRandomFloat);
 

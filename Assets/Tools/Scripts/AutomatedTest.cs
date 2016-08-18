@@ -69,32 +69,34 @@ public class LanguageGenerationTest : AutomatedTest {
 		for (int i = 0; i < 5; i++) {
 			Language language = new Language (0);
 
-			language.GenerateGeneralProperties (GetRandomFloat);
-
 			language.GenerateArticleProperties (GetRandomFloat);
+
+			language.GenerateArticleAdjunctionProperties (GetRandomFloat);
 			language.GenerateArticleSyllables (GetRandomFloat);
 			language.GenerateAllArticles (GetRandomFloat);
 
 			string entry = "Test Language " + i;
 			entry += "\n";
 
-			entry += "\nArticle properties: " + Language.NounAdjuntPropertiesToString (language.ArticleAdjuntProperties);
+			entry += "\nArticle properties: " + Language.NounAdjunctionPropertiesToString (language.ArticleAdjunctionProperties);
 			entry += "\nArticles:";
-			foreach (Language.WordMeaningPair pair in language.Articles) {
+			foreach (Language.Word word in language.Articles) {
 
-				entry += "\n    " + pair.Meaning + " : " + pair.Word.Value;
+				entry += "\n    " + word.Meaning + " : " + word.Value;
 			}
 			entry += "\n";
 
-			language.GeneratePluralizerProperties (GetRandomFloat);
-			language.GeneratePluralizerSyllables (GetRandomFloat);
-			language.GeneratePluralizers (GetRandomFloat);
+			language.GenerateIndicativeProperties (GetRandomFloat);
 
-			entry += "\nPluralizer properties: " + Language.NounAdjuntPropertiesToString (language.PluralizerAdjuntProperties);
-			entry += "\nPluralizers:";
-			foreach (Language.WordMeaningPair pair in language.Pluralizers) {
+			language.GenerateIndicativeAdjunctionProperties (GetRandomFloat);
+			language.GenerateIndicativeSyllables (GetRandomFloat);
+			language.GenerateAllIndicatives (GetRandomFloat);
 
-				entry += "\n    " + pair.Meaning + " : " + pair.Word.Value;
+			entry += "\nIndicative properties: " + Language.NounAdjunctionPropertiesToString (language.IndicativeAdjunctionProperties);
+			entry += "\nIndicatives:";
+			foreach (Language.Word word in language.Indicatives) {
+
+				entry += "\n    " + word.Meaning + " : " + word.Value;
 			}
 			entry += "\n";
 
@@ -109,9 +111,9 @@ public class LanguageGenerationTest : AutomatedTest {
 			language.GenerateAdposition ("beyond", GetRandomFloat);
 
 			entry += "\nExample adpositions:";
-			foreach (Language.WordMeaningPair pair in language.Adpositions) {
+			foreach (Language.Word word in language.Adpositions) {
 
-				entry += "\n    " + pair.Meaning + " : " + pair.Word.Value;
+				entry += "\n    " + word.Meaning + " : " + word.Value;
 			}
 			entry += "\n";
 
@@ -153,14 +155,14 @@ public class LanguageGenerationTest : AutomatedTest {
 
 			entry += "\nExample nouns:";
 			entry += "\n";
-			foreach (Language.WordMeaningPair pair in language.Nouns) {
+			foreach (Language.Word word in language.Nouns) {
 
-				entry += "\n    " + pair.Meaning + " : " + pair.Word.Value + " (Properties: " + Language.WordPropertiesToString (pair.Word.Properties) + ")";
+				entry += "\n    " + word.Meaning + " : " + word.Value + " (Properties: " + Language.WordPropertiesToString (word.Properties) + ")";
 				entry += "\n";
 
-				Language.Phrase phrase = language.BuildArticulatedNounPhrase (pair.Meaning, false);
+				Language.Phrase phrase = language.BuildArticulatedNounPhrase (word.Meaning, false);
 				entry += "\n        Sample definite noun phrase: " + phrase.Text + " (Meaning: " + phrase.Meaning + ")";
-				phrase = language.BuildArticulatedNounPhrase (pair.Meaning, true);
+				phrase = language.BuildArticulatedNounPhrase (word.Meaning, true);
 				entry += "\n        Sample indefinite noun phrase: " + phrase.Text + " (Meaning: " + phrase.Meaning + ")";
 				entry += "\n";
 			}
