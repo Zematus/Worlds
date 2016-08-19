@@ -48,6 +48,7 @@ public class Language : ISynchronizable {
 		public const string FemenineNoun = "fn";
 		public const string MasculineNoun = "mn";
 		public const string NeutralNoun = "nn";
+		public const string PluralNoun = "pn";
 	}
 
 	public enum WordType
@@ -125,7 +126,9 @@ public class Language : ISynchronizable {
 		Indefinite = 0x02,
 		Femenine = 0x04,
 		Neutral = 0x08,
-		Irregular = 0x10
+		Irregular = 0x10,
+
+		IsNotMasculine = 0x0c
 	}
 
 	public enum PhraseProperties
@@ -166,8 +169,9 @@ public class Language : ISynchronizable {
 
 	public static char[] CodaLetters = new char[] { 'b', 'c', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'm', 'n', 'p', 'q', 'r', 's', 't', 'v', 'w', 'x', 'y', 'z' };
 
-	public static Regex OptionalWordPartRegex = new Regex (@"(?<break> )?\{(?<word>.+?)\}"); 
+	public static Regex OptionalWordPartRegex = new Regex (@"(?<break> )?\{(?<word>.+?)\}");
 	public static Regex WordPartTypeRegex = new Regex (@"\[(?<attr>\w+)\](?:\[w+\])*(?<word>[\w\'\-]*)"); 
+	public static Regex ArticleRegex = new Regex (@"^((?<definite>the)|(?<indefinite>(a|an)))$"); 
 
 	private static Regex NucleousStartRegex = new Regex (@"^[aeiou]w*"); 
 
@@ -706,37 +710,37 @@ public class Language : ISynchronizable {
 
 	public void GenerateIndicativeProperties (GetRandomFloatDelegate getRandomFloat) {
 
-		if (getRandomFloat () < 0.2f) {
+		if (getRandomFloat () < 0.25f) {
 
 			IndicativeProperties |= GeneralIndicativeProperties.HasDefiniteIndicative;
 		}
 
-		if (getRandomFloat () < 0.2f) {
+		if (getRandomFloat () < 0.25f) {
 
 			IndicativeProperties |= GeneralIndicativeProperties.HasIndefiniteIndicative;
 		}
 
-		if (getRandomFloat () < 0.2f) {
+		if (getRandomFloat () < 0.25f) {
 
 			IndicativeProperties |= GeneralIndicativeProperties.HasMasculineIndicative;
 		}
 
-		if (getRandomFloat () < 0.2f) {
+		if (getRandomFloat () < 0.25f) {
 
 			IndicativeProperties |= GeneralIndicativeProperties.HasNeutralIndicative;
 		}
 
-		if (getRandomFloat () < 0.2f) {
+		if (getRandomFloat () < 0.25f) {
 
 			IndicativeProperties |= GeneralIndicativeProperties.HasFemenineIndicative;
 		}
 
-		if (getRandomFloat () < 0.2f) {
+		if (getRandomFloat () < 0.25f) {
 
 			IndicativeProperties |= GeneralIndicativeProperties.HasSingularIndicative;
 		}
 
-		if (getRandomFloat () < 0.2f) {
+		if (getRandomFloat () < 0.25f) {
 
 			IndicativeProperties |= GeneralIndicativeProperties.HasPluralIndicative;
 		}
@@ -1031,70 +1035,70 @@ public class Language : ISynchronizable {
 		return word;
 	}
 
-	public Word GetAppropiateArticle (WordProperties nounProperties, bool useIndefiniteForm) {
+	public Word GetAppropiateArticle (PhraseProperties phraseProperties) {
 
 		Word article = null;
 
-		if (useIndefiniteForm) {
-			if ((nounProperties & WordProperties.Plural) == WordProperties.Plural) {
+		if ((phraseProperties & PhraseProperties.Indefinite) == PhraseProperties.Indefinite) {
+			if ((phraseProperties & PhraseProperties.Plural) == PhraseProperties.Plural) {
 
-				if ((nounProperties & WordProperties.Femenine) == WordProperties.Femenine) {
+				if ((ArticleProperties & GeneralArticleProperties.HasIndefinitePluralArticles) == GeneralArticleProperties.HasIndefinitePluralArticles) {
+					if ((phraseProperties & PhraseProperties.Femenine) == PhraseProperties.Femenine) {
 
-					article = _articles [IndicativeType.IndefinitePluralFemenine];
+						article = _articles [IndicativeType.IndefinitePluralFemenine];
 
-				} else if ((nounProperties & WordProperties.Neutral) == WordProperties.Neutral) {
+					} else if ((phraseProperties & PhraseProperties.Neutral) == PhraseProperties.Neutral) {
 
-					article = _articles [IndicativeType.IndefinitePluralNeutral];
+						article = _articles [IndicativeType.IndefinitePluralNeutral];
 
-				} else {
-
-					article = _articles [IndicativeType.IndefinitePluralMasculine];
-
+					} else {
+						article = _articles [IndicativeType.IndefinitePluralMasculine];
+					}
 				}
 			} else {
+				if ((ArticleProperties & GeneralArticleProperties.HasIndefiniteSingularArticles) == GeneralArticleProperties.HasIndefiniteSingularArticles) {
+					if ((phraseProperties & PhraseProperties.Femenine) == PhraseProperties.Femenine) {
 
-				if ((nounProperties & WordProperties.Femenine) == WordProperties.Femenine) {
+						article = _articles [IndicativeType.IndefiniteSingularFemenine];
 
-					article = _articles [IndicativeType.IndefiniteSingularFemenine];
+					} else if ((phraseProperties & PhraseProperties.Neutral) == PhraseProperties.Neutral) {
 
-				} else if ((nounProperties & WordProperties.Neutral) == WordProperties.Neutral) {
+						article = _articles [IndicativeType.IndefiniteSingularNeutral];
 
-					article = _articles [IndicativeType.IndefiniteSingularNeutral];
-
-				} else {
-
-					article = _articles [IndicativeType.IndefiniteSingularMasculine];
+					} else {
+						article = _articles [IndicativeType.IndefiniteSingularMasculine];
+					}
 				}
 			}
 		} else {
-			if ((nounProperties & WordProperties.Plural) == WordProperties.Plural) {
+			if ((phraseProperties & PhraseProperties.Plural) == PhraseProperties.Plural) {
 
-				if ((nounProperties & WordProperties.Femenine) == WordProperties.Femenine) {
+				if ((ArticleProperties & GeneralArticleProperties.HasDefinitePluralArticles) == GeneralArticleProperties.HasDefinitePluralArticles) {
+					if ((phraseProperties & PhraseProperties.Femenine) == PhraseProperties.Femenine) {
 
-					article = _articles [IndicativeType.DefinitePluralFemenine];
+						article = _articles [IndicativeType.DefinitePluralFemenine];
 
-				} else if ((nounProperties & WordProperties.Neutral) == WordProperties.Neutral) {
+					} else if ((phraseProperties & PhraseProperties.Neutral) == PhraseProperties.Neutral) {
 
-					article = _articles [IndicativeType.DefinitePluralNeutral];
+						article = _articles [IndicativeType.DefinitePluralNeutral];
 
-				} else {
-
-					article = _articles [IndicativeType.DefinitePluralMasculine];
-
+					} else {
+						article = _articles [IndicativeType.DefinitePluralMasculine];
+					}
 				}
 			} else {
+				if ((ArticleProperties & GeneralArticleProperties.HasDefiniteSingularArticles) == GeneralArticleProperties.HasDefiniteSingularArticles) {
+					if ((phraseProperties & PhraseProperties.Femenine) == PhraseProperties.Femenine) {
 
-				if ((nounProperties & WordProperties.Femenine) == WordProperties.Femenine) {
+						article = _articles [IndicativeType.DefiniteSingularFemenine];
 
-					article = _articles [IndicativeType.DefiniteSingularFemenine];
+					} else if ((phraseProperties & PhraseProperties.Neutral) == PhraseProperties.Neutral) {
 
-				} else if ((nounProperties & WordProperties.Neutral) == WordProperties.Neutral) {
+						article = _articles [IndicativeType.DefiniteSingularNeutral];
 
-					article = _articles [IndicativeType.DefiniteSingularNeutral];
-
-				} else {
-
-					article = _articles [IndicativeType.DefiniteSingularMasculine];
+					} else {
+						article = _articles [IndicativeType.DefiniteSingularMasculine];
+					}
 				}
 			}
 		}
@@ -1102,113 +1106,113 @@ public class Language : ISynchronizable {
 		return article;
 	}
 
-	public Phrase BuildArticulatedNounPhrase (string noun, bool useIndefiniteForm) {
-
-		Phrase phrase = new Phrase ();
-	
-		Word word = null;
-
-		if (!_nouns.TryGetValue (noun, out word)) {
-
-			return phrase;
-		}
-
-		bool usePluralForm = ((word.Properties & WordProperties.Plural) == WordProperties.Plural);
-
-		string meaning;
-
-		if (useIndefiniteForm) {
-
-			if (usePluralForm) {
-				meaning = noun;
-
-			} else {
-
-				if (NucleousStartRegex.IsMatch (noun)) {
-					meaning = "an " + noun;
-				} else {
-					meaning = "a " + noun;
-				}
-			}
-
-		} else {
-			
-			meaning = "the " + noun;
-		}
-
-		string text = word.Value;
-
-		bool hasArticles = false;
-
-		if (usePluralForm) {
-			if (useIndefiniteForm) {
-				if ((ArticleProperties & GeneralArticleProperties.HasIndefinitePluralArticles) == GeneralArticleProperties.HasIndefinitePluralArticles) {
-
-					hasArticles = true;
-				}
-
-			} else {
-				if ((ArticleProperties & GeneralArticleProperties.HasDefinitePluralArticles) == GeneralArticleProperties.HasDefinitePluralArticles) {
-
-					hasArticles = true;
-				}
-			}
-		} else {
-			if (useIndefiniteForm) {
-				if ((ArticleProperties & GeneralArticleProperties.HasIndefiniteSingularArticles) == GeneralArticleProperties.HasIndefiniteSingularArticles) {
-
-					hasArticles = true;
-				}
-
-			} else {
-				if ((ArticleProperties & GeneralArticleProperties.HasDefiniteSingularArticles) == GeneralArticleProperties.HasDefiniteSingularArticles) {
-
-					hasArticles = true;
-				}
-			}
-		}
-
-		if (hasArticles) {
-			Word article = GetAppropiateArticle (word.Properties, useIndefiniteForm);
-			string articleString = article.Value;
-		
-			if ((ArticleAdjunctionProperties & NounAdjunctionProperties.GoesAfterNoun) == NounAdjunctionProperties.GoesAfterNoun) {
-		
-				if ((ArticleAdjunctionProperties & NounAdjunctionProperties.IsAffixed) == NounAdjunctionProperties.IsAffixed) {
-
-					if ((ArticleAdjunctionProperties & NounAdjunctionProperties.IsLinkedWithDash) == NounAdjunctionProperties.IsLinkedWithDash) {
-
-						text += "-" + articleString;
-					} else {
-					
-						text += articleString;
-					}
-				} else {
-
-					text += " " + articleString;
-				}
-			} else {
-				if ((ArticleAdjunctionProperties & NounAdjunctionProperties.IsAffixed) == NounAdjunctionProperties.IsAffixed) {
-
-					if ((ArticleAdjunctionProperties & NounAdjunctionProperties.IsLinkedWithDash) == NounAdjunctionProperties.IsLinkedWithDash) {
-
-						text = articleString + "-" + text;
-					} else {
-
-						text = articleString + text;
-					}
-				} else {
-
-					text = articleString + " " + text;
-				}
-			}
-		}
-
-		phrase.Meaning = meaning;
-		phrase.Text = text;
-
-		return phrase;
-	}
+//	public Phrase BuildArticulatedNounPhrase (string noun, bool useIndefiniteForm) {
+//
+//		Phrase phrase = new Phrase ();
+//	
+//		Word word = null;
+//
+//		if (!_nouns.TryGetValue (noun, out word)) {
+//
+//			return phrase;
+//		}
+//
+//		bool usePluralForm = ((word.Properties & WordProperties.Plural) == WordProperties.Plural);
+//
+//		string meaning;
+//
+//		if (useIndefiniteForm) {
+//
+//			if (usePluralForm) {
+//				meaning = noun;
+//
+//			} else {
+//
+//				if (NucleousStartRegex.IsMatch (noun)) {
+//					meaning = "an " + noun;
+//				} else {
+//					meaning = "a " + noun;
+//				}
+//			}
+//
+//		} else {
+//			
+//			meaning = "the " + noun;
+//		}
+//
+//		string text = word.Value;
+//
+//		bool hasArticles = false;
+//
+//		if (usePluralForm) {
+//			if (useIndefiniteForm) {
+//				if ((ArticleProperties & GeneralArticleProperties.HasIndefinitePluralArticles) == GeneralArticleProperties.HasIndefinitePluralArticles) {
+//
+//					hasArticles = true;
+//				}
+//
+//			} else {
+//				if ((ArticleProperties & GeneralArticleProperties.HasDefinitePluralArticles) == GeneralArticleProperties.HasDefinitePluralArticles) {
+//
+//					hasArticles = true;
+//				}
+//			}
+//		} else {
+//			if (useIndefiniteForm) {
+//				if ((ArticleProperties & GeneralArticleProperties.HasIndefiniteSingularArticles) == GeneralArticleProperties.HasIndefiniteSingularArticles) {
+//
+//					hasArticles = true;
+//				}
+//
+//			} else {
+//				if ((ArticleProperties & GeneralArticleProperties.HasDefiniteSingularArticles) == GeneralArticleProperties.HasDefiniteSingularArticles) {
+//
+//					hasArticles = true;
+//				}
+//			}
+//		}
+//
+//		if (hasArticles) {
+//			Word article = GetAppropiateArticle (word.Properties, useIndefiniteForm);
+//			string articleString = article.Value;
+//		
+//			if ((ArticleAdjunctionProperties & NounAdjunctionProperties.GoesAfterNoun) == NounAdjunctionProperties.GoesAfterNoun) {
+//		
+//				if ((ArticleAdjunctionProperties & NounAdjunctionProperties.IsAffixed) == NounAdjunctionProperties.IsAffixed) {
+//
+//					if ((ArticleAdjunctionProperties & NounAdjunctionProperties.IsLinkedWithDash) == NounAdjunctionProperties.IsLinkedWithDash) {
+//
+//						text += "-" + articleString;
+//					} else {
+//					
+//						text += articleString;
+//					}
+//				} else {
+//
+//					text += " " + articleString;
+//				}
+//			} else {
+//				if ((ArticleAdjunctionProperties & NounAdjunctionProperties.IsAffixed) == NounAdjunctionProperties.IsAffixed) {
+//
+//					if ((ArticleAdjunctionProperties & NounAdjunctionProperties.IsLinkedWithDash) == NounAdjunctionProperties.IsLinkedWithDash) {
+//
+//						text = articleString + "-" + text;
+//					} else {
+//
+//						text = articleString + text;
+//					}
+//				} else {
+//
+//					text = articleString + " " + text;
+//				}
+//			}
+//		}
+//
+//		phrase.Meaning = meaning;
+//		phrase.Text = text;
+//
+//		return phrase;
+//	}
 
 	public Phrase BuildAdpositionalPhrase (string relation, Phrase complementPhrase) {
 
@@ -1272,20 +1276,167 @@ public class Language : ISynchronizable {
 		return phrase;
 	}
 
-	public Phrase GenerateNounTranslation (string word, GetRandomFloatDelegate getRandomFloat) {
+	public Word GetAppropiateIndicative (PhraseProperties phraseProperties) {
 
-		string[] wordParts = word.Split (new char[] { ':' });
+		Word indicative = null;
 
-		List<Word> translatedParts = new List<Word> (wordParts.Length);
+		if ((phraseProperties & PhraseProperties.Indefinite) == PhraseProperties.Indefinite) {
+			if ((phraseProperties & PhraseProperties.Plural) == PhraseProperties.Plural) {
+
+				if ((phraseProperties & PhraseProperties.Femenine) == PhraseProperties.Femenine) {
+
+					indicative = _indicatives [IndicativeType.IndefinitePluralFemenine];
+
+				} else if ((phraseProperties & PhraseProperties.Neutral) == PhraseProperties.Neutral) {
+
+					indicative = _indicatives [IndicativeType.IndefinitePluralNeutral];
+
+				} else {
+
+					indicative = _indicatives [IndicativeType.IndefinitePluralMasculine];
+
+				}
+			} else {
+
+				if ((phraseProperties & PhraseProperties.Femenine) == PhraseProperties.Femenine) {
+
+					indicative = _indicatives [IndicativeType.IndefiniteSingularFemenine];
+
+				} else if ((phraseProperties & PhraseProperties.Neutral) == PhraseProperties.Neutral) {
+
+					indicative = _indicatives [IndicativeType.IndefiniteSingularNeutral];
+
+				} else {
+
+					indicative = _indicatives [IndicativeType.IndefiniteSingularMasculine];
+				}
+			}
+		} else {
+			if ((phraseProperties & PhraseProperties.Plural) == PhraseProperties.Plural) {
+
+				if ((phraseProperties & PhraseProperties.Femenine) == PhraseProperties.Femenine) {
+
+					indicative = _indicatives [IndicativeType.DefinitePluralFemenine];
+
+				} else if ((phraseProperties & PhraseProperties.Neutral) == PhraseProperties.Neutral) {
+
+					indicative = _indicatives [IndicativeType.DefinitePluralNeutral];
+
+				} else {
+
+					indicative = _indicatives [IndicativeType.DefinitePluralMasculine];
+
+				}
+			} else {
+
+				if ((phraseProperties & PhraseProperties.Femenine) == PhraseProperties.Femenine) {
+
+					indicative = _indicatives [IndicativeType.DefiniteSingularFemenine];
+
+				} else if ((phraseProperties & PhraseProperties.Neutral) == PhraseProperties.Neutral) {
+
+					indicative = _indicatives [IndicativeType.DefiniteSingularNeutral];
+
+				} else {
+
+					indicative = _indicatives [IndicativeType.DefiniteSingularMasculine];
+				}
+			}
+		}
+
+		return indicative;
+	}
+
+	public static string AddAdjunctionToPhrase (string phrase, string adjunction, NounAdjunctionProperties properties) {
+
+		if ((properties & NounAdjunctionProperties.GoesAfterNoun) == NounAdjunctionProperties.GoesAfterNoun) {
+
+			if ((properties & NounAdjunctionProperties.IsAffixed) == NounAdjunctionProperties.IsAffixed) {
+
+				phrase += adjunction;
+
+			} else if ((properties & NounAdjunctionProperties.IsLinkedWithDash) == NounAdjunctionProperties.IsLinkedWithDash) {
+
+				phrase += "-" + adjunction;
+
+			} else {
+
+				phrase += " " + adjunction;
+			}
+		} else {
+			if ((properties & NounAdjunctionProperties.IsAffixed) == NounAdjunctionProperties.IsAffixed) {
+
+				phrase = adjunction + phrase;
+
+			} else if ((properties & NounAdjunctionProperties.IsLinkedWithDash) == NounAdjunctionProperties.IsLinkedWithDash) {
+
+				phrase = adjunction + "-" + phrase;
+
+			} else {
+
+				phrase = adjunction + " " + phrase;
+			}
+		}
+
+		return phrase;
+	}
+
+	public NounPhrase GenerateNounPhraseTranslation (string unstranslatedNounPhrase, GetRandomFloatDelegate getRandomFloat) {
+
+		bool absentArticle = true;
+		PhraseProperties phraseProperties = PhraseProperties.None;
+
+		NounPhrase nounPhrase = null;
+
+		string[] phraseParts = unstranslatedNounPhrase.Split (new char[] { ' ' });
+
+		foreach (string phrasePart in phraseParts) {
+
+			Match articleMatch = ArticleRegex.Match (phrasePart);
+		
+			if (articleMatch.Success) {
+				absentArticle = false;
+
+				if (articleMatch.Groups ["indefinite"].Success) {
+					phraseProperties |= PhraseProperties.Indefinite;
+				}
+
+				continue;
+			}
+
+			if (absentArticle) {
+				phraseProperties |= PhraseProperties.Indefinite;
+			}
+
+			nounPhrase = GenerateNounTranslation (phrasePart, phraseProperties, getRandomFloat);
+			phraseProperties = nounPhrase.Properties;
+		}
+
+		Word article = GetAppropiateArticle (phraseProperties);
+
+		if (article != null) {
+			nounPhrase.Text = AddAdjunctionToPhrase (nounPhrase.Text, article.Value, ArticleAdjunctionProperties);
+		}
+
+		nounPhrase.Meaning = ClearConstructCharacters (unstranslatedNounPhrase);
+
+		return nounPhrase;
+	}
+
+	public NounPhrase GenerateNounTranslation (string unstranslatedNoun, PhraseProperties properties, GetRandomFloatDelegate getRandomFloat) {
+
+		string[] nounParts = unstranslatedNoun.Split (new char[] { ':' });
+
+		List<Word> translatedNounsWords = new List<Word> (nounParts.Length);
 
 		bool isPlural = false;
-		bool hasRandomGender;
-		bool isFemenineNoun;
-		bool isNeutralNoun;
+		bool hasRandomGender = true;
+		bool isFemenineNoun = false;
+		bool isNeutralNoun = false;
 
-		foreach (string wordPart in wordParts) {
+		foreach (string nounPart in nounParts) {
 
-			WordPart parsedPart = ParseWordPart (wordPart);
+			WordPart parsedPart = ParseWordPart (nounPart);
 
 			if (parsedPart.Attributes.Contains (WordPartAttributeId.NounPluralIndicative)) {
 			
@@ -1307,11 +1458,49 @@ public class Language : ISynchronizable {
 					isNeutralNoun = true;
 				}
 
-				translatedParts.Add (GenerateSimpleNoun (parsedPart.Value, getRandomFloat, false, hasRandomGender, isFemenineNoun, isNeutralNoun));
+				bool irregularPlural = false;
+				if (parsedPart.Attributes.Contains (WordPartAttributeId.PluralNoun)) {
+					irregularPlural = true;
+				}
+
+				Word nounWord = GenerateSimpleNoun (parsedPart.Value, getRandomFloat, irregularPlural, hasRandomGender, isFemenineNoun, isNeutralNoun);
+
+				isPlural = ((nounWord.Properties & WordProperties.Plural) == WordProperties.Plural);
+				isFemenineNoun = ((nounWord.Properties & WordProperties.Femenine) == WordProperties.Femenine);
+				isNeutralNoun = ((nounWord.Properties & WordProperties.Neutral) == WordProperties.Neutral);
+				hasRandomGender = false;
+
+				translatedNounsWords.Add (nounWord);
 			}
 		}
 
-		return null;
+		if (isPlural)
+			properties |= PhraseProperties.Plural;
+
+		if (isFemenineNoun)
+			properties |= PhraseProperties.Femenine;
+		else if (isNeutralNoun)
+			properties |= PhraseProperties.Neutral;
+
+		string text = string.Empty;
+
+		foreach (Word nounWord in translatedNounsWords) {
+		
+			text += nounWord.Value;
+		}
+
+		Word indicative = GetAppropiateIndicative (properties);
+
+		if (!string.IsNullOrEmpty (indicative.Value)) {
+			text = AddAdjunctionToPhrase (text, indicative.Value, IndicativeAdjunctionProperties);
+		}
+
+		NounPhrase phrase = new NounPhrase ();
+		phrase.Text = text;
+		phrase.Meaning = ClearConstructCharacters (unstranslatedNoun);
+		phrase.Properties = properties;
+
+		return phrase;
 	}
 
 	public static WordPart ParseWordPart (string wordPart) {
@@ -1339,18 +1528,18 @@ public class Language : ISynchronizable {
 		return sentence.First().ToString().ToUpper() + sentence.Substring(1);
 	}
 
-	public static string CleanConstructCharacters (string phrase) {
+	public static string ClearConstructCharacters (string sentence) {
 
 		while (true) {
-			Match match = WordPartTypeRegex.Match (phrase);
+			Match match = WordPartTypeRegex.Match (sentence);
 
 			if (!match.Success)
 				break;
 
-			phrase = phrase.Replace (match.Value, match.Groups["word"].Value);
+			sentence = sentence.Replace (match.Value, match.Groups["word"].Value);
 		}
 
-		return phrase.Replace (":", string.Empty);
+		return sentence.Replace (":", string.Empty);
 	}
 
 	// For now it will only make the first letter in the phrase uppercase

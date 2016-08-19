@@ -412,7 +412,7 @@ public abstract class Region : ISynchronizable {
 		attributes.RemoveAt (index);
 
 		string primaryTitle = primaryAttribute.GetRandomVariation (coreGroup.GetNextLocalRandomInt);
-		primaryTitle = " " + Language.MakeFirstLetterUpper (Language.CleanConstructCharacters(primaryTitle));
+		primaryTitle = " " + Language.MakeFirstLetterUpper (Language.ClearConstructCharacters(primaryTitle));
 
 		string secondaryTitle = string.Empty;
 
@@ -425,7 +425,7 @@ public abstract class Region : ISynchronizable {
 			attributes.RemoveAt (index);
 
 			secondaryTitle = secondaryAttribute.GetRandomVariation (coreGroup.GetNextLocalRandomInt);
-			secondaryTitle = " " + Language.MakeFirstLetterUpper (Language.CleanConstructCharacters(secondaryTitle));
+			secondaryTitle = " " + Language.MakeFirstLetterUpper (Language.ClearConstructCharacters(secondaryTitle));
 		}
 
 		Name = "The" + secondaryTitle + primaryTitle;

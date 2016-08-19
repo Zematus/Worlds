@@ -119,81 +119,73 @@ public class LanguageGenerationTest : AutomatedTest {
 
 			language.GenerateSimpleNounSyllables (GetRandomFloat);
 
-//			language.GenerateSimpleNoun ("tree", GetRandomFloat, false, true);
-//			language.GenerateSimpleNoun ("forest", GetRandomFloat, false, true);
-//			language.GenerateSimpleNoun ("river", GetRandomFloat, false, true);
-//			language.GenerateSimpleNoun ("town", GetRandomFloat, false, true);
-//			language.GenerateSimpleNoun ("stones", GetRandomFloat, true, true);
-//			language.GenerateSimpleNoun ("mountain", GetRandomFloat, false, true);
-//			language.GenerateSimpleNoun ("desert", GetRandomFloat, false, true);
-//			language.GenerateSimpleNoun ("clouds", GetRandomFloat, true, true);
-//			// language.GenerateSimpleNoun ("water", GetRandomFloat, false, true); --- 'water' is a very special case in english (uncountable noun)
-//			language.GenerateSimpleNoun ("man", GetRandomFloat, false, false, false);
-//			language.GenerateSimpleNoun ("woman", GetRandomFloat, false, false, true);
-//			language.GenerateSimpleNoun ("person", GetRandomFloat, false, true);
-//			language.GenerateSimpleNoun ("boys", GetRandomFloat, true, false, false);
-//			language.GenerateSimpleNoun ("girls", GetRandomFloat, true, false, true);
-//			language.GenerateSimpleNoun ("children", GetRandomFloat, true, true);
-
 			List<Language.Phrase> phrases = new List<Language.Phrase> ();
 
-			phrases.Add (language.GenerateNounTranslation ("tree", GetRandomFloat));
-			phrases.Add (language.GenerateNounTranslation ("forest", GetRandomFloat));
-			phrases.Add (language.GenerateNounTranslation ("river", GetRandomFloat));
-			phrases.Add (language.GenerateNounTranslation ("town", GetRandomFloat));
-			phrases.Add (language.GenerateNounTranslation ("stone:[npl]s", GetRandomFloat));
-			phrases.Add (language.GenerateNounTranslation ("mountain", GetRandomFloat));
-			phrases.Add (language.GenerateNounTranslation ("desert", GetRandomFloat));
-			phrases.Add (language.GenerateNounTranslation ("cloud:[npl]s", GetRandomFloat));
-			// phrases.Add (language.GenerateNounTranslation ("water", GetRandomFloat)); --- 'water' is a very special case in english (uncountable noun)
-			phrases.Add (language.GenerateNounTranslation ("[mn]man", GetRandomFloat));
-			phrases.Add (language.GenerateNounTranslation ("[fn]woman", GetRandomFloat));
-			phrases.Add (language.GenerateNounTranslation ("person", GetRandomFloat));
-			phrases.Add (language.GenerateNounTranslation ("[mn]boy:[npl]s", GetRandomFloat));
-			phrases.Add (language.GenerateNounTranslation ("[fn]girl:[npl]s", GetRandomFloat));
-			phrases.Add (language.GenerateNounTranslation ("children", GetRandomFloat));
+			phrases.Add (language.GenerateNounPhraseTranslation ("the tree", GetRandomFloat));
+			phrases.Add (language.GenerateNounPhraseTranslation ("a forest", GetRandomFloat));
+			phrases.Add (language.GenerateNounPhraseTranslation ("the river", GetRandomFloat));
+			phrases.Add (language.GenerateNounPhraseTranslation ("a town", GetRandomFloat));
+			phrases.Add (language.GenerateNounPhraseTranslation ("the stone:[npl]s", GetRandomFloat));
+			phrases.Add (language.GenerateNounPhraseTranslation ("a mountain", GetRandomFloat));
+			phrases.Add (language.GenerateNounPhraseTranslation ("the desert", GetRandomFloat));
+			phrases.Add (language.GenerateNounPhraseTranslation ("cloud:[npl]s", GetRandomFloat));
+			// phrases.Add (language.GenerateNounPhraseTranslation ("the water", GetRandomFloat)); --- 'water' is a very special case in english (uncountable noun)
+			phrases.Add (language.GenerateNounPhraseTranslation ("the [mn]man", GetRandomFloat));
+			phrases.Add (language.GenerateNounPhraseTranslation ("a [fn]woman", GetRandomFloat));
+			phrases.Add (language.GenerateNounPhraseTranslation ("the person", GetRandomFloat));
+			phrases.Add (language.GenerateNounPhraseTranslation ("a [mn]boy:[npl]s", GetRandomFloat));
+			phrases.Add (language.GenerateNounPhraseTranslation ("the [fn]girl:[npl]s", GetRandomFloat));
+			phrases.Add (language.GenerateNounPhraseTranslation ("children", GetRandomFloat));
 
 			entry += "\nExample nouns:";
 			entry += "\n";
 			foreach (Language.Word word in language.Nouns) {
 
-				entry += "\n    " + word.Meaning + " : " + word.Value + " (Properties: " + Language.WordPropertiesToString (word.Properties) + ")";
-				entry += "\n";
-
-				Language.Phrase phrase = language.BuildArticulatedNounPhrase (word.Meaning, false);
-				entry += "\n        Sample definite noun phrase: " + phrase.Text + " (Meaning: " + phrase.Meaning + ")";
-				phrase = language.BuildArticulatedNounPhrase (word.Meaning, true);
-				entry += "\n        Sample indefinite noun phrase: " + phrase.Text + " (Meaning: " + phrase.Meaning + ")";
+				entry += "\n\t" + word.Meaning + " : " + word.Value + " (Properties: " + Language.WordPropertiesToString (word.Properties) + ")";
 				entry += "\n";
 			}
 			entry += "\n";
 
-			entry += "\nExample noun phrases:";
+			entry += "\nExample nouns phrases:";
+			entry += "\n";
+			foreach (Language.NounPhrase phrase in phrases) {
+
+				if ((phrase.Properties & Language.PhraseProperties.Indefinite) == Language.PhraseProperties.Indefinite) {
+					entry += "\n\tSample indefinite noun phrase: " + phrase.Text + " (Meaning: " + phrase.Meaning + ")";
+				} else {
+					entry += "\n\tSample definite noun phrase: " + phrase.Text + " (Meaning: " + phrase.Meaning + ")";
+				}
+
+				entry += "\n";
+			}
 			entry += "\n";
 
-			Language.Phrase prePhrase = language.BuildArticulatedNounPhrase ("[fn]woman", false);
-			Language.Phrase complementPhrase = language.BuildArticulatedNounPhrase ("town", false);
+			entry += "\nExample noun phrases with adpositions:";
+			entry += "\n";
+
+			Language.Phrase prePhrase = language.GenerateNounPhraseTranslation ("the [fn]woman", GetRandomFloat);
+			Language.Phrase complementPhrase = language.GenerateNounPhraseTranslation ("a town", GetRandomFloat);
 			Language.Phrase postPhrase = language.BuildAdpositionalPhrase ("from", complementPhrase);
 			Language.Phrase mergedPhrase = language.MergePhrases (prePhrase, postPhrase);
 			language.LocalizePhrase (mergedPhrase);
 
-			entry += "\n    " + mergedPhrase.Text + " (" + mergedPhrase.Meaning + ")";
+			entry += "\n\t" + mergedPhrase.Text + " (" + mergedPhrase.Meaning + ")";
 
-			prePhrase = language.BuildArticulatedNounPhrase ("children", false);
-			complementPhrase = language.BuildArticulatedNounPhrase ("cloud:[npl]s", false);
+			prePhrase = language.GenerateNounPhraseTranslation ("the children", GetRandomFloat);
+			complementPhrase = language.GenerateNounPhraseTranslation ("cloud:[npl]s", GetRandomFloat);
 			postPhrase = language.BuildAdpositionalPhrase ("above", complementPhrase);
 			mergedPhrase = language.MergePhrases (prePhrase, postPhrase);
 			language.LocalizePhrase (mergedPhrase);
 
-			entry += "\n    " + mergedPhrase.Text + " (" + mergedPhrase.Meaning + ")";
+			entry += "\n\t" + mergedPhrase.Text + " (" + mergedPhrase.Meaning + ")";
 
-			prePhrase = language.BuildArticulatedNounPhrase ("tree", true);
-			complementPhrase = language.BuildArticulatedNounPhrase ("forest", false);
+			prePhrase = language.GenerateNounPhraseTranslation ("a tree", GetRandomFloat);
+			complementPhrase = language.GenerateNounPhraseTranslation ("the forest", GetRandomFloat);
 			postPhrase = language.BuildAdpositionalPhrase ("within", complementPhrase);
 			mergedPhrase = language.MergePhrases (prePhrase, postPhrase);
 			language.LocalizePhrase (mergedPhrase);
 
-			entry += "\n    " + mergedPhrase.Text + " (" + mergedPhrase.Meaning + ")";
+			entry += "\n\t" + mergedPhrase.Text + " (" + mergedPhrase.Meaning + ")";
 			entry += "\n";
 
 			Debug.Log (entry);
