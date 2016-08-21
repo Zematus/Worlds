@@ -82,9 +82,9 @@ public abstract class Polity : ISynchronizable {
 		CoreGroup = coreGroup;
 		CoreGroupId = coreGroup.Id;
 
-		coreGroup.SetPolityInfluenceValue (this, coreGroupInfluenceValue);
-
 		Culture = new PolityCulture (this);
+
+		coreGroup.SetPolityInfluenceValue (this, coreGroupInfluenceValue);
 	}
 
 	public void Destroy () {

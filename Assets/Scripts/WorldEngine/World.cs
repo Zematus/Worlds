@@ -198,10 +198,10 @@ public class World : ISynchronizable {
 
 	private List<MigratingGroup> _migratingGroups = new List<MigratingGroup> ();
 
+	private Dictionary<long, Polity> _polities = new Dictionary<long, Polity> ();
+
 	private HashSet<Polity> _politiesToUpdate = new HashSet<Polity>();
 	private HashSet<Polity> _politiesToRemove = new HashSet<Polity>();
-
-	private Dictionary<long, Polity> _polities = new Dictionary<long, Polity> ();
 
 	private Dictionary<long, Region> _regions = new Dictionary<long, Region> ();
 

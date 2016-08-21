@@ -45,14 +45,7 @@ public class Culture : ISynchronizable {
 	public Culture () {
 	}
 
-	public Culture (World world) {
-
-		Language = null;
-
-		World = world;
-	}
-
-	public Culture (World world, Language language) {
+	public Culture (World world, Language language = null) {
 
 		Language = language;
 
@@ -277,13 +270,31 @@ public class PolityCulture : Culture {
 	
 		Language = new Language (World.GenerateLanguageId ());
 
+		// Generate Articles
+
 		Language.GenerateArticleProperties (GetNextRandomFloat);
 
 		Language.GenerateArticleAdjunctionProperties (GetNextRandomFloat);
 		Language.GenerateArticleSyllables (GetNextRandomFloat);
 		Language.GenerateAllArticles (GetNextRandomFloat);
 
-		Language.GenerateAdpositionProperties (GetNextRandomFloat);
+		// Generate Indicatives
+
+		Language.GenerateIndicativeProperties (GetNextRandomFloat);
+
+		Language.GenerateIndicativeAdjunctionProperties (GetNextRandomFloat);
+		Language.GenerateIndicativeSyllables (GetNextRandomFloat);
+		Language.GenerateAllIndicatives (GetNextRandomFloat);
+
+		// Generate Noun, Adjective and Adposition Properties and Syllables
+
+		Language.GenerateNounAdjunctionProperties (GetNextRandomFloat);
+		Language.GenerateNounSyllables (GetNextRandomFloat);
+
+		Language.GenerateAdjectiveAdjunctionProperties (GetNextRandomFloat);
+		Language.GenerateAdjectiveSyllables (GetNextRandomFloat);
+
+		Language.GenerateAdpositionAdjunctionProperties (GetNextRandomFloat);
 		Language.GenerateAdpositionSyllables (GetNextRandomFloat);
 	}
 
@@ -685,6 +696,11 @@ public class CellCulture : Culture {
 				cellDiscovery = CellCulturalDiscovery.CreateCellInstance (polityDiscovery);
 				AddDiscoveryToFind (cellDiscovery);
 			}
+		}
+
+		if ((Language == null) || (polityInfluence.Value >= Group.HighestPolityInfluence.Value)) {
+
+			Language = polityCulture.Language;
 		}
 	}
 
