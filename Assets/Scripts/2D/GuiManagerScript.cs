@@ -288,25 +288,29 @@ public class GuiManagerScript : MonoBehaviour {
 
 		} else if (updateTextures) {
 
-			if ((_planetOverlay == PlanetOverlay.PopDensity) ||
-				(_planetOverlay == PlanetOverlay.FarmlandDistribution) ||
-				(_planetOverlay == PlanetOverlay.PopCulturalActivity) ||
-				(_planetOverlay == PlanetOverlay.PopCulturalSkill) ||
-				(_planetOverlay == PlanetOverlay.PopCulturalKnowledge) ||
-				(_planetOverlay == PlanetOverlay.PopCulturalDiscovery) ||
-				(_planetOverlay == PlanetOverlay.PolityTerritory) ||
-				(_planetOverlay == PlanetOverlay.PolityInfluence) ||
-				(_planetOverlay == PlanetOverlay.PolityCulturalActivity) ||
-				(_planetOverlay == PlanetOverlay.PolityCulturalKnowledge) ||
-				(_planetOverlay == PlanetOverlay.PolityCulturalSkill) ||
-				(_planetOverlay == PlanetOverlay.PolityCulturalDiscovery) ||
-				(_planetOverlay == PlanetOverlay.PopChange) ||
-				(_planetOverlay == PlanetOverlay.UpdateSpan) ||
-				(_planetOverlay == PlanetOverlay.Region)) {
-				Manager.UpdateTextures ();
+//			if ((_planetOverlay == PlanetOverlay.PopDensity) ||
+//				(_planetOverlay == PlanetOverlay.FarmlandDistribution) ||
+//				(_planetOverlay == PlanetOverlay.PopCulturalActivity) ||
+//				(_planetOverlay == PlanetOverlay.PopCulturalSkill) ||
+//				(_planetOverlay == PlanetOverlay.PopCulturalKnowledge) ||
+//				(_planetOverlay == PlanetOverlay.PopCulturalDiscovery) ||
+//				(_planetOverlay == PlanetOverlay.PolityTerritory) ||
+//				(_planetOverlay == PlanetOverlay.PolityInfluence) ||
+//				(_planetOverlay == PlanetOverlay.PolityCulturalActivity) ||
+//				(_planetOverlay == PlanetOverlay.PolityCulturalKnowledge) ||
+//				(_planetOverlay == PlanetOverlay.PolityCulturalSkill) ||
+//				(_planetOverlay == PlanetOverlay.PolityCulturalDiscovery) ||
+//				(_planetOverlay == PlanetOverlay.PopChange) ||
+//				(_planetOverlay == PlanetOverlay.UpdateSpan) ||
+//				(_planetOverlay == PlanetOverlay.Region)) {
+//				Manager.UpdateTextures ();
+//
+//				_mapUpdateCount++;
+//			}
 
-				_mapUpdateCount++;
-			}
+			Manager.UpdateTextures ();
+
+			_mapUpdateCount++;
 		}
 
 		// TODO: Remove next line
@@ -736,6 +740,9 @@ public class GuiManagerScript : MonoBehaviour {
 		case PlanetOverlay.PolityTerritory: 
 			planetOverlayStr = "_polity_territories"; 
 			break;
+		case PlanetOverlay.Language: 
+			planetOverlayStr = "_languages"; 
+			break;
 		case PlanetOverlay.PolityInfluence: 
 			planetOverlayStr = "_polity_influences"; 
 			break;
@@ -977,6 +984,8 @@ public class GuiManagerScript : MonoBehaviour {
 			ChangePlanetOverlay (PlanetOverlay.Arability);
 		} else if (OverlayDialogPanelScript.RegionToggle.isOn) {
 			ChangePlanetOverlay (PlanetOverlay.Region);
+		} else if (OverlayDialogPanelScript.LanguageToggle.isOn) {
+			ChangePlanetOverlay (PlanetOverlay.Language);
 		} else if (OverlayDialogPanelScript.PopChangeToggle.isOn) {
 			ChangePlanetOverlay (PlanetOverlay.PopChange);
 		} else if (OverlayDialogPanelScript.UpdateSpanToggle.isOn) {
@@ -1025,6 +1034,7 @@ public class GuiManagerScript : MonoBehaviour {
 		OverlayDialogPanelScript.RainfallToggle.isOn = false;
 		OverlayDialogPanelScript.ArabilityToggle.isOn = false;
 		OverlayDialogPanelScript.RegionToggle.isOn = false;
+		OverlayDialogPanelScript.LanguageToggle.isOn = false;
 
 		OverlayDialogPanelScript.PopChangeToggle.isOn = false;
 		OverlayDialogPanelScript.UpdateSpanToggle.isOn = false;
@@ -1120,6 +1130,11 @@ public class GuiManagerScript : MonoBehaviour {
 
 		case PlanetOverlay.Region:
 			OverlayDialogPanelScript.RegionToggle.isOn = true;
+			OverlayDialogPanelScript.MiscDataToggle.isOn = true;
+			break;
+
+		case PlanetOverlay.Language:
+			OverlayDialogPanelScript.LanguageToggle.isOn = true;
 			OverlayDialogPanelScript.MiscDataToggle.isOn = true;
 			break;
 
@@ -1698,6 +1713,40 @@ public class GuiManagerScript : MonoBehaviour {
 		InfoPanelText.text += "\nModified Foraging Capacity: " + modifiedForagingCapacity.ToString ("P");
 	}
 
+	public void AddCellDataToInfoPanel_Language (TerrainCell cell) {
+
+		InfoPanelText.text += "\n";
+		InfoPanelText.text += "\n -- Group Language Data -- ";
+		InfoPanelText.text += "\n";
+
+		if (cell.Group == null) {
+
+			InfoPanelText.text += "\n\tNo population at location";
+
+			return;
+		}
+
+		int population = cell.Group.Population;
+
+		if (population <= 0) {
+
+			InfoPanelText.text += "\n\tNo population at location";
+
+			return;
+		}
+
+		Language groupLanguage = cell.Group.Culture.Language;
+
+		if (groupLanguage == null) {
+
+			InfoPanelText.text += "\n\tNo major language spoken at location";
+
+			return;
+		}
+
+		InfoPanelText.text += "\n\tPredominant language at location: " + groupLanguage.Id;
+	}
+
 	public void AddCellDataToInfoPanel_UpdateSpan (TerrainCell cell) {
 
 		InfoPanelText.text += "\n";
@@ -1792,18 +1841,18 @@ public class GuiManagerScript : MonoBehaviour {
 			return;
 		}
 
-		PolityInfluence polityInfluence = cell.Group.HighestPolityInfluence;
+		Territory territory = cell.EncompassingTerritory;
 
 
-		if (polityInfluence == null) {
-			InfoPanelText.text += "\n\tGroup not part of a polity";
+		if (territory == null) {
+			InfoPanelText.text += "\n\tGroup not part of a polity's territory";
 			return;
 		}
 
-		InfoPanelText.text += "\n\tPart of polity " + polityInfluence.PolityId;
-		InfoPanelText.text += "\n";
+		Polity polity = territory.Polity;
 
-		Polity polity = polityInfluence.Polity;
+		InfoPanelText.text += "\n\tPart of territory of polity " + polity.Id;
+		InfoPanelText.text += "\n";
 
 		int totalPopulation = (int)Mathf.Floor(polity.TotalPopulation);
 
@@ -2196,6 +2245,11 @@ public class GuiManagerScript : MonoBehaviour {
 		if (_planetOverlay == PlanetOverlay.Region) {
 
 			AddCellDataToInfoPanel_Region (cell);
+		}
+
+		if (_planetOverlay == PlanetOverlay.Language) {
+
+			AddCellDataToInfoPanel_Language (cell);
 		}
 
 		if (_planetOverlay == PlanetOverlay.FarmlandDistribution) {

@@ -9,6 +9,9 @@ public class Territory : ISynchronizable {
 	public List<WorldPosition> CellPositions;
 
 	[XmlIgnore]
+	public bool IsSelected = false;
+
+	[XmlIgnore]
 	public World World;
 
 	[XmlIgnore]
@@ -31,7 +34,7 @@ public class Territory : ISynchronizable {
 		if (!_cells.Add (cell))
 			return false;
 
-		cell.AddEncompassingTerritory (this);
+		cell.EncompassingTerritory = this;
 
 		Region cellRegion = cell.Region;
 
@@ -53,7 +56,7 @@ public class Territory : ISynchronizable {
 		if (!_cells.Remove (cell))
 			return false;
 
-		cell.RemoveEncompassingTerritory (this);
+		cell.EncompassingTerritory = null;
 
 		return true;
 	}
@@ -80,7 +83,7 @@ public class Territory : ISynchronizable {
 
 			_cells.Add (cell);
 
-			cell.AddEncompassingTerritory (this);
+			cell.EncompassingTerritory = this;
 		}
 	}
 }

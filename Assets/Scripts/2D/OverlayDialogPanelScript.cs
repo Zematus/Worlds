@@ -32,6 +32,7 @@ public class OverlayDialogPanelScript : MonoBehaviour {
 	public Toggle RainfallToggle;
 	public Toggle ArabilityToggle;
 	public Toggle RegionToggle;
+	public Toggle LanguageToggle;
 
 	public Toggle PopChangeToggle;
 	public Toggle UpdateSpanToggle;
@@ -101,6 +102,7 @@ public class OverlayDialogPanelScript : MonoBehaviour {
 			RainfallToggle.isOn = false;
 			ArabilityToggle.isOn = false;
 			RegionToggle.isOn = false;
+			LanguageToggle.isOn = false;
 		}
 
 		if (!DebugDataToggle.isOn) {

@@ -191,7 +191,8 @@ public abstract class Polity : ISynchronizable {
 	
 		InfluencedGroups.Add (group.Id, group);
 
-		Territory.AddCell (group.Cell);
+		//TODO: Remove line
+//		Territory.AddCell (group.Cell);
 	}
 
 	public void RemoveInfluencedGroup (CellGroup group) {
@@ -203,7 +204,8 @@ public abstract class Polity : ISynchronizable {
 
 		InfluencedGroups.Remove (group.Id);
 
-		Territory.RemoveCell (group.Cell);
+		//TODO: Remove line
+//		Territory.RemoveCell (group.Cell);
 
 		if (group == CoreGroup) {
 

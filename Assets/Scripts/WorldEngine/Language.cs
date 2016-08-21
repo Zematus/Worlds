@@ -22,7 +22,6 @@ public class Language : ISynchronizable {
 
 	public class NounPhrase : Phrase {
 
-		[XmlAttribute]
 		public PhraseProperties Properties;
 	}
 
@@ -43,6 +42,21 @@ public class Language : ISynchronizable {
 		public HashSet<string> Attributes = new HashSet<string> ();
 	}
 
+	public class CharacterGroup : CollectionUtility.ElementWeightPair<string> {
+
+		public CharacterGroup (string characters, float weight) {
+
+			Value = characters;
+			Weight = weight;
+		}
+
+		public string Characters {
+			get { 
+				return Value;
+			}
+		}
+	}
+
 	public static class ParsedWordAttributeId {
 
 		public const string NounPluralIndicative = "npl";
@@ -51,7 +65,6 @@ public class Language : ISynchronizable {
 		public const string NeutralNoun = "nn";
 		public const string PluralNoun = "pn";
 		public const string NounAdjunct = "nad";
-		public const string NounComponent = "ncmp";
 		public const string Adjective = "adj";
 	}
 
@@ -166,25 +179,11 @@ public class Language : ISynchronizable {
 	public static char[] CodaLetters = new char[] { 'b', 'c', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'm', 'n', 'p', 'q', 'r', 's', 't', 'v', 'w', 'x', 'y', 'z' };
 
 	public static Regex OptionalWordPartRegex = new Regex (@"(?<break> )?\{(?<word>.+?)\}");
-	public static Regex WordPartTypeRegex = new Regex (@"\[(?<attr>\w+)\](?:\[w+\])*(?<word>[\w\'\-]*)"); 
-	public static Regex ArticleRegex = new Regex (@"^((?<definite>the)|(?<indefinite>(a|an)))$"); 
+	public static Regex WordPartTypeRegex = new Regex (@"\[(?<attr>\w+)\](?:\[w+\])*(?<word>[\w\'\-]*)");
+	public static Regex ArticleRegex = new Regex (@"^((?<def>the)|(?<indef>(a|an)))$");
+	public static Regex PluralIndicativeRegex = new Regex (@"^(es|s)$");
 
 	private static Regex NucleousStartRegex = new Regex (@"^[aeiou]w*"); 
-
-	public class CharacterGroup : CollectionUtility.ElementWeightPair<string> {
-
-		public CharacterGroup (string characters, float weight) {
-
-			Value = characters;
-			Weight = weight;
-		}
-
-		public string Characters {
-			get { 
-				return Value;
-			}
-		}
-	}
 
 //	public GeneralGenderProperties GenderProperties;
 	public GeneralArticleProperties ArticleProperties;
@@ -225,6 +224,10 @@ public class Language : ISynchronizable {
 	private Dictionary<string, Word> _adpositions = new Dictionary<string, Word> ();
 	private Dictionary<string, Word> _adjectives = new Dictionary<string, Word> ();
 	private Dictionary<string, Word> _nouns = new Dictionary<string, Word> ();
+
+	public Language () {
+		
+	}
 
 	public Language (long id) {
 	
@@ -1314,7 +1317,7 @@ public class Language : ISynchronizable {
 		return phrase;
 	}
 
-	public NounPhrase GenerateNounPhraseTranslation (string untranslatedNounPhrase, GetRandomFloatDelegate getRandomFloat) {
+	public NounPhrase TranslateNounPhrase (string untranslatedNounPhrase, GetRandomFloatDelegate getRandomFloat) {
 
 		bool absentArticle = true;
 		PhraseProperties phraseProperties = PhraseProperties.None;
@@ -1333,7 +1336,7 @@ public class Language : ISynchronizable {
 			if (articleMatch.Success) {
 				absentArticle = false;
 
-				if (articleMatch.Groups ["indefinite"].Success) {
+				if (articleMatch.Groups ["indef"].Success) {
 					phraseProperties |= PhraseProperties.Indefinite;
 				}
 
@@ -1348,7 +1351,7 @@ public class Language : ISynchronizable {
 
 			if (parsedPhrasePart.Attributes.Contains (ParsedWordAttributeId.NounAdjunct)) {
 				
-				nounAdjunctionPhrases.Add (GenerateNounTranslation (phrasePart, phraseProperties, getRandomFloat));
+				nounAdjunctionPhrases.Add (TranslateNoun (phrasePart, phraseProperties, getRandomFloat));
 
 			} else if (parsedPhrasePart.Attributes.Contains (ParsedWordAttributeId.Adjective)) {
 			
@@ -1356,7 +1359,7 @@ public class Language : ISynchronizable {
 
 			} else {
 
-				nounPhrase = GenerateNounTranslation (phrasePart, phraseProperties, getRandomFloat);
+				nounPhrase = TranslateNoun (phrasePart, phraseProperties, getRandomFloat);
 				phraseProperties = nounPhrase.Properties;
 			}
 		}
@@ -1382,7 +1385,7 @@ public class Language : ISynchronizable {
 		return nounPhrase;
 	}
 
-	public NounPhrase GenerateNounTranslation (string unstranslatedNoun, PhraseProperties properties, GetRandomFloatDelegate getRandomFloat) {
+	public NounPhrase TranslateNoun (string unstranslatedNoun, PhraseProperties properties, GetRandomFloatDelegate getRandomFloat) {
 
 		string[] nounParts = unstranslatedNoun.Split (new char[] { ':' });
 
@@ -1396,6 +1399,14 @@ public class Language : ISynchronizable {
 		bool isNeutralNoun = false;
 
 		foreach (string nounPart in nounParts) {
+
+			Match plIndicativeMatch = PluralIndicativeRegex.Match (nounPart);
+
+			if (plIndicativeMatch.Success) {
+				isPlural = true;
+
+				continue;
+			}
 
 			ParsedWord parsedWordPart = ParseWord (nounPart);
 
@@ -1431,11 +1442,11 @@ public class Language : ISynchronizable {
 				isNeutralNoun = ((nounWord.Properties & WordProperties.Neutral) == WordProperties.Neutral);
 				hasRandomGender = false;
 
-				if (parsedWordPart.Attributes.Contains (ParsedWordAttributeId.NounComponent)) {
-					nounComponents.Add (nounWord);
-				} else {
-					mainNounWord = nounWord;
+				if (mainNounWord != null) {
+					nounComponents.Add (mainNounWord);
 				}
+
+				mainNounWord = nounWord;
 			}
 		}
 

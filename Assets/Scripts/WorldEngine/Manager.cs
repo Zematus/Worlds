@@ -32,6 +32,7 @@ public enum PlanetOverlay {
 	Rainfall,
 	Arability,
 	Region,
+	Language,
 	PopChange,
 	UpdateSpan
 }
@@ -657,10 +658,20 @@ public class Manager {
 
 	public static void SetPlanetOverlay (PlanetOverlay value, string planetOverlaySubtype = "None") {
 
-		if (value == PlanetOverlay.Region) {
+		if ((value == PlanetOverlay.None) ||
+			(value == PlanetOverlay.Arability) ||
+			(value == PlanetOverlay.Rainfall) ||
+			(value == PlanetOverlay.Temperature)) {
+
+			_observableUpdateTypes = CellUpdateType.Cell;
+
+		} else if (value == PlanetOverlay.Region) {
+			
 			_observableUpdateTypes &= ~CellUpdateType.Group;
 			_observableUpdateTypes |= CellUpdateType.Region;
+
 		} else {
+			
 			_observableUpdateTypes |= CellUpdateType.Group;
 			_observableUpdateTypes &= ~CellUpdateType.Region;
 		}
@@ -1168,6 +1179,10 @@ public class Manager {
 			color = SetRegionOverlayColor (cell, color);
 			break;
 
+		case PlanetOverlay.Language:
+			color = SetLanguageOverlayColor (cell, color);
+			break;
+
 		case PlanetOverlay.PopChange:
 			color = SetPopulationChangeOverlayColor (cell, color);
 			break;
@@ -1310,19 +1325,75 @@ public class Manager {
 		return color;
 	}
 
-	private static bool IsPolityBorder (PolityInfluence polityInfluence, TerrainCell cell) {
+	private static bool IsLanguageBorder (Language language, TerrainCell cell) {
 
 		foreach (TerrainCell nCell in cell.Neighbors.Values) {
-		
+
 			if (nCell.Group == null)
 				return true;
 
-			CellGroup nGroup = nCell.Group;
+			Language nLanguage = nCell.Group.Culture.Language;
 
-			if (nGroup.HighestPolityInfluence == null)
+			if (nLanguage == null)
 				return true;
 
-			if (nGroup.HighestPolityInfluence.PolityId != polityInfluence.PolityId)
+			if (nLanguage.Id != language.Id)
+				return true;
+		}
+
+		return false;
+	}
+
+	private static Color SetLanguageOverlayColor (TerrainCell cell, Color color) {
+
+		float greyscale = (color.r + color.g + color.b);
+
+		color.r = (greyscale + color.r) / 9f;
+		color.g = (greyscale + color.g) / 9f;
+		color.b = (greyscale + color.b) / 9f;
+
+		if (cell.GetBiomePresence (Biome.Ocean) >= 1f) {
+
+			return color;
+		}
+
+		if (cell.Group != null) {
+
+			color.r += 1.5f / 9f;
+			color.g += 1.5f / 9f;
+			color.b += 1.5f / 9f;
+
+			Language groupLanguage = cell.Group.Culture.Language;
+
+			if (groupLanguage != null) {
+
+				Color languageColor = GenerateColorFromId (groupLanguage.Id);
+
+				bool isLanguageBorder = IsLanguageBorder (groupLanguage, cell);
+
+				if (!isLanguageBorder) {
+					languageColor /= 2f;
+				}
+
+				color.r = languageColor.r;
+				color.g = languageColor.g;
+				color.b = languageColor.b;
+			}
+		}
+
+		return color;
+	}
+
+	private static bool IsTerritoryBorder (Territory territory, TerrainCell cell) {
+
+		foreach (TerrainCell nCell in cell.Neighbors.Values) {
+
+			Territory nTerritory = nCell.EncompassingTerritory;
+
+			if (nTerritory == null)
+				return true;
+
+			if (nTerritory != territory)
 				return true;
 		}
 
@@ -1347,30 +1418,28 @@ public class Manager {
 			color.r += 1.5f / 9f;
 			color.g += 1.5f / 9f;
 			color.b += 1.5f / 9f;
+		}
 
-			PolityInfluence highestPolityInfluence = cell.Group.HighestPolityInfluence;
+		if (cell.EncompassingTerritory != null) {
 
-			if (highestPolityInfluence != null) {
+			Polity territoryPolity = cell.EncompassingTerritory.Polity;
 
-				Polity polity = highestPolityInfluence.Polity;
+			Color territoryColor = GenerateColorFromId (territoryPolity.Id);
 
-				Color highestInfluencePolityColor = GenerateColorFromId (highestPolityInfluence.PolityId);
+			bool isTerritoryBorder = IsTerritoryBorder (cell.EncompassingTerritory, cell);
+			bool isCoreGroup = territoryPolity.CoreGroup == cell.Group;
 
-				bool isPolityBorder = IsPolityBorder (highestPolityInfluence, cell);
-				bool isCoreGroup = polity.CoreGroup == cell.Group;
-
-				if (!isCoreGroup) {
-					if (!isPolityBorder) {
-						highestInfluencePolityColor /= 2.5f;
-					} else {
-						highestInfluencePolityColor /= 1.75f;
-					}
+			if (!isCoreGroup) {
+				if (!isTerritoryBorder) {
+					territoryColor /= 2.5f;
+				} else {
+					territoryColor /= 1.75f;
 				}
-
-				color.r = highestInfluencePolityColor.r;
-				color.g = highestInfluencePolityColor.g;
-				color.b = highestInfluencePolityColor.b;
 			}
+
+			color.r = territoryColor.r;
+			color.g = territoryColor.g;
+			color.b = territoryColor.b;
 		}
 
 		return color;
@@ -1618,12 +1687,12 @@ public class Manager {
 		if (_planetOverlaySubtype == "None")
 			return color;
 
-		PolityInfluence highestPolityInfluence = cell.Group.HighestPolityInfluence;
+		Territory territory = cell.EncompassingTerritory;
 
-		if (highestPolityInfluence == null)
+		if (territory == null)
 			return color;
 
-		CulturalActivity activity = highestPolityInfluence.Polity.Culture.GetActivity(_planetOverlaySubtype);
+		CulturalActivity activity = territory.Polity.Culture.GetActivity(_planetOverlaySubtype);
 
 		if (activity == null)
 			return color;
@@ -1639,7 +1708,7 @@ public class Manager {
 
 		Color addedColor = Color.cyan;
 
-		if (IsPolityBorder (highestPolityInfluence, cell)) {
+		if (IsTerritoryBorder (territory, cell)) {
 
 			// A slightly bluer shade of cyan
 			addedColor = new Color (0, 0.75f, 1.0f);
@@ -1703,12 +1772,12 @@ public class Manager {
 		if (_planetOverlaySubtype == "None")
 			return color;
 
-		PolityInfluence highestPolityInfluence = cell.Group.HighestPolityInfluence;
+		Territory territory = cell.EncompassingTerritory;
 
-		if (highestPolityInfluence == null)
+		if (territory == null)
 			return color;
 
-		CulturalSkill skill = highestPolityInfluence.Polity.Culture.GetSkill(_planetOverlaySubtype);
+		CulturalSkill skill = territory.Polity.Culture.GetSkill(_planetOverlaySubtype);
 
 		if (skill == null)
 			return color;
@@ -1724,7 +1793,7 @@ public class Manager {
 
 		Color addedColor = Color.cyan;
 
-		if (IsPolityBorder (highestPolityInfluence, cell)) {
+		if (IsTerritoryBorder (territory, cell)) {
 
 			// A slightly bluer shade of cyan
 			addedColor = new Color (0, 0.75f, 1.0f);
@@ -1797,14 +1866,14 @@ public class Manager {
 		if (_planetOverlaySubtype == "None")
 			return color;
 
-		PolityInfluence highestPolityInfluence = cell.Group.HighestPolityInfluence;
+		Territory territory = cell.EncompassingTerritory;
 
-		if (highestPolityInfluence == null)
+		if (territory == null)
 			return color;
 
-		CulturalKnowledge knowledge = highestPolityInfluence.Polity.Culture.GetKnowledge(_planetOverlaySubtype);
+		CulturalKnowledge knowledge = territory.Polity.Culture.GetKnowledge(_planetOverlaySubtype);
 
-		CellCulturalKnowledge cellKnowledge = highestPolityInfluence.Polity.CoreGroup.Culture.GetKnowledge(_planetOverlaySubtype) as CellCulturalKnowledge;
+		CellCulturalKnowledge cellKnowledge = territory.Polity.CoreGroup.Culture.GetKnowledge(_planetOverlaySubtype) as CellCulturalKnowledge;
 
 		if (knowledge == null)
 			return color;
@@ -1828,7 +1897,7 @@ public class Manager {
 
 		Color addedColor = Color.cyan;
 
-		if (IsPolityBorder (highestPolityInfluence, cell)) {
+		if (IsTerritoryBorder (territory, cell)) {
 
 			// A slightly bluer shade of cyan
 			addedColor = new Color (0, 0.75f, 1.0f);
@@ -1894,19 +1963,19 @@ public class Manager {
 		if (_planetOverlaySubtype == "None")
 			return color;
 
-		PolityInfluence highestPolityInfluence = cell.Group.HighestPolityInfluence;
+		Territory territory = cell.EncompassingTerritory;
 
-		if (highestPolityInfluence == null)
+		if (territory == null)
 			return color;
 
-		CulturalDiscovery discovery = highestPolityInfluence.Polity.Culture.GetDiscovery(_planetOverlaySubtype);
+		CulturalDiscovery discovery = territory.Polity.Culture.GetDiscovery(_planetOverlaySubtype);
 
 		if (discovery == null)
 			return color;
 
 		Color addedColor = Color.cyan;
 
-		if (IsPolityBorder (highestPolityInfluence, cell)) {
+		if (IsTerritoryBorder (territory, cell)) {
 
 			// A slightly bluer shade of cyan
 			addedColor = new Color (0, 0.75f, 1.0f);

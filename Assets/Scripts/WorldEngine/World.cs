@@ -135,6 +135,8 @@ public class World : ISynchronizable {
 	public TerrainCell SelectedCell = null;
 	[XmlIgnore]
 	public Region SelectedRegion = null;
+	[XmlIgnore]
+	public Territory SelectedTerritory = null;
 	
 	[XmlIgnore]
 	public float MinPossibleAltitudeWithOffset = MinPossibleAltitude - Manager.SeaLevelOffset;

@@ -22,7 +22,7 @@ public enum CellUpdateType {
 	Cell = 0x1,
 	Group = 0x2,
 	Region = 0x4,
-	Route = 0x8,
+	Route = 0x8
 }
 
 public struct WorldPosition {
@@ -128,7 +128,7 @@ public class TerrainCell : ISynchronizable {
 	public Region Region = null;
 
 	[XmlIgnore]
-	public List<Territory> EncompassingTerritories = new List<Territory>();
+	public Territory EncompassingTerritory = null;
 
 	[XmlIgnore]
 	public List<Route> CrossingRoutes = new List<Route>();
@@ -173,16 +173,6 @@ public class TerrainCell : ISynchronizable {
 		get { 
 			return new WorldPosition (Longitude, Latitude);
 		}
-	}
-
-	public void AddEncompassingTerritory (Territory territory) {
-	
-		EncompassingTerritories.Add (territory);
-	}
-
-	public void RemoveEncompassingTerritory (Territory territory) {
-
-		EncompassingTerritories.Remove (territory);
 	}
 
 	public TerrainCellChanges GetChanges () {

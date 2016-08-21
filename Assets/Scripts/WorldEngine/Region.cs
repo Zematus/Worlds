@@ -16,25 +16,25 @@ public class RegionAttribute {
 	public static RegionAttribute Glacier = new RegionAttribute ("Glacier", new string[] {"glacier"});
 	public static RegionAttribute IceCap = new RegionAttribute ("IceCap", new string[] {"[nad]ice cap"});
 	public static RegionAttribute Ocean = new RegionAttribute ("Ocean", new string[] {"ocean"});
-	public static RegionAttribute Grassland = new RegionAttribute ("Grassland", new string[] {"[ncmp]grass:land{:[npl]s}", "steppe{:[npl]s}", "savanna{:[npl]s}", "[ncmp]shrub:land{:[npl]s}", "prairie{:[npl]s}", "range{:[npl]s}"});
-	public static RegionAttribute Forest = new RegionAttribute ("Forest", new string[] {"forest", "wood{:[npl]s}", "[ncmp]wood:land{:[npl]s}"});
-	public static RegionAttribute Taiga = new RegionAttribute ("Taiga", new string[] {"taiga", "[ncmp]hinter:land{:[npl]s}", "[nad]snow forest", "[nad]snow wood{:[npl]s}", "[nad]snow [ncmp]wood:land{:[npl]s}"});
-	public static RegionAttribute Tundra = new RegionAttribute ("Tundra", new string[] {"tundra", "waste{:[npl]s}", "[ncmp]waste:land{:[npl]s}", "[adj]frozen land{:[npl]s}", "[adj]frozen expanse"});
+	public static RegionAttribute Grassland = new RegionAttribute ("Grassland", new string[] {"grass:land{:s}", "steppe{:s}", "savanna{:s}", "shrub:land{:s}", "prairie{:s}", "range{:s}"});
+	public static RegionAttribute Forest = new RegionAttribute ("Forest", new string[] {"forest", "wood{:s}", "wood:land{:s}"});
+	public static RegionAttribute Taiga = new RegionAttribute ("Taiga", new string[] {"taiga", "hinter{:land}{:s}", "[nad]snow forest", "[nad]snow wood{:land}{:s}"});
+	public static RegionAttribute Tundra = new RegionAttribute ("Tundra", new string[] {"tundra", "waste{:land}{:s}", "[adj]frozen land{:s}", "[adj]frozen expanse"});
 	public static RegionAttribute Desert = new RegionAttribute ("Desert", new string[] {"desert"});
-	public static RegionAttribute Rainforest = new RegionAttribute ("Rainforest", new string[] {"[ncmp]rain:forest"});
+	public static RegionAttribute Rainforest = new RegionAttribute ("Rainforest", new string[] {"rain:forest"});
 	public static RegionAttribute Jungle = new RegionAttribute ("Jungle", new string[] {"jungle"});
 	public static RegionAttribute Valley = new RegionAttribute ("Valley", new string[] {"valley"});
-	public static RegionAttribute Highland = new RegionAttribute ("Highland", new string[] {"[ncmp]high:land{:[npl]s}"});
-	public static RegionAttribute MountainRange = new RegionAttribute ("MountainRange", new string[] {"[nad]mountain range", "mountain:[npl]s", "mount:[npl]s"});
-	public static RegionAttribute Hill = new RegionAttribute ("Hill", new string[] {"hill{:[npl]s}"});
+	public static RegionAttribute Highland = new RegionAttribute ("Highland", new string[] {"high:land{:s}"});
+	public static RegionAttribute MountainRange = new RegionAttribute ("MountainRange", new string[] {"[nad]mountain range", "mountain:s", "mount:s"});
+	public static RegionAttribute Hill = new RegionAttribute ("Hill", new string[] {"hill{:s}"});
 	public static RegionAttribute Mountain = new RegionAttribute ("Mountain", new string[] {"mountain", "mount"});
 	public static RegionAttribute Basin = new RegionAttribute ("Basin", new string[] {"basin"});
 	public static RegionAttribute Plain = new RegionAttribute ("Plain", new string[] {"plain"});
 	public static RegionAttribute Delta = new RegionAttribute ("Delta", new string[] {"desert"});
 	public static RegionAttribute Peninsula = new RegionAttribute ("Peninsula", new string[] {"peninsula"});
 	public static RegionAttribute Island = new RegionAttribute ("Island", new string[] {"island"});
-	public static RegionAttribute Archipelago = new RegionAttribute ("Archipelago", new string[] {"archipelago", "island:[npl]s"});
-	public static RegionAttribute Chanel = new RegionAttribute ("Chanel", new string[] {"chanel"});
+	public static RegionAttribute Archipelago = new RegionAttribute ("Archipelago", new string[] {"archipelago", "island:s"});
+	public static RegionAttribute Chanel = new RegionAttribute ("Channel", new string[] {"channel"});
 	public static RegionAttribute Gulf = new RegionAttribute ("Gulf", new string[] {"gulf"});
 	public static RegionAttribute Sound = new RegionAttribute ("Sound", new string[] {"sound"});
 	public static RegionAttribute Lake = new RegionAttribute ("Lake", new string[] {"lake"});
@@ -178,10 +178,10 @@ public abstract class Region : ISynchronizable {
 	public List<string> AttributeNames = new List<string>();
 
 	[XmlIgnore]
-	public World World;
+	public bool IsSelected = false;
 
 	[XmlIgnore]
-	public bool IsSelected = false;
+	public World World;
 
 	[XmlIgnore]
 	public float AverageAltitude = 0;
@@ -401,7 +401,7 @@ public abstract class Region : ISynchronizable {
 		if (_attributes.Count <= 0) {
 
 			untranslatedName = "the region";
-			namePhrase = polityLanguage.GenerateNounPhraseTranslation (untranslatedName, coreGroup.GetNextLocalRandomFloat);
+			namePhrase = polityLanguage.TranslateNounPhrase (untranslatedName, coreGroup.GetNextLocalRandomFloat);
 
 			Name = new Name (namePhrase, untranslatedName, polityLanguage, World);
 
@@ -432,7 +432,7 @@ public abstract class Region : ISynchronizable {
 		}
 
 		untranslatedName = "the " + secondaryTitle + primaryTitle;
-		namePhrase = polityLanguage.GenerateNounPhraseTranslation (untranslatedName, coreGroup.GetNextLocalRandomFloat);
+		namePhrase = polityLanguage.TranslateNounPhrase (untranslatedName, coreGroup.GetNextLocalRandomFloat);
 
 		Name = new Name (namePhrase, untranslatedName, polityLanguage, World);
 	}
