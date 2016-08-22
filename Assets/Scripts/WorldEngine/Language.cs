@@ -66,6 +66,7 @@ public class Language : ISynchronizable {
 		public const string PluralNoun = "pn";
 		public const string NounAdjunct = "nad";
 		public const string Adjective = "adj";
+		public const string Preposition = "pre";
 	}
 
 	public enum WordType
@@ -178,7 +179,6 @@ public class Language : ISynchronizable {
 
 	public static char[] CodaLetters = new char[] { 'b', 'c', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'm', 'n', 'p', 'q', 'r', 's', 't', 'v', 'w', 'x', 'y', 'z' };
 
-	public static Regex OptionalWordPartRegex = new Regex (@"(?<break> )?\{(?<word>.+?)\}");
 	public static Regex WordPartTypeRegex = new Regex (@"\[(?<attr>\w+)\](?:\[w+\])*(?<word>[\w\'\-]*)");
 	public static Regex ArticleRegex = new Regex (@"^((?<def>the)|(?<indef>(a|an)))$");
 	public static Regex PluralIndicativeRegex = new Regex (@"^(es|s)$");

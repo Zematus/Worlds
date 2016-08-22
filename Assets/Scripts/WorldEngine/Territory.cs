@@ -19,6 +19,8 @@ public class Territory : ISynchronizable {
 
 	private HashSet<TerrainCell> _cells = new HashSet<TerrainCell> ();
 
+	private HashSet<TerrainCell> _borderCells = new HashSet<TerrainCell> ();
+
 	public Territory () {
 
 	}
@@ -29,12 +31,55 @@ public class Territory : ISynchronizable {
 		Polity = polity;
 	}
 
+	public ICollection<TerrainCell> GetCells () {
+
+		return _cells;
+	}
+
+	private bool IsPartOfBorderInternal (TerrainCell cell) {
+
+		if (!_cells.Contains (cell)) {
+		
+			return false;
+		}
+
+		foreach (TerrainCell nCell in cell.Neighbors.Values) {
+		
+			if (!_cells.Contains (nCell))
+				return true;
+		}
+
+		return false;
+	}
+
+	public bool IsPartOfBorder (TerrainCell cell) {
+	
+		return _borderCells.Contains (cell);
+	}
+
 	public bool AddCell (TerrainCell cell) {
 
 		if (!_cells.Add (cell))
 			return false;
 
 		cell.EncompassingTerritory = this;
+		Manager.AddUpdatedCell (cell, CellUpdateType.Territory);
+
+		if (IsPartOfBorderInternal (cell)) {
+		
+			_borderCells.Add (cell);
+
+			foreach (TerrainCell nCell in cell.Neighbors.Values) {
+			
+				if (_borderCells.Contains (nCell)) {
+				
+					if (!IsPartOfBorderInternal (nCell)) {
+						_borderCells.Remove (nCell);
+						Manager.AddUpdatedCell (nCell, CellUpdateType.Territory);
+					}
+				}
+			}
+		}
 
 		Region cellRegion = cell.Region;
 
@@ -57,6 +102,21 @@ public class Territory : ISynchronizable {
 			return false;
 
 		cell.EncompassingTerritory = null;
+		Manager.AddUpdatedCell (cell, CellUpdateType.Territory);
+
+		if (_borderCells.Contains (cell)) {
+
+			_borderCells.Remove (cell);
+
+			foreach (TerrainCell nCell in cell.Neighbors.Values) {
+
+				if (IsPartOfBorderInternal (nCell)) {
+
+					_borderCells.Add (nCell);
+					Manager.AddUpdatedCell (nCell, CellUpdateType.Territory);
+				}
+			}
+		}
 
 		return true;
 	}
@@ -84,6 +144,17 @@ public class Territory : ISynchronizable {
 			_cells.Add (cell);
 
 			cell.EncompassingTerritory = this;
+		}
+
+		foreach (TerrainCell cell in _cells) {
+
+			foreach (TerrainCell nCell in cell.Neighbors.Values) {
+
+				if (!_cells.Contains (nCell)) {
+					_borderCells.Add (cell);
+					break;
+				}
+			}
 		}
 	}
 }

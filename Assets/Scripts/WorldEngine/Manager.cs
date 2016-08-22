@@ -667,13 +667,18 @@ public class Manager {
 
 		} else if (value == PlanetOverlay.Region) {
 			
-			_observableUpdateTypes &= ~CellUpdateType.Group;
+			_observableUpdateTypes &= ~(CellUpdateType.Group | CellUpdateType.Territory);
 			_observableUpdateTypes |= CellUpdateType.Region;
 
-		} else {
-			
-			_observableUpdateTypes |= CellUpdateType.Group;
+		} else if (value == PlanetOverlay.PolityTerritory) {
+
 			_observableUpdateTypes &= ~CellUpdateType.Region;
+			_observableUpdateTypes |= (CellUpdateType.Group | CellUpdateType.Territory);
+
+		} else {
+
+			_observableUpdateTypes &= ~(CellUpdateType.Territory | CellUpdateType.Region);
+			_observableUpdateTypes |= CellUpdateType.Group;
 		}
 	
 		_planetOverlay = value;
@@ -715,6 +720,16 @@ public class Manager {
 			CurrentWorld.SelectedRegion = null;
 		}
 
+		if (CurrentWorld.SelectedTerritory != null) {
+
+			foreach (TerrainCell territoryCell in CurrentWorld.SelectedTerritory.GetCells ()) {
+				AddUpdatedCell (territoryCell, CellUpdateType.Territory);
+			}
+
+			CurrentWorld.SelectedTerritory.IsSelected = false;
+			CurrentWorld.SelectedTerritory = null;
+		}
+
 		if (cell == null)
 			return;
 
@@ -730,6 +745,16 @@ public class Manager {
 
 			foreach (TerrainCell regionCell in CurrentWorld.SelectedRegion.GetCells ()) {
 				AddUpdatedCell (regionCell, CellUpdateType.Region);
+			}
+		}
+
+		if (cell.EncompassingTerritory != null) {
+
+			CurrentWorld.SelectedTerritory = cell.EncompassingTerritory;
+			CurrentWorld.SelectedTerritory.IsSelected = true;
+
+			foreach (TerrainCell territoryCell in CurrentWorld.SelectedTerritory.GetCells ()) {
+				AddUpdatedCell (territoryCell, CellUpdateType.Territory);
 			}
 		}
 	}
@@ -846,6 +871,11 @@ public class Manager {
 		if (_planetOverlay == PlanetOverlay.Region) {
 		
 			if ((cell.Region != null) && cell.Region.IsSelected)
+				return true;
+			
+		} else if (_planetOverlay == PlanetOverlay.PolityTerritory) {
+
+			if ((cell.EncompassingTerritory != null) && cell.EncompassingTerritory.IsSelected)
 				return true;
 		}
 
@@ -1386,18 +1416,7 @@ public class Manager {
 
 	private static bool IsTerritoryBorder (Territory territory, TerrainCell cell) {
 
-		foreach (TerrainCell nCell in cell.Neighbors.Values) {
-
-			Territory nTerritory = nCell.EncompassingTerritory;
-
-			if (nTerritory == null)
-				return true;
-
-			if (nTerritory != territory)
-				return true;
-		}
-
-		return false;
+		return territory.IsPartOfBorder (cell);
 	}
 
 	private static Color SetPolityTerritoryOverlayColor (TerrainCell cell, Color color) {
