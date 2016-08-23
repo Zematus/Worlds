@@ -5,9 +5,6 @@ using System.Xml.Serialization;
 using System.Text.RegularExpressions;
 using System.Linq;
 
-public class RegionAttributeAdjective {
-}
-
 public class RegionAttributeNoun {
 
 	public delegate int GetRandomIntDelegate (int maxValue);
@@ -92,10 +89,8 @@ public class RegionAttributeNoun {
 			return;
 		}
 
-		string breakStr = (match.Groups ["break"].Success) ? match.Groups ["break"].Value : string.Empty;
-
 		string v1 = variant.Replace (match.Value, string.Empty);
-		string v2 = variant.Replace (match.Value, breakStr + match.Groups ["word"]);
+		string v2 = variant.Replace (match.Value, match.Groups ["word"].Value);
 
 		GenerateVariations (v1);
 		GenerateVariations (v2);
@@ -133,7 +128,7 @@ public abstract class Region : ISynchronizable {
 
 	public Name Name;
 
-	public List<string> AttributeNames = new List<string>();
+	public List<string> AttributeNounNames = new List<string>();
 
 	[XmlIgnore]
 	public bool IsSelected = false;
@@ -186,7 +181,7 @@ public abstract class Region : ISynchronizable {
 
 	protected Dictionary<string, float> _biomePresences;
 
-	private List<RegionAttributeNoun> _attributes = new List<RegionAttributeNoun>();
+	private List<RegionAttributeNoun> _attributeNouns = new List<RegionAttributeNoun>();
 
 	public Region () {
 
@@ -205,24 +200,28 @@ public abstract class Region : ISynchronizable {
 
 	public virtual void Synchronize () {
 
+		#if DEBUG
 		if (Name == null) {
 		
 			throw new System.Exception ("Name can't be null");
 		}
+		#endif
 
 		Name.Synchronize ();
 	}
 
 	public virtual void FinalizeLoad () {
 
+		#if DEBUG
 		if (Name == null) {
 
 			throw new System.Exception ("Name can't be null");
 		}
+		#endif
 
-		foreach (string attrName in AttributeNames) {
+		foreach (string attrName in AttributeNounNames) {
 		
-			_attributes.Add (RegionAttributeNoun.Attributes[attrName]);
+			_attributeNouns.Add (RegionAttributeNoun.Attributes[attrName]);
 		}
 
 		Name.FinalizeLoad ();
@@ -343,8 +342,20 @@ public abstract class Region : ISynchronizable {
 
 	protected void AddAttribute (RegionAttributeNoun attr) {
 	
-		AttributeNames.Add (attr.Name);
-		_attributes.Add (attr);
+		AttributeNounNames.Add (attr.Name);
+		_attributeNouns.Add (attr);
+	}
+
+	public string GetRandomAttributeVariation (RegionAttributeNoun.GetRandomIntDelegate getRandomInt) {
+
+		if (_attributeNouns.Count <= 0) {
+		
+			return string.Empty;
+		}
+
+		int index = getRandomInt (_attributeNouns.Count);
+
+		return _attributeNouns [index].GetRandomVariation (getRandomInt);
 	}
 
 	public void GenerateName (Polity polity) {
@@ -356,7 +367,7 @@ public abstract class Region : ISynchronizable {
 		string untranslatedName;
 		Language.NounPhrase namePhrase;
 
-		if (_attributes.Count <= 0) {
+		if (_attributeNouns.Count <= 0) {
 
 			untranslatedName = "the region";
 			namePhrase = polityLanguage.TranslateNounPhrase (untranslatedName, coreGroup.GetNextLocalRandomFloat);
@@ -366,7 +377,7 @@ public abstract class Region : ISynchronizable {
 			return;
 		}
 
-		List<RegionAttributeNoun> attributes = new List<RegionAttributeNoun> (_attributes);
+		List<RegionAttributeNoun> attributes = new List<RegionAttributeNoun> (_attributeNouns);
 
 		int index = coreGroup.GetNextLocalRandomInt (attributes.Count);
 
@@ -393,6 +404,10 @@ public abstract class Region : ISynchronizable {
 		namePhrase = polityLanguage.TranslateNounPhrase (untranslatedName, coreGroup.GetNextLocalRandomFloat);
 
 		Name = new Name (namePhrase, untranslatedName, polityLanguage, World);
+
+		#if DEBUG
+		Debug.Log ("Region #" + Id + " name: " + Name);
+		#endif
 	}
 }
 

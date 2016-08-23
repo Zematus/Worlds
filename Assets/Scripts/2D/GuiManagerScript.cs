@@ -1568,7 +1568,7 @@ public class GuiManagerScript : MonoBehaviour {
 		if (region == null) {
 			InfoPanelText.text += "\nCell doesn't belong to any known region";
 		} else {
-			InfoPanelText.text += "\nCell is part of region[" + region.Id + "]: " + region.Name;
+			InfoPanelText.text += "\nCell is part of Region #" + region.Id + ": " + region.Name;
 		}
 	}
 
@@ -1585,13 +1585,13 @@ public class GuiManagerScript : MonoBehaviour {
 
 			return;
 		} else {
-			InfoPanelText.text += "\nRegion[" + region.Id + "]: " + region.Name;
+			InfoPanelText.text += "\nRegion #" + region.Id + ": " + region.Name;
 		}
 		InfoPanelText.text += "\n";
 		InfoPanelText.text += "\nAttributes: ";
 
 		bool first = true;
-		foreach (string attrName in region.AttributeNames) {
+		foreach (string attrName in region.AttributeNounNames) {
 
 			if (first) {
 				InfoPanelText.text += attrName;
@@ -1814,7 +1814,7 @@ public class GuiManagerScript : MonoBehaviour {
 					firstPolity = false;
 				}
 
-				InfoPanelText.text += "\n\tPolity[" + polity.Id + "] - Influence: " + influenceValue.ToString ("P");
+				InfoPanelText.text += "\n\tPolity #" + polity.Id + " - Influence: " + influenceValue.ToString ("P");
 			}
 		}
 	}
@@ -1822,7 +1822,7 @@ public class GuiManagerScript : MonoBehaviour {
 	public void AddCellDataToInfoPanel_PolityTerritory (TerrainCell cell) {
 
 		InfoPanelText.text += "\n";
-		InfoPanelText.text += "\n -- Group Polity Territory Data -- ";
+		InfoPanelText.text += "\n -- Polity Territory Data -- ";
 		InfoPanelText.text += "\n";
 
 		if (cell.Group == null) {
@@ -1851,12 +1851,16 @@ public class GuiManagerScript : MonoBehaviour {
 
 		Polity polity = territory.Polity;
 
-		InfoPanelText.text += "\n\tPart of territory of polity " + polity.Id;
+		InfoPanelText.text += "\n\tTerritory of polity #" + polity.Id + ": " + polity.Name;
 		InfoPanelText.text += "\n";
 
 		int totalPopulation = (int)Mathf.Floor(polity.TotalPopulation);
 
 		InfoPanelText.text += "\n\tPolity population: " + totalPopulation;
+		InfoPanelText.text += "\n";
+
+		InfoPanelText.text += "\n";
+		InfoPanelText.text += "\n -- Selected Group's Polity Data -- ";
 		InfoPanelText.text += "\n";
 
 		float percentageOfPopulation = cell.Group.GetPolityInfluenceValue (polity);

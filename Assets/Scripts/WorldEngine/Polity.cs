@@ -44,6 +44,8 @@ public abstract class Polity : ISynchronizable {
 	[XmlAttribute]
 	public float TotalPopulation = 0;
 
+	public Name Name;
+
 	public List<long> InfluencedGroupIds;
 
 	public Territory Territory;
@@ -85,6 +87,8 @@ public abstract class Polity : ISynchronizable {
 		Culture = new PolityCulture (this);
 
 		coreGroup.SetPolityInfluenceValue (this, coreGroupInfluenceValue);
+
+		GenerateName ();
 	}
 
 	public void Destroy () {
@@ -220,9 +224,13 @@ public abstract class Polity : ISynchronizable {
 		Territory.Synchronize ();
 
 		InfluencedGroupIds = new List<long> (InfluencedGroups.Keys);
+
+		Name.Synchronize ();
 	}
 
 	public virtual void FinalizeLoad () {
+
+		Name.FinalizeLoad ();
 
 		CoreGroup = World.GetGroup (CoreGroupId);
 
@@ -342,7 +350,7 @@ public abstract class Polity : ISynchronizable {
 		CellGroup mostInfluencedPopGroup = GetGroupWithMostInfluencedPop ();
 
 		if (mostInfluencedPopGroup == null) {
-		
+
 			return false;
 		}
 
@@ -350,4 +358,6 @@ public abstract class Polity : ISynchronizable {
 
 		return true;
 	}
+
+	protected abstract void GenerateName ();
 }

@@ -139,7 +139,7 @@ public class LanguageGenerationTest : AutomatedTest {
 			phrases.Add (language.TranslateNounPhrase ("the [nad]forest person", GetRandomFloat));
 			phrases.Add (language.TranslateNounPhrase ("[mn]boy:s", GetRandomFloat));
 			phrases.Add (language.TranslateNounPhrase ("the [fn]girl:s", GetRandomFloat));
-			phrases.Add (language.TranslateNounPhrase ("children", GetRandomFloat));
+			phrases.Add (language.TranslateNounPhrase ("[ipn(child)]children", GetRandomFloat));
 
 			entry += "\nGenerated adjectives:";
 			entry += "\n";
@@ -176,7 +176,7 @@ public class LanguageGenerationTest : AutomatedTest {
 			entry += "\nExample noun phrases with adpositions:";
 			entry += "\n";
 
-			Language.Phrase prePhrase = language.TranslateNounPhrase ("the [fn]woman", GetRandomFloat);
+			Language.Phrase prePhrase = language.TranslateNounPhrase ("the [ipn(woman)][fn]women", GetRandomFloat);
 			Language.Phrase complementPhrase = language.TranslateNounPhrase ("a town", GetRandomFloat);
 			Language.Phrase postPhrase = language.BuildAdpositionalPhrase ("from", complementPhrase);
 			Language.Phrase mergedPhrase = language.MergePhrases (prePhrase, postPhrase);
@@ -184,7 +184,7 @@ public class LanguageGenerationTest : AutomatedTest {
 
 			entry += "\n\t" + mergedPhrase.Text + " (" + mergedPhrase.Meaning + ")";
 
-			prePhrase = language.TranslateNounPhrase ("the children", GetRandomFloat);
+			prePhrase = language.TranslateNounPhrase ("the child", GetRandomFloat);
 			complementPhrase = language.TranslateNounPhrase ("cloud:s", GetRandomFloat);
 			postPhrase = language.BuildAdpositionalPhrase ("above", complementPhrase);
 			mergedPhrase = language.MergePhrases (prePhrase, postPhrase);

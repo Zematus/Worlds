@@ -7,7 +7,7 @@ using System.Linq;
 
 public static class NamingTools {
 
-	public static Regex OptionalWordPartRegex = new Regex (@"(?<break> )?\{(?<word>.+?)\}");
+	public static Regex OptionalWordPartRegex = new Regex (@"\{(?<word>.+?)\}");
 	public static Regex NameRankRegex = new Regex (@"\[\[(?<rank>.+?)\]\](?<word>.+?)");
 }
 
@@ -38,6 +38,14 @@ public class Name : ISynchronizable {
 		Value = value;
 
 		Language.MakeProperName (Value);
+	}
+
+	public string Text {
+		get { return Value.Text; }
+	}
+
+	public string Meaning {
+		get { return Value.Meaning; }
 	}
 
 	public void Synchronize () {
