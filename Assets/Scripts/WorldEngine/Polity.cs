@@ -121,7 +121,9 @@ public abstract class Polity : ISynchronizable {
 
 		RunPopulationCensus ();
 
+		#if DEBUG
 		_populationCensusUpdated = true;
+		#endif
 
 		UpdateInternal ();
 	
@@ -134,7 +136,9 @@ public abstract class Polity : ISynchronizable {
 				// We were unable to find a new core for the polity
 				World.AddPolityToRemove (this);
 
+				#if DEBUG
 				_populationCensusUpdated = false;
+				#endif
 
 				return;
 			}
@@ -142,7 +146,9 @@ public abstract class Polity : ISynchronizable {
 			_coreGroupIsValid = true;
 		}
 
+		#if DEBUG
 		_populationCensusUpdated = false;
+		#endif
 	}
 
 	public abstract void UpdateInternal ();

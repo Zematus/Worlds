@@ -22,6 +22,8 @@ public class GuiManagerScript : MonoBehaviour {
 
 	public PlanetScript PlanetScript;
 	public MapScript MapScript;
+
+	public InfoTooltipScript InfoTooltipScript;
 	
 	public TextInputDialogPanelScript SaveFileDialogPanelScript;
 	public TextInputDialogPanelScript ExportMapDialogPanelScript;
@@ -115,6 +117,8 @@ public class GuiManagerScript : MonoBehaviour {
 	private int _lastMaxSpeedOptionIndex;
 	private int _selectedMaxSpeedOptionIndex;
 
+	private bool _infoTextMinimized = false;
+
 	// Use this for initialization
 	void Start () {
 
@@ -140,6 +144,7 @@ public class GuiManagerScript : MonoBehaviour {
 		AddPopulationDialogScript.SetVisible (false);
 
 		QuickTipPanelScript.SetVisible (false);
+		InfoTooltipScript.SetVisible (false);
 
 		_mapLeftClickOp += ClickOp_SelectCell;
 		
@@ -1189,6 +1194,11 @@ public class GuiManagerScript : MonoBehaviour {
 		}
 	}
 
+	public void MinimizeInfoText (bool state) {
+
+		_infoTextMinimized = state;
+	}
+
 	public void PauseSimulation (bool state) {
 
 		SetSimulationSpeedStopped (state);
@@ -1499,6 +1509,9 @@ public class GuiManagerScript : MonoBehaviour {
 		World world = Manager.CurrentWorld;
 		
 		InfoPanelText.text = "Year: " + world.CurrentDate;
+
+		if (_infoTextMinimized)
+			return;
 
 		if (Manager.CurrentWorld.SelectedCell != null) {
 			AddCellDataToInfoPanel (Manager.CurrentWorld.SelectedCell);
@@ -2409,5 +2422,10 @@ public class GuiManagerScript : MonoBehaviour {
 		
 			_mapLeftClickOp (pointerData.position);
 		}
+	}
+
+	public void OnMouseOverMap () {
+	
+		InfoTooltipScript.DisplayTip ("Test tip", 5);
 	}
 }

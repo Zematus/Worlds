@@ -1142,9 +1142,9 @@ public class CellGroup : HumanGroup {
 
 	public void SetPolityInfluenceValue (Polity polity, float newInfluenceValue) {
 
+		#if DEBUG
 		RunningFunction_SetPolityInfluence = true;
 
-		#if DEBUG
 		if (Cell.IsSelected) {
 
 			bool debug = true;
@@ -1175,7 +1175,9 @@ public class CellGroup : HumanGroup {
 				polity.AddInfluencedGroup (this);
 			}
 
+			#if DEBUG
 			RunningFunction_SetPolityInfluence = false;
+			#endif
 
 			return;
 		}
@@ -1194,7 +1196,9 @@ public class CellGroup : HumanGroup {
 			TotalPolityInfluenceValue -= oldInfluenceValue;
 			polity.TotalGroupInfluenceValue -= oldInfluenceValue;
 
+			#if DEBUG
 			RunningFunction_SetPolityInfluence = false;
+			#endif
 
 			return;
 		}
@@ -1217,7 +1221,9 @@ public class CellGroup : HumanGroup {
 			(oldInfluenceValue > newInfluenceValue))
 			FindHighestPolityInfluence ();
 
+		#if DEBUG
 		RunningFunction_SetPolityInfluence = false;
+		#endif
 	}
 
 	public void FindHighestPolityInfluence () {
