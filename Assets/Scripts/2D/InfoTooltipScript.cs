@@ -9,7 +9,7 @@ public class InfoTooltipScript : MonoBehaviour {
 	public Text Text;
 
 	private float _fadeStart = 10f;
-	private float _fadespeed = 0.25f;
+	private float _fadespeed = 1f;
 
 	private float _timeSpanned = 0;
 
@@ -54,9 +54,15 @@ public class InfoTooltipScript : MonoBehaviour {
 		gameObject.SetActive (value);
 	}
 
-	public void DisplayTip (string text, float fadeStart) {
+	public void SetPosition (Vector3 position) {
+
+		transform.position = position;
+	}
+
+	public void DisplayTip (string text, Vector3 position, float fadeStart = 5) {
 
 		SetText (text);
+		SetPosition (position);
 		Reset (fadeStart);
 		SetVisible (true);
 	}

@@ -409,6 +409,8 @@ public abstract class Region : ISynchronizable {
 		Debug.Log ("Region #" + Id + " name: " + Name);
 		#endif
 	}
+
+	public abstract TerrainCell GetMostCenteredCell ();
 }
 
 //public class SuperRegion : Region {
@@ -431,6 +433,8 @@ public class CellRegion : Region {
 	private HashSet<TerrainCell> _innerBorderCells = new HashSet<TerrainCell> ();
 
 	private HashSet<TerrainCell> _outerBorderCells = new HashSet<TerrainCell> ();
+
+	private TerrainCell _mostCenteredCell = null;
 
 	public CellRegion () {
 
@@ -576,6 +580,8 @@ public class CellRegion : Region {
 			}
 		}
 
+		CalculateMostCenteredCell ();
+
 		DefineAttributes ();
 	}
 
@@ -693,5 +699,40 @@ public class CellRegion : Region {
 				break;
 			}
 		}
+	}
+
+	private void CalculateMostCenteredCell () {
+
+		int centerLongitude = 0, centerLatitude = 0;
+
+		foreach (TerrainCell cell in _cells) {
+
+			centerLongitude += cell.Longitude;
+			centerLatitude += cell.Latitude;
+		}
+
+		centerLongitude /= _cells.Count;
+		centerLatitude /= _cells.Count;
+
+		TerrainCell closestCell = null;
+		int closestDistCenter = int.MaxValue;
+
+		foreach (TerrainCell cell in _cells) {
+
+			int distCenter = Mathf.Abs(cell.Longitude - centerLongitude) + Mathf.Abs(cell.Latitude - centerLatitude);
+
+			if ((closestCell == null) || (distCenter < closestDistCenter)) {
+
+				closestDistCenter = distCenter;
+				closestCell = cell;
+			}
+		}
+
+		_mostCenteredCell = closestCell;
+	}
+
+	public override TerrainCell GetMostCenteredCell () {
+		
+		return _mostCenteredCell;
 	}
 }

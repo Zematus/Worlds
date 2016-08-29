@@ -8,7 +8,9 @@ using System.IO;
 
 public delegate void PostProgressOperation ();
 
-public delegate void MouseClickOperation (Vector2 position);
+public delegate void PointerClickOperation (Vector2 position);
+
+public delegate void PointerHoverOperation (Vector2 position);
 
 public class GuiManagerScript : MonoBehaviour {
 
@@ -59,6 +61,13 @@ public class GuiManagerScript : MonoBehaviour {
 
 	private bool _displayedTip_mapScroll = false;
 	private bool _displayedTip_initialPopulation = false;
+
+	private bool _mouseIsOverMap = false;
+
+	private Vector3 _tooltipOffset = new Vector3 (0, 0);
+
+	private Territory _lastHoveredOverTerritory = null;
+	private Region _lastHoveredOverRegion = null;
 	
 	private PlanetView _planetView = PlanetView.Biomes;
 
@@ -90,11 +99,9 @@ public class GuiManagerScript : MonoBehaviour {
 
 	private event PostProgressOperation _postProgressOp = null;
 
-	private event MouseClickOperation _mapLeftClickOp = null;
+	private event PointerClickOperation _mapLeftClickOp = null;
 
-	// TODO: delete next two lines
-//	private TerrainCell _previousSelectedCell = null;
-//	private TerrainCell _selectedCell = null;
+	private event PointerHoverOperation _mapHoverOp = null;
 	
 	private const float _maxAccTime = 1.0f;
 	private const float _maxDeltaTimeIterations = 0.02f;
@@ -147,6 +154,7 @@ public class GuiManagerScript : MonoBehaviour {
 		InfoTooltipScript.SetVisible (false);
 
 		_mapLeftClickOp += ClickOp_SelectCell;
+		_mapHoverOp += HoverOp_ShowCellInfoTooltip;
 		
 		if (!Manager.WorldReady) {
 
@@ -293,37 +301,19 @@ public class GuiManagerScript : MonoBehaviour {
 
 		} else if (updateTextures) {
 
-//			if ((_planetOverlay == PlanetOverlay.PopDensity) ||
-//				(_planetOverlay == PlanetOverlay.FarmlandDistribution) ||
-//				(_planetOverlay == PlanetOverlay.PopCulturalActivity) ||
-//				(_planetOverlay == PlanetOverlay.PopCulturalSkill) ||
-//				(_planetOverlay == PlanetOverlay.PopCulturalKnowledge) ||
-//				(_planetOverlay == PlanetOverlay.PopCulturalDiscovery) ||
-//				(_planetOverlay == PlanetOverlay.PolityTerritory) ||
-//				(_planetOverlay == PlanetOverlay.PolityInfluence) ||
-//				(_planetOverlay == PlanetOverlay.PolityCulturalActivity) ||
-//				(_planetOverlay == PlanetOverlay.PolityCulturalKnowledge) ||
-//				(_planetOverlay == PlanetOverlay.PolityCulturalSkill) ||
-//				(_planetOverlay == PlanetOverlay.PolityCulturalDiscovery) ||
-//				(_planetOverlay == PlanetOverlay.PopChange) ||
-//				(_planetOverlay == PlanetOverlay.UpdateSpan) ||
-//				(_planetOverlay == PlanetOverlay.Region)) {
-//				Manager.UpdateTextures ();
-//
-//				_mapUpdateCount++;
-//			}
-
 			Manager.UpdateTextures ();
 
 			_mapUpdateCount++;
 		}
 
-		// TODO: Remove next line
-//		DisplaySelectedCellOverlay ();
-
 		if (MapImage.enabled) {
 			UpdateInfoPanel();
 			UpdateSelectionMenu();
+		}
+
+		if (_mouseIsOverMap) {
+
+			ExecuteMapHoverOp ();
 		}
 	}
 
@@ -533,7 +523,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 		Vector2 mapCoordinates;
 
-		if (!GetMapCoordinatesFromMousePosition (position, out mapCoordinates))
+		if (!GetMapCoordinatesFromPointerPosition (position, out mapCoordinates))
 			return;
 
 		int longitude = (int)mapCoordinates.x;
@@ -542,22 +532,6 @@ public class GuiManagerScript : MonoBehaviour {
 		TerrainCell selectedCell = Manager.CurrentWorld.GetCell (longitude, latitude);
 
 		Manager.SetSelectedCell (selectedCell);
-
-		// TODO: delete next commented lines
-//		_previousSelectedCell = _selectedCell;
-//
-//		if (_previousSelectedCell != null) {
-//			_previousSelectedCell.IsSelected = false;
-//			_previousSelectedCell.World.SelectedCell = null;
-//		}
-//
-//		if (_previousSelectedCell == selectedCell) {
-//			_selectedCell = null;
-//		} else {
-//			_selectedCell = selectedCell;
-//			selectedCell.IsSelected = true;
-//			selectedCell.World.SelectedCell = selectedCell;
-//		}
 	}
 
 	public void ClickOp_SelectPopulationPlacement (Vector2 position) {
@@ -566,7 +540,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 		Vector2 point;
 		
-		if (GetMapCoordinatesFromMousePosition (out point)) {
+		if (GetMapCoordinatesFromPointerPosition (out point)) {
 			if (AddPopulationGroupAtPosition (point, population)) {
 				
 				InterruptSimulation (false);
@@ -1488,22 +1462,6 @@ public class GuiManagerScript : MonoBehaviour {
 		ViewsDialogPanelScript.SetVisible (false);
 	}
 
-	// TODO: delete commented function
-//	public void DisplaySelectedCellOverlay () {
-//
-//		if (_previousSelectedCell == _selectedCell)
-//			return;
-//
-//		if (_previousSelectedCell != null) {
-//			Manager.DisplayCellData (_previousSelectedCell, false);
-//		}
-//	
-//		if (_selectedCell == null)
-//			return;
-//
-//		Manager.DisplayCellData (_selectedCell, true);
-//	}
-
 	public void UpdateInfoPanel () {
 		
 		World world = Manager.CurrentWorld;
@@ -2344,11 +2302,90 @@ public class GuiManagerScript : MonoBehaviour {
 		AddCellDataToInfoPanel (longitude, latitude);
 	}
 
-	public bool GetMapCoordinatesFromMousePosition (Vector2 mousePosition, out Vector2 mapPosition) {
+	public void HoverOp_ShowCellInfoTooltip (Vector2 position) {
+
+		Vector2 mapCoordinates;
+
+		if (!GetMapCoordinatesFromPointerPosition (position, out mapCoordinates))
+			return;
+
+		int longitude = (int)mapCoordinates.x;
+		int latitude = (int)mapCoordinates.y;
+
+		TerrainCell hoveredCell = Manager.CurrentWorld.GetCell (longitude, latitude);
+
+		switch (_planetOverlay) {
+
+		case PlanetOverlay.PolityTerritory:
+
+			ShowCellInfoToolTip_PolityTerritory (hoveredCell);
+			break;
+
+		case PlanetOverlay.Region:
+
+			ShowCellInfoToolTip_Region (hoveredCell);
+			break;
+		}
+	}
+
+	public void ShowCellInfoToolTip_PolityTerritory (TerrainCell cell) {
+
+		if (cell.EncompassingTerritory == _lastHoveredOverTerritory)
+			return;
+
+		_lastHoveredOverTerritory = cell.EncompassingTerritory;
+
+		if (_lastHoveredOverTerritory == null) {
+		
+			InfoTooltipScript.SetVisible (false);
+			return;
+		}
+
+		Polity polity = _lastHoveredOverTerritory.Polity;
+
+		Vector3 tooltipPos = GetScreenPositionFromMapCoordinates(polity.CoreGroup.Cell.Position) + _tooltipOffset;
+
+		InfoTooltipScript.DisplayTip (polity.Name.Text, tooltipPos);
+	}
+
+	public void ShowCellInfoToolTip_Region (TerrainCell cell) {
+
+		if (cell.Region == _lastHoveredOverRegion)
+			return;
+
+		_lastHoveredOverRegion = cell.Region;
+
+		if (_lastHoveredOverRegion == null) {
+
+			InfoTooltipScript.SetVisible (false);
+			return;
+		}
+
+		WorldPosition regionCenterCellPosition = _lastHoveredOverRegion.GetMostCenteredCell ().Position;
+
+		Vector3 tooltipPos = GetScreenPositionFromMapCoordinates(regionCenterCellPosition) + _tooltipOffset;
+
+		InfoTooltipScript.DisplayTip (_lastHoveredOverRegion.Name.Text, tooltipPos);
+	}
+
+	public Vector3 GetScreenPositionFromMapCoordinates (WorldPosition mapPosition) {
+
+		Rect mapImageRect = MapImage.rectTransform.rect;
+
+		Vector2 normalizedMapPos = new Vector2 (mapPosition.Longitude / (float) Manager.CurrentWorld.Width, mapPosition.Latitude / (float) Manager.CurrentWorld.Height);
+
+		Vector2 mapImagePos = normalizedMapPos - MapImage.uvRect.min;
+
+		mapImagePos.Scale (mapImageRect.size);
+
+		return MapImage.rectTransform.TransformPoint (mapImagePos + mapImageRect.min);
+	}
+
+	public bool GetMapCoordinatesFromPointerPosition (Vector2 pointerPosition, out Vector2 mapPosition) {
 
 		Rect mapImageRect = MapImage.rectTransform.rect;
 		
-		Vector3 positionOverMapRect3D = MapImage.rectTransform.InverseTransformPoint (mousePosition);
+		Vector3 positionOverMapRect3D = MapImage.rectTransform.InverseTransformPoint (pointerPosition);
 		
 		Vector2 positionOverMapRect = new Vector2 (positionOverMapRect3D.x, positionOverMapRect3D.y);
 		
@@ -2373,9 +2410,9 @@ public class GuiManagerScript : MonoBehaviour {
 		return false;
 	}
 	
-	public bool GetMapCoordinatesFromMousePosition (out Vector2 mapPosition) {
+	public bool GetMapCoordinatesFromPointerPosition (out Vector2 mapPosition) {
 
-		return GetMapCoordinatesFromMousePosition (Input.mousePosition, out mapPosition);
+		return GetMapCoordinatesFromPointerPosition (Input.mousePosition, out mapPosition);
 	}
 	
 	public void DragMap (BaseEventData data) {
@@ -2424,8 +2461,21 @@ public class GuiManagerScript : MonoBehaviour {
 		}
 	}
 
-	public void OnMouseOverMap () {
-	
-		InfoTooltipScript.DisplayTip ("Test tip", 5);
+	public void ExecuteMapHoverOp () {
+
+		if (_mapHoverOp != null) {
+
+			_mapHoverOp (Input.mousePosition);
+		}
+	}
+
+	public void PointerEntersMap (BaseEventData data) {
+
+		_mouseIsOverMap = true;
+	}
+
+	public void PointerExitsMap (BaseEventData data) {
+
+		_mouseIsOverMap = false;
 	}
 }

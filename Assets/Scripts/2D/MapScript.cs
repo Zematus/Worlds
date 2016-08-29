@@ -9,8 +9,6 @@ public class MapScript : MonoBehaviour {
 	public RawImage Image;
 	public GameObject InfoPanel;
 
-	public UnityEvent MouseOverEvent;
-
 	// Use this for initialization
 	void Start () {
 
@@ -18,11 +16,6 @@ public class MapScript : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-		
-		if (EventSystem.current.IsPointerOverGameObject()) {
-			
-			MouseOverEvent.Invoke ();
-		}
 	}
 
 	public void SetVisible (bool value) {
