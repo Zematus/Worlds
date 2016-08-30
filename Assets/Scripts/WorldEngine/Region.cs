@@ -405,9 +405,9 @@ public abstract class Region : ISynchronizable {
 
 		Name = new Name (namePhrase, untranslatedName, polityLanguage, World);
 
-		#if DEBUG
-		Debug.Log ("Region #" + Id + " name: " + Name);
-		#endif
+//		#if DEBUG
+//		Debug.Log ("Region #" + Id + " name: " + Name);
+//		#endif
 	}
 
 	public abstract TerrainCell GetMostCenteredCell ();

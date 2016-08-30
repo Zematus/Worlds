@@ -2375,6 +2375,7 @@ public class GuiManagerScript : MonoBehaviour {
 		Vector2 normalizedMapPos = new Vector2 (mapPosition.Longitude / (float) Manager.CurrentWorld.Width, mapPosition.Latitude / (float) Manager.CurrentWorld.Height);
 
 		Vector2 mapImagePos = normalizedMapPos - MapImage.uvRect.min;
+		mapImagePos.x = Mathf.Repeat (mapImagePos.x, 1.0f);
 
 		mapImagePos.Scale (mapImageRect.size);
 

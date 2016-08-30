@@ -296,6 +296,8 @@ public class PolityCulture : Culture {
 
 		Language.GenerateAdpositionAdjunctionProperties (GetNextRandomFloat);
 		Language.GenerateAdpositionSyllables (GetNextRandomFloat);
+
+		World.AddLanguage (Language);
 	}
 
 	public void Update () {

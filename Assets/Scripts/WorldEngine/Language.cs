@@ -1585,13 +1585,22 @@ public class Language : ISynchronizable {
 	public void FinalizeLoad () {
 
 		_articles = new Dictionary<string, Word> (Articles.Count);
+		_indicatives = new Dictionary<string, Word> (Indicatives.Count);
 
 		foreach (Word word in Articles) {
 			_articles.Add (word.Meaning, word);
 		}
 
+		foreach (Word word in Indicatives) {
+			_indicatives.Add (word.Meaning, word);
+		}
+
 		foreach (Word word in Adpositions) {
 			_adpositions.Add (word.Meaning, word);
+		}
+
+		foreach (Word word in Adjectives) {
+			_adjectives.Add (word.Meaning, word);
 		}
 
 		foreach (Word word in Nouns) {

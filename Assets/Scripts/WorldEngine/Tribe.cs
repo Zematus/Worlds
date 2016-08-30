@@ -55,8 +55,8 @@ public class Tribe : Polity {
 
 		Name = new Name (namePhrase, untranslatedName, Culture.Language, World);
 
-		#if DEBUG
-		Debug.Log ("Tribe #" + Id + " name: " + Name);
-		#endif
+//		#if DEBUG
+//		Debug.Log ("Tribe #" + Id + " name: " + Name);
+//		#endif
 	}
 }
