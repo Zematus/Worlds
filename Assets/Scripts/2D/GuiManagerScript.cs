@@ -1562,13 +1562,13 @@ public class GuiManagerScript : MonoBehaviour {
 		InfoPanelText.text += "\nAttributes: ";
 
 		bool first = true;
-		foreach (string attrName in region.AttributeNounNames) {
+		foreach (RegionAttributeNoun attr in region.AttributeNouns) {
 
 			if (first) {
-				InfoPanelText.text += attrName;
+				InfoPanelText.text += attr.Name;
 				first = false;
 			} else {
-				InfoPanelText.text += ", " + attrName;
+				InfoPanelText.text += ", " + attr.Name;
 			}
 		}
 
@@ -2343,7 +2343,23 @@ public class GuiManagerScript : MonoBehaviour {
 
 		Polity polity = _lastHoveredOverTerritory.Polity;
 
+		if (polity == null) {
+
+			throw new System.Exception ("Polity can't be null");
+		}
+
 		Vector3 tooltipPos = GetScreenPositionFromMapCoordinates(polity.CoreGroup.Cell.Position) + _tooltipOffset;
+
+		if (polity.Name == null) {
+
+			throw new System.Exception ("Polity.Name can't be null");
+
+		} 
+
+		if (polity.Name.Text == null) {
+
+			throw new System.Exception ("polity.Name.Text can't be null");
+		}
 
 		InfoTooltipScript.DisplayTip (polity.Name.Text, tooltipPos);
 	}

@@ -80,7 +80,7 @@ public class LanguageGenerationTest : AutomatedTest {
 
 			entry += "\nArticle properties: " + Language.NounAdjunctionPropertiesToString (language.ArticleAdjunctionProperties);
 			entry += "\nArticles:";
-			foreach (Language.Word word in language.Articles) {
+			foreach (Language.Morpheme word in language.Articles) {
 
 				entry += "\n    " + word.Meaning + " : " + word.Value;
 			}
@@ -94,7 +94,7 @@ public class LanguageGenerationTest : AutomatedTest {
 
 			entry += "\nIndicative properties: " + Language.NounAdjunctionPropertiesToString (language.IndicativeAdjunctionProperties);
 			entry += "\nIndicatives:";
-			foreach (Language.Word word in language.Indicatives) {
+			foreach (Language.Morpheme word in language.Indicatives) {
 
 				entry += "\n    " + word.Meaning + " : " + word.Value;
 			}
@@ -111,7 +111,7 @@ public class LanguageGenerationTest : AutomatedTest {
 			language.GenerateAdposition ("beyond", GetRandomFloat);
 
 			entry += "\nGenerated adpositions:";
-			foreach (Language.Word word in language.Adpositions) {
+			foreach (Language.Morpheme word in language.Adpositions) {
 
 				entry += "\n    " + word.Meaning + " : " + word.Value;
 			}
@@ -143,7 +143,7 @@ public class LanguageGenerationTest : AutomatedTest {
 
 			entry += "\nGenerated adjectives:";
 			entry += "\n";
-			foreach (Language.Word word in language.Adjectives) {
+			foreach (Language.Morpheme word in language.Adjectives) {
 
 				entry += "\n\t" + word.Meaning + " : " + word.Value + " (Properties: " + Language.WordPropertiesToString (word.Properties) + ")";
 				entry += "\n";
@@ -152,7 +152,7 @@ public class LanguageGenerationTest : AutomatedTest {
 
 			entry += "\nGenerated nouns:";
 			entry += "\n";
-			foreach (Language.Word word in language.Nouns) {
+			foreach (Language.Morpheme word in language.Nouns) {
 
 				entry += "\n\t" + word.Meaning + " : " + word.Value + " (Properties: " + Language.WordPropertiesToString (word.Properties) + ")";
 				entry += "\n";

@@ -57,10 +57,13 @@ public class Territory : ISynchronizable {
 		return _borderCells.Contains (cell);
 	}
 
-	public bool AddCell (TerrainCell cell) {
+	public void AddCell (TerrainCell cell) {
 
-		if (!_cells.Add (cell))
-			return false;
+		if (!_cells.Add (cell)) {
+
+			Debug.Break ();
+			throw new System.Exception ("Trying to add cell that has already been added");
+		}
 
 		cell.EncompassingTerritory = this;
 		Manager.AddUpdatedCell (cell, CellUpdateType.Territory);
@@ -68,15 +71,15 @@ public class Territory : ISynchronizable {
 		if (IsPartOfBorderInternal (cell)) {
 		
 			_borderCells.Add (cell);
+		}
 
-			foreach (TerrainCell nCell in cell.Neighbors.Values) {
-			
-				if (_borderCells.Contains (nCell)) {
-				
-					if (!IsPartOfBorderInternal (nCell)) {
-						_borderCells.Remove (nCell);
-						Manager.AddUpdatedCell (nCell, CellUpdateType.Territory);
-					}
+		foreach (TerrainCell nCell in cell.Neighbors.Values) {
+
+			if (_borderCells.Contains (nCell)) {
+
+				if (!IsPartOfBorderInternal (nCell)) {
+					_borderCells.Remove (nCell);
+					Manager.AddUpdatedCell (nCell, CellUpdateType.Territory);
 				}
 			}
 		}
@@ -92,14 +95,15 @@ public class Territory : ISynchronizable {
 				World.AddRegion (cellRegion);
 			}
 		}
-
-		return true;
 	}
 
-	public bool RemoveCell (TerrainCell cell) {
+	public void RemoveCell (TerrainCell cell) {
 
-		if (!_cells.Remove (cell))
-			return false;
+		if (!_cells.Remove (cell)) {
+
+			Debug.Break ();
+			throw new System.Exception ("Trying to remove cell that has already been removed");
+		}
 
 		cell.EncompassingTerritory = null;
 		Manager.AddUpdatedCell (cell, CellUpdateType.Territory);
@@ -107,18 +111,16 @@ public class Territory : ISynchronizable {
 		if (_borderCells.Contains (cell)) {
 
 			_borderCells.Remove (cell);
-
-			foreach (TerrainCell nCell in cell.Neighbors.Values) {
-
-				if (IsPartOfBorderInternal (nCell)) {
-
-					_borderCells.Add (nCell);
-					Manager.AddUpdatedCell (nCell, CellUpdateType.Territory);
-				}
-			}
 		}
 
-		return true;
+		foreach (TerrainCell nCell in cell.Neighbors.Values) {
+
+			if (IsPartOfBorderInternal (nCell)) {
+
+				_borderCells.Add (nCell);
+				Manager.AddUpdatedCell (nCell, CellUpdateType.Territory);
+			}
+		}
 	}
 
 	public void Synchronize () {
@@ -138,6 +140,7 @@ public class Territory : ISynchronizable {
 			TerrainCell cell = World.GetCell (position);
 
 			if (cell == null) {
+				Debug.Break ();
 				throw new System.Exception ("Cell missing at position " + position.Longitude + "," + position.Latitude);
 			}
 

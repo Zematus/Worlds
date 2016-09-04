@@ -22,44 +22,44 @@ public class CellGroup : HumanGroup {
 	public const float SeaTravelBaseFactor = 0.025f;
 
 	[XmlAttribute]
+	public long Id;
+
+	[XmlAttribute("PrevExPop")]
 	public float PreviousExactPopulation;
 	
-	[XmlAttribute]
+	[XmlAttribute("ExPop")]
 	public float ExactPopulation;
 	
-	[XmlAttribute]
-	public long Id;
-	
-	[XmlAttribute]
+	[XmlAttribute("StilPres")]
 	public bool StillPresent = true;
 	
-	[XmlAttribute]
+	[XmlAttribute("LastUpDate")]
 	public int LastUpdateDate;
 	
-	[XmlAttribute]
+	[XmlAttribute("NextUpDate")]
 	public int NextUpdateDate;
 	
-	[XmlAttribute]
+	[XmlAttribute("OptPop")]
 	public int OptimalPopulation;
 	
-	[XmlAttribute]
-	public int CellLongitude;
-	[XmlAttribute]
-	public int CellLatitude;
+	[XmlAttribute("Lon")]
+	public int Longitude;
+	[XmlAttribute("Lat")]
+	public int Latitude;
 	
-	[XmlAttribute]
+	[XmlAttribute("HasMigEv")]
 	public bool HasMigrationEvent = false;
 
-	[XmlAttribute]
+	[XmlAttribute("SeaTrFac")]
 	public float SeaTravelFactor = 0;
 
-	[XmlAttribute]
+	[XmlAttribute("TotalPolInfVal")]
 	public float TotalPolityInfluenceValue = 0;
 
-	[XmlAttribute]
-	public float CellMigrationValue;
+	[XmlAttribute("MigVal")]
+	public float MigrationValue;
 
-	[XmlAttribute]
+	[XmlAttribute("TotalMigVal")]
 	public float TotalMigrationValue;
 
 	public Route SeaMigrationRoute = null;
@@ -149,8 +149,8 @@ public class CellGroup : HumanGroup {
 		LastUpdateDate = World.CurrentDate;
 
 		Cell = cell;
-		CellLongitude = cell.Longitude;
-		CellLatitude = cell.Latitude;
+		Longitude = cell.Longitude;
+		Latitude = cell.Latitude;
 
 		Cell.Group = this;
 
@@ -591,16 +591,16 @@ public class CellGroup : HumanGroup {
 
 	public void InitializeLocalMigrationValue () {
 
-		CellMigrationValue = 1;
+		MigrationValue = 1;
 
 		TotalMigrationValue = 1;
 	}
 
 	public void CalculateLocalMigrationValue () {
 
-		CellMigrationValue = CalculateMigrationValue (Cell);
+		MigrationValue = CalculateMigrationValue (Cell);
 
-		TotalMigrationValue = CellMigrationValue;
+		TotalMigrationValue = MigrationValue;
 	}
 	
 	public void ConsiderLandMigration () {
@@ -608,7 +608,7 @@ public class CellGroup : HumanGroup {
 		if (HasMigrationEvent)
 			return;
 		
-		_cellMigrationValues [Cell] = CellMigrationValue;
+		_cellMigrationValues [Cell] = MigrationValue;
 
 		foreach (TerrainCell c in Cell.Neighbors.Values) {
 			
@@ -1059,7 +1059,7 @@ public class CellGroup : HumanGroup {
 		float migrationFactor = 0;
 
 		if (TotalMigrationValue > 0) {
-			migrationFactor = CellMigrationValue / TotalMigrationValue;
+			migrationFactor = MigrationValue / TotalMigrationValue;
 			migrationFactor = Mathf.Pow (migrationFactor, 4);
 		}
 
@@ -1273,7 +1273,7 @@ public class CellGroup : HumanGroup {
 
 		Flags.ForEach (f => _flags.Add (f));
 
-		Cell = World.GetCell (CellLongitude, CellLatitude);
+		Cell = World.GetCell (Longitude, Latitude);
 
 		Cell.Group = this;
 
@@ -1293,7 +1293,7 @@ public class CellGroup : HumanGroup {
 			SeaMigrationRoute.FinalizeLoad ();
 		}
 
-		PolityInfluences.ForEach (p => {
+		foreach (PolityInfluence p in PolityInfluences) {
 		
 			p.Polity = World.GetPolity (p.PolityId);
 
@@ -1303,7 +1303,9 @@ public class CellGroup : HumanGroup {
 
 			_polityInfluences.Add (p.PolityId, p);
 
-			ValidateAndSetHighestPolityInfluence (p);
-		});
+			if ((HighestPolityInfluence == null)  || (HighestPolityInfluence.Value < p.Value)) {
+				HighestPolityInfluence = p;
+			}
+		}
 	}
 }

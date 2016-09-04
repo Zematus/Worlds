@@ -128,7 +128,8 @@ public abstract class Region : ISynchronizable {
 
 	public Name Name;
 
-	public List<string> AttributeNounNames = new List<string>();
+	[XmlIgnore]
+	public List<RegionAttributeNoun> AttributeNouns = new List<RegionAttributeNoun>();
 
 	[XmlIgnore]
 	public bool IsSelected = false;
@@ -181,8 +182,6 @@ public abstract class Region : ISynchronizable {
 
 	protected Dictionary<string, float> _biomePresences;
 
-	private List<RegionAttributeNoun> _attributeNouns = new List<RegionAttributeNoun>();
-
 	public Region () {
 
 	}
@@ -200,30 +199,12 @@ public abstract class Region : ISynchronizable {
 
 	public virtual void Synchronize () {
 
-		#if DEBUG
-		if (Name == null) {
-		
-			throw new System.Exception ("Name can't be null");
-		}
-		#endif
-
 		Name.Synchronize ();
 	}
 
 	public virtual void FinalizeLoad () {
 
-		#if DEBUG
-		if (Name == null) {
-
-			throw new System.Exception ("Name can't be null");
-		}
-		#endif
-
-		foreach (string attrName in AttributeNounNames) {
-		
-			_attributeNouns.Add (RegionAttributeNoun.Attributes[attrName]);
-		}
-
+		Name.World = World;
 		Name.FinalizeLoad ();
 	}
 
@@ -341,21 +322,20 @@ public abstract class Region : ISynchronizable {
 	}
 
 	protected void AddAttribute (RegionAttributeNoun attr) {
-	
-		AttributeNounNames.Add (attr.Name);
-		_attributeNouns.Add (attr);
+
+		AttributeNouns.Add (attr);
 	}
 
 	public string GetRandomAttributeVariation (RegionAttributeNoun.GetRandomIntDelegate getRandomInt) {
 
-		if (_attributeNouns.Count <= 0) {
+		if (AttributeNouns.Count <= 0) {
 		
 			return string.Empty;
 		}
 
-		int index = getRandomInt (_attributeNouns.Count);
+		int index = getRandomInt (AttributeNouns.Count);
 
-		return _attributeNouns [index].GetRandomVariation (getRandomInt);
+		return AttributeNouns [index].GetRandomVariation (getRandomInt);
 	}
 
 	public void GenerateName (Polity polity) {
@@ -367,7 +347,7 @@ public abstract class Region : ISynchronizable {
 		string untranslatedName;
 		Language.NounPhrase namePhrase;
 
-		if (_attributeNouns.Count <= 0) {
+		if (AttributeNouns.Count <= 0) {
 
 			untranslatedName = "the region";
 			namePhrase = polityLanguage.TranslateNounPhrase (untranslatedName, coreGroup.GetNextLocalRandomFloat);
@@ -377,25 +357,25 @@ public abstract class Region : ISynchronizable {
 			return;
 		}
 
-		List<RegionAttributeNoun> attributes = new List<RegionAttributeNoun> (_attributeNouns);
+		List<RegionAttributeNoun> attributeNouns = new List<RegionAttributeNoun> (AttributeNouns);
 
-		int index = coreGroup.GetNextLocalRandomInt (attributes.Count);
+		int index = coreGroup.GetNextLocalRandomInt (attributeNouns.Count);
 
-		RegionAttributeNoun primaryAttribute = attributes [index];
+		RegionAttributeNoun primaryAttribute = attributeNouns [index];
 
-		attributes.RemoveAt (index);
+		attributeNouns.RemoveAt (index);
 
 		string primaryTitle = primaryAttribute.GetRandomVariation (coreGroup.GetNextLocalRandomInt);
 
 		string secondaryTitle = string.Empty;
 
-		if ((attributes.Count > 0) && (coreGroup.GetNextLocalRandomFloat () < 0.5f)) {
+		if ((attributeNouns.Count > 0) && (coreGroup.GetNextLocalRandomFloat () < 0.5f)) {
 
-			index = coreGroup.GetNextLocalRandomInt (attributes.Count);
+			index = coreGroup.GetNextLocalRandomInt (attributeNouns.Count);
 
-			RegionAttributeNoun secondaryAttribute = attributes [index];
+			RegionAttributeNoun secondaryAttribute = attributeNouns [index];
 
-			attributes.RemoveAt (index);
+			attributeNouns.RemoveAt (index);
 
 			secondaryTitle = "[nad]" + secondaryAttribute.GetRandomVariation (coreGroup.GetNextLocalRandomInt) + " ";
 		}

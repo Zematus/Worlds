@@ -236,6 +236,7 @@ public abstract class Polity : ISynchronizable {
 
 	public virtual void FinalizeLoad () {
 
+		Name.World = World;
 		Name.FinalizeLoad ();
 
 		CoreGroup = World.GetGroup (CoreGroupId);

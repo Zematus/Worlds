@@ -294,7 +294,7 @@ public class MigrateGroupEvent : CellGroupEvent {
 			throw new System.Exception ("Total Migration Value equal or less than zero: " + Group.TotalMigrationValue);
 		}
 
-		float percentToMigrate = (1 - Group.CellMigrationValue/Group.TotalMigrationValue) * Group.Cell.GetNextLocalRandomFloat ();
+		float percentToMigrate = (1 - Group.MigrationValue/Group.TotalMigrationValue) * Group.Cell.GetNextLocalRandomFloat ();
 		percentToMigrate = Mathf.Pow (percentToMigrate, 4);
 
 		percentToMigrate = Mathf.Clamp01 (percentToMigrate);

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Linq;
 using System.Xml.Serialization;
+using System.ComponentModel;
 
 public class Language : ISynchronizable {
 
@@ -12,7 +13,7 @@ public class Language : ISynchronizable {
 
 	public delegate float GetRandomFloatDelegate ();
 
-	public class Phrase {
+	public class Phrase : ISynchronizable {
 
 		[XmlAttribute]
 		public string Original;
@@ -20,22 +21,61 @@ public class Language : ISynchronizable {
 		public string Meaning;
 		[XmlAttribute]
 		public string Text;
+
+		public virtual void Synchronize () {
+
+		}
+
+		public virtual void FinalizeLoad () {
+			
+		}
 	}
 
 	public class NounPhrase : Phrase {
 
+		[XmlAttribute("Properties")]
+		public int PropertiesInt;
+
+		[XmlIgnore]
 		public PhraseProperties Properties;
+
+		public override void Synchronize () {
+
+			PropertiesInt = (int)Properties;
+		}
+
+		public override void FinalizeLoad () {
+
+			Properties = (PhraseProperties)PropertiesInt;
+		}
 	}
 
-	public class Word {
+	public class Morpheme : ISynchronizable {
 
 		[XmlAttribute]
 		public string Meaning;
 		[XmlAttribute]
 		public string Value;
 
+
+		[XmlAttribute]
 		public WordType Type;
-		public WordProperties Properties;
+
+		[XmlAttribute("Properties")]
+		public int PropertiesInt;
+
+		[XmlIgnore]
+		public MorphemeProperties Properties;
+
+		public void Synchronize () {
+
+			PropertiesInt = (int)Properties;
+		}
+
+		public void FinalizeLoad () {
+
+			Properties = (MorphemeProperties)PropertiesInt;
+		}
 	}
 
 	public class ParsedWord {
@@ -132,7 +172,7 @@ public class Language : ISynchronizable {
 		GoesAfterNounAndLinkedWithDash = 0x06
 	}
 
-	public enum WordProperties
+	public enum MorphemeProperties
 	{
 		None = 0x00,
 		Plural = 0x01,
@@ -186,19 +226,39 @@ public class Language : ISynchronizable {
 	public static Regex ArticleRegex = new Regex (@"^((?<def>the)|(?<indef>(a|an)))$");
 	public static Regex PluralIndicativeRegex = new Regex (@"^(es|s)$");
 
-	private static Regex NucleousStartRegex = new Regex (@"^[aeiou]w*"); 
-
 //	public GeneralGenderProperties GenderProperties;
-	public GeneralArticleProperties ArticleProperties;
-	public GeneralIndicativeProperties IndicativeProperties;
+
+	[XmlAttribute("ArticleProperties")]
+	public int ArticlePropertiesInt;
+	[XmlAttribute("IndicativeProperties")]
+	public int IndicativePropertiesInt;
+
+	private GeneralArticleProperties _articleProperties;
+	private GeneralIndicativeProperties _indicativeProperties;
 
 //	public GeneralTypeProperties ArticleTypeProperties;
 //	public GeneralTypeProperties AdpositionTypeProperties;
 
+	[XmlAttribute("ArticleAdjunctionProperties")]
+	public int ArticleAdjunctionPropertiesInt;
+	[XmlAttribute("IndicativeAdjunctionProperties")]
+	public int IndicativeAdjunctionPropertiesInt;
+	[XmlAttribute("AdpositionAdjunctionProperties")]
+	public int AdpositionAdjunctionPropertiesInt;
+	[XmlAttribute("AdjectiveAdjunctionProperties")]
+	public int AdjectiveAdjunctionPropertiesInt;
+	[XmlAttribute("NounAdjunctionProperties")]
+	public int NounAdjunctionPropertiesInt;
+
+	[XmlIgnore]
 	public AdjunctionProperties ArticleAdjunctionProperties;
+	[XmlIgnore]
 	public AdjunctionProperties IndicativeAdjunctionProperties;
+	[XmlIgnore]
 	public AdjunctionProperties AdpositionAdjunctionProperties;
+	[XmlIgnore]
 	public AdjunctionProperties AdjectiveAdjunctionProperties;
+	[XmlIgnore]
 	public AdjunctionProperties NounAdjunctionProperties;
 
 	public string[] ArticleStartSyllables;
@@ -216,17 +276,17 @@ public class Language : ISynchronizable {
 	public string[] NounStartSyllables;
 	public string[] NounNextSyllables;
 
-	public List<Word> Articles;
-	public List<Word> Indicatives;
-	public List<Word> Adpositions = new List<Word> ();
-	public List<Word> Adjectives = new List<Word> ();
-	public List<Word> Nouns = new List<Word> ();
+	public List<Morpheme> Articles;
+	public List<Morpheme> Indicatives;
+	public List<Morpheme> Adpositions = new List<Morpheme> ();
+	public List<Morpheme> Adjectives = new List<Morpheme> ();
+	public List<Morpheme> Nouns = new List<Morpheme> ();
 
-	private Dictionary<string, Word> _articles;
-	private Dictionary<string, Word> _indicatives;
-	private Dictionary<string, Word> _adpositions = new Dictionary<string, Word> ();
-	private Dictionary<string, Word> _adjectives = new Dictionary<string, Word> ();
-	private Dictionary<string, Word> _nouns = new Dictionary<string, Word> ();
+	private Dictionary<string, Morpheme> _articles;
+	private Dictionary<string, Morpheme> _indicatives;
+	private Dictionary<string, Morpheme> _adpositions = new Dictionary<string, Morpheme> ();
+	private Dictionary<string, Morpheme> _adjectives = new Dictionary<string, Morpheme> ();
+	private Dictionary<string, Morpheme> _nouns = new Dictionary<string, Morpheme> ();
 
 	public Language () {
 		
@@ -319,12 +379,12 @@ public class Language : ISynchronizable {
 		return syllables;
 	}
 
-	public static string GenerateSimpleWord (string[] startSyllables, string[] nextSyllables, float addSyllableChanceDecay, GetRandomFloatDelegate getRandomFloat) {
+	public static string GenerateMorpheme (string[] startSyllables, string[] nextSyllables, float addSyllableChanceDecay, GetRandomFloatDelegate getRandomFloat) {
 
 		float addSyllableChance = 1;
 		bool first = true;
 
-		string word = "";
+		string morpheme = "";
 
 		while (getRandomFloat () < addSyllableChance) {
 
@@ -341,12 +401,12 @@ public class Language : ISynchronizable {
 				throw new System.Exception ("syllable index out of bounds");
 			}
 
-			word += syllables[syllableIndex];
+			morpheme += syllables[syllableIndex];
 
 			addSyllableChance *= addSyllableChanceDecay * addSyllableChanceDecay;
 		}
 
-		return word;
+		return morpheme;
 	}
 
 	public static string GenerateDerivatedWord (
@@ -365,15 +425,15 @@ public class Language : ISynchronizable {
 
 		if (randomFloat >= (1f - replaceChance)) {
 		
-			return GenerateSimpleWord (startSyllables, nextSyllables, addSyllableChanceDecay, getRandomFloat);
+			return GenerateMorpheme (startSyllables, nextSyllables, addSyllableChanceDecay, getRandomFloat);
 		}
 
 		if (getRandomFloat () < 0.5f) {
 		
-			return GenerateSimpleWord (startSyllables, nextSyllables, addSyllableChanceDecay, getRandomFloat) + rootWord;
+			return GenerateMorpheme (startSyllables, nextSyllables, addSyllableChanceDecay, getRandomFloat) + rootWord;
 		}
 
-		return rootWord + GenerateSimpleWord (nextSyllables, nextSyllables, addSyllableChanceDecay, getRandomFloat);
+		return rootWord + GenerateMorpheme (nextSyllables, nextSyllables, addSyllableChanceDecay, getRandomFloat);
 	}
 
 	public static AdjunctionProperties GenerateAdjunctionProperties (GetRandomFloatDelegate getRandomFloat) {
@@ -441,47 +501,47 @@ public class Language : ISynchronizable {
 		return output;
 	}
 
-	public static Word GenerateArticle (string[] startSyllables, string[] nextSyllables, WordProperties properties, GetRandomFloatDelegate getRandomFloat) {
+	public static Morpheme GenerateArticle (string[] startSyllables, string[] nextSyllables, MorphemeProperties properties, GetRandomFloatDelegate getRandomFloat) {
 
-		Word word = new Word ();
-		word.Value = GenerateSimpleWord (startSyllables, nextSyllables, 0.0f, getRandomFloat);
-		word.Properties = properties;
-		word.Type = WordType.Article;
+		Morpheme morpheme = new Morpheme ();
+		morpheme.Value = GenerateMorpheme (startSyllables, nextSyllables, 0.0f, getRandomFloat);
+		morpheme.Properties = properties;
+		morpheme.Type = WordType.Article;
 
-		return word;
+		return morpheme;
 	}
 
-	public static Word GenerateDerivatedArticle (
-		Word rootArticle, 
+	public static Morpheme GenerateDerivatedArticle (
+		Morpheme rootArticle, 
 		string[] startSyllables, 
 		string[] nextSyllables, 
-		WordProperties properties, 
+		MorphemeProperties properties, 
 		GetRandomFloatDelegate getRandomFloat) {
 
-		Word word = new Word ();
-		word.Value = GenerateDerivatedWord (rootArticle.Value, 0.4f, 0.5f, startSyllables, nextSyllables, 0.0f, getRandomFloat);
-		word.Properties = rootArticle.Properties | properties;
-		word.Type = WordType.Article;
+		Morpheme morpheme = new Morpheme ();
+		morpheme.Value = GenerateDerivatedWord (rootArticle.Value, 0.4f, 0.5f, startSyllables, nextSyllables, 0.0f, getRandomFloat);
+		morpheme.Properties = rootArticle.Properties | properties;
+		morpheme.Type = WordType.Article;
 
-		return word;
+		return morpheme;
 	}
 
 	public static void GenerateGenderedArticles (
-		Word root,
+		Morpheme root,
 		string[] startSyllables, 
 		string[] nextSyllables,
 		GetRandomFloatDelegate getRandomFloat, 
-		out Word masculine, 
-		out Word femenine,
-		out Word neutral) {
+		out Morpheme masculine, 
+		out Morpheme femenine,
+		out Morpheme neutral) {
 
-		Word firstVariant = GenerateDerivatedArticle (root, startSyllables, nextSyllables, WordProperties.None, getRandomFloat);
+		Morpheme firstVariant = GenerateDerivatedArticle (root, startSyllables, nextSyllables, MorphemeProperties.None, getRandomFloat);
 
-		Word secondVariant;
+		Morpheme secondVariant;
 		if (getRandomFloat () < 0.5f) {
-			secondVariant = GenerateDerivatedArticle (root, startSyllables, nextSyllables, WordProperties.None, getRandomFloat);
+			secondVariant = GenerateDerivatedArticle (root, startSyllables, nextSyllables, MorphemeProperties.None, getRandomFloat);
 		} else {
-			secondVariant = GenerateDerivatedArticle (firstVariant, startSyllables, nextSyllables, WordProperties.None, getRandomFloat);
+			secondVariant = GenerateDerivatedArticle (firstVariant, startSyllables, nextSyllables, MorphemeProperties.None, getRandomFloat);
 		}
 
 		float randomFloat = getRandomFloat ();
@@ -520,28 +580,28 @@ public class Language : ISynchronizable {
 			}
 		}
 
-		femenine.Properties |= WordProperties.Femenine;
-		neutral.Properties |= WordProperties.Neutral;
+		femenine.Properties |= MorphemeProperties.Femenine;
+		neutral.Properties |= MorphemeProperties.Neutral;
 	}
 
-	public static Dictionary<string, Word> GenerateArticles (
+	public static Dictionary<string, Morpheme> GenerateArticles (
 		string[] startSyllables, 
 		string[] nextSyllables, 
 		GeneralArticleProperties generalProperties, 
 		GetRandomFloatDelegate getRandomFloat) {
 
-		Dictionary<string, Word> articles = new Dictionary<string, Word> ();
+		Dictionary<string, Morpheme> articles = new Dictionary<string, Morpheme> ();
 
-		Word root = GenerateArticle (startSyllables, nextSyllables, WordProperties.None, getRandomFloat);
+		Morpheme root = GenerateArticle (startSyllables, nextSyllables, MorphemeProperties.None, getRandomFloat);
 
-		Word definite = GenerateDerivatedArticle (root, startSyllables, nextSyllables, WordProperties.None, getRandomFloat);
-		Word indefinite = GenerateDerivatedArticle (root, startSyllables, nextSyllables, WordProperties.Indefinite, getRandomFloat);
+		Morpheme definite = GenerateDerivatedArticle (root, startSyllables, nextSyllables, MorphemeProperties.None, getRandomFloat);
+		Morpheme indefinite = GenerateDerivatedArticle (root, startSyllables, nextSyllables, MorphemeProperties.Indefinite, getRandomFloat);
 
 		if ((generalProperties & GeneralArticleProperties.HasDefiniteSingularArticles) == GeneralArticleProperties.HasDefiniteSingularArticles) {
 
-			Word definiteSingular = GenerateDerivatedArticle (definite, startSyllables, nextSyllables, WordProperties.None, getRandomFloat);
+			Morpheme definiteSingular = GenerateDerivatedArticle (definite, startSyllables, nextSyllables, MorphemeProperties.None, getRandomFloat);
 
-			Word femenine, masculine, neutral;
+			Morpheme femenine, masculine, neutral;
 			GenerateGenderedArticles (definiteSingular, startSyllables, nextSyllables, getRandomFloat, out masculine, out femenine, out neutral);
 			femenine.Meaning = IndicativeType.DefiniteSingularFemenine;
 			masculine.Meaning = IndicativeType.DefiniteSingularMasculine;
@@ -554,9 +614,9 @@ public class Language : ISynchronizable {
 
 		if ((generalProperties & GeneralArticleProperties.HasDefinitePluralArticles) == GeneralArticleProperties.HasDefinitePluralArticles) {
 
-			Word definitePlural = GenerateDerivatedArticle (definite, startSyllables, nextSyllables, WordProperties.Plural, getRandomFloat);
+			Morpheme definitePlural = GenerateDerivatedArticle (definite, startSyllables, nextSyllables, MorphemeProperties.Plural, getRandomFloat);
 
-			Word femenine, masculine, neutral;
+			Morpheme femenine, masculine, neutral;
 			GenerateGenderedArticles (definitePlural, startSyllables, nextSyllables, getRandomFloat, out masculine, out femenine, out neutral);
 			femenine.Meaning = IndicativeType.DefinitePluralFemenine;
 			masculine.Meaning = IndicativeType.DefinitePluralMasculine;
@@ -569,9 +629,9 @@ public class Language : ISynchronizable {
 
 		if ((generalProperties & GeneralArticleProperties.HasIndefiniteSingularArticles) == GeneralArticleProperties.HasIndefiniteSingularArticles) {
 
-			Word indefiniteSingular = GenerateDerivatedArticle (indefinite, startSyllables, nextSyllables, WordProperties.None, getRandomFloat);
+			Morpheme indefiniteSingular = GenerateDerivatedArticle (indefinite, startSyllables, nextSyllables, MorphemeProperties.None, getRandomFloat);
 
-			Word femenine, masculine, neutral;
+			Morpheme femenine, masculine, neutral;
 			GenerateGenderedArticles (indefiniteSingular, startSyllables, nextSyllables, getRandomFloat, out masculine, out femenine, out neutral);
 			femenine.Meaning = IndicativeType.IndefiniteSingularFemenine;
 			masculine.Meaning = IndicativeType.IndefiniteSingularMasculine;
@@ -584,9 +644,9 @@ public class Language : ISynchronizable {
 
 		if ((generalProperties & GeneralArticleProperties.HasIndefinitePluralArticles) == GeneralArticleProperties.HasIndefinitePluralArticles) {
 
-			Word indefinitePlural = GenerateDerivatedArticle (indefinite, startSyllables, nextSyllables, WordProperties.Plural, getRandomFloat);
+			Morpheme indefinitePlural = GenerateDerivatedArticle (indefinite, startSyllables, nextSyllables, MorphemeProperties.Plural, getRandomFloat);
 
-			Word femenine, masculine, neutral;
+			Morpheme femenine, masculine, neutral;
 			GenerateGenderedArticles (indefinitePlural, startSyllables, nextSyllables, getRandomFloat, out masculine, out femenine, out neutral);
 			femenine.Meaning = IndicativeType.IndefinitePluralFemenine;
 			masculine.Meaning = IndicativeType.IndefinitePluralMasculine;
@@ -600,7 +660,7 @@ public class Language : ISynchronizable {
 		return articles;
 	}
 
-	public static WordProperties GenerateWordProperties (
+	public static MorphemeProperties GenerateWordProperties (
 		GetRandomFloatDelegate getRandomFloat, 
 		bool isPlural, 
 		bool randomGender = false, 
@@ -608,10 +668,10 @@ public class Language : ISynchronizable {
 		bool isNeutral = false, 
 		bool canBeIrregular = false) {
 
-		WordProperties properties = WordProperties.None;
+		MorphemeProperties properties = MorphemeProperties.None;
 
 		if (isPlural) {
-			properties |= WordProperties.Plural;
+			properties |= MorphemeProperties.Plural;
 		}
 
 		if (randomGender) {
@@ -626,32 +686,32 @@ public class Language : ISynchronizable {
 		}
 
 		if (isFemenine) {
-			properties |= WordProperties.Femenine;
+			properties |= MorphemeProperties.Femenine;
 		}
 
 		if (isNeutral) {
-			properties |= WordProperties.Neutral;
+			properties |= MorphemeProperties.Neutral;
 		}
 
 		float irregularChance = getRandomFloat ();
 
 		if ((canBeIrregular) && (irregularChance < 0.05f)) {
-			properties |= WordProperties.Irregular;
+			properties |= MorphemeProperties.Irregular;
 		}
 
 		return properties;
 	}
 
-	public static string WordPropertiesToString (WordProperties properties) {
+	public static string WordPropertiesToString (MorphemeProperties properties) {
 
-		if (properties == WordProperties.None)
+		if (properties == MorphemeProperties.None)
 			return "None";
 
 		string output = "";
 
 		bool multipleProperties = false;
 
-		if ((properties & WordProperties.Femenine) == WordProperties.Femenine) {
+		if ((properties & MorphemeProperties.Femenine) == MorphemeProperties.Femenine) {
 
 			if (multipleProperties) {
 				output += " | ";
@@ -661,7 +721,7 @@ public class Language : ISynchronizable {
 			multipleProperties = true;
 		}
 
-		if ((properties & WordProperties.Neutral) == WordProperties.Neutral) {
+		if ((properties & MorphemeProperties.Neutral) == MorphemeProperties.Neutral) {
 
 			if (multipleProperties) {
 				output += " | ";
@@ -671,7 +731,7 @@ public class Language : ISynchronizable {
 			multipleProperties = true;
 		}
 
-		if ((properties & WordProperties.Plural) == WordProperties.Plural) {
+		if ((properties & MorphemeProperties.Plural) == MorphemeProperties.Plural) {
 
 			if (multipleProperties) {
 				output += " | ";
@@ -681,7 +741,7 @@ public class Language : ISynchronizable {
 			multipleProperties = true;
 		}
 
-		if ((properties & WordProperties.Irregular) == WordProperties.Irregular) {
+		if ((properties & MorphemeProperties.Irregular) == MorphemeProperties.Irregular) {
 
 			if (multipleProperties) {
 				output += " | ";
@@ -698,22 +758,22 @@ public class Language : ISynchronizable {
 
 		if (getRandomFloat () < 0.75f) {
 
-			ArticleProperties |= GeneralArticleProperties.HasDefiniteSingularArticles;
+			_articleProperties |= GeneralArticleProperties.HasDefiniteSingularArticles;
 		}
 
 		if (getRandomFloat () < 0.75f) {
 
-			ArticleProperties |= GeneralArticleProperties.HasDefinitePluralArticles;
+			_articleProperties |= GeneralArticleProperties.HasDefinitePluralArticles;
 		}
 
 		if (getRandomFloat () < 0.75f) {
 
-			ArticleProperties |= GeneralArticleProperties.HasIndefiniteSingularArticles;
+			_articleProperties |= GeneralArticleProperties.HasIndefiniteSingularArticles;
 		}
 
 		if (getRandomFloat () < 0.75f) {
 
-			ArticleProperties |= GeneralArticleProperties.HasIndefinitePluralArticles;
+			_articleProperties |= GeneralArticleProperties.HasIndefinitePluralArticles;
 		}
 	}
 
@@ -721,37 +781,37 @@ public class Language : ISynchronizable {
 
 		if (getRandomFloat () < 0.25f) {
 
-			IndicativeProperties |= GeneralIndicativeProperties.HasDefiniteIndicative;
+			_indicativeProperties |= GeneralIndicativeProperties.HasDefiniteIndicative;
 		}
 
 		if (getRandomFloat () < 0.25f) {
 
-			IndicativeProperties |= GeneralIndicativeProperties.HasIndefiniteIndicative;
+			_indicativeProperties |= GeneralIndicativeProperties.HasIndefiniteIndicative;
 		}
 
 		if (getRandomFloat () < 0.25f) {
 
-			IndicativeProperties |= GeneralIndicativeProperties.HasMasculineIndicative;
+			_indicativeProperties |= GeneralIndicativeProperties.HasMasculineIndicative;
 		}
 
 		if (getRandomFloat () < 0.25f) {
 
-			IndicativeProperties |= GeneralIndicativeProperties.HasNeutralIndicative;
+			_indicativeProperties |= GeneralIndicativeProperties.HasNeutralIndicative;
 		}
 
 		if (getRandomFloat () < 0.25f) {
 
-			IndicativeProperties |= GeneralIndicativeProperties.HasFemenineIndicative;
+			_indicativeProperties |= GeneralIndicativeProperties.HasFemenineIndicative;
 		}
 
 		if (getRandomFloat () < 0.25f) {
 
-			IndicativeProperties |= GeneralIndicativeProperties.HasSingularIndicative;
+			_indicativeProperties |= GeneralIndicativeProperties.HasSingularIndicative;
 		}
 
 		if (getRandomFloat () < 0.25f) {
 
-			IndicativeProperties |= GeneralIndicativeProperties.HasPluralIndicative;
+			_indicativeProperties |= GeneralIndicativeProperties.HasPluralIndicative;
 		}
 	}
 
@@ -762,9 +822,9 @@ public class Language : ISynchronizable {
 
 	public void GenerateArticleSyllables (GetRandomFloatDelegate getRandomFloat) {
 
-		CharacterGroup[] onsetGroups = Language.GenerateCharacterGroups (Language.OnsetLetters, 0.7f, 0.1f, getRandomFloat, 10);
-		CharacterGroup[] nucleusGroups = Language.GenerateCharacterGroups (Language.NucleusLetters, 1.0f, 0.35f, getRandomFloat, 5);
-		CharacterGroup[] codaGroups = Language.GenerateCharacterGroups (Language.CodaLetters, 0.25f, 0.1f, getRandomFloat, 4);
+		CharacterGroup[] onsetGroups = GenerateCharacterGroups (OnsetLetters, 0.7f, 0.1f, getRandomFloat, 10);
+		CharacterGroup[] nucleusGroups = GenerateCharacterGroups (NucleusLetters, 1.0f, 0.35f, getRandomFloat, 5);
+		CharacterGroup[] codaGroups = GenerateCharacterGroups (CodaLetters, 0.25f, 0.1f, getRandomFloat, 4);
 
 		ArticleStartSyllables = GenerateSyllables (onsetGroups, nucleusGroups, codaGroups, getRandomFloat, 50);
 		ArticleNextSyllables = GenerateSyllables (onsetGroups, nucleusGroups, codaGroups, getRandomFloat, 50);
@@ -772,11 +832,11 @@ public class Language : ISynchronizable {
 
 	public void GenerateAllArticles (GetRandomFloatDelegate getRandomFloat) {
 
-		_articles = GenerateArticles (ArticleStartSyllables, ArticleNextSyllables, ArticleProperties, getRandomFloat);
+		_articles = GenerateArticles (ArticleStartSyllables, ArticleNextSyllables, _articleProperties, getRandomFloat);
 
-		Articles = new List<Word> (_articles.Count);
+		Articles = new List<Morpheme> (_articles.Count);
 
-		foreach (KeyValuePair<string, Word> pair in _articles) {
+		foreach (KeyValuePair<string, Morpheme> pair in _articles) {
 		
 			Articles.Add (pair.Value);
 		}
@@ -789,54 +849,54 @@ public class Language : ISynchronizable {
 
 	public void GenerateIndicativeSyllables (GetRandomFloatDelegate getRandomFloat) {
 
-		CharacterGroup[] onsetGroups = Language.GenerateCharacterGroups (Language.OnsetLetters, 0.7f, 0.1f, getRandomFloat, 10);
-		CharacterGroup[] nucleusGroups = Language.GenerateCharacterGroups (Language.NucleusLetters, 1.0f, 0.35f, getRandomFloat, 5);
-		CharacterGroup[] codaGroups = Language.GenerateCharacterGroups (Language.CodaLetters, 0.25f, 0.1f, getRandomFloat, 4);
+		CharacterGroup[] onsetGroups = GenerateCharacterGroups (OnsetLetters, 0.7f, 0.1f, getRandomFloat, 10);
+		CharacterGroup[] nucleusGroups = GenerateCharacterGroups (NucleusLetters, 1.0f, 0.35f, getRandomFloat, 5);
+		CharacterGroup[] codaGroups = GenerateCharacterGroups (CodaLetters, 0.25f, 0.1f, getRandomFloat, 4);
 
 		IndicativeStartSyllables = GenerateSyllables (onsetGroups, nucleusGroups, codaGroups, getRandomFloat, 50);
 		IndicativeNextSyllables = GenerateSyllables (onsetGroups, nucleusGroups, codaGroups, getRandomFloat, 50);
 	}
 
-	public static Word GenerateIndicative (string[] startSyllables, string[] nextSyllables, WordProperties properties, GetRandomFloatDelegate getRandomFloat) {
+	public static Morpheme GenerateIndicative (string[] startSyllables, string[] nextSyllables, MorphemeProperties properties, GetRandomFloatDelegate getRandomFloat) {
 
-		Word word = new Word ();
-		word.Value = GenerateSimpleWord (startSyllables, nextSyllables, 0.0f, getRandomFloat);
-		word.Properties = properties;
-		word.Type = WordType.Indicative;
+		Morpheme morpheme = new Morpheme ();
+		morpheme.Value = GenerateMorpheme (startSyllables, nextSyllables, 0.0f, getRandomFloat);
+		morpheme.Properties = properties;
+		morpheme.Type = WordType.Indicative;
 
-		return word;
+		return morpheme;
 	}
 
-	public static Word GenerateNullWord (WordType type, WordProperties properties = WordProperties.None) {
+	public static Morpheme GenerateNullWord (WordType type, MorphemeProperties properties = MorphemeProperties.None) {
 
-		Word word = new Word ();
-		word.Value = string.Empty;
-		word.Properties = properties;
-		word.Type = type;
-		word.Meaning = string.Empty;
+		Morpheme morpheme = new Morpheme ();
+		morpheme.Value = string.Empty;
+		morpheme.Properties = properties;
+		morpheme.Type = type;
+		morpheme.Meaning = string.Empty;
 
-		return word;
+		return morpheme;
 	}
 
-	public static Word CopyWord (Word sourceWord) {
+	public static Morpheme CopyMorpheme (Morpheme sourceMorpheme) {
 
-		Word word = new Word ();
-		word.Value = sourceWord.Value;
-		word.Properties = sourceWord.Properties;
-		word.Type = sourceWord.Type;
-		word.Meaning = sourceWord.Meaning;
+		Morpheme morpheme = new Morpheme ();
+		morpheme.Value = sourceMorpheme.Value;
+		morpheme.Properties = sourceMorpheme.Properties;
+		morpheme.Type = sourceMorpheme.Type;
+		morpheme.Meaning = sourceMorpheme.Meaning;
 
-		return word;
+		return morpheme;
 	}
 
-	public static Word GenerateDerivatedIndicative (
-		Word rootIndicative, 
+	public static Morpheme GenerateDerivatedIndicative (
+		Morpheme rootIndicative, 
 		string[] startSyllables, 
 		string[] nextSyllables, 
-		WordProperties properties, 
+		MorphemeProperties properties, 
 		GetRandomFloatDelegate getRandomFloat) {
 
-		Word word = new Word ();
+		Morpheme word = new Morpheme ();
 		word.Value = GenerateDerivatedWord (rootIndicative.Value, 0.0f, 0.5f, startSyllables, nextSyllables, 0.0f, getRandomFloat);
 		word.Properties = rootIndicative.Properties | properties;
 		word.Type = WordType.Indicative;
@@ -845,63 +905,63 @@ public class Language : ISynchronizable {
 	}
 
 	public static void GenerateGenderedIndicatives (
-		Word root,
+		Morpheme root,
 		string[] startSyllables, 
 		string[] nextSyllables,
 		GeneralIndicativeProperties indicativeProperties, 
 		GetRandomFloatDelegate getRandomFloat, 
-		out Word masculine, 
-		out Word femenine,
-		out Word neutral) {
+		out Morpheme masculine, 
+		out Morpheme femenine,
+		out Morpheme neutral) {
 
 		if ((indicativeProperties & GeneralIndicativeProperties.HasMasculineIndicative) == GeneralIndicativeProperties.HasMasculineIndicative)
-			masculine = GenerateDerivatedIndicative (root, startSyllables, nextSyllables, WordProperties.None, getRandomFloat);
+			masculine = GenerateDerivatedIndicative (root, startSyllables, nextSyllables, MorphemeProperties.None, getRandomFloat);
 		else
-			masculine = CopyWord (root);
+			masculine = CopyMorpheme (root);
 
 		if ((indicativeProperties & GeneralIndicativeProperties.HasFemenineIndicative) == GeneralIndicativeProperties.HasFemenineIndicative)
-			femenine = GenerateDerivatedIndicative (root, startSyllables, nextSyllables, WordProperties.None, getRandomFloat);
+			femenine = GenerateDerivatedIndicative (root, startSyllables, nextSyllables, MorphemeProperties.None, getRandomFloat);
 		else
-			femenine = CopyWord (root);
+			femenine = CopyMorpheme (root);
 
 		if ((indicativeProperties & GeneralIndicativeProperties.HasNeutralIndicative) == GeneralIndicativeProperties.HasNeutralIndicative)
-			neutral = GenerateDerivatedIndicative (root, startSyllables, nextSyllables, WordProperties.None, getRandomFloat);
+			neutral = GenerateDerivatedIndicative (root, startSyllables, nextSyllables, MorphemeProperties.None, getRandomFloat);
 		else
-			neutral = CopyWord (root);
+			neutral = CopyMorpheme (root);
 
-		femenine.Properties |= WordProperties.Femenine;
-		neutral.Properties |= WordProperties.Neutral;
+		femenine.Properties |= MorphemeProperties.Femenine;
+		neutral.Properties |= MorphemeProperties.Neutral;
 	}
 
-	public static Dictionary<string, Word> GenerateIndicatives (
+	public static Dictionary<string, Morpheme> GenerateIndicatives (
 		string[] startSyllables, 
 		string[] nextSyllables, 
 		GeneralIndicativeProperties indicativeProperties, 
 		GetRandomFloatDelegate getRandomFloat) {
 
-		Dictionary<string, Word> indicatives = new Dictionary<string, Word> ();
+		Dictionary<string, Morpheme> indicatives = new Dictionary<string, Morpheme> ();
 
-		Word definite;
+		Morpheme definite;
 		if ((indicativeProperties & GeneralIndicativeProperties.HasDefiniteIndicative) == GeneralIndicativeProperties.HasDefiniteIndicative)
-			definite = GenerateIndicative (startSyllables, nextSyllables, WordProperties.None, getRandomFloat);
+			definite = GenerateIndicative (startSyllables, nextSyllables, MorphemeProperties.None, getRandomFloat);
 		else
 			definite = GenerateNullWord (WordType.Indicative);
 
-		Word indefinite;
+		Morpheme indefinite;
 		if ((indicativeProperties & GeneralIndicativeProperties.HasIndefiniteIndicative) == GeneralIndicativeProperties.HasIndefiniteIndicative)
-			indefinite = GenerateIndicative (startSyllables, nextSyllables, WordProperties.Indefinite, getRandomFloat);
+			indefinite = GenerateIndicative (startSyllables, nextSyllables, MorphemeProperties.Indefinite, getRandomFloat);
 		else
-			indefinite = GenerateNullWord (WordType.Indicative, WordProperties.Indefinite);
+			indefinite = GenerateNullWord (WordType.Indicative, MorphemeProperties.Indefinite);
 
 		///
 
-		Word definiteSingular;
+		Morpheme definiteSingular;
 		if ((indicativeProperties & GeneralIndicativeProperties.HasSingularIndicative) == GeneralIndicativeProperties.HasSingularIndicative)
-			definiteSingular = GenerateDerivatedIndicative (definite, startSyllables, nextSyllables, WordProperties.None, getRandomFloat);
+			definiteSingular = GenerateDerivatedIndicative (definite, startSyllables, nextSyllables, MorphemeProperties.None, getRandomFloat);
 		else
-			definiteSingular = CopyWord (definite);
+			definiteSingular = CopyMorpheme (definite);
 
-		Word femenine, masculine, neutral;
+		Morpheme femenine, masculine, neutral;
 		GenerateGenderedIndicatives (definiteSingular, startSyllables, nextSyllables, indicativeProperties, getRandomFloat, out masculine, out femenine, out neutral);
 		femenine.Meaning = IndicativeType.DefiniteSingularFemenine;
 		masculine.Meaning = IndicativeType.DefiniteSingularMasculine;
@@ -913,12 +973,12 @@ public class Language : ISynchronizable {
 
 		///
 
-		Word definitePlural;
+		Morpheme definitePlural;
 		if ((indicativeProperties & GeneralIndicativeProperties.HasPluralIndicative) == GeneralIndicativeProperties.HasPluralIndicative)
-			definitePlural = GenerateDerivatedIndicative (definite, startSyllables, nextSyllables, WordProperties.Plural, getRandomFloat);
+			definitePlural = GenerateDerivatedIndicative (definite, startSyllables, nextSyllables, MorphemeProperties.Plural, getRandomFloat);
 		else {
-			definitePlural = CopyWord (definite);
-			definitePlural.Properties |= WordProperties.Plural;
+			definitePlural = CopyMorpheme (definite);
+			definitePlural.Properties |= MorphemeProperties.Plural;
 		}
 
 		GenerateGenderedIndicatives (definitePlural, startSyllables, nextSyllables, indicativeProperties, getRandomFloat, out masculine, out femenine, out neutral);
@@ -932,11 +992,11 @@ public class Language : ISynchronizable {
 
 		///
 
-		Word indefiniteSingular;
+		Morpheme indefiniteSingular;
 		if ((indicativeProperties & GeneralIndicativeProperties.HasSingularIndicative) == GeneralIndicativeProperties.HasSingularIndicative)
-			indefiniteSingular = GenerateDerivatedIndicative (indefinite, startSyllables, nextSyllables, WordProperties.None, getRandomFloat);
+			indefiniteSingular = GenerateDerivatedIndicative (indefinite, startSyllables, nextSyllables, MorphemeProperties.None, getRandomFloat);
 		else
-			indefiniteSingular = CopyWord (indefinite);
+			indefiniteSingular = CopyMorpheme (indefinite);
 
 		GenerateGenderedIndicatives (indefiniteSingular, startSyllables, nextSyllables, indicativeProperties, getRandomFloat, out masculine, out femenine, out neutral);
 		femenine.Meaning = IndicativeType.IndefiniteSingularFemenine;
@@ -949,12 +1009,12 @@ public class Language : ISynchronizable {
 
 		///
 
-		Word indefinitePlural;
+		Morpheme indefinitePlural;
 		if ((indicativeProperties & GeneralIndicativeProperties.HasPluralIndicative) == GeneralIndicativeProperties.HasPluralIndicative)
-			indefinitePlural = GenerateDerivatedIndicative (indefinite, startSyllables, nextSyllables, WordProperties.Plural, getRandomFloat);
+			indefinitePlural = GenerateDerivatedIndicative (indefinite, startSyllables, nextSyllables, MorphemeProperties.Plural, getRandomFloat);
 		else {
-			indefinitePlural = CopyWord (indefinite);
-			indefinitePlural.Properties |= WordProperties.Plural;
+			indefinitePlural = CopyMorpheme (indefinite);
+			indefinitePlural.Properties |= MorphemeProperties.Plural;
 		}
 
 		GenerateGenderedIndicatives (indefinitePlural, startSyllables, nextSyllables, indicativeProperties, getRandomFloat, out masculine, out femenine, out neutral);
@@ -971,11 +1031,11 @@ public class Language : ISynchronizable {
 
 	public void GenerateAllIndicatives (GetRandomFloatDelegate getRandomFloat) {
 
-		_indicatives = GenerateIndicatives (IndicativeStartSyllables, IndicativeNextSyllables, IndicativeProperties, getRandomFloat);
+		_indicatives = GenerateIndicatives (IndicativeStartSyllables, IndicativeNextSyllables, _indicativeProperties, getRandomFloat);
 
-		Indicatives = new List<Word> (_indicatives.Count);
+		Indicatives = new List<Morpheme> (_indicatives.Count);
 
-		foreach (KeyValuePair<string, Word> pair in _indicatives) {
+		foreach (KeyValuePair<string, Morpheme> pair in _indicatives) {
 
 			Indicatives.Add (pair.Value);
 		}
@@ -988,9 +1048,9 @@ public class Language : ISynchronizable {
 
 	public void GenerateAdpositionSyllables (GetRandomFloatDelegate getRandomFloat) {
 
-		CharacterGroup[] onsetGroups = Language.GenerateCharacterGroups (Language.OnsetLetters, 0.7f, 0.1f, getRandomFloat, 20);
-		CharacterGroup[] nucleusGroups = Language.GenerateCharacterGroups (Language.NucleusLetters, 1.0f, 0.35f, getRandomFloat, 10);
-		CharacterGroup[] codaGroups = Language.GenerateCharacterGroups (Language.CodaLetters, 0.25f, 0.1f, getRandomFloat, 8);
+		CharacterGroup[] onsetGroups = GenerateCharacterGroups (OnsetLetters, 0.7f, 0.1f, getRandomFloat, 20);
+		CharacterGroup[] nucleusGroups = GenerateCharacterGroups (NucleusLetters, 1.0f, 0.35f, getRandomFloat, 10);
+		CharacterGroup[] codaGroups = GenerateCharacterGroups (CodaLetters, 0.25f, 0.1f, getRandomFloat, 8);
 
 		AdpositionStartSyllables = GenerateSyllables (onsetGroups, nucleusGroups, codaGroups, getRandomFloat, 100);
 		AdpositionNextSyllables = GenerateSyllables (onsetGroups, nucleusGroups, codaGroups, getRandomFloat, 100);
@@ -998,15 +1058,15 @@ public class Language : ISynchronizable {
 
 	public void GenerateAdposition (string relation, GetRandomFloatDelegate getRandomFloat) {
 
-		Word word = new Word ();
-		word.Value = GenerateSimpleWord (AdpositionStartSyllables, AdpositionNextSyllables, 0.5f, getRandomFloat);
-		word.Properties = WordProperties.None;
-		word.Type = WordType.Adposition;
-		word.Meaning = relation;
+		Morpheme morpheme = new Morpheme ();
+		morpheme.Value = GenerateMorpheme (AdpositionStartSyllables, AdpositionNextSyllables, 0.5f, getRandomFloat);
+		morpheme.Properties = MorphemeProperties.None;
+		morpheme.Type = WordType.Adposition;
+		morpheme.Meaning = relation;
 
-		_adpositions.Add (relation, word);
+		_adpositions.Add (relation, morpheme);
 
-		Adpositions.Add (word);
+		Adpositions.Add (morpheme);
 	}
 
 	public void GenerateAdjectiveAdjunctionProperties (GetRandomFloatDelegate getRandomFloat) {
@@ -1016,27 +1076,27 @@ public class Language : ISynchronizable {
 
 	public void GenerateAdjectiveSyllables (GetRandomFloatDelegate getRandomFloat) {
 
-		CharacterGroup[] onsetGroups = Language.GenerateCharacterGroups (Language.OnsetLetters, 0.7f, 0.1f, getRandomFloat, 20);
-		CharacterGroup[] nucleusGroups = Language.GenerateCharacterGroups (Language.NucleusLetters, 1.0f, 0.35f, getRandomFloat, 10);
-		CharacterGroup[] codaGroups = Language.GenerateCharacterGroups (Language.CodaLetters, 0.25f, 0.1f, getRandomFloat, 8);
+		CharacterGroup[] onsetGroups = GenerateCharacterGroups (OnsetLetters, 0.7f, 0.1f, getRandomFloat, 20);
+		CharacterGroup[] nucleusGroups = GenerateCharacterGroups (NucleusLetters, 1.0f, 0.35f, getRandomFloat, 10);
+		CharacterGroup[] codaGroups = GenerateCharacterGroups (CodaLetters, 0.25f, 0.1f, getRandomFloat, 8);
 
 		AdjectiveStartSyllables = GenerateSyllables (onsetGroups, nucleusGroups, codaGroups, getRandomFloat, 100);
 		AdjectiveNextSyllables = GenerateSyllables (onsetGroups, nucleusGroups, codaGroups, getRandomFloat, 100);
 	}
 
-	public Word GenerateAdjective (string meaning, GetRandomFloatDelegate getRandomFloat) {
+	public Morpheme GenerateAdjective (string meaning, GetRandomFloatDelegate getRandomFloat) {
 
-		Word word = new Word ();
-		word.Value = GenerateSimpleWord (AdjectiveStartSyllables, AdjectiveNextSyllables, 0.5f, getRandomFloat);
-		word.Properties = WordProperties.None;
-		word.Type = WordType.Adjective;
-		word.Meaning = meaning;
+		Morpheme morpheme = new Morpheme ();
+		morpheme.Value = GenerateMorpheme (AdjectiveStartSyllables, AdjectiveNextSyllables, 0.5f, getRandomFloat);
+		morpheme.Properties = MorphemeProperties.None;
+		morpheme.Type = WordType.Adjective;
+		morpheme.Meaning = meaning;
 
-		_adjectives.Add (meaning, word);
+		_adjectives.Add (meaning, morpheme);
 
-		Adjectives.Add (word);
+		Adjectives.Add (morpheme);
 
-		return word;
+		return morpheme;
 	}
 
 	public void GenerateNounAdjunctionProperties (GetRandomFloatDelegate getRandomFloat) {
@@ -1046,47 +1106,47 @@ public class Language : ISynchronizable {
 
 	public void GenerateNounSyllables (GetRandomFloatDelegate getRandomFloat) {
 
-		CharacterGroup[] onsetGroups = Language.GenerateCharacterGroups (Language.OnsetLetters, 0.7f, 0.25f, getRandomFloat, 20);
-		CharacterGroup[] nucleusGroups = Language.GenerateCharacterGroups (Language.NucleusLetters, 1.0f, 0.35f, getRandomFloat, 10);
-		CharacterGroup[] codaGroups = Language.GenerateCharacterGroups (Language.CodaLetters, 0.5f, 0.25f, getRandomFloat, 8);
+		CharacterGroup[] onsetGroups = GenerateCharacterGroups (OnsetLetters, 0.7f, 0.25f, getRandomFloat, 20);
+		CharacterGroup[] nucleusGroups = GenerateCharacterGroups (NucleusLetters, 1.0f, 0.35f, getRandomFloat, 10);
+		CharacterGroup[] codaGroups = GenerateCharacterGroups (CodaLetters, 0.5f, 0.25f, getRandomFloat, 8);
 
-		NounStartSyllables = Language.GenerateSyllables (onsetGroups, nucleusGroups, codaGroups, getRandomFloat, 200);
-		NounNextSyllables = Language.GenerateSyllables (onsetGroups, nucleusGroups, codaGroups, getRandomFloat, 200);
+		NounStartSyllables = GenerateSyllables (onsetGroups, nucleusGroups, codaGroups, getRandomFloat, 200);
+		NounNextSyllables = GenerateSyllables (onsetGroups, nucleusGroups, codaGroups, getRandomFloat, 200);
 	}
 
-	public Word GenerateNoun (string meaning, GetRandomFloatDelegate getRandomFloat, bool isPlural, bool randomGender, bool isFemenine = false, bool isNeutral = false, bool canBeIrregular = true) {
+	public Morpheme GenerateNoun (string meaning, GetRandomFloatDelegate getRandomFloat, bool isPlural, bool randomGender, bool isFemenine = false, bool isNeutral = false, bool canBeIrregular = true) {
 
 		return GenerateNoun (meaning, GenerateWordProperties (getRandomFloat, isPlural, randomGender, isFemenine, isNeutral, canBeIrregular), getRandomFloat);
 	}
 
-	public Word GenerateNoun (string meaning, WordProperties properties, GetRandomFloatDelegate getRandomFloat) {
+	public Morpheme GenerateNoun (string meaning, MorphemeProperties properties, GetRandomFloatDelegate getRandomFloat) {
 
 		if (_nouns.ContainsKey (meaning)) {
 		
 			return _nouns [meaning];
 		}
 
-		Word word = new Word ();
-		word.Value = GenerateSimpleWord (NounStartSyllables, NounNextSyllables, 0.5f, getRandomFloat);
-		word.Properties = properties;
-		word.Type = WordType.Noun;
-		word.Meaning = meaning;
+		Morpheme morpheme = new Morpheme ();
+		morpheme.Value = GenerateMorpheme (NounStartSyllables, NounNextSyllables, 0.5f, getRandomFloat);
+		morpheme.Properties = properties;
+		morpheme.Type = WordType.Noun;
+		morpheme.Meaning = meaning;
 
-		_nouns.Add (meaning, word);
+		_nouns.Add (meaning, morpheme);
 
-		Nouns.Add (word);
+		Nouns.Add (morpheme);
 
-		return word;
+		return morpheme;
 	}
 
-	public Word GetAppropiateArticle (PhraseProperties phraseProperties) {
+	public Morpheme GetAppropiateArticle (PhraseProperties phraseProperties) {
 
-		Word article = null;
+		Morpheme article = null;
 
 		if ((phraseProperties & PhraseProperties.Indefinite) == PhraseProperties.Indefinite) {
 			if ((phraseProperties & PhraseProperties.Plural) == PhraseProperties.Plural) {
 
-				if ((ArticleProperties & GeneralArticleProperties.HasIndefinitePluralArticles) == GeneralArticleProperties.HasIndefinitePluralArticles) {
+				if ((_articleProperties & GeneralArticleProperties.HasIndefinitePluralArticles) == GeneralArticleProperties.HasIndefinitePluralArticles) {
 					if ((phraseProperties & PhraseProperties.Femenine) == PhraseProperties.Femenine) {
 
 						article = _articles [IndicativeType.IndefinitePluralFemenine];
@@ -1100,7 +1160,7 @@ public class Language : ISynchronizable {
 					}
 				}
 			} else {
-				if ((ArticleProperties & GeneralArticleProperties.HasIndefiniteSingularArticles) == GeneralArticleProperties.HasIndefiniteSingularArticles) {
+				if ((_articleProperties & GeneralArticleProperties.HasIndefiniteSingularArticles) == GeneralArticleProperties.HasIndefiniteSingularArticles) {
 					if ((phraseProperties & PhraseProperties.Femenine) == PhraseProperties.Femenine) {
 
 						article = _articles [IndicativeType.IndefiniteSingularFemenine];
@@ -1117,7 +1177,7 @@ public class Language : ISynchronizable {
 		} else {
 			if ((phraseProperties & PhraseProperties.Plural) == PhraseProperties.Plural) {
 
-				if ((ArticleProperties & GeneralArticleProperties.HasDefinitePluralArticles) == GeneralArticleProperties.HasDefinitePluralArticles) {
+				if ((_articleProperties & GeneralArticleProperties.HasDefinitePluralArticles) == GeneralArticleProperties.HasDefinitePluralArticles) {
 					if ((phraseProperties & PhraseProperties.Femenine) == PhraseProperties.Femenine) {
 
 						article = _articles [IndicativeType.DefinitePluralFemenine];
@@ -1131,7 +1191,7 @@ public class Language : ISynchronizable {
 					}
 				}
 			} else {
-				if ((ArticleProperties & GeneralArticleProperties.HasDefiniteSingularArticles) == GeneralArticleProperties.HasDefiniteSingularArticles) {
+				if ((_articleProperties & GeneralArticleProperties.HasDefiniteSingularArticles) == GeneralArticleProperties.HasDefiniteSingularArticles) {
 					if ((phraseProperties & PhraseProperties.Femenine) == PhraseProperties.Femenine) {
 
 						article = _articles [IndicativeType.DefiniteSingularFemenine];
@@ -1154,7 +1214,7 @@ public class Language : ISynchronizable {
 
 		Phrase phrase = new Phrase ();
 
-		Word adposition = null;
+		Morpheme adposition = null;
 
 		if (!_adpositions.TryGetValue (relation, out adposition)) {
 
@@ -1212,9 +1272,9 @@ public class Language : ISynchronizable {
 		return phrase;
 	}
 
-	public Word GetAppropiateIndicative (PhraseProperties phraseProperties) {
+	public Morpheme GetAppropiateIndicative (PhraseProperties phraseProperties) {
 
-		Word indicative = null;
+		Morpheme indicative = null;
 
 		if ((phraseProperties & PhraseProperties.Indefinite) == PhraseProperties.Indefinite) {
 			if ((phraseProperties & PhraseProperties.Plural) == PhraseProperties.Plural) {
@@ -1328,7 +1388,7 @@ public class Language : ISynchronizable {
 		NounPhrase nounPhrase = null;
 
 		List<NounPhrase> nounAdjunctionPhrases = new List<NounPhrase> ();
-		List<Word> adjectives = new List<Word> ();
+		List<Morpheme> adjectives = new List<Morpheme> ();
 
 		string[] phraseParts = untranslatedNounPhrase.Split (new char[] { ' ' });
 
@@ -1367,17 +1427,23 @@ public class Language : ISynchronizable {
 			}
 		}
 
+		if (nounPhrase == null) {
+
+			Debug.Break ();
+			throw new System.Exception ("nounPhrase can't be null");
+		}
+
 		foreach (NounPhrase nounAdjunctionPhrase in nounAdjunctionPhrases) {
 
 			nounPhrase.Text = AddAdjunctionToNounPhrase (nounPhrase.Text, nounAdjunctionPhrase.Text, NounAdjunctionProperties);
 		}
 
-		foreach (Word adjective in adjectives) {
+		foreach (Morpheme adjective in adjectives) {
 
 			nounPhrase.Text = AddAdjunctionToNounPhrase (nounPhrase.Text, adjective.Value, AdjectiveAdjunctionProperties);
 		}
 
-		Word article = GetAppropiateArticle (phraseProperties);
+		Morpheme article = GetAppropiateArticle (phraseProperties);
 
 		if (article != null) {
 			nounPhrase.Text = AddAdjunctionToNounPhrase (nounPhrase.Text, article.Value, ArticleAdjunctionProperties);
@@ -1393,9 +1459,9 @@ public class Language : ISynchronizable {
 
 		string[] nounParts = untranslatedNoun.Split (new char[] { ':' });
 
-		Word mainNounWord = null;
+		Morpheme mainNoun = null;
 
-		List<Word> nounComponents = new List<Word> ();
+		List<Morpheme> nounComponents = new List<Morpheme> ();
 
 		bool isPlural = false;
 		bool hasRandomGender = true;
@@ -1434,7 +1500,7 @@ public class Language : ISynchronizable {
 					isNeutralNoun = true;
 				}
 
-				Word nounWord = null;
+				Morpheme noun = null;
 
 				string singularNoun = parsedWordPart.Value;
 				if (parsedWordPart.Attributes.ContainsKey (ParsedWordAttributeId.IrregularPluralNoun)) {
@@ -1442,17 +1508,17 @@ public class Language : ISynchronizable {
 					isPlural = true;
 				}
 				
-				nounWord = GenerateNoun (singularNoun, getRandomFloat, false, hasRandomGender, isFemenineNoun, isNeutralNoun);
+				noun = GenerateNoun (singularNoun, getRandomFloat, false, hasRandomGender, isFemenineNoun, isNeutralNoun);
 
-				isFemenineNoun = ((nounWord.Properties & WordProperties.Femenine) == WordProperties.Femenine);
-				isNeutralNoun = ((nounWord.Properties & WordProperties.Neutral) == WordProperties.Neutral);
+				isFemenineNoun = ((noun.Properties & MorphemeProperties.Femenine) == MorphemeProperties.Femenine);
+				isNeutralNoun = ((noun.Properties & MorphemeProperties.Neutral) == MorphemeProperties.Neutral);
 				hasRandomGender = false;
 
-				if (mainNounWord != null) {
-					nounComponents.Add (mainNounWord);
+				if (mainNoun != null) {
+					nounComponents.Add (mainNoun);
 				}
 
-				mainNounWord = nounWord;
+				mainNoun = noun;
 			}
 		}
 
@@ -1464,13 +1530,13 @@ public class Language : ISynchronizable {
 		else if (isNeutralNoun)
 			properties |= PhraseProperties.Neutral;
 
-		string text = mainNounWord.Value;
+		string text = mainNoun.Value;
 
-		foreach (Word nounComponent in nounComponents) {
+		foreach (Morpheme nounComponent in nounComponents) {
 			text = AddAdjunctionToNounPhrase (text, nounComponent.Value, NounAdjunctionProperties, true);
 		}
 
-		Word indicative = GetAppropiateIndicative (properties);
+		Morpheme indicative = GetAppropiateIndicative (properties);
 
 		text = AddAdjunctionToNounPhrase (text, indicative.Value, IndicativeAdjunctionProperties);
 
@@ -1579,32 +1645,93 @@ public class Language : ISynchronizable {
 	}
 
 	public void Synchronize () {
-		
+
+		ArticlePropertiesInt = (int)_articleProperties;
+		IndicativePropertiesInt = (int)_indicativeProperties;
+
+		ArticleAdjunctionPropertiesInt = (int)ArticleAdjunctionProperties;
+		IndicativeAdjunctionPropertiesInt = (int)IndicativeAdjunctionProperties;
+		AdpositionAdjunctionPropertiesInt = (int)AdpositionAdjunctionProperties;
+		AdjectiveAdjunctionPropertiesInt = (int)AdjectiveAdjunctionProperties;
+		NounAdjunctionPropertiesInt = (int)NounAdjunctionProperties;
+
+		foreach (Morpheme morpheme in Articles) {
+			morpheme.Synchronize ();
+		}
+
+		foreach (Morpheme morpheme in Indicatives) {
+			morpheme.Synchronize ();
+		}
+
+		foreach (Morpheme morpheme in Adpositions) {
+			morpheme.Synchronize ();
+		}
+
+		foreach (Morpheme morpheme in Adjectives) {
+			morpheme.Synchronize ();
+		}
+
+		foreach (Morpheme morpheme in Nouns) {
+			morpheme.Synchronize ();
+		}
 	}
 
 	public void FinalizeLoad () {
 
-		_articles = new Dictionary<string, Word> (Articles.Count);
-		_indicatives = new Dictionary<string, Word> (Indicatives.Count);
+		_articleProperties = (GeneralArticleProperties)ArticlePropertiesInt;
+		_indicativeProperties = (GeneralIndicativeProperties)IndicativePropertiesInt;
 
-		foreach (Word word in Articles) {
+		ArticleAdjunctionProperties = (AdjunctionProperties)ArticleAdjunctionPropertiesInt;
+		IndicativeAdjunctionProperties = (AdjunctionProperties)IndicativeAdjunctionPropertiesInt;
+		AdpositionAdjunctionProperties = (AdjunctionProperties)AdpositionAdjunctionPropertiesInt;
+		AdjectiveAdjunctionProperties = (AdjunctionProperties)AdjectiveAdjunctionPropertiesInt;
+		NounAdjunctionProperties = (AdjunctionProperties)NounAdjunctionPropertiesInt;
+
+		_articles = new Dictionary<string, Morpheme> (Articles.Count);
+		_indicatives = new Dictionary<string, Morpheme> (Indicatives.Count);
+
+		// initialize dictionaries
+
+		foreach (Morpheme word in Articles) {
 			_articles.Add (word.Meaning, word);
 		}
 
-		foreach (Word word in Indicatives) {
+		foreach (Morpheme word in Indicatives) {
 			_indicatives.Add (word.Meaning, word);
 		}
 
-		foreach (Word word in Adpositions) {
+		foreach (Morpheme word in Adpositions) {
 			_adpositions.Add (word.Meaning, word);
 		}
 
-		foreach (Word word in Adjectives) {
+		foreach (Morpheme word in Adjectives) {
 			_adjectives.Add (word.Meaning, word);
 		}
 
-		foreach (Word word in Nouns) {
+		foreach (Morpheme word in Nouns) {
 			_nouns.Add (word.Meaning, word);
+		}
+
+		// Finish loading morphemes
+
+		foreach (Morpheme morpheme in Articles) {
+			morpheme.FinalizeLoad ();
+		}
+
+		foreach (Morpheme morpheme in Indicatives) {
+			morpheme.FinalizeLoad ();
+		}
+
+		foreach (Morpheme morpheme in Adpositions) {
+			morpheme.FinalizeLoad ();
+		}
+
+		foreach (Morpheme morpheme in Adjectives) {
+			morpheme.FinalizeLoad ();
+		}
+
+		foreach (Morpheme morpheme in Nouns) {
+			morpheme.FinalizeLoad ();
 		}
 	}
 }

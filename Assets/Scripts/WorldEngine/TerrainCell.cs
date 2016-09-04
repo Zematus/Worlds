@@ -28,9 +28,9 @@ public enum CellUpdateType {
 
 public struct WorldPosition {
 
-	[XmlAttribute]
+	[XmlAttribute("Lon")]
 	public int Longitude;
-	[XmlAttribute]
+	[XmlAttribute("Lat")]
 	public int Latitude;
 
 	public WorldPosition (int longitude, int latitude) {
@@ -42,14 +42,14 @@ public struct WorldPosition {
 
 public class TerrainCellChanges {
 
-	[XmlAttribute]
+	[XmlAttribute("Lon")]
 	public int Longitude;
-	[XmlAttribute]
+	[XmlAttribute("Lat")]
 	public int Latitude;
 
-	[XmlAttribute]
+	[XmlAttribute("It")]
 	public int LocalIteration = 0;
-	[XmlAttribute]
+	[XmlAttribute("Fp")]
 	public float FarmlandPercentage = 0;
 
 	public List<string> Flags = new List<string> ();

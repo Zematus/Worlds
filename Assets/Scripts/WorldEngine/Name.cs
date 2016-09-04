@@ -50,6 +50,7 @@ public class Name : ISynchronizable {
 
 	public void Synchronize () {
 
+		Value.Synchronize ();
 	}
 
 	public void FinalizeLoad () {
@@ -60,6 +61,8 @@ public class Name : ISynchronizable {
 		
 			throw new System.Exception ("Language can't be null");
 		}
+
+		Value.FinalizeLoad ();
 	}
 
 	public override string ToString () {
