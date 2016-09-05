@@ -1,13 +1,10 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public class TestRunnerScript : MonoBehaviour {
 
-	public AutomatedTest[] tests = new AutomatedTest[] {
-//		new SaveLoadTest (80, 1, 1, true),
-		new SaveLoadTest (100000, 200000, 200000, false),
-//		new LanguageGenerationTest ()
-	};
+	public List<AutomatedTest> tests = new List<AutomatedTest> ();
 
 	private int _prevTestIndex = -1;
 	private int _testIndex = 0;
@@ -19,6 +16,13 @@ public class TestRunnerScript : MonoBehaviour {
 
 		Manager.RecordingEnabled = true;
 
+		//tests.Add (new SaveLoadTest (80, 1, 1, true));
+		tests.Add (new SaveLoadTest (100000, 20000, 5, false));
+//		tests.Add (new SaveLoadTest ("after 5 polities", (World world) => {
+//			return world.PolityCount > 5;
+//		}, 20000, 5, false));
+		//tests.Add (new LanguageGenerationTest());
+
 		Debug.Log ("Running Tests...\n");
 	}
 	
@@ -27,10 +31,10 @@ public class TestRunnerScript : MonoBehaviour {
 
 		Manager.ExecuteTasks (100);
 
-		if (_testIndex == tests.Length) {
+		if (_testIndex == tests.Count) {
 
 			Debug.Log ("\nFinished Tests!");
-			Debug.Log (_successes + " of " + tests.Length + " Succeded");
+			Debug.Log (_successes + " of " + tests.Count + " Succeded");
 			Debug.Break ();
 
 		} else {

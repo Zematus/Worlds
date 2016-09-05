@@ -783,12 +783,19 @@ public class World : ISynchronizable {
 		_politiesToRemove.Add (polity);
 	}
 
-	public void FinalizeLoad () {
+	public void FinalizeLoad (float startProgressValue, float endProgressValue, ProgressCastDelegate castProgress) {
+
+		if (castProgress == null)
+			castProgress = (value, message) => {};
+
+		float progressFactor = 1 / (endProgressValue - startProgressValue);
+
+		// Segment 1
 
 		TerrainCellChangesList.ForEach (c => {
-			
+
 			int index = c.Longitude + c.Latitude * Width;
-			
+
 			_terrainCellChangesListIndexes.Add (index);
 		});
 
@@ -818,25 +825,46 @@ public class World : ISynchronizable {
 			_cellGroups.Add (g.Id, g);
 		});
 
+		// Segment 2
+
+		int elementCount = 0;
+		float totalElementsFactor = progressFactor * (Languages.Count + Regions.Count + Polities.Count + CellGroups.Count + EventsToHappen.Count);
+
 		Languages.ForEach (l => {
 
 			l.FinalizeLoad ();
+
+			castProgress (startProgressValue + (++elementCount/totalElementsFactor), "Initializing Languages...");
 		});
+
+		// Segment 3
 
 		Regions.ForEach (r => {
 
 			r.FinalizeLoad ();
+
+			castProgress (startProgressValue + (++elementCount/totalElementsFactor), "Initializing Regions...");
 		});
+
+		// Segment 4
 
 		Polities.ForEach (p => {
 
 			p.FinalizeLoad ();
+
+			castProgress (startProgressValue + (++elementCount/totalElementsFactor), "Initializing Polities...");
 		});
 
+		// Segment 5
+
 		CellGroups.ForEach (g => {
-			
+
 			g.FinalizeLoad ();
+
+			castProgress (startProgressValue + (++elementCount/totalElementsFactor), "Initializing Cell Groups...");
 		});
+
+		// Segment 6
 
 		EventsToHappen.ForEach (e => {
 
@@ -844,12 +872,21 @@ public class World : ISynchronizable {
 			e.FinalizeLoad ();
 
 			_eventsToHappen.Insert (e.TriggerDate, e);
+
+			castProgress (startProgressValue + (++elementCount/totalElementsFactor), "Initializing Events...");
 		});
+
+		// Segment 7
 
 		CulturalActivityInfoList.ForEach (a => _culturalActivityIdList.Add (a.Id));
 		CulturalSkillInfoList.ForEach (s => _culturalSkillIdList.Add (s.Id));
 		CulturalKnowledgeInfoList.ForEach (k => _culturalKnowledgeIdList.Add (k.Id));
 		CulturalDiscoveryInfoList.ForEach (d => _culturalDiscoveryIdList.Add (d.Id));
+	}
+
+	public void FinalizeLoad () {
+
+		FinalizeLoad (0, 1, null);
 	}
 
 	public void MigrationTagGroup (HumanGroup group) {

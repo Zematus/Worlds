@@ -124,10 +124,10 @@ public class AppSettings {
 
 public class Manager {
 
-	public const float ProgressIncrement = 0.20f;
-
 	public const int WorldWidth = 400;
 	public const int WorldHeight = 200;
+
+	public static float ProgressIncrement = 0.20f;
 
 	public static bool RecordingEnabled = false;
 
@@ -566,6 +566,9 @@ public class Manager {
 	public static void LoadWorld (string path) {
 
 		_manager._worldReady = false;
+
+		float baseProgressIncrement = ProgressIncrement;
+		ProgressIncrement = 0.08f;
 		
 		ResetWorldLoadTrack ();
 
@@ -589,10 +592,12 @@ public class Manager {
 		world.FinishInitialization ();
 		
 		if (_manager._progressCastMethod != null) {
-			_manager._progressCastMethod (1f, "Finalizing...");
+			_manager._progressCastMethod (0.5f, "Finalizing...");
 		}
 
-		world.FinalizeLoad ();
+		world.FinalizeLoad (0.5f, 1.0f, _manager._progressCastMethod);
+
+		ProgressIncrement = baseProgressIncrement;
 
 		_manager._currentWorld = world;
 
