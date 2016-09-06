@@ -23,7 +23,7 @@ public class TestRunnerScript : MonoBehaviour {
 //		}, 20000, 5));
 		tests.Add (new SaveLoadTest ("with at least 5 polities", 407252633, (World world) => {
 			return world.PolityCount >= 5;
-		}, 10, 240, 220));
+		}, 10, 240, 0));//220));
 //		tests.Add (new SaveLoadTest ("after date: 296446", 407252633, (World world) => {
 //			return world.CurrentDate >= 296446;
 //		}, 50, 50));

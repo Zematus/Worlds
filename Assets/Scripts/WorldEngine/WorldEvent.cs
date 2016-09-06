@@ -233,6 +233,21 @@ public class UpdateCellGroupEvent : CellGroupEvent {
 
 	public UpdateCellGroupEvent (CellGroup group, int triggerDate) : base (group, triggerDate) {
 
+		// TODO: Remove commented code
+//		#if DEBUG
+//		if ((group.Id == 1272) && (group.Longitude == 224) && (group.Latitude == 73) && (triggerDate == 296457)) {
+//
+//			Debug.Break ();
+//		}
+//		#endif
+
+		#if DEBUG
+		if (Manager.RegisterDebugEvent != null) {
+			string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
+
+			Manager.RegisterDebugEvent ("DebugMessage", "UpdateCellGroupEvent - Group:" + groupId + " TriggerDate: " + TriggerDate);
+		}
+		#endif
 	}
 
 	public override bool CanTrigger () {

@@ -29,6 +29,10 @@ public class SaveLoadTest : AutomatedTest {
 	private int _numChecks;
 	private int _checksToSkip;
 
+	private List<string> _debugMessages = new List<string> ();
+
+	private List<string>[] _afterSave_DebugMessageLists;
+
 	private int _updateCellGroupEventCanTrigger_BaseCanTriggerFalse = int.MinValue; // If a log displays a negative value for this var then something is wrong with the test
 	private int _updateCellGroupEventCanTrigger_GroupNextUpdateDateNotTriggerDate = int.MinValue; // If a log displays a negative value for this var then something is wrong with the test
 	private int _updateCellGroupEventCanTrigger_True = int.MinValue; // If a log displays a negative value for this var then something is wrong with the test
@@ -117,6 +121,8 @@ public class SaveLoadTest : AutomatedTest {
 		}
 
 		_saveCondition = saveCondition;
+
+		_afterSave_DebugMessageLists = new List<string>[_numChecks];
 
 		_afterSave_UpdateCellGroupEventCanTrigger_BaseCanTriggerFalseCounts = new int[_numChecks];
 		_afterSave_UpdateCellGroupEventCanTrigger_GroupNextUpdateDateNotTriggerDateCounts = new int[_numChecks];
@@ -232,6 +238,21 @@ public class SaveLoadTest : AutomatedTest {
 						break;
 					}
 					break;
+
+				case "DebugMessage":
+
+					int count = 0;
+
+					string messagePlusCount = message;
+
+					while (_debugMessages.Contains (messagePlusCount)) {
+
+						messagePlusCount = message + " [" + count + "]";
+					}
+
+					_debugMessages.Add (messagePlusCount);
+
+					break;
 				}
 			};
 
@@ -323,6 +344,8 @@ public class SaveLoadTest : AutomatedTest {
 
 				#if DEBUG
 
+				_debugMessages.Clear ();
+
 				// We want the count of events for each check only
 
 				_updateCellGroupEventCanTrigger_BaseCanTriggerFalse = 0;
@@ -351,6 +374,8 @@ public class SaveLoadTest : AutomatedTest {
 				Debug.Log ("Number of Events after Save " + checkStr + ": " + _afterSave_EventCounts[c]);
 
 				#if DEBUG
+				_afterSave_DebugMessageLists[c] = new List<string> (_debugMessages);
+
 				_afterSave_UpdateCellGroupEventCanTrigger_BaseCanTriggerFalseCounts[c] = _updateCellGroupEventCanTrigger_BaseCanTriggerFalse;
 				Debug.Log ("Total instances of UpdateCellGroupEventCanTrigger_BaseCanTriggerFalse events after Save " + checkStr + ": " + _afterSave_UpdateCellGroupEventCanTrigger_BaseCanTriggerFalseCounts[c]);
 
@@ -427,6 +452,21 @@ public class SaveLoadTest : AutomatedTest {
 						_updateCellGroupEventCanTrigger_True++;
 						break;
 					}
+					break;
+
+				case "DebugMessage":
+
+					int count = 0;
+
+					string messagePlusCount = message;
+
+					while (_debugMessages.Contains (messagePlusCount)) {
+
+						messagePlusCount = message + " [" + count + "]";
+					}
+
+					_debugMessages.Add (messagePlusCount);
+
 					break;
 				}
 			};
@@ -530,6 +570,8 @@ public class SaveLoadTest : AutomatedTest {
 
 				#if DEBUG
 
+				_debugMessages.Clear ();
+
 				// We want the count of events for each check only
 
 				_updateCellGroupEventCanTrigger_BaseCanTriggerFalse = 0;
@@ -575,6 +617,26 @@ public class SaveLoadTest : AutomatedTest {
 				}
 
 				#if DEBUG
+
+				// Validate Debug Messages Occurrences
+
+				foreach (string message in _debugMessages) {
+
+					if (!_afterSave_DebugMessageLists[c].Contains (message)) {
+
+						Debug.LogError ("Debug message from Load data not found in Save data " + checkStr + ": " + message);
+						_result = false;
+					}
+				}
+
+				foreach (string message in _afterSave_DebugMessageLists[c]) {
+
+					if (!_debugMessages.Contains (message)) {
+
+						Debug.LogError ("Debug message from Save data not found in Load data " + checkStr + ": " + message);
+						_result = false;
+					}
+				}
 
 				// Validate UpdateCellGroupEventCanTrigger events
 

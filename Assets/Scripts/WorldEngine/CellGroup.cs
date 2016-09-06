@@ -1008,6 +1008,25 @@ public class CellGroup : HumanGroup {
 		}
 		#endif
 
+		#if DEBUG
+		if (Manager.RegisterDebugEvent != null) {
+			if (Id == 1085) {
+				string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
+
+				Manager.RegisterDebugEvent ("DebugMessage", 
+					"CalculateOptimalPopulation - Group:" + groupId + 
+					", CurrentDate: " + World.CurrentDate + 
+					", foragingContribution: " + foragingContribution + 
+					", Area: " + cell.Area + 
+					", modifiedForagingCapacity: " + modifiedForagingCapacity + 
+					", populationCapacityByFarming: " + populationCapacityByFarming + 
+					", modifiedSurvivability: " + modifiedSurvivability + 
+					", accesibilityFactor: " + accesibilityFactor + 
+					", optimalPopulation: " + optimalPopulation);
+			}
+		}
+		#endif
+
 		return optimalPopulation;
 	}
 
@@ -1069,6 +1088,30 @@ public class CellGroup : HumanGroup {
 		#if DEBUG
 		if (Cell.IsSelected) {
 			bool debug = true;
+		}
+		#endif
+
+		// TODO: Remove commented code
+//		#if DEBUG
+//		if ((Id == 1272) && (Longitude == 224) && (Latitude == 73) && (World.CurrentDate == 294882)) {
+//
+//			bool debug = true;
+//		}
+//		#endif
+
+		#if DEBUG
+		if (Manager.RegisterDebugEvent != null) {
+			if (Id == 1085) {
+				string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
+
+				Manager.RegisterDebugEvent ("DebugMessage", 
+					"CalculateNextUpdateDate - Group:" + groupId + 
+					", CurrentDate: " + World.CurrentDate + 
+					", MigrationValue: " + MigrationValue + 
+					", TotalMigrationValue: " + TotalMigrationValue + 
+					", OptimalPopulation: " + OptimalPopulation + 
+					", Population: " + Population);
+			}
 		}
 		#endif
 
