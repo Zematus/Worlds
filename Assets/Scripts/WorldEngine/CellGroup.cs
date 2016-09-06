@@ -743,10 +743,29 @@ public class CellGroup : HumanGroup {
 		}
 	}
 
+	#if DEBUG
+
+	public delegate void UpdateCalledDelegate ();
+
+	public static UpdateCalledDelegate UpdateCalled = null; 
+
+	#endif
+
 	public void Update () {
 
 		if (_alreadyUpdated)
 			return;
+
+		#if DEBUG
+
+		if (Manager.RecordingEnabled) {
+			if (UpdateCalled != null) {
+			
+				UpdateCalled ();
+			}
+		}
+
+		#endif
 
 		_alreadyUpdated = true;
 

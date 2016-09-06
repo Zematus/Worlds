@@ -655,8 +655,24 @@ public class World : ISynchronizable {
 
 		_eventsToHappen.Insert (eventToHappen.TriggerDate, eventToHappen);
 	}
+
+	#if DEBUG
+
+	public delegate void AddMigratingGroupCalledDelegate ();
+
+	public static AddMigratingGroupCalledDelegate AddMigratingGroupCalled = null; 
+
+	#endif
 	
 	public void AddMigratingGroup (MigratingGroup group) {
+
+		#if DEBUG
+		if (Manager.RecordingEnabled) {
+			if (AddMigratingGroupCalled != null) {
+				AddMigratingGroupCalled ();
+			}
+		}
+		#endif
 		
 		_migratingGroups.Add (group);
 
@@ -694,8 +710,31 @@ public class World : ISynchronizable {
 		return group;
 	}
 
+	#if DEBUG
+
+	public delegate void AddGroupToUpdateCalledDelegate (string callingMethod);
+
+	public static AddGroupToUpdateCalledDelegate AddGroupToUpdateCalled = null; 
+
+	#endif
+
 	public void AddGroupToUpdate (CellGroup group) {
-	
+
+		#if DEBUG
+		if (Manager.RecordingEnabled) {
+			if (AddGroupToUpdateCalled != null) {
+
+				System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
+
+				System.Reflection.MethodBase method = stackTrace.GetFrame(1).GetMethod();
+				string callingMethod = method.Name;
+				string callingClass = method.DeclaringType.ToString();
+
+				AddGroupToUpdateCalled (callingClass + ":" + callingMethod);
+			}
+		}
+		#endif
+
 		_groupsToUpdate.Add (group);
 	}
 	

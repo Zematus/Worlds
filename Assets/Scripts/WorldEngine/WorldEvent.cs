@@ -237,11 +237,33 @@ public class UpdateCellGroupEvent : CellGroupEvent {
 
 	public override bool CanTrigger () {
 
-		if (!base.CanTrigger ())
-			return false;
+		if (!base.CanTrigger ()) {
 
-		if (Group.NextUpdateDate != TriggerDate)
+			#if DEBUG
+			if (Manager.RegisterDebugEvent != null) {
+				Manager.RegisterDebugEvent ("UpdateCellGroupEvent:CanTrigger", "BaseCanTriggerFalse");
+			}
+			#endif
+
 			return false;
+		}
+
+		if (Group.NextUpdateDate != TriggerDate) {
+
+			#if DEBUG
+			if (Manager.RegisterDebugEvent != null) {
+				Manager.RegisterDebugEvent ("UpdateCellGroupEvent:CanTrigger", "GroupNextUpdateDateNotTriggerDate");
+			}
+			#endif
+
+			return false;
+		}
+
+		#if DEBUG
+		if (Manager.RegisterDebugEvent != null) {
+			Manager.RegisterDebugEvent ("UpdateCellGroupEvent:CanTrigger", "True");
+		}
+		#endif
 
 		return true;
 	}

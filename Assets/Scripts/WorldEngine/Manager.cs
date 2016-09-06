@@ -124,6 +124,14 @@ public class AppSettings {
 
 public class Manager {
 
+	#if DEBUG
+
+	public delegate void RegisterDebugEventDelegate (string eventType, string message);
+
+	public static RegisterDebugEventDelegate RegisterDebugEvent = null; 
+
+	#endif
+
 	public const int WorldWidth = 400;
 	public const int WorldHeight = 200;
 
