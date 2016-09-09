@@ -756,8 +756,6 @@ public class CellGroup : HumanGroup {
 		if (_alreadyUpdated)
 			return;
 
-		#if DEBUG
-
 		if (Manager.RecordingEnabled) {
 			if (UpdateCalled != null) {
 			
@@ -1008,24 +1006,24 @@ public class CellGroup : HumanGroup {
 		}
 		#endif
 
-		#if DEBUG
-		if (Manager.RegisterDebugEvent != null) {
-			if (Id == 1085) {
-				string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
-
-				Manager.RegisterDebugEvent ("DebugMessage", 
-					"CalculateOptimalPopulation - Group:" + groupId + 
-					", CurrentDate: " + World.CurrentDate + 
-					", foragingContribution: " + foragingContribution + 
-					", Area: " + cell.Area + 
-					", modifiedForagingCapacity: " + modifiedForagingCapacity + 
-					", populationCapacityByFarming: " + populationCapacityByFarming + 
-					", modifiedSurvivability: " + modifiedSurvivability + 
-					", accesibilityFactor: " + accesibilityFactor + 
-					", optimalPopulation: " + optimalPopulation);
-			}
-		}
-		#endif
+		//TODO: Remove commented lines
+//		#if DEBUG
+//		if (Manager.RegisterDebugEvent != null) {
+//			if (Id == 1085) {
+//				string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
+//
+//				Manager.RegisterDebugEvent ("DebugMessage", 
+//					"CalculateOptimalPopulation - Group:" + groupId + 
+//					", CurrentDate: " + World.CurrentDate + 
+//					", foragingContribution: " + foragingContribution + 
+//					", Area: " + cell.Area + 
+//					", modifiedForagingCapacity: " + modifiedForagingCapacity + 
+//					", modifiedSurvivability: " + modifiedSurvivability + 
+//					", accesibilityFactor: " + accesibilityFactor + 
+//					", optimalPopulation: " + optimalPopulation);
+//			}
+//		}
+//		#endif
 
 		return optimalPopulation;
 	}
@@ -1052,6 +1050,11 @@ public class CellGroup : HumanGroup {
 
 		float modifiedForagingCapacity = 0;
 		float modifiedSurvivability = 0;
+
+		//TODO: Remove commented code
+//		#if DEBUG
+//		string biomeData = "";
+//		#endif
 		
 		foreach (CellCulturalSkill skill in Culture.Skills) {
 			
@@ -1071,6 +1074,14 @@ public class CellGroup : HumanGroup {
 					
 					modifiedForagingCapacity += biome.ForagingCapacity * skillValue * biomePresence;
 					modifiedSurvivability += (biome.Survivability + skillValue * (1 - biome.Survivability)) * biomePresence;
+
+					//TODO: Remove commented code
+//					#if DEBUG
+//					biomeData += "\n\tBiome:" + biomeName + 
+//						" ForagingCapacity:" + biome.ForagingCapacity + 
+//						" skillValue:" + skillValue + 
+//						" biomePresence:" + biomePresence;
+//					#endif
 				}
 			}
 		}
@@ -1081,6 +1092,28 @@ public class CellGroup : HumanGroup {
 
 		foragingCapacity = modifiedForagingCapacity * (1 - cell.FarmlandPercentage);
 		survivability = modifiedSurvivability * altitudeSurvivabilityFactor;
+
+		//TODO: Remove commented code
+//		#if DEBUG
+//		if (Manager.RegisterDebugEvent != null) {
+//			if (Id == 1085) {
+//				System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
+//
+//				System.Reflection.MethodBase method = stackTrace.GetFrame(2).GetMethod();
+//				string callingMethod = method.Name;
+//
+//				if (callingMethod.Contains ("SetupForNextUpdate")) {
+//					string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
+//
+//					Manager.RegisterDebugEvent ("DebugMessage", 
+//						"CalculateOptimalPopulation - Group:" + groupId + 
+//						", CurrentDate: " + World.CurrentDate + 
+//						", foragingCapacity: " + foragingCapacity + 
+//						", biomeData: " + biomeData);
+//				}
+//			}
+//		}
+//		#endif
 	}
 
 	public int CalculateNextUpdateDate () {
@@ -1099,21 +1132,22 @@ public class CellGroup : HumanGroup {
 //		}
 //		#endif
 
-		#if DEBUG
-		if (Manager.RegisterDebugEvent != null) {
-			if (Id == 1085) {
-				string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
-
-				Manager.RegisterDebugEvent ("DebugMessage", 
-					"CalculateNextUpdateDate - Group:" + groupId + 
-					", CurrentDate: " + World.CurrentDate + 
-					", MigrationValue: " + MigrationValue + 
-					", TotalMigrationValue: " + TotalMigrationValue + 
-					", OptimalPopulation: " + OptimalPopulation + 
-					", Population: " + Population);
-			}
-		}
-		#endif
+		//TODO: Remove commented lines
+//		#if DEBUG
+//		if (Manager.RegisterDebugEvent != null) {
+//			if (Id == 1085) {
+//				string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
+//
+//				Manager.RegisterDebugEvent ("DebugMessage", 
+//					"CalculateNextUpdateDate - Group:" + groupId + 
+//					", CurrentDate: " + World.CurrentDate + 
+//					", MigrationValue: " + MigrationValue + 
+//					", TotalMigrationValue: " + TotalMigrationValue + 
+//					", OptimalPopulation: " + OptimalPopulation + 
+//					", Population: " + Population);
+//			}
+//		}
+//		#endif
 
 		float randomFactor = Cell.GetNextLocalRandomFloat ();
 		randomFactor = 1f - Mathf.Pow (randomFactor, 4);

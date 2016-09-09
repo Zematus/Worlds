@@ -18,12 +18,12 @@ public class TestRunnerScript : MonoBehaviour {
 
 		//tests.Add (new SaveLoadTest (407252633, 80, 1, 2, 0, true));
 //		tests.Add (new SaveLoadTest (407252633, 100000, 20000, 5));
-//		tests.Add (new SaveLoadTest ("after 5 polities", 407252633, (World world) => {
-//			return world.PolityCount > 5;
-//		}, 20000, 5));
-		tests.Add (new SaveLoadTest ("with at least 5 polities", 407252633, (World world) => {
-			return world.PolityCount >= 5;
-		}, 10, 240, 0));//220));
+		tests.Add (new SaveLoadTest ("after 5 polities", 407252633, (World world) => {
+			return world.PolityCount > 5;
+		}, 20000, 5));
+//		tests.Add (new SaveLoadTest ("with at least 5 polities", 407252633, (World world) => {
+//			return world.PolityCount >= 5;
+//		}, 10, 240, 0));//220));
 //		tests.Add (new SaveLoadTest ("after date: 296446", 407252633, (World world) => {
 //			return world.CurrentDate >= 296446;
 //		}, 50, 50));

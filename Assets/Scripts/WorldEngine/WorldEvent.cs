@@ -197,7 +197,8 @@ public abstract class CellGroupEvent : WorldEvent {
 		
 		Group = group;
 		GroupId = Group.Id;
-		
+
+		//TODO: Evaluate if necessary or remove
 //		Group.AddAssociatedEvent (this);
 	}
 
@@ -212,7 +213,8 @@ public abstract class CellGroupEvent : WorldEvent {
 	public override void FinalizeLoad () {
 		
 		Group = World.GetGroup (GroupId);
-		
+
+		//TODO: Evaluate if necessary or remove
 //		Group.AddAssociatedEvent (this);
 	}
 	
@@ -220,7 +222,8 @@ public abstract class CellGroupEvent : WorldEvent {
 	{
 		if (Group == null)
 			return;
-		
+
+		//TODO: Evaluate if necessary or remove
 //		Group.RemoveAssociatedEvent (Id);
 	}
 }
@@ -233,52 +236,48 @@ public class UpdateCellGroupEvent : CellGroupEvent {
 
 	public UpdateCellGroupEvent (CellGroup group, int triggerDate) : base (group, triggerDate) {
 
-		// TODO: Remove commented code
+		//TODO: Remove commented lines
 //		#if DEBUG
-//		if ((group.Id == 1272) && (group.Longitude == 224) && (group.Latitude == 73) && (triggerDate == 296457)) {
+//		if (Manager.RegisterDebugEvent != null) {
+//			string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
 //
-//			Debug.Break ();
+//			Manager.RegisterDebugEvent ("DebugMessage", "UpdateCellGroupEvent - Group:" + groupId + " TriggerDate: " + TriggerDate);
 //		}
 //		#endif
-
-		#if DEBUG
-		if (Manager.RegisterDebugEvent != null) {
-			string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
-
-			Manager.RegisterDebugEvent ("DebugMessage", "UpdateCellGroupEvent - Group:" + groupId + " TriggerDate: " + TriggerDate);
-		}
-		#endif
 	}
 
 	public override bool CanTrigger () {
 
 		if (!base.CanTrigger ()) {
 
-			#if DEBUG
-			if (Manager.RegisterDebugEvent != null) {
-				Manager.RegisterDebugEvent ("UpdateCellGroupEvent:CanTrigger", "BaseCanTriggerFalse");
-			}
-			#endif
+			//TODO: Remove commented lines
+//			#if DEBUG
+//			if (Manager.RegisterDebugEvent != null) {
+//				Manager.RegisterDebugEvent ("UpdateCellGroupEvent:CanTrigger", "BaseCanTriggerFalse");
+//			}
+//			#endif
 
 			return false;
 		}
 
 		if (Group.NextUpdateDate != TriggerDate) {
 
-			#if DEBUG
-			if (Manager.RegisterDebugEvent != null) {
-				Manager.RegisterDebugEvent ("UpdateCellGroupEvent:CanTrigger", "GroupNextUpdateDateNotTriggerDate");
-			}
-			#endif
+			//TODO: Remove commented lines
+//			#if DEBUG
+//			if (Manager.RegisterDebugEvent != null) {
+//				Manager.RegisterDebugEvent ("UpdateCellGroupEvent:CanTrigger", "GroupNextUpdateDateNotTriggerDate");
+//			}
+//			#endif
 
 			return false;
 		}
 
-		#if DEBUG
-		if (Manager.RegisterDebugEvent != null) {
-			Manager.RegisterDebugEvent ("UpdateCellGroupEvent:CanTrigger", "True");
-		}
-		#endif
+		//TODO: Remove commented lines
+//		#if DEBUG
+//		if (Manager.RegisterDebugEvent != null) {
+//			Manager.RegisterDebugEvent ("UpdateCellGroupEvent:CanTrigger", "True");
+//		}
+//		#endif
 
 		return true;
 	}

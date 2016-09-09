@@ -33,13 +33,13 @@ public class SaveLoadTest : AutomatedTest {
 
 	private List<string>[] _afterSave_DebugMessageLists;
 
-	private int _updateCellGroupEventCanTrigger_BaseCanTriggerFalse = int.MinValue; // If a log displays a negative value for this var then something is wrong with the test
-	private int _updateCellGroupEventCanTrigger_GroupNextUpdateDateNotTriggerDate = int.MinValue; // If a log displays a negative value for this var then something is wrong with the test
-	private int _updateCellGroupEventCanTrigger_True = int.MinValue; // If a log displays a negative value for this var then something is wrong with the test
+//	private int _updateCellGroupEventCanTrigger_BaseCanTriggerFalse = int.MinValue; // If a log displays a negative value for this var then something is wrong with the test
+//	private int _updateCellGroupEventCanTrigger_GroupNextUpdateDateNotTriggerDate = int.MinValue; // If a log displays a negative value for this var then something is wrong with the test
+//	private int _updateCellGroupEventCanTrigger_True = int.MinValue; // If a log displays a negative value for this var then something is wrong with the test
 
-	private int[] _afterSave_UpdateCellGroupEventCanTrigger_BaseCanTriggerFalseCounts;
-	private int[] _afterSave_UpdateCellGroupEventCanTrigger_GroupNextUpdateDateNotTriggerDateCounts;
-	private int[] _afterSave_UpdateCellGroupEventCanTrigger_TrueCounts;
+//	private int[] _afterSave_UpdateCellGroupEventCanTrigger_BaseCanTriggerFalseCounts;
+//	private int[] _afterSave_UpdateCellGroupEventCanTrigger_GroupNextUpdateDateNotTriggerDateCounts;
+//	private int[] _afterSave_UpdateCellGroupEventCanTrigger_TrueCounts;
 
 	private int _totalCallsToAddMigratingGroup = int.MinValue; // If a log displays a negative value for this var then something is wrong with the test
 	private int _totalCallsToAddGroupToUpdate = int.MinValue; // If a log displays a negative value for this var then something is wrong with the test
@@ -124,9 +124,9 @@ public class SaveLoadTest : AutomatedTest {
 
 		_afterSave_DebugMessageLists = new List<string>[_numChecks];
 
-		_afterSave_UpdateCellGroupEventCanTrigger_BaseCanTriggerFalseCounts = new int[_numChecks];
-		_afterSave_UpdateCellGroupEventCanTrigger_GroupNextUpdateDateNotTriggerDateCounts = new int[_numChecks];
-		_afterSave_UpdateCellGroupEventCanTrigger_TrueCounts = new int[_numChecks];
+//		_afterSave_UpdateCellGroupEventCanTrigger_BaseCanTriggerFalseCounts = new int[_numChecks];
+//		_afterSave_UpdateCellGroupEventCanTrigger_GroupNextUpdateDateNotTriggerDateCounts = new int[_numChecks];
+//		_afterSave_UpdateCellGroupEventCanTrigger_TrueCounts = new int[_numChecks];
 
 		_afterSave_AddGroupToUpdateCallersByCheck = new Dictionary<string, int>[_numChecks];
 		_afterSave_GetNextLocalRandomCallersByCheck = new Dictionary<string, int>[_numChecks];
@@ -222,22 +222,22 @@ public class SaveLoadTest : AutomatedTest {
 
 				switch (eventType) {
 
-				case "UpdateCellGroupEvent:CanTrigger": 
-					switch (message) {
-
-					case "BaseCanTriggerFalse":
-						_updateCellGroupEventCanTrigger_BaseCanTriggerFalse++;
-						break;
-
-					case "GroupNextUpdateDateNotTriggerDate":
-						_updateCellGroupEventCanTrigger_GroupNextUpdateDateNotTriggerDate++;
-						break;
-
-					case "True":
-						_updateCellGroupEventCanTrigger_True++;
-						break;
-					}
-					break;
+//				case "UpdateCellGroupEvent:CanTrigger": 
+//					switch (message) {
+//
+//					case "BaseCanTriggerFalse":
+//						_updateCellGroupEventCanTrigger_BaseCanTriggerFalse++;
+//						break;
+//
+//					case "GroupNextUpdateDateNotTriggerDate":
+//						_updateCellGroupEventCanTrigger_GroupNextUpdateDateNotTriggerDate++;
+//						break;
+//
+//					case "True":
+//						_updateCellGroupEventCanTrigger_True++;
+//						break;
+//					}
+//					break;
 
 				case "DebugMessage":
 
@@ -348,9 +348,9 @@ public class SaveLoadTest : AutomatedTest {
 
 				// We want the count of events for each check only
 
-				_updateCellGroupEventCanTrigger_BaseCanTriggerFalse = 0;
-				_updateCellGroupEventCanTrigger_GroupNextUpdateDateNotTriggerDate = 0;
-				_updateCellGroupEventCanTrigger_True = 0;
+//				_updateCellGroupEventCanTrigger_BaseCanTriggerFalse = 0;
+//				_updateCellGroupEventCanTrigger_GroupNextUpdateDateNotTriggerDate = 0;
+//				_updateCellGroupEventCanTrigger_True = 0;
 
 				#endif
 
@@ -376,14 +376,14 @@ public class SaveLoadTest : AutomatedTest {
 				#if DEBUG
 				_afterSave_DebugMessageLists[c] = new List<string> (_debugMessages);
 
-				_afterSave_UpdateCellGroupEventCanTrigger_BaseCanTriggerFalseCounts[c] = _updateCellGroupEventCanTrigger_BaseCanTriggerFalse;
-				Debug.Log ("Total instances of UpdateCellGroupEventCanTrigger_BaseCanTriggerFalse events after Save " + checkStr + ": " + _afterSave_UpdateCellGroupEventCanTrigger_BaseCanTriggerFalseCounts[c]);
-
-				_afterSave_UpdateCellGroupEventCanTrigger_GroupNextUpdateDateNotTriggerDateCounts[c] = _updateCellGroupEventCanTrigger_GroupNextUpdateDateNotTriggerDate;
-				Debug.Log ("Total instances of UpdateCellGroupEventCanTrigger_GroupNextUpdateDateNotTriggerDate events after Save " + checkStr + ": " + _afterSave_UpdateCellGroupEventCanTrigger_GroupNextUpdateDateNotTriggerDateCounts[c]);
-
-				_afterSave_UpdateCellGroupEventCanTrigger_TrueCounts[c] = _updateCellGroupEventCanTrigger_True;
-				Debug.Log ("Total instances of UpdateCellGroupEventCanTrigger_True events after Save " + checkStr + ": " + _afterSave_UpdateCellGroupEventCanTrigger_TrueCounts[c]);
+//				_afterSave_UpdateCellGroupEventCanTrigger_BaseCanTriggerFalseCounts[c] = _updateCellGroupEventCanTrigger_BaseCanTriggerFalse;
+//				Debug.Log ("Total instances of UpdateCellGroupEventCanTrigger_BaseCanTriggerFalse events after Save " + checkStr + ": " + _afterSave_UpdateCellGroupEventCanTrigger_BaseCanTriggerFalseCounts[c]);
+//
+//				_afterSave_UpdateCellGroupEventCanTrigger_GroupNextUpdateDateNotTriggerDateCounts[c] = _updateCellGroupEventCanTrigger_GroupNextUpdateDateNotTriggerDate;
+//				Debug.Log ("Total instances of UpdateCellGroupEventCanTrigger_GroupNextUpdateDateNotTriggerDate events after Save " + checkStr + ": " + _afterSave_UpdateCellGroupEventCanTrigger_GroupNextUpdateDateNotTriggerDateCounts[c]);
+//
+//				_afterSave_UpdateCellGroupEventCanTrigger_TrueCounts[c] = _updateCellGroupEventCanTrigger_True;
+//				Debug.Log ("Total instances of UpdateCellGroupEventCanTrigger_True events after Save " + checkStr + ": " + _afterSave_UpdateCellGroupEventCanTrigger_TrueCounts[c]);
 
 				_afterSave_CallsToAddMigratingGroupCounts[c] = _totalCallsToAddMigratingGroup;
 				Debug.Log ("Total calls to AddMigratingGroup after Save " + checkStr + ": " + _afterSave_CallsToAddMigratingGroupCounts[c]);
@@ -437,22 +437,22 @@ public class SaveLoadTest : AutomatedTest {
 
 				switch (eventType) {
 
-				case "UpdateCellGroupEvent:CanTrigger": 
-					switch (message) {
-
-					case "BaseCanTriggerFalse":
-						_updateCellGroupEventCanTrigger_BaseCanTriggerFalse++;
-						break;
-
-					case "GroupNextUpdateDateNotTriggerDate":
-						_updateCellGroupEventCanTrigger_GroupNextUpdateDateNotTriggerDate++;
-						break;
-
-					case "True":
-						_updateCellGroupEventCanTrigger_True++;
-						break;
-					}
-					break;
+//				case "UpdateCellGroupEvent:CanTrigger": 
+//					switch (message) {
+//
+//					case "BaseCanTriggerFalse":
+//						_updateCellGroupEventCanTrigger_BaseCanTriggerFalse++;
+//						break;
+//
+//					case "GroupNextUpdateDateNotTriggerDate":
+//						_updateCellGroupEventCanTrigger_GroupNextUpdateDateNotTriggerDate++;
+//						break;
+//
+//					case "True":
+//						_updateCellGroupEventCanTrigger_True++;
+//						break;
+//					}
+//					break;
 
 				case "DebugMessage":
 
@@ -574,9 +574,9 @@ public class SaveLoadTest : AutomatedTest {
 
 				// We want the count of events for each check only
 
-				_updateCellGroupEventCanTrigger_BaseCanTriggerFalse = 0;
-				_updateCellGroupEventCanTrigger_GroupNextUpdateDateNotTriggerDate = 0;
-				_updateCellGroupEventCanTrigger_True = 0;
+//				_updateCellGroupEventCanTrigger_BaseCanTriggerFalse = 0;
+//				_updateCellGroupEventCanTrigger_GroupNextUpdateDateNotTriggerDate = 0;
+//				_updateCellGroupEventCanTrigger_True = 0;
 
 				#endif
 
@@ -638,37 +638,37 @@ public class SaveLoadTest : AutomatedTest {
 					}
 				}
 
-				// Validate UpdateCellGroupEventCanTrigger events
-
-				Debug.Log ("Total UpdateCellGroupEventCanTrigger_BaseCanTriggerFalse events after Load " + checkStr + ": " + _updateCellGroupEventCanTrigger_BaseCanTriggerFalse);
-
-				if (_afterSave_UpdateCellGroupEventCanTrigger_BaseCanTriggerFalseCounts[c] != _updateCellGroupEventCanTrigger_BaseCanTriggerFalse) {
-
-					Debug.LogError ("Total UpdateCellGroupEventCanTrigger_BaseCanTriggerFalse events after load with offset not equal to: " + _afterSave_UpdateCellGroupEventCanTrigger_BaseCanTriggerFalseCounts[c]);
-
-					_result = false;
-
-				}
-
-				Debug.Log ("Total UpdateCellGroupEventCanTrigger_GroupNextUpdateDateNotTriggerDate events after Load " + checkStr + ": " + _updateCellGroupEventCanTrigger_GroupNextUpdateDateNotTriggerDate);
-
-				if (_afterSave_UpdateCellGroupEventCanTrigger_GroupNextUpdateDateNotTriggerDateCounts[c] != _updateCellGroupEventCanTrigger_GroupNextUpdateDateNotTriggerDate) {
-
-					Debug.LogError ("Total UpdateCellGroupEventCanTrigger_GroupNextUpdateDateNotTriggerDate events after load with offset not equal to: " + _afterSave_UpdateCellGroupEventCanTrigger_GroupNextUpdateDateNotTriggerDateCounts[c]);
-
-					_result = false;
-
-				}
-
-				Debug.Log ("Total UpdateCellGroupEventCanTrigger_True events after Load " + checkStr + ": " + _updateCellGroupEventCanTrigger_True);
-
-				if (_afterSave_UpdateCellGroupEventCanTrigger_TrueCounts[c] != _updateCellGroupEventCanTrigger_True) {
-
-					Debug.LogError ("Total UpdateCellGroupEventCanTrigger_True events after load with offset not equal to: " + _afterSave_UpdateCellGroupEventCanTrigger_TrueCounts[c]);
-
-					_result = false;
-
-				}
+//				// Validate UpdateCellGroupEventCanTrigger events
+//
+//				Debug.Log ("Total UpdateCellGroupEventCanTrigger_BaseCanTriggerFalse events after Load " + checkStr + ": " + _updateCellGroupEventCanTrigger_BaseCanTriggerFalse);
+//
+//				if (_afterSave_UpdateCellGroupEventCanTrigger_BaseCanTriggerFalseCounts[c] != _updateCellGroupEventCanTrigger_BaseCanTriggerFalse) {
+//
+//					Debug.LogError ("Total UpdateCellGroupEventCanTrigger_BaseCanTriggerFalse events after load with offset not equal to: " + _afterSave_UpdateCellGroupEventCanTrigger_BaseCanTriggerFalseCounts[c]);
+//
+//					_result = false;
+//
+//				}
+//
+//				Debug.Log ("Total UpdateCellGroupEventCanTrigger_GroupNextUpdateDateNotTriggerDate events after Load " + checkStr + ": " + _updateCellGroupEventCanTrigger_GroupNextUpdateDateNotTriggerDate);
+//
+//				if (_afterSave_UpdateCellGroupEventCanTrigger_GroupNextUpdateDateNotTriggerDateCounts[c] != _updateCellGroupEventCanTrigger_GroupNextUpdateDateNotTriggerDate) {
+//
+//					Debug.LogError ("Total UpdateCellGroupEventCanTrigger_GroupNextUpdateDateNotTriggerDate events after load with offset not equal to: " + _afterSave_UpdateCellGroupEventCanTrigger_GroupNextUpdateDateNotTriggerDateCounts[c]);
+//
+//					_result = false;
+//
+//				}
+//
+//				Debug.Log ("Total UpdateCellGroupEventCanTrigger_True events after Load " + checkStr + ": " + _updateCellGroupEventCanTrigger_True);
+//
+//				if (_afterSave_UpdateCellGroupEventCanTrigger_TrueCounts[c] != _updateCellGroupEventCanTrigger_True) {
+//
+//					Debug.LogError ("Total UpdateCellGroupEventCanTrigger_True events after load with offset not equal to: " + _afterSave_UpdateCellGroupEventCanTrigger_TrueCounts[c]);
+//
+//					_result = false;
+//
+//				}
 
 				// Validate calls to AddMigratingGroup
 

@@ -83,20 +83,24 @@ public abstract class CellCulturalSkill : CulturalSkill, ISynchronizable {
 	public CellCulturalSkill GenerateCopy (CellGroup targetGroup) {
 		
 		System.Type skillType = this.GetType ();
-		
+
 		System.Reflection.ConstructorInfo cInfo = skillType.GetConstructor (new System.Type[] {typeof(CellGroup), skillType});
 		
 		return cInfo.Invoke (new object[] {targetGroup, this}) as CellCulturalSkill;
 	}
 
 	public void Merge (CellCulturalSkill skill, float percentage) {
-	
-		Value = Value * (1f - percentage) + skill.Value * percentage;
+
+		float value = Value * (1f - percentage) + skill.Value * percentage;
+
+		Value = MathUtility.RoundToSixDecimals (value);
 	}
 	
 	public void ModifyValue (float percentage) {
+
+		float value = Value * percentage;
 		
-		Value *= percentage;
+		Value = MathUtility.RoundToSixDecimals (value);
 	}
 
 	public virtual void Synchronize () {
@@ -129,9 +133,9 @@ public abstract class CellCulturalSkill : CulturalSkill, ISynchronizable {
 
 		float timeEffect = timeSpan / (float)(timeSpan + timeEffectFactor);
 
-		Value = (Value * (1 - timeEffect)) + (targetValue * timeEffect);
+		float newValue = (Value * (1 - timeEffect)) + (targetValue * timeEffect);
 
-		Value = Mathf.Clamp01 (Value);
+		Value = Mathf.Clamp01 (MathUtility.RoundToSixDecimals (newValue));
 	}
 
 	public abstract void PolityCulturalInfluence (CulturalSkill politySkill, PolityInfluence polityInfluence, int timeSpan);
@@ -149,14 +153,12 @@ public abstract class CellCulturalSkill : CulturalSkill, ISynchronizable {
 
 		float change = (targetValue - Value) * influenceEffect * timeEffect * randomEffect;
 
-		Value += change;
-
-		Value = Mathf.Clamp01 (Value);
+		Value = Mathf.Clamp01 (MathUtility.RoundToSixDecimals (Value + change));
 	}
 
 	protected void RecalculateAdaptation (float targetValue)
 	{
-		AdaptationLevel = 1 - Mathf.Abs (Value - targetValue);
+		AdaptationLevel = MathUtility.RoundToSixDecimals (1 - Mathf.Abs (Value - targetValue));
 	}
 }
 
