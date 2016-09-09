@@ -763,8 +763,6 @@ public class CellGroup : HumanGroup {
 			}
 		}
 
-		#endif
-
 		_alreadyUpdated = true;
 
 		PreviousExactPopulation = ExactPopulation;
