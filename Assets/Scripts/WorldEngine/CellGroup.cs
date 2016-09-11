@@ -28,7 +28,7 @@ public class CellGroup : HumanGroup {
 	public float PreviousExactPopulation;
 	
 	[XmlAttribute("ExPop")]
-	public float ExactPopulation;
+	public float ExactPopulation; // TODO: Get rid of 'float' population values
 	
 	[XmlAttribute("StilPres")]
 	public bool StillPresent = true;
@@ -544,6 +544,32 @@ public class CellGroup : HumanGroup {
 
 		float cellValue = altitudeDeltaFactor * areaFactor * popDifferenceFactor * noMigrationFactor * polityInfluenceFactor * optimalPopulationFactor * secondaryOptimalPopulationFactor;
 
+//		#if DEBUG
+//		if (Manager.RegisterDebugEvent != null) {
+//			if (Id == 810) {
+//				string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
+//				string targetCellLoc = "Long:" + cell.Longitude + "|Lat:" + cell.Latitude;
+//
+//				Manager.RegisterDebugEvent ("DebugMessage", 
+//					"CalculateMigrationValue - Group:" + groupId + 
+//					", targetCell: " + targetCellLoc + 
+//					", CurrentDate: " + World.CurrentDate + 
+//					", cellValue: " + cellValue + 
+////					", altitudeDeltaFactor: " + altitudeDeltaFactor + 
+////					", areaFactor: " + areaFactor + 
+//					", Population: " + Population + 
+//					", existingPopulation: " + existingPopulation + 
+////					", popDifferenceFactor: " + popDifferenceFactor + 
+////					", noMigrationFactor: " + noMigrationFactor + 
+//					", polityInfluenceFactor: " + polityInfluenceFactor + 
+//					", optimalPopulation: " + optimalPopulation + 
+////					", optimalPopulationFactor: " + optimalPopulationFactor + 
+////					", secondaryOptimalPopulationFactor: " + secondaryOptimalPopulationFactor + 
+//					"");
+//			}
+//		}
+//		#endif
+
 		return cellValue;
 	}
 
@@ -772,6 +798,8 @@ public class CellGroup : HumanGroup {
 		if (timeSpan <= 0)
 			return;
 
+		Profiler.BeginSample ("Cell Group Update");
+
 		// Should do this before modifying the polity influence (otherwise might never get the polity updated if the influence reaches zero)
 		SetPolityUpdates ();
 
@@ -786,6 +814,8 @@ public class CellGroup : HumanGroup {
 		LastUpdateDate = World.CurrentDate;
 		
 		World.AddUpdatedGroup (this);
+
+		Profiler.EndSample ();
 	}
 
 	private void SetPolityUpdates () {
@@ -1122,30 +1152,21 @@ public class CellGroup : HumanGroup {
 		}
 		#endif
 
-		// TODO: Remove commented code
-//		#if DEBUG
-//		if ((Id == 1272) && (Longitude == 224) && (Latitude == 73) && (World.CurrentDate == 294882)) {
-//
-//			bool debug = true;
-//		}
-//		#endif
+		#if DEBUG
+		if (Manager.RegisterDebugEvent != null) {
+			if ((Id == 1471) || (Id == 1622)) {
+				string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
 
-		//TODO: Remove commented lines
-//		#if DEBUG
-//		if (Manager.RegisterDebugEvent != null) {
-//			if (Id == 1085) {
-//				string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
-//
-//				Manager.RegisterDebugEvent ("DebugMessage", 
-//					"CalculateNextUpdateDate - Group:" + groupId + 
-//					", CurrentDate: " + World.CurrentDate + 
-//					", MigrationValue: " + MigrationValue + 
-//					", TotalMigrationValue: " + TotalMigrationValue + 
-//					", OptimalPopulation: " + OptimalPopulation + 
-//					", Population: " + Population);
-//			}
-//		}
-//		#endif
+				Manager.RegisterDebugEvent ("DebugMessage", 
+					"CalculateNextUpdateDate - Group:" + groupId + 
+					", CurrentDate: " + World.CurrentDate + 
+					", MigrationValue: " + MigrationValue + 
+					", TotalMigrationValue: " + TotalMigrationValue + 
+					", OptimalPopulation: " + OptimalPopulation + 
+					", Population: " + Population);
+			}
+		}
+		#endif
 
 		float randomFactor = Cell.GetNextLocalRandomFloat ();
 		randomFactor = 1f - Mathf.Pow (randomFactor, 4);
@@ -1185,7 +1206,7 @@ public class CellGroup : HumanGroup {
 			float geometricTimeFactor = Mathf.Pow(2, timeFactor);
 			float populationFactor = 1 - ExactPopulation/(float)OptimalPopulation;
 
-			population = OptimalPopulation * (1 - Mathf.Pow(populationFactor, geometricTimeFactor));
+			population = OptimalPopulation * MathUtility.RoundToSixDecimals (1 - Mathf.Pow(populationFactor, geometricTimeFactor));
 
 			#if DEBUG
 			if ((int)population < -1000) {
@@ -1199,7 +1220,7 @@ public class CellGroup : HumanGroup {
 
 		if (population > OptimalPopulation) {
 
-			population = OptimalPopulation + (ExactPopulation - OptimalPopulation) * Mathf.Exp (-timeFactor);
+			population = OptimalPopulation + (ExactPopulation - OptimalPopulation) * MathUtility.RoundToSixDecimals (Mathf.Exp (-timeFactor));
 
 			#if DEBUG
 			if ((int)population < -1000) {
@@ -1300,7 +1321,7 @@ public class CellGroup : HumanGroup {
 		TotalPolityInfluenceValue -= oldInfluenceValue;
 		polity.TotalGroupInfluenceValue -= oldInfluenceValue;
 
-		polityInfluence.Value = newInfluenceValue;
+		polityInfluence.Value = MathUtility.RoundToSixDecimals (newInfluenceValue);
 
 		TotalPolityInfluenceValue += newInfluenceValue;
 		polity.TotalGroupInfluenceValue += newInfluenceValue;

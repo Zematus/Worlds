@@ -44,7 +44,7 @@ public abstract class WorldEvent : ISynchronizable {
 	}
 
 	public virtual void FinalizeLoad () {
-
+		
 	}
 
 	public abstract void Trigger ();
@@ -99,6 +99,14 @@ public class FarmDegradationEvent : CellEvent {
 	public FarmDegradationEvent (TerrainCell cell, int triggerDate) : base (cell, triggerDate) {
 
 		cell.SetFlag (EventSetFlag);
+
+		#if DEBUG
+		if (Manager.RegisterDebugEvent != null) {
+			string cellLoc = "Long:" + cell.Longitude + "|Lat:" + cell.Latitude;
+
+			Manager.RegisterDebugEvent ("DebugMessage", "FarmDegradationEvent - Cell: " + cellLoc + ", TriggerDate: " + TriggerDate);
+		}
+		#endif
 	}
 
 	public static bool CanSpawnIn (TerrainCell cell) {
@@ -158,6 +166,8 @@ public class FarmDegradationEvent : CellEvent {
 
 	public override void FinalizeLoad () {
 
+		base.FinalizeLoad ();
+
 		Cell = World.GetCell (CellLongitude, CellLatitude);
 
 		if (Cell == null) {
@@ -200,6 +210,14 @@ public abstract class CellGroupEvent : WorldEvent {
 
 		//TODO: Evaluate if necessary or remove
 //		Group.AddAssociatedEvent (this);
+
+		#if DEBUG
+		if (Manager.RegisterDebugEvent != null) {
+			string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
+
+			Manager.RegisterDebugEvent ("DebugMessage", "CellGroupEvent - Group:" + groupId + ", Type: " + this.GetType () + ", TriggerDate: " + TriggerDate);
+		}
+		#endif
 	}
 
 	public override bool CanTrigger () {
@@ -211,6 +229,8 @@ public abstract class CellGroupEvent : WorldEvent {
 	}
 	
 	public override void FinalizeLoad () {
+
+		base.FinalizeLoad ();
 		
 		Group = World.GetGroup (GroupId);
 
@@ -235,49 +255,20 @@ public class UpdateCellGroupEvent : CellGroupEvent {
 	}
 
 	public UpdateCellGroupEvent (CellGroup group, int triggerDate) : base (group, triggerDate) {
-
-		//TODO: Remove commented lines
-//		#if DEBUG
-//		if (Manager.RegisterDebugEvent != null) {
-//			string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
-//
-//			Manager.RegisterDebugEvent ("DebugMessage", "UpdateCellGroupEvent - Group:" + groupId + " TriggerDate: " + TriggerDate);
-//		}
-//		#endif
+		
 	}
 
 	public override bool CanTrigger () {
 
 		if (!base.CanTrigger ()) {
 
-			//TODO: Remove commented lines
-//			#if DEBUG
-//			if (Manager.RegisterDebugEvent != null) {
-//				Manager.RegisterDebugEvent ("UpdateCellGroupEvent:CanTrigger", "BaseCanTriggerFalse");
-//			}
-//			#endif
-
 			return false;
 		}
 
 		if (Group.NextUpdateDate != TriggerDate) {
 
-			//TODO: Remove commented lines
-//			#if DEBUG
-//			if (Manager.RegisterDebugEvent != null) {
-//				Manager.RegisterDebugEvent ("UpdateCellGroupEvent:CanTrigger", "GroupNextUpdateDateNotTriggerDate");
-//			}
-//			#endif
-
 			return false;
 		}
-
-		//TODO: Remove commented lines
-//		#if DEBUG
-//		if (Manager.RegisterDebugEvent != null) {
-//			Manager.RegisterDebugEvent ("UpdateCellGroupEvent:CanTrigger", "True");
-//		}
-//		#endif
 
 		return true;
 	}

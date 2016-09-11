@@ -32,6 +32,7 @@ public class CulturalKnowledgeInfo {
 
 public class CulturalKnowledge : CulturalKnowledgeInfo {
 
+	// TODO: knowledge.Value should be an int, not a float.
 	[XmlAttribute]
 	public float Value;
 

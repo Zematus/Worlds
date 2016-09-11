@@ -9,12 +9,17 @@ public class SaveLoadTest : AutomatedTest {
 		Generation,
 		GenerationIterations,
 		Save,
-		Load
+		SaveIterations,
+		Load,
+		LoadIterations
 	}
 
 	public delegate bool SaveConditionDelegate (World world);
 
 	private const int MaxIterationsPerUpdate = 500;
+	private const int MaxCallsToGroupUpdate = 2000;
+
+	private bool _enhancedTracing = false;
 
 	private int _seed;
 
@@ -25,36 +30,33 @@ public class SaveLoadTest : AutomatedTest {
 	private int _eventCountAfterLoad;
 
 	private int _saveDate;
+	private int _saveDatePlusOffset;
+	private int _loadDatePlusOffset;
 
 	private int _numChecks;
 	private int _checksToSkip;
+	private int _currentCheck;
 
 	private List<string> _debugMessages = new List<string> ();
 
 	private List<string>[] _afterSave_DebugMessageLists;
-
-//	private int _updateCellGroupEventCanTrigger_BaseCanTriggerFalse = int.MinValue; // If a log displays a negative value for this var then something is wrong with the test
-//	private int _updateCellGroupEventCanTrigger_GroupNextUpdateDateNotTriggerDate = int.MinValue; // If a log displays a negative value for this var then something is wrong with the test
-//	private int _updateCellGroupEventCanTrigger_True = int.MinValue; // If a log displays a negative value for this var then something is wrong with the test
-
-//	private int[] _afterSave_UpdateCellGroupEventCanTrigger_BaseCanTriggerFalseCounts;
-//	private int[] _afterSave_UpdateCellGroupEventCanTrigger_GroupNextUpdateDateNotTriggerDateCounts;
-//	private int[] _afterSave_UpdateCellGroupEventCanTrigger_TrueCounts;
 
 	private int _totalCallsToAddMigratingGroup = int.MinValue; // If a log displays a negative value for this var then something is wrong with the test
 	private int _totalCallsToAddGroupToUpdate = int.MinValue; // If a log displays a negative value for this var then something is wrong with the test
 	private int _totalCallsToGroupUpdate = int.MinValue; // If a log displays a negative value for this var then something is wrong with the test
 	private int _totalCallsToGetNextLocalRandom = int.MinValue; // If a log displays a negative value for this var then something is wrong with the test
 
-	private Dictionary<string, int> _afterSave_AddGroupToUpdateCallers = new Dictionary<string, int> ();
-	private Dictionary<string, int> _afterLoad_AddGroupToUpdateCallers = new Dictionary<string, int> ();
+	private int _callsToGroupUpdate = int.MinValue; // If a log displays a negative value for this var then something is wrong with the test
 
-	private Dictionary<string, int>[] _afterSave_AddGroupToUpdateCallersByCheck;
+//	private Dictionary<string, int> _afterSave_AddGroupToUpdateCallers = new Dictionary<string, int> ();
+//	private Dictionary<string, int> _afterLoad_AddGroupToUpdateCallers = new Dictionary<string, int> ();
 
-	private Dictionary<string, int> _afterSave_GetNextLocalRandomCallers = new Dictionary<string, int> ();
-	private Dictionary<string, int> _afterLoad_GetNextLocalRandomCallers = new Dictionary<string, int> ();
+//	private Dictionary<string, int>[] _afterSave_AddGroupToUpdateCallersByCheck;
 
-	private Dictionary<string, int>[] _afterSave_GetNextLocalRandomCallersByCheck;
+//	private Dictionary<string, int> _afterSave_GetNextLocalRandomCallers = new Dictionary<string, int> ();
+//	private Dictionary<string, int> _afterLoad_GetNextLocalRandomCallers = new Dictionary<string, int> ();
+
+//	private Dictionary<string, int>[] _afterSave_GetNextLocalRandomCallersByCheck;
 
 	private int[] _saveDatePlusOffsets;
 
@@ -85,20 +87,20 @@ public class SaveLoadTest : AutomatedTest {
 
 	private SaveConditionDelegate _saveCondition;
 
-	public SaveLoadTest (int seed, int initialDateSkip, int offsetPerCheck, int numChecks, int checksToSkip = 0, bool validateRecording = false) {
+	public SaveLoadTest (int seed, int initialDateSkip, int offsetPerCheck, int numChecks, int checksToSkip = 0, bool enhancedTracing = false, bool validateRecording = false) {
 
 		Initialize ("with initialSkip: " + initialDateSkip, 
 			seed, (World world) => {
 				return (world.CurrentDate >= initialDateSkip);
-			}, offsetPerCheck, numChecks, checksToSkip, validateRecording);
+			}, offsetPerCheck, numChecks, checksToSkip, enhancedTracing, validateRecording);
 	}
 
-	public SaveLoadTest (string conditionName, int seed, SaveConditionDelegate saveCondition, int offsetPerCheck, int numChecks, int checksToSkip = 0, bool validateRecording = false) {
+	public SaveLoadTest (string conditionName, int seed, SaveConditionDelegate saveCondition, int offsetPerCheck, int numChecks, int checksToSkip = 0, bool enhancedTracing = false, bool validateRecording = false) {
 
-		Initialize (conditionName, seed, saveCondition, offsetPerCheck, numChecks, checksToSkip, validateRecording);
+		Initialize (conditionName, seed, saveCondition, offsetPerCheck, numChecks, checksToSkip, enhancedTracing, validateRecording);
 	}
 
-	private void Initialize (string conditionName, int seed, SaveConditionDelegate saveCondition, int offsetPerCheck, int numChecks, int checksToSkip, bool validateRecording) {
+	private void Initialize (string conditionName, int seed, SaveConditionDelegate saveCondition, int offsetPerCheck, int numChecks, int checksToSkip, bool enhancedTracing, bool validateRecording) {
 
 		_seed = seed;
 
@@ -106,6 +108,7 @@ public class SaveLoadTest : AutomatedTest {
 		_numChecks = numChecks;
 		_checksToSkip = checksToSkip;
 
+		_enhancedTracing = enhancedTracing;
 		_validateRecording = validateRecording;
 
 		Name = "Save/Load Test " + conditionName
@@ -122,14 +125,12 @@ public class SaveLoadTest : AutomatedTest {
 
 		_saveCondition = saveCondition;
 
-		_afterSave_DebugMessageLists = new List<string>[_numChecks];
+		if (_enhancedTracing) {
+			_afterSave_DebugMessageLists = new List<string>[_numChecks];
+		}
 
-//		_afterSave_UpdateCellGroupEventCanTrigger_BaseCanTriggerFalseCounts = new int[_numChecks];
-//		_afterSave_UpdateCellGroupEventCanTrigger_GroupNextUpdateDateNotTriggerDateCounts = new int[_numChecks];
-//		_afterSave_UpdateCellGroupEventCanTrigger_TrueCounts = new int[_numChecks];
-
-		_afterSave_AddGroupToUpdateCallersByCheck = new Dictionary<string, int>[_numChecks];
-		_afterSave_GetNextLocalRandomCallersByCheck = new Dictionary<string, int>[_numChecks];
+//		_afterSave_AddGroupToUpdateCallersByCheck = new Dictionary<string, int>[_numChecks];
+//		_afterSave_GetNextLocalRandomCallersByCheck = new Dictionary<string, int>[_numChecks];
 
 		_saveDatePlusOffsets = new int[_numChecks];
 
@@ -181,6 +182,10 @@ public class SaveLoadTest : AutomatedTest {
 
 			_world = Manager.CurrentWorld;
 
+			CellGroup.UpdateCalled = () => {
+				_callsToGroupUpdate++;
+			};
+
 			Debug.Log ("Pushing simulation forward before save...");
 
 			_stage = Stage.GenerationIterations;
@@ -188,6 +193,8 @@ public class SaveLoadTest : AutomatedTest {
 			break;
 
 		case Stage.GenerationIterations:
+			
+			_callsToGroupUpdate = 0;
 
 			int iterations = 0;
 			while (!_saveCondition (_world)) {
@@ -196,9 +203,10 @@ public class SaveLoadTest : AutomatedTest {
 
 				iterations++;
 
-				if (iterations >= MaxIterationsPerUpdate) {
+				if (_callsToGroupUpdate > MaxCallsToGroupUpdate) {
 
 //					Debug.Log ("Current Date: " + _world.CurrentDate);
+//					Debug.Log ("Calls to Group Update: " + _callsToGroupUpdate + ", Iterations: " + iterations);
 					return;
 				}
 			}
@@ -218,43 +226,28 @@ public class SaveLoadTest : AutomatedTest {
 
 			#if DEBUG
 
-			Manager.RegisterDebugEvent = (string eventType, string message) => {
+			if (_enhancedTracing) {
+				Manager.RegisterDebugEvent = (string eventType, string message) => {
 
-				switch (eventType) {
+					switch (eventType) {
 
-//				case "UpdateCellGroupEvent:CanTrigger": 
-//					switch (message) {
-//
-//					case "BaseCanTriggerFalse":
-//						_updateCellGroupEventCanTrigger_BaseCanTriggerFalse++;
-//						break;
-//
-//					case "GroupNextUpdateDateNotTriggerDate":
-//						_updateCellGroupEventCanTrigger_GroupNextUpdateDateNotTriggerDate++;
-//						break;
-//
-//					case "True":
-//						_updateCellGroupEventCanTrigger_True++;
-//						break;
-//					}
-//					break;
+					case "DebugMessage":
 
-				case "DebugMessage":
+						int count = 0;
 
-					int count = 0;
+						string messagePlusCount = message;
 
-					string messagePlusCount = message;
+						while (_debugMessages.Contains (messagePlusCount)) {
 
-					while (_debugMessages.Contains (messagePlusCount)) {
+							messagePlusCount = message + " [" + count + "]";
+						}
 
-						messagePlusCount = message + " [" + count + "]";
+						_debugMessages.Add (messagePlusCount);
+
+						break;
 					}
-
-					_debugMessages.Add (messagePlusCount);
-
-					break;
-				}
-			};
+				};
+			}
 
 			_totalCallsToAddMigratingGroup = 0;
 			_totalCallsToAddGroupToUpdate = 0;
@@ -267,20 +260,21 @@ public class SaveLoadTest : AutomatedTest {
 			World.AddGroupToUpdateCalled = (string callingMethod) => {
 				_totalCallsToAddGroupToUpdate++;
 
-				int callCount;
-
-				if (!_afterSave_AddGroupToUpdateCallers.TryGetValue (callingMethod, out callCount)) {
-
-					_afterSave_AddGroupToUpdateCallers.Add (callingMethod, 1);
-
-				} else {
-
-					_afterSave_AddGroupToUpdateCallers[callingMethod] = ++callCount;
-				}
+//				int callCount;
+//
+//				if (!_afterSave_AddGroupToUpdateCallers.TryGetValue (callingMethod, out callCount)) {
+//
+//					_afterSave_AddGroupToUpdateCallers.Add (callingMethod, 1);
+//
+//				} else {
+//
+//					_afterSave_AddGroupToUpdateCallers[callingMethod] = ++callCount;
+//				}
 			};
 
 			CellGroup.UpdateCalled = () => {
 				_totalCallsToGroupUpdate++;
+				_callsToGroupUpdate++;
 			};
 
 			_totalCallsToGetNextLocalRandom = 0;
@@ -288,16 +282,16 @@ public class SaveLoadTest : AutomatedTest {
 			TerrainCell.GetNextLocalRandomCalled = (string callingMethod) => {
 				_totalCallsToGetNextLocalRandom++;
 
-				int callCount;
-
-				if (!_afterSave_GetNextLocalRandomCallers.TryGetValue (callingMethod, out callCount)) {
-
-					_afterSave_GetNextLocalRandomCallers.Add (callingMethod, 1);
-
-				} else {
-
-					_afterSave_GetNextLocalRandomCallers[callingMethod] = ++callCount;
-				}
+//				int callCount;
+//
+//				if (!_afterSave_GetNextLocalRandomCallers.TryGetValue (callingMethod, out callCount)) {
+//
+//					_afterSave_GetNextLocalRandomCallers.Add (callingMethod, 1);
+//
+//				} else {
+//
+//					_afterSave_GetNextLocalRandomCallers[callingMethod] = ++callCount;
+//				}
 			};
 
 			#endif
@@ -332,41 +326,62 @@ public class SaveLoadTest : AutomatedTest {
 				Debug.Log ("Number of Events remain equal after save");
 			}
 
-			int saveDatePlusOffset = _saveDate;
+			_saveDatePlusOffset = _saveDate;
 
-			for (int c = 0; c < _numChecks; c++) {
+			_currentCheck = 0;
+
+			if (0 >= _checksToSkip) {
+				Debug.Log ("Pushing simulation forward after save [with offset 0]...");
+			}
+
+			_stage = Stage.SaveIterations;
+
+			break;
+
+		case Stage.SaveIterations:
+
+			for (int c = _currentCheck; c < _numChecks; c++) {
 
 				string checkStr = "[with offset " + c + "]";
 
-				if (c >= _checksToSkip) {
+				if ((c >= _checksToSkip) && (c > _currentCheck)) {
 					Debug.Log ("Pushing simulation forward after save " + checkStr + "...");
 				}
 
 				#if DEBUG
 
-				_debugMessages.Clear ();
+				if (_enhancedTracing) {
+					_debugMessages.Clear ();
+				}
 
-				// We want the count of events for each check only
-
-//				_updateCellGroupEventCanTrigger_BaseCanTriggerFalse = 0;
-//				_updateCellGroupEventCanTrigger_GroupNextUpdateDateNotTriggerDate = 0;
-//				_updateCellGroupEventCanTrigger_True = 0;
+				_callsToGroupUpdate = 0;
 
 				#endif
 
-				while (_world.CurrentDate < (saveDatePlusOffset + _offsetPerCheck)) {
+				iterations = 0;
+				while (_world.CurrentDate < (_saveDatePlusOffset + _offsetPerCheck)) {
 
 					_world.Iterate ();
+
+					iterations++;
+
+					if (_callsToGroupUpdate > MaxCallsToGroupUpdate) {
+
+//						Debug.Log ("Current Date: " + _world.CurrentDate);
+//						Debug.Log ("Calls to Group Update: " + _callsToGroupUpdate + ", Iterations: " + iterations);
+						_currentCheck = c;
+						return;
+					}
 				}
 
-				saveDatePlusOffset = _world.CurrentDate;
+				_saveDatePlusOffset = _world.CurrentDate;
 
 				if (c < _checksToSkip)
 					continue;
 
 				_world.Synchronize ();
 
-				_saveDatePlusOffsets[c] = saveDatePlusOffset;
+				_saveDatePlusOffsets[c] = _saveDatePlusOffset;
 
 				Debug.Log ("Current Date: " + _world.CurrentDate);
 
@@ -374,16 +389,9 @@ public class SaveLoadTest : AutomatedTest {
 				Debug.Log ("Number of Events after Save " + checkStr + ": " + _afterSave_EventCounts[c]);
 
 				#if DEBUG
-				_afterSave_DebugMessageLists[c] = new List<string> (_debugMessages);
-
-//				_afterSave_UpdateCellGroupEventCanTrigger_BaseCanTriggerFalseCounts[c] = _updateCellGroupEventCanTrigger_BaseCanTriggerFalse;
-//				Debug.Log ("Total instances of UpdateCellGroupEventCanTrigger_BaseCanTriggerFalse events after Save " + checkStr + ": " + _afterSave_UpdateCellGroupEventCanTrigger_BaseCanTriggerFalseCounts[c]);
-//
-//				_afterSave_UpdateCellGroupEventCanTrigger_GroupNextUpdateDateNotTriggerDateCounts[c] = _updateCellGroupEventCanTrigger_GroupNextUpdateDateNotTriggerDate;
-//				Debug.Log ("Total instances of UpdateCellGroupEventCanTrigger_GroupNextUpdateDateNotTriggerDate events after Save " + checkStr + ": " + _afterSave_UpdateCellGroupEventCanTrigger_GroupNextUpdateDateNotTriggerDateCounts[c]);
-//
-//				_afterSave_UpdateCellGroupEventCanTrigger_TrueCounts[c] = _updateCellGroupEventCanTrigger_True;
-//				Debug.Log ("Total instances of UpdateCellGroupEventCanTrigger_True events after Save " + checkStr + ": " + _afterSave_UpdateCellGroupEventCanTrigger_TrueCounts[c]);
+				if (_enhancedTracing) {
+					_afterSave_DebugMessageLists[c] = new List<string> (_debugMessages);
+				}
 
 				_afterSave_CallsToAddMigratingGroupCounts[c] = _totalCallsToAddMigratingGroup;
 				Debug.Log ("Total calls to AddMigratingGroup after Save " + checkStr + ": " + _afterSave_CallsToAddMigratingGroupCounts[c]);
@@ -391,7 +399,7 @@ public class SaveLoadTest : AutomatedTest {
 				_afterSave_CallsToAddGroupToUpdateCounts[c] = _totalCallsToAddGroupToUpdate;
 				Debug.Log ("Total calls to AddGroupToUpdate after Save " + checkStr + ": " + _afterSave_CallsToAddGroupToUpdateCounts[c]);
 
-				_afterSave_AddGroupToUpdateCallersByCheck[c] = new Dictionary<string, int>(_afterSave_AddGroupToUpdateCallers);
+//				_afterSave_AddGroupToUpdateCallersByCheck[c] = new Dictionary<string, int>(_afterSave_AddGroupToUpdateCallers);
 
 				_afterSave_CallsToGroupUpdateCounts[c] = _totalCallsToGroupUpdate;
 				Debug.Log ("Total calls to Group Update after Save " + checkStr + ": " + _afterSave_CallsToGroupUpdateCounts[c]);
@@ -407,7 +415,7 @@ public class SaveLoadTest : AutomatedTest {
 //					Debug.Log ("Total calls by " + pair.Key + " to GetNextLocalRandom after Save " + checkStr + ": " + pair.Value);
 //				}
 
-				_afterSave_GetNextLocalRandomCallersByCheck[c] = new Dictionary<string, int>(_afterSave_GetNextLocalRandomCallers);
+//				_afterSave_GetNextLocalRandomCallersByCheck[c] = new Dictionary<string, int>(_afterSave_GetNextLocalRandomCallers);
 				#endif
 
 				_afterSave_GroupCounts[c] = _world.CellGroupCount;
@@ -433,43 +441,28 @@ public class SaveLoadTest : AutomatedTest {
 
 			#if DEBUG
 
-			Manager.RegisterDebugEvent = (string eventType, string message) => {
+			if (_enhancedTracing) {
+				Manager.RegisterDebugEvent = (string eventType, string message) => {
 
-				switch (eventType) {
+					switch (eventType) {
 
-//				case "UpdateCellGroupEvent:CanTrigger": 
-//					switch (message) {
-//
-//					case "BaseCanTriggerFalse":
-//						_updateCellGroupEventCanTrigger_BaseCanTriggerFalse++;
-//						break;
-//
-//					case "GroupNextUpdateDateNotTriggerDate":
-//						_updateCellGroupEventCanTrigger_GroupNextUpdateDateNotTriggerDate++;
-//						break;
-//
-//					case "True":
-//						_updateCellGroupEventCanTrigger_True++;
-//						break;
-//					}
-//					break;
+					case "DebugMessage":
 
-				case "DebugMessage":
+						int count = 0;
 
-					int count = 0;
+						string messagePlusCount = message;
 
-					string messagePlusCount = message;
+						while (_debugMessages.Contains (messagePlusCount)) {
 
-					while (_debugMessages.Contains (messagePlusCount)) {
+							messagePlusCount = message + " [" + count + "]";
+						}
 
-						messagePlusCount = message + " [" + count + "]";
+						_debugMessages.Add (messagePlusCount);
+
+						break;
 					}
-
-					_debugMessages.Add (messagePlusCount);
-
-					break;
-				}
-			};
+				};
+			}
 
 			_totalCallsToAddMigratingGroup = 0;
 			_totalCallsToAddGroupToUpdate = 0;
@@ -482,20 +475,21 @@ public class SaveLoadTest : AutomatedTest {
 			World.AddGroupToUpdateCalled = (string callingMethod) => {
 				_totalCallsToAddGroupToUpdate++;
 
-				int callCount;
-
-				if (!_afterLoad_AddGroupToUpdateCallers.TryGetValue (callingMethod, out callCount)) {
-
-					_afterLoad_AddGroupToUpdateCallers.Add (callingMethod, 1);
-
-				} else {
-
-					_afterLoad_AddGroupToUpdateCallers[callingMethod] = ++callCount;
-				}
+//				int callCount;
+//
+//				if (!_afterLoad_AddGroupToUpdateCallers.TryGetValue (callingMethod, out callCount)) {
+//
+//					_afterLoad_AddGroupToUpdateCallers.Add (callingMethod, 1);
+//
+//				} else {
+//
+//					_afterLoad_AddGroupToUpdateCallers[callingMethod] = ++callCount;
+//				}
 			};
 
 			CellGroup.UpdateCalled = () => {
 				_totalCallsToGroupUpdate++;
+				_callsToGroupUpdate++;
 			};
 
 			_totalCallsToGetNextLocalRandom = 0;
@@ -503,16 +497,16 @@ public class SaveLoadTest : AutomatedTest {
 			TerrainCell.GetNextLocalRandomCalled = (string callingMethod) => {
 				_totalCallsToGetNextLocalRandom++;
 
-				int callCount;
-
-				if (!_afterLoad_GetNextLocalRandomCallers.TryGetValue (callingMethod, out callCount)) {
-
-					_afterLoad_GetNextLocalRandomCallers.Add (callingMethod, 1);
-
-				} else {
-
-					_afterLoad_GetNextLocalRandomCallers[callingMethod] = ++callCount;
-				}
+//				int callCount;
+//
+//				if (!_afterLoad_GetNextLocalRandomCallers.TryGetValue (callingMethod, out callCount)) {
+//
+//					_afterLoad_GetNextLocalRandomCallers.Add (callingMethod, 1);
+//
+//				} else {
+//
+//					_afterLoad_GetNextLocalRandomCallers[callingMethod] = ++callCount;
+//				}
 			};
 
 			#endif
@@ -558,13 +552,25 @@ public class SaveLoadTest : AutomatedTest {
 
 			}
 
-			int loadDatePlusOffset = loadDate;
+			_loadDatePlusOffset = loadDate;
 
-			for (int c = 0; c < _numChecks; c++) {
+			_currentCheck = 0;
+
+			if (0 >= _checksToSkip) {
+				Debug.Log ("Pushing simulation forward after load [with offset 0]...");
+			}
+
+			_stage = Stage.LoadIterations;
+
+			break;
+
+		case Stage.LoadIterations:
+
+			for (int c = _currentCheck; c < _numChecks; c++) {
 
 				string checkStr = "[with offset " + c + "]";
 
-				if (c >= _checksToSkip) {
+				if ((c >= _checksToSkip) && (c > _currentCheck)) {
 					Debug.Log ("Pushing simulation forward after load " + checkStr + "...");
 				}
 
@@ -572,20 +578,27 @@ public class SaveLoadTest : AutomatedTest {
 
 				_debugMessages.Clear ();
 
-				// We want the count of events for each check only
-
-//				_updateCellGroupEventCanTrigger_BaseCanTriggerFalse = 0;
-//				_updateCellGroupEventCanTrigger_GroupNextUpdateDateNotTriggerDate = 0;
-//				_updateCellGroupEventCanTrigger_True = 0;
+				_callsToGroupUpdate = 0;
 
 				#endif
 
-				while (_world.CurrentDate < (loadDatePlusOffset + _offsetPerCheck)) {
+				iterations = 0;
+				while (_world.CurrentDate < (_loadDatePlusOffset + _offsetPerCheck)) {
 
 					_world.Iterate ();
+
+					iterations++;
+
+					if (_callsToGroupUpdate > MaxCallsToGroupUpdate) {
+
+//						Debug.Log ("Current Date: " + _world.CurrentDate);
+//						Debug.Log ("Calls to Group Update: " + _callsToGroupUpdate + ", Iterations: " + iterations);
+						_currentCheck = c;
+						return;
+					}
 				}
 
-				loadDatePlusOffset = _world.CurrentDate;
+				_loadDatePlusOffset = _world.CurrentDate;
 
 				if (c < _checksToSkip)
 					continue;
@@ -596,7 +609,7 @@ public class SaveLoadTest : AutomatedTest {
 
 				Debug.Log ("Current Date: " + _world.CurrentDate);
 
-				if (_saveDatePlusOffsets[c] != loadDatePlusOffset) {
+				if (_saveDatePlusOffsets[c] != _loadDatePlusOffset) {
 
 					Debug.LogError ("Load date after offset different from Save date with offset [" + c + "]:" + _saveDatePlusOffsets[c]);
 
@@ -618,57 +631,28 @@ public class SaveLoadTest : AutomatedTest {
 
 				#if DEBUG
 
-				// Validate Debug Messages Occurrences
+				if (_enhancedTracing) {
 
-				foreach (string message in _debugMessages) {
+					// Validate Debug Messages Occurrences
 
-					if (!_afterSave_DebugMessageLists[c].Contains (message)) {
+					foreach (string message in _debugMessages) {
 
-						Debug.LogError ("Debug message from Load data not found in Save data " + checkStr + ": " + message);
-						_result = false;
+						if (!_afterSave_DebugMessageLists[c].Contains (message)) {
+
+							Debug.LogError ("Debug message from Load data not found in Save data " + checkStr + ": " + message);
+							_result = false;
+						}
+					}
+
+					foreach (string message in _afterSave_DebugMessageLists[c]) {
+
+						if (!_debugMessages.Contains (message)) {
+
+							Debug.LogError ("Debug message from Save data not found in Load data " + checkStr + ": " + message);
+							_result = false;
+						}
 					}
 				}
-
-				foreach (string message in _afterSave_DebugMessageLists[c]) {
-
-					if (!_debugMessages.Contains (message)) {
-
-						Debug.LogError ("Debug message from Save data not found in Load data " + checkStr + ": " + message);
-						_result = false;
-					}
-				}
-
-//				// Validate UpdateCellGroupEventCanTrigger events
-//
-//				Debug.Log ("Total UpdateCellGroupEventCanTrigger_BaseCanTriggerFalse events after Load " + checkStr + ": " + _updateCellGroupEventCanTrigger_BaseCanTriggerFalse);
-//
-//				if (_afterSave_UpdateCellGroupEventCanTrigger_BaseCanTriggerFalseCounts[c] != _updateCellGroupEventCanTrigger_BaseCanTriggerFalse) {
-//
-//					Debug.LogError ("Total UpdateCellGroupEventCanTrigger_BaseCanTriggerFalse events after load with offset not equal to: " + _afterSave_UpdateCellGroupEventCanTrigger_BaseCanTriggerFalseCounts[c]);
-//
-//					_result = false;
-//
-//				}
-//
-//				Debug.Log ("Total UpdateCellGroupEventCanTrigger_GroupNextUpdateDateNotTriggerDate events after Load " + checkStr + ": " + _updateCellGroupEventCanTrigger_GroupNextUpdateDateNotTriggerDate);
-//
-//				if (_afterSave_UpdateCellGroupEventCanTrigger_GroupNextUpdateDateNotTriggerDateCounts[c] != _updateCellGroupEventCanTrigger_GroupNextUpdateDateNotTriggerDate) {
-//
-//					Debug.LogError ("Total UpdateCellGroupEventCanTrigger_GroupNextUpdateDateNotTriggerDate events after load with offset not equal to: " + _afterSave_UpdateCellGroupEventCanTrigger_GroupNextUpdateDateNotTriggerDateCounts[c]);
-//
-//					_result = false;
-//
-//				}
-//
-//				Debug.Log ("Total UpdateCellGroupEventCanTrigger_True events after Load " + checkStr + ": " + _updateCellGroupEventCanTrigger_True);
-//
-//				if (_afterSave_UpdateCellGroupEventCanTrigger_TrueCounts[c] != _updateCellGroupEventCanTrigger_True) {
-//
-//					Debug.LogError ("Total UpdateCellGroupEventCanTrigger_True events after load with offset not equal to: " + _afterSave_UpdateCellGroupEventCanTrigger_TrueCounts[c]);
-//
-//					_result = false;
-//
-//				}
 
 				// Validate calls to AddMigratingGroup
 
@@ -694,33 +678,33 @@ public class SaveLoadTest : AutomatedTest {
 
 				}
 
-				foreach (KeyValuePair<string, int> pair in _afterLoad_AddGroupToUpdateCallers) {
-
-					int saveCallerCount;
-
-					if (!_afterSave_AddGroupToUpdateCallersByCheck[c].TryGetValue (pair.Key, out saveCallerCount)) {
-						saveCallerCount = 0;
-					}
-
-					if (saveCallerCount != pair.Value) {
-
-						Debug.Log ("Total calls by " + pair.Key + " to AddGroupToUpdate after Load " + checkStr + ": " + pair.Value);
-						Debug.LogError ("Total calls by " + pair.Key + " to AddGroupToUpdate after load with offset not equal to: " + saveCallerCount);
-
-						_result = false;
-
-					}
-				}
-
-				foreach (KeyValuePair<string, int> pair in _afterSave_AddGroupToUpdateCallersByCheck[c]) {
-
-					if (!_afterLoad_AddGroupToUpdateCallers.ContainsKey (pair.Key)) {
-						Debug.Log ("Total calls by " + pair.Key + " to AddGroupToUpdate after Load " + checkStr + ": 0");
-						Debug.LogError ("Total calls by " + pair.Key + " to AddGroupToUpdate after load with offset not equal to: " + pair.Value);
-
-						_result = false;
-					}
-				}
+//				foreach (KeyValuePair<string, int> pair in _afterLoad_AddGroupToUpdateCallers) {
+//
+//					int saveCallerCount;
+//
+//					if (!_afterSave_AddGroupToUpdateCallersByCheck[c].TryGetValue (pair.Key, out saveCallerCount)) {
+//						saveCallerCount = 0;
+//					}
+//
+//					if (saveCallerCount != pair.Value) {
+//
+//						Debug.Log ("Total calls by " + pair.Key + " to AddGroupToUpdate after Load " + checkStr + ": " + pair.Value);
+//						Debug.LogError ("Total calls by " + pair.Key + " to AddGroupToUpdate after load with offset not equal to: " + saveCallerCount);
+//
+//						_result = false;
+//
+//					}
+//				}
+//
+//				foreach (KeyValuePair<string, int> pair in _afterSave_AddGroupToUpdateCallersByCheck[c]) {
+//
+//					if (!_afterLoad_AddGroupToUpdateCallers.ContainsKey (pair.Key)) {
+//						Debug.Log ("Total calls by " + pair.Key + " to AddGroupToUpdate after Load " + checkStr + ": 0");
+//						Debug.LogError ("Total calls by " + pair.Key + " to AddGroupToUpdate after load with offset not equal to: " + pair.Value);
+//
+//						_result = false;
+//					}
+//				}
 
 				// Validate calls to CellGroup:Update
 
@@ -764,33 +748,33 @@ public class SaveLoadTest : AutomatedTest {
 
 				}
 
-				foreach (KeyValuePair<string, int> pair in _afterLoad_GetNextLocalRandomCallers) {
-
-					int saveCallerCount;
-
-					if (!_afterSave_GetNextLocalRandomCallersByCheck[c].TryGetValue (pair.Key, out saveCallerCount)) {
-						saveCallerCount = 0;
-					}
-
-					if (saveCallerCount != pair.Value) {
-
-						Debug.Log ("Total calls by " + pair.Key + " to GetNextLocalRandom after Load " + checkStr + ": " + pair.Value);
-						Debug.LogError ("Total calls by " + pair.Key + " to GetNextLocalRandom after load with offset not equal to: " + saveCallerCount);
-
-						_result = false;
-
-					}
-				}
-
-				foreach (KeyValuePair<string, int> pair in _afterSave_GetNextLocalRandomCallersByCheck[c]) {
-
-					if (!_afterLoad_GetNextLocalRandomCallers.ContainsKey (pair.Key)) {
-						Debug.Log ("Total calls by " + pair.Key + " to GetNextLocalRandom after Load " + checkStr + ": 0");
-						Debug.LogError ("Total calls by " + pair.Key + " to GetNextLocalRandom after load with offset not equal to: " + pair.Value);
-
-						_result = false;
-					}
-				}
+//				foreach (KeyValuePair<string, int> pair in _afterLoad_GetNextLocalRandomCallers) {
+//
+//					int saveCallerCount;
+//
+//					if (!_afterSave_GetNextLocalRandomCallersByCheck[c].TryGetValue (pair.Key, out saveCallerCount)) {
+//						saveCallerCount = 0;
+//					}
+//
+//					if (saveCallerCount != pair.Value) {
+//
+//						Debug.Log ("Total calls by " + pair.Key + " to GetNextLocalRandom after Load " + checkStr + ": " + pair.Value);
+//						Debug.LogError ("Total calls by " + pair.Key + " to GetNextLocalRandom after load with offset not equal to: " + saveCallerCount);
+//
+//						_result = false;
+//
+//					}
+//				}
+//
+//				foreach (KeyValuePair<string, int> pair in _afterSave_GetNextLocalRandomCallersByCheck[c]) {
+//
+//					if (!_afterLoad_GetNextLocalRandomCallers.ContainsKey (pair.Key)) {
+//						Debug.Log ("Total calls by " + pair.Key + " to GetNextLocalRandom after Load " + checkStr + ": 0");
+//						Debug.LogError ("Total calls by " + pair.Key + " to GetNextLocalRandom after load with offset not equal to: " + pair.Value);
+//
+//						_result = false;
+//					}
+//				}
 				#endif
 
 				// Validate Cell Groups

@@ -342,18 +342,18 @@ public class PolityCulture : Culture {
 
 		foreach (CulturalActivity activity in Activities) {
 
-			activity.Value /= totalGroupInfluenceValue;
-			activity.Contribution /= totalGroupInfluenceValue;
+			activity.Value = MathUtility.RoundToSixDecimals(Mathf.Clamp01 (activity.Value/totalGroupInfluenceValue));
+			activity.Contribution = MathUtility.RoundToSixDecimals(Mathf.Clamp01 (activity.Contribution/totalGroupInfluenceValue));
 		}
 
 		foreach (CulturalSkill skill in Skills) {
 
-			skill.Value /= totalGroupInfluenceValue;
+			skill.Value = MathUtility.RoundToSixDecimals(skill.Value/totalGroupInfluenceValue);
 		}
 
 		foreach (CulturalKnowledge knowledge in Knowledges) {
 
-			knowledge.Value /= totalGroupInfluenceValue;
+			knowledge.Value = knowledge.Value/totalGroupInfluenceValue;
 		}
 	}
 
@@ -527,6 +527,13 @@ public class CellCulture : Culture {
 	}
 	
 	public void MergeCulture (CellCulture sourceCulture, float percentage) {
+
+		#if DEBUG
+		if ((percentage < 0) || (percentage > 1)) {
+
+			Debug.LogWarning ("percentage value outside the [0,1] range");
+		}
+		#endif
 
 		foreach (CellCulturalActivity a in sourceCulture.Activities) {
 

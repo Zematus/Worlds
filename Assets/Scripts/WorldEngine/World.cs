@@ -724,13 +724,14 @@ public class World : ISynchronizable {
 		if (Manager.RecordingEnabled) {
 			if (AddGroupToUpdateCalled != null) {
 
-				System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
-
-				System.Reflection.MethodBase method = stackTrace.GetFrame(1).GetMethod();
-				string callingMethod = method.Name;
-				string callingClass = method.DeclaringType.ToString();
-
-				AddGroupToUpdateCalled (callingClass + ":" + callingMethod);
+//				System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
+//
+//				System.Reflection.MethodBase method = stackTrace.GetFrame(1).GetMethod();
+//				string callingMethod = method.Name;
+//				string callingClass = method.DeclaringType.ToString();
+//
+//				AddGroupToUpdateCalled (callingClass + ":" + callingMethod);
+				AddGroupToUpdateCalled (null);
 			}
 		}
 		#endif

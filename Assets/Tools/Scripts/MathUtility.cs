@@ -30,10 +30,16 @@ public static class MathUtility {
 	
 		return (b * weightB) + (a * (1f - weightB));
 	}
-
+		
 	public static float RoundToSixDecimals (float value) {
+
+		#if DEBUG
+		if ((value < 0) || (value > 1)) {
+			Debug.LogWarning ("This function is meant to be used only with values between 0 and 1");
+		}
+		#endif
 	
-		// To reduce rounding problems with float serialization we round every serialized float to six decimals while running the simulation
+		// To reduce rounding problems with float serialization we round serialized floats to six decimals while running the simulation
 		return (float)System.Math.Round (value, 6);
 	}
 }

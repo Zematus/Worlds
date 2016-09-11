@@ -22,7 +22,7 @@ public class PolityInfluence {
 	
 		PolityId = polity.Id;
 		Polity = polity;
-		Value = value;
+		Value = MathUtility.RoundToSixDecimals (value);
 	}
 }
 

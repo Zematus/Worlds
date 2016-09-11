@@ -135,7 +135,7 @@ public abstract class CellCulturalSkill : CulturalSkill, ISynchronizable {
 
 		float newValue = (Value * (1 - timeEffect)) + (targetValue * timeEffect);
 
-		Value = Mathf.Clamp01 (MathUtility.RoundToSixDecimals (newValue));
+		Value = MathUtility.RoundToSixDecimals (Mathf.Clamp01 (newValue));
 	}
 
 	public abstract void PolityCulturalInfluence (CulturalSkill politySkill, PolityInfluence polityInfluence, int timeSpan);
@@ -153,7 +153,7 @@ public abstract class CellCulturalSkill : CulturalSkill, ISynchronizable {
 
 		float change = (targetValue - Value) * influenceEffect * timeEffect * randomEffect;
 
-		Value = Mathf.Clamp01 (MathUtility.RoundToSixDecimals (Value + change));
+		Value = MathUtility.RoundToSixDecimals (Mathf.Clamp01 (Value + change));
 	}
 
 	protected void RecalculateAdaptation (float targetValue)

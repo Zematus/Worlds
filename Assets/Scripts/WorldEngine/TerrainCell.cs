@@ -257,22 +257,23 @@ public class TerrainCell : ISynchronizable {
 
 			if (GetNextLocalRandomCalled != null) {
 
-				System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
-
-				System.Reflection.MethodBase method = stackTrace.GetFrame(1).GetMethod();
-				string callingMethod = method.Name;
-
-				int frame = 2;
-				while (callingMethod.Contains ("GetNextLocalRandom")) {
-					method = stackTrace.GetFrame(frame).GetMethod();
-					callingMethod = method.Name;
-
-					frame++;
-				}
-
-				string callingClass = method.DeclaringType.ToString();
-
-				GetNextLocalRandomCalled (callingClass + ":" + callingMethod);
+//				System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
+//
+//				System.Reflection.MethodBase method = stackTrace.GetFrame(1).GetMethod();
+//				string callingMethod = method.Name;
+//
+//				int frame = 2;
+//				while (callingMethod.Contains ("GetNextLocalRandom")) {
+//					method = stackTrace.GetFrame(frame).GetMethod();
+//					callingMethod = method.Name;
+//
+//					frame++;
+//				}
+//
+//				string callingClass = method.DeclaringType.ToString();
+//
+//				GetNextLocalRandomCalled (callingClass + ":" + callingMethod);
+				GetNextLocalRandomCalled (null);
 			}
 
 			string key = "Long:" + Longitude + "-Lat:" + Latitude + "-Date:" + World.CurrentDate + "-LocalIteration:" + LocalIteration;
