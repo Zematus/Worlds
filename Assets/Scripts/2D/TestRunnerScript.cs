@@ -23,7 +23,7 @@ public class TestRunnerScript : MonoBehaviour {
 //		}, 20000, 5));
 		tests.Add (new SaveLoadTest ("after 5 polities", 407252633, (World world) => {
 			return world.PolityCount > 5;
-		}, 10, 1150, 0, true));
+		}, 10, 120, 0, true));
 //      tests.Add (new LanguageGenerationTest());
 
 		Debug.Log ("Running Tests...\n");

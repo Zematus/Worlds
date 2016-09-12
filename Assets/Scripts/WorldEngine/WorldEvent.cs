@@ -353,9 +353,9 @@ public class SailingDiscoveryEvent : CellGroupEvent {
 
 	public const int DateSpanFactorConstant = CellGroup.GenerationTime * 10000;
 
-	public const float MinShipBuildingKnowledgeSpawnEventValue = 5;
-	public const float MinShipBuildingKnowledgeValue = ShipbuildingKnowledge.MinKnowledgeValueForSailing;
-	public const float OptimalShipBuildingKnowledgeValue = ShipbuildingKnowledge.OptimalKnowledgeValueForSailing;
+	public const int MinShipBuildingKnowledgeSpawnEventValue = ShipbuildingKnowledge.MinKnowledgeValueForSailingSpawnEvent;
+	public const int MinShipBuildingKnowledgeValue = ShipbuildingKnowledge.MinKnowledgeValueForSailing;
+	public const int OptimalShipBuildingKnowledgeValue = ShipbuildingKnowledge.OptimalKnowledgeValueForSailing;
 
 	public const string EventSetFlag = "SailingDiscoveryEvent_Set";
 	
@@ -445,9 +445,9 @@ public class TribalismDiscoveryEvent : CellGroupEvent {
 
 	public const int DateSpanFactorConstant = CellGroup.GenerationTime * 20000;
 
-	public const float MinSocialOrganizationKnowledgeSpawnEventValue = 5;
-	public const float MinSocialOrganizationKnowledgeValue = SocialOrganizationKnowledge.MinKnowledgeValueForTribalism;
-	public const float OptimalSocialOrganizationKnowledgeValue = SocialOrganizationKnowledge.OptimalKnowledgeValueForTribalism;
+	public const int MinSocialOrganizationKnowledgeSpawnEventValue = SocialOrganizationKnowledge.MinKnowledgeValueForTribalismSpawnEvent;
+	public const int MinSocialOrganizationKnowledgeValue = SocialOrganizationKnowledge.MinKnowledgeValueForTribalism;
+	public const int OptimalSocialOrganizationKnowledgeValue = SocialOrganizationKnowledge.OptimalKnowledgeValueForTribalism;
 
 	public const string EventSetFlag = "TribalismDiscoveryEvent_Set";
 
@@ -543,9 +543,9 @@ public class TribeFormationEvent : CellGroupEvent {
 
 	public const int DateSpanFactorConstant = CellGroup.GenerationTime * 1000;
 
-	public const float MinSocialOrganizationKnowledgeSpawnEventValue = 5;
-	public const float MinSocialOrganizationKnowledgeValue = SocialOrganizationKnowledge.MinKnowledgeValueForTribalism;
-	public const float OptimalSocialOrganizationKnowledgeValue = SocialOrganizationKnowledge.OptimalKnowledgeValueForTribalism;
+	public const int MinSocialOrganizationKnowledgeSpawnEventValue = SocialOrganizationKnowledge.MinKnowledgeValueForTribalismSpawnEvent;
+	public const int MinSocialOrganizationKnowledgeValue = SocialOrganizationKnowledge.MinKnowledgeValueForTribalism;
+	public const int OptimalSocialOrganizationKnowledgeValue = SocialOrganizationKnowledge.OptimalKnowledgeValueForTribalism;
 
 	public const string EventSetFlag = "TribeFormationEvent_Set";
 
@@ -582,6 +582,22 @@ public class TribeFormationEvent : CellGroupEvent {
 
 		if (targetDate <= group.World.CurrentDate)
 			targetDate = int.MaxValue;
+
+		#if DEBUG
+		if (Manager.RegisterDebugEvent != null) {
+			if (group.Id == 981) {
+				string groupId = "Id:" + group.Id + "|Long:" + group.Longitude + "|Lat:" + group.Latitude;
+
+				Manager.RegisterDebugEvent ("DebugMessage", 
+					"CalculateNextUpdateDate - Group:" + groupId + 
+					", CurrentDate: " + group.World.CurrentDate + 
+					", socialOrganizationValue: " + socialOrganizationValue + 
+					", randomFactor: " + randomFactor + 
+					", influenceFactor: " + influenceFactor + 
+					", targetDate: " + targetDate);
+			}
+		}
+		#endif
 
 		return targetDate;
 	}

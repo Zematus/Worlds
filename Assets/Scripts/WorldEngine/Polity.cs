@@ -151,6 +151,11 @@ public abstract class Polity : ISynchronizable {
 		#endif
 	}
 
+	public float GetNextRandomFloat () {
+
+		return CoreGroup.GetNextLocalRandomFloat ();
+	}
+
 	public abstract void UpdateInternal ();
 
 	public void RunPopulationCensus () {

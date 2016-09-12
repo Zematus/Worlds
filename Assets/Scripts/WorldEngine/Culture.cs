@@ -24,7 +24,7 @@ public class Culture : ISynchronizable {
 		XmlArrayItem(Type = typeof(SeafaringSkill))]
 	public List<CulturalSkill> Skills = new List<CulturalSkill> ();
 	
-	[XmlArrayItem(Type = typeof(CulturalKnowledge)),
+	[XmlArrayItem(Type = typeof(PolityCulturalKnowledge)),
 		XmlArrayItem(Type = typeof(ShipbuildingKnowledge)),
 		XmlArrayItem(Type = typeof(AgricultureKnowledge)),
 		XmlArrayItem(Type = typeof(SocialOrganizationKnowledge))]
@@ -236,7 +236,7 @@ public class PolityCulture : Culture {
 		coreCulture.Skills.ForEach (s => AddSkill (new CulturalSkill (s)));
 
 		coreCulture.Knowledges.ForEach (k => {
-			CulturalKnowledge knowledge = new CulturalKnowledge (k);
+			PolityCulturalKnowledge knowledge = new PolityCulturalKnowledge (k);
 			AddKnowledge (knowledge);
 
 			#if DEBUG
@@ -261,9 +261,9 @@ public class PolityCulture : Culture {
 		}
 	}
 
-	private float GetNextRandomFloat () {
+	public float GetNextRandomFloat () {
 
-		return Polity.CoreGroup.GetNextLocalRandomFloat ();
+		return Polity.GetNextRandomFloat ();
 	}
 
 	private void GenerateNewLanguage () {
@@ -322,7 +322,7 @@ public class PolityCulture : Culture {
 			skill.Value = 0;
 		}
 
-		foreach (CulturalKnowledge knowledge in Knowledges) {
+		foreach (PolityCulturalKnowledge knowledge in Knowledges) {
 
 			knowledge.Value = 0;
 		}
@@ -351,9 +351,15 @@ public class PolityCulture : Culture {
 			skill.Value = MathUtility.RoundToSixDecimals(skill.Value/totalGroupInfluenceValue);
 		}
 
-		foreach (CulturalKnowledge knowledge in Knowledges) {
+		foreach (PolityCulturalKnowledge knowledge in Knowledges) {
 
-			knowledge.Value = knowledge.Value/totalGroupInfluenceValue;
+			float d;
+			int newValue = (int)MathUtility.DivideAndGetDecimals (knowledge.AggregateValue, totalGroupInfluenceValue, out d);
+
+			if (d > GetNextRandomFloat ())
+				newValue++;
+
+			knowledge.Value = newValue;
 		}
 	}
 
@@ -423,18 +429,18 @@ public class PolityCulture : Culture {
 
 		foreach (CulturalKnowledge groupKnowledge in group.Culture.Knowledges) {
 
-			CulturalKnowledge knowledge = GetKnowledge (groupKnowledge.Id);
+			PolityCulturalKnowledge knowledge = GetKnowledge (groupKnowledge.Id) as PolityCulturalKnowledge;
 
 			if (knowledge == null) {
 
-				knowledge = new CulturalKnowledge (groupKnowledge);
-				knowledge.Value *= influenceValue;
+				knowledge = new PolityCulturalKnowledge (groupKnowledge);
+				knowledge.AggregateValue = groupKnowledge.Value * influenceValue;
 
 				AddKnowledge (knowledge);
 
 			} else {
 				
-				knowledge.Value += groupKnowledge.Value * influenceValue;
+				knowledge.AggregateValue += groupKnowledge.Value * influenceValue;
 			}
 		}
 

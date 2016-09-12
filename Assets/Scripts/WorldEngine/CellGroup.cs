@@ -546,7 +546,7 @@ public class CellGroup : HumanGroup {
 
 //		#if DEBUG
 //		if (Manager.RegisterDebugEvent != null) {
-//			if (Id == 810) {
+//			if ((Id == 1471) || (Id == 1622)) {
 //				string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
 //				string targetCellLoc = "Long:" + cell.Longitude + "|Lat:" + cell.Latitude;
 //
@@ -564,7 +564,7 @@ public class CellGroup : HumanGroup {
 //					", polityInfluenceFactor: " + polityInfluenceFactor + 
 //					", optimalPopulation: " + optimalPopulation + 
 ////					", optimalPopulationFactor: " + optimalPopulationFactor + 
-////					", secondaryOptimalPopulationFactor: " + secondaryOptimalPopulationFactor + 
+//					", secondaryOptimalPopulationFactor: " + secondaryOptimalPopulationFactor + 
 //					"");
 //			}
 //		}
@@ -1152,21 +1152,21 @@ public class CellGroup : HumanGroup {
 		}
 		#endif
 
-		#if DEBUG
-		if (Manager.RegisterDebugEvent != null) {
-			if ((Id == 1471) || (Id == 1622)) {
-				string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
-
-				Manager.RegisterDebugEvent ("DebugMessage", 
-					"CalculateNextUpdateDate - Group:" + groupId + 
-					", CurrentDate: " + World.CurrentDate + 
-					", MigrationValue: " + MigrationValue + 
-					", TotalMigrationValue: " + TotalMigrationValue + 
-					", OptimalPopulation: " + OptimalPopulation + 
-					", Population: " + Population);
-			}
-		}
-		#endif
+//		#if DEBUG
+//		if (Manager.RegisterDebugEvent != null) {
+//			if ((Id == 1471) || (Id == 1622)) {
+//				string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
+//
+//				Manager.RegisterDebugEvent ("DebugMessage", 
+//					"CalculateNextUpdateDate - Group:" + groupId + 
+//					", CurrentDate: " + World.CurrentDate + 
+//					", MigrationValue: " + MigrationValue + 
+//					", TotalMigrationValue: " + TotalMigrationValue + 
+//					", OptimalPopulation: " + OptimalPopulation + 
+//					", Population: " + Population);
+//			}
+//		}
+//		#endif
 
 		float randomFactor = Cell.GetNextLocalRandomFloat ();
 		randomFactor = 1f - Mathf.Pow (randomFactor, 4);
@@ -1266,6 +1266,8 @@ public class CellGroup : HumanGroup {
 		}
 		#endif
 
+		newInfluenceValue = MathUtility.RoundToSixDecimals (newInfluenceValue);
+
 		PolityInfluence polityInfluence;
 
 		_polityInfluences.TryGetValue (polity.Id, out polityInfluence);
@@ -1321,7 +1323,7 @@ public class CellGroup : HumanGroup {
 		TotalPolityInfluenceValue -= oldInfluenceValue;
 		polity.TotalGroupInfluenceValue -= oldInfluenceValue;
 
-		polityInfluence.Value = MathUtility.RoundToSixDecimals (newInfluenceValue);
+		polityInfluence.Value = newInfluenceValue;
 
 		TotalPolityInfluenceValue += newInfluenceValue;
 		polity.TotalGroupInfluenceValue += newInfluenceValue;

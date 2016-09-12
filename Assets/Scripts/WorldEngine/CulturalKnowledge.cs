@@ -32,14 +32,13 @@ public class CulturalKnowledgeInfo {
 
 public class CulturalKnowledge : CulturalKnowledgeInfo {
 
-	// TODO: knowledge.Value should be an int, not a float.
 	[XmlAttribute]
-	public float Value;
+	public int Value;
 
 	public CulturalKnowledge () {
 	}
 
-	public CulturalKnowledge (string id, string name, float value) : base (id, name) {
+	public CulturalKnowledge (string id, string name, int value) : base (id, name) {
 
 		Value = value;
 	}
@@ -50,15 +49,30 @@ public class CulturalKnowledge : CulturalKnowledgeInfo {
 	}
 }
 
+public class PolityCulturalKnowledge : CulturalKnowledge {
+
+	[XmlIgnore]
+	public float AggregateValue;
+
+	public PolityCulturalKnowledge () {
+	}
+
+	public PolityCulturalKnowledge (string id, string name, int value) : base (id, name, value) {
+	}
+
+	public PolityCulturalKnowledge (CulturalKnowledge baseKnowledge) : base (baseKnowledge) {
+	}
+}
+
 public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable {
 
-	public const float MinValue = 0.001f;
+	public const float MinProgressLevel = 0.001f;
 	
 	[XmlAttribute]
 	public float ProgressLevel;
 	
 	[XmlAttribute]
-	public float Asymptote;
+	public int Asymptote;
 
 	[XmlIgnore]
 	public CellGroup Group;
@@ -67,18 +81,18 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
 
 	}
 
-	public CellCulturalKnowledge (CellGroup group, string id, string name, float value) : base (id, name, value) {
+	public CellCulturalKnowledge (CellGroup group, string id, string name, int value) : base (id, name, value) {
 
 		Group = group;
 	}
 
-	public CellCulturalKnowledge (CellGroup group, string id, string name, float value, float asymptote) : base (id, name, value) {
+	public CellCulturalKnowledge (CellGroup group, string id, string name, int value, int asymptote) : base (id, name, value) {
 
 		Group = group;
 		Asymptote = asymptote;
 	}
 
-	public static CellCulturalKnowledge CreateCellInstance (CellGroup group, CulturalKnowledge baseKnowledge, float initialValue) {
+	public static CellCulturalKnowledge CreateCellInstance (CellGroup group, CulturalKnowledge baseKnowledge, int initialValue) {
 
 		if (ShipbuildingKnowledge.IsShipbuildingKnowledge (baseKnowledge)) {
 
@@ -107,7 +121,7 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
 		return cInfo.Invoke (new object[] {targetGroup, this}) as CellCulturalKnowledge;
 	}
 	
-	public CellCulturalKnowledge GenerateCopy (CellGroup targetGroup, float initialValue) {
+	public CellCulturalKnowledge GenerateCopy (CellGroup targetGroup, int initialValue) {
 		
 		System.Type knowledgeType = this.GetType ();
 		
@@ -116,41 +130,59 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
 		return cInfo.Invoke (new object[] {targetGroup, this, initialValue}) as CellCulturalKnowledge;
 	}
 	
-	public float GetHighestAsymptote () {
+	public int GetHighestAsymptote () {
 		
 		System.Type knowledgeType = this.GetType ();
-		
+
 		System.Reflection.FieldInfo fInfo = knowledgeType.GetField ("HighestAsymptote");
 		
-		return (float)fInfo.GetValue (this);
+		return (int)fInfo.GetValue (this);
 	}
 	
-	public void SetHighestAsymptote (float value) {
+	public void SetHighestAsymptote (int value) {
 		
 		System.Type knowledgeType = this.GetType ();
 		
 		System.Reflection.FieldInfo fInfo = knowledgeType.GetField ("HighestAsymptote");
-		
-		float currentValue = (float)fInfo.GetValue (this);
+
+		int currentValue = (int)fInfo.GetValue (this);
 		fInfo.SetValue (this, Mathf.Max (value, currentValue));
 	}
 
 	public void Merge (CellCulturalKnowledge knowledge, float percentage) {
+
+		float d;
+		int mergedValue = (int)MathUtility.MergeAndGetDecimals (Value, knowledge.Value, percentage, out d);
+
+		if (d > Group.GetNextLocalRandomFloat ())
+			mergedValue++;
 	
-		Value = Value * (1f - percentage) + knowledge.Value * percentage;
+		Value = mergedValue;
 	}
 	
-	public void IncreaseValue (float targetValue, float percentage) {
+	public void IncreaseValue (int targetValue, float percentage) {
 
 		if (targetValue > Value) {
 
-			Value += (targetValue - Value) * percentage;
+			float d;
+			int valueIncrease = (int)MathUtility.MultiplyAndGetDecimals (targetValue - Value, percentage, out d);
+
+			if (d > Group.GetNextLocalRandomFloat ())
+				valueIncrease++;
+
+			Value += valueIncrease;
 		}
 	}
 	
 	public void ModifyValue (float percentage) {
+
+		float d;
+		int modifiedValue = (int)MathUtility.MultiplyAndGetDecimals (Value, percentage, out d);
+
+		if (d > Group.GetNextLocalRandomFloat ())
+			modifiedValue++;
 		
-		Value *= percentage;
+		Value = modifiedValue;
 	}
 
 	public virtual void Synchronize () {
@@ -166,7 +198,7 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
 		ProgressLevel = 0;
 
 		if (Asymptote > 0)
-			ProgressLevel = Value / Asymptote;
+			ProgressLevel = MathUtility.RoundToSixDecimals (Mathf.Clamp01 (Value / (float)Asymptote));
 	}
 	
 	public void RecalculateAsymptote () {
@@ -182,7 +214,7 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
 
 	public void CalculateAsymptote (CellCulturalDiscovery discovery) {
 
-		float newAsymptote = CalculateAsymptoteInternal (discovery);
+		int newAsymptote = CalculateAsymptoteInternal (discovery);
 
 		if (newAsymptote > Asymptote) {
 
@@ -222,7 +254,13 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
 
 		float timeEffect = timeSpan / (float)(timeSpan + timeEffectFactor);
 
-		Value = (Value * (1 - timeEffect)) + (targetValue * timeEffect);
+		float d;
+		int newValue = (int)MathUtility.MergeAndGetDecimals (Value, targetValue, timeEffect, out d);
+
+		if (d > Group.GetNextLocalRandomFloat ())
+			newValue++;
+
+		Value = newValue;
 	}
 
 	public abstract void PolityCulturalInfluence (CulturalKnowledge polityKnowledge, PolityInfluence polityInfluence, int timeSpan);
@@ -238,9 +276,13 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
 
 		float timeEffect = timeSpan / (float)(timeSpan + timeEffectFactor);
 
-		float change = (targetValue - Value) * influenceEffect * timeEffect * randomEffect;
+		float d;
+		int valueIncrease = (int)MathUtility.MultiplyAndGetDecimals (targetValue - Value, influenceEffect * timeEffect * randomEffect, out d);
 
-		Value += change;
+		if (d > Group.GetNextLocalRandomFloat ())
+			valueIncrease++;
+
+		Value += valueIncrease;
 	}
 
 	public abstract float CalculateExpectedProgressLevel ();
@@ -250,8 +292,8 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
 	public abstract void LossConsequences ();
 
 	protected abstract void UpdateInternal (int timeSpan);
-	protected abstract float CalculateAsymptoteInternal (CulturalDiscovery discovery);
-	protected abstract float CalculateBaseAsymptote ();
+	protected abstract int CalculateAsymptoteInternal (CulturalDiscovery discovery);
+	protected abstract int CalculateBaseAsymptote ();
 }
 
 public class ShipbuildingKnowledge : CellCulturalKnowledge {
@@ -259,13 +301,14 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge {
 	public const string ShipbuildingKnowledgeId = "ShipbuildingKnowledge";
 	public const string ShipbuildingKnowledgeName = "Shipbuilding";
 
-	public const float MinKnowledgeValueForSailing = 3;
-	public const float OptimalKnowledgeValueForSailing = 10;
+	public const int MinKnowledgeValueForSailingSpawnEvent = 50;
+	public const int MinKnowledgeValueForSailing = 30;
+	public const int OptimalKnowledgeValueForSailing = 100;
 
 	public const float TimeEffectConstant = CellGroup.GenerationTime * 500;
 	public const float NeighborhoodOceanPresenceModifier = 1.5f;
 
-	public static float HighestAsymptote = 0;
+	public static int HighestAsymptote = 0;
 
 	private float _neighborhoodOceanPresence;
 	
@@ -277,7 +320,7 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge {
 		}
 	}
 
-	public ShipbuildingKnowledge (CellGroup group, float value = 1f) : base (group, ShipbuildingKnowledgeId, ShipbuildingKnowledgeName, value) {
+	public ShipbuildingKnowledge (CellGroup group, int value = 10) : base (group, ShipbuildingKnowledgeId, ShipbuildingKnowledgeName, value) {
 		
 		CalculateNeighborhoodOceanPresence ();
 	}
@@ -287,12 +330,12 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge {
 		CalculateNeighborhoodOceanPresence ();
 	}
 	
-	public ShipbuildingKnowledge (CellGroup group, ShipbuildingKnowledge baseKnowledge, float initialValue) : base (group, baseKnowledge.Id, baseKnowledge.Name, initialValue) {
+	public ShipbuildingKnowledge (CellGroup group, ShipbuildingKnowledge baseKnowledge, int initialValue) : base (group, baseKnowledge.Id, baseKnowledge.Name, initialValue) {
 		
 		CalculateNeighborhoodOceanPresence ();
 	}
 
-	public ShipbuildingKnowledge (CellGroup group, CulturalKnowledge baseKnowledge, float initialValue) : base (group, baseKnowledge.Id, baseKnowledge.Name, initialValue) {
+	public ShipbuildingKnowledge (CellGroup group, CulturalKnowledge baseKnowledge, int initialValue) : base (group, baseKnowledge.Id, baseKnowledge.Name, initialValue) {
 
 		CalculateNeighborhoodOceanPresence ();
 	}
@@ -371,14 +414,14 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge {
 		}
 	}
 
-	protected override float CalculateAsymptoteInternal (CulturalDiscovery discovery)
+	protected override int CalculateAsymptoteInternal (CulturalDiscovery discovery)
 	{
 		switch (discovery.Id) {
 
 		case BoatMakingDiscovery.BoatMakingDiscoveryId:
-			return 10;
+			return 100;
 		case SailingDiscovery.SailingDiscoveryId:
-			return 30;
+			return 300;
 		}
 
 		return 0;
@@ -389,7 +432,7 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge {
 		if (_neighborhoodOceanPresence <= 0)
 			return 1;
 
-		return Mathf.Clamp (ProgressLevel / _neighborhoodOceanPresence, MinValue, 1);
+		return Mathf.Clamp (ProgressLevel / _neighborhoodOceanPresence, MinProgressLevel, 1);
 	}
 
 	public override float CalculateTransferFactor ()
@@ -399,15 +442,15 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge {
 
 	public override bool WillBeLost ()
 	{
-		if (Value < 0) {
+		if (Value < 1) {
 
 			return true;
 		}
 
-		if ((Value < MinValue) && (_neighborhoodOceanPresence <= 0)) {
-
-			return true;
-		}
+//		if ((Value < MinProgressLevel) && (_neighborhoodOceanPresence <= 0)) {
+//
+//			return true;
+//		}
 
 		return false;
 	}
@@ -422,7 +465,7 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge {
 		}
 	}
 
-	protected override float CalculateBaseAsymptote ()
+	protected override int CalculateBaseAsymptote ()
 	{
 		return 0;
 	}
@@ -437,7 +480,7 @@ public class AgricultureKnowledge : CellCulturalKnowledge {
 	public const float TerrainFactorModifier = 1.5f;
 	public const float MinAccesibility = 0.2f;
 
-	public static float HighestAsymptote = 0;
+	public static int HighestAsymptote = 0;
 
 	private float _terrainFactor;
 
@@ -449,7 +492,7 @@ public class AgricultureKnowledge : CellCulturalKnowledge {
 		}
 	}
 
-	public AgricultureKnowledge (CellGroup group, float value = 1f) : base (group, AgricultureKnowledgeId, AgricultureKnowledgeName, value) {
+	public AgricultureKnowledge (CellGroup group, int value = 10) : base (group, AgricultureKnowledgeId, AgricultureKnowledgeName, value) {
 
 		CalculateTerrainFactor ();
 	}
@@ -459,12 +502,12 @@ public class AgricultureKnowledge : CellCulturalKnowledge {
 		CalculateTerrainFactor ();
 	}
 
-	public AgricultureKnowledge (CellGroup group, AgricultureKnowledge baseKnowledge, float initialValue) : base (group, baseKnowledge.Id, baseKnowledge.Name, initialValue) {
+	public AgricultureKnowledge (CellGroup group, AgricultureKnowledge baseKnowledge, int initialValue) : base (group, baseKnowledge.Id, baseKnowledge.Name, initialValue) {
 
 		CalculateTerrainFactor ();
 	}
 
-	public AgricultureKnowledge (CellGroup group, CulturalKnowledge baseKnowledge, float initialValue) : base (group, baseKnowledge.Id, baseKnowledge.Name, initialValue) {
+	public AgricultureKnowledge (CellGroup group, CulturalKnowledge baseKnowledge, int initialValue) : base (group, baseKnowledge.Id, baseKnowledge.Name, initialValue) {
 
 		CalculateTerrainFactor ();
 	}
@@ -503,12 +546,12 @@ public class AgricultureKnowledge : CellCulturalKnowledge {
 		PolityCulturalInfluenceInternal (polityKnowledge, polityInfluence, timeSpan, TimeEffectConstant);
 	}
 
-	protected override float CalculateAsymptoteInternal (CulturalDiscovery discovery)
+	protected override int CalculateAsymptoteInternal (CulturalDiscovery discovery)
 	{
 		switch (discovery.Id) {
 
 		case PlantCultivationDiscovery.PlantCultivationDiscoveryId:
-			return 10;
+			return 100;
 		}
 
 		return 0;
@@ -519,7 +562,7 @@ public class AgricultureKnowledge : CellCulturalKnowledge {
 		if (_terrainFactor <= 0)
 			return 1;
 
-		return Mathf.Clamp (ProgressLevel / _terrainFactor, MinValue, 1);
+		return Mathf.Clamp (ProgressLevel / _terrainFactor, MinProgressLevel, 1);
 	}
 
 	public override float CalculateTransferFactor ()
@@ -529,15 +572,15 @@ public class AgricultureKnowledge : CellCulturalKnowledge {
 
 	public override bool WillBeLost ()
 	{
-		if (Value < 0) {
+		if (Value < 1) {
 		
 			return true;
 		}
 
-		if ((Value < MinValue) && (_terrainFactor <= 0)) {
-
-			return true;
-		}
+//		if ((Value < MinProgressLevel) && (_terrainFactor <= 0)) {
+//
+//			return true;
+//		}
 
 		return false;
 	}
@@ -561,7 +604,7 @@ public class AgricultureKnowledge : CellCulturalKnowledge {
 		}
 	}
 
-	protected override float CalculateBaseAsymptote ()
+	protected override int CalculateBaseAsymptote ()
 	{
 		return 0;
 	}
@@ -572,13 +615,14 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge {
 	public const string SocialOrganizationKnowledgeId = "SocialOrganizationKnowledge";
 	public const string SocialOrganizationKnowledgeName = "Social Organization";
 
-	public const float MinKnowledgeValueForTribalism = 4;
-	public const float OptimalKnowledgeValueForTribalism = 10;
+	public const int MinKnowledgeValueForTribalismSpawnEvent = 50;
+	public const int MinKnowledgeValueForTribalism = 40;
+	public const int OptimalKnowledgeValueForTribalism = 100;
 
 	public const float TimeEffectConstant = CellGroup.GenerationTime * 500;
 	public const float PopulationDensityModifier = 10000f;
 
-	public static float HighestAsymptote = 0;
+	public static int HighestAsymptote = 0;
 
 	public SocialOrganizationKnowledge () {
 
@@ -588,7 +632,7 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge {
 		}
 	}
 
-	public SocialOrganizationKnowledge (CellGroup group, float value = 1f) : base (group, SocialOrganizationKnowledgeId, SocialOrganizationKnowledgeName, value) {
+	public SocialOrganizationKnowledge (CellGroup group, int value = 1) : base (group, SocialOrganizationKnowledgeId, SocialOrganizationKnowledgeName, value) {
 
 	}
 
@@ -596,11 +640,11 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge {
 
 	}
 
-	public SocialOrganizationKnowledge (CellGroup group, SocialOrganizationKnowledge baseKnowledge, float initialValue) : base (group, baseKnowledge.Id, baseKnowledge.Name, initialValue) {
+	public SocialOrganizationKnowledge (CellGroup group, SocialOrganizationKnowledge baseKnowledge, int initialValue) : base (group, baseKnowledge.Id, baseKnowledge.Name, initialValue) {
 
 	}
 
-	public SocialOrganizationKnowledge (CellGroup group, CulturalKnowledge baseKnowledge, float initialValue) : base (group, baseKnowledge.Id, baseKnowledge.Name, initialValue) {
+	public SocialOrganizationKnowledge (CellGroup group, CulturalKnowledge baseKnowledge, int initialValue) : base (group, baseKnowledge.Id, baseKnowledge.Name, initialValue) {
 
 	}
 
@@ -672,7 +716,7 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge {
 		}
 	}
 
-	protected override float CalculateAsymptoteInternal (CulturalDiscovery discovery)
+	protected override int CalculateAsymptoteInternal (CulturalDiscovery discovery)
 	{
 		switch (discovery.Id) {
 
@@ -690,7 +734,7 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge {
 		if (populationFactor <= 0)
 			return 1;
 
-		return Mathf.Clamp (ProgressLevel / populationFactor, MinValue, 1);
+		return Mathf.Clamp (ProgressLevel / populationFactor, MinProgressLevel, 1);
 	}
 
 	public override float CalculateTransferFactor ()
@@ -709,8 +753,8 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge {
 	{
 	}
 
-	protected override float CalculateBaseAsymptote ()
+	protected override int CalculateBaseAsymptote ()
 	{
-		return 10;
+		return 100;
 	}
 }
