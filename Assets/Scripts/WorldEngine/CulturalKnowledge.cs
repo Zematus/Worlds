@@ -619,7 +619,7 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge {
 	public const int MinKnowledgeValueForTribalism = 40;
 	public const int OptimalKnowledgeValueForTribalism = 100;
 
-	public const float TimeEffectConstant = CellGroup.GenerationTime * 500;
+	public const float TimeEffectConstant = CellGroup.GenerationTime * 100;
 	public const float PopulationDensityModifier = 10000f;
 
 	public static int HighestAsymptote = 0;
@@ -632,7 +632,7 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge {
 		}
 	}
 
-	public SocialOrganizationKnowledge (CellGroup group, int value = 1) : base (group, SocialOrganizationKnowledgeId, SocialOrganizationKnowledgeName, value) {
+	public SocialOrganizationKnowledge (CellGroup group, int value = 10) : base (group, SocialOrganizationKnowledgeId, SocialOrganizationKnowledgeName, value) {
 
 	}
 
