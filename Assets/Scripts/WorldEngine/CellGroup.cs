@@ -782,12 +782,14 @@ public class CellGroup : HumanGroup {
 		if (_alreadyUpdated)
 			return;
 
+		#if DEBUG
 		if (Manager.RecordingEnabled) {
 			if (UpdateCalled != null) {
 			
 				UpdateCalled ();
 			}
 		}
+		#endif
 
 		_alreadyUpdated = true;
 
