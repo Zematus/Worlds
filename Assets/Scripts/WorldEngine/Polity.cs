@@ -285,7 +285,7 @@ public abstract class Polity : ISynchronizable {
 
 			CulturalKnowledge socialOrgKnowledge = targetGroup.Culture.GetKnowledge (SocialOrganizationKnowledge.SocialOrganizationKnowledgeId);
 
-			socialOrgFactor = Mathf.Clamp01 (socialOrgKnowledge.Value / SocialOrganizationKnowledge.MinKnowledgeValueForTribalism);
+			socialOrgFactor = Mathf.Clamp01 (socialOrgKnowledge.Value / (float)SocialOrganizationKnowledge.MinKnowledgeValueForTribalism);
 			socialOrgFactor = 1 - Mathf.Pow (1 - socialOrgFactor, 2);
 
 			groupTotalInfluenceValue = targetGroup.TotalPolityInfluenceValue;

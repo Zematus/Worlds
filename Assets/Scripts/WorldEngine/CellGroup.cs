@@ -924,7 +924,7 @@ public class CellGroup : HumanGroup {
 
 		float farmlandPercentage = Cell.FarmlandPercentage;
 
-		float knowledgeValue = Mathf.Max (agricultureKnowledge.Value, 0);
+		float knowledgeValue = agricultureKnowledge.ScaledValue;
 
 		float techValue = Mathf.Sqrt(knowledgeValue);
 
@@ -991,7 +991,7 @@ public class CellGroup : HumanGroup {
 
 			if (knowledge is ShipbuildingKnowledge) {
 
-				shipbuildingValue = knowledge.Value;
+				shipbuildingValue = knowledge.ScaledValue;
 			}
 		}
 
@@ -1065,7 +1065,7 @@ public class CellGroup : HumanGroup {
 		if (agricultureKnowledge == null)
 			return capacityFactor;
 
-		float value = Mathf.Max (0, agricultureKnowledge.Value);
+		float value = agricultureKnowledge.ScaledValue;
 
 		float techFactor = Mathf.Sqrt(value);
 

@@ -2064,18 +2064,15 @@ public class GuiManagerScript : MonoBehaviour {
 
 		foreach (CulturalKnowledge knowledge in polityInfluence.Polity.Culture.Knowledges) {
 
-			float knowledgeValue = knowledge.Value;
+			float knowledgeValue = knowledge.ScaledValue;
 
-			if (knowledgeValue >= 0.001) {
+			if (firstKnowledge) {
+				InfoPanelText.text += "\nKnowledges:";
 
-				if (firstKnowledge) {
-					InfoPanelText.text += "\nKnowledges:";
-
-					firstKnowledge = false;
-				}
-
-				InfoPanelText.text += "\n\t" + knowledge.Id + " - Value: " + knowledge.Value.ToString ("0.000");
+				firstKnowledge = false;
 			}
+
+			InfoPanelText.text += "\n\t" + knowledge.Id + " - Value: " + knowledgeValue.ToString ("0.000");
 		}
 	}
 
@@ -2105,18 +2102,15 @@ public class GuiManagerScript : MonoBehaviour {
 
 		foreach (CulturalKnowledge knowledge in cell.Group.Culture.Knowledges) {
 
-			float knowledgeValue = knowledge.Value;
+			float knowledgeValue = knowledge.ScaledValue;
 
-			if (knowledgeValue >= 0.001) {
+			if (firstKnowledge) {
+				InfoPanelText.text += "\nKnowledges:";
 
-				if (firstKnowledge) {
-					InfoPanelText.text += "\nKnowledges:";
-
-					firstKnowledge = false;
-				}
-
-				InfoPanelText.text += "\n\t" + knowledge.Id + " - Value: " + knowledge.Value.ToString ("0.000");
+				firstKnowledge = false;
 			}
+
+			InfoPanelText.text += "\n\t" + knowledge.Id + " - Value: " + knowledgeValue.ToString ("0.000");
 		}
 	}
 

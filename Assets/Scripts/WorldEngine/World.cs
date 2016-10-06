@@ -303,7 +303,7 @@ public class World : ISynchronizable {
 		
 		Manager.EnqueueTaskAndWait (() => {
 			
-			Random.seed = Seed;
+			Random.InitState(Seed);
 			return true;
 		});
 	}

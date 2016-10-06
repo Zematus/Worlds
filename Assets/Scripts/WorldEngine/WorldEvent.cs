@@ -380,7 +380,7 @@ public class SailingDiscoveryEvent : CellGroupEvent {
 		float randomFactor = group.Cell.GetNextLocalRandomFloat ();
 		randomFactor = randomFactor * randomFactor;
 
-		float shipBuildingFactor = (shipBuildingValue - MinShipBuildingKnowledgeValue) / (OptimalShipBuildingKnowledgeValue - MinShipBuildingKnowledgeValue);
+		float shipBuildingFactor = (shipBuildingValue - MinShipBuildingKnowledgeValue) / (float)(OptimalShipBuildingKnowledgeValue - MinShipBuildingKnowledgeValue);
 		shipBuildingFactor = Mathf.Clamp01 (shipBuildingFactor) + 0.001f;
 
 		float dateSpan = (1 - randomFactor) * DateSpanFactorConstant / shipBuildingFactor;
@@ -472,7 +472,7 @@ public class TribalismDiscoveryEvent : CellGroupEvent {
 		float randomFactor = group.Cell.GetNextLocalRandomFloat ();
 		randomFactor = randomFactor * randomFactor;
 
-		float socialOrganizationFactor = (socialOrganizationValue - MinSocialOrganizationKnowledgeValue) / (OptimalSocialOrganizationKnowledgeValue - MinSocialOrganizationKnowledgeValue);
+		float socialOrganizationFactor = (socialOrganizationValue - MinSocialOrganizationKnowledgeValue) / (float)(OptimalSocialOrganizationKnowledgeValue - MinSocialOrganizationKnowledgeValue);
 		socialOrganizationFactor = Mathf.Clamp01 (socialOrganizationFactor) + 0.001f;
 
 		float dateSpan = (1 - randomFactor) * DateSpanFactorConstant / socialOrganizationFactor;

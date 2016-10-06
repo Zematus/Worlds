@@ -46,10 +46,10 @@ public class Tribe : Polity {
 		string regionAttributeNounVariation = coreRegion.GetRandomAttributeVariation (CoreGroup.GetNextLocalRandomInt);
 
 		if (regionAttributeNounVariation != string.Empty) {
-			regionAttributeNounVariation += " ";
+			regionAttributeNounVariation = " [nad]" + regionAttributeNounVariation;
 		}
 
-		string untranslatedName = "the [nad]" + regionAttributeNounVariation + tribeNounVariation;
+		string untranslatedName = "the" + regionAttributeNounVariation + " " + tribeNounVariation;
 
 		Language.NounPhrase namePhrase = Culture.Language.TranslateNounPhrase (untranslatedName, CoreGroup.GetNextLocalRandomFloat);
 

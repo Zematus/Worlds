@@ -32,6 +32,8 @@ public class CulturalKnowledgeInfo {
 
 public class CulturalKnowledge : CulturalKnowledgeInfo {
 
+	public const float ValueScaleFactor = 0.01f;
+
 	[XmlAttribute]
 	public int Value;
 
@@ -46,6 +48,10 @@ public class CulturalKnowledge : CulturalKnowledgeInfo {
 	public CulturalKnowledge (CulturalKnowledge baseKnowledge) : base (baseKnowledge) {
 
 		Value = baseKnowledge.Value;
+	}
+
+	public float ScaledValue {
+		get { return Value * ValueScaleFactor; }
 	}
 }
 
@@ -76,6 +82,10 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
 
 	[XmlIgnore]
 	public CellGroup Group;
+
+	public float ScaledAsymptote {
+		get { return Asymptote * ValueScaleFactor; }
+	}
 	
 	public CellCulturalKnowledge () {
 
@@ -158,6 +168,12 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
 			mergedValue++;
 	
 		Value = mergedValue;
+
+		#if DEBUG
+		if ((Asymptote > 1) && (Value > Asymptote)) {
+			Debug.LogError ("new value too high: " + Value);
+		}
+		#endif
 	}
 	
 	public void IncreaseValue (int targetValue, float percentage) {
@@ -171,6 +187,12 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
 				valueIncrease++;
 
 			Value += valueIncrease;
+
+			#if DEBUG
+			if ((Asymptote > 1) && (Value > Asymptote)) {
+				Debug.LogError ("new value too high: " + Value);
+			}
+			#endif
 		}
 	}
 	
@@ -183,6 +205,12 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
 			modifiedValue++;
 		
 		Value = modifiedValue;
+
+		#if DEBUG
+		if ((Asymptote > 1) && (Value > Asymptote)) {
+			Debug.LogError ("new value too high: " + Value);
+		}
+		#endif
 	}
 
 	public virtual void Synchronize () {
@@ -243,7 +271,7 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
 		randomFactor = Mathf.Clamp (randomFactor, -1, 1);
 
 		float maxTargetValue = Asymptote;
-		float minTargetValue = -0.2f;
+		float minTargetValue = 0;
 		float targetValue = 0;
 
 		if (randomFactor > 0) {
@@ -259,6 +287,12 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
 
 		if (d > Group.GetNextLocalRandomFloat ())
 			newValue++;
+
+		#if DEBUG
+		if ((Asymptote > 1) && (newValue > Asymptote)) {
+			Debug.LogError ("new value too high: " + newValue);
+		}
+		#endif
 
 		Value = newValue;
 	}
@@ -283,6 +317,12 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
 			valueIncrease++;
 
 		Value += valueIncrease;
+
+		#if DEBUG
+		if ((Asymptote > 1) && (Value > Asymptote)) {
+			Debug.LogError ("new value too high: " + Value);
+		}
+		#endif
 	}
 
 	public abstract float CalculateExpectedProgressLevel ();
@@ -301,9 +341,9 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge {
 	public const string ShipbuildingKnowledgeId = "ShipbuildingKnowledge";
 	public const string ShipbuildingKnowledgeName = "Shipbuilding";
 
-	public const int MinKnowledgeValueForSailingSpawnEvent = 50;
-	public const int MinKnowledgeValueForSailing = 30;
-	public const int OptimalKnowledgeValueForSailing = 100;
+	public const int MinKnowledgeValueForSailingSpawnEvent = 500;
+	public const int MinKnowledgeValueForSailing = 300;
+	public const int OptimalKnowledgeValueForSailing = 1000;
 
 	public const float TimeEffectConstant = CellGroup.GenerationTime * 500;
 	public const float NeighborhoodOceanPresenceModifier = 1.5f;
@@ -320,7 +360,7 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge {
 		}
 	}
 
-	public ShipbuildingKnowledge (CellGroup group, int value = 10) : base (group, ShipbuildingKnowledgeId, ShipbuildingKnowledgeName, value) {
+	public ShipbuildingKnowledge (CellGroup group, int value = 100) : base (group, ShipbuildingKnowledgeId, ShipbuildingKnowledgeName, value) {
 		
 		CalculateNeighborhoodOceanPresence ();
 	}
@@ -419,9 +459,9 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge {
 		switch (discovery.Id) {
 
 		case BoatMakingDiscovery.BoatMakingDiscoveryId:
-			return 100;
+			return 1000;
 		case SailingDiscovery.SailingDiscoveryId:
-			return 300;
+			return 3000;
 		}
 
 		return 0;
@@ -442,15 +482,10 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge {
 
 	public override bool WillBeLost ()
 	{
-		if (Value < 1) {
+		if (Value < 100) {
 
 			return true;
 		}
-
-//		if ((Value < MinProgressLevel) && (_neighborhoodOceanPresence <= 0)) {
-//
-//			return true;
-//		}
 
 		return false;
 	}
@@ -492,7 +527,7 @@ public class AgricultureKnowledge : CellCulturalKnowledge {
 		}
 	}
 
-	public AgricultureKnowledge (CellGroup group, int value = 10) : base (group, AgricultureKnowledgeId, AgricultureKnowledgeName, value) {
+	public AgricultureKnowledge (CellGroup group, int value = 100) : base (group, AgricultureKnowledgeId, AgricultureKnowledgeName, value) {
 
 		CalculateTerrainFactor ();
 	}
@@ -551,7 +586,7 @@ public class AgricultureKnowledge : CellCulturalKnowledge {
 		switch (discovery.Id) {
 
 		case PlantCultivationDiscovery.PlantCultivationDiscoveryId:
-			return 100;
+			return 1000;
 		}
 
 		return 0;
@@ -572,15 +607,10 @@ public class AgricultureKnowledge : CellCulturalKnowledge {
 
 	public override bool WillBeLost ()
 	{
-		if (Value < 1) {
+		if (Value < 100) {
 		
 			return true;
 		}
-
-//		if ((Value < MinProgressLevel) && (_terrainFactor <= 0)) {
-//
-//			return true;
-//		}
 
 		return false;
 	}
@@ -615,11 +645,11 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge {
 	public const string SocialOrganizationKnowledgeId = "SocialOrganizationKnowledge";
 	public const string SocialOrganizationKnowledgeName = "Social Organization";
 
-	public const int MinKnowledgeValueForTribalismSpawnEvent = 50;
-	public const int MinKnowledgeValueForTribalism = 40;
-	public const int OptimalKnowledgeValueForTribalism = 100;
+	public const int MinKnowledgeValueForTribalismSpawnEvent = 500;
+	public const int MinKnowledgeValueForTribalism = 400;
+	public const int OptimalKnowledgeValueForTribalism = 1000;
 
-	public const float TimeEffectConstant = CellGroup.GenerationTime * 100;
+	public const float TimeEffectConstant = CellGroup.GenerationTime * 500;
 	public const float PopulationDensityModifier = 10000f;
 
 	public static int HighestAsymptote = 0;
@@ -632,7 +662,7 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge {
 		}
 	}
 
-	public SocialOrganizationKnowledge (CellGroup group, int value = 10) : base (group, SocialOrganizationKnowledgeId, SocialOrganizationKnowledgeName, value) {
+	public SocialOrganizationKnowledge (CellGroup group, int value = 100) : base (group, SocialOrganizationKnowledgeId, SocialOrganizationKnowledgeName, value) {
 
 	}
 
@@ -665,7 +695,7 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge {
 		float population = Group.Population;
 		float popFactor = population * areaFactor;
 
-		float densityFactor = PopulationDensityModifier * Asymptote * areaFactor;
+		float densityFactor = PopulationDensityModifier * Asymptote * ValueScaleFactor * areaFactor;
 
 		float finalPopFactor = popFactor / (popFactor + densityFactor);
 		finalPopFactor = 0.1f + finalPopFactor * 0.9f;
@@ -682,11 +712,17 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge {
 
 	protected override void UpdateInternal (int timeSpan) {
 
+		#if DEBUG
+		if ((Asymptote > 1) && (Value > Asymptote)) {
+			Debug.LogError ("current value too high: " + Value);
+		}
+		#endif
+
 		float populationFactor = CalculatePopulationFactor ();
 
 		float influenceFactor = CalculatePolityInfluenceFactor ();
 
-		float totalFactor = populationFactor + influenceFactor * (1 - populationFactor);
+		float totalFactor = populationFactor + (influenceFactor * (1 - populationFactor));
 
 		UpdateValueInternal (timeSpan, TimeEffectConstant, totalFactor);
 
@@ -721,7 +757,7 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge {
 		switch (discovery.Id) {
 
 		case TribalismDiscovery.TribalismDiscoveryId:
-			return 30;
+			return 3000;
 		}
 
 		return 0;
@@ -755,6 +791,6 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge {
 
 	protected override int CalculateBaseAsymptote ()
 	{
-		return 100;
+		return 1000;
 	}
 }
