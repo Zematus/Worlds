@@ -353,6 +353,8 @@ public abstract class Polity : ISynchronizable {
 
 		influenceValue = (influenceValue * (1 - timeEffect)) + (targetValue * timeEffect);
 
+		influenceValue = Mathf.Clamp01 (influenceValue);
+
 		group.SetPolityInfluenceValue (this, influenceValue);
 	}
 

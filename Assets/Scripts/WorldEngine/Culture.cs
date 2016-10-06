@@ -324,6 +324,7 @@ public class PolityCulture : Culture {
 
 		foreach (PolityCulturalKnowledge knowledge in Knowledges) {
 
+			knowledge.AggregateValue = 0;
 			knowledge.Value = 0;
 		}
 
