@@ -182,9 +182,11 @@ public class SaveLoadTest : AutomatedTest {
 
 			_world = Manager.CurrentWorld;
 
+			#if DEBUG
 			CellGroup.UpdateCalled = () => {
 				_callsToGroupUpdate++;
 			};
+			#endif
 
 			Debug.Log ("Pushing simulation forward before save...");
 
