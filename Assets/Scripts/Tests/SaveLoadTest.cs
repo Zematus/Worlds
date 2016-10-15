@@ -53,10 +53,10 @@ public class SaveLoadTest : AutomatedTest {
 
 //	private Dictionary<string, int>[] _afterSave_AddGroupToUpdateCallersByCheck;
 
-//	private Dictionary<string, int> _afterSave_GetNextLocalRandomCallers = new Dictionary<string, int> ();
-//	private Dictionary<string, int> _afterLoad_GetNextLocalRandomCallers = new Dictionary<string, int> ();
+	private Dictionary<string, int> _afterSave_GetNextLocalRandomCallers = new Dictionary<string, int> ();
+	private Dictionary<string, int> _afterLoad_GetNextLocalRandomCallers = new Dictionary<string, int> ();
 
-//	private Dictionary<string, int>[] _afterSave_GetNextLocalRandomCallersByCheck;
+	private Dictionary<string, int>[] _afterSave_GetNextLocalRandomCallersByCheck;
 
 	private int[] _saveDatePlusOffsets;
 
@@ -111,6 +111,10 @@ public class SaveLoadTest : AutomatedTest {
 		_enhancedTracing = enhancedTracing;
 		_validateRecording = validateRecording;
 
+		#if DEBUG
+		Manager.EnhancedTracing = enhancedTracing;
+		#endif
+
 		Name = "Save/Load Test " + conditionName
 			+ ", world: " + seed
 			+ ", numChecks: " + numChecks
@@ -130,7 +134,7 @@ public class SaveLoadTest : AutomatedTest {
 		}
 
 //		_afterSave_AddGroupToUpdateCallersByCheck = new Dictionary<string, int>[_numChecks];
-//		_afterSave_GetNextLocalRandomCallersByCheck = new Dictionary<string, int>[_numChecks];
+		_afterSave_GetNextLocalRandomCallersByCheck = new Dictionary<string, int>[_numChecks];
 
 		_saveDatePlusOffsets = new int[_numChecks];
 
@@ -284,16 +288,18 @@ public class SaveLoadTest : AutomatedTest {
 			TerrainCell.GetNextLocalRandomCalled = (string callingMethod) => {
 				_totalCallsToGetNextLocalRandom++;
 
-//				int callCount;
-//
-//				if (!_afterSave_GetNextLocalRandomCallers.TryGetValue (callingMethod, out callCount)) {
-//
-//					_afterSave_GetNextLocalRandomCallers.Add (callingMethod, 1);
-//
-//				} else {
-//
-//					_afterSave_GetNextLocalRandomCallers[callingMethod] = ++callCount;
-//				}
+				if (_enhancedTracing) {
+					int callCount;
+
+					if (!_afterSave_GetNextLocalRandomCallers.TryGetValue (callingMethod, out callCount)) {
+
+						_afterSave_GetNextLocalRandomCallers.Add (callingMethod, 1);
+
+					} else {
+
+						_afterSave_GetNextLocalRandomCallers[callingMethod] = ++callCount;
+					}
+				}
 			};
 
 			#endif
@@ -412,12 +418,12 @@ public class SaveLoadTest : AutomatedTest {
 				_afterSave_TotalCallsToGetNextLocalRandom[c] = _totalCallsToGetNextLocalRandom;
 				Debug.Log ("Total calls to GetNextLocalRandom after Save " + checkStr + ": " + _afterSave_TotalCallsToGetNextLocalRandom[c]);
 
-//				foreach (KeyValuePair<string, int> pair in _afterSave_GetNextLocalRandomCallers) {
-//
-//					Debug.Log ("Total calls by " + pair.Key + " to GetNextLocalRandom after Save " + checkStr + ": " + pair.Value);
-//				}
+				foreach (KeyValuePair<string, int> pair in _afterSave_GetNextLocalRandomCallers) {
 
-//				_afterSave_GetNextLocalRandomCallersByCheck[c] = new Dictionary<string, int>(_afterSave_GetNextLocalRandomCallers);
+					Debug.Log ("Total calls by " + pair.Key + " to GetNextLocalRandom after Save " + checkStr + ": " + pair.Value);
+				}
+
+				_afterSave_GetNextLocalRandomCallersByCheck[c] = new Dictionary<string, int>(_afterSave_GetNextLocalRandomCallers);
 				#endif
 
 				_afterSave_GroupCounts[c] = _world.CellGroupCount;
@@ -499,16 +505,18 @@ public class SaveLoadTest : AutomatedTest {
 			TerrainCell.GetNextLocalRandomCalled = (string callingMethod) => {
 				_totalCallsToGetNextLocalRandom++;
 
-//				int callCount;
-//
-//				if (!_afterLoad_GetNextLocalRandomCallers.TryGetValue (callingMethod, out callCount)) {
-//
-//					_afterLoad_GetNextLocalRandomCallers.Add (callingMethod, 1);
-//
-//				} else {
-//
-//					_afterLoad_GetNextLocalRandomCallers[callingMethod] = ++callCount;
-//				}
+				if (_enhancedTracing) {
+					int callCount;
+
+					if (!_afterLoad_GetNextLocalRandomCallers.TryGetValue (callingMethod, out callCount)) {
+
+						_afterLoad_GetNextLocalRandomCallers.Add (callingMethod, 1);
+
+					} else {
+
+						_afterLoad_GetNextLocalRandomCallers[callingMethod] = ++callCount;
+					}
+				}
 			};
 
 			#endif
@@ -750,33 +758,33 @@ public class SaveLoadTest : AutomatedTest {
 
 				}
 
-//				foreach (KeyValuePair<string, int> pair in _afterLoad_GetNextLocalRandomCallers) {
-//
-//					int saveCallerCount;
-//
-//					if (!_afterSave_GetNextLocalRandomCallersByCheck[c].TryGetValue (pair.Key, out saveCallerCount)) {
-//						saveCallerCount = 0;
-//					}
-//
-//					if (saveCallerCount != pair.Value) {
-//
-//						Debug.Log ("Total calls by " + pair.Key + " to GetNextLocalRandom after Load " + checkStr + ": " + pair.Value);
-//						Debug.LogError ("Total calls by " + pair.Key + " to GetNextLocalRandom after load with offset not equal to: " + saveCallerCount);
-//
-//						_result = false;
-//
-//					}
-//				}
-//
-//				foreach (KeyValuePair<string, int> pair in _afterSave_GetNextLocalRandomCallersByCheck[c]) {
-//
-//					if (!_afterLoad_GetNextLocalRandomCallers.ContainsKey (pair.Key)) {
-//						Debug.Log ("Total calls by " + pair.Key + " to GetNextLocalRandom after Load " + checkStr + ": 0");
-//						Debug.LogError ("Total calls by " + pair.Key + " to GetNextLocalRandom after load with offset not equal to: " + pair.Value);
-//
-//						_result = false;
-//					}
-//				}
+				foreach (KeyValuePair<string, int> pair in _afterLoad_GetNextLocalRandomCallers) {
+
+					int saveCallerCount;
+
+					if (!_afterSave_GetNextLocalRandomCallersByCheck[c].TryGetValue (pair.Key, out saveCallerCount)) {
+						saveCallerCount = 0;
+					}
+
+					if (saveCallerCount != pair.Value) {
+
+						Debug.Log ("Total calls by " + pair.Key + " to GetNextLocalRandom after Load " + checkStr + ": " + pair.Value);
+						Debug.LogError ("Total calls by " + pair.Key + " to GetNextLocalRandom after load with offset not equal to: " + saveCallerCount);
+
+						_result = false;
+
+					}
+				}
+
+				foreach (KeyValuePair<string, int> pair in _afterSave_GetNextLocalRandomCallersByCheck[c]) {
+
+					if (!_afterLoad_GetNextLocalRandomCallers.ContainsKey (pair.Key)) {
+						Debug.Log ("Total calls by " + pair.Key + " to GetNextLocalRandom after Load " + checkStr + ": 0");
+						Debug.LogError ("Total calls by " + pair.Key + " to GetNextLocalRandom after load with offset not equal to: " + pair.Value);
+
+						_result = false;
+					}
+				}
 				#endif
 
 				// Validate Cell Groups
@@ -899,6 +907,7 @@ public class SaveLoadTest : AutomatedTest {
 				State = TestState.Failed;
 
 			#if DEBUG
+			Manager.EnhancedTracing = false;
 			Manager.RegisterDebugEvent = null;
 			World.AddGroupToUpdateCalled = null;
 			World.AddMigratingGroupCalled = null;

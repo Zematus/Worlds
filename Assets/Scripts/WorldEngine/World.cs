@@ -816,6 +816,7 @@ public class World : ISynchronizable {
 	public void AddPolityToUpdate (Polity polity) {
 
 		_politiesToUpdate.Add (polity);
+		polity.WillBeUpdated = true;
 	}
 
 	public void AddPolityToRemove (Polity polity) {

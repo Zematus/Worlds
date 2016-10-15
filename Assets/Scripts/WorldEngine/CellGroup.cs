@@ -391,6 +391,10 @@ public class CellGroup : HumanGroup {
 
 		float percentage = group.Population / newPopulation;
 
+		#if DEBUG
+		float oldExactPopulation = ExactPopulation;
+		#endif
+
 		ExactPopulation = newPopulation;
 
 		#if DEBUG
@@ -402,20 +406,126 @@ public class CellGroup : HumanGroup {
 
 		Culture.MergeCulture (group.Culture, percentage);
 
-		foreach (PolityInfluence p in group.PolityInfluences) {
-		
-			Polity polity = p.Polity;
-			float influence = p.Value;
+		MergePolities (group.PolityInfluences, percentage);
 
-			polity.MergingEffects (this, influence, percentage);
-		}
+//		#if DEBUG
+//		if (Manager.RegisterDebugEvent != null) {
+//			if (Id == Manager.TracingData.GroupId) {
+//				string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
+//
+//				Manager.RegisterDebugEvent ("DebugMessage", 
+//					"MergeGroup - CurrentDate: " + World.CurrentDate + 
+//					", Group:" + groupId + 
+//					", oldExactPopulation: " + oldExactPopulation + 
+//					", group.Population: " + group.Population + 
+//					", newPopulation: " + newPopulation + 
+//					", group.PolityInfluences.Count: " + group.PolityInfluences.Count + 
+//					"");
+//			}
+//		}
+//		#endif
 
 		TriggerInterference ();
+	}
+
+	public void MergePolities (List <PolityInfluence> sourcePolityInfluences, float percentOfTarget) {
+
+		List<PolityInfluence> polityInfluences = new List<PolityInfluence> (_polityInfluences.Values);
+
+		foreach (PolityInfluence pInfluence in polityInfluences) {
+
+			float influenceValue = pInfluence.Value;
+
+			float newInfluenceValue = influenceValue * (1 - percentOfTarget);
+
+//			#if DEBUG
+//			if (Manager.RegisterDebugEvent != null) {
+//				if (Id == Manager.TracingData.GroupId) {
+//
+//					string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
+//
+//					Manager.RegisterDebugEvent ("DebugMessage", 
+//						"MergePolities:Rescale - CurrentDate: " + World.CurrentDate + 
+//						", Group:" + groupId + 
+//						", pInfluence.PolityId: " + pInfluence.PolityId + 
+//						", influenceValue: " + influenceValue + 
+//						", newInfluenceValue: " + newInfluenceValue + 
+//						", percentOfTarget: " + percentOfTarget + 
+//						"");
+//				}
+//			}
+//			#endif
+
+			SetPolityInfluenceValue (pInfluence.Polity, newInfluenceValue);
+		}
+
+		foreach (PolityInfluence pInfluence in sourcePolityInfluences) {
+
+			Polity polity = pInfluence.Polity;
+			float influenceValue = pInfluence.Value;
+
+			float currentValue = GetPolityInfluenceValue (polity);
+
+			float newValue = currentValue + (influenceValue * percentOfTarget);
+
+//			#if DEBUG
+//			if (Manager.RegisterDebugEvent != null) {
+//				if (Id == Manager.TracingData.GroupId) {
+//					string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
+//
+//					Manager.RegisterDebugEvent ("DebugMessage", 
+//						"MergePolities:Add - CurrentDate: " + World.CurrentDate +
+//						", Group:" + groupId +
+//						", pInfluence.Polity.Id: " + polity.Id +
+//						", currentValue: " + currentValue +
+//						", influenceValue: " + influenceValue +
+//						", newValue: " + newValue +
+//						", percentOfTarget: " + percentOfTarget +
+//						"");
+//				}
+//			}
+//			#endif
+
+			SetPolityInfluenceValue (polity, newValue);
+		}
 	}
 	
 	public int SplitGroup (MigratingGroup group) {
 
 		int splitPopulation = (int)Mathf.Floor(Population * group.PercentPopulation);
+
+//		#if DEBUG
+//		if (Manager.RegisterDebugEvent != null) {
+//			if (Id == Manager.TracingData.GroupId) {
+//				string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
+//
+//				Manager.RegisterDebugEvent ("DebugMessage", 
+//					"SplitGroup - sourceGroup:" + groupId + 
+//					", CurrentDate: " + World.CurrentDate + 
+//					", Population: " + Population + 
+//					", migratingGroup.PercentPopulation: " + group.PercentPopulation + 
+//					", splitPopulation: " + splitPopulation + 
+//					"");
+//			}
+//		}
+//		#endif
+//
+//		#if DEBUG
+//		if (Manager.RegisterDebugEvent != null) {
+//			if ((group.TargetCell.Group != null) && (group.TargetCell.Group.Id == Manager.TracingData.GroupId)) {
+//				CellGroup targetGroup = group.TargetCell.Group;
+//				string groupId = "Id:" + targetGroup.Id + "|Long:" + targetGroup.Longitude + "|Lat:" + targetGroup.Latitude;
+//
+//				Manager.RegisterDebugEvent ("DebugMessage", 
+//					"SplitGroup - targetGroup:" + groupId + 
+//					", CurrentDate: " + World.CurrentDate + 
+//					", Population: " + targetGroup.Population + 
+//					", migratingGroup.PercentPopulation: " + group.PercentPopulation + 
+//					", splitPopulation: " + splitPopulation + 
+//					"");
+//			}
+//		}
+//		#endif
 		
 		ExactPopulation -= splitPopulation;
 
@@ -442,6 +552,8 @@ public class CellGroup : HumanGroup {
 		}
 	
 		Culture.PostUpdate ();
+
+		SetPolityUpdates ();
 	}
 
 	public void SetupForNextUpdate () {
@@ -515,6 +627,26 @@ public class CellGroup : HumanGroup {
 				influenceFactor = Mathf.Pow (influenceFactor, 8);
 
 				polityInfluenceFactor += influenceFactor;
+
+//				#if DEBUG
+//				if (Manager.RegisterDebugEvent != null) {
+//					if (Id == Manager.TracingData.GroupId) {
+//						if ((Longitude == cell.Longitude) && (Latitude == cell.Latitude)) {
+//							string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
+//							string targetCellLoc = "Long:" + cell.Longitude + "|Lat:" + cell.Latitude;
+//
+//							Manager.RegisterDebugEvent ("DebugMessage", 
+//								"CalculateMigrationValue:InfluenceFactor - Group:" + groupId + 
+//								", polityInfluence.PolityId: " + polityInfluence.PolityId + 
+//								", targetCell: " + targetCellLoc + 
+//								", CurrentDate: " + World.CurrentDate + 
+//								", polityInfluence.Value: " + polityInfluence.Value + 
+//								", influenceFactor: " + influenceFactor + 
+//								"");
+//						}
+//					}
+//				}
+//				#endif
 			}
 		}
 
@@ -546,26 +678,23 @@ public class CellGroup : HumanGroup {
 
 //		#if DEBUG
 //		if (Manager.RegisterDebugEvent != null) {
-//			if ((Id == 1471) || (Id == 1622)) {
-//				string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
-//				string targetCellLoc = "Long:" + cell.Longitude + "|Lat:" + cell.Latitude;
+//			if (Id == Manager.TracingData.GroupId) {
+//				if ((Longitude == cell.Longitude) && (Latitude == cell.Latitude)) {
+//					string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
+//					string targetCellLoc = "Long:" + cell.Longitude + "|Lat:" + cell.Latitude;
 //
-//				Manager.RegisterDebugEvent ("DebugMessage", 
-//					"CalculateMigrationValue - Group:" + groupId + 
-//					", targetCell: " + targetCellLoc + 
-//					", CurrentDate: " + World.CurrentDate + 
-//					", cellValue: " + cellValue + 
-////					", altitudeDeltaFactor: " + altitudeDeltaFactor + 
-////					", areaFactor: " + areaFactor + 
-//					", Population: " + Population + 
-//					", existingPopulation: " + existingPopulation + 
-////					", popDifferenceFactor: " + popDifferenceFactor + 
-////					", noMigrationFactor: " + noMigrationFactor + 
-//					", polityInfluenceFactor: " + polityInfluenceFactor + 
-//					", optimalPopulation: " + optimalPopulation + 
-////					", optimalPopulationFactor: " + optimalPopulationFactor + 
-//					", secondaryOptimalPopulationFactor: " + secondaryOptimalPopulationFactor + 
-//					"");
+//					Manager.RegisterDebugEvent ("DebugMessage", 
+//						"CalculateMigrationValue - Group:" + groupId + 
+//						", targetCell: " + targetCellLoc + 
+//						", CurrentDate: " + World.CurrentDate + 
+////						", altitudeDeltaFactor: " + altitudeDeltaFactor + 
+//						", Population: " + Population + 
+//						", existingPopulation: " + existingPopulation + 
+//						", polityInfluenceFactor: " + polityInfluenceFactor + 
+//						", optimalPopulation: " + optimalPopulation + 
+//						", secondaryOptimalPopulationFactor: " + secondaryOptimalPopulationFactor + 
+//						"");
+//				}
 //			}
 //		}
 //		#endif
@@ -755,8 +884,8 @@ public class CellGroup : HumanGroup {
 
 	public void RemovePolityInfluences () {
 
-		// Make sure any influencing polity gets updated if necessary
-		SetPolityUpdates ();
+		// Make sure all influencing polities get updated
+		SetPolityUpdates (true);
 
 		PolityInfluence[] polityInfluences = new PolityInfluence[_polityInfluences.Count];
 		_polityInfluences.Values.CopyTo (polityInfluences, 0);
@@ -802,9 +931,6 @@ public class CellGroup : HumanGroup {
 
 		Profiler.BeginSample ("Cell Group Update");
 
-		// Should do this before modifying the polity influence (otherwise might never get the polity updated if the influence reaches zero)
-		SetPolityUpdates ();
-
 		UpdateTerrainFarmlandPercentage (timeSpan);
 		UpdatePopulation (timeSpan);
 		UpdateCulture (timeSpan);
@@ -820,43 +946,53 @@ public class CellGroup : HumanGroup {
 		Profiler.EndSample ();
 	}
 
-	private void SetPolityUpdates () {
+	private void SetPolityUpdates (bool forceUpdate = false) {
 	
 		foreach (PolityInfluence pi in _polityInfluences.Values) {
 		
-			SetPolityUpdate (pi.Polity, pi.Value);
+			SetPolityUpdate (pi, forceUpdate);
 		}
 	}
 
-//	public void SetPolityUpdate (Polity p) {
-//
-//		PolityInfluence pi;
-//
-//		if (!_polityInfluences.TryGetValue (p, out pi)) {
-//		
-//			return;
-//		}
-//
-//		SetPolityUpdate (pi.Polity, pi.Value);
-//	}
+	public void SetPolityUpdate (PolityInfluence pi, bool forceUpdate) {
 
-	public void SetPolityUpdate (Polity p, float influenceValue) {
+		Polity p = pi.Polity;
+		float influenceValue = pi.Value;
+
+		if (p.WillBeUpdated)
+			return;
+
+		if (forceUpdate || (p.CoreGroup == this)) {
+
+			World.AddPolityToUpdate (p);
+			return;
+		}
 
 		if (p.TotalGroupInfluenceValue <= 0)
 			return;
 
 		// If group is not the core group then there's a chance no polity update will happen
-		if (p.CoreGroup != this) {
 
-			float chanceFactor = influenceValue / p.TotalGroupInfluenceValue;
+		float chanceFactor = influenceValue / p.TotalGroupInfluenceValue;
 
-			float rollValue = Cell.GetNextLocalRandomFloat ();
+		float rollValue = Cell.GetNextLocalRandomFloatNoIteration ((int)p.Id);
 
-			if (rollValue > chanceFactor)
-				return;
+		#if DEBUG
+		if (Manager.RegisterDebugEvent != null) {
+			Manager.RegisterDebugEvent ("DebugMessage", 
+				"SetPolityUpdate - Group:" + Id + 
+				", CurrentDate: " + World.CurrentDate + 
+				", influenceValue: " + influenceValue + 
+				", p.TotalGroupInfluenceValue: " + p.TotalGroupInfluenceValue + 
+				", p.Id: " + p.Id + 
+				", chanceFactor: " + chanceFactor + 
+				", rollValue: " + rollValue + 
+				"");
 		}
+		#endif
 
-		World.AddPolityToUpdate (p);
+		if (rollValue <= chanceFactor)
+			World.AddPolityToUpdate (p);
 	}
 	
 	private void UpdatePopulation (int timeSpan) {
@@ -1154,21 +1290,21 @@ public class CellGroup : HumanGroup {
 		}
 		#endif
 
-//		#if DEBUG
-//		if (Manager.RegisterDebugEvent != null) {
-//			if ((Id == 1471) || (Id == 1622)) {
-//				string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
-//
-//				Manager.RegisterDebugEvent ("DebugMessage", 
-//					"CalculateNextUpdateDate - Group:" + groupId + 
-//					", CurrentDate: " + World.CurrentDate + 
-//					", MigrationValue: " + MigrationValue + 
-//					", TotalMigrationValue: " + TotalMigrationValue + 
-//					", OptimalPopulation: " + OptimalPopulation + 
-//					", Population: " + Population);
-//			}
-//		}
-//		#endif
+		#if DEBUG
+		if (Manager.RegisterDebugEvent != null) {
+			if (Id == Manager.TracingData.GroupId) {
+				string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
+
+				Manager.RegisterDebugEvent ("DebugMessage", 
+					"CalculateNextUpdateDate - Group:" + groupId + 
+					", CurrentDate: " + World.CurrentDate + 
+					", MigrationValue: " + MigrationValue + 
+					", TotalMigrationValue: " + TotalMigrationValue + 
+					", OptimalPopulation: " + OptimalPopulation + 
+					", Population: " + Population);
+			}
+		}
+		#endif
 
 		float randomFactor = Cell.GetNextLocalRandomFloat ();
 		randomFactor = 1f - Mathf.Pow (randomFactor, 4);
@@ -1217,6 +1353,21 @@ public class CellGroup : HumanGroup {
 			}
 			#endif
 
+//			#if DEBUG
+//			if (Manager.RegisterDebugEvent != null) {
+//				if (Id == Manager.TracingData.GroupId) {
+//					string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
+//
+//					Manager.RegisterDebugEvent ("DebugMessage", 
+//						"PopulationAfterTime:increase - Group:" + groupId + 
+//						", CurrentDate: " + World.CurrentDate + 
+//						", ExactPopulation: " + ExactPopulation + 
+//						", new population: " + population + 
+//						"");
+//				}
+//			}
+//			#endif
+
 			return population;
 		}
 
@@ -1230,6 +1381,21 @@ public class CellGroup : HumanGroup {
 				Debug.Break ();
 			}
 			#endif
+
+//			#if DEBUG
+//			if (Manager.RegisterDebugEvent != null) {
+//				if (Id == Manager.TracingData.GroupId) {
+//					string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
+//
+//					Manager.RegisterDebugEvent ("DebugMessage", 
+//						"PopulationAfterTime:decrease - Group:" + groupId + 
+//						", CurrentDate: " + World.CurrentDate + 
+//						", ExactPopulation: " + ExactPopulation + 
+//						", new population: " + population + 
+//						"");
+//				}
+//			}
+//			#endif
 			
 			return population;
 		}
@@ -1260,6 +1426,22 @@ public class CellGroup : HumanGroup {
 	public void SetPolityInfluenceValue (Polity polity, float newInfluenceValue) {
 
 		#if DEBUG
+		if (Manager.RegisterDebugEvent != null) {
+			if ((Id == Manager.TracingData.GroupId) || (polity.Id == Manager.TracingData.PolityId)) {
+				string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
+
+				Manager.RegisterDebugEvent ("DebugMessage", 
+					"SetPolityInfluenceValue - Group:" + groupId + 
+					", polity.Id: " + polity.Id + 
+					", CurrentDate: " + World.CurrentDate + 
+					", polity.TotalGroupInfluenceValue: " + polity.TotalGroupInfluenceValue + 
+					", newInfluenceValue: " + newInfluenceValue + 
+					"");
+			}
+		}
+		#endif
+
+		#if DEBUG
 		RunningFunction_SetPolityInfluence = true;
 
 		if (Cell.IsSelected) {
@@ -1280,6 +1462,9 @@ public class CellGroup : HumanGroup {
 				polityInfluence = new PolityInfluence (polity, newInfluenceValue);
 
 				_polityInfluences.Add (polity.Id, polityInfluence);
+
+				// We want to update the polity of a group is added.
+				SetPolityUpdate (polityInfluence, true);
 
 				ValidateAndSetHighestPolityInfluence (polityInfluence);
 
@@ -1308,6 +1493,9 @@ public class CellGroup : HumanGroup {
 			_polityInfluences.Remove (polityInfluence.PolityId);
 
 			polity.RemoveInfluencedGroup (this);
+
+			// We want to update the polity of a group is removed.
+			SetPolityUpdate (polityInfluence, true);
 
 			if (polityInfluence == HighestPolityInfluence)
 				FindHighestPolityInfluence ();

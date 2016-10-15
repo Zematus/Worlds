@@ -336,6 +336,19 @@ public class PolityCulture : Culture {
 
 	private void NormalizeAttributeValues () {
 
+		#if DEBUG
+		if (Manager.RegisterDebugEvent != null) {
+			Manager.RegisterDebugEvent ("DebugMessage", 
+				"NormalizeAttributeValues - Polity:" + Polity.Id + 
+				", CurrentDate: " + World.CurrentDate + 
+				", Activities.Count: " + Activities.Count + 
+				", Skills.Count: " + Skills.Count + 
+				", Knowledges.Count: " + Knowledges.Count + 
+				", Polity.TotalGroupInfluenceValue: " + Polity.TotalGroupInfluenceValue + 
+				"");
+		}
+		#endif
+
 		if (Polity.TotalGroupInfluenceValue <= 0)
 			return;
 
@@ -353,6 +366,7 @@ public class PolityCulture : Culture {
 		}
 
 		foreach (PolityCulturalKnowledge knowledge in Knowledges) {
+
 
 			float d;
 			int newValue = (int)MathUtility.DivideAndGetDecimals (knowledge.AggregateValue, totalGroupInfluenceValue, out d);

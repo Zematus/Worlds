@@ -321,10 +321,32 @@ public class MigrateGroupEvent : CellGroupEvent {
 			throw new System.Exception ("Total Migration Value equal or less than zero: " + Group.TotalMigrationValue);
 		}
 
-		float percentToMigrate = (1 - Group.MigrationValue/Group.TotalMigrationValue) * Group.Cell.GetNextLocalRandomFloat ();
+		float randomFactor = Group.Cell.GetNextLocalRandomFloat ();
+		float percentToMigrate = (1 - Group.MigrationValue/Group.TotalMigrationValue) * randomFactor;
 		percentToMigrate = Mathf.Pow (percentToMigrate, 4);
 
 		percentToMigrate = Mathf.Clamp01 (percentToMigrate);
+
+//		#if DEBUG
+//		if (Manager.RegisterDebugEvent != null) {
+//			if ((TargetCell.Group != null) && (TargetCell.Group.Id == Manager.TracingData.GroupId)) {
+//				CellGroup targetGroup = TargetCell.Group;
+//				string targetGroupId = "Id:" + targetGroup.Id + "|Long:" + targetGroup.Longitude + "|Lat:" + targetGroup.Latitude;
+//				string sourceGroupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
+//
+//				Manager.RegisterDebugEvent ("DebugMessage", 
+//					"MigrateGroupEvent.Trigger - targetGroup:" + targetGroupId + 
+//					", sourceGroup:" + sourceGroupId + 
+//					", CurrentDate: " + World.CurrentDate + 
+//					", targetGroup.Population: " + targetGroup.Population + 
+//					", randomFactor: " + randomFactor + 
+//					", Group.MigrationValue: " + Group.MigrationValue + 
+//					", Group.TotalMigrationValue: " + Group.TotalMigrationValue + 
+//					", percentToMigrate: " + percentToMigrate + 
+//					"");
+//			}
+//		}
+//		#endif
 
 		MigratingGroup migratingGroup = new MigratingGroup (World, percentToMigrate, Group, TargetCell);
 
@@ -582,22 +604,6 @@ public class TribeFormationEvent : CellGroupEvent {
 
 		if (targetDate <= group.World.CurrentDate)
 			targetDate = int.MaxValue;
-
-		#if DEBUG
-		if (Manager.RegisterDebugEvent != null) {
-			if (group.Id == 981) {
-				string groupId = "Id:" + group.Id + "|Long:" + group.Longitude + "|Lat:" + group.Latitude;
-
-				Manager.RegisterDebugEvent ("DebugMessage", 
-					"CalculateNextUpdateDate - Group:" + groupId + 
-					", CurrentDate: " + group.World.CurrentDate + 
-					", socialOrganizationValue: " + socialOrganizationValue + 
-					", randomFactor: " + randomFactor + 
-					", influenceFactor: " + influenceFactor + 
-					", targetDate: " + targetDate);
-			}
-		}
-		#endif
 
 		return targetDate;
 	}

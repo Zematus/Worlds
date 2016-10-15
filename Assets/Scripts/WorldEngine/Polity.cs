@@ -59,6 +59,9 @@ public abstract class Polity : ISynchronizable {
 	public CellGroup CoreGroup;
 
 	[XmlIgnore]
+	public bool WillBeUpdated;
+
+	[XmlIgnore]
 	public Dictionary<long, CellGroup> InfluencedGroups = new Dictionary<long, CellGroup> ();
 
 	private Dictionary<long, float> _influencedPopPerGroup = new Dictionary<long, float> ();
@@ -86,6 +89,21 @@ public abstract class Polity : ISynchronizable {
 
 		Culture = new PolityCulture (this);
 
+//		#if DEBUG
+//		if (Manager.RegisterDebugEvent != null) {
+//			if (CoreGroupId == Manager.TracingData.GroupId) {
+//				string groupId = "Id:" + CoreGroupId + "|Long:" + CoreGroup.Longitude + "|Lat:" + CoreGroup.Latitude;
+//
+//				Manager.RegisterDebugEvent ("DebugMessage", 
+//					"new Polity - CurrentDate: " + World.CurrentDate + 
+//					", Polity.Id: " + Id + 
+//					", CoreGroup:" + groupId + 
+//					", coreGroupInfluenceValue: " + coreGroupInfluenceValue + 
+//					"");
+//			}
+//		}
+//		#endif
+
 		coreGroup.SetPolityInfluenceValue (this, coreGroupInfluenceValue);
 
 		GenerateName ();
@@ -111,6 +129,19 @@ public abstract class Polity : ISynchronizable {
 	}
 
 	public void Update () {
+
+		#if DEBUG
+		if (Manager.RegisterDebugEvent != null) {
+			Manager.RegisterDebugEvent ("DebugMessage", 
+				"Update - Polity:" + Id + 
+				", CurrentDate: " + World.CurrentDate + 
+				", InfluencedGroups.Count: " + InfluencedGroups.Count + 
+				", TotalGroupInfluenceValue: " + TotalGroupInfluenceValue + 
+				"");
+		}
+		#endif
+
+		WillBeUpdated = false;
 
 		if (InfluencedGroups.Count <= 0) {
 		
@@ -205,9 +236,6 @@ public abstract class Polity : ISynchronizable {
 		#endif
 	
 		InfluencedGroups.Add (group.Id, group);
-
-		//TODO: Remove line
-//		Territory.AddCell (group.Cell);
 	}
 
 	public void RemoveInfluencedGroup (CellGroup group) {
@@ -218,9 +246,6 @@ public abstract class Polity : ISynchronizable {
 		#endif
 
 		InfluencedGroups.Remove (group.Id);
-
-		//TODO: Remove line
-//		Territory.RemoveCell (group.Cell);
 
 		if (group == CoreGroup) {
 
@@ -289,6 +314,24 @@ public abstract class Polity : ISynchronizable {
 			socialOrgFactor = 1 - Mathf.Pow (1 - socialOrgFactor, 2);
 
 			groupTotalInfluenceValue = targetGroup.TotalPolityInfluenceValue;
+
+//			#if DEBUG
+//			if (Manager.RegisterDebugEvent != null) {
+//				if (Id == Manager.TracingData.PolityId) {
+//					if ((targetCell.Longitude == Manager.TracingData.Longitude) && (targetCell.Latitude == Manager.TracingData.Latitude)) {
+//						string targetGroupId = "Id:" + targetGroup.Id + "|Long:" + targetGroup.Longitude + "|Lat:" + targetGroup.Latitude;
+//
+//						Manager.RegisterDebugEvent ("DebugMessage", 
+//							"MigrationValue - CurrentDate: " + World.CurrentDate + 
+//							", Polity.Id:" + Id + 
+//							", targetGroupId: " + targetGroupId + 
+//							", socialOrgKnowledge.Value: " + socialOrgKnowledge.Value + 
+//							", groupTotalInfluenceValue: " + groupTotalInfluenceValue + 
+//							"");
+//					}
+//				}
+//			}
+//			#endif
 		}
 
 		float sourceValueFactor = 0.05f + (sourceValue * 0.95f);
@@ -296,31 +339,6 @@ public abstract class Polity : ISynchronizable {
 		float influenceFactor = socialOrgFactor * sourceValue / (groupTotalInfluenceValue + sourceValueFactor);
 
 		return Mathf.Clamp01 (influenceFactor);
-	}
-
-	public virtual void MergingEffects (CellGroup targetGroup, float sourceValue, float percentOfTarget) {
-
-		foreach (PolityInfluence pInfluence in targetGroup.GetPolityInfluences ()) {
-
-			float influenceValue = pInfluence.Value;
-
-			float newInfluenceValue = influenceValue * (1 - percentOfTarget);
-
-			targetGroup.SetPolityInfluenceValue (pInfluence.Polity, newInfluenceValue);
-		}
-
-		float currentValue = targetGroup.GetPolityInfluenceValue (this);
-
-		float newValue = currentValue + (sourceValue * percentOfTarget);
-
-		#if DEBUG
-		if (targetGroup.Cell.IsSelected) {
-
-			bool debug = true;
-		}
-		#endif
-
-		targetGroup.SetPolityInfluenceValue (this, newValue);
 	}
 
 	public virtual void UpdateEffects (CellGroup group, float influenceValue, int timeSpan) {
@@ -339,9 +357,26 @@ public abstract class Polity : ISynchronizable {
 		float maxTargetValue = maxInfluenceValue;
 		float minTargetValue = -0.2f * maxInfluenceValue;
 
-		float randomModifier = groupCell.GetNextLocalRandomFloat ();
+		float randomModifier = groupCell.GetNextLocalRandomFloatNoIteration ((int)Id);
 		float randomFactor = 2 * randomModifier - 1f;
 		float targetValue = 0;
+
+//		#if DEBUG
+//		if (Manager.RegisterDebugEvent != null) {
+//			if (group.Id == Manager.TracingData.GroupId) {
+//				string groupId = "Id:" + group.Id + "|Long:" + group.Longitude + "|Lat:" + group.Latitude;
+//
+//				Manager.RegisterDebugEvent ("DebugMessage", 
+//					"UpdateEffects - CurrentDate: " + World.CurrentDate + 
+//					", Polity.Id: " + Id + 
+//					", group:" + groupId + 
+//					", randomFactor: " + randomFactor + 
+//					", group.TotalPolityInfluenceValue: " + group.TotalPolityInfluenceValue + 
+//					", influenceValue: " + influenceValue + 
+//					"");
+//			}
+//		}
+//		#endif
 
 		if (randomFactor > 0) {
 			targetValue = influenceValue + (maxTargetValue - influenceValue) * randomFactor;

@@ -171,7 +171,7 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
 
 		#if DEBUG
 		if ((Asymptote > 1) && (Value > Asymptote)) {
-			Debug.LogError ("new value too high: " + Value);
+			Debug.LogError ("Merge: new value " + Value + " above Asymptote " + Asymptote);
 		}
 		#endif
 	}
@@ -190,7 +190,7 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
 
 			#if DEBUG
 			if ((Asymptote > 1) && (Value > Asymptote)) {
-				Debug.LogError ("new value too high: " + Value);
+				Debug.LogError ("IncreaseValue: new value " + Value + " above Asymptote " + Asymptote);
 			}
 			#endif
 		}
@@ -208,7 +208,7 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
 
 		#if DEBUG
 		if ((Asymptote > 1) && (Value > Asymptote)) {
-			Debug.LogError ("new value too high: " + Value);
+			Debug.LogError ("ModifyValue: new value " + Value + " above Asymptote " + Asymptote);
 		}
 		#endif
 	}
@@ -288,13 +288,13 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
 		if (d > Group.GetNextLocalRandomFloat ())
 			newValue++;
 
+		Value = newValue;
+
 		#if DEBUG
-		if ((Asymptote > 1) && (newValue > Asymptote)) {
-			Debug.LogError ("new value too high: " + newValue);
+		if ((Asymptote > 1) && (Value > Asymptote)) {
+			Debug.LogError ("UpdateValueInternal: new value " + Value + " above Asymptote " + Asymptote);
 		}
 		#endif
-
-		Value = newValue;
 	}
 
 	public abstract void PolityCulturalInfluence (CulturalKnowledge polityKnowledge, PolityInfluence polityInfluence, int timeSpan);
@@ -320,7 +320,7 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
 
 		#if DEBUG
 		if ((Asymptote > 1) && (Value > Asymptote)) {
-			Debug.LogError ("new value too high: " + Value);
+			Debug.LogError ("PolityCulturalInfluenceInternal: new value " + Value + " above Asymptote " + Asymptote);
 		}
 		#endif
 	}
