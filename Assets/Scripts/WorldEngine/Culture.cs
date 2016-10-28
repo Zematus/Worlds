@@ -261,41 +261,45 @@ public class PolityCulture : Culture {
 		}
 	}
 
-	public float GetNextRandomFloat () {
+	public float GetNextRandomFloat (int rngOffset) {
 
-		return Polity.GetNextRandomFloat ();
+		return Polity.CoreGroup.GetNextLocalRandomFloat (rngOffset + (int)Polity.Id);
 	}
 
 	private void GenerateNewLanguage () {
-	
+
 		Language = new Language (World.GenerateLanguageId ());
+
+		int rngOffset = 0;
+
+		Language.GetRandomFloatDelegate getNextRandomFloat = () => GetNextRandomFloat (RngOffsets.POLITY_CULTURE_GENERATE_NEW_LANGUAGE + rngOffset++);
 
 		// Generate Articles
 
-		Language.GenerateArticleProperties (GetNextRandomFloat);
+		Language.GenerateArticleProperties (getNextRandomFloat);
 
-		Language.GenerateArticleAdjunctionProperties (GetNextRandomFloat);
-		Language.GenerateArticleSyllables (GetNextRandomFloat);
-		Language.GenerateAllArticles (GetNextRandomFloat);
+		Language.GenerateArticleAdjunctionProperties (getNextRandomFloat);
+		Language.GenerateArticleSyllables (getNextRandomFloat);
+		Language.GenerateAllArticles (getNextRandomFloat);
 
 		// Generate Indicatives
 
-		Language.GenerateIndicativeProperties (GetNextRandomFloat);
+		Language.GenerateIndicativeProperties (getNextRandomFloat);
 
-		Language.GenerateIndicativeAdjunctionProperties (GetNextRandomFloat);
-		Language.GenerateIndicativeSyllables (GetNextRandomFloat);
-		Language.GenerateAllIndicatives (GetNextRandomFloat);
+		Language.GenerateIndicativeAdjunctionProperties (getNextRandomFloat);
+		Language.GenerateIndicativeSyllables (getNextRandomFloat);
+		Language.GenerateAllIndicatives (getNextRandomFloat);
 
 		// Generate Noun, Adjective and Adposition Properties and Syllables
 
-		Language.GenerateNounAdjunctionProperties (GetNextRandomFloat);
-		Language.GenerateNounSyllables (GetNextRandomFloat);
+		Language.GenerateNounAdjunctionProperties (getNextRandomFloat);
+		Language.GenerateNounSyllables (getNextRandomFloat);
 
-		Language.GenerateAdjectiveAdjunctionProperties (GetNextRandomFloat);
-		Language.GenerateAdjectiveSyllables (GetNextRandomFloat);
+		Language.GenerateAdjectiveAdjunctionProperties (getNextRandomFloat);
+		Language.GenerateAdjectiveSyllables (getNextRandomFloat);
 
-		Language.GenerateAdpositionAdjunctionProperties (GetNextRandomFloat);
-		Language.GenerateAdpositionSyllables (GetNextRandomFloat);
+		Language.GenerateAdpositionAdjunctionProperties (getNextRandomFloat);
+		Language.GenerateAdpositionSyllables (getNextRandomFloat);
 
 		World.AddLanguage (Language);
 	}
@@ -336,18 +340,18 @@ public class PolityCulture : Culture {
 
 	private void NormalizeAttributeValues () {
 
-		#if DEBUG
-		if (Manager.RegisterDebugEvent != null) {
-			Manager.RegisterDebugEvent ("DebugMessage", 
-				"NormalizeAttributeValues - Polity:" + Polity.Id + 
-				", CurrentDate: " + World.CurrentDate + 
-				", Activities.Count: " + Activities.Count + 
-				", Skills.Count: " + Skills.Count + 
-				", Knowledges.Count: " + Knowledges.Count + 
-				", Polity.TotalGroupInfluenceValue: " + Polity.TotalGroupInfluenceValue + 
-				"");
-		}
-		#endif
+//		#if DEBUG
+//		if (Manager.RegisterDebugEvent != null) {
+//			Manager.RegisterDebugEvent ("DebugMessage", 
+//				"NormalizeAttributeValues - Polity:" + Polity.Id + 
+//				", CurrentDate: " + World.CurrentDate + 
+//				", Activities.Count: " + Activities.Count + 
+//				", Skills.Count: " + Skills.Count + 
+//				", Knowledges.Count: " + Knowledges.Count + 
+//				", Polity.TotalGroupInfluenceValue: " + Polity.TotalGroupInfluenceValue + 
+//				"");
+//		}
+//		#endif
 
 		if (Polity.TotalGroupInfluenceValue <= 0)
 			return;
@@ -371,7 +375,7 @@ public class PolityCulture : Culture {
 			float d;
 			int newValue = (int)MathUtility.DivideAndGetDecimals (knowledge.AggregateValue, totalGroupInfluenceValue, out d);
 
-			if (d > GetNextRandomFloat ())
+			if (d > GetNextRandomFloat (RngOffsets.POLITY_CULTURE_NORMALIZE_ATTRIBUTE_VALUES))
 				newValue++;
 
 			knowledge.Value = newValue;

@@ -12,6 +12,53 @@ public interface ISynchronizable {
 	void FinalizeLoad ();
 }
 
+public static class RngOffsets {
+
+	public const int CELL_GROUP_CONSIDER_LAND_MIGRATION = 0;
+	public const int CELL_GROUP_CONSIDER_SEA_MIGRATION = 1;
+	public const int CELL_GROUP_CALCULATE_NEXT_UPDATE = 2;
+	public const int CELL_GROUP_SET_POLITY_UPDATE = 3;
+
+	public const int ACTIVITY_UPDATE = 10000;
+	public const int ACTIVITY_POLITY_INFLUENCE = 10001;
+
+	public const int KNOWLEDGE_MERGE = 20000;
+	public const int KNOWLEDGE_MODIFY_VALUE = 20001;
+	public const int KNOWLEDGE_UPDATE_VALUE_INTERNAL = 20002;
+	public const int KNOWLEDGE_UPDATE_VALUE_INTERNAL_2 = 20003;
+	public const int KNOWLEDGE_POLITY_INFLUENCE = 20004;
+	public const int KNOWLEDGE_POLITY_INFLUENCE_2 = 20005;
+
+	public const int SKILL_UPDATE = 30000;
+	public const int SKILL_POLITY_INFLUENCE = 30001;
+
+	public const int POLITY_CULTURE_NORMALIZE_ATTRIBUTE_VALUES = 40000;
+	public const int POLITY_CULTURE_GENERATE_NEW_LANGUAGE = 40001;
+
+	public const int POLITY_UPDATE_EFFECTS = 50000;
+
+	public const int REGION_GENERATE_NAME = 60000;
+
+	public const int TRIBE_GENERATE_NEW_TRIBE = 70000;
+	public const int TRIBE_GENERATE_NAME = 70001;
+	public const int TRIBE_GENERATE_NAME_2 = 70002;
+	public const int TRIBE_GENERATE_NAME_3 = 70003;
+
+	public const int ROUTE_CHOOSE_NEXT_DEPTH_SEA_CELL = 100000;
+	public const int ROUTE_CHOOSE_NEXT_COASTAL_CELL = 110000;
+	public const int ROUTE_CHOOSE_NEXT_COASTAL_CELL_2 = 120000;
+
+	public const int FARM_DEGRADATION_EVENT_CALCULATE_TRIGGER_DATE = 900000;
+	public const int SAILING_DISCOVERY_EVENT_CALCULATE_TRIGGER_DATE = 900001;
+	public const int TRIBALISM_DISCOVERY_EVENT_CALCULATE_TRIGGER_DATE = 900002;
+	public const int TRIBE_FORMATION_EVENT_CALCULATE_TRIGGER_DATE = 900003;
+	public const int BOAT_MAKING_DISCOVERY_EVENT_CALCULATE_TRIGGER_DATE = 900004;
+	public const int PLANT_CULTIVATION_DISCOVERY_EVENT_CALCULATE_TRIGGER_DATE = 900005;
+
+	public const int EVENT_TRIGGER = 1000000;
+	public const int EVENT_CAN_TRIGGER = 1100000;
+}
+
 [XmlRoot]
 public class World : ISynchronizable {
 
@@ -501,14 +548,13 @@ public class World : ISynchronizable {
 
 				int maxDate = CurrentDate + MaxYearsToSkip;
 
+				#if DEBUG
 				if (maxDate < 0) {
-					
-					#if DEBUG
 					Debug.Break ();
-					#endif
 
 					throw new System.Exception ("Surpassed date limit (Int32.MaxValue)");
 				}
+				#endif
 
 				dateToSkipTo = Mathf.Min (eventToHappen.TriggerDate, maxDate);
 				break;
@@ -667,10 +713,8 @@ public class World : ISynchronizable {
 	public void AddMigratingGroup (MigratingGroup group) {
 
 		#if DEBUG
-		if (Manager.RecordingEnabled) {
-			if (AddMigratingGroupCalled != null) {
-				AddMigratingGroupCalled ();
-			}
+		if (AddMigratingGroupCalled != null) {
+			AddMigratingGroupCalled ();
 		}
 		#endif
 		
@@ -721,8 +765,7 @@ public class World : ISynchronizable {
 	public void AddGroupToUpdate (CellGroup group) {
 
 		#if DEBUG
-		if (Manager.RecordingEnabled) {
-			if (AddGroupToUpdateCalled != null) {
+		if (AddGroupToUpdateCalled != null) {
 
 //				System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
 //
@@ -731,8 +774,7 @@ public class World : ISynchronizable {
 //				string callingClass = method.DeclaringType.ToString();
 //
 //				AddGroupToUpdateCalled (callingClass + ":" + callingMethod);
-				AddGroupToUpdateCalled (null);
-			}
+			AddGroupToUpdateCalled (null);
 		}
 		#endif
 

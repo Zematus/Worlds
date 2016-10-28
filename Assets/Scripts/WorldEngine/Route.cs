@@ -50,9 +50,11 @@ public class Route {
 		TerrainCell nextCell = startCell;
 		Direction nextDirection;
 
+		int rngOffset = 0;
+
 		while (true) {
 
-			nextCell = ChooseNextSeaCell (nextCell, out nextDirection);
+			nextCell = ChooseNextSeaCell (nextCell, rngOffset++, out nextDirection);
 
 			if (nextCell == null)
 				break;
@@ -120,20 +122,20 @@ public class Route {
 		CellPositions.Add (cell.Position);
 	}
 		
-	public TerrainCell ChooseNextSeaCell (TerrainCell currentCell, out Direction direction) {
+	public TerrainCell ChooseNextSeaCell (TerrainCell currentCell, int rngOffset, out Direction direction) {
 
 		if (_isTraversingSea)
-			return ChooseNextDepthSeaCell (currentCell, out direction);
+			return ChooseNextDepthSeaCell (currentCell, rngOffset, out direction);
 		else
-			return ChooseNextCoastalCell (currentCell, out direction);
+			return ChooseNextCoastalCell (currentCell, rngOffset, out direction);
 	}
 
-	public TerrainCell ChooseNextDepthSeaCell (TerrainCell currentCell, out Direction direction) {
+	public TerrainCell ChooseNextDepthSeaCell (TerrainCell currentCell, int rngOffset, out Direction direction) {
 
 		Direction newDirection = _traverseDirection;
 		float newOffset = _currentDirectionOffset;
 
-		float deviation = 2 * FirstCell.GetNextLocalRandomFloat () - 1;
+		float deviation = 2 * FirstCell.GetNextLocalRandomFloat (RngOffsets.ROUTE_CHOOSE_NEXT_DEPTH_SEA_CELL + rngOffset) - 1;
 		deviation = (deviation * deviation + 1f) / 2f;
 		deviation = newOffset - deviation;
 
@@ -167,7 +169,7 @@ public class Route {
 		return nextCell;
 	}
 
-	public TerrainCell ChooseNextCoastalCell (TerrainCell currentCell, out Direction direction) {
+	public TerrainCell ChooseNextCoastalCell (TerrainCell currentCell, int rngOffset, out Direction direction) {
 
 		float totalWeight = 0;
 
@@ -208,7 +210,8 @@ public class Route {
 			return null;
 		}
 
-		KeyValuePair<Direction, TerrainCell> targetPair = CollectionUtility.WeightedSelection (weights, totalWeight, FirstCell.GetNextLocalRandomFloat);
+		KeyValuePair<Direction, TerrainCell> targetPair = 
+			CollectionUtility.WeightedSelection (weights, totalWeight, () => FirstCell.GetNextLocalRandomFloat (RngOffsets.ROUTE_CHOOSE_NEXT_COASTAL_CELL + rngOffset));
 
 		TerrainCell targetCell = targetPair.Value;
 		direction = targetPair.Key;
@@ -223,7 +226,7 @@ public class Route {
 			_isTraversingSea = true;
 			_traverseDirection = direction;
 
-			_currentDirectionOffset = FirstCell.GetNextLocalRandomFloat();
+			_currentDirectionOffset = FirstCell.GetNextLocalRandomFloat(RngOffsets.ROUTE_CHOOSE_NEXT_COASTAL_CELL_2 + rngOffset);
 		}
 
 		_currentEndRoutePreference += 0.1f;

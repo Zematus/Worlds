@@ -100,13 +100,15 @@ public class FarmDegradationEvent : CellEvent {
 
 		cell.SetFlag (EventSetFlag);
 
-		#if DEBUG
-		if (Manager.RegisterDebugEvent != null) {
-			string cellLoc = "Long:" + cell.Longitude + "|Lat:" + cell.Latitude;
-
-			Manager.RegisterDebugEvent ("DebugMessage", "FarmDegradationEvent - Cell: " + cellLoc + ", TriggerDate: " + TriggerDate);
-		}
-		#endif
+//		#if DEBUG
+//		if (Manager.RegisterDebugEvent != null) {
+//			string cellLoc = "Long:" + cell.Longitude + "|Lat:" + cell.Latitude;
+//
+//			SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("FarmDegradationEvent - Cell: " + cellLoc, "TriggerDate: " + TriggerDate);
+//
+//			Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+//		}
+//		#endif
 	}
 
 	public static bool CanSpawnIn (TerrainCell cell) {
@@ -133,7 +135,7 @@ public class FarmDegradationEvent : CellEvent {
 
 	public static int CalculateTriggerDate (TerrainCell cell) {
 
-		float randomFactor = cell.GetNextLocalRandomFloat ();
+		float randomFactor = cell.GetNextLocalRandomFloat (RngOffsets.FARM_DEGRADATION_EVENT_CALCULATE_TRIGGER_DATE);
 		randomFactor = randomFactor * randomFactor;
 
 		return cell.World.CurrentDate + (int)Mathf.Max(1, (MaxDateSpanToTrigger * (1 - randomFactor)));
@@ -211,13 +213,17 @@ public abstract class CellGroupEvent : WorldEvent {
 		//TODO: Evaluate if necessary or remove
 //		Group.AddAssociatedEvent (this);
 
-		#if DEBUG
-		if (Manager.RegisterDebugEvent != null) {
-			string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
-
-			Manager.RegisterDebugEvent ("DebugMessage", "CellGroupEvent - Group:" + groupId + ", Type: " + this.GetType () + ", TriggerDate: " + TriggerDate);
-		}
-		#endif
+//		#if DEBUG
+//		if (Manager.RegisterDebugEvent != null) {
+//			if (Group.Id == Manager.TracingData.GroupId) {
+//				string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
+//
+//				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("CellGroupEvent - Group:" + groupId + ", Type: " + this.GetType (), "TriggerDate: " + TriggerDate);
+//
+//				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+//			}
+//		}
+//		#endif
 	}
 
 	public override bool CanTrigger () {
@@ -321,7 +327,7 @@ public class MigrateGroupEvent : CellGroupEvent {
 			throw new System.Exception ("Total Migration Value equal or less than zero: " + Group.TotalMigrationValue);
 		}
 
-		float randomFactor = Group.Cell.GetNextLocalRandomFloat ();
+		float randomFactor = Group.Cell.GetNextLocalRandomFloat (RngOffsets.EVENT_TRIGGER + (int)Id);
 		float percentToMigrate = (1 - Group.MigrationValue/Group.TotalMigrationValue) * randomFactor;
 		percentToMigrate = Mathf.Pow (percentToMigrate, 4);
 
@@ -399,7 +405,7 @@ public class SailingDiscoveryEvent : CellGroupEvent {
 		if (shipbuildingKnowledge != null)
 			shipBuildingValue = shipbuildingKnowledge.Value;
 
-		float randomFactor = group.Cell.GetNextLocalRandomFloat ();
+		float randomFactor = group.Cell.GetNextLocalRandomFloat (RngOffsets.SAILING_DISCOVERY_EVENT_CALCULATE_TRIGGER_DATE);
 		randomFactor = randomFactor * randomFactor;
 
 		float shipBuildingFactor = (shipBuildingValue - MinShipBuildingKnowledgeValue) / (float)(OptimalShipBuildingKnowledgeValue - MinShipBuildingKnowledgeValue);
@@ -491,7 +497,7 @@ public class TribalismDiscoveryEvent : CellGroupEvent {
 		if (socialOrganizationKnowledge != null)
 			socialOrganizationValue = socialOrganizationKnowledge.Value;
 
-		float randomFactor = group.Cell.GetNextLocalRandomFloat ();
+		float randomFactor = group.Cell.GetNextLocalRandomFloat (RngOffsets.TRIBALISM_DISCOVERY_EVENT_CALCULATE_TRIGGER_DATE);
 		randomFactor = randomFactor * randomFactor;
 
 		float socialOrganizationFactor = (socialOrganizationValue - MinSocialOrganizationKnowledgeValue) / (float)(OptimalSocialOrganizationKnowledgeValue - MinSocialOrganizationKnowledgeValue);
@@ -589,7 +595,7 @@ public class TribeFormationEvent : CellGroupEvent {
 		if (socialOrganizationKnowledge != null)
 			socialOrganizationValue = socialOrganizationKnowledge.Value;
 
-		float randomFactor = group.Cell.GetNextLocalRandomFloat ();
+		float randomFactor = group.Cell.GetNextLocalRandomFloat (RngOffsets.TRIBE_FORMATION_EVENT_CALCULATE_TRIGGER_DATE);
 		randomFactor = randomFactor * randomFactor;
 
 		float socialOrganizationFactor = (socialOrganizationValue - MinSocialOrganizationKnowledgeValue) / (OptimalSocialOrganizationKnowledgeValue - MinSocialOrganizationKnowledgeValue);
@@ -632,7 +638,7 @@ public class TribeFormationEvent : CellGroupEvent {
 		float influenceFactor = Mathf.Min(1, Group.TotalPolityInfluenceValue * 3f);
 		influenceFactor = Mathf.Pow (1 - influenceFactor, 4);
 
-		float rollValue = Group.Cell.GetNextLocalRandomFloat ();
+		float rollValue = Group.Cell.GetNextLocalRandomFloat (RngOffsets.EVENT_CAN_TRIGGER + (int)Id);
 
 		if (rollValue > influenceFactor)
 			return false;
@@ -673,7 +679,7 @@ public class BoatMakingDiscoveryEvent : CellGroupEvent {
 		
 		float oceanPresence = ShipbuildingKnowledge.CalculateNeighborhoodOceanPresenceIn (group);
 
-		float randomFactor = group.Cell.GetNextLocalRandomFloat ();
+		float randomFactor = group.Cell.GetNextLocalRandomFloat (RngOffsets.BOAT_MAKING_DISCOVERY_EVENT_CALCULATE_TRIGGER_DATE);
 		randomFactor = randomFactor * randomFactor;
 
 		float dateSpan = (1 - randomFactor) * DateSpanFactorConstant;
@@ -739,7 +745,7 @@ public class PlantCultivationDiscoveryEvent : CellGroupEvent {
 
 		float terrainFactor = AgricultureKnowledge.CalculateTerrainFactorIn (group.Cell);
 
-		float randomFactor = group.Cell.GetNextLocalRandomFloat ();
+		float randomFactor = group.Cell.GetNextLocalRandomFloat (RngOffsets.PLANT_CULTIVATION_DISCOVERY_EVENT_CALCULATE_TRIGGER_DATE);
 		randomFactor = randomFactor * randomFactor;
 
 		float dateSpan = (1 - randomFactor) * DateSpanFactorConstant;

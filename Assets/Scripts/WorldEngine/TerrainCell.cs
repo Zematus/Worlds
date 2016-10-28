@@ -4,6 +4,9 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
+public delegate int GetRandomIntDelegate (int maxValue);
+public delegate float GetRandomFloatDelegate ();
+
 public enum Direction {
 
 	North = 0,
@@ -47,8 +50,8 @@ public class TerrainCellChanges {
 	[XmlAttribute("Lat")]
 	public int Latitude;
 
-	[XmlAttribute("It")]
-	public int LocalIteration = 0;
+//	[XmlAttribute("It")]
+//	public int LocalIteration = 0;
 	[XmlAttribute("Fp")]
 	public float FarmlandPercentage = 0;
 
@@ -64,7 +67,7 @@ public class TerrainCellChanges {
 		Longitude = cell.Longitude;
 		Latitude = cell.Latitude;
 
-		LocalIteration = cell.LocalIteration;
+//		LocalIteration = cell.LocalIteration;
 		FarmlandPercentage = cell.FarmlandPercentage;
 	}
 }
@@ -75,7 +78,7 @@ public class TerrainCell : ISynchronizable {
 
 	public delegate void GetNextLocalRandomCalledDelegate (string callerMethod);
 
-	public static int LastRandomInteger = 0; 
+//	public static int LastRandomInteger = 0; 
 	public static GetNextLocalRandomCalledDelegate GetNextLocalRandomCalled = null; 
 
 	#endif
@@ -108,9 +111,9 @@ public class TerrainCell : ISynchronizable {
 
 	[XmlAttribute]
 	public bool IsPartOfCoastline;
-
-	[XmlAttribute]
-	public int LocalIteration = 0;
+//
+//	[XmlAttribute]
+//	public int LocalIteration = 0;
 	[XmlAttribute]
 	public float FarmlandPercentage = 0;
 
@@ -182,8 +185,8 @@ public class TerrainCell : ISynchronizable {
 	public TerrainCellChanges GetChanges () {
 
 		// If there where no changes there's no need to create a TerrainCellChanges object
-		if ((LocalIteration == 0) && 
-			(FarmlandPercentage == 0) && 
+		if ((FarmlandPercentage == 0) && 
+//			(LocalIteration == 0) && 
 			(_flags.Count == 0))
 			return null;
 
@@ -196,7 +199,7 @@ public class TerrainCell : ISynchronizable {
 
 	public void SetChanges (TerrainCellChanges changes) {
 
-		LocalIteration = changes.LocalIteration;
+//		LocalIteration = changes.LocalIteration;
 		FarmlandPercentage = changes.FarmlandPercentage;
 
 		foreach (string flag in changes.Flags) {
@@ -240,84 +243,120 @@ public class TerrainCell : ISynchronizable {
 		HasCrossingRoutes = CrossingRoutes.Count > 0;
 	}
 
-	public int GetNextLocalRandomInt (int maxValue = PerlinNoise.MaxPermutationValue) {
+	public int GetNextLocalRandomInt (int queryOffset, int maxValue) {// = PerlinNoise.MaxPermutationValue) {
 
 		maxValue = Mathf.Min (PerlinNoise.MaxPermutationValue, maxValue);
 
-		int x = Mathf.Abs (World.Seed + Longitude);
-		int y = Mathf.Abs (World.Seed + Latitude);
-		int z = Mathf.Abs (World.Seed + World.CurrentDate + LocalIteration);
+		int x = Mathf.Abs (World.Seed + Longitude + queryOffset);
+		int y = Mathf.Abs (World.Seed + Latitude + queryOffset);
+//		int z = Mathf.Abs (World.Seed + World.CurrentDate + LocalIteration);
+		int z = Mathf.Abs (World.Seed + World.CurrentDate + queryOffset);
 
 		int value = PerlinNoise.GetPermutationValue(x, y, z) % maxValue;
 
 		#if DEBUG
+		if (GetNextLocalRandomCalled != null) {
+			if (Manager.TrackGenRandomCallers) {
+				
+				System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
 
-		if (Manager.RecordingEnabled) {
-			LastRandomInteger = value;
+				System.Reflection.MethodBase method = stackTrace.GetFrame(1).GetMethod();
+				string callingMethod = method.Name;
 
-			if (GetNextLocalRandomCalled != null) {
-				if (Manager.EnhancedTracing) {
-					
-					System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
+				int frame = 2;
+				while (callingMethod.Contains ("GetNextLocalRandom") || callingMethod.Contains ("GetNextRandom")) {
+					method = stackTrace.GetFrame(frame).GetMethod();
+					callingMethod = method.Name;
 
-					System.Reflection.MethodBase method = stackTrace.GetFrame(1).GetMethod();
-					string callingMethod = method.Name;
-
-					int frame = 2;
-					while (callingMethod.Contains ("GetNextLocalRandom") || callingMethod.Contains ("GetNextRandom")) {
-						method = stackTrace.GetFrame(frame).GetMethod();
-						callingMethod = method.Name;
-
-						frame++;
-					}
-
-					string callingClass = method.DeclaringType.ToString();
-
-					GetNextLocalRandomCalled (callingClass + ":" + callingMethod);
-
-				} else {
-					GetNextLocalRandomCalled (null);
+					frame++;
 				}
+
+				string callingClass = method.DeclaringType.ToString();
+
+				GetNextLocalRandomCalled (callingClass + ":" + callingMethod);
+
+			} else {
+				GetNextLocalRandomCalled (null);
 			}
-
-			string key = "Long:" + Longitude + "-Lat:" + Latitude + "-Date:" + World.CurrentDate + "-LocalIteration:" + LocalIteration;
-
-			Manager.Recorder.Record (key, "LastRandomInteger:" + value);
 		}
-
 		#endif
 
-		LocalIteration++;
+//		#if DEBUG
+//		if (Manager.RecordingEnabled) {
+//			LastRandomInteger = value;
+//			string key = "Long:" + Longitude + "-Lat:" + Latitude + "-Date:" + World.CurrentDate + "-LocalIteration:" + LocalIteration;
+
+//			Manager.Recorder.Record (key, "LastRandomInteger:" + value);
+//		}
+//		#endif
+
+//		LocalIteration++;
 
 		return value;
 	}
 	
-	public float GetNextLocalRandomFloat () {
+	public float GetNextLocalRandomFloat (int queryOffset) {
 
-		int value = GetNextLocalRandomInt ();
+		int value = GetNextLocalRandomInt (queryOffset, PerlinNoise.MaxPermutationValue);
 		
 		return value / (float)PerlinNoise.MaxPermutationValue;
 	}
 
-	public int GetNextLocalRandomIntNoIteration (int iterationOffset, int maxValue = PerlinNoise.MaxPermutationValue) {
+//	public int GetNextLocalRandomIntNoIteration (int iterationOffset, int maxValue = PerlinNoise.MaxPermutationValue) {
+//
+//		maxValue = Mathf.Min (PerlinNoise.MaxPermutationValue, maxValue);
+//
+//		int x = Mathf.Abs (World.Seed + Longitude);
+//		int y = Mathf.Abs (World.Seed + Latitude);
+//		int z = Mathf.Abs (World.Seed + World.CurrentDate + LocalIteration + iterationOffset);
+//
+//		int value = PerlinNoise.GetPermutationValue(x, y, z) % maxValue;
+//
+//		#if DEBUG
+//		if (GetNextLocalRandomCalled != null) {
+//			if (Manager.TrackGenRandomCallers) {
+//
+//				System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
+//
+//				System.Reflection.MethodBase method = stackTrace.GetFrame(1).GetMethod();
+//				string callingMethod = method.Name;
+//
+//				int frame = 2;
+//				while (callingMethod.Contains ("GetNextLocalRandom") || callingMethod.Contains ("GetNextRandom")) {
+//					method = stackTrace.GetFrame(frame).GetMethod();
+//					callingMethod = method.Name;
+//
+//					frame++;
+//				}
+//
+//				string callingClass = method.DeclaringType.ToString();
+//
+//				GetNextLocalRandomCalled (callingClass + ":" + callingMethod);
+//
+//			} else {
+//				GetNextLocalRandomCalled (null);
+//			}
+//		}
+//		#endif
+//
+//		//		#if DEBUG
+//		//		if (Manager.RecordingEnabled) {
+//		//			LastRandomInteger = value;
+//		//			string key = "Long:" + Longitude + "-Lat:" + Latitude + "-Date:" + World.CurrentDate + "-LocalIteration:" + LocalIteration;
+//
+//		//			Manager.Recorder.Record (key, "LastRandomInteger:" + value);
+//		//		}
+//		//		#endif
+//
+//		return value;
+//	}
 
-		maxValue = Mathf.Min (PerlinNoise.MaxPermutationValue, maxValue);
-
-		int x = Mathf.Abs (World.Seed + Longitude);
-		int y = Mathf.Abs (World.Seed + Latitude);
-		int z = Mathf.Abs (World.Seed + World.CurrentDate + LocalIteration + iterationOffset);
-
-		int value = PerlinNoise.GetPermutationValue(x, y, z) % maxValue;
-
-		return value;
-	}
-
-	public float GetNextLocalRandomFloatNoIteration (int iterationOffset) {
-
-		int value = GetNextLocalRandomIntNoIteration (iterationOffset);
-
-		return value / (float)PerlinNoise.MaxPermutationValue;
-	}
+//	public float GetNextLocalRandomFloatNoIteration (int iterationOffset) {
+//
+//		int value = GetNextLocalRandomIntNoIteration (iterationOffset);
+//
+//		return value / (float)PerlinNoise.MaxPermutationValue;
+//	}
 
 	public float GetBiomePresence (Biome biome) {
 

@@ -130,16 +130,16 @@ public abstract class Polity : ISynchronizable {
 
 	public void Update () {
 
-		#if DEBUG
-		if (Manager.RegisterDebugEvent != null) {
-			Manager.RegisterDebugEvent ("DebugMessage", 
-				"Update - Polity:" + Id + 
-				", CurrentDate: " + World.CurrentDate + 
-				", InfluencedGroups.Count: " + InfluencedGroups.Count + 
-				", TotalGroupInfluenceValue: " + TotalGroupInfluenceValue + 
-				"");
-		}
-		#endif
+//		#if DEBUG
+//		if (Manager.RegisterDebugEvent != null) {
+//			Manager.RegisterDebugEvent ("DebugMessage", 
+//				"Update - Polity:" + Id + 
+//				", CurrentDate: " + World.CurrentDate + 
+//				", InfluencedGroups.Count: " + InfluencedGroups.Count + 
+//				", TotalGroupInfluenceValue: " + TotalGroupInfluenceValue + 
+//				"");
+//		}
+//		#endif
 
 		WillBeUpdated = false;
 
@@ -180,11 +180,6 @@ public abstract class Polity : ISynchronizable {
 		#if DEBUG
 		_populationCensusUpdated = false;
 		#endif
-	}
-
-	public float GetNextRandomFloat () {
-
-		return CoreGroup.GetNextLocalRandomFloat ();
 	}
 
 	public abstract void UpdateInternal ();
@@ -357,7 +352,7 @@ public abstract class Polity : ISynchronizable {
 		float maxTargetValue = maxInfluenceValue;
 		float minTargetValue = -0.2f * maxInfluenceValue;
 
-		float randomModifier = groupCell.GetNextLocalRandomFloatNoIteration ((int)Id);
+		float randomModifier = groupCell.GetNextLocalRandomFloat (RngOffsets.POLITY_UPDATE_EFFECTS + (int)Id);
 		float randomFactor = 2 * randomModifier - 1f;
 		float targetValue = 0;
 

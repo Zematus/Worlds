@@ -7,8 +7,6 @@ using System.Linq;
 
 public class RegionAttributeNoun {
 
-	public delegate int GetRandomIntDelegate (int maxValue);
-
 	public string Name;
 
 	public List<string> Variations;
@@ -326,7 +324,7 @@ public abstract class Region : ISynchronizable {
 		AttributeNouns.Add (attr);
 	}
 
-	public string GetRandomAttributeVariation (RegionAttributeNoun.GetRandomIntDelegate getRandomInt) {
+	public string GetRandomAttributeVariation (GetRandomIntDelegate getRandomInt) {
 
 		if (AttributeNouns.Count <= 0) {
 		
@@ -338,9 +336,12 @@ public abstract class Region : ISynchronizable {
 		return AttributeNouns [index].GetRandomVariation (getRandomInt);
 	}
 
-	public void GenerateName (Polity polity) {
-	
-		CellGroup coreGroup = polity.CoreGroup;
+	public void GenerateName (Polity polity, TerrainCell startCell) {
+
+		int rngOffset = RngOffsets.REGION_GENERATE_NAME + (int)polity.Id;
+
+		GetRandomIntDelegate getRandomInt = (int maxValue) => startCell.GetNextLocalRandomInt (rngOffset++, maxValue);
+		Language.GetRandomFloatDelegate getRandomFloat = () => startCell.GetNextLocalRandomFloat (rngOffset++);
 
 		Language polityLanguage = polity.Culture.Language;
 
@@ -350,7 +351,7 @@ public abstract class Region : ISynchronizable {
 		if (AttributeNouns.Count <= 0) {
 
 			untranslatedName = "the region";
-			namePhrase = polityLanguage.TranslateNounPhrase (untranslatedName, coreGroup.GetNextLocalRandomFloat);
+			namePhrase = polityLanguage.TranslateNounPhrase (untranslatedName, getRandomFloat);
 
 			Name = new Name (namePhrase, untranslatedName, polityLanguage, World);
 
@@ -359,29 +360,29 @@ public abstract class Region : ISynchronizable {
 
 		List<RegionAttributeNoun> attributeNouns = new List<RegionAttributeNoun> (AttributeNouns);
 
-		int index = coreGroup.GetNextLocalRandomInt (attributeNouns.Count);
+		int index = getRandomInt (attributeNouns.Count);
 
 		RegionAttributeNoun primaryAttribute = attributeNouns [index];
 
 		attributeNouns.RemoveAt (index);
 
-		string primaryTitle = primaryAttribute.GetRandomVariation (coreGroup.GetNextLocalRandomInt);
+		string primaryTitle = primaryAttribute.GetRandomVariation (getRandomInt);
 
 		string secondaryTitle = string.Empty;
 
-		if ((attributeNouns.Count > 0) && (coreGroup.GetNextLocalRandomFloat () < 0.5f)) {
+		if ((attributeNouns.Count > 0) && (getRandomFloat () < 0.5f)) {
 
-			index = coreGroup.GetNextLocalRandomInt (attributeNouns.Count);
+			index = getRandomInt (attributeNouns.Count);
 
 			RegionAttributeNoun secondaryAttribute = attributeNouns [index];
 
 			attributeNouns.RemoveAt (index);
 
-			secondaryTitle = "[nad]" + secondaryAttribute.GetRandomVariation (coreGroup.GetNextLocalRandomInt) + " ";
+			secondaryTitle = "[nad]" + secondaryAttribute.GetRandomVariation (getRandomInt) + " ";
 		}
 
 		untranslatedName = "the " + secondaryTitle + primaryTitle;
-		namePhrase = polityLanguage.TranslateNounPhrase (untranslatedName, coreGroup.GetNextLocalRandomFloat);
+		namePhrase = polityLanguage.TranslateNounPhrase (untranslatedName, getRandomFloat);
 
 		Name = new Name (namePhrase, untranslatedName, polityLanguage, World);
 

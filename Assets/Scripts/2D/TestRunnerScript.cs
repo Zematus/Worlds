@@ -14,31 +14,34 @@ public class TestRunnerScript : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 
-		Manager.RecordingEnabled = true;
+//		Manager.RecordingEnabled = true;
 
 		//tests.Add (new SaveLoadTest (407252633, 80, 1, 2, 0, false, true));
 		//		tests.Add (new SaveLoadTest (407252633, 100000, 20000, 5));
+//		tests.Add (new SaveLoadTest ("after 5 polities", 407252633, (World world) => {
+//			return world.PolityCount > 5;
+//		}, 20000, 5));
+//		tests.Add (new SaveLoadTest ("after 5 polities", 407252633, (World world) => {
+//			return world.PolityCount > 5;
+//		}, 20000, 15));
 		tests.Add (new SaveLoadTest ("after 5 polities", 407252633, (World world) => {
 			return world.PolityCount > 5;
-		}, 20000, 5));
+		}, 2000, 50, 0));
 //		tests.Add (new SaveLoadTest ("after 5 polities", 407252633, (World world) => {
 //			return world.PolityCount > 5;
-//		}, 20000, 20));
-//		tests.Add (new SaveLoadTest ("after 5 polities", 407252633, (World world) => {
-//			return world.PolityCount > 5;
-//		}, 500, 20));
-//		tests.Add (new SaveLoadTest ("after 5 polities", 407252633, (World world) => {
-//			return world.PolityCount > 5;
-//		}, 200, 20));
+//		}, 200, 150, 240000));
 
-//		Manager.TracingData.GroupId = 692;
-//		Manager.TracingData.PolityId = 15;
-//		Manager.TracingData.Longitude = 245;
-//		Manager.TracingData.Latitude = 78;
-//
+		Manager.TracingData.GroupId = 2666;
+		Manager.TracingData.PolityId = 15;
+		Manager.TracingData.Longitude = 245;
+		Manager.TracingData.Latitude = 78;
+
 //		tests.Add (new SaveLoadTest ("after 5 polities", 407252633, (World world) => {
 //			return world.PolityCount > 5;
-//		}, 10, 20, 0, true));
+//		}, 5, 20, 0, true));
+//		tests.Add (new SaveLoadTest ("after 5 polities", 407252633, (World world) => {
+//			return world.PolityCount > 5;
+//		}, 5, 500, 260000, true));
 
 //      tests.Add (new LanguageGenerationTest());
 
