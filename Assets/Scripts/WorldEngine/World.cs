@@ -41,8 +41,6 @@ public static class RngOffsets {
 
 	public const int TRIBE_GENERATE_NEW_TRIBE = 70000;
 	public const int TRIBE_GENERATE_NAME = 70001;
-	public const int TRIBE_GENERATE_NAME_2 = 70002;
-	public const int TRIBE_GENERATE_NAME_3 = 70003;
 
 	public const int ROUTE_CHOOSE_NEXT_DEPTH_SEA_CELL = 100000;
 	public const int ROUTE_CHOOSE_NEXT_COASTAL_CELL = 110000;
@@ -105,20 +103,20 @@ public class World : ISynchronizable {
 	[XmlAttribute]
 	public int MaxYearsToSkip { get; private set; }
 	
-	[XmlAttribute]
-	public long CurrentCellGroupId { get; private set; }
-	
-	[XmlAttribute]
-	public long CurrentEventId { get; private set; }
-
-	[XmlAttribute]
-	public long CurrentPolityId { get; private set; }
-
-	[XmlAttribute]
-	public long CurrentRegionId { get; private set; }
-
-	[XmlAttribute]
-	public long CurrentLanguageId { get; private set; }
+//	[XmlAttribute]
+//	public long CurrentCellGroupId { get; private set; }
+//	
+//	[XmlAttribute]
+//	public long CurrentEventId { get; private set; }
+//
+//	[XmlAttribute]
+//	public long CurrentPolityId { get; private set; }
+//
+//	[XmlAttribute]
+//	public long CurrentRegionId { get; private set; }
+//
+//	[XmlAttribute]
+//	public long CurrentLanguageId { get; private set; }
 	
 	[XmlAttribute]
 	public int EventsToHappenCount { get; private set; }
@@ -283,11 +281,11 @@ public class World : ISynchronizable {
 		
 		CurrentDate = 0;
 		MaxYearsToSkip = MaxPossibleYearsToSkip;
-		CurrentCellGroupId = 0;
-		CurrentEventId = 0;
-		CurrentPolityId = 0;
-		CurrentRegionId = 0;
-		CurrentLanguageId = 0;
+//		CurrentCellGroupId = 0;
+//		CurrentEventId = 0;
+//		CurrentPolityId = 0;
+//		CurrentRegionId = 0;
+//		CurrentLanguageId = 0;
 		EventsToHappenCount = 0;
 		CellGroupCount = 0;
 		PolityCount = 0;
@@ -1599,30 +1597,30 @@ public class World : ISynchronizable {
 		_accumulatedProgress += _progressIncrement;
 	}
 
-	public long GenerateCellGroupId () {
-	
-		return ++CurrentCellGroupId;
-	}
-	
-	public long GenerateEventId () {
-		
-		return ++CurrentEventId;
-	}
-
-	public long GeneratePolityId () {
-
-		return ++CurrentPolityId;
-	}
-
-	public long GenerateRegionId () {
-
-		return ++CurrentRegionId;
-	}
-
-	public long GenerateLanguageId () {
-
-		return ++CurrentLanguageId;
-	}
+//	public long GenerateCellGroupId () {
+//	
+//		return ++CurrentCellGroupId;
+//	}
+//	
+//	public long GenerateEventId () {
+//		
+//		return ++CurrentEventId;
+//	}
+//
+//	public long GeneratePolityId () {
+//
+//		return ++CurrentPolityId;
+//	}
+//
+//	public long GenerateRegionId () {
+//
+//		return ++CurrentRegionId;
+//	}
+//
+//	public long GenerateLanguageId () {
+//
+//		return ++CurrentLanguageId;
+//	}
 
 	private float CalculateCellBaseArability (TerrainCell cell) {
 

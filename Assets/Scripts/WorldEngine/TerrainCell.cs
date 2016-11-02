@@ -182,6 +182,11 @@ public class TerrainCell : ISynchronizable {
 		}
 	}
 
+	public long GenerateUniqueIdentifier (long oom = 1, long offset = 0) {
+
+		return ((((long)World.CurrentDate * 1000000) + ((long)Longitude * 1000) + (long)Latitude) * oom) + offset;
+	}
+
 	public TerrainCellChanges GetChanges () {
 
 		// If there where no changes there's no need to create a TerrainCellChanges object

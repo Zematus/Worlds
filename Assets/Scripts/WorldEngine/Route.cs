@@ -169,11 +169,20 @@ public class Route {
 		return nextCell;
 	}
 
+	private class CoastalCellValue : CollectionUtility.ElementWeightPair<KeyValuePair<Direction, TerrainCell>> {
+
+		public CoastalCellValue (KeyValuePair<Direction, TerrainCell> pair, float weight) {
+
+			Value = pair;
+			Weight = weight;
+		}
+	}
+
 	public TerrainCell ChooseNextCoastalCell (TerrainCell currentCell, int rngOffset, out Direction direction) {
 
 		float totalWeight = 0;
 
-		Dictionary<KeyValuePair<Direction, TerrainCell>, float> weights = new Dictionary<KeyValuePair<Direction, TerrainCell>, float> ();
+		List<CoastalCellValue> coastalCellWeights = new List<CoastalCellValue> (currentCell.Neighbors.Count);
 
 		foreach (KeyValuePair<Direction, TerrainCell> nPair in currentCell.Neighbors) {
 
@@ -191,12 +200,12 @@ public class Route {
 
 			weight += (1f - oceanPresence) * _currentEndRoutePreference;
 
-			weights.Add (nPair, weight);
+			coastalCellWeights.Add (new CoastalCellValue(nPair, weight));
 
 			totalWeight += weight;
 		}
 
-		if (weights.Count == 0) {
+		if (coastalCellWeights.Count == 0) {
 
 			direction = Direction.South;
 		
@@ -211,7 +220,7 @@ public class Route {
 		}
 
 		KeyValuePair<Direction, TerrainCell> targetPair = 
-			CollectionUtility.WeightedSelection (weights, totalWeight, () => FirstCell.GetNextLocalRandomFloat (RngOffsets.ROUTE_CHOOSE_NEXT_COASTAL_CELL + rngOffset));
+			CollectionUtility.WeightedSelection (coastalCellWeights.ToArray (), totalWeight, () => FirstCell.GetNextLocalRandomFloat (RngOffsets.ROUTE_CHOOSE_NEXT_COASTAL_CELL + rngOffset));
 
 		TerrainCell targetCell = targetPair.Value;
 		direction = targetPair.Key;

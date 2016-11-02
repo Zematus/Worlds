@@ -24,15 +24,21 @@ public class TestRunnerScript : MonoBehaviour {
 //		tests.Add (new SaveLoadTest ("after 5 polities", 407252633, (World world) => {
 //			return world.PolityCount > 5;
 //		}, 20000, 15));
-		tests.Add (new SaveLoadTest ("after 5 polities", 407252633, (World world) => {
-			return world.PolityCount > 5;
-		}, 2000, 50, 0));
 //		tests.Add (new SaveLoadTest ("after 5 polities", 407252633, (World world) => {
 //			return world.PolityCount > 5;
-//		}, 200, 150, 240000));
+//		}, 2000, 50, 0));
+//		tests.Add (new SaveLoadTest ("after 5 polities", 407252633, (World world) => {
+//			return world.PolityCount > 5;
+//		}, 200, 60, 80000));
+//		tests.Add (new SaveLoadTest ("after 5 polities", 407252633, (World world) => {
+//			return world.PolityCount > 5;
+//		}, 20, 30, 90000));
+//		tests.Add (new SaveLoadTest ("after 5 polities", 407252633, (World world) => {
+//			return world.PolityCount > 5;
+//		}, 5, 42, 90250));
 
-		Manager.TracingData.GroupId = 2666;
-		Manager.TracingData.PolityId = 15;
+		Manager.TracingData.GroupId = 10998248069;
+		Manager.TracingData.PolityId = 195618245070;
 		Manager.TracingData.Longitude = 245;
 		Manager.TracingData.Latitude = 78;
 
@@ -41,7 +47,10 @@ public class TestRunnerScript : MonoBehaviour {
 //		}, 5, 20, 0, true));
 //		tests.Add (new SaveLoadTest ("after 5 polities", 407252633, (World world) => {
 //			return world.PolityCount > 5;
-//		}, 5, 500, 260000, true));
+//		}, 5, 92, 90000, true));		
+		tests.Add (new SaveLoadTest ("after 5 polities", 407252633, (World world) => {
+			return world.PolityCount > 5;
+		}, 5, 205, 0, true));
 
 //      tests.Add (new LanguageGenerationTest());
 

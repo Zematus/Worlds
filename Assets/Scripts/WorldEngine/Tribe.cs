@@ -39,11 +39,13 @@ public class Tribe : Polity {
 	{
 		Region coreRegion = CoreGroup.Cell.Region;
 
-		int randomInt = CoreGroup.GetNextLocalRandomInt (RngOffsets.TRIBE_GENERATE_NAME + (int)Id, TribeNounVariations.Length);
+		int rngOffset = RngOffsets.TRIBE_GENERATE_NAME + (int)Id;
+
+		int randomInt = CoreGroup.GetNextLocalRandomInt (rngOffset++, TribeNounVariations.Length);
 
 		string tribeNounVariation = TribeNounVariations[randomInt];
 
-		string regionAttributeNounVariation = coreRegion.GetRandomAttributeVariation ((int maxValue) => CoreGroup.GetNextLocalRandomInt (RngOffsets.TRIBE_GENERATE_NAME_2 + (int)Id, maxValue));
+		string regionAttributeNounVariation = coreRegion.GetRandomAttributeVariation ((int maxValue) => CoreGroup.GetNextLocalRandomInt (rngOffset++, maxValue));
 
 		if (regionAttributeNounVariation != string.Empty) {
 			regionAttributeNounVariation = " [nad]" + regionAttributeNounVariation;
@@ -51,7 +53,7 @@ public class Tribe : Polity {
 
 		string untranslatedName = "the" + regionAttributeNounVariation + " " + tribeNounVariation;
 
-		Language.NounPhrase namePhrase = Culture.Language.TranslateNounPhrase (untranslatedName, () => CoreGroup.GetNextLocalRandomFloat (RngOffsets.TRIBE_GENERATE_NAME_3 + (int)Id));
+		Language.NounPhrase namePhrase = Culture.Language.TranslateNounPhrase (untranslatedName, () => CoreGroup.GetNextLocalRandomFloat (rngOffset++));
 
 		Name = new Name (namePhrase, untranslatedName, Culture.Language, World);
 

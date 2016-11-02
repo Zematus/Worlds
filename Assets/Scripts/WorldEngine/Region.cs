@@ -184,11 +184,12 @@ public abstract class Region : ISynchronizable {
 
 	}
 
-	public Region (World world) {
+	public Region (World world, long id) {
 
 		World = world;
 
-		Id = World.GenerateRegionId ();
+//		Id = World.GenerateRegionId ();
+		Id = id;
 	}
 
 	public abstract ICollection<TerrainCell> GetCells ();
@@ -307,7 +308,7 @@ public abstract class Region : ISynchronizable {
 			cellsToExplore = nextCellsToExplore;
 		}
 
-		CellRegion region = new CellRegion (startCell.World);
+		CellRegion region = new CellRegion (startCell);
 
 		foreach (TerrainCell cell in acceptedCells) {
 
@@ -421,7 +422,7 @@ public class CellRegion : Region {
 
 	}
 
-	public CellRegion (World world) : base (world) {
+	public CellRegion (TerrainCell startCell) : base (startCell.World, startCell.GenerateUniqueIdentifier ()) {
 		
 	}
 

@@ -96,25 +96,25 @@ public abstract class CellCulturalSkill : CulturalSkill, ISynchronizable {
 
 		float value = Value * (1f - percentage) + skill.Value * percentage;
 
-		#if DEBUG
-		if (Manager.RegisterDebugEvent != null) {
-			if (Group.Id == Manager.TracingData.GroupId) {
-
-				string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
-
-				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-					"Merge - Group:" + groupId,
-					"CurrentDate: " + Group.World.CurrentDate + 
-					", Name: " + Name + 
-					", Value: " + Value +  
-					", source Value: " + skill.Value +  
-					", percentage: " + percentage +  
-					"");
-
-				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-			}
-		}
-		#endif
+//		#if DEBUG
+//		if (Manager.RegisterDebugEvent != null) {
+//			if (Group.Id == Manager.TracingData.GroupId) {
+//
+//				string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
+//
+//				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//					"Merge - Group:" + groupId,
+//					"CurrentDate: " + Group.World.CurrentDate + 
+//					", Name: " + Name + 
+//					", Value: " + Value +  
+//					", source Value: " + skill.Value +  
+//					", percentage: " + percentage +  
+//					"");
+//
+//				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+//			}
+//		}
+//		#endif
 
 		Value = MathUtility.RoundToSixDecimals (value);
 	}
@@ -123,24 +123,24 @@ public abstract class CellCulturalSkill : CulturalSkill, ISynchronizable {
 
 		float value = Value * percentage;
 
-		#if DEBUG
-		if (Manager.RegisterDebugEvent != null) {
-			if (Group.Id == Manager.TracingData.GroupId) {
-
-				string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
-
-				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-					"ModifyValue - Group:" + groupId,
-					"CurrentDate: " + Group.World.CurrentDate + 
-					", Name: " + Name + 
-					", Value: " + Value +  
-					", percentage: " + percentage +  
-					"");
-
-				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-			}
-		}
-		#endif
+//		#if DEBUG
+//		if (Manager.RegisterDebugEvent != null) {
+//			if (Group.Id == Manager.TracingData.GroupId) {
+//
+//				string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
+//
+//				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//					"ModifyValue - Group:" + groupId,
+//					"CurrentDate: " + Group.World.CurrentDate + 
+//					", Name: " + Name + 
+//					", Value: " + Value +  
+//					", percentage: " + percentage +  
+//					"");
+//
+//				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+//			}
+//		}
+//		#endif
 		
 		Value = MathUtility.RoundToSixDecimals (value);
 	}
@@ -177,29 +177,29 @@ public abstract class CellCulturalSkill : CulturalSkill, ISynchronizable {
 
 		float newValue = (Value * (1 - timeEffect)) + (targetValue * timeEffect);
 
-		#if DEBUG
-		if (Manager.RegisterDebugEvent != null) {
-			if (Group.Id == Manager.TracingData.GroupId) {
-
-				string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
-
-				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-					"UpdateInternal - Group:" + groupId,
-					"CurrentDate: " + Group.World.CurrentDate + 
-					", Name: " + Name + 
-					", timeSpan: " + timeSpan + 
-					", timeEffectFactor: " + timeEffectFactor + 
-					", specificModifier: " + specificModifier + 
-					", randomModifier: " + randomModifier + 
-					", targetValue: " + targetValue + 
-					", Value: " + Value + 
-					", newValue: " + newValue + 
-					"");
-
-				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-			}
-		}
-		#endif
+//		#if DEBUG
+//		if (Manager.RegisterDebugEvent != null) {
+//			if (Group.Id == Manager.TracingData.GroupId) {
+//
+//				string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
+//
+//				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//					"UpdateInternal - Group:" + groupId,
+//					"CurrentDate: " + Group.World.CurrentDate + 
+//					", Name: " + Name + 
+//					", timeSpan: " + timeSpan + 
+//					", timeEffectFactor: " + timeEffectFactor + 
+//					", specificModifier: " + specificModifier + 
+//					", randomModifier: " + randomModifier + 
+//					", targetValue: " + targetValue + 
+//					", Value: " + Value + 
+//					", newValue: " + newValue + 
+//					"");
+//
+//				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+//			}
+//		}
+//		#endif
 
 		Value = MathUtility.RoundToSixDecimals (Mathf.Clamp01 (newValue));
 	}
@@ -219,30 +219,30 @@ public abstract class CellCulturalSkill : CulturalSkill, ISynchronizable {
 
 		float change = (targetValue - Value) * influenceEffect * timeEffect * randomEffect;
 
-		#if DEBUG
-		if (Manager.RegisterDebugEvent != null) {
-			if (Group.Id == Manager.TracingData.GroupId) {
-
-				string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
-
-				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-					"PolityCulturalInfluenceInternal - Group:" + groupId,
-					"CurrentDate: " + Group.World.CurrentDate + 
-					", Name: " + Name + 
-					", timeSpan: " + timeSpan + 
-					", timeEffectFactor: " + timeEffectFactor + 
-					", randomEffect: " + randomEffect + 
-					", polity Id: " + polityInfluence.PolityId + 
-					", polityInfluence.Value: " + influenceEffect + 
-					", politySkill.Value: " + targetValue + 
-					", Value: " + Value + 
-					", change: " + change + 
-					"");
-
-				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-			}
-		}
-		#endif
+//		#if DEBUG
+//		if (Manager.RegisterDebugEvent != null) {
+//			if (Group.Id == Manager.TracingData.GroupId) {
+//
+//				string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
+//
+//				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//					"PolityCulturalInfluenceInternal - Group:" + groupId,
+//					"CurrentDate: " + Group.World.CurrentDate + 
+//					", Name: " + Name + 
+//					", timeSpan: " + timeSpan + 
+//					", timeEffectFactor: " + timeEffectFactor + 
+//					", randomEffect: " + randomEffect + 
+//					", polity Id: " + polityInfluence.PolityId + 
+//					", polityInfluence.Value: " + influenceEffect + 
+//					", politySkill.Value: " + targetValue + 
+//					", Value: " + Value + 
+//					", change: " + change + 
+//					"");
+//
+//				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+//			}
+//		}
+//		#endif
 
 		Value = MathUtility.RoundToSixDecimals (Mathf.Clamp01 (Value + change));
 	}

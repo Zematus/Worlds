@@ -82,27 +82,32 @@ public abstract class Polity : ISynchronizable {
 
 		Territory = new Territory (this);
 
-		Id = World.GeneratePolityId ();
-
 		CoreGroup = coreGroup;
 		CoreGroupId = coreGroup.Id;
 
+//		Id = World.GeneratePolityId ();
+		Id = coreGroup.GenerateUniqueIdentifier ();
+
 		Culture = new PolityCulture (this);
 
-//		#if DEBUG
-//		if (Manager.RegisterDebugEvent != null) {
-//			if (CoreGroupId == Manager.TracingData.GroupId) {
-//				string groupId = "Id:" + CoreGroupId + "|Long:" + CoreGroup.Longitude + "|Lat:" + CoreGroup.Latitude;
-//
-//				Manager.RegisterDebugEvent ("DebugMessage", 
-//					"new Polity - CurrentDate: " + World.CurrentDate + 
-//					", Polity.Id: " + Id + 
-//					", CoreGroup:" + groupId + 
-//					", coreGroupInfluenceValue: " + coreGroupInfluenceValue + 
-//					"");
-//			}
-//		}
-//		#endif
+		#if DEBUG
+		if (Manager.RegisterDebugEvent != null) {
+			if (CoreGroupId == Manager.TracingData.GroupId) {
+				string groupId = "Id:" + CoreGroupId + "|Long:" + CoreGroup.Longitude + "|Lat:" + CoreGroup.Latitude;
+
+				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+					"new Polity - Group:" + groupId + 
+					", Polity.Id: " + Id,
+					"CurrentDate: " + World.CurrentDate  +
+					", CoreGroup:" + groupId + 
+					", Polity.TotalGroupInfluenceValue: " + TotalGroupInfluenceValue + 
+					", coreGroupInfluenceValue: " + coreGroupInfluenceValue + 
+					"");
+
+				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+			}
+		}
+		#endif
 
 		coreGroup.SetPolityInfluenceValue (this, coreGroupInfluenceValue);
 
@@ -270,7 +275,7 @@ public abstract class Polity : ISynchronizable {
 			throw new System.Exception ("Missing Group with Id " + CoreGroupId);
 		}
 
-		foreach (int id in InfluencedGroupIds) {
+		foreach (long id in InfluencedGroupIds) {
 
 			CellGroup group = World.GetGroup (id);
 
@@ -336,7 +341,7 @@ public abstract class Polity : ISynchronizable {
 		return Mathf.Clamp01 (influenceFactor);
 	}
 
-	public virtual void UpdateEffects (CellGroup group, float influenceValue, int timeSpan) {
+	public virtual void UpdateEffects (CellGroup group, float influenceValue, float groupTotalInfluenceValue, int timeSpan) {
 
 		if (group.Culture.GetDiscovery (TribalismDiscovery.TribalismDiscoveryId) == null) {
 
@@ -347,7 +352,7 @@ public abstract class Polity : ISynchronizable {
 
 		TerrainCell groupCell = group.Cell;
 
-		float maxInfluenceValue = 1 - group.TotalPolityInfluenceValue + influenceValue;
+		float maxInfluenceValue = 1 - groupTotalInfluenceValue + influenceValue;
 
 		float maxTargetValue = maxInfluenceValue;
 		float minTargetValue = -0.2f * maxInfluenceValue;
@@ -356,22 +361,9 @@ public abstract class Polity : ISynchronizable {
 		float randomFactor = 2 * randomModifier - 1f;
 		float targetValue = 0;
 
-//		#if DEBUG
-//		if (Manager.RegisterDebugEvent != null) {
-//			if (group.Id == Manager.TracingData.GroupId) {
-//				string groupId = "Id:" + group.Id + "|Long:" + group.Longitude + "|Lat:" + group.Latitude;
-//
-//				Manager.RegisterDebugEvent ("DebugMessage", 
-//					"UpdateEffects - CurrentDate: " + World.CurrentDate + 
-//					", Polity.Id: " + Id + 
-//					", group:" + groupId + 
-//					", randomFactor: " + randomFactor + 
-//					", group.TotalPolityInfluenceValue: " + group.TotalPolityInfluenceValue + 
-//					", influenceValue: " + influenceValue + 
-//					"");
-//			}
-//		}
-//		#endif
+		#if DEBUG
+		float unmodInflueceValue = influenceValue;
+		#endif
 
 		if (randomFactor > 0) {
 			targetValue = influenceValue + (maxTargetValue - influenceValue) * randomFactor;
@@ -384,6 +376,28 @@ public abstract class Polity : ISynchronizable {
 		influenceValue = (influenceValue * (1 - timeEffect)) + (targetValue * timeEffect);
 
 		influenceValue = Mathf.Clamp01 (influenceValue);
+
+			#if DEBUG
+		if (Manager.RegisterDebugEvent != null) {
+			if (group.Id == Manager.TracingData.GroupId) {
+				string groupId = "Id:" + group.Id + "|Long:" + group.Longitude + "|Lat:" + group.Latitude;
+
+				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+					"UpdateEffects - Group:" + groupId + 
+					", Polity.Id: " + Id,
+					"CurrentDate: " + World.CurrentDate  +
+					", randomFactor: " + randomFactor + 
+					", group.TotalPolityInfluenceValue: " + group.TotalPolityInfluenceValue + 
+					", Polity.TotalGroupInfluenceValue: " + TotalGroupInfluenceValue + 
+					", unmodInflueceValue: " + unmodInflueceValue + 
+					", influenceValue: " + influenceValue + 
+					", group.LastUpdateDate: " + group.LastUpdateDate + 
+					"");
+
+				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+			}
+		}
+		#endif
 
 		group.SetPolityInfluenceValue (this, influenceValue);
 	}

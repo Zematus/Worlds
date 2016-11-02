@@ -40,10 +40,28 @@ public class MigratingGroup : HumanGroup {
 
 		#if DEBUG
 		if (float.IsNaN (percentPopulation)) {
-		
+
 			Debug.Break ();
 		}
 		#endif
+
+//		#if DEBUG
+//		if (Manager.RegisterDebugEvent != null) {
+//			if (sourceGroup.Id == Manager.TracingData.GroupId) {
+//				string groupId = "Id:" + sourceGroup.Id + "|Long:" + sourceGroup.Longitude + "|Lat:" + sourceGroup.Latitude;
+//				string targetInfo = "Long:" + targetCell.Longitude + "|Lat:" + targetCell.Latitude;
+//
+//				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//					"MigratingGroup:constructor - sourceGroup:" + groupId,
+//					"CurrentDate: " + World.CurrentDate + 
+//					", targetInfo: " + targetInfo + 
+//					", percentPopulation: " + percentPopulation + 
+//					"");
+//
+//				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+//			}
+//		}
+//		#endif
 
 		TargetCell = targetCell;
 		SourceGroup = sourceGroup;

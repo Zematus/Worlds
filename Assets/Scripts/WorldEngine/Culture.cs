@@ -268,7 +268,8 @@ public class PolityCulture : Culture {
 
 	private void GenerateNewLanguage () {
 
-		Language = new Language (World.GenerateLanguageId ());
+		//Language = new Language (World.GenerateLanguageId ());
+		Language = new Language (Polity.CoreGroup.GenerateUniqueIdentifier ());
 
 		int rngOffset = 0;
 

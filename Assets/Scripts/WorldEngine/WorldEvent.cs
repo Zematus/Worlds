@@ -24,14 +24,15 @@ public abstract class WorldEvent : ISynchronizable {
 		Manager.UpdateWorldLoadTrackEventCount ();
 	}
 
-	public WorldEvent (World world, int triggerDate) {
+	public WorldEvent (World world, int triggerDate, long id) {
 		
 		EventCount++;
 
 		World = world;
 		TriggerDate = triggerDate;
 
-		Id = World.GenerateEventId ();
+//		Id = World.GenerateEventId ();
+		Id = id;
 	}
 
 	public virtual bool CanTrigger () {
@@ -75,7 +76,7 @@ public abstract class CellEvent : WorldEvent {
 
 	}
 
-	public CellEvent (TerrainCell cell, int triggerDate) : base (cell.World, triggerDate) {
+	public CellEvent (TerrainCell cell, int triggerDate, long eventTypeId) : base (cell.World, triggerDate, cell.GenerateUniqueIdentifier (1000, eventTypeId)) {
 
 		Cell = cell;
 		CellLongitude = cell.Longitude;
@@ -84,6 +85,8 @@ public abstract class CellEvent : WorldEvent {
 }
 
 public class FarmDegradationEvent : CellEvent {
+
+	public const long FarmDegradationEventId = 0;
 
 	public const string EventSetFlag = "FarmDegradationEvent_Set";
 	
@@ -96,19 +99,19 @@ public class FarmDegradationEvent : CellEvent {
 
 	}
 
-	public FarmDegradationEvent (TerrainCell cell, int triggerDate) : base (cell, triggerDate) {
+	public FarmDegradationEvent (TerrainCell cell, int triggerDate) : base (cell, triggerDate, FarmDegradationEventId) {
 
 		cell.SetFlag (EventSetFlag);
 
-//		#if DEBUG
-//		if (Manager.RegisterDebugEvent != null) {
-//			string cellLoc = "Long:" + cell.Longitude + "|Lat:" + cell.Latitude;
-//
-//			SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("FarmDegradationEvent - Cell: " + cellLoc, "TriggerDate: " + TriggerDate);
-//
-//			Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-//		}
-//		#endif
+		#if DEBUG
+		if (Manager.RegisterDebugEvent != null) {
+			string cellLoc = "Long:" + cell.Longitude + "|Lat:" + cell.Latitude;
+
+			SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("FarmDegradationEvent - Cell: " + cellLoc, "TriggerDate: " + TriggerDate);
+
+			Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+		}
+		#endif
 	}
 
 	public static bool CanSpawnIn (TerrainCell cell) {
@@ -205,7 +208,7 @@ public abstract class CellGroupEvent : WorldEvent {
 		
 	}
 	
-	public CellGroupEvent (CellGroup group, int triggerDate) : base (group.World, triggerDate) {
+	public CellGroupEvent (CellGroup group, int triggerDate, long eventTypeId) : base (group.World, triggerDate, group.GenerateUniqueIdentifier (1000, eventTypeId)) {
 		
 		Group = group;
 		GroupId = Group.Id;
@@ -213,17 +216,17 @@ public abstract class CellGroupEvent : WorldEvent {
 		//TODO: Evaluate if necessary or remove
 //		Group.AddAssociatedEvent (this);
 
-//		#if DEBUG
-//		if (Manager.RegisterDebugEvent != null) {
+		#if DEBUG
+		if (Manager.RegisterDebugEvent != null) {
 //			if (Group.Id == Manager.TracingData.GroupId) {
-//				string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
-//
-//				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("CellGroupEvent - Group:" + groupId + ", Type: " + this.GetType (), "TriggerDate: " + TriggerDate);
-//
-//				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+				string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
+
+				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("CellGroupEvent - Group:" + groupId + ", Type: " + this.GetType (), "TriggerDate: " + TriggerDate);
+
+				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
 //			}
-//		}
-//		#endif
+		}
+		#endif
 	}
 
 	public override bool CanTrigger () {
@@ -256,11 +259,13 @@ public abstract class CellGroupEvent : WorldEvent {
 
 public class UpdateCellGroupEvent : CellGroupEvent {
 
+	public const long UpdateCellGroupEventId = 1;
+
 	public UpdateCellGroupEvent () {
 
 	}
 
-	public UpdateCellGroupEvent (CellGroup group, int triggerDate) : base (group, triggerDate) {
+	public UpdateCellGroupEvent (CellGroup group, int triggerDate) : base (group, triggerDate, UpdateCellGroupEventId) {
 		
 	}
 
@@ -286,6 +291,8 @@ public class UpdateCellGroupEvent : CellGroupEvent {
 }
 
 public class MigrateGroupEvent : CellGroupEvent {
+
+	public const long MigrateGroupEventId = 2;
 	
 	public static int MigrationEventCount = 0;
 
@@ -302,7 +309,7 @@ public class MigrateGroupEvent : CellGroupEvent {
 		MigrationEventCount++;
 	}
 	
-	public MigrateGroupEvent (CellGroup group, TerrainCell targetCell, int triggerDate) : base (group, triggerDate) {
+	public MigrateGroupEvent (CellGroup group, TerrainCell targetCell, int triggerDate) : base (group, triggerDate, MigrateGroupEventId) {
 		
 		MigrationEventCount++;
 
@@ -327,6 +334,14 @@ public class MigrateGroupEvent : CellGroupEvent {
 			throw new System.Exception ("Total Migration Value equal or less than zero: " + Group.TotalMigrationValue);
 		}
 
+//		#if DEBUG
+//		if (Manager.RegisterDebugEvent != null) {
+//			if ((Group.Id == Manager.TracingData.GroupId) && (World.CurrentDate == 321798)) {
+//				bool debug = true;
+//			}
+//		}
+//		#endif
+
 		float randomFactor = Group.Cell.GetNextLocalRandomFloat (RngOffsets.EVENT_TRIGGER + (int)Id);
 		float percentToMigrate = (1 - Group.MigrationValue/Group.TotalMigrationValue) * randomFactor;
 		percentToMigrate = Mathf.Pow (percentToMigrate, 4);
@@ -335,21 +350,24 @@ public class MigrateGroupEvent : CellGroupEvent {
 
 //		#if DEBUG
 //		if (Manager.RegisterDebugEvent != null) {
-//			if ((TargetCell.Group != null) && (TargetCell.Group.Id == Manager.TracingData.GroupId)) {
+//			if ((Group.Id == Manager.TracingData.GroupId) ||
+//				((TargetCell.Group != null) && (TargetCell.Group.Id == Manager.TracingData.GroupId))) {
 //				CellGroup targetGroup = TargetCell.Group;
 //				string targetGroupId = "Id:" + targetGroup.Id + "|Long:" + targetGroup.Longitude + "|Lat:" + targetGroup.Latitude;
 //				string sourceGroupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
 //
-//				Manager.RegisterDebugEvent ("DebugMessage", 
+//				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
 //					"MigrateGroupEvent.Trigger - targetGroup:" + targetGroupId + 
-//					", sourceGroup:" + sourceGroupId + 
-//					", CurrentDate: " + World.CurrentDate + 
+//					", sourceGroup:" + sourceGroupId,
+//					"CurrentDate: " + World.CurrentDate + 
 //					", targetGroup.Population: " + targetGroup.Population + 
 //					", randomFactor: " + randomFactor + 
 //					", Group.MigrationValue: " + Group.MigrationValue + 
 //					", Group.TotalMigrationValue: " + Group.TotalMigrationValue + 
 //					", percentToMigrate: " + percentToMigrate + 
 //					"");
+//
+//				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
 //			}
 //		}
 //		#endif
@@ -379,6 +397,8 @@ public class MigrateGroupEvent : CellGroupEvent {
 
 public class SailingDiscoveryEvent : CellGroupEvent {
 
+	public const long SailingDiscoveryEventId = 3;
+
 	public const int DateSpanFactorConstant = CellGroup.GenerationTime * 10000;
 
 	public const int MinShipBuildingKnowledgeSpawnEventValue = ShipbuildingKnowledge.MinKnowledgeValueForSailingSpawnEvent;
@@ -391,7 +411,7 @@ public class SailingDiscoveryEvent : CellGroupEvent {
 		
 	}
 	
-	public SailingDiscoveryEvent (CellGroup group, int triggerDate) : base (group, triggerDate) {
+	public SailingDiscoveryEvent (CellGroup group, int triggerDate) : base (group, triggerDate, SailingDiscoveryEventId) {
 		
 		Group.SetFlag (EventSetFlag);
 	}
@@ -471,6 +491,8 @@ public class SailingDiscoveryEvent : CellGroupEvent {
 
 public class TribalismDiscoveryEvent : CellGroupEvent {
 
+	public const int TribalismDiscoveryEventId = 4;
+
 	public const int DateSpanFactorConstant = CellGroup.GenerationTime * 20000;
 
 	public const int MinSocialOrganizationKnowledgeSpawnEventValue = SocialOrganizationKnowledge.MinKnowledgeValueForTribalismSpawnEvent;
@@ -483,7 +505,7 @@ public class TribalismDiscoveryEvent : CellGroupEvent {
 
 	}
 
-	public TribalismDiscoveryEvent (CellGroup group, int triggerDate) : base (group, triggerDate) {
+	public TribalismDiscoveryEvent (CellGroup group, int triggerDate) : base (group, triggerDate, TribalismDiscoveryEventId) {
 
 		Group.SetFlag (EventSetFlag);
 	}
@@ -569,6 +591,8 @@ public class TribalismDiscoveryEvent : CellGroupEvent {
 
 public class TribeFormationEvent : CellGroupEvent {
 
+	public const long TribeFormationEventId = 5;
+
 	public const int DateSpanFactorConstant = CellGroup.GenerationTime * 1000;
 
 	public const int MinSocialOrganizationKnowledgeSpawnEventValue = SocialOrganizationKnowledge.MinKnowledgeValueForTribalismSpawnEvent;
@@ -581,7 +605,7 @@ public class TribeFormationEvent : CellGroupEvent {
 
 	}
 
-	public TribeFormationEvent (CellGroup group, int triggerDate) : base (group, triggerDate) {
+	public TribeFormationEvent (CellGroup group, int triggerDate) : base (group, triggerDate, TribeFormationEventId) {
 
 		Group.SetFlag (EventSetFlag);
 	}
@@ -664,6 +688,8 @@ public class TribeFormationEvent : CellGroupEvent {
 }
 
 public class BoatMakingDiscoveryEvent : CellGroupEvent {
+
+	public const long BoatMakingDiscoveryEventId = 6;
 	
 	public const int DateSpanFactorConstant = CellGroup.GenerationTime * 10000;
 	
@@ -671,7 +697,7 @@ public class BoatMakingDiscoveryEvent : CellGroupEvent {
 		
 	}
 	
-	public BoatMakingDiscoveryEvent (CellGroup group, int triggerDate) : base (group, triggerDate) {
+	public BoatMakingDiscoveryEvent (CellGroup group, int triggerDate) : base (group, triggerDate, BoatMakingDiscoveryEventId) {
 
 	}
 	
@@ -731,13 +757,15 @@ public class BoatMakingDiscoveryEvent : CellGroupEvent {
 
 public class PlantCultivationDiscoveryEvent : CellGroupEvent {
 
+	public const long PlantCultivationDiscoveryEventId = 7;
+
 	public const int DateSpanFactorConstant = CellGroup.GenerationTime * 600000;
 
 	public PlantCultivationDiscoveryEvent () {
 
 	}
 
-	public PlantCultivationDiscoveryEvent (CellGroup group, int triggerDate) : base (group, triggerDate) {
+	public PlantCultivationDiscoveryEvent (CellGroup group, int triggerDate) : base (group, triggerDate, PlantCultivationDiscoveryEventId) {
 
 	}
 
