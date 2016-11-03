@@ -713,7 +713,7 @@ public class SaveLoadTest : AutomatedTest {
 
 				if (_afterSave_EventCounts[c] != _world.EventsToHappenCount) {
 
-					Debug.LogError ("Number of events after load with offset not equal to: " + _afterSave_EventCounts[c]);
+					Debug.LogError ("Number of events after load " + checkStr + " not equal to: " + _afterSave_EventCounts[c]);
 
 					_result = false;
 
@@ -724,6 +724,9 @@ public class SaveLoadTest : AutomatedTest {
 					// Validate Debug Messages Occurrences
 
 					int count = 0;
+					int savedCount = 0;
+					int savedDebugMessageObjectCount = _afterSave_DebugMessageLists [c].Count;
+
 					foreach (KeyValuePair<string, List<string>> pair in _debugMessages) {
 
 						count += pair.Value.Count;
@@ -740,6 +743,8 @@ public class SaveLoadTest : AutomatedTest {
 							_result = false;
 							continue;
 						}
+
+						savedCount += messages.Count;
 
 						_afterSave_DebugMessageLists [c].Remove (pair.Key);
 
@@ -759,6 +764,8 @@ public class SaveLoadTest : AutomatedTest {
 
 					foreach (KeyValuePair<string, List<string>> pair in _afterSave_DebugMessageLists[c]) {
 
+						savedCount += pair.Value.Count;
+
 						foreach (string message in pair.Value) {
 
 							Debug.LogError ("Debug message of type [" + pair.Key + "] from Save data not found in Load data " + checkStr + ": " + message);
@@ -767,8 +774,25 @@ public class SaveLoadTest : AutomatedTest {
 						_result = false;
 					}
 
-					Debug.Log ("Number of debugMessage objects stored for " + checkStr + ": " + _debugMessages.Count);
-					Debug.Log ("Number of total messages stored for " + checkStr + ": " + count);
+					Debug.Log ("Number of debugMessage objects stored for " + checkStr + " after Load: " + _debugMessages.Count);
+
+					if (_debugMessages.Count != savedDebugMessageObjectCount) {
+
+						Debug.LogError ("Number of debugMessage objects stored for " + checkStr + " after Load no equal to : " + savedDebugMessageObjectCount);
+
+						_result = false;
+
+					}
+
+					Debug.Log ("Number of total messages stored for " + checkStr + " after Load: " + count);
+
+					if (count != savedCount) {
+
+						Debug.LogError ("Number of total messages stored for " + checkStr + " after Load no equal to : " + savedCount);
+
+						_result = false;
+
+					}
 				}
 
 				// Validate calls to AddMigratingGroup

@@ -90,24 +90,24 @@ public abstract class Polity : ISynchronizable {
 
 		Culture = new PolityCulture (this);
 
-		#if DEBUG
-		if (Manager.RegisterDebugEvent != null) {
-			if (CoreGroupId == Manager.TracingData.GroupId) {
-				string groupId = "Id:" + CoreGroupId + "|Long:" + CoreGroup.Longitude + "|Lat:" + CoreGroup.Latitude;
-
-				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-					"new Polity - Group:" + groupId + 
-					", Polity.Id: " + Id,
-					"CurrentDate: " + World.CurrentDate  +
-					", CoreGroup:" + groupId + 
-					", Polity.TotalGroupInfluenceValue: " + TotalGroupInfluenceValue + 
-					", coreGroupInfluenceValue: " + coreGroupInfluenceValue + 
-					"");
-
-				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-			}
-		}
-		#endif
+//		#if DEBUG
+//		if (Manager.RegisterDebugEvent != null) {
+//			if (CoreGroupId == Manager.TracingData.GroupId) {
+//				string groupId = "Id:" + CoreGroupId + "|Long:" + CoreGroup.Longitude + "|Lat:" + CoreGroup.Latitude;
+//
+//				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//					"new Polity - Group:" + groupId + 
+//					", Polity.Id: " + Id,
+//					"CurrentDate: " + World.CurrentDate  +
+//					", CoreGroup:" + groupId + 
+//					", Polity.TotalGroupInfluenceValue: " + TotalGroupInfluenceValue + 
+//					", coreGroupInfluenceValue: " + coreGroupInfluenceValue + 
+//					"");
+//
+//				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+//			}
+//		}
+//		#endif
 
 		coreGroup.SetPolityInfluenceValue (this, coreGroupInfluenceValue);
 
@@ -295,7 +295,7 @@ public abstract class Polity : ISynchronizable {
 		Culture.FinalizeLoad ();
 	}
 
-	public virtual float MigrationValue (TerrainCell targetCell, float sourceValue)
+	public virtual float MigrationValue (CellGroup sourceGroup, TerrainCell targetCell, float sourceValue)
 	{
 		if (sourceValue <= 0)
 			return 0;
@@ -314,34 +314,49 @@ public abstract class Polity : ISynchronizable {
 			socialOrgFactor = 1 - Mathf.Pow (1 - socialOrgFactor, 2);
 
 			groupTotalInfluenceValue = targetGroup.TotalPolityInfluenceValue;
-
-//			#if DEBUG
-//			if (Manager.RegisterDebugEvent != null) {
-//				if (Id == Manager.TracingData.PolityId) {
-//					if ((targetCell.Longitude == Manager.TracingData.Longitude) && (targetCell.Latitude == Manager.TracingData.Latitude)) {
-//						string targetGroupId = "Id:" + targetGroup.Id + "|Long:" + targetGroup.Longitude + "|Lat:" + targetGroup.Latitude;
-//
-//						Manager.RegisterDebugEvent ("DebugMessage", 
-//							"MigrationValue - CurrentDate: " + World.CurrentDate + 
-//							", Polity.Id:" + Id + 
-//							", targetGroupId: " + targetGroupId + 
-//							", socialOrgKnowledge.Value: " + socialOrgKnowledge.Value + 
-//							", groupTotalInfluenceValue: " + groupTotalInfluenceValue + 
-//							"");
-//					}
-//				}
-//			}
-//			#endif
 		}
 
 		float sourceValueFactor = 0.05f + (sourceValue * 0.95f);
 
 		float influenceFactor = socialOrgFactor * sourceValue / (groupTotalInfluenceValue + sourceValueFactor);
 
+		influenceFactor = MathUtility.RoundToSixDecimals (influenceFactor);
+
+//		#if DEBUG
+//		if (Manager.RegisterDebugEvent != null) {
+//			if (sourceGroup.Id == Manager.TracingData.GroupId) {
+//				if (Id == Manager.TracingData.PolityId) {
+//					if ((targetCell.Longitude == Manager.TracingData.Longitude) && (targetCell.Latitude == Manager.TracingData.Latitude)) {
+//						string sourceGroupId = "Id:" + sourceGroup.Id + "|Long:" + sourceGroup.Longitude + "|Lat:" + sourceGroup.Latitude;
+//						string targetLocation = "Long:" + targetCell.Longitude + "|Lat:" + targetCell.Latitude;
+//
+//						if (targetGroup != null) {
+//							targetLocation = "Id:" + targetGroup.Id + "|Long:" + targetGroup.Longitude + "|Lat:" + targetGroup.Latitude;
+//						}
+//
+//						SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//							"MigrationValue - Group: " + sourceGroupId + 
+//							"Polity Id: " + Id,
+//							"CurrentDate: " + World.CurrentDate + 
+//							", targetLocation: " + targetLocation + 
+//							", sourceValue: " + sourceValue.ToString("F7") + 
+//							", socialOrgFactor: " + socialOrgFactor.ToString("F7") + 
+//							", groupTotalInfluenceValue: " + groupTotalInfluenceValue.ToString("F7") + 
+//							", sourceValueFactor: " + sourceValueFactor.ToString("F7") + 
+//							", influenceFactor: " + influenceFactor.ToString("F7") + 
+//							"");
+//
+//						Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+//					}
+//				}
+//			}
+//		}
+//		#endif
+
 		return Mathf.Clamp01 (influenceFactor);
 	}
 
-	public virtual void UpdateEffects (CellGroup group, float influenceValue, float groupTotalInfluenceValue, int timeSpan) {
+	public virtual void UpdateEffects (CellGroup group, float influenceValue, float groupTotalPolityInfluenceValue, int timeSpan) {
 
 		if (group.Culture.GetDiscovery (TribalismDiscovery.TribalismDiscoveryId) == null) {
 
@@ -352,7 +367,7 @@ public abstract class Polity : ISynchronizable {
 
 		TerrainCell groupCell = group.Cell;
 
-		float maxInfluenceValue = 1 - groupTotalInfluenceValue + influenceValue;
+		float maxInfluenceValue = 1 - groupTotalPolityInfluenceValue + influenceValue;
 
 		float maxTargetValue = maxInfluenceValue;
 		float minTargetValue = -0.2f * maxInfluenceValue;
@@ -377,27 +392,27 @@ public abstract class Polity : ISynchronizable {
 
 		influenceValue = Mathf.Clamp01 (influenceValue);
 
-			#if DEBUG
-		if (Manager.RegisterDebugEvent != null) {
-			if (group.Id == Manager.TracingData.GroupId) {
-				string groupId = "Id:" + group.Id + "|Long:" + group.Longitude + "|Lat:" + group.Latitude;
-
-				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-					"UpdateEffects - Group:" + groupId + 
-					", Polity.Id: " + Id,
-					"CurrentDate: " + World.CurrentDate  +
-					", randomFactor: " + randomFactor + 
-					", group.TotalPolityInfluenceValue: " + group.TotalPolityInfluenceValue + 
-					", Polity.TotalGroupInfluenceValue: " + TotalGroupInfluenceValue + 
-					", unmodInflueceValue: " + unmodInflueceValue + 
-					", influenceValue: " + influenceValue + 
-					", group.LastUpdateDate: " + group.LastUpdateDate + 
-					"");
-
-				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-			}
-		}
-		#endif
+//		#if DEBUG
+//		if (Manager.RegisterDebugEvent != null) {
+//			if (group.Id == Manager.TracingData.GroupId) {
+//				string groupId = "Id:" + group.Id + "|Long:" + group.Longitude + "|Lat:" + group.Latitude;
+//
+//				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//					"UpdateEffects - Group:" + groupId + 
+//					", Polity.Id: " + Id,
+//					"CurrentDate: " + World.CurrentDate  +
+//					", randomFactor: " + randomFactor + 
+//					", groupTotalPolityInfluenceValue: " + groupTotalPolityInfluenceValue + 
+//					", Polity.TotalGroupInfluenceValue: " + TotalGroupInfluenceValue + 
+//					", unmodInflueceValue: " + unmodInflueceValue + 
+//					", influenceValue: " + influenceValue + 
+//					", group.LastUpdateDate: " + group.LastUpdateDate + 
+//					"");
+//
+//				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+//			}
+//		}
+//		#endif
 
 		group.SetPolityInfluenceValue (this, influenceValue);
 	}

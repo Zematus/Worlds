@@ -81,6 +81,16 @@ public abstract class CellEvent : WorldEvent {
 		Cell = cell;
 		CellLongitude = cell.Longitude;
 		CellLatitude = cell.Latitude;
+
+		#if DEBUG
+		if (Manager.RegisterDebugEvent != null) {
+			string cellLoc = "Long:" + cell.Longitude + "|Lat:" + cell.Latitude;
+
+			SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("CellEvent - Cell: " + cellLoc, "TriggerDate: " + TriggerDate);
+
+			Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+		}
+		#endif
 	}
 }
 
@@ -102,16 +112,6 @@ public class FarmDegradationEvent : CellEvent {
 	public FarmDegradationEvent (TerrainCell cell, int triggerDate) : base (cell, triggerDate, FarmDegradationEventId) {
 
 		cell.SetFlag (EventSetFlag);
-
-		#if DEBUG
-		if (Manager.RegisterDebugEvent != null) {
-			string cellLoc = "Long:" + cell.Longitude + "|Lat:" + cell.Latitude;
-
-			SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("FarmDegradationEvent - Cell: " + cellLoc, "TriggerDate: " + TriggerDate);
-
-			Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-		}
-		#endif
 	}
 
 	public static bool CanSpawnIn (TerrainCell cell) {

@@ -450,25 +450,25 @@ public class CellGroup : HumanGroup {
 
 		MergePolities (group.PolityInfluences, percentage);
 
-//		#if DEBUG
-//		if (Manager.RegisterDebugEvent != null) {
-//			if (Id == Manager.TracingData.GroupId) {
-//				string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
-//
-//				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-//					"MergeGroup - Group:" + groupId, 
-//					"CurrentDate: " + World.CurrentDate +
-//					", group.SourceGroupId: " + group.SourceGroupId + 
-//					", oldExactPopulation: " + oldExactPopulation + 
-//					", group.Population: " + group.Population + 
-//					", newPopulation: " + newPopulation + 
-//					", group.PolityInfluences.Count: " + group.PolityInfluences.Count + 
-//					"");
-//
-//				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-//			}
-//		}
-//		#endif
+		#if DEBUG
+		if (Manager.RegisterDebugEvent != null) {
+			if (Id == Manager.TracingData.GroupId) {
+				string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
+
+				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+					"MergeGroup - Group:" + groupId, 
+					"CurrentDate: " + World.CurrentDate +
+					", group.SourceGroupId: " + group.SourceGroupId + 
+					", oldExactPopulation: " + oldExactPopulation + 
+					", source group.Population: " + group.Population + 
+					", newPopulation: " + newPopulation + 
+					", group.PolityInfluences.Count: " + group.PolityInfluences.Count + 
+					"");
+
+				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+			}
+		}
+		#endif
 
 		TriggerInterference ();
 	}
@@ -483,26 +483,26 @@ public class CellGroup : HumanGroup {
 
 			float newInfluenceValue = influenceValue * (1 - percentOfTarget);
 
-			#if DEBUG
-			if (Manager.RegisterDebugEvent != null) {
-				if (Id == Manager.TracingData.GroupId) {
-
-					string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
-
-					SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-						"MergePolities:Rescale - Group:" + groupId + 
-						", pInfluence.PolityId: " + pInfluence.PolityId,
-						"CurrentDate: " + World.CurrentDate  +
-						", influenceValue: " + influenceValue + 
-						", Polity.TotalGroupInfluenceValue: " + pInfluence.Polity.TotalGroupInfluenceValue + 
-						", newInfluenceValue: " + newInfluenceValue + 
-						", percentOfTarget: " + percentOfTarget + 
-						"");
-
-					Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-				}
-			}
-			#endif
+//			#if DEBUG
+//			if (Manager.RegisterDebugEvent != null) {
+//				if (Id == Manager.TracingData.GroupId) {
+//
+//					string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
+//
+//					SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//						"MergePolities:Rescale - Group:" + groupId + 
+//						", pInfluence.PolityId: " + pInfluence.PolityId,
+//						"CurrentDate: " + World.CurrentDate  +
+//						", influenceValue: " + influenceValue + 
+//						", Polity.TotalGroupInfluenceValue: " + pInfluence.Polity.TotalGroupInfluenceValue + 
+//						", newInfluenceValue: " + newInfluenceValue + 
+//						", percentOfTarget: " + percentOfTarget + 
+//						"");
+//
+//					Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+//				}
+//			}
+//			#endif
 
 			SetPolityInfluenceValue (pInfluence.Polity, newInfluenceValue);
 		}
@@ -516,26 +516,26 @@ public class CellGroup : HumanGroup {
 
 			float newValue = currentValue + (influenceValue * percentOfTarget);
 
-			#if DEBUG
-			if (Manager.RegisterDebugEvent != null) {
-				if (Id == Manager.TracingData.GroupId) {
-					string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
-
-					SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-						"MergePolities:Add - Group:" + groupId + 
-						", pInfluence.PolityId: " + pInfluence.PolityId,
-						"CurrentDate: " + World.CurrentDate  +
-						", currentValue: " + currentValue +
-						", influenceValue: " + influenceValue +
-						", Polity.TotalGroupInfluenceValue: " + pInfluence.Polity.TotalGroupInfluenceValue + 
-						", newValue: " + newValue +
-						", percentOfTarget: " + percentOfTarget +
-						"");
-
-					Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-				}
-			}
-			#endif
+//			#if DEBUG
+//			if (Manager.RegisterDebugEvent != null) {
+//				if (Id == Manager.TracingData.GroupId) {
+//					string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
+//
+//					SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//						"MergePolities:Add - Group:" + groupId + 
+//						", pInfluence.PolityId: " + pInfluence.PolityId,
+//						"CurrentDate: " + World.CurrentDate  +
+//						", currentValue: " + currentValue +
+//						", influenceValue: " + influenceValue +
+//						", Polity.TotalGroupInfluenceValue: " + pInfluence.Polity.TotalGroupInfluenceValue + 
+//						", newValue: " + newValue +
+//						", percentOfTarget: " + percentOfTarget +
+//						"");
+//
+//					Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+//				}
+//			}
+//			#endif
 
 			SetPolityInfluenceValue (polity, newValue);
 		}
@@ -669,7 +669,7 @@ public class CellGroup : HumanGroup {
 
 			foreach (PolityInfluence polityInfluence in _polityInfluences.Values) {
 
-				float influenceFactor = polityInfluence.Polity.MigrationValue (cell, polityInfluence.Value);
+				float influenceFactor = polityInfluence.Polity.MigrationValue (this, cell, polityInfluence.Value);
 				influenceFactor = Mathf.Pow (influenceFactor, 8);
 
 				polityInfluenceFactor += influenceFactor;
@@ -677,7 +677,7 @@ public class CellGroup : HumanGroup {
 //				#if DEBUG
 //				if (Manager.RegisterDebugEvent != null) {
 //					if (Id == Manager.TracingData.GroupId) {
-//						if ((Longitude == cell.Longitude) && (Latitude == cell.Latitude)) {
+////						if ((Longitude == cell.Longitude) && (Latitude == cell.Latitude)) {
 //							string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
 //							string targetCellLoc = "Long:" + cell.Longitude + "|Lat:" + cell.Latitude;
 //
@@ -691,7 +691,7 @@ public class CellGroup : HumanGroup {
 //								"");
 //
 //							Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-//						}
+////						}
 //					}
 //				}
 //				#endif
@@ -1293,28 +1293,30 @@ public class CellGroup : HumanGroup {
 		}
 		#endif
 
-//		#if DEBUG
-//		if (Manager.RegisterDebugEvent != null) {
-//			if (Id == Manager.TracingData.GroupId) {
-//				string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
-//				string cellInfo = "Long:" + cell.Longitude + "|Lat:" + cell.Latitude;
-//
-//				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-//					"CalculateOptimalPopulation - Group:" + groupId,
-//					"CurrentDate: " + World.CurrentDate + 
-//					", target cellInfo: " + cellInfo + 
-//					", foragingContribution: " + foragingContribution + 
-////					", Area: " + cell.Area + 
-//					", modifiedForagingCapacity: " + modifiedForagingCapacity + 
-//					", modifiedSurvivability: " + modifiedSurvivability + 
-//					", accesibilityFactor: " + accesibilityFactor + 
-//					", optimalPopulation: " + optimalPopulation + 
-//					"");
-//
-//				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-//			}
-//		}
-//		#endif
+		#if DEBUG
+		if (Manager.RegisterDebugEvent != null) {
+			if (Id == Manager.TracingData.GroupId) {
+				if ((cell.Longitude == Longitude) && (cell.Latitude == Latitude)) {
+					string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
+					string cellInfo = "Long:" + cell.Longitude + "|Lat:" + cell.Latitude;
+
+					SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+						"CalculateOptimalPopulation - Group:" + groupId,
+						"CurrentDate: " + World.CurrentDate + 
+						", target cellInfo: " + cellInfo + 
+						", foragingContribution: " + foragingContribution + 
+//						", Area: " + cell.Area + 
+						", modifiedForagingCapacity: " + modifiedForagingCapacity + 
+						", modifiedSurvivability: " + modifiedSurvivability + 
+						", accesibilityFactor: " + accesibilityFactor + 
+						", optimalPopulation: " + optimalPopulation + 
+						"");
+
+					Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+				}
+			}
+		}
+		#endif
 
 		return optimalPopulation;
 	}
@@ -1342,9 +1344,9 @@ public class CellGroup : HumanGroup {
 		float modifiedForagingCapacity = 0;
 		float modifiedSurvivability = 0;
 
-//		#if DEBUG
-//		string biomeData = "";
-//		#endif
+		#if DEBUG
+		string biomeData = "";
+		#endif
 		
 		foreach (CellCulturalSkill skill in Culture.Skills) {
 			
@@ -1365,12 +1367,12 @@ public class CellGroup : HumanGroup {
 					modifiedForagingCapacity += biome.ForagingCapacity * skillValue * biomePresence;
 					modifiedSurvivability += (biome.Survivability + skillValue * (1 - biome.Survivability)) * biomePresence;
 
-//					#if DEBUG
-//					biomeData += "\n\tBiome:" + biomeName + 
-//						" ForagingCapacity:" + biome.ForagingCapacity + 
-//						" skillValue:" + skillValue + 
-//						" biomePresence:" + biomePresence;
-//					#endif
+					#if DEBUG
+					biomeData += "\n\tBiome: " + biomeName + 
+						" ForagingCapacity: " + biome.ForagingCapacity + 
+						" skillValue: " + skillValue + 
+						" biomePresence: " + biomePresence;
+					#endif
 				}
 			}
 		}
@@ -1382,34 +1384,36 @@ public class CellGroup : HumanGroup {
 		foragingCapacity = modifiedForagingCapacity * (1 - cell.FarmlandPercentage);
 		survivability = modifiedSurvivability * altitudeSurvivabilityFactor;
 
-//		#if DEBUG
-//		if (Manager.RegisterDebugEvent != null) {
-//			if (Id == Manager.TracingData.GroupId) {
-//				System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
-//
-//				System.Reflection.MethodBase method = stackTrace.GetFrame(2).GetMethod();
-//				string callingMethod = method.Name;
-//
-//				if (callingMethod.Contains ("CalculateMigrationValue")) {
-//					string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
-//					string cellInfo = "Long:" + cell.Longitude + "|Lat:" + cell.Latitude;
-//
-//					SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-//						"CalculateAdaptionToCell - Group:" + groupId,
-//						"CurrentDate: " + World.CurrentDate + 
-//						", callingMethod(2): " + callingMethod + 
-//						", target cell: " + cellInfo + 
-//						", cell.FarmlandPercentage: " + cell.FarmlandPercentage + 
-//						", foragingCapacity: " + foragingCapacity + 
-//						", survivability: " + survivability + 
-//						", biomeData: " + biomeData + 
-//						"");
-//
-//					Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-//				}
-//			}
-//		}
-//		#endif
+		#if DEBUG
+		if (Manager.RegisterDebugEvent != null) {
+			if (Id == Manager.TracingData.GroupId) {
+				if ((cell.Longitude == Longitude) && (cell.Latitude == Latitude)) {
+					System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
+
+					System.Reflection.MethodBase method = stackTrace.GetFrame(2).GetMethod();
+					string callingMethod = method.Name;
+
+//					if (callingMethod.Contains ("CalculateMigrationValue")) {
+						string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
+						string cellInfo = "Long:" + cell.Longitude + "|Lat:" + cell.Latitude;
+
+						SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+							"CalculateAdaptionToCell - Group:" + groupId,
+							"CurrentDate: " + World.CurrentDate + 
+							", callingMethod(2): " + callingMethod + 
+							", target cell: " + cellInfo + 
+							", cell.FarmlandPercentage: " + cell.FarmlandPercentage + 
+							", foragingCapacity: " + foragingCapacity + 
+							", survivability: " + survivability + 
+							", biomeData: " + biomeData + 
+							"");
+
+						Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+//					}
+				}
+			}
+		}
+		#endif
 	}
 
 	public int CalculateNextUpdateDate () {
@@ -1441,26 +1445,26 @@ public class CellGroup : HumanGroup {
 
 		int finalFactor = (int)Mathf.Max(mixFactor, 1);
 
-//		#if DEBUG
-//		if (Manager.RegisterDebugEvent != null) {
-//			if (Id == Manager.TracingData.GroupId) {
-//				string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
-//
-//				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-//					"CalculateNextUpdateDate - Group:" + groupId, 
-//					"CurrentDate: " + World.CurrentDate + 
-//					", MigrationValue: " + MigrationValue + 
-//					", TotalMigrationValue: " + TotalMigrationValue + 
-//					", OptimalPopulation: " + OptimalPopulation + 
-//					", ExactPopulation: " + ExactPopulation + 
-//					", randomFactor: " + randomFactor +
-//					", LastUpdateDate: " + LastUpdateDate +
-//					"");
-//
-//				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-//			}
-//		}
-//		#endif
+		#if DEBUG
+		if (Manager.RegisterDebugEvent != null) {
+			if (Id == Manager.TracingData.GroupId) {
+				string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
+
+				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+					"CalculateNextUpdateDate - Group:" + groupId, 
+					"CurrentDate: " + World.CurrentDate + 
+					", MigrationValue: " + MigrationValue + 
+					", TotalMigrationValue: " + TotalMigrationValue + 
+					", OptimalPopulation: " + OptimalPopulation + 
+					", ExactPopulation: " + ExactPopulation + 
+					", randomFactor: " + randomFactor +
+					", LastUpdateDate: " + LastUpdateDate +
+					"");
+
+				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+			}
+		}
+		#endif
 
 		return World.CurrentDate + GenerationTime * finalFactor;
 	}
@@ -1488,22 +1492,23 @@ public class CellGroup : HumanGroup {
 			}
 			#endif
 
-//			#if DEBUG
-//			if (Manager.RegisterDebugEvent != null) {
-//				if (Id == Manager.TracingData.GroupId) {
-//					string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
-//
-//					SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-//						"PopulationAfterTime:increase - Group:" + groupId,
-//						"CurrentDate: " + World.CurrentDate + 
-//						", ExactPopulation: " + ExactPopulation + 
-//						", new population: " + population + 
-//						"");
-//
-//					Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-//				}
-//			}
-//			#endif
+			#if DEBUG
+			if (Manager.RegisterDebugEvent != null) {
+				if (Id == Manager.TracingData.GroupId) {
+					string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
+
+					SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+						"PopulationAfterTime:increase - Group:" + groupId,
+						"CurrentDate: " + World.CurrentDate + 
+						", OptimalPopulation: " + OptimalPopulation + 
+						", ExactPopulation: " + ExactPopulation + 
+						", new population: " + population + 
+						"");
+
+					Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+				}
+			}
+			#endif
 
 			return population;
 		}
@@ -1519,22 +1524,23 @@ public class CellGroup : HumanGroup {
 			}
 			#endif
 
-//			#if DEBUG
-//			if (Manager.RegisterDebugEvent != null) {
-//				if (Id == Manager.TracingData.GroupId) {
-//					string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
-//
-//					SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-//						"PopulationAfterTime:increase - Group:" + groupId,
-//						"CurrentDate: " + World.CurrentDate + 
-//						", ExactPopulation: " + ExactPopulation + 
-//						", new population: " + population + 
-//						"");
-//
-//					Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-//				}
-//			}
-//			#endif
+			#if DEBUG
+			if (Manager.RegisterDebugEvent != null) {
+				if (Id == Manager.TracingData.GroupId) {
+					string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
+
+					SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+						"PopulationAfterTime:decrease - Group:" + groupId,
+						"CurrentDate: " + World.CurrentDate + 
+						", OptimalPopulation: " + OptimalPopulation + 
+						", ExactPopulation: " + ExactPopulation + 
+						", new population: " + population + 
+						"");
+
+					Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+				}
+			}
+			#endif
 			
 			return population;
 		}
@@ -1573,14 +1579,6 @@ public class CellGroup : HumanGroup {
 
 				System.Reflection.MethodBase method = stackTrace.GetFrame(1).GetMethod();
 				string callingMethod = method.Name;
-
-//				int frame = 2;
-//				while (callingMethod.Contains ("GetNextLocalRandom") || callingMethod.Contains ("GetNextRandom")) {
-//					method = stackTrace.GetFrame(frame).GetMethod();
-//					callingMethod = method.Name;
-//
-//					frame++;
-//				}
 
 				string callingClass = method.DeclaringType.ToString();
 
