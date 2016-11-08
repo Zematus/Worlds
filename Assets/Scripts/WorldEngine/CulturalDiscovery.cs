@@ -79,14 +79,14 @@ public abstract class CellCulturalDiscovery : CulturalDiscovery {
 		throw new System.Exception ("Unexpected CulturalDiscovery type: " + baseDiscovery.Id);
 	}
 	
-	public CellCulturalDiscovery GenerateCopy () {
-		
-		System.Type discoveryType = this.GetType ();
-		
-		System.Reflection.ConstructorInfo cInfo = discoveryType.GetConstructor (new System.Type[] {});
-		
-		return cInfo.Invoke (new object[] {}) as CellCulturalDiscovery;
-	}
+//	public CellCulturalDiscovery GenerateCopy () {
+//		
+//		System.Type discoveryType = this.GetType ();
+//		
+//		System.Reflection.ConstructorInfo cInfo = discoveryType.GetConstructor (new System.Type[] {});
+//		
+//		return cInfo.Invoke (new object[] {}) as CellCulturalDiscovery;
+//	}
 
 	public abstract bool CanBeHeld (CellGroup group);
 

@@ -536,6 +536,8 @@ public class World : ISynchronizable {
 
 		int dateToSkipTo = CurrentDate + 1;
 
+		Profiler.BeginSample ("Evaluate Events");
+
 		while (true) {
 
 			if (_eventsToHappen.Count <= 0) break;
@@ -561,13 +563,19 @@ public class World : ISynchronizable {
 			_eventsToHappen.RemoveLeftmost ();
 			EventsToHappenCount--;
 
+			Profiler.BeginSample ("Event Trigger");
+
 			if (eventToHappen.CanTrigger ())
 			{
 				eventToHappen.Trigger ();
 			}
 
+			Profiler.EndSample ();
+
 			eventToHappen.Destroy ();
 		}
+
+		Profiler.EndSample ();
 
 //		//
 //		// Preupdate groups that need it
@@ -583,7 +591,7 @@ public class World : ISynchronizable {
 		//
 	
 		foreach (CellGroup group in _groupsToUpdate) {
-		
+
 			group.Update ();
 		}
 		
@@ -643,9 +651,13 @@ public class World : ISynchronizable {
 		//
 		
 		foreach (CellGroup group in _updatedGroups) {
-			
+
+			Profiler.BeginSample ("Cell Group Setup for Next Update");
+
 			group.SetupForNextUpdate ();
 			Manager.AddUpdatedCell (group.Cell, CellUpdateType.Group);
+
+			Profiler.EndSample ();
 		}
 
 		_updatedGroups.Clear ();

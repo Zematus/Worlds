@@ -20,7 +20,8 @@ public class MigratingGroup : HumanGroup {
 	[XmlAttribute]
 	public long SourceGroupId;
 
-	public CellCulture Culture;
+	//public CellCulture Culture;
+	public BufferCulture Culture;
 	
 	[XmlIgnore]
 	public TerrainCell TargetCell;
@@ -85,7 +86,8 @@ public class MigratingGroup : HumanGroup {
 		if (Population <= 0)
 			return false;
 		
-		Culture = new CellCulture(SourceGroup, SourceGroup.Culture);
+		//Culture = new CellCulture(SourceGroup, SourceGroup.Culture);
+		Culture = new BufferCulture (SourceGroup.Culture);
 
 		PolityInfluences = new List<PolityInfluence> ();
 
@@ -116,7 +118,7 @@ public class MigratingGroup : HumanGroup {
 			}
 		}
 
-		CellGroup newGroup = new CellGroup (this, Population, Culture);
+		CellGroup newGroup = new CellGroup (this, Population);
 
 		World.AddGroup (newGroup);
 		

@@ -510,14 +510,30 @@ public class CellCulture : Culture {
 		Group = group;
 	}
 
-	public CellCulture (CellGroup group, CellCulture sourceCulture) : base (group.World, sourceCulture.Language) {
+	public CellCulture (CellGroup group, Culture sourceCulture) : base (group.World, sourceCulture.Language) {
 
 		Group = group;
 
-		sourceCulture.Activities.ForEach (a => AddActivity (((CellCulturalActivity)a).GenerateCopy (group)));
-		sourceCulture.Skills.ForEach (s => AddSkill (((CellCulturalSkill)s).GenerateCopy (group)));
-		sourceCulture.Discoveries.ForEach (d => AddDiscovery (((CellCulturalDiscovery)d).GenerateCopy ()));
-		sourceCulture.Knowledges.ForEach (k => AddKnowledge (((CellCulturalKnowledge)k).GenerateCopy (group)));
+		sourceCulture.Activities.ForEach (a => AddActivity (CellCulturalActivity.CreateCellInstance (group, a)));
+		sourceCulture.Skills.ForEach (s => AddSkill (CellCulturalSkill.CreateCellInstance (group, s)));
+
+		sourceCulture.Knowledges.ForEach (k => {
+
+			CellCulturalKnowledge knowledge = CellCulturalKnowledge.CreateCellInstance (group, k);
+
+			AddKnowledge (knowledge);
+
+			knowledge.CalculateAsymptote ();
+		});
+
+		sourceCulture.Discoveries.ForEach (d => {
+			
+			AddDiscovery (CellCulturalDiscovery.CreateCellInstance (d));
+
+			foreach (CellCulturalKnowledge knowledge in Knowledges) {
+				knowledge.CalculateAsymptote (d);
+			}
+		});
 	}
 
 	public void AddActivityToPerform (CellCulturalActivity activity) {
@@ -551,8 +567,60 @@ public class CellCulture : Culture {
 		
 		DiscoveriesToFind.Add (discovery.Id, discovery);
 	}
-	
-	public void MergeCulture (CellCulture sourceCulture, float percentage) {
+
+	public CellCulturalActivity GetPerformedActivityOrToPerform (string id) {
+
+		CellCulturalActivity activity = GetActivity (id) as CellCulturalActivity;
+
+		if (activity != null)
+			return activity;
+
+		if (ActivitiesToPerform.TryGetValue (id, out activity))
+			return activity;
+
+		return null;
+	}
+
+	public CellCulturalSkill GetLearnedSkillOrToLearn (string id) {
+
+		CellCulturalSkill skill = GetSkill (id) as CellCulturalSkill;
+
+		if (skill != null)
+			return skill;
+
+		if (SkillsToLearn.TryGetValue (id, out skill))
+			return skill;
+
+		return null;
+	}
+
+	public CellCulturalKnowledge GetLearnedKnowledgeOrToLearn (string id) {
+
+		CellCulturalKnowledge knowledge = GetKnowledge (id) as CellCulturalKnowledge;
+
+		if (knowledge != null)
+			return knowledge;
+
+		if (KnowledgesToLearn.TryGetValue (id, out knowledge))
+			return knowledge;
+
+		return null;
+	}
+
+	public CellCulturalDiscovery GetFoundDiscoveryOrToFind (string id) {
+
+		CellCulturalDiscovery discovery = GetDiscovery (id) as CellCulturalDiscovery;
+
+		if (discovery != null)
+			return discovery;
+
+		if (DiscoveriesToFind.TryGetValue (id, out discovery))
+			return discovery;
+
+		return null;
+	}
+
+	public void MergeCulture (Culture sourceCulture, float percentage) {
 
 		#if DEBUG
 		if ((percentage < 0) || (percentage > 1)) {
@@ -561,12 +629,12 @@ public class CellCulture : Culture {
 		}
 		#endif
 
-		foreach (CellCulturalActivity a in sourceCulture.Activities) {
+		foreach (CulturalActivity a in sourceCulture.Activities) {
 
-			CellCulturalActivity activity = GetActivity (a.Id) as CellCulturalActivity;
+			CellCulturalActivity activity = GetPerformedActivityOrToPerform (a.Id);
 
 			if (activity == null) {
-				activity = a.GenerateCopy (Group);
+				activity = CellCulturalActivity.CreateCellInstance (Group, a);
 				activity.ModifyValue (percentage);
 
 				AddActivityToPerform (activity);
@@ -575,45 +643,108 @@ public class CellCulture : Culture {
 			}
 		}
 
-		foreach (CellCulturalSkill s in sourceCulture.Skills) {
-			
-			CellCulturalSkill skill = GetSkill (s.Id) as CellCulturalSkill;
-			
+		foreach (CulturalSkill s in sourceCulture.Skills) {
+
+			CellCulturalSkill skill = GetLearnedSkillOrToLearn (s.Id);
+
 			if (skill == null) {
-				skill = s.GenerateCopy (Group);
+				skill = CellCulturalSkill.CreateCellInstance (Group, s);
 				skill.ModifyValue (percentage);
-				
+
 				AddSkillToLearn (skill);
 			} else {
 				skill.Merge (s, percentage);
 			}
 		}
 
-		foreach (CellCulturalKnowledge k in sourceCulture.Knowledges) {
-			
-			CellCulturalKnowledge knowledge = GetKnowledge (k.Id) as CellCulturalKnowledge;
-			
+		foreach (CulturalKnowledge k in sourceCulture.Knowledges) {
+
+			CellCulturalKnowledge knowledge = GetLearnedKnowledgeOrToLearn (k.Id);
+
 			if (knowledge == null) {
-				knowledge = k.GenerateCopy (Group);
+				knowledge = CellCulturalKnowledge.CreateCellInstance (Group, k);
 				knowledge.ModifyValue (percentage);
-				
+
 				AddKnowledgeToLearn (knowledge);
 			} else {
 				knowledge.Merge (k, percentage);
 			}
 		}
 
-		foreach (CellCulturalDiscovery d in sourceCulture.Discoveries) {
+		foreach (CulturalDiscovery d in sourceCulture.Discoveries) {
 
-			CellCulturalDiscovery discovery = GetDiscovery (d.Id) as CellCulturalDiscovery;
-			
+			CellCulturalDiscovery discovery = GetFoundDiscoveryOrToFind (d.Id);
+
 			if (discovery == null) {
-				discovery = d.GenerateCopy ();
 				
+				discovery = CellCulturalDiscovery.CreateCellInstance (d);
 				AddDiscoveryToFind (discovery);
 			}
 		}
 	}
+	
+//	public void MergeCulture (CellCulture sourceCulture, float percentage) {
+//
+//		#if DEBUG
+//		if ((percentage < 0) || (percentage > 1)) {
+//
+//			Debug.LogWarning ("percentage value outside the [0,1] range");
+//		}
+//		#endif
+//
+//		foreach (CellCulturalActivity a in sourceCulture.Activities) {
+//
+//			CellCulturalActivity activity = GetActivity (a.Id) as CellCulturalActivity;
+//
+//			if (activity == null) {
+//				activity = a.GenerateCopy (Group);
+//				activity.ModifyValue (percentage);
+//
+//				AddActivityToPerform (activity);
+//			} else {
+//				activity.Merge (a, percentage);
+//			}
+//		}
+//
+//		foreach (CellCulturalSkill s in sourceCulture.Skills) {
+//			
+//			CellCulturalSkill skill = GetSkill (s.Id) as CellCulturalSkill;
+//			
+//			if (skill == null) {
+//				skill = s.GenerateCopy (Group);
+//				skill.ModifyValue (percentage);
+//				
+//				AddSkillToLearn (skill);
+//			} else {
+//				skill.Merge (s, percentage);
+//			}
+//		}
+//
+//		foreach (CellCulturalKnowledge k in sourceCulture.Knowledges) {
+//			
+//			CellCulturalKnowledge knowledge = GetKnowledge (k.Id) as CellCulturalKnowledge;
+//			
+//			if (knowledge == null) {
+//				knowledge = k.GenerateCopy (Group);
+//				knowledge.ModifyValue (percentage);
+//				
+//				AddKnowledgeToLearn (knowledge);
+//			} else {
+//				knowledge.Merge (k, percentage);
+//			}
+//		}
+//
+//		foreach (CellCulturalDiscovery d in sourceCulture.Discoveries) {
+//
+//			CellCulturalDiscovery discovery = GetDiscovery (d.Id) as CellCulturalDiscovery;
+//			
+//			if (discovery == null) {
+//				discovery = d.GenerateCopy ();
+//				
+//				AddDiscoveryToFind (discovery);
+//			}
+//		}
+//	}
 
 	public void Update (int timeSpan) {
 
@@ -670,11 +801,11 @@ public class CellCulture : Culture {
 
 		foreach (CulturalActivity polityActivity in polityCulture.Activities) {
 
-			CellCulturalActivity cellActivity = GetActivity (polityActivity.Id) as CellCulturalActivity;
+			CellCulturalActivity cellActivity = GetPerformedActivityOrToPerform (polityActivity.Id);
 
 			if (cellActivity == null) {
 			
-				cellActivity = CellCulturalActivity.CreateCellInstance (Group, polityActivity, 0, 0);
+				cellActivity = CellCulturalActivity.CreateCellInstance (Group, polityActivity, 0);
 				AddActivityToPerform (cellActivity);
 			}
 
@@ -693,7 +824,7 @@ public class CellCulture : Culture {
 
 		foreach (CulturalSkill politySkill in polityCulture.Skills) {
 
-			CellCulturalSkill cellSkill = GetSkill (politySkill.Id) as CellCulturalSkill;
+			CellCulturalSkill cellSkill = GetLearnedSkillOrToLearn (politySkill.Id);
 
 			if (cellSkill == null) {
 
@@ -706,7 +837,7 @@ public class CellCulture : Culture {
 
 		foreach (CulturalKnowledge polityKnowledge in polityCulture.Knowledges) {
 
-			CellCulturalKnowledge cellKnowledge = GetKnowledge (polityKnowledge.Id) as CellCulturalKnowledge;
+			CellCulturalKnowledge cellKnowledge = GetLearnedKnowledgeOrToLearn (polityKnowledge.Id);
 
 			if (cellKnowledge == null) {
 
@@ -724,7 +855,7 @@ public class CellCulture : Culture {
 
 		foreach (PolityCulturalDiscovery polityDiscovery in polityCulture.Discoveries) {
 
-			CellCulturalDiscovery cellDiscovery = GetDiscovery (polityDiscovery.Id) as CellCulturalDiscovery;
+			CellCulturalDiscovery cellDiscovery = GetFoundDiscoveryOrToFind (polityDiscovery.Id);
 
 			if (cellDiscovery == null) {
 
@@ -930,5 +1061,19 @@ public class CellCulture : Culture {
 			k.Group = Group;
 			k.FinalizeLoad ();
 		}
+	}
+}
+
+public class BufferCulture : Culture {
+
+	public BufferCulture () {
+	}
+
+	public BufferCulture (Culture sourceCulture) : base (sourceCulture.World, sourceCulture.Language) {
+
+		sourceCulture.Activities.ForEach (a => AddActivity (new CulturalActivity (a)));
+		sourceCulture.Skills.ForEach (s => AddSkill (new CulturalSkill (s)));
+		sourceCulture.Discoveries.ForEach (d => AddDiscovery (new CulturalDiscovery (d)));
+		sourceCulture.Knowledges.ForEach (k => AddKnowledge (new CulturalKnowledge (k)));
 	}
 }

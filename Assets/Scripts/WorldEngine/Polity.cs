@@ -155,6 +155,8 @@ public abstract class Polity : ISynchronizable {
 			return;
 		}
 
+		Profiler.BeginSample ("Polity Update");
+
 		RunPopulationCensus ();
 
 		#if DEBUG
@@ -176,6 +178,8 @@ public abstract class Polity : ISynchronizable {
 				_populationCensusUpdated = false;
 				#endif
 
+				Profiler.EndSample ();
+
 				return;
 			}
 
@@ -185,6 +189,8 @@ public abstract class Polity : ISynchronizable {
 		#if DEBUG
 		_populationCensusUpdated = false;
 		#endif
+
+		Profiler.EndSample ();
 	}
 
 	public abstract void UpdateInternal ();
@@ -376,9 +382,9 @@ public abstract class Polity : ISynchronizable {
 		float randomFactor = 2 * randomModifier - 1f;
 		float targetValue = 0;
 
-		#if DEBUG
-		float unmodInflueceValue = influenceValue;
-		#endif
+//		#if DEBUG
+//		float unmodInflueceValue = influenceValue;
+//		#endif
 
 		if (randomFactor > 0) {
 			targetValue = influenceValue + (maxTargetValue - influenceValue) * randomFactor;

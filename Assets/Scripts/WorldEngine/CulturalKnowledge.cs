@@ -11,25 +11,20 @@ public class CulturalKnowledgeInfo {
 	
 	[XmlAttribute]
 	public string Name;
-
-	[XmlAttribute("RO")]
-	public int RngOffset;
 	
 	public CulturalKnowledgeInfo () {
 	}
 	
-	public CulturalKnowledgeInfo (string id, string name, int rngOffset) {
+	public CulturalKnowledgeInfo (string id, string name) {
 		
 		Id = id;
 		Name = name;
-		RngOffset = rngOffset;
 	}
 	
 	public CulturalKnowledgeInfo (CulturalKnowledgeInfo baseInfo) {
 		
 		Id = baseInfo.Id;
 		Name = baseInfo.Name;
-		RngOffset = baseInfo.RngOffset;
 	}
 }
 
@@ -43,7 +38,7 @@ public class CulturalKnowledge : CulturalKnowledgeInfo {
 	public CulturalKnowledge () {
 	}
 
-	public CulturalKnowledge (string id, string name, int rngOffset, int value) : base (id, name, rngOffset) {
+	public CulturalKnowledge (string id, string name, int value) : base (id, name) {
 
 		Value = value;
 	}
@@ -66,7 +61,7 @@ public class PolityCulturalKnowledge : CulturalKnowledge {
 	public PolityCulturalKnowledge () {
 	}
 
-	public PolityCulturalKnowledge (string id, string name, int rngOffset, int value) : base (id, name, rngOffset, value) {
+	public PolityCulturalKnowledge (string id, string name, int value) : base (id, name, value) {
 	}
 
 	public PolityCulturalKnowledge (CulturalKnowledge baseKnowledge) : base (baseKnowledge) {
@@ -77,11 +72,14 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
 
 	public const float MinProgressLevel = 0.001f;
 	
-	[XmlAttribute]
+	[XmlAttribute("PrgLvl")]
 	public float ProgressLevel;
 	
-	[XmlAttribute]
+	[XmlAttribute("Asym")]
 	public int Asymptote;
+
+	[XmlAttribute("RO")]
+	public int RngOffset;
 
 	[XmlIgnore]
 	public CellGroup Group;
@@ -94,15 +92,22 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
 
 	}
 
-	public CellCulturalKnowledge (CellGroup group, string id, string name, int rngOffset, int value) : base (id, name, rngOffset, value) {
+	public CellCulturalKnowledge (CellGroup group, string id, string name, int typeRngOffset, int value) : base (id, name, value) {
 
 		Group = group;
+		RngOffset = (int)group.GenerateUniqueIdentifier (100, typeRngOffset);
 	}
 
-	public CellCulturalKnowledge (CellGroup group, string id, string name, int rngOffset, int value, int asymptote) : base (id, name, rngOffset, value) {
+	public CellCulturalKnowledge (CellGroup group, string id, string name, int typeRngOffset, int value, int asymptote) : base (id, name, value) {
 
 		Group = group;
+		RngOffset = (int)group.GenerateUniqueIdentifier (100, typeRngOffset);
 		Asymptote = asymptote;
+	}
+
+	public static CellCulturalKnowledge CreateCellInstance (CellGroup group, CulturalKnowledge baseKnowledge) {
+
+		return CreateCellInstance (group, baseKnowledge, baseKnowledge.Value);
 	}
 
 	public static CellCulturalKnowledge CreateCellInstance (CellGroup group, CulturalKnowledge baseKnowledge, int initialValue) {
@@ -122,26 +127,26 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
 			return new SocialOrganizationKnowledge (group, baseKnowledge, initialValue);
 		}
 
-		throw new System.Exception ("Unexpected CulturalKnowledge type: " + baseKnowledge.Id);
+		throw new System.Exception ("Unhandled CulturalKnowledge type: " + baseKnowledge.Id);
 	}
 	
-	public CellCulturalKnowledge GenerateCopy (CellGroup targetGroup) {
-		
-		System.Type knowledgeType = this.GetType ();
-		
-		System.Reflection.ConstructorInfo cInfo = knowledgeType.GetConstructor (new System.Type[] {typeof(CellGroup), knowledgeType});
-		
-		return cInfo.Invoke (new object[] {targetGroup, this}) as CellCulturalKnowledge;
-	}
-	
-	public CellCulturalKnowledge GenerateCopy (CellGroup targetGroup, int initialValue) {
-		
-		System.Type knowledgeType = this.GetType ();
-		
-		System.Reflection.ConstructorInfo cInfo = knowledgeType.GetConstructor (new System.Type[] {typeof(CellGroup), knowledgeType, typeof(float)});
-		
-		return cInfo.Invoke (new object[] {targetGroup, this, initialValue}) as CellCulturalKnowledge;
-	}
+//	public CellCulturalKnowledge GenerateCopy (CellGroup targetGroup) {
+//		
+//		System.Type knowledgeType = this.GetType ();
+//		
+//		System.Reflection.ConstructorInfo cInfo = knowledgeType.GetConstructor (new System.Type[] {typeof(CellGroup), knowledgeType});
+//		
+//		return cInfo.Invoke (new object[] {targetGroup, this}) as CellCulturalKnowledge;
+//	}
+//	
+//	public CellCulturalKnowledge GenerateCopy (CellGroup targetGroup, int initialValue) {
+//		
+//		System.Type knowledgeType = this.GetType ();
+//		
+//		System.Reflection.ConstructorInfo cInfo = knowledgeType.GetConstructor (new System.Type[] {typeof(CellGroup), knowledgeType, typeof(float)});
+//		
+//		return cInfo.Invoke (new object[] {targetGroup, this, initialValue}) as CellCulturalKnowledge;
+//	}
 	
 	public int GetHighestAsymptote () {
 		
@@ -162,12 +167,12 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
 		fInfo.SetValue (this, Mathf.Max (value, currentValue));
 	}
 
-	public void Merge (CellCulturalKnowledge knowledge, float percentage) {
+	public void Merge (CulturalKnowledge knowledge, float percentage) {
 
 		float d;
 		int mergedValue = (int)MathUtility.MergeAndGetDecimals (Value, knowledge.Value, percentage, out d);
 
-		if (d > Group.GetNextLocalRandomFloat (RngOffsets.KNOWLEDGE_MERGE + RngOffset + (int)knowledge.Group.Id))
+		if (d > Group.GetNextLocalRandomFloat (RngOffsets.KNOWLEDGE_MERGE + RngOffset))
 			mergedValue++;
 	
 		Value = mergedValue;
@@ -219,6 +224,15 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
 		if (Asymptote > 0)
 			ProgressLevel = MathUtility.RoundToSixDecimals (Mathf.Clamp01 (Value / (float)Asymptote));
 	}
+
+	public void CalculateAsymptote () {
+
+		Asymptote = CalculateBaseAsymptote ();
+
+		UpdateProgressLevel ();
+
+		SetHighestAsymptote (Asymptote);
+	}
 	
 	public void RecalculateAsymptote () {
 
@@ -231,7 +245,7 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
 		SetHighestAsymptote (Asymptote);
 	}
 
-	public void CalculateAsymptote (CellCulturalDiscovery discovery) {
+	public void CalculateAsymptote (CulturalDiscovery discovery) {
 
 		int newAsymptote = CalculateAsymptoteInternal (discovery);
 
@@ -332,7 +346,7 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge {
 	public const string ShipbuildingKnowledgeId = "ShipbuildingKnowledge";
 	public const string ShipbuildingKnowledgeName = "Shipbuilding";
 
-	public const int ShipbuildingKnowledgeRandomOffset = 0;
+	public const int ShipbuildingKnowledgeRngOffset = 0;
 
 	public const int MinKnowledgeValueForSailingSpawnEvent = 500;
 	public const int MinKnowledgeValueForSailing = 300;
@@ -353,22 +367,22 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge {
 		}
 	}
 
-	public ShipbuildingKnowledge (CellGroup group, int value = 100) : base (group, ShipbuildingKnowledgeId, ShipbuildingKnowledgeName, ShipbuildingKnowledgeRandomOffset, value) {
+	public ShipbuildingKnowledge (CellGroup group, int value = 100) : base (group, ShipbuildingKnowledgeId, ShipbuildingKnowledgeName, ShipbuildingKnowledgeRngOffset, value) {
 		
 		CalculateNeighborhoodOceanPresence ();
 	}
 
-	public ShipbuildingKnowledge (CellGroup group, ShipbuildingKnowledge baseKnowledge) : base (group, baseKnowledge.Id, baseKnowledge.Name, baseKnowledge.RngOffset, baseKnowledge.Value, baseKnowledge.Asymptote) {
+	public ShipbuildingKnowledge (CellGroup group, ShipbuildingKnowledge baseKnowledge) : base (group, baseKnowledge.Id, baseKnowledge.Name, ShipbuildingKnowledgeRngOffset, baseKnowledge.Value, baseKnowledge.Asymptote) {
 		
 		CalculateNeighborhoodOceanPresence ();
 	}
 	
-	public ShipbuildingKnowledge (CellGroup group, ShipbuildingKnowledge baseKnowledge, int initialValue) : base (group, baseKnowledge.Id, baseKnowledge.Name, baseKnowledge.RngOffset, initialValue) {
+	public ShipbuildingKnowledge (CellGroup group, ShipbuildingKnowledge baseKnowledge, int initialValue) : base (group, baseKnowledge.Id, baseKnowledge.Name, ShipbuildingKnowledgeRngOffset, initialValue) {
 		
 		CalculateNeighborhoodOceanPresence ();
 	}
 
-	public ShipbuildingKnowledge (CellGroup group, CulturalKnowledge baseKnowledge, int initialValue) : base (group, baseKnowledge.Id, baseKnowledge.Name, baseKnowledge.RngOffset, initialValue) {
+	public ShipbuildingKnowledge (CellGroup group, CulturalKnowledge baseKnowledge, int initialValue) : base (group, baseKnowledge.Id, baseKnowledge.Name, ShipbuildingKnowledgeRngOffset, initialValue) {
 
 		CalculateNeighborhoodOceanPresence ();
 	}
@@ -504,7 +518,7 @@ public class AgricultureKnowledge : CellCulturalKnowledge {
 	public const string AgricultureKnowledgeId = "AgricultureKnowledge";
 	public const string AgricultureKnowledgeName = "Agriculture";
 
-	public const int AgricultureKnowledgeRandomOffset = 100;
+	public const int AgricultureKnowledgeRngOffset = 1;
 
 	public const float TimeEffectConstant = CellGroup.GenerationTime * 2000;
 	public const float TerrainFactorModifier = 1.5f;
@@ -522,22 +536,22 @@ public class AgricultureKnowledge : CellCulturalKnowledge {
 		}
 	}
 
-	public AgricultureKnowledge (CellGroup group, int value = 100) : base (group, AgricultureKnowledgeId, AgricultureKnowledgeName, AgricultureKnowledgeRandomOffset, value) {
+	public AgricultureKnowledge (CellGroup group, int value = 100) : base (group, AgricultureKnowledgeId, AgricultureKnowledgeName, AgricultureKnowledgeRngOffset, value) {
 
 		CalculateTerrainFactor ();
 	}
 
-	public AgricultureKnowledge (CellGroup group, AgricultureKnowledge baseKnowledge) : base (group, baseKnowledge.Id, baseKnowledge.Name, baseKnowledge.RngOffset, baseKnowledge.Value, baseKnowledge.Asymptote) {
+	public AgricultureKnowledge (CellGroup group, AgricultureKnowledge baseKnowledge) : base (group, baseKnowledge.Id, baseKnowledge.Name, AgricultureKnowledgeRngOffset, baseKnowledge.Value, baseKnowledge.Asymptote) {
 
 		CalculateTerrainFactor ();
 	}
 
-	public AgricultureKnowledge (CellGroup group, AgricultureKnowledge baseKnowledge, int initialValue) : base (group, baseKnowledge.Id, baseKnowledge.Name, baseKnowledge.RngOffset, initialValue) {
+	public AgricultureKnowledge (CellGroup group, AgricultureKnowledge baseKnowledge, int initialValue) : base (group, baseKnowledge.Id, baseKnowledge.Name, AgricultureKnowledgeRngOffset, initialValue) {
 
 		CalculateTerrainFactor ();
 	}
 
-	public AgricultureKnowledge (CellGroup group, CulturalKnowledge baseKnowledge, int initialValue) : base (group, baseKnowledge.Id, baseKnowledge.Name, baseKnowledge.RngOffset, initialValue) {
+	public AgricultureKnowledge (CellGroup group, CulturalKnowledge baseKnowledge, int initialValue) : base (group, baseKnowledge.Id, baseKnowledge.Name, AgricultureKnowledgeRngOffset, initialValue) {
 
 		CalculateTerrainFactor ();
 	}
@@ -640,7 +654,7 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge {
 	public const string SocialOrganizationKnowledgeId = "SocialOrganizationKnowledge";
 	public const string SocialOrganizationKnowledgeName = "Social Organization";
 
-	public const int SocialOrganizationKnowledgeRandomOffset = 200;
+	public const int SocialOrganizationKnowledgeRngOffset = 2;
 
 	public const int MinKnowledgeValueForTribalismSpawnEvent = 500;
 	public const int MinKnowledgeValueForTribalism = 400;
@@ -659,19 +673,19 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge {
 		}
 	}
 
-	public SocialOrganizationKnowledge (CellGroup group, int value = 100) : base (group, SocialOrganizationKnowledgeId, SocialOrganizationKnowledgeName, SocialOrganizationKnowledgeRandomOffset, value) {
+	public SocialOrganizationKnowledge (CellGroup group, int value = 100) : base (group, SocialOrganizationKnowledgeId, SocialOrganizationKnowledgeName, SocialOrganizationKnowledgeRngOffset, value) {
 
 	}
 
-	public SocialOrganizationKnowledge (CellGroup group, SocialOrganizationKnowledge baseKnowledge) : base (group, baseKnowledge.Id, baseKnowledge.Name, baseKnowledge.RngOffset, baseKnowledge.Value, baseKnowledge.Asymptote) {
+	public SocialOrganizationKnowledge (CellGroup group, SocialOrganizationKnowledge baseKnowledge) : base (group, baseKnowledge.Id, baseKnowledge.Name, SocialOrganizationKnowledgeRngOffset, baseKnowledge.Value, baseKnowledge.Asymptote) {
 
 	}
 
-	public SocialOrganizationKnowledge (CellGroup group, SocialOrganizationKnowledge baseKnowledge, int initialValue) : base (group, baseKnowledge.Id, baseKnowledge.Name, baseKnowledge.RngOffset, initialValue) {
+	public SocialOrganizationKnowledge (CellGroup group, SocialOrganizationKnowledge baseKnowledge, int initialValue) : base (group, baseKnowledge.Id, baseKnowledge.Name, SocialOrganizationKnowledgeRngOffset, initialValue) {
 
 	}
 
-	public SocialOrganizationKnowledge (CellGroup group, CulturalKnowledge baseKnowledge, int initialValue) : base (group, baseKnowledge.Id, baseKnowledge.Name, baseKnowledge.RngOffset, initialValue) {
+	public SocialOrganizationKnowledge (CellGroup group, CulturalKnowledge baseKnowledge, int initialValue) : base (group, baseKnowledge.Id, baseKnowledge.Name, SocialOrganizationKnowledgeRngOffset, initialValue) {
 
 	}
 

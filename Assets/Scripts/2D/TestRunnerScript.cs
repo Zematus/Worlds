@@ -37,10 +37,12 @@ public class TestRunnerScript : MonoBehaviour {
 //			return world.PolityCount > 5;
 //		}, 5, 120, 79200));
 
+		#if DEBUG
 		Manager.TracingData.GroupId = 230240073;
 		Manager.TracingData.PolityId = 195618245070;
 		Manager.TracingData.Longitude = 245;
 		Manager.TracingData.Latitude = 72;
+		#endif
 
 //		tests.Add (new SaveLoadTest ("after 5 polities", 407252633, (World world) => {
 //			return world.PolityCount > 5;

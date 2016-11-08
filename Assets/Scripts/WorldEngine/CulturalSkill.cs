@@ -68,6 +68,11 @@ public abstract class CellCulturalSkill : CulturalSkill, ISynchronizable {
 		Group = group;
 	}
 
+	public static CellCulturalSkill CreateCellInstance (CellGroup group, CulturalSkill baseSkill) {
+
+		return CreateCellInstance (group, baseSkill, baseSkill.Value);
+	}
+
 	public static CellCulturalSkill CreateCellInstance (CellGroup group, CulturalSkill baseSkill, float initialValue) {
 
 		if (BiomeSurvivalSkill.IsBiomeSurvivalSkill (baseSkill)) {
@@ -80,43 +85,43 @@ public abstract class CellCulturalSkill : CulturalSkill, ISynchronizable {
 			return new SeafaringSkill (group, baseSkill, initialValue);
 		}
 
-		throw new System.Exception ("Unexpected CulturalSkill type: " + baseSkill.Id);
+		throw new System.Exception ("Unhandled CulturalSkill type: " + baseSkill.Id);
 	}
 	
-	public CellCulturalSkill GenerateCopy (CellGroup targetGroup) {
-		
-		System.Type skillType = this.GetType ();
+//	public CellCulturalSkill GenerateCopy (CellGroup targetGroup) {
+//		
+//		System.Type skillType = this.GetType ();
+//
+//		System.Reflection.ConstructorInfo cInfo = skillType.GetConstructor (new System.Type[] {typeof(CellGroup), skillType});
+//		
+//		return cInfo.Invoke (new object[] {targetGroup, this}) as CellCulturalSkill;
+//	}
 
-		System.Reflection.ConstructorInfo cInfo = skillType.GetConstructor (new System.Type[] {typeof(CellGroup), skillType});
-		
-		return cInfo.Invoke (new object[] {targetGroup, this}) as CellCulturalSkill;
-	}
-
-	public void Merge (CellCulturalSkill skill, float percentage) {
+	public void Merge (CulturalSkill skill, float percentage) {
 
 		float value = Value * (1f - percentage) + skill.Value * percentage;
 		value = MathUtility.RoundToSixDecimals (value);
 
-		#if DEBUG
-		if (Manager.RegisterDebugEvent != null) {
-			if (Group.Id == Manager.TracingData.GroupId) {
-
-				string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
-
-				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-					"Merge - Group:" + groupId,
-					"CurrentDate: " + Group.World.CurrentDate + 
-					", Name: " + Name + 
-					", Value: " + Value + 
-					", source Value: " + skill.Value + 
-					", percentage: " + percentage + 
-					", new value: " + value + 
-					"");
-
-				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-			}
-		}
-		#endif
+//		#if DEBUG
+//		if (Manager.RegisterDebugEvent != null) {
+//			if (Group.Id == Manager.TracingData.GroupId) {
+//
+//				string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
+//
+//				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//					"Merge - Group:" + groupId,
+//					"CurrentDate: " + Group.World.CurrentDate + 
+//					", Name: " + Name + 
+//					", Value: " + Value + 
+//					", source Value: " + skill.Value + 
+//					", percentage: " + percentage + 
+//					", new value: " + value + 
+//					"");
+//
+//				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+//			}
+//		}
+//		#endif
 
 		Value = value;
 	}
@@ -126,25 +131,25 @@ public abstract class CellCulturalSkill : CulturalSkill, ISynchronizable {
 		float value = Value * percentage;
 		value = MathUtility.RoundToSixDecimals (value);
 
-		#if DEBUG
-		if (Manager.RegisterDebugEvent != null) {
-			if (Group.Id == Manager.TracingData.GroupId) {
-
-				string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
-
-				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-					"ModifyValue - Group:" + groupId,
-					"CurrentDate: " + Group.World.CurrentDate + 
-					", Name: " + Name + 
-					", Value: " + Value + 
-					", percentage: " + percentage + 
-					", new value: " + value + 
-					"");
-
-				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-			}
-		}
-		#endif
+//		#if DEBUG
+//		if (Manager.RegisterDebugEvent != null) {
+//			if (Group.Id == Manager.TracingData.GroupId) {
+//
+//				string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
+//
+//				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//					"ModifyValue - Group:" + groupId,
+//					"CurrentDate: " + Group.World.CurrentDate + 
+//					", Name: " + Name + 
+//					", Value: " + Value + 
+//					", percentage: " + percentage + 
+//					", new value: " + value + 
+//					"");
+//
+//				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+//			}
+//		}
+//		#endif
 		
 		Value = value;
 	}
@@ -182,29 +187,29 @@ public abstract class CellCulturalSkill : CulturalSkill, ISynchronizable {
 		float newValue = (Value * (1 - timeEffect)) + (targetValue * timeEffect);
 		newValue = MathUtility.RoundToSixDecimals (Mathf.Clamp01 (newValue));
 
-		#if DEBUG
-		if (Manager.RegisterDebugEvent != null) {
-			if (Group.Id == Manager.TracingData.GroupId) {
-
-				string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
-
-				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-					"UpdateInternal - Group:" + groupId,
-					"CurrentDate: " + Group.World.CurrentDate + 
-					", Name: " + Name + 
-					", timeSpan: " + timeSpan + 
-					", timeEffectFactor: " + timeEffectFactor + 
-					", specificModifier: " + specificModifier + 
-					", randomModifier: " + randomModifier + 
-					", targetValue: " + targetValue + 
-					", Value: " + Value + 
-					", newValue: " + newValue + 
-					"");
-
-				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-			}
-		}
-		#endif
+//		#if DEBUG
+//		if (Manager.RegisterDebugEvent != null) {
+//			if (Group.Id == Manager.TracingData.GroupId) {
+//
+//				string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
+//
+//				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//					"UpdateInternal - Group:" + groupId,
+//					"CurrentDate: " + Group.World.CurrentDate + 
+//					", Name: " + Name + 
+//					", timeSpan: " + timeSpan + 
+//					", timeEffectFactor: " + timeEffectFactor + 
+//					", specificModifier: " + specificModifier + 
+//					", randomModifier: " + randomModifier + 
+//					", targetValue: " + targetValue + 
+//					", Value: " + Value + 
+//					", newValue: " + newValue + 
+//					"");
+//
+//				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+//			}
+//		}
+//		#endif
 
 		Value = newValue;
 	}
@@ -224,30 +229,30 @@ public abstract class CellCulturalSkill : CulturalSkill, ISynchronizable {
 
 		float change = (targetValue - Value) * influenceEffect * timeEffect * randomEffect;
 
-		#if DEBUG
-		if (Manager.RegisterDebugEvent != null) {
-			if (Group.Id == Manager.TracingData.GroupId) {
-
-				string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
-
-				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-					"PolityCulturalInfluenceInternal - Group:" + groupId,
-					"CurrentDate: " + Group.World.CurrentDate + 
-					", Name: " + Name + 
-					", timeSpan: " + timeSpan + 
-					", timeEffectFactor: " + timeEffectFactor + 
-					", randomEffect: " + randomEffect + 
-					", polity Id: " + polityInfluence.PolityId + 
-					", polityInfluence.Value: " + influenceEffect + 
-					", politySkill.Value: " + targetValue + 
-					", Value: " + Value + 
-					", change: " + change + 
-					"");
-
-				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-			}
-		}
-		#endif
+//		#if DEBUG
+//		if (Manager.RegisterDebugEvent != null) {
+//			if (Group.Id == Manager.TracingData.GroupId) {
+//
+//				string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
+//
+//				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//					"PolityCulturalInfluenceInternal - Group:" + groupId,
+//					"CurrentDate: " + Group.World.CurrentDate + 
+//					", Name: " + Name + 
+//					", timeSpan: " + timeSpan + 
+//					", timeEffectFactor: " + timeEffectFactor + 
+//					", randomEffect: " + randomEffect + 
+//					", polity Id: " + polityInfluence.PolityId + 
+//					", polityInfluence.Value: " + influenceEffect + 
+//					", politySkill.Value: " + targetValue + 
+//					", Value: " + Value + 
+//					", change: " + change + 
+//					"");
+//
+//				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+//			}
+//		}
+//		#endif
 
 		Value = MathUtility.RoundToSixDecimals (Mathf.Clamp01 (Value + change));
 	}
@@ -292,6 +297,8 @@ public class BiomeSurvivalSkill : CellCulturalSkill {
 	public BiomeSurvivalSkill (CellGroup group, Biome biome, float value) : base (group, GenerateId (biome), GenerateName (biome), GenerateRngOffset (biome), value) {
 	
 		BiomeName = biome.Name;
+
+		Group.AddBiomeSurvivalSkill (this);
 		
 		CalculateNeighborhoodBiomePresence ();
 	}
@@ -299,6 +306,8 @@ public class BiomeSurvivalSkill : CellCulturalSkill {
 	public BiomeSurvivalSkill (CellGroup group, BiomeSurvivalSkill baseSkill) : base (group, baseSkill.Id, baseSkill.Name, baseSkill.RngOffset, baseSkill.Value) {
 
 		BiomeName = baseSkill.BiomeName;
+
+		Group.AddBiomeSurvivalSkill (this);
 		
 		CalculateNeighborhoodBiomePresence ();
 	}
@@ -309,7 +318,13 @@ public class BiomeSurvivalSkill : CellCulturalSkill {
 
 		BiomeName = baseSkill.Name.Substring (0, suffixIndex);
 
+		Group.AddBiomeSurvivalSkill (this);
+
 		CalculateNeighborhoodBiomePresence ();
+	}
+
+	public BiomeSurvivalSkill (CellGroup group, CulturalSkill baseSkill) : this (group, baseSkill, baseSkill.Value) {
+
 	}
 
 	public static bool IsBiomeSurvivalSkill (CulturalSkill skill) {
@@ -320,6 +335,8 @@ public class BiomeSurvivalSkill : CellCulturalSkill {
 	public override void FinalizeLoad () {
 
 		base.FinalizeLoad ();
+
+		Group.AddBiomeSurvivalSkill (this);
 
 		CalculateNeighborhoodBiomePresence ();
 	}

@@ -81,7 +81,12 @@ public class CellCulturalActivity : CulturalActivity {
 		Group = group;
 	}
 
-	public static CellCulturalActivity CreateCellInstance (CellGroup group, CulturalActivity baseActivity, float initialValue, float initialContribution) {
+	public static CellCulturalActivity CreateCellInstance (CellGroup group, CulturalActivity baseActivity) {
+
+		return CreateCellInstance (group, baseActivity, baseActivity.Value);
+	}
+
+	public static CellCulturalActivity CreateCellInstance (CellGroup group, CulturalActivity baseActivity, float initialValue, float initialContribution = 0) {
 	
 		return new CellCulturalActivity (group, baseActivity.Id, baseActivity.Name, baseActivity.RngOffset, initialValue, initialContribution);
 	}
@@ -96,12 +101,12 @@ public class CellCulturalActivity : CulturalActivity {
 		return new CellCulturalActivity (group, FarmingActivityId, FarmingActivityName, FarmingActivityRandomOffset, value, contribution);
 	}
 
-	public CellCulturalActivity GenerateCopy (CellGroup targetGroup) {
+//	public CellCulturalActivity GenerateCopy (CellGroup targetGroup) {
+//
+//		return new CellCulturalActivity (targetGroup, Id, Name, RngOffset, Value, 0);
+//	}
 
-		return new CellCulturalActivity (targetGroup, Id, Name, RngOffset, Value, 0);
-	}
-
-	public void Merge (CellCulturalActivity activity, float percentage) {
+	public void Merge (CulturalActivity activity, float percentage) {
 	
 		Value = Value * (1f - percentage) + activity.Value * percentage;
 	}
