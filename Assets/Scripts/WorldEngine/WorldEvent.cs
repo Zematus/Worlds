@@ -216,17 +216,17 @@ public abstract class CellGroupEvent : WorldEvent {
 		//TODO: Evaluate if necessary or remove
 //		Group.AddAssociatedEvent (this);
 
-		#if DEBUG
-		if (Manager.RegisterDebugEvent != null) {
-//			if (Group.Id == Manager.TracingData.GroupId) {
-				string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
-
-				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("CellGroupEvent - Group:" + groupId + ", Type: " + this.GetType (), "TriggerDate: " + TriggerDate);
-
-				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-//			}
-		}
-		#endif
+//		#if DEBUG
+//		if (Manager.RegisterDebugEvent != null) {
+////			if (Group.Id == Manager.TracingData.GroupId) {
+//				string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
+//
+//				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("CellGroupEvent - Group:" + groupId + ", Type: " + this.GetType (), "TriggerDate: " + TriggerDate);
+//
+//				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+////			}
+//		}
+//		#endif
 	}
 
 	public override bool CanTrigger () {
@@ -575,104 +575,6 @@ public class TribalismDiscoveryEvent : CellGroupEvent {
 
 			World.AddPolity (Tribe.GenerateNewTribe (Group));
 		}
-
-		World.AddGroupToUpdate (Group);
-	}
-
-	protected override void DestroyInternal ()
-	{
-		if (Group != null) {
-			Group.UnsetFlag (EventSetFlag);
-		}
-
-		base.DestroyInternal ();
-	}
-}
-
-public class TribeFormationEvent : CellGroupEvent {
-
-	public const long TribeFormationEventId = 5;
-
-	public const int DateSpanFactorConstant = CellGroup.GenerationTime * 1000;
-
-	public const int MinSocialOrganizationKnowledgeSpawnEventValue = SocialOrganizationKnowledge.MinKnowledgeValueForTribalismSpawnEvent;
-	public const int MinSocialOrganizationKnowledgeValue = SocialOrganizationKnowledge.MinKnowledgeValueForTribalism;
-	public const int OptimalSocialOrganizationKnowledgeValue = SocialOrganizationKnowledge.OptimalKnowledgeValueForTribalism;
-
-	public const string EventSetFlag = "TribeFormationEvent_Set";
-
-	public TribeFormationEvent () {
-
-	}
-
-	public TribeFormationEvent (CellGroup group, int triggerDate) : base (group, triggerDate, TribeFormationEventId) {
-
-		Group.SetFlag (EventSetFlag);
-	}
-
-	public static int CalculateTriggerDate (CellGroup group) {
-
-		float socialOrganizationValue = 0;
-
-		CulturalKnowledge socialOrganizationKnowledge = group.Culture.GetKnowledge (SocialOrganizationKnowledge.SocialOrganizationKnowledgeId);
-
-		if (socialOrganizationKnowledge != null)
-			socialOrganizationValue = socialOrganizationKnowledge.Value;
-
-		float randomFactor = group.Cell.GetNextLocalRandomFloat (RngOffsets.TRIBE_FORMATION_EVENT_CALCULATE_TRIGGER_DATE);
-		randomFactor = randomFactor * randomFactor;
-
-		float socialOrganizationFactor = (socialOrganizationValue - MinSocialOrganizationKnowledgeValue) / (OptimalSocialOrganizationKnowledgeValue - MinSocialOrganizationKnowledgeValue);
-		socialOrganizationFactor = Mathf.Clamp01 (socialOrganizationFactor) + 0.001f;
-
-		float influenceFactor = group.TotalPolityInfluenceValue;
-		influenceFactor = Mathf.Pow(1 - influenceFactor * 0.95f, 4);
-
-		float dateSpan = (1 - randomFactor) * DateSpanFactorConstant / (socialOrganizationFactor * influenceFactor);
-
-		int targetDate = (int)Mathf.Min (int.MaxValue, group.World.CurrentDate + dateSpan);
-
-		if (targetDate <= group.World.CurrentDate)
-			targetDate = int.MaxValue;
-
-		return targetDate;
-	}
-
-	public static bool CanSpawnIn (CellGroup group) {
-
-		if (group.IsFlagSet (EventSetFlag))
-			return false;
-
-		if (group.Culture.GetDiscovery (TribalismDiscovery.TribalismDiscoveryId) == null)
-			return false;
-
-		return true;
-	}
-
-	public override bool CanTrigger () {
-
-		if (!base.CanTrigger ())
-			return false;
-
-		CulturalDiscovery discovery = Group.Culture.GetDiscovery (TribalismDiscovery.TribalismDiscoveryId);
-
-		if (discovery == null)
-			return false;
-
-		float influenceFactor = Mathf.Min(1, Group.TotalPolityInfluenceValue * 3f);
-		influenceFactor = Mathf.Pow (1 - influenceFactor, 4);
-
-		float rollValue = Group.Cell.GetNextLocalRandomFloat (RngOffsets.EVENT_CAN_TRIGGER + (int)Id);
-
-		if (rollValue > influenceFactor)
-			return false;
-
-		return true;
-	}
-
-	public override void Trigger () {
-
-		World.AddPolity (Tribe.GenerateNewTribe (Group));
 
 		World.AddGroupToUpdate (Group);
 	}

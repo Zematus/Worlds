@@ -44,6 +44,9 @@ public abstract class Polity : ISynchronizable {
 	[XmlAttribute]
 	public float TotalPopulation = 0;
 
+	[XmlAttribute]
+	public int FactionCount { get; private set; }
+
 	public Name Name;
 
 	public List<long> InfluencedGroupIds;
@@ -51,6 +54,9 @@ public abstract class Polity : ISynchronizable {
 	public Territory Territory;
 
 	public PolityCulture Culture;
+
+	[XmlArrayItem (Type = typeof(Clan))]
+	public List<Faction> Factions;
 
 	[XmlIgnore]
 	public World World;
@@ -65,6 +71,8 @@ public abstract class Polity : ISynchronizable {
 	public Dictionary<long, CellGroup> InfluencedGroups = new Dictionary<long, CellGroup> ();
 
 	private Dictionary<long, float> _influencedPopPerGroup = new Dictionary<long, float> ();
+
+	private Dictionary<long, Faction> _factions = new Dictionary<long, Faction> ();
 
 	#if DEBUG
 	private bool _populationCensusUpdated = false;
@@ -122,6 +130,29 @@ public abstract class Polity : ISynchronizable {
 
 			group.RemovePolityInfluence (this);
 		}
+	}
+
+	public void AddFaction (Faction faction) {
+
+		_factions.Add (faction.Id, faction);
+
+		FactionCount++;
+	}
+
+	public void RemoveFaction (Faction faction) {
+
+		_factions.Remove (faction.Id);
+
+		FactionCount--;
+	}
+
+	public Faction GetFaction (long id) {
+
+		Faction faction;
+
+		_factions.TryGetValue (id, out faction);
+
+		return faction;
 	}
 
 	public void SetCoreGroup (CellGroup group) {
@@ -267,6 +298,13 @@ public abstract class Polity : ISynchronizable {
 
 		InfluencedGroupIds = new List<long> (InfluencedGroups.Keys);
 
+		Factions = new List<Faction> (_factions.Values);
+
+		foreach (Faction f in Factions) {
+
+			f.Synchronize ();
+		}
+
 		Name.Synchronize ();
 	}
 
@@ -291,6 +329,19 @@ public abstract class Polity : ISynchronizable {
 
 			InfluencedGroups.Add (group.Id, group);
 		}
+
+		// all factions should be stored in the dictionary before finalizing load for each one
+		Factions.ForEach (f => {
+
+			f.World = World;
+
+			_factions.Add (f.Id, f);
+		});
+
+		Factions.ForEach (f => {
+
+			f.FinalizeLoad ();
+		});
 
 		Territory.World = World;
 		Territory.Polity = this;

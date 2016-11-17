@@ -608,9 +608,13 @@ public class CellGroup : HumanGroup {
 			return;
 		}
 
-		Profiler.BeginSample ("Cell Group Postupdate");
+		Profiler.BeginSample ("Culture PostUpdate");
 	
 		Culture.PostUpdate ();
+
+		Profiler.EndSample ();
+
+		Profiler.BeginSample ("Set Polity Updates");
 
 		SetPolityUpdates ();
 
@@ -1114,15 +1118,43 @@ public class CellGroup : HumanGroup {
 		if (timeSpan <= 0)
 			return;
 
-		Profiler.BeginSample ("Cell Group Update");
+		Profiler.BeginSample ("Update Terrain Farmland Percentage");
 
 		UpdateTerrainFarmlandPercentage (timeSpan);
+
+		Profiler.EndSample ();
+
+		Profiler.BeginSample ("Update Population");
+
 		UpdatePopulation (timeSpan);
+
+		Profiler.EndSample ();
+
+		Profiler.BeginSample ("Update Culture");
+
 		UpdateCulture (timeSpan);
+
+		Profiler.EndSample ();
+
+		Profiler.BeginSample ("Polities Cultural Influence");
+
 		PolitiesCulturalInfluence (timeSpan);
+
+		Profiler.EndSample ();
+
+		Profiler.BeginSample ("Polity Update Effects");
+
 		PolityUpdateEffects (timeSpan);
 
+		Profiler.EndSample ();
+
+		Profiler.BeginSample ("Update Travel Factors");
+
 		UpdateTravelFactors ();
+
+		Profiler.EndSample ();
+
+		Profiler.BeginSample ("Update Add Updated Group");
 		
 		World.AddUpdatedGroup (this);
 

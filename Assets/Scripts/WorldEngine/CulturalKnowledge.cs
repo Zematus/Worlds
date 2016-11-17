@@ -499,12 +499,24 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge {
 
 	public override void LossConsequences ()
 	{
+		Profiler.BeginSample ("BoatMakingDiscoveryEvent.CanSpawnIn");
+
 		if (BoatMakingDiscoveryEvent.CanSpawnIn (Group)) {
+
+			Profiler.BeginSample ("BoatMakingDiscoveryEvent.CalculateTriggerDate");
 
 			int triggerDate = BoatMakingDiscoveryEvent.CalculateTriggerDate (Group);
 
+			Profiler.EndSample ();
+
+			Profiler.BeginSample ("InsertEventToHappen: BoatMakingDiscoveryEvent");
+
 			Group.World.InsertEventToHappen (new BoatMakingDiscoveryEvent (Group, triggerDate));
+
+			Profiler.EndSample ();
 		}
+
+		Profiler.EndSample ();
 	}
 
 	protected override int CalculateBaseAsymptote ()
@@ -626,21 +638,55 @@ public class AgricultureKnowledge : CellCulturalKnowledge {
 
 	public override void LossConsequences ()
 	{
+		Profiler.BeginSample ("RemoveActivity: FarmingActivity");
+
 		Group.Culture.RemoveActivity (CellCulturalActivity.FarmingActivityId);
+
+		Profiler.EndSample ();
+
+		Profiler.BeginSample ("PlantCultivationDiscoveryEvent.CanSpawnIn");
 
 		if (PlantCultivationDiscoveryEvent.CanSpawnIn (Group)) {
 
+			Profiler.BeginSample ("PlantCultivationDiscoveryEvent.CalculateTriggerDate");
+
 			int triggerDate = PlantCultivationDiscoveryEvent.CalculateTriggerDate (Group);
 
-			Group.World.InsertEventToHappen (new PlantCultivationDiscoveryEvent (Group, triggerDate));
+			Profiler.EndSample ();
+
+			Profiler.BeginSample ("new PlantCultivationDiscoveryEvent");
+
+			PlantCultivationDiscoveryEvent plantCultivationDiscoveryEvent = new PlantCultivationDiscoveryEvent (Group, triggerDate);
+
+			Profiler.EndSample ();
+
+			Profiler.BeginSample ("InsertEventToHappen: PlantCultivationDiscoveryEvent");
+
+			Group.World.InsertEventToHappen (plantCultivationDiscoveryEvent);
+
+			Profiler.EndSample ();
 		}
+
+		Profiler.EndSample ();
+
+		Profiler.BeginSample ("FarmDegradationEvent.CanSpawnIn");
 
 		if (FarmDegradationEvent.CanSpawnIn (Group.Cell)) {
 
+			Profiler.BeginSample ("FarmDegradationEvent.CalculateTriggerDate");
+
 			int triggerDate = FarmDegradationEvent.CalculateTriggerDate (Group.Cell);
 
+			Profiler.EndSample ();
+
+			Profiler.BeginSample ("InsertEventToHappen: FarmDegradationEvent");
+
 			Group.World.InsertEventToHappen (new FarmDegradationEvent (Group.Cell, triggerDate));
+
+			Profiler.EndSample ();
 		}
+
+		Profiler.EndSample ();
 	}
 
 	protected override int CalculateBaseAsymptote ()

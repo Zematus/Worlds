@@ -66,6 +66,7 @@ public class BinaryTree<TKey, TValue> {
 	public void Insert (TKey key, TValue value) {
 
 		Count++;
+		int level = 0;
 
 		BinaryTreeNode<TKey, TValue> item = new BinaryTreeNode<TKey, TValue> ();
 
@@ -88,6 +89,10 @@ public class BinaryTree<TKey, TValue> {
 
 		while (true) {
 
+			Profiler.BeginSample ("Binary Tree Node Compare");
+
+			level++;
+
 			int comp = Comparer.Compare (item.Key, node.Key);
 
 			if (comp > 0) {
@@ -102,10 +107,15 @@ public class BinaryTree<TKey, TValue> {
 					if (isRightmost)
 						_rightmostItem = item;
 
-					return;
+					Profiler.EndSample ();
+
+					break;
 				}
 
 				node = node.Right;
+
+				Profiler.EndSample ();
+
 				continue;
 
 			} else {
@@ -120,13 +130,29 @@ public class BinaryTree<TKey, TValue> {
 					if (isLeftmost)
 						_leftmostItem = item;
 
-					return;
+					Profiler.EndSample ();
+
+					break;
 				}
 
 				node = node.Left;
+
+				Profiler.EndSample ();
+
 				continue;
 			}
+
+			Profiler.EndSample ();
 		}
+
+//		#if DEBUG
+//		float sqrtCount = Mathf.Sqrt (Count);
+//
+//		if (level > (sqrtCount * 2)) {
+//		
+//			bool debug = true;
+//		}
+//		#endif
 	}
 
 	public TValue RemoveRightmost () {

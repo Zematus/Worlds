@@ -592,7 +592,11 @@ public class World : ISynchronizable {
 	
 		foreach (CellGroup group in _groupsToUpdate) {
 
+			Profiler.BeginSample ("Group Update");
+
 			group.Update ();
+
+			Profiler.EndSample ();
 		}
 		
 		_groupsToUpdate.Clear ();
@@ -631,8 +635,12 @@ public class World : ISynchronizable {
 		//
 		
 		foreach (CellGroup group in _updatedGroups) {
-			
+
+			Profiler.BeginSample ("Cell Group Postupdate");
+
 			group.PostUpdate ();
+
+			Profiler.EndSample ();
 		}
 
 		//
@@ -707,9 +715,13 @@ public class World : ISynchronizable {
 
 	public void InsertEventToHappen (WorldEvent eventToHappen) {
 
+		Profiler.BeginSample ("Insert Event To Happen");
+
 		EventsToHappenCount++;
 
 		_eventsToHappen.Insert (eventToHappen.TriggerDate, eventToHappen);
+
+		Profiler.EndSample ();
 	}
 
 	#if DEBUG

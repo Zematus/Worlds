@@ -1086,6 +1086,11 @@ public class Language : ISynchronizable {
 
 	public Morpheme GenerateAdjective (string meaning, GetRandomFloatDelegate getRandomFloat) {
 
+		if (_adjectives.ContainsKey (meaning)) {
+		
+			return _adjectives [meaning];
+		}
+
 		Morpheme morpheme = new Morpheme ();
 		morpheme.Value = GenerateMorpheme (AdjectiveStartSyllables, AdjectiveNextSyllables, 0.5f, getRandomFloat);
 		morpheme.Properties = MorphemeProperties.None;

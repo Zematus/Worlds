@@ -874,17 +874,48 @@ public class CellCulture : Culture {
 
 		bool discoveriesLost = false;
 
+		Profiler.BeginSample ("Remove Activities");
+
 		_activitiesToLose.ForEach (a => RemoveActivity (a));
+
+		Profiler.EndSample ();
+
+		Profiler.BeginSample ("Remove Skills");
+
 		_skillsToLose.ForEach (s => RemoveSkill (s));
+
+		Profiler.EndSample ();
+
+		Profiler.BeginSample ("Remove Knowledges");
+
 		_knowledgesToLose.ForEach (k => {
+
+			Profiler.BeginSample ("Remove Knowledge");
+
 			RemoveKnowledge (k);
+
+			Profiler.EndSample ();
+
+			Profiler.BeginSample ("Loss Consequences");
+
 			k.LossConsequences ();
+
+			Profiler.EndSample ();
 		});
+
+		Profiler.EndSample ();
+
+		Profiler.BeginSample ("Remove Discoveries");
+
 		_discoveriesToLose.ForEach (d => {
 			RemoveDiscovery (d);
 			d.LossConsequences (Group);
 			discoveriesLost = true;
 		});
+
+		Profiler.EndSample ();
+
+		Profiler.BeginSample ("Recalculating Asymptotes");
 
 		if (discoveriesLost) {
 			foreach (CellCulturalKnowledge knowledge in Knowledges) {
@@ -892,20 +923,36 @@ public class CellCulture : Culture {
 			}
 		}
 
+		Profiler.EndSample ();
+
+		Profiler.BeginSample ("Clearing To Lose Lists");
+
 		_activitiesToLose.Clear ();
 		_skillsToLose.Clear ();
 		_knowledgesToLose.Clear ();
 		_discoveriesToLose.Clear ();
 
+		Profiler.EndSample ();
+
+		Profiler.BeginSample ("Adding Activities");
+
 		foreach (CellCulturalActivity activity in ActivitiesToPerform.Values) {
 
 			AddActivity (activity);
 		}
+
+		Profiler.EndSample ();
+
+		Profiler.BeginSample ("Adding Skills");
 		
 		foreach (CellCulturalSkill skill in SkillsToLearn.Values) {
 			
 			AddSkill (skill);
 		}
+
+		Profiler.EndSample ();
+
+		Profiler.BeginSample ("Adding Knowledges");
 		
 		foreach (CellCulturalKnowledge knowledge in KnowledgesToLearn.Values) {
 			
@@ -913,6 +960,10 @@ public class CellCulture : Culture {
 
 			knowledge.RecalculateAsymptote ();
 		}
+
+		Profiler.EndSample ();
+
+		Profiler.BeginSample ("Adding Discoveries");
 		
 		foreach (CellCulturalDiscovery discovery in DiscoveriesToFind.Values) {
 			
@@ -927,10 +978,16 @@ public class CellCulture : Culture {
 			}
 		}
 
+		Profiler.EndSample ();
+
+		Profiler.BeginSample ("Clearing To Add Lists");
+
 		ActivitiesToPerform.Clear ();
 		SkillsToLearn.Clear ();
 		KnowledgesToLearn.Clear ();
 		DiscoveriesToFind.Clear ();
+
+		Profiler.EndSample ();
 	}
 	
 //	public static float CalculateKnowledgeTransferValue (CellGroup sourceGroup, CellGroup targetGroup) {
