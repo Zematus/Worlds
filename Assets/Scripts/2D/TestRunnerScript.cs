@@ -50,14 +50,14 @@ public class TestRunnerScript : MonoBehaviour {
 //		tests.Add (new SaveLoadTest ("after 5 polities", 407252633, (World world) => {
 //			return world.PolityCount > 5;
 //		}, 5, 98, 79200, true));
-		tests.Add (new SaveLoadTest ("after 5 polities", 407252633, (World world) => {
-			return world.PolityCount > 5;
-		}, 5, 2000, 20000, true));
+//		tests.Add (new SaveLoadTest ("after 5 polities", 407252633, (World world) => {
+//			return world.PolityCount > 5;
+//		}, 5, 2000, 20000, true));
 //		tests.Add (new SaveLoadTest ("after 5 polities", 407252633, (World world) => {
 //			return world.PolityCount > 5;
 //		}, 5, 2000, 0, true));
 
-//      tests.Add (new LanguageGenerationTest());
+		tests.Add (new LanguageGenerationTest());
 
 		Debug.Log ("Running Tests...\n");
 	}

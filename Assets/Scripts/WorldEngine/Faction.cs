@@ -9,13 +9,18 @@ public abstract class Faction : ISynchronizable {
 	[XmlAttribute]
 	public long Id;
 
-	[XmlAttribute]
+	[XmlAttribute("GrpId")]
 	public long GroupId;
 
-	[XmlAttribute]
+	[XmlAttribute("PolId")]
 	public long PolityId;
 
+	[XmlAttribute("StilPres")]
+	public bool StillPresent = true;
+
 	public Name Name;
+
+	public List<string> Flags = new List<string> ();
 
 	[XmlIgnore]
 	public World World;
@@ -25,6 +30,8 @@ public abstract class Faction : ISynchronizable {
 
 	[XmlIgnore]
 	public Polity Polity;
+
+	private HashSet<string> _flags = new HashSet<string> ();
 
 	public Faction () {
 
@@ -48,6 +55,8 @@ public abstract class Faction : ISynchronizable {
 	public void Destroy () {
 		
 		Polity.RemoveFaction (this);
+
+		StillPresent = false;
 	}
 
 	public void SetGroup (CellGroup group) {
@@ -90,5 +99,85 @@ public abstract class Faction : ISynchronizable {
 		if (Polity == null) {
 			throw new System.Exception ("Missing Polity with Id " + PolityId);
 		}
+
+		Flags.ForEach (f => _flags.Add (f));
+	}
+
+	public long GenerateUniqueIdentifier (long oom = 1, long offset = 0) {
+
+		return Group.GenerateUniqueIdentifier (oom, offset);
+	}
+
+	public void SetFlag (string flag) {
+
+		if (_flags.Contains (flag))
+			return;
+
+		_flags.Add (flag);
+		Flags.Add (flag);
+	}
+
+	public bool IsFlagSet (string flag) {
+
+		return _flags.Contains (flag);
+	}
+
+	public void UnsetFlag (string flag) {
+
+		if (!_flags.Contains (flag))
+			return;
+
+		_flags.Remove (flag);
+		Flags.Remove (flag);
+	}
+}
+
+public abstract class FactionEvent : WorldEvent {
+
+	[XmlAttribute]
+	public long FactionId;
+
+	[XmlAttribute]
+	public long PolityId;
+
+	[XmlIgnore]
+	public Faction Faction;
+
+	[XmlIgnore]
+	public Polity Polity;
+
+	public FactionEvent () {
+
+	}
+
+	public FactionEvent (Faction faction, int triggerDate, long eventTypeId) : base (faction.World, triggerDate, faction.GenerateUniqueIdentifier (1000, eventTypeId)) {
+
+		Faction = faction;
+		FactionId = Faction.Id;
+
+		Polity = faction.Polity;
+		PolityId = Polity.Id;
+	}
+
+	public override bool CanTrigger () {
+
+		if (Faction == null)
+			return false;
+
+		return Faction.StillPresent;
+	}
+
+	public override void FinalizeLoad () {
+
+		base.FinalizeLoad ();
+
+		Polity = World.GetPolity (PolityId);
+		Faction = Polity.GetFaction (FactionId);
+	}
+
+	protected override void DestroyInternal ()
+	{
+//		if (Faction == null)
+//			return;
 	}
 }

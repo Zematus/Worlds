@@ -70,7 +70,14 @@ public abstract class Polity : ISynchronizable {
 	[XmlIgnore]
 	public Dictionary<long, CellGroup> InfluencedGroups = new Dictionary<long, CellGroup> ();
 
-	private Dictionary<long, float> _influencedPopPerGroup = new Dictionary<long, float> ();
+	protected class WeightedGroup : CollectionUtility.ElementWeightPair<CellGroup> {
+
+		public WeightedGroup (CellGroup group, float weight) : base (group, weight) {
+
+		}
+	}
+
+	private Dictionary<long, WeightedGroup> _influencedPopPerGroup = new Dictionary<long, WeightedGroup> ();
 
 	private Dictionary<long, Faction> _factions = new Dictionary<long, Faction> ();
 
@@ -238,7 +245,7 @@ public abstract class Polity : ISynchronizable {
 
 			TotalPopulation += influencedPop;
 
-			_influencedPopPerGroup.Add (group.Id, influencedPop);
+			_influencedPopPerGroup.Add (group.Id, new WeightedGroup (group, influencedPop));
 		}
 	}
 
@@ -252,13 +259,13 @@ public abstract class Polity : ISynchronizable {
 		CellGroup groupWithMostInfluencedPop = null;
 		float maxInfluencedGroupPopulation = 0;
 	
-		foreach (KeyValuePair<long, float> pair in _influencedPopPerGroup) {
+		foreach (KeyValuePair<long, WeightedGroup> pair in _influencedPopPerGroup) {
 		
-			if (maxInfluencedGroupPopulation < pair.Value) {
+			if (maxInfluencedGroupPopulation < pair.Value.Weight) {
 
-				maxInfluencedGroupPopulation = pair.Value;
+				maxInfluencedGroupPopulation = pair.Value.Weight;
 
-				groupWithMostInfluencedPop = InfluencedGroups [pair.Key];
+				groupWithMostInfluencedPop = pair.Value.Value;
 			}
 		}
 

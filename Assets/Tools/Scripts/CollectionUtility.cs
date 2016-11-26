@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using System.Xml.Serialization;
 
 public static class CollectionUtility {
 
@@ -10,7 +11,19 @@ public static class CollectionUtility {
 	public abstract class ElementWeightPair<T> {
 
 		public T Value;
+
+		[XmlAttribute]
 		public float Weight;
+
+		public ElementWeightPair () {
+
+		}
+
+		public ElementWeightPair (T value, float weight) {
+
+			Value = value;
+			Weight = weight;
+		}
 	}
 
 	public static T WeightedSelection<T> (ElementWeightPair<T>[] elementWeightPairs, float totalWeight, NormalizedValueGeneratorDelegate generator) {

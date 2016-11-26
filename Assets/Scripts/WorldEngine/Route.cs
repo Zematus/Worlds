@@ -171,10 +171,8 @@ public class Route {
 
 	private class CoastalCellValue : CollectionUtility.ElementWeightPair<KeyValuePair<Direction, TerrainCell>> {
 
-		public CoastalCellValue (KeyValuePair<Direction, TerrainCell> pair, float weight) {
-
-			Value = pair;
-			Weight = weight;
+		public CoastalCellValue (KeyValuePair<Direction, TerrainCell> pair, float weight) : base (pair, weight) {
+			
 		}
 	}
 

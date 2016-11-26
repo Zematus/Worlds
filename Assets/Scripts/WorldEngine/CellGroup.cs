@@ -869,10 +869,8 @@ public class CellGroup : HumanGroup {
 
 	private class CellMigrationValue : CollectionUtility.ElementWeightPair<TerrainCell> {
 
-		public CellMigrationValue (TerrainCell cell, float weight) {
-
-			Value = cell;
-			Weight = weight;
+		public CellMigrationValue (TerrainCell cell, float weight) : base (cell, weight) {
+			
 		}
 	}
 	

@@ -6,6 +6,16 @@ using System.Xml.Serialization;
 
 public abstract class WorldEvent : ISynchronizable {
 
+	public const long FarmDegradationEventId = 0;
+	public const long UpdateCellGroupEventId = 1;
+	public const long MigrateGroupEventId = 2;
+	public const long SailingDiscoveryEventId = 3;
+	public const long TribalismDiscoveryEventId = 4;
+	public const long TribeFormationEventId = 5;
+	public const long BoatMakingDiscoveryEventId = 6;
+	public const long PlantCultivationDiscoveryEventId = 7;
+	public const long ClanSplitEventId = 8;
+
 	public static int EventCount = 0;
 
 	[XmlIgnore]
@@ -95,8 +105,6 @@ public abstract class CellEvent : WorldEvent {
 }
 
 public class FarmDegradationEvent : CellEvent {
-
-	public const long FarmDegradationEventId = 0;
 
 	public const string EventSetFlag = "FarmDegradationEvent_Set";
 	
@@ -249,8 +257,8 @@ public abstract class CellGroupEvent : WorldEvent {
 	
 	protected override void DestroyInternal ()
 	{
-		if (Group == null)
-			return;
+//		if (Group == null)
+//			return;
 
 		//TODO: Evaluate if necessary or remove
 //		Group.RemoveAssociatedEvent (Id);
@@ -258,8 +266,6 @@ public abstract class CellGroupEvent : WorldEvent {
 }
 
 public class UpdateCellGroupEvent : CellGroupEvent {
-
-	public const long UpdateCellGroupEventId = 1;
 
 	public UpdateCellGroupEvent () {
 
@@ -291,8 +297,6 @@ public class UpdateCellGroupEvent : CellGroupEvent {
 }
 
 public class MigrateGroupEvent : CellGroupEvent {
-
-	public const long MigrateGroupEventId = 2;
 	
 	public static int MigrationEventCount = 0;
 
@@ -397,8 +401,6 @@ public class MigrateGroupEvent : CellGroupEvent {
 
 public class SailingDiscoveryEvent : CellGroupEvent {
 
-	public const long SailingDiscoveryEventId = 3;
-
 	public const int DateSpanFactorConstant = CellGroup.GenerationTime * 10000;
 
 	public const int MinShipBuildingKnowledgeSpawnEventValue = ShipbuildingKnowledge.MinKnowledgeValueForSailingSpawnEvent;
@@ -490,8 +492,6 @@ public class SailingDiscoveryEvent : CellGroupEvent {
 }
 
 public class TribalismDiscoveryEvent : CellGroupEvent {
-
-	public const int TribalismDiscoveryEventId = 4;
 
 	public const int DateSpanFactorConstant = CellGroup.GenerationTime * 20000;
 
@@ -590,8 +590,6 @@ public class TribalismDiscoveryEvent : CellGroupEvent {
 }
 
 public class BoatMakingDiscoveryEvent : CellGroupEvent {
-
-	public const long BoatMakingDiscoveryEventId = 6;
 	
 	public const int DateSpanFactorConstant = CellGroup.GenerationTime * 10000;
 	
@@ -658,8 +656,6 @@ public class BoatMakingDiscoveryEvent : CellGroupEvent {
 }
 
 public class PlantCultivationDiscoveryEvent : CellGroupEvent {
-
-	public const long PlantCultivationDiscoveryEventId = 7;
 
 	public const int DateSpanFactorConstant = CellGroup.GenerationTime * 600000;
 

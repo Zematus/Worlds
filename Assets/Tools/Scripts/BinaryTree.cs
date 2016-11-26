@@ -142,7 +142,7 @@ public class BinaryTree<TKey, TValue> {
 				continue;
 			}
 
-			Profiler.EndSample ();
+//			Profiler.EndSample ();
 		}
 
 //		#if DEBUG
