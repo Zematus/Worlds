@@ -16,9 +16,7 @@ public class Tribe : Polity {
 
 	private Tribe (CellGroup coreGroup, float coreGroupInfluence) : base (coreGroup, coreGroupInfluence) {
 
-		Clan firstClan = new Clan (coreGroup, this, Name);
-
-		AddFaction (firstClan);
+		AddFaction (new Clan (coreGroup, this));
 	}
 
 	public static Tribe GenerateNewTribe (CellGroup coreGroup) {

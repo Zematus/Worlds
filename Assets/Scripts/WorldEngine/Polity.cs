@@ -162,6 +162,11 @@ public abstract class Polity : ISynchronizable {
 		return faction;
 	}
 
+	public IEnumerable<Faction> GetFactions () {
+	
+		return _factions.Values;
+	}
+
 	public void SetCoreGroup (CellGroup group) {
 
 		if (!InfluencedGroups.ContainsKey (group.Id))

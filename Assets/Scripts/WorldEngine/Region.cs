@@ -4,46 +4,225 @@ using System.Collections.Generic;
 using System.Xml.Serialization;
 using System.Text.RegularExpressions;
 using System.Linq;
+using System;
 
-public class RegionAttributeNoun {
+public class RegionConstraint {
+
+	public string Type;
+	public object Value;
+
+	public static Regex ConstraintRegex = new Regex (@"^(?<type>[\w_]+):(?<value>.+)$");
+
+	private RegionConstraint (string type, object value) {
+
+		Type = type;
+		Value = value;
+	}
+
+	public static RegionConstraint BuildConstraint (string constraint) {
+
+		Match match = ConstraintRegex.Match (constraint);
+
+		if (!match.Success)
+			throw new System.Exception ("Unparseable constraint: " + constraint);
+
+		string type = match.Groups ["type"].Value;
+		string valueStr = match.Groups ["value"].Value;
+
+		switch (type) {
+
+		case "altitude_above":
+			float altitude_above = float.Parse (valueStr);
+
+			return new RegionConstraint (type, altitude_above);
+
+		case "altitude_below":
+			float altitude_below = float.Parse (valueStr);
+
+			return new RegionConstraint (type, altitude_below);
+
+		case "rainfall_above":
+			float rainfall_above = float.Parse (valueStr);
+
+			return new RegionConstraint (type, rainfall_above);
+
+		case "temperature_above":
+			float temperature_above = float.Parse (valueStr);
+
+			return new RegionConstraint (type, temperature_above);
+
+		case "temperature_below":
+			float temperature_below = float.Parse (valueStr);
+
+			return new RegionConstraint (type, temperature_below);
+
+		case "any_attribute":
+			string[] attributeStrs = valueStr.Split (new char[] { ',' });
+
+			RegionAttribute[] attributes = attributeStrs.Select (s=> {
+
+				if (!RegionAttribute.Attributes.ContainsKey (s)) {
+
+					throw new System.Exception ("Attribute not present: " + s);
+				}
+
+				return RegionAttribute.Attributes[s];
+			}).ToArray ();
+
+			return new RegionConstraint (type, attributes);
+
+		case "any_biome":
+			string[] biomeStrs = valueStr.Split (new char[] { ',' });
+
+			Biome[] biomes = biomeStrs.Select (s => {
+
+				if (!Biome.Biomes.ContainsKey (s)) {
+
+					throw new System.Exception ("Biome not present: " + s);
+				}
+
+				return Biome.Biomes[s];
+			}).ToArray ();
+
+			return new RegionConstraint (type, biomes);
+		}
+
+		throw new System.Exception ("Unhandled constraint type: " + type);
+	}
+
+	public bool Validate (Region region) {
+
+		switch (Type) {
+
+		case "altitude_above":
+			return region.AverageAltitude >= (float)Value;
+
+		case "altitude_below":
+			return region.AverageAltitude < (float)Value;
+
+		case "rainfall_above":
+			return region.AverageRainfall >= (float)Value;
+
+		case "temperature_above":
+			return region.AverageTemperature >= (float)Value;
+
+		case "temperature_below":
+			return region.AverageTemperature < (float)Value;
+
+		case "any_attribute":
+			return ((RegionAttribute[])Value).Any (a => region.Attributes.Contains (a));
+
+		case "any_biome":
+			return ((Biome[])Value).Any (a => region.PresentBiomeNames.Contains (a.Name));
+		}
+
+		throw new System.Exception ("Unhandled constraint type: " + Type);
+	}
+}
+
+public class RegionElement {
 
 	public string Name;
 
-	public List<string> Variations;
+	public RegionConstraint[] Constraints;
 
-	public static RegionAttributeNoun Glacier = new RegionAttributeNoun ("Glacier", new string[] {"glacier"});
-	public static RegionAttributeNoun IceCap = new RegionAttributeNoun ("IceCap", new string[] {"[nad]ice cap"});
-	public static RegionAttributeNoun Ocean = new RegionAttributeNoun ("Ocean", new string[] {"ocean"});
-	public static RegionAttributeNoun Grassland = new RegionAttributeNoun ("Grassland", new string[] {"grass:land{:s}", "steppe{:s}", "savanna{:s}", "shrub:land{:s}", "prairie{:s}", "range{:s}", "field{:s}"});
-	public static RegionAttributeNoun Forest = new RegionAttributeNoun ("Forest", new string[] {"forest", "wood{:s}", "wood:land{:s}"});
-	public static RegionAttributeNoun Taiga = new RegionAttributeNoun ("Taiga", new string[] {"taiga", "hinter{:land}{:s}", "[nad]snow forest", "[nad]snow wood{:land}{:s}"});
-	public static RegionAttributeNoun Tundra = new RegionAttributeNoun ("Tundra", new string[] {"tundra", "waste{:land}{:s}", "[adj]frozen land{:s}", "[adj]frozen expanse"});
-	public static RegionAttributeNoun Desert = new RegionAttributeNoun ("Desert", new string[] {"desert", "sand{:s}"});
-	public static RegionAttributeNoun Rainforest = new RegionAttributeNoun ("Rainforest", new string[] {"rain:forest"});
-	public static RegionAttributeNoun Jungle = new RegionAttributeNoun ("Jungle", new string[] {"jungle"});
-	public static RegionAttributeNoun Valley = new RegionAttributeNoun ("Valley", new string[] {"valley"});
-	public static RegionAttributeNoun Highland = new RegionAttributeNoun ("Highland", new string[] {"high:land{:s}"});
-	public static RegionAttributeNoun MountainRange = new RegionAttributeNoun ("MountainRange", new string[] {"[nad]mountain range", "mountain:s", "mount:s"});
-	public static RegionAttributeNoun Hill = new RegionAttributeNoun ("Hill", new string[] {"hill{:s}"});
-	public static RegionAttributeNoun Mountain = new RegionAttributeNoun ("Mountain", new string[] {"mountain", "mount"});
-	public static RegionAttributeNoun Basin = new RegionAttributeNoun ("Basin", new string[] {"basin"});
-	public static RegionAttributeNoun Plain = new RegionAttributeNoun ("Plain", new string[] {"plain{:s}"});
-	public static RegionAttributeNoun Delta = new RegionAttributeNoun ("Delta", new string[] {"delta"});
-	public static RegionAttributeNoun Peninsula = new RegionAttributeNoun ("Peninsula", new string[] {"peninsula"});
-	public static RegionAttributeNoun Island = new RegionAttributeNoun ("Island", new string[] {"island"});
-	public static RegionAttributeNoun Archipelago = new RegionAttributeNoun ("Archipelago", new string[] {"archipelago", "island:s"});
-	public static RegionAttributeNoun Channel = new RegionAttributeNoun ("Channel", new string[] {"channel"});
-	public static RegionAttributeNoun Gulf = new RegionAttributeNoun ("Gulf", new string[] {"gulf"});
-	public static RegionAttributeNoun Sound = new RegionAttributeNoun ("Sound", new string[] {"sound"});
-	public static RegionAttributeNoun Lake = new RegionAttributeNoun ("Lake", new string[] {"lake"});
-	public static RegionAttributeNoun Sea = new RegionAttributeNoun ("Sea", new string[] {"sea"});
-	public static RegionAttributeNoun Continent = new RegionAttributeNoun ("Continent", new string[] {"continent"});
-	public static RegionAttributeNoun Strait = new RegionAttributeNoun ("Strait", new string[] {"strait", "pass"});
-	public static RegionAttributeNoun Coast = new RegionAttributeNoun ("Coast", new string[] {"coast"});
-	public static RegionAttributeNoun Region = new RegionAttributeNoun ("Region", new string[] {"region", "land{:s}"});
-	public static RegionAttributeNoun Expanse = new RegionAttributeNoun ("Expanse", new string[] {"expanse"});
+	public static RegionElement Stone = new RegionElement ("Stone", new string[] {"altitude_above:0"});
+	public static RegionElement Rock = new RegionElement ("Rock", new string[] {"altitude_above:0"});
+	public static RegionElement Sand = new RegionElement ("Sand", new string[] {"any_attribute:Desert,Delta"});
+	public static RegionElement Tree = new RegionElement ("Tree", new string[] {"any_biome:Forest,Taiga,Rainforest"});
+	public static RegionElement Wood = new RegionElement ("Wood", new string[] {"any_biome:Forest,Taiga,Rainforest"});
+	public static RegionElement Grass = new RegionElement ("Grass", new string[] {"any_biome:Grassland,Tundra"});
+	public static RegionElement Cloud = new RegionElement ("Cloud", new string[] {"rainfall_above:675"});
+	public static RegionElement Moss = new RegionElement ("Moss", new string[] {"any_biome:Forest,Taiga,Tundra,Rainforest"});
+	public static RegionElement Fire = new RegionElement ("Fire", new string[] {"altitude_above:0","temperature_above:0"});
+	public static RegionElement Water = new RegionElement ("Water", new string[] {"altitude_below:0"});
+	public static RegionElement Rain = new RegionElement ("Rain", new string[] {"rainfall_above:675"});
+	public static RegionElement Air = new RegionElement ("Air", new string[] {});
+	public static RegionElement Sky = new RegionElement ("Sky", new string[] {"altitude_above:3000"});
+	public static RegionElement Ice = new RegionElement ("Ice", new string[] {"temperature_below:0"});
+	public static RegionElement Snow = new RegionElement ("Snow", new string[] {"temperature_below:5"});
+	public static RegionElement Peat = new RegionElement ("Peat", new string[] {"altitude_above:0","rainfall_above:1775"});
+	public static RegionElement Thunder = new RegionElement ("Thunder", new string[] {"rainfall_above:1775"});
 
-	public static Dictionary<string, RegionAttributeNoun> Attributes = new Dictionary<string, RegionAttributeNoun> () {
+	public static Dictionary<string, RegionElement> Elements = new Dictionary<string, RegionElement> () {
+		{"Stone", Stone},
+		{"Rock", Rock},
+		{"Sand", Sand},
+		{"Tree", Tree},
+		{"Wood", Wood},
+		{"Grass", Grass},
+		{"Cloud", Cloud},
+		{"Moss", Moss},
+		{"Fire", Fire},
+		{"Water", Water},
+		{"Rain", Rain},
+		{"Air", Air},
+		{"Sky", Sky},
+		{"Ice", Ice},
+		{"Snow", Snow},
+		{"Peat", Peat},
+		{"Thunder", Thunder}
+	};
+
+	private RegionElement (string name, string[] constraints) {
+
+		Name = name;
+
+		Constraints = new RegionConstraint[constraints.Length];
+
+		int index = 0;
+		foreach (string constraint in constraints) {
+		
+			Constraints [index] = RegionConstraint.BuildConstraint (constraint);
+			index++;
+		}
+	}
+
+	public bool Assignable (Region region) {
+	
+		return Constraints.All (c => c.Validate (region));
+	}
+}
+
+public class RegionAttribute {
+
+	public string Name;
+
+	public List<string> Variations = new List<string> ();
+
+	public static RegionAttribute Glacier = new RegionAttribute ("Glacier", new string[] {"glacier"});
+	public static RegionAttribute IceCap = new RegionAttribute ("IceCap", new string[] {"[nad]ice cap"});
+	public static RegionAttribute Ocean = new RegionAttribute ("Ocean", new string[] {"ocean"});
+	public static RegionAttribute Grassland = new RegionAttribute ("Grassland", new string[] {"grass:land{:s}", "steppe{:s}", "savanna{:s}", "shrub:land{:s}", "prairie{:s}", "range{:s}", "field{:s}"});
+	public static RegionAttribute Forest = new RegionAttribute ("Forest", new string[] {"forest", "wood{:s}", "wood:land{:s}"});
+	public static RegionAttribute Taiga = new RegionAttribute ("Taiga", new string[] {"taiga", "hinter{:land}{:s}", "[nad]snow forest", "[nad]snow wood{:land}{:s}"});
+	public static RegionAttribute Tundra = new RegionAttribute ("Tundra", new string[] {"tundra", "waste{:land}{:s}", "[adj]frozen land{:s}", "[adj]frozen expanse"});
+	public static RegionAttribute Desert = new RegionAttribute ("Desert", new string[] {"desert", "sand{:s}"});
+	public static RegionAttribute Rainforest = new RegionAttribute ("Rainforest", new string[] {"rain:forest"});
+	public static RegionAttribute Jungle = new RegionAttribute ("Jungle", new string[] {"jungle"});
+	public static RegionAttribute Valley = new RegionAttribute ("Valley", new string[] {"valley"});
+	public static RegionAttribute Highland = new RegionAttribute ("Highland", new string[] {"high:land{:s}"});
+//	public static RegionAttribute MountainRange = new RegionAttribute ("MountainRange", new string[] {"[nad]mountain range", "mountain:s", "mount:s"});
+//	public static RegionAttribute Hill = new RegionAttribute ("Hill", new string[] {"hill{:s}"});
+//	public static RegionAttribute Mountain = new RegionAttribute ("Mountain", new string[] {"mountain", "mount"});
+	public static RegionAttribute Basin = new RegionAttribute ("Basin", new string[] {"basin"});
+//	public static RegionAttribute Plain = new RegionAttribute ("Plain", new string[] {"plain{:s}"});
+	public static RegionAttribute Delta = new RegionAttribute ("Delta", new string[] {"delta"});
+	public static RegionAttribute Peninsula = new RegionAttribute ("Peninsula", new string[] {"peninsula"});
+	public static RegionAttribute Island = new RegionAttribute ("Island", new string[] {"island"});
+//	public static RegionAttribute Archipelago = new RegionAttribute ("Archipelago", new string[] {"archipelago", "island:s"});
+//	public static RegionAttribute Channel = new RegionAttribute ("Channel", new string[] {"channel"});
+//	public static RegionAttribute Gulf = new RegionAttribute ("Gulf", new string[] {"gulf"});
+//	public static RegionAttribute Sound = new RegionAttribute ("Sound", new string[] {"sound"});
+//	public static RegionAttribute Lake = new RegionAttribute ("Lake", new string[] {"lake"});
+//	public static RegionAttribute Sea = new RegionAttribute ("Sea", new string[] {"sea"});
+//	public static RegionAttribute Continent = new RegionAttribute ("Continent", new string[] {"continent"});
+//	public static RegionAttribute Strait = new RegionAttribute ("Strait", new string[] {"strait", "pass"});
+	public static RegionAttribute Coast = new RegionAttribute ("Coast", new string[] {"coast"});
+//	public static RegionAttribute Region = new RegionAttribute ("Region", new string[] {"region", "land{:s}"});
+//	public static RegionAttribute Expanse = new RegionAttribute ("Expanse", new string[] {"expanse"});
+
+	public static Dictionary<string, RegionAttribute> Attributes = new Dictionary<string, RegionAttribute> () {
 		{"Glacier", Glacier},
 		{"IceCap", IceCap},
 		{"Ocean", Ocean},
@@ -56,25 +235,25 @@ public class RegionAttributeNoun {
 		{"Jungle", Jungle},
 		{"Valley", Valley},
 		{"Highland", Highland},
-		{"MountainRange", MountainRange},
-		{"Hill", Hill},
-		{"Mountain", Mountain},
+//		{"MountainRange", MountainRange},
+//		{"Hill", Hill},
+//		{"Mountain", Mountain},
 		{"Basin", Basin},
-		{"Plain", Plain},
+//		{"Plain", Plain},
 		{"Delta", Delta},
 		{"Peninsula", Peninsula},
 		{"Island", Island},
-		{"Archipelago", Archipelago},
-		{"Chanel", Channel},
-		{"Gulf", Gulf},
-		{"Sound", Sound},
-		{"Lake", Lake},
-		{"Sea", Sea},
-		{"Continent", Continent},
-		{"Strait", Strait},
-		{"Coast", Coast},
-		{"Region", Region},
-		{"Expanse", Expanse}
+//		{"Archipelago", Archipelago},
+//		{"Chanel", Channel},
+//		{"Gulf", Gulf},
+//		{"Sound", Sound},
+//		{"Lake", Lake},
+//		{"Sea", Sea},
+//		{"Continent", Continent},
+//		{"Strait", Strait},
+		{"Coast", Coast}
+//		{"Region", Region}
+//		{"Expanse", Expanse}
 	};
 
 	private void GenerateVariations (string variant) {
@@ -94,11 +273,9 @@ public class RegionAttributeNoun {
 		GenerateVariations (v2);
 	}
 
-	private RegionAttributeNoun (string name, string[] variants) {
+	private RegionAttribute (string name, string[] variants) {
 
 		Name = name;
-
-		Variations = new List<string> ();
 
 		foreach (string variant in variants) {
 
@@ -127,7 +304,10 @@ public abstract class Region : ISynchronizable {
 	public Name Name;
 
 	[XmlIgnore]
-	public List<RegionAttributeNoun> AttributeNouns = new List<RegionAttributeNoun>();
+	public List<RegionAttribute> Attributes = new List<RegionAttribute>();
+
+	[XmlIgnore]
+	public List<RegionElement> Elements = new List<RegionElement>();
 
 	[XmlIgnore]
 	public bool IsSelected = false;
@@ -320,21 +500,31 @@ public abstract class Region : ISynchronizable {
 		return region;
 	}
 
-	protected void AddAttribute (RegionAttributeNoun attr) {
+	protected void AddAttribute (RegionAttribute attr) {
 
-		AttributeNouns.Add (attr);
+		Attributes.Add (attr);
 	}
 
 	public string GetRandomAttributeVariation (GetRandomIntDelegate getRandomInt) {
 
-		if (AttributeNouns.Count <= 0) {
-		
+		if (Attributes.Count <= 0) {
+
 			return string.Empty;
 		}
 
-		int index = getRandomInt (AttributeNouns.Count);
+		int index = getRandomInt (Attributes.Count);
 
-		return AttributeNouns [index].GetRandomVariation (getRandomInt);
+		return Attributes [index].GetRandomVariation (getRandomInt);
+	}
+
+	protected void AddElement (RegionElement elem) {
+
+		Elements.Add (elem);
+	}
+
+	protected void AddElements (IEnumerable<RegionElement> elem) {
+
+		Elements.AddRange (elem);
 	}
 
 	public void GenerateName (Polity polity, TerrainCell startCell) {
@@ -349,7 +539,7 @@ public abstract class Region : ISynchronizable {
 		string untranslatedName;
 		Language.NounPhrase namePhrase;
 
-		if (AttributeNouns.Count <= 0) {
+		if (Attributes.Count <= 0) {
 
 			untranslatedName = "the region";
 			namePhrase = polityLanguage.TranslateNounPhrase (untranslatedName, getRandomFloat);
@@ -359,11 +549,11 @@ public abstract class Region : ISynchronizable {
 			return;
 		}
 
-		List<RegionAttributeNoun> attributeNouns = new List<RegionAttributeNoun> (AttributeNouns);
+		List<RegionAttribute> attributeNouns = new List<RegionAttribute> (Attributes);
 
 		int index = getRandomInt (attributeNouns.Count);
 
-		RegionAttributeNoun primaryAttribute = attributeNouns [index];
+		RegionAttribute primaryAttribute = attributeNouns [index];
 
 		attributeNouns.RemoveAt (index);
 
@@ -375,7 +565,7 @@ public abstract class Region : ISynchronizable {
 
 			index = getRandomInt (attributeNouns.Count);
 
-			RegionAttributeNoun secondaryAttribute = attributeNouns [index];
+			RegionAttribute secondaryAttribute = attributeNouns [index];
 
 			attributeNouns.RemoveAt (index);
 
@@ -565,6 +755,7 @@ public class CellRegion : Region {
 		CalculateMostCenteredCell ();
 
 		DefineAttributes ();
+		DefineElements ();
 	}
 
 	public bool RemoveCell (TerrainCell cell) {
@@ -613,27 +804,27 @@ public class CellRegion : Region {
 	private void DefineAttributes () {
 
 		if ((CoastPercentage > 0.35f) && (CoastPercentage < 0.65f)) {
-			AddAttribute (RegionAttributeNoun.Coast);
+			AddAttribute (RegionAttribute.Coast);
 
 		} else if ((CoastPercentage >= 0.65f) && (CoastPercentage < 1f)) {
-			AddAttribute (RegionAttributeNoun.Peninsula);
+			AddAttribute (RegionAttribute.Peninsula);
 
 		} else if (CoastPercentage >= 1f) {
-			AddAttribute (RegionAttributeNoun.Island);
+			AddAttribute (RegionAttribute.Island);
 		}
 
 		if (AverageAltitude > (AverageOuterBorderAltitude + 200f)) {
 
-			AddAttribute (RegionAttributeNoun.Highland);
+			AddAttribute (RegionAttribute.Highland);
 		}
 
 		if (AverageAltitude < (AverageOuterBorderAltitude - 200f)) {
 
-			AddAttribute (RegionAttributeNoun.Valley);
+			AddAttribute (RegionAttribute.Valley);
 
 			if (AverageRainfall > 1000) {
 
-				AddAttribute (RegionAttributeNoun.Basin);
+				AddAttribute (RegionAttribute.Basin);
 			}
 		}
 
@@ -642,45 +833,50 @@ public class CellRegion : Region {
 			switch (BiomeWithMostPresence) {
 
 			case "Desert":
-				AddAttribute (RegionAttributeNoun.Desert);
+				AddAttribute (RegionAttribute.Desert);
 				break;
 
 			case "Desertic Tundra":
-				AddAttribute (RegionAttributeNoun.Desert);
+				AddAttribute (RegionAttribute.Desert);
 				break;
 
 			case "Forest":
-				AddAttribute (RegionAttributeNoun.Forest);
+				AddAttribute (RegionAttribute.Forest);
 				break;
 
 			case "Glacier":
-				AddAttribute (RegionAttributeNoun.Glacier);
+				AddAttribute (RegionAttribute.Glacier);
 				break;
 
 			case "Grassland":
-				AddAttribute (RegionAttributeNoun.Grassland);
+				AddAttribute (RegionAttribute.Grassland);
 				break;
 
 			case "Ice Cap":
-				AddAttribute (RegionAttributeNoun.IceCap);
+				AddAttribute (RegionAttribute.IceCap);
 				break;
 
 			case "Rainforest":
-				AddAttribute (RegionAttributeNoun.Rainforest);
+				AddAttribute (RegionAttribute.Rainforest);
 
 				if (AverageTemperature > 20)
-					AddAttribute (RegionAttributeNoun.Jungle);
+					AddAttribute (RegionAttribute.Jungle);
 				break;
 
 			case "Taiga":
-				AddAttribute (RegionAttributeNoun.Taiga);
+				AddAttribute (RegionAttribute.Taiga);
 				break;
 
 			case "Tundra":
-				AddAttribute (RegionAttributeNoun.Tundra);
+				AddAttribute (RegionAttribute.Tundra);
 				break;
 			}
 		}
+	}
+
+	private void DefineElements () {
+
+		AddElements(RegionElement.Elements.Values.FindAll (e => e.Assignable (this)));
 	}
 
 	private void CalculateMostCenteredCell () {

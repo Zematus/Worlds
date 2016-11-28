@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
+using System.Linq;
 
 public class CellGroup : HumanGroup {
 
@@ -193,7 +194,7 @@ public class CellGroup : HumanGroup {
 			Culture = new CellCulture (this, baseCulture);
 		}
 		
-		Neighbors = new List<CellGroup>(new List<TerrainCell>(cell.Neighbors.Values).FindAll (c => c.Group != null).Process (c => c.Group));
+		Neighbors = new List<CellGroup>(cell.Neighbors.Values.FindAll (c => c.Group != null).Select (c => c.Group));
 
 		Neighbors.ForEach (g => g.AddNeighbor (this));
 
@@ -1947,7 +1948,7 @@ public class CellGroup : HumanGroup {
 
 		Cell.Group = this;
 
-		Neighbors = new List<CellGroup> (new List<TerrainCell>(Cell.Neighbors.Values).FindAll (c => c.Group != null).Process (c => c.Group));
+		Neighbors = new List<CellGroup> (Cell.Neighbors.Values.FindAll (c => c.Group != null).Select (c => c.Group));
 		
 		Neighbors.ForEach (g => g.AddNeighbor (this));
 		

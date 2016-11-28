@@ -18,7 +18,7 @@ public abstract class Faction : ISynchronizable {
 	[XmlAttribute("StilPres")]
 	public bool StillPresent = true;
 
-	public Name Name;
+	public Name Name = null;
 
 	public List<string> Flags = new List<string> ();
 
@@ -37,7 +37,7 @@ public abstract class Faction : ISynchronizable {
 
 	}
 
-	public Faction (CellGroup group, Polity polity, Name name) {
+	public Faction (CellGroup group, Polity polity) {
 
 		World = group.World;
 
@@ -49,7 +49,7 @@ public abstract class Faction : ISynchronizable {
 		PolityId = polity.Id;
 		Polity = polity;
 
-		Name = name;
+		GenerateName ();
 	}
 
 	public void Destroy () {
@@ -64,6 +64,8 @@ public abstract class Faction : ISynchronizable {
 		Group = group;
 		GroupId = group.Id;
 	}
+
+	public abstract void GenerateName ();
 
 	public void Update () {
 
