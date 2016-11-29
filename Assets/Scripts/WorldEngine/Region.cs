@@ -46,6 +46,11 @@ public class RegionConstraint {
 
 			return new RegionConstraint (type, rainfall_above);
 
+		case "rainfall_below":
+			float rainfall_below = float.Parse (valueStr);
+
+			return new RegionConstraint (type, rainfall_below);
+
 		case "temperature_above":
 			float temperature_above = float.Parse (valueStr);
 
@@ -103,6 +108,9 @@ public class RegionConstraint {
 		case "rainfall_above":
 			return region.AverageRainfall >= (float)Value;
 
+		case "rainfall_below":
+			return region.AverageRainfall < (float)Value;
+
 		case "temperature_above":
 			return region.AverageTemperature >= (float)Value;
 
@@ -137,6 +145,10 @@ public class RegionElement {
 	public static RegionElement Fire = new RegionElement ("Fire", new string[] {"altitude_above:0","temperature_above:0"});
 	public static RegionElement Water = new RegionElement ("Water", new string[] {"altitude_below:0"});
 	public static RegionElement Rain = new RegionElement ("Rain", new string[] {"rainfall_above:675"});
+	public static RegionElement Sun = new RegionElement ("Sun", new string[] {"rainfall_below:1775"});
+	public static RegionElement Moon = new RegionElement ("Moon", new string[] {"rainfall_below:1775"});
+	public static RegionElement Day = new RegionElement ("Day", new string[] {});
+	public static RegionElement Night = new RegionElement ("Night", new string[] {});
 	public static RegionElement Air = new RegionElement ("Air", new string[] {});
 	public static RegionElement Sky = new RegionElement ("Sky", new string[] {"altitude_above:3000"});
 	public static RegionElement Ice = new RegionElement ("Ice", new string[] {"temperature_below:0"});
@@ -156,6 +168,10 @@ public class RegionElement {
 		{"Fire", Fire},
 		{"Water", Water},
 		{"Rain", Rain},
+		{"Sun", Sun},
+		{"Moon", Moon},
+		{"Day", Day},
+		{"Night", Night},
 		{"Air", Air},
 		{"Sky", Sky},
 		{"Ice", Ice},

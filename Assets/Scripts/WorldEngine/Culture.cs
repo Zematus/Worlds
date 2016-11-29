@@ -497,10 +497,10 @@ public class CellCulture : Culture {
 	[XmlIgnore]
 	public Dictionary<string, CellCulturalDiscovery> DiscoveriesToFind = new Dictionary<string, CellCulturalDiscovery> ();
 
-	private List<CellCulturalActivity> _activitiesToLose = new List<CellCulturalActivity> ();
-	private List<CellCulturalSkill> _skillsToLose = new List<CellCulturalSkill> ();
-	private List<CellCulturalKnowledge> _knowledgesToLose = new List<CellCulturalKnowledge> ();
-	private List<CellCulturalDiscovery> _discoveriesToLose = new List<CellCulturalDiscovery> ();
+	private HashSet<CellCulturalActivity> _activitiesToLose = new HashSet<CellCulturalActivity> ();
+	private HashSet<CellCulturalSkill> _skillsToLose = new HashSet<CellCulturalSkill> ();
+	private HashSet<CellCulturalKnowledge> _knowledgesToLose = new HashSet<CellCulturalKnowledge> ();
+	private HashSet<CellCulturalDiscovery> _discoveriesToLose = new HashSet<CellCulturalDiscovery> ();
 
 	public CellCulture () {
 	}
@@ -876,19 +876,23 @@ public class CellCulture : Culture {
 
 		Profiler.BeginSample ("Remove Activities");
 
-		_activitiesToLose.ForEach (a => RemoveActivity (a));
+		foreach (CellCulturalActivity a in _activitiesToLose) {
+			RemoveActivity (a);
+		}
 
 		Profiler.EndSample ();
 
 		Profiler.BeginSample ("Remove Skills");
 
-		_skillsToLose.ForEach (s => RemoveSkill (s));
+		foreach (CellCulturalSkill s in _skillsToLose) { 
+			RemoveSkill (s);
+		}
 
 		Profiler.EndSample ();
 
 		Profiler.BeginSample ("Remove Knowledges");
 
-		_knowledgesToLose.ForEach (k => {
+		foreach (CellCulturalKnowledge k in _knowledgesToLose) {
 
 			Profiler.BeginSample ("Remove Knowledge");
 
@@ -901,17 +905,18 @@ public class CellCulture : Culture {
 			k.LossConsequences ();
 
 			Profiler.EndSample ();
-		});
+		}
 
 		Profiler.EndSample ();
 
 		Profiler.BeginSample ("Remove Discoveries");
 
-		_discoveriesToLose.ForEach (d => {
+		foreach (CellCulturalDiscovery d in _discoveriesToLose) {
+			
 			RemoveDiscovery (d);
 			d.LossConsequences (Group);
 			discoveriesLost = true;
-		});
+		}
 
 		Profiler.EndSample ();
 

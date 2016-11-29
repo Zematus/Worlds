@@ -457,6 +457,9 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge {
 
 			int triggerDate = SailingDiscoveryEvent.CalculateTriggerDate (Group);
 
+			if (triggerDate == int.MinValue)
+				return;
+
 			Group.World.InsertEventToHappen (new SailingDiscoveryEvent (Group, triggerDate));
 		}
 	}
@@ -509,11 +512,14 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge {
 
 			Profiler.EndSample ();
 
-			Profiler.BeginSample ("InsertEventToHappen: BoatMakingDiscoveryEvent");
+			if (triggerDate > int.MinValue) {
 
-			Group.World.InsertEventToHappen (new BoatMakingDiscoveryEvent (Group, triggerDate));
+				Profiler.BeginSample ("InsertEventToHappen: BoatMakingDiscoveryEvent");
 
-			Profiler.EndSample ();
+				Group.World.InsertEventToHappen (new BoatMakingDiscoveryEvent (Group, triggerDate));
+
+				Profiler.EndSample ();
+			}
 		}
 
 		Profiler.EndSample ();
@@ -654,17 +660,20 @@ public class AgricultureKnowledge : CellCulturalKnowledge {
 
 			Profiler.EndSample ();
 
-			Profiler.BeginSample ("new PlantCultivationDiscoveryEvent");
+			if (triggerDate > int.MinValue) {
 
-			PlantCultivationDiscoveryEvent plantCultivationDiscoveryEvent = new PlantCultivationDiscoveryEvent (Group, triggerDate);
+				Profiler.BeginSample ("new PlantCultivationDiscoveryEvent");
 
-			Profiler.EndSample ();
+				PlantCultivationDiscoveryEvent plantCultivationDiscoveryEvent = new PlantCultivationDiscoveryEvent (Group, triggerDate);
 
-			Profiler.BeginSample ("InsertEventToHappen: PlantCultivationDiscoveryEvent");
+				Profiler.EndSample ();
 
-			Group.World.InsertEventToHappen (plantCultivationDiscoveryEvent);
+				Profiler.BeginSample ("InsertEventToHappen: PlantCultivationDiscoveryEvent");
 
-			Profiler.EndSample ();
+				Group.World.InsertEventToHappen (plantCultivationDiscoveryEvent);
+
+				Profiler.EndSample ();
+			}
 		}
 
 		Profiler.EndSample ();
@@ -798,6 +807,9 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge {
 		if (TribalismDiscoveryEvent.CanSpawnIn (Group)) {
 
 			int triggerDate = TribalismDiscoveryEvent.CalculateTriggerDate (Group);
+
+			if (triggerDate == int.MinValue)
+				return;
 
 			Group.World.InsertEventToHappen (new TribalismDiscoveryEvent (Group, triggerDate));
 		}

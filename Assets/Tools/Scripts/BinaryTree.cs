@@ -89,7 +89,7 @@ public class BinaryTree<TKey, TValue> {
 
 		while (true) {
 
-			Profiler.BeginSample ("Binary Tree Node Compare");
+//			Profiler.BeginSample ("Binary Tree Node Compare");
 
 			level++;
 
@@ -107,14 +107,14 @@ public class BinaryTree<TKey, TValue> {
 					if (isRightmost)
 						_rightmostItem = item;
 
-					Profiler.EndSample ();
+//					Profiler.EndSample ();
 
 					break;
 				}
 
 				node = node.Right;
 
-				Profiler.EndSample ();
+//				Profiler.EndSample ();
 
 				continue;
 
@@ -130,14 +130,14 @@ public class BinaryTree<TKey, TValue> {
 					if (isLeftmost)
 						_leftmostItem = item;
 
-					Profiler.EndSample ();
+//					Profiler.EndSample ();
 
 					break;
 				}
 
 				node = node.Left;
 
-				Profiler.EndSample ();
+//				Profiler.EndSample ();
 
 				continue;
 			}

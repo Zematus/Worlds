@@ -435,12 +435,12 @@ public class SailingDiscoveryEvent : CellGroupEvent {
 
 		float dateSpan = (1 - randomFactor) * DateSpanFactorConstant / shipBuildingFactor;
 
-		int targetCurrentDate = (int)Mathf.Min (int.MaxValue, group.World.CurrentDate + dateSpan);
+		int targetDate = (int)(group.World.CurrentDate + dateSpan);
 
-		if (targetCurrentDate <= group.World.CurrentDate)
-			targetCurrentDate = int.MaxValue;
+		if (targetDate <= group.World.CurrentDate)
+			targetDate = int.MinValue;
 
-		return targetCurrentDate;
+		return targetDate;
 	}
 	
 	public static bool CanSpawnIn (CellGroup group) {
@@ -527,12 +527,12 @@ public class TribalismDiscoveryEvent : CellGroupEvent {
 
 		float dateSpan = (1 - randomFactor) * DateSpanFactorConstant / socialOrganizationFactor;
 
-		int targetCurrentDate = (int)Mathf.Min (int.MaxValue, group.World.CurrentDate + dateSpan);
+		int targetDate = (int)(group.World.CurrentDate + dateSpan);
 
-		if (targetCurrentDate <= group.World.CurrentDate)
-			targetCurrentDate = int.MaxValue;
+		if (targetDate <= group.World.CurrentDate)
+			targetDate = int.MinValue;
 
-		return targetCurrentDate;
+		return targetDate;
 	}
 
 	public static bool CanSpawnIn (CellGroup group) {
@@ -618,12 +618,12 @@ public class BoatMakingDiscoveryEvent : CellGroupEvent {
 			throw new System.Exception ("Can't calculate valid trigger date");
 		}
 
-		int targetCurrentDate = (int)Mathf.Min (int.MaxValue, group.World.CurrentDate + dateSpan);
+		int targetDate = (int)(group.World.CurrentDate + dateSpan);
 
-		if (targetCurrentDate <= group.World.CurrentDate)
-			targetCurrentDate = int.MaxValue;
+		if (targetDate <= group.World.CurrentDate)
+			targetDate = int.MinValue;
 
-		return targetCurrentDate;
+		return targetDate;
 	}
 	
 	public static bool CanSpawnIn (CellGroup group) {
@@ -684,12 +684,12 @@ public class PlantCultivationDiscoveryEvent : CellGroupEvent {
 			throw new System.Exception ("Can't calculate valid trigger date");
 		}
 
-		int targetCurrentDate = (int)Mathf.Min (int.MaxValue, group.World.CurrentDate + dateSpan);
+		int targetDate = (int)(group.World.CurrentDate + dateSpan);
 
-		if (targetCurrentDate <= group.World.CurrentDate)
-			targetCurrentDate = int.MaxValue;
+		if (targetDate <= group.World.CurrentDate)
+			targetDate = int.MinValue;
 
-		return targetCurrentDate;
+		return targetDate;
 	}
 
 	public static bool CanSpawnIn (CellGroup group) {

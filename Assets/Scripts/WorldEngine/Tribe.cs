@@ -128,10 +128,10 @@ public class TribeFormationEvent : CellGroupEvent {
 
 		float dateSpan = (1 - randomFactor) * DateSpanFactorConstant / (socialOrganizationFactor * influenceFactor);
 
-		int targetDate = (int)Mathf.Min (int.MaxValue, group.World.CurrentDate + dateSpan);
+		int targetDate = (int)(group.World.CurrentDate + dateSpan);
 
 		if (targetDate <= group.World.CurrentDate)
-			targetDate = int.MaxValue;
+			targetDate = int.MinValue;
 
 		return targetDate;
 	}

@@ -86,6 +86,10 @@ public class Language : ISynchronizable {
 
 	public class CharacterGroup : CollectionUtility.ElementWeightPair<string> {
 
+		public CharacterGroup () {
+			
+		}
+
 		public CharacterGroup (string characters, float weight) : base (characters, weight) {
 
 		}
@@ -263,16 +267,25 @@ public class Language : ISynchronizable {
 	{
 		public const int AddSyllableModifier = 8;
 
+		[XmlAttribute("OSALC")]
 		public float OnsetStartAddLetterChance;
+		[XmlAttribute("OALCD")]
 		public float OnsetAddLetterChanceDecay;
+		[XmlAttribute("OGC")]
 		public int OnsetGroupCount;
 
+		[XmlAttribute("NSALC")]
 		public float NucleusStartAddLetterChance;
+		[XmlAttribute("NALCD")]
 		public float NucleusAddLetterChanceDecay;
+		[XmlAttribute("NGC")]
 		public int NucleusGroupCount;
 
+		[XmlAttribute("CSALC")]
 		public float CodaStartAddLetterChance;
+		[XmlAttribute("CALCD")]
 		public float CodaAddLetterChanceDecay;
+		[XmlAttribute("CGC")]
 		public int CodaGroupCount;
 
 		public CharacterGroup[] OnsetGroups;
@@ -280,6 +293,10 @@ public class Language : ISynchronizable {
 		public CharacterGroup[] CodaGroups;
 
 		public List<string> Syllables = new List<string> ();
+
+		public SyllableSet () {
+			
+		}
 
 		public void GenerateCharacterGroups (GetRandomFloatDelegate getRandomFloat) {
 

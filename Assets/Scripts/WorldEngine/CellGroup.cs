@@ -256,12 +256,18 @@ public class CellGroup : HumanGroup {
 
 			int triggerDate = BoatMakingDiscoveryEvent.CalculateTriggerDate (this);
 
+			if (triggerDate == int.MinValue)
+				return;
+
 			World.InsertEventToHappen (new BoatMakingDiscoveryEvent (this, triggerDate));
 		}
 
 		if (PlantCultivationDiscoveryEvent.CanSpawnIn (this)) {
 
 			int triggerDate = PlantCultivationDiscoveryEvent.CalculateTriggerDate (this);
+
+			if (triggerDate == int.MinValue)
+				return;
 
 			World.InsertEventToHappen (new PlantCultivationDiscoveryEvent (this, triggerDate));
 		}
@@ -1247,6 +1253,9 @@ public class CellGroup : HumanGroup {
 		if (TribeFormationEvent.CanSpawnIn (this)) {
 
 			int triggerDate = TribeFormationEvent.CalculateTriggerDate (this);
+
+			if (triggerDate == int.MinValue)
+				return;
 
 			World.InsertEventToHappen (new TribeFormationEvent (this, triggerDate));
 		}
