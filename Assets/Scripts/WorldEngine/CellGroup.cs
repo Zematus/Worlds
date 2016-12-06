@@ -55,7 +55,7 @@ public class CellGroup : HumanGroup {
 	public float SeaTravelFactor = 0;
 
 	[XmlAttribute("TotalPolInfVal")]
-	public float TotalPolityInfluenceValue = 0;
+	public float TotalPolityInfluenceValueFloat = 0;
 
 	[XmlAttribute("MigVal")]
 	public float MigrationValue;
@@ -72,6 +72,16 @@ public class CellGroup : HumanGroup {
 	public List<PolityInfluence> PolityInfluences;
 
 	public static float TravelWidthFactor;
+
+	[XmlIgnore]
+	public float TotalPolityInfluenceValue {
+		get {
+			return TotalPolityInfluenceValueFloat;
+		}
+		set { 
+			TotalPolityInfluenceValueFloat = MathUtility.RoundToSixDecimals (value);
+		}
+	}
 	
 	[XmlIgnore]
 	public TerrainCell Cell;
@@ -83,7 +93,7 @@ public class CellGroup : HumanGroup {
 	public Dictionary<string, BiomeSurvivalSkill> _biomeSurvivalSkills = new Dictionary<string, BiomeSurvivalSkill> (Biome.TypeCount);
 
 	[XmlIgnore]
-	public List<CellGroup> Neighbors;
+	public Dictionary<Direction, CellGroup> Neighbors;
 
 	[XmlIgnore]
 	public PolityInfluence HighestPolityInfluence = null;
@@ -193,10 +203,22 @@ public class CellGroup : HumanGroup {
 		} else {
 			Culture = new CellCulture (this, baseCulture);
 		}
-		
-		Neighbors = new List<CellGroup>(cell.Neighbors.Values.FindAll (c => c.Group != null).Select (c => c.Group));
 
-		Neighbors.ForEach (g => g.AddNeighbor (this));
+		Neighbors = new Dictionary<Direction, CellGroup> (8);
+
+		foreach (KeyValuePair<Direction, TerrainCell> pair in Cell.Neighbors) {
+		
+			if (pair.Value.Group != null) {
+
+				CellGroup group = pair.Value.Group;
+			
+				Neighbors.Add (pair.Key, group);
+
+				Direction dir = TerrainCell.ReverseDirection (pair.Key);
+
+				group.AddNeighbor (dir, this);
+			}
+		}
 
 		InitializeDefaultActivities (initialGroup);
 		InitializeDefaultSkills (initialGroup);
@@ -365,7 +387,7 @@ public class CellGroup : HumanGroup {
 //		return Cell.GetNextLocalRandomFloatNoIteration (iterationOffset);
 //	}
 
-	public void AddNeighbor (CellGroup group) {
+	public void AddNeighbor (Direction direction, CellGroup group) {
 
 		if (group == null)
 			return;
@@ -373,18 +395,37 @@ public class CellGroup : HumanGroup {
 		if (!group.StillPresent)
 			return;
 
-		if (Neighbors.Contains (group))
+		if (Neighbors.ContainsValue (group))
 			return;
 	
-		Neighbors.Add (group);
+		Neighbors.Add (direction, group);
 	}
 	
 	public void RemoveNeighbor (CellGroup group) {
-		
-		if (!Neighbors.Contains (group))
+
+		Direction? direction = null;
+
+		bool found = false;
+
+		foreach (KeyValuePair<Direction, CellGroup> pair in Neighbors) {
+
+			if (group == pair.Value) {
+			
+				direction = pair.Key;
+				found = true;
+				break;
+			}
+		}
+
+		if (!found)
 			return;
 		
-		Neighbors.Remove (group);
+		Neighbors.Remove (direction.Value);
+	}
+
+	public void RemoveNeighbor (Direction direction) {
+
+		Neighbors.Remove (direction);
 	}
 
 	public void InitializeDefaultSkills (bool initialGroup) {
@@ -501,7 +542,7 @@ public class CellGroup : HumanGroup {
 
 			float influenceValue = pInfluence.Value;
 
-			float newInfluenceValue = influenceValue * (1 - percentOfTarget);
+			float newValue = influenceValue * (1 - percentOfTarget);
 
 //			#if DEBUG
 //			if (Manager.RegisterDebugEvent != null) {
@@ -524,7 +565,7 @@ public class CellGroup : HumanGroup {
 //			}
 //			#endif
 
-			SetPolityInfluenceValue (pInfluence.Polity, newInfluenceValue);
+			SetPolityInfluence (pInfluence.Polity, newValue);
 		}
 
 		foreach (PolityInfluence pInfluence in sourcePolityInfluences) {
@@ -557,7 +598,7 @@ public class CellGroup : HumanGroup {
 //			}
 //			#endif
 
-			SetPolityInfluenceValue (polity, newValue);
+			SetPolityInfluence (polity, newValue);
 		}
 	}
 	
@@ -626,6 +667,8 @@ public class CellGroup : HumanGroup {
 		SetPolityUpdates ();
 
 		Profiler.EndSample ();
+
+		UpdateShortesPolityInfluenceCoreDistances ();
 	}
 
 	public void SetupForNextUpdate () {
@@ -965,7 +1008,7 @@ public class CellGroup : HumanGroup {
 
 		float travelFactor = 
 			cellAltitudeDeltaFactor * cellAltitudeDeltaFactor *
-			cellSurvivability * cellSurvivability *  targetCell.Accessibility;
+			cellSurvivability * cellSurvivability * targetCell.Accessibility;
 
 		travelFactor = Mathf.Clamp (travelFactor, 0.0001f, 1);
 
@@ -1064,7 +1107,9 @@ public class CellGroup : HumanGroup {
 		Cell.Group = null;
 		World.RemoveGroup (this);
 
-		Neighbors.ForEach (g => RemoveNeighbor (this));
+		foreach (KeyValuePair<Direction, CellGroup> pair in Neighbors) {
+			pair.Value.RemoveNeighbor (TerrainCell.ReverseDirection(pair.Key));
+		}
 
 		EraseSeaMigrationRoute ();
 
@@ -1090,7 +1135,7 @@ public class CellGroup : HumanGroup {
 
 			Polity polity = polityInfluence.Polity;
 
-			SetPolityInfluenceValue (polity, 0);
+			SetPolityInfluence (polity, 0);
 		}
 	}
 
@@ -1786,33 +1831,72 @@ public class CellGroup : HumanGroup {
 		return polityInfluence.Value;
 	}
 
-	public void SetPolityInfluenceValue (Polity polity, float newInfluenceValue) {
+	public float GetPolityInfluenceCoreDistance (Polity polity) {
 
-		#if DEBUG
-		if (Manager.RegisterDebugEvent != null) {
-			if ((Id == Manager.TracingData.GroupId) || (polity.Id == Manager.TracingData.PolityId)) {
-				string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
+		PolityInfluence polityInfluence;
 
-				System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
+		if (!_polityInfluences.TryGetValue (polity.Id, out polityInfluence))
+			return float.MaxValue;
 
-				System.Reflection.MethodBase method = stackTrace.GetFrame(1).GetMethod();
-				string callingMethod = method.Name;
+		return polityInfluence.CoreDistance;
+	}
 
-				string callingClass = method.DeclaringType.ToString();
+	private float CalculateShortestPolityInfluenceCoreDistance (PolityInfluence pi) {
 
-				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-					"SetPolityInfluenceValue - Group:" + groupId + 
-					", polity.Id: " + polity.Id, 
-					"CurrentDate: " + World.CurrentDate + 
-					", polity.TotalGroupInfluenceValue: " + polity.TotalGroupInfluenceValue + 
-					", newInfluenceValue: " + newInfluenceValue + 
-					", caller: " + callingClass + ":" + callingMethod + 
-					"");
+		if (pi.Polity.CoreGroup == this)
+			return 0;
 
-				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-			}
+		float shortestDistance = float.MaxValue;
+	
+		foreach (KeyValuePair<Direction, CellGroup> pair in Neighbors) {
+		
+			float distanceToCoreFromNeighbor = pair.Value.GetPolityInfluenceCoreDistance (pi.Polity);
+			float neighborDistance = Cell.NeighborDistances[pair.Key];
+
+			float totalDistance = distanceToCoreFromNeighbor + neighborDistance;
+
+			if (totalDistance < shortestDistance)
+				shortestDistance = totalDistance;
 		}
-		#endif
+
+		return shortestDistance;
+	}
+
+	private void UpdateShortesPolityInfluenceCoreDistances () {
+	
+		foreach (PolityInfluence pi in _polityInfluences.Values) {
+		
+			pi.CoreDistance = CalculateShortestPolityInfluenceCoreDistance (pi);
+		}
+	}
+
+	public void SetPolityInfluence (Polity polity, float newInfluenceValue) {
+
+//		#if DEBUG
+//		if (Manager.RegisterDebugEvent != null) {
+//			if ((Id == Manager.TracingData.GroupId) || (polity.Id == Manager.TracingData.PolityId)) {
+//				string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
+//
+//				System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
+//
+//				System.Reflection.MethodBase method = stackTrace.GetFrame(1).GetMethod();
+//				string callingMethod = method.Name;
+//
+//				string callingClass = method.DeclaringType.ToString();
+//
+//				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//					"SetPolityInfluenceValue - Group:" + groupId + 
+//					", polity.Id: " + polity.Id, 
+//					"CurrentDate: " + World.CurrentDate + 
+//					", polity.TotalGroupInfluenceValue: " + polity.TotalGroupInfluenceValue + 
+//					", newInfluenceValue: " + newInfluenceValue + 
+//					", caller: " + callingClass + ":" + callingMethod + 
+//					"");
+//
+//				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+//			}
+//		}
+//		#endif
 
 		#if DEBUG
 		RunningFunction_SetPolityInfluence = true;
@@ -1822,8 +1906,6 @@ public class CellGroup : HumanGroup {
 			bool debug = true;
 		}
 		#endif
-
-		newInfluenceValue = MathUtility.RoundToSixDecimals (newInfluenceValue);
 
 		PolityInfluence polityInfluence;
 
@@ -1957,9 +2039,21 @@ public class CellGroup : HumanGroup {
 
 		Cell.Group = this;
 
-		Neighbors = new List<CellGroup> (Cell.Neighbors.Values.FindAll (c => c.Group != null).Select (c => c.Group));
+		Neighbors = new Dictionary<Direction, CellGroup> (8);
+
+		foreach (KeyValuePair<Direction,TerrainCell> pair in Cell.Neighbors) {
 		
-		Neighbors.ForEach (g => g.AddNeighbor (this));
+			if (pair.Value.Group != null) {
+			
+				CellGroup group = pair.Value.Group;
+
+				Neighbors.Add (pair.Key, group);
+
+				Direction dir = TerrainCell.ReverseDirection (pair.Key);
+
+				group.AddNeighbor (dir, this);
+			}
+		}
 		
 		World.UpdateMostPopulousGroup (this);
 

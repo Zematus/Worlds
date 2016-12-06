@@ -59,7 +59,7 @@ public class Route {
 			if (nextCell == null)
 				break;
 
-			Length += CalculateDistance (nextCell, nextDirection); 
+			Length += nextCell.NeighborDistances [nextDirection]; 
 
 			AddCell (nextCell);
 
@@ -94,26 +94,6 @@ public class Route {
 		}
 
 		Consolidated = true;
-	}
-
-	public float CalculateDistance (TerrainCell cell, Direction direction) {
-
-		float distanceFactor = TerrainCell.MaxWidth;
-
-		if ((direction == Direction.Northeast) ||
-		    (direction == Direction.Northwest) ||
-		    (direction == Direction.Southeast) ||
-		    (direction == Direction.Southwest)) {
-		
-			distanceFactor = Mathf.Sqrt (TerrainCell.MaxWidth + cell.Width);
-
-		} else if ((direction == Direction.East) ||
-		           (direction == Direction.West)) {
-
-			distanceFactor = cell.Width;
-		}
-
-		return distanceFactor;
 	}
 
 	public void AddCell (TerrainCell cell) {

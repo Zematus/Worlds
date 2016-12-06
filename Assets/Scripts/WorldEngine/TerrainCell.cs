@@ -155,6 +155,9 @@ public class TerrainCell : ISynchronizable {
 	[XmlIgnore]
 	public Dictionary<Direction, TerrainCell> Neighbors { get; private set; }
 
+	[XmlIgnore]
+	public Dictionary<Direction, float> NeighborDistances { get; private set; }
+
 	private HashSet<string> _flags = new HashSet<string> ();
 
 	private Dictionary<string, float> _biomePresences = new Dictionary<string, float> ();
@@ -180,6 +183,11 @@ public class TerrainCell : ISynchronizable {
 		get { 
 			return new WorldPosition (Longitude, Latitude);
 		}
+	}
+
+	public static Direction ReverseDirection (Direction dir) {
+
+		return (Direction)(((int)dir + 4) % 8);
 	}
 
 	public long GenerateUniqueIdentifier (long oom = 1, long offset = 0) {
@@ -418,6 +426,35 @@ public class TerrainCell : ISynchronizable {
 	public void InitializeNeighbors () {
 		
 		Neighbors = FindNeighborCells ();
+
+		NeighborDistances = new Dictionary<Direction, float> (Neighbors.Count);
+
+		foreach (KeyValuePair<Direction, TerrainCell> pair in Neighbors) {
+
+			float distance = CalculateDistance (pair.Value, pair.Key);
+
+			NeighborDistances.Add (pair.Key, distance);
+		}
+	}
+
+	public float CalculateDistance (TerrainCell cell, Direction direction) {
+
+		float distance = TerrainCell.MaxWidth;
+
+		if ((direction == Direction.Northeast) ||
+			(direction == Direction.Northwest) ||
+			(direction == Direction.Southeast) ||
+			(direction == Direction.Southwest)) {
+
+			distance = Mathf.Sqrt (TerrainCell.MaxWidth + cell.Width);
+
+		} else if ((direction == Direction.East) ||
+			(direction == Direction.West)) {
+
+			distance = cell.Width;
+		}
+
+		return distance;
 	}
 
 	public void InitializeMiscellaneous () {
@@ -437,7 +474,7 @@ public class TerrainCell : ISynchronizable {
 	
 	private Dictionary<Direction,TerrainCell> FindNeighborCells () {
 		
-		Dictionary<Direction,TerrainCell> neighbors = new Dictionary<Direction,TerrainCell> ();
+		Dictionary<Direction,TerrainCell> neighbors = new Dictionary<Direction,TerrainCell> (8);
 		
 		int wLongitude = (World.Width + Longitude - 1) % World.Width;
 		int eLongitude = (Longitude + 1) % World.Width;

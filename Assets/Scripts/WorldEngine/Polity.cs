@@ -8,8 +8,30 @@ public class PolityInfluence {
 
 	[XmlAttribute]
 	public long PolityId;
-	[XmlAttribute]
-	public float Value;
+	[XmlAttribute("Value")]
+	public float ValueFloat;
+	[XmlAttribute("Dist")]
+	public float CoreDistanceFloat;
+
+	[XmlIgnore]
+	public float Value {
+		get {
+			return ValueFloat;
+		}
+		set { 
+			ValueFloat = MathUtility.RoundToSixDecimals (value);
+		}
+	}
+
+	[XmlIgnore]
+	public float CoreDistance {
+		get {
+			return CoreDistanceFloat;
+		}
+		set { 
+			CoreDistanceFloat = MathUtility.RoundToSixDecimals (value);
+		}
+	}
 
 	[XmlIgnore]
 	public Polity Polity;
@@ -124,7 +146,7 @@ public abstract class Polity : ISynchronizable {
 //		}
 //		#endif
 
-		coreGroup.SetPolityInfluenceValue (this, coreGroupInfluenceValue);
+		coreGroup.SetPolityInfluence (this, coreGroupInfluenceValue);
 
 		GenerateName ();
 	}
@@ -429,7 +451,7 @@ public abstract class Polity : ISynchronizable {
 
 		if (group.Culture.GetDiscovery (TribalismDiscovery.TribalismDiscoveryId) == null) {
 
-			group.SetPolityInfluenceValue (this, 0);
+			group.SetPolityInfluence (this, 0);
 
 			return;
 		}
@@ -483,7 +505,7 @@ public abstract class Polity : ISynchronizable {
 //		}
 //		#endif
 
-		group.SetPolityInfluenceValue (this, influenceValue);
+		group.SetPolityInfluence (this, influenceValue);
 	}
 
 	// TODO: This function should be overriden in children

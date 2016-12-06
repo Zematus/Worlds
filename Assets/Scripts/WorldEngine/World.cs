@@ -229,7 +229,7 @@ public class World : ISynchronizable {
 
 	private BinaryTree<int, WorldEvent> _eventsToHappen = new BinaryTree<int, WorldEvent> ();
 	
-	private List<IGroupAction> _groupActionsToPerform = new List<IGroupAction> ();
+//	private List<IGroupAction> _groupActionsToPerform = new List<IGroupAction> ();
 
 	private HashSet<int> _terrainCellChangesListIndexes = new HashSet<int> ();
 
@@ -621,16 +621,16 @@ public class World : ISynchronizable {
 			group.MoveToCell();
 		}
 		
-		//
-		// Perform Group Actions
-		//
-
-		foreach (IGroupAction action in _groupActionsToPerform) {
-		
-			action.Perform ();
-		}
-
-		_groupActionsToPerform.Clear ();
+//		//
+//		// Perform Group Actions
+//		//
+//
+//		foreach (IGroupAction action in _groupActionsToPerform) {
+//		
+//			action.Perform ();
+//		}
+//
+//		_groupActionsToPerform.Clear ();
 		
 		//
 		// Perform post update ops
