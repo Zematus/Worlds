@@ -446,13 +446,24 @@ public class TerrainCell : ISynchronizable {
 			(direction == Direction.Southeast) ||
 			(direction == Direction.Southwest)) {
 
-			distance = Mathf.Sqrt (TerrainCell.MaxWidth + cell.Width);
+			float sqMaxWidth = TerrainCell.MaxWidth * TerrainCell.MaxWidth;
+
+			float widthSum = (Width + cell.Width) / 2f;
+			float sqCellWidth = widthSum * widthSum;
+
+			distance = Mathf.Sqrt (sqMaxWidth + sqCellWidth);
 
 		} else if ((direction == Direction.East) ||
 			(direction == Direction.West)) {
 
 			distance = cell.Width;
 		}
+
+		float altitudeDiff = Altitude - cell.Altitude;
+		float sqAltDif = altitudeDiff * altitudeDiff;
+		float sqDistance = distance * distance;
+
+		distance = Mathf.Sqrt (sqAltDif + sqDistance);
 
 		return distance;
 	}

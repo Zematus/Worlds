@@ -668,7 +668,13 @@ public class CellGroup : HumanGroup {
 
 		Profiler.EndSample ();
 
-		UpdateShortesPolityInfluenceCoreDistances ();
+		Profiler.BeginSample ("Update Shortest Polity Influence Core Distances");
+
+		UpdateShortestPolityInfluenceCoreDistances ();
+
+		Profiler.EndSample ();
+
+		UpdatePolityInfluenceAdministrativeCosts ();
 	}
 
 	public void SetupForNextUpdate () {
@@ -1851,9 +1857,16 @@ public class CellGroup : HumanGroup {
 		foreach (KeyValuePair<Direction, CellGroup> pair in Neighbors) {
 		
 			float distanceToCoreFromNeighbor = pair.Value.GetPolityInfluenceCoreDistance (pi.Polity);
+
+			if (distanceToCoreFromNeighbor >= float.MaxValue)
+				continue;
+			
 			float neighborDistance = Cell.NeighborDistances[pair.Key];
 
 			float totalDistance = distanceToCoreFromNeighbor + neighborDistance;
+
+			if (totalDistance < 0)
+				continue;
 
 			if (totalDistance < shortestDistance)
 				shortestDistance = totalDistance;
@@ -1862,11 +1875,27 @@ public class CellGroup : HumanGroup {
 		return shortestDistance;
 	}
 
-	private void UpdateShortesPolityInfluenceCoreDistances () {
+	private void UpdateShortestPolityInfluenceCoreDistances () {
 	
 		foreach (PolityInfluence pi in _polityInfluences.Values) {
 		
 			pi.CoreDistance = CalculateShortestPolityInfluenceCoreDistance (pi);
+		}
+	}
+
+	private float CalculatePolityInfluenceAdministrativeCost (PolityInfluence pi) {
+
+		float influencedPopulation = Population * pi.Value;
+		float distanceFactor = 500 + pi.CoreDistance;
+
+		return influencedPopulation * distanceFactor * 0.001f;
+	}
+
+	private void UpdatePolityInfluenceAdministrativeCosts () {
+
+		foreach (PolityInfluence pi in _polityInfluences.Values) {
+
+			pi.AdiministrativeCost = CalculatePolityInfluenceAdministrativeCost (pi);
 		}
 	}
 

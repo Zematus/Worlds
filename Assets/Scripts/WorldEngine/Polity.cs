@@ -11,7 +11,9 @@ public class PolityInfluence {
 	[XmlAttribute("Value")]
 	public float ValueFloat;
 	[XmlAttribute("Dist")]
-	public float CoreDistanceFloat;
+	public float CoreDistance;
+	[XmlAttribute("Cost")]
+	public float AdiministrativeCost;
 
 	[XmlIgnore]
 	public float Value {
@@ -20,16 +22,6 @@ public class PolityInfluence {
 		}
 		set { 
 			ValueFloat = MathUtility.RoundToSixDecimals (value);
-		}
-	}
-
-	[XmlIgnore]
-	public float CoreDistance {
-		get {
-			return CoreDistanceFloat;
-		}
-		set { 
-			CoreDistanceFloat = MathUtility.RoundToSixDecimals (value);
 		}
 	}
 

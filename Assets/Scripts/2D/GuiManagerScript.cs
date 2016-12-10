@@ -1776,6 +1776,8 @@ public class GuiManagerScript : MonoBehaviour {
 
 			Polity polity = polityInfluence.Polity;
 			float influenceValue = polityInfluence.Value;
+			float coreDistance = polityInfluence.CoreDistance;
+			float administrativeCost = polityInfluence.AdiministrativeCost;
 
 			if (influenceValue >= 0.001) {
 
@@ -1785,7 +1787,10 @@ public class GuiManagerScript : MonoBehaviour {
 					firstPolity = false;
 				}
 
-				InfoPanelText.text += "\n\tPolity #" + polity.Id + " - Influence: " + influenceValue.ToString ("P");
+				InfoPanelText.text += "\n\tPolity #" + polity.Id + ":" +
+					"\n\t\tInfluence: " + influenceValue.ToString ("P") +
+					"\n\t\tDistance to Core: " + coreDistance.ToString ("0.000") +
+					"\n\t\tAdministrative Cost: " + administrativeCost.ToString ("0.000");
 			}
 		}
 	}
