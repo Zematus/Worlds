@@ -15,6 +15,9 @@ public abstract class Faction : ISynchronizable {
 	[XmlAttribute("PolId")]
 	public long PolityId;
 
+	[XmlAttribute("Prom")]
+	public float Prominence;
+
 	[XmlAttribute("StilPres")]
 	public bool StillPresent = true;
 
@@ -37,7 +40,7 @@ public abstract class Faction : ISynchronizable {
 
 	}
 
-	public Faction (CellGroup group, Polity polity) {
+	public Faction (CellGroup group, Polity polity, float prominence) {
 
 		World = group.World;
 
@@ -48,6 +51,8 @@ public abstract class Faction : ISynchronizable {
 
 		PolityId = polity.Id;
 		Polity = polity;
+
+		Prominence = prominence;
 
 		GenerateName ();
 	}
@@ -108,6 +113,11 @@ public abstract class Faction : ISynchronizable {
 	public long GenerateUniqueIdentifier (long oom = 1, long offset = 0) {
 
 		return Group.GenerateUniqueIdentifier (oom, offset);
+	}
+
+	public float GetNextLocalRandomFloat (int iterationOffset) {
+
+		return Group.GetNextLocalRandomFloat (iterationOffset);
 	}
 
 	public void SetFlag (string flag) {

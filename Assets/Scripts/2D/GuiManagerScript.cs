@@ -1835,6 +1835,11 @@ public class GuiManagerScript : MonoBehaviour {
 		InfoPanelText.text += "\n\tPolity population: " + totalPopulation;
 		InfoPanelText.text += "\n";
 
+		float administrativeCost = polity.TotalAdministrativeCost;
+
+		InfoPanelText.text += "\n\tAdministrative Cost: " + administrativeCost;
+		InfoPanelText.text += "\n";
+
 		InfoPanelText.text += "\n";
 		InfoPanelText.text += "\n -- Selected Group's Polity Data -- ";
 		InfoPanelText.text += "\n";

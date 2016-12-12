@@ -16,6 +16,9 @@ public class PolityInfluence {
 	public float AdiministrativeCost;
 
 	[XmlIgnore]
+	public float NewCoreDistance;
+
+	[XmlIgnore]
 	public float Value {
 		get {
 			return ValueFloat;
@@ -37,6 +40,21 @@ public class PolityInfluence {
 		PolityId = polity.Id;
 		Polity = polity;
 		Value = MathUtility.RoundToSixDecimals (value);
+
+		AdiministrativeCost = 0;
+	}
+
+	public void PostUpdate () {
+
+		CoreDistance = NewCoreDistance;
+	}
+
+	public void Destroy () {
+
+		if (Polity == null)
+			return;
+	
+		Polity.TotalAdministrativeCost -= AdiministrativeCost;
 	}
 }
 
@@ -54,6 +72,9 @@ public abstract class Polity : ISynchronizable {
 
 	[XmlAttribute]
 	public float TotalGroupInfluenceValue = 0;
+
+	[XmlAttribute]
+	public float TotalAdministrativeCost = 0;
 
 	[XmlAttribute]
 	public float TotalPopulation = 0;
@@ -393,7 +414,7 @@ public abstract class Polity : ISynchronizable {
 
 			CulturalKnowledge socialOrgKnowledge = targetGroup.Culture.GetKnowledge (SocialOrganizationKnowledge.SocialOrganizationKnowledgeId);
 
-			socialOrgFactor = Mathf.Clamp01 (socialOrgKnowledge.Value / (float)SocialOrganizationKnowledge.MinKnowledgeValueForTribalism);
+			socialOrgFactor = Mathf.Clamp01 (socialOrgKnowledge.Value / (float)SocialOrganizationKnowledge.MinValueForTribalism);
 			socialOrgFactor = 1 - Mathf.Pow (1 - socialOrgFactor, 2);
 
 			groupTotalInfluenceValue = targetGroup.TotalPolityInfluenceValue;

@@ -16,7 +16,7 @@ public class Tribe : Polity {
 
 	private Tribe (CellGroup coreGroup, float coreGroupInfluence) : base (coreGroup, coreGroupInfluence) {
 
-		AddFaction (new Clan (coreGroup, this));
+		AddFaction (new Clan (coreGroup, this, 1));
 	}
 
 	public static Tribe GenerateNewTribe (CellGroup coreGroup) {
@@ -93,9 +93,9 @@ public class TribeFormationEvent : CellGroupEvent {
 
 	public const int DateSpanFactorConstant = CellGroup.GenerationTime * 1000;
 
-	public const int MinSocialOrganizationKnowledgeSpawnEventValue = SocialOrganizationKnowledge.MinKnowledgeValueForTribalismSpawnEvent;
-	public const int MinSocialOrganizationKnowledgeValue = SocialOrganizationKnowledge.MinKnowledgeValueForTribalism;
-	public const int OptimalSocialOrganizationKnowledgeValue = SocialOrganizationKnowledge.OptimalKnowledgeValueForTribalism;
+	public const int MinSocialOrganizationKnowledgeSpawnEventValue = SocialOrganizationKnowledge.MinValueForTribalismSpawnEvent;
+	public const int MinSocialOrganizationKnowledgeValue = SocialOrganizationKnowledge.MinValueForTribalism;
+	public const int OptimalSocialOrganizationKnowledgeValue = SocialOrganizationKnowledge.OptimalValueForTribalism;
 
 	public const string EventSetFlag = "TribeFormationEvent_Set";
 
@@ -160,9 +160,9 @@ public class TribeFormationEvent : CellGroupEvent {
 		float influenceFactor = Mathf.Min(1, Group.TotalPolityInfluenceValue * 3f);
 		influenceFactor = Mathf.Pow (1 - influenceFactor, 4);
 
-		float rollValue = Group.Cell.GetNextLocalRandomFloat (RngOffsets.EVENT_CAN_TRIGGER + (int)Id);
+		float triggerValue = Group.Cell.GetNextLocalRandomFloat (RngOffsets.EVENT_CAN_TRIGGER + (int)Id);
 
-		if (rollValue > influenceFactor)
+		if (triggerValue > influenceFactor)
 			return false;
 
 		return true;

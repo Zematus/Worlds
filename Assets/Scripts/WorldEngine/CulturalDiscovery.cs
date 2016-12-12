@@ -173,7 +173,7 @@ public class TribalismDiscovery : CellCulturalDiscovery {
 		if (knowledge == null)
 			return false;
 
-		if (knowledge.Value < SocialOrganizationKnowledge.MinKnowledgeValueForTribalism)
+		if (knowledge.Value < SocialOrganizationKnowledge.MinValueForTribalism)
 			return false;
 
 		return true;

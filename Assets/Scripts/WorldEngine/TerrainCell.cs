@@ -463,7 +463,9 @@ public class TerrainCell : ISynchronizable {
 		float sqAltDif = altitudeDiff * altitudeDiff;
 		float sqDistance = distance * distance;
 
-		distance = Mathf.Sqrt (sqAltDif + sqDistance);
+		float avgAccesibility = (Accessibility + cell.Accessibility) / 2f;
+
+		distance = Mathf.Sqrt (sqAltDif + sqDistance) * avgAccesibility;
 
 		return distance;
 	}
