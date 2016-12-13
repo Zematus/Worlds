@@ -41,7 +41,6 @@ public abstract class WorldEvent : ISynchronizable {
 		World = world;
 		TriggerDate = triggerDate;
 
-//		Id = World.GenerateEventId ();
 		Id = id;
 	}
 
@@ -69,6 +68,13 @@ public abstract class WorldEvent : ISynchronizable {
 
 	protected virtual void DestroyInternal () {
 	
+	}
+
+	protected virtual void Reset (int newTriggerDate) {
+
+		EventCount++;
+
+		TriggerDate = newTriggerDate;
 	}
 }
 

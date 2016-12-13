@@ -715,8 +715,6 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge {
 	public const int MinValueForTribalism = 400;
 	public const int OptimalValueForTribalism = 1000;
 
-	public const int MuValueForClanSplitting = 10000;
-
 	public const float TimeEffectConstant = CellGroup.GenerationTime * 500;
 	public const float PopulationDensityModifier = 10000f;
 

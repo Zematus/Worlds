@@ -6,6 +6,8 @@ using System.Xml.Serialization;
 
 public class Tribe : Polity {
 
+	public const string TribeType = "Tribe";
+
 	public static string[] TribeNounVariations = new string[] { "tribe", "people", "folk", "community", "[ipn(man)]men", "[ipn(woman)]women", "[ipn(child)]children" };
 
 	public const float BaseCoreInfluence = 0.5f;
@@ -14,7 +16,7 @@ public class Tribe : Polity {
 
 	}
 
-	private Tribe (CellGroup coreGroup, float coreGroupInfluence) : base (coreGroup, coreGroupInfluence) {
+	private Tribe (CellGroup coreGroup, float coreGroupInfluence) : base (TribeType, coreGroup, coreGroupInfluence) {
 
 		AddFaction (new Clan (coreGroup, this, 1));
 	}

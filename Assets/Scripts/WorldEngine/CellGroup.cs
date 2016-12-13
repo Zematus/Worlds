@@ -65,7 +65,7 @@ public class CellGroup : HumanGroup {
 
 	public Route SeaMigrationRoute = null;
 
-	public List<string> Flags = new List<string> ();
+	public List<string> Flags;
 
 	public CellCulture Culture;
 
@@ -315,7 +315,6 @@ public class CellGroup : HumanGroup {
 			return;
 
 		_flags.Add (flag);
-		Flags.Add (flag);
 	}
 
 	public bool IsFlagSet (string flag) {
@@ -329,7 +328,6 @@ public class CellGroup : HumanGroup {
 			return;
 
 		_flags.Remove (flag);
-		Flags.Remove (flag);
 	}
 
 //	public void AddAssociatedEvent (WorldEvent e) {
@@ -2064,6 +2062,8 @@ public class CellGroup : HumanGroup {
 	}
 
 	public override void Synchronize () {
+
+		Flags = new List<string> (_flags);
 
 		Culture.Synchronize ();
 

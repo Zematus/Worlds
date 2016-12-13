@@ -1827,7 +1827,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 		Polity polity = territory.Polity;
 
-		InfoPanelText.text += "\n\tTerritory of polity #" + polity.Id + ": " + polity.Name;
+		InfoPanelText.text += "\n\tTerritory of " + polity.Type + " " + polity.Name + " (#" + polity.Id +")";
 		InfoPanelText.text += "\n";
 
 		int totalPopulation = (int)Mathf.Floor(polity.TotalPopulation);
@@ -1838,7 +1838,16 @@ public class GuiManagerScript : MonoBehaviour {
 		float administrativeCost = polity.TotalAdministrativeCost;
 
 		InfoPanelText.text += "\n\tAdministrative Cost: " + administrativeCost;
+
 		InfoPanelText.text += "\n";
+		InfoPanelText.text += "\n -- Polity Factions -- ";
+		InfoPanelText.text += "\n";
+
+		foreach (Faction faction in polity.GetFactions ()) {
+
+			InfoPanelText.text += "\n\t" + faction.Type + " " + faction.Name;
+			InfoPanelText.text += "\n\t\tProminence: " + faction.Prominence.ToString ("P");
+		}
 
 		InfoPanelText.text += "\n";
 		InfoPanelText.text += "\n -- Selected Group's Polity Data -- ";

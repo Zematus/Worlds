@@ -64,22 +64,25 @@ public abstract class Polity : ISynchronizable {
 
 	public const float MinPolityInfluence = 0.001f;
 
+	[XmlAttribute("Type")]
+	public string Type;
+
 	[XmlAttribute]
 	public long Id;
 
-	[XmlAttribute]
+	[XmlAttribute("CGrpId")]
 	public long CoreGroupId;
 
-	[XmlAttribute]
+	[XmlAttribute("TotalGrpInfValue")]
 	public float TotalGroupInfluenceValue = 0;
 
-	[XmlAttribute]
+	[XmlAttribute("TotalAdmCost")]
 	public float TotalAdministrativeCost = 0;
 
-	[XmlAttribute]
+	[XmlAttribute("TotalPop")]
 	public float TotalPopulation = 0;
 
-	[XmlAttribute]
+	[XmlAttribute("FctnCount")]
 	public int FactionCount { get; private set; }
 
 	public Name Name;
@@ -126,7 +129,9 @@ public abstract class Polity : ISynchronizable {
 	
 	}
 
-	public Polity (CellGroup coreGroup, float coreGroupInfluenceValue) {
+	public Polity (string type, CellGroup coreGroup, float coreGroupInfluenceValue) {
+
+		Type = type;
 
 		World = coreGroup.World;
 
@@ -165,13 +170,20 @@ public abstract class Polity : ISynchronizable {
 	}
 
 	public void Destroy () {
+
+		List<Faction> factions = new List<Faction> (_factions.Values);
+
+		foreach (Faction faction in factions) {
 		
-		World.RemovePolity (this);
+			faction.Destroy ();
+		}
 
 		foreach (CellGroup group in InfluencedGroups.Values) {
 
 			group.RemovePolityInfluence (this);
 		}
+		
+		World.RemovePolity (this);
 	}
 
 	public void AddFaction (Faction faction) {

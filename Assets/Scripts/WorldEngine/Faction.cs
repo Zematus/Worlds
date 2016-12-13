@@ -6,6 +6,9 @@ using System.Xml.Serialization;
 
 public abstract class Faction : ISynchronizable {
 
+	[XmlAttribute("Type")]
+	public string Type;
+
 	[XmlAttribute]
 	public long Id;
 
@@ -23,7 +26,7 @@ public abstract class Faction : ISynchronizable {
 
 	public Name Name = null;
 
-	public List<string> Flags = new List<string> ();
+	public List<string> Flags;
 
 	[XmlIgnore]
 	public World World;
@@ -40,7 +43,9 @@ public abstract class Faction : ISynchronizable {
 
 	}
 
-	public Faction (CellGroup group, Polity polity, float prominence) {
+	public Faction (string type, CellGroup group, Polity polity, float prominence) {
+
+		Type = type;
 
 		World = group.World;
 
@@ -88,6 +93,8 @@ public abstract class Faction : ISynchronizable {
 
 	public virtual void Synchronize () {
 
+		Flags = new List<string> (_flags);
+
 		Name.Synchronize ();
 	}
 
@@ -126,7 +133,6 @@ public abstract class Faction : ISynchronizable {
 			return;
 
 		_flags.Add (flag);
-		Flags.Add (flag);
 	}
 
 	public bool IsFlagSet (string flag) {
@@ -140,7 +146,6 @@ public abstract class Faction : ISynchronizable {
 			return;
 
 		_flags.Remove (flag);
-		Flags.Remove (flag);
 	}
 }
 
@@ -185,11 +190,5 @@ public abstract class FactionEvent : WorldEvent {
 
 		Polity = World.GetPolity (PolityId);
 		Faction = Polity.GetFaction (FactionId);
-	}
-
-	protected override void DestroyInternal ()
-	{
-//		if (Faction == null)
-//			return;
 	}
 }
