@@ -65,26 +65,21 @@ public class Tribe : Polity {
 //		#endif
 	}
 
-	public const float MinInfluenceForWeight = 0.1f;
-
 	public CellGroup GetRandomWeightedInfluencedGroup (int rngOffset) {
 
 		WeightedGroup[] weightedGroups = new WeightedGroup[InfluencedGroups.Count];
-
-		float influenceFactor = 1 + MinInfluenceForWeight;
 
 		float totalWeight = 0;
 
 		int index = 0;
 		foreach (CellGroup group in InfluencedGroups.Values) {
 		
-			float weight = Mathf.Max (0, (influenceFactor * group.GetPolityInfluenceValue (this)) - MinInfluenceForWeight);
-			weight *= group.Population;
-			weight *= weight;
+			float weight = group.Population * group.GetPolityInfluenceValue (this);
 
 			totalWeight += weight;
 
 			weightedGroups [index] = new WeightedGroup (group, weight);
+			index++;
 		}
 
 		return CollectionUtility.WeightedSelection (weightedGroups, totalWeight, () => CoreGroup.GetNextLocalRandomFloat (rngOffset));
