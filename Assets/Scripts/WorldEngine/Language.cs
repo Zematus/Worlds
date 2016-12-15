@@ -86,10 +86,12 @@ public class Language : ISynchronizable {
 
 	public class CharacterGroup : CollectionUtility.ElementWeightPair<string> {
 
-		public CharacterGroup (string characters, float weight) {
+		public CharacterGroup () {
+			
+		}
 
-			Value = characters;
-			Weight = weight;
+		public CharacterGroup (string characters, float weight) : base (characters, weight) {
+
 		}
 
 		public string Characters {
@@ -261,20 +263,96 @@ public class Language : ISynchronizable {
 	[XmlIgnore]
 	public AdjunctionProperties NounAdjunctionProperties;
 
-	public string[] ArticleStartSyllables;
-	public string[] ArticleNextSyllables;
+	public class SyllableSet
+	{
+		public const int AddSyllableModifier = 8;
 
-	public string[] IndicativeStartSyllables;
-	public string[] IndicativeNextSyllables;
+		[XmlAttribute("OSALC")]
+		public float OnsetStartAddLetterChance;
+		[XmlAttribute("OALCD")]
+		public float OnsetAddLetterChanceDecay;
+		[XmlAttribute("OGC")]
+		public int OnsetGroupCount;
 
-	public string[] AdpositionStartSyllables;
-	public string[] AdpositionNextSyllables;
+		[XmlAttribute("NSALC")]
+		public float NucleusStartAddLetterChance;
+		[XmlAttribute("NALCD")]
+		public float NucleusAddLetterChanceDecay;
+		[XmlAttribute("NGC")]
+		public int NucleusGroupCount;
 
-	public string[] AdjectiveStartSyllables;
-	public string[] AdjectiveNextSyllables;
+		[XmlAttribute("CSALC")]
+		public float CodaStartAddLetterChance;
+		[XmlAttribute("CALCD")]
+		public float CodaAddLetterChanceDecay;
+		[XmlAttribute("CGC")]
+		public int CodaGroupCount;
 
-	public string[] NounStartSyllables;
-	public string[] NounNextSyllables;
+		public CharacterGroup[] OnsetGroups;
+		public CharacterGroup[] NucleusGroups;
+		public CharacterGroup[] CodaGroups;
+
+		public List<string> Syllables = new List<string> ();
+
+		public SyllableSet () {
+			
+		}
+
+		public void GenerateCharacterGroups (GetRandomFloatDelegate getRandomFloat) {
+
+			OnsetGroups = Language.GenerateCharacterGroups (OnsetLetters, OnsetStartAddLetterChance, OnsetAddLetterChanceDecay, getRandomFloat, OnsetGroupCount);
+			NucleusGroups = Language.GenerateCharacterGroups (NucleusLetters, NucleusStartAddLetterChance, NucleusAddLetterChanceDecay, getRandomFloat, NucleusGroupCount);
+			CodaGroups = Language.GenerateCharacterGroups (CodaLetters, CodaStartAddLetterChance, CodaAddLetterChanceDecay, getRandomFloat, CodaGroupCount);
+		}
+
+		public string GetRandomSyllable (GetRandomFloatDelegate getRandomFloat) {
+
+			int selCount = Syllables.Count + AddSyllableModifier;
+
+			int randOption = (int)Mathf.Floor (selCount * getRandomFloat ());
+
+			if (randOption < Syllables.Count) {
+			
+				return Syllables [randOption];
+			}
+			
+			string syllable = GenerateSyllable (OnsetGroups, NucleusGroups, CodaGroups, getRandomFloat);
+
+			Syllables.Add (syllable);
+
+			return syllable;
+		}
+	}
+
+	public SyllableSet ArticleStartSyllables = new SyllableSet ();
+	public SyllableSet ArticleNextSyllables = new SyllableSet ();
+
+	public SyllableSet IndicativeStartSyllables = new SyllableSet ();
+	public SyllableSet IndicativeNextSyllables = new SyllableSet ();
+
+	public SyllableSet AdpositionStartSyllables = new SyllableSet ();
+	public SyllableSet AdpositionNextSyllables = new SyllableSet ();
+
+	public SyllableSet AdjectiveStartSyllables = new SyllableSet ();
+	public SyllableSet AdjectiveNextSyllables = new SyllableSet ();
+
+	public SyllableSet NounStartSyllables = new SyllableSet ();
+	public SyllableSet NounNextSyllables = new SyllableSet ();
+
+//	public List<string> ArticleStartSyllables;
+//	public List<string> ArticleNextSyllables;
+//
+//	public List<string> IndicativeStartSyllables;
+//	public List<string> IndicativeNextSyllables;
+//
+//	public List<string> AdpositionStartSyllables;
+//	public List<string> AdpositionNextSyllables;
+//
+//	public List<string> AdjectiveStartSyllables;
+//	public List<string> AdjectiveNextSyllables;
+//
+//	public List<string> NounStartSyllables;
+//	public List<string> NounNextSyllables;
 
 	public List<Morpheme> Articles;
 	public List<Morpheme> Indicatives;
@@ -355,31 +433,31 @@ public class Language : ISynchronizable {
 		return onset + nucleus + coda;
 	}
 
-	public static string[] GenerateSyllables (CharacterGroup[] onsetGroups, CharacterGroup[] nucleusGroups, CharacterGroup[] codaGroups, GetRandomFloatDelegate getRandomFloat, int maxCount) {
+//	public static List<string> GenerateSyllables (CharacterGroup[] onsetGroups, CharacterGroup[] nucleusGroups, CharacterGroup[] codaGroups, GetRandomFloatDelegate getRandomFloat, int maxCount) {
+//
+//		HashSet<string> genSyllables = new HashSet<string> ();
+//
+//		int index = 0;
+//		int genCount = 0;
+//
+//		while (index < maxCount) {
+//
+//			string syllable = GenerateSyllable (onsetGroups, nucleusGroups, codaGroups, getRandomFloat);
+//
+//			if (genSyllables.Add (syllable))
+//				genCount++;
+//
+//			index++;
+//		}
+//
+//		List<string> syllables = new List<string> (genCount);
+//
+//		genSyllables.CopyTo (syllables);
+//
+//		return syllables;
+//	}
 
-		HashSet<string> genSyllables = new HashSet<string> ();
-
-		int index = 0;
-		int genCount = 0;
-
-		while (index < maxCount) {
-
-			string syllable = GenerateSyllable (onsetGroups, nucleusGroups, codaGroups, getRandomFloat);
-
-			if (genSyllables.Add (syllable))
-				genCount++;
-
-			index++;
-		}
-
-		string[] syllables = new string[genCount];
-
-		genSyllables.CopyTo (syllables);
-
-		return syllables;
-	}
-
-	public static string GenerateMorpheme (string[] startSyllables, string[] nextSyllables, float addSyllableChanceDecay, GetRandomFloatDelegate getRandomFloat) {
+	public static string GenerateMorpheme (SyllableSet startSyllables, SyllableSet nextSyllables, float addSyllableChanceDecay, GetRandomFloatDelegate getRandomFloat) {
 
 		float addSyllableChance = 1;
 		bool first = true;
@@ -388,20 +466,22 @@ public class Language : ISynchronizable {
 
 		while (getRandomFloat () < addSyllableChance) {
 
-			string[] syllables = nextSyllables;
+			SyllableSet syllables = nextSyllables;
 
 			if (first) {
 				syllables = startSyllables;
 				first = false;
 			}
 
-			int syllableIndex = (int)Mathf.Floor (syllables.Length * getRandomFloat ());
+//			int syllableIndex = (int)Mathf.Floor (syllables.Count * getRandomFloat ());
+//
+//			if (syllableIndex == syllables.Count) {
+//				throw new System.Exception ("syllable index out of bounds");
+//			}
+//
+//			morpheme += syllables[syllableIndex];
 
-			if (syllableIndex == syllables.Length) {
-				throw new System.Exception ("syllable index out of bounds");
-			}
-
-			morpheme += syllables[syllableIndex];
+			morpheme += syllables.GetRandomSyllable (getRandomFloat);
 
 			addSyllableChance *= addSyllableChanceDecay * addSyllableChanceDecay;
 		}
@@ -413,8 +493,8 @@ public class Language : ISynchronizable {
 		string rootWord, 
 		float noChangeChance, 
 		float replaceChance, 
-		string[] startSyllables, 
-		string[] nextSyllables, 
+		SyllableSet startSyllables, 
+		SyllableSet nextSyllables, 
 		float addSyllableChanceDecay, 
 		GetRandomFloatDelegate getRandomFloat) {
 
@@ -501,7 +581,7 @@ public class Language : ISynchronizable {
 		return output;
 	}
 
-	public static Morpheme GenerateArticle (string[] startSyllables, string[] nextSyllables, MorphemeProperties properties, GetRandomFloatDelegate getRandomFloat) {
+	public static Morpheme GenerateArticle (SyllableSet startSyllables, SyllableSet nextSyllables, MorphemeProperties properties, GetRandomFloatDelegate getRandomFloat) {
 
 		Morpheme morpheme = new Morpheme ();
 		morpheme.Value = GenerateMorpheme (startSyllables, nextSyllables, 0.0f, getRandomFloat);
@@ -513,8 +593,8 @@ public class Language : ISynchronizable {
 
 	public static Morpheme GenerateDerivatedArticle (
 		Morpheme rootArticle, 
-		string[] startSyllables, 
-		string[] nextSyllables, 
+		SyllableSet startSyllables, 
+		SyllableSet nextSyllables, 
 		MorphemeProperties properties, 
 		GetRandomFloatDelegate getRandomFloat) {
 
@@ -528,8 +608,8 @@ public class Language : ISynchronizable {
 
 	public static void GenerateGenderedArticles (
 		Morpheme root,
-		string[] startSyllables, 
-		string[] nextSyllables,
+		SyllableSet startSyllables, 
+		SyllableSet nextSyllables,
 		GetRandomFloatDelegate getRandomFloat, 
 		out Morpheme masculine, 
 		out Morpheme femenine,
@@ -585,8 +665,8 @@ public class Language : ISynchronizable {
 	}
 
 	public static Dictionary<string, Morpheme> GenerateArticles (
-		string[] startSyllables, 
-		string[] nextSyllables, 
+		SyllableSet startSyllables, 
+		SyllableSet nextSyllables, 
 		GeneralArticleProperties generalProperties, 
 		GetRandomFloatDelegate getRandomFloat) {
 
@@ -822,12 +902,40 @@ public class Language : ISynchronizable {
 
 	public void GenerateArticleSyllables (GetRandomFloatDelegate getRandomFloat) {
 
-		CharacterGroup[] onsetGroups = GenerateCharacterGroups (OnsetLetters, 0.7f, 0.1f, getRandomFloat, 10);
-		CharacterGroup[] nucleusGroups = GenerateCharacterGroups (NucleusLetters, 1.0f, 0.35f, getRandomFloat, 5);
-		CharacterGroup[] codaGroups = GenerateCharacterGroups (CodaLetters, 0.25f, 0.1f, getRandomFloat, 4);
+//		CharacterGroup[] onsetGroups = GenerateCharacterGroups (OnsetLetters, 0.7f, 0.1f, getRandomFloat, 10);
+//		CharacterGroup[] nucleusGroups = GenerateCharacterGroups (NucleusLetters, 1.0f, 0.35f, getRandomFloat, 5);
+//		CharacterGroup[] codaGroups = GenerateCharacterGroups (CodaLetters, 0.25f, 0.1f, getRandomFloat, 4);
+//
+//		ArticleStartSyllables = GenerateSyllables (onsetGroups, nucleusGroups, codaGroups, getRandomFloat, 50);
+//		ArticleNextSyllables = GenerateSyllables (onsetGroups, nucleusGroups, codaGroups, getRandomFloat, 50);
 
-		ArticleStartSyllables = GenerateSyllables (onsetGroups, nucleusGroups, codaGroups, getRandomFloat, 50);
-		ArticleNextSyllables = GenerateSyllables (onsetGroups, nucleusGroups, codaGroups, getRandomFloat, 50);
+		ArticleStartSyllables.OnsetStartAddLetterChance = 0.7f;
+		ArticleStartSyllables.OnsetAddLetterChanceDecay = 0.1f;
+		ArticleStartSyllables.OnsetGroupCount = 10;
+
+		ArticleStartSyllables.NucleusStartAddLetterChance = 1.0f;
+		ArticleStartSyllables.NucleusAddLetterChanceDecay = 0.35f;
+		ArticleStartSyllables.NucleusGroupCount = 5;
+
+		ArticleStartSyllables.CodaStartAddLetterChance = 0.25f;
+		ArticleStartSyllables.CodaAddLetterChanceDecay = 0.1f;
+		ArticleStartSyllables.CodaGroupCount = 4;
+
+		ArticleStartSyllables.GenerateCharacterGroups (getRandomFloat);
+
+		ArticleNextSyllables.OnsetStartAddLetterChance = 0.7f;
+		ArticleNextSyllables.OnsetAddLetterChanceDecay = 0.1f;
+		ArticleNextSyllables.OnsetGroupCount = 10;
+
+		ArticleNextSyllables.NucleusStartAddLetterChance = 1.0f;
+		ArticleNextSyllables.NucleusAddLetterChanceDecay = 0.35f;
+		ArticleNextSyllables.NucleusGroupCount = 5;
+
+		ArticleNextSyllables.CodaStartAddLetterChance = 0.25f;
+		ArticleNextSyllables.CodaAddLetterChanceDecay = 0.1f;
+		ArticleNextSyllables.CodaGroupCount = 4;
+
+		ArticleNextSyllables.GenerateCharacterGroups (getRandomFloat);
 	}
 
 	public void GenerateAllArticles (GetRandomFloatDelegate getRandomFloat) {
@@ -848,16 +956,44 @@ public class Language : ISynchronizable {
 	}
 
 	public void GenerateIndicativeSyllables (GetRandomFloatDelegate getRandomFloat) {
+//
+//		CharacterGroup[] onsetGroups = GenerateCharacterGroups (OnsetLetters, 0.7f, 0.1f, getRandomFloat, 10);
+//		CharacterGroup[] nucleusGroups = GenerateCharacterGroups (NucleusLetters, 1.0f, 0.35f, getRandomFloat, 5);
+//		CharacterGroup[] codaGroups = GenerateCharacterGroups (CodaLetters, 0.25f, 0.1f, getRandomFloat, 4);
+//
+//		IndicativeStartSyllables = GenerateSyllables (onsetGroups, nucleusGroups, codaGroups, getRandomFloat, 50);
+//		IndicativeNextSyllables = GenerateSyllables (onsetGroups, nucleusGroups, codaGroups, getRandomFloat, 50);
 
-		CharacterGroup[] onsetGroups = GenerateCharacterGroups (OnsetLetters, 0.7f, 0.1f, getRandomFloat, 10);
-		CharacterGroup[] nucleusGroups = GenerateCharacterGroups (NucleusLetters, 1.0f, 0.35f, getRandomFloat, 5);
-		CharacterGroup[] codaGroups = GenerateCharacterGroups (CodaLetters, 0.25f, 0.1f, getRandomFloat, 4);
+		IndicativeStartSyllables.OnsetStartAddLetterChance = 0.7f;
+		IndicativeStartSyllables.OnsetAddLetterChanceDecay = 0.1f;
+		IndicativeStartSyllables.OnsetGroupCount = 10;
 
-		IndicativeStartSyllables = GenerateSyllables (onsetGroups, nucleusGroups, codaGroups, getRandomFloat, 50);
-		IndicativeNextSyllables = GenerateSyllables (onsetGroups, nucleusGroups, codaGroups, getRandomFloat, 50);
+		IndicativeStartSyllables.NucleusStartAddLetterChance = 1.0f;
+		IndicativeStartSyllables.NucleusAddLetterChanceDecay = 0.35f;
+		IndicativeStartSyllables.NucleusGroupCount = 5;
+
+		IndicativeStartSyllables.CodaStartAddLetterChance = 0.25f;
+		IndicativeStartSyllables.CodaAddLetterChanceDecay = 0.1f;
+		IndicativeStartSyllables.CodaGroupCount = 4;
+
+		IndicativeStartSyllables.GenerateCharacterGroups (getRandomFloat);
+
+		IndicativeNextSyllables.OnsetStartAddLetterChance = 0.7f;
+		IndicativeNextSyllables.OnsetAddLetterChanceDecay = 0.1f;
+		IndicativeNextSyllables.OnsetGroupCount = 10;
+
+		IndicativeNextSyllables.NucleusStartAddLetterChance = 1.0f;
+		IndicativeNextSyllables.NucleusAddLetterChanceDecay = 0.35f;
+		IndicativeNextSyllables.NucleusGroupCount = 5;
+
+		IndicativeNextSyllables.CodaStartAddLetterChance = 0.25f;
+		IndicativeNextSyllables.CodaAddLetterChanceDecay = 0.1f;
+		IndicativeNextSyllables.CodaGroupCount = 4;
+
+		IndicativeNextSyllables.GenerateCharacterGroups (getRandomFloat);
 	}
 
-	public static Morpheme GenerateIndicative (string[] startSyllables, string[] nextSyllables, MorphemeProperties properties, GetRandomFloatDelegate getRandomFloat) {
+	public static Morpheme GenerateIndicative (SyllableSet startSyllables, SyllableSet nextSyllables, MorphemeProperties properties, GetRandomFloatDelegate getRandomFloat) {
 
 		Morpheme morpheme = new Morpheme ();
 		morpheme.Value = GenerateMorpheme (startSyllables, nextSyllables, 0.0f, getRandomFloat);
@@ -891,8 +1027,8 @@ public class Language : ISynchronizable {
 
 	public static Morpheme GenerateDerivatedIndicative (
 		Morpheme rootIndicative, 
-		string[] startSyllables, 
-		string[] nextSyllables, 
+		SyllableSet startSyllables, 
+		SyllableSet nextSyllables, 
 		MorphemeProperties properties, 
 		GetRandomFloatDelegate getRandomFloat) {
 
@@ -906,8 +1042,8 @@ public class Language : ISynchronizable {
 
 	public static void GenerateGenderedIndicatives (
 		Morpheme root,
-		string[] startSyllables, 
-		string[] nextSyllables,
+		SyllableSet startSyllables, 
+		SyllableSet nextSyllables,
 		GeneralIndicativeProperties indicativeProperties, 
 		GetRandomFloatDelegate getRandomFloat, 
 		out Morpheme masculine, 
@@ -934,8 +1070,8 @@ public class Language : ISynchronizable {
 	}
 
 	public static Dictionary<string, Morpheme> GenerateIndicatives (
-		string[] startSyllables, 
-		string[] nextSyllables, 
+		SyllableSet startSyllables, 
+		SyllableSet nextSyllables, 
 		GeneralIndicativeProperties indicativeProperties, 
 		GetRandomFloatDelegate getRandomFloat) {
 
@@ -1047,13 +1183,41 @@ public class Language : ISynchronizable {
 	}
 
 	public void GenerateAdpositionSyllables (GetRandomFloatDelegate getRandomFloat) {
+//
+//		CharacterGroup[] onsetGroups = GenerateCharacterGroups (OnsetLetters, 0.7f, 0.1f, getRandomFloat, 20);
+//		CharacterGroup[] nucleusGroups = GenerateCharacterGroups (NucleusLetters, 1.0f, 0.35f, getRandomFloat, 10);
+//		CharacterGroup[] codaGroups = GenerateCharacterGroups (CodaLetters, 0.25f, 0.1f, getRandomFloat, 8);
+//
+//		AdpositionStartSyllables = GenerateSyllables (onsetGroups, nucleusGroups, codaGroups, getRandomFloat, 100);
+//		AdpositionNextSyllables = GenerateSyllables (onsetGroups, nucleusGroups, codaGroups, getRandomFloat, 100);
 
-		CharacterGroup[] onsetGroups = GenerateCharacterGroups (OnsetLetters, 0.7f, 0.1f, getRandomFloat, 20);
-		CharacterGroup[] nucleusGroups = GenerateCharacterGroups (NucleusLetters, 1.0f, 0.35f, getRandomFloat, 10);
-		CharacterGroup[] codaGroups = GenerateCharacterGroups (CodaLetters, 0.25f, 0.1f, getRandomFloat, 8);
+		AdpositionStartSyllables.OnsetStartAddLetterChance = 0.7f;
+		AdpositionStartSyllables.OnsetAddLetterChanceDecay = 0.1f;
+		AdpositionStartSyllables.OnsetGroupCount = 10;
 
-		AdpositionStartSyllables = GenerateSyllables (onsetGroups, nucleusGroups, codaGroups, getRandomFloat, 100);
-		AdpositionNextSyllables = GenerateSyllables (onsetGroups, nucleusGroups, codaGroups, getRandomFloat, 100);
+		AdpositionStartSyllables.NucleusStartAddLetterChance = 1.0f;
+		AdpositionStartSyllables.NucleusAddLetterChanceDecay = 0.35f;
+		AdpositionStartSyllables.NucleusGroupCount = 5;
+
+		AdpositionStartSyllables.CodaStartAddLetterChance = 0.25f;
+		AdpositionStartSyllables.CodaAddLetterChanceDecay = 0.1f;
+		AdpositionStartSyllables.CodaGroupCount = 4;
+
+		AdpositionStartSyllables.GenerateCharacterGroups (getRandomFloat);
+
+		AdpositionNextSyllables.OnsetStartAddLetterChance = 0.7f;
+		AdpositionNextSyllables.OnsetAddLetterChanceDecay = 0.1f;
+		AdpositionNextSyllables.OnsetGroupCount = 10;
+
+		AdpositionNextSyllables.NucleusStartAddLetterChance = 1.0f;
+		AdpositionNextSyllables.NucleusAddLetterChanceDecay = 0.35f;
+		AdpositionNextSyllables.NucleusGroupCount = 5;
+
+		AdpositionNextSyllables.CodaStartAddLetterChance = 0.25f;
+		AdpositionNextSyllables.CodaAddLetterChanceDecay = 0.1f;
+		AdpositionNextSyllables.CodaGroupCount = 4;
+
+		AdpositionNextSyllables.GenerateCharacterGroups (getRandomFloat);
 	}
 
 	public void GenerateAdposition (string relation, GetRandomFloatDelegate getRandomFloat) {
@@ -1075,16 +1239,49 @@ public class Language : ISynchronizable {
 	}
 
 	public void GenerateAdjectiveSyllables (GetRandomFloatDelegate getRandomFloat) {
+//
+//		CharacterGroup[] onsetGroups = GenerateCharacterGroups (OnsetLetters, 0.7f, 0.1f, getRandomFloat, 20);
+//		CharacterGroup[] nucleusGroups = GenerateCharacterGroups (NucleusLetters, 1.0f, 0.35f, getRandomFloat, 10);
+//		CharacterGroup[] codaGroups = GenerateCharacterGroups (CodaLetters, 0.25f, 0.1f, getRandomFloat, 8);
+//
+//		AdjectiveStartSyllables = GenerateSyllables (onsetGroups, nucleusGroups, codaGroups, getRandomFloat, 100);
+//		AdjectiveNextSyllables = GenerateSyllables (onsetGroups, nucleusGroups, codaGroups, getRandomFloat, 100);
 
-		CharacterGroup[] onsetGroups = GenerateCharacterGroups (OnsetLetters, 0.7f, 0.1f, getRandomFloat, 20);
-		CharacterGroup[] nucleusGroups = GenerateCharacterGroups (NucleusLetters, 1.0f, 0.35f, getRandomFloat, 10);
-		CharacterGroup[] codaGroups = GenerateCharacterGroups (CodaLetters, 0.25f, 0.1f, getRandomFloat, 8);
+		AdjectiveStartSyllables.OnsetStartAddLetterChance = 0.7f;
+		AdjectiveStartSyllables.OnsetAddLetterChanceDecay = 0.1f;
+		AdjectiveStartSyllables.OnsetGroupCount = 10;
 
-		AdjectiveStartSyllables = GenerateSyllables (onsetGroups, nucleusGroups, codaGroups, getRandomFloat, 100);
-		AdjectiveNextSyllables = GenerateSyllables (onsetGroups, nucleusGroups, codaGroups, getRandomFloat, 100);
+		AdjectiveStartSyllables.NucleusStartAddLetterChance = 1.0f;
+		AdjectiveStartSyllables.NucleusAddLetterChanceDecay = 0.35f;
+		AdjectiveStartSyllables.NucleusGroupCount = 5;
+
+		AdjectiveStartSyllables.CodaStartAddLetterChance = 0.25f;
+		AdjectiveStartSyllables.CodaAddLetterChanceDecay = 0.1f;
+		AdjectiveStartSyllables.CodaGroupCount = 4;
+
+		AdjectiveStartSyllables.GenerateCharacterGroups (getRandomFloat);
+
+		AdjectiveNextSyllables.OnsetStartAddLetterChance = 0.7f;
+		AdjectiveNextSyllables.OnsetAddLetterChanceDecay = 0.1f;
+		AdjectiveNextSyllables.OnsetGroupCount = 10;
+
+		AdjectiveNextSyllables.NucleusStartAddLetterChance = 1.0f;
+		AdjectiveNextSyllables.NucleusAddLetterChanceDecay = 0.35f;
+		AdjectiveNextSyllables.NucleusGroupCount = 5;
+
+		AdjectiveNextSyllables.CodaStartAddLetterChance = 0.25f;
+		AdjectiveNextSyllables.CodaAddLetterChanceDecay = 0.1f;
+		AdjectiveNextSyllables.CodaGroupCount = 4;
+
+		AdjectiveNextSyllables.GenerateCharacterGroups (getRandomFloat);
 	}
 
 	public Morpheme GenerateAdjective (string meaning, GetRandomFloatDelegate getRandomFloat) {
+
+		if (_adjectives.ContainsKey (meaning)) {
+		
+			return _adjectives [meaning];
+		}
 
 		Morpheme morpheme = new Morpheme ();
 		morpheme.Value = GenerateMorpheme (AdjectiveStartSyllables, AdjectiveNextSyllables, 0.5f, getRandomFloat);
@@ -1105,13 +1302,41 @@ public class Language : ISynchronizable {
 	}
 
 	public void GenerateNounSyllables (GetRandomFloatDelegate getRandomFloat) {
+//
+//		CharacterGroup[] onsetGroups = GenerateCharacterGroups (OnsetLetters, 0.7f, 0.25f, getRandomFloat, 20);
+//		CharacterGroup[] nucleusGroups = GenerateCharacterGroups (NucleusLetters, 1.0f, 0.35f, getRandomFloat, 10);
+//		CharacterGroup[] codaGroups = GenerateCharacterGroups (CodaLetters, 0.5f, 0.25f, getRandomFloat, 8);
+//
+//		NounStartSyllables = GenerateSyllables (onsetGroups, nucleusGroups, codaGroups, getRandomFloat, 200);
+//		NounNextSyllables = GenerateSyllables (onsetGroups, nucleusGroups, codaGroups, getRandomFloat, 200);
 
-		CharacterGroup[] onsetGroups = GenerateCharacterGroups (OnsetLetters, 0.7f, 0.25f, getRandomFloat, 20);
-		CharacterGroup[] nucleusGroups = GenerateCharacterGroups (NucleusLetters, 1.0f, 0.35f, getRandomFloat, 10);
-		CharacterGroup[] codaGroups = GenerateCharacterGroups (CodaLetters, 0.5f, 0.25f, getRandomFloat, 8);
+		NounStartSyllables.OnsetStartAddLetterChance = 0.7f;
+		NounStartSyllables.OnsetAddLetterChanceDecay = 0.25f;
+		NounStartSyllables.OnsetGroupCount = 10;
 
-		NounStartSyllables = GenerateSyllables (onsetGroups, nucleusGroups, codaGroups, getRandomFloat, 200);
-		NounNextSyllables = GenerateSyllables (onsetGroups, nucleusGroups, codaGroups, getRandomFloat, 200);
+		NounStartSyllables.NucleusStartAddLetterChance = 1.0f;
+		NounStartSyllables.NucleusAddLetterChanceDecay = 0.35f;
+		NounStartSyllables.NucleusGroupCount = 5;
+
+		NounStartSyllables.CodaStartAddLetterChance = 0.5f;
+		NounStartSyllables.CodaAddLetterChanceDecay = 0.25f;
+		NounStartSyllables.CodaGroupCount = 4;
+
+		NounStartSyllables.GenerateCharacterGroups (getRandomFloat);
+
+		NounNextSyllables.OnsetStartAddLetterChance = 0.7f;
+		NounNextSyllables.OnsetAddLetterChanceDecay = 0.25f;
+		NounNextSyllables.OnsetGroupCount = 10;
+
+		NounNextSyllables.NucleusStartAddLetterChance = 1.0f;
+		NounNextSyllables.NucleusAddLetterChanceDecay = 0.35f;
+		NounNextSyllables.NucleusGroupCount = 5;
+
+		NounNextSyllables.CodaStartAddLetterChance = 0.5f;
+		NounNextSyllables.CodaAddLetterChanceDecay = 0.25f;
+		NounNextSyllables.CodaGroupCount = 4;
+
+		NounNextSyllables.GenerateCharacterGroups (getRandomFloat);
 	}
 
 	public Morpheme GenerateNoun (string meaning, GetRandomFloatDelegate getRandomFloat, bool isPlural, bool randomGender, bool isFemenine = false, bool isNeutral = false, bool canBeIrregular = true) {

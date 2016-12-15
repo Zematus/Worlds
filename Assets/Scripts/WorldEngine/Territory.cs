@@ -89,9 +89,10 @@ public class Territory : ISynchronizable {
 		if (cellRegion == null) {
 
 			cellRegion = Region.TryGenerateRegion (cell);
-			cellRegion.GenerateName (Polity);
 
 			if (cellRegion != null) {
+				cellRegion.GenerateName (Polity, cell);
+
 				World.AddRegion (cellRegion);
 			}
 		}

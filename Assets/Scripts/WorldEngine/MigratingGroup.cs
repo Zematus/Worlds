@@ -20,7 +20,8 @@ public class MigratingGroup : HumanGroup {
 	[XmlAttribute]
 	public long SourceGroupId;
 
-	public CellCulture Culture;
+	//public CellCulture Culture;
+	public BufferCulture Culture;
 	
 	[XmlIgnore]
 	public TerrainCell TargetCell;
@@ -40,10 +41,28 @@ public class MigratingGroup : HumanGroup {
 
 		#if DEBUG
 		if (float.IsNaN (percentPopulation)) {
-		
+
 			Debug.Break ();
 		}
 		#endif
+
+//		#if DEBUG
+//		if (Manager.RegisterDebugEvent != null) {
+//			if (sourceGroup.Id == Manager.TracingData.GroupId) {
+//				string groupId = "Id:" + sourceGroup.Id + "|Long:" + sourceGroup.Longitude + "|Lat:" + sourceGroup.Latitude;
+//				string targetInfo = "Long:" + targetCell.Longitude + "|Lat:" + targetCell.Latitude;
+//
+//				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//					"MigratingGroup:constructor - sourceGroup:" + groupId,
+//					"CurrentDate: " + World.CurrentDate + 
+//					", targetInfo: " + targetInfo + 
+//					", percentPopulation: " + percentPopulation + 
+//					"");
+//
+//				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+//			}
+//		}
+//		#endif
 
 		TargetCell = targetCell;
 		SourceGroup = sourceGroup;
@@ -67,7 +86,8 @@ public class MigratingGroup : HumanGroup {
 		if (Population <= 0)
 			return false;
 		
-		Culture = new CellCulture(SourceGroup, SourceGroup.Culture);
+		//Culture = new CellCulture(SourceGroup, SourceGroup.Culture);
+		Culture = new BufferCulture (SourceGroup.Culture);
 
 		PolityInfluences = new List<PolityInfluence> ();
 
@@ -98,7 +118,7 @@ public class MigratingGroup : HumanGroup {
 			}
 		}
 
-		CellGroup newGroup = new CellGroup (this, Population, Culture);
+		CellGroup newGroup = new CellGroup (this, Population);
 
 		World.AddGroup (newGroup);
 		

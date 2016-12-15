@@ -8,8 +8,25 @@ public class PolityInfluence {
 
 	[XmlAttribute]
 	public long PolityId;
-	[XmlAttribute]
-	public float Value;
+	[XmlAttribute("Value")]
+	public float ValueFloat;
+	[XmlAttribute("Dist")]
+	public float CoreDistance;
+	[XmlAttribute("Cost")]
+	public float AdiministrativeCost;
+
+	[XmlIgnore]
+	public float NewCoreDistance;
+
+	[XmlIgnore]
+	public float Value {
+		get {
+			return ValueFloat;
+		}
+		set { 
+			ValueFloat = MathUtility.RoundToSixDecimals (value);
+		}
+	}
 
 	[XmlIgnore]
 	public Polity Polity;
@@ -23,6 +40,21 @@ public class PolityInfluence {
 		PolityId = polity.Id;
 		Polity = polity;
 		Value = MathUtility.RoundToSixDecimals (value);
+
+		AdiministrativeCost = 0;
+	}
+
+	public void PostUpdate () {
+
+		CoreDistance = NewCoreDistance;
+	}
+
+	public void Destroy () {
+
+		if (Polity == null)
+			return;
+	
+		Polity.TotalAdministrativeCost -= AdiministrativeCost;
 	}
 }
 
@@ -32,17 +64,26 @@ public abstract class Polity : ISynchronizable {
 
 	public const float MinPolityInfluence = 0.001f;
 
+	[XmlAttribute("Type")]
+	public string Type;
+
 	[XmlAttribute]
 	public long Id;
 
-	[XmlAttribute]
+	[XmlAttribute("CGrpId")]
 	public long CoreGroupId;
 
-	[XmlAttribute]
+	[XmlAttribute("TotalGrpInfValue")]
 	public float TotalGroupInfluenceValue = 0;
 
-	[XmlAttribute]
+	[XmlAttribute("TotalAdmCost")]
+	public float TotalAdministrativeCost = 0;
+
+	[XmlAttribute("TotalPop")]
 	public float TotalPopulation = 0;
+
+	[XmlAttribute("FctnCount")]
+	public int FactionCount { get; private set; }
 
 	public Name Name;
 
@@ -52,6 +93,9 @@ public abstract class Polity : ISynchronizable {
 
 	public PolityCulture Culture;
 
+	[XmlArrayItem (Type = typeof(Clan))]
+	public List<Faction> Factions;
+
 	[XmlIgnore]
 	public World World;
 
@@ -59,9 +103,21 @@ public abstract class Polity : ISynchronizable {
 	public CellGroup CoreGroup;
 
 	[XmlIgnore]
+	public bool WillBeUpdated;
+
+	[XmlIgnore]
 	public Dictionary<long, CellGroup> InfluencedGroups = new Dictionary<long, CellGroup> ();
 
-	private Dictionary<long, float> _influencedPopPerGroup = new Dictionary<long, float> ();
+	protected class WeightedGroup : CollectionUtility.ElementWeightPair<CellGroup> {
+
+		public WeightedGroup (CellGroup group, float weight) : base (group, weight) {
+
+		}
+	}
+
+	private Dictionary<long, WeightedGroup> _influencedPopPerGroup = new Dictionary<long, WeightedGroup> ();
+
+	private Dictionary<long, Faction> _factions = new Dictionary<long, Faction> ();
 
 	#if DEBUG
 	private bool _populationCensusUpdated = false;
@@ -73,32 +129,89 @@ public abstract class Polity : ISynchronizable {
 	
 	}
 
-	public Polity (CellGroup coreGroup, float coreGroupInfluenceValue) {
+	public Polity (string type, CellGroup coreGroup, float coreGroupInfluenceValue) {
+
+		Type = type;
 
 		World = coreGroup.World;
 
 		Territory = new Territory (this);
 
-		Id = World.GeneratePolityId ();
-
 		CoreGroup = coreGroup;
 		CoreGroupId = coreGroup.Id;
 
+//		Id = World.GeneratePolityId ();
+		Id = coreGroup.GenerateUniqueIdentifier ();
+
 		Culture = new PolityCulture (this);
 
-		coreGroup.SetPolityInfluenceValue (this, coreGroupInfluenceValue);
+//		#if DEBUG
+//		if (Manager.RegisterDebugEvent != null) {
+//			if (CoreGroupId == Manager.TracingData.GroupId) {
+//				string groupId = "Id:" + CoreGroupId + "|Long:" + CoreGroup.Longitude + "|Lat:" + CoreGroup.Latitude;
+//
+//				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//					"new Polity - Group:" + groupId + 
+//					", Polity.Id: " + Id,
+//					"CurrentDate: " + World.CurrentDate  +
+//					", CoreGroup:" + groupId + 
+//					", Polity.TotalGroupInfluenceValue: " + TotalGroupInfluenceValue + 
+//					", coreGroupInfluenceValue: " + coreGroupInfluenceValue + 
+//					"");
+//
+//				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+//			}
+//		}
+//		#endif
+
+		coreGroup.SetPolityInfluence (this, coreGroupInfluenceValue);
 
 		GenerateName ();
 	}
 
 	public void Destroy () {
+
+		List<Faction> factions = new List<Faction> (_factions.Values);
+
+		foreach (Faction faction in factions) {
 		
-		World.RemovePolity (this);
+			faction.Destroy ();
+		}
 
 		foreach (CellGroup group in InfluencedGroups.Values) {
 
 			group.RemovePolityInfluence (this);
 		}
+		
+		World.RemovePolity (this);
+	}
+
+	public void AddFaction (Faction faction) {
+
+		_factions.Add (faction.Id, faction);
+
+		FactionCount++;
+	}
+
+	public void RemoveFaction (Faction faction) {
+
+		_factions.Remove (faction.Id);
+
+		FactionCount--;
+	}
+
+	public Faction GetFaction (long id) {
+
+		Faction faction;
+
+		_factions.TryGetValue (id, out faction);
+
+		return faction;
+	}
+
+	public IEnumerable<Faction> GetFactions () {
+	
+		return _factions.Values;
 	}
 
 	public void SetCoreGroup (CellGroup group) {
@@ -112,12 +225,27 @@ public abstract class Polity : ISynchronizable {
 
 	public void Update () {
 
+//		#if DEBUG
+//		if (Manager.RegisterDebugEvent != null) {
+//			Manager.RegisterDebugEvent ("DebugMessage", 
+//				"Update - Polity:" + Id + 
+//				", CurrentDate: " + World.CurrentDate + 
+//				", InfluencedGroups.Count: " + InfluencedGroups.Count + 
+//				", TotalGroupInfluenceValue: " + TotalGroupInfluenceValue + 
+//				"");
+//		}
+//		#endif
+
+		WillBeUpdated = false;
+
 		if (InfluencedGroups.Count <= 0) {
 		
 			World.AddPolityToRemove (this);
 
 			return;
 		}
+
+		Profiler.BeginSample ("Polity Update");
 
 		RunPopulationCensus ();
 
@@ -140,6 +268,8 @@ public abstract class Polity : ISynchronizable {
 				_populationCensusUpdated = false;
 				#endif
 
+				Profiler.EndSample ();
+
 				return;
 			}
 
@@ -149,6 +279,8 @@ public abstract class Polity : ISynchronizable {
 		#if DEBUG
 		_populationCensusUpdated = false;
 		#endif
+
+		Profiler.EndSample ();
 	}
 
 	public abstract void UpdateInternal ();
@@ -165,7 +297,7 @@ public abstract class Polity : ISynchronizable {
 
 			TotalPopulation += influencedPop;
 
-			_influencedPopPerGroup.Add (group.Id, influencedPop);
+			_influencedPopPerGroup.Add (group.Id, new WeightedGroup (group, influencedPop));
 		}
 	}
 
@@ -179,13 +311,13 @@ public abstract class Polity : ISynchronizable {
 		CellGroup groupWithMostInfluencedPop = null;
 		float maxInfluencedGroupPopulation = 0;
 	
-		foreach (KeyValuePair<long, float> pair in _influencedPopPerGroup) {
+		foreach (KeyValuePair<long, WeightedGroup> pair in _influencedPopPerGroup) {
 		
-			if (maxInfluencedGroupPopulation < pair.Value) {
+			if (maxInfluencedGroupPopulation < pair.Value.Weight) {
 
-				maxInfluencedGroupPopulation = pair.Value;
+				maxInfluencedGroupPopulation = pair.Value.Weight;
 
-				groupWithMostInfluencedPop = InfluencedGroups [pair.Key];
+				groupWithMostInfluencedPop = pair.Value.Value;
 			}
 		}
 
@@ -200,9 +332,6 @@ public abstract class Polity : ISynchronizable {
 		#endif
 	
 		InfluencedGroups.Add (group.Id, group);
-
-		//TODO: Remove line
-//		Territory.AddCell (group.Cell);
 	}
 
 	public void RemoveInfluencedGroup (CellGroup group) {
@@ -213,9 +342,6 @@ public abstract class Polity : ISynchronizable {
 		#endif
 
 		InfluencedGroups.Remove (group.Id);
-
-		//TODO: Remove line
-//		Territory.RemoveCell (group.Cell);
 
 		if (group == CoreGroup) {
 
@@ -231,6 +357,13 @@ public abstract class Polity : ISynchronizable {
 
 		InfluencedGroupIds = new List<long> (InfluencedGroups.Keys);
 
+		Factions = new List<Faction> (_factions.Values);
+
+		foreach (Faction f in Factions) {
+
+			f.Synchronize ();
+		}
+
 		Name.Synchronize ();
 	}
 
@@ -245,7 +378,7 @@ public abstract class Polity : ISynchronizable {
 			throw new System.Exception ("Missing Group with Id " + CoreGroupId);
 		}
 
-		foreach (int id in InfluencedGroupIds) {
+		foreach (long id in InfluencedGroupIds) {
 
 			CellGroup group = World.GetGroup (id);
 
@@ -256,6 +389,19 @@ public abstract class Polity : ISynchronizable {
 			InfluencedGroups.Add (group.Id, group);
 		}
 
+		// all factions should be stored in the dictionary before finalizing load for each one
+		Factions.ForEach (f => {
+
+			f.World = World;
+
+			_factions.Add (f.Id, f);
+		});
+
+		Factions.ForEach (f => {
+
+			f.FinalizeLoad ();
+		});
+
 		Territory.World = World;
 		Territory.Polity = this;
 		Territory.FinalizeLoad ();
@@ -265,7 +411,7 @@ public abstract class Polity : ISynchronizable {
 		Culture.FinalizeLoad ();
 	}
 
-	public virtual float MigrationValue (TerrainCell targetCell, float sourceValue)
+	public virtual float MigrationValue (CellGroup sourceGroup, TerrainCell targetCell, float sourceValue)
 	{
 		if (sourceValue <= 0)
 			return 0;
@@ -280,7 +426,7 @@ public abstract class Polity : ISynchronizable {
 
 			CulturalKnowledge socialOrgKnowledge = targetGroup.Culture.GetKnowledge (SocialOrganizationKnowledge.SocialOrganizationKnowledgeId);
 
-			socialOrgFactor = Mathf.Clamp01 (socialOrgKnowledge.Value / SocialOrganizationKnowledge.MinKnowledgeValueForTribalism);
+			socialOrgFactor = Mathf.Clamp01 (socialOrgKnowledge.Value / (float)SocialOrganizationKnowledge.MinValueForTribalism);
 			socialOrgFactor = 1 - Mathf.Pow (1 - socialOrgFactor, 2);
 
 			groupTotalInfluenceValue = targetGroup.TotalPolityInfluenceValue;
@@ -290,53 +436,65 @@ public abstract class Polity : ISynchronizable {
 
 		float influenceFactor = socialOrgFactor * sourceValue / (groupTotalInfluenceValue + sourceValueFactor);
 
+		influenceFactor = MathUtility.RoundToSixDecimals (influenceFactor);
+
+//		#if DEBUG
+//		if (Manager.RegisterDebugEvent != null) {
+//			if (sourceGroup.Id == Manager.TracingData.GroupId) {
+//				if (Id == Manager.TracingData.PolityId) {
+//					if ((targetCell.Longitude == Manager.TracingData.Longitude) && (targetCell.Latitude == Manager.TracingData.Latitude)) {
+//						string sourceGroupId = "Id:" + sourceGroup.Id + "|Long:" + sourceGroup.Longitude + "|Lat:" + sourceGroup.Latitude;
+//						string targetLocation = "Long:" + targetCell.Longitude + "|Lat:" + targetCell.Latitude;
+//
+//						if (targetGroup != null) {
+//							targetLocation = "Id:" + targetGroup.Id + "|Long:" + targetGroup.Longitude + "|Lat:" + targetGroup.Latitude;
+//						}
+//
+//						SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//							"MigrationValue - Group: " + sourceGroupId + 
+//							"Polity Id: " + Id,
+//							"CurrentDate: " + World.CurrentDate + 
+//							", targetLocation: " + targetLocation + 
+//							", sourceValue: " + sourceValue.ToString("F7") + 
+//							", socialOrgFactor: " + socialOrgFactor.ToString("F7") + 
+//							", groupTotalInfluenceValue: " + groupTotalInfluenceValue.ToString("F7") + 
+//							", sourceValueFactor: " + sourceValueFactor.ToString("F7") + 
+//							", influenceFactor: " + influenceFactor.ToString("F7") + 
+//							"");
+//
+//						Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+//					}
+//				}
+//			}
+//		}
+//		#endif
+
 		return Mathf.Clamp01 (influenceFactor);
 	}
 
-	public virtual void MergingEffects (CellGroup targetGroup, float sourceValue, float percentOfTarget) {
-
-		foreach (PolityInfluence pInfluence in targetGroup.GetPolityInfluences ()) {
-
-			float influenceValue = pInfluence.Value;
-
-			float newInfluenceValue = influenceValue * (1 - percentOfTarget);
-
-			targetGroup.SetPolityInfluenceValue (pInfluence.Polity, newInfluenceValue);
-		}
-
-		float currentValue = targetGroup.GetPolityInfluenceValue (this);
-
-		float newValue = currentValue + (sourceValue * percentOfTarget);
-
-		#if DEBUG
-		if (targetGroup.Cell.IsSelected) {
-
-			bool debug = true;
-		}
-		#endif
-
-		targetGroup.SetPolityInfluenceValue (this, newValue);
-	}
-
-	public virtual void UpdateEffects (CellGroup group, float influenceValue, int timeSpan) {
+	public virtual void UpdateEffects (CellGroup group, float influenceValue, float groupTotalPolityInfluenceValue, int timeSpan) {
 
 		if (group.Culture.GetDiscovery (TribalismDiscovery.TribalismDiscoveryId) == null) {
 
-			group.SetPolityInfluenceValue (this, 0);
+			group.SetPolityInfluence (this, 0);
 
 			return;
 		}
 
 		TerrainCell groupCell = group.Cell;
 
-		float maxInfluenceValue = 1 - group.TotalPolityInfluenceValue + influenceValue;
+		float maxInfluenceValue = 1 - groupTotalPolityInfluenceValue + influenceValue;
 
 		float maxTargetValue = maxInfluenceValue;
 		float minTargetValue = -0.2f * maxInfluenceValue;
 
-		float randomModifier = groupCell.GetNextLocalRandomFloat ();
+		float randomModifier = groupCell.GetNextLocalRandomFloat (RngOffsets.POLITY_UPDATE_EFFECTS + (int)Id);
 		float randomFactor = 2 * randomModifier - 1f;
 		float targetValue = 0;
+
+//		#if DEBUG
+//		float unmodInflueceValue = influenceValue;
+//		#endif
 
 		if (randomFactor > 0) {
 			targetValue = influenceValue + (maxTargetValue - influenceValue) * randomFactor;
@@ -348,7 +506,31 @@ public abstract class Polity : ISynchronizable {
 
 		influenceValue = (influenceValue * (1 - timeEffect)) + (targetValue * timeEffect);
 
-		group.SetPolityInfluenceValue (this, influenceValue);
+		influenceValue = Mathf.Clamp01 (influenceValue);
+
+//		#if DEBUG
+//		if (Manager.RegisterDebugEvent != null) {
+//			if (group.Id == Manager.TracingData.GroupId) {
+//				string groupId = "Id:" + group.Id + "|Long:" + group.Longitude + "|Lat:" + group.Latitude;
+//
+//				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//					"UpdateEffects - Group:" + groupId + 
+//					", Polity.Id: " + Id,
+//					"CurrentDate: " + World.CurrentDate  +
+//					", randomFactor: " + randomFactor + 
+//					", groupTotalPolityInfluenceValue: " + groupTotalPolityInfluenceValue + 
+//					", Polity.TotalGroupInfluenceValue: " + TotalGroupInfluenceValue + 
+//					", unmodInflueceValue: " + unmodInflueceValue + 
+//					", influenceValue: " + influenceValue + 
+//					", group.LastUpdateDate: " + group.LastUpdateDate + 
+//					"");
+//
+//				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+//			}
+//		}
+//		#endif
+
+		group.SetPolityInfluence (this, influenceValue);
 	}
 
 	// TODO: This function should be overriden in children

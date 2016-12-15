@@ -1562,7 +1562,7 @@ public class GuiManagerScript : MonoBehaviour {
 		InfoPanelText.text += "\nAttributes: ";
 
 		bool first = true;
-		foreach (RegionAttributeNoun attr in region.AttributeNouns) {
+		foreach (RegionAttribute attr in region.Attributes) {
 
 			if (first) {
 				InfoPanelText.text += attr.Name;
@@ -1776,6 +1776,8 @@ public class GuiManagerScript : MonoBehaviour {
 
 			Polity polity = polityInfluence.Polity;
 			float influenceValue = polityInfluence.Value;
+			float coreDistance = polityInfluence.CoreDistance;
+			float administrativeCost = polityInfluence.AdiministrativeCost;
 
 			if (influenceValue >= 0.001) {
 
@@ -1785,7 +1787,10 @@ public class GuiManagerScript : MonoBehaviour {
 					firstPolity = false;
 				}
 
-				InfoPanelText.text += "\n\tPolity #" + polity.Id + " - Influence: " + influenceValue.ToString ("P");
+				InfoPanelText.text += "\n\tPolity #" + polity.Id + ":" +
+					"\n\t\tInfluence: " + influenceValue.ToString ("P") +
+					"\n\t\tDistance to Core: " + coreDistance.ToString ("0.000") +
+					"\n\t\tAdministrative Cost: " + administrativeCost.ToString ("0.000");
 			}
 		}
 	}
@@ -1822,13 +1827,27 @@ public class GuiManagerScript : MonoBehaviour {
 
 		Polity polity = territory.Polity;
 
-		InfoPanelText.text += "\n\tTerritory of polity #" + polity.Id + ": " + polity.Name;
+		InfoPanelText.text += "\n\tTerritory of " + polity.Type + " " + polity.Name + " (#" + polity.Id +")";
 		InfoPanelText.text += "\n";
 
 		int totalPopulation = (int)Mathf.Floor(polity.TotalPopulation);
 
 		InfoPanelText.text += "\n\tPolity population: " + totalPopulation;
 		InfoPanelText.text += "\n";
+
+		float administrativeCost = polity.TotalAdministrativeCost;
+
+		InfoPanelText.text += "\n\tAdministrative Cost: " + administrativeCost;
+
+		InfoPanelText.text += "\n";
+		InfoPanelText.text += "\n -- Polity Factions -- ";
+		InfoPanelText.text += "\n";
+
+		foreach (Faction faction in polity.GetFactions ()) {
+
+			InfoPanelText.text += "\n\t" + faction.Type + " " + faction.Name;
+			InfoPanelText.text += "\n\t\tProminence: " + faction.Prominence.ToString ("P");
+		}
 
 		InfoPanelText.text += "\n";
 		InfoPanelText.text += "\n -- Selected Group's Polity Data -- ";
@@ -2064,18 +2083,15 @@ public class GuiManagerScript : MonoBehaviour {
 
 		foreach (CulturalKnowledge knowledge in polityInfluence.Polity.Culture.Knowledges) {
 
-			float knowledgeValue = knowledge.Value;
+			float knowledgeValue = knowledge.ScaledValue;
 
-			if (knowledgeValue >= 0.001) {
+			if (firstKnowledge) {
+				InfoPanelText.text += "\nKnowledges:";
 
-				if (firstKnowledge) {
-					InfoPanelText.text += "\nKnowledges:";
-
-					firstKnowledge = false;
-				}
-
-				InfoPanelText.text += "\n\t" + knowledge.Id + " - Value: " + knowledge.Value.ToString ("0.000");
+				firstKnowledge = false;
 			}
+
+			InfoPanelText.text += "\n\t" + knowledge.Id + " - Value: " + knowledgeValue.ToString ("0.000");
 		}
 	}
 
@@ -2105,18 +2121,15 @@ public class GuiManagerScript : MonoBehaviour {
 
 		foreach (CulturalKnowledge knowledge in cell.Group.Culture.Knowledges) {
 
-			float knowledgeValue = knowledge.Value;
+			float knowledgeValue = knowledge.ScaledValue;
 
-			if (knowledgeValue >= 0.001) {
+			if (firstKnowledge) {
+				InfoPanelText.text += "\nKnowledges:";
 
-				if (firstKnowledge) {
-					InfoPanelText.text += "\nKnowledges:";
-
-					firstKnowledge = false;
-				}
-
-				InfoPanelText.text += "\n\t" + knowledge.Id + " - Value: " + knowledge.Value.ToString ("0.000");
+				firstKnowledge = false;
 			}
+
+			InfoPanelText.text += "\n\t" + knowledge.Id + " - Value: " + knowledgeValue.ToString ("0.000");
 		}
 	}
 

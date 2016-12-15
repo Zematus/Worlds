@@ -126,20 +126,32 @@ public class Manager {
 
 	#if DEBUG
 
-	public delegate void RegisterDebugEventDelegate (string eventType, string message);
+	public delegate void RegisterDebugEventDelegate (string eventType, object data);
 
 	public static RegisterDebugEventDelegate RegisterDebugEvent = null; 
 
+	public class Debug_TracingData {
+
+		public long GroupId;
+		public long PolityId;
+		public int Longitude;
+		public int Latitude;
+	}
+
+	public static Debug_TracingData TracingData = new Manager.Debug_TracingData ();
+
+	public static bool TrackGenRandomCallers = false;
+
 	#endif
+
+//	public static bool RecordingEnabled = false;
+
+//	public static IRecorder Recorder = DefaultRecorder.Default;
 
 	public const int WorldWidth = 400;
 	public const int WorldHeight = 200;
 
 	public static float ProgressIncrement = 0.20f;
-
-	public static bool RecordingEnabled = false;
-
-	public static IRecorder Recorder = DefaultRecorder.Default;
 	
 	public static Thread MainThread { get; private set; }
 	

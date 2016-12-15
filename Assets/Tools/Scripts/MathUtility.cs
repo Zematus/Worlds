@@ -42,4 +42,34 @@ public static class MathUtility {
 		// To reduce rounding problems with float serialization we round serialized floats to six decimals while running the simulation
 		return (float)System.Math.Round (value, 6);
 	}
+
+	public static float MultiplyAndGetDecimals (float a, float b, out float decimals) {
+
+		float exact = a * b;
+		float result = Mathf.Floor(exact);
+
+		decimals = exact - result;
+
+		return result;
+	}
+
+	public static float DivideAndGetDecimals (float a, float b, out float decimals) {
+
+		float exact = a / b;
+		float result = Mathf.Floor(exact);
+
+		decimals = exact - result;
+
+		return result;
+	}
+
+	public static float MergeAndGetDecimals (float a, float b, float f, out float decimals) {
+
+		float ab = a * (1f - f) + b * f;
+		float pab = Mathf.Floor (ab);
+
+		decimals = ab - pab;
+
+		return pab;
+	}
 }

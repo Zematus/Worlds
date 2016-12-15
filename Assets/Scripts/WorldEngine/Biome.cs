@@ -6,6 +6,8 @@ using System.Xml.Serialization;
 
 public class Biome {
 
+	public const int TypeCount = 10;
+
 	public static float MinBiomeTemperature = World.MinPossibleTemperature*3 - 1;
 	public static float MaxBiomeTemperature = World.MaxPossibleTemperature*3 + 1;
 	
