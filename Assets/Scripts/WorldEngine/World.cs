@@ -3,8 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
+using UnityEngine.Profiling;
 
-public delegate void ProgressCastDelegate (float value, string message = null);
+public delegate void ProgressCastDelegate (float value, string message = null, bool reset = false);
 
 public interface ISynchronizable {
 
@@ -271,13 +272,13 @@ public class World : ISynchronizable {
 	public World () {
 
 		Manager.WorldBeingLoaded = this;
-		
-		ProgressCastMethod = (value, message) => {};
+
+		ProgressCastMethod = (value, message, reset) => {};
 	}
 
 	public World (int width, int height, int seed) {
 
-		ProgressCastMethod = (value, message) => {};
+		ProgressCastMethod = (value, message, reset) => {};
 		
 		Width = width;
 		Height = height;
@@ -895,7 +896,7 @@ public class World : ISynchronizable {
 	public void FinalizeLoad (float startProgressValue, float endProgressValue, ProgressCastDelegate castProgress) {
 
 		if (castProgress == null)
-			castProgress = (value, message) => {};
+			castProgress = (value, message, reset) => {};
 
 		float progressFactor = 1 / (endProgressValue - startProgressValue);
 

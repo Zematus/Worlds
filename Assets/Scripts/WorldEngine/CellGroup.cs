@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 using System.Linq;
+using UnityEngine.Profiling;
 
 public class CellGroup : HumanGroup {
 

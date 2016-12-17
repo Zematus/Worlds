@@ -423,7 +423,7 @@ public class Manager {
 		
 		if (_manager._progressCastMethod == null) {
 		
-			_manager._progressCastMethod = (value, message) => {};
+			_manager._progressCastMethod = (value, message, reset) => {};
 		}
 		
 		ThreadPool.QueueUserWorkItem (state => {
@@ -454,20 +454,20 @@ public class Manager {
 		World world = _manager._currentWorld;
 		
 		if (_manager._progressCastMethod == null) {
-			world.ProgressCastMethod = (value, message) => {};
+			world.ProgressCastMethod = (value, message, reset) => {};
 		} else {
 			world.ProgressCastMethod = _manager._progressCastMethod;
 		}
 
 		world.GenerateRandomHumanGroups (1, initialPopulation);
 	}
-	
+
 	public static void GenerateHumanGroup (int longitude, int latitude, int initialPopulation) {
 		
 		World world = _manager._currentWorld;
 		
 		if (_manager._progressCastMethod == null) {
-			world.ProgressCastMethod = (value, message) => {};
+			world.ProgressCastMethod = (value, message, reset) => {};
 		} else {
 			world.ProgressCastMethod = _manager._progressCastMethod;
 		}
@@ -482,7 +482,7 @@ public class Manager {
 		World world = new World(WorldWidth, WorldHeight, seed);
 		
 		if (_manager._progressCastMethod == null) {
-			world.ProgressCastMethod = (value, message) => {};
+			world.ProgressCastMethod = (value, message, reset) => {};
 		} else {
 			world.ProgressCastMethod = _manager._progressCastMethod;
 		}
@@ -509,7 +509,7 @@ public class Manager {
 
 		if (_manager._progressCastMethod == null) {
 			
-			_manager._progressCastMethod = (value, message) => {};
+			_manager._progressCastMethod = (value, message, reset) => {};
 		}
 
 		ThreadPool.QueueUserWorkItem (state => {
@@ -571,7 +571,7 @@ public class Manager {
 		
 		if (_manager._progressCastMethod == null) {
 			
-			_manager._progressCastMethod = (value, message) => {};
+			_manager._progressCastMethod = (value, message, reset) => {};
 		}
 		
 		ThreadPool.QueueUserWorkItem (state => {
@@ -596,11 +596,11 @@ public class Manager {
 		FileStream stream = new FileStream(path, FileMode.Open);
 
 		World world = serializer.Deserialize(stream) as World;
-		
+
 		stream.Close ();
 		
 		if (_manager._progressCastMethod == null) {
-			world.ProgressCastMethod = (value, message) => {};
+			world.ProgressCastMethod = (value, message, reset) => {};
 		} else {
 			world.ProgressCastMethod = _manager._progressCastMethod;
 		}
@@ -639,7 +639,7 @@ public class Manager {
 		
 		if (_manager._progressCastMethod == null) {
 			
-			_manager._progressCastMethod = (value, message) => {};
+			_manager._progressCastMethod = (value, message, reset) => {};
 		}
 		
 		ThreadPool.QueueUserWorkItem (state => {

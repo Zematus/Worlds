@@ -110,7 +110,7 @@ public class Clan : Faction {
 
 public class ClanSplitEvent : FactionEvent {
 
-	public const int DateSpanFactorConstant = CellGroup.GenerationTime * 10000;
+	public const int DateSpanFactorConstant = CellGroup.GenerationTime * 1000;
 
 	public const int MuAdministrativeLoadValue = 100;
 
@@ -175,6 +175,10 @@ public class ClanSplitEvent : FactionEvent {
 			return false;
 
 		float administrativeLoadFactor = CalculateAdministrativeLoadFactor (Faction as Clan);
+		administrativeLoadFactor *= administrativeLoadFactor;
+
+		if (administrativeLoadFactor < 0)
+			return true;
 
 		administrativeLoadFactor = administrativeLoadFactor / (0.001f + administrativeLoadFactor + MuAdministrativeLoadValue);
 
