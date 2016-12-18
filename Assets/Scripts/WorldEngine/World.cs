@@ -158,7 +158,7 @@ public class World : ISynchronizable {
 		XmlArrayItem (Type = typeof(TribalismDiscoveryEvent)),
 		XmlArrayItem (Type = typeof(TribeFormationEvent)),
 		XmlArrayItem (Type = typeof(PlantCultivationDiscoveryEvent)),
-		XmlArrayItem (Type = typeof(FarmDegradationEvent)),
+//		XmlArrayItem (Type = typeof(FarmDegradationEvent)),
 		XmlArrayItem (Type = typeof(ClanSplitEvent))]
 	public List<WorldEvent> EventsToHappen;
 

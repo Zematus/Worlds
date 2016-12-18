@@ -1116,12 +1116,14 @@ public class CellGroup : HumanGroup {
 
 		StillPresent = false;
 
-		if (FarmDegradationEvent.CanSpawnIn (Cell)) {
+		Cell.FarmlandPercentage = 0;
 
-			int triggerDate = FarmDegradationEvent.CalculateTriggerDate (Cell);
-
-			World.InsertEventToHappen (new FarmDegradationEvent (Cell, triggerDate));
-		}
+//		if (FarmDegradationEvent.CanSpawnIn (Cell)) {
+//
+//			int triggerDate = FarmDegradationEvent.CalculateTriggerDate (Cell);
+//
+//			World.InsertEventToHappen (new FarmDegradationEvent (Cell, triggerDate));
+//		}
 	}
 
 	public void RemovePolityInfluences () {
@@ -1422,34 +1424,18 @@ public class CellGroup : HumanGroup {
 		float modifiedForagingCapacity = 0;
 		float modifiedSurvivability = 0;
 
-		Profiler.BeginSample ("Get Activity Contribution");
-
 		float foragingContribution = GetActivityContribution (CellCulturalActivity.ForagingActivityId);
-
-		Profiler.EndSample ();
-
-		Profiler.BeginSample ("Calculate Adaption To Cell");
 
 		CalculateAdaptionToCell (cell, out modifiedForagingCapacity, out modifiedSurvivability);
 
-		Profiler.EndSample ();
-
 		float populationCapacityByForaging = foragingContribution * PopulationForagingConstant * cell.Area * modifiedForagingCapacity;
-
-		Profiler.BeginSample ("Get Activity Contribution");
 
 		float farmingContribution = GetActivityContribution (CellCulturalActivity.FarmingActivityId);
 		float populationCapacityByFarming = 0;
 
-		Profiler.EndSample ();
-
 		if (farmingContribution > 0) {
 
-			Profiler.BeginSample ("Calculate Farming Capacity");
-
 			float farmingCapacity = CalculateFarmingCapacity (cell);
-
-			Profiler.EndSample ();
 
 			populationCapacityByFarming = farmingContribution * PopulationFarmingConstant * cell.Area * farmingCapacity;
 		}
@@ -1467,30 +1453,30 @@ public class CellGroup : HumanGroup {
 		}
 		#endif
 
-		#if DEBUG
-		if (Manager.RegisterDebugEvent != null) {
-			if (Id == Manager.TracingData.GroupId) {
-				if ((cell.Longitude == Longitude) && (cell.Latitude == Latitude)) {
-					string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
-					string cellInfo = "Long:" + cell.Longitude + "|Lat:" + cell.Latitude;
-
-					SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-						"CalculateOptimalPopulation - Group:" + groupId,
-						"CurrentDate: " + World.CurrentDate + 
-						", target cellInfo: " + cellInfo + 
-						", foragingContribution: " + foragingContribution + 
-//						", Area: " + cell.Area + 
-						", modifiedForagingCapacity: " + modifiedForagingCapacity + 
-						", modifiedSurvivability: " + modifiedSurvivability + 
-						", accesibilityFactor: " + accesibilityFactor + 
-						", optimalPopulation: " + optimalPopulation + 
-						"");
-
-					Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-				}
-			}
-		}
-		#endif
+//		#if DEBUG
+//		if (Manager.RegisterDebugEvent != null) {
+//			if (Id == Manager.TracingData.GroupId) {
+//				if ((cell.Longitude == Longitude) && (cell.Latitude == Latitude)) {
+//					string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
+//					string cellInfo = "Long:" + cell.Longitude + "|Lat:" + cell.Latitude;
+//
+//					SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//						"CalculateOptimalPopulation - Group:" + groupId,
+//						"CurrentDate: " + World.CurrentDate + 
+//						", target cellInfo: " + cellInfo + 
+//						", foragingContribution: " + foragingContribution + 
+////						", Area: " + cell.Area + 
+//						", modifiedForagingCapacity: " + modifiedForagingCapacity + 
+//						", modifiedSurvivability: " + modifiedSurvivability + 
+//						", accesibilityFactor: " + accesibilityFactor + 
+//						", optimalPopulation: " + optimalPopulation + 
+//						"");
+//
+//					Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+//				}
+//			}
+//		}
+//		#endif
 
 		return optimalPopulation;
 	}
@@ -1526,6 +1512,8 @@ public class CellGroup : HumanGroup {
 
 		foreach (string biomeName in cell.PresentBiomeNames) {
 
+			Profiler.BeginSample ("Try Get Biome Survival Skill");
+
 			float biomePresence = cell.GetBiomePresence(biomeName);
 
 			BiomeSurvivalSkill skill = null;
@@ -1554,6 +1542,8 @@ public class CellGroup : HumanGroup {
 
 				Profiler.EndSample ();
 			}
+
+			Profiler.EndSample ();
 		}
 
 		Profiler.EndSample ();
@@ -1596,95 +1586,6 @@ public class CellGroup : HumanGroup {
 //		}
 //		#endif
 	}
-
-//	public void CalculateAdaptionToCell (TerrainCell cell, out float foragingCapacity, out float survivability) {
-//
-//		float modifiedForagingCapacity = 0;
-//		float modifiedSurvivability = 0;
-//
-////		#if DEBUG
-////		string biomeData = "";
-////		#endif
-//
-//		Profiler.BeginSample ("Get Skill Values");
-//		
-//		foreach (CellCulturalSkill skill in Culture.Skills) {
-//			
-//			float skillValue = skill.Value;
-//			
-//			if (skill is BiomeSurvivalSkill) {
-//
-//				Profiler.BeginSample ("Evaluate Biome Survival Skill");
-//				
-//				BiomeSurvivalSkill biomeSurvivalSkill = skill as BiomeSurvivalSkill;
-//				
-//				string biomeName = biomeSurvivalSkill.BiomeName;
-//				
-//				float biomePresence = cell.GetBiomePresence(biomeName);
-//				
-//				if (biomePresence > 0)
-//				{
-//					Biome biome = Biome.Biomes[biomeName];
-//					
-//					modifiedForagingCapacity += biome.ForagingCapacity * skillValue * biomePresence;
-//					modifiedSurvivability += (biome.Survivability + skillValue * (1 - biome.Survivability)) * biomePresence;
-//
-////					#if DEBUG
-////
-////					if (Manager.RegisterDebugEvent != null) {
-////						biomeData += "\n\tBiome: " + biomeName + 
-////							" ForagingCapacity: " + biome.ForagingCapacity + 
-////							" skillValue: " + skillValue + 
-////							" biomePresence: " + biomePresence;
-////					}
-////
-////					#endif
-//				}
-//
-//				Profiler.EndSample ();
-//			}
-//		}
-//
-//		Profiler.EndSample ();
-//		
-//		float altitudeSurvivabilityFactor = 1 - (cell.Altitude / World.MaxPossibleAltitude);
-//
-//		modifiedSurvivability = (modifiedSurvivability * (1 - cell.FarmlandPercentage)) + cell.FarmlandPercentage;
-//
-//		foragingCapacity = modifiedForagingCapacity * (1 - cell.FarmlandPercentage);
-//		survivability = modifiedSurvivability * altitudeSurvivabilityFactor;
-//
-////		#if DEBUG
-////		if (Manager.RegisterDebugEvent != null) {
-////			if (Id == Manager.TracingData.GroupId) {
-////				if ((cell.Longitude == Longitude) && (cell.Latitude == Latitude)) {
-////					System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
-////
-////					System.Reflection.MethodBase method = stackTrace.GetFrame(2).GetMethod();
-////					string callingMethod = method.Name;
-////
-//////					if (callingMethod.Contains ("CalculateMigrationValue")) {
-////						string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
-////						string cellInfo = "Long:" + cell.Longitude + "|Lat:" + cell.Latitude;
-////
-////						SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-////							"CalculateAdaptionToCell - Group:" + groupId,
-////							"CurrentDate: " + World.CurrentDate + 
-////							", callingMethod(2): " + callingMethod + 
-////							", target cell: " + cellInfo + 
-////							", cell.FarmlandPercentage: " + cell.FarmlandPercentage + 
-////							", foragingCapacity: " + foragingCapacity + 
-////							", survivability: " + survivability + 
-////							", biomeData: " + biomeData + 
-////							"");
-////
-////						Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-//////					}
-////				}
-////			}
-////		}
-////		#endif
-//	}
 
 	public int CalculateNextUpdateDate () {
 

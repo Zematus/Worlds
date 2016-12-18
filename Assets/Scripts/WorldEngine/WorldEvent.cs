@@ -110,105 +110,105 @@ public abstract class CellEvent : WorldEvent {
 	}
 }
 
-public class FarmDegradationEvent : CellEvent {
-
-	public const string EventSetFlag = "FarmDegradationEvent_Set";
-	
-	public const int MaxDateSpanToTrigger = CellGroup.GenerationTime * 8;
-
-	public const float DegradationFactor = 0.25f;
-	public const float MinFarmLandPercentage = 0.001f;
-
-	public FarmDegradationEvent () {
-
-	}
-
-	public FarmDegradationEvent (TerrainCell cell, int triggerDate) : base (cell, triggerDate, FarmDegradationEventId) {
-
-		cell.SetFlag (EventSetFlag);
-	}
-
-	public static bool CanSpawnIn (TerrainCell cell) {
-
-		if (cell.IsFlagSet (EventSetFlag))
-			return false;
-
-		if (cell.FarmlandPercentage <= 0)
-			return false;
-
-		CellGroup cellGroup = cell.Group;
-
-		if (cellGroup == null)
-			return true;
-
-		if (!cellGroup.StillPresent)
-			return true;
-
-		if (cellGroup.Culture.GetKnowledge (AgricultureKnowledge.AgricultureKnowledgeId) == null)
-			return true;
-
-		return false;
-	}
-
-	public static int CalculateTriggerDate (TerrainCell cell) {
-
-		float randomFactor = cell.GetNextLocalRandomFloat (RngOffsets.FARM_DEGRADATION_EVENT_CALCULATE_TRIGGER_DATE);
-		randomFactor = randomFactor * randomFactor;
-
-		return cell.World.CurrentDate + (int)Mathf.Max(1, (MaxDateSpanToTrigger * (1 - randomFactor)));
-	}
-
-	public override void Trigger ()
-	{
-		float farmlandDegradation = DegradationFactor * Cell.FarmlandPercentage;
-
-
-		float farmlandPercentage = Cell.FarmlandPercentage - farmlandDegradation;
-
-		if (farmlandPercentage < MinFarmLandPercentage)
-			farmlandPercentage = 0;
-
-		#if DEBUG
-		if (float.IsNaN(farmlandPercentage)) {
-
-			Debug.Break ();
-		}
-		#endif
-
-		Cell.FarmlandPercentage = farmlandPercentage;
-	}
-
-	public override bool CanTrigger () {
-
-		return (Cell.FarmlandPercentage > 0);
-	}
-
-	public override void FinalizeLoad () {
-
-		base.FinalizeLoad ();
-
-		Cell = World.GetCell (CellLongitude, CellLatitude);
-
-		if (Cell == null) {
-		
-			throw new System.Exception ("Cell is null");
-		}
-	}
-
-	protected override void DestroyInternal ()
-	{
-		Cell.UnsetFlag (EventSetFlag);
-
-		if (CanSpawnIn (Cell)) {
-
-			int nextTriggerDate = CalculateTriggerDate (Cell);
-
-			World.InsertEventToHappen (new FarmDegradationEvent (Cell, nextTriggerDate));
-		}
-
-		base.DestroyInternal ();
-	}
-}
+//public class FarmDegradationEvent : CellEvent {
+//
+//	public const string EventSetFlag = "FarmDegradationEvent_Set";
+//	
+//	public const int MaxDateSpanToTrigger = CellGroup.GenerationTime * 8;
+//
+//	public const float DegradationFactor = 0.25f;
+//	public const float MinFarmLandPercentage = 0.001f;
+//
+//	public FarmDegradationEvent () {
+//
+//	}
+//
+//	public FarmDegradationEvent (TerrainCell cell, int triggerDate) : base (cell, triggerDate, FarmDegradationEventId) {
+//
+//		cell.SetFlag (EventSetFlag);
+//	}
+//
+//	public static bool CanSpawnIn (TerrainCell cell) {
+//
+//		if (cell.IsFlagSet (EventSetFlag))
+//			return false;
+//
+//		if (cell.FarmlandPercentage <= 0)
+//			return false;
+//
+//		CellGroup cellGroup = cell.Group;
+//
+//		if (cellGroup == null)
+//			return true;
+//
+//		if (!cellGroup.StillPresent)
+//			return true;
+//
+//		if (cellGroup.Culture.GetKnowledge (AgricultureKnowledge.AgricultureKnowledgeId) == null)
+//			return true;
+//
+//		return false;
+//	}
+//
+//	public static int CalculateTriggerDate (TerrainCell cell) {
+//
+//		float randomFactor = cell.GetNextLocalRandomFloat (RngOffsets.FARM_DEGRADATION_EVENT_CALCULATE_TRIGGER_DATE);
+//		randomFactor = randomFactor * randomFactor;
+//
+//		return cell.World.CurrentDate + (int)Mathf.Max(1, (MaxDateSpanToTrigger * (1 - randomFactor)));
+//	}
+//
+//	public override void Trigger ()
+//	{
+//		float farmlandDegradation = DegradationFactor * Cell.FarmlandPercentage;
+//
+//
+//		float farmlandPercentage = Cell.FarmlandPercentage - farmlandDegradation;
+//
+//		if (farmlandPercentage < MinFarmLandPercentage)
+//			farmlandPercentage = 0;
+//
+//		#if DEBUG
+//		if (float.IsNaN(farmlandPercentage)) {
+//
+//			Debug.Break ();
+//		}
+//		#endif
+//
+//		Cell.FarmlandPercentage = farmlandPercentage;
+//	}
+//
+//	public override bool CanTrigger () {
+//
+//		return (Cell.FarmlandPercentage > 0);
+//	}
+//
+//	public override void FinalizeLoad () {
+//
+//		base.FinalizeLoad ();
+//
+//		Cell = World.GetCell (CellLongitude, CellLatitude);
+//
+//		if (Cell == null) {
+//		
+//			throw new System.Exception ("Cell is null");
+//		}
+//	}
+//
+//	protected override void DestroyInternal ()
+//	{
+//		Cell.UnsetFlag (EventSetFlag);
+//
+//		if (CanSpawnIn (Cell)) {
+//
+//			int nextTriggerDate = CalculateTriggerDate (Cell);
+//
+//			World.InsertEventToHappen (new FarmDegradationEvent (Cell, nextTriggerDate));
+//		}
+//
+//		base.DestroyInternal ();
+//	}
+//}
 
 public abstract class CellGroupEvent : WorldEvent {
 	
