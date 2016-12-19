@@ -75,6 +75,9 @@ public class CellGroup : HumanGroup {
 	public static float TravelWidthFactor;
 
 	[XmlIgnore]
+	public UpdateCellGroupEvent UpdateEvent;
+
+	[XmlIgnore]
 	public float TotalPolityInfluenceValue {
 		get {
 			return TotalPolityInfluenceValueFloat;
@@ -146,7 +149,7 @@ public class CellGroup : HumanGroup {
 		Manager.UpdateWorldLoadTrackEventCount ();
 	}
 	
-	public CellGroup (MigratingGroup migratingGroup, int splitPopulation) : this(migratingGroup.World, migratingGroup.TargetCell, splitPopulation, migratingGroup.Culture) {
+	public CellGroup (MigratingGroup migratingGroup, int splitPopulation) : this (migratingGroup.World, migratingGroup.TargetCell, splitPopulation, migratingGroup.Culture) {
 
 		foreach (PolityInfluence p in migratingGroup.PolityInfluences) {
 
@@ -232,8 +235,10 @@ public class CellGroup : HumanGroup {
 		NextUpdateDate = CalculateNextUpdateDate();
 
 		LastUpdateDate = World.CurrentDate;
+
+		UpdateEvent = new UpdateCellGroupEvent (this, NextUpdateDate);
 		
-		World.InsertEventToHappen (new UpdateCellGroupEvent (this, NextUpdateDate));
+		World.InsertEventToHappen (UpdateEvent);
 		
 		World.UpdateMostPopulousGroup (this);
 
@@ -655,6 +660,12 @@ public class CellGroup : HumanGroup {
 			return;
 		}
 
+		Profiler.BeginSample ("Update Terrain Farmland Percentage");
+
+		UpdateTerrainFarmlandPercentage ();
+
+		Profiler.EndSample ();
+
 		Profiler.BeginSample ("Culture PostUpdate");
 	
 		Culture.PostUpdate ();
@@ -710,8 +721,14 @@ public class CellGroup : HumanGroup {
 		Profiler.EndSample ();
 
 		LastUpdateDate = World.CurrentDate;
+
+//		UpdateEvent = new UpdateCellGroupEvent (this, NextUpdateDate);
+
+		UpdateEvent.Reset (NextUpdateDate);
+
+		World.InsertEventToHappen (UpdateEvent);
 		
-		World.InsertEventToHappen (new UpdateCellGroupEvent (this, NextUpdateDate));
+//		World.InsertEventToHappen (new UpdateCellGroupEvent (this, NextUpdateDate));
 	}
 	
 	private float CalculateAltitudeDeltaMigrationFactor (TerrainCell targetCell) {
@@ -1117,13 +1134,6 @@ public class CellGroup : HumanGroup {
 		StillPresent = false;
 
 		Cell.FarmlandPercentage = 0;
-
-//		if (FarmDegradationEvent.CanSpawnIn (Cell)) {
-//
-//			int triggerDate = FarmDegradationEvent.CalculateTriggerDate (Cell);
-//
-//			World.InsertEventToHappen (new FarmDegradationEvent (Cell, triggerDate));
-//		}
 	}
 
 	public void RemovePolityInfluences () {
@@ -1170,12 +1180,6 @@ public class CellGroup : HumanGroup {
 
 		if (timeSpan <= 0)
 			return;
-
-		Profiler.BeginSample ("Update Terrain Farmland Percentage");
-
-		UpdateTerrainFarmlandPercentage (timeSpan);
-
-		Profiler.EndSample ();
 
 		Profiler.BeginSample ("Update Population");
 
@@ -1325,7 +1329,7 @@ public class CellGroup : HumanGroup {
 		return activity.Contribution;
 	}
 
-	private void UpdateTerrainFarmlandPercentage (int timeSpan) {
+	private void UpdateTerrainFarmlandPercentage () {
 
 		#if DEBUG
 		if (Cell.IsSelected) {
@@ -1341,8 +1345,6 @@ public class CellGroup : HumanGroup {
 			return;
 		}
 
-		float farmlandPercentage = Cell.FarmlandPercentage;
-
 		float knowledgeValue = agricultureKnowledge.ScaledValue;
 
 		float techValue = Mathf.Sqrt(knowledgeValue);
@@ -1353,42 +1355,17 @@ public class CellGroup : HumanGroup {
 
 		float farmingPopulation = GetActivityContribution (CellCulturalActivity.FarmingActivityId) * Population;
 
-		float maxWorkableFarmlandArea = areaPerFarmWorker * farmingPopulation;
+		float workableArea = areaPerFarmWorker * farmingPopulation;
 
-		float maxPossibleFarmlandArea = Cell.Area * terrainFactor;
+		float availableArea = Cell.Area * terrainFactor;
 
-		float maxFarmlandArea = Mathf.Min (maxPossibleFarmlandArea, maxWorkableFarmlandArea);
+		float farmlandPercentage = 0;
 
-		float farmlandArea = farmlandPercentage * Cell.Area;
+		if ((workableArea > 0) && (availableArea > 0)) {
 
-		float necessaryAreaToFarm = maxFarmlandArea - farmlandArea;
-
-		if (necessaryAreaToFarm <= 0)
-			return;
-
-		float techGenerationFactor = techValue / 5f;
-
-		float farmlandGenerationFactor = farmingPopulation * techGenerationFactor * timeSpan;
-
-		float actualGeneratedPercentage = farmlandGenerationFactor / (necessaryAreaToFarm + farmlandGenerationFactor);
-
-		float actualGeneratedFarmlandArea = necessaryAreaToFarm * actualGeneratedPercentage;
-
-		float percentageToAdd = actualGeneratedFarmlandArea / Cell.Area;
-
-		farmlandPercentage += percentageToAdd;
-
-		if (farmlandPercentage > 1) {
-		
-			throw new System.Exception ("farmlandPercentage greater than 1");
+			float farmlandArea = workableArea * availableArea / (workableArea * availableArea);
+			farmlandPercentage = farmlandArea / Cell.Area;
 		}
-
-		#if DEBUG
-		if (float.IsNaN(farmlandPercentage)) {
-
-			Debug.Break ();
-		}
-		#endif
 
 		Cell.FarmlandPercentage = farmlandPercentage;
 	}
@@ -2026,5 +2003,36 @@ public class CellGroup : HumanGroup {
 				HighestPolityInfluence = p;
 			}
 		}
+	}
+}
+
+public class UpdateCellGroupEvent : CellGroupEvent {
+
+	public UpdateCellGroupEvent () {
+
+	}
+
+	public UpdateCellGroupEvent (CellGroup group, int triggerDate) : base (group, triggerDate, UpdateCellGroupEventId) {
+
+	}
+
+	public override bool CanTrigger () {
+
+		if (!base.CanTrigger ()) {
+
+			return false;
+		}
+
+		if (Group.NextUpdateDate != TriggerDate) {
+
+			return false;
+		}
+
+		return true;
+	}
+
+	public override void Trigger () {
+
+		World.AddGroupToUpdate (Group);
 	}
 }

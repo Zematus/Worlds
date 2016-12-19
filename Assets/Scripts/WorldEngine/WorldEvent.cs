@@ -6,17 +6,16 @@ using System.Xml.Serialization;
 
 public abstract class WorldEvent : ISynchronizable {
 
-	public const long FarmDegradationEventId = 0;
-	public const long UpdateCellGroupEventId = 1;
-	public const long MigrateGroupEventId = 2;
-	public const long SailingDiscoveryEventId = 3;
-	public const long TribalismDiscoveryEventId = 4;
-	public const long TribeFormationEventId = 5;
-	public const long BoatMakingDiscoveryEventId = 6;
-	public const long PlantCultivationDiscoveryEventId = 7;
-	public const long ClanSplitEventId = 8;
+	public const long UpdateCellGroupEventId = 0;
+	public const long MigrateGroupEventId = 1;
+	public const long SailingDiscoveryEventId = 2;
+	public const long TribalismDiscoveryEventId = 3;
+	public const long TribeFormationEventId = 4;
+	public const long BoatMakingDiscoveryEventId = 5;
+	public const long PlantCultivationDiscoveryEventId = 6;
+	public const long ClanSplitEventId = 7;
 
-	public static int EventCount = 0;
+//	public static int EventCount = 0;
 
 	[XmlIgnore]
 	public World World;
@@ -29,14 +28,14 @@ public abstract class WorldEvent : ISynchronizable {
 
 	public WorldEvent () {
 
-		EventCount++;
+//		EventCount++;
 
 		Manager.UpdateWorldLoadTrackEventCount ();
 	}
 
 	public WorldEvent (World world, int triggerDate, long id) {
 		
-		EventCount++;
+//		EventCount++;
 
 		World = world;
 		TriggerDate = triggerDate;
@@ -61,7 +60,7 @@ public abstract class WorldEvent : ISynchronizable {
 
 	public void Destroy () {
 		
-		EventCount--;
+//		EventCount--;
 
 		DestroyInternal ();
 	}
@@ -70,9 +69,9 @@ public abstract class WorldEvent : ISynchronizable {
 	
 	}
 
-	protected virtual void Reset (int newTriggerDate) {
+	public virtual void Reset (int newTriggerDate) {
 
-		EventCount++;
+//		EventCount++;
 
 		TriggerDate = newTriggerDate;
 	}
@@ -109,106 +108,6 @@ public abstract class CellEvent : WorldEvent {
 		#endif
 	}
 }
-
-//public class FarmDegradationEvent : CellEvent {
-//
-//	public const string EventSetFlag = "FarmDegradationEvent_Set";
-//	
-//	public const int MaxDateSpanToTrigger = CellGroup.GenerationTime * 8;
-//
-//	public const float DegradationFactor = 0.25f;
-//	public const float MinFarmLandPercentage = 0.001f;
-//
-//	public FarmDegradationEvent () {
-//
-//	}
-//
-//	public FarmDegradationEvent (TerrainCell cell, int triggerDate) : base (cell, triggerDate, FarmDegradationEventId) {
-//
-//		cell.SetFlag (EventSetFlag);
-//	}
-//
-//	public static bool CanSpawnIn (TerrainCell cell) {
-//
-//		if (cell.IsFlagSet (EventSetFlag))
-//			return false;
-//
-//		if (cell.FarmlandPercentage <= 0)
-//			return false;
-//
-//		CellGroup cellGroup = cell.Group;
-//
-//		if (cellGroup == null)
-//			return true;
-//
-//		if (!cellGroup.StillPresent)
-//			return true;
-//
-//		if (cellGroup.Culture.GetKnowledge (AgricultureKnowledge.AgricultureKnowledgeId) == null)
-//			return true;
-//
-//		return false;
-//	}
-//
-//	public static int CalculateTriggerDate (TerrainCell cell) {
-//
-//		float randomFactor = cell.GetNextLocalRandomFloat (RngOffsets.FARM_DEGRADATION_EVENT_CALCULATE_TRIGGER_DATE);
-//		randomFactor = randomFactor * randomFactor;
-//
-//		return cell.World.CurrentDate + (int)Mathf.Max(1, (MaxDateSpanToTrigger * (1 - randomFactor)));
-//	}
-//
-//	public override void Trigger ()
-//	{
-//		float farmlandDegradation = DegradationFactor * Cell.FarmlandPercentage;
-//
-//
-//		float farmlandPercentage = Cell.FarmlandPercentage - farmlandDegradation;
-//
-//		if (farmlandPercentage < MinFarmLandPercentage)
-//			farmlandPercentage = 0;
-//
-//		#if DEBUG
-//		if (float.IsNaN(farmlandPercentage)) {
-//
-//			Debug.Break ();
-//		}
-//		#endif
-//
-//		Cell.FarmlandPercentage = farmlandPercentage;
-//	}
-//
-//	public override bool CanTrigger () {
-//
-//		return (Cell.FarmlandPercentage > 0);
-//	}
-//
-//	public override void FinalizeLoad () {
-//
-//		base.FinalizeLoad ();
-//
-//		Cell = World.GetCell (CellLongitude, CellLatitude);
-//
-//		if (Cell == null) {
-//		
-//			throw new System.Exception ("Cell is null");
-//		}
-//	}
-//
-//	protected override void DestroyInternal ()
-//	{
-//		Cell.UnsetFlag (EventSetFlag);
-//
-//		if (CanSpawnIn (Cell)) {
-//
-//			int nextTriggerDate = CalculateTriggerDate (Cell);
-//
-//			World.InsertEventToHappen (new FarmDegradationEvent (Cell, nextTriggerDate));
-//		}
-//
-//		base.DestroyInternal ();
-//	}
-//}
 
 public abstract class CellGroupEvent : WorldEvent {
 	
@@ -268,37 +167,6 @@ public abstract class CellGroupEvent : WorldEvent {
 
 		//TODO: Evaluate if necessary or remove
 //		Group.RemoveAssociatedEvent (Id);
-	}
-}
-
-public class UpdateCellGroupEvent : CellGroupEvent {
-
-	public UpdateCellGroupEvent () {
-
-	}
-
-	public UpdateCellGroupEvent (CellGroup group, int triggerDate) : base (group, triggerDate, UpdateCellGroupEventId) {
-		
-	}
-
-	public override bool CanTrigger () {
-
-		if (!base.CanTrigger ()) {
-
-			return false;
-		}
-
-		if (Group.NextUpdateDate != TriggerDate) {
-
-			return false;
-		}
-
-		return true;
-	}
-
-	public override void Trigger () {
-
-		World.AddGroupToUpdate (Group);
 	}
 }
 

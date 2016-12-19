@@ -158,7 +158,6 @@ public class World : ISynchronizable {
 		XmlArrayItem (Type = typeof(TribalismDiscoveryEvent)),
 		XmlArrayItem (Type = typeof(TribeFormationEvent)),
 		XmlArrayItem (Type = typeof(PlantCultivationDiscoveryEvent)),
-//		XmlArrayItem (Type = typeof(FarmDegradationEvent)),
 		XmlArrayItem (Type = typeof(ClanSplitEvent))]
 	public List<WorldEvent> EventsToHappen;
 
@@ -377,8 +376,9 @@ public class World : ISynchronizable {
 	}
 
 	public void Synchronize () {
-	
-		EventsToHappen = _eventsToHappen.Values;
+
+		//EventsToHappen = _eventsToHappen.Values;
+		EventsToHappen = _eventsToHappen.GetValidValues (ValidateEventsToHappenNode);
 
 		foreach (WorldEvent e in EventsToHappen) {
 
@@ -530,6 +530,11 @@ public class World : ISynchronizable {
 		MaxYearsToSkip = Mathf.Max (value, 1);
 	}
 
+	private bool ValidateEventsToHappenNode (BinaryTreeNode<int, WorldEvent> node) {
+
+		return node.Key == node.Value.TriggerDate;
+	}
+
 	public int Iterate () {
 
 		if (CellGroupCount <= 0)
@@ -546,6 +551,8 @@ public class World : ISynchronizable {
 		while (true) {
 
 			if (_eventsToHappen.Count <= 0) break;
+
+			_eventsToHappen.FindValidLeftmost (ValidateEventsToHappenNode);
 		
 			WorldEvent eventToHappen = _eventsToHappen.Leftmost;
 

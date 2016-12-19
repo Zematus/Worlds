@@ -1479,8 +1479,8 @@ public class GuiManagerScript : MonoBehaviour {
 
 		#if DEBUG
 		InfoPanelText.text += "\n -- Debug Data -- ";
-		InfoPanelText.text += "\n";
-		InfoPanelText.text += "\nNumber of Events: " + WorldEvent.EventCount;
+//		InfoPanelText.text += "\n";
+//		InfoPanelText.text += "\nNumber of Events: " + WorldEvent.EventCount;
 
 //		float meanTravelTime = 0;
 //

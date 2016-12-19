@@ -680,25 +680,6 @@ public class AgricultureKnowledge : CellCulturalKnowledge {
 		Profiler.EndSample ();
 
 		Group.Cell.FarmlandPercentage = 0;
-
-//		Profiler.BeginSample ("FarmDegradationEvent.CanSpawnIn");
-//
-//		if (FarmDegradationEvent.CanSpawnIn (Group.Cell)) {
-//
-//			Profiler.BeginSample ("FarmDegradationEvent.CalculateTriggerDate");
-//
-//			int triggerDate = FarmDegradationEvent.CalculateTriggerDate (Group.Cell);
-//
-//			Profiler.EndSample ();
-//
-//			Profiler.BeginSample ("InsertEventToHappen: FarmDegradationEvent");
-//
-//			Group.World.InsertEventToHappen (new FarmDegradationEvent (Group.Cell, triggerDate));
-//
-//			Profiler.EndSample ();
-//		}
-//
-//		Profiler.EndSample ();
 	}
 
 	protected override int CalculateBaseAsymptote ()

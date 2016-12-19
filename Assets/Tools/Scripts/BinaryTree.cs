@@ -2,6 +2,8 @@
 using System.Collections;
 using System.Collections.Generic;
 
+public delegate bool ValidateNodeDelegate<TKey, TValue> (BinaryTreeNode<TKey, TValue> node);
+
 public class BinaryTreeNode<TKey, TValue> {
 
 	public BinaryTreeNode<TKey, TValue> Parent { get; set; }
@@ -155,6 +157,20 @@ public class BinaryTree<TKey, TValue> {
 //		#endif
 	}
 
+	public void FindValidRightmost (ValidateNodeDelegate<TKey, TValue> validateNode) {
+
+		while (true) {
+		
+			if (_rightmostItem == null)
+				return;
+
+			if (validateNode (_rightmostItem))
+				return;
+
+			RemoveRightmost ();
+		}
+	}
+
 	public TValue RemoveRightmost () {
 
 		if (_rightmostItem == null)
@@ -197,6 +213,20 @@ public class BinaryTree<TKey, TValue> {
 		return value;
 	}
 
+	public void FindValidLeftmost (ValidateNodeDelegate<TKey, TValue> validateNode) {
+
+		while (true) {
+
+			if (_leftmostItem == null)
+				return;
+
+			if (validateNode (_leftmostItem))
+				return;
+
+			RemoveLeftmost ();
+		}
+	}
+
 	public TValue RemoveLeftmost () {
 
 		if (_leftmostItem == null)
@@ -237,6 +267,63 @@ public class BinaryTree<TKey, TValue> {
 		}
 
 		return value;
+	}
+
+	public List<TValue> GetValidValues (ValidateNodeDelegate<TKey, TValue> validateNode) {
+		
+		List<TValue> values = new List<TValue> (Count);
+
+		// Copy items to list from leftmost to rightmost, marking all inserted items along the way
+		BinaryTreeNode <TKey, TValue> currentNode = _leftmostItem;
+
+		while (currentNode != null) {
+
+			if ((currentNode.Left != null) && (!currentNode.Left.Marked)) {
+
+				currentNode = currentNode.Left;
+				continue;
+			}
+
+			if (!currentNode.Marked) {
+
+				if (validateNode (currentNode))
+					values.Add (currentNode.Value);
+
+				currentNode.Marked = true;
+			}
+
+			if ((currentNode.Right != null) && (!currentNode.Right.Marked)) {
+
+				currentNode = currentNode.Right;
+				continue;
+			}
+
+			currentNode = currentNode.Parent;
+		}
+
+		// Remove mark from all copied items
+		currentNode = _leftmostItem;
+
+		while (currentNode != null) {
+
+			if ((currentNode.Left != null) && (currentNode.Left.Marked)) {
+
+				currentNode = currentNode.Left;
+				continue;
+			}
+
+			currentNode.Marked = false;
+
+			if ((currentNode.Right != null) && (currentNode.Right.Marked)) {
+
+				currentNode = currentNode.Right;
+				continue;
+			}
+
+			currentNode = currentNode.Parent;
+		}
+
+		return values;
 	}
 
 	public List<TValue> Values {
