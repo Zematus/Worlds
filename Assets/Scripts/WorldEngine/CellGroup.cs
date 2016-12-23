@@ -725,13 +725,9 @@ public class CellGroup : HumanGroup {
 
 		LastUpdateDate = World.CurrentDate;
 
-//		UpdateEvent = new UpdateCellGroupEvent (this, NextUpdateDate);
-
 		UpdateEvent.Reset (NextUpdateDate);
 
 		World.InsertEventToHappen (UpdateEvent);
-		
-//		World.InsertEventToHappen (new UpdateCellGroupEvent (this, NextUpdateDate));
 	}
 	
 	private float CalculateAltitudeDeltaMigrationFactor (TerrainCell targetCell) {
@@ -2111,6 +2107,13 @@ public class UpdateCellGroupEvent : CellGroupEvent {
 
 		World.AddGroupToUpdate (Group);
 	}
+
+	public override void FinalizeLoad () {
+
+		base.FinalizeLoad ();
+
+		Group.UpdateEvent = this;
+	}
 }
 
 public class MigrateGroupEvent : CellGroupEvent {
@@ -2203,6 +2206,8 @@ public class MigrateGroupEvent : CellGroupEvent {
 		base.FinalizeLoad ();
 
 		TargetCell = World.TerrainCells[TargetCellLongitude][TargetCellLatitude];
+
+		Group.MigrationEvent = this;
 	}
 
 	protected override void DestroyInternal () {

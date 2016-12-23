@@ -216,8 +216,8 @@ public class ClanSplitEvent : FactionEvent {
 		World.AddPolityToUpdate (Polity);
 	}
 
-	protected override void DestroyInternal ()
-	{
+	protected override void DestroyInternal () {
+		
 //		if (Faction != null) {
 //			Faction.UnsetFlag (EventSetFlag);
 //		}
@@ -237,5 +237,14 @@ public class ClanSplitEvent : FactionEvent {
 				World.InsertEventToHappen (this);
 			}
 		}
+	}
+
+	public override void FinalizeLoad () {
+
+		base.FinalizeLoad ();
+
+		Clan clan = Faction as Clan;
+
+		clan.SplitEvent = this;
 	}
 }

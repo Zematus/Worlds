@@ -131,24 +131,6 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
 		throw new System.Exception ("Unhandled CulturalKnowledge type: " + baseKnowledge.Id);
 	}
 	
-//	public CellCulturalKnowledge GenerateCopy (CellGroup targetGroup) {
-//		
-//		System.Type knowledgeType = this.GetType ();
-//		
-//		System.Reflection.ConstructorInfo cInfo = knowledgeType.GetConstructor (new System.Type[] {typeof(CellGroup), knowledgeType});
-//		
-//		return cInfo.Invoke (new object[] {targetGroup, this}) as CellCulturalKnowledge;
-//	}
-//	
-//	public CellCulturalKnowledge GenerateCopy (CellGroup targetGroup, int initialValue) {
-//		
-//		System.Type knowledgeType = this.GetType ();
-//		
-//		System.Reflection.ConstructorInfo cInfo = knowledgeType.GetConstructor (new System.Type[] {typeof(CellGroup), knowledgeType, typeof(float)});
-//		
-//		return cInfo.Invoke (new object[] {targetGroup, this, initialValue}) as CellCulturalKnowledge;
-//	}
-	
 	public int GetHighestAsymptote () {
 		
 		System.Type knowledgeType = this.GetType ();
@@ -178,26 +160,6 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
 	
 		Value = mergedValue;
 	}
-	
-//	public void IncreaseValue (int targetValue, float percentage) {
-//
-//		if (targetValue > Value) {
-//
-//			float d;
-//			int valueIncrease = (int)MathUtility.MultiplyAndGetDecimals (targetValue - Value, percentage, out d);
-//
-//			if (d > Group.GetNextLocalRandomFloat ())
-//				valueIncrease++;
-//
-//			Value += valueIncrease;
-//
-//			#if DEBUG
-//			if ((Asymptote > 1) && (Value > Asymptote)) {
-//				Debug.LogError ("IncreaseValue: new value " + Value + " above Asymptote " + Asymptote);
-//			}
-//			#endif
-//		}
-//	}
 	
 	public void ModifyValue (float percentage) {
 
