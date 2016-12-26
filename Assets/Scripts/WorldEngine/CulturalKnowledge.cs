@@ -85,6 +85,8 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
 	[XmlIgnore]
 	public CellGroup Group;
 
+	private int _newValue;
+
 	public float ScaledAsymptote {
 		get { return Asymptote * ValueScaleFactor; }
 	}
@@ -158,7 +160,7 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
 		if (d > Group.GetNextLocalRandomFloat (RngOffsets.KNOWLEDGE_MERGE + RngOffset))
 			mergedValue++;
 	
-		Value = mergedValue;
+		_newValue = mergedValue;
 	}
 	
 	public void ModifyValue (float percentage) {
@@ -169,7 +171,7 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
 		if (d > Group.GetNextLocalRandomFloat (RngOffsets.KNOWLEDGE_MODIFY_VALUE + RngOffset))
 			modifiedValue++;
 		
-		Value = modifiedValue;
+		_newValue = modifiedValue;
 	}
 
 	public virtual void Synchronize () {
@@ -225,8 +227,6 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
 	public void Update (int timeSpan) {
 
 		UpdateInternal (timeSpan);
-		
-		UpdateProgressLevel ();
 	}
 
 	protected void UpdateValueInternal (int timeSpan, float timeEffectFactor, float specificModifier) {
@@ -268,7 +268,7 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
 		}
 		#endif
 
-		Value = newValue;
+		_newValue = newValue;
 	}
 
 	public abstract void PolityCulturalInfluence (CulturalKnowledge polityKnowledge, PolityInfluence polityInfluence, int timeSpan);
@@ -290,7 +290,14 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
 		if (d > Group.GetNextLocalRandomFloat (RngOffsets.KNOWLEDGE_POLITY_INFLUENCE_2 + RngOffset + (int)polityInfluence.PolityId))
 			valueIncrease++;
 
-		Value += valueIncrease;
+		_newValue = Value + valueIncrease;
+	}
+
+	public void PostUpdate () {
+	
+		Value = _newValue;
+
+		UpdateProgressLevel ();
 	}
 
 	public abstract float CalculateExpectedProgressLevel ();

@@ -683,87 +683,12 @@ public class CellCulture : Culture {
 			}
 		}
 	}
-	
-//	public void MergeCulture (CellCulture sourceCulture, float percentage) {
-//
-//		#if DEBUG
-//		if ((percentage < 0) || (percentage > 1)) {
-//
-//			Debug.LogWarning ("percentage value outside the [0,1] range");
-//		}
-//		#endif
-//
-//		foreach (CellCulturalActivity a in sourceCulture.Activities) {
-//
-//			CellCulturalActivity activity = GetActivity (a.Id) as CellCulturalActivity;
-//
-//			if (activity == null) {
-//				activity = a.GenerateCopy (Group);
-//				activity.ModifyValue (percentage);
-//
-//				AddActivityToPerform (activity);
-//			} else {
-//				activity.Merge (a, percentage);
-//			}
-//		}
-//
-//		foreach (CellCulturalSkill s in sourceCulture.Skills) {
-//			
-//			CellCulturalSkill skill = GetSkill (s.Id) as CellCulturalSkill;
-//			
-//			if (skill == null) {
-//				skill = s.GenerateCopy (Group);
-//				skill.ModifyValue (percentage);
-//				
-//				AddSkillToLearn (skill);
-//			} else {
-//				skill.Merge (s, percentage);
-//			}
-//		}
-//
-//		foreach (CellCulturalKnowledge k in sourceCulture.Knowledges) {
-//			
-//			CellCulturalKnowledge knowledge = GetKnowledge (k.Id) as CellCulturalKnowledge;
-//			
-//			if (knowledge == null) {
-//				knowledge = k.GenerateCopy (Group);
-//				knowledge.ModifyValue (percentage);
-//				
-//				AddKnowledgeToLearn (knowledge);
-//			} else {
-//				knowledge.Merge (k, percentage);
-//			}
-//		}
-//
-//		foreach (CellCulturalDiscovery d in sourceCulture.Discoveries) {
-//
-//			CellCulturalDiscovery discovery = GetDiscovery (d.Id) as CellCulturalDiscovery;
-//			
-//			if (discovery == null) {
-//				discovery = d.GenerateCopy ();
-//				
-//				AddDiscoveryToFind (discovery);
-//			}
-//		}
-//	}
 
 	public void Update (int timeSpan) {
-
-		float totalActivityValue = 0;
 
 		foreach (CellCulturalActivity activity in Activities) {
 
 			activity.Update (timeSpan);
-			totalActivityValue += activity.Value;
-		}
-
-		foreach (CellCulturalActivity activity in Activities) {
-
-			if (totalActivityValue > 0) {
-				activity.Contribution = activity.Value / totalActivityValue;
-			} else {
-				activity.Contribution = 1f / Activities.Count;
-			}
 		}
 
 		foreach (CellCulturalSkill skill in Skills) {
@@ -771,34 +696,15 @@ public class CellCulture : Culture {
 			skill.Update (timeSpan);
 		}
 
-		CulturalKnowledge[] knowledges = Knowledges.ToArray ();
-
-		foreach (CellCulturalKnowledge knowledge in knowledges) {
+		foreach (CellCulturalKnowledge knowledge in Knowledges) {
 			
 			knowledge.Update (timeSpan);
-
-			if (knowledge.WillBeLost ()) {
-
-				_knowledgesToLose.Add (knowledge);
-			}
-		}
-
-		CulturalDiscovery[] discoveries = Discoveries.ToArray ();
-		
-		foreach (CellCulturalDiscovery discovery in discoveries) {
-			
-			if (discovery.CanBeHeld (Group))
-				continue;
-
-			_discoveriesToLose.Add (discovery);
 		}
 	}
 
 	public void PolityCulturalInfluence (PolityInfluence polityInfluence, int timeSpan) {
 
 		PolityCulture polityCulture = polityInfluence.Polity.Culture;
-
-		float totalActivityValue = 0;
 
 		foreach (CulturalActivity polityActivity in polityCulture.Activities) {
 
@@ -811,16 +717,6 @@ public class CellCulture : Culture {
 			}
 
 			cellActivity.PolityCulturalInfluence (polityActivity, polityInfluence, timeSpan);
-			totalActivityValue += cellActivity.Value;
-		}
-
-		foreach (CellCulturalActivity activity in Activities) {
-
-			if (totalActivityValue > 0) {
-				activity.Contribution = activity.Value / totalActivityValue;
-			} else {
-				activity.Contribution = 1f / Activities.Count;
-			}
 		}
 
 		foreach (CulturalSkill politySkill in polityCulture.Skills) {
@@ -847,11 +743,6 @@ public class CellCulture : Culture {
 			}
 
 			cellKnowledge.PolityCulturalInfluence (polityKnowledge, polityInfluence, timeSpan);
-
-			if (cellKnowledge.WillBeLost ()) {
-
-				_knowledgesToLose.Add (cellKnowledge);
-			}
 		}
 
 		foreach (PolityCulturalDiscovery polityDiscovery in polityCulture.Discoveries) {
@@ -871,57 +762,30 @@ public class CellCulture : Culture {
 		}
 	}
 
-	public void PostUpdate () {
+	public void PostUpdateRemoveElements () {
 
 		bool discoveriesLost = false;
-
-		Profiler.BeginSample ("Remove Activities");
 
 		foreach (CellCulturalActivity a in _activitiesToLose) {
 			RemoveActivity (a);
 		}
 
-		Profiler.EndSample ();
-
-		Profiler.BeginSample ("Remove Skills");
-
 		foreach (CellCulturalSkill s in _skillsToLose) { 
 			RemoveSkill (s);
 		}
 
-		Profiler.EndSample ();
-
-		Profiler.BeginSample ("Remove Knowledges");
-
 		foreach (CellCulturalKnowledge k in _knowledgesToLose) {
 
-			Profiler.BeginSample ("Remove Knowledge");
-
 			RemoveKnowledge (k);
-
-			Profiler.EndSample ();
-
-			Profiler.BeginSample ("Loss Consequences");
-
 			k.LossConsequences ();
-
-			Profiler.EndSample ();
 		}
 
-		Profiler.EndSample ();
-
-		Profiler.BeginSample ("Remove Discoveries");
-
 		foreach (CellCulturalDiscovery d in _discoveriesToLose) {
-			
+
 			RemoveDiscovery (d);
 			d.LossConsequences (Group);
 			discoveriesLost = true;
 		}
-
-		Profiler.EndSample ();
-
-		Profiler.BeginSample ("Recalculating Asymptotes");
 
 		if (discoveriesLost) {
 			foreach (CellCulturalKnowledge knowledge in Knowledges) {
@@ -929,52 +793,35 @@ public class CellCulture : Culture {
 			}
 		}
 
-		Profiler.EndSample ();
-
-		Profiler.BeginSample ("Clearing To Lose Lists");
-
 		_activitiesToLose.Clear ();
 		_skillsToLose.Clear ();
 		_knowledgesToLose.Clear ();
 		_discoveriesToLose.Clear ();
+	}
 
-		Profiler.EndSample ();
-
-		Profiler.BeginSample ("Adding Activities");
+	public void PostUpdateAddElements () {
 
 		foreach (CellCulturalActivity activity in ActivitiesToPerform.Values) {
 
 			AddActivity (activity);
 		}
 
-		Profiler.EndSample ();
-
-		Profiler.BeginSample ("Adding Skills");
-		
 		foreach (CellCulturalSkill skill in SkillsToLearn.Values) {
-			
+
 			AddSkill (skill);
 		}
 
-		Profiler.EndSample ();
-
-		Profiler.BeginSample ("Adding Knowledges");
-		
 		foreach (CellCulturalKnowledge knowledge in KnowledgesToLearn.Values) {
-			
+
 			AddKnowledge (knowledge);
 
 			knowledge.RecalculateAsymptote ();
 		}
 
-		Profiler.EndSample ();
-
-		Profiler.BeginSample ("Adding Discoveries");
-		
 		foreach (CellCulturalDiscovery discovery in DiscoveriesToFind.Values) {
-			
+
 			if (!discovery.CanBeHeld (Group)) continue;
-			
+
 			AddDiscovery (discovery);
 
 			discovery.GainConsequences (Group);
@@ -984,81 +831,63 @@ public class CellCulture : Culture {
 			}
 		}
 
-		Profiler.EndSample ();
-
-		Profiler.BeginSample ("Clearing To Add Lists");
-
 		ActivitiesToPerform.Clear ();
 		SkillsToLearn.Clear ();
 		KnowledgesToLearn.Clear ();
 		DiscoveriesToFind.Clear ();
-
-		Profiler.EndSample ();
 	}
-	
-//	public static float CalculateKnowledgeTransferValue (CellGroup sourceGroup, CellGroup targetGroup) {
-//		
-//		float maxTransferValue = 0;
-//		
-//		if (sourceGroup == null)
-//			return maxTransferValue;
-//		
-//		if (targetGroup == null)
-//			return maxTransferValue;
-//		
-//		if (!sourceGroup.StillPresent)
-//			return maxTransferValue;
-//		
-//		if (!targetGroup.StillPresent)
-//			return maxTransferValue;
-//		
-//		foreach (CulturalKnowledge sourceKnowledge in sourceGroup.Culture.Knowledges) {
-//			
-//			if (sourceKnowledge.Value <= MinKnowledgeValue) continue;
-//			
-//			CulturalKnowledge targetKnowledge = targetGroup.Culture.GetKnowledge (sourceKnowledge.Id);
-//			
-//			if (targetKnowledge == null) {
-//				maxTransferValue = 1;
-//			} else {
-//				maxTransferValue = Mathf.Max (maxTransferValue, 1 - (targetKnowledge.Value / sourceKnowledge.Value));
-//			}
-//		}
-//		
-//		return maxTransferValue;
-//	}
-	
-//	public void AbsorbKnowledgeFrom (CulturalKnowledge sourceKnowledge, float sourceFactor) {
-//		
-//		if (sourceKnowledge.Value < MinKnowledgeValue) return;
-//		
-//		CulturalKnowledge localKnowledge = GetKnowledge (sourceKnowledge.Id);
-//		
-//		if (localKnowledge == null) {
-//			
-//			localKnowledge = sourceKnowledge.GenerateCopy (Group, 0);
-//			
-//			AddKnowledgeToLearn (localKnowledge);
-//		}
-//		
-//		if (localKnowledge.Value >= sourceKnowledge.Value) return;
-//
-//		float specificKnowledgeFactor = localKnowledge.CalculateTransferFactor ();
-//		
-//		localKnowledge.IncreaseValue (sourceKnowledge.Value, BaseKnowledgeTransferFactor * specificKnowledgeFactor * sourceFactor);
-//	}
-//	
-//	public void AbsorbDiscoveryFrom (CulturalDiscovery sourceDiscovery) {
-//		
-//		CulturalDiscovery localDiscovery = GetDiscovery (sourceDiscovery.Id);
-//		
-//		if (localDiscovery == null) {
-//			
-//			localDiscovery = sourceDiscovery.GenerateCopy ();
-//			
-//			AddDiscoveryToFind (localDiscovery);
-//		}
-//	}
+
+	public void PostUpdateElementValues () {
+
+		float totalActivityValue = 0;
+
+		foreach (CellCulturalActivity activity in Activities) {
+
+			activity.PostUpdate ();
+			totalActivityValue += activity.Value;
+		}
+
+		foreach (CellCulturalActivity activity in Activities) {
+
+			if (totalActivityValue > 0) {
+				activity.Contribution = activity.Value / totalActivityValue;
+			} else {
+				activity.Contribution = 1f / Activities.Count;
+			}
+		}
+
+		foreach (CellCulturalSkill skill in Skills) {
+
+			skill.PostUpdate ();
+		}
+
+		foreach (CellCulturalKnowledge knowledge in Knowledges) {
+
+			knowledge.PostUpdate ();
+
+			if (!knowledge.WillBeLost ())
+				continue;
+
+			_knowledgesToLose.Add (knowledge);
+		}
+
+		foreach (CellCulturalDiscovery discovery in Discoveries) {
+
+			if (discovery.CanBeHeld (Group))
+				continue;
+
+			_discoveriesToLose.Add (discovery);
+		}
+	}
+
+	public void PostUpdate () {
+
+		PostUpdateAddElements ();
+
+		PostUpdateElementValues ();
+
+		PostUpdateRemoveElements ();
+	}
 	
 	public float MinimumSkillAdaptationLevel () {
 		

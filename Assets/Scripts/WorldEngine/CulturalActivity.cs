@@ -73,6 +73,8 @@ public class CellCulturalActivity : CulturalActivity {
 	[XmlIgnore]
 	public CellGroup Group;
 
+	private float _newValue;
+
 	public CellCulturalActivity () {
 	}
 
@@ -101,19 +103,14 @@ public class CellCulturalActivity : CulturalActivity {
 		return new CellCulturalActivity (group, FarmingActivityId, FarmingActivityName, FarmingActivityRandomOffset, value, contribution);
 	}
 
-//	public CellCulturalActivity GenerateCopy (CellGroup targetGroup) {
-//
-//		return new CellCulturalActivity (targetGroup, Id, Name, RngOffset, Value, 0);
-//	}
-
 	public void Merge (CulturalActivity activity, float percentage) {
 	
-		Value = Value * (1f - percentage) + activity.Value * percentage;
+		_newValue = Value * (1f - percentage) + activity.Value * percentage;
 	}
-	
+
 	public void ModifyValue (float percentage) {
 		
-		Value *= percentage;
+		_newValue = Value * percentage;
 	}
 
 	public void Update (int timeSpan) {
@@ -138,9 +135,7 @@ public class CellCulturalActivity : CulturalActivity {
 
 		float timeEffect = timeSpan / (float)(timeSpan + TimeEffectConstant);
 
-		Value = (Value * (1 - timeEffect)) + (targetValue * timeEffect);
-
-		Value = Mathf.Clamp01 (Value);
+		_newValue = (Value * (1 - timeEffect)) + (targetValue * timeEffect);
 	}
 
 	public void PolityCulturalInfluence (CulturalActivity polityActivity, PolityInfluence polityInfluence, int timeSpan) {
@@ -156,8 +151,11 @@ public class CellCulturalActivity : CulturalActivity {
 
 		float change = (targetValue - Value) * influenceEffect * timeEffect * randomEffect;
 
-		Value += change;
+		_newValue = Value + change;
+	}
 
-		Value = Mathf.Clamp01 (Value);
+	public void PostUpdate () {
+
+		Value = Mathf.Clamp01 (_newValue);
 	}
 }
