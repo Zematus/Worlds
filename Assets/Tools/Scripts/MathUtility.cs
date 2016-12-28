@@ -35,7 +35,7 @@ public static class MathUtility {
 
 		#if DEBUG
 		if ((value < 0) || (value > 1)) {
-			Debug.LogWarning ("This function is meant to be used only with values between 0 and 1");
+			Debug.LogWarning ("This function is meant to be used only with values between 0 and 1. Value = " + value);
 		}
 		#endif
 	

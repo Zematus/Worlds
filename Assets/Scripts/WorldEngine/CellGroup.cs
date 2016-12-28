@@ -10,6 +10,8 @@ public class CellGroup : HumanGroup {
 
 	public const int GenerationTime = 25;
 
+	public const int MaxUpdateSpan = 100000;
+
 	public const float NaturalDeathRate = 0.03f; // more or less 0.5/half-life (22.87 years for paleolitic life expectancy of 33 years)
 	public const float NaturalBirthRate = 0.105f; // Should cancel out death rate in perfect circumstances (hunter-gathererers in grasslands)
 	public const float MinChangeRate = -1.0f; // Should cancel out death rate in perfect circumstances (hunter-gathererers in grasslands)
@@ -86,7 +88,8 @@ public class CellGroup : HumanGroup {
 			return TotalPolityInfluenceValueFloat;
 		}
 		set { 
-			TotalPolityInfluenceValueFloat = MathUtility.RoundToSixDecimals (value);
+
+			TotalPolityInfluenceValueFloat = MathUtility.RoundToSixDecimals (Mathf.Clamp01 (value));
 		}
 	}
 	
@@ -1597,12 +1600,17 @@ public class CellGroup : HumanGroup {
 		
 		float knowledgeLevelFactor = Culture.MinimumKnowledgeProgressLevel ();
 
-		float populationFactor = 1 + Mathf.Abs (OptimalPopulation - Population);
-		populationFactor = (10000 + OptimalPopulation) / populationFactor;
+		float populationFactor = 0.0001f + Mathf.Abs (OptimalPopulation - Population);
+		populationFactor = 100 * OptimalPopulation / populationFactor;
 
 		float mixFactor = randomFactor * migrationFactor * skillLevelFactor * knowledgeLevelFactor * populationFactor;
 
-		int finalFactor = (int)Mathf.Max(mixFactor, 1);
+		int updateSpan = GenerationTime * (int)mixFactor;
+
+		if (updateSpan < 0)
+			updateSpan = MaxUpdateSpan;
+
+		updateSpan = Mathf.Clamp(updateSpan, GenerationTime, MaxUpdateSpan);
 
 		#if DEBUG
 		if (Manager.RegisterDebugEvent != null) {
@@ -1625,7 +1633,7 @@ public class CellGroup : HumanGroup {
 		}
 		#endif
 
-		return World.CurrentDate + GenerationTime * finalFactor;
+		return World.CurrentDate + updateSpan;
 	}
 
 	public float PopulationAfterTime (int time) { // in years
@@ -1855,11 +1863,6 @@ public class CellGroup : HumanGroup {
 				TotalPolityInfluenceValue += newInfluenceValue;
 				polity.TotalGroupInfluenceValue += newInfluenceValue;
 
-				if (TotalPolityInfluenceValue > 1f) {
-				
-					throw new System.Exception ("Total influence value greater than 1: " + TotalPolityInfluenceValue);
-				}
-
 				polity.AddInfluencedGroup (this);
 			}
 
@@ -1871,6 +1874,9 @@ public class CellGroup : HumanGroup {
 		}
 
 		float oldInfluenceValue = polityInfluence.Value;
+
+		TotalPolityInfluenceValue -= oldInfluenceValue;
+		polity.TotalGroupInfluenceValue -= oldInfluenceValue;
 
 		if (newInfluenceValue <= Polity.MinPolityInfluence) {
 
@@ -1886,9 +1892,6 @@ public class CellGroup : HumanGroup {
 			if (polityInfluence == HighestPolityInfluence)
 				FindHighestPolityInfluence ();
 
-			TotalPolityInfluenceValue -= oldInfluenceValue;
-			polity.TotalGroupInfluenceValue -= oldInfluenceValue;
-
 			#if DEBUG
 			RunningFunction_SetPolityInfluence = false;
 			#endif
@@ -1896,18 +1899,10 @@ public class CellGroup : HumanGroup {
 			return;
 		}
 
-		TotalPolityInfluenceValue -= oldInfluenceValue;
-		polity.TotalGroupInfluenceValue -= oldInfluenceValue;
-
 		polityInfluence.Value = newInfluenceValue;
 
 		TotalPolityInfluenceValue += newInfluenceValue;
 		polity.TotalGroupInfluenceValue += newInfluenceValue;
-
-		if (TotalPolityInfluenceValue > 1f) {
-
-			throw new System.Exception ("Total influence value greater than 1: " + TotalPolityInfluenceValue);
-		}
 
 		if (!(ValidateAndSetHighestPolityInfluence (polityInfluence)) && 
 			(polityInfluence == HighestPolityInfluence) && 
