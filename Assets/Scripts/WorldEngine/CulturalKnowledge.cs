@@ -34,7 +34,28 @@ public class CulturalKnowledge : CulturalKnowledgeInfo {
 	public const float ValueScaleFactor = 0.01f;
 
 	[XmlAttribute]
-	public int Value;
+	public int Value {
+		get { 
+			if (_debugSelected) {
+
+				bool debug = true;
+			}
+
+			return _value;
+		}
+		set { 
+			if (_debugSelected) {
+			
+				bool debug = true;
+			}
+
+			_value = value;
+		}
+	}
+
+	protected bool _debugSelected = false;
+
+	private int _value;
 
 	public CulturalKnowledge () {
 	}
@@ -338,7 +359,9 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge {
 	}
 
 	public ShipbuildingKnowledge (CellGroup group, int value = 100) : base (group, ShipbuildingKnowledgeId, ShipbuildingKnowledgeName, ShipbuildingKnowledgeRngOffset, value) {
-		
+
+		_debugSelected = true;
+
 		CalculateNeighborhoodOceanPresence ();
 	}
 
@@ -462,6 +485,11 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge {
 
 	public override bool WillBeLost ()
 	{
+		if (_debugSelected) {
+
+			bool debug = true;
+		}
+
 		if (Value < 100) {
 
 			return true;
