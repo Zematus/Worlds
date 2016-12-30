@@ -12,6 +12,8 @@ public class CellGroup : HumanGroup {
 
 	public const int MaxUpdateSpan = 100000;
 
+	public const float MaxUpdateSpanFactor = MaxUpdateSpan / GenerationTime;
+
 	public const float NaturalDeathRate = 0.03f; // more or less 0.5/half-life (22.87 years for paleolitic life expectancy of 33 years)
 	public const float NaturalBirthRate = 0.105f; // Should cancel out death rate in perfect circumstances (hunter-gathererers in grasslands)
 	public const float MinChangeRate = -1.0f; // Should cancel out death rate in perfect circumstances (hunter-gathererers in grasslands)
@@ -1602,6 +1604,8 @@ public class CellGroup : HumanGroup {
 
 		float populationFactor = 0.0001f + Mathf.Abs (OptimalPopulation - Population);
 		populationFactor = 100 * OptimalPopulation / populationFactor;
+
+		populationFactor = Mathf.Min(populationFactor, MaxUpdateSpanFactor);
 
 		float mixFactor = randomFactor * migrationFactor * skillLevelFactor * knowledgeLevelFactor * populationFactor;
 

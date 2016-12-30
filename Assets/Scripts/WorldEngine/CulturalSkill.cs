@@ -68,6 +68,8 @@ public abstract class CellCulturalSkill : CulturalSkill, ISynchronizable {
 	protected CellCulturalSkill (CellGroup group, string id, string name, int rngOffset, float value = 0) : base (id, name, rngOffset, value) {
 
 		Group = group;
+
+		_newValue = value;
 	}
 
 	public static CellCulturalSkill CreateCellInstance (CellGroup group, CulturalSkill baseSkill) {

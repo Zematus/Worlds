@@ -34,28 +34,7 @@ public class CulturalKnowledge : CulturalKnowledgeInfo {
 	public const float ValueScaleFactor = 0.01f;
 
 	[XmlAttribute]
-	public int Value {
-		get { 
-			if (_debugSelected) {
-
-				bool debug = true;
-			}
-
-			return _value;
-		}
-		set { 
-			if (_debugSelected) {
-			
-				bool debug = true;
-			}
-
-			_value = value;
-		}
-	}
-
-	protected bool _debugSelected = false;
-
-	private int _value;
+	public int Value;
 
 	public CulturalKnowledge () {
 	}
@@ -120,6 +99,8 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
 
 		Group = group;
 		RngOffset = (int)group.GenerateUniqueIdentifier (100, typeRngOffset);
+
+		_newValue = value;
 	}
 
 	public CellCulturalKnowledge (CellGroup group, string id, string name, int typeRngOffset, int value, int asymptote) : base (id, name, value) {
@@ -127,6 +108,8 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
 		Group = group;
 		RngOffset = (int)group.GenerateUniqueIdentifier (100, typeRngOffset);
 		Asymptote = asymptote;
+
+		_newValue = value;
 	}
 
 	public static CellCulturalKnowledge CreateCellInstance (CellGroup group, CulturalKnowledge baseKnowledge) {
@@ -360,8 +343,6 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge {
 
 	public ShipbuildingKnowledge (CellGroup group, int value = 100) : base (group, ShipbuildingKnowledgeId, ShipbuildingKnowledgeName, ShipbuildingKnowledgeRngOffset, value) {
 
-		_debugSelected = true;
-
 		CalculateNeighborhoodOceanPresence ();
 	}
 
@@ -457,8 +438,8 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge {
 		}
 	}
 
-	protected override int CalculateAsymptoteInternal (CulturalDiscovery discovery)
-	{
+	protected override int CalculateAsymptoteInternal (CulturalDiscovery discovery) {
+		
 		switch (discovery.Id) {
 
 		case BoatMakingDiscovery.BoatMakingDiscoveryId:
@@ -470,25 +451,20 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge {
 		return 0;
 	}
 
-	public override float CalculateExpectedProgressLevel ()
-	{
+	public override float CalculateExpectedProgressLevel () {
+		
 		if (_neighborhoodOceanPresence <= 0)
 			return 1;
 
 		return Mathf.Clamp (ProgressLevel / _neighborhoodOceanPresence, MinProgressLevel, 1);
 	}
 
-	public override float CalculateTransferFactor ()
-	{
+	public override float CalculateTransferFactor () {
+		
 		return (_neighborhoodOceanPresence * 0.9f) + 0.1f;
 	}
 
-	public override bool WillBeLost ()
-	{
-		if (_debugSelected) {
-
-			bool debug = true;
-		}
+	public override bool WillBeLost () {
 
 		if (Value < 100) {
 
@@ -498,8 +474,8 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge {
 		return false;
 	}
 
-	public override void LossConsequences ()
-	{
+	public override void LossConsequences () {
+		
 		Profiler.BeginSample ("BoatMakingDiscoveryEvent.CanSpawnIn");
 
 		if (BoatMakingDiscoveryEvent.CanSpawnIn (Group)) {
@@ -523,8 +499,8 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge {
 		Profiler.EndSample ();
 	}
 
-	protected override int CalculateBaseAsymptote ()
-	{
+	protected override int CalculateBaseAsymptote () {
+		
 		return 0;
 	}
 }
@@ -606,8 +582,8 @@ public class AgricultureKnowledge : CellCulturalKnowledge {
 		PolityCulturalInfluenceInternal (polityKnowledge, polityInfluence, timeSpan, TimeEffectConstant);
 	}
 
-	protected override int CalculateAsymptoteInternal (CulturalDiscovery discovery)
-	{
+	protected override int CalculateAsymptoteInternal (CulturalDiscovery discovery) {
+		
 		switch (discovery.Id) {
 
 		case PlantCultivationDiscovery.PlantCultivationDiscoveryId:
@@ -617,21 +593,21 @@ public class AgricultureKnowledge : CellCulturalKnowledge {
 		return 0;
 	}
 
-	public override float CalculateExpectedProgressLevel ()
-	{
+	public override float CalculateExpectedProgressLevel () {
+		
 		if (_terrainFactor <= 0)
 			return 1;
 
 		return Mathf.Clamp (ProgressLevel / _terrainFactor, MinProgressLevel, 1);
 	}
 
-	public override float CalculateTransferFactor ()
-	{
+	public override float CalculateTransferFactor () {
+		
 		return (_terrainFactor * 0.9f) + 0.1f;
 	}
 
-	public override bool WillBeLost ()
-	{
+	public override bool WillBeLost () {
+		
 		if (Value < 100) {
 		
 			return true;
@@ -640,8 +616,8 @@ public class AgricultureKnowledge : CellCulturalKnowledge {
 		return false;
 	}
 
-	public override void LossConsequences ()
-	{
+	public override void LossConsequences () {
+		
 		Profiler.BeginSample ("RemoveActivity: FarmingActivity");
 
 		Group.Culture.RemoveActivity (CellCulturalActivity.FarmingActivityId);
@@ -679,8 +655,8 @@ public class AgricultureKnowledge : CellCulturalKnowledge {
 		Group.Cell.FarmlandPercentage = 0;
 	}
 
-	protected override int CalculateBaseAsymptote ()
-	{
+	protected override int CalculateBaseAsymptote () {
+		
 		return 0;
 	}
 }
@@ -796,8 +772,8 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge {
 		}
 	}
 
-	protected override int CalculateAsymptoteInternal (CulturalDiscovery discovery)
-	{
+	protected override int CalculateAsymptoteInternal (CulturalDiscovery discovery) {
+		
 		switch (discovery.Id) {
 
 		case TribalismDiscovery.TribalismDiscoveryId:
@@ -807,8 +783,8 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge {
 		return 0;
 	}
 
-	public override float CalculateExpectedProgressLevel ()
-	{
+	public override float CalculateExpectedProgressLevel () {
+		
 		float populationFactor = CalculatePopulationFactor ();
 
 		if (populationFactor <= 0)
@@ -817,24 +793,24 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge {
 		return Mathf.Clamp (ProgressLevel / populationFactor, MinProgressLevel, 1);
 	}
 
-	public override float CalculateTransferFactor ()
-	{
+	public override float CalculateTransferFactor () {
+		
 		float populationFactor = CalculatePopulationFactor ();
 
 		return (populationFactor * 0.9f) + 0.1f;
 	}
 
-	public override bool WillBeLost ()
-	{
+	public override bool WillBeLost () {
+		
 		return false;
 	}
 
-	public override void LossConsequences ()
-	{
+	public override void LossConsequences () {
+		
 	}
 
-	protected override int CalculateBaseAsymptote ()
-	{
+	protected override int CalculateBaseAsymptote () {
+		
 		return 1000;
 	}
 }

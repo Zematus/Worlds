@@ -81,6 +81,8 @@ public class CellCulturalActivity : CulturalActivity {
 	private CellCulturalActivity (CellGroup group, string id, string name, int rngOffset, float value = 0, float contribution = 0) : base (id, name, rngOffset, value, contribution) {
 
 		Group = group;
+
+		_newValue = value;
 	}
 
 	public static CellCulturalActivity CreateCellInstance (CellGroup group, CulturalActivity baseActivity) {

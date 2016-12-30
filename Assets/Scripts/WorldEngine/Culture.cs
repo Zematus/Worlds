@@ -762,7 +762,7 @@ public class CellCulture : Culture {
 		}
 	}
 
-	public void PostUpdateRemoveElements () {
+	public void PostUpdateRemoveAttributes () {
 
 		bool discoveriesLost = false;
 
@@ -799,7 +799,7 @@ public class CellCulture : Culture {
 		_discoveriesToLose.Clear ();
 	}
 
-	public void PostUpdateAddElements () {
+	public void PostUpdateAddAttributes () {
 
 		foreach (CellCulturalActivity activity in ActivitiesToPerform.Values) {
 
@@ -837,7 +837,7 @@ public class CellCulture : Culture {
 		DiscoveriesToFind.Clear ();
 	}
 
-	public void PostUpdateElementValues () {
+	public void PostUpdateAttributeValues () {
 
 		float totalActivityValue = 0;
 
@@ -882,11 +882,11 @@ public class CellCulture : Culture {
 
 	public void PostUpdate () {
 
-		PostUpdateAddElements ();
+		PostUpdateAddAttributes ();
 
-		PostUpdateElementValues ();
+		PostUpdateAttributeValues ();
 
-		PostUpdateRemoveElements ();
+		PostUpdateRemoveAttributes ();
 	}
 	
 	public float MinimumSkillAdaptationLevel () {
