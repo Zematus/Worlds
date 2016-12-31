@@ -368,7 +368,16 @@ public class PolityCulture : Culture {
 
 		foreach (CulturalSkill skill in Skills) {
 
-			skill.Value = MathUtility.RoundToSixDecimals(skill.Value/totalGroupInfluenceValue);
+			float realValue = skill.Value / totalGroupInfluenceValue;
+
+			#if DEBUG
+			if ((realValue > 1.1f) || (realValue < -0.1f)) {
+			
+				throw new System.Exception ("Polity Skill value way out of bounds (-0.1f,1.1f): " + realValue);
+			}
+			#endif
+
+			skill.Value = MathUtility.RoundToSixDecimals(Mathf.Clamp01(realValue));
 		}
 
 		foreach (PolityCulturalKnowledge knowledge in Knowledges) {

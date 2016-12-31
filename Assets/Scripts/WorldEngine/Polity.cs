@@ -421,21 +421,22 @@ public abstract class Polity : ISynchronizable {
 
 		float groupTotalInfluenceValue = 0;
 
-		float socialOrgFactor = 0;
+//		float socialOrgFactor = 0;
 
 		if (targetGroup != null) {
 
-			CulturalKnowledge socialOrgKnowledge = targetGroup.Culture.GetKnowledge (SocialOrganizationKnowledge.SocialOrganizationKnowledgeId);
-
-			socialOrgFactor = Mathf.Clamp01 (socialOrgKnowledge.Value / (float)SocialOrganizationKnowledge.MinValueForTribalism);
-			socialOrgFactor = 1 - Mathf.Pow (1 - socialOrgFactor, 2);
+//			CulturalKnowledge socialOrgKnowledge = targetGroup.Culture.GetKnowledge (SocialOrganizationKnowledge.SocialOrganizationKnowledgeId);
+//
+//			socialOrgFactor = Mathf.Clamp01 (socialOrgKnowledge.Value / (float)SocialOrganizationKnowledge.MinValueForTribalism);
+//			socialOrgFactor = 1 - Mathf.Pow (1 - socialOrgFactor, 2);
 
 			groupTotalInfluenceValue = targetGroup.TotalPolityInfluenceValue;
 		}
 
-		float sourceValueFactor = 0.05f + (sourceValue * 0.95f);
+		float sourceValueFactor = 0.001f + sourceValue;
 
-		float influenceFactor = socialOrgFactor * sourceValue / (groupTotalInfluenceValue + sourceValueFactor);
+//		float influenceFactor = socialOrgFactor * sourceValue / (groupTotalInfluenceValue + sourceValueFactor);
+		float influenceFactor = sourceValue / (groupTotalInfluenceValue + sourceValueFactor);
 
 		influenceFactor = MathUtility.RoundToSixDecimals (influenceFactor);
 

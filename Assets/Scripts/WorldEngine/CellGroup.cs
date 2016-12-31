@@ -10,7 +10,7 @@ public class CellGroup : HumanGroup {
 
 	public const int GenerationTime = 25;
 
-	public const int MaxUpdateSpan = 100000;
+	public const int MaxUpdateSpan = 200000;
 
 	public const float MaxUpdateSpanFactor = MaxUpdateSpan / GenerationTime;
 
@@ -26,6 +26,8 @@ public class CellGroup : HumanGroup {
 	public const float MinKnowledgeTransferValue = 0.25f;
 
 	public const float SeaTravelBaseFactor = 0.025f;
+
+	public const float NoMigrationFactor = 0.01f;
 
 	[XmlAttribute]
 	public long Id;
@@ -120,8 +122,6 @@ public class CellGroup : HumanGroup {
 //	private Dictionary<int, WorldEvent> _associatedEvents = new Dictionary<int, WorldEvent> ();
 	
 	private HashSet<string> _flags = new HashSet<string> ();
-
-	private float _noMigrationFactor = 0.01f;
 
 	private bool _alreadyUpdated = false;
 
@@ -782,7 +782,7 @@ public class CellGroup : HumanGroup {
 
 		float polityInfluenceFactor = 1;
 
-		if (_polityInfluences.Count > 0) {
+		if ((cell.Group != null) && (_polityInfluences.Count > 0)) {
 			polityInfluenceFactor = 0;
 
 			foreach (PolityInfluence polityInfluence in _polityInfluences.Values) {
@@ -827,7 +827,7 @@ public class CellGroup : HumanGroup {
 		float optimalPopulation = OptimalPopulation;
 
 		if (cell != Cell) {
-			noMigrationFactor = _noMigrationFactor;
+			noMigrationFactor = NoMigrationFactor;
 
 			Profiler.BeginSample ("Calculate Optimal Population");
 
@@ -947,6 +947,12 @@ public class CellGroup : HumanGroup {
 	}
 	
 	public void ConsiderLandMigration () {
+
+		#if DEBUG
+		if (Cell.IsSelected) {
+			bool debug = true;
+		}
+		#endif
 
 		if (HasMigrationEvent)
 			return;
@@ -1599,8 +1605,10 @@ public class CellGroup : HumanGroup {
 		}
 
 		float skillLevelFactor = Culture.MinimumSkillAdaptationLevel ();
+//		skillLevelFactor = Mathf.Pow (skillLevelFactor, 2);
 		
 		float knowledgeLevelFactor = Culture.MinimumKnowledgeProgressLevel ();
+//		knowledgeLevelFactor = Mathf.Pow (knowledgeLevelFactor, 2);
 
 		float populationFactor = 0.0001f + Mathf.Abs (OptimalPopulation - Population);
 		populationFactor = 100 * OptimalPopulation / populationFactor;
@@ -1608,6 +1616,8 @@ public class CellGroup : HumanGroup {
 		populationFactor = Mathf.Min(populationFactor, MaxUpdateSpanFactor);
 
 		float mixFactor = randomFactor * migrationFactor * skillLevelFactor * knowledgeLevelFactor * populationFactor;
+
+//		mixFactor = Mathf.Min(mixFactor, MaxUpdateSpan);
 
 		int updateSpan = GenerationTime * (int)mixFactor;
 
