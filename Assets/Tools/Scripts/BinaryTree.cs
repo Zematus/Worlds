@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 
 public delegate bool ValidateNodeDelegate<TKey, TValue> (BinaryTreeNode<TKey, TValue> node);
+public delegate void InvalidNodeEffectDelegate ();
 
 public class BinaryTreeNode<TKey, TValue> {
 
@@ -157,7 +158,7 @@ public class BinaryTree<TKey, TValue> {
 //		#endif
 	}
 
-	public void FindValidRightmost (ValidateNodeDelegate<TKey, TValue> validateNode) {
+	public void FindValidRightmost (ValidateNodeDelegate<TKey, TValue> validateNode, InvalidNodeEffectDelegate invalidNodeEffect) {
 
 		while (true) {
 		
@@ -166,6 +167,8 @@ public class BinaryTree<TKey, TValue> {
 
 			if (validateNode (_rightmostItem))
 				return;
+
+			invalidNodeEffect ();
 
 			RemoveRightmost ();
 		}
@@ -213,7 +216,7 @@ public class BinaryTree<TKey, TValue> {
 		return value;
 	}
 
-	public void FindValidLeftmost (ValidateNodeDelegate<TKey, TValue> validateNode) {
+	public void FindValidLeftmost (ValidateNodeDelegate<TKey, TValue> validateNode, InvalidNodeEffectDelegate invalidNodeEffect) {
 
 		while (true) {
 
@@ -222,6 +225,8 @@ public class BinaryTree<TKey, TValue> {
 
 			if (validateNode (_leftmostItem))
 				return;
+
+			invalidNodeEffect ();
 
 			RemoveLeftmost ();
 		}
@@ -269,7 +274,7 @@ public class BinaryTree<TKey, TValue> {
 		return value;
 	}
 
-	public List<TValue> GetValidValues (ValidateNodeDelegate<TKey, TValue> validateNode) {
+	public List<TValue> GetValidValues (ValidateNodeDelegate<TKey, TValue> validateNode, InvalidNodeEffectDelegate invalidNodeEffect) {
 		
 		List<TValue> values = new List<TValue> (Count);
 
@@ -288,6 +293,8 @@ public class BinaryTree<TKey, TValue> {
 
 				if (validateNode (currentNode))
 					values.Add (currentNode.Value);
+				else
+					invalidNodeEffect ();
 
 				currentNode.Marked = true;
 			}

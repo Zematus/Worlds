@@ -239,6 +239,10 @@ public class CellGroup : HumanGroup {
 		OptimalPopulation = CalculateOptimalPopulation (Cell);
 
 		InitializeLocalMigrationValue ();
+
+//		if ((Longitude == 229) && (Latitude == 119)) {
+//			bool debug = true;
+//		}
 		
 		NextUpdateDate = CalculateNextUpdateDate();
 
@@ -1187,21 +1191,21 @@ public class CellGroup : HumanGroup {
 		if (_alreadyUpdated)
 			return;
 
-		#if DEBUG
-		if (UpdateCalled != null) {
-		
-			UpdateCalled ();
-		}
-		#endif
-
-		_alreadyUpdated = true;
-
 		PreviousExactPopulation = ExactPopulation;
 		
 		int timeSpan = World.CurrentDate - LastUpdateDate;
 
 		if (timeSpan <= 0)
 			return;
+
+		#if DEBUG
+		if (UpdateCalled != null) {
+
+			UpdateCalled ();
+		}
+		#endif
+
+		_alreadyUpdated = true;
 
 		Profiler.BeginSample ("Update Population");
 
@@ -1355,7 +1359,6 @@ public class CellGroup : HumanGroup {
 
 		#if DEBUG
 		if (Cell.IsSelected) {
-		
 			bool debug = true;
 		}
 		#endif
@@ -1853,7 +1856,6 @@ public class CellGroup : HumanGroup {
 		RunningFunction_SetPolityInfluence = true;
 
 		if (Cell.IsSelected) {
-
 			bool debug = true;
 		}
 		#endif

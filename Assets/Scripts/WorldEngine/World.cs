@@ -107,21 +107,6 @@ public class World : ISynchronizable {
 	[XmlAttribute]
 	public int MaxYearsToSkip { get; private set; }
 	
-//	[XmlAttribute]
-//	public long CurrentCellGroupId { get; private set; }
-//	
-//	[XmlAttribute]
-//	public long CurrentEventId { get; private set; }
-//
-//	[XmlAttribute]
-//	public long CurrentPolityId { get; private set; }
-//
-//	[XmlAttribute]
-//	public long CurrentRegionId { get; private set; }
-//
-//	[XmlAttribute]
-//	public long CurrentLanguageId { get; private set; }
-	
 	[XmlAttribute]
 	public int EventsToHappenCount { get; private set; }
 	
@@ -378,7 +363,7 @@ public class World : ISynchronizable {
 	public void Synchronize () {
 
 		//EventsToHappen = _eventsToHappen.Values;
-		EventsToHappen = _eventsToHappen.GetValidValues (ValidateEventsToHappenNode);
+		EventsToHappen = _eventsToHappen.GetValidValues (ValidateEventsToHappenNode, InvalidEventEffect);
 
 		foreach (WorldEvent e in EventsToHappen) {
 
@@ -535,6 +520,11 @@ public class World : ISynchronizable {
 		return node.Key == node.Value.TriggerDate;
 	}
 
+	private void InvalidEventEffect () {
+
+		EventsToHappenCount--;
+	}
+
 	public int Iterate () {
 
 		if (CellGroupCount <= 0)
@@ -552,7 +542,7 @@ public class World : ISynchronizable {
 
 			if (_eventsToHappen.Count <= 0) break;
 
-			_eventsToHappen.FindValidLeftmost (ValidateEventsToHappenNode);
+			_eventsToHappen.FindValidLeftmost (ValidateEventsToHappenNode, InvalidEventEffect);
 		
 			WorldEvent eventToHappen = _eventsToHappen.Leftmost;
 
