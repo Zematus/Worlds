@@ -81,21 +81,21 @@ public class CellGroup : HumanGroup {
 	public static float TravelWidthFactor;
 
 	[XmlIgnore]
-	public UpdateCellGroupEvent UpdateEvent;
-
-	[XmlIgnore]
-	public MigrateGroupEvent MigrationEvent;
-
-	[XmlIgnore]
 	public float TotalPolityInfluenceValue {
+
 		get {
 			return TotalPolityInfluenceValueFloat;
 		}
 		set { 
-
 			TotalPolityInfluenceValueFloat = MathUtility.RoundToSixDecimals (Mathf.Clamp01 (value));
 		}
 	}
+
+	[XmlIgnore]
+	public UpdateCellGroupEvent UpdateEvent;
+
+	[XmlIgnore]
+	public MigrateGroupEvent MigrationEvent;
 	
 	[XmlIgnore]
 	public TerrainCell Cell;
@@ -1261,7 +1261,6 @@ public class CellGroup : HumanGroup {
 	public void SetPolityUpdate (PolityInfluence pi, bool forceUpdate) {
 
 		Polity p = pi.Polity;
-		float influenceValue = pi.Value;
 
 		if (p.WillBeUpdated)
 			return;
@@ -1272,12 +1271,14 @@ public class CellGroup : HumanGroup {
 			return;
 		}
 
-		if (p.TotalGroupInfluenceValue <= 0)
+		int groupCount = p.InfluencedGroups.Count;
+
+		if (groupCount <= 0)
 			return;
 
 		// If group is not the core group then there's a chance no polity update will happen
 
-		float chanceFactor = influenceValue / p.TotalGroupInfluenceValue;
+		float chanceFactor = 1f / (float)groupCount;
 
 		float rollValue = Cell.GetNextLocalRandomFloat (RngOffsets.CELL_GROUP_SET_POLITY_UPDATE + (int)p.Id);
 
@@ -1286,7 +1287,6 @@ public class CellGroup : HumanGroup {
 //			SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
 //				"SetPolityUpdate - Group:" + Id,
 //				"CurrentDate: " + World.CurrentDate + 
-//				", influenceValue: " + influenceValue + 
 //				", p.TotalGroupInfluenceValue: " + p.TotalGroupInfluenceValue + 
 //				", p.Id: " + p.Id + 
 //				", chanceFactor: " + chanceFactor + 
@@ -1826,6 +1826,8 @@ public class CellGroup : HumanGroup {
 
 	public void SetPolityInfluence (Polity polity, float newInfluenceValue) {
 
+		newInfluenceValue = MathUtility.RoundToSixDecimals (newInfluenceValue);
+
 //		#if DEBUG
 //		if (Manager.RegisterDebugEvent != null) {
 //			if ((Id == Manager.TracingData.GroupId) || (polity.Id == Manager.TracingData.PolityId)) {
@@ -1877,7 +1879,6 @@ public class CellGroup : HumanGroup {
 				ValidateAndSetHighestPolityInfluence (polityInfluence);
 
 				TotalPolityInfluenceValue += newInfluenceValue;
-				polity.TotalGroupInfluenceValue += newInfluenceValue;
 
 				polity.AddInfluencedGroup (this);
 			}
@@ -1892,7 +1893,6 @@ public class CellGroup : HumanGroup {
 		float oldInfluenceValue = polityInfluence.Value;
 
 		TotalPolityInfluenceValue -= oldInfluenceValue;
-		polity.TotalGroupInfluenceValue -= oldInfluenceValue;
 
 		if (newInfluenceValue <= Polity.MinPolityInfluence) {
 
@@ -1918,7 +1918,6 @@ public class CellGroup : HumanGroup {
 		polityInfluence.Value = newInfluenceValue;
 
 		TotalPolityInfluenceValue += newInfluenceValue;
-		polity.TotalGroupInfluenceValue += newInfluenceValue;
 
 		if (!(ValidateAndSetHighestPolityInfluence (polityInfluence)) && 
 			(polityInfluence == HighestPolityInfluence) && 
@@ -1959,7 +1958,6 @@ public class CellGroup : HumanGroup {
 		_polityInfluences.Remove (polity.Id);
 
 		TotalPolityInfluenceValue -= pi.Value;
-		polity.TotalGroupInfluenceValue -= pi.Value;
 	}
 
 	public override void Synchronize () {

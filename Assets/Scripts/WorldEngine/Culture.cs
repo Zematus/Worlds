@@ -207,6 +207,9 @@ public class PolityCulture : Culture {
 	[XmlIgnore]
 	public Polity Polity;
 
+	[XmlIgnore]
+	private float _totalGroupInfluenceValue;
+
 	public PolityCulture () {
 	
 	}
@@ -306,6 +309,11 @@ public class PolityCulture : Culture {
 		World.AddLanguage (Language);
 	}
 
+	#if DEBUG
+	private float _debug_originalSkillValue;
+	private string _debug_originalSkillId;
+	#endif
+
 	public void Update () {
 
 		ResetAttributeValues ();
@@ -323,7 +331,20 @@ public class PolityCulture : Culture {
 			activity.Contribution = 0;
 		}
 
+		#if DEBUG
+		bool first = true;
+		#endif
+
 		foreach (CulturalSkill skill in Skills) {
+
+			#if DEBUG
+			if (first) {
+			
+				_debug_originalSkillValue = skill.Value;
+				_debug_originalSkillId = skill.Id;
+				first = false;
+			}
+			#endif
 
 			skill.Value = 0;
 		}
@@ -355,24 +376,27 @@ public class PolityCulture : Culture {
 //		}
 //		#endif
 
-		if (Polity.TotalGroupInfluenceValue <= 0)
+		if (Polity.InfluencedGroups.Count <= 0)
 			return;
-
-		float totalGroupInfluenceValue = Polity.TotalGroupInfluenceValue;
 
 		foreach (CulturalActivity activity in Activities) {
 
-			activity.Value = MathUtility.RoundToSixDecimals(Mathf.Clamp01 (activity.Value/totalGroupInfluenceValue));
-			activity.Contribution = MathUtility.RoundToSixDecimals(Mathf.Clamp01 (activity.Contribution/totalGroupInfluenceValue));
+			activity.Value = MathUtility.RoundToSixDecimals(Mathf.Clamp01 (activity.Value/_totalGroupInfluenceValue));
+			activity.Contribution = MathUtility.RoundToSixDecimals(Mathf.Clamp01 (activity.Contribution/_totalGroupInfluenceValue));
 		}
 
 		foreach (CulturalSkill skill in Skills) {
 
-			float realValue = skill.Value / totalGroupInfluenceValue;
+			float realValue = skill.Value / _totalGroupInfluenceValue;
 
 			#if DEBUG
 			if ((realValue > 1.1f) || (realValue < -0.1f)) {
-			
+
+				if (skill.Id == _debug_originalSkillId) {
+
+					bool debug = true;
+				}
+				
 				throw new System.Exception ("Polity Skill value way out of bounds (-0.1f,1.1f): " + realValue);
 			}
 			#endif
@@ -384,7 +408,7 @@ public class PolityCulture : Culture {
 
 
 			float d;
-			int newValue = (int)MathUtility.DivideAndGetDecimals (knowledge.AggregateValue, totalGroupInfluenceValue, out d);
+			int newValue = (int)MathUtility.DivideAndGetDecimals (knowledge.AggregateValue, _totalGroupInfluenceValue, out d);
 
 			if (d > GetNextRandomFloat (RngOffsets.POLITY_CULTURE_NORMALIZE_ATTRIBUTE_VALUES))
 				newValue++;
@@ -394,7 +418,9 @@ public class PolityCulture : Culture {
 	}
 
 	private void AddGroupCultures () {
-	
+
+		_totalGroupInfluenceValue = 0;
+
 		foreach (CellGroup group in Polity.InfluencedGroups.Values) {
 		
 			AddGroupCulture (group);
@@ -403,18 +429,20 @@ public class PolityCulture : Culture {
 
 	private void AddGroupCulture (CellGroup group) {
 
-		#if DEBUG
-		if (World.SelectedCell != null && 
-			World.SelectedCell.Group != null) {
-
-			if (World.SelectedCell.Group.GetPolityInfluenceValue (Polity) > 0) {
-
-				Debug.Log ("Debug Selected");
-			}
-		}
-		#endif
+//		#if DEBUG
+//		if (World.SelectedCell != null && 
+//			World.SelectedCell.Group != null) {
+//
+//			if (World.SelectedCell.Group.GetPolityInfluenceValue (Polity) > 0) {
+//
+//				Debug.Log ("Debug Selected");
+//			}
+//		}
+//		#endif
 
 		float influenceValue = group.GetPolityInfluenceValue (Polity);
+
+		_totalGroupInfluenceValue += influenceValue;
 
 		if (influenceValue <= 0) {
 

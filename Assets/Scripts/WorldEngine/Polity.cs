@@ -9,8 +9,8 @@ public class PolityInfluence {
 
 	[XmlAttribute]
 	public long PolityId;
-	[XmlAttribute("Value")]
-	public float ValueFloat;
+	[XmlAttribute("Val")]
+	public float Value;
 	[XmlAttribute("Dist")]
 	public float CoreDistance;
 	[XmlAttribute("Cost")]
@@ -18,16 +18,6 @@ public class PolityInfluence {
 
 	[XmlIgnore]
 	public float NewCoreDistance;
-
-	[XmlIgnore]
-	public float Value {
-		get {
-			return ValueFloat;
-		}
-		set { 
-			ValueFloat = MathUtility.RoundToSixDecimals (value);
-		}
-	}
 
 	[XmlIgnore]
 	public Polity Polity;
@@ -73,9 +63,6 @@ public abstract class Polity : ISynchronizable {
 
 	[XmlAttribute("CGrpId")]
 	public long CoreGroupId;
-
-	[XmlAttribute("TotalGrpInfValue")]
-	public float TotalGroupInfluenceValue = 0;
 
 	[XmlAttribute("TotalAdmCost")]
 	public float TotalAdministrativeCost = 0;
@@ -419,7 +406,7 @@ public abstract class Polity : ISynchronizable {
 
 		CellGroup targetGroup = targetCell.Group;
 
-		float groupTotalInfluenceValue = 0;
+		float groupTotalPolityInfluenceValue = 0;
 
 //		float socialOrgFactor = 0;
 
@@ -430,13 +417,13 @@ public abstract class Polity : ISynchronizable {
 //			socialOrgFactor = Mathf.Clamp01 (socialOrgKnowledge.Value / (float)SocialOrganizationKnowledge.MinValueForTribalism);
 //			socialOrgFactor = 1 - Mathf.Pow (1 - socialOrgFactor, 2);
 
-			groupTotalInfluenceValue = targetGroup.TotalPolityInfluenceValue;
+			groupTotalPolityInfluenceValue = targetGroup.TotalPolityInfluenceValue;
 		}
 
 		float sourceValueFactor = 0.001f + sourceValue;
 
-//		float influenceFactor = socialOrgFactor * sourceValue / (groupTotalInfluenceValue + sourceValueFactor);
-		float influenceFactor = sourceValue / (groupTotalInfluenceValue + sourceValueFactor);
+//		float influenceFactor = socialOrgFactor * sourceValue / (groupTotalPolityInfluenceValue + sourceValueFactor);
+		float influenceFactor = sourceValue / (groupTotalPolityInfluenceValue + sourceValueFactor);
 
 		influenceFactor = MathUtility.RoundToSixDecimals (influenceFactor);
 
