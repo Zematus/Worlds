@@ -154,6 +154,8 @@ public abstract class Polity : ISynchronizable {
 
 		coreGroup.SetPolityInfluence (this, coreGroupInfluenceValue);
 
+		coreGroup.FindHighestPolityInfluence ();
+
 		GenerateName ();
 	}
 

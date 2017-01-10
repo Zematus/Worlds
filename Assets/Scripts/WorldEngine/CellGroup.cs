@@ -25,7 +25,7 @@ public class CellGroup : HumanGroup {
 
 	public const float MinKnowledgeTransferValue = 0.25f;
 
-	public const float SeaTravelBaseFactor = 0.025f;
+	public const float SeaTravelBaseFactor = 500f;
 
 	public const float NoMigrationFactor = 0.01f;
 
@@ -163,8 +163,10 @@ public class CellGroup : HumanGroup {
 
 			_polityInfluences.Add (p.PolityId, p);
 
-			ValidateAndSetHighestPolityInfluence (p);
+//			ValidateAndSetHighestPolityInfluence (p);
 		}
+
+		FindHighestPolityInfluence ();
 	}
 
 	public CellGroup (World world, TerrainCell cell, int initialPopulation, Culture baseCulture = null) : base(world) {
@@ -262,20 +264,20 @@ public class CellGroup : HumanGroup {
 		return Cell.GenerateUniqueIdentifier (oom, offset);
 	}
 
-	public bool ValidateAndSetHighestPolityInfluence (PolityInfluence influence) {
-
-		if (HighestPolityInfluence == null) {
-			SetHighestPolityInfluence (influence);
-			return true;
-		}
-
-		if (HighestPolityInfluence.Value < influence.Value) {
-			SetHighestPolityInfluence (influence);
-			return true;
-		}
-
-		return false;
-	}
+//	public bool ValidateAndSetHighestPolityInfluence (PolityInfluence influence) {
+//
+//		if (HighestPolityInfluence == null) {
+//			SetHighestPolityInfluence (influence);
+//			return true;
+//		}
+//
+//		if ((influence != null) && (HighestPolityInfluence.Value < influence.Value)) {
+//			SetHighestPolityInfluence (influence);
+//			return true;
+//		}
+//
+//		return false;
+//	}
 
 	public void SetHighestPolityInfluence (PolityInfluence influence) {
 
@@ -616,6 +618,8 @@ public class CellGroup : HumanGroup {
 
 			SetPolityInfluence (polity, newValue);
 		}
+
+		FindHighestPolityInfluence ();
 	}
 	
 	public int SplitGroup (MigratingGroup group) {
@@ -1094,8 +1098,9 @@ public class CellGroup : HumanGroup {
 			return;
 
 		float routeLength = SeaMigrationRoute.Length;
+		float routeLengthFactor = Mathf.Pow (routeLength, 2);
 
-		float successChance = SeaTravelFactor / (SeaTravelFactor + routeLength);
+		float successChance = SeaTravelFactor / (SeaTravelFactor + routeLengthFactor);
 
 		float attemptValue = Cell.GetNextLocalRandomFloat (RngOffsets.CELL_GROUP_CONSIDER_SEA_MIGRATION);
 
@@ -1176,6 +1181,8 @@ public class CellGroup : HumanGroup {
 
 			SetPolityInfluence (polity, 0);
 		}
+
+		SetHighestPolityInfluence (null);
 	}
 
 	#if DEBUG
@@ -1334,6 +1341,8 @@ public class CellGroup : HumanGroup {
 			polity.UpdateEffects (this, influence, totalInfluenceValue, timeSpan);
 		}
 
+		FindHighestPolityInfluence ();
+
 		if (TribeFormationEvent.CanSpawnIn (this)) {
 
 			int triggerDate = TribeFormationEvent.CalculateTriggerDate (this);
@@ -1415,6 +1424,12 @@ public class CellGroup : HumanGroup {
 				shipbuildingValue = knowledge.ScaledValue;
 			}
 		}
+
+		#if DEBUG
+		if (Cell.IsSelected) {
+			bool debug = true;
+		}
+		#endif
 
 		SeaTravelFactor = SeaTravelBaseFactor * seafaringValue * shipbuildingValue * TravelWidthFactor;
 	}
@@ -1876,7 +1891,7 @@ public class CellGroup : HumanGroup {
 				// We want to update the polity if a group is added.
 				SetPolityUpdate (polityInfluence, true);
 
-				ValidateAndSetHighestPolityInfluence (polityInfluence);
+//				ValidateAndSetHighestPolityInfluence (polityInfluence);
 
 				TotalPolityInfluenceValue += newInfluenceValue;
 
@@ -1905,8 +1920,8 @@ public class CellGroup : HumanGroup {
 			// We want to update the polity if a group is removed.
 			SetPolityUpdate (polityInfluence, true);
 
-			if (polityInfluence == HighestPolityInfluence)
-				FindHighestPolityInfluence ();
+//			if (polityInfluence == HighestPolityInfluence)
+//				FindHighestPolityInfluence ();
 
 			#if DEBUG
 			RunningFunction_SetPolityInfluence = false;
@@ -1919,10 +1934,10 @@ public class CellGroup : HumanGroup {
 
 		TotalPolityInfluenceValue += newInfluenceValue;
 
-		if (!(ValidateAndSetHighestPolityInfluence (polityInfluence)) && 
-			(polityInfluence == HighestPolityInfluence) && 
-			(oldInfluenceValue > newInfluenceValue))
-			FindHighestPolityInfluence ();
+//		if (!(ValidateAndSetHighestPolityInfluence (polityInfluence)) && 
+//			(polityInfluence == HighestPolityInfluence) && 
+//			(oldInfluenceValue > newInfluenceValue))
+//			FindHighestPolityInfluence ();
 
 		#if DEBUG
 		RunningFunction_SetPolityInfluence = false;

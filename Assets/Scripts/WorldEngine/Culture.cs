@@ -309,11 +309,6 @@ public class PolityCulture : Culture {
 		World.AddLanguage (Language);
 	}
 
-	#if DEBUG
-	private float _debug_originalSkillValue;
-	private string _debug_originalSkillId;
-	#endif
-
 	public void Update () {
 
 		ResetAttributeValues ();
@@ -331,21 +326,7 @@ public class PolityCulture : Culture {
 			activity.Contribution = 0;
 		}
 
-		#if DEBUG
-		bool first = true;
-		#endif
-
 		foreach (CulturalSkill skill in Skills) {
-
-			#if DEBUG
-			if (first) {
-			
-				_debug_originalSkillValue = skill.Value;
-				_debug_originalSkillId = skill.Id;
-				first = false;
-			}
-			#endif
-
 			skill.Value = 0;
 		}
 
@@ -391,12 +372,6 @@ public class PolityCulture : Culture {
 
 			#if DEBUG
 			if ((realValue > 1.1f) || (realValue < -0.1f)) {
-
-				if (skill.Id == _debug_originalSkillId) {
-
-					bool debug = true;
-				}
-				
 				throw new System.Exception ("Polity Skill value way out of bounds (-0.1f,1.1f): " + realValue);
 			}
 			#endif
