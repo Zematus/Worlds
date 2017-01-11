@@ -161,6 +161,13 @@ public class CellGroup : HumanGroup {
 
 		foreach (PolityInfluence p in migratingGroup.PolityInfluences) {
 
+			#if DEBUG
+			if ((Cell.Longitude == 251) && (Cell.Latitude == 73) && (World.CurrentDate >= 466004)) {
+
+				bool debug = true;
+			}
+			#endif
+
 			_polityInfluences.Add (p.PolityId, p);
 
 //			ValidateAndSetHighestPolityInfluence (p);
@@ -280,6 +287,9 @@ public class CellGroup : HumanGroup {
 //	}
 
 	public void SetHighestPolityInfluence (PolityInfluence influence) {
+
+		if (HighestPolityInfluence == influence)
+			return;
 
 		if (HighestPolityInfluence != null) {
 			HighestPolityInfluence.Polity.Territory.RemoveCell (Cell);
@@ -1149,6 +1159,13 @@ public class CellGroup : HumanGroup {
 
 	public void Destroy () {
 
+		#if DEBUG
+		if ((Cell.Longitude == 251) && (Cell.Latitude == 73) && (World.CurrentDate >= 466004)) {
+
+			bool debug = true;
+		}
+		#endif
+
 		_destroyed = true;
 
 		RemovePolityInfluences ();
@@ -1886,6 +1903,13 @@ public class CellGroup : HumanGroup {
 
 				polityInfluence = new PolityInfluence (polity, newInfluenceValue);
 
+				#if DEBUG
+				if ((Cell.Longitude == 251) && (Cell.Latitude == 73) && (World.CurrentDate >= 466004)) {
+
+					bool debug = true;
+				}
+				#endif
+
 				_polityInfluences.Add (polity.Id, polityInfluence);
 
 				// We want to update the polity if a group is added.
@@ -1912,6 +1936,13 @@ public class CellGroup : HumanGroup {
 		if (newInfluenceValue <= Polity.MinPolityInfluence) {
 
 			polityInfluence.Destroy ();
+
+			#if DEBUG
+			if ((Cell.Longitude == 251) && (Cell.Latitude == 73) && (World.CurrentDate >= 466004)) {
+
+				bool debug = true;
+			}
+			#endif
 			
 			_polityInfluences.Remove (polityInfluence.PolityId);
 
@@ -1969,6 +2000,13 @@ public class CellGroup : HumanGroup {
 		
 			throw new System.Exception ("Polity not actually influencing group");
 		}
+
+		#if DEBUG
+		if ((Cell.Longitude == 251) && (Cell.Latitude == 73) && (World.CurrentDate >= 466004)) {
+
+			bool debug = true;
+		}
+		#endif
 
 		_polityInfluences.Remove (polity.Id);
 
