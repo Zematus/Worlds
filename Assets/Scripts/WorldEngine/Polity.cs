@@ -51,7 +51,7 @@ public class PolityInfluence {
 
 public abstract class Polity : ISynchronizable {
 
-	public const float TimeEffectConstant = CellGroup.GenerationTime * 15000;
+	public const float TimeEffectConstant = CellGroup.GenerationTime * 10;
 
 	public const float MinPolityInfluence = 0.001f;
 
@@ -406,26 +406,22 @@ public abstract class Polity : ISynchronizable {
 		if (sourceValue <= 0)
 			return 0;
 
+		float sourceGroupTotalPolityInfluenceValue = sourceGroup.TotalPolityInfluenceValue;
+
 		CellGroup targetGroup = targetCell.Group;
 
-		float groupTotalPolityInfluenceValue = 0;
-
-//		float socialOrgFactor = 0;
-
-		if (targetGroup != null) {
-
-//			CulturalKnowledge socialOrgKnowledge = targetGroup.Culture.GetKnowledge (SocialOrganizationKnowledge.SocialOrganizationKnowledgeId);
-//
-//			socialOrgFactor = Mathf.Clamp01 (socialOrgKnowledge.Value / (float)SocialOrganizationKnowledge.MinValueForTribalism);
-//			socialOrgFactor = 1 - Mathf.Pow (1 - socialOrgFactor, 2);
-
-			groupTotalPolityInfluenceValue = targetGroup.TotalPolityInfluenceValue;
+		if (targetGroup == null) {
+			return sourceValue / sourceGroupTotalPolityInfluenceValue;
 		}
 
-		float sourceValueFactor = 0.001f + sourceValue;
+		float targetGroupTotalPolityInfluenceValue = targetGroup.TotalPolityInfluenceValue;
 
-//		float influenceFactor = socialOrgFactor * sourceValue / (groupTotalPolityInfluenceValue + sourceValueFactor);
-		float influenceFactor = sourceValue / (groupTotalPolityInfluenceValue + sourceValueFactor);
+		if (sourceGroupTotalPolityInfluenceValue <= 0) {
+		
+			throw new System.Exception ("sourceGroup.TotalPolityInfluenceValue equal or less than 0: " + sourceGroupTotalPolityInfluenceValue);
+		}
+
+		float influenceFactor = sourceValue / (targetGroupTotalPolityInfluenceValue + sourceGroupTotalPolityInfluenceValue);
 
 		influenceFactor = MathUtility.RoundToSixDecimals (influenceFactor);
 
@@ -463,7 +459,7 @@ public abstract class Polity : ISynchronizable {
 		return Mathf.Clamp01 (influenceFactor);
 	}
 
-	public virtual void UpdateEffects (CellGroup group, float influenceValue, float groupTotalPolityInfluenceValue, int timeSpan) {
+	public virtual void UpdateEffects (CellGroup group, float influenceValue, float totalPolityInfluenceValue, int timeSpan) {
 
 		if (group.Culture.GetDiscovery (TribalismDiscovery.TribalismDiscoveryId) == null) {
 
@@ -474,24 +470,33 @@ public abstract class Polity : ISynchronizable {
 
 		TerrainCell groupCell = group.Cell;
 
-		float maxInfluenceValue = 1 - groupTotalPolityInfluenceValue + influenceValue;
-
-		float maxTargetValue = maxInfluenceValue;
-		float minTargetValue = -0.2f * maxInfluenceValue;
+		float maxTargetValue = 1f;
+		float minTargetValue = 0.8f * totalPolityInfluenceValue;
 
 		float randomModifier = groupCell.GetNextLocalRandomFloat (RngOffsets.POLITY_UPDATE_EFFECTS + (int)Id);
-		float randomFactor = 2 * randomModifier - 1f;
-		float targetValue = 0;
+		float targetValue = ((maxTargetValue - minTargetValue) * randomModifier) + minTargetValue;
 
-//		#if DEBUG
-//		float unmodInflueceValue = influenceValue;
-//		#endif
+		float scaledValue = (targetValue - influenceValue) * influenceValue / totalPolityInfluenceValue;
+		targetValue = influenceValue + scaledValue;
 
-		if (randomFactor > 0) {
-			targetValue = influenceValue + (maxTargetValue - influenceValue) * randomFactor;
-		} else {
-			targetValue = influenceValue - (minTargetValue - influenceValue) * randomFactor;
-		}
+//		float maxInfluenceValue = 1 - groupTotalPolityInfluenceValue + influenceValue;
+//
+//		float maxTargetValue = maxInfluenceValue;
+//		float minTargetValue = -0.2f * maxInfluenceValue;
+//
+//		float randomModifier = groupCell.GetNextLocalRandomFloat (RngOffsets.POLITY_UPDATE_EFFECTS + (int)Id);
+//		float randomFactor = 2 * randomModifier - 1f;
+//		float targetValue = 0;
+//
+////		#if DEBUG
+////		float unmodInflueceValue = influenceValue;
+////		#endif
+//
+//		if (randomFactor > 0) {
+//			targetValue = influenceValue + (maxTargetValue - influenceValue) * randomFactor;
+//		} else {
+//			targetValue = influenceValue - (minTargetValue - influenceValue) * randomFactor;
+//		}
 
 		float timeEffect = timeSpan / (float)(timeSpan + TimeEffectConstant);
 

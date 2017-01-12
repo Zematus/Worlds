@@ -788,19 +788,15 @@ public class CellGroup : HumanGroup {
 			popDifferenceFactor = Mathf.Pow (popDifferenceFactor, 4);
 		}
 
-		popDifferenceFactor *= 10;
+		float polityInfluenceFactor = 0;
 
-		float polityInfluenceFactor = 1;
-
-		if ((cell.Group != null) && (_polityInfluences.Count > 0)) {
-			polityInfluenceFactor = 0;
+		if (TotalPolityInfluenceValue > 0) {
 
 			foreach (PolityInfluence polityInfluence in _polityInfluences.Values) {
 				
 				Profiler.BeginSample ("Polity Migration Value");
 
 				float influenceFactor = polityInfluence.Polity.MigrationValue (this, cell, polityInfluence.Value);
-				influenceFactor = Mathf.Pow (influenceFactor, 8);
 
 				Profiler.EndSample ();
 
@@ -828,9 +824,15 @@ public class CellGroup : HumanGroup {
 //				}
 //				#endif
 			}
+
+			polityInfluenceFactor = Mathf.Pow (polityInfluenceFactor, 16);
+
+			popDifferenceFactor *= 1 - TotalPolityInfluenceValue;
+
+			polityInfluenceFactor *= TotalPolityInfluenceValue;
 		}
 
-		polityInfluenceFactor *= 10;
+		float realPolityInfluenceFactor = (popDifferenceFactor + polityInfluenceFactor) * 10;
 
 		float noMigrationFactor = 1;
 
@@ -858,7 +860,7 @@ public class CellGroup : HumanGroup {
 			secondaryOptimalPopulationFactor = optimalPopulation / (OptimalPopulation + optimalPopulation);
 		}
 
-		float cellValue = altitudeDeltaFactor * areaFactor * popDifferenceFactor * noMigrationFactor * polityInfluenceFactor * optimalPopulationFactor * secondaryOptimalPopulationFactor;
+		float cellValue = altitudeDeltaFactor * areaFactor * realPolityInfluenceFactor * noMigrationFactor * optimalPopulationFactor * secondaryOptimalPopulationFactor;
 
 //		#if DEBUG
 //		if (Manager.RegisterDebugEvent != null) {
@@ -1631,6 +1633,13 @@ public class CellGroup : HumanGroup {
 			migrationFactor = Mathf.Pow (migrationFactor, 4);
 		}
 
+		float polityInfluenceFactor = 1;
+
+		if (_polityInfluences.Count > 0) {
+			polityInfluenceFactor = TotalPolityInfluenceValue;
+			migrationFactor = Mathf.Pow (polityInfluenceFactor, 4);
+		}
+
 		float skillLevelFactor = Culture.MinimumSkillAdaptationLevel ();
 //		skillLevelFactor = Mathf.Pow (skillLevelFactor, 2);
 		
@@ -1642,7 +1651,7 @@ public class CellGroup : HumanGroup {
 
 		populationFactor = Mathf.Min(populationFactor, MaxUpdateSpanFactor);
 
-		float mixFactor = randomFactor * migrationFactor * skillLevelFactor * knowledgeLevelFactor * populationFactor;
+		float mixFactor = randomFactor * migrationFactor * polityInfluenceFactor * skillLevelFactor * knowledgeLevelFactor * populationFactor;
 
 //		mixFactor = Mathf.Min(mixFactor, MaxUpdateSpan);
 
