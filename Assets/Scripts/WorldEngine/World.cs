@@ -749,6 +749,7 @@ public class World : ISynchronizable {
 
 		// If Target Group is present, it also needs to be prepared for pre-upgrade
 		if (group.TargetCell.Group != null) {
+
 			_groupsToUpdate.Add (group.TargetCell.Group);
 		}
 	}

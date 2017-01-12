@@ -59,13 +59,6 @@ public class Territory : ISynchronizable {
 
 	public void AddCell (TerrainCell cell) {
 
-		#if DEBUG
-		if ((cell.Longitude == 251) && (cell.Latitude == 73) && (Polity.Id == 425196246077) && (World.CurrentDate >= 466004)) {
-
-			bool debug = true;
-		}
-		#endif
-
 		if (!_cells.Add (cell)) {
 
 			Debug.Break ();
@@ -106,13 +99,6 @@ public class Territory : ISynchronizable {
 	}
 
 	public void RemoveCell (TerrainCell cell) {
-
-		#if DEBUG
-		if ((cell.Longitude == 251) && (cell.Latitude == 73) && (Polity.Id == 425196246077) && (World.CurrentDate >= 466004)) {
-
-			bool debug = true;
-		}
-		#endif
 
 		if (!_cells.Remove (cell)) {
 

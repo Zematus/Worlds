@@ -161,13 +161,6 @@ public class CellGroup : HumanGroup {
 
 		foreach (PolityInfluence p in migratingGroup.PolityInfluences) {
 
-			#if DEBUG
-			if ((Cell.Longitude == 251) && (Cell.Latitude == 73) && (World.CurrentDate >= 466004)) {
-
-				bool debug = true;
-			}
-			#endif
-
 			_polityInfluences.Add (p.PolityId, p);
 
 //			ValidateAndSetHighestPolityInfluence (p);
@@ -187,7 +180,6 @@ public class CellGroup : HumanGroup {
 
 		Cell.Group = this;
 
-//		Id = World.GenerateCellGroupId ();
 		Id = Cell.GenerateUniqueIdentifier ();
 
 		#if DEBUG
@@ -1159,13 +1151,6 @@ public class CellGroup : HumanGroup {
 
 	public void Destroy () {
 
-		#if DEBUG
-		if ((Cell.Longitude == 251) && (Cell.Latitude == 73) && (World.CurrentDate >= 466004)) {
-
-			bool debug = true;
-		}
-		#endif
-
 		_destroyed = true;
 
 		RemovePolityInfluences ();
@@ -1211,6 +1196,13 @@ public class CellGroup : HumanGroup {
 	#endif
 
 	public void Update () {
+
+		#if DEBUG
+		if (_destroyed) {
+
+			throw new System.Exception ("Group is already destroyed");
+		}
+		#endif
 
 		if (_alreadyUpdated)
 			return;
@@ -1903,13 +1895,6 @@ public class CellGroup : HumanGroup {
 
 				polityInfluence = new PolityInfluence (polity, newInfluenceValue);
 
-				#if DEBUG
-				if ((Cell.Longitude == 251) && (Cell.Latitude == 73) && (World.CurrentDate >= 466004)) {
-
-					bool debug = true;
-				}
-				#endif
-
 				_polityInfluences.Add (polity.Id, polityInfluence);
 
 				// We want to update the polity if a group is added.
@@ -1936,13 +1921,6 @@ public class CellGroup : HumanGroup {
 		if (newInfluenceValue <= Polity.MinPolityInfluence) {
 
 			polityInfluence.Destroy ();
-
-			#if DEBUG
-			if ((Cell.Longitude == 251) && (Cell.Latitude == 73) && (World.CurrentDate >= 466004)) {
-
-				bool debug = true;
-			}
-			#endif
 			
 			_polityInfluences.Remove (polityInfluence.PolityId);
 
@@ -2000,13 +1978,6 @@ public class CellGroup : HumanGroup {
 		
 			throw new System.Exception ("Polity not actually influencing group");
 		}
-
-		#if DEBUG
-		if ((Cell.Longitude == 251) && (Cell.Latitude == 73) && (World.CurrentDate >= 466004)) {
-
-			bool debug = true;
-		}
-		#endif
 
 		_polityInfluences.Remove (polity.Id);
 
@@ -2206,6 +2177,9 @@ public class MigrateGroupEvent : CellGroupEvent {
 	}
 
 	public override bool CanTrigger () {
+
+		if (!base.CanTrigger ())
+			return false;
 
 		if (Group.TotalMigrationValue <= 0)
 			return false;

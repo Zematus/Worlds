@@ -100,13 +100,6 @@ public class MigratingGroup : HumanGroup {
 	}
 
 	public void MoveToCell () {
-
-		#if DEBUG
-		if ((TargetCell.Longitude == 251) && (TargetCell.Latitude == 73) && (World.CurrentDate >= 466004)) {
-
-			bool debug = true;
-		}
-		#endif
 		
 		if (Population <= 0)
 			return;
