@@ -118,6 +118,8 @@ public class CellGroup : HumanGroup {
 	#endif
 
 	private Dictionary<long, PolityInfluence> _polityInfluences = new Dictionary<long, PolityInfluence> ();
+	private HashSet<long> _polityInfluencesToRemove = new HashSet<long> ();
+	private Dictionary<long, PolityInfluence> _polityInfluencesToAdd = new Dictionary<long, PolityInfluence> ();
 
 //	private Dictionary<int, WorldEvent> _associatedEvents = new Dictionary<int, WorldEvent> ();
 	
@@ -161,12 +163,12 @@ public class CellGroup : HumanGroup {
 
 		foreach (PolityInfluence p in migratingGroup.PolityInfluences) {
 
-			_polityInfluences.Add (p.PolityId, p);
+			_polityInfluencesToAdd.Add (p.PolityId, p);
 
 //			ValidateAndSetHighestPolityInfluence (p);
 		}
 
-		FindHighestPolityInfluence ();
+//		FindHighestPolityInfluence ();
 	}
 
 	public CellGroup (World world, TerrainCell cell, int initialPopulation, Culture baseCulture = null) : base(world) {
@@ -556,46 +558,24 @@ public class CellGroup : HumanGroup {
 
 	public void MergePolities (List <PolityInfluence> sourcePolityInfluences, float percentOfTarget) {
 
-		List<PolityInfluence> polityInfluences = new List<PolityInfluence> (_polityInfluences.Values);
-
-		foreach (PolityInfluence pInfluence in polityInfluences) {
-
-			float influenceValue = pInfluence.Value;
-
-			float newValue = influenceValue * (1 - percentOfTarget);
-
-//			#if DEBUG
-//			if (Manager.RegisterDebugEvent != null) {
-//				if (Id == Manager.TracingData.GroupId) {
-//
-//					string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
-//
-//					SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-//						"MergePolities:Rescale - Group:" + groupId + 
-//						", pInfluence.PolityId: " + pInfluence.PolityId,
-//						"CurrentDate: " + World.CurrentDate  +
-//						", influenceValue: " + influenceValue + 
-//						", Polity.TotalGroupInfluenceValue: " + pInfluence.Polity.TotalGroupInfluenceValue + 
-//						", newInfluenceValue: " + newInfluenceValue + 
-//						", percentOfTarget: " + percentOfTarget + 
-//						"");
-//
-//					Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-//				}
-//			}
-//			#endif
-
-			SetPolityInfluence (pInfluence.Polity, newValue);
-		}
+		Dictionary<long, PolityInfluence> targetPolityInfluences = new Dictionary<long, PolityInfluence> (_polityInfluences);
 
 		foreach (PolityInfluence pInfluence in sourcePolityInfluences) {
 
 			Polity polity = pInfluence.Polity;
 			float influenceValue = pInfluence.Value;
 
-			float currentValue = GetPolityInfluenceValue (polity);
+			float currentNewValue = 0;
 
-			float newValue = currentValue + (influenceValue * percentOfTarget);
+			PolityInfluence pTargetPolityInfluence = null;
+
+			if (targetPolityInfluences.TryGetValue (pInfluence.PolityId, out pTargetPolityInfluence)) {
+			
+				currentNewValue = pTargetPolityInfluence.NewValue;
+				targetPolityInfluences.Remove (pTargetPolityInfluence.PolityId);
+			}
+
+			float newValue = (currentNewValue * (1 - percentOfTarget)) + (influenceValue * percentOfTarget);
 
 //			#if DEBUG
 //			if (Manager.RegisterDebugEvent != null) {
@@ -621,7 +601,37 @@ public class CellGroup : HumanGroup {
 			SetPolityInfluence (polity, newValue);
 		}
 
-		FindHighestPolityInfluence ();
+		foreach (PolityInfluence pInfluence in targetPolityInfluences.Values) {
+
+			float influenceValue = pInfluence.NewValue;
+
+			float newValue = influenceValue * (1 - percentOfTarget);
+
+			//			#if DEBUG
+			//			if (Manager.RegisterDebugEvent != null) {
+			//				if (Id == Manager.TracingData.GroupId) {
+			//
+			//					string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
+			//
+			//					SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+			//						"MergePolities:Rescale - Group:" + groupId + 
+			//						", pInfluence.PolityId: " + pInfluence.PolityId,
+			//						"CurrentDate: " + World.CurrentDate  +
+			//						", influenceValue: " + influenceValue + 
+			//						", Polity.TotalGroupInfluenceValue: " + pInfluence.Polity.TotalGroupInfluenceValue + 
+			//						", newInfluenceValue: " + newInfluenceValue + 
+			//						", percentOfTarget: " + percentOfTarget + 
+			//						"");
+			//
+			//					Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+			//				}
+			//			}
+			//			#endif
+
+			SetPolityInfluence (pInfluence.Polity, newValue);
+		}
+
+//		FindHighestPolityInfluence ();
 	}
 	
 	public int SplitGroup (MigratingGroup group) {
@@ -1347,12 +1357,12 @@ public class CellGroup : HumanGroup {
 		foreach (PolityInfluence polityInfluence in polityInfluences) {
 		
 			Polity polity = polityInfluence.Polity;
-			float influence = polityInfluence.Value;
+			float influenceValue = polityInfluence.Value;
 
-			polity.UpdateEffects (this, influence, totalInfluenceValue, timeSpan);
+			polity.UpdateEffects (this, influenceValue, totalInfluenceValue, timeSpan);
 		}
 
-		FindHighestPolityInfluence ();
+//		FindHighestPolityInfluence ();
 
 		if (TribeFormationEvent.CanSpawnIn (this)) {
 
@@ -1851,10 +1861,32 @@ public class CellGroup : HumanGroup {
 
 	private void PostUpdatePolityInfluences () {
 
+		TotalPolityInfluenceValue = 0;
+
+		foreach (long polityId in _polityInfluencesToRemove) {
+
+			PolityInfluence pi = _polityInfluences [polityId];
+			pi.Polity.TotalAdministrativeCost -= pi.AdiministrativeCost;
+			_polityInfluences.Remove (pi.PolityId);
+		}
+
+		_polityInfluencesToRemove.Clear ();
+
+		foreach (PolityInfluence pi in _polityInfluencesToAdd.Values) {
+		
+			_polityInfluences.Add (pi.PolityId, pi);
+		}
+
+		_polityInfluencesToAdd.Clear ();
+
 		foreach (PolityInfluence pi in _polityInfluences.Values) {
 
 			pi.PostUpdate ();
+
+			TotalPolityInfluenceValue += pi.Value;
 		}
+
+		FindHighestPolityInfluence ();
 	}
 
 	public void SetPolityInfluence (Polity polity, float newInfluenceValue) {
@@ -1897,21 +1929,26 @@ public class CellGroup : HumanGroup {
 
 		PolityInfluence polityInfluence;
 
-		_polityInfluences.TryGetValue (polity.Id, out polityInfluence);
+		_polityInfluencesToRemove.Remove (polity.Id);
+
+		if (!_polityInfluences.TryGetValue (polity.Id, out polityInfluence)) {
+			_polityInfluencesToAdd.TryGetValue (polity.Id, out polityInfluence);
+		}
 
 		if (polityInfluence == null) {
 			if (newInfluenceValue > Polity.MinPolityInfluence) {
 
 				polityInfluence = new PolityInfluence (polity, newInfluenceValue);
 
-				_polityInfluences.Add (polity.Id, polityInfluence);
+//				_polityInfluences.Add (polity.Id, polityInfluence);
+				_polityInfluencesToAdd.Add (polity.Id, polityInfluence);
 
 				// We want to update the polity if a group is added.
 				SetPolityUpdate (polityInfluence, true);
 
 //				ValidateAndSetHighestPolityInfluence (polityInfluence);
 
-				TotalPolityInfluenceValue += newInfluenceValue;
+//				TotalPolityInfluenceValue += newInfluenceValue;
 
 				polity.AddInfluencedGroup (this);
 			}
@@ -1923,15 +1960,14 @@ public class CellGroup : HumanGroup {
 			return;
 		}
 
-		float oldInfluenceValue = polityInfluence.Value;
+//		float oldInfluenceValue = polityInfluence.Value;
 
-		TotalPolityInfluenceValue -= oldInfluenceValue;
+//		TotalPolityInfluenceValue -= oldInfluenceValue;
 
 		if (newInfluenceValue <= Polity.MinPolityInfluence) {
-
-			polityInfluence.Destroy ();
 			
-			_polityInfluences.Remove (polityInfluence.PolityId);
+//			_polityInfluences.Remove (polityInfluence.PolityId);
+			_polityInfluencesToRemove.Add (polityInfluence.PolityId);
 
 			polity.RemoveInfluencedGroup (this);
 
@@ -1948,9 +1984,9 @@ public class CellGroup : HumanGroup {
 			return;
 		}
 
-		polityInfluence.Value = newInfluenceValue;
+		polityInfluence.NewValue = newInfluenceValue;
 
-		TotalPolityInfluenceValue += newInfluenceValue;
+//		TotalPolityInfluenceValue += newInfluenceValue;
 
 //		if (!(ValidateAndSetHighestPolityInfluence (polityInfluence)) && 
 //			(polityInfluence == HighestPolityInfluence) && 
@@ -1988,9 +2024,10 @@ public class CellGroup : HumanGroup {
 			throw new System.Exception ("Polity not actually influencing group");
 		}
 
-		_polityInfluences.Remove (polity.Id);
+//		_polityInfluences.Remove (polity.Id);
+		_polityInfluencesToRemove.Add (polity.Id);
 
-		TotalPolityInfluenceValue -= pi.Value;
+//		TotalPolityInfluenceValue -= pi.Value;
 	}
 
 	public override void Synchronize () {
@@ -2043,8 +2080,9 @@ public class CellGroup : HumanGroup {
 		}
 
 		foreach (PolityInfluence p in PolityInfluences) {
-		
+
 			p.Polity = World.GetPolity (p.PolityId);
+			p.NewValue = p.Value;
 
 			if (p.Polity == null) { 
 				throw new System.Exception ("Missing polity with id:" + p.PolityId);

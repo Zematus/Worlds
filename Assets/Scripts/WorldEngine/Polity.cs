@@ -17,6 +17,8 @@ public class PolityInfluence {
 	public float AdiministrativeCost;
 
 	[XmlIgnore]
+	public float NewValue;
+	[XmlIgnore]
 	public float NewCoreDistance;
 
 	[XmlIgnore]
@@ -31,27 +33,21 @@ public class PolityInfluence {
 		PolityId = polity.Id;
 		Polity = polity;
 		Value = MathUtility.RoundToSixDecimals (value);
+		NewValue = Value;
 
 		AdiministrativeCost = 0;
 	}
 
 	public void PostUpdate () {
 
+		Value = NewValue;
 		CoreDistance = NewCoreDistance;
-	}
-
-	public void Destroy () {
-
-		if (Polity == null)
-			return;
-	
-		Polity.TotalAdministrativeCost -= AdiministrativeCost;
 	}
 }
 
 public abstract class Polity : ISynchronizable {
 
-	public const float TimeEffectConstant = CellGroup.GenerationTime * 10;
+	public const float TimeEffectConstant = CellGroup.GenerationTime * 1000;
 
 	public const float MinPolityInfluence = 0.001f;
 
@@ -154,7 +150,7 @@ public abstract class Polity : ISynchronizable {
 
 		coreGroup.SetPolityInfluence (this, coreGroupInfluenceValue);
 
-		coreGroup.FindHighestPolityInfluence ();
+//		coreGroup.FindHighestPolityInfluence ();
 
 		GenerateName ();
 	}
