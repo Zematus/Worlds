@@ -1362,8 +1362,6 @@ public class CellGroup : HumanGroup {
 			polity.UpdateEffects (this, influenceValue, totalInfluenceValue, timeSpan);
 		}
 
-//		FindHighestPolityInfluence ();
-
 		if (TribeFormationEvent.CanSpawnIn (this)) {
 
 			int triggerDate = TribeFormationEvent.CalculateTriggerDate (this);
@@ -1651,10 +1649,7 @@ public class CellGroup : HumanGroup {
 		}
 
 		float skillLevelFactor = Culture.MinimumSkillAdaptationLevel ();
-//		skillLevelFactor = Mathf.Pow (skillLevelFactor, 2);
-		
 		float knowledgeLevelFactor = Culture.MinimumKnowledgeProgressLevel ();
-//		knowledgeLevelFactor = Mathf.Pow (knowledgeLevelFactor, 2);
 
 		float populationFactor = 0.0001f + Mathf.Abs (OptimalPopulation - Population);
 		populationFactor = 100 * OptimalPopulation / populationFactor;
@@ -1662,8 +1657,6 @@ public class CellGroup : HumanGroup {
 		populationFactor = Mathf.Min(populationFactor, MaxUpdateSpanFactor);
 
 		float mixFactor = randomFactor * migrationFactor * polityInfluenceFactor * skillLevelFactor * knowledgeLevelFactor * populationFactor;
-
-//		mixFactor = Mathf.Min(mixFactor, MaxUpdateSpan);
 
 		int updateSpan = GenerationTime * (int)mixFactor;
 
@@ -1859,15 +1852,28 @@ public class CellGroup : HumanGroup {
 		}
 	}
 
-	private void PostUpdatePolityInfluences () {
+	public void PostUpdatePolityInfluences () {
 
 		TotalPolityInfluenceValue = 0;
 
 		foreach (long polityId in _polityInfluencesToRemove) {
 
-			PolityInfluence pi = _polityInfluences [polityId];
+			PolityInfluence pi;
+
+			if (!_polityInfluences.TryGetValue (polityId, out pi)) {
+				if (!_polityInfluencesToAdd.TryGetValue (polityId, out pi)) {
+				
+					throw new System.Exception ("Trying to remove nonexisting PolityInfluence with id " + polityId);
+				}
+
+				_polityInfluencesToAdd.Remove (pi.PolityId);
+
+			} else {
+
+				_polityInfluences.Remove (pi.PolityId);
+			}
+
 			pi.Polity.TotalAdministrativeCost -= pi.AdiministrativeCost;
-			_polityInfluences.Remove (pi.PolityId);
 		}
 
 		_polityInfluencesToRemove.Clear ();
@@ -1889,7 +1895,7 @@ public class CellGroup : HumanGroup {
 		FindHighestPolityInfluence ();
 	}
 
-	public void SetPolityInfluence (Polity polity, float newInfluenceValue) {
+	public PolityInfluence SetPolityInfluence (Polity polity, float newInfluenceValue) {
 
 		newInfluenceValue = MathUtility.RoundToSixDecimals (newInfluenceValue);
 
@@ -1940,15 +1946,10 @@ public class CellGroup : HumanGroup {
 
 				polityInfluence = new PolityInfluence (polity, newInfluenceValue);
 
-//				_polityInfluences.Add (polity.Id, polityInfluence);
 				_polityInfluencesToAdd.Add (polity.Id, polityInfluence);
 
 				// We want to update the polity if a group is added.
 				SetPolityUpdate (polityInfluence, true);
-
-//				ValidateAndSetHighestPolityInfluence (polityInfluence);
-
-//				TotalPolityInfluenceValue += newInfluenceValue;
 
 				polity.AddInfluencedGroup (this);
 			}
@@ -1957,16 +1958,11 @@ public class CellGroup : HumanGroup {
 			RunningFunction_SetPolityInfluence = false;
 			#endif
 
-			return;
+			return polityInfluence;
 		}
-
-//		float oldInfluenceValue = polityInfluence.Value;
-
-//		TotalPolityInfluenceValue -= oldInfluenceValue;
 
 		if (newInfluenceValue <= Polity.MinPolityInfluence) {
 			
-//			_polityInfluences.Remove (polityInfluence.PolityId);
 			_polityInfluencesToRemove.Add (polityInfluence.PolityId);
 
 			polity.RemoveInfluencedGroup (this);
@@ -1974,28 +1970,20 @@ public class CellGroup : HumanGroup {
 			// We want to update the polity if a group is removed.
 			SetPolityUpdate (polityInfluence, true);
 
-//			if (polityInfluence == HighestPolityInfluence)
-//				FindHighestPolityInfluence ();
-
 			#if DEBUG
 			RunningFunction_SetPolityInfluence = false;
 			#endif
 
-			return;
+			return null;
 		}
 
 		polityInfluence.NewValue = newInfluenceValue;
 
-//		TotalPolityInfluenceValue += newInfluenceValue;
-
-//		if (!(ValidateAndSetHighestPolityInfluence (polityInfluence)) && 
-//			(polityInfluence == HighestPolityInfluence) && 
-//			(oldInfluenceValue > newInfluenceValue))
-//			FindHighestPolityInfluence ();
-
 		#if DEBUG
 		RunningFunction_SetPolityInfluence = false;
 		#endif
+
+		return polityInfluence;
 	}
 
 	public void FindHighestPolityInfluence () {
@@ -2024,10 +2012,7 @@ public class CellGroup : HumanGroup {
 			throw new System.Exception ("Polity not actually influencing group");
 		}
 
-//		_polityInfluences.Remove (polity.Id);
 		_polityInfluencesToRemove.Add (polity.Id);
-
-//		TotalPolityInfluenceValue -= pi.Value;
 	}
 
 	public override void Synchronize () {

@@ -124,7 +124,6 @@ public abstract class Polity : ISynchronizable {
 		CoreGroup = coreGroup;
 		CoreGroupId = coreGroup.Id;
 
-//		Id = World.GeneratePolityId ();
 		Id = coreGroup.GenerateUniqueIdentifier ();
 
 		Culture = new PolityCulture (this);
@@ -148,9 +147,11 @@ public abstract class Polity : ISynchronizable {
 //		}
 //		#endif
 
-		coreGroup.SetPolityInfluence (this, coreGroupInfluenceValue);
+		PolityInfluence pi = coreGroup.SetPolityInfluence (this, coreGroupInfluenceValue);
 
-//		coreGroup.FindHighestPolityInfluence ();
+		// We need to execute these two methods to generate new territories and regions if necessary 
+		pi.PostUpdate ();
+		coreGroup.PostUpdatePolityInfluences ();
 
 		GenerateName ();
 	}
@@ -474,25 +475,6 @@ public abstract class Polity : ISynchronizable {
 
 		float scaledValue = (targetValue - influenceValue) * influenceValue / totalPolityInfluenceValue;
 		targetValue = influenceValue + scaledValue;
-
-//		float maxInfluenceValue = 1 - groupTotalPolityInfluenceValue + influenceValue;
-//
-//		float maxTargetValue = maxInfluenceValue;
-//		float minTargetValue = -0.2f * maxInfluenceValue;
-//
-//		float randomModifier = groupCell.GetNextLocalRandomFloat (RngOffsets.POLITY_UPDATE_EFFECTS + (int)Id);
-//		float randomFactor = 2 * randomModifier - 1f;
-//		float targetValue = 0;
-//
-////		#if DEBUG
-////		float unmodInflueceValue = influenceValue;
-////		#endif
-//
-//		if (randomFactor > 0) {
-//			targetValue = influenceValue + (maxTargetValue - influenceValue) * randomFactor;
-//		} else {
-//			targetValue = influenceValue - (minTargetValue - influenceValue) * randomFactor;
-//		}
 
 		float timeEffect = timeSpan / (float)(timeSpan + TimeEffectConstant);
 
