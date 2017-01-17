@@ -164,11 +164,7 @@ public class CellGroup : HumanGroup {
 		foreach (PolityInfluence p in migratingGroup.PolityInfluences) {
 
 			_polityInfluencesToAdd.Add (p.PolityId, p);
-
-//			ValidateAndSetHighestPolityInfluence (p);
 		}
-
-//		FindHighestPolityInfluence ();
 	}
 
 	public CellGroup (World world, TerrainCell cell, int initialPopulation, Culture baseCulture = null) : base(world) {
@@ -239,46 +235,15 @@ public class CellGroup : HumanGroup {
 		InitializeDefaultSkills (initialGroup);
 		InitializeDefaultKnowledges (initialGroup);
 
-		OptimalPopulation = CalculateOptimalPopulation (Cell);
-
-		InitializeLocalMigrationValue ();
-
-//		if ((Longitude == 229) && (Latitude == 119)) {
-//			bool debug = true;
-//		}
-		
-		NextUpdateDate = CalculateNextUpdateDate();
-
-		LastUpdateDate = World.CurrentDate;
-
-		UpdateEvent = new UpdateCellGroupEvent (this, NextUpdateDate);
-		
-		World.InsertEventToHappen (UpdateEvent);
-		
-		World.UpdateMostPopulousGroup (this);
-
 		InitializeDefaultEvents ();
+
+		World.AddUpdatedGroup (this);
 	}
 
 	public long GenerateUniqueIdentifier (long oom = 1, long offset = 0) {
 
 		return Cell.GenerateUniqueIdentifier (oom, offset);
 	}
-
-//	public bool ValidateAndSetHighestPolityInfluence (PolityInfluence influence) {
-//
-//		if (HighestPolityInfluence == null) {
-//			SetHighestPolityInfluence (influence);
-//			return true;
-//		}
-//
-//		if ((influence != null) && (HighestPolityInfluence.Value < influence.Value)) {
-//			SetHighestPolityInfluence (influence);
-//			return true;
-//		}
-//
-//		return false;
-//	}
 
 	public void SetHighestPolityInfluence (PolityInfluence influence) {
 
@@ -750,7 +715,11 @@ public class CellGroup : HumanGroup {
 
 		LastUpdateDate = World.CurrentDate;
 
-		UpdateEvent.Reset (NextUpdateDate);
+		if (UpdateEvent == null) {
+			UpdateEvent = new UpdateCellGroupEvent (this, NextUpdateDate);
+		} else {
+			UpdateEvent.Reset (NextUpdateDate);
+		}
 
 		World.InsertEventToHappen (UpdateEvent);
 	}
