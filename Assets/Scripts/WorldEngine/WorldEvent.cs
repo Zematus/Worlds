@@ -14,6 +14,7 @@ public abstract class WorldEvent : ISynchronizable {
 	public const long BoatMakingDiscoveryEventId = 5;
 	public const long PlantCultivationDiscoveryEventId = 6;
 	public const long ClanSplitEventId = 7;
+	public const long ExpandPolityInfluenceEventId = 8;
 
 //	public static int EventCount = 0;
 

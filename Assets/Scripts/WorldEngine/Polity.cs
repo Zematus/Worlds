@@ -47,7 +47,7 @@ public class PolityInfluence {
 
 public abstract class Polity : ISynchronizable {
 
-	public const float TimeEffectConstant = CellGroup.GenerationTime * 1000;
+	public const float TimeEffectConstant = CellGroup.GenerationTime * 10000;
 
 	public const float MinPolityInfluence = 0.001f;
 
@@ -68,6 +68,9 @@ public abstract class Polity : ISynchronizable {
 
 	[XmlAttribute("FctnCount")]
 	public int FactionCount { get; private set; }
+
+	[XmlAttribute("StilPres")]
+	public bool StillPresent = true;
 
 	public Name Name;
 
@@ -171,6 +174,8 @@ public abstract class Polity : ISynchronizable {
 		}
 		
 		World.RemovePolity (this);
+
+		StillPresent = false;
 	}
 
 	public void AddFaction (Faction faction) {
@@ -398,7 +403,7 @@ public abstract class Polity : ISynchronizable {
 		Culture.FinalizeLoad ();
 	}
 
-	public virtual float MigrationValue (CellGroup sourceGroup, TerrainCell targetCell, float sourceValue)
+	public virtual float CalculateCellMigrationValue (CellGroup sourceGroup, TerrainCell targetCell, float sourceValue)
 	{
 		if (sourceValue <= 0)
 			return 0;
@@ -456,7 +461,43 @@ public abstract class Polity : ISynchronizable {
 		return Mathf.Clamp01 (influenceFactor);
 	}
 
-	public virtual void UpdateEffects (CellGroup group, float influenceValue, float totalPolityInfluenceValue, int timeSpan) {
+	public virtual float CalculateGroupInfluenceExpansionValue (CellGroup sourceGroup, CellGroup targetGroup, float sourceValue)
+	{
+		if (sourceValue <= 0)
+			return 0;
+
+		float sourceGroupTotalPolityInfluenceValue = sourceGroup.TotalPolityInfluenceValue;
+
+		float targetGroupTotalPolityInfluenceValue = targetGroup.TotalPolityInfluenceValue;
+
+		if (sourceGroupTotalPolityInfluenceValue <= 0) {
+
+			throw new System.Exception ("sourceGroup.TotalPolityInfluenceValue equal or less than 0: " + sourceGroupTotalPolityInfluenceValue);
+		}
+
+		float influenceFactor = sourceValue / (targetGroupTotalPolityInfluenceValue + sourceGroupTotalPolityInfluenceValue);
+
+//		CulturalKnowledge soKnowledge = targetGroup.Culture.GetKnowledge (SocialOrganizationKnowledge.SocialOrganizationKnowledgeId);
+//
+//		float sokFactor = 0;
+//
+//		if (soKnowledge.Value > 0) {
+//			sokFactor = (soKnowledge.Value - SocialOrganizationKnowledge.MinValueForTribalism) / (float)soKnowledge.Value;
+//			sokFactor = Mathf.Clamp01 (sokFactor);
+//		}
+//
+//		influenceFactor *= sokFactor;
+
+		if (sourceGroup == targetGroup) {
+		
+			// the weight of the sourceGroup should be much greater than that of it's neighboors
+			influenceFactor *= 10;
+		}
+
+		return influenceFactor;
+	}
+
+	public virtual void GroupUpdateEffects (CellGroup group, float influenceValue, float totalPolityInfluenceValue, int timeSpan) {
 
 		if (group.Culture.GetDiscovery (TribalismDiscovery.TribalismDiscoveryId) == null) {
 

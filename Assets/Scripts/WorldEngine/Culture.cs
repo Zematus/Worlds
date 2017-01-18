@@ -421,7 +421,7 @@ public class PolityCulture : Culture {
 
 		if (influenceValue <= 0) {
 
-			throw new System.Exception ("Polity has zero or less influence value in group: " + influenceValue);
+			throw new System.Exception ("Polity has zero or less (" + influenceValue + ") influence value in group with id: " + group.Id);
 		}
 
 		foreach (CulturalActivity groupActivity in group.Culture.Activities) {

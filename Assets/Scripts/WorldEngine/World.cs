@@ -19,6 +19,8 @@ public static class RngOffsets {
 	public const int CELL_GROUP_CONSIDER_SEA_MIGRATION = 1;
 	public const int CELL_GROUP_CALCULATE_NEXT_UPDATE = 2;
 	public const int CELL_GROUP_SET_POLITY_UPDATE = 3;
+	public const int CELL_GROUP_CONSIDER_POLITY_INFLUENCE_EXPANSION_POLITY = 4;
+	public const int CELL_GROUP_CONSIDER_POLITY_INFLUENCE_EXPANSION_TARGET = 5;
 
 	public const int ACTIVITY_UPDATE = 10000;
 	public const int ACTIVITY_POLITY_INFLUENCE = 10001;
@@ -143,7 +145,8 @@ public class World : ISynchronizable {
 		XmlArrayItem (Type = typeof(TribalismDiscoveryEvent)),
 		XmlArrayItem (Type = typeof(TribeFormationEvent)),
 		XmlArrayItem (Type = typeof(PlantCultivationDiscoveryEvent)),
-		XmlArrayItem (Type = typeof(ClanSplitEvent))]
+		XmlArrayItem (Type = typeof(ClanSplitEvent)),
+		XmlArrayItem (Type = typeof(ExpandPolityInfluenceEvent))]
 	public List<WorldEvent> EventsToHappen;
 
 	public List<TerrainCellChanges> TerrainCellChangesList = new List<TerrainCellChanges> ();
@@ -744,10 +747,10 @@ public class World : ISynchronizable {
 		
 		_migratingGroups.Add (group);
 
-		// Source Group needs to be prepared for pre-upgrade
+		// Source Group needs to be updated
 		_groupsToUpdate.Add (group.SourceGroup);
 
-		// If Target Group is present, it also needs to be prepared for pre-upgrade
+		// If Target Group is present, it also needs to be updated
 		if (group.TargetCell.Group != null) {
 
 			_groupsToUpdate.Add (group.TargetCell.Group);
