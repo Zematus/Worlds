@@ -28,6 +28,7 @@ public class CellGroup : HumanGroup {
 	public const float SeaTravelBaseFactor = 500f;
 
 	public const float NoMigrationFactor = 0.01f;
+	public const float NoPolityExpansionFactor = 0.01f;
 
 	[XmlAttribute]
 	public long Id;
@@ -916,20 +917,21 @@ public class CellGroup : HumanGroup {
 			Profiler.EndSample ();
 		}
 
-		float optimalPopulationFactor = 0;
+		float targetOptimalPopulationFactor = 0;
 
 		if (optimalPopulation > 0) {
-			optimalPopulationFactor = optimalPopulation / (existingPopulation + optimalPopulation);
+			targetOptimalPopulationFactor = optimalPopulation / (existingPopulation + optimalPopulation);
 		}
 
-		float secondaryOptimalPopulationFactor = 0;
+//		float sourceOptimalPopulationFactor = 0;
+//
+//		if (optimalPopulation > 0) {
+//			sourceOptimalPopulationFactor = optimalPopulation / (OptimalPopulation + optimalPopulation);
+//		}
 
-		if (optimalPopulation > 0) {
-			secondaryOptimalPopulationFactor = optimalPopulation / (OptimalPopulation + optimalPopulation);
-		}
-
-//		float cellValue = altitudeDeltaFactor * areaFactor * realPolityInfluenceFactor * noMigrationFactor * optimalPopulationFactor * secondaryOptimalPopulationFactor;
-		float cellValue = altitudeDeltaFactor * areaFactor * popDifferenceFactor * noMigrationFactor * optimalPopulationFactor * secondaryOptimalPopulationFactor;
+//		float cellValue = altitudeDeltaFactor * areaFactor * realPolityInfluenceFactor * noMigrationFactor * targetOptimalPopulationFactor * sourceOptimalPopulationFactor;
+//		float cellValue = altitudeDeltaFactor * areaFactor * popDifferenceFactor * noMigrationFactor * targetOptimalPopulationFactor * sourceOptimalPopulationFactor;
+		float cellValue = altitudeDeltaFactor * areaFactor * popDifferenceFactor * noMigrationFactor * targetOptimalPopulationFactor;
 
 //		#if DEBUG
 //		if (Manager.RegisterDebugEvent != null) {
@@ -2524,9 +2526,12 @@ public class ExpandPolityInfluenceEvent : CellGroupEvent {
 		float randomFactor = Group.Cell.GetNextLocalRandomFloat (RngOffsets.EVENT_TRIGGER + (int)Id);
 		float percentToExpand = Mathf.Pow (randomFactor, 4);
 
+		float populationFactor = Group.Population / (Group.Population + TargetGroup.Population);
+		percentToExpand *= populationFactor;
+
 		PolityInfluence sourcePi = Group.GetPolityInfluence (Polity);
 
-//		TargetGroup.Culture.MergeCulture (Group.Culture, percentToExpand);
+		TargetGroup.Culture.MergeCulture (Group.Culture, percentToExpand);
 		TargetGroup.MergePolityInfluence (sourcePi, percentToExpand);
 
 		World.AddGroupToUpdate (Group);

@@ -47,7 +47,7 @@ public class PolityInfluence {
 
 public abstract class Polity : ISynchronizable {
 
-	public const float TimeEffectConstant = CellGroup.GenerationTime * 10000;
+	public const float TimeEffectConstant = CellGroup.GenerationTime * 2500;
 
 	public const float MinPolityInfluence = 0.001f;
 
@@ -467,7 +467,6 @@ public abstract class Polity : ISynchronizable {
 			return 0;
 
 		float sourceGroupTotalPolityInfluenceValue = sourceGroup.TotalPolityInfluenceValue;
-
 		float targetGroupTotalPolityInfluenceValue = targetGroup.TotalPolityInfluenceValue;
 
 		if (sourceGroupTotalPolityInfluenceValue <= 0) {
@@ -475,23 +474,14 @@ public abstract class Polity : ISynchronizable {
 			throw new System.Exception ("sourceGroup.TotalPolityInfluenceValue equal or less than 0: " + sourceGroupTotalPolityInfluenceValue);
 		}
 
-		float influenceFactor = sourceValue / (targetGroupTotalPolityInfluenceValue + sourceGroupTotalPolityInfluenceValue);
+		float influenceFactor = sourceGroupTotalPolityInfluenceValue / (targetGroupTotalPolityInfluenceValue + sourceGroupTotalPolityInfluenceValue);
+		influenceFactor = Mathf.Pow (influenceFactor, 4);
+		influenceFactor *= sourceValue;
 
-//		CulturalKnowledge soKnowledge = targetGroup.Culture.GetKnowledge (SocialOrganizationKnowledge.SocialOrganizationKnowledgeId);
-//
-//		float sokFactor = 0;
-//
-//		if (soKnowledge.Value > 0) {
-//			sokFactor = (soKnowledge.Value - SocialOrganizationKnowledge.MinValueForTribalism) / (float)soKnowledge.Value;
-//			sokFactor = Mathf.Clamp01 (sokFactor);
-//		}
-//
-//		influenceFactor *= sokFactor;
-
-		if (sourceGroup == targetGroup) {
+		if (sourceGroup != targetGroup) {
 		
-			// the weight of the sourceGroup should be much greater than that of it's neighboors
-			influenceFactor *= 10;
+			// There should be a strong bias against polity expansion to reduce activity
+			influenceFactor *= CellGroup.NoPolityExpansionFactor;
 		}
 
 		return influenceFactor;
@@ -499,7 +489,7 @@ public abstract class Polity : ISynchronizable {
 
 	public virtual void GroupUpdateEffects (CellGroup group, float influenceValue, float totalPolityInfluenceValue, int timeSpan) {
 
-		if (group.Culture.GetDiscovery (TribalismDiscovery.TribalismDiscoveryId) == null) {
+		if (group.Culture.GetFoundDiscoveryOrToFind (TribalismDiscovery.TribalismDiscoveryId) == null) {
 
 			group.SetPolityInfluence (this, 0);
 

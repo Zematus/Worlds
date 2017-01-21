@@ -669,8 +669,8 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge {
 	public const int SocialOrganizationKnowledgeRngOffset = 2;
 
 	public const int MinValueForTribalismSpawnEvent = 500;
-	public const int MinValueForTribalism = 400;
-	public const int OptimalValueForTribalism = 1000;
+	public const int MinValueForTribalism = 200;
+	public const int OptimalValueForTribalism = 10000;
 
 	public const float TimeEffectConstant = CellGroup.GenerationTime * 500;
 	public const float PopulationDensityModifier = 10000f;
@@ -715,8 +715,8 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge {
 
 		float areaFactor = Group.Cell.Area / TerrainCell.MaxArea;
 
-		float population = Group.Population;
-		float popFactor = population * areaFactor;
+//		float popFactor = Group.Population * areaFactor;
+		float popFactor = (float)Group.Population;
 
 		float densityFactor = PopulationDensityModifier * Asymptote * ValueScaleFactor * areaFactor;
 
@@ -728,7 +728,7 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge {
 
 	private float CalculatePolityInfluenceFactor () {
 
-		float totalInfluence = Group.TotalPolityInfluenceValue * 0.4f;
+		float totalInfluence = Group.TotalPolityInfluenceValue * 0.5f;
 
 		return totalInfluence;
 	}
@@ -777,7 +777,7 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge {
 		switch (discovery.Id) {
 
 		case TribalismDiscovery.TribalismDiscoveryId:
-			return 3000;
+			return OptimalValueForTribalism;
 		}
 
 		return 0;

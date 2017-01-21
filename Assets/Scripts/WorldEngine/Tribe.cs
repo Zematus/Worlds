@@ -88,7 +88,7 @@ public class Tribe : Polity {
 
 public class TribeFormationEvent : CellGroupEvent {
 
-	public const int DateSpanFactorConstant = CellGroup.GenerationTime * 1000;
+	public const int DateSpanFactorConstant = CellGroup.GenerationTime * 100;
 
 	public const int MinSocialOrganizationKnowledgeSpawnEventValue = SocialOrganizationKnowledge.MinValueForTribalismSpawnEvent;
 	public const int MinSocialOrganizationKnowledgeValue = SocialOrganizationKnowledge.MinValueForTribalism;
@@ -115,15 +115,13 @@ public class TribeFormationEvent : CellGroupEvent {
 			socialOrganizationValue = socialOrganizationKnowledge.Value;
 
 		float randomFactor = group.Cell.GetNextLocalRandomFloat (RngOffsets.TRIBE_FORMATION_EVENT_CALCULATE_TRIGGER_DATE);
-		randomFactor = randomFactor * randomFactor;
+		randomFactor = Mathf.Pow (randomFactor, 2);
 
 		float socialOrganizationFactor = (socialOrganizationValue - MinSocialOrganizationKnowledgeValue) / (OptimalSocialOrganizationKnowledgeValue - MinSocialOrganizationKnowledgeValue);
-		socialOrganizationFactor = Mathf.Clamp01 (socialOrganizationFactor) + 0.001f;
+		socialOrganizationFactor = Mathf.Pow (socialOrganizationFactor, 2);
+		socialOrganizationFactor = Mathf.Clamp (socialOrganizationFactor, 0.001f, 1);
 
-		float influenceFactor = group.TotalPolityInfluenceValue;
-		influenceFactor = Mathf.Pow(1 - influenceFactor * 0.95f, 4);
-
-		float dateSpan = (1 - randomFactor) * DateSpanFactorConstant / (socialOrganizationFactor * influenceFactor);
+		float dateSpan = (1 - randomFactor) * DateSpanFactorConstant / socialOrganizationFactor;
 
 		int targetDate = (int)(group.World.CurrentDate + dateSpan);
 
@@ -138,7 +136,15 @@ public class TribeFormationEvent : CellGroupEvent {
 		if (group.IsFlagSet (EventSetFlag))
 			return false;
 
-		if (group.Culture.GetDiscovery (TribalismDiscovery.TribalismDiscoveryId) == null)
+		if (group.Culture.GetFoundDiscoveryOrToFind (TribalismDiscovery.TribalismDiscoveryId) == null)
+			return false;
+
+		CulturalKnowledge socialOrganizationKnowledge = group.Culture.GetKnowledge (SocialOrganizationKnowledge.SocialOrganizationKnowledgeId);
+
+		if (socialOrganizationKnowledge == null)
+			return false;
+
+		if (socialOrganizationKnowledge.Value < MinSocialOrganizationKnowledgeValue)
 			return false;
 
 		return true;
@@ -149,12 +155,19 @@ public class TribeFormationEvent : CellGroupEvent {
 		if (!base.CanTrigger ())
 			return false;
 
-		CulturalDiscovery discovery = Group.Culture.GetDiscovery (TribalismDiscovery.TribalismDiscoveryId);
+		CulturalDiscovery discovery = Group.Culture.GetFoundDiscoveryOrToFind (TribalismDiscovery.TribalismDiscoveryId);
 
 		if (discovery == null)
 			return false;
 
 		float influenceFactor = Mathf.Min(1, Group.TotalPolityInfluenceValue * 3f);
+
+		if (influenceFactor >= 1)
+			return false;
+
+		if (influenceFactor <= 0)
+			return true;
+
 		influenceFactor = Mathf.Pow (1 - influenceFactor, 4);
 
 		float triggerValue = Group.Cell.GetNextLocalRandomFloat (RngOffsets.EVENT_CAN_TRIGGER + (int)Id);

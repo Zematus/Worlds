@@ -204,7 +204,7 @@ public class SailingDiscoveryEvent : CellGroupEvent {
 
 public class TribalismDiscoveryEvent : CellGroupEvent {
 
-	public const int DateSpanFactorConstant = CellGroup.GenerationTime * 20000;
+	public const int DateSpanFactorConstant = CellGroup.GenerationTime * 100;
 
 	public const int MinSocialOrganizationKnowledgeSpawnEventValue = SocialOrganizationKnowledge.MinValueForTribalismSpawnEvent;
 	public const int MinSocialOrganizationKnowledgeValue = SocialOrganizationKnowledge.MinValueForTribalism;
@@ -231,10 +231,11 @@ public class TribalismDiscoveryEvent : CellGroupEvent {
 			socialOrganizationValue = socialOrganizationKnowledge.Value;
 
 		float randomFactor = group.Cell.GetNextLocalRandomFloat (RngOffsets.TRIBALISM_DISCOVERY_EVENT_CALCULATE_TRIGGER_DATE);
-		randomFactor = randomFactor * randomFactor;
+		randomFactor = Mathf.Pow (randomFactor, 2);
 
 		float socialOrganizationFactor = (socialOrganizationValue - MinSocialOrganizationKnowledgeValue) / (float)(OptimalSocialOrganizationKnowledgeValue - MinSocialOrganizationKnowledgeValue);
-		socialOrganizationFactor = Mathf.Clamp01 (socialOrganizationFactor) + 0.001f;
+		socialOrganizationFactor = Mathf.Pow (socialOrganizationFactor, 2);
+		socialOrganizationFactor = Mathf.Clamp (socialOrganizationFactor, 0.001f, 1);
 
 		float dateSpan = (1 - randomFactor) * DateSpanFactorConstant / socialOrganizationFactor;
 
@@ -248,7 +249,7 @@ public class TribalismDiscoveryEvent : CellGroupEvent {
 
 	public static bool CanSpawnIn (CellGroup group) {
 
-		if (group.Culture.GetDiscovery (TribalismDiscovery.TribalismDiscoveryId) != null)
+		if (group.Culture.GetFoundDiscoveryOrToFind (TribalismDiscovery.TribalismDiscoveryId) != null)
 			return false;
 
 		if (group.IsFlagSet (EventSetFlag))
@@ -262,7 +263,7 @@ public class TribalismDiscoveryEvent : CellGroupEvent {
 		if (!base.CanTrigger ())
 			return false;
 
-		CulturalDiscovery discovery = Group.Culture.GetDiscovery (TribalismDiscovery.TribalismDiscoveryId);
+		CulturalDiscovery discovery = Group.Culture.GetFoundDiscoveryOrToFind (TribalismDiscovery.TribalismDiscoveryId);
 
 		if (discovery != null)
 			return false;
