@@ -125,11 +125,6 @@ public class CellGroup : HumanGroup {
 	[XmlIgnore]
 	public PolityInfluence HighestPolityInfluence = null;
 
-	#if DEBUG
-	[XmlIgnore]
-	public bool RunningFunction_SetPolityInfluence = false;
-	#endif
-
 	private Dictionary<long, PolityInfluence> _polityInfluences = new Dictionary<long, PolityInfluence> ();
 	private HashSet<long> _polityInfluencesToRemove = new HashSet<long> ();
 	private Dictionary<long, PolityInfluence> _polityInfluencesToAdd = new Dictionary<long, PolityInfluence> ();
@@ -814,7 +809,7 @@ public class CellGroup : HumanGroup {
 		World.InsertEventToHappen (UpdateEvent);
 	}
 	
-	private float CalculateAltitudeDeltaMigrationFactor (TerrainCell targetCell) {
+	public float CalculateAltitudeDeltaFactor (TerrainCell targetCell) {
 
 		float altitudeModifier = targetCell.Altitude / World.MaxPossibleAltitude;
 
@@ -831,9 +826,7 @@ public class CellGroup : HumanGroup {
 
 		#if DEBUG
 		if (cell.IsSelected) {
-			if (_polityInfluences.Count > 0) {
-				bool debug = true;
-			}
+			bool debug = true;
 		}
 		#endif
 		
@@ -841,7 +834,7 @@ public class CellGroup : HumanGroup {
 
 		Profiler.BeginSample ("Calculate Altitude Delta Migration Factor");
 
-		float altitudeDeltaFactor = CalculateAltitudeDeltaMigrationFactor (cell);
+		float altitudeDeltaFactor = CalculateAltitudeDeltaFactor (cell);
 		altitudeDeltaFactor = Mathf.Pow (altitudeDeltaFactor, 4);
 
 		Profiler.EndSample ();
@@ -923,14 +916,7 @@ public class CellGroup : HumanGroup {
 			targetOptimalPopulationFactor = optimalPopulation / (existingPopulation + optimalPopulation);
 		}
 
-//		float sourceOptimalPopulationFactor = 0;
-//
-//		if (optimalPopulation > 0) {
-//			sourceOptimalPopulationFactor = optimalPopulation / (OptimalPopulation + optimalPopulation);
-//		}
-
-//		float cellValue = altitudeDeltaFactor * areaFactor * realPolityInfluenceFactor * noMigrationFactor * targetOptimalPopulationFactor * sourceOptimalPopulationFactor;
-//		float cellValue = altitudeDeltaFactor * areaFactor * popDifferenceFactor * noMigrationFactor * targetOptimalPopulationFactor * sourceOptimalPopulationFactor;
+//		float cellValue = altitudeDeltaFactor * areaFactor * realPolityInfluenceFactor * noMigrationFactor * targetOptimalPopulationFactor;
 		float cellValue = altitudeDeltaFactor * areaFactor * popDifferenceFactor * noMigrationFactor * targetOptimalPopulationFactor;
 
 //		#if DEBUG
@@ -1127,7 +1113,7 @@ public class CellGroup : HumanGroup {
 
 		Profiler.BeginSample ("Calculate Altitude Delta Migration Factor");
 
-		float cellAltitudeDeltaFactor = CalculateAltitudeDeltaMigrationFactor (targetCell);
+		float cellAltitudeDeltaFactor = CalculateAltitudeDeltaFactor (targetCell);
 
 		Profiler.EndSample ();
 
@@ -1296,7 +1282,7 @@ public class CellGroup : HumanGroup {
 		if (cellSurvivability <= 0)
 			return;
 
-		float cellAltitudeDeltaFactor = CalculateAltitudeDeltaMigrationFactor (targetGroup.Cell);
+		float cellAltitudeDeltaFactor = CalculateAltitudeDeltaFactor (targetGroup.Cell);
 
 		float travelFactor = 
 			cellAltitudeDeltaFactor * cellAltitudeDeltaFactor *
@@ -1716,12 +1702,10 @@ public class CellGroup : HumanGroup {
 
 				Profiler.BeginSample ("Evaluate Biome Survival Skill");
 
-				float skillValuePresence = skill.Value * biomePresence;
-
 				Biome biome = Biome.Biomes[biomeName];
 
-				modifiedForagingCapacity += biome.ForagingCapacity * skillValuePresence;
-				modifiedSurvivability += (biome.Survivability + skillValuePresence * (1 - biome.Survivability));
+				modifiedForagingCapacity += biomePresence * biome.ForagingCapacity * skill.Value;
+				modifiedSurvivability += biomePresence * (biome.Survivability + skill.Value * (1 - biome.Survivability));
 
 //				#if DEBUG
 //
@@ -1748,6 +1732,10 @@ public class CellGroup : HumanGroup {
 
 		foragingCapacity = modifiedForagingCapacity * (1 - cell.FarmlandPercentage);
 		survivability = modifiedSurvivability * altitudeSurvivabilityFactor;
+
+		if (survivability > 1) {
+			throw new System.Exception ("Modified survivability greater than 1: " + survivability);
+		}
 
 //		#if DEBUG
 //		if (Manager.RegisterDebugEvent != null) {
@@ -2039,6 +2027,11 @@ public class CellGroup : HumanGroup {
 			} else {
 
 				_polityInfluences.Remove (pi.PolityId);
+
+				pi.Polity.RemoveInfluencedGroup (this);
+
+				// We want to update the polity if a group is removed.
+				SetPolityUpdate (pi, true);
 			}
 
 			pi.Polity.TotalAdministrativeCost -= pi.AdiministrativeCost;
@@ -2049,6 +2042,11 @@ public class CellGroup : HumanGroup {
 		foreach (PolityInfluence pi in _polityInfluencesToAdd.Values) {
 		
 			_polityInfluences.Add (pi.PolityId, pi);
+
+			// We want to update the polity if a group is added.
+			SetPolityUpdate (pi, true);
+
+			pi.Polity.AddInfluencedGroup (this);
 		}
 
 		_polityInfluencesToAdd.Clear ();
@@ -2094,8 +2092,6 @@ public class CellGroup : HumanGroup {
 //		#endif
 
 		#if DEBUG
-		RunningFunction_SetPolityInfluence = true;
-
 		if (Cell.IsSelected) {
 			bool debug = true;
 		}
@@ -2115,16 +2111,7 @@ public class CellGroup : HumanGroup {
 				polityInfluence = new PolityInfluence (polity, newInfluenceValue);
 
 				_polityInfluencesToAdd.Add (polity.Id, polityInfluence);
-
-				// We want to update the polity if a group is added.
-				SetPolityUpdate (polityInfluence, true);
-
-				polity.AddInfluencedGroup (this);
 			}
-
-			#if DEBUG
-			RunningFunction_SetPolityInfluence = false;
-			#endif
 
 			return polityInfluence;
 		}
@@ -2133,23 +2120,10 @@ public class CellGroup : HumanGroup {
 			
 			_polityInfluencesToRemove.Add (polityInfluence.PolityId);
 
-			polity.RemoveInfluencedGroup (this);
-
-			// We want to update the polity if a group is removed.
-			SetPolityUpdate (polityInfluence, true);
-
-			#if DEBUG
-			RunningFunction_SetPolityInfluence = false;
-			#endif
-
 			return null;
 		}
 
 		polityInfluence.NewValue = newInfluenceValue;
-
-		#if DEBUG
-		RunningFunction_SetPolityInfluence = false;
-		#endif
 
 		return polityInfluence;
 	}
@@ -2526,7 +2500,7 @@ public class ExpandPolityInfluenceEvent : CellGroupEvent {
 		float randomFactor = Group.Cell.GetNextLocalRandomFloat (RngOffsets.EVENT_TRIGGER + (int)Id);
 		float percentToExpand = Mathf.Pow (randomFactor, 4);
 
-		float populationFactor = Group.Population / (Group.Population + TargetGroup.Population);
+		float populationFactor = Group.Population / (float)(Group.Population + TargetGroup.Population);
 		percentToExpand *= populationFactor;
 
 		PolityInfluence sourcePi = Group.GetPolityInfluence (Polity);

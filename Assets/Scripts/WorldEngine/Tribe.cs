@@ -18,7 +18,6 @@ public class Tribe : Polity {
 
 	private Tribe (CellGroup coreGroup, float coreGroupInfluence) : base (TribeType, coreGroup, coreGroupInfluence) {
 
-		AddFaction (new Clan (coreGroup, this, 1));
 	}
 
 	public static Tribe GenerateNewTribe (CellGroup coreGroup) {
@@ -33,7 +32,12 @@ public class Tribe : Polity {
 		return newTribe;
 	}
 
-	public override void UpdateInternal ()
+	protected override void FinishInitializationInternal () {
+
+		AddFaction (new Clan (CoreGroup, this, 1));
+	}
+
+	protected override void UpdateInternal ()
 	{
 		TryRelocateCore ();
 	}
@@ -63,6 +67,40 @@ public class Tribe : Polity {
 //		#if DEBUG
 //		Debug.Log ("Tribe #" + Id + " name: " + Name);
 //		#endif
+	}
+
+	public override float CalculateGroupInfluenceExpansionValue (CellGroup sourceGroup, CellGroup targetGroup, float sourceValue)
+	{
+		if (sourceValue <= 0)
+			return 0;
+
+		float sourceGroupTotalPolityInfluenceValue = sourceGroup.TotalPolityInfluenceValue;
+		float targetGroupTotalPolityInfluenceValue = targetGroup.TotalPolityInfluenceValue;
+
+		if (sourceGroupTotalPolityInfluenceValue <= 0) {
+
+			throw new System.Exception ("sourceGroup.TotalPolityInfluenceValue equal or less than 0: " + sourceGroupTotalPolityInfluenceValue);
+		}
+
+		float influenceFactor = sourceGroupTotalPolityInfluenceValue / (targetGroupTotalPolityInfluenceValue + sourceGroupTotalPolityInfluenceValue);
+
+		if (sourceGroup != targetGroup) {
+
+			// There should be a strong bias against polity expansion to reduce activity
+			influenceFactor *= CellGroup.NoPolityExpansionFactor;
+		}
+
+//		float modifiedForagingCapacity = 0;
+//		float modifiedSurvivability = 0;
+//
+//		sourceGroup.CalculateAdaptionToCell (targetGroup.Cell, out modifiedForagingCapacity, out modifiedSurvivability);
+//
+//		influenceFactor *= modifiedSurvivability;
+
+//		influenceFactor *= sourceValue;
+		influenceFactor = Mathf.Pow (influenceFactor, 4);
+
+		return influenceFactor;
 	}
 
 	public CellGroup GetRandomWeightedInfluencedGroup (int rngOffset) {

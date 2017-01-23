@@ -112,6 +112,8 @@ public abstract class Polity : ISynchronizable {
 
 	private bool _coreGroupIsValid = true;
 
+	private bool _fullyInitialized = false;
+
 	public Polity () {
 	
 	}
@@ -150,14 +152,21 @@ public abstract class Polity : ISynchronizable {
 //		}
 //		#endif
 
-		PolityInfluence pi = coreGroup.SetPolityInfluence (this, coreGroupInfluenceValue);
+		coreGroup.SetPolityInfluence (this, coreGroupInfluenceValue);
 
-		// We need to execute these two methods to generate new territories and regions if necessary 
-		pi.PostUpdate ();
-		coreGroup.PostUpdatePolityInfluences ();
+		World.AddGroupToUpdate (coreGroup);
+	}
+
+	public void FinishInitialization () {
 
 		GenerateName ();
+
+		FinishInitializationInternal ();
+
+		_fullyInitialized = true;
 	}
+
+	protected abstract void FinishInitializationInternal ();
 
 	public void Destroy () {
 
@@ -217,6 +226,11 @@ public abstract class Polity : ISynchronizable {
 
 	public void Update () {
 
+		if (!_fullyInitialized) {
+		
+			FinishInitialization ();
+		}
+
 //		#if DEBUG
 //		if (Manager.RegisterDebugEvent != null) {
 //			Manager.RegisterDebugEvent ("DebugMessage", 
@@ -275,7 +289,7 @@ public abstract class Polity : ISynchronizable {
 		Profiler.EndSample ();
 	}
 
-	public abstract void UpdateInternal ();
+	protected abstract void UpdateInternal ();
 
 	public void RunPopulationCensus () {
 
@@ -317,21 +331,11 @@ public abstract class Polity : ISynchronizable {
 	}
 
 	public void AddInfluencedGroup (CellGroup group) {
-
-		#if DEBUG
-		if (!group.RunningFunction_SetPolityInfluence)
-			Debug.LogWarning ("AddInfluencedGroup should only be called withn SetPolityInfluence");
-		#endif
 	
 		InfluencedGroups.Add (group.Id, group);
 	}
 
 	public void RemoveInfluencedGroup (CellGroup group) {
-
-		#if DEBUG
-		if (!group.RunningFunction_SetPolityInfluence)
-			Debug.LogWarning ("RemoveInfluencedGroup should only be called withn SetPolityInfluence");
-		#endif
 
 		InfluencedGroups.Remove (group.Id);
 
@@ -403,89 +407,65 @@ public abstract class Polity : ISynchronizable {
 		Culture.FinalizeLoad ();
 	}
 
-	public virtual float CalculateCellMigrationValue (CellGroup sourceGroup, TerrainCell targetCell, float sourceValue)
-	{
-		if (sourceValue <= 0)
-			return 0;
-
-		float sourceGroupTotalPolityInfluenceValue = sourceGroup.TotalPolityInfluenceValue;
-
-		CellGroup targetGroup = targetCell.Group;
-
-		if (targetGroup == null) {
-			return sourceValue / sourceGroupTotalPolityInfluenceValue;
-		}
-
-		float targetGroupTotalPolityInfluenceValue = targetGroup.TotalPolityInfluenceValue;
-
-		if (sourceGroupTotalPolityInfluenceValue <= 0) {
-		
-			throw new System.Exception ("sourceGroup.TotalPolityInfluenceValue equal or less than 0: " + sourceGroupTotalPolityInfluenceValue);
-		}
-
-		float influenceFactor = sourceValue / (targetGroupTotalPolityInfluenceValue + sourceGroupTotalPolityInfluenceValue);
-
-		influenceFactor = MathUtility.RoundToSixDecimals (influenceFactor);
-
-//		#if DEBUG
-//		if (Manager.RegisterDebugEvent != null) {
-//			if (sourceGroup.Id == Manager.TracingData.GroupId) {
-//				if (Id == Manager.TracingData.PolityId) {
-//					if ((targetCell.Longitude == Manager.TracingData.Longitude) && (targetCell.Latitude == Manager.TracingData.Latitude)) {
-//						string sourceGroupId = "Id:" + sourceGroup.Id + "|Long:" + sourceGroup.Longitude + "|Lat:" + sourceGroup.Latitude;
-//						string targetLocation = "Long:" + targetCell.Longitude + "|Lat:" + targetCell.Latitude;
+//	public virtual float CalculateCellMigrationValue (CellGroup sourceGroup, TerrainCell targetCell, float sourceValue)
+//	{
+//		if (sourceValue <= 0)
+//			return 0;
 //
-//						if (targetGroup != null) {
-//							targetLocation = "Id:" + targetGroup.Id + "|Long:" + targetGroup.Longitude + "|Lat:" + targetGroup.Latitude;
-//						}
+//		float sourceGroupTotalPolityInfluenceValue = sourceGroup.TotalPolityInfluenceValue;
 //
-//						SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-//							"MigrationValue - Group: " + sourceGroupId + 
-//							"Polity Id: " + Id,
-//							"CurrentDate: " + World.CurrentDate + 
-//							", targetLocation: " + targetLocation + 
-//							", sourceValue: " + sourceValue.ToString("F7") + 
-//							", socialOrgFactor: " + socialOrgFactor.ToString("F7") + 
-//							", groupTotalInfluenceValue: " + groupTotalInfluenceValue.ToString("F7") + 
-//							", sourceValueFactor: " + sourceValueFactor.ToString("F7") + 
-//							", influenceFactor: " + influenceFactor.ToString("F7") + 
-//							"");
+//		CellGroup targetGroup = targetCell.Group;
 //
-//						Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-//					}
-//				}
-//			}
+//		if (targetGroup == null) {
+//			return sourceValue / sourceGroupTotalPolityInfluenceValue;
 //		}
-//		#endif
+//
+//		float targetGroupTotalPolityInfluenceValue = targetGroup.TotalPolityInfluenceValue;
+//
+//		if (sourceGroupTotalPolityInfluenceValue <= 0) {
+//		
+//			throw new System.Exception ("sourceGroup.TotalPolityInfluenceValue equal or less than 0: " + sourceGroupTotalPolityInfluenceValue);
+//		}
+//
+//		float influenceFactor = sourceValue / (targetGroupTotalPolityInfluenceValue + sourceGroupTotalPolityInfluenceValue);
+//
+//		influenceFactor = MathUtility.RoundToSixDecimals (influenceFactor);
+//
+////		#if DEBUG
+////		if (Manager.RegisterDebugEvent != null) {
+////			if (sourceGroup.Id == Manager.TracingData.GroupId) {
+////				if (Id == Manager.TracingData.PolityId) {
+////					if ((targetCell.Longitude == Manager.TracingData.Longitude) && (targetCell.Latitude == Manager.TracingData.Latitude)) {
+////						string sourceGroupId = "Id:" + sourceGroup.Id + "|Long:" + sourceGroup.Longitude + "|Lat:" + sourceGroup.Latitude;
+////						string targetLocation = "Long:" + targetCell.Longitude + "|Lat:" + targetCell.Latitude;
+////
+////						if (targetGroup != null) {
+////							targetLocation = "Id:" + targetGroup.Id + "|Long:" + targetGroup.Longitude + "|Lat:" + targetGroup.Latitude;
+////						}
+////
+////						SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+////							"MigrationValue - Group: " + sourceGroupId + 
+////							"Polity Id: " + Id,
+////							"CurrentDate: " + World.CurrentDate + 
+////							", targetLocation: " + targetLocation + 
+////							", sourceValue: " + sourceValue.ToString("F7") + 
+////							", socialOrgFactor: " + socialOrgFactor.ToString("F7") + 
+////							", groupTotalInfluenceValue: " + groupTotalInfluenceValue.ToString("F7") + 
+////							", sourceValueFactor: " + sourceValueFactor.ToString("F7") + 
+////							", influenceFactor: " + influenceFactor.ToString("F7") + 
+////							"");
+////
+////						Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+////					}
+////				}
+////			}
+////		}
+////		#endif
+//
+//		return Mathf.Clamp01 (influenceFactor);
+//	}
 
-		return Mathf.Clamp01 (influenceFactor);
-	}
-
-	public virtual float CalculateGroupInfluenceExpansionValue (CellGroup sourceGroup, CellGroup targetGroup, float sourceValue)
-	{
-		if (sourceValue <= 0)
-			return 0;
-
-		float sourceGroupTotalPolityInfluenceValue = sourceGroup.TotalPolityInfluenceValue;
-		float targetGroupTotalPolityInfluenceValue = targetGroup.TotalPolityInfluenceValue;
-
-		if (sourceGroupTotalPolityInfluenceValue <= 0) {
-
-			throw new System.Exception ("sourceGroup.TotalPolityInfluenceValue equal or less than 0: " + sourceGroupTotalPolityInfluenceValue);
-		}
-
-		float influenceFactor = sourceGroupTotalPolityInfluenceValue / (targetGroupTotalPolityInfluenceValue + sourceGroupTotalPolityInfluenceValue);
-		influenceFactor = Mathf.Pow (influenceFactor, 4);
-		influenceFactor *= sourceValue;
-
-		if (sourceGroup != targetGroup) {
-		
-			// There should be a strong bias against polity expansion to reduce activity
-			influenceFactor *= CellGroup.NoPolityExpansionFactor;
-		}
-
-		return influenceFactor;
-	}
+	public abstract float CalculateGroupInfluenceExpansionValue (CellGroup sourceGroup, CellGroup targetGroup, float sourceValue);
 
 	public virtual void GroupUpdateEffects (CellGroup group, float influenceValue, float totalPolityInfluenceValue, int timeSpan) {
 
