@@ -84,21 +84,21 @@ public class Tribe : Polity {
 
 		float influenceFactor = sourceGroupTotalPolityInfluenceValue / (targetGroupTotalPolityInfluenceValue + sourceGroupTotalPolityInfluenceValue);
 
+		float modifiedForagingCapacity = 0;
+		float modifiedSurvivability = 0;
+
+		sourceGroup.CalculateAdaptionToCell (targetGroup.Cell, out modifiedForagingCapacity, out modifiedSurvivability);
+
+		influenceFactor *= modifiedSurvivability;
+
+		influenceFactor *= sourceValue;
+		influenceFactor = Mathf.Pow (influenceFactor, 4);
+
 		if (sourceGroup != targetGroup) {
 
 			// There should be a strong bias against polity expansion to reduce activity
 			influenceFactor *= CellGroup.NoPolityExpansionFactor;
 		}
-
-//		float modifiedForagingCapacity = 0;
-//		float modifiedSurvivability = 0;
-//
-//		sourceGroup.CalculateAdaptionToCell (targetGroup.Cell, out modifiedForagingCapacity, out modifiedSurvivability);
-//
-//		influenceFactor *= modifiedSurvivability;
-
-//		influenceFactor *= sourceValue;
-		influenceFactor = Mathf.Pow (influenceFactor, 4);
 
 		return influenceFactor;
 	}
