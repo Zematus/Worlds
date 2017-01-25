@@ -1063,65 +1063,6 @@ public class CellGroup : HumanGroup {
 
 		if (rollValue > migrationChance)
 			return;
-
-//		List<CellWeight> cellMigrationValues = new List<CellWeight> (Cell.Neighbors.Count + 1);
-//		cellMigrationValues.Add (new CellWeight (Cell, MigrationValue));
-//
-//		foreach (TerrainCell c in Cell.Neighbors.Values) {
-//
-//			Profiler.BeginSample ("Calculate Migration Value");
-//			
-//			float cellValue = CalculateMigrationValue (c);
-//
-//			Profiler.EndSample ();
-//			
-//			TotalMigrationValue += cellValue;
-//
-//			cellMigrationValues.Add (new CellWeight (c, cellValue));
-//		}
-//
-//		Profiler.BeginSample ("Land Migration Weighted Selection");
-//
-//		TerrainCell targetCell = CollectionUtility.WeightedSelection (cellMigrationValues.ToArray (), TotalMigrationValue, () => Cell.GetNextLocalRandomFloat (RngOffsets.CELL_GROUP_CONSIDER_LAND_MIGRATION));
-//
-//		Profiler.EndSample ();
-//
-////		#if DEBUG
-////		if (Manager.RegisterDebugEvent != null) {
-////			if (Id == Manager.TracingData.GroupId) {
-////
-////				string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
-////
-////				string cellInfo = "No target cell";
-////
-////				if (targetCell != null) {
-////					cellInfo = "Long:" + targetCell.Longitude + "|Lat:" + targetCell.Latitude;
-////				}
-////
-////				string cellMigrationValuesStr = "";
-////
-////				foreach (CellMigrationValue pair in cellMigrationValues) {
-////
-////					cellMigrationValuesStr += "\n\t Long:" + pair.Value.Longitude + " Lat:" + pair.Value.Latitude + " Value:" + pair.Weight;
-////				}
-////
-////				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-////					"ConsiderLandMigration - Group:" + groupId,
-////					"CurrentDate: " + World.CurrentDate + 
-////					", target cell: " + cellInfo + 
-////					", migration values: " + cellMigrationValuesStr + 
-////					"");
-////
-////				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-////			}
-////		}
-////		#endif
-//
-//		if (targetCell == Cell)
-//			return;
-//
-//		if (targetCell == null)
-//			return;
 		
 		float cellSurvivability = 0;
 		float cellForagingCapacity = 0;
@@ -1308,32 +1249,6 @@ public class CellGroup : HumanGroup {
 
 		if (rollValue > expansionChance)
 			return;
-
-//		PolityExpansionValue = selectedPi.Polity.CalculateGroupInfluenceExpansionValue (this, this, selectedPi.Value);
-//		TotalPolityExpansionValue = PolityExpansionValue;
-//
-//		List<GroupWeight> groupWeights = new List<GroupWeight> (Neighbors.Count + 1);
-//		groupWeights.Add (new GroupWeight (this, PolityExpansionValue));
-//
-//		foreach (CellGroup group in Neighbors.Values) {
-//
-//			float groupValue = selectedPi.Polity.CalculateGroupInfluenceExpansionValue (this, group, selectedPi.Value);
-//
-//			TotalPolityExpansionValue += groupValue;
-//
-//			groupWeights.Add (new GroupWeight (group, groupValue));
-//		}
-//
-//		CellGroup targetGroup = CollectionUtility.WeightedSelection (groupWeights.ToArray (), TotalPolityExpansionValue, () => Cell.GetNextLocalRandomFloat (RngOffsets.CELL_GROUP_CONSIDER_POLITY_INFLUENCE_EXPANSION_TARGET));
-//
-//		if (targetGroup == this)
-//			return;
-//
-//		if (targetGroup == null)
-//			return;
-//
-//		if (!targetGroup.StillPresent)
-//			return;
 
 		float cellSurvivability = 0;
 		float cellForagingCapacity = 0;
