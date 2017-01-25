@@ -251,7 +251,7 @@ public abstract class Polity : ISynchronizable {
 			return;
 		}
 
-		Profiler.BeginSample ("Polity Update");
+//		Profiler.BeginSample ("Polity Update");
 
 		RunPopulationCensus ();
 
@@ -274,7 +274,7 @@ public abstract class Polity : ISynchronizable {
 				_populationCensusUpdated = false;
 				#endif
 
-				Profiler.EndSample ();
+//				Profiler.EndSample ();
 
 				return;
 			}
@@ -286,7 +286,7 @@ public abstract class Polity : ISynchronizable {
 		_populationCensusUpdated = false;
 		#endif
 
-		Profiler.EndSample ();
+//		Profiler.EndSample ();
 	}
 
 	protected abstract void UpdateInternal ();
@@ -516,6 +516,56 @@ public abstract class Polity : ISynchronizable {
 //		#endif
 
 		group.SetPolityInfluence (this, influenceValue);
+	}
+
+	public void CalculateAdaptionToCell (TerrainCell cell, out float foragingCapacity, out float survivability) {
+
+		float modifiedForagingCapacity = 0;
+		float modifiedSurvivability = 0;
+
+//		Profiler.BeginSample ("Get Polity Skill Values");
+
+		foreach (string biomeName in cell.PresentBiomeNames) {
+
+//			Profiler.BeginSample ("Try Get Polity Biome Survival Skill");
+
+			float biomePresence = cell.GetBiomePresence(biomeName);
+
+			Biome biome = Biome.Biomes [biomeName];
+
+			string skillId = BiomeSurvivalSkill.GenerateId (biome);
+
+			CulturalSkill skill = Culture.GetSkill (skillId);
+
+			if (skill != null) {
+
+//				Profiler.BeginSample ("Evaluate Polity Biome Survival Skill");
+
+				modifiedForagingCapacity += biomePresence * biome.ForagingCapacity * skill.Value;
+				modifiedSurvivability += biomePresence * (biome.Survivability + skill.Value * (1 - biome.Survivability));
+
+//				Profiler.EndSample ();
+
+			} else {
+				
+				modifiedSurvivability += biomePresence * biome.Survivability;
+			}
+
+//			Profiler.EndSample ();
+		}
+
+//		Profiler.EndSample ();
+
+		float altitudeSurvivabilityFactor = 1 - (cell.Altitude / World.MaxPossibleAltitude);
+
+		modifiedSurvivability = (modifiedSurvivability * (1 - cell.FarmlandPercentage)) + cell.FarmlandPercentage;
+
+		foragingCapacity = modifiedForagingCapacity * (1 - cell.FarmlandPercentage);
+		survivability = modifiedSurvivability * altitudeSurvivabilityFactor;
+
+		if (survivability > 1) {
+			throw new System.Exception ("Modified survivability greater than 1: " + survivability);
+		}
 	}
 
 	// TODO: This function should be overriden in children

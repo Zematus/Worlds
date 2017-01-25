@@ -27,8 +27,8 @@ public class CellGroup : HumanGroup {
 
 	public const float SeaTravelBaseFactor = 500f;
 
-	public const float NoMigrationFactor = 0.01f;
-	public const float NoPolityExpansionFactor = 0.01f;
+//	public const float MigrationFactor = 0.01f;
+	public const float MigrationFactor = 0.1f;
 
 	[XmlAttribute]
 	public long Id;
@@ -832,12 +832,12 @@ public class CellGroup : HumanGroup {
 		
 		float areaFactor = cell.Area / TerrainCell.MaxArea;
 
-		Profiler.BeginSample ("Calculate Altitude Delta Migration Factor");
+//		Profiler.BeginSample ("Calculate Altitude Delta Migration Factor");
 
 		float altitudeDeltaFactor = CalculateAltitudeDeltaFactor (cell);
 		altitudeDeltaFactor = Mathf.Pow (altitudeDeltaFactor, 4);
 
-		Profiler.EndSample ();
+//		Profiler.EndSample ();
 
 		int existingPopulation = 0;
 
@@ -901,19 +901,20 @@ public class CellGroup : HumanGroup {
 		float optimalPopulation = OptimalPopulation;
 
 		if (cell != Cell) {
-			noMigrationFactor = NoMigrationFactor;
+			noMigrationFactor = MigrationFactor;
 
-			Profiler.BeginSample ("Calculate Optimal Population");
+//			Profiler.BeginSample ("Calculate Optimal Population");
 
 			optimalPopulation = CalculateOptimalPopulation (cell);
 
-			Profiler.EndSample ();
+//			Profiler.EndSample ();
 		}
 
 		float targetOptimalPopulationFactor = 0;
 
 		if (optimalPopulation > 0) {
 			targetOptimalPopulationFactor = optimalPopulation / (existingPopulation + optimalPopulation);
+//			targetOptimalPopulationFactor = Mathf.Pow (targetOptimalPopulationFactor, 4);
 		}
 
 //		float cellValue = altitudeDeltaFactor * areaFactor * realPolityInfluenceFactor * noMigrationFactor * targetOptimalPopulationFactor;
@@ -1040,82 +1041,105 @@ public class CellGroup : HumanGroup {
 		if (HasMigrationEvent)
 			return;
 
-		List<CellWeight> cellMigrationValues = new List<CellWeight> (Cell.Neighbors.Count + 1);
-		cellMigrationValues.Add (new CellWeight (Cell, MigrationValue));
+//		Profiler.BeginSample ("Select Random Target Cell For Migration");
 
-		foreach (TerrainCell c in Cell.Neighbors.Values) {
+		int targetCellIndex = Cell.GetNextLocalRandomInt (RngOffsets.CELL_GROUP_CONSIDER_LAND_MIGRATION_TARGET, Cell.Neighbors.Count);
 
-			Profiler.BeginSample ("Calculate Migration Value");
-			
-			float cellValue = CalculateMigrationValue (c);
+		TerrainCell targetCell = Cell.Neighbors.Values.ElementAt (targetCellIndex);
 
-			Profiler.EndSample ();
-			
-			TotalMigrationValue += cellValue;
+//		Profiler.EndSample ();
 
-			cellMigrationValues.Add (new CellWeight (c, cellValue));
-		}
+//		Profiler.BeginSample ("Calculate Migration Value");
 
-		Profiler.BeginSample ("Land Migration Weighted Selection");
+		float cellValue = CalculateMigrationValue (targetCell);
 
-		TerrainCell targetCell = CollectionUtility.WeightedSelection (cellMigrationValues.ToArray (), TotalMigrationValue, () => Cell.GetNextLocalRandomFloat (RngOffsets.CELL_GROUP_CONSIDER_LAND_MIGRATION));
+		TotalMigrationValue += cellValue;
 
-		Profiler.EndSample ();
+//		Profiler.EndSample ();
 
-//		#if DEBUG
-//		if (Manager.RegisterDebugEvent != null) {
-//			if (Id == Manager.TracingData.GroupId) {
+		float migrationChance = cellValue / TotalMigrationValue;
+
+		float rollValue = Cell.GetNextLocalRandomFloat (RngOffsets.CELL_GROUP_CONSIDER_LAND_MIGRATION_CHANCE);
+
+		if (rollValue > migrationChance)
+			return;
+
+//		List<CellWeight> cellMigrationValues = new List<CellWeight> (Cell.Neighbors.Count + 1);
+//		cellMigrationValues.Add (new CellWeight (Cell, MigrationValue));
 //
-//				string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
+//		foreach (TerrainCell c in Cell.Neighbors.Values) {
 //
-//				string cellInfo = "No target cell";
+//			Profiler.BeginSample ("Calculate Migration Value");
+//			
+//			float cellValue = CalculateMigrationValue (c);
 //
-//				if (targetCell != null) {
-//					cellInfo = "Long:" + targetCell.Longitude + "|Lat:" + targetCell.Latitude;
-//				}
+//			Profiler.EndSample ();
+//			
+//			TotalMigrationValue += cellValue;
 //
-//				string cellMigrationValuesStr = "";
-//
-//				foreach (CellMigrationValue pair in cellMigrationValues) {
-//
-//					cellMigrationValuesStr += "\n\t Long:" + pair.Value.Longitude + " Lat:" + pair.Value.Latitude + " Value:" + pair.Weight;
-//				}
-//
-//				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-//					"ConsiderLandMigration - Group:" + groupId,
-//					"CurrentDate: " + World.CurrentDate + 
-//					", target cell: " + cellInfo + 
-//					", migration values: " + cellMigrationValuesStr + 
-//					"");
-//
-//				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-//			}
+//			cellMigrationValues.Add (new CellWeight (c, cellValue));
 //		}
-//		#endif
-
-		if (targetCell == Cell)
-			return;
-
-		if (targetCell == null)
-			return;
+//
+//		Profiler.BeginSample ("Land Migration Weighted Selection");
+//
+//		TerrainCell targetCell = CollectionUtility.WeightedSelection (cellMigrationValues.ToArray (), TotalMigrationValue, () => Cell.GetNextLocalRandomFloat (RngOffsets.CELL_GROUP_CONSIDER_LAND_MIGRATION));
+//
+//		Profiler.EndSample ();
+//
+////		#if DEBUG
+////		if (Manager.RegisterDebugEvent != null) {
+////			if (Id == Manager.TracingData.GroupId) {
+////
+////				string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
+////
+////				string cellInfo = "No target cell";
+////
+////				if (targetCell != null) {
+////					cellInfo = "Long:" + targetCell.Longitude + "|Lat:" + targetCell.Latitude;
+////				}
+////
+////				string cellMigrationValuesStr = "";
+////
+////				foreach (CellMigrationValue pair in cellMigrationValues) {
+////
+////					cellMigrationValuesStr += "\n\t Long:" + pair.Value.Longitude + " Lat:" + pair.Value.Latitude + " Value:" + pair.Weight;
+////				}
+////
+////				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+////					"ConsiderLandMigration - Group:" + groupId,
+////					"CurrentDate: " + World.CurrentDate + 
+////					", target cell: " + cellInfo + 
+////					", migration values: " + cellMigrationValuesStr + 
+////					"");
+////
+////				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+////			}
+////		}
+////		#endif
+//
+//		if (targetCell == Cell)
+//			return;
+//
+//		if (targetCell == null)
+//			return;
 		
 		float cellSurvivability = 0;
 		float cellForagingCapacity = 0;
 
-		Profiler.BeginSample ("Calculate Adaption To Cell");
+//		Profiler.BeginSample ("Calculate Adaption To Cell");
 		
 		CalculateAdaptionToCell (targetCell, out cellForagingCapacity, out cellSurvivability);
 
-		Profiler.EndSample ();
+//		Profiler.EndSample ();
 
 		if (cellSurvivability <= 0)
 			return;
 
-		Profiler.BeginSample ("Calculate Altitude Delta Migration Factor");
+//		Profiler.BeginSample ("Calculate Altitude Delta Migration Factor");
 
 		float cellAltitudeDeltaFactor = CalculateAltitudeDeltaFactor (targetCell);
 
-		Profiler.EndSample ();
+//		Profiler.EndSample ();
 
 		float travelFactor = 
 			cellAltitudeDeltaFactor * cellAltitudeDeltaFactor *
@@ -1236,8 +1260,13 @@ public class CellGroup : HumanGroup {
 		if (_polityInfluences.Count <= 0)
 			return;
 
+		if (Neighbors.Count <= 0)
+			return;
+
 		if (HasPolityExpansionEvent)
 			return;
+
+//		Profiler.BeginSample ("Select Random Polity Influence");
 
 		List<PolityInfluenceWeight> polityInfluenceWeights = new List<PolityInfluenceWeight> (_polityInfluences.Count);
 
@@ -1246,33 +1275,65 @@ public class CellGroup : HumanGroup {
 			polityInfluenceWeights.Add (new PolityInfluenceWeight (pi, pi.Value));
 		}
 
-		PolityInfluence selectedPi = CollectionUtility.WeightedSelection (polityInfluenceWeights.ToArray (), TotalPolityInfluenceValue, () => Cell.GetNextLocalRandomFloat (RngOffsets.CELL_GROUP_CONSIDER_POLITY_INFLUENCE_EXPANSION_POLITY));
+		PolityInfluence selectedPi = CollectionUtility.WeightedSelection (
+			polityInfluenceWeights.ToArray (), TotalPolityInfluenceValue, () => Cell.GetNextLocalRandomFloat (RngOffsets.CELL_GROUP_CONSIDER_POLITY_INFLUENCE_EXPANSION_POLITY));
 
-		PolityExpansionValue = selectedPi.Polity.CalculateGroupInfluenceExpansionValue (this, this, selectedPi.Value);
-		TotalPolityExpansionValue = PolityExpansionValue;
+//		Profiler.EndSample ();
 
-		List<GroupWeight> groupWeights = new List<GroupWeight> (Neighbors.Count + 1);
-		groupWeights.Add (new GroupWeight (this, PolityExpansionValue));
+		PolityExpansionValue = 1;
+		TotalPolityExpansionValue = 1;
 
-		foreach (CellGroup group in Neighbors.Values) {
+//		Profiler.BeginSample ("Select Random Target Group for Polity Expansion");
 
-			float groupValue = selectedPi.Polity.CalculateGroupInfluenceExpansionValue (this, group, selectedPi.Value);
+		int targetGroupIndex = Cell.GetNextLocalRandomInt (RngOffsets.CELL_GROUP_CONSIDER_POLITY_INFLUENCE_EXPANSION_TARGET, Neighbors.Count);
 
-			TotalPolityExpansionValue += groupValue;
+		CellGroup targetGroup = Neighbors.Values.ElementAt (targetGroupIndex);
 
-			groupWeights.Add (new GroupWeight (group, groupValue));
-		}
-
-		CellGroup targetGroup = CollectionUtility.WeightedSelection (groupWeights.ToArray (), TotalPolityExpansionValue, () => Cell.GetNextLocalRandomFloat (RngOffsets.CELL_GROUP_CONSIDER_POLITY_INFLUENCE_EXPANSION_TARGET));
-
-		if (targetGroup == this)
-			return;
-
-		if (targetGroup == null)
-			return;
+//		Profiler.EndSample ();
 
 		if (!targetGroup.StillPresent)
 			return;
+
+//		Profiler.BeginSample ("Calculate Polity Expansion Value");
+
+		float groupValue = selectedPi.Polity.CalculateGroupInfluenceExpansionValue (this, targetGroup, selectedPi.Value);
+
+		TotalPolityExpansionValue += groupValue;
+
+//		Profiler.EndSample ();
+
+		float expansionChance = groupValue / TotalPolityExpansionValue;
+
+		float rollValue = Cell.GetNextLocalRandomFloat (RngOffsets.CELL_GROUP_CONSIDER_POLITY_INFLUENCE_EXPANSION_CHANCE);
+
+		if (rollValue > expansionChance)
+			return;
+
+//		PolityExpansionValue = selectedPi.Polity.CalculateGroupInfluenceExpansionValue (this, this, selectedPi.Value);
+//		TotalPolityExpansionValue = PolityExpansionValue;
+//
+//		List<GroupWeight> groupWeights = new List<GroupWeight> (Neighbors.Count + 1);
+//		groupWeights.Add (new GroupWeight (this, PolityExpansionValue));
+//
+//		foreach (CellGroup group in Neighbors.Values) {
+//
+//			float groupValue = selectedPi.Polity.CalculateGroupInfluenceExpansionValue (this, group, selectedPi.Value);
+//
+//			TotalPolityExpansionValue += groupValue;
+//
+//			groupWeights.Add (new GroupWeight (group, groupValue));
+//		}
+//
+//		CellGroup targetGroup = CollectionUtility.WeightedSelection (groupWeights.ToArray (), TotalPolityExpansionValue, () => Cell.GetNextLocalRandomFloat (RngOffsets.CELL_GROUP_CONSIDER_POLITY_INFLUENCE_EXPANSION_TARGET));
+//
+//		if (targetGroup == this)
+//			return;
+//
+//		if (targetGroup == null)
+//			return;
+//
+//		if (!targetGroup.StillPresent)
+//			return;
 
 		float cellSurvivability = 0;
 		float cellForagingCapacity = 0;
@@ -1688,21 +1749,21 @@ public class CellGroup : HumanGroup {
 		//		string biomeData = "";
 		//		#endif
 
-		Profiler.BeginSample ("Get Skill Values");
+//		Profiler.BeginSample ("Get Group Skill Values");
 
 		foreach (string biomeName in cell.PresentBiomeNames) {
 
-			Profiler.BeginSample ("Try Get Biome Survival Skill");
+//			Profiler.BeginSample ("Try Get Group Biome Survival Skill");
 
 			float biomePresence = cell.GetBiomePresence(biomeName);
 
 			BiomeSurvivalSkill skill = null;
 
+			Biome biome = Biome.Biomes[biomeName];
+
 			if (_biomeSurvivalSkills.TryGetValue (biomeName, out skill)) {
 
-				Profiler.BeginSample ("Evaluate Biome Survival Skill");
-
-				Biome biome = Biome.Biomes[biomeName];
+//				Profiler.BeginSample ("Evaluate Group Biome Survival Skill");
 
 				modifiedForagingCapacity += biomePresence * biome.ForagingCapacity * skill.Value;
 				modifiedSurvivability += biomePresence * (biome.Survivability + skill.Value * (1 - biome.Survivability));
@@ -1718,13 +1779,17 @@ public class CellGroup : HumanGroup {
 //
 //				#endif
 
-				Profiler.EndSample ();
+//				Profiler.EndSample ();
+
+			} else {
+			
+				modifiedSurvivability += biomePresence * biome.Survivability;
 			}
 
-			Profiler.EndSample ();
+//			Profiler.EndSample ();
 		}
 
-		Profiler.EndSample ();
+//		Profiler.EndSample ();
 
 		float altitudeSurvivabilityFactor = 1 - (cell.Altitude / World.MaxPossibleAltitude);
 

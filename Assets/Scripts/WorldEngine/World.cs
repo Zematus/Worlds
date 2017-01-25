@@ -15,12 +15,18 @@ public interface ISynchronizable {
 
 public static class RngOffsets {
 
-	public const int CELL_GROUP_CONSIDER_LAND_MIGRATION = 0;
-	public const int CELL_GROUP_CONSIDER_SEA_MIGRATION = 1;
-	public const int CELL_GROUP_CALCULATE_NEXT_UPDATE = 2;
-	public const int CELL_GROUP_SET_POLITY_UPDATE = 3;
-	public const int CELL_GROUP_CONSIDER_POLITY_INFLUENCE_EXPANSION_POLITY = 4;
-	public const int CELL_GROUP_CONSIDER_POLITY_INFLUENCE_EXPANSION_TARGET = 5;
+	public const int CELL_GROUP_CONSIDER_LAND_MIGRATION_TARGET = 0;
+	public const int CELL_GROUP_CONSIDER_LAND_MIGRATION_CHANCE = 1;
+
+	public const int CELL_GROUP_CONSIDER_SEA_MIGRATION = 2;
+
+	public const int CELL_GROUP_CALCULATE_NEXT_UPDATE = 3;
+
+	public const int CELL_GROUP_SET_POLITY_UPDATE = 4;
+
+	public const int CELL_GROUP_CONSIDER_POLITY_INFLUENCE_EXPANSION_POLITY = 5;
+	public const int CELL_GROUP_CONSIDER_POLITY_INFLUENCE_EXPANSION_TARGET = 6;
+	public const int CELL_GROUP_CONSIDER_POLITY_INFLUENCE_EXPANSION_CHANCE = 7;
 
 	public const int ACTIVITY_UPDATE = 10000;
 	public const int ACTIVITY_POLITY_INFLUENCE = 10001;
@@ -720,13 +726,13 @@ public class World : ISynchronizable {
 
 	public void InsertEventToHappen (WorldEvent eventToHappen) {
 
-		Profiler.BeginSample ("Insert Event To Happen");
+//		Profiler.BeginSample ("Insert Event To Happen");
 
 		EventsToHappenCount++;
 
 		_eventsToHappen.Insert (eventToHappen.TriggerDate, eventToHappen);
 
-		Profiler.EndSample ();
+//		Profiler.EndSample ();
 	}
 
 	#if DEBUG

@@ -6,6 +6,9 @@ using System.Xml.Serialization;
 
 public class Tribe : Polity {
 
+//	public const float TribalExpansionFactor = 0.01f;
+	public const float TribalExpansionFactor = 2f;
+
 	public const string TribeType = "Tribe";
 
 	public static string[] TribeNounVariations = new string[] { "tribe", "people", "folk", "community", "[ipn(man)]men", "[ipn(woman)]women", "[ipn(child)]children" };
@@ -83,24 +86,24 @@ public class Tribe : Polity {
 		}
 
 		float influenceFactor = sourceGroupTotalPolityInfluenceValue / (targetGroupTotalPolityInfluenceValue + sourceGroupTotalPolityInfluenceValue);
+		influenceFactor = Mathf.Pow (influenceFactor, 4);
 
 		float modifiedForagingCapacity = 0;
 		float modifiedSurvivability = 0;
 
-		sourceGroup.CalculateAdaptionToCell (targetGroup.Cell, out modifiedForagingCapacity, out modifiedSurvivability);
+		CalculateAdaptionToCell (targetGroup.Cell, out modifiedForagingCapacity, out modifiedSurvivability);
 
-		influenceFactor *= modifiedSurvivability;
+		float survivabilityFactor = Mathf.Pow (modifiedSurvivability, 2);
 
-		influenceFactor *= sourceValue;
-		influenceFactor = Mathf.Pow (influenceFactor, 4);
+		float finalFactor = influenceFactor * survivabilityFactor;
 
 		if (sourceGroup != targetGroup) {
 
 			// There should be a strong bias against polity expansion to reduce activity
-			influenceFactor *= CellGroup.NoPolityExpansionFactor;
+			finalFactor *= TribalExpansionFactor;
 		}
 
-		return influenceFactor;
+		return finalFactor;
 	}
 
 	public CellGroup GetRandomWeightedInfluencedGroup (int rngOffset) {
