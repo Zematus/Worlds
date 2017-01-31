@@ -267,13 +267,13 @@ public class PolityCulture : Culture {
 
 	public float GetNextRandomFloat (int rngOffset) {
 
-		return Polity.CoreGroup.GetNextLocalRandomFloat (rngOffset + (int)Polity.Id);
+		return Polity.GetNextLocalRandomFloat (rngOffset + (int)Polity.Id);
 	}
 
 	private void GenerateNewLanguage () {
 
 		//Language = new Language (World.GenerateLanguageId ());
-		Language = new Language (Polity.CoreGroup.GenerateUniqueIdentifier ());
+		Language = new Language (Polity.GenerateUniqueIdentifier ());
 
 		int rngOffset = 0;
 

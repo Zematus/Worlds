@@ -285,7 +285,10 @@ public class TribalismDiscoveryEvent : CellGroupEvent {
 
 		if (Group.GetPolityInfluencesCount () <= 0) {
 
-			World.AddPolity (Tribe.GenerateNewTribe (Group));
+			Tribe tribe = new Tribe (Group);
+
+			World.AddPolity (tribe);
+			World.AddPolityToUpdate (tribe);
 		}
 
 		World.AddGroupToUpdate (Group);

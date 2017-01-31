@@ -24,6 +24,9 @@ public abstract class Faction : ISynchronizable {
 	[XmlAttribute("StilPres")]
 	public bool StillPresent = true;
 
+	[XmlAttribute("IsDom")]
+	public bool IsDominant = false;
+
 	public Name Name = null;
 
 	public List<string> Flags;
@@ -146,6 +149,28 @@ public abstract class Faction : ISynchronizable {
 			return;
 
 		_flags.Remove (flag);
+	}
+
+	public virtual void SetDominant (bool state) {
+	
+		IsDominant = state;
+	}
+
+	public void ChangePolity (Polity targetPolity, float targetProminence) {
+	
+		if ((targetPolity == null) || (!targetPolity.StillPresent)) 
+			throw new System.Exception ("target Polity is null or not Present");
+
+		Polity.RemoveFaction (this);
+
+		World.AddPolityToUpdate (Polity);
+
+		Polity = targetPolity;
+		Prominence = targetProminence;
+
+		targetPolity.AddFaction (this);
+
+		World.AddPolityToUpdate (targetPolity);
 	}
 }
 

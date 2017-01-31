@@ -19,30 +19,67 @@ public class Tribe : Polity {
 
 	}
 
-	private Tribe (CellGroup coreGroup, float coreGroupInfluence) : base (TribeType, coreGroup, coreGroupInfluence) {
+	public Tribe (CellGroup coreGroup) : base (TribeType, coreGroup) {
 
-	}
+		//// Make sure there's a region to spawn into
 
-	public static Tribe GenerateNewTribe (CellGroup coreGroup) {
+		TerrainCell coreCell = coreGroup.Cell;
+
+		Region cellRegion = coreGroup.Cell.Region;
+
+		if (cellRegion == null) {
+
+			cellRegion = Region.TryGenerateRegion (coreCell);
+
+			if (cellRegion != null) {
+				cellRegion.GenerateName (this, coreCell);
+
+				World.AddRegion (cellRegion);
+			}
+		}
+
+		////
+		
+		Clan clan = new Clan (coreGroup, this, 1);
+
+		AddFaction (clan);
+
+		SetDominantFaction (clan);
 
 		float randomValue = coreGroup.Cell.GetNextLocalRandomFloat (RngOffsets.TRIBE_GENERATE_NEW_TRIBE);
 		float coreInfluence = BaseCoreInfluence + randomValue * (1 - BaseCoreInfluence);
 
-		coreInfluence *= 1 - coreGroup.TotalPolityInfluenceValue;
-	
-		Tribe newTribe = new Tribe (coreGroup, coreInfluence);
+		coreGroup.SetPolityInfluence (this, coreInfluence);
 
-		return newTribe;
+		World.AddGroupToUpdate (coreGroup);
+
+		GenerateName ();
 	}
 
-	protected override void FinishInitializationInternal () {
+	public Tribe (Clan clan) : base (TribeType, clan.Group) {
+		
+		Polity parentPolity = clan.Polity;
 
-		AddFaction (new Clan (CoreGroup, this, 1));
+		CellGroup coreGroup = clan.Group;
+
+		float coreInfluence = coreGroup.GetPolityInfluenceValue (parentPolity);
+
+		coreGroup.SetPolityInfluence (parentPolity, 0);
+
+		clan.ChangePolity (this, 1f);
+
+		SetDominantFaction (clan);
+
+		coreGroup.SetPolityInfluence (this, coreInfluence);
+
+		World.AddGroupToUpdate (coreGroup);
+
+		GenerateName ();
 	}
 
 	protected override void UpdateInternal ()
 	{
-		TryRelocateCore ();
+//		TryRelocateCore ();
 	}
 
 	protected override void GenerateName ()
@@ -51,11 +88,11 @@ public class Tribe : Polity {
 
 		int rngOffset = RngOffsets.TRIBE_GENERATE_NAME + (int)Id;
 
-		int randomInt = CoreGroup.GetNextLocalRandomInt (rngOffset++, TribeNounVariations.Length);
+		int randomInt = GetNextLocalRandomInt (rngOffset++, TribeNounVariations.Length);
 
 		string tribeNounVariation = TribeNounVariations[randomInt];
 
-		string regionAttributeNounVariation = coreRegion.GetRandomAttributeVariation ((int maxValue) => CoreGroup.GetNextLocalRandomInt (rngOffset++, maxValue));
+		string regionAttributeNounVariation = coreRegion.GetRandomAttributeVariation ((int maxValue) => GetNextLocalRandomInt (rngOffset++, maxValue));
 
 		if (regionAttributeNounVariation != string.Empty) {
 			regionAttributeNounVariation = " [nad]" + regionAttributeNounVariation;
@@ -63,7 +100,7 @@ public class Tribe : Polity {
 
 		string untranslatedName = "the" + regionAttributeNounVariation + " " + tribeNounVariation;
 
-		Language.NounPhrase namePhrase = Culture.Language.TranslateNounPhrase (untranslatedName, () => CoreGroup.GetNextLocalRandomFloat (rngOffset++));
+		Language.NounPhrase namePhrase = Culture.Language.TranslateNounPhrase (untranslatedName, () => GetNextLocalRandomFloat (rngOffset++));
 
 		Name = new Name (namePhrase, untranslatedName, Culture.Language, World);
 
@@ -104,26 +141,6 @@ public class Tribe : Polity {
 		}
 
 		return finalFactor;
-	}
-
-	public CellGroup GetRandomWeightedInfluencedGroup (int rngOffset) {
-
-		WeightedGroup[] weightedGroups = new WeightedGroup[InfluencedGroups.Count];
-
-		float totalWeight = 0;
-
-		int index = 0;
-		foreach (CellGroup group in InfluencedGroups.Values) {
-		
-			float weight = group.Population * group.GetPolityInfluenceValue (this);
-
-			totalWeight += weight;
-
-			weightedGroups [index] = new WeightedGroup (group, weight);
-			index++;
-		}
-
-		return CollectionUtility.WeightedSelection (weightedGroups, totalWeight, () => CoreGroup.GetNextLocalRandomFloat (rngOffset));
 	}
 }
 
@@ -221,7 +238,10 @@ public class TribeFormationEvent : CellGroupEvent {
 
 	public override void Trigger () {
 
-		World.AddPolity (Tribe.GenerateNewTribe (Group));
+		Tribe tribe = new Tribe (Group);
+
+		World.AddPolity (tribe);
+		World.AddPolityToUpdate (tribe);
 
 		World.AddGroupToUpdate (Group);
 	}
