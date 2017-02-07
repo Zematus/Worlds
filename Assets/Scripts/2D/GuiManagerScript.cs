@@ -126,6 +126,40 @@ public class GuiManagerScript : MonoBehaviour {
 
 	private bool _infoTextMinimized = false;
 
+	private StreamWriter _debugLogStream;
+
+	void OnEnable()
+	{
+		string filename = @".\debug.log";
+
+		if (File.Exists (filename)) {
+		
+			File.Delete (filename);
+		}
+
+		_debugLogStream = File.CreateText(filename);
+
+		Application.logMessageReceivedThreaded += HandleLog;
+
+		if (Debug.isDebugBuild) {
+			Debug.Log ("Executing debug build...");
+		} else {
+			Debug.Log ("Executing release build...");
+		}
+	}
+
+	void OnDisable()
+	{
+		Application.logMessageReceivedThreaded -= HandleLog;
+
+		_debugLogStream.Close ();
+	}
+
+	public void HandleLog(string logString, string stackTrace, LogType type)
+	{
+		_debugLogStream.WriteLine (logString);
+	}
+
 	// Use this for initialization
 	void Start () {
 
@@ -158,7 +192,8 @@ public class GuiManagerScript : MonoBehaviour {
 		
 		if (!Manager.WorldReady) {
 
-			GenerateWorld (false, 407252633);
+			//GenerateWorld (false, 407252633);
+			GenerateWorld (false, 783909167);
 		} else if (!Manager.SimulationCanRun) {
 
 			SetInitialPopulation ();

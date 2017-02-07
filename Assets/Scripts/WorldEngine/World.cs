@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
+using System.IO;
 using UnityEngine.Profiling;
 
 public delegate void ProgressCastDelegate (float value, string message = null, bool reset = false);
@@ -1088,7 +1089,7 @@ public class World : ISynchronizable {
 				
 				SuitableCells.Add(cell);
 			}
-			
+
 			ProgressCastMethod (_accumulatedProgress + _progressIncrement * (i + 1)/(float)sizeX);
 		}
 		
@@ -1101,10 +1102,10 @@ public class World : ISynchronizable {
 		for (int i = 0; i < maxGroups; i++) {
 			
 			ManagerTask<int> n = GenerateRandomInteger(0, SuitableCells.Count);
+
+			Debug.Log ("Selected suitable cell index (from " + SuitableCells.Count + "):" + (int)n);
 			
 			TerrainCell cell = SuitableCells[n];
-			
-			//int population = (int)Mathf.Floor(StartPopulationDensity * cell.Area);
 			
 			CellGroup group = new CellGroup(this, cell, initialPopulation);
 			
@@ -1207,6 +1208,8 @@ public class World : ISynchronizable {
 		return new Vector2(distX*continentWidth, distY*continentHeight).magnitude;
 	}
 
+	bool debug_first = true;
+
 	private void GenerateTerrainAltitude () {
 
 		GenerateContinents();
@@ -1256,6 +1259,15 @@ public class World : ISynchronizable {
 				float value7 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius7, offset7);
 				float value8 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius8, offset8);
 				float value9 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius9, offset9);
+
+				if (debug_first) {
+					Debug.Log ("alpha: " + alpha);
+					Debug.Log ("beta: " + beta);
+					Debug.Log ("radius1: " + radius1);
+					Debug.Log ("offset1: " + ((Vector3)offset1).x + ", " + ((Vector3)offset1).y + ", " + ((Vector3)offset1).z);
+					Debug.Log ("value1: " + value1);
+					debug_first = false;
+				}
 
 				value8 = value8 * 1.5f + 0.25f;
 
@@ -1719,7 +1731,7 @@ public class World : ISynchronizable {
 		float rainfallSpan = biome.MaxRainfall - biome.MinRainfall;
 		
 		float rainfallDiff = cell.Rainfall - biome.MinRainfall;
-		
+
 		if (rainfallDiff < 0)
 			return -1f;
 		
@@ -1729,7 +1741,7 @@ public class World : ISynchronizable {
 			
 			rainfallFactor = 0.5f;
 		}
-		
+
 		if (rainfallFactor > 1)
 			return -1f;
 		
@@ -1743,7 +1755,7 @@ public class World : ISynchronizable {
 		float temperatureSpan = biome.MaxTemperature - biome.MinTemperature;
 		
 		float temperatureDiff = cell.Temperature - biome.MinTemperature;
-		
+
 		if (temperatureDiff < 0)
 			return -1f;
 		
@@ -1753,7 +1765,7 @@ public class World : ISynchronizable {
 			
 			temperatureFactor = 0.5f;
 		}
-		
+
 		if (temperatureFactor > 1)
 			return -1f;
 		
