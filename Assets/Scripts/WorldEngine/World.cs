@@ -1208,8 +1208,6 @@ public class World : ISynchronizable {
 		return new Vector2(distX*continentWidth, distY*continentHeight).magnitude;
 	}
 
-	bool debug_first = true;
-
 	private void GenerateTerrainAltitude () {
 
 		GenerateContinents();
@@ -1259,15 +1257,6 @@ public class World : ISynchronizable {
 				float value7 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius7, offset7);
 				float value8 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius8, offset8);
 				float value9 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius9, offset9);
-
-				if (debug_first) {
-					Debug.Log ("alpha: " + alpha);
-					Debug.Log ("beta: " + beta);
-					Debug.Log ("radius1: " + radius1);
-					Debug.Log ("offset1: " + ((Vector3)offset1).x + ", " + ((Vector3)offset1).y + ", " + ((Vector3)offset1).z);
-					Debug.Log ("value1: " + value1);
-					debug_first = false;
-				}
 
 				value8 = value8 * 1.5f + 0.25f;
 
@@ -1369,7 +1358,15 @@ public class World : ISynchronizable {
 
 	private ManagerTask<Vector3> GenerateRandomOffsetVector () {
 
-		return Manager.EnqueueTask (() => Random.insideUnitSphere * 1000);
+		return Manager.EnqueueTask (() => {
+			Vector3 randVector = Random.insideUnitSphere;
+
+			randVector.x = (float)System.Math.Round (randVector.x, 4);
+			randVector.y = (float)System.Math.Round (randVector.y, 4);
+			randVector.z = (float)System.Math.Round (randVector.z, 4);
+
+			return randVector * 1000;
+		});
 	}
 
 	// Returns a value between 0 and 1
