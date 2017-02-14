@@ -201,6 +201,14 @@ public abstract class Polity : ISynchronizable {
 		StillPresent = false;
 	}
 
+	public void SetCoreGroup (CellGroup coreGroup) {
+	
+		CoreGroup = coreGroup;
+		CoreGroupId = coreGroup.Id;
+
+		_coreGroupIsValid = true;
+	}
+
 	public long GenerateUniqueIdentifier (long oom = 1, long offset = 0) {
 
 		return CoreGroup.GenerateUniqueIdentifier (oom, offset);
@@ -320,6 +328,11 @@ public abstract class Polity : ISynchronizable {
 	
 		Culture.Update ();
 
+		foreach (Faction faction in _factions.Values) {
+		
+			faction.Update ();
+		}
+
 		if (!_coreGroupIsValid) {
 
 			throw new System.Exception ("Core group is no longer valid");
@@ -399,6 +412,14 @@ public abstract class Polity : ISynchronizable {
 		if (group == CoreGroup) {
 
 			_coreGroupIsValid = false;
+		}
+
+		foreach (Faction faction in _factions.Values) {
+		
+			if (group == faction.CoreGroup) {
+			
+				faction.CoreGroupIsValid = false;
+			}
 		}
 	}
 

@@ -13,7 +13,7 @@ public abstract class Faction : ISynchronizable {
 	public long Id;
 
 	[XmlAttribute("GrpId")]
-	public long GroupId;
+	public long CoreGroupId;
 
 	[XmlAttribute("PolId")]
 	public long PolityId;
@@ -35,10 +35,16 @@ public abstract class Faction : ISynchronizable {
 	public World World;
 
 	[XmlIgnore]
-	public CellGroup Group;
+	public CellGroup CoreGroup;
+
+	[XmlIgnore]
+	public TerrainCell CoreCell;
 
 	[XmlIgnore]
 	public Polity Polity;
+
+	[XmlIgnore]
+	public bool CoreGroupIsValid = true;
 
 	private HashSet<string> _flags = new HashSet<string> ();
 
@@ -46,16 +52,17 @@ public abstract class Faction : ISynchronizable {
 
 	}
 
-	public Faction (string type, CellGroup group, Polity polity, float prominence) {
+	public Faction (string type, CellGroup coreGroup, Polity polity, float prominence) {
 
 		Type = type;
 
-		World = group.World;
+		World = coreGroup.World;
 
-		Group = group;
-		GroupId = group.Id;
+		CoreGroup = coreGroup;
+		CoreGroupId = coreGroup.Id;
+		CoreCell = coreGroup.Cell;
 
-		Id = group.GenerateUniqueIdentifier ();
+		Id = coreGroup.GenerateUniqueIdentifier ();
 
 		PolityId = polity.Id;
 		Polity = polity;
@@ -72,27 +79,41 @@ public abstract class Faction : ISynchronizable {
 		StillPresent = false;
 	}
 
-	public void SetGroup (CellGroup group) {
-
-		Group = group;
-		GroupId = group.Id;
-	}
-
 	public abstract void GenerateName ();
 
 	public void Update () {
 
-		if (!Group.StillPresent) {
+		if (!CoreGroup.StillPresent) {
 		
 			Polity.RemoveFaction (this);
 
 			return;
 		}
 
+		if (!CoreGroupIsValid) {
+		
+			RelocateCore ();
+		}
+
 		UpdateInternal ();
 	}
 
-	public abstract void UpdateInternal ();
+	protected abstract void UpdateInternal ();
+
+	public abstract void RelocateCore ();
+
+	public void SetCoreGroup (CellGroup coreGroup) {
+
+		CoreGroup = coreGroup;
+		CoreGroupId = coreGroup.Id;
+		CoreCell = coreGroup.Cell;
+
+		CoreGroupIsValid = true;
+
+		SetCoreGroupInternal (coreGroup);
+	}
+
+	protected abstract void SetCoreGroupInternal (CellGroup coreGroup);
 
 	public virtual void Synchronize () {
 
@@ -106,11 +127,11 @@ public abstract class Faction : ISynchronizable {
 		Name.World = World;
 		Name.FinalizeLoad ();
 
-		Group = World.GetGroup (GroupId);
+		CoreGroup = World.GetGroup (CoreGroupId);
 		Polity = World.GetPolity (PolityId);
 
-		if (Group == null) {
-			throw new System.Exception ("Missing Group with Id " + GroupId);
+		if (CoreGroup == null) {
+			throw new System.Exception ("Missing Group with Id " + CoreGroupId);
 		}
 
 		if (Polity == null) {
@@ -122,12 +143,12 @@ public abstract class Faction : ISynchronizable {
 
 	public long GenerateUniqueIdentifier (long oom = 1, long offset = 0) {
 
-		return Group.GenerateUniqueIdentifier (oom, offset);
+		return CoreGroup.GenerateUniqueIdentifier (oom, offset);
 	}
 
 	public float GetNextLocalRandomFloat (int iterationOffset) {
 
-		return Group.GetNextLocalRandomFloat (iterationOffset);
+		return CoreGroup.GetNextLocalRandomFloat (iterationOffset);
 	}
 
 	public void SetFlag (string flag) {

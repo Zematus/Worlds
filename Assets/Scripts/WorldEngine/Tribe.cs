@@ -56,11 +56,11 @@ public class Tribe : Polity {
 		GenerateName ();
 	}
 
-	public Tribe (Clan clan) : base (TribeType, clan.Group) {
+	public Tribe (Clan clan) : base (TribeType, clan.CoreGroup) {
 		
 		Polity parentPolity = clan.Polity;
 
-		CellGroup coreGroup = clan.Group;
+		CellGroup coreGroup = clan.CoreGroup;
 
 		float coreInfluence = coreGroup.GetPolityInfluenceValue (parentPolity);
 

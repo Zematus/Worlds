@@ -50,9 +50,10 @@ public static class RngOffsets {
 	public const int REGION_GENERATE_NAME = 60000;
 
 	public const int TRIBE_GENERATE_NEW_TRIBE = 70000;
-	public const int TRIBE_GENERATE_NAME = 70001;
+	public const int TRIBE_GENERATE_NAME = 71000;
 
 	public const int CLAN_GENERATE_NAME = 80000;
+	public const int CLAN_CHOOSE_CORE_GROUP = 81000;
 
 	public const int ROUTE_CHOOSE_NEXT_DEPTH_SEA_CELL = 100000;
 	public const int ROUTE_CHOOSE_NEXT_COASTAL_CELL = 110000;
