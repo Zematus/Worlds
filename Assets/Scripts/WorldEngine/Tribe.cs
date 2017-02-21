@@ -62,19 +62,125 @@ public class Tribe : Polity {
 
 		CellGroup coreGroup = clan.CoreGroup;
 
-		float coreInfluence = coreGroup.GetPolityInfluenceValue (parentPolity);
-
-		coreGroup.SetPolityInfluence (parentPolity, 0);
+		SwitchCellInfluences (parentPolity, clan);
 
 		clan.ChangePolity (this, 1f);
 
 		SetDominantFaction (clan);
 
-		coreGroup.SetPolityInfluence (this, coreInfluence);
-
-		World.AddGroupToUpdate (coreGroup);
-
 		GenerateName ();
+	}
+
+	private void SwitchCellInfluences (Polity sourcePolity, Clan pullingClan) {
+	
+		float clanProminence = pullingClan.Prominence;
+		float sourcePolityProminence = 1 - clanProminence;
+
+		if (clanProminence <= 0) {
+		
+			throw new System.Exception ("Pulling clan prominence equal or less than zero.");
+		}
+
+		int maxGroupCount = sourcePolity.InfluencedGroups.Count;
+
+		Dictionary<CellGroup, float> groupDistances = new Dictionary<CellGroup, float> (maxGroupCount);
+
+		Stack<CellGroup> sourceGroups = new Stack<CellGroup> (maxGroupCount);
+
+		sourceGroups.Push (CoreGroup);
+
+		while (sourceGroups.Count > 0) {
+		
+			CellGroup group = sourceGroups.Pop ();
+
+			if (groupDistances.ContainsKey (group))
+				continue;
+
+			PolityInfluence pi = group.GetPolityInfluence (sourcePolity);
+
+			if (pi == null)
+				continue;
+
+			float distanceToCore = CalculateShortestCoreDistance (group, groupDistances);
+
+			if (distanceToCore >= float.MaxValue)
+				continue;
+
+			groupDistances.Add (group, distanceToCore);
+
+			float distanceToSourcePolityCore = pi.CoreDistance;
+
+			float percentInfluence = 1f;
+
+			float totalDistanceFactor = distanceToCore + distanceToSourcePolityCore;
+
+			if (totalDistanceFactor <= 0) {
+			
+				throw new System.Exception ("Sum of core distances equal or less than zero.");
+			}
+
+			if (distanceToSourcePolityCore < float.MaxValue) {
+			
+				float distanceFactor = distanceToSourcePolityCore / totalDistanceFactor;
+
+				float clanWeight = clanProminence * distanceFactor;
+				float sourcePolityWeight = sourcePolityProminence * (1 - distanceFactor);
+
+				percentInfluence = clanWeight / (clanWeight + sourcePolityWeight);
+			}
+
+			if (percentInfluence <= 0)
+				continue;
+
+			float influenceValue = group.GetPolityInfluenceValue (sourcePolity);
+	
+			group.SetPolityInfluence (sourcePolity, influenceValue * (1 - percentInfluence));
+
+			group.SetPolityInfluence (this, influenceValue * percentInfluence);
+	
+			World.AddGroupToUpdate (group);
+
+			foreach (CellGroup neighborGroup in group.Neighbors.Values) {
+
+				if (groupDistances.ContainsKey (neighborGroup))
+					continue;
+			
+				sourceGroups.Push (neighborGroup);
+			}
+		}
+	}
+
+	private float CalculateShortestCoreDistance (CellGroup group, Dictionary<CellGroup, float> groupDistances) {
+
+		if (groupDistances.Count <= 0)
+			return 0;
+
+		float shortestDistance = float.MaxValue;
+
+		foreach (KeyValuePair<Direction, CellGroup> pair in group.Neighbors) {
+
+			float distanceToCoreFromNeighbor = float.MaxValue;
+
+			if (!groupDistances.TryGetValue (pair.Value, out distanceToCoreFromNeighbor)) {
+			
+				continue;
+			}
+
+			if (distanceToCoreFromNeighbor >= float.MaxValue)
+				continue;
+
+			float neighborDistance = group.Cell.NeighborDistances[pair.Key];
+
+			float totalDistance = distanceToCoreFromNeighbor + neighborDistance;
+
+			if (totalDistance < 0)
+				continue;
+
+			if (totalDistance < shortestDistance)
+				shortestDistance = totalDistance;
+		}
+
+		return shortestDistance;
 	}
 
 	protected override void UpdateInternal ()

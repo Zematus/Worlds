@@ -1104,7 +1104,7 @@ public class World : ISynchronizable {
 			
 			ManagerTask<int> n = GenerateRandomInteger(0, SuitableCells.Count);
 
-			Debug.Log ("Selected suitable cell index (from " + SuitableCells.Count + "):" + (int)n);
+//			Debug.Log ("Selected suitable cell index (from " + SuitableCells.Count + "):" + (int)n);
 			
 			TerrainCell cell = SuitableCells[n];
 			

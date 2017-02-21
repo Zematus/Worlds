@@ -282,7 +282,7 @@ public abstract class Polity : ISynchronizable {
 
 		foreach (Faction f in _factions.Values) {
 		
-			totalProminence = f.Prominence;
+			totalProminence += f.Prominence;
 		}
 
 		if (totalProminence <= 0) {

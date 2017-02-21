@@ -255,10 +255,6 @@ public class ClanSplitEvent : FactionEvent {
 	}
 
 	protected override void DestroyInternal () {
-		
-//		if (Faction != null) {
-//			Faction.UnsetFlag (EventSetFlag);
-//		}
 
 		base.DestroyInternal ();
 
@@ -372,19 +368,15 @@ public class TribeSplitEvent : FactionEvent {
 
 	public override void Trigger () {
 
-//		Tribe tribe = new Tribe (Faction as Clan);
-//
-//		World.AddPolity (tribe);
-//		World.AddPolityToUpdate (tribe);
-//
-//		World.AddGroupToUpdate (Faction.Group);
+		Tribe tribe = new Tribe (Faction as Clan);
+
+		World.AddPolity (tribe);
+		World.AddPolityToUpdate (tribe);
+
+		World.AddGroupToUpdate (Faction.CoreGroup);
 	}
 
 	protected override void DestroyInternal () {
-
-		//		if (Faction != null) {
-		//			Faction.UnsetFlag (EventSetFlag);
-		//		}
 
 		base.DestroyInternal ();
 
