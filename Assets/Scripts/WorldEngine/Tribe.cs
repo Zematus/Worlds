@@ -60,8 +60,6 @@ public class Tribe : Polity {
 		
 		Polity parentPolity = clan.Polity;
 
-		CellGroup coreGroup = clan.CoreGroup;
-
 		SwitchCellInfluences (parentPolity, clan);
 
 		clan.ChangePolity (this, 1f);
@@ -89,6 +87,9 @@ public class Tribe : Polity {
 
 		sourceGroups.Push (CoreGroup);
 
+		int reviewedCells = 0;
+		int switchedCells = 0;
+
 		while (sourceGroups.Count > 0) {
 		
 			CellGroup group = sourceGroups.Pop ();
@@ -101,6 +102,8 @@ public class Tribe : Polity {
 			if (pi == null)
 				continue;
 
+			reviewedCells++;
+
 			float distanceToCore = CalculateShortestCoreDistance (group, groupDistances);
 
 			if (distanceToCore >= float.MaxValue)
@@ -112,14 +115,14 @@ public class Tribe : Polity {
 
 			float percentInfluence = 1f;
 
-			float totalDistanceFactor = distanceToCore + distanceToSourcePolityCore;
-
-			if (totalDistanceFactor <= 0) {
-			
-				throw new System.Exception ("Sum of core distances equal or less than zero.");
-			}
-
 			if (distanceToSourcePolityCore < float.MaxValue) {
+
+				float totalDistanceFactor = distanceToCore + distanceToSourcePolityCore;
+
+				if (totalDistanceFactor <= 0) {
+
+					throw new System.Exception ("Sum of core distances equal or less than zero.");
+				}
 			
 				float distanceFactor = distanceToSourcePolityCore / totalDistanceFactor;
 
@@ -127,6 +130,11 @@ public class Tribe : Polity {
 				float sourcePolityWeight = sourcePolityProminence * (1 - distanceFactor);
 
 				percentInfluence = clanWeight / (clanWeight + sourcePolityWeight);
+			}
+
+			if (percentInfluence > 0.5f) {
+			
+				switchedCells++;
 			}
 
 			if (percentInfluence <= 0)
@@ -148,6 +156,8 @@ public class Tribe : Polity {
 				sourceGroups.Push (neighborGroup);
 			}
 		}
+
+		Debug.Log ("SwitchCellInfluences: source polity cells: " + maxGroupCount + ", reviewed cells: " + reviewedCells + ", switched cells: " + switchedCells);
 	}
 
 	private float CalculateShortestCoreDistance (CellGroup group, Dictionary<CellGroup, float> groupDistances) {

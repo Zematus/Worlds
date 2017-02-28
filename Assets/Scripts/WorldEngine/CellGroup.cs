@@ -1477,7 +1477,7 @@ public class CellGroup : HumanGroup {
 		foreach (PolityInfluence polityInfluence in polityInfluences) {
 		
 			Polity polity = polityInfluence.Polity;
-			float influenceValue = polityInfluence.Value;
+			float influenceValue = polityInfluence.NewValue;
 
 			polity.GroupUpdateEffects (this, influenceValue, totalInfluenceValue, timeSpan);
 		}

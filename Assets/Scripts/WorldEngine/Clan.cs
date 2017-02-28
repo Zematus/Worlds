@@ -291,6 +291,8 @@ public class TribeSplitEvent : FactionEvent {
 
 	public const string EventSetFlag = "ClanSplitEvent_Set";
 
+	public const float MinimumProminence = 0.25f;
+
 	public TribeSplitEvent () {
 
 	}
@@ -348,6 +350,20 @@ public class TribeSplitEvent : FactionEvent {
 			return false;
 
 		if (Faction.IsDominant)
+			return false;
+
+		if (Faction.CoreGroup == Polity.CoreGroup)
+			return false;
+
+		PolityInfluence pi = Faction.CoreGroup.HighestPolityInfluence;
+
+		if (pi.Polity != Polity)
+			return false;
+
+		if (pi.Value < 0.3f)
+			return false;
+
+		if (Faction.Prominence < MinimumProminence)
 			return false;
 
 		float administrativeLoadFactor = CalculateTribeAdministrativeLoadFactor (Polity as Tribe);
