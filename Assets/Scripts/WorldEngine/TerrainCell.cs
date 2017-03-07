@@ -41,6 +41,11 @@ public struct WorldPosition {
 		Longitude = longitude;
 		Latitude = latitude;
 	}
+
+	public override string ToString ()
+	{
+		return string.Format ("[" + Longitude + "," + Latitude + "]");
+	}
 }
 
 public class TerrainCellChanges {

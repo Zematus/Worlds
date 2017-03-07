@@ -1975,6 +1975,11 @@ public class CellGroup : HumanGroup {
 		float influencedPopulation = Population * pi.Value;
 		float distanceFactor = 500 + pi.CoreDistance;
 
+		if (pi.CoreDistance > 0) {
+		
+			bool debug = true;
+		}
+
 		return influencedPopulation * distanceFactor * 0.001f;
 	}
 
@@ -1982,9 +1987,9 @@ public class CellGroup : HumanGroup {
 
 		foreach (PolityInfluence pi in _polityInfluences.Values) {
 
-			pi.Polity.TotalAdministrativeCost -= pi.AdiministrativeCost;
+//			pi.Polity.TotalAdministrativeCost -= pi.AdiministrativeCost;
 			pi.AdiministrativeCost = CalculatePolityInfluenceAdministrativeCost (pi);
-			pi.Polity.TotalAdministrativeCost += pi.AdiministrativeCost;
+//			pi.Polity.TotalAdministrativeCost += pi.AdiministrativeCost;
 		}
 	}
 

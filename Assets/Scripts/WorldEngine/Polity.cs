@@ -324,6 +324,8 @@ public abstract class Polity : ISynchronizable {
 		_populationCensusUpdated = true;
 		#endif
 
+		UpdateTotalAdministrativeCost ();
+
 		UpdateInternal ();
 	
 		Culture.Update ();
@@ -675,6 +677,18 @@ public abstract class Polity : ISynchronizable {
 //
 //		return true;
 //	}
+
+	public void UpdateTotalAdministrativeCost () {
+
+		TotalAdministrativeCost = 0;
+
+		foreach (CellGroup group in InfluencedGroups.Values) {
+
+			PolityInfluence pi = group.GetPolityInfluence (this);
+
+			TotalAdministrativeCost += pi.AdiministrativeCost;
+		}
+	}
 
 	public CellGroup GetRandomGroup (int rngOffset, GroupValueCalculationDelegate calculateGroupValue) {
 

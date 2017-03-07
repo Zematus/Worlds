@@ -39,12 +39,6 @@ public class Tribe : Polity {
 		}
 
 		////
-		
-		Clan clan = new Clan (coreGroup, this, 1);
-
-		AddFaction (clan);
-
-		SetDominantFaction (clan);
 
 		float randomValue = coreGroup.Cell.GetNextLocalRandomFloat (RngOffsets.TRIBE_GENERATE_NEW_TRIBE);
 		float coreInfluence = BaseCoreInfluence + randomValue * (1 - BaseCoreInfluence);
@@ -54,6 +48,16 @@ public class Tribe : Polity {
 		World.AddGroupToUpdate (coreGroup);
 
 		GenerateName ();
+
+//		Debug.Log ("New tribe '" + Name + "' spawned at [" + coreGroup.Cell.Position + "]");
+
+		//// Add starting clan
+
+		Clan clan = new Clan (coreGroup, this, 1);
+
+		AddFaction (clan);
+
+		SetDominantFaction (clan);
 	}
 
 	public Tribe (Clan clan) : base (TribeType, clan.CoreGroup) {
@@ -67,6 +71,8 @@ public class Tribe : Polity {
 		SetDominantFaction (clan);
 
 		GenerateName ();
+
+		Debug.Log ("New tribe '" + Name + "' spawned at [" + clan.CoreGroup.Cell.Position + "] of clan '" + clan.Name + "' from tribe '" + parentPolity.Name + "'");
 	}
 
 	private void SwitchCellInfluences (Polity sourcePolity, Clan pullingClan) {
