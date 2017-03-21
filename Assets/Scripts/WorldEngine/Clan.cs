@@ -11,9 +11,6 @@ public class Clan : Faction {
 	[XmlIgnore]
 	public ClanSplitEvent ClanSplitEvent;
 
-	[XmlIgnore]
-	public TribeSplitEvent TribeSplitEvent;
-
 	public Clan () {
 
 	}
@@ -27,14 +24,7 @@ public class Clan : Faction {
 			World.InsertEventToHappen (ClanSplitEvent);
 		}
 
-		if (TribeSplitEvent.CanBeAssignedTo (this)) {
-
-			TribeSplitEvent = new TribeSplitEvent (this, TribeSplitEvent.CalculateTriggerDate (this));
-
-			World.InsertEventToHappen (TribeSplitEvent);
-		}
-
-		string logMessage = "New clan '" + Name + "' spawned in Polity '" + Polity.Name + "' at [" + group.Cell.Position + "]";
+		string logMessage = "New clan '" + Name + "' spawned in Polity '" + Polity.Name + "' at " + group.Cell.Position;
 
 		if (parentClan != null) {
 		
@@ -313,147 +303,5 @@ public class ClanSplitEvent : FactionEvent {
 		Clan clan = Faction as Clan;
 
 		clan.ClanSplitEvent = this;
-	}
-}
-
-public class TribeSplitEvent : FactionEvent {
-
-	public const int DateSpanFactorConstant = CellGroup.GenerationTime * 500;
-
-	public const int MuAdministrativeLoadValue = 100000;
-
-	public const string EventSetFlag = "TribeSplitEvent_Set";
-
-	public const float MinimumProminence = 0.25f;
-
-	public TribeSplitEvent () {
-
-	}
-
-	public TribeSplitEvent (Clan clan, int triggerDate) : base (clan, triggerDate, ClanSplitEventId) {
-
-		clan.SetFlag (EventSetFlag);
-	}
-
-	private static float CalculateTribeAdministrativeLoadFactor (Tribe tribe) {
-
-		float socialOrganizationValue = 0;
-
-		CulturalKnowledge socialOrganizationKnowledge = tribe.Culture.GetKnowledge (SocialOrganizationKnowledge.SocialOrganizationKnowledgeId);
-
-		if (socialOrganizationKnowledge != null)
-			socialOrganizationValue = socialOrganizationKnowledge.Value;
-
-		if (socialOrganizationValue <= 0) {
-
-			return float.MaxValue;
-		}
-
-		float administrativeLoad = tribe.TotalAdministrativeCost;
-
-		return administrativeLoad / socialOrganizationValue;
-	}
-
-	public static int CalculateTriggerDate (Clan clan) {
-
-		float randomFactor = clan.GetNextLocalRandomFloat (RngOffsets.TRIBE_SPLITTING_EVENT_CALCULATE_TRIGGER_DATE);
-		randomFactor = Mathf.Pow (randomFactor, 2);
-
-		float dateSpan = (1 - randomFactor) * DateSpanFactorConstant;
-
-		int targetDate = (int)(clan.World.CurrentDate + dateSpan);
-
-		if (targetDate <= clan.World.CurrentDate)
-			targetDate = int.MinValue;
-
-		return targetDate;
-	}
-
-	public static bool CanBeAssignedTo (Clan clan) {
-
-		if (clan.IsFlagSet (EventSetFlag))
-			return false;
-
-		return true;
-	}
-
-	public override bool CanTrigger () {
-
-		if (!base.CanTrigger ())
-			return false;
-
-		if (Faction.IsDominant)
-			return false;
-
-		if (Faction.CoreGroup == Polity.CoreGroup)
-			return false;
-
-		PolityInfluence pi = Faction.CoreGroup.HighestPolityInfluence;
-
-		if (pi.Polity != Polity)
-			return false;
-
-		if (pi.Value < 0.3f)
-			return false;
-
-		if (Faction.Prominence < MinimumProminence)
-			return false;
-
-		float administrativeLoadFactor = CalculateTribeAdministrativeLoadFactor (Polity as Tribe);
-		administrativeLoadFactor = Mathf.Pow (administrativeLoadFactor, 2);
-
-		if (administrativeLoadFactor < 0)
-			return true;
-
-		float splitValue = Faction.Prominence * administrativeLoadFactor / (administrativeLoadFactor + MuAdministrativeLoadValue);
-
-		float triggerValue = Faction.GetNextLocalRandomFloat (RngOffsets.EVENT_CAN_TRIGGER + (int)Id);
-
-		if (triggerValue > splitValue)
-			return false;
-
-		return true;
-	}
-
-	public override void Trigger () {
-
-		Tribe tribe = new Tribe (Faction as Clan);
-
-		World.AddPolity (tribe);
-		World.AddPolityToUpdate (tribe);
-
-		World.AddGroupToUpdate (Faction.CoreGroup);
-	}
-
-	protected override void DestroyInternal () {
-
-		base.DestroyInternal ();
-
-		if (Faction != null) {
-			Faction.UnsetFlag (EventSetFlag);
-		}
-
-		if ((Faction != null) && (Faction.StillPresent)) {
-
-			Clan clan = Faction as Clan;
-
-			if (CanBeAssignedTo (clan)) {
-
-				clan.TribeSplitEvent = this;
-
-				Reset (CalculateTriggerDate (clan));
-
-				World.InsertEventToHappen (this);
-			}
-		}
-	}
-
-	public override void FinalizeLoad () {
-
-		base.FinalizeLoad ();
-
-		Clan clan = Faction as Clan;
-
-		clan.TribeSplitEvent = this;
 	}
 }

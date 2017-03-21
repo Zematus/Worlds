@@ -184,14 +184,10 @@ public abstract class Faction : ISynchronizable {
 
 		Polity.RemoveFaction (this);
 
-		World.AddPolityToUpdate (Polity);
-
 		Polity = targetPolity;
 		Prominence = targetProminence;
 
 		targetPolity.AddFaction (this);
-
-		World.AddPolityToUpdate (targetPolity);
 	}
 }
 

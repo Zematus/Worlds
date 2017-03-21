@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿
+using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using System.Xml;
@@ -14,6 +15,9 @@ public class Tribe : Polity {
 	public static string[] TribeNounVariations = new string[] { "tribe", "people", "folk", "community", "[ipn(man)]men", "[ipn(woman)]women", "[ipn(child)]children" };
 
 	public const float BaseCoreInfluence = 0.5f;
+
+	[XmlIgnore]
+	public TribeSplitEvent TribeSplitEvent;
 
 	public Tribe () {
 
@@ -49,7 +53,7 @@ public class Tribe : Polity {
 
 		GenerateName ();
 
-//		Debug.Log ("New tribe '" + Name + "' spawned at [" + coreGroup.Cell.Position + "]");
+//		Debug.Log ("New tribe '" + Name + "' spawned at " + coreGroup.Cell.Position);
 
 		//// Add starting clan
 
@@ -58,6 +62,15 @@ public class Tribe : Polity {
 		AddFaction (clan);
 
 		SetDominantFaction (clan);
+
+		//// Add base events
+
+		if (TribeSplitEvent.CanBeAssignedTo (this)) {
+
+			TribeSplitEvent = new TribeSplitEvent (this, TribeSplitEvent.CalculateTriggerDate (this));
+
+			World.InsertEventToHappen (TribeSplitEvent);
+		}
 	}
 
 	public Tribe (Clan clan) : base (TribeType, clan.CoreGroup) {
@@ -66,13 +79,11 @@ public class Tribe : Polity {
 
 		SwitchCellInfluences (parentPolity, clan);
 
-		clan.ChangePolity (this, 1f);
-
 		SetDominantFaction (clan);
 
 		GenerateName ();
 
-		Debug.Log ("New tribe '" + Name + "' spawned at [" + clan.CoreGroup.Cell.Position + "] of clan '" + clan.Name + "' from tribe '" + parentPolity.Name + "'");
+		Debug.Log ("New tribe '" + Name + "' spawned at " + clan.CoreGroup.Cell.Position + " of clan '" + clan.Name + "' from tribe '" + parentPolity.Name + "'");
 	}
 
 	private void SwitchCellInfluences (Polity sourcePolity, Clan pullingClan) {
@@ -375,5 +386,177 @@ public class TribeFormationEvent : CellGroupEvent {
 		}
 
 		base.DestroyInternal ();
+	}
+}
+
+public class TribeSplitEvent : PolityEvent {
+
+	public const int DateSpanFactorConstant = CellGroup.GenerationTime * 500;
+
+	public const int MuAdministrativeLoadValue = 100000;
+
+	public const string EventSetFlag = "TribeSplitEvent_Set";
+
+	public TribeSplitEvent () {
+
+	}
+
+	public TribeSplitEvent (Tribe tribe, int triggerDate) : base (tribe, triggerDate, TribeSplitEventId) {
+
+		tribe.SetFlag (EventSetFlag);
+	}
+
+	private static float CalculateTribeAdministrativeLoadFactor (Tribe tribe) {
+
+		float socialOrganizationValue = 0;
+
+		CulturalKnowledge socialOrganizationKnowledge = tribe.Culture.GetKnowledge (SocialOrganizationKnowledge.SocialOrganizationKnowledgeId);
+
+		if (socialOrganizationKnowledge != null)
+			socialOrganizationValue = socialOrganizationKnowledge.Value;
+
+		if (socialOrganizationValue <= 0) {
+
+			return float.MaxValue;
+		}
+
+		float administrativeLoad = tribe.TotalAdministrativeCost;
+
+		return administrativeLoad / socialOrganizationValue;
+	}
+
+	public static int CalculateTriggerDate (Tribe tribe) {
+
+		float randomFactor = tribe.GetNextLocalRandomFloat (RngOffsets.TRIBE_SPLITTING_EVENT_CALCULATE_TRIGGER_DATE);
+		randomFactor = Mathf.Pow (randomFactor, 2);
+
+		float dateSpan = (1 - randomFactor) * DateSpanFactorConstant;
+
+		int targetDate = (int)(tribe.World.CurrentDate + dateSpan);
+
+		if (targetDate <= tribe.World.CurrentDate)
+			targetDate = int.MinValue;
+
+		return targetDate;
+	}
+
+	public static bool CanBeAssignedTo (Tribe tribe) {
+
+		if (tribe.IsFlagSet (EventSetFlag))
+			return false;
+
+		return true;
+	}
+
+	public override bool CanTrigger () {
+
+		if (!base.CanTrigger ())
+			return false;
+
+		float administrativeLoadFactor = CalculateTribeAdministrativeLoadFactor (Polity as Tribe);
+		administrativeLoadFactor = Mathf.Pow (administrativeLoadFactor, 2);
+
+		if (administrativeLoadFactor < 0)
+			return true;
+
+		// Add clan selection mechanism
+
+		float splitValue = administrativeLoadFactor / (administrativeLoadFactor + MuAdministrativeLoadValue);
+
+		float triggerValue = Polity.GetNextLocalRandomFloat (RngOffsets.EVENT_CAN_TRIGGER + (int)Id);
+
+		if (triggerValue > splitValue)
+			return false;
+
+		return true;
+	}
+
+	public override void Trigger () {
+
+		float targetProminence = 0.3f + (0.4f * Polity.GetNextLocalRandomFloat (RngOffsets.EVENT_TRIGGER + (int)Id));
+
+		Tribe tribe = Polity as Tribe;
+
+		float accProminence = 0;
+
+		List<Faction> factions = new List<Faction> (Polity.GetFactions());
+
+		List<Clan> clansToTransfer = new List<Clan> (factions.Count);
+
+		int randQueryCount = 1;
+
+		factions.Sort ((a, b) => {
+			float randVal = Polity.GetNextLocalRandomFloat (RngOffsets.EVENT_TRIGGER + (int)Id + randQueryCount++);
+
+			if (randVal > 0.5f) return 1;
+			if (randVal < 0.5f) return -1;
+			return 0;
+		});
+
+		foreach (Clan clan in factions) {
+
+			if (clan.IsDominant)
+				continue;
+
+			accProminence += clan.Prominence;
+
+			if (accProminence > targetProminence)
+				break;
+
+			clansToTransfer.Add (clan);
+		}
+
+		clansToTransfer.Sort ((a, b) => {
+			if (a.Prominence < b.Prominence) return 1;
+			if (a.Prominence > b.Prominence) return -1;
+			return 0;
+		});
+
+		Clan newDominantClan = clansToTransfer[0];
+
+		Tribe newTribe = new Tribe (newDominantClan);
+
+		World.AddPolity (newTribe);
+		World.AddPolityToUpdate (newTribe);
+		World.AddPolityToUpdate (Polity);
+
+		foreach (Clan clan in clansToTransfer) {
+
+			World.AddGroupToUpdate (clan.CoreGroup);
+
+			clan.ChangePolity (newTribe, clan.Prominence);
+		}
+	}
+
+	protected override void DestroyInternal () {
+
+		base.DestroyInternal ();
+
+		if (Polity != null) {
+			Polity.UnsetFlag (EventSetFlag);
+		}
+
+		if ((Polity != null) && (Polity.StillPresent)) {
+
+			Tribe tribe = Polity as Tribe;
+
+			if (CanBeAssignedTo (tribe)) {
+
+				tribe.TribeSplitEvent = this;
+
+				Reset (CalculateTriggerDate (tribe));
+
+				World.InsertEventToHappen (this);
+			}
+		}
+	}
+
+	public override void FinalizeLoad () {
+
+		base.FinalizeLoad ();
+
+		Tribe tribe = Polity as Tribe;
+
+		tribe.TribeSplitEvent = this;
 	}
 }
