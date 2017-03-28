@@ -15,7 +15,7 @@ public class Clan : Faction {
 
 	}
 
-	public Clan (CellGroup group, Polity polity, float prominence, Clan parentClan = null) : base (ClanType, group, polity, prominence) {
+	public Clan (Polity polity, float prominence, Clan parentClan = null) : base (ClanType, polity, prominence) {
 
 		if (ClanSplitEvent.CanBeAssignedTo (this)) {
 
@@ -24,7 +24,7 @@ public class Clan : Faction {
 			World.InsertEventToHappen (ClanSplitEvent);
 		}
 
-		string logMessage = "New clan '" + Name + "' spawned in Polity '" + Polity.Name + "' at " + group.Cell.Position;
+		string logMessage = "New clan '" + Name + "' spawned in Polity '" + Polity.Name + "'";
 
 		if (parentClan != null) {
 		
@@ -43,52 +43,15 @@ public class Clan : Faction {
 		
 	}
 
-	public override void RelocateCore ()
-	{
-		List<CellGroup> validCoreGroups = new List<CellGroup> (CoreCell.Neighbors.Count);
-
-		foreach (TerrainCell cell in CoreCell.Neighbors.Values) {
-		
-			CellGroup group = cell.Group;
-
-			if ((group != null) && (CanBeCore (group))) {
-			
-				validCoreGroups.Add (group);
-			}
-		}
-
-		if (validCoreGroups.Count <= 0) {
-		
-			throw new System.Exception ("No valid core group to target");
-		}
-
-		int groupIndex = CoreCell.GetNextLocalRandomInt (RngOffsets.CLAN_CHOOSE_CORE_GROUP + (int)Polity.Id, validCoreGroups.Count);
-
-		SetCoreGroup (validCoreGroups [groupIndex]);
-	}
-
-	public bool CanBeCore (CellGroup group) {
-
-		return group.GetPolityInfluenceValue (Polity) > 0;
-	}
-
-	protected override void SetCoreGroupInternal (CellGroup coreGroup)
-	{
-		if (IsDominant) {
-
-			Polity.SetCoreGroup (coreGroup);
-		}
-	}
-
 	public override void GenerateName () {
 
 		int rngOffset = RngOffsets.CLAN_GENERATE_NAME + (int)Polity.Id;
 
-		GetRandomIntDelegate getRandomInt = (int maxValue) => CoreGroup.GetNextLocalRandomInt (rngOffset++, maxValue);
-		Language.GetRandomFloatDelegate getRandomFloat = () => CoreGroup.GetNextLocalRandomFloat (rngOffset++);
+		GetRandomIntDelegate getRandomInt = (int maxValue) => Polity.GetNextLocalRandomInt (rngOffset++, maxValue);
+		Language.GetRandomFloatDelegate getRandomFloat = () => Polity.GetNextLocalRandomFloat (rngOffset++);
 
 		Language language = Polity.Culture.Language;
-		Region region = CoreGroup.Cell.Region;
+		Region region = Polity.CoreGroup.Cell.Region;
 
 		string untranslatedName = "";
 		Language.NounPhrase namePhrase = null;
@@ -178,9 +141,7 @@ public class ClanSplitEvent : FactionEvent {
 
 		float socialOrganizationValue = 0;
 
-		CellGroup clanGroup = clan.CoreGroup;
-
-		CulturalKnowledge socialOrganizationKnowledge = clanGroup.Culture.GetKnowledge (SocialOrganizationKnowledge.SocialOrganizationKnowledgeId);
+		CulturalKnowledge socialOrganizationKnowledge = clan.Polity.Culture.GetKnowledge (SocialOrganizationKnowledge.SocialOrganizationKnowledgeId);
 
 		if (socialOrganizationKnowledge != null)
 			socialOrganizationValue = socialOrganizationKnowledge.Value;
@@ -239,25 +200,7 @@ public class ClanSplitEvent : FactionEvent {
 		return true;
 	}
 
-	private float GetTargetGroupWeight (CellGroup group) {
-
-		if (Faction.CoreGroup == group)
-			return 0;
-
-		float influenceFactor = Mathf.Max(0, group.GetPolityInfluenceValue (Polity) - 0.15f);
-
-		return group.Population * influenceFactor;
-	}
-
 	public override void Trigger () {
-
-		CellGroup targetGroup = Polity.GetRandomGroup (RngOffsets.EVENT_TRIGGER + (int)Id, GetTargetGroupWeight);
-
-		#if DEBUG
-		if (targetGroup == null) {
-			throw new System.Exception ("target group is null");
-		}
-		#endif
 
 		float randomValue = Faction.GetNextLocalRandomFloat (RngOffsets.EVENT_TRIGGER + 1 + (int)Id);
 		float randomFactor = 0.25f + randomValue * 0.5f;
@@ -268,7 +211,7 @@ public class ClanSplitEvent : FactionEvent {
 
 		float newClanProminence = oldProminence * (1f - randomFactor);
 
-		Polity.AddFaction (new Clan (targetGroup, Polity as Tribe, newClanProminence, Faction as Clan));
+		Polity.AddFaction (new Clan (Polity as Tribe, newClanProminence, Faction as Clan));
 
 		World.AddPolityToUpdate (Polity);
 	}

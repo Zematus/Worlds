@@ -57,7 +57,7 @@ public class Tribe : Polity {
 
 		//// Add starting clan
 
-		Clan clan = new Clan (coreGroup, this, 1);
+		Clan clan = new Clan (this, 1);
 
 		AddFaction (clan);
 
@@ -73,25 +73,40 @@ public class Tribe : Polity {
 		}
 	}
 
-	public Tribe (Clan clan) : base (TribeType, clan.CoreGroup) {
-		
-		Polity parentPolity = clan.Polity;
+	public Tribe (CellGroup coreGroup, Polity parentPolity, List<Clan> clansToTransfer) : base (TribeType, coreGroup) {
 
-		SwitchCellInfluences (parentPolity, clan);
+		Clan dominantClan = null;
 
-		SetDominantFaction (clan);
+		float transferedProminence = 0;
+
+		float highestProminence = 0;
+
+		foreach (Clan clan in clansToTransfer) {
+
+			transferedProminence += clan.Prominence;
+
+			if (clan.Prominence > highestProminence) {
+				highestProminence = clan.Prominence;
+				dominantClan = clan;
+			}
+
+			clan.ChangePolity (this, clan.Prominence);
+		}
+
+		SwitchCellInfluences (parentPolity, transferedProminence);
+
+		SetDominantFaction (dominantClan);
 
 		GenerateName ();
 
-		Debug.Log ("New tribe '" + Name + "' spawned at " + clan.CoreGroup.Cell.Position + " of clan '" + clan.Name + "' from tribe '" + parentPolity.Name + "'");
+		Debug.Log ("New tribe '" + Name + "' from tribe '" + parentPolity.Name + "' with total transfered prominence = " + transferedProminence);
 	}
 
-	private void SwitchCellInfluences (Polity sourcePolity, Clan pullingClan) {
-	
-		float clanProminence = pullingClan.Prominence;
-		float sourcePolityProminence = 1 - clanProminence;
+	private void SwitchCellInfluences (Polity sourcePolity, float targetPolityProminence) {
 
-		if (clanProminence <= 0) {
+		float sourcePolityProminence = 1 - targetPolityProminence;
+
+		if (targetPolityProminence <= 0) {
 		
 			throw new System.Exception ("Pulling clan prominence equal or less than zero.");
 		}
@@ -143,10 +158,10 @@ public class Tribe : Polity {
 			
 				float distanceFactor = distanceToSourcePolityCore / totalDistanceFactor;
 
-				float clanWeight = clanProminence * distanceFactor;
+				float targetPolityWeight = targetPolityProminence * distanceFactor;
 				float sourcePolityWeight = sourcePolityProminence * (1 - distanceFactor);
 
-				percentInfluence = clanWeight / (clanWeight + sourcePolityWeight);
+				percentInfluence = targetPolityWeight / (targetPolityWeight + sourcePolityWeight);
 			}
 
 			if (percentInfluence > 0.5f) {
@@ -397,6 +412,11 @@ public class TribeSplitEvent : PolityEvent {
 
 	public const string EventSetFlag = "TribeSplitEvent_Set";
 
+	public const float MinCoreInfluenceValue = 0.3f;
+
+	public const float MinTargetProminence = 0.3f;
+	public const float MaxTargetProminence = 0.7f;
+
 	public TribeSplitEvent () {
 
 	}
@@ -453,6 +473,9 @@ public class TribeSplitEvent : PolityEvent {
 		if (!base.CanTrigger ())
 			return false;
 
+		if (new List<Clan> (Polity.GetFactions<Clan> ()).Count <= 1)
+			return false;
+
 		float administrativeLoadFactor = CalculateTribeAdministrativeLoadFactor (Polity as Tribe);
 		administrativeLoadFactor = Mathf.Pow (administrativeLoadFactor, 2);
 
@@ -471,22 +494,35 @@ public class TribeSplitEvent : PolityEvent {
 		return true;
 	}
 
+	public float GetPolityGroupWeight (CellGroup group) {
+
+		if (group == Polity.CoreGroup)
+			return 0;
+
+		PolityInfluence pi = group.GetPolityInfluence (Polity);
+
+		if (group.HighestPolityInfluence != pi)
+			return 0;
+
+		float value = Mathf.Max(pi.Value - MinCoreInfluenceValue, 0);
+
+		return pi.CoreDistance * value;
+	}
+
 	public override void Trigger () {
 
-		float targetProminence = 0.3f + (0.4f * Polity.GetNextLocalRandomFloat (RngOffsets.EVENT_TRIGGER + (int)Id));
+		int rngOffset = RngOffsets.EVENT_TRIGGER + (int)Id;
 
-		Tribe tribe = Polity as Tribe;
+		float targetProminence = MinTargetProminence + ((MaxTargetProminence - MinTargetProminence) * Polity.GetNextLocalRandomFloat (rngOffset++));
 
 		float accProminence = 0;
 
-		List<Faction> factions = new List<Faction> (Polity.GetFactions());
+		List<Clan> factions = new List<Clan> (Polity.GetFactions<Clan>());
 
 		List<Clan> clansToTransfer = new List<Clan> (factions.Count);
 
-		int randQueryCount = 1;
-
 		factions.Sort ((a, b) => {
-			float randVal = Polity.GetNextLocalRandomFloat (RngOffsets.EVENT_TRIGGER + (int)Id + randQueryCount++);
+			float randVal = Polity.GetNextLocalRandomFloat (rngOffset++);
 
 			if (randVal > 0.5f) return 1;
 			if (randVal < 0.5f) return -1;
@@ -498,34 +534,21 @@ public class TribeSplitEvent : PolityEvent {
 			if (clan.IsDominant)
 				continue;
 
+			clansToTransfer.Add (clan);
+
 			accProminence += clan.Prominence;
 
 			if (accProminence > targetProminence)
 				break;
-
-			clansToTransfer.Add (clan);
 		}
 
-		clansToTransfer.Sort ((a, b) => {
-			if (a.Prominence < b.Prominence) return 1;
-			if (a.Prominence > b.Prominence) return -1;
-			return 0;
-		});
+		CellGroup newCoreGroup = Polity.GetRandomGroup (rngOffset++, GetPolityGroupWeight);
 
-		Clan newDominantClan = clansToTransfer[0];
-
-		Tribe newTribe = new Tribe (newDominantClan);
+		Tribe newTribe = new Tribe (newCoreGroup, Polity, clansToTransfer);
 
 		World.AddPolity (newTribe);
 		World.AddPolityToUpdate (newTribe);
 		World.AddPolityToUpdate (Polity);
-
-		foreach (Clan clan in clansToTransfer) {
-
-			World.AddGroupToUpdate (clan.CoreGroup);
-
-			clan.ChangePolity (newTribe, clan.Prominence);
-		}
 	}
 
 	protected override void DestroyInternal () {

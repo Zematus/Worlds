@@ -126,8 +126,6 @@ public abstract class Polity : ISynchronizable {
 
 	private bool _coreGroupIsValid = true;
 
-//	private bool _initialized = false;
-
 	public Polity () {
 	
 	}
@@ -166,21 +164,6 @@ public abstract class Polity : ISynchronizable {
 //		}
 //		#endif
 	}
-
-//	public void Initialize (float coreGroupInfluenceValue) {
-//
-//		CoreGroup.SetPolityInfluence (this, coreGroupInfluenceValue);
-//
-//		World.AddGroupToUpdate (CoreGroup);
-//
-//		GenerateName ();
-//
-//		InitializeInternal ();
-//
-//		_initialized = true;
-//	}
-//
-//	protected abstract void InitializeInternal ();
 
 	public void Destroy () {
 
@@ -271,9 +254,21 @@ public abstract class Polity : ISynchronizable {
 		faction.SetDominant (true);
 	}
 
-	public IEnumerable<Faction> GetFactions () {
-	
-		return _factions.Values;
+	public IEnumerable<Faction> GetFactions (string type = null) {
+
+		foreach (Faction faction in _factions.Values) {
+
+			if ((!string.IsNullOrEmpty(type))  && (faction.Type == type))
+				yield return faction;
+		}
+	}
+
+	public IEnumerable<T> GetFactions<T> () where T : Faction {
+
+		foreach (T faction in _factions.Values) {
+
+				yield return faction;
+		}
 	}
 
 	public void NormalizeFactionProminences () {
@@ -337,21 +332,19 @@ public abstract class Polity : ISynchronizable {
 
 		if (!_coreGroupIsValid) {
 
-			throw new System.Exception ("Core group is no longer valid");
+			if (!TryRelocateCore ()) {
 
-//			if (!TryRelocateCore ()) {
-//
-//				// We were unable to find a new core for the polity
-//				World.AddPolityToRemove (this);
-//
-//				#if DEBUG
-//				_populationCensusUpdated = false;
-//				#endif
-//
-//				return;
-//			}
-//
-//			_coreGroupIsValid = true;
+				// We were unable to find a new core for the polity
+				World.AddPolityToRemove (this);
+
+				#if DEBUG
+				_populationCensusUpdated = false;
+				#endif
+
+				return;
+			}
+
+			_coreGroupIsValid = true;
 		}
 
 		#if DEBUG
@@ -414,14 +407,6 @@ public abstract class Polity : ISynchronizable {
 		if (group == CoreGroup) {
 
 			_coreGroupIsValid = false;
-		}
-
-		foreach (Faction faction in _factions.Values) {
-		
-			if (group == faction.CoreGroup) {
-			
-				faction.CoreGroupIsValid = false;
-			}
 		}
 	}
 
@@ -663,20 +648,20 @@ public abstract class Polity : ISynchronizable {
 		}
 	}
 
-//	// TODO: This function should be overriden in children
-//	public virtual bool TryRelocateCore () {
-//
-//		CellGroup mostInfluencedPopGroup = GetGroupWithMostInfluencedPop ();
-//
-//		if (mostInfluencedPopGroup == null) {
-//
-//			return false;
-//		}
-//
-//		SetCoreGroup (mostInfluencedPopGroup);
-//
-//		return true;
-//	}
+	// TODO: This function should be overriden in children
+	public virtual bool TryRelocateCore () {
+
+		CellGroup mostInfluencedPopGroup = GetGroupWithMostInfluencedPop ();
+
+		if (mostInfluencedPopGroup == null) {
+
+			return false;
+		}
+
+		SetCoreGroup (mostInfluencedPopGroup);
+
+		return true;
+	}
 
 	public void UpdateTotalAdministrativeCost () {
 
@@ -700,6 +685,9 @@ public abstract class Polity : ISynchronizable {
 		foreach (CellGroup group in InfluencedGroups.Values) {
 
 			float weight = calculateGroupValue (group);
+
+			if (weight < 0)
+				throw new System.Exception ("calculateGroupValue method returned weight value less than zero: " + weight);
 
 			totalWeight += weight;
 
