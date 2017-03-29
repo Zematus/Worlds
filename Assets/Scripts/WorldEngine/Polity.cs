@@ -14,14 +14,14 @@ public class PolityInfluence {
 	[XmlAttribute("Val")]
 	public float Value;
 	[XmlAttribute("Dist")]
-	public float CoreDistance;
+	public float CoreDistance = float.MaxValue;
 	[XmlAttribute("Cost")]
 	public float AdiministrativeCost;
 
 	[XmlIgnore]
 	public float NewValue;
 	[XmlIgnore]
-	public float NewCoreDistance;
+	public float NewCoreDistance = float.MaxValue;
 
 	[XmlIgnore]
 	public Polity Polity;
@@ -130,7 +130,7 @@ public abstract class Polity : ISynchronizable {
 	
 	}
 
-	protected Polity (string type, CellGroup coreGroup) {
+	protected Polity (string type, CellGroup coreGroup, Polity parentPolity = null) {
 
 		Type = type;
 
@@ -141,7 +141,14 @@ public abstract class Polity : ISynchronizable {
 		CoreGroup = coreGroup;
 		CoreGroupId = coreGroup.Id;
 
-		Id = coreGroup.GenerateUniqueIdentifier ();
+		int idOffset = 0;
+
+		if (parentPolity != null) {
+		
+			idOffset = (int)parentPolity.Id;
+		}
+
+		Id = coreGroup.GenerateUniqueIdentifier (offset: idOffset);
 
 		Culture = new PolityCulture (this);
 
@@ -254,11 +261,16 @@ public abstract class Polity : ISynchronizable {
 		faction.SetDominant (true);
 	}
 
-	public IEnumerable<Faction> GetFactions (string type = null) {
+	public IEnumerable<Faction> GetFactions () {
+
+		return _factions.Values;
+	}
+
+	public IEnumerable<Faction> GetFactions (string type) {
 
 		foreach (Faction faction in _factions.Values) {
 
-			if ((!string.IsNullOrEmpty(type))  && (faction.Type == type))
+			if (faction.Type == type)
 				yield return faction;
 		}
 	}

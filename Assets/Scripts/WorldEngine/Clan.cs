@@ -15,7 +15,7 @@ public class Clan : Faction {
 
 	}
 
-	public Clan (Polity polity, float prominence, Clan parentClan = null) : base (ClanType, polity, prominence) {
+	public Clan (Polity polity, float prominence, Clan parentClan = null) : base (ClanType, polity, prominence, parentClan) {
 
 		if (ClanSplitEvent.CanBeAssignedTo (this)) {
 
@@ -124,7 +124,7 @@ public class ClanSplitEvent : FactionEvent {
 
 	public const int DateSpanFactorConstant = CellGroup.GenerationTime * 500;
 
-	public const int MuAdministrativeLoadValue = 100000;
+	public const int MuAdministrativeLoadValue = 200000;
 
 	public const string EventSetFlag = "ClanSplitEvent_Set";
 

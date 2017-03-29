@@ -40,13 +40,20 @@ public abstract class Faction : ISynchronizable {
 
 	}
 
-	public Faction (string type, Polity polity, float prominence) {
+	public Faction (string type, Polity polity, float prominence, Faction parentFaction = null) {
 
 		Type = type;
 
 		World = polity.World;
 
-		Id = polity.GenerateUniqueIdentifier ();
+		int idOffset = 0;
+
+		if (parentFaction != null) {
+		
+			idOffset = (int)parentFaction.Id;
+		}
+
+		Id = polity.GenerateUniqueIdentifier (offset: idOffset);
 
 		PolityId = polity.Id;
 		Polity = polity;

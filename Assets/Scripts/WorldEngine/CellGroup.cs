@@ -91,6 +91,14 @@ public class CellGroup : HumanGroup {
 	public static float TravelWidthFactor;
 
 	[XmlIgnore]
+	public WorldPosition Position {
+
+		get { 
+			return Cell.Position;
+		}
+	}
+
+	[XmlIgnore]
 	public float TotalPolityInfluenceValue {
 
 		get {

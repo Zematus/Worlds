@@ -73,7 +73,7 @@ public class Tribe : Polity {
 		}
 	}
 
-	public Tribe (CellGroup coreGroup, Polity parentPolity, List<Clan> clansToTransfer) : base (TribeType, coreGroup) {
+	public Tribe (CellGroup coreGroup, Polity parentPolity, List<Clan> clansToTransfer) : base (TribeType, coreGroup, parentPolity) {
 
 		Clan dominantClan = null;
 
@@ -115,16 +115,16 @@ public class Tribe : Polity {
 
 		Dictionary<CellGroup, float> groupDistances = new Dictionary<CellGroup, float> (maxGroupCount);
 
-		Stack<CellGroup> sourceGroups = new Stack<CellGroup> (maxGroupCount);
+		Queue<CellGroup> sourceGroups = new Queue<CellGroup> (maxGroupCount);
 
-		sourceGroups.Push (CoreGroup);
+		sourceGroups.Enqueue (CoreGroup);
 
 		int reviewedCells = 0;
 		int switchedCells = 0;
 
 		while (sourceGroups.Count > 0) {
 		
-			CellGroup group = sourceGroups.Pop ();
+			CellGroup group = sourceGroups.Dequeue ();
 
 			if (groupDistances.ContainsKey (group))
 				continue;
@@ -149,17 +149,25 @@ public class Tribe : Polity {
 
 			if (distanceToSourcePolityCore < float.MaxValue) {
 
-				float totalDistanceFactor = distanceToCore + distanceToSourcePolityCore;
+				float ditanceToCoresSum = distanceToCore + distanceToSourcePolityCore;
 
-				if (totalDistanceFactor <= 0) {
+				if (ditanceToCoresSum <= 0) {
 
 					throw new System.Exception ("Sum of core distances equal or less than zero.");
 				}
 			
-				float distanceFactor = distanceToSourcePolityCore / totalDistanceFactor;
+				float distanceFactor = distanceToSourcePolityCore / ditanceToCoresSum;
 
-				float targetPolityWeight = targetPolityProminence * distanceFactor;
-				float sourcePolityWeight = sourcePolityProminence * (1 - distanceFactor);
+//				float targetDistanceFactor = Mathf.Pow (distanceFactor, 4);
+//				float sourceDistanceFactor = Mathf.Pow (1 - distanceFactor, 4);
+				float targetDistanceFactor = distanceFactor;
+//				float sourceDistanceFactor = Mathf.Max (1 - 2*distanceFactor, 0);
+				float sourceDistanceFactor = 1 - distanceFactor;
+
+//				float targetPolityWeight = targetPolityProminence * targetDistanceFactor;
+//				float sourcePolityWeight = sourcePolityProminence * sourceDistanceFactor;
+				float targetPolityWeight = targetDistanceFactor;
+				float sourcePolityWeight = sourceDistanceFactor;
 
 				percentInfluence = targetPolityWeight / (targetPolityWeight + sourcePolityWeight);
 			}
@@ -185,7 +193,7 @@ public class Tribe : Polity {
 				if (groupDistances.ContainsKey (neighborGroup))
 					continue;
 			
-				sourceGroups.Push (neighborGroup);
+				sourceGroups.Enqueue (neighborGroup);
 			}
 		}
 
@@ -408,7 +416,7 @@ public class TribeSplitEvent : PolityEvent {
 
 	public const int DateSpanFactorConstant = CellGroup.GenerationTime * 500;
 
-	public const int MuAdministrativeLoadValue = 100000;
+	public const int MuAdministrativeLoadValue = 200000;
 
 	public const string EventSetFlag = "TribeSplitEvent_Set";
 

@@ -1807,7 +1807,15 @@ public class GuiManagerScript : MonoBehaviour {
 
 		bool firstPolity = true;
 
-		foreach (PolityInfluence polityInfluence in cell.Group.GetPolityInfluences ()) {
+		List<PolityInfluence> polityInfluences = cell.Group.GetPolityInfluences ();
+
+		polityInfluences.Sort ((a, b) => {
+			if (a.Value > b.Value) return -1;
+			if (a.Value < b.Value) return 1;
+			return 0;
+		});
+
+		foreach (PolityInfluence polityInfluence in polityInfluences) {
 
 			Polity polity = polityInfluence.Polity;
 			float influenceValue = polityInfluence.Value;
@@ -1822,7 +1830,7 @@ public class GuiManagerScript : MonoBehaviour {
 					firstPolity = false;
 				}
 
-				InfoPanelText.text += "\n\tPolity #" + polity.Id + ":" +
+				InfoPanelText.text += "\n\tPolity: " + polity.Name.Text + " (#" + polity.Id +")" +
 					"\n\t\tInfluence: " + influenceValue.ToString ("P") +
 					"\n\t\tDistance to Core: " + coreDistance.ToString ("0.000") +
 					"\n\t\tAdministrative Cost: " + administrativeCost.ToString ("0.000");
@@ -1863,6 +1871,9 @@ public class GuiManagerScript : MonoBehaviour {
 		Polity polity = territory.Polity;
 
 		InfoPanelText.text += "\n\tTerritory of " + polity.Type + " " + polity.Name + " (#" + polity.Id +")";
+		InfoPanelText.text += "\n";
+
+		InfoPanelText.text += "\n\tPolity core: " + polity.CoreGroup.Position;
 		InfoPanelText.text += "\n";
 
 		int totalPopulation = (int)Mathf.Floor(polity.TotalPopulation);
