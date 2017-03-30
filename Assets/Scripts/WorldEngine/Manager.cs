@@ -23,6 +23,7 @@ public enum PlanetOverlay {
 	PopCulturalKnowledge,
 	PopCulturalDiscovery,
 	PolityTerritory,
+	PolityCoreDistance,
 	PolityInfluence,
 	PolityCulturalActivity,
 	PolityCulturalSkill,
@@ -1198,6 +1199,10 @@ public class Manager {
 			color = SetPolityTerritoryOverlayColor (cell, color);
 			break;
 
+		case PlanetOverlay.PolityCoreDistance:
+			color = SetPolityCoreDistanceOverlayColor (cell, color);
+			break;
+
 		case PlanetOverlay.PolityInfluence:
 			color = SetPolityInfluenceOverlayColor (cell, color);
 			break;
@@ -1457,13 +1462,6 @@ public class Manager {
 			return color;
 		}
 
-		if (cell.Group != null) {
-			
-			color.r += 1.5f / 9f;
-			color.g += 1.5f / 9f;
-			color.b += 1.5f / 9f;
-		}
-
 		if (cell.EncompassingTerritory != null) {
 
 			Polity territoryPolity = cell.EncompassingTerritory.Polity;
@@ -1484,6 +1482,52 @@ public class Manager {
 			color.r = territoryColor.r;
 			color.g = territoryColor.g;
 			color.b = territoryColor.b;
+
+		} else if (cell.Group != null) {
+
+			color.r += 1.5f / 9f;
+			color.g += 1.5f / 9f;
+			color.b += 1.5f / 9f;
+		}
+
+		return color;
+	}
+
+	private static Color SetPolityCoreDistanceOverlayColor (TerrainCell cell, Color color) {
+
+		float greyscale = (color.r + color.g + color.b);
+
+		color.r = (greyscale + color.r) / 9f;
+		color.g = (greyscale + color.g) / 9f;
+		color.b = (greyscale + color.b) / 9f;
+
+		if (cell.GetBiomePresence (Biome.Ocean) >= 1f) {
+
+			return color;
+		}
+
+		if (cell.Group != null) {
+			if (cell.EncompassingTerritory != null) {
+
+				Polity territoryPolity = cell.EncompassingTerritory.Polity;
+
+				Color territoryColor = GenerateColorFromId (territoryPolity.Id);
+
+				PolityInfluence pi = cell.Group.GetPolityInfluence (territoryPolity);
+
+				float distanceFactor = Mathf.Sqrt (pi.CoreDistance);
+				distanceFactor = 1 - 0.9f * Mathf.Min (1, distanceFactor / 50f);
+
+				color.r = territoryColor.r * distanceFactor;
+				color.g = territoryColor.g * distanceFactor;
+				color.b = territoryColor.b * distanceFactor;
+
+			} else {
+
+				color.r += 1.5f / 9f;
+				color.g += 1.5f / 9f;
+				color.b += 1.5f / 9f;
+			}
 		}
 
 		return color;

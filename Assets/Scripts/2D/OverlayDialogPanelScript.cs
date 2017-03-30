@@ -22,6 +22,7 @@ public class OverlayDialogPanelScript : MonoBehaviour {
 	public Toggle PopCulturalDiscoveryToggle;
 
 	public Toggle TerritoriesToggle;
+	public Toggle DistancesToCoresToggle;
 	public Toggle InfluenceToggle;
 	public Toggle PolityCulturalActivityToggle;
 	public Toggle PolityCulturalSkillToggle;
@@ -51,6 +52,7 @@ public class OverlayDialogPanelScript : MonoBehaviour {
 		#endif
 	
 		DebugDataToggle.gameObject.SetActive (debugState);
+		DistancesToCoresToggle.gameObject.SetActive (debugState);
 	}
 	
 	// Update is called once per frame
@@ -90,6 +92,7 @@ public class OverlayDialogPanelScript : MonoBehaviour {
 
 		if (!PolityDataToggle.isOn) {
 			TerritoriesToggle.isOn = false;
+			DistancesToCoresToggle.isOn = false;
 			InfluenceToggle.isOn = false;
 			PolityCulturalActivityToggle.isOn = false;
 			PolityCulturalSkillToggle.isOn = false;

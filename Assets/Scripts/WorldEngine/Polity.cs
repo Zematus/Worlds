@@ -14,14 +14,16 @@ public class PolityInfluence {
 	[XmlAttribute("Val")]
 	public float Value;
 	[XmlAttribute("Dist")]
-	public float CoreDistance = float.MaxValue;
+	public float CoreDistance;
 	[XmlAttribute("Cost")]
 	public float AdiministrativeCost;
 
 	[XmlIgnore]
 	public float NewValue;
 	[XmlIgnore]
-	public float NewCoreDistance = float.MaxValue;
+	public float NewCoreDistance;
+
+	private bool _isMigratingGroup;
 
 	[XmlIgnore]
 	public Polity Polity;
@@ -30,7 +32,7 @@ public class PolityInfluence {
 
 	}
 
-	public PolityInfluence (Polity polity, float value) {
+	public PolityInfluence (Polity polity, float value, float coreDistance = -1) {
 	
 		PolityId = polity.Id;
 		Polity = polity;
@@ -38,9 +40,17 @@ public class PolityInfluence {
 		NewValue = Value;
 
 		AdiministrativeCost = 0;
+
+		CoreDistance = coreDistance;
+		NewCoreDistance = coreDistance;
 	}
 
 	public void PostUpdate () {
+
+		if (CoreDistance == -1) {
+		
+			throw new System.Exception ("Core distance is not properly initialized");
+		}
 
 		Value = NewValue;
 		CoreDistance = NewCoreDistance;
@@ -561,7 +571,9 @@ public abstract class Polity : ISynchronizable {
 
 		float coreDistance = group.GetPolityCoreDistance (this);
 
-		if (coreDistance == float.MaxValue)
+		float coreDistancePlusConstant = coreDistance + CoreDistanceEffectConstant;
+
+		if (coreDistancePlusConstant < 0)
 			return;
 
 		TerrainCell groupCell = group.Cell;
@@ -575,7 +587,7 @@ public abstract class Polity : ISynchronizable {
 		float scaledValue = (targetValue - influenceValue) * influenceValue / totalPolityInfluenceValue;
 		targetValue = influenceValue + scaledValue;
 
-		float distanceFactor = CoreDistanceEffectConstant / (coreDistance + CoreDistanceEffectConstant);
+		float distanceFactor = CoreDistanceEffectConstant / coreDistancePlusConstant;
 
 		float timeFactor = timeSpan / (float)(timeSpan + TimeEffectConstant);
 
@@ -684,6 +696,11 @@ public abstract class Polity : ISynchronizable {
 			PolityInfluence pi = group.GetPolityInfluence (this);
 
 			TotalAdministrativeCost += pi.AdiministrativeCost;
+
+			if (TotalAdministrativeCost < 0) {
+				TotalAdministrativeCost = float.MaxValue;
+				break;
+			}
 		}
 	}
 

@@ -47,7 +47,7 @@ public class Tribe : Polity {
 		float randomValue = coreGroup.Cell.GetNextLocalRandomFloat (RngOffsets.TRIBE_GENERATE_NEW_TRIBE);
 		float coreInfluence = BaseCoreInfluence + randomValue * (1 - BaseCoreInfluence);
 
-		coreGroup.SetPolityInfluence (this, coreInfluence);
+		coreGroup.SetPolityInfluence (this, coreInfluence, 0);
 
 		World.AddGroupToUpdate (coreGroup);
 
@@ -161,13 +161,12 @@ public class Tribe : Polity {
 //				float targetDistanceFactor = Mathf.Pow (distanceFactor, 4);
 //				float sourceDistanceFactor = Mathf.Pow (1 - distanceFactor, 4);
 				float targetDistanceFactor = distanceFactor;
-//				float sourceDistanceFactor = Mathf.Max (1 - 2*distanceFactor, 0);
 				float sourceDistanceFactor = 1 - distanceFactor;
 
-//				float targetPolityWeight = targetPolityProminence * targetDistanceFactor;
-//				float sourcePolityWeight = sourcePolityProminence * sourceDistanceFactor;
-				float targetPolityWeight = targetDistanceFactor;
-				float sourcePolityWeight = sourceDistanceFactor;
+				float targetPolityWeight = targetPolityProminence * targetDistanceFactor;
+				float sourcePolityWeight = sourcePolityProminence * sourceDistanceFactor;
+//				float targetPolityWeight = targetDistanceFactor;
+//				float sourcePolityWeight = sourceDistanceFactor;
 
 				percentInfluence = targetPolityWeight / (targetPolityWeight + sourcePolityWeight);
 			}
@@ -184,7 +183,7 @@ public class Tribe : Polity {
 	
 			group.SetPolityInfluence (sourcePolity, influenceValue * (1 - percentInfluence));
 
-			group.SetPolityInfluence (this, influenceValue * percentInfluence);
+			group.SetPolityInfluence (this, influenceValue * percentInfluence, distanceToCore);
 	
 			World.AddGroupToUpdate (group);
 
@@ -514,7 +513,12 @@ public class TribeSplitEvent : PolityEvent {
 
 		float value = Mathf.Max(pi.Value - MinCoreInfluenceValue, 0);
 
-		return pi.CoreDistance * value;
+		float weight = pi.CoreDistance * value;
+
+		if (weight < 0)
+			return float.MaxValue;
+
+		return weight;
 	}
 
 	public override void Trigger () {

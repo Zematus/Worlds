@@ -754,6 +754,9 @@ public class GuiManagerScript : MonoBehaviour {
 		case PlanetOverlay.PolityTerritory: 
 			planetOverlayStr = "_polity_territories"; 
 			break;
+		case PlanetOverlay.PolityCoreDistance: 
+			planetOverlayStr = "_polity_core_distances"; 
+			break;
 		case PlanetOverlay.Language: 
 			planetOverlayStr = "_languages"; 
 			break;
@@ -980,6 +983,8 @@ public class GuiManagerScript : MonoBehaviour {
 			SetPopCulturalDiscoveryOverlay ();
 		} else if (OverlayDialogPanelScript.TerritoriesToggle.isOn) {
 			ChangePlanetOverlay (PlanetOverlay.PolityTerritory);
+		} else if (OverlayDialogPanelScript.DistancesToCoresToggle.isOn) {
+			ChangePlanetOverlay (PlanetOverlay.PolityCoreDistance);
 		} else if (OverlayDialogPanelScript.InfluenceToggle.isOn) {
 			ChangePlanetOverlay (PlanetOverlay.PolityInfluence);
 		} else if (OverlayDialogPanelScript.PolityCulturalActivityToggle.isOn) {
@@ -1038,6 +1043,7 @@ public class GuiManagerScript : MonoBehaviour {
 		OverlayDialogPanelScript.PopCulturalDiscoveryToggle.isOn = false;
 
 		OverlayDialogPanelScript.TerritoriesToggle.isOn = false;
+		OverlayDialogPanelScript.DistancesToCoresToggle.isOn = false;
 		OverlayDialogPanelScript.InfluenceToggle.isOn = false;
 		OverlayDialogPanelScript.PolityCulturalActivityToggle.isOn = false;
 		OverlayDialogPanelScript.PolityCulturalSkillToggle.isOn = false;
@@ -1095,6 +1101,11 @@ public class GuiManagerScript : MonoBehaviour {
 
 		case PlanetOverlay.PolityTerritory:
 			OverlayDialogPanelScript.TerritoriesToggle.isOn = true;
+			OverlayDialogPanelScript.PolityDataToggle.isOn = true;
+			break;
+
+		case PlanetOverlay.PolityCoreDistance:
+			OverlayDialogPanelScript.DistancesToCoresToggle.isOn = true;
 			OverlayDialogPanelScript.PolityDataToggle.isOn = true;
 			break;
 
@@ -1870,10 +1881,9 @@ public class GuiManagerScript : MonoBehaviour {
 
 		Polity polity = territory.Polity;
 
-		InfoPanelText.text += "\n\tTerritory of " + polity.Type + " " + polity.Name + " (#" + polity.Id +")";
-		InfoPanelText.text += "\n";
+		PolityInfluence pi = cell.Group.GetPolityInfluence (polity);
 
-		InfoPanelText.text += "\n\tPolity core: " + polity.CoreGroup.Position;
+		InfoPanelText.text += "\n\tTerritory of " + polity.Type + " " + polity.Name + " (#" + polity.Id +")";
 		InfoPanelText.text += "\n";
 
 		int totalPopulation = (int)Mathf.Floor(polity.TotalPopulation);
@@ -1910,6 +1920,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 		InfoPanelText.text += "\n\tInfluenced population: " + influencedPopulation;
 		InfoPanelText.text += "\n\tPercentage of polity population: " + percentageOfPolity.ToString ("P");
+		InfoPanelText.text += "\n\tDistance to polity core: " + pi.CoreDistance.ToString ("0.000");
 	}
 
 	public void AddCellDataToInfoPanel_PolityCulturalActivity (TerrainCell cell) {
@@ -2308,6 +2319,11 @@ public class GuiManagerScript : MonoBehaviour {
 		}
 
 		if (_planetOverlay == PlanetOverlay.PolityTerritory) {
+
+			AddCellDataToInfoPanel_PolityTerritory (cell);
+		}
+
+		if (_planetOverlay == PlanetOverlay.PolityCoreDistance) {
 
 			AddCellDataToInfoPanel_PolityTerritory (cell);
 		}
