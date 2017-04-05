@@ -47,13 +47,13 @@ public class PolityInfluence {
 
 	public void PostUpdate () {
 
-		if (CoreDistance == -1) {
-		
-			throw new System.Exception ("Core distance is not properly initialized");
-		}
-
 		Value = NewValue;
 		CoreDistance = NewCoreDistance;
+
+		if (CoreDistance == -1) {
+
+			throw new System.Exception ("Core distance is not properly initialized");
+		}
 	}
 }
 
@@ -584,7 +584,7 @@ public abstract class Polity : ISynchronizable {
 		float randomModifier = groupCell.GetNextLocalRandomFloat (RngOffsets.POLITY_UPDATE_EFFECTS + (int)Id);
 		float targetValue = ((maxTargetValue - minTargetValue) * randomModifier) + minTargetValue;
 
-		float scaledValue = (targetValue - influenceValue) * influenceValue / totalPolityInfluenceValue;
+		float scaledValue = (targetValue - totalPolityInfluenceValue) * influenceValue / totalPolityInfluenceValue;
 		targetValue = influenceValue + scaledValue;
 
 		float distanceFactor = CoreDistanceEffectConstant / coreDistancePlusConstant;
@@ -704,7 +704,7 @@ public abstract class Polity : ISynchronizable {
 		}
 	}
 
-	public CellGroup GetRandomGroup (int rngOffset, GroupValueCalculationDelegate calculateGroupValue) {
+	public CellGroup GetRandomGroup (int rngOffset, GroupValueCalculationDelegate calculateGroupValue, bool nullIfNoValidGroup = false) {
 
 		WeightedGroup[] weightedGroups = new WeightedGroup[InfluencedGroups.Count];
 
@@ -722,6 +722,16 @@ public abstract class Polity : ISynchronizable {
 
 			weightedGroups [index] = new WeightedGroup (group, weight);
 			index++;
+		}
+
+		if (totalWeight < 0) {
+		
+			throw new System.Exception ("Total weight can't be less than zero: " + totalWeight);
+		}
+
+		if ((totalWeight == 0) && nullIfNoValidGroup) {
+		
+			return null;
 		}
 
 		return CollectionUtility.WeightedSelection (weightedGroups, totalWeight, () => GetNextLocalRandomFloat (rngOffset));

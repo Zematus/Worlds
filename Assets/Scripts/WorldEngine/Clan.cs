@@ -122,9 +122,9 @@ public class Clan : Faction {
 
 public class ClanSplitEvent : FactionEvent {
 
-	public const int DateSpanFactorConstant = CellGroup.GenerationTime * 500;
+	public const int DateSpanFactorConstant = CellGroup.GenerationTime * 2000;
 
-	public const int MuAdministrativeLoadValue = 200000;
+	public const int MuAdministrativeLoadValue = 500000;
 
 	public const string EventSetFlag = "ClanSplitEvent_Set";
 

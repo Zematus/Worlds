@@ -126,6 +126,13 @@ public class Tribe : Polity {
 		
 			CellGroup group = sourceGroups.Dequeue ();
 
+//			#if DEBUG
+//			if ((group.Cell.Longitude == 229) && (group.Cell.Latitude == 120)) {
+//			
+//				bool debug = true;
+//			}
+//			#endif
+
 			if (groupDistances.ContainsKey (group))
 				continue;
 
@@ -157,6 +164,8 @@ public class Tribe : Polity {
 				}
 			
 				float distanceFactor = distanceToSourcePolityCore / ditanceToCoresSum;
+
+				distanceFactor = Mathf.Clamp01((distanceFactor * 3f) - 1f);
 
 //				float targetDistanceFactor = Mathf.Pow (distanceFactor, 4);
 //				float sourceDistanceFactor = Mathf.Pow (1 - distanceFactor, 4);
@@ -413,16 +422,20 @@ public class TribeFormationEvent : CellGroupEvent {
 
 public class TribeSplitEvent : PolityEvent {
 
-	public const int DateSpanFactorConstant = CellGroup.GenerationTime * 500;
+	public const int DateSpanFactorConstant = CellGroup.GenerationTime * 2000;
 
-	public const int MuAdministrativeLoadValue = 200000;
+	public const int MuAdministrativeLoadValue = 500000;
 
 	public const string EventSetFlag = "TribeSplitEvent_Set";
 
 	public const float MinCoreInfluenceValue = 0.3f;
 
-	public const float MinTargetProminence = 0.3f;
-	public const float MaxTargetProminence = 0.7f;
+	public const float MinCoreDistance = 1000f;
+
+	public const float MinTargetProminence = 0.40f;
+	public const float MaxTargetProminence = 0.60f;
+
+	private CellGroup _newCoreGroup = null;
 
 	public TribeSplitEvent () {
 
@@ -493,9 +506,16 @@ public class TribeSplitEvent : PolityEvent {
 
 		float splitValue = administrativeLoadFactor / (administrativeLoadFactor + MuAdministrativeLoadValue);
 
-		float triggerValue = Polity.GetNextLocalRandomFloat (RngOffsets.EVENT_CAN_TRIGGER + (int)Id);
+		int rngOffset = RngOffsets.EVENT_CAN_TRIGGER + (int)Id;
+
+		float triggerValue = Polity.GetNextLocalRandomFloat (rngOffset++);
 
 		if (triggerValue > splitValue)
+			return false;
+
+		_newCoreGroup = Polity.GetRandomGroup (rngOffset++, GetPolityGroupWeight, true);
+
+		if (_newCoreGroup == null)
 			return false;
 
 		return true;
@@ -513,7 +533,9 @@ public class TribeSplitEvent : PolityEvent {
 
 		float value = Mathf.Max(pi.Value - MinCoreInfluenceValue, 0);
 
-		float weight = pi.CoreDistance * value;
+		float coreDistance = Mathf.Max(pi.CoreDistance - MinCoreDistance, 0);
+
+		float weight = coreDistance * value;
 
 		if (weight < 0)
 			return float.MaxValue;
@@ -554,9 +576,7 @@ public class TribeSplitEvent : PolityEvent {
 				break;
 		}
 
-		CellGroup newCoreGroup = Polity.GetRandomGroup (rngOffset++, GetPolityGroupWeight);
-
-		Tribe newTribe = new Tribe (newCoreGroup, Polity, clansToTransfer);
+		Tribe newTribe = new Tribe (_newCoreGroup, Polity, clansToTransfer);
 
 		World.AddPolity (newTribe);
 		World.AddPolityToUpdate (newTribe);

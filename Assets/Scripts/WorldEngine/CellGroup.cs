@@ -180,6 +180,10 @@ public class CellGroup : HumanGroup {
 		foreach (PolityInfluence p in migratingGroup.PolityInfluences) {
 
 			_polityInfluencesToAdd.Add (p.PolityId, p);
+
+			if (p.NewCoreDistance == -1) {
+				p.NewCoreDistance = CalculateShortestPolityCoreDistance (p.Polity);
+			}
 		}
 	}
 
@@ -1413,6 +1417,25 @@ public class CellGroup : HumanGroup {
 	}
 
 	private void PolityUpdateEffects (int timeSpan) {
+
+//		#if DEBUG
+//		if ((Cell.Longitude == 229) && (Cell.Latitude == 120)) {
+//			if ((_polityInfluences.Count + _polityInfluencesToAdd.Count) == 2) {
+//				bool debug = true;
+//			}
+//		}
+//		#endif
+
+//		// Use a temporal total influence value to avoid issues with polity influences to add or remove
+//		float totalPolityInfluenceValue = 0;
+//
+//		foreach (PolityInfluence polityInfluence in _polityInfluences.Values) {
+//
+//			if (_polityInfluencesToRemove.Contains (polityInfluence.PolityId))
+//				continue;
+//
+//			totalPolityInfluenceValue += polityInfluence.NewValue;
+//		}
 
 		foreach (PolityInfluence polityInfluence in _polityInfluences.Values) {
 
