@@ -266,6 +266,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 		bool simulationState = Manager.SimulationCanRun && Manager.SimulationRunning;
 
+//		bool simulationInterruptionState = !simulationState && !_simulationGuiPause;
 
 //		if (_prevSimulationInterruptionState != simulationInterruptionState) {
 //
