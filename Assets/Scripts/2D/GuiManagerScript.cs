@@ -126,6 +126,8 @@ public class GuiManagerScript : MonoBehaviour {
 
 	private bool _infoTextMinimized = false;
 
+//	private bool _prevSimulationInterruptionState = false;
+
 	private StreamWriter _debugLogStream;
 
 	void OnEnable()
@@ -260,11 +262,15 @@ public class GuiManagerScript : MonoBehaviour {
 				_postProgressOp ();
 		}
 		
-		bool updateTextures = false;
+//		bool updateTextures = false;
 
 		bool simulationState = Manager.SimulationCanRun && Manager.SimulationRunning;
 
-		InterruptSimulation (!simulationState && !_simulationGuiPause);
+
+//		if (_prevSimulationInterruptionState != simulationInterruptionState) {
+//
+////			InterruptSimulation (simulationInterruptionState);
+//		}
 
 		if (simulationState) {
 
@@ -304,7 +310,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 				_simulationDateSpan += dateSpan;
 
-				updateTextures = true;
+//				updateTextures = true;
 			}
 		}
 	
@@ -334,7 +340,8 @@ public class GuiManagerScript : MonoBehaviour {
 
 			_mapUpdateCount++;
 
-		} else if (updateTextures) {
+//		} else if (updateTextures) {
+		} else {
 
 			Manager.UpdateTextures ();
 
@@ -1232,6 +1239,8 @@ public class GuiManagerScript : MonoBehaviour {
 	}
 
 	public void InterruptSimulation (bool state) {
+
+//		_prevSimulationInterruptionState = state;
 
 		SetPauseGui (state);
 
