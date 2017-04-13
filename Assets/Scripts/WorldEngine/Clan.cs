@@ -43,9 +43,12 @@ public class Clan : Faction {
 		
 	}
 
-	public override void GenerateName () {
+	protected override void GenerateName (Faction parentFaction) {
 
 		int rngOffset = RngOffsets.CLAN_GENERATE_NAME + (int)Polity.Id;
+
+		if (parentFaction != null)
+			rngOffset += (int)parentFaction.Id;
 
 		GetRandomIntDelegate getRandomInt = (int maxValue) => Polity.GetNextLocalRandomInt (rngOffset++, maxValue);
 		Language.GetRandomFloatDelegate getRandomFloat = () => Polity.GetNextLocalRandomFloat (rngOffset++);
@@ -126,6 +129,10 @@ public class ClanSplitEvent : FactionEvent {
 
 	public const int MuAdministrativeLoadValue = 500000;
 
+	public const float MinProminenceTrigger = 0.25f;
+	public const float MinProminenceTransfer = 0.25f;
+	public const float ProminenceTransferProportion = 0.75f;
+
 	public const string EventSetFlag = "ClanSplitEvent_Set";
 
 	public ClanSplitEvent () {
@@ -184,8 +191,11 @@ public class ClanSplitEvent : FactionEvent {
 		if (!base.CanTrigger ())
 			return false;
 
+		if (Faction.Prominence < MinProminenceTrigger)
+			return false;
+
 		float administrativeLoadFactor = CalculateClanAdministrativeLoadFactor (Faction as Clan);
-		administrativeLoadFactor *= administrativeLoadFactor;
+		administrativeLoadFactor = Mathf.Pow (administrativeLoadFactor, 2);
 
 		if (administrativeLoadFactor < 0)
 			return true;
@@ -203,7 +213,7 @@ public class ClanSplitEvent : FactionEvent {
 	public override void Trigger () {
 
 		float randomValue = Faction.GetNextLocalRandomFloat (RngOffsets.EVENT_TRIGGER + 1 + (int)Id);
-		float randomFactor = 0.25f + randomValue * 0.5f;
+		float randomFactor = MinProminenceTransfer + (randomValue * ProminenceTransferProportion);
 
 		float oldProminence = Faction.Prominence;
 

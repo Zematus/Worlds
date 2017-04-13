@@ -56,8 +56,8 @@ public class GuiManagerScript : MonoBehaviour {
 	
 	public SpeedChangeEvent OnSimulationSpeedChanged;
 
-	private bool _simulationGuiPause = false;
-	private bool _simulationGuiInterruption = false;
+	private bool _pauseButtonPressed = false;
+	private bool _pausingDialogActive = false;
 
 	private bool _displayedTip_mapScroll = false;
 	private bool _displayedTip_initialPopulation = false;
@@ -125,8 +125,6 @@ public class GuiManagerScript : MonoBehaviour {
 	private int _selectedMaxSpeedOptionIndex;
 
 	private bool _infoTextMinimized = false;
-
-//	private bool _prevSimulationInterruptionState = false;
 
 	private StreamWriter _debugLogStream;
 
@@ -265,13 +263,6 @@ public class GuiManagerScript : MonoBehaviour {
 //		bool updateTextures = false;
 
 		bool simulationState = Manager.SimulationCanRun && Manager.SimulationRunning;
-
-//		bool simulationInterruptionState = !simulationState && !_simulationGuiPause;
-
-//		if (_prevSimulationInterruptionState != simulationInterruptionState) {
-//
-////			InterruptSimulation (simulationInterruptionState);
-//		}
 
 		if (simulationState) {
 
@@ -872,7 +863,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 	public void IncreaseMaxSpeed () {
 
-		if (_simulationGuiPause) {
+		if (_pauseButtonPressed) {
 			return;
 		}
 	
@@ -886,7 +877,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 	public void DecreaseMaxSpeed () {
 
-		if (_simulationGuiPause) {
+		if (_pauseButtonPressed) {
 			return;
 		}
 
@@ -902,8 +893,8 @@ public class GuiManagerScript : MonoBehaviour {
 
 		_selectedMaxSpeedOptionIndex = speedOptionIndex;
 
-		OnFirstMaxSpeedOptionSet.Invoke (_simulationGuiInterruption || (_selectedMaxSpeedOptionIndex == 0));
-		OnLastMaxSpeedOptionSet.Invoke (_simulationGuiInterruption || (_selectedMaxSpeedOptionIndex == _lastMaxSpeedOptionIndex));
+		OnFirstMaxSpeedOptionSet.Invoke (_pausingDialogActive || (_selectedMaxSpeedOptionIndex == 0));
+		OnLastMaxSpeedOptionSet.Invoke (_pausingDialogActive || (_selectedMaxSpeedOptionIndex == _lastMaxSpeedOptionIndex));
 
 		Speed selectedSpeed = _maxSpeedOptions [speedOptionIndex];
 
@@ -1229,34 +1220,32 @@ public class GuiManagerScript : MonoBehaviour {
 
 	public void PauseSimulation (bool state) {
 
-		SetSimulationSpeedStopped (state);
+		_pauseButtonPressed = state;
 
-		OnFirstMaxSpeedOptionSet.Invoke (state || (_selectedMaxSpeedOptionIndex == 0));
-		OnLastMaxSpeedOptionSet.Invoke (state || (_selectedMaxSpeedOptionIndex == _lastMaxSpeedOptionIndex));
+		bool holdState = _pauseButtonPressed;
 
-		_simulationGuiPause = state;
-
-		Manager.InterruptSimulation (state);
+		HoldSimulation (holdState);
 	}
 
 	public void InterruptSimulation (bool state) {
 
-//		_prevSimulationInterruptionState = state;
+		_pausingDialogActive = state;
 
-		SetPauseGui (state);
+		OnSimulationInterrupted.Invoke (state);
 
-		Manager.InterruptSimulation (state || _simulationGuiPause);
+		bool holdState = _pausingDialogActive || _pauseButtonPressed;
+
+		HoldSimulation (holdState);
 	}
 
-	public void SetPauseGui (bool state) {
+	private void HoldSimulation (bool state) {
 
 		SetSimulationSpeedStopped (state);
 
-		OnSimulationInterrupted.Invoke (state);
 		OnFirstMaxSpeedOptionSet.Invoke (state || (_selectedMaxSpeedOptionIndex == 0));
 		OnLastMaxSpeedOptionSet.Invoke (state || (_selectedMaxSpeedOptionIndex == _lastMaxSpeedOptionIndex));
 
-		_simulationGuiInterruption = state;
+		Manager.InterruptSimulation (state);
 	}
 
 	public void UpdateMapView () {

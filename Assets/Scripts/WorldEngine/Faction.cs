@@ -60,7 +60,7 @@ public abstract class Faction : ISynchronizable {
 
 		Prominence = prominence;
 
-		GenerateName ();
+		GenerateName (parentFaction);
 	}
 
 	public void Destroy () {
@@ -70,7 +70,7 @@ public abstract class Faction : ISynchronizable {
 		StillPresent = false;
 	}
 
-	public abstract void GenerateName ();
+	protected abstract void GenerateName (Faction parentFaction);
 
 	public void Update () {
 
