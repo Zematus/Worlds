@@ -216,12 +216,12 @@ public abstract class Polity : ISynchronizable {
 
 	public float GetNextLocalRandomFloat (int iterationOffset) {
 
-		return CoreGroup.GetNextLocalRandomFloat (iterationOffset);
+		return CoreGroup.GetNextLocalRandomFloat (iterationOffset + (int)Id);
 	}
 
 	public int GetNextLocalRandomInt (int iterationOffset, int maxValue) {
 
-		return CoreGroup.GetNextLocalRandomInt (iterationOffset, maxValue);
+		return CoreGroup.GetNextLocalRandomInt (iterationOffset + (int)Id, maxValue);
 	}
 
 	public void AddFaction (Faction faction) {
@@ -573,8 +573,10 @@ public abstract class Polity : ISynchronizable {
 
 		float coreDistancePlusConstant = coreDistance + CoreDistanceEffectConstant;
 
-		if (coreDistancePlusConstant < 0)
-			return;
+		float distanceFactor = 0;
+
+		if (coreDistancePlusConstant > 0)
+			distanceFactor = CoreDistanceEffectConstant / coreDistancePlusConstant;
 
 		TerrainCell groupCell = group.Cell;
 
@@ -582,18 +584,15 @@ public abstract class Polity : ISynchronizable {
 		float minTargetValue = 0.8f * totalPolityInfluenceValue;
 
 		float randomModifier = groupCell.GetNextLocalRandomFloat (RngOffsets.POLITY_UPDATE_EFFECTS + (int)Id);
+		randomModifier *= distanceFactor;
 		float targetValue = ((maxTargetValue - minTargetValue) * randomModifier) + minTargetValue;
 
 		float scaledValue = (targetValue - totalPolityInfluenceValue) * influenceValue / totalPolityInfluenceValue;
 		targetValue = influenceValue + scaledValue;
 
-		float distanceFactor = CoreDistanceEffectConstant / coreDistancePlusConstant;
-
 		float timeFactor = timeSpan / (float)(timeSpan + TimeEffectConstant);
 
-		float finalFactor = distanceFactor * timeFactor;
-
-		influenceValue = (influenceValue * (1 - finalFactor)) + (targetValue * finalFactor);
+		influenceValue = (influenceValue * (1 - timeFactor)) + (targetValue * timeFactor);
 
 		influenceValue = Mathf.Clamp01 (influenceValue);
 

@@ -267,7 +267,7 @@ public class PolityCulture : Culture {
 
 	public float GetNextRandomFloat (int rngOffset) {
 
-		return Polity.GetNextLocalRandomFloat (rngOffset + (int)Polity.Id);
+		return Polity.GetNextLocalRandomFloat (rngOffset);
 	}
 
 	private void GenerateNewLanguage () {

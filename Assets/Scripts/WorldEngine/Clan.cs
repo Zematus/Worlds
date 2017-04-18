@@ -31,7 +31,7 @@ public class Clan : Faction {
 			logMessage += " from clan '" + parentClan.Name + "'";
 		}
 
-		logMessage += ", starting prominence: " + prominence;
+		logMessage += " in year " + World.CurrentDate + ", starting prominence: " + prominence;
 
 		if (parentClan != null) {
 			
@@ -129,7 +129,7 @@ public class ClanSplitEvent : FactionEvent {
 
 	public const int MuAdministrativeLoadValue = 500000;
 
-	public const float MinProminenceTrigger = 0.25f;
+	public const float MinProminenceTrigger = 0.3f;
 	public const float MinProminenceTransfer = 0.25f;
 	public const float ProminenceTransferProportion = 0.75f;
 
@@ -191,6 +191,12 @@ public class ClanSplitEvent : FactionEvent {
 		if (!base.CanTrigger ())
 			return false;
 
+		#if DEBUG
+		if (Faction.Polity.Territory.IsSelected) {
+			bool debug = true;
+		}
+		#endif
+
 		if (Faction.Prominence < MinProminenceTrigger)
 			return false;
 
@@ -221,9 +227,11 @@ public class ClanSplitEvent : FactionEvent {
 
 		float newClanProminence = oldProminence * (1f - randomFactor);
 
-		Polity.AddFaction (new Clan (Polity as Tribe, newClanProminence, Faction as Clan));
+		Polity polity = Faction.Polity;
 
-		World.AddPolityToUpdate (Polity);
+		polity.AddFaction (new Clan (polity as Tribe, newClanProminence, Faction as Clan));
+
+		World.AddPolityToUpdate (polity);
 	}
 
 	protected override void DestroyInternal () {

@@ -1898,7 +1898,16 @@ public class GuiManagerScript : MonoBehaviour {
 		InfoPanelText.text += "\n -- Polity Factions -- ";
 		InfoPanelText.text += "\n";
 
-		foreach (Faction faction in polity.GetFactions ()) {
+		List<Faction> factions = new List<Faction> (polity.GetFactions ());
+
+		factions.Sort ((a, b) => {
+			if (a.Prominence > b.Prominence) return -1;
+			if (a.Prominence < b.Prominence) return 1;
+
+			return 0;
+		});
+
+		foreach (Faction faction in factions) {
 
 			InfoPanelText.text += "\n\t" + faction.Type + " " + faction.Name;
 			InfoPanelText.text += "\n\t\tProminence: " + faction.Prominence.ToString ("P");

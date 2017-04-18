@@ -112,7 +112,7 @@ public abstract class Faction : ISynchronizable {
 
 	public float GetNextLocalRandomFloat (int iterationOffset) {
 
-		return Polity.GetNextLocalRandomFloat (iterationOffset);
+		return Polity.GetNextLocalRandomFloat (iterationOffset + (int)Id);
 	}
 
 	public void SetFlag (string flag) {
@@ -149,6 +149,7 @@ public abstract class Faction : ISynchronizable {
 		Polity.RemoveFaction (this);
 
 		Polity = targetPolity;
+		PolityId = Polity.Id;
 		Prominence = targetProminence;
 
 		targetPolity.AddFaction (this);
@@ -166,9 +167,6 @@ public abstract class FactionEvent : WorldEvent {
 	[XmlIgnore]
 	public Faction Faction;
 
-	[XmlIgnore]
-	public Polity Polity;
-
 	public FactionEvent () {
 
 	}
@@ -177,9 +175,6 @@ public abstract class FactionEvent : WorldEvent {
 
 		Faction = faction;
 		FactionId = Faction.Id;
-
-		Polity = faction.Polity;
-		PolityId = Polity.Id;
 	}
 
 	public override bool CanTrigger () {
@@ -190,11 +185,18 @@ public abstract class FactionEvent : WorldEvent {
 		return Faction.StillPresent;
 	}
 
+	public override void Synchronize ()
+	{
+		PolityId = Faction.PolityId;
+
+		base.Synchronize ();
+	}
+
 	public override void FinalizeLoad () {
 
 		base.FinalizeLoad ();
 
-		Polity = World.GetPolity (PolityId);
-		Faction = Polity.GetFaction (FactionId);
+		Polity polity = World.GetPolity (PolityId);
+		Faction = polity.GetFaction (FactionId);
 	}
 }
