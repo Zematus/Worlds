@@ -65,12 +65,7 @@ public class Tribe : Polity {
 
 		//// Add base events
 
-		if (TribeSplitEvent.CanBeAssignedTo (this)) {
-
-			TribeSplitEvent = new TribeSplitEvent (this, TribeSplitEvent.CalculateTriggerDate (this));
-
-			World.InsertEventToHappen (TribeSplitEvent);
-		}
+		AddBaseEvents ();
 	}
 
 	public Tribe (CellGroup coreGroup, Polity parentPolity, List<Clan> clansToTransfer) : base (TribeType, coreGroup, parentPolity) {
@@ -95,11 +90,27 @@ public class Tribe : Polity {
 
 		SwitchCellInfluences (parentPolity, transferedProminence);
 
-		SetDominantFaction (dominantClan);
-
 		GenerateName ();
 
+		SetDominantFaction (dominantClan);
+
+		//// Add base events
+
+		AddBaseEvents ();
+
+		////
+
 		Debug.Log ("New tribe '" + Name + "' from tribe '" + parentPolity.Name + "' with total transfered prominence = " + transferedProminence);
+	}
+
+	private void AddBaseEvents () {
+
+		if (TribeSplitEvent.CanBeAssignedTo (this)) {
+
+			TribeSplitEvent = new TribeSplitEvent (this, TribeSplitEvent.CalculateTriggerDate (this));
+
+			World.InsertEventToHappen (TribeSplitEvent);
+		}
 	}
 
 	private void SwitchCellInfluences (Polity sourcePolity, float targetPolityProminence) {
@@ -489,6 +500,12 @@ public class TribeSplitEvent : PolityEvent {
 	}
 
 	public override bool CanTrigger () {
+
+		#if DEBUG
+		if (Polity.Territory.IsSelected) {
+			bool debug = true;
+		}
+		#endif
 
 		if (!base.CanTrigger ())
 			return false;
