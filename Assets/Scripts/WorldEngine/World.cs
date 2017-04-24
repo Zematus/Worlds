@@ -155,7 +155,8 @@ public class World : ISynchronizable {
 		XmlArrayItem (Type = typeof(TribeFormationEvent)),
 		XmlArrayItem (Type = typeof(PlantCultivationDiscoveryEvent)),
 		XmlArrayItem (Type = typeof(ClanSplitEvent)),
-		XmlArrayItem (Type = typeof(ExpandPolityInfluenceEvent))]
+		XmlArrayItem (Type = typeof(ExpandPolityInfluenceEvent)),
+		XmlArrayItem (Type = typeof(TribeSplitEvent))]
 	public List<WorldEvent> EventsToHappen;
 
 	public List<TerrainCellChanges> TerrainCellChangesList = new List<TerrainCellChanges> ();
