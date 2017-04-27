@@ -373,10 +373,15 @@ public class World : ISynchronizable {
 		}
 	}
 
+	public List<WorldEvent> GetValidEventsToHappen () {
+	
+		return _eventsToHappen.GetValidValues (ValidateEventsToHappenNode, null);
+	}
+
 	public void Synchronize () {
 
 		//EventsToHappen = _eventsToHappen.Values;
-		EventsToHappen = _eventsToHappen.GetValidValues (ValidateEventsToHappenNode, InvalidEventEffect);
+		EventsToHappen = _eventsToHappen.GetValidValues (ValidateEventsToHappenNode, null);
 
 		foreach (WorldEvent e in EventsToHappen) {
 

@@ -776,6 +776,16 @@ public abstract class PolityEvent : WorldEvent {
 
 		Polity = polity;
 		PolityId = Polity.Id;
+
+		#if DEBUG
+		if (Manager.RegisterDebugEvent != null) {
+			string polityId = "Id: " + polity.Id;
+
+			SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("PolityEvent - Polity: " + polityId, "TriggerDate: " + TriggerDate);
+
+			Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+		}
+		#endif
 	}
 
 	public override bool CanTrigger () {

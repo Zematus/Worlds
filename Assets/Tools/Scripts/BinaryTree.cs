@@ -293,7 +293,7 @@ public class BinaryTree<TKey, TValue> {
 
 				if (validateNode (currentNode))
 					values.Add (currentNode.Value);
-				else
+				else if (invalidNodeEffect != null)
 					invalidNodeEffect ();
 
 				currentNode.Marked = true;

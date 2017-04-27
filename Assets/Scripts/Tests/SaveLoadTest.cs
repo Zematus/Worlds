@@ -245,7 +245,11 @@ public class SaveLoadTest : AutomatedTest {
 //			#endif
 
 			_eventCountBeforeSave = _world.EventsToHappenCount;
+			List<WorldEvent> filteredEventsToHappen = _world.GetValidEventsToHappen ();
+
 			Debug.Log ("Number of Events before save: " + _eventCountBeforeSave);
+			Debug.Log ("Number of Valid Events before save: " + filteredEventsToHappen.Count);
+			_eventCountBeforeSave = filteredEventsToHappen.Count;
 
 			Debug.Log ("Saving world...");
 

@@ -16,8 +16,20 @@ public class TestRunnerScript : MonoBehaviour {
 
 //		Manager.RecordingEnabled = true;
 
-		//tests.Add (new SaveLoadTest (407252633, 80, 1, 2, 0, false, true));
-		//		tests.Add (new SaveLoadTest (407252633, 100000, 20000, 5));
+//		tests.Add (new SaveLoadTest (407252633, 80, 1, 2, 0, false, true));
+//		tests.Add (new SaveLoadTest (407252633, 100000, 20000, 5));
+//		tests.Add (new SaveLoadTest ("after 0 polities", 783909167, (World world) => {
+//			return world.PolityCount > 0;
+//		}, 20000, 5));
+//		tests.Add (new SaveLoadTest ("after 0 polities", 783909167, (World world) => {
+//			return world.PolityCount > 0;
+//		}, 2000, 10));
+//		tests.Add (new SaveLoadTest ("after 0 polities", 783909167, (World world) => {
+//			return world.PolityCount > 0;
+//		}, 200, 10));
+//		tests.Add (new SaveLoadTest ("after 0 polities", 783909167, (World world) => {
+//			return world.PolityCount > 0;
+//		}, 20, 10));
 //		tests.Add (new SaveLoadTest ("after 5 polities", 407252633, (World world) => {
 //			return world.PolityCount > 5;
 //		}, 20000, 5));
@@ -44,6 +56,9 @@ public class TestRunnerScript : MonoBehaviour {
 		Manager.TracingData.Latitude = 72;
 		#endif
 
+		tests.Add (new SaveLoadTest ("after 0 polities", 783909167, (World world) => {
+			return world.PolityCount > 0;
+		}, 1, 10, 0, true));
 //		tests.Add (new SaveLoadTest ("after 5 polities", 407252633, (World world) => {
 //			return world.PolityCount > 5;
 //		}, 5, 20, 0, true));
@@ -57,7 +72,7 @@ public class TestRunnerScript : MonoBehaviour {
 //			return world.PolityCount > 5;
 //		}, 5, 2000, 0, true));
 
-		tests.Add (new LanguageGenerationTest());
+//		tests.Add (new LanguageGenerationTest());
 
 		Debug.Log ("Running Tests...\n");
 	}
