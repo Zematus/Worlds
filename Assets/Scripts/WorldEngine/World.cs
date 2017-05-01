@@ -375,7 +375,7 @@ public class World : ISynchronizable {
 
 	public List<WorldEvent> GetValidEventsToHappen () {
 	
-		return _eventsToHappen.GetValidValues (ValidateEventsToHappenNode, null);
+		return _eventsToHappen.GetValidValues (ValidateEventsToHappenNode);
 	}
 
 	public void Synchronize () {
@@ -541,6 +541,14 @@ public class World : ISynchronizable {
 	private void InvalidEventEffect () {
 
 		EventsToHappenCount--;
+
+		#if DEBUG
+		if (Manager.RegisterDebugEvent != null) {
+			SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("Event Removal", "Removal");
+
+			Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+		}
+		#endif
 	}
 
 	public int Iterate () {
@@ -582,6 +590,14 @@ public class World : ISynchronizable {
 
 			_eventsToHappen.RemoveLeftmost ();
 			EventsToHappenCount--;
+
+			#if DEBUG
+			if (Manager.RegisterDebugEvent != null) {
+				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("Event Being Triggered", "Triggering");
+
+				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+			}
+			#endif
 
 			Profiler.BeginSample ("Event Trigger");
 
@@ -740,6 +756,14 @@ public class World : ISynchronizable {
 		EventsToHappenCount++;
 
 		_eventsToHappen.Insert (eventToHappen.TriggerDate, eventToHappen);
+
+		#if DEBUG
+		if (Manager.RegisterDebugEvent != null) {
+			SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("Event Added - Id: " + eventToHappen.Id, "TriggerDate: " + eventToHappen.TriggerDate);
+
+			Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+		}
+		#endif
 
 //		Profiler.EndSample ();
 	}

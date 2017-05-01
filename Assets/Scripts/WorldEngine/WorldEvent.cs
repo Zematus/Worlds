@@ -43,6 +43,16 @@ public abstract class WorldEvent : ISynchronizable {
 		TriggerDate = triggerDate;
 
 		Id = id;
+
+		#if DEBUG
+		if (Manager.RegisterDebugEvent != null) {
+			string eventId = "Id: " + id;
+
+			SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("WorldEvent - Id: " + eventId, "TriggerDate: " + TriggerDate);
+
+			Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+		}
+		#endif
 	}
 
 	public virtual bool CanTrigger () {
@@ -99,15 +109,15 @@ public abstract class CellEvent : WorldEvent {
 		CellLongitude = cell.Longitude;
 		CellLatitude = cell.Latitude;
 
-		#if DEBUG
-		if (Manager.RegisterDebugEvent != null) {
-			string cellLoc = "Long:" + cell.Longitude + "|Lat:" + cell.Latitude;
-
-			SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("CellEvent - Cell: " + cellLoc, "TriggerDate: " + TriggerDate);
-
-			Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-		}
-		#endif
+//		#if DEBUG
+//		if (Manager.RegisterDebugEvent != null) {
+//			string cellLoc = "Long:" + cell.Longitude + "|Lat:" + cell.Latitude;
+//
+//			SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("CellEvent - Cell: " + cellLoc, "TriggerDate: " + TriggerDate);
+//
+//			Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+//		}
+//		#endif
 	}
 }
 

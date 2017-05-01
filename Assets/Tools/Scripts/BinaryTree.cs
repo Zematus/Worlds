@@ -274,12 +274,14 @@ public class BinaryTree<TKey, TValue> {
 		return value;
 	}
 
-	public List<TValue> GetValidValues (ValidateNodeDelegate<TKey, TValue> validateNode, InvalidNodeEffectDelegate invalidNodeEffect) {
+	public List<TValue> GetValidValues (ValidateNodeDelegate<TKey, TValue> validateNode, InvalidNodeEffectDelegate invalidNodeEffect = null, bool removeInvalidNodes = false) {
 		
 		List<TValue> values = new List<TValue> (Count);
 
 		// Copy items to list from leftmost to rightmost, marking all inserted items along the way
 		BinaryTreeNode <TKey, TValue> currentNode = _leftmostItem;
+		BinaryTreeNode <TKey, TValue> parentNode;
+		BinaryTreeNode <TKey, TValue> currentLeftNode;
 
 		while (currentNode != null) {
 
@@ -293,8 +295,21 @@ public class BinaryTree<TKey, TValue> {
 
 				if (validateNode (currentNode))
 					values.Add (currentNode.Value);
-				else if (invalidNodeEffect != null)
-					invalidNodeEffect ();
+				else {
+					if (invalidNodeEffect != null)
+						invalidNodeEffect ();
+
+					if (removeInvalidNodes) {
+					
+						parentNode = currentNode.Parent;
+						currentLeftNode = currentNode.Left;
+
+						if (parentNode == null) {
+						
+
+						}
+					}
+				}
 
 				currentNode.Marked = true;
 			}
@@ -308,7 +323,10 @@ public class BinaryTree<TKey, TValue> {
 			currentNode = currentNode.Parent;
 		}
 
+		//
 		// Remove mark from all copied items
+		//
+
 		currentNode = _leftmostItem;
 
 		while (currentNode != null) {
