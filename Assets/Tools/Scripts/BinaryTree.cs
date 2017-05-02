@@ -195,12 +195,16 @@ public class BinaryTree<TKey, TValue> {
 		BinaryTreeNode<TKey, TValue> parent = _rightmostItem.Parent;
 
 		if (parent != null) {
-			parent.Right = _leftmostItem.Left;
+			parent.Right = _rightmostItem.Left;
 
-			if (parent.Right != null)
+			if (parent.Right != null) {
 				parent.Right.Parent = parent;
+				_rightmostItem = parent.Right;
 
-			_rightmostItem = parent;
+			} else {
+				_rightmostItem = parent;
+			}
+
 		} else {
 			_rightmostItem = _rightmostItem.Left;
 			_root = _rightmostItem;
@@ -255,10 +259,14 @@ public class BinaryTree<TKey, TValue> {
 		if (parent != null) {
 			parent.Left = _leftmostItem.Right;
 
-			if (parent.Left != null)
+			if (parent.Left != null) {
 				parent.Left.Parent = parent;
+				_leftmostItem = parent.Left;
 
-			_leftmostItem = parent;
+			} else {
+				_leftmostItem = parent;
+			}
+
 		} else {
 			_leftmostItem = _leftmostItem.Right;
 			_root = _leftmostItem;
@@ -274,14 +282,74 @@ public class BinaryTree<TKey, TValue> {
 		return value;
 	}
 
+	public TValue RemoveNode (BinaryTreeNode <TKey, TValue> node) {
+
+		if (_leftmostItem == node)
+			return RemoveLeftmost ();
+
+		if (_rightmostItem == node)
+			return RemoveRightmost ();
+
+		BinaryTreeNode <TKey, TValue> parentNode = node.Parent;
+		BinaryTreeNode <TKey, TValue> leftNode = node.Left;
+		BinaryTreeNode <TKey, TValue> rightNode = node.Right;
+
+		BinaryTreeNode <TKey, TValue> replacementNode;
+
+		if (leftNode != null) {
+
+			if (rightNode != null) {
+				BinaryTreeNode <TKey, TValue> leftNodeRightmost = leftNode;
+
+				while (leftNodeRightmost.Right != null) {
+			
+					leftNodeRightmost = leftNodeRightmost.Right;
+				}
+
+				leftNodeRightmost.Right = rightNode;
+				rightNode.Parent = leftNodeRightmost;
+			}
+
+			replacementNode = leftNode;
+
+		} else {
+
+			replacementNode = rightNode;
+		}
+
+		if (parentNode != null) {
+		
+			if (parentNode.Left == node) {
+			
+				parentNode.Left = replacementNode;
+
+			} else {
+
+				parentNode.Right = replacementNode;
+			}
+
+			if (replacementNode != null) {
+				replacementNode.Parent = parentNode;
+			}
+
+		} else {
+		
+			_root = replacementNode;
+
+			if (replacementNode != null) {
+				replacementNode.Parent = null;
+			}
+		}
+
+		return node.Value;
+	}
+
 	public List<TValue> GetValidValues (ValidateNodeDelegate<TKey, TValue> validateNode, InvalidNodeEffectDelegate invalidNodeEffect = null, bool removeInvalidNodes = false) {
 		
 		List<TValue> values = new List<TValue> (Count);
 
 		// Copy items to list from leftmost to rightmost, marking all inserted items along the way
 		BinaryTreeNode <TKey, TValue> currentNode = _leftmostItem;
-		BinaryTreeNode <TKey, TValue> parentNode;
-		BinaryTreeNode <TKey, TValue> currentLeftNode;
 
 		while (currentNode != null) {
 
@@ -300,14 +368,8 @@ public class BinaryTree<TKey, TValue> {
 						invalidNodeEffect ();
 
 					if (removeInvalidNodes) {
-					
-						parentNode = currentNode.Parent;
-						currentLeftNode = currentNode.Left;
 
-						if (parentNode == null) {
-						
-
-						}
+						RemoveNode (currentNode);
 					}
 				}
 

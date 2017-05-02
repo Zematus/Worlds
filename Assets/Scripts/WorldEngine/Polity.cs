@@ -765,6 +765,9 @@ public abstract class PolityEvent : WorldEvent {
 	[XmlAttribute]
 	public long PolityId;
 
+	[XmlAttribute]
+	public long EventTypeId;
+
 	[XmlIgnore]
 	public Polity Polity;
 
@@ -776,6 +779,8 @@ public abstract class PolityEvent : WorldEvent {
 
 		Polity = polity;
 		PolityId = Polity.Id;
+
+		EventTypeId = eventTypeId;
 
 		#if DEBUG
 		if (Manager.RegisterDebugEvent != null) {
@@ -801,6 +806,11 @@ public abstract class PolityEvent : WorldEvent {
 		base.FinalizeLoad ();
 
 		Polity = World.GetPolity (PolityId);
+	}
+
+	public virtual void Reset (int newTriggerDate) {
+
+		Reset (newTriggerDate, Polity.GenerateUniqueIdentifier (1000, EventTypeId));
 	}
 }
 

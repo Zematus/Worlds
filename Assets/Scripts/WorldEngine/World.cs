@@ -381,7 +381,7 @@ public class World : ISynchronizable {
 	public void Synchronize () {
 
 		//EventsToHappen = _eventsToHappen.Values;
-		EventsToHappen = _eventsToHappen.GetValidValues (ValidateEventsToHappenNode, null);
+		EventsToHappen = _eventsToHappen.GetValidValues (ValidateEventsToHappenNode, InvalidEventEffect, true);
 
 		foreach (WorldEvent e in EventsToHappen) {
 
@@ -542,13 +542,13 @@ public class World : ISynchronizable {
 
 		EventsToHappenCount--;
 
-		#if DEBUG
-		if (Manager.RegisterDebugEvent != null) {
-			SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("Event Removal", "Removal");
-
-			Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-		}
-		#endif
+//		#if DEBUG
+//		if (Manager.RegisterDebugEvent != null) {
+//			SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("Event Removal", "Removal");
+//
+//			Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+//		}
+//		#endif
 	}
 
 	public int Iterate () {
@@ -591,13 +591,13 @@ public class World : ISynchronizable {
 			_eventsToHappen.RemoveLeftmost ();
 			EventsToHappenCount--;
 
-			#if DEBUG
-			if (Manager.RegisterDebugEvent != null) {
-				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("Event Being Triggered", "Triggering");
-
-				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-			}
-			#endif
+//			#if DEBUG
+//			if (Manager.RegisterDebugEvent != null) {
+//				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("Event Being Triggered", "Triggering");
+//
+//				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+//			}
+//			#endif
 
 			Profiler.BeginSample ("Event Trigger");
 
@@ -757,13 +757,13 @@ public class World : ISynchronizable {
 
 		_eventsToHappen.Insert (eventToHappen.TriggerDate, eventToHappen);
 
-		#if DEBUG
-		if (Manager.RegisterDebugEvent != null) {
-			SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("Event Added - Id: " + eventToHappen.Id, "TriggerDate: " + eventToHappen.TriggerDate);
-
-			Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-		}
-		#endif
+//		#if DEBUG
+//		if (Manager.RegisterDebugEvent != null) {
+//			SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("Event Added - Id: " + eventToHappen.Id, "TriggerDate: " + eventToHappen.TriggerDate);
+//
+//			Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+//		}
+//		#endif
 
 //		Profiler.EndSample ();
 	}

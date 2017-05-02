@@ -44,15 +44,15 @@ public abstract class WorldEvent : ISynchronizable {
 
 		Id = id;
 
-		#if DEBUG
-		if (Manager.RegisterDebugEvent != null) {
-			string eventId = "Id: " + id;
-
-			SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("WorldEvent - Id: " + eventId, "TriggerDate: " + TriggerDate);
-
-			Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-		}
-		#endif
+//		#if DEBUG
+//		if (Manager.RegisterDebugEvent != null) {
+//			string eventId = "Id: " + id;
+//
+//			SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("WorldEvent - Id: " + eventId, "TriggerDate: " + TriggerDate);
+//
+//			Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+//		}
+//		#endif
 	}
 
 	public virtual bool CanTrigger () {
@@ -81,11 +81,12 @@ public abstract class WorldEvent : ISynchronizable {
 	
 	}
 
-	public virtual void Reset (int newTriggerDate) {
+	public virtual void Reset (int newTriggerDate, long newId) {
 
 //		EventCount++;
 
 		TriggerDate = newTriggerDate;
+		Id = newId;
 	}
 }
 

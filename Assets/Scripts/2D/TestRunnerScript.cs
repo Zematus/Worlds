@@ -23,34 +23,22 @@ public class TestRunnerScript : MonoBehaviour {
 //		}, 20000, 5));
 //		tests.Add (new SaveLoadTest ("after 0 polities", 783909167, (World world) => {
 //			return world.PolityCount > 0;
-//		}, 2000, 10));
+//		}, 2000, 20, 60000));
 //		tests.Add (new SaveLoadTest ("after 0 polities", 783909167, (World world) => {
 //			return world.PolityCount > 0;
-//		}, 200, 10));
+//		}, 200, 20, 78000));
 //		tests.Add (new SaveLoadTest ("after 0 polities", 783909167, (World world) => {
 //			return world.PolityCount > 0;
-//		}, 20, 10));
-//		tests.Add (new SaveLoadTest ("after 5 polities", 407252633, (World world) => {
-//			return world.PolityCount > 5;
-//		}, 20000, 5));
-//		tests.Add (new SaveLoadTest ("after 5 polities", 407252633, (World world) => {
-//			return world.PolityCount > 5;
-//		}, 20000, 15));
-//		tests.Add (new SaveLoadTest ("after 5 polities", 407252633, (World world) => {
-//			return world.PolityCount > 5;
-//		}, 2000, 20, 0));
-//		tests.Add (new SaveLoadTest ("after 5 polities", 407252633, (World world) => {
-//			return world.PolityCount > 5;
-//		}, 200, 100, 60000));
-//		tests.Add (new SaveLoadTest ("after 5 polities", 407252633, (World world) => {
-//			return world.PolityCount > 5;
-//		}, 20, 30, 79200));
-//		tests.Add (new SaveLoadTest ("after 5 polities", 407252633, (World world) => {
-//			return world.PolityCount > 5;
-//		}, 5, 120, 79200));
+//		}, 20, 20, 81400));
+//		tests.Add (new SaveLoadTest ("after 0 polities", 783909167, (World world) => {
+//			return world.PolityCount > 0;
+//		}, 2, 20, 81740));
+//		tests.Add (new SaveLoadTest ("after 0 polities", 783909167, (World world) => {
+//			return world.PolityCount > 0;
+//		}, 5, 10));
 
 		#if DEBUG
-		Manager.TracingData.GroupId = 230240073;
+		Manager.TracingData.GroupId = 156160031057;
 		Manager.TracingData.PolityId = 195618245070;
 		Manager.TracingData.Longitude = 245;
 		Manager.TracingData.Latitude = 72;
@@ -58,7 +46,13 @@ public class TestRunnerScript : MonoBehaviour {
 
 		tests.Add (new SaveLoadTest ("after 0 polities", 783909167, (World world) => {
 			return world.PolityCount > 0;
-		}, 1, 10, 0, true));
+		}, 2, 20, 81740, true));
+//		tests.Add (new SaveLoadTest ("after 0 polities", 783909167, (World world) => {
+//			return world.PolityCount > 0;
+//		}, 5, 10, 0, true));
+//		tests.Add (new SaveLoadTest ("after 0 polities", 783909167, (World world) => {
+//			return world.PolityCount > 0;
+//		}, 1, 10, 0, true));
 //		tests.Add (new SaveLoadTest ("after 5 polities", 407252633, (World world) => {
 //			return world.PolityCount > 5;
 //		}, 5, 20, 0, true));

@@ -164,6 +164,9 @@ public abstract class FactionEvent : WorldEvent {
 	[XmlAttribute]
 	public long PolityId;
 
+	[XmlAttribute]
+	public long EventTypeId;
+
 	[XmlIgnore]
 	public Faction Faction;
 
@@ -175,6 +178,8 @@ public abstract class FactionEvent : WorldEvent {
 
 		Faction = faction;
 		FactionId = Faction.Id;
+
+		EventTypeId = eventTypeId;
 
 		#if DEBUG
 		if (Manager.RegisterDebugEvent != null) {
@@ -208,5 +213,10 @@ public abstract class FactionEvent : WorldEvent {
 
 		Polity polity = World.GetPolity (PolityId);
 		Faction = polity.GetFaction (FactionId);
+	}
+
+	public virtual void Reset (int newTriggerDate) {
+
+		Reset (newTriggerDate, Faction.GenerateUniqueIdentifier (1000, EventTypeId));
 	}
 }
