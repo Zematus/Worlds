@@ -832,6 +832,27 @@ public class World : ISynchronizable {
 	public void AddGroupToUpdate (CellGroup group) {
 
 		#if DEBUG
+//		if (Manager.RegisterDebugEvent != null) {
+//			if (group.Id == Manager.TracingData.GroupId) {
+//				
+//				System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
+//
+//				System.Reflection.MethodBase method = stackTrace.GetFrame(1).GetMethod();
+//				string callingMethod = method.Name;
+//				string callingClass = method.DeclaringType.ToString();
+//
+//				string groupId = "Id:" + group.Id + "|Long:" + group.Longitude + "|Lat:" + group.Latitude;
+//
+//				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//					"AddGroupToUpdate - Group:" + groupId,
+//					"CurrentDate: " + CurrentDate + 
+//					", Call: " + callingClass + ":" + callingMethod +
+//					"");
+//
+//				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+//			}
+//		}
+
 		if (AddGroupToUpdateCalled != null) {
 
 //				System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();

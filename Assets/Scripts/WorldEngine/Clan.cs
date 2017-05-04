@@ -35,7 +35,7 @@ public class Clan : Faction {
 
 		if (parentClan != null) {
 			
-			Debug.Log (logMessage);
+//			Debug.Log (logMessage);
 		}
 	}
 

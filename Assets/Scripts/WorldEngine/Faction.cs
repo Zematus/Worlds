@@ -181,15 +181,15 @@ public abstract class FactionEvent : WorldEvent {
 
 		EventTypeId = eventTypeId;
 
-		#if DEBUG
-		if (Manager.RegisterDebugEvent != null) {
-			string factionId = "Id: " + faction.Id;
-
-			SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("FactionEvent - Faction: " + factionId, "TriggerDate: " + TriggerDate);
-
-			Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-		}
-		#endif
+//		#if DEBUG
+//		if (Manager.RegisterDebugEvent != null) {
+//			string factionId = "Id: " + faction.Id;
+//
+//			SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("FactionEvent - Faction: " + factionId, "TriggerDate: " + TriggerDate);
+//
+//			Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+//		}
+//		#endif
 	}
 
 	public override bool CanTrigger () {

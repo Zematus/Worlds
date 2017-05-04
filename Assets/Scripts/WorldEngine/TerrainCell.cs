@@ -87,6 +87,8 @@ public class TerrainCell : ISynchronizable {
 	public static GetNextLocalRandomCalledDelegate GetNextLocalRandomCalled = null; 
 
 	#endif
+
+	public const int MaxNeighborDirections = 8;
 	
 	[XmlAttribute]
 	public int Longitude;

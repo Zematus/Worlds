@@ -24,6 +24,9 @@ public abstract class WorldEvent : ISynchronizable {
 	
 	[XmlAttribute]
 	public int TriggerDate;
+
+	[XmlAttribute]
+	public int SpawnDate;
 	
 	[XmlAttribute]
 	public long Id;
@@ -41,6 +44,8 @@ public abstract class WorldEvent : ISynchronizable {
 
 		World = world;
 		TriggerDate = triggerDate;
+
+		SpawnDate = World.CurrentDate;
 
 		Id = id;
 
