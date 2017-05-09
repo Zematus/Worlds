@@ -442,6 +442,19 @@ public abstract class Polity : ISynchronizable {
 
 		InfluencedGroupIds = new List<long> (InfluencedGroups.Keys);
 
+		#if DEBUG
+		foreach (long id in InfluencedGroupIds) {
+
+			CellGroup group = World.GetGroup (id);
+
+			if (group == null) {
+				throw new System.Exception ("Missing Group with Id " + id);
+			}
+
+			InfluencedGroups.Add (group.Id, group);
+		}
+		#endif
+
 		Factions = new List<Faction> (_factions.Values);
 
 		foreach (Faction f in Factions) {
@@ -468,7 +481,8 @@ public abstract class Polity : ISynchronizable {
 			CellGroup group = World.GetGroup (id);
 
 			if (group == null) {
-				throw new System.Exception ("Missing Group with Id " + id);
+//				throw new System.Exception ("Missing Group with Id " + id);
+				continue;
 			}
 
 			InfluencedGroups.Add (group.Id, group);

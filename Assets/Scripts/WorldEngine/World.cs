@@ -1019,12 +1019,12 @@ public class World : ISynchronizable {
 
 		// Segment 4
 
-		Polities.ForEach (p => {
+		foreach (Polity p in Polities) {
 
 			p.FinalizeLoad ();
 
 			castProgress (startProgressValue + (++elementCount/totalElementsFactor), "Initializing Polities...");
-		});
+		}
 
 		// Segment 5
 
