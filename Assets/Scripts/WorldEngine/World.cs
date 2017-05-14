@@ -1182,8 +1182,8 @@ public class World : ISynchronizable {
 		Manager.EnqueueTaskAndWait (() => {
 			
 			Vector2 prevPos = new Vector2(
-				Random.Range(0, Width),
-				Random.Range(minLatitude, maxLatitude));
+				RandomUtility.Range(0f, Width),
+				RandomUtility.Range(minLatitude, maxLatitude));
 
 			//Vector2 prevPrevPos = prevPos;
 
@@ -1192,14 +1192,14 @@ public class World : ISynchronizable {
 				int widthOff = Random.Range(0, 2) * 3;
 				
 				_continentOffsets[i] = prevPos;
-				_continentWidths[i] = Random.Range(ContinentMinWidthFactor + widthOff, ContinentMaxWidthFactor + widthOff);
-				_continentHeights[i] = Random.Range(ContinentMinWidthFactor + widthOff, ContinentMaxWidthFactor + widthOff);
+				_continentWidths[i] = RandomUtility.Range(ContinentMinWidthFactor + widthOff, ContinentMaxWidthFactor + widthOff);
+				_continentHeights[i] = RandomUtility.Range(ContinentMinWidthFactor + widthOff, ContinentMaxWidthFactor + widthOff);
 
-				float xPos = Mathf.Repeat(prevPos.x + Random.Range(Width / longitudeFactor, Width * 2 / longitudeFactor), Width);
-				float yPos = Random.Range(minLatitude, maxLatitude);
+				float xPos = Mathf.Repeat(prevPos.x + RandomUtility.Range(Width / longitudeFactor, Width * 2 / longitudeFactor), Width);
+				float yPos = RandomUtility.Range(minLatitude, maxLatitude);
 
 				if (i % 3 == 2) {
-					xPos = Mathf.Repeat(prevPos.x + Random.Range(Width * 4 / longitudeFactor, Width * 5 / longitudeFactor), Width);
+					xPos = Mathf.Repeat(prevPos.x + RandomUtility.Range(Width * 4 / longitudeFactor, Width * 5 / longitudeFactor), Width);
 				}
 
 				Vector2 newPos = new Vector2(xPos, yPos);
@@ -1411,13 +1411,13 @@ public class World : ISynchronizable {
 	private ManagerTask<Vector3> GenerateRandomOffsetVector () {
 
 		return Manager.EnqueueTask (() => {
-			Vector3 randVector = Random.insideUnitSphere;
+//			Vector3 randVector = Random.insideUnitSphere;
+//
+//			randVector.x = (float)System.Math.Round (randVector.x, 4);
+//			randVector.y = (float)System.Math.Round (randVector.y, 4);
+//			randVector.z = (float)System.Math.Round (randVector.z, 4);
 
-			randVector.x = (float)System.Math.Round (randVector.x, 4);
-			randVector.y = (float)System.Math.Round (randVector.y, 4);
-			randVector.z = (float)System.Math.Round (randVector.z, 4);
-
-			return randVector * 1000;
+			return RandomUtility.insideUnitSphere * 1000;
 		});
 	}
 

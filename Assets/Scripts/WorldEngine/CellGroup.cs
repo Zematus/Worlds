@@ -1259,6 +1259,12 @@ public class CellGroup : HumanGroup {
 
 	public void Destroy () {
 
+		#if DEBUG
+		if (Id == 28762070093) {
+			bool debug = true;
+		}
+		#endif
+
 		_destroyed = true;
 
 		RemovePolityInfluences ();
@@ -1289,7 +1295,12 @@ public class CellGroup : HumanGroup {
 
 			Polity polity = polityInfluence.Polity;
 
-			SetPolityInfluence (polity, 0);
+//			SetPolityInfluence (polity, 0);
+
+			polity.RemoveInfluencedGroup (this);
+
+			// We want to update the polity if a group is removed.
+			SetPolityUpdate (polityInfluence, true);
 		}
 
 		SetHighestPolityInfluence (null);
@@ -2082,6 +2093,24 @@ public class CellGroup : HumanGroup {
 
 		#if DEBUG
 		if (Cell.IsSelected) {
+			bool debug = true;
+		}
+		#endif
+
+		#if DEBUG
+		if ((Id == 28762070093) && (polity.Id == 218191069088)) {
+			bool debug = true;
+		}
+		#endif
+
+		#if DEBUG
+		if (Id == 28762070093) {
+			bool debug = true;
+		}
+		#endif
+
+		#if DEBUG
+		if (polity.Id == 218191069088) {
 			bool debug = true;
 		}
 		#endif
