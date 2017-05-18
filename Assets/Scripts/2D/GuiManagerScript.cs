@@ -192,7 +192,7 @@ public class GuiManagerScript : MonoBehaviour {
 		
 		if (!Manager.WorldReady) {
 
-			//GenerateWorld (false, 407252633);
+//			GenerateWorld (false, 407252633);
 //			GenerateWorld (false, 783909167);
 			GenerateWorld (false, 1446630758);
 		} else if (!Manager.SimulationCanRun) {
@@ -260,8 +260,6 @@ public class GuiManagerScript : MonoBehaviour {
 			if (_postProgressOp != null) 
 				_postProgressOp ();
 		}
-		
-//		bool updateTextures = false;
 
 		bool simulationState = Manager.SimulationCanRun && Manager.SimulationRunning;
 
@@ -302,8 +300,6 @@ public class GuiManagerScript : MonoBehaviour {
 				}
 
 				_simulationDateSpan += dateSpan;
-
-//				updateTextures = true;
 			}
 		}
 	
@@ -328,12 +324,10 @@ public class GuiManagerScript : MonoBehaviour {
 
 			Manager.GenerateTextures ();
 
-			//PlanetScript.RefreshTexture ();
 			MapScript.RefreshTexture ();
 
 			_mapUpdateCount++;
 
-//		} else if (updateTextures) {
 		} else {
 
 			Manager.UpdateTextures ();
@@ -806,6 +800,8 @@ public class GuiManagerScript : MonoBehaviour {
 		LoadButton.interactable = HasFilesToLoad ();
 		
 		_postProgressOp -= PostProgressOp_SaveAction;
+
+		InterruptSimulation (!Manager.SimulationCanRun);
 	}
 
 	public void SaveAction () {

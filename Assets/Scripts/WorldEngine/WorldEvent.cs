@@ -21,6 +21,9 @@ public abstract class WorldEvent : ISynchronizable {
 
 	[XmlIgnore]
 	public World World;
+
+	[XmlIgnore]
+	public bool DoNotSerialize = false;
 	
 	[XmlAttribute]
 	public int TriggerDate;

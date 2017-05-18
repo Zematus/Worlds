@@ -375,13 +375,12 @@ public class World : ISynchronizable {
 
 	public List<WorldEvent> GetValidEventsToHappen () {
 	
-		return _eventsToHappen.GetValidValues (ValidateEventsToHappenNode);
+		return _eventsToHappen.GetValues (ValidateEventsToHappenNode);
 	}
 
 	public void Synchronize () {
 
-		//EventsToHappen = _eventsToHappen.Values;
-		EventsToHappen = _eventsToHappen.GetValidValues (ValidateEventsToHappenNode, InvalidEventEffect, true);
+		EventsToHappen = _eventsToHappen.GetValues (FilterEventsToHappenNodeForSerialization, FilterEventsToHappenNodeEffect, true);
 
 		foreach (WorldEvent e in EventsToHappen) {
 
@@ -535,20 +534,43 @@ public class World : ISynchronizable {
 
 	private bool ValidateEventsToHappenNode (BinaryTreeNode<int, WorldEvent> node) {
 
-		return node.Key == node.Value.TriggerDate;
+		if (node.Key != node.Value.TriggerDate) {
+		
+			node.MarkedForRemoval = true;
+			return false;
+		}
+
+		return true;
 	}
 
-	private void InvalidEventEffect () {
+	private bool FilterEventsToHappenNodeForSerialization (BinaryTreeNode<int, WorldEvent> node) {
+
+		if (ValidateEventsToHappenNode(node)) {
+			
+			return !node.Value.DoNotSerialize;
+		}
+
+		return false;
+	}
+
+	private void InvalidEventsToHappenNodeEffect (BinaryTreeNode<int, WorldEvent> node) {
 
 		EventsToHappenCount--;
 
-//		#if DEBUG
-//		if (Manager.RegisterDebugEvent != null) {
-//			SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("Event Removal", "Removal");
-//
-//			Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-//		}
-//		#endif
+		//		#if DEBUG
+		//		if (Manager.RegisterDebugEvent != null) {
+		//			SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("Event Removal", "Removal");
+		//
+		//			Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+		//		}
+		//		#endif
+	}
+
+	private void FilterEventsToHappenNodeEffect (BinaryTreeNode<int, WorldEvent> node) {
+
+		if (node.MarkedForRemoval) {
+			InvalidEventsToHappenNodeEffect (node);
+		}
 	}
 
 	public int Iterate () {
@@ -568,7 +590,7 @@ public class World : ISynchronizable {
 
 			if (_eventsToHappen.Count <= 0) break;
 
-			_eventsToHappen.FindValidLeftmost (ValidateEventsToHappenNode, InvalidEventEffect);
+			_eventsToHappen.FindLeftmost (ValidateEventsToHappenNode, InvalidEventsToHappenNodeEffect);
 		
 			WorldEvent eventToHappen = _eventsToHappen.Leftmost;
 

@@ -47,6 +47,9 @@ public class CellGroup : HumanGroup {
 	
 	[XmlAttribute("NextUpDate")]
 	public int NextUpdateDate;
+
+//	[XmlAttribute("UpDaEvId")]
+//	public long UpdateEventId = -1;
 	
 	[XmlAttribute("OptPop")]
 	public int OptimalPopulation;
@@ -79,6 +82,13 @@ public class CellGroup : HumanGroup {
 
 	[XmlAttribute("TotalPolExpVal")]
 	public float TotalPolityExpansionValue;
+
+	[XmlAttribute("MigDate")]
+	public int MigrationEventDate;
+	[XmlAttribute("MigLon")]
+	public int MigrationTargetLongitude;
+	[XmlAttribute("MigLat")]
+	public int MigrationTargetLatitude;
 
 	public Route SeaMigrationRoute = null;
 
@@ -755,6 +765,8 @@ public class CellGroup : HumanGroup {
 			UpdateEvent.Reset (NextUpdateDate);
 		}
 
+//		UpdateEventId = UpdateEvent.Id;
+
 		World.InsertEventToHappen (UpdateEvent);
 	}
 	
@@ -1009,15 +1021,7 @@ public class CellGroup : HumanGroup {
 //		}
 //		#endif
 
-		if (MigrationEvent == null) {
-			MigrationEvent = new MigrateGroupEvent (this, targetCell, nextDate);
-		} else {
-			MigrationEvent.Reset (targetCell, nextDate);
-		}
-		
-		World.InsertEventToHappen (MigrationEvent);
-
-		HasMigrationEvent = true;
+		SetMigrationEvent (targetCell, nextDate);
 	}
 
 	public void ConsiderSeaMigration () {
@@ -1108,6 +1112,11 @@ public class CellGroup : HumanGroup {
 //		}
 //		#endif
 
+		SetMigrationEvent (targetCell, nextDate);
+	}
+
+	private void SetMigrationEvent (TerrainCell targetCell, int nextDate) {
+
 		if (MigrationEvent == null) {
 			MigrationEvent = new MigrateGroupEvent (this, targetCell, nextDate);
 		} else {
@@ -1117,6 +1126,10 @@ public class CellGroup : HumanGroup {
 		World.InsertEventToHappen (MigrationEvent);
 
 		HasMigrationEvent = true;
+
+		MigrationEventDate = nextDate;
+		MigrationTargetLongitude = targetCell.Longitude;
+		MigrationTargetLatitude = targetCell.Latitude;
 	}
 
 	private CellGroup GetNeighborGroup (int index) {
@@ -1259,11 +1272,11 @@ public class CellGroup : HumanGroup {
 
 	public void Destroy () {
 
-		#if DEBUG
-		if (Id == 28762070093) {
-			bool debug = true;
-		}
-		#endif
+//		#if DEBUG
+//		if (Id == 28762070093) {
+//			bool debug = true;
+//		}
+//		#endif
 
 		_destroyed = true;
 
@@ -1294,8 +1307,6 @@ public class CellGroup : HumanGroup {
 		foreach (PolityInfluence polityInfluence in polityInfluences) {
 
 			Polity polity = polityInfluence.Polity;
-
-//			SetPolityInfluence (polity, 0);
 
 			polity.RemoveInfluencedGroup (this);
 
@@ -2097,23 +2108,23 @@ public class CellGroup : HumanGroup {
 		}
 		#endif
 
-		#if DEBUG
-		if ((Id == 28762070093) && (polity.Id == 218191069088)) {
-			bool debug = true;
-		}
-		#endif
-
-		#if DEBUG
-		if (Id == 28762070093) {
-			bool debug = true;
-		}
-		#endif
-
-		#if DEBUG
-		if (polity.Id == 218191069088) {
-			bool debug = true;
-		}
-		#endif
+//		#if DEBUG
+//		if ((Id == 28762070093) && (polity.Id == 218191069088)) {
+//			bool debug = true;
+//		}
+//		#endif
+//
+//		#if DEBUG
+//		if (Id == 28762070093) {
+//			bool debug = true;
+//		}
+//		#endif
+//
+//		#if DEBUG
+//		if (polity.Id == 218191069088) {
+//			bool debug = true;
+//		}
+//		#endif
 
 		PolityInfluence polityInfluence;
 
@@ -2243,6 +2254,21 @@ public class CellGroup : HumanGroup {
 				HighestPolityInfluence = p;
 			}
 		}
+
+		// Generate Update Event
+
+		UpdateEvent = new UpdateCellGroupEvent (this, NextUpdateDate);
+
+		World.InsertEventToHappen (UpdateEvent);
+
+		// Generate Migration Event
+
+		if (HasMigrationEvent) {
+		
+			TerrainCell targetCell = World.GetCell (MigrationTargetLongitude, MigrationTargetLatitude);
+
+			MigrationEvent = new MigrateGroupEvent (this, targetCell, MigrationEventDate);
+		}
 	}
 }
 
@@ -2261,7 +2287,8 @@ public abstract class CellGroupEvent : WorldEvent {
 
 	}
 
-	public CellGroupEvent (CellGroup group, int triggerDate, long eventTypeId) : base (group.World, triggerDate, group.GenerateUniqueIdentifier (1000, eventTypeId)) {
+	public CellGroupEvent (CellGroup group, int triggerDate, long eventTypeId, long? id = null) : 
+	base (group.World, triggerDate, (id == null) ? GenerateUniqueIdentifier (group, triggerDate, eventTypeId) : id.Value) {
 
 		Group = group;
 		GroupId = Group.Id;
@@ -2274,6 +2301,11 @@ public abstract class CellGroupEvent : WorldEvent {
 		#if DEBUG
 		GenerateDebugMessage ();
 		#endif
+	}
+
+	public static long GenerateUniqueIdentifier (CellGroup group, int triggerDate, long eventTypeId) {
+
+		return ((((long)triggerDate * 1000000) + ((long)group.Longitude * 1000) + (long)group.Latitude) * 1000) + eventTypeId;
 	}
 
 	#if DEBUG
@@ -2320,7 +2352,7 @@ public abstract class CellGroupEvent : WorldEvent {
 
 	public virtual void Reset (int newTriggerDate) {
 
-		Reset (newTriggerDate, Group.GenerateUniqueIdentifier (1000, EventTypeId));
+		Reset (newTriggerDate, GenerateUniqueIdentifier (Group, newTriggerDate, EventTypeId));
 	}
 }
 
@@ -2328,10 +2360,12 @@ public class UpdateCellGroupEvent : CellGroupEvent {
 
 	public UpdateCellGroupEvent () {
 
+		DoNotSerialize = true;
 	}
 
-	public UpdateCellGroupEvent (CellGroup group, int triggerDate) : base (group, triggerDate, UpdateCellGroupEventId) {
+	public UpdateCellGroupEvent (CellGroup group, int triggerDate, long? id = null) : base (group, triggerDate, UpdateCellGroupEventId, id) {
 
+		DoNotSerialize = true;
 	}
 
 	public override bool CanTrigger () {
@@ -2364,7 +2398,9 @@ public class UpdateCellGroupEvent : CellGroupEvent {
 
 public class MigrateGroupEvent : CellGroupEvent {
 
+	#if DEBUG
 	public static int MigrationEventCount = 0;
+	#endif
 
 	[XmlAttribute("TLon")]
 	public int TargetCellLongitude;
@@ -2376,17 +2412,25 @@ public class MigrateGroupEvent : CellGroupEvent {
 
 	public MigrateGroupEvent () {
 
+		#if DEBUG
 		MigrationEventCount++;
+		#endif
+
+		DoNotSerialize = true;
 	}
 
 	public MigrateGroupEvent (CellGroup group, TerrainCell targetCell, int triggerDate) : base (group, triggerDate, MigrateGroupEventId) {
 
+		#if DEBUG
 		MigrationEventCount++;
+		#endif
 
 		TargetCell = targetCell;
 
 		TargetCellLongitude = TargetCell.Longitude;
 		TargetCellLatitude = TargetCell.Latitude;
+
+		DoNotSerialize = true;
 	}
 
 	public override bool CanTrigger () {
@@ -2460,8 +2504,10 @@ public class MigrateGroupEvent : CellGroupEvent {
 	}
 
 	protected override void DestroyInternal () {
-		
+
+		#if DEBUG
 		MigrationEventCount--;
+		#endif
 
 		if (Group != null) {
 

@@ -160,11 +160,11 @@ public abstract class Polity : ISynchronizable {
 
 		Id = coreGroup.GenerateUniqueIdentifier (offset: idOffset);
 
-		#if DEBUG
-		if (Id == 218191069088) {
-			bool debug = true;
-		}
-		#endif
+//		#if DEBUG
+//		if (Id == 218191069088) {
+//			bool debug = true;
+//		}
+//		#endif
 
 		Culture = new PolityCulture (this);
 
@@ -190,11 +190,11 @@ public abstract class Polity : ISynchronizable {
 
 	public void Destroy () {
 
-		#if DEBUG
-		if (Id == 218191069088) {
-			bool debug = true;
-		}
-		#endif
+//		#if DEBUG
+//		if (Id == 218191069088) {
+//			bool debug = true;
+//		}
+//		#endif
 
 		List<Faction> factions = new List<Faction> (_factions.Values);
 
