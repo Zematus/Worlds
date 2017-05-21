@@ -2507,7 +2507,9 @@ public class MigrateGroupEvent : CellGroupEvent {
 
 	public void Reset (TerrainCell targetCell, int triggerDate) {
 
+		#if DEBUG
 		MigrationEventCount++;
+		#endif
 
 		TargetCell = targetCell;
 
