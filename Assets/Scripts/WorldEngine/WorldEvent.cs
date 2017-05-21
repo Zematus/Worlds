@@ -181,10 +181,10 @@ public class SailingDiscoveryEvent : CellGroupEvent {
 	
 	public static bool CanSpawnIn (CellGroup group) {
 
-		if (group.Culture.GetDiscovery (SailingDiscovery.SailingDiscoveryId) != null)
+		if (group.IsFlagSet (EventSetFlag))
 			return false;
 
-		if (group.IsFlagSet (EventSetFlag))
+		if (group.Culture.GetDiscovery (SailingDiscovery.SailingDiscoveryId) != null)
 			return false;
 		
 		return true;
@@ -274,10 +274,10 @@ public class TribalismDiscoveryEvent : CellGroupEvent {
 
 	public static bool CanSpawnIn (CellGroup group) {
 
-		if (group.Culture.GetFoundDiscoveryOrToFind (TribalismDiscovery.TribalismDiscoveryId) != null)
+		if (group.IsFlagSet (EventSetFlag))
 			return false;
 
-		if (group.IsFlagSet (EventSetFlag))
+		if (group.Culture.GetFoundDiscoveryOrToFind (TribalismDiscovery.TribalismDiscoveryId) != null)
 			return false;
 
 		return true;
@@ -332,6 +332,8 @@ public class TribalismDiscoveryEvent : CellGroupEvent {
 public class BoatMakingDiscoveryEvent : CellGroupEvent {
 	
 	public const int DateSpanFactorConstant = CellGroup.GenerationTime * 10000;
+
+	public const string EventSetFlag = "BoatMakingDiscoveryEvent_Set";
 	
 	public BoatMakingDiscoveryEvent () {
 		
@@ -339,6 +341,7 @@ public class BoatMakingDiscoveryEvent : CellGroupEvent {
 	
 	public BoatMakingDiscoveryEvent (CellGroup group, int triggerDate) : base (group, triggerDate, BoatMakingDiscoveryEventId) {
 
+		Group.SetFlag (EventSetFlag);
 	}
 	
 	public static int CalculateTriggerDate (CellGroup group) {
@@ -367,6 +370,9 @@ public class BoatMakingDiscoveryEvent : CellGroupEvent {
 	}
 	
 	public static bool CanSpawnIn (CellGroup group) {
+
+		if (group.IsFlagSet (EventSetFlag))
+			return false;
 		
 		if (group.Culture.GetKnowledge (ShipbuildingKnowledge.ShipbuildingKnowledgeId) != null)
 			return false;
@@ -393,11 +399,22 @@ public class BoatMakingDiscoveryEvent : CellGroupEvent {
 		Group.Culture.AddKnowledgeToLearn (new ShipbuildingKnowledge (Group));
 		World.AddGroupToUpdate (Group);
 	}
+
+	protected override void DestroyInternal ()
+	{
+		if (Group != null) {
+			Group.UnsetFlag (EventSetFlag);
+		}
+
+		base.DestroyInternal ();
+	}
 }
 
 public class PlantCultivationDiscoveryEvent : CellGroupEvent {
 
 	public const int DateSpanFactorConstant = CellGroup.GenerationTime * 600000;
+
+	public const string EventSetFlag = "PlantCultivationDiscoveryEvent_Set";
 
 	public PlantCultivationDiscoveryEvent () {
 
@@ -405,6 +422,7 @@ public class PlantCultivationDiscoveryEvent : CellGroupEvent {
 
 	public PlantCultivationDiscoveryEvent (CellGroup group, int triggerDate) : base (group, triggerDate, PlantCultivationDiscoveryEventId) {
 
+		Group.SetFlag (EventSetFlag);
 	}
 
 	public static int CalculateTriggerDate (CellGroup group) {
@@ -434,6 +452,9 @@ public class PlantCultivationDiscoveryEvent : CellGroupEvent {
 
 	public static bool CanSpawnIn (CellGroup group) {
 
+		if (group.IsFlagSet (EventSetFlag))
+			return false;
+
 		if (group.Culture.GetKnowledge (AgricultureKnowledge.AgricultureKnowledgeId) != null)
 			return false;
 
@@ -459,5 +480,14 @@ public class PlantCultivationDiscoveryEvent : CellGroupEvent {
 		Group.Culture.AddDiscoveryToFind (new PlantCultivationDiscovery ());
 		Group.Culture.AddKnowledgeToLearn (new AgricultureKnowledge (Group));
 		World.AddGroupToUpdate (Group);
+	}
+
+	protected override void DestroyInternal ()
+	{
+		if (Group != null) {
+			Group.UnsetFlag (EventSetFlag);
+		}
+
+		base.DestroyInternal ();
 	}
 }

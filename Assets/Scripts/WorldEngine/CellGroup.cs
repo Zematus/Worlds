@@ -2339,6 +2339,8 @@ public abstract class CellGroupEvent : WorldEvent {
 	{
 		//		if (Group == null)
 		//			return;
+
+		base.DestroyInternal ();
 	}
 
 	public virtual void Reset (int newTriggerDate) {
