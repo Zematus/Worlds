@@ -158,7 +158,7 @@ public abstract class Polity : ISynchronizable {
 			idOffset = (int)parentPolity.Id;
 		}
 
-		Id = coreGroup.GenerateUniqueIdentifier (offset: idOffset);
+		Id = GenerateUniqueIdentifier (offset: idOffset);
 
 //		#if DEBUG
 //		if (Id == 218191069088) {
@@ -792,7 +792,7 @@ public abstract class PolityEvent : WorldEvent {
 
 	}
 
-	public PolityEvent (Polity polity, int triggerDate, long eventTypeId) : base (polity.World, triggerDate, polity.GenerateUniqueIdentifier (1000, eventTypeId)) {
+	public PolityEvent (Polity polity, int triggerDate, long eventTypeId) : base (polity.World, triggerDate, GenerateUniqueIdentifier (polity, triggerDate, eventTypeId)) {
 
 		Polity = polity;
 		PolityId = Polity.Id;
@@ -810,7 +810,17 @@ public abstract class PolityEvent : WorldEvent {
 //		#endif
 	}
 
-	public override bool CanTrigger () {
+	public static long GenerateUniqueIdentifier (Polity polity, int triggerDate, long eventTypeId) {
+
+		CellGroup coreGroup = polity.CoreGroup;
+
+		return ((long)triggerDate * 100000000000) + ((long)coreGroup.Longitude * 100000000) + ((long)coreGroup.Latitude * 100000) + (eventTypeId * 1000) + polity.Id;
+	}
+
+	public override bool IsStillValid () {
+	
+		if (!base.IsStillValid ())
+			return false;
 
 		if (Polity == null)
 			return false;
@@ -823,11 +833,16 @@ public abstract class PolityEvent : WorldEvent {
 		base.FinalizeLoad ();
 
 		Polity = World.GetPolity (PolityId);
+
+		if (Polity == null) {
+
+			Debug.LogError ("PolityEvent: Polity with Id:" + PolityId + " not found");
+		}
 	}
 
 	public virtual void Reset (int newTriggerDate) {
 
-		Reset (newTriggerDate, Polity.GenerateUniqueIdentifier (1000, EventTypeId));
+		Reset (newTriggerDate, GenerateUniqueIdentifier (Polity, newTriggerDate, EventTypeId));
 	}
 }
 

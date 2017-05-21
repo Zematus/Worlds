@@ -16,6 +16,9 @@ public class Tribe : Polity {
 
 	public const float BaseCoreInfluence = 0.5f;
 
+	[XmlAttribute("SpltDate")]
+	public int TribeSplitEventDate;
+
 	[XmlIgnore]
 	public TribeSplitEvent TribeSplitEvent;
 
@@ -107,7 +110,9 @@ public class Tribe : Polity {
 
 		if (TribeSplitEvent.CanBeAssignedTo (this)) {
 
-			TribeSplitEvent = new TribeSplitEvent (this, TribeSplitEvent.CalculateTriggerDate (this));
+			TribeSplitEventDate = TribeSplitEvent.CalculateTriggerDate (this);
+
+			TribeSplitEvent = new TribeSplitEvent (this, TribeSplitEventDate);
 
 			World.InsertEventToHappen (TribeSplitEvent);
 		}
@@ -317,117 +322,17 @@ public class Tribe : Polity {
 
 		return finalFactor;
 	}
-}
 
-public class TribeFormationEvent : CellGroupEvent {
+	public override void FinalizeLoad () {
 
-	public const int DateSpanFactorConstant = CellGroup.GenerationTime * 100;
+		base.FinalizeLoad ();
 
-	public const int MinSocialOrganizationKnowledgeSpawnEventValue = SocialOrganizationKnowledge.MinValueForTribalismSpawnEvent;
-	public const int MinSocialOrganizationKnowledgeValue = SocialOrganizationKnowledge.MinValueForTribalism;
-	public const int OptimalSocialOrganizationKnowledgeValue = SocialOrganizationKnowledge.OptimalValueForTribalism;
+		if (TribeSplitEvent.CanBeAssignedTo (this)) {
 
-	public const string EventSetFlag = "TribeFormationEvent_Set";
+			TribeSplitEvent = new TribeSplitEvent (this, TribeSplitEventDate);
 
-	public TribeFormationEvent () {
-
-	}
-
-	public TribeFormationEvent (CellGroup group, int triggerDate) : base (group, triggerDate, TribeFormationEventId) {
-
-		Group.SetFlag (EventSetFlag);
-	}
-
-	public static int CalculateTriggerDate (CellGroup group) {
-
-		float socialOrganizationValue = 0;
-
-		CulturalKnowledge socialOrganizationKnowledge = group.Culture.GetKnowledge (SocialOrganizationKnowledge.SocialOrganizationKnowledgeId);
-
-		if (socialOrganizationKnowledge != null)
-			socialOrganizationValue = socialOrganizationKnowledge.Value;
-
-		float randomFactor = group.Cell.GetNextLocalRandomFloat (RngOffsets.TRIBE_FORMATION_EVENT_CALCULATE_TRIGGER_DATE);
-		randomFactor = Mathf.Pow (randomFactor, 2);
-
-		float socialOrganizationFactor = (socialOrganizationValue - MinSocialOrganizationKnowledgeValue) / (OptimalSocialOrganizationKnowledgeValue - MinSocialOrganizationKnowledgeValue);
-		socialOrganizationFactor = Mathf.Pow (socialOrganizationFactor, 2);
-		socialOrganizationFactor = Mathf.Clamp (socialOrganizationFactor, 0.001f, 1);
-
-		float dateSpan = (1 - randomFactor) * DateSpanFactorConstant / socialOrganizationFactor;
-
-		int targetDate = (int)(group.World.CurrentDate + dateSpan);
-
-		if (targetDate <= group.World.CurrentDate)
-			targetDate = int.MinValue;
-
-		return targetDate;
-	}
-
-	public static bool CanSpawnIn (CellGroup group) {
-
-		if (group.IsFlagSet (EventSetFlag))
-			return false;
-
-		if (group.Culture.GetFoundDiscoveryOrToFind (TribalismDiscovery.TribalismDiscoveryId) == null)
-			return false;
-
-		CulturalKnowledge socialOrganizationKnowledge = group.Culture.GetKnowledge (SocialOrganizationKnowledge.SocialOrganizationKnowledgeId);
-
-		if (socialOrganizationKnowledge == null)
-			return false;
-
-		if (socialOrganizationKnowledge.Value < MinSocialOrganizationKnowledgeValue)
-			return false;
-
-		return true;
-	}
-
-	public override bool CanTrigger () {
-
-		if (!base.CanTrigger ())
-			return false;
-
-		CulturalDiscovery discovery = Group.Culture.GetFoundDiscoveryOrToFind (TribalismDiscovery.TribalismDiscoveryId);
-
-		if (discovery == null)
-			return false;
-
-		float influenceFactor = Mathf.Min(1, Group.TotalPolityInfluenceValue * 3f);
-
-		if (influenceFactor >= 1)
-			return false;
-
-		if (influenceFactor <= 0)
-			return true;
-
-		influenceFactor = Mathf.Pow (1 - influenceFactor, 4);
-
-		float triggerValue = Group.Cell.GetNextLocalRandomFloat (RngOffsets.EVENT_CAN_TRIGGER + (int)Id);
-
-		if (triggerValue > influenceFactor)
-			return false;
-
-		return true;
-	}
-
-	public override void Trigger () {
-
-		Tribe tribe = new Tribe (Group);
-
-		World.AddPolity (tribe);
-		World.AddPolityToUpdate (tribe);
-
-		World.AddGroupToUpdate (Group);
-	}
-
-	protected override void DestroyInternal ()
-	{
-		if (Group != null) {
-			Group.UnsetFlag (EventSetFlag);
+			World.InsertEventToHappen (TribeSplitEvent);
 		}
-
-		base.DestroyInternal ();
 	}
 }
 
@@ -437,7 +342,7 @@ public class TribeSplitEvent : PolityEvent {
 
 	public const int MuAdministrativeLoadValue = 500000;
 
-	public const string EventSetFlag = "TribeSplitEvent_Set";
+//	public const string EventSetFlag = "TribeSplitEvent_Set";
 
 	public const float MinCoreInfluenceValue = 0.3f;
 
@@ -450,11 +355,14 @@ public class TribeSplitEvent : PolityEvent {
 
 	public TribeSplitEvent () {
 
+		DoNotSerialize = true;
 	}
 
 	public TribeSplitEvent (Tribe tribe, int triggerDate) : base (tribe, triggerDate, TribeSplitEventId) {
 
-		tribe.SetFlag (EventSetFlag);
+//		tribe.SetFlag (EventSetFlag);
+
+		DoNotSerialize = true;
 	}
 
 	private static float CalculateTribeAdministrativeLoadFactor (Tribe tribe) {
@@ -493,8 +401,8 @@ public class TribeSplitEvent : PolityEvent {
 
 	public static bool CanBeAssignedTo (Tribe tribe) {
 
-		if (tribe.IsFlagSet (EventSetFlag))
-			return false;
+//		if (tribe.IsFlagSet (EventSetFlag))
+//			return false;
 
 		return true;
 	}
@@ -604,9 +512,9 @@ public class TribeSplitEvent : PolityEvent {
 
 		base.DestroyInternal ();
 
-		if (Polity != null) {
-			Polity.UnsetFlag (EventSetFlag);
-		}
+//		if (Polity != null) {
+//			Polity.UnsetFlag (EventSetFlag);
+//		}
 
 		if ((Polity != null) && (Polity.StillPresent)) {
 
@@ -616,7 +524,9 @@ public class TribeSplitEvent : PolityEvent {
 
 				tribe.TribeSplitEvent = this;
 
-				Reset (CalculateTriggerDate (tribe));
+				tribe.TribeSplitEventDate = CalculateTriggerDate (tribe);
+
+				Reset (tribe.TribeSplitEventDate);
 
 				World.InsertEventToHappen (this);
 			}

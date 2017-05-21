@@ -349,7 +349,13 @@ public class BinaryTree<TKey, TValue> {
 	}
 
 	public List<TValue> GetValues (FilterNodeDelegate<TKey, TValue> filterNode, FilterNodeEffectDelegate<TKey, TValue> filterNodeEffect = null, bool removeNodesMarkedForRemoval = false) {
-		
+
+		#if DEBUG
+		int removedValues = 0;
+		int ignoredValues = 0;
+		int addedValues = 0;
+		#endif
+
 		List<TValue> values = new List<TValue> (Count);
 
 		// Copy items to list from leftmost to rightmost, marking all inserted items along the way
@@ -365,19 +371,33 @@ public class BinaryTree<TKey, TValue> {
 
 			if (!currentNode.Marked) {
 
-				if (filterNode (currentNode))
+				if (filterNode (currentNode)) {
+					
 					values.Add (currentNode.Value);
-				else {
+
+					#if DEBUG
+					addedValues++;
+					#endif
+				} else {
+					
 					if (filterNodeEffect != null)
 						filterNodeEffect (currentNode);
 
-					if (removeNodesMarkedForRemoval) {
+					if (currentNode.MarkedForRemoval) {
 
-						if (currentNode.MarkedForRemoval)
+						if (removeNodesMarkedForRemoval)
 							RemoveNode (currentNode);
-					} else {
-						
+
 						currentNode.MarkedForRemoval = false;
+
+						#if DEBUG
+						removedValues++;
+						#endif
+					} else {
+
+						#if DEBUG
+						ignoredValues++;
+						#endif
 					}
 				}
 
@@ -392,6 +412,15 @@ public class BinaryTree<TKey, TValue> {
 
 			currentNode = currentNode.Parent;
 		}
+
+		#if DEBUG
+		float totalValues = addedValues + ignoredValues + removedValues;
+		float percentAdded = addedValues / totalValues;
+		float percentIgnored = ignoredValues / totalValues;
+		float percentRemoved = removedValues / totalValues;
+
+		Debug.Log ("Total Events: " + totalValues + ". Serialized: " + percentAdded.ToString ("P") + ", Ignored: " + percentIgnored.ToString ("P") + ", Removed: " + percentRemoved.ToString ("P"));
+		#endif
 
 		//
 		// Remove mark from all copied items

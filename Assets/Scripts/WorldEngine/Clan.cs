@@ -8,6 +8,9 @@ public class Clan : Faction {
 
 	public const string ClanType = "Clan";
 
+	[XmlAttribute("SpltDate")]
+	public int ClanSplitEventDate;
+
 	[XmlIgnore]
 	public ClanSplitEvent ClanSplitEvent;
 
@@ -19,7 +22,9 @@ public class Clan : Faction {
 
 		if (ClanSplitEvent.CanBeAssignedTo (this)) {
 
-			ClanSplitEvent = new ClanSplitEvent (this, ClanSplitEvent.CalculateTriggerDate (this));
+			ClanSplitEventDate = ClanSplitEvent.CalculateTriggerDate (this);
+
+			ClanSplitEvent = new ClanSplitEvent (this, ClanSplitEventDate);
 
 			World.InsertEventToHappen (ClanSplitEvent);
 		}
@@ -36,6 +41,18 @@ public class Clan : Faction {
 		if (parentClan != null) {
 			
 //			Debug.Log (logMessage);
+		}
+	}
+
+	public override void FinalizeLoad () {
+	
+		base.FinalizeLoad ();
+
+		if (ClanSplitEvent.CanBeAssignedTo (this)) {
+
+			ClanSplitEvent = new ClanSplitEvent (this, ClanSplitEventDate);
+
+			World.InsertEventToHappen (ClanSplitEvent);
 		}
 	}
 
@@ -133,15 +150,18 @@ public class ClanSplitEvent : FactionEvent {
 	public const float MinProminenceTransfer = 0.25f;
 	public const float ProminenceTransferProportion = 0.75f;
 
-	public const string EventSetFlag = "ClanSplitEvent_Set";
+//	public const string EventSetFlag = "ClanSplitEvent_Set";
 
 	public ClanSplitEvent () {
 
+		DoNotSerialize = true;
 	}
 
 	public ClanSplitEvent (Clan clan, int triggerDate) : base (clan, triggerDate, ClanSplitEventId) {
 
-		clan.SetFlag (EventSetFlag);
+//		clan.SetFlag (EventSetFlag);
+
+		DoNotSerialize = true;
 	}
 
 	private static float CalculateClanAdministrativeLoadFactor (Clan clan) {
@@ -180,8 +200,8 @@ public class ClanSplitEvent : FactionEvent {
 
 	public static bool CanBeAssignedTo (Clan clan) {
 
-		if (clan.IsFlagSet (EventSetFlag))
-			return false;
+//		if (clan.IsFlagSet (EventSetFlag))
+//			return false;
 
 		return true;
 	}
@@ -238,9 +258,9 @@ public class ClanSplitEvent : FactionEvent {
 
 		base.DestroyInternal ();
 
-		if (Faction != null) {
-			Faction.UnsetFlag (EventSetFlag);
-		}
+//		if (Faction != null) {
+//			Faction.UnsetFlag (EventSetFlag);
+//		}
 
 		if ((Faction != null) && (Faction.StillPresent)) {
 
@@ -250,7 +270,9 @@ public class ClanSplitEvent : FactionEvent {
 
 				clan.ClanSplitEvent = this;
 
-				Reset (CalculateTriggerDate (clan));
+				clan.ClanSplitEventDate = CalculateTriggerDate (clan);
+
+				Reset (clan.ClanSplitEventDate);
 
 				World.InsertEventToHappen (this);
 			}

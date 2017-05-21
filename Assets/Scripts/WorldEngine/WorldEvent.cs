@@ -63,9 +63,14 @@ public abstract class WorldEvent : ISynchronizable {
 //		#endif
 	}
 
-	public virtual bool CanTrigger () {
+	public virtual bool IsStillValid () {
 
 		return true;
+	}
+
+	public virtual bool CanTrigger () {
+
+		return IsStillValid ();
 	}
 
 	public virtual void Synchronize () {

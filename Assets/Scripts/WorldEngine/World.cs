@@ -149,13 +149,13 @@ public class World : ISynchronizable {
 
 	[XmlArrayItem (Type = typeof(UpdateCellGroupEvent)),
 		XmlArrayItem (Type = typeof(MigrateGroupEvent)),
+		XmlArrayItem (Type = typeof(ExpandPolityInfluenceEvent)),
+		XmlArrayItem (Type = typeof(TribeFormationEvent)),
 		XmlArrayItem (Type = typeof(SailingDiscoveryEvent)),
 		XmlArrayItem (Type = typeof(BoatMakingDiscoveryEvent)),
 		XmlArrayItem (Type = typeof(TribalismDiscoveryEvent)),
-		XmlArrayItem (Type = typeof(TribeFormationEvent)),
 		XmlArrayItem (Type = typeof(PlantCultivationDiscoveryEvent)),
 		XmlArrayItem (Type = typeof(ClanSplitEvent)),
-		XmlArrayItem (Type = typeof(ExpandPolityInfluenceEvent)),
 		XmlArrayItem (Type = typeof(TribeSplitEvent))]
 	public List<WorldEvent> EventsToHappen;
 
@@ -382,10 +382,37 @@ public class World : ISynchronizable {
 
 		EventsToHappen = _eventsToHappen.GetValues (FilterEventsToHappenNodeForSerialization, FilterEventsToHappenNodeEffect, true);
 
+		#if DEBUG
+		Dictionary<System.Type, int> eventTypes = new Dictionary<System.Type, int> ();
+		#endif
+
 		foreach (WorldEvent e in EventsToHappen) {
+
+			#if DEBUG
+			System.Type type = e.GetType ();
+
+			if (!eventTypes.ContainsKey (type)) {
+			
+				eventTypes.Add (type, 1);
+			} else {
+			
+				eventTypes [type]++;
+			}
+			#endif
 
 			e.Synchronize ();
 		}
+
+		#if DEBUG
+		string debugMsg = "Total Groups: " + _cellGroups.Count + "\nSerialized event types:";
+
+		foreach (KeyValuePair<System.Type, int> pair in eventTypes) {
+
+			debugMsg += "\n\t" + pair.Key + " : " + pair.Value;
+		}
+
+		Debug.Log (debugMsg);
+		#endif
 
 		CellGroups = new List<CellGroup> (_cellGroups.Values);
 
@@ -533,6 +560,12 @@ public class World : ISynchronizable {
 	}
 
 	private bool ValidateEventsToHappenNode (BinaryTreeNode<int, WorldEvent> node) {
+
+		if (!node.Value.IsStillValid ()) {
+
+			node.MarkedForRemoval = true;
+			return false;
+		}
 
 		if (node.Key != node.Value.TriggerDate) {
 		

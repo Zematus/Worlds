@@ -53,10 +53,10 @@ public abstract class Faction : ISynchronizable {
 			idOffset = (int)parentFaction.Id;
 		}
 
-		Id = polity.GenerateUniqueIdentifier (offset: idOffset);
-
 		PolityId = polity.Id;
 		Polity = polity;
+
+		Id = GenerateUniqueIdentifier (offset: idOffset);
 
 		Prominence = prominence;
 
@@ -174,7 +174,7 @@ public abstract class FactionEvent : WorldEvent {
 
 	}
 
-	public FactionEvent (Faction faction, int triggerDate, long eventTypeId) : base (faction.World, triggerDate, faction.GenerateUniqueIdentifier (1000, eventTypeId)) {
+	public FactionEvent (Faction faction, int triggerDate, long eventTypeId) : base (faction.World, triggerDate, GenerateUniqueIdentifier (faction, triggerDate, eventTypeId)) {
 
 		Faction = faction;
 		FactionId = Faction.Id;
@@ -192,12 +192,32 @@ public abstract class FactionEvent : WorldEvent {
 //		#endif
 	}
 
-	public override bool CanTrigger () {
+	public static long GenerateUniqueIdentifier (Faction faction, int triggerDate, long eventTypeId) {
 
+		CellGroup coreGroup = faction.Polity.CoreGroup;
+
+		return ((long)triggerDate * 100000000000) + ((long)coreGroup.Longitude * 100000000) + ((long)coreGroup.Latitude * 100000) + (eventTypeId * 1000) + faction.Id;
+	}
+
+	public override bool IsStillValid () {
+	
+		if (!base.IsStillValid ())
+			return false;
+		
 		if (Faction == null)
 			return false;
 
-		return Faction.StillPresent;
+		if (!Faction.StillPresent)
+			return false;
+
+		Polity polity = World.GetPolity (Faction.PolityId);
+
+		if (polity == null) {
+
+			Debug.LogError ("FactionEvent: Polity with Id:" + PolityId + " not found");
+		}
+
+		return true;
 	}
 
 	public override void Synchronize ()
@@ -212,11 +232,22 @@ public abstract class FactionEvent : WorldEvent {
 		base.FinalizeLoad ();
 
 		Polity polity = World.GetPolity (PolityId);
+
+		if (polity == null) {
+
+			Debug.LogError ("FactionEvent: Polity with Id:" + PolityId + " not found");
+		}
+
 		Faction = polity.GetFaction (FactionId);
+
+		if (Faction == null) {
+
+			Debug.LogError ("FactionEvent: Faction with Id:" + FactionId + " not found");
+		}
 	}
 
 	public virtual void Reset (int newTriggerDate) {
 
-		Reset (newTriggerDate, Faction.GenerateUniqueIdentifier (1000, EventTypeId));
+		Reset (newTriggerDate, GenerateUniqueIdentifier (Faction, newTriggerDate, EventTypeId));
 	}
 }
