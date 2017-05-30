@@ -4,6 +4,24 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
+public class WorldEventSnapshot {
+
+	public System.Type EventType;
+
+	public int TriggerDate;
+	public int SpawnDate;
+	public long Id;
+
+	public WorldEventSnapshot (WorldEvent e) {
+
+		EventType = e.GetType ();
+	
+		TriggerDate = e.TriggerDate;
+		SpawnDate = e.SpawnDate;
+		Id = e.Id;
+	}
+}
+
 public abstract class WorldEvent : ISynchronizable {
 
 	public const long UpdateCellGroupEventId = 0;
@@ -47,20 +65,26 @@ public abstract class WorldEvent : ISynchronizable {
 
 		World = world;
 		TriggerDate = triggerDate;
-
 		SpawnDate = World.CurrentDate;
 
 		Id = id;
 
-//		#if DEBUG
-//		if (Manager.RegisterDebugEvent != null) {
-//			string eventId = "Id: " + id;
-//
-//			SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("WorldEvent - Id: " + eventId, "TriggerDate: " + TriggerDate);
-//
-//			Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-//		}
-//		#endif
+		#if DEBUG
+		if (Manager.RegisterDebugEvent != null) {
+			if (!this.GetType ().IsSubclassOf (typeof(CellGroupEvent))) {
+				string eventId = "Id: " + id;
+
+				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("WorldEvent - Id: " + eventId, "TriggerDate: " + TriggerDate);
+
+				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+			}
+		}
+		#endif
+	}
+
+	public virtual WorldEventSnapshot GetSnapshot () {
+	
+		return new WorldEventSnapshot (this);
 	}
 
 	public virtual bool IsStillValid () {

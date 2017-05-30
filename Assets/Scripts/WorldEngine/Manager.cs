@@ -145,6 +145,8 @@ public class Manager {
 
 	#endif
 
+	public static string CurrentVersion = "0.026d";
+
 //	public static bool RecordingEnabled = false;
 
 //	public static IRecorder Recorder = DefaultRecorder.Default;

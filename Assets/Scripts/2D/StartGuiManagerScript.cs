@@ -14,6 +14,8 @@ public class StartGuiManagerScript : MonoBehaviour {
 	public TextInputDialogPanelScript MessageDialogPanelScript;
 	public WorldCustomizationDialogPanelScript SetSeedDialogPanelScript;
 	public WorldCustomizationDialogPanelScript CustomizeWorldDialogPanelScript;
+
+	public Text VersionText;
 	
 	private bool _preparingWorld = false;
 	
@@ -37,6 +39,11 @@ public class StartGuiManagerScript : MonoBehaviour {
 		MainMenuDialogPanelScript.SetVisible (true);
 		
 		LoadButton.interactable = HasFilesToLoad ();
+	}
+
+	void Awake () {
+
+		VersionText.text = "v" + Manager.CurrentVersion;
 	}
 
 	void OnDestroy () {

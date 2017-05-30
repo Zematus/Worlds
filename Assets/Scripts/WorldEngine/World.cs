@@ -119,9 +119,6 @@ public class World : ISynchronizable {
 	public int MaxYearsToSkip { get; private set; }
 	
 	[XmlAttribute]
-	public int EventsToHappenCount { get; private set; }
-	
-	[XmlAttribute]
 	public int CellGroupCount { get; private set; }
 
 	[XmlAttribute]
@@ -177,6 +174,9 @@ public class World : ISynchronizable {
 	public List<Language> Languages;
 
 	// End wonky segment 
+
+	[XmlIgnore]
+	public int EventsToHappenCount { get; private set; }
 
 	[XmlIgnore]
 	public TerrainCell SelectedCell = null;
@@ -373,9 +373,14 @@ public class World : ISynchronizable {
 		}
 	}
 
-	public List<WorldEvent> GetValidEventsToHappen () {
-	
-		return _eventsToHappen.GetValues (ValidateEventsToHappenNode);
+//	public List<WorldEvent> GetValidEventsToHappen () {
+//	
+//		return _eventsToHappen.GetValues (ValidateEventsToHappenNode);
+//	}
+
+	public List<WorldEvent> GetFilteredEventsToHappenForSerialization () {
+
+		return _eventsToHappen.GetValues (FilterEventsToHappenNodeForSerialization);
 	}
 
 	public void Synchronize () {
@@ -804,6 +809,11 @@ public class World : ISynchronizable {
 		return dateSpan;
 	}
 
+	public List<WorldEvent> GetEventsToHappen () {
+	
+		return _eventsToHappen.Values;
+	}
+
 	public void InsertEventToHappen (WorldEvent eventToHappen) {
 
 //		Profiler.BeginSample ("Insert Event To Happen");
@@ -1097,7 +1107,8 @@ public class World : ISynchronizable {
 			e.World = this;
 			e.FinalizeLoad ();
 
-			_eventsToHappen.Insert (e.TriggerDate, e);
+			InsertEventToHappen (e);
+//			_eventsToHappen.Insert (e.TriggerDate, e);
 
 			castProgress (startProgressValue + (++elementCount/totalElementsFactor), "Initializing Events...");
 		});

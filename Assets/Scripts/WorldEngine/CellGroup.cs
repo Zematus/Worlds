@@ -6,6 +6,42 @@ using System.Xml.Serialization;
 using System.Linq;
 using UnityEngine.Profiling;
 
+public class CellGroupSnapshot {
+
+	public long Id;
+
+	public bool HasMigrationEvent;
+	public int MigrationEventDate;
+	public int MigrationTargetLongitude;
+	public int MigrationTargetLatitude;
+
+	public bool HasPolityExpansionEvent;
+	public int PolityExpansionEventDate;
+	public long ExpansionTargetGroupId;
+	public long ExpandingPolityId;
+
+	public bool HasTribeFormationEvent;
+	public int TribeFormationEventDate;
+
+	public CellGroupSnapshot (CellGroup c) {
+
+		Id = c.Id;
+
+		HasMigrationEvent = c.HasMigrationEvent;
+		MigrationEventDate = c.MigrationEventDate;
+		MigrationTargetLongitude = c.MigrationTargetLongitude;
+		MigrationTargetLatitude = c.MigrationTargetLatitude;
+
+		HasPolityExpansionEvent = c.HasPolityExpansionEvent;
+		PolityExpansionEventDate = c.PolityExpansionEventDate;
+		ExpansionTargetGroupId = c.ExpansionTargetGroupId;
+		ExpandingPolityId = c.ExpandingPolityId;
+
+		HasTribeFormationEvent = c.HasTribeFormationEvent;
+		TribeFormationEventDate = c.TribeFormationEventDate;
+	}
+}
+
 public class CellGroup : HumanGroup {
 
 	public const int GenerationTime = 25;
@@ -281,6 +317,11 @@ public class CellGroup : HumanGroup {
 		InitializeDefaultEvents ();
 
 		World.AddUpdatedGroup (this);
+	}
+
+	public CellGroupSnapshot GetSnapshot () {
+	
+		return new CellGroupSnapshot (this);
 	}
 
 	public long GenerateUniqueIdentifier (long oom = 1, long offset = 0) {
@@ -646,11 +687,20 @@ public class CellGroup : HumanGroup {
 		return splitPopulation;
 	}
 
-//	public void PreUpdate () {
-//
-//	}
-
 	public void PostUpdate () {
+
+		#if DEBUG
+		if (Manager.RegisterDebugEvent != null) {
+			if (Id == Manager.TracingData.GroupId) {
+				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+					"PostUpdate - Group:" + Id,
+					"CurrentDate: " + World.CurrentDate + 
+					"");
+
+				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+			}
+		}
+		#endif
 
 		_alreadyUpdated = false;
 
@@ -1378,6 +1428,37 @@ public class CellGroup : HumanGroup {
 
 	public void SetPolityUpdate (PolityInfluence pi, bool forceUpdate) {
 
+//		#if DEBUG
+//		if (Manager.RegisterDebugEvent != null) {
+//			if (Id == Manager.TracingData.GroupId) {
+//
+//				System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
+//
+//				System.Reflection.MethodBase method = stackTrace.GetFrame(1).GetMethod();
+//				string callingMethod = method.Name;
+//
+////				int frame = 2;
+////				while (callingMethod.Contains ("GetNextLocalRandom") || callingMethod.Contains ("GetNextRandom")) {
+////					method = stackTrace.GetFrame(frame).GetMethod();
+////					callingMethod = method.Name;
+////
+////					frame++;
+////				}
+//
+//				string callingClass = method.DeclaringType.ToString();
+//
+//				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//					"SetPolityUpdate - Group:" + Id,
+//					"CurrentDate: " + World.CurrentDate + 
+//					"forceUpdate: " + forceUpdate + 
+//					"caller: " + callingClass + "::" + callingMethod +
+//					"");
+//
+//				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+//			}
+//		}
+//		#endif
+
 		Polity p = pi.Polity;
 
 		if (p.WillBeUpdated)
@@ -1400,20 +1481,37 @@ public class CellGroup : HumanGroup {
 
 		float rollValue = Cell.GetNextLocalRandomFloat (RngOffsets.CELL_GROUP_SET_POLITY_UPDATE + (int)p.Id);
 
-//		#if DEBUG
-//		if (Manager.RegisterDebugEvent != null) {
-//			SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-//				"SetPolityUpdate - Group:" + Id,
-//				"CurrentDate: " + World.CurrentDate + 
-//				", p.TotalGroupInfluenceValue: " + p.TotalGroupInfluenceValue + 
-//				", p.Id: " + p.Id + 
-//				", chanceFactor: " + chanceFactor + 
-//				", rollValue: " + rollValue + 
-//				"");
-//
-//			Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-//		}
-//		#endif
+		#if DEBUG
+		if (Manager.RegisterDebugEvent != null) {
+
+			System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
+
+			System.Reflection.MethodBase method = stackTrace.GetFrame(1).GetMethod();
+			string callingMethod = method.Name;
+
+			//				int frame = 2;
+			//				while (callingMethod.Contains ("GetNextLocalRandom") || callingMethod.Contains ("GetNextRandom")) {
+			//					method = stackTrace.GetFrame(frame).GetMethod();
+			//					callingMethod = method.Name;
+			//
+			//					frame++;
+			//				}
+
+			string callingClass = method.DeclaringType.ToString();
+
+			SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+				"SetPolityUpdate - After roll - Group:" + Id,
+				"CurrentDate: " + World.CurrentDate + 
+				", polity Id: " + p.Id + 
+				", chanceFactor: " + chanceFactor + 
+				", rollValue: " + rollValue + 
+				", forceUpdate: " + forceUpdate + 
+				", caller: " + callingClass + "::" + callingMethod +
+				"");
+
+			Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+		}
+		#endif
 
 		if (rollValue <= chanceFactor)
 			World.AddPolityToUpdate (p);
@@ -2232,7 +2330,6 @@ public class CellGroup : HumanGroup {
 		// Generate Update Event
 
 		UpdateEvent = new UpdateCellGroupEvent (this, NextUpdateDate);
-
 		World.InsertEventToHappen (UpdateEvent);
 
 		// Generate Migration Event
@@ -2242,6 +2339,7 @@ public class CellGroup : HumanGroup {
 			TerrainCell targetCell = World.GetCell (MigrationTargetLongitude, MigrationTargetLatitude);
 
 			MigrationEvent = new MigrateGroupEvent (this, targetCell, MigrationEventDate);
+			World.InsertEventToHappen (MigrationEvent);
 		}
 
 		// Generate Polity Expansion Event
@@ -2252,6 +2350,7 @@ public class CellGroup : HumanGroup {
 			CellGroup targetGroup = World.GetGroup (ExpansionTargetGroupId);
 		
 			PolityExpansionEvent = new ExpandPolityInfluenceEvent (this, expandingPolity, targetGroup, PolityExpansionEventDate);
+			World.InsertEventToHappen (PolityExpansionEvent);
 		}
 
 		// Generate Tribe Formation Event
@@ -2259,7 +2358,20 @@ public class CellGroup : HumanGroup {
 		if (HasTribeFormationEvent) {
 
 			TribeCreationEvent = new TribeFormationEvent (this, TribeFormationEventDate);
+			World.InsertEventToHappen (TribeCreationEvent);
 		}
+	}
+}
+
+public class CellGroupEventSnapshot : WorldEventSnapshot {
+
+	public long GroupId;
+	public CellGroupSnapshot GroupSnapshot;
+
+	public CellGroupEventSnapshot (CellGroupEvent e) : base (e) {
+
+		GroupId = e.GroupId;
+		GroupSnapshot = e.Group.GetSnapshot ();
 	}
 }
 
@@ -2291,6 +2403,11 @@ public abstract class CellGroupEvent : WorldEvent {
 		#endif
 	}
 
+	public override WorldEventSnapshot GetSnapshot ()
+	{
+		return new CellGroupEventSnapshot (this);
+	}
+
 	public static long GenerateUniqueIdentifier (CellGroup group, int triggerDate, long eventTypeId) {
 
 		return ((long)triggerDate * 100000000) + ((long)group.Longitude * 100000) + ((long)group.Latitude * 100) + eventTypeId;
@@ -2299,15 +2416,15 @@ public abstract class CellGroupEvent : WorldEvent {
 	#if DEBUG
 	protected void GenerateDebugMessage () {
 
-//		if (Manager.RegisterDebugEvent != null) {
-////			if (Group.Id == Manager.TracingData.GroupId) {
-//			string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
-//
-//			SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("CellGroupEvent - Group:" + groupId + ", Type: " + this.GetType (), "TriggerDate: " + TriggerDate);
-//
-//			Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-////			}
-//		}
+		if (Manager.RegisterDebugEvent != null) {
+//			if (Group.Id == Manager.TracingData.GroupId) {
+			string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
+
+			SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("CellGroupEvent - Group:" + groupId + ", Type: " + this.GetType (), "TriggerDate: " + TriggerDate);
+
+			Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+//			}
+		}
 	}
 	#endif
 
