@@ -34,6 +34,7 @@ public class GuiManagerScript : MonoBehaviour {
 	public DialogPanelScript ViewsDialogPanelScript;
 	public DialogPanelScript MainMenuDialogPanelScript;
 	public DialogPanelScript OptionsDialogPanelScript;
+	public SettingsDialogPanelScript SettingsDialogPanelScript;
 	public ProgressDialogPanelScript ProgressDialogPanelScript;
 	public ActivityDialogPanelScript ActivityDialogPanelScript;
 	public TextInputDialogPanelScript MessageDialogPanelScript;
@@ -363,6 +364,13 @@ public class GuiManagerScript : MonoBehaviour {
 		
 		InterruptSimulation (false);
 	}
+
+	public void CloseSettingsDialog () {
+
+		SettingsDialogPanelScript.SetVisible (false);
+
+		InterruptSimulation (false);
+	}
 	
 	public void CloseOptionsMenu () {
 		
@@ -372,6 +380,22 @@ public class GuiManagerScript : MonoBehaviour {
 	public void Exit () {
 		
 		Application.Quit();
+	}
+
+	public void OpenSettingsDialog () {
+
+		MainMenuDialogPanelScript.SetVisible (false);
+
+		SettingsDialogPanelScript.FullscreenToggle.isOn = Manager.IsFullscreen;
+
+		SettingsDialogPanelScript.SetVisible (true);
+
+		InterruptSimulation (true);
+	}
+
+	public void ToogleFullscreen (bool state) {
+	
+		Manager.SetFullscreen (state);
 	}
 
 	public void SetGenerationSeed () {
@@ -385,7 +409,6 @@ public class GuiManagerScript : MonoBehaviour {
 		SetSeedDialogPanelScript.SetVisible (true);
 		
 		InterruptSimulation (true);
-
 	}
 	
 	public void CancelGenerateAction () {

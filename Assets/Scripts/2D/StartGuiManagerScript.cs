@@ -10,6 +10,7 @@ public class StartGuiManagerScript : MonoBehaviour {
 
 	public LoadFileDialogPanelScript LoadFileDialogPanelScript;
 	public DialogPanelScript MainMenuDialogPanelScript;
+	public SettingsDialogPanelScript SettingsDialogPanelScript;
 	public ProgressDialogPanelScript ProgressDialogPanelScript;
 	public TextInputDialogPanelScript MessageDialogPanelScript;
 	public WorldCustomizationDialogPanelScript SetSeedDialogPanelScript;
@@ -28,6 +29,8 @@ public class StartGuiManagerScript : MonoBehaviour {
 	void Start () {
 
 		Manager.LoadAppSettings (@"Worlds.settings");
+
+		Manager.InitializeScreen ();
 
 		Manager.UpdateMainThreadReference ();
 
@@ -136,6 +139,27 @@ public class StartGuiManagerScript : MonoBehaviour {
 		
 		SetSeedDialogPanelScript.SetVisible (false);
 		CustomizeWorldDialogPanelScript.SetVisible (false);
+
+		MainMenuDialogPanelScript.SetVisible (true);
+	}
+
+	public void OpenSettingsDialog () {
+
+		MainMenuDialogPanelScript.SetVisible (false);
+
+		SettingsDialogPanelScript.FullscreenToggle.isOn = Manager.IsFullscreen;
+
+		SettingsDialogPanelScript.SetVisible (true);
+	}
+
+	public void ToogleFullscreen (bool state) {
+
+		Manager.SetFullscreen (state);
+	}
+
+	public void CloseSettingsDialog () {
+
+		SettingsDialogPanelScript.SetVisible (false);
 
 		MainMenuDialogPanelScript.SetVisible (true);
 	}

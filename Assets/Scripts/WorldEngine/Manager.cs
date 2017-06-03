@@ -104,6 +104,7 @@ public class AppSettings {
 	public float TemperatureOffset = 0;
 	public float RainfallOffset = 0;
 	public float SeaLevelOffset = 0;
+	public bool Fullscreen = true;
 
 	public AppSettings () {
 	}
@@ -113,6 +114,7 @@ public class AppSettings {
 		TemperatureOffset = Manager.TemperatureOffset;
 		RainfallOffset = Manager.RainfallOffset;
 		SeaLevelOffset = Manager.SeaLevelOffset;
+		Fullscreen = Manager.IsFullscreen;
 	}
 
 	public void Take () {
@@ -120,6 +122,7 @@ public class AppSettings {
 		Manager.TemperatureOffset = TemperatureOffset;
 		Manager.RainfallOffset = RainfallOffset;
 		Manager.SeaLevelOffset = SeaLevelOffset;
+		Manager.IsFullscreen = Fullscreen;
 	}
 }
 
@@ -166,7 +169,7 @@ public class Manager {
 	public static HashSet<TerrainCell> UpdatedCells { get; private set; }
 	
 	public static int PixelToCellRatio = 4;
-	
+
 	public static float TemperatureOffset = 0;
 	public static float RainfallOffset = 0;
 	public static float SeaLevelOffset = 0;
@@ -175,9 +178,16 @@ public class Manager {
 	
 	public static bool DisplayDebugTaggedGroups = false;
 	
-	public static bool _isLoadReady = false;
-	
 	public static World WorldBeingLoaded = null;
+
+	public static bool IsFullscreen = false;
+
+	private static bool _isLoadReady = false;
+
+	private static int _resolutionWidthWindowed = 1366;
+	private static int _resolutionHeightWindowed = 768;
+
+	private static bool _resolutionInitialized = false;
 
 	private static CellUpdateType _observableUpdateTypes = CellUpdateType.Cell | CellUpdateType.Group;
 
@@ -286,6 +296,29 @@ public class Manager {
 		}
 		
 		ExportPath = path;
+	}
+
+	public static void SetFullscreen (bool state) {
+
+		IsFullscreen = state;
+
+		if (state) {
+			Resolution currentResolution = Screen.currentResolution;
+
+			Screen.SetResolution(currentResolution.width, currentResolution.height, state);
+		} else {
+			Screen.SetResolution(_resolutionWidthWindowed, _resolutionHeightWindowed, state);
+		}
+	}
+
+	public static void InitializeScreen () {
+	
+		if (_resolutionInitialized)
+			return;
+
+		SetFullscreen (IsFullscreen);
+
+		_resolutionInitialized = true;
 	}
 	
 	public static void InterruptSimulation (bool state) {
