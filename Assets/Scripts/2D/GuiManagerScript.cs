@@ -1041,6 +1041,11 @@ public class GuiManagerScript : MonoBehaviour {
 		
 		OverlayDialogPanelScript.SetVisible (false);
 	}
+
+	public void CloseViewsMenuAction () {
+
+		ViewsDialogPanelScript.SetVisible (false);
+	}
 	
 	public void UpdateMenus () {
 
