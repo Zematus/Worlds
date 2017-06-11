@@ -72,11 +72,12 @@ public class GuiManagerScript : MonoBehaviour {
 	
 	private PlanetView _planetView = PlanetView.Biomes;
 
-	#if DEBUG
-	private PlanetOverlay _planetOverlay = PlanetOverlay.UpdateSpan;
-	#else
-	private PlanetOverlay _planetOverlay = PlanetOverlay.PopDensity;
-	#endif
+//	#if DEBUG
+//	private PlanetOverlay _planetOverlay = PlanetOverlay.UpdateSpan;
+//	#else
+//	private PlanetOverlay _planetOverlay = PlanetOverlay.PopDensity;
+//	#endif
+	private PlanetOverlay _planetOverlay = PlanetOverlay.General;
 
 	private string _planetOverlaySubtype = "None";
 
@@ -312,11 +313,12 @@ public class GuiManagerScript : MonoBehaviour {
 
 				_planetView = PlanetView.Biomes;
 
-				#if DEBUG
-				_planetOverlay = PlanetOverlay.UpdateSpan;
-				#else
-				_planetOverlay = PlanetOverlay.PopDensity;
-				#endif
+//				#if DEBUG
+//				_planetOverlay = PlanetOverlay.UpdateSpan;
+//				#else
+//				_planetOverlay = PlanetOverlay.PopDensity;
+//				#endif
+				_planetOverlay = PlanetOverlay.General;
 			}
 
 			Manager.SetPlanetOverlay (_planetOverlay, _planetOverlaySubtype);
@@ -750,6 +752,9 @@ public class GuiManagerScript : MonoBehaviour {
 		
 		switch (_planetOverlay) {
 		case PlanetOverlay.None: planetOverlayStr = ""; break;
+		case PlanetOverlay.General: 
+			planetOverlayStr = "_general"; 
+			break;
 		case PlanetOverlay.PopDensity: 
 			planetOverlayStr = "_population_density"; 
 			break;
@@ -988,7 +993,9 @@ public class GuiManagerScript : MonoBehaviour {
 		SelectionPanelScript.RemoveAllOptions ();
 		SelectionPanelScript.SetVisible (false);
 
-		if (OverlayDialogPanelScript.PopDensityToggle.isOn) {
+		if (OverlayDialogPanelScript.GeneralDataToggle.isOn) {
+			ChangePlanetOverlay (PlanetOverlay.General);
+		} else if (OverlayDialogPanelScript.PopDensityToggle.isOn) {
 			ChangePlanetOverlay (PlanetOverlay.PopDensity);
 		} else if (OverlayDialogPanelScript.FarmlandToggle.isOn) {
 			ChangePlanetOverlay (PlanetOverlay.FarmlandDistribution);
@@ -1054,7 +1061,8 @@ public class GuiManagerScript : MonoBehaviour {
 
 		_menusNeedUpdate = false;
 
-		OverlayDialogPanelScript.PopDataToggle.isOn = false;
+
+		OverlayDialogPanelScript.GeneralDataToggle.isOn = false;		OverlayDialogPanelScript.PopDataToggle.isOn = false;
 		OverlayDialogPanelScript.PolityDataToggle.isOn = false;
 		OverlayDialogPanelScript.MiscDataToggle.isOn = false;
 		OverlayDialogPanelScript.DebugDataToggle.isOn = false;
@@ -1088,6 +1096,10 @@ public class GuiManagerScript : MonoBehaviour {
 		SelectionPanelScript.SetVisible (false);
 
 		switch (_planetOverlay) {
+
+		case PlanetOverlay.General:
+			OverlayDialogPanelScript.GeneralDataToggle.isOn = true;
+			break;
 
 		case PlanetOverlay.PopDensity:
 			OverlayDialogPanelScript.PopDensityToggle.isOn = true;
@@ -2335,7 +2347,8 @@ public class GuiManagerScript : MonoBehaviour {
 			AddCellDataToInfoPanel_FarmlandDistribution (cell);
 		}
 
-		if ((_planetOverlay == PlanetOverlay.PopDensity) || 
+		if ((_planetOverlay == PlanetOverlay.General) || 
+			(_planetOverlay == PlanetOverlay.PopDensity) || 
 			(_planetOverlay == PlanetOverlay.PopChange)) {
 		
 			AddCellDataToInfoPanel_PopDensity (cell);

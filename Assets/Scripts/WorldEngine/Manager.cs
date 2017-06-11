@@ -16,6 +16,7 @@ public enum PlanetView {
 public enum PlanetOverlay {
 
 	None,
+	General,
 	PopDensity,
 	FarmlandDistribution,
 	PopCulturalActivity,
@@ -184,6 +185,8 @@ public class Manager {
 
 	private static bool _isLoadReady = false;
 
+	private static List<TerrainCell> _lastUpdatedCells;
+
 	private static int _resolutionWidthWindowed = 1366;
 	private static int _resolutionHeightWindowed = 768;
 
@@ -272,6 +275,7 @@ public class Manager {
 		AttributeOverrides = GenerateAttributeOverrides ();
 
 		UpdatedCells = new HashSet<TerrainCell> ();
+		_lastUpdatedCells = new List<TerrainCell> ();
 	}
 
 	private void InitializeSavePath () {
@@ -475,6 +479,8 @@ public class Manager {
 
 		//GenerateSphereTextureFromWorld(CurrentWorld);
 		GenerateMapTextureFromWorld(CurrentWorld);
+
+		ResetUpdatedCells ();
 	}
 
 	public static void AddUpdatedCell (TerrainCell cell, CellUpdateType updateType) {
@@ -829,6 +835,13 @@ public class Manager {
 //		CurrentMapTexture.Apply ();
 //	}
 
+	public static void ResetUpdatedCells () {
+
+		_lastUpdatedCells.Clear ();
+		_lastUpdatedCells.AddRange (UpdatedCells);
+		UpdatedCells.Clear ();
+	}
+
 	public static void UpdateTextures () {
 
 		UpdateMapTextureColors (_manager._currentMapTextureColors);
@@ -842,10 +855,20 @@ public class Manager {
 //
 //		CurrentSphereTexture.Apply ();
 
-		UpdatedCells.Clear ();
+		ResetUpdatedCells ();
 	}
 
 	public static void UpdateMapTextureColors (Color32[] textureColors) {
+
+		if (_planetOverlay == PlanetOverlay.General) {
+			foreach (TerrainCell cell in _lastUpdatedCells) {
+
+				if (UpdatedCells.Contains (cell))
+					continue;
+
+				UpdateMapTextureColorsFromCellLastUpdate (textureColors, cell);
+			}
+		}
 		
 		foreach (TerrainCell cell in UpdatedCells) {
 			
@@ -954,7 +977,7 @@ public class Manager {
 		int i = cell.Longitude;
 		int j = cell.Latitude;
 		
-		Color cellColor = GenerateColorFromTerrainCell(cell);
+		Color cellColor = GenerateColorFromTerrainCell(cell, true);
 
 		if (CellShouldBeHighlighted (cell)) {
 		
@@ -971,10 +994,39 @@ public class Manager {
 			}
 		}
 	}
+
+	public static void UpdateMapTextureColorsFromCellLastUpdate (Color32[] textureColors, TerrainCell cell) {
+
+		World world = cell.World;
+
+		int sizeX = world.Width;
+
+		int r = PixelToCellRatio;
+
+		int i = cell.Longitude;
+		int j = cell.Latitude;
+
+		Color cellColor = GenerateColorFromTerrainCell(cell, false);
+
+		if (CellShouldBeHighlighted (cell)) {
+
+			cellColor = cellColor * 0.5f + Color.white * 0.5f;
+		}
+
+		for (int m = 0; m < r; m++) {
+			for (int n = 0; n < r; n++) {
+
+				int offsetY = sizeX * r * (j*r + n);
+				int offsetX = i*r + m;
+
+				textureColors[offsetY + offsetX] = cellColor;
+			}
+		}
+	}
 	
 	public static Texture2D GenerateMapTextureFromWorld (World world) {
 		
-		UpdatedCells.Clear ();
+//		UpdatedCells.Clear ();
 		
 		int sizeX = world.Width;
 		int sizeY = world.Height;
@@ -1051,7 +1103,7 @@ public class Manager {
 	
 	public static Texture2D GenerateSphereTextureFromWorld (World world) {
 
-		UpdatedCells.Clear ();
+//		UpdatedCells.Clear ();
 		
 		int sizeX = world.Width;
 		int sizeY = world.Height*2;
@@ -1174,7 +1226,7 @@ public class Manager {
 		return cell.IsPartOfCoastline;
 	}
 	
-	private static Color GenerateColorFromTerrainCell (TerrainCell cell) {
+	private static Color GenerateColorFromTerrainCell (TerrainCell cell, bool update = false) {
 
 		if (_displayRoutes && cell.HasCrossingRoutes) {
 		
@@ -1204,6 +1256,10 @@ public class Manager {
 		switch (_planetOverlay) {
 		
 		case PlanetOverlay.None:
+			break;
+
+		case PlanetOverlay.General:
+			color = SetGeneralOverlayColor (cell, color, update);
 			break;
 
 		case PlanetOverlay.PopDensity:
@@ -2151,6 +2207,46 @@ public class Manager {
 			float value = 0.05f + 0.95f * normalizedValue;
 
 			color = (color * (1 - value)) + (GetOverlayColor(OverlayColorId.Farmland) * value);
+		}
+
+		return color;
+	}
+
+	private static Color SetGeneralOverlayColor (TerrainCell cell, Color color, bool update) {
+
+		float greyscale = (color.r + color.g + color.b);
+
+		color.r = (greyscale + color.r) / 6f;
+		color.g = (greyscale + color.g) / 6f;
+		color.b = (greyscale + color.b) / 6f;
+
+		float normalizedValue = 0;
+		float population = 0;
+
+		if (cell.Group != null) {
+
+			population = cell.Group.Population;
+
+//			int lastUpdateDate = cell.Group.LastUpdateDate;
+//			int nextUpdateDate = cell.Group.NextUpdateDate;
+//			int updateSpan = nextUpdateDate - lastUpdateDate;
+//
+//			if (_manager._currentMaxUpdateSpan < updateSpan)
+//				_manager._currentMaxUpdateSpan = updateSpan;
+//
+//			float maxUpdateSpan = Mathf.Min (_manager._currentMaxUpdateSpan, 10000);
+//
+//			normalizedValue = 1f - (float)updateSpan / maxUpdateSpan;
+//
+//			normalizedValue = Mathf.Clamp01 (normalizedValue);
+			normalizedValue = (update) ? 1f : 0.5f;
+		}
+
+		if ((population > 0) && (normalizedValue > 0)) {
+
+			float value = normalizedValue;
+
+			color = (color * (1 - value)) + (Color.red * value);
 		}
 
 		return color;
