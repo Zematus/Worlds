@@ -45,9 +45,43 @@ public class Route {
 
 		FirstCell = startCell;
 	
-		AddCell (startCell);
+		Build ();
+	}
 
-		TerrainCell nextCell = startCell;
+	public void Destroy () {
+
+		if (!Consolidated)
+			return;
+	
+		foreach (TerrainCell cell in Cells) {
+		
+			cell.RemoveCrossingRoute (this);
+			Manager.AddUpdatedCell (cell, CellUpdateType.Route);
+		}
+	}
+
+	public void Reset () {
+
+		if (!Consolidated)
+			return;
+
+		foreach (TerrainCell cell in Cells) {
+
+			cell.RemoveCrossingRoute (this);
+			Manager.AddUpdatedCell (cell, CellUpdateType.Route);
+		}
+
+		CellPositions.Clear ();
+		Cells.Clear ();
+
+		Consolidated = false;
+	}
+
+	public void Build () {
+
+		AddCell (FirstCell);
+
+		TerrainCell nextCell = FirstCell;
 		Direction nextDirection;
 
 		int rngOffset = 0;
@@ -68,18 +102,6 @@ public class Route {
 		}
 
 		LastCell = nextCell;
-	}
-
-	public void Destroy () {
-
-		if (!Consolidated)
-			return;
-	
-		foreach (TerrainCell cell in Cells) {
-		
-			cell.RemoveCrossingRoute (this);
-			Manager.AddUpdatedCell (cell, CellUpdateType.Route);
-		}
 	}
 
 	public void Consolidate () {

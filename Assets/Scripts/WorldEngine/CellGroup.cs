@@ -887,11 +887,19 @@ public class CellGroup : HumanGroup {
 
 	public void TriggerInterference () {
 	
-		EraseSeaMigrationRoute ();
+		ResetSeaMigrationRoute ();
 	}
 
-	public void EraseSeaMigrationRoute () {
+	public void ResetSeaMigrationRoute () {
 	
+		if (SeaMigrationRoute == null)
+			return;
+
+		SeaMigrationRoute.Reset ();
+	}
+
+	public void DestroySeaMigrationRoute () {
+
 		if (SeaMigrationRoute == null)
 			return;
 
@@ -904,26 +912,30 @@ public class CellGroup : HumanGroup {
 		if (!Cell.IsPartOfCoastline)
 			return;
 
-		Route route = new Route (Cell);
+		if (SeaMigrationRoute == null) {
+			SeaMigrationRoute = new Route (Cell);
+		} else {
+			SeaMigrationRoute.Reset ();
+			SeaMigrationRoute.Build ();
+		}
 
 		bool invalidRoute = false;
 
-		if (route.LastCell == null)
+		if (SeaMigrationRoute.LastCell == null)
 			invalidRoute = true;
 
-		if (route.LastCell == route.FirstCell)
+		if (SeaMigrationRoute.LastCell == SeaMigrationRoute.FirstCell)
 			invalidRoute = true;
 
-		if (route.FirstCell.Neighbors.ContainsValue (route.LastCell))
+		if (SeaMigrationRoute.FirstCell.Neighbors.ContainsValue (SeaMigrationRoute.LastCell))
 			invalidRoute = true;
 
 		if (invalidRoute) {
 		
-			route.Destroy ();
+//			SeaMigrationRoute.Destroy ();
 			return;
 		}
 
-		SeaMigrationRoute = route;
 		SeaMigrationRoute.Consolidate ();
 	}
 
@@ -1050,11 +1062,13 @@ public class CellGroup : HumanGroup {
 		if (HasMigrationEvent)
 			return;
 
-		if (SeaMigrationRoute == null) {
+		if ((SeaMigrationRoute == null) ||
+			(!SeaMigrationRoute.Consolidated)) {
 		
 			GenerateSeaMigrationRoute ();
 
-			if (SeaMigrationRoute == null)
+			if ((SeaMigrationRoute == null) ||
+				(!SeaMigrationRoute.Consolidated))
 				return;
 		}
 
@@ -1311,7 +1325,7 @@ public class CellGroup : HumanGroup {
 			pair.Value.RemoveNeighbor (TerrainCell.ReverseDirection(pair.Key));
 		}
 
-		EraseSeaMigrationRoute ();
+		DestroySeaMigrationRoute ();
 
 		StillPresent = false;
 
