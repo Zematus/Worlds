@@ -43,7 +43,9 @@ public enum OverlayColorId {
 
 	None = -1,
 	Arability = 0,
-	Farmland = 1
+	Farmland = 1,
+	GeneralDensitySubOptimal = 2,
+	GeneralDensityOptimal = 3
 }
 
 public delegate T ManagerTaskDelegate<T> ();
@@ -1778,14 +1780,14 @@ public class Manager {
 		if (CurrentWorld.MostPopulousGroup == null)
 			return color;
 
-		int MaxPopulation = CurrentWorld.MostPopulousGroup.Population;
+		int maxPopulation = CurrentWorld.MostPopulousGroup.Population;
 
-		if (MaxPopulation <= 0)
+		if (maxPopulation <= 0)
 			return color;
 
 		float areaFactor = cell.Area/TerrainCell.MaxArea;
 		
-		float MaxPopFactor = areaFactor * MaxPopulation / 5f;
+		float maxPopFactor = areaFactor * maxPopulation / 5f;
 
 		float population = 0;
 
@@ -1802,7 +1804,7 @@ public class Manager {
 
 		if (population > 0) {
 
-			float value = (population + MaxPopFactor) / (MaxPopulation + MaxPopFactor);
+			float value = (population + maxPopFactor) / (maxPopulation + maxPopFactor);
 			
 			color = (color * (1 - value)) + (Color.red * value);
 		}
@@ -2214,39 +2216,90 @@ public class Manager {
 
 	private static Color SetGeneralOverlayColor (TerrainCell cell, Color color, bool update) {
 
-		float greyscale = (color.r + color.g + color.b);
-
-		color.r = (greyscale + color.r) / 6f;
-		color.g = (greyscale + color.g) / 6f;
-		color.b = (greyscale + color.b) / 6f;
+//		color.r = color.r * 0.8f;
+//		color.g = color.g * 0.8f;
+//		color.b = color.b * 0.8f;
 
 		float normalizedValue = 0;
 		float population = 0;
 
+		bool hasGroup = false;
+		bool inTerritory = false;
+		Color densityColorSubOptimal = GetOverlayColor(OverlayColorId.GeneralDensitySubOptimal);
+		Color densityColor = GetOverlayColor(OverlayColorId.GeneralDensityOptimal);
+
+		if (cell.EncompassingTerritory != null) {
+
+			inTerritory = true;
+
+			Polity territoryPolity = cell.EncompassingTerritory.Polity;
+
+			densityColor = GenerateColorFromId (territoryPolity.Id);
+
+			bool isTerritoryBorder = IsTerritoryBorder (cell.EncompassingTerritory, cell);
+			bool isCoreGroup = territoryPolity.CoreGroup == cell.Group;
+
+			if (!isCoreGroup) {
+				if (!isTerritoryBorder) {
+					densityColor /= 2.5f;
+				} else {
+					densityColor /= 1.75f;
+				}
+			}
+
+			densityColor = Color.white * 0.15f + densityColor * 0.85f;
+
+			normalizedValue = 0.3f;
+		}
+
 		if (cell.Group != null) {
+
+			hasGroup = true;
+
+			int maxPopulation = CurrentWorld.MostPopulousGroup.Population;
 
 			population = cell.Group.Population;
 
-//			int lastUpdateDate = cell.Group.LastUpdateDate;
-//			int nextUpdateDate = cell.Group.NextUpdateDate;
-//			int updateSpan = nextUpdateDate - lastUpdateDate;
-//
-//			if (_manager._currentMaxUpdateSpan < updateSpan)
-//				_manager._currentMaxUpdateSpan = updateSpan;
-//
-//			float maxUpdateSpan = Mathf.Min (_manager._currentMaxUpdateSpan, 10000);
-//
-//			normalizedValue = 1f - (float)updateSpan / maxUpdateSpan;
-//
-//			normalizedValue = Mathf.Clamp01 (normalizedValue);
-			normalizedValue = (update) ? 1f : 0.5f;
+			float maxPopFactor = 0.3f + 0.4f * (population / (float)maxPopulation);
+
+			normalizedValue = maxPopFactor;
+
+			///
+
+			if (!inTerritory) {
+				CellCulturalKnowledge knowledge = cell.Group.Culture.GetKnowledge (SocialOrganizationKnowledge.SocialOrganizationKnowledgeId) as CellCulturalKnowledge;
+
+				if (knowledge != null) {
+
+					float minValue = SocialOrganizationKnowledge.MinValueForTribalism;
+					float startValue = SocialOrganizationKnowledge.StartValue;
+
+					float knowledgeFactor = Mathf.Min (1f, (knowledge.Value - startValue) / (minValue - startValue));
+
+					Color softDensityColor = densityColor * color;
+
+					densityColor = (softDensityColor * knowledgeFactor) + (densityColorSubOptimal * (1f - knowledgeFactor));
+
+				} else {
+				
+					densityColor = densityColorSubOptimal;
+				}
+			}
 		}
 
-		if ((population > 0) && (normalizedValue > 0)) {
+		normalizedValue = 1f * ((update) ? 1f : normalizedValue);
+
+		if (hasGroup || inTerritory) {
+
+			float greyscale = (color.r + color.g + color.b) / 3f;
+
+			color.r = (color.r + greyscale) / 2f;
+			color.g = (color.g + greyscale) / 2f;
+			color.b = (color.b + greyscale) / 2f;
 
 			float value = normalizedValue;
 
-			color = (color * (1 - value)) + (Color.red * value);
+			color = (color * (1 - value)) + (densityColor * value);
 		}
 
 		return color;

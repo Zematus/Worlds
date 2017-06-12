@@ -668,6 +668,7 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge {
 
 	public const int SocialOrganizationKnowledgeRngOffset = 2;
 
+	public const int StartValue = 100;
 	public const int MinValueForTribalismSpawnEvent = 500;
 	public const int MinValueForTribalism = 200;
 	public const int OptimalValueForTribalism = 10000;
@@ -685,7 +686,7 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge {
 		}
 	}
 
-	public SocialOrganizationKnowledge (CellGroup group, int value = 100) : base (group, SocialOrganizationKnowledgeId, SocialOrganizationKnowledgeName, SocialOrganizationKnowledgeRngOffset, value) {
+	public SocialOrganizationKnowledge (CellGroup group, int value = StartValue) : base (group, SocialOrganizationKnowledgeId, SocialOrganizationKnowledgeName, SocialOrganizationKnowledgeRngOffset, value) {
 
 	}
 
