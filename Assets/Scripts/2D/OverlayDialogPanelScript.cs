@@ -40,6 +40,7 @@ public class OverlayDialogPanelScript : MonoBehaviour {
 	public Toggle UpdateSpanToggle;
 
 	public Toggle DisplayRoutesToggle;
+	public Toggle DisplayGroupActivityToggle;
 
 	public Button CloseActionButton;
 

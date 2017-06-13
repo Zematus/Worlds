@@ -84,6 +84,7 @@ public class GuiManagerScript : MonoBehaviour {
 	private Dictionary<PlanetOverlay, string> _planetOverlaySubtypeCache = new Dictionary<PlanetOverlay, string> ();
 
 	private bool _displayRoutes = false;
+	private bool _displayGroupActivity = false;
 
 	private bool _menusNeedUpdate = true;
 
@@ -324,6 +325,7 @@ public class GuiManagerScript : MonoBehaviour {
 			Manager.SetPlanetOverlay (_planetOverlay, _planetOverlaySubtype);
 			Manager.SetPlanetView (_planetView);
 			Manager.SetDisplayRoutes (_displayRoutes);
+			Manager.SetDisplayGroupActivity (_displayGroupActivity);
 
 			Manager.GenerateTextures ();
 
@@ -1040,6 +1042,7 @@ public class GuiManagerScript : MonoBehaviour {
 		}
 
 		SetRouteDisplayOverlay (OverlayDialogPanelScript.DisplayRoutesToggle.isOn);
+		SetGroupActivityOverlay (OverlayDialogPanelScript.DisplayGroupActivityToggle.isOn);
 	}
 	
 	public void CloseOverlayMenuAction () {
@@ -1092,6 +1095,7 @@ public class GuiManagerScript : MonoBehaviour {
 		OverlayDialogPanelScript.UpdateSpanToggle.isOn = false;
 
 		OverlayDialogPanelScript.DisplayRoutesToggle.isOn = false;
+		OverlayDialogPanelScript.DisplayGroupActivityToggle.isOn = false;
 		
 		SelectionPanelScript.SetVisible (false);
 
@@ -1217,6 +1221,7 @@ public class GuiManagerScript : MonoBehaviour {
 		}
 
 		OverlayDialogPanelScript.DisplayRoutesToggle.isOn = _displayRoutes;
+		OverlayDialogPanelScript.DisplayGroupActivityToggle.isOn = _displayGroupActivity;
 	}
 	
 	public void SelectOverlays () {
@@ -1306,6 +1311,13 @@ public class GuiManagerScript : MonoBehaviour {
 		_regenTextures |= _displayRoutes != value;
 
 		_displayRoutes = value;
+	}
+
+	public void SetGroupActivityOverlay (bool value) {
+
+		_regenTextures |= _displayGroupActivity != value;
+
+		_displayGroupActivity = value;
 	}
 
 	public void ChangePlanetOverlay (PlanetOverlay value) {

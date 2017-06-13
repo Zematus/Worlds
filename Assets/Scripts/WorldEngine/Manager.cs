@@ -210,6 +210,7 @@ public class Manager {
 	private static int _loadTicks = 0;
 
 	private static bool _displayRoutes = false;
+	private static bool _displayGroupActivity = false;
 	
 	private ProgressCastDelegate _progressCastMethod = null;
 	
@@ -763,6 +764,11 @@ public class Manager {
 	
 		_displayRoutes = value;
 	}
+
+	public static void SetDisplayGroupActivity (bool value) {
+
+		_displayGroupActivity = value;
+	}
 	
 	public static void SetPlanetView (PlanetView value) {
 		
@@ -862,19 +868,17 @@ public class Manager {
 
 	public static void UpdateMapTextureColors (Color32[] textureColors) {
 
-		if (_planetOverlay == PlanetOverlay.General) {
-			foreach (TerrainCell cell in _lastUpdatedCells) {
+		foreach (TerrainCell cell in _lastUpdatedCells) {
 
-				if (UpdatedCells.Contains (cell))
-					continue;
+			if (UpdatedCells.Contains (cell))
+				continue;
 
-				UpdateMapTextureColorsFromCellLastUpdate (textureColors, cell);
-			}
+			UpdateMapTextureColorsFromCell (textureColors, cell);
 		}
 		
 		foreach (TerrainCell cell in UpdatedCells) {
 			
-			UpdateMapTextureColorsFromCell (textureColors, cell);
+			UpdateMapTextureColorsFromCell (textureColors, cell, _displayGroupActivity);
 		}
 	}
 
@@ -968,7 +972,7 @@ public class Manager {
 		return false;
 	}
 	
-	public static void UpdateMapTextureColorsFromCell (Color32[] textureColors, TerrainCell cell) {
+	public static void UpdateMapTextureColorsFromCell (Color32[] textureColors, TerrainCell cell, bool highlightCells = false) {
 
 		World world = cell.World;
 
@@ -979,11 +983,12 @@ public class Manager {
 		int i = cell.Longitude;
 		int j = cell.Latitude;
 		
-		Color cellColor = GenerateColorFromTerrainCell(cell, true);
+		Color cellColor = GenerateColorFromTerrainCell(cell);
 
 		if (CellShouldBeHighlighted (cell)) {
-		
 			cellColor = cellColor * 0.5f + Color.white * 0.5f;
+		} else if (highlightCells) {
+			cellColor = cellColor * 0.75f + Color.white * 0.25f;
 		}
 		
 		for (int m = 0; m < r; m++) {
@@ -992,35 +997,6 @@ public class Manager {
 				int offsetY = sizeX * r * (j*r + n);
 				int offsetX = i*r + m;
 				
-				textureColors[offsetY + offsetX] = cellColor;
-			}
-		}
-	}
-
-	public static void UpdateMapTextureColorsFromCellLastUpdate (Color32[] textureColors, TerrainCell cell) {
-
-		World world = cell.World;
-
-		int sizeX = world.Width;
-
-		int r = PixelToCellRatio;
-
-		int i = cell.Longitude;
-		int j = cell.Latitude;
-
-		Color cellColor = GenerateColorFromTerrainCell(cell, false);
-
-		if (CellShouldBeHighlighted (cell)) {
-
-			cellColor = cellColor * 0.5f + Color.white * 0.5f;
-		}
-
-		for (int m = 0; m < r; m++) {
-			for (int n = 0; n < r; n++) {
-
-				int offsetY = sizeX * r * (j*r + n);
-				int offsetX = i*r + m;
-
 				textureColors[offsetY + offsetX] = cellColor;
 			}
 		}
@@ -1228,7 +1204,7 @@ public class Manager {
 		return cell.IsPartOfCoastline;
 	}
 	
-	private static Color GenerateColorFromTerrainCell (TerrainCell cell, bool update = false) {
+	private static Color GenerateColorFromTerrainCell (TerrainCell cell) {
 
 		if (_displayRoutes && cell.HasCrossingRoutes) {
 		
@@ -1261,7 +1237,7 @@ public class Manager {
 			break;
 
 		case PlanetOverlay.General:
-			color = SetGeneralOverlayColor (cell, color, update);
+			color = SetGeneralOverlayColor (cell, color);
 			break;
 
 		case PlanetOverlay.PopDensity:
@@ -2214,11 +2190,7 @@ public class Manager {
 		return color;
 	}
 
-	private static Color SetGeneralOverlayColor (TerrainCell cell, Color color, bool update) {
-
-//		color.r = color.r * 0.8f;
-//		color.g = color.g * 0.8f;
-//		color.b = color.b * 0.8f;
+	private static Color SetGeneralOverlayColor (TerrainCell cell, Color color) {
 
 		float normalizedValue = 0;
 		float population = 0;
@@ -2286,8 +2258,6 @@ public class Manager {
 				}
 			}
 		}
-
-		normalizedValue = 1f * ((update) ? 1f : normalizedValue);
 
 		if (hasGroup || inTerritory) {
 
