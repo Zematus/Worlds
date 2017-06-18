@@ -494,6 +494,15 @@ public class Manager {
 		}
 	}
 
+	public static void AddUpdatedCells (ICollection<TerrainCell> cells, CellUpdateType updateType) {
+
+		if ((_observableUpdateTypes & updateType) == updateType) {
+
+			foreach (TerrainCell cell in cells)
+				UpdatedCells.Add (cell);
+		}
+	}
+
 	public static void GenerateRandomHumanGroup (int initialPopulation) {
 
 		World world = _manager._currentWorld;
@@ -740,7 +749,12 @@ public class Manager {
 			_observableUpdateTypes &= ~(CellUpdateType.Group | CellUpdateType.Territory);
 			_observableUpdateTypes |= CellUpdateType.Region;
 
-		} else if (value == PlanetOverlay.PolityTerritory) {
+		} else if ((value == PlanetOverlay.PolityTerritory) ||
+			(value == PlanetOverlay.PolityCulturalActivity) ||
+			(value == PlanetOverlay.PolityCulturalDiscovery) ||
+			(value == PlanetOverlay.PolityCulturalKnowledge) ||
+			(value == PlanetOverlay.PolityCulturalSkill) ||
+			(value == PlanetOverlay.General)) {
 
 			_observableUpdateTypes &= ~CellUpdateType.Region;
 			_observableUpdateTypes |= (CellUpdateType.Group | CellUpdateType.Territory);
@@ -787,9 +801,7 @@ public class Manager {
 
 		if (CurrentWorld.SelectedRegion != null) {
 
-			foreach (TerrainCell regionCell in CurrentWorld.SelectedRegion.GetCells ()) {
-				AddUpdatedCell (regionCell, CellUpdateType.Region);
-			}
+			AddUpdatedCells (CurrentWorld.SelectedRegion.GetCells (), CellUpdateType.Region);
 
 			CurrentWorld.SelectedRegion.IsSelected = false;
 			CurrentWorld.SelectedRegion = null;
@@ -797,9 +809,7 @@ public class Manager {
 
 		if (CurrentWorld.SelectedTerritory != null) {
 
-			foreach (TerrainCell territoryCell in CurrentWorld.SelectedTerritory.GetCells ()) {
-				AddUpdatedCell (territoryCell, CellUpdateType.Territory);
-			}
+			AddUpdatedCells (CurrentWorld.SelectedTerritory.GetCells (), CellUpdateType.Territory);
 
 			CurrentWorld.SelectedTerritory.IsSelected = false;
 			CurrentWorld.SelectedTerritory = null;
@@ -818,9 +828,7 @@ public class Manager {
 			CurrentWorld.SelectedRegion = cell.Region;
 			CurrentWorld.SelectedRegion.IsSelected = true;
 
-			foreach (TerrainCell regionCell in CurrentWorld.SelectedRegion.GetCells ()) {
-				AddUpdatedCell (regionCell, CellUpdateType.Region);
-			}
+			AddUpdatedCells (CurrentWorld.SelectedRegion.GetCells (), CellUpdateType.Territory);
 		}
 
 		if (cell.EncompassingTerritory != null) {
@@ -828,9 +836,7 @@ public class Manager {
 			CurrentWorld.SelectedTerritory = cell.EncompassingTerritory;
 			CurrentWorld.SelectedTerritory.IsSelected = true;
 
-			foreach (TerrainCell territoryCell in CurrentWorld.SelectedTerritory.GetCells ()) {
-				AddUpdatedCell (territoryCell, CellUpdateType.Territory);
-			}
+			AddUpdatedCells (CurrentWorld.SelectedTerritory.GetCells (), CellUpdateType.Territory);
 		}
 	}
 
@@ -958,12 +964,12 @@ public class Manager {
 		if (cell.IsSelected)
 			return true;
 	
-		if (_planetOverlay == PlanetOverlay.Region) {
+		if ((_observableUpdateTypes & CellUpdateType.Region) == CellUpdateType.Region) {
 		
 			if ((cell.Region != null) && cell.Region.IsSelected)
 				return true;
 			
-		} else if (_planetOverlay == PlanetOverlay.PolityTerritory) {
+		} else if ((_observableUpdateTypes & CellUpdateType.Territory) == CellUpdateType.Territory) {
 
 			if ((cell.EncompassingTerritory != null) && cell.EncompassingTerritory.IsSelected)
 				return true;

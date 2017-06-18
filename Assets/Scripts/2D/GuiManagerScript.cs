@@ -1897,6 +1897,56 @@ public class GuiManagerScript : MonoBehaviour {
 		}
 	}
 
+	public void AddCellDataToInfoPanel_General (TerrainCell cell) {
+		
+		InfoPanelText.text += "\n";
+		InfoPanelText.text += "\n";
+
+		if (cell.Group == null) {
+
+			InfoPanelText.text += "Uninhabited land";
+
+			return;
+		}
+
+		int cellPopulation = cell.Group.Population;
+
+		if (cellPopulation <= 0) {
+
+			InfoPanelText.text += "Group has zero population";
+			Debug.LogError ("Group has zero or less population: " + cellPopulation);
+
+			return;
+		}
+
+		Territory territory = cell.EncompassingTerritory;
+
+		if (territory == null) {
+			
+			InfoPanelText.text += "Disorganized bands";
+			InfoPanelText.text += "\n";
+			InfoPanelText.text += "\n";
+
+			InfoPanelText.text += cellPopulation + " inhabitants in selected cell";
+		
+		} else {
+
+			Polity polity = territory.Polity;
+
+			InfoPanelText.text += "Territory of " + polity.Type + " " + polity.Name;
+			InfoPanelText.text += "\n";
+			InfoPanelText.text += "\n";
+
+			int polPopulation = (int)polity.TotalPopulation;
+
+			if (polity.Type == Tribe.TribeType) {
+				InfoPanelText.text += polPopulation + " tribe members";
+			} else {
+				InfoPanelText.text += polPopulation + " polity citizens";
+			}
+		}
+	}
+
 	public void AddCellDataToInfoPanel_PolityTerritory (TerrainCell cell) {
 
 		InfoPanelText.text += "\n";
@@ -2359,8 +2409,13 @@ public class GuiManagerScript : MonoBehaviour {
 			AddCellDataToInfoPanel_FarmlandDistribution (cell);
 		}
 
-		if ((_planetOverlay == PlanetOverlay.General) || 
-			(_planetOverlay == PlanetOverlay.PopDensity) || 
+
+		if (_planetOverlay == PlanetOverlay.General) {
+
+			AddCellDataToInfoPanel_General (cell);
+		}
+
+		if ((_planetOverlay == PlanetOverlay.PopDensity) || 
 			(_planetOverlay == PlanetOverlay.PopChange)) {
 		
 			AddCellDataToInfoPanel_PopDensity (cell);
@@ -2448,6 +2503,11 @@ public class GuiManagerScript : MonoBehaviour {
 		TerrainCell hoveredCell = Manager.CurrentWorld.GetCell (longitude, latitude);
 
 		switch (_planetOverlay) {
+
+		case PlanetOverlay.General:
+
+			ShowCellInfoToolTip_PolityTerritory (hoveredCell);
+			break;
 
 		case PlanetOverlay.PolityTerritory:
 
