@@ -67,6 +67,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 	private Vector3 _tooltipOffset = new Vector3 (0, 0);
 
+	private Language _lastHoveredOverLanguage = null;
 	private Territory _lastHoveredOverTerritory = null;
 	private Region _lastHoveredOverRegion = null;
 	
@@ -2502,23 +2503,15 @@ public class GuiManagerScript : MonoBehaviour {
 
 		TerrainCell hoveredCell = Manager.CurrentWorld.GetCell (longitude, latitude);
 
-		switch (_planetOverlay) {
-
-		case PlanetOverlay.General:
-
+		if ((_planetOverlay == PlanetOverlay.General) ||
+			(_planetOverlay == PlanetOverlay.PolityTerritory) ||
+			(_planetOverlay == PlanetOverlay.PolityCulturalActivity) ||
+			(_planetOverlay == PlanetOverlay.PolityCulturalSkill) ||
+			(_planetOverlay == PlanetOverlay.PolityCulturalKnowledge) ||
+			(_planetOverlay == PlanetOverlay.PolityCulturalDiscovery))
 			ShowCellInfoToolTip_PolityTerritory (hoveredCell);
-			break;
-
-		case PlanetOverlay.PolityTerritory:
-
-			ShowCellInfoToolTip_PolityTerritory (hoveredCell);
-			break;
-
-		case PlanetOverlay.Region:
-
+		else if (_planetOverlay == PlanetOverlay.Region)
 			ShowCellInfoToolTip_Region (hoveredCell);
-			break;
-		}
 	}
 
 	public void ShowCellInfoToolTip_PolityTerritory (TerrainCell cell) {
@@ -2554,8 +2547,113 @@ public class GuiManagerScript : MonoBehaviour {
 			throw new System.Exception ("polity.Name.Text can't be null");
 		}
 
-		InfoTooltipScript.DisplayTip (polity.Name.Text, tooltipPos);
+		switch (_planetOverlay) {
+		case PlanetOverlay.General:
+			InfoTooltipScript.DisplayTip (polity.Name.Text, tooltipPos);
+			break;
+		case PlanetOverlay.PolityTerritory:
+			InfoTooltipScript.DisplayTip (polity.Name.Text, tooltipPos);
+			break;
+		case PlanetOverlay.PolityCulturalActivity:
+			ShowCellInfoToolTip_PolityCulturalActivity (polity, tooltipPos);
+			break;
+		case PlanetOverlay.PolityCulturalSkill:
+			ShowCellInfoToolTip_PolityCulturalSkill (polity, tooltipPos);
+			break;
+		case PlanetOverlay.PolityCulturalKnowledge:
+			ShowCellInfoToolTip_PolityCulturalKnowledge (polity, tooltipPos);
+			break;
+		case PlanetOverlay.PolityCulturalDiscovery:
+			ShowCellInfoToolTip_PolityCulturalDiscovery (polity, tooltipPos);
+			break;
+		default:
+			InfoTooltipScript.SetVisible (false);
+			break;
+		}
 	}
+
+	public void ShowCellInfoToolTip_PolityCulturalActivity (Polity polity, Vector3 position, float fadeStart = 5) {
+
+		CulturalActivity activity = polity.Culture.GetActivity (_planetOverlaySubtype);
+
+		if ((activity != null) && (activity.Contribution >= 0.001)) {
+			InfoTooltipScript.DisplayTip (activity.Name + " Contribution: " + activity.Contribution.ToString ("P"), position, fadeStart);
+		} else {
+			InfoTooltipScript.SetVisible (false);
+		}
+	}
+
+	public void ShowCellInfoToolTip_PolityCulturalSkill (Polity polity, Vector3 position, float fadeStart = 5) {
+
+		CulturalSkill skill = polity.Culture.GetSkill (_planetOverlaySubtype);
+
+		if ((skill != null) && (skill.Value >= 0.001)) {
+			InfoTooltipScript.DisplayTip (skill.Name + " Value: " + skill.Value.ToString ("0.000"), position, fadeStart);
+		} else {
+			InfoTooltipScript.SetVisible (false);
+		}
+	}
+
+	public void ShowCellInfoToolTip_PolityCulturalKnowledge (Polity polity, Vector3 position, float fadeStart = 5) {
+
+		CulturalKnowledge knowledge = polity.Culture.GetKnowledge (_planetOverlaySubtype);
+
+		if (knowledge != null) {
+			InfoTooltipScript.DisplayTip (knowledge.Name + " Value: " + knowledge.ScaledValue.ToString ("0.000"), position, fadeStart);
+		} else {
+			InfoTooltipScript.SetVisible (false);
+		}
+	}
+
+	public void ShowCellInfoToolTip_PolityCulturalDiscovery (Polity polity, Vector3 position, float fadeStart = 5) {
+
+		PolityCulturalDiscovery discovery = polity.Culture.GetDiscovery (_planetOverlaySubtype) as PolityCulturalDiscovery;
+
+
+		if (discovery != null) {
+			int presenceCount = discovery.PresenceCount;
+			float politySize = polity.Territory.GetCells ().Count;
+
+			float presencePercentage = Mathf.Min (1f, presenceCount / politySize);
+			InfoTooltipScript.DisplayTip (discovery.Name + " Presence: " + presencePercentage.ToString ("P"), position, fadeStart);
+		} else {
+			InfoTooltipScript.SetVisible (false);
+		}
+	}
+
+//	public void ShowCellInfoToolTip_Language (TerrainCell cell) {
+//
+//		Language groupLanguage = null;
+//
+//		if (cell.Group != null)
+//			groupLanguage = cell.Group.Culture.Language;
+//
+//		if (groupLanguage == _lastHoveredOverLanguage)
+//			return;
+//
+//		_lastHoveredOverLanguage = groupLanguage;
+//
+//		if (_lastHoveredOverLanguage == null) {
+//
+//			InfoTooltipScript.SetVisible (false);
+//			return;
+//		}
+//
+//		Vector3 tooltipPos = GetScreenPositionFromMapCoordinates(cell.Position) + _tooltipOffset;
+//
+//		if (groupLanguage.Name == null) {
+//
+//			throw new System.Exception ("Polity.Name can't be null");
+//
+//		} 
+//
+//		if (groupLanguage.Name.Text == null) {
+//
+//			throw new System.Exception ("polity.Name.Text can't be null");
+//		}
+//
+//		InfoTooltipScript.DisplayTip (groupLanguage.Name.Text, tooltipPos);
+//	}
 
 	public void ShowCellInfoToolTip_Region (TerrainCell cell) {
 
