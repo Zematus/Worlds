@@ -2,7 +2,7 @@
 using UnityEngine.UI;
 using System.Collections;
 
-public class QuickTipPanelScript : MonoBehaviour {
+public class EventMessagePanelScript : MonoBehaviour {
 
 	public CanvasGroup CanvasGroup;
 	
@@ -32,8 +32,11 @@ public class QuickTipPanelScript : MonoBehaviour {
 
 		CanvasGroup.alpha = alpha;
 
-		if (CanvasGroup.alpha == 0)
+		if (CanvasGroup.alpha == 0) {
 			gameObject.SetActive (false);
+
+			Destroy (gameObject);
+		}
 	}
 
 	public void SetText (string text) {
@@ -48,14 +51,11 @@ public class QuickTipPanelScript : MonoBehaviour {
 
 		CanvasGroup.alpha = 1;
 	}
-	
-	public void SetVisible (bool value) {
-		
-		gameObject.SetActive (value);
-	}
 
 	public void OnClick () {
 
-		SetVisible (false);
+		gameObject.SetActive (false);
+
+		Destroy (gameObject);
 	}
 }

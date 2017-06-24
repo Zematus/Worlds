@@ -49,6 +49,8 @@ public class GuiManagerScript : MonoBehaviour {
 	public SelectionPanelScript SelectionPanelScript;
 
 	public QuickTipPanelScript QuickTipPanelScript;
+
+	public EventPanelScript EventPanelScript;
 	
 	public ToggleEvent OnSimulationInterrupted;
 
@@ -216,6 +218,10 @@ public class GuiManagerScript : MonoBehaviour {
 		Manager.SetOverlayPalette (OverlayPaletteScript.Colors);
 
 		_regenTextures = true;
+
+		EventPanelScript.AddEventMessage ("Test Message I");
+		EventPanelScript.AddEventMessage ("Test Message II");
+		EventPanelScript.AddEventMessage ("Test Message III");
 	}
 
 	void OnDestroy () {
