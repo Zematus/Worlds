@@ -2478,6 +2478,14 @@ public abstract class CellGroupEvent : WorldEvent {
 
 		Reset (newTriggerDate, GenerateUniqueIdentifier (Group, newTriggerDate, EventTypeId));
 	}
+
+	public override void TryGenerateEventMessage (long id, string messagePrefix) {
+
+		if (World.HasEventMessage (id))
+			return;
+
+		World.AddEventMessage (new CellEventMessage (Group.Cell, id, messagePrefix + " at " + Group.Position));
+	}
 }
 
 public class UpdateCellGroupEvent : CellGroupEvent {

@@ -218,10 +218,6 @@ public class GuiManagerScript : MonoBehaviour {
 		Manager.SetOverlayPalette (OverlayPaletteScript.Colors);
 
 		_regenTextures = true;
-
-		EventPanelScript.AddEventMessage ("Test Message I");
-		EventPanelScript.AddEventMessage ("Test Message II");
-		EventPanelScript.AddEventMessage ("Test Message III");
 	}
 
 	void OnDestroy () {
@@ -310,6 +306,13 @@ public class GuiManagerScript : MonoBehaviour {
 				}
 
 				_simulationDateSpan += dateSpan;
+			}
+
+			while (Manager.CurrentWorld.EventMessagesLeftToShow () > 0) {
+
+				WorldEventMessage eventMessage = Manager.CurrentWorld.GetNextMessageToShow ();
+
+				EventPanelScript.AddEventMessage (eventMessage.Message);
 			}
 		}
 	

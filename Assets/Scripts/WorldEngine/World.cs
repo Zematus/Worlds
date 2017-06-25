@@ -173,6 +173,9 @@ public class World : ISynchronizable {
 
 	public List<Language> Languages;
 
+	[XmlArrayItem (Type = typeof(CellEventMessage))]
+	public List<WorldEventMessage> EventMessages;
+
 	// End wonky segment 
 
 	[XmlIgnore]
@@ -255,6 +258,9 @@ public class World : ISynchronizable {
 	private Dictionary<long, Region> _regions = new Dictionary<long, Region> ();
 
 	private Dictionary<long, Language> _languages = new Dictionary<long, Language> ();
+
+	private Dictionary<long, WorldEventMessage> _eventMessages = new Dictionary<long, WorldEventMessage> ();
+	private Queue<WorldEventMessage> _eventMessagesToShow = new Queue<WorldEventMessage> ();
 
 	private Vector2[] _continentOffsets;
 	private float[] _continentWidths;
@@ -459,6 +465,8 @@ public class World : ISynchronizable {
 				GetTerrainCellChanges (cell);
 			}
 		}
+
+		EventMessages = new List<WorldEventMessage> (_eventMessages.Values);
 	}
 
 	public void GetTerrainCellChanges (TerrainCell cell) {
@@ -1019,6 +1027,28 @@ public class World : ISynchronizable {
 		_politiesToRemove.Add (polity);
 	}
 
+	public void AddEventMessage (WorldEventMessage eventMessage) {
+
+		_eventMessagesToShow.Enqueue (eventMessage);
+
+		_eventMessages.Add (eventMessage.Id, eventMessage);
+	}
+
+	public bool HasEventMessage (long id) {
+
+		return _eventMessages.ContainsKey (id);
+	}
+
+	public WorldEventMessage GetNextMessageToShow () {
+	
+		return _eventMessagesToShow.Dequeue ();
+	}
+
+	public int EventMessagesLeftToShow () {
+
+		return _eventMessagesToShow.Count;
+	}
+
 	public void FinalizeLoad (float startProgressValue, float endProgressValue, ProgressCastDelegate castProgress) {
 
 		if (castProgress == null)
@@ -1027,6 +1057,11 @@ public class World : ISynchronizable {
 		float progressFactor = 1 / (endProgressValue - startProgressValue);
 
 		// Segment 1
+
+		foreach (WorldEventMessage eventMessage in EventMessages) {
+
+			_eventMessages.Add (eventMessage.Id, eventMessage);
+		}
 
 		TerrainCellChangesList.ForEach (c => {
 
