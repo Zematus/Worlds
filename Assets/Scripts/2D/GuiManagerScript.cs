@@ -310,9 +310,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 			while (Manager.CurrentWorld.EventMessagesLeftToShow () > 0) {
 
-				WorldEventMessage eventMessage = Manager.CurrentWorld.GetNextMessageToShow ();
-
-				EventPanelScript.AddEventMessage (eventMessage.Message);
+				ShowEventMessage (Manager.CurrentWorld.GetNextMessageToShow ());
 			}
 		}
 	
@@ -358,6 +356,22 @@ public class GuiManagerScript : MonoBehaviour {
 		if (_mouseIsOverMap) {
 
 			ExecuteMapHoverOp ();
+		}
+	}
+
+	public void ShowEventMessage (WorldEventMessage eventMessage) {
+
+		if (eventMessage is CellEventMessage) {
+		
+			CellEventMessage cellEventMessage = eventMessage as CellEventMessage;
+
+			EventPanelScript.AddEventMessage (cellEventMessage.Message, () => {
+
+				Manager.SetSelectedCell (cellEventMessage.Position);
+			});
+		} else {
+
+			EventPanelScript.AddEventMessage (eventMessage.Message);
 		}
 	}
 

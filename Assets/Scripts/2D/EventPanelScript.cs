@@ -16,11 +16,12 @@ public class EventPanelScript : MonoBehaviour {
 		
 	}
 
-	public void AddEventMessage (string message) {
+	public void AddEventMessage (string message, EventMessageGotoDelegate gotoDelegate = null) {
 	
 		EventMessagePanelScript eventMessagePanel = GameObject.Instantiate (EventMessagePanelPrefab) as EventMessagePanelScript;
 
 		eventMessagePanel.SetText (message);
+		eventMessagePanel.SetGotoDelegate (gotoDelegate);
 		eventMessagePanel.transform.SetParent (transform);
 	}
 }

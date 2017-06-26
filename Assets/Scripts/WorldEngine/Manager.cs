@@ -789,6 +789,11 @@ public class Manager {
 		_planetView = value;
 	}
 
+	public static void SetSelectedCell (WorldPosition position) {
+
+		SetSelectedCell (CurrentWorld.GetCell (position));
+	}
+
 	public static void SetSelectedCell (TerrainCell cell) {
 
 		if (CurrentWorld.SelectedCell != null) {

@@ -2,9 +2,13 @@
 using UnityEngine.UI;
 using System.Collections;
 
+public delegate void EventMessageGotoDelegate ();
+
 public class EventMessagePanelScript : MonoBehaviour {
 
 	public CanvasGroup CanvasGroup;
+
+	public Button GotoButton;
 	
 	public Text Text;
 
@@ -13,8 +17,12 @@ public class EventMessagePanelScript : MonoBehaviour {
 
 	private float _timeSpanned = 0;
 
+	private EventMessageGotoDelegate _gotoDelegate = null;
+
 	// Use this for initialization
 	void Start () {
+
+		GotoButton.gameObject.SetActive (_gotoDelegate != null);
 	}
 
 	// Update is called once per frame
@@ -52,10 +60,27 @@ public class EventMessagePanelScript : MonoBehaviour {
 		CanvasGroup.alpha = 1;
 	}
 
+	public void SetGotoDelegate (EventMessageGotoDelegate gotoDelegate) {
+	
+		_gotoDelegate = gotoDelegate;
+
+		GotoButton.gameObject.SetActive (gotoDelegate != null);
+	}
+
 	public void OnClick () {
 
 		gameObject.SetActive (false);
 
 		Destroy (gameObject);
+	}
+
+	public void OnGotoButtonClick () {
+
+		if (_gotoDelegate != null) {
+		
+			_gotoDelegate ();
+		}
+
+		OnClick ();
 	}
 }
