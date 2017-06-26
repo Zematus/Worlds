@@ -56,6 +56,8 @@ public class GuiManagerScript : MonoBehaviour {
 
 	public ToggleEvent OnFirstMaxSpeedOptionSet;
 	public ToggleEvent OnLastMaxSpeedOptionSet;
+
+	public UnityEvent MapEntitySelected;
 	
 	public SpeedChangeEvent OnSimulationSpeedChanged;
 
@@ -359,6 +361,15 @@ public class GuiManagerScript : MonoBehaviour {
 		}
 	}
 
+	public void SelectAndCenterOnCell (WorldPosition position) {
+		
+		ShiftMapToPosition (position);
+
+		Manager.SetSelectedCell (position);
+
+		MapEntitySelected.Invoke ();
+	}
+
 	public void ShowEventMessage (WorldEventMessage eventMessage) {
 
 		if (eventMessage is CellEventMessage) {
@@ -367,7 +378,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 			EventPanelScript.AddEventMessage (cellEventMessage.Message, () => {
 
-				Manager.SetSelectedCell (cellEventMessage.Position);
+				SelectAndCenterOnCell (cellEventMessage.Position);
 			});
 		} else {
 
@@ -609,9 +620,9 @@ public class GuiManagerScript : MonoBehaviour {
 		int longitude = (int)mapCoordinates.x;
 		int latitude = (int)mapCoordinates.y;
 
-		TerrainCell selectedCell = Manager.CurrentWorld.GetCell (longitude, latitude);
+		Manager.SetSelectedCell (longitude, latitude);
 
-		Manager.SetSelectedCell (selectedCell);
+		MapEntitySelected.Invoke ();
 	}
 
 	public void ClickOp_SelectPopulationPlacement (Vector2 position) {
@@ -2696,6 +2707,21 @@ public class GuiManagerScript : MonoBehaviour {
 		Vector3 tooltipPos = GetScreenPositionFromMapCoordinates(regionCenterCellPosition) + _tooltipOffset;
 
 		InfoTooltipScript.DisplayTip (_lastHoveredOverRegion.Name.Text, tooltipPos);
+	}
+
+	public void ShiftMapToPosition (WorldPosition mapPosition) {
+
+		Rect mapImageRect = MapImage.rectTransform.rect;
+
+		Vector2 normalizedMapPos = new Vector2 (mapPosition.Longitude / (float) Manager.CurrentWorld.Width, mapPosition.Latitude / (float) Manager.CurrentWorld.Height);
+
+		Vector2 mapImagePos = normalizedMapPos - MapImage.uvRect.center;
+		mapImagePos.x = Mathf.Repeat (mapImagePos.x, 1.0f);
+
+		Rect newUvRect = MapImage.uvRect;
+		newUvRect.x += mapImagePos.x;
+
+		MapImage.uvRect = newUvRect;
 	}
 
 	public Vector3 GetScreenPositionFromMapCoordinates (WorldPosition mapPosition) {

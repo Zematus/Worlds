@@ -789,6 +789,11 @@ public class Manager {
 		_planetView = value;
 	}
 
+	public static void SetSelectedCell (int longitude, int latitude) {
+
+		SetSelectedCell (CurrentWorld.GetCell (longitude, latitude));
+	}
+
 	public static void SetSelectedCell (WorldPosition position) {
 
 		SetSelectedCell (CurrentWorld.GetCell (position));
