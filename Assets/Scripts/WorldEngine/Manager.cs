@@ -264,6 +264,34 @@ public class Manager {
 			return canRun;
 		}
 	}
+
+	public static PlanetOverlay PlanetOverlay {
+
+		get { 
+			return _planetOverlay;
+		}
+	}
+
+	public static string PlanetOverlaySubtype {
+
+		get { 
+			return _planetOverlaySubtype;
+		}
+	}
+
+	public static bool DisplayRoutes {
+
+		get { 
+			return _displayRoutes;
+		}
+	}
+
+	public static bool DisplayGroupActivity {
+
+		get { 
+			return _displayGroupActivity;
+		}
+	}
 	
 	public static void UpdateMainThreadReference () {
 		

@@ -16,6 +16,10 @@ public class WorldEventMessage {
 
 	public string Message;
 
+	public WorldEventMessage () {
+	
+	}
+
 	public WorldEventMessage (long id, string message) {
 	
 		Id = id;
@@ -27,9 +31,28 @@ public class CellEventMessage : WorldEventMessage {
 
 	public WorldPosition Position;
 
+	public CellEventMessage () {
+	
+	}
+
 	public CellEventMessage (TerrainCell cell, long id, string message) : base (id, message) {
 
 		Position = cell.Position;
+	}
+}
+
+public class DiscoveryEventMessage : CellEventMessage {
+
+	[XmlAttribute]
+	public string DiscoveryId;
+
+	public DiscoveryEventMessage () {
+
+	}
+
+	public DiscoveryEventMessage (string discoveryId, TerrainCell cell, long id, string message) : base (cell, id, message) {
+
+		DiscoveryId = discoveryId;
 	}
 }
 
@@ -296,6 +319,14 @@ public class SailingDiscoveryEvent : CellGroupEvent {
 
 		base.DestroyInternal ();
 	}
+
+	public override void TryGenerateEventMessage (long id, string messagePrefix) {
+
+		if (World.HasEventMessage (id))
+			return;
+
+		World.AddEventMessage (new DiscoveryEventMessage (SailingDiscovery.SailingDiscoveryId, Group.Cell, id, messagePrefix + " at " + Group.Position));
+	}
 }
 
 public class TribalismDiscoveryEvent : CellGroupEvent {
@@ -403,6 +434,14 @@ public class TribalismDiscoveryEvent : CellGroupEvent {
 
 		base.DestroyInternal ();
 	}
+
+	public override void TryGenerateEventMessage (long id, string messagePrefix) {
+
+		if (World.HasEventMessage (id))
+			return;
+
+		World.AddEventMessage (new DiscoveryEventMessage (TribalismDiscovery.TribalismDiscoveryId, Group.Cell, id, messagePrefix + " at " + Group.Position));
+	}
 }
 
 public class BoatMakingDiscoveryEvent : CellGroupEvent {
@@ -485,6 +524,14 @@ public class BoatMakingDiscoveryEvent : CellGroupEvent {
 		}
 
 		base.DestroyInternal ();
+	}
+
+	public override void TryGenerateEventMessage (long id, string messagePrefix) {
+
+		if (World.HasEventMessage (id))
+			return;
+
+		World.AddEventMessage (new DiscoveryEventMessage (BoatMakingDiscovery.BoatMakingDiscoveryId, Group.Cell, id, messagePrefix + " at " + Group.Position));
 	}
 }
 
@@ -569,5 +616,13 @@ public class PlantCultivationDiscoveryEvent : CellGroupEvent {
 		}
 
 		base.DestroyInternal ();
+	}
+
+	public override void TryGenerateEventMessage (long id, string messagePrefix) {
+
+		if (World.HasEventMessage (id))
+			return;
+
+		World.AddEventMessage (new DiscoveryEventMessage (PlantCultivationDiscovery.PlantCultivationDiscoveryId, Group.Cell, id, messagePrefix + " at " + Group.Position));
 	}
 }

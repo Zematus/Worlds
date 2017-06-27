@@ -58,6 +58,8 @@ public class GuiManagerScript : MonoBehaviour {
 	public ToggleEvent OnLastMaxSpeedOptionSet;
 
 	public UnityEvent MapEntitySelected;
+
+	public UnityEvent OverlayChanged;
 	
 	public SpeedChangeEvent OnSimulationSpeedChanged;
 
@@ -91,7 +93,7 @@ public class GuiManagerScript : MonoBehaviour {
 	private bool _displayRoutes = false;
 	private bool _displayGroupActivity = false;
 
-	private bool _menusNeedUpdate = true;
+//	private bool _overlayMenusNeedUpdate = true;
 
 	private bool _regenTextures = false;
 
@@ -240,7 +242,7 @@ public class GuiManagerScript : MonoBehaviour {
 			_timeSinceLastMapUpdate -= 1;
 		}
 
-		UpdateMenus ();
+//		UpdateOverlayMenus ();
 
 		Manager.ExecuteTasks (100);
 		
@@ -332,10 +334,12 @@ public class GuiManagerScript : MonoBehaviour {
 				_planetOverlay = PlanetOverlay.General;
 			}
 
-			Manager.SetPlanetOverlay (_planetOverlay, _planetOverlaySubtype);
+//			Manager.SetPlanetOverlay (_planetOverlay, _planetOverlaySubtype);
 			Manager.SetPlanetView (_planetView);
-			Manager.SetDisplayRoutes (_displayRoutes);
-			Manager.SetDisplayGroupActivity (_displayGroupActivity);
+//			Manager.SetDisplayRoutes (_displayRoutes);
+//			Manager.SetDisplayGroupActivity (_displayGroupActivity);
+
+//			OverlayChanged.Invoke ();
 
 			Manager.GenerateTextures ();
 
@@ -372,7 +376,17 @@ public class GuiManagerScript : MonoBehaviour {
 
 	public void ShowEventMessage (WorldEventMessage eventMessage) {
 
-		if (eventMessage is CellEventMessage) {
+		if (eventMessage is DiscoveryEventMessage) {
+
+			DiscoveryEventMessage discoveryEventMessage = eventMessage as DiscoveryEventMessage;
+
+			EventPanelScript.AddEventMessage (discoveryEventMessage.Message, () => {
+
+				SelectAndCenterOnCell (discoveryEventMessage.Position);
+
+				SetPopCulturalDiscoveryOverlay ();
+			});
+		} else if (eventMessage is CellEventMessage) {
 		
 			CellEventMessage cellEventMessage = eventMessage as CellEventMessage;
 
@@ -1031,58 +1045,58 @@ public class GuiManagerScript : MonoBehaviour {
 		SelectionPanelScript.SetVisible (false);
 
 		if (OverlayDialogPanelScript.GeneralDataToggle.isOn) {
-			ChangePlanetOverlay (PlanetOverlay.General);
+			ChangePlanetOverlay (PlanetOverlay.General, false);
 		} else if (OverlayDialogPanelScript.PopDensityToggle.isOn) {
-			ChangePlanetOverlay (PlanetOverlay.PopDensity);
+			ChangePlanetOverlay (PlanetOverlay.PopDensity, false);
 		} else if (OverlayDialogPanelScript.FarmlandToggle.isOn) {
-			ChangePlanetOverlay (PlanetOverlay.FarmlandDistribution);
+			ChangePlanetOverlay (PlanetOverlay.FarmlandDistribution, false);
 		} else if (OverlayDialogPanelScript.PopCulturalActivityToggle.isOn) {
-			SetPopCulturalActivityOverlay ();
+			SetPopCulturalActivityOverlay (false);
 		} else if (OverlayDialogPanelScript.PopCulturalSkillToggle.isOn) {
-			SetPopCulturalSkillOverlay ();
+			SetPopCulturalSkillOverlay (false);
 		} else if (OverlayDialogPanelScript.PopCulturalKnowledgeToggle.isOn) {
-			SetPopCulturalKnowledgeOverlay ();
+			SetPopCulturalKnowledgeOverlay (false);
 		} else if (OverlayDialogPanelScript.PopCulturalDiscoveryToggle.isOn) {
-			SetPopCulturalDiscoveryOverlay ();
+			SetPopCulturalDiscoveryOverlay (false);
 		} else if (OverlayDialogPanelScript.TerritoriesToggle.isOn) {
-			ChangePlanetOverlay (PlanetOverlay.PolityTerritory);
+			ChangePlanetOverlay (PlanetOverlay.PolityTerritory, false);
 		} else if (OverlayDialogPanelScript.DistancesToCoresToggle.isOn) {
-			ChangePlanetOverlay (PlanetOverlay.PolityCoreDistance);
+			ChangePlanetOverlay (PlanetOverlay.PolityCoreDistance, false);
 		} else if (OverlayDialogPanelScript.InfluenceToggle.isOn) {
-			ChangePlanetOverlay (PlanetOverlay.PolityInfluence);
+			ChangePlanetOverlay (PlanetOverlay.PolityInfluence, false);
 		} else if (OverlayDialogPanelScript.PolityCulturalActivityToggle.isOn) {
-			SetPolityCulturalActivityOverlay ();
+			SetPolityCulturalActivityOverlay (false);
 		} else if (OverlayDialogPanelScript.PolityCulturalSkillToggle.isOn) {
-			SetPolityCulturalSkillOverlay ();
+			SetPolityCulturalSkillOverlay (false);
 		} else if (OverlayDialogPanelScript.PolityCulturalKnowledgeToggle.isOn) {
-			SetPolityCulturalKnowledgeOverlay ();
+			SetPolityCulturalKnowledgeOverlay (false);
 		} else if (OverlayDialogPanelScript.PolityCulturalDiscoveryToggle.isOn) {
-			SetPolityCulturalDiscoveryOverlay ();
+			SetPolityCulturalDiscoveryOverlay (false);
 		} else if (OverlayDialogPanelScript.TemperatureToggle.isOn) {
-			ChangePlanetOverlay (PlanetOverlay.Temperature);
+			ChangePlanetOverlay (PlanetOverlay.Temperature, false);
 		} else if (OverlayDialogPanelScript.RainfallToggle.isOn) {
-			ChangePlanetOverlay (PlanetOverlay.Rainfall);
+			ChangePlanetOverlay (PlanetOverlay.Rainfall, false);
 		} else if (OverlayDialogPanelScript.ArabilityToggle.isOn) {
-			ChangePlanetOverlay (PlanetOverlay.Arability);
+			ChangePlanetOverlay (PlanetOverlay.Arability, false);
 		} else if (OverlayDialogPanelScript.RegionToggle.isOn) {
-			ChangePlanetOverlay (PlanetOverlay.Region);
+			ChangePlanetOverlay (PlanetOverlay.Region, false);
 		} else if (OverlayDialogPanelScript.LanguageToggle.isOn) {
-			ChangePlanetOverlay (PlanetOverlay.Language);
+			ChangePlanetOverlay (PlanetOverlay.Language, false);
 		} else if (OverlayDialogPanelScript.PopChangeToggle.isOn) {
-			ChangePlanetOverlay (PlanetOverlay.PopChange);
+			ChangePlanetOverlay (PlanetOverlay.PopChange, false);
 		} else if (OverlayDialogPanelScript.UpdateSpanToggle.isOn) {
-			ChangePlanetOverlay (PlanetOverlay.UpdateSpan);
+			ChangePlanetOverlay (PlanetOverlay.UpdateSpan, false);
 		} else {
-			UnsetOverlay();
+//			UnsetOverlay();
 		}
 
-		SetRouteDisplayOverlay (OverlayDialogPanelScript.DisplayRoutesToggle.isOn);
-		SetGroupActivityOverlay (OverlayDialogPanelScript.DisplayGroupActivityToggle.isOn);
+		SetRouteDisplayOverlay (OverlayDialogPanelScript.DisplayRoutesToggle.isOn, false);
+		SetGroupActivityOverlay (OverlayDialogPanelScript.DisplayGroupActivityToggle.isOn, false);
 	}
 	
 	public void CloseOverlayMenuAction () {
 
-		ChangePlanetOverlayToSelected ();
+//		ChangePlanetOverlayToSelected ();
 		
 		OverlayDialogPanelScript.SetVisible (false);
 	}
@@ -1092,172 +1106,172 @@ public class GuiManagerScript : MonoBehaviour {
 		ViewsDialogPanelScript.SetVisible (false);
 	}
 	
-	public void UpdateMenus () {
-
-		if (!_menusNeedUpdate)
-			return;
-
-		_menusNeedUpdate = false;
-
-
-		OverlayDialogPanelScript.GeneralDataToggle.isOn = false;		OverlayDialogPanelScript.PopDataToggle.isOn = false;
-		OverlayDialogPanelScript.PolityDataToggle.isOn = false;
-		OverlayDialogPanelScript.MiscDataToggle.isOn = false;
-		OverlayDialogPanelScript.DebugDataToggle.isOn = false;
-
-		OverlayDialogPanelScript.PopDensityToggle.isOn = false;
-		OverlayDialogPanelScript.FarmlandToggle.isOn = false;
-		OverlayDialogPanelScript.PopCulturalActivityToggle.isOn = false;
-		OverlayDialogPanelScript.PopCulturalSkillToggle.isOn = false;
-		OverlayDialogPanelScript.PopCulturalKnowledgeToggle.isOn = false;
-		OverlayDialogPanelScript.PopCulturalDiscoveryToggle.isOn = false;
-
-		OverlayDialogPanelScript.TerritoriesToggle.isOn = false;
-		OverlayDialogPanelScript.DistancesToCoresToggle.isOn = false;
-		OverlayDialogPanelScript.InfluenceToggle.isOn = false;
-		OverlayDialogPanelScript.PolityCulturalActivityToggle.isOn = false;
-		OverlayDialogPanelScript.PolityCulturalSkillToggle.isOn = false;
-		OverlayDialogPanelScript.PolityCulturalKnowledgeToggle.isOn = false;
-		OverlayDialogPanelScript.PolityCulturalDiscoveryToggle.isOn = false;
-
-		OverlayDialogPanelScript.TemperatureToggle.isOn = false;
-		OverlayDialogPanelScript.RainfallToggle.isOn = false;
-		OverlayDialogPanelScript.ArabilityToggle.isOn = false;
-		OverlayDialogPanelScript.RegionToggle.isOn = false;
-		OverlayDialogPanelScript.LanguageToggle.isOn = false;
-
-		OverlayDialogPanelScript.PopChangeToggle.isOn = false;
-		OverlayDialogPanelScript.UpdateSpanToggle.isOn = false;
-
-		OverlayDialogPanelScript.DisplayRoutesToggle.isOn = false;
-		OverlayDialogPanelScript.DisplayGroupActivityToggle.isOn = false;
-		
-		SelectionPanelScript.SetVisible (false);
-
-		switch (_planetOverlay) {
-
-		case PlanetOverlay.General:
-			OverlayDialogPanelScript.GeneralDataToggle.isOn = true;
-			break;
-
-		case PlanetOverlay.PopDensity:
-			OverlayDialogPanelScript.PopDensityToggle.isOn = true;
-			OverlayDialogPanelScript.PopDataToggle.isOn = true;
-			break;
-
-		case PlanetOverlay.FarmlandDistribution:
-			OverlayDialogPanelScript.FarmlandToggle.isOn = true;
-			OverlayDialogPanelScript.PopDataToggle.isOn = true;
-			break;
-
-		case PlanetOverlay.PopCulturalActivity:
-			OverlayDialogPanelScript.PopCulturalActivityToggle.isOn = true;
-			OverlayDialogPanelScript.PopDataToggle.isOn = true;
-			SelectionPanelScript.SetVisible (true);
-			break;
-
-		case PlanetOverlay.PopCulturalSkill:
-			OverlayDialogPanelScript.PopCulturalSkillToggle.isOn = true;
-			OverlayDialogPanelScript.PopDataToggle.isOn = true;
-			SelectionPanelScript.SetVisible (true);
-			break;
-			
-		case PlanetOverlay.PopCulturalKnowledge:
-			OverlayDialogPanelScript.PopCulturalKnowledgeToggle.isOn = true;
-			OverlayDialogPanelScript.PopDataToggle.isOn = true;
-			SelectionPanelScript.SetVisible (true);
-			break;
-
-		case PlanetOverlay.PopCulturalDiscovery:
-			OverlayDialogPanelScript.PopCulturalDiscoveryToggle.isOn = true;
-			OverlayDialogPanelScript.PopDataToggle.isOn = true;
-			SelectionPanelScript.SetVisible (true);
-			break;
-
-		case PlanetOverlay.PolityTerritory:
-			OverlayDialogPanelScript.TerritoriesToggle.isOn = true;
-			OverlayDialogPanelScript.PolityDataToggle.isOn = true;
-			break;
-
-		case PlanetOverlay.PolityCoreDistance:
-			OverlayDialogPanelScript.DistancesToCoresToggle.isOn = true;
-			OverlayDialogPanelScript.PolityDataToggle.isOn = true;
-			break;
-
-		case PlanetOverlay.PolityInfluence:
-			OverlayDialogPanelScript.InfluenceToggle.isOn = true;
-			OverlayDialogPanelScript.PolityDataToggle.isOn = true;
-			break;
-
-		case PlanetOverlay.PolityCulturalActivity:
-			OverlayDialogPanelScript.PolityCulturalActivityToggle.isOn = true;
-			OverlayDialogPanelScript.PolityDataToggle.isOn = true;
-			SelectionPanelScript.SetVisible (true);
-			break;
-
-		case PlanetOverlay.PolityCulturalSkill:
-			OverlayDialogPanelScript.PolityCulturalSkillToggle.isOn = true;
-			OverlayDialogPanelScript.PolityDataToggle.isOn = true;
-			SelectionPanelScript.SetVisible (true);
-			break;
-
-		case PlanetOverlay.PolityCulturalKnowledge:
-			OverlayDialogPanelScript.PolityCulturalKnowledgeToggle.isOn = true;
-			OverlayDialogPanelScript.PolityDataToggle.isOn = true;
-			SelectionPanelScript.SetVisible (true);
-			break;
-
-		case PlanetOverlay.PolityCulturalDiscovery:
-			OverlayDialogPanelScript.PolityCulturalDiscoveryToggle.isOn = true;
-			OverlayDialogPanelScript.PolityDataToggle.isOn = true;
-			SelectionPanelScript.SetVisible (true);
-			break;
-
-		case PlanetOverlay.Temperature:
-			OverlayDialogPanelScript.TemperatureToggle.isOn = true;
-			OverlayDialogPanelScript.MiscDataToggle.isOn = true;
-			break;
-
-		case PlanetOverlay.Rainfall:
-			OverlayDialogPanelScript.RainfallToggle.isOn = true;
-			OverlayDialogPanelScript.MiscDataToggle.isOn = true;
-			break;
-
-		case PlanetOverlay.Arability:
-			OverlayDialogPanelScript.ArabilityToggle.isOn = true;
-			OverlayDialogPanelScript.MiscDataToggle.isOn = true;
-			break;
-
-		case PlanetOverlay.Region:
-			OverlayDialogPanelScript.RegionToggle.isOn = true;
-			OverlayDialogPanelScript.MiscDataToggle.isOn = true;
-			break;
-
-		case PlanetOverlay.Language:
-			OverlayDialogPanelScript.LanguageToggle.isOn = true;
-			OverlayDialogPanelScript.MiscDataToggle.isOn = true;
-			break;
-
-		case PlanetOverlay.PopChange:
-			OverlayDialogPanelScript.PopChangeToggle.isOn = true;
-			OverlayDialogPanelScript.DebugDataToggle.isOn = true;
-			break;
-
-		case PlanetOverlay.UpdateSpan:
-			OverlayDialogPanelScript.UpdateSpanToggle.isOn = true;
-			OverlayDialogPanelScript.DebugDataToggle.isOn = true;
-			break;
-			
-		case PlanetOverlay.None:
-			break;
-			
-		default:
-			throw new System.Exception ("Unhandled Planet Overlay type: " + _planetOverlay);
-		}
-
-		OverlayDialogPanelScript.DisplayRoutesToggle.isOn = _displayRoutes;
-		OverlayDialogPanelScript.DisplayGroupActivityToggle.isOn = _displayGroupActivity;
-	}
+//	public void UpdateOverlayMenus () {
+//
+//		if (!_overlayMenusNeedUpdate)
+//			return;
+//
+//		_overlayMenusNeedUpdate = false;
+//
+//		OverlayDialogPanelScript.GeneralDataToggle.isOn = false;		
+//		OverlayDialogPanelScript.PopDataToggle.isOn = false;
+//		OverlayDialogPanelScript.PolityDataToggle.isOn = false;
+//		OverlayDialogPanelScript.MiscDataToggle.isOn = false;
+//		OverlayDialogPanelScript.DebugDataToggle.isOn = false;
+//
+//		OverlayDialogPanelScript.PopDensityToggle.isOn = false;
+//		OverlayDialogPanelScript.FarmlandToggle.isOn = false;
+//		OverlayDialogPanelScript.PopCulturalActivityToggle.isOn = false;
+//		OverlayDialogPanelScript.PopCulturalSkillToggle.isOn = false;
+//		OverlayDialogPanelScript.PopCulturalKnowledgeToggle.isOn = false;
+//		OverlayDialogPanelScript.PopCulturalDiscoveryToggle.isOn = false;
+//
+//		OverlayDialogPanelScript.TerritoriesToggle.isOn = false;
+//		OverlayDialogPanelScript.DistancesToCoresToggle.isOn = false;
+//		OverlayDialogPanelScript.InfluenceToggle.isOn = false;
+//		OverlayDialogPanelScript.PolityCulturalActivityToggle.isOn = false;
+//		OverlayDialogPanelScript.PolityCulturalSkillToggle.isOn = false;
+//		OverlayDialogPanelScript.PolityCulturalKnowledgeToggle.isOn = false;
+//		OverlayDialogPanelScript.PolityCulturalDiscoveryToggle.isOn = false;
+//
+//		OverlayDialogPanelScript.TemperatureToggle.isOn = false;
+//		OverlayDialogPanelScript.RainfallToggle.isOn = false;
+//		OverlayDialogPanelScript.ArabilityToggle.isOn = false;
+//		OverlayDialogPanelScript.RegionToggle.isOn = false;
+//		OverlayDialogPanelScript.LanguageToggle.isOn = false;
+//
+//		OverlayDialogPanelScript.PopChangeToggle.isOn = false;
+//		OverlayDialogPanelScript.UpdateSpanToggle.isOn = false;
+//
+//		OverlayDialogPanelScript.DisplayRoutesToggle.isOn = false;
+//		OverlayDialogPanelScript.DisplayGroupActivityToggle.isOn = false;
+//		
+//		SelectionPanelScript.SetVisible (false);
+//
+//		switch (_planetOverlay) {
+//
+//		case PlanetOverlay.General:
+//			OverlayDialogPanelScript.GeneralDataToggle.isOn = true;
+//			break;
+//
+//		case PlanetOverlay.PopDensity:
+//			OverlayDialogPanelScript.PopDensityToggle.isOn = true;
+//			OverlayDialogPanelScript.PopDataToggle.isOn = true;
+//			break;
+//
+//		case PlanetOverlay.FarmlandDistribution:
+//			OverlayDialogPanelScript.FarmlandToggle.isOn = true;
+//			OverlayDialogPanelScript.PopDataToggle.isOn = true;
+//			break;
+//
+//		case PlanetOverlay.PopCulturalActivity:
+//			OverlayDialogPanelScript.PopCulturalActivityToggle.isOn = true;
+//			OverlayDialogPanelScript.PopDataToggle.isOn = true;
+//			SelectionPanelScript.SetVisible (true);
+//			break;
+//
+//		case PlanetOverlay.PopCulturalSkill:
+//			OverlayDialogPanelScript.PopCulturalSkillToggle.isOn = true;
+//			OverlayDialogPanelScript.PopDataToggle.isOn = true;
+//			SelectionPanelScript.SetVisible (true);
+//			break;
+//			
+//		case PlanetOverlay.PopCulturalKnowledge:
+//			OverlayDialogPanelScript.PopCulturalKnowledgeToggle.isOn = true;
+//			OverlayDialogPanelScript.PopDataToggle.isOn = true;
+//			SelectionPanelScript.SetVisible (true);
+//			break;
+//
+//		case PlanetOverlay.PopCulturalDiscovery:
+//			OverlayDialogPanelScript.PopCulturalDiscoveryToggle.isOn = true;
+//			OverlayDialogPanelScript.PopDataToggle.isOn = true;
+//			SelectionPanelScript.SetVisible (true);
+//			break;
+//
+//		case PlanetOverlay.PolityTerritory:
+//			OverlayDialogPanelScript.TerritoriesToggle.isOn = true;
+//			OverlayDialogPanelScript.PolityDataToggle.isOn = true;
+//			break;
+//
+//		case PlanetOverlay.PolityCoreDistance:
+//			OverlayDialogPanelScript.DistancesToCoresToggle.isOn = true;
+//			OverlayDialogPanelScript.PolityDataToggle.isOn = true;
+//			break;
+//
+//		case PlanetOverlay.PolityInfluence:
+//			OverlayDialogPanelScript.InfluenceToggle.isOn = true;
+//			OverlayDialogPanelScript.PolityDataToggle.isOn = true;
+//			break;
+//
+//		case PlanetOverlay.PolityCulturalActivity:
+//			OverlayDialogPanelScript.PolityCulturalActivityToggle.isOn = true;
+//			OverlayDialogPanelScript.PolityDataToggle.isOn = true;
+//			SelectionPanelScript.SetVisible (true);
+//			break;
+//
+//		case PlanetOverlay.PolityCulturalSkill:
+//			OverlayDialogPanelScript.PolityCulturalSkillToggle.isOn = true;
+//			OverlayDialogPanelScript.PolityDataToggle.isOn = true;
+//			SelectionPanelScript.SetVisible (true);
+//			break;
+//
+//		case PlanetOverlay.PolityCulturalKnowledge:
+//			OverlayDialogPanelScript.PolityCulturalKnowledgeToggle.isOn = true;
+//			OverlayDialogPanelScript.PolityDataToggle.isOn = true;
+//			SelectionPanelScript.SetVisible (true);
+//			break;
+//
+//		case PlanetOverlay.PolityCulturalDiscovery:
+//			OverlayDialogPanelScript.PolityCulturalDiscoveryToggle.isOn = true;
+//			OverlayDialogPanelScript.PolityDataToggle.isOn = true;
+//			SelectionPanelScript.SetVisible (true);
+//			break;
+//
+//		case PlanetOverlay.Temperature:
+//			OverlayDialogPanelScript.TemperatureToggle.isOn = true;
+//			OverlayDialogPanelScript.MiscDataToggle.isOn = true;
+//			break;
+//
+//		case PlanetOverlay.Rainfall:
+//			OverlayDialogPanelScript.RainfallToggle.isOn = true;
+//			OverlayDialogPanelScript.MiscDataToggle.isOn = true;
+//			break;
+//
+//		case PlanetOverlay.Arability:
+//			OverlayDialogPanelScript.ArabilityToggle.isOn = true;
+//			OverlayDialogPanelScript.MiscDataToggle.isOn = true;
+//			break;
+//
+//		case PlanetOverlay.Region:
+//			OverlayDialogPanelScript.RegionToggle.isOn = true;
+//			OverlayDialogPanelScript.MiscDataToggle.isOn = true;
+//			break;
+//
+//		case PlanetOverlay.Language:
+//			OverlayDialogPanelScript.LanguageToggle.isOn = true;
+//			OverlayDialogPanelScript.MiscDataToggle.isOn = true;
+//			break;
+//
+//		case PlanetOverlay.PopChange:
+//			OverlayDialogPanelScript.PopChangeToggle.isOn = true;
+//			OverlayDialogPanelScript.DebugDataToggle.isOn = true;
+//			break;
+//
+//		case PlanetOverlay.UpdateSpan:
+//			OverlayDialogPanelScript.UpdateSpanToggle.isOn = true;
+//			OverlayDialogPanelScript.DebugDataToggle.isOn = true;
+//			break;
+//			
+//		case PlanetOverlay.None:
+//			break;
+//			
+//		default:
+//			throw new System.Exception ("Unhandled Planet Overlay type: " + _planetOverlay);
+//		}
+//
+//		OverlayDialogPanelScript.DisplayRoutesToggle.isOn = _displayRoutes;
+//		OverlayDialogPanelScript.DisplayGroupActivityToggle.isOn = _displayGroupActivity;
+//	}
 	
 	public void SelectOverlays () {
 		
@@ -1341,21 +1355,37 @@ public class GuiManagerScript : MonoBehaviour {
 		}
 	}
 
-	public void SetRouteDisplayOverlay (bool value) {
+	public void SetRouteDisplayOverlay (bool value, bool invokeEvent = true) {
 
 		_regenTextures |= _displayRoutes != value;
 
 		_displayRoutes = value;
+
+		if (_regenTextures) {
+			Manager.SetDisplayRoutes (_displayRoutes);
+
+			if (invokeEvent) {
+				OverlayChanged.Invoke ();
+			}
+		}
 	}
 
-	public void SetGroupActivityOverlay (bool value) {
+	public void SetGroupActivityOverlay (bool value, bool invokeEvent = true) {
 
 		_regenTextures |= _displayGroupActivity != value;
 
 		_displayGroupActivity = value;
+
+		if (_regenTextures) {
+			Manager.SetDisplayGroupActivity (_displayGroupActivity);
+
+			if (invokeEvent) {
+				OverlayChanged.Invoke ();
+			}
+		}
 	}
 
-	public void ChangePlanetOverlay (PlanetOverlay value) {
+	public void ChangePlanetOverlay (PlanetOverlay value, bool invokeEvent = true) {
 
 		_regenTextures |= _planetOverlay != value;
 
@@ -1370,11 +1400,19 @@ public class GuiManagerScript : MonoBehaviour {
 		
 			_planetOverlaySubtype = "None";
 		}
+
+		if (_regenTextures) {
+			Manager.SetPlanetOverlay (_planetOverlay, _planetOverlaySubtype);
+
+			if (invokeEvent) {
+				OverlayChanged.Invoke ();
+			}
+		}
 	}
 
-	public void SetPopCulturalActivityOverlay () {
+	public void SetPopCulturalActivityOverlay (bool invokeEvent = true) {
 
-		ChangePlanetOverlay (PlanetOverlay.PopCulturalActivity);
+		ChangePlanetOverlay (PlanetOverlay.PopCulturalActivity, invokeEvent);
 
 		SelectionPanelScript.Title.text = "Displayed Activity:";
 
@@ -1386,9 +1424,9 @@ public class GuiManagerScript : MonoBehaviour {
 		SelectionPanelScript.SetVisible (true);
 	}
 
-	public void SetPolityCulturalActivityOverlay () {
+	public void SetPolityCulturalActivityOverlay (bool invokeEvent = true) {
 
-		ChangePlanetOverlay (PlanetOverlay.PolityCulturalActivity);
+		ChangePlanetOverlay (PlanetOverlay.PolityCulturalActivity, invokeEvent);
 
 		SelectionPanelScript.Title.text = "Displayed Activity:";
 
@@ -1400,9 +1438,9 @@ public class GuiManagerScript : MonoBehaviour {
 		SelectionPanelScript.SetVisible (true);
 	}
 	
-	public void SetPopCulturalSkillOverlay () {
+	public void SetPopCulturalSkillOverlay (bool invokeEvent = true) {
 
-		ChangePlanetOverlay (PlanetOverlay.PopCulturalSkill);
+		ChangePlanetOverlay (PlanetOverlay.PopCulturalSkill, invokeEvent);
 
 		SelectionPanelScript.Title.text = "Displayed Skill:";
 
@@ -1414,9 +1452,9 @@ public class GuiManagerScript : MonoBehaviour {
 		SelectionPanelScript.SetVisible (true);
 	}
 
-	public void SetPolityCulturalSkillOverlay () {
+	public void SetPolityCulturalSkillOverlay (bool invokeEvent = true) {
 
-		ChangePlanetOverlay (PlanetOverlay.PolityCulturalSkill);
+		ChangePlanetOverlay (PlanetOverlay.PolityCulturalSkill, invokeEvent);
 
 		SelectionPanelScript.Title.text = "Displayed Skill:";
 
@@ -1428,9 +1466,9 @@ public class GuiManagerScript : MonoBehaviour {
 		SelectionPanelScript.SetVisible (true);
 	}
 	
-	public void SetPopCulturalKnowledgeOverlay () {
+	public void SetPopCulturalKnowledgeOverlay (bool invokeEvent = true) {
 
-		ChangePlanetOverlay (PlanetOverlay.PopCulturalKnowledge);
+		ChangePlanetOverlay (PlanetOverlay.PopCulturalKnowledge, invokeEvent);
 		
 		SelectionPanelScript.Title.text = "Displayed Knowledge:";
 		
@@ -1442,9 +1480,9 @@ public class GuiManagerScript : MonoBehaviour {
 		SelectionPanelScript.SetVisible (true);
 	}
 
-	public void SetPolityCulturalKnowledgeOverlay () {
+	public void SetPolityCulturalKnowledgeOverlay (bool invokeEvent = true) {
 
-		ChangePlanetOverlay (PlanetOverlay.PolityCulturalKnowledge);
+		ChangePlanetOverlay (PlanetOverlay.PolityCulturalKnowledge, invokeEvent);
 
 		SelectionPanelScript.Title.text = "Displayed Knowledge:";
 
@@ -1456,9 +1494,9 @@ public class GuiManagerScript : MonoBehaviour {
 		SelectionPanelScript.SetVisible (true);
 	}
 
-	public void SetPopCulturalDiscoveryOverlay () {
+	public void SetPopCulturalDiscoveryOverlay (bool invokeEvent = true) {
 
-		ChangePlanetOverlay (PlanetOverlay.PopCulturalDiscovery);
+		ChangePlanetOverlay (PlanetOverlay.PopCulturalDiscovery, invokeEvent);
 
 		SelectionPanelScript.Title.text = "Displayed Discovery:";
 
@@ -1470,9 +1508,9 @@ public class GuiManagerScript : MonoBehaviour {
 		SelectionPanelScript.SetVisible (true);
 	}
 
-	public void SetPolityCulturalDiscoveryOverlay () {
+	public void SetPolityCulturalDiscoveryOverlay (bool invokeEvent = true) {
 
-		ChangePlanetOverlay (PlanetOverlay.PolityCulturalDiscovery);
+		ChangePlanetOverlay (PlanetOverlay.PolityCulturalDiscovery, invokeEvent);
 
 		SelectionPanelScript.Title.text = "Displayed Discovery:";
 
@@ -1486,7 +1524,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 	public void AddSelectionPanelOption (string optionName, string optionId) {
 
-		SelectionPanelScript.AddOption (optionName, (state) => {
+		SelectionPanelScript.AddOption (optionId, optionName, (state) => {
 			if (state) {
 				_planetOverlaySubtype = optionId;
 			} else if (_planetOverlaySubtype == optionId) {
@@ -1497,7 +1535,7 @@ public class GuiManagerScript : MonoBehaviour {
 		});
 
 		if (_planetOverlaySubtype == optionId) {
-			SelectionPanelScript.SetStateOption (optionName, true);
+			SelectionPanelScript.SetStateOption (optionId, true);
 		}
 	}
 
@@ -1557,12 +1595,12 @@ public class GuiManagerScript : MonoBehaviour {
 		}
 	}
 	
-	public void UnsetOverlay () {
-		
-		_regenTextures |= _planetOverlay != PlanetOverlay.None;
-		
-		_planetOverlay = PlanetOverlay.None;
-	}
+//	public void UnsetOverlay () {
+//		
+//		_regenTextures |= _planetOverlay != PlanetOverlay.None;
+//		
+//		_planetOverlay = PlanetOverlay.None;
+//	}
 	
 	public void SetBiomeView () {
 		

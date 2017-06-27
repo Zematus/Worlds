@@ -173,7 +173,8 @@ public class World : ISynchronizable {
 
 	public List<Language> Languages;
 
-	[XmlArrayItem (Type = typeof(CellEventMessage))]
+	[XmlArrayItem (Type = typeof(CellEventMessage)),
+		XmlArrayItem (Type = typeof(DiscoveryEventMessage))]
 	public List<WorldEventMessage> EventMessages;
 
 	// End wonky segment 
