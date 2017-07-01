@@ -319,11 +319,7 @@ public class GuiManagerScript : MonoBehaviour {
 		}
 	
 		if (_regenTextures) {
-			_regenTextures = false;
-
-			if (_resetOverlays) {	
-				_resetOverlays = false;
-
+			if (_resetOverlays) {
 				_planetView = PlanetView.Biomes;
 
 //				#if DEBUG
@@ -334,18 +330,24 @@ public class GuiManagerScript : MonoBehaviour {
 				_planetOverlay = PlanetOverlay.General;
 			}
 
-//			Manager.SetPlanetOverlay (_planetOverlay, _planetOverlaySubtype);
+			Manager.SetPlanetOverlay (_planetOverlay, _planetOverlaySubtype);
 			Manager.SetPlanetView (_planetView);
-//			Manager.SetDisplayRoutes (_displayRoutes);
-//			Manager.SetDisplayGroupActivity (_displayGroupActivity);
+			Manager.SetDisplayRoutes (_displayRoutes);
+			Manager.SetDisplayGroupActivity (_displayGroupActivity);
 
-//			OverlayChanged.Invoke ();
+			if (_resetOverlays) {
+				OverlayChanged.Invoke ();
+
+				_resetOverlays = false;
+			}
 
 			Manager.GenerateTextures ();
 
 			MapScript.RefreshTexture ();
 
 			_mapUpdateCount++;
+
+			_regenTextures = false;
 
 		} else {
 
@@ -384,7 +386,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 				SelectAndCenterOnCell (discoveryEventMessage.Position);
 
-				SetPopCulturalDiscoveryOverlay ();
+				SetPopCulturalDiscoveryOverlay (discoveryEventMessage.DiscoveryId);
 			});
 		} else if (eventMessage is CellEventMessage) {
 		
@@ -1385,6 +1387,32 @@ public class GuiManagerScript : MonoBehaviour {
 		}
 	}
 
+	public void ChangePlanetOverlay (PlanetOverlay value, string planetOverlaySubtype, bool invokeEvent = true) {
+
+		_regenTextures |= _planetOverlaySubtype != planetOverlaySubtype;
+		_regenTextures |= _planetOverlay != value;
+
+		if (_regenTextures && (_planetOverlay != PlanetOverlay.None)) {
+
+			_planetOverlaySubtypeCache[_planetOverlay] = _planetOverlaySubtype;
+		}
+
+		_planetOverlaySubtype = planetOverlaySubtype;
+
+		_planetOverlay = value;
+
+//		if (!_planetOverlaySubtypeCache.TryGetValue (_planetOverlay, out _planetOverlaySubtype)) {
+//
+//			_planetOverlaySubtype = "None";
+//		}
+
+		if (invokeEvent) {
+			Manager.SetPlanetOverlay (_planetOverlay, _planetOverlaySubtype);
+
+			OverlayChanged.Invoke ();
+		}
+	}
+
 	public void ChangePlanetOverlay (PlanetOverlay value, bool invokeEvent = true) {
 
 		_regenTextures |= _planetOverlay != value;
@@ -1401,12 +1429,10 @@ public class GuiManagerScript : MonoBehaviour {
 			_planetOverlaySubtype = "None";
 		}
 
-		if (_regenTextures) {
+		if (invokeEvent) {
 			Manager.SetPlanetOverlay (_planetOverlay, _planetOverlaySubtype);
 
-			if (invokeEvent) {
-				OverlayChanged.Invoke ();
-			}
+			OverlayChanged.Invoke ();
 		}
 	}
 
@@ -1489,6 +1515,20 @@ public class GuiManagerScript : MonoBehaviour {
 		foreach (CulturalKnowledgeInfo knowledgeInfo in Manager.CurrentWorld.CulturalKnowledgeInfoList) {
 
 			AddSelectionPanelOption (knowledgeInfo.Name, knowledgeInfo.Id);
+		}
+
+		SelectionPanelScript.SetVisible (true);
+	}
+
+	public void SetPopCulturalDiscoveryOverlay (string planetOverlaySubtype, bool invokeEvent = true) {
+
+		ChangePlanetOverlay (PlanetOverlay.PopCulturalDiscovery, planetOverlaySubtype, invokeEvent);
+
+		SelectionPanelScript.Title.text = "Displayed Discovery:";
+
+		foreach (CulturalDiscovery discoveryInfo in Manager.CurrentWorld.CulturalDiscoveryInfoList) {
+
+			AddSelectionPanelOption (discoveryInfo.Name, discoveryInfo.Id);
 		}
 
 		SelectionPanelScript.SetVisible (true);
