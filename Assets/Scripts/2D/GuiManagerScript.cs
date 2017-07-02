@@ -2138,6 +2138,8 @@ public class GuiManagerScript : MonoBehaviour {
 		InfoPanelScript.InfoText.text += "\n\tInfluenced population: " + influencedPopulation;
 		InfoPanelScript.InfoText.text += "\n\tPercentage of polity population: " + percentageOfPolity.ToString ("P");
 		InfoPanelScript.InfoText.text += "\n\tDistance to polity core: " + pi.CoreDistance.ToString ("0.000");
+
+		_showFocusButton = true;
 	}
 
 	public void AddCellDataToInfoPanel_PolityCulturalActivity (TerrainCell cell) {
