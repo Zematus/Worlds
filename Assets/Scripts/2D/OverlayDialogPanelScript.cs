@@ -81,40 +81,40 @@ public class OverlayDialogPanelScript : MonoBehaviour {
 		CloseActionButton.onClick.AddListener (closeAction);
 	}
 
-//	public void ResetToggles () {
-//	
-//		if (!PopDataToggle.isOn) {
-//			PopDensityToggle.isOn = false;
-//			FarmlandToggle.isOn = false;
-//			PopCulturalActivityToggle.isOn = false;
-//			PopCulturalSkillToggle.isOn = false;
-//			PopCulturalKnowledgeToggle.isOn = false;
-//			PopCulturalDiscoveryToggle.isOn = false;
-//		}
-//
-//		if (!PolityDataToggle.isOn) {
-//			TerritoriesToggle.isOn = false;
-//			DistancesToCoresToggle.isOn = false;
-//			InfluenceToggle.isOn = false;
-//			PolityCulturalActivityToggle.isOn = false;
-//			PolityCulturalSkillToggle.isOn = false;
-//			PolityCulturalKnowledgeToggle.isOn = false;
-//			PolityCulturalDiscoveryToggle.isOn = false;
-//		}
-//
-//		if (!MiscDataToggle.isOn) {
-//			TemperatureToggle.isOn = false;
-//			RainfallToggle.isOn = false;
-//			ArabilityToggle.isOn = false;
-//			RegionToggle.isOn = false;
-//			LanguageToggle.isOn = false;
-//		}
-//
-//		if (!DebugDataToggle.isOn) {
-//			PopChangeToggle.isOn = false;
-//			UpdateSpanToggle.isOn = false;
-//		}
-//	}
+	public void ResetToggles () {
+	
+		if (!PopDataToggle.isOn) {
+			PopDensityToggle.isOn = false;
+			FarmlandToggle.isOn = false;
+			PopCulturalActivityToggle.isOn = false;
+			PopCulturalSkillToggle.isOn = false;
+			PopCulturalKnowledgeToggle.isOn = false;
+			PopCulturalDiscoveryToggle.isOn = false;
+		}
+
+		if (!PolityDataToggle.isOn) {
+			TerritoriesToggle.isOn = false;
+			DistancesToCoresToggle.isOn = false;
+			InfluenceToggle.isOn = false;
+			PolityCulturalActivityToggle.isOn = false;
+			PolityCulturalSkillToggle.isOn = false;
+			PolityCulturalKnowledgeToggle.isOn = false;
+			PolityCulturalDiscoveryToggle.isOn = false;
+		}
+
+		if (!MiscDataToggle.isOn) {
+			TemperatureToggle.isOn = false;
+			RainfallToggle.isOn = false;
+			ArabilityToggle.isOn = false;
+			RegionToggle.isOn = false;
+			LanguageToggle.isOn = false;
+		}
+
+		if (!DebugDataToggle.isOn) {
+			PopChangeToggle.isOn = false;
+			UpdateSpanToggle.isOn = false;
+		}
+	}
 
 	public void UpdateOptions () {
 
