@@ -56,6 +56,21 @@ public class DiscoveryEventMessage : CellEventMessage {
 	}
 }
 
+public class PolityFormationEventMessage : WorldEventMessage {
+
+	[XmlAttribute]
+	public long PolityId;
+
+	public PolityFormationEventMessage () {
+
+	}
+
+	public PolityFormationEventMessage (Polity polity, long id, string message) : base (id, message) {
+
+		PolityId = polity.Id;
+	}
+}
+
 public class WorldEventSnapshot {
 
 	public System.Type EventType;
@@ -86,6 +101,7 @@ public abstract class WorldEvent : ISynchronizable {
 	public const long ClanSplitEventId = 7;
 	public const long ExpandPolityInfluenceEventId = 8;
 	public const long TribeSplitEventId = 9;
+	public const long FirstTribeFormationEventId = 10;
 
 //	public static int EventCount = 0;
 
@@ -413,17 +429,24 @@ public class TribalismDiscoveryEvent : CellGroupEvent {
 
 		Group.Culture.AddDiscoveryToFind (new TribalismDiscovery ());
 
+		Tribe newTribe = null;
+
 		if (Group.GetPolityInfluencesCount () <= 0) {
 
-			Tribe tribe = new Tribe (Group);
+			newTribe = new Tribe (Group);
 
-			World.AddPolity (tribe);
-			World.AddPolityToUpdate (tribe);
+			World.AddPolity (newTribe);
+			World.AddPolityToUpdate (newTribe);
 		}
 
 		World.AddGroupToUpdate (Group);
 
 		TryGenerateEventMessage (TribalismDiscoveryEventId, WorldEventMessage.TribalismDiscoveryMessagePrefix);
+
+		if ((newTribe != null) && !World.HasEventMessage (WorldEvent.FirstTribeFormationEventId)) {
+
+			World.AddEventMessage (new PolityFormationEventMessage (newTribe, WorldEvent.FirstTribeFormationEventId, "The first tribe, '" + newTribe.Name.Text + "', formed at " + Group.Position));
+		}
 	}
 
 	protected override void DestroyInternal ()

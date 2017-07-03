@@ -380,7 +380,22 @@ public class GuiManagerScript : MonoBehaviour {
 
 	public void ShowEventMessage (WorldEventMessage eventMessage) {
 
-		if (eventMessage is DiscoveryEventMessage) {
+		if (eventMessage is PolityFormationEventMessage) {
+
+			PolityFormationEventMessage polityFormationEventMessage = eventMessage as PolityFormationEventMessage;
+
+			Polity polity = Manager.CurrentWorld.GetPolity (polityFormationEventMessage.PolityId);
+
+			WorldPosition polityCorePosition = polity.CoreGroup.Position;
+
+			EventPanelScript.AddEventMessage (polityFormationEventMessage.Message, () => {
+
+				SelectAndCenterOnCell (polityCorePosition);
+
+				if ((_planetOverlay != PlanetOverlay.PolityTerritory) && (_planetOverlay != PlanetOverlay.General))
+					ChangePlanetOverlay (PlanetOverlay.PolityTerritory);
+			});
+		} else if (eventMessage is DiscoveryEventMessage) {
 
 			DiscoveryEventMessage discoveryEventMessage = eventMessage as DiscoveryEventMessage;
 

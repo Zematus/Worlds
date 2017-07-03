@@ -2896,6 +2896,11 @@ public class TribeFormationEvent : CellGroupEvent {
 		World.AddPolityToUpdate (tribe);
 
 		World.AddGroupToUpdate (Group);
+
+		if (!World.HasEventMessage (WorldEvent.FirstTribeFormationEventId)) {
+
+			World.AddEventMessage (new PolityFormationEventMessage (tribe, WorldEvent.FirstTribeFormationEventId, "The first tribe, '" + tribe.Name.Text + "', formed at " + Group.Position));
+		}
 	}
 
 	protected override void DestroyInternal ()

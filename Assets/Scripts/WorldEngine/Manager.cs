@@ -878,15 +878,6 @@ public class Manager {
 		}
 	}
 
-	//TODO: delete commented function
-//	public static void DisplayCellData (TerrainCell cell, bool showData) {
-//	
-//		DisplayCellDataOnMapTexture (_manager._currentMapTextureColors, cell, showData);
-//		CurrentMapTexture.SetPixels32 (_manager._currentMapTextureColors);
-//
-//		CurrentMapTexture.Apply ();
-//	}
-
 	public static void ResetUpdatedCells () {
 
 		_lastUpdatedCells.Clear ();
@@ -944,7 +935,7 @@ public class Manager {
 		int i = cell.Longitude;
 		int j = cell.Latitude;
 
-		Color cellColor = GenerateColorFromTerrainCell(cell);
+		Color cellColor = GenerateColorFromTerrainCell(cell, _displayGroupActivity);
 
 		if (showData) {
 			cellColor = new Color (0.5f + (cellColor.r * 0.5f), 0.5f + (cellColor.g * 0.5f), 0.5f + (cellColor.b * 0.5f));
@@ -980,7 +971,7 @@ public class Manager {
 
 			if (!showRoute) {
 
-				cellColor = GenerateColorFromTerrainCell(cell);
+				cellColor = GenerateColorFromTerrainCell(cell, _displayGroupActivity);
 			}
 
 			for (int m = 0; m < r; m++) {
@@ -1027,13 +1018,7 @@ public class Manager {
 		int i = cell.Longitude;
 		int j = cell.Latitude;
 		
-		Color cellColor = GenerateColorFromTerrainCell(cell);
-
-		if (CellShouldBeHighlighted (cell)) {
-			cellColor = cellColor * 0.5f + Color.white * 0.5f;
-		} else if (highlightCells) {
-			cellColor = cellColor * 0.75f + Color.white * 0.25f;
-		}
+		Color cellColor = GenerateColorFromTerrainCell(cell, highlightCells);
 		
 		for (int m = 0; m < r; m++) {
 			for (int n = 0; n < r; n++) {
@@ -1248,7 +1233,7 @@ public class Manager {
 		return cell.IsPartOfCoastline;
 	}
 	
-	private static Color GenerateColorFromTerrainCell (TerrainCell cell) {
+	private static Color GenerateColorFromTerrainCell (TerrainCell cell, bool highlightCells = false) {
 
 		if (_displayRoutes && cell.HasCrossingRoutes) {
 		
@@ -1366,6 +1351,12 @@ public class Manager {
 			
 		default:
 			throw new System.Exception("Unsupported Planet Overlay Type");
+		}
+
+		if (CellShouldBeHighlighted (cell)) {
+			color = color * 0.5f + Color.white * 0.5f;
+		} else if (highlightCells) {
+			color = color * 0.75f + Color.white * 0.25f;
 		}
 
 		color.a = 1;
