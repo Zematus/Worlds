@@ -14,15 +14,19 @@ public class WorldEventMessage {
 	[XmlAttribute]
 	public long Id;
 
+	[XmlAttribute]
+	public long Date;
+
 	public string Message;
 
 	public WorldEventMessage () {
 	
 	}
 
-	public WorldEventMessage (long id, string message) {
+	public WorldEventMessage (long id, long date, string message) {
 	
 		Id = id;
+		Date = date;
 		Message = message;
 	}
 }
@@ -35,7 +39,7 @@ public class CellEventMessage : WorldEventMessage {
 	
 	}
 
-	public CellEventMessage (TerrainCell cell, long id, string message) : base (id, message) {
+	public CellEventMessage (TerrainCell cell, long id, long date, string message) : base (id, date, message) {
 
 		Position = cell.Position;
 	}
@@ -50,7 +54,7 @@ public class DiscoveryEventMessage : CellEventMessage {
 
 	}
 
-	public DiscoveryEventMessage (string discoveryId, TerrainCell cell, long id, string message) : base (cell, id, message) {
+	public DiscoveryEventMessage (string discoveryId, TerrainCell cell, long id, long date, string message) : base (cell, id, date, message) {
 
 		DiscoveryId = discoveryId;
 	}
@@ -65,7 +69,7 @@ public class PolityFormationEventMessage : WorldEventMessage {
 
 	}
 
-	public PolityFormationEventMessage (Polity polity, long id, string message) : base (id, message) {
+	public PolityFormationEventMessage (Polity polity, long id, long date, string message) : base (id, date, message) {
 
 		PolityId = polity.Id;
 	}
@@ -180,7 +184,7 @@ public abstract class WorldEvent : ISynchronizable {
 		if (World.HasEventMessage (id))
 			return;
 
-		World.AddEventMessage (new WorldEventMessage (id, message));
+		World.AddEventMessage (new WorldEventMessage (id, TriggerDate, message));
 	}
 
 	public void Destroy () {
@@ -239,7 +243,7 @@ public abstract class CellEvent : WorldEvent {
 		if (World.HasEventMessage (id))
 			return;
 
-		World.AddEventMessage (new CellEventMessage (Cell, id, messagePrefix + " at " + Cell.Position));
+		World.AddEventMessage (new CellEventMessage (Cell, id, TriggerDate, messagePrefix + " at " + Cell.Position));
 	}
 }
 
@@ -341,7 +345,7 @@ public class SailingDiscoveryEvent : CellGroupEvent {
 		if (World.HasEventMessage (id))
 			return;
 
-		World.AddEventMessage (new DiscoveryEventMessage (SailingDiscovery.SailingDiscoveryId, Group.Cell, id, messagePrefix + " at " + Group.Position));
+		World.AddEventMessage (new DiscoveryEventMessage (SailingDiscovery.SailingDiscoveryId, Group.Cell, id, TriggerDate, messagePrefix + " at " + Group.Position));
 	}
 }
 
@@ -445,7 +449,7 @@ public class TribalismDiscoveryEvent : CellGroupEvent {
 
 		if ((newTribe != null) && !World.HasEventMessage (WorldEvent.FirstTribeFormationEventId)) {
 
-			World.AddEventMessage (new PolityFormationEventMessage (newTribe, WorldEvent.FirstTribeFormationEventId, "The first tribe, '" + newTribe.Name.Text + "', formed at " + Group.Position));
+			World.AddEventMessage (new PolityFormationEventMessage (newTribe, WorldEvent.FirstTribeFormationEventId, TriggerDate, "The first tribe, '" + newTribe.Name.Text + "', formed at " + Group.Position));
 		}
 	}
 
@@ -463,7 +467,7 @@ public class TribalismDiscoveryEvent : CellGroupEvent {
 		if (World.HasEventMessage (id))
 			return;
 
-		World.AddEventMessage (new DiscoveryEventMessage (TribalismDiscovery.TribalismDiscoveryId, Group.Cell, id, messagePrefix + " at " + Group.Position));
+		World.AddEventMessage (new DiscoveryEventMessage (TribalismDiscovery.TribalismDiscoveryId, Group.Cell, id, TriggerDate, messagePrefix + " at " + Group.Position));
 	}
 }
 
@@ -554,7 +558,7 @@ public class BoatMakingDiscoveryEvent : CellGroupEvent {
 		if (World.HasEventMessage (id))
 			return;
 
-		World.AddEventMessage (new DiscoveryEventMessage (BoatMakingDiscovery.BoatMakingDiscoveryId, Group.Cell, id, messagePrefix + " at " + Group.Position));
+		World.AddEventMessage (new DiscoveryEventMessage (BoatMakingDiscovery.BoatMakingDiscoveryId, Group.Cell, id, TriggerDate, messagePrefix + " at " + Group.Position));
 	}
 }
 
@@ -646,6 +650,6 @@ public class PlantCultivationDiscoveryEvent : CellGroupEvent {
 		if (World.HasEventMessage (id))
 			return;
 
-		World.AddEventMessage (new DiscoveryEventMessage (PlantCultivationDiscovery.PlantCultivationDiscoveryId, Group.Cell, id, messagePrefix + " at " + Group.Position));
+		World.AddEventMessage (new DiscoveryEventMessage (PlantCultivationDiscovery.PlantCultivationDiscoveryId, Group.Cell, id, TriggerDate, messagePrefix + " at " + Group.Position));
 	}
 }

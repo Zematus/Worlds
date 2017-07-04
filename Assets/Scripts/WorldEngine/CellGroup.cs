@@ -2484,7 +2484,7 @@ public abstract class CellGroupEvent : WorldEvent {
 		if (World.HasEventMessage (id))
 			return;
 
-		World.AddEventMessage (new CellEventMessage (Group.Cell, id, messagePrefix + " at " + Group.Position));
+		World.AddEventMessage (new CellEventMessage (Group.Cell, id, TriggerDate, messagePrefix + " at " + Group.Position));
 	}
 }
 
@@ -2899,7 +2899,7 @@ public class TribeFormationEvent : CellGroupEvent {
 
 		if (!World.HasEventMessage (WorldEvent.FirstTribeFormationEventId)) {
 
-			World.AddEventMessage (new PolityFormationEventMessage (tribe, WorldEvent.FirstTribeFormationEventId, "The first tribe, '" + tribe.Name.Text + "', formed at " + Group.Position));
+			World.AddEventMessage (new PolityFormationEventMessage (tribe, WorldEvent.FirstTribeFormationEventId, TriggerDate, "The first tribe, '" + tribe.Name.Text + "', formed at " + Group.Position));
 		}
 	}
 
