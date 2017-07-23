@@ -2478,14 +2478,6 @@ public abstract class CellGroupEvent : WorldEvent {
 
 		Reset (newTriggerDate, GenerateUniqueIdentifier (Group, newTriggerDate, EventTypeId));
 	}
-
-	public override void TryGenerateEventMessage (long id, string messagePrefix) {
-
-		if (World.HasEventMessage (id))
-			return;
-
-		World.AddEventMessage (new CellEventMessage (Group.Cell, id, TriggerDate, messagePrefix + " at " + Group.Position));
-	}
 }
 
 public class UpdateCellGroupEvent : CellGroupEvent {
@@ -2897,9 +2889,9 @@ public class TribeFormationEvent : CellGroupEvent {
 
 		World.AddGroupToUpdate (Group);
 
-		if (!World.HasEventMessage (WorldEvent.FirstTribeFormationEventId)) {
+		if (!World.HasEventMessage (WorldEvent.FirstPolityFormationEventId)) {
 
-			World.AddEventMessage (new PolityFormationEventMessage (tribe, WorldEvent.FirstTribeFormationEventId, TriggerDate, "The first tribe, '" + tribe.Name.Text + "', formed at " + Group.Position));
+			World.AddEventMessage (new PolityFormationEventMessage (tribe, WorldEvent.FirstPolityFormationEventId, TriggerDate));
 		}
 	}
 

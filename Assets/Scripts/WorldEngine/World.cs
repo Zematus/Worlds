@@ -173,8 +173,8 @@ public class World : ISynchronizable {
 
 	public List<Language> Languages;
 
-	[XmlArrayItem (Type = typeof(CellEventMessage)),
-		XmlArrayItem (Type = typeof(DiscoveryEventMessage))]
+	[XmlArrayItem (Type = typeof(DiscoveryEventMessage)),
+		XmlArrayItem (Type = typeof(PolityFormationEventMessage))]
 	public List<WorldEventMessage> EventMessages;
 
 	// End wonky segment 
@@ -1060,6 +1060,8 @@ public class World : ISynchronizable {
 		// Segment 1
 
 		foreach (WorldEventMessage eventMessage in EventMessages) {
+
+			eventMessage.World = this;
 
 			_eventMessages.Add (eventMessage.Id, eventMessage);
 		}

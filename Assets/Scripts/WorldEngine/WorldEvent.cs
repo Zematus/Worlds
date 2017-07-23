@@ -4,12 +4,7 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
-public class WorldEventMessage {
-
-	public const string SailingDiscoveryMessagePrefix = "Sailing discovered";
-	public const string TribalismDiscoveryMessagePrefix = "Tribalism discovered";
-	public const string BoatMakingDiscoveryMessagePrefix = "Boat making discovered";
-	public const string PlantCultivationDiscoveryMessagePrefix = "Plant cultivation discovered";
+public abstract class WorldEventMessage {
 
 	[XmlAttribute]
 	public long Id;
@@ -17,21 +12,29 @@ public class WorldEventMessage {
 	[XmlAttribute]
 	public long Date;
 
-	public string Message;
+	[XmlIgnore]
+	public World World;
+
+	[XmlIgnore]
+	public string Message {
+		get { return GenerateMessage (); }
+	}
 
 	public WorldEventMessage () {
 	
 	}
 
-	public WorldEventMessage (long id, long date, string message) {
+	public WorldEventMessage (World world, long id, long date) {
 	
+		World = world;
 		Id = id;
 		Date = date;
-		Message = message;
 	}
+
+	protected abstract string GenerateMessage ();
 }
 
-public class CellEventMessage : WorldEventMessage {
+public abstract class CellEventMessage : WorldEventMessage {
 
 	public WorldPosition Position;
 
@@ -39,13 +42,18 @@ public class CellEventMessage : WorldEventMessage {
 	
 	}
 
-	public CellEventMessage (TerrainCell cell, long id, long date, string message) : base (id, date, message) {
+	public CellEventMessage (TerrainCell cell, long id, long date) : base (cell.World, id, date) {
 
 		Position = cell.Position;
 	}
 }
 
 public class DiscoveryEventMessage : CellEventMessage {
+
+	public const string SailingDiscoveryMessagePrefix = "Sailing discovered";
+	public const string TribalismDiscoveryMessagePrefix = "Tribalism discovered";
+	public const string BoatMakingDiscoveryMessagePrefix = "Boat making discovered";
+	public const string PlantCultivationDiscoveryMessagePrefix = "Plant cultivation discovered";
 
 	[XmlAttribute]
 	public string DiscoveryId;
@@ -54,13 +62,34 @@ public class DiscoveryEventMessage : CellEventMessage {
 
 	}
 
-	public DiscoveryEventMessage (string discoveryId, TerrainCell cell, long id, long date, string message) : base (cell, id, date, message) {
+	public DiscoveryEventMessage (string discoveryId, TerrainCell cell, long id, long date) : base (cell, id, date) {
 
 		DiscoveryId = discoveryId;
 	}
+
+	protected override string GenerateMessage ()
+	{
+		string prefix = null;
+
+		if (DiscoveryId == SailingDiscovery.SailingDiscoveryId) {
+			prefix = SailingDiscoveryMessagePrefix;
+		} else if (DiscoveryId == TribalismDiscovery.TribalismDiscoveryId) {
+			prefix = TribalismDiscoveryMessagePrefix;
+		} else if (DiscoveryId == BoatMakingDiscovery.BoatMakingDiscoveryId) {
+			prefix = BoatMakingDiscoveryMessagePrefix;
+		} else if (DiscoveryId == PlantCultivationDiscovery.PlantCultivationDiscoveryId) {
+			prefix = PlantCultivationDiscoveryMessagePrefix;
+		} 
+
+		if (prefix == null) {
+			Debug.LogError ("Unhandled DiscoveryId: " + DiscoveryId);
+		}
+
+		return prefix + " at " + Position;
+	}
 }
 
-public class PolityFormationEventMessage : WorldEventMessage {
+public class PolityFormationEventMessage : CellEventMessage {
 
 	[XmlAttribute]
 	public long PolityId;
@@ -69,9 +98,16 @@ public class PolityFormationEventMessage : WorldEventMessage {
 
 	}
 
-	public PolityFormationEventMessage (Polity polity, long id, long date, string message) : base (id, date, message) {
+	public PolityFormationEventMessage (Polity polity, long id, long date) : base (polity.CoreGroup.Cell, id, date) {
 
 		PolityId = polity.Id;
+	}
+
+	protected override string GenerateMessage ()
+	{
+		Polity polity = World.GetPolity (PolityId);
+
+		return "The first polity, '" + polity.Name.Text + "', formed at " + Position;
 	}
 }
 
@@ -105,7 +141,7 @@ public abstract class WorldEvent : ISynchronizable {
 	public const long ClanSplitEventId = 7;
 	public const long ExpandPolityInfluenceEventId = 8;
 	public const long TribeSplitEventId = 9;
-	public const long FirstTribeFormationEventId = 10;
+	public const long FirstPolityFormationEventId = 10;
 
 //	public static int EventCount = 0;
 
@@ -179,14 +215,6 @@ public abstract class WorldEvent : ISynchronizable {
 
 	public abstract void Trigger ();
 
-	public virtual void TryGenerateEventMessage (long id, string message) {
-
-		if (World.HasEventMessage (id))
-			return;
-
-		World.AddEventMessage (new WorldEventMessage (id, TriggerDate, message));
-	}
-
 	public void Destroy () {
 		
 //		EventCount--;
@@ -236,14 +264,6 @@ public abstract class CellEvent : WorldEvent {
 //			Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
 //		}
 //		#endif
-	}
-
-	public override void TryGenerateEventMessage (long id, string messagePrefix) {
-
-		if (World.HasEventMessage (id))
-			return;
-
-		World.AddEventMessage (new CellEventMessage (Cell, id, TriggerDate, messagePrefix + " at " + Cell.Position));
 	}
 }
 
@@ -328,7 +348,7 @@ public class SailingDiscoveryEvent : CellGroupEvent {
 		Group.Culture.AddDiscoveryToFind (new SailingDiscovery ());
 		World.AddGroupToUpdate (Group);
 
-		TryGenerateEventMessage (SailingDiscoveryEventId, WorldEventMessage.SailingDiscoveryMessagePrefix);
+		TryGenerateEventMessage ();
 	}
 
 	protected override void DestroyInternal ()
@@ -340,12 +360,12 @@ public class SailingDiscoveryEvent : CellGroupEvent {
 		base.DestroyInternal ();
 	}
 
-	public override void TryGenerateEventMessage (long id, string messagePrefix) {
+	public void TryGenerateEventMessage () {
 
-		if (World.HasEventMessage (id))
+		if (World.HasEventMessage (SailingDiscoveryEventId))
 			return;
 
-		World.AddEventMessage (new DiscoveryEventMessage (SailingDiscovery.SailingDiscoveryId, Group.Cell, id, TriggerDate, messagePrefix + " at " + Group.Position));
+		World.AddEventMessage (new DiscoveryEventMessage (SailingDiscovery.SailingDiscoveryId, Group.Cell, SailingDiscoveryEventId, TriggerDate));
 	}
 }
 
@@ -445,12 +465,8 @@ public class TribalismDiscoveryEvent : CellGroupEvent {
 
 		World.AddGroupToUpdate (Group);
 
-		TryGenerateEventMessage (TribalismDiscoveryEventId, WorldEventMessage.TribalismDiscoveryMessagePrefix);
+		TryGenerateEventMessages (newTribe);
 
-		if ((newTribe != null) && !World.HasEventMessage (WorldEvent.FirstTribeFormationEventId)) {
-
-			World.AddEventMessage (new PolityFormationEventMessage (newTribe, WorldEvent.FirstTribeFormationEventId, TriggerDate, "The first tribe, '" + newTribe.Name.Text + "', formed at " + Group.Position));
-		}
 	}
 
 	protected override void DestroyInternal ()
@@ -462,12 +478,17 @@ public class TribalismDiscoveryEvent : CellGroupEvent {
 		base.DestroyInternal ();
 	}
 
-	public override void TryGenerateEventMessage (long id, string messagePrefix) {
+	public void TryGenerateEventMessages (Tribe newTribe) {
 
-		if (World.HasEventMessage (id))
+		if (World.HasEventMessage (TribalismDiscoveryEventId))
 			return;
 
-		World.AddEventMessage (new DiscoveryEventMessage (TribalismDiscovery.TribalismDiscoveryId, Group.Cell, id, TriggerDate, messagePrefix + " at " + Group.Position));
+		World.AddEventMessage (new DiscoveryEventMessage (TribalismDiscovery.TribalismDiscoveryId, Group.Cell, TribalismDiscoveryEventId, TriggerDate));
+
+		if ((newTribe == null) || World.HasEventMessage (WorldEvent.FirstPolityFormationEventId))
+			return;
+
+		World.AddEventMessage (new PolityFormationEventMessage (newTribe, WorldEvent.FirstPolityFormationEventId, TriggerDate));
 	}
 }
 
@@ -541,7 +562,7 @@ public class BoatMakingDiscoveryEvent : CellGroupEvent {
 		Group.Culture.AddKnowledgeToLearn (new ShipbuildingKnowledge (Group));
 		World.AddGroupToUpdate (Group);
 
-		TryGenerateEventMessage (BoatMakingDiscoveryEventId, WorldEventMessage.BoatMakingDiscoveryMessagePrefix);
+		TryGenerateEventMessage ();
 	}
 
 	protected override void DestroyInternal ()
@@ -553,12 +574,12 @@ public class BoatMakingDiscoveryEvent : CellGroupEvent {
 		base.DestroyInternal ();
 	}
 
-	public override void TryGenerateEventMessage (long id, string messagePrefix) {
+	public void TryGenerateEventMessage () {
 
-		if (World.HasEventMessage (id))
+		if (World.HasEventMessage (BoatMakingDiscoveryEventId))
 			return;
 
-		World.AddEventMessage (new DiscoveryEventMessage (BoatMakingDiscovery.BoatMakingDiscoveryId, Group.Cell, id, TriggerDate, messagePrefix + " at " + Group.Position));
+		World.AddEventMessage (new DiscoveryEventMessage (BoatMakingDiscovery.BoatMakingDiscoveryId, Group.Cell, BoatMakingDiscoveryEventId, TriggerDate));
 	}
 }
 
@@ -633,7 +654,7 @@ public class PlantCultivationDiscoveryEvent : CellGroupEvent {
 		Group.Culture.AddKnowledgeToLearn (new AgricultureKnowledge (Group));
 		World.AddGroupToUpdate (Group);
 
-		TryGenerateEventMessage (PlantCultivationDiscoveryEventId, WorldEventMessage.PlantCultivationDiscoveryMessagePrefix);
+		TryGenerateEventMessage ();
 	}
 
 	protected override void DestroyInternal ()
@@ -645,11 +666,11 @@ public class PlantCultivationDiscoveryEvent : CellGroupEvent {
 		base.DestroyInternal ();
 	}
 
-	public override void TryGenerateEventMessage (long id, string messagePrefix) {
+	public void TryGenerateEventMessage () {
 
-		if (World.HasEventMessage (id))
+		if (World.HasEventMessage (PlantCultivationDiscoveryEventId))
 			return;
 
-		World.AddEventMessage (new DiscoveryEventMessage (PlantCultivationDiscovery.PlantCultivationDiscoveryId, Group.Cell, id, TriggerDate, messagePrefix + " at " + Group.Position));
+		World.AddEventMessage (new DiscoveryEventMessage (PlantCultivationDiscovery.PlantCultivationDiscoveryId, Group.Cell, PlantCultivationDiscoveryEventId, TriggerDate));
 	}
 }
