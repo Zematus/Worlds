@@ -878,6 +878,21 @@ public class Manager {
 		}
 	}
 
+	public static void SetPolityFocus (Polity polity) {
+
+		if (CurrentWorld.FocusedPolity != null) {
+
+			CurrentWorld.FocusedPolity.IsFocused = false;
+			CurrentWorld.FocusedPolity = null;
+		}
+
+		if (polity == null)
+			return;
+
+		polity.IsFocused = true;
+		CurrentWorld.FocusedPolity = polity;
+	}
+
 	public static void ResetUpdatedCells () {
 
 		_lastUpdatedCells.Clear ();

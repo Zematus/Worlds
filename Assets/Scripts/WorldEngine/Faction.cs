@@ -156,6 +156,26 @@ public abstract class Faction : ISynchronizable {
 	}
 }
 
+public abstract class FactionEventMessage : PolityEventMessage {
+
+	[XmlAttribute]
+	public long FactionId;
+
+	[XmlIgnore]
+	public Faction Faction {
+		get { return Polity.GetFaction (FactionId); }
+	}
+
+	public FactionEventMessage () {
+
+	}
+
+	public FactionEventMessage (Faction faction, long id, long date) : base (faction.Polity, id, date) {
+
+		FactionId = faction.Id;
+	}
+}
+
 public abstract class FactionEvent : WorldEvent {
 
 	[XmlAttribute]

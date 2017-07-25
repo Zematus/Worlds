@@ -92,13 +92,16 @@ public class DiscoveryEventMessage : CellEventMessage {
 public class PolityFormationEventMessage : CellEventMessage {
 
 	[XmlAttribute]
+	public bool First = false;
+
+	[XmlAttribute]
 	public long PolityId;
 
 	public PolityFormationEventMessage () {
 
 	}
 
-	public PolityFormationEventMessage (Polity polity, long id, long date) : base (polity.CoreGroup.Cell, id, date) {
+	public PolityFormationEventMessage (Polity polity, long date) : base (polity.CoreGroup.Cell, WorldEvent.PolityFormationEventId, date) {
 
 		PolityId = polity.Id;
 	}
@@ -107,7 +110,11 @@ public class PolityFormationEventMessage : CellEventMessage {
 	{
 		Polity polity = World.GetPolity (PolityId);
 
-		return "The first polity, '" + polity.Name.Text + "', formed at " + Position;
+		if (First) {
+			return "The first polity, " + polity.Name.Text + ", formed at " + Position;
+		} else {
+			return "A new polity, " + polity.Name.Text + ", formed at " + Position;
+		}
 	}
 }
 
@@ -141,7 +148,7 @@ public abstract class WorldEvent : ISynchronizable {
 	public const long ClanSplitEventId = 7;
 	public const long ExpandPolityInfluenceEventId = 8;
 	public const long TribeSplitEventId = 9;
-	public const long FirstPolityFormationEventId = 10;
+	public const long PolityFormationEventId = 10;
 
 //	public static int EventCount = 0;
 
@@ -267,7 +274,39 @@ public abstract class CellEvent : WorldEvent {
 	}
 }
 
-public class SailingDiscoveryEvent : CellGroupEvent {
+public abstract class DiscoveryEvent : CellGroupEvent {
+
+	public DiscoveryEvent () {
+
+	}
+
+	public DiscoveryEvent (CellGroup group, int triggerDate, long eventTypeId) : base (group, triggerDate, eventTypeId) {
+	
+	}
+
+	public void TryGenerateEventMessage (long discoveryEventId, string discoveryId) {
+
+		DiscoveryEventMessage eventMessage = null;
+
+		if (!World.HasEventMessage (discoveryEventId)) {
+			eventMessage = new DiscoveryEventMessage (discoveryId, Group.Cell, discoveryEventId, TriggerDate);
+
+			World.AddEventMessage (eventMessage);
+		}
+
+		if (Group.Cell.EncompassingTerritory != null) {
+
+			if (eventMessage == null)
+				eventMessage = new DiscoveryEventMessage (discoveryId, Group.Cell, discoveryEventId, TriggerDate);
+
+			Polity encompassingPolity = Group.Cell.EncompassingTerritory.Polity;
+
+			encompassingPolity.AddEventMessage (eventMessage);
+		}
+	}
+}
+
+public class SailingDiscoveryEvent : DiscoveryEvent {
 
 	public const int DateSpanFactorConstant = CellGroup.GenerationTime * 10000;
 
@@ -348,7 +387,7 @@ public class SailingDiscoveryEvent : CellGroupEvent {
 		Group.Culture.AddDiscoveryToFind (new SailingDiscovery ());
 		World.AddGroupToUpdate (Group);
 
-		TryGenerateEventMessage ();
+		TryGenerateEventMessage (SailingDiscoveryEventId, SailingDiscovery.SailingDiscoveryId);
 	}
 
 	protected override void DestroyInternal ()
@@ -359,17 +398,9 @@ public class SailingDiscoveryEvent : CellGroupEvent {
 
 		base.DestroyInternal ();
 	}
-
-	public void TryGenerateEventMessage () {
-
-		if (World.HasEventMessage (SailingDiscoveryEventId))
-			return;
-
-		World.AddEventMessage (new DiscoveryEventMessage (SailingDiscovery.SailingDiscoveryId, Group.Cell, SailingDiscoveryEventId, TriggerDate));
-	}
 }
 
-public class TribalismDiscoveryEvent : CellGroupEvent {
+public class TribalismDiscoveryEvent : DiscoveryEvent {
 
 	public const long EventMessageId = 0;
 	public const string EventMessagePrefix = "Tribalism Discovered";
@@ -466,7 +497,6 @@ public class TribalismDiscoveryEvent : CellGroupEvent {
 		World.AddGroupToUpdate (Group);
 
 		TryGenerateEventMessages (newTribe);
-
 	}
 
 	protected override void DestroyInternal ()
@@ -480,19 +510,32 @@ public class TribalismDiscoveryEvent : CellGroupEvent {
 
 	public void TryGenerateEventMessages (Tribe newTribe) {
 
-		if (World.HasEventMessage (TribalismDiscoveryEventId))
-			return;
+		TryGenerateEventMessage (TribalismDiscoveryEventId, TribalismDiscovery.TribalismDiscoveryId);
 
-		World.AddEventMessage (new DiscoveryEventMessage (TribalismDiscovery.TribalismDiscoveryId, Group.Cell, TribalismDiscoveryEventId, TriggerDate));
+		if (newTribe != null) {
+			PolityFormationEventMessage formationEventMessage = null;
 
-		if ((newTribe == null) || World.HasEventMessage (WorldEvent.FirstPolityFormationEventId))
-			return;
+			if (!World.HasEventMessage (WorldEvent.PolityFormationEventId)) {
+				formationEventMessage = new PolityFormationEventMessage (newTribe, TriggerDate);
 
-		World.AddEventMessage (new PolityFormationEventMessage (newTribe, WorldEvent.FirstPolityFormationEventId, TriggerDate));
+				World.AddEventMessage (formationEventMessage);
+				formationEventMessage.First = true;
+			}
+
+			if (Group.Cell.EncompassingTerritory != null) {
+				Polity encompassingPolity = Group.Cell.EncompassingTerritory.Polity;
+
+				if (formationEventMessage == null) {
+					formationEventMessage = new PolityFormationEventMessage (newTribe, TriggerDate);
+				}
+
+				encompassingPolity.AddEventMessage (formationEventMessage);
+			}
+		}
 	}
 }
 
-public class BoatMakingDiscoveryEvent : CellGroupEvent {
+public class BoatMakingDiscoveryEvent : DiscoveryEvent {
 	
 	public const int DateSpanFactorConstant = CellGroup.GenerationTime * 10000;
 
@@ -562,7 +605,7 @@ public class BoatMakingDiscoveryEvent : CellGroupEvent {
 		Group.Culture.AddKnowledgeToLearn (new ShipbuildingKnowledge (Group));
 		World.AddGroupToUpdate (Group);
 
-		TryGenerateEventMessage ();
+		TryGenerateEventMessage (BoatMakingDiscoveryEventId, BoatMakingDiscovery.BoatMakingDiscoveryId);
 	}
 
 	protected override void DestroyInternal ()
@@ -573,17 +616,9 @@ public class BoatMakingDiscoveryEvent : CellGroupEvent {
 
 		base.DestroyInternal ();
 	}
-
-	public void TryGenerateEventMessage () {
-
-		if (World.HasEventMessage (BoatMakingDiscoveryEventId))
-			return;
-
-		World.AddEventMessage (new DiscoveryEventMessage (BoatMakingDiscovery.BoatMakingDiscoveryId, Group.Cell, BoatMakingDiscoveryEventId, TriggerDate));
-	}
 }
 
-public class PlantCultivationDiscoveryEvent : CellGroupEvent {
+public class PlantCultivationDiscoveryEvent : DiscoveryEvent {
 
 	public const int DateSpanFactorConstant = CellGroup.GenerationTime * 600000;
 
@@ -654,7 +689,7 @@ public class PlantCultivationDiscoveryEvent : CellGroupEvent {
 		Group.Culture.AddKnowledgeToLearn (new AgricultureKnowledge (Group));
 		World.AddGroupToUpdate (Group);
 
-		TryGenerateEventMessage ();
+		TryGenerateEventMessage (PlantCultivationDiscoveryEventId, PlantCultivationDiscovery.PlantCultivationDiscoveryId);
 	}
 
 	protected override void DestroyInternal ()
@@ -664,13 +699,5 @@ public class PlantCultivationDiscoveryEvent : CellGroupEvent {
 		}
 
 		base.DestroyInternal ();
-	}
-
-	public void TryGenerateEventMessage () {
-
-		if (World.HasEventMessage (PlantCultivationDiscoveryEventId))
-			return;
-
-		World.AddEventMessage (new DiscoveryEventMessage (PlantCultivationDiscovery.PlantCultivationDiscoveryId, Group.Cell, PlantCultivationDiscoveryEventId, TriggerDate));
 	}
 }

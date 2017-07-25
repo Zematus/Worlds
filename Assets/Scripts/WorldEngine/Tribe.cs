@@ -336,6 +336,28 @@ public class Tribe : Polity {
 	}
 }
 
+public class TribeSplitEventMessage : PolityEventMessage {
+
+	[XmlAttribute]
+	public long NewTribeId;
+
+	public TribeSplitEventMessage () {
+		
+	}
+
+	public TribeSplitEventMessage (Polity polity, Tribe newTribe, long date) : base (polity, WorldEvent.TribeSplitEventId, date) {
+
+		NewTribeId = newTribe.Id;
+	}
+
+	protected override string GenerateMessage ()
+	{
+		Polity newTribe = World.GetPolity (NewTribeId);
+
+		return "A new tribe, " + newTribe.Name.Text + ", has split from tribe " +  Polity.Name.Text;
+	}
+}
+
 public class TribeSplitEvent : PolityEvent {
 
 	public const int DateSpanFactorConstant = CellGroup.GenerationTime * 2000;
@@ -506,6 +528,8 @@ public class TribeSplitEvent : PolityEvent {
 		World.AddPolity (newTribe);
 		World.AddPolityToUpdate (newTribe);
 		World.AddPolityToUpdate (Polity);
+
+		Polity.AddEventMessage (new TribeSplitEventMessage (Polity, newTribe, TriggerDate));
 	}
 
 	protected override void DestroyInternal () {

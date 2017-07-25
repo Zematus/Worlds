@@ -140,6 +140,28 @@ public class Clan : Faction {
 	}
 }
 
+public class ClanSplitEventMessage : FactionEventMessage {
+
+	[XmlAttribute]
+	public long NewClanId;
+
+	public ClanSplitEventMessage () {
+
+	}
+
+	public ClanSplitEventMessage (Faction faction, Clan newClan, long date) : base (faction, WorldEvent.ClanSplitEventId, date) {
+
+		NewClanId = newClan.Id;
+	}
+
+	protected override string GenerateMessage ()
+	{
+		Faction newClan = Polity.GetFaction (NewClanId);
+
+		return "A new clan, " + newClan.Name.Text + ", has split from clan " +  Faction.Name.Text;
+	}
+}
+
 public class ClanSplitEvent : FactionEvent {
 
 	public const int DateSpanFactorConstant = CellGroup.GenerationTime * 2000;
@@ -249,9 +271,13 @@ public class ClanSplitEvent : FactionEvent {
 
 		Polity polity = Faction.Polity;
 
-		polity.AddFaction (new Clan (polity as Tribe, newClanProminence, Faction as Clan));
+		Clan newClan = new Clan (polity as Tribe, newClanProminence, Faction as Clan);
+
+		polity.AddFaction (newClan);
 
 		World.AddPolityToUpdate (polity);
+
+		polity.AddEventMessage (new ClanSplitEventMessage (Faction, newClan, TriggerDate));
 	}
 
 	protected override void DestroyInternal () {

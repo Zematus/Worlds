@@ -2882,6 +2882,8 @@ public class TribeFormationEvent : CellGroupEvent {
 
 	public override void Trigger () {
 
+		Territory encompassingTerritory = Group.Cell.EncompassingTerritory;
+
 		Tribe tribe = new Tribe (Group);
 
 		World.AddPolity (tribe);
@@ -2889,9 +2891,15 @@ public class TribeFormationEvent : CellGroupEvent {
 
 		World.AddGroupToUpdate (Group);
 
-		if (!World.HasEventMessage (WorldEvent.FirstPolityFormationEventId)) {
+		PolityFormationEventMessage formationEventMessage = new PolityFormationEventMessage (tribe, TriggerDate);
 
-			World.AddEventMessage (new PolityFormationEventMessage (tribe, WorldEvent.FirstPolityFormationEventId, TriggerDate));
+		if (!World.HasEventMessage (WorldEvent.PolityFormationEventId)) {
+			World.AddEventMessage (formationEventMessage);
+			formationEventMessage.First = true;
+		}
+
+		if (encompassingTerritory != null) {
+			encompassingTerritory.Polity.AddEventMessage (formationEventMessage);
 		}
 	}
 

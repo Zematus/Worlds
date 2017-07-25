@@ -173,9 +173,7 @@ public class World : ISynchronizable {
 
 	public List<Language> Languages;
 
-	[XmlArrayItem (Type = typeof(DiscoveryEventMessage)),
-		XmlArrayItem (Type = typeof(PolityFormationEventMessage))]
-	public List<WorldEventMessage> EventMessages;
+	public List<long> EventMessageIds;
 
 	// End wonky segment 
 
@@ -188,6 +186,8 @@ public class World : ISynchronizable {
 	public Region SelectedRegion = null;
 	[XmlIgnore]
 	public Territory SelectedTerritory = null;
+	[XmlIgnore]
+	public Polity FocusedPolity = null;
 	
 	[XmlIgnore]
 	public float MinPossibleAltitudeWithOffset = MinPossibleAltitude - Manager.SeaLevelOffset;
@@ -260,7 +260,7 @@ public class World : ISynchronizable {
 
 	private Dictionary<long, Language> _languages = new Dictionary<long, Language> ();
 
-	private Dictionary<long, WorldEventMessage> _eventMessages = new Dictionary<long, WorldEventMessage> ();
+	private HashSet<long> _eventMessageIds = new HashSet<long> ();
 	private Queue<WorldEventMessage> _eventMessagesToShow = new Queue<WorldEventMessage> ();
 
 	private Vector2[] _continentOffsets;
@@ -467,7 +467,7 @@ public class World : ISynchronizable {
 			}
 		}
 
-		EventMessages = new List<WorldEventMessage> (_eventMessages.Values);
+		EventMessageIds = new List<long> (_eventMessageIds);
 	}
 
 	public void GetTerrainCellChanges (TerrainCell cell) {
@@ -1032,12 +1032,20 @@ public class World : ISynchronizable {
 
 		_eventMessagesToShow.Enqueue (eventMessage);
 
-		_eventMessages.Add (eventMessage.Id, eventMessage);
+		_eventMessageIds.Add (eventMessage.Id);
+	}
+
+	public void AddEventMessageToShow (WorldEventMessage eventMessage) {
+
+		if (_eventMessagesToShow.Contains (eventMessage))
+			return;
+
+		_eventMessagesToShow.Enqueue (eventMessage);
 	}
 
 	public bool HasEventMessage (long id) {
 
-		return _eventMessages.ContainsKey (id);
+		return _eventMessageIds.Contains (id);
 	}
 
 	public WorldEventMessage GetNextMessageToShow () {
@@ -1059,11 +1067,9 @@ public class World : ISynchronizable {
 
 		// Segment 1
 
-		foreach (WorldEventMessage eventMessage in EventMessages) {
+		foreach (long messageId in EventMessageIds) {
 
-			eventMessage.World = this;
-
-			_eventMessages.Add (eventMessage.Id, eventMessage);
+			_eventMessageIds.Add (messageId);
 		}
 
 		TerrainCellChangesList.ForEach (c => {

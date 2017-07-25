@@ -378,23 +378,47 @@ public class GuiManagerScript : MonoBehaviour {
 		MapEntitySelected.Invoke ();
 	}
 
-	public void ShowEventMessage (WorldEventMessage eventMessage) {
+	public void ShowEventMessageForPolity (WorldEventMessage eventMessage, long polityId) {
 
-		if (eventMessage is PolityFormationEventMessage) {
+		Polity polity = Manager.CurrentWorld.GetPolity (polityId);
 
-			PolityFormationEventMessage polityFormationEventMessage = eventMessage as PolityFormationEventMessage;
+		if (polity != null) {
+			
+			WorldPosition corePosition = polity.CoreGroup.Position;
 
-			Polity polity = Manager.CurrentWorld.GetPolity (polityFormationEventMessage.PolityId);
+			EventPanelScript.AddEventMessage (eventMessage.Message, () => {
 
-			WorldPosition polityCorePosition = polity.CoreGroup.Position;
-
-			EventPanelScript.AddEventMessage (polityFormationEventMessage.Message, () => {
-
-				SelectAndCenterOnCell (polityCorePosition);
+				SelectAndCenterOnCell (corePosition);
 
 				if ((_planetOverlay != PlanetOverlay.PolityTerritory) && (_planetOverlay != PlanetOverlay.General))
 					ChangePlanetOverlay (PlanetOverlay.PolityTerritory);
 			});
+		} else {
+			
+			EventPanelScript.AddEventMessage (eventMessage.Message);
+		}
+	}
+
+	public void ShowEventMessage (WorldEventMessage eventMessage) {
+
+		if (eventMessage is TribeSplitEventMessage) {
+
+			TribeSplitEventMessage tribeSplitEventMessage = eventMessage as TribeSplitEventMessage;
+
+			ShowEventMessageForPolity (eventMessage, tribeSplitEventMessage.NewTribeId);
+
+		} else if (eventMessage is PolityFormationEventMessage) {
+
+			PolityFormationEventMessage polityFormationEventMessage = eventMessage as PolityFormationEventMessage;
+
+			ShowEventMessageForPolity (eventMessage, polityFormationEventMessage.PolityId);
+
+		} else if (eventMessage is PolityEventMessage) {
+
+			PolityEventMessage polityEventMessage = eventMessage as PolityEventMessage;
+
+			ShowEventMessageForPolity (eventMessage, polityEventMessage.PolityId);
+
 		} else if (eventMessage is DiscoveryEventMessage) {
 
 			DiscoveryEventMessage discoveryEventMessage = eventMessage as DiscoveryEventMessage;
@@ -1681,6 +1705,16 @@ public class GuiManagerScript : MonoBehaviour {
 		_planetView = PlanetView.Coastlines;
 		
 		ViewsDialogPanelScript.SetVisible (false);
+	}
+
+	public void FocusOnPolity () {
+	
+		Territory selectedTerritory = Manager.CurrentWorld.SelectedTerritory;
+
+		if (selectedTerritory == null)
+			return;
+
+		Manager.SetPolityFocus (selectedTerritory.Polity);
 	}
 
 	public void UpdateInfoPanel () {

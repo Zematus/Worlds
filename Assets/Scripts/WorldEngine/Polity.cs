@@ -102,6 +102,8 @@ public abstract class Polity : ISynchronizable {
 	[XmlArrayItem (Type = typeof(Clan))]
 	public List<Faction> Factions;
 
+	public List<long> EventMessageIds;
+
 	[XmlIgnore]
 	public World World;
 
@@ -113,6 +115,9 @@ public abstract class Polity : ISynchronizable {
 
 	[XmlIgnore]
 	public bool WillBeUpdated;
+
+	[XmlIgnore]
+	public bool IsFocused;
 
 	[XmlIgnore]
 	public Dictionary<long, CellGroup> InfluencedGroups = new Dictionary<long, CellGroup> ();
@@ -136,11 +141,15 @@ public abstract class Polity : ISynchronizable {
 
 	private bool _coreGroupIsValid = true;
 
+	private HashSet<long> _eventMessageIds = new HashSet<long> ();
+
 	public Polity () {
 	
 	}
 
 	protected Polity (string type, CellGroup coreGroup, Polity parentPolity = null) {
+
+		IsFocused = false;
 
 		Type = type;
 
@@ -211,6 +220,19 @@ public abstract class Polity : ISynchronizable {
 		World.RemovePolity (this);
 
 		StillPresent = false;
+	}
+
+	public void AddEventMessage (WorldEventMessage eventMessage) {
+
+		if (IsFocused)
+			World.AddEventMessageToShow (eventMessage);
+
+		_eventMessageIds.Add (eventMessage.Id);
+	}
+
+	public bool HasEventMessage (long id) {
+	
+		return _eventMessageIds.Contains (id);
 	}
 
 	public void SetCoreGroup (CellGroup coreGroup) {
@@ -462,9 +484,16 @@ public abstract class Polity : ISynchronizable {
 		}
 
 		Name.Synchronize ();
+
+		EventMessageIds = new List<long> (_eventMessageIds);
 	}
 
 	public virtual void FinalizeLoad () {
+
+		foreach (long messageId in EventMessageIds) {
+
+			_eventMessageIds.Add (messageId);
+		}
 
 		Name.World = World;
 		Name.FinalizeLoad ();
@@ -774,6 +803,26 @@ public abstract class Polity : ISynchronizable {
 			return;
 
 		_flags.Remove (flag);
+	}
+}
+
+public abstract class PolityEventMessage : WorldEventMessage {
+
+	[XmlAttribute]
+	public long PolityId;
+
+	[XmlIgnore]
+	public Polity Polity {
+		get { return World.GetPolity (PolityId); }
+	}
+
+	public PolityEventMessage () {
+
+	}
+
+	public PolityEventMessage (Polity polity, long id, long date) : base (polity.World, id, date) {
+
+		PolityId = polity.Id;
 	}
 }
 
