@@ -6,7 +6,8 @@ using UnityEngine.UI;
 public class InfoPanelScript : MonoBehaviour {
 
 	public Text InfoText;
-	public Button FocusButton;
+	public GameObject ButtonPanel;
+	public Text FocusButtonText;
 
 	// Use this for initialization
 	void Start () {
@@ -20,9 +21,9 @@ public class InfoPanelScript : MonoBehaviour {
 
 	public void ShowFocusButton (bool state) {
 
-		if (FocusButton.gameObject.activeSelf == state)
+		if (ButtonPanel.activeSelf == state)
 			return;
 
-		FocusButton.gameObject.SetActive (state);
+		ButtonPanel.SetActive (state);
 	}
 }

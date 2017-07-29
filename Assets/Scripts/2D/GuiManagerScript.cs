@@ -64,6 +64,7 @@ public class GuiManagerScript : MonoBehaviour {
 	public SpeedChangeEvent OnSimulationSpeedChanged;
 
 	private bool _showFocusButton = false;
+	private string _focusButtonText = "";
 
 	private bool _pauseButtonPressed = false;
 	private bool _pausingDialogActive = false;
@@ -1711,15 +1712,18 @@ public class GuiManagerScript : MonoBehaviour {
 	
 		Territory selectedTerritory = Manager.CurrentWorld.SelectedTerritory;
 
-		if (selectedTerritory == null)
-			return;
+		Polity selectedPolity = null;
 
-		Manager.SetPolityFocus (selectedTerritory.Polity);
+		if ((selectedTerritory != null) && !selectedTerritory.Polity.IsFocused)
+			selectedPolity = selectedTerritory.Polity;
+
+		Manager.SetPolityFocus (selectedPolity);
 	}
 
 	public void UpdateInfoPanel () {
 
 		_showFocusButton = false;
+		_focusButtonText = "";
 		
 		World world = Manager.CurrentWorld;
 		
@@ -1746,6 +1750,7 @@ public class GuiManagerScript : MonoBehaviour {
 		#endif
 
 		InfoPanelScript.ShowFocusButton (_showFocusButton);
+		InfoPanelScript.FocusButtonText.text = _focusButtonText;
 	}
 	
 	public void AddCellDataToInfoPanel (int longitude, int latitude) {
@@ -2102,7 +2107,7 @@ public class GuiManagerScript : MonoBehaviour {
 				InfoPanelScript.InfoText.text += polPopulation + " polity citizens";
 			}
 
-			_showFocusButton = true;
+			SetFocusButton (polity);
 		}
 	}
 
@@ -2140,10 +2145,10 @@ public class GuiManagerScript : MonoBehaviour {
 
 		PolityInfluence pi = cell.Group.GetPolityInfluence (polity);
 
-		InfoPanelScript.InfoText.text += "\n\tTerritory of " + polity.Type + " " + polity.Name + " (#" + polity.Id +")";
+		InfoPanelScript.InfoText.text += "\n\tTerritory of " + polity.Type + " " + polity.Name + " (#" + polity.Id + ")";
 		InfoPanelScript.InfoText.text += "\n";
 
-		int totalPopulation = (int)Mathf.Floor(polity.TotalPopulation);
+		int totalPopulation = (int)Mathf.Floor (polity.TotalPopulation);
 
 		InfoPanelScript.InfoText.text += "\n\tPolity population: " + totalPopulation;
 		InfoPanelScript.InfoText.text += "\n";
@@ -2159,8 +2164,10 @@ public class GuiManagerScript : MonoBehaviour {
 		List<Faction> factions = new List<Faction> (polity.GetFactions ());
 
 		factions.Sort ((a, b) => {
-			if (a.Prominence > b.Prominence) return -1;
-			if (a.Prominence < b.Prominence) return 1;
+			if (a.Prominence > b.Prominence)
+				return -1;
+			if (a.Prominence < b.Prominence)
+				return 1;
 
 			return 0;
 		});
@@ -2176,7 +2183,7 @@ public class GuiManagerScript : MonoBehaviour {
 		InfoPanelScript.InfoText.text += "\n";
 
 		float percentageOfPopulation = cell.Group.GetPolityInfluenceValue (polity);
-		int influencedPopulation = (int)Mathf.Floor(population * percentageOfPopulation);
+		int influencedPopulation = (int)Mathf.Floor (population * percentageOfPopulation);
 
 		float percentageOfPolity = 1;
 
@@ -2188,7 +2195,18 @@ public class GuiManagerScript : MonoBehaviour {
 		InfoPanelScript.InfoText.text += "\n\tPercentage of polity population: " + percentageOfPolity.ToString ("P");
 		InfoPanelScript.InfoText.text += "\n\tDistance to polity core: " + pi.CoreDistance.ToString ("0.000");
 
+		SetFocusButton (polity);
+	}
+
+	private void SetFocusButton (Polity polity) {
+
 		_showFocusButton = true;
+
+		if (polity.IsFocused) {
+			_focusButtonText = "Unset focus on " + polity.Name.Text;
+		} else {
+			_focusButtonText = "Set focus on " + polity.Name.Text;
+		}
 	}
 
 	public void AddCellDataToInfoPanel_PolityCulturalActivity (TerrainCell cell) {
