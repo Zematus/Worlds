@@ -85,6 +85,12 @@ public class DiscoveryEventMessage : CellEventMessage {
 			Debug.LogError ("Unhandled DiscoveryId: " + DiscoveryId);
 		}
 
+		Territory territory = World.GetCell (Position).EncompassingTerritory;
+
+		if (territory != null) {
+			return prefix + " in " + territory.Polity.Name.Text + " at " + Position;
+		}
+
 		return prefix + " at " + Position;
 	}
 }
@@ -296,12 +302,14 @@ public abstract class DiscoveryEvent : CellGroupEvent {
 
 		if (Group.Cell.EncompassingTerritory != null) {
 
-			if (eventMessage == null)
-				eventMessage = new DiscoveryEventMessage (discoveryId, Group.Cell, discoveryEventId, TriggerDate);
-
 			Polity encompassingPolity = Group.Cell.EncompassingTerritory.Polity;
 
-			encompassingPolity.AddEventMessage (eventMessage);
+			if (!encompassingPolity.HasEventMessage (discoveryEventId)) {
+				if (eventMessage == null)
+					eventMessage = new DiscoveryEventMessage (discoveryId, Group.Cell, discoveryEventId, TriggerDate);
+
+				encompassingPolity.AddEventMessage (eventMessage);
+			}
 		}
 	}
 }

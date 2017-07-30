@@ -379,6 +379,11 @@ public class GuiManagerScript : MonoBehaviour {
 		MapEntitySelected.Invoke ();
 	}
 
+	public string GetMessageToShow (WorldEventMessage eventMessage) {
+
+		return "Year: " + eventMessage.Date + " - " + eventMessage.Message;
+	}
+
 	public void ShowEventMessageForPolity (WorldEventMessage eventMessage, long polityId) {
 
 		Polity polity = Manager.CurrentWorld.GetPolity (polityId);
@@ -387,7 +392,7 @@ public class GuiManagerScript : MonoBehaviour {
 			
 			WorldPosition corePosition = polity.CoreGroup.Position;
 
-			EventPanelScript.AddEventMessage (eventMessage.Message, () => {
+			EventPanelScript.AddEventMessage (GetMessageToShow (eventMessage), () => {
 
 				SelectAndCenterOnCell (corePosition);
 
@@ -396,7 +401,7 @@ public class GuiManagerScript : MonoBehaviour {
 			});
 		} else {
 			
-			EventPanelScript.AddEventMessage (eventMessage.Message);
+			EventPanelScript.AddEventMessage (GetMessageToShow (eventMessage));
 		}
 	}
 
@@ -424,7 +429,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 			DiscoveryEventMessage discoveryEventMessage = eventMessage as DiscoveryEventMessage;
 
-			EventPanelScript.AddEventMessage (discoveryEventMessage.Message, () => {
+			EventPanelScript.AddEventMessage (GetMessageToShow (discoveryEventMessage), () => {
 
 				SelectAndCenterOnCell (discoveryEventMessage.Position);
 
@@ -434,13 +439,13 @@ public class GuiManagerScript : MonoBehaviour {
 		
 			CellEventMessage cellEventMessage = eventMessage as CellEventMessage;
 
-			EventPanelScript.AddEventMessage (cellEventMessage.Message, () => {
+			EventPanelScript.AddEventMessage (GetMessageToShow (cellEventMessage), () => {
 
 				SelectAndCenterOnCell (cellEventMessage.Position);
 			});
 		} else {
 
-			EventPanelScript.AddEventMessage (eventMessage.Message);
+			EventPanelScript.AddEventMessage (GetMessageToShow (eventMessage));
 		}
 	}
 
