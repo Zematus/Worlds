@@ -41,6 +41,7 @@ public class GuiManagerScript : MonoBehaviour {
 	public WorldCustomizationDialogPanelScript SetSeedDialogPanelScript;
 	public WorldCustomizationDialogPanelScript CustomizeWorldDialogPanelScript;
 	public AddPopulationDialogScript AddPopulationDialogScript;
+	public FocusPanelScript FocusPanelScript;
 
 	public PaletteScript BiomePaletteScript;
 	public PaletteScript MapPaletteScript;
@@ -196,6 +197,7 @@ public class GuiManagerScript : MonoBehaviour {
 		CustomizeWorldDialogPanelScript.SetVisible (false);
 		MessageDialogPanelScript.SetVisible (false);
 		AddPopulationDialogScript.SetVisible (false);
+		FocusPanelScript.SetVisible (false);
 
 		QuickTipPanelScript.SetVisible (false);
 		InfoTooltipScript.SetVisible (false);
@@ -361,12 +363,24 @@ public class GuiManagerScript : MonoBehaviour {
 
 		if (MapImage.enabled) {
 			UpdateInfoPanel();
+			UpdadeFocusPanel ();
 			UpdateSelectionMenu();
 		}
 
 		if (_mouseIsOverMap) {
-
 			ExecuteMapHoverOp ();
+		}
+	}
+
+	public void UpdadeFocusPanel () {
+
+		Polity focusedPolity = Manager.CurrentWorld.FocusedPolity;
+
+		if ((focusedPolity != null) && (focusedPolity.StillPresent)) {
+			FocusPanelScript.SetVisible (true);
+			FocusPanelScript.FocusText.text = "Focused on " + focusedPolity.Name.Text;
+		} else {
+			FocusPanelScript.SetVisible (false);
 		}
 	}
 
@@ -1713,7 +1727,7 @@ public class GuiManagerScript : MonoBehaviour {
 		ViewsDialogPanelScript.SetVisible (false);
 	}
 
-	public void FocusOnPolity () {
+	public void SetFocusOnPolity () {
 	
 		Territory selectedTerritory = Manager.CurrentWorld.SelectedTerritory;
 
@@ -1723,6 +1737,13 @@ public class GuiManagerScript : MonoBehaviour {
 			selectedPolity = selectedTerritory.Polity;
 
 		Manager.SetPolityFocus (selectedPolity);
+	}
+
+	public void UnsetFocusOnPolity () {
+
+		Territory selectedTerritory = Manager.CurrentWorld.SelectedTerritory;
+
+		Manager.SetPolityFocus (null);
 	}
 
 	public void UpdateInfoPanel () {
@@ -2205,11 +2226,8 @@ public class GuiManagerScript : MonoBehaviour {
 
 	private void SetFocusButton (Polity polity) {
 
-		_showFocusButton = true;
-
-		if (polity.IsFocused) {
-			_focusButtonText = "Unset focus on " + polity.Name.Text;
-		} else {
+		if (!polity.IsFocused) {
+			_showFocusButton = true;
 			_focusButtonText = "Set focus on " + polity.Name.Text;
 		}
 	}
