@@ -333,6 +333,22 @@ public class Manager {
 		ExportPath = path;
 	}
 
+	public static string AddDateToWorldName (string worldName) {
+
+		return worldName + "_Date_" + CurrentWorld.CurrentDate;
+	}
+
+	public static string RemoveDateFromWorldName (string worldName) {
+
+		int yearIndex = worldName.LastIndexOf ("_Date_");
+
+		if (yearIndex > 0) {
+			return worldName.Substring (0, yearIndex);
+		}
+
+		return worldName;
+	}
+
 	public static void SetFullscreen (bool state) {
 
 		IsFullscreen = state;

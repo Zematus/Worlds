@@ -111,7 +111,7 @@ public class StartGuiManagerScript : MonoBehaviour {
 		
 		Manager.LoadWorldAsync (path, ProgressUpdate);
 		
-		Manager.WorldName = Path.GetFileNameWithoutExtension (path);
+		Manager.WorldName = Manager.RemoveDateFromWorldName(Path.GetFileNameWithoutExtension (path));
 		
 		_preparingWorld = true;
 	}

@@ -932,7 +932,7 @@ public class GuiManagerScript : MonoBehaviour {
 		default: throw new System.Exception("Unexpected planet overlay type: " + _planetOverlay);
 		}
 
-		ExportMapDialogPanelScript.SetName (Manager.WorldName + planetViewStr + planetOverlayStr);
+		ExportMapDialogPanelScript.SetName (Manager.AddDateToWorldName(Manager.WorldName) + planetViewStr + planetOverlayStr);
 		
 		ExportMapDialogPanelScript.SetVisible (true);
 	}
@@ -953,10 +953,12 @@ public class GuiManagerScript : MonoBehaviour {
 		ActivityDialogPanelScript.SetVisible (true);
 		
 		ActivityDialogPanelScript.SetDialogText ("Saving World...");
+
+		string saveName = SaveFileDialogPanelScript.GetName ();
 		
-		Manager.WorldName = SaveFileDialogPanelScript.GetName ();
+		Manager.WorldName = Manager.RemoveDateFromWorldName(saveName);
 		
-		string path = Manager.SavePath + Manager.WorldName + ".plnt";
+		string path = Manager.SavePath + saveName + ".plnt";
 
 		Manager.SaveWorldAsync (path);
 
@@ -976,7 +978,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 		MainMenuDialogPanelScript.SetVisible (false);
 
-		SaveFileDialogPanelScript.SetName (Manager.WorldName);
+		SaveFileDialogPanelScript.SetName (Manager.AddDateToWorldName(Manager.WorldName));
 		
 		SaveFileDialogPanelScript.SetVisible (true);
 
@@ -1075,7 +1077,7 @@ public class GuiManagerScript : MonoBehaviour {
 		
 		Manager.LoadWorldAsync (path, ProgressUpdate);
 		
-		Manager.WorldName = Path.GetFileNameWithoutExtension (path);
+		Manager.WorldName = Manager.RemoveDateFromWorldName(Path.GetFileNameWithoutExtension (path));
 		
 		_postProgressOp += PostProgressOp_LoadAction;
 		
