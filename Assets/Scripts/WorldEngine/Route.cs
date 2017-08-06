@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
-public class Route {
+public class Route : ISynchronizable {
 
 	public List<WorldPosition> CellPositions = new List<WorldPosition> ();
 
@@ -119,6 +119,12 @@ public class Route {
 	}
 
 	public void AddCell (TerrainCell cell) {
+
+//		#if DEBUG
+//		if (cell == null) {
+//			Debug.LogError ("Cell is null");
+//		}
+//		#endif
 	
 		Cells.Add (cell);
 		CellPositions.Add (cell.Position);
@@ -248,18 +254,32 @@ public class Route {
 		return Cells.Contains (cell);
 	}
 
+	public void Synchronize () {
+
+	}
+
 	public void FinalizeLoad () {
+
+		if (!Consolidated) {
+			Debug.LogError ("Can't finalize unconsolidated route");
+			return;
+		}
 
 		TerrainCell currentCell = null;
 
 		bool first = true;
+
+		if (CellPositions.Count == 0) {
+		
+			Debug.LogError ("CellPositions is empty");
+		}
 	
 		foreach (WorldPosition p in CellPositions) {
 
 			currentCell = World.GetCell (p);
 
 			if (currentCell == null) {
-				throw new System.Exception ("Unable to find terrain cell at [" + currentCell.Longitude + "," + currentCell.Latitude + "]");
+				Debug.LogError ("Unable to find terrain cell at [" + currentCell.Longitude + "," + currentCell.Latitude + "]");
 			}
 
 			if (first) {
@@ -271,11 +291,8 @@ public class Route {
 			Cells.Add (currentCell);
 		}
 
-		if (Consolidated) {
-		
-			foreach (TerrainCell cell in Cells) {
-				cell.AddCrossingRoute (this);
-			}
+		foreach (TerrainCell cell in Cells) {
+			cell.AddCrossingRoute (this);
 		}
 
 		LastCell = currentCell;

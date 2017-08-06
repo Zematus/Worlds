@@ -46,6 +46,34 @@ public struct WorldPosition {
 	{
 		return string.Format ("[" + Longitude + "," + Latitude + "]");
 	}
+
+	public bool Equals (int longitude, int latitude) {
+
+		return ((Longitude == longitude) && (Latitude == latitude));
+	}
+
+	public bool Equals (WorldPosition p) {
+
+		return Equals (p.Longitude, p.Latitude);
+	}
+
+	public override bool Equals (object p) {
+
+		if (p is WorldPosition)
+			return Equals ((WorldPosition)p);
+		
+		return false;
+	}
+
+	public static bool operator ==(WorldPosition p1, WorldPosition p2) 
+	{
+		return p1.Equals(p2);
+	}
+
+	public static bool operator !=(WorldPosition p1, WorldPosition p2) 
+	{
+		return !p1.Equals(p2);
+	}
 }
 
 public class TerrainCellChanges {
@@ -139,6 +167,9 @@ public class TerrainCell : ISynchronizable {
 	public CellGroup Group;
 
 	[XmlIgnore]
+	public WorldPosition Position;
+
+	[XmlIgnore]
 	public Region Region = null;
 
 	[XmlIgnore]
@@ -170,10 +201,12 @@ public class TerrainCell : ISynchronizable {
 	private Dictionary<string, float> _biomePresences = new Dictionary<string, float> ();
 
 	public TerrainCell () {
-
+		
 	}
 
 	public TerrainCell (World world, int longitude, int latitude, float height, float width) {
+
+		Position = new WorldPosition (longitude, latitude);
 	
 		World = world;
 		Longitude = longitude;
@@ -183,13 +216,6 @@ public class TerrainCell : ISynchronizable {
 		Width = width;
 
 		Area = height * width;
-	}
-
-	public WorldPosition Position {
-
-		get { 
-			return new WorldPosition (Longitude, Latitude);
-		}
 	}
 
 	public static Direction ReverseDirection (Direction dir) {
@@ -352,6 +378,8 @@ public class TerrainCell : ISynchronizable {
 	}
 
 	public void FinalizeLoad () {
+
+		Position = new WorldPosition (Longitude, Latitude);
 
 		for (int i = 0; i < BiomePresences.Count; i++) {
 		

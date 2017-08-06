@@ -914,7 +914,12 @@ public class CellGroup : HumanGroup {
 
 		if (SeaMigrationRoute == null) {
 			SeaMigrationRoute = new Route (Cell);
+
 		} else {
+			if (SeaMigrationRoute.FirstCell == null) {
+				Debug.LogError ("SeaMigrationRoute.FirstCell is null at " + Cell.Position);
+			}
+
 			SeaMigrationRoute.Reset ();
 			SeaMigrationRoute.Build ();
 		}
@@ -2283,6 +2288,14 @@ public class CellGroup : HumanGroup {
 		Culture.Synchronize ();
 
 		PolityInfluences = new List<PolityInfluence> (_polityInfluences.Values);
+
+		if (SeaMigrationRoute != null) {
+			if (!SeaMigrationRoute.Consolidated) {
+				SeaMigrationRoute = null;
+			} else {
+				SeaMigrationRoute.Synchronize ();
+			}
+		}
 		
 		base.Synchronize ();
 	}
@@ -2319,10 +2332,22 @@ public class CellGroup : HumanGroup {
 		Culture.Group = this;
 		Culture.FinalizeLoad ();
 
+		#if DEBUG
+		if (Cell == null) {
+
+			Debug.LogError ("Cell is null");
+		}
+		#endif
+
 		if (SeaMigrationRoute != null) {
-			
+
 			SeaMigrationRoute.World = World;
-			SeaMigrationRoute.FinalizeLoad ();
+
+			if (SeaMigrationRoute.Consolidated) {
+				SeaMigrationRoute.FinalizeLoad ();
+			} else {
+				SeaMigrationRoute.FirstCell = Cell;
+			}
 		}
 
 		foreach (PolityInfluence p in PolityInfluences) {
