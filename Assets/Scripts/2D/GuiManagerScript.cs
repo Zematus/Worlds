@@ -1106,10 +1106,13 @@ public class GuiManagerScript : MonoBehaviour {
 
 	public void ChangePlanetOverlayToSelected () {
 
-		OverlayDialogPanelScript.ResetToggles ();
-
 		SelectionPanelScript.RemoveAllOptions ();
 		SelectionPanelScript.SetVisible (false);
+
+		if (OverlayDialogPanelScript.DontUpdateDialog)
+			return;
+
+		OverlayDialogPanelScript.ResetToggles ();
 
 		if (OverlayDialogPanelScript.GeneralDataToggle.isOn) {
 			ChangePlanetOverlay (PlanetOverlay.General, false);
@@ -1154,7 +1157,7 @@ public class GuiManagerScript : MonoBehaviour {
 		} else if (OverlayDialogPanelScript.UpdateSpanToggle.isOn) {
 			ChangePlanetOverlay (PlanetOverlay.UpdateSpan, false);
 		} else {
-//			UnsetOverlay();
+			ChangePlanetOverlay (PlanetOverlay.None, false);
 		}
 
 		SetRouteDisplayOverlay (OverlayDialogPanelScript.DisplayRoutesToggle.isOn, false);
@@ -1694,13 +1697,6 @@ public class GuiManagerScript : MonoBehaviour {
 			}
 		}
 	}
-	
-//	public void UnsetOverlay () {
-//		
-//		_regenTextures |= _planetOverlay != PlanetOverlay.None;
-//		
-//		_planetOverlay = PlanetOverlay.None;
-//	}
 	
 	public void SetBiomeView () {
 		

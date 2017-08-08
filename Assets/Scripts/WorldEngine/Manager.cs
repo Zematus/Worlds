@@ -151,7 +151,7 @@ public class Manager {
 
 	#endif
 
-	public static string CurrentVersion = "0.027";
+	public static string CurrentVersion = "0.027a";
 
 //	public static bool RecordingEnabled = false;
 
@@ -335,12 +335,12 @@ public class Manager {
 
 	public static string AddDateToWorldName (string worldName) {
 
-		return worldName + "_Date_" + CurrentWorld.CurrentDate;
+		return worldName + "_date_" + CurrentWorld.CurrentDate;
 	}
 
 	public static string RemoveDateFromWorldName (string worldName) {
 
-		int yearIndex = worldName.LastIndexOf ("_Date_");
+		int yearIndex = worldName.LastIndexOf ("_date_");
 
 		if (yearIndex > 0) {
 			return worldName.Substring (0, yearIndex);
