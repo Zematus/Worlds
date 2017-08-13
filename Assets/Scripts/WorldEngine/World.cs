@@ -1693,7 +1693,7 @@ public class World : ISynchronizable {
 				float absAltitude = cell.Altitude - MinPossibleAltitudeWithOffset;
 				
 				float altitudeFactor1 = (absAltitude / altitudeSpan) * 0.7f;
-				float altitudeFactor2 = Mathf.Max(0, (cell.Altitude / MaxPossibleAltitude) * 1.3f);
+				float altitudeFactor2 = Mathf.Max (0, (cell.Altitude / MaxPossibleAltitude) * 1.3f);
 				float altitudeFactor3 = -0.18f;
 				
 				float temperature = CalculateTemperature(Mathf.Sin(latitudeModifier) - altitudeFactor1 - altitudeFactor2 - altitudeFactor3);
@@ -1794,7 +1794,7 @@ public class World : ISynchronizable {
 					}
 				}
 
-				float altitudeSurvivabilityFactor = 1 - (cell.Altitude / MaxPossibleAltitude);
+				float altitudeSurvivabilityFactor = 1 - Mathf.Max (0, (cell.Altitude / MaxPossibleAltitude));
 
 				cell.Survivability *= altitudeSurvivabilityFactor;
 			}

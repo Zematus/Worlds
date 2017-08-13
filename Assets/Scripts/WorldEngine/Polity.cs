@@ -705,7 +705,7 @@ public abstract class Polity : ISynchronizable {
 
 //		Profiler.EndSample ();
 
-		float altitudeSurvivabilityFactor = 1 - (cell.Altitude / World.MaxPossibleAltitude);
+		float altitudeSurvivabilityFactor = 1 - Mathf.Max (0, cell.Altitude / World.MaxPossibleAltitude);
 
 		modifiedSurvivability = (modifiedSurvivability * (1 - cell.FarmlandPercentage)) + cell.FarmlandPercentage;
 
