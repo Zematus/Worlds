@@ -290,12 +290,17 @@ public class TerrainCell : ISynchronizable {
 	}
 
 	public int GetNextLocalRandomInt (int queryOffset, int maxValue) {
+		
+		return GetLocalRandomInt (World.CurrentDate, queryOffset, maxValue);
+	}
+
+	public int GetLocalRandomInt (int seed, int queryOffset, int maxValue) {
 
 		maxValue = Mathf.Min (PerlinNoise.MaxPermutationValue, maxValue);
 
 		int x = Mathf.Abs (World.Seed + Longitude + queryOffset);
 		int y = Mathf.Abs (World.Seed + Latitude + queryOffset);
-		int z = Mathf.Abs (World.Seed + World.CurrentDate + queryOffset);
+		int z = Mathf.Abs (World.Seed + seed + queryOffset);
 
 		int value = PerlinNoise.GetPermutationValue(x, y, z) % maxValue;
 
@@ -329,7 +334,7 @@ public class TerrainCell : ISynchronizable {
 //		#if DEBUG
 //		if (Manager.RecordingEnabled) {
 //			LastRandomInteger = value;
-//			string key = "Long:" + Longitude + "-Lat:" + Latitude + "-Date:" + World.CurrentDate + "-LocalIteration:" + LocalIteration;
+//			string key = "Long:" + Longitude + "-Lat:" + Latitude + "-Date:" + date + "-LocalIteration:" + LocalIteration;
 
 //			Manager.Recorder.Record (key, "LastRandomInteger:" + value);
 //		}
@@ -337,10 +342,17 @@ public class TerrainCell : ISynchronizable {
 
 		return value;
 	}
-	
+
 	public float GetNextLocalRandomFloat (int queryOffset) {
 
 		int value = GetNextLocalRandomInt (queryOffset, PerlinNoise.MaxPermutationValue);
+
+		return value / (float)PerlinNoise.MaxPermutationValue;
+	}
+	
+	public float GetLocalRandomFloat (int seed, int queryOffset) {
+
+		int value = GetLocalRandomInt (seed, queryOffset, PerlinNoise.MaxPermutationValue);
 		
 		return value / (float)PerlinNoise.MaxPermutationValue;
 	}

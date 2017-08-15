@@ -290,11 +290,6 @@ public class World : ISynchronizable {
 		
 		CurrentDate = 0;
 		MaxYearsToSkip = MaxPossibleYearsToSkip;
-//		CurrentCellGroupId = 0;
-//		CurrentEventId = 0;
-//		CurrentPolityId = 0;
-//		CurrentRegionId = 0;
-//		CurrentLanguageId = 0;
 		EventsToHappenCount = 0;
 		CellGroupCount = 0;
 		PolityCount = 0;
@@ -1693,7 +1688,7 @@ public class World : ISynchronizable {
 				float absAltitude = cell.Altitude - MinPossibleAltitudeWithOffset;
 				
 				float altitudeFactor1 = (absAltitude / altitudeSpan) * 0.7f;
-				float altitudeFactor2 = Mathf.Max (0, (cell.Altitude / MaxPossibleAltitude) * 1.3f);
+				float altitudeFactor2 = (Mathf.Clamp01 (cell.Altitude / MaxPossibleAltitude) * 1.3f);
 				float altitudeFactor3 = -0.18f;
 				
 				float temperature = CalculateTemperature(Mathf.Sin(latitudeModifier) - altitudeFactor1 - altitudeFactor2 - altitudeFactor3);
@@ -1794,7 +1789,7 @@ public class World : ISynchronizable {
 					}
 				}
 
-				float altitudeSurvivabilityFactor = 1 - Mathf.Max (0, (cell.Altitude / MaxPossibleAltitude));
+				float altitudeSurvivabilityFactor = 1 - Mathf.Clamp01 (cell.Altitude / MaxPossibleAltitude);
 
 				cell.Survivability *= altitudeSurvivabilityFactor;
 			}
@@ -1804,31 +1799,6 @@ public class World : ISynchronizable {
 		
 		_accumulatedProgress += _progressIncrement;
 	}
-
-//	public long GenerateCellGroupId () {
-//	
-//		return ++CurrentCellGroupId;
-//	}
-//	
-//	public long GenerateEventId () {
-//		
-//		return ++CurrentEventId;
-//	}
-//
-//	public long GeneratePolityId () {
-//
-//		return ++CurrentPolityId;
-//	}
-//
-//	public long GenerateRegionId () {
-//
-//		return ++CurrentRegionId;
-//	}
-//
-//	public long GenerateLanguageId () {
-//
-//		return ++CurrentLanguageId;
-//	}
 
 	private float CalculateCellBaseArability (TerrainCell cell) {
 

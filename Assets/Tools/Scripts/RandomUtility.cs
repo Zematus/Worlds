@@ -24,4 +24,32 @@ public static class RandomUtility {
 			return randVector;
 		}
 	}
+
+	public delegate int RngDelegate (int seed, int offset, int maxValue);
+
+	public static int RandomRound (int targetVal, int minVal, int maxVal, int minRound, RngDelegate rngDelegate, int offset = 0) {
+
+		int currentMaxVal = maxVal;
+		int currentMinVal = minVal;
+
+		while (true) {
+			if ((targetVal - currentMinVal) < minRound)
+				return currentMinVal;
+
+			int splitVal = currentMinVal + rngDelegate (currentMinVal, offset, currentMaxVal - currentMinVal);
+
+			if (splitVal < targetVal) {
+				if (splitVal == currentMinVal)
+					splitVal++;
+
+				currentMinVal = splitVal;
+			} else {
+			
+				if (splitVal == currentMaxVal)
+					splitVal--;
+
+				currentMaxVal = splitVal;
+			}
+		}
+	}
 }

@@ -77,6 +77,9 @@ public class CellGroup : HumanGroup {
 	
 	[XmlAttribute("StilPres")]
 	public bool StillPresent = true;
+
+	[XmlAttribute("SpawnDate")]
+	public int InitDate;
 	
 	[XmlAttribute("LastUpDate")]
 	public int LastUpdateDate;
@@ -248,6 +251,8 @@ public class CellGroup : HumanGroup {
 
 	public CellGroup (World world, TerrainCell cell, int initialPopulation, Culture baseCulture = null) : base(world) {
 
+		InitDate = World.CurrentDate;
+
 		PreviousExactPopulation = 0;
 		ExactPopulation = initialPopulation;
 
@@ -408,9 +413,19 @@ public class CellGroup : HumanGroup {
 		return Cell.GetNextLocalRandomInt (iterationOffset, maxValue);
 	}
 
+	public int GetLocalRandomInt (int seed, int iterationOffset, int maxValue) {
+
+		return Cell.GetLocalRandomInt (seed, iterationOffset, maxValue);
+	}
+
 	public float GetNextLocalRandomFloat (int iterationOffset) {
 
 		return Cell.GetNextLocalRandomFloat (iterationOffset);
+	}
+
+	public float GetLocalRandomFloat (int seed, int iterationOffset) {
+
+		return Cell.GetLocalRandomFloat (seed, iterationOffset);
 	}
 
 	public void AddNeighbor (Direction direction, CellGroup group) {
@@ -650,9 +665,9 @@ public class CellGroup : HumanGroup {
 
 		int splitPopulation = (int)Mathf.Floor(Population * group.PercentPopulation);
 
-		#if DEBUG
-		float oldExactPopulation = ExactPopulation;
-		#endif
+//		#if DEBUG
+//		float oldExactPopulation = ExactPopulation;
+//		#endif
 
 		ExactPopulation -= splitPopulation;
 
@@ -790,7 +805,7 @@ public class CellGroup : HumanGroup {
 	
 	public float CalculateAltitudeDeltaFactor (TerrainCell targetCell) {
 
-		float altitudeModifier = targetCell.Altitude / World.MaxPossibleAltitude;
+		float altitudeModifier = Mathf.Clamp01 (targetCell.Altitude / World.MaxPossibleAltitude);
 
 		float altitudeDeltaModifier = 5 * altitudeModifier;
 		float maxAltitudeDelta = Cell.Area / altitudeDeltaModifier;
@@ -883,6 +898,32 @@ public class CellGroup : HumanGroup {
 //		#endif
 
 		return cellValue;
+	}
+
+	public int GenerateNewSpawnDate (int maxTimespanBetweenSpawns, int cycleLength, int offset = 0) {
+
+		int currentDate = World.CurrentDate;
+
+		int currentCycleDate = currentDate - (currentDate - InitDate) % cycleLength;
+
+		int spawnDate = currentCycleDate + GetLocalRandomInt (currentCycleDate, offset, cycleLength);
+
+		if (currentDate < spawnDate) {
+
+			int prevCycleDate = currentCycleDate - cycleLength;
+		
+			int prevSpawnDate = prevCycleDate + GetLocalRandomInt (prevCycleDate, offset, cycleLength);
+
+			return RandomUtility.RandomRound (currentDate, prevSpawnDate, spawnDate, maxTimespanBetweenSpawns, GetLocalRandomInt, offset);
+
+		} else {
+
+			int nextCycleDate = currentCycleDate + cycleLength;
+
+			int nextSpawnDate = nextCycleDate + GetLocalRandomInt (nextCycleDate, offset, cycleLength);
+
+			return RandomUtility.RandomRound (currentDate, spawnDate, nextSpawnDate, maxTimespanBetweenSpawns, GetLocalRandomInt, offset);
+		}
 	}
 
 	public void TriggerInterference () {
@@ -1812,7 +1853,7 @@ public class CellGroup : HumanGroup {
 
 //		Profiler.EndSample ();
 
-		float altitudeSurvivabilityFactor = 1 - (Mathf.Max(0, cell.Altitude / World.MaxPossibleAltitude));
+		float altitudeSurvivabilityFactor = 1 - Mathf.Clamp01 (cell.Altitude / World.MaxPossibleAltitude);
 
 		modifiedSurvivability = (modifiedSurvivability * (1 - cell.FarmlandPercentage)) + cell.FarmlandPercentage;
 
