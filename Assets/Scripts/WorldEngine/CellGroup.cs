@@ -225,6 +225,7 @@ public class CellGroup : HumanGroup {
 			if (population < -1000) {
 			
 				Debug.Break ();
+				throw new System.Exception ("Debug.Break");
 			}
 			#endif
 
@@ -504,6 +505,7 @@ public class CellGroup : HumanGroup {
 		if (_biomeSurvivalSkills.ContainsKey (skill.BiomeName)) {
 		
 			Debug.Break ();
+			throw new System.Exception ("Debug.Break");
 		}
 	
 		_biomeSurvivalSkills.Add (skill.BiomeName, skill);
@@ -535,9 +537,9 @@ public class CellGroup : HumanGroup {
 
 		float percentage = group.Population / newPopulation;
 
-		#if DEBUG
-		float oldExactPopulation = ExactPopulation;
-		#endif
+//		#if DEBUG
+//		float oldExactPopulation = ExactPopulation;
+//		#endif
 
 		ExactPopulation = newPopulation;
 
@@ -545,6 +547,7 @@ public class CellGroup : HumanGroup {
 		if (Population < -1000) {
 
 			Debug.Break ();
+			throw new System.Exception ("Debug.Break");
 		}
 		#endif
 
@@ -696,6 +699,7 @@ public class CellGroup : HumanGroup {
 		#if DEBUG
 		if (Population < -1000) {
 			Debug.Break ();
+			throw new System.Exception ("Debug.Break");
 		}
 		#endif
 
@@ -904,7 +908,7 @@ public class CellGroup : HumanGroup {
 
 		int currentDate = World.CurrentDate;
 
-		int currentCycleDate = currentDate - (currentDate - InitDate) % cycleLength;
+		int currentCycleDate = currentDate - (currentDate - LastUpdateDate) % cycleLength;
 
 		int spawnDate = currentCycleDate + GetLocalRandomInt (currentCycleDate, offset, cycleLength);
 
@@ -1753,6 +1757,7 @@ public class CellGroup : HumanGroup {
 		if (optimalPopulation < -1000) {
 
 			Debug.Break ();
+			throw new System.Exception ("Debug.Break");
 		}
 		#endif
 
@@ -1982,6 +1987,7 @@ public class CellGroup : HumanGroup {
 			if ((int)population < -1000) {
 
 				Debug.Break ();
+				throw new System.Exception ("Debug.Break");
 			}
 			#endif
 
@@ -2014,6 +2020,7 @@ public class CellGroup : HumanGroup {
 			if ((int)population < -1000) {
 
 				Debug.Break ();
+				throw new System.Exception ("Debug.Break");
 			}
 			#endif
 

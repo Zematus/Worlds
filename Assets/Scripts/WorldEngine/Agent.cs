@@ -6,7 +6,7 @@ using System.Xml.Serialization;
 
 public abstract class Agent : ISynchronizable {
 
-	public const int OptimistLifespan = 113; // Prime number to reduce birthdate coincidences between
+	public const int MaxLifespan = 113; // Prime number to hide birthdate cycle artifacts
 
 	[XmlAttribute("Type")]
 	public string Type;

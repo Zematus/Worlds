@@ -247,6 +247,7 @@ public class PolityCulture : Culture {
 			if (float.IsNaN(knowledge.Value)) {
 
 				Debug.Break ();
+				throw new System.Exception ("Debug.Break");
 			}
 			#endif
 		});

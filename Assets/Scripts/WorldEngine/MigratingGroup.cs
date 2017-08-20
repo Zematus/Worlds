@@ -43,6 +43,7 @@ public class MigratingGroup : HumanGroup {
 		if (float.IsNaN (percentPopulation)) {
 
 			Debug.Break ();
+			throw new System.Exception ("float.IsNaN (percentPopulation)");
 		}
 		#endif
 

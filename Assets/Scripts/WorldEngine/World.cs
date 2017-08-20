@@ -643,7 +643,6 @@ public class World : ISynchronizable {
 				#if DEBUG
 				if (maxDate < 0) {
 					Debug.Break ();
-
 					throw new System.Exception ("Surpassed date limit (Int32.MaxValue)");
 				}
 				#endif

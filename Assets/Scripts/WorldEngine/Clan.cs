@@ -18,7 +18,7 @@ public class Clan : Faction {
 
 	}
 
-	public Clan (Polity polity, float prominence, Clan parentClan = null) : base (ClanType, polity, prominence, parentClan) {
+	public Clan (Polity polity, CellGroup coreGroup, float prominence, Clan parentClan = null) : base (ClanType, polity, coreGroup, prominence, parentClan) {
 
 		if (ClanSplitEvent.CanBeAssignedTo (this)) {
 
@@ -168,6 +168,8 @@ public class ClanSplitEvent : FactionEvent {
 
 	public const int MuAdministrativeLoadValue = 500000;
 
+	public const float MinCoreInfluenceValue = 0.3f;
+
 	public const float MinProminenceTrigger = 0.3f;
 	public const float MinProminenceTransfer = 0.25f;
 	public const float ProminenceTransferProportion = 0.75f;
@@ -250,7 +252,9 @@ public class ClanSplitEvent : FactionEvent {
 
 		float splitValue = administrativeLoadFactor / (administrativeLoadFactor + MuAdministrativeLoadValue);
 
-		float triggerValue = Faction.GetNextLocalRandomFloat (RngOffsets.EVENT_CAN_TRIGGER + (int)Id);
+		int rngOffset = RngOffsets.EVENT_CAN_TRIGGER + (int)Id;
+
+		float triggerValue = Faction.GetNextLocalRandomFloat (rngOffset++);
 
 		if (triggerValue > splitValue)
 			return false;
@@ -271,7 +275,7 @@ public class ClanSplitEvent : FactionEvent {
 
 		Polity polity = Faction.Polity;
 
-		Clan newClan = new Clan (polity as Tribe, newClanProminence, Faction as Clan);
+		Clan newClan = new Clan (polity as Tribe, Faction.CoreGroup, newClanProminence, Faction as Clan);
 
 		polity.AddFaction (newClan);
 

@@ -15,6 +15,9 @@ public abstract class Faction : ISynchronizable {
 	[XmlAttribute("PolId")]
 	public long PolityId;
 
+	[XmlAttribute("CGrpId")]
+	public long CoreGroupId;
+
 	[XmlAttribute("Prom")]
 	public float Prominence;
 
@@ -34,17 +37,23 @@ public abstract class Faction : ISynchronizable {
 	[XmlIgnore]
 	public Polity Polity;
 
+	[XmlIgnore]
+	public CellGroup CoreGroup;
+
 	private HashSet<string> _flags = new HashSet<string> ();
 
 	public Faction () {
 
 	}
 
-	public Faction (string type, Polity polity, float prominence, Faction parentFaction = null) {
+	public Faction (string type, Polity polity, CellGroup coreGroup, float prominence, Faction parentFaction = null) {
 
 		Type = type;
 
 		World = polity.World;
+
+		CoreGroup = coreGroup;
+		CoreGroupId = coreGroup.Id;
 
 		int idOffset = 0;
 

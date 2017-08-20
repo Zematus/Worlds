@@ -7,8 +7,8 @@ using System.Xml.Serialization;
 
 public class Tribe : Polity {
 
-//	public const float TribalExpansionFactor = 0.01f;
 	public const float TribalExpansionFactor = 2f;
+	public const int TribeLeaderAvgTimeSpan = 41;
 
 	public const string TribeType = "Tribe";
 
@@ -60,7 +60,7 @@ public class Tribe : Polity {
 
 		//// Add starting clan
 
-		Clan clan = new Clan (this, 1);
+		Clan clan = new Clan (this, coreGroup, 1);
 
 		AddFaction (clan);
 

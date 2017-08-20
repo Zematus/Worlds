@@ -65,6 +65,14 @@ public struct WorldPosition {
 		return false;
 	}
 
+	public override int GetHashCode ()
+	{
+		int hash = 91 + Longitude.GetHashCode();
+		hash = (hash * 7) + Latitude.GetHashCode();
+
+		return hash;
+	}
+
 	public static bool operator ==(WorldPosition p1, WorldPosition p2) 
 	{
 		return p1.Equals(p2);

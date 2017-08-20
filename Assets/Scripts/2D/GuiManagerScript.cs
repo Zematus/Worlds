@@ -1740,8 +1740,6 @@ public class GuiManagerScript : MonoBehaviour {
 
 	public void UnsetFocusOnPolity () {
 
-		Territory selectedTerritory = Manager.CurrentWorld.SelectedTerritory;
-
 		Manager.SetPolityFocus (null);
 	}
 
