@@ -63,8 +63,9 @@ public class CellGroup : HumanGroup {
 
 	public const float SeaTravelBaseFactor = 500f;
 
-//	public const float MigrationFactor = 0.01f;
 	public const float MigrationFactor = 0.1f;
+
+	public const float MaxMigrationAltitudeDelta = 1f; // in meters
 
 	[XmlAttribute]
 	public long Id;
@@ -806,16 +807,24 @@ public class CellGroup : HumanGroup {
 
 		World.InsertEventToHappen (UpdateEvent);
 	}
-	
+
 	public float CalculateAltitudeDeltaFactor (TerrainCell targetCell) {
 
-		float altitudeModifier = Mathf.Clamp01 (targetCell.Altitude / World.MaxPossibleAltitude);
+		if (targetCell == Cell)
+			return 0.5f;
 
-		float altitudeDeltaModifier = 5 * altitudeModifier;
-		float maxAltitudeDelta = Cell.Area / altitudeDeltaModifier;
-		float minAltitudeDelta = -Cell.Area / (altitudeDeltaModifier * 5);
-		float altitudeDelta = Mathf.Clamp (targetCell.Altitude - Cell.Altitude, minAltitudeDelta, maxAltitudeDelta);
-		float altitudeDeltaFactor = 1 - ((altitudeDelta - minAltitudeDelta) / (maxAltitudeDelta - minAltitudeDelta));
+		float altitudeChange = Mathf.Max(0, targetCell.Altitude) - Mathf.Max(0, Cell.Altitude);
+		float altitudeDelta = 2 * altitudeChange / (Cell.Area + targetCell.Area);
+
+		float altitudeDeltaFactor = 1 - (Mathf.Clamp (altitudeDelta, -MaxMigrationAltitudeDelta, MaxMigrationAltitudeDelta) + MaxMigrationAltitudeDelta) / 2 * MaxMigrationAltitudeDelta;
+
+		#if DEBUG
+		if (float.IsNaN (altitudeDeltaFactor)) {
+
+			Debug.Break ();
+			throw new System.Exception ("float.IsNaN (altitudeDeltaFactor)");
+		}
+		#endif
 		
 		return altitudeDeltaFactor;
 	}
@@ -833,7 +842,15 @@ public class CellGroup : HumanGroup {
 //		Profiler.BeginSample ("Calculate Altitude Delta Migration Factor");
 
 		float altitudeDeltaFactor = CalculateAltitudeDeltaFactor (cell);
-		altitudeDeltaFactor = Mathf.Pow (altitudeDeltaFactor, 4);
+		float altitudeDeltaFactorPow = Mathf.Pow (altitudeDeltaFactor, 4);
+
+		#if DEBUG
+		if (float.IsNaN (altitudeDeltaFactorPow)) {
+
+			Debug.Break ();
+			throw new System.Exception ("float.IsNaN (altitudeDeltaFactorPow)");
+		}
+		#endif
 
 //		Profiler.EndSample ();
 
@@ -869,7 +886,15 @@ public class CellGroup : HumanGroup {
 //			targetOptimalPopulationFactor = Mathf.Pow (targetOptimalPopulationFactor, 4);
 		}
 
-		float cellValue = altitudeDeltaFactor * areaFactor * popDifferenceFactor * noMigrationFactor * targetOptimalPopulationFactor;
+		float cellValue = altitudeDeltaFactorPow * areaFactor * popDifferenceFactor * noMigrationFactor * targetOptimalPopulationFactor;
+
+		#if DEBUG
+		if (float.IsNaN (cellValue)) {
+
+			Debug.Break ();
+			throw new System.Exception ("float.IsNaN (cellValue)");
+		}
+		#endif
 
 //		#if DEBUG
 //		if (Manager.RegisterDebugEvent != null) {
@@ -1001,6 +1026,14 @@ public class CellGroup : HumanGroup {
 		MigrationValue = CalculateMigrationValue (Cell);
 
 		TotalMigrationValue = MigrationValue;
+
+		#if DEBUG
+		if (float.IsNaN (TotalMigrationValue)) {
+
+			Debug.Break ();
+			throw new System.Exception ("float.IsNaN (TotalMigrationValue)");
+		}
+		#endif
 	}
 
 	private class CellWeight : CollectionUtility.ElementWeightPair<TerrainCell> {
@@ -1048,6 +1081,14 @@ public class CellGroup : HumanGroup {
 		float cellValue = CalculateMigrationValue (targetCell);
 
 		TotalMigrationValue += cellValue;
+
+		#if DEBUG
+		if (float.IsNaN (TotalMigrationValue)) {
+
+			Debug.Break ();
+			throw new System.Exception ("float.IsNaN (TotalMigrationValue)");
+		}
+		#endif
 
 //		Profiler.EndSample ();
 
@@ -1131,6 +1172,14 @@ public class CellGroup : HumanGroup {
 			return;
 
 		TotalMigrationValue += CalculateMigrationValue (targetCell);
+
+		#if DEBUG
+		if (float.IsNaN (TotalMigrationValue)) {
+
+			Debug.Break ();
+			throw new System.Exception ("float.IsNaN (TotalMigrationValue)");
+		}
+		#endif
 
 		float cellSurvivability = 0;
 		float cellForagingCapacity = 0;
