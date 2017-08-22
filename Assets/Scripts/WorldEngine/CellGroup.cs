@@ -67,6 +67,8 @@ public class CellGroup : HumanGroup {
 
 	public const float MaxMigrationAltitudeDelta = 1f; // in meters
 
+	public static float TravelWidthFactor;
+
 	[XmlAttribute]
 	public long Id;
 
@@ -148,7 +150,7 @@ public class CellGroup : HumanGroup {
 
 	public List<PolityInfluence> PolityInfluences;
 
-	public static float TravelWidthFactor;
+	public List<long> IdsOfFactionsWithCoreHere;
 
 	[XmlIgnore]
 	public WorldPosition Position {
@@ -168,6 +170,9 @@ public class CellGroup : HumanGroup {
 			TotalPolityInfluenceValueFloat = MathUtility.RoundToSixDecimals (Mathf.Clamp01 (value));
 		}
 	}
+
+	[XmlIgnore]
+	public Dictionary<long, Faction> FactionsWithCoreHere = new Dictionary<long, Faction> ();
 
 	[XmlIgnore]
 	public UpdateCellGroupEvent UpdateEvent;
@@ -324,6 +329,27 @@ public class CellGroup : HumanGroup {
 		InitializeDefaultEvents ();
 
 		World.AddUpdatedGroup (this);
+	}
+
+	public void AddFactionWithCoreHere (Faction faction) {
+
+		if (!FactionsWithCoreHere.ContainsKey (faction.Id)) {
+
+			FactionsWithCoreHere.Add (faction.Id, faction);
+		}
+	}
+
+	public void RemoveFactionWithCoreHere (Faction faction) {
+
+		if (FactionsWithCoreHere.ContainsKey (faction.Id)) {
+
+			FactionsWithCoreHere.Remove (faction.Id);
+		}
+	}
+
+	public bool FactionHasCoreHere (Faction faction) {
+
+		return FactionsWithCoreHere.ContainsKey (faction.Id);
 	}
 
 	public CellGroupSnapshot GetSnapshot () {
@@ -2385,6 +2411,8 @@ public class CellGroup : HumanGroup {
 				SeaMigrationRoute.Synchronize ();
 			}
 		}
+
+		IdsOfFactionsWithCoreHere = new List<long> (FactionsWithCoreHere.Keys);
 		
 		base.Synchronize ();
 	}
@@ -2392,6 +2420,17 @@ public class CellGroup : HumanGroup {
 	public override void FinalizeLoad () {
 
 		base.FinalizeLoad ();
+
+		foreach (long id in IdsOfFactionsWithCoreHere) {
+		
+			Faction faction = World.GetFaction (id);
+
+			if (faction == null) {
+				Debug.LogError ("Missing faction with id: " + id);
+			}
+
+			FactionsWithCoreHere.Add (id, faction);
+		}
 
 		Flags.ForEach (f => _flags.Add (f));
 

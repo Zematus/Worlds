@@ -22,6 +22,9 @@ public class MigratingGroup : HumanGroup {
 
 	//public CellCulture Culture;
 	public BufferCulture Culture;
+
+	[XmlIgnore]
+	public List<Faction> FactionCoresToMigrate = new List<Faction> ();
 	
 	[XmlIgnore]
 	public TerrainCell TargetCell;
