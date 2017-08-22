@@ -817,14 +817,6 @@ public class CellGroup : HumanGroup {
 		float altitudeDelta = 2 * altitudeChange / (Cell.Area + targetCell.Area);
 
 		float altitudeDeltaFactor = 1 - (Mathf.Clamp (altitudeDelta, -MaxMigrationAltitudeDelta, MaxMigrationAltitudeDelta) + MaxMigrationAltitudeDelta) / 2 * MaxMigrationAltitudeDelta;
-
-		#if DEBUG
-		if (float.IsNaN (altitudeDeltaFactor)) {
-
-			Debug.Break ();
-			throw new System.Exception ("float.IsNaN (altitudeDeltaFactor)");
-		}
-		#endif
 		
 		return altitudeDeltaFactor;
 	}

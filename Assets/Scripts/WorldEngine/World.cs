@@ -125,6 +125,9 @@ public class World : ISynchronizable {
 	public int PolityCount { get; private set; }
 
 	[XmlAttribute]
+	public int FactionCount { get; private set; }
+
+	[XmlAttribute]
 	public int RegionCount { get; private set; }
 
 	[XmlAttribute]
@@ -164,6 +167,9 @@ public class World : ISynchronizable {
 	public List<CulturalDiscovery> CulturalDiscoveryInfoList = new List<CulturalDiscovery> ();
 
 	public List<CellGroup> CellGroups;
+
+	[XmlArrayItem (Type = typeof(Clan))]
+	public List<Faction> Factions;
 
 	[XmlArrayItem (Type = typeof(Tribe))]
 	public List<Polity> Polities;
@@ -230,6 +236,8 @@ public class World : ISynchronizable {
 	
 	[XmlIgnore]
 	public HumanGroup MigrationTaggedGroup = null;
+
+	private Dictionary<long, Faction> _factions = new Dictionary<long, Faction> ();
 
 	private BinaryTree<int, WorldEvent> _eventsToHappen = new BinaryTree<int, WorldEvent> ();
 	
@@ -426,6 +434,13 @@ public class World : ISynchronizable {
 		foreach (CellGroup g in CellGroups) {
 
 			g.Synchronize ();
+		}
+
+		Factions = new List<Faction> (_factions.Values);
+
+		foreach (Faction f in Factions) {
+
+			f.Synchronize ();
 		}
 
 		Polities = new List<Polity> (_polities.Values);
@@ -988,6 +1003,34 @@ public class World : ISynchronizable {
 		return region;
 	}
 
+	public void AddFaction (Faction faction) {
+
+		_factions.Add (faction.Id, faction);
+
+		FactionCount++;
+	}
+
+	public void RemoveFaction (Faction faction) {
+
+		_factions.Remove (faction.Id);
+
+		FactionCount--;
+	}
+
+	public Faction GetFaction (long id) {
+
+		Faction faction;
+
+		_factions.TryGetValue (id, out faction);
+
+		return faction;
+	}
+
+	public bool ContainsFaction (long id) {
+
+		return _factions.ContainsKey (id);
+	}
+
 	public void AddPolity (Polity polity) {
 
 		_polities.Add (polity.Id, polity);
@@ -1092,6 +1135,13 @@ public class World : ISynchronizable {
 			_polities.Add (p.Id, p);
 		});
 
+		Factions.ForEach (f => {
+
+			f.World = this;
+
+			_factions.Add (f.Id, f);
+		});
+
 		CellGroups.ForEach (g => {
 
 			g.World = this;
@@ -1102,25 +1152,25 @@ public class World : ISynchronizable {
 		// Segment 2
 
 		int elementCount = 0;
-		float totalElementsFactor = progressFactor * (Languages.Count + Regions.Count + Polities.Count + CellGroups.Count + EventsToHappen.Count);
+		float totalElementsFactor = progressFactor * (Languages.Count + Regions.Count + Factions.Count + Polities.Count + CellGroups.Count + EventsToHappen.Count);
 
-		Languages.ForEach (l => {
+		foreach (Language l in Languages) {
 
 			l.FinalizeLoad ();
 
 			castProgress (startProgressValue + (++elementCount/totalElementsFactor), "Initializing Languages...");
-		});
+		}
 
 		// Segment 3
 
-		Regions.ForEach (r => {
+		foreach (Region r in Regions) {
 
 			r.FinalizeLoad ();
 
 			castProgress (startProgressValue + (++elementCount/totalElementsFactor), "Initializing Regions...");
-		});
+		}
 
-		// Segment 4
+		// Segment 5
 
 		foreach (Polity p in Polities) {
 
@@ -1129,18 +1179,27 @@ public class World : ISynchronizable {
 			castProgress (startProgressValue + (++elementCount/totalElementsFactor), "Initializing Polities...");
 		}
 
-		// Segment 5
+		// Segment 4
 
-		CellGroups.ForEach (g => {
+		foreach (Faction f in Factions) {
+
+			f.FinalizeLoad ();
+
+			castProgress (startProgressValue + (++elementCount/totalElementsFactor), "Initializing Factions...");
+		}
+
+		// Segment 6
+
+		foreach (CellGroup g in CellGroups) {
 
 			g.FinalizeLoad ();
 
 			castProgress (startProgressValue + (++elementCount/totalElementsFactor), "Initializing Cell Groups...");
-		});
+		}
 
-		// Segment 6
+		// Segment 7
 
-		EventsToHappen.ForEach (e => {
+		foreach (WorldEvent e in EventsToHappen) {
 
 			e.World = this;
 			e.FinalizeLoad ();
@@ -1149,9 +1208,9 @@ public class World : ISynchronizable {
 //			_eventsToHappen.Insert (e.TriggerDate, e);
 
 			castProgress (startProgressValue + (++elementCount/totalElementsFactor), "Initializing Events...");
-		});
+		}
 
-		// Segment 7
+		// Segment 8
 
 		CulturalActivityInfoList.ForEach (a => _culturalActivityIdList.Add (a.Id));
 		CulturalSkillInfoList.ForEach (s => _culturalSkillIdList.Add (s.Id));

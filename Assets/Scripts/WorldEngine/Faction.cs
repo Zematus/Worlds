@@ -74,7 +74,7 @@ public abstract class Faction : ISynchronizable {
 
 	public void Destroy () {
 		
-		Polity.RemoveFaction (this);
+		Polity.RemoveFaction (this, true);
 
 		StillPresent = false;
 	}
@@ -104,6 +104,8 @@ public abstract class Faction : ISynchronizable {
 
 		Name.World = World;
 		Name.FinalizeLoad ();
+
+		CoreGroup = World.GetGroup (CoreGroupId);
 
 		Polity = World.GetPolity (PolityId);
 

@@ -104,8 +104,7 @@ public abstract class Polity : ISynchronizable {
 
 	public PolityCulture Culture;
 
-	[XmlArrayItem (Type = typeof(Clan))]
-	public List<Faction> Factions;
+	public List<long> FactionIds;
 
 	public List<long> EventMessageIds;
 
@@ -267,12 +266,20 @@ public abstract class Polity : ISynchronizable {
 
 		_factions.Add (faction.Id, faction);
 
+		if (!World.ContainsFaction (faction.Id)) {
+			World.AddFaction (faction);
+		}
+
 		FactionCount++;
 	}
 
-	public void RemoveFaction (Faction faction) {
+	public void RemoveFaction (Faction faction, bool removeFromWorld = false) {
 
 		_factions.Remove (faction.Id);
+
+		if (removeFromWorld) {
+			World.RemoveFaction (faction);
+		}
 
 		FactionCount--;
 	}
@@ -481,11 +488,11 @@ public abstract class Polity : ISynchronizable {
 
 		InfluencedGroupIds = new List<long> (InfluencedGroups.Keys);
 
-		Factions = new List<Faction> (_factions.Values);
+		FactionIds = new List<long> (_factions.Count);
 
-		foreach (Faction f in Factions) {
+		foreach (Faction f in _factions.Values) {
 
-			f.Synchronize ();
+			FactionIds.Add (f.Id);
 		}
 
 		Name.Synchronize ();
@@ -508,7 +515,6 @@ public abstract class Polity : ISynchronizable {
 		if (CoreGroup == null) {
 			string message = "Missing Group with Id " + CoreGroupId + " in polity with Id " + Id;
 			Debug.LogError (message);
-//			throw new System.Exception (message);
 		}
 
 		foreach (long id in InfluencedGroupIds) {
@@ -518,25 +524,22 @@ public abstract class Polity : ISynchronizable {
 			if (group == null) {
 				string message = "Missing Group with Id " + id + " in polity with Id " + Id;
 				Debug.LogError (message);
-//				throw new System.Exception (message);
-//				continue;
 			}
 
 			InfluencedGroups.Add (group.Id, group);
 		}
 
-		// all factions should be stored in the dictionary before finalizing load for each one
-		Factions.ForEach (f => {
+		foreach (long factionId in FactionIds) {
 
-			f.World = World;
+			Faction faction = World.GetFaction (factionId);
 
-			_factions.Add (f.Id, f);
-		});
+			if (faction == null) {
+				string message = "Missing Faction with Id " + faction + " in polity with Id " + Id;
+				Debug.LogError (message);
+			}
 
-		Factions.ForEach (f => {
-
-			f.FinalizeLoad ();
-		});
+			_factions.Add (factionId, faction);
+		}
 
 		DominantFaction = GetFaction (DominantFactionId);
 
