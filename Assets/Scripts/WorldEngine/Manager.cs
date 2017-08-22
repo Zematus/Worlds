@@ -1604,10 +1604,13 @@ public class Manager {
 			Color territoryColor = GenerateColorFromId (territoryPolity.Id);
 
 			bool isTerritoryBorder = IsTerritoryBorder (cell.EncompassingTerritory, cell);
-			bool isCoreGroup = territoryPolity.CoreGroup == cell.Group;
+			bool isPolityCoreGroup = territoryPolity.CoreGroup == cell.Group;
+			bool isFactionCoreGroup = cell.Group.GetFactionCores ().Count > 0;
 
-			if (!isCoreGroup) {
-				if (!isTerritoryBorder) {
+			if (!isPolityCoreGroup) {
+				if (isFactionCoreGroup) {
+					territoryColor /= 1.35f;
+				} else if (!isTerritoryBorder) {
 					territoryColor /= 2.5f;
 				} else {
 					territoryColor /= 1.75f;

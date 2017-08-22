@@ -150,7 +150,7 @@ public class CellGroup : HumanGroup {
 
 	public List<PolityInfluence> PolityInfluences;
 
-	public List<long> IdsOfFactionsWithCoreHere;
+	public List<long> FactionCoreIds;
 
 	[XmlIgnore]
 	public WorldPosition Position {
@@ -172,7 +172,7 @@ public class CellGroup : HumanGroup {
 	}
 
 	[XmlIgnore]
-	public Dictionary<long, Faction> FactionsWithCoreHere = new Dictionary<long, Faction> ();
+	public Dictionary<long, Faction> FactionCores = new Dictionary<long, Faction> ();
 
 	[XmlIgnore]
 	public UpdateCellGroupEvent UpdateEvent;
@@ -331,25 +331,30 @@ public class CellGroup : HumanGroup {
 		World.AddUpdatedGroup (this);
 	}
 
-	public void AddFactionWithCoreHere (Faction faction) {
+	public void AddFactionCore (Faction faction) {
 
-		if (!FactionsWithCoreHere.ContainsKey (faction.Id)) {
+		if (!FactionCores.ContainsKey (faction.Id)) {
 
-			FactionsWithCoreHere.Add (faction.Id, faction);
+			FactionCores.Add (faction.Id, faction);
 		}
 	}
 
-	public void RemoveFactionWithCoreHere (Faction faction) {
+	public void RemoveFactionCore (Faction faction) {
 
-		if (FactionsWithCoreHere.ContainsKey (faction.Id)) {
+		if (FactionCores.ContainsKey (faction.Id)) {
 
-			FactionsWithCoreHere.Remove (faction.Id);
+			FactionCores.Remove (faction.Id);
 		}
 	}
 
 	public bool FactionHasCoreHere (Faction faction) {
 
-		return FactionsWithCoreHere.ContainsKey (faction.Id);
+		return FactionCores.ContainsKey (faction.Id);
+	}
+
+	public ICollection<Faction> GetFactionCores () {
+
+		return FactionCores.Values;
 	}
 
 	public CellGroupSnapshot GetSnapshot () {
@@ -2412,7 +2417,7 @@ public class CellGroup : HumanGroup {
 			}
 		}
 
-		IdsOfFactionsWithCoreHere = new List<long> (FactionsWithCoreHere.Keys);
+		FactionCoreIds = new List<long> (FactionCores.Keys);
 		
 		base.Synchronize ();
 	}
@@ -2421,7 +2426,7 @@ public class CellGroup : HumanGroup {
 
 		base.FinalizeLoad ();
 
-		foreach (long id in IdsOfFactionsWithCoreHere) {
+		foreach (long id in FactionCoreIds) {
 		
 			Faction faction = World.GetFaction (id);
 
@@ -2429,7 +2434,7 @@ public class CellGroup : HumanGroup {
 				Debug.LogError ("Missing faction with id: " + id);
 			}
 
-			FactionsWithCoreHere.Add (id, faction);
+			FactionCores.Add (id, faction);
 		}
 
 		Flags.ForEach (f => _flags.Add (f));

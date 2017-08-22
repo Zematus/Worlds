@@ -95,12 +95,50 @@ public class MigratingGroup : HumanGroup {
 
 		PolityInfluences = new List<PolityInfluence> ();
 
-		foreach (PolityInfluence p in SourceGroup.GetPolityInfluences ()) {
+		foreach (PolityInfluence pi in SourceGroup.GetPolityInfluences ()) {
 
-			PolityInfluences.Add (new PolityInfluence (p.Polity, p.Value));
+			PolityInfluences.Add (new PolityInfluence (pi.Polity, pi.Value));
 		}
 
+		TryMigrateFactionCores ();
+
 		return true;
+	}
+
+	private void TryMigrateFactionCores () {
+
+		int sourcePopulation = SourceGroup.Population;
+		int targetPopulation = 0;
+		int targetNewPopulation = Population;
+
+		CellGroup targetGroup = TargetCell.Group;
+		if (targetGroup != null) {
+			targetPopulation = targetGroup.Population;
+			targetNewPopulation += targetPopulation;
+		}
+
+		int sumPopulation = sourcePopulation + targetNewPopulation;
+
+		foreach (Faction faction in SourceGroup.GetFactionCores ()) {
+
+			float sourceGroupInfluence = SourceGroup.GetPolityInfluence (faction.Polity).Value;
+			float targetGroupInfluence = 1f;
+
+			if (targetGroup != null) {
+				PolityInfluence piTarget = targetGroup.GetPolityInfluence (faction.Polity);
+				if (piTarget != null)
+					targetGroupInfluence = piTarget.Value;
+			}
+
+			float targetNewGroupInfluence = ((sourceGroupInfluence * Population) + (targetGroupInfluence * targetPopulation)) / targetNewPopulation;
+
+			float migrateCoreFactor = ((sourceGroupInfluence * sourcePopulation) + (targetNewGroupInfluence * targetNewPopulation)) / sumPopulation;
+
+			float randomValue = SourceGroup.GetNextLocalRandomFloat (RngOffsets.MIGRATING_GROUP_MOVE_FACTION_CORE + (int)faction.Id);
+
+			if (randomValue >= migrateCoreFactor)
+				FactionCoresToMigrate.Add (faction);
+		}
 	}
 
 	public void MoveToCell () {
@@ -108,26 +146,32 @@ public class MigratingGroup : HumanGroup {
 		if (Population <= 0)
 			return;
 
-		if (TargetCell.Group != null) {
+		CellGroup targetGroup = TargetCell.Group;
 
-			if (TargetCell.Group.StillPresent) {
+		if (targetGroup != null) {
 
-				TargetCell.Group.MergeGroup(this);
+			if (targetGroup.StillPresent) {
+
+				targetGroup.MergeGroup (this);
 
 				if (SourceGroup.MigrationTagged) {
 					World.MigrationTagGroup (TargetCell.Group);
 				}
+			}
+		} else {
 
-				return;
+			targetGroup = new CellGroup (this, Population);
+
+			World.AddGroup (targetGroup);
+		
+			if (SourceGroup.MigrationTagged) {
+				World.MigrationTagGroup (targetGroup);
 			}
 		}
 
-		CellGroup newGroup = new CellGroup (this, Population);
+		foreach (Faction faction in FactionCoresToMigrate) {
 
-		World.AddGroup (newGroup);
-		
-		if (SourceGroup.MigrationTagged) {
-			World.MigrationTagGroup (newGroup);
+			faction.SetCoreGroup (targetGroup);
 		}
 	}
 	

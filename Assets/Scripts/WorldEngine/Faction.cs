@@ -55,6 +55,8 @@ public abstract class Faction : ISynchronizable {
 		CoreGroup = coreGroup;
 		CoreGroupId = coreGroup.Id;
 
+		CoreGroup.AddFactionCore (this);
+
 		int idOffset = 0;
 
 		if (parentFaction != null) {
@@ -89,6 +91,24 @@ public abstract class Faction : ISynchronizable {
 		}
 
 		UpdateInternal ();
+	}
+
+	public void SetCoreGroup (CellGroup coreGroup) {
+		
+		if (coreGroup == null) {
+			Debug.LogError ("New CoreGroup is null");
+		}
+
+		if (CoreGroup == null) {
+			Debug.LogError ("Old CoreGroup is null");
+		}
+
+		CoreGroup.RemoveFactionCore (this);
+
+		CoreGroup = coreGroup;
+		CoreGroupId = coreGroup.Id;
+
+		CoreGroup.AddFactionCore (this);
 	}
 
 	protected abstract void UpdateInternal ();
