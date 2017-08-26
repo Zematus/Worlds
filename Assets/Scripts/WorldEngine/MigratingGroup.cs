@@ -107,7 +107,6 @@ public class MigratingGroup : HumanGroup {
 
 	private void TryMigrateFactionCores () {
 
-		int sourcePopulation = SourceGroup.Population;
 		int targetPopulation = 0;
 		int targetNewPopulation = Population;
 
@@ -126,7 +125,7 @@ public class MigratingGroup : HumanGroup {
 			}
 
 			float sourceGroupInfluence = pi.Value;
-			float targetGroupInfluence = 1f;
+			float targetGroupInfluence = sourceGroupInfluence;
 
 			if (targetGroup != null) {
 				PolityInfluence piTarget = targetGroup.GetPolityInfluence (faction.Polity);
@@ -139,14 +138,7 @@ public class MigratingGroup : HumanGroup {
 
 			float targetNewGroupInfluence = ((sourceGroupInfluence * Population) + (targetGroupInfluence * targetPopulation)) / targetNewPopulation;
 
-			float influenceFactor = sourceGroupInfluence / (sourceGroupInfluence + targetNewGroupInfluence);
-			float populationFactor = sourcePopulation / (sourcePopulation + targetNewPopulation);
-
-			float migrateCoreFactor = Faction.NoCoreMigrationFactor + (influenceFactor * populationFactor) * (1 - Faction.NoCoreMigrationFactor);
-
-			float randomValue = SourceGroup.GetNextLocalRandomFloat (RngOffsets.MIGRATING_GROUP_MOVE_FACTION_CORE + (int)faction.Id);
-
-			if (randomValue >= migrateCoreFactor)
+			if (faction.ShouldMigrateFactionCore (SourceGroup, TargetCell, targetNewGroupInfluence, targetNewPopulation))
 				FactionCoresToMigrate.Add (faction);
 		}
 	}
@@ -182,6 +174,8 @@ public class MigratingGroup : HumanGroup {
 		foreach (Faction faction in FactionCoresToMigrate) {
 
 			faction.SetCoreGroup (targetGroup);
+
+			World.AddFactionToUpdate (faction);
 		}
 	}
 	

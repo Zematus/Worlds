@@ -270,6 +270,8 @@ public abstract class Polity : ISynchronizable {
 			World.AddFaction (faction);
 		}
 
+		World.AddFactionToUpdate (faction);
+
 		FactionCount++;
 	}
 
@@ -279,6 +281,8 @@ public abstract class Polity : ISynchronizable {
 
 		if (removeFromWorld) {
 			World.RemoveFaction (faction);
+		} else {
+			World.AddFactionToUpdate (faction);
 		}
 
 		FactionCount--;
@@ -392,11 +396,6 @@ public abstract class Polity : ISynchronizable {
 		UpdateInternal ();
 	
 		Culture.Update ();
-
-		foreach (Faction faction in _factions.Values) {
-		
-			faction.Update ();
-		}
 
 		if (!_coreGroupIsValid) {
 

@@ -2926,41 +2926,20 @@ public class ExpandPolityInfluenceEvent : CellGroupEvent {
 
 	private void TryMigrateFactionCores () {
 
-		int sourcePopulation = Group.Population;
-		int targetPopulation = TargetGroup.Population;
-
 		List<Faction> factionCoresToMigrate = new List<Faction> ();
 
 		foreach (Faction faction in Group.GetFactionCores ()) {
 
-			PolityInfluence pi = Group.GetPolityInfluence (faction.Polity);
-
-			if (pi == null) {
-				Debug.LogError ("Unable to find Polity with Id: " + faction.Polity.Id);
-			}
-
-			float sourceGroupInfluence = pi.Value;
-
-			PolityInfluence piTarget = TargetGroup.GetPolityInfluence (faction.Polity);
-
-			if (piTarget != null) {
-				float targetGroupInfluence = piTarget.Value;
-
-				float influenceFactor = sourceGroupInfluence / (sourceGroupInfluence + targetGroupInfluence);
-				float populationFactor = sourcePopulation / (sourcePopulation + targetPopulation);
-
-				float migrateCoreFactor = Faction.NoCoreMigrationFactor + (influenceFactor * populationFactor) * (1 - Faction.NoCoreMigrationFactor);
-
-				float randomValue = Group.GetNextLocalRandomFloat (RngOffsets.EXPAND_POLITY_MOVE_FACTION_CORE + (int)faction.Id);
-
-				if (randomValue >= migrateCoreFactor)
-					factionCoresToMigrate.Add (faction);
+			if (faction.ShouldMigrateFactionCore (Group, TargetGroup)) {
+				factionCoresToMigrate.Add (faction);
 			}
 		}
 
 		foreach (Faction faction in factionCoresToMigrate) {
 
 			faction.SetCoreGroup (TargetGroup);
+
+			World.AddFactionToUpdate (faction);
 		}
 	}
 

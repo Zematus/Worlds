@@ -67,6 +67,7 @@ public static class RngOffsets {
 	public const int PLANT_CULTIVATION_DISCOVERY_EVENT_CALCULATE_TRIGGER_DATE = 900005;
 	public const int CLAN_SPLITTING_EVENT_CALCULATE_TRIGGER_DATE = 900006;
 	public const int TRIBE_SPLITTING_EVENT_CALCULATE_TRIGGER_DATE = 900007;
+	public const int CLAN_CORE_MIGRATION_EVENT_CALCULATE_TRIGGER_DATE = 900008;
 
 	public const int EVENT_TRIGGER = 1000000;
 	public const int EVENT_CAN_TRIGGER = 1100000;
@@ -159,7 +160,8 @@ public class World : ISynchronizable {
 		XmlArrayItem (Type = typeof(TribalismDiscoveryEvent)),
 		XmlArrayItem (Type = typeof(PlantCultivationDiscoveryEvent)),
 		XmlArrayItem (Type = typeof(ClanSplitEvent)),
-		XmlArrayItem (Type = typeof(TribeSplitEvent))]
+		XmlArrayItem (Type = typeof(TribeSplitEvent)),
+		XmlArrayItem (Type = typeof(ClanCoreMigrationEvent))]
 	public List<WorldEvent> EventsToHappen;
 
 	public List<TerrainCellChanges> TerrainCellChangesList = new List<TerrainCellChanges> ();
@@ -240,8 +242,6 @@ public class World : ISynchronizable {
 	[XmlIgnore]
 	public HumanGroup MigrationTaggedGroup = null;
 
-	private Dictionary<long, Faction> _factions = new Dictionary<long, Faction> ();
-
 	private BinaryTree<int, WorldEvent> _eventsToHappen = new BinaryTree<int, WorldEvent> ();
 	
 //	private List<IGroupAction> _groupActionsToPerform = new List<IGroupAction> ();
@@ -261,6 +261,10 @@ public class World : ISynchronizable {
 	private HashSet<CellGroup> _groupsToRemove = new HashSet<CellGroup>();
 
 	private List<MigratingGroup> _migratingGroups = new List<MigratingGroup> ();
+
+	private Dictionary<long, Faction> _factions = new Dictionary<long, Faction> ();
+
+	private HashSet<Faction> _factionsToUpdate = new HashSet<Faction>();
 
 	private Dictionary<long, Polity> _polities = new Dictionary<long, Polity> ();
 
@@ -788,6 +792,17 @@ public class World : ISynchronizable {
 		_updatedGroups.Clear ();
 
 		//
+		// Update Factions
+		//
+
+		foreach (Faction faction in _factionsToUpdate) {
+
+			faction.Update ();
+		}
+
+		 _factionsToUpdate.Clear ();
+
+		//
 		// Update Polities
 		//
 
@@ -1032,6 +1047,11 @@ public class World : ISynchronizable {
 	public bool ContainsFaction (long id) {
 
 		return _factions.ContainsKey (id);
+	}
+
+	public void AddFactionToUpdate (Faction faction) {
+
+		_factionsToUpdate.Add (faction);
 	}
 
 	public void AddPolity (Polity polity) {

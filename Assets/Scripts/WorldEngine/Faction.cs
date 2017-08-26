@@ -6,8 +6,6 @@ using System.Xml.Serialization;
 
 public abstract class Faction : ISynchronizable {
 
-	public const float NoCoreMigrationFactor = 0.0f;
-
 	[XmlAttribute("Type")]
 	public string Type;
 
@@ -93,6 +91,8 @@ public abstract class Faction : ISynchronizable {
 		}
 
 		UpdateInternal ();
+
+		World.AddPolityToUpdate (Polity);
 	}
 
 	public void SetCoreGroup (CellGroup coreGroup) {
@@ -186,6 +186,16 @@ public abstract class Faction : ISynchronizable {
 		Prominence = targetProminence;
 
 		targetPolity.AddFaction (this);
+	}
+
+	public virtual bool ShouldMigrateFactionCore (CellGroup sourceGroup, CellGroup targetGroup) {
+
+		return false;
+	}
+
+	public virtual bool ShouldMigrateFactionCore (CellGroup sourceGroup, TerrainCell targetCell, float targetInfluence, int targetPopulation) {
+
+		return false;
 	}
 }
 

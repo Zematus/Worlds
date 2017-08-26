@@ -6,6 +6,8 @@ using System.Xml.Serialization;
 
 public class Clan : Faction {
 
+	public const float NoCoreMigrationFactor = 0.0f;
+
 	public const string ClanType = "Clan";
 
 	[XmlAttribute("SpltDate")]
@@ -137,6 +139,45 @@ public class Clan : Faction {
 		}
 
 		Name = new Name (namePhrase, untranslatedName, language, World);
+	}
+
+	public override bool ShouldMigrateFactionCore (CellGroup sourceGroup, CellGroup targetGroup) {
+
+		PolityInfluence piTarget = targetGroup.GetPolityInfluence (Polity);
+
+		if (piTarget != null) {
+			int targetGroupPopulation = targetGroup.Population;
+			float targetGroupInfluence = piTarget.Value;
+
+			return ShouldMigrateFactionCore (sourceGroup, targetGroup.Cell, targetGroupInfluence, targetGroupPopulation);
+		}
+
+		return false;
+	}
+
+	public override bool ShouldMigrateFactionCore (CellGroup sourceGroup, TerrainCell targetCell, float targetInfluence, int targetPopulation) {
+
+		int sourcePopulation = sourceGroup.Population;
+
+		PolityInfluence pi = sourceGroup.GetPolityInfluence (Polity);
+
+		if (pi == null) {
+			Debug.LogError ("Unable to find Polity with Id: " + Polity.Id);
+		}
+
+		float sourceGroupInfluence = pi.Value;
+
+		float influenceFactor = sourceGroupInfluence / (sourceGroupInfluence + targetInfluence);
+		float populationFactor = sourcePopulation / (sourcePopulation + targetPopulation);
+
+		float migrateCoreFactor = Clan.NoCoreMigrationFactor + (influenceFactor * populationFactor) * (1 - Clan.NoCoreMigrationFactor);
+
+		float randomValue = sourceGroup.GetNextLocalRandomFloat (RngOffsets.MIGRATING_GROUP_MOVE_FACTION_CORE + (int)Id);
+
+		if (randomValue >= migrateCoreFactor)
+			return true;
+
+		return false;
 	}
 }
 
@@ -279,6 +320,9 @@ public class ClanSplitEvent : FactionEvent {
 
 		polity.AddFaction (newClan);
 
+		World.AddFactionToUpdate (Faction);
+		World.AddFactionToUpdate (newClan);
+
 		World.AddPolityToUpdate (polity);
 
 		polity.AddEventMessage (new ClanSplitEventMessage (Faction, newClan, TriggerDate));
@@ -291,6 +335,115 @@ public class ClanSplitEvent : FactionEvent {
 //		if (Faction != null) {
 //			Faction.UnsetFlag (EventSetFlag);
 //		}
+
+		if ((Faction != null) && (Faction.StillPresent)) {
+
+			Clan clan = Faction as Clan;
+
+			if (CanBeAssignedTo (clan)) {
+
+				clan.ClanSplitEvent = this;
+
+				clan.ClanSplitEventDate = CalculateTriggerDate (clan);
+
+				Reset (clan.ClanSplitEventDate);
+
+				World.InsertEventToHappen (this);
+			}
+		}
+	}
+
+	public override void FinalizeLoad () {
+
+		base.FinalizeLoad ();
+
+		Clan clan = Faction as Clan;
+
+		clan.ClanSplitEvent = this;
+	}
+}
+
+public class ClanCoreMigrationEvent : FactionEvent {
+
+	[XmlAttribute]
+	public long TargetGroupId;
+
+	[XmlIgnore]
+	public CellGroup TargetGroup;
+
+	public const int DateSpanFactorConstant = CellGroup.GenerationTime * 200;
+
+	//	public const string EventSetFlag = "ClanSplitEvent_Set";
+
+	public ClanCoreMigrationEvent () {
+
+		DoNotSerialize = true;
+	}
+
+	public ClanCoreMigrationEvent (Clan clan, CellGroup targetGroup, int triggerDate) : base (clan, triggerDate, ClanCoreMigrationEventId) {
+
+		TargetGroup = targetGroup;
+
+		TargetGroupId = TargetGroup.Id;
+
+		//		clan.SetFlag (EventSetFlag);
+
+		DoNotSerialize = true;
+	}
+
+	public static int CalculateTriggerDate (Clan clan) {
+
+		float randomFactor = clan.GetNextLocalRandomFloat (RngOffsets.CLAN_CORE_MIGRATION_EVENT_CALCULATE_TRIGGER_DATE);
+		randomFactor = Mathf.Pow (randomFactor, 2);
+
+		float dateSpan = (1 - randomFactor) * DateSpanFactorConstant;
+
+		int targetDate = (int)(clan.World.CurrentDate + dateSpan);
+
+		if (targetDate <= clan.World.CurrentDate)
+			targetDate = int.MinValue;
+
+		return targetDate;
+	}
+
+	public static bool CanBeAssignedTo (Clan clan) {
+
+		//		if (clan.IsFlagSet (EventSetFlag))
+		//			return false;
+
+		return true;
+	}
+
+	public override bool CanTrigger () {
+
+		if (!base.CanTrigger ())
+			return false;
+
+		#if DEBUG
+		if (Faction.Polity.Territory.IsSelected) {
+			bool debug = true;
+		}
+		#endif
+
+		return Faction.ShouldMigrateFactionCore (Faction.CoreGroup, TargetGroup);
+	}
+
+	public override void Trigger () {
+
+		Faction.SetCoreGroup (TargetGroup);
+
+		World.AddFactionToUpdate (Faction);
+
+		World.AddPolityToUpdate (Faction.Polity);
+	}
+
+	protected override void DestroyInternal () {
+
+		base.DestroyInternal ();
+
+		//		if (Faction != null) {
+		//			Faction.UnsetFlag (EventSetFlag);
+		//		}
 
 		if ((Faction != null) && (Faction.StillPresent)) {
 
