@@ -6,6 +6,8 @@ using System.Xml.Serialization;
 
 public abstract class Faction : ISynchronizable {
 
+	public const float NoCoreMigrationFactor = 0.0f;
+
 	[XmlAttribute("Type")]
 	public string Type;
 

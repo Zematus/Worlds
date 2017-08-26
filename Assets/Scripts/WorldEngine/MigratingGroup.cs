@@ -117,22 +117,32 @@ public class MigratingGroup : HumanGroup {
 			targetNewPopulation += targetPopulation;
 		}
 
-		int sumPopulation = sourcePopulation + targetNewPopulation;
-
 		foreach (Faction faction in SourceGroup.GetFactionCores ()) {
 
-			float sourceGroupInfluence = SourceGroup.GetPolityInfluence (faction.Polity).Value;
+			PolityInfluence pi = SourceGroup.GetPolityInfluence (faction.Polity);
+
+			if (pi == null) {
+				Debug.LogError ("Unable to find Polity with Id: " + faction.Polity.Id);
+			}
+
+			float sourceGroupInfluence = pi.Value;
 			float targetGroupInfluence = 1f;
 
 			if (targetGroup != null) {
 				PolityInfluence piTarget = targetGroup.GetPolityInfluence (faction.Polity);
+
 				if (piTarget != null)
 					targetGroupInfluence = piTarget.Value;
+				else 
+					targetGroupInfluence = 0f;
 			}
 
 			float targetNewGroupInfluence = ((sourceGroupInfluence * Population) + (targetGroupInfluence * targetPopulation)) / targetNewPopulation;
 
-			float migrateCoreFactor = ((sourceGroupInfluence * sourcePopulation) + (targetNewGroupInfluence * targetNewPopulation)) / sumPopulation;
+			float influenceFactor = sourceGroupInfluence / (sourceGroupInfluence + targetNewGroupInfluence);
+			float populationFactor = sourcePopulation / (sourcePopulation + targetNewPopulation);
+
+			float migrateCoreFactor = Faction.NoCoreMigrationFactor + (influenceFactor * populationFactor) * (1 - Faction.NoCoreMigrationFactor);
 
 			float randomValue = SourceGroup.GetNextLocalRandomFloat (RngOffsets.MIGRATING_GROUP_MOVE_FACTION_CORE + (int)faction.Id);
 

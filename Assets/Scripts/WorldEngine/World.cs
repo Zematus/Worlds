@@ -72,6 +72,7 @@ public static class RngOffsets {
 	public const int EVENT_CAN_TRIGGER = 1100000;
 
 	public const int MIGRATING_GROUP_MOVE_FACTION_CORE = 2000000;
+	public const int EXPAND_POLITY_MOVE_FACTION_CORE = 2100000;
 }
 
 [XmlRoot]
