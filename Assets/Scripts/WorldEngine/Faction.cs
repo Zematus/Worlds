@@ -40,6 +40,9 @@ public abstract class Faction : ISynchronizable {
 	[XmlIgnore]
 	public CellGroup CoreGroup;
 
+	[XmlIgnore]
+	public bool CoreGroupUpdated = false;
+
 	private HashSet<string> _flags = new HashSet<string> ();
 
 	public Faction () {
@@ -111,6 +114,8 @@ public abstract class Faction : ISynchronizable {
 		CoreGroupId = coreGroup.Id;
 
 		CoreGroup.AddFactionCore (this);
+
+		CoreGroupUpdated = true;
 	}
 
 	protected abstract void UpdateInternal ();
@@ -145,7 +150,12 @@ public abstract class Faction : ISynchronizable {
 
 	public float GetNextLocalRandomFloat (int iterationOffset) {
 
-		return Polity.GetNextLocalRandomFloat (iterationOffset + (int)Id);
+		return CoreGroup.GetNextLocalRandomFloat (iterationOffset + (int)Id);
+	}
+
+	public int GetNextLocalRandomInt (int iterationOffset, int maxValue) {
+
+		return CoreGroup.GetNextLocalRandomInt (iterationOffset + (int)Id, maxValue);
 	}
 
 	public void SetFlag (string flag) {

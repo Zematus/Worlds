@@ -13,8 +13,14 @@ public class Clan : Faction {
 	[XmlAttribute("SpltDate")]
 	public int ClanSplitEventDate;
 
+	[XmlAttribute("CoreMigDate")]
+	public int ClanCoreMigrationEventDate;
+
 	[XmlIgnore]
 	public ClanSplitEvent ClanSplitEvent;
+
+	[XmlIgnore]
+	public ClanCoreMigrationEvent ClanCoreMigrationEvent;
 
 	public Clan () {
 
@@ -29,6 +35,17 @@ public class Clan : Faction {
 			ClanSplitEvent = new ClanSplitEvent (this, ClanSplitEventDate);
 
 			World.InsertEventToHappen (ClanSplitEvent);
+		}
+
+		if (ClanCoreMigrationEvent.CanBeAssignedTo (this)) {
+
+			ClanCoreMigrationEventDate = ClanCoreMigrationEvent.CalculateTriggerDate (this);
+
+			CellGroup targetGroup = GetCoreGroupMigrationTarget ();
+			
+			ClanCoreMigrationEvent = new ClanCoreMigrationEvent (this, targetGroup, ClanCoreMigrationEventDate);
+
+			World.InsertEventToHappen (ClanCoreMigrationEvent);
 		}
 
 		string logMessage = "New clan '" + Name + "' spawned in Polity '" + Polity.Name + "'";
@@ -46,6 +63,13 @@ public class Clan : Faction {
 		}
 	}
 
+	public CellGroup GetCoreGroupMigrationTarget () {
+
+		int targetGroupIndex = GetNextLocalRandomInt (RngOffsets.CLAN_CHOOSE_TARGET_GROUP, TerrainCell.MaxNeighborDirections);
+
+		return CoreGroup.GetNeighborGroup (targetGroupIndex);
+	}
+
 	public override void FinalizeLoad () {
 	
 		base.FinalizeLoad ();
@@ -59,7 +83,17 @@ public class Clan : Faction {
 	}
 
 	protected override void UpdateInternal () {
-		
+
+		if (CoreGroupUpdated) {
+
+			ClanCoreMigrationEventDate = ClanCoreMigrationEvent.CalculateTriggerDate (this);
+
+			CellGroup targetGroup = GetCoreGroupMigrationTarget ();
+
+			ClanCoreMigrationEvent.Reset (targetGroup, ClanCoreMigrationEventDate);
+
+			CoreGroupUpdated = false;
+		}
 	}
 
 	protected override void GenerateName (Faction parentFaction) {
@@ -445,29 +479,42 @@ public class ClanCoreMigrationEvent : FactionEvent {
 		//			Faction.UnsetFlag (EventSetFlag);
 		//		}
 
-		if ((Faction != null) && (Faction.StillPresent)) {
-
-			Clan clan = Faction as Clan;
-
-			if (CanBeAssignedTo (clan)) {
-
-				clan.ClanSplitEvent = this;
-
-				clan.ClanSplitEventDate = CalculateTriggerDate (clan);
-
-				Reset (clan.ClanSplitEventDate);
-
-				World.InsertEventToHappen (this);
-			}
-		}
+//		if ((Faction != null) && (Faction.StillPresent)) {
+//
+//			Clan clan = Faction as Clan;
+//
+//			if (CanBeAssignedTo (clan)) {
+//
+//				clan.ClanCoreMigrationEvent = this;
+//
+//				clan.ClanCoreMigrationEventDate = CalculateTriggerDate (clan);
+//
+//				CellGroup targetGroup = clan.GetCoreGroupMigrationTarget ();
+//
+//				Reset (targetGroup, clan.ClanCoreMigrationEventDate);
+//
+//				World.InsertEventToHappen (this);
+//			}
+//		}
 	}
 
 	public override void FinalizeLoad () {
 
 		base.FinalizeLoad ();
 
+		TargetGroup = World.GetGroup (TargetGroupId);
+
 		Clan clan = Faction as Clan;
 
-		clan.ClanSplitEvent = this;
+		clan.ClanCoreMigrationEvent = this;
+	}
+
+	public virtual void Reset (CellGroup targetGroup, int newTriggerDate) {
+
+		TargetGroup = targetGroup;
+
+		TargetGroupId = TargetGroup.Id;
+
+		Reset (newTriggerDate);
 	}
 }

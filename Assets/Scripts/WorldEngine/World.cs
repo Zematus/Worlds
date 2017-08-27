@@ -54,6 +54,7 @@ public static class RngOffsets {
 
 	public const int CLAN_GENERATE_NAME = 80000;
 	public const int CLAN_CHOOSE_CORE_GROUP = 81000;
+	public const int CLAN_CHOOSE_TARGET_GROUP = 82000;
 
 	public const int ROUTE_CHOOSE_NEXT_DEPTH_SEA_CELL = 100000;
 	public const int ROUTE_CHOOSE_NEXT_COASTAL_CELL = 110000;

@@ -1286,7 +1286,7 @@ public class CellGroup : HumanGroup {
 		MigrationTargetLatitude = targetCell.Latitude;
 	}
 
-	private CellGroup GetNeighborGroup (int index) {
+	public CellGroup GetNeighborGroup (int index) {
 
 		CellGroup group = null;
 
