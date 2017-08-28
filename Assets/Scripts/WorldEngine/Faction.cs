@@ -115,6 +115,10 @@ public abstract class Faction : ISynchronizable {
 
 		CoreGroup.AddFactionCore (this);
 
+		if (IsDominant) {
+			Polity.SetCoreGroup (CoreGroup);
+		}
+
 		CoreGroupUpdated = true;
 	}
 
@@ -145,7 +149,7 @@ public abstract class Faction : ISynchronizable {
 
 	public long GenerateUniqueIdentifier (long oom = 1, long offset = 0) {
 
-		return Polity.GenerateUniqueIdentifier (oom, offset);
+		return CoreGroup.GenerateUniqueIdentifier (oom, offset);
 	}
 
 	public float GetNextLocalRandomFloat (int iterationOffset) {
@@ -267,7 +271,7 @@ public abstract class FactionEvent : WorldEvent {
 
 	public static long GenerateUniqueIdentifier (Faction faction, int triggerDate, long eventTypeId) {
 
-		CellGroup coreGroup = faction.Polity.CoreGroup;
+		CellGroup coreGroup = faction.CoreGroup;
 
 		return ((long)triggerDate * 100000000000) + ((long)coreGroup.Longitude * 100000000) + ((long)coreGroup.Latitude * 100000) + (eventTypeId * 1000) + faction.Id;
 	}

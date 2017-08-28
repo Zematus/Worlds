@@ -84,7 +84,7 @@ public class Clan : Faction {
 
 	protected override void UpdateInternal () {
 
-		if (CoreGroupUpdated) {
+		if (CoreGroupUpdated || ClanCoreMigrationEvent.FailedToTrigger) {
 
 			ClanCoreMigrationEventDate = ClanCoreMigrationEvent.CalculateTriggerDate (this);
 
@@ -107,7 +107,7 @@ public class Clan : Faction {
 		Language.GetRandomFloatDelegate getRandomFloat = () => Polity.GetNextLocalRandomFloat (rngOffset++);
 
 		Language language = Polity.Culture.Language;
-		Region region = Polity.CoreGroup.Cell.Region;
+		Region region = CoreGroup.Cell.Region;
 
 		string untranslatedName = "";
 		Language.NounPhrase namePhrase = null;
@@ -201,10 +201,17 @@ public class Clan : Faction {
 
 		float sourceGroupInfluence = pi.Value;
 
-		float influenceFactor = sourceGroupInfluence / (sourceGroupInfluence + targetInfluence);
-		float populationFactor = sourcePopulation / (sourcePopulation + targetPopulation);
+		float sourceInfluenceFactor = sourceGroupInfluence / (sourceGroupInfluence + targetInfluence);
+		float sourcePopulationFactor = sourcePopulation / (sourcePopulation + targetPopulation);
+		float sourceFactor = sourceInfluenceFactor * sourcePopulationFactor;
 
-		float migrateCoreFactor = Clan.NoCoreMigrationFactor + (influenceFactor * populationFactor) * (1 - Clan.NoCoreMigrationFactor);
+//		float targetInfluenceFactor = targetInfluence / (sourceGroupInfluence + targetInfluence);
+//		float targetPopulationFactor = targetPopulation / (sourcePopulation + targetPopulation);
+//		float targetFactor = targetInfluenceFactor * targetPopulationFactor;
+//
+//		float combinedFactor = 1f - (sourceFactor * targetFactor);
+
+		float migrateCoreFactor = Clan.NoCoreMigrationFactor + sourceFactor * (1 - Clan.NoCoreMigrationFactor);
 
 		float randomValue = sourceGroup.GetNextLocalRandomFloat (RngOffsets.MIGRATING_GROUP_MOVE_FACTION_CORE + (int)Id);
 

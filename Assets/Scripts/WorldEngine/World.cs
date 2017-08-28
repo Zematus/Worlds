@@ -687,9 +687,10 @@ public class World : ISynchronizable {
 
 			Profiler.BeginSample ("Event Trigger");
 
-			if (eventToHappen.CanTrigger ())
-			{
+			if (eventToHappen.CanTrigger ()) {
 				eventToHappen.Trigger ();
+			} else {
+				eventToHappen.FailedToTrigger = true;
 			}
 
 			Profiler.EndSample ();

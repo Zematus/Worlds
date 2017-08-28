@@ -6,6 +6,7 @@ using System.Xml.Serialization;
 using UnityEngine.Profiling;
 
 public delegate float GroupValueCalculationDelegate (CellGroup group);
+public delegate float FactionValueCalculationDelegate (Faction faction);
 
 public class PolityInfluence {
 
@@ -114,6 +115,19 @@ public abstract class Polity : ISynchronizable {
 	[XmlIgnore]
 	public CellGroup CoreGroup;
 
+//	[XmlIgnore]
+//	public CellGroup CoreGroup {
+//		get { 
+//
+//			if (DominantFaction == null) {
+//			
+//				Debug.LogError ("DominantFaction is null");
+//			}
+//
+//			return DominantFaction.CoreGroup;
+//		}
+//	}
+
 	[XmlIgnore]
 	public Faction DominantFaction;
 
@@ -133,6 +147,13 @@ public abstract class Polity : ISynchronizable {
 		}
 	}
 
+	protected class WeightedFaction : CollectionUtility.ElementWeightPair<Faction> {
+
+		public WeightedFaction (Faction faction, float weight) : base (faction, weight) {
+
+		}
+	}
+
 	private Dictionary<long, WeightedGroup> _influencedPopPerGroup = new Dictionary<long, WeightedGroup> ();
 
 	private Dictionary<long, Faction> _factions = new Dictionary<long, Faction> ();
@@ -143,7 +164,7 @@ public abstract class Polity : ISynchronizable {
 	private bool _populationCensusUpdated = false;
 	#endif
 
-	private bool _coreGroupIsValid = true;
+//	private bool _coreGroupIsValid = true;
 
 	private HashSet<long> _eventMessageIds = new HashSet<long> ();
 
@@ -244,7 +265,7 @@ public abstract class Polity : ISynchronizable {
 		CoreGroup = coreGroup;
 		CoreGroupId = coreGroup.Id;
 
-		_coreGroupIsValid = true;
+//		_coreGroupIsValid = true;
 	}
 
 	public long GenerateUniqueIdentifier (long oom = 1, long offset = 0) {
@@ -319,6 +340,8 @@ public abstract class Polity : ISynchronizable {
 		DominantFactionId = faction.Id;
 
 		faction.SetDominant (true);
+
+		SetCoreGroup (faction.CoreGroup);
 	}
 
 	public IEnumerable<Faction> GetFactions () {
@@ -397,22 +420,22 @@ public abstract class Polity : ISynchronizable {
 	
 		Culture.Update ();
 
-		if (!_coreGroupIsValid) {
-
-			if (!TryRelocateCore ()) {
-
-				// We were unable to find a new core for the polity
-				World.AddPolityToRemove (this);
-
-				#if DEBUG
-				_populationCensusUpdated = false;
-				#endif
-
-				return;
-			}
-
-			_coreGroupIsValid = true;
-		}
+//		if (!_coreGroupIsValid) {
+//
+//			if (!TryRelocateCore ()) {
+//
+//				// We were unable to find a new core for the polity
+//				World.AddPolityToRemove (this);
+//
+//				#if DEBUG
+//				_populationCensusUpdated = false;
+//				#endif
+//
+//				return;
+//			}
+//
+//			_coreGroupIsValid = true;
+//		}
 
 		#if DEBUG
 		_populationCensusUpdated = false;
@@ -472,8 +495,10 @@ public abstract class Polity : ISynchronizable {
 		InfluencedGroups.Remove (group.Id);
 
 		if (group == CoreGroup) {
+			
+			Debug.LogError ("CoreGroup is invalid");
 
-			_coreGroupIsValid = false;
+//			_coreGroupIsValid = false;
 		}
 	}
 
@@ -724,20 +749,20 @@ public abstract class Polity : ISynchronizable {
 		}
 	}
 
-	// TODO: This function should be overriden in children
-	public virtual bool TryRelocateCore () {
-
-		CellGroup mostInfluencedPopGroup = GetGroupWithMostInfluencedPop ();
-
-		if (mostInfluencedPopGroup == null) {
-
-			return false;
-		}
-
-		SetCoreGroup (mostInfluencedPopGroup);
-
-		return true;
-	}
+//	// TODO: This function should be overriden in children
+//	public virtual bool TryRelocateCore () {
+//
+//		CellGroup mostInfluencedPopGroup = GetGroupWithMostInfluencedPop ();
+//
+//		if (mostInfluencedPopGroup == null) {
+//
+//			return false;
+//		}
+//
+//		SetCoreGroup (mostInfluencedPopGroup);
+//
+//		return true;
+//	}
 
 	public void UpdateTotalAdministrativeCost () {
 
@@ -787,6 +812,39 @@ public abstract class Polity : ISynchronizable {
 		}
 
 		return CollectionUtility.WeightedSelection (weightedGroups, totalWeight, () => GetNextLocalRandomFloat (rngOffset));
+	}
+
+	public Faction GetRandomFaction (int rngOffset, FactionValueCalculationDelegate calculateFactionValue, bool nullIfNoValidFaction = false) {
+
+		WeightedFaction[] weightedFactions = new WeightedFaction[_factions.Count];
+
+		float totalWeight = 0;
+
+		int index = 0;
+		foreach (Faction faction in _factions.Values) {
+
+			float weight = calculateFactionValue (faction);
+
+			if (weight < 0)
+				throw new System.Exception ("calculateFactionValue method returned weight value less than zero: " + weight);
+
+			totalWeight += weight;
+
+			weightedFactions [index] = new WeightedFaction (faction, weight);
+			index++;
+		}
+
+		if (totalWeight < 0) {
+
+			throw new System.Exception ("Total weight can't be less than zero: " + totalWeight);
+		}
+
+		if ((totalWeight == 0) && nullIfNoValidFaction) {
+
+			return null;
+		}
+
+		return CollectionUtility.WeightedSelection (weightedFactions, totalWeight, () => GetNextLocalRandomFloat (rngOffset));
 	}
 
 	protected abstract void GenerateName ();

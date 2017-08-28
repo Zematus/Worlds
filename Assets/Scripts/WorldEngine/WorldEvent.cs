@@ -164,6 +164,9 @@ public abstract class WorldEvent : ISynchronizable {
 
 	[XmlIgnore]
 	public bool DoNotSerialize = false;
+
+	[XmlIgnore]
+	public bool FailedToTrigger = false;
 	
 	[XmlAttribute]
 	public int TriggerDate;
@@ -246,6 +249,8 @@ public abstract class WorldEvent : ISynchronizable {
 
 		TriggerDate = newTriggerDate;
 		Id = newId;
+
+		FailedToTrigger = false;
 	}
 }
 
