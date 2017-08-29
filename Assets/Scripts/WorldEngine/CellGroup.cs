@@ -72,6 +72,9 @@ public class CellGroup : HumanGroup {
 	[XmlAttribute]
 	public long Id;
 
+	[XmlAttribute("PrefMigDir")]
+	public int PreferredMigrationDirection;
+
 	[XmlAttribute("PrevExPop")]
 	public float PreviousExactPopulation;
 	
@@ -256,7 +259,7 @@ public class CellGroup : HumanGroup {
 		}
 	}
 
-	public CellGroup (World world, TerrainCell cell, int initialPopulation, Culture baseCulture = null) : base(world) {
+	public CellGroup (World world, TerrainCell cell, int initialPopulation, Culture baseCulture = null, int migrationDirection = -1) : base(world) {
 
 		InitDate = World.CurrentDate;
 
@@ -270,6 +273,12 @@ public class CellGroup : HumanGroup {
 		Cell.Group = this;
 
 		Id = Cell.GenerateUniqueIdentifier ();
+
+		if (migrationDirection == -1) {
+			PreferredMigrationDirection = Cell.GetNextLocalRandomInt (RngOffsets.CELL_GROUP_INITIAL_MIGRATION_DIRECTION, TerrainCell.MaxNeighborDirections);
+		} else {
+			PreferredMigrationDirection = migrationDirection;
+		}
 
 		#if DEBUG
 		if (Longitude > 1000) {

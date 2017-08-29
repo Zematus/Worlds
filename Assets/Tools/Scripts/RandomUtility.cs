@@ -25,9 +25,12 @@ public static class RandomUtility {
 		}
 	}
 
-	public delegate int RngDelegate (int seed, int offset, int maxValue);
+	public delegate int RngOffsetIntDelegate (int seed, int offset, int maxValue);
 
-	public static int RandomRound (int targetVal, int minVal, int maxVal, int minRound, RngDelegate rngDelegate, int offset = 0) {
+	// must return a value between 0 and 1
+	public delegate float RngFloatDelegate (int offset);
+
+	public static int RandomRound (int targetVal, int minVal, int maxVal, int minRound, RngOffsetIntDelegate rngDelegate, int offset = 0) {
 
 		int currentMaxVal = maxVal;
 		int currentMinVal = minVal;
@@ -51,5 +54,30 @@ public static class RandomUtility {
 				currentMaxVal = splitVal;
 			}
 		}
+	}
+
+	public static float QuasiNormalDistribution (float x) {
+
+		float val1 = 2f * ((x > 0.5) ? 1f - x : x);
+
+		return val1 * val1;
+	}
+
+	public static int QuasiNormalDistribution (float x, int maxValue) {
+	
+		float y = QuasiNormalDistribution (x);
+
+		return (int)(y * maxValue);
+	}
+
+	public static int NoOffsetRange (float x, float cutBelow = 0.25f, float cutAbove = 0.75f) {
+
+		if (x < cutBelow)
+			return -1;
+	
+		if (x > cutAbove)
+			return 1;
+
+		return 0;
 	}
 }

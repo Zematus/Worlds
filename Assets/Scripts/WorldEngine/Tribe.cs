@@ -547,7 +547,7 @@ public class TribeSplitEvent : PolityEvent {
 
 	public override void Trigger () {
 
-		int rngOffset = RngOffsets.EVENT_TRIGGER + (int)Id;
+//		int rngOffset = RngOffsets.EVENT_TRIGGER + (int)Id;
 
 //		float targetProminence = MinTargetProminence + ((MaxTargetProminence - MinTargetProminence) * Polity.GetNextLocalRandomFloat (rngOffset++));
 //

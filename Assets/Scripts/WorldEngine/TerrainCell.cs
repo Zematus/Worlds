@@ -9,6 +9,7 @@ public delegate float GetRandomFloatDelegate ();
 
 public enum Direction {
 
+	Null = -1,
 	North = 0,
 	Northeast = 1,
 	East = 2,
@@ -229,6 +230,19 @@ public class TerrainCell : ISynchronizable {
 	public static Direction ReverseDirection (Direction dir) {
 
 		return (Direction)(((int)dir + 4) % 8);
+	}
+
+	public Direction GetDirection (TerrainCell targetCell) {
+
+		foreach (KeyValuePair<Direction, TerrainCell> pair in Neighbors) {
+
+			if (pair.Value = targetCell) {
+			
+				return pair.Key;
+			}
+		}
+
+		return Direction.Null;
 	}
 
 	public long GenerateUniqueIdentifier (long oom = 1, long offset = 0) {

@@ -29,6 +29,8 @@ public static class RngOffsets {
 	public const int CELL_GROUP_CONSIDER_POLITY_INFLUENCE_EXPANSION_TARGET = 6;
 	public const int CELL_GROUP_CONSIDER_POLITY_INFLUENCE_EXPANSION_CHANCE = 7;
 
+	public const int CELL_GROUP_INITIAL_MIGRATION_DIRECTION = 8;
+
 	public const int ACTIVITY_UPDATE = 10000;
 	public const int ACTIVITY_POLITY_INFLUENCE = 10001;
 
