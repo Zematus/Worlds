@@ -56,18 +56,19 @@ public static class RandomUtility {
 		}
 	}
 
-	public static float QuasiNormalDistribution (float x) {
+	// Expects a value between -1f and 1f and returns a value between -1f and 1f
+	public static float ArctanDistribution (float x, float factor) {
 
-		float val1 = 2f * ((x > 0.5) ? 1f - x : x);
-
-		return val1 * val1;
+		return 2f * Mathf.Atan (factor * x) / Mathf.PI;
 	}
 
-	public static int QuasiNormalDistribution (float x, int maxValue) {
-	
-		float y = QuasiNormalDistribution (x);
+	public static float PseudoNormalRepeatDistribution (float x, float rho, float center, float maxVal) {
 
-		return (int)(y * maxValue);
+		float aVal = ArctanDistribution (x, 1f / rho);
+
+		float val2 = (maxVal / 2f) * (1f + aVal);
+
+		return Mathf.Repeat (center + val2, maxVal); 
 	}
 
 	public static int NoOffsetRange (float x, float cutBelow = 0.25f, float cutAbove = 0.75f) {

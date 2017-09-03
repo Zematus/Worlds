@@ -73,7 +73,7 @@ public class CellGroup : HumanGroup {
 	public long Id;
 
 	[XmlAttribute("PrefMigDir")]
-	public int PreferredMigrationDirection;
+	public int PreferredMigrationDirectionInt;
 
 	[XmlAttribute("PrevExPop")]
 	public float PreviousExactPopulation;
@@ -130,6 +130,8 @@ public class CellGroup : HumanGroup {
 	public int MigrationTargetLongitude;
 	[XmlAttribute("MigLat")]
 	public int MigrationTargetLatitude;
+	[XmlAttribute("MigEvDir")]
+	public int MigrationEventDirectionInt;
 
 	[XmlAttribute("HasExpEv")]
 	public bool HasPolityExpansionEvent = false;
@@ -173,6 +175,9 @@ public class CellGroup : HumanGroup {
 			TotalPolityInfluenceValueFloat = MathUtility.RoundToSixDecimals (Mathf.Clamp01 (value));
 		}
 	}
+
+	[XmlIgnore]
+	public Direction PreferredMigrationDirection;
 
 	[XmlIgnore]
 	public Dictionary<long, Faction> FactionCores = new Dictionary<long, Faction> ();
@@ -247,7 +252,7 @@ public class CellGroup : HumanGroup {
 		Manager.UpdateWorldLoadTrackEventCount ();
 	}
 	
-	public CellGroup (MigratingGroup migratingGroup, int splitPopulation) : this (migratingGroup.World, migratingGroup.TargetCell, splitPopulation, migratingGroup.Culture) {
+	public CellGroup (MigratingGroup migratingGroup, int splitPopulation) : this (migratingGroup.World, migratingGroup.TargetCell, splitPopulation, migratingGroup.Culture, migratingGroup.MigrationDirection) {
 
 		foreach (PolityInfluence p in migratingGroup.PolityInfluences) {
 
@@ -259,7 +264,7 @@ public class CellGroup : HumanGroup {
 		}
 	}
 
-	public CellGroup (World world, TerrainCell cell, int initialPopulation, Culture baseCulture = null, int migrationDirection = -1) : base(world) {
+	public CellGroup (World world, TerrainCell cell, int initialPopulation, Culture baseCulture = null, Direction migrationDirection = Direction.Null) : base(world) {
 
 		InitDate = World.CurrentDate;
 
@@ -274,8 +279,11 @@ public class CellGroup : HumanGroup {
 
 		Id = Cell.GenerateUniqueIdentifier ();
 
-		if (migrationDirection == -1) {
-			PreferredMigrationDirection = Cell.GetNextLocalRandomInt (RngOffsets.CELL_GROUP_INITIAL_MIGRATION_DIRECTION, TerrainCell.MaxNeighborDirections);
+		if (migrationDirection == Direction.Null) {
+			int offset = Cell.GetNextLocalRandomInt (RngOffsets.CELL_GROUP_UPDATE_MIGRATION_DIRECTION, TerrainCell.MaxNeighborDirections);
+
+			PreferredMigrationDirection = Cell.TryGetNeighborDirection (offset);
+
 		} else {
 			PreferredMigrationDirection = migrationDirection;
 		}
@@ -338,6 +346,22 @@ public class CellGroup : HumanGroup {
 		InitializeDefaultEvents ();
 
 		World.AddUpdatedGroup (this);
+	}
+
+	public void UpdatePreferredMigrationDirection () {
+	
+		int dir = ((int)PreferredMigrationDirection) + RandomUtility.NoOffsetRange (Cell.GetNextLocalRandomFloat (RngOffsets.CELL_GROUP_UPDATE_MIGRATION_DIRECTION));
+
+		PreferredMigrationDirection = Cell.TryGetNeighborDirection (dir);
+	}
+
+	public Direction GenerateMigrationDirection () {
+
+		int dir = (int)PreferredMigrationDirection;
+
+		float fDir = RandomUtility.PseudoNormalRepeatDistribution (Cell.GetNextLocalRandomFloat (RngOffsets.CELL_GROUP_GENERATE_MIGRATION_DIRECTION), 0.05f, dir, TerrainCell.MaxNeighborDirections);
+
+		return Cell.TryGetNeighborDirection ((int)fDir);
 	}
 
 	public void AddFactionCore (Faction faction) {
@@ -1034,6 +1058,9 @@ public class CellGroup : HumanGroup {
 		if (SeaMigrationRoute.LastCell == SeaMigrationRoute.FirstCell)
 			invalidRoute = true;
 
+		if (SeaMigrationRoute.MigrationDirection == Direction.Null)
+			invalidRoute = true;
+
 		if (SeaMigrationRoute.FirstCell.Neighbors.ContainsValue (SeaMigrationRoute.LastCell))
 			invalidRoute = true;
 
@@ -1102,9 +1129,15 @@ public class CellGroup : HumanGroup {
 
 //		Profiler.BeginSample ("Select Random Target Cell For Migration");
 
-		int targetCellIndex = Cell.GetNextLocalRandomInt (RngOffsets.CELL_GROUP_CONSIDER_LAND_MIGRATION_TARGET, Cell.Neighbors.Count);
+		UpdatePreferredMigrationDirection ();
 
-		TerrainCell targetCell = Cell.Neighbors.Values.ElementAt (targetCellIndex);
+//		int targetCellIndex = Cell.GetNextLocalRandomInt (RngOffsets.CELL_GROUP_CONSIDER_LAND_MIGRATION_TARGET, Cell.Neighbors.Count);
+//
+//		TerrainCell targetCell = Cell.Neighbors.Values.ElementAt (targetCellIndex);
+
+		Direction migrationDirection = GenerateMigrationDirection ();
+
+		TerrainCell targetCell = Cell.Neighbors [migrationDirection];
 
 //		Profiler.EndSample ();
 
@@ -1174,7 +1207,7 @@ public class CellGroup : HumanGroup {
 //		}
 //		#endif
 
-		SetMigrationEvent (targetCell, nextDate);
+		SetMigrationEvent (targetCell, migrationDirection, nextDate);
 	}
 
 	public void ConsiderSeaMigration () {
@@ -1196,6 +1229,7 @@ public class CellGroup : HumanGroup {
 		}
 
 		TerrainCell targetCell = SeaMigrationRoute.LastCell;
+		Direction migrationDirection = SeaMigrationRoute.MigrationDirection;
 
 		if (targetCell == Cell)
 			return;
@@ -1275,15 +1309,15 @@ public class CellGroup : HumanGroup {
 //		}
 //		#endif
 
-		SetMigrationEvent (targetCell, nextDate);
+		SetMigrationEvent (targetCell, migrationDirection, nextDate);
 	}
 
-	private void SetMigrationEvent (TerrainCell targetCell, int nextDate) {
+	private void SetMigrationEvent (TerrainCell targetCell, Direction migrationDirection, int nextDate) {
 
 		if (MigrationEvent == null) {
-			MigrationEvent = new MigrateGroupEvent (this, targetCell, nextDate);
+			MigrationEvent = new MigrateGroupEvent (this, targetCell, migrationDirection, nextDate);
 		} else {
-			MigrationEvent.Reset (targetCell, nextDate);
+			MigrationEvent.Reset (targetCell, migrationDirection, nextDate);
 		}
 
 		World.InsertEventToHappen (MigrationEvent);
@@ -1293,6 +1327,7 @@ public class CellGroup : HumanGroup {
 		MigrationEventDate = nextDate;
 		MigrationTargetLongitude = targetCell.Longitude;
 		MigrationTargetLatitude = targetCell.Latitude;
+		MigrationEventDirectionInt = (int)migrationDirection;
 	}
 
 	public CellGroup GetNeighborGroup (int index) {
@@ -2437,6 +2472,8 @@ public class CellGroup : HumanGroup {
 		}
 
 		FactionCoreIds = new List<long> (FactionCores.Keys);
+
+		PreferredMigrationDirectionInt = (int)PreferredMigrationDirection;
 		
 		base.Synchronize ();
 	}
@@ -2444,6 +2481,8 @@ public class CellGroup : HumanGroup {
 	public override void FinalizeLoad () {
 
 		base.FinalizeLoad ();
+
+		PreferredMigrationDirection = (Direction)PreferredMigrationDirectionInt;
 
 		foreach (long id in FactionCoreIds) {
 		
@@ -2529,7 +2568,7 @@ public class CellGroup : HumanGroup {
 		
 			TerrainCell targetCell = World.GetCell (MigrationTargetLongitude, MigrationTargetLatitude);
 
-			MigrationEvent = new MigrateGroupEvent (this, targetCell, MigrationEventDate);
+			MigrationEvent = new MigrateGroupEvent (this, targetCell, (Direction)MigrationEventDirectionInt, MigrationEventDate);
 			World.InsertEventToHappen (MigrationEvent);
 		}
 
@@ -2704,8 +2743,14 @@ public class MigrateGroupEvent : CellGroupEvent {
 	[XmlAttribute("TLat")]
 	public int TargetCellLatitude;
 
+	[XmlAttribute("MigDir")]
+	public int MigrationDirectionInt;
+
 	[XmlIgnore]
 	public TerrainCell TargetCell;
+
+	[XmlIgnore]
+	public Direction MigrationDirection;
 
 	public MigrateGroupEvent () {
 
@@ -2716,7 +2761,7 @@ public class MigrateGroupEvent : CellGroupEvent {
 		DoNotSerialize = true;
 	}
 
-	public MigrateGroupEvent (CellGroup group, TerrainCell targetCell, int triggerDate) : base (group, triggerDate, MigrateGroupEventId) {
+	public MigrateGroupEvent (CellGroup group, TerrainCell targetCell, Direction migrationDirection, int triggerDate) : base (group, triggerDate, MigrateGroupEventId) {
 
 		#if DEBUG
 		MigrationEventCount++;
@@ -2726,6 +2771,8 @@ public class MigrateGroupEvent : CellGroupEvent {
 
 		TargetCellLongitude = TargetCell.Longitude;
 		TargetCellLatitude = TargetCell.Latitude;
+
+		MigrationDirection = migrationDirection;
 
 		DoNotSerialize = true;
 	}
@@ -2786,12 +2833,19 @@ public class MigrateGroupEvent : CellGroupEvent {
 //		}
 //		#endif
 
-		MigratingGroup migratingGroup = new MigratingGroup (World, percentToMigrate, Group, TargetCell);
+		MigratingGroup migratingGroup = new MigratingGroup (World, percentToMigrate, Group, TargetCell, MigrationDirection);
 
 		World.AddMigratingGroup (migratingGroup);
 	}
 
+	public override void Synchronize ()
+	{
+		MigrationDirectionInt = (int)MigrationDirection;
+	}
+
 	public override void FinalizeLoad () {
+
+		MigrationDirection = (Direction)MigrationDirectionInt;
 
 		base.FinalizeLoad ();
 
@@ -2813,7 +2867,7 @@ public class MigrateGroupEvent : CellGroupEvent {
 		base.DestroyInternal ();
 	}
 
-	public void Reset (TerrainCell targetCell, int triggerDate) {
+	public void Reset (TerrainCell targetCell, Direction migrationDirection, int triggerDate) {
 
 		#if DEBUG
 		MigrationEventCount++;
@@ -2823,6 +2877,8 @@ public class MigrateGroupEvent : CellGroupEvent {
 
 		TargetCellLongitude = TargetCell.Longitude;
 		TargetCellLatitude = TargetCell.Latitude;
+
+		MigrationDirection = migrationDirection;
 
 		Reset (triggerDate);
 

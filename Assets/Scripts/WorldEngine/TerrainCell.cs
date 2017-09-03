@@ -236,13 +236,30 @@ public class TerrainCell : ISynchronizable {
 
 		foreach (KeyValuePair<Direction, TerrainCell> pair in Neighbors) {
 
-			if (pair.Value = targetCell) {
+			if (pair.Value == targetCell) {
 			
 				return pair.Key;
 			}
 		}
 
 		return Direction.Null;
+	}
+
+	public Direction TryGetNeighborDirection (int offset) {
+
+		int dir = (int)Mathf.Repeat (offset, MaxNeighborDirections);
+
+		while (true) {
+			if (Neighbors.ContainsKey ((Direction)dir))
+				return (Direction)dir;
+
+			dir = (dir + 3) % MaxNeighborDirections;
+		}
+	}
+
+	public TerrainCell TryGetNeighborCell (int offset) {
+
+		return Neighbors[TryGetNeighborDirection (offset)];
 	}
 
 	public long GenerateUniqueIdentifier (long oom = 1, long offset = 0) {
@@ -435,7 +452,7 @@ public class TerrainCell : ISynchronizable {
 
 	public void InitializeNeighbors () {
 		
-		Neighbors = FindNeighborCells ();
+		SetNeighborCells ();
 
 		NeighborDistances = new Dictionary<Direction, float> (Neighbors.Count);
 
@@ -493,31 +510,29 @@ public class TerrainCell : ISynchronizable {
 		return nCell;
 	}
 	
-	private Dictionary<Direction,TerrainCell> FindNeighborCells () {
+	private void SetNeighborCells () {
 		
-		Dictionary<Direction,TerrainCell> neighbors = new Dictionary<Direction,TerrainCell> (8);
+		Neighbors = new Dictionary<Direction,TerrainCell> (8);
 		
 		int wLongitude = (World.Width + Longitude - 1) % World.Width;
 		int eLongitude = (Longitude + 1) % World.Width;
 		
 		if (Latitude < (World.Height - 1)) {
 			
-			neighbors.Add(Direction.Northwest, World.TerrainCells[wLongitude][Latitude + 1]);
-			neighbors.Add(Direction.North, World.TerrainCells[Longitude][Latitude + 1]);
-			neighbors.Add(Direction.Northeast, World.TerrainCells[eLongitude][Latitude + 1]);
+			Neighbors.Add (Direction.Northwest, World.TerrainCells[wLongitude][Latitude + 1]);
+			Neighbors.Add (Direction.North, World.TerrainCells[Longitude][Latitude + 1]);
+			Neighbors.Add (Direction.Northeast, World.TerrainCells[eLongitude][Latitude + 1]);
 		}
 		
-		neighbors.Add(Direction.West, World.TerrainCells[wLongitude][Latitude]);
-		neighbors.Add(Direction.East, World.TerrainCells[eLongitude][Latitude]);
+		Neighbors.Add (Direction.West, World.TerrainCells[wLongitude][Latitude]);
+		Neighbors.Add (Direction.East, World.TerrainCells[eLongitude][Latitude]);
 		
 		if (Latitude > 0) {
 			
-			neighbors.Add(Direction.Southwest, World.TerrainCells[wLongitude][Latitude - 1]);
-			neighbors.Add(Direction.South, World.TerrainCells[Longitude][Latitude - 1]);
-			neighbors.Add(Direction.Southeast, World.TerrainCells[eLongitude][Latitude - 1]);
+			Neighbors.Add (Direction.Southwest, World.TerrainCells[wLongitude][Latitude - 1]);
+			Neighbors.Add (Direction.South, World.TerrainCells[Longitude][Latitude - 1]);
+			Neighbors.Add (Direction.Southeast, World.TerrainCells[eLongitude][Latitude - 1]);
 		}
-		
-		return neighbors;
 	}
 
 	private bool FindIfCoastline () {

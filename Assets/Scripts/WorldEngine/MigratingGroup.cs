@@ -20,6 +20,9 @@ public class MigratingGroup : HumanGroup {
 	[XmlAttribute]
 	public long SourceGroupId;
 
+	[XmlAttribute("MigDir")]
+	public int MigrationDirectionInt;
+
 	//public CellCulture Culture;
 	public BufferCulture Culture;
 
@@ -35,10 +38,15 @@ public class MigratingGroup : HumanGroup {
 	[XmlIgnore]
 	public List <PolityInfluence> PolityInfluences;
 
+	[XmlIgnore]
+	public Direction MigrationDirection;
+
 	public MigratingGroup () {
 	}
 
-	public MigratingGroup (World world, float percentPopulation, CellGroup sourceGroup, TerrainCell targetCell) : base (world) {
+	public MigratingGroup (World world, float percentPopulation, CellGroup sourceGroup, TerrainCell targetCell, Direction migrationDirection) : base (world) {
+
+		MigrationDirection = migrationDirection;
 
 		PercentPopulation = percentPopulation;
 
@@ -178,8 +186,15 @@ public class MigratingGroup : HumanGroup {
 			World.AddFactionToUpdate (faction);
 		}
 	}
+
+	public override void Synchronize ()
+	{
+		MigrationDirectionInt = (int)MigrationDirection;
+	}
 	
 	public override void FinalizeLoad () {
+
+		MigrationDirection = (Direction)MigrationDirectionInt;
 
 		base.FinalizeLoad ();
 		

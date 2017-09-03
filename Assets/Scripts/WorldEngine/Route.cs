@@ -14,6 +14,9 @@ public class Route : ISynchronizable {
 	[XmlAttribute]
 	public bool Consolidated = false;
 
+	[XmlAttribute("MigDir")]
+	public int MigrationDirectionInt = -1;
+
 	[XmlIgnore]
 	public World World;
 
@@ -25,6 +28,10 @@ public class Route : ISynchronizable {
 
 	[XmlIgnore]
 	public List<TerrainCell> Cells = new List<TerrainCell> ();
+
+	public Direction MigrationDirection {
+		get { return (Direction)MigrationDirectionInt; }
+	}
 
 	private const float CoastPreferenceIncrement = 400;
 
@@ -80,6 +87,7 @@ public class Route : ISynchronizable {
 	public void Build () {
 
 		AddCell (FirstCell);
+		LastCell = FirstCell;
 
 		TerrainCell nextCell = FirstCell;
 		Direction nextDirection;
@@ -101,6 +109,10 @@ public class Route : ISynchronizable {
 				break;
 		}
 
+		if (nextCell != null) {
+			MigrationDirectionInt = (int)LastCell.GetDirection (nextCell);
+		}
+		
 		LastCell = nextCell;
 	}
 
