@@ -421,8 +421,8 @@ public class TribalismDiscoveryEvent : DiscoveryEvent {
 
 	public const int DateSpanFactorConstant = CellGroup.GenerationTime * 100;
 
-	public const int MinSocialOrganizationKnowledgeSpawnEventValue = SocialOrganizationKnowledge.MinValueForTribalismSpawnEvent;
-	public const int MinSocialOrganizationKnowledgeValue = SocialOrganizationKnowledge.MinValueForTribalism;
+	public const int MinSocialOrganizationKnowledgeForTribalismDiscovery = SocialOrganizationKnowledge.MinValueForTribalismDiscovery;
+	public const int MinSocialOrganizationKnowledgeForHoldingTribalism = SocialOrganizationKnowledge.MinValueForHoldingTribalism;
 	public const int OptimalSocialOrganizationKnowledgeValue = SocialOrganizationKnowledge.OptimalValueForTribalism;
 
 	public const string EventSetFlag = "TribalismDiscoveryEvent_Set";
@@ -448,7 +448,7 @@ public class TribalismDiscoveryEvent : DiscoveryEvent {
 		float randomFactor = group.Cell.GetNextLocalRandomFloat (RngOffsets.TRIBALISM_DISCOVERY_EVENT_CALCULATE_TRIGGER_DATE);
 		randomFactor = Mathf.Pow (randomFactor, 2);
 
-		float socialOrganizationFactor = (socialOrganizationValue - MinSocialOrganizationKnowledgeValue) / (float)(OptimalSocialOrganizationKnowledgeValue - MinSocialOrganizationKnowledgeValue);
+		float socialOrganizationFactor = (socialOrganizationValue - MinSocialOrganizationKnowledgeForHoldingTribalism) / (float)(OptimalSocialOrganizationKnowledgeValue - MinSocialOrganizationKnowledgeForHoldingTribalism);
 		socialOrganizationFactor = Mathf.Pow (socialOrganizationFactor, 2);
 		socialOrganizationFactor = Mathf.Clamp (socialOrganizationFactor, 0.001f, 1);
 
@@ -464,6 +464,9 @@ public class TribalismDiscoveryEvent : DiscoveryEvent {
 
 	public static bool CanSpawnIn (CellGroup group) {
 
+		if (group.Population < Tribe.MinPopulationForTribeCore)
+			return false;
+
 		if (group.IsFlagSet (EventSetFlag))
 			return false;
 
@@ -478,6 +481,9 @@ public class TribalismDiscoveryEvent : DiscoveryEvent {
 		if (!base.CanTrigger ())
 			return false;
 
+		if (Group.Population < Tribe.MinPopulationForTribeCore)
+			return false;
+
 		CulturalDiscovery discovery = Group.Culture.GetFoundDiscoveryOrToFind (TribalismDiscovery.TribalismDiscoveryId);
 
 		if (discovery != null)
@@ -488,7 +494,7 @@ public class TribalismDiscoveryEvent : DiscoveryEvent {
 		if (socialOrganizationKnowledge == null)
 			return false;
 
-		if (socialOrganizationKnowledge.Value < MinSocialOrganizationKnowledgeValue)
+		if (socialOrganizationKnowledge.Value < MinSocialOrganizationKnowledgeForTribalismDiscovery)
 			return false;
 
 		return true;

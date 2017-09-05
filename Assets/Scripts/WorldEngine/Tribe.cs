@@ -7,6 +7,8 @@ using System.Xml.Serialization;
 
 public class Tribe : Polity {
 
+	public const int MinPopulationForTribeCore = 500;
+
 	public const float TribalExpansionFactor = 2f;
 	public const int TribeLeaderAvgTimeSpan = 41;
 
@@ -450,6 +452,8 @@ public class TribeSplitEvent : PolityEvent {
 	}
 
 	public override bool CanTrigger () {
+
+		return false;
 
 		#if DEBUG
 		if (Polity.Territory.IsSelected) {

@@ -2312,7 +2312,7 @@ public class Manager {
 
 				if (knowledge != null) {
 
-					float minValue = SocialOrganizationKnowledge.MinValueForTribalism;
+					float minValue = SocialOrganizationKnowledge.MinValueForHoldingTribalism;
 					float startValue = SocialOrganizationKnowledge.StartValue;
 
 					float knowledgeFactor = Mathf.Min (1f, (knowledge.Value - startValue) / (minValue - startValue));

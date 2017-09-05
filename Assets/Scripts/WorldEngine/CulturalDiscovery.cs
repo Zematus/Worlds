@@ -161,11 +161,22 @@ public class TribalismDiscovery : CellCulturalDiscovery {
 	{
 		CulturalKnowledge knowledge = group.Culture.GetKnowledge (SocialOrganizationKnowledge.SocialOrganizationKnowledgeId);
 
-		if (knowledge == null)
-			return false;
+		if (knowledge == null) {
 
-		if (knowledge.Value < SocialOrganizationKnowledge.MinValueForTribalism)
 			return false;
+		}
+
+		if (knowledge.Value < SocialOrganizationKnowledge.MinValueForHoldingTribalism) {
+
+			#if DEBUG
+			if (group.GetFactionCores ().Count > 0) {
+
+				throw new System.Exception ("group has faction cores but will lose Tribalism - Id: " + group.Id + ", date: " + group.World.CurrentDate);
+			}
+			#endif
+
+			return false;
+		}
 
 		return true;
 	}

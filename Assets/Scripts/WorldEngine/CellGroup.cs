@@ -355,16 +355,40 @@ public class CellGroup : HumanGroup {
 		PreferredMigrationDirection = Cell.TryGetNeighborDirection (dir);
 	}
 
-	public Direction GenerateMigrationDirection () {
+	public Direction GenerateCoreMigrationDirection () {
 
 		int dir = (int)PreferredMigrationDirection;
 
-		float fDir = RandomUtility.PseudoNormalRepeatDistribution (Cell.GetNextLocalRandomFloat (RngOffsets.CELL_GROUP_GENERATE_MIGRATION_DIRECTION), 0.05f, dir, TerrainCell.MaxNeighborDirections);
+		float fDir = RandomUtility.PseudoNormalRepeatDistribution (Cell.GetNextLocalRandomFloat (RngOffsets.CELL_GROUP_GENERATE_CORE_MIGRATION_DIRECTION), 0.05f, dir, TerrainCell.MaxNeighborDirections);
+
+		return TryGetNeighborDirection ((int)fDir);
+	}
+
+	public Direction GeneratePolityExpansionDirection () {
+
+		int dir = (int)PreferredMigrationDirection;
+
+		float fDir = RandomUtility.PseudoNormalRepeatDistribution (Cell.GetNextLocalRandomFloat (RngOffsets.CELL_GROUP_GENERATE_INFLUENCE_TRANSFER_DIRECTION), 0.05f, dir, TerrainCell.MaxNeighborDirections);
+
+		return TryGetNeighborDirection ((int)fDir);
+	}
+
+	public Direction GenerateGroupMigrationDirection () {
+
+		int dir = (int)PreferredMigrationDirection;
+
+		float fDir = RandomUtility.PseudoNormalRepeatDistribution (Cell.GetNextLocalRandomFloat (RngOffsets.CELL_GROUP_GENERATE_GROUP_MIGRATION_DIRECTION), 0.05f, dir, TerrainCell.MaxNeighborDirections);
 
 		return Cell.TryGetNeighborDirection ((int)fDir);
 	}
 
 	public void AddFactionCore (Faction faction) {
+
+		#if DEBUG
+		if (Id == 218061027077) {
+			bool debug = true;
+		}
+		#endif
 
 		if (!FactionCores.ContainsKey (faction.Id)) {
 
@@ -508,27 +532,27 @@ public class CellGroup : HumanGroup {
 		Neighbors.Add (direction, group);
 	}
 	
-	public void RemoveNeighbor (CellGroup group) {
-
-		Direction? direction = null;
-
-		bool found = false;
-
-		foreach (KeyValuePair<Direction, CellGroup> pair in Neighbors) {
-
-			if (group == pair.Value) {
-			
-				direction = pair.Key;
-				found = true;
-				break;
-			}
-		}
-
-		if (!found)
-			return;
-		
-		Neighbors.Remove (direction.Value);
-	}
+//	public void RemoveNeighbor (CellGroup group) {
+//
+//		Direction? direction = null;
+//
+//		bool found = false;
+//
+//		foreach (KeyValuePair<Direction, CellGroup> pair in Neighbors) {
+//
+//			if (group == pair.Value) {
+//			
+//				direction = pair.Key;
+//				found = true;
+//				break;
+//			}
+//		}
+//
+//		if (!found)
+//			return;
+//		
+//		Neighbors.Remove (direction.Value);
+//	}
 
 	public void RemoveNeighbor (Direction direction) {
 
@@ -597,6 +621,12 @@ public class CellGroup : HumanGroup {
 	}
 
 	public void MergeGroup (MigratingGroup group) {
+		
+		#if DEBUG
+		if ((Id == 218061027077) && (GetFactionCores ().Count > 0)) {
+			bool debug = true;
+		}
+		#endif
 
 		float newPopulation = Population + group.Population;
 
@@ -1135,9 +1165,15 @@ public class CellGroup : HumanGroup {
 //
 //		TerrainCell targetCell = Cell.Neighbors.Values.ElementAt (targetCellIndex);
 
-		Direction migrationDirection = GenerateMigrationDirection ();
+		Direction migrationDirection = GenerateGroupMigrationDirection ();
 
 		TerrainCell targetCell = Cell.Neighbors [migrationDirection];
+
+		#if DEBUG
+		if (Cell.IsSelected) {
+			bool debug = true;
+		}
+		#endif
 
 //		Profiler.EndSample ();
 
@@ -1330,23 +1366,16 @@ public class CellGroup : HumanGroup {
 		MigrationEventDirectionInt = (int)migrationDirection;
 	}
 
-	public CellGroup GetNeighborGroup (int index) {
+	public Direction TryGetNeighborDirection (int offset) {
 
-		CellGroup group = null;
+		int dir = (int)Mathf.Repeat (offset, TerrainCell.MaxNeighborDirections);
 
-		int i = index;
+		while (true) {
+			if (Neighbors.ContainsKey ((Direction)dir))
+				return (Direction)dir;
 
-		int offset = (TerrainCell.MaxNeighborDirections / 2) - 1;
-
-		for (int c = 0; c < TerrainCell.MaxNeighborDirections; c++) {
-
-			if (Neighbors.TryGetValue ((Direction)i, out group))
-				return group;
-
-			i = (i + offset) % TerrainCell.MaxNeighborDirections;
+			dir = (dir + TerrainCell.NeighborSearchOffset) % TerrainCell.MaxNeighborDirections;
 		}
-
-		return group;
 	}
 
 	public void ConsiderPolityInfluenceExpansion () {
@@ -1388,9 +1417,13 @@ public class CellGroup : HumanGroup {
 
 //		Profiler.BeginSample ("Select Random Target Group for Polity Expansion");
 
-		int targetGroupIndex = Cell.GetNextLocalRandomInt (RngOffsets.CELL_GROUP_CONSIDER_POLITY_INFLUENCE_EXPANSION_TARGET, TerrainCell.MaxNeighborDirections);
+//		int targetGroupIndex = Cell.GetNextLocalRandomInt (RngOffsets.CELL_GROUP_CONSIDER_POLITY_INFLUENCE_EXPANSION_TARGET, TerrainCell.MaxNeighborDirections);
+//
+//		CellGroup targetGroup = GetNeighborGroup (targetGroupIndex);
 
-		CellGroup targetGroup = GetNeighborGroup (targetGroupIndex);
+		Direction expansionDirection = GeneratePolityExpansionDirection ();
+
+		CellGroup targetGroup = Neighbors [expansionDirection];
 
 //		Profiler.EndSample ();
 
@@ -1400,6 +1433,9 @@ public class CellGroup : HumanGroup {
 //		Profiler.BeginSample ("Calculate Polity Expansion Value");
 
 		float groupValue = selectedPi.Polity.CalculateGroupInfluenceExpansionValue (this, targetGroup, selectedPi.Value);
+
+		if (groupValue <= 0)
+			return;
 
 		TotalPolityExpansionValue += groupValue;
 
@@ -1473,12 +1509,6 @@ public class CellGroup : HumanGroup {
 	}
 
 	public void Destroy () {
-
-//		#if DEBUG
-//		if (Id == 28762070093) {
-//			bool debug = true;
-//		}
-//		#endif
 
 		_destroyed = true;
 
@@ -2280,7 +2310,7 @@ public class CellGroup : HumanGroup {
 			if (!_polityInfluences.TryGetValue (polityId, out pi)) {
 				if (!_polityInfluencesToAdd.TryGetValue (polityId, out pi)) {
 				
-					throw new System.Exception ("Trying to remove nonexisting PolityInfluence with id " + polityId);
+					throw new System.Exception ("Trying to remove nonexisting PolityInfluence with id: " + polityId + " from group with id: " + Id);
 				}
 
 				_polityInfluencesToAdd.Remove (pi.PolityId);
@@ -2294,7 +2324,7 @@ public class CellGroup : HumanGroup {
 
 					if (faction.PolityId == pi.PolityId) {
 
-						throw new System.Exception ("Faction belonging to removed polity has core in cell");
+						throw new System.Exception ("Faction belonging to removed polity has core in cell - group Id: " + Id);
 					}
 				}
 				#endif
@@ -2304,6 +2334,16 @@ public class CellGroup : HumanGroup {
 				// We want to update the polity if a group is removed.
 				SetPolityUpdate (pi, true);
 			}
+
+			#if DEBUG
+			if (TotalPolityInfluenceValue <= 0) {
+
+				if (GetFactionCores ().Count > 0) {
+
+					throw new System.Exception ("group has faction cores and no polity influence - Id: " + Id);
+				}
+			}
+			#endif
 
 //			pi.Polity.TotalAdministrativeCost -= pi.AdiministrativeCost;
 		}
@@ -2339,6 +2379,12 @@ public class CellGroup : HumanGroup {
 
 	public PolityInfluence SetPolityInfluence (Polity polity, float newInfluenceValue, float coreDistance = -1) {
 
+		#if DEBUG
+		if ((Id == 218061027077) && (GetFactionCores ().Count > 0)) {
+			bool debug = true;
+		}
+		#endif
+
 		newInfluenceValue = MathUtility.RoundToSixDecimals (newInfluenceValue);
 
 //		#if DEBUG
@@ -2373,24 +2419,6 @@ public class CellGroup : HumanGroup {
 		}
 		#endif
 
-//		#if DEBUG
-//		if ((Id == 28762070093) && (polity.Id == 218191069088)) {
-//			bool debug = true;
-//		}
-//		#endif
-//
-//		#if DEBUG
-//		if (Id == 28762070093) {
-//			bool debug = true;
-//		}
-//		#endif
-//
-//		#if DEBUG
-//		if (polity.Id == 218191069088) {
-//			bool debug = true;
-//		}
-//		#endif
-
 		PolityInfluence polityInfluence;
 
 		_polityInfluencesToRemove.Remove (polity.Id);
@@ -2415,6 +2443,16 @@ public class CellGroup : HumanGroup {
 		}
 
 		if (newInfluenceValue <= Polity.MinPolityInfluence) {
+
+			#if DEBUG
+			foreach (Faction faction in GetFactionCores ()) {
+
+				if (faction.PolityId == polityInfluence.PolityId) {
+
+					throw new System.Exception ("Faction belonging to removed polity has core in cell - group Id: " + Id + ", date: " + World.CurrentDate);
+				}
+			}
+			#endif
 			
 			_polityInfluencesToRemove.Add (polityInfluence.PolityId);
 
@@ -2451,6 +2489,16 @@ public class CellGroup : HumanGroup {
 		
 			throw new System.Exception ("Polity not actually influencing group");
 		}
+
+		#if DEBUG
+		foreach (Faction faction in GetFactionCores ()) {
+
+			if (faction.PolityId == polity.Id) {
+
+				throw new System.Exception ("Faction belonging to removed polity has core in cell - group Id: " + Id);
+			}
+		}
+		#endif
 
 		_polityInfluencesToRemove.Add (polity.Id);
 	}
@@ -2890,9 +2938,9 @@ public class MigrateGroupEvent : CellGroupEvent {
 
 public class ExpandPolityInfluenceEvent : CellGroupEvent {
 
-	[XmlAttribute]
+	[XmlAttribute ("TGrpId")]
 	public long TargetGroupId;
-	[XmlAttribute]
+	[XmlAttribute ("PolId")]
 	public long PolityId;
 
 	[XmlIgnore]
@@ -3002,7 +3050,7 @@ public class ExpandPolityInfluenceEvent : CellGroupEvent {
 
 		foreach (Faction faction in factionCoresToMigrate) {
 
-			faction.SetCoreGroup (TargetGroup);
+			faction.PrepareNewCoreGroup (TargetGroup);
 
 			World.AddFactionToUpdate (faction);
 		}
@@ -3043,8 +3091,8 @@ public class TribeFormationEvent : CellGroupEvent {
 
 	public const int DateSpanFactorConstant = CellGroup.GenerationTime * 100;
 
-	public const int MinSocialOrganizationKnowledgeSpawnEventValue = SocialOrganizationKnowledge.MinValueForTribalismSpawnEvent;
-	public const int MinSocialOrganizationKnowledgeValue = SocialOrganizationKnowledge.MinValueForTribalism;
+	public const int MinSocialOrganizationKnowledgeTribeFormation = SocialOrganizationKnowledge.MinValueForTribalismDiscovery;
+	public const int MinSocialOrganizationKnowledgeValue = SocialOrganizationKnowledge.MinValueForHoldingTribalism;
 	public const int OptimalSocialOrganizationKnowledgeValue = SocialOrganizationKnowledge.OptimalValueForTribalism;
 
 //	public const string EventSetFlag = "TribeFormationEvent_Set";
@@ -3089,6 +3137,9 @@ public class TribeFormationEvent : CellGroupEvent {
 
 	public static bool CanSpawnIn (CellGroup group) {
 
+		if (group.Population < Tribe.MinPopulationForTribeCore)
+			return false;
+
 //		if (group.IsFlagSet (EventSetFlag))
 //			return false;
 
@@ -3100,7 +3151,7 @@ public class TribeFormationEvent : CellGroupEvent {
 		if (socialOrganizationKnowledge == null)
 			return false;
 
-		if (socialOrganizationKnowledge.Value < MinSocialOrganizationKnowledgeValue)
+		if (socialOrganizationKnowledge.Value < MinSocialOrganizationKnowledgeTribeFormation)
 			return false;
 
 		return true;
@@ -3111,9 +3162,20 @@ public class TribeFormationEvent : CellGroupEvent {
 		if (!base.CanTrigger ())
 			return false;
 
+		if (Group.Population < Tribe.MinPopulationForTribeCore)
+			return false;
+
 		CulturalDiscovery discovery = Group.Culture.GetFoundDiscoveryOrToFind (TribalismDiscovery.TribalismDiscoveryId);
 
 		if (discovery == null)
+			return false;
+
+		CulturalKnowledge socialOrganizationKnowledge = Group.Culture.GetKnowledge (SocialOrganizationKnowledge.SocialOrganizationKnowledgeId);
+
+		if (socialOrganizationKnowledge == null)
+			return false;
+
+		if (socialOrganizationKnowledge.Value < MinSocialOrganizationKnowledgeTribeFormation)
 			return false;
 
 		float influenceFactor = Mathf.Min(1, Group.TotalPolityInfluenceValue * 3f);

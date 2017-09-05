@@ -94,7 +94,8 @@ public abstract class CellCulturalSkill : CulturalSkill, ISynchronizable {
 
 	public void Merge (CulturalSkill skill, float percentage) {
 
-		float value = Value * (1f - percentage) + skill.Value * percentage;
+		// _newvalue should have been set correctly either by the constructor or by the Update function
+		float value = _newValue * (1f - percentage) + skill.Value * percentage;
 
 //		#if DEBUG
 //		if (Manager.RegisterDebugEvent != null) {
@@ -119,7 +120,8 @@ public abstract class CellCulturalSkill : CulturalSkill, ISynchronizable {
 
 		_newValue = value;
 	}
-	
+
+	// This method should be called only once after a Skill is copied from another source group
 	public void ModifyValue (float percentage) {
 
 		float value = Value * percentage;
@@ -219,7 +221,8 @@ public abstract class CellCulturalSkill : CulturalSkill, ISynchronizable {
 
 		float timeEffect = timeSpan / (float)(timeSpan + timeEffectFactor);
 
-		float change = (targetValue - Value) * influenceEffect * timeEffect * randomEffect;
+		// _newvalue should have been set correctly either by the constructor or by the Update function
+		float change = (targetValue - _newValue) * influenceEffect * timeEffect * randomEffect;
 
 //		#if DEBUG
 //		if (Manager.RegisterDebugEvent != null) {
@@ -246,7 +249,7 @@ public abstract class CellCulturalSkill : CulturalSkill, ISynchronizable {
 //		}
 //		#endif
 
-		_newValue = Value + change;
+		_newValue = _newValue + change;
 	}
 
 	protected void RecalculateAdaptation (float targetValue)

@@ -41,7 +41,7 @@ public abstract class Faction : ISynchronizable {
 	public CellGroup CoreGroup;
 
 	[XmlIgnore]
-	public bool CoreGroupUpdated = false;
+	public CellGroup NewCoreGroup = null;
 
 	private HashSet<string> _flags = new HashSet<string> ();
 
@@ -79,6 +79,8 @@ public abstract class Faction : ISynchronizable {
 
 	public void Destroy () {
 		
+		CoreGroup.RemoveFactionCore (this);
+		
 		Polity.RemoveFaction (this, true);
 
 		StillPresent = false;
@@ -98,28 +100,23 @@ public abstract class Faction : ISynchronizable {
 		World.AddPolityToUpdate (Polity);
 	}
 
-	public void SetCoreGroup (CellGroup coreGroup) {
-		
-		if (coreGroup == null) {
-			Debug.LogError ("New CoreGroup is null");
-		}
+	public void PrepareNewCoreGroup (CellGroup coreGroup) {
 
-		if (CoreGroup == null) {
-			Debug.LogError ("Old CoreGroup is null");
-		}
+		NewCoreGroup = coreGroup;
+	}
+
+	public void MigrateToNewCoreGroup () {
 
 		CoreGroup.RemoveFactionCore (this);
 
-		CoreGroup = coreGroup;
-		CoreGroupId = coreGroup.Id;
+		CoreGroup = NewCoreGroup;
+		CoreGroupId = NewCoreGroup.Id;
 
 		CoreGroup.AddFactionCore (this);
 
 		if (IsDominant) {
 			Polity.SetCoreGroup (CoreGroup);
 		}
-
-		CoreGroupUpdated = true;
 	}
 
 	protected abstract void UpdateInternal ();

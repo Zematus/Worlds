@@ -159,14 +159,36 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
 	public void Merge (CulturalKnowledge knowledge, float percentage) {
 
 		float d;
-		int mergedValue = (int)MathUtility.MergeAndGetDecimals (Value, knowledge.Value, percentage, out d);
+		// _newvalue should have been set correctly either by the constructor or by the Update function
+		int mergedValue = (int)MathUtility.MergeAndGetDecimals (_newValue, knowledge.Value, percentage, out d);
 
 		if (d > Group.GetNextLocalRandomFloat (RngOffsets.KNOWLEDGE_MERGE + RngOffset))
 			mergedValue++;
+
+		#if DEBUG
+		if ((Id == SocialOrganizationKnowledge.SocialOrganizationKnowledgeId) && (Group.Id == 284740391041)) {
+
+			if (Group.GetFactionCores ().Count > 0) {
+
+				bool debug = true;
+			}
+		}
+		#endif
+
+		#if DEBUG
+		if ((Id == SocialOrganizationKnowledge.SocialOrganizationKnowledgeId) && (mergedValue < SocialOrganizationKnowledge.MinValueForHoldingTribalism)) {
+
+			if (Group.GetFactionCores ().Count > 0) {
+
+				Debug.LogWarning ("group with low social organization has faction cores - Id: " + Group.Id);
+			}
+		}
+		#endif
 	
 		_newValue = mergedValue;
 	}
-	
+
+	// This method should be called only once after a Knowledge is copied from another source group
 	public void ModifyValue (float percentage) {
 
 		float d;
@@ -174,6 +196,26 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
 
 		if (d > Group.GetNextLocalRandomFloat (RngOffsets.KNOWLEDGE_MODIFY_VALUE + RngOffset))
 			modifiedValue++;
+
+		#if DEBUG
+		if ((Id == SocialOrganizationKnowledge.SocialOrganizationKnowledgeId) && (Group.Id == 284740391041)) {
+
+			if (Group.GetFactionCores ().Count > 0) {
+
+				bool debug = true;
+			}
+		}
+		#endif
+
+		#if DEBUG
+		if ((Id == SocialOrganizationKnowledge.SocialOrganizationKnowledgeId) && (modifiedValue < SocialOrganizationKnowledge.MinValueForHoldingTribalism)) {
+
+			if (Group.GetFactionCores ().Count > 0) {
+
+				Debug.LogWarning ("group with low social organization has faction cores - Id: " + Group.Id);
+			}
+		}
+		#endif
 		
 		_newValue = modifiedValue;
 	}
@@ -272,6 +314,16 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
 		}
 		#endif
 
+		#if DEBUG
+		if ((Id == SocialOrganizationKnowledge.SocialOrganizationKnowledgeId) && (Group.Id == 284740391041)) {
+
+			if (Group.GetFactionCores ().Count > 0) {
+
+				bool debug = true;
+			}
+		}
+		#endif
+
 		_newValue = newValue;
 	}
 
@@ -289,15 +341,48 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
 		float timeEffect = timeSpan / (float)(timeSpan + timeEffectFactor);
 
 		float d;
-		int valueIncrease = (int)MathUtility.MultiplyAndGetDecimals (targetValue - Value, influenceEffect * timeEffect * randomEffect, out d);
+		// _newvalue should have been set correctly either by the constructor or by the Update function
+		int valueChange = (int)MathUtility.MultiplyAndGetDecimals (targetValue - _newValue, influenceEffect * timeEffect * randomEffect, out d);
 
 		if (d > Group.GetNextLocalRandomFloat (RngOffsets.KNOWLEDGE_POLITY_INFLUENCE_2 + RngOffset + (int)polityInfluence.PolityId))
-			valueIncrease++;
+			valueChange++;
 
-		_newValue = Value + valueIncrease;
+		int newValue = _newValue + valueChange;
+
+		#if DEBUG
+		if ((Id == SocialOrganizationKnowledge.SocialOrganizationKnowledgeId) && (Group.Id == 284740391041)) {
+
+			if (Group.GetFactionCores ().Count > 0) {
+
+				bool debug = true;
+			}
+		}
+		#endif
+
+		#if DEBUG
+		if ((Id == SocialOrganizationKnowledge.SocialOrganizationKnowledgeId) && (newValue < SocialOrganizationKnowledge.MinValueForHoldingTribalism)) {
+
+			if (Group.GetFactionCores ().Count > 0) {
+
+				Debug.LogWarning ("group with low social organization has faction cores - Id: " + Group.Id);
+			}
+		}
+		#endif
+
+		_newValue = newValue;
 	}
 
 	public void PostUpdate () {
+
+		#if DEBUG
+		if ((Id == SocialOrganizationKnowledge.SocialOrganizationKnowledgeId) && (Group.Id == 284740391041)) {
+
+			if (Group.GetFactionCores ().Count > 0) {
+
+				bool debug = true;
+			}
+		}
+		#endif
 	
 		Value = _newValue;
 
@@ -669,8 +754,8 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge {
 	public const int SocialOrganizationKnowledgeRngOffset = 2;
 
 	public const int StartValue = 100;
-	public const int MinValueForTribalismSpawnEvent = 500;
-	public const int MinValueForTribalism = 200;
+	public const int MinValueForTribalismDiscovery = 500;
+	public const int MinValueForHoldingTribalism = 200;
 	public const int OptimalValueForTribalism = 10000;
 
 	public const float TimeEffectConstant = CellGroup.GenerationTime * 500;
@@ -756,7 +841,7 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge {
 
 	private void TryGenerateTribalismDiscoveryEvent () {
 
-		if (Value < TribalismDiscoveryEvent.MinSocialOrganizationKnowledgeSpawnEventValue)
+		if (Value < TribalismDiscoveryEvent.MinSocialOrganizationKnowledgeForTribalismDiscovery)
 			return;
 
 		if (Value > TribalismDiscoveryEvent.OptimalSocialOrganizationKnowledgeValue)

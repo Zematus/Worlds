@@ -106,12 +106,14 @@ public class CellCulturalActivity : CulturalActivity {
 	}
 
 	public void Merge (CulturalActivity activity, float percentage) {
-	
-		_newValue = Value * (1f - percentage) + activity.Value * percentage;
+
+		// _newvalue should have been set correctly either by the constructor or by the Update function
+		_newValue = _newValue * (1f - percentage) + activity.Value * percentage;
 	}
 
+	// This method should be called only once after a Activity is copied from another source group
 	public void ModifyValue (float percentage) {
-		
+
 		_newValue = Value * percentage;
 	}
 
@@ -151,9 +153,10 @@ public class CellCulturalActivity : CulturalActivity {
 
 		float timeEffect = timeSpan / (float)(timeSpan + TimeEffectConstant);
 
-		float change = (targetValue - Value) * influenceEffect * timeEffect * randomEffect;
+		// _newvalue should have been set correctly either by the constructor or by the Update function
+		float change = (targetValue - _newValue) * influenceEffect * timeEffect * randomEffect;
 
-		_newValue = Value + change;
+		_newValue = _newValue + change;
 	}
 
 	public void PostUpdate () {

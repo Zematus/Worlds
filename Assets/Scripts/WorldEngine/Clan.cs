@@ -5,8 +5,11 @@ using System.Xml;
 using System.Xml.Serialization;
 
 public class Clan : Faction {
+	
+	public const int MinSocialOrganizationValue = 400;
 
-	public const float NoCoreMigrationFactor = 0.0f;
+	public const int MinCoreMigrationPopulation = 500;
+	public const float MinCoreMigrationPolityInfluence = 0.3f;
 
 	public const string ClanType = "Clan";
 
@@ -65,9 +68,13 @@ public class Clan : Faction {
 
 	public CellGroup GetCoreGroupMigrationTarget () {
 
-		int targetGroupIndex = GetNextLocalRandomInt (RngOffsets.CLAN_CHOOSE_TARGET_GROUP, TerrainCell.MaxNeighborDirections);
+//		int targetGroupIndex = GetNextLocalRandomInt (RngOffsets.CLAN_CHOOSE_TARGET_GROUP, TerrainCell.MaxNeighborDirections);
+//
+//		return CoreGroup.TryGetNeighborDirection (targetGroupIndex);
 
-		return CoreGroup.GetNeighborGroup (targetGroupIndex);
+		Direction expansionDirection = CoreGroup.GenerateCoreMigrationDirection ();
+
+		return CoreGroup.Neighbors [expansionDirection];
 	}
 
 	public override void FinalizeLoad () {
@@ -84,7 +91,13 @@ public class Clan : Faction {
 
 	protected override void UpdateInternal () {
 
-		if (CoreGroupUpdated || ClanCoreMigrationEvent.FailedToTrigger) {
+		if ((NewCoreGroup != null) || ClanCoreMigrationEvent.FailedToTrigger) {
+
+			if ((NewCoreGroup != null) && (IsGroupValidCore (NewCoreGroup))) {
+				MigrateToNewCoreGroup ();
+			}
+
+			NewCoreGroup = null;
 
 			ClanCoreMigrationEventDate = ClanCoreMigrationEvent.CalculateTriggerDate (this);
 
@@ -92,7 +105,7 @@ public class Clan : Faction {
 
 			ClanCoreMigrationEvent.Reset (targetGroup, ClanCoreMigrationEventDate);
 
-			CoreGroupUpdated = false;
+			World.InsertEventToHappen (ClanCoreMigrationEvent);
 		}
 	}
 
@@ -175,7 +188,47 @@ public class Clan : Faction {
 		Name = new Name (namePhrase, untranslatedName, language, World);
 	}
 
+	public bool CanBeClanCore (CellGroup group)
+	{
+		CulturalKnowledge knowledge = group.Culture.GetKnowledge (SocialOrganizationKnowledge.SocialOrganizationKnowledgeId);
+
+		if (knowledge == null)
+			return false;
+
+		if (knowledge.Value < MinSocialOrganizationValue)
+			return false;
+
+		return true;
+	}
+
+	public bool IsGroupValidCore (CellGroup group)
+	{
+		if (!CanBeClanCore(group))
+			return false;
+
+		CulturalDiscovery discovery = group.Culture.GetDiscovery (TribalismDiscovery.TribalismDiscoveryId);
+
+		if (discovery == null)
+			return false;
+
+		PolityInfluence pi = group.GetPolityInfluence (Polity);
+
+		if (pi == null)
+			return false;
+
+		if (pi.Value < MinCoreMigrationPolityInfluence)
+			return false;
+
+		if (group.Population < MinCoreMigrationPopulation)
+			return false;
+
+		return true;
+	}
+
 	public override bool ShouldMigrateFactionCore (CellGroup sourceGroup, CellGroup targetGroup) {
+
+		if (!CanBeClanCore (targetGroup))
+			return false;
 
 		PolityInfluence piTarget = targetGroup.GetPolityInfluence (Polity);
 
@@ -191,6 +244,16 @@ public class Clan : Faction {
 
 	public override bool ShouldMigrateFactionCore (CellGroup sourceGroup, TerrainCell targetCell, float targetInfluence, int targetPopulation) {
 
+		float targetInfluenceFactor = Mathf.Max (0, targetInfluence - MinCoreMigrationPolityInfluence);
+
+		if (targetInfluenceFactor <= 0)
+			return false;
+
+		float targetPopulationFactor = Mathf.Max (0, targetPopulation - MinCoreMigrationPopulation);
+
+		if (targetPopulationFactor <= 0)
+			return false;
+
 		int sourcePopulation = sourceGroup.Population;
 
 		PolityInfluence pi = sourceGroup.GetPolityInfluence (Polity);
@@ -199,23 +262,23 @@ public class Clan : Faction {
 			Debug.LogError ("Unable to find Polity with Id: " + Polity.Id);
 		}
 
-		float sourceGroupInfluence = pi.Value;
+		float sourceInfluence = pi.Value;
 
-		float sourceInfluenceFactor = sourceGroupInfluence / (sourceGroupInfluence + targetInfluence);
-		float sourcePopulationFactor = sourcePopulation / (sourcePopulation + targetPopulation);
+		float sourceInfluenceFactor = Mathf.Max (0, sourceInfluence - MinCoreMigrationPolityInfluence);
+		float sourcePopulationFactor = Mathf.Max (0, sourcePopulation - MinCoreMigrationPopulation);
+
 		float sourceFactor = sourceInfluenceFactor * sourcePopulationFactor;
 
-//		float targetInfluenceFactor = targetInfluence / (sourceGroupInfluence + targetInfluence);
-//		float targetPopulationFactor = targetPopulation / (sourcePopulation + targetPopulation);
-//		float targetFactor = targetInfluenceFactor * targetPopulationFactor;
-//
-//		float combinedFactor = 1f - (sourceFactor * targetFactor);
+		if (sourceFactor <= 0)
+			return true;
 
-		float migrateCoreFactor = Clan.NoCoreMigrationFactor + sourceFactor * (1 - Clan.NoCoreMigrationFactor);
+		float targetFactor = targetInfluenceFactor * targetPopulationFactor;
+
+		float migrateCoreFactor = sourceFactor / (sourceFactor + targetFactor);
 
 		float randomValue = sourceGroup.GetNextLocalRandomFloat (RngOffsets.MIGRATING_GROUP_MOVE_FACTION_CORE + (int)Id);
 
-		if (randomValue >= migrateCoreFactor)
+		if (randomValue > migrateCoreFactor)
 			return true;
 
 		return false;
@@ -471,7 +534,7 @@ public class ClanCoreMigrationEvent : FactionEvent {
 
 	public override void Trigger () {
 
-		Faction.SetCoreGroup (TargetGroup);
+		Faction.PrepareNewCoreGroup (TargetGroup);
 
 		World.AddFactionToUpdate (Faction);
 

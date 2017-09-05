@@ -126,6 +126,7 @@ public class TerrainCell : ISynchronizable {
 	#endif
 
 	public const int MaxNeighborDirections = 8;
+	public const int NeighborSearchOffset = 3;
 	
 	[XmlAttribute]
 	public int Longitude;
@@ -253,7 +254,7 @@ public class TerrainCell : ISynchronizable {
 			if (Neighbors.ContainsKey ((Direction)dir))
 				return (Direction)dir;
 
-			dir = (dir + 3) % MaxNeighborDirections;
+			dir = (dir + NeighborSearchOffset) % MaxNeighborDirections;
 		}
 	}
 
