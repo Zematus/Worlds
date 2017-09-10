@@ -98,8 +98,10 @@ public class Route : ISynchronizable {
 
 			nextCell = ChooseNextSeaCell (nextCell, rngOffset++, out nextDirection);
 
-			if (nextCell == null)
+			if (nextCell == null) {
+				LastCell = nextCell;
 				break;
+			}
 
 			Length += nextCell.NeighborDistances [nextDirection]; 
 
@@ -107,6 +109,8 @@ public class Route : ISynchronizable {
 
 			if (nextCell.GetBiomePresence (Biome.Ocean) <= 0)
 				break;
+
+			LastCell = nextCell;
 		}
 
 		if (nextCell != null) {

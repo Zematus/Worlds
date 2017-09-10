@@ -385,7 +385,7 @@ public class CellGroup : HumanGroup {
 	public void AddFactionCore (Faction faction) {
 
 		#if DEBUG
-		if (Id == 218061027077) {
+		if (Id == 33085031072) {
 			bool debug = true;
 		}
 		#endif
@@ -623,7 +623,7 @@ public class CellGroup : HumanGroup {
 	public void MergeGroup (MigratingGroup group) {
 		
 		#if DEBUG
-		if ((Id == 218061027077) && (GetFactionCores ().Count > 0)) {
+		if ((Id == 33085031072) && (GetFactionCores ().Count > 0)) {
 			bool debug = true;
 		}
 		#endif
@@ -2335,16 +2335,6 @@ public class CellGroup : HumanGroup {
 				SetPolityUpdate (pi, true);
 			}
 
-			#if DEBUG
-			if (TotalPolityInfluenceValue <= 0) {
-
-				if (GetFactionCores ().Count > 0) {
-
-					throw new System.Exception ("group has faction cores and no polity influence - Id: " + Id);
-				}
-			}
-			#endif
-
 //			pi.Polity.TotalAdministrativeCost -= pi.AdiministrativeCost;
 		}
 
@@ -2374,13 +2364,23 @@ public class CellGroup : HumanGroup {
 			throw new System.Exception ("Total Polity Influence Value greater than 1: " + TotalPolityInfluenceValue);
 		}
 
+		#if DEBUG
+		if (TotalPolityInfluenceValue <= 0) {
+
+			if (GetFactionCores ().Count > 0) {
+
+				throw new System.Exception ("group has faction cores and no polity influence - Id: " + Id);
+			}
+		}
+		#endif
+
 		FindHighestPolityInfluence ();
 	}
 
 	public PolityInfluence SetPolityInfluence (Polity polity, float newInfluenceValue, float coreDistance = -1) {
 
 		#if DEBUG
-		if ((Id == 218061027077) && (GetFactionCores ().Count > 0)) {
+		if ((Id == 33085031072) && (GetFactionCores ().Count > 0)) {
 			bool debug = true;
 		}
 		#endif
@@ -3180,18 +3180,18 @@ public class TribeFormationEvent : CellGroupEvent {
 
 		float influenceFactor = Mathf.Min(1, Group.TotalPolityInfluenceValue * 3f);
 
-		if (influenceFactor >= 1)
+		if (influenceFactor > 0)
 			return false;
 
-		if (influenceFactor <= 0)
-			return true;
-
-		influenceFactor = Mathf.Pow (1 - influenceFactor, 4);
-
-		float triggerValue = Group.Cell.GetNextLocalRandomFloat (RngOffsets.EVENT_CAN_TRIGGER + (int)Id);
-
-		if (triggerValue > influenceFactor)
-			return false;
+//		if (influenceFactor <= 0)
+//			return true;
+//
+//		influenceFactor = Mathf.Pow (1 - influenceFactor, 4);
+//
+//		float triggerValue = Group.Cell.GetNextLocalRandomFloat (RngOffsets.EVENT_CAN_TRIGGER + (int)Id);
+//
+//		if (triggerValue > influenceFactor)
+//			return false;
 
 		return true;
 	}
