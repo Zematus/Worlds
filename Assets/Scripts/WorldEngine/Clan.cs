@@ -18,6 +18,8 @@ public class Clan : Faction {
 
 	[XmlAttribute("CoreMigDate")]
 	public int ClanCoreMigrationEventDate;
+	[XmlAttribute("CoreMigTgtId")]
+	public long ClanCoreMigrationTargetGroupId;
 
 	[XmlIgnore]
 	public ClanSplitEvent ClanSplitEvent;
@@ -45,6 +47,7 @@ public class Clan : Faction {
 			ClanCoreMigrationEventDate = ClanCoreMigrationEvent.CalculateTriggerDate (this);
 
 			CellGroup targetGroup = GetCoreGroupMigrationTarget ();
+			ClanCoreMigrationTargetGroupId = targetGroup.Id;
 			
 			ClanCoreMigrationEvent = new ClanCoreMigrationEvent (this, targetGroup, ClanCoreMigrationEventDate);
 
@@ -72,9 +75,15 @@ public class Clan : Faction {
 //
 //		return CoreGroup.TryGetNeighborDirection (targetGroupIndex);
 
-		Direction expansionDirection = CoreGroup.GenerateCoreMigrationDirection ();
+		Direction migrationDirection = CoreGroup.GenerateCoreMigrationDirection ();
 
-		return CoreGroup.Neighbors [expansionDirection];
+		#if DEBUG
+		if (migrationDirection == Direction.Null) {
+			Debug.LogError ("Null core migration direction. Clan Id: " + Id);
+		}
+		#endif
+
+		return CoreGroup.Neighbors [migrationDirection];
 	}
 
 	public override void FinalizeLoad () {
@@ -87,11 +96,20 @@ public class Clan : Faction {
 
 			World.InsertEventToHappen (ClanSplitEvent);
 		}
+
+		if (ClanCoreMigrationEvent.CanBeAssignedTo (this)) {
+		
+			CellGroup targetGroup = World.GetGroup (ClanCoreMigrationTargetGroupId);
+
+			ClanCoreMigrationEvent = new ClanCoreMigrationEvent (this, targetGroup, ClanCoreMigrationEventDate);
+
+			World.InsertEventToHappen (ClanCoreMigrationEvent);
+		}
 	}
 
 	protected override void UpdateInternal () {
 
-		if ((NewCoreGroup != null) || ClanCoreMigrationEvent.FailedToTrigger) {
+		if (NewCoreGroup != null) {
 
 			if ((NewCoreGroup != null) && (IsGroupValidCore (NewCoreGroup))) {
 				MigrateToNewCoreGroup ();
@@ -102,6 +120,7 @@ public class Clan : Faction {
 			ClanCoreMigrationEventDate = ClanCoreMigrationEvent.CalculateTriggerDate (this);
 
 			CellGroup targetGroup = GetCoreGroupMigrationTarget ();
+			ClanCoreMigrationTargetGroupId = targetGroup.Id;
 
 			ClanCoreMigrationEvent.Reset (targetGroup, ClanCoreMigrationEventDate);
 
@@ -523,11 +542,11 @@ public class ClanCoreMigrationEvent : FactionEvent {
 		if (!base.CanTrigger ())
 			return false;
 
-		#if DEBUG
-		if (Faction.Polity.Territory.IsSelected) {
-			bool debug = true;
-		}
-		#endif
+//		#if DEBUG
+//		if (Faction.Polity.Territory.IsSelected) {
+//			bool debug = true;
+//		}
+//		#endif
 
 		return Faction.ShouldMigrateFactionCore (Faction.CoreGroup, TargetGroup);
 	}
@@ -549,23 +568,24 @@ public class ClanCoreMigrationEvent : FactionEvent {
 		//			Faction.UnsetFlag (EventSetFlag);
 		//		}
 
-//		if ((Faction != null) && (Faction.StillPresent)) {
-//
-//			Clan clan = Faction as Clan;
-//
-//			if (CanBeAssignedTo (clan)) {
-//
-//				clan.ClanCoreMigrationEvent = this;
-//
-//				clan.ClanCoreMigrationEventDate = CalculateTriggerDate (clan);
-//
-//				CellGroup targetGroup = clan.GetCoreGroupMigrationTarget ();
-//
-//				Reset (targetGroup, clan.ClanCoreMigrationEventDate);
-//
-//				World.InsertEventToHappen (this);
-//			}
-//		}
+		if ((Faction != null) && (Faction.StillPresent)) {
+
+			Clan clan = Faction as Clan;
+
+			if (CanBeAssignedTo (clan)) {
+
+				clan.ClanCoreMigrationEvent = this;
+
+				clan.ClanCoreMigrationEventDate = CalculateTriggerDate (clan);
+
+				CellGroup targetGroup = clan.GetCoreGroupMigrationTarget ();
+				clan.ClanCoreMigrationTargetGroupId = targetGroup.Id;
+
+				Reset (targetGroup, clan.ClanCoreMigrationEventDate);
+
+				World.InsertEventToHappen (this);
+			}
+		}
 	}
 
 	public override void FinalizeLoad () {

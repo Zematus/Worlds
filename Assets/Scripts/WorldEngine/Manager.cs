@@ -1843,8 +1843,10 @@ public class Manager {
 			if (cell.Group.MigrationTagged && DisplayMigrationTaggedGroup)
 				return Color.green;
 
+			#if DEBUG
 			if (cell.Group.DebugTagged && DisplayDebugTaggedGroups)
 				return Color.green;
+			#endif
 		}
 
 		if (population > 0) {

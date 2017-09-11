@@ -55,11 +55,6 @@ public abstract class Faction : ISynchronizable {
 
 		World = polity.World;
 
-		CoreGroup = coreGroup;
-		CoreGroupId = coreGroup.Id;
-
-		CoreGroup.AddFactionCore (this);
-
 		int idOffset = 0;
 
 		if (parentFaction != null) {
@@ -70,7 +65,12 @@ public abstract class Faction : ISynchronizable {
 		PolityId = polity.Id;
 		Polity = polity;
 
+		CoreGroup = coreGroup;
+		CoreGroupId = coreGroup.Id;
+
 		Id = GenerateUniqueIdentifier (offset: idOffset);
+
+		CoreGroup.AddFactionCore (this);
 
 		Prominence = prominence;
 

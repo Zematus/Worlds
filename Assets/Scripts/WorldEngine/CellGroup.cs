@@ -197,8 +197,10 @@ public class CellGroup : HumanGroup {
 	[XmlIgnore]
 	public TerrainCell Cell;
 
+	#if DEBUG
 	[XmlIgnore]
 	public bool DebugTagged = false;
+	#endif
 
 	[XmlIgnore]
 	public Dictionary<string, BiomeSurvivalSkill> _biomeSurvivalSkills = new Dictionary<string, BiomeSurvivalSkill> (Biome.TypeCount);
@@ -383,12 +385,6 @@ public class CellGroup : HumanGroup {
 	}
 
 	public void AddFactionCore (Faction faction) {
-
-		#if DEBUG
-		if (Id == 33085031072) {
-			bool debug = true;
-		}
-		#endif
 
 		if (!FactionCores.ContainsKey (faction.Id)) {
 
@@ -621,12 +617,6 @@ public class CellGroup : HumanGroup {
 	}
 
 	public void MergeGroup (MigratingGroup group) {
-		
-		#if DEBUG
-		if ((Id == 33085031072) && (GetFactionCores ().Count > 0)) {
-			bool debug = true;
-		}
-		#endif
 
 		float newPopulation = Population + group.Population;
 
@@ -2055,6 +2045,16 @@ public class CellGroup : HumanGroup {
 		}
 		#endif
 
+		#if DEBUG
+		if (FactionCores.Count > 0) {
+			foreach (Faction faction in FactionCores.Values) {
+				if (faction.CoreGroupId != Id) {
+					Debug.LogError ("Group identifies as faction core when it no longer isn't. Id: " + Id + ", CoreId: " + faction.CoreGroupId + ", current date: " + World.CurrentDate);
+				}
+			}
+		}
+		#endif
+
 		float randomFactor = Cell.GetNextLocalRandomFloat (RngOffsets.CELL_GROUP_CALCULATE_NEXT_UPDATE);
 		randomFactor = 1f - Mathf.Pow (randomFactor, 4);
 
@@ -2378,12 +2378,6 @@ public class CellGroup : HumanGroup {
 	}
 
 	public PolityInfluence SetPolityInfluence (Polity polity, float newInfluenceValue, float coreDistance = -1) {
-
-		#if DEBUG
-		if ((Id == 33085031072) && (GetFactionCores ().Count > 0)) {
-			bool debug = true;
-		}
-		#endif
 
 		newInfluenceValue = MathUtility.RoundToSixDecimals (newInfluenceValue);
 

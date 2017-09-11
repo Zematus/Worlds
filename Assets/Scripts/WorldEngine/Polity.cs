@@ -404,6 +404,12 @@ public abstract class Polity : ISynchronizable {
 
 		UpdateTotalAdministrativeCost ();
 
+		#if DEBUG
+		if (IsFocused) {
+			bool debug = true;
+		}
+		#endif
+
 		UpdateInternal ();
 	
 		Culture.Update ();
