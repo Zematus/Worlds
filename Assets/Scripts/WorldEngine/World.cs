@@ -777,7 +777,11 @@ public class World : ISynchronizable {
 
 		foreach (CellGroup group in _groupsToRemove) {
 
+			Profiler.BeginSample ("Destroy Group");
+
 			group.Destroy ();
+
+			Profiler.EndSample ();
 		}
 
 		_groupsToRemove.Clear ();
@@ -804,7 +808,11 @@ public class World : ISynchronizable {
 
 		foreach (Faction faction in _factionsToUpdate) {
 
+			Profiler.BeginSample ("Update Faction");
+
 			faction.Update ();
+
+			Profiler.EndSample ();
 		}
 
 		 _factionsToUpdate.Clear ();
@@ -815,7 +823,11 @@ public class World : ISynchronizable {
 
 		foreach (Polity polity in _politiesToUpdate) {
 
+			Profiler.BeginSample ("Update Polity");
+
 			polity.Update ();
+
+			Profiler.EndSample ();
 		}
 
 		_politiesToUpdate.Clear ();
@@ -826,7 +838,11 @@ public class World : ISynchronizable {
 
 		foreach (Polity polity in _politiesToRemove) {
 
+			Profiler.BeginSample ("Destroy Polity");
+
 			polity.Destroy ();
+
+			Profiler.EndSample ();
 		}
 
 		_politiesToRemove.Clear ();

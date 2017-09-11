@@ -396,13 +396,21 @@ public abstract class Polity : ISynchronizable {
 			return;
 		}
 
+		Profiler.BeginSample ("Run Population Census");
+
 		RunPopulationCensus ();
+
+		Profiler.EndSample ();
 
 		#if DEBUG
 		_populationCensusUpdated = true;
 		#endif
 
+		Profiler.BeginSample ("Update Total Administration Cost");
+
 		UpdateTotalAdministrativeCost ();
+
+		Profiler.EndSample ();
 
 		#if DEBUG
 		if (IsFocused) {
@@ -410,9 +418,17 @@ public abstract class Polity : ISynchronizable {
 		}
 		#endif
 
+		Profiler.BeginSample ("Update Internal");
+
 		UpdateInternal ();
+
+		Profiler.EndSample ();
+
+		Profiler.BeginSample ("Update Culture");
 	
 		Culture.Update ();
+
+		Profiler.EndSample ();
 
 //		if (!_coreGroupIsValid) {
 //
@@ -435,7 +451,11 @@ public abstract class Polity : ISynchronizable {
 		_populationCensusUpdated = false;
 		#endif
 
+		Profiler.BeginSample ("Normalize Faction Prominences");
+
 		NormalizeFactionProminences ();
+
+		Profiler.EndSample ();
 	}
 
 	protected abstract void UpdateInternal ();
@@ -641,7 +661,7 @@ public abstract class Polity : ISynchronizable {
 			return;
 		}
 
-		float coreDistance = group.GetPolityCoreDistance (this);
+		float coreDistance = group.GetPolityFactionCoreDistance (this);
 
 		float coreDistancePlusConstant = coreDistance + CoreDistanceEffectConstant;
 
@@ -788,6 +808,9 @@ public abstract class Polity : ISynchronizable {
 
 			if (weight < 0)
 				throw new System.Exception ("calculateGroupValue method returned weight value less than zero: " + weight);
+
+			if ((weight == 0) && nullIfNoValidGroup)
+				continue;
 
 			totalWeight += weight;
 

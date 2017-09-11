@@ -166,16 +166,6 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
 			mergedValue++;
 
 		#if DEBUG
-		if ((Id == SocialOrganizationKnowledge.SocialOrganizationKnowledgeId) && (Group.Id == 284740391041)) {
-
-			if (Group.GetFactionCores ().Count > 0) {
-
-				bool debug = true;
-			}
-		}
-		#endif
-
-		#if DEBUG
 		if ((Id == SocialOrganizationKnowledge.SocialOrganizationKnowledgeId) && (mergedValue < SocialOrganizationKnowledge.MinValueForHoldingTribalism)) {
 
 			if (Group.GetFactionCores ().Count > 0) {
@@ -196,16 +186,6 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
 
 		if (d > Group.GetNextLocalRandomFloat (RngOffsets.KNOWLEDGE_MODIFY_VALUE + RngOffset))
 			modifiedValue++;
-
-		#if DEBUG
-		if ((Id == SocialOrganizationKnowledge.SocialOrganizationKnowledgeId) && (Group.Id == 284740391041)) {
-
-			if (Group.GetFactionCores ().Count > 0) {
-
-				bool debug = true;
-			}
-		}
-		#endif
 
 		#if DEBUG
 		if ((Id == SocialOrganizationKnowledge.SocialOrganizationKnowledgeId) && (modifiedValue < SocialOrganizationKnowledge.MinValueForHoldingTribalism)) {
@@ -314,16 +294,6 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
 		}
 		#endif
 
-		#if DEBUG
-		if ((Id == SocialOrganizationKnowledge.SocialOrganizationKnowledgeId) && (Group.Id == 284740391041)) {
-
-			if (Group.GetFactionCores ().Count > 0) {
-
-				bool debug = true;
-			}
-		}
-		#endif
-
 		_newValue = newValue;
 	}
 
@@ -350,16 +320,6 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
 		int newValue = _newValue + valueChange;
 
 		#if DEBUG
-		if ((Id == SocialOrganizationKnowledge.SocialOrganizationKnowledgeId) && (Group.Id == 284740391041)) {
-
-			if (Group.GetFactionCores ().Count > 0) {
-
-				bool debug = true;
-			}
-		}
-		#endif
-
-		#if DEBUG
 		if ((Id == SocialOrganizationKnowledge.SocialOrganizationKnowledgeId) && (newValue < SocialOrganizationKnowledge.MinValueForHoldingTribalism)) {
 
 			if (Group.GetFactionCores ().Count > 0) {
@@ -373,16 +333,6 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
 	}
 
 	public void PostUpdate () {
-
-		#if DEBUG
-		if ((Id == SocialOrganizationKnowledge.SocialOrganizationKnowledgeId) && (Group.Id == 284740391041)) {
-
-			if (Group.GetFactionCores ().Count > 0) {
-
-				bool debug = true;
-			}
-		}
-		#endif
 	
 		Value = _newValue;
 

@@ -334,9 +334,13 @@ public class ClanSplitEvent : FactionEvent {
 
 	public const float MinCoreInfluenceValue = 0.3f;
 
+	public const float MinCoreDistance = 1000f;
+
 	public const float MinProminenceTrigger = 0.3f;
 	public const float MinProminenceTransfer = 0.25f;
 	public const float ProminenceTransferProportion = 0.75f;
+
+	private CellGroup _newCoreGroup = null;
 
 //	public const string EventSetFlag = "ClanSplitEvent_Set";
 
@@ -408,6 +412,13 @@ public class ClanSplitEvent : FactionEvent {
 		if (Faction.Prominence < MinProminenceTrigger)
 			return false;
 
+		int rngOffset = RngOffsets.EVENT_CAN_TRIGGER + (int)Id;
+
+		_newCoreGroup = Faction.Polity.GetRandomGroup (rngOffset++, GetGroupWeight, true);
+
+		if (_newCoreGroup == null)
+			return false;
+
 		float administrativeLoadFactor = CalculateClanAdministrativeLoadFactor (Faction as Clan);
 		administrativeLoadFactor = Mathf.Pow (administrativeLoadFactor, 2);
 
@@ -416,14 +427,45 @@ public class ClanSplitEvent : FactionEvent {
 
 		float splitValue = administrativeLoadFactor / (administrativeLoadFactor + MuAdministrativeLoadValue);
 
-		int rngOffset = RngOffsets.EVENT_CAN_TRIGGER + (int)Id;
-
 		float triggerValue = Faction.GetNextLocalRandomFloat (rngOffset++);
 
 		if (triggerValue > splitValue)
 			return false;
 
 		return true;
+	}
+
+	public float GetGroupWeight (CellGroup group) {
+
+		if (group == Faction.CoreGroup)
+			return 0;
+
+		PolityInfluence pi = group.GetPolityInfluence (Faction.Polity);
+
+		if (group.HighestPolityInfluence != pi)
+			return 0;
+
+		Clan clan = Faction as Clan;
+
+		if (!clan.CanBeClanCore (group))
+			return 0;
+
+		float value = Mathf.Max(pi.Value - MinCoreInfluenceValue, 0);
+
+		#if DEBUG
+		if (pi.CoreDistance == float.MaxValue) {
+			bool debug = true;
+		}
+		#endif
+
+		float coreDistance = Mathf.Max(pi.CoreDistance - MinCoreDistance, 0);
+
+		float weight = coreDistance * value;
+
+		if (weight < 0)
+			return float.MaxValue;
+
+		return weight;
 	}
 
 	public override void Trigger () {
@@ -439,7 +481,8 @@ public class ClanSplitEvent : FactionEvent {
 
 		Polity polity = Faction.Polity;
 
-		Clan newClan = new Clan (polity as Tribe, Faction.CoreGroup, newClanProminence, Faction as Clan);
+//		Clan newClan = new Clan (polity as Tribe, Faction.CoreGroup, newClanProminence, Faction as Clan);
+		Clan newClan = new Clan (polity as Tribe, _newCoreGroup, newClanProminence, Faction as Clan);
 
 		polity.AddFaction (newClan);
 
@@ -494,7 +537,7 @@ public class ClanCoreMigrationEvent : FactionEvent {
 	[XmlIgnore]
 	public CellGroup TargetGroup;
 
-	public const int DateSpanFactorConstant = CellGroup.GenerationTime * 200;
+	public const int DateSpanFactorConstant = CellGroup.GenerationTime * 500;
 
 	//	public const string EventSetFlag = "ClanSplitEvent_Set";
 
