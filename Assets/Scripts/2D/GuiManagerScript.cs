@@ -172,6 +172,10 @@ public class GuiManagerScript : MonoBehaviour {
 	public void HandleLog(string logString, string stackTrace, LogType type)
 	{
 		_debugLogStream.WriteLine (logString);
+
+		#if DEBUG
+		_debugLogStream.Flush ();
+		#endif
 	}
 
 	// Use this for initialization

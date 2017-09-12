@@ -10,6 +10,7 @@ public class Tribe : Polity {
 	public const int MinPopulationForTribeCore = 500;
 
 	public const float TribalExpansionFactor = 2f;
+
 	public const int TribeLeaderAvgTimeSpan = 41;
 
 	public const string TribeType = "Tribe";
@@ -73,50 +74,13 @@ public class Tribe : Polity {
 		AddBaseEvents ();
 	}
 
-	public Tribe (CellGroup coreGroup, Polity parentPolity, List<Clan> clansToTransfer) : base (TribeType, coreGroup, parentPolity) {
+	public Tribe (Clan triggerClan, Polity parentPolity) : base (TribeType, triggerClan.CoreGroup, parentPolity) {
 
-		Clan dominantClan = null;
+		triggerClan.ChangePolity (this, triggerClan.Prominence);
 
-		float transferedProminence = 0;
-
-		float highestProminence = 0;
-
-		foreach (Clan clan in clansToTransfer) {
-
-			transferedProminence += clan.Prominence;
-
-			if (clan.Prominence > highestProminence) {
-				highestProminence = clan.Prominence;
-				dominantClan = clan;
-			}
-
-			clan.ChangePolity (this, clan.Prominence);
-		}
-
-		SwitchCellInfluences (parentPolity, transferedProminence);
+		SwitchCellInfluences (parentPolity, triggerClan);
 
 		GenerateName ();
-
-		SetDominantFaction (dominantClan);
-
-		//// Add base events
-
-		AddBaseEvents ();
-
-		////
-
-//		Debug.Log ("New tribe '" + Name + "' from tribe '" + parentPolity.Name + "' with total transfered prominence = " + transferedProminence);
-	}
-
-	public Tribe (Clan dominantClan, Polity parentPolity) : base (TribeType, dominantClan.CoreGroup, parentPolity) {
-
-		dominantClan.ChangePolity (this, dominantClan.Prominence);
-
-		SwitchCellInfluences (parentPolity, dominantClan.Prominence);
-
-		GenerateName ();
-
-		SetDominantFaction (dominantClan);
 
 		//// Add base events
 
@@ -139,14 +103,15 @@ public class Tribe : Polity {
 		}
 	}
 
-	private void SwitchCellInfluences (Polity sourcePolity, float targetPolityProminence) {
+	private void SwitchCellInfluences (Polity sourcePolity, Clan triggerClan) {
 
-		float sourcePolityProminence = 1 - targetPolityProminence;
-
-		if (targetPolityProminence <= 0) {
-		
-			throw new System.Exception ("Pulling clan prominence equal or less than zero.");
-		}
+//		float targetPolityProminence = triggerClan.Prominence;
+//		float sourcePolityProminence = 1 - targetPolityProminence;
+//
+//		if (targetPolityProminence <= 0) {
+//		
+//			throw new System.Exception ("Pulling clan prominence equal or less than zero.");
+//		}
 
 		int maxGroupCount = sourcePolity.InfluencedGroups.Count;
 
@@ -159,16 +124,11 @@ public class Tribe : Polity {
 		int reviewedCells = 0;
 		int switchedCells = 0;
 
+		HashSet<Faction> factionsToTransfer = new HashSet<Faction> ();
+
 		while (sourceGroups.Count > 0) {
 		
 			CellGroup group = sourceGroups.Dequeue ();
-
-//			#if DEBUG
-//			if ((group.Cell.Longitude == 229) && (group.Cell.Latitude == 120)) {
-//			
-//				bool debug = true;
-//			}
-//			#endif
 
 			if (groupDistances.ContainsKey (group))
 				continue;
@@ -180,46 +140,54 @@ public class Tribe : Polity {
 
 			reviewedCells++;
 
-			float distanceToCore = CalculateShortestCoreDistance (group, groupDistances);
+			float targetDistanceToFactionCore = CalculateShortestCoreDistance (group, groupDistances);
 
-			if (distanceToCore >= float.MaxValue)
+			if (targetDistanceToFactionCore >= CellGroup.MaxCoreDistance)
 				continue;
 
-			groupDistances.Add (group, distanceToCore);
+			groupDistances.Add (group, targetDistanceToFactionCore);
 
-			float distanceToSourcePolityCore = pi.CoreDistance;
+			float sourceDistanceToFactionCore = pi.CoreDistance;
 
 			float percentInfluence = 1f;
 
-			if (distanceToSourcePolityCore < float.MaxValue) {
+			if (sourceDistanceToFactionCore < CellGroup.MaxCoreDistance) {
 
-				float ditanceToCoresSum = distanceToCore + distanceToSourcePolityCore;
+				float distanceDelta = targetDistanceToFactionCore - sourceDistanceToFactionCore;
 
-				if (ditanceToCoresSum <= 0) {
-
-					throw new System.Exception ("Sum of core distances equal or less than zero.");
+				if (distanceDelta > 0) {
+				
+					percentInfluence = 0;
 				}
-			
-				float distanceFactor = distanceToSourcePolityCore / ditanceToCoresSum;
-
-				distanceFactor = Mathf.Clamp01((distanceFactor * 3f) - 1f);
-
-//				float targetDistanceFactor = Mathf.Pow (distanceFactor, 4);
-//				float sourceDistanceFactor = Mathf.Pow (1 - distanceFactor, 4);
-				float targetDistanceFactor = distanceFactor;
-				float sourceDistanceFactor = 1 - distanceFactor;
-
-				float targetPolityWeight = targetPolityProminence * targetDistanceFactor;
-				float sourcePolityWeight = sourcePolityProminence * sourceDistanceFactor;
-//				float targetPolityWeight = targetDistanceFactor;
-//				float sourcePolityWeight = sourceDistanceFactor;
-
-				percentInfluence = targetPolityWeight / (targetPolityWeight + sourcePolityWeight);
+//
+//				float ditanceToCoresSum = targetDistanceToFactionCore + sourceDistanceToFactionCore;
+//
+//				if (ditanceToCoresSum <= 0) {
+//
+//					throw new System.Exception ("Sum of core distances equal or less than zero.");
+//				}
+//			
+//				float distanceFactor = sourceDistanceToFactionCore / ditanceToCoresSum;
+//
+//				distanceFactor = Mathf.Clamp01((distanceFactor * 3f) - 1f);
+//
+//				float targetDistanceFactor = distanceFactor;
+//				float sourceDistanceFactor = 1 - distanceFactor;
+//
+//				float targetPolityWeight = targetPolityProminence * targetDistanceFactor;
+//				float sourcePolityWeight = sourcePolityProminence * sourceDistanceFactor;
+//
+//				percentInfluence = targetPolityWeight / (targetPolityWeight + sourcePolityWeight);
 			}
 
 			if (percentInfluence > 0.5f) {
 			
 				switchedCells++;
+
+				foreach (Faction faction in group.GetFactionCores ()) {
+				
+					factionsToTransfer.Add (faction);
+				}
 			}
 
 			if (percentInfluence <= 0)
@@ -229,7 +197,7 @@ public class Tribe : Polity {
 	
 			group.SetPolityInfluence (sourcePolity, influenceValue * (1 - percentInfluence));
 
-			group.SetPolityInfluence (this, influenceValue * percentInfluence, distanceToCore);
+			group.SetPolityInfluence (this, influenceValue * percentInfluence, targetDistanceToFactionCore);
 	
 			World.AddGroupToUpdate (group);
 
@@ -242,6 +210,26 @@ public class Tribe : Polity {
 			}
 		}
 
+		float highestProminence = triggerClan.Prominence;
+
+		Clan dominantClan = triggerClan;
+
+		foreach (Faction faction in factionsToTransfer) {
+
+			Clan clan = faction as Clan;
+
+			if (clan != null) {
+				if (clan.Prominence > highestProminence) {
+					highestProminence = clan.Prominence;
+					dominantClan = clan;
+				}
+			}
+
+			faction.ChangePolity (this, faction.Prominence);
+		}
+
+		SetDominantFaction (dominantClan);
+
 //		Debug.Log ("SwitchCellInfluences: source polity cells: " + maxGroupCount + ", reviewed cells: " + reviewedCells + ", switched cells: " + switchedCells);
 	}
 
@@ -250,7 +238,7 @@ public class Tribe : Polity {
 		if (groupDistances.Count <= 0)
 			return 0;
 
-		float shortestDistance = float.MaxValue;
+		float shortestDistance = CellGroup.MaxCoreDistance;
 
 		foreach (KeyValuePair<Direction, CellGroup> pair in group.Neighbors) {
 
@@ -395,7 +383,7 @@ public class TribeSplitEvent : PolityEvent {
 	public const float MaxTargetProminence = 0.60f;
 
 //	private CellGroup _newCoreGroup = null;
-	private Clan _dominantClan = null;
+	private Clan _triggerClan = null;
 
 	public TribeSplitEvent () {
 
@@ -453,8 +441,6 @@ public class TribeSplitEvent : PolityEvent {
 
 	public override bool CanTrigger () {
 
-		return false;
-
 		#if DEBUG
 		if (Polity.Territory.IsSelected) {
 			bool debug = true;
@@ -489,9 +475,9 @@ public class TribeSplitEvent : PolityEvent {
 //		if (_newCoreGroup == null)
 //			return false;
 
-		_dominantClan = Polity.GetRandomFaction (rngOffset++, GetFactionWeight, true) as Clan;
+		_triggerClan = Polity.GetRandomFaction (rngOffset++, GetFactionWeight, true) as Clan;
 
-		if (_dominantClan == null)
+		if (_triggerClan == null)
 			return false;
 
 		return true;
@@ -583,7 +569,7 @@ public class TribeSplitEvent : PolityEvent {
 //		}
 
 //		Tribe newTribe = new Tribe (_newCoreGroup, Polity, clansToTransfer);
-		Tribe newTribe = new Tribe (_dominantClan, Polity);
+		Tribe newTribe = new Tribe (_triggerClan, Polity);
 
 		World.AddPolity (newTribe);
 		World.AddPolityToUpdate (newTribe);

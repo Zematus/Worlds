@@ -248,6 +248,9 @@ public class TerrainCell : ISynchronizable {
 
 	public Direction TryGetNeighborDirection (int offset) {
 
+		if (Neighbors.Count <= 0)
+			return Direction.Null;
+
 		int dir = (int)Mathf.Repeat (offset, MaxNeighborDirections);
 
 		while (true) {

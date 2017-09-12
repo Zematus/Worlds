@@ -318,11 +318,13 @@ public abstract class Polity : ISynchronizable {
 			faction.SetDominant (false);
 		}
 
+		#if DEBUG
 		if ((faction == null) || (!faction.StillPresent))
 			throw new System.Exception ("Faction is null or not present");
 
 		if (faction.Polity != this)
 			throw new System.Exception ("Faction is not part of polity");
+		#endif
 	
 		DominantFaction = faction;
 		DominantFactionId = faction.Id;

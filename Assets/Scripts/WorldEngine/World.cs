@@ -645,6 +645,13 @@ public class World : ISynchronizable {
 
 	public int Iterate () {
 
+//		#if DEBUG
+//		int testDate = 554631;
+//
+//		if (CurrentDate >= testDate)
+//			Debug.Log ("Iteration Date: " + CurrentDate);
+//		#endif
+
 		if (CellGroupCount <= 0)
 			return 0;
 		
@@ -655,6 +662,11 @@ public class World : ISynchronizable {
 		int dateToSkipTo = CurrentDate + 1;
 
 		Profiler.BeginSample ("Evaluate Events");
+
+//		#if DEBUG
+//		if (CurrentDate >= testDate)
+//			Debug.Log ("Events to happen: " + _eventsToHappen.Count);
+//		#endif
 
 		while (true) {
 
@@ -692,11 +704,27 @@ public class World : ISynchronizable {
 
 			Profiler.BeginSample ("Event Trigger");
 
+//			#if DEBUG
+//			if (CurrentDate >= testDate)
+//				Debug.Log ("Trying to trigger event: " + eventToHappen.GetType ());
+//			#endif
+
 			if (eventToHappen.CanTrigger ()) {
+
+//				#if DEBUG
+//				if (CurrentDate >= testDate)
+//					Debug.Log ("Triggering event");
+//				#endif
+				
 				eventToHappen.Trigger ();
 			} else {
 				eventToHappen.FailedToTrigger = true;
 			}
+
+//			#if DEBUG
+//			if (CurrentDate >= testDate)
+//				Debug.Log ("Done trying to trigger event");
+//			#endif
 
 			Profiler.EndSample ();
 
@@ -717,6 +745,11 @@ public class World : ISynchronizable {
 		//
 		// Update Human Groups
 		//
+
+//		#if DEBUG
+//		if (CurrentDate >= testDate)
+//			Debug.Log ("Groups to update: " + _groupsToUpdate.Count);
+//		#endif
 	
 		foreach (CellGroup group in _groupsToUpdate) {
 
@@ -732,6 +765,11 @@ public class World : ISynchronizable {
 		//
 		// Migrate Human Groups
 		//
+
+//		#if DEBUG
+//		if (CurrentDate >= testDate)
+//			Debug.Log ("Groups to migrate: " + _migratingGroups.Count);
+//		#endif
 		
 		MigratingGroup[] currentGroupsToMigrate = _migratingGroups.ToArray();
 		
@@ -761,6 +799,11 @@ public class World : ISynchronizable {
 		//
 		// Perform post update ops
 		//
+
+//		#if DEBUG
+//		if (CurrentDate >= testDate)
+//			Debug.Log ("Groups to post-update: " + _updatedGroups.Count);
+//		#endif
 		
 		foreach (CellGroup group in _updatedGroups) {
 
@@ -774,6 +817,11 @@ public class World : ISynchronizable {
 		//
 		// Remove Human Groups that have been set to be removed
 		//
+
+//		#if DEBUG
+//		if (CurrentDate >= testDate)
+//			Debug.Log ("Groups to remove: " + _groupsToRemove.Count);
+//		#endif
 
 		foreach (CellGroup group in _groupsToRemove) {
 
@@ -789,6 +837,11 @@ public class World : ISynchronizable {
 		//
 		// Set next group updates
 		//
+
+//		#if DEBUG
+//		if (CurrentDate >= testDate)
+//			Debug.Log ("Groups to set for next update: " + _updatedGroups.Count);
+//		#endif
 		
 		foreach (CellGroup group in _updatedGroups) {
 
@@ -806,6 +859,11 @@ public class World : ISynchronizable {
 		// Update Factions
 		//
 
+//		#if DEBUG
+//		if (CurrentDate >= testDate)
+//			Debug.Log ("Factions to update: " + _factionsToUpdate.Count);
+//		#endif
+
 		foreach (Faction faction in _factionsToUpdate) {
 
 			Profiler.BeginSample ("Update Faction");
@@ -820,6 +878,11 @@ public class World : ISynchronizable {
 		//
 		// Update Polities
 		//
+
+//		#if DEBUG
+//		if (CurrentDate >= testDate)
+//			Debug.Log ("Polities to update: " + _politiesToUpdate.Count);
+//		#endif
 
 		foreach (Polity polity in _politiesToUpdate) {
 
@@ -836,6 +899,11 @@ public class World : ISynchronizable {
 		// Remove Polities that have been set to be removed
 		//
 
+//		#if DEBUG
+//		if (CurrentDate >= testDate)
+//			Debug.Log ("Polities to remove: " + _politiesToRemove.Count);
+//		#endif
+
 		foreach (Polity polity in _politiesToRemove) {
 
 			Profiler.BeginSample ("Destroy Polity");
@@ -850,6 +918,11 @@ public class World : ISynchronizable {
 		//
 		// Skip to Next Event's Date
 		//
+
+//		#if DEBUG
+//		if (CurrentDate >= testDate)
+//			Debug.Log ("Events left to happen: " + _eventsToHappen.Count);
+//		#endif
 
 		if (_eventsToHappen.Count > 0) {
 

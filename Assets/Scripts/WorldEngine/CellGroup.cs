@@ -1360,6 +1360,9 @@ public class CellGroup : HumanGroup {
 
 	public Direction TryGetNeighborDirection (int offset) {
 
+		if (Neighbors.Count <= 0)
+			return Direction.Null;
+
 		int dir = (int)Mathf.Repeat (offset, TerrainCell.MaxNeighborDirections);
 
 		while (true) {
@@ -1414,6 +1417,9 @@ public class CellGroup : HumanGroup {
 //		CellGroup targetGroup = GetNeighborGroup (targetGroupIndex);
 
 		Direction expansionDirection = GeneratePolityExpansionDirection ();
+
+		if (expansionDirection == Direction.Null)
+			return;
 
 		CellGroup targetGroup = Neighbors [expansionDirection];
 
@@ -2445,16 +2451,6 @@ public class CellGroup : HumanGroup {
 		}
 
 		if (newInfluenceValue <= Polity.MinPolityInfluence) {
-
-			#if DEBUG
-			foreach (Faction faction in GetFactionCores ()) {
-
-				if (faction.PolityId == polityInfluence.PolityId) {
-
-					throw new System.Exception ("Faction belonging to removed polity has core in cell - group Id: " + Id + ", date: " + World.CurrentDate);
-				}
-			}
-			#endif
 			
 			_polityInfluencesToRemove.Add (polityInfluence.PolityId);
 

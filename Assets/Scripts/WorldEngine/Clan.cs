@@ -18,8 +18,6 @@ public class Clan : Faction {
 
 	[XmlAttribute("CoreMigDate")]
 	public int ClanCoreMigrationEventDate;
-	[XmlAttribute("CoreMigTgtId")]
-	public long ClanCoreMigrationTargetGroupId;
 
 	[XmlIgnore]
 	public ClanSplitEvent ClanSplitEvent;
@@ -33,6 +31,13 @@ public class Clan : Faction {
 
 	public Clan (Polity polity, CellGroup coreGroup, float prominence, Clan parentClan = null) : base (ClanType, polity, coreGroup, prominence, parentClan) {
 
+//		#if DEBUG
+//		int testDate = 554631;
+//
+//		if (World.CurrentDate >= testDate)
+//			Debug.Log ("Adding ClanSplitEvent");
+//		#endif
+
 		if (ClanSplitEvent.CanBeAssignedTo (this)) {
 
 			ClanSplitEventDate = ClanSplitEvent.CalculateTriggerDate (this);
@@ -42,17 +47,39 @@ public class Clan : Faction {
 			World.InsertEventToHappen (ClanSplitEvent);
 		}
 
+//		#if DEBUG
+//		if (World.CurrentDate >= testDate)
+//			Debug.Log ("Adding ClanCoreMigrationEvent");
+//		#endif
+
 		if (ClanCoreMigrationEvent.CanBeAssignedTo (this)) {
+			
+//			#if DEBUG
+//			if (World.CurrentDate >= testDate)
+//				Debug.Log ("Generating trigger date");
+//			#endif
 
 			ClanCoreMigrationEventDate = ClanCoreMigrationEvent.CalculateTriggerDate (this);
 
-			CellGroup targetGroup = GetCoreGroupMigrationTarget ();
-			ClanCoreMigrationTargetGroupId = targetGroup.Id;
-			
-			ClanCoreMigrationEvent = new ClanCoreMigrationEvent (this, targetGroup, ClanCoreMigrationEventDate);
+//			#if DEBUG
+//			if (World.CurrentDate >= testDate)
+//				Debug.Log ("Creating event object");
+//			#endif
+
+			ClanCoreMigrationEvent = new ClanCoreMigrationEvent (this, ClanCoreMigrationEventDate);
+
+//			#if DEBUG
+//			if (World.CurrentDate >= testDate)
+//				Debug.Log ("Inserting event");
+//			#endif
 
 			World.InsertEventToHappen (ClanCoreMigrationEvent);
 		}
+
+//		#if DEBUG
+//		if (World.CurrentDate >= testDate)
+//			Debug.Log ("Generating log message");
+//		#endif
 
 		string logMessage = "New clan '" + Name + "' spawned in Polity '" + Polity.Name + "'";
 
@@ -71,17 +98,11 @@ public class Clan : Faction {
 
 	public CellGroup GetCoreGroupMigrationTarget () {
 
-//		int targetGroupIndex = GetNextLocalRandomInt (RngOffsets.CLAN_CHOOSE_TARGET_GROUP, TerrainCell.MaxNeighborDirections);
-//
-//		return CoreGroup.TryGetNeighborDirection (targetGroupIndex);
-
 		Direction migrationDirection = CoreGroup.GenerateCoreMigrationDirection ();
 
-		#if DEBUG
 		if (migrationDirection == Direction.Null) {
-			Debug.LogError ("Null core migration direction. Clan Id: " + Id);
+			return null;
 		}
-		#endif
 
 		return CoreGroup.Neighbors [migrationDirection];
 	}
@@ -98,10 +119,8 @@ public class Clan : Faction {
 		}
 
 		if (ClanCoreMigrationEvent.CanBeAssignedTo (this)) {
-		
-			CellGroup targetGroup = World.GetGroup (ClanCoreMigrationTargetGroupId);
 
-			ClanCoreMigrationEvent = new ClanCoreMigrationEvent (this, targetGroup, ClanCoreMigrationEventDate);
+			ClanCoreMigrationEvent = new ClanCoreMigrationEvent (this, ClanCoreMigrationEventDate);
 
 			World.InsertEventToHappen (ClanCoreMigrationEvent);
 		}
@@ -119,10 +138,7 @@ public class Clan : Faction {
 
 			ClanCoreMigrationEventDate = ClanCoreMigrationEvent.CalculateTriggerDate (this);
 
-			CellGroup targetGroup = GetCoreGroupMigrationTarget ();
-			ClanCoreMigrationTargetGroupId = targetGroup.Id;
-
-			ClanCoreMigrationEvent.Reset (targetGroup, ClanCoreMigrationEventDate);
+			ClanCoreMigrationEvent.Reset (ClanCoreMigrationEventDate);
 
 			World.InsertEventToHappen (ClanCoreMigrationEvent);
 		}
@@ -403,11 +419,11 @@ public class ClanSplitEvent : FactionEvent {
 		if (!base.CanTrigger ())
 			return false;
 
-		#if DEBUG
-		if (Faction.Polity.Territory.IsSelected) {
-			bool debug = true;
-		}
-		#endif
+//		#if DEBUG
+//		if (Faction.Polity.Territory.IsSelected) {
+//			bool debug = true;
+//		}
+//		#endif
 
 		if (Faction.Prominence < MinProminenceTrigger)
 			return false;
@@ -470,6 +486,13 @@ public class ClanSplitEvent : FactionEvent {
 
 	public override void Trigger () {
 
+//		#if DEBUG
+//		int testDate = 554631;
+//
+//		if (World.CurrentDate >= testDate)
+//			Debug.Log ("Triggering Clan splitting event with clan: " + Faction.Id);
+//		#endif
+
 		float randomValue = Faction.GetNextLocalRandomFloat (RngOffsets.EVENT_TRIGGER + 1 + (int)Id);
 		float randomFactor = MinProminenceTransfer + (randomValue * ProminenceTransferProportion);
 
@@ -481,13 +504,33 @@ public class ClanSplitEvent : FactionEvent {
 
 		Polity polity = Faction.Polity;
 
+//		#if DEBUG
+//		if (World.CurrentDate >= testDate)
+//			Debug.Log ("Creating new clan");
+//		#endif
+
 //		Clan newClan = new Clan (polity as Tribe, Faction.CoreGroup, newClanProminence, Faction as Clan);
 		Clan newClan = new Clan (polity as Tribe, _newCoreGroup, newClanProminence, Faction as Clan);
 
+//		#if DEBUG
+//		if (World.CurrentDate >= testDate)
+//			Debug.Log ("Adding to polity: " + polity.Id);
+//		#endif
+
 		polity.AddFaction (newClan);
+
+//		#if DEBUG
+//		if (World.CurrentDate >= testDate)
+//			Debug.Log ("Adding factions to update");
+//		#endif
 
 		World.AddFactionToUpdate (Faction);
 		World.AddFactionToUpdate (newClan);
+
+//		#if DEBUG
+//		if (World.CurrentDate >= testDate)
+//			Debug.Log ("Adding polity to update");
+//		#endif
 
 		World.AddPolityToUpdate (polity);
 
@@ -531,13 +574,9 @@ public class ClanSplitEvent : FactionEvent {
 
 public class ClanCoreMigrationEvent : FactionEvent {
 
-	[XmlAttribute]
-	public long TargetGroupId;
-
-	[XmlIgnore]
-	public CellGroup TargetGroup;
-
 	public const int DateSpanFactorConstant = CellGroup.GenerationTime * 500;
+
+	private CellGroup _targetGroup;
 
 	//	public const string EventSetFlag = "ClanSplitEvent_Set";
 
@@ -546,13 +585,7 @@ public class ClanCoreMigrationEvent : FactionEvent {
 		DoNotSerialize = true;
 	}
 
-	public ClanCoreMigrationEvent (Clan clan, CellGroup targetGroup, int triggerDate) : base (clan, triggerDate, ClanCoreMigrationEventId) {
-
-		TargetGroup = targetGroup;
-
-		TargetGroupId = TargetGroup.Id;
-
-		//		clan.SetFlag (EventSetFlag);
+	public ClanCoreMigrationEvent (Clan clan, int triggerDate) : base (clan, triggerDate, ClanCoreMigrationEventId) {
 
 		DoNotSerialize = true;
 	}
@@ -565,7 +598,7 @@ public class ClanCoreMigrationEvent : FactionEvent {
 		float dateSpan = (1 - randomFactor) * DateSpanFactorConstant;
 
 		int targetDate = (int)(clan.World.CurrentDate + dateSpan);
-
+		
 		if (targetDate <= clan.World.CurrentDate)
 			targetDate = int.MinValue;
 
@@ -591,12 +624,19 @@ public class ClanCoreMigrationEvent : FactionEvent {
 //		}
 //		#endif
 
-		return Faction.ShouldMigrateFactionCore (Faction.CoreGroup, TargetGroup);
+		Clan clan = Faction as Clan;
+
+		_targetGroup = clan.GetCoreGroupMigrationTarget ();
+
+		if (_targetGroup == null)
+			return false;
+
+		return Faction.ShouldMigrateFactionCore (Faction.CoreGroup, _targetGroup);
 	}
 
 	public override void Trigger () {
 
-		Faction.PrepareNewCoreGroup (TargetGroup);
+		Faction.PrepareNewCoreGroup (_targetGroup);
 
 		World.AddFactionToUpdate (Faction);
 
@@ -621,10 +661,7 @@ public class ClanCoreMigrationEvent : FactionEvent {
 
 				clan.ClanCoreMigrationEventDate = CalculateTriggerDate (clan);
 
-				CellGroup targetGroup = clan.GetCoreGroupMigrationTarget ();
-				clan.ClanCoreMigrationTargetGroupId = targetGroup.Id;
-
-				Reset (targetGroup, clan.ClanCoreMigrationEventDate);
+				Reset (clan.ClanCoreMigrationEventDate);
 
 				World.InsertEventToHappen (this);
 			}
@@ -635,19 +672,8 @@ public class ClanCoreMigrationEvent : FactionEvent {
 
 		base.FinalizeLoad ();
 
-		TargetGroup = World.GetGroup (TargetGroupId);
-
 		Clan clan = Faction as Clan;
 
 		clan.ClanCoreMigrationEvent = this;
-	}
-
-	public virtual void Reset (CellGroup targetGroup, int newTriggerDate) {
-
-		TargetGroup = targetGroup;
-
-		TargetGroupId = TargetGroup.Id;
-
-		Reset (newTriggerDate);
 	}
 }
