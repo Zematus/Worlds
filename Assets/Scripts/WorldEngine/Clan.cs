@@ -5,6 +5,8 @@ using System.Xml;
 using System.Xml.Serialization;
 
 public class Clan : Faction {
+
+	public const int LeadershipAvgSpan = 20;
 	
 	public const int MinSocialOrganizationValue = 400;
 
@@ -170,7 +172,7 @@ public class Clan : Faction {
 		bool addMoreWords = true;
 
 		bool isPrimaryWord = true;
-		float extraWordChange = 0.2f;
+		float extraWordChance = 0.2f;
 
 		while (addMoreWords) {
 
@@ -198,7 +200,7 @@ public class Clan : Faction {
 
 			if (canAddMoreWords) {
 			
-				addMoreWords = extraWordChange > getRandomFloat ();
+				addMoreWords = extraWordChance > getRandomFloat ();
 			}
 
 			if ((!canAddMoreWords) || (!addMoreWords)) {
@@ -217,10 +219,15 @@ public class Clan : Faction {
 				throw new System.Exception ("Ran out of words to add");
 			}
 
-			extraWordChange /= 2f;
+			extraWordChance /= 2f;
 		}
 
 		Name = new Name (namePhrase, untranslatedName, language, World);
+	}
+
+	public override Leader RequestCurrentLeader ()
+	{
+		return RequestCurrentLeader (LeadershipAvgSpan, RngOffsets.CLAN_LEADER_GEN_OFFSET);
 	}
 
 	public bool CanBeClanCore (CellGroup group)

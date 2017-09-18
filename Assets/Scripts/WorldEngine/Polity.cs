@@ -19,11 +19,6 @@ public class PolityInfluence {
 	[XmlAttribute("Cost")]
 	public float AdiministrativeCost;
 
-	[XmlAttribute("LeadAvgTime")]
-	public int LeaderAvgTimeSpan;
-
-	public int Leader;
-
 	[XmlIgnore]
 	public float NewValue;
 	[XmlIgnore]

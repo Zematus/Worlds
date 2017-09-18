@@ -271,6 +271,7 @@ public class CellGroup : HumanGroup {
 	public CellGroup (World world, TerrainCell cell, int initialPopulation, Culture baseCulture = null, Direction migrationDirection = Direction.Null) : base(world) {
 
 		InitDate = World.CurrentDate;
+		LastUpdateDate = InitDate;
 
 		PreviousExactPopulation = 0;
 		ExactPopulation = initialPopulation;
@@ -1007,30 +1008,31 @@ public class CellGroup : HumanGroup {
 		return cellValue;
 	}
 
-	public int GenerateNewSpawnDate (int maxTimespanBetweenSpawns, int cycleLength, int offset = 0) {
+	public int GenerateSpawnDate (int baseDate, int cycleLength, int offset = 0) {
 
 		int currentDate = World.CurrentDate;
 
-		int currentCycleDate = currentDate - (currentDate - LastUpdateDate) % cycleLength;
+		int startCycleDate = baseDate + GetLocalRandomInt (baseDate, offset, cycleLength);
+
+		int currentCycleDate = currentDate - (currentDate - startCycleDate) % cycleLength;
 
 		int spawnDate = currentCycleDate + GetLocalRandomInt (currentCycleDate, offset, cycleLength);
 
 		if (currentDate < spawnDate) {
 
+			if (currentCycleDate == startCycleDate) {
+
+				return baseDate;
+			}
+
 			int prevCycleDate = currentCycleDate - cycleLength;
-		
+
 			int prevSpawnDate = prevCycleDate + GetLocalRandomInt (prevCycleDate, offset, cycleLength);
 
-			return RandomUtility.RandomRound (currentDate, prevSpawnDate, spawnDate, maxTimespanBetweenSpawns, GetLocalRandomInt, offset);
-
-		} else {
-
-			int nextCycleDate = currentCycleDate + cycleLength;
-
-			int nextSpawnDate = nextCycleDate + GetLocalRandomInt (nextCycleDate, offset, cycleLength);
-
-			return RandomUtility.RandomRound (currentDate, spawnDate, nextSpawnDate, maxTimespanBetweenSpawns, GetLocalRandomInt, offset);
+			return prevSpawnDate;
 		}
+
+		return spawnDate;
 	}
 
 	public void TriggerInterference () {

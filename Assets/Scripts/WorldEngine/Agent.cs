@@ -23,9 +23,6 @@ public abstract class Agent : ISynchronizable {
 	[XmlAttribute("StilPres")]
 	public bool StillPresent = true;
 
-	[XmlAttribute("IterOff")]
-	public int IterationOffset;
-
 	public Name Name = null;
 
 	[XmlIgnore]
@@ -38,7 +35,7 @@ public abstract class Agent : ISynchronizable {
 
 	}
 
-	public Agent (string type, CellGroup group, int birthDate, int iterationOffset = 0) {
+	public Agent (string type, CellGroup group, int birthDate) {
 
 		Type = type;
 
@@ -49,8 +46,6 @@ public abstract class Agent : ISynchronizable {
 
 		BirthDate = birthDate;
 
-		IterationOffset = iterationOffset;
-
 		GenerateName ();
 	}
 
@@ -59,19 +54,70 @@ public abstract class Agent : ISynchronizable {
 		StillPresent = false;
 	}
 
-	protected abstract void GenerateName ();
+	private void GenerateName () {
 
-	public void Update () {
+		int rngOffset = RngOffsets.AGENT_GENERATE_NAME + (int)Group.Id;
 
-		if (!Group.StillPresent) {
+		GetRandomIntDelegate getRandomInt = (int maxValue) => Group.GetLocalRandomInt (BirthDate, rngOffset++, maxValue);
+		Language.GetRandomFloatDelegate getRandomFloat = () => Group.GetLocalRandomFloat (BirthDate, rngOffset++);
 
-			return;
+		Language language = Group.Culture.Language;
+		Region region = Group.Cell.Region;
+
+		string untranslatedName = "";
+		Language.NounPhrase namePhrase = null;
+
+		if (region.Elements.Count <= 0) {
+
+			throw new System.Exception ("No elements to choose name from");
 		}
 
-		UpdateInternal ();
-	}
+		List<RegionElement> remainingElements = new List<RegionElement> (region.Elements);
 
-	protected abstract void UpdateInternal ();
+		bool addMoreWords = true;
+
+		bool isPrimaryWord = true;
+		float extraWordChance = 0.2f;
+
+		while (addMoreWords) {
+
+			addMoreWords = false;
+
+			int index = getRandomInt (remainingElements.Count);
+
+			RegionElement element = remainingElements [index];
+
+			remainingElements.RemoveAt (index);
+
+			if (isPrimaryWord) {
+
+				untranslatedName = element.Name;
+				isPrimaryWord = false;
+
+			} else {
+
+				untranslatedName = "[nad]" + element.Name + " " + untranslatedName;
+			}
+
+			namePhrase = language.TranslateNounPhrase (untranslatedName, getRandomFloat);
+
+			bool canAddMoreWords = remainingElements.Count > 0;
+
+			if (canAddMoreWords) {
+
+				addMoreWords = extraWordChance > getRandomFloat ();
+			}
+
+			if (addMoreWords && !canAddMoreWords) {
+
+				throw new System.Exception ("Ran out of words to add");
+			}
+
+			extraWordChance /= 2f;
+		}
+
+		Name = new Name (namePhrase, untranslatedName, language, World);
+	}
 
 	public virtual void Synchronize () {
 
@@ -86,7 +132,19 @@ public abstract class Agent : ISynchronizable {
 		Group = World.GetGroup (GroupId);
 
 		if (Group == null) {
-			throw new System.Exception ("Missing Polity with Id " + GroupId);
+			throw new System.Exception ("Missing Group with Id " + GroupId);
 		}
+	}
+}
+
+public class Leader : Agent {
+
+	public const string AgentType = "Leader";
+
+	public Leader () : base () {
+	}
+
+	public Leader (Faction faction, int birthDate) : base (AgentType, faction.CoreGroup, birthDate) {
+	
 	}
 }

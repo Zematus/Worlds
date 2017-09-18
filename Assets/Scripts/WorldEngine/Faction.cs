@@ -88,6 +88,19 @@ public abstract class Faction : ISynchronizable {
 
 	protected abstract void GenerateName (Faction parentFaction);
 
+	protected Leader RequestCurrentLeader (int leadershipSpan, int offset)
+	{
+		// TODO TODO TODO TODO TODO TODO Keep copy of last leader generated during an update to compare spawndates
+		// TODO TODO TODO TODO TODO TODO Keep copy of last leader generated during an update to compare spawndates
+		// TODO TODO TODO TODO TODO TODO Keep copy of last leader generated during an update to compare spawndates
+
+		int spawnDate = CoreGroup.GenerateSpawnDate (CoreGroup.LastUpdateDate, leadershipSpan, offset);
+
+		return null;
+	}
+
+	public abstract Leader RequestCurrentLeader ();
+
 	public void Update () {
 
 		if (!Polity.StillPresent) {
