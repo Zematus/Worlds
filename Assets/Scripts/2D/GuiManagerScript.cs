@@ -2126,6 +2126,10 @@ public class GuiManagerScript : MonoBehaviour {
 			InfoPanelScript.InfoText.text += "\n";
 			InfoPanelScript.InfoText.text += "\n";
 
+			InfoPanelScript.InfoText.text += "Leader: " + polity.CurrentLeader.Name;
+			InfoPanelScript.InfoText.text += "\n";
+			InfoPanelScript.InfoText.text += "\n";
+
 			int polPopulation = (int)polity.TotalPopulation;
 
 			if (polity.Type == Tribe.TribeType) {

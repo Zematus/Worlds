@@ -4,12 +4,9 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
-public abstract class Agent : ISynchronizable {
+public class Agent : ISynchronizable {
 
 	public const int MaxLifespan = 113; // Prime number to hide birthdate cycle artifacts
-
-	[XmlAttribute("Type")]
-	public string Type;
 
 	[XmlAttribute]
 	public long Id;
@@ -35,14 +32,12 @@ public abstract class Agent : ISynchronizable {
 
 	}
 
-	public Agent (string type, CellGroup group, int birthDate) {
+	public Agent (CellGroup birthGroup, int birthDate) {
 
-		Type = type;
+		World = birthGroup.World;
 
-		World = group.World;
-
-		GroupId = group.Id;
-		Group = group;
+		GroupId = birthGroup.Id;
+		Group = birthGroup;
 
 		BirthDate = birthDate;
 
@@ -134,17 +129,5 @@ public abstract class Agent : ISynchronizable {
 		if (Group == null) {
 			throw new System.Exception ("Missing Group with Id " + GroupId);
 		}
-	}
-}
-
-public class Leader : Agent {
-
-	public const string AgentType = "Leader";
-
-	public Leader () : base () {
-	}
-
-	public Leader (Faction faction, int birthDate) : base (AgentType, faction.CoreGroup, birthDate) {
-	
 	}
 }

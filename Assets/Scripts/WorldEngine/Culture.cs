@@ -53,6 +53,14 @@ public class Culture : ISynchronizable {
 		World = world;
 	}
 
+	public Culture (Culture sourceCulture) : this (sourceCulture.World, sourceCulture.Language) {
+
+		sourceCulture.Activities.ForEach (a => AddActivity (new CulturalActivity (a)));
+		sourceCulture.Skills.ForEach (s => AddSkill (new CulturalSkill (s)));
+		sourceCulture.Discoveries.ForEach (d => AddDiscovery (new CulturalDiscovery (d)));
+		sourceCulture.Knowledges.ForEach (k => AddKnowledge (new CulturalKnowledge (k)));
+	}
+
 	protected void AddActivity (CulturalActivity activity) {
 
 		if (_activities.ContainsKey (activity.Id))
@@ -715,7 +723,7 @@ public class CellCulture : Culture {
 		}
 	}
 
-	public void PolityCulturalInfluence (PolityInfluence polityInfluence, int timeSpan) {
+	public void UpdatePolityCulturalInfluence (PolityInfluence polityInfluence, int timeSpan) {
 
 		PolityCulture polityCulture = polityInfluence.Polity.Culture;
 
@@ -768,6 +776,11 @@ public class CellCulture : Culture {
 				AddDiscoveryToFind (cellDiscovery);
 			}
 		}
+	}
+
+	public void PostUpdatePolityCulturalInfluence (PolityInfluence polityInfluence) {
+
+		PolityCulture polityCulture = polityInfluence.Polity.Culture;
 
 		if ((Language == null) || (polityInfluence.Value >= Group.HighestPolityInfluence.Value)) {
 
@@ -974,11 +987,6 @@ public class BufferCulture : Culture {
 	public BufferCulture () {
 	}
 
-	public BufferCulture (Culture sourceCulture) : base (sourceCulture.World, sourceCulture.Language) {
-
-		sourceCulture.Activities.ForEach (a => AddActivity (new CulturalActivity (a)));
-		sourceCulture.Skills.ForEach (s => AddSkill (new CulturalSkill (s)));
-		sourceCulture.Discoveries.ForEach (d => AddDiscovery (new CulturalDiscovery (d)));
-		sourceCulture.Knowledges.ForEach (k => AddKnowledge (new CulturalKnowledge (k)));
+	public BufferCulture (Culture sourceCulture) : base (sourceCulture) {
 	}
 }

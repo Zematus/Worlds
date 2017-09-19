@@ -7,6 +7,8 @@ using System.Xml.Serialization;
 public class Clan : Faction {
 
 	public const int LeadershipAvgSpan = 20;
+	public const int MinClanLeaderStartAge = 16;
+	public const int MaxClanLeaderStartAge = 50;
 	
 	public const int MinSocialOrganizationValue = 400;
 
@@ -225,9 +227,14 @@ public class Clan : Faction {
 		Name = new Name (namePhrase, untranslatedName, language, World);
 	}
 
-	public override Leader RequestCurrentLeader ()
+	protected override Agent RequestCurrentLeader ()
 	{
-		return RequestCurrentLeader (LeadershipAvgSpan, RngOffsets.CLAN_LEADER_GEN_OFFSET);
+		return RequestCurrentLeader (LeadershipAvgSpan, MinClanLeaderStartAge, MaxClanLeaderStartAge, RngOffsets.CLAN_LEADER_GEN_OFFSET);
+	}
+
+	protected override Agent RequestNewLeader ()
+	{
+		return RequestNewLeader (LeadershipAvgSpan, MinClanLeaderStartAge, MaxClanLeaderStartAge, RngOffsets.CLAN_LEADER_GEN_OFFSET);
 	}
 
 	public bool CanBeClanCore (CellGroup group)
@@ -644,6 +651,9 @@ public class ClanCoreMigrationEvent : FactionEvent {
 	public override void Trigger () {
 
 		Faction.PrepareNewCoreGroup (_targetGroup);
+
+		World.AddGroupToUpdate (Faction.CoreGroup);
+		World.AddGroupToUpdate (_targetGroup);
 
 		World.AddFactionToUpdate (Faction);
 

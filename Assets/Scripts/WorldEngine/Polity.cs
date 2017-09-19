@@ -110,19 +110,6 @@ public abstract class Polity : ISynchronizable {
 	[XmlIgnore]
 	public CellGroup CoreGroup;
 
-//	[XmlIgnore]
-//	public CellGroup CoreGroup {
-//		get { 
-//
-//			if (DominantFaction == null) {
-//			
-//				Debug.LogError ("DominantFaction is null");
-//			}
-//
-//			return DominantFaction.CoreGroup;
-//		}
-//	}
-
 	[XmlIgnore]
 	public Faction DominantFaction;
 
@@ -134,6 +121,13 @@ public abstract class Polity : ISynchronizable {
 
 	[XmlIgnore]
 	public Dictionary<long, CellGroup> InfluencedGroups = new Dictionary<long, CellGroup> ();
+
+	public Agent CurrentLeader {
+
+		get { 
+			return DominantFaction.CurrentLeader;
+		}
+	}
 
 	protected class WeightedGroup : CollectionUtility.ElementWeightPair<CellGroup> {
 

@@ -27,7 +27,21 @@ public abstract class Faction : ISynchronizable {
 	[XmlAttribute("IsDom")]
 	public bool IsDominant = false;
 
+	[XmlAttribute("LeadStDate")]
+	public int LeaderStartDate;
+
 	public Name Name = null;
+
+	// Do not call this property directly, only for serialization
+	public Agent LastLeader = null;
+
+	// Use this instead to get the leader
+	public Agent CurrentLeader {
+
+		get { 
+			return RequestCurrentLeader ();
+		}
+	}
 
 	public List<string> Flags;
 
@@ -72,6 +86,8 @@ public abstract class Faction : ISynchronizable {
 
 		CoreGroup.AddFactionCore (this);
 
+		World.AddGroupToUpdate (CoreGroup);
+
 		Prominence = prominence;
 
 		GenerateName (parentFaction);
@@ -88,18 +104,39 @@ public abstract class Faction : ISynchronizable {
 
 	protected abstract void GenerateName (Faction parentFaction);
 
-	protected Leader RequestCurrentLeader (int leadershipSpan, int offset)
+	protected Agent RequestCurrentLeader (int leadershipSpan, int minStartAge, int maxStartAge, int offset)
 	{
-		// TODO TODO TODO TODO TODO TODO Keep copy of last leader generated during an update to compare spawndates
-		// TODO TODO TODO TODO TODO TODO Keep copy of last leader generated during an update to compare spawndates
-		// TODO TODO TODO TODO TODO TODO Keep copy of last leader generated during an update to compare spawndates
+		int spawnDate = CoreGroup.GenerateSpawnDate (CoreGroup.LastUpdateDate, leadershipSpan, offset++);
 
-		int spawnDate = CoreGroup.GenerateSpawnDate (CoreGroup.LastUpdateDate, leadershipSpan, offset);
+		if ((LastLeader != null) && (spawnDate < LeaderStartDate)) {
 
-		return null;
+			return LastLeader;
+		}
+
+		// Generate a birthdate from the leader spawnDate (when the leader takes over)
+		int startAge = minStartAge + CoreGroup.GetLocalRandomInt (spawnDate, offset++, maxStartAge - minStartAge);
+
+		LastLeader = new Agent (CoreGroup, spawnDate - startAge);
+		LeaderStartDate = spawnDate;
+
+		return LastLeader;
 	}
 
-	public abstract Leader RequestCurrentLeader ();
+	protected Agent RequestNewLeader (int leadershipSpan, int minStartAge, int maxStartAge, int offset)
+	{
+		int spawnDate = CoreGroup.GenerateSpawnDate (CoreGroup.LastUpdateDate, leadershipSpan, offset++);
+
+		// Generate a birthdate from the leader spawnDate (when the leader takes over)
+		int startAge = minStartAge + CoreGroup.GetLocalRandomInt (spawnDate, offset++, maxStartAge - minStartAge);
+
+		LastLeader = new Agent (CoreGroup, spawnDate - startAge);
+		LeaderStartDate = spawnDate;
+
+		return LastLeader;
+	}
+
+	protected abstract Agent RequestCurrentLeader ();
+	protected abstract Agent RequestNewLeader ();
 
 	public void Update () {
 
@@ -107,6 +144,8 @@ public abstract class Faction : ISynchronizable {
 
 			return;
 		}
+
+		RequestCurrentLeader ();
 
 		UpdateInternal ();
 

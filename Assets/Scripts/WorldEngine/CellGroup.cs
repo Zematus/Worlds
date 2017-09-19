@@ -828,15 +828,35 @@ public class CellGroup : HumanGroup {
 
 		Profiler.EndSample ();
 
+		Profiler.BeginSample ("Set Faction Updates");
+
+		SetFactionUpdates ();
+
+		Profiler.EndSample ();
+
 		Profiler.BeginSample ("Set Polity Updates");
 
 		SetPolityUpdates ();
 
 		Profiler.EndSample ();
 
+		Profiler.BeginSample ("Post Update Polity Influences");
+
 		PostUpdatePolityInfluences ();
 
+		Profiler.EndSample ();
+
+		Profiler.BeginSample ("PostUpdate Polity Cultural Influences");
+
+		PostUpdatePolityCulturalInfluences ();
+
+		Profiler.EndSample ();
+
+		Profiler.BeginSample ("Update Polity Influence Administrative Costs");
+
 		UpdatePolityInfluenceAdministrativeCosts ();
+
+		Profiler.EndSample ();
 	}
 
 	public void SetupForNextUpdate () {
@@ -1597,9 +1617,9 @@ public class CellGroup : HumanGroup {
 
 		Profiler.EndSample ();
 
-		Profiler.BeginSample ("Polities Cultural Influence");
+		Profiler.BeginSample ("Update Polity Cultural Influences");
 
-		PolitiesCulturalInfluence (timeSpan);
+		UpdatePolityCulturalInfluences (timeSpan);
 
 		Profiler.EndSample ();
 
@@ -1626,6 +1646,14 @@ public class CellGroup : HumanGroup {
 		World.AddUpdatedGroup (this);
 
 		Profiler.EndSample ();
+	}
+
+	private void SetFactionUpdates () {
+
+		foreach (Faction faction in FactionCores.Values) {
+
+			World.AddFactionToUpdate (faction);
+		}
 	}
 
 	private void SetPolityUpdates (bool forceUpdate = false) {
@@ -1737,11 +1765,19 @@ public class CellGroup : HumanGroup {
 		Culture.Update (timeSpan);
 	}
 
-	private void PolitiesCulturalInfluence (int timeSpan) {
+	private void UpdatePolityCulturalInfluences (int timeSpan) {
 	
 		foreach (PolityInfluence pi in _polityInfluences.Values) {
 		
-			Culture.PolityCulturalInfluence (pi, timeSpan);
+			Culture.UpdatePolityCulturalInfluence (pi, timeSpan);
+		}
+	}
+
+	private void PostUpdatePolityCulturalInfluences () {
+
+		foreach (PolityInfluence pi in _polityInfluences.Values) {
+
+			Culture.PostUpdatePolityCulturalInfluence (pi);
 		}
 	}
 
