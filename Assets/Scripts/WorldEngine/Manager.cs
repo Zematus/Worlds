@@ -24,7 +24,7 @@ public enum PlanetOverlay {
 	PopCulturalKnowledge,
 	PopCulturalDiscovery,
 	PolityTerritory,
-	PolityCoreDistance,
+	FactionCoreDistance,
 	PolityInfluence,
 	PolityCulturalActivity,
 	PolityCulturalSkill,
@@ -1328,8 +1328,8 @@ public class Manager {
 			color = SetPolityTerritoryOverlayColor (cell, color);
 			break;
 
-		case PlanetOverlay.PolityCoreDistance:
-			color = SetPolityCoreDistanceOverlayColor (cell, color);
+		case PlanetOverlay.FactionCoreDistance:
+			color = SetFactionCoreDistanceOverlayColor (cell, color);
 			break;
 
 		case PlanetOverlay.PolityInfluence:
@@ -1631,7 +1631,7 @@ public class Manager {
 		return color;
 	}
 
-	private static Color SetPolityCoreDistanceOverlayColor (TerrainCell cell, Color color) {
+	private static Color SetFactionCoreDistanceOverlayColor (TerrainCell cell, Color color) {
 
 		float greyscale = (color.r + color.g + color.b);
 
@@ -1653,7 +1653,7 @@ public class Manager {
 
 				PolityInfluence pi = cell.Group.GetPolityInfluence (territoryPolity);
 
-				float distanceFactor = Mathf.Sqrt (pi.CoreDistance);
+				float distanceFactor = Mathf.Sqrt (pi.FactionCoreDistance);
 				distanceFactor = 1 - 0.9f * Mathf.Min (1, distanceFactor / 50f);
 
 				color.r = territoryColor.r * distanceFactor;

@@ -133,7 +133,7 @@ public class OverlayDialogPanelScript : MonoBehaviour {
 		);
 		PolityDataToggle.isOn = (
 			(Manager.PlanetOverlay == PlanetOverlay.PolityTerritory) ||
-			(Manager.PlanetOverlay == PlanetOverlay.PolityCoreDistance) ||
+			(Manager.PlanetOverlay == PlanetOverlay.FactionCoreDistance) ||
 			(Manager.PlanetOverlay == PlanetOverlay.PolityInfluence) ||
 			(Manager.PlanetOverlay == PlanetOverlay.PolityCulturalActivity) ||
 			(Manager.PlanetOverlay == PlanetOverlay.PolityCulturalSkill) ||
@@ -160,7 +160,7 @@ public class OverlayDialogPanelScript : MonoBehaviour {
 		PopCulturalDiscoveryToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.PopCulturalDiscovery);
 
 		TerritoriesToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.PolityTerritory);
-		DistancesToCoresToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.PolityCoreDistance);
+		DistancesToCoresToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.FactionCoreDistance);
 		InfluenceToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.PolityInfluence);
 		PolityCulturalActivityToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.PolityCulturalActivity);
 		PolityCulturalSkillToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.PolityCulturalSkill);

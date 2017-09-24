@@ -14,15 +14,19 @@ public class PolityInfluence {
 	public long PolityId;
 	[XmlAttribute("Val")]
 	public float Value;
-	[XmlAttribute("Dist")]
-	public float CoreDistance;
+	[XmlAttribute("FctDist")]
+	public float FactionCoreDistance;
+	[XmlAttribute("PolDist")]
+	public float PolityCoreDistance;
 	[XmlAttribute("Cost")]
 	public float AdiministrativeCost;
 
 	[XmlIgnore]
 	public float NewValue;
 	[XmlIgnore]
-	public float NewCoreDistance;
+	public float NewFactionCoreDistance;
+	[XmlIgnore]
+	public float NewPolityCoreDistance;
 
 	private bool _isMigratingGroup;
 
@@ -33,7 +37,7 @@ public class PolityInfluence {
 
 	}
 
-	public PolityInfluence (Polity polity, float value, float coreDistance = -1) {
+	public PolityInfluence (Polity polity, float value, float polityCoreDistance = -1, float factionCoreDistance = -1) {
 	
 		PolityId = polity.Id;
 		Polity = polity;
@@ -42,19 +46,32 @@ public class PolityInfluence {
 
 		AdiministrativeCost = 0;
 
-		CoreDistance = coreDistance;
-		NewCoreDistance = coreDistance;
+		PolityCoreDistance = polityCoreDistance;
+		NewPolityCoreDistance = polityCoreDistance;
+
+		FactionCoreDistance = factionCoreDistance;
+		NewFactionCoreDistance = factionCoreDistance;
 	}
 
 	public void PostUpdate () {
 
 		Value = NewValue;
-		CoreDistance = NewCoreDistance;
+		PolityCoreDistance = NewPolityCoreDistance;
+		FactionCoreDistance = NewFactionCoreDistance;
 
-		if (CoreDistance == -1) {
+		#if DEBUG
+		if (FactionCoreDistance == -1) {
 
 			throw new System.Exception ("Core distance is not properly initialized");
 		}
+		#endif
+
+		#if DEBUG
+		if (PolityCoreDistance == -1) {
+
+			throw new System.Exception ("Core distance is not properly initialized");
+		}
+		#endif
 	}
 }
 
@@ -652,9 +669,9 @@ public abstract class Polity : ISynchronizable {
 			return;
 		}
 
-		float coreDistance = group.GetPolityFactionCoreDistance (this);
+		float coreFactionDistance = group.GetFactionCoreDistance (this);
 
-		float coreDistancePlusConstant = coreDistance + CoreDistanceEffectConstant;
+		float coreDistancePlusConstant = coreFactionDistance + CoreDistanceEffectConstant;
 
 		float distanceFactor = 0;
 

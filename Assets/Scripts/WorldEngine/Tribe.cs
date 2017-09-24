@@ -53,7 +53,7 @@ public class Tribe : Polity {
 		float randomValue = coreGroup.Cell.GetNextLocalRandomFloat (RngOffsets.TRIBE_GENERATE_NEW_TRIBE);
 		float coreInfluence = BaseCoreInfluence + randomValue * (1 - BaseCoreInfluence);
 
-		coreGroup.SetPolityInfluence (this, coreInfluence, 0);
+		coreGroup.SetPolityInfluence (this, coreInfluence, 0, 0);
 
 		World.AddGroupToUpdate (coreGroup);
 
@@ -105,13 +105,13 @@ public class Tribe : Polity {
 
 	private void SwitchCellInfluences (Polity sourcePolity, Clan triggerClan) {
 
-//		float targetPolityProminence = triggerClan.Prominence;
-//		float sourcePolityProminence = 1 - targetPolityProminence;
-//
-//		if (targetPolityProminence <= 0) {
-//		
-//			throw new System.Exception ("Pulling clan prominence equal or less than zero.");
-//		}
+		float targetPolityProminence = triggerClan.Prominence;
+		float sourcePolityProminence = 1 - targetPolityProminence;
+
+		if (targetPolityProminence <= 0) {
+		
+			throw new System.Exception ("Pulling clan prominence equal or less than zero.");
+		}
 
 		int maxGroupCount = sourcePolity.InfluencedGroups.Count;
 
@@ -140,44 +140,46 @@ public class Tribe : Polity {
 
 			reviewedCells++;
 
-			float targetDistanceToFactionCore = CalculateShortestCoreDistance (group, groupDistances);
+			float distanceToTargetPolityCore = CalculateShortestCoreDistance (group, groupDistances);
 
-			if (targetDistanceToFactionCore >= CellGroup.MaxCoreDistance)
+			if (distanceToTargetPolityCore >= CellGroup.MaxCoreDistance)
 				continue;
 
-			groupDistances.Add (group, targetDistanceToFactionCore);
+			groupDistances.Add (group, distanceToTargetPolityCore);
 
-			float sourceDistanceToFactionCore = pi.CoreDistance;
+			float distanceToSourcePolityCore = pi.PolityCoreDistance;
 
 			float percentInfluence = 1f;
 
-			if (sourceDistanceToFactionCore < CellGroup.MaxCoreDistance) {
+			if (distanceToSourcePolityCore < CellGroup.MaxCoreDistance) {
 
-				float distanceDelta = targetDistanceToFactionCore - sourceDistanceToFactionCore;
+//				float distanceDelta = targetDistanceToFactionCore - sourceDistanceToFactionCore;
+//
+//				if (distanceDelta > 0) {
+//				
+//					percentInfluence = 0;
+//				}
 
-				if (distanceDelta > 0) {
-				
-					percentInfluence = 0;
-				}
-//
-//				float ditanceToCoresSum = targetDistanceToFactionCore + sourceDistanceToFactionCore;
-//
+				float ditanceToCoresSum = distanceToTargetPolityCore + distanceToSourcePolityCore;
+
+//				#if DEBUG
 //				if (ditanceToCoresSum <= 0) {
 //
 //					throw new System.Exception ("Sum of core distances equal or less than zero.");
 //				}
-//			
-//				float distanceFactor = sourceDistanceToFactionCore / ditanceToCoresSum;
-//
-//				distanceFactor = Mathf.Clamp01((distanceFactor * 3f) - 1f);
-//
-//				float targetDistanceFactor = distanceFactor;
-//				float sourceDistanceFactor = 1 - distanceFactor;
-//
-//				float targetPolityWeight = targetPolityProminence * targetDistanceFactor;
-//				float sourcePolityWeight = sourcePolityProminence * sourceDistanceFactor;
-//
-//				percentInfluence = targetPolityWeight / (targetPolityWeight + sourcePolityWeight);
+//				#endif
+			
+				float distanceFactor = distanceToSourcePolityCore / ditanceToCoresSum;
+
+				distanceFactor = Mathf.Clamp01((distanceFactor * 3f) - 1f);
+
+				float targetDistanceFactor = distanceFactor;
+				float sourceDistanceFactor = 1 - distanceFactor;
+
+				float targetPolityWeight = targetPolityProminence * targetDistanceFactor;
+				float sourcePolityWeight = sourcePolityProminence * sourceDistanceFactor;
+
+				percentInfluence = targetPolityWeight / (targetPolityWeight + sourcePolityWeight);
 			}
 
 			if (percentInfluence > 0.5f) {
@@ -193,11 +195,11 @@ public class Tribe : Polity {
 			if (percentInfluence <= 0)
 				continue;
 
-			float influenceValue = group.GetPolityInfluenceValue (sourcePolity);
+			float influenceValue = pi.Value;
 	
 			group.SetPolityInfluence (sourcePolity, influenceValue * (1 - percentInfluence));
 
-			group.SetPolityInfluence (this, influenceValue * percentInfluence, targetDistanceToFactionCore);
+			group.SetPolityInfluence (this, influenceValue * percentInfluence, distanceToTargetPolityCore, distanceToTargetPolityCore);
 	
 			World.AddGroupToUpdate (group);
 
@@ -475,6 +477,12 @@ public class TribeSplitEvent : PolityEvent {
 //		if (_newCoreGroup == null)
 //			return false;
 
+		#if DEBUG
+		if (Polity.Territory.IsSelected) {
+			bool debug = true;
+		}
+		#endif
+
 		_triggerClan = Polity.GetRandomFaction (rngOffset++, GetFactionWeight, true) as Clan;
 
 		if (_triggerClan == null)
@@ -525,9 +533,9 @@ public class TribeSplitEvent : PolityEvent {
 
 		float prominence = faction.Prominence;
 
-		float coreDistance = Mathf.Max(pi.CoreDistance - MinCoreDistance, 0);
+		float polityCoreDistance = Mathf.Max(pi.PolityCoreDistance - MinCoreDistance, 0);
 
-		float weight = prominence * coreDistance;
+		float weight = prominence * polityCoreDistance;
 
 		if (weight < 0)
 			return float.MaxValue;

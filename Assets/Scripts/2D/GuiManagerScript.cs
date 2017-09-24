@@ -895,8 +895,8 @@ public class GuiManagerScript : MonoBehaviour {
 		case PlanetOverlay.PolityTerritory: 
 			planetOverlayStr = "_polity_territories"; 
 			break;
-		case PlanetOverlay.PolityCoreDistance: 
-			planetOverlayStr = "_polity_core_distances"; 
+		case PlanetOverlay.FactionCoreDistance: 
+			planetOverlayStr = "_faction_core_distances"; 
 			break;
 		case PlanetOverlay.Language: 
 			planetOverlayStr = "_languages"; 
@@ -1136,7 +1136,7 @@ public class GuiManagerScript : MonoBehaviour {
 		} else if (OverlayDialogPanelScript.TerritoriesToggle.isOn) {
 			ChangePlanetOverlay (PlanetOverlay.PolityTerritory, false);
 		} else if (OverlayDialogPanelScript.DistancesToCoresToggle.isOn) {
-			ChangePlanetOverlay (PlanetOverlay.PolityCoreDistance, false);
+			ChangePlanetOverlay (PlanetOverlay.FactionCoreDistance, false);
 		} else if (OverlayDialogPanelScript.InfluenceToggle.isOn) {
 			ChangePlanetOverlay (PlanetOverlay.PolityInfluence, false);
 		} else if (OverlayDialogPanelScript.PolityCulturalActivityToggle.isOn) {
@@ -2067,7 +2067,8 @@ public class GuiManagerScript : MonoBehaviour {
 
 			Polity polity = polityInfluence.Polity;
 			float influenceValue = polityInfluence.Value;
-			float coreDistance = polityInfluence.CoreDistance;
+			float factionCoreDistance = polityInfluence.FactionCoreDistance;
+			float polityCoreDistance = polityInfluence.PolityCoreDistance;
 			float administrativeCost = polityInfluence.AdiministrativeCost;
 
 			if (influenceValue >= 0.001) {
@@ -2080,7 +2081,8 @@ public class GuiManagerScript : MonoBehaviour {
 
 				InfoPanelScript.InfoText.text += "\n\tPolity: " + polity.Name.Text + " (#" + polity.Id +")" +
 					"\n\t\tInfluence: " + influenceValue.ToString ("P") +
-					"\n\t\tDistance to Core: " + coreDistance.ToString ("0.000") +
+					"\n\t\tDistance to Polity Core: " + polityCoreDistance.ToString ("0.000") +
+					"\n\t\tDistance to Faction Core: " + factionCoreDistance.ToString ("0.000") +
 					"\n\t\tAdministrative Cost: " + administrativeCost.ToString ("0.000");
 			}
 		}
@@ -2224,7 +2226,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 		InfoPanelScript.InfoText.text += "\n\tInfluenced population: " + influencedPopulation;
 		InfoPanelScript.InfoText.text += "\n\tPercentage of polity population: " + percentageOfPolity.ToString ("P");
-		InfoPanelScript.InfoText.text += "\n\tDistance to polity core: " + pi.CoreDistance.ToString ("0.000");
+		InfoPanelScript.InfoText.text += "\n\tDistance to polity core: " + pi.FactionCoreDistance.ToString ("0.000");
 
 		SetFocusButton (polity);
 	}
@@ -2643,7 +2645,7 @@ public class GuiManagerScript : MonoBehaviour {
 			AddCellDataToInfoPanel_PolityTerritory (cell);
 		}
 
-		if (_planetOverlay == PlanetOverlay.PolityCoreDistance) {
+		if (_planetOverlay == PlanetOverlay.FactionCoreDistance) {
 
 			AddCellDataToInfoPanel_PolityTerritory (cell);
 		}

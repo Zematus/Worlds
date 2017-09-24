@@ -482,13 +482,13 @@ public class ClanSplitEvent : FactionEvent {
 
 		float value = Mathf.Max(pi.Value - MinCoreInfluenceValue, 0);
 
-		#if DEBUG
-		if (pi.CoreDistance == float.MaxValue) {
-			bool debug = true;
-		}
-		#endif
+//		#if DEBUG
+//		if (pi.FactionCoreDistance == float.MaxValue) {
+//			bool debug = true;
+//		}
+//		#endif
 
-		float coreDistance = Mathf.Max(pi.CoreDistance - MinCoreDistance, 0);
+		float coreDistance = Mathf.Max(pi.FactionCoreDistance - MinCoreDistance, 0);
 
 		float weight = coreDistance * value;
 
