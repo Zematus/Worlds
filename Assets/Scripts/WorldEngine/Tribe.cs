@@ -108,10 +108,17 @@ public class Tribe : Polity {
 		float targetPolityProminence = triggerClan.Prominence;
 		float sourcePolityProminence = 1 - targetPolityProminence;
 
+		#if DEBUG
 		if (targetPolityProminence <= 0) {
-		
 			throw new System.Exception ("Pulling clan prominence equal or less than zero.");
 		}
+		#endif
+
+//		#if DEBUG
+//		if (sourcePolity.Territory.IsSelected) {
+//			bool debug = true;
+//		}
+//		#endif
 
 		int maxGroupCount = sourcePolity.InfluencedGroups.Count;
 
@@ -153,21 +160,7 @@ public class Tribe : Polity {
 
 			if (distanceToSourcePolityCore < CellGroup.MaxCoreDistance) {
 
-//				float distanceDelta = targetDistanceToFactionCore - sourceDistanceToFactionCore;
-//
-//				if (distanceDelta > 0) {
-//				
-//					percentInfluence = 0;
-//				}
-
 				float ditanceToCoresSum = distanceToTargetPolityCore + distanceToSourcePolityCore;
-
-//				#if DEBUG
-//				if (ditanceToCoresSum <= 0) {
-//
-//					throw new System.Exception ("Sum of core distances equal or less than zero.");
-//				}
-//				#endif
 			
 				float distanceFactor = distanceToSourcePolityCore / ditanceToCoresSum;
 
@@ -182,18 +175,27 @@ public class Tribe : Polity {
 				percentInfluence = targetPolityWeight / (targetPolityWeight + sourcePolityWeight);
 			}
 
+			if (percentInfluence <= 0)
+				continue;
+
 			if (percentInfluence > 0.5f) {
 			
 				switchedCells++;
 
 				foreach (Faction faction in group.GetFactionCores ()) {
+
+					if (faction.Polity != sourcePolity)
+						continue;
+
+//					#if DEBUG
+//					if (sourcePolity.FactionCount == 1) {
+//						throw new System.Exception ("Number of factions in Polity " + Id + " will be equal or less than zero. Current Date: " + World.CurrentDate);
+//					}
+//					#endif
 				
 					factionsToTransfer.Add (faction);
 				}
 			}
-
-			if (percentInfluence <= 0)
-				continue;
 
 			float influenceValue = pi.Value;
 	
@@ -213,7 +215,6 @@ public class Tribe : Polity {
 		}
 
 		float highestProminence = triggerClan.Prominence;
-
 		Clan dominantClan = triggerClan;
 
 		foreach (Faction faction in factionsToTransfer) {
@@ -415,15 +416,31 @@ public class TribeSplitEvent : PolityEvent {
 
 		float administrativeLoad = tribe.TotalAdministrativeCost;
 
+		float loadFactor = administrativeLoad / socialOrganizationValue;
+
+		if (loadFactor > float.MaxValue)
+			return float.MaxValue;
+
 		return administrativeLoad / socialOrganizationValue;
 	}
 
 	public static int CalculateTriggerDate (Tribe tribe) {
 
+		#if DEBUG
+		if (tribe.Territory.IsSelected) {
+			bool debug = true;
+		}
+		#endif
+
 		float randomFactor = tribe.GetNextLocalRandomFloat (RngOffsets.TRIBE_SPLITTING_EVENT_CALCULATE_TRIGGER_DATE);
 		randomFactor = Mathf.Pow (randomFactor, 2);
 
-		float dateSpan = (1 - randomFactor) * DateSpanFactorConstant;
+//		float administrativeLoadFactor = 1 + CalculateTribeAdministrativeLoadFactor (tribe);
+
+		float dateSpan = (1 - randomFactor) * DateSpanFactorConstant;// / administrativeLoadFactor;
+
+		if (dateSpan < CellGroup.GenerationTime)
+			dateSpan = CellGroup.GenerationTime;
 
 		int targetDate = (int)(tribe.World.CurrentDate + dateSpan);
 

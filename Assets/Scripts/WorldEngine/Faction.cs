@@ -93,11 +93,15 @@ public abstract class Faction : ISynchronizable {
 		GenerateName (parentFaction);
 	}
 
-	public void Destroy () {
+	public void Destroy (bool polityBeingDestroyed = false) {
 		
 		CoreGroup.RemoveFactionCore (this);
-		
-		Polity.RemoveFaction (this, true);
+
+		if (!polityBeingDestroyed) {
+			Polity.RemoveFaction (this);
+		}
+
+		World.RemoveFaction (this);
 
 		StillPresent = false;
 	}

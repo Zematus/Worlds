@@ -44,9 +44,9 @@ public class TestRunnerScript : MonoBehaviour {
 		Manager.TracingData.Latitude = 088;
 		#endif
 
-		tests.Add (new SaveLoadTest ("after 5 polities", 783909167, (World world) => {
-			return world.PolityCount > 5;
-		}, 2, 10, 705320, true, true));
+//		tests.Add (new SaveLoadTest ("after 5 polities", 783909167, (World world) => {
+//			return world.PolityCount > 5;
+//		}, 2, 10, 705320, true, true));
 //		tests.Add (new SaveLoadTest ("after 0 polities", 783909167, (World world) => {
 //			return world.PolityCount > 0;
 //		}, 5, 10, 0, true));
@@ -57,7 +57,7 @@ public class TestRunnerScript : MonoBehaviour {
 //			return world.PolityCount > 5;
 //		}, 5, 20, 0, true));
 
-//		tests.Add (new LanguageGenerationTest());
+		tests.Add (new LanguageGenerationTest());
 
 		Debug.Log ("Running Tests...\n");
 	}

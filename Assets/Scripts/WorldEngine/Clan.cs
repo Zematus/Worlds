@@ -430,6 +430,12 @@ public class ClanSplitEvent : FactionEvent {
 
 	public override bool CanTrigger () {
 
+		#if DEBUG
+		if (Faction.Polity.Territory.IsSelected) {
+			bool debug = true;
+		}
+		#endif
+
 		if (!base.CanTrigger ())
 			return false;
 
@@ -482,12 +488,6 @@ public class ClanSplitEvent : FactionEvent {
 
 		float value = Mathf.Max(pi.Value - MinCoreInfluenceValue, 0);
 
-//		#if DEBUG
-//		if (pi.FactionCoreDistance == float.MaxValue) {
-//			bool debug = true;
-//		}
-//		#endif
-
 		float coreDistance = Mathf.Max(pi.FactionCoreDistance - MinCoreDistance, 0);
 
 		float weight = coreDistance * value;
@@ -500,13 +500,6 @@ public class ClanSplitEvent : FactionEvent {
 
 	public override void Trigger () {
 
-//		#if DEBUG
-//		int testDate = 554631;
-//
-//		if (World.CurrentDate >= testDate)
-//			Debug.Log ("Triggering Clan splitting event with clan: " + Faction.Id);
-//		#endif
-
 		float randomValue = Faction.GetNextLocalRandomFloat (RngOffsets.EVENT_TRIGGER + 1 + (int)Id);
 		float randomFactor = MinProminenceTransfer + (randomValue * ProminenceTransferProportion);
 
@@ -518,33 +511,12 @@ public class ClanSplitEvent : FactionEvent {
 
 		Polity polity = Faction.Polity;
 
-//		#if DEBUG
-//		if (World.CurrentDate >= testDate)
-//			Debug.Log ("Creating new clan");
-//		#endif
-
-//		Clan newClan = new Clan (polity as Tribe, Faction.CoreGroup, newClanProminence, Faction as Clan);
 		Clan newClan = new Clan (polity as Tribe, _newCoreGroup, newClanProminence, Faction as Clan);
-
-//		#if DEBUG
-//		if (World.CurrentDate >= testDate)
-//			Debug.Log ("Adding to polity: " + polity.Id);
-//		#endif
 
 		polity.AddFaction (newClan);
 
-//		#if DEBUG
-//		if (World.CurrentDate >= testDate)
-//			Debug.Log ("Adding factions to update");
-//		#endif
-
 		World.AddFactionToUpdate (Faction);
 		World.AddFactionToUpdate (newClan);
-
-//		#if DEBUG
-//		if (World.CurrentDate >= testDate)
-//			Debug.Log ("Adding polity to update");
-//		#endif
 
 		World.AddPolityToUpdate (polity);
 

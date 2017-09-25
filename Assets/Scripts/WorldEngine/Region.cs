@@ -136,7 +136,7 @@ public class RegionElement {
 
 	public static RegionElement Stone = new RegionElement ("Stone", new string[] {"altitude_above:0"});
 	public static RegionElement Rock = new RegionElement ("Rock", new string[] {"altitude_above:0"});
-	public static RegionElement Sand = new RegionElement ("Sand", new string[] {"any_attribute:Desert,Delta"});
+	public static RegionElement Sand = new RegionElement ("Sand", new string[] {"any_attribute:Desert,Delta,Peninsula,Island,Coast"});
 	public static RegionElement Tree = new RegionElement ("Tree", new string[] {"any_biome:Forest,Taiga,Rainforest"});
 	public static RegionElement Wood = new RegionElement ("Wood", new string[] {"any_biome:Forest,Taiga,Rainforest"});
 	public static RegionElement Grass = new RegionElement ("Grass", new string[] {"any_biome:Grassland,Tundra"});
@@ -155,6 +155,7 @@ public class RegionElement {
 	public static RegionElement Snow = new RegionElement ("Snow", new string[] {"temperature_below:5"});
 	public static RegionElement Peat = new RegionElement ("Peat", new string[] {"altitude_above:0","rainfall_above:1775"});
 	public static RegionElement Thunder = new RegionElement ("Thunder", new string[] {"rainfall_above:1775"});
+	public static RegionElement Mud = new RegionElement ("Mud", new string[] {"rainfall_above:1775"});
 
 	public static Dictionary<string, RegionElement> Elements = new Dictionary<string, RegionElement> () {
 		{"Stone", Stone},
@@ -177,7 +178,8 @@ public class RegionElement {
 		{"Ice", Ice},
 		{"Snow", Snow},
 		{"Peat", Peat},
-		{"Thunder", Thunder}
+		{"Thunder", Thunder},
+		{"Mud", Mud}
 	};
 
 	private RegionElement (string name, string[] constraints) {
@@ -557,7 +559,7 @@ public abstract class Region : ISynchronizable {
 
 		if (Attributes.Count <= 0) {
 
-			untranslatedName = "the region";
+			untranslatedName = "region";
 			namePhrase = polityLanguage.TranslateNounPhrase (untranslatedName, getRandomFloat);
 
 			Name = new Name (namePhrase, untranslatedName, polityLanguage, World);
@@ -588,7 +590,7 @@ public abstract class Region : ISynchronizable {
 			secondaryTitle = "[nad]" + secondaryAttribute.GetRandomVariation (getRandomInt) + " ";
 		}
 
-		untranslatedName = "the " + secondaryTitle + primaryTitle;
+		untranslatedName = secondaryTitle + primaryTitle;
 		namePhrase = polityLanguage.TranslateNounPhrase (untranslatedName, getRandomFloat);
 
 		Name = new Name (namePhrase, untranslatedName, polityLanguage, World);

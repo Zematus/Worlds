@@ -107,11 +107,16 @@ public class Language : ISynchronizable {
 		public const string FemenineNoun = "fn";
 		public const string MasculineNoun = "mn";
 		public const string NeutralNoun = "nn";
+		public const string UncountableNoun = "un";
+		public const string RegularVerbDerivedNoun = "rvn";
+		public const string IrregularVerbDerivedNoun = "ivn";
 		public const string IrregularPluralNoun = "ipn";
 		public const string NounAdjunct = "nad";
 		public const string Adjective = "adj";
-		public const string Preposition = "pre";
-		public const string Import = "import";
+		public const string RegularVerb = "rvb";
+		public const string IrregularVerb = "ivb";
+//		public const string Preposition = "pre";
+//		public const string Import = "import";
 	}
 
 	public enum WordType
@@ -120,7 +125,8 @@ public class Language : ISynchronizable {
 		Indicative,
 		Adposition,
 		Adjective,
-		Noun
+		Noun,
+		Verb
 	}
 
 	public enum GeneralArticleProperties 
@@ -128,7 +134,8 @@ public class Language : ISynchronizable {
 		HasDefiniteSingularArticles = 0x001,
 		HasDefinitePluralArticles = 0x002,
 		HasIndefiniteSingularArticles = 0x004,
-		HasIndefinitePluralArticles = 0x008
+		HasIndefinitePluralArticles = 0x008,
+		HasUncountableArticles = 0x010
 	}
 
 //	public enum GeneralGenderProperties 
@@ -148,6 +155,7 @@ public class Language : ISynchronizable {
 		HasPluralIndicative = 0x010,
 		HasDefiniteIndicative = 0x020,
 		HasIndefiniteIndicative = 0x040,
+		HasUncountableIndicative = 0x080,
 
 		HasDefiniteSingularMasculineIndicative = 0x029,
 		HasDefiniteSingularFemenineIndicative = 0x02a,
@@ -160,7 +168,10 @@ public class Language : ISynchronizable {
 		HasIndefiniteSingularNeutralIndicative = 0x04c,
 		HasIndefinitePluralMasculineIndicative = 0x051,
 		HasIndefinitePluralFemenineIndicative = 0x052,
-		HasIndefinitePluralNeutralIndicative = 0x054
+		HasIndefinitePluralNeutralIndicative = 0x054,
+		HasUncountableMasculineIndicative = 0x081,
+		HasUncountableFemenineIndicative = 0x082,
+		HasUncountableNeutralIndicative = 0x084
 	}
 
 	public enum AdjunctionProperties
@@ -182,6 +193,7 @@ public class Language : ISynchronizable {
 		Femenine = 0x04,
 		Neutral = 0x08,
 		Irregular = 0x10,
+		Uncountable = 0x20,
 
 		IsNotMasculine = 0x0c
 	}
@@ -191,8 +203,9 @@ public class Language : ISynchronizable {
 		None = 0x00,
 		Plural = 0x01,
 		Indefinite = 0x02,
-		Femenine = 0x04,
-		Neutral = 0x08
+		Uncountable = 0x04,
+		Femenine = 0x08,
+		Neutral = 0x10
 	}
 
 	public static class IndicativeType
@@ -216,6 +229,9 @@ public class Language : ISynchronizable {
 		public const string IndefinitePluralMasculine = "IndefinitePluralMasculine";
 		public const string IndefinitePluralFemenine = "IndefinitePluralFemenine";
 		public const string IndefinitePluralNeutral = "IndefinitePluralNeutral";
+		public const string UncountableMasculine = "UncountableMasculine";
+		public const string UncountableFemenine = "UncountableFemenine";
+		public const string UncountableNeutral = "UncountableNeutral";
 	}
 
 	public static char[] OnsetLetters = new char[] { 'b', 'c', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'm', 'n', 'p', 'q', 'r', 's', 't', 'v', 'w', 'x', 'y', 'z' };
@@ -676,6 +692,7 @@ public class Language : ISynchronizable {
 
 		Morpheme definite = GenerateDerivatedArticle (root, startSyllables, nextSyllables, MorphemeProperties.None, getRandomFloat);
 		Morpheme indefinite = GenerateDerivatedArticle (root, startSyllables, nextSyllables, MorphemeProperties.Indefinite, getRandomFloat);
+		Morpheme uncountable = GenerateDerivatedArticle (root, startSyllables, nextSyllables, MorphemeProperties.Uncountable, getRandomFloat);
 
 		if ((generalProperties & GeneralArticleProperties.HasDefiniteSingularArticles) == GeneralArticleProperties.HasDefiniteSingularArticles) {
 
@@ -735,6 +752,19 @@ public class Language : ISynchronizable {
 			articles.Add (IndicativeType.IndefinitePluralFemenine, femenine);
 			articles.Add (IndicativeType.IndefinitePluralMasculine, masculine);
 			articles.Add (IndicativeType.IndefinitePluralNeutral, neutral);
+		}
+
+		if ((generalProperties & GeneralArticleProperties.HasUncountableArticles) == GeneralArticleProperties.HasUncountableArticles) {
+
+			Morpheme femenine, masculine, neutral;
+			GenerateGenderedArticles (uncountable, startSyllables, nextSyllables, getRandomFloat, out masculine, out femenine, out neutral);
+			femenine.Meaning = IndicativeType.UncountableFemenine;
+			masculine.Meaning = IndicativeType.UncountableMasculine;
+			neutral.Meaning = IndicativeType.UncountableNeutral;
+
+			articles.Add (IndicativeType.UncountableFemenine, femenine);
+			articles.Add (IndicativeType.UncountableMasculine, masculine);
+			articles.Add (IndicativeType.UncountableNeutral, neutral);
 		}
 
 		return articles;
@@ -831,65 +861,85 @@ public class Language : ISynchronizable {
 			multipleProperties = true;
 		}
 
+		if ((properties & MorphemeProperties.Uncountable) == MorphemeProperties.Uncountable) {
+
+			if (multipleProperties) {
+				output += " | ";
+			}
+
+			output += "IsUncountable";
+			multipleProperties = true;
+		}
+
 		return output;
 	}
 
 	public void GenerateArticleProperties (GetRandomFloatDelegate getRandomFloat) {
 
-		if (getRandomFloat () < 0.75f) {
+		if (getRandomFloat () < 0.60f) {
 
 			_articleProperties |= GeneralArticleProperties.HasDefiniteSingularArticles;
 		}
 
-		if (getRandomFloat () < 0.75f) {
+		if (getRandomFloat () < 0.50f) {
 
 			_articleProperties |= GeneralArticleProperties.HasDefinitePluralArticles;
 		}
 
-		if (getRandomFloat () < 0.75f) {
+		if (getRandomFloat () < 0.40f) {
 
 			_articleProperties |= GeneralArticleProperties.HasIndefiniteSingularArticles;
 		}
 
-		if (getRandomFloat () < 0.75f) {
+		if (getRandomFloat () < 0.30f) {
 
 			_articleProperties |= GeneralArticleProperties.HasIndefinitePluralArticles;
+		}
+
+		if (getRandomFloat () < 0.20f) {
+
+			_articleProperties |= GeneralArticleProperties.HasUncountableArticles;
 		}
 	}
 
 	public void GenerateIndicativeProperties (GetRandomFloatDelegate getRandomFloat) {
 
-		if (getRandomFloat () < 0.25f) {
+		if (getRandomFloat () < 0.15f) {
 
 			_indicativeProperties |= GeneralIndicativeProperties.HasDefiniteIndicative;
 		}
 
-		if (getRandomFloat () < 0.25f) {
+		if (getRandomFloat () < 0.15f) {
 
 			_indicativeProperties |= GeneralIndicativeProperties.HasIndefiniteIndicative;
 		}
 
-		if (getRandomFloat () < 0.25f) {
+		if (getRandomFloat () < 0.15f) {
+
+			_indicativeProperties |= GeneralIndicativeProperties.HasUncountableIndicative;
+		}
+
+		if (getRandomFloat () < 0.15f) {
 
 			_indicativeProperties |= GeneralIndicativeProperties.HasMasculineIndicative;
 		}
 
-		if (getRandomFloat () < 0.25f) {
+		if (getRandomFloat () < 0.15f) {
 
 			_indicativeProperties |= GeneralIndicativeProperties.HasNeutralIndicative;
 		}
 
-		if (getRandomFloat () < 0.25f) {
+		if (getRandomFloat () < 0.15f) {
 
 			_indicativeProperties |= GeneralIndicativeProperties.HasFemenineIndicative;
 		}
 
-		if (getRandomFloat () < 0.25f) {
+		if (getRandomFloat () < 0.15f) {
 
 			_indicativeProperties |= GeneralIndicativeProperties.HasSingularIndicative;
 		}
 
-		if (getRandomFloat () < 0.25f) {
+		if (getRandomFloat () < 0.15f) {
 
 			_indicativeProperties |= GeneralIndicativeProperties.HasPluralIndicative;
 		}
@@ -1089,6 +1139,12 @@ public class Language : ISynchronizable {
 		else
 			indefinite = GenerateNullWord (WordType.Indicative, MorphemeProperties.Indefinite);
 
+		Morpheme uncountable;
+		if ((indicativeProperties & GeneralIndicativeProperties.HasUncountableIndicative) == GeneralIndicativeProperties.HasUncountableIndicative)
+			uncountable = GenerateIndicative (startSyllables, nextSyllables, MorphemeProperties.Uncountable, getRandomFloat);
+		else
+			uncountable = GenerateNullWord (WordType.Indicative, MorphemeProperties.Uncountable);
+
 		///
 
 		Morpheme definiteSingular;
@@ -1161,6 +1217,17 @@ public class Language : ISynchronizable {
 		indicatives.Add (IndicativeType.IndefinitePluralFemenine, femenine);
 		indicatives.Add (IndicativeType.IndefinitePluralMasculine, masculine);
 		indicatives.Add (IndicativeType.IndefinitePluralNeutral, neutral);
+
+		///
+
+		GenerateGenderedIndicatives (uncountable, startSyllables, nextSyllables, indicativeProperties, getRandomFloat, out masculine, out femenine, out neutral);
+		femenine.Meaning = IndicativeType.UncountableFemenine;
+		masculine.Meaning = IndicativeType.UncountableMasculine;
+		neutral.Meaning = IndicativeType.UncountableNeutral;
+
+		indicatives.Add (IndicativeType.UncountableFemenine, femenine);
+		indicatives.Add (IndicativeType.UncountableMasculine, masculine);
+		indicatives.Add (IndicativeType.UncountableNeutral, neutral);
 
 		return indicatives;
 	}
@@ -1368,7 +1435,24 @@ public class Language : ISynchronizable {
 
 		Morpheme article = null;
 
-		if ((phraseProperties & PhraseProperties.Indefinite) == PhraseProperties.Indefinite) {
+		if ((phraseProperties & PhraseProperties.Uncountable) == PhraseProperties.Uncountable) {
+			
+			if ((_articleProperties & GeneralArticleProperties.HasUncountableArticles) == GeneralArticleProperties.HasUncountableArticles) {
+				if ((phraseProperties & PhraseProperties.Femenine) == PhraseProperties.Femenine) {
+
+					article = _articles [IndicativeType.UncountableFemenine];
+
+				} else if ((phraseProperties & PhraseProperties.Neutral) == PhraseProperties.Neutral) {
+
+					article = _articles [IndicativeType.UncountableNeutral];
+
+				} else {
+					article = _articles [IndicativeType.UncountableMasculine];
+				}
+			}
+
+		} else if ((phraseProperties & PhraseProperties.Indefinite) == PhraseProperties.Indefinite) {
+				
 			if ((phraseProperties & PhraseProperties.Plural) == PhraseProperties.Plural) {
 
 				if ((_articleProperties & GeneralArticleProperties.HasIndefinitePluralArticles) == GeneralArticleProperties.HasIndefinitePluralArticles) {
@@ -1399,7 +1483,9 @@ public class Language : ISynchronizable {
 					}
 				}
 			}
+
 		} else {
+				
 			if ((phraseProperties & PhraseProperties.Plural) == PhraseProperties.Plural) {
 
 				if ((_articleProperties & GeneralArticleProperties.HasDefinitePluralArticles) == GeneralArticleProperties.HasDefinitePluralArticles) {
@@ -1501,7 +1587,22 @@ public class Language : ISynchronizable {
 
 		Morpheme indicative = null;
 
-		if ((phraseProperties & PhraseProperties.Indefinite) == PhraseProperties.Indefinite) {
+		if ((phraseProperties & PhraseProperties.Uncountable) == PhraseProperties.Uncountable) {
+			
+			if ((phraseProperties & PhraseProperties.Femenine) == PhraseProperties.Femenine) {
+
+				indicative = _indicatives [IndicativeType.UncountableFemenine];
+
+			} else if ((phraseProperties & PhraseProperties.Neutral) == PhraseProperties.Neutral) {
+
+				indicative = _indicatives [IndicativeType.UncountableNeutral];
+
+			} else {
+
+				indicative = _indicatives [IndicativeType.UncountableMasculine];
+
+			}
+		} else if ((phraseProperties & PhraseProperties.Indefinite) == PhraseProperties.Indefinite) {
 			if ((phraseProperties & PhraseProperties.Plural) == PhraseProperties.Plural) {
 
 				if ((phraseProperties & PhraseProperties.Femenine) == PhraseProperties.Femenine) {
@@ -1692,6 +1793,7 @@ public class Language : ISynchronizable {
 		bool hasRandomGender = true;
 		bool isFemenineNoun = false;
 		bool isNeutralNoun = false;
+		bool isUncountableNoun = false;
 
 		foreach (string nounPart in nounParts) {
 
@@ -1714,6 +1816,7 @@ public class Language : ISynchronizable {
 				hasRandomGender = true;
 				isFemenineNoun = false;
 				isNeutralNoun = false;
+				isUncountableNoun = false;
 
 				if (parsedWordPart.Attributes.ContainsKey (ParsedWordAttributeId.FemenineNoun)) {
 					hasRandomGender = false;
@@ -1723,6 +1826,8 @@ public class Language : ISynchronizable {
 				} else if (parsedWordPart.Attributes.ContainsKey (ParsedWordAttributeId.NeutralNoun)) {
 					hasRandomGender = false;
 					isNeutralNoun = true;
+				} else if (parsedWordPart.Attributes.ContainsKey (ParsedWordAttributeId.UncountableNoun)) {
+					isUncountableNoun = true;
 				}
 
 				Morpheme noun = null;
@@ -1754,6 +1859,8 @@ public class Language : ISynchronizable {
 			properties |= PhraseProperties.Femenine;
 		else if (isNeutralNoun)
 			properties |= PhraseProperties.Neutral;
+		else if (isUncountableNoun)
+			properties |= PhraseProperties.Uncountable;
 
 		string text = mainNoun.Value;
 

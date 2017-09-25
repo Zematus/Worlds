@@ -58,6 +58,7 @@ public class LanguageGenerationTest : AutomatedTest {
 			language.GenerateAdposition ("from", GetRandomFloat);
 			language.GenerateAdposition ("to", GetRandomFloat);
 			language.GenerateAdposition ("within", GetRandomFloat);
+			language.GenerateAdposition ("with", GetRandomFloat);
 			language.GenerateAdposition ("above", GetRandomFloat);
 			language.GenerateAdposition ("below", GetRandomFloat);
 			language.GenerateAdposition ("beyond", GetRandomFloat);
@@ -85,7 +86,8 @@ public class LanguageGenerationTest : AutomatedTest {
 			phrases.Add (language.TranslateNounPhrase ("a mountain", GetRandomFloat));
 			phrases.Add (language.TranslateNounPhrase ("the [adj]great desert", GetRandomFloat));
 			phrases.Add (language.TranslateNounPhrase ("cloud:s", GetRandomFloat));
-			// phrases.Add (language.GenerateNounPhraseTranslation ("water", GetRandomFloat)); --- 'water' is a very special case in english (uncountable noun)
+			phrases.Add (language.TranslateNounPhrase ("[un]water", GetRandomFloat));
+			phrases.Add (language.TranslateNounPhrase ("[un]oil", GetRandomFloat));
 			phrases.Add (language.TranslateNounPhrase ("the [mn]man", GetRandomFloat));
 			phrases.Add (language.TranslateNounPhrase ("a [fn]woman", GetRandomFloat));
 			phrases.Add (language.TranslateNounPhrase ("the [nad]forest person", GetRandomFloat));
@@ -115,7 +117,9 @@ public class LanguageGenerationTest : AutomatedTest {
 			entry += "\n";
 			foreach (Language.NounPhrase phrase in phrases) {
 
-				if ((phrase.Properties & Language.PhraseProperties.Indefinite) == Language.PhraseProperties.Indefinite) {
+				if ((phrase.Properties & Language.PhraseProperties.Uncountable) == Language.PhraseProperties.Uncountable) {
+					entry += "\n\tSample uncountable noun phrase: " + phrase.Text + " (Meaning: " + phrase.Meaning + ")";
+				} else if ((phrase.Properties & Language.PhraseProperties.Indefinite) == Language.PhraseProperties.Indefinite) {
 					entry += "\n\tSample indefinite noun phrase: " + phrase.Text + " (Meaning: " + phrase.Meaning + ")";
 				} else {
 					entry += "\n\tSample definite noun phrase: " + phrase.Text + " (Meaning: " + phrase.Meaning + ")";
@@ -137,7 +141,7 @@ public class LanguageGenerationTest : AutomatedTest {
 			entry += "\n\t" + mergedPhrase.Text + " (" + mergedPhrase.Meaning + ")";
 
 			prePhrase = language.TranslateNounPhrase ("the child", GetRandomFloat);
-			complementPhrase = language.TranslateNounPhrase ("cloud:s", GetRandomFloat);
+			complementPhrase = language.TranslateNounPhrase ("the cloud:s", GetRandomFloat);
 			postPhrase = language.BuildAdpositionalPhrase ("above", complementPhrase);
 			mergedPhrase = language.MergePhrases (prePhrase, postPhrase);
 			language.LocalizePhrase (mergedPhrase);
@@ -151,7 +155,51 @@ public class LanguageGenerationTest : AutomatedTest {
 			language.LocalizePhrase (mergedPhrase);
 
 			entry += "\n\t" + mergedPhrase.Text + " (" + mergedPhrase.Meaning + ")";
+
+			prePhrase = language.TranslateNounPhrase ("[un]water", GetRandomFloat);
+			complementPhrase = language.TranslateNounPhrase ("[un]oil", GetRandomFloat);
+			postPhrase = language.BuildAdpositionalPhrase ("with", complementPhrase);
+			mergedPhrase = language.MergePhrases (prePhrase, postPhrase);
+			language.LocalizePhrase (mergedPhrase);
+
+			entry += "\n\t" + mergedPhrase.Text + " (" + mergedPhrase.Meaning + ")";
 			entry += "\n";
+
+//			prePhrase = language.TranslateNounPhrase ("[ivb(t,s,past,bear)]born", GetRandomFloat);
+//			complementPhrase = language.TranslateNounPhrase ("a tree", GetRandomFloat);
+//			postPhrase = language.BuildAdpositionalPhrase ("on", complementPhrase);
+//			mergedPhrase = language.MergePhrases (prePhrase, postPhrase);
+//			language.LocalizePhrase (mergedPhrase);
+//
+//			entry += "\n\t" + mergedPhrase.Text + " (" + mergedPhrase.Meaning + ")";
+//			entry += "\n";
+//
+//			prePhrase = language.TranslateNounPhrase ("[rvb(t,s,past)]raise:d", GetRandomFloat);
+//			complementPhrase = language.TranslateNounPhrase ("the city", GetRandomFloat);
+//			postPhrase = language.BuildAdpositionalPhrase ("in", complementPhrase);
+//			mergedPhrase = language.MergePhrases (prePhrase, postPhrase);
+//			language.LocalizePhrase (mergedPhrase);
+//
+//			entry += "\n\t" + mergedPhrase.Text + " (" + mergedPhrase.Meaning + ")";
+//			entry += "\n";
+//
+//			prePhrase = language.TranslateNounPhrase ("[rvn]hunt:er", GetRandomFloat);
+//			complementPhrase = language.TranslateNounPhrase ("cat:s", GetRandomFloat);
+//			postPhrase = language.BuildAdpositionalPhrase ("of", complementPhrase);
+//			mergedPhrase = language.MergePhrases (prePhrase, postPhrase);
+//			language.LocalizePhrase (mergedPhrase);
+//
+//			entry += "\n\t" + mergedPhrase.Text + " (" + mergedPhrase.Meaning + ")";
+//			entry += "\n";
+//
+//			prePhrase = language.TranslateNounPhrase ("[ivn(carry)]carrier", GetRandomFloat);
+//			complementPhrase = language.TranslateNounPhrase ("[un]water", GetRandomFloat);
+//			postPhrase = language.BuildAdpositionalPhrase ("of", complementPhrase);
+//			mergedPhrase = language.MergePhrases (prePhrase, postPhrase);
+//			language.LocalizePhrase (mergedPhrase);
+//
+//			entry += "\n\t" + mergedPhrase.Text + " (" + mergedPhrase.Meaning + ")";
+//			entry += "\n";
 
 			Debug.Log (entry);
 		}

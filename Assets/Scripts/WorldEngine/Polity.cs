@@ -227,8 +227,8 @@ public abstract class Polity : ISynchronizable {
 		List<Faction> factions = new List<Faction> (_factions.Values);
 
 		foreach (Faction faction in factions) {
-		
-			faction.Destroy ();
+
+			faction.Destroy (true);
 		}
 
 		foreach (CellGroup group in InfluencedGroups.Values) {
@@ -290,15 +290,17 @@ public abstract class Polity : ISynchronizable {
 		FactionCount++;
 	}
 
-	public void RemoveFaction (Faction faction, bool removeFromWorld = false) {
+	public void RemoveFaction (Faction faction) {
+
+		#if DEBUG
+		if (_factions.Count == 1) {
+			throw new System.Exception ("Number of factions in Polity " + Id + " will be equal or less than zero. Current Date: " + World.CurrentDate);
+		}
+		#endif
 
 		_factions.Remove (faction.Id);
 
-		if (removeFromWorld) {
-			World.RemoveFaction (faction);
-		} else {
-			World.AddFactionToUpdate (faction);
-		}
+		World.AddFactionToUpdate (faction);
 
 		FactionCount--;
 	}
