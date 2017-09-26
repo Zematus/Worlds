@@ -84,6 +84,17 @@ public class Language : ISynchronizable {
 		public Dictionary<string, string> Attributes = new Dictionary<string, string> ();
 	}
 
+	public class Letter : CollectionUtility.ElementWeightPair<string> {
+
+		public Letter () {
+
+		}
+
+		public Letter (string letter, float weight) : base (letter, weight) {
+
+		}
+	}
+
 	public class CharacterGroup : CollectionUtility.ElementWeightPair<string> {
 
 		public CharacterGroup () {
@@ -234,11 +245,143 @@ public class Language : ISynchronizable {
 		public const string UncountableNeutral = "UncountableNeutral";
 	}
 
-	public static char[] OnsetLetters = new char[] { 'b', 'c', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'm', 'n', 'p', 'q', 'r', 's', 't', 'v', 'w', 'x', 'y', 'z' };
+	// based on frequency of consonants across languages. source: http://phoible.org/
+	public static Letter[] OnsetLetters = new Letter[] { 
+		new Letter ("m", 0.95f),
+		new Letter ("k", 0.94f),
+		new Letter ("j", 0.88f),
+		new Letter ("p", 0.87f),
+		new Letter ("w", 0.84f),
+		new Letter ("n", 0.81f),
+		new Letter ("s", 0.77f),
+		new Letter ("t", 0.74f),
+		new Letter ("b", 0.70f),
+		new Letter ("l", 0.65f),
+		new Letter ("h", 0.65f),
+		new Letter ("d", 0.53f),
+		new Letter ("f", 0.48f),
+		new Letter ("r", 0.37f),
+		new Letter ("z", 0.31f),
+		new Letter ("v", 0.29f),
+		new Letter ("ts", 0.23f),
+		new Letter ("x", 0.18f),
+		new Letter ("kp", 0.17f),
+		new Letter ("c", 0.14f),
+		new Letter ("mb", 0.14f),
+		new Letter ("nd", 0.12f),
+		new Letter ("dz", 0.1f),
+		new Letter ("q", 0.09f),
+		new Letter ("y", 0.038f),
+		new Letter ("ndz", 0.02f),
+		new Letter ("nz", 0.02f),
+		new Letter ("mp", 0.016f),
+		new Letter ("pf", 0.017f),
+		new Letter ("nts", 0.0037f),
+		new Letter ("tr", 0.0028f),
+		new Letter ("dr", 0.0028f),
+		new Letter ("tx", 0.0023f),
+		new Letter ("kx", 0.0023f),
+		new Letter ("ndr", 0.0023f),
+		new Letter ("ps", 0.0018f),
+		new Letter ("dl", 0.00093f),
+		new Letter ("nr", 0.00092f),
+		new Letter ("nh", 0.00092f),
+		new Letter ("nl", 0.00092f),
+		new Letter ("tn", 0.00092f),
+		new Letter ("pm", 0.00092f),
+		new Letter ("tl", 0.00092f),
+		new Letter ("xh", 0.00046f),
+		new Letter ("mv", 0.00046f),
+		new Letter ("ld", 0.00046f),
+		new Letter ("mw", 0.00046f),
+		new Letter ("br", 0.00046f),
+		new Letter ("qn", 0.00046f)
+	};
 
-	public static char[] NucleusLetters = new char[] { 'a', 'e', 'i', 'o', 'u' };
+	// based on frequency of vowels across languages. source: http://phoible.org/
+	public static Letter[] NucleusLetters = new Letter[] { 
+		new Letter ("i", 0.93f),
+		new Letter ("a", 0.91f),
+		new Letter ("u", 0.87f),
+		new Letter ("o", 0.68f),
+		new Letter ("e", 0.68f),
+		new Letter ("y", 0.04f),
+		new Letter ("ai", 0.03f),
+		new Letter ("au", 0.02f),
+		new Letter ("ia", 0.01f),
+		new Letter ("ui", 0.01f),
+		new Letter ("ie", 0.005f),
+		new Letter ("iu", 0.004f),
+		new Letter ("uo", 0.0037f),
+		new Letter ("ea", 0.0028f),
+		new Letter ("oa", 0.0023f),
+		new Letter ("ao", 0.0023f),
+		new Letter ("eu", 0.0023f),
+		new Letter ("ue", 0.0018f),
+		new Letter ("ae", 0.0018f),
+		new Letter ("oe", 0.0013f),
+		new Letter ("ay", 0.00092f),
+		new Letter ("ye", 0.00046f)
+	};
 
-	public static char[] CodaLetters = new char[] { 'b', 'c', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'm', 'n', 'p', 'q', 'r', 's', 't', 'v', 'w', 'x', 'y', 'z', '\'' };
+	// based on frequency of consonants across languages. source: http://phoible.org/
+	public static Letter[] CodaLetters = new Letter[] { 
+		new Letter ("m", 0.95f),
+		new Letter ("k", 0.94f),
+		new Letter ("j", 0.88f),
+		new Letter ("p", 0.87f),
+		new Letter ("w", 0.84f),
+		new Letter ("n", 0.81f),
+		new Letter ("s", 0.77f),
+		new Letter ("t", 0.74f),
+		new Letter ("b", 0.70f),
+		new Letter ("l", 0.65f),
+		new Letter ("h", 0.65f),
+		new Letter ("d", 0.53f),
+		new Letter ("f", 0.48f),
+		new Letter ("r", 0.37f),
+		new Letter ("z", 0.31f),
+		new Letter ("v", 0.29f),
+		new Letter ("ts", 0.23f),
+		new Letter ("x", 0.18f),
+		new Letter ("kp", 0.17f),
+		new Letter ("c", 0.14f),
+		new Letter ("mb", 0.14f),
+		new Letter ("nd", 0.12f),
+		new Letter ("dz", 0.1f),
+		new Letter ("q", 0.09f),
+		new Letter ("y", 0.038f),
+		new Letter ("ndz", 0.02f),
+		new Letter ("nz", 0.02f),
+		new Letter ("mp", 0.016f),
+		new Letter ("pf", 0.017f),
+		new Letter ("nts", 0.0037f),
+		new Letter ("tr", 0.0028f),
+		new Letter ("dr", 0.0028f),
+		new Letter ("tx", 0.0023f),
+		new Letter ("kx", 0.0023f),
+		new Letter ("ndr", 0.0023f),
+		new Letter ("ps", 0.0018f),
+		new Letter ("dl", 0.00093f),
+		new Letter ("nr", 0.00092f),
+		new Letter ("nh", 0.00092f),
+		new Letter ("nl", 0.00092f),
+		new Letter ("tn", 0.00092f),
+		new Letter ("pm", 0.00092f),
+		new Letter ("tl", 0.00092f),
+		new Letter ("xh", 0.00046f),
+		new Letter ("mv", 0.00046f),
+		new Letter ("ld", 0.00046f),
+		new Letter ("mw", 0.00046f),
+		new Letter ("br", 0.00046f),
+		new Letter ("qn", 0.00046f)
+	};
+
+//	public static char[] OnsetLetters = new char[] { 'b', 'c', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'm', 'n', 'p', 'q', 'r', 's', 't', 'v', 'w', 'x', 'y', 'z' };
+//
+//	public static char[] NucleusLetters = new char[] { 'a', 'e', 'i', 'o', 'u' };
+//
+//	public static char[] CodaLetters = new char[] { 'b', 'c', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'm', 'n', 'p', 'q', 'r', 's', 't', 'v', 'w', 'x', 'y', 'z', '\'' };
 
 	public static Regex WordPartRegex = new Regex (@"\[(?<attr>\w+)(?:\((?<param>\w+)\))?\](?:\[w+\])*(?<word>[\w\'\-]*)");
 	public static Regex ArticleRegex = new Regex (@"^((?<def>the)|(?<indef>(a|an)))$");
@@ -284,23 +427,23 @@ public class Language : ISynchronizable {
 		public const int AddSyllableModifier = 8;
 
 		[XmlAttribute("OSALC")]
-		public float OnsetStartAddLetterChance;
-		[XmlAttribute("OALCD")]
-		public float OnsetAddLetterChanceDecay;
+		public float OnsetChance;
+//		[XmlAttribute("OALCD")]
+//		public float OnsetAddLetterChanceDecay;
 		[XmlAttribute("OGC")]
 		public int OnsetGroupCount;
 
 		[XmlAttribute("NSALC")]
-		public float NucleusStartAddLetterChance;
-		[XmlAttribute("NALCD")]
-		public float NucleusAddLetterChanceDecay;
+		public float NucleusChance;
+//		[XmlAttribute("NALCD")]
+//		public float NucleusAddLetterChanceDecay;
 		[XmlAttribute("NGC")]
 		public int NucleusGroupCount;
 
 		[XmlAttribute("CSALC")]
-		public float CodaStartAddLetterChance;
-		[XmlAttribute("CALCD")]
-		public float CodaAddLetterChanceDecay;
+		public float CodaChance;
+//		[XmlAttribute("CALCD")]
+//		public float CodaAddLetterChanceDecay;
 		[XmlAttribute("CGC")]
 		public int CodaGroupCount;
 
@@ -316,9 +459,12 @@ public class Language : ISynchronizable {
 
 		public void GenerateCharacterGroups (GetRandomFloatDelegate getRandomFloat) {
 
-			OnsetGroups = Language.GenerateCharacterGroups (OnsetLetters, OnsetStartAddLetterChance, OnsetAddLetterChanceDecay, getRandomFloat, OnsetGroupCount);
-			NucleusGroups = Language.GenerateCharacterGroups (NucleusLetters, NucleusStartAddLetterChance, NucleusAddLetterChanceDecay, getRandomFloat, NucleusGroupCount);
-			CodaGroups = Language.GenerateCharacterGroups (CodaLetters, CodaStartAddLetterChance, CodaAddLetterChanceDecay, getRandomFloat, CodaGroupCount);
+//			OnsetGroups = Language.GenerateCharacterGroups (OnsetLetters, OnsetStartAddLetterChance, OnsetAddLetterChanceDecay, getRandomFloat, OnsetGroupCount);
+//			NucleusGroups = Language.GenerateCharacterGroups (NucleusLetters, NucleusStartAddLetterChance, NucleusAddLetterChanceDecay, getRandomFloat, NucleusGroupCount);
+//			CodaGroups = Language.GenerateCharacterGroups (CodaLetters, CodaStartAddLetterChance, CodaAddLetterChanceDecay, getRandomFloat, CodaGroupCount);
+			OnsetGroups = Language.GenerateCharacterGroups (OnsetLetters, getRandomFloat, OnsetGroupCount);
+			NucleusGroups = Language.GenerateCharacterGroups (NucleusLetters, getRandomFloat, NucleusGroupCount);
+			CodaGroups = Language.GenerateCharacterGroups (CodaLetters, getRandomFloat, CodaGroupCount);
 		}
 
 		public string GetRandomSyllable (GetRandomFloatDelegate getRandomFloat) {
@@ -331,17 +477,21 @@ public class Language : ISynchronizable {
 			
 				return Syllables [randOption];
 			}
-			
-			string syllable = GenerateSyllable (OnsetGroups, NucleusGroups, CodaGroups, getRandomFloat);
 
-			Syllables.Add (syllable);
+			string syllable = GenerateSyllable (OnsetGroups, OnsetChance, NucleusGroups, NucleusChance, CodaGroups, CodaChance, getRandomFloat);
+
+			if (!Syllables.Contains (syllable)) {
+				Syllables.Add (syllable);
+			}
 
 			return syllable;
 		}
 	}
 
-	public SyllableSet ArticleStartSyllables = new SyllableSet ();
-	public SyllableSet ArticleNextSyllables = new SyllableSet ();
+	public SyllableSet ArticleSyllables = new SyllableSet ();
+//	public SyllableSet ArticleNextSyllables = new SyllableSet ();
+	public SyllableSet DerivativeArticleStartSyllables = new SyllableSet ();
+	public SyllableSet DerivativeArticleNextSyllables = new SyllableSet ();
 
 	public SyllableSet IndicativeStartSyllables = new SyllableSet ();
 	public SyllableSet IndicativeNextSyllables = new SyllableSet ();
@@ -354,21 +504,6 @@ public class Language : ISynchronizable {
 
 	public SyllableSet NounStartSyllables = new SyllableSet ();
 	public SyllableSet NounNextSyllables = new SyllableSet ();
-
-//	public List<string> ArticleStartSyllables;
-//	public List<string> ArticleNextSyllables;
-//
-//	public List<string> IndicativeStartSyllables;
-//	public List<string> IndicativeNextSyllables;
-//
-//	public List<string> AdpositionStartSyllables;
-//	public List<string> AdpositionNextSyllables;
-//
-//	public List<string> AdjectiveStartSyllables;
-//	public List<string> AdjectiveNextSyllables;
-//
-//	public List<string> NounStartSyllables;
-//	public List<string> NounNextSyllables;
 
 	public List<Morpheme> Articles;
 	public List<Morpheme> Indicatives;
@@ -391,31 +526,75 @@ public class Language : ISynchronizable {
 		Id = id;
 	}
 
-	public static CharacterGroup GenerateCharacterGroup (char[] characterSet, float startAddLetterChance, float addLetterChanceDecay, GetRandomFloatDelegate getRandomFloat) {
+//	public static CharacterGroup GenerateCharacterGroup (char[] characterSet, float startAddLetterChance, float addLetterChanceDecay, GetRandomFloatDelegate getRandomFloat) {
+//
+//		float addLetterChance = startAddLetterChance;
+//
+//		string characters = "";
+//
+//		while (getRandomFloat () < addLetterChance) {
+//
+//			int charIndex = (int)Mathf.Floor(characterSet.Length * getRandomFloat ());
+//
+//			characters += characterSet [charIndex];
+//
+//			addLetterChance *= addLetterChanceDecay;
+//		}
+//
+//		return new CharacterGroup (characters, getRandomFloat ());
+//	}
+//
+//	public static CharacterGroup[] GenerateCharacterGroups (char[] characterSet, float startAddLetterChance, float addLetterChanceDecay, GetRandomFloatDelegate getRandomFloat, int count) {
+//
+//		CharacterGroup[] characterGroups = new CharacterGroup[count];
+//
+//		for (int i = 0; i < count; i++) {
+//
+//			CharacterGroup characterGroup = GenerateCharacterGroup (characterSet, startAddLetterChance, addLetterChanceDecay, getRandomFloat);
+//
+////			for (int j = 0; j < i; j++) {
+////				if (characterGroups [j].Value == characterGroup.Value) {
+////					characterGroup = GenerateCharacterGroup (characterSet, startAddLetterChance, addLetterChanceDecay, getRandomFloat);
+////					j = 0;
+////				}
+////			}
+//
+//			characterGroups [i] = characterGroup;
+//		}
+//
+//		return characterGroups;
+//	}
 
-		float addLetterChance = startAddLetterChance;
+	public static CharacterGroup GenerateCharacterGroup (Letter[] letterSet, GetRandomFloatDelegate getRandomFloat) {
 
-		string characters = "";
+		float totalWeight = 0;
 
-		while (getRandomFloat () < addLetterChance) {
-
-			int charIndex = (int)Mathf.Floor(characterSet.Length * getRandomFloat ());
-
-			characters += characterSet [charIndex];
-
-			addLetterChance *= addLetterChanceDecay;
+		foreach (Letter letter in letterSet) {
+		
+			totalWeight += letter.Weight;
 		}
 
-		return new CharacterGroup (characters, getRandomFloat ());
+		string chossenLetterValue = CollectionUtility.WeightedSelection (letterSet, totalWeight, () => getRandomFloat ());
+
+		return new CharacterGroup (chossenLetterValue, getRandomFloat ());
 	}
 
-	public static CharacterGroup[] GenerateCharacterGroups (char[] characterSet, float startAddLetterChance, float addLetterChanceDecay, GetRandomFloatDelegate getRandomFloat, int count) {
+	public static CharacterGroup[] GenerateCharacterGroups (Letter[] letterSet, GetRandomFloatDelegate getRandomFloat, int count) {
 
 		CharacterGroup[] characterGroups = new CharacterGroup[count];
 
 		for (int i = 0; i < count; i++) {
 
-			characterGroups [i] = GenerateCharacterGroup (characterSet, startAddLetterChance, addLetterChanceDecay, getRandomFloat);
+			CharacterGroup characterGroup = GenerateCharacterGroup (letterSet, getRandomFloat);
+
+//			for (int j = 0; j < i; j++) {
+//				if (characterGroups [j].Value == characterGroup.Value) {
+//					characterGroup = GenerateCharacterGroup (characterSet, startAddLetterChance, addLetterChanceDecay, getRandomFloat);
+//					j = 0;
+//				}
+//			}
+
+			characterGroups [i] = characterGroup;
 		}
 
 		return characterGroups;
@@ -433,13 +612,20 @@ public class Language : ISynchronizable {
 		return totalWeight;
 	}
 
-	public static string GenerateSyllable (CharacterGroup[] onsetGroups, CharacterGroup[] nucleusGroups, CharacterGroup[] codaGroups, GetRandomFloatDelegate getRandomFloat) {
+	public static string GenerateSyllable (
+		CharacterGroup[] onsetGroups,
+		float onsetChance,
+		CharacterGroup[] nucleusGroups,
+		float nucleusChance,
+		CharacterGroup[] codaGroups,
+		float codaChance,
+		GetRandomFloatDelegate getRandomFloat) {
 
 		CollectionUtility.NormalizedValueGeneratorDelegate valueGeneratorDelegate = new CollectionUtility.NormalizedValueGeneratorDelegate (getRandomFloat);
 
-		string onset = CollectionUtility.WeightedSelection (onsetGroups, GetCharacterGroupsTotalWeight (onsetGroups), valueGeneratorDelegate);
-		string nucleus = CollectionUtility.WeightedSelection (nucleusGroups, GetCharacterGroupsTotalWeight (nucleusGroups), valueGeneratorDelegate);
-		string coda = CollectionUtility.WeightedSelection (codaGroups, GetCharacterGroupsTotalWeight (codaGroups), valueGeneratorDelegate);
+		string onset = (onsetChance > getRandomFloat ()) ? CollectionUtility.WeightedSelection (onsetGroups, GetCharacterGroupsTotalWeight (onsetGroups), valueGeneratorDelegate) : string.Empty;
+		string nucleus = (nucleusChance > getRandomFloat ()) ? CollectionUtility.WeightedSelection (nucleusGroups, GetCharacterGroupsTotalWeight (nucleusGroups), valueGeneratorDelegate) : string.Empty;
+		string coda = (codaChance > getRandomFloat ()) ? CollectionUtility.WeightedSelection (codaGroups, GetCharacterGroupsTotalWeight (codaGroups), valueGeneratorDelegate) : string.Empty;
 
 		if (nucleus == string.Empty) {
 		
@@ -473,7 +659,19 @@ public class Language : ISynchronizable {
 //		return syllables;
 //	}
 
-	public static string GenerateMorpheme (SyllableSet startSyllables, SyllableSet nextSyllables, float addSyllableChanceDecay, GetRandomFloatDelegate getRandomFloat) {
+	public static string GenerateMorpheme (
+		SyllableSet syllables,
+		GetRandomFloatDelegate getRandomFloat) {
+
+		return GenerateMorpheme (syllables, syllables, 0, getRandomFloat);
+	}
+
+
+	public static string GenerateMorpheme (
+		SyllableSet startSyllables, 
+		SyllableSet nextSyllables, 
+		float addSyllableChanceDecay, 
+		GetRandomFloatDelegate getRandomFloat) {
 
 		float addSyllableChance = 1;
 		bool first = true;
@@ -509,8 +707,22 @@ public class Language : ISynchronizable {
 		string rootWord, 
 		float noChangeChance, 
 		float replaceChance, 
+		SyllableSet syllables, 
+		SyllableSet derivativeStartSyllables, 
+		SyllableSet derivativeNextSyllables, 
+		GetRandomFloatDelegate getRandomFloat) {
+
+		return GenerateDerivatedWord (rootWord, noChangeChance, replaceChance, syllables, syllables, derivativeStartSyllables, derivativeNextSyllables, 0.0f, getRandomFloat);
+	}
+
+	public static string GenerateDerivatedWord (
+		string rootWord, 
+		float noChangeChance, 
+		float replaceChance, 
 		SyllableSet startSyllables, 
 		SyllableSet nextSyllables, 
+		SyllableSet derivativeStartSyllables, 
+		SyllableSet derivativeNextSyllables, 
 		float addSyllableChanceDecay, 
 		GetRandomFloatDelegate getRandomFloat) {
 
@@ -526,10 +738,10 @@ public class Language : ISynchronizable {
 
 		if (getRandomFloat () < 0.5f) {
 		
-			return GenerateMorpheme (startSyllables, nextSyllables, addSyllableChanceDecay, getRandomFloat) + rootWord;
+			return GenerateMorpheme (derivativeStartSyllables, derivativeNextSyllables, addSyllableChanceDecay, getRandomFloat) + rootWord;
 		}
 
-		return rootWord + GenerateMorpheme (nextSyllables, nextSyllables, addSyllableChanceDecay, getRandomFloat);
+		return rootWord + GenerateMorpheme (derivativeNextSyllables, derivativeNextSyllables, addSyllableChanceDecay, getRandomFloat);
 	}
 
 	public static AdjunctionProperties GenerateAdjunctionProperties (GetRandomFloatDelegate getRandomFloat) {
@@ -597,10 +809,15 @@ public class Language : ISynchronizable {
 		return output;
 	}
 
-	public static Morpheme GenerateArticle (SyllableSet startSyllables, SyllableSet nextSyllables, MorphemeProperties properties, GetRandomFloatDelegate getRandomFloat) {
+	public static Morpheme GenerateArticle (
+		SyllableSet startSyllables, 
+//		SyllableSet nextSyllables, 
+		MorphemeProperties properties, 
+		GetRandomFloatDelegate getRandomFloat) {
 
 		Morpheme morpheme = new Morpheme ();
-		morpheme.Value = GenerateMorpheme (startSyllables, nextSyllables, 0.0f, getRandomFloat);
+//		morpheme.Value = GenerateMorpheme (startSyllables, nextSyllables, 0.0f, getRandomFloat);
+		morpheme.Value = GenerateMorpheme (startSyllables, getRandomFloat);
 		morpheme.Properties = properties;
 		morpheme.Type = WordType.Article;
 
@@ -609,13 +826,15 @@ public class Language : ISynchronizable {
 
 	public static Morpheme GenerateDerivatedArticle (
 		Morpheme rootArticle, 
-		SyllableSet startSyllables, 
-		SyllableSet nextSyllables, 
+		SyllableSet syllables, 
+//		SyllableSet nextSyllables, 
+		SyllableSet derivativeStartSyllables, 
+		SyllableSet derivativeNextSyllables, 
 		MorphemeProperties properties, 
 		GetRandomFloatDelegate getRandomFloat) {
 
 		Morpheme morpheme = new Morpheme ();
-		morpheme.Value = GenerateDerivatedWord (rootArticle.Value, 0.4f, 0.5f, startSyllables, nextSyllables, 0.0f, getRandomFloat);
+		morpheme.Value = GenerateDerivatedWord (rootArticle.Value, 0.4f, 0.5f, syllables, derivativeStartSyllables, derivativeNextSyllables, getRandomFloat);
 		morpheme.Properties = rootArticle.Properties | properties;
 		morpheme.Type = WordType.Article;
 
@@ -624,20 +843,25 @@ public class Language : ISynchronizable {
 
 	public static void GenerateGenderedArticles (
 		Morpheme root,
-		SyllableSet startSyllables, 
-		SyllableSet nextSyllables,
+		SyllableSet syllables, 
+//		SyllableSet nextSyllables,
+		SyllableSet derivativeStartSyllables, 
+		SyllableSet derivativeNextSyllables, 
 		GetRandomFloatDelegate getRandomFloat, 
 		out Morpheme masculine, 
 		out Morpheme femenine,
 		out Morpheme neutral) {
 
-		Morpheme firstVariant = GenerateDerivatedArticle (root, startSyllables, nextSyllables, MorphemeProperties.None, getRandomFloat);
+//		Morpheme firstVariant = GenerateDerivatedArticle (root, syllables, nextSyllables, derivativeStartSyllables, derivativeNextSyllables, MorphemeProperties.None, getRandomFloat);
+		Morpheme firstVariant = GenerateDerivatedArticle (root, syllables, derivativeStartSyllables, derivativeNextSyllables, MorphemeProperties.None, getRandomFloat);
 
 		Morpheme secondVariant;
 		if (getRandomFloat () < 0.5f) {
-			secondVariant = GenerateDerivatedArticle (root, startSyllables, nextSyllables, MorphemeProperties.None, getRandomFloat);
+//			secondVariant = GenerateDerivatedArticle (root, syllables, nextSyllables, derivativeStartSyllables, derivativeNextSyllables, MorphemeProperties.None, getRandomFloat);
+			secondVariant = GenerateDerivatedArticle (root, syllables, derivativeStartSyllables, derivativeNextSyllables, MorphemeProperties.None, getRandomFloat);
 		} else {
-			secondVariant = GenerateDerivatedArticle (firstVariant, startSyllables, nextSyllables, MorphemeProperties.None, getRandomFloat);
+//			secondVariant = GenerateDerivatedArticle (firstVariant, syllables, nextSyllables, derivativeStartSyllables, derivativeNextSyllables, MorphemeProperties.None, getRandomFloat);
+			secondVariant = GenerateDerivatedArticle (firstVariant, syllables, derivativeStartSyllables, derivativeNextSyllables, MorphemeProperties.None, getRandomFloat);
 		}
 
 		float randomFloat = getRandomFloat ();
@@ -681,25 +905,33 @@ public class Language : ISynchronizable {
 	}
 
 	public static Dictionary<string, Morpheme> GenerateArticles (
-		SyllableSet startSyllables, 
-		SyllableSet nextSyllables, 
+		SyllableSet syllables, 
+//		SyllableSet nextSyllables, 
+		SyllableSet derivativeStartSyllables, 
+		SyllableSet derivativeNextSyllables, 
 		GeneralArticleProperties generalProperties, 
 		GetRandomFloatDelegate getRandomFloat) {
 
 		Dictionary<string, Morpheme> articles = new Dictionary<string, Morpheme> ();
 
-		Morpheme root = GenerateArticle (startSyllables, nextSyllables, MorphemeProperties.None, getRandomFloat);
+//		Morpheme root = GenerateArticle (startSyllables, nextSyllables, MorphemeProperties.None, getRandomFloat);
+		Morpheme root = GenerateArticle (syllables, MorphemeProperties.None, getRandomFloat);
 
-		Morpheme definite = GenerateDerivatedArticle (root, startSyllables, nextSyllables, MorphemeProperties.None, getRandomFloat);
-		Morpheme indefinite = GenerateDerivatedArticle (root, startSyllables, nextSyllables, MorphemeProperties.Indefinite, getRandomFloat);
-		Morpheme uncountable = GenerateDerivatedArticle (root, startSyllables, nextSyllables, MorphemeProperties.Uncountable, getRandomFloat);
+//		Morpheme definite = GenerateDerivatedArticle (root, syllables, nextSyllables, derivativeStartSyllables, derivativeNextSyllables, MorphemeProperties.None, getRandomFloat);
+//		Morpheme indefinite = GenerateDerivatedArticle (root, syllables, nextSyllables, derivativeStartSyllables, derivativeNextSyllables, MorphemeProperties.Indefinite, getRandomFloat);
+//		Morpheme uncountable = GenerateDerivatedArticle (root, syllables, nextSyllables, derivativeStartSyllables, derivativeNextSyllables, MorphemeProperties.Uncountable, getRandomFloat);
+		Morpheme definite = GenerateDerivatedArticle (root, syllables, derivativeStartSyllables, derivativeNextSyllables, MorphemeProperties.None, getRandomFloat);
+		Morpheme indefinite = GenerateDerivatedArticle (root, syllables, derivativeStartSyllables, derivativeNextSyllables, MorphemeProperties.Indefinite, getRandomFloat);
+		Morpheme uncountable = GenerateDerivatedArticle (root, syllables, derivativeStartSyllables, derivativeNextSyllables, MorphemeProperties.Uncountable, getRandomFloat);
 
 		if ((generalProperties & GeneralArticleProperties.HasDefiniteSingularArticles) == GeneralArticleProperties.HasDefiniteSingularArticles) {
 
-			Morpheme definiteSingular = GenerateDerivatedArticle (definite, startSyllables, nextSyllables, MorphemeProperties.None, getRandomFloat);
+//			Morpheme definiteSingular = GenerateDerivatedArticle (definite, syllables, nextSyllables, derivativeStartSyllables, derivativeNextSyllables, MorphemeProperties.None, getRandomFloat);
+			Morpheme definiteSingular = GenerateDerivatedArticle (definite, syllables, derivativeStartSyllables, derivativeNextSyllables, MorphemeProperties.None, getRandomFloat);
 
 			Morpheme femenine, masculine, neutral;
-			GenerateGenderedArticles (definiteSingular, startSyllables, nextSyllables, getRandomFloat, out masculine, out femenine, out neutral);
+//			GenerateGenderedArticles (definiteSingular, syllables, nextSyllables, derivativeStartSyllables, derivativeNextSyllables, getRandomFloat, out masculine, out femenine, out neutral);
+			GenerateGenderedArticles (definiteSingular, syllables, derivativeStartSyllables, derivativeNextSyllables, getRandomFloat, out masculine, out femenine, out neutral);
 			femenine.Meaning = IndicativeType.DefiniteSingularFemenine;
 			masculine.Meaning = IndicativeType.DefiniteSingularMasculine;
 			neutral.Meaning = IndicativeType.DefiniteSingularNeutral;
@@ -711,10 +943,12 @@ public class Language : ISynchronizable {
 
 		if ((generalProperties & GeneralArticleProperties.HasDefinitePluralArticles) == GeneralArticleProperties.HasDefinitePluralArticles) {
 
-			Morpheme definitePlural = GenerateDerivatedArticle (definite, startSyllables, nextSyllables, MorphemeProperties.Plural, getRandomFloat);
+//			Morpheme definitePlural = GenerateDerivatedArticle (definite, syllables, nextSyllables, derivativeStartSyllables, derivativeNextSyllables, MorphemeProperties.Plural, getRandomFloat);
+			Morpheme definitePlural = GenerateDerivatedArticle (definite, syllables, derivativeStartSyllables, derivativeNextSyllables, MorphemeProperties.Plural, getRandomFloat);
 
 			Morpheme femenine, masculine, neutral;
-			GenerateGenderedArticles (definitePlural, startSyllables, nextSyllables, getRandomFloat, out masculine, out femenine, out neutral);
+//			GenerateGenderedArticles (definitePlural, syllables, nextSyllables, derivativeStartSyllables, derivativeNextSyllables, getRandomFloat, out masculine, out femenine, out neutral);
+			GenerateGenderedArticles (definitePlural, syllables, derivativeStartSyllables, derivativeNextSyllables, getRandomFloat, out masculine, out femenine, out neutral);
 			femenine.Meaning = IndicativeType.DefinitePluralFemenine;
 			masculine.Meaning = IndicativeType.DefinitePluralMasculine;
 			neutral.Meaning = IndicativeType.DefinitePluralNeutral;
@@ -726,10 +960,12 @@ public class Language : ISynchronizable {
 
 		if ((generalProperties & GeneralArticleProperties.HasIndefiniteSingularArticles) == GeneralArticleProperties.HasIndefiniteSingularArticles) {
 
-			Morpheme indefiniteSingular = GenerateDerivatedArticle (indefinite, startSyllables, nextSyllables, MorphemeProperties.None, getRandomFloat);
+//			Morpheme indefiniteSingular = GenerateDerivatedArticle (indefinite, syllables, nextSyllables, derivativeStartSyllables, derivativeNextSyllables, MorphemeProperties.None, getRandomFloat);
+			Morpheme indefiniteSingular = GenerateDerivatedArticle (indefinite, syllables, derivativeStartSyllables, derivativeNextSyllables, MorphemeProperties.None, getRandomFloat);
 
 			Morpheme femenine, masculine, neutral;
-			GenerateGenderedArticles (indefiniteSingular, startSyllables, nextSyllables, getRandomFloat, out masculine, out femenine, out neutral);
+//			GenerateGenderedArticles (indefiniteSingular, syllables, nextSyllables, derivativeStartSyllables, derivativeNextSyllables, getRandomFloat, out masculine, out femenine, out neutral);
+			GenerateGenderedArticles (indefiniteSingular, syllables, derivativeStartSyllables, derivativeNextSyllables, getRandomFloat, out masculine, out femenine, out neutral);
 			femenine.Meaning = IndicativeType.IndefiniteSingularFemenine;
 			masculine.Meaning = IndicativeType.IndefiniteSingularMasculine;
 			neutral.Meaning = IndicativeType.IndefiniteSingularNeutral;
@@ -741,10 +977,12 @@ public class Language : ISynchronizable {
 
 		if ((generalProperties & GeneralArticleProperties.HasIndefinitePluralArticles) == GeneralArticleProperties.HasIndefinitePluralArticles) {
 
-			Morpheme indefinitePlural = GenerateDerivatedArticle (indefinite, startSyllables, nextSyllables, MorphemeProperties.Plural, getRandomFloat);
+//			Morpheme indefinitePlural = GenerateDerivatedArticle (indefinite, syllables, nextSyllables, derivativeStartSyllables, derivativeNextSyllables, MorphemeProperties.Plural, getRandomFloat);
+			Morpheme indefinitePlural = GenerateDerivatedArticle (indefinite, syllables, derivativeStartSyllables, derivativeNextSyllables, MorphemeProperties.Plural, getRandomFloat);
 
 			Morpheme femenine, masculine, neutral;
-			GenerateGenderedArticles (indefinitePlural, startSyllables, nextSyllables, getRandomFloat, out masculine, out femenine, out neutral);
+//			GenerateGenderedArticles (indefinitePlural, syllables, nextSyllables, derivativeStartSyllables, derivativeNextSyllables, getRandomFloat, out masculine, out femenine, out neutral);
+			GenerateGenderedArticles (indefinitePlural, syllables, derivativeStartSyllables, derivativeNextSyllables, getRandomFloat, out masculine, out femenine, out neutral);
 			femenine.Meaning = IndicativeType.IndefinitePluralFemenine;
 			masculine.Meaning = IndicativeType.IndefinitePluralMasculine;
 			neutral.Meaning = IndicativeType.IndefinitePluralNeutral;
@@ -757,7 +995,8 @@ public class Language : ISynchronizable {
 		if ((generalProperties & GeneralArticleProperties.HasUncountableArticles) == GeneralArticleProperties.HasUncountableArticles) {
 
 			Morpheme femenine, masculine, neutral;
-			GenerateGenderedArticles (uncountable, startSyllables, nextSyllables, getRandomFloat, out masculine, out femenine, out neutral);
+//			GenerateGenderedArticles (uncountable, syllables, nextSyllables, derivativeStartSyllables, derivativeNextSyllables, getRandomFloat, out masculine, out femenine, out neutral);
+			GenerateGenderedArticles (uncountable, syllables, derivativeStartSyllables, derivativeNextSyllables, getRandomFloat, out masculine, out femenine, out neutral);
 			femenine.Meaning = IndicativeType.UncountableFemenine;
 			masculine.Meaning = IndicativeType.UncountableMasculine;
 			neutral.Meaning = IndicativeType.UncountableNeutral;
@@ -876,27 +1115,27 @@ public class Language : ISynchronizable {
 
 	public void GenerateArticleProperties (GetRandomFloatDelegate getRandomFloat) {
 
-		if (getRandomFloat () < 0.60f) {
+		if (getRandomFloat () < 0.40f) {
 
 			_articleProperties |= GeneralArticleProperties.HasDefiniteSingularArticles;
 		}
 
-		if (getRandomFloat () < 0.50f) {
+		if (getRandomFloat () < 0.30f) {
 
 			_articleProperties |= GeneralArticleProperties.HasDefinitePluralArticles;
 		}
 
-		if (getRandomFloat () < 0.40f) {
+		if (getRandomFloat () < 0.20f) {
 
 			_articleProperties |= GeneralArticleProperties.HasIndefiniteSingularArticles;
 		}
 
-		if (getRandomFloat () < 0.30f) {
+		if (getRandomFloat () < 0.15f) {
 
 			_articleProperties |= GeneralArticleProperties.HasIndefinitePluralArticles;
 		}
 
-		if (getRandomFloat () < 0.20f) {
+		if (getRandomFloat () < 0.10f) {
 
 			_articleProperties |= GeneralArticleProperties.HasUncountableArticles;
 		}
@@ -909,12 +1148,12 @@ public class Language : ISynchronizable {
 			_indicativeProperties |= GeneralIndicativeProperties.HasDefiniteIndicative;
 		}
 
-		if (getRandomFloat () < 0.15f) {
+		if (getRandomFloat () < 0.10f) {
 
 			_indicativeProperties |= GeneralIndicativeProperties.HasIndefiniteIndicative;
 		}
 
-		if (getRandomFloat () < 0.15f) {
+		if (getRandomFloat () < 0.05f) {
 
 			_indicativeProperties |= GeneralIndicativeProperties.HasUncountableIndicative;
 		}
@@ -934,12 +1173,12 @@ public class Language : ISynchronizable {
 			_indicativeProperties |= GeneralIndicativeProperties.HasFemenineIndicative;
 		}
 
-		if (getRandomFloat () < 0.15f) {
+		if (getRandomFloat () < 0.10f) {
 
 			_indicativeProperties |= GeneralIndicativeProperties.HasSingularIndicative;
 		}
 
-		if (getRandomFloat () < 0.15f) {
+		if (getRandomFloat () < 0.20f) {
 
 			_indicativeProperties |= GeneralIndicativeProperties.HasPluralIndicative;
 		}
@@ -952,45 +1191,55 @@ public class Language : ISynchronizable {
 
 	public void GenerateArticleSyllables (GetRandomFloatDelegate getRandomFloat) {
 
-//		CharacterGroup[] onsetGroups = GenerateCharacterGroups (OnsetLetters, 0.7f, 0.1f, getRandomFloat, 10);
-//		CharacterGroup[] nucleusGroups = GenerateCharacterGroups (NucleusLetters, 1.0f, 0.35f, getRandomFloat, 5);
-//		CharacterGroup[] codaGroups = GenerateCharacterGroups (CodaLetters, 0.25f, 0.1f, getRandomFloat, 4);
+		ArticleSyllables.OnsetChance = 0.5f;
+		ArticleSyllables.OnsetGroupCount = 10;
+
+		ArticleSyllables.NucleusChance = 1.0f;
+		ArticleSyllables.NucleusGroupCount = 5;
+
+		ArticleSyllables.CodaChance = 0.5f;
+		ArticleSyllables.CodaGroupCount = 4;
+
+		ArticleSyllables.GenerateCharacterGroups (getRandomFloat);
+
+//		ArticleNextSyllables.OnsetStartAddLetterChance = 0.7f;
+//		ArticleNextSyllables.OnsetGroupCount = 10;
 //
-//		ArticleStartSyllables = GenerateSyllables (onsetGroups, nucleusGroups, codaGroups, getRandomFloat, 50);
-//		ArticleNextSyllables = GenerateSyllables (onsetGroups, nucleusGroups, codaGroups, getRandomFloat, 50);
+//		ArticleNextSyllables.NucleusStartAddLetterChance = 1.0f;
+//		ArticleNextSyllables.NucleusGroupCount = 5;
+//
+//		ArticleNextSyllables.CodaStartAddLetterChance = 0.25f;
+//		ArticleNextSyllables.CodaGroupCount = 4;
+//
+//		ArticleNextSyllables.GenerateCharacterGroups (getRandomFloat);
 
-		ArticleStartSyllables.OnsetStartAddLetterChance = 0.7f;
-		ArticleStartSyllables.OnsetAddLetterChanceDecay = 0.1f;
-		ArticleStartSyllables.OnsetGroupCount = 10;
+		DerivativeArticleStartSyllables.OnsetChance = 0.5f;
+		DerivativeArticleStartSyllables.OnsetGroupCount = 10;
 
-		ArticleStartSyllables.NucleusStartAddLetterChance = 1.0f;
-		ArticleStartSyllables.NucleusAddLetterChanceDecay = 0.35f;
-		ArticleStartSyllables.NucleusGroupCount = 5;
+		DerivativeArticleStartSyllables.NucleusChance = 1.0f;
+		DerivativeArticleStartSyllables.NucleusGroupCount = 5;
 
-		ArticleStartSyllables.CodaStartAddLetterChance = 0.25f;
-		ArticleStartSyllables.CodaAddLetterChanceDecay = 0.1f;
-		ArticleStartSyllables.CodaGroupCount = 4;
+		DerivativeArticleStartSyllables.CodaChance = 0.05f;
+		DerivativeArticleStartSyllables.CodaGroupCount = 4;
 
-		ArticleStartSyllables.GenerateCharacterGroups (getRandomFloat);
+		DerivativeArticleStartSyllables.GenerateCharacterGroups (getRandomFloat);
 
-		ArticleNextSyllables.OnsetStartAddLetterChance = 0.7f;
-		ArticleNextSyllables.OnsetAddLetterChanceDecay = 0.1f;
-		ArticleNextSyllables.OnsetGroupCount = 10;
+		DerivativeArticleNextSyllables.OnsetChance = 0.05f;
+		DerivativeArticleNextSyllables.OnsetGroupCount = 10;
 
-		ArticleNextSyllables.NucleusStartAddLetterChance = 1.0f;
-		ArticleNextSyllables.NucleusAddLetterChanceDecay = 0.35f;
-		ArticleNextSyllables.NucleusGroupCount = 5;
+		DerivativeArticleNextSyllables.NucleusChance = 1.0f;
+		DerivativeArticleNextSyllables.NucleusGroupCount = 5;
 
-		ArticleNextSyllables.CodaStartAddLetterChance = 0.25f;
-		ArticleNextSyllables.CodaAddLetterChanceDecay = 0.1f;
-		ArticleNextSyllables.CodaGroupCount = 4;
+		DerivativeArticleNextSyllables.CodaChance = 0.5f;
+		DerivativeArticleNextSyllables.CodaGroupCount = 4;
 
-		ArticleNextSyllables.GenerateCharacterGroups (getRandomFloat);
+		DerivativeArticleNextSyllables.GenerateCharacterGroups (getRandomFloat);
 	}
 
 	public void GenerateAllArticles (GetRandomFloatDelegate getRandomFloat) {
 
-		_articles = GenerateArticles (ArticleStartSyllables, ArticleNextSyllables, _articleProperties, getRandomFloat);
+//		_articles = GenerateArticles (ArticleStartSyllables, ArticleNextSyllables, DerivativeArticleStartSyllables, DerivativeArticleNextSyllables, _articleProperties, getRandomFloat);
+		_articles = GenerateArticles (ArticleSyllables, DerivativeArticleStartSyllables, DerivativeArticleNextSyllables, _articleProperties, getRandomFloat);
 
 		Articles = new List<Morpheme> (_articles.Count);
 
@@ -1006,38 +1255,25 @@ public class Language : ISynchronizable {
 	}
 
 	public void GenerateIndicativeSyllables (GetRandomFloatDelegate getRandomFloat) {
-//
-//		CharacterGroup[] onsetGroups = GenerateCharacterGroups (OnsetLetters, 0.7f, 0.1f, getRandomFloat, 10);
-//		CharacterGroup[] nucleusGroups = GenerateCharacterGroups (NucleusLetters, 1.0f, 0.35f, getRandomFloat, 5);
-//		CharacterGroup[] codaGroups = GenerateCharacterGroups (CodaLetters, 0.25f, 0.1f, getRandomFloat, 4);
-//
-//		IndicativeStartSyllables = GenerateSyllables (onsetGroups, nucleusGroups, codaGroups, getRandomFloat, 50);
-//		IndicativeNextSyllables = GenerateSyllables (onsetGroups, nucleusGroups, codaGroups, getRandomFloat, 50);
 
-		IndicativeStartSyllables.OnsetStartAddLetterChance = 0.7f;
-		IndicativeStartSyllables.OnsetAddLetterChanceDecay = 0.1f;
+		IndicativeStartSyllables.OnsetChance = 0.7f;
 		IndicativeStartSyllables.OnsetGroupCount = 10;
 
-		IndicativeStartSyllables.NucleusStartAddLetterChance = 1.0f;
-		IndicativeStartSyllables.NucleusAddLetterChanceDecay = 0.35f;
+		IndicativeStartSyllables.NucleusChance = 1.0f;
 		IndicativeStartSyllables.NucleusGroupCount = 5;
 
-		IndicativeStartSyllables.CodaStartAddLetterChance = 0.25f;
-		IndicativeStartSyllables.CodaAddLetterChanceDecay = 0.1f;
+		IndicativeStartSyllables.CodaChance = 0.25f;
 		IndicativeStartSyllables.CodaGroupCount = 4;
 
 		IndicativeStartSyllables.GenerateCharacterGroups (getRandomFloat);
 
-		IndicativeNextSyllables.OnsetStartAddLetterChance = 0.7f;
-		IndicativeNextSyllables.OnsetAddLetterChanceDecay = 0.1f;
+		IndicativeNextSyllables.OnsetChance = 0.7f;
 		IndicativeNextSyllables.OnsetGroupCount = 10;
 
-		IndicativeNextSyllables.NucleusStartAddLetterChance = 1.0f;
-		IndicativeNextSyllables.NucleusAddLetterChanceDecay = 0.35f;
+		IndicativeNextSyllables.NucleusChance = 1.0f;
 		IndicativeNextSyllables.NucleusGroupCount = 5;
 
-		IndicativeNextSyllables.CodaStartAddLetterChance = 0.25f;
-		IndicativeNextSyllables.CodaAddLetterChanceDecay = 0.1f;
+		IndicativeNextSyllables.CodaChance = 0.25f;
 		IndicativeNextSyllables.CodaGroupCount = 4;
 
 		IndicativeNextSyllables.GenerateCharacterGroups (getRandomFloat);
@@ -1082,12 +1318,12 @@ public class Language : ISynchronizable {
 		MorphemeProperties properties, 
 		GetRandomFloatDelegate getRandomFloat) {
 
-		Morpheme word = new Morpheme ();
-		word.Value = GenerateDerivatedWord (rootIndicative.Value, 0.0f, 0.5f, startSyllables, nextSyllables, 0.0f, getRandomFloat);
-		word.Properties = rootIndicative.Properties | properties;
-		word.Type = WordType.Indicative;
+		Morpheme morpheme = new Morpheme ();
+		morpheme.Value = GenerateDerivatedWord (rootIndicative.Value, 0.0f, 0.5f, startSyllables, nextSyllables, startSyllables, nextSyllables, 0.0f, getRandomFloat);
+		morpheme.Properties = rootIndicative.Properties | properties;
+		morpheme.Type = WordType.Indicative;
 
-		return word;
+		return morpheme;
 	}
 
 	public static void GenerateGenderedIndicatives (
@@ -1258,31 +1494,31 @@ public class Language : ISynchronizable {
 //		AdpositionStartSyllables = GenerateSyllables (onsetGroups, nucleusGroups, codaGroups, getRandomFloat, 100);
 //		AdpositionNextSyllables = GenerateSyllables (onsetGroups, nucleusGroups, codaGroups, getRandomFloat, 100);
 
-		AdpositionStartSyllables.OnsetStartAddLetterChance = 0.7f;
-		AdpositionStartSyllables.OnsetAddLetterChanceDecay = 0.1f;
-		AdpositionStartSyllables.OnsetGroupCount = 10;
+		AdpositionStartSyllables.OnsetChance = 0.7f;
+//		AdpositionStartSyllables.OnsetAddLetterChanceDecay = 0.1f;
+		AdpositionStartSyllables.OnsetGroupCount = 20;
 
-		AdpositionStartSyllables.NucleusStartAddLetterChance = 1.0f;
-		AdpositionStartSyllables.NucleusAddLetterChanceDecay = 0.35f;
-		AdpositionStartSyllables.NucleusGroupCount = 5;
+		AdpositionStartSyllables.NucleusChance = 1.0f;
+//		AdpositionStartSyllables.NucleusAddLetterChanceDecay = 0.35f;
+		AdpositionStartSyllables.NucleusGroupCount = 10;
 
-		AdpositionStartSyllables.CodaStartAddLetterChance = 0.25f;
-		AdpositionStartSyllables.CodaAddLetterChanceDecay = 0.1f;
-		AdpositionStartSyllables.CodaGroupCount = 4;
+		AdpositionStartSyllables.CodaChance = 0.25f;
+//		AdpositionStartSyllables.CodaAddLetterChanceDecay = 0.1f;
+		AdpositionStartSyllables.CodaGroupCount = 8;
 
 		AdpositionStartSyllables.GenerateCharacterGroups (getRandomFloat);
 
-		AdpositionNextSyllables.OnsetStartAddLetterChance = 0.7f;
-		AdpositionNextSyllables.OnsetAddLetterChanceDecay = 0.1f;
-		AdpositionNextSyllables.OnsetGroupCount = 10;
+		AdpositionNextSyllables.OnsetChance = 0.7f;
+//		AdpositionNextSyllables.OnsetAddLetterChanceDecay = 0.1f;
+		AdpositionNextSyllables.OnsetGroupCount = 20;
 
-		AdpositionNextSyllables.NucleusStartAddLetterChance = 1.0f;
-		AdpositionNextSyllables.NucleusAddLetterChanceDecay = 0.35f;
-		AdpositionNextSyllables.NucleusGroupCount = 5;
+		AdpositionNextSyllables.NucleusChance = 1.0f;
+//		AdpositionNextSyllables.NucleusAddLetterChanceDecay = 0.35f;
+		AdpositionNextSyllables.NucleusGroupCount = 10;
 
-		AdpositionNextSyllables.CodaStartAddLetterChance = 0.25f;
-		AdpositionNextSyllables.CodaAddLetterChanceDecay = 0.1f;
-		AdpositionNextSyllables.CodaGroupCount = 4;
+		AdpositionNextSyllables.CodaChance = 0.25f;
+//		AdpositionNextSyllables.CodaAddLetterChanceDecay = 0.1f;
+		AdpositionNextSyllables.CodaGroupCount = 8;
 
 		AdpositionNextSyllables.GenerateCharacterGroups (getRandomFloat);
 	}
@@ -1314,31 +1550,31 @@ public class Language : ISynchronizable {
 //		AdjectiveStartSyllables = GenerateSyllables (onsetGroups, nucleusGroups, codaGroups, getRandomFloat, 100);
 //		AdjectiveNextSyllables = GenerateSyllables (onsetGroups, nucleusGroups, codaGroups, getRandomFloat, 100);
 
-		AdjectiveStartSyllables.OnsetStartAddLetterChance = 0.7f;
-		AdjectiveStartSyllables.OnsetAddLetterChanceDecay = 0.1f;
-		AdjectiveStartSyllables.OnsetGroupCount = 10;
+		AdjectiveStartSyllables.OnsetChance = 0.7f;
+//		AdjectiveStartSyllables.OnsetAddLetterChanceDecay = 0.1f;
+		AdjectiveStartSyllables.OnsetGroupCount = 20;
 
-		AdjectiveStartSyllables.NucleusStartAddLetterChance = 1.0f;
-		AdjectiveStartSyllables.NucleusAddLetterChanceDecay = 0.35f;
-		AdjectiveStartSyllables.NucleusGroupCount = 5;
+		AdjectiveStartSyllables.NucleusChance = 1.0f;
+//		AdjectiveStartSyllables.NucleusAddLetterChanceDecay = 0.35f;
+		AdjectiveStartSyllables.NucleusGroupCount = 10;
 
-		AdjectiveStartSyllables.CodaStartAddLetterChance = 0.25f;
-		AdjectiveStartSyllables.CodaAddLetterChanceDecay = 0.1f;
-		AdjectiveStartSyllables.CodaGroupCount = 4;
+		AdjectiveStartSyllables.CodaChance = 0.25f;
+//		AdjectiveStartSyllables.CodaAddLetterChanceDecay = 0.1f;
+		AdjectiveStartSyllables.CodaGroupCount = 8;
 
 		AdjectiveStartSyllables.GenerateCharacterGroups (getRandomFloat);
 
-		AdjectiveNextSyllables.OnsetStartAddLetterChance = 0.7f;
-		AdjectiveNextSyllables.OnsetAddLetterChanceDecay = 0.1f;
-		AdjectiveNextSyllables.OnsetGroupCount = 10;
+		AdjectiveNextSyllables.OnsetChance = 0.7f;
+//		AdjectiveNextSyllables.OnsetAddLetterChanceDecay = 0.1f;
+		AdjectiveNextSyllables.OnsetGroupCount = 20;
 
-		AdjectiveNextSyllables.NucleusStartAddLetterChance = 1.0f;
-		AdjectiveNextSyllables.NucleusAddLetterChanceDecay = 0.35f;
-		AdjectiveNextSyllables.NucleusGroupCount = 5;
+		AdjectiveNextSyllables.NucleusChance = 1.0f;
+//		AdjectiveNextSyllables.NucleusAddLetterChanceDecay = 0.35f;
+		AdjectiveNextSyllables.NucleusGroupCount = 10;
 
-		AdjectiveNextSyllables.CodaStartAddLetterChance = 0.25f;
-		AdjectiveNextSyllables.CodaAddLetterChanceDecay = 0.1f;
-		AdjectiveNextSyllables.CodaGroupCount = 4;
+		AdjectiveNextSyllables.CodaChance = 0.25f;
+//		AdjectiveNextSyllables.CodaAddLetterChanceDecay = 0.1f;
+		AdjectiveNextSyllables.CodaGroupCount = 8;
 
 		AdjectiveNextSyllables.GenerateCharacterGroups (getRandomFloat);
 	}
@@ -1377,31 +1613,31 @@ public class Language : ISynchronizable {
 //		NounStartSyllables = GenerateSyllables (onsetGroups, nucleusGroups, codaGroups, getRandomFloat, 200);
 //		NounNextSyllables = GenerateSyllables (onsetGroups, nucleusGroups, codaGroups, getRandomFloat, 200);
 
-		NounStartSyllables.OnsetStartAddLetterChance = 0.7f;
-		NounStartSyllables.OnsetAddLetterChanceDecay = 0.25f;
-		NounStartSyllables.OnsetGroupCount = 10;
+		NounStartSyllables.OnsetChance = 0.7f;
+//		NounStartSyllables.OnsetAddLetterChanceDecay = 0.25f;
+		NounStartSyllables.OnsetGroupCount = 20;
 
-		NounStartSyllables.NucleusStartAddLetterChance = 1.0f;
-		NounStartSyllables.NucleusAddLetterChanceDecay = 0.35f;
-		NounStartSyllables.NucleusGroupCount = 5;
+		NounStartSyllables.NucleusChance = 1.0f;
+//		NounStartSyllables.NucleusAddLetterChanceDecay = 0.35f;
+		NounStartSyllables.NucleusGroupCount = 10;
 
-		NounStartSyllables.CodaStartAddLetterChance = 0.5f;
-		NounStartSyllables.CodaAddLetterChanceDecay = 0.25f;
-		NounStartSyllables.CodaGroupCount = 4;
+		NounStartSyllables.CodaChance = 0.5f;
+//		NounStartSyllables.CodaAddLetterChanceDecay = 0.25f;
+		NounStartSyllables.CodaGroupCount = 8;
 
 		NounStartSyllables.GenerateCharacterGroups (getRandomFloat);
 
-		NounNextSyllables.OnsetStartAddLetterChance = 0.7f;
-		NounNextSyllables.OnsetAddLetterChanceDecay = 0.25f;
-		NounNextSyllables.OnsetGroupCount = 10;
+		NounNextSyllables.OnsetChance = 0.7f;
+//		NounNextSyllables.OnsetAddLetterChanceDecay = 0.25f;
+		NounNextSyllables.OnsetGroupCount = 20;
 
-		NounNextSyllables.NucleusStartAddLetterChance = 1.0f;
-		NounNextSyllables.NucleusAddLetterChanceDecay = 0.35f;
-		NounNextSyllables.NucleusGroupCount = 5;
+		NounNextSyllables.NucleusChance = 1.0f;
+//		NounNextSyllables.NucleusAddLetterChanceDecay = 0.35f;
+		NounNextSyllables.NucleusGroupCount = 10;
 
-		NounNextSyllables.CodaStartAddLetterChance = 0.5f;
-		NounNextSyllables.CodaAddLetterChanceDecay = 0.25f;
-		NounNextSyllables.CodaGroupCount = 4;
+		NounNextSyllables.CodaChance = 0.5f;
+//		NounNextSyllables.CodaAddLetterChanceDecay = 0.25f;
+		NounNextSyllables.CodaGroupCount = 8;
 
 		NounNextSyllables.GenerateCharacterGroups (getRandomFloat);
 	}
@@ -1732,11 +1968,11 @@ public class Language : ISynchronizable {
 				continue;
 			}
 
-			if (absentArticle) {
+			ParsedWord parsedPhrasePart = ParseWord (phrasePart);
+
+			if (!parsedPhrasePart.Attributes.ContainsKey (ParsedWordAttributeId.UncountableNoun) && (absentArticle)) {
 				phraseProperties |= PhraseProperties.Indefinite;
 			}
-
-			ParsedWord parsedPhrasePart = ParseWord (phrasePart);
 
 			if (parsedPhrasePart.Attributes.ContainsKey (ParsedWordAttributeId.NounAdjunct)) {
 				
@@ -1859,7 +2095,8 @@ public class Language : ISynchronizable {
 			properties |= PhraseProperties.Femenine;
 		else if (isNeutralNoun)
 			properties |= PhraseProperties.Neutral;
-		else if (isUncountableNoun)
+
+		if (isUncountableNoun)
 			properties |= PhraseProperties.Uncountable;
 
 		string text = mainNoun.Value;
