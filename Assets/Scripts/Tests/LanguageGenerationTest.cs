@@ -165,7 +165,7 @@ public class LanguageGenerationTest : AutomatedTest {
 			entry += "\n\t" + mergedPhrase.Text + " (" + mergedPhrase.Meaning + ")";
 			entry += "\n";
 
-//			prePhrase = language.TranslateNounPhrase ("[ivb(t,s,past,bear)]born", GetRandomFloat);
+//			prePhrase = language.TranslateNounPhrase ("[iv(bear,ts,past)]born", GetRandomFloat);
 //			complementPhrase = language.TranslateNounPhrase ("a tree", GetRandomFloat);
 //			postPhrase = language.BuildAdpositionalPhrase ("on", complementPhrase);
 //			mergedPhrase = language.MergePhrases (prePhrase, postPhrase);
@@ -174,7 +174,7 @@ public class LanguageGenerationTest : AutomatedTest {
 //			entry += "\n\t" + mergedPhrase.Text + " (" + mergedPhrase.Meaning + ")";
 //			entry += "\n";
 //
-//			prePhrase = language.TranslateNounPhrase ("[rvb(t,s,past)]raise:d", GetRandomFloat);
+//			prePhrase = language.TranslateNounPhrase ("[rv(ts,past)]raise:d", GetRandomFloat);
 //			complementPhrase = language.TranslateNounPhrase ("the city", GetRandomFloat);
 //			postPhrase = language.BuildAdpositionalPhrase ("in", complementPhrase);
 //			mergedPhrase = language.MergePhrases (prePhrase, postPhrase);
@@ -183,7 +183,7 @@ public class LanguageGenerationTest : AutomatedTest {
 //			entry += "\n\t" + mergedPhrase.Text + " (" + mergedPhrase.Meaning + ")";
 //			entry += "\n";
 //
-//			prePhrase = language.TranslateNounPhrase ("[rvn]hunt:er", GetRandomFloat);
+//			prePhrase = language.TranslateNounPhrase ("[nrv]hunt:er", GetRandomFloat);
 //			complementPhrase = language.TranslateNounPhrase ("cat:s", GetRandomFloat);
 //			postPhrase = language.BuildAdpositionalPhrase ("of", complementPhrase);
 //			mergedPhrase = language.MergePhrases (prePhrase, postPhrase);
@@ -192,7 +192,7 @@ public class LanguageGenerationTest : AutomatedTest {
 //			entry += "\n\t" + mergedPhrase.Text + " (" + mergedPhrase.Meaning + ")";
 //			entry += "\n";
 //
-//			prePhrase = language.TranslateNounPhrase ("[ivn(carry)]carrier", GetRandomFloat);
+//			prePhrase = language.TranslateNounPhrase ("[niv(carry)]carrier", GetRandomFloat);
 //			complementPhrase = language.TranslateNounPhrase ("[un]water", GetRandomFloat);
 //			postPhrase = language.BuildAdpositionalPhrase ("of", complementPhrase);
 //			mergedPhrase = language.MergePhrases (prePhrase, postPhrase);

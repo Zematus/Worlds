@@ -37,7 +37,7 @@ public class Name : ISynchronizable {
 
 		Value = value;
 
-		Language.MakeProperName (Value);
+		Language.TurnIntoProperName (Value);
 	}
 
 	public string Text {
