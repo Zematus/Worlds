@@ -18,7 +18,7 @@ public class LanguageGenerationTest : AutomatedTest {
 	{
 		State = TestState.Running;
 
-		for (int i = 0; i < 5; i++) {
+		for (int i = 0; i < 10; i++) {
 			Language language = new Language (0);
 
 			language.GenerateArticleProperties (GetRandomFloat);

@@ -128,7 +128,6 @@ public class Language : ISynchronizable {
 
 	public static class ParsedWordAttributeId {
 
-//		public const string NounPluralIndicative = "npl";
 		public const string FemenineNoun = "fn";
 		public const string MasculineNoun = "mn";
 		public const string NeutralNoun = "nn";
@@ -210,17 +209,24 @@ public class Language : ISynchronizable {
 		GoesAfterNounAndLinkedWithDash = 0x06
 	}
 
+	public enum TensePropierties
+	{
+		Present = 0x000,
+		Past = 0x001,
+		Future = 0x002
+	}
+
 	public enum MorphemeProperties
 	{
-		None = 0x00,
-		Plural = 0x01,
-		Indefinite = 0x02,
-		Femenine = 0x04,
-		Neutral = 0x08,
-		Irregular = 0x10,
-		Uncountable = 0x20,
+		None = 0x000,
+		Plural = 0x001,
+		Indefinite = 0x002,
+		Femenine = 0x004,
+		Neutral = 0x008,
+		Irregular = 0x010,
+		Uncountable = 0x020,
 
-		IsNotMasculine = 0x0c
+		IsNotMasculine = 0x00c
 	}
 
 	public enum PhraseProperties
@@ -399,6 +405,7 @@ public class Language : ISynchronizable {
 	public static Regex ArticleRegex = new Regex (@"^((?<def>the)|(?<indef>(a|an)))$");
 	public static Regex PluralSuffixRegex = new Regex (@"^(es|s)$");
 	public static Regex VerbNominalizationSuffixRegex = new Regex (@"^(er|r)$");
+	public static Regex ConjugationSuffixRegex = new Regex (@"^(ed|d|s)$");
 
 //	public GeneralGenderProperties GenderProperties;
 
@@ -531,6 +538,8 @@ public class Language : ISynchronizable {
 	private const float _initialHomographTolerance = 0.1f;
 	private const float _homographToleranceDecayFactor = 0.1f;
 
+	private const float _irregularPluralNounFrequency = 0.025f;
+
 	public Language () {
 		
 	}
@@ -624,7 +633,7 @@ public class Language : ISynchronizable {
 		float addSyllableChanceDecay, 
 		GetRandomFloatDelegate getRandomFloat) {
 
-		float addSyllableChance = 1;
+		float addSyllableChance = 2;
 		bool first = true;
 
 		string morpheme = "";
@@ -1518,11 +1527,11 @@ public class Language : ISynchronizable {
 
 	public void GenerateAdposition (string relation, GetRandomFloatDelegate getRandomFloat) {
 
-		string value = GenerateMorpheme (AdpositionStartSyllables, AdpositionNextSyllables, 0.35f, getRandomFloat);
+		string value = GenerateMorpheme (AdpositionStartSyllables, AdpositionNextSyllables, 0.2f, getRandomFloat);
 
 		while (_existingAdpositionMorphemeValues.Contains (value)) {
 		
-			value = GenerateMorpheme (AdpositionStartSyllables, AdpositionNextSyllables, 0.35f, getRandomFloat);
+			value = GenerateMorpheme (AdpositionStartSyllables, AdpositionNextSyllables, 0.2f, getRandomFloat);
 		}
 
 		Morpheme morpheme = new Morpheme ();
@@ -1590,11 +1599,11 @@ public class Language : ISynchronizable {
 			return _adjectives [meaning];
 		}
 
-		string value = GenerateMorpheme (AdjectiveStartSyllables, AdjectiveNextSyllables, 0.5f, getRandomFloat);
+		string value = GenerateMorpheme (AdjectiveStartSyllables, AdjectiveNextSyllables, 0.25f, getRandomFloat);
 
 		while (_existingAdjectiveMorphemeValues.Contains (value)) {
 
-			value = GenerateMorpheme (AdjectiveStartSyllables, AdjectiveNextSyllables, 0.5f, getRandomFloat);
+			value = GenerateMorpheme (AdjectiveStartSyllables, AdjectiveNextSyllables, 0.25f, getRandomFloat);
 		}
 
 		Morpheme morpheme = new Morpheme ();
@@ -1674,7 +1683,7 @@ public class Language : ISynchronizable {
 
 		while (true) {
 		
-			value = GenerateMorpheme (NounStartSyllables, NounNextSyllables, 0.65f, getRandomFloat);
+			value = GenerateMorpheme (NounStartSyllables, NounNextSyllables, 0.3f, getRandomFloat);
 
 			if (!_existingNounMorphemeValues.ContainsKey (value))
 				break;
@@ -1704,6 +1713,11 @@ public class Language : ISynchronizable {
 		Nouns.Add (morpheme);
 
 		return morpheme;
+	}
+
+	public Morpheme GenerateVerb (string meaning, GetRandomFloatDelegate getRandomFloat, bool isPlural, bool randomGender, bool isFemenine = false, bool isNeutral = false, bool canBeIrregular = true) {
+
+		return GenerateNoun (meaning, GenerateWordProperties (getRandomFloat, isPlural, randomGender, isFemenine, isNeutral, canBeIrregular), getRandomFloat);
 	}
 
 	public Morpheme GetAppropiateArticle (PhraseProperties phraseProperties) {
@@ -2083,28 +2097,18 @@ public class Language : ISynchronizable {
 
 		List<Morpheme> nounComponents = new List<Morpheme> ();
 
-		bool isVerbDerived = false;
 		bool isPlural = false;
 		bool hasRandomGender = true;
 		bool isFemenineNoun = false;
 		bool isNeutralNoun = false;
 		bool isUncountableNoun = false;
 
-		foreach (string nounPart in nounParts) {
+//		string verbPerson = VerbConjugationIds.FirstPersonSingular;
+		string verbTense = VerbConjugationIds.Present;
 
-			Match plSuffixMatch = PluralSuffixRegex.Match (nounPart);
+		for (int i = 0; i < nounParts.Length; i++) {
 
-			if (plSuffixMatch.Success) {
-				isPlural = true;
-
-				continue;
-			}
-
-			Match normSuffixMatch = VerbNominalizationSuffixRegex.Match (nounPart);
-
-			if (normSuffixMatch.Success) {
-				continue;
-			}
+			string nounPart = nounParts [i];
 
 			ParsedWord parsedWordPart = ParseWord (nounPart);
 
@@ -2113,25 +2117,41 @@ public class Language : ISynchronizable {
 				parsedWordPart.Attributes.ContainsKey (ParsedWordAttributeId.NominalizedIrregularVerb) || 
 				parsedWordPart.Attributes.ContainsKey (ParsedWordAttributeId.NominalizedRegularVerb)) {
 
-				isVerbDerived = true;
-
-				string verb;
+				string unstranslatedVerbPart;
 
 				if (parsedWordPart.Attributes.ContainsKey (ParsedWordAttributeId.NominalizedIrregularVerb)) {
 
-					verb = parsedWordPart.Attributes [ParsedWordAttributeId.NominalizedIrregularVerb] [0];
+					unstranslatedVerbPart = parsedWordPart.Attributes [ParsedWordAttributeId.NominalizedIrregularVerb] [0];
+
+					if (((i + 1) < nounParts.Length) && PluralSuffixRegex.IsMatch (nounParts[i + 1])) {
+						isPlural = true;
+						i++;
+					}
 
 				} else if (parsedWordPart.Attributes.ContainsKey (ParsedWordAttributeId.IrregularVerb)) {
 				
-					verb = parsedWordPart.Attributes [ParsedWordAttributeId.IrregularVerb] [0];
+					unstranslatedVerbPart = parsedWordPart.Attributes [ParsedWordAttributeId.IrregularVerb] [0];
+					verbTense = parsedWordPart.Attributes [ParsedWordAttributeId.IrregularVerb] [2];
 
 				} else if (parsedWordPart.Attributes.ContainsKey (ParsedWordAttributeId.NominalizedRegularVerb)) {
 
-					verb = parsedWordPart.Value;
+					unstranslatedVerbPart = parsedWordPart.Value;
+
+					// skip next wordPart (suffix)
+					i++;
+
+					if (((i + 1) < nounParts.Length) && PluralSuffixRegex.IsMatch (nounParts[i + 1])) {
+						isPlural = true;
+						i++;
+					}
 
 				} else {
 
-					verb = parsedWordPart.Value;
+					unstranslatedVerbPart = parsedWordPart.Value;
+					verbTense = parsedWordPart.Attributes [ParsedWordAttributeId.RegularVerb] [1];
+
+					// skip next wordPart (suffix)
+					i++;
 				}
 
 			} else {
@@ -2155,13 +2175,18 @@ public class Language : ISynchronizable {
 
 				Morpheme noun = null;
 
-				string singularNoun = parsedWordPart.Value;
+				string unstranslatedNounPart = parsedWordPart.Value;
 				if (parsedWordPart.Attributes.ContainsKey (ParsedWordAttributeId.IrregularPluralNoun)) {
-					singularNoun = parsedWordPart.Attributes[ParsedWordAttributeId.IrregularPluralNoun][0];
+					unstranslatedNounPart = parsedWordPart.Attributes[ParsedWordAttributeId.IrregularPluralNoun][0];
 					isPlural = true;
 				}
+
+				if ((!isPlural) && ((i + 1) < nounParts.Length) && PluralSuffixRegex.IsMatch (nounParts[i + 1])) {
+					isPlural = true;
+					i++;
+				}
 				
-				noun = GenerateNoun (singularNoun, getRandomFloat, false, hasRandomGender, isFemenineNoun, isNeutralNoun);
+				noun = GenerateNoun (unstranslatedNounPart, getRandomFloat, false, hasRandomGender, isFemenineNoun, isNeutralNoun);
 
 				isFemenineNoun = ((noun.Properties & MorphemeProperties.Femenine) == MorphemeProperties.Femenine);
 				isNeutralNoun = ((noun.Properties & MorphemeProperties.Neutral) == MorphemeProperties.Neutral);
@@ -2175,8 +2200,9 @@ public class Language : ISynchronizable {
 			}
 		}
 
-		if (isPlural)
+		if (isPlural) {
 			properties |= PhraseProperties.Plural;
+		}
 
 		if (isFemenineNoun)
 			properties |= PhraseProperties.Femenine;

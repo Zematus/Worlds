@@ -15,7 +15,7 @@ public class Tribe : Polity {
 
 	public const string TribeType = "Tribe";
 
-	public static string[] TribeNounVariations = new string[] { "tribe", "people", "folk", "community", "[ipn(man)]men", "[ipn(woman)]women", "[ipn(child)]children" };
+	public static string[] TribeNounVariations = new string[] { "tribe", "[ipn(person)]people", "folk", "community", "[ipn(man)]men", "[ipn(woman)]women", "[ipn(child)]children" };
 
 	public const float BaseCoreInfluence = 0.5f;
 
