@@ -24,14 +24,22 @@ public static class CollectionUtility {
 			Value = value;
 			Weight = weight;
 		}
+
+		public static implicit operator T(ElementWeightPair<T> pair) {
+
+			if (pair == null)
+				return default(T);
+
+			return pair.Value;
+		}
 	}
 
-	public static T WeightedSelection<T> (ElementWeightPair<T>[] elementWeightPairs, float totalWeight, NormalizedValueGeneratorDelegate generator) {
+	public static ElementWeightPair<T> WeightedSelection<T> (ElementWeightPair<T>[] elementWeightPairs, float totalWeight, NormalizedValueGeneratorDelegate generator) {
 
 		int count = elementWeightPairs.Length;
 
 		if (count <= 0)
-			return default(T);
+			return null;
 
 		float selectionValue = generator ();
 
@@ -44,12 +52,12 @@ public static class CollectionUtility {
 			int i = 0;
 			foreach (ElementWeightPair<T> pair in elementWeightPairs) {
 
-				if (i == index) return pair.Value;
+				if (i == index) return pair;
 
 				i++;
 			}
 
-			return default(T);
+			return null;
 		}
 
 		float totalNormalizedWeight = 0;
@@ -57,10 +65,10 @@ public static class CollectionUtility {
 
 			totalNormalizedWeight += pair.Weight / totalWeight;
 
-			if (totalNormalizedWeight >= selectionValue) return pair.Value;
+			if (totalNormalizedWeight >= selectionValue) return pair;
 		}
 
-		return default(T);
+		return null;
 	}
 
 	public static IEnumerable<T> FindAll<T> (this ICollection<T> collection, Predicate<T> p) {

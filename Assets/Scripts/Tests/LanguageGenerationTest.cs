@@ -30,7 +30,7 @@ public class LanguageGenerationTest : AutomatedTest {
 			string entry = "Test Language " + i;
 			entry += "\n";
 
-			entry += "\nArticle properties: " + Language.NounAdjunctionPropertiesToString (language.ArticleAdjunctionProperties);
+			entry += "\nArticle properties: " + Language.AdjunctionPropertiesToString (language.ArticleAdjunctionProperties);
 			entry += "\nArticles:";
 			foreach (Language.Morpheme word in language.Articles) {
 
@@ -38,15 +38,15 @@ public class LanguageGenerationTest : AutomatedTest {
 			}
 			entry += "\n";
 
-			language.GenerateIndicativeProperties (GetRandomFloat);
+			language.GenerateNounIndicativeProperties (GetRandomFloat);
 
-			language.GenerateIndicativeAdjunctionProperties (GetRandomFloat);
-			language.GenerateIndicativeSyllables (GetRandomFloat);
-			language.GenerateAllIndicatives (GetRandomFloat);
+			language.GenerateNounIndicativeAdjunctionProperties (GetRandomFloat);
+			language.GenerateNounIndicativeSyllables (GetRandomFloat);
+			language.GenerateAllNounIndicatives (GetRandomFloat);
 
-			entry += "\nIndicative properties: " + Language.NounAdjunctionPropertiesToString (language.IndicativeAdjunctionProperties);
-			entry += "\nIndicatives:";
-			foreach (Language.Morpheme word in language.Indicatives) {
+			entry += "\nNoun indicative properties: " + Language.AdjunctionPropertiesToString (language.NounIndicativeAdjunctionProperties);
+			entry += "\nNoun indicatives:";
+			foreach (Language.Morpheme word in language.NounIndicatives) {
 
 				entry += "\n    " + word.Meaning + " : " + word.Value;
 			}
