@@ -233,11 +233,23 @@ public class Language : ISynchronizable {
 	{
 		public const string Definite = "Definite";
 		public const string Indefinite = "Indefinite";
+
 		public const string Singular = "Singular";
 		public const string Plural = "Plural";
+
 		public const string Masculine = "Masculine";
 		public const string Femenine = "Femenine";
 		public const string Neutral = "Neutral";
+
+		public const string FirstPerson = "FirstPerson";
+		public const string SecondPerson = "SecondPerson";
+		public const string ThirdPerson = "ThirdPerson";
+
+		public const string PresentTense = "PresentTense";
+		public const string PastTense = "PastTense";
+		public const string FutureTense = "FutureTense";
+		public const string InfinitiveTense = "InfinitiveTense";
+
 		public const string DefiniteSingularMasculine = Definite + Singular + Masculine;// = "DefiniteSingularMasculine";
 		public const string DefiniteSingularFemenine = "DefiniteSingularFemenine";
 		public const string DefiniteSingularNeutral = "DefiniteSingularNeutral";
@@ -1450,6 +1462,21 @@ public class Language : ISynchronizable {
 		SyllableSet syllables, 
 		SyllableSet derivativeStartSyllables, 
 		SyllableSet derivativeNextSyllables, 
+		GetRandomFloatDelegate getRandomFloat) {
+
+		Morpheme morpheme = new Morpheme ();
+		morpheme.Value = GenerateDerivatedWord (rootIndicative.Value, 0.0f, 0.5f, syllables, derivativeStartSyllables, derivativeNextSyllables, getRandomFloat);
+		morpheme.Properties = rootIndicative.Properties;
+		morpheme.Type = WordType.Indicative;
+
+		return morpheme;
+	}
+
+	public static Morpheme GenerateDerivatedIndicative (
+		Morpheme rootIndicative, 
+		SyllableSet syllables, 
+		SyllableSet derivativeStartSyllables, 
+		SyllableSet derivativeNextSyllables, 
 		MorphemeProperties properties, 
 		GetRandomFloatDelegate getRandomFloat) {
 
@@ -1617,6 +1644,90 @@ public class Language : ISynchronizable {
 		}
 	}
 
+	private static void GenerateVerbPersonIndicatives (
+		Dictionary<string, Morpheme> indicatives,
+		Morpheme root,
+		string rootIndicativeType,
+		SyllableSet syllables, 
+		SyllableSet derivativeStartSyllables, 
+		SyllableSet derivativeNextSyllables, 
+		GeneralVerbIndicativeProperties indicativeProperties,
+		GetRandomFloatDelegate getRandomFloat) {
+
+		Morpheme firstPerson;
+		if ((indicativeProperties & GeneralVerbIndicativeProperties.HasFirstPersonIndicative) == GeneralVerbIndicativeProperties.HasFirstPersonIndicative)
+			firstPerson = GenerateDerivatedIndicative (root, syllables, derivativeStartSyllables, derivativeNextSyllables, getRandomFloat);
+		else
+			firstPerson = CopyMorpheme (root);
+
+		firstPerson.Properties |= MorphemeProperties.FirstPerson;
+
+		Morpheme secondPerson;
+		if ((indicativeProperties & GeneralVerbIndicativeProperties.HasSecondPersonIndicative) == GeneralVerbIndicativeProperties.HasSecondPersonIndicative)
+			secondPerson = GenerateDerivatedIndicative (root, syllables, derivativeStartSyllables, derivativeNextSyllables, getRandomFloat);
+		else
+			secondPerson = CopyMorpheme (root);
+
+		secondPerson.Properties |= MorphemeProperties.SecondPerson;
+
+		Morpheme thirdPerson;
+		if ((indicativeProperties & GeneralVerbIndicativeProperties.HasThirdPersonIndicative) == GeneralVerbIndicativeProperties.HasThirdPersonIndicative)
+			thirdPerson = GenerateDerivatedIndicative (root, syllables, derivativeStartSyllables, derivativeNextSyllables, getRandomFloat);
+		else
+			thirdPerson = CopyMorpheme (root);
+
+		thirdPerson.Properties |= MorphemeProperties.ThirdPerson;
+
+		indicatives.Add (rootIndicativeType + IndicativeType.FirstPerson, firstPerson);
+		indicatives.Add (rootIndicativeType + IndicativeType.SecondPerson, secondPerson);
+		indicatives.Add (rootIndicativeType + IndicativeType.ThirdPerson, thirdPerson);
+	}
+
+	private static void GenerateVerbCountIndicatives (
+		Dictionary<string, Morpheme> indicatives,
+		Morpheme root,
+		string rootIndicativeType,
+		SyllableSet syllables, 
+		SyllableSet derivativeStartSyllables, 
+		SyllableSet derivativeNextSyllables, 
+		GeneralVerbIndicativeProperties indicativeProperties, 
+		GetRandomFloatDelegate getRandomFloat) {
+
+		Morpheme singular;
+		if ((indicativeProperties & GeneralVerbIndicativeProperties.HasSingularIndicative) == GeneralVerbIndicativeProperties.HasSingularIndicative)
+			singular = GenerateDerivatedIndicative (root, syllables, derivativeStartSyllables, derivativeNextSyllables, getRandomFloat);
+		else
+			singular = CopyMorpheme (root);
+
+		GenerateVerbPersonIndicatives (
+			indicatives, 
+			singular, 
+			rootIndicativeType + IndicativeType.Singular, 
+			syllables, 
+			derivativeStartSyllables, 
+			derivativeNextSyllables, 
+			indicativeProperties, 
+			getRandomFloat);
+
+		Morpheme plural;
+		if ((indicativeProperties & GeneralVerbIndicativeProperties.HasSingularIndicative) == GeneralVerbIndicativeProperties.HasSingularIndicative)
+			plural = GenerateDerivatedIndicative (root, syllables, derivativeStartSyllables, derivativeNextSyllables, getRandomFloat);
+		else
+			plural = CopyMorpheme (root);
+
+		plural.Properties |= MorphemeProperties.Plural;
+
+		GenerateVerbPersonIndicatives (
+			indicatives, 
+			plural, 
+			rootIndicativeType + IndicativeType.Plural, 
+			syllables, 
+			derivativeStartSyllables, 
+			derivativeNextSyllables, 
+			indicativeProperties, 
+			getRandomFloat);
+	}
+
 	public static Dictionary<string, Morpheme> GenerateVerbIndicatives (
 		SyllableSet syllables, 
 		SyllableSet derivativeStartSyllables, 
@@ -1632,11 +1743,15 @@ public class Language : ISynchronizable {
 		else
 			presentTense = GenerateNullWord (WordType.Indicative);
 
+		GenerateVerbCountIndicatives (indicatives, presentTense, IndicativeType.PresentTense, syllables, derivativeStartSyllables, derivativeNextSyllables, indicativeProperties, getRandomFloat);
+
 		Morpheme pastTense;
 		if ((indicativeProperties & GeneralVerbIndicativeProperties.HasPastTenseIndicative) == GeneralVerbIndicativeProperties.HasPastTenseIndicative)
 			pastTense = GenerateIndicative (syllables, getRandomFloat);
 		else
 			pastTense = GenerateNullWord (WordType.Indicative);
+
+		GenerateVerbCountIndicatives (indicatives, pastTense, IndicativeType.PastTense, syllables, derivativeStartSyllables, derivativeNextSyllables, indicativeProperties, getRandomFloat);
 
 		Morpheme futureTense;
 		if ((indicativeProperties & GeneralVerbIndicativeProperties.HasFutureTenseIndicative) == GeneralVerbIndicativeProperties.HasFutureTenseIndicative)
@@ -1644,95 +1759,15 @@ public class Language : ISynchronizable {
 		else
 			futureTense = GenerateNullWord (WordType.Indicative);
 
+		GenerateVerbCountIndicatives (indicatives, futureTense, IndicativeType.FutureTense, syllables, derivativeStartSyllables, derivativeNextSyllables, indicativeProperties, getRandomFloat);
+
 		Morpheme infinitiveTense;
 		if ((indicativeProperties & GeneralVerbIndicativeProperties.HasInfinitiveTenseIndicative) == GeneralVerbIndicativeProperties.HasInfinitiveTenseIndicative)
 			infinitiveTense = GenerateIndicative (syllables, getRandomFloat);
 		else
 			infinitiveTense = GenerateNullWord (WordType.Indicative);
 
-//		///
-//
-//		Morpheme definiteSingular;
-//		if ((indicativeProperties & GeneralNounIndicativeProperties.HasSingularIndicative) == GeneralNounIndicativeProperties.HasSingularIndicative)
-//			definiteSingular = GenerateDerivatedIndicative (presentTense, syllables, derivativeStartSyllables, derivativeNextSyllables, MorphemeProperties.None, getRandomFloat);
-//		else
-//			definiteSingular = CopyMorpheme (presentTense);
-//
-//		Morpheme femenine, masculine, neutral;
-//		GenerateGenderedIndicatives (definiteSingular, syllables, derivativeStartSyllables, derivativeNextSyllables, indicativeProperties, getRandomFloat, out masculine, out femenine, out neutral);
-//		femenine.Meaning = IndicativeType.DefiniteSingularFemenine;
-//		masculine.Meaning = IndicativeType.DefiniteSingularMasculine;
-//		neutral.Meaning = IndicativeType.DefiniteSingularNeutral;
-//
-//		indicatives.Add (IndicativeType.DefiniteSingularFemenine, femenine);
-//		indicatives.Add (IndicativeType.DefiniteSingularMasculine, masculine);
-//		indicatives.Add (IndicativeType.DefiniteSingularNeutral, neutral);
-//
-//		///
-//
-//		Morpheme definitePlural;
-//		if ((indicativeProperties & GeneralNounIndicativeProperties.HasPluralIndicative) == GeneralNounIndicativeProperties.HasPluralIndicative)
-//			definitePlural = GenerateDerivatedIndicative (presentTense, syllables, derivativeStartSyllables, derivativeNextSyllables, MorphemeProperties.Plural, getRandomFloat);
-//		else {
-//			definitePlural = CopyMorpheme (presentTense);
-//			definitePlural.Properties |= MorphemeProperties.Plural;
-//		}
-//
-//		GenerateGenderedIndicatives (definitePlural, syllables, derivativeStartSyllables, derivativeNextSyllables, indicativeProperties, getRandomFloat, out masculine, out femenine, out neutral);
-//		femenine.Meaning = IndicativeType.DefinitePluralFemenine;
-//		masculine.Meaning = IndicativeType.DefinitePluralMasculine;
-//		neutral.Meaning = IndicativeType.DefinitePluralNeutral;
-//
-//		indicatives.Add (IndicativeType.DefinitePluralFemenine, femenine);
-//		indicatives.Add (IndicativeType.DefinitePluralMasculine, masculine);
-//		indicatives.Add (IndicativeType.DefinitePluralNeutral, neutral);
-//
-//		///
-//
-//		Morpheme indefiniteSingular;
-//		if ((indicativeProperties & GeneralNounIndicativeProperties.HasSingularIndicative) == GeneralNounIndicativeProperties.HasSingularIndicative)
-//			indefiniteSingular = GenerateDerivatedIndicative (pastTense, syllables, derivativeStartSyllables, derivativeNextSyllables, MorphemeProperties.None, getRandomFloat);
-//		else
-//			indefiniteSingular = CopyMorpheme (pastTense);
-//
-//		GenerateGenderedIndicatives (indefiniteSingular, syllables, derivativeStartSyllables, derivativeNextSyllables, indicativeProperties, getRandomFloat, out masculine, out femenine, out neutral);
-//		femenine.Meaning = IndicativeType.IndefiniteSingularFemenine;
-//		masculine.Meaning = IndicativeType.IndefiniteSingularMasculine;
-//		neutral.Meaning = IndicativeType.IndefiniteSingularNeutral;
-//
-//		indicatives.Add (IndicativeType.IndefiniteSingularFemenine, femenine);
-//		indicatives.Add (IndicativeType.IndefiniteSingularMasculine, masculine);
-//		indicatives.Add (IndicativeType.IndefiniteSingularNeutral, neutral);
-//
-//		///
-//
-//		Morpheme indefinitePlural;
-//		if ((indicativeProperties & GeneralNounIndicativeProperties.HasPluralIndicative) == GeneralNounIndicativeProperties.HasPluralIndicative)
-//			indefinitePlural = GenerateDerivatedIndicative (pastTense, syllables, derivativeStartSyllables, derivativeNextSyllables, MorphemeProperties.Plural, getRandomFloat);
-//		else {
-//			indefinitePlural = CopyMorpheme (pastTense);
-//			indefinitePlural.Properties |= MorphemeProperties.Plural;
-//		}
-//
-//		GenerateGenderedIndicatives (indefinitePlural, syllables, derivativeStartSyllables, derivativeNextSyllables, indicativeProperties, getRandomFloat, out masculine, out femenine, out neutral);
-//		femenine.Meaning = IndicativeType.IndefinitePluralFemenine;
-//		masculine.Meaning = IndicativeType.IndefinitePluralMasculine;
-//		neutral.Meaning = IndicativeType.IndefinitePluralNeutral;
-//
-//		indicatives.Add (IndicativeType.IndefinitePluralFemenine, femenine);
-//		indicatives.Add (IndicativeType.IndefinitePluralMasculine, masculine);
-//		indicatives.Add (IndicativeType.IndefinitePluralNeutral, neutral);
-//
-//		///
-//
-//		GenerateGenderedIndicatives (futureTense, syllables, derivativeStartSyllables, derivativeNextSyllables, indicativeProperties, getRandomFloat, out masculine, out femenine, out neutral);
-//		femenine.Meaning = IndicativeType.UncountableFemenine;
-//		masculine.Meaning = IndicativeType.UncountableMasculine;
-//		neutral.Meaning = IndicativeType.UncountableNeutral;
-//
-//		indicatives.Add (IndicativeType.UncountableFemenine, femenine);
-//		indicatives.Add (IndicativeType.UncountableMasculine, masculine);
-//		indicatives.Add (IndicativeType.UncountableNeutral, neutral);
+		GenerateVerbCountIndicatives (indicatives, infinitiveTense, IndicativeType.InfinitiveTense, syllables, derivativeStartSyllables, derivativeNextSyllables, indicativeProperties, getRandomFloat);
 
 		return indicatives;
 	}
