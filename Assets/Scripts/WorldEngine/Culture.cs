@@ -296,13 +296,21 @@ public class PolityCulture : Culture {
 		Language.GenerateArticleSyllables (getNextRandomFloat);
 		Language.GenerateAllArticles (getNextRandomFloat);
 
-		// Generate Indicatives
+		// Generate Noun Indicatives
 
 		Language.GenerateNounIndicativeProperties (getNextRandomFloat);
 
 		Language.GenerateNounIndicativeAdjunctionProperties (getNextRandomFloat);
 		Language.GenerateNounIndicativeSyllables (getNextRandomFloat);
 		Language.GenerateAllNounIndicatives (getNextRandomFloat);
+
+		// Generate Verb Indicatives
+
+		Language.GenerateVerbIndicativeProperties (getNextRandomFloat);
+
+		Language.GenerateVerbIndicativeAdjunctionProperties (getNextRandomFloat);
+		Language.GenerateVerbIndicativeSyllables (getNextRandomFloat);
+		Language.GenerateAllVerbIndicatives (getNextRandomFloat);
 
 		// Generate Noun, Adjective and Adposition Properties and Syllables
 

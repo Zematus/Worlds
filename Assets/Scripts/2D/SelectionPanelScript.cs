@@ -46,15 +46,6 @@ public class SelectionPanelScript : MonoBehaviour {
 
 		toggle = GameObject.Instantiate (PrototypeToggle) as Toggle;
 
-//		foreach (Toggle existingToggle in Toggles) {
-//			
-//			SelectionToggleScript existingToggleScript = existingToggle.gameObject.GetComponent<SelectionToggleScript> ();
-//
-//			if (existingToggleScript.Label.text == text) return;
-//		}
-//
-//		Toggle toggle = GameObject.Instantiate (PrototypeToggle) as Toggle;
-
 		toggle.onValueChanged.AddListener (call);
 		toggle.transform.SetParent (gameObject.transform);
 
@@ -75,19 +66,6 @@ public class SelectionPanelScript : MonoBehaviour {
 			toggle.isOn = state;
 		}
 	}
-
-//	public void SetStateOption (string text, bool state) {
-//
-//		foreach (Toggle toggle in Toggles) {
-//		
-//			SelectionToggleScript toggleScript = toggle.gameObject.GetComponent<SelectionToggleScript> ();
-//
-//			if (toggleScript.Label.text == text) {
-//
-//				toggle.isOn = state;
-//			}
-//		}
-//	}
 
 	public void RemoveAllOptions () {
 		
