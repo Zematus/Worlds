@@ -112,10 +112,8 @@ public class Language : ISynchronizable {
 		}
 	}
 
-	public static class VerbConjugationTypes {
-
-		public const string Null = "null";
-
+	public static class VerbConjugationKeys {
+		
 		public const string FirstPerson = "first";
 		public const string SecondPerson = "second";
 		public const string ThirdPerson = "third";
@@ -127,7 +125,11 @@ public class Language : ISynchronizable {
 		public const string FirstPersonPlural = "fp";
 		public const string SecondPersonPlural = "sp";
 		public const string ThirdPersonPlural = "tp";
+	}
 
+	public static class VerbTenses {
+
+		public const string Null = "null";
 		public const string Present = "present";
 		public const string Past = "past";
 		public const string Future = "future";
@@ -227,17 +229,26 @@ public class Language : ISynchronizable {
 		SecondPerson = 0x0040,
 		ThirdPerson = 0x0080,
 
-//		Irregular = 0x1000
+		Passive = 0x0100
 	}
 
 	public enum PhraseProperties
 	{
-		None = 0x00,
-		Plural = 0x01,
-		Indefinite = 0x02,
-		Uncountable = 0x04,
-		Femenine = 0x08,
-		Neutral = 0x10
+		None = 0x0000,
+
+		Plural = 0x0001,
+		Uncountable = 0x0002,
+
+		Indefinite = 0x0004,
+
+		Femenine = 0x0008,
+		Neutral = 0x0010,
+
+		FirstPerson = 0x0020,
+		SecondPerson = 0x0040,
+		ThirdPerson = 0x0080,
+
+		Passive = 0x0100
 	}
 
 	public static class IndicativeType
@@ -258,6 +269,7 @@ public class Language : ISynchronizable {
 		public const string SecondPerson = "SecondPerson";
 		public const string ThirdPerson = "ThirdPerson";
 
+		public const string NullTense = "Null";
 		public const string PresentTense = "Present";
 		public const string PastTense = "Past";
 		public const string FutureTense = "Future";
@@ -964,20 +976,13 @@ public class Language : ISynchronizable {
 		return articles;
 	}
 
-//	public static MorphemeProperties GenerateWordProperties (
-//		GetRandomFloatDelegate getRandomFloat, 
-//		bool isPlural, 
-//		bool randomGender = false, 
-//		bool isFemenine = false, 
-//		bool isNeutral = false, 
-//		bool canBeIrregular = false) {
-
 	public static MorphemeProperties GenerateMorphemeProperties (
 		GetRandomFloatDelegate getRandomFloat, 
 		bool isPlural = false, 
 		bool randomGender = false, 
 		bool isFemenine = false, 
-		bool isNeutral = true) {
+		bool isNeutral = true,
+		bool isPassive = false) {
 
 		MorphemeProperties properties = MorphemeProperties.None;
 
@@ -1004,11 +1009,9 @@ public class Language : ISynchronizable {
 			properties |= MorphemeProperties.Neutral;
 		}
 
-//		float irregularChance = getRandomFloat ();
-//
-//		if ((canBeIrregular) && (irregularChance < 0.05f)) {
-//			properties |= MorphemeProperties.Irregular;
-//		}
+		if (isPassive) {
+			properties |= MorphemeProperties.Passive;
+		}
 
 		return properties;
 	}
@@ -1672,9 +1675,28 @@ public class Language : ISynchronizable {
 		else
 			passiveNominalization = GenerateNullWord (WordType.Indicative);
 
+		passiveNominalization.Properties |= MorphemeProperties.Passive;
 		passiveNominalization.Meaning = IndicativeType.PassiveNominalization;
 
 		indicatives.Add (passiveNominalization.Meaning, passiveNominalization);
+
+		///
+
+		Morpheme nullTense = GenerateNullWord (WordType.Indicative);
+
+		GenerateVerbCountIndicatives (indicatives, nullTense, IndicativeType.NullTense, syllables, derivativeStartSyllables, derivativeNextSyllables, indicativeProperties, getRandomFloat);
+
+		///
+
+		Morpheme infinitiveTense;
+		if ((indicativeProperties & GeneralVerbIndicativeProperties.HasInfinitiveTenseIndicative) == GeneralVerbIndicativeProperties.HasInfinitiveTenseIndicative)
+			infinitiveTense = GenerateIndicative (syllables, getRandomFloat);
+		else
+			infinitiveTense = GenerateNullWord (WordType.Indicative);
+
+		infinitiveTense.Meaning = IndicativeType.InfinitiveTense;
+
+		indicatives.Add (infinitiveTense.Meaning, infinitiveTense);
 
 		///
 
@@ -1705,16 +1727,6 @@ public class Language : ISynchronizable {
 			futureTense = GenerateNullWord (WordType.Indicative);
 
 		GenerateVerbCountIndicatives (indicatives, futureTense, IndicativeType.FutureTense, syllables, derivativeStartSyllables, derivativeNextSyllables, indicativeProperties, getRandomFloat);
-
-		///
-
-		Morpheme infinitiveTense;
-		if ((indicativeProperties & GeneralVerbIndicativeProperties.HasInfinitiveTenseIndicative) == GeneralVerbIndicativeProperties.HasInfinitiveTenseIndicative)
-			infinitiveTense = GenerateIndicative (syllables, getRandomFloat);
-		else
-			infinitiveTense = GenerateNullWord (WordType.Indicative);
-
-		GenerateVerbCountIndicatives (indicatives, infinitiveTense, IndicativeType.InfinitiveTense, syllables, derivativeStartSyllables, derivativeNextSyllables, indicativeProperties, getRandomFloat);
 
 		return indicatives;
 	}
@@ -1904,6 +1916,55 @@ public class Language : ISynchronizable {
 		return morpheme;
 	}
 
+	public Morpheme GenerateNominalizedVerb (Morpheme verb, string tense, GetRandomFloatDelegate getRandomFloat, bool isPlural, bool randomGender, bool isFemenine = false, bool isNeutral = false, bool isPassive = false) {
+
+		return GenerateNominalizedVerb (verb, tense, GenerateMorphemeProperties (getRandomFloat, isPlural, randomGender, isFemenine, isNeutral, isPassive), getRandomFloat);
+	}
+
+	public Morpheme GenerateNominalizedVerb (Morpheme verb, string tense, MorphemeProperties properties, GetRandomFloatDelegate getRandomFloat) {
+
+		string meaning = verb.Meaning;
+
+		if ((properties & MorphemeProperties.Passive) == MorphemeProperties.Passive) {
+			meaning += "_passive";
+		}
+
+		if (_nouns.ContainsKey (meaning)) {
+
+			return _nouns [meaning];
+		}
+
+		string value = verb.Value;
+
+		PhraseProperties phraseProperties = MapMorphemeToPhraseProperties (properties);
+		phraseProperties |= PhraseProperties.ThirdPerson;
+
+		Morpheme verbIndicative = GetAppropiateVerbIndicative (phraseProperties, tense);
+
+		value = AppendAdjunction (value, verbIndicative.Value, VerbIndicativeAdjunctionProperties);
+
+		Morpheme verbNormalizationIndicative = GetAppropiateVerbNominalizationIndicative (phraseProperties);
+
+		value = AppendAdjunction (value, verbNormalizationIndicative.Value, VerbIndicativeAdjunctionProperties);
+
+		Morpheme morpheme = new Morpheme ();
+		morpheme.Value = value;
+		morpheme.Properties = properties;
+		morpheme.Type = WordType.Noun;
+		morpheme.Meaning = meaning;
+
+		_nouns.Add (meaning, morpheme);
+
+		if (!_existingNounMorphemeValues.ContainsKey (value)) {
+
+			_existingNounMorphemeValues.Add (value, _initialHomographTolerance);
+		}
+
+		Nouns.Add (morpheme);
+
+		return morpheme;
+	}
+
 	public Morpheme GetAppropiateArticle (PhraseProperties phraseProperties) {
 
 		Morpheme article = null;
@@ -2061,7 +2122,7 @@ public class Language : ISynchronizable {
 		Morpheme indicative = null;
 
 		if ((phraseProperties & PhraseProperties.Uncountable) == PhraseProperties.Uncountable) {
-			
+
 			if ((phraseProperties & PhraseProperties.Femenine) == PhraseProperties.Femenine) {
 
 				indicative = _nounIndicatives [IndicativeType.UncountableFemenine];
@@ -2142,6 +2203,190 @@ public class Language : ISynchronizable {
 		return indicative;
 	}
 
+	public static PhraseProperties MapMorphemeToPhraseProperties (MorphemeProperties morphemeProperties) {
+	
+		PhraseProperties phraseProperties = PhraseProperties.None;
+
+		if ((morphemeProperties & MorphemeProperties.Plural) == MorphemeProperties.Plural)
+			phraseProperties |= PhraseProperties.Plural;
+
+		if ((morphemeProperties & MorphemeProperties.Femenine) == MorphemeProperties.Femenine)
+			phraseProperties |= PhraseProperties.Femenine;
+
+		if ((morphemeProperties & MorphemeProperties.Neutral) == MorphemeProperties.Neutral)
+			phraseProperties |= PhraseProperties.Neutral;
+
+		if ((morphemeProperties & MorphemeProperties.Indefinite) == MorphemeProperties.Indefinite)
+			phraseProperties |= PhraseProperties.Indefinite;
+
+		if ((morphemeProperties & MorphemeProperties.Passive) == MorphemeProperties.Passive)
+			phraseProperties |= PhraseProperties.Passive;
+
+		if ((morphemeProperties & MorphemeProperties.Uncountable) == MorphemeProperties.Uncountable)
+			phraseProperties |= PhraseProperties.Uncountable;
+
+		if ((morphemeProperties & MorphemeProperties.FirstPerson) == MorphemeProperties.FirstPerson)
+			phraseProperties |= PhraseProperties.FirstPerson;
+
+		if ((morphemeProperties & MorphemeProperties.SecondPerson) == MorphemeProperties.SecondPerson)
+			phraseProperties |= PhraseProperties.SecondPerson;
+
+		if ((morphemeProperties & MorphemeProperties.ThirdPerson) == MorphemeProperties.ThirdPerson)
+			phraseProperties |= PhraseProperties.ThirdPerson;
+
+		return phraseProperties;
+	}
+
+	public Morpheme GetAppropiateVerbNominalizationIndicative (PhraseProperties phraseProperties) {
+
+		if ((phraseProperties & PhraseProperties.Passive) == PhraseProperties.Passive)
+			return _verbIndicatives[IndicativeType.PassiveNominalization];
+		else
+			return _verbIndicatives[IndicativeType.ActiveNominalization];
+	}
+
+	public Morpheme GetAppropiateVerbIndicative (PhraseProperties phraseProperties, string tense) {
+
+		switch (tense) {
+
+		case VerbTenses.Infinitive:
+			return _verbIndicatives [IndicativeType.InfinitiveTense];
+
+		case VerbTenses.Null:
+			if ((phraseProperties & PhraseProperties.Plural) == PhraseProperties.Plural) {
+				if ((phraseProperties & PhraseProperties.FirstPerson) == PhraseProperties.FirstPerson) {
+					
+					return _verbIndicatives [IndicativeType.NullTense + IndicativeType.Plural + IndicativeType.FirstPerson];
+
+				} else if ((phraseProperties & PhraseProperties.SecondPerson) == PhraseProperties.SecondPerson) {
+					
+					return _verbIndicatives [IndicativeType.NullTense + IndicativeType.Plural + IndicativeType.SecondPerson];
+
+				} else if ((phraseProperties & PhraseProperties.ThirdPerson) == PhraseProperties.ThirdPerson) {
+
+					return _verbIndicatives [IndicativeType.NullTense + IndicativeType.Plural + IndicativeType.ThirdPerson];
+
+				}
+			} else {
+				if ((phraseProperties & PhraseProperties.FirstPerson) == PhraseProperties.FirstPerson) {
+
+					return _verbIndicatives [IndicativeType.NullTense + IndicativeType.Singular + IndicativeType.FirstPerson];
+
+				} else if ((phraseProperties & PhraseProperties.SecondPerson) == PhraseProperties.SecondPerson) {
+
+					return _verbIndicatives [IndicativeType.NullTense + IndicativeType.Singular + IndicativeType.SecondPerson];
+
+				} else if ((phraseProperties & PhraseProperties.ThirdPerson) == PhraseProperties.ThirdPerson) {
+
+					return _verbIndicatives [IndicativeType.NullTense + IndicativeType.Singular + IndicativeType.ThirdPerson];
+
+				}
+			}
+			break;
+
+		case VerbTenses.Past:
+			if ((phraseProperties & PhraseProperties.Plural) == PhraseProperties.Plural) {
+				if ((phraseProperties & PhraseProperties.FirstPerson) == PhraseProperties.FirstPerson) {
+
+					return _verbIndicatives [IndicativeType.PastTense + IndicativeType.Plural + IndicativeType.FirstPerson];
+
+				} else if ((phraseProperties & PhraseProperties.SecondPerson) == PhraseProperties.SecondPerson) {
+
+					return _verbIndicatives [IndicativeType.PastTense + IndicativeType.Plural + IndicativeType.SecondPerson];
+
+				} else if ((phraseProperties & PhraseProperties.ThirdPerson) == PhraseProperties.ThirdPerson) {
+
+					return _verbIndicatives [IndicativeType.PastTense + IndicativeType.Plural + IndicativeType.ThirdPerson];
+
+				}
+			} else {
+				if ((phraseProperties & PhraseProperties.FirstPerson) == PhraseProperties.FirstPerson) {
+
+					return _verbIndicatives [IndicativeType.PastTense + IndicativeType.Singular + IndicativeType.FirstPerson];
+
+				} else if ((phraseProperties & PhraseProperties.SecondPerson) == PhraseProperties.SecondPerson) {
+
+					return _verbIndicatives [IndicativeType.PastTense + IndicativeType.Singular + IndicativeType.SecondPerson];
+
+				} else if ((phraseProperties & PhraseProperties.ThirdPerson) == PhraseProperties.ThirdPerson) {
+
+					return _verbIndicatives [IndicativeType.PastTense + IndicativeType.Singular + IndicativeType.ThirdPerson];
+
+				}
+			}
+			break;
+
+		case VerbTenses.Present:
+			if ((phraseProperties & PhraseProperties.Plural) == PhraseProperties.Plural) {
+				if ((phraseProperties & PhraseProperties.FirstPerson) == PhraseProperties.FirstPerson) {
+
+					return _verbIndicatives [IndicativeType.PresentTense + IndicativeType.Plural + IndicativeType.FirstPerson];
+
+				} else if ((phraseProperties & PhraseProperties.SecondPerson) == PhraseProperties.SecondPerson) {
+
+					return _verbIndicatives [IndicativeType.PresentTense + IndicativeType.Plural + IndicativeType.SecondPerson];
+
+				} else if ((phraseProperties & PhraseProperties.ThirdPerson) == PhraseProperties.ThirdPerson) {
+
+					return _verbIndicatives [IndicativeType.PresentTense + IndicativeType.Plural + IndicativeType.ThirdPerson];
+
+				}
+			} else {
+				if ((phraseProperties & PhraseProperties.FirstPerson) == PhraseProperties.FirstPerson) {
+
+					return _verbIndicatives [IndicativeType.PresentTense + IndicativeType.Singular + IndicativeType.FirstPerson];
+
+				} else if ((phraseProperties & PhraseProperties.SecondPerson) == PhraseProperties.SecondPerson) {
+
+					return _verbIndicatives [IndicativeType.PresentTense + IndicativeType.Singular + IndicativeType.SecondPerson];
+
+				} else if ((phraseProperties & PhraseProperties.ThirdPerson) == PhraseProperties.ThirdPerson) {
+
+					return _verbIndicatives [IndicativeType.PresentTense + IndicativeType.Singular + IndicativeType.ThirdPerson];
+
+				}
+			}
+			break;
+
+		case VerbTenses.Future:
+			if ((phraseProperties & PhraseProperties.Plural) == PhraseProperties.Plural) {
+				if ((phraseProperties & PhraseProperties.FirstPerson) == PhraseProperties.FirstPerson) {
+
+					return _verbIndicatives [IndicativeType.FutureTense + IndicativeType.Plural + IndicativeType.FirstPerson];
+
+				} else if ((phraseProperties & PhraseProperties.SecondPerson) == PhraseProperties.SecondPerson) {
+
+					return _verbIndicatives [IndicativeType.FutureTense + IndicativeType.Plural + IndicativeType.SecondPerson];
+
+				} else if ((phraseProperties & PhraseProperties.ThirdPerson) == PhraseProperties.ThirdPerson) {
+
+					return _verbIndicatives [IndicativeType.FutureTense + IndicativeType.Plural + IndicativeType.ThirdPerson];
+
+				}
+			} else {
+				if ((phraseProperties & PhraseProperties.FirstPerson) == PhraseProperties.FirstPerson) {
+
+					return _verbIndicatives [IndicativeType.FutureTense + IndicativeType.Singular + IndicativeType.FirstPerson];
+
+				} else if ((phraseProperties & PhraseProperties.SecondPerson) == PhraseProperties.SecondPerson) {
+
+					return _verbIndicatives [IndicativeType.FutureTense + IndicativeType.Singular + IndicativeType.SecondPerson];
+
+				} else if ((phraseProperties & PhraseProperties.ThirdPerson) == PhraseProperties.ThirdPerson) {
+
+					return _verbIndicatives [IndicativeType.FutureTense + IndicativeType.Singular + IndicativeType.ThirdPerson];
+
+				}
+			}
+			break;
+
+		default:
+			throw new System.Exception ("Unhandled tense: " + tense);
+		}
+
+		throw new System.Exception ("NO proper indicative found...");
+	}
+
 	private static string Affix (string word1, string word2) {
 
 		Match onsetMatch = StartsWithVowelRegex.Match (word2);
@@ -2160,7 +2405,7 @@ public class Language : ISynchronizable {
 		return word1 + word2;
 	}
 
-	public static string AddAdjunctionToNounPhrase (string phrase, string adjunction, AdjunctionProperties properties, bool forceAffixed = false) {
+	public static string AppendAdjunction (string phrase, string adjunction, AdjunctionProperties properties, bool forceAffixed = false) {
 		
 		if (string.IsNullOrEmpty (adjunction))
 			return phrase;
@@ -2195,11 +2440,6 @@ public class Language : ISynchronizable {
 		}
 
 		return phrase;
-	}
-
-	public string NominalizeVerb (string verb, GetRandomFloatDelegate getRandomFloat, bool isActive, bool isPlural, bool randomGender, bool isFemenine = false, bool isNeutral = false) {
-
-		return null;
 	}
 
 	public NounPhrase TranslateNounPhrase (string untranslatedNounPhrase, GetRandomFloatDelegate getRandomFloat) {
@@ -2257,18 +2497,18 @@ public class Language : ISynchronizable {
 
 		foreach (NounPhrase nounAdjunctionPhrase in nounAdjunctionPhrases) {
 
-			nounPhrase.Text = AddAdjunctionToNounPhrase (nounPhrase.Text, nounAdjunctionPhrase.Text, NounAdjunctionProperties);
+			nounPhrase.Text = AppendAdjunction (nounPhrase.Text, nounAdjunctionPhrase.Text, NounAdjunctionProperties);
 		}
 
 		foreach (Morpheme adjective in adjectives) {
 
-			nounPhrase.Text = AddAdjunctionToNounPhrase (nounPhrase.Text, adjective.Value, AdjectiveAdjunctionProperties);
+			nounPhrase.Text = AppendAdjunction (nounPhrase.Text, adjective.Value, AdjectiveAdjunctionProperties);
 		}
 
 		Morpheme article = GetAppropiateArticle (phraseProperties);
 
 		if (article != null) {
-			nounPhrase.Text = AddAdjunctionToNounPhrase (nounPhrase.Text, article.Value, ArticleAdjunctionProperties);
+			nounPhrase.Text = AppendAdjunction (nounPhrase.Text, article.Value, ArticleAdjunctionProperties);
 		}
 
 		nounPhrase.Original = untranslatedNounPhrase;
@@ -2321,10 +2561,10 @@ public class Language : ISynchronizable {
 				parsedWordPart.Attributes.ContainsKey (ParsedWordAttributeId.NominalizedIrregularVerb) || 
 				parsedWordPart.Attributes.ContainsKey (ParsedWordAttributeId.NominalizedRegularVerb)) {
 
-				bool activeVoice = true;
+				bool isPassiveNoun = false;
 
 				string meaning;
-				string tense = VerbConjugationTypes.Null;
+				string tense = VerbTenses.Null;
 
 				if (parsedWordPart.Attributes.ContainsKey (ParsedWordAttributeId.NominalizedIrregularVerb)) {
 
@@ -2337,7 +2577,7 @@ public class Language : ISynchronizable {
 
 				} else if (parsedWordPart.Attributes.ContainsKey (ParsedWordAttributeId.IrregularVerb)) {
 
-					activeVoice = false;
+					isPassiveNoun = true;
 				
 					meaning = parsedWordPart.Attributes [ParsedWordAttributeId.IrregularVerb] [0];
 					tense = parsedWordPart.Attributes [ParsedWordAttributeId.IrregularVerb] [2];
@@ -2356,7 +2596,7 @@ public class Language : ISynchronizable {
 
 				} else {
 
-					activeVoice = false;
+					isPassiveNoun = true;
 
 					meaning = parsedWordPart.Value;
 					tense = parsedWordPart.Attributes [ParsedWordAttributeId.RegularVerb] [1];
@@ -2367,9 +2607,7 @@ public class Language : ISynchronizable {
 
 				Morpheme verb = GenerateVerb (meaning, getRandomFloat);
 
-				Morpheme verbIndicative = GetAppropiateNounIndicative (properties);
-
-//				text = AddAdjunctionToNounPhrase (text, verbIndicative.Value, VerbIndicativeAdjunctionProperties);
+				noun = GenerateNominalizedVerb (verb, tense, getRandomFloat, isPlural, hasRandomGender, isFemenineNoun, isNeutralNoun, isPassiveNoun);
 
 			} else {
 
@@ -2385,11 +2623,11 @@ public class Language : ISynchronizable {
 				}
 				
 				noun = GenerateNoun (meaning, getRandomFloat, false, hasRandomGender, isFemenineNoun, isNeutralNoun);
-
-				isFemenineNoun = ((noun.Properties & MorphemeProperties.Femenine) == MorphemeProperties.Femenine);
-				isNeutralNoun = ((noun.Properties & MorphemeProperties.Neutral) == MorphemeProperties.Neutral);
-				hasRandomGender = false;
 			}
+
+			isFemenineNoun = ((noun.Properties & MorphemeProperties.Femenine) == MorphemeProperties.Femenine);
+			isNeutralNoun = ((noun.Properties & MorphemeProperties.Neutral) == MorphemeProperties.Neutral);
+			hasRandomGender = false;
 
 			if (mainNoun != null) {
 				nounComponents.Add (mainNoun);
@@ -2413,12 +2651,12 @@ public class Language : ISynchronizable {
 		string text = mainNoun.Value;
 
 		foreach (Morpheme nounComponent in nounComponents) {
-			text = AddAdjunctionToNounPhrase (text, nounComponent.Value, NounAdjunctionProperties, true);
+			text = AppendAdjunction (text, nounComponent.Value, NounAdjunctionProperties, true);
 		}
 
 		Morpheme nounIndicative = GetAppropiateNounIndicative (properties);
 
-		text = AddAdjunctionToNounPhrase (text, nounIndicative.Value, NounIndicativeAdjunctionProperties);
+		text = AppendAdjunction (text, nounIndicative.Value, NounIndicativeAdjunctionProperties);
 
 		NounPhrase phrase = new NounPhrase ();
 		phrase.Text = text;
