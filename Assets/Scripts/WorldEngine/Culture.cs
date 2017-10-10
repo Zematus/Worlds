@@ -314,6 +314,8 @@ public class PolityCulture : Culture {
 
 		// Generate Noun, Adjective and Adposition Properties and Syllables
 
+		Language.GenerateVerbSyllables (getNextRandomFloat);
+
 		Language.GenerateNounAdjunctionProperties (getNextRandomFloat);
 		Language.GenerateNounSyllables (getNextRandomFloat);
 

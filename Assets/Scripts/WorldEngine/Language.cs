@@ -22,32 +22,31 @@ public class Language : ISynchronizable {
 		[XmlAttribute]
 		public string Text;
 
-		public virtual void Synchronize () {
-
-		}
-
-		public virtual void FinalizeLoad () {
-			
-		}
-	}
-
-	public class NounPhrase : Phrase {
-
 		[XmlAttribute("Properties")]
 		public int PropertiesInt;
 
 		[XmlIgnore]
 		public PhraseProperties Properties;
 
-		public override void Synchronize () {
+		public void Synchronize () {
 
 			PropertiesInt = (int)Properties;
 		}
 
-		public override void FinalizeLoad () {
+		public void FinalizeLoad () {
 
 			Properties = (PhraseProperties)PropertiesInt;
 		}
+	}
+
+	public class NounPhrase : Phrase {
+
+	}
+
+	public class AdpositionalPhrase : Phrase {
+		
+		[XmlAttribute]
+		public string Relation;
 	}
 
 	public class Morpheme : ISynchronizable {
@@ -79,6 +78,12 @@ public class Language : ISynchronizable {
 	}
 
 	public class ParsedWord {
+
+		public string Value;
+		public Dictionary<string, string[]> Attributes = new Dictionary<string, string[]> ();
+	}
+
+	public class ParsedPhrase {
 
 		public string Value;
 		public Dictionary<string, string[]> Attributes = new Dictionary<string, string[]> ();
@@ -149,6 +154,7 @@ public class Language : ISynchronizable {
 		public const string Adjective = "adj";
 		public const string RegularVerb = "rv";
 		public const string IrregularVerb = "iv";
+		public const string Name = "name";
 //		public const string Preposition = "pre";
 //		public const string Import = "import";
 	}
@@ -431,6 +437,7 @@ public class Language : ISynchronizable {
 	public static Regex EndsWithVowelsRegex = new Regex (@"(?>[aeiou]+)(?>[^aeiou]+)(?<vowels>(?>[aeiou]+))$");
 	public static Regex EndsWithConsonantsRegex = new Regex (@"(?>[^aeiou]+)$");
 
+	public static Regex PhrasePartRegex = new Regex (@"\[(?<attr>\w+)(?:\((?<params>(?:\w+,?)+)\))?\](?:\[w+\])*(?<phrase>(((?'Open'\()[^\(\)]*)+((?'Close-Open'\))[^\(\)]*)+)*(?(Open)(?!)))");
 	public static Regex WordPartRegex = new Regex (@"\[(?<attr>\w+)(?:\((?<params>(?:\w+,?)+)\))?\](?:\[w+\])*(?<word>[\w\'\-]*)");
 	public static Regex ArticleRegex = new Regex (@"^((?<def>the)|(?<indef>(a|an)))$");
 	public static Regex PluralSuffixRegex = new Regex (@"^(es|s)$");
@@ -1759,7 +1766,12 @@ public class Language : ISynchronizable {
 		AdpositionNextSyllables.CodaChance = 0.5f;
 	}
 
-	public void GenerateAdposition (string relation, GetRandomFloatDelegate getRandomFloat) {
+	public Morpheme GenerateAdposition (string relation, GetRandomFloatDelegate getRandomFloat) {
+
+		if (_adpositions.ContainsKey (relation)) {
+
+			return _adpositions [relation];
+		}
 
 		string value = GenerateMorpheme (AdpositionStartSyllables, AdpositionNextSyllables, 0.2f, getRandomFloat);
 
@@ -1778,6 +1790,8 @@ public class Language : ISynchronizable {
 		_existingAdpositionMorphemeValues.Add (morpheme.Value);
 
 		Adpositions.Add (morpheme);
+
+		return morpheme;
 	}
 
 	public void GenerateAdjectiveAdjunctionProperties (GetRandomFloatDelegate getRandomFloat) {
@@ -1888,6 +1902,17 @@ public class Language : ISynchronizable {
 		return morpheme;
 	}
 
+	public void GenerateVerbSyllables (GetRandomFloatDelegate getRandomFloat) {
+
+		VerbStartSyllables.OnsetChance = 0.5f;
+		VerbStartSyllables.NucleusChance = 1.0f;
+		VerbStartSyllables.CodaChance = 0.5f;
+
+		VerbNextSyllables.OnsetChance = 0.5f;
+		VerbNextSyllables.NucleusChance = 1.0f;
+		VerbNextSyllables.CodaChance = 0.5f;
+	}
+
 	public Morpheme GenerateVerb (string meaning, GetRandomFloatDelegate getRandomFloat) {
 
 		if (_verbs.ContainsKey (meaning)) {
@@ -1916,18 +1941,12 @@ public class Language : ISynchronizable {
 		return morpheme;
 	}
 
-	public Morpheme GenerateNominalizedVerb (Morpheme verb, string tense, GetRandomFloatDelegate getRandomFloat, bool isPlural, bool randomGender, bool isFemenine = false, bool isNeutral = false, bool isPassive = false) {
+	public Morpheme GenerateNominalizedVerb (string meaning, Morpheme verb, string tense, GetRandomFloatDelegate getRandomFloat, bool isPlural, bool randomGender, bool isFemenine = false, bool isNeutral = false, bool isPassive = false) {
 
-		return GenerateNominalizedVerb (verb, tense, GenerateMorphemeProperties (getRandomFloat, isPlural, randomGender, isFemenine, isNeutral, isPassive), getRandomFloat);
+		return GenerateNominalizedVerb (meaning, verb, tense, GenerateMorphemeProperties (getRandomFloat, isPlural, randomGender, isFemenine, isNeutral, isPassive), getRandomFloat);
 	}
 
-	public Morpheme GenerateNominalizedVerb (Morpheme verb, string tense, MorphemeProperties properties, GetRandomFloatDelegate getRandomFloat) {
-
-		string meaning = verb.Meaning;
-
-		if ((properties & MorphemeProperties.Passive) == MorphemeProperties.Passive) {
-			meaning += "_passive";
-		}
+	public Morpheme GenerateNominalizedVerb (string meaning, Morpheme verb, string tense, MorphemeProperties properties, GetRandomFloatDelegate getRandomFloat) {
 
 		if (_nouns.ContainsKey (meaning)) {
 
@@ -2055,16 +2074,11 @@ public class Language : ISynchronizable {
 		return article;
 	}
 
-	public Phrase BuildAdpositionalPhrase (string relation, Phrase complementPhrase) {
+	public Phrase BuildAdpositionalPhrase (string relation, Phrase complementPhrase, GetRandomFloatDelegate getRandomFloat) {
 
 		Phrase phrase = new Phrase ();
 
-		Morpheme adposition = null;
-
-		if (!_adpositions.TryGetValue (relation, out adposition)) {
-
-			throw new System.Exception ("Unable to find adposition for '" + relation + "'");
-		}
+		Morpheme adposition = GenerateAdposition (relation, getRandomFloat);
 
 		string meaning = relation + " " + complementPhrase.Meaning;
 
@@ -2442,6 +2456,13 @@ public class Language : ISynchronizable {
 		return phrase;
 	}
 
+	public Phrase TranslatePhrase (string untranslatedPhrase, GetRandomFloatDelegate getRandomFloat) {
+
+		ParsedPhrase parsedPhrase = ParsePhrase (untranslatedPhrase);
+
+		return null;
+	}
+
 	public NounPhrase TranslateNounPhrase (string untranslatedNounPhrase, GetRandomFloatDelegate getRandomFloat) {
 
 		bool absentArticle = true;
@@ -2470,7 +2491,7 @@ public class Language : ISynchronizable {
 
 			ParsedWord parsedPhrasePart = ParseWord (phrasePart);
 
-			if (!parsedPhrasePart.Attributes.ContainsKey (ParsedWordAttributeId.UncountableNoun) && (absentArticle)) {
+			if (!parsedPhrasePart.Attributes.ContainsKey (ParsedWordAttributeId.Name) && !parsedPhrasePart.Attributes.ContainsKey (ParsedWordAttributeId.UncountableNoun) && (absentArticle)) {
 				phraseProperties |= PhraseProperties.Indefinite;
 			}
 
@@ -2563,12 +2584,13 @@ public class Language : ISynchronizable {
 
 				bool isPassiveNoun = false;
 
-				string meaning;
+				string verbMeaning;
+				string nounMeaning = parsedWordPart.Value;
 				string tense = VerbTenses.Null;
 
 				if (parsedWordPart.Attributes.ContainsKey (ParsedWordAttributeId.NominalizedIrregularVerb)) {
 
-					meaning = parsedWordPart.Attributes [ParsedWordAttributeId.NominalizedIrregularVerb] [0];
+					verbMeaning = parsedWordPart.Attributes [ParsedWordAttributeId.NominalizedIrregularVerb] [0];
 
 					if (((i + 1) < nounParts.Length) && PluralSuffixRegex.IsMatch (nounParts[i + 1])) {
 						isPlural = true;
@@ -2579,12 +2601,13 @@ public class Language : ISynchronizable {
 
 					isPassiveNoun = true;
 				
-					meaning = parsedWordPart.Attributes [ParsedWordAttributeId.IrregularVerb] [0];
+					verbMeaning = parsedWordPart.Attributes [ParsedWordAttributeId.IrregularVerb] [0];
 					tense = parsedWordPart.Attributes [ParsedWordAttributeId.IrregularVerb] [2];
 
 				} else if (parsedWordPart.Attributes.ContainsKey (ParsedWordAttributeId.NominalizedRegularVerb)) {
 
-					meaning = parsedWordPart.Value;
+					verbMeaning = parsedWordPart.Value;
+					nounMeaning += nounParts [i+1];
 
 					// skip next wordPart (suffix)
 					i++;
@@ -2598,16 +2621,17 @@ public class Language : ISynchronizable {
 
 					isPassiveNoun = true;
 
-					meaning = parsedWordPart.Value;
+					verbMeaning = parsedWordPart.Value;
 					tense = parsedWordPart.Attributes [ParsedWordAttributeId.RegularVerb] [1];
+					nounMeaning += nounParts [i+1];
 
 					// skip next wordPart (suffix)
 					i++;
 				}
 
-				Morpheme verb = GenerateVerb (meaning, getRandomFloat);
+				Morpheme verb = GenerateVerb (verbMeaning, getRandomFloat);
 
-				noun = GenerateNominalizedVerb (verb, tense, getRandomFloat, isPlural, hasRandomGender, isFemenineNoun, isNeutralNoun, isPassiveNoun);
+				noun = GenerateNominalizedVerb (nounMeaning, verb, tense, getRandomFloat, isPlural, hasRandomGender, isFemenineNoun, isNeutralNoun, isPassiveNoun);
 
 			} else {
 
@@ -2676,6 +2700,26 @@ public class Language : ISynchronizable {
 		phrase.Properties = originalPhrase.Properties;
 
 		return phrase;
+	}
+
+	public static ParsedPhrase ParsePhrase (string phrase) {
+
+		ParsedPhrase parsedPhrase = new ParsedPhrase ();
+
+		while (true) {
+			Match match = PhrasePartRegex.Match (phrase);
+
+			if (!match.Success)
+				break;
+
+			phrase = phrase.Replace (match.Value, match.Groups ["phrase"].Value);
+
+			parsedPhrase.Attributes.Add (match.Groups ["attr"].Value, match.Groups ["params"].Success ? match.Groups ["params"].Value.Split (new char[] {','}) : null);
+		}
+
+		parsedPhrase.Value = phrase;
+
+		return parsedPhrase;
 	}
 
 	public static ParsedWord ParseWord (string word) {
