@@ -149,8 +149,8 @@ public class LanguageGenerationTest : AutomatedTest {
 			entry += "\nExample adpositional phrases:";
 			entry += "\n";
 
-//			string untranslatedPhrase = "[NP](the [ipn(woman)][fn]women) [PP](from [NP](a town))";
-//			Language.Phrase translatedPhrase = language.TranslatePhrase (untranslatedPhrase, GetRandomFloat);
+			string untranslatedPhrase = "[NP](the [ipn(woman)][fn]women) [PP](from [NP](a town))";
+			Language.Phrase translatedPhrase = language.TranslatePhrase (untranslatedPhrase, GetRandomFloat);
 
 			Language.Phrase prePhrase = language.TranslateNounPhrase ("the [ipn(woman)][fn]women", GetRandomFloat);
 			Language.Phrase complementPhrase = language.TranslateNounPhrase ("a town", GetRandomFloat);
@@ -160,6 +160,9 @@ public class LanguageGenerationTest : AutomatedTest {
 
 			entry += "\n\t" + mergedPhrase.Text + " (" + mergedPhrase.Meaning + ")";
 
+//			string untranslatedPhrase = "[NP](the child) [PP](above [NP](the cloud:s))";
+//			Language.Phrase translatedPhrase = language.TranslatePhrase (untranslatedPhrase, GetRandomFloat);
+
 			prePhrase = language.TranslateNounPhrase ("the child", GetRandomFloat);
 			complementPhrase = language.TranslateNounPhrase ("the cloud:s", GetRandomFloat);
 			postPhrase = language.BuildAdpositionalPhrase ("above", complementPhrase, GetRandomFloat);
@@ -167,6 +170,9 @@ public class LanguageGenerationTest : AutomatedTest {
 			language.LocalizePhrase (mergedPhrase);
 
 			entry += "\n\t" + mergedPhrase.Text + " (" + mergedPhrase.Meaning + ")";
+
+//			string untranslatedPhrase = "[NP](a tree) [PP](within [NP](the forest))";
+//			Language.Phrase translatedPhrase = language.TranslatePhrase (untranslatedPhrase, GetRandomFloat);
 
 			prePhrase = language.TranslateNounPhrase ("a tree", GetRandomFloat);
 			complementPhrase = language.TranslateNounPhrase ("the forest", GetRandomFloat);
@@ -176,6 +182,9 @@ public class LanguageGenerationTest : AutomatedTest {
 
 			entry += "\n\t" + mergedPhrase.Text + " (" + mergedPhrase.Meaning + ")";
 
+//			string untranslatedPhrase = "[NP]([un]water) [PP](with [NP]([un]oil))";
+//			Language.Phrase translatedPhrase = language.TranslatePhrase (untranslatedPhrase, GetRandomFloat);
+
 			prePhrase = language.TranslateNounPhrase ("[un]water", GetRandomFloat);
 			complementPhrase = language.TranslateNounPhrase ("[un]oil", GetRandomFloat);
 			postPhrase = language.BuildAdpositionalPhrase ("with", complementPhrase, GetRandomFloat);
@@ -183,6 +192,9 @@ public class LanguageGenerationTest : AutomatedTest {
 			language.LocalizePhrase (mergedPhrase);
 
 			entry += "\n\t" + mergedPhrase.Text + " (" + mergedPhrase.Meaning + ")";
+
+//			string untranslatedPhrase = "[NP]([name][mn][iv(bear,ts,past)]born) [PP](on [NP](a tree))";
+//			Language.Phrase translatedPhrase = language.TranslatePhrase (untranslatedPhrase, GetRandomFloat);
 
 			prePhrase = language.TranslateNounPhrase ("[name][mn][iv(bear,ts,past)]born", GetRandomFloat);
 			complementPhrase = language.TranslateNounPhrase ("a tree", GetRandomFloat);
@@ -192,6 +204,9 @@ public class LanguageGenerationTest : AutomatedTest {
 
 			entry += "\n\t" + mergedPhrase.Text + " (" + mergedPhrase.Meaning + ")";
 
+//			string untranslatedPhrase = "[NP]([name][fn][rv(ts,past)]raise:d) [PP](in [NP](the city))";
+//			Language.Phrase translatedPhrase = language.TranslatePhrase (untranslatedPhrase, GetRandomFloat);
+
 			prePhrase = language.TranslateNounPhrase ("[name][fn][rv(ts,past)]raise:d", GetRandomFloat);
 			complementPhrase = language.TranslateNounPhrase ("the city", GetRandomFloat);
 			postPhrase = language.BuildAdpositionalPhrase ("in", complementPhrase, GetRandomFloat);
@@ -200,6 +215,9 @@ public class LanguageGenerationTest : AutomatedTest {
 
 			entry += "\n\t" + mergedPhrase.Text + " (" + mergedPhrase.Meaning + ")";
 
+//			string untranslatedPhrase = "[NP]([name][mn][nrv]hunt:er) [PP](of [NP](cat:s))";
+//			Language.Phrase translatedPhrase = language.TranslatePhrase (untranslatedPhrase, GetRandomFloat);
+
 			prePhrase = language.TranslateNounPhrase ("[name][mn][nrv]hunt:er", GetRandomFloat);
 			complementPhrase = language.TranslateNounPhrase ("cat:s", GetRandomFloat);
 			postPhrase = language.BuildAdpositionalPhrase ("of", complementPhrase, GetRandomFloat);
@@ -207,6 +225,9 @@ public class LanguageGenerationTest : AutomatedTest {
 			language.LocalizePhrase (mergedPhrase);
 
 			entry += "\n\t" + mergedPhrase.Text + " (" + mergedPhrase.Meaning + ")";
+
+//			string untranslatedPhrase = "[NP]([name][fn][niv(carry)]carrier) [PP](of [NP]([un]water))";
+//			Language.Phrase translatedPhrase = language.TranslatePhrase (untranslatedPhrase, GetRandomFloat);
 
 			prePhrase = language.TranslateNounPhrase ("[name][fn][niv(carry)]carrier", GetRandomFloat);
 			complementPhrase = language.TranslateNounPhrase ("[un]water", GetRandomFloat);

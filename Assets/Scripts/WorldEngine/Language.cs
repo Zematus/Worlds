@@ -87,6 +87,8 @@ public class Language : ISynchronizable {
 
 		public string Value;
 		public Dictionary<string, string[]> Attributes = new Dictionary<string, string[]> ();
+
+		public Dictionary<int, ParsedPhrase> SubPhrases = new Dictionary<int, ParsedPhrase> ();
 	}
 
 	public class Letter : CollectionUtility.ElementWeightPair<string> {
@@ -437,8 +439,10 @@ public class Language : ISynchronizable {
 	public static Regex EndsWithVowelsRegex = new Regex (@"(?>[aeiou]+)(?>[^aeiou]+)(?<vowels>(?>[aeiou]+))$");
 	public static Regex EndsWithConsonantsRegex = new Regex (@"(?>[^aeiou]+)$");
 
-	public static Regex PhrasePartRegex = new Regex (@"\[(?<attr>\w+)(?:\((?<params>(?:\w+,?)+)\))?\](?:\[w+\])*(?<phrase>(((?'Open'\()[^\(\)]*)+((?'Close-Open'\))[^\(\)]*)+)*(?(Open)(?!)))");
-	public static Regex WordPartRegex = new Regex (@"\[(?<attr>\w+)(?:\((?<params>(?:\w+,?)+)\))?\](?:\[w+\])*(?<word>[\w\'\-]*)");
+//	public static Regex PhrasePartRegex = new Regex (@"\[(?<attr>\w+)(?:\((?<params>(?:\w+,?)+)\))?\](?:\[w+\])*(?<phrase>(((?'Open'\()[^\(\)]*)+((?'Close-Open'\))[^\(\)]*)+)*(?(Open)(?!)))");
+	public static Regex PhrasePartRegex = new Regex (@"\[(?<attr>\w+)(?:\((?<params>(?:\w+,?)+)\))?\](?<phrase>(?:\[\w+(?:\((?:\w+,?)+\))?\])*\((?<value>[^\(\)]+)\))");
+//	public static Regex WordPartRegex = new Regex (@"\[(?<attr>\w+)(?:\((?<params>(?:\w+,?)+)\))?\](?:\[w+\])*(?<word>[\w\'\-]+)");
+	public static Regex WordPartRegex = new Regex (@"\[(?<attr>\w+)(?:\((?<params>(?:\w+,?)+)\))?\](?<word>(?>(?:\[\w+(?:\((?:\w+,?)+\))?\])*[\w\'\-]+))");
 	public static Regex ArticleRegex = new Regex (@"^((?<def>the)|(?<indef>(a|an)))$");
 	public static Regex PluralSuffixRegex = new Regex (@"^(es|s)$");
 	public static Regex VerbNominalizationSuffixRegex = new Regex (@"^(er|r)$");
@@ -2458,7 +2462,7 @@ public class Language : ISynchronizable {
 
 	public Phrase TranslatePhrase (string untranslatedPhrase, GetRandomFloatDelegate getRandomFloat) {
 
-		ParsedPhrase parsedPhrase = ParsePhrase (untranslatedPhrase);
+		ParsePhrase (untranslatedPhrase);
 
 		return null;
 	}
@@ -2702,24 +2706,64 @@ public class Language : ISynchronizable {
 		return phrase;
 	}
 
-	public static ParsedPhrase ParsePhrase (string phrase) {
+	public static List<ParsedPhrase> ParsePhrase (string phrase) {
 
-		ParsedPhrase parsedPhrase = new ParsedPhrase ();
+		List<ParsedPhrase> parsedPhrases = new List<ParsedPhrase> ();
+		int phraseIndex = 0;
+
+		List<string> foundWords = new List<string> ();
+		int wordIndex = 0;
 
 		while (true) {
-			Match match = PhrasePartRegex.Match (phrase);
+			MatchCollection wordMatchCollection = WordPartRegex.Matches (phrase);
 
-			if (!match.Success)
+			foreach (Match match in wordMatchCollection) {
+
+				foundWords.Add (match.Value);
+
+				phrase = phrase.Replace (match.Value, "{" + wordIndex + "}");
+				wordIndex++;
+			}
+
+			ParsedPhrase parsedPhrase = new ParsedPhrase ();
+
+			Match phraseMatch = PhrasePartRegex.Match (phrase);
+
+			if (!phraseMatch.Success)
 				break;
 
-			phrase = phrase.Replace (match.Value, match.Groups ["phrase"].Value);
+			string phraseValue = phraseMatch.Groups ["value"].Value;
+			string subPhrase = "";
 
-			parsedPhrase.Attributes.Add (match.Groups ["attr"].Value, match.Groups ["params"].Success ? match.Groups ["params"].Value.Split (new char[] {','}) : null);
+			phrase = phrase.Replace (phraseMatch.Value, "{{" + phraseIndex + "}}");
+			phraseIndex++;
+
+			while (phraseMatch.Success) {
+
+				subPhrase = phraseMatch.Groups ["phrase"].Value;
+
+				parsedPhrase.Attributes.Add (phraseMatch.Groups ["attr"].Value, phraseMatch.Groups ["params"].Success ? phraseMatch.Groups ["params"].Value.Split (new char[] {','}) : null);
+
+				phraseMatch = PhrasePartRegex.Match (subPhrase);
+			}
+
+			for (int i = 0; i < wordIndex; i++) {
+			
+				phraseValue = phraseValue.Replace ("{" + i + "}", foundWords [i]);
+			}
+
+			parsedPhrase.Value = phraseValue;
+
+			for (int i = 0; i < phraseIndex; i++) {
+
+				if (phraseValue.Contains ("{{" + i + "}}"))
+					parsedPhrase.SubPhrases.Add (i, parsedPhrases[i]);
+			}
+
+			parsedPhrases.Add (parsedPhrase);
 		}
 
-		parsedPhrase.Value = phrase;
-
-		return parsedPhrase;
+		return parsedPhrases;
 	}
 
 	public static ParsedWord ParseWord (string word) {
