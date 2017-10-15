@@ -161,6 +161,13 @@ public class Language : ISynchronizable {
 //		public const string Import = "import";
 	}
 
+	public static class ParsedPhraseAttributeId {
+
+		public const string PhrasePlusPrepositionalPhrase = "PpPP";
+		public const string PrepositionalPhrase = "PP";
+		public const string NounPhrase = "NP";
+	}
+
 	public enum WordType
 	{
 		Article,
@@ -441,8 +448,8 @@ public class Language : ISynchronizable {
 
 //	public static Regex PhrasePartRegex = new Regex (@"\[(?<attr>\w+)(?:\((?<params>(?:\w+,?)+)\))?\](?:\[w+\])*(?<phrase>(((?'Open'\()[^\(\)]*)+((?'Close-Open'\))[^\(\)]*)+)*(?(Open)(?!)))");
 	public static Regex PhrasePartRegex = new Regex (@"\[(?<attr>\w+)(?:\((?<params>(?:\w+,?)+)\))?\](?<phrase>(?:\[\w+(?:\((?:\w+,?)+\))?\])*\((?<value>[^\(\)]+)\))");
-//	public static Regex WordPartRegex = new Regex (@"\[(?<attr>\w+)(?:\((?<params>(?:\w+,?)+)\))?\](?:\[w+\])*(?<word>[\w\'\-]+)");
 	public static Regex WordPartRegex = new Regex (@"\[(?<attr>\w+)(?:\((?<params>(?:\w+,?)+)\))?\](?<word>(?>(?:\[\w+(?:\((?:\w+,?)+\))?\])*[\w\'\-]+))");
+	public static Regex PhraseIndexRegex = new Regex (@"{(?<index>\d+)}");
 	public static Regex ArticleRegex = new Regex (@"^((?<def>the)|(?<indef>(a|an)))$");
 	public static Regex PluralSuffixRegex = new Regex (@"^(es|s)$");
 	public static Regex VerbNominalizationSuffixRegex = new Regex (@"^(er|r)$");
@@ -2460,11 +2467,48 @@ public class Language : ISynchronizable {
 		return phrase;
 	}
 
+	public Phrase TranslatePhrase (ParsedPhrase parsedPhrase, GetRandomFloatDelegate getRandomFloat) {
+
+		Phrase translatedPhrase = null;
+
+		if (parsedPhrase.Attributes.ContainsKey (ParsedPhraseAttributeId.PhrasePlusPrepositionalPhrase)) {
+
+			MatchCollection PhraseIndexMatchCollection = PhraseIndexRegex.Matches (parsedPhrase.Value);
+
+			int startPhraseIndex = int.Parse (PhraseIndexMatchCollection [0].Groups ["index"].Value);
+			int prepositionalPhraseIndex = int.Parse (PhraseIndexMatchCollection [1].Groups ["index"].Value);
+
+			Phrase startPhrase = TranslatePhrase (parsedPhrase.SubPhrases [startPhraseIndex], getRandomFloat);
+			Phrase prepositionalPhrase = TranslatePhrase (parsedPhrase.SubPhrases [prepositionalPhraseIndex], getRandomFloat);
+
+			translatedPhrase = MergePhrases (startPhrase, prepositionalPhrase);
+
+		} else if (parsedPhrase.Attributes.ContainsKey (ParsedPhraseAttributeId.PrepositionalPhrase)) {
+
+			MatchCollection PhraseIndexMatchCollection = PhraseIndexRegex.Matches (parsedPhrase.Value);
+
+			int complementPhraseIndex = int.Parse (PhraseIndexMatchCollection [0].Groups ["index"].Value);
+
+			Phrase complementPhrase = TranslatePhrase (parsedPhrase.SubPhrases [complementPhraseIndex], getRandomFloat);
+
+			///
+
+			string relationWord = parsedPhrase.Value.Replace (PhraseIndexMatchCollection [0].Value, "").Trim (new char[] {' '});
+
+			translatedPhrase = BuildAdpositionalPhrase (relationWord, complementPhrase, getRandomFloat); 
+
+		} else if (parsedPhrase.Attributes.ContainsKey (ParsedPhraseAttributeId.NounPhrase)) {
+
+			translatedPhrase = TranslateNounPhrase (parsedPhrase.Value, getRandomFloat); 
+		}
+
+
+		return translatedPhrase;
+	}
+
 	public Phrase TranslatePhrase (string untranslatedPhrase, GetRandomFloatDelegate getRandomFloat) {
 
-		ParsePhrase (untranslatedPhrase);
-
-		return null;
+		return TranslatePhrase (ParsePhrase (untranslatedPhrase), getRandomFloat);
 	}
 
 	public NounPhrase TranslateNounPhrase (string untranslatedNounPhrase, GetRandomFloatDelegate getRandomFloat) {
@@ -2706,7 +2750,9 @@ public class Language : ISynchronizable {
 		return phrase;
 	}
 
-	public static List<ParsedPhrase> ParsePhrase (string phrase) {
+	public static ParsedPhrase ParsePhrase (string phrase) {
+
+		ParsedPhrase parsedPhrase = null;
 
 		List<ParsedPhrase> parsedPhrases = new List<ParsedPhrase> ();
 		int phraseIndex = 0;
@@ -2721,21 +2767,21 @@ public class Language : ISynchronizable {
 
 				foundWords.Add (match.Value);
 
-				phrase = phrase.Replace (match.Value, "{" + wordIndex + "}");
+				phrase = phrase.Replace (match.Value, "<" + wordIndex + ">");
 				wordIndex++;
 			}
-
-			ParsedPhrase parsedPhrase = new ParsedPhrase ();
 
 			Match phraseMatch = PhrasePartRegex.Match (phrase);
 
 			if (!phraseMatch.Success)
 				break;
 
+			parsedPhrase = new ParsedPhrase ();
+
 			string phraseValue = phraseMatch.Groups ["value"].Value;
 			string subPhrase = "";
 
-			phrase = phrase.Replace (phraseMatch.Value, "{{" + phraseIndex + "}}");
+			phrase = phrase.Replace (phraseMatch.Value, "{" + phraseIndex + "}");
 			phraseIndex++;
 
 			while (phraseMatch.Success) {
@@ -2749,21 +2795,21 @@ public class Language : ISynchronizable {
 
 			for (int i = 0; i < wordIndex; i++) {
 			
-				phraseValue = phraseValue.Replace ("{" + i + "}", foundWords [i]);
+				phraseValue = phraseValue.Replace ("<" + i + ">", foundWords [i]);
 			}
 
 			parsedPhrase.Value = phraseValue;
 
 			for (int i = 0; i < phraseIndex; i++) {
 
-				if (phraseValue.Contains ("{{" + i + "}}"))
+				if (phraseValue.Contains ("{" + i + "}"))
 					parsedPhrase.SubPhrases.Add (i, parsedPhrases[i]);
 			}
 
 			parsedPhrases.Add (parsedPhrase);
 		}
 
-		return parsedPhrases;
+		return parsedPhrase;
 	}
 
 	public static ParsedWord ParseWord (string word) {
