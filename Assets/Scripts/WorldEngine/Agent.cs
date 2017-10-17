@@ -60,7 +60,7 @@ public class Agent : ISynchronizable {
 		Region region = Group.Cell.Region;
 
 		string untranslatedName = "";
-		Language.NounPhrase namePhrase = null;
+		Language.Phrase namePhrase = null;
 
 		if (region.Elements.Count <= 0) {
 
@@ -94,8 +94,6 @@ public class Agent : ISynchronizable {
 				untranslatedName = "[nad]" + element.Name + " " + untranslatedName;
 			}
 
-			namePhrase = language.TranslateNounPhrase (untranslatedName, getRandomFloat);
-
 			bool canAddMoreWords = remainingElements.Count > 0;
 
 			if (canAddMoreWords) {
@@ -110,6 +108,10 @@ public class Agent : ISynchronizable {
 
 			extraWordChance /= 2f;
 		}
+
+		untranslatedName = "[NP](" + untranslatedName + ")";
+
+		namePhrase = language.TranslatePhrase (untranslatedName, getRandomFloat);
 
 		Name = new Name (namePhrase, untranslatedName, language, World);
 	}

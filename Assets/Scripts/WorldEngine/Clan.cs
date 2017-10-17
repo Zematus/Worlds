@@ -162,7 +162,7 @@ public class Clan : Faction {
 		Region region = CoreGroup.Cell.Region;
 
 		string untranslatedName = "";
-		Language.NounPhrase namePhrase = null;
+		Language.Phrase namePhrase = null;
 
 		if (region.Elements.Count <= 0) {
 
@@ -196,8 +196,6 @@ public class Clan : Faction {
 				untranslatedName = "[nad]" + element.Name + " " + untranslatedName;
 			}
 
-			namePhrase = language.TranslateNounPhrase (untranslatedName, getRandomFloat);
-
 			bool canAddMoreWords = remainingElements.Count > 0;
 
 			if (canAddMoreWords) {
@@ -205,11 +203,11 @@ public class Clan : Faction {
 				addMoreWords = extraWordChance > getRandomFloat ();
 			}
 
-			if ((!canAddMoreWords) || (!addMoreWords)) {
+			if (!canAddMoreWords || !addMoreWords) {
 				
 				foreach (Faction faction in Polity.GetFactions ()) {
 
-					if (namePhrase.Text == faction.Name.Text) {
+					if (Language.ClearConstructCharacters(untranslatedName) == faction.Name.Meaning) {
 						addMoreWords = true;
 						break;
 					}
@@ -223,6 +221,10 @@ public class Clan : Faction {
 
 			extraWordChance /= 2f;
 		}
+
+		untranslatedName = "[NP](" + untranslatedName + ")";
+
+		namePhrase = language.TranslatePhrase (untranslatedName, getRandomFloat);
 
 		Name = new Name (namePhrase, untranslatedName, language, World);
 	}

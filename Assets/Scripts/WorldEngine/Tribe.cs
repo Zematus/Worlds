@@ -287,12 +287,12 @@ public class Tribe : Polity {
 		string regionAttributeNounVariation = coreRegion.GetRandomAttributeVariation ((int maxValue) => GetNextLocalRandomInt (rngOffset++, maxValue));
 
 		if (regionAttributeNounVariation != string.Empty) {
-			regionAttributeNounVariation = " [nad]" + regionAttributeNounVariation;
+			regionAttributeNounVariation = "[nad]" + regionAttributeNounVariation;
 		}
 
-		string untranslatedName = "the" + regionAttributeNounVariation + " " + tribeNounVariation;
+		string untranslatedName = "[NP](" + regionAttributeNounVariation + " " + tribeNounVariation + ")";
 
-		Language.NounPhrase namePhrase = Culture.Language.TranslateNounPhrase (untranslatedName, () => GetNextLocalRandomFloat (rngOffset++));
+		Language.Phrase namePhrase = Culture.Language.TranslatePhrase (untranslatedName, () => GetNextLocalRandomFloat (rngOffset++));
 
 		Name = new Name (namePhrase, untranslatedName, Culture.Language, World);
 

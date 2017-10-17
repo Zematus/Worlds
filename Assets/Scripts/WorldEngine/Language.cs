@@ -37,16 +37,19 @@ public class Language : ISynchronizable {
 
 			Properties = (PhraseProperties)PropertiesInt;
 		}
-	}
 
-	public class NounPhrase : Phrase {
+		public Phrase () {
+			
+		}
 
-	}
+		public Phrase (Phrase phrase) {
 
-	public class AdpositionalPhrase : Phrase {
-		
-		[XmlAttribute]
-		public string Relation;
+			Original = phrase.Original;
+			Meaning = phrase.Meaning;
+			Text = phrase.Text;
+
+			Properties = phrase.Properties;
+		}
 	}
 
 	public class Morpheme : ISynchronizable {
@@ -166,6 +169,7 @@ public class Language : ISynchronizable {
 		public const string PhrasePlusPrepositionalPhrase = "PpPP";
 		public const string PrepositionalPhrase = "PP";
 		public const string NounPhrase = "NP";
+		public const string Noun = "Noun";
 	}
 
 	public enum WordType
@@ -2085,7 +2089,7 @@ public class Language : ISynchronizable {
 		return article;
 	}
 
-	public Phrase BuildAdpositionalPhrase (string relation, Phrase complementPhrase, GetRandomFloatDelegate getRandomFloat) {
+	private Phrase BuildAdpositionalPhrase (string relation, Phrase complementPhrase, GetRandomFloatDelegate getRandomFloat) {
 
 		Phrase phrase = new Phrase ();
 
@@ -2502,6 +2506,11 @@ public class Language : ISynchronizable {
 			translatedPhrase = TranslateNounPhrase (parsedPhrase.Value, getRandomFloat); 
 		}
 
+		if (parsedPhrase.Attributes.ContainsKey (ParsedPhraseAttributeId.Noun)) {
+
+			translatedPhrase = Agglutinate (translatedPhrase);
+		}
+
 
 		return translatedPhrase;
 	}
@@ -2511,14 +2520,14 @@ public class Language : ISynchronizable {
 		return TranslatePhrase (ParsePhrase (untranslatedPhrase), getRandomFloat);
 	}
 
-	public NounPhrase TranslateNounPhrase (string untranslatedNounPhrase, GetRandomFloatDelegate getRandomFloat) {
+	private Phrase TranslateNounPhrase (string untranslatedNounPhrase, GetRandomFloatDelegate getRandomFloat) {
 
 		bool absentArticle = true;
 		PhraseProperties phraseProperties = PhraseProperties.None;
 
-		NounPhrase nounPhrase = null;
+		Phrase nounPhrase = null;
 
-		List<NounPhrase> nounAdjunctionPhrases = new List<NounPhrase> ();
+		List<Phrase> nounAdjunctionPhrases = new List<Phrase> ();
 		List<Morpheme> adjectives = new List<Morpheme> ();
 
 		string[] phraseParts = untranslatedNounPhrase.Split (new char[] { ' ' });
@@ -2564,7 +2573,7 @@ public class Language : ISynchronizable {
 			throw new System.Exception ("nounPhrase can't be null");
 		}
 
-		foreach (NounPhrase nounAdjunctionPhrase in nounAdjunctionPhrases) {
+		foreach (Phrase nounAdjunctionPhrase in nounAdjunctionPhrases) {
 
 			nounPhrase.Text = AppendAdjunction (nounPhrase.Text, nounAdjunctionPhrase.Text, NounAdjunctionProperties);
 		}
@@ -2586,7 +2595,7 @@ public class Language : ISynchronizable {
 		return nounPhrase;
 	}
 
-	public NounPhrase TranslateNoun (string untranslatedNoun, PhraseProperties properties, GetRandomFloatDelegate getRandomFloat) {
+	public Phrase TranslateNoun (string untranslatedNoun, PhraseProperties properties, GetRandomFloatDelegate getRandomFloat) {
 
 		string[] nounParts = untranslatedNoun.Split (new char[] { ':' });
 
@@ -2730,22 +2739,11 @@ public class Language : ISynchronizable {
 
 		text = AppendAdjunction (text, nounIndicative.Value, NounIndicativeAdjunctionProperties);
 
-		NounPhrase phrase = new NounPhrase ();
+		Phrase phrase = new Phrase ();
 		phrase.Text = text;
 		phrase.Original = untranslatedNoun;
 		phrase.Meaning = ClearConstructCharacters (untranslatedNoun);
 		phrase.Properties = properties;
-
-		return phrase;
-	}
-
-	public NounPhrase TurnIntoProperNoun (NounPhrase originalPhrase) {
-
-		NounPhrase phrase = new NounPhrase ();
-		phrase.Text = MakeFirstLetterUpper (Agglutinate (originalPhrase.Text));
-		phrase.Original = originalPhrase.Text;
-		phrase.Meaning = originalPhrase.Meaning;
-		phrase.Properties = originalPhrase.Properties;
 
 		return phrase;
 	}
@@ -2832,6 +2830,17 @@ public class Language : ISynchronizable {
 		return parsedWord;
 	}
 
+	public static Phrase Agglutinate (Phrase phrase) {
+
+		Phrase agglutinatedPhrase = new Phrase (phrase);
+
+		agglutinatedPhrase.Text = Agglutinate (phrase.Text);
+
+		agglutinatedPhrase.Meaning = phrase.Meaning.Replace (' ', '-');
+
+		return agglutinatedPhrase;
+	}
+
 	public static string Agglutinate (string sentence) {
 
 		sentence = sentence.ToLower ();
@@ -2847,30 +2856,39 @@ public class Language : ISynchronizable {
 		return sentence;
 	}
 
-	public static void TurnIntoProperName (NounPhrase phrase) {
+	public static void TurnIntoProperName (Phrase phrase, bool agglutinate) {
 
-		phrase.Text = TurnIntoProperName (phrase.Text);
-		phrase.Meaning = TurnIntoProperName (phrase.Meaning);
+		bool linkWithDashMeaning = agglutinate;
+
+		phrase.Text = TurnIntoProperName (phrase.Text, agglutinate, false);
+		phrase.Meaning = TurnIntoProperName (phrase.Meaning, false, linkWithDashMeaning);
 	}
 
-	public static string TurnIntoProperName (string sentence) {
+	public static string TurnIntoProperName (string sentence, bool agglutinate, bool linkWithDash) {
 		
 		string[] words = sentence.Split (new char[] {' '});
 
-		string newSentence = null;
+		string newSentence = string.Empty;
 
-		bool first = true;
-		foreach (string word in words) {
+		if (!agglutinate) {
+			char link = linkWithDash ? '-' : ' ';
 
-			if (first) {
+			bool first = true;
+			foreach (string word in words) {
 
-				newSentence = MakeFirstLetterUpper (word);
-				first = false;
+				if (first) {
 
-				continue;
+					newSentence = MakeFirstLetterUpper (word);
+					first = false;
+
+					continue;
+				}
+
+				newSentence += link + MakeFirstLetterUpper (word);
 			}
-
-			newSentence += " " + MakeFirstLetterUpper (word);
+		} else {
+		
+			newSentence = MakeFirstLetterUpper (Agglutinate (sentence));
 		}
 
 		return newSentence;

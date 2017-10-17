@@ -16,7 +16,7 @@ public class Name : ISynchronizable {
 	[XmlAttribute]
 	public long LanguageId;
 
-	public Language.NounPhrase Value;
+	public Language.Phrase Value;
 
 	[XmlIgnore]
 	public World World;
@@ -28,7 +28,7 @@ public class Name : ISynchronizable {
 		
 	}
 
-	public Name (Language.NounPhrase value, string meaning, Language language, World world) {
+	public Name (Language.Phrase value, string meaning, Language language, World world) {
 
 		World = world;
 
@@ -37,7 +37,7 @@ public class Name : ISynchronizable {
 
 		Value = value;
 
-		Language.TurnIntoProperName (Value);
+		Language.TurnIntoProperName (Value, false);
 	}
 
 	public string Text {
