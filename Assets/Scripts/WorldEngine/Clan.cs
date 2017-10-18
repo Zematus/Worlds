@@ -169,7 +169,7 @@ public class Clan : Faction {
 			throw new System.Exception ("No elements to choose name from");
 		}
 
-		List<RegionElement> remainingElements = new List<RegionElement> (region.Elements);
+		List<Element> remainingElements = new List<Element> (region.Elements);
 
 		bool addMoreWords = true;
 
@@ -182,7 +182,7 @@ public class Clan : Faction {
 
 			int index = getRandomInt (remainingElements.Count);
 
-			RegionElement element = remainingElements [index];
+			Element element = remainingElements [index];
 
 			remainingElements.RemoveAt (index);
 

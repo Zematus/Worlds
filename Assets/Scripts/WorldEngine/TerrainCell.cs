@@ -4,9 +4,6 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
-public delegate int GetRandomIntDelegate (int maxValue);
-public delegate float GetRandomFloatDelegate ();
-
 public enum Direction {
 
 	Null = -1,

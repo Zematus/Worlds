@@ -225,7 +225,7 @@ public class Language : ISynchronizable {
 	{
 		None = 0x00,
 		IsAffixed = 0x01,
-		GoesAfterNoun = 0x02,
+		GoesAfter = 0x02,
 		IsLinkedWithDash = 0x04,
 
 		IsSuffixed = 0x03,
@@ -738,23 +738,23 @@ public class Language : ISynchronizable {
 		float goesAfterNounChance,
 		float isAffixedChance,
 		float isLinkedWithDashChance, 
-		float isAffixedChanceAfterNoun,
-		float isLinkedWithDashAfterNoun
+		float isAffixedChance_after,
+		float isLinkedWithDashChance_after
 	) {
 
 		AdjunctionProperties properties = AdjunctionProperties.None;
 
 		if (getRandomFloat () < goesAfterNounChance) {
 
-			properties |= AdjunctionProperties.GoesAfterNoun;
+			properties |= AdjunctionProperties.GoesAfter;
 
 			float random = getRandomFloat ();
 
-			if (random < isAffixedChanceAfterNoun) {
+			if (random < isAffixedChance_after) {
 
 				properties |= AdjunctionProperties.IsAffixed;
 
-			} else if (random < (isAffixedChanceAfterNoun + isLinkedWithDashAfterNoun)) {
+			} else if (random < (isAffixedChance_after + isLinkedWithDashChance_after)) {
 
 				properties |= AdjunctionProperties.IsLinkedWithDash;
 			}
@@ -796,7 +796,7 @@ public class Language : ISynchronizable {
 			multipleProperties = true;
 		}
 
-		if ((properties & AdjunctionProperties.GoesAfterNoun) == AdjunctionProperties.GoesAfterNoun) {
+		if ((properties & AdjunctionProperties.GoesAfter) == AdjunctionProperties.GoesAfter) {
 
 			if (multipleProperties) {
 				output += " | ";
@@ -2099,7 +2099,7 @@ public class Language : ISynchronizable {
 
 		string text = complementPhrase.Text;
 
-		if ((AdpositionAdjunctionProperties & AdjunctionProperties.GoesAfterNoun) == AdjunctionProperties.GoesAfterNoun) {
+		if ((AdpositionAdjunctionProperties & AdjunctionProperties.GoesAfter) == AdjunctionProperties.GoesAfter) {
 
 			if ((AdpositionAdjunctionProperties & AdjunctionProperties.IsAffixed) == AdjunctionProperties.IsAffixed) {
 
@@ -2439,7 +2439,7 @@ public class Language : ISynchronizable {
 		if (string.IsNullOrEmpty (adjunction))
 			return phrase;
 			
-		if ((properties & AdjunctionProperties.GoesAfterNoun) == AdjunctionProperties.GoesAfterNoun) {
+		if ((properties & AdjunctionProperties.GoesAfter) == AdjunctionProperties.GoesAfter) {
 
 			if (forceAffixed || ((properties & AdjunctionProperties.IsAffixed) == AdjunctionProperties.IsAffixed)) {
 				
@@ -2554,7 +2554,7 @@ public class Language : ISynchronizable {
 
 			if (parsedPhrasePart.Attributes.ContainsKey (ParsedWordAttributeId.NounAdjunct)) {
 				
-				nounAdjunctionPhrases.Add (TranslateNoun (phrasePart, phraseProperties, getRandomFloat));
+				nounAdjunctionPhrases.Add (TranslateNoun (phrasePart, phraseProperties, getRandomFloat, true));
 
 			} else if (parsedPhrasePart.Attributes.ContainsKey (ParsedWordAttributeId.Adjective)) {
 			
@@ -2595,7 +2595,7 @@ public class Language : ISynchronizable {
 		return nounPhrase;
 	}
 
-	public Phrase TranslateNoun (string untranslatedNoun, PhraseProperties properties, GetRandomFloatDelegate getRandomFloat) {
+	public Phrase TranslateNoun (string untranslatedNoun, PhraseProperties properties, GetRandomFloatDelegate getRandomFloat, bool nounAdjunction = false) {
 
 		string[] nounParts = untranslatedNoun.Split (new char[] { ':' });
 
@@ -2735,9 +2735,11 @@ public class Language : ISynchronizable {
 			text = AppendAdjunction (text, nounComponent.Value, NounAdjunctionProperties, true);
 		}
 
-		Morpheme nounIndicative = GetAppropiateNounIndicative (properties);
+		if (!nounAdjunction) {
+			Morpheme nounIndicative = GetAppropiateNounIndicative (properties);
 
-		text = AppendAdjunction (text, nounIndicative.Value, NounIndicativeAdjunctionProperties);
+			text = AppendAdjunction (text, nounIndicative.Value, NounIndicativeAdjunctionProperties);
+		}
 
 		Phrase phrase = new Phrase ();
 		phrase.Text = text;
@@ -2860,8 +2862,11 @@ public class Language : ISynchronizable {
 
 		bool linkWithDashMeaning = agglutinate;
 
-		phrase.Text = TurnIntoProperName (phrase.Text, agglutinate, false);
-		phrase.Meaning = TurnIntoProperName (phrase.Meaning, false, linkWithDashMeaning);
+		string newText = TurnIntoProperName (phrase.Text, agglutinate, false);
+		string newMeaning = TurnIntoProperName (phrase.Meaning, false, linkWithDashMeaning);
+
+		phrase.Text = newText;
+		phrase.Meaning = newMeaning;
 	}
 
 	public static string TurnIntoProperName (string sentence, bool agglutinate, bool linkWithDash) {
@@ -2896,6 +2901,10 @@ public class Language : ISynchronizable {
 
 	public static string MakeFirstLetterUpper (string sentence) {
 
+		if (string.IsNullOrEmpty (sentence)) {
+			throw new System.Exception ("Empty sentence");
+		}
+
 		return sentence.First().ToString().ToUpper() + sentence.Substring(1);
 	}
 
@@ -2916,8 +2925,11 @@ public class Language : ISynchronizable {
 	// For now it will only make the first letter in the phrase uppercase
 	public void LocalizePhrase (Phrase phrase) {
 
-		phrase.Text = MakeFirstLetterUpper (phrase.Text);
-		phrase.Meaning = MakeFirstLetterUpper (phrase.Meaning);
+		string newText = MakeFirstLetterUpper (phrase.Text);
+		string newMeaning = MakeFirstLetterUpper (phrase.Meaning);
+
+		phrase.Text = newText;
+		phrase.Meaning = newMeaning;
 	}
 
 	public void Synchronize () {
