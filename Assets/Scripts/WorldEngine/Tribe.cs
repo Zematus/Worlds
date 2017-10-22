@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
+using System.Text.RegularExpressions;
 
 public class Tribe : Polity {
 
@@ -15,7 +16,12 @@ public class Tribe : Polity {
 
 	public const string TribeType = "Tribe";
 
-	public static string[] TribeNounVariations = new string[] { "tribe", "[ipn(person)]people", "folk", "community", "[ipn(man)]men", "[ipn(woman)]women", "[ipn(child)]children" };
+	private static string[] PrepositionVariations = new string[] { "from", "of" };
+
+	private static string[] TribeNounVariations;
+
+	private static string[] TribeNounVariants = new string[] { 
+		"nation", "tribe", "[ipn(person)]people", "folk", "community", "kin", "{kin:s:}person:s", "{kin:s:}[ipn(man)]men", "{kin:s:}[ipn(woman)]women", "[ipn(child)]children" };
 
 	public const float BaseCoreInfluence = 0.5f;
 
@@ -44,7 +50,8 @@ public class Tribe : Polity {
 			if (cellRegion != null) {
 				cellRegion.GenerateName (this, coreCell);
 
-				World.AddRegion (cellRegion);
+				if (World.GetRegion (cellRegion.Id) == null)
+					World.AddRegion (cellRegion);
 			}
 		}
 
@@ -89,6 +96,11 @@ public class Tribe : Polity {
 		////
 
 //		Debug.Log ("New tribe '" + Name + "' from tribe '" + parentPolity.Name + "' with total transfered prominence = " + transferedProminence);
+	}
+
+	public static void GenerateTribeNounVariations () {
+
+		TribeNounVariations = NamingTools.GenerateNounVariations (TribeNounVariants);
 	}
 
 	private void AddBaseEvents () {
@@ -280,19 +292,26 @@ public class Tribe : Polity {
 
 		int rngOffset = RngOffsets.TRIBE_GENERATE_NAME + (int)Id;
 
-		int randomInt = GetNextLocalRandomInt (rngOffset++, TribeNounVariations.Length);
+		GetRandomIntDelegate getRandomInt = (int maxValue) => GetNextLocalRandomInt (rngOffset++, maxValue);
+		GetRandomFloatDelegate getRandomFloat = () => GetNextLocalRandomFloat (rngOffset++);
 
-		string tribeNounVariation = TribeNounVariations[randomInt];
+		string tribeNoun = TribeNounVariations.RandomSelect (getRandomInt);
 
-		string regionAttributeNounVariation = coreRegion.GetRandomAttributeVariation ((int maxValue) => GetNextLocalRandomInt (rngOffset++, maxValue));
+		bool areaNameIsNounAdjunct = (getRandomFloat () > 0.5f);
 
-		if (regionAttributeNounVariation != string.Empty) {
-			regionAttributeNounVariation = "[nad]" + regionAttributeNounVariation;
+		string areaName = coreRegion.GetRandomUnstranslatedAreaName (getRandomInt, areaNameIsNounAdjunct);
+
+		string untranslatedName;
+
+		if (areaNameIsNounAdjunct) {
+			untranslatedName = "[NP](" + areaName + " " + tribeNoun + ")";
+		} else {
+			string preposition = PrepositionVariations.RandomSelect (getRandomInt);
+
+			untranslatedName = "[PpPP]([NP](" + tribeNoun + ") [PP](" + preposition + " [NP](the " + areaName + ")))";
 		}
 
-		string untranslatedName = "[NP](" + regionAttributeNounVariation + " " + tribeNounVariation + ")";
-
-		Language.Phrase namePhrase = Culture.Language.TranslatePhrase (untranslatedName, () => GetNextLocalRandomFloat (rngOffset++));
+		Language.Phrase namePhrase = Culture.Language.TranslatePhrase (untranslatedName, new Language.GetRandomFloatDelegate(getRandomFloat));
 
 		Name = new Name (namePhrase, untranslatedName, Culture.Language, World);
 

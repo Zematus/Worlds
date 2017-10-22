@@ -61,10 +61,25 @@ public class ElementConstraint {
 
 			return new ElementConstraint (type, temperature_below);
 
-		case "any_attribute":
+		case "no_attribute":
 			string[] attributeStrs = valueStr.Split (new char[] { ',' });
 
 			RegionAttribute[] attributes = attributeStrs.Select (s=> {
+
+				if (!RegionAttribute.Attributes.ContainsKey (s)) {
+
+					throw new System.Exception ("Attribute not present: " + s);
+				}
+
+				return RegionAttribute.Attributes[s];
+			}).ToArray ();
+
+			return new ElementConstraint (type, attributes);
+
+		case "any_attribute":
+			attributeStrs = valueStr.Split (new char[] { ',' });
+
+			attributes = attributeStrs.Select (s=> {
 
 				if (!RegionAttribute.Attributes.ContainsKey (s)) {
 
@@ -132,6 +147,9 @@ public class ElementConstraint {
 		case "temperature_below":
 			return region.AverageTemperature < (float)Value;
 
+		case "no_attribute":
+			return !((RegionAttribute[])Value).Any (a => region.Attributes.Contains (a));
+
 		case "any_attribute":
 			return ((RegionAttribute[])Value).Any (a => region.Attributes.Contains (a));
 
@@ -160,11 +178,11 @@ public class Element {
 	public static Element Sand = new Element ("sand", new string[] {"white", "red", "yellow", "black", "grey", "fine", "coarse"}, new string[] {"any_attribute:Desert,Delta,Peninsula,Island,Coast"});
 	public static Element Tree = new Element ("tree", new string[] {"white", "red", "green", "yellow", "black", "dark", "pale", "dead", "great", "short", "tall", "narrow", "wide"}, new string[] {"main_biome:Forest,Taiga,Rainforest"});
 	public static Element Wood = new Element ("wood", new string[] {"white", "red", "green", "yellow", "black", "dark", "pale", "dead", "hard", "soft"}, new string[] {"main_biome:Forest,Taiga,Rainforest"});
-	public static Element Grass = new Element ("grass", new string[] {"dead", "tall", "short", "soft", "wet", "dry"}, new string[] {"main_biome:Grassland,Tundra"});
+	public static Element Grass = new Element ("grass", new string[] {"wild", "dead", "tall", "short", "soft", "wet", "dry"}, new string[] {"main_biome:Grassland,Tundra"});
 	public static Element Cloud = new Element ("cloud", new string[] {"white", "red", "black", "grey", "dark", "great", "thin", "deep", "light", "bright", "heavy"}, new string[] {"rainfall_above:675"});
 	public static Element Moss = new Element ("moss", new string[] {"white", "red", "green", "yellow", "black", "dark", "wet"}, new string[] {"main_biome:Forest,Taiga,Tundra,Rainforest"});
 	public static Element Shrub = new Element ("shrub", new string[] {"white", "red", "green", "yellow", "black", "dark", "dry"}, new string[] {"main_biome:Grassland,Tundra,Desert"});
-	public static Element Fire = new Element ("fire", new string[] {"white", "red", "green", "blue", "yellow", "bright"}, new string[] {"altitude_above:0","temperature_above:0"});
+	public static Element Fire = new Element ("fire", new string[] {"wild", "white", "red", "green", "blue", "yellow", "bright"}, new string[] {"altitude_above:0","temperature_above:0"});
 	public static Element Water = new Element ("water", new string[] {"white", "green", "blue", "clear", "dark"}, new string[] {"altitude_below:0"});
 	public static Element Rain = new Element ("rain", new string[] {"heavy", "soft", "dark"}, new string[] {"rainfall_above:675"});
 	public static Element Storm = new Element ("storm", new string[] {"heavy", "dark", "great"}, new string[] {"rainfall_above:675"});
@@ -173,6 +191,7 @@ public class Element {
 	public static Element Day = new Element ("day", new string[] {"white", "red", "blue", "green", "yellow", "black", "grey", "dark", "bright", "great", "short", "long", "somber", "cheerful"}, new string[] {});
 	public static Element Night = new Element ("night", new string[] {"white", "red", "blue", "green", "yellow", "black", "grey", "dark", "bright", "great", "short", "long", "somber", "cheerful"}, new string[] {});
 	public static Element Air = new Element ("air", new string[] {}, new string[] {});
+	public static Element Wind = new Element ("wind", new string[] {"strong", "soft"}, new string[] {"no_attribute:Rainforest,Jungle,Taiga,Forest"});
 	public static Element Sky = new Element ("sky", new string[] {"white", "red", "blue", "green", "yellow", "black", "grey", "dark", "bright", "great"}, new string[] {"altitude_above:3000"});
 	public static Element Ice = new Element ("ice", new string[] {"clear", "dark", "blue", "opaque"}, new string[] {"temperature_below:0"});
 	public static Element Snow = new Element ("snow", new string[] {"clear", "grey", "soft", "hard", "wet"}, new string[] {"temperature_below:5"});
@@ -203,6 +222,7 @@ public class Element {
 		{"Day", Day},
 		{"Night", Night},
 		{"Air", Air},
+		{"Wind", Wind},
 		{"Sky", Sky},
 		{"Ice", Ice},
 		{"Snow", Snow},
@@ -242,7 +262,7 @@ public class RegionAttribute {
 
 	public string[] Adjectives;
 
-	public List<string> Variations = new List<string> ();
+	public string[] Variations;
 
 	public static RegionAttribute Glacier = new RegionAttribute ("Glacier", new string[] {"clear", "white", "blue", "grey"}, new string[] {"glacier"});
 	public static RegionAttribute IceCap = new RegionAttribute ("IceCap", new string[] {"clear", "white", "blue", "grey"}, new string[] {"[nad]ice cap"});
@@ -273,7 +293,7 @@ public class RegionAttribute {
 //	public static RegionAttribute Continent = new RegionAttribute ("Continent", new string[] {"continent"});
 //	public static RegionAttribute Strait = new RegionAttribute ("Strait", new string[] {"strait", "pass"});
 	public static RegionAttribute Coast = new RegionAttribute ("Coast", new string[] {}, new string[] {"strand", "coast"});
-//	public static RegionAttribute Region = new RegionAttribute ("Region", new string[] {"region", "land{:s}"});
+	public static RegionAttribute Region = new RegionAttribute ("Region", new string[] {"dark", "bleak", "open"}, new string[] {"region", "land{:s}"});
 //	public static RegionAttribute Expanse = new RegionAttribute ("Expanse", new string[] {"expanse"});
 
 	public static Dictionary<string, RegionAttribute> Attributes = new Dictionary<string, RegionAttribute> () {
@@ -305,27 +325,10 @@ public class RegionAttribute {
 //		{"Sea", Sea},
 //		{"Continent", Continent},
 //		{"Strait", Strait},
-		{"Coast", Coast}
-//		{"Region", Region}
+		{"Coast", Coast},
+		{"Region", Region}
 //		{"Expanse", Expanse}
 	};
-
-	private void GenerateVariations (string variant) {
-
-		Match match = NamingTools.OptionalWordPartRegex.Match (variant);
-
-		if (!match.Success) {
-		
-			Variations.Add (variant);
-			return;
-		}
-
-		string v1 = variant.Replace (match.Value, string.Empty);
-		string v2 = variant.Replace (match.Value, match.Groups ["word"].Value);
-
-		GenerateVariations (v1);
-		GenerateVariations (v2);
-	}
 
 	private RegionAttribute (string name, string[] adjectives, string[] variants) {
 
@@ -333,10 +336,7 @@ public class RegionAttribute {
 
 		Adjectives = adjectives;
 
-		foreach (string variant in variants) {
-
-			GenerateVariations (variant);
-		}
+		Variations = NamingTools.GenerateNounVariations (variants);
 	}
 
 	public string GetRandomVariation (GetRandomIntDelegate getRandomInt, Element filterElement = null) {
@@ -477,6 +477,8 @@ public abstract class Region : ISynchronizable {
 
 		int regionSize = 1;
 
+		HashSet<CellRegion> borderingRegions = new HashSet<CellRegion> ();
+
 		// round the base altitude
 		float baseAltitude = AltitudeRoundnessTarget * Mathf.Round (startCell.Altitude / AltitudeRoundnessTarget);
 
@@ -496,7 +498,7 @@ public abstract class Region : ISynchronizable {
 
 		int borderCells = 0;
 
-		float maxClosedness = 0;
+//		float maxClosedness = 0;
 
 		while (addedAcceptedCells) {
 			HashSet<TerrainCell> nextCellsToExplore = new HashSet<TerrainCell> ();
@@ -507,8 +509,8 @@ public abstract class Region : ISynchronizable {
 
 			float closedness = 1 - cellsToExplore.Count / (float)(cellsToExplore.Count + borderCells);
 
-			if (closedness > maxClosedness)
-				maxClosedness = closedness;
+//			if (closedness > maxClosedness)
+//				maxClosedness = closedness;
 
 			foreach (TerrainCell cell in cellsToExplore) {
 
@@ -525,7 +527,11 @@ public abstract class Region : ISynchronizable {
 
 				string cellBiomeName = cell.BiomeWithMostPresence;
 
-				if ((cell.Region == null) && (cellBiomeName == biomeName)) {
+				if (cell.Region != null) {
+				
+					borderingRegions.Add (cell.Region as CellRegion);
+
+				} else if (cellBiomeName == biomeName) {
 
 					if (Mathf.Abs (cell.Altitude - baseAltitude) < maxAltitudeDifference) {
 
@@ -561,14 +567,34 @@ public abstract class Region : ISynchronizable {
 			cellsToExplore = nextCellsToExplore;
 		}
 
-		CellRegion region = new CellRegion (startCell);
+		CellRegion region = null;
+
+		if ((regionSize <= 20) && (borderingRegions.Count > 0)) {
+
+			int rngOffset = RngOffsets.REGION_SELECT_BORDER_REGION;
+
+			GetRandomIntDelegate getRandomInt = (int maxValue) => startCell.GetNextLocalRandomInt (rngOffset++, maxValue);
+
+			region = borderingRegions.RandomSelect (getRandomInt);
+
+		} else {
+			
+			region = new CellRegion (startCell);
+		}
 
 		foreach (TerrainCell cell in acceptedCells) {
 
 			region.AddCell (cell);
 		}
 
+		foreach (CellRegion bRegion in borderingRegions) {
+		
+			region.AddBorderingRegion (bRegion);
+		}
+
 		region.EvaluateAttributes ();
+
+		region.Update ();
 
 		return region;
 	}
@@ -600,61 +626,42 @@ public abstract class Region : ISynchronizable {
 		Elements.AddRange (elem);
 	}
 
-	public void GenerateName (Polity polity, TerrainCell startCell) {
-
-		int rngOffset = RngOffsets.REGION_GENERATE_NAME + (int)polity.Id;
-
-		GetRandomIntDelegate getRandomInt = (int maxValue) => startCell.GetNextLocalRandomInt (rngOffset++, maxValue);
-		Language.GetRandomFloatDelegate getRandomFloat = () => startCell.GetNextLocalRandomFloat (rngOffset++);
-
-		Language polityLanguage = polity.Culture.Language;
+	public string GetRandomUnstranslatedAreaName (GetRandomIntDelegate getRandomInt, bool isNounAdjunct) {
 
 		string untranslatedName;
-		Language.Phrase namePhrase;
 
-		if (Attributes.Count <= 0) {
-
-			untranslatedName = "[NP](region)";
-
-			namePhrase = polityLanguage.TranslatePhrase (untranslatedName, getRandomFloat);
-
-			Name = new Name (namePhrase, untranslatedName, polityLanguage, World);
-
-			return;
-		}
-
-		Element element = Elements.RandomSelect (getRandomInt, 5);
+		Element element = Elements.RandomSelect (getRandomInt, isNounAdjunct ? 5 : 20);
 
 		List<RegionAttribute> remainingAttributes = new List<RegionAttribute> (Attributes);
 
-		RegionAttribute primaryAttribute = remainingAttributes.RandomSelectAndRemove (getRandomInt);
+		RegionAttribute attribute = remainingAttributes.RandomSelectAndRemove (getRandomInt);
 
-		IEnumerable<string> possibleAdjectives = primaryAttribute.Adjectives;
+		IEnumerable<string> possibleAdjectives = attribute.Adjectives;
+
+		bool addAttributeNoun = true;
+
+		int wordCount = 0;
 
 		if (element != null) {
 			possibleAdjectives = element.Adjectives;
-		}
 
-		int nullAdjectives = 2;
+			wordCount++;
 
-		string primaryTitle = primaryAttribute.GetRandomVariation (getRandomInt, element);
+			if (isNounAdjunct && (getRandomInt (10) > 4)) {
 
-		string secondaryTitle = string.Empty;
-
-		float secondaryAttributeChance = 4f / (4f + ((element != null) ? 8f : 0f) + possibleAdjectives.Count ());
-
-		if ((remainingAttributes.Count > 0) && (getRandomFloat () < secondaryAttributeChance)) {
-
-			RegionAttribute secondaryAttribute = remainingAttributes.RandomSelectAndRemove (getRandomInt);
-
-			if (element == null) {
-				possibleAdjectives = possibleAdjectives.Union (secondaryAttribute.Adjectives);
+				addAttributeNoun = false;
 			}
-
-			nullAdjectives += 4;
-
-			secondaryTitle = "[nad]" + secondaryAttribute.GetRandomVariation (getRandomInt, element) + " ";
 		}
+
+		string attributeNoun = string.Empty;
+
+		if (addAttributeNoun) {
+			attributeNoun = attribute.GetRandomVariation (getRandomInt, element);
+
+			wordCount++;
+		}
+
+		int nullAdjectives = 4 * wordCount * (isNounAdjunct ? 4 : 1);
 
 		string adjective = possibleAdjectives.RandomSelect (getRandomInt, nullAdjectives);
 		if (!string.IsNullOrEmpty (adjective))
@@ -662,9 +669,81 @@ public abstract class Region : ISynchronizable {
 
 		string elementNoun = string.Empty;
 		if (element != null)
-			elementNoun = "[nad]" + element.Name + " ";
+			elementNoun = "[nad]" + element.Name + ((addAttributeNoun) ? " " : string.Empty);
 
-		untranslatedName = "[NP](" + adjective + elementNoun + secondaryTitle + primaryTitle + ")";
+		untranslatedName = adjective + elementNoun;
+
+		if (isNounAdjunct) {
+			untranslatedName += (addAttributeNoun) ? ("[nad]" + attributeNoun) : string.Empty;
+		} else {
+			untranslatedName += attributeNoun;
+		}
+
+		return untranslatedName;
+	}
+
+	public void GenerateName (Polity polity, TerrainCell originCell) {
+
+		int rngOffset = RngOffsets.REGION_GENERATE_NAME + (int)polity.Id;
+
+		GetRandomIntDelegate getRandomInt = (int maxValue) => originCell.GetNextLocalRandomInt (rngOffset++, maxValue);
+		Language.GetRandomFloatDelegate getRandomFloat = () => originCell.GetNextLocalRandomFloat (rngOffset++);
+
+		Language polityLanguage = polity.Culture.Language;
+
+		string untranslatedName;
+		Language.Phrase namePhrase;
+
+		int wordCount = 1;
+
+		List<RegionAttribute> remainingAttributes = new List<RegionAttribute> (Attributes);
+
+		RegionAttribute primaryAttribute = remainingAttributes.RandomSelectAndRemove (getRandomInt);
+
+		List<Element> remainingElements = new List<Element> (Elements);
+
+		Element firstElement = remainingElements.RandomSelect (getRandomInt, 5, true);
+
+		IEnumerable<string> possibleAdjectives = primaryAttribute.Adjectives;
+
+		if (firstElement != null) {
+			possibleAdjectives = firstElement.Adjectives;
+
+			wordCount++;
+		}
+
+		string primaryAttributeNoun = primaryAttribute.GetRandomVariation (getRandomInt, firstElement);
+
+		string secondaryAttributeNoun = string.Empty;
+
+		int elementFactor = (firstElement != null) ? 8 : 4;
+
+		float secondaryAttributeChance = 4f / (elementFactor + possibleAdjectives.Count ());
+
+		if ((remainingAttributes.Count > 0) && (getRandomFloat () < secondaryAttributeChance)) {
+
+			RegionAttribute secondaryAttribute = remainingAttributes.RandomSelectAndRemove (getRandomInt);
+
+			if (firstElement == null) {
+				possibleAdjectives = possibleAdjectives.Union (secondaryAttribute.Adjectives);
+			}
+
+			secondaryAttributeNoun = "[nad]" + secondaryAttribute.GetRandomVariation (getRandomInt, firstElement) + " ";
+
+			wordCount++;
+		}
+
+		string adjective = possibleAdjectives.RandomSelect (getRandomInt, (int)Mathf.Pow (2, wordCount));
+
+		if (!string.IsNullOrEmpty (adjective))
+			adjective = "[adj]" + adjective + " ";
+
+		string elementNoun = string.Empty;
+		if (firstElement != null) {
+			elementNoun = "[nad]" + firstElement.Name + " ";
+		}
+
+		untranslatedName = "[NP](" + adjective + elementNoun + secondaryAttributeNoun + primaryAttributeNoun + ")";
 		namePhrase = polityLanguage.TranslatePhrase (untranslatedName, getRandomFloat);
 
 		Name = new Name (namePhrase, untranslatedName, polityLanguage, World);
@@ -692,6 +771,8 @@ public class CellRegion : Region {
 
 	public List<WorldPosition> CellPositions;
 
+	public List<long> BorderingRegionIds;
+
 	private HashSet<TerrainCell> _cells = new HashSet<TerrainCell> ();
 
 	private HashSet<TerrainCell> _innerBorderCells = new HashSet<TerrainCell> ();
@@ -699,6 +780,8 @@ public class CellRegion : Region {
 	private HashSet<TerrainCell> _outerBorderCells = new HashSet<TerrainCell> ();
 
 	private TerrainCell _mostCenteredCell = null;
+
+	private HashSet<CellRegion> _borderingRegions = new HashSet<CellRegion> ();
 
 	public CellRegion () {
 
@@ -708,13 +791,30 @@ public class CellRegion : Region {
 		
 	}
 
+	public void Update () {
+	
+		foreach (TerrainCell cell in _cells) {
+			Manager.AddUpdatedCell (cell, CellUpdateType.Region);
+		}
+	}
+
 	public bool AddCell (TerrainCell cell) {
 
 		if (!_cells.Add (cell))
 			return false;
 
 		cell.Region = this;
-		Manager.AddUpdatedCell (cell, CellUpdateType.Region);
+//		Manager.AddUpdatedCell (cell, CellUpdateType.Region);
+
+		return true;
+	}
+
+	public bool AddBorderingRegion (CellRegion region) {
+
+		if (!_borderingRegions.Add (region))
+			return false;
+
+		region.AddBorderingRegion (this);
 
 		return true;
 	}
@@ -736,6 +836,9 @@ public class CellRegion : Region {
 		float oceanicArea = 0;
 		float coastalOuterBorderArea = 0;
 		float outerBorderArea = 0;
+
+		_innerBorderCells.Clear ();
+		_outerBorderCells.Clear ();
 
 		foreach (TerrainCell cell in _cells) {
 
@@ -870,12 +973,30 @@ public class CellRegion : Region {
 			CellPositions.Add (cell.Position);
 		}
 
+		BorderingRegionIds = new List<long> (_borderingRegions.Count);
+
+		foreach (CellRegion region in _borderingRegions) {
+
+			BorderingRegionIds.Add (region.Id);
+		}
+
 		base.Synchronize ();
 	}
 
 	public override void FinalizeLoad () {
 
 		base.FinalizeLoad ();
+
+		foreach (int regionId in BorderingRegionIds) {
+
+			CellRegion region = World.GetRegion (regionId) as CellRegion;
+
+			if (region == null) {
+				throw new System.Exception ("CellRegion missing, Id: " + regionId);
+			}
+
+			_borderingRegions.Add (region);
+		}
 
 		foreach (WorldPosition position in CellPositions) {
 
@@ -894,6 +1015,8 @@ public class CellRegion : Region {
 	}
 
 	private void DefineAttributes () {
+
+		Attributes.Clear ();
 
 		if ((CoastPercentage > 0.45f) && (CoastPercentage < 0.70f)) {
 			AddAttribute (RegionAttribute.Coast);
@@ -964,9 +1087,15 @@ public class CellRegion : Region {
 				break;
 			}
 		}
+
+		if (Attributes.Count <= 0) {
+			AddAttribute (RegionAttribute.Region);
+		}
 	}
 
 	private void DefineElements () {
+
+		Elements.Clear ();
 
 		AddElements(Element.Elements.Values.Where (e => e.Assignable (this)));
 	}

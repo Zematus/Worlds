@@ -53,6 +53,7 @@ public static class RngOffsets {
 	public const int POLITY_UPDATE_EFFECTS = 50000;
 
 	public const int REGION_GENERATE_NAME = 60000;
+	public const int REGION_SELECT_BORDER_REGION = 61000;
 
 	public const int TRIBE_GENERATE_NEW_TRIBE = 70000;
 	public const int TRIBE_GENERATE_NAME = 71000;

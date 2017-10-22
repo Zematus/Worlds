@@ -307,6 +307,10 @@ public class Manager {
 
 		UpdatedCells = new HashSet<TerrainCell> ();
 		_lastUpdatedCells = new List<TerrainCell> ();
+
+		/// static initalizations
+
+		Tribe.GenerateTribeNounVariations ();
 	}
 
 	private void InitializeSavePath () {
