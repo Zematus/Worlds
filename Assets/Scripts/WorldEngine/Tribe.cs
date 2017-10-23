@@ -304,11 +304,11 @@ public class Tribe : Polity {
 		string untranslatedName;
 
 		if (areaNameIsNounAdjunct) {
-			untranslatedName = "[NP](" + areaName + " " + tribeNoun + ")";
+			untranslatedName = "[Proper][NP](" + areaName + " " + tribeNoun + ")";
 		} else {
 			string preposition = PrepositionVariations.RandomSelect (getRandomInt);
 
-			untranslatedName = "[PpPP]([NP](" + tribeNoun + ") [PP](" + preposition + " [NP](the " + areaName + ")))";
+			untranslatedName = "[PpPP]([Proper][NP](" + tribeNoun + ") [PP](" + preposition + " [Proper][NP](the " + areaName + ")))";
 		}
 
 		Language.Phrase namePhrase = Culture.Language.TranslatePhrase (untranslatedName, new Language.GetRandomFloatDelegate(getRandomFloat));

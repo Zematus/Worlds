@@ -165,45 +165,69 @@ public class Clan : Faction {
 		Language.Phrase namePhrase = null;
 
 		if (region.Elements.Count <= 0) {
-
 			throw new System.Exception ("No elements to choose name from");
 		}
+
+		IEnumerable<string> possibleAdjectives = null;
 
 		List<Element> remainingElements = new List<Element> (region.Elements);
 
 		bool addMoreWords = true;
 
-		bool isPrimaryWord = true;
+		bool isPrimaryNoun = true;
 		float extraWordChance = 0.2f;
+
+		List<Element> usedElements = new List<Element> ();
 
 		while (addMoreWords) {
 
 			addMoreWords = false;
 
-			int index = getRandomInt (remainingElements.Count);
+			bool hasRemainingElements = remainingElements.Count > 0;
 
-			Element element = remainingElements [index];
+			if ((!hasRemainingElements) && (usedElements.Count <= 0)) {
 
-			remainingElements.RemoveAt (index);
+				throw new System.Exception ("No elements to use for name");
+			}
 
-			if (isPrimaryWord) {
-			
-				untranslatedName = element.Name;
-				isPrimaryWord = false;
+			Element element = null;
+
+			if (hasRemainingElements) {
+				element = remainingElements.RandomSelectAndRemove (getRandomInt);
+
+				usedElements.Add (element);
 
 			} else {
-			
-				untranslatedName = "[nad]" + element.Name + " " + untranslatedName;
+				element = usedElements.RandomSelect (getRandomInt);
 			}
 
-			bool canAddMoreWords = remainingElements.Count > 0;
+			if (isPrimaryNoun) {
+				untranslatedName = element.Name;
+				isPrimaryNoun = false;
 
-			if (canAddMoreWords) {
-			
-				addMoreWords = extraWordChance > getRandomFloat ();
+				possibleAdjectives = element.Adjectives;
+
+			} else {
+				bool first = true;
+				foreach (Element usedElement in usedElements) {
+					if (first) {
+						untranslatedName = usedElement.Name;
+						first = false;
+					} else {
+						untranslatedName = usedElement.Name + ":" + untranslatedName;
+					}
+				}
 			}
 
-			if (!canAddMoreWords || !addMoreWords) {
+			string adjective = possibleAdjectives.RandomSelect (getRandomInt, 2 * usedElements.Count);
+
+			if (!string.IsNullOrEmpty (adjective)) {
+				untranslatedName = "[adj]" + adjective + " " + untranslatedName;
+			}
+
+			addMoreWords = extraWordChance > getRandomFloat ();
+
+			if (!addMoreWords) {
 				
 				foreach (Faction faction in Polity.GetFactions ()) {
 
@@ -214,15 +238,10 @@ public class Clan : Faction {
 				}
 			}
 
-			if (addMoreWords && !canAddMoreWords) {
-			
-				throw new System.Exception ("Ran out of words to add");
-			}
-
 			extraWordChance /= 2f;
 		}
 
-		untranslatedName = "[NP](" + untranslatedName + ")";
+		untranslatedName = "[Proper][NP](" + untranslatedName + ")";
 
 		namePhrase = language.TranslatePhrase (untranslatedName, getRandomFloat);
 

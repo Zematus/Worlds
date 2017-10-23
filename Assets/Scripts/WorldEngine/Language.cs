@@ -170,6 +170,7 @@ public class Language : ISynchronizable {
 		public const string PrepositionalPhrase = "PP";
 		public const string NounPhrase = "NP";
 		public const string Noun = "Noun";
+		public const string ProperName = "Proper";
 	}
 
 	public enum WordType
@@ -2503,7 +2504,9 @@ public class Language : ISynchronizable {
 
 		} else if (parsedPhrase.Attributes.ContainsKey (ParsedPhraseAttributeId.NounPhrase)) {
 
-			translatedPhrase = TranslateNounPhrase (parsedPhrase.Value, getRandomFloat); 
+			bool isProperName = parsedPhrase.Attributes.ContainsKey (ParsedPhraseAttributeId.ProperName);
+
+			translatedPhrase = TranslateNounPhrase (parsedPhrase.Value, getRandomFloat, isProperName); 
 		}
 
 		if (parsedPhrase.Attributes.ContainsKey (ParsedPhraseAttributeId.Noun)) {
@@ -2520,7 +2523,7 @@ public class Language : ISynchronizable {
 		return TranslatePhrase (ParsePhrase (untranslatedPhrase), getRandomFloat);
 	}
 
-	private Phrase TranslateNounPhrase (string untranslatedNounPhrase, GetRandomFloatDelegate getRandomFloat) {
+	private Phrase TranslateNounPhrase (string untranslatedNounPhrase, GetRandomFloatDelegate getRandomFloat, bool isProperName) {
 
 		bool absentArticle = true;
 		PhraseProperties phraseProperties = PhraseProperties.None;
@@ -2591,6 +2594,9 @@ public class Language : ISynchronizable {
 
 		nounPhrase.Original = untranslatedNounPhrase;
 		nounPhrase.Meaning = ClearConstructCharacters (untranslatedNounPhrase);
+
+		if (isProperName)
+			TurnIntoProperName (nounPhrase);
 
 		return nounPhrase;
 	}
@@ -2858,7 +2864,7 @@ public class Language : ISynchronizable {
 		return sentence;
 	}
 
-	public static void TurnIntoProperName (Phrase phrase, bool agglutinate) {
+	public static void TurnIntoProperName (Phrase phrase, bool agglutinate = false) {
 
 		bool linkWithDashMeaning = agglutinate;
 
@@ -2869,7 +2875,7 @@ public class Language : ISynchronizable {
 		phrase.Meaning = newMeaning;
 	}
 
-	public static string TurnIntoProperName (string sentence, bool agglutinate, bool linkWithDash) {
+	public static string TurnIntoProperName (string sentence, bool agglutinate = false, bool linkWithDash = false) {
 		
 		string[] words = sentence.Split (new char[] {' '});
 

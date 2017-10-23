@@ -214,8 +214,8 @@ public class GuiManagerScript : MonoBehaviour {
 //			GenerateWorld (false, 407252633);
 //			GenerateWorld (false, 783909167);
 //			GenerateWorld (false, 1446630758);
-			GenerateWorld (false, 1788799931);
-//			GenerateWorld (false, 616109363);
+//			GenerateWorld (false, 1788799931);
+			GenerateWorld (false, 616109363);
 
 		} else if (!Manager.SimulationCanRun) {
 
@@ -2544,6 +2544,10 @@ public class GuiManagerScript : MonoBehaviour {
 
 		TerrainCell hoveredCell = Manager.CurrentWorld.GetCell (longitude, latitude);
 
+		if (hoveredCell == null) {
+			throw new System.Exception ("Unable to get cell at [" + longitude + "," + latitude + "]");
+		}
+
 		if ((_planetOverlay == PlanetOverlay.General) ||
 			(_planetOverlay == PlanetOverlay.PolityTerritory) ||
 			(_planetOverlay == PlanetOverlay.PolityCulturalActivity) ||
@@ -2727,10 +2731,15 @@ public class GuiManagerScript : MonoBehaviour {
 			
 			uvPos += MapImage.uvRect.min;
 			
-			float worldLong = Mathf.Repeat (uvPos.x * Manager.CurrentWorld.Width, Manager.CurrentWorld.Width);
-			float worldLat = uvPos.y * Manager.CurrentWorld.Height;
+			float worldLong = Mathf.Repeat (Mathf.Floor(uvPos.x * Manager.CurrentWorld.Width), Manager.CurrentWorld.Width);
+			float worldLat = Mathf.Floor(uvPos.y * Manager.CurrentWorld.Height);
 			
-			mapPosition = new Vector2 (Mathf.Floor(worldLong), Mathf.Floor(worldLat));
+			mapPosition = new Vector2 (worldLong, worldLat);
+
+			if (Mathf.Floor (worldLong) == Manager.CurrentWorld.Width) {
+			
+				bool debug = true;
+			}
 			
 			return true;
 		}

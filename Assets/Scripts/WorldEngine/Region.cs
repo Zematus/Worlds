@@ -743,7 +743,7 @@ public abstract class Region : ISynchronizable {
 			elementNoun = "[nad]" + firstElement.Name + " ";
 		}
 
-		untranslatedName = "[NP](" + adjective + elementNoun + secondaryAttributeNoun + primaryAttributeNoun + ")";
+		untranslatedName = "[Proper][NP](" + adjective + elementNoun + secondaryAttributeNoun + primaryAttributeNoun + ")";
 		namePhrase = polityLanguage.TranslatePhrase (untranslatedName, getRandomFloat);
 
 		Name = new Name (namePhrase, untranslatedName, polityLanguage, World);

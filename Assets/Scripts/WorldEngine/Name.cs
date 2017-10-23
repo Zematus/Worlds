@@ -66,7 +66,7 @@ public class Name : ISynchronizable {
 
 		Value = value;
 
-		Language.TurnIntoProperName (Value, false);
+//		Language.TurnIntoProperName (Value, false);
 	}
 
 	public string Text {
