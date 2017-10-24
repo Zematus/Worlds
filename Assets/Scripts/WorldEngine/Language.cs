@@ -2818,6 +2818,24 @@ public class Language : ISynchronizable {
 		return parsedPhrase;
 	}
 
+	public static string GetSingularForm (string pluralNoun) {
+
+		string[] nounParts = pluralNoun.Split (new char[] { ':' });
+
+		ParsedWord parsedWordPart = ParseWord (nounParts[0]);
+
+		if (parsedWordPart.Attributes.ContainsKey (ParsedWordAttributeId.IrregularPluralNoun)) {
+			
+			return parsedWordPart.Attributes[ParsedWordAttributeId.IrregularPluralNoun][0];
+
+		} else if ((2 == nounParts.Length) && PluralSuffixRegex.IsMatch (nounParts[1])) {
+			
+			return nounParts[0];
+		}
+
+		return pluralNoun;
+	}
+
 	public static ParsedWord ParseWord (string word) {
 
 		ParsedWord parsedWord = new ParsedWord ();

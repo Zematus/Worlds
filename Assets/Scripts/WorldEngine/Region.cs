@@ -6,256 +6,6 @@ using System.Text.RegularExpressions;
 using System.Linq;
 using System;
 
-public class ElementConstraint {
-
-	public string Type;
-	public object Value;
-
-	public static Regex ConstraintRegex = new Regex (@"^(?<type>[\w_]+):(?<value>.+)$");
-
-	private ElementConstraint (string type, object value) {
-
-		Type = type;
-		Value = value;
-	}
-
-	public static ElementConstraint BuildConstraint (string constraint) {
-
-		Match match = ConstraintRegex.Match (constraint);
-
-		if (!match.Success)
-			throw new System.Exception ("Unparseable constraint: " + constraint);
-
-		string type = match.Groups ["type"].Value;
-		string valueStr = match.Groups ["value"].Value;
-
-		switch (type) {
-
-		case "altitude_above":
-			float altitude_above = float.Parse (valueStr);
-
-			return new ElementConstraint (type, altitude_above);
-
-		case "altitude_below":
-			float altitude_below = float.Parse (valueStr);
-
-			return new ElementConstraint (type, altitude_below);
-
-		case "rainfall_above":
-			float rainfall_above = float.Parse (valueStr);
-
-			return new ElementConstraint (type, rainfall_above);
-
-		case "rainfall_below":
-			float rainfall_below = float.Parse (valueStr);
-
-			return new ElementConstraint (type, rainfall_below);
-
-		case "temperature_above":
-			float temperature_above = float.Parse (valueStr);
-
-			return new ElementConstraint (type, temperature_above);
-
-		case "temperature_below":
-			float temperature_below = float.Parse (valueStr);
-
-			return new ElementConstraint (type, temperature_below);
-
-		case "no_attribute":
-			string[] attributeStrs = valueStr.Split (new char[] { ',' });
-
-			RegionAttribute[] attributes = attributeStrs.Select (s=> {
-
-				if (!RegionAttribute.Attributes.ContainsKey (s)) {
-
-					throw new System.Exception ("Attribute not present: " + s);
-				}
-
-				return RegionAttribute.Attributes[s];
-			}).ToArray ();
-
-			return new ElementConstraint (type, attributes);
-
-		case "any_attribute":
-			attributeStrs = valueStr.Split (new char[] { ',' });
-
-			attributes = attributeStrs.Select (s=> {
-
-				if (!RegionAttribute.Attributes.ContainsKey (s)) {
-
-					throw new System.Exception ("Attribute not present: " + s);
-				}
-
-				return RegionAttribute.Attributes[s];
-			}).ToArray ();
-
-			return new ElementConstraint (type, attributes);
-
-		case "any_biome":
-			string[] biomeStrs = valueStr.Split (new char[] { ',' });
-
-			Biome[] biomes = biomeStrs.Select (s => {
-
-				if (!Biome.Biomes.ContainsKey (s)) {
-
-					throw new System.Exception ("Biome not present: " + s);
-				}
-
-				return Biome.Biomes[s];
-			}).ToArray ();
-
-			return new ElementConstraint (type, biomes);
-
-		case "main_biome":
-			biomeStrs = valueStr.Split (new char[] { ',' });
-
-			biomes = biomeStrs.Select (s => {
-
-				if (!Biome.Biomes.ContainsKey (s)) {
-
-					throw new System.Exception ("Biome not present: " + s);
-				}
-
-				return Biome.Biomes[s];
-			}).ToArray ();
-
-			return new ElementConstraint (type, biomes);
-		}
-
-		throw new System.Exception ("Unhandled constraint type: " + type);
-	}
-
-	public bool Validate (Region region) {
-
-		switch (Type) {
-
-		case "altitude_above":
-			return region.AverageAltitude >= (float)Value;
-
-		case "altitude_below":
-			return region.AverageAltitude < (float)Value;
-
-		case "rainfall_above":
-			return region.AverageRainfall >= (float)Value;
-
-		case "rainfall_below":
-			return region.AverageRainfall < (float)Value;
-
-		case "temperature_above":
-			return region.AverageTemperature >= (float)Value;
-
-		case "temperature_below":
-			return region.AverageTemperature < (float)Value;
-
-		case "no_attribute":
-			return !((RegionAttribute[])Value).Any (a => region.Attributes.Contains (a));
-
-		case "any_attribute":
-			return ((RegionAttribute[])Value).Any (a => region.Attributes.Contains (a));
-
-		case "any_biome":
-			return ((Biome[])Value).Any (a => region.PresentBiomeNames.Contains (a.Name));
-
-		case "main_biome":
-			return ((Biome[])Value).Any (a => region.BiomeWithMostPresence == a.Name);
-		}
-
-		throw new System.Exception ("Unhandled constraint type: " + Type);
-	}
-}
-
-public class Element {
-
-	public string Name;
-
-	public string[] Adjectives;
-
-	public ElementConstraint[] Constraints;
-
-	public static Element Stone = new Element ("stone", new string[] {"white", "red", "blue", "green", "yellow", "black", "grey", "big", "light", "heavy"}, new string[] {"altitude_above:0"});
-	public static Element Boulder = new Element ("boulder", new string[] {"white", "red", "blue", "green", "yellow", "black", "grey", "great"}, new string[] {"altitude_above:0"});
-	public static Element Rock = new Element ("rock", new string[] {"white", "red", "blue", "green", "yellow", "black", "grey", "great", "big", "light", "heavy"}, new string[] {"altitude_above:0"});
-	public static Element Sand = new Element ("sand", new string[] {"white", "red", "yellow", "black", "grey", "fine", "coarse"}, new string[] {"any_attribute:Desert,Delta,Peninsula,Island,Coast"});
-	public static Element Tree = new Element ("tree", new string[] {"white", "red", "green", "yellow", "black", "dark", "pale", "dead", "great", "short", "tall", "narrow", "wide"}, new string[] {"main_biome:Forest,Taiga,Rainforest"});
-	public static Element Wood = new Element ("wood", new string[] {"white", "red", "green", "yellow", "black", "dark", "pale", "dead", "hard", "soft"}, new string[] {"main_biome:Forest,Taiga,Rainforest"});
-	public static Element Grass = new Element ("grass", new string[] {"wild", "dead", "tall", "short", "soft", "wet", "dry"}, new string[] {"main_biome:Grassland,Tundra"});
-	public static Element Cloud = new Element ("cloud", new string[] {"white", "red", "black", "grey", "dark", "great", "thin", "deep", "light", "bright", "heavy"}, new string[] {"rainfall_above:675"});
-	public static Element Moss = new Element ("moss", new string[] {"white", "red", "green", "yellow", "black", "dark", "wet"}, new string[] {"main_biome:Forest,Taiga,Tundra,Rainforest"});
-	public static Element Shrub = new Element ("shrub", new string[] {"white", "red", "green", "yellow", "black", "dark", "dry"}, new string[] {"main_biome:Grassland,Tundra,Desert"});
-	public static Element Fire = new Element ("fire", new string[] {"wild", "white", "red", "green", "blue", "yellow", "bright"}, new string[] {"altitude_above:0","temperature_above:0"});
-	public static Element Water = new Element ("water", new string[] {"white", "green", "blue", "clear", "dark"}, new string[] {"altitude_below:0"});
-	public static Element Rain = new Element ("rain", new string[] {"heavy", "soft", "dark"}, new string[] {"rainfall_above:675"});
-	public static Element Storm = new Element ("storm", new string[] {"heavy", "dark", "great"}, new string[] {"rainfall_above:675"});
-	public static Element Sun = new Element ("sun", new string[] {"white", "red", "yellow", "bright", "great"}, new string[] {"rainfall_below:1775"});
-	public static Element Moon = new Element ("moon", new string[] {"white", "red", "blue", "dark", "bright", "great"}, new string[] {"rainfall_below:1775"});
-	public static Element Day = new Element ("day", new string[] {"white", "red", "blue", "green", "yellow", "black", "grey", "dark", "bright", "great", "short", "long", "somber", "cheerful"}, new string[] {});
-	public static Element Night = new Element ("night", new string[] {"white", "red", "blue", "green", "yellow", "black", "grey", "dark", "bright", "great", "short", "long", "somber", "cheerful"}, new string[] {});
-	public static Element Air = new Element ("air", new string[] {}, new string[] {});
-	public static Element Wind = new Element ("wind", new string[] {"strong", "soft"}, new string[] {"no_attribute:Rainforest,Jungle,Taiga,Forest"});
-	public static Element Sky = new Element ("sky", new string[] {"white", "red", "blue", "green", "yellow", "black", "grey", "dark", "bright", "great"}, new string[] {"altitude_above:3000"});
-	public static Element Ice = new Element ("ice", new string[] {"clear", "dark", "blue", "opaque"}, new string[] {"temperature_below:0"});
-	public static Element Snow = new Element ("snow", new string[] {"clear", "grey", "soft", "hard", "wet"}, new string[] {"temperature_below:5"});
-	public static Element Peat = new Element ("peat", new string[] {"red", "green", "yellow", "black", "grey", "dark", "wet", "dry"}, new string[] {"altitude_above:0","temperature_above:0","rainfall_above:675"});
-	public static Element Thunder = new Element ("thunder", new string[] {"great", "loud"}, new string[] {"rainfall_above:675"});
-	public static Element Lighting = new Element ("lighting", new string[] {"white", "yellow", "green", "great"}, new string[] {"rainfall_above:675"});
-	public static Element Mud = new Element ("mud", new string[] {"red", "green", "yellow", "black", "grey", "dark", "wet", "dry"}, new string[] {"rainfall_above:675"});
-	public static Element Dew = new Element ("dew", new string[] {}, new string[] {"rainfall_above:675"});
-	public static Element Dust = new Element ("dust", new string[] {"white", "red", "yellow", "black", "grey", "fine", "coarse"}, new string[] {"rainfall_below:675"});
-
-	public static Dictionary<string, Element> Elements = new Dictionary<string, Element> () {
-		{"Stone", Stone},
-		{"Boulder", Boulder},
-		{"Rock", Rock},
-		{"Sand", Sand},
-		{"Tree", Tree},
-		{"Wood", Wood},
-		{"Grass", Grass},
-		{"Cloud", Cloud},
-		{"Moss", Moss},
-		{"Shrub", Shrub},
-		{"Fire", Fire},
-		{"Water", Water},
-		{"Rain", Rain},
-		{"Storm", Storm},
-		{"Sun", Sun},
-		{"Moon", Moon},
-		{"Day", Day},
-		{"Night", Night},
-		{"Air", Air},
-		{"Wind", Wind},
-		{"Sky", Sky},
-		{"Ice", Ice},
-		{"Snow", Snow},
-		{"Peat", Peat},
-		{"Thunder", Thunder},
-		{"Lighting", Lighting},
-		{"Mud", Mud},
-		{"Dew", Dew},
-		{"Dust", Dust}
-	};
-
-	private Element (string name, string[] adjectives, string[] constraints) {
-
-		Name = name;
-
-		Adjectives = adjectives;
-
-		Constraints = new ElementConstraint[constraints.Length];
-
-		int index = 0;
-		foreach (string constraint in constraints) {
-		
-			Constraints [index] = ElementConstraint.BuildConstraint (constraint);
-			index++;
-		}
-	}
-
-	public bool Assignable (Region region) {
-	
-		return Constraints.All (c => c.Validate (region));
-	}
-}
-
 public class RegionAttribute {
 
 	public string Name;
@@ -344,7 +94,7 @@ public class RegionAttribute {
 		IEnumerable<string> filteredVariations = Variations;
 
 		if (filterElement != null) {
-			filteredVariations = Variations.Where (s => !s.Contains (filterElement.Name));
+			filteredVariations = Variations.Where (s => !s.Contains (filterElement.SingularName));
 		}
 
 		return filteredVariations.RandomSelect (getRandomInt);
@@ -669,7 +419,7 @@ public abstract class Region : ISynchronizable {
 
 		string elementNoun = string.Empty;
 		if (element != null)
-			elementNoun = "[nad]" + element.Name + ((addAttributeNoun) ? " " : string.Empty);
+			elementNoun = "[nad]" + element.SingularName + ((addAttributeNoun) ? " " : string.Empty);
 
 		untranslatedName = adjective + elementNoun;
 
@@ -740,7 +490,7 @@ public abstract class Region : ISynchronizable {
 
 		string elementNoun = string.Empty;
 		if (firstElement != null) {
-			elementNoun = "[nad]" + firstElement.Name + " ";
+			elementNoun = "[nad]" + firstElement.SingularName + " ";
 		}
 
 		untranslatedName = "[Proper][NP](" + adjective + elementNoun + secondaryAttributeNoun + primaryAttributeNoun + ")";

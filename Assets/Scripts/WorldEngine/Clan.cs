@@ -202,7 +202,7 @@ public class Clan : Faction {
 			}
 
 			if (isPrimaryNoun) {
-				untranslatedName = element.Name;
+				untranslatedName = element.SingularName;
 				isPrimaryNoun = false;
 
 				possibleAdjectives = element.Adjectives;
@@ -211,10 +211,10 @@ public class Clan : Faction {
 				bool first = true;
 				foreach (Element usedElement in usedElements) {
 					if (first) {
-						untranslatedName = usedElement.Name;
+						untranslatedName = usedElement.SingularName;
 						first = false;
 					} else {
-						untranslatedName = usedElement.Name + ":" + untranslatedName;
+						untranslatedName = usedElement.SingularName + ":" + untranslatedName;
 					}
 				}
 			}
@@ -246,6 +246,10 @@ public class Clan : Faction {
 		namePhrase = language.TranslatePhrase (untranslatedName, getRandomFloat);
 
 		Name = new Name (namePhrase, untranslatedName, language, World);
+
+//		#if DEBUG
+//		Debug.Log ("Clan #" + Id + " name: " + Name);
+//		#endif
 	}
 
 	protected override Agent RequestCurrentLeader ()

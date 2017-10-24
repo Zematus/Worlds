@@ -422,6 +422,11 @@ public class CellGroup : HumanGroup {
 		return new CellGroupSnapshot (this);
 	}
 
+	public long GenerateUniqueIdentifier (int date, long oom = 1, long offset = 0) {
+
+		return Cell.GenerateUniqueIdentifier (date, oom, offset);
+	}
+
 	public long GenerateUniqueIdentifier (long oom = 1, long offset = 0) {
 
 		return Cell.GenerateUniqueIdentifier (oom, offset);

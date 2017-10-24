@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Xml;
 using System.Xml.Serialization;
 
@@ -13,6 +14,9 @@ public class Agent : ISynchronizable {
 
 	[XmlAttribute("Birth")]
 	public int BirthDate;
+
+	[XmlAttribute]
+	public bool IsFemale;
 
 	[XmlAttribute("GrpId")]
 	public long GroupId;
@@ -41,12 +45,33 @@ public class Agent : ISynchronizable {
 
 		BirthDate = birthDate;
 
+		int idOffset = 0;
+
+		Id = GenerateUniqueIdentifier (birthDate, offset: idOffset);
+
+		GenerateBio ();
+
 		GenerateName ();
 	}
 
 	public void Destroy () {
 
 		StillPresent = false;
+	}
+
+	public long GenerateUniqueIdentifier (int date, long oom = 1, long offset = 0) {
+
+		return Group.GenerateUniqueIdentifier (date, oom, offset);
+	}
+
+	private void GenerateBio () {
+
+		int rngOffset = RngOffsets.AGENT_GENERATE_BIO + (int)Group.Id;
+
+//		GetRandomIntDelegate getRandomInt = (int maxValue) => Group.GetLocalRandomInt (BirthDate, rngOffset++, maxValue);
+		Language.GetRandomFloatDelegate getRandomFloat = () => Group.GetLocalRandomFloat (BirthDate, rngOffset++);
+
+		IsFemale = getRandomFloat () > 0.5f;
 	}
 
 	private void GenerateName () {
@@ -67,53 +92,63 @@ public class Agent : ISynchronizable {
 			throw new System.Exception ("No elements to choose name from");
 		}
 
-		List<Element> remainingElements = new List<Element> (region.Elements);
+		List<Element> remainingElements = new List<Element> (region.Elements.Where (e => e.Associations.Length > 0));
 
-		bool addMoreWords = true;
+		if (remainingElements.Count <= 0) {
 
-		bool isPrimaryWord = true;
-		float extraWordChance = 0.2f;
-
-		while (addMoreWords) {
-
-			addMoreWords = false;
-
-			int index = getRandomInt (remainingElements.Count);
-
-			Element element = remainingElements [index];
-
-			remainingElements.RemoveAt (index);
-
-			if (isPrimaryWord) {
-
-				untranslatedName = element.Name;
-				isPrimaryWord = false;
-
-			} else {
-
-				untranslatedName = "[nad]" + element.Name + " " + untranslatedName;
-			}
-
-			bool canAddMoreWords = remainingElements.Count > 0;
-
-			if (canAddMoreWords) {
-
-				addMoreWords = extraWordChance > getRandomFloat ();
-			}
-
-			if (addMoreWords && !canAddMoreWords) {
-
-				throw new System.Exception ("Ran out of words to add");
-			}
-
-			extraWordChance /= 2f;
+			throw new System.Exception ("No elements to choose name from");
 		}
 
-		untranslatedName = "[NP](" + untranslatedName + ")";
+		Element element = remainingElements.RandomSelectAndRemove (getRandomInt);
+
+		string adjective = element.Adjectives.RandomSelect (getRandomInt, 15);
+
+		if (!string.IsNullOrEmpty (adjective)) {
+			adjective = "[adj]" + adjective + " ";
+		}
+
+		Association association = element.Associations.RandomSelect (getRandomInt);
+
+		string nounGender = (IsFemale) ? "[fn]" : "[mn]";
+
+		string subjectNoun = "[name]" + nounGender + association.Noun;
+
+		if (association.IsAdjunction) {
+			untranslatedName = "[Proper][NP](" + adjective + "[nad]" + element.SingularName + " " + subjectNoun + ")";
+
+		} else {
+
+			string article = "";
+
+			if ((association.Form == AssociationForms.DefiniteSingular) ||
+			    (association.Form == AssociationForms.DefinitePlural) ||
+			    (association.Form == AssociationForms.NameSingular)) {
+			
+				article = "the ";
+			}
+
+			string uncountableProp = (association.Form == AssociationForms.Uncountable) ? "[un]" : "";
+
+			string elementNoun = element.SingularName;
+
+			if ((association.Form == AssociationForms.DefinitePlural) ||
+				(association.Form == AssociationForms.IndefinitePlural)) {
+
+				elementNoun = element.PluralName;
+			}
+
+			elementNoun = article + adjective + uncountableProp + elementNoun;
+
+			untranslatedName = "[PpPP]([Proper][NP](" + subjectNoun + ") [PP](" + association.Relation + " [Proper][NP](" + elementNoun + ")))";
+		}
 
 		namePhrase = language.TranslatePhrase (untranslatedName, getRandomFloat);
 
 		Name = new Name (namePhrase, untranslatedName, language, World);
+
+//		#if DEBUG
+//		Debug.Log ("Leader #" + Id + " name: " + Name);
+//		#endif
 	}
 
 	public virtual void Synchronize () {

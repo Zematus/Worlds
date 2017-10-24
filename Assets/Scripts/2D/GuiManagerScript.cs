@@ -2735,11 +2735,6 @@ public class GuiManagerScript : MonoBehaviour {
 			float worldLat = Mathf.Floor(uvPos.y * Manager.CurrentWorld.Height);
 			
 			mapPosition = new Vector2 (worldLong, worldLat);
-
-			if (Mathf.Floor (worldLong) == Manager.CurrentWorld.Width) {
-			
-				bool debug = true;
-			}
 			
 			return true;
 		}
