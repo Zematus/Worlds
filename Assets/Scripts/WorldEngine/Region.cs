@@ -8,32 +8,84 @@ using System;
 
 public class RegionAttribute {
 
+	public const string RelationTag = "relation";
+
 	public string Name;
 
 	public string[] Adjectives;
 
-	public string[] Variations;
+	public Variation[] Variations;
 
-	public static RegionAttribute Glacier = new RegionAttribute ("Glacier", new string[] {"clear", "white", "blue", "grey"}, new string[] {"glacier"});
-	public static RegionAttribute IceCap = new RegionAttribute ("IceCap", new string[] {"clear", "white", "blue", "grey"}, new string[] {"[nad]ice cap"});
-	public static RegionAttribute Ocean = new RegionAttribute ("Ocean", new string[] {"clear", "dark", "blue", "red", "green", "grey"}, new string[] {"ocean"});
-	public static RegionAttribute Grassland = new RegionAttribute ("Grassland", new string[] {"dark", "pale", "red", "green", "grey", "yellow"}, new string[] {"grass:land{:s}", "steppe{:s}", "savanna{:s}", "shrub:land{:s}", "prairie{:s}", "range{:s}", "field{:s}"});
-	public static RegionAttribute Forest = new RegionAttribute ("Forest", new string[] {"black", "dark", "pale", "red", "blue", "grey"}, new string[] {"forest", "wood:s", "wood:land{:s}"});
-	public static RegionAttribute Taiga = new RegionAttribute ("Taiga", new string[] {"white", "black", "dark", "pale", "red", "blue", "grey"}, new string[] {"taiga", "hinter{:land}{:s}"});
-	public static RegionAttribute Tundra = new RegionAttribute ("Tundra", new string[] {"white", "black", "dark", "pale", "red", "blue", "grey"}, new string[] {"tundra", "waste{:land}{:s}"});
-	public static RegionAttribute Desert = new RegionAttribute ("Desert", new string[] {"white", "red", "yellow", "black", "grey"}, new string[] {"desert", "sand{:s}"});
-	public static RegionAttribute Rainforest = new RegionAttribute ("Rainforest", new string[] {"black", "dark", "red", "blue", "grey"}, new string[] {"{rain:}forest"});
-	public static RegionAttribute Jungle = new RegionAttribute ("Jungle", new string[] {"black", "dark", "red", "blue", "grey"}, new string[] {"jungle"});
-	public static RegionAttribute Valley = new RegionAttribute ("Valley", new string[] {}, new string[] {"valley"});
-	public static RegionAttribute Highland = new RegionAttribute ("Highland", new string[] {}, new string[] {"high:land{:s}"});
+	public Association[] Associations;
+
+	public static RegionAttribute Glacier = new RegionAttribute ("Glacier", 
+		new string[] {"clear", "white", "blue", "grey"}, 
+		new string[] {"glacier{<relation>:s}"},
+		new string[] {"[iv(bear,ts,past)]born,by|near|in,ds|dp", "[rv(ts,past)]raise:d,near|in,ds|dp", "[nrv]walk:er,of,ip|ns", "[nrv]stride:r,of,ip|ns", "[rv(ts,past)]arrive:d,from,ds"});
+	public static RegionAttribute IceCap = new RegionAttribute ("IceCap", 
+		new string[] {"clear", "white", "blue", "grey"}, 
+		new string[] {"[nad]ice cap{<relation>:s}"},
+		new string[] {"[iv(bear,ts,past)]born,by|near|in,ds|dp", "[rv(ts,past)]raise:d,near|in,ds|dp", "[nrv]walk:er,of,ip|ns", "[nrv]stride:r,of,ip|ns", "[rv(ts,past)]arrive:d,from,ds"});
+	public static RegionAttribute Ocean = new RegionAttribute ("Ocean", 
+		new string[] {"clear", "dark", "blue", "red", "green", "grey"}, 
+		new string[] {"ocean{<relation>:s}"},
+		new string[] {"[iv(bear,ts,past)]born,by|near|in,ds|dp", "[rv(ts,past)]raise:d,near|in,ds|dp", "[nrv]walk:er,of,ip|ns", "[nrv]stride:r,of,ip|ns", "[rv(ts,past)]arrive:d,from,ds"});
+	public static RegionAttribute Grassland = new RegionAttribute ("Grassland", 
+		new string[] {"dark", "pale", "red", "green", "grey", "yellow"}, 
+		new string[] {"grass:land{:s}", "steppe{:s}", "savanna{:s}", "shrub:land{:s}", "prairie{:s}", "range{:s}", "field{:s}"},
+		new string[] {"[iv(bear,ts,past)]born,by|near|in,ds|dp", "[rv(ts,past)]raise:d,near|in,ds|dp", "[nrv]walk:er,of,ip|ns", "[nrv]stride:r,of,ip|ns", "[rv(ts,past)]arrive:d,from,ds"});
+	public static RegionAttribute Forest = new RegionAttribute ("Forest", 
+		new string[] {"black", "dark", "pale", "red", "blue", "grey"}, 
+		new string[] {"forest{<relation>:s}", "wood:s", "wood:land{:s}"},
+		new string[] {"[iv(bear,ts,past)]born,by|near|in,ds|dp", "[rv(ts,past)]raise:d,near|in,ds|dp", "[nrv]walk:er,of,ip|ns", "[nrv]stride:r,of,ip|ns", "[rv(ts,past)]arrive:d,from,ds"});
+	public static RegionAttribute Taiga = new RegionAttribute ("Taiga", 
+		new string[] {"white", "black", "dark", "pale", "red", "blue", "grey"}, 
+		new string[] {"taiga{<relation>:s}", "hinter{:land}{:s}"},
+		new string[] {"[iv(bear,ts,past)]born,by|near|in,ds|dp", "[rv(ts,past)]raise:d,near|in,ds|dp", "[nrv]walk:er,of,ip|ns", "[nrv]stride:r,of,ip|ns", "[rv(ts,past)]arrive:d,from,ds"});
+	public static RegionAttribute Tundra = new RegionAttribute ("Tundra", 
+		new string[] {"white", "black", "dark", "pale", "red", "blue", "grey"}, 
+		new string[] {"tundra{<relation>:s}", "waste{:land}{:s}"},
+		new string[] {"[iv(bear,ts,past)]born,by|near|in,ds|dp", "[rv(ts,past)]raise:d,near|in,ds|dp", "[nrv]walk:er,of,ip|ns", "[nrv]stride:r,of,ip|ns", "[rv(ts,past)]arrive:d,from,ds"});
+	public static RegionAttribute Desert = new RegionAttribute ("Desert", 
+		new string[] {"white", "red", "yellow", "black", "grey"}, 
+		new string[] {"desert{<relation>:s}", "sand{:s}"},
+		new string[] {"[iv(bear,ts,past)]born,by|near|in,ds|dp", "[rv(ts,past)]raise:d,near|in,ds|dp", "[nrv]walk:er,of,ip|ns", "[nrv]stride:r,of,ip|ns", "[rv(ts,past)]arrive:d,from,ds"});
+	public static RegionAttribute Rainforest = new RegionAttribute ("Rainforest", 
+		new string[] {"black", "dark", "red", "blue", "grey"}, 
+		new string[] {"{rain:}forest{<relation>:s}"},
+		new string[] {"[iv(bear,ts,past)]born,by|near|in,ds|dp", "[rv(ts,past)]raise:d,near|in,ds|dp", "[nrv]walk:er,of,ip|ns", "[nrv]stride:r,of,ip|ns", "[rv(ts,past)]arrive:d,from,ds"});
+	public static RegionAttribute Jungle = new RegionAttribute ("Jungle", 
+		new string[] {"black", "dark", "red", "blue", "grey"}, 
+		new string[] {"jungle{<relation>:s}"},
+		new string[] {"[iv(bear,ts,past)]born,by|near|in,ds|dp", "[rv(ts,past)]raise:d,near|in,ds|dp", "[nrv]walk:er,of,ip|ns", "[nrv]stride:r,of,ip|ns", "[rv(ts,past)]arrive:d,from,ds"});
+	public static RegionAttribute Valley = new RegionAttribute ("Valley", 
+		new string[] {}, 
+		new string[] {"valley{<relation>:s}"},
+		new string[] {"[iv(bear,ts,past)]born,by|near|in,ds|dp", "[rv(ts,past)]raise:d,near|in,ds|dp", "[nrv]walk:er,of,ip|ns", "[nrv]stride:r,of,ip|ns", "[rv(ts,past)]arrive:d,from,ds"});
+	public static RegionAttribute Highland = new RegionAttribute ("Highland", 
+		new string[] {}, 
+		new string[] {"high:land{:s}"},
+		new string[] {"[iv(bear,ts,past)]born,by|near|in,ds|dp", "[rv(ts,past)]raise:d,near|in,ds|dp", "[nrv]walk:er,of,ip|ns", "[nrv]stride:r,of,ip|ns", "[rv(ts,past)]arrive:d,from,ds"});
 //	public static RegionAttribute MountainRange = new RegionAttribute ("MountainRange", new string[] {"[nad]mountain range", "mountain:s", "mount:s"});
 //	public static RegionAttribute Hill = new RegionAttribute ("Hill", new string[] {"hill{:s}"});
 //	public static RegionAttribute Mountain = new RegionAttribute ("Mountain", new string[] {"mountain", "mount"});
-	public static RegionAttribute Basin = new RegionAttribute ("Basin", new string[] {}, new string[] {"basin"});
+	public static RegionAttribute Basin = new RegionAttribute ("Basin", 
+		new string[] {}, 
+		new string[] {"basin{<relation>:s}"},
+		new string[] {"[iv(bear,ts,past)]born,by|near|in,ds|dp", "[rv(ts,past)]raise:d,near|in,ds|dp", "[nrv]walk:er,of,ip|ns", "[nrv]stride:r,of,ip|ns", "[rv(ts,past)]arrive:d,from,ds"});
 //	public static RegionAttribute Plain = new RegionAttribute ("Plain", new string[] {"plain{:s}"});
-	public static RegionAttribute Delta = new RegionAttribute ("Delta", new string[] {}, new string[] {"delta"});
-	public static RegionAttribute Peninsula = new RegionAttribute ("Peninsula", new string[] {}, new string[] {"cape", "horn", "peninsula"});
-	public static RegionAttribute Island = new RegionAttribute ("Island", new string[] {}, new string[] {"isle", "island"});
+	public static RegionAttribute Delta = new RegionAttribute ("Delta", 
+		new string[] {}, 
+		new string[] {"delta{<relation>:s}"},
+		new string[] {"[iv(bear,ts,past)]born,by|near|in,ds|dp", "[rv(ts,past)]raise:d,near|in,ds|dp", "[nrv]walk:er,of,ip|ns", "[nrv]stride:r,of,ip|ns", "[rv(ts,past)]arrive:d,from,ds"});
+	public static RegionAttribute Peninsula = new RegionAttribute ("Peninsula", 
+		new string[] {}, 
+		new string[] {"cape{<relation>:s}", "horn{<relation>:s}", "peninsula{<relation>:s}"},
+		new string[] {"[iv(bear,ts,past)]born,by|near|in,ds|dp", "[rv(ts,past)]raise:d,near|in,ds|dp", "[nrv]walk:er,of,ip|ns", "[nrv]stride:r,of,ip|ns", "[rv(ts,past)]arrive:d,from,ds"});
+	public static RegionAttribute Island = new RegionAttribute ("Island", 
+		new string[] {}, 
+		new string[] {"isle{<relation>:s}", "island{<relation>:s}"},
+		new string[] {"[iv(bear,ts,past)]born,by|near|in,ds|dp", "[rv(ts,past)]raise:d,near|in,ds|dp", "[nrv]walk:er,of,ip|ns", "[nrv]stride:r,of,ip|ns", "[rv(ts,past)]arrive:d,from,ds"});
 //	public static RegionAttribute Archipelago = new RegionAttribute ("Archipelago", new string[] {"archipelago", "isle:s", "island:s"});
 //	public static RegionAttribute Channel = new RegionAttribute ("Channel", new string[] {"channel"});
 //	public static RegionAttribute Gulf = new RegionAttribute ("Gulf", new string[] {"gulf"});
@@ -42,8 +94,14 @@ public class RegionAttribute {
 //	public static RegionAttribute Sea = new RegionAttribute ("Sea", new string[] {"sea"});
 //	public static RegionAttribute Continent = new RegionAttribute ("Continent", new string[] {"continent"});
 //	public static RegionAttribute Strait = new RegionAttribute ("Strait", new string[] {"strait", "pass"});
-	public static RegionAttribute Coast = new RegionAttribute ("Coast", new string[] {}, new string[] {"strand", "coast"});
-	public static RegionAttribute Region = new RegionAttribute ("Region", new string[] {"dark", "bleak", "open"}, new string[] {"region", "land{:s}"});
+	public static RegionAttribute Coast = new RegionAttribute ("Coast", 
+		new string[] {}, 
+		new string[] {"strand{<relation>:s}", "coast{<relation>:s}"},
+		new string[] {"[iv(bear,ts,past)]born,by|near|in,ds|dp", "[rv(ts,past)]raise:d,near|in,ds|dp", "[nrv]walk:er,of,ip|ns", "[nrv]stride:r,of,ip|ns", "[rv(ts,past)]arrive:d,from,ds"});
+	public static RegionAttribute Region = new RegionAttribute ("Region", 
+		new string[] {"dark", "bleak", "open"}, 
+		new string[] {"region{<relation>:s}", "land{:s}"},
+		new string[] {"[iv(bear,ts,past)]born,by|near|in,ds|dp", "[rv(ts,past)]raise:d,near|in,ds|dp", "[nrv]walk:er,of,ip|ns", "[nrv]stride:r,of,ip|ns", "[rv(ts,past)]arrive:d,from,ds"});
 //	public static RegionAttribute Expanse = new RegionAttribute ("Expanse", new string[] {"expanse"});
 
 	public static Dictionary<string, RegionAttribute> Attributes = new Dictionary<string, RegionAttribute> () {
@@ -80,37 +138,87 @@ public class RegionAttribute {
 //		{"Expanse", Expanse}
 	};
 
-	private RegionAttribute (string name, string[] adjectives, string[] variants) {
+	private RegionAttribute (string name, string[] adjectives, string[] variants, string[] associationStrs) {
 
 		Name = name;
 
 		Adjectives = adjectives;
 
 		Variations = NamingTools.GenerateNounVariations (variants);
-	}
 
-	public string GetRandomVariation (GetRandomIntDelegate getRandomInt, Element filterElement = null) {
+		List<Association> associations = new List<Association> ();
 
-		IEnumerable<string> filteredVariations = Variations;
+		foreach (string assocStr in associationStrs) {
 
-		if (filterElement != null) {
-			filteredVariations = Variations.Where (s => !s.Contains (filterElement.SingularName));
+			associations.AddRange (Association.Parse (assocStr));
 		}
 
-		return filteredVariations.RandomSelect (getRandomInt);
+		Associations = associations.ToArray ();
 	}
 
-	public string GetRandomVariation (GetRandomIntDelegate getRandomInt, string filterStr) {
+	public string GetRandomVariation (GetRandomIntDelegate getRandomInt, Element filterElement = null, bool filterRelationTagged = true) {
 
-		IEnumerable<string> filteredVariations = Variations;
+		IEnumerable<Variation> filteredVariations = Variations;
+
+		if (filterElement != null) {
+			filteredVariations = Variations.Where (v => !v.Text.Contains (filterElement.SingularName));
+		}
+
+		if (filterRelationTagged) {
+			filteredVariations = Variations.Where (v => !v.Tags.Contains (RegionAttribute.RelationTag));
+		}
+
+		return filteredVariations.RandomSelect (getRandomInt).Text;
+	}
+
+	public string GetRandomVariation (GetRandomIntDelegate getRandomInt, string filterStr, bool filterRelationTagged = true) {
+
+		IEnumerable<Variation> filteredVariations = Variations;
 
 		filterStr = filterStr.ToLower ();
 
 		if (filterStr != null) {
-			filteredVariations = Variations.Where (s => !s.Contains (filterStr));
+			filteredVariations = Variations.Where (v => !v.Text.Contains (filterStr));
 		}
 
-		return filteredVariations.RandomSelect (getRandomInt);
+		if (filterRelationTagged) {
+			filteredVariations = Variations.Where (v => !v.Tags.Contains (RegionAttribute.RelationTag));
+		}
+
+		return filteredVariations.RandomSelect (getRandomInt).Text;
+	}
+
+	public string GetRandomSingularVariation (GetRandomIntDelegate getRandomInt, bool filterRelationTagged = true) {
+
+		IEnumerable<Variation> filteredVariations = Variations.Where (v => !Language.IsPluralForm(v.Text));
+
+		if (filterRelationTagged) {
+			filteredVariations = Variations.Where (v => !v.Tags.Contains (RegionAttribute.RelationTag));
+		}
+
+		return filteredVariations.RandomSelect (getRandomInt).Text;
+	}
+
+	public string GetRandomPluralVariation (GetRandomIntDelegate getRandomInt, bool filterRelationTagged = true) {
+
+		IEnumerable<Variation> filteredVariations = Variations.Where (v => Language.IsPluralForm(v.Text));
+
+		if (filterRelationTagged) {
+			filteredVariations = Variations.Where (v => !v.Tags.Contains (RegionAttribute.RelationTag));
+		}
+
+		return filteredVariations.RandomSelect (getRandomInt).Text;
+	}
+
+	public string GetRandomVariation (GetRandomIntDelegate getRandomInt, bool filterRelationTagged) {
+
+		IEnumerable<Variation> filteredVariations = Variations;
+
+		if (filterRelationTagged) {
+			filteredVariations = Variations.Where (v => !v.Tags.Contains (RegionAttribute.RelationTag));
+		}
+
+		return filteredVariations.RandomSelect (getRandomInt).Text;
 	}
 }
 

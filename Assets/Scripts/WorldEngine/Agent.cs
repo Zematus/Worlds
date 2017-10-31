@@ -74,32 +74,12 @@ public class Agent : ISynchronizable {
 		IsFemale = getRandomFloat () > 0.5f;
 	}
 
-	private void GenerateName () {
-
-		int rngOffset = RngOffsets.AGENT_GENERATE_NAME + (int)Group.Id;
-
-		GetRandomIntDelegate getRandomInt = (int maxValue) => Group.GetLocalRandomInt (BirthDate, rngOffset++, maxValue);
-		Language.GetRandomFloatDelegate getRandomFloat = () => Group.GetLocalRandomFloat (BirthDate, rngOffset++);
-
+	private void GenerateNameFromElement (Element element, GetRandomIntDelegate getRandomInt, Language.GetRandomFloatDelegate getRandomFloat) {
+		
 		Language language = Group.Culture.Language;
-		Region region = Group.Cell.Region;
 
 		string untranslatedName = "";
 		Language.Phrase namePhrase = null;
-
-		if (region.Elements.Count <= 0) {
-
-			throw new System.Exception ("No elements to choose name from");
-		}
-
-		List<Element> remainingElements = new List<Element> (region.Elements.Where (e => e.Associations.Length > 0));
-
-		if (remainingElements.Count <= 0) {
-
-			throw new System.Exception ("No elements to choose name from");
-		}
-
-		Element element = remainingElements.RandomSelectAndRemove (getRandomInt);
 
 		string adjective = element.Adjectives.RandomSelect (getRandomInt, 15);
 
@@ -121,9 +101,9 @@ public class Agent : ISynchronizable {
 			string article = "";
 
 			if ((association.Form == AssociationForms.DefiniteSingular) ||
-			    (association.Form == AssociationForms.DefinitePlural) ||
-			    (association.Form == AssociationForms.NameSingular)) {
-			
+				(association.Form == AssociationForms.DefinitePlural) ||
+				(association.Form == AssociationForms.NameSingular)) {
+
 				article = "the ";
 			}
 
@@ -145,10 +125,103 @@ public class Agent : ISynchronizable {
 		namePhrase = language.TranslatePhrase (untranslatedName, getRandomFloat);
 
 		Name = new Name (namePhrase, untranslatedName, language, World);
+	}
 
-//		#if DEBUG
-//		Debug.Log ("Leader #" + Id + " name: " + Name);
-//		#endif
+	private void GenerateNameFromRegionAttribute (RegionAttribute attribute, GetRandomIntDelegate getRandomInt, Language.GetRandomFloatDelegate getRandomFloat) {
+
+		Language language = Group.Culture.Language;
+
+		string untranslatedName = "";
+		Language.Phrase namePhrase = null;
+
+		string adjective = attribute.Adjectives.RandomSelect (getRandomInt, 15);
+
+		if (!string.IsNullOrEmpty (adjective)) {
+			adjective = "[adj]" + adjective + " ";
+		}
+
+		Association association = attribute.Associations.RandomSelect (getRandomInt);
+
+		string nounGender = (IsFemale) ? "[fn]" : "[mn]";
+
+		string subjectNoun = "[name]" + nounGender + association.Noun;
+
+		if (association.IsAdjunction) {
+
+			string variationNoun = attribute.GetRandomSingularVariation (getRandomInt, false);
+
+			untranslatedName = "[Proper][NP](" + adjective + "[nad]" + variationNoun + " " + subjectNoun + ")";
+
+		} else {
+
+			string article = "";
+
+			if ((association.Form == AssociationForms.DefiniteSingular) ||
+				(association.Form == AssociationForms.DefinitePlural) ||
+				(association.Form == AssociationForms.NameSingular)) {
+
+				article = "the ";
+			}
+
+			string uncountableProp = (association.Form == AssociationForms.Uncountable) ? "[un]" : "";
+
+			string variationNoun;
+
+			if ((association.Form == AssociationForms.DefinitePlural) ||
+			    (association.Form == AssociationForms.IndefinitePlural)) {
+
+				variationNoun = attribute.GetRandomPluralVariation (getRandomInt, false);
+			} else {
+
+				variationNoun = attribute.GetRandomSingularVariation (getRandomInt, false);
+			}
+
+			variationNoun = article + adjective + uncountableProp + variationNoun;
+
+			untranslatedName = "[PpPP]([Proper][NP](" + subjectNoun + ") [PP](" + association.Relation + " [Proper][NP](" + variationNoun + ")))";
+		}
+
+		namePhrase = language.TranslatePhrase (untranslatedName, getRandomFloat);
+
+		Name = new Name (namePhrase, untranslatedName, language, World);
+	}
+
+	private void GenerateName () {
+
+		int rngOffset = RngOffsets.AGENT_GENERATE_NAME + (int)Group.Id;
+
+		GetRandomIntDelegate getRandomInt = (int maxValue) => Group.GetLocalRandomInt (BirthDate, rngOffset++, maxValue);
+		Language.GetRandomFloatDelegate getRandomFloat = () => Group.GetLocalRandomFloat (BirthDate, rngOffset++);
+
+		Region region = Group.Cell.Region;
+
+		List<Element> remainingElements = new List<Element> (region.Elements.Where (e => e.Associations.Length > 0));
+
+		List<RegionAttribute> remainingAttributes = new List<RegionAttribute> (region.Attributes.Where (a => a.Associations.Length > 0));
+
+		int optionCount = remainingElements.Count + remainingAttributes.Count;
+
+		if (optionCount <= 0) {
+
+			throw new System.Exception ("No elements nor attributes to choose name from");
+		}
+
+		if (remainingElements.Count > getRandomInt (optionCount)) {
+
+			Element element = remainingElements.RandomSelectAndRemove (getRandomInt);
+
+			GenerateNameFromElement (element, getRandomInt, getRandomFloat);
+
+		} else {
+
+			RegionAttribute attribute = remainingAttributes.RandomSelectAndRemove (getRandomInt);
+
+			GenerateNameFromRegionAttribute (attribute, getRandomInt, getRandomFloat);
+		}
+
+		#if DEBUG
+		Debug.Log ("Leader #" + Id + " name: " + Name);
+		#endif
 	}
 
 	public virtual void Synchronize () {

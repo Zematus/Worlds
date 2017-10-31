@@ -451,7 +451,6 @@ public class Language : ISynchronizable {
 	public static Regex EndsWithVowelsRegex = new Regex (@"(?>[aeiou]+)(?>[^aeiou]+)(?<vowels>(?>[aeiou]+))$");
 	public static Regex EndsWithConsonantsRegex = new Regex (@"(?>[^aeiou]+)$");
 
-//	public static Regex PhrasePartRegex = new Regex (@"\[(?<attr>\w+)(?:\((?<params>(?:\w+,?)+)\))?\](?:\[w+\])*(?<phrase>(((?'Open'\()[^\(\)]*)+((?'Close-Open'\))[^\(\)]*)+)*(?(Open)(?!)))");
 	public static Regex PhrasePartRegex = new Regex (@"\[(?<attr>\w+)(?:\((?<params>(?:\w+,?)+)\))?\](?<phrase>(?:\[\w+(?:\((?:\w+,?)+\))?\])*\((?<value>[^\(\)]+)\))");
 	public static Regex WordPartRegex = new Regex (@"\[(?<attr>\w+)(?:\((?<params>(?:\w+,?)+)\))?\](?<word>(?>(?:\[\w+(?:\((?:\w+,?)+\))?\])*[\w\'\-]+))");
 	public static Regex PhraseIndexRegex = new Regex (@"{(?<index>\d+)}");
@@ -2818,22 +2817,59 @@ public class Language : ISynchronizable {
 		return parsedPhrase;
 	}
 
-	public static string GetSingularForm (string pluralNoun) {
+	public static bool IsPluralForm (string noun) {
 
-		string[] nounParts = pluralNoun.Split (new char[] { ':' });
+		string[] nounParts = noun.Split (new char[] { ':' });
 
-		ParsedWord parsedWordPart = ParseWord (nounParts[0]);
+		int length = nounParts.Length;
+
+		ParsedWord parsedWordPart = ParseWord (nounParts[length - 1]);
+
+		if (parsedWordPart.Attributes.ContainsKey (ParsedWordAttributeId.IrregularPluralNoun)) {
+
+			return true;
+
+		} 
+
+		if (length < 2)
+			return false;
+
+		if (PluralSuffixRegex.IsMatch (nounParts[length - 1])) {
+
+			return true;
+		}
+
+		return false;
+	}
+
+	public static string GetSingularForm (string inputNoun) {
+
+		string[] nounParts = inputNoun.Split (new char[] { ':' });
+
+		int length = nounParts.Length;
+
+		string noun = "";
+
+		for (int i = 0; i < (length - 1); i++) {
+
+			noun += nounParts[i];
+		}
+
+		ParsedWord parsedWordPart = ParseWord (nounParts[length - 1]);
 
 		if (parsedWordPart.Attributes.ContainsKey (ParsedWordAttributeId.IrregularPluralNoun)) {
 			
-			return parsedWordPart.Attributes[ParsedWordAttributeId.IrregularPluralNoun][0];
-
-		} else if ((2 == nounParts.Length) && PluralSuffixRegex.IsMatch (nounParts[1])) {
+			noun += parsedWordPart.Attributes[ParsedWordAttributeId.IrregularPluralNoun][0];
 			
-			return nounParts[0];
+			return noun;
+		} 
+
+		if ((nounParts.Length > 1) && PluralSuffixRegex.IsMatch (nounParts[length - 1])) {
+
+			return noun;
 		}
 
-		return pluralNoun;
+		return inputNoun;
 	}
 
 	public static ParsedWord ParseWord (string word) {

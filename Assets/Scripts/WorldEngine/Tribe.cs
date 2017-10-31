@@ -18,7 +18,7 @@ public class Tribe : Polity {
 
 	private static string[] PrepositionVariations = new string[] { "from", "of" };
 
-	private static string[] TribeNounVariations;
+	private static Variation[] TribeNounVariations;
 
 	private static string[] TribeNounVariants = new string[] { 
 		"nation", "tribe", "[ipn(person)]people", "folk", "community", "kin", "{kin:s:}person:s", "{kin:s:}[ipn(man)]men", "{kin:s:}[ipn(woman)]women", "[ipn(child)]children" };
@@ -295,7 +295,7 @@ public class Tribe : Polity {
 		GetRandomIntDelegate getRandomInt = (int maxValue) => GetNextLocalRandomInt (rngOffset++, maxValue);
 		GetRandomFloatDelegate getRandomFloat = () => GetNextLocalRandomFloat (rngOffset++);
 
-		string tribeNoun = TribeNounVariations.RandomSelect (getRandomInt);
+		string tribeNoun = TribeNounVariations.RandomSelect (getRandomInt).Text;
 
 		bool areaNameIsNounAdjunct = (getRandomFloat () > 0.5f);
 
