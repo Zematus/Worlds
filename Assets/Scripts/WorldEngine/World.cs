@@ -97,6 +97,10 @@ public class World : ISynchronizable {
 	public const int NumContinents = 12;
 	public const float ContinentMinWidthFactor = 5.7f;
 	public const float ContinentMaxWidthFactor = 8.7f;
+
+	public const float AvgPossibleAltitude = 0f;
+	public const float AvgPossibleRainfall = 990f;
+	public const float AvgPossibleTemperature = 13.7f;
 	
 	public const float MinPossibleAltitude = -15000;
 	public const float MaxPossibleAltitude = 15000;

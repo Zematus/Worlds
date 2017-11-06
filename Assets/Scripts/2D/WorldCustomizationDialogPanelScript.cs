@@ -25,29 +25,33 @@ public class WorldCustomizationDialogPanelScript : MonoBehaviour {
 	private float _minTemperatureOffset = -50;
 	private float _maxTemperatureOffset = 50;
 	
-	private float _minRainfallOffset = -5000;
-	private float _maxRainfallOffset = 5000;
+	private float _minRainfallOffset = -990f;
+	private float _maxRainfallOffset = 990f;
 	
 	private float _minSeaLevelOffset = -10000;
 	private float _maxSeaLevelOffset = 10000;
 
-	// Use this for initialization
-	void Start () {
-	
+	void Awake () {
+
 		if (TemperatureSlider != null) {
 			TemperatureSlider.minValue = _minTemperatureOffset;
 			TemperatureSlider.maxValue = _maxTemperatureOffset;
 		}
-		
+
 		if (RainfallSlider != null) {
 			RainfallSlider.minValue = _minRainfallOffset;
 			RainfallSlider.maxValue = _maxRainfallOffset;
 		}
-		
+
 		if (SeaLevelSlider != null) {
 			SeaLevelSlider.minValue = _minSeaLevelOffset;
 			SeaLevelSlider.maxValue = _maxSeaLevelOffset;
 		}
+	}
+
+	// Use this for initialization
+	void Start () {
+		
 	}
 	
 	// Update is called once per frame
@@ -64,19 +68,65 @@ public class WorldCustomizationDialogPanelScript : MonoBehaviour {
 		
 		SeedInputField.text = seedStr;
 	}
+
+	private void SetTemperatureFieldValue (float offset) {
+
+		float avgTemp = World.AvgPossibleTemperature + offset;
+		TemperatureInputField.text = avgTemp.ToString ("0.00");
+	}
+
+	private bool GetTemperatureFieldValue (out float offset) {
+
+		float value;
+
+		if (!float.TryParse (TemperatureInputField.text, out value)) {
+
+			offset = 0;
+
+			return false;
+		}
+
+		offset = value - World.AvgPossibleTemperature;
+
+		return true;
+	}
 	
 	public void SetTemperatureOffset (float offset) {
 
 		TemperatureOffset = offset;
-		TemperatureInputField.text = offset.ToString ();
 		TemperatureSlider.value = offset;
+
+		SetTemperatureFieldValue (offset);
+	}
+
+	private void SetRainfallFieldValue (float offset) {
+
+		float avgRainfall = World.AvgPossibleRainfall + offset;
+		RainfallInputField.text = avgRainfall.ToString ();
+	}
+
+	private bool GetRainfallFieldValue (out float offset) {
+
+		float value;
+
+		if (!float.TryParse (RainfallInputField.text, out value)) {
+
+			offset = 0;
+
+			return false;
+		}
+
+		offset = value - World.AvgPossibleRainfall;
+
+		return true;
 	}
 	
 	public void SetRainfallOffset (float offset) {
 		
 		RainfallOffset = offset;
-		RainfallInputField.text = offset.ToString ();
 		RainfallSlider.value = offset;
+
+		SetRainfallFieldValue (offset);
 	}
 	
 	public void SetSeaLevelOffset (float offset) {
@@ -117,7 +167,7 @@ public class WorldCustomizationDialogPanelScript : MonoBehaviour {
 
 		if (fromField) {
 
-			if (!float.TryParse (TemperatureInputField.text, out value)) {
+			if (!GetTemperatureFieldValue (out value)) {
 				return;
 			}
 		} else {
@@ -127,9 +177,10 @@ public class WorldCustomizationDialogPanelScript : MonoBehaviour {
 		
 		value = Mathf.Clamp(value, minOffset, maxOffset);
 
-		TemperatureInputField.text = value.ToString();
 		TemperatureSlider.value = value;
 		TemperatureOffset = value;
+
+		SetTemperatureFieldValue (value);
 	}
 	
 	public void RainfallValueChange (bool fromField) {
@@ -141,7 +192,7 @@ public class WorldCustomizationDialogPanelScript : MonoBehaviour {
 		
 		if (fromField) {
 			
-			if (!float.TryParse (RainfallInputField.text, out value)) {
+			if (!GetRainfallFieldValue (out value)) {
 				return;
 			}
 		} else {
@@ -150,10 +201,11 @@ public class WorldCustomizationDialogPanelScript : MonoBehaviour {
 		}
 		
 		value = Mathf.Clamp(value, minOffset, maxOffset);
-		
-		RainfallInputField.text = value.ToString();
+
 		RainfallSlider.value = value;
 		RainfallOffset = value;
+
+		SetRainfallFieldValue (value);
 	}
 	
 	public void SeaLevelValueChange (bool fromField) {
