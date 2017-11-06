@@ -219,9 +219,9 @@ public class Agent : ISynchronizable {
 			GenerateNameFromRegionAttribute (attribute, getRandomInt, getRandomFloat);
 		}
 
-		#if DEBUG
-		Debug.Log ("Leader #" + Id + " name: " + Name);
-		#endif
+//		#if DEBUG
+//		Debug.Log ("Leader #" + Id + " name: " + Name);
+//		#endif
 	}
 
 	public virtual void Synchronize () {

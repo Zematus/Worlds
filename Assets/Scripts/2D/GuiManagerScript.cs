@@ -117,8 +117,8 @@ public class GuiManagerScript : MonoBehaviour {
 
 	private event PointerHoverOperation _mapHoverOp = null;
 	
-	private const float _maxAccTime = 1.0f;
-	private const float _maxDeltaTimeIterations = 0.02f;
+	private const float _maxAccTime = 1.0f; // the standard length of time of a simulation cycle (in real time)
+	private const float _maxDeltaTimeIterations = 0.02f; // max real time to be spent on iterations on a single frame (this is the value that matters the most performance-wise)
 
 	private float _accDeltaTime = 0;
 	private int _simulationDateSpan = 0;
@@ -283,9 +283,9 @@ public class GuiManagerScript : MonoBehaviour {
 				_postProgressOp ();
 		}
 
-		bool simulationState = Manager.SimulationCanRun && Manager.SimulationRunning;
+		bool simulationRunning = Manager.SimulationCanRun && Manager.SimulationRunning;
 
-		if (simulationState) {
+		if (simulationRunning) {
 
 			Speed maxSpeed = _maxSpeedOptions [_selectedMaxSpeedOptionIndex];
 
@@ -297,26 +297,26 @@ public class GuiManagerScript : MonoBehaviour {
 				_simulationDateSpan = 0;
 			}
 
-			if (_simulationDateSpan < maxSpeed) {
+			int maxSimulationDateSpan = (int)Mathf.Ceil(maxSpeed * _accDeltaTime);
 
-				int minDateSpan = CellGroup.GenerationTime * 1000;
-				int lastUpdateDate = Manager.CurrentWorld.CurrentDate;
-
-				float startTimeIterations = Time.realtimeSinceStartup;
+			// Simulate additional iterations if we haven't reached the max amount of iterations allowed per the percentage of transpired real time during this cycle
+			if (_simulationDateSpan < maxSimulationDateSpan) {
 
 				int maxDateSpanBetweenUpdates = (int)Mathf.Ceil(maxSpeed * _maxDeltaTimeIterations);
+				int lastUpdateDate = Manager.CurrentWorld.CurrentDate;
 
 				int dateSpan = 0;
 
-				while ((lastUpdateDate + minDateSpan) >= Manager.CurrentWorld.CurrentDate) {
+				float startTimeIterations = Time.realtimeSinceStartup;
+
+				// Simulate up to the max amout of iterations allowed per frame
+				while ((lastUpdateDate + maxDateSpanBetweenUpdates) > Manager.CurrentWorld.CurrentDate) {
 
 					dateSpan += Manager.CurrentWorld.Iterate ();
 
 					float deltaTimeIterations = Time.realtimeSinceStartup - startTimeIterations;
 
-					if (dateSpan >= maxDateSpanBetweenUpdates)
-						break;
-
+					// If too much real time was spent simulating after this iteration stop simulating until the next frame
 					if (deltaTimeIterations > _maxDeltaTimeIterations)
 						break;
 				}
@@ -1044,9 +1044,13 @@ public class GuiManagerScript : MonoBehaviour {
 		OnFirstMaxSpeedOptionSet.Invoke (_pausingDialogActive || (_selectedMaxSpeedOptionIndex == 0));
 		OnLastMaxSpeedOptionSet.Invoke (_pausingDialogActive || (_selectedMaxSpeedOptionIndex == _lastMaxSpeedOptionIndex));
 
+		// This is the max amount of iterations to simulate per second
 		Speed selectedSpeed = _maxSpeedOptions [speedOptionIndex];
 
-		Manager.CurrentWorld.SetMaxYearsToSkip (selectedSpeed);
+		// This is the max amount of iterations to simulate per frame
+		int maxSpeed = (int)Mathf.Ceil(selectedSpeed * _maxDeltaTimeIterations);
+
+		Manager.CurrentWorld.SetMaxYearsToSkip (maxSpeed);
 
 		OnSimulationSpeedChanged.Invoke (selectedSpeed);
 	}
@@ -1959,9 +1963,12 @@ public class GuiManagerScript : MonoBehaviour {
 
 			InfoPanelScript.InfoText.text += "Territory of " + polity.Type + " " + polity.Name;
 			InfoPanelScript.InfoText.text += "\n";
-			InfoPanelScript.InfoText.text += "\n";
 
-			InfoPanelScript.InfoText.text += "Leader: " + polity.CurrentLeader.Name;
+			Agent leader = polity.CurrentLeader;
+
+			InfoPanelScript.InfoText.text += "\nLeader: " + leader.Name;
+			InfoPanelScript.InfoText.text += "\nBirth Date: " + leader.BirthDate;
+			InfoPanelScript.InfoText.text += "\nGender: " + ((leader.IsFemale) ? "Female" : "Male");
 			InfoPanelScript.InfoText.text += "\n";
 			InfoPanelScript.InfoText.text += "\n";
 
@@ -2023,6 +2030,14 @@ public class GuiManagerScript : MonoBehaviour {
 
 		InfoPanelScript.InfoText.text += "\n\tAdministrative Cost: " + administrativeCost;
 
+		Agent leader = polity.CurrentLeader;
+
+		InfoPanelScript.InfoText.text += "\n";
+		InfoPanelScript.InfoText.text += "\nLeader: " + leader.Name;
+		InfoPanelScript.InfoText.text += "\nBirth Date: " + leader.BirthDate;
+		InfoPanelScript.InfoText.text += "\nGender: " + ((leader.IsFemale) ? "Female" : "Male");
+		InfoPanelScript.InfoText.text += "\n";
+
 		InfoPanelScript.InfoText.text += "\n";
 		InfoPanelScript.InfoText.text += "\n -- Polity Factions -- ";
 		InfoPanelScript.InfoText.text += "\n";
@@ -2042,6 +2057,13 @@ public class GuiManagerScript : MonoBehaviour {
 
 			InfoPanelScript.InfoText.text += "\n\t" + faction.Type + " " + faction.Name;
 			InfoPanelScript.InfoText.text += "\n\t\tProminence: " + faction.Prominence.ToString ("P");
+
+			Agent factionLeader = faction.CurrentLeader;
+
+			InfoPanelScript.InfoText.text += "\n\t\tLeader: " + factionLeader.Name;
+			InfoPanelScript.InfoText.text += "\n\t\tBirth Date: " + factionLeader.BirthDate;
+			InfoPanelScript.InfoText.text += "\tGender: " + ((factionLeader.IsFemale) ? "Female" : "Male");
+			InfoPanelScript.InfoText.text += "\n";
 		}
 
 		InfoPanelScript.InfoText.text += "\n";

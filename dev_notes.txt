@@ -1,5 +1,4 @@
 - add goals to patreon, decent schedule, progress path and a feature wish list
-- display the rss feed link somewhere
 - advertise the Patreon more
 - set a good versioning scheme
 - replace offsets with actual values in customization dialog
@@ -8,6 +7,5 @@
 
 EXTRA:
 
-- No not create MigrationGroup objects on every migration
+- Don't create MigrationGroup objects on every migration
 - Create InlfuenceExpansionGroup class (if needed)
-- Factions should update separately from polities

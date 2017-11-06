@@ -648,14 +648,135 @@ public class World : ISynchronizable {
 		}
 	}
 
-	public int Iterate () {
+	private void UpdateGroups () {
 
-//		#if DEBUG
-//		int testDate = 554631;
-//
-//		if (CurrentDate >= testDate)
-//			Debug.Log ("Iteration Date: " + CurrentDate);
-//		#endif
+		foreach (CellGroup group in _groupsToUpdate) {
+
+			Profiler.BeginSample ("Group Update");
+
+			group.Update ();
+
+			Profiler.EndSample ();
+		}
+
+		_groupsToUpdate.Clear ();
+	}
+
+	private void MigrateGroups () {
+
+		MigratingGroup[] currentGroupsToMigrate = _migratingGroups.ToArray();
+
+		_migratingGroups.Clear ();
+
+		foreach (MigratingGroup group in currentGroupsToMigrate) {
+
+			group.SplitFromSourceGroup();
+		}
+
+		foreach (MigratingGroup group in currentGroupsToMigrate) {
+
+			group.MoveToCell();
+		}
+	}
+
+	//	private void PerformGroupActions () {
+	//
+	//		//
+	//		// Perform Group Actions
+	//		//
+	//
+	//		foreach (IGroupAction action in _groupActionsToPerform) {
+	//		
+	//			action.Perform ();
+	//		}
+	//
+	//		_groupActionsToPerform.Clear ();
+	//	}
+
+	private void PostUpdateGroups () {
+
+		foreach (CellGroup group in _updatedGroups) {
+
+			Profiler.BeginSample ("Cell Group Postupdate");
+
+			group.PostUpdate ();
+
+			Profiler.EndSample ();
+		}
+	}
+
+	private void RemoveGroups () {
+
+		foreach (CellGroup group in _groupsToRemove) {
+
+			Profiler.BeginSample ("Destroy Group");
+
+			group.Destroy ();
+
+			Profiler.EndSample ();
+		}
+
+		_groupsToRemove.Clear ();
+	}
+
+	private void SetNextGroupUpdates () {
+
+		foreach (CellGroup group in _updatedGroups) {
+
+			Profiler.BeginSample ("Cell Group Setup for Next Update");
+
+			group.SetupForNextUpdate ();
+			Manager.AddUpdatedCell (group.Cell, CellUpdateType.Group);
+
+			Profiler.EndSample ();
+		}
+
+		_updatedGroups.Clear ();
+	}
+
+	private void UpdateFactions () {
+
+		foreach (Faction faction in _factionsToUpdate) {
+
+			Profiler.BeginSample ("Update Faction");
+
+			faction.Update ();
+
+			Profiler.EndSample ();
+		}
+
+		_factionsToUpdate.Clear ();
+	}
+
+	private void UpdatePolities () {
+
+		foreach (Polity polity in _politiesToUpdate) {
+
+			Profiler.BeginSample ("Update Polity");
+
+			polity.Update ();
+
+			Profiler.EndSample ();
+		}
+
+		_politiesToUpdate.Clear ();
+	}
+
+	private void RemovePolities () {
+
+		foreach (Polity polity in _politiesToRemove) {
+
+			Profiler.BeginSample ("Destroy Polity");
+
+			polity.Destroy ();
+
+			Profiler.EndSample ();
+		}
+
+		_politiesToRemove.Clear ();
+	}
+
+	public int Iterate () {
 
 		if (CellGroupCount <= 0)
 			return 0;
@@ -667,11 +788,6 @@ public class World : ISynchronizable {
 		int dateToSkipTo = CurrentDate + 1;
 
 		Profiler.BeginSample ("Evaluate Events");
-
-//		#if DEBUG
-//		if (CurrentDate >= testDate)
-//			Debug.Log ("Events to happen: " + _eventsToHappen.Count);
-//		#endif
 
 		while (true) {
 
@@ -685,12 +801,10 @@ public class World : ISynchronizable {
 
 				int maxDate = CurrentDate + MaxYearsToSkip;
 
-				#if DEBUG
 				if (maxDate < 0) {
 					Debug.Break ();
 					throw new System.Exception ("Surpassed date limit (Int32.MaxValue)");
 				}
-				#endif
 
 				dateToSkipTo = Mathf.Min (eventToHappen.TriggerDate, maxDate);
 				break;
@@ -709,27 +823,12 @@ public class World : ISynchronizable {
 
 			Profiler.BeginSample ("Event Trigger");
 
-//			#if DEBUG
-//			if (CurrentDate >= testDate)
-//				Debug.Log ("Trying to trigger event: " + eventToHappen.GetType ());
-//			#endif
-
 			if (eventToHappen.CanTrigger ()) {
-
-//				#if DEBUG
-//				if (CurrentDate >= testDate)
-//					Debug.Log ("Triggering event");
-//				#endif
 				
 				eventToHappen.Trigger ();
 			} else {
 				eventToHappen.FailedToTrigger = true;
 			}
-
-//			#if DEBUG
-//			if (CurrentDate >= testDate)
-//				Debug.Log ("Done trying to trigger event");
-//			#endif
 
 			Profiler.EndSample ();
 
@@ -738,196 +837,31 @@ public class World : ISynchronizable {
 
 		Profiler.EndSample ();
 
-//		//
-//		// Preupdate groups that need it
-//		//
-//
-//		foreach (CellGroup group in _groupsToUpdate) {
-//
-//			group.PreUpdate ();
-//		}
-		
 		//
-		// Update Human Groups
+		// Update World
 		//
 
-//		#if DEBUG
-//		if (CurrentDate >= testDate)
-//			Debug.Log ("Groups to update: " + _groupsToUpdate.Count);
-//		#endif
-	
-		foreach (CellGroup group in _groupsToUpdate) {
+		UpdateGroups ();
 
-			Profiler.BeginSample ("Group Update");
+		MigrateGroups ();
 
-			group.Update ();
+//		PerformGroupActions ();
 
-			Profiler.EndSample ();
-		}
-		
-		_groupsToUpdate.Clear ();
-		
-		//
-		// Migrate Human Groups
-		//
+		PostUpdateGroups ();
 
-//		#if DEBUG
-//		if (CurrentDate >= testDate)
-//			Debug.Log ("Groups to migrate: " + _migratingGroups.Count);
-//		#endif
-		
-		MigratingGroup[] currentGroupsToMigrate = _migratingGroups.ToArray();
-		
-		_migratingGroups.Clear ();
-		
-		foreach (MigratingGroup group in currentGroupsToMigrate) {
-			
-			group.SplitFromSourceGroup();
-		}
-		
-		foreach (MigratingGroup group in currentGroupsToMigrate) {
+		RemoveGroups ();
 
-			group.MoveToCell();
-		}
-		
-//		//
-//		// Perform Group Actions
-//		//
-//
-//		foreach (IGroupAction action in _groupActionsToPerform) {
-//		
-//			action.Perform ();
-//		}
-//
-//		_groupActionsToPerform.Clear ();
-		
-		//
-		// Perform post update ops
-		//
+		SetNextGroupUpdates ();
 
-//		#if DEBUG
-//		if (CurrentDate >= testDate)
-//			Debug.Log ("Groups to post-update: " + _updatedGroups.Count);
-//		#endif
-		
-		foreach (CellGroup group in _updatedGroups) {
+		UpdateFactions ();
 
-			Profiler.BeginSample ("Cell Group Postupdate");
+		UpdatePolities ();
 
-			group.PostUpdate ();
-
-			Profiler.EndSample ();
-		}
-
-		//
-		// Remove Human Groups that have been set to be removed
-		//
-
-//		#if DEBUG
-//		if (CurrentDate >= testDate)
-//			Debug.Log ("Groups to remove: " + _groupsToRemove.Count);
-//		#endif
-
-		foreach (CellGroup group in _groupsToRemove) {
-
-			Profiler.BeginSample ("Destroy Group");
-
-			group.Destroy ();
-
-			Profiler.EndSample ();
-		}
-
-		_groupsToRemove.Clear ();
-		
-		//
-		// Set next group updates
-		//
-
-//		#if DEBUG
-//		if (CurrentDate >= testDate)
-//			Debug.Log ("Groups to set for next update: " + _updatedGroups.Count);
-//		#endif
-		
-		foreach (CellGroup group in _updatedGroups) {
-
-			Profiler.BeginSample ("Cell Group Setup for Next Update");
-
-			group.SetupForNextUpdate ();
-			Manager.AddUpdatedCell (group.Cell, CellUpdateType.Group);
-
-			Profiler.EndSample ();
-		}
-
-		_updatedGroups.Clear ();
-
-		//
-		// Update Factions
-		//
-
-//		#if DEBUG
-//		if (CurrentDate >= testDate)
-//			Debug.Log ("Factions to update: " + _factionsToUpdate.Count);
-//		#endif
-
-		foreach (Faction faction in _factionsToUpdate) {
-
-			Profiler.BeginSample ("Update Faction");
-
-			faction.Update ();
-
-			Profiler.EndSample ();
-		}
-
-		 _factionsToUpdate.Clear ();
-
-		//
-		// Update Polities
-		//
-
-//		#if DEBUG
-//		if (CurrentDate >= testDate)
-//			Debug.Log ("Polities to update: " + _politiesToUpdate.Count);
-//		#endif
-
-		foreach (Polity polity in _politiesToUpdate) {
-
-			Profiler.BeginSample ("Update Polity");
-
-			polity.Update ();
-
-			Profiler.EndSample ();
-		}
-
-		_politiesToUpdate.Clear ();
-
-		//
-		// Remove Polities that have been set to be removed
-		//
-
-//		#if DEBUG
-//		if (CurrentDate >= testDate)
-//			Debug.Log ("Polities to remove: " + _politiesToRemove.Count);
-//		#endif
-
-		foreach (Polity polity in _politiesToRemove) {
-
-			Profiler.BeginSample ("Destroy Polity");
-
-			polity.Destroy ();
-
-			Profiler.EndSample ();
-		}
-
-		_politiesToRemove.Clear ();
+		RemovePolities ();
 
 		//
 		// Skip to Next Event's Date
 		//
-
-//		#if DEBUG
-//		if (CurrentDate >= testDate)
-//			Debug.Log ("Events left to happen: " + _eventsToHappen.Count);
-//		#endif
 
 		if (_eventsToHappen.Count > 0) {
 
