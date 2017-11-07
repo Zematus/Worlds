@@ -98,7 +98,6 @@ public class World : ISynchronizable {
 	public const float ContinentMinWidthFactor = 5.7f;
 	public const float ContinentMaxWidthFactor = 8.7f;
 
-	public const float AvgPossibleAltitude = 0f;
 	public const float AvgPossibleRainfall = 990f;
 	public const float AvgPossibleTemperature = 13.7f;
 	
@@ -107,10 +106,9 @@ public class World : ISynchronizable {
 	
 	public const float MinPossibleRainfall = 0;
 	public const float MaxPossibleRainfall = 13000;
-	public const float RainfallDrynessOffsetFactor = 0.005f;
 	
-	public const float MinPossibleTemperature = -40;
-	public const float MaxPossibleTemperature = 50;
+	public const float MinPossibleTemperature = -40 - AvgPossibleTemperature;
+	public const float MaxPossibleTemperature = 50 - AvgPossibleTemperature;
 
 	public const float OptimalRainfallForArability = 1000;
 	public const float OptimalTemperatureForArability = 30;
@@ -221,9 +219,9 @@ public class World : ISynchronizable {
 	public float MaxPossibleAltitudeWithOffset = MaxPossibleAltitude - Manager.SeaLevelOffset;
 	
 	[XmlIgnore]
-	public float MinPossibleRainfallWithOffset = MinPossibleRainfall + Manager.RainfallOffset;
+	public float MinPossibleRainfallWithOffset = MinPossibleRainfall;
 	[XmlIgnore]
-	public float MaxPossibleRainfallWithOffset = MaxPossibleRainfall + Manager.RainfallOffset;
+	public float MaxPossibleRainfallWithOffset = MaxPossibleRainfall * Manager.RainfallOffset / AvgPossibleRainfall;
 	
 	[XmlIgnore]
 	public float MinPossibleTemperatureWithOffset = MinPossibleTemperature + Manager.TemperatureOffset;
@@ -2027,16 +2025,14 @@ public class World : ISynchronizable {
 	}
 	
 	private float CalculateRainfall (float value) {
-
-		float drynessOffset = MaxPossibleRainfall * RainfallDrynessOffsetFactor;
 		
-		float span = MaxPossibleRainfall - MinPossibleRainfall + drynessOffset;
+		float span = MaxPossibleRainfallWithOffset - MinPossibleRainfallWithOffset;
 
-		float rainfall = (value * span) + MinPossibleRainfall - drynessOffset;
+		float rainfall = (value * span) + MinPossibleRainfallWithOffset;
 
-		rainfall += Manager.RainfallOffset;
+		float minRainfall = Mathf.Max (0, MinPossibleRainfallWithOffset);
 
-		rainfall = Mathf.Clamp(rainfall, 0, MaxPossibleRainfallWithOffset);
+		rainfall = Mathf.Clamp(rainfall, minRainfall, MaxPossibleRainfallWithOffset);
 		
 		return rainfall;
 	}

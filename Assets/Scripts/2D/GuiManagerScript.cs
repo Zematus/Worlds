@@ -83,11 +83,6 @@ public class GuiManagerScript : MonoBehaviour {
 	
 	private PlanetView _planetView = PlanetView.Biomes;
 
-//	#if DEBUG
-//	private PlanetOverlay _planetOverlay = PlanetOverlay.UpdateSpan;
-//	#else
-//	private PlanetOverlay _planetOverlay = PlanetOverlay.PopDensity;
-//	#endif
 	private PlanetOverlay _planetOverlay = PlanetOverlay.General;
 
 	private string _planetOverlaySubtype = "None";
@@ -215,7 +210,8 @@ public class GuiManagerScript : MonoBehaviour {
 //			GenerateWorld (false, 783909167);
 //			GenerateWorld (false, 1446630758);
 //			GenerateWorld (false, 1788799931);
-			GenerateWorld (false, 616109363);
+//			GenerateWorld (false, 616109363);
+			GenerateWorld (false, 1735984055);
 
 		} else if (!Manager.SimulationCanRun) {
 
@@ -1966,8 +1962,11 @@ public class GuiManagerScript : MonoBehaviour {
 
 			Agent leader = polity.CurrentLeader;
 
+			int age = Manager.CurrentWorld.CurrentDate - leader.BirthDate;
+
 			InfoPanelScript.InfoText.text += "\nLeader: " + leader.Name;
 			InfoPanelScript.InfoText.text += "\nBirth Date: " + leader.BirthDate;
+			InfoPanelScript.InfoText.text += " \tAge: " + age;
 			InfoPanelScript.InfoText.text += "\nGender: " + ((leader.IsFemale) ? "Female" : "Male");
 			InfoPanelScript.InfoText.text += "\n";
 			InfoPanelScript.InfoText.text += "\n";

@@ -173,8 +173,8 @@ public class Manager {
 	
 	public static int PixelToCellRatio = 4;
 
-	public static float TemperatureOffset = 0;
-	public static float RainfallOffset = 0;
+	public static float TemperatureOffset = World.AvgPossibleTemperature;
+	public static float RainfallOffset = World.AvgPossibleRainfall;
 	public static float SeaLevelOffset = 0;
 
 	public static bool DisplayMigrationTaggedGroup = false;
@@ -2461,7 +2461,7 @@ public class Manager {
 		
 		if (cell.Rainfall > 0) {
 			
-			float value = cell.Rainfall / World.MaxPossibleRainfall + Manager.RainfallOffset;
+			float value = cell.Rainfall /(2 * World.MaxPossibleRainfall);
 			
 			addColor = Color.green;
 			

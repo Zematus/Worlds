@@ -22,11 +22,11 @@ public class WorldCustomizationDialogPanelScript : MonoBehaviour {
 	public Slider SeaLevelSlider;
 	public float SeaLevelOffset = 0;
 
-	private float _minTemperatureOffset = -50;
-	private float _maxTemperatureOffset = 50;
+	private float _minTemperatureOffset = -50 + World.AvgPossibleTemperature;
+	private float _maxTemperatureOffset = 50 + World.AvgPossibleTemperature;
 	
-	private float _minRainfallOffset = -990f;
-	private float _maxRainfallOffset = 990f;
+	private float _minRainfallOffset = -800f + World.AvgPossibleRainfall;
+	private float _maxRainfallOffset = 800f + World.AvgPossibleRainfall;
 	
 	private float _minSeaLevelOffset = -10000;
 	private float _maxSeaLevelOffset = 10000;
@@ -71,7 +71,7 @@ public class WorldCustomizationDialogPanelScript : MonoBehaviour {
 
 	private void SetTemperatureFieldValue (float offset) {
 
-		float avgTemp = World.AvgPossibleTemperature + offset;
+		float avgTemp = offset;
 		TemperatureInputField.text = avgTemp.ToString ("0.00");
 	}
 
@@ -86,7 +86,7 @@ public class WorldCustomizationDialogPanelScript : MonoBehaviour {
 			return false;
 		}
 
-		offset = value - World.AvgPossibleTemperature;
+		offset = value;
 
 		return true;
 	}
@@ -101,7 +101,7 @@ public class WorldCustomizationDialogPanelScript : MonoBehaviour {
 
 	private void SetRainfallFieldValue (float offset) {
 
-		float avgRainfall = World.AvgPossibleRainfall + offset;
+		float avgRainfall = offset;
 		RainfallInputField.text = avgRainfall.ToString ();
 	}
 
@@ -116,7 +116,7 @@ public class WorldCustomizationDialogPanelScript : MonoBehaviour {
 			return false;
 		}
 
-		offset = value - World.AvgPossibleRainfall;
+		offset = value;
 
 		return true;
 	}
@@ -128,12 +128,34 @@ public class WorldCustomizationDialogPanelScript : MonoBehaviour {
 
 		SetRainfallFieldValue (offset);
 	}
+
+	private void SetAltitudeFieldValue (float offset) {
+
+		SeaLevelInputField.text = offset.ToString ();
+	}
+
+	private bool GetAltitudeFieldValue (out float offset) {
+
+		float value;
+
+		if (!float.TryParse (SeaLevelInputField.text, out value)) {
+
+			offset = 0;
+
+			return false;
+		}
+
+		offset = value;
+
+		return true;
+	}
 	
 	public void SetSeaLevelOffset (float offset) {
 		
 		SeaLevelOffset = offset;
 		SeaLevelInputField.text = offset.ToString ();
-		SeaLevelSlider.value = offset;
+
+		SetAltitudeFieldValue (offset);
 	}
 	
 	public string GetSeedString () {
@@ -162,9 +184,6 @@ public class WorldCustomizationDialogPanelScript : MonoBehaviour {
 
 		float value = 0;
 
-		float minOffset = _minTemperatureOffset;
-		float maxOffset = _maxTemperatureOffset;
-
 		if (fromField) {
 
 			if (!GetTemperatureFieldValue (out value)) {
@@ -175,7 +194,17 @@ public class WorldCustomizationDialogPanelScript : MonoBehaviour {
 			value = TemperatureSlider.value;
 		}
 		
-		value = Mathf.Clamp(value, minOffset, maxOffset);
+		SetTemperatureValue (value);
+	}
+
+	public void ResetTemperatureValue () {
+
+		SetTemperatureValue (World.AvgPossibleTemperature);
+	}
+
+	private void SetTemperatureValue (float value) {
+
+		value = Mathf.Clamp(value, _minTemperatureOffset, _maxTemperatureOffset);
 
 		TemperatureSlider.value = value;
 		TemperatureOffset = value;
@@ -187,9 +216,6 @@ public class WorldCustomizationDialogPanelScript : MonoBehaviour {
 		
 		float value = 0;
 		
-		float minOffset = _minRainfallOffset;
-		float maxOffset = _maxRainfallOffset;
-		
 		if (fromField) {
 			
 			if (!GetRainfallFieldValue (out value)) {
@@ -200,7 +226,17 @@ public class WorldCustomizationDialogPanelScript : MonoBehaviour {
 			value = RainfallSlider.value;
 		}
 		
-		value = Mathf.Clamp(value, minOffset, maxOffset);
+		SetRainfallValue (value);
+	}
+
+	public void ResetRainfallValue () {
+
+		SetRainfallValue (World.AvgPossibleRainfall);
+	}
+
+	private void SetRainfallValue (float value) {
+
+		value = Mathf.Clamp(value, _minRainfallOffset, _maxRainfallOffset);
 
 		RainfallSlider.value = value;
 		RainfallOffset = value;
@@ -212,23 +248,31 @@ public class WorldCustomizationDialogPanelScript : MonoBehaviour {
 		
 		float value = 0;
 		
-		float minOffset = _minSeaLevelOffset;
-		float maxOffset = _maxSeaLevelOffset;
-		
 		if (fromField) {
 			
-			if (!float.TryParse (SeaLevelInputField.text, out value)) {
+			if (!GetAltitudeFieldValue (out value)) {
 				return;
 			}
 		} else {
 			
 			value = SeaLevelSlider.value;
 		}
-		
-		value = Mathf.Clamp(value, minOffset, maxOffset);
-		
-		SeaLevelInputField.text = value.ToString();
+
+		SetSeaLevelValue (value);
+	}
+
+	public void ResetSeaLevelValue () {
+
+		SetSeaLevelValue (0);
+	}
+
+	private void SetSeaLevelValue (float value) {
+
+		value = Mathf.Clamp(value, _minSeaLevelOffset, _maxSeaLevelOffset);
+
 		SeaLevelSlider.value = value;
 		SeaLevelOffset = value;
+
+		SetAltitudeFieldValue (value);
 	}
 }

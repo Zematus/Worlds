@@ -103,7 +103,7 @@ public class Route : ISynchronizable {
 				break;
 			}
 
-			Length += nextCell.NeighborDistances [nextDirection]; 
+			Length += LastCell.NeighborDistances [nextDirection];
 
 			AddCell (nextCell);
 
