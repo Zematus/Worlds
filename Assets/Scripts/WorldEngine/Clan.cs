@@ -437,10 +437,7 @@ public class ClanSplitEvent : FactionEvent {
 
 		float dateSpan = (1 - randomFactor) * DateSpanFactorConstant;
 
-		int targetDate = (int)(clan.World.CurrentDate + dateSpan);
-
-		if (targetDate <= clan.World.CurrentDate)
-			targetDate = int.MinValue;
+		int targetDate = (int)(clan.World.CurrentDate + dateSpan) + 1;
 
 		return targetDate;
 	}
@@ -608,10 +605,7 @@ public class ClanCoreMigrationEvent : FactionEvent {
 
 		float dateSpan = (1 - randomFactor) * DateSpanFactorConstant;
 
-		int targetDate = (int)(clan.World.CurrentDate + dateSpan);
-		
-		if (targetDate <= clan.World.CurrentDate)
-			targetDate = int.MinValue;
+		int targetDate = (int)(clan.World.CurrentDate + dateSpan) + 1;
 
 		return targetDate;
 	}

@@ -1588,12 +1588,10 @@ public class CellGroup : HumanGroup {
 
 	public void Update () {
 
-		#if DEBUG
 		if (_destroyed) {
 
 			throw new System.Exception ("Group is already destroyed");
 		}
-		#endif
 
 		if (_alreadyUpdated)
 			return;
@@ -2430,7 +2428,9 @@ public class CellGroup : HumanGroup {
 
 					if (faction.PolityId == pi.PolityId) {
 
-						throw new System.Exception ("Faction belonging to removed polity has core in cell - group Id: " + Id);
+						World.AddFactionToRemove (faction);
+
+//						throw new System.Exception ("Faction belonging to removed polity has core in cell - group Id: " + Id + " - polity Id: " + pi.PolityId);
 					}
 				}
 				#endif
@@ -2547,6 +2547,16 @@ public class CellGroup : HumanGroup {
 		}
 
 		if (newInfluenceValue <= Polity.MinPolityInfluence) {
+
+//			#if DEBUG
+//			foreach (Faction faction in GetFactionCores ()) {
+//
+//				if (faction.PolityId == polityInfluence.PolityId) {
+//
+//					Debug.LogWarning ("Faction belonging to polity to remove has core in cell - group Id: " + Id + " - polity Id: " + polityInfluence.PolityId);
+//				}
+//			}
+//			#endif
 			
 			_polityInfluencesToRemove.Add (polityInfluence.PolityId);
 
@@ -2584,15 +2594,15 @@ public class CellGroup : HumanGroup {
 			throw new System.Exception ("Polity not actually influencing group");
 		}
 
-		#if DEBUG
-		foreach (Faction faction in GetFactionCores ()) {
-
-			if (faction.PolityId == polity.Id) {
-
-				throw new System.Exception ("Faction belonging to removed polity has core in cell - group Id: " + Id);
-			}
-		}
-		#endif
+//		#if DEBUG
+//		foreach (Faction faction in GetFactionCores ()) {
+//
+//			if (faction.PolityId == polity.Id) {
+//
+//				Debug.LogWarning ("Faction belonging to polity to remove has core in cell - group Id: " + Id + " - polity Id: " + polity.Id);
+//			}
+//		}
+//		#endif
 
 		_polityInfluencesToRemove.Add (polity.Id);
 	}
@@ -3221,7 +3231,7 @@ public class TribeFormationEvent : CellGroupEvent {
 
 		float dateSpan = (1 - randomFactor) * DateSpanFactorConstant / socialOrganizationFactor;
 
-		int targetDate = (int)(group.World.CurrentDate + dateSpan);
+		int targetDate = (int)(group.World.CurrentDate + dateSpan) + 1;
 
 		if (targetDate <= group.World.CurrentDate)
 			targetDate = int.MinValue;

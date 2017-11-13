@@ -356,10 +356,7 @@ public class SailingDiscoveryEvent : DiscoveryEvent {
 
 		float dateSpan = (1 - randomFactor) * DateSpanFactorConstant / shipBuildingFactor;
 
-		int targetDate = (int)(group.World.CurrentDate + dateSpan);
-
-		if (targetDate <= group.World.CurrentDate)
-			targetDate = int.MinValue;
+		int targetDate = (int)(group.World.CurrentDate + dateSpan) + 1;
 
 		return targetDate;
 	}
@@ -454,10 +451,7 @@ public class TribalismDiscoveryEvent : DiscoveryEvent {
 
 		float dateSpan = (1 - randomFactor) * DateSpanFactorConstant / socialOrganizationFactor;
 
-		int targetDate = (int)(group.World.CurrentDate + dateSpan);
-
-		if (targetDate <= group.World.CurrentDate)
-			targetDate = int.MinValue;
+		int targetDate = (int)(group.World.CurrentDate + dateSpan) + 1;
 
 		return targetDate;
 	}
@@ -587,10 +581,7 @@ public class BoatMakingDiscoveryEvent : DiscoveryEvent {
 			throw new System.Exception ("Can't calculate valid trigger date");
 		}
 
-		int targetDate = (int)(group.World.CurrentDate + dateSpan);
-
-		if (targetDate <= group.World.CurrentDate)
-			targetDate = int.MinValue;
+		int targetDate = (int)(group.World.CurrentDate + dateSpan) + 1;
 
 		return targetDate;
 	}
@@ -670,7 +661,7 @@ public class PlantCultivationDiscoveryEvent : DiscoveryEvent {
 			throw new System.Exception ("Can't calculate valid trigger date");
 		}
 
-		int targetDate = (int)(group.World.CurrentDate + dateSpan);
+		int targetDate = (int)(group.World.CurrentDate + dateSpan) + 1;
 
 		if (targetDate <= group.World.CurrentDate)
 			targetDate = int.MinValue;

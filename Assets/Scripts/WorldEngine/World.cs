@@ -278,6 +278,7 @@ public class World : ISynchronizable {
 	private Dictionary<long, Faction> _factions = new Dictionary<long, Faction> ();
 
 	private HashSet<Faction> _factionsToUpdate = new HashSet<Faction>();
+	private HashSet<Faction> _factionsToRemove = new HashSet<Faction>();
 
 	private Dictionary<long, Polity> _polities = new Dictionary<long, Polity> ();
 
@@ -750,6 +751,20 @@ public class World : ISynchronizable {
 		_factionsToUpdate.Clear ();
 	}
 
+	private void RemoveFactions () {
+
+		foreach (Faction faction in _factionsToRemove) {
+
+			Profiler.BeginSample ("Destroy Faction");
+
+			faction.Destroy ();
+
+			Profiler.EndSample ();
+		}
+
+		_factionsToRemove.Clear ();
+	}
+
 	private void UpdatePolities () {
 
 		foreach (Polity polity in _politiesToUpdate) {
@@ -798,6 +813,11 @@ public class World : ISynchronizable {
 			_eventsToHappen.FindLeftmost (ValidateEventsToHappenNode, InvalidEventsToHappenNodeEffect);
 		
 			WorldEvent eventToHappen = _eventsToHappen.Leftmost;
+
+			if (eventToHappen.TriggerDate < 0) {
+				Debug.Break ();
+				throw new System.Exception ("eventToHappen.TriggerDate less than zero: " + eventToHappen);
+			}
 
 			if (eventToHappen.TriggerDate > CurrentDate) {
 
@@ -856,6 +876,8 @@ public class World : ISynchronizable {
 		SetNextGroupUpdates ();
 
 		UpdateFactions ();
+
+		RemoveFactions ();
 
 		UpdatePolities ();
 
@@ -924,11 +946,18 @@ public class World : ISynchronizable {
 		
 		_migratingGroups.Add (group);
 
+		#if DEBUG
+		if (!group.SourceGroup.StillPresent) {
+
+			Debug.LogWarning ("Group is no longer present");
+		}
+		#endif
+
 		// Source Group needs to be updated
 		_groupsToUpdate.Add (group.SourceGroup);
 
 		// If Target Group is present, it also needs to be updated
-		if (group.TargetCell.Group != null) {
+		if ((group.TargetCell.Group != null) && (group.TargetCell.Group.StillPresent)) {
 
 			_groupsToUpdate.Add (group.TargetCell.Group);
 		}
@@ -1001,6 +1030,13 @@ public class World : ISynchronizable {
 //
 //				AddGroupToUpdateCalled (callingClass + ":" + callingMethod);
 			AddGroupToUpdateCalled (null);
+		}
+		#endif
+
+		#if DEBUG
+		if (!group.StillPresent) {
+
+			Debug.LogWarning ("Group is no longer present");
 		}
 		#endif
 
@@ -1089,6 +1125,11 @@ public class World : ISynchronizable {
 	public void AddFactionToUpdate (Faction faction) {
 
 		_factionsToUpdate.Add (faction);
+	}
+
+	public void AddFactionToRemove (Faction faction) {
+
+		_factionsToRemove.Add (faction);
 	}
 
 	public void AddPolity (Polity polity) {

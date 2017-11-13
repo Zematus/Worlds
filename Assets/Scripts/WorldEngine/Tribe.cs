@@ -461,10 +461,7 @@ public class TribeSplitEvent : PolityEvent {
 		if (dateSpan < CellGroup.GenerationTime)
 			dateSpan = CellGroup.GenerationTime;
 
-		int targetDate = (int)(tribe.World.CurrentDate + dateSpan);
-
-		if (targetDate <= tribe.World.CurrentDate)
-			targetDate = int.MinValue;
+		int targetDate = (int)(tribe.World.CurrentDate + dateSpan) + 1;
 
 		return targetDate;
 	}
