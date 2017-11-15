@@ -223,8 +223,6 @@ public class CellGroup : HumanGroup {
 
 	private bool _alreadyUpdated = false;
 
-	private bool _destroyed = false;
-
 //	Dictionary<TerrainCell, float> _cellMigrationValues = new Dictionary<TerrainCell, float> ();
 
 	public int PreviousPopulation {
@@ -870,7 +868,7 @@ public class CellGroup : HumanGroup {
 
 	public void SetupForNextUpdate () {
 
-		if (_destroyed)
+		if (!StillPresent)
 			return;
 		
 		World.UpdateMostPopulousGroup (this);
@@ -1539,7 +1537,13 @@ public class CellGroup : HumanGroup {
 
 	public void Destroy () {
 
-		_destroyed = true;
+		StillPresent = false;
+
+		foreach (Faction faction in GetFactionCores ()) {
+
+			Debug.Log ("Faction will be removed due to core group dissapearing. faction id: " + faction.Id + ", group id:" + Id);
+			World.AddFactionToRemove (faction);
+		}
 
 		RemovePolityInfluences ();
 
@@ -1551,8 +1555,6 @@ public class CellGroup : HumanGroup {
 		}
 
 		DestroySeaMigrationRoute ();
-
-		StillPresent = false;
 
 		Cell.FarmlandPercentage = 0;
 	}
@@ -1588,9 +1590,8 @@ public class CellGroup : HumanGroup {
 
 	public void Update () {
 
-		if (_destroyed) {
-
-			throw new System.Exception ("Group is already destroyed");
+		if (!StillPresent) {
+			throw new System.Exception ("Group is no longer present");
 		}
 
 		if (_alreadyUpdated)
@@ -2414,7 +2415,7 @@ public class CellGroup : HumanGroup {
 			if (!_polityInfluences.TryGetValue (polityId, out pi)) {
 				if (!_polityInfluencesToAdd.TryGetValue (polityId, out pi)) {
 				
-					throw new System.Exception ("Trying to remove nonexisting PolityInfluence with id: " + polityId + " from group with id: " + Id);
+					Debug.LogWarning ("Trying to remove nonexisting PolityInfluence with id: " + polityId + " from group with id: " + Id);
 				}
 
 				_polityInfluencesToAdd.Remove (pi.PolityId);
@@ -2423,17 +2424,18 @@ public class CellGroup : HumanGroup {
 
 				_polityInfluences.Remove (pi.PolityId);
 
-				#if DEBUG
 				foreach (Faction faction in GetFactionCores ()) {
 
 					if (faction.PolityId == pi.PolityId) {
 
+						Debug.Log ("Faction will be removed due to total loss of polity influence. faction id: " + faction.Id + ", group id:" + Id);
 						World.AddFactionToRemove (faction);
-
-//						throw new System.Exception ("Faction belonging to removed polity has core in cell - group Id: " + Id + " - polity Id: " + pi.PolityId);
 					}
 				}
-				#endif
+
+				if (this == pi.Polity.CoreGroup) {
+					Debug.LogWarning ("Polity has lost it's core group. Group Id: " + Id + ", Polity Id: " + pi.Polity.Id);
+				}
 
 				pi.Polity.RemoveInfluencedGroup (this);
 

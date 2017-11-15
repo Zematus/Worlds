@@ -292,13 +292,17 @@ public abstract class Polity : ISynchronizable {
 
 	public void RemoveFaction (Faction faction) {
 
-		#if DEBUG
-		if (_factions.Count == 1) {
-			throw new System.Exception ("Number of factions in Polity " + Id + " will be equal or less than zero. Current Date: " + World.CurrentDate);
-		}
-		#endif
-
 		_factions.Remove (faction.Id);
+
+		if (_factions.Count <= 0) {
+			Debug.Log ("Polity will be removed due to losing all factions. faction id: " + faction.Id + ", polity id:" + Id);
+			World.AddPolityToRemove (this);
+			return;
+		}
+
+		if (DominantFaction == faction) {
+			UpdateDominantFaction ();
+		}
 
 		World.AddFactionToUpdate (faction);
 
@@ -319,20 +323,41 @@ public abstract class Polity : ISynchronizable {
 		return _factions.Values;
 	}
 
+	public void UpdateDominantFaction () {
+	
+		Faction mostProminentFaction = null;
+		float greatestProminence = float.MinValue;
+
+		foreach (Faction faction in _factions.Values) {
+		
+			if (faction.Prominence > greatestProminence) {
+			
+				mostProminentFaction = faction;
+				greatestProminence = faction.Prominence;
+			}
+		}
+
+		if ((mostProminentFaction == null) || (!mostProminentFaction.StillPresent))
+			throw new System.Exception ("Faction is null or not present");
+
+		SetDominantFaction (mostProminentFaction);
+	}
+
 	public void SetDominantFaction (Faction faction) {
+
+		if (DominantFaction == faction)
+			return;
 
 		if (DominantFaction != null) {
 		
 			faction.SetDominant (false);
 		}
 
-		#if DEBUG
 		if ((faction == null) || (!faction.StillPresent))
 			throw new System.Exception ("Faction is null or not present");
 
 		if (faction.Polity != this)
 			throw new System.Exception ("Faction is not part of polity");
-		#endif
 	
 		DominantFaction = faction;
 		DominantFactionId = faction.Id;
@@ -340,6 +365,8 @@ public abstract class Polity : ISynchronizable {
 		faction.SetDominant (true);
 
 		SetCoreGroup (faction.CoreGroup);
+
+		World.AddFactionToUpdate (faction);
 	}
 
 	public IEnumerable<Faction> GetFactions () {
@@ -386,6 +413,12 @@ public abstract class Polity : ISynchronizable {
 
 	public void Update () {
 
+		if (!StillPresent) {
+			Debug.LogWarning ("Polity is no longer present. Id: " + Id);
+
+			return;
+		}
+
 //		#if DEBUG
 //		if (Manager.RegisterDebugEvent != null) {
 //			Manager.RegisterDebugEvent ("DebugMessage", 
@@ -400,9 +433,8 @@ public abstract class Polity : ISynchronizable {
 		WillBeUpdated = false;
 
 		if (InfluencedGroups.Count <= 0) {
-		
+			Debug.Log ("Polity will be removed due to losing all influenced groups. polity id:" + Id);
 			World.AddPolityToRemove (this);
-
 			return;
 		}
 
@@ -517,13 +549,6 @@ public abstract class Polity : ISynchronizable {
 	public void RemoveInfluencedGroup (CellGroup group) {
 
 		InfluencedGroups.Remove (group.Id);
-
-		if (group == CoreGroup) {
-			
-			Debug.LogError ("CoreGroup is invalid");
-
-//			_coreGroupIsValid = false;
-		}
 	}
 
 	public virtual void Synchronize () {

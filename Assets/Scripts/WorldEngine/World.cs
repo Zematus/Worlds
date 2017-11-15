@@ -946,12 +946,9 @@ public class World : ISynchronizable {
 		
 		_migratingGroups.Add (group);
 
-		#if DEBUG
 		if (!group.SourceGroup.StillPresent) {
-
-			Debug.LogWarning ("Group is no longer present");
+			Debug.LogWarning ("Sourcegroup is no longer present. Group Id: " + group.SourceGroup.Id);
 		}
-		#endif
 
 		// Source Group needs to be updated
 		_groupsToUpdate.Add (group.SourceGroup);
@@ -1033,12 +1030,9 @@ public class World : ISynchronizable {
 		}
 		#endif
 
-		#if DEBUG
 		if (!group.StillPresent) {
-
-			Debug.LogWarning ("Group is no longer present");
+			Debug.LogWarning ("Group to update is no longer present. Id: " + group.Id);
 		}
-		#endif
 
 		_groupsToUpdate.Add (group);
 	}

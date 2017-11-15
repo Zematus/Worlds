@@ -144,7 +144,14 @@ public abstract class Faction : ISynchronizable {
 
 	public void Update () {
 
+		if (!StillPresent) {
+			Debug.LogWarning ("Faction is no longer present. Id: " + Id);
+
+			return;
+		}
+
 		if (!Polity.StillPresent) {
+			Debug.LogWarning ("Faction's polity is no longer present. Id: " + Id + " Polity Id: " + Polity.Id);
 
 			return;
 		}
