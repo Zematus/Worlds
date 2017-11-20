@@ -263,14 +263,9 @@ public class TerrainCell : ISynchronizable {
 		return Neighbors[TryGetNeighborDirection (offset)];
 	}
 
-	public long GenerateUniqueIdentifier (int date, long oom = 1, long offset = 0) {
+	public long GenerateUniqueIdentifier (int date, long oom = 1L, long offset = 0L) {
 
-		return ((((long)date * 1000000) + ((long)Longitude * 1000) + (long)Latitude) * oom) + offset;
-	}
-
-	public long GenerateUniqueIdentifier (long oom = 1, long offset = 0) {
-		
-		return GenerateUniqueIdentifier (World.CurrentDate, oom, offset);
+		return ((((long)date * 1000000) + ((long)Longitude * 1000) + (long)Latitude) * oom) + (offset % oom);
 	}
 
 	public TerrainCellChanges GetChanges () {

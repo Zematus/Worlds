@@ -198,7 +198,7 @@ public abstract class Polity : ISynchronizable {
 			idOffset = (int)parentPolity.Id;
 		}
 
-		Id = GenerateUniqueIdentifier (offset: idOffset);
+		Id = GenerateUniqueIdentifier (World.CurrentDate, 100L, idOffset);
 
 		Culture = new PolityCulture (this);
 
@@ -262,9 +262,9 @@ public abstract class Polity : ISynchronizable {
 //		_coreGroupIsValid = true;
 	}
 
-	public long GenerateUniqueIdentifier (long oom = 1, long offset = 0) {
+	public long GenerateUniqueIdentifier (int date, long oom = 1L, long offset = 0L) {
 
-		return CoreGroup.GenerateUniqueIdentifier (oom, offset);
+		return CoreGroup.GenerateUniqueIdentifier (date, oom, offset);
 	}
 
 	public float GetNextLocalRandomFloat (int iterationOffset) {
@@ -980,7 +980,7 @@ public abstract class PolityEvent : WorldEvent {
 
 		CellGroup coreGroup = polity.CoreGroup;
 
-		return ((long)triggerDate * 100000000000) + ((long)coreGroup.Longitude * 100000000) + ((long)coreGroup.Latitude * 100000) + (eventTypeId * 1000) + polity.Id;
+		return ((long)triggerDate * 1000000000) + (eventTypeId * 10000000) + (polity.Id % 10000000);
 	}
 
 	public override bool IsStillValid () {

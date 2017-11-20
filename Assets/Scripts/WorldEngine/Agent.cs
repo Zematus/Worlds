@@ -47,7 +47,7 @@ public class Agent : ISynchronizable {
 
 		int idOffset = 0;
 
-		Id = GenerateUniqueIdentifier (birthDate, offset: idOffset);
+		Id = GenerateUniqueIdentifier (birthDate, 100L, idOffset);
 
 		GenerateBio ();
 
@@ -59,7 +59,7 @@ public class Agent : ISynchronizable {
 		StillPresent = false;
 	}
 
-	public long GenerateUniqueIdentifier (int date, long oom = 1, long offset = 0) {
+	public long GenerateUniqueIdentifier (int date, long oom, long offset) {
 
 		return Group.GenerateUniqueIdentifier (date, oom, offset);
 	}

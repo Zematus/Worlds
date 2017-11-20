@@ -98,7 +98,7 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
 	public CellCulturalKnowledge (CellGroup group, string id, string name, int typeRngOffset, int value) : base (id, name, value) {
 
 		Group = group;
-		RngOffset = (int)group.GenerateUniqueIdentifier (100, typeRngOffset);
+		RngOffset = (int)group.GenerateUniqueIdentifier (group.World.CurrentDate, 100L, typeRngOffset);
 
 		_newValue = value;
 	}
@@ -106,7 +106,7 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
 	public CellCulturalKnowledge (CellGroup group, string id, string name, int typeRngOffset, int value, int asymptote) : base (id, name, value) {
 
 		Group = group;
-		RngOffset = (int)group.GenerateUniqueIdentifier (100, typeRngOffset);
+		RngOffset = (int)group.GenerateUniqueIdentifier (group.World.CurrentDate, 100L, typeRngOffset);
 		Asymptote = asymptote;
 
 		_newValue = value;

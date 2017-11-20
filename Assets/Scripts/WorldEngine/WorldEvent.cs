@@ -268,7 +268,7 @@ public abstract class CellEvent : WorldEvent {
 
 	}
 
-	public CellEvent (TerrainCell cell, int triggerDate, long eventTypeId) : base (cell.World, triggerDate, cell.GenerateUniqueIdentifier (1000, eventTypeId)) {
+	public CellEvent (TerrainCell cell, int triggerDate, long eventTypeId) : base (cell.World, triggerDate, cell.GenerateUniqueIdentifier (triggerDate, 100L, eventTypeId)) {
 
 		Cell = cell;
 		CellLongitude = cell.Longitude;

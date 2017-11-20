@@ -284,7 +284,7 @@ public class CellGroup : HumanGroup {
 
 		Cell.Group = this;
 
-		Id = Cell.GenerateUniqueIdentifier ();
+		Id = Cell.GenerateUniqueIdentifier (World.CurrentDate, 1L, 0);
 
 		if (migrationDirection == Direction.Null) {
 			int offset = Cell.GetNextLocalRandomInt (RngOffsets.CELL_GROUP_UPDATE_MIGRATION_DIRECTION, TerrainCell.MaxNeighborDirections);
@@ -420,14 +420,9 @@ public class CellGroup : HumanGroup {
 		return new CellGroupSnapshot (this);
 	}
 
-	public long GenerateUniqueIdentifier (int date, long oom = 1, long offset = 0) {
+	public long GenerateUniqueIdentifier (int date, long oom = 1L, long offset = 0L) {
 
 		return Cell.GenerateUniqueIdentifier (date, oom, offset);
-	}
-
-	public long GenerateUniqueIdentifier (long oom = 1, long offset = 0) {
-
-		return Cell.GenerateUniqueIdentifier (oom, offset);
 	}
 
 	public void SetHighestPolityInfluence (PolityInfluence influence) {
@@ -2794,7 +2789,7 @@ public abstract class CellGroupEvent : WorldEvent {
 
 	public static long GenerateUniqueIdentifier (CellGroup group, int triggerDate, long eventTypeId) {
 
-		return ((long)triggerDate * 100000000) + ((long)group.Longitude * 100000) + ((long)group.Latitude * 100) + eventTypeId;
+		return ((long)triggerDate * 1000000000) + ((long)group.Longitude * 1000000) + ((long)group.Latitude * 1000) + eventTypeId;
 	}
 
 	#if DEBUG

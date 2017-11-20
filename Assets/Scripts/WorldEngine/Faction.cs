@@ -82,7 +82,7 @@ public abstract class Faction : ISynchronizable {
 		CoreGroup = coreGroup;
 		CoreGroupId = coreGroup.Id;
 
-		Id = GenerateUniqueIdentifier (offset: idOffset);
+		Id = GenerateUniqueIdentifier (World.CurrentDate, 100L, idOffset);
 
 		CoreGroup.AddFactionCore (this);
 
@@ -207,9 +207,9 @@ public abstract class Faction : ISynchronizable {
 		Flags.ForEach (f => _flags.Add (f));
 	}
 
-	public long GenerateUniqueIdentifier (long oom = 1, long offset = 0) {
+	public long GenerateUniqueIdentifier (int date, long oom = 1L, long offset = 0L) {
 
-		return CoreGroup.GenerateUniqueIdentifier (oom, offset);
+		return CoreGroup.GenerateUniqueIdentifier (date, oom, offset);
 	}
 
 	public float GetNextLocalRandomFloat (int iterationOffset) {
@@ -318,6 +318,16 @@ public abstract class FactionEvent : WorldEvent {
 
 		EventTypeId = eventTypeId;
 
+		#if DEBUG
+		if (triggerDate == 375759) {
+			bool debug = true;
+		}
+
+		if ((Id == 37575925807507774L) || (Id == 37575925707507774L)) {
+			bool debug = true;
+		}
+		#endif
+
 //		#if DEBUG
 //		if (Manager.RegisterDebugEvent != null) {
 //			string factionId = "Id: " + faction.Id;
@@ -333,7 +343,7 @@ public abstract class FactionEvent : WorldEvent {
 
 		CellGroup coreGroup = faction.CoreGroup;
 
-		return ((long)triggerDate * 100000000000) + ((long)coreGroup.Longitude * 100000000) + ((long)coreGroup.Latitude * 100000) + (eventTypeId * 1000) + faction.Id;
+		return ((long)triggerDate * 1000000000) + (eventTypeId * 10000000) + (faction.Id % 10000000);
 	}
 
 	public override bool IsStillValid () {

@@ -645,7 +645,7 @@ public class CellRegion : Region {
 
 	}
 
-	public CellRegion (TerrainCell startCell) : base (startCell.World, startCell.GenerateUniqueIdentifier ()) {
+	public CellRegion (TerrainCell startCell) : base (startCell.World, startCell.GenerateUniqueIdentifier (startCell.World.CurrentDate)) {
 		
 	}
 
@@ -845,7 +845,7 @@ public class CellRegion : Region {
 
 		base.FinalizeLoad ();
 
-		foreach (int regionId in BorderingRegionIds) {
+		foreach (long regionId in BorderingRegionIds) {
 
 			CellRegion region = World.GetRegion (regionId) as CellRegion;
 
