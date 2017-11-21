@@ -418,7 +418,9 @@ public class SaveLoadTest : AutomatedTest {
 
 			for (int c = _currentCheck; c < _numChecks; c++) {
 
-				string checkStr = "[with offset " + c + "]";
+				int offset = _beforeCheckDateSkipOffset + (c * _offsetPerCheck);
+
+				string checkStr = "[with iteration offset: " + c + " - date offset: " + offset + "]";
 
 				if (c > _currentCheck) {
 					if (_enhancedTracing) {
@@ -515,6 +517,12 @@ public class SaveLoadTest : AutomatedTest {
 				Debug.Log ("Total size of territories after Save " + checkStr + ": " + totalCellCount);
 			}
 
+			#if DEBUG
+			if (_enhancedTracing) {
+				Manager.RegisterDebugEvent = null;
+			}
+			#endif
+
 			Debug.Log ("Loading world...");
 
 			Manager.LoadWorldAsync (_savePath);
@@ -605,12 +613,6 @@ public class SaveLoadTest : AutomatedTest {
 			}
 
 			Debug.Log ("Pushing simulation forward after load by at least " + _beforeCheckDateSkipOffset + " years");
-
-			#if DEBUG
-			if (_enhancedTracing) {
-				Manager.RegisterDebugEvent = null;
-			}
-			#endif
 
 			#if DEBUG
 			CellGroup.UpdateCalled = () => {
@@ -732,7 +734,9 @@ public class SaveLoadTest : AutomatedTest {
 
 			for (int c = _currentCheck; c < _numChecks; c++) {
 
-				string checkStr = "[with offset " + c + "]";
+				int offset = _beforeCheckDateSkipOffset + (c * _offsetPerCheck);
+
+				string checkStr = "[with iteration offset: " + c + " - date offset: " + offset + "]";
 
 				if (c > _currentCheck) {
 					if (_enhancedTracing) {

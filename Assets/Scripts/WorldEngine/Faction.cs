@@ -318,16 +318,6 @@ public abstract class FactionEvent : WorldEvent {
 
 		EventTypeId = eventTypeId;
 
-		#if DEBUG
-		if (triggerDate == 375759) {
-			bool debug = true;
-		}
-
-		if ((Id == 37575925807507774L) || (Id == 37575925707507774L)) {
-			bool debug = true;
-		}
-		#endif
-
 //		#if DEBUG
 //		if (Manager.RegisterDebugEvent != null) {
 //			string factionId = "Id: " + faction.Id;
@@ -343,7 +333,7 @@ public abstract class FactionEvent : WorldEvent {
 
 		CellGroup coreGroup = faction.CoreGroup;
 
-		return ((long)triggerDate * 1000000000) + (eventTypeId * 10000000) + (faction.Id % 10000000);
+		return ((long)triggerDate * 1000000000) + ((faction.Id % 1000000L) * 1000L) + eventTypeId;
 	}
 
 	public override bool IsStillValid () {

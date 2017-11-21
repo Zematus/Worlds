@@ -980,7 +980,7 @@ public abstract class PolityEvent : WorldEvent {
 
 		CellGroup coreGroup = polity.CoreGroup;
 
-		return ((long)triggerDate * 1000000000) + (eventTypeId * 10000000) + (polity.Id % 10000000);
+		return ((long)triggerDate * 1000000000L) + ((polity.Id % 1000000L) * 1000L) + eventTypeId;
 	}
 
 	public override bool IsStillValid () {

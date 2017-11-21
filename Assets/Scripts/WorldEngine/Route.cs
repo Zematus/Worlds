@@ -35,12 +35,13 @@ public class Route : ISynchronizable {
 
 	private const float CoastPreferenceIncrement = 400;
 
-	private bool _isTraversingSea = false;
 	private Direction _traverseDirection;
-	private float _currentDirectionOffset = 0;
 
-	private float _currentCoastPreference = CoastPreferenceIncrement;
-	private float _currentEndRoutePreference = 0;
+	private bool _isTraversingSea;
+	private float _currentDirectionOffset;
+
+	private float _currentCoastPreference;
+	private float _currentEndRoutePreference;
 
 	public Route () {
 	
@@ -86,6 +87,12 @@ public class Route : ISynchronizable {
 
 	public void Build () {
 
+		_isTraversingSea = false;
+		_currentEndRoutePreference = 0;
+		_currentDirectionOffset = 0;
+		_currentCoastPreference = CoastPreferenceIncrement;
+		_currentEndRoutePreference = 0;
+
 		AddCell (FirstCell);
 		LastCell = FirstCell;
 
@@ -96,7 +103,36 @@ public class Route : ISynchronizable {
 
 		while (true) {
 
+			#if DEBUG
+			TerrainCell prevCell = nextCell;
+			#endif
+
 			nextCell = ChooseNextSeaCell (nextCell, rngOffset++, out nextDirection);
+
+//			#if DEBUG
+//			if (Manager.RegisterDebugEvent != null) {
+//				if ((FirstCell.Longitude == Manager.TracingData.Longitude) && (FirstCell.Latitude == Manager.TracingData.Latitude)) {
+//
+//					string cellPos = "Position: Long:" + FirstCell.Longitude + "|Lat:" + FirstCell.Latitude;
+//					string prevCellDesc = "Position: Long:" + prevCell.Longitude + "|Lat:" + prevCell.Latitude;
+//
+//					string nextCellDesc = "Null";
+//
+//					if (nextCell != null) {
+//						nextCellDesc = "Position: Long:" + nextCell.Longitude + "|Lat:" + nextCell.Latitude;
+//					}
+//
+//					SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//						"ChooseNextSeaCell - FirstCell:" + cellPos,
+//						"CurrentDate: " + World.CurrentDate + 
+//						", prevCell: " + prevCellDesc + 
+//						", nextCell: " + nextCellDesc + 
+//						"");
+//
+//					Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+//				}
+//			}
+//			#endif
 
 			if (nextCell == null) {
 				LastCell = nextCell;
@@ -135,12 +171,6 @@ public class Route : ISynchronizable {
 	}
 
 	public void AddCell (TerrainCell cell) {
-
-//		#if DEBUG
-//		if (cell == null) {
-//			Debug.LogError ("Cell is null");
-//		}
-//		#endif
 	
 		Cells.Add (cell);
 		CellPositions.Add (cell.Position);
@@ -176,6 +206,30 @@ public class Route : ISynchronizable {
 		TerrainCell nextCell = currentCell.GetNeighborCell (newDirection);
 		direction = newDirection;
 
+//		#if DEBUG
+//		if (Manager.RegisterDebugEvent != null) {
+//			if ((FirstCell.Longitude == Manager.TracingData.Longitude) && (FirstCell.Latitude == Manager.TracingData.Latitude)) {
+//
+//				string cellPos = "Position: Long:" + FirstCell.Longitude + "|Lat:" + FirstCell.Latitude;
+//
+//				string nextCellDesc = "Null";
+//
+//				if (nextCell != null) {
+//					nextCellDesc = "Position: Long:" + nextCell.Longitude + "|Lat:" + nextCell.Latitude;
+//				}
+//
+//				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//					"ChooseNextDepthSeaCell - FirstCell:" + cellPos,
+//					"CurrentDate: " + World.CurrentDate + 
+//					", deviation: " + deviation + 
+//					", nextCell: " + nextCellDesc + 
+//					"");
+//
+//				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+//			}
+//		}
+//		#endif
+
 		if (nextCell == null)
 			return null;
 
@@ -206,6 +260,10 @@ public class Route : ISynchronizable {
 
 		List<CoastalCellValue> coastalCellWeights = new List<CoastalCellValue> (currentCell.Neighbors.Count);
 
+//		#if DEBUG
+//		string cellWeightsStr = "";
+//		#endif
+
 		foreach (KeyValuePair<Direction, TerrainCell> nPair in currentCell.Neighbors) {
 
 			TerrainCell nCell = nPair.Value;
@@ -224,8 +282,16 @@ public class Route : ISynchronizable {
 
 			coastalCellWeights.Add (new CoastalCellValue(nPair, weight));
 
+//			#if DEBUG
+//			cellWeightsStr += "\n\tnCell Direction: " + nPair.Key + " - Position: " + nCell.Position + " - Weight: " + weight;
+//			#endif
+
 			totalWeight += weight;
 		}
+
+//		#if DEBUG
+//		cellWeightsStr += "\n";
+//		#endif
 
 		if (coastalCellWeights.Count == 0) {
 
@@ -248,7 +314,6 @@ public class Route : ISynchronizable {
 		direction = targetPair.Key;
 
 		if (targetCell == null) {
-
 			throw new System.Exception ("targetCell is null");
 		}
 
@@ -261,6 +326,33 @@ public class Route : ISynchronizable {
 		}
 
 		_currentEndRoutePreference += 0.1f;
+
+//		#if DEBUG
+//		if (Manager.RegisterDebugEvent != null) {
+//			if ((FirstCell.Longitude == Manager.TracingData.Longitude) && (FirstCell.Latitude == Manager.TracingData.Latitude)) {
+//
+//				string cellPos = "Position: Long:" + FirstCell.Longitude + "|Lat:" + FirstCell.Latitude;
+//				string currentCellDesc = "Position: Long:" + currentCell.Longitude + "|Lat:" + currentCell.Latitude;
+//
+//				string targetCellDesc = "Null";
+//
+//				if (targetCell != null) {
+//					targetCellDesc = "Position: Long:" + targetCell.Longitude + "|Lat:" + targetCell.Latitude;
+//				}
+//
+//				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//					"ChooseNextCoastalCell - FirstCell:" + cellPos,
+//					"CurrentDate: " + World.CurrentDate + 
+//					", currentCell: " + currentCellDesc + 
+//					", targetCell: " + targetCellDesc + 
+//					", _currentEndRoutePreference: " + _currentEndRoutePreference + 
+////					", nCells: " + cellWeightsStr + 
+//					"");
+//
+//				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+//			}
+//		}
+//		#endif
 
 		return targetCell;
 	}
