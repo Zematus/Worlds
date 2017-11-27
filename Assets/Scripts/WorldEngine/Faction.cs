@@ -69,11 +69,11 @@ public abstract class Faction : ISynchronizable {
 
 		World = polity.World;
 
-		int idOffset = 0;
+		long idOffset = 0;
 
 		if (parentFaction != null) {
 		
-			idOffset = (int)parentFaction.Id;
+			idOffset = parentFaction.Id + 1;
 		}
 
 		PolityId = polity.Id;

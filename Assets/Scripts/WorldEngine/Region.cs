@@ -247,31 +247,31 @@ public abstract class Region : ISynchronizable {
 	public World World;
 
 	[XmlIgnore]
-	public float AverageAltitude = 0;
+	public float AverageAltitude;
 	[XmlIgnore]
-	public float AverageRainfall = 0;
+	public float AverageRainfall;
 	[XmlIgnore]
-	public float AverageTemperature = 0;
+	public float AverageTemperature;
 
 	[XmlIgnore]
-	public float AverageSurvivability = 0;
+	public float AverageSurvivability;
 	[XmlIgnore]
-	public float AverageForagingCapacity = 0;
+	public float AverageForagingCapacity;
 	[XmlIgnore]
-	public float AverageAccessibility = 0;
+	public float AverageAccessibility;
 	[XmlIgnore]
-	public float AverageArability = 0;
+	public float AverageArability;
 
 	[XmlIgnore]
-	public float AverageFarmlandPercentage = 0;
+	public float AverageFarmlandPercentage;
 
 	[XmlIgnore]
-	public float TotalArea = 0;
+	public float TotalArea;
 
 	[XmlIgnore]
 	public string BiomeWithMostPresence = null;
 	[XmlIgnore]
-	public float MostBiomePresence = 0;
+	public float MostBiomePresence;
 
 	[XmlIgnore]
 	public List<string> PresentBiomeNames = new List<string>();
@@ -279,15 +279,15 @@ public abstract class Region : ISynchronizable {
 	public List<float> BiomePresences = new List<float>();
 
 	[XmlIgnore]
-	public float AverageOuterBorderAltitude = 0;
+	public float AverageOuterBorderAltitude;
 	[XmlIgnore]
-	public float MinAltitude = float.MaxValue;
+	public float MinAltitude;
 	[XmlIgnore]
-	public float MaxAltitude = float.MinValue;
+	public float MaxAltitude;
 	[XmlIgnore]
-	public float CoastPercentage = 0;
+	public float CoastPercentage;
 	[XmlIgnore]
-	public float OceanPercentage = 0;
+	public float OceanPercentage;
 
 	protected Dictionary<string, float> _biomePresences;
 
@@ -474,10 +474,10 @@ public abstract class Region : ISynchronizable {
 		return Attributes [index].GetRandomVariation (getRandomInt);
 	}
 
-	protected void AddElement (Element elem) {
-
-		Elements.Add (elem);
-	}
+//	protected void AddElement (Element elem) {
+//
+//		Elements.Add (elem);
+//	}
 
 	protected void AddElements (IEnumerable<Element> elem) {
 
@@ -607,6 +607,24 @@ public abstract class Region : ISynchronizable {
 		Name = new Name (namePhrase, untranslatedName, polityLanguage, World);
 
 //		#if DEBUG
+//		if (Manager.RegisterDebugEvent != null) {
+////			if ((polity.Id == Manager.TracingData.PolityId) && (originCell.Longitude == Manager.TracingData.Longitude) && (originCell.Latitude == Manager.TracingData.Latitude)) {
+//				string polityId = "Id:" + polity.Id;
+//
+//				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//					"Region::GenerateName - Polity: " + polityId, 
+//					"CurrentDate: " + World.CurrentDate +
+//					", originCell: " + originCell.Position + 
+//					", Attributes: " + Attributes.Count + 
+//					", Elements: " + Elements.Count + 
+//					"");
+//
+//				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+////			}
+//		}
+//		#endif
+
+//		#if DEBUG
 //		Debug.Log ("Region #" + Id + " name: " + Name);
 //		#endif
 	}
@@ -694,6 +712,26 @@ public class CellRegion : Region {
 		float oceanicArea = 0;
 		float coastalOuterBorderArea = 0;
 		float outerBorderArea = 0;
+
+		MinAltitude = float.MaxValue;
+		MaxAltitude = float.MinValue;
+
+		AverageOuterBorderAltitude = 0;
+
+		AverageAltitude = 0;
+		AverageRainfall = 0;
+		AverageTemperature = 0;
+
+		AverageSurvivability = 0;
+		AverageForagingCapacity = 0;
+		AverageAccessibility = 0;
+		AverageArability = 0;
+
+		AverageFarmlandPercentage = 0;
+
+		TotalArea = 0;
+
+		MostBiomePresence = 0;
 
 		_innerBorderCells.Clear ();
 		_outerBorderCells.Clear ();
@@ -804,6 +842,23 @@ public class CellRegion : Region {
 				BiomeWithMostPresence = pair.Key;
 			}
 		}
+
+//		#if DEBUG
+//		if (Manager.RegisterDebugEvent != null) {
+//			//			if ((originCell.Longitude == Manager.TracingData.Longitude) && (originCell.Latitude == Manager.TracingData.Latitude)) {
+//			string regionId = "Id:" + Id;
+//
+//			SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//				"CellRegion::EvaluateAttributes - Region: " + regionId, 
+//				"CurrentDate: " + World.CurrentDate +
+//				", cell count: " + _cells.Count + 
+//				", TotalArea: " + TotalArea + 
+//				"");
+//
+//			Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+//			//			}
+//		}
+//		#endif
 
 		CalculateMostCenteredCell ();
 

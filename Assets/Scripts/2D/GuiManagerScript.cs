@@ -2061,7 +2061,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 			InfoPanelScript.InfoText.text += "\n\t\tLeader: " + factionLeader.Name;
 			InfoPanelScript.InfoText.text += "\n\t\tBirth Date: " + factionLeader.BirthDate;
-			InfoPanelScript.InfoText.text += "\tGender: " + ((factionLeader.IsFemale) ? "Female" : "Male");
+			InfoPanelScript.InfoText.text += "\t Gender: " + ((factionLeader.IsFemale) ? "Female" : "Male");
 			InfoPanelScript.InfoText.text += "\n";
 		}
 

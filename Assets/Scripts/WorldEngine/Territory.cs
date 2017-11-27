@@ -95,6 +95,9 @@ public class Territory : ISynchronizable {
 
 				if (World.GetRegion (cellRegion.Id) == null)
 					World.AddRegion (cellRegion);
+			} else {
+
+				Debug.LogError ("No region could be generated");
 			}
 		}
 	}

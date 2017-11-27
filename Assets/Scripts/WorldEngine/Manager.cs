@@ -1506,7 +1506,7 @@ public class Manager {
 
 		if (region != null) {
 
-			Color regionIdColor = GenerateColorFromId (region.Id);
+			Color regionIdColor = GenerateColorFromId (region.Id, 1);
 
 			Color regionColor = (biomeColor * 0.85f) + (regionIdColor * 0.15f);
 
@@ -1566,7 +1566,7 @@ public class Manager {
 
 			if (groupLanguage != null) {
 
-				Color languageColor = GenerateColorFromId (groupLanguage.Id);
+				Color languageColor = GenerateColorFromId (groupLanguage.Id, 100);
 
 				bool isLanguageBorder = IsLanguageBorder (groupLanguage, cell);
 
@@ -1605,7 +1605,7 @@ public class Manager {
 
 			Polity territoryPolity = cell.EncompassingTerritory.Polity;
 
-			Color territoryColor = GenerateColorFromId (territoryPolity.Id);
+			Color territoryColor = GenerateColorFromId (territoryPolity.Id, 100);
 
 			bool isTerritoryBorder = IsTerritoryBorder (cell.EncompassingTerritory, cell);
 			bool isPolityCoreGroup = territoryPolity.CoreGroup == cell.Group;
@@ -1653,7 +1653,7 @@ public class Manager {
 
 				Polity territoryPolity = cell.EncompassingTerritory.Polity;
 
-				Color territoryColor = GenerateColorFromId (territoryPolity.Id);
+				Color territoryColor = GenerateColorFromId (territoryPolity.Id, 100);
 
 				PolityInfluence pi = cell.Group.GetPolityInfluence (territoryPolity);
 
@@ -1700,7 +1700,7 @@ public class Manager {
 
 				float influenceValueFactor = 0.2f + p.Value;
 
-				Color polityColor = GenerateColorFromId (p.PolityId);
+				Color polityColor = GenerateColorFromId (p.PolityId, 100);
 				polityColor *= influenceValueFactor;
 				totalInfluenceValueFactor += 1.2f;
 
@@ -1725,12 +1725,14 @@ public class Manager {
 		return color;
 	}
 
-	private static Color GenerateColorFromId (long id) {
+	private static Color GenerateColorFromId (long id, int oom) {
+
+		long mId = id / oom;
 	
-		long primaryColor = id % 3;
-		float secondaryColorIntensity = ((id / 3) % 4) / 3f;
-		float tertiaryColorIntensity = (id / 12) % 2 / 2f;
-		long secondaryColor = (id / 24) % 2;
+		long primaryColor = mId % 3;
+		float secondaryColorIntensity = ((mId / 3) % 4) / 3f;
+		float tertiaryColorIntensity = ((mId / 12) % 2) / 2f;
+		long secondaryColor = (mId / 24) % 2;
 
 		float red = 0;
 		float green = 0;
@@ -2281,7 +2283,7 @@ public class Manager {
 
 			Polity territoryPolity = cell.EncompassingTerritory.Polity;
 
-			densityColor = GenerateColorFromId (territoryPolity.Id);
+			densityColor = GenerateColorFromId (territoryPolity.Id, 100);
 
 			bool isTerritoryBorder = IsTerritoryBorder (cell.EncompassingTerritory, cell);
 			bool isCoreGroup = territoryPolity.CoreGroup == cell.Group;

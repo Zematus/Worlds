@@ -45,6 +45,14 @@ public class Tribe : Polity {
 
 		if (cellRegion == null) {
 
+//			#if DEBUG
+//			if (Manager.RegisterDebugEvent != null) {
+//				if ((Id == Manager.TracingData.PolityId) && (coreCell.Longitude == Manager.TracingData.Longitude) && (coreCell.Latitude == Manager.TracingData.Latitude)) {
+//					bool debug = true;
+//				}
+//			}
+//			#endif
+
 			cellRegion = Region.TryGenerateRegion (coreCell);
 
 			if (cellRegion != null) {
@@ -52,6 +60,9 @@ public class Tribe : Polity {
 
 				if (World.GetRegion (cellRegion.Id) == null)
 					World.AddRegion (cellRegion);
+			} else {
+			
+				Debug.LogError ("No region could be generated");
 			}
 		}
 

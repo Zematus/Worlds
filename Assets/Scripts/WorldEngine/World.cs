@@ -269,6 +269,7 @@ public class World : ISynchronizable {
 	private Dictionary<long, CellGroup> _cellGroups = new Dictionary<long, CellGroup> ();
 	
 	private HashSet<CellGroup> _updatedGroups = new HashSet<CellGroup> ();
+	private HashSet<CellGroup> _groupsToPostUpdate_afterPolityUpdates = new HashSet<CellGroup> ();
 
 	private HashSet<CellGroup> _groupsToUpdate = new HashSet<CellGroup>();
 	private HashSet<CellGroup> _groupsToRemove = new HashSet<CellGroup>();
@@ -583,6 +584,11 @@ public class World : ISynchronizable {
 		_updatedGroups.Add (group);
 	}
 
+	public void AddGroupToPostUpdate_AfterPolityUpdate (CellGroup group) {
+
+		_groupsToPostUpdate_afterPolityUpdates.Add (group);
+	}
+
 	public TerrainCell GetCell (WorldPosition position) {
 	
 		return GetCell (position.Longitude, position.Latitude);
@@ -696,13 +702,13 @@ public class World : ISynchronizable {
 	//		_groupActionsToPerform.Clear ();
 	//	}
 
-	private void PostUpdateGroups () {
+	private void PostUpdateGroups_BeforePolityUpdates () {
 
 		foreach (CellGroup group in _updatedGroups) {
 
-			Profiler.BeginSample ("Cell Group Postupdate");
+			Profiler.BeginSample ("Cell Group Postupdate Before Polity Updates");
 
-			group.PostUpdate ();
+			group.PostUpdate_BeforePolityUpdates ();
 
 			Profiler.EndSample ();
 		}
@@ -735,6 +741,22 @@ public class World : ISynchronizable {
 		}
 
 		_updatedGroups.Clear ();
+	}
+
+	private void PostUpdateGroups_AfterPolityUpdates () {
+
+		//TODO: This function should not exist. Think of a way to remove it
+
+		foreach (CellGroup group in _groupsToPostUpdate_afterPolityUpdates) {
+
+			Profiler.BeginSample ("Cell Group Postupdate After Polity Updates");
+
+			group.PostUpdate_AfterPolityUpdates ();
+
+			Profiler.EndSample ();
+		}
+
+		_groupsToPostUpdate_afterPolityUpdates.Clear ();
 	}
 
 	private void UpdateFactions () {
@@ -869,7 +891,7 @@ public class World : ISynchronizable {
 
 //		PerformGroupActions ();
 
-		PostUpdateGroups ();
+		PostUpdateGroups_BeforePolityUpdates ();
 
 		RemoveGroups ();
 
@@ -882,6 +904,8 @@ public class World : ISynchronizable {
 		UpdatePolities ();
 
 		RemovePolities ();
+
+		PostUpdateGroups_AfterPolityUpdates ();
 
 		//
 		// Skip to Next Event's Date
@@ -1287,7 +1311,12 @@ public class World : ISynchronizable {
 
 		foreach (CellGroup g in CellGroups) {
 
-			g.FinalizeLoad ();
+			try {
+				g.FinalizeLoad ();
+
+			} catch (System.Exception e) {
+				bool debug = true;
+			}
 
 			castProgress (startProgressValue + (++elementCount/totalElementsFactor), "Initializing Cell Groups...");
 		}

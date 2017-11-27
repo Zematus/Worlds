@@ -796,7 +796,7 @@ public class CellGroup : HumanGroup {
 		return splitPopulation;
 	}
 
-	public void PostUpdate () {
+	public void PostUpdate_BeforePolityUpdates () {
 
 //		#if DEBUG
 //		if (Manager.RegisterDebugEvent != null) {
@@ -844,7 +844,7 @@ public class CellGroup : HumanGroup {
 
 		Profiler.BeginSample ("Post Update Polity Influences");
 
-		PostUpdatePolityInfluences ();
+		PostUpdatePolityInfluences_BeforePolityUpdates ();
 
 		Profiler.EndSample ();
 
@@ -859,6 +859,11 @@ public class CellGroup : HumanGroup {
 		UpdatePolityInfluenceAdministrativeCosts ();
 
 		Profiler.EndSample ();
+	}
+
+	public void PostUpdate_AfterPolityUpdates () {
+
+		PostUpdatePolityInfluences_AfterPolityUpdates ();
 	}
 
 	public void SetupForNextUpdate () {
@@ -1625,7 +1630,10 @@ public class CellGroup : HumanGroup {
 
 		foreach (Faction faction in GetFactionCores ()) {
 
+			#if DEBUG
 			Debug.Log ("Faction will be removed due to core group dissapearing. faction id: " + faction.Id + ", group id:" + Id);
+			#endif
+
 			World.AddFactionToRemove (faction);
 		}
 
@@ -1675,7 +1683,8 @@ public class CellGroup : HumanGroup {
 	public void Update () {
 
 		if (!StillPresent) {
-			throw new System.Exception ("Group is no longer present");
+			Debug.LogWarning ("Group is no longer present");
+			return;
 		}
 
 		if (_alreadyUpdated)
@@ -2482,13 +2491,11 @@ public class CellGroup : HumanGroup {
 
 		foreach (PolityInfluence pi in _polityInfluences.Values) {
 
-//			pi.Polity.TotalAdministrativeCost -= pi.AdiministrativeCost;
 			pi.AdiministrativeCost = CalculatePolityInfluenceAdministrativeCost (pi);
-//			pi.Polity.TotalAdministrativeCost += pi.AdiministrativeCost;
 		}
 	}
 
-	public void PostUpdatePolityInfluences () {
+	public void PostUpdatePolityInfluences_BeforePolityUpdates () {
 
 		TotalPolityInfluenceValue = 0;
 
@@ -2512,22 +2519,25 @@ public class CellGroup : HumanGroup {
 
 					if (faction.PolityId == pi.PolityId) {
 
+						#if DEBUG
 						Debug.Log ("Faction will be removed due to total loss of polity influence. faction id: " + faction.Id + ", group id:" + Id);
+						#endif
+
 						World.AddFactionToRemove (faction);
 					}
 				}
 
+				#if DEBUG
 				if (this == pi.Polity.CoreGroup) {
 					Debug.LogWarning ("Polity has lost it's core group. Group Id: " + Id + ", Polity Id: " + pi.Polity.Id);
 				}
+				#endif
 
 				pi.Polity.RemoveInfluencedGroup (this);
 
 				// We want to update the polity if a group is removed.
 				SetPolityUpdate (pi, true);
 			}
-
-//			pi.Polity.TotalAdministrativeCost -= pi.AdiministrativeCost;
 		}
 
 		_polityInfluencesToRemove.Clear ();
@@ -2551,17 +2561,66 @@ public class CellGroup : HumanGroup {
 			TotalPolityInfluenceValue += pi.Value;
 		}
 
+		#if DEBUG
 		if (TotalPolityInfluenceValue > 1.0) {
 		
-			throw new System.Exception ("Total Polity Influence Value greater than 1: " + TotalPolityInfluenceValue);
+			Debug.LogWarning ("Total Polity Influence Value greater than 1: " + TotalPolityInfluenceValue);
 		}
+		#endif
 
 		#if DEBUG
 		if (TotalPolityInfluenceValue <= 0) {
 
 			if (GetFactionCores ().Count > 0) {
 
-				throw new System.Exception ("group has faction cores and no polity influence - Id: " + Id);
+				Debug.LogWarning ("Group with no polity influence has faction cores - Id: " + Id);
+			}
+		}
+		#endif
+
+		FindHighestPolityInfluence ();
+	}
+
+	public void PostUpdatePolityInfluences_AfterPolityUpdates () {
+
+		TotalPolityInfluenceValue = 0;
+
+		foreach (long polityId in _polityInfluencesToRemove) {
+
+			PolityInfluence pi;
+
+			if (!_polityInfluences.TryGetValue (polityId, out pi)) {
+				if (!_polityInfluencesToAdd.TryGetValue (polityId, out pi)) {
+
+					Debug.LogWarning ("Trying to remove nonexisting PolityInfluence with id: " + polityId + " from group with id: " + Id);
+				}
+
+			} else {
+
+				_polityInfluences.Remove (pi.PolityId);
+			}
+		}
+
+		_polityInfluencesToRemove.Clear ();
+
+		foreach (PolityInfluence pi in _polityInfluences.Values) {
+
+			TotalPolityInfluenceValue += pi.Value;
+		}
+
+		#if DEBUG
+		if (TotalPolityInfluenceValue > 1.0) {
+
+			Debug.LogWarning ("Total Polity Influence Value greater than 1: " + TotalPolityInfluenceValue);
+		}
+		#endif
+
+		#if DEBUG
+		if (TotalPolityInfluenceValue <= 0) {
+
+			if (GetFactionCores ().Count > 0) {
+
+				Debug.LogWarning ("Group with no polity influence has faction cores - Id: " + Id);
 			}
 		}
 		#endif
@@ -2727,7 +2786,7 @@ public class CellGroup : HumanGroup {
 			Faction faction = World.GetFaction (id);
 
 			if (faction == null) {
-				Debug.LogError ("Missing faction with id: " + id);
+				throw new System.Exception ("Missing faction with id: " + id);
 			}
 
 			FactionCores.Add (id, faction);

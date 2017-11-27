@@ -166,6 +166,8 @@ public abstract class Polity : ISynchronizable {
 
 	private HashSet<string> _flags = new HashSet<string> ();
 
+	private bool _willBeRemoved = false;
+
 	#if DEBUG
 	private bool _populationCensusUpdated = false;
 	#endif
@@ -191,11 +193,11 @@ public abstract class Polity : ISynchronizable {
 		CoreGroup = coreGroup;
 		CoreGroupId = coreGroup.Id;
 
-		int idOffset = 0;
+		long idOffset = 0;
 
 		if (parentPolity != null) {
 		
-			idOffset = (int)parentPolity.Id;
+			idOffset = parentPolity.Id + 1;
 		}
 
 		Id = GenerateUniqueIdentifier (World.CurrentDate, 100L, idOffset);
@@ -234,6 +236,8 @@ public abstract class Polity : ISynchronizable {
 		foreach (CellGroup group in InfluencedGroups.Values) {
 
 			group.RemovePolityInfluence (this);
+
+			World.AddGroupToPostUpdate_AfterPolityUpdate (group);
 		}
 		
 		World.RemovePolity (this);
@@ -295,8 +299,12 @@ public abstract class Polity : ISynchronizable {
 		_factions.Remove (faction.Id);
 
 		if (_factions.Count <= 0) {
+			
+			#if DEBUG
 			Debug.Log ("Polity will be removed due to losing all factions. faction id: " + faction.Id + ", polity id:" + Id);
-			World.AddPolityToRemove (this);
+			#endif
+
+			PrepareToRemoveFromWorld ();
 			return;
 		}
 
@@ -401,8 +409,7 @@ public abstract class Polity : ISynchronizable {
 		}
 
 		if (totalProminence <= 0) {
-		
-			throw new System.Exception ("Total prominence equal or less than zero");
+			throw new System.Exception ("Total prominence equal or less than zero: " + totalProminence + ", polity id:" + Id);
 		}
 
 		foreach (Faction f in _factions.Values) {
@@ -411,7 +418,18 @@ public abstract class Polity : ISynchronizable {
 		}
 	}
 
+	public void PrepareToRemoveFromWorld () {
+
+		World.AddPolityToRemove (this);
+
+		_willBeRemoved = true;
+	}
+
 	public void Update () {
+
+		if (_willBeRemoved) {
+			return;
+		}
 
 		if (!StillPresent) {
 			Debug.LogWarning ("Polity is no longer present. Id: " + Id);
@@ -433,8 +451,12 @@ public abstract class Polity : ISynchronizable {
 		WillBeUpdated = false;
 
 		if (InfluencedGroups.Count <= 0) {
+
+			#if DEBUG
 			Debug.Log ("Polity will be removed due to losing all influenced groups. polity id:" + Id);
-			World.AddPolityToRemove (this);
+			#endif
+
+			PrepareToRemoveFromWorld ();
 			return;
 		}
 

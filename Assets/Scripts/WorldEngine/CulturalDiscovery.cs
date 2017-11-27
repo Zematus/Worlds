@@ -171,7 +171,7 @@ public class TribalismDiscovery : CellCulturalDiscovery {
 			#if DEBUG
 			if (group.GetFactionCores ().Count > 0) {
 
-				throw new System.Exception ("group has faction cores but will lose Tribalism - Id: " + group.Id + " at " + group.Position + ", date: " + group.World.CurrentDate);
+				Debug.LogWarning ("Group that will lose tribalism has faction cores - Id: " + group.Id);
 			}
 			#endif
 
