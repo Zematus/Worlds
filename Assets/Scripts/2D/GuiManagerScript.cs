@@ -211,7 +211,9 @@ public class GuiManagerScript : MonoBehaviour {
 //			GenerateWorld (false, 1446630758);
 //			GenerateWorld (false, 1788799931);
 //			GenerateWorld (false, 616109363);
-			GenerateWorld (false, 1735984055);
+//			GenerateWorld (false, 1735984055);
+			GenerateWorld (false, 1065375312);
+
 
 		} else if (!Manager.SimulationCanRun) {
 
@@ -2080,7 +2082,8 @@ public class GuiManagerScript : MonoBehaviour {
 
 		InfoPanelScript.InfoText.text += "\n\tInfluenced population: " + influencedPopulation;
 		InfoPanelScript.InfoText.text += "\n\tPercentage of polity population: " + percentageOfPolity.ToString ("P");
-		InfoPanelScript.InfoText.text += "\n\tDistance to polity core: " + pi.FactionCoreDistance.ToString ("0.000");
+		InfoPanelScript.InfoText.text += "\n\tDistance to polity core: " + pi.PolityCoreDistance.ToString ("0.000");
+		InfoPanelScript.InfoText.text += "\n\tDistance to faction core: " + pi.FactionCoreDistance.ToString ("0.000");
 
 		SetFocusButton (polity);
 	}

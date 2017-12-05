@@ -294,7 +294,22 @@ public class Tribe : Polity {
 
 	protected override void UpdateInternal ()
 	{
-//		TryRelocateCore ();
+		float administrativeLoadFactor = TribeSplitEvent.CalculateAdministrativeLoadFactor (this);
+		administrativeLoadFactor = Mathf.Pow (administrativeLoadFactor, 2);
+
+		if (administrativeLoadFactor > TribeSplitEvent.TerminalAdministrativeLoadValue) {
+			
+			int tentativeSplitEventDate = TribeSplitEvent.CalculateTriggerDate (this);
+
+			if (tentativeSplitEventDate < TribeSplitEventDate) {
+
+				TribeSplitEventDate = tentativeSplitEventDate;
+
+				TribeSplitEvent.Reset (TribeSplitEventDate);
+
+				World.InsertEventToHappen (TribeSplitEvent);
+			}
+		}
 	}
 
 	protected override void GenerateName ()
@@ -403,8 +418,9 @@ public class TribeSplitEventMessage : PolityEventMessage {
 public class TribeSplitEvent : PolityEvent {
 
 	public const int DateSpanFactorConstant = CellGroup.GenerationTime * 2000;
+	public const int MinDateSpan = CellGroup.GenerationTime * 40;
 
-	public const int MuAdministrativeLoadValue = 500000;
+	public const int TerminalAdministrativeLoadValue = 500000;
 
 //	public const string EventSetFlag = "TribeSplitEvent_Set";
 
@@ -430,7 +446,7 @@ public class TribeSplitEvent : PolityEvent {
 		DoNotSerialize = true;
 	}
 
-	private static float CalculateTribeAdministrativeLoadFactor (Tribe tribe) {
+	public static float CalculateAdministrativeLoadFactor (Tribe tribe) {
 
 		float socialOrganizationValue = 0;
 
@@ -465,14 +481,20 @@ public class TribeSplitEvent : PolityEvent {
 		float randomFactor = tribe.GetNextLocalRandomFloat (RngOffsets.TRIBE_SPLITTING_EVENT_CALCULATE_TRIGGER_DATE);
 		randomFactor = Mathf.Pow (randomFactor, 2);
 
-//		float administrativeLoadFactor = 1 + CalculateTribeAdministrativeLoadFactor (tribe);
+		float administrativeLoadFactor = CalculateAdministrativeLoadFactor (tribe);
+		administrativeLoadFactor = Mathf.Pow (administrativeLoadFactor, 2);
 
-		float dateSpan = (1 - randomFactor) * DateSpanFactorConstant;// / administrativeLoadFactor;
+		if (administrativeLoadFactor < 0)
+			administrativeLoadFactor = float.MaxValue / 2f;
+
+		float loadFactor = TerminalAdministrativeLoadValue / (administrativeLoadFactor + TerminalAdministrativeLoadValue);
+
+		float dateSpan = (1 - randomFactor) * DateSpanFactorConstant * loadFactor;
 
 		if (dateSpan < CellGroup.GenerationTime)
 			dateSpan = CellGroup.GenerationTime;
 
-		int targetDate = (int)(tribe.World.CurrentDate + dateSpan) + 1;
+		int targetDate = (int)(tribe.World.CurrentDate + dateSpan) + MinDateSpan;
 
 		return targetDate;
 	}
@@ -499,7 +521,7 @@ public class TribeSplitEvent : PolityEvent {
 		if (new List<Clan> (Polity.GetFactions<Clan> ()).Count <= 1)
 			return false;
 
-		float administrativeLoadFactor = CalculateTribeAdministrativeLoadFactor (Polity as Tribe);
+		float administrativeLoadFactor = CalculateAdministrativeLoadFactor (Polity as Tribe);
 		administrativeLoadFactor = Mathf.Pow (administrativeLoadFactor, 2);
 
 		if (administrativeLoadFactor < 0)
@@ -507,7 +529,7 @@ public class TribeSplitEvent : PolityEvent {
 
 		// Add clan selection mechanism
 
-		float splitValue = administrativeLoadFactor / (administrativeLoadFactor + MuAdministrativeLoadValue);
+		float splitValue = administrativeLoadFactor / (administrativeLoadFactor + TerminalAdministrativeLoadValue);
 
 		int rngOffset = RngOffsets.EVENT_CAN_TRIGGER + (int)Id;
 

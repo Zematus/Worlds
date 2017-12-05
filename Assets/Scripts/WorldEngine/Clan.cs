@@ -146,6 +146,23 @@ public class Clan : Faction {
 
 			World.InsertEventToHappen (ClanCoreMigrationEvent);
 		}
+
+		float administrativeLoadFactor = ClanSplitEvent.CalculateAdministrativeLoadFactor (this);
+		administrativeLoadFactor = Mathf.Pow (administrativeLoadFactor, 2);
+
+		if (administrativeLoadFactor > ClanSplitEvent.TerminalAdministrativeLoadValue) {
+
+			int tentativeClanSplitEventDate = ClanSplitEvent.CalculateTriggerDate (this);
+
+			if (tentativeClanSplitEventDate < ClanSplitEventDate) {
+
+				ClanSplitEventDate = tentativeClanSplitEventDate;
+
+				ClanSplitEvent.Reset (ClanSplitEventDate);
+
+				World.InsertEventToHappen (ClanSplitEvent);
+			}
+		}
 	}
 
 	protected override void GenerateName (Faction parentFaction) {
@@ -384,10 +401,11 @@ public class ClanSplitEventMessage : FactionEventMessage {
 public class ClanSplitEvent : FactionEvent {
 
 	public const int DateSpanFactorConstant = CellGroup.GenerationTime * 2000;
+	public const int MinDateSpan = CellGroup.GenerationTime * 40;
 
-	public const int MuAdministrativeLoadValue = 500000;
+	public const int TerminalAdministrativeLoadValue = 500000;
 
-	public const float MinCoreInfluenceValue = 0.3f;
+	public const float MinCoreInfluenceValue = 0.05f;
 
 	public const float MinCoreDistance = 1000f;
 
@@ -411,7 +429,7 @@ public class ClanSplitEvent : FactionEvent {
 		DoNotSerialize = true;
 	}
 
-	private static float CalculateClanAdministrativeLoadFactor (Clan clan) {
+	public static float CalculateAdministrativeLoadFactor (Clan clan) {
 
 		float socialOrganizationValue = 0;
 
@@ -432,12 +450,26 @@ public class ClanSplitEvent : FactionEvent {
 
 	public static int CalculateTriggerDate (Clan clan) {
 
+		#if DEBUG
+		if (clan.Polity.Territory.IsSelected) {
+			bool debug = true;
+		}
+		#endif
+
 		float randomFactor = clan.GetNextLocalRandomFloat (RngOffsets.CLAN_SPLITTING_EVENT_CALCULATE_TRIGGER_DATE);
 		randomFactor = Mathf.Pow (randomFactor, 2);
 
-		float dateSpan = (1 - randomFactor) * DateSpanFactorConstant;
+		float administrativeLoadFactor = CalculateAdministrativeLoadFactor (clan);
+		administrativeLoadFactor = Mathf.Pow (administrativeLoadFactor, 2);
 
-		int targetDate = (int)(clan.World.CurrentDate + dateSpan) + 1;
+		if (administrativeLoadFactor < 0)
+			administrativeLoadFactor = float.MaxValue / 2f;
+
+		float loadFactor = TerminalAdministrativeLoadValue / (administrativeLoadFactor + TerminalAdministrativeLoadValue);
+
+		float dateSpan = (1 - randomFactor) * DateSpanFactorConstant * loadFactor;
+
+		int targetDate = (int)(clan.World.CurrentDate + dateSpan) + MinDateSpan;
 
 		return targetDate;
 	}
@@ -452,20 +484,20 @@ public class ClanSplitEvent : FactionEvent {
 
 	public override bool CanTrigger () {
 
-		#if DEBUG
-		if (Faction.Polity.Territory.IsSelected) {
-			bool debug = true;
-		}
-		#endif
-
-		if (!base.CanTrigger ())
-			return false;
-
 //		#if DEBUG
 //		if (Faction.Polity.Territory.IsSelected) {
 //			bool debug = true;
 //		}
 //		#endif
+
+		if (!base.CanTrigger ())
+			return false;
+
+		#if DEBUG
+		if (Faction.Polity.Territory.IsSelected) {
+			bool debug = true;
+		}
+		#endif
 
 		if (Faction.Prominence < MinProminenceTrigger)
 			return false;
@@ -477,13 +509,13 @@ public class ClanSplitEvent : FactionEvent {
 		if (_newCoreGroup == null)
 			return false;
 
-		float administrativeLoadFactor = CalculateClanAdministrativeLoadFactor (Faction as Clan);
+		float administrativeLoadFactor = CalculateAdministrativeLoadFactor (Faction as Clan);
 		administrativeLoadFactor = Mathf.Pow (administrativeLoadFactor, 2);
 
 		if (administrativeLoadFactor < 0)
 			return true;
 
-		float splitValue = administrativeLoadFactor / (administrativeLoadFactor + MuAdministrativeLoadValue);
+		float splitValue = administrativeLoadFactor / (administrativeLoadFactor + TerminalAdministrativeLoadValue);
 
 		float triggerValue = Faction.GetNextLocalRandomFloat (rngOffset++);
 

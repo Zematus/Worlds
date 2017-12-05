@@ -94,7 +94,7 @@ public class World : ISynchronizable {
 	
 	public const float Circumference = 40075; // In kilometers;
 	
-	public const int NumContinents = 12;
+	public const int NumContinents =12;
 	public const float ContinentMinWidthFactor = 5.7f;
 	public const float ContinentMaxWidthFactor = 8.7f;
 
@@ -1614,7 +1614,9 @@ public class World : ISynchronizable {
 				valueCb = GetMountainRangeNoiseFromRandomNoise(valueCb, 25);
 				valueC = MathUtility.MixValues(valueC, valueCb, 0.5f * value8);
 
-				valueC = MathUtility.MixValues(valueC, value3, 0.55f * value8);
+//				valueC = MathUtility.MixValues(valueC, value3, 0.3f * value8);
+				valueC = MathUtility.MixValues(valueC, value3, 0.45f * value8);
+//				valueC = MathUtility.MixValues(valueC, value3, 0.55f * value8);
 				valueC = MathUtility.MixValues(valueC, value4, 0.075f);
 				valueC = MathUtility.MixValues(valueC, value5, 0.05f);
 				valueC = MathUtility.MixValues(valueC, value6, 0.02f);
@@ -1629,6 +1631,9 @@ public class World : ISynchronizable {
 				float valueD = MathUtility.MixValues (valueB, (valueA * 0.02f) + 0.49f, Mathf.Clamp01(1.3f * valueA - Mathf.Max(0, (2.5f * valueC) - 1)));
 
 				CalculateAndSetAltitude(i, j, valueD);
+//				CalculateAndSetAltitude(i, j, valueC);
+//				CalculateAndSetAltitude(i, j, valueB);
+//				CalculateAndSetAltitude(i, j, valueCb);
 //				CalculateAndSetAltitude(i, j, valueA);
 			}
 
