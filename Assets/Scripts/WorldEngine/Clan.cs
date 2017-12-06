@@ -148,7 +148,6 @@ public class Clan : Faction {
 		}
 
 		float administrativeLoadFactor = ClanSplitEvent.CalculateAdministrativeLoadFactor (this);
-		administrativeLoadFactor = Mathf.Pow (administrativeLoadFactor, 2);
 
 		if (administrativeLoadFactor > ClanSplitEvent.TerminalAdministrativeLoadValue) {
 
@@ -405,7 +404,8 @@ public class ClanSplitEvent : FactionEvent {
 
 	public const int TerminalAdministrativeLoadValue = 500000;
 
-	public const float MinCoreInfluenceValue = 0.05f;
+	public const float MinCoreInfluenceValue = 0.5f;
+	public const float MinMinCoreInfluenceValue = 0.05f;
 
 	public const float MinCoreDistance = 1000f;
 
@@ -438,14 +438,14 @@ public class ClanSplitEvent : FactionEvent {
 		if (socialOrganizationKnowledge != null)
 			socialOrganizationValue = socialOrganizationKnowledge.Value;
 
-		if (socialOrganizationValue <= 0) {
+		if (socialOrganizationValue < 0) {
 		
 			return float.MaxValue;
 		}
 
 		float administrativeLoad = clan.Polity.TotalAdministrativeCost * clan.Prominence;
 
-		return administrativeLoad / socialOrganizationValue;
+		return Mathf.Pow (administrativeLoad / socialOrganizationValue, 2);
 	}
 
 	public static int CalculateTriggerDate (Clan clan) {
@@ -460,7 +460,6 @@ public class ClanSplitEvent : FactionEvent {
 		randomFactor = Mathf.Pow (randomFactor, 2);
 
 		float administrativeLoadFactor = CalculateAdministrativeLoadFactor (clan);
-		administrativeLoadFactor = Mathf.Pow (administrativeLoadFactor, 2);
 
 		if (administrativeLoadFactor < 0)
 			administrativeLoadFactor = float.MaxValue / 2f;
@@ -510,7 +509,6 @@ public class ClanSplitEvent : FactionEvent {
 			return false;
 
 		float administrativeLoadFactor = CalculateAdministrativeLoadFactor (Faction as Clan);
-		administrativeLoadFactor = Mathf.Pow (administrativeLoadFactor, 2);
 
 		if (administrativeLoadFactor < 0)
 			return true;
@@ -540,11 +538,23 @@ public class ClanSplitEvent : FactionEvent {
 		if (!clan.CanBeClanCore (group))
 			return 0;
 
-		float value = Mathf.Max(pi.Value - MinCoreInfluenceValue, 0);
+		float coreDistance = pi.FactionCoreDistance - MinCoreDistance;
 
-		float coreDistance = Mathf.Max(pi.FactionCoreDistance - MinCoreDistance, 0);
+		if (coreDistance <= 0)
+			return 0;
 
-		float weight = coreDistance * value;
+		float coreDistanceFactor = MinCoreDistance / (MinCoreDistance + coreDistance);
+
+//		float minCoreInfluenceValue = Mathf.Max (MinMinCoreInfluenceValue, MinCoreInfluenceValue * coreDistanceFactor);
+		float minCoreInfluenceValue = MinCoreInfluenceValue * coreDistanceFactor;
+
+		float value = pi.Value - minCoreInfluenceValue;
+
+		if (value <= 0)
+			return 0;
+
+//		float weight = coreDistance * value;
+		float weight = pi.Value;
 
 		if (weight < 0)
 			return float.MaxValue;

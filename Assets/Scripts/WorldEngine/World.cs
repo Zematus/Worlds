@@ -1726,7 +1726,7 @@ public class World : ISynchronizable {
 		noise = (noise * 2) - 1;
 		
 		float value1 = -Mathf.Exp (-Mathf.Pow (noise * widthFactor + 1f, 2));
-		float value2 = Mathf.Exp(-Mathf.Pow(noise * widthFactor - 1f, 2));
+		float value2 = Mathf.Exp (-Mathf.Pow(noise * widthFactor - 1f, 2));
 
 		float value = (value1 + value2 + 1) / 2f;
 		

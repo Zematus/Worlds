@@ -295,7 +295,6 @@ public class Tribe : Polity {
 	protected override void UpdateInternal ()
 	{
 		float administrativeLoadFactor = TribeSplitEvent.CalculateAdministrativeLoadFactor (this);
-		administrativeLoadFactor = Mathf.Pow (administrativeLoadFactor, 2);
 
 		if (administrativeLoadFactor > TribeSplitEvent.TerminalAdministrativeLoadValue) {
 			
@@ -455,19 +454,14 @@ public class TribeSplitEvent : PolityEvent {
 		if (socialOrganizationKnowledge != null)
 			socialOrganizationValue = socialOrganizationKnowledge.Value;
 
-		if (socialOrganizationValue <= 0) {
+		if (socialOrganizationValue < 0) {
 
 			return float.MaxValue;
 		}
 
-		float administrativeLoad = tribe.TotalAdministrativeCost;
+		float administrativeLoad = tribe.TotalAdministrativeCost * tribe.DominantFaction.Prominence;
 
-		float loadFactor = administrativeLoad / socialOrganizationValue;
-
-		if (loadFactor > float.MaxValue)
-			return float.MaxValue;
-
-		return administrativeLoad / socialOrganizationValue;
+		return Mathf.Pow (administrativeLoad / socialOrganizationValue, 2);
 	}
 
 	public static int CalculateTriggerDate (Tribe tribe) {
@@ -482,7 +476,6 @@ public class TribeSplitEvent : PolityEvent {
 		randomFactor = Mathf.Pow (randomFactor, 2);
 
 		float administrativeLoadFactor = CalculateAdministrativeLoadFactor (tribe);
-		administrativeLoadFactor = Mathf.Pow (administrativeLoadFactor, 2);
 
 		if (administrativeLoadFactor < 0)
 			administrativeLoadFactor = float.MaxValue / 2f;
@@ -522,7 +515,6 @@ public class TribeSplitEvent : PolityEvent {
 			return false;
 
 		float administrativeLoadFactor = CalculateAdministrativeLoadFactor (Polity as Tribe);
-		administrativeLoadFactor = Mathf.Pow (administrativeLoadFactor, 2);
 
 		if (administrativeLoadFactor < 0)
 			return true;
