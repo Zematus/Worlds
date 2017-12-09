@@ -151,7 +151,7 @@ public class Manager {
 
 	#endif
 
-	public static string CurrentVersion = "0.028";
+	public static string CurrentVersion = "0.028.1";
 
 //	public static bool RecordingEnabled = false;
 
@@ -593,6 +593,8 @@ public class Manager {
 		world.Generate ();
 		world.FinishInitialization ();
 
+		ForceWorldCleanup ();
+
 		_manager._currentWorld = world;
 
 		_manager._currentCellSlants = new float?[world.Width, world.Height];
@@ -684,6 +686,16 @@ public class Manager {
 			_manager._simulationRunning = true;
 		});
 	}
+
+	// NOTE: Make sure there are no outside references to the world object stored in _manager._currentWorld, otherwise it is pointless to call this...
+	// WARNING: Don't abuse this function call.
+	private static void ForceWorldCleanup () {
+	
+		_manager._currentWorld = null;
+
+		System.GC.Collect ();
+		System.GC.WaitForPendingFinalizers ();
+	}
 	
 	public static void LoadWorld (string path) {
 
@@ -720,6 +732,8 @@ public class Manager {
 		world.FinalizeLoad (0.5f, 1.0f, _manager._progressCastMethod);
 
 		ProgressIncrement = baseProgressIncrement;
+
+		ForceWorldCleanup ();
 
 		_manager._currentWorld = world;
 

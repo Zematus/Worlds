@@ -18,6 +18,25 @@ public class BinaryTreeNode<TKey, TValue> {
 	public bool Marked { get; set; }
 
 	public bool MarkedForRemoval { get; set; }
+
+	public BinaryTreeNode (TKey key, TValue value) {
+
+		Reinitialize (key, value);
+	}
+
+	public void Reinitialize (TKey key, TValue value) {
+
+		Key = key;
+		Value = value;
+
+		Parent = null;
+
+		Right = null;
+		Left = null;
+
+		Marked = false;
+		MarkedForRemoval = false;
+	}
 }
 
 public class BinaryTree<TKey, TValue> {
@@ -25,6 +44,8 @@ public class BinaryTree<TKey, TValue> {
 	public IComparer<TKey> Comparer { get; set; }
 
 	public int Count { get; private set; }
+
+//	private Queue <BinaryTreeNode<TKey, TValue>> _freeNodes = new Queue<BinaryTreeNode<TKey, TValue>> (25);
 
 	private BinaryTreeNode<TKey, TValue> _rightmostItem = null;
 	private BinaryTreeNode<TKey, TValue> _leftmostItem = null;
@@ -68,16 +89,35 @@ public class BinaryTree<TKey, TValue> {
 		Comparer = comparer;
 	}
 
+//	private BinaryTreeNode<TKey, TValue> SetFreeNode (TKey key, TValue value) {
+//
+//		BinaryTreeNode<TKey, TValue> node = null;
+//
+//		if (_freeNodes.Count > 0) {
+//			node = _freeNodes.Dequeue ();
+//
+//			node.Reinitialize (key, value);
+//
+//		} else {
+//			
+//			node = new BinaryTreeNode<TKey, TValue> (key, value);
+//		}
+//
+//		return node;
+//	}
+//
+//	private void FreeNode (BinaryTreeNode<TKey, TValue> node) {
+//
+//		_freeNodes.Enqueue (node);
+//	}
+
 	public void Insert (TKey key, TValue value) {
 
 		Count++;
 		int level = 0;
 
-		BinaryTreeNode<TKey, TValue> item = new BinaryTreeNode<TKey, TValue> ();
-
-		item.Key = key;
-		item.Value = value;
-		item.Marked = false;
+//		BinaryTreeNode<TKey, TValue> item = SetFreeNode (key, value);
+		BinaryTreeNode<TKey, TValue> item = new BinaryTreeNode<TKey, TValue> (key, value);
 
 		if (_root == null) {
 
@@ -186,6 +226,8 @@ public class BinaryTree<TKey, TValue> {
 
 		TValue value = _rightmostItem.Value;
 
+//		FreeNode (_rightmostItem);
+
 		if (_rightmostItem == _leftmostItem) {
 		
 			_root = null;
@@ -248,6 +290,8 @@ public class BinaryTree<TKey, TValue> {
 		Count--;
 
 		TValue value = _leftmostItem.Value;
+
+//		FreeNode (_leftmostItem);
 
 		if (_leftmostItem == _rightmostItem) {
 
@@ -344,6 +388,8 @@ public class BinaryTree<TKey, TValue> {
 				replacementNode.Parent = null;
 			}
 		}
+
+//		FreeNode (node);
 
 		return node.Value;
 	}
