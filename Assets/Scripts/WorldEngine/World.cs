@@ -612,6 +612,12 @@ public class World : ISynchronizable {
 
 	private bool ValidateEventsToHappenNode (BinaryTreeNode<int, WorldEvent> node) {
 
+		if (!node.Valid) {
+
+			node.MarkedForRemoval = true;
+			return false;
+		}
+
 		if (!node.Value.IsStillValid ()) {
 
 			node.MarkedForRemoval = true;
@@ -939,7 +945,7 @@ public class World : ISynchronizable {
 
 		EventsToHappenCount++;
 
-		_eventsToHappen.Insert (eventToHappen.TriggerDate, eventToHappen);
+		_eventsToHappen.Insert (eventToHappen.TriggerDate, eventToHappen, eventToHappen.AssociateNode);
 
 //		#if DEBUG
 //		if (Manager.RegisterDebugEvent != null) {

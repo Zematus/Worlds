@@ -167,6 +167,9 @@ public abstract class WorldEvent : ISynchronizable {
 
 	[XmlIgnore]
 	public bool FailedToTrigger = false;
+
+	[XmlIgnore]
+	public BinaryTreeNode<int, WorldEvent> Node = null;
 	
 	[XmlAttribute]
 	public int TriggerDate;
@@ -205,6 +208,15 @@ public abstract class WorldEvent : ISynchronizable {
 			}
 		}
 		#endif
+	}
+
+	public void AssociateNode (BinaryTreeNode<int, WorldEvent> node) {
+	
+		if (Node != null) {
+			Node.Valid = false;
+		}
+
+		Node = node;
 	}
 
 	public virtual WorldEventSnapshot GetSnapshot () {

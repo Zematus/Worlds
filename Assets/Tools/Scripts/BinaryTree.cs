@@ -15,16 +15,18 @@ public class BinaryTreeNode<TKey, TValue> {
 	public TKey Key { get; set; }
 	public TValue Value { get; set; }
 
+	public bool Valid { get; set; }
+
 	public bool Marked { get; set; }
 
 	public bool MarkedForRemoval { get; set; }
 
 	public BinaryTreeNode (TKey key, TValue value) {
 
-		Reinitialize (key, value);
+		Initialize (key, value);
 	}
 
-	public void Reinitialize (TKey key, TValue value) {
+	public void Initialize (TKey key, TValue value) {
 
 		Key = key;
 		Value = value;
@@ -33,6 +35,8 @@ public class BinaryTreeNode<TKey, TValue> {
 
 		Right = null;
 		Left = null;
+
+		Valid = true;
 
 		Marked = false;
 		MarkedForRemoval = false;
@@ -111,13 +115,19 @@ public class BinaryTree<TKey, TValue> {
 //		_freeNodes.Enqueue (node);
 //	}
 
-	public void Insert (TKey key, TValue value) {
+	public delegate void NodeAssociationDelegate (BinaryTreeNode<TKey, TValue> node);
+
+	public void Insert (TKey key, TValue value, NodeAssociationDelegate nodeAssociation = null) {
 
 		Count++;
 		int level = 0;
 
 //		BinaryTreeNode<TKey, TValue> item = SetFreeNode (key, value);
 		BinaryTreeNode<TKey, TValue> item = new BinaryTreeNode<TKey, TValue> (key, value);
+
+		if (nodeAssociation != null) {
+			nodeAssociation (item);
+		}
 
 		if (_root == null) {
 

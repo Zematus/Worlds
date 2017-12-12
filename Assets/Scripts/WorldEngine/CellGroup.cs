@@ -2934,7 +2934,15 @@ public abstract class CellGroupEvent : WorldEvent {
 
 	public static long GenerateUniqueIdentifier (CellGroup group, int triggerDate, long eventTypeId) {
 
-		return ((long)triggerDate * 1000000000) + ((long)group.Longitude * 1000000) + ((long)group.Latitude * 1000) + eventTypeId;
+		long id = ((long)triggerDate * 1000000000) + ((long)group.Longitude * 1000000) + ((long)group.Latitude * 1000) + eventTypeId;
+
+//		#if DEBUG
+//		if (id == 261651022096000L) {
+//			bool debug = true;
+//		}
+//		#endif
+
+		return id;
 	}
 
 	#if DEBUG
