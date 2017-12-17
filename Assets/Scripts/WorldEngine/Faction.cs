@@ -331,8 +331,6 @@ public abstract class FactionEvent : WorldEvent {
 
 	public static long GenerateUniqueIdentifier (Faction faction, int triggerDate, long eventTypeId) {
 
-		CellGroup coreGroup = faction.CoreGroup;
-
 		return ((long)triggerDate * 1000000000) + ((faction.Id % 1000000L) * 1000L) + eventTypeId;
 	}
 

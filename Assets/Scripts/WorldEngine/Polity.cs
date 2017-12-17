@@ -1000,8 +1000,6 @@ public abstract class PolityEvent : WorldEvent {
 
 	public static long GenerateUniqueIdentifier (Polity polity, int triggerDate, long eventTypeId) {
 
-		CellGroup coreGroup = polity.CoreGroup;
-
 		return ((long)triggerDate * 1000000000L) + ((polity.Id % 1000000L) * 1000L) + eventTypeId;
 	}
 

@@ -103,9 +103,9 @@ public class Route : ISynchronizable {
 
 		while (true) {
 
-			#if DEBUG
-			TerrainCell prevCell = nextCell;
-			#endif
+//			#if DEBUG
+//			TerrainCell prevCell = nextCell;
+//			#endif
 
 			nextCell = ChooseNextSeaCell (nextCell, rngOffset++, out nextDirection);
 
