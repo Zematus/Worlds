@@ -916,14 +916,14 @@ public class Manager {
 
 		if (CurrentWorld.FocusedPolity != null) {
 
-			CurrentWorld.FocusedPolity.IsFocused = false;
+			CurrentWorld.FocusedPolity.SetFocused (false);
 			CurrentWorld.FocusedPolity = null;
 		}
 
 		if (polity == null)
 			return;
 
-		polity.IsFocused = true;
+		polity.SetFocused (true);
 		CurrentWorld.FocusedPolity = polity;
 	}
 

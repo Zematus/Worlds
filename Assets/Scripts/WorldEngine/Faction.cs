@@ -30,6 +30,9 @@ public abstract class Faction : ISynchronizable {
 	[XmlAttribute("LeadStDate")]
 	public int LeaderStartDate;
 
+	[XmlAttribute("IsFo")]
+	public bool IsFocused = false;
+
 	public Name Name = null;
 
 	// Do not call this property directly, only for serialization
@@ -273,23 +276,33 @@ public abstract class Faction : ISynchronizable {
 	}
 }
 
-public abstract class FactionEventMessage : PolityEventMessage {
+public abstract class FactionEventMessage : WorldEventMessage {
 
 	[XmlAttribute]
 	public long FactionId;
 
 	[XmlIgnore]
 	public Faction Faction {
-		get { return Polity.GetFaction (FactionId); }
+		get { return World.GetFaction (FactionId); }
 	}
 
 	public FactionEventMessage () {
 
 	}
 
-	public FactionEventMessage (Faction faction, long id, long date) : base (faction.Polity, id, date) {
+	public FactionEventMessage (Faction faction, long id, long date) : base (faction.World, id, date) {
 
 		FactionId = faction.Id;
+	}
+}
+
+public abstract class FactionDecision : Decision {
+	
+	public Faction Faction;
+
+	public FactionDecision (Faction faction) {
+
+		Faction = faction;
 	}
 }
 

@@ -107,6 +107,9 @@ public abstract class Polity : ISynchronizable {
 	[XmlAttribute("DomFactId")]
 	public long DominantFactionId;
 
+	[XmlAttribute("IsFo")]
+	public bool IsFocused = false;
+
 	public List<string> Flags;
 
 	public Name Name;
@@ -132,9 +135,6 @@ public abstract class Polity : ISynchronizable {
 
 	[XmlIgnore]
 	public bool WillBeUpdated;
-
-	[XmlIgnore]
-	public bool IsFocused;
 
 	[XmlIgnore]
 	public Dictionary<long, CellGroup> InfluencedGroups = new Dictionary<long, CellGroup> ();
@@ -181,8 +181,6 @@ public abstract class Polity : ISynchronizable {
 	}
 
 	protected Polity (string type, CellGroup coreGroup, Polity parentPolity = null) {
-
-		IsFocused = false;
 
 		Type = type;
 
@@ -243,6 +241,16 @@ public abstract class Polity : ISynchronizable {
 		World.RemovePolity (this);
 
 		StillPresent = false;
+	}
+
+	public void SetFocused (bool state) {
+	
+		IsFocused = state;
+
+		if (DominantFaction != null) {
+		
+			DominantFaction.IsFocused = state;
+		}
 	}
 
 	public void AddEventMessage (WorldEventMessage eventMessage) {
@@ -359,6 +367,7 @@ public abstract class Polity : ISynchronizable {
 		if (DominantFaction != null) {
 		
 			faction.SetDominant (false);
+			faction.IsFocused = false;
 		}
 
 		if ((faction == null) || (!faction.StillPresent))
@@ -368,13 +377,17 @@ public abstract class Polity : ISynchronizable {
 			throw new System.Exception ("Faction is not part of polity");
 	
 		DominantFaction = faction;
-		DominantFactionId = faction.Id;
 
-		faction.SetDominant (true);
+		if (faction != null) {
+			DominantFactionId = faction.Id;
 
-		SetCoreGroup (faction.CoreGroup);
+			faction.SetDominant (true);
+			faction.IsFocused = IsFocused;
 
-		World.AddFactionToUpdate (faction);
+			SetCoreGroup (faction.CoreGroup);
+
+			World.AddFactionToUpdate (faction);
+		}
 	}
 
 	public IEnumerable<Faction> GetFactions () {

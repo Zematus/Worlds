@@ -373,6 +373,29 @@ public class Clan : Faction {
 
 		return false;
 	}
+
+	public void Split (CellGroup newCoreGroup, int triggerDate) {
+
+		float randomValue = GetNextLocalRandomFloat (RngOffsets.EVENT_TRIGGER + (int)ClanSplitEvent.Id);
+		float randomFactor = ClanSplitEvent.MinProminenceTransfer + (randomValue * ClanSplitEvent.ProminenceTransferProportion);
+
+		float oldProminence = Prominence;
+
+		Prominence = oldProminence * randomFactor;
+
+		float newClanProminence = oldProminence * (1f - randomFactor);
+
+		Clan newClan = new Clan (Polity as Tribe, newCoreGroup, newClanProminence, this);
+
+		Polity.AddFaction (newClan);
+
+		World.AddFactionToUpdate (this);
+		World.AddFactionToUpdate (newClan);
+
+		World.AddPolityToUpdate (Polity);
+
+		Polity.AddEventMessage (new ClanSplitEventMessage (this, newClan, triggerDate));
+	}
 }
 
 public class ClanSplitEventMessage : FactionEventMessage {
@@ -391,9 +414,50 @@ public class ClanSplitEventMessage : FactionEventMessage {
 
 	protected override string GenerateMessage ()
 	{
-		Faction newClan = Polity.GetFaction (NewClanId);
+		Faction newClan = World.GetFaction (NewClanId);
 
 		return "A new clan, " + newClan.Name.Text + ", has split from clan " +  Faction.Name.Text;
+	}
+}
+
+public class ClanSplitDecision : FactionDecision {
+
+	private bool _preferSplit;
+
+	private CellGroup _newCoreGroup;
+	private int _triggerDate;
+
+	public ClanSplitDecision (Clan clan, CellGroup newCoreGroup, int triggerDate, bool preferSplit) : base (clan) {
+
+		_preferSplit = preferSplit;
+
+		_newCoreGroup = newCoreGroup;
+		_triggerDate = triggerDate;
+	}
+
+	public void PreventSplit () {
+	
+	}
+
+	public void AllowSplit () {
+
+		(Faction as Clan).Split (_newCoreGroup, _triggerDate);
+	}
+
+	public override Option[] GetOptions () {
+
+		return new Option[] {
+			new Option (AllowSplit, _preferSplit),
+			new Option (PreventSplit, !_preferSplit)
+		};
+	}
+
+	public override void ExecutePreferredOption ()
+	{
+		if (_preferSplit)
+			AllowSplit ();
+		else
+			PreventSplit ();
 	}
 }
 
@@ -564,27 +628,38 @@ public class ClanSplitEvent : FactionEvent {
 
 	public override void Trigger () {
 
-		float randomValue = Faction.GetNextLocalRandomFloat (RngOffsets.EVENT_TRIGGER + 1 + (int)Id);
-		float randomFactor = MinProminenceTransfer + (randomValue * ProminenceTransferProportion);
+		if (Faction.IsFocused) {
+		
+			Decision splitDecision = new ClanSplitDecision (Faction as Clan, _newCoreGroup, TriggerDate, true);
 
-		float oldProminence = Faction.Prominence;
+			splitDecision.ExecutePreferredOption ();
 
-		Faction.Prominence = oldProminence * randomFactor;
+		} else {
 
-		float newClanProminence = oldProminence * (1f - randomFactor);
+			(Faction as Clan).Split (_newCoreGroup, TriggerDate);
+		}
 
-		Polity polity = Faction.Polity;
-
-		Clan newClan = new Clan (polity as Tribe, _newCoreGroup, newClanProminence, Faction as Clan);
-
-		polity.AddFaction (newClan);
-
-		World.AddFactionToUpdate (Faction);
-		World.AddFactionToUpdate (newClan);
-
-		World.AddPolityToUpdate (polity);
-
-		polity.AddEventMessage (new ClanSplitEventMessage (Faction, newClan, TriggerDate));
+//		float randomValue = Faction.GetNextLocalRandomFloat (RngOffsets.EVENT_TRIGGER + (int)Id);
+//		float randomFactor = MinProminenceTransfer + (randomValue * ProminenceTransferProportion);
+//
+//		float oldProminence = Faction.Prominence;
+//
+//		Faction.Prominence = oldProminence * randomFactor;
+//
+//		float newClanProminence = oldProminence * (1f - randomFactor);
+//
+//		Polity polity = Faction.Polity;
+//
+//		Clan newClan = new Clan (polity as Tribe, _newCoreGroup, newClanProminence, Faction as Clan);
+//
+//		polity.AddFaction (newClan);
+//
+//		World.AddFactionToUpdate (Faction);
+//		World.AddFactionToUpdate (newClan);
+//
+//		World.AddPolityToUpdate (polity);
+//
+//		polity.AddEventMessage (new ClanSplitEventMessage (Faction, newClan, TriggerDate));
 	}
 
 	protected override void DestroyInternal () {
