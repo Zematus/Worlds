@@ -139,10 +139,13 @@ public class World : ISynchronizable {
 	public int CellGroupCount { get; private set; }
 
 	[XmlAttribute]
-	public int PolityCount { get; private set; }
+	public int MemorableAgentCount { get; private set; }
 
 	[XmlAttribute]
 	public int FactionCount { get; private set; }
+
+	[XmlAttribute]
+	public int PolityCount { get; private set; }
 
 	[XmlAttribute]
 	public int RegionCount { get; private set; }
@@ -185,6 +188,9 @@ public class World : ISynchronizable {
 	public List<CulturalDiscovery> CulturalDiscoveryInfoList = new List<CulturalDiscovery> ();
 
 	public List<CellGroup> CellGroups;
+
+	[XmlArrayItem (Type = typeof(Agent))]
+	public List<Agent> MemorableAgents;
 
 	[XmlArrayItem (Type = typeof(Clan))]
 	public List<Faction> Factions;
@@ -276,6 +282,8 @@ public class World : ISynchronizable {
 
 	private List<MigratingGroup> _migratingGroups = new List<MigratingGroup> ();
 
+	private Dictionary<long, Agent> _memorableAgents = new Dictionary<long, Agent> ();
+
 	private Dictionary<long, Faction> _factions = new Dictionary<long, Faction> ();
 
 	private HashSet<Faction> _factionsToUpdate = new HashSet<Faction>();
@@ -293,6 +301,8 @@ public class World : ISynchronizable {
 	private HashSet<long> _eventMessageIds = new HashSet<long> ();
 	private Queue<WorldEventMessage> _eventMessagesToShow = new Queue<WorldEventMessage> ();
 
+	private Queue<Decision> _decisionsToResolve = new Queue<Decision> ();
+
 	private Vector2[] _continentOffsets;
 	private float[] _continentWidths;
 	private float[] _continentHeights;
@@ -302,6 +312,8 @@ public class World : ISynchronizable {
 	private float _accumulatedProgress = 0;
 
 	private float _cellMaxSideLength;
+
+	private int _dateToSkipTo;
 
 	public World () {
 
@@ -456,6 +468,13 @@ public class World : ISynchronizable {
 		foreach (CellGroup g in CellGroups) {
 
 			g.Synchronize ();
+		}
+
+		MemorableAgents = new List<Agent> (_memorableAgents.Values);
+
+		foreach (Agent a in MemorableAgents) {
+
+			a.Synchronize ();
 		}
 
 		Factions = new List<Faction> (_factions.Values);
@@ -822,15 +841,22 @@ public class World : ISynchronizable {
 	}
 
 	public int Iterate () {
+	
+		EvaluateEventsToHappen ();
+
+		return Update ();
+	}
+
+	public bool EvaluateEventsToHappen () {
 
 		if (CellGroupCount <= 0)
-			return 0;
+			return false;
 		
 		//
 		// Evaluate Events that will happen at the current date
 		//
 
-		int dateToSkipTo = CurrentDate + 1;
+		_dateToSkipTo = CurrentDate + 1;
 
 		Profiler.BeginSample ("Evaluate Events");
 
@@ -856,7 +882,7 @@ public class World : ISynchronizable {
 					throw new System.Exception ("Surpassed date limit (Int32.MaxValue)");
 				}
 
-				dateToSkipTo = Mathf.Min (eventToHappen.TriggerDate, maxDate);
+				_dateToSkipTo = Mathf.Min (eventToHappen.TriggerDate, maxDate);
 				break;
 			}
 
@@ -876,7 +902,9 @@ public class World : ISynchronizable {
 			if (eventToHappen.CanTrigger ()) {
 				
 				eventToHappen.Trigger ();
+
 			} else {
+				
 				eventToHappen.FailedToTrigger = true;
 			}
 
@@ -887,15 +915,19 @@ public class World : ISynchronizable {
 
 		Profiler.EndSample ();
 
-		//
-		// Update World
-		//
+		return true;
+	}
+
+	public int Update () {
+
+		if (CellGroupCount <= 0)
+			return 0;
 
 		UpdateGroups ();
 
 		MigrateGroups ();
 
-//		PerformGroupActions ();
+		//		PerformGroupActions ();
 
 		PostUpdateGroups_BeforePolityUpdates ();
 
@@ -920,16 +952,16 @@ public class World : ISynchronizable {
 		if (_eventsToHappen.Count > 0) {
 
 			WorldEvent futureEventToHappen = _eventsToHappen.Leftmost;
-			
-			if (futureEventToHappen.TriggerDate < dateToSkipTo) {
-				
-				dateToSkipTo = futureEventToHappen.TriggerDate;
+
+			if (futureEventToHappen.TriggerDate < _dateToSkipTo) {
+
+				_dateToSkipTo = futureEventToHappen.TriggerDate;
 			}
 		}
 
-		int dateSpan = dateToSkipTo - CurrentDate;
+		int dateSpan = _dateToSkipTo - CurrentDate;
 
-		CurrentDate = dateToSkipTo;
+		CurrentDate = _dateToSkipTo;
 
 		return dateSpan;
 	}
@@ -1118,6 +1150,24 @@ public class World : ISynchronizable {
 		return region;
 	}
 
+	public void AddMemorableAgent (Agent agent) {
+
+		if (!_memorableAgents.ContainsKey (agent.Id)) {
+			_memorableAgents.Add (agent.Id, agent);
+
+			MemorableAgentCount++;
+		}
+	}
+
+	public Agent GetMemorableAgent (long id) {
+
+		Agent agent;
+
+		_memorableAgents.TryGetValue (id, out agent);
+
+		return agent;
+	}
+
 	public void AddFaction (Faction faction) {
 
 		_factions.Add (faction.Id, faction);
@@ -1188,6 +1238,21 @@ public class World : ISynchronizable {
 	public void AddPolityToRemove (Polity polity) {
 
 		_politiesToRemove.Add (polity);
+	}
+
+	public void AddDecisionToResolve (Decision decision) {
+	
+		_decisionsToResolve.Enqueue (decision);
+	}
+
+	public bool HasDecisionsToResolve () {
+	
+		return _decisionsToResolve.Count > 0;
+	}
+
+	public Decision PullDecisionToResolve () {
+
+		return _decisionsToResolve.Dequeue ();
 	}
 
 	public void AddEventMessage (WorldEventMessage eventMessage) {

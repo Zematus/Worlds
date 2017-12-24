@@ -300,17 +300,21 @@ public class GuiManagerScript : MonoBehaviour {
 			// Simulate additional iterations if we haven't reached the max amount of iterations allowed per the percentage of transpired real time during this cycle
 			if (_simulationDateSpan < maxSimulationDateSpan) {
 
+				World world = Manager.CurrentWorld;
+
 				int maxDateSpanBetweenUpdates = (int)Mathf.Ceil(maxSpeed * _maxDeltaTimeIterations);
-				int lastUpdateDate = Manager.CurrentWorld.CurrentDate;
+				int lastUpdateDate = world.CurrentDate;
 
 				int dateSpan = 0;
 
 				float startTimeIterations = Time.realtimeSinceStartup;
 
 				// Simulate up to the max amout of iterations allowed per frame
-				while ((lastUpdateDate + maxDateSpanBetweenUpdates) > Manager.CurrentWorld.CurrentDate) {
+				while ((lastUpdateDate + maxDateSpanBetweenUpdates) > world.CurrentDate) {
 
-					dateSpan += Manager.CurrentWorld.Iterate ();
+					world.EvaluateEventsToHappen ();
+
+					dateSpan += world.Update ();
 
 					float deltaTimeIterations = Time.realtimeSinceStartup - startTimeIterations;
 

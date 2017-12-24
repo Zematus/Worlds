@@ -107,8 +107,11 @@ public abstract class Polity : ISynchronizable {
 	[XmlAttribute("DomFactId")]
 	public long DominantFactionId;
 
-	[XmlAttribute("IsFo")]
+	[XmlAttribute("IsFoc")]
 	public bool IsFocused = false;
+
+	[XmlAttribute("IsCon")]
+	public bool IsControlled = false;
 
 	public List<string> Flags;
 
@@ -253,6 +256,16 @@ public abstract class Polity : ISynchronizable {
 		}
 	}
 
+	public void SetControlled (bool state) {
+
+		IsControlled = state;
+
+		if (DominantFaction != null) {
+
+			DominantFaction.IsControlled = state;
+		}
+	}
+
 	public void AddEventMessage (WorldEventMessage eventMessage) {
 
 		if (IsFocused)
@@ -368,6 +381,7 @@ public abstract class Polity : ISynchronizable {
 		
 			faction.SetDominant (false);
 			faction.IsFocused = false;
+			faction.IsControlled = false;
 		}
 
 		if ((faction == null) || (!faction.StillPresent))
@@ -383,6 +397,7 @@ public abstract class Polity : ISynchronizable {
 
 			faction.SetDominant (true);
 			faction.IsFocused = IsFocused;
+			faction.IsControlled = IsControlled;
 
 			SetCoreGroup (faction.CoreGroup);
 

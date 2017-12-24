@@ -374,7 +374,7 @@ public class Clan : Faction {
 		return false;
 	}
 
-	public void Split (CellGroup newCoreGroup, int triggerDate) {
+	public Clan Split (CellGroup newCoreGroup, int triggerDate) {
 
 		float randomValue = GetNextLocalRandomFloat (RngOffsets.EVENT_TRIGGER + (int)ClanSplitEvent.Id);
 		float randomFactor = ClanSplitEvent.MinProminenceTransfer + (randomValue * ClanSplitEvent.ProminenceTransferProportion);
@@ -394,7 +394,31 @@ public class Clan : Faction {
 
 		World.AddPolityToUpdate (Polity);
 
-		Polity.AddEventMessage (new ClanSplitEventMessage (this, newClan, triggerDate));
+		return newClan;
+	}
+}
+
+public class PreventClanSplitEventMessage : FactionEventMessage {
+
+	[XmlAttribute]
+	public long AgentId;
+
+	public PreventClanSplitEventMessage () {
+
+	}
+
+	public PreventClanSplitEventMessage (Faction faction, Agent agent, long date) : base (faction, WorldEvent.PreventClanSplitEventId, date) {
+
+		faction.World.AddMemorableAgent (agent);
+
+		AgentId = agent.Id;
+	}
+
+	protected override string GenerateMessage ()
+	{
+		Agent leader = World.GetMemorableAgent (AgentId);
+
+		return leader.Name.Text + " has prevented clan " +  Faction.Name.Text + " from splitting";
 	}
 }
 
@@ -435,13 +459,16 @@ public class ClanSplitDecision : FactionDecision {
 		_triggerDate = triggerDate;
 	}
 
-	public void PreventSplit () {
-	
+	private void PreventSplit () {
+
+		Faction.Polity.AddEventMessage (new PreventClanSplitEventMessage (Faction, Faction.CurrentLeader, _triggerDate));
 	}
 
-	public void AllowSplit () {
+	private void AllowSplit () {
 
-		(Faction as Clan).Split (_newCoreGroup, _triggerDate);
+		Clan newClan = (Faction as Clan).Split (_newCoreGroup, _triggerDate);
+
+		Faction.Polity.AddEventMessage (new ClanSplitEventMessage (Faction, newClan, _triggerDate));
 	}
 
 	public override Option[] GetOptions () {
@@ -632,34 +659,21 @@ public class ClanSplitEvent : FactionEvent {
 		
 			Decision splitDecision = new ClanSplitDecision (Faction as Clan, _newCoreGroup, TriggerDate, true);
 
-			splitDecision.ExecutePreferredOption ();
+			if (Faction.IsControlled) {
+
+				World.AddDecisionToResolve (splitDecision);
+
+			} else {
+				
+				splitDecision.ExecutePreferredOption ();
+			}
 
 		} else {
 
-			(Faction as Clan).Split (_newCoreGroup, TriggerDate);
-		}
+			Clan newClan = (Faction as Clan).Split (_newCoreGroup, TriggerDate);
 
-//		float randomValue = Faction.GetNextLocalRandomFloat (RngOffsets.EVENT_TRIGGER + (int)Id);
-//		float randomFactor = MinProminenceTransfer + (randomValue * ProminenceTransferProportion);
-//
-//		float oldProminence = Faction.Prominence;
-//
-//		Faction.Prominence = oldProminence * randomFactor;
-//
-//		float newClanProminence = oldProminence * (1f - randomFactor);
-//
-//		Polity polity = Faction.Polity;
-//
-//		Clan newClan = new Clan (polity as Tribe, _newCoreGroup, newClanProminence, Faction as Clan);
-//
-//		polity.AddFaction (newClan);
-//
-//		World.AddFactionToUpdate (Faction);
-//		World.AddFactionToUpdate (newClan);
-//
-//		World.AddPolityToUpdate (polity);
-//
-//		polity.AddEventMessage (new ClanSplitEventMessage (Faction, newClan, TriggerDate));
+			Faction.Polity.AddEventMessage (new ClanSplitEventMessage (Faction, newClan, TriggerDate));
+		}
 	}
 
 	protected override void DestroyInternal () {

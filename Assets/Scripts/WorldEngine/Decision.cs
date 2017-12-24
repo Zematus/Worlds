@@ -15,7 +15,7 @@ public abstract class Decision {
 
 		private bool Preferred;
 
-		private void Execute () {
+		public void Execute () {
 
 			_executeMethod ();
 		}

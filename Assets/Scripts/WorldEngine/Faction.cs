@@ -30,8 +30,11 @@ public abstract class Faction : ISynchronizable {
 	[XmlAttribute("LeadStDate")]
 	public int LeaderStartDate;
 
-	[XmlAttribute("IsFo")]
+	[XmlAttribute("IsFoc")]
 	public bool IsFocused = false;
+
+	[XmlAttribute("IsCon")]
+	public bool IsControlled = false;
 
 	public Name Name = null;
 
