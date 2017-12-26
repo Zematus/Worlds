@@ -29,6 +29,7 @@ public class GuiManagerScript : MonoBehaviour {
 	
 	public TextInputDialogPanelScript SaveFileDialogPanelScript;
 	public TextInputDialogPanelScript ExportMapDialogPanelScript;
+	public DecisionDialogPanelScript DecisionDialogPanelScript;
 	public LoadFileDialogPanelScript LoadFileDialogPanelScript;
 	public OverlayDialogPanelScript OverlayDialogPanelScript;
 	public DialogPanelScript ViewsDialogPanelScript;
@@ -118,6 +119,9 @@ public class GuiManagerScript : MonoBehaviour {
 	private float _accDeltaTime = 0;
 	private int _simulationDateSpan = 0;
 
+	private bool _resolvingDecisions = false;
+	private bool _resolvedDecisions = false;
+
 	private int _mapUpdateCount = 0;
 	private int _lastMapUpdateCount = 0;
 	private float _timeSinceLastMapUpdate = 0;
@@ -185,6 +189,7 @@ public class GuiManagerScript : MonoBehaviour {
 		
 		SaveFileDialogPanelScript.SetVisible (false);
 		ExportMapDialogPanelScript.SetVisible (false);
+		DecisionDialogPanelScript.SetVisible (false);
 		LoadFileDialogPanelScript.SetVisible (false);
 		OverlayDialogPanelScript.SetVisible (false);
 		ViewsDialogPanelScript.SetVisible (false);
@@ -285,6 +290,8 @@ public class GuiManagerScript : MonoBehaviour {
 
 		if (simulationRunning) {
 
+			World world = Manager.CurrentWorld;
+
 			Speed maxSpeed = _maxSpeedOptions [_selectedMaxSpeedOptionIndex];
 
 			_accDeltaTime += Time.deltaTime;
@@ -300,8 +307,6 @@ public class GuiManagerScript : MonoBehaviour {
 			// Simulate additional iterations if we haven't reached the max amount of iterations allowed per the percentage of transpired real time during this cycle
 			if (_simulationDateSpan < maxSimulationDateSpan) {
 
-				World world = Manager.CurrentWorld;
-
 				int maxDateSpanBetweenUpdates = (int)Mathf.Ceil(maxSpeed * _maxDeltaTimeIterations);
 				int lastUpdateDate = world.CurrentDate;
 
@@ -312,7 +317,21 @@ public class GuiManagerScript : MonoBehaviour {
 				// Simulate up to the max amout of iterations allowed per frame
 				while ((lastUpdateDate + maxDateSpanBetweenUpdates) > world.CurrentDate) {
 
-					world.EvaluateEventsToHappen ();
+					if (_resolvedDecisions) {
+						
+						_resolvedDecisions = false;
+
+					} else {
+						
+						world.EvaluateEventsToHappen ();
+					}
+
+					if (world.HasDecisionsToResolve ()) {
+
+						InterruptSimulation (true);
+						_resolvingDecisions = true;
+						break;
+					}
 
 					dateSpan += world.Update ();
 
@@ -326,7 +345,7 @@ public class GuiManagerScript : MonoBehaviour {
 				_simulationDateSpan += dateSpan;
 			}
 
-			while (Manager.CurrentWorld.EventMessagesLeftToShow () > 0) {
+			while (world.EventMessagesLeftToShow () > 0) {
 
 				ShowEventMessage (Manager.CurrentWorld.GetNextMessageToShow ());
 			}
@@ -1113,6 +1132,15 @@ public class GuiManagerScript : MonoBehaviour {
 		LoadFileDialogPanelScript.SetVisible (true);
 
 		LoadFileDialogPanelScript.SetLoadAction (LoadAction);
+
+		InterruptSimulation (true);
+	}
+
+	public void RequestDecisionResolution () {
+
+		DecisionDialogPanelScript.SetDecision (Manager.CurrentWorld.PullDecisionToResolve ());
+
+		DecisionDialogPanelScript.SetVisible (true);
 
 		InterruptSimulation (true);
 	}

@@ -453,6 +453,9 @@ public class ClanSplitDecision : FactionDecision {
 
 	public ClanSplitDecision (Clan clan, CellGroup newCoreGroup, int triggerDate, bool preferSplit) : base (clan) {
 
+		Description = "Several groups of families belonging to clan " + clan.Name.Text + " believe they no longer are part of the clan. " +
+			"Should the clan leader, " + clan.CurrentLeader.Name.Text + ", try to keep them from splitting apart?";
+
 		_preferSplit = preferSplit;
 
 		_newCoreGroup = newCoreGroup;
@@ -474,8 +477,8 @@ public class ClanSplitDecision : FactionDecision {
 	public override Option[] GetOptions () {
 
 		return new Option[] {
-			new Option (AllowSplit, _preferSplit),
-			new Option (PreventSplit, !_preferSplit)
+			new Option ("Allow clan to split in two", AllowSplit, _preferSplit),
+			new Option ("Prevent clan from splitting", PreventSplit, !_preferSplit)
 		};
 	}
 

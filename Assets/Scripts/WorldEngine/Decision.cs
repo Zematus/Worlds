@@ -7,9 +7,13 @@ using System.Xml.Serialization;
 
 public abstract class Decision {
 
+	public string Description;
+
 	public delegate void ExecuteDelegate ();
 
 	public class Option {
+
+		public string Text;
 
 		private ExecuteDelegate _executeMethod;
 
@@ -20,15 +24,17 @@ public abstract class Decision {
 			_executeMethod ();
 		}
 
-		public Option (ExecuteDelegate executeMethod, bool preferred) {
+		public Option (string text, ExecuteDelegate executeMethod, bool preferred) {
+
+			Text = text;
+			Preferred = preferred;
 
 			_executeMethod = executeMethod;
-			Preferred = preferred;
 		}
 	}
 
 	public Decision () {
-
+		
 	}
 
 	public abstract Option[] GetOptions ();
