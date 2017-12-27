@@ -119,8 +119,8 @@ public class GuiManagerScript : MonoBehaviour {
 	private float _accDeltaTime = 0;
 	private int _simulationDateSpan = 0;
 
-	private bool _resolvingDecisions = false;
-	private bool _resolvedDecisions = false;
+//	private bool _resolvingDecisions = false;
+	private bool _resolvedDecision = false;
 
 	private int _mapUpdateCount = 0;
 	private int _lastMapUpdateCount = 0;
@@ -317,9 +317,9 @@ public class GuiManagerScript : MonoBehaviour {
 				// Simulate up to the max amout of iterations allowed per frame
 				while ((lastUpdateDate + maxDateSpanBetweenUpdates) > world.CurrentDate) {
 
-					if (_resolvedDecisions) {
+					if (_resolvedDecision) {
 						
-						_resolvedDecisions = false;
+						_resolvedDecision = false;
 
 					} else {
 						
@@ -328,8 +328,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 					if (world.HasDecisionsToResolve ()) {
 
-						InterruptSimulation (true);
-						_resolvingDecisions = true;
+						RequestDecisionResolution ();
 						break;
 					}
 
@@ -1143,6 +1142,18 @@ public class GuiManagerScript : MonoBehaviour {
 		DecisionDialogPanelScript.SetVisible (true);
 
 		InterruptSimulation (true);
+
+//		_resolvingDecisions = true;
+	}
+
+	public void ResolveDecision () {
+
+		DecisionDialogPanelScript.SetVisible (false);
+
+		InterruptSimulation (false);
+
+//		_resolvingDecisions = false;
+		_resolvedDecision = true;
 	}
 
 	public void ChangePlanetOverlayToSelected () {

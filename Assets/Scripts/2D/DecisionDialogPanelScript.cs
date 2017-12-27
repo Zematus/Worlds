@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using System.Collections;
 using System.Collections.Generic;
@@ -12,6 +13,8 @@ public class DecisionDialogPanelScript : MonoBehaviour {
 	public Text DecisionText;
 
 	public Button OptionButtonPrefab;
+
+	public UnityEvent OptionChosenEvent;
 
 	private List<Button> _optionButtons = new List<Button>();
 
@@ -61,12 +64,10 @@ public class DecisionDialogPanelScript : MonoBehaviour {
 		
 		button.onClick.RemoveAllListeners ();
 
-		button.onClick.AddListener (option.Execute);
-
 		button.onClick.AddListener (() => {
 			
 			option.Execute ();
-
+			OptionChosenEvent.Invoke ();
 		});
 	}
 

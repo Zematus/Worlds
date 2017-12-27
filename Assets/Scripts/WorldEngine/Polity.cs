@@ -254,6 +254,8 @@ public abstract class Polity : ISynchronizable {
 		
 			DominantFaction.IsFocused = state;
 		}
+
+		SetControlled (state);
 	}
 
 	public void SetControlled (bool state) {
