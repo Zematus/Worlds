@@ -286,6 +286,7 @@ public class World : ISynchronizable {
 
 	private Dictionary<long, Faction> _factions = new Dictionary<long, Faction> ();
 
+	private HashSet<Faction> _factionsToSplit = new HashSet<Faction>();
 	private HashSet<Faction> _factionsToUpdate = new HashSet<Faction>();
 	private HashSet<Faction> _factionsToRemove = new HashSet<Faction>();
 
@@ -784,6 +785,20 @@ public class World : ISynchronizable {
 		_groupsToPostUpdate_afterPolityUpdates.Clear ();
 	}
 
+	private void SplitFactions () {
+
+		foreach (Faction faction in _factionsToSplit) {
+
+			Profiler.BeginSample ("Split Faction");
+
+			faction.Split ();
+
+			Profiler.EndSample ();
+		}
+
+		_factionsToSplit.Clear ();
+	}
+
 	private void UpdateFactions () {
 
 		foreach (Faction faction in _factionsToUpdate) {
@@ -934,6 +949,8 @@ public class World : ISynchronizable {
 		RemoveGroups ();
 
 		SetNextGroupUpdates ();
+
+		SplitFactions ();
 
 		UpdateFactions ();
 
@@ -1194,6 +1211,11 @@ public class World : ISynchronizable {
 	public bool ContainsFaction (long id) {
 
 		return _factions.ContainsKey (id);
+	}
+
+	public void AddFactionToSplit (Faction faction) {
+
+		_factionsToSplit.Add (faction);
 	}
 
 	public void AddFactionToUpdate (Faction faction) {

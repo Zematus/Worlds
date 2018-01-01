@@ -374,7 +374,13 @@ public class Clan : Faction {
 		return false;
 	}
 
-	public Clan Split (CellGroup newCoreGroup, int triggerDate) {
+	public override void Split () {
+
+		#if DEBUG
+		if (Polity.Territory.IsSelected) {
+			bool debug = true;
+		}
+		#endif
 
 		float randomValue = GetNextLocalRandomFloat (RngOffsets.EVENT_TRIGGER + (int)ClanSplitEvent.Id);
 		float randomFactor = ClanSplitEvent.MinProminenceTransfer + (randomValue * ClanSplitEvent.ProminenceTransferProportion);
@@ -385,7 +391,7 @@ public class Clan : Faction {
 
 		float newClanProminence = oldProminence * (1f - randomFactor);
 
-		Clan newClan = new Clan (Polity as Tribe, newCoreGroup, newClanProminence, this);
+		Clan newClan = new Clan (Polity as Tribe, _splitFactionCoreGroup, newClanProminence, this);
 
 		Polity.AddFaction (newClan);
 
@@ -394,7 +400,7 @@ public class Clan : Faction {
 
 		World.AddPolityToUpdate (Polity);
 
-		return newClan;
+		Polity.AddEventMessage (new ClanSplitEventMessage (this, newClan, World.CurrentDate));
 	}
 }
 
@@ -449,9 +455,8 @@ public class ClanSplitDecision : FactionDecision {
 	private bool _preferSplit;
 
 	private CellGroup _newCoreGroup;
-	private int _triggerDate;
 
-	public ClanSplitDecision (Clan clan, CellGroup newCoreGroup, int triggerDate, bool preferSplit) : base (clan) {
+	public ClanSplitDecision (Clan clan, CellGroup newCoreGroup, bool preferSplit) : base (clan) {
 
 		Description = "Several family groups belonging to clan <b>" + clan.Name.Text + "</b> no longer feel to be connected to the rest of the clan. " +
 			"Should the clan leader, <b>" + clan.CurrentLeader.Name.Text + "</b>, try to keep them from splitting apart?";
@@ -459,19 +464,16 @@ public class ClanSplitDecision : FactionDecision {
 		_preferSplit = preferSplit;
 
 		_newCoreGroup = newCoreGroup;
-		_triggerDate = triggerDate;
 	}
 
 	private void PreventSplit () {
 
-		Faction.Polity.AddEventMessage (new PreventClanSplitEventMessage (Faction, Faction.CurrentLeader, _triggerDate));
+		Faction.Polity.AddEventMessage (new PreventClanSplitEventMessage (Faction, Faction.CurrentLeader, Faction.World.CurrentDate));
 	}
 
 	private void AllowSplit () {
 
-		Clan newClan = (Faction as Clan).Split (_newCoreGroup, _triggerDate);
-
-		Faction.Polity.AddEventMessage (new ClanSplitEventMessage (Faction, newClan, _triggerDate));
+		Faction.SetToSplit (_newCoreGroup);
 	}
 
 	public override Option[] GetOptions () {
@@ -509,18 +511,24 @@ public class ClanSplitEvent : FactionEvent {
 
 	private CellGroup _newCoreGroup = null;
 
+	private bool _shouldSucceed;
+
 //	public const string EventSetFlag = "ClanSplitEvent_Set";
 
 	public ClanSplitEvent () {
 
 		DoNotSerialize = true;
+
+		_shouldSucceed = true;
 	}
 
-	public ClanSplitEvent (Clan clan, int triggerDate) : base (clan, triggerDate, ClanSplitEventId) {
+	public ClanSplitEvent (Clan clan, int triggerDate, bool shouldSucceed = true) : base (clan, triggerDate, ClanSplitEventId) {
 
 //		clan.SetFlag (EventSetFlag);
 
 		DoNotSerialize = true;
+
+		_shouldSucceed = shouldSucceed;
 	}
 
 	public static float CalculateAdministrativeLoadFactor (Clan clan) {
@@ -660,7 +668,7 @@ public class ClanSplitEvent : FactionEvent {
 
 		if (Faction.IsFocused) {
 		
-			Decision splitDecision = new ClanSplitDecision (Faction as Clan, _newCoreGroup, TriggerDate, true);
+			Decision splitDecision = new ClanSplitDecision (Faction as Clan, _newCoreGroup, _shouldSucceed);
 
 			if (Faction.IsControlled) {
 
@@ -671,11 +679,9 @@ public class ClanSplitEvent : FactionEvent {
 				splitDecision.ExecutePreferredOption ();
 			}
 
-		} else {
+		} else if (_shouldSucceed) {
 
-			Clan newClan = (Faction as Clan).Split (_newCoreGroup, TriggerDate);
-
-			Faction.Polity.AddEventMessage (new ClanSplitEventMessage (Faction, newClan, TriggerDate));
+			Faction.SetToSplit (_newCoreGroup);
 		}
 	}
 
@@ -711,6 +717,13 @@ public class ClanSplitEvent : FactionEvent {
 		Clan clan = Faction as Clan;
 
 		clan.ClanSplitEvent = this;
+	}
+
+	public void Reset (int newTriggerDate, bool shouldSucceed) {
+
+		Reset (newTriggerDate);
+
+		_shouldSucceed = shouldSucceed;
 	}
 }
 

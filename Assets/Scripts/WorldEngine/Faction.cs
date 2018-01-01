@@ -36,6 +36,8 @@ public abstract class Faction : ISynchronizable {
 	[XmlAttribute("IsCon")]
 	public bool IsControlled = false;
 
+	protected CellGroup _splitFactionCoreGroup;
+
 	public Name Name = null;
 
 	// Do not call this property directly, only for serialization
@@ -112,11 +114,18 @@ public abstract class Faction : ISynchronizable {
 		StillPresent = false;
 	}
 
+	public void SetToSplit (CellGroup splitFactionCoreGroup) {
+	
+		_splitFactionCoreGroup = splitFactionCoreGroup;
+
+		World.AddFactionToSplit (this);
+	}
+
 	protected abstract void GenerateName (Faction parentFaction);
 
 	protected Agent RequestCurrentLeader (int leadershipSpan, int minStartAge, int maxStartAge, int offset)
 	{
-		int spawnDate = CoreGroup.GenerateSpawnDate (CoreGroup.LastUpdateDate, leadershipSpan, offset++);
+		int spawnDate = CoreGroup.GeneratePastSpawnDate (CoreGroup.LastUpdateDate, leadershipSpan, offset++);
 
 		if ((LastLeader != null) && (spawnDate < LeaderStartDate)) {
 
@@ -134,7 +143,7 @@ public abstract class Faction : ISynchronizable {
 
 	protected Agent RequestNewLeader (int leadershipSpan, int minStartAge, int maxStartAge, int offset)
 	{
-		int spawnDate = CoreGroup.GenerateSpawnDate (CoreGroup.LastUpdateDate, leadershipSpan, offset++);
+		int spawnDate = CoreGroup.GeneratePastSpawnDate (CoreGroup.LastUpdateDate, leadershipSpan, offset++);
 
 		// Generate a birthdate from the leader spawnDate (when the leader takes over)
 		int startAge = minStartAge + CoreGroup.GetLocalRandomInt (spawnDate, offset++, maxStartAge - minStartAge);
@@ -147,6 +156,8 @@ public abstract class Faction : ISynchronizable {
 
 	protected abstract Agent RequestCurrentLeader ();
 	protected abstract Agent RequestNewLeader ();
+
+	public abstract void Split ();
 
 	public void Update () {
 

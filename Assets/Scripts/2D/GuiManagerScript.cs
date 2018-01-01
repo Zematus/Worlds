@@ -354,12 +354,11 @@ public class GuiManagerScript : MonoBehaviour {
 			if (_resetOverlays) {
 				_planetView = PlanetView.Biomes;
 
-//				#if DEBUG
-//				_planetOverlay = PlanetOverlay.UpdateSpan;
-//				#else
-//				_planetOverlay = PlanetOverlay.PopDensity;
-//				#endif
+				#if DEBUG
+				_planetOverlay = PlanetOverlay.PolityTerritory;
+				#else
 				_planetOverlay = PlanetOverlay.General;
+				#endif
 			}
 
 			Manager.SetPlanetOverlay (_planetOverlay, _planetOverlaySubtype);

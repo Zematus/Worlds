@@ -1033,7 +1033,7 @@ public class CellGroup : HumanGroup {
 		return cellValue;
 	}
 
-	public int GenerateSpawnDate (int baseDate, int cycleLength, int offset = 0) {
+	public int GeneratePastSpawnDate (int baseDate, int cycleLength, int offset = 0) {
 
 		int currentDate = World.CurrentDate;
 
@@ -1055,6 +1055,28 @@ public class CellGroup : HumanGroup {
 			int prevSpawnDate = prevCycleDate + GetLocalRandomInt (prevCycleDate, offset, cycleLength);
 
 			return prevSpawnDate;
+		}
+
+		return spawnDate;
+	}
+
+	public int GenerateFutureSpawnDate (int baseDate, int cycleLength, int offset = 0) {
+
+		int currentDate = World.CurrentDate;
+
+		int startCycleDate = baseDate + GetLocalRandomInt (baseDate, offset, cycleLength);
+
+		int currentCycleDate = currentDate - (currentDate - startCycleDate) % cycleLength;
+
+		int spawnDate = currentCycleDate + GetLocalRandomInt (currentCycleDate, offset, cycleLength);
+
+		if (currentDate >= spawnDate) {
+
+			int nextCycleDate = currentCycleDate + cycleLength;
+
+			int nextSpawnDate = nextCycleDate + GetLocalRandomInt (nextCycleDate, offset, cycleLength);
+
+			return nextSpawnDate;
 		}
 
 		return spawnDate;
