@@ -376,11 +376,11 @@ public class Clan : Faction {
 
 	public override void Split () {
 
-		#if DEBUG
-		if (Polity.Territory.IsSelected) {
-			bool debug = true;
-		}
-		#endif
+//		#if DEBUG
+//		if (Polity.Territory.IsSelected) {
+//			bool debug = true;
+//		}
+//		#endif
 
 		float randomValue = GetNextLocalRandomFloat (RngOffsets.EVENT_TRIGGER + (int)ClanSplitEvent.Id);
 		float randomFactor = ClanSplitEvent.MinProminenceTransfer + (randomValue * ClanSplitEvent.ProminenceTransferProportion);
@@ -552,11 +552,11 @@ public class ClanSplitEvent : FactionEvent {
 
 	public static int CalculateTriggerDate (Clan clan) {
 
-		#if DEBUG
-		if (clan.Polity.Territory.IsSelected) {
-			bool debug = true;
-		}
-		#endif
+//		#if DEBUG
+//		if (clan.Polity.Territory.IsSelected) {
+//			bool debug = true;
+//		}
+//		#endif
 
 		float randomFactor = clan.GetNextLocalRandomFloat (RngOffsets.CLAN_SPLITTING_EVENT_CALCULATE_TRIGGER_DATE);
 		randomFactor = Mathf.Pow (randomFactor, 2);
@@ -594,11 +594,11 @@ public class ClanSplitEvent : FactionEvent {
 		if (!base.CanTrigger ())
 			return false;
 
-		#if DEBUG
-		if (Faction.Polity.Territory.IsSelected) {
-			bool debug = true;
-		}
-		#endif
+//		#if DEBUG
+//		if (Faction.Polity.Territory.IsSelected) {
+//			bool debug = true;
+//		}
+//		#endif
 
 		if (Faction.Prominence < MinProminenceTrigger)
 			return false;

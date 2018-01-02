@@ -937,11 +937,11 @@ public class CellGroup : HumanGroup {
 
 	public float CalculateMigrationValue (TerrainCell cell) {
 
-		#if DEBUG
-		if (cell.IsSelected) {
-			bool debug = true;
-		}
-		#endif
+//		#if DEBUG
+//		if (cell.IsSelected) {
+//			bool debug = true;
+//		}
+//		#endif
 		
 		float areaFactor = cell.Area / TerrainCell.MaxArea;
 
@@ -1228,11 +1228,11 @@ public class CellGroup : HumanGroup {
 	
 	public void ConsiderLandMigration () {
 
-		#if DEBUG
-		if (Cell.IsSelected) {
-			bool debug = true;
-		}
-		#endif
+//		#if DEBUG
+//		if (Cell.IsSelected) {
+//			bool debug = true;
+//		}
+//		#endif
 
 		if (HasMigrationEvent)
 			return;
@@ -1249,11 +1249,11 @@ public class CellGroup : HumanGroup {
 
 		TerrainCell targetCell = Cell.Neighbors [migrationDirection];
 
-		#if DEBUG
-		if (Cell.IsSelected) {
-			bool debug = true;
-		}
-		#endif
+//		#if DEBUG
+//		if (Cell.IsSelected) {
+//			bool debug = true;
+//		}
+//		#endif
 
 //		#if DEBUG
 //		if (Manager.RegisterDebugEvent != null) {
@@ -1516,11 +1516,11 @@ public class CellGroup : HumanGroup {
 
 	public void ConsiderPolityInfluenceExpansion () {
 
-		#if DEBUG
-		if (Cell.IsSelected) {
-			bool debug = true;
-		}
-		#endif
+//		#if DEBUG
+//		if (Cell.IsSelected) {
+//			bool debug = true;
+//		}
+//		#endif
 
 		PolityExpansionValue = 0;
 		TotalPolityExpansionValue = 0;
@@ -1967,11 +1967,11 @@ public class CellGroup : HumanGroup {
 
 	private void UpdateTerrainFarmlandPercentage () {
 
-		#if DEBUG
-		if (Cell.IsSelected) {
-			bool debug = true;
-		}
-		#endif
+//		#if DEBUG
+//		if (Cell.IsSelected) {
+//			bool debug = true;
+//		}
+//		#endif
 
 		CulturalKnowledge agricultureKnowledge = Culture.GetKnowledge (AgricultureKnowledge.AgricultureKnowledgeId);
 
@@ -2026,11 +2026,11 @@ public class CellGroup : HumanGroup {
 			}
 		}
 
-		#if DEBUG
-		if (Cell.IsSelected) {
-			bool debug = true;
-		}
-		#endif
+//		#if DEBUG
+//		if (Cell.IsSelected) {
+//			bool debug = true;
+//		}
+//		#endif
 
 		SeaTravelFactor = SeaTravelBaseFactor * seafaringValue * shipbuildingValue * TravelWidthFactor;
 	}
@@ -2214,11 +2214,11 @@ public class CellGroup : HumanGroup {
 
 	public int CalculateNextUpdateDate () {
 
-		#if DEBUG
-		if (Cell.IsSelected) {
-			bool debug = true;
-		}
-		#endif
+//		#if DEBUG
+//		if (Cell.IsSelected) {
+//			bool debug = true;
+//		}
+//		#endif
 
 		#if DEBUG
 		if (FactionCores.Count > 0) {
@@ -2680,11 +2680,11 @@ public class CellGroup : HumanGroup {
 //		}
 //		#endif
 
-		#if DEBUG
-		if (Cell.IsSelected) {
-			bool debug = true;
-		}
-		#endif
+//		#if DEBUG
+//		if (Cell.IsSelected) {
+//			bool debug = true;
+//		}
+//		#endif
 
 		PolityInfluence polityInfluence;
 

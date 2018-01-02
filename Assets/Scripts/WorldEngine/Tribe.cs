@@ -466,11 +466,11 @@ public class TribeSplitEvent : PolityEvent {
 
 	public static int CalculateTriggerDate (Tribe tribe) {
 
-		#if DEBUG
-		if (tribe.Territory.IsSelected) {
-			bool debug = true;
-		}
-		#endif
+//		#if DEBUG
+//		if (tribe.Territory.IsSelected) {
+//			bool debug = true;
+//		}
+//		#endif
 
 		float randomFactor = tribe.GetNextLocalRandomFloat (RngOffsets.TRIBE_SPLITTING_EVENT_CALCULATE_TRIGGER_DATE);
 		randomFactor = Mathf.Pow (randomFactor, 2);
@@ -502,11 +502,11 @@ public class TribeSplitEvent : PolityEvent {
 
 	public override bool CanTrigger () {
 
-		#if DEBUG
-		if (Polity.Territory.IsSelected) {
-			bool debug = true;
-		}
-		#endif
+//		#if DEBUG
+//		if (Polity.Territory.IsSelected) {
+//			bool debug = true;
+//		}
+//		#endif
 
 		if (!base.CanTrigger ())
 			return false;
@@ -535,11 +535,11 @@ public class TribeSplitEvent : PolityEvent {
 //		if (_newCoreGroup == null)
 //			return false;
 
-		#if DEBUG
-		if (Polity.Territory.IsSelected) {
-			bool debug = true;
-		}
-		#endif
+//		#if DEBUG
+//		if (Polity.Territory.IsSelected) {
+//			bool debug = true;
+//		}
+//		#endif
 
 		_triggerClan = Polity.GetRandomFaction (rngOffset++, GetFactionWeight, true) as Clan;
 
