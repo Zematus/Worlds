@@ -122,7 +122,8 @@ public class Agent : ISynchronizable {
 			untranslatedName = "[PpPP]([Proper][NP](" + subjectNoun + ") [PP](" + association.Relation + " [Proper][NP](" + elementNoun + ")))";
 		}
 
-		namePhrase = language.TranslatePhrase (untranslatedName, getRandomFloat);
+//		namePhrase = language.TranslatePhrase (untranslatedName, getRandomFloat);
+		namePhrase = language.TranslatePhrase (untranslatedName);
 
 		Name = new Name (namePhrase, untranslatedName, language, World);
 	}
@@ -181,7 +182,8 @@ public class Agent : ISynchronizable {
 			untranslatedName = "[PpPP]([Proper][NP](" + subjectNoun + ") [PP](" + association.Relation + " [Proper][NP](" + variationNoun + ")))";
 		}
 
-		namePhrase = language.TranslatePhrase (untranslatedName, getRandomFloat);
+//		namePhrase = language.TranslatePhrase (untranslatedName, getRandomFloat);
+		namePhrase = language.TranslatePhrase (untranslatedName);
 
 		Name = new Name (namePhrase, untranslatedName, language, World);
 	}

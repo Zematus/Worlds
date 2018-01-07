@@ -19,7 +19,7 @@ public class LanguageGenerationTest : AutomatedTest {
 		State = TestState.Running;
 
 		for (int i = 0; i < 10; i++) {
-			Language language = new Language (0);
+			Language language = new Language (i);
 
 			language.GenerateArticleProperties (GetRandomFloat);
 
@@ -83,49 +83,57 @@ public class LanguageGenerationTest : AutomatedTest {
 			entry += "\n";
 
 			string untranslatedPhrase = "[PpPP]([NP](the [ipn(woman)][fn]women) [PP](from [NP](a town)))";
-			Language.Phrase translatedPhrase = language.TranslatePhrase (untranslatedPhrase, GetRandomFloat);
+//			Language.Phrase translatedPhrase = language.TranslatePhrase (untranslatedPhrase, GetRandomFloat);
+			Language.Phrase translatedPhrase = language.TranslatePhrase (untranslatedPhrase);
 			language.LocalizePhrase (translatedPhrase);
 
 			entry += "\n\t" + translatedPhrase.Text + " (" + translatedPhrase.Meaning + ")";
 
 			untranslatedPhrase = "[PpPP]([NP](the child) [PP](above [NP](the cloud:s)))";
-			translatedPhrase = language.TranslatePhrase (untranslatedPhrase, GetRandomFloat);
+//			translatedPhrase = language.TranslatePhrase (untranslatedPhrase, GetRandomFloat);
+			translatedPhrase = language.TranslatePhrase (untranslatedPhrase);
 			language.LocalizePhrase (translatedPhrase);
 
 			entry += "\n\t" + translatedPhrase.Text + " (" + translatedPhrase.Meaning + ")";
 
 			untranslatedPhrase = "[PpPP]([NP](a tree) [PP](within [NP](the forest)))";
-			translatedPhrase = language.TranslatePhrase (untranslatedPhrase, GetRandomFloat);
+//			translatedPhrase = language.TranslatePhrase (untranslatedPhrase, GetRandomFloat);
+			translatedPhrase = language.TranslatePhrase (untranslatedPhrase);
 			language.LocalizePhrase (translatedPhrase);
 
 			entry += "\n\t" + translatedPhrase.Text + " (" + translatedPhrase.Meaning + ")";
 
 			untranslatedPhrase = "[PpPP]([NP]([un]water) [PP](with [NP]([un]oil)))";
-			translatedPhrase = language.TranslatePhrase (untranslatedPhrase, GetRandomFloat);
+//			translatedPhrase = language.TranslatePhrase (untranslatedPhrase, GetRandomFloat);
+			translatedPhrase = language.TranslatePhrase (untranslatedPhrase);
 			language.LocalizePhrase (translatedPhrase);
 
 			entry += "\n\t" + translatedPhrase.Text + " (" + translatedPhrase.Meaning + ")";
 
 			untranslatedPhrase = "[PpPP]([NP]([name][mn][iv(bear,ts,past)]born) [PP](on [NP](a tree)))";
-			translatedPhrase = language.TranslatePhrase (untranslatedPhrase, GetRandomFloat);
+//			translatedPhrase = language.TranslatePhrase (untranslatedPhrase, GetRandomFloat);
+			translatedPhrase = language.TranslatePhrase (untranslatedPhrase);
 			language.LocalizePhrase (translatedPhrase);
 
 			entry += "\n\t" + translatedPhrase.Text + " (" + translatedPhrase.Meaning + ")";
 
 			untranslatedPhrase = "[PpPP]([NP]([name][fn][rv(ts,past)]raise:d) [PP](in [NP](the city)))";
-			translatedPhrase = language.TranslatePhrase (untranslatedPhrase, GetRandomFloat);
+//			translatedPhrase = language.TranslatePhrase (untranslatedPhrase, GetRandomFloat);
+			translatedPhrase = language.TranslatePhrase (untranslatedPhrase);
 			language.LocalizePhrase (translatedPhrase);
 
 			entry += "\n\t" + translatedPhrase.Text + " (" + translatedPhrase.Meaning + ")";
 
 			untranslatedPhrase = "[PpPP]([NP]([name][mn][nrv]hunt:er) [PP](of [NP](cat:s)))";
-			translatedPhrase = language.TranslatePhrase (untranslatedPhrase, GetRandomFloat);
+//			translatedPhrase = language.TranslatePhrase (untranslatedPhrase, GetRandomFloat);
+			translatedPhrase = language.TranslatePhrase (untranslatedPhrase);
 			language.LocalizePhrase (translatedPhrase);
 
 			entry += "\n\t" + translatedPhrase.Text + " (" + translatedPhrase.Meaning + ")";
 
 			untranslatedPhrase = "[PpPP]([NP]([name][fn][niv(carry)]carrier) [PP](of [NP]([un]water)))";
-			translatedPhrase = language.TranslatePhrase (untranslatedPhrase, GetRandomFloat);
+//			translatedPhrase = language.TranslatePhrase (untranslatedPhrase, GetRandomFloat);
+			translatedPhrase = language.TranslatePhrase (untranslatedPhrase);
 			language.LocalizePhrase (translatedPhrase);
 
 			entry += "\n\t" + translatedPhrase.Text + " (" + translatedPhrase.Meaning + ")";
