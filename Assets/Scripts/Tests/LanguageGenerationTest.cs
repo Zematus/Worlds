@@ -9,23 +9,18 @@ public class LanguageGenerationTest : AutomatedTest {
 		Name = "Languange Generation Test";
 	}
 
-	public float GetRandomFloat () {
-	
-		return Random.Range (0, int.MaxValue) / (float)int.MaxValue;
-	}
-
 	public override void Run ()
 	{
 		State = TestState.Running;
 
 		for (int i = 0; i < 10; i++) {
-			Language language = new Language (i);
+			Language language = new Language (Random.Range (0, int.MaxValue));
 
-			language.GenerateArticleProperties (GetRandomFloat);
+			language.GenerateArticleProperties ();
 
-			language.GenerateArticleAdjunctionProperties (GetRandomFloat);
-			language.GenerateArticleSyllables (GetRandomFloat);
-			language.GenerateAllArticles (GetRandomFloat);
+			language.GenerateArticleAdjunctionProperties ();
+			language.GenerateArticleSyllables ();
+			language.GenerateAllArticles ();
 
 			string entry = "Test Language " + i;
 			entry += "\n";
@@ -38,11 +33,11 @@ public class LanguageGenerationTest : AutomatedTest {
 			}
 			entry += "\n";
 
-			language.GenerateNounIndicativeProperties (GetRandomFloat);
+			language.GenerateNounIndicativeProperties ();
 
-			language.GenerateNounIndicativeAdjunctionProperties (GetRandomFloat);
-			language.GenerateNounIndicativeSyllables (GetRandomFloat);
-			language.GenerateAllNounIndicatives (GetRandomFloat);
+			language.GenerateNounIndicativeAdjunctionProperties ();
+			language.GenerateNounIndicativeSyllables ();
+			language.GenerateAllNounIndicatives ();
 
 			entry += "\nNoun indicative properties: " + Language.AdjunctionPropertiesToString (language.NounIndicativeAdjunctionProperties);
 			entry += "\nNoun indicatives:";
@@ -52,11 +47,11 @@ public class LanguageGenerationTest : AutomatedTest {
 			}
 			entry += "\n";
 
-			language.GenerateVerbIndicativeProperties (GetRandomFloat);
+			language.GenerateVerbIndicativeProperties ();
 
-			language.GenerateVerbIndicativeAdjunctionProperties (GetRandomFloat);
-			language.GenerateVerbIndicativeSyllables (GetRandomFloat);
-			language.GenerateAllVerbIndicatives (GetRandomFloat);
+			language.GenerateVerbIndicativeAdjunctionProperties ();
+			language.GenerateVerbIndicativeSyllables ();
+			language.GenerateAllVerbIndicatives ();
 
 			entry += "\nVerb indicative properties: " + Language.AdjunctionPropertiesToString (language.VerbIndicativeAdjunctionProperties);
 			entry += "\nVerb indicatives:";
@@ -66,16 +61,16 @@ public class LanguageGenerationTest : AutomatedTest {
 			}
 			entry += "\n";
 
-			language.GenerateAdpositionAdjunctionProperties (GetRandomFloat);
-			language.GenerateAdpositionSyllables (GetRandomFloat);
+			language.GenerateAdpositionAdjunctionProperties ();
+			language.GenerateAdpositionSyllables ();
 
-			language.GenerateAdjectiveAdjunctionProperties (GetRandomFloat);
-			language.GenerateAdjectiveSyllables (GetRandomFloat);
+			language.GenerateAdjectiveAdjunctionProperties ();
+			language.GenerateAdjectiveSyllables ();
 
-			language.GenerateNounAdjunctionProperties (GetRandomFloat);
-			language.GenerateNounSyllables (GetRandomFloat);
+			language.GenerateNounAdjunctionProperties ();
+			language.GenerateNounSyllables ();
 
-			language.GenerateVerbSyllables (GetRandomFloat);
+			language.GenerateVerbSyllables ();
 
 			///
 
@@ -83,56 +78,48 @@ public class LanguageGenerationTest : AutomatedTest {
 			entry += "\n";
 
 			string untranslatedPhrase = "[PpPP]([NP](the [ipn(woman)][fn]women) [PP](from [NP](a town)))";
-//			Language.Phrase translatedPhrase = language.TranslatePhrase (untranslatedPhrase, GetRandomFloat);
 			Language.Phrase translatedPhrase = language.TranslatePhrase (untranslatedPhrase);
 			language.LocalizePhrase (translatedPhrase);
 
 			entry += "\n\t" + translatedPhrase.Text + " (" + translatedPhrase.Meaning + ")";
 
 			untranslatedPhrase = "[PpPP]([NP](the child) [PP](above [NP](the cloud:s)))";
-//			translatedPhrase = language.TranslatePhrase (untranslatedPhrase, GetRandomFloat);
 			translatedPhrase = language.TranslatePhrase (untranslatedPhrase);
 			language.LocalizePhrase (translatedPhrase);
 
 			entry += "\n\t" + translatedPhrase.Text + " (" + translatedPhrase.Meaning + ")";
 
 			untranslatedPhrase = "[PpPP]([NP](a tree) [PP](within [NP](the forest)))";
-//			translatedPhrase = language.TranslatePhrase (untranslatedPhrase, GetRandomFloat);
 			translatedPhrase = language.TranslatePhrase (untranslatedPhrase);
 			language.LocalizePhrase (translatedPhrase);
 
 			entry += "\n\t" + translatedPhrase.Text + " (" + translatedPhrase.Meaning + ")";
 
 			untranslatedPhrase = "[PpPP]([NP]([un]water) [PP](with [NP]([un]oil)))";
-//			translatedPhrase = language.TranslatePhrase (untranslatedPhrase, GetRandomFloat);
 			translatedPhrase = language.TranslatePhrase (untranslatedPhrase);
 			language.LocalizePhrase (translatedPhrase);
 
 			entry += "\n\t" + translatedPhrase.Text + " (" + translatedPhrase.Meaning + ")";
 
 			untranslatedPhrase = "[PpPP]([NP]([name][mn][iv(bear,ts,past)]born) [PP](on [NP](a tree)))";
-//			translatedPhrase = language.TranslatePhrase (untranslatedPhrase, GetRandomFloat);
 			translatedPhrase = language.TranslatePhrase (untranslatedPhrase);
 			language.LocalizePhrase (translatedPhrase);
 
 			entry += "\n\t" + translatedPhrase.Text + " (" + translatedPhrase.Meaning + ")";
 
 			untranslatedPhrase = "[PpPP]([NP]([name][fn][rv(ts,past)]raise:d) [PP](in [NP](the city)))";
-//			translatedPhrase = language.TranslatePhrase (untranslatedPhrase, GetRandomFloat);
 			translatedPhrase = language.TranslatePhrase (untranslatedPhrase);
 			language.LocalizePhrase (translatedPhrase);
 
 			entry += "\n\t" + translatedPhrase.Text + " (" + translatedPhrase.Meaning + ")";
 
 			untranslatedPhrase = "[PpPP]([NP]([name][mn][nrv]hunt:er) [PP](of [NP](cat:s)))";
-//			translatedPhrase = language.TranslatePhrase (untranslatedPhrase, GetRandomFloat);
 			translatedPhrase = language.TranslatePhrase (untranslatedPhrase);
 			language.LocalizePhrase (translatedPhrase);
 
 			entry += "\n\t" + translatedPhrase.Text + " (" + translatedPhrase.Meaning + ")";
 
 			untranslatedPhrase = "[PpPP]([NP]([name][fn][niv(carry)]carrier) [PP](of [NP]([un]water)))";
-//			translatedPhrase = language.TranslatePhrase (untranslatedPhrase, GetRandomFloat);
 			translatedPhrase = language.TranslatePhrase (untranslatedPhrase);
 			language.LocalizePhrase (translatedPhrase);
 

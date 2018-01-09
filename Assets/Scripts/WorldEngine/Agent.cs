@@ -74,7 +74,7 @@ public class Agent : ISynchronizable {
 		IsFemale = getRandomFloat () > 0.5f;
 	}
 
-	private void GenerateNameFromElement (Element element, GetRandomIntDelegate getRandomInt, Language.GetRandomFloatDelegate getRandomFloat) {
+	private void GenerateNameFromElement (Element element, GetRandomIntDelegate getRandomInt) {
 		
 		Language language = Group.Culture.Language;
 
@@ -122,13 +122,12 @@ public class Agent : ISynchronizable {
 			untranslatedName = "[PpPP]([Proper][NP](" + subjectNoun + ") [PP](" + association.Relation + " [Proper][NP](" + elementNoun + ")))";
 		}
 
-//		namePhrase = language.TranslatePhrase (untranslatedName, getRandomFloat);
 		namePhrase = language.TranslatePhrase (untranslatedName);
 
 		Name = new Name (namePhrase, untranslatedName, language, World);
 	}
 
-	private void GenerateNameFromRegionAttribute (RegionAttribute attribute, GetRandomIntDelegate getRandomInt, Language.GetRandomFloatDelegate getRandomFloat) {
+	private void GenerateNameFromRegionAttribute (RegionAttribute attribute, GetRandomIntDelegate getRandomInt) {
 
 		Language language = Group.Culture.Language;
 
@@ -182,7 +181,6 @@ public class Agent : ISynchronizable {
 			untranslatedName = "[PpPP]([Proper][NP](" + subjectNoun + ") [PP](" + association.Relation + " [Proper][NP](" + variationNoun + ")))";
 		}
 
-//		namePhrase = language.TranslatePhrase (untranslatedName, getRandomFloat);
 		namePhrase = language.TranslatePhrase (untranslatedName);
 
 		Name = new Name (namePhrase, untranslatedName, language, World);
@@ -193,7 +191,6 @@ public class Agent : ISynchronizable {
 		int rngOffset = RngOffsets.AGENT_GENERATE_NAME + (int)Group.Id;
 
 		GetRandomIntDelegate getRandomInt = (int maxValue) => Group.GetLocalRandomInt (BirthDate, rngOffset++, maxValue);
-		Language.GetRandomFloatDelegate getRandomFloat = () => Group.GetLocalRandomFloat (BirthDate, rngOffset++);
 
 		Region region = Group.Cell.Region;
 
@@ -212,13 +209,13 @@ public class Agent : ISynchronizable {
 
 			Element element = remainingElements.RandomSelectAndRemove (getRandomInt);
 
-			GenerateNameFromElement (element, getRandomInt, getRandomFloat);
+			GenerateNameFromElement (element, getRandomInt);
 
 		} else {
 
 			RegionAttribute attribute = remainingAttributes.RandomSelectAndRemove (getRandomInt);
 
-			GenerateNameFromRegionAttribute (attribute, getRandomInt, getRandomFloat);
+			GenerateNameFromRegionAttribute (attribute, getRandomInt);
 		}
 
 //		#if DEBUG

@@ -78,46 +78,42 @@ public class PolityCulture : Culture {
 
 		Language = new Language (Polity.GenerateUniqueIdentifier (World.CurrentDate, 100L, Polity.Id));
 
-		int rngOffset = 0;
-
-		Language.GetRandomFloatDelegate getNextRandomFloat = () => GetNextRandomFloat (RngOffsets.POLITY_CULTURE_GENERATE_NEW_LANGUAGE + rngOffset++);
-
 		// Generate Articles
 
-		Language.GenerateArticleProperties (getNextRandomFloat);
+		Language.GenerateArticleProperties ();
 
-		Language.GenerateArticleAdjunctionProperties (getNextRandomFloat);
-		Language.GenerateArticleSyllables (getNextRandomFloat);
-		Language.GenerateAllArticles (getNextRandomFloat);
+		Language.GenerateArticleAdjunctionProperties ();
+		Language.GenerateArticleSyllables ();
+		Language.GenerateAllArticles ();
 
 		// Generate Noun Indicatives
 
-		Language.GenerateNounIndicativeProperties (getNextRandomFloat);
+		Language.GenerateNounIndicativeProperties ();
 
-		Language.GenerateNounIndicativeAdjunctionProperties (getNextRandomFloat);
-		Language.GenerateNounIndicativeSyllables (getNextRandomFloat);
-		Language.GenerateAllNounIndicatives (getNextRandomFloat);
+		Language.GenerateNounIndicativeAdjunctionProperties ();
+		Language.GenerateNounIndicativeSyllables ();
+		Language.GenerateAllNounIndicatives ();
 
 		// Generate Verb Indicatives
 
-		Language.GenerateVerbIndicativeProperties (getNextRandomFloat);
+		Language.GenerateVerbIndicativeProperties ();
 
-		Language.GenerateVerbIndicativeAdjunctionProperties (getNextRandomFloat);
-		Language.GenerateVerbIndicativeSyllables (getNextRandomFloat);
-		Language.GenerateAllVerbIndicatives (getNextRandomFloat);
+		Language.GenerateVerbIndicativeAdjunctionProperties ();
+		Language.GenerateVerbIndicativeSyllables ();
+		Language.GenerateAllVerbIndicatives ();
 
 		// Generate Noun, Adjective and Adposition Properties and Syllables
 
-		Language.GenerateVerbSyllables (getNextRandomFloat);
+		Language.GenerateVerbSyllables ();
 
-		Language.GenerateNounAdjunctionProperties (getNextRandomFloat);
-		Language.GenerateNounSyllables (getNextRandomFloat);
+		Language.GenerateNounAdjunctionProperties ();
+		Language.GenerateNounSyllables ();
 
-		Language.GenerateAdjectiveAdjunctionProperties (getNextRandomFloat);
-		Language.GenerateAdjectiveSyllables (getNextRandomFloat);
+		Language.GenerateAdjectiveAdjunctionProperties ();
+		Language.GenerateAdjectiveSyllables ();
 
-		Language.GenerateAdpositionAdjunctionProperties (getNextRandomFloat);
-		Language.GenerateAdpositionSyllables (getNextRandomFloat);
+		Language.GenerateAdpositionAdjunctionProperties ();
+		Language.GenerateAdpositionSyllables ();
 
 		World.AddLanguage (Language);
 	}

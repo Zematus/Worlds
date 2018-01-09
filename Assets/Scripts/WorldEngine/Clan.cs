@@ -259,7 +259,6 @@ public class Clan : Faction {
 
 		untranslatedName = "[Proper][NP](" + untranslatedName + ")";
 
-//		namePhrase = language.TranslatePhrase (untranslatedName, getRandomFloat);
 		namePhrase = language.TranslatePhrase (untranslatedName);
 
 		Name = new Name (namePhrase, untranslatedName, language, World);
