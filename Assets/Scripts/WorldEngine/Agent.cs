@@ -68,10 +68,7 @@ public class Agent : ISynchronizable {
 
 		int rngOffset = RngOffsets.AGENT_GENERATE_BIO + (int)Group.Id;
 
-//		GetRandomIntDelegate getRandomInt = (int maxValue) => Group.GetLocalRandomInt (BirthDate, rngOffset++, maxValue);
-		Language.GetRandomFloatDelegate getRandomFloat = () => Group.GetLocalRandomFloat (BirthDate, rngOffset++);
-
-		IsFemale = getRandomFloat () > 0.5f;
+		IsFemale = Group.GetLocalRandomFloat (BirthDate, rngOffset++) > 0.5f;
 	}
 
 	private void GenerateNameFromElement (Element element, GetRandomIntDelegate getRandomInt) {

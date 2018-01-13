@@ -498,7 +498,7 @@ public class Language : ISynchronizable {
 
 	public class SyllableSet
 	{
-		public const int AddSyllableModifier = 8;
+		public const int MaxNumberOfSyllables = 500;
 
 		[XmlAttribute("OSALC")]
 		public float OnsetChance;
@@ -509,7 +509,7 @@ public class Language : ISynchronizable {
 		[XmlAttribute("CSALC")]
 		public float CodaChance;
 
-		public List<string> Syllables = new List<string> ();
+		private Dictionary<int,string> _syllables = new Dictionary<int,string> ();
 
 		public SyllableSet () {
 			
@@ -517,22 +517,22 @@ public class Language : ISynchronizable {
 
 		public string GetRandomSyllable (GetRandomFloatDelegate getRandomFloat) {
 
-			int selCount = Syllables.Count + AddSyllableModifier;
+			float randValue = getRandomFloat ();
+			randValue *= randValue; // Emulate a Zipf's Distribution
+			int randOption = (int)Mathf.Floor (MaxNumberOfSyllables * randValue);
 
-			int randOption = (int)Mathf.Floor (selCount * getRandomFloat ());
+			if (_syllables.ContainsKey (randOption)) {
 
-			if (randOption < Syllables.Count) {
-			
-				return Syllables [randOption];
+				return _syllables [randOption];
+
+			} else {
+				
+				string syllable = GenerateSyllable (OnsetLetters, OnsetChance, NucleusLetters, NucleusChance, CodaLetters, CodaChance, getRandomFloat);
+	
+				_syllables.Add (randOption, syllable);
+
+				return syllable;
 			}
-
-			string syllable = GenerateSyllable (OnsetLetters, OnsetChance, NucleusLetters, NucleusChance, CodaLetters, CodaChance, getRandomFloat);
-
-			if (!Syllables.Contains (syllable)) {
-				Syllables.Add (syllable);
-			}
-
-			return syllable;
 		}
 	}
 
