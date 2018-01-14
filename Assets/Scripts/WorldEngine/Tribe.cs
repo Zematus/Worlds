@@ -416,8 +416,8 @@ public class TribeSplitEventMessage : PolityEventMessage {
 
 public class TribeSplitEvent : PolityEvent {
 
-	public const int DateSpanFactorConstant = CellGroup.GenerationTime * 2000;
-	public const int MinDateSpan = CellGroup.GenerationTime * 40;
+	public const int DateSpanFactorConstant = CellGroup.GenerationSpan * 2000;
+	public const int MinDateSpan = CellGroup.GenerationSpan * 40;
 
 	public const int TerminalAdministrativeLoadValue = 500000;
 
@@ -484,8 +484,8 @@ public class TribeSplitEvent : PolityEvent {
 
 		float dateSpan = (1 - randomFactor) * DateSpanFactorConstant * loadFactor;
 
-		if (dateSpan < CellGroup.GenerationTime)
-			dateSpan = CellGroup.GenerationTime;
+		if (dateSpan < CellGroup.GenerationSpan)
+			dateSpan = CellGroup.GenerationSpan;
 
 		int targetDate = (int)(tribe.World.CurrentDate + dateSpan) + MinDateSpan;
 

@@ -361,7 +361,7 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge {
 	public const int MinKnowledgeValueForSailing = 300;
 	public const int OptimalKnowledgeValueForSailing = 1000;
 
-	public const float TimeEffectConstant = CellGroup.GenerationTime * 500;
+	public const float TimeEffectConstant = CellGroup.GenerationSpan * 500;
 	public const float NeighborhoodOceanPresenceModifier = 1.5f;
 
 	public static int HighestAsymptote = 0;
@@ -547,7 +547,7 @@ public class AgricultureKnowledge : CellCulturalKnowledge {
 
 	public const int AgricultureKnowledgeRngOffset = 1;
 
-	public const float TimeEffectConstant = CellGroup.GenerationTime * 2000;
+	public const float TimeEffectConstant = CellGroup.GenerationSpan * 2000;
 	public const float TerrainFactorModifier = 1.5f;
 	public const float MinAccesibility = 0.2f;
 
@@ -708,7 +708,7 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge {
 	public const int MinValueForHoldingTribalism = 200;
 	public const int OptimalValueForTribalism = 10000;
 
-	public const float TimeEffectConstant = CellGroup.GenerationTime * 500;
+	public const float TimeEffectConstant = CellGroup.GenerationSpan * 500;
 	public const float PopulationDensityModifier = 10000f;
 
 	public static int HighestAsymptote = 0;

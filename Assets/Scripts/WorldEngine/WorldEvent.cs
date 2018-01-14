@@ -157,6 +157,7 @@ public abstract class WorldEvent : ISynchronizable {
 	public const long TribeSplitEventId = 9;
 	public const long PolityFormationEventId = 10;
 	public const long ClanCoreMigrationEventId = 11;
+	public const long FactionUpdateEventId = 11;
 
 //	public static int EventCount = 0;
 
@@ -335,7 +336,7 @@ public abstract class DiscoveryEvent : CellGroupEvent {
 
 public class SailingDiscoveryEvent : DiscoveryEvent {
 
-	public const int DateSpanFactorConstant = CellGroup.GenerationTime * 10000;
+	public const int DateSpanFactorConstant = CellGroup.GenerationSpan * 10000;
 
 	public const int MinShipBuildingKnowledgeSpawnEventValue = ShipbuildingKnowledge.MinKnowledgeValueForSailingSpawnEvent;
 	public const int MinShipBuildingKnowledgeValue = ShipbuildingKnowledge.MinKnowledgeValueForSailing;
@@ -429,7 +430,7 @@ public class TribalismDiscoveryEvent : DiscoveryEvent {
 	public const long EventMessageId = 0;
 	public const string EventMessagePrefix = "Tribalism Discovered";
 
-	public const int DateSpanFactorConstant = CellGroup.GenerationTime * 100;
+	public const int DateSpanFactorConstant = CellGroup.GenerationSpan * 100;
 
 	public const int MinSocialOrganizationKnowledgeForTribalismDiscovery = SocialOrganizationKnowledge.MinValueForTribalismDiscovery;
 	public const int MinSocialOrganizationKnowledgeForHoldingTribalism = SocialOrganizationKnowledge.MinValueForHoldingTribalism;
@@ -564,7 +565,7 @@ public class TribalismDiscoveryEvent : DiscoveryEvent {
 
 public class BoatMakingDiscoveryEvent : DiscoveryEvent {
 	
-	public const int DateSpanFactorConstant = CellGroup.GenerationTime * 10000;
+	public const int DateSpanFactorConstant = CellGroup.GenerationSpan * 10000;
 
 	public const string EventSetFlag = "BoatMakingDiscoveryEvent_Set";
 	
@@ -644,7 +645,7 @@ public class BoatMakingDiscoveryEvent : DiscoveryEvent {
 
 public class PlantCultivationDiscoveryEvent : DiscoveryEvent {
 
-	public const int DateSpanFactorConstant = CellGroup.GenerationTime * 600000;
+	public const int DateSpanFactorConstant = CellGroup.GenerationSpan * 600000;
 
 	public const string EventSetFlag = "PlantCultivationDiscoveryEvent_Set";
 

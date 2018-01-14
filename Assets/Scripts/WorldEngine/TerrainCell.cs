@@ -334,13 +334,13 @@ public class TerrainCell : ISynchronizable {
 		return GetLocalRandomInt (World.CurrentDate, queryOffset, maxValue);
 	}
 
-	public int GetLocalRandomInt (int seed, int queryOffset, int maxValue) {
+	public int GetLocalRandomInt (int date, int queryOffset, int maxValue) {
 
 		maxValue = Mathf.Min (PerlinNoise.MaxPermutationValue, maxValue);
 
 		int x = Mathf.Abs (World.Seed + Longitude + queryOffset);
 		int y = Mathf.Abs (World.Seed + Latitude + queryOffset);
-		int z = Mathf.Abs (World.Seed + seed + queryOffset);
+		int z = Mathf.Abs (World.Seed + date + queryOffset);
 
 		int value = PerlinNoise.GetPermutationValue(x, y, z) % maxValue;
 
@@ -390,9 +390,9 @@ public class TerrainCell : ISynchronizable {
 		return value / (float)PerlinNoise.MaxPermutationValue;
 	}
 	
-	public float GetLocalRandomFloat (int seed, int queryOffset) {
+	public float GetLocalRandomFloat (int date, int queryOffset) {
 
-		int value = GetLocalRandomInt (seed, queryOffset, PerlinNoise.MaxPermutationValue);
+		int value = GetLocalRandomInt (date, queryOffset, PerlinNoise.MaxPermutationValue);
 		
 		return value / (float)PerlinNoise.MaxPermutationValue;
 	}

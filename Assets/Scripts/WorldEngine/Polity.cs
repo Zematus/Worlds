@@ -77,7 +77,7 @@ public class PolityInfluence {
 
 public abstract class Polity : ISynchronizable {
 
-	public const float TimeEffectConstant = CellGroup.GenerationTime * 2500;
+	public const float TimeEffectConstant = CellGroup.GenerationSpan * 2500;
 
 	public const float CoreDistanceEffectConstant = 10000;
 

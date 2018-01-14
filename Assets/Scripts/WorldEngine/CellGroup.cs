@@ -44,11 +44,11 @@ public class CellGroupSnapshot {
 
 public class CellGroup : HumanGroup {
 
-	public const int GenerationTime = 25;
+	public const int GenerationSpan = 25;
 
 	public const int MaxUpdateSpan = 200000;
 
-	public const float MaxUpdateSpanFactor = MaxUpdateSpan / GenerationTime;
+	public const float MaxUpdateSpanFactor = MaxUpdateSpan / GenerationSpan;
 
 	public const float NaturalDeathRate = 0.03f; // more or less 0.5/half-life (22.87 years for paleolitic life expectancy of 33 years)
 	public const float NaturalBirthRate = 0.105f; // Should cancel out death rate in perfect circumstances (hunter-gathererers in grasslands)
@@ -86,7 +86,7 @@ public class CellGroup : HumanGroup {
 	[XmlAttribute("StilPres")]
 	public bool StillPresent = true;
 
-	[XmlAttribute("SpawnDate")]
+	[XmlAttribute("InDate")]
 	public int InitDate;
 	
 	[XmlAttribute("LastUpDate")]
@@ -94,9 +94,6 @@ public class CellGroup : HumanGroup {
 	
 	[XmlAttribute("NextUpDate")]
 	public int NextUpdateDate;
-
-//	[XmlAttribute("UpDaEvId")]
-//	public long UpdateEventId = -1;
 	
 	[XmlAttribute("OptPop")]
 	public int OptimalPopulation;
@@ -504,9 +501,9 @@ public class CellGroup : HumanGroup {
 		return Cell.GetNextLocalRandomInt (iterationOffset, maxValue);
 	}
 
-	public int GetLocalRandomInt (int seed, int iterationOffset, int maxValue) {
+	public int GetLocalRandomInt (int date, int iterationOffset, int maxValue) {
 
-		return Cell.GetLocalRandomInt (seed, iterationOffset, maxValue);
+		return Cell.GetLocalRandomInt (date, iterationOffset, maxValue);
 	}
 
 	public float GetNextLocalRandomFloat (int iterationOffset) {
@@ -514,9 +511,9 @@ public class CellGroup : HumanGroup {
 		return Cell.GetNextLocalRandomFloat (iterationOffset);
 	}
 
-	public float GetLocalRandomFloat (int seed, int iterationOffset) {
+	public float GetLocalRandomFloat (int date, int iterationOffset) {
 
-		return Cell.GetLocalRandomFloat (seed, iterationOffset);
+		return Cell.GetLocalRandomFloat (date, iterationOffset);
 	}
 
 	public void AddNeighbor (Direction direction, CellGroup group) {
@@ -916,8 +913,6 @@ public class CellGroup : HumanGroup {
 		} else {
 			UpdateEvent.Reset (NextUpdateDate);
 		}
-
-//		UpdateEventId = UpdateEvent.Id;
 
 		World.InsertEventToHappen (UpdateEvent);
 	}
@@ -2257,12 +2252,12 @@ public class CellGroup : HumanGroup {
 
 		float mixFactor = randomFactor * migrationFactor * polityExpansionFactor * skillLevelFactor * knowledgeLevelFactor * populationFactor;
 
-		int updateSpan = GenerationTime * (int)mixFactor;
+		int updateSpan = GenerationSpan * (int)mixFactor;
 
 		if (updateSpan < 0)
 			updateSpan = MaxUpdateSpan;
 
-		updateSpan = Mathf.Clamp(updateSpan, GenerationTime, MaxUpdateSpan);
+		updateSpan = Mathf.Clamp(updateSpan, GenerationSpan, MaxUpdateSpan);
 
 		#if DEBUG
 		if (Manager.RegisterDebugEvent != null) {
@@ -2295,7 +2290,7 @@ public class CellGroup : HumanGroup {
 		if (population == OptimalPopulation)
 			return population;
 		
-		float timeFactor = NaturalGrowthRate * time / (float)GenerationTime;
+		float timeFactor = NaturalGrowthRate * time / (float)GenerationSpan;
 
 		if (population < OptimalPopulation) {
 			
@@ -3376,7 +3371,7 @@ public class ExpandPolityInfluenceEvent : CellGroupEvent {
 
 public class TribeFormationEvent : CellGroupEvent {
 
-	public const int DateSpanFactorConstant = CellGroup.GenerationTime * 100;
+	public const int DateSpanFactorConstant = CellGroup.GenerationSpan * 100;
 
 	public const int MinSocialOrganizationKnowledgeTribeFormation = SocialOrganizationKnowledge.MinValueForTribalismDiscovery;
 	public const int MinSocialOrganizationKnowledgeValue = SocialOrganizationKnowledge.MinValueForHoldingTribalism;

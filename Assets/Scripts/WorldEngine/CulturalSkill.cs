@@ -269,7 +269,7 @@ public abstract class CellCulturalSkill : CulturalSkill, ISynchronizable {
 
 public class BiomeSurvivalSkill : CellCulturalSkill {
 
-	public const float TimeEffectConstant = CellGroup.GenerationTime * 1500;
+	public const float TimeEffectConstant = CellGroup.GenerationSpan * 1500;
 
 	public const string BiomeSurvivalSkillIdPrefix = "BiomeSurvivalSkill_";
 	public const int BiomeSurvivalSkillRngOffsetBase = 1000;
@@ -392,7 +392,7 @@ public class BiomeSurvivalSkill : CellCulturalSkill {
 
 public class SeafaringSkill : CellCulturalSkill {
 
-	public const float TimeEffectConstant = CellGroup.GenerationTime * 500;
+	public const float TimeEffectConstant = CellGroup.GenerationSpan * 500;
 
 	public const string SeafaringSkillId = "SeafaringSkill";
 	public const string SeafaringSkillName = "Seafaring";

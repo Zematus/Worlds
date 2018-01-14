@@ -79,6 +79,7 @@ public static class RngOffsets {
 	public const int CLAN_SPLITTING_EVENT_CALCULATE_TRIGGER_DATE = 900006;
 	public const int TRIBE_SPLITTING_EVENT_CALCULATE_TRIGGER_DATE = 900007;
 	public const int CLAN_CORE_MIGRATION_EVENT_CALCULATE_TRIGGER_DATE = 900008;
+	public const int CLAN_UPDATE_EVENT_CALCULATE_TRIGGER_DATE = 900009;
 
 	public const int EVENT_TRIGGER = 1000000;
 	public const int EVENT_CAN_TRIGGER = 1100000;
@@ -177,7 +178,8 @@ public class World : ISynchronizable {
 		XmlArrayItem (Type = typeof(PlantCultivationDiscoveryEvent)),
 		XmlArrayItem (Type = typeof(ClanSplitEvent)),
 		XmlArrayItem (Type = typeof(TribeSplitEvent)),
-		XmlArrayItem (Type = typeof(ClanCoreMigrationEvent))]
+		XmlArrayItem (Type = typeof(ClanCoreMigrationEvent)),
+		XmlArrayItem (Type = typeof(FactionUpdateEvent))]
 	public List<WorldEvent> EventsToHappen;
 
 	public List<TerrainCellChanges> TerrainCellChangesList = new List<TerrainCellChanges> ();
@@ -275,16 +277,19 @@ public class World : ISynchronizable {
 	private Dictionary<long, CellGroup> _cellGroups = new Dictionary<long, CellGroup> ();
 	
 	private HashSet<CellGroup> _updatedGroups = new HashSet<CellGroup> ();
-	private HashSet<CellGroup> _groupsToPostUpdate_afterPolityUpdates = new HashSet<CellGroup> ();
 
 	private HashSet<CellGroup> _groupsToUpdate = new HashSet<CellGroup>();
 	private HashSet<CellGroup> _groupsToRemove = new HashSet<CellGroup>();
+
+	private HashSet<CellGroup> _groupsToPostUpdate_afterPolityUpdates = new HashSet<CellGroup> ();
 
 	private List<MigratingGroup> _migratingGroups = new List<MigratingGroup> ();
 
 	private Dictionary<long, Agent> _memorableAgents = new Dictionary<long, Agent> ();
 
 	private Dictionary<long, Faction> _factions = new Dictionary<long, Faction> ();
+
+	private HashSet<Faction> _updatedFactions = new HashSet<Faction> ();
 
 	private HashSet<Faction> _factionsToSplit = new HashSet<Faction>();
 	private HashSet<Faction> _factionsToUpdate = new HashSet<Faction>();
@@ -827,6 +832,21 @@ public class World : ISynchronizable {
 		_factionsToRemove.Clear ();
 	}
 
+	private void SetNextFactionUpdates () {
+
+		foreach (Faction faction in _updatedFactions) {
+
+			Profiler.BeginSample ("Faction Setup for Next Update");
+
+			faction.SetupForNextUpdate ();
+//			Manager.AddUpdatedCell (faction.CoreGroup.Cell, CellUpdateType.Group);
+
+			Profiler.EndSample ();
+		}
+
+		_updatedFactions.Clear ();
+	}
+
 	private void UpdatePolities () {
 
 		foreach (Polity polity in _politiesToUpdate) {
@@ -955,6 +975,8 @@ public class World : ISynchronizable {
 		UpdateFactions ();
 
 		RemoveFactions ();
+
+		SetNextFactionUpdates ();
 
 		UpdatePolities ();
 
@@ -1226,6 +1248,11 @@ public class World : ISynchronizable {
 	public void AddFactionToRemove (Faction faction) {
 
 		_factionsToRemove.Add (faction);
+	}
+
+	public void AddUpdatedFaction (Faction faction) {
+
+		_updatedFactions.Add (faction);
 	}
 
 	public void AddPolity (Polity polity) {

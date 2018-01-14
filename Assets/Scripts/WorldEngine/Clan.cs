@@ -4,6 +4,16 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
+// Clan Leadership:
+// -- Authority factors:
+// ---- Agent Charisma
+// ---- Agent Age * Clan's Elder Respect
+// ---- Agent Timespan as Leader * Clan's Authority Respect
+
+// -- Leader Authority has an effect on the chances of the tribe splitting: Greater authority = less chance of splitting
+// -- Clan Family Cohesiveness has also an effect on the chances of the tribe splitting: Greater cohesiveness = less chance of splitting
+// -- Preventing a clan from splitting will reduce the clan's respect for authority but increases the overall clan family cohesiveness
+
 public class Clan : Faction {
 
 	public const int LeadershipAvgSpan = 20;
@@ -402,6 +412,16 @@ public class Clan : Faction {
 
 		Polity.AddEventMessage (new ClanSplitEventMessage (this, newClan, World.CurrentDate));
 	}
+
+	public override int CalculateNextUpdateDate () {
+
+		int updateSpan = CellGroup.GenerationSpan;
+
+		if (updateSpan < 0)
+			updateSpan = CellGroup.MaxUpdateSpan;
+
+		return World.CurrentDate + updateSpan;
+	}
 }
 
 public class PreventClanSplitEventMessage : FactionEventMessage {
@@ -495,8 +515,8 @@ public class ClanSplitDecision : FactionDecision {
 
 public class ClanSplitEvent : FactionEvent {
 
-	public const int DateSpanFactorConstant = CellGroup.GenerationTime * 2000;
-	public const int MinDateSpan = CellGroup.GenerationTime * 40;
+	public const int DateSpanFactorConstant = CellGroup.GenerationSpan * 2000;
+	public const int MinDateSpan = CellGroup.GenerationSpan * 40;
 
 	public const int TerminalAdministrativeLoadValue = 500000;
 
@@ -550,7 +570,7 @@ public class ClanSplitEvent : FactionEvent {
 		return Mathf.Pow (administrativeLoad / socialOrganizationValue, 2);
 	}
 
-	public static int CalculateTriggerDate (Clan clan) {
+	public static int CalculateTriggerDate (Clan clan, bool shouldFail = false) {
 
 //		#if DEBUG
 //		if (clan.Polity.Territory.IsSelected) {
@@ -558,7 +578,7 @@ public class ClanSplitEvent : FactionEvent {
 //		}
 //		#endif
 
-		float randomFactor = clan.GetNextLocalRandomFloat (RngOffsets.CLAN_SPLITTING_EVENT_CALCULATE_TRIGGER_DATE);
+		float randomFactor = clan.GetLocalRandomFloat (clan.LastUpdateDate, RngOffsets.CLAN_SPLITTING_EVENT_CALCULATE_TRIGGER_DATE);
 		randomFactor = Mathf.Pow (randomFactor, 2);
 
 		float administrativeLoadFactor = CalculateAdministrativeLoadFactor (clan);
@@ -570,7 +590,7 @@ public class ClanSplitEvent : FactionEvent {
 
 		float dateSpan = (1 - randomFactor) * DateSpanFactorConstant * loadFactor;
 
-		int targetDate = (int)(clan.World.CurrentDate + dateSpan) + MinDateSpan;
+		int targetDate = (int)(clan.LastUpdateDate + dateSpan) + MinDateSpan;
 
 		return targetDate;
 	}
@@ -729,7 +749,7 @@ public class ClanSplitEvent : FactionEvent {
 
 public class ClanCoreMigrationEvent : FactionEvent {
 
-	public const int DateSpanFactorConstant = CellGroup.GenerationTime * 500;
+	public const int DateSpanFactorConstant = CellGroup.GenerationSpan * 500;
 
 	private CellGroup _targetGroup;
 

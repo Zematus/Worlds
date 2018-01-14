@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
+using UnityEngine.Profiling;
 
 public abstract class Faction : ISynchronizable {
 
@@ -26,6 +27,12 @@ public abstract class Faction : ISynchronizable {
 
 	[XmlAttribute("IsDom")]
 	public bool IsDominant = false;
+
+	[XmlAttribute("LastUpDate")]
+	public int LastUpdateDate;
+
+	[XmlAttribute("NextUpDate")]
+	public int NextUpdateDate;
 
 	[XmlAttribute("LeadStDate")]
 	public int LeaderStartDate;
@@ -65,6 +72,9 @@ public abstract class Faction : ISynchronizable {
 	[XmlIgnore]
 	public CellGroup NewCoreGroup = null;
 
+	[XmlIgnore]
+	public FactionUpdateEvent UpdateEvent;
+
 	private HashSet<string> _flags = new HashSet<string> ();
 
 	public Faction () {
@@ -72,6 +82,8 @@ public abstract class Faction : ISynchronizable {
 	}
 
 	public Faction (string type, Polity polity, CellGroup coreGroup, float prominence, Faction parentFaction = null) {
+
+		LastUpdateDate = World.CurrentDate;
 
 		Type = type;
 
@@ -99,6 +111,8 @@ public abstract class Faction : ISynchronizable {
 		Prominence = prominence;
 
 		GenerateName (parentFaction);
+
+		World.AddUpdatedFaction (this);
 	}
 
 	public void Destroy (bool polityBeingDestroyed = false) {
@@ -177,8 +191,36 @@ public abstract class Faction : ISynchronizable {
 
 		UpdateInternal ();
 
+		LastUpdateDate = World.CurrentDate;
+
 		World.AddPolityToUpdate (Polity);
+
+		World.AddUpdatedFaction (this);
 	}
+
+	public void SetupForNextUpdate () {
+
+		if (!StillPresent)
+			return;
+
+		Profiler.BeginSample ("Calculate Next Update Date");
+
+		NextUpdateDate = CalculateNextUpdateDate ();
+
+		Profiler.EndSample ();
+
+		LastUpdateDate = World.CurrentDate;
+
+		if (UpdateEvent == null) {
+			UpdateEvent = new FactionUpdateEvent (this, NextUpdateDate);
+		} else {
+			UpdateEvent.Reset (NextUpdateDate);
+		}
+
+		World.InsertEventToHappen (UpdateEvent);
+	}
+
+	public abstract int CalculateNextUpdateDate ();
 
 	public void PrepareNewCoreGroup (CellGroup coreGroup) {
 
@@ -222,6 +264,11 @@ public abstract class Faction : ISynchronizable {
 		}
 
 		Flags.ForEach (f => _flags.Add (f));
+
+		// Generate Update Event
+
+		UpdateEvent = new FactionUpdateEvent (this, NextUpdateDate);
+		World.InsertEventToHappen (UpdateEvent);
 	}
 
 	public long GenerateUniqueIdentifier (int date, long oom = 1L, long offset = 0L) {
@@ -232,6 +279,11 @@ public abstract class Faction : ISynchronizable {
 	public float GetNextLocalRandomFloat (int iterationOffset) {
 
 		return CoreGroup.GetNextLocalRandomFloat (iterationOffset + (int)Id);
+	}
+
+	public float GetLocalRandomFloat (int date, int iterationOffset) {
+
+		return CoreGroup.GetLocalRandomFloat (date, iterationOffset + (int)Id);
 	}
 
 	public int GetNextLocalRandomInt (int iterationOffset, int maxValue) {
@@ -411,5 +463,53 @@ public abstract class FactionEvent : WorldEvent {
 	public virtual void Reset (int newTriggerDate) {
 
 		Reset (newTriggerDate, GenerateUniqueIdentifier (Faction, newTriggerDate, EventTypeId));
+	}
+}
+
+public class FactionUpdateEvent : FactionEvent {
+
+	[XmlAttribute]
+	public long FactionId;
+
+	[XmlAttribute]
+	public long PolityId;
+
+	[XmlAttribute]
+	public long EventTypeId;
+
+	[XmlIgnore]
+	public Faction Faction;
+
+	public FactionUpdateEvent () {
+
+		DoNotSerialize = true;
+	}
+
+	public FactionUpdateEvent (Faction faction, int triggerDate) : base (faction, triggerDate, FactionUpdateEventId) {
+
+		DoNotSerialize = true;
+	}
+
+	public override bool IsStillValid ()
+	{
+		if (!base.IsStillValid ())
+			return false;
+
+		if (Faction.NextUpdateDate != TriggerDate)
+			return false;
+
+		return true;
+	}
+
+	public override void Trigger () {
+
+		World.AddFactionToUpdate (Faction);
+	}
+
+	public override void FinalizeLoad () {
+
+		base.FinalizeLoad ();
+
+		Faction.UpdateEvent = this;
 	}
 }

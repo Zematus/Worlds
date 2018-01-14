@@ -5,6 +5,9 @@ using System.Linq;
 using System.Xml;
 using System.Xml.Serialization;
 
+// Agent Attributes
+// -- Charisma
+
 public class Agent : ISynchronizable {
 
 	public const int MaxLifespan = 113; // Prime number to hide birthdate cycle artifacts
