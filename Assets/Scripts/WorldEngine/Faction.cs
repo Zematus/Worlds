@@ -83,11 +83,11 @@ public abstract class Faction : ISynchronizable {
 
 	public Faction (string type, Polity polity, CellGroup coreGroup, float prominence, Faction parentFaction = null) {
 
-		LastUpdateDate = World.CurrentDate;
-
 		Type = type;
 
 		World = polity.World;
+
+		LastUpdateDate = World.CurrentDate;
 
 		long idOffset = 0;
 
@@ -172,6 +172,9 @@ public abstract class Faction : ISynchronizable {
 	protected abstract Agent RequestNewLeader ();
 
 	public abstract void Split ();
+
+	public virtual void HandleUpdateEvent () {
+	}
 
 	public void Update () {
 
@@ -468,18 +471,6 @@ public abstract class FactionEvent : WorldEvent {
 
 public class FactionUpdateEvent : FactionEvent {
 
-	[XmlAttribute]
-	public long FactionId;
-
-	[XmlAttribute]
-	public long PolityId;
-
-	[XmlAttribute]
-	public long EventTypeId;
-
-	[XmlIgnore]
-	public Faction Faction;
-
 	public FactionUpdateEvent () {
 
 		DoNotSerialize = true;
@@ -502,6 +493,8 @@ public class FactionUpdateEvent : FactionEvent {
 	}
 
 	public override void Trigger () {
+
+		Faction.HandleUpdateEvent ();
 
 		World.AddFactionToUpdate (Faction);
 	}

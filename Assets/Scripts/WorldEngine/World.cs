@@ -58,10 +58,14 @@ public static class RngOffsets {
 	public const int TRIBE_GENERATE_NEW_TRIBE = 70000;
 	public const int TRIBE_GENERATE_NAME = 71000;
 
+	public const int FACTION_CALCULATE_NEXT_UPDATE = 80500;
+
 	public const int CLAN_GENERATE_NAME = 80000;
 	public const int CLAN_CHOOSE_CORE_GROUP = 81000;
 	public const int CLAN_CHOOSE_TARGET_GROUP = 82000;
 	public const int CLAN_LEADER_GEN_OFFSET = 83000;
+	public const int CLAN_SHOULD_SPLIT = 84000;
+	public const int CLAN_SPLIT = 85000;
 
 	public const int AGENT_GENERATE_BIO = 90000;
 	public const int AGENT_GENERATE_NAME = 91000;
@@ -76,7 +80,7 @@ public static class RngOffsets {
 	public const int TRIBE_FORMATION_EVENT_CALCULATE_TRIGGER_DATE = 900003;
 	public const int BOAT_MAKING_DISCOVERY_EVENT_CALCULATE_TRIGGER_DATE = 900004;
 	public const int PLANT_CULTIVATION_DISCOVERY_EVENT_CALCULATE_TRIGGER_DATE = 900005;
-	public const int CLAN_SPLITTING_EVENT_CALCULATE_TRIGGER_DATE = 900006;
+//	public const int CLAN_SPLITTING_EVENT_CALCULATE_TRIGGER_DATE = 900006;
 	public const int TRIBE_SPLITTING_EVENT_CALCULATE_TRIGGER_DATE = 900007;
 	public const int CLAN_CORE_MIGRATION_EVENT_CALCULATE_TRIGGER_DATE = 900008;
 	public const int CLAN_UPDATE_EVENT_CALCULATE_TRIGGER_DATE = 900009;
@@ -176,7 +180,7 @@ public class World : ISynchronizable {
 		XmlArrayItem (Type = typeof(BoatMakingDiscoveryEvent)),
 		XmlArrayItem (Type = typeof(TribalismDiscoveryEvent)),
 		XmlArrayItem (Type = typeof(PlantCultivationDiscoveryEvent)),
-		XmlArrayItem (Type = typeof(ClanSplitEvent)),
+//		XmlArrayItem (Type = typeof(ClanSplitEvent)),
 		XmlArrayItem (Type = typeof(TribeSplitEvent)),
 		XmlArrayItem (Type = typeof(ClanCoreMigrationEvent)),
 		XmlArrayItem (Type = typeof(FactionUpdateEvent))]
