@@ -65,6 +65,7 @@ public static class RngOffsets {
 	public const int CLAN_CHOOSE_TARGET_GROUP = 82000;
 	public const int CLAN_LEADER_GEN_OFFSET = 83000;
 	public const int CLAN_SHOULD_SPLIT = 84000;
+	public const int CLAN_PREFER_SPLIT = 84500;
 	public const int CLAN_SPLIT = 85000;
 
 	public const int AGENT_GENERATE_BIO = 90000;

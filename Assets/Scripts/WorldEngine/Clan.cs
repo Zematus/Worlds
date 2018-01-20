@@ -27,7 +27,7 @@ public class Clan : Faction {
 
 	public const int TerminalAdministrativeLoadValue = 500000;
 
-	public const int ClanSplitDateSpanFactorConstant = CellGroup.GenerationSpan * 2000;
+	public const int ClanSplitDateSpanFactorConstant = CellGroup.GenerationSpan * 400;
 
 	public const string ClanType = "Clan";
 
@@ -98,8 +98,8 @@ public class Clan : Faction {
 
 	public override void HandleUpdateEvent () {
 
-		if (ShouldSplit ()) {
-			EvaluateSplitDecision (true);
+		if (ShouldTrySplitting ()) {
+			EvaluateSplitDecision ();
 		}
 	}
 
@@ -365,7 +365,7 @@ public class Clan : Faction {
 		return weight;
 	}
 
-	public bool ShouldSplit () {
+	public bool ShouldTrySplitting () {
 
 		if (Prominence < Split_MinProminenceTrigger)
 			return false;
@@ -392,7 +392,9 @@ public class Clan : Faction {
 		return true;
 	}
 
-	public void EvaluateSplitDecision (bool shouldSucceed) {
+	public void EvaluateSplitDecision () {
+
+		bool shouldSucceed = GetNextLocalRandomInt (RngOffsets.CLAN_PREFER_SPLIT, 4) == 0;
 
 		if (IsFocused) {
 
@@ -453,7 +455,7 @@ public class Clan : Faction {
 
 		if (socialOrganizationValue < 0) {
 
-			return float.MaxValue;
+			return float.MaxValue / 2f;
 		}
 
 		float administrativeLoad = Polity.TotalAdministrativeCost * Prominence;
@@ -547,7 +549,7 @@ public class ClanSplitDecision : FactionDecision {
 
 	public ClanSplitDecision (Clan clan, CellGroup newCoreGroup, bool preferSplit) : base (clan) {
 
-		Description = "Several family groups belonging to clan <b>" + clan.Name.Text + "</b> no longer feel to be connected to the rest of the clan. " +
+		Description = "(" + preferSplit + ") Several family groups belonging to clan <b>" + clan.Name.Text + "</b> no longer feel to be connected to the rest of the clan. " +
 			"Should the clan leader, <b>" + clan.CurrentLeader.Name.Text + "</b>, try to keep them from splitting apart?";
 
 		_preferSplit = preferSplit;

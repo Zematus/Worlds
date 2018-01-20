@@ -18,8 +18,11 @@ public class Agent : ISynchronizable {
 	[XmlAttribute("Birth")]
 	public int BirthDate;
 
-	[XmlAttribute]
+	[XmlAttribute("Fem")]
 	public bool IsFemale;
+
+	[XmlAttribute("Char")]
+	public int Charisma;
 
 	[XmlAttribute("GrpId")]
 	public long GroupId;
@@ -72,6 +75,7 @@ public class Agent : ISynchronizable {
 		int rngOffset = RngOffsets.AGENT_GENERATE_BIO + (int)Group.Id;
 
 		IsFemale = Group.GetLocalRandomFloat (BirthDate, rngOffset++) > 0.5f;
+		Charisma = 3 + Group.GetLocalRandomInt (BirthDate, rngOffset++, 18);
 	}
 
 	private void GenerateNameFromElement (Element element, GetRandomIntDelegate getRandomInt) {

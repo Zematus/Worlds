@@ -2012,6 +2012,7 @@ public class GuiManagerScript : MonoBehaviour {
 			InfoPanelScript.InfoText.text += "\nBirth Date: " + leader.BirthDate;
 			InfoPanelScript.InfoText.text += " \tAge: " + age;
 			InfoPanelScript.InfoText.text += "\nGender: " + ((leader.IsFemale) ? "Female" : "Male");
+			InfoPanelScript.InfoText.text += "\nCharisma: " + leader.Charisma;
 			InfoPanelScript.InfoText.text += "\n";
 			InfoPanelScript.InfoText.text += "\n";
 
@@ -2079,6 +2080,7 @@ public class GuiManagerScript : MonoBehaviour {
 		InfoPanelScript.InfoText.text += "\nLeader: " + leader.Name;
 		InfoPanelScript.InfoText.text += "\nBirth Date: " + leader.BirthDate;
 		InfoPanelScript.InfoText.text += "\nGender: " + ((leader.IsFemale) ? "Female" : "Male");
+		InfoPanelScript.InfoText.text += "\nCharisma: " + leader.Charisma;
 		InfoPanelScript.InfoText.text += "\n";
 
 		InfoPanelScript.InfoText.text += "\n";
@@ -2106,6 +2108,7 @@ public class GuiManagerScript : MonoBehaviour {
 			InfoPanelScript.InfoText.text += "\n\t\tLeader: " + factionLeader.Name;
 			InfoPanelScript.InfoText.text += "\n\t\tBirth Date: " + factionLeader.BirthDate;
 			InfoPanelScript.InfoText.text += "\t Gender: " + ((factionLeader.IsFemale) ? "Female" : "Male");
+			InfoPanelScript.InfoText.text += "\t Charisma: " + leader.Charisma;
 			InfoPanelScript.InfoText.text += "\n";
 		}
 
