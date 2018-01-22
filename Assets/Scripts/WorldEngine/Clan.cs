@@ -7,12 +7,12 @@ using System.Xml.Serialization;
 // Clan Leadership:
 // -- Authority factors:
 // ---- Agent Charisma
-// ---- Agent Age * Clan's Elder Respect
-// ---- Agent Timespan as Leader * Clan's Authority Respect
+// ---- Agent Wisdom
+// ---- Agent Timespan as Leader * Clan's Authority
 
 // -- Leader Authority has an effect on the chances of the tribe splitting: Greater authority = less chance of splitting
-// -- Clan Family Cohesiveness has also an effect on the chances of the tribe splitting: Greater cohesiveness = less chance of splitting
-// -- Preventing a clan from splitting will reduce the clan's respect for authority but increases the overall clan family cohesiveness
+// -- Clan Cohesiveness has also an effect on the chances of the tribe splitting: Greater cohesiveness = less chance of splitting
+// -- Preventing a clan from splitting will reduce the clan's respect for authority but increases the overall clan cohesiveness
 
 public class Clan : Faction {
 

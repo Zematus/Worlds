@@ -16,6 +16,10 @@ public class Culture : ISynchronizable {
 	[XmlIgnore]
 	public Language Language { get; protected set; }
 
+	[XmlArrayItem(Type = typeof(CulturalPreference)),
+		XmlArrayItem(Type = typeof(CellCulturalPreference))]
+	public List<CulturalPreference> Preferences = new List<CulturalPreference> ();
+
 	[XmlArrayItem(Type = typeof(CulturalActivity)),
 		XmlArrayItem(Type = typeof(CellCulturalActivity))]
 	public List<CulturalActivity> Activities = new List<CulturalActivity> ();
@@ -38,6 +42,7 @@ public class Culture : ISynchronizable {
 		XmlArrayItem(Type = typeof(PlantCultivationDiscovery))]
 	public List<CulturalDiscovery> Discoveries = new List<CulturalDiscovery> ();
 
+	private Dictionary<string, CulturalPreference> _preferences = new Dictionary<string, CulturalPreference> ();
 	private Dictionary<string, CulturalActivity> _activities = new Dictionary<string, CulturalActivity> ();
 	private Dictionary<string, CulturalSkill> _skills = new Dictionary<string, CulturalSkill> ();
 	private Dictionary<string, CulturalKnowledge> _knowledges = new Dictionary<string, CulturalKnowledge> ();
@@ -55,10 +60,55 @@ public class Culture : ISynchronizable {
 
 	public Culture (Culture sourceCulture) : this (sourceCulture.World, sourceCulture.Language) {
 
-		sourceCulture.Activities.ForEach (a => AddActivity (new CulturalActivity (a)));
-		sourceCulture.Skills.ForEach (s => AddSkill (new CulturalSkill (s)));
-		sourceCulture.Discoveries.ForEach (d => AddDiscovery (new CulturalDiscovery (d)));
-		sourceCulture.Knowledges.ForEach (k => AddKnowledge (new CulturalKnowledge (k)));
+		foreach (CulturalPreference p in sourceCulture.Preferences) {
+			AddPreference (new CulturalPreference (p));
+		}
+
+		foreach (CulturalActivity a in sourceCulture.Activities) {
+			AddActivity (new CulturalActivity (a));
+		}
+
+		foreach (CulturalSkill s in sourceCulture.Skills) {
+			AddSkill (new CulturalSkill (s));
+		}
+
+		foreach (CulturalDiscovery d in sourceCulture.Discoveries) {
+			AddDiscovery (new CulturalDiscovery (d));
+		}
+
+		foreach (CulturalKnowledge k in sourceCulture.Knowledges) {
+			AddKnowledge (new CulturalKnowledge (k));
+		}
+	}
+
+	protected void AddPreference (CulturalPreference preference) {
+
+		if (_preferences.ContainsKey (preference.Id))
+			return;
+
+		World.AddExistingCulturalPreferenceInfo (preference);
+
+		Preferences.Add (preference);
+		_preferences.Add (preference.Id, preference);
+	}
+
+	protected void RemovePreference (CulturalPreference preference) {
+
+		if (!_preferences.ContainsKey (preference.Id))
+			return;
+
+		Preferences.Remove (preference);
+		_preferences.Remove (preference.Id);
+	}
+
+	public void RemovePreference (string preferenceId) {
+
+		CulturalPreference preference = GetPreference (preferenceId);
+
+		if (preference == null)
+			return;
+
+		RemovePreference (preference);
 	}
 
 	protected void AddActivity (CulturalActivity activity) {
@@ -151,6 +201,16 @@ public class Culture : ISynchronizable {
 		_discoveries.Remove (discovery.Id);
 	}
 
+	public CulturalPreference GetPreference (string id) {
+
+		CulturalPreference preference = null;
+
+		if (!_preferences.TryGetValue (id, out preference))
+			return null;
+
+		return preference;
+	}
+
 	public CulturalActivity GetActivity (string id) {
 
 		CulturalActivity activity = null;
@@ -199,10 +259,25 @@ public class Culture : ISynchronizable {
 
 	public virtual void FinalizeLoad () {
 
-		Activities.ForEach (a => _activities.Add (a.Id, a));
-		Skills.ForEach (s => _skills.Add (s.Id, s));
-		Knowledges.ForEach (k => _knowledges.Add (k.Id, k));
-		Discoveries.ForEach (d => _discoveries.Add (d.Id, d));
+		foreach (CulturalPreference p in Preferences) {
+			_preferences.Add (p.Id, p);
+		}
+
+		foreach (CulturalActivity a in Activities) {
+			_activities.Add (a.Id, a);
+		}
+
+		foreach (CulturalSkill s in Skills) {
+			_skills.Add (s.Id, s);
+		}
+
+		foreach (CulturalKnowledge k in Knowledges) {
+			_knowledges.Add (k.Id, k);
+		}
+
+		foreach (CulturalDiscovery d in Discoveries) {
+			_discoveries.Add (d.Id, d);
+		}
 
 		if (LanguageId != -1) {
 			Language = World.GetLanguage (LanguageId);

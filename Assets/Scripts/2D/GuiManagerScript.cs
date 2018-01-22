@@ -901,6 +901,9 @@ public class GuiManagerScript : MonoBehaviour {
 		case PlanetOverlay.FarmlandDistribution: 
 			planetOverlayStr = "_farmland_distribution"; 
 			break;
+		case PlanetOverlay.PopCulturalPreference: 
+			planetOverlayStr = "_population_cultural_preference_" + _planetOverlaySubtype; 
+			break;
 		case PlanetOverlay.PopCulturalActivity: 
 			planetOverlayStr = "_population_cultural_activity_" + _planetOverlaySubtype; 
 			break;
@@ -925,8 +928,11 @@ public class GuiManagerScript : MonoBehaviour {
 		case PlanetOverlay.PolityInfluence: 
 			planetOverlayStr = "_polity_influences"; 
 			break;
+		case PlanetOverlay.PolityCulturalPreference: 
+			planetOverlayStr = "_polity_cultural_preference_" + _planetOverlaySubtype; 
+			break;
 		case PlanetOverlay.PolityCulturalActivity: 
-			planetOverlayStr = "_polity_cultural_activitiy_" + _planetOverlaySubtype; 
+			planetOverlayStr = "_polity_cultural_activity_" + _planetOverlaySubtype; 
 			break;
 		case PlanetOverlay.PolityCulturalSkill: 
 			planetOverlayStr = "_polity_cultural_skill_" + _planetOverlaySubtype; 
@@ -1171,6 +1177,8 @@ public class GuiManagerScript : MonoBehaviour {
 			ChangePlanetOverlay (PlanetOverlay.PopDensity, false);
 		} else if (OverlayDialogPanelScript.FarmlandToggle.isOn) {
 			ChangePlanetOverlay (PlanetOverlay.FarmlandDistribution, false);
+		} else if (OverlayDialogPanelScript.PopCulturalPreferenceToggle.isOn) {
+			SetPopCulturalPreferenceOverlay (false);
 		} else if (OverlayDialogPanelScript.PopCulturalActivityToggle.isOn) {
 			SetPopCulturalActivityOverlay (false);
 		} else if (OverlayDialogPanelScript.PopCulturalSkillToggle.isOn) {
@@ -1185,6 +1193,8 @@ public class GuiManagerScript : MonoBehaviour {
 			ChangePlanetOverlay (PlanetOverlay.FactionCoreDistance, false);
 		} else if (OverlayDialogPanelScript.InfluenceToggle.isOn) {
 			ChangePlanetOverlay (PlanetOverlay.PolityInfluence, false);
+		} else if (OverlayDialogPanelScript.PolityCulturalPreferenceToggle.isOn) {
+			SetPolityCulturalPreferenceOverlay (false);
 		} else if (OverlayDialogPanelScript.PolityCulturalActivityToggle.isOn) {
 			SetPolityCulturalActivityOverlay (false);
 		} else if (OverlayDialogPanelScript.PolityCulturalSkillToggle.isOn) {
@@ -1381,6 +1391,34 @@ public class GuiManagerScript : MonoBehaviour {
 		}
 	}
 
+	public void SetPopCulturalPreferenceOverlay (bool invokeEvent = true) {
+
+		ChangePlanetOverlay (PlanetOverlay.PopCulturalPreference, invokeEvent);
+
+		SelectionPanelScript.Title.text = "Displayed Preference:";
+
+		foreach (CulturalPreferenceInfo preferenceInfo in Manager.CurrentWorld.CulturalPreferenceInfoList) {
+
+			AddSelectionPanelOption (preferenceInfo.Name, preferenceInfo.Id);
+		}
+
+		SelectionPanelScript.SetVisible (true);
+	}
+
+	public void SetPolityCulturalPreferenceOverlay (bool invokeEvent = true) {
+
+		ChangePlanetOverlay (PlanetOverlay.PolityCulturalPreference, invokeEvent);
+
+		SelectionPanelScript.Title.text = "Displayed Preference:";
+
+		foreach (CulturalPreferenceInfo preferenceInfo in Manager.CurrentWorld.CulturalPreferenceInfoList) {
+
+			AddSelectionPanelOption (preferenceInfo.Name, preferenceInfo.Id);
+		}
+
+		SelectionPanelScript.SetVisible (true);
+	}
+
 	public void SetPopCulturalActivityOverlay (bool invokeEvent = true) {
 
 		ChangePlanetOverlay (PlanetOverlay.PopCulturalActivity, invokeEvent);
@@ -1529,7 +1567,13 @@ public class GuiManagerScript : MonoBehaviour {
 		if (!SelectionPanelScript.IsVisible ())
 			return;
 
-		if (_planetOverlay == PlanetOverlay.PopCulturalActivity) {
+		if (_planetOverlay == PlanetOverlay.PopCulturalPreference) {
+
+			foreach (CulturalPreferenceInfo preferenceInfo in Manager.CurrentWorld.CulturalPreferenceInfoList) {
+
+				AddSelectionPanelOption (preferenceInfo.Name, preferenceInfo.Id);
+			}
+		} else if (_planetOverlay == PlanetOverlay.PopCulturalActivity) {
 
 			foreach (CulturalActivityInfo activityInfo in Manager.CurrentWorld.CulturalActivityInfoList) {
 
@@ -1552,6 +1596,12 @@ public class GuiManagerScript : MonoBehaviour {
 			foreach (CulturalDiscovery discoveryInfo in Manager.CurrentWorld.CulturalDiscoveryInfoList) {
 
 				AddSelectionPanelOption (discoveryInfo.Name, discoveryInfo.Id);
+			}
+		} else if (_planetOverlay == PlanetOverlay.PolityCulturalPreference) {
+
+			foreach (CulturalPreferenceInfo preferenceInfo in Manager.CurrentWorld.CulturalPreferenceInfoList) {
+
+				AddSelectionPanelOption (preferenceInfo.Name, preferenceInfo.Id);
 			}
 		} else if (_planetOverlay == PlanetOverlay.PolityCulturalActivity) {
 
@@ -2006,13 +2056,12 @@ public class GuiManagerScript : MonoBehaviour {
 
 			Agent leader = polity.CurrentLeader;
 
-			int age = Manager.CurrentWorld.CurrentDate - leader.BirthDate;
-
 			InfoPanelScript.InfoText.text += "\nLeader: " + leader.Name;
 			InfoPanelScript.InfoText.text += "\nBirth Date: " + leader.BirthDate;
-			InfoPanelScript.InfoText.text += " \tAge: " + age;
+			InfoPanelScript.InfoText.text += " \tAge: " + leader.Age;
 			InfoPanelScript.InfoText.text += "\nGender: " + ((leader.IsFemale) ? "Female" : "Male");
 			InfoPanelScript.InfoText.text += "\nCharisma: " + leader.Charisma;
+			InfoPanelScript.InfoText.text += "\nWisdom: " + leader.Wisdom;
 			InfoPanelScript.InfoText.text += "\n";
 			InfoPanelScript.InfoText.text += "\n";
 
@@ -2081,6 +2130,7 @@ public class GuiManagerScript : MonoBehaviour {
 		InfoPanelScript.InfoText.text += "\nBirth Date: " + leader.BirthDate;
 		InfoPanelScript.InfoText.text += "\nGender: " + ((leader.IsFemale) ? "Female" : "Male");
 		InfoPanelScript.InfoText.text += "\nCharisma: " + leader.Charisma;
+		InfoPanelScript.InfoText.text += "\nWisdom: " + leader.Wisdom;
 		InfoPanelScript.InfoText.text += "\n";
 
 		InfoPanelScript.InfoText.text += "\n";
@@ -2107,8 +2157,9 @@ public class GuiManagerScript : MonoBehaviour {
 
 			InfoPanelScript.InfoText.text += "\n\t\tLeader: " + factionLeader.Name;
 			InfoPanelScript.InfoText.text += "\n\t\tBirth Date: " + factionLeader.BirthDate;
-			InfoPanelScript.InfoText.text += "\t Gender: " + ((factionLeader.IsFemale) ? "Female" : "Male");
-			InfoPanelScript.InfoText.text += "\t Charisma: " + leader.Charisma;
+			InfoPanelScript.InfoText.text += "\n\t\tGender: " + ((factionLeader.IsFemale) ? "Female" : "Male");
+			InfoPanelScript.InfoText.text += "\n\t\tCharisma: " + factionLeader.Charisma;
+			InfoPanelScript.InfoText.text += "\n\t\tWisdom: " + factionLeader.Wisdom;
 			InfoPanelScript.InfoText.text += "\n";
 		}
 
@@ -2138,6 +2189,53 @@ public class GuiManagerScript : MonoBehaviour {
 		if (!polity.IsFocused) {
 			_showFocusButton = true;
 			_focusButtonText = "Set focus on " + polity.Name.Text;
+		}
+	}
+
+	public void AddCellDataToInfoPanel_PolityCulturalPreference (TerrainCell cell) {
+
+		InfoPanelScript.InfoText.text += "\n";
+		InfoPanelScript.InfoText.text += "\n -- Polity Preference Data -- ";
+		InfoPanelScript.InfoText.text += "\n";
+
+		if (cell.Group == null) {
+
+			InfoPanelScript.InfoText.text += "\n\tNo population at location";
+
+			return;
+		}
+
+		int population = cell.Group.Population;
+
+		if (population <= 0) {
+
+			InfoPanelScript.InfoText.text += "\n\tNo population at location";
+
+			return;
+		}
+
+		PolityInfluence polityInfluence = cell.Group.HighestPolityInfluence;
+
+		if (polityInfluence == null) {
+
+			InfoPanelScript.InfoText.text += "\n\tGroup not part of a polity";
+
+			return;
+		}
+
+		bool firstPreference = true;
+
+		foreach (CulturalPreference preference in polityInfluence.Polity.Culture.Preferences) {
+
+			float preferenceValue = preference.Value;
+
+			if (firstPreference) {
+				InfoPanelScript.InfoText.text += "\nPreferences:";
+
+				firstPreference = false;
+			}
+
+			InfoPanelScript.InfoText.text += "\n\t" + preference.Name + " Preference: " + preference.Value.ToString ("P");
 		}
 	}
 
@@ -2186,8 +2284,46 @@ public class GuiManagerScript : MonoBehaviour {
 					firstActivity = false;
 				}
 
-				InfoPanelScript.InfoText.text += "\n\t" + activity.Id + " - Contribution: " + activity.Contribution.ToString ("P");
+				InfoPanelScript.InfoText.text += "\n\t" + activity.Name + " Contribution: " + activity.Contribution.ToString ("P");
 			}
+		}
+	}
+
+	public void AddCellDataToInfoPanel_PopCulturalPreference (TerrainCell cell) {
+
+		InfoPanelScript.InfoText.text += "\n";
+		InfoPanelScript.InfoText.text += "\n -- Group Preference Data -- ";
+		InfoPanelScript.InfoText.text += "\n";
+
+		if (cell.Group == null) {
+
+			InfoPanelScript.InfoText.text += "\n\tNo population at location";
+
+			return;
+		}
+
+		int population = cell.Group.Population;
+
+		if (population <= 0) {
+
+			InfoPanelScript.InfoText.text += "\n\tNo population at location";
+
+			return;
+		}
+
+		bool firstPreference = true;
+
+		foreach (CulturalPreference preference in cell.Group.Culture.Preferences) {
+
+			float preferenceValue = preference.Value;
+
+			if (firstPreference) {
+				InfoPanelScript.InfoText.text += "\nPreferences:";
+
+				firstPreference = false;
+			}
+
+			InfoPanelScript.InfoText.text += "\n\t" + preference.Name + " Preference: " + preference.Value.ToString ("P");
 		}
 	}
 
@@ -2227,7 +2363,7 @@ public class GuiManagerScript : MonoBehaviour {
 					firstActivity = false;
 				}
 
-				InfoPanelScript.InfoText.text += "\n\t" + activity.Id + " - Contribution: " + activity.Contribution.ToString ("P");
+				InfoPanelScript.InfoText.text += "\n\t" + activity.Name + " Contribution: " + activity.Contribution.ToString ("P");
 			}
 		}
 	}
@@ -2277,7 +2413,7 @@ public class GuiManagerScript : MonoBehaviour {
 					firstSkill = false;
 				}
 
-				InfoPanelScript.InfoText.text += "\n\t" + skill.Id + " - Value: " + skill.Value.ToString ("0.000");
+				InfoPanelScript.InfoText.text += "\n\t" + skill.Name + " Value: " + skill.Value.ToString ("0.000");
 			}
 		}
 	}
@@ -2318,7 +2454,7 @@ public class GuiManagerScript : MonoBehaviour {
 					firstSkill = false;
 				}
 
-				InfoPanelScript.InfoText.text += "\n\t" + skill.Id + " - Value: " + skill.Value.ToString ("0.000");
+				InfoPanelScript.InfoText.text += "\n\t" + skill.Name + " Value: " + skill.Value.ToString ("0.000");
 			}
 		}
 	}
@@ -2366,7 +2502,7 @@ public class GuiManagerScript : MonoBehaviour {
 				firstKnowledge = false;
 			}
 
-			InfoPanelScript.InfoText.text += "\n\t" + knowledge.Id + " - Value: " + knowledgeValue.ToString ("0.000");
+			InfoPanelScript.InfoText.text += "\n\t" + knowledge.Name + " Value: " + knowledgeValue.ToString ("0.000");
 		}
 	}
 
@@ -2404,7 +2540,7 @@ public class GuiManagerScript : MonoBehaviour {
 				firstKnowledge = false;
 			}
 
-			InfoPanelScript.InfoText.text += "\n\t" + knowledge.Id + " - Value: " + knowledgeValue.ToString ("0.000");
+			InfoPanelScript.InfoText.text += "\n\t" + knowledge.Name + " Value: " + knowledgeValue.ToString ("0.000");
 		}
 	}
 
@@ -2449,7 +2585,7 @@ public class GuiManagerScript : MonoBehaviour {
 				firstDiscovery = false;
 			}
 
-			InfoPanelScript.InfoText.text += "\n\t" + discovery.Id;
+			InfoPanelScript.InfoText.text += "\n\t" + discovery.Name;
 		}
 	}
 
@@ -2485,7 +2621,7 @@ public class GuiManagerScript : MonoBehaviour {
 				firstDiscovery = false;
 			}
 
-			InfoPanelScript.InfoText.text += "\n\t" + discovery.Id;
+			InfoPanelScript.InfoText.text += "\n\t" + discovery.Name;
 		}
 	}
 	
@@ -2550,6 +2686,16 @@ public class GuiManagerScript : MonoBehaviour {
 		if (_planetOverlay == PlanetOverlay.FactionCoreDistance) {
 
 			AddCellDataToInfoPanel_PolityTerritory (cell);
+		}
+
+		if (_planetOverlay == PlanetOverlay.PolityCulturalPreference) {
+
+			AddCellDataToInfoPanel_PolityCulturalPreference (cell);
+		}
+
+		if (_planetOverlay == PlanetOverlay.PopCulturalPreference) {
+
+			AddCellDataToInfoPanel_PopCulturalPreference (cell);
 		}
 
 		if (_planetOverlay == PlanetOverlay.PolityCulturalActivity) {
@@ -2619,6 +2765,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 		if ((_planetOverlay == PlanetOverlay.General) ||
 			(_planetOverlay == PlanetOverlay.PolityTerritory) ||
+			(_planetOverlay == PlanetOverlay.PolityCulturalPreference) ||
 			(_planetOverlay == PlanetOverlay.PolityCulturalActivity) ||
 			(_planetOverlay == PlanetOverlay.PolityCulturalSkill) ||
 			(_planetOverlay == PlanetOverlay.PolityCulturalKnowledge) ||
@@ -2668,6 +2815,9 @@ public class GuiManagerScript : MonoBehaviour {
 		case PlanetOverlay.PolityTerritory:
 			InfoTooltipScript.DisplayTip (polity.Name.Text, tooltipPos);
 			break;
+		case PlanetOverlay.PolityCulturalPreference:
+			ShowCellInfoToolTip_PolityCulturalPreference (polity, tooltipPos);
+			break;
 		case PlanetOverlay.PolityCulturalActivity:
 			ShowCellInfoToolTip_PolityCulturalActivity (polity, tooltipPos);
 			break;
@@ -2683,6 +2833,17 @@ public class GuiManagerScript : MonoBehaviour {
 		default:
 			InfoTooltipScript.SetVisible (false);
 			break;
+		}
+	}
+
+	public void ShowCellInfoToolTip_PolityCulturalPreference (Polity polity, Vector3 position, float fadeStart = 5) {
+
+		CulturalPreference preference = polity.Culture.GetPreference (_planetOverlaySubtype);
+
+		if (preference != null) {
+			InfoTooltipScript.DisplayTip (preference.Name + " Preference: " + preference.Value.ToString ("P"), position, fadeStart);
+		} else {
+			InfoTooltipScript.SetVisible (false);
 		}
 	}
 

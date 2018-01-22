@@ -5,9 +5,8 @@ using System.Xml;
 using System.Xml.Serialization;
 
 // Cultural Preferences
-// -- Elder Respect
-// -- Authority Respect
-// -- Family Cohesion
+// -- Authority
+// -- Cohesion
 
 public class CulturalPreferenceInfo {
 
@@ -43,22 +42,17 @@ public class CulturalPreference : CulturalPreferenceInfo {
 	[XmlAttribute]
 	public float Value;
 
-	[XmlAttribute]
-	public float Contribution = 0;
-
 	public CulturalPreference () {
 	}
 
-	public CulturalPreference (string id, string name, int rngOffset, float value, float contribution) : base (id, name, rngOffset) {
+	public CulturalPreference (string id, string name, int rngOffset, float value) : base (id, name, rngOffset) {
 
 		Value = value;
-		Contribution = contribution;
 	}
 
 	public CulturalPreference (CulturalPreference basePreference) : base (basePreference) {
 
 		Value = basePreference.Value;
-		Contribution = basePreference.Contribution;
 	}
 }
 
@@ -66,24 +60,26 @@ public class CellCulturalPreference : CulturalPreference {
 
 	public const float TimeEffectConstant = CellGroup.GenerationSpan * 500;
 
-	public const string ForagingActivityId = "ForagingActivity";
-	public const string FarmingActivityId = "FarmingActivity";
+	public const string AuthorityPreferenceId = "AuthorityPreference";
+	public const string CohesivenessPreferenceId = "CohesivenessPreference";
 
-	public const string ForagingActivityName = "Foraging";
-	public const string FarmingActivityName = "Farming";
+	public const string AuthorityPreferenceName = "Authority";
+	public const string CohesivenessPreferenceName = "Cohesiveness";
 
-	public const int ForagingActivityRandomOffset = 0;
-	public const int FarmingActivityRandomOffset = 100;
+	public const int AuthorityPreferenceRandomOffset = 0;
+	public const int CohesivenessPreferenceRandomOffset = 100;
 
 	[XmlIgnore]
 	public CellGroup Group;
+
+	private const float MaxChangeDelta = 0.2f;
 
 	private float _newValue;
 
 	public CellCulturalPreference () {
 	}
 
-	private CellCulturalPreference (CellGroup group, string id, string name, int rngOffset, float value = 0, float contribution = 0) : base (id, name, rngOffset, value, contribution) {
+	private CellCulturalPreference (CellGroup group, string id, string name, int rngOffset, float value = 0) : base (id, name, rngOffset, value) {
 
 		Group = group;
 
@@ -95,19 +91,19 @@ public class CellCulturalPreference : CulturalPreference {
 		return CreateCellInstance (group, basePreference, basePreference.Value);
 	}
 
-	public static CellCulturalPreference CreateCellInstance (CellGroup group, CulturalPreference basePreference, float initialValue, float initialContribution = 0) {
+	public static CellCulturalPreference CreateCellInstance (CellGroup group, CulturalPreference basePreference, float initialValue) {
 	
-		return new CellCulturalPreference (group, basePreference.Id, basePreference.Name, basePreference.RngOffset, initialValue, initialContribution);
+		return new CellCulturalPreference (group, basePreference.Id, basePreference.Name, basePreference.RngOffset, initialValue);
 	}
 
-	public static CellCulturalPreference CreateForagingActivity (CellGroup group, float value = 0, float contribution = 0) {
+	public static CellCulturalPreference CreateAuthorityPreference (CellGroup group, float value = 0) {
 	
-		return new CellCulturalPreference (group, ForagingActivityId, ForagingActivityName, ForagingActivityRandomOffset, value, contribution);
+		return new CellCulturalPreference (group, AuthorityPreferenceId, AuthorityPreferenceName, AuthorityPreferenceRandomOffset, value);
 	}
 
-	public static CellCulturalPreference CreateFarmingActivity (CellGroup group, float value = 0, float contribution = 0) {
+	public static CellCulturalPreference CreateCohesivenessPreference (CellGroup group, float value = 0) {
 
-		return new CellCulturalPreference (group, FarmingActivityId, FarmingActivityName, FarmingActivityRandomOffset, value, contribution);
+		return new CellCulturalPreference (group, CohesivenessPreferenceId, CohesivenessPreferenceName, CohesivenessPreferenceRandomOffset, value);
 	}
 
 	public void Merge (CulturalPreference preference, float percentage) {
@@ -116,7 +112,7 @@ public class CellCulturalPreference : CulturalPreference {
 		_newValue = _newValue * (1f - percentage) + preference.Value * percentage;
 	}
 
-	// This method should be called only once after a Activity is copied from another source group
+	// This method should be called only once after a Cultural Value is copied from another source group
 	public void ModifyValue (float percentage) {
 
 		_newValue = Value * percentage;
@@ -126,11 +122,9 @@ public class CellCulturalPreference : CulturalPreference {
 
 		TerrainCell groupCell = Group.Cell;
 
-		float changeSpeedFactor = 0.001f;
-
-		float randomModifier = groupCell.GetNextLocalRandomFloat (RngOffsets.ACTIVITY_UPDATE + RngOffset);
+		float randomModifier = groupCell.GetNextLocalRandomFloat (RngOffsets.PREFERENCE_UPDATE + RngOffset);
 		randomModifier = 1f - (randomModifier * 2f);
-		float randomFactor = changeSpeedFactor * randomModifier;
+		float randomFactor = MaxChangeDelta * randomModifier;
 
 		float maxTargetValue = 1f;
 		float minTargetValue = 0f;
@@ -154,7 +148,7 @@ public class CellCulturalPreference : CulturalPreference {
 
 		TerrainCell groupCell = Group.Cell;
 
-		float randomEffect = groupCell.GetNextLocalRandomFloat (RngOffsets.ACTIVITY_POLITY_INFLUENCE + RngOffset + (int)polityInfluence.PolityId);
+		float randomEffect = groupCell.GetNextLocalRandomFloat (RngOffsets.PREFERENCE_POLITY_INFLUENCE + RngOffset + (int)polityInfluence.PolityId);
 
 		float timeEffect = timeSpan / (float)(timeSpan + TimeEffectConstant);
 

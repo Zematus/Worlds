@@ -14,6 +14,8 @@ public class CellCulture : Culture {
 	public CellGroup Group;
 
 	[XmlIgnore]
+	public Dictionary<string, CellCulturalPreference> PreferencesToAcquire = new Dictionary<string, CellCulturalPreference> ();
+	[XmlIgnore]
 	public Dictionary<string, CellCulturalActivity> ActivitiesToPerform = new Dictionary<string, CellCulturalActivity> ();
 	[XmlIgnore]
 	public Dictionary<string, CellCulturalSkill> SkillsToLearn = new Dictionary<string, CellCulturalSkill> ();
@@ -22,6 +24,7 @@ public class CellCulture : Culture {
 	[XmlIgnore]
 	public Dictionary<string, CellCulturalDiscovery> DiscoveriesToFind = new Dictionary<string, CellCulturalDiscovery> ();
 
+	private HashSet<CellCulturalPreference> _preferencesToLose = new HashSet<CellCulturalPreference> ();
 	private HashSet<CellCulturalActivity> _activitiesToLose = new HashSet<CellCulturalActivity> ();
 	private HashSet<CellCulturalSkill> _skillsToLose = new HashSet<CellCulturalSkill> ();
 	private HashSet<CellCulturalKnowledge> _knowledgesToLose = new HashSet<CellCulturalKnowledge> ();
@@ -39,26 +42,41 @@ public class CellCulture : Culture {
 
 		Group = group;
 
-		sourceCulture.Activities.ForEach (a => AddActivity (CellCulturalActivity.CreateCellInstance (group, a)));
-		sourceCulture.Skills.ForEach (s => AddSkill (CellCulturalSkill.CreateCellInstance (group, s)));
+		foreach (CulturalPreference p in sourceCulture.Preferences) {
+			AddPreference (CellCulturalPreference.CreateCellInstance (group, p));
+		}
 
-		sourceCulture.Knowledges.ForEach (k => {
+		foreach (CulturalActivity a in sourceCulture.Activities) {
+			AddActivity (CellCulturalActivity.CreateCellInstance (group, a));
+		}
 
+		foreach (CulturalSkill s in sourceCulture.Skills) {
+			AddSkill (CellCulturalSkill.CreateCellInstance (group, s));
+		}
+
+		foreach (CulturalKnowledge k in sourceCulture.Knowledges) {
 			CellCulturalKnowledge knowledge = CellCulturalKnowledge.CreateCellInstance (group, k);
 
 			AddKnowledge (knowledge);
 
 			knowledge.CalculateAsymptote ();
-		});
+		}
 
-		sourceCulture.Discoveries.ForEach (d => {
-			
+		foreach (CulturalDiscovery d in sourceCulture.Discoveries) {
 			AddDiscovery (CellCulturalDiscovery.CreateCellInstance (d));
 
 			foreach (CellCulturalKnowledge knowledge in Knowledges) {
 				knowledge.CalculateAsymptote (d);
 			}
-		});
+		}
+	}
+
+	public void AddPreferenceToAcquire (CellCulturalPreference preference) {
+
+		if (PreferencesToAcquire.ContainsKey (preference.Id))
+			return;
+
+		PreferencesToAcquire.Add (preference.Id, preference);
 	}
 
 	public void AddActivityToPerform (CellCulturalActivity activity) {
@@ -91,6 +109,19 @@ public class CellCulture : Culture {
 			return;
 		
 		DiscoveriesToFind.Add (discovery.Id, discovery);
+	}
+
+	public CellCulturalPreference GetAcquiredPerferenceOrToAcquire (string id) {
+
+		CellCulturalPreference preference = GetPreference (id) as CellCulturalPreference;
+
+		if (preference != null)
+			return preference;
+
+		if (PreferencesToAcquire.TryGetValue (id, out preference))
+			return preference;
+
+		return null;
 	}
 
 	public CellCulturalActivity GetPerformedActivityOrToPerform (string id) {
@@ -154,6 +185,20 @@ public class CellCulture : Culture {
 		}
 		#endif
 
+		foreach (CulturalPreference p in sourceCulture.Preferences) {
+
+			CellCulturalPreference preference = GetAcquiredPerferenceOrToAcquire (p.Id);
+
+			if (preference == null) {
+				preference = CellCulturalPreference.CreateCellInstance (Group, p);
+				preference.ModifyValue (percentage);
+
+				AddPreferenceToAcquire (preference);
+			} else {
+				preference.Merge (p, percentage);
+			}
+		}
+
 		foreach (CulturalActivity a in sourceCulture.Activities) {
 
 			CellCulturalActivity activity = GetPerformedActivityOrToPerform (a.Id);
@@ -210,6 +255,17 @@ public class CellCulture : Culture {
 
 	public void Update (int timeSpan) {
 
+		#if DEBUG
+		if (Group.Cell.IsSelected) {
+			bool debug = true;
+		}
+		#endif
+
+		foreach (CellCulturalPreference preference in Preferences) {
+
+			preference.Update (timeSpan);
+		}
+
 		foreach (CellCulturalActivity activity in Activities) {
 
 			activity.Update (timeSpan);
@@ -229,6 +285,19 @@ public class CellCulture : Culture {
 	public void UpdatePolityCulturalInfluence (PolityInfluence polityInfluence, int timeSpan) {
 
 		PolityCulture polityCulture = polityInfluence.Polity.Culture;
+
+		foreach (CulturalPreference polityPreference in polityCulture.Preferences) {
+
+			CellCulturalPreference cellPreference = GetAcquiredPerferenceOrToAcquire (polityPreference.Id);
+
+			if (cellPreference == null) {
+
+				cellPreference = CellCulturalPreference.CreateCellInstance (Group, polityPreference, 0);
+				AddPreferenceToAcquire (cellPreference);
+			}
+
+			cellPreference.PolityCulturalInfluence (polityPreference, polityInfluence, timeSpan);
+		}
 
 		foreach (CulturalActivity polityActivity in polityCulture.Activities) {
 
@@ -295,6 +364,10 @@ public class CellCulture : Culture {
 
 		bool discoveriesLost = false;
 
+		foreach (CellCulturalPreference p in _preferencesToLose) {
+			RemovePreference (p);
+		}
+
 		foreach (CellCulturalActivity a in _activitiesToLose) {
 			RemoveActivity (a);
 		}
@@ -322,6 +395,7 @@ public class CellCulture : Culture {
 			}
 		}
 
+		_preferencesToLose.Clear ();
 		_activitiesToLose.Clear ();
 		_skillsToLose.Clear ();
 		_knowledgesToLose.Clear ();
@@ -329,6 +403,11 @@ public class CellCulture : Culture {
 	}
 
 	public void PostUpdateAddAttributes () {
+
+		foreach (CellCulturalPreference preference in PreferencesToAcquire.Values) {
+
+			AddPreference (preference);
+		}
 
 		foreach (CellCulturalActivity activity in ActivitiesToPerform.Values) {
 
@@ -360,6 +439,7 @@ public class CellCulture : Culture {
 			}
 		}
 
+		PreferencesToAcquire.Clear ();
 		ActivitiesToPerform.Clear ();
 		SkillsToLearn.Clear ();
 		KnowledgesToLearn.Clear ();
@@ -367,6 +447,11 @@ public class CellCulture : Culture {
 	}
 
 	public void PostUpdateAttributeValues () {
+
+		foreach (CellCulturalPreference preference in Preferences) {
+
+			preference.PostUpdate ();
+		}
 
 		float totalActivityValue = 0;
 
@@ -467,6 +552,10 @@ public class CellCulture : Culture {
 	public override void FinalizeLoad () {
 
 		base.FinalizeLoad ();
+
+		foreach (CellCulturalPreference p in Preferences) {
+			p.Group = Group;
+		}
 
 		foreach (CellCulturalActivity a in Activities) {
 			a.Group = Group;

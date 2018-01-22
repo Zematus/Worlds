@@ -34,8 +34,11 @@ public static class RngOffsets {
 	public const int CELL_GROUP_GENERATE_INFLUENCE_TRANSFER_DIRECTION = 10;
 	public const int CELL_GROUP_GENERATE_CORE_MIGRATION_DIRECTION = 11;
 
-	public const int ACTIVITY_UPDATE = 10000;
-	public const int ACTIVITY_POLITY_INFLUENCE = 10001;
+	public const int PREFERENCE_UPDATE = 10000;
+	public const int PREFERENCE_POLITY_INFLUENCE = 10001;
+
+	public const int ACTIVITY_UPDATE = 11000;
+	public const int ACTIVITY_POLITY_INFLUENCE = 11001;
 
 	public const int KNOWLEDGE_MERGE = 20000;
 	public const int KNOWLEDGE_MODIFY_VALUE = 20001;
@@ -189,6 +192,7 @@ public class World : ISynchronizable {
 
 	public List<TerrainCellChanges> TerrainCellChangesList = new List<TerrainCellChanges> ();
 
+	public List<CulturalPreferenceInfo> CulturalPreferenceInfoList = new List<CulturalPreferenceInfo> ();
 	public List<CulturalActivityInfo> CulturalActivityInfoList = new List<CulturalActivityInfo> ();
 	public List<CulturalSkillInfo> CulturalSkillInfoList = new List<CulturalSkillInfo> ();
 	public List<CulturalKnowledgeInfo> CulturalKnowledgeInfoList = new List<CulturalKnowledgeInfo> ();
@@ -274,6 +278,7 @@ public class World : ISynchronizable {
 
 	private HashSet<int> _terrainCellChangesListIndexes = new HashSet<int> ();
 
+	private HashSet<string> _culturalPreferenceIdList = new HashSet<string> ();
 	private HashSet<string> _culturalActivityIdList = new HashSet<string> ();
 	private HashSet<string> _culturalSkillIdList = new HashSet<string> ();
 	private HashSet<string> _culturalKnowledgeIdList = new HashSet<string> ();
@@ -560,6 +565,15 @@ public class World : ISynchronizable {
 //	
 //		_groupActionsToPerform.Add (action);
 //	}
+
+	public void AddExistingCulturalPreferenceInfo (CulturalPreferenceInfo baseInfo) {
+
+		if (_culturalPreferenceIdList.Contains (baseInfo.Id))
+			return;
+
+		CulturalPreferenceInfoList.Add (new CulturalPreferenceInfo (baseInfo));
+		_culturalPreferenceIdList.Add (baseInfo.Id);
+	}
 
 	public void AddExistingCulturalActivityInfo (CulturalActivityInfo baseInfo) {
 
@@ -1461,10 +1475,25 @@ public class World : ISynchronizable {
 
 		// Segment 8
 
-		CulturalActivityInfoList.ForEach (a => _culturalActivityIdList.Add (a.Id));
-		CulturalSkillInfoList.ForEach (s => _culturalSkillIdList.Add (s.Id));
-		CulturalKnowledgeInfoList.ForEach (k => _culturalKnowledgeIdList.Add (k.Id));
-		CulturalDiscoveryInfoList.ForEach (d => _culturalDiscoveryIdList.Add (d.Id));
+		foreach (CulturalPreferenceInfo p in CulturalPreferenceInfoList) {
+			_culturalPreferenceIdList.Add (p.Id);
+		}
+
+		foreach (CulturalActivityInfo a in CulturalActivityInfoList) {
+			_culturalActivityIdList.Add (a.Id);
+		}
+
+		foreach (CulturalSkillInfo s in CulturalSkillInfoList) {
+			_culturalSkillIdList.Add (s.Id);
+		}
+
+		foreach (CulturalKnowledgeInfo k in CulturalKnowledgeInfoList) {
+			_culturalKnowledgeIdList.Add (k.Id);
+		}
+
+		foreach (CulturalDiscovery d in CulturalDiscoveryInfoList) {
+			_culturalDiscoveryIdList.Add (d.Id);
+		}
 	}
 
 	public void FinalizeLoad () {

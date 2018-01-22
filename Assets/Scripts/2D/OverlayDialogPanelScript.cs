@@ -17,6 +17,7 @@ public class OverlayDialogPanelScript : MonoBehaviour {
 
 	public Toggle PopDensityToggle;
 	public Toggle FarmlandToggle;
+	public Toggle PopCulturalPreferenceToggle;
 	public Toggle PopCulturalActivityToggle;
 	public Toggle PopCulturalSkillToggle;
 	public Toggle PopCulturalKnowledgeToggle;
@@ -25,6 +26,7 @@ public class OverlayDialogPanelScript : MonoBehaviour {
 	public Toggle TerritoriesToggle;
 	public Toggle DistancesToCoresToggle;
 	public Toggle InfluenceToggle;
+	public Toggle PolityCulturalPreferenceToggle;
 	public Toggle PolityCulturalActivityToggle;
 	public Toggle PolityCulturalSkillToggle;
 	public Toggle PolityCulturalKnowledgeToggle;
@@ -88,6 +90,7 @@ public class OverlayDialogPanelScript : MonoBehaviour {
 		if (!PopDataToggle.isOn) {
 			PopDensityToggle.isOn = false;
 			FarmlandToggle.isOn = false;
+			PopCulturalPreferenceToggle.isOn = false;
 			PopCulturalActivityToggle.isOn = false;
 			PopCulturalSkillToggle.isOn = false;
 			PopCulturalKnowledgeToggle.isOn = false;
@@ -98,6 +101,7 @@ public class OverlayDialogPanelScript : MonoBehaviour {
 			TerritoriesToggle.isOn = false;
 			DistancesToCoresToggle.isOn = false;
 			InfluenceToggle.isOn = false;
+			PolityCulturalPreferenceToggle.isOn = false;
 			PolityCulturalActivityToggle.isOn = false;
 			PolityCulturalSkillToggle.isOn = false;
 			PolityCulturalKnowledgeToggle.isOn = false;
@@ -126,6 +130,7 @@ public class OverlayDialogPanelScript : MonoBehaviour {
 		PopDataToggle.isOn = (
 			(Manager.PlanetOverlay == PlanetOverlay.PopDensity) ||
 			(Manager.PlanetOverlay == PlanetOverlay.FarmlandDistribution) ||
+			(Manager.PlanetOverlay == PlanetOverlay.PopCulturalPreference) ||
 			(Manager.PlanetOverlay == PlanetOverlay.PopCulturalActivity) ||
 			(Manager.PlanetOverlay == PlanetOverlay.PopCulturalSkill) ||
 			(Manager.PlanetOverlay == PlanetOverlay.PopCulturalKnowledge) ||
@@ -135,6 +140,7 @@ public class OverlayDialogPanelScript : MonoBehaviour {
 			(Manager.PlanetOverlay == PlanetOverlay.PolityTerritory) ||
 			(Manager.PlanetOverlay == PlanetOverlay.FactionCoreDistance) ||
 			(Manager.PlanetOverlay == PlanetOverlay.PolityInfluence) ||
+			(Manager.PlanetOverlay == PlanetOverlay.PolityCulturalPreference) ||
 			(Manager.PlanetOverlay == PlanetOverlay.PolityCulturalActivity) ||
 			(Manager.PlanetOverlay == PlanetOverlay.PolityCulturalSkill) ||
 			(Manager.PlanetOverlay == PlanetOverlay.PolityCulturalKnowledge) ||
@@ -154,6 +160,7 @@ public class OverlayDialogPanelScript : MonoBehaviour {
 
 		PopDensityToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.PopDensity);
 		FarmlandToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.FarmlandDistribution);
+		PopCulturalPreferenceToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.PopCulturalPreference);
 		PopCulturalActivityToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.PopCulturalActivity);
 		PopCulturalSkillToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.PopCulturalSkill);
 		PopCulturalKnowledgeToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.PopCulturalKnowledge);
@@ -162,6 +169,7 @@ public class OverlayDialogPanelScript : MonoBehaviour {
 		TerritoriesToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.PolityTerritory);
 		DistancesToCoresToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.FactionCoreDistance);
 		InfluenceToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.PolityInfluence);
+		PolityCulturalPreferenceToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.PolityCulturalPreference);
 		PolityCulturalActivityToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.PolityCulturalActivity);
 		PolityCulturalSkillToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.PolityCulturalSkill);
 		PolityCulturalKnowledgeToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.PolityCulturalKnowledge);

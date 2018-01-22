@@ -73,6 +73,8 @@ public class CellCulturalActivity : CulturalActivity {
 	[XmlIgnore]
 	public CellGroup Group;
 
+	private const float MaxChangeDelta = 0.1f;
+
 	private float _newValue;
 
 	public CellCulturalActivity () {
@@ -121,11 +123,9 @@ public class CellCulturalActivity : CulturalActivity {
 
 		TerrainCell groupCell = Group.Cell;
 
-		float changeSpeedFactor = 0.001f;
-
 		float randomModifier = groupCell.GetNextLocalRandomFloat (RngOffsets.ACTIVITY_UPDATE + RngOffset);
 		randomModifier = 1f - (randomModifier * 2f);
-		float randomFactor = changeSpeedFactor * randomModifier;
+		float randomFactor = MaxChangeDelta * randomModifier;
 
 		float maxTargetValue = 1f;
 		float minTargetValue = 0f;

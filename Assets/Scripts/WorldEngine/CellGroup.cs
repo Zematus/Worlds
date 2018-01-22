@@ -343,6 +343,7 @@ public class CellGroup : HumanGroup {
 			}
 		}
 
+		InitializeDefaultPreferences (initialGroup);
 		InitializeDefaultActivities (initialGroup);
 		InitializeDefaultSkills (initialGroup);
 		InitializeDefaultKnowledges (initialGroup);
@@ -458,6 +459,14 @@ public class CellGroup : HumanGroup {
 				return;
 
 			World.InsertEventToHappen (new PlantCultivationDiscoveryEvent (this, triggerDate));
+		}
+	}
+
+	public void InitializeDefaultPreferences (bool initialGroup) {
+
+		if (initialGroup) {
+			Culture.AddPreferenceToAcquire (CellCulturalPreference.CreateAuthorityPreference (this, 0.5f));
+			Culture.AddPreferenceToAcquire (CellCulturalPreference.CreateCohesivenessPreference (this, 0.5f));
 		}
 	}
 

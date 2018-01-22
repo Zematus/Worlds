@@ -39,27 +39,28 @@ public class PolityCulture : Culture {
 
 		CellCulture coreCulture = coreGroup.Culture;
 
-		coreCulture.Activities.ForEach (a => AddActivity (new CulturalActivity (a)));
-		coreCulture.Skills.ForEach (s => AddSkill (new CulturalSkill (s)));
+		foreach (CulturalPreference p in coreCulture.Preferences) {
+			AddPreference (new CulturalPreference (p));
+		}
 
-		coreCulture.Knowledges.ForEach (k => {
+		foreach (CulturalActivity a in coreCulture.Activities) {
+			AddActivity (new CulturalActivity (a));
+		}
+
+		foreach (CulturalSkill s in coreCulture.Skills) {
+			AddSkill (new CulturalSkill (s));
+		}
+
+		foreach (CulturalKnowledge k in coreCulture.Knowledges) {
 			PolityCulturalKnowledge knowledge = new PolityCulturalKnowledge (k);
 			AddKnowledge (knowledge);
+		}
 
-			#if DEBUG
-			if (float.IsNaN(knowledge.Value)) {
-
-				Debug.Break ();
-				throw new System.Exception ("Debug.Break");
-			}
-			#endif
-		});
-
-		coreCulture.Discoveries.ForEach (d => {
+		foreach (CulturalDiscovery d in coreCulture.Discoveries) {
 			PolityCulturalDiscovery discovery = new PolityCulturalDiscovery (d);
 			AddDiscovery (discovery);
 			discovery.PresenceCount++;
-		});
+		}
 
 		Language = coreCulture.Language;
 
@@ -129,8 +130,11 @@ public class PolityCulture : Culture {
 
 	private void ResetAttributeValues () {
 
-		foreach (CulturalActivity activity in Activities) {
+		foreach (CulturalPreference preference in Preferences) {
+			preference.Value = 0;
+		}
 
+		foreach (CulturalActivity activity in Activities) {
 			activity.Value = 0;
 			activity.Contribution = 0;
 		}
@@ -140,13 +144,11 @@ public class PolityCulture : Culture {
 		}
 
 		foreach (PolityCulturalKnowledge knowledge in Knowledges) {
-
 			knowledge.AggregateValue = 0;
 			knowledge.Value = 0;
 		}
 
 		foreach (PolityCulturalDiscovery discovery in Discoveries) {
-
 			discovery.PresenceCount = 0;
 		}
 	}
@@ -168,6 +170,11 @@ public class PolityCulture : Culture {
 
 		if (Polity.InfluencedGroups.Count <= 0)
 			return;
+
+		foreach (CulturalPreference preference in Preferences) {
+
+			preference.Value = MathUtility.RoundToSixDecimals(Mathf.Clamp01 (preference.Value/_totalGroupInfluenceValue));
+		}
 
 		foreach (CulturalActivity activity in Activities) {
 
@@ -231,6 +238,23 @@ public class PolityCulture : Culture {
 		if (influenceValue <= 0) {
 
 			throw new System.Exception ("Polity [" + Polity.Id + "] has influence value of " + influenceValue + " in Group [" + group.Id + "]. Current Date: " + World.CurrentDate);
+		}
+
+		foreach (CulturalPreference groupPreference in group.Culture.Preferences) {
+
+			CulturalPreference preference = GetPreference (groupPreference.Id);
+
+			if (preference == null) {
+
+				preference = new CulturalPreference (groupPreference);
+				preference.Value *= influenceValue;
+
+				AddPreference (preference);
+
+			} else {
+
+				preference.Value += groupPreference.Value * influenceValue;
+			}
 		}
 
 		foreach (CulturalActivity groupActivity in group.Culture.Activities) {

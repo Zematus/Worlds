@@ -7,6 +7,7 @@ using System.Xml.Serialization;
 
 // Agent Attributes
 // -- Charisma
+// -- Wisdom
 
 public class Agent : ISynchronizable {
 
@@ -21,8 +22,11 @@ public class Agent : ISynchronizable {
 	[XmlAttribute("Fem")]
 	public bool IsFemale;
 
-	[XmlAttribute("Char")]
-	public int Charisma;
+	[XmlAttribute("Cha")]
+	public int BaseCharisma;
+
+	[XmlAttribute("Wis")]
+	public int BaseWisdom;
 
 	[XmlAttribute("GrpId")]
 	public long GroupId;
@@ -37,6 +41,25 @@ public class Agent : ISynchronizable {
 
 	[XmlIgnore]
 	public CellGroup Group;
+
+	public int Age {
+		get {
+			return World.CurrentDate - BirthDate;
+		}
+	}
+
+	public int Charisma {
+		get {
+			return BaseCharisma;
+		}
+	}
+
+	public int Wisdom {
+		get {
+			int wisdom = BaseWisdom + (Age - 35) / 5;
+			return (wisdom > 3) ? wisdom : 3;
+		}
+	}
 
 	public Agent () {
 
@@ -75,7 +98,8 @@ public class Agent : ISynchronizable {
 		int rngOffset = RngOffsets.AGENT_GENERATE_BIO + (int)Group.Id;
 
 		IsFemale = Group.GetLocalRandomFloat (BirthDate, rngOffset++) > 0.5f;
-		Charisma = 3 + Group.GetLocalRandomInt (BirthDate, rngOffset++, 18);
+		BaseCharisma = 3 + Group.GetLocalRandomInt (BirthDate, rngOffset++, 18);
+		BaseWisdom = 3 + Group.GetLocalRandomInt (BirthDate, rngOffset++, 18);
 	}
 
 	private void GenerateNameFromElement (Element element, GetRandomIntDelegate getRandomInt) {
