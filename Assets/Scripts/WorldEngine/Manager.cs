@@ -2000,7 +2000,7 @@ public class Manager {
 			}
 		}
 
-		if ((population > 0) && (activityContribution >= 0.001)) {
+		if ((population > 0) && (activityContribution > 0)) {
 
 			float value = 0.05f + 0.95f * activityContribution;
 
@@ -2044,9 +2044,6 @@ public class Manager {
 		float activityContribution = 0;
 
 		activityContribution = activity.Contribution;
-
-		if (activityContribution < 0.001f)
-			return color;
 
 		float value = 0.05f + 0.95f * activityContribution;
 

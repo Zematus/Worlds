@@ -85,7 +85,7 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
 	[XmlIgnore]
 	public CellGroup Group;
 
-	private int _newValue;
+	protected int _newValue;
 
 	public float ScaledAsymptote {
 		get { return Asymptote * ValueScaleFactor; }
@@ -259,7 +259,9 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
 
 		TerrainCell groupCell = Group.Cell;
 
-		float randomModifier = groupCell.GetNextLocalRandomFloat (RngOffsets.KNOWLEDGE_UPDATE_VALUE_INTERNAL + RngOffset);
+		int rngOffset = RngOffsets.KNOWLEDGE_UPDATE_VALUE_INTERNAL + RngOffset;
+
+		float randomModifier = groupCell.GetNextLocalRandomFloat (rngOffset++);
 		randomModifier *= randomModifier;
 		float randomFactor = specificModifier - randomModifier;
 		randomFactor = Mathf.Clamp (randomFactor, -1, 1);
@@ -279,7 +281,7 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
 		float d;
 		int newValue = (int)MathUtility.MergeAndGetDecimals (Value, targetValue, timeEffect, out d);
 
-		if (d > Group.GetNextLocalRandomFloat (RngOffsets.KNOWLEDGE_UPDATE_VALUE_INTERNAL_2 + RngOffset))
+		if (d > Group.GetNextLocalRandomFloat (rngOffset++))
 			newValue++;
 
 		#if DEBUG
@@ -301,35 +303,33 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
 
 	protected void PolityCulturalInfluenceInternal (CulturalKnowledge polityKnowledge, PolityInfluence polityInfluence, int timeSpan, float timeEffectFactor) {
 
-		float targetValue = polityKnowledge.Value;
+		#if DEBUG
+		if (Group.Cell.IsSelected) {
+			bool debug = true;
+		}
+		#endif
+
+		int rngOffset = RngOffsets.KNOWLEDGE_POLITY_INFLUENCE + RngOffset + (int)polityInfluence.PolityId;
+
+		int targetValue = polityKnowledge.Value;
 		float influenceEffect = polityInfluence.Value;
 
 		TerrainCell groupCell = Group.Cell;
 
-		float randomEffect = groupCell.GetNextLocalRandomFloat (RngOffsets.KNOWLEDGE_POLITY_INFLUENCE + RngOffset + (int)polityInfluence.PolityId);
+		float randomEffect = groupCell.GetNextLocalRandomFloat (rngOffset++);
 
 		float timeEffect = timeSpan / (float)(timeSpan + timeEffectFactor);
 
+		int valueDelta = targetValue - _newValue;
+
 		float d;
 		// _newvalue should have been set correctly either by the constructor or by the Update function
-		int valueChange = (int)MathUtility.MultiplyAndGetDecimals (targetValue - _newValue, influenceEffect * timeEffect * randomEffect, out d);
+		int valueChange = (int)MathUtility.MultiplyAndGetDecimals (valueDelta, influenceEffect * timeEffect * randomEffect, out d);
 
-		if (d > Group.GetNextLocalRandomFloat (RngOffsets.KNOWLEDGE_POLITY_INFLUENCE_2 + RngOffset + (int)polityInfluence.PolityId))
+		if (d > Group.GetNextLocalRandomFloat (rngOffset++))
 			valueChange++;
 
-		int newValue = _newValue + valueChange;
-
-		#if DEBUG
-		if ((Id == SocialOrganizationKnowledge.SocialOrganizationKnowledgeId) && (newValue < SocialOrganizationKnowledge.MinValueForHoldingTribalism)) {
-
-			if (Group.GetFactionCores ().Count > 0) {
-
-				Debug.LogWarning ("group with low social organization has faction cores - Id: " + Group.Id);
-			}
-		}
-		#endif
-
-		_newValue = newValue;
+		_newValue = _newValue + valueChange;
 	}
 
 	public void PostUpdate () {
@@ -502,8 +502,7 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge {
 	public override bool WillBeLost () {
 
 		if (Value < 100) {
-
-			return true;
+			return !Group.InfluencingPolityHasKnowledge (Id);
 		}
 
 		return false;
@@ -644,8 +643,7 @@ public class AgricultureKnowledge : CellCulturalKnowledge {
 	public override bool WillBeLost () {
 		
 		if (Value < 100) {
-		
-			return true;
+			return !Group.InfluencingPolityHasKnowledge (Id);
 		}
 
 		return false;
@@ -785,6 +783,15 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge {
 	public override void PolityCulturalInfluence (CulturalKnowledge polityKnowledge, PolityInfluence polityInfluence, int timeSpan) {
 
 		PolityCulturalInfluenceInternal (polityKnowledge, polityInfluence, timeSpan, TimeEffectConstant);
+
+		#if DEBUG
+		if (_newValue < SocialOrganizationKnowledge.MinValueForHoldingTribalism) {
+
+			if (Group.GetFactionCores ().Count > 0) {
+				Debug.LogWarning ("group with low social organization has faction cores - Id: " + Group.Id);
+			}
+		}
+		#endif
 
 		TryGenerateTribalismDiscoveryEvent ();
 	}

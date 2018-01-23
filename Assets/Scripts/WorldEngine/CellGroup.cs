@@ -817,6 +817,12 @@ public class CellGroup : HumanGroup {
 //		}
 //		#endif
 
+		#if DEBUG
+		if (Cell.IsSelected) {
+			bool debug = true;
+		}
+		#endif
+
 		_alreadyUpdated = false;
 
 		if (Population < 2) {
@@ -870,6 +876,17 @@ public class CellGroup : HumanGroup {
 	public void PostUpdate_AfterPolityUpdates () {
 
 		PostUpdatePolityInfluences_AfterPolityUpdates ();
+	}
+
+	public bool InfluencingPolityHasKnowledge(string id) {
+
+		foreach (PolityInfluence pi in _polityInfluences.Values) {
+			if (pi.Polity.Culture.GetKnowledge (id) != null) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	public void SetupForNextUpdate () {
@@ -1708,6 +1725,12 @@ public class CellGroup : HumanGroup {
 
 	public void Update () {
 
+		#if DEBUG
+		if (Cell.IsSelected) {
+			bool debug = true;
+		}
+		#endif
+
 		if (!StillPresent) {
 			Debug.LogWarning ("Group is no longer present");
 			return;
@@ -1994,16 +2017,17 @@ public class CellGroup : HumanGroup {
 
 		float farmingPopulation = GetActivityContribution (CellCulturalActivity.FarmingActivityId) * Population;
 
-		float workableArea = areaPerFarmWorker * farmingPopulation;
+		float maxWorkableArea = areaPerFarmWorker * farmingPopulation;
 
 		float availableArea = Cell.Area * terrainFactor;
 
 		float farmlandPercentage = 0;
 
-		if ((workableArea > 0) && (availableArea > 0)) {
+		if ((maxWorkableArea > 0) && (availableArea > 0)) {
 
-			float farmlandArea = workableArea * availableArea / (workableArea * availableArea);
-			farmlandPercentage = farmlandArea / Cell.Area;
+			float farmlandPercentageAvailableArea = maxWorkableArea / (maxWorkableArea + availableArea);
+
+			farmlandPercentage = farmlandPercentageAvailableArea * terrainFactor;
 		}
 
 		Cell.FarmlandPercentage = farmlandPercentage;

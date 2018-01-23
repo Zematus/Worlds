@@ -284,6 +284,12 @@ public class CellCulture : Culture {
 
 	public void UpdatePolityCulturalInfluence (PolityInfluence polityInfluence, int timeSpan) {
 
+		#if DEBUG
+		if (Group.Cell.IsSelected) {
+			bool debug = true;
+		}
+		#endif
+
 		PolityCulture polityCulture = polityInfluence.Polity.Culture;
 
 		foreach (CulturalPreference polityPreference in polityCulture.Preferences) {
@@ -403,6 +409,12 @@ public class CellCulture : Culture {
 	}
 
 	public void PostUpdateAddAttributes () {
+
+		#if DEBUG
+		if (Group.Cell.IsSelected) {
+			bool debug = true;
+		}
+		#endif
 
 		foreach (CellCulturalPreference preference in PreferencesToAcquire.Values) {
 

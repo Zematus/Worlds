@@ -2276,16 +2276,13 @@ public class GuiManagerScript : MonoBehaviour {
 
 			float activityContribution = activity.Contribution;
 
-			if (activityContribution >= 0.001) {
+			if (firstActivity) {
+				InfoPanelScript.InfoText.text += "\nActivities:";
 
-				if (firstActivity) {
-					InfoPanelScript.InfoText.text += "\nActivities:";
-
-					firstActivity = false;
-				}
-
-				InfoPanelScript.InfoText.text += "\n\t" + activity.Name + " Contribution: " + activity.Contribution.ToString ("P");
+				firstActivity = false;
 			}
+
+			InfoPanelScript.InfoText.text += "\n\t" + activity.Name + " Contribution: " + activity.Contribution.ToString ("P");
 		}
 	}
 
@@ -2353,18 +2350,15 @@ public class GuiManagerScript : MonoBehaviour {
 
 		foreach (CulturalActivity activity in cell.Group.Culture.Activities) {
 
-			float activityContribution = activity.Contribution;
+		float activityContribution = activity.Contribution;
 
-			if (activityContribution >= 0.001) {
+			if (firstActivity) {
+				InfoPanelScript.InfoText.text += "\nActivities:";
 
-				if (firstActivity) {
-					InfoPanelScript.InfoText.text += "\nActivities:";
-
-					firstActivity = false;
-				}
-
-				InfoPanelScript.InfoText.text += "\n\t" + activity.Name + " Contribution: " + activity.Contribution.ToString ("P");
+				firstActivity = false;
 			}
+
+			InfoPanelScript.InfoText.text += "\n\t" + activity.Name + " Contribution: " + activity.Contribution.ToString ("P");
 		}
 	}
 
@@ -2851,7 +2845,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 		CulturalActivity activity = polity.Culture.GetActivity (_planetOverlaySubtype);
 
-		if ((activity != null) && (activity.Contribution >= 0.001)) {
+		if (activity != null) {
 			InfoTooltipScript.DisplayTip (activity.Name + " Contribution: " + activity.Contribution.ToString ("P"), position, fadeStart);
 		} else {
 			InfoTooltipScript.SetVisible (false);

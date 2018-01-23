@@ -73,7 +73,7 @@ public class CellCulturalActivity : CulturalActivity {
 	[XmlIgnore]
 	public CellGroup Group;
 
-	private const float MaxChangeDelta = 0.1f;
+	private const float MaxChangeDelta = 0.2f;
 
 	private float _newValue;
 
@@ -121,6 +121,12 @@ public class CellCulturalActivity : CulturalActivity {
 
 	public void Update (int timeSpan) {
 
+		#if DEBUG
+		if (Group.Cell.IsSelected) {
+			bool debug = true;
+		}
+		#endif
+
 		TerrainCell groupCell = Group.Cell;
 
 		float randomModifier = groupCell.GetNextLocalRandomFloat (RngOffsets.ACTIVITY_UPDATE + RngOffset);
@@ -143,6 +149,12 @@ public class CellCulturalActivity : CulturalActivity {
 	}
 
 	public void PolityCulturalInfluence (CulturalActivity polityActivity, PolityInfluence polityInfluence, int timeSpan) {
+
+		#if DEBUG
+		if (Group.Cell.IsSelected) {
+			bool debug = true;
+		}
+		#endif
 
 		float targetValue = polityActivity.Value;
 		float influenceEffect = polityInfluence.Value;
