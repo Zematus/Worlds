@@ -43,6 +43,8 @@ public abstract class Faction : ISynchronizable {
 	[XmlAttribute("IsCon")]
 	public bool IsControlled = false;
 
+	public FactionCulture Culture;
+
 	protected CellGroup _splitFactionCoreGroup;
 
 	public Name Name = null;
@@ -103,6 +105,8 @@ public abstract class Faction : ISynchronizable {
 		CoreGroupId = coreGroup.Id;
 
 		Id = GenerateUniqueIdentifier (World.CurrentDate, 100L, idOffset);
+
+		Culture = new FactionCulture (this);
 
 		CoreGroup.AddFactionCore (this);
 
@@ -192,6 +196,8 @@ public abstract class Faction : ISynchronizable {
 
 		RequestCurrentLeader ();
 
+		Culture.Update ();
+
 		UpdateInternal ();
 
 		LastUpdateDate = World.CurrentDate;
@@ -250,6 +256,8 @@ public abstract class Faction : ISynchronizable {
 
 		Flags = new List<string> (_flags);
 
+		Culture.Synchronize ();
+
 		Name.Synchronize ();
 	}
 
@@ -265,6 +273,10 @@ public abstract class Faction : ISynchronizable {
 		if (Polity == null) {
 			throw new System.Exception ("Missing Polity with Id " + PolityId);
 		}
+
+		Culture.World = World;
+		Culture.Faction = this;
+		Culture.FinalizeLoad ();
 
 		Flags.ForEach (f => _flags.Add (f));
 

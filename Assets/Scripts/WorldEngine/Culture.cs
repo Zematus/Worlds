@@ -111,6 +111,12 @@ public class Culture : ISynchronizable {
 		RemovePreference (preference);
 	}
 
+	public void ClearPreferences () {
+
+		Preferences.Clear ();
+		_preferences.Clear ();
+	}
+
 	protected void AddActivity (CulturalActivity activity) {
 
 		if (_activities.ContainsKey (activity.Id))
@@ -140,6 +146,12 @@ public class Culture : ISynchronizable {
 
 		RemoveActivity (activity);
 	}
+
+	public void ClearActivities () {
+
+		Activities.Clear ();
+		_activities.Clear ();
+	}
 	
 	protected void AddSkill (CulturalSkill skill) {
 
@@ -159,6 +171,12 @@ public class Culture : ISynchronizable {
 
 		Skills.Remove (skill);
 		_skills.Remove (skill.Id);
+	}
+
+	public void ClearSkills () {
+
+		Skills.Clear ();
+		_skills.Clear ();
 	}
 	
 	protected void AddKnowledge (CulturalKnowledge knowledge) {
@@ -180,6 +198,12 @@ public class Culture : ISynchronizable {
 		Knowledges.Remove (knowledge);
 		_knowledges.Remove (knowledge.Id);
 	}
+
+	public void ClearKnowledges () {
+
+		Knowledges.Clear ();
+		_knowledges.Clear ();
+	}
 	
 	protected void AddDiscovery (CulturalDiscovery discovery) {
 		
@@ -199,6 +223,12 @@ public class Culture : ISynchronizable {
 
 		Discoveries.Remove (discovery);
 		_discoveries.Remove (discovery.Id);
+	}
+
+	public void ClearDiscoveries () {
+
+		Discoveries.Clear ();
+		_discoveries.Clear ();
 	}
 
 	public CulturalPreference GetPreference (string id) {
@@ -249,6 +279,15 @@ public class Culture : ISynchronizable {
 			return null;
 		
 		return discovery;
+	}
+
+	public void ClearAttributes () {
+
+		ClearPreferences ();
+		ClearActivities ();
+		ClearSkills ();
+		ClearKnowledges ();
+		ClearDiscoveries ();
 	}
 
 	public virtual void Synchronize () {

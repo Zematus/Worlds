@@ -10,9 +10,6 @@ public class PolityCulture : Culture {
 	[XmlIgnore]
 	public Polity Polity;
 
-	[XmlIgnore]
-	private float _totalGroupInfluenceValue;
-
 	public PolityCulture () {
 	
 	}
@@ -21,17 +18,6 @@ public class PolityCulture : Culture {
 
 		Polity = polity;
 
-		#if DEBUG
-		if (World.SelectedCell != null && 
-			World.SelectedCell.Group != null) {
-
-			if (World.SelectedCell.Group.GetPolityInfluenceValue (Polity) > 0) {
-
-				Debug.Log ("Debug Selected");
-			}
-		}
-		#endif
-
 		CellGroup coreGroup = Polity.CoreGroup;
 
 		if (coreGroup == null)
@@ -39,40 +25,14 @@ public class PolityCulture : Culture {
 
 		CellCulture coreCulture = coreGroup.Culture;
 
-		foreach (CulturalPreference p in coreCulture.Preferences) {
-			AddPreference (new CulturalPreference (p));
-		}
-
-		foreach (CulturalActivity a in coreCulture.Activities) {
-			AddActivity (new CulturalActivity (a));
-		}
-
-		foreach (CulturalSkill s in coreCulture.Skills) {
-			AddSkill (new CulturalSkill (s));
-		}
-
-		foreach (CulturalKnowledge k in coreCulture.Knowledges) {
-			PolityCulturalKnowledge knowledge = new PolityCulturalKnowledge (k);
-			AddKnowledge (knowledge);
-		}
-
-		foreach (CulturalDiscovery d in coreCulture.Discoveries) {
-			PolityCulturalDiscovery discovery = new PolityCulturalDiscovery (d);
-			AddDiscovery (discovery);
-			discovery.PresenceCount++;
-		}
-
 		Language = coreCulture.Language;
 
 		if (Language == null) {
-		
+
 			GenerateNewLanguage ();
 		}
-	}
 
-	public float GetNextRandomFloat (int rngOffset) {
-
-		return Polity.GetNextLocalRandomFloat (rngOffset);
+		AddFactionCultures ();
 	}
 
 	private void GenerateNewLanguage () {
@@ -121,207 +81,103 @@ public class PolityCulture : Culture {
 
 	public void Update () {
 
-		ResetAttributeValues ();
+		ClearAttributes ();
 
-		AddGroupCultures ();
-
-		NormalizeAttributeValues ();
+		AddFactionCultures ();
 	}
 
-	private void ResetAttributeValues () {
+	private void AddFactionCultures () {
 
-		foreach (CulturalPreference preference in Preferences) {
-			preference.Value = 0;
-		}
-
-		foreach (CulturalActivity activity in Activities) {
-			activity.Value = 0;
-			activity.Contribution = 0;
-		}
-
-		foreach (CulturalSkill skill in Skills) {
-			skill.Value = 0;
-		}
-
-		foreach (PolityCulturalKnowledge knowledge in Knowledges) {
-			knowledge.AggregateValue = 0;
-			knowledge.Value = 0;
-		}
-
-		foreach (PolityCulturalDiscovery discovery in Discoveries) {
-			discovery.PresenceCount = 0;
-		}
-	}
-
-	private void NormalizeAttributeValues () {
-
-//		#if DEBUG
-//		if (Manager.RegisterDebugEvent != null) {
-//			Manager.RegisterDebugEvent ("DebugMessage", 
-//				"NormalizeAttributeValues - Polity:" + Polity.Id + 
-//				", CurrentDate: " + World.CurrentDate + 
-//				", Activities.Count: " + Activities.Count + 
-//				", Skills.Count: " + Skills.Count + 
-//				", Knowledges.Count: " + Knowledges.Count + 
-//				", Polity.TotalGroupInfluenceValue: " + Polity.TotalGroupInfluenceValue + 
-//				"");
-//		}
-//		#endif
-
-		if (Polity.InfluencedGroups.Count <= 0)
-			return;
-
-		foreach (CulturalPreference preference in Preferences) {
-
-			preference.Value = MathUtility.RoundToSixDecimals(Mathf.Clamp01 (preference.Value/_totalGroupInfluenceValue));
-		}
-
-		foreach (CulturalActivity activity in Activities) {
-
-			activity.Value = MathUtility.RoundToSixDecimals(Mathf.Clamp01 (activity.Value/_totalGroupInfluenceValue));
-			activity.Contribution = MathUtility.RoundToSixDecimals(Mathf.Clamp01 (activity.Contribution/_totalGroupInfluenceValue));
-		}
-
-		foreach (CulturalSkill skill in Skills) {
-
-			float realValue = skill.Value / _totalGroupInfluenceValue;
-
-			#if DEBUG
-			if ((realValue > 1.1f) || (realValue < -0.1f)) {
-				throw new System.Exception ("Polity Skill value way out of bounds (-0.1f,1.1f): " + realValue);
-			}
-			#endif
-
-			skill.Value = MathUtility.RoundToSixDecimals(Mathf.Clamp01(realValue));
-		}
-
-		foreach (PolityCulturalKnowledge knowledge in Knowledges) {
-
-
-			float d;
-			int newValue = (int)MathUtility.DivideAndGetDecimals (knowledge.AggregateValue, _totalGroupInfluenceValue, out d);
-
-			if (d > GetNextRandomFloat (RngOffsets.POLITY_CULTURE_NORMALIZE_ATTRIBUTE_VALUES))
-				newValue++;
-
-			knowledge.Value = newValue;
-		}
-	}
-
-	private void AddGroupCultures () {
-
-		_totalGroupInfluenceValue = 0;
-
-		foreach (CellGroup group in Polity.InfluencedGroups.Values) {
+		foreach (Faction faction in Polity.GetFactions ()) {
 		
-			AddGroupCulture (group);
+			AddFactionCulture (faction);
 		}
 	}
 
-	private void AddGroupCulture (CellGroup group) {
+	private void AddFactionCulture (Faction faction) {
 
-//		#if DEBUG
-//		if (World.SelectedCell != null && 
-//			World.SelectedCell.Group != null) {
-//
-//			if (World.SelectedCell.Group.GetPolityInfluenceValue (Polity) > 0) {
-//
-//				Debug.Log ("Debug Selected");
-//			}
-//		}
-//		#endif
+		float prominence = faction.Prominence;
 
-		float influenceValue = group.GetPolityInfluenceValue (Polity);
+		foreach (CulturalPreference p in faction.Culture.Preferences) {
 
-		_totalGroupInfluenceValue += influenceValue;
-
-		if (influenceValue <= 0) {
-
-			throw new System.Exception ("Polity [" + Polity.Id + "] has influence value of " + influenceValue + " in Group [" + group.Id + "]. Current Date: " + World.CurrentDate);
-		}
-
-		foreach (CulturalPreference groupPreference in group.Culture.Preferences) {
-
-			CulturalPreference preference = GetPreference (groupPreference.Id);
+			CulturalPreference preference = GetPreference (p.Id);
 
 			if (preference == null) {
 
-				preference = new CulturalPreference (groupPreference);
-				preference.Value *= influenceValue;
+				preference = new CulturalPreference (p);
+				preference.Value *= prominence;
 
 				AddPreference (preference);
 
 			} else {
 
-				preference.Value += groupPreference.Value * influenceValue;
+				preference.Value += p.Value * prominence;
 			}
 		}
 
-		foreach (CulturalActivity groupActivity in group.Culture.Activities) {
+		foreach (CulturalActivity a in faction.Culture.Activities) {
 		
-			CulturalActivity activity = GetActivity (groupActivity.Id);
+			CulturalActivity activity = GetActivity (a.Id);
 
 			if (activity == null) {
 			
-				activity = new CulturalActivity (groupActivity);
-				activity.Value *= influenceValue;
-				activity.Contribution *= influenceValue;
+				activity = new CulturalActivity (a);
+				activity.Value *= prominence;
+				activity.Contribution *= prominence;
 
 				AddActivity (activity);
 
 			} else {
 			
-				activity.Value += groupActivity.Value * influenceValue;
-				activity.Contribution += groupActivity.Contribution * influenceValue;
+				activity.Value += a.Value * prominence;
+				activity.Contribution += a.Contribution * prominence;
 			}
 		}
 
-		foreach (CulturalSkill groupSkill in group.Culture.Skills) {
+		foreach (CulturalSkill s in faction.Culture.Skills) {
 
-			CulturalSkill skill = GetSkill (groupSkill.Id);
+			CulturalSkill skill = GetSkill (s.Id);
 
 			if (skill == null) {
 
-				skill = new CulturalSkill (groupSkill);
-				skill.Value *= influenceValue;
+				skill = new CulturalSkill (s);
+				skill.Value *= prominence;
 
 				AddSkill (skill);
 
 			} else {
 
-				skill.Value += groupSkill.Value * influenceValue;
+				skill.Value += s.Value * prominence;
 			}
 		}
 
-		foreach (CulturalKnowledge groupKnowledge in group.Culture.Knowledges) {
+		foreach (CulturalKnowledge k in faction.Culture.Knowledges) {
 
-			PolityCulturalKnowledge knowledge = GetKnowledge (groupKnowledge.Id) as PolityCulturalKnowledge;
+			CulturalKnowledge knowledge = GetKnowledge (k.Id);
 
 			if (knowledge == null) {
 
-				knowledge = new PolityCulturalKnowledge (groupKnowledge);
-				knowledge.AggregateValue = groupKnowledge.Value * influenceValue;
+				knowledge = new CulturalKnowledge (k);
+				knowledge.Value = (int)(k.Value * prominence);
 
 				AddKnowledge (knowledge);
 
 			} else {
 				
-				knowledge.AggregateValue += groupKnowledge.Value * influenceValue;
+				knowledge.Value += (int)(k.Value * prominence);
 			}
 		}
 
-		foreach (CulturalDiscovery groupDiscovery in group.Culture.Discoveries) {
+		foreach (CulturalDiscovery groupDiscovery in faction.Culture.Discoveries) {
 
-			PolityCulturalDiscovery discovery = GetDiscovery (groupDiscovery.Id) as PolityCulturalDiscovery;
+			CulturalDiscovery discovery = GetDiscovery (groupDiscovery.Id) as CulturalDiscovery;
 
 			if (discovery == null) {
 
-				discovery = new PolityCulturalDiscovery (groupDiscovery);
+				discovery = new CulturalDiscovery (groupDiscovery);
 
 				AddDiscovery (discovery);
 			}
-
-			discovery.PresenceCount++;
 		}
 	}
 }

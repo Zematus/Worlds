@@ -512,34 +512,17 @@ public abstract class Polity : ISynchronizable {
 		}
 		#endif
 
-		Profiler.BeginSample ("Update Internal");
-
-		UpdateInternal ();
-
-		Profiler.EndSample ();
-
 		Profiler.BeginSample ("Update Culture");
 	
 		Culture.Update ();
 
 		Profiler.EndSample ();
 
-//		if (!_coreGroupIsValid) {
-//
-//			if (!TryRelocateCore ()) {
-//
-//				// We were unable to find a new core for the polity
-//				World.AddPolityToRemove (this);
-//
-//				#if DEBUG
-//				_populationCensusUpdated = false;
-//				#endif
-//
-//				return;
-//			}
-//
-//			_coreGroupIsValid = true;
-//		}
+		Profiler.BeginSample ("Update Internal");
+
+		UpdateInternal ();
+
+		Profiler.EndSample ();
 
 		#if DEBUG
 		_populationCensusUpdated = false;
@@ -849,21 +832,6 @@ public abstract class Polity : ISynchronizable {
 			throw new System.Exception ("Modified survivability greater than 1: " + survivability);
 		}
 	}
-
-//	// TODO: This function should be overriden in children
-//	public virtual bool TryRelocateCore () {
-//
-//		CellGroup mostInfluencedPopGroup = GetGroupWithMostInfluencedPop ();
-//
-//		if (mostInfluencedPopGroup == null) {
-//
-//			return false;
-//		}
-//
-//		SetCoreGroup (mostInfluencedPopGroup);
-//
-//		return true;
-//	}
 
 	public void UpdateTotalAdministrativeCost () {
 

@@ -59,15 +59,17 @@ public static class RngOffsets {
 	public const int TRIBE_GENERATE_NEW_TRIBE = 70000;
 	public const int TRIBE_GENERATE_NAME = 71000;
 
-	public const int FACTION_CALCULATE_NEXT_UPDATE = 80500;
+	public const int FACTION_CALCULATE_NEXT_UPDATE = 80000;
 
-	public const int CLAN_GENERATE_NAME = 80000;
-	public const int CLAN_CHOOSE_CORE_GROUP = 81000;
-	public const int CLAN_CHOOSE_TARGET_GROUP = 82000;
-	public const int CLAN_LEADER_GEN_OFFSET = 83000;
-	public const int CLAN_SHOULD_SPLIT = 84000;
-	public const int CLAN_PREFER_SPLIT = 84500;
-	public const int CLAN_SPLIT = 85000;
+	public const int FACTION_CULTURE_DISCOVER_LOSS_CHANCE = 80500;
+
+	public const int CLAN_GENERATE_NAME = 85000;
+	public const int CLAN_CHOOSE_CORE_GROUP = 85100;
+	public const int CLAN_CHOOSE_TARGET_GROUP = 85200;
+	public const int CLAN_LEADER_GEN_OFFSET = 85300;
+	public const int CLAN_SHOULD_SPLIT = 85400;
+	public const int CLAN_PREFER_SPLIT = 85500;
+	public const int CLAN_SPLIT = 85600;
 
 	public const int AGENT_GENERATE_BIO = 90000;
 	public const int AGENT_GENERATE_NAME = 91000;
