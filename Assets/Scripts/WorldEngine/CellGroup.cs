@@ -3516,6 +3516,7 @@ public class TribeFormationEvent : CellGroupEvent {
 		Territory encompassingTerritory = Group.Cell.EncompassingTerritory;
 
 		Tribe tribe = new Tribe (Group);
+		tribe.Initialize ();
 
 		World.AddPolity (tribe);
 		World.AddPolityToUpdate (tribe);

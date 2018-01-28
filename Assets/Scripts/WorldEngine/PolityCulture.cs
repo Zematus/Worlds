@@ -31,7 +31,10 @@ public class PolityCulture : Culture {
 
 			GenerateNewLanguage ();
 		}
+	}
 
+	public void Initialize () {
+	
 		AddFactionCultures ();
 	}
 

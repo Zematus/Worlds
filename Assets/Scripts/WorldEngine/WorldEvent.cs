@@ -517,6 +517,7 @@ public class TribalismDiscoveryEvent : DiscoveryEvent {
 		if (Group.GetPolityInfluencesCount () <= 0) {
 
 			newTribe = new Tribe (Group);
+			newTribe.Initialize ();
 
 			World.AddPolity (newTribe);
 			World.AddPolityToUpdate (newTribe);

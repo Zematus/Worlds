@@ -344,7 +344,7 @@ public class CellCulture : Culture {
 			cellKnowledge.PolityCulturalInfluence (polityKnowledge, polityInfluence, timeSpan);
 		}
 
-		foreach (PolityCulturalDiscovery polityDiscovery in polityCulture.Discoveries) {
+		foreach (CulturalDiscovery polityDiscovery in polityCulture.Discoveries) {
 
 			CellCulturalDiscovery cellDiscovery = GetFoundDiscoveryOrToFind (polityDiscovery.Id);
 

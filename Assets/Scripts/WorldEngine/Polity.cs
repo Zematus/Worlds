@@ -225,6 +225,15 @@ public abstract class Polity : ISynchronizable {
 //		#endif
 	}
 
+	public void Initialize () {
+	
+		Culture.Initialize ();
+
+		InitializeInternal ();
+	}
+
+	public abstract void InitializeInternal ();
+
 	public void Destroy () {
 
 		List<Faction> factions = new List<Faction> (_factions.Values);
