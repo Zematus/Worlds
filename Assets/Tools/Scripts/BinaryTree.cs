@@ -2,6 +2,9 @@
 using System.Collections;
 using System.Collections.Generic;
 
+public delegate bool FilterNodeDelegate<TKey, TValue> (BinaryTreeNode<TKey, TValue> node);
+public delegate void FilterNodeEffectDelegate<TKey, TValue>  (BinaryTreeNode<TKey, TValue> node);
+
 public class BinaryTreeNode<TKey, TValue> {
 
 	public BinaryTreeNode<TKey, TValue> Parent { get; set; }
@@ -12,7 +15,32 @@ public class BinaryTreeNode<TKey, TValue> {
 	public TKey Key { get; set; }
 	public TValue Value { get; set; }
 
+	public bool Valid { get; set; }
+
 	public bool Marked { get; set; }
+
+	public bool MarkedForRemoval { get; set; }
+
+	public BinaryTreeNode (TKey key, TValue value) {
+
+		Initialize (key, value);
+	}
+
+	public void Initialize (TKey key, TValue value) {
+
+		Key = key;
+		Value = value;
+
+		Parent = null;
+
+		Right = null;
+		Left = null;
+
+		Valid = true;
+
+		Marked = false;
+		MarkedForRemoval = false;
+	}
 }
 
 public class BinaryTree<TKey, TValue> {
@@ -20,6 +48,8 @@ public class BinaryTree<TKey, TValue> {
 	public IComparer<TKey> Comparer { get; set; }
 
 	public int Count { get; private set; }
+
+//	private Queue <BinaryTreeNode<TKey, TValue>> _freeNodes = new Queue<BinaryTreeNode<TKey, TValue>> (25);
 
 	private BinaryTreeNode<TKey, TValue> _rightmostItem = null;
 	private BinaryTreeNode<TKey, TValue> _leftmostItem = null;
@@ -63,16 +93,41 @@ public class BinaryTree<TKey, TValue> {
 		Comparer = comparer;
 	}
 
-	public void Insert (TKey key, TValue value) {
+//	private BinaryTreeNode<TKey, TValue> SetFreeNode (TKey key, TValue value) {
+//
+//		BinaryTreeNode<TKey, TValue> node = null;
+//
+//		if (_freeNodes.Count > 0) {
+//			node = _freeNodes.Dequeue ();
+//
+//			node.Reinitialize (key, value);
+//
+//		} else {
+//			
+//			node = new BinaryTreeNode<TKey, TValue> (key, value);
+//		}
+//
+//		return node;
+//	}
+//
+//	private void FreeNode (BinaryTreeNode<TKey, TValue> node) {
+//
+//		_freeNodes.Enqueue (node);
+//	}
+
+	public delegate void NodeAssociationDelegate (BinaryTreeNode<TKey, TValue> node);
+
+	public void Insert (TKey key, TValue value, NodeAssociationDelegate nodeAssociation = null) {
 
 		Count++;
 		int level = 0;
 
-		BinaryTreeNode<TKey, TValue> item = new BinaryTreeNode<TKey, TValue> ();
+//		BinaryTreeNode<TKey, TValue> item = SetFreeNode (key, value);
+		BinaryTreeNode<TKey, TValue> item = new BinaryTreeNode<TKey, TValue> (key, value);
 
-		item.Key = key;
-		item.Value = value;
-		item.Marked = false;
+		if (nodeAssociation != null) {
+			nodeAssociation (item);
+		}
 
 		if (_root == null) {
 
@@ -155,6 +210,23 @@ public class BinaryTree<TKey, TValue> {
 //		#endif
 	}
 
+	public void FindRightmost (FilterNodeDelegate<TKey, TValue> filterNode, FilterNodeEffectDelegate<TKey, TValue> filterNodeEffect) {
+
+		while (true) {
+		
+			if (_rightmostItem == null)
+				return;
+
+			if (filterNode (_rightmostItem))
+				return;
+
+			if (filterNodeEffect != null)
+				filterNodeEffect (_rightmostItem);
+
+			RemoveRightmost ();
+		}
+	}
+
 	public TValue RemoveRightmost () {
 
 		if (_rightmostItem == null)
@@ -163,6 +235,8 @@ public class BinaryTree<TKey, TValue> {
 		Count--;
 
 		TValue value = _rightmostItem.Value;
+
+//		FreeNode (_rightmostItem);
 
 		if (_rightmostItem == _leftmostItem) {
 		
@@ -176,12 +250,16 @@ public class BinaryTree<TKey, TValue> {
 		BinaryTreeNode<TKey, TValue> parent = _rightmostItem.Parent;
 
 		if (parent != null) {
-			parent.Right = _leftmostItem.Left;
+			parent.Right = _rightmostItem.Left;
 
-			if (parent.Right != null)
+			if (parent.Right != null) {
 				parent.Right.Parent = parent;
+				_rightmostItem = parent.Right;
 
-			_rightmostItem = parent;
+			} else {
+				_rightmostItem = parent;
+			}
+
 		} else {
 			_rightmostItem = _rightmostItem.Left;
 			_root = _rightmostItem;
@@ -197,6 +275,23 @@ public class BinaryTree<TKey, TValue> {
 		return value;
 	}
 
+	public void FindLeftmost (FilterNodeDelegate<TKey, TValue> filterNode, FilterNodeEffectDelegate<TKey, TValue> filterNodeEffect) {
+
+		while (true) {
+
+			if (_leftmostItem == null)
+				return;
+
+			if (filterNode (_leftmostItem))
+				return;
+
+			if (filterNodeEffect != null)
+				filterNodeEffect (_leftmostItem);
+
+			RemoveLeftmost ();
+		}
+	}
+
 	public TValue RemoveLeftmost () {
 
 		if (_leftmostItem == null)
@@ -205,6 +300,8 @@ public class BinaryTree<TKey, TValue> {
 		Count--;
 
 		TValue value = _leftmostItem.Value;
+
+//		FreeNode (_leftmostItem);
 
 		if (_leftmostItem == _rightmostItem) {
 
@@ -220,10 +317,14 @@ public class BinaryTree<TKey, TValue> {
 		if (parent != null) {
 			parent.Left = _leftmostItem.Right;
 
-			if (parent.Left != null)
+			if (parent.Left != null) {
 				parent.Left.Parent = parent;
+				_leftmostItem = parent.Left;
 
-			_leftmostItem = parent;
+			} else {
+				_leftmostItem = parent;
+			}
+
 		} else {
 			_leftmostItem = _leftmostItem.Right;
 			_root = _leftmostItem;
@@ -237,6 +338,172 @@ public class BinaryTree<TKey, TValue> {
 		}
 
 		return value;
+	}
+
+	public TValue RemoveNode (BinaryTreeNode <TKey, TValue> node) {
+
+		if (_leftmostItem == node)
+			return RemoveLeftmost ();
+
+		if (_rightmostItem == node)
+			return RemoveRightmost ();
+
+		BinaryTreeNode <TKey, TValue> parentNode = node.Parent;
+		BinaryTreeNode <TKey, TValue> leftNode = node.Left;
+		BinaryTreeNode <TKey, TValue> rightNode = node.Right;
+
+		BinaryTreeNode <TKey, TValue> replacementNode;
+
+		if (leftNode != null) {
+
+			if (rightNode != null) {
+				BinaryTreeNode <TKey, TValue> leftNodeRightmost = leftNode;
+
+				while (leftNodeRightmost.Right != null) {
+			
+					leftNodeRightmost = leftNodeRightmost.Right;
+				}
+
+				leftNodeRightmost.Right = rightNode;
+				rightNode.Parent = leftNodeRightmost;
+			}
+
+			replacementNode = leftNode;
+
+		} else {
+
+			replacementNode = rightNode;
+		}
+
+		if (parentNode != null) {
+		
+			if (parentNode.Left == node) {
+			
+				parentNode.Left = replacementNode;
+
+			} else {
+
+				parentNode.Right = replacementNode;
+			}
+
+			if (replacementNode != null) {
+				replacementNode.Parent = parentNode;
+			}
+
+		} else {
+		
+			_root = replacementNode;
+
+			if (replacementNode != null) {
+				replacementNode.Parent = null;
+			}
+		}
+
+//		FreeNode (node);
+
+		return node.Value;
+	}
+
+	public List<TValue> GetValues (FilterNodeDelegate<TKey, TValue> filterNode, FilterNodeEffectDelegate<TKey, TValue> filterNodeEffect = null, bool removeNodesMarkedForRemoval = false) {
+
+		#if DEBUG
+		int removedValues = 0;
+		int ignoredValues = 0;
+		int addedValues = 0;
+		#endif
+
+		List<TValue> values = new List<TValue> (Count);
+
+		// Copy items to list from leftmost to rightmost, marking all inserted items along the way
+		BinaryTreeNode <TKey, TValue> currentNode = _leftmostItem;
+
+		while (currentNode != null) {
+
+			if ((currentNode.Left != null) && (!currentNode.Left.Marked)) {
+
+				currentNode = currentNode.Left;
+				continue;
+			}
+
+			if (!currentNode.Marked) {
+
+				if (filterNode (currentNode)) {
+					
+					values.Add (currentNode.Value);
+
+					#if DEBUG
+					addedValues++;
+					#endif
+				} else {
+					
+					if (filterNodeEffect != null)
+						filterNodeEffect (currentNode);
+
+					if (currentNode.MarkedForRemoval) {
+
+						if (removeNodesMarkedForRemoval)
+							RemoveNode (currentNode);
+
+						currentNode.MarkedForRemoval = false;
+
+						#if DEBUG
+						removedValues++;
+						#endif
+					} else {
+
+						#if DEBUG
+						ignoredValues++;
+						#endif
+					}
+				}
+
+				currentNode.Marked = true;
+			}
+
+			if ((currentNode.Right != null) && (!currentNode.Right.Marked)) {
+
+				currentNode = currentNode.Right;
+				continue;
+			}
+
+			currentNode = currentNode.Parent;
+		}
+
+		#if DEBUG
+		float totalValues = addedValues + ignoredValues + removedValues;
+		float percentAdded = addedValues / totalValues;
+		float percentIgnored = ignoredValues / totalValues;
+		float percentRemoved = removedValues / totalValues;
+
+		Debug.Log ("Total Events: " + totalValues + ". Serialized: " + percentAdded.ToString ("P") + ", Ignored: " + percentIgnored.ToString ("P") + ", Removed: " + percentRemoved.ToString ("P"));
+		#endif
+
+		//
+		// Remove mark from all copied items
+		//
+
+		currentNode = _leftmostItem;
+
+		while (currentNode != null) {
+
+			if ((currentNode.Left != null) && (currentNode.Left.Marked)) {
+
+				currentNode = currentNode.Left;
+				continue;
+			}
+
+			currentNode.Marked = false;
+
+			if ((currentNode.Right != null) && (currentNode.Right.Marked)) {
+
+				currentNode = currentNode.Right;
+				continue;
+			}
+
+			currentNode = currentNode.Parent;
+		}
+
+		return values;
 	}
 
 	public List<TValue> Values {

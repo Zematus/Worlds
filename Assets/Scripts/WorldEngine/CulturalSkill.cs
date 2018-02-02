@@ -59,6 +59,8 @@ public abstract class CellCulturalSkill : CulturalSkill, ISynchronizable {
 
 	[XmlIgnore]
 	public CellGroup Group;
+
+	public float _newValue;
 	
 	public CellCulturalSkill () {
 	}
@@ -66,6 +68,8 @@ public abstract class CellCulturalSkill : CulturalSkill, ISynchronizable {
 	protected CellCulturalSkill (CellGroup group, string id, string name, int rngOffset, float value = 0) : base (id, name, rngOffset, value) {
 
 		Group = group;
+
+		_newValue = value;
 	}
 
 	public static CellCulturalSkill CreateCellInstance (CellGroup group, CulturalSkill baseSkill) {
@@ -87,20 +91,11 @@ public abstract class CellCulturalSkill : CulturalSkill, ISynchronizable {
 
 		throw new System.Exception ("Unhandled CulturalSkill type: " + baseSkill.Id);
 	}
-	
-//	public CellCulturalSkill GenerateCopy (CellGroup targetGroup) {
-//		
-//		System.Type skillType = this.GetType ();
-//
-//		System.Reflection.ConstructorInfo cInfo = skillType.GetConstructor (new System.Type[] {typeof(CellGroup), skillType});
-//		
-//		return cInfo.Invoke (new object[] {targetGroup, this}) as CellCulturalSkill;
-//	}
 
 	public void Merge (CulturalSkill skill, float percentage) {
 
-		float value = Value * (1f - percentage) + skill.Value * percentage;
-		value = MathUtility.RoundToSixDecimals (value);
+		// _newvalue should have been set correctly either by the constructor or by the Update function
+		float value = _newValue * (1f - percentage) + skill.Value * percentage;
 
 //		#if DEBUG
 //		if (Manager.RegisterDebugEvent != null) {
@@ -123,13 +118,13 @@ public abstract class CellCulturalSkill : CulturalSkill, ISynchronizable {
 //		}
 //		#endif
 
-		Value = value;
+		_newValue = value;
 	}
-	
+
+	// This method should be called only once after a Skill is copied from another source group
 	public void ModifyValue (float percentage) {
 
 		float value = Value * percentage;
-		value = MathUtility.RoundToSixDecimals (value);
 
 //		#if DEBUG
 //		if (Manager.RegisterDebugEvent != null) {
@@ -151,7 +146,7 @@ public abstract class CellCulturalSkill : CulturalSkill, ISynchronizable {
 //		}
 //		#endif
 		
-		Value = value;
+		_newValue = value;
 	}
 
 	public virtual void Synchronize () {
@@ -185,7 +180,6 @@ public abstract class CellCulturalSkill : CulturalSkill, ISynchronizable {
 		float timeEffect = timeSpan / (float)(timeSpan + timeEffectFactor);
 
 		float newValue = (Value * (1 - timeEffect)) + (targetValue * timeEffect);
-		newValue = MathUtility.RoundToSixDecimals (Mathf.Clamp01 (newValue));
 
 //		#if DEBUG
 //		if (Manager.RegisterDebugEvent != null) {
@@ -211,7 +205,7 @@ public abstract class CellCulturalSkill : CulturalSkill, ISynchronizable {
 //		}
 //		#endif
 
-		Value = newValue;
+		_newValue = newValue;
 	}
 
 	public abstract void PolityCulturalInfluence (CulturalSkill politySkill, PolityInfluence polityInfluence, int timeSpan);
@@ -227,7 +221,8 @@ public abstract class CellCulturalSkill : CulturalSkill, ISynchronizable {
 
 		float timeEffect = timeSpan / (float)(timeSpan + timeEffectFactor);
 
-		float change = (targetValue - Value) * influenceEffect * timeEffect * randomEffect;
+		// _newvalue should have been set correctly either by the constructor or by the Update function
+		float change = (targetValue - _newValue) * influenceEffect * timeEffect * randomEffect;
 
 //		#if DEBUG
 //		if (Manager.RegisterDebugEvent != null) {
@@ -254,18 +249,27 @@ public abstract class CellCulturalSkill : CulturalSkill, ISynchronizable {
 //		}
 //		#endif
 
-		Value = MathUtility.RoundToSixDecimals (Mathf.Clamp01 (Value + change));
+		_newValue = _newValue + change;
 	}
 
 	protected void RecalculateAdaptation (float targetValue)
 	{
 		AdaptationLevel = MathUtility.RoundToSixDecimals (1 - Mathf.Abs (Value - targetValue));
 	}
+
+	public void PostUpdate () {
+
+		Value = MathUtility.RoundToSixDecimals (Mathf.Clamp01 (_newValue));
+
+		PostUpdateInternal ();
+	}
+
+	protected abstract void PostUpdateInternal ();
 }
 
 public class BiomeSurvivalSkill : CellCulturalSkill {
 
-	public const float TimeEffectConstant = CellGroup.GenerationTime * 1500;
+	public const float TimeEffectConstant = CellGroup.GenerationSpan * 1500;
 
 	public const string BiomeSurvivalSkillIdPrefix = "BiomeSurvivalSkill_";
 	public const int BiomeSurvivalSkillRngOffsetBase = 1000;
@@ -363,19 +367,24 @@ public class BiomeSurvivalSkill : CellCulturalSkill {
 			throw new System.Exception ("Neighborhood Biome Presence outside range: " + _neighborhoodBiomePresence);
 		}
 
-		RecalculateAdaptation (_neighborhoodBiomePresence);
+//		RecalculateAdaptation (_neighborhoodBiomePresence);
 	}
 
 	public override void Update (int timeSpan) {
 
 		UpdateInternal (timeSpan, TimeEffectConstant, _neighborhoodBiomePresence);
 
-		RecalculateAdaptation (_neighborhoodBiomePresence);
+//		RecalculateAdaptation (_neighborhoodBiomePresence);
 	}
 
 	public override void PolityCulturalInfluence (CulturalSkill politySkill, PolityInfluence polityInfluence, int timeSpan) {
 
 		PolityCulturalInfluenceInternal (politySkill, polityInfluence, timeSpan, TimeEffectConstant);
+
+//		RecalculateAdaptation (_neighborhoodBiomePresence);
+	}
+
+	protected override void PostUpdateInternal () {
 
 		RecalculateAdaptation (_neighborhoodBiomePresence);
 	}
@@ -383,7 +392,7 @@ public class BiomeSurvivalSkill : CellCulturalSkill {
 
 public class SeafaringSkill : CellCulturalSkill {
 
-	public const float TimeEffectConstant = CellGroup.GenerationTime * 500;
+	public const float TimeEffectConstant = CellGroup.GenerationSpan * 500;
 
 	public const string SeafaringSkillId = "SeafaringSkill";
 	public const string SeafaringSkillName = "Seafaring";
@@ -444,19 +453,24 @@ public class SeafaringSkill : CellCulturalSkill {
 			throw new System.Exception ("Neighborhood Ocean Presence outside range: " + _neighborhoodOceanPresence);
 		}
 
-		RecalculateAdaptation (_neighborhoodOceanPresence);
+//		RecalculateAdaptation (_neighborhoodOceanPresence);
 	}
 
 	public override void Update (int timeSpan) {
 
 		UpdateInternal (timeSpan, TimeEffectConstant, _neighborhoodOceanPresence);
 
-		RecalculateAdaptation (_neighborhoodOceanPresence);
+//		RecalculateAdaptation (_neighborhoodOceanPresence);
 	}
 
 	public override void PolityCulturalInfluence (CulturalSkill politySkill, PolityInfluence polityInfluence, int timeSpan) {
 
 		PolityCulturalInfluenceInternal (politySkill, polityInfluence, timeSpan, TimeEffectConstant);
+
+//		RecalculateAdaptation (_neighborhoodOceanPresence);
+	}
+
+	protected override void PostUpdateInternal () {
 
 		RecalculateAdaptation (_neighborhoodOceanPresence);
 	}

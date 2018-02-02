@@ -9,28 +9,23 @@ public class LanguageGenerationTest : AutomatedTest {
 		Name = "Languange Generation Test";
 	}
 
-	public float GetRandomFloat () {
-	
-		return Random.Range (0, int.MaxValue) / (float)int.MaxValue;
-	}
-
 	public override void Run ()
 	{
 		State = TestState.Running;
 
-		for (int i = 0; i < 5; i++) {
-			Language language = new Language (0);
+		for (int i = 0; i < 10; i++) {
+			Language language = new Language (Random.Range (0, int.MaxValue));
 
-			language.GenerateArticleProperties (GetRandomFloat);
+			language.GenerateArticleProperties ();
 
-			language.GenerateArticleAdjunctionProperties (GetRandomFloat);
-			language.GenerateArticleSyllables (GetRandomFloat);
-			language.GenerateAllArticles (GetRandomFloat);
+			language.GenerateArticleAdjunctionProperties ();
+			language.GenerateArticleSyllables ();
+			language.GenerateAllArticles ();
 
 			string entry = "Test Language " + i;
 			entry += "\n";
 
-			entry += "\nArticle properties: " + Language.NounAdjunctionPropertiesToString (language.ArticleAdjunctionProperties);
+			entry += "\nArticle properties: " + Language.AdjunctionPropertiesToString (language.ArticleAdjunctionProperties);
 			entry += "\nArticles:";
 			foreach (Language.Morpheme word in language.Articles) {
 
@@ -38,30 +33,101 @@ public class LanguageGenerationTest : AutomatedTest {
 			}
 			entry += "\n";
 
-			language.GenerateIndicativeProperties (GetRandomFloat);
+			language.GenerateNounIndicativeProperties ();
 
-			language.GenerateIndicativeAdjunctionProperties (GetRandomFloat);
-			language.GenerateIndicativeSyllables (GetRandomFloat);
-			language.GenerateAllIndicatives (GetRandomFloat);
+			language.GenerateNounIndicativeAdjunctionProperties ();
+			language.GenerateNounIndicativeSyllables ();
+			language.GenerateAllNounIndicatives ();
 
-			entry += "\nIndicative properties: " + Language.NounAdjunctionPropertiesToString (language.IndicativeAdjunctionProperties);
-			entry += "\nIndicatives:";
-			foreach (Language.Morpheme word in language.Indicatives) {
+			entry += "\nNoun indicative properties: " + Language.AdjunctionPropertiesToString (language.NounIndicativeAdjunctionProperties);
+			entry += "\nNoun indicatives:";
+			foreach (Language.Morpheme word in language.NounIndicatives) {
 
 				entry += "\n    " + word.Meaning + " : " + word.Value;
 			}
 			entry += "\n";
 
-			language.GenerateAdpositionAdjunctionProperties (GetRandomFloat);
-			language.GenerateAdpositionSyllables (GetRandomFloat);
+			language.GenerateVerbIndicativeProperties ();
 
-			language.GenerateAdposition ("from", GetRandomFloat);
-			language.GenerateAdposition ("to", GetRandomFloat);
-			language.GenerateAdposition ("within", GetRandomFloat);
-			language.GenerateAdposition ("above", GetRandomFloat);
-			language.GenerateAdposition ("below", GetRandomFloat);
-			language.GenerateAdposition ("beyond", GetRandomFloat);
+			language.GenerateVerbIndicativeAdjunctionProperties ();
+			language.GenerateVerbIndicativeSyllables ();
+			language.GenerateAllVerbIndicatives ();
 
+			entry += "\nVerb indicative properties: " + Language.AdjunctionPropertiesToString (language.VerbIndicativeAdjunctionProperties);
+			entry += "\nVerb indicatives:";
+			foreach (Language.Morpheme word in language.VerbIndicatives) {
+
+				entry += "\n    " + word.Meaning + " : " + word.Value;
+			}
+			entry += "\n";
+
+			language.GenerateAdpositionAdjunctionProperties ();
+			language.GenerateAdpositionSyllables ();
+
+			language.GenerateAdjectiveAdjunctionProperties ();
+			language.GenerateAdjectiveSyllables ();
+
+			language.GenerateNounAdjunctionProperties ();
+			language.GenerateNounSyllables ();
+
+			language.GenerateVerbSyllables ();
+
+			///
+
+			entry += "\nExample adpositional phrases:";
+			entry += "\n";
+
+			string untranslatedPhrase = "[PpPP]([NP](the [ipn(woman)][fn]women) [PP](from [NP](a town)))";
+			Language.Phrase translatedPhrase = language.TranslatePhrase (untranslatedPhrase);
+			language.LocalizePhrase (translatedPhrase);
+
+			entry += "\n\t" + translatedPhrase.Text + " (" + translatedPhrase.Meaning + ")";
+
+			untranslatedPhrase = "[PpPP]([NP](the child) [PP](above [NP](the cloud:s)))";
+			translatedPhrase = language.TranslatePhrase (untranslatedPhrase);
+			language.LocalizePhrase (translatedPhrase);
+
+			entry += "\n\t" + translatedPhrase.Text + " (" + translatedPhrase.Meaning + ")";
+
+			untranslatedPhrase = "[PpPP]([NP](a tree) [PP](within [NP](the forest)))";
+			translatedPhrase = language.TranslatePhrase (untranslatedPhrase);
+			language.LocalizePhrase (translatedPhrase);
+
+			entry += "\n\t" + translatedPhrase.Text + " (" + translatedPhrase.Meaning + ")";
+
+			untranslatedPhrase = "[PpPP]([NP]([un]water) [PP](with [NP]([un]oil)))";
+			translatedPhrase = language.TranslatePhrase (untranslatedPhrase);
+			language.LocalizePhrase (translatedPhrase);
+
+			entry += "\n\t" + translatedPhrase.Text + " (" + translatedPhrase.Meaning + ")";
+
+			untranslatedPhrase = "[PpPP]([NP]([name][mn][iv(bear,ts,past)]born) [PP](on [NP](a tree)))";
+			translatedPhrase = language.TranslatePhrase (untranslatedPhrase);
+			language.LocalizePhrase (translatedPhrase);
+
+			entry += "\n\t" + translatedPhrase.Text + " (" + translatedPhrase.Meaning + ")";
+
+			untranslatedPhrase = "[PpPP]([NP]([name][fn][rv(ts,past)]raise:d) [PP](in [NP](the city)))";
+			translatedPhrase = language.TranslatePhrase (untranslatedPhrase);
+			language.LocalizePhrase (translatedPhrase);
+
+			entry += "\n\t" + translatedPhrase.Text + " (" + translatedPhrase.Meaning + ")";
+
+			untranslatedPhrase = "[PpPP]([NP]([name][mn][nrv]hunt:er) [PP](of [NP](cat:s)))";
+			translatedPhrase = language.TranslatePhrase (untranslatedPhrase);
+			language.LocalizePhrase (translatedPhrase);
+
+			entry += "\n\t" + translatedPhrase.Text + " (" + translatedPhrase.Meaning + ")";
+
+			untranslatedPhrase = "[PpPP]([NP]([name][fn][niv(carry)]carrier) [PP](of [NP]([un]water)))";
+			translatedPhrase = language.TranslatePhrase (untranslatedPhrase);
+			language.LocalizePhrase (translatedPhrase);
+
+			entry += "\n\t" + translatedPhrase.Text + " (" + translatedPhrase.Meaning + ")";
+			entry += "\n";
+
+			///
+			
 			entry += "\nGenerated adpositions:";
 			foreach (Language.Morpheme word in language.Adpositions) {
 
@@ -69,89 +135,28 @@ public class LanguageGenerationTest : AutomatedTest {
 			}
 			entry += "\n";
 
-			language.GenerateAdjectiveAdjunctionProperties (GetRandomFloat);
-			language.GenerateAdjectiveSyllables (GetRandomFloat);
-
-			language.GenerateNounAdjunctionProperties (GetRandomFloat);
-			language.GenerateNounSyllables (GetRandomFloat);
-
-			List<Language.Phrase> phrases = new List<Language.Phrase> ();
-
-			phrases.Add (language.TranslateNounPhrase ("the tree", GetRandomFloat));
-			phrases.Add (language.TranslateNounPhrase ("a rain:forest", GetRandomFloat));
-			phrases.Add (language.TranslateNounPhrase ("the river", GetRandomFloat));
-			phrases.Add (language.TranslateNounPhrase ("a town", GetRandomFloat));
-			phrases.Add (language.TranslateNounPhrase ("the [adj]white stone:s", GetRandomFloat));
-			phrases.Add (language.TranslateNounPhrase ("a mountain", GetRandomFloat));
-			phrases.Add (language.TranslateNounPhrase ("the [adj]great desert", GetRandomFloat));
-			phrases.Add (language.TranslateNounPhrase ("cloud:s", GetRandomFloat));
-			// phrases.Add (language.GenerateNounPhraseTranslation ("water", GetRandomFloat)); --- 'water' is a very special case in english (uncountable noun)
-			phrases.Add (language.TranslateNounPhrase ("the [mn]man", GetRandomFloat));
-			phrases.Add (language.TranslateNounPhrase ("a [fn]woman", GetRandomFloat));
-			phrases.Add (language.TranslateNounPhrase ("the [nad]forest person", GetRandomFloat));
-			phrases.Add (language.TranslateNounPhrase ("[mn]boy:s", GetRandomFloat));
-			phrases.Add (language.TranslateNounPhrase ("the [fn]girl:s", GetRandomFloat));
-			phrases.Add (language.TranslateNounPhrase ("[ipn(child)]children", GetRandomFloat));
-
 			entry += "\nGenerated adjectives:";
-			entry += "\n";
 			foreach (Language.Morpheme word in language.Adjectives) {
 
-				entry += "\n\t" + word.Meaning + " : " + word.Value + " (Properties: " + Language.WordPropertiesToString (word.Properties) + ")";
-				entry += "\n";
+				entry += "\n    " + word.Meaning + " : " + word.Value;
+			}
+			entry += "\n";
+
+			entry += "\nGenerated verbs:";
+			foreach (Language.Morpheme word in language.Verbs) {
+
+				entry += "\n    " + word.Meaning + " : " + word.Value;
 			}
 			entry += "\n";
 
 			entry += "\nGenerated nouns:";
-			entry += "\n";
 			foreach (Language.Morpheme word in language.Nouns) {
 
-				entry += "\n\t" + word.Meaning + " : " + word.Value + " (Properties: " + Language.WordPropertiesToString (word.Properties) + ")";
-				entry += "\n";
+				entry += "\n    " + word.Meaning + " : " + word.Value;
 			}
 			entry += "\n";
 
-			entry += "\nExample nouns phrases:";
-			entry += "\n";
-			foreach (Language.NounPhrase phrase in phrases) {
-
-				if ((phrase.Properties & Language.PhraseProperties.Indefinite) == Language.PhraseProperties.Indefinite) {
-					entry += "\n\tSample indefinite noun phrase: " + phrase.Text + " (Meaning: " + phrase.Meaning + ")";
-				} else {
-					entry += "\n\tSample definite noun phrase: " + phrase.Text + " (Meaning: " + phrase.Meaning + ")";
-				}
-
-				entry += "\n";
-			}
-			entry += "\n";
-
-			entry += "\nExample noun phrases with adpositions:";
-			entry += "\n";
-
-			Language.Phrase prePhrase = language.TranslateNounPhrase ("the [ipn(woman)][fn]women", GetRandomFloat);
-			Language.Phrase complementPhrase = language.TranslateNounPhrase ("a town", GetRandomFloat);
-			Language.Phrase postPhrase = language.BuildAdpositionalPhrase ("from", complementPhrase);
-			Language.Phrase mergedPhrase = language.MergePhrases (prePhrase, postPhrase);
-			language.LocalizePhrase (mergedPhrase);
-
-			entry += "\n\t" + mergedPhrase.Text + " (" + mergedPhrase.Meaning + ")";
-
-			prePhrase = language.TranslateNounPhrase ("the child", GetRandomFloat);
-			complementPhrase = language.TranslateNounPhrase ("cloud:s", GetRandomFloat);
-			postPhrase = language.BuildAdpositionalPhrase ("above", complementPhrase);
-			mergedPhrase = language.MergePhrases (prePhrase, postPhrase);
-			language.LocalizePhrase (mergedPhrase);
-
-			entry += "\n\t" + mergedPhrase.Text + " (" + mergedPhrase.Meaning + ")";
-
-			prePhrase = language.TranslateNounPhrase ("a tree", GetRandomFloat);
-			complementPhrase = language.TranslateNounPhrase ("the forest", GetRandomFloat);
-			postPhrase = language.BuildAdpositionalPhrase ("within", complementPhrase);
-			mergedPhrase = language.MergePhrases (prePhrase, postPhrase);
-			language.LocalizePhrase (mergedPhrase);
-
-			entry += "\n\t" + mergedPhrase.Text + " (" + mergedPhrase.Meaning + ")";
-			entry += "\n";
+			///
 
 			Debug.Log (entry);
 		}

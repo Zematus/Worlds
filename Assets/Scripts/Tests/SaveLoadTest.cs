@@ -30,11 +30,16 @@ public class SaveLoadTest : AutomatedTest {
 
 	private int _offsetPerCheck;
 
-	private int _eventCountBeforeSave;
+	private int _filteredEventCountBeforeSave;
+	private int _filteredEventCountAfterSave;
+	private int _filteredEventCountAfterLoad;
 	private int _eventCountAfterSave;
 	private int _eventCountAfterLoad;
 	private int _eventCountAfterSaveSkip;
 	private int _eventCountAfterLoadSkip;
+
+	private List<WorldEvent> _eventsAfterSave;
+	private List<WorldEventSnapshot> _eventSnapshotsAfterSave;
 
 	private int _saveDate;
 	private int _saveDatePlusOffset;
@@ -244,8 +249,13 @@ public class SaveLoadTest : AutomatedTest {
 //			Debug.Log ("Last Random Integer: " + TerrainCell.LastRandomInteger);
 //			#endif
 
-			_eventCountBeforeSave = _world.EventsToHappenCount;
-			Debug.Log ("Number of Events before save: " + _eventCountBeforeSave);
+			_filteredEventCountBeforeSave = _world.EventsToHappenCount;
+			List<WorldEvent> filteredEventsToHappen = _world.GetFilteredEventsToHappenForSerialization ();
+
+			Debug.Log ("Number of events before save: " + _filteredEventCountBeforeSave);
+			Debug.Log ("Number of filtered events before save: " + filteredEventsToHappen.Count);
+
+			_filteredEventCountBeforeSave = filteredEventsToHappen.Count;
 
 			Debug.Log ("Saving world...");
 
@@ -261,18 +271,29 @@ public class SaveLoadTest : AutomatedTest {
 				return;
 			}
 
-			_eventCountAfterSave = _world.EventsToHappen.Count;
-			Debug.Log ("Number of Events after save: " + _eventCountAfterSave);
+			_filteredEventCountAfterSave = _world.EventsToHappen.Count;
+			Debug.Log ("Number of filtered events after save: " + _filteredEventCountAfterSave);
 
-			if (_eventCountBeforeSave != _eventCountAfterSave) {
+			if (_filteredEventCountBeforeSave != _filteredEventCountAfterSave) {
 
-				Debug.LogError ("Number of events before and after save are different");
+				Debug.LogError ("Number of filtered events before and after save are different");
 
 				_result = false;
 
 			} else {
 
-				Debug.Log ("Number of Events remain equal after save");
+				Debug.Log ("Number of filtered events remain equal after save");
+			}
+
+			_eventCountAfterSave = _world.EventsToHappenCount;
+			Debug.Log ("Number of remaining events after save: " + _eventCountAfterSave);
+
+			_eventsAfterSave = _world.GetEventsToHappen ();
+			_eventSnapshotsAfterSave = new List<WorldEventSnapshot> (_eventsAfterSave.Count);
+
+			foreach (WorldEvent e in _eventsAfterSave) {
+			
+				_eventSnapshotsAfterSave.Add (e.GetSnapshot ());
 			}
 
 			Debug.Log ("Pushing simulation forward after save by at least " + _beforeCheckDateSkipOffset + " years");
@@ -397,7 +418,9 @@ public class SaveLoadTest : AutomatedTest {
 
 			for (int c = _currentCheck; c < _numChecks; c++) {
 
-				string checkStr = "[with offset " + c + "]";
+				int offset = _beforeCheckDateSkipOffset + (c * _offsetPerCheck);
+
+				string checkStr = "[with iteration offset: " + c + " - date offset: " + offset + "]";
 
 				if (c > _currentCheck) {
 					if (_enhancedTracing) {
@@ -494,6 +517,12 @@ public class SaveLoadTest : AutomatedTest {
 				Debug.Log ("Total size of territories after Save " + checkStr + ": " + totalCellCount);
 			}
 
+			#if DEBUG
+			if (_enhancedTracing) {
+				Manager.RegisterDebugEvent = null;
+			}
+			#endif
+
 			Debug.Log ("Loading world...");
 
 			Manager.LoadWorldAsync (_savePath);
@@ -519,27 +548,71 @@ public class SaveLoadTest : AutomatedTest {
 				Debug.LogError ("Load date different from Save date");
 
 				_result = false;
-
 			}
 
-			_eventCountAfterLoad = _world.EventsToHappen.Count;
-			Debug.Log ("Number of Events after Load: " + _eventCountAfterLoad);
+			_filteredEventCountAfterLoad = _world.EventsToHappen.Count;
+			Debug.Log ("Number of filtered events after Load: " + _filteredEventCountAfterLoad);
+
+			if (_filteredEventCountAfterLoad != _filteredEventCountAfterSave) {
+
+				Debug.LogError ("Number of filtered events after Load (" + _filteredEventCountAfterLoad + ") different from after Save (" + _filteredEventCountAfterSave + ")");
+
+				_result = false;
+			}
+
+			_eventCountAfterLoad = _world.EventsToHappenCount;
+			Debug.Log ("Number of events after Load: " + _eventCountAfterLoad);
 
 			if (_eventCountAfterLoad != _eventCountAfterSave) {
 
-				Debug.LogError ("Number of events after Load different from after Save");
+				Debug.LogError ("Event count after Load (" + _eventCountAfterLoad + ") different from after Save (" + _eventCountAfterSave + ")");
 
 				_result = false;
+			}
 
+			List<WorldEvent> eventsAfterLoad = _world.GetEventsToHappen ();
+
+			foreach (WorldEventSnapshot eSave in _eventSnapshotsAfterSave) {
+
+				WorldEvent foundEvent = null;
+
+				foreach (WorldEvent eLoad in eventsAfterLoad) {
+				
+					if ((eLoad.GetType () == eSave.EventType) && (eLoad.Id == eSave.Id)) {
+					
+						foundEvent = eLoad;
+						break;
+					}
+				}
+
+				if (foundEvent != null) {
+				
+					eventsAfterLoad.Remove (foundEvent);
+				} else {
+
+					Debug.LogError ("Event of type '" + eSave.EventType + "' with Id (" + eSave.Id + ") not found after Load");
+
+					CellGroupEventSnapshot geSave = eSave as CellGroupEventSnapshot;
+
+					if (geSave != null) {
+
+						CellGroup g = _world.GetGroup (geSave.GroupId);
+
+						if (g == null) {
+							Debug.LogError ("No group with Id (" + geSave.GroupId + ") foun after Load");
+						} else {
+							bool debug = true;
+						}
+					}
+				}
+			}
+
+			foreach (WorldEvent eLoad in eventsAfterLoad) {
+				
+				Debug.LogError ("Event of type '" + eLoad.GetType () + "' with Id (" + eLoad.Id + ") from Load not found after Save");
 			}
 
 			Debug.Log ("Pushing simulation forward after load by at least " + _beforeCheckDateSkipOffset + " years");
-
-			#if DEBUG
-			if (_enhancedTracing) {
-				Manager.RegisterDebugEvent = null;
-			}
-			#endif
 
 			#if DEBUG
 			CellGroup.UpdateCalled = () => {
@@ -661,7 +734,9 @@ public class SaveLoadTest : AutomatedTest {
 
 			for (int c = _currentCheck; c < _numChecks; c++) {
 
-				string checkStr = "[with offset " + c + "]";
+				int offset = _beforeCheckDateSkipOffset + (c * _offsetPerCheck);
+
+				string checkStr = "[with iteration offset: " + c + " - date offset: " + offset + "]";
 
 				if (c > _currentCheck) {
 					if (_enhancedTracing) {

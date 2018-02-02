@@ -1,0 +1,60 @@
+BUGS:
+
+- Worlds.exe crashes after a couple of world gens and loading a very advanced world
+
+TASKS:
+
+- add goals to patreon, decent schedule, progress path and a feature wish list
+- advertise the Patreon more
+- add world customization templates
+- allow replacement of populations
+- Rewind, go back in time
+- Ability to have multiple Overlays at a time
+- Resoultion options
+- Log of the world's history
+- Create a subreddit for the project
+
+EXTRA:
+
+- Don't create MigrationGroup objects on every migration
+
+
+
+Future developments:
+
+Events to add:
+- Clan Events:
+	- Prominence update
+	- Tribe transfer
+- Tribe Events:
+	- Tribe Merge
+	- Transition To Cheifdom (maybe for 0.032)
+
+- Cultural Activities to add:
+	- Raiding/Pillaging
+
+Decisions Infrastructure (0.03):
+
+- Certain events should trigger choices/decisions:
+	- Clan Core Migration
+	- Clan Splitting
+	- Leader replacement
+	- Prominence updates
+	- Tribe spliting
+
+- Only happen for focused/controlled polities
+- Sometimes should trigger for focused polities when an event would not happen
+- Will autoresolve for focused non-player controlled polities as if the tribe was unfocused 
+
+- Leader characteristics
+	- Might
+	- Charisma
+	- Administrative Capability
+	- Cultural Preferences
+
+- Cultural Preferences
+	- Agresiveness/Passiveness
+	- Tolerant/Intolerant
+	- Traditionalism/Antitraditionalism
+	- Matriachy/Patriarchy
+	- Autocratic/Democratic

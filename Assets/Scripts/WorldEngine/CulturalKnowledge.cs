@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
+using UnityEngine.Profiling;
 
 public class CulturalKnowledgeInfo {
 
@@ -84,6 +85,8 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
 	[XmlIgnore]
 	public CellGroup Group;
 
+	protected int _newValue;
+
 	public float ScaledAsymptote {
 		get { return Asymptote * ValueScaleFactor; }
 	}
@@ -95,14 +98,18 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
 	public CellCulturalKnowledge (CellGroup group, string id, string name, int typeRngOffset, int value) : base (id, name, value) {
 
 		Group = group;
-		RngOffset = (int)group.GenerateUniqueIdentifier (100, typeRngOffset);
+		RngOffset = (int)group.GenerateUniqueIdentifier (group.World.CurrentDate, 100L, typeRngOffset);
+
+		_newValue = value;
 	}
 
 	public CellCulturalKnowledge (CellGroup group, string id, string name, int typeRngOffset, int value, int asymptote) : base (id, name, value) {
 
 		Group = group;
-		RngOffset = (int)group.GenerateUniqueIdentifier (100, typeRngOffset);
+		RngOffset = (int)group.GenerateUniqueIdentifier (group.World.CurrentDate, 100L, typeRngOffset);
 		Asymptote = asymptote;
+
+		_newValue = value;
 	}
 
 	public static CellCulturalKnowledge CreateCellInstance (CellGroup group, CulturalKnowledge baseKnowledge) {
@@ -130,24 +137,6 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
 		throw new System.Exception ("Unhandled CulturalKnowledge type: " + baseKnowledge.Id);
 	}
 	
-//	public CellCulturalKnowledge GenerateCopy (CellGroup targetGroup) {
-//		
-//		System.Type knowledgeType = this.GetType ();
-//		
-//		System.Reflection.ConstructorInfo cInfo = knowledgeType.GetConstructor (new System.Type[] {typeof(CellGroup), knowledgeType});
-//		
-//		return cInfo.Invoke (new object[] {targetGroup, this}) as CellCulturalKnowledge;
-//	}
-//	
-//	public CellCulturalKnowledge GenerateCopy (CellGroup targetGroup, int initialValue) {
-//		
-//		System.Type knowledgeType = this.GetType ();
-//		
-//		System.Reflection.ConstructorInfo cInfo = knowledgeType.GetConstructor (new System.Type[] {typeof(CellGroup), knowledgeType, typeof(float)});
-//		
-//		return cInfo.Invoke (new object[] {targetGroup, this, initialValue}) as CellCulturalKnowledge;
-//	}
-	
 	public int GetHighestAsymptote () {
 		
 		System.Type knowledgeType = this.GetType ();
@@ -170,34 +159,26 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
 	public void Merge (CulturalKnowledge knowledge, float percentage) {
 
 		float d;
-		int mergedValue = (int)MathUtility.MergeAndGetDecimals (Value, knowledge.Value, percentage, out d);
+		// _newvalue should have been set correctly either by the constructor or by the Update function
+		int mergedValue = (int)MathUtility.MergeAndGetDecimals (_newValue, knowledge.Value, percentage, out d);
 
 		if (d > Group.GetNextLocalRandomFloat (RngOffsets.KNOWLEDGE_MERGE + RngOffset))
 			mergedValue++;
+
+		#if DEBUG
+		if ((Id == SocialOrganizationKnowledge.SocialOrganizationKnowledgeId) && (mergedValue < SocialOrganizationKnowledge.MinValueForHoldingTribalism)) {
+
+			if (Group.GetFactionCores ().Count > 0) {
+
+				Debug.LogWarning ("group with low social organization has faction cores - Id: " + Group.Id);
+			}
+		}
+		#endif
 	
-		Value = mergedValue;
+		_newValue = mergedValue;
 	}
-	
-//	public void IncreaseValue (int targetValue, float percentage) {
-//
-//		if (targetValue > Value) {
-//
-//			float d;
-//			int valueIncrease = (int)MathUtility.MultiplyAndGetDecimals (targetValue - Value, percentage, out d);
-//
-//			if (d > Group.GetNextLocalRandomFloat ())
-//				valueIncrease++;
-//
-//			Value += valueIncrease;
-//
-//			#if DEBUG
-//			if ((Asymptote > 1) && (Value > Asymptote)) {
-//				Debug.LogError ("IncreaseValue: new value " + Value + " above Asymptote " + Asymptote);
-//			}
-//			#endif
-//		}
-//	}
-	
+
+	// This method should be called only once after a Knowledge is copied from another source group
 	public void ModifyValue (float percentage) {
 
 		float d;
@@ -205,8 +186,18 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
 
 		if (d > Group.GetNextLocalRandomFloat (RngOffsets.KNOWLEDGE_MODIFY_VALUE + RngOffset))
 			modifiedValue++;
+
+		#if DEBUG
+		if ((Id == SocialOrganizationKnowledge.SocialOrganizationKnowledgeId) && (modifiedValue < SocialOrganizationKnowledge.MinValueForHoldingTribalism)) {
+
+			if (Group.GetFactionCores ().Count > 0) {
+
+				Debug.LogWarning ("group with low social organization has faction cores - Id: " + Group.Id);
+			}
+		}
+		#endif
 		
-		Value = modifiedValue;
+		_newValue = modifiedValue;
 	}
 
 	public virtual void Synchronize () {
@@ -262,15 +253,15 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
 	public void Update (int timeSpan) {
 
 		UpdateInternal (timeSpan);
-		
-		UpdateProgressLevel ();
 	}
 
 	protected void UpdateValueInternal (int timeSpan, float timeEffectFactor, float specificModifier) {
 
 		TerrainCell groupCell = Group.Cell;
 
-		float randomModifier = groupCell.GetNextLocalRandomFloat (RngOffsets.KNOWLEDGE_UPDATE_VALUE_INTERNAL + RngOffset);
+		int rngOffset = RngOffsets.KNOWLEDGE_UPDATE_VALUE_INTERNAL + RngOffset;
+
+		float randomModifier = groupCell.GetNextLocalRandomFloat (rngOffset++);
 		randomModifier *= randomModifier;
 		float randomFactor = specificModifier - randomModifier;
 		randomFactor = Mathf.Clamp (randomFactor, -1, 1);
@@ -290,7 +281,7 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
 		float d;
 		int newValue = (int)MathUtility.MergeAndGetDecimals (Value, targetValue, timeEffect, out d);
 
-		if (d > Group.GetNextLocalRandomFloat (RngOffsets.KNOWLEDGE_UPDATE_VALUE_INTERNAL_2 + RngOffset))
+		if (d > Group.GetNextLocalRandomFloat (rngOffset++))
 			newValue++;
 
 		#if DEBUG
@@ -305,29 +296,47 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
 		}
 		#endif
 
-		Value = newValue;
+		_newValue = newValue;
 	}
 
 	public abstract void PolityCulturalInfluence (CulturalKnowledge polityKnowledge, PolityInfluence polityInfluence, int timeSpan);
 
 	protected void PolityCulturalInfluenceInternal (CulturalKnowledge polityKnowledge, PolityInfluence polityInfluence, int timeSpan, float timeEffectFactor) {
 
-		float targetValue = polityKnowledge.Value;
+		#if DEBUG
+		if (Group.Cell.IsSelected) {
+			bool debug = true;
+		}
+		#endif
+
+		int rngOffset = RngOffsets.KNOWLEDGE_POLITY_INFLUENCE + RngOffset + (int)polityInfluence.PolityId;
+
+		int targetValue = polityKnowledge.Value;
 		float influenceEffect = polityInfluence.Value;
 
 		TerrainCell groupCell = Group.Cell;
 
-		float randomEffect = groupCell.GetNextLocalRandomFloat (RngOffsets.KNOWLEDGE_POLITY_INFLUENCE + RngOffset + (int)polityInfluence.PolityId);
+		float randomEffect = groupCell.GetNextLocalRandomFloat (rngOffset++);
 
 		float timeEffect = timeSpan / (float)(timeSpan + timeEffectFactor);
 
+		int valueDelta = targetValue - _newValue;
+
 		float d;
-		int valueIncrease = (int)MathUtility.MultiplyAndGetDecimals (targetValue - Value, influenceEffect * timeEffect * randomEffect, out d);
+		// _newvalue should have been set correctly either by the constructor or by the Update function
+		int valueChange = (int)MathUtility.MultiplyAndGetDecimals (valueDelta, influenceEffect * timeEffect * randomEffect, out d);
 
-		if (d > Group.GetNextLocalRandomFloat (RngOffsets.KNOWLEDGE_POLITY_INFLUENCE_2 + RngOffset + (int)polityInfluence.PolityId))
-			valueIncrease++;
+		if (d > Group.GetNextLocalRandomFloat (rngOffset++))
+			valueChange++;
 
-		Value += valueIncrease;
+		_newValue = _newValue + valueChange;
+	}
+
+	public void PostUpdate () {
+	
+		Value = _newValue;
+
+		UpdateProgressLevel ();
 	}
 
 	public abstract float CalculateExpectedProgressLevel ();
@@ -352,7 +361,7 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge {
 	public const int MinKnowledgeValueForSailing = 300;
 	public const int OptimalKnowledgeValueForSailing = 1000;
 
-	public const float TimeEffectConstant = CellGroup.GenerationTime * 500;
+	public const float TimeEffectConstant = CellGroup.GenerationSpan * 500;
 	public const float NeighborhoodOceanPresenceModifier = 1.5f;
 
 	public static int HighestAsymptote = 0;
@@ -368,7 +377,7 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge {
 	}
 
 	public ShipbuildingKnowledge (CellGroup group, int value = 100) : base (group, ShipbuildingKnowledgeId, ShipbuildingKnowledgeName, ShipbuildingKnowledgeRngOffset, value) {
-		
+
 		CalculateNeighborhoodOceanPresence ();
 	}
 
@@ -464,8 +473,8 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge {
 		}
 	}
 
-	protected override int CalculateAsymptoteInternal (CulturalDiscovery discovery)
-	{
+	protected override int CalculateAsymptoteInternal (CulturalDiscovery discovery) {
+		
 		switch (discovery.Id) {
 
 		case BoatMakingDiscovery.BoatMakingDiscoveryId:
@@ -477,31 +486,30 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge {
 		return 0;
 	}
 
-	public override float CalculateExpectedProgressLevel ()
-	{
+	public override float CalculateExpectedProgressLevel () {
+		
 		if (_neighborhoodOceanPresence <= 0)
 			return 1;
 
 		return Mathf.Clamp (ProgressLevel / _neighborhoodOceanPresence, MinProgressLevel, 1);
 	}
 
-	public override float CalculateTransferFactor ()
-	{
+	public override float CalculateTransferFactor () {
+		
 		return (_neighborhoodOceanPresence * 0.9f) + 0.1f;
 	}
 
-	public override bool WillBeLost ()
-	{
-		if (Value < 100) {
+	public override bool WillBeLost () {
 
-			return true;
+		if (Value < 100) {
+			return !Group.InfluencingPolityHasKnowledge (Id);
 		}
 
 		return false;
 	}
 
-	public override void LossConsequences ()
-	{
+	public override void LossConsequences () {
+		
 		Profiler.BeginSample ("BoatMakingDiscoveryEvent.CanSpawnIn");
 
 		if (BoatMakingDiscoveryEvent.CanSpawnIn (Group)) {
@@ -525,8 +533,8 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge {
 		Profiler.EndSample ();
 	}
 
-	protected override int CalculateBaseAsymptote ()
-	{
+	protected override int CalculateBaseAsymptote () {
+		
 		return 0;
 	}
 }
@@ -538,7 +546,7 @@ public class AgricultureKnowledge : CellCulturalKnowledge {
 
 	public const int AgricultureKnowledgeRngOffset = 1;
 
-	public const float TimeEffectConstant = CellGroup.GenerationTime * 2000;
+	public const float TimeEffectConstant = CellGroup.GenerationSpan * 2000;
 	public const float TerrainFactorModifier = 1.5f;
 	public const float MinAccesibility = 0.2f;
 
@@ -608,8 +616,8 @@ public class AgricultureKnowledge : CellCulturalKnowledge {
 		PolityCulturalInfluenceInternal (polityKnowledge, polityInfluence, timeSpan, TimeEffectConstant);
 	}
 
-	protected override int CalculateAsymptoteInternal (CulturalDiscovery discovery)
-	{
+	protected override int CalculateAsymptoteInternal (CulturalDiscovery discovery) {
+		
 		switch (discovery.Id) {
 
 		case PlantCultivationDiscovery.PlantCultivationDiscoveryId:
@@ -619,31 +627,30 @@ public class AgricultureKnowledge : CellCulturalKnowledge {
 		return 0;
 	}
 
-	public override float CalculateExpectedProgressLevel ()
-	{
+	public override float CalculateExpectedProgressLevel () {
+		
 		if (_terrainFactor <= 0)
 			return 1;
 
 		return Mathf.Clamp (ProgressLevel / _terrainFactor, MinProgressLevel, 1);
 	}
 
-	public override float CalculateTransferFactor ()
-	{
+	public override float CalculateTransferFactor () {
+		
 		return (_terrainFactor * 0.9f) + 0.1f;
 	}
 
-	public override bool WillBeLost ()
-	{
-		if (Value < 100) {
+	public override bool WillBeLost () {
 		
-			return true;
+		if (Value < 100) {
+			return !Group.InfluencingPolityHasKnowledge (Id);
 		}
 
 		return false;
 	}
 
-	public override void LossConsequences ()
-	{
+	public override void LossConsequences () {
+		
 		Profiler.BeginSample ("RemoveActivity: FarmingActivity");
 
 		Group.Culture.RemoveActivity (CellCulturalActivity.FarmingActivityId);
@@ -678,28 +685,11 @@ public class AgricultureKnowledge : CellCulturalKnowledge {
 
 		Profiler.EndSample ();
 
-		Profiler.BeginSample ("FarmDegradationEvent.CanSpawnIn");
-
-		if (FarmDegradationEvent.CanSpawnIn (Group.Cell)) {
-
-			Profiler.BeginSample ("FarmDegradationEvent.CalculateTriggerDate");
-
-			int triggerDate = FarmDegradationEvent.CalculateTriggerDate (Group.Cell);
-
-			Profiler.EndSample ();
-
-			Profiler.BeginSample ("InsertEventToHappen: FarmDegradationEvent");
-
-			Group.World.InsertEventToHappen (new FarmDegradationEvent (Group.Cell, triggerDate));
-
-			Profiler.EndSample ();
-		}
-
-		Profiler.EndSample ();
+		Group.Cell.FarmlandPercentage = 0;
 	}
 
-	protected override int CalculateBaseAsymptote ()
-	{
+	protected override int CalculateBaseAsymptote () {
+		
 		return 0;
 	}
 }
@@ -711,11 +701,12 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge {
 
 	public const int SocialOrganizationKnowledgeRngOffset = 2;
 
-	public const int MinValueForTribalismSpawnEvent = 500;
-	public const int MinValueForTribalism = 400;
-	public const int OptimalValueForTribalism = 1000;
+	public const int StartValue = 100;
+	public const int MinValueForTribalismDiscovery = 500;
+	public const int MinValueForHoldingTribalism = 200;
+	public const int OptimalValueForTribalism = 10000;
 
-	public const float TimeEffectConstant = CellGroup.GenerationTime * 500;
+	public const float TimeEffectConstant = CellGroup.GenerationSpan * 500;
 	public const float PopulationDensityModifier = 10000f;
 
 	public static int HighestAsymptote = 0;
@@ -728,7 +719,7 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge {
 		}
 	}
 
-	public SocialOrganizationKnowledge (CellGroup group, int value = 100) : base (group, SocialOrganizationKnowledgeId, SocialOrganizationKnowledgeName, SocialOrganizationKnowledgeRngOffset, value) {
+	public SocialOrganizationKnowledge (CellGroup group, int value = StartValue) : base (group, SocialOrganizationKnowledgeId, SocialOrganizationKnowledgeName, SocialOrganizationKnowledgeRngOffset, value) {
 
 	}
 
@@ -758,8 +749,8 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge {
 
 		float areaFactor = Group.Cell.Area / TerrainCell.MaxArea;
 
-		float population = Group.Population;
-		float popFactor = population * areaFactor;
+//		float popFactor = Group.Population * areaFactor;
+		float popFactor = (float)Group.Population;
 
 		float densityFactor = PopulationDensityModifier * Asymptote * ValueScaleFactor * areaFactor;
 
@@ -771,7 +762,7 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge {
 
 	private float CalculatePolityInfluenceFactor () {
 
-		float totalInfluence = Group.TotalPolityInfluenceValue * 0.4f;
+		float totalInfluence = Group.TotalPolityInfluenceValue * 0.5f;
 
 		return totalInfluence;
 	}
@@ -793,12 +784,21 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge {
 
 		PolityCulturalInfluenceInternal (polityKnowledge, polityInfluence, timeSpan, TimeEffectConstant);
 
+		#if DEBUG
+		if (_newValue < SocialOrganizationKnowledge.MinValueForHoldingTribalism) {
+
+			if (Group.GetFactionCores ().Count > 0) {
+				Debug.LogWarning ("group with low social organization has faction cores - Id: " + Group.Id);
+			}
+		}
+		#endif
+
 		TryGenerateTribalismDiscoveryEvent ();
 	}
 
 	private void TryGenerateTribalismDiscoveryEvent () {
 
-		if (Value < TribalismDiscoveryEvent.MinSocialOrganizationKnowledgeSpawnEventValue)
+		if (Value < TribalismDiscoveryEvent.MinSocialOrganizationKnowledgeForTribalismDiscovery)
 			return;
 
 		if (Value > TribalismDiscoveryEvent.OptimalSocialOrganizationKnowledgeValue)
@@ -815,19 +815,19 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge {
 		}
 	}
 
-	protected override int CalculateAsymptoteInternal (CulturalDiscovery discovery)
-	{
+	protected override int CalculateAsymptoteInternal (CulturalDiscovery discovery) {
+		
 		switch (discovery.Id) {
 
 		case TribalismDiscovery.TribalismDiscoveryId:
-			return 3000;
+			return OptimalValueForTribalism;
 		}
 
 		return 0;
 	}
 
-	public override float CalculateExpectedProgressLevel ()
-	{
+	public override float CalculateExpectedProgressLevel () {
+		
 		float populationFactor = CalculatePopulationFactor ();
 
 		if (populationFactor <= 0)
@@ -836,24 +836,24 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge {
 		return Mathf.Clamp (ProgressLevel / populationFactor, MinProgressLevel, 1);
 	}
 
-	public override float CalculateTransferFactor ()
-	{
+	public override float CalculateTransferFactor () {
+		
 		float populationFactor = CalculatePopulationFactor ();
 
 		return (populationFactor * 0.9f) + 0.1f;
 	}
 
-	public override bool WillBeLost ()
-	{
+	public override bool WillBeLost () {
+		
 		return false;
 	}
 
-	public override void LossConsequences ()
-	{
+	public override void LossConsequences () {
+		
 	}
 
-	protected override int CalculateBaseAsymptote ()
-	{
+	protected override int CalculateBaseAsymptote () {
+		
 		return 1000;
 	}
 }

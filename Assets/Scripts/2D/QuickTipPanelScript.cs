@@ -2,8 +2,6 @@
 using UnityEngine.UI;
 using System.Collections;
 
-public delegate void ClickHandler ();
-
 public class QuickTipPanelScript : MonoBehaviour {
 
 	public CanvasGroup CanvasGroup;
@@ -14,8 +12,6 @@ public class QuickTipPanelScript : MonoBehaviour {
 	private float _fadespeed = 0.25f;
 
 	private float _timeSpanned = 0;
-	
-	private ClickHandler _clickHandler = null;
 
 	// Use this for initialization
 	void Start () {
@@ -61,15 +57,5 @@ public class QuickTipPanelScript : MonoBehaviour {
 	public void OnClick () {
 
 		SetVisible (false);
-
-		if (_clickHandler == null)
-			return;
-
-		_clickHandler ();
-	}
-	
-	public void SetClickHandler (ClickHandler handler) {
-
-		_clickHandler = handler;
 	}
 }

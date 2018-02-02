@@ -10,10 +10,13 @@ public class StartGuiManagerScript : MonoBehaviour {
 
 	public LoadFileDialogPanelScript LoadFileDialogPanelScript;
 	public DialogPanelScript MainMenuDialogPanelScript;
+	public SettingsDialogPanelScript SettingsDialogPanelScript;
 	public ProgressDialogPanelScript ProgressDialogPanelScript;
 	public TextInputDialogPanelScript MessageDialogPanelScript;
 	public WorldCustomizationDialogPanelScript SetSeedDialogPanelScript;
 	public WorldCustomizationDialogPanelScript CustomizeWorldDialogPanelScript;
+
+	public Text VersionText;
 	
 	private bool _preparingWorld = false;
 	
@@ -27,6 +30,8 @@ public class StartGuiManagerScript : MonoBehaviour {
 
 		Manager.LoadAppSettings (@"Worlds.settings");
 
+		Manager.InitializeScreen ();
+
 		Manager.UpdateMainThreadReference ();
 
 		LoadFileDialogPanelScript.SetVisible (false);
@@ -37,6 +42,11 @@ public class StartGuiManagerScript : MonoBehaviour {
 		MainMenuDialogPanelScript.SetVisible (true);
 		
 		LoadButton.interactable = HasFilesToLoad ();
+	}
+
+	void Awake () {
+
+		VersionText.text = "v" + Manager.CurrentVersion;
 	}
 
 	void OnDestroy () {
@@ -101,7 +111,7 @@ public class StartGuiManagerScript : MonoBehaviour {
 		
 		Manager.LoadWorldAsync (path, ProgressUpdate);
 		
-		Manager.WorldName = Path.GetFileNameWithoutExtension (path);
+		Manager.WorldName = Manager.RemoveDateFromWorldName(Path.GetFileNameWithoutExtension (path));
 		
 		_preparingWorld = true;
 	}
@@ -129,6 +139,27 @@ public class StartGuiManagerScript : MonoBehaviour {
 		
 		SetSeedDialogPanelScript.SetVisible (false);
 		CustomizeWorldDialogPanelScript.SetVisible (false);
+
+		MainMenuDialogPanelScript.SetVisible (true);
+	}
+
+	public void OpenSettingsDialog () {
+
+		MainMenuDialogPanelScript.SetVisible (false);
+
+		SettingsDialogPanelScript.FullscreenToggle.isOn = Manager.IsFullscreen;
+
+		SettingsDialogPanelScript.SetVisible (true);
+	}
+
+	public void ToogleFullscreen (bool state) {
+
+		Manager.SetFullscreen (state);
+	}
+
+	public void CloseSettingsDialog () {
+
+		SettingsDialogPanelScript.SetVisible (false);
 
 		MainMenuDialogPanelScript.SetVisible (true);
 	}

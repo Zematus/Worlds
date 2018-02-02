@@ -78,15 +78,6 @@ public abstract class CellCulturalDiscovery : CulturalDiscovery {
 
 		throw new System.Exception ("Unexpected CulturalDiscovery type: " + baseDiscovery.Id);
 	}
-	
-//	public CellCulturalDiscovery GenerateCopy () {
-//		
-//		System.Type discoveryType = this.GetType ();
-//		
-//		System.Reflection.ConstructorInfo cInfo = discoveryType.GetConstructor (new System.Type[] {});
-//		
-//		return cInfo.Invoke (new object[] {}) as CellCulturalDiscovery;
-//	}
 
 	public abstract bool CanBeHeld (CellGroup group);
 
@@ -170,11 +161,22 @@ public class TribalismDiscovery : CellCulturalDiscovery {
 	{
 		CulturalKnowledge knowledge = group.Culture.GetKnowledge (SocialOrganizationKnowledge.SocialOrganizationKnowledgeId);
 
-		if (knowledge == null)
-			return false;
+		if (knowledge == null) {
 
-		if (knowledge.Value < SocialOrganizationKnowledge.MinValueForTribalism)
 			return false;
+		}
+
+		if (knowledge.Value < SocialOrganizationKnowledge.MinValueForHoldingTribalism) {
+
+			#if DEBUG
+			if (group.GetFactionCores ().Count > 0) {
+
+				Debug.LogWarning ("Group that will lose tribalism has faction cores - Id: " + group.Id);
+			}
+			#endif
+
+			return false;
+		}
 
 		return true;
 	}

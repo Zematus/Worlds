@@ -17,7 +17,7 @@ public class LoadFileDialogPanelScript : MonoBehaviour {
 
 	public Transform ActionButtonPanelTransform;
 
-	private List<Button> WorldNameButtons = new List<Button>();
+	private List<Button> _worldNameButtons = new List<Button>();
 
 	private UnityAction _loadAction;
 	private string _pathToLoad;
@@ -39,7 +39,7 @@ public class LoadFileDialogPanelScript : MonoBehaviour {
 
 	private void LoadFileNames () {
 		
-		WorldNameButtons.Add (WorldNameButtonPrefab);
+		_worldNameButtons.Add (WorldNameButtonPrefab);
 
 		string dirPath = Manager.SavePath;
 	
@@ -61,8 +61,8 @@ public class LoadFileDialogPanelScript : MonoBehaviour {
 	
 		Button button;
 
-		if (index < WorldNameButtons.Count) {
-			button = WorldNameButtons[index];
+		if (index < _worldNameButtons.Count) {
+			button = _worldNameButtons[index];
 			button.GetComponentInChildren<Text> ().text = name;
 
 		} else {
@@ -87,7 +87,7 @@ public class LoadFileDialogPanelScript : MonoBehaviour {
 		newButton.transform.SetParent (transform, false);
 		newButton.GetComponentInChildren<Text> ().text = name;
 
-		WorldNameButtons.Add (newButton);
+		_worldNameButtons.Add (newButton);
 
 		ActionButtonPanelTransform.SetAsLastSibling ();
 
@@ -98,7 +98,7 @@ public class LoadFileDialogPanelScript : MonoBehaviour {
 
 		bool first = true;
 
-		foreach (Button button in WorldNameButtons) {
+		foreach (Button button in _worldNameButtons) {
 		
 			if (first) {
 				first = false;
@@ -108,7 +108,7 @@ public class LoadFileDialogPanelScript : MonoBehaviour {
 			GameObject.Destroy(button.gameObject);
 		}
 
-		WorldNameButtons.Clear ();
+		_worldNameButtons.Clear ();
 	}
 
 	public void SetDialogText (string text) {

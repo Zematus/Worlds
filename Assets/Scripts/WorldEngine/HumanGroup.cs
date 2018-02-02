@@ -4,7 +4,7 @@ using System.Xml;
 using System.Xml.Serialization;
 
 public abstract class HumanGroup : ISynchronizable {
-	
+
 	[XmlAttribute]
 	public bool MigrationTagged;
 

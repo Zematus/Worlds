@@ -12,7 +12,7 @@ public class SelectionPanelScript : MonoBehaviour {
 
 	public string SelectedOption = "None";
 
-	public List<Toggle> Toggles = new List<Toggle>();
+	public Dictionary<string, Toggle> Toggles = new Dictionary<string, Toggle>();
 
 	// Use this for initialization
 	void Start () {
@@ -35,16 +35,16 @@ public class SelectionPanelScript : MonoBehaviour {
 		return gameObject.activeInHierarchy;
 	}
 
-	public void AddOption (string text, UnityAction<bool> call) {
+	public void AddOption (string id, string text, UnityAction<bool> call) {
 
-		foreach (Toggle existingToggle in Toggles) {
-			
-			SelectionToggleScript existingToggleScript = existingToggle.gameObject.GetComponent<SelectionToggleScript> ();
+		Toggle toggle = null;
 
-			if (existingToggleScript.Label.text == text) return;
+		if (Toggles.TryGetValue (id, out toggle)) {
+
+			return;
 		}
 
-		Toggle toggle = GameObject.Instantiate (PrototypeToggle) as Toggle;
+		toggle = GameObject.Instantiate (PrototypeToggle) as Toggle;
 
 		toggle.onValueChanged.AddListener (call);
 		toggle.transform.SetParent (gameObject.transform);
@@ -54,25 +54,22 @@ public class SelectionPanelScript : MonoBehaviour {
 		
 		toggle.gameObject.SetActive (true);
 
-		Toggles.Add (toggle);
+		Toggles.Add (id, toggle);
 	}
 
-	public void SetStateOption (string text, bool state) {
+	public void SetStateOption (string id, bool state) {
 
-		foreach (Toggle toggle in Toggles) {
-		
-			SelectionToggleScript toggleScript = toggle.gameObject.GetComponent<SelectionToggleScript> ();
+		Toggle toggle = null;
 
-			if (toggleScript.Label.text == text) {
+		if (Toggles.TryGetValue (id, out toggle)) {
 
-				toggle.isOn = state;
-			}
+			toggle.isOn = state;
 		}
 	}
 
 	public void RemoveAllOptions () {
 		
-		foreach (Toggle toggle in Toggles) {
+		foreach (Toggle toggle in Toggles.Values) {
 			
 			toggle.gameObject.SetActive (false);
 			toggle.transform.SetParent (null);

@@ -9,6 +9,7 @@ public class OverlayDialogPanelScript : MonoBehaviour {
 
 	public Text DialogText;
 
+	public Toggle GeneralDataToggle;
 	public Toggle PopDataToggle;
 	public Toggle PolityDataToggle;
 	public Toggle MiscDataToggle;
@@ -16,13 +17,16 @@ public class OverlayDialogPanelScript : MonoBehaviour {
 
 	public Toggle PopDensityToggle;
 	public Toggle FarmlandToggle;
+	public Toggle PopCulturalPreferenceToggle;
 	public Toggle PopCulturalActivityToggle;
 	public Toggle PopCulturalSkillToggle;
 	public Toggle PopCulturalKnowledgeToggle;
 	public Toggle PopCulturalDiscoveryToggle;
 
 	public Toggle TerritoriesToggle;
+	public Toggle DistancesToCoresToggle;
 	public Toggle InfluenceToggle;
+	public Toggle PolityCulturalPreferenceToggle;
 	public Toggle PolityCulturalActivityToggle;
 	public Toggle PolityCulturalSkillToggle;
 	public Toggle PolityCulturalKnowledgeToggle;
@@ -38,8 +42,11 @@ public class OverlayDialogPanelScript : MonoBehaviour {
 	public Toggle UpdateSpanToggle;
 
 	public Toggle DisplayRoutesToggle;
+	public Toggle DisplayGroupActivityToggle;
 
 	public Button CloseActionButton;
+
+	public bool DontUpdateDialog = false;
 
 	// Use this for initialization
 	void Start () {
@@ -51,6 +58,7 @@ public class OverlayDialogPanelScript : MonoBehaviour {
 		#endif
 	
 		DebugDataToggle.gameObject.SetActive (debugState);
+		DistancesToCoresToggle.gameObject.SetActive (debugState);
 	}
 	
 	// Update is called once per frame
@@ -82,6 +90,7 @@ public class OverlayDialogPanelScript : MonoBehaviour {
 		if (!PopDataToggle.isOn) {
 			PopDensityToggle.isOn = false;
 			FarmlandToggle.isOn = false;
+			PopCulturalPreferenceToggle.isOn = false;
 			PopCulturalActivityToggle.isOn = false;
 			PopCulturalSkillToggle.isOn = false;
 			PopCulturalKnowledgeToggle.isOn = false;
@@ -90,7 +99,9 @@ public class OverlayDialogPanelScript : MonoBehaviour {
 
 		if (!PolityDataToggle.isOn) {
 			TerritoriesToggle.isOn = false;
+			DistancesToCoresToggle.isOn = false;
 			InfluenceToggle.isOn = false;
+			PolityCulturalPreferenceToggle.isOn = false;
 			PolityCulturalActivityToggle.isOn = false;
 			PolityCulturalSkillToggle.isOn = false;
 			PolityCulturalKnowledgeToggle.isOn = false;
@@ -109,5 +120,73 @@ public class OverlayDialogPanelScript : MonoBehaviour {
 			PopChangeToggle.isOn = false;
 			UpdateSpanToggle.isOn = false;
 		}
+	}
+
+	public void UpdateOptions () {
+
+		DontUpdateDialog = true;
+
+		GeneralDataToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.General);		
+		PopDataToggle.isOn = (
+			(Manager.PlanetOverlay == PlanetOverlay.PopDensity) ||
+			(Manager.PlanetOverlay == PlanetOverlay.FarmlandDistribution) ||
+			(Manager.PlanetOverlay == PlanetOverlay.PopCulturalPreference) ||
+			(Manager.PlanetOverlay == PlanetOverlay.PopCulturalActivity) ||
+			(Manager.PlanetOverlay == PlanetOverlay.PopCulturalSkill) ||
+			(Manager.PlanetOverlay == PlanetOverlay.PopCulturalKnowledge) ||
+			(Manager.PlanetOverlay == PlanetOverlay.PopCulturalDiscovery)
+		);
+		PolityDataToggle.isOn = (
+			(Manager.PlanetOverlay == PlanetOverlay.PolityTerritory) ||
+			(Manager.PlanetOverlay == PlanetOverlay.FactionCoreDistance) ||
+			(Manager.PlanetOverlay == PlanetOverlay.PolityInfluence) ||
+			(Manager.PlanetOverlay == PlanetOverlay.PolityCulturalPreference) ||
+			(Manager.PlanetOverlay == PlanetOverlay.PolityCulturalActivity) ||
+			(Manager.PlanetOverlay == PlanetOverlay.PolityCulturalSkill) ||
+			(Manager.PlanetOverlay == PlanetOverlay.PolityCulturalKnowledge) ||
+			(Manager.PlanetOverlay == PlanetOverlay.PolityCulturalDiscovery)
+		);
+		MiscDataToggle.isOn = (
+			(Manager.PlanetOverlay == PlanetOverlay.Temperature) ||
+			(Manager.PlanetOverlay == PlanetOverlay.Rainfall) ||
+			(Manager.PlanetOverlay == PlanetOverlay.Arability) ||
+			(Manager.PlanetOverlay == PlanetOverlay.Region) ||
+			(Manager.PlanetOverlay == PlanetOverlay.Language)
+		);
+		DebugDataToggle.isOn = (
+			(Manager.PlanetOverlay == PlanetOverlay.PopChange) ||
+			(Manager.PlanetOverlay == PlanetOverlay.UpdateSpan)
+		);
+
+		PopDensityToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.PopDensity);
+		FarmlandToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.FarmlandDistribution);
+		PopCulturalPreferenceToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.PopCulturalPreference);
+		PopCulturalActivityToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.PopCulturalActivity);
+		PopCulturalSkillToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.PopCulturalSkill);
+		PopCulturalKnowledgeToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.PopCulturalKnowledge);
+		PopCulturalDiscoveryToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.PopCulturalDiscovery);
+
+		TerritoriesToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.PolityTerritory);
+		DistancesToCoresToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.FactionCoreDistance);
+		InfluenceToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.PolityInfluence);
+		PolityCulturalPreferenceToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.PolityCulturalPreference);
+		PolityCulturalActivityToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.PolityCulturalActivity);
+		PolityCulturalSkillToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.PolityCulturalSkill);
+		PolityCulturalKnowledgeToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.PolityCulturalKnowledge);
+		PolityCulturalDiscoveryToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.PolityCulturalDiscovery);
+
+		TemperatureToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.Temperature);
+		RainfallToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.Rainfall);
+		ArabilityToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.Arability);
+		RegionToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.Region);
+		LanguageToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.Language);
+
+		PopChangeToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.PopChange);
+		UpdateSpanToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.UpdateSpan);
+
+		DisplayRoutesToggle.isOn = Manager.DisplayRoutes;
+		DisplayGroupActivityToggle.isOn = Manager.DisplayGroupActivity;
+
+		DontUpdateDialog = false;
 	}
 }

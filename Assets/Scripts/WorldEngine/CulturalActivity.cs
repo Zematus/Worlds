@@ -59,7 +59,7 @@ public class CulturalActivity : CulturalActivityInfo {
 
 public class CellCulturalActivity : CulturalActivity {
 
-	public const float TimeEffectConstant = CellGroup.GenerationTime * 500;
+	public const float TimeEffectConstant = CellGroup.GenerationSpan * 500;
 
 	public const string ForagingActivityId = "ForagingActivity";
 	public const string FarmingActivityId = "FarmingActivity";
@@ -73,12 +73,18 @@ public class CellCulturalActivity : CulturalActivity {
 	[XmlIgnore]
 	public CellGroup Group;
 
+	private const float MaxChangeDelta = 0.2f;
+
+	private float _newValue;
+
 	public CellCulturalActivity () {
 	}
 
 	private CellCulturalActivity (CellGroup group, string id, string name, int rngOffset, float value = 0, float contribution = 0) : base (id, name, rngOffset, value, contribution) {
 
 		Group = group;
+
+		_newValue = value;
 	}
 
 	public static CellCulturalActivity CreateCellInstance (CellGroup group, CulturalActivity baseActivity) {
@@ -101,30 +107,31 @@ public class CellCulturalActivity : CulturalActivity {
 		return new CellCulturalActivity (group, FarmingActivityId, FarmingActivityName, FarmingActivityRandomOffset, value, contribution);
 	}
 
-//	public CellCulturalActivity GenerateCopy (CellGroup targetGroup) {
-//
-//		return new CellCulturalActivity (targetGroup, Id, Name, RngOffset, Value, 0);
-//	}
-
 	public void Merge (CulturalActivity activity, float percentage) {
-	
-		Value = Value * (1f - percentage) + activity.Value * percentage;
+
+		// _newvalue should have been set correctly either by the constructor or by the Update function
+		_newValue = _newValue * (1f - percentage) + activity.Value * percentage;
 	}
-	
+
+	// This method should be called only once after a Activity is copied from another source group
 	public void ModifyValue (float percentage) {
-		
-		Value *= percentage;
+
+		_newValue = Value * percentage;
 	}
 
 	public void Update (int timeSpan) {
 
-		TerrainCell groupCell = Group.Cell;
+		#if DEBUG
+		if (Group.Cell.IsSelected) {
+			bool debug = true;
+		}
+		#endif
 
-		float changeSpeedFactor = 0.001f;
+		TerrainCell groupCell = Group.Cell;
 
 		float randomModifier = groupCell.GetNextLocalRandomFloat (RngOffsets.ACTIVITY_UPDATE + RngOffset);
 		randomModifier = 1f - (randomModifier * 2f);
-		float randomFactor = changeSpeedFactor * randomModifier;
+		float randomFactor = MaxChangeDelta * randomModifier;
 
 		float maxTargetValue = 1f;
 		float minTargetValue = 0f;
@@ -138,12 +145,16 @@ public class CellCulturalActivity : CulturalActivity {
 
 		float timeEffect = timeSpan / (float)(timeSpan + TimeEffectConstant);
 
-		Value = (Value * (1 - timeEffect)) + (targetValue * timeEffect);
-
-		Value = Mathf.Clamp01 (Value);
+		_newValue = (Value * (1 - timeEffect)) + (targetValue * timeEffect);
 	}
 
 	public void PolityCulturalInfluence (CulturalActivity polityActivity, PolityInfluence polityInfluence, int timeSpan) {
+
+		#if DEBUG
+		if (Group.Cell.IsSelected) {
+			bool debug = true;
+		}
+		#endif
 
 		float targetValue = polityActivity.Value;
 		float influenceEffect = polityInfluence.Value;
@@ -154,10 +165,14 @@ public class CellCulturalActivity : CulturalActivity {
 
 		float timeEffect = timeSpan / (float)(timeSpan + TimeEffectConstant);
 
-		float change = (targetValue - Value) * influenceEffect * timeEffect * randomEffect;
+		// _newvalue should have been set correctly either by the constructor or by the Update function
+		float change = (targetValue - _newValue) * influenceEffect * timeEffect * randomEffect;
 
-		Value += change;
+		_newValue = _newValue + change;
+	}
 
-		Value = Mathf.Clamp01 (Value);
+	public void PostUpdate () {
+
+		Value = Mathf.Clamp01 (_newValue);
 	}
 }

@@ -20,8 +20,14 @@ public class MigratingGroup : HumanGroup {
 	[XmlAttribute]
 	public long SourceGroupId;
 
+	[XmlAttribute("MigDir")]
+	public int MigrationDirectionInt;
+
 	//public CellCulture Culture;
 	public BufferCulture Culture;
+
+	[XmlIgnore]
+	public List<Faction> FactionCoresToMigrate = new List<Faction> ();
 	
 	[XmlIgnore]
 	public TerrainCell TargetCell;
@@ -32,10 +38,15 @@ public class MigratingGroup : HumanGroup {
 	[XmlIgnore]
 	public List <PolityInfluence> PolityInfluences;
 
+	[XmlIgnore]
+	public Direction MigrationDirection;
+
 	public MigratingGroup () {
 	}
 
-	public MigratingGroup (World world, float percentPopulation, CellGroup sourceGroup, TerrainCell targetCell) : base (world) {
+	public MigratingGroup (World world, float percentPopulation, CellGroup sourceGroup, TerrainCell targetCell, Direction migrationDirection) : base (world) {
+
+		MigrationDirection = migrationDirection;
 
 		PercentPopulation = percentPopulation;
 
@@ -43,6 +54,7 @@ public class MigratingGroup : HumanGroup {
 		if (float.IsNaN (percentPopulation)) {
 
 			Debug.Break ();
+			throw new System.Exception ("float.IsNaN (percentPopulation)");
 		}
 		#endif
 
@@ -91,12 +103,52 @@ public class MigratingGroup : HumanGroup {
 
 		PolityInfluences = new List<PolityInfluence> ();
 
-		foreach (PolityInfluence p in SourceGroup.GetPolityInfluences ()) {
+		foreach (PolityInfluence pi in SourceGroup.GetPolityInfluences ()) {
 
-			PolityInfluences.Add (new PolityInfluence (p.Polity, p.Value));
+			PolityInfluences.Add (new PolityInfluence (pi.Polity, pi.Value));
 		}
 
+		TryMigrateFactionCores ();
+
 		return true;
+	}
+
+	private void TryMigrateFactionCores () {
+
+		int targetPopulation = 0;
+		int targetNewPopulation = Population;
+
+		CellGroup targetGroup = TargetCell.Group;
+		if (targetGroup != null) {
+			targetPopulation = targetGroup.Population;
+			targetNewPopulation += targetPopulation;
+		}
+
+		foreach (Faction faction in SourceGroup.GetFactionCores ()) {
+
+			PolityInfluence pi = SourceGroup.GetPolityInfluence (faction.Polity);
+
+			if (pi == null) {
+				Debug.LogError ("Unable to find Polity with Id: " + faction.Polity.Id);
+			}
+
+			float sourceGroupInfluence = pi.Value;
+			float targetGroupInfluence = sourceGroupInfluence;
+
+			if (targetGroup != null) {
+				PolityInfluence piTarget = targetGroup.GetPolityInfluence (faction.Polity);
+
+				if (piTarget != null)
+					targetGroupInfluence = piTarget.Value;
+				else 
+					targetGroupInfluence = 0f;
+			}
+
+			float targetNewGroupInfluence = ((sourceGroupInfluence * Population) + (targetGroupInfluence * targetPopulation)) / targetNewPopulation;
+
+			if (faction.ShouldMigrateFactionCore (SourceGroup, TargetCell, targetNewGroupInfluence, targetNewPopulation))
+				FactionCoresToMigrate.Add (faction);
+		}
 	}
 
 	public void MoveToCell () {
@@ -104,30 +156,45 @@ public class MigratingGroup : HumanGroup {
 		if (Population <= 0)
 			return;
 
-		if (TargetCell.Group != null) {
+		CellGroup targetGroup = TargetCell.Group;
 
-			if (TargetCell.Group.StillPresent) {
+		if (targetGroup != null) {
 
-				TargetCell.Group.MergeGroup(this);
+			if (targetGroup.StillPresent) {
+
+				targetGroup.MergeGroup (this);
 
 				if (SourceGroup.MigrationTagged) {
 					World.MigrationTagGroup (TargetCell.Group);
 				}
+			}
+		} else {
 
-				return;
+			targetGroup = new CellGroup (this, Population);
+
+			World.AddGroup (targetGroup);
+		
+			if (SourceGroup.MigrationTagged) {
+				World.MigrationTagGroup (targetGroup);
 			}
 		}
 
-		CellGroup newGroup = new CellGroup (this, Population);
+		foreach (Faction faction in FactionCoresToMigrate) {
 
-		World.AddGroup (newGroup);
-		
-		if (SourceGroup.MigrationTagged) {
-			World.MigrationTagGroup (newGroup);
+			faction.PrepareNewCoreGroup (targetGroup);
+
+			World.AddFactionToUpdate (faction);
 		}
+	}
+
+	public override void Synchronize ()
+	{
+		MigrationDirectionInt = (int)MigrationDirection;
 	}
 	
 	public override void FinalizeLoad () {
+
+		MigrationDirection = (Direction)MigrationDirectionInt;
 
 		base.FinalizeLoad ();
 		

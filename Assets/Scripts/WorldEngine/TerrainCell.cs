@@ -4,11 +4,9 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
-public delegate int GetRandomIntDelegate (int maxValue);
-public delegate float GetRandomFloatDelegate ();
-
 public enum Direction {
 
+	Null = -1,
 	North = 0,
 	Northeast = 1,
 	East = 2,
@@ -40,6 +38,47 @@ public struct WorldPosition {
 
 		Longitude = longitude;
 		Latitude = latitude;
+	}
+
+	public override string ToString ()
+	{
+		return string.Format ("[" + Longitude + "," + Latitude + "]");
+	}
+
+	public bool Equals (int longitude, int latitude) {
+
+		return ((Longitude == longitude) && (Latitude == latitude));
+	}
+
+	public bool Equals (WorldPosition p) {
+
+		return Equals (p.Longitude, p.Latitude);
+	}
+
+	public override bool Equals (object p) {
+
+		if (p is WorldPosition)
+			return Equals ((WorldPosition)p);
+		
+		return false;
+	}
+
+	public override int GetHashCode ()
+	{
+		int hash = 91 + Longitude.GetHashCode();
+		hash = (hash * 7) + Latitude.GetHashCode();
+
+		return hash;
+	}
+
+	public static bool operator ==(WorldPosition p1, WorldPosition p2) 
+	{
+		return p1.Equals(p2);
+	}
+
+	public static bool operator !=(WorldPosition p1, WorldPosition p2) 
+	{
+		return !p1.Equals(p2);
 	}
 }
 
@@ -82,6 +121,9 @@ public class TerrainCell : ISynchronizable {
 	public static GetNextLocalRandomCalledDelegate GetNextLocalRandomCalled = null; 
 
 	#endif
+
+	public const int MaxNeighborDirections = 8;
+	public const int NeighborSearchOffset = 3;
 	
 	[XmlAttribute]
 	public int Longitude;
@@ -132,6 +174,9 @@ public class TerrainCell : ISynchronizable {
 	public CellGroup Group;
 
 	[XmlIgnore]
+	public WorldPosition Position;
+
+	[XmlIgnore]
 	public Region Region = null;
 
 	[XmlIgnore]
@@ -163,10 +208,12 @@ public class TerrainCell : ISynchronizable {
 	private Dictionary<string, float> _biomePresences = new Dictionary<string, float> ();
 
 	public TerrainCell () {
-
+		
 	}
 
 	public TerrainCell (World world, int longitude, int latitude, float height, float width) {
+
+		Position = new WorldPosition (longitude, latitude);
 	
 		World = world;
 		Longitude = longitude;
@@ -178,21 +225,47 @@ public class TerrainCell : ISynchronizable {
 		Area = height * width;
 	}
 
-	public WorldPosition Position {
-
-		get { 
-			return new WorldPosition (Longitude, Latitude);
-		}
-	}
-
 	public static Direction ReverseDirection (Direction dir) {
 
 		return (Direction)(((int)dir + 4) % 8);
 	}
 
-	public long GenerateUniqueIdentifier (long oom = 1, long offset = 0) {
+	public Direction GetDirection (TerrainCell targetCell) {
 
-		return ((((long)World.CurrentDate * 1000000) + ((long)Longitude * 1000) + (long)Latitude) * oom) + offset;
+		foreach (KeyValuePair<Direction, TerrainCell> pair in Neighbors) {
+
+			if (pair.Value == targetCell) {
+			
+				return pair.Key;
+			}
+		}
+
+		return Direction.Null;
+	}
+
+	public Direction TryGetNeighborDirection (int offset) {
+
+		if (Neighbors.Count <= 0)
+			return Direction.Null;
+
+		int dir = (int)Mathf.Repeat (offset, MaxNeighborDirections);
+
+		while (true) {
+			if (Neighbors.ContainsKey ((Direction)dir))
+				return (Direction)dir;
+
+			dir = (dir + NeighborSearchOffset) % MaxNeighborDirections;
+		}
+	}
+
+	public TerrainCell TryGetNeighborCell (int offset) {
+
+		return Neighbors[TryGetNeighborDirection (offset)];
+	}
+
+	public long GenerateUniqueIdentifier (int date, long oom = 1L, long offset = 0L) {
+
+		return ((((long)date * 1000000) + ((long)Longitude * 1000) + (long)Latitude) * oom) + (offset % oom);
 	}
 
 	public TerrainCellChanges GetChanges () {
@@ -256,14 +329,18 @@ public class TerrainCell : ISynchronizable {
 		HasCrossingRoutes = CrossingRoutes.Count > 0;
 	}
 
-	public int GetNextLocalRandomInt (int queryOffset, int maxValue) {// = PerlinNoise.MaxPermutationValue) {
+	public int GetNextLocalRandomInt (int queryOffset, int maxValue) {
+		
+		return GetLocalRandomInt (World.CurrentDate, queryOffset, maxValue);
+	}
+
+	public int GetLocalRandomInt (int date, int queryOffset, int maxValue) {
 
 		maxValue = Mathf.Min (PerlinNoise.MaxPermutationValue, maxValue);
 
 		int x = Mathf.Abs (World.Seed + Longitude + queryOffset);
 		int y = Mathf.Abs (World.Seed + Latitude + queryOffset);
-//		int z = Mathf.Abs (World.Seed + World.CurrentDate + LocalIteration);
-		int z = Mathf.Abs (World.Seed + World.CurrentDate + queryOffset);
+		int z = Mathf.Abs (World.Seed + date + queryOffset);
 
 		int value = PerlinNoise.GetPermutationValue(x, y, z) % maxValue;
 
@@ -297,79 +374,28 @@ public class TerrainCell : ISynchronizable {
 //		#if DEBUG
 //		if (Manager.RecordingEnabled) {
 //			LastRandomInteger = value;
-//			string key = "Long:" + Longitude + "-Lat:" + Latitude + "-Date:" + World.CurrentDate + "-LocalIteration:" + LocalIteration;
+//			string key = "Long:" + Longitude + "-Lat:" + Latitude + "-Date:" + date + "-LocalIteration:" + LocalIteration;
 
 //			Manager.Recorder.Record (key, "LastRandomInteger:" + value);
 //		}
 //		#endif
 
-//		LocalIteration++;
-
 		return value;
 	}
-	
+
 	public float GetNextLocalRandomFloat (int queryOffset) {
 
 		int value = GetNextLocalRandomInt (queryOffset, PerlinNoise.MaxPermutationValue);
+
+		return value / (float)PerlinNoise.MaxPermutationValue;
+	}
+	
+	public float GetLocalRandomFloat (int date, int queryOffset) {
+
+		int value = GetLocalRandomInt (date, queryOffset, PerlinNoise.MaxPermutationValue);
 		
 		return value / (float)PerlinNoise.MaxPermutationValue;
 	}
-
-//	public int GetNextLocalRandomIntNoIteration (int iterationOffset, int maxValue = PerlinNoise.MaxPermutationValue) {
-//
-//		maxValue = Mathf.Min (PerlinNoise.MaxPermutationValue, maxValue);
-//
-//		int x = Mathf.Abs (World.Seed + Longitude);
-//		int y = Mathf.Abs (World.Seed + Latitude);
-//		int z = Mathf.Abs (World.Seed + World.CurrentDate + LocalIteration + iterationOffset);
-//
-//		int value = PerlinNoise.GetPermutationValue(x, y, z) % maxValue;
-//
-//		#if DEBUG
-//		if (GetNextLocalRandomCalled != null) {
-//			if (Manager.TrackGenRandomCallers) {
-//
-//				System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
-//
-//				System.Reflection.MethodBase method = stackTrace.GetFrame(1).GetMethod();
-//				string callingMethod = method.Name;
-//
-//				int frame = 2;
-//				while (callingMethod.Contains ("GetNextLocalRandom") || callingMethod.Contains ("GetNextRandom")) {
-//					method = stackTrace.GetFrame(frame).GetMethod();
-//					callingMethod = method.Name;
-//
-//					frame++;
-//				}
-//
-//				string callingClass = method.DeclaringType.ToString();
-//
-//				GetNextLocalRandomCalled (callingClass + ":" + callingMethod);
-//
-//			} else {
-//				GetNextLocalRandomCalled (null);
-//			}
-//		}
-//		#endif
-//
-//		//		#if DEBUG
-//		//		if (Manager.RecordingEnabled) {
-//		//			LastRandomInteger = value;
-//		//			string key = "Long:" + Longitude + "-Lat:" + Latitude + "-Date:" + World.CurrentDate + "-LocalIteration:" + LocalIteration;
-//
-//		//			Manager.Recorder.Record (key, "LastRandomInteger:" + value);
-//		//		}
-//		//		#endif
-//
-//		return value;
-//	}
-
-//	public float GetNextLocalRandomFloatNoIteration (int iterationOffset) {
-//
-//		int value = GetNextLocalRandomIntNoIteration (iterationOffset);
-//
-//		return value / (float)PerlinNoise.MaxPermutationValue;
-//	}
 
 	public float GetBiomePresence (Biome biome) {
 
@@ -405,6 +431,8 @@ public class TerrainCell : ISynchronizable {
 
 	public void FinalizeLoad () {
 
+		Position = new WorldPosition (Longitude, Latitude);
+
 		for (int i = 0; i < BiomePresences.Count; i++) {
 		
 			_biomePresences [PresentBiomeNames [i]] = BiomePresences [i];
@@ -425,7 +453,7 @@ public class TerrainCell : ISynchronizable {
 
 	public void InitializeNeighbors () {
 		
-		Neighbors = FindNeighborCells ();
+		SetNeighborCells ();
 
 		NeighborDistances = new Dictionary<Direction, float> (Neighbors.Count);
 
@@ -463,9 +491,7 @@ public class TerrainCell : ISynchronizable {
 		float sqAltDif = altitudeDiff * altitudeDiff;
 		float sqDistance = distance * distance;
 
-		float avgAccesibility = (Accessibility + cell.Accessibility) / 2f;
-
-		distance = Mathf.Sqrt (sqAltDif + sqDistance) * avgAccesibility;
+		distance = Mathf.Sqrt (sqAltDif + sqDistance);
 
 		return distance;
 	}
@@ -485,31 +511,29 @@ public class TerrainCell : ISynchronizable {
 		return nCell;
 	}
 	
-	private Dictionary<Direction,TerrainCell> FindNeighborCells () {
+	private void SetNeighborCells () {
 		
-		Dictionary<Direction,TerrainCell> neighbors = new Dictionary<Direction,TerrainCell> (8);
+		Neighbors = new Dictionary<Direction,TerrainCell> (8);
 		
 		int wLongitude = (World.Width + Longitude - 1) % World.Width;
 		int eLongitude = (Longitude + 1) % World.Width;
 		
 		if (Latitude < (World.Height - 1)) {
 			
-			neighbors.Add(Direction.Northwest, World.TerrainCells[wLongitude][Latitude + 1]);
-			neighbors.Add(Direction.North, World.TerrainCells[Longitude][Latitude + 1]);
-			neighbors.Add(Direction.Northeast, World.TerrainCells[eLongitude][Latitude + 1]);
+			Neighbors.Add (Direction.Northwest, World.TerrainCells[wLongitude][Latitude + 1]);
+			Neighbors.Add (Direction.North, World.TerrainCells[Longitude][Latitude + 1]);
+			Neighbors.Add (Direction.Northeast, World.TerrainCells[eLongitude][Latitude + 1]);
 		}
 		
-		neighbors.Add(Direction.West, World.TerrainCells[wLongitude][Latitude]);
-		neighbors.Add(Direction.East, World.TerrainCells[eLongitude][Latitude]);
+		Neighbors.Add (Direction.West, World.TerrainCells[wLongitude][Latitude]);
+		Neighbors.Add (Direction.East, World.TerrainCells[eLongitude][Latitude]);
 		
 		if (Latitude > 0) {
 			
-			neighbors.Add(Direction.Southwest, World.TerrainCells[wLongitude][Latitude - 1]);
-			neighbors.Add(Direction.South, World.TerrainCells[Longitude][Latitude - 1]);
-			neighbors.Add(Direction.Southeast, World.TerrainCells[eLongitude][Latitude - 1]);
+			Neighbors.Add (Direction.Southwest, World.TerrainCells[wLongitude][Latitude - 1]);
+			Neighbors.Add (Direction.South, World.TerrainCells[Longitude][Latitude - 1]);
+			Neighbors.Add (Direction.Southeast, World.TerrainCells[eLongitude][Latitude - 1]);
 		}
-		
-		return neighbors;
 	}
 
 	private bool FindIfCoastline () {

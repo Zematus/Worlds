@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
-public class Route {
+public class Route : ISynchronizable {
 
 	public List<WorldPosition> CellPositions = new List<WorldPosition> ();
 
@@ -13,6 +13,9 @@ public class Route {
 
 	[XmlAttribute]
 	public bool Consolidated = false;
+
+	[XmlAttribute("MigDir")]
+	public int MigrationDirectionInt = -1;
 
 	[XmlIgnore]
 	public World World;
@@ -26,14 +29,19 @@ public class Route {
 	[XmlIgnore]
 	public List<TerrainCell> Cells = new List<TerrainCell> ();
 
+	public Direction MigrationDirection {
+		get { return (Direction)MigrationDirectionInt; }
+	}
+
 	private const float CoastPreferenceIncrement = 400;
 
-	private bool _isTraversingSea = false;
 	private Direction _traverseDirection;
-	private float _currentDirectionOffset = 0;
 
-	private float _currentCoastPreference = CoastPreferenceIncrement;
-	private float _currentEndRoutePreference = 0;
+	private bool _isTraversingSea;
+	private float _currentDirectionOffset;
+
+	private float _currentCoastPreference;
+	private float _currentEndRoutePreference;
 
 	public Route () {
 	
@@ -45,29 +53,7 @@ public class Route {
 
 		FirstCell = startCell;
 	
-		AddCell (startCell);
-
-		TerrainCell nextCell = startCell;
-		Direction nextDirection;
-
-		int rngOffset = 0;
-
-		while (true) {
-
-			nextCell = ChooseNextSeaCell (nextCell, rngOffset++, out nextDirection);
-
-			if (nextCell == null)
-				break;
-
-			Length += nextCell.NeighborDistances [nextDirection]; 
-
-			AddCell (nextCell);
-
-			if (nextCell.GetBiomePresence (Biome.Ocean) <= 0)
-				break;
-		}
-
-		LastCell = nextCell;
+		Build ();
 	}
 
 	public void Destroy () {
@@ -80,6 +66,94 @@ public class Route {
 			cell.RemoveCrossingRoute (this);
 			Manager.AddUpdatedCell (cell, CellUpdateType.Route);
 		}
+	}
+
+	public void Reset () {
+
+		if (!Consolidated)
+			return;
+
+		foreach (TerrainCell cell in Cells) {
+
+			cell.RemoveCrossingRoute (this);
+			Manager.AddUpdatedCell (cell, CellUpdateType.Route);
+		}
+
+		CellPositions.Clear ();
+		Cells.Clear ();
+
+		Consolidated = false;
+	}
+
+	public void Build () {
+
+		_isTraversingSea = false;
+		_currentEndRoutePreference = 0;
+		_currentDirectionOffset = 0;
+		_currentCoastPreference = CoastPreferenceIncrement;
+		_currentEndRoutePreference = 0;
+
+		AddCell (FirstCell);
+		LastCell = FirstCell;
+
+		TerrainCell nextCell = FirstCell;
+		Direction nextDirection;
+
+		int rngOffset = 0;
+
+		while (true) {
+
+//			#if DEBUG
+//			TerrainCell prevCell = nextCell;
+//			#endif
+
+			nextCell = ChooseNextSeaCell (nextCell, rngOffset++, out nextDirection);
+
+//			#if DEBUG
+//			if (Manager.RegisterDebugEvent != null) {
+//				if ((FirstCell.Longitude == Manager.TracingData.Longitude) && (FirstCell.Latitude == Manager.TracingData.Latitude)) {
+//
+//					string cellPos = "Position: Long:" + FirstCell.Longitude + "|Lat:" + FirstCell.Latitude;
+//					string prevCellDesc = "Position: Long:" + prevCell.Longitude + "|Lat:" + prevCell.Latitude;
+//
+//					string nextCellDesc = "Null";
+//
+//					if (nextCell != null) {
+//						nextCellDesc = "Position: Long:" + nextCell.Longitude + "|Lat:" + nextCell.Latitude;
+//					}
+//
+//					SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//						"ChooseNextSeaCell - FirstCell:" + cellPos,
+//						"CurrentDate: " + World.CurrentDate + 
+//						", prevCell: " + prevCellDesc + 
+//						", nextCell: " + nextCellDesc + 
+//						"");
+//
+//					Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+//				}
+//			}
+//			#endif
+
+			if (nextCell == null) {
+				LastCell = nextCell;
+				break;
+			}
+
+			Length += LastCell.NeighborDistances [nextDirection];
+
+			AddCell (nextCell);
+
+			if (nextCell.GetBiomePresence (Biome.Ocean) <= 0)
+				break;
+
+			LastCell = nextCell;
+		}
+
+		if (nextCell != null) {
+			MigrationDirectionInt = (int)LastCell.GetDirection (nextCell);
+		}
+		
+		LastCell = nextCell;
 	}
 
 	public void Consolidate () {
@@ -132,6 +206,30 @@ public class Route {
 		TerrainCell nextCell = currentCell.GetNeighborCell (newDirection);
 		direction = newDirection;
 
+//		#if DEBUG
+//		if (Manager.RegisterDebugEvent != null) {
+//			if ((FirstCell.Longitude == Manager.TracingData.Longitude) && (FirstCell.Latitude == Manager.TracingData.Latitude)) {
+//
+//				string cellPos = "Position: Long:" + FirstCell.Longitude + "|Lat:" + FirstCell.Latitude;
+//
+//				string nextCellDesc = "Null";
+//
+//				if (nextCell != null) {
+//					nextCellDesc = "Position: Long:" + nextCell.Longitude + "|Lat:" + nextCell.Latitude;
+//				}
+//
+//				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//					"ChooseNextDepthSeaCell - FirstCell:" + cellPos,
+//					"CurrentDate: " + World.CurrentDate + 
+//					", deviation: " + deviation + 
+//					", nextCell: " + nextCellDesc + 
+//					"");
+//
+//				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+//			}
+//		}
+//		#endif
+
 		if (nextCell == null)
 			return null;
 
@@ -162,6 +260,10 @@ public class Route {
 
 		List<CoastalCellValue> coastalCellWeights = new List<CoastalCellValue> (currentCell.Neighbors.Count);
 
+//		#if DEBUG
+//		string cellWeightsStr = "";
+//		#endif
+
 		foreach (KeyValuePair<Direction, TerrainCell> nPair in currentCell.Neighbors) {
 
 			TerrainCell nCell = nPair.Value;
@@ -180,8 +282,16 @@ public class Route {
 
 			coastalCellWeights.Add (new CoastalCellValue(nPair, weight));
 
+//			#if DEBUG
+//			cellWeightsStr += "\n\tnCell Direction: " + nPair.Key + " - Position: " + nCell.Position + " - Weight: " + weight;
+//			#endif
+
 			totalWeight += weight;
 		}
+
+//		#if DEBUG
+//		cellWeightsStr += "\n";
+//		#endif
 
 		if (coastalCellWeights.Count == 0) {
 
@@ -204,7 +314,6 @@ public class Route {
 		direction = targetPair.Key;
 
 		if (targetCell == null) {
-
 			throw new System.Exception ("targetCell is null");
 		}
 
@@ -218,6 +327,33 @@ public class Route {
 
 		_currentEndRoutePreference += 0.1f;
 
+//		#if DEBUG
+//		if (Manager.RegisterDebugEvent != null) {
+//			if ((FirstCell.Longitude == Manager.TracingData.Longitude) && (FirstCell.Latitude == Manager.TracingData.Latitude)) {
+//
+//				string cellPos = "Position: Long:" + FirstCell.Longitude + "|Lat:" + FirstCell.Latitude;
+//				string currentCellDesc = "Position: Long:" + currentCell.Longitude + "|Lat:" + currentCell.Latitude;
+//
+//				string targetCellDesc = "Null";
+//
+//				if (targetCell != null) {
+//					targetCellDesc = "Position: Long:" + targetCell.Longitude + "|Lat:" + targetCell.Latitude;
+//				}
+//
+//				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//					"ChooseNextCoastalCell - FirstCell:" + cellPos,
+//					"CurrentDate: " + World.CurrentDate + 
+//					", currentCell: " + currentCellDesc + 
+//					", targetCell: " + targetCellDesc + 
+//					", _currentEndRoutePreference: " + _currentEndRoutePreference + 
+////					", nCells: " + cellWeightsStr + 
+//					"");
+//
+//				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+//			}
+//		}
+//		#endif
+
 		return targetCell;
 	}
 
@@ -226,18 +362,32 @@ public class Route {
 		return Cells.Contains (cell);
 	}
 
+	public void Synchronize () {
+
+	}
+
 	public void FinalizeLoad () {
+
+		if (!Consolidated) {
+			Debug.LogError ("Can't finalize unconsolidated route");
+			return;
+		}
 
 		TerrainCell currentCell = null;
 
 		bool first = true;
+
+		if (CellPositions.Count == 0) {
+		
+			Debug.LogError ("CellPositions is empty");
+		}
 	
 		foreach (WorldPosition p in CellPositions) {
 
 			currentCell = World.GetCell (p);
 
 			if (currentCell == null) {
-				throw new System.Exception ("Unable to find terrain cell at [" + currentCell.Longitude + "," + currentCell.Latitude + "]");
+				Debug.LogError ("Unable to find terrain cell at [" + currentCell.Longitude + "," + currentCell.Latitude + "]");
 			}
 
 			if (first) {
@@ -249,11 +399,8 @@ public class Route {
 			Cells.Add (currentCell);
 		}
 
-		if (Consolidated) {
-		
-			foreach (TerrainCell cell in Cells) {
-				cell.AddCrossingRoute (this);
-			}
+		foreach (TerrainCell cell in Cells) {
+			cell.AddCrossingRoute (this);
 		}
 
 		LastCell = currentCell;

@@ -4,6 +4,9 @@ using System.Collections.Generic;
 using System.Xml.Serialization;
 using System;
 
+public delegate int GetRandomIntDelegate (int maxValue);
+public delegate float GetRandomFloatDelegate ();
+
 public static class CollectionUtility {
 
 	public delegate float NormalizedValueGeneratorDelegate ();
@@ -24,14 +27,22 @@ public static class CollectionUtility {
 			Value = value;
 			Weight = weight;
 		}
+
+		public static implicit operator T(ElementWeightPair<T> pair) {
+
+			if (pair == null)
+				return default(T);
+
+			return pair.Value;
+		}
 	}
 
-	public static T WeightedSelection<T> (ElementWeightPair<T>[] elementWeightPairs, float totalWeight, NormalizedValueGeneratorDelegate generator) {
+	public static ElementWeightPair<T> WeightedSelection<T> (ElementWeightPair<T>[] elementWeightPairs, float totalWeight, NormalizedValueGeneratorDelegate generator) {
 
 		int count = elementWeightPairs.Length;
 
 		if (count <= 0)
-			return default(T);
+			return null;
 
 		float selectionValue = generator ();
 
@@ -44,12 +55,12 @@ public static class CollectionUtility {
 			int i = 0;
 			foreach (ElementWeightPair<T> pair in elementWeightPairs) {
 
-				if (i == index) return pair.Value;
+				if (i == index) return pair;
 
 				i++;
 			}
 
-			return default(T);
+			return null;
 		}
 
 		float totalNormalizedWeight = 0;
@@ -57,18 +68,42 @@ public static class CollectionUtility {
 
 			totalNormalizedWeight += pair.Weight / totalWeight;
 
-			if (totalNormalizedWeight >= selectionValue) return pair.Value;
+			if (totalNormalizedWeight >= selectionValue) return pair;
 		}
 
-		return default(T);
+		return null;
 	}
 
-	public static IEnumerable<T> FindAll<T> (this ICollection<T> collection, Predicate<T> p) {
+	public static T RandomSelectAndRemove<T> (this List<T> list, GetRandomIntDelegate getRandomInt) {
 
-		foreach (T item in collection) {
+		return list.RandomSelect (getRandomInt, 0, true);
+	}
 
-			if (p (item))
-				yield return item;
-		}
+	public static T RandomSelect<T> (this List<T> list, GetRandomIntDelegate getRandomInt, int emptyInstances = 0, bool remove = false) {
+
+		if (list.Count <= 0)
+			return default(T);
+
+		int index = getRandomInt (list.Count + emptyInstances);
+
+		if (index >= list.Count)
+			return default(T);
+
+		T item = list [index];
+
+		if (remove)
+			list.RemoveAt (index);
+
+		return item;
+	}
+
+	public static T RandomSelect<T> (this IEnumerable<T> enumerable, GetRandomIntDelegate getRandomInt, int emptyInstances = 0) {
+
+		return new List<T> (enumerable).RandomSelect (getRandomInt, emptyInstances);
+	}
+
+	public static T RandomSelect<T> (this ICollection<T> collection, GetRandomIntDelegate getRandomInt, int emptyInstances = 0) {
+
+		return new List<T> (collection).RandomSelect (getRandomInt, emptyInstances);
 	}
 }
