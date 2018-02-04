@@ -31,6 +31,7 @@ public class GuiManagerScript : MonoBehaviour {
 	public TextInputDialogPanelScript ExportMapDialogPanelScript;
 	public DecisionDialogPanelScript DecisionDialogPanelScript;
 	public LoadFileDialogPanelScript LoadFileDialogPanelScript;
+	public SelectFactionDialogPanelScript SelectFactionDialogPanelScript;
 	public OverlayDialogPanelScript OverlayDialogPanelScript;
 	public DialogPanelScript ViewsDialogPanelScript;
 	public DialogPanelScript MainMenuDialogPanelScript;
@@ -191,6 +192,7 @@ public class GuiManagerScript : MonoBehaviour {
 		ExportMapDialogPanelScript.SetVisible (false);
 		DecisionDialogPanelScript.SetVisible (false);
 		LoadFileDialogPanelScript.SetVisible (false);
+		SelectFactionDialogPanelScript.SetVisible (false);
 		OverlayDialogPanelScript.SetVisible (false);
 		ViewsDialogPanelScript.SetVisible (false);
 		MainMenuDialogPanelScript.SetVisible (false);
@@ -400,11 +402,36 @@ public class GuiManagerScript : MonoBehaviour {
 
 	public void UpdadeFocusPanel () {
 
-		Polity focusedPolity = Manager.CurrentWorld.FocusedPolity;
+		Polity focusedPolity = null;
+		Polity selectedPolity = null;
 
-		if ((focusedPolity != null) && (focusedPolity.StillPresent)) {
+		if ((Manager.CurrentWorld.FocusedPolity != null) && 
+			(Manager.CurrentWorld.FocusedPolity.StillPresent)) {
+
+			focusedPolity = Manager.CurrentWorld.FocusedPolity;
+		}
+
+		if ((focusedPolity == null) && 
+			(Manager.CurrentWorld.SelectedTerritory != null) && (
+			(Manager.PlanetOverlay == PlanetOverlay.PolityCulturalActivity) ||
+			(Manager.PlanetOverlay == PlanetOverlay.PolityCulturalSkill) ||
+			(Manager.PlanetOverlay == PlanetOverlay.PolityCulturalPreference) ||
+			(Manager.PlanetOverlay == PlanetOverlay.PolityCulturalKnowledge) ||
+			(Manager.PlanetOverlay == PlanetOverlay.PolityCulturalDiscovery) ||
+			(Manager.PlanetOverlay == PlanetOverlay.PolityTerritory) ||
+			(Manager.PlanetOverlay == PlanetOverlay.General))) {
+
+			selectedPolity = Manager.CurrentWorld.SelectedTerritory.Polity;
+		}
+
+		if (selectedPolity != null) {
 			FocusPanelScript.SetVisible (true);
-			FocusPanelScript.FocusText.text = "Focused on " + focusedPolity.Name.Text;
+			FocusPanelScript.SetState (FocusPanelState.SetFocusOrControl, selectedPolity.Name.Text);
+
+		} else if (focusedPolity != null) {
+			FocusPanelScript.SetVisible (true);
+			FocusPanelScript.SetState (FocusPanelState.UnfocusOrControl, focusedPolity.Name.Text);
+
 		} else {
 			FocusPanelScript.SetVisible (false);
 		}
@@ -1657,6 +1684,20 @@ public class GuiManagerScript : MonoBehaviour {
 		ViewsDialogPanelScript.SetVisible (false);
 	}
 
+	public void OpenSelectFactionDialog () {
+
+		SelectFactionDialogPanelScript.SetVisible (true);
+
+		InterruptSimulation (true);
+	}
+
+	public void CancelSelectFaction () {
+
+		SelectFactionDialogPanelScript.SetVisible (false);
+
+		InterruptSimulation (false);
+	}
+
 	public void SetFocusOnPolity () {
 	
 		Territory selectedTerritory = Manager.CurrentWorld.SelectedTerritory;
@@ -2006,7 +2047,7 @@ public class GuiManagerScript : MonoBehaviour {
 					firstPolity = false;
 				}
 
-				InfoPanelScript.InfoText.text += "\n\tPolity: " + polity.Name.Text + " (#" + polity.Id +")" +
+				InfoPanelScript.InfoText.text += "\n\tPolity: " + polity.Name.Text +
 					"\n\t\tInfluence: " + influenceValue.ToString ("P") +
 					"\n\t\tDistance to Polity Core: " + polityCoreDistance.ToString ("0.000") +
 					"\n\t\tDistance to Faction Core: " + factionCoreDistance.ToString ("0.000") +
@@ -2051,12 +2092,14 @@ public class GuiManagerScript : MonoBehaviour {
 
 			Polity polity = territory.Polity;
 
-			InfoPanelScript.InfoText.text += "Territory of " + polity.Type + " " + polity.Name;
+			InfoPanelScript.InfoText.text += "Territory of " + polity.Type + " " + polity.Name.Text;
+			InfoPanelScript.InfoText.text += "\nTranslates to: " + polity.Name.Meaning;
 			InfoPanelScript.InfoText.text += "\n";
 
 			Agent leader = polity.CurrentLeader;
 
-			InfoPanelScript.InfoText.text += "\nLeader: " + leader.Name;
+			InfoPanelScript.InfoText.text += "\nLeader: " + leader.Name.Text;
+			InfoPanelScript.InfoText.text += "\nTranslates to: " + leader.Name.Meaning;
 			InfoPanelScript.InfoText.text += "\nBirth Date: " + leader.BirthDate;
 			InfoPanelScript.InfoText.text += " \tAge: " + leader.Age;
 			InfoPanelScript.InfoText.text += "\nGender: " + ((leader.IsFemale) ? "Female" : "Male");
@@ -2073,7 +2116,7 @@ public class GuiManagerScript : MonoBehaviour {
 				InfoPanelScript.InfoText.text += polPopulation + " polity citizens";
 			}
 
-			SetFocusButton (polity);
+//			SetFocusButton (polity);
 		}
 	}
 
@@ -2111,7 +2154,8 @@ public class GuiManagerScript : MonoBehaviour {
 
 		PolityInfluence pi = cell.Group.GetPolityInfluence (polity);
 
-		InfoPanelScript.InfoText.text += "\n\tTerritory of " + polity.Type + " " + polity.Name + " (#" + polity.Id + ")";
+		InfoPanelScript.InfoText.text += "Territory of " + polity.Type + " " + polity.Name.Text;
+		InfoPanelScript.InfoText.text += "\nTranslates to: " + polity.Name.Meaning;
 		InfoPanelScript.InfoText.text += "\n";
 
 		int totalPopulation = (int)Mathf.Floor (polity.TotalPopulation);
@@ -2125,8 +2169,8 @@ public class GuiManagerScript : MonoBehaviour {
 
 		Agent leader = polity.CurrentLeader;
 
-		InfoPanelScript.InfoText.text += "\n";
-		InfoPanelScript.InfoText.text += "\nLeader: " + leader.Name;
+		InfoPanelScript.InfoText.text += "\nLeader: " + leader.Name.Text;
+		InfoPanelScript.InfoText.text += "\nTranslates to: " + leader.Name.Meaning;
 		InfoPanelScript.InfoText.text += "\nBirth Date: " + leader.BirthDate;
 		InfoPanelScript.InfoText.text += "\nGender: " + ((leader.IsFemale) ? "Female" : "Male");
 		InfoPanelScript.InfoText.text += "\nCharisma: " + leader.Charisma;
@@ -2155,7 +2199,8 @@ public class GuiManagerScript : MonoBehaviour {
 
 			Agent factionLeader = faction.CurrentLeader;
 
-			InfoPanelScript.InfoText.text += "\n\t\tLeader: " + factionLeader.Name;
+			InfoPanelScript.InfoText.text += "\n\t\tLeader: " + factionLeader.Name.Text;
+			InfoPanelScript.InfoText.text += "\n\t\tTranslates to: " + factionLeader.Name.Meaning;
 			InfoPanelScript.InfoText.text += "\n\t\tBirth Date: " + factionLeader.BirthDate;
 			InfoPanelScript.InfoText.text += "\n\t\tGender: " + ((factionLeader.IsFemale) ? "Female" : "Male");
 			InfoPanelScript.InfoText.text += "\n\t\tCharisma: " + factionLeader.Charisma;
@@ -2181,7 +2226,7 @@ public class GuiManagerScript : MonoBehaviour {
 		InfoPanelScript.InfoText.text += "\n\tDistance to polity core: " + pi.PolityCoreDistance.ToString ("0.000");
 		InfoPanelScript.InfoText.text += "\n\tDistance to faction core: " + pi.FactionCoreDistance.ToString ("0.000");
 
-		SetFocusButton (polity);
+//		SetFocusButton (polity);
 	}
 
 	private void SetFocusButton (Polity polity) {
@@ -2226,8 +2271,6 @@ public class GuiManagerScript : MonoBehaviour {
 		bool firstPreference = true;
 
 		foreach (CulturalPreference preference in polityInfluence.Polity.Culture.Preferences) {
-
-			float preferenceValue = preference.Value;
 
 			if (firstPreference) {
 				InfoPanelScript.InfoText.text += "\nPreferences:";
@@ -2274,8 +2317,6 @@ public class GuiManagerScript : MonoBehaviour {
 
 		foreach (CulturalActivity activity in polityInfluence.Polity.Culture.Activities) {
 
-			float activityContribution = activity.Contribution;
-
 			if (firstActivity) {
 				InfoPanelScript.InfoText.text += "\nActivities:";
 
@@ -2312,8 +2353,6 @@ public class GuiManagerScript : MonoBehaviour {
 
 		foreach (CulturalPreference preference in cell.Group.Culture.Preferences) {
 
-			float preferenceValue = preference.Value;
-
 			if (firstPreference) {
 				InfoPanelScript.InfoText.text += "\nPreferences:";
 
@@ -2349,8 +2388,6 @@ public class GuiManagerScript : MonoBehaviour {
 		bool firstActivity = true;
 
 		foreach (CulturalActivity activity in cell.Group.Culture.Activities) {
-
-		float activityContribution = activity.Contribution;
 
 			if (firstActivity) {
 				InfoPanelScript.InfoText.text += "\nActivities:";

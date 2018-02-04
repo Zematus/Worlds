@@ -332,6 +332,18 @@ public abstract class Faction : ISynchronizable {
 		IsDominant = state;
 	}
 
+	public void SetFocused (bool state) {
+
+		IsFocused = state;
+	}
+
+	public void SetControlled (bool state) {
+
+		IsControlled = state;
+
+		IsFocused |= state;
+	}
+
 	public void ChangePolity (Polity targetPolity, float targetProminence) {
 	
 		if ((targetPolity == null) || (!targetPolity.StillPresent)) 
