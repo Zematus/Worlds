@@ -194,7 +194,7 @@ public class SaveLoadTest : AutomatedTest {
 				State = TestState.Running;
 			}
 
-			if (!Manager.WorldReady) {
+			if (!Manager.WorldIsReady) {
 				return;
 			}
 

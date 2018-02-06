@@ -17,9 +17,10 @@ public class LoadFileDialogPanelScript : MonoBehaviour {
 
 	public Transform ActionButtonPanelTransform;
 
+	public UnityEvent LoadButtonClickEvent;
+
 	private List<Button> _worldNameButtons = new List<Button>();
 
-	private UnityAction _loadAction;
 	private string _pathToLoad;
 
 	// Use this for initialization
@@ -76,7 +77,7 @@ public class LoadFileDialogPanelScript : MonoBehaviour {
 		button.onClick.AddListener (() => {
 
 			_pathToLoad = path;
-			_loadAction ();
+			LoadButtonClickEvent.Invoke ();
 		});
 	}
 
@@ -128,16 +129,5 @@ public class LoadFileDialogPanelScript : MonoBehaviour {
 		} else {
 			RemoveWorldNameButtons ();
 		}
-	}
-
-	public void SetLoadAction (UnityAction action) {
-
-		_loadAction = action;
-	}
-	
-	public void SetCancelAction (UnityAction cancelAction) {
-		
-		CancelActionButton.onClick.RemoveAllListeners ();
-		CancelActionButton.onClick.AddListener (cancelAction);
 	}
 }

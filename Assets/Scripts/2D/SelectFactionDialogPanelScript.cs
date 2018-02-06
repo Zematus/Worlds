@@ -15,6 +15,10 @@ public class SelectFactionDialogPanelScript : MonoBehaviour {
 
 	public Transform ActionButtonPanelTransform;
 
+	public UnityEvent FactionButtonClickEvent;
+
+	public Faction ChosenFaction = null;
+
 	private List<Button> _factionButtons = new List<Button>();
 
 	// Use this for initialization
@@ -29,15 +33,11 @@ public class SelectFactionDialogPanelScript : MonoBehaviour {
 
 	private void SetFactionButtons () {
 
+		ChosenFaction = null;
+
 		Territory selectedTerritory = Manager.CurrentWorld.SelectedTerritory;
 
 		Polity polity = null;
-
-		if ((Manager.CurrentWorld.FocusedPolity != null) && 
-			(Manager.CurrentWorld.FocusedPolity.StillPresent)) {
-
-			polity = Manager.CurrentWorld.FocusedPolity;
-		}
 
 		if ((polity == null) && 
 			(Manager.CurrentWorld.SelectedTerritory != null) && 
@@ -54,14 +54,30 @@ public class SelectFactionDialogPanelScript : MonoBehaviour {
 
 		_factionButtons.Add (FactionButtonPrefab);
 
+		List<Faction> factions = new List<Faction> (polity.GetFactions ());
+
+		factions.Sort ((a, b) => {
+			if (a.Prominence > b.Prominence)
+				return -1;
+			if (a.Prominence < b.Prominence)
+				return 1;
+
+			return 0;
+		});
+
 		int i = 0;
 
-		foreach (Faction faction in polity.GetFactions ()) {
+		foreach (Faction faction in factions) {
 
 			SetFactionButton (faction, i);
 
 			i++;
 		}
+	}
+
+	private string GenerateFactionButtonStr (Faction faction) {
+
+		return faction.Name.Text + " " + "(Prominence: " + faction.Prominence.ToString("P") + ")";
 	}
 
 	private void SetFactionButton (Faction faction, int index) {
@@ -70,7 +86,7 @@ public class SelectFactionDialogPanelScript : MonoBehaviour {
 
 		if (index < _factionButtons.Count) {
 			button = _factionButtons[index];
-			button.GetComponentInChildren<Text> ().text = faction.Name.Text;
+			button.GetComponentInChildren<Text> ().text = GenerateFactionButtonStr (faction);
 
 		} else {
 			button = AddFactionButton (faction);
@@ -80,7 +96,8 @@ public class SelectFactionDialogPanelScript : MonoBehaviour {
 
 		button.onClick.AddListener (() => {
 
-			faction.SetControlled (true);
+			ChosenFaction = faction;
+			FactionButtonClickEvent.Invoke ();
 		});
 	}
 
@@ -89,7 +106,7 @@ public class SelectFactionDialogPanelScript : MonoBehaviour {
 		Button newButton = Instantiate (FactionButtonPrefab) as Button;
 
 		newButton.transform.SetParent (transform, false);
-		newButton.GetComponentInChildren<Text> ().text = faction.Name.Text;
+		newButton.GetComponentInChildren<Text> ().text = GenerateFactionButtonStr (faction);
 
 		_factionButtons.Add (newButton);
 

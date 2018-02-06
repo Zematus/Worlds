@@ -396,11 +396,11 @@ public class Clan : Faction {
 
 		bool shouldSucceed = GetNextLocalRandomInt (RngOffsets.CLAN_PREFER_SPLIT, 4) == 0;
 
-		if (IsFocused) {
+		if (Polity.IsUnderPlayerFocus || IsUnderPlayerGuidance) {
 
 			Decision splitDecision = new ClanSplitDecision (this, _splitFactionCoreGroup, shouldSucceed);
 
-			if (IsControlled) {
+			if (IsUnderPlayerGuidance) {
 
 				World.AddDecisionToResolve (splitDecision);
 
@@ -435,6 +435,8 @@ public class Clan : Faction {
 		Clan newClan = new Clan (Polity as Tribe, _splitFactionCoreGroup, newClanProminence, this);
 
 		Polity.AddFaction (newClan);
+
+		Polity.UpdateDominantFaction ();
 
 		World.AddFactionToUpdate (this);
 		World.AddFactionToUpdate (newClan);

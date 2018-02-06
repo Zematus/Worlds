@@ -4,19 +4,17 @@ using UnityEngine;
 using UnityEngine.UI;
 
 public enum FocusPanelState {
-	SetFocusOrControl,
-	UnfocusOrControl,
-	StopControl
+	SetFocus,
+	UnsetFocus
 }
 
 public class FocusPanelScript : MonoBehaviour {
 
-	public Text FocusText;
+	public Text PolityText;
 
-	public Button FocusButton;
-	public Button UnfocusButton;
-	public Button ControlButton;
-	public Button StopControlButton;
+	public Button SetFocusButton;
+	public Button UnsetFocusButton;
+	public Button GuideFactionButton;
 
 	// Use this for initialization
 	void Start () {
@@ -33,32 +31,22 @@ public class FocusPanelScript : MonoBehaviour {
 		gameObject.SetActive (value);
 	}
 
-	public void SetState (FocusPanelState state, string name) {
+	public void SetState (FocusPanelState state, Polity polity) {
+		
+		PolityText.text = polity.Name.Text + " " + polity.Type;
 	
 		switch (state) {
 
-		case FocusPanelState.SetFocusOrControl:
-			FocusText.text = name;
-			FocusButton.gameObject.SetActive (true);
-			UnfocusButton.gameObject.SetActive (false);
-			ControlButton.gameObject.SetActive (true);
-			StopControlButton.gameObject.SetActive (false);
+		case FocusPanelState.SetFocus:
+			SetFocusButton.gameObject.SetActive (true);
+			UnsetFocusButton.gameObject.SetActive (false);
+			GuideFactionButton.gameObject.SetActive (true);
 			break;
 
-		case FocusPanelState.UnfocusOrControl:
-			FocusText.text = "Focused on " + name;
-			FocusButton.gameObject.SetActive (false);
-			UnfocusButton.gameObject.SetActive (true);
-			ControlButton.gameObject.SetActive (true);
-			StopControlButton.gameObject.SetActive (false);
-			break;
-
-		case FocusPanelState.StopControl:
-			FocusText.text = "Controlling " + name;
-			FocusButton.gameObject.SetActive (false);
-			UnfocusButton.gameObject.SetActive (false);
-			ControlButton.gameObject.SetActive (false);
-			StopControlButton.gameObject.SetActive (true);
+		case FocusPanelState.UnsetFocus:
+			SetFocusButton.gameObject.SetActive (false);
+			UnsetFocusButton.gameObject.SetActive (true);
+			GuideFactionButton.gameObject.SetActive (true);
 			break;
 		}
 	}

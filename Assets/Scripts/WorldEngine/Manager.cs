@@ -250,7 +250,7 @@ public class Manager {
 		}
 	}
 
-	public static bool WorldReady {
+	public static bool WorldIsReady {
 		
 		get {
 			return _manager._worldReady;
@@ -915,19 +915,45 @@ public class Manager {
 		}
 	}
 
-	public static void SetPolityFocus (Polity polity) {
-
-		if (CurrentWorld.FocusedPolity != null) {
-
-			CurrentWorld.FocusedPolity.SetFocused (false);
-			CurrentWorld.FocusedPolity = null;
-		}
+	public static void SetFocusOnPolity (Polity polity) {
 
 		if (polity == null)
 			return;
 
-		polity.SetFocused (true);
-		CurrentWorld.FocusedPolity = polity;
+		if (CurrentWorld.PolitiesUnderPlayerFocus.Contains (polity))
+			return;
+
+		polity.SetUnderPlayerFocus (true);
+		CurrentWorld.PolitiesUnderPlayerFocus.Add (polity);
+	}
+
+	public static void UnsetFocusOnPolity (Polity polity) {
+
+		if (polity == null)
+			return;
+
+		if (!CurrentWorld.PolitiesUnderPlayerFocus.Contains (polity))
+			return;
+			
+		polity.SetUnderPlayerFocus (false);
+		CurrentWorld.PolitiesUnderPlayerFocus.Remove (polity);
+	}
+
+	public static void SetGuidedFaction (Faction faction) {
+
+		if (CurrentWorld.GuidedFaction == faction)
+			return;
+
+		if (CurrentWorld.GuidedFaction != null) {
+
+			CurrentWorld.GuidedFaction.SetUnderPlayerGuidance (false);
+		}
+
+		if (faction != null) {
+			faction.SetUnderPlayerGuidance (true);
+		}
+
+		CurrentWorld.GuidedFaction = faction;
 	}
 
 	public static void ResetUpdatedCells () {

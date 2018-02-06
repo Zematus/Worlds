@@ -66,7 +66,7 @@ public class StartGuiManagerScript : MonoBehaviour {
 			ProgressDialogPanelScript.SetProgress (_progressValue);
 		}
 		
-		if (!Manager.WorldReady) {
+		if (!Manager.WorldIsReady) {
 			return;
 		}
 		
@@ -95,8 +95,6 @@ public class StartGuiManagerScript : MonoBehaviour {
 		MainMenuDialogPanelScript.SetVisible (false);
 		
 		LoadFileDialogPanelScript.SetVisible (true);
-		
-		LoadFileDialogPanelScript.SetLoadAction (LoadAction);
 	}
 	
 	public void LoadAction () {

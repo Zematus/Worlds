@@ -212,11 +212,11 @@ public class World : ISynchronizable {
 	[XmlArrayItem (Type = typeof(CellRegion))]
 	public List<Region> Regions;
 
+	// End wonky segment 
+
 	public List<Language> Languages;
 
 	public List<long> EventMessageIds;
-
-	// End wonky segment 
 
 	[XmlIgnore]
 	public int EventsToHappenCount { get; private set; }
@@ -228,7 +228,9 @@ public class World : ISynchronizable {
 	[XmlIgnore]
 	public Territory SelectedTerritory = null;
 	[XmlIgnore]
-	public Polity FocusedPolity = null;
+	public Faction GuidedFaction = null;
+	[XmlIgnore]
+	public HashSet<Polity> PolitiesUnderPlayerFocus = new HashSet<Polity> ();
 	
 	[XmlIgnore]
 	public float MinPossibleAltitudeWithOffset = MinPossibleAltitude - Manager.SeaLevelOffset;

@@ -44,6 +44,7 @@ public class GuiManagerScript : MonoBehaviour {
 	public WorldCustomizationDialogPanelScript CustomizeWorldDialogPanelScript;
 	public AddPopulationDialogScript AddPopulationDialogScript;
 	public FocusPanelScript FocusPanelScript;
+	public GuidingPanelScript GuidingPanelScript;
 
 	public PaletteScript BiomePaletteScript;
 	public PaletteScript MapPaletteScript;
@@ -66,8 +67,8 @@ public class GuiManagerScript : MonoBehaviour {
 	
 	public SpeedChangeEvent OnSimulationSpeedChanged;
 
-	private bool _showFocusButton = false;
-	private string _focusButtonText = "";
+//	private bool _showFocusButton = false;
+//	private string _focusButtonText = "";
 
 	private bool _pauseButtonPressed = false;
 	private bool _pausingDialogActive = false;
@@ -204,6 +205,7 @@ public class GuiManagerScript : MonoBehaviour {
 		MessageDialogPanelScript.SetVisible (false);
 		AddPopulationDialogScript.SetVisible (false);
 		FocusPanelScript.SetVisible (false);
+		GuidingPanelScript.SetVisible (false);
 
 		QuickTipPanelScript.SetVisible (false);
 		InfoTooltipScript.SetVisible (false);
@@ -211,7 +213,7 @@ public class GuiManagerScript : MonoBehaviour {
 		_mapLeftClickOp += ClickOp_SelectCell;
 		_mapHoverOp += HoverOp_ShowCellInfoTooltip;
 		
-		if (!Manager.WorldReady) {
+		if (!Manager.WorldIsReady) {
 
 //			GenerateWorld (false, 407252633);
 //			GenerateWorld (false, 783909167);
@@ -270,7 +272,7 @@ public class GuiManagerScript : MonoBehaviour {
 			ProgressDialogPanelScript.SetProgress (_progressValue);
 		}
 		
-		if (!Manager.WorldReady) {
+		if (!Manager.WorldIsReady) {
 			return;
 		}
 		
@@ -390,9 +392,10 @@ public class GuiManagerScript : MonoBehaviour {
 		}
 
 		if (MapImage.enabled) {
-			UpdateInfoPanel();
-			UpdadeFocusPanel ();
-			UpdateSelectionMenu();
+			UpdateInfoPanel ();
+			UpdateFocusPanel ();
+			UpdateGuidingPanel ();
+			UpdateSelectionMenu ();
 		}
 
 		if (_mouseIsOverMap) {
@@ -400,40 +403,53 @@ public class GuiManagerScript : MonoBehaviour {
 		}
 	}
 
-	public void UpdadeFocusPanel () {
+	public bool IsPolityOverlay (PlanetOverlay overlay) {
+	
+		return (overlay == PlanetOverlay.PolityCulturalActivity) ||
+			(overlay == PlanetOverlay.PolityCulturalSkill) ||
+			(overlay == PlanetOverlay.PolityCulturalPreference) ||
+			(overlay == PlanetOverlay.PolityCulturalKnowledge) ||
+			(overlay == PlanetOverlay.PolityCulturalDiscovery) ||
+			(overlay == PlanetOverlay.PolityTerritory) ||
+			(overlay == PlanetOverlay.General);
+	}
 
-		Polity focusedPolity = null;
+	public void UpdateFocusPanel () {
+
 		Polity selectedPolity = null;
+		bool isUnderFocus = false;
 
-		if ((Manager.CurrentWorld.FocusedPolity != null) && 
-			(Manager.CurrentWorld.FocusedPolity.StillPresent)) {
-
-			focusedPolity = Manager.CurrentWorld.FocusedPolity;
-		}
-
-		if ((focusedPolity == null) && 
-			(Manager.CurrentWorld.SelectedTerritory != null) && (
-			(Manager.PlanetOverlay == PlanetOverlay.PolityCulturalActivity) ||
-			(Manager.PlanetOverlay == PlanetOverlay.PolityCulturalSkill) ||
-			(Manager.PlanetOverlay == PlanetOverlay.PolityCulturalPreference) ||
-			(Manager.PlanetOverlay == PlanetOverlay.PolityCulturalKnowledge) ||
-			(Manager.PlanetOverlay == PlanetOverlay.PolityCulturalDiscovery) ||
-			(Manager.PlanetOverlay == PlanetOverlay.PolityTerritory) ||
-			(Manager.PlanetOverlay == PlanetOverlay.General))) {
+		if ((Manager.CurrentWorld.SelectedTerritory != null) && IsPolityOverlay(_planetOverlay)) {
 
 			selectedPolity = Manager.CurrentWorld.SelectedTerritory.Polity;
+
+			isUnderFocus |= (Manager.CurrentWorld.PolitiesUnderPlayerFocus.Contains (selectedPolity));
 		}
 
 		if (selectedPolity != null) {
 			FocusPanelScript.SetVisible (true);
-			FocusPanelScript.SetState (FocusPanelState.SetFocusOrControl, selectedPolity.Name.Text);
 
-		} else if (focusedPolity != null) {
-			FocusPanelScript.SetVisible (true);
-			FocusPanelScript.SetState (FocusPanelState.UnfocusOrControl, focusedPolity.Name.Text);
+			if (isUnderFocus)
+				FocusPanelScript.SetState (FocusPanelState.UnsetFocus, selectedPolity);
+			else
+				FocusPanelScript.SetState (FocusPanelState.SetFocus, selectedPolity);
 
 		} else {
 			FocusPanelScript.SetVisible (false);
+		}
+	}
+
+	public void UpdateGuidingPanel () {
+
+		Faction guidedFaction = Manager.CurrentWorld.GuidedFaction;
+
+		if (guidedFaction != null) {
+			GuidingPanelScript.SetVisible (true);
+
+			GuidingPanelScript.SetState (guidedFaction);
+
+		} else {
+			GuidingPanelScript.SetVisible (false);
 		}
 	}
 
@@ -1162,8 +1178,6 @@ public class GuiManagerScript : MonoBehaviour {
 		
 		LoadFileDialogPanelScript.SetVisible (true);
 
-		LoadFileDialogPanelScript.SetLoadAction (LoadAction);
-
 		InterruptSimulation (true);
 	}
 
@@ -1691,6 +1705,24 @@ public class GuiManagerScript : MonoBehaviour {
 		InterruptSimulation (true);
 	}
 
+	public void SetFactionToGuideAction() {
+
+		SelectFactionDialogPanelScript.SetVisible (false);
+
+		Faction faction = SelectFactionDialogPanelScript.ChosenFaction;
+
+		if (faction != null) {
+			Manager.SetGuidedFaction (faction);
+		}
+
+		InterruptSimulation (false);
+	}
+
+	public void StopGuidingFaction() {
+
+		Manager.SetGuidedFaction (null);
+	}
+
 	public void CancelSelectFaction () {
 
 		SelectFactionDialogPanelScript.SetVisible (false);
@@ -1698,27 +1730,26 @@ public class GuiManagerScript : MonoBehaviour {
 		InterruptSimulation (false);
 	}
 
-	public void SetFocusOnPolity () {
+	public void SetPlayerFocusOnPolity () {
 	
 		Territory selectedTerritory = Manager.CurrentWorld.SelectedTerritory;
 
-		Polity selectedPolity = null;
-
-		if ((selectedTerritory != null) && !selectedTerritory.Polity.IsFocused)
-			selectedPolity = selectedTerritory.Polity;
-
-		Manager.SetPolityFocus (selectedPolity);
+		if ((selectedTerritory != null) && !selectedTerritory.Polity.IsUnderPlayerFocus)
+			Manager.SetFocusOnPolity (selectedTerritory.Polity);
 	}
 
-	public void UnsetFocusOnPolity () {
+	public void UnsetPlayerFocusOnPolity () {
 
-		Manager.SetPolityFocus (null);
+		Territory selectedTerritory = Manager.CurrentWorld.SelectedTerritory;
+
+		if ((selectedTerritory != null) && selectedTerritory.Polity.IsUnderPlayerFocus)
+			Manager.UnsetFocusOnPolity (selectedTerritory.Polity);
 	}
 
 	public void UpdateInfoPanel () {
 
-		_showFocusButton = false;
-		_focusButtonText = "";
+//		_showFocusButton = false;
+//		_focusButtonText = "";
 		
 		World world = Manager.CurrentWorld;
 		
@@ -1744,8 +1775,8 @@ public class GuiManagerScript : MonoBehaviour {
 		InfoPanelScript.InfoText.text += "\n";
 		#endif
 
-		InfoPanelScript.ShowFocusButton (_showFocusButton);
-		InfoPanelScript.FocusButtonText.text = _focusButtonText;
+//		InfoPanelScript.ShowFocusButton (_showFocusButton);
+//		InfoPanelScript.FocusButtonText.text = _focusButtonText;
 	}
 	
 	public void AddCellDataToInfoPanel (int longitude, int latitude) {
@@ -2229,13 +2260,13 @@ public class GuiManagerScript : MonoBehaviour {
 //		SetFocusButton (polity);
 	}
 
-	private void SetFocusButton (Polity polity) {
-
-		if (!polity.IsFocused) {
-			_showFocusButton = true;
-			_focusButtonText = "Set focus on " + polity.Name.Text;
-		}
-	}
+//	private void SetFocusButton (Polity polity) {
+//
+//		if (!polity.IsUnderPlayerFocus) {
+//			_showFocusButton = true;
+//			_focusButtonText = "Set focus on " + polity.Name.Text;
+//		}
+//	}
 
 	public void AddCellDataToInfoPanel_PolityCulturalPreference (TerrainCell cell) {
 
@@ -2794,13 +2825,7 @@ public class GuiManagerScript : MonoBehaviour {
 			throw new System.Exception ("Unable to get cell at [" + longitude + "," + latitude + "]");
 		}
 
-		if ((_planetOverlay == PlanetOverlay.General) ||
-			(_planetOverlay == PlanetOverlay.PolityTerritory) ||
-			(_planetOverlay == PlanetOverlay.PolityCulturalPreference) ||
-			(_planetOverlay == PlanetOverlay.PolityCulturalActivity) ||
-			(_planetOverlay == PlanetOverlay.PolityCulturalSkill) ||
-			(_planetOverlay == PlanetOverlay.PolityCulturalKnowledge) ||
-			(_planetOverlay == PlanetOverlay.PolityCulturalDiscovery))
+		if (IsPolityOverlay (_planetOverlay))
 			ShowCellInfoToolTip_PolityTerritory (hoveredCell);
 		else if (_planetOverlay == PlanetOverlay.Region)
 			ShowCellInfoToolTip_Region (hoveredCell);

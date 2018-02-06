@@ -37,11 +37,8 @@ public abstract class Faction : ISynchronizable {
 	[XmlAttribute("LeadStDate")]
 	public int LeaderStartDate;
 
-	[XmlAttribute("IsFoc")]
-	public bool IsFocused = false;
-
 	[XmlAttribute("IsCon")]
-	public bool IsControlled = false;
+	public bool IsUnderPlayerGuidance = false;
 
 	public FactionCulture Culture;
 
@@ -120,6 +117,11 @@ public abstract class Faction : ISynchronizable {
 	}
 
 	public void Destroy (bool polityBeingDestroyed = false) {
+
+		if (IsUnderPlayerGuidance) {
+		
+			Manager.SetGuidedFaction (null);
+		}
 		
 		CoreGroup.RemoveFactionCore (this);
 
@@ -332,16 +334,9 @@ public abstract class Faction : ISynchronizable {
 		IsDominant = state;
 	}
 
-	public void SetFocused (bool state) {
+	public void SetUnderPlayerGuidance (bool state) {
 
-		IsFocused = state;
-	}
-
-	public void SetControlled (bool state) {
-
-		IsControlled = state;
-
-		IsFocused |= state;
+		IsUnderPlayerGuidance = state;
 	}
 
 	public void ChangePolity (Polity targetPolity, float targetProminence) {

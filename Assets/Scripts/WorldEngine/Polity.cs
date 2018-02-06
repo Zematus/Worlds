@@ -108,7 +108,7 @@ public abstract class Polity : ISynchronizable {
 	public long DominantFactionId;
 
 	[XmlAttribute("IsFoc")]
-	public bool IsFocused = false;
+	public bool IsUnderPlayerFocus = false;
 
 	public List<string> Flags;
 
@@ -233,6 +233,10 @@ public abstract class Polity : ISynchronizable {
 
 	public void Destroy () {
 
+		if (IsUnderPlayerFocus) {
+			Manager.UnsetFocusOnPolity (this);
+		}
+
 		List<Faction> factions = new List<Faction> (_factions.Values);
 
 		foreach (Faction faction in factions) {
@@ -252,19 +256,14 @@ public abstract class Polity : ISynchronizable {
 		StillPresent = false;
 	}
 
-	public void SetFocused (bool state, bool setDominantFactionFocused = true) {
+	public void SetUnderPlayerFocus (bool state, bool setDominantFactionFocused = true) {
 	
-		IsFocused = state;
-
-		if (setDominantFactionFocused) {
-		
-			DominantFaction.SetFocused (state);
-		}
+		IsUnderPlayerFocus = state;
 	}
 
 	public void AddEventMessage (WorldEventMessage eventMessage) {
 
-		if (IsFocused)
+		if (IsUnderPlayerFocus)
 			World.AddEventMessageToShow (eventMessage);
 
 		_eventMessageIds.Add (eventMessage.Id);
@@ -375,9 +374,7 @@ public abstract class Polity : ISynchronizable {
 
 		if (DominantFaction != null) {
 		
-			faction.SetDominant (false);
-			faction.IsFocused = false;
-			faction.IsControlled = false;
+			DominantFaction.SetDominant (false);
 		}
 
 		if ((faction == null) || (!faction.StillPresent))
@@ -392,7 +389,6 @@ public abstract class Polity : ISynchronizable {
 			DominantFactionId = faction.Id;
 
 			faction.SetDominant (true);
-			faction.IsFocused = IsFocused;
 
 			SetCoreGroup (faction.CoreGroup);
 
@@ -500,7 +496,7 @@ public abstract class Polity : ISynchronizable {
 		Profiler.EndSample ();
 
 		#if DEBUG
-		if (IsFocused) {
+		if (IsUnderPlayerFocus) {
 			bool debug = true;
 		}
 		#endif
