@@ -253,7 +253,7 @@ public class CellCulture : Culture {
 		}
 	}
 
-	public void Update (int timeSpan) {
+	public void Update (long timeSpan) {
 
 		#if DEBUG
 		if (Group.Cell.IsSelected) {
@@ -282,7 +282,7 @@ public class CellCulture : Culture {
 		}
 	}
 
-	public void UpdatePolityCulturalInfluence (PolityInfluence polityInfluence, int timeSpan) {
+	public void UpdatePolityCulturalInfluence (PolityInfluence polityInfluence, long timeSpan) {
 
 		#if DEBUG
 		if (Group.Cell.IsSelected) {

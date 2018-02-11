@@ -711,7 +711,7 @@ public abstract class Polity : ISynchronizable {
 
 	public abstract float CalculateGroupInfluenceExpansionValue (CellGroup sourceGroup, CellGroup targetGroup, float sourceValue);
 
-	public virtual void GroupUpdateEffects (CellGroup group, float influenceValue, float totalPolityInfluenceValue, int timeSpan) {
+	public virtual void GroupUpdateEffects (CellGroup group, float influenceValue, float totalPolityInfluenceValue, long timeSpan) {
 
 		if (group.Culture.GetFoundDiscoveryOrToFind (TribalismDiscovery.TribalismDiscoveryId) == null) {
 
@@ -967,7 +967,7 @@ public abstract class PolityEvent : WorldEvent {
 
 	}
 
-	public PolityEvent (Polity polity, int triggerDate, long eventTypeId) : base (polity.World, triggerDate, GenerateUniqueIdentifier (polity, triggerDate, eventTypeId)) {
+	public PolityEvent (Polity polity, long triggerDate, long eventTypeId) : base (polity.World, triggerDate, GenerateUniqueIdentifier (polity, triggerDate, eventTypeId)) {
 
 		Polity = polity;
 		PolityId = Polity.Id;
@@ -985,9 +985,15 @@ public abstract class PolityEvent : WorldEvent {
 //		#endif
 	}
 
-	public static long GenerateUniqueIdentifier (Polity polity, int triggerDate, long eventTypeId) {
+	public static long GenerateUniqueIdentifier (Polity polity, long triggerDate, long eventTypeId) {
 
-		return ((long)triggerDate * 1000000000L) + ((polity.Id % 1000000L) * 1000L) + eventTypeId;
+		#if DEBUG
+		if (triggerDate >= 9223372036) {
+			Debug.LogWarning ("'triggerDate' shouldn't be greater than 9223372036 (triggerDate = " + triggerDate + ")");
+		}
+		#endif
+
+		return (triggerDate * 1000000000L) + ((polity.Id % 1000000L) * 1000L) + eventTypeId;
 	}
 
 	public override bool IsStillValid () {
@@ -1013,7 +1019,7 @@ public abstract class PolityEvent : WorldEvent {
 		}
 	}
 
-	public virtual void Reset (int newTriggerDate) {
+	public virtual void Reset (long newTriggerDate) {
 
 		Reset (newTriggerDate, GenerateUniqueIdentifier (Polity, newTriggerDate, EventTypeId));
 	}

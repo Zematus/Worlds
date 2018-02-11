@@ -26,7 +26,7 @@ public class Tribe : Polity {
 	public const float BaseCoreInfluence = 0.5f;
 
 	[XmlAttribute("SpltDate")]
-	public int TribeSplitEventDate;
+	public long TribeSplitEventDate;
 
 	[XmlIgnore]
 	public TribeSplitEvent TribeSplitEvent;
@@ -295,7 +295,7 @@ public class Tribe : Polity {
 
 		if (administrativeLoadFactor > TribeSplitEvent.TerminalAdministrativeLoadValue) {
 			
-			int tentativeSplitEventDate = TribeSplitEvent.CalculateTriggerDate (this);
+			long tentativeSplitEventDate = TribeSplitEvent.CalculateTriggerDate (this);
 
 			if (tentativeSplitEventDate < TribeSplitEventDate) {
 
@@ -435,7 +435,7 @@ public class TribeSplitEvent : PolityEvent {
 		DoNotSerialize = true;
 	}
 
-	public TribeSplitEvent (Tribe tribe, int triggerDate) : base (tribe, triggerDate, TribeSplitEventId) {
+	public TribeSplitEvent (Tribe tribe, long triggerDate) : base (tribe, triggerDate, TribeSplitEventId) {
 
 //		tribe.SetFlag (EventSetFlag);
 
@@ -461,7 +461,7 @@ public class TribeSplitEvent : PolityEvent {
 		return Mathf.Pow (administrativeLoad / socialOrganizationValue, 2);
 	}
 
-	public static int CalculateTriggerDate (Tribe tribe) {
+	public static long CalculateTriggerDate (Tribe tribe) {
 
 //		#if DEBUG
 //		if (tribe.Territory.IsSelected) {

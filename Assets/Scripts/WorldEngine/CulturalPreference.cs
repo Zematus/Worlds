@@ -118,7 +118,7 @@ public class CellCulturalPreference : CulturalPreference {
 		_newValue = Value * percentage;
 	}
 
-	public void Update (int timeSpan) {
+	public void Update (long timeSpan) {
 
 		TerrainCell groupCell = Group.Cell;
 
@@ -141,7 +141,7 @@ public class CellCulturalPreference : CulturalPreference {
 		_newValue = (Value * (1 - timeEffect)) + (targetValue * timeEffect);
 	}
 
-	public void PolityCulturalInfluence (CulturalPreference polityPreference, PolityInfluence polityInfluence, int timeSpan) {
+	public void PolityCulturalInfluence (CulturalPreference polityPreference, PolityInfluence polityInfluence, long timeSpan) {
 
 		float targetValue = polityPreference.Value;
 		float influenceEffect = polityInfluence.Value;

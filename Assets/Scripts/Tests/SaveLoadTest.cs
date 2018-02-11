@@ -70,7 +70,7 @@ public class SaveLoadTest : AutomatedTest {
 
 	private Dictionary<string, int>[] _afterSave_GetNextLocalRandomCallersByCheck;
 
-	private int[] _saveDatePlusOffsets;
+	private long[] _saveDatePlusOffsets;
 
 	private int[] _afterSave_EventCounts;
 	private int[] _afterSave_CallsToAddMigratingGroupCounts;
@@ -159,7 +159,7 @@ public class SaveLoadTest : AutomatedTest {
 			_afterSave_GetNextLocalRandomCallersByCheck = new Dictionary<string, int>[_numChecks];
 		}
 			
-		_saveDatePlusOffsets = new int[_numChecks];
+		_saveDatePlusOffsets = new long[_numChecks];
 
 		_afterSave_EventCounts = new int[_numChecks];
 		_afterSave_CallsToAddMigratingGroupCounts = new int[_numChecks];

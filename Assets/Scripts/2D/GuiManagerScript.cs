@@ -119,7 +119,7 @@ public class GuiManagerScript : MonoBehaviour {
 	private const float _maxDeltaTimeIterations = 0.02f; // max real time to be spent on iterations on a single frame (this is the value that matters the most performance-wise)
 
 	private float _accDeltaTime = 0;
-	private int _simulationDateSpan = 0;
+	private long _simulationDateSpan = 0;
 
 //	private bool _resolvingDecisions = false;
 	private bool _resolvedDecision = false;
@@ -1062,7 +1062,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 	public void GetMaxSpeedOptionFromCurrentWorld () {
 
-		int maxSpeed = Manager.CurrentWorld.MaxTimeToSkip;
+		long maxSpeed = Manager.CurrentWorld.MaxTimeToSkip;
 
 		for (int i = 0; i < _maxSpeedOptions.Length; i++) {
 
@@ -2025,8 +2025,8 @@ public class GuiManagerScript : MonoBehaviour {
 			return;
 		}
 
-		int lastUpdateDate = cell.Group.LastUpdateDate;
-		int nextUpdateDate = cell.Group.NextUpdateDate;
+		long lastUpdateDate = cell.Group.LastUpdateDate;
+		long nextUpdateDate = cell.Group.NextUpdateDate;
 
 		InfoPanelScript.InfoText.text += "\nLast Update Date: " + lastUpdateDate;
 		InfoPanelScript.InfoText.text += "\nNext Update Date: " + nextUpdateDate;

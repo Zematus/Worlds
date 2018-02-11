@@ -128,8 +128,8 @@ public class WorldEventSnapshot {
 
 	public System.Type EventType;
 
-	public int TriggerDate;
-	public int SpawnDate;
+	public long TriggerDate;
+	public long SpawnDate;
 	public long Id;
 
 	public WorldEventSnapshot (WorldEvent e) {
@@ -171,7 +171,7 @@ public abstract class WorldEvent : ISynchronizable {
 	public bool FailedToTrigger = false;
 
 	[XmlIgnore]
-	public BinaryTreeNode<int, WorldEvent> Node = null;
+	public BinaryTreeNode<long, WorldEvent> Node = null;
 	
 	[XmlAttribute]
 	public long TriggerDate;
@@ -212,7 +212,7 @@ public abstract class WorldEvent : ISynchronizable {
 		#endif
 	}
 
-	public void AssociateNode (BinaryTreeNode<int, WorldEvent> node) {
+	public void AssociateNode (BinaryTreeNode<long, WorldEvent> node) {
 	
 		if (Node != null) {
 			Node.Valid = false;
@@ -579,7 +579,7 @@ public class BoatMakingDiscoveryEvent : DiscoveryEvent {
 		Group.SetFlag (EventSetFlag);
 	}
 	
-	public static int CalculateTriggerDate (CellGroup group) {
+	public static long CalculateTriggerDate (CellGroup group) {
 		
 		float oceanPresence = ShipbuildingKnowledge.CalculateNeighborhoodOceanPresenceIn (group);
 

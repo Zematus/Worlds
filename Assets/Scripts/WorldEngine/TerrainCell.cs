@@ -400,7 +400,7 @@ public class TerrainCell : ISynchronizable {
 		return value / (float)PerlinNoise.MaxPermutationValue;
 	}
 	
-	public float GetLocalRandomFloat (int date, int queryOffset) {
+	public float GetLocalRandomFloat (long date, int queryOffset) {
 
 		int value = GetLocalRandomInt (date, queryOffset, PerlinNoise.MaxPermutationValue);
 		

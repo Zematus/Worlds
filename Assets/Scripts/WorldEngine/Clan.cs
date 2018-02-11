@@ -16,9 +16,9 @@ using System.Xml.Serialization;
 
 public class Clan : Faction {
 
-	public const long LeadershipAvgSpan = 20 * World.YearLength;
-	public const long MinClanLeaderStartAge = 16 * World.YearLength;
-	public const long MaxClanLeaderStartAge = 50 * World.YearLength;
+	public const int LeadershipAvgSpan = 20 * World.YearLength;
+	public const int MinClanLeaderStartAge = 16 * World.YearLength;
+	public const int MaxClanLeaderStartAge = 50 * World.YearLength;
 	
 	public const int MinSocialOrganizationValue = 400;
 
@@ -38,7 +38,7 @@ public class Clan : Faction {
 	public const float Split_ProminenceTransferProportion = 0.75f;
 
 	[XmlAttribute("CoreMigDate")]
-	public int ClanCoreMigrationEventDate;
+	public long ClanCoreMigrationEventDate;
 
 	[XmlIgnore]
 	public ClanCoreMigrationEvent ClanCoreMigrationEvent;
@@ -599,7 +599,7 @@ public class ClanCoreMigrationEvent : FactionEvent {
 		DoNotSerialize = true;
 	}
 
-	public ClanCoreMigrationEvent (Clan clan, int triggerDate) : base (clan, triggerDate, ClanCoreMigrationEventId) {
+	public ClanCoreMigrationEvent (Clan clan, long triggerDate) : base (clan, triggerDate, ClanCoreMigrationEventId) {
 
 		DoNotSerialize = true;
 	}

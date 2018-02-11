@@ -145,7 +145,7 @@ public abstract class Faction : ISynchronizable {
 
 	protected Agent RequestCurrentLeader (int leadershipSpan, int minStartAge, int maxStartAge, int offset)
 	{
-		int spawnDate = CoreGroup.GeneratePastSpawnDate (CoreGroup.LastUpdateDate, leadershipSpan, offset++);
+		long spawnDate = CoreGroup.GeneratePastSpawnDate (CoreGroup.LastUpdateDate, leadershipSpan, offset++);
 
 		if ((LastLeader != null) && (spawnDate < LeaderStartDate)) {
 
@@ -163,7 +163,7 @@ public abstract class Faction : ISynchronizable {
 
 	protected Agent RequestNewLeader (int leadershipSpan, int minStartAge, int maxStartAge, int offset)
 	{
-		int spawnDate = CoreGroup.GeneratePastSpawnDate (CoreGroup.LastUpdateDate, leadershipSpan, offset++);
+		long spawnDate = CoreGroup.GeneratePastSpawnDate (CoreGroup.LastUpdateDate, leadershipSpan, offset++);
 
 		// Generate a birthdate from the leader spawnDate (when the leader takes over)
 		int startAge = minStartAge + CoreGroup.GetLocalRandomInt (spawnDate, offset++, maxStartAge - minStartAge);
@@ -412,7 +412,7 @@ public abstract class FactionEvent : WorldEvent {
 
 	}
 
-	public FactionEvent (Faction faction, int triggerDate, long eventTypeId) : base (faction.World, triggerDate, GenerateUniqueIdentifier (faction, triggerDate, eventTypeId)) {
+	public FactionEvent (Faction faction, long triggerDate, long eventTypeId) : base (faction.World, triggerDate, GenerateUniqueIdentifier (faction, triggerDate, eventTypeId)) {
 
 		Faction = faction;
 		FactionId = Faction.Id;
@@ -430,9 +430,15 @@ public abstract class FactionEvent : WorldEvent {
 //		#endif
 	}
 
-	public static long GenerateUniqueIdentifier (Faction faction, int triggerDate, long eventTypeId) {
+	public static long GenerateUniqueIdentifier (Faction faction, long triggerDate, long eventTypeId) {
+		
+		#if DEBUG
+		if (triggerDate >= 9223372036) {
+			Debug.LogWarning ("'triggerDate' shouldn't be greater than 9223372036 (triggerDate = " + triggerDate + ")");
+		}
+		#endif
 
-		return ((long)triggerDate * 1000000000) + ((faction.Id % 1000000L) * 1000L) + eventTypeId;
+		return (triggerDate * 1000000000) + ((faction.Id % 1000000L) * 1000L) + eventTypeId;
 	}
 
 	public override bool IsStillValid () {
@@ -482,7 +488,7 @@ public abstract class FactionEvent : WorldEvent {
 		}
 	}
 
-	public virtual void Reset (int newTriggerDate) {
+	public virtual void Reset (long newTriggerDate) {
 
 		Reset (newTriggerDate, GenerateUniqueIdentifier (Faction, newTriggerDate, EventTypeId));
 	}
@@ -495,7 +501,7 @@ public class FactionUpdateEvent : FactionEvent {
 		DoNotSerialize = true;
 	}
 
-	public FactionUpdateEvent (Faction faction, int triggerDate) : base (faction, triggerDate, FactionUpdateEventId) {
+	public FactionUpdateEvent (Faction faction, long triggerDate) : base (faction, triggerDate, FactionUpdateEventId) {
 
 		DoNotSerialize = true;
 	}

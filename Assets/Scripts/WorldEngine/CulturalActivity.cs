@@ -119,7 +119,7 @@ public class CellCulturalActivity : CulturalActivity {
 		_newValue = Value * percentage;
 	}
 
-	public void Update (int timeSpan) {
+	public void Update (long timeSpan) {
 
 		#if DEBUG
 		if (Group.Cell.IsSelected) {
@@ -148,7 +148,7 @@ public class CellCulturalActivity : CulturalActivity {
 		_newValue = (Value * (1 - timeEffect)) + (targetValue * timeEffect);
 	}
 
-	public void PolityCulturalInfluence (CulturalActivity polityActivity, PolityInfluence polityInfluence, int timeSpan) {
+	public void PolityCulturalInfluence (CulturalActivity polityActivity, PolityInfluence polityInfluence, long timeSpan) {
 
 		#if DEBUG
 		if (Group.Cell.IsSelected) {

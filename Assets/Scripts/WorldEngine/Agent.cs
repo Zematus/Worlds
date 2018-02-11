@@ -11,13 +11,13 @@ using System.Xml.Serialization;
 
 public class Agent : ISynchronizable {
 
-	public const int MaxLifespan = 113; // Prime number to hide birthdate cycle artifacts
+	public const long MaxLifespan = 113; // Prime number to hide birthdate cycle artifacts
 
 	[XmlAttribute]
 	public long Id;
 
 	[XmlAttribute("Birth")]
-	public int BirthDate;
+	public long BirthDate;
 
 	[XmlAttribute("Fem")]
 	public bool IsFemale;
@@ -42,7 +42,7 @@ public class Agent : ISynchronizable {
 	[XmlIgnore]
 	public CellGroup Group;
 
-	public int Age {
+	public long Age {
 		get {
 			return World.CurrentDate - BirthDate;
 		}
@@ -56,7 +56,7 @@ public class Agent : ISynchronizable {
 
 	public int Wisdom {
 		get {
-			int wisdom = BaseWisdom + (Age - 35) / 5;
+			int wisdom = BaseWisdom + ((int)Age - 35) / 5;
 			return (wisdom > 3) ? wisdom : 3;
 		}
 	}
@@ -65,7 +65,7 @@ public class Agent : ISynchronizable {
 
 	}
 
-	public Agent (CellGroup birthGroup, int birthDate) {
+	public Agent (CellGroup birthGroup, long birthDate) {
 
 		World = birthGroup.World;
 
@@ -88,7 +88,7 @@ public class Agent : ISynchronizable {
 		StillPresent = false;
 	}
 
-	public long GenerateUniqueIdentifier (int date, long oom, long offset) {
+	public long GenerateUniqueIdentifier (long date, long oom, long offset) {
 
 		return Group.GenerateUniqueIdentifier (date, oom, offset);
 	}

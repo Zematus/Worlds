@@ -250,12 +250,12 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
 		}
 	}
 
-	public void Update (int timeSpan) {
+	public void Update (long timeSpan) {
 
 		UpdateInternal (timeSpan);
 	}
 
-	protected void UpdateValueInternal (int timeSpan, float timeEffectFactor, float specificModifier) {
+	protected void UpdateValueInternal (long timeSpan, float timeEffectFactor, float specificModifier) {
 
 		TerrainCell groupCell = Group.Cell;
 
@@ -299,9 +299,9 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
 		_newValue = newValue;
 	}
 
-	public abstract void PolityCulturalInfluence (CulturalKnowledge polityKnowledge, PolityInfluence polityInfluence, int timeSpan);
+	public abstract void PolityCulturalInfluence (CulturalKnowledge polityKnowledge, PolityInfluence polityInfluence, long timeSpan);
 
-	protected void PolityCulturalInfluenceInternal (CulturalKnowledge polityKnowledge, PolityInfluence polityInfluence, int timeSpan, float timeEffectFactor) {
+	protected void PolityCulturalInfluenceInternal (CulturalKnowledge polityKnowledge, PolityInfluence polityInfluence, long timeSpan, float timeEffectFactor) {
 
 		#if DEBUG
 		if (Group.Cell.IsSelected) {
@@ -345,7 +345,7 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
 	public abstract bool WillBeLost ();
 	public abstract void LossConsequences ();
 
-	protected abstract void UpdateInternal (int timeSpan);
+	protected abstract void UpdateInternal (long timeSpan);
 	protected abstract int CalculateAsymptoteInternal (CulturalDiscovery discovery);
 	protected abstract int CalculateBaseAsymptote ();
 }
@@ -431,7 +431,7 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge {
 		}
 		
 		neighborhoodPresence = totalPresence / cellCount;
-		
+
 		if ((neighborhoodPresence < 0) || (neighborhoodPresence > 1)) {
 			
 			throw new System.Exception ("Neighborhood Ocean Presence outside range: " + neighborhoodPresence);
@@ -440,14 +440,14 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge {
 		return neighborhoodPresence;
 	}
 
-	protected override void UpdateInternal (int timeSpan) {
+	protected override void UpdateInternal (long timeSpan) {
 
 		UpdateValueInternal (timeSpan, TimeEffectConstant, _neighborhoodOceanPresence * NeighborhoodOceanPresenceModifier);
 
 		TryGenerateSailingDiscoveryEvent ();
 	}
 
-	public override void PolityCulturalInfluence (CulturalKnowledge polityKnowledge, PolityInfluence polityInfluence, int timeSpan) {
+	public override void PolityCulturalInfluence (CulturalKnowledge polityKnowledge, PolityInfluence polityInfluence, long timeSpan) {
 
 		PolityCulturalInfluenceInternal (polityKnowledge, polityInfluence, timeSpan, TimeEffectConstant);
 
@@ -464,9 +464,9 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge {
 
 		if (SailingDiscoveryEvent.CanSpawnIn (Group)) {
 
-			int triggerDate = SailingDiscoveryEvent.CalculateTriggerDate (Group);
+			long triggerDate = SailingDiscoveryEvent.CalculateTriggerDate (Group);
 
-			if (triggerDate == int.MinValue)
+			if (triggerDate == long.MinValue)
 				return;
 
 			Group.World.InsertEventToHappen (new SailingDiscoveryEvent (Group, triggerDate));
@@ -516,11 +516,11 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge {
 
 			Profiler.BeginSample ("BoatMakingDiscoveryEvent.CalculateTriggerDate");
 
-			int triggerDate = BoatMakingDiscoveryEvent.CalculateTriggerDate (Group);
+			long triggerDate = BoatMakingDiscoveryEvent.CalculateTriggerDate (Group);
 
 			Profiler.EndSample ();
 
-			if (triggerDate > int.MinValue) {
+			if (triggerDate > long.MinValue) {
 
 				Profiler.BeginSample ("InsertEventToHappen: BoatMakingDiscoveryEvent");
 
@@ -606,12 +606,12 @@ public class AgricultureKnowledge : CellCulturalKnowledge {
 		return Mathf.Clamp01 (cell.Arability * cell.Accessibility * accesibilityFactor);
 	}
 
-	protected override void UpdateInternal (int timeSpan) {
+	protected override void UpdateInternal (long timeSpan) {
 
 		UpdateValueInternal (timeSpan, TimeEffectConstant, _terrainFactor * TerrainFactorModifier);
 	}
 
-	public override void PolityCulturalInfluence (CulturalKnowledge polityKnowledge, PolityInfluence polityInfluence, int timeSpan) {
+	public override void PolityCulturalInfluence (CulturalKnowledge polityKnowledge, PolityInfluence polityInfluence, long timeSpan) {
 
 		PolityCulturalInfluenceInternal (polityKnowledge, polityInfluence, timeSpan, TimeEffectConstant);
 	}
@@ -663,7 +663,7 @@ public class AgricultureKnowledge : CellCulturalKnowledge {
 
 			Profiler.BeginSample ("PlantCultivationDiscoveryEvent.CalculateTriggerDate");
 
-			int triggerDate = PlantCultivationDiscoveryEvent.CalculateTriggerDate (Group);
+			long triggerDate = PlantCultivationDiscoveryEvent.CalculateTriggerDate (Group);
 
 			Profiler.EndSample ();
 
@@ -767,7 +767,7 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge {
 		return totalInfluence;
 	}
 
-	protected override void UpdateInternal (int timeSpan) {
+	protected override void UpdateInternal (long timeSpan) {
 
 		float populationFactor = CalculatePopulationFactor ();
 
@@ -780,7 +780,7 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge {
 		TryGenerateTribalismDiscoveryEvent ();
 	}
 
-	public override void PolityCulturalInfluence (CulturalKnowledge polityKnowledge, PolityInfluence polityInfluence, int timeSpan) {
+	public override void PolityCulturalInfluence (CulturalKnowledge polityKnowledge, PolityInfluence polityInfluence, long timeSpan) {
 
 		PolityCulturalInfluenceInternal (polityKnowledge, polityInfluence, timeSpan, TimeEffectConstant);
 
@@ -806,9 +806,9 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge {
 
 		if (TribalismDiscoveryEvent.CanSpawnIn (Group)) {
 
-			int triggerDate = TribalismDiscoveryEvent.CalculateTriggerDate (Group);
+			long triggerDate = TribalismDiscoveryEvent.CalculateTriggerDate (Group);
 
-			if (triggerDate == int.MinValue)
+			if (triggerDate == long.MinValue)
 				return;
 
 			Group.World.InsertEventToHappen (new TribalismDiscoveryEvent (Group, triggerDate));

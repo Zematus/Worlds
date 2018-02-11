@@ -226,7 +226,7 @@ public class Manager {
 
 	private float?[,] _currentCellSlants;
 
-	private int _currentMaxUpdateSpan = 0;
+	private long _currentMaxUpdateSpan = 0;
 
 	private Queue<IManagerTask> _taskQueue = new Queue<IManagerTask>();
 	
@@ -2500,9 +2500,9 @@ public class Manager {
 
 			population = cell.Group.Population;
 
-			int lastUpdateDate = cell.Group.LastUpdateDate;
-			int nextUpdateDate = cell.Group.NextUpdateDate;
-			int updateSpan = nextUpdateDate - lastUpdateDate;
+			long lastUpdateDate = cell.Group.LastUpdateDate;
+			long nextUpdateDate = cell.Group.NextUpdateDate;
+			long updateSpan = nextUpdateDate - lastUpdateDate;
 
 			if (_manager._currentMaxUpdateSpan < updateSpan)
 				_manager._currentMaxUpdateSpan = updateSpan;

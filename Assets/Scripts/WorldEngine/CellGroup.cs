@@ -11,17 +11,17 @@ public class CellGroupSnapshot {
 	public long Id;
 
 	public bool HasMigrationEvent;
-	public int MigrationEventDate;
+	public long MigrationEventDate;
 	public int MigrationTargetLongitude;
 	public int MigrationTargetLatitude;
 
 	public bool HasPolityExpansionEvent;
-	public int PolityExpansionEventDate;
+	public long PolityExpansionEventDate;
 	public long ExpansionTargetGroupId;
 	public long ExpandingPolityId;
 
 	public bool HasTribeFormationEvent;
-	public int TribeFormationEventDate;
+	public long TribeFormationEventDate;
 
 	public CellGroupSnapshot (CellGroup c) {
 
@@ -124,7 +124,7 @@ public class CellGroup : HumanGroup {
 	[XmlAttribute("HasMigEv")]
 	public bool HasMigrationEvent = false;
 	[XmlAttribute("MigDate")]
-	public int MigrationEventDate;
+	public long MigrationEventDate;
 	[XmlAttribute("MigLon")]
 	public int MigrationTargetLongitude;
 	[XmlAttribute("MigLat")]
@@ -135,7 +135,7 @@ public class CellGroup : HumanGroup {
 	[XmlAttribute("HasExpEv")]
 	public bool HasPolityExpansionEvent = false;
 	[XmlAttribute("PolExpDate")]
-	public int PolityExpansionEventDate;
+	public long PolityExpansionEventDate;
 	[XmlAttribute("ExpTgtGrpId")]
 	public long ExpansionTargetGroupId;
 	[XmlAttribute("ExpPolId")]
@@ -144,7 +144,7 @@ public class CellGroup : HumanGroup {
 	[XmlAttribute("HasTrbFrmEv")]
 	public bool HasTribeFormationEvent = false;
 	[XmlAttribute("TrbFrmDate")]
-	public int TribeFormationEventDate;
+	public long TribeFormationEventDate;
 
 	public Route SeaMigrationRoute = null;
 
@@ -443,9 +443,9 @@ public class CellGroup : HumanGroup {
 
 		if (BoatMakingDiscoveryEvent.CanSpawnIn (this)) {
 
-			int triggerDate = BoatMakingDiscoveryEvent.CalculateTriggerDate (this);
+			long triggerDate = BoatMakingDiscoveryEvent.CalculateTriggerDate (this);
 
-			if (triggerDate == int.MinValue)
+			if (triggerDate == long.MinValue)
 				return;
 
 			World.InsertEventToHappen (new BoatMakingDiscoveryEvent (this, triggerDate));
@@ -453,9 +453,9 @@ public class CellGroup : HumanGroup {
 
 		if (PlantCultivationDiscoveryEvent.CanSpawnIn (this)) {
 
-			int triggerDate = PlantCultivationDiscoveryEvent.CalculateTriggerDate (this);
+			long triggerDate = PlantCultivationDiscoveryEvent.CalculateTriggerDate (this);
 
-			if (triggerDate == int.MinValue)
+			if (triggerDate == long.MinValue)
 				return;
 
 			World.InsertEventToHappen (new PlantCultivationDiscoveryEvent (this, triggerDate));
@@ -510,7 +510,7 @@ public class CellGroup : HumanGroup {
 		return Cell.GetNextLocalRandomInt (iterationOffset, maxValue);
 	}
 
-	public int GetLocalRandomInt (int date, int iterationOffset, int maxValue) {
+	public int GetLocalRandomInt (long date, int iterationOffset, int maxValue) {
 
 		return Cell.GetLocalRandomInt (date, iterationOffset, maxValue);
 	}
@@ -520,7 +520,7 @@ public class CellGroup : HumanGroup {
 		return Cell.GetNextLocalRandomFloat (iterationOffset);
 	}
 
-	public float GetLocalRandomFloat (int date, int iterationOffset) {
+	public float GetLocalRandomFloat (long date, int iterationOffset) {
 
 		return Cell.GetLocalRandomFloat (date, iterationOffset);
 	}
@@ -1502,7 +1502,7 @@ public class CellGroup : HumanGroup {
 		SetMigrationEvent (targetCell, migrationDirection, nextDate);
 	}
 
-	private void SetMigrationEvent (TerrainCell targetCell, Direction migrationDirection, int nextDate) {
+	private void SetMigrationEvent (TerrainCell targetCell, Direction migrationDirection, long nextDate) {
 
 		if (MigrationEvent == null) {
 			MigrationEvent = new MigrateGroupEvent (this, targetCell, migrationDirection, nextDate);
@@ -1911,17 +1911,17 @@ public class CellGroup : HumanGroup {
 			World.AddPolityToUpdate (p);
 	}
 	
-	private void UpdatePopulation (int timeSpan) {
+	private void UpdatePopulation (long timeSpan) {
 		
 		ExactPopulation = PopulationAfterTime (timeSpan);
 	}
 	
-	private void UpdateCulture (int timeSpan) {
+	private void UpdateCulture (long timeSpan) {
 		
 		Culture.Update (timeSpan);
 	}
 
-	private void UpdatePolityCulturalInfluences (int timeSpan) {
+	private void UpdatePolityCulturalInfluences (long timeSpan) {
 	
 		foreach (PolityInfluence pi in _polityInfluences.Values) {
 		
@@ -1937,7 +1937,7 @@ public class CellGroup : HumanGroup {
 		}
 	}
 
-	private void PolityUpdateEffects (int timeSpan) {
+	private void PolityUpdateEffects (long timeSpan) {
 
 //		#if DEBUG
 //		if ((Cell.Longitude == 229) && (Cell.Latitude == 120)) {
@@ -1963,7 +1963,7 @@ public class CellGroup : HumanGroup {
 
 		if (TribeFormationEvent.CanSpawnIn (this)) {
 
-			int triggerDate = TribeFormationEvent.CalculateTriggerDate (this);
+			long triggerDate = TribeFormationEvent.CalculateTriggerDate (this);
 
 			if (triggerDate == int.MinValue)
 				return;
@@ -2290,7 +2290,8 @@ public class CellGroup : HumanGroup {
 		if (updateSpan < 0)
 			updateSpan = MaxUpdateSpan;
 
-		updateSpan = Mathf.Clamp(updateSpan, GenerationSpan, MaxUpdateSpan);
+		updateSpan = (updateSpan < GenerationSpan) ? GenerationSpan : updateSpan;
+		updateSpan = (updateSpan > MaxUpdateSpan) ? MaxUpdateSpan : updateSpan;
 
 		#if DEBUG
 		if (Manager.RegisterDebugEvent != null) {
@@ -2316,7 +2317,7 @@ public class CellGroup : HumanGroup {
 		return World.CurrentDate + updateSpan;
 	}
 
-	public float PopulationAfterTime (int time) { // in years
+	public float PopulationAfterTime (long time) { // in years
 
 		float population = ExactPopulation;
 		
@@ -2964,7 +2965,7 @@ public abstract class CellGroupEvent : WorldEvent {
 
 	}
 
-	public CellGroupEvent (CellGroup group, int triggerDate, long eventTypeId, long? id = null) : 
+	public CellGroupEvent (CellGroup group, long triggerDate, long eventTypeId, long? id = null) : 
 	base (group.World, triggerDate, (id == null) ? GenerateUniqueIdentifier (group, triggerDate, eventTypeId) : id.Value) {
 
 		Group = group;
@@ -2982,15 +2983,15 @@ public abstract class CellGroupEvent : WorldEvent {
 		return new CellGroupEventSnapshot (this);
 	}
 
-	public static long GenerateUniqueIdentifier (CellGroup group, int triggerDate, long eventTypeId) {
+	public static long GenerateUniqueIdentifier (CellGroup group, long triggerDate, long eventTypeId) {
+
+		#if DEBUG
+		if (triggerDate >= 9223372036) {
+			Debug.LogWarning ("'triggerDate' shouldn't be greater than 9223372036 (triggerDate = " + triggerDate + ")");
+		}
+		#endif
 
 		long id = ((long)triggerDate * 1000000000) + ((long)group.Longitude * 1000000) + ((long)group.Latitude * 1000) + eventTypeId;
-
-//		#if DEBUG
-//		if (id == 261651022096000L) {
-//			bool debug = true;
-//		}
-//		#endif
 
 		return id;
 	}
@@ -3049,7 +3050,7 @@ public abstract class CellGroupEvent : WorldEvent {
 		base.DestroyInternal ();
 	}
 
-	public virtual void Reset (int newTriggerDate) {
+	public virtual void Reset (long newTriggerDate) {
 
 		Reset (newTriggerDate, GenerateUniqueIdentifier (Group, newTriggerDate, EventTypeId));
 
@@ -3066,7 +3067,7 @@ public class UpdateCellGroupEvent : CellGroupEvent {
 		DoNotSerialize = true;
 	}
 
-	public UpdateCellGroupEvent (CellGroup group, int triggerDate, long? id = null) : base (group, triggerDate, UpdateCellGroupEventId, id) {
+	public UpdateCellGroupEvent (CellGroup group, long triggerDate, long? id = null) : base (group, triggerDate, UpdateCellGroupEventId, id) {
 
 		DoNotSerialize = true;
 	}
@@ -3124,7 +3125,7 @@ public class MigrateGroupEvent : CellGroupEvent {
 		DoNotSerialize = true;
 	}
 
-	public MigrateGroupEvent (CellGroup group, TerrainCell targetCell, Direction migrationDirection, int triggerDate) : base (group, triggerDate, MigrateGroupEventId) {
+	public MigrateGroupEvent (CellGroup group, TerrainCell targetCell, Direction migrationDirection, long triggerDate) : base (group, triggerDate, MigrateGroupEventId) {
 
 		#if DEBUG
 		MigrationEventCount++;
@@ -3230,7 +3231,7 @@ public class MigrateGroupEvent : CellGroupEvent {
 		base.DestroyInternal ();
 	}
 
-	public void Reset (TerrainCell targetCell, Direction migrationDirection, int triggerDate) {
+	public void Reset (TerrainCell targetCell, Direction migrationDirection, long triggerDate) {
 
 		#if DEBUG
 		MigrationEventCount++;
@@ -3268,7 +3269,7 @@ public class ExpandPolityInfluenceEvent : CellGroupEvent {
 		DoNotSerialize = true;
 	}
 
-	public ExpandPolityInfluenceEvent (CellGroup group, Polity polity, CellGroup targetGroup, int triggerDate) : base (group, triggerDate, ExpandPolityInfluenceEventId) {
+	public ExpandPolityInfluenceEvent (CellGroup group, Polity polity, CellGroup targetGroup, long triggerDate) : base (group, triggerDate, ExpandPolityInfluenceEventId) {
 
 		Polity = polity;
 
@@ -3390,7 +3391,7 @@ public class ExpandPolityInfluenceEvent : CellGroupEvent {
 		base.DestroyInternal ();
 	}
 
-	public void Reset (Polity polity, CellGroup targetGroup, int triggerDate) {
+	public void Reset (Polity polity, CellGroup targetGroup, long triggerDate) {
 
 		TargetGroup = targetGroup;
 		TargetGroupId = TargetGroup.Id;
@@ -3417,7 +3418,7 @@ public class TribeFormationEvent : CellGroupEvent {
 		DoNotSerialize = true;
 	}
 
-	public TribeFormationEvent (CellGroup group, int triggerDate) : base (group, triggerDate, TribeFormationEventId) {
+	public TribeFormationEvent (CellGroup group, long triggerDate) : base (group, triggerDate, TribeFormationEventId) {
 
 //		Group.SetFlag (EventSetFlag);
 

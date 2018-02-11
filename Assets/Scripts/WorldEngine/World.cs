@@ -272,11 +272,11 @@ public class World : ISynchronizable {
 	
 	[XmlIgnore]
 	public ProgressCastDelegate ProgressCastMethod { get; set; }
-	
+
 	[XmlIgnore]
 	public HumanGroup MigrationTaggedGroup = null;
 
-	private BinaryTree<int, WorldEvent> _eventsToHappen = new BinaryTree<int, WorldEvent> ();
+	private BinaryTree<long, WorldEvent> _eventsToHappen = new BinaryTree<long, WorldEvent> ();
 	
 //	private List<IGroupAction> _groupActionsToPerform = new List<IGroupAction> ();
 
@@ -653,12 +653,12 @@ public class World : ISynchronizable {
 		return TerrainCells[longitude][latitude];
 	}
 
-	public void SetMaxYearsToSkip (int value) {
+	public void SetMaxYearsToSkip (long value) {
 	
-		MaxTimeToSkip = Mathf.Max (value, 1);
+		MaxTimeToSkip = (value > 1) ? value : 1;
 	}
 
-	private bool ValidateEventsToHappenNode (BinaryTreeNode<int, WorldEvent> node) {
+	private bool ValidateEventsToHappenNode (BinaryTreeNode<long, WorldEvent> node) {
 
 		if (!node.Valid) {
 
@@ -681,7 +681,7 @@ public class World : ISynchronizable {
 		return true;
 	}
 
-	private bool FilterEventsToHappenNodeForSerialization (BinaryTreeNode<int, WorldEvent> node) {
+	private bool FilterEventsToHappenNodeForSerialization (BinaryTreeNode<long, WorldEvent> node) {
 
 		if (ValidateEventsToHappenNode(node)) {
 			
@@ -691,7 +691,7 @@ public class World : ISynchronizable {
 		return false;
 	}
 
-	private void InvalidEventsToHappenNodeEffect (BinaryTreeNode<int, WorldEvent> node) {
+	private void InvalidEventsToHappenNodeEffect (BinaryTreeNode<long, WorldEvent> node) {
 
 		EventsToHappenCount--;
 
@@ -704,7 +704,7 @@ public class World : ISynchronizable {
 		//		#endif
 	}
 
-	private void FilterEventsToHappenNodeEffect (BinaryTreeNode<int, WorldEvent> node) {
+	private void FilterEventsToHappenNodeEffect (BinaryTreeNode<long, WorldEvent> node) {
 
 		if (node.MarkedForRemoval) {
 			InvalidEventsToHappenNodeEffect (node);
@@ -898,7 +898,7 @@ public class World : ISynchronizable {
 		_politiesToRemove.Clear ();
 	}
 
-	public int Iterate () {
+	public long Iterate () {
 	
 		EvaluateEventsToHappen ();
 
@@ -946,7 +946,7 @@ public class World : ISynchronizable {
 					throw new System.Exception ("Surpassed date limit (Int64.MaxValue)");
 				}
 
-				_dateToSkipTo = Mathf.Min (eventToHappen.TriggerDate, maxDate);
+				_dateToSkipTo = (eventToHappen.TriggerDate < maxDate) ? eventToHappen.TriggerDate : maxDate;
 				break;
 			}
 
@@ -982,7 +982,7 @@ public class World : ISynchronizable {
 		return true;
 	}
 
-	public int Update () {
+	public long Update () {
 
 		if (CellGroupCount <= 0)
 			return 0;
@@ -1027,7 +1027,7 @@ public class World : ISynchronizable {
 			}
 		}
 
-		int dateSpan = _dateToSkipTo - CurrentDate;
+		long dateSpan = _dateToSkipTo - CurrentDate;
 
 		CurrentDate = _dateToSkipTo;
 
