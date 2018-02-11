@@ -282,7 +282,7 @@ public abstract class Polity : ISynchronizable {
 //		_coreGroupIsValid = true;
 	}
 
-	public long GenerateUniqueIdentifier (int date, long oom = 1L, long offset = 0L) {
+	public long GenerateUniqueIdentifier (long date, long oom = 1L, long offset = 0L) {
 
 		return CoreGroup.GenerateUniqueIdentifier (date, oom, offset);
 	}

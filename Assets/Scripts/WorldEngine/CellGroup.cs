@@ -44,9 +44,9 @@ public class CellGroupSnapshot {
 
 public class CellGroup : HumanGroup {
 
-	public const int GenerationSpan = 25;
+	public const long GenerationSpan = 25 * World.YearLength;
 
-	public const int MaxUpdateSpan = 200000;
+	public const long MaxUpdateSpan = GenerationSpan * 8000;
 
 	public const float MaxUpdateSpanFactor = MaxUpdateSpan / GenerationSpan;
 
@@ -79,7 +79,7 @@ public class CellGroup : HumanGroup {
 
 	[XmlAttribute("PrevExPop")]
 	public float PreviousExactPopulation;
-	
+
 	[XmlAttribute("ExPop")]
 	public float ExactPopulation; // TODO: Get rid of 'float' population values
 	
@@ -87,13 +87,13 @@ public class CellGroup : HumanGroup {
 	public bool StillPresent = true;
 
 	[XmlAttribute("InDate")]
-	public int InitDate;
+	public long InitDate;
 	
 	[XmlAttribute("LastUpDate")]
-	public int LastUpdateDate;
+	public long LastUpdateDate;
 	
 	[XmlAttribute("NextUpDate")]
-	public int NextUpdateDate;
+	public long NextUpdateDate;
 	
 	[XmlAttribute("OptPop")]
 	public int OptimalPopulation;
@@ -418,7 +418,7 @@ public class CellGroup : HumanGroup {
 		return new CellGroupSnapshot (this);
 	}
 
-	public long GenerateUniqueIdentifier (int date, long oom = 1L, long offset = 0L) {
+	public long GenerateUniqueIdentifier (long date, long oom = 1L, long offset = 0L) {
 
 		return Cell.GenerateUniqueIdentifier (date, oom, offset);
 	}
@@ -1054,15 +1054,15 @@ public class CellGroup : HumanGroup {
 		return cellValue;
 	}
 
-	public int GeneratePastSpawnDate (int baseDate, int cycleLength, int offset = 0) {
+	public long GeneratePastSpawnDate (long baseDate, int cycleLength, int offset = 0) {
 
-		int currentDate = World.CurrentDate;
+		long currentDate = World.CurrentDate;
 
-		int startCycleDate = baseDate + GetLocalRandomInt (baseDate, offset, cycleLength);
+		long startCycleDate = baseDate + GetLocalRandomInt (baseDate, offset, cycleLength);
 
-		int currentCycleDate = currentDate - (currentDate - startCycleDate) % cycleLength;
+		long currentCycleDate = currentDate - (currentDate - startCycleDate) % cycleLength;
 
-		int spawnDate = currentCycleDate + GetLocalRandomInt (currentCycleDate, offset, cycleLength);
+		long spawnDate = currentCycleDate + GetLocalRandomInt (currentCycleDate, offset, cycleLength);
 
 		if (currentDate < spawnDate) {
 
@@ -1071,9 +1071,9 @@ public class CellGroup : HumanGroup {
 				return baseDate;
 			}
 
-			int prevCycleDate = currentCycleDate - cycleLength;
+			long prevCycleDate = currentCycleDate - cycleLength;
 
-			int prevSpawnDate = prevCycleDate + GetLocalRandomInt (prevCycleDate, offset, cycleLength);
+			long prevSpawnDate = prevCycleDate + GetLocalRandomInt (prevCycleDate, offset, cycleLength);
 
 			return prevSpawnDate;
 		}
@@ -1081,21 +1081,21 @@ public class CellGroup : HumanGroup {
 		return spawnDate;
 	}
 
-	public int GenerateFutureSpawnDate (int baseDate, int cycleLength, int offset = 0) {
+	public long GenerateFutureSpawnDate (long baseDate, int cycleLength, int offset = 0) {
 
-		int currentDate = World.CurrentDate;
+		long currentDate = World.CurrentDate;
 
-		int startCycleDate = baseDate + GetLocalRandomInt (baseDate, offset, cycleLength);
+		long startCycleDate = baseDate + GetLocalRandomInt (baseDate, offset, cycleLength);
 
-		int currentCycleDate = currentDate - (currentDate - startCycleDate) % cycleLength;
+		long currentCycleDate = currentDate - (currentDate - startCycleDate) % cycleLength;
 
-		int spawnDate = currentCycleDate + GetLocalRandomInt (currentCycleDate, offset, cycleLength);
+		long spawnDate = currentCycleDate + GetLocalRandomInt (currentCycleDate, offset, cycleLength);
 
 		if (currentDate >= spawnDate) {
 
-			int nextCycleDate = currentCycleDate + cycleLength;
+			long nextCycleDate = currentCycleDate + cycleLength;
 
-			int nextSpawnDate = nextCycleDate + GetLocalRandomInt (nextCycleDate, offset, cycleLength);
+			long nextSpawnDate = nextCycleDate + GetLocalRandomInt (nextCycleDate, offset, cycleLength);
 
 			return nextSpawnDate;
 		}
@@ -1347,9 +1347,9 @@ public class CellGroup : HumanGroup {
 
 		travelFactor = Mathf.Clamp (travelFactor, 0.0001f, 1);
 
-		int travelTime = (int)Mathf.Ceil(Cell.Width / (TravelWidthFactor * travelFactor));
+		int travelTime = (int)Mathf.Ceil(World.YearLength * Cell.Width / (TravelWidthFactor * travelFactor));
 		
-		int nextDate = World.CurrentDate + travelTime;
+		long nextDate = World.CurrentDate + travelTime;
 
 //		#if DEBUG
 //		if (Manager.RegisterDebugEvent != null) {
@@ -1480,9 +1480,9 @@ public class CellGroup : HumanGroup {
 		if (attemptValue >= successChance)
 			return;
 
-		int travelTime = (int)Mathf.Ceil(routeLength / SeaTravelFactor);
+		int travelTime = (int)Mathf.Ceil(World.YearLength * routeLength / SeaTravelFactor);
 
-		int nextDate = World.CurrentDate + travelTime;
+		long nextDate = World.CurrentDate + travelTime;
 
 //		#if DEBUG
 //		if (Manager.RegisterDebugEvent != null) {
@@ -1624,9 +1624,9 @@ public class CellGroup : HumanGroup {
 
 		travelFactor = Mathf.Clamp (travelFactor, 0.0001f, 1);
 
-		int travelTime = (int)Mathf.Ceil(Cell.Width / (TravelWidthFactor * travelFactor));
+		int travelTime = (int)Mathf.Ceil(World.YearLength * Cell.Width / (TravelWidthFactor * travelFactor));
 
-		int nextDate = World.CurrentDate + travelTime;
+		long nextDate = World.CurrentDate + travelTime;
 
 //		#if DEBUG
 //		if (Manager.RegisterDebugEvent != null) {
@@ -1741,7 +1741,7 @@ public class CellGroup : HumanGroup {
 
 		PreviousExactPopulation = ExactPopulation;
 		
-		int timeSpan = World.CurrentDate - LastUpdateDate;
+		long timeSpan = World.CurrentDate - LastUpdateDate;
 
 		if (timeSpan <= 0)
 			return;
@@ -2240,7 +2240,7 @@ public class CellGroup : HumanGroup {
 //		#endif
 	}
 
-	public int CalculateNextUpdateDate () {
+	public long CalculateNextUpdateDate () {
 
 //		#if DEBUG
 //		if (Cell.IsSelected) {
@@ -2285,7 +2285,7 @@ public class CellGroup : HumanGroup {
 
 		float mixFactor = randomFactor * migrationFactor * polityExpansionFactor * skillLevelFactor * knowledgeLevelFactor * populationFactor;
 
-		int updateSpan = GenerationSpan * (int)mixFactor;
+		long updateSpan = GenerationSpan * (int)mixFactor;
 
 		if (updateSpan < 0)
 			updateSpan = MaxUpdateSpan;
@@ -3404,7 +3404,7 @@ public class ExpandPolityInfluenceEvent : CellGroupEvent {
 
 public class TribeFormationEvent : CellGroupEvent {
 
-	public const int DateSpanFactorConstant = CellGroup.GenerationSpan * 100;
+	public const long DateSpanFactorConstant = CellGroup.GenerationSpan * 100;
 
 	public const int MinSocialOrganizationKnowledgeTribeFormation = SocialOrganizationKnowledge.MinValueForTribalismDiscovery;
 	public const int MinSocialOrganizationKnowledgeValue = SocialOrganizationKnowledge.MinValueForHoldingTribalism;
@@ -3424,7 +3424,7 @@ public class TribeFormationEvent : CellGroupEvent {
 		DoNotSerialize = true;
 	}
 
-	public static int CalculateTriggerDate (CellGroup group) {
+	public static long CalculateTriggerDate (CellGroup group) {
 
 		float socialOrganizationValue = 0;
 
@@ -3442,7 +3442,7 @@ public class TribeFormationEvent : CellGroupEvent {
 
 		float dateSpan = (1 - randomFactor) * DateSpanFactorConstant / socialOrganizationFactor;
 
-		int targetDate = (int)(group.World.CurrentDate + dateSpan) + 1;
+		long targetDate = (long)(group.World.CurrentDate + dateSpan) + CellGroup.GenerationSpan;
 
 		if (targetDate <= group.World.CurrentDate)
 			targetDate = int.MinValue;

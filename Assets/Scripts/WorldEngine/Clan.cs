@@ -16,9 +16,9 @@ using System.Xml.Serialization;
 
 public class Clan : Faction {
 
-	public const int LeadershipAvgSpan = 20;
-	public const int MinClanLeaderStartAge = 16;
-	public const int MaxClanLeaderStartAge = 50;
+	public const long LeadershipAvgSpan = 20 * World.YearLength;
+	public const long MinClanLeaderStartAge = 16 * World.YearLength;
+	public const long MaxClanLeaderStartAge = 50 * World.YearLength;
 	
 	public const int MinSocialOrganizationValue = 400;
 
@@ -27,7 +27,7 @@ public class Clan : Faction {
 
 	public const int TerminalAdministrativeLoadValue = 500000;
 
-	public const int ClanSplitDateSpanFactorConstant = CellGroup.GenerationSpan * 400;
+	public const long ClanSplitDateSpanFactorConstant = CellGroup.GenerationSpan * 400;
 
 	public const string ClanType = "Clan";
 
@@ -465,16 +465,16 @@ public class Clan : Faction {
 		return Mathf.Pow (administrativeLoad / socialOrganizationValue, 2);
 	}
 
-	public override int CalculateNextUpdateDate () {
+	public override long CalculateNextUpdateDate () {
 
-		int nextDate_adminLoad = CalculateNextUpdateDate_AdminLoad ();
+		long nextDate_adminLoad = CalculateNextUpdateDate_AdminLoad ();
 
 		return nextDate_adminLoad;
 	}
 
-	public int CalculateNextUpdateDate_AdminLoad () {
+	public long CalculateNextUpdateDate_AdminLoad () {
 
-		int updateSpan = CellGroup.GenerationSpan * 40;
+		long updateSpan = CellGroup.GenerationSpan * 40;
 
 		float randomFactor = GetNextLocalRandomFloat (RngOffsets.FACTION_CALCULATE_NEXT_UPDATE);
 		randomFactor = Mathf.Pow (randomFactor, 2);
@@ -488,7 +488,7 @@ public class Clan : Faction {
 
 		float dateSpan = (1 - randomFactor) * ClanSplitDateSpanFactorConstant * loadFactor;
 
-		updateSpan += (int)dateSpan;
+		updateSpan += (long)dateSpan;
 
 		if (updateSpan < 0)
 			updateSpan = CellGroup.MaxUpdateSpan;
@@ -588,7 +588,7 @@ public class ClanSplitDecision : FactionDecision {
 
 public class ClanCoreMigrationEvent : FactionEvent {
 
-	public const int DateSpanFactorConstant = CellGroup.GenerationSpan * 500;
+	public const long DateSpanFactorConstant = CellGroup.GenerationSpan * 500;
 
 	private CellGroup _targetGroup;
 
@@ -604,14 +604,14 @@ public class ClanCoreMigrationEvent : FactionEvent {
 		DoNotSerialize = true;
 	}
 
-	public static int CalculateTriggerDate (Clan clan) {
+	public static long CalculateTriggerDate (Clan clan) {
 
 		float randomFactor = clan.GetNextLocalRandomFloat (RngOffsets.CLAN_CORE_MIGRATION_EVENT_CALCULATE_TRIGGER_DATE);
 		randomFactor = Mathf.Pow (randomFactor, 2);
 
 		float dateSpan = (1 - randomFactor) * DateSpanFactorConstant;
 
-		int targetDate = (int)(clan.World.CurrentDate + dateSpan) + 1;
+		long targetDate = (long)(clan.World.CurrentDate + dateSpan) + CellGroup.GenerationSpan;
 
 		return targetDate;
 	}

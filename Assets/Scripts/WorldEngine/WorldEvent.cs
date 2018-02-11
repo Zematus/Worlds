@@ -174,10 +174,10 @@ public abstract class WorldEvent : ISynchronizable {
 	public BinaryTreeNode<int, WorldEvent> Node = null;
 	
 	[XmlAttribute]
-	public int TriggerDate;
+	public long TriggerDate;
 
 	[XmlAttribute]
-	public int SpawnDate;
+	public long SpawnDate;
 	
 	[XmlAttribute]
 	public long Id;
@@ -189,7 +189,7 @@ public abstract class WorldEvent : ISynchronizable {
 		Manager.UpdateWorldLoadTrackEventCount ();
 	}
 
-	public WorldEvent (World world, int triggerDate, long id) {
+	public WorldEvent (World world, long triggerDate, long id) {
 		
 //		EventCount++;
 
@@ -257,7 +257,7 @@ public abstract class WorldEvent : ISynchronizable {
 	
 	}
 
-	public virtual void Reset (int newTriggerDate, long newId) {
+	public virtual void Reset (long newTriggerDate, long newId) {
 
 //		EventCount++;
 
@@ -282,7 +282,7 @@ public abstract class CellEvent : WorldEvent {
 
 	}
 
-	public CellEvent (TerrainCell cell, int triggerDate, long eventTypeId) : base (cell.World, triggerDate, cell.GenerateUniqueIdentifier (triggerDate, 100L, eventTypeId)) {
+	public CellEvent (TerrainCell cell, long triggerDate, long eventTypeId) : base (cell.World, triggerDate, cell.GenerateUniqueIdentifier (triggerDate, 100L, eventTypeId)) {
 
 		Cell = cell;
 		CellLongitude = cell.Longitude;
@@ -306,7 +306,7 @@ public abstract class DiscoveryEvent : CellGroupEvent {
 
 	}
 
-	public DiscoveryEvent (CellGroup group, int triggerDate, long eventTypeId) : base (group, triggerDate, eventTypeId) {
+	public DiscoveryEvent (CellGroup group, long triggerDate, long eventTypeId) : base (group, triggerDate, eventTypeId) {
 	
 	}
 
@@ -336,24 +336,24 @@ public abstract class DiscoveryEvent : CellGroupEvent {
 
 public class SailingDiscoveryEvent : DiscoveryEvent {
 
-	public const int DateSpanFactorConstant = CellGroup.GenerationSpan * 10000;
+	public const long DateSpanFactorConstant = CellGroup.GenerationSpan * 10000;
 
 	public const int MinShipBuildingKnowledgeSpawnEventValue = ShipbuildingKnowledge.MinKnowledgeValueForSailingSpawnEvent;
 	public const int MinShipBuildingKnowledgeValue = ShipbuildingKnowledge.MinKnowledgeValueForSailing;
 	public const int OptimalShipBuildingKnowledgeValue = ShipbuildingKnowledge.OptimalKnowledgeValueForSailing;
 
 	public const string EventSetFlag = "SailingDiscoveryEvent_Set";
-	
+
 	public SailingDiscoveryEvent () {
 		
 	}
 	
-	public SailingDiscoveryEvent (CellGroup group, int triggerDate) : base (group, triggerDate, SailingDiscoveryEventId) {
+	public SailingDiscoveryEvent (CellGroup group, long triggerDate) : base (group, triggerDate, SailingDiscoveryEventId) {
 		
 		Group.SetFlag (EventSetFlag);
 	}
 	
-	public static int CalculateTriggerDate (CellGroup group) {
+	public static long CalculateTriggerDate (CellGroup group) {
 		
 		float shipBuildingValue = 0;
 		
@@ -370,7 +370,7 @@ public class SailingDiscoveryEvent : DiscoveryEvent {
 
 		float dateSpan = (1 - randomFactor) * DateSpanFactorConstant / shipBuildingFactor;
 
-		int targetDate = (int)(group.World.CurrentDate + dateSpan) + 1;
+		long targetDate = (long)(group.World.CurrentDate + dateSpan) + 1;
 
 		return targetDate;
 	}
@@ -430,7 +430,7 @@ public class TribalismDiscoveryEvent : DiscoveryEvent {
 	public const long EventMessageId = 0;
 	public const string EventMessagePrefix = "Tribalism Discovered";
 
-	public const int DateSpanFactorConstant = CellGroup.GenerationSpan * 100;
+	public const long DateSpanFactorConstant = CellGroup.GenerationSpan * 100;
 
 	public const int MinSocialOrganizationKnowledgeForTribalismDiscovery = SocialOrganizationKnowledge.MinValueForTribalismDiscovery;
 	public const int MinSocialOrganizationKnowledgeForHoldingTribalism = SocialOrganizationKnowledge.MinValueForHoldingTribalism;
@@ -442,12 +442,12 @@ public class TribalismDiscoveryEvent : DiscoveryEvent {
 
 	}
 
-	public TribalismDiscoveryEvent (CellGroup group, int triggerDate) : base (group, triggerDate, TribalismDiscoveryEventId) {
+	public TribalismDiscoveryEvent (CellGroup group, long triggerDate) : base (group, triggerDate, TribalismDiscoveryEventId) {
 
 		Group.SetFlag (EventSetFlag);
 	}
 
-	public static int CalculateTriggerDate (CellGroup group) {
+	public static long CalculateTriggerDate (CellGroup group) {
 
 		float socialOrganizationValue = 0;
 
@@ -465,7 +465,7 @@ public class TribalismDiscoveryEvent : DiscoveryEvent {
 
 		float dateSpan = (1 - randomFactor) * DateSpanFactorConstant / socialOrganizationFactor;
 
-		int targetDate = (int)(group.World.CurrentDate + dateSpan) + 1;
+		long targetDate = (long)(group.World.CurrentDate + dateSpan) + 1;
 
 		return targetDate;
 	}
@@ -566,7 +566,7 @@ public class TribalismDiscoveryEvent : DiscoveryEvent {
 
 public class BoatMakingDiscoveryEvent : DiscoveryEvent {
 	
-	public const int DateSpanFactorConstant = CellGroup.GenerationSpan * 10000;
+	public const long DateSpanFactorConstant = CellGroup.GenerationSpan * 10000;
 
 	public const string EventSetFlag = "BoatMakingDiscoveryEvent_Set";
 	
@@ -574,7 +574,7 @@ public class BoatMakingDiscoveryEvent : DiscoveryEvent {
 		
 	}
 	
-	public BoatMakingDiscoveryEvent (CellGroup group, int triggerDate) : base (group, triggerDate, BoatMakingDiscoveryEventId) {
+	public BoatMakingDiscoveryEvent (CellGroup group, long triggerDate) : base (group, triggerDate, BoatMakingDiscoveryEventId) {
 
 		Group.SetFlag (EventSetFlag);
 	}
@@ -596,7 +596,7 @@ public class BoatMakingDiscoveryEvent : DiscoveryEvent {
 			throw new System.Exception ("Can't calculate valid trigger date");
 		}
 
-		int targetDate = (int)(group.World.CurrentDate + dateSpan) + 1;
+		long targetDate = (long)(group.World.CurrentDate + dateSpan) + 1;
 
 		return targetDate;
 	}
@@ -646,7 +646,7 @@ public class BoatMakingDiscoveryEvent : DiscoveryEvent {
 
 public class PlantCultivationDiscoveryEvent : DiscoveryEvent {
 
-	public const int DateSpanFactorConstant = CellGroup.GenerationSpan * 600000;
+	public const long DateSpanFactorConstant = CellGroup.GenerationSpan * 600000;
 
 	public const string EventSetFlag = "PlantCultivationDiscoveryEvent_Set";
 
@@ -654,12 +654,12 @@ public class PlantCultivationDiscoveryEvent : DiscoveryEvent {
 
 	}
 
-	public PlantCultivationDiscoveryEvent (CellGroup group, int triggerDate) : base (group, triggerDate, PlantCultivationDiscoveryEventId) {
+	public PlantCultivationDiscoveryEvent (CellGroup group, long triggerDate) : base (group, triggerDate, PlantCultivationDiscoveryEventId) {
 
 		Group.SetFlag (EventSetFlag);
 	}
 
-	public static int CalculateTriggerDate (CellGroup group) {
+	public static long CalculateTriggerDate (CellGroup group) {
 
 		float terrainFactor = AgricultureKnowledge.CalculateTerrainFactorIn (group.Cell);
 
@@ -676,7 +676,7 @@ public class PlantCultivationDiscoveryEvent : DiscoveryEvent {
 			throw new System.Exception ("Can't calculate valid trigger date");
 		}
 
-		int targetDate = (int)(group.World.CurrentDate + dateSpan) + 1;
+		long targetDate = (long)(group.World.CurrentDate + dateSpan) + 1;
 
 		if (targetDate <= group.World.CurrentDate)
 			targetDate = int.MinValue;

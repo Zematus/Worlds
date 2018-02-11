@@ -311,10 +311,10 @@ public class GuiManagerScript : MonoBehaviour {
 			// Simulate additional iterations if we haven't reached the max amount of iterations allowed per the percentage of transpired real time during this cycle
 			if (_simulationDateSpan < maxSimulationDateSpan) {
 
-				int maxDateSpanBetweenUpdates = (int)Mathf.Ceil(maxSpeed * _maxDeltaTimeIterations);
-				int lastUpdateDate = world.CurrentDate;
+				long maxDateSpanBetweenUpdates = (int)Mathf.Ceil(maxSpeed * _maxDeltaTimeIterations);
+				long lastUpdateDate = world.CurrentDate;
 
-				int dateSpan = 0;
+				long dateSpan = 0;
 
 				float startTimeIterations = Time.realtimeSinceStartup;
 
@@ -1062,7 +1062,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 	public void GetMaxSpeedOptionFromCurrentWorld () {
 
-		int maxSpeed = Manager.CurrentWorld.MaxYearsToSkip;
+		int maxSpeed = Manager.CurrentWorld.MaxTimeToSkip;
 
 		for (int i = 0; i < _maxSpeedOptions.Length; i++) {
 
@@ -1752,8 +1752,11 @@ public class GuiManagerScript : MonoBehaviour {
 //		_focusButtonText = "";
 		
 		World world = Manager.CurrentWorld;
+
+		long year = world.CurrentDate / World.YearLength;
+		int day = (int)(world.CurrentDate % World.YearLength);
 		
-		InfoPanelScript.InfoText.text = "Year: " + world.CurrentDate;
+		InfoPanelScript.InfoText.text = "Year " + year + ", Day " + day;
 
 		if (_infoTextMinimized)
 			return;

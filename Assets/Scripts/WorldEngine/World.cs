@@ -99,7 +99,9 @@ public static class RngOffsets {
 [XmlRoot]
 public class World : ISynchronizable {
 
-	public const int MaxPossibleYearsToSkip = int.MaxValue / 100;
+	public const int YearLength = 365;
+
+	public const int MaxPossibleTimeToSkip = int.MaxValue / 10;
 	
 	public const float Circumference = 40075; // In kilometers;
 	
@@ -129,7 +131,7 @@ public class World : ISynchronizable {
 	
 	public const int MinStartingPopulation = 100;
 	public const int MaxStartingPopulation = 100000;
-	
+
 	[XmlAttribute]
 	public int Width { get; private set; }
 	[XmlAttribute]
@@ -139,10 +141,10 @@ public class World : ISynchronizable {
 	public int Seed { get; private set; }
 	
 	[XmlAttribute]
-	public int CurrentDate { get; private set; }
+	public long CurrentDate { get; private set; }
 
 	[XmlAttribute]
-	public int MaxYearsToSkip { get; private set; }
+	public long MaxTimeToSkip { get; private set; }
 	
 	[XmlAttribute]
 	public int CellGroupCount { get; private set; }
@@ -331,7 +333,7 @@ public class World : ISynchronizable {
 
 	private float _cellMaxSideLength;
 
-	private int _dateToSkipTo;
+	private long _dateToSkipTo;
 
 	public World () {
 
@@ -349,7 +351,7 @@ public class World : ISynchronizable {
 		Seed = seed;
 		
 		CurrentDate = 0;
-		MaxYearsToSkip = MaxPossibleYearsToSkip;
+		MaxTimeToSkip = MaxPossibleTimeToSkip;
 		EventsToHappenCount = 0;
 		CellGroupCount = 0;
 		PolityCount = 0;
@@ -653,7 +655,7 @@ public class World : ISynchronizable {
 
 	public void SetMaxYearsToSkip (int value) {
 	
-		MaxYearsToSkip = Mathf.Max (value, 1);
+		MaxTimeToSkip = Mathf.Max (value, 1);
 	}
 
 	private bool ValidateEventsToHappenNode (BinaryTreeNode<int, WorldEvent> node) {
@@ -931,11 +933,17 @@ public class World : ISynchronizable {
 
 			if (eventToHappen.TriggerDate > CurrentDate) {
 
-				int maxDate = CurrentDate + MaxYearsToSkip;
+				long maxDate = CurrentDate + MaxTimeToSkip;
+
+				#if DEBUG
+				if (maxDate >= 9223372036) {
+					Debug.LogWarning ("'maxDate' shouldn't be greater than 9223372036 (date = " + maxDate + ")");
+				}
+				#endif
 
 				if (maxDate < 0) {
 					Debug.Break ();
-					throw new System.Exception ("Surpassed date limit (Int32.MaxValue)");
+					throw new System.Exception ("Surpassed date limit (Int64.MaxValue)");
 				}
 
 				_dateToSkipTo = Mathf.Min (eventToHappen.TriggerDate, maxDate);

@@ -263,9 +263,19 @@ public class TerrainCell : ISynchronizable {
 		return Neighbors[TryGetNeighborDirection (offset)];
 	}
 
-	public long GenerateUniqueIdentifier (int date, long oom = 1L, long offset = 0L) {
+	public long GenerateUniqueIdentifier (long date, long oom = 1L, long offset = 0L) {
 
-		return ((((long)date * 1000000) + ((long)Longitude * 1000) + (long)Latitude) * oom) + (offset % oom);
+		#if DEBUG
+		if (oom >= 1000) {
+			Debug.LogWarning ("'oom' shouldn't be greater than 1000 (oom = " + oom + ")");
+		}
+
+		if (date >= 9223372036) {
+			Debug.LogWarning ("'date' shouldn't be greater than 9223372036 (date = " + date + ")");
+		}
+		#endif
+
+		return (((date * 1000000) + ((long)Longitude * 1000) + (long)Latitude) * oom) + (offset % oom);
 	}
 
 	public TerrainCellChanges GetChanges () {
@@ -334,13 +344,13 @@ public class TerrainCell : ISynchronizable {
 		return GetLocalRandomInt (World.CurrentDate, queryOffset, maxValue);
 	}
 
-	public int GetLocalRandomInt (int date, int queryOffset, int maxValue) {
+	public int GetLocalRandomInt (long date, int queryOffset, int maxValue) {
 
 		maxValue = Mathf.Min (PerlinNoise.MaxPermutationValue, maxValue);
 
 		int x = Mathf.Abs (World.Seed + Longitude + queryOffset);
 		int y = Mathf.Abs (World.Seed + Latitude + queryOffset);
-		int z = Mathf.Abs (World.Seed + date + queryOffset);
+		int z = Mathf.Abs (World.Seed + (int)date + queryOffset);
 
 		int value = PerlinNoise.GetPermutationValue(x, y, z) % maxValue;
 

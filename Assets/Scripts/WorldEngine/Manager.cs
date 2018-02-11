@@ -346,10 +346,10 @@ public class Manager {
 
 	public static string RemoveDateFromWorldName (string worldName) {
 
-		int yearIndex = worldName.LastIndexOf ("_date_");
+		int dateIndex = worldName.LastIndexOf ("_date_");
 
-		if (yearIndex > 0) {
-			return worldName.Substring (0, yearIndex);
+		if (dateIndex > 0) {
+			return worldName.Substring (0, dateIndex);
 		}
 
 		return worldName;

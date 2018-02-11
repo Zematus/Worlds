@@ -7,7 +7,7 @@ using UnityEngine.Profiling;
 
 public class FactionCulture : Culture {
 
-	public const int OptimalTimeSpan = CellGroup.GenerationSpan * 100;
+	public const long OptimalTimeSpan = CellGroup.GenerationSpan * 100;
 
 	[XmlIgnore]
 	public Faction Faction;
@@ -113,7 +113,7 @@ public class FactionCulture : Culture {
 
 		CellCulture coreCulture = coreGroup.Culture;
 
-		int dateSpan = World.CurrentDate - Faction.LastUpdateDate;
+		long dateSpan = World.CurrentDate - Faction.LastUpdateDate;
 
 		float timeFactor = dateSpan / (dateSpan + OptimalTimeSpan);
 

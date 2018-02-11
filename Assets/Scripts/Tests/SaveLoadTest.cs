@@ -41,9 +41,9 @@ public class SaveLoadTest : AutomatedTest {
 	private List<WorldEvent> _eventsAfterSave;
 	private List<WorldEventSnapshot> _eventSnapshotsAfterSave;
 
-	private int _saveDate;
-	private int _saveDatePlusOffset;
-	private int _loadDatePlusOffset;
+	private long _saveDate;
+	private long _saveDatePlusOffset;
+	private long _loadDatePlusOffset;
 
 	private int _numChecks;
 	private int _beforeCheckDateSkipOffset;
@@ -539,7 +539,7 @@ public class SaveLoadTest : AutomatedTest {
 
 			_world = Manager.CurrentWorld;
 
-			int loadDate = _world.CurrentDate;
+			long loadDate = _world.CurrentDate;
 
 			Debug.Log ("Date after Load: " + loadDate);
 

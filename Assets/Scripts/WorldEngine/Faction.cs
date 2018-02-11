@@ -29,13 +29,13 @@ public abstract class Faction : ISynchronizable {
 	public bool IsDominant = false;
 
 	[XmlAttribute("LastUpDate")]
-	public int LastUpdateDate;
+	public long LastUpdateDate;
 
 	[XmlAttribute("NextUpDate")]
-	public int NextUpdateDate;
+	public long NextUpdateDate;
 
 	[XmlAttribute("LeadStDate")]
-	public int LeaderStartDate;
+	public long LeaderStartDate;
 
 	[XmlAttribute("IsCon")]
 	public bool IsUnderPlayerGuidance = false;
@@ -231,7 +231,7 @@ public abstract class Faction : ISynchronizable {
 		World.InsertEventToHappen (UpdateEvent);
 	}
 
-	public abstract int CalculateNextUpdateDate ();
+	public abstract long CalculateNextUpdateDate ();
 
 	public void PrepareNewCoreGroup (CellGroup coreGroup) {
 
@@ -288,7 +288,7 @@ public abstract class Faction : ISynchronizable {
 		World.InsertEventToHappen (UpdateEvent);
 	}
 
-	public long GenerateUniqueIdentifier (int date, long oom = 1L, long offset = 0L) {
+	public long GenerateUniqueIdentifier (long date, long oom = 1L, long offset = 0L) {
 
 		return CoreGroup.GenerateUniqueIdentifier (date, oom, offset);
 	}

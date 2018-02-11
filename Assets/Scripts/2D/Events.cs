@@ -33,7 +33,7 @@ public struct Speed {
 	public static Speed Slow = new Speed (10, "Slow");
 	public static Speed Normal = new Speed (100, "Normal");
 	public static Speed Fast = new Speed (1000, "Fast");
-	public static Speed Fastest = new Speed (World.MaxPossibleYearsToSkip, "Fastest");
+	public static Speed Fastest = new Speed (World.MaxPossibleTimeToSkip, "Fastest");
 }
 
 [System.Serializable]
