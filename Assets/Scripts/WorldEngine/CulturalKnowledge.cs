@@ -466,6 +466,9 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge {
 
 			long triggerDate = SailingDiscoveryEvent.CalculateTriggerDate (Group);
 
+			if (triggerDate > World.MaxSupportedDate)
+				return;
+
 			if (triggerDate == long.MinValue)
 				return;
 
@@ -520,7 +523,7 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge {
 
 			Profiler.EndSample ();
 
-			if (triggerDate > long.MinValue) {
+			if ((triggerDate <= World.MaxSupportedDate) && (triggerDate > long.MinValue)) {
 
 				Profiler.BeginSample ("InsertEventToHappen: BoatMakingDiscoveryEvent");
 
@@ -667,7 +670,7 @@ public class AgricultureKnowledge : CellCulturalKnowledge {
 
 			Profiler.EndSample ();
 
-			if (triggerDate > int.MinValue) {
+			if ((triggerDate <= World.MaxSupportedDate) && (triggerDate > int.MinValue)) {
 
 				Profiler.BeginSample ("new PlantCultivationDiscoveryEvent");
 

@@ -129,11 +129,14 @@ public class GuiManagerScript : MonoBehaviour {
 	private float _timeSinceLastMapUpdate = 0;
 
 	private Speed[] _maxSpeedOptions = new Speed[] {
-		Speed.Slowest, 
-		Speed.Slow, 
-		Speed.Normal, 
-		Speed.Fast, 
-		Speed.Fastest
+		Speed.One, 
+		Speed.Two, 
+		Speed.Three, 
+		Speed.Four, 
+		Speed.Five, 
+		Speed.Six, 
+		Speed.Seven, 
+		Speed.Max
 	};
 
 	private int _lastMaxSpeedOptionIndex;
@@ -464,7 +467,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 	public string GetMessageToShow (WorldEventMessage eventMessage) {
 
-		return "Year: " + eventMessage.Date + " - " + eventMessage.Message;
+		return Manager.GetDateString (eventMessage.Date) + " - " + eventMessage.Message;
 	}
 
 	public void ShowEventMessageForPolity (WorldEventMessage eventMessage, long polityId) {
@@ -1118,7 +1121,7 @@ public class GuiManagerScript : MonoBehaviour {
 		// This is the max amount of iterations to simulate per frame
 		int maxSpeed = (int)Mathf.Ceil(selectedSpeed * _maxDeltaTimeIterations);
 
-		Manager.CurrentWorld.SetMaxYearsToSkip (maxSpeed);
+		Manager.CurrentWorld.SetMaxTimeToSkip (maxSpeed);
 
 		OnSimulationSpeedChanged.Invoke (selectedSpeed);
 	}
@@ -1301,7 +1304,7 @@ public class GuiManagerScript : MonoBehaviour {
 	public void SetSimulationSpeedStopped (bool state) {
 
 		if (state) {
-			OnSimulationSpeedChanged.Invoke (Speed.Stopped);
+			OnSimulationSpeedChanged.Invoke (Speed.Zero);
 		} else {
 			OnSimulationSpeedChanged.Invoke (_maxSpeedOptions[_selectedMaxSpeedOptionIndex]);
 		}
@@ -1752,11 +1755,8 @@ public class GuiManagerScript : MonoBehaviour {
 //		_focusButtonText = "";
 		
 		World world = Manager.CurrentWorld;
-
-		long year = world.CurrentDate / World.YearLength;
-		int day = (int)(world.CurrentDate % World.YearLength);
 		
-		InfoPanelScript.InfoText.text = "Year " + year + ", Day " + day;
+		InfoPanelScript.InfoText.text = Manager.GetDateString (world.CurrentDate);
 
 		if (_infoTextMinimized)
 			return;
@@ -2028,9 +2028,9 @@ public class GuiManagerScript : MonoBehaviour {
 		long lastUpdateDate = cell.Group.LastUpdateDate;
 		long nextUpdateDate = cell.Group.NextUpdateDate;
 
-		InfoPanelScript.InfoText.text += "\nLast Update Date: " + lastUpdateDate;
-		InfoPanelScript.InfoText.text += "\nNext Update Date: " + nextUpdateDate;
-		InfoPanelScript.InfoText.text += "\nTime between updates: " + (nextUpdateDate - lastUpdateDate);
+		InfoPanelScript.InfoText.text += "\nLast Update Date: " + Manager.GetDateString(lastUpdateDate);
+		InfoPanelScript.InfoText.text += "\nNext Update Date: " + Manager.GetDateString(nextUpdateDate);
+		InfoPanelScript.InfoText.text += "\nTime between updates: " + Manager.GetTimeSpanString(nextUpdateDate - lastUpdateDate);
 	}
 
 	public void AddCellDataToInfoPanel_PolityInfluence (TerrainCell cell) {
@@ -2134,8 +2134,8 @@ public class GuiManagerScript : MonoBehaviour {
 
 			InfoPanelScript.InfoText.text += "\nLeader: " + leader.Name.Text;
 			InfoPanelScript.InfoText.text += "\nTranslates to: " + leader.Name.Meaning;
-			InfoPanelScript.InfoText.text += "\nBirth Date: " + leader.BirthDate;
-			InfoPanelScript.InfoText.text += " \tAge: " + leader.Age;
+			InfoPanelScript.InfoText.text += "\nBirth Date: " + Manager.GetDateString(leader.BirthDate);
+			InfoPanelScript.InfoText.text += "\nAge: " + Manager.GetTimeSpanString(leader.Age);
 			InfoPanelScript.InfoText.text += "\nGender: " + ((leader.IsFemale) ? "Female" : "Male");
 			InfoPanelScript.InfoText.text += "\nCharisma: " + leader.Charisma;
 			InfoPanelScript.InfoText.text += "\nWisdom: " + leader.Wisdom;
@@ -2205,7 +2205,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 		InfoPanelScript.InfoText.text += "\nLeader: " + leader.Name.Text;
 		InfoPanelScript.InfoText.text += "\nTranslates to: " + leader.Name.Meaning;
-		InfoPanelScript.InfoText.text += "\nBirth Date: " + leader.BirthDate;
+		InfoPanelScript.InfoText.text += "\nBirth Date: " + Manager.GetDateString(leader.BirthDate);
 		InfoPanelScript.InfoText.text += "\nGender: " + ((leader.IsFemale) ? "Female" : "Male");
 		InfoPanelScript.InfoText.text += "\nCharisma: " + leader.Charisma;
 		InfoPanelScript.InfoText.text += "\nWisdom: " + leader.Wisdom;
@@ -2235,7 +2235,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 			InfoPanelScript.InfoText.text += "\n\t\tLeader: " + factionLeader.Name.Text;
 			InfoPanelScript.InfoText.text += "\n\t\tTranslates to: " + factionLeader.Name.Meaning;
-			InfoPanelScript.InfoText.text += "\n\t\tBirth Date: " + factionLeader.BirthDate;
+			InfoPanelScript.InfoText.text += "\n\t\tBirth Date: " + Manager.GetDateString(factionLeader.BirthDate);
 			InfoPanelScript.InfoText.text += "\n\t\tGender: " + ((factionLeader.IsFemale) ? "Female" : "Male");
 			InfoPanelScript.InfoText.text += "\n\t\tCharisma: " + factionLeader.Charisma;
 			InfoPanelScript.InfoText.text += "\n\t\tWisdom: " + factionLeader.Wisdom;

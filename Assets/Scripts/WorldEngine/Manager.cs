@@ -339,6 +339,22 @@ public class Manager {
 		ExportPath = path;
 	}
 
+	public static string GetDateString (long date) {
+
+		long year = date / World.YearLength;
+		int day = (int)(date % World.YearLength);
+
+		return "Year " + year + ", Day " + day;
+	}
+
+	public static string GetTimeSpanString (long timespan) {
+
+		long years = timespan / World.YearLength;
+		int days = (int)(timespan % World.YearLength);
+
+		return years + " years, " + days + " days";
+	}
+
 	public static string AddDateToWorldName (string worldName) {
 
 		return worldName + "_date_" + CurrentWorld.CurrentDate;

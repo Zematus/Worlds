@@ -11,7 +11,10 @@ using System.Xml.Serialization;
 
 public class Agent : ISynchronizable {
 
-	public const long MaxLifespan = 113; // Prime number to hide birthdate cycle artifacts
+	public const long MaxLifespan = 40151; // Prime number to hide birthdate cycle artifacts
+
+	public const int WisdomAgeOffset = 7;
+	public const int WisdomAgeFactor = 5 * World.YearLength;
 
 	[XmlAttribute]
 	public long Id;
@@ -56,7 +59,7 @@ public class Agent : ISynchronizable {
 
 	public int Wisdom {
 		get {
-			int wisdom = BaseWisdom + ((int)Age - 35) / 5;
+			int wisdom = BaseWisdom + (int)(Age / WisdomAgeFactor) - WisdomAgeOffset;
 			return (wisdom > 3) ? wisdom : 3;
 		}
 	}
@@ -76,7 +79,7 @@ public class Agent : ISynchronizable {
 
 		int idOffset = 0;
 
-		Id = GenerateUniqueIdentifier (birthDate, 100L, idOffset);
+		Id = GenerateUniqueIdentifier (birthDate, 1000L, idOffset);
 
 		GenerateBio ();
 

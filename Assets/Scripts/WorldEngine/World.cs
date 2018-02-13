@@ -99,9 +99,11 @@ public static class RngOffsets {
 [XmlRoot]
 public class World : ISynchronizable {
 
+	public const long MaxSupportedDate = 9223372036L;
+
 	public const int YearLength = 365;
 
-	public const int MaxPossibleTimeToSkip = int.MaxValue / 10;
+	public const long MaxPossibleTimeToSkip = int.MaxValue / 10;
 	
 	public const float Circumference = 40075; // In kilometers;
 	
@@ -653,7 +655,7 @@ public class World : ISynchronizable {
 		return TerrainCells[longitude][latitude];
 	}
 
-	public void SetMaxYearsToSkip (long value) {
+	public void SetMaxTimeToSkip (long value) {
 	
 		MaxTimeToSkip = (value > 1) ? value : 1;
 	}

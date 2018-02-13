@@ -266,12 +266,12 @@ public class TerrainCell : ISynchronizable {
 	public long GenerateUniqueIdentifier (long date, long oom = 1L, long offset = 0L) {
 
 		#if DEBUG
-		if (oom >= 1000) {
+		if (oom > 1000L) {
 			Debug.LogWarning ("'oom' shouldn't be greater than 1000 (oom = " + oom + ")");
 		}
 
-		if (date >= 9223372036) {
-			Debug.LogWarning ("'date' shouldn't be greater than 9223372036 (date = " + date + ")");
+		if (date >= World.MaxSupportedDate) {
+			Debug.LogWarning ("'date' shouldn't be greater than " + World.MaxSupportedDate + " (date = " + date + ")");
 		}
 		#endif
 

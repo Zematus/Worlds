@@ -152,12 +152,12 @@ public abstract class WorldEvent : ISynchronizable {
 	public const long BoatMakingDiscoveryEventId = 5;
 	public const long PlantCultivationDiscoveryEventId = 6;
 	public const long ClanSplitEventId = 7;
-	public const long PreventClanSplitEventId = 12;
-	public const long ExpandPolityInfluenceEventId = 8;
-	public const long TribeSplitEventId = 9;
-	public const long PolityFormationEventId = 10;
-	public const long ClanCoreMigrationEventId = 11;
-	public const long FactionUpdateEventId = 11;
+	public const long PreventClanSplitEventId = 8;
+	public const long ExpandPolityInfluenceEventId = 9;
+	public const long TribeSplitEventId = 10;
+	public const long PolityFormationEventId = 11;
+	public const long ClanCoreMigrationEventId = 12;
+	public const long FactionUpdateEventId = 13;
 
 //	public static int EventCount = 0;
 
@@ -282,7 +282,7 @@ public abstract class CellEvent : WorldEvent {
 
 	}
 
-	public CellEvent (TerrainCell cell, long triggerDate, long eventTypeId) : base (cell.World, triggerDate, cell.GenerateUniqueIdentifier (triggerDate, 100L, eventTypeId)) {
+	public CellEvent (TerrainCell cell, long triggerDate, long eventTypeId) : base (cell.World, triggerDate, cell.GenerateUniqueIdentifier (triggerDate, 1000L, eventTypeId)) {
 
 		Cell = cell;
 		CellLongitude = cell.Longitude;

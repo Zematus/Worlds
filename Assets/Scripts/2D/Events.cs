@@ -4,10 +4,10 @@ using System.Collections;
 
 public struct Speed {
 
-	public int Value;
+	public long Value;
 	public string Text;
 
-	public Speed (int value, string text) {
+	public Speed (long value, string text) {
 
 		Value = value;
 		Text = text;
@@ -18,7 +18,7 @@ public struct Speed {
 		return Text;
 	}
 
-	public static implicit operator int (Speed s) {
+	public static implicit operator long (Speed s) {
 
 		return s.Value;
 	}
@@ -28,12 +28,15 @@ public struct Speed {
 		return s.Text;
 	}
 
-	public static Speed Stopped = new Speed (0, "Stopped");
-	public static Speed Slowest = new Speed (1, "Slowest");
-	public static Speed Slow = new Speed (10, "Slow");
-	public static Speed Normal = new Speed (100, "Normal");
-	public static Speed Fast = new Speed (1000, "Fast");
-	public static Speed Fastest = new Speed (World.MaxPossibleTimeToSkip, "Fastest");
+	public static Speed Zero = new Speed (0, "Paused");
+	public static Speed One = new Speed (1, "Max 1 Day / Sec");
+	public static Speed Two = new Speed (7, "Max 7 Days / Sec");
+	public static Speed Three = new Speed (30, "Max 30 Days / Sec");
+	public static Speed Four = new Speed (World.YearLength, "Max 1 Year / Sec");
+	public static Speed Five = new Speed (10 * World.YearLength, "Max 10 Years / Sec");
+	public static Speed Six = new Speed (100 * World.YearLength, "Max 100 Years / Sec");
+	public static Speed Seven = new Speed (1000 * World.YearLength, "Max 1000 Years / Sec");
+	public static Speed Max = new Speed (World.MaxPossibleTimeToSkip, "Unlimited");
 }
 
 [System.Serializable]

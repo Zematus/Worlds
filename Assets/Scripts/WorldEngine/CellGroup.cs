@@ -445,6 +445,9 @@ public class CellGroup : HumanGroup {
 
 			long triggerDate = BoatMakingDiscoveryEvent.CalculateTriggerDate (this);
 
+			if (triggerDate > World.MaxSupportedDate)
+				return;
+
 			if (triggerDate == long.MinValue)
 				return;
 
@@ -454,6 +457,9 @@ public class CellGroup : HumanGroup {
 		if (PlantCultivationDiscoveryEvent.CanSpawnIn (this)) {
 
 			long triggerDate = PlantCultivationDiscoveryEvent.CalculateTriggerDate (this);
+
+			if (triggerDate > World.MaxSupportedDate)
+				return;
 
 			if (triggerDate == long.MinValue)
 				return;
@@ -2986,8 +2992,8 @@ public abstract class CellGroupEvent : WorldEvent {
 	public static long GenerateUniqueIdentifier (CellGroup group, long triggerDate, long eventTypeId) {
 
 		#if DEBUG
-		if (triggerDate >= 9223372036) {
-			Debug.LogWarning ("'triggerDate' shouldn't be greater than 9223372036 (triggerDate = " + triggerDate + ")");
+		if (triggerDate >= World.MaxSupportedDate) {
+			Debug.LogWarning ("'triggerDate' shouldn't be greater than " + World.MaxSupportedDate + " (triggerDate = " + triggerDate + ")");
 		}
 		#endif
 
