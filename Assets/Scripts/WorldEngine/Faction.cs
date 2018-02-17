@@ -31,9 +31,6 @@ public abstract class Faction : ISynchronizable {
 	[XmlAttribute("LastUpDate")]
 	public long LastUpdateDate;
 
-	[XmlAttribute("NextUpDate")]
-	public long NextUpdateDate;
-
 	[XmlAttribute("LeadStDate")]
 	public long LeaderStartDate;
 
@@ -70,9 +67,6 @@ public abstract class Faction : ISynchronizable {
 
 	[XmlIgnore]
 	public CellGroup NewCoreGroup = null;
-
-	[XmlIgnore]
-	public FactionUpdateEvent UpdateEvent;
 
 	private HashSet<string> _flags = new HashSet<string> ();
 
@@ -112,8 +106,6 @@ public abstract class Faction : ISynchronizable {
 		Prominence = prominence;
 
 		GenerateName (parentFaction);
-
-		World.AddUpdatedFaction (this);
 	}
 
 	public void Destroy (bool polityBeingDestroyed = false) {
@@ -206,32 +198,8 @@ public abstract class Faction : ISynchronizable {
 
 		World.AddPolityToUpdate (Polity);
 
-		World.AddUpdatedFaction (this);
-	}
-
-	public void SetupForNextUpdate () {
-
-		if (!StillPresent)
-			return;
-
-		Profiler.BeginSample ("Calculate Next Update Date");
-
-		NextUpdateDate = CalculateNextUpdateDate ();
-
-		Profiler.EndSample ();
-
 		LastUpdateDate = World.CurrentDate;
-
-		if (UpdateEvent == null) {
-			UpdateEvent = new FactionUpdateEvent (this, NextUpdateDate);
-		} else {
-			UpdateEvent.Reset (NextUpdateDate);
-		}
-
-		World.InsertEventToHappen (UpdateEvent);
 	}
-
-	public abstract long CalculateNextUpdateDate ();
 
 	public void PrepareNewCoreGroup (CellGroup coreGroup) {
 
@@ -281,11 +249,6 @@ public abstract class Faction : ISynchronizable {
 		Culture.FinalizeLoad ();
 
 		Flags.ForEach (f => _flags.Add (f));
-
-		// Generate Update Event
-
-		UpdateEvent = new FactionUpdateEvent (this, NextUpdateDate);
-		World.InsertEventToHappen (UpdateEvent);
 	}
 
 	public long GenerateUniqueIdentifier (long date, long oom = 1L, long offset = 0L) {
@@ -491,43 +454,5 @@ public abstract class FactionEvent : WorldEvent {
 	public virtual void Reset (long newTriggerDate) {
 
 		Reset (newTriggerDate, GenerateUniqueIdentifier (Faction, newTriggerDate, EventTypeId));
-	}
-}
-
-public class FactionUpdateEvent : FactionEvent {
-
-	public FactionUpdateEvent () {
-
-		DoNotSerialize = true;
-	}
-
-	public FactionUpdateEvent (Faction faction, long triggerDate) : base (faction, triggerDate, FactionUpdateEventId) {
-
-		DoNotSerialize = true;
-	}
-
-	public override bool IsStillValid ()
-	{
-		if (!base.IsStillValid ())
-			return false;
-
-		if (Faction.NextUpdateDate != TriggerDate)
-			return false;
-
-		return true;
-	}
-
-	public override void Trigger () {
-
-		Faction.HandleUpdateEvent ();
-
-		World.AddFactionToUpdate (Faction);
-	}
-
-	public override void FinalizeLoad () {
-
-		base.FinalizeLoad ();
-
-		Faction.UpdateEvent = this;
 	}
 }

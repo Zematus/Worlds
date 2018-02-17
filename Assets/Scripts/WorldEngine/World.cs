@@ -188,10 +188,9 @@ public class World : ISynchronizable {
 		XmlArrayItem (Type = typeof(BoatMakingDiscoveryEvent)),
 		XmlArrayItem (Type = typeof(TribalismDiscoveryEvent)),
 		XmlArrayItem (Type = typeof(PlantCultivationDiscoveryEvent)),
-//		XmlArrayItem (Type = typeof(ClanSplitEvent)),
+		XmlArrayItem (Type = typeof(ClanSplitDecisionEvent)),
 		XmlArrayItem (Type = typeof(TribeSplitEvent)),
-		XmlArrayItem (Type = typeof(ClanCoreMigrationEvent)),
-		XmlArrayItem (Type = typeof(FactionUpdateEvent))]
+		XmlArrayItem (Type = typeof(ClanCoreMigrationEvent))]
 	public List<WorldEvent> EventsToHappen;
 
 	public List<TerrainCellChanges> TerrainCellChangesList = new List<TerrainCellChanges> ();
@@ -304,8 +303,6 @@ public class World : ISynchronizable {
 	private Dictionary<long, Agent> _memorableAgents = new Dictionary<long, Agent> ();
 
 	private Dictionary<long, Faction> _factions = new Dictionary<long, Faction> ();
-
-	private HashSet<Faction> _updatedFactions = new HashSet<Faction> ();
 
 	private HashSet<Faction> _factionsToSplit = new HashSet<Faction>();
 	private HashSet<Faction> _factionsToUpdate = new HashSet<Faction>();
@@ -857,21 +854,6 @@ public class World : ISynchronizable {
 		_factionsToRemove.Clear ();
 	}
 
-	private void SetNextFactionUpdates () {
-
-		foreach (Faction faction in _updatedFactions) {
-
-			Profiler.BeginSample ("Faction Setup for Next Update");
-
-			faction.SetupForNextUpdate ();
-//			Manager.AddUpdatedCell (faction.CoreGroup.Cell, CellUpdateType.Group);
-
-			Profiler.EndSample ();
-		}
-
-		_updatedFactions.Clear ();
-	}
-
 	private void UpdatePolities () {
 
 		foreach (Polity polity in _politiesToUpdate) {
@@ -1006,8 +988,6 @@ public class World : ISynchronizable {
 		UpdateFactions ();
 
 		RemoveFactions ();
-
-		SetNextFactionUpdates ();
 
 		UpdatePolities ();
 
@@ -1279,11 +1259,6 @@ public class World : ISynchronizable {
 	public void AddFactionToRemove (Faction faction) {
 
 		_factionsToRemove.Add (faction);
-	}
-
-	public void AddUpdatedFaction (Faction faction) {
-
-		_updatedFactions.Add (faction);
 	}
 
 	public void AddPolity (Polity polity) {

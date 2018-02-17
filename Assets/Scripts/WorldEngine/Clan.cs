@@ -25,10 +25,6 @@ public class Clan : Faction {
 	public const int MinCoreMigrationPopulation = 500;
 	public const float MinCoreMigrationPolityInfluence = 0.3f;
 
-	public const int TerminalAdministrativeLoadValue = 500000;
-
-	public const long ClanSplitDateSpanFactorConstant = CellGroup.GenerationSpan * 400;
-
 	public const string ClanType = "Clan";
 
 	public const float Split_MinCoreInfluenceValue = 0.5f;
@@ -37,11 +33,21 @@ public class Clan : Faction {
 	public const float Split_MinProminenceTransfer = 0.25f;
 	public const float Split_ProminenceTransferProportion = 0.75f;
 
+	public const int TerminalAdministrativeLoad = 500000;
+
+	public const long ClanSplitDateSpanFactorConstant = CellGroup.GenerationSpan * 400;
+
 	[XmlAttribute("CoreMigDate")]
-	public long ClanCoreMigrationEventDate;
+	public long CoreMigrationEventDate;
+
+	[XmlAttribute("SplitDate")]
+	public long SplitDecisionEventDate;
 
 	[XmlIgnore]
-	public ClanCoreMigrationEvent ClanCoreMigrationEvent;
+	public ClanCoreMigrationEvent CoreMigrationEvent;
+
+	[XmlIgnore]
+	public ClanSplitDecisionEvent SplitDecisionEvent;
 
 	public Clan () {
 
@@ -49,28 +55,13 @@ public class Clan : Faction {
 
 	public Clan (Polity polity, CellGroup coreGroup, float prominence, Clan parentClan = null) : base (ClanType, polity, coreGroup, prominence, parentClan) {
 
-		if (ClanCoreMigrationEvent.CanBeAssignedTo (this)) {
+		CoreMigrationEventDate = ClanCoreMigrationEvent.CalculateTriggerDate (this);
+		CoreMigrationEvent = new ClanCoreMigrationEvent (this, CoreMigrationEventDate);
+		World.InsertEventToHappen (CoreMigrationEvent);
 
-			ClanCoreMigrationEventDate = ClanCoreMigrationEvent.CalculateTriggerDate (this);
-
-			ClanCoreMigrationEvent = new ClanCoreMigrationEvent (this, ClanCoreMigrationEventDate);
-
-			World.InsertEventToHappen (ClanCoreMigrationEvent);
-		}
-
-//		string logMessage = "New clan '" + Name + "' spawned in Polity '" + Polity.Name + "'";
-//
-//		if (parentClan != null) {
-//		
-//			logMessage += " from clan '" + parentClan.Name + "'";
-//		}
-//
-//		logMessage += " in year " + World.CurrentDate + ", starting prominence: " + prominence;
-//
-//		if (parentClan != null) {
-//			
-//			Debug.Log (logMessage);
-//		}
+		SplitDecisionEventDate = ClanSplitDecisionEvent.CalculateTriggerDate (this);
+		SplitDecisionEvent = new ClanSplitDecisionEvent (this, SplitDecisionEventDate);
+		World.InsertEventToHappen (SplitDecisionEvent);
 	}
 
 	public CellGroup GetCoreGroupMigrationTarget () {
@@ -88,19 +79,11 @@ public class Clan : Faction {
 	
 		base.FinalizeLoad ();
 
-		if (ClanCoreMigrationEvent.CanBeAssignedTo (this)) {
+		CoreMigrationEvent = new ClanCoreMigrationEvent (this, CoreMigrationEventDate);
+		World.InsertEventToHappen (CoreMigrationEvent);
 
-			ClanCoreMigrationEvent = new ClanCoreMigrationEvent (this, ClanCoreMigrationEventDate);
-
-			World.InsertEventToHappen (ClanCoreMigrationEvent);
-		}
-	}
-
-	public override void HandleUpdateEvent () {
-
-		if (ShouldTrySplitting ()) {
-			EvaluateSplitDecision ();
-		}
+		SplitDecisionEvent = new ClanSplitDecisionEvent (this, SplitDecisionEventDate);
+		World.InsertEventToHappen (SplitDecisionEvent);
 	}
 
 	protected override void UpdateInternal () {
@@ -112,11 +95,11 @@ public class Clan : Faction {
 
 			NewCoreGroup = null;
 
-			ClanCoreMigrationEventDate = ClanCoreMigrationEvent.CalculateTriggerDate (this);
+			CoreMigrationEventDate = ClanCoreMigrationEvent.CalculateTriggerDate (this);
 
-			ClanCoreMigrationEvent.Reset (ClanCoreMigrationEventDate);
+			CoreMigrationEvent.Reset (CoreMigrationEventDate);
 
-			World.InsertEventToHappen (ClanCoreMigrationEvent);
+			World.InsertEventToHappen (CoreMigrationEvent);
 		}
 	}
 
@@ -377,12 +360,12 @@ public class Clan : Faction {
 		if (_splitFactionCoreGroup == null)
 			return false;
 
-		float administrativeLoadFactor = CalculateAdministrativeLoadFactor ();
+		float administrativeLoadFactor = CalculateAdministrativeLoad ();
 
 		if (administrativeLoadFactor < 0)
 			return true;
 
-		float splitValue = administrativeLoadFactor / (administrativeLoadFactor + TerminalAdministrativeLoadValue);
+		float splitValue = administrativeLoadFactor / (administrativeLoadFactor + TerminalAdministrativeLoad);
 
 		float triggerValue = GetNextLocalRandomFloat (rngOffset++);
 
@@ -446,7 +429,7 @@ public class Clan : Faction {
 		Polity.AddEventMessage (new ClanSplitEventMessage (this, newClan, World.CurrentDate));
 	}
 
-	public float CalculateAdministrativeLoadFactor () {
+	public float CalculateAdministrativeLoad () {
 
 		float socialOrganizationValue = 0;
 
@@ -463,37 +446,6 @@ public class Clan : Faction {
 		float administrativeLoad = Polity.TotalAdministrativeCost * Prominence;
 
 		return Mathf.Pow (administrativeLoad / socialOrganizationValue, 2);
-	}
-
-	public override long CalculateNextUpdateDate () {
-
-		long nextDate_adminLoad = CalculateNextUpdateDate_AdminLoad ();
-
-		return nextDate_adminLoad;
-	}
-
-	public long CalculateNextUpdateDate_AdminLoad () {
-
-		long updateSpan = CellGroup.GenerationSpan * 40;
-
-		float randomFactor = GetNextLocalRandomFloat (RngOffsets.FACTION_CALCULATE_NEXT_UPDATE);
-		randomFactor = Mathf.Pow (randomFactor, 2);
-
-		float administrativeLoadFactor = CalculateAdministrativeLoadFactor ();
-
-		if (administrativeLoadFactor < 0)
-			administrativeLoadFactor = float.MaxValue / 2f;
-
-		float loadFactor = TerminalAdministrativeLoadValue / (administrativeLoadFactor + TerminalAdministrativeLoadValue);
-
-		float dateSpan = (1 - randomFactor) * ClanSplitDateSpanFactorConstant * loadFactor;
-
-		updateSpan += (long)dateSpan;
-
-		if (updateSpan < 0)
-			updateSpan = CellGroup.MaxUpdateSpan;
-
-		return World.CurrentDate + updateSpan;
 	}
 }
 
@@ -592,8 +544,6 @@ public class ClanCoreMigrationEvent : FactionEvent {
 
 	private CellGroup _targetGroup;
 
-	//	public const string EventSetFlag = "ClanCoreMigrationEvent_Set";
-
 	public ClanCoreMigrationEvent () {
 
 		DoNotSerialize = true;
@@ -614,14 +564,6 @@ public class ClanCoreMigrationEvent : FactionEvent {
 		long targetDate = (long)(clan.World.CurrentDate + dateSpan) + CellGroup.GenerationSpan;
 
 		return targetDate;
-	}
-
-	public static bool CanBeAssignedTo (Clan clan) {
-
-		//		if (clan.IsFlagSet (EventSetFlag))
-		//			return false;
-
-		return true;
 	}
 
 	public override bool CanTrigger () {
@@ -661,24 +603,17 @@ public class ClanCoreMigrationEvent : FactionEvent {
 
 		base.DestroyInternal ();
 
-		//		if (Faction != null) {
-		//			Faction.UnsetFlag (EventSetFlag);
-		//		}
-
 		if ((Faction != null) && (Faction.StillPresent)) {
 
 			Clan clan = Faction as Clan;
 
-			if (CanBeAssignedTo (clan)) {
+			clan.CoreMigrationEvent = this;
 
-				clan.ClanCoreMigrationEvent = this;
+			clan.CoreMigrationEventDate = CalculateTriggerDate (clan);
 
-				clan.ClanCoreMigrationEventDate = CalculateTriggerDate (clan);
+			Reset (clan.CoreMigrationEventDate);
 
-				Reset (clan.ClanCoreMigrationEventDate);
-
-				World.InsertEventToHappen (this);
-			}
+			World.InsertEventToHappen (this);
 		}
 	}
 
@@ -688,6 +623,93 @@ public class ClanCoreMigrationEvent : FactionEvent {
 
 		Clan clan = Faction as Clan;
 
-		clan.ClanCoreMigrationEvent = this;
+		clan.CoreMigrationEvent = this;
 	}
 }
+
+public class ClanSplitDecisionEvent : FactionEvent {
+
+	public Clan Clan;
+
+	public ClanSplitDecisionEvent () {
+
+		DoNotSerialize = true;
+	}
+
+	public ClanSplitDecisionEvent (Clan clan, long triggerDate) : base (clan, triggerDate, ClanSplitEventId) {
+
+		Clan = clan;
+
+		DoNotSerialize = true;
+	}
+
+	public static long CalculateTriggerDate (Clan clan) {
+
+		long updateSpan = CellGroup.GenerationSpan * 40;
+
+		float randomFactor = clan.GetNextLocalRandomFloat (RngOffsets.FACTION_CALCULATE_NEXT_UPDATE);
+		randomFactor = Mathf.Pow (randomFactor, 2);
+
+		float administrativeLoad = clan.CalculateAdministrativeLoad ();
+
+		if (administrativeLoad < 0)
+			administrativeLoad = float.MaxValue / 2f;
+
+		float loadFactor = Clan.TerminalAdministrativeLoad / (administrativeLoad +  Clan.TerminalAdministrativeLoad);
+
+		float dateSpan = (1 - randomFactor) *  Clan.ClanSplitDateSpanFactorConstant * loadFactor;
+
+		updateSpan += (long)dateSpan;
+
+		if (updateSpan < 0)
+			updateSpan = CellGroup.MaxUpdateSpan;
+
+		return clan.World.CurrentDate + updateSpan;
+	}
+
+	public override bool IsStillValid ()
+	{
+		if (!base.IsStillValid ())
+			return false;
+
+		if (Clan.SplitDecisionEventDate != TriggerDate)
+			return false;
+
+		return true;
+	}
+
+	public override void Trigger () {
+
+		if (Clan.ShouldTrySplitting ()) {
+			Clan.EvaluateSplitDecision ();
+		}
+
+		World.AddFactionToUpdate (Faction);
+	}
+
+	public override void FinalizeLoad () {
+
+		base.FinalizeLoad ();
+
+		Clan.SplitDecisionEvent = this;
+	}
+
+	protected override void DestroyInternal () {
+
+		base.DestroyInternal ();
+
+		if ((Faction != null) && (Faction.StillPresent)) {
+
+			Clan clan = Faction as Clan;
+
+			clan.SplitDecisionEvent = this;
+
+			clan.SplitDecisionEventDate = CalculateTriggerDate (clan);
+
+			Reset (clan.SplitDecisionEventDate);
+
+			World.InsertEventToHappen (this);
+		}
+	}
+}
+
