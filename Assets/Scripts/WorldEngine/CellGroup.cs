@@ -3078,17 +3078,6 @@ public class UpdateCellGroupEvent : CellGroupEvent {
 		DoNotSerialize = true;
 	}
 
-	public override bool IsStillValid ()
-	{
-		if (!base.IsStillValid ())
-			return false;
-
-		if (Group.NextUpdateDate != TriggerDate)
-			return false;
-
-		return true;
-	}
-
 	public override void Trigger () {
 
 		World.AddGroupToUpdate (Group);

@@ -17,17 +17,14 @@ public abstract class Decision {
 
 		private ExecuteDelegate _executeMethod;
 
-		private bool Preferred;
-
 		public void Execute () {
 
 			_executeMethod ();
 		}
 
-		public Option (string text, ExecuteDelegate executeMethod, bool preferred) {
+		public Option (string text, ExecuteDelegate executeMethod) {
 
 			Text = text;
-			Preferred = preferred;
 
 			_executeMethod = executeMethod;
 		}

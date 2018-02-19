@@ -2229,6 +2229,7 @@ public class GuiManagerScript : MonoBehaviour {
 		foreach (Faction faction in factions) {
 
 			InfoPanelScript.InfoText.text += "\n\t" + faction.Type + " " + faction.Name;
+			InfoPanelScript.InfoText.text += "\n\t\tCore: " + faction.CoreGroup.Position;
 			InfoPanelScript.InfoText.text += "\n\t\tProminence: " + faction.Prominence.ToString ("P");
 
 			Agent factionLeader = faction.CurrentLeader;
@@ -2872,7 +2873,7 @@ public class GuiManagerScript : MonoBehaviour {
 			InfoTooltipScript.DisplayTip (polity.Name.Text, tooltipPos);
 			break;
 		case PlanetOverlay.PolityTerritory:
-			InfoTooltipScript.DisplayTip (polity.Name.Text, tooltipPos);
+			ShowCellInfoToolTip_PolityTerritory (polity, tooltipPos);
 			break;
 		case PlanetOverlay.PolityCulturalPreference:
 			ShowCellInfoToolTip_PolityCulturalPreference (polity, tooltipPos);
@@ -2893,6 +2894,18 @@ public class GuiManagerScript : MonoBehaviour {
 			InfoTooltipScript.SetVisible (false);
 			break;
 		}
+	}
+
+	public void ShowCellInfoToolTip_PolityTerritory (Polity polity, Vector3 position, float fadeStart = 5) {
+
+		string text = polity.Name.Text + "\n\nFactions:";
+
+		foreach (Faction faction in polity.GetFactions ()) {
+		
+			text += "\n" + faction.Name.Text;
+		}
+
+		InfoTooltipScript.DisplayTip (text, position, fadeStart);
 	}
 
 	public void ShowCellInfoToolTip_PolityCulturalPreference (Polity polity, Vector3 position, float fadeStart = 5) {

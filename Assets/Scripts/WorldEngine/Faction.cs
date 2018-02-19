@@ -68,6 +68,9 @@ public abstract class Faction : ISynchronizable {
 	[XmlIgnore]
 	public CellGroup NewCoreGroup = null;
 
+	[XmlIgnore]
+	public bool IsInitialized = true;
+
 	private HashSet<string> _flags = new HashSet<string> ();
 
 	public Faction () {
@@ -106,6 +109,19 @@ public abstract class Faction : ISynchronizable {
 		Prominence = prominence;
 
 		GenerateName (parentFaction);
+
+		IsInitialized = false;
+	}
+
+	public void Initialize () {
+
+		InitializeInternal ();
+	
+		IsInitialized = true;
+	}
+
+	protected virtual void InitializeInternal () {
+	
 	}
 
 	public void Destroy (bool polityBeingDestroyed = false) {

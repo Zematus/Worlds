@@ -226,6 +226,14 @@ public abstract class Polity : ISynchronizable {
 	
 		Culture.Initialize ();
 
+		foreach (Faction faction in _factions.Values) {
+
+			if (!faction.IsInitialized) {
+
+				faction.Initialize ();
+			}
+		}
+
 		InitializeInternal ();
 	}
 

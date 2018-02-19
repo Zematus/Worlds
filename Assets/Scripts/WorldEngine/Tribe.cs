@@ -81,7 +81,7 @@ public class Tribe : Polity {
 
 		//// Add starting clan
 
-		Clan clan = new Clan (this, coreGroup, 1);
+		Clan clan = new Clan (this, coreGroup, 1); // Clan should be initialized when the Tribe gets initialized
 
 		AddFaction (clan);
 

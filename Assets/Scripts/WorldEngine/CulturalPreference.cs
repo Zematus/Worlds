@@ -39,6 +39,12 @@ public class CulturalPreferenceInfo {
 
 public class CulturalPreference : CulturalPreferenceInfo {
 
+	public const string AuthorityPreferenceId = "AuthorityPreference";
+	public const string CohesivenessPreferenceId = "CohesivenessPreference";
+
+	public const string AuthorityPreferenceName = "Authority";
+	public const string CohesivenessPreferenceName = "Cohesiveness";
+
 	[XmlAttribute]
 	public float Value;
 
@@ -59,12 +65,6 @@ public class CulturalPreference : CulturalPreferenceInfo {
 public class CellCulturalPreference : CulturalPreference {
 
 	public const float TimeEffectConstant = CellGroup.GenerationSpan * 500;
-
-	public const string AuthorityPreferenceId = "AuthorityPreference";
-	public const string CohesivenessPreferenceId = "CohesivenessPreference";
-
-	public const string AuthorityPreferenceName = "Authority";
-	public const string CohesivenessPreferenceName = "Cohesiveness";
 
 	public const int AuthorityPreferenceRandomOffset = 0;
 	public const int CohesivenessPreferenceRandomOffset = 100;

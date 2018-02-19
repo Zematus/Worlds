@@ -1,6 +1,10 @@
 BUGS:
 
-- Worlds.exe crashes after a couple of world gens and loading a very advanced world
+- Regions seems to get selected when clicking on polity overlays
+- Check why certain cells get updated very frequently afer the world mostly stabilized
+- Sometimes factions appear with exactly the same name (possibly due to both factions having the same core?)
+- decision dialog overlaps with other modal dialogs (see screenshot bugs\bug_overlap.png)
+- overlay subtype dialog remains open when guiding faction (see screenshot bugs\bug_overlap.png)
 
 TASKS:
 
@@ -12,7 +16,6 @@ TASKS:
 - Ability to have multiple Overlays at a time
 - Resoultion options
 - Log of the world's history
-- Create a subreddit for the project
 
 EXTRA:
 
