@@ -122,9 +122,9 @@ public abstract class CellCulturalSkill : CulturalSkill, ISynchronizable {
 	}
 
 	// This method should be called only once after a Skill is copied from another source group
-	public void ModifyValue (float percentage) {
+	public void DecreaseValue (float percentage) {
 
-		float value = Value * percentage;
+		float value = _newValue * percentage;
 
 //		#if DEBUG
 //		if (Manager.RegisterDebugEvent != null) {

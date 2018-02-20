@@ -11,6 +11,11 @@ using System.Xml.Serialization;
 
 public class Agent : ISynchronizable {
 
+	public const int MaxAttributeValue = 30;
+	public const int MinAttributeValue = 3;
+
+	public const int AttributeGenMax = 18;
+
 	public const long MaxLifespan = 40151; // Prime number to hide birthdate cycle artifacts
 
 	public const int WisdomAgeOffset = 7;
@@ -60,7 +65,9 @@ public class Agent : ISynchronizable {
 	public int Wisdom {
 		get {
 			int wisdom = BaseWisdom + (int)(Age / WisdomAgeFactor) - WisdomAgeOffset;
-			return (wisdom > 3) ? wisdom : 3;
+//			wisdom = (wisdom > MaxAttributeValue) ? MaxAttributeValue : wisdom;
+
+			return (wisdom > MinAttributeValue) ? wisdom : MinAttributeValue;
 		}
 	}
 
@@ -101,8 +108,8 @@ public class Agent : ISynchronizable {
 		int rngOffset = RngOffsets.AGENT_GENERATE_BIO + (int)Group.Id;
 
 		IsFemale = Group.GetLocalRandomFloat (BirthDate, rngOffset++) > 0.5f;
-		BaseCharisma = 3 + Group.GetLocalRandomInt (BirthDate, rngOffset++, 18);
-		BaseWisdom = 3 + Group.GetLocalRandomInt (BirthDate, rngOffset++, 18);
+		BaseCharisma = MinAttributeValue + Group.GetLocalRandomInt (BirthDate, rngOffset++, AttributeGenMax);
+		BaseWisdom = MinAttributeValue + Group.GetLocalRandomInt (BirthDate, rngOffset++, AttributeGenMax);
 	}
 
 	private void GenerateNameFromElement (Element element, GetRandomIntDelegate getRandomInt) {

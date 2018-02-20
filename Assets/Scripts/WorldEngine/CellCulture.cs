@@ -191,7 +191,7 @@ public class CellCulture : Culture {
 
 			if (preference == null) {
 				preference = CellCulturalPreference.CreateCellInstance (Group, p);
-				preference.ModifyValue (percentage);
+				preference.DecreaseValue (percentage);
 
 				AddPreferenceToAcquire (preference);
 			} else {
@@ -205,7 +205,7 @@ public class CellCulture : Culture {
 
 			if (activity == null) {
 				activity = CellCulturalActivity.CreateCellInstance (Group, a);
-				activity.ModifyValue (percentage);
+				activity.DecreaseValue (percentage);
 
 				AddActivityToPerform (activity);
 			} else {
@@ -219,7 +219,7 @@ public class CellCulture : Culture {
 
 			if (skill == null) {
 				skill = CellCulturalSkill.CreateCellInstance (Group, s);
-				skill.ModifyValue (percentage);
+				skill.DecreaseValue (percentage);
 
 				AddSkillToLearn (skill);
 			} else {
@@ -233,7 +233,7 @@ public class CellCulture : Culture {
 
 			if (knowledge == null) {
 				knowledge = CellCulturalKnowledge.CreateCellInstance (Group, k);
-				knowledge.ModifyValue (percentage);
+				knowledge.DecreaseValue (percentage);
 
 				AddKnowledgeToLearn (knowledge);
 			} else {

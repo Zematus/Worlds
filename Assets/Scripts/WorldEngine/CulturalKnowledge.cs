@@ -179,10 +179,10 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
 	}
 
 	// This method should be called only once after a Knowledge is copied from another source group
-	public void ModifyValue (float percentage) {
+	public void DecreaseValue (float percentage) {
 
 		float d;
-		int modifiedValue = (int)MathUtility.MultiplyAndGetDecimals (Value, percentage, out d);
+		int modifiedValue = (int)MathUtility.MultiplyAndGetDecimals (_newValue, percentage, out d);
 
 		if (d > Group.GetNextLocalRandomFloat (RngOffsets.KNOWLEDGE_MODIFY_VALUE + RngOffset))
 			modifiedValue++;

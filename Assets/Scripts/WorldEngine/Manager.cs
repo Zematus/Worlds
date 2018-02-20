@@ -110,6 +110,7 @@ public class AppSettings {
 	public float RainfallOffset = 0;
 	public float SeaLevelOffset = 0;
 	public bool Fullscreen = true;
+	public bool FullGameplayInfo = true;
 
 	public AppSettings () {
 	}
@@ -120,6 +121,7 @@ public class AppSettings {
 		RainfallOffset = Manager.RainfallOffset;
 		SeaLevelOffset = Manager.SeaLevelOffset;
 		Fullscreen = Manager.IsFullscreen;
+		FullGameplayInfo = Manager.ShowFullGameplayInfo;
 	}
 
 	public void Take () {
@@ -128,6 +130,7 @@ public class AppSettings {
 		Manager.RainfallOffset = RainfallOffset;
 		Manager.SeaLevelOffset = SeaLevelOffset;
 		Manager.IsFullscreen = Fullscreen;
+		Manager.ShowFullGameplayInfo = FullGameplayInfo;
 	}
 }
 
@@ -186,6 +189,8 @@ public class Manager {
 	public static World WorldBeingLoaded = null;
 
 	public static bool IsFullscreen = false;
+
+	public static bool ShowFullGameplayInfo = false;
 
 	private static bool _isLoadReady = false;
 

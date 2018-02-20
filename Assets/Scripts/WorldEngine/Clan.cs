@@ -374,6 +374,30 @@ public class Clan : Faction {
 		return administrativeLoad;
 	}
 
+	public void IncreaseAuthorityPreferenceValue (float percentage) {
+
+		CulturalPreference authorityPreference = Polity.Culture.GetPreference (CulturalPreference.AuthorityPreferenceId);
+
+		if (authorityPreference == null)
+			throw new System.Exception ("authorityPreference is null");
+
+		float value = authorityPreference.Value;
+
+		authorityPreference.Value += (1f - value) * percentage;
+	}
+
+	public void DecreaseAuthorityPreferenceValue (float percentage) {
+
+		CulturalPreference authorityPreference = Polity.Culture.GetPreference (CulturalPreference.AuthorityPreferenceId);
+
+		if (authorityPreference == null)
+			throw new System.Exception ("authorityPreference is null");
+
+		float value = authorityPreference.Value;
+
+		authorityPreference.Value = value * (1f - percentage);
+	}
+
 	public float GetAuthorityPreferenceValue () {
 
 		CulturalPreference authorityPreference = Polity.Culture.GetPreference (CulturalPreference.AuthorityPreferenceId);
@@ -382,6 +406,30 @@ public class Clan : Faction {
 			return authorityPreference.Value; 
 
 		return 0;
+	}
+
+	public void IncreaseCohesivenessPreferenceValue (float percentage) {
+
+		CulturalPreference cohesivenessPreference = Polity.Culture.GetPreference (CulturalPreference.CohesivenessPreferenceId);
+
+		if (cohesivenessPreference == null)
+			throw new System.Exception ("cohesivenessPreference is null");
+
+		float value = cohesivenessPreference.Value;
+
+		cohesivenessPreference.Value += (1f - value) * percentage;
+	}
+
+	public void DecreaseCohesivenessPreferenceValue (float percentage) {
+
+		CulturalPreference cohesivenessPreference = Polity.Culture.GetPreference (CulturalPreference.CohesivenessPreferenceId);
+
+		if (cohesivenessPreference == null)
+			throw new System.Exception ("cohesivenessPreference is null");
+
+		float value = cohesivenessPreference.Value;
+
+		cohesivenessPreference.Value = value * (1f - percentage);
 	}
 
 	public float GetCohesivenessPreferenceValue () {
@@ -443,12 +491,19 @@ public class ClanSplitEventMessage : FactionEventMessage {
 
 public class ClanSplitDecision : FactionDecision {
 
+	public const float MinPreferencePercentChange = 0.10f;
+	public const float MaxPreferencePercentChange = 0.20f;
+
+	private Clan _clan;
+
 	private bool _cantPrevent = false;
 	private bool _preferSplit = true;
 
 	private CellGroup _newCoreGroup;
 
 	public ClanSplitDecision (Clan clan, CellGroup newCoreGroup) : base (clan) {
+
+		_clan = clan;
 
 		Description = "(autofail) Several family groups belonging to clan <b>" + clan.Name.Text + "</b> no longer feel to be connected to the rest of the clan. " +
 			"Unfortunately, <b>" + clan.CurrentLeader.Name.Text + "</b> can't do anything about it under the current circumstances...";
@@ -460,6 +515,8 @@ public class ClanSplitDecision : FactionDecision {
 
 	public ClanSplitDecision (Clan clan, CellGroup newCoreGroup, bool preferSplit) : base (clan) {
 
+		_clan = clan;
+
 		Description = "(" + preferSplit + ") Several family groups belonging to clan <b>" + clan.Name.Text + "</b> no longer feel to be connected to the rest of the clan. " +
 			"Should the clan leader, <b>" + clan.CurrentLeader.Name.Text + "</b>, try to keep them from splitting apart?";
 
@@ -470,11 +527,32 @@ public class ClanSplitDecision : FactionDecision {
 
 	private void PreventSplit () {
 
+		float charismaFactor = _clan.CurrentLeader.Charisma / 10f;
+		float wisdomFactor = _clan.CurrentLeader.Wisdom / 15f;
+
+		float attributesFactor = Mathf.Max (charismaFactor, wisdomFactor);
+		attributesFactor = Mathf.Clamp (attributesFactor, 0.5f, 2f);
+
+		int rngOffset = RngOffsets.CLAN_SPLITTING_EVENT_MODIFY_ATTRIBUTE;
+		
+		float randomFactor = _clan.GetNextLocalRandomFloat (rngOffset++);
+		float authorityPreferencePercentChange = (MaxPreferencePercentChange - MinPreferencePercentChange) * randomFactor + MinPreferencePercentChange;
+		authorityPreferencePercentChange /= attributesFactor;
+
+		randomFactor = _clan.GetNextLocalRandomFloat (rngOffset++);
+		float cohesivenessPreferencePercentChange = (MaxPreferencePercentChange - MinPreferencePercentChange) * randomFactor + MinPreferencePercentChange;
+		cohesivenessPreferencePercentChange *= attributesFactor;
+
+		_clan.DecreaseAuthorityPreferenceValue (authorityPreferencePercentChange);
+		_clan.IncreaseCohesivenessPreferenceValue (cohesivenessPreferencePercentChange);
+
+		// Should reduce respect for authority and increase cohesiveness
 		Faction.Polity.AddEventMessage (new PreventClanSplitEventMessage (Faction, Faction.CurrentLeader, Faction.World.CurrentDate));
 	}
 
 	private void AllowSplit () {
 
+		// Should increase respect for authority and reduce cohesiveness
 		Faction.SetToSplit (_newCoreGroup);
 	}
 
@@ -600,7 +678,7 @@ public class ClanSplitDecisionEvent : FactionEvent {
 	public const int MaxAdministrativeLoad = 4000000;
 	public const int MinAdministrativeLoad = 400000;
 
-	public Clan Clan;
+	private Clan _clan;
 
 	private CellGroup _splitFactionCoreGroup;
 
@@ -613,7 +691,7 @@ public class ClanSplitDecisionEvent : FactionEvent {
 
 	public ClanSplitDecisionEvent (Clan clan, long triggerDate) : base (clan, triggerDate, ClanSplitEventId) {
 
-		Clan = clan;
+		_clan = clan;
 
 		DoNotSerialize = true;
 	}
@@ -660,10 +738,10 @@ public class ClanSplitDecisionEvent : FactionEvent {
 
 	public float GetGroupWeight (CellGroup group) {
 
-		if (group == Clan.CoreGroup)
+		if (group == _clan.CoreGroup)
 			return 0;
 
-		PolityInfluence pi = group.GetPolityInfluence (Clan.Polity);
+		PolityInfluence pi = group.GetPolityInfluence (_clan.Polity);
 
 		if (group.HighestPolityInfluence != pi)
 			return 0;
@@ -706,7 +784,7 @@ public class ClanSplitDecisionEvent : FactionEvent {
 			return false;
 		}
 
-		if (Clan.Prominence < MinProminenceTrigger) {
+		if (_clan.Prominence < MinProminenceTrigger) {
 
 //			#if DEBUG
 //			if (Clan.Name.Text == "Nuse-zis") {
@@ -719,7 +797,7 @@ public class ClanSplitDecisionEvent : FactionEvent {
 
 		int rngOffset = (int)(RngOffsets.CLAN_SPLITTING_EVENT_CAN_TRIGGER + Id);
 
-		_splitFactionCoreGroup = Clan.Polity.GetRandomGroup (rngOffset++, GetGroupWeight, true);
+		_splitFactionCoreGroup = _clan.Polity.GetRandomGroup (rngOffset++, GetGroupWeight, true);
 
 		if (_splitFactionCoreGroup == null) {
 
@@ -750,22 +828,22 @@ public class ClanSplitDecisionEvent : FactionEvent {
 
 	public float CalcChanceOfSplitting () {
 
-		float administrativeLoad = Clan.CalculateAdministrativeLoad ();
+		float administrativeLoad = _clan.CalculateAdministrativeLoad ();
 
 		if (administrativeLoad == Mathf.Infinity)
 			return 1;
 
-		float cohesivenessPreferenceValue = Clan.GetCohesivenessPreferenceValue ();
+		float cohesivenessPreferenceValue = _clan.GetCohesivenessPreferenceValue ();
 
 		if (cohesivenessPreferenceValue <= 0)
 			return 1;
 
-		float authorityPreferenceValue = Clan.GetAuthorityPreferenceValue ();
+		float authorityPreferenceValue = _clan.GetAuthorityPreferenceValue ();
 
 		if (authorityPreferenceValue <= 0)
 			return 1;
 
-		float culturalFactor = Clan.CurrentLeader.Charisma * authorityPreferenceValue * cohesivenessPreferenceValue;
+		float culturalFactor = _clan.CurrentLeader.Wisdom * _clan.CurrentLeader.Charisma * authorityPreferenceValue * cohesivenessPreferenceValue;
 
 		float modMinAdministrativeLoad = MinAdministrativeLoad * culturalFactor;
 		float modMaxAdministrativeLoad = MaxAdministrativeLoad * culturalFactor;
@@ -783,19 +861,19 @@ public class ClanSplitDecisionEvent : FactionEvent {
 
 	public override void Trigger () {
 
-		bool preferSplit = Clan.GetNextLocalRandomFloat (RngOffsets.CLAN_SPLITTING_EVENT_PREFER_SPLIT) < _chanceOfSplitting;
+		bool preferSplit = _clan.GetNextLocalRandomFloat (RngOffsets.CLAN_SPLITTING_EVENT_PREFER_SPLIT) < _chanceOfSplitting;
 
-		if (Clan.Polity.IsUnderPlayerFocus || Clan.IsUnderPlayerGuidance) {
+		if (_clan.Polity.IsUnderPlayerFocus || _clan.IsUnderPlayerGuidance) {
 
 			Decision splitDecision;
 
 			if (_chanceOfSplitting >= 1) {
-				splitDecision = new ClanSplitDecision (Clan, _splitFactionCoreGroup); // Player can't prevent splitting from happening
+				splitDecision = new ClanSplitDecision (_clan, _splitFactionCoreGroup); // Player can't prevent splitting from happening
 			} else {
-				splitDecision = new ClanSplitDecision (Clan, _splitFactionCoreGroup, preferSplit); // Give player options
+				splitDecision = new ClanSplitDecision (_clan, _splitFactionCoreGroup, preferSplit); // Give player options
 			}
 
-			if (Clan.IsUnderPlayerGuidance) {
+			if (_clan.IsUnderPlayerGuidance) {
 
 				World.AddDecisionToResolve (splitDecision);
 
@@ -806,7 +884,7 @@ public class ClanSplitDecisionEvent : FactionEvent {
 
 		} else if (preferSplit) {
 
-			Clan.SetToSplit (_splitFactionCoreGroup);
+			_clan.SetToSplit (_splitFactionCoreGroup);
 		}
 
 		World.AddFactionToUpdate (Faction);
@@ -816,7 +894,7 @@ public class ClanSplitDecisionEvent : FactionEvent {
 
 		base.FinalizeLoad ();
 
-		Clan.SplitDecisionEvent = this;
+		_clan.SplitDecisionEvent = this;
 	}
 
 	protected override void DestroyInternal () {

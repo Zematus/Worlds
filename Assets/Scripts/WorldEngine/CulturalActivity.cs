@@ -114,9 +114,9 @@ public class CellCulturalActivity : CulturalActivity {
 	}
 
 	// This method should be called only once after a Activity is copied from another source group
-	public void ModifyValue (float percentage) {
+	public void DecreaseValue (float percentage) {
 
-		_newValue = Value * percentage;
+		_newValue = _newValue * percentage;
 	}
 
 	public void Update (long timeSpan) {
