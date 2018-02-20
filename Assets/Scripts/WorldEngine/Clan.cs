@@ -843,10 +843,8 @@ public class ClanSplitDecisionEvent : FactionEvent {
 		if (authorityPreferenceValue <= 0)
 			return 1;
 
-		float culturalFactor = _clan.CurrentLeader.Wisdom * _clan.CurrentLeader.Charisma * authorityPreferenceValue * cohesivenessPreferenceValue;
-
-		float modMinAdministrativeLoad = MinAdministrativeLoad * culturalFactor;
-		float modMaxAdministrativeLoad = MaxAdministrativeLoad * culturalFactor;
+		float modMinAdministrativeLoad = MinAdministrativeLoad * cohesivenessPreferenceValue;
+		float modMaxAdministrativeLoad = MaxAdministrativeLoad * _clan.CurrentLeader.Wisdom * _clan.CurrentLeader.Charisma * authorityPreferenceValue * cohesivenessPreferenceValue;
 
 		float chance = (administrativeLoad - modMinAdministrativeLoad) / (modMaxAdministrativeLoad - modMinAdministrativeLoad);
 
