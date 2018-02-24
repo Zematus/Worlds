@@ -15,6 +15,8 @@ public abstract class Decision {
 
 		public string Text;
 
+		public string DescriptionText;
+
 		private ExecuteDelegate _executeMethod;
 
 		public void Execute () {
@@ -22,9 +24,11 @@ public abstract class Decision {
 			_executeMethod ();
 		}
 
-		public Option (string text, ExecuteDelegate executeMethod) {
+		public Option (string text, string descriptionText, ExecuteDelegate executeMethod) {
 
 			Text = text;
+
+			DescriptionText = descriptionText;
 
 			_executeMethod = executeMethod;
 		}

@@ -72,4 +72,16 @@ public static class MathUtility {
 
 		return pab;
 	}
+
+	// Only for values between 0 and 1
+	public static float DecreaseByPercent (float value, float percentage) {
+
+		return value * (1f - percentage);
+	}
+
+	// Only for values between 0 and 1
+	public static float IncreaseByPercent (float value, float percentage) {
+
+		return value + ((1f - value) * percentage);
+	}
 }
