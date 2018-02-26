@@ -53,14 +53,20 @@ public class DecisionDialogPanelScript : MonoBehaviour {
 		Button button;
 
 		string text = option.Text;
+		string descriptionText = option.DescriptionText;
 
 		if (index < _optionButtons.Count) {
 			button = _optionButtons[index];
-			button.GetComponentInChildren<Text> ().text = text;
 
 		} else {
-			button = AddOptionButton (text);
+			button = AddOptionButton ();
 		}
+
+		ButtonWithTooltipScript buttonScript = button.GetComponent<ButtonWithTooltipScript> ();
+		buttonScript.ButtonText.text = text;
+		buttonScript.TooltipText.text = descriptionText;
+
+//		button.GetComponentInChildren<Text> ().text = text;
 		
 		button.onClick.RemoveAllListeners ();
 
@@ -71,12 +77,11 @@ public class DecisionDialogPanelScript : MonoBehaviour {
 		});
 	}
 
-	private Button AddOptionButton (string text) {
+	private Button AddOptionButton () {
 	
 		Button newButton = Instantiate (OptionButtonPrefab) as Button;
 
 		newButton.transform.SetParent (transform, false);
-		newButton.GetComponentInChildren<Text> ().text = text;
 
 		_optionButtons.Add (newButton);
 

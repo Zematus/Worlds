@@ -1435,12 +1435,7 @@ public class World : ISynchronizable {
 
 		foreach (CellGroup g in CellGroups) {
 
-			try {
-				g.FinalizeLoad ();
-
-			} catch (System.Exception e) {
-				bool debug = true;
-			}
+			g.FinalizeLoad ();
 
 			castProgress (startProgressValue + (++elementCount/totalElementsFactor), "Initializing Cell Groups...");
 		}

@@ -600,8 +600,6 @@ public class SaveLoadTest : AutomatedTest {
 
 						if (g == null) {
 							Debug.LogError ("No group with Id (" + geSave.GroupId + ") foun after Load");
-						} else {
-							bool debug = true;
 						}
 					}
 				}

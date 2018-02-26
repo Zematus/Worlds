@@ -823,12 +823,6 @@ public class CellGroup : HumanGroup {
 //		}
 //		#endif
 
-		#if DEBUG
-		if (Cell.IsSelected) {
-			bool debug = true;
-		}
-		#endif
-
 		_alreadyUpdated = false;
 
 		if (Population < 2) {
@@ -1730,12 +1724,6 @@ public class CellGroup : HumanGroup {
 	#endif
 
 	public void Update () {
-
-		#if DEBUG
-		if (Cell.IsSelected) {
-			bool debug = true;
-		}
-		#endif
 
 		if (!StillPresent) {
 			Debug.LogWarning ("Group is no longer present");
@@ -3013,10 +3001,6 @@ public abstract class CellGroupEvent : WorldEvent {
 					"TriggerDate: " + TriggerDate + 
 	//				", isReset: " + isReset + 
 					"");
-
-				if (this is UpdateCellGroupEvent) {
-					bool debug = true;
-				}
 
 				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
 //			}

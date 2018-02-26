@@ -121,12 +121,6 @@ public class CellCulturalActivity : CulturalActivity {
 
 	public void Update (long timeSpan) {
 
-		#if DEBUG
-		if (Group.Cell.IsSelected) {
-			bool debug = true;
-		}
-		#endif
-
 		TerrainCell groupCell = Group.Cell;
 
 		float randomModifier = groupCell.GetNextLocalRandomFloat (RngOffsets.ACTIVITY_UPDATE + RngOffset);
@@ -149,12 +143,6 @@ public class CellCulturalActivity : CulturalActivity {
 	}
 
 	public void PolityCulturalInfluence (CulturalActivity polityActivity, PolityInfluence polityInfluence, long timeSpan) {
-
-		#if DEBUG
-		if (Group.Cell.IsSelected) {
-			bool debug = true;
-		}
-		#endif
 
 		float targetValue = polityActivity.Value;
 		float influenceEffect = polityInfluence.Value;

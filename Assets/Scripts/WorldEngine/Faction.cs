@@ -40,6 +40,8 @@ public abstract class Faction : ISynchronizable {
 	public FactionCulture Culture;
 
 	protected CellGroup _splitFactionCoreGroup;
+	protected float _splitFactionMinProminence;
+	protected float _splitFactionMaxProminence;
 
 	public Name Name = null;
 
@@ -142,9 +144,11 @@ public abstract class Faction : ISynchronizable {
 		StillPresent = false;
 	}
 
-	public void SetToSplit (CellGroup splitFactionCoreGroup) {
+	public void SetToSplit (CellGroup splitFactionCoreGroup, float splitFactionMinProminence, float splitFactionMaxProminence) {
 	
 		_splitFactionCoreGroup = splitFactionCoreGroup;
+		_splitFactionMinProminence = splitFactionMinProminence;
+		_splitFactionMaxProminence = splitFactionMaxProminence;
 
 		World.AddFactionToSplit (this);
 	}

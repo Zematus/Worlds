@@ -303,12 +303,6 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
 
 	protected void PolityCulturalInfluenceInternal (CulturalKnowledge polityKnowledge, PolityInfluence polityInfluence, long timeSpan, float timeEffectFactor) {
 
-		#if DEBUG
-		if (Group.Cell.IsSelected) {
-			bool debug = true;
-		}
-		#endif
-
 		int rngOffset = RngOffsets.KNOWLEDGE_POLITY_INFLUENCE + RngOffset + (int)polityInfluence.PolityId;
 
 		int targetValue = polityKnowledge.Value;

@@ -503,12 +503,6 @@ public abstract class Polity : ISynchronizable {
 
 		Profiler.EndSample ();
 
-		#if DEBUG
-		if (IsUnderPlayerFocus) {
-			bool debug = true;
-		}
-		#endif
-
 		Profiler.BeginSample ("Update Culture");
 	
 		Culture.Update ();

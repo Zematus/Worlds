@@ -16,6 +16,9 @@ using System.Xml.Serialization;
 
 public class Clan : Faction {
 
+	public const float SplitMinProminence = 0.25f;
+	public const float SplitMaxProminence = 0.50f;
+
 	public const int LeadershipAvgSpan = 20 * World.YearLength;
 	public const int MinClanLeaderStartAge = 16 * World.YearLength;
 	public const int MaxClanLeaderStartAge = 50 * World.YearLength;
@@ -26,9 +29,6 @@ public class Clan : Faction {
 	public const float MinCoreMigrationPolityInfluence = 0.3f;
 
 	public const string ClanType = "Clan";
-
-	public const float Split_MinProminenceTransfer = 0.25f;
-	public const float Split_ProminenceTransferProportion = 0.75f;
 
 	public const long ClanSplitDateSpanFactorConstant = CellGroup.GenerationSpan * 40;
 
@@ -314,6 +314,15 @@ public class Clan : Faction {
 		return false;
 	}
 
+	public void CalculateMinMaxProminence (out float minProminence, out float maxProminence) {
+
+		float charismaFactor = CurrentLeader.Charisma / 10f;
+		float cultureModifier = 1 + (charismaFactor * GetCohesivenessPreferenceValue ());
+
+		minProminence = Prominence * SplitMinProminence / cultureModifier;
+		maxProminence = Prominence * SplitMaxProminence / cultureModifier;
+	}
+
 	public override void Split () {
 
 //		#if DEBUG
@@ -323,15 +332,11 @@ public class Clan : Faction {
 //		#endif
 
 		float randomValue = GetNextLocalRandomFloat ((int)(RngOffsets.CLAN_SPLIT + Id));
-		float randomFactor = Split_MinProminenceTransfer + (randomValue * Split_ProminenceTransferProportion);
+		float splitFactionProminence = _splitFactionMinProminence + (randomValue * (_splitFactionMaxProminence - _splitFactionMinProminence));
 
-		float oldProminence = Prominence;
+		Prominence -= splitFactionProminence;
 
-		Prominence = oldProminence * randomFactor;
-
-		float newClanProminence = oldProminence * (1f - randomFactor);
-
-		Clan newClan = new Clan (Polity as Tribe, _splitFactionCoreGroup, newClanProminence, this);
+		Clan newClan = new Clan (Polity as Tribe, _splitFactionCoreGroup, splitFactionProminence, this);
 		newClan.Initialize (); // We can initialize right away since the containing polity is already initialized
 
 		Polity.AddFaction (newClan);
@@ -417,7 +422,7 @@ public class Clan : Faction {
 
 		float value = cohesivenessPreference.Value;
 
-		cohesivenessPreference.Value += (1f - value) * percentage;
+		cohesivenessPreference.Value = MathUtility.IncreaseByPercent (value, percentage);
 	}
 
 	public void DecreaseCohesivenessPreferenceValue (float percentage) {
@@ -429,7 +434,7 @@ public class Clan : Faction {
 
 		float value = cohesivenessPreference.Value;
 
-		cohesivenessPreference.Value = value * (1f - percentage);
+		cohesivenessPreference.Value = MathUtility.DecreaseByPercent (value, percentage);
 	}
 
 	public float GetCohesivenessPreferenceValue () {
@@ -525,15 +530,13 @@ public class ClanSplitDecision : FactionDecision {
 		_newCoreGroup = newCoreGroup;
 	}
 
-	public string GeneratePreventSplitResultMessage () {
+	private string GeneratePreventSplitResultMessage () {
 
 		float charismaFactor = _clan.CurrentLeader.Charisma / 10f;
 		float wisdomFactor = _clan.CurrentLeader.Wisdom / 15f;
 
 		float attributesFactor = Mathf.Max (charismaFactor, wisdomFactor);
 		attributesFactor = Mathf.Clamp (attributesFactor, 0.5f, 2f);
-
-		int rngOffset = RngOffsets.CLAN_SPLITTING_EVENT_MODIFY_ATTRIBUTE;
 
 		float minPreferencePercentChange = BaseMinPreferencePercentChange / attributesFactor;
 		float maxPreferencePercentChange = BaseMaxPreferencePercentChange / attributesFactor;
@@ -543,8 +546,8 @@ public class ClanSplitDecision : FactionDecision {
 		float minPrefChange = MathUtility.DecreaseByPercent (prefValue, minPreferencePercentChange);
 		float maxPrefChange = MathUtility.DecreaseByPercent (prefValue, maxPreferencePercentChange);
 
-		string authorityPreferenceChangeStr = "• " + _clan.Name.Text + " - authority preference (" + prefValue.ToString ("0.00")
-			+ ") decreased to: " + minPrefChange.ToString ("0.00") + " - " + maxPrefChange.ToString ("0.00");
+		string authorityPreferenceChangeStr = "\t• Clan " + _clan.Name.Text + ": authority preference (" + prefValue.ToString ("0.00")
+			+ ") decreases to: " + minPrefChange.ToString ("0.00") + " - " + maxPrefChange.ToString ("0.00");
 
 		minPreferencePercentChange = BaseMinPreferencePercentChange * attributesFactor;
 		maxPreferencePercentChange = BaseMaxPreferencePercentChange * attributesFactor;
@@ -554,13 +557,13 @@ public class ClanSplitDecision : FactionDecision {
 		minPrefChange = MathUtility.IncreaseByPercent (prefValue, minPreferencePercentChange);
 		maxPrefChange = MathUtility.IncreaseByPercent (prefValue, maxPreferencePercentChange);
 
-		string cohesivenessPreferenceChangeStr = "• " + _clan.Name.Text + " - authority preference (" + prefValue.ToString ("0.00")
-			+ ") increased to: " + minPrefChange.ToString ("0.00") + " - " + maxPrefChange.ToString ("0.00");
+		string cohesivenessPreferenceChangeStr = "\t• Clan " + _clan.Name.Text + ": cohesiveness preference (" + prefValue.ToString ("0.00")
+			+ ") increases to: " + minPrefChange.ToString ("0.00") + " - " + maxPrefChange.ToString ("0.00");
 
 		return authorityPreferenceChangeStr + "\n" + cohesivenessPreferenceChangeStr;
 	}
 
-	private void PreventSplit () {
+	private void PreventSplit_ModifyPreferences () {
 
 		float charismaFactor = _clan.CurrentLeader.Charisma / 10f;
 		float wisdomFactor = _clan.CurrentLeader.Wisdom / 15f;
@@ -569,7 +572,7 @@ public class ClanSplitDecision : FactionDecision {
 		attributesFactor = Mathf.Clamp (attributesFactor, 0.5f, 2f);
 
 		int rngOffset = RngOffsets.CLAN_SPLITTING_EVENT_MODIFY_ATTRIBUTE;
-		
+
 		float randomFactor = _clan.GetNextLocalRandomFloat (rngOffset++);
 		float authorityPreferencePercentChange = (BaseMaxPreferencePercentChange - BaseMinPreferencePercentChange) * randomFactor + BaseMinPreferencePercentChange;
 		authorityPreferencePercentChange /= attributesFactor;
@@ -580,12 +583,73 @@ public class ClanSplitDecision : FactionDecision {
 
 		_clan.DecreaseAuthorityPreferenceValue (authorityPreferencePercentChange);
 		_clan.IncreaseCohesivenessPreferenceValue (cohesivenessPreferencePercentChange);
+	}
+
+	private void PreventSplit () {
+
+		PreventSplit_ModifyPreferences ();
 
 		// Should reduce respect for authority and increase cohesiveness
 		Faction.Polity.AddEventMessage (new PreventClanSplitEventMessage (Faction, Faction.CurrentLeader, Faction.World.CurrentDate));
 	}
 
-	public string GenerateAllowSplitResultMessage () {
+	private string GenerateAllowSplitResultMessage () {
+
+//		float charismaFactor = _clan.CurrentLeader.Charisma / 10f;
+//		float wisdomFactor = _clan.CurrentLeader.Wisdom / 15f;
+//
+//		float attributesFactor = Mathf.Max (charismaFactor, wisdomFactor);
+//		attributesFactor = Mathf.Clamp (attributesFactor, 0.5f, 2f);
+//
+//		float minPreferencePercentChange = BaseMinPreferencePercentChange * attributesFactor;
+//		float maxPreferencePercentChange = BaseMaxPreferencePercentChange * attributesFactor;
+//
+//		float prefValue = _clan.GetAuthorityPreferenceValue ();
+//
+//		float minPrefChange = MathUtility.IncreaseByPercent (prefValue, minPreferencePercentChange);
+//		float maxPrefChange = MathUtility.IncreaseByPercent (prefValue, maxPreferencePercentChange);
+//
+//		string authorityPreferenceChangeStr = "\t• Clan " + _clan.Name.Text + ": authority preference (" + prefValue.ToString ("0.00")
+//			+ ") increases to: " + minPrefChange.ToString ("0.00") + " - " + maxPrefChange.ToString ("0.00");
+//
+//		minPreferencePercentChange = BaseMinPreferencePercentChange / attributesFactor;
+//		maxPreferencePercentChange = BaseMaxPreferencePercentChange / attributesFactor;
+//
+//		prefValue = _clan.GetCohesivenessPreferenceValue ();
+//
+//		minPrefChange = MathUtility.DecreaseByPercent (prefValue, minPreferencePercentChange);
+//		maxPrefChange = MathUtility.DecreaseByPercent (prefValue, maxPreferencePercentChange);
+//
+//		string cohesivenessPreferenceChangeStr = "\t• Clan " + _clan.Name.Text + ": cohesiveness preference (" + prefValue.ToString ("0.00")
+//			+ ") decreases to: " + minPrefChange.ToString ("0.00") + " - " + maxPrefChange.ToString ("0.00");
+//
+//		return authorityPreferenceChangeStr + "\n" + cohesivenessPreferenceChangeStr + "\n" + GenerateForcedSplitResultMessage ();
+
+		// Second though: Allowing the split amounts to not doing anything. So it should have no effect
+		return GenerateForcedSplitResultMessage ();
+	}
+
+	private string GenerateForcedSplitResultMessage () {
+
+		float minProminence;
+		float maxProminence;
+
+		_clan.CalculateMinMaxProminence (out minProminence, out maxProminence);
+
+		string message;
+
+		float clanProminence = _clan.Prominence;
+		float minNewClanProminence = clanProminence - minProminence;
+		float maxNewClanProminence = clanProminence - maxProminence;
+
+		message = "\t• Clan " + _clan.Name.Text + ": prominence (" + clanProminence.ToString ("0.00") 
+			+ ") decreases to " + minNewClanProminence.ToString ("0.00") + " - " + maxNewClanProminence.ToString ("0.00");
+		message += "\n\t• A new clan with prominence " + minProminence.ToString ("0.00") + " - " + maxProminence.ToString ("0.00") + " splits from " + _clan.Name.Text;
+
+		return message;
+	}
+
+	private void AllowSplit_ModifyPreferences () {
 
 		float charismaFactor = _clan.CurrentLeader.Charisma / 10f;
 		float wisdomFactor = _clan.CurrentLeader.Wisdom / 15f;
@@ -595,40 +659,35 @@ public class ClanSplitDecision : FactionDecision {
 
 		int rngOffset = RngOffsets.CLAN_SPLITTING_EVENT_MODIFY_ATTRIBUTE;
 
-		float minPreferencePercentChange = BaseMinPreferencePercentChange * attributesFactor;
-		float maxPreferencePercentChange = BaseMaxPreferencePercentChange * attributesFactor;
+		float randomFactor = _clan.GetNextLocalRandomFloat (rngOffset++);
+		float authorityPreferencePercentChange = (BaseMaxPreferencePercentChange - BaseMinPreferencePercentChange) * randomFactor + BaseMinPreferencePercentChange;
+		authorityPreferencePercentChange *= attributesFactor;
 
-		float prefValue = _clan.GetAuthorityPreferenceValue ();
+		randomFactor = _clan.GetNextLocalRandomFloat (rngOffset++);
+		float cohesivenessPreferencePercentChange = (BaseMaxPreferencePercentChange - BaseMinPreferencePercentChange) * randomFactor + BaseMinPreferencePercentChange;
+		cohesivenessPreferencePercentChange /= attributesFactor;
 
-		float minPrefChange = MathUtility.IncreaseByPercent (prefValue, minPreferencePercentChange);
-		float maxPrefChange = MathUtility.IncreaseByPercent (prefValue, maxPreferencePercentChange);
-
-		string authorityPreferenceChangeStr = "• " + _clan.Name.Text + " - authority preference (" + prefValue.ToString ("0.00")
-			+ ") increased to: " + minPrefChange.ToString ("0.00") + " - " + maxPrefChange.ToString ("0.00");
-
-		minPreferencePercentChange = BaseMinPreferencePercentChange / attributesFactor;
-		maxPreferencePercentChange = BaseMaxPreferencePercentChange / attributesFactor;
-
-		prefValue = _clan.GetCohesivenessPreferenceValue ();
-
-		minPrefChange = MathUtility.DecreaseByPercent (prefValue, minPreferencePercentChange);
-		maxPrefChange = MathUtility.DecreaseByPercent (prefValue, maxPreferencePercentChange);
-
-		string cohesivenessPreferenceChangeStr = "• " + _clan.Name.Text + " - authority preference (" + prefValue.ToString ("0.00")
-			+ ") decreased to: " + minPrefChange.ToString ("0.00") + " - " + maxPrefChange.ToString ("0.00");
-
-		return authorityPreferenceChangeStr + "\n" + cohesivenessPreferenceChangeStr + "\n" + GenerateForcedAllowSplitResultMessage ();
+		_clan.DecreaseAuthorityPreferenceValue (authorityPreferencePercentChange);
+		_clan.IncreaseCohesivenessPreferenceValue (cohesivenessPreferencePercentChange);
 	}
 
-	public string GenerateForcedAllowSplitResultMessage () {
+	private void ForcedSplit () {
+		
+		float minProminence;
+		float maxProminence;
 
-		return "• A new clan splits from " + _clan.Name.Text;
+		_clan.CalculateMinMaxProminence (out minProminence, out maxProminence);
+
+		Faction.SetToSplit (_newCoreGroup, minProminence, maxProminence);
 	}
 
 	private void AllowSplit () {
 
-		// Should increase respect for authority and reduce cohesiveness
-		Faction.SetToSplit (_newCoreGroup);
+		// Second though: Allowing the split amounts to not doing anything. So it should have no effect
+//		// Should increase respect for authority and reduce cohesiveness
+//		AllowSplit_ModifyPreferences ();
+
+		ForcedSplit ();
 	}
 
 	public override Option[] GetOptions () {
@@ -636,13 +695,13 @@ public class ClanSplitDecision : FactionDecision {
 		if (_cantPrevent) {
 			
 			return new Option[] {
-				new Option ("Oh well...", GenerateForcedAllowSplitResultMessage (), AllowSplit),
+				new Option ("Oh well...", "Effects:\n" + GenerateForcedSplitResultMessage (), ForcedSplit),
 			};
 		}
 
 		return new Option[] {
-			new Option ("Allow clan to split in two...", GenerateAllowSplitResultMessage (), AllowSplit),
-			new Option ("Prevent clan from splitting...", GeneratePreventSplitResultMessage (), PreventSplit)
+			new Option ("Allow clan to split in two...", "Effects:\n" + GenerateAllowSplitResultMessage (), AllowSplit),
+			new Option ("Prevent clan from splitting...", "Effects:\n" + GeneratePreventSplitResultMessage (), PreventSplit)
 		};
 	}
 
@@ -959,7 +1018,12 @@ public class ClanSplitDecisionEvent : FactionEvent {
 
 		} else if (preferSplit) {
 
-			_clan.SetToSplit (_splitFactionCoreGroup);
+			float minProminence;
+			float maxProminence;
+
+			_clan.CalculateMinMaxProminence (out minProminence, out maxProminence);
+
+			_clan.SetToSplit (_splitFactionCoreGroup, minProminence, maxProminence);
 		}
 
 		World.AddFactionToUpdate (Faction);
