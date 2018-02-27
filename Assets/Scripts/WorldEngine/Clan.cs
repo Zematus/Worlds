@@ -381,7 +381,7 @@ public class Clan : Faction {
 
 	public void IncreaseAuthorityPreferenceValue (float percentage) {
 
-		CulturalPreference authorityPreference = Polity.Culture.GetPreference (CulturalPreference.AuthorityPreferenceId);
+		CulturalPreference authorityPreference = Culture.GetPreference (CulturalPreference.AuthorityPreferenceId);
 
 		if (authorityPreference == null)
 			throw new System.Exception ("authorityPreference is null");
@@ -393,7 +393,7 @@ public class Clan : Faction {
 
 	public void DecreaseAuthorityPreferenceValue (float percentage) {
 
-		CulturalPreference authorityPreference = Polity.Culture.GetPreference (CulturalPreference.AuthorityPreferenceId);
+		CulturalPreference authorityPreference = Culture.GetPreference (CulturalPreference.AuthorityPreferenceId);
 
 		if (authorityPreference == null)
 			throw new System.Exception ("authorityPreference is null");
@@ -405,7 +405,7 @@ public class Clan : Faction {
 
 	public float GetAuthorityPreferenceValue () {
 
-		CulturalPreference authorityPreference = Polity.Culture.GetPreference (CulturalPreference.AuthorityPreferenceId);
+		CulturalPreference authorityPreference = Culture.GetPreference (CulturalPreference.AuthorityPreferenceId);
 
 		if (authorityPreference != null)
 			return authorityPreference.Value; 
@@ -415,7 +415,7 @@ public class Clan : Faction {
 
 	public void IncreaseCohesivenessPreferenceValue (float percentage) {
 
-		CulturalPreference cohesivenessPreference = Polity.Culture.GetPreference (CulturalPreference.CohesivenessPreferenceId);
+		CulturalPreference cohesivenessPreference = Culture.GetPreference (CulturalPreference.CohesivenessPreferenceId);
 
 		if (cohesivenessPreference == null)
 			throw new System.Exception ("cohesivenessPreference is null");
@@ -427,7 +427,7 @@ public class Clan : Faction {
 
 	public void DecreaseCohesivenessPreferenceValue (float percentage) {
 
-		CulturalPreference cohesivenessPreference = Polity.Culture.GetPreference (CulturalPreference.CohesivenessPreferenceId);
+		CulturalPreference cohesivenessPreference = Culture.GetPreference (CulturalPreference.CohesivenessPreferenceId);
 
 		if (cohesivenessPreference == null)
 			throw new System.Exception ("cohesivenessPreference is null");
@@ -439,7 +439,7 @@ public class Clan : Faction {
 
 	public float GetCohesivenessPreferenceValue () {
 
-		CulturalPreference cohesivenessPreference = Polity.Culture.GetPreference (CulturalPreference.CohesivenessPreferenceId);
+		CulturalPreference cohesivenessPreference = Culture.GetPreference (CulturalPreference.CohesivenessPreferenceId);
 
 		if (cohesivenessPreference != null)
 			return cohesivenessPreference.Value; 
