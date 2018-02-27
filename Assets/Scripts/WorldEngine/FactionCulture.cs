@@ -115,7 +115,7 @@ public class FactionCulture : Culture {
 
 		long dateSpan = World.CurrentDate - Faction.LastUpdateDate;
 
-		float timeFactor = dateSpan / (dateSpan + OptimalTimeSpan);
+		float timeFactor = dateSpan / (float)(dateSpan + OptimalTimeSpan);
 
 		////// Update Preferences
 
