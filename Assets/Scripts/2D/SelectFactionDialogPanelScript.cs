@@ -5,9 +5,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 
-public class SelectFactionDialogPanelScript : MonoBehaviour {
-
-	public CanvasGroup ModalPanelCanvasGroup;
+public class SelectFactionDialogPanelScript : ModalPanelScript {
 
 	public Button FactionButtonPrefab;
 
@@ -134,10 +132,7 @@ public class SelectFactionDialogPanelScript : MonoBehaviour {
 
 	public void SetVisible (bool value) {
 		
-		ModalPanelCanvasGroup.gameObject.SetActive (value);
-		ModalPanelCanvasGroup.blocksRaycasts = value;
-	
-		gameObject.SetActive (value);
+		base.SetVisible (value);
 
 		if (value) {
 			SetFactionButtons ();

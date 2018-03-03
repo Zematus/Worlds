@@ -6,9 +6,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 
-public class DecisionDialogPanelScript : MonoBehaviour {
-
-	public CanvasGroup ModalPanelCanvasGroup;
+public class DecisionDialogPanelScript : ModalPanelScript {
 
 	public Text DecisionText;
 
@@ -33,8 +31,6 @@ public class DecisionDialogPanelScript : MonoBehaviour {
 	private void SetOptions () {
 		
 		_optionButtons.Add (OptionButtonPrefab);
-
-		string dirPath = Manager.SavePath;
 	
 		Decision.Option[] options = _decision.GetOptions ();
 
@@ -65,8 +61,7 @@ public class DecisionDialogPanelScript : MonoBehaviour {
 		ButtonWithTooltipScript buttonScript = button.GetComponent<ButtonWithTooltipScript> ();
 		buttonScript.ButtonText.text = text;
 		buttonScript.TooltipText.text = descriptionText;
-
-//		button.GetComponentInChildren<Text> ().text = text;
+		buttonScript.TooltipPanel.gameObject.SetActive (false);
 		
 		button.onClick.RemoveAllListeners ();
 
@@ -105,12 +100,9 @@ public class DecisionDialogPanelScript : MonoBehaviour {
 		_optionButtons.Clear ();
 	}
 
-	public void SetVisible (bool value) {
+	public override void SetVisible (bool value) {
 		
-		ModalPanelCanvasGroup.gameObject.SetActive (value);
-		ModalPanelCanvasGroup.blocksRaycasts = value;
-	
-		gameObject.SetActive (value);
+		base.SetVisible (value);
 
 		if (value) {
 			SetOptions ();

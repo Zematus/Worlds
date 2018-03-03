@@ -16,8 +16,8 @@ using System.Xml.Serialization;
 
 public class Clan : Faction {
 
-	public const float BaseMinPreferencePercentChange = 0.10f;
-	public const float BaseMaxPreferencePercentChange = 0.20f;
+	public const float BaseMinPreferencePercentChange = 0.15f;
+	public const float BaseMaxPreferencePercentChange = 0.30f;
 
 	public const float SplitMinProminence = 0.25f;
 	public const float SplitMaxProminence = 0.50f;
@@ -618,9 +618,9 @@ public class ClanSplitDecision : FactionDecision {
 		float minNewClanProminence = clanProminence - minProminence;
 		float maxNewClanProminence = clanProminence - maxProminence;
 
-		message = "\t• Clan " + _clan.Name.Text + ": prominence (" + clanProminence.ToString ("0.00") 
-			+ ") decreases to " + minNewClanProminence.ToString ("0.00") + " - " + maxNewClanProminence.ToString ("0.00");
-		message += "\n\t• A new clan with prominence " + minProminence.ToString ("0.00") + " - " + maxProminence.ToString ("0.00") + " splits from " + _clan.Name.Text;
+		message = "\t• Clan " + _clan.Name.Text + ": prominence (" + clanProminence.ToString ("P") 
+			+ ") decreases to " + minNewClanProminence.ToString ("P") + " - " + maxNewClanProminence.ToString ("P");
+		message += "\n\t• A new clan with prominence " + minProminence.ToString ("P") + " - " + maxProminence.ToString ("P") + " splits from " + _clan.Name.Text;
 
 		return message;
 	}
@@ -749,8 +749,10 @@ public class ClanSplitDecisionEvent : FactionEvent {
 	public const float MinCoreDistance = 1000f;
 	public const float MinCoreInfluenceValue = 0.5f;
 
-	public const int MaxAdministrativeLoad = 2000000;
+	public const int MaxAdministrativeLoad = 1000000;
 	public const int MinAdministrativeLoad = 200000;
+
+	public const float MaxAdministrativeLoadChanceFactor = 0.05f;
 
 	private Clan _clan;
 
@@ -929,7 +931,7 @@ public class ClanSplitDecisionEvent : FactionEvent {
 		float diffLimitsAdministrativeLoad = MaxAdministrativeLoad - MinAdministrativeLoad;
 
 		float modMinAdministrativeLoad = MinAdministrativeLoad * cohesivenessPrefFactor;
-		float modMaxAdministrativeLoad = modMinAdministrativeLoad + (diffLimitsAdministrativeLoad * _clan.CurrentLeader.Wisdom * _clan.CurrentLeader.Charisma * authorityPrefFactor);
+		float modMaxAdministrativeLoad = modMinAdministrativeLoad + (diffLimitsAdministrativeLoad * _clan.CurrentLeader.Wisdom * _clan.CurrentLeader.Charisma * authorityPrefFactor * MaxAdministrativeLoadChanceFactor);
 
 		float chance = (administrativeLoad - modMinAdministrativeLoad) / (modMaxAdministrativeLoad - modMinAdministrativeLoad);
 

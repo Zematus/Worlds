@@ -38,13 +38,15 @@ public class GuiManagerScript : MonoBehaviour {
 	public DialogPanelScript OptionsDialogPanelScript;
 	public SettingsDialogPanelScript SettingsDialogPanelScript;
 	public ProgressDialogPanelScript ProgressDialogPanelScript;
-	public ActivityDialogPanelScript ActivityDialogPanelScript;
+	public ImageDialogPanelScript ActivityDialogPanelScript;
 	public TextInputDialogPanelScript MessageDialogPanelScript;
 	public WorldCustomizationDialogPanelScript SetSeedDialogPanelScript;
 	public WorldCustomizationDialogPanelScript CustomizeWorldDialogPanelScript;
 	public AddPopulationDialogScript AddPopulationDialogScript;
 	public FocusPanelScript FocusPanelScript;
 	public GuidingPanelScript GuidingPanelScript;
+
+	public List<ModalPanelScript> HiddenLowPrioPanels = new List<ModalPanelScript> ();
 
 	public PaletteScript BiomePaletteScript;
 	public PaletteScript MapPaletteScript;
@@ -69,6 +71,8 @@ public class GuiManagerScript : MonoBehaviour {
 
 //	private bool _showFocusButton = false;
 //	private string _focusButtonText = "";
+
+	private bool _eventPauseActive = false;
 
 	private bool _pauseButtonPressed = false;
 	private bool _pausingDialogActive = false;
@@ -121,7 +125,6 @@ public class GuiManagerScript : MonoBehaviour {
 	private float _accDeltaTime = 0;
 	private long _simulationDateSpan = 0;
 
-//	private bool _resolvingDecisions = false;
 	private bool _resolvedDecision = false;
 
 	private int _mapUpdateCount = 0;
@@ -291,6 +294,8 @@ public class GuiManagerScript : MonoBehaviour {
 			
 			if (_postProgressOp != null) 
 				_postProgressOp ();
+
+			ShowHiddenLowPrioPanels ();
 		}
 
 		bool simulationRunning = Manager.SimulationCanRun && Manager.SimulationRunning;
@@ -545,24 +550,35 @@ public class GuiManagerScript : MonoBehaviour {
 			_progressValue = value;
 		}
 	}
+
+	public void HighPrioUninterruptSimulation () {
+
+		if (!_eventPauseActive) {
+			InterruptSimulation (false);
+		}
+
+		ShowHiddenLowPrioPanels ();
+	}
 	
 	public void CloseMainMenu () {
 		
 		MainMenuDialogPanelScript.SetVisible (false);
 		
-		InterruptSimulation (false);
+		HighPrioUninterruptSimulation ();
 	}
 
 	public void CloseSettingsDialog () {
 
 		SettingsDialogPanelScript.SetVisible (false);
 
-		InterruptSimulation (false);
+		HighPrioUninterruptSimulation ();
 	}
 	
 	public void CloseOptionsMenu () {
 		
 		OptionsDialogPanelScript.SetVisible (false);
+
+		ShowHiddenLowPrioPanels ();
 	}
 	
 	public void Exit () {
@@ -603,8 +619,8 @@ public class GuiManagerScript : MonoBehaviour {
 		
 		SetSeedDialogPanelScript.SetVisible (false);
 		CustomizeWorldDialogPanelScript.SetVisible (false);
-		
-		InterruptSimulation (false);
+
+		HighPrioUninterruptSimulation ();
 	}
 	
 	public void CloseSeedErrorMessageAction () {
@@ -753,8 +769,8 @@ public class GuiManagerScript : MonoBehaviour {
 			return;
 
 		Manager.GenerateRandomHumanGroup (population);
-		
-		InterruptSimulation (false);
+
+		HighPrioUninterruptSimulation ();
 		
 		DisplayTip_MapScroll ();
 	}
@@ -782,8 +798,8 @@ public class GuiManagerScript : MonoBehaviour {
 		
 		if (GetMapCoordinatesFromPointerPosition (out point)) {
 			if (AddPopulationGroupAtPosition (point, population)) {
-				
-				InterruptSimulation (false);
+
+				HighPrioUninterruptSimulation ();
 				
 				DisplayTip_MapScroll();
 
@@ -919,6 +935,8 @@ public class GuiManagerScript : MonoBehaviour {
 	public void CancelExportAction () {
 		
 		ExportMapDialogPanelScript.SetVisible (false);
+
+		ShowHiddenLowPrioPanels ();
 	}
 	
 	public void ExportImageAs () {
@@ -1021,7 +1039,11 @@ public class GuiManagerScript : MonoBehaviour {
 		
 		_postProgressOp -= PostProgressOp_SaveAction;
 
-		InterruptSimulation (!Manager.SimulationCanRun);
+		if (!_eventPauseActive) {
+			InterruptSimulation (!Manager.SimulationCanRun);
+		}
+
+		ShowHiddenLowPrioPanels ();
 	}
 
 	public void SaveAction () {
@@ -1048,8 +1070,8 @@ public class GuiManagerScript : MonoBehaviour {
 	public void CancelSaveAction () {
 		
 		SaveFileDialogPanelScript.SetVisible (false);
-		
-		InterruptSimulation (false);
+
+		HighPrioUninterruptSimulation ();
 	}
 
 	public void SaveWorldAs () {
@@ -1139,7 +1161,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 		} else {
 
-			InterruptSimulation (false);
+			HighPrioUninterruptSimulation ();
 		}
 
 		GetMaxSpeedOptionFromCurrentWorld ();
@@ -1171,8 +1193,8 @@ public class GuiManagerScript : MonoBehaviour {
 	public void CancelLoadAction () {
 		
 		LoadFileDialogPanelScript.SetVisible (false);
-		
-		InterruptSimulation (false);
+
+		HighPrioUninterruptSimulation ();
 	}
 	
 	public void LoadWorld () {
@@ -1184,15 +1206,47 @@ public class GuiManagerScript : MonoBehaviour {
 		InterruptSimulation (true);
 	}
 
+	public bool AreHighPrioPanelsActive () {
+
+		GameObject[] panels = GameObject.FindGameObjectsWithTag ("HighPrioPanel");
+
+		foreach (GameObject panel in panels) {
+		
+			if (panel.activeInHierarchy) {
+			
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	public void ShowHiddenLowPrioPanels () {
+	
+		foreach (ModalPanelScript panel in HiddenLowPrioPanels) {
+
+			panel.SetVisible (true);
+		}
+
+		HiddenLowPrioPanels.Clear ();
+	}
+
 	public void RequestDecisionResolution () {
 
 		DecisionDialogPanelScript.SetDecision (Manager.CurrentWorld.PullDecisionToResolve ());
 
-		DecisionDialogPanelScript.SetVisible (true);
+		if (!AreHighPrioPanelsActive ()) {
+			
+			DecisionDialogPanelScript.SetVisible (true);
+
+		} else {
+
+			HiddenLowPrioPanels.Add (DecisionDialogPanelScript);
+		}
 
 		InterruptSimulation (true);
 
-//		_resolvingDecisions = true;
+		_eventPauseActive = true;
 	}
 
 	public void ResolveDecision () {
@@ -1201,7 +1255,8 @@ public class GuiManagerScript : MonoBehaviour {
 
 		InterruptSimulation (false);
 
-//		_resolvingDecisions = false;
+		_eventPauseActive = false;
+
 		_resolvedDecision = true;
 	}
 
@@ -1272,11 +1327,15 @@ public class GuiManagerScript : MonoBehaviour {
 	public void CloseOverlayMenuAction () {
 		
 		OverlayDialogPanelScript.SetVisible (false);
+
+		ShowHiddenLowPrioPanels ();
 	}
 
 	public void CloseViewsMenuAction () {
 
 		ViewsDialogPanelScript.SetVisible (false);
+
+		ShowHiddenLowPrioPanels ();
 	}
 	
 	public void SelectOverlays () {
@@ -1681,6 +1740,8 @@ public class GuiManagerScript : MonoBehaviour {
 		_planetView = PlanetView.Biomes;
 		
 		ViewsDialogPanelScript.SetVisible (false);
+
+		ShowHiddenLowPrioPanels ();
 	}
 	
 	public void SetElevationView () {
@@ -1690,6 +1751,8 @@ public class GuiManagerScript : MonoBehaviour {
 		_planetView = PlanetView.Elevation;
 		
 		ViewsDialogPanelScript.SetVisible (false);
+
+		ShowHiddenLowPrioPanels ();
 	}
 	
 	public void SetCoastlineView () {
@@ -1699,6 +1762,8 @@ public class GuiManagerScript : MonoBehaviour {
 		_planetView = PlanetView.Coastlines;
 		
 		ViewsDialogPanelScript.SetVisible (false);
+
+		ShowHiddenLowPrioPanels ();
 	}
 
 	public void OpenSelectFactionDialog () {
@@ -1718,7 +1783,7 @@ public class GuiManagerScript : MonoBehaviour {
 			Manager.SetGuidedFaction (faction);
 		}
 
-		InterruptSimulation (false);
+		HighPrioUninterruptSimulation ();
 	}
 
 	public void StopGuidingFaction() {
@@ -1730,7 +1795,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 		SelectFactionDialogPanelScript.SetVisible (false);
 
-		InterruptSimulation (false);
+		HighPrioUninterruptSimulation ();
 	}
 
 	public void SetPlayerFocusOnPolity () {

@@ -3,11 +3,8 @@ using UnityEngine.Events;
 using UnityEngine.UI;
 using System.Collections;
 
-public class WorldCustomizationDialogPanelScript : MonoBehaviour {
+public class WorldCustomizationDialogPanelScript : DialogPanelScript {
 
-	public CanvasGroup ModalPanelCanvasGroup;
-
-	public Text DialogText;
 	public InputField SeedInputField;
 
 	public InputField TemperatureInputField;
@@ -57,11 +54,6 @@ public class WorldCustomizationDialogPanelScript : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 	
-	}
-
-	public void SetDialogText (string text) {
-
-		DialogText.text = text;
 	}
 	
 	public void SetSeedString (string seedStr) {
@@ -161,14 +153,6 @@ public class WorldCustomizationDialogPanelScript : MonoBehaviour {
 	public string GetSeedString () {
 		
 		return SeedInputField.text;
-	}
-
-	public void SetVisible (bool value) {
-		
-		ModalPanelCanvasGroup.gameObject.SetActive (value);
-		ModalPanelCanvasGroup.blocksRaycasts = value;
-	
-		gameObject.SetActive (value);
 	}
 
 	public void SeedValueChange () {

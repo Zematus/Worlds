@@ -5,11 +5,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 
-public class LoadFileDialogPanelScript : MonoBehaviour {
-
-	public CanvasGroup ModalPanelCanvasGroup;
-
-	public Text DialogText;
+public class LoadFileDialogPanelScript : DialogPanelScript {
 
 	public Button WorldNameButtonPrefab;
 
@@ -112,17 +108,9 @@ public class LoadFileDialogPanelScript : MonoBehaviour {
 		_worldNameButtons.Clear ();
 	}
 
-	public void SetDialogText (string text) {
-
-		DialogText.text = text;
-	}
-
 	public void SetVisible (bool value) {
 		
-		ModalPanelCanvasGroup.gameObject.SetActive (value);
-		ModalPanelCanvasGroup.blocksRaycasts = value;
-	
-		gameObject.SetActive (value);
+		base.SetVisible (value);
 
 		if (value) {
 			LoadFileNames ();

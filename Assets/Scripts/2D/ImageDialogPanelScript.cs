@@ -3,21 +3,17 @@ using UnityEngine.Events;
 using UnityEngine.UI;
 using System.Collections;
 
-public class DialogPanelScript : ModalPanelScript {
+public class ImageDialogPanelScript : DialogPanelScript {
 
-	public Text DialogText;
+	public Image Image;
 
 	// Use this for initialization
 	void Start () {
+	
 	}
 	
 	// Update is called once per frame
 	void Update () {
 	
-	}
-
-	public void SetDialogText (string text) {
-
-		DialogText.text = text;
 	}
 }

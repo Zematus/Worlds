@@ -3,11 +3,8 @@ using UnityEngine.Events;
 using UnityEngine.UI;
 using System.Collections;
 
-public class TextInputDialogPanelScript : MonoBehaviour {
+public class TextInputDialogPanelScript : DialogPanelScript {
 
-	public CanvasGroup ModalPanelCanvasGroup;
-
-	public Text DialogText;
 	public InputField NameInputField;
 
 	// Use this for initialization
@@ -19,11 +16,6 @@ public class TextInputDialogPanelScript : MonoBehaviour {
 	void Update () {
 	
 	}
-
-	public void SetDialogText (string text) {
-
-		DialogText.text = text;
-	}
 	
 	public void SetName (string name) {
 		
@@ -33,13 +25,5 @@ public class TextInputDialogPanelScript : MonoBehaviour {
 	public string GetName () {
 		
 		return NameInputField.text;
-	}
-
-	public void SetVisible (bool value) {
-		
-		ModalPanelCanvasGroup.gameObject.SetActive (value);
-		ModalPanelCanvasGroup.blocksRaycasts = value;
-	
-		gameObject.SetActive (value);
 	}
 }
