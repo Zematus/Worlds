@@ -108,7 +108,7 @@ public class LoadFileDialogPanelScript : DialogPanelScript {
 		_worldNameButtons.Clear ();
 	}
 
-	public void SetVisible (bool value) {
+	public override void SetVisible (bool value) {
 		
 		base.SetVisible (value);
 

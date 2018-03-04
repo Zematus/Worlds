@@ -130,7 +130,7 @@ public class SelectFactionDialogPanelScript : ModalPanelScript {
 		_factionButtons.Clear ();
 	}
 
-	public void SetVisible (bool value) {
+	public override void SetVisible (bool value) {
 		
 		base.SetVisible (value);
 

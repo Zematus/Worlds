@@ -10,7 +10,13 @@ public class DecisionDialogPanelScript : ModalPanelScript {
 
 	public Text DecisionText;
 
+	public Transform OptionsPanelTransform;
+
 	public Button OptionButtonPrefab;
+
+	public Text SpeedButtonText;
+
+	public int ResumeSpeedLevelIndex;
 
 	public UnityEvent OptionChosenEvent;
 
@@ -76,7 +82,7 @@ public class DecisionDialogPanelScript : ModalPanelScript {
 	
 		Button newButton = Instantiate (OptionButtonPrefab) as Button;
 
-		newButton.transform.SetParent (transform, false);
+		newButton.transform.SetParent (OptionsPanelTransform, false);
 
 		_optionButtons.Add (newButton);
 
@@ -111,10 +117,30 @@ public class DecisionDialogPanelScript : ModalPanelScript {
 		}
 	}
 
-	public void SetDecision (Decision decision) {
+	public void Set (Decision decision, int currentSpeedIndex) {
+
+		ResumeSpeedLevelIndex = currentSpeedIndex;
+
+		SpeedButtonText.text = Speed.Levels[currentSpeedIndex];
 
 		DecisionText.text = decision.Description;
 
 		_decision = decision;
+	}
+
+	public void SelectNextSpeedLevel () {
+
+		ResumeSpeedLevelIndex++;
+
+		if (ResumeSpeedLevelIndex == Speed.Levels.Length) {
+		
+			ResumeSpeedLevelIndex = -1;
+
+			SpeedButtonText.text = Speed.Zero;
+
+		} else {
+
+			SpeedButtonText.text = Speed.Levels[ResumeSpeedLevelIndex];
+		}
 	}
 }

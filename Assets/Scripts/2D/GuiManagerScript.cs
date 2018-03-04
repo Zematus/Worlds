@@ -13,6 +13,8 @@ public delegate void PointerClickOperation (Vector2 position);
 public delegate void PointerHoverOperation (Vector2 position);
 
 public class GuiManagerScript : MonoBehaviour {
+	
+	public const float MaxDeltaTimeIterations = 0.02f; // max real time to be spent on iterations on a single frame (this is the value that matters the most performance-wise)
 
 	public Text MapViewButtonText;
 
@@ -59,6 +61,7 @@ public class GuiManagerScript : MonoBehaviour {
 	public EventPanelScript EventPanelScript;
 	
 	public ToggleEvent OnSimulationInterrupted;
+	public ToggleEvent OnSimulationPaused;
 
 	public ToggleEvent OnFirstMaxSpeedOptionSet;
 	public ToggleEvent OnLastMaxSpeedOptionSet;
@@ -120,7 +123,6 @@ public class GuiManagerScript : MonoBehaviour {
 	private event PointerHoverOperation _mapHoverOp = null;
 	
 	private const float _maxAccTime = 1.0f; // the standard length of time of a simulation cycle (in real time)
-	private const float _maxDeltaTimeIterations = 0.02f; // max real time to be spent on iterations on a single frame (this is the value that matters the most performance-wise)
 
 	private float _accDeltaTime = 0;
 	private long _simulationDateSpan = 0;
@@ -131,19 +133,8 @@ public class GuiManagerScript : MonoBehaviour {
 	private int _lastMapUpdateCount = 0;
 	private float _timeSinceLastMapUpdate = 0;
 
-	private Speed[] _maxSpeedOptions = new Speed[] {
-		Speed.One, 
-		Speed.Two, 
-		Speed.Three, 
-		Speed.Four, 
-		Speed.Five, 
-		Speed.Six, 
-		Speed.Seven, 
-		Speed.Max
-	};
-
-	private int _lastMaxSpeedOptionIndex;
-	private int _selectedMaxSpeedOptionIndex;
+	private int _lastMaxSpeedLevelIndex;
+	private int _selectedMaxSpeedLevelIndex;
 
 	private bool _infoTextMinimized = false;
 
@@ -190,8 +181,8 @@ public class GuiManagerScript : MonoBehaviour {
 
 		Manager.LoadAppSettings (@"Worlds.settings");
 		
-		_lastMaxSpeedOptionIndex = _maxSpeedOptions.Length - 1;
-		_selectedMaxSpeedOptionIndex = _lastMaxSpeedOptionIndex;
+		_lastMaxSpeedLevelIndex = Speed.Levels.Length - 1;
+		_selectedMaxSpeedLevelIndex = _lastMaxSpeedLevelIndex;
 
 		Manager.UpdateMainThreadReference ();
 		
@@ -304,7 +295,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 			World world = Manager.CurrentWorld;
 
-			Speed maxSpeed = _maxSpeedOptions [_selectedMaxSpeedOptionIndex];
+			Speed maxSpeed = Speed.Levels [_selectedMaxSpeedLevelIndex];
 
 			_accDeltaTime += Time.deltaTime;
 
@@ -319,7 +310,7 @@ public class GuiManagerScript : MonoBehaviour {
 			// Simulate additional iterations if we haven't reached the max amount of iterations allowed per the percentage of transpired real time during this cycle
 			if (_simulationDateSpan < maxSimulationDateSpan) {
 
-				long maxDateSpanBetweenUpdates = (int)Mathf.Ceil(maxSpeed * _maxDeltaTimeIterations);
+				long maxDateSpanBetweenUpdates = (int)Mathf.Ceil(maxSpeed * MaxDeltaTimeIterations);
 				long lastUpdateDate = world.CurrentDate;
 
 				long dateSpan = 0;
@@ -349,7 +340,7 @@ public class GuiManagerScript : MonoBehaviour {
 					float deltaTimeIterations = Time.realtimeSinceStartup - startTimeIterations;
 
 					// If too much real time was spent simulating after this iteration stop simulating until the next frame
-					if (deltaTimeIterations > _maxDeltaTimeIterations)
+					if (deltaTimeIterations > MaxDeltaTimeIterations)
 						break;
 				}
 
@@ -698,9 +689,9 @@ public class GuiManagerScript : MonoBehaviour {
 
 		SetInitialPopulation ();
 
-		_selectedMaxSpeedOptionIndex = _lastMaxSpeedOptionIndex;
+		_selectedMaxSpeedLevelIndex = _lastMaxSpeedLevelIndex;
 
-		SetMaxSpeedOption (_selectedMaxSpeedOptionIndex);
+		SetMaxSpeedLevel (_selectedMaxSpeedLevelIndex);
 		
 		_postProgressOp -= PostProgressOp_GenerateWorld;
 	}
@@ -1089,13 +1080,13 @@ public class GuiManagerScript : MonoBehaviour {
 
 		long maxSpeed = Manager.CurrentWorld.MaxTimeToSkip;
 
-		for (int i = 0; i < _maxSpeedOptions.Length; i++) {
+		for (int i = 0; i < Speed.Levels.Length; i++) {
 
-			if (maxSpeed <= _maxSpeedOptions [i]) {
+			if (maxSpeed <= Speed.Levels [i]) {
 
-				_selectedMaxSpeedOptionIndex = i;
+				_selectedMaxSpeedLevelIndex = i;
 
-				SetMaxSpeedOption (_selectedMaxSpeedOptionIndex);
+				SetMaxSpeedLevel (_selectedMaxSpeedLevelIndex);
 
 				break;
 			}
@@ -1108,12 +1099,12 @@ public class GuiManagerScript : MonoBehaviour {
 			return;
 		}
 	
-		if (_selectedMaxSpeedOptionIndex == _lastMaxSpeedOptionIndex)
+		if (_selectedMaxSpeedLevelIndex == _lastMaxSpeedLevelIndex)
 			return;
 
-		_selectedMaxSpeedOptionIndex++;
+		_selectedMaxSpeedLevelIndex++;
 
-		SetMaxSpeedOption (_selectedMaxSpeedOptionIndex);
+		SetMaxSpeedLevel (_selectedMaxSpeedLevelIndex);
 	}
 
 	public void DecreaseMaxSpeed () {
@@ -1122,26 +1113,26 @@ public class GuiManagerScript : MonoBehaviour {
 			return;
 		}
 
-		if (_selectedMaxSpeedOptionIndex == 0)
+		if (_selectedMaxSpeedLevelIndex == 0)
 			return;
 
-		_selectedMaxSpeedOptionIndex--;
+		_selectedMaxSpeedLevelIndex--;
 
-		SetMaxSpeedOption (_selectedMaxSpeedOptionIndex);
+		SetMaxSpeedLevel (_selectedMaxSpeedLevelIndex);
 	}
 
-	public void SetMaxSpeedOption (int speedOptionIndex) {
+	public void SetMaxSpeedLevel (int speedLevelIndex) {
 
-		_selectedMaxSpeedOptionIndex = speedOptionIndex;
+		_selectedMaxSpeedLevelIndex = speedLevelIndex;
 
-		OnFirstMaxSpeedOptionSet.Invoke (_pausingDialogActive || (_selectedMaxSpeedOptionIndex == 0));
-		OnLastMaxSpeedOptionSet.Invoke (_pausingDialogActive || (_selectedMaxSpeedOptionIndex == _lastMaxSpeedOptionIndex));
+		OnFirstMaxSpeedOptionSet.Invoke (_pausingDialogActive || (_selectedMaxSpeedLevelIndex == 0));
+		OnLastMaxSpeedOptionSet.Invoke (_pausingDialogActive || (_selectedMaxSpeedLevelIndex == _lastMaxSpeedLevelIndex));
 
 		// This is the max amount of iterations to simulate per second
-		Speed selectedSpeed = _maxSpeedOptions [speedOptionIndex];
+		Speed selectedSpeed = Speed.Levels [speedLevelIndex];
 
 		// This is the max amount of iterations to simulate per frame
-		int maxSpeed = (int)Mathf.Ceil(selectedSpeed * _maxDeltaTimeIterations);
+		int maxSpeed = (int)Mathf.Ceil(selectedSpeed * MaxDeltaTimeIterations);
 
 		Manager.CurrentWorld.SetMaxTimeToSkip (maxSpeed);
 
@@ -1233,7 +1224,9 @@ public class GuiManagerScript : MonoBehaviour {
 
 	public void RequestDecisionResolution () {
 
-		DecisionDialogPanelScript.SetDecision (Manager.CurrentWorld.PullDecisionToResolve ());
+		Decision decisionToResolve = Manager.CurrentWorld.PullDecisionToResolve ();
+
+		DecisionDialogPanelScript.Set (decisionToResolve, _selectedMaxSpeedLevelIndex);
 
 		if (!AreHighPrioPanelsActive ()) {
 			
@@ -1252,6 +1245,19 @@ public class GuiManagerScript : MonoBehaviour {
 	public void ResolveDecision () {
 
 		DecisionDialogPanelScript.SetVisible (false);
+
+		int resumeSpeedLevelIndex = DecisionDialogPanelScript.ResumeSpeedLevelIndex;
+
+		if (resumeSpeedLevelIndex == -1) {
+
+			PauseSimulation (true);
+
+		} else {
+
+			_selectedMaxSpeedLevelIndex = resumeSpeedLevelIndex;
+
+			SetMaxSpeedLevel (_selectedMaxSpeedLevelIndex);
+		}
 
 		InterruptSimulation (false);
 
@@ -1365,7 +1371,7 @@ public class GuiManagerScript : MonoBehaviour {
 		if (state) {
 			OnSimulationSpeedChanged.Invoke (Speed.Zero);
 		} else {
-			OnSimulationSpeedChanged.Invoke (_maxSpeedOptions[_selectedMaxSpeedOptionIndex]);
+			OnSimulationSpeedChanged.Invoke (Speed.Levels[_selectedMaxSpeedLevelIndex]);
 		}
 	}
 
@@ -1375,6 +1381,8 @@ public class GuiManagerScript : MonoBehaviour {
 	}
 
 	public void PauseSimulation (bool state) {
+
+		OnSimulationPaused.Invoke (state);
 
 		_pauseButtonPressed = state;
 
@@ -1398,8 +1406,8 @@ public class GuiManagerScript : MonoBehaviour {
 
 		SetSimulationSpeedStopped (state);
 
-		OnFirstMaxSpeedOptionSet.Invoke (state || (_selectedMaxSpeedOptionIndex == 0));
-		OnLastMaxSpeedOptionSet.Invoke (state || (_selectedMaxSpeedOptionIndex == _lastMaxSpeedOptionIndex));
+		OnFirstMaxSpeedOptionSet.Invoke (state || (_selectedMaxSpeedLevelIndex == 0));
+		OnLastMaxSpeedOptionSet.Invoke (state || (_selectedMaxSpeedLevelIndex == _lastMaxSpeedLevelIndex));
 
 		Manager.InterruptSimulation (state);
 	}

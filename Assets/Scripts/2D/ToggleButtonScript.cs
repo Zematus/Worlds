@@ -30,7 +30,7 @@ public class ToggleButtonScript : MonoBehaviour {
 
 	public void OnValueChanged () {
 
-		SetState (Toggle.isOn);
+		OnToggle.Invoke (Toggle.isOn);
 	}
 
 	public void SetState (bool value) {
@@ -42,7 +42,6 @@ public class ToggleButtonScript : MonoBehaviour {
 		PartialCheckImage.enabled = !value && _partialCheck;
 		CheckImage.enabled = value;
 
-		OnToggle.Invoke (value);
 	}
 
 	public void SetPartiallyToggled (bool state) {
