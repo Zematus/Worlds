@@ -1137,6 +1137,14 @@ public class GuiManagerScript : MonoBehaviour {
 		Manager.CurrentWorld.SetMaxTimeToSkip (maxSpeed);
 
 		OnSimulationSpeedChanged.Invoke (selectedSpeed);
+
+		ResetAccDeltaTime ();
+	}
+
+	private void ResetAccDeltaTime () {
+
+		_accDeltaTime = 0;
+		_simulationDateSpan = 0;
 	}
 
 	public void PostProgressOp_LoadAction () {
@@ -1410,6 +1418,8 @@ public class GuiManagerScript : MonoBehaviour {
 		OnLastMaxSpeedOptionSet.Invoke (state || (_selectedMaxSpeedLevelIndex == _lastMaxSpeedLevelIndex));
 
 		Manager.InterruptSimulation (state);
+
+		ResetAccDeltaTime ();
 	}
 
 	public void UpdateMapView () {

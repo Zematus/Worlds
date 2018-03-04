@@ -653,6 +653,21 @@ public class World : ISynchronizable {
 	public void SetMaxTimeToSkip (long value) {
 	
 		MaxTimeToSkip = (value > 1) ? value : 1;
+
+		long maxDate = CurrentDate + MaxTimeToSkip;
+
+		#if DEBUG
+		if (maxDate >= World.MaxSupportedDate) {
+			Debug.LogWarning ("'maxDate' shouldn't be greater than " + World.MaxSupportedDate + " (date = " + maxDate + ")");
+		}
+		#endif
+
+		if (maxDate < 0) {
+			Debug.Break ();
+			throw new System.Exception ("Surpassed date limit (Int64.MaxValue)");
+		}
+
+		_dateToSkipTo = (_dateToSkipTo < maxDate) ? _dateToSkipTo : maxDate;
 	}
 
 	private bool ValidateEventsToHappenNode (BinaryTreeNode<long, WorldEvent> node) {
@@ -918,8 +933,8 @@ public class World : ISynchronizable {
 				long maxDate = CurrentDate + MaxTimeToSkip;
 
 				#if DEBUG
-				if (maxDate >= 9223372036) {
-					Debug.LogWarning ("'maxDate' shouldn't be greater than 9223372036 (date = " + maxDate + ")");
+				if (maxDate >= World.MaxSupportedDate) {
+					Debug.LogWarning ("'maxDate' shouldn't be greater than " + World.MaxSupportedDate + " (date = " + maxDate + ")");
 				}
 				#endif
 

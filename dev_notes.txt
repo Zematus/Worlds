@@ -6,7 +6,6 @@ BUGS:
 - (MED 1/17/18) Regions seems to get selected when clicking on polity overlays
 - (MED 1/17/18) Clicking on regions do not highlight them rightaway until clicked a second time
 - (MED 1/18/18) Check why certain cells get updated very frequently afer the world mostly stabilized
-- (MED 3/4/18) Setting a low speed after resolving a decision my still allow for a big time skip until next event
 - (LOW 1/18/18) Sometimes factions appear with exactly the same name (possibly due to both factions having the same core?)
 - (LOW 2/19/18) Expanding polity inflence effects should be calculated on their own phase (outside of the event) to reduce load discrepancies
 

@@ -990,8 +990,8 @@ public abstract class PolityEvent : WorldEvent {
 	public static long GenerateUniqueIdentifier (Polity polity, long triggerDate, long eventTypeId) {
 
 		#if DEBUG
-		if (triggerDate >= 9223372036) {
-			Debug.LogWarning ("'triggerDate' shouldn't be greater than 9223372036 (triggerDate = " + triggerDate + ")");
+		if (triggerDate >= World.MaxSupportedDate) {
+			Debug.LogWarning ("'triggerDate' shouldn't be greater than " + World.MaxSupportedDate + " (triggerDate = " + triggerDate + ")");
 		}
 		#endif
 
