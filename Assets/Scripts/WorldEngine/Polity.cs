@@ -1027,3 +1027,12 @@ public abstract class PolityEvent : WorldEvent {
 	}
 }
 
+public abstract class PolityDecision : Decision {
+
+	public Polity Polity;
+
+	public PolityDecision (Polity polity) : base () {
+
+		Polity = polity;
+	}
+}

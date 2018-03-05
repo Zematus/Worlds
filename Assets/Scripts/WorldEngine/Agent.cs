@@ -277,4 +277,10 @@ public class Agent : ISynchronizable {
 			throw new System.Exception ("Missing Group with Id " + GroupId);
 		}
 	}
+
+	public string PossessiveNoun {
+		get { 
+			return (IsFemale) ? "her" : "his"; 
+		}
+	}
 }

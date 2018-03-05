@@ -1,8 +1,6 @@
 BUGS:
 
-- (HIGH 1/18/18) Decision dialog overlaps with other modal dialogs (see screenshot bugs\bug_overlap.png)
-- (HIGH 1/18/18) Overlay subtype dialog remains open when guiding faction (see screenshot bugs\bug_overlap.png)
-- (HIGH 1/19/18) Invalid input when trying to generate new world (tries custom world by default, maybe just when tested within editor)
+- (HIGH 3/4/18) Trying to prevent a clan from splitting doesn't seem to reduce authority
 - (MED 1/17/18) Regions seems to get selected when clicking on polity overlays
 - (MED 1/17/18) Clicking on regions do not highlight them rightaway until clicked a second time
 - (MED 1/18/18) Check why certain cells get updated very frequently afer the world mostly stabilized
