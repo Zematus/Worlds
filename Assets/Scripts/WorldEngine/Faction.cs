@@ -383,13 +383,19 @@ public abstract class FactionEvent : WorldEvent {
 	public long FactionId;
 
 	[XmlAttribute]
-	public long PolityId;
+	public long OriginalPolityId;
+
+	[XmlAttribute]
+	public long CurrentPolityId;
 
 	[XmlAttribute]
 	public long EventTypeId;
 
 	[XmlIgnore]
 	public Faction Faction;
+
+	[XmlIgnore]
+	public Polity OriginalPolity;
 
 	public FactionEvent () {
 
@@ -401,6 +407,9 @@ public abstract class FactionEvent : WorldEvent {
 		FactionId = Faction.Id;
 
 		EventTypeId = eventTypeId;
+
+		OriginalPolity = faction.Polity;
+		OriginalPolityId = OriginalPolity.Id;
 
 //		#if DEBUG
 //		if (Manager.RegisterDebugEvent != null) {
@@ -439,7 +448,7 @@ public abstract class FactionEvent : WorldEvent {
 
 		if (polity == null) {
 
-			Debug.LogError ("FactionEvent: Polity with Id:" + PolityId + " not found");
+			Debug.LogError ("FactionEvent: Polity with Id:" + Faction.PolityId + " not found");
 		}
 
 		return true;
@@ -447,7 +456,7 @@ public abstract class FactionEvent : WorldEvent {
 
 	public override void Synchronize ()
 	{
-		PolityId = Faction.PolityId;
+		CurrentPolityId = Faction.PolityId;
 
 		base.Synchronize ();
 	}
@@ -456,11 +465,11 @@ public abstract class FactionEvent : WorldEvent {
 
 		base.FinalizeLoad ();
 
-		Polity polity = World.GetPolity (PolityId);
+		Polity polity = World.GetPolity (CurrentPolityId);
 
 		if (polity == null) {
 
-			Debug.LogError ("FactionEvent: Polity with Id:" + PolityId + " not found");
+			Debug.LogError ("FactionEvent: Polity with Id:" + CurrentPolityId + " not found");
 		}
 
 		Faction = polity.GetFaction (FactionId);
@@ -472,6 +481,9 @@ public abstract class FactionEvent : WorldEvent {
 	}
 
 	public virtual void Reset (long newTriggerDate) {
+
+		OriginalPolity = Faction.Polity;
+		OriginalPolityId = OriginalPolity.Id;
 
 		Reset (newTriggerDate, GenerateUniqueIdentifier (Faction, newTriggerDate, EventTypeId));
 	}

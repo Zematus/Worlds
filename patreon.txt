@@ -1,0 +1,5 @@
+Reward ideas
+
+1. All levels get access to a release build a couple weeks before everybody else
+2. Some levels get access to more frequent test builds
+3. All patrons appear o credits. At different levels depending on contribution level
