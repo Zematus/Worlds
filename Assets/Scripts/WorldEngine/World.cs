@@ -187,7 +187,8 @@ public class World : ISynchronizable {
 		XmlArrayItem (Type = typeof(TribalismDiscoveryEvent)),
 		XmlArrayItem (Type = typeof(PlantCultivationDiscoveryEvent)),
 		XmlArrayItem (Type = typeof(ClanSplitDecisionEvent)),
-		XmlArrayItem (Type = typeof(TribeSplitEvent)),
+		XmlArrayItem (Type = typeof(TribeSplitDecisionEvent)),
+//		XmlArrayItem (Type = typeof(TribeSplitEvent)),
 		XmlArrayItem (Type = typeof(ClanCoreMigrationEvent))]
 	public List<WorldEvent> EventsToHappen;
 
@@ -1292,7 +1293,10 @@ public class World : ISynchronizable {
 
 		Polity polity;
 
-		_polities.TryGetValue (id, out polity);
+		if (!_polities.TryGetValue (id, out polity)) {
+		
+			return null;
+		}
 
 		return polity;
 	}

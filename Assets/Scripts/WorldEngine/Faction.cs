@@ -401,6 +401,17 @@ public abstract class FactionEvent : WorldEvent {
 
 	}
 
+	public FactionEvent (Faction faction, long originalPolityId, long triggerDate, long eventTypeId) : base (faction.World, triggerDate, GenerateUniqueIdentifier (faction, triggerDate, eventTypeId)) {
+
+		Faction = faction;
+		FactionId = Faction.Id;
+
+		EventTypeId = eventTypeId;
+
+		OriginalPolityId = originalPolityId;
+		OriginalPolity = World.GetPolity (originalPolityId);
+	}
+
 	public FactionEvent (Faction faction, long triggerDate, long eventTypeId) : base (faction.World, triggerDate, GenerateUniqueIdentifier (faction, triggerDate, eventTypeId)) {
 
 		Faction = faction;

@@ -44,6 +44,15 @@ public class Clan : Faction {
 	[XmlAttribute("TSplitDate")]
 	public long TribeSplitDecisionEventDate;
 
+	[XmlAttribute("CoreMigOrigTribeId")]
+	public long CoreMigrationEventOriginalTribeId;
+
+	[XmlAttribute("CSplitOrigTribeId")]
+	public long ClanSplitDecisionOriginalTribeId;
+
+	[XmlAttribute("TSplitOrigTribeId")]
+	public long TribeSplitDecisionOriginalTribeId;
+
 	[XmlIgnore]
 	public ClanCoreMigrationEvent CoreMigrationEvent;
 
@@ -67,11 +76,18 @@ public class Clan : Faction {
 
 		CoreMigrationEventDate = ClanCoreMigrationEvent.CalculateTriggerDate (this);
 		CoreMigrationEvent = new ClanCoreMigrationEvent (this, CoreMigrationEventDate);
+		CoreMigrationEventOriginalTribeId = CoreMigrationEvent.OriginalPolityId;
 		World.InsertEventToHappen (CoreMigrationEvent);
 
 		ClanSplitDecisionEventDate = ClanSplitDecisionEvent.CalculateTriggerDate (this);
 		ClanSplitDecisionEvent = new ClanSplitDecisionEvent (this, ClanSplitDecisionEventDate);
+		ClanSplitDecisionOriginalTribeId = ClanSplitDecisionEvent.OriginalPolityId;
 		World.InsertEventToHappen (ClanSplitDecisionEvent);
+
+		TribeSplitDecisionEventDate = TribeSplitDecisionEvent.CalculateTriggerDate (this);
+		TribeSplitDecisionEvent = new TribeSplitDecisionEvent (this, TribeSplitDecisionEventDate);
+		TribeSplitDecisionOriginalTribeId = TribeSplitDecisionEvent.OriginalPolityId;
+		World.InsertEventToHappen (TribeSplitDecisionEvent);
 	}
 
 	public CellGroup GetCoreGroupMigrationTarget () {
@@ -89,11 +105,14 @@ public class Clan : Faction {
 	
 		base.FinalizeLoad ();
 
-		CoreMigrationEvent = new ClanCoreMigrationEvent (this, CoreMigrationEventDate);
+		CoreMigrationEvent = new ClanCoreMigrationEvent (this, CoreMigrationEventOriginalTribeId, CoreMigrationEventDate);
 		World.InsertEventToHappen (CoreMigrationEvent);
 
-		ClanSplitDecisionEvent = new ClanSplitDecisionEvent (this, ClanSplitDecisionEventDate);
+		ClanSplitDecisionEvent = new ClanSplitDecisionEvent (this, ClanSplitDecisionOriginalTribeId, ClanSplitDecisionEventDate);
 		World.InsertEventToHappen (ClanSplitDecisionEvent);
+
+		TribeSplitDecisionEvent = new TribeSplitDecisionEvent (this, TribeSplitDecisionOriginalTribeId, TribeSplitDecisionEventDate);
+		World.InsertEventToHappen (TribeSplitDecisionEvent);
 	}
 
 	protected override void UpdateInternal () {
@@ -108,6 +127,7 @@ public class Clan : Faction {
 			CoreMigrationEventDate = ClanCoreMigrationEvent.CalculateTriggerDate (this);
 
 			CoreMigrationEvent.Reset (CoreMigrationEventDate);
+			CoreMigrationEventOriginalTribeId = CoreMigrationEvent.OriginalPolityId;
 
 			World.InsertEventToHappen (CoreMigrationEvent);
 		}
@@ -671,6 +691,11 @@ public class ClanCoreMigrationEvent : FactionEvent {
 		DoNotSerialize = true;
 	}
 
+	public ClanCoreMigrationEvent (Clan clan, long originalTribeId, long triggerDate) : base (clan, originalTribeId, triggerDate, ClanCoreMigrationEventId) {
+
+		DoNotSerialize = true;
+	}
+
 	public ClanCoreMigrationEvent (Clan clan, long triggerDate) : base (clan, triggerDate, ClanCoreMigrationEventId) {
 
 		DoNotSerialize = true;
@@ -734,6 +759,7 @@ public class ClanCoreMigrationEvent : FactionEvent {
 			clan.CoreMigrationEventDate = CalculateTriggerDate (clan);
 
 			Reset (clan.CoreMigrationEventDate);
+			clan.CoreMigrationEventOriginalTribeId = OriginalPolityId;
 
 			World.InsertEventToHappen (this);
 		}
@@ -767,6 +793,13 @@ public class ClanSplitDecisionEvent : FactionEvent {
 	private float _chanceOfSplitting;
 
 	public ClanSplitDecisionEvent () {
+
+		DoNotSerialize = true;
+	}
+
+	public ClanSplitDecisionEvent (Clan clan, long originalTribeId, long triggerDate) : base (clan, originalTribeId, triggerDate, ClanSplitEventId) {
+
+		_clan = clan;
 
 		DoNotSerialize = true;
 	}
@@ -1007,6 +1040,7 @@ public class ClanSplitDecisionEvent : FactionEvent {
 			clan.ClanSplitDecisionEventDate = CalculateTriggerDate (clan);
 
 			Reset (clan.ClanSplitDecisionEventDate);
+			clan.ClanSplitDecisionOriginalTribeId = OriginalPolityId;
 
 			World.InsertEventToHappen (this);
 		}
@@ -1019,8 +1053,6 @@ public class TribeSplitDecisionEvent : FactionEvent {
 	public const long MinDateSpan = CellGroup.GenerationSpan * 40;
 
 	public const int TerminalAdministrativeLoadValue = 500000;
-
-	//	public const string EventSetFlag = "TribeSplitEvent_Set";
 
 	public const float MinCoreInfluenceValue = 0.3f;
 
@@ -1036,11 +1068,16 @@ public class TribeSplitDecisionEvent : FactionEvent {
 		DoNotSerialize = true;
 	}
 
-	public TribeSplitDecisionEvent (Clan clan, long triggerDate) : base (clan, triggerDate, TribeSplitEventId) {
+	public TribeSplitDecisionEvent (Clan clan, long originalTribeId, long triggerDate) : base (clan, originalTribeId, triggerDate, TribeSplitEventId) {
 
 		_clan = clan;
 
-		//		tribe.SetFlag (EventSetFlag);
+		DoNotSerialize = true;
+	}
+
+	public TribeSplitDecisionEvent (Clan clan, long triggerDate) : base (clan, triggerDate, TribeSplitEventId) {
+
+		_clan = clan;
 
 		DoNotSerialize = true;
 	}
@@ -1096,19 +1133,10 @@ public class TribeSplitDecisionEvent : FactionEvent {
 
 	public static bool CanBeAssignedTo (Clan clan) {
 
-		//		if (tribe.IsFlagSet (EventSetFlag))
-		//			return false;
-
 		return true;
 	}
 
 	public override bool CanTrigger () {
-
-		//		#if DEBUG
-		//		if (Polity.Territory.IsSelected) {
-		//			bool debug = true;
-		//		}
-		//		#endif
 
 		if (!base.CanTrigger ())
 			return false;
@@ -1169,10 +1197,6 @@ public class TribeSplitDecisionEvent : FactionEvent {
 
 		base.DestroyInternal ();
 
-		//		if (Polity != null) {
-		//			Polity.UnsetFlag (EventSetFlag);
-		//		}
-
 		if ((Faction != null) && (Faction.StillPresent)) {
 
 			if (CanBeAssignedTo (_clan)) {
@@ -1180,6 +1204,7 @@ public class TribeSplitDecisionEvent : FactionEvent {
 				_clan.TribeSplitDecisionEvent = this;
 
 				_clan.TribeSplitDecisionEventDate = CalculateTriggerDate (_clan);
+				_clan.TribeSplitDecisionOriginalTribeId = OriginalPolityId;
 
 				Reset (_clan.TribeSplitDecisionEventDate);
 
