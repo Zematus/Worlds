@@ -5,6 +5,25 @@ using System.Xml;
 using System.Xml.Serialization;
 using UnityEngine.Profiling;
 
+public class FactionRelationship {
+
+	[XmlAttribute("Id")]
+	public long Id;
+
+	[XmlAttribute("Val")]
+	public float Value;
+
+	public FactionRelationship () {
+	}
+
+	public FactionRelationship (long id, float value) {
+
+		Id = id;
+
+		Value = value;
+	}
+}
+
 public abstract class Faction : ISynchronizable {
 
 	[XmlAttribute("Type")]
@@ -39,9 +58,13 @@ public abstract class Faction : ISynchronizable {
 
 	public FactionCulture Culture;
 
+	public List<FactionRelationship> FactionRelationships = new List<FactionRelationship> ();
+
 	protected CellGroup _splitFactionCoreGroup;
 	protected float _splitFactionMinProminence;
 	protected float _splitFactionMaxProminence;
+
+	protected Dictionary<long, FactionRelationship> _factionRelationships = new Dictionary<long, FactionRelationship> ();
 
 	public Name Name = null;
 
@@ -142,6 +165,40 @@ public abstract class Faction : ISynchronizable {
 		World.RemoveFaction (this);
 
 		StillPresent = false;
+	}
+
+	public void SetFactionRelationship (Faction faction, float value) {
+
+		if (!_factionRelationships.ContainsKey (faction.Id)) {
+		
+			FactionRelationship relationship = new FactionRelationship (faction.Id, value);
+
+			_factionRelationships.Add (faction.Id, relationship);
+			FactionRelationships.Add (relationship);
+
+		} else {
+
+			_factionRelationships[faction.Id].Value = value;
+		}
+	}
+
+	public void RemoveFactionRelationship (Faction faction) {
+
+		if (!_factionRelationships.ContainsKey (faction.Id))
+			throw new System.Exception ("relationship not present: " + faction.Id);
+
+		FactionRelationship relationship = _factionRelationships [faction.Id];
+
+		FactionRelationships.Remove (relationship);
+		_factionRelationships.Remove (faction.Id);
+	}
+
+	public float GetFactionRelationshipValue (Faction faction) {
+
+		if (!_factionRelationships.ContainsKey (faction.Id))
+			throw new System.Exception ("relationship not present: " + faction.Id);
+
+		return _factionRelationships[faction.Id].Value;
 	}
 
 	public void SetToSplit (CellGroup splitFactionCoreGroup, float splitFactionMinProminence, float splitFactionMaxProminence) {
@@ -267,6 +324,11 @@ public abstract class Faction : ISynchronizable {
 		Culture.World = World;
 		Culture.Faction = this;
 		Culture.FinalizeLoad ();
+
+		foreach (FactionRelationship relationship in FactionRelationships) {
+		
+			_factionRelationships.Add (relationship.Id, relationship);
+		}
 
 		Flags.ForEach (f => _flags.Add (f));
 	}
