@@ -13,12 +13,17 @@ public class FactionRelationship {
 	[XmlAttribute("Val")]
 	public float Value;
 
+	[XmlIgnore]
+	public Faction Faction;
+
 	public FactionRelationship () {
 	}
 
-	public FactionRelationship (long id, float value) {
+	public FactionRelationship (Faction faction, float value) {
 
-		Id = id;
+		Faction = faction;
+
+		Id = faction.Id;
 
 		Value = value;
 	}
@@ -58,13 +63,13 @@ public abstract class Faction : ISynchronizable {
 
 	public FactionCulture Culture;
 
-	public List<FactionRelationship> FactionRelationships = new List<FactionRelationship> ();
+	public List<FactionRelationship> Relationships = new List<FactionRelationship> ();
 
 	protected CellGroup _splitFactionCoreGroup;
 	protected float _splitFactionMinProminence;
 	protected float _splitFactionMaxProminence;
 
-	protected Dictionary<long, FactionRelationship> _factionRelationships = new Dictionary<long, FactionRelationship> ();
+	protected Dictionary<long, FactionRelationship> relationships = new Dictionary<long, FactionRelationship> ();
 
 	public Name Name = null;
 
@@ -162,43 +167,67 @@ public abstract class Faction : ISynchronizable {
 			Polity.RemoveFaction (this);
 		}
 
+		foreach (FactionRelationship relationship in relationships.Values) {
+
+			relationship.Faction.RemoveRelationship (this);
+		}
+
 		World.RemoveFaction (this);
 
 		StillPresent = false;
 	}
 
-	public void SetFactionRelationship (Faction faction, float value) {
+	public static int CompareId (Faction a, Faction b) {
 
-		if (!_factionRelationships.ContainsKey (faction.Id)) {
+		if (a.Id > b.Id)
+			return 1;
+
+		if (a.Id < b.Id)
+			return -1;
+
+		return 0;
+	}
+
+	public static void SetRelationship (Faction factionA, Faction factionB, float value) {
+	
+		factionA.SetRelationship (factionB, value);
+		factionB.SetRelationship (factionA, value);
+	}
+
+	public void SetRelationship (Faction faction, float value) {
+
+		value = Mathf.Clamp01 (value);
+
+		if (!relationships.ContainsKey (faction.Id)) {
 		
-			FactionRelationship relationship = new FactionRelationship (faction.Id, value);
+			FactionRelationship relationship = new FactionRelationship (faction, value);
 
-			_factionRelationships.Add (faction.Id, relationship);
-			FactionRelationships.Add (relationship);
+			relationships.Add (faction.Id, relationship);
+			Relationships.Add (relationship);
 
 		} else {
 
-			_factionRelationships[faction.Id].Value = value;
+			relationships[faction.Id].Value = value;
 		}
 	}
 
-	public void RemoveFactionRelationship (Faction faction) {
+	public void RemoveRelationship (Faction faction) {
 
-		if (!_factionRelationships.ContainsKey (faction.Id))
+		if (!relationships.ContainsKey (faction.Id))
 			throw new System.Exception ("relationship not present: " + faction.Id);
 
-		FactionRelationship relationship = _factionRelationships [faction.Id];
+		FactionRelationship relationship = relationships [faction.Id];
 
-		FactionRelationships.Remove (relationship);
-		_factionRelationships.Remove (faction.Id);
+		Relationships.Remove (relationship);
+		relationships.Remove (faction.Id);
 	}
 
-	public float GetFactionRelationshipValue (Faction faction) {
+	public float GetRelationshipValue (Faction faction) {
 
-		if (!_factionRelationships.ContainsKey (faction.Id))
+		if (!relationships.ContainsKey (faction.Id))
 			throw new System.Exception ("relationship not present: " + faction.Id);
 
-		return _factionRelationships[faction.Id].Value;
+		return relationships[faction.Id].Value;
 	}
 
 	public void SetToSplit (CellGroup splitFactionCoreGroup, float splitFactionMinProminence, float splitFactionMaxProminence) {
@@ -325,9 +354,14 @@ public abstract class Faction : ISynchronizable {
 		Culture.Faction = this;
 		Culture.FinalizeLoad ();
 
-		foreach (FactionRelationship relationship in FactionRelationships) {
+		foreach (FactionRelationship relationship in Relationships) {
 		
-			_factionRelationships.Add (relationship.Id, relationship);
+			relationships.Add (relationship.Id, relationship);
+			relationship.Faction = World.GetFaction (relationship.Id);
+
+			if (relationship.Faction == null) {
+				throw new System.Exception ("Faction is null, Id: " + relationship.Id);
+			}
 		}
 
 		Flags.ForEach (f => _flags.Add (f));

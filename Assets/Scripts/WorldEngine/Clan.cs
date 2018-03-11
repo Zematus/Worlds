@@ -25,11 +25,15 @@ public class Clan : Faction {
 	public const int LeadershipAvgSpan = 20 * World.YearLength;
 	public const int MinClanLeaderStartAge = 16 * World.YearLength;
 	public const int MaxClanLeaderStartAge = 50 * World.YearLength;
-	
+
 	public const int MinSocialOrganizationValue = 400;
 
 	public const int MinCoreMigrationPopulation = 500;
 	public const float MinCoreMigrationPolityInfluence = 0.3f;
+
+	public const float AvgClanSplitRelationshipValue = 0.5f;
+	public const float ClanSplitRelationshipValueSpread = 0.1f;
+	public const float ClanSplitRelationshipValueCharismaFactor = 50f;
 
 	public const string ClanType = "Clan";
 
@@ -360,13 +364,41 @@ public class Clan : Faction {
 //		}
 //		#endif
 
-		float randomValue = GetNextLocalRandomFloat ((int)(RngOffsets.CLAN_SPLIT + Id));
+		float randomOffset = (int)(RngOffsets.CLAN_SPLIT + Id);
+
+		float randomValue = GetNextLocalRandomFloat (randomOffset++);
 		float splitFactionProminence = _splitFactionMinProminence + (randomValue * (_splitFactionMaxProminence - _splitFactionMinProminence));
 
 		Prominence -= splitFactionProminence;
 
 		Clan newClan = new Clan (Polity as Tribe, _splitFactionCoreGroup, splitFactionProminence, this);
 		newClan.Initialize (); // We can initialize right away since the containing polity is already initialized
+
+		// set relationship with parent clan
+
+		float parentClanRelationshipValue = AvgClanSplitRelationshipValue + (CurrentLeader.Charisma - 10) / ClanSplitRelationshipValueCharismaFactor;
+
+		randomValue = GetNextLocalRandomFloat (randomOffset++);
+		float relationshipValue = parentClanRelationshipValue + (ClanSplitRelationshipValueSpread * (2f * randomValue - 1f));
+
+		SetRelationship (this, newClan, relationshipValue);
+
+		// set relationship with rest of factions in polity
+
+		float avgNewClanRelationshipValue = AvgClanSplitRelationshipValue + (newClan.CurrentLeader.Charisma - 10) / ClanSplitRelationshipValueCharismaFactor;
+
+		foreach (Faction faction in Polity.GetFactions (true)) {
+
+			if (faction == this)
+				continue;
+		
+			randomValue = GetNextLocalRandomFloat (randomOffset++);
+			relationshipValue = avgNewClanRelationshipValue + (ClanSplitRelationshipValueSpread * (2f * randomValue - 1f));
+
+			SetRelationship (faction, newClan, relationshipValue);
+		}
+
+		// finalize
 
 		Polity.AddFaction (newClan);
 
@@ -1087,10 +1119,12 @@ public class TribeSplitDecisionEvent : FactionEvent {
 
 	public static long CalculateTriggerDate (Clan clan) {
 
-		float randomFactor = clan.GetNextLocalRandomFloat (RngOffsets.CLAN_SPLITTING_EVENT_CALCULATE_TRIGGER_DATE);
+		float randomFactor = clan.GetNextLocalRandomFloat (RngOffsets.TRIBE_SPLITTING_EVENT_CALCULATE_TRIGGER_DATE);
 		randomFactor = Mathf.Pow (randomFactor, 2);
 
-		float administrativeLoad = clan.CalculateAdministrativeLoad ();
+		Clan dominantClan = clan.Polity.DominantFaction as Clan;
+
+		float administrativeLoad = clan.Polity.TotalAdministrativeCost * dominantClan.Prominence;
 
 		float loadFactor = 1;
 

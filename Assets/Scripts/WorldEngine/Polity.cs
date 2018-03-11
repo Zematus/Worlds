@@ -404,7 +404,14 @@ public abstract class Polity : ISynchronizable {
 		}
 	}
 
-	public IEnumerable<Faction> GetFactions () {
+	public IEnumerable<Faction> GetFactions (bool ordered = false) {
+
+		if (ordered) {
+			List<Faction> sortedFactions = new List<Faction> (_factions.Values);
+			sortedFactions.Sort (Faction.CompareId);
+
+			return sortedFactions;
+		}
 
 		return _factions.Values;
 	}

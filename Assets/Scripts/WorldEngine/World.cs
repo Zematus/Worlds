@@ -1248,7 +1248,7 @@ public class World : ISynchronizable {
 
 	public Faction GetFaction (long id) {
 
-		Faction faction;
+		Faction faction = null;
 
 		_factions.TryGetValue (id, out faction);
 
