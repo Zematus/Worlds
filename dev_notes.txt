@@ -36,6 +36,8 @@ Clans - migratory (core should be centroid of territory), nebulous, no focus
 Families - core within an urban area, associated with a trade
 Houses - noble status (caste), associated with a territory, core is capital of territory
 
+Low cohesiveness should reduce polity influence within cellgroups. 
+
 Events to add:
 - Clan Events:
 	- Prominence update

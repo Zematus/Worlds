@@ -1064,7 +1064,7 @@ public class TribeSplitDecisionEvent : FactionEvent {
 
 	public const float MinCoreInfluenceValue = 0.3f;
 
-	public const float MinCoreDistance = 1000f;
+	public const float MinCoreDistance = 200f;
 
 	private Clan _clan;
 
@@ -1111,12 +1111,9 @@ public class TribeSplitDecisionEvent : FactionEvent {
 		float cohesivenessPreferenceValue = clan.GetCohesivenessPreferenceValue ();
 
 		float cohesivenessPrefFactor = 2 * cohesivenessPreferenceValue;
-		cohesivenessPrefFactor = Mathf.Pow (cohesivenessPrefFactor, 2);
+		cohesivenessPrefFactor = Mathf.Pow (cohesivenessPrefFactor, 4);
 
-		float relationshipFactor = 2 * clan.GetRelationshipValue (dominantClan);
-		relationshipFactor = Mathf.Pow (relationshipFactor, 2);
-
-		float dateSpan = (1 - randomFactor) *  Clan.TribeSplitDateSpanFactorConstant * loadFactor * cohesivenessPrefFactor * relationshipFactor;
+		float dateSpan = (1 - randomFactor) *  Clan.TribeSplitDateSpanFactorConstant * loadFactor * cohesivenessPrefFactor;
 
 		long triggerDateSpan = (long)dateSpan + CellGroup.GenerationSpan;
 
@@ -1133,10 +1130,8 @@ public class TribeSplitDecisionEvent : FactionEvent {
 
 	public override bool CanTrigger () {
 
-		if (!base.CanTrigger ()) {
-
+		if (!base.CanTrigger ())
 			return false;
-		}
 
 		if (_clan.Polity != OriginalPolity)
 			return false;
@@ -1158,14 +1153,17 @@ public class TribeSplitDecisionEvent : FactionEvent {
 //			return false;
 //		}
 
-		float polityCoreDistance = polityInfluence.PolityCoreDistance - MinCoreDistance;
+		float polityCoreDistance = (polityInfluence.PolityCoreDistance * prominence) - MinCoreDistance;
 
-		float weight = prominence * polityCoreDistance;
-
-		if (weight <= 0)
+		if (polityCoreDistance <= 0)
 			return false;
 
 		_chanceOfSplitting = CalculateChanceOfSplitting ();
+
+		if (_clan.IsUnderPlayerGuidance && _chanceOfSplitting < 0.5f) {
+		
+			return false;
+		}
 
 		if (_chanceOfSplitting <= 0) {
 
