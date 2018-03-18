@@ -966,26 +966,6 @@ public abstract class Polity : ISynchronizable {
 	}
 }
 
-public abstract class PolityEventMessage : WorldEventMessage {
-
-	[XmlAttribute]
-	public long PolityId;
-
-	[XmlIgnore]
-	public Polity Polity {
-		get { return World.GetPolity (PolityId); }
-	}
-
-	public PolityEventMessage () {
-
-	}
-
-	public PolityEventMessage (Polity polity, long id, long date) : base (polity.World, id, date) {
-
-		PolityId = polity.Id;
-	}
-}
-
 public abstract class PolityEvent : WorldEvent {
 
 	[XmlAttribute]
