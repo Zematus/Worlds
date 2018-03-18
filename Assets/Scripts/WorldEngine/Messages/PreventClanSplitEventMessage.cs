@@ -13,7 +13,7 @@ public class PreventClanSplitEventMessage : FactionEventMessage {
 
 	}
 
-	public PreventClanSplitEventMessage (Faction faction, Agent agent, long date) : base (faction, WorldEventMessage.PreventClanSplitEventId, date) {
+	public PreventClanSplitEventMessage (Faction faction, Agent agent, long date) : base (faction, WorldEvent.PreventClanSplitEventId, date) {
 
 		faction.World.AddMemorableAgent (agent);
 
