@@ -156,7 +156,10 @@ public abstract class WorldEvent : ISynchronizable {
 	public const long PreventClanSplitEventId = 8;
 
 	public const long ExpandPolityInfluenceEventId = 20;
+
 	public const long TribeSplitEventId = 21;
+	public const long SplitingClanPreventTribeSplitEventId = 25;
+
 	public const long PolityFormationEventId = 22;
 	public const long ClanCoreMigrationEventId = 23;
 	public const long FactionUpdateEventId = 24;

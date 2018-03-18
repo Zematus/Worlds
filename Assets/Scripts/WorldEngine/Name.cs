@@ -125,6 +125,10 @@ public class Name : ISynchronizable {
 //		Language.TurnIntoProperName (Value, false);
 	}
 
+	public string BoldText {
+		get { return "<b>" + Value.Text + "</b>"; }
+	}
+
 	public string Text {
 		get { return Value.Text; }
 	}

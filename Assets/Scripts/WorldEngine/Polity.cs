@@ -402,6 +402,8 @@ public abstract class Polity : ISynchronizable {
 
 			World.AddFactionToUpdate (faction);
 		}
+
+		World.AddPolityToUpdate (this);
 	}
 
 	public IEnumerable<Faction> GetFactions (bool ordered = false) {
@@ -450,6 +452,29 @@ public abstract class Polity : ISynchronizable {
 
 			f.Prominence = f.Prominence / totalProminence;
 		}
+	}
+
+	public static void TransferProminence (Faction sourceFaction, Faction targetFaction, float percentage) {
+
+		// Can only tranfer prominence between factions belonging to the same polity
+
+		if (sourceFaction.PolityId != targetFaction.PolityId)
+			throw new System.Exception ("Source faction and target faction do not belong to same polity");
+
+		// Always reduce prominence of source faction and increase promience of target faction
+
+		if ((percentage < 0f) || (percentage > 1f))
+			throw new System.Exception ("Invalid percentage: " + percentage);
+
+		float oldSourceProminenceValue = sourceFaction.Prominence;
+
+		sourceFaction.Prominence = oldSourceProminenceValue * (1f - percentage);
+
+		float prominenceDelta = oldSourceProminenceValue - sourceFaction.Prominence;
+
+		targetFaction.Prominence += prominenceDelta;
+
+		sourceFaction.Polity.UpdateDominantFaction ();
 	}
 
 	public void PrepareToRemoveFromWorld () {

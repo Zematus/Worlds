@@ -443,7 +443,7 @@ public abstract class Faction : ISynchronizable {
 	}
 }
 
-public abstract class FactionEventMessage : WorldEventMessage {
+public abstract class FactionEventMessage : CellEventMessage {
 
 	[XmlAttribute]
 	public long FactionId;
@@ -457,7 +457,7 @@ public abstract class FactionEventMessage : WorldEventMessage {
 
 	}
 
-	public FactionEventMessage (Faction faction, long id, long date) : base (faction.World, id, date) {
+	public FactionEventMessage (Faction faction, long id, long date) : base (faction.CoreGroup.Cell, id, date) {
 
 		FactionId = faction.Id;
 	}
