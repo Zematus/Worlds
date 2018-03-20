@@ -21,7 +21,7 @@ public class ClanSplitDecision : FactionDecision {
 
 	private static string GenerateDescriptionIntro (Clan clan) {
 
-		return "Several minor bands within clan " + clan.Name.BoldText + " have become too distant, hardly interacting with the rest of the clan. Now they are becoming their own clan.\n";
+		return "Several minor bands within clan " + clan.Name.BoldText + " have become too distant, hardly interacting with the rest of the clan. Now they are becoming their own clan.\n\n";
 	}
 
 	public ClanSplitDecision (Clan clan, CellGroup newCoreGroup) : base (clan) {

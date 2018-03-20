@@ -27,7 +27,7 @@ public class TribeSplitDecision : PolityDecision {
 
 		return 
 			"The pressures of distance and strained relationships has made most of the populance under Clan " + splitClan.Name.BoldText + " to feel that " +
-			"they are no longer part of the " + tribe.Name.BoldText + " Tribe and wish for the clan to become their own tribe.\n";
+			"they are no longer part of the " + tribe.Name.BoldText + " Tribe and wish for the clan to become their own tribe.\n\n";
 	}
 
 	public TribeSplitDecision (Tribe tribe, Clan splitClan) : base (tribe) {
