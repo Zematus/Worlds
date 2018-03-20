@@ -26,9 +26,9 @@ public class PolityFormationEventMessage : CellEventMessage {
 		Polity polity = World.GetPolity (PolityId);
 
 		if (First) {
-			return "The first polity, " + polity.Name.Text + ", formed at " + Position;
+			return "The first polity, " + polity.Name.BoldText + ", formed at " + Position;
 		} else {
-			return "A new polity, " + polity.Name.Text + ", formed at " + Position;
+			return "A new polity, " + polity.Name.BoldText + ", formed at " + Position;
 		}
 	}
 }

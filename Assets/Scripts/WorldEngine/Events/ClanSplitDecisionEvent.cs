@@ -6,14 +6,14 @@ using System.Xml.Serialization;
 
 public class ClanSplitDecisionEvent : FactionEvent {
 
-	public const long DateSpanFactorConstant = CellGroup.GenerationSpan * 40;
+	public const long DateSpanFactorConstant = CellGroup.GenerationSpan * 10;
 	
 	public const float MinProminenceTrigger = 0.3f;
 	public const float MinCoreDistance = 1000f;
 	public const float MinCoreInfluenceValue = 0.5f;
 
-	public const int MaxAdministrativeLoad = 1000000;
-	public const int MinAdministrativeLoad = 200000;
+	public const int MaxAdministrativeLoad = 500000;
+	public const int MinAdministrativeLoad = 100000;
 
 	public const float MaxAdministrativeLoadChanceFactor = 0.05f;
 
@@ -59,7 +59,7 @@ public class ClanSplitDecisionEvent : FactionEvent {
 			loadFactor = modHalfFactorAdminLoad / (modAdminLoad + modHalfFactorAdminLoad);
 		}
 
-		float cohesivenessPreferenceValue = clan.GetCohesivenessPreferenceValue ();
+		float cohesivenessPreferenceValue = clan.GetPreferenceValue (CulturalPreference.CohesivenessPreferenceId);
 
 		float cohesivenessPrefFactor = 2 * cohesivenessPreferenceValue;
 		cohesivenessPrefFactor = Mathf.Pow (cohesivenessPrefFactor, 4);
@@ -158,7 +158,7 @@ public class ClanSplitDecisionEvent : FactionEvent {
 		if (administrativeLoad == Mathf.Infinity)
 			return 1;
 
-		float cohesivenessPreferenceValue = _clan.GetCohesivenessPreferenceValue ();
+		float cohesivenessPreferenceValue = _clan.GetPreferenceValue (CulturalPreference.CohesivenessPreferenceId);
 
 		if (cohesivenessPreferenceValue <= 0)
 			return 1;
@@ -166,7 +166,7 @@ public class ClanSplitDecisionEvent : FactionEvent {
 		float cohesivenessPrefFactor = 2 * cohesivenessPreferenceValue;
 		cohesivenessPrefFactor = Mathf.Pow (cohesivenessPrefFactor, 4);
 
-		float authorityPreferenceValue = _clan.GetAuthorityPreferenceValue ();
+		float authorityPreferenceValue = _clan.GetPreferenceValue (CulturalPreference.AuthorityPreferenceId);
 
 		if (authorityPreferenceValue <= 0)
 			return 1;

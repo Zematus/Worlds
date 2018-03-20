@@ -5,6 +5,8 @@ using System.Linq;
 using System.Xml;
 using System.Xml.Serialization;
 
+public delegate void DecisionEffectDelegate ();
+
 public abstract class Decision {
 
 	public string Description;

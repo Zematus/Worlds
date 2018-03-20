@@ -441,4 +441,38 @@ public abstract class Faction : ISynchronizable {
 
 		return false;
 	}
+
+	public void IncreasePreferenceValue (string id, float percentage) {
+
+		CulturalPreference preference = Culture.GetPreference (id);
+
+		if (preference == null)
+			throw new System.Exception ("preference is null: " + id);
+
+		float value = preference.Value;
+
+		preference.Value = MathUtility.IncreaseByPercent (value, percentage);
+	}
+
+	public void DecreasePreferenceValue (string id, float percentage) {
+
+		CulturalPreference preference = Culture.GetPreference (id);
+
+		if (preference == null)
+			throw new System.Exception ("preference is null: " + id);
+
+		float value = preference.Value;
+
+		preference.Value = MathUtility.DecreaseByPercent (value, percentage);
+	}
+
+	public float GetPreferenceValue (string id) {
+
+		CulturalPreference preference = Culture.GetPreference (id);
+
+		if (preference != null)
+			return preference.Value; 
+
+		return 0;
+	}
 }

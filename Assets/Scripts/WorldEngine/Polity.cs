@@ -964,4 +964,14 @@ public abstract class Polity : ISynchronizable {
 
 		_flags.Remove (flag);
 	}
+
+	public float GetPreferenceValue (string id) {
+
+		CulturalPreference preference = Culture.GetPreference (id);
+
+		if (preference != null)
+			return preference.Value; 
+
+		return 0;
+	}
 }

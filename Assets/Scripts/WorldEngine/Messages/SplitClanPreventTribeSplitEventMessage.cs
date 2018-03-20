@@ -16,9 +16,9 @@ public class SplitClanPreventTribeSplitEventMessage : FactionEventMessage {
 
 	}
 
-	public SplitClanPreventTribeSplitEventMessage (Faction faction, Tribe tribe, Agent agent, long date) : base (faction, WorldEvent.SplitingClanPreventTribeSplitEventId, date) {
+	public SplitClanPreventTribeSplitEventMessage (Clan clan, Tribe tribe, Agent agent, long date) : base (clan, WorldEvent.SplitClanPreventTribeSplitEventId, date) {
 
-		faction.World.AddMemorableAgent (agent);
+		clan.World.AddMemorableAgent (agent);
 
 		AgentId = agent.Id;
 		TribeId = tribe.Id;
@@ -29,6 +29,6 @@ public class SplitClanPreventTribeSplitEventMessage : FactionEventMessage {
 		Agent leader = World.GetMemorableAgent (AgentId);
 		Tribe tribe = World.GetPolity (TribeId) as Tribe;
 
-		return leader.Name.BoldText + " has prevented clan " +  Faction.Name.BoldText + " from leaving the " + tribe.Name.BoldText + " Tribe";
+		return leader.Name.BoldText + ", leader of Clan " + Faction.Name.BoldText + ", has prevented " + leader.PossessiveNoun + " clan from leaving the " + tribe.Name.BoldText + " Tribe";
 	}
 }

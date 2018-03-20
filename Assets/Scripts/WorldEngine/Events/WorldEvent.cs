@@ -35,14 +35,15 @@ public abstract class WorldEvent : ISynchronizable {
 	public const long ClanSplitEventId = 7;
 	public const long PreventClanSplitEventId = 8;
 
-	public const long ExpandPolityInfluenceEventId = 20;
+	public const long ExpandPolityInfluenceEventId = 9;
 
-	public const long TribeSplitEventId = 21;
-	public const long SplitingClanPreventTribeSplitEventId = 25;
+	public const long TribeSplitEventId = 10;
+	public const long SplitClanPreventTribeSplitEventId = 11;
+	public const long PreventTribeSplitEventId = 12;
 
-	public const long PolityFormationEventId = 22;
-	public const long ClanCoreMigrationEventId = 23;
-	public const long FactionUpdateEventId = 24;
+	public const long PolityFormationEventId = 13;
+	public const long ClanCoreMigrationEventId = 14;
+	public const long FactionUpdateEventId = 15;
 
 //	public static int EventCount = 0;
 

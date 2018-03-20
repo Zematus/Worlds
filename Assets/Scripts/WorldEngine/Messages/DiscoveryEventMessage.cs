@@ -44,7 +44,7 @@ public class DiscoveryEventMessage : CellEventMessage {
 		Territory territory = World.GetCell (Position).EncompassingTerritory;
 
 		if (territory != null) {
-			return prefix + " in " + territory.Polity.Name.Text + " at " + Position;
+			return prefix + " in " + territory.Polity.Name.BoldText + " at " + Position;
 		}
 
 		return prefix + " at " + Position;

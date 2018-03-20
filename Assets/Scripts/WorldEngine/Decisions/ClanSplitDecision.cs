@@ -21,7 +21,7 @@ public class ClanSplitDecision : FactionDecision {
 
 	private static string GenerateDescriptionIntro (Clan clan) {
 
-		return "Several minor bands within clan " + clan.Name.BoldText + " have become too distant and seem to be tryin to form their own clan. ";
+		return "Several minor bands within clan " + clan.Name.BoldText + " have become too distant, hardly interacting with the rest of the clan. Now they are becoming their own clan.\n";
 	}
 
 	public ClanSplitDecision (Clan clan, CellGroup newCoreGroup) : base (clan) {
@@ -59,7 +59,7 @@ public class ClanSplitDecision : FactionDecision {
 		float minPreferencePercentChange = BaseMinPreferencePercentChange / attributesFactor;
 		float maxPreferencePercentChange = BaseMaxPreferencePercentChange / attributesFactor;
 
-		float prefValue = _clan.GetAuthorityPreferenceValue ();
+		float prefValue = _clan.GetPreferenceValue (CulturalPreference.AuthorityPreferenceId);
 
 		float minPrefChange = MathUtility.DecreaseByPercent (prefValue, minPreferencePercentChange);
 		float maxPrefChange = MathUtility.DecreaseByPercent (prefValue, maxPreferencePercentChange);
@@ -70,7 +70,7 @@ public class ClanSplitDecision : FactionDecision {
 		minPreferencePercentChange = BaseMinPreferencePercentChange * attributesFactor;
 		maxPreferencePercentChange = BaseMaxPreferencePercentChange * attributesFactor;
 
-		prefValue = _clan.GetCohesivenessPreferenceValue ();
+		prefValue = _clan.GetPreferenceValue (CulturalPreference.CohesivenessPreferenceId);
 
 		minPrefChange = MathUtility.IncreaseByPercent (prefValue, minPreferencePercentChange);
 		maxPrefChange = MathUtility.IncreaseByPercent (prefValue, maxPreferencePercentChange);
@@ -99,8 +99,8 @@ public class ClanSplitDecision : FactionDecision {
 		float cohesivenessPreferencePercentChange = (BaseMaxPreferencePercentChange - BaseMinPreferencePercentChange) * randomFactor + BaseMinPreferencePercentChange;
 		cohesivenessPreferencePercentChange *= attributesFactor;
 
-		clan.DecreaseAuthorityPreferenceValue (authorityPreferencePercentChange);
-		clan.IncreaseCohesivenessPreferenceValue (cohesivenessPreferencePercentChange);
+		clan.DecreasePreferenceValue (CulturalPreference.AuthorityPreferenceId, authorityPreferencePercentChange);
+		clan.IncreasePreferenceValue (CulturalPreference.CohesivenessPreferenceId, cohesivenessPreferencePercentChange);
 
 		clan.World.AddFactionToUpdate (clan);
 
@@ -174,7 +174,7 @@ public class ClanSplitDecision : FactionDecision {
 	public static void CalculateMinMaxProminence (Clan clan, out float minProminence, out float maxProminence) {
 
 		float charismaFactor = clan.CurrentLeader.Charisma / 10f;
-		float cultureModifier = 1 + (charismaFactor * clan.GetCohesivenessPreferenceValue ());
+		float cultureModifier = 1 + (charismaFactor * clan.GetPreferenceValue (CulturalPreference.CohesivenessPreferenceId));
 
 		minProminence = clan.Prominence * SplitClanMinProminence / cultureModifier;
 		maxProminence = clan.Prominence * SplitClanMaxProminence / cultureModifier;
