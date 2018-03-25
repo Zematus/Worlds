@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
-public class ClanSplitFromTribeDecision : PolityDecision {
+public class ClanTribeSplitDecision : PolityDecision {
 
 	public const float BaseMinPreferencePercentChange = 0.15f;
 	public const float BaseMaxPreferencePercentChange = 0.30f;
@@ -20,18 +20,18 @@ public class ClanSplitFromTribeDecision : PolityDecision {
 	private bool _cantPrevent = false;
 	private bool _preferSplit = true;
 
-	private Clan _splitClan;
+	private float _tribeChanceOfSplitting;
 
-	private DecisionEffectDelegate _allowSplitTriggerTribeDecision;
+	private Clan _splitClan;
 
 	private static string GenerateDescriptionIntro (Tribe tribe, Clan splitClan) {
 
 		return 
-			"The pressures of distance and strained relationships has made most of the populance under Clan " + splitClan.Name.BoldText + " to feel that " +
-			"they are no longer part of the " + tribe.Name.BoldText + " Tribe and wish for the clan to become their own tribe.\n\n";
+			"The pressures of distance and strained relationships has made most of the populance under clan " + splitClan.Name.BoldText + " to feel that " +
+			"they are no longer part of the " + tribe.Name.BoldText + " tribe and wish for the clan to become their own tribe.\n\n";
 	}
 
-	public ClanSplitFromTribeDecision (Tribe tribe, Clan splitClan, DecisionEffectDelegate allowSplitTriggerTribeDecision) : base (tribe) {
+	public ClanTribeSplitDecision (Tribe tribe, Clan splitClan, float tribeChanceOfSplitting) : base (tribe) {
 
 		_tribe = tribe;
 
@@ -41,12 +41,12 @@ public class ClanSplitFromTribeDecision : PolityDecision {
 
 		_cantPrevent = true;
 
-		_splitClan = splitClan;
+		_tribeChanceOfSplitting = tribeChanceOfSplitting;
 
-		_allowSplitTriggerTribeDecision = allowSplitTriggerTribeDecision;
+		_splitClan = splitClan;
 	}
 
-	public ClanSplitFromTribeDecision (Tribe tribe, Clan splitClan, bool preferSplit, DecisionEffectDelegate allowSplitTriggerTribeDecision) : base (tribe) {
+	public ClanTribeSplitDecision (Tribe tribe, Clan splitClan, bool preferSplit, float tribeChanceOfSplitting) : base (tribe) {
 
 		_tribe = tribe;
 
@@ -56,9 +56,9 @@ public class ClanSplitFromTribeDecision : PolityDecision {
 
 		_preferSplit = preferSplit;
 
-		_splitClan = splitClan;
+		_tribeChanceOfSplitting = tribeChanceOfSplitting;
 
-		_allowSplitTriggerTribeDecision = allowSplitTriggerTribeDecision;
+		_splitClan = splitClan;
 	}
 
 	private string GeneratePreventSplitResultEffectsString_AuthorityPreference () {
@@ -105,10 +105,10 @@ public class ClanSplitFromTribeDecision : PolityDecision {
 		float maxValChangeDominant = oldDominantProminenceValue + oldProminenceValue - maxValChange;
 
 		effectSplitClan = "Clan " + _splitClan.Name.BoldText + ": prominence within the " + _tribe.Name.BoldText + 
-			" Tribe (" + oldProminenceValue.ToString ("0.00") + ") decreases to: " + minValChange.ToString ("0.00") + " - " + maxValChange.ToString ("0.00");
+			" tribe (" + oldProminenceValue.ToString ("0.00") + ") decreases to: " + minValChange.ToString ("0.00") + " - " + maxValChange.ToString ("0.00");
 
 		effectDominantClan = "Clan " + dominantClan.Name.BoldText + ": prominence within the " + _tribe.Name.BoldText + 
-			" Tribe (" + oldDominantProminenceValue.ToString ("0.00") + ") increases to: " + minValChangeDominant.ToString ("0.00") + " - " + maxValChangeDominant.ToString ("0.00");
+			" tribe (" + oldDominantProminenceValue.ToString ("0.00") + ") increases to: " + minValChangeDominant.ToString ("0.00") + " - " + maxValChangeDominant.ToString ("0.00");
 	}
 
 	private string GeneratePreventSplitResultEffectsString_Relationship () {
@@ -129,7 +129,7 @@ public class ClanSplitFromTribeDecision : PolityDecision {
 		float minValChange = MathUtility.IncreaseByPercent (originalValue, minPercentChange);
 		float maxValChange = MathUtility.IncreaseByPercent (originalValue, maxPercentChange);
 
-		return "Clan " + _splitClan.Name.BoldText + ": relationship with Clan " + dominantClan.Name.BoldText + " (" + originalValue.ToString ("0.00") + ") increases to: " + 
+		return "Clan " + _splitClan.Name.BoldText + ": relationship with clan " + dominantClan.Name.BoldText + " (" + originalValue.ToString ("0.00") + ") increases to: " + 
 			minValChange.ToString ("0.00") + " - " + maxValChange.ToString ("0.00");
 	}
 
@@ -201,19 +201,55 @@ public class ClanSplitFromTribeDecision : PolityDecision {
 
 	private string GenerateAllowSplitResultMessage () {
 
-		string message = "\t• Clan " + _splitClan.Name.BoldText + " will attempt to leave the " + _tribe.Name.BoldText + " Tribe and form a tribe of their own";
+		string message = "\t• Clan " + _splitClan.Name.BoldText + " will attempt to leave the " + _tribe.Name.BoldText + " tribe and form a tribe of their own";
 
 		return message;
 	}
 
-	public static void LeaderAllowsSplit (Clan splitClan, Tribe originalTribe, DecisionEffectDelegate allowSplitTriggerTribeDecision) {
+	public static void LeaderAllowsSplit (Clan splitClan, Tribe originalTribe, float tribeChanceOfSplitting) {
 
-		allowSplitTriggerTribeDecision ();
+		World world = originalTribe.World;
+
+		Clan dominantClan = originalTribe.DominantFaction as Clan;
+
+		bool tribePreferSplit = originalTribe.GetNextLocalRandomFloat (RngOffsets.TRIBE_SPLITTING_EVENT_TRIBE_PREFER_SPLIT) < tribeChanceOfSplitting;
+
+		if (originalTribe.IsUnderPlayerFocus || dominantClan.IsUnderPlayerGuidance) {
+
+			Decision tribeDecision;
+
+			if (tribeChanceOfSplitting >= 1) {
+				tribeDecision = new TribeSplitDecision (originalTribe, splitClan); // Player that controls dominant clan can't prevent splitting from happening
+			} else {
+				tribeDecision = new TribeSplitDecision (originalTribe, splitClan, tribePreferSplit); // Give player options
+			}
+
+			if (dominantClan.IsUnderPlayerGuidance) {
+
+				world.AddDecisionToResolve (tribeDecision);
+
+			} else {
+
+				tribeDecision.ExecutePreferredOption ();
+			}
+
+		} else if (tribePreferSplit) {
+
+			TribeSplitDecision.LeaderAllowsSplit (splitClan, originalTribe);
+
+		} else {
+
+			TribeSplitDecision.LeaderPreventsSplit (splitClan, originalTribe);
+		}
+
+		world.AddFactionToUpdate (dominantClan);
+
+		world.AddPolityToUpdate (originalTribe);
 	}
 
 	private void AllowSplit () {
 
-		LeaderAllowsSplit (_splitClan, _tribe, _allowSplitTriggerTribeDecision);
+		LeaderAllowsSplit (_splitClan, _tribe, _tribeChanceOfSplitting);
 	}
 
 	public override Option[] GetOptions () {

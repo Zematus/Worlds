@@ -8,6 +8,8 @@ using System.Xml.Serialization;
 // Agent Attributes
 // -- Charisma
 // -- Wisdom
+// -- Cunning
+// -- Strength
 
 public class Agent : ISynchronizable {
 

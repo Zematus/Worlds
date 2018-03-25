@@ -215,45 +215,6 @@ public class TribeSplitDecisionEvent : FactionEvent {
 		return Mathf.Clamp01 (chance);
 	}
 
-	private void SplitClanAllowedSplitEffect () {
-
-		Clan dominantClan = _splitClan.Polity.DominantFaction as Clan;
-
-		bool tribePreferSplit = _tribe.GetNextLocalRandomFloat (RngOffsets.TRIBE_SPLITTING_EVENT_TRIBE_PREFER_SPLIT) < _tribeChanceOfSplitting;
-
-		if (_tribe.IsUnderPlayerFocus || dominantClan.IsUnderPlayerGuidance) {
-
-			Decision tribeDecision;
-
-			if (_splitClanChanceOfSplitting >= 1) {
-				tribeDecision = new TribeSplitDecision (_tribe, _splitClan); // Player that controls dominant clan can't prevent splitting from happening
-			} else {
-				tribeDecision = new TribeSplitDecision (_tribe, _splitClan, tribePreferSplit); // Give player options
-			}
-
-			if (dominantClan.IsUnderPlayerGuidance) {
-
-				World.AddDecisionToResolve (tribeDecision);
-
-			} else {
-
-				tribeDecision.ExecutePreferredOption ();
-			}
-
-		} else if (tribePreferSplit) {
-
-			TribeSplitDecision.LeaderAllowsSplit (_splitClan, _tribe);
-
-		} else {
-
-			TribeSplitDecision.LeaderPreventsSplit (_splitClan, _tribe);
-		}
-
-		World.AddFactionToUpdate (dominantClan);
-
-		World.AddPolityToUpdate (_tribe);
-	}
-
 	public override void Trigger () {
 
 		bool splitClanPreferSplit = _splitClan.GetNextLocalRandomFloat (RngOffsets.TRIBE_SPLITTING_EVENT_SPLITCLAN_PREFER_SPLIT) < _splitClanChanceOfSplitting;
@@ -263,9 +224,9 @@ public class TribeSplitDecisionEvent : FactionEvent {
 			Decision splitClanDecision;
 
 			if (_splitClanChanceOfSplitting >= 1) {
-				splitClanDecision = new ClanSplitFromTribeDecision (_tribe, _splitClan, SplitClanAllowedSplitEffect); // Player that controls split clan can't prevent splitting from happening
+				splitClanDecision = new ClanTribeSplitDecision (_tribe, _splitClan, _tribeChanceOfSplitting); // Player that controls split clan can't prevent splitting from happening
 			} else {
-				splitClanDecision = new ClanSplitFromTribeDecision (_tribe, _splitClan, splitClanPreferSplit, SplitClanAllowedSplitEffect); // Give player options
+				splitClanDecision = new ClanTribeSplitDecision (_tribe, _splitClan, splitClanPreferSplit, _tribeChanceOfSplitting); // Give player options
 			}
 
 			if (_splitClan.IsUnderPlayerGuidance) {
@@ -279,11 +240,11 @@ public class TribeSplitDecisionEvent : FactionEvent {
 
 		} else if (splitClanPreferSplit) {
 
-			ClanSplitFromTribeDecision.LeaderAllowsSplit (_splitClan, _tribe, SplitClanAllowedSplitEffect);
+			ClanTribeSplitDecision.LeaderAllowsSplit (_splitClan, _tribe, _tribeChanceOfSplitting);
 
 		} else {
 
-			ClanSplitFromTribeDecision.LeaderPreventsSplit (_splitClan, _tribe);
+			ClanTribeSplitDecision.LeaderPreventsSplit (_splitClan, _tribe);
 		}
 
 		World.AddFactionToUpdate (_splitClan);

@@ -26,7 +26,7 @@ public abstract class Decision {
 			_executeMethod ();
 		}
 
-		public Option (string text, string descriptionText, ExecuteDelegate executeMethod) {
+		public Option (string text, string descriptionText, ExecuteDelegate executeMethod = null) {
 
 			Text = text;
 
