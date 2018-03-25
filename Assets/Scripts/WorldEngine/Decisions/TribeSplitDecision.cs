@@ -79,10 +79,10 @@ public class TribeSplitDecision : PolityDecision {
 		float maxValChangeSplitClan = oldSplitClanProminenceValue + oldProminenceValue - maxValChange;
 
 		effectDominantClan = "Clan " + _dominantClan.Name.BoldText + ": prominence within the " + _tribe.Name.BoldText + 
-			" tribe (" + oldProminenceValue.ToString ("0.00") + ") decreases to: " + minValChange.ToString ("0.00") + " - " + maxValChange.ToString ("0.00");
+			" tribe (" + oldProminenceValue.ToString ("P") + ") decreases to: " + minValChange.ToString ("P") + " - " + maxValChange.ToString ("P");
 
 		effectSplitClan = "Clan " + _splitClan.Name.BoldText + ": prominence within the " + _tribe.Name.BoldText + 
-			" tribe (" + oldSplitClanProminenceValue.ToString ("0.00") + ") increases to: " + minValChangeSplitClan.ToString ("0.00") + " - " + maxValChangeSplitClan.ToString ("0.00");
+			" tribe (" + oldSplitClanProminenceValue.ToString ("P") + ") increases to: " + minValChangeSplitClan.ToString ("P") + " - " + maxValChangeSplitClan.ToString ("P");
 	}
 
 	private string GeneratePreventSplitResultEffectsString_Relationship () {

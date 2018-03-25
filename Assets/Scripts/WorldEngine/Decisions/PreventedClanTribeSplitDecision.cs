@@ -25,10 +25,10 @@ public class PreventedClanTribeSplitDecision : PolityDecision {
 	private void GeneratePreventedSplitResultEffectsString_Prominence (out string effectSplitClan, out string effectDominantClan) {
 
 		effectDominantClan = "Clan " + _dominantClan.Name.BoldText + ": prominence within the " + _tribe.Name.BoldText + 
-			" tribe decreases to: " + _dominantClan.Prominence.ToString ("0.00");
+			" tribe decreases to: " + _dominantClan.Prominence.ToString ("P");
 
 		effectSplitClan = "Clan " + _splitClan.Name.BoldText + ": prominence within the " + _tribe.Name.BoldText + 
-			" tribe increases to: " + _splitClan.Prominence.ToString ("0.00");
+			" tribe increases to: " + _splitClan.Prominence.ToString ("P");
 	}
 
 	private string GeneratePreventedSplitResultEffectsString_Relationship () {
