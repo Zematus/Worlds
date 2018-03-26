@@ -2210,7 +2210,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 			Polity polity = territory.Polity;
 
-			InfoPanelScript.InfoText.text += "Territory of " + polity.Type + " " + polity.Name.Text;
+			InfoPanelScript.InfoText.text += "Territory of the " + polity.Name.Text + " " + polity.Type.ToLower ();
 			InfoPanelScript.InfoText.text += "\nTranslates to: " + polity.Name.Meaning;
 			InfoPanelScript.InfoText.text += "\n";
 
@@ -2272,7 +2272,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 		PolityInfluence pi = cell.Group.GetPolityInfluence (polity);
 
-		InfoPanelScript.InfoText.text += "Territory of " + polity.Type + " " + polity.Name.Text;
+		InfoPanelScript.InfoText.text += "Territory of the " + polity.Name.Text + " " + polity.Type.ToLower ();
 		InfoPanelScript.InfoText.text += "\nTranslates to: " + polity.Name.Meaning;
 		InfoPanelScript.InfoText.text += "\n";
 
@@ -2982,11 +2982,11 @@ public class GuiManagerScript : MonoBehaviour {
 
 	public void ShowCellInfoToolTip_PolityTerritory (Polity polity, Vector3 position, float fadeStart = 5) {
 
-		string text = polity.Name.Text + "\n\nFactions:";
+		string text = polity.Name.Text + " " + polity.Type.ToLower () + "\n\nFaction Prominences:";
 
 		foreach (Faction faction in polity.GetFactions ()) {
 		
-			text += "\n" + faction.Name.Text;
+			text += "\n " + faction.Name.Text + ": " + faction.Prominence.ToString ("P");
 		}
 
 		InfoTooltipScript.DisplayTip (text, position, fadeStart);
@@ -2997,7 +2997,17 @@ public class GuiManagerScript : MonoBehaviour {
 		CulturalPreference preference = polity.Culture.GetPreference (_planetOverlaySubtype);
 
 		if (preference != null) {
-			InfoTooltipScript.DisplayTip (preference.Name + " Preference: " + preference.Value.ToString ("P"), position, fadeStart);
+			string text = preference.Name + " Preference: " + preference.Value.ToString ("0.00") + "\n\nFactions:";
+
+			foreach (Faction faction in polity.GetFactions ()) {
+
+				float value = faction.GetPreferenceValue (_planetOverlaySubtype);
+
+				text += "\n " + faction.Name.Text + ": " + value.ToString ("0.00");
+			}
+
+			InfoTooltipScript.DisplayTip (text, position, fadeStart);
+
 		} else {
 			InfoTooltipScript.SetVisible (false);
 		}
@@ -3008,7 +3018,16 @@ public class GuiManagerScript : MonoBehaviour {
 		CulturalActivity activity = polity.Culture.GetActivity (_planetOverlaySubtype);
 
 		if (activity != null) {
-			InfoTooltipScript.DisplayTip (activity.Name + " Contribution: " + activity.Contribution.ToString ("P"), position, fadeStart);
+			string text = activity.Name + " Contribution: " + activity.Contribution.ToString ("P") + "\n\nFactions:";
+
+			foreach (Faction faction in polity.GetFactions ()) {
+
+				activity = faction.Culture.GetActivity (_planetOverlaySubtype);
+
+				text += "\n " + faction.Name.Text + ": " + activity.Contribution.ToString ("P");
+			}
+
+			InfoTooltipScript.DisplayTip (text, position, fadeStart);
 		} else {
 			InfoTooltipScript.SetVisible (false);
 		}
@@ -3019,7 +3038,16 @@ public class GuiManagerScript : MonoBehaviour {
 		CulturalSkill skill = polity.Culture.GetSkill (_planetOverlaySubtype);
 
 		if ((skill != null) && (skill.Value >= 0.001)) {
-			InfoTooltipScript.DisplayTip (skill.Name + " Value: " + skill.Value.ToString ("0.000"), position, fadeStart);
+			string text = skill.Name + " Value: " + skill.Value.ToString ("0.000") + "\n\nFactions:";
+
+			foreach (Faction faction in polity.GetFactions ()) {
+
+				skill = faction.Culture.GetSkill (_planetOverlaySubtype);
+
+				text += "\n " + faction.Name.Text + ": " + skill.Value.ToString ("0.000");
+			}
+
+			InfoTooltipScript.DisplayTip (text, position, fadeStart);
 		} else {
 			InfoTooltipScript.SetVisible (false);
 		}
@@ -3030,7 +3058,16 @@ public class GuiManagerScript : MonoBehaviour {
 		CulturalKnowledge knowledge = polity.Culture.GetKnowledge (_planetOverlaySubtype);
 
 		if (knowledge != null) {
-			InfoTooltipScript.DisplayTip (knowledge.Name + " Value: " + knowledge.ScaledValue.ToString ("0.000"), position, fadeStart);
+			string text = knowledge.Name + " Value: " + knowledge.ScaledValue.ToString ("0.000") + "\n\nFactions:";
+
+			foreach (Faction faction in polity.GetFactions ()) {
+
+				knowledge = faction.Culture.GetKnowledge (_planetOverlaySubtype);
+
+				text += "\n " + faction.Name.Text + ": " + knowledge.ScaledValue.ToString ("0.000");
+			}
+
+			InfoTooltipScript.DisplayTip (text, position, fadeStart);
 		} else {
 			InfoTooltipScript.SetVisible (false);
 		}
@@ -3039,7 +3076,6 @@ public class GuiManagerScript : MonoBehaviour {
 	public void ShowCellInfoToolTip_PolityCulturalDiscovery (Polity polity, Vector3 position, float fadeStart = 5) {
 
 		PolityCulturalDiscovery discovery = polity.Culture.GetDiscovery (_planetOverlaySubtype) as PolityCulturalDiscovery;
-
 
 		if (discovery != null) {
 			int presenceCount = discovery.PresenceCount;

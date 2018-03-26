@@ -1,10 +1,11 @@
 BUGS:
 Cleanup rules: Prioritize bugs first by rating bucket (HIGH,MED,LOW) then within each bucket by date from older to newer. When finishing up with all HIGHs, graduate the oldest MED to HIGH and the three oldest LOWs to MEDs then re-sort the MEDs by date.
 
-- (HIGH 3/4/18) Trying to prevent a clan from splitting doesn't seem to reduce authority
+- (HIGH 3/4/18) Trying to prevent a clan from splitting doesn't reduce polity's authority preferences right away
 - (HIGH 3/18/18) When a player guided faction creates or joins a new tribe it should change selection and guidance focus
+- (HIGH 3/25/18) A Faction's authority preference resets to previous values after a while for no apparent reason
 - (MED 1/17/18) Regions seems to get selected when clicking on polity overlays
-- (MED 1/17/18) Clicking on regions do not highlight them rightaway until clicked a second time
+- (MED 1/17/18) Clicking on regions do not highlight them right away until clicked a second time
 - (MED 1/18/18) Check why certain cells get updated very frequently afer the world mostly stabilized
 - (LOW 1/18/18) Sometimes factions appear with exactly the same name (possibly due to both factions having the same core?)
 - (LOW 2/19/18) Expanding polity inflence effects should be calculated on their own phase (outside of the event) to reduce load 
