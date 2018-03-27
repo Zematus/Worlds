@@ -276,4 +276,11 @@ public class TribeSplitDecisionEvent : FactionEvent {
 
 		_splitClan.TribeSplitDecisionEvent = this;
 	}
+
+	public override void Reset (long newTriggerDate)
+	{
+		base.Reset (newTriggerDate);
+
+		_originalTribe = OriginalPolity as Tribe;
+	}
 }

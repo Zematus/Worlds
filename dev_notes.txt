@@ -11,6 +11,7 @@ Cleanup rules: Prioritize bugs first by rating bucket (HIGH,MED,LOW) then within
 - (LOW 3/25/18) Check capitalization in the panel for focused tribes
 - (LOW 3/25/18) Check capitalization and word order for polity names in the infopanel
 - (LOW 3/25/18) Check capitalization and word order int panel for guided faction
+- (LOW 3/27/18) Whne a faction property changes after a decision, if the simulation is paused, the change doesn't reflect on the polity.
 
 TASKS:
 
@@ -77,6 +78,7 @@ Decisions Infrastructure (0.03):
 	- Cultural Preferences
 
 - Cultural Preferences
+	- Acculturation
 	- Agresiveness/Passiveness
 	- Tolerant/Intolerant
 	- Traditionalism/Antitraditionalism
