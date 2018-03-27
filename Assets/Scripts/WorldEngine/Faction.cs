@@ -103,6 +103,8 @@ public abstract class Faction : ISynchronizable {
 
 	private HashSet<string> _flags = new HashSet<string> ();
 
+	private bool _preupdated = false;
+
 	public Faction () {
 
 	}
@@ -285,31 +287,40 @@ public abstract class Faction : ISynchronizable {
 	public abstract void Split ();
 
 	public virtual void HandleUpdateEvent () {
+	
 	}
 
-	public void Update () {
+	public void PreUpdate () {
 
 		if (!StillPresent) {
-			Debug.LogWarning ("Faction is no longer present. Id: " + Id);
-
-			return;
+			throw new System.Exception ("Faction is no longer present. Id: " + Id);
 		}
 
 		if (!Polity.StillPresent) {
-			Debug.LogWarning ("Faction's polity is no longer present. Id: " + Id + " Polity Id: " + Polity.Id);
-
-			return;
+			throw new System.Exception ("Faction's polity is no longer present. Id: " + Id + " Polity Id: " + Polity.Id);
 		}
+
+		if (_preupdated)
+			return;
+		
+		_preupdated = true;
 
 		RequestCurrentLeader ();
 
 		Culture.Update ();
+	}
+
+	public void Update () {
+
+		PreUpdate ();
 
 		UpdateInternal ();
 
 		LastUpdateDate = World.CurrentDate;
 
 		World.AddPolityToUpdate (Polity);
+
+		_preupdated = false;
 	}
 
 	public void PrepareNewCoreGroup (CellGroup coreGroup) {

@@ -99,6 +99,10 @@ public class TribeSplitDecisionEvent : FactionEvent {
 
 		_dominantClan = _originalTribe.DominantFaction as Clan;
 
+		// We should use the latest cultural attribute values before calculating chances
+		_splitClan.PreUpdate ();
+		_dominantClan.PreUpdate ();
+
 		CellGroup clanCoreGroup = _splitClan.CoreGroup;
 
 		PolityInfluence polityInfluence = clanCoreGroup.GetPolityInfluence (OriginalPolity);

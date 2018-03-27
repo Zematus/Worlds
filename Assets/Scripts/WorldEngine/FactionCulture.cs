@@ -7,7 +7,7 @@ using UnityEngine.Profiling;
 
 public class FactionCulture : Culture {
 
-	public const long OptimalTimeSpan = CellGroup.GenerationSpan * 100;
+	public const long OptimalTimeSpan = CellGroup.GenerationSpan * 500;
 
 	[XmlIgnore]
 	public Faction Faction;

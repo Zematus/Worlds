@@ -141,6 +141,9 @@ public class ClanSplitDecisionEvent : FactionEvent {
 			return false;
 		}
 
+		// We should use the latest cultural attribute values before calculating chances
+		_clan.PreUpdate ();
+
 		_chanceOfSplitting = CalculateChanceOfSplitting ();
 
 		if (_chanceOfSplitting <= 0) {
