@@ -118,9 +118,9 @@ public class ExpandPolityInfluenceEvent : CellGroupEvent {
 
 		foreach (Faction faction in factionCoresToMigrate) {
 
-			faction.PrepareNewCoreGroup (TargetGroup);
+			faction.SetToUpdate ();
 
-			World.AddFactionToUpdate (faction);
+			faction.PrepareNewCoreGroup (TargetGroup);
 		}
 	}
 

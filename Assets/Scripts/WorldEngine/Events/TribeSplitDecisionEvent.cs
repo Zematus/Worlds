@@ -19,8 +19,9 @@ public class TribeSplitDecisionEvent : FactionEvent {
 	public const float MinCoreDistance = 200f;
 
 	private Clan _splitClan;
+	private Clan _dominantClan;
 
-	private Tribe _tribe;
+	private Tribe _originalTribe;
 
 	private float _splitClanChanceOfSplitting;
 	private float _tribeChanceOfSplitting;
@@ -33,7 +34,7 @@ public class TribeSplitDecisionEvent : FactionEvent {
 	public TribeSplitDecisionEvent (Clan splitClan, long originalTribeId, long triggerDate) : base (splitClan, originalTribeId, triggerDate, TribeSplitEventId) {
 
 		_splitClan = splitClan;
-		_tribe = World.GetPolity (originalTribeId) as Tribe;
+		_originalTribe = World.GetPolity (originalTribeId) as Tribe;
 
 		DoNotSerialize = true;
 	}
@@ -41,7 +42,7 @@ public class TribeSplitDecisionEvent : FactionEvent {
 	public TribeSplitDecisionEvent (Clan splitClan, long triggerDate) : base (splitClan, triggerDate, TribeSplitEventId) {
 
 		_splitClan = splitClan;
-		_tribe = splitClan.Polity as Tribe;
+		_originalTribe = splitClan.Polity as Tribe;
 
 		DoNotSerialize = true;
 	}
@@ -96,6 +97,8 @@ public class TribeSplitDecisionEvent : FactionEvent {
 		if (_splitClan.IsDominant)
 			return false;
 
+		_dominantClan = _originalTribe.DominantFaction as Clan;
+
 		CellGroup clanCoreGroup = _splitClan.CoreGroup;
 
 		PolityInfluence polityInfluence = clanCoreGroup.GetPolityInfluence (OriginalPolity);
@@ -139,9 +142,7 @@ public class TribeSplitDecisionEvent : FactionEvent {
 
 	public float CalculateChanceOfSplittingForSplitClan () {
 
-		Clan dominantClan = _splitClan.Polity.DominantFaction as Clan;
-
-		float administrativeLoad = dominantClan.CalculateAdministrativeLoad ();
+		float administrativeLoad = _dominantClan.CalculateAdministrativeLoad ();
 
 		if (administrativeLoad == Mathf.Infinity)
 			return 1;
@@ -162,14 +163,14 @@ public class TribeSplitDecisionEvent : FactionEvent {
 		float authorityPrefFactor = 2 * authorityPreferenceValue;
 		authorityPrefFactor = Mathf.Pow (authorityPrefFactor, 4);
 
-		float relationshipFactor = 2 * _splitClan.GetRelationshipValue (dominantClan);
+		float relationshipFactor = 2 * _splitClan.GetRelationshipValue (_dominantClan);
 		relationshipFactor = Mathf.Pow (relationshipFactor, 4);
 
 		float diffLimitsAdministrativeLoad = SplitClanMaxAdministrativeLoad - SplitClanMinAdministrativeLoad;
 
 		float modMinAdministrativeLoad = SplitClanMinAdministrativeLoad * cohesivenessPrefFactor * relationshipFactor;
 		float modMaxAdministrativeLoad = modMinAdministrativeLoad + 
-			(diffLimitsAdministrativeLoad * dominantClan.CurrentLeader.Wisdom * dominantClan.CurrentLeader.Charisma * authorityPrefFactor * MaxAdministrativeLoadChanceFactor);
+			(diffLimitsAdministrativeLoad * _dominantClan.CurrentLeader.Wisdom * _dominantClan.CurrentLeader.Charisma * authorityPrefFactor * MaxAdministrativeLoadChanceFactor);
 
 		float chance = (administrativeLoad - modMinAdministrativeLoad) / (modMaxAdministrativeLoad - modMinAdministrativeLoad);
 
@@ -178,14 +179,12 @@ public class TribeSplitDecisionEvent : FactionEvent {
 
 	public float CalculateChanceOfSplittingForTribe () {
 
-		Clan dominantClan = _splitClan.Polity.DominantFaction as Clan;
-
-		float administrativeLoad = dominantClan.CalculateAdministrativeLoad ();
+		float administrativeLoad = _dominantClan.CalculateAdministrativeLoad ();
 
 		if (administrativeLoad == Mathf.Infinity)
 			return 1;
 
-		float cohesivenessPreferenceValue = _tribe.GetPreferenceValue (CulturalPreference.CohesivenessPreferenceId);
+		float cohesivenessPreferenceValue = _originalTribe.GetPreferenceValue (CulturalPreference.CohesivenessPreferenceId);
 
 		if (cohesivenessPreferenceValue <= 0)
 			return 1;
@@ -193,7 +192,7 @@ public class TribeSplitDecisionEvent : FactionEvent {
 		float cohesivenessPrefFactor = 2 * cohesivenessPreferenceValue;
 		cohesivenessPrefFactor = Mathf.Pow (cohesivenessPrefFactor, 4);
 
-		float authorityPreferenceValue = _tribe.GetPreferenceValue (CulturalPreference.AuthorityPreferenceId);
+		float authorityPreferenceValue = _originalTribe.GetPreferenceValue (CulturalPreference.AuthorityPreferenceId);
 
 		if (authorityPreferenceValue <= 0)
 			return 1;
@@ -201,14 +200,14 @@ public class TribeSplitDecisionEvent : FactionEvent {
 		float authorityPrefFactor = 2 * authorityPreferenceValue;
 		authorityPrefFactor = Mathf.Pow (authorityPrefFactor, 4);
 
-		float relationshipFactor = 2 * dominantClan.GetRelationshipValue (_splitClan);
+		float relationshipFactor = 2 * _dominantClan.GetRelationshipValue (_splitClan);
 		relationshipFactor = Mathf.Pow (relationshipFactor, 4);
 
 		float diffLimitsAdministrativeLoad = TribeMaxAdministrativeLoad - TribeMinAdministrativeLoad;
 
 		float modMinAdministrativeLoad = TribeMinAdministrativeLoad * cohesivenessPrefFactor * relationshipFactor;
 		float modMaxAdministrativeLoad = modMinAdministrativeLoad + 
-			(diffLimitsAdministrativeLoad * dominantClan.CurrentLeader.Wisdom * dominantClan.CurrentLeader.Charisma * authorityPrefFactor * MaxAdministrativeLoadChanceFactor);
+			(diffLimitsAdministrativeLoad * _dominantClan.CurrentLeader.Wisdom * _dominantClan.CurrentLeader.Charisma * authorityPrefFactor * MaxAdministrativeLoadChanceFactor);
 
 		float chance = (administrativeLoad - modMinAdministrativeLoad) / (modMaxAdministrativeLoad - modMinAdministrativeLoad);
 
@@ -219,14 +218,14 @@ public class TribeSplitDecisionEvent : FactionEvent {
 
 		bool splitClanPreferSplit = _splitClan.GetNextLocalRandomFloat (RngOffsets.TRIBE_SPLITTING_EVENT_SPLITCLAN_PREFER_SPLIT) < _splitClanChanceOfSplitting;
 
-		if (_tribe.IsUnderPlayerFocus || _splitClan.IsUnderPlayerGuidance) {
+		if (_originalTribe.IsUnderPlayerFocus || _splitClan.IsUnderPlayerGuidance) {
 
 			Decision splitClanDecision;
 
 			if (_splitClanChanceOfSplitting >= 1) {
-				splitClanDecision = new ClanTribeSplitDecision (_tribe, _splitClan, _tribeChanceOfSplitting); // Player that controls split clan can't prevent splitting from happening
+				splitClanDecision = new ClanTribeSplitDecision (_originalTribe, _splitClan, _dominantClan, _tribeChanceOfSplitting); // Player that controls split clan can't prevent splitting from happening
 			} else {
-				splitClanDecision = new ClanTribeSplitDecision (_tribe, _splitClan, splitClanPreferSplit, _tribeChanceOfSplitting); // Give player options
+				splitClanDecision = new ClanTribeSplitDecision (_originalTribe, _splitClan, _dominantClan, splitClanPreferSplit, _tribeChanceOfSplitting); // Give player options
 			}
 
 			if (_splitClan.IsUnderPlayerGuidance) {
@@ -240,14 +239,12 @@ public class TribeSplitDecisionEvent : FactionEvent {
 
 		} else if (splitClanPreferSplit) {
 
-			ClanTribeSplitDecision.LeaderAllowsSplit (_splitClan, _tribe, _tribeChanceOfSplitting);
+			ClanTribeSplitDecision.LeaderAllowsSplit (_splitClan, _dominantClan, _originalTribe, _tribeChanceOfSplitting);
 
 		} else {
 
-			ClanTribeSplitDecision.LeaderPreventsSplit (_splitClan, _tribe);
+			ClanTribeSplitDecision.LeaderPreventsSplit (_splitClan, _dominantClan, _originalTribe);
 		}
-
-		World.AddFactionToUpdate (_splitClan);
 	}
 
 	protected override void DestroyInternal () {

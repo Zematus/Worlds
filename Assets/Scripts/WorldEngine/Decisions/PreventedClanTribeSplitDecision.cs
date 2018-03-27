@@ -11,14 +11,14 @@ public class PreventedClanTribeSplitDecision : PolityDecision {
 	private Clan _splitClan;
 	private Clan _dominantClan;
 
-	public PreventedClanTribeSplitDecision (Tribe tribe, Clan splitClan) : base (tribe) {
+	public PreventedClanTribeSplitDecision (Tribe tribe, Clan splitClan, Clan dominantClan) : base (tribe) {
 
 		_tribe = tribe;
 
 		Description = "The tribe leader, " + tribe.CurrentLeader.Name.BoldText + ", has managed to convince clan " + splitClan.Name.BoldText + 
 			" from leaving the tribe by trying to mend their relationship with clan " + tribe.DominantFaction.Name.BoldText + " and recognizing their importance within the tribe.";
 
-		_dominantClan = tribe.DominantFaction as Clan;
+		_dominantClan = dominantClan;
 		_splitClan = splitClan;
 	}
 
@@ -52,19 +52,17 @@ public class PreventedClanTribeSplitDecision : PolityDecision {
 			"\t• " + splitClanProminenceChangeEffect;
 	}
 
-	public static void TribeLeaderPreventedSplit (Clan splitClan, Tribe tribe) {
+	public static void TribeLeaderPreventedSplit (Clan splitClan, Clan dominantClan, Tribe tribe) {
 
-		tribe.World.AddFactionToUpdate (splitClan);
-		tribe.World.AddFactionToUpdate (tribe.DominantFaction);
-
-		tribe.World.AddPolityToUpdate (tribe);
+		splitClan.SetToUpdate ();
+		dominantClan.SetToUpdate ();
 
 		tribe.AddEventMessage (new PreventTribeSplitEventMessage (tribe, splitClan, splitClan.CurrentLeader, splitClan.World.CurrentDate));
 	}
 
 	private void PreventedSplit () {
 
-		TribeLeaderPreventedSplit (_splitClan, _tribe);
+		TribeLeaderPreventedSplit (_splitClan, _dominantClan, _tribe);
 	}
 
 	public override Option[] GetOptions () {

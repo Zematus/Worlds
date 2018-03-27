@@ -188,6 +188,13 @@ public abstract class Faction : ISynchronizable {
 		return 0;
 	}
 
+	public void SetToUpdate () {
+
+		World.AddGroupToUpdate (CoreGroup);
+		World.AddFactionToUpdate (this);
+		World.AddPolityToUpdate (Polity);
+	}
+
 	public static void SetRelationship (Faction factionA, Faction factionB, float value) {
 	
 		factionA.SetRelationship (factionB, value);
@@ -303,8 +310,6 @@ public abstract class Faction : ISynchronizable {
 		LastUpdateDate = World.CurrentDate;
 
 		World.AddPolityToUpdate (Polity);
-
-		LastUpdateDate = World.CurrentDate;
 	}
 
 	public void PrepareNewCoreGroup (CellGroup coreGroup) {

@@ -383,6 +383,8 @@ public abstract class Polity : ISynchronizable {
 		if (DominantFaction != null) {
 		
 			DominantFaction.SetDominant (false);
+
+			World.AddFactionToUpdate (DominantFaction);
 		}
 
 		if ((faction == null) || (!faction.StillPresent))

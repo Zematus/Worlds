@@ -30,11 +30,11 @@ public class TribeSplitDecision : PolityDecision {
 			"they are no longer part of the " + tribe.Name.BoldText + " tribe and wish for the clan to become their own tribe.\n\n";
 	}
 
-	public TribeSplitDecision (Tribe tribe, Clan splitClan) : base (tribe) {
+	public TribeSplitDecision (Tribe tribe, Clan splitClan, Clan dominantClan) : base (tribe) {
 
 		_tribe = tribe;
 
-		_dominantClan = tribe.DominantFaction as Clan;
+		_dominantClan = dominantClan;
 		_splitClan = splitClan;
 
 		Description = GenerateDescriptionIntro (tribe, splitClan) +
@@ -44,11 +44,11 @@ public class TribeSplitDecision : PolityDecision {
 		_cantPrevent = true;
 	}
 
-	public TribeSplitDecision (Tribe tribe, Clan splitClan, bool preferSplit) : base (tribe) {
+	public TribeSplitDecision (Tribe tribe, Clan splitClan, Clan dominantClan, bool preferSplit) : base (tribe) {
 
 		_tribe = tribe;
 
-		_dominantClan = tribe.DominantFaction as Clan;
+		_dominantClan = dominantClan;
 		_splitClan = splitClan;
 
 		Description = GenerateDescriptionIntro (tribe, splitClan) +
@@ -118,13 +118,13 @@ public class TribeSplitDecision : PolityDecision {
 			"\t• " + splitClanProminenceChangeEffect;
 	}
 
-	public static void LeaderPreventsSplit_notifySplitClan (Clan splitClan, Tribe originalTribe) {
+	public static void LeaderPreventsSplit_notifySplitClan (Clan splitClan, Clan dominantClan, Tribe originalTribe) {
 
 		World world = originalTribe.World;
 
 		if (originalTribe.IsUnderPlayerFocus || splitClan.IsUnderPlayerGuidance) {
 
-			Decision decision = new PreventedClanTribeSplitDecision (originalTribe, splitClan); // Notify player that tribe leader prevented split
+			Decision decision = new PreventedClanTribeSplitDecision (originalTribe, splitClan, dominantClan); // Notify player that tribe leader prevented split
 
 			if (splitClan.IsUnderPlayerGuidance) {
 
@@ -137,13 +137,11 @@ public class TribeSplitDecision : PolityDecision {
 
 		} else {
 
-			PreventedClanTribeSplitDecision.TribeLeaderPreventedSplit (splitClan, originalTribe);
+			PreventedClanTribeSplitDecision.TribeLeaderPreventedSplit (splitClan, dominantClan, originalTribe);
 		}
 	}
 
-	public static void LeaderPreventsSplit (Clan splitClan, Tribe tribe) {
-
-		Clan dominantClan = tribe.DominantFaction as Clan;
+	public static void LeaderPreventsSplit (Clan splitClan, Clan dominantClan, Tribe tribe) {
 
 		float charismaFactor = splitClan.CurrentLeader.Charisma / 10f;
 		float wisdomFactor = splitClan.CurrentLeader.Wisdom / 15f;
@@ -172,12 +170,12 @@ public class TribeSplitDecision : PolityDecision {
 
 		// Updates
 
-		LeaderPreventsSplit_notifySplitClan (splitClan, tribe);
+		LeaderPreventsSplit_notifySplitClan (splitClan, dominantClan, tribe);
 	}
 
 	private void PreventSplit () {
 
-		LeaderPreventsSplit (_splitClan, _tribe);
+		LeaderPreventsSplit (_splitClan, _dominantClan, _tribe);
 	}
 
 	private string GenerateAllowSplitResultMessage () {
@@ -187,21 +185,22 @@ public class TribeSplitDecision : PolityDecision {
 		return message;
 	}
 
-	public static void LeaderAllowsSplit (Clan splitClan, Tribe originalTribe) {
+	public static void LeaderAllowsSplit (Clan splitClan, Clan dominantClan, Tribe originalTribe) {
 
 		Tribe newTribe = new Tribe (splitClan, originalTribe);
 		newTribe.Initialize ();
 
 		splitClan.World.AddPolity (newTribe);
-		splitClan.World.AddPolityToUpdate (newTribe);
-		splitClan.World.AddPolityToUpdate (originalTribe);
+
+		splitClan.SetToUpdate ();
+		dominantClan.SetToUpdate ();
 
 		originalTribe.AddEventMessage (new TribeSplitEventMessage (splitClan, originalTribe, newTribe, splitClan.World.CurrentDate));
 	}
 
 	private void AllowSplit () {
 
-		LeaderAllowsSplit (_splitClan, _tribe);
+		LeaderAllowsSplit (_splitClan, _dominantClan, _tribe);
 	}
 
 	public override Option[] GetOptions () {

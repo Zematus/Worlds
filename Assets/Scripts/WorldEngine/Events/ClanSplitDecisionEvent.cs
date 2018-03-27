@@ -215,8 +215,6 @@ public class ClanSplitDecisionEvent : FactionEvent {
 
 			ClanSplitDecision.LeaderPreventsSplit (_clan);
 		}
-
-		World.AddFactionToUpdate (Faction);
 	}
 
 	public override void FinalizeLoad () {

@@ -102,7 +102,7 @@ public class ClanSplitDecision : FactionDecision {
 		clan.DecreasePreferenceValue (CulturalPreference.AuthorityPreferenceId, authorityPreferencePercentChange);
 		clan.IncreasePreferenceValue (CulturalPreference.CohesivenessPreferenceId, cohesivenessPreferencePercentChange);
 
-		clan.World.AddFactionToUpdate (clan);
+		clan.SetToUpdate ();
 
 		// Should reduce respect for authority and increase cohesiveness
 		clan.Polity.AddEventMessage (new PreventClanSplitEventMessage (clan, clan.CurrentLeader, clan.World.CurrentDate));

@@ -60,14 +60,11 @@ public class ClanCoreMigrationEvent : FactionEvent {
 
 	public override void Trigger () {
 
-		Faction.PrepareNewCoreGroup (_targetGroup);
-
-		World.AddGroupToUpdate (Faction.CoreGroup);
 		World.AddGroupToUpdate (_targetGroup);
 
-		World.AddFactionToUpdate (Faction);
+		Faction.SetToUpdate ();
 
-		World.AddPolityToUpdate (Faction.Polity);
+		Faction.PrepareNewCoreGroup (_targetGroup);
 	}
 
 	protected override void DestroyInternal () {

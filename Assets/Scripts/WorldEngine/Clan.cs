@@ -98,7 +98,7 @@ public class Clan : Faction {
 	}
 
 	public override void FinalizeLoad () {
-	
+
 		base.FinalizeLoad ();
 
 		CoreMigrationEvent = new ClanCoreMigrationEvent (this, CoreMigrationEventOriginalTribeId, CoreMigrationEventDate);
@@ -209,7 +209,7 @@ public class Clan : Faction {
 			addMoreWords = extraWordChance > getRandomFloat ();
 
 			if (!addMoreWords) {
-				
+
 				foreach (Faction faction in Polity.GetFactions ()) {
 
 					if (Language.ClearConstructCharacters(untranslatedName) == faction.Name.Meaning) {
@@ -374,7 +374,7 @@ public class Clan : Faction {
 
 			if (faction == this)
 				continue;
-		
+
 			randomValue = GetNextLocalRandomFloat (randomOffset++);
 			relationshipValue = avgNewClanRelationshipValue + (ClanSplitRelationshipValueSpread * (2f * randomValue - 1f));
 
@@ -387,10 +387,8 @@ public class Clan : Faction {
 
 		Polity.UpdateDominantFaction ();
 
-		World.AddFactionToUpdate (this);
-		World.AddFactionToUpdate (newClan);
-
-		World.AddPolityToUpdate (Polity);
+		SetToUpdate ();
+		newClan.SetToUpdate ();
 
 		Polity.AddEventMessage (new ClanSplitEventMessage (this, newClan, World.CurrentDate));
 	}
