@@ -9,7 +9,7 @@ public class ClanSplitDecision : FactionDecision {
 	public const float BaseMinPreferencePercentChange = 0.15f;
 	public const float BaseMaxPreferencePercentChange = 0.30f;
 
-	public const float SplitClanMinProminence = 0.35f;
+	public const float SplitClanMinProminence = 0.25f;
 	public const float SplitClanMaxProminence = 0.50f;
 
 	private Clan _clan;

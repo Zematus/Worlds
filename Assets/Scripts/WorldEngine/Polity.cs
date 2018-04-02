@@ -10,10 +10,8 @@ public delegate float FactionValueCalculationDelegate (Faction faction);
 
 public class PolityInfluence {
 
-	[XmlAttribute("PolId")]
+	[XmlAttribute]
 	public long PolityId;
-	[XmlAttribute("FctId")]
-	public long FactionId;
 	[XmlAttribute("Val")]
 	public float Value;
 	[XmlAttribute("FctDist")]
@@ -29,30 +27,20 @@ public class PolityInfluence {
 	public float NewFactionCoreDistance;
 	[XmlIgnore]
 	public float NewPolityCoreDistance;
-	[XmlIgnore]
-	public Faction NewFaction;
 
 	private bool _isMigratingGroup;
 
 	[XmlIgnore]
 	public Polity Polity;
-	[XmlIgnore]
-	public Faction Faction;
 
 	public PolityInfluence () {
 
 	}
 
-	public PolityInfluence (Polity polity, float value, Faction faction = null, float polityCoreDistance = -1, float factionCoreDistance = -1) {
+	public PolityInfluence (Polity polity, float value, float polityCoreDistance = -1, float factionCoreDistance = -1) {
 	
 		PolityId = polity.Id;
 		Polity = polity;
-		Faction = faction;
-
-		if (faction != null) {
-			FactionId = faction.Id;
-		}
-
 		Value = MathUtility.RoundToSixDecimals (value);
 		NewValue = Value;
 
@@ -63,7 +51,6 @@ public class PolityInfluence {
 
 		FactionCoreDistance = factionCoreDistance;
 		NewFactionCoreDistance = factionCoreDistance;
-		NewFaction = faction;
 	}
 
 	public void PostUpdate () {
@@ -71,11 +58,6 @@ public class PolityInfluence {
 		Value = NewValue;
 		PolityCoreDistance = NewPolityCoreDistance;
 		FactionCoreDistance = NewFactionCoreDistance;
-		Faction = NewFaction;
-		FactionId = NewFaction.Id;
-
-		NewPolityCoreDistance = CellGroup.MaxCoreDistance;
-		NewFactionCoreDistance = CellGroup.MaxCoreDistance;
 
 		#if DEBUG
 		if (FactionCoreDistance == -1) {
@@ -716,10 +698,7 @@ public abstract class Polity : ISynchronizable {
 			return;
 		}
 
-		Faction faction;
-
-		float factionCoreDistance = group.GetFactionCoreDistance (this, out faction);
-//		factionCoreDistance /= faction.Prominence;
+		float factionCoreDistance = group.GetFactionCoreDistance (this);
 
 		float cohesivenessPrefValue = group.GetPreferenceValue (CulturalPreference.CohesivenessPreferenceId);
 

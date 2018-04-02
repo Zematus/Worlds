@@ -250,18 +250,15 @@ public class CellGroup : HumanGroup {
 		
 		Manager.UpdateWorldLoadTrackEventCount ();
 	}
-
+	
 	public CellGroup (MigratingGroup migratingGroup, int splitPopulation) : this (migratingGroup.World, migratingGroup.TargetCell, splitPopulation, migratingGroup.Culture, migratingGroup.MigrationDirection) {
 
 		foreach (PolityInfluence p in migratingGroup.PolityInfluences) {
 
 			_polityInfluencesToAdd.Add (p.PolityId, p);
 
-			if ((p.NewFactionCoreDistance == -1) || (p.NewFaction == null)) {
-
-				Faction newFaction;
-				p.NewFactionCoreDistance = CalculateShortestFactionCoreDistance (p.Polity, out newFaction);
-				p.NewFaction = newFaction;
+			if (p.NewFactionCoreDistance == -1) {
+				p.NewFactionCoreDistance = CalculateShortestFactionCoreDistance (p.Polity);
 			}
 
 			if (p.NewPolityCoreDistance == -1) {
@@ -2427,17 +2424,13 @@ public class CellGroup : HumanGroup {
 		return polityInfluence.Value;
 	}
 
-	public float GetFactionCoreDistance (Polity polity, out Faction faction) {
+	public float GetFactionCoreDistance (Polity polity) {
 
 		PolityInfluence polityInfluence;
 
 		if (!_polityInfluences.TryGetValue (polity.Id, out polityInfluence)) {
-
-			faction = polity.DominantFaction;
 			return float.MaxValue;
 		}
-
-		faction = polityInfluence.Faction;
 
 		return polityInfluence.FactionCoreDistance;
 	}
@@ -2453,26 +2446,25 @@ public class CellGroup : HumanGroup {
 		return polityInfluence.PolityCoreDistance;
 	}
 
-	public float CalculateShortestDistance (Dictionary<CellGroup, float> knownDistancesToTarget, float maxDistance) {
+	private float CalculateShortestFactionCoreDistance (Polity polity) {
 
-		if (knownDistancesToTarget.Count <= 0)
-			return 0;
+		foreach (Faction faction in polity.GetFactions ()) {
+			if (faction.CoreGroup == this)
+				return 0;
+		}
 
-		float shortestDistance = maxDistance;
-
+		float shortestDistance = MaxCoreDistance;
+	
 		foreach (KeyValuePair<Direction, CellGroup> pair in Neighbors) {
+		
+			float distanceToCoreFromNeighbor = pair.Value.GetFactionCoreDistance (polity);
 
-			float distanceToTargetFromNeighbor;
-
-			if (!knownDistancesToTarget.TryGetValue (pair.Value, out distanceToTargetFromNeighbor))
+			if (distanceToCoreFromNeighbor == float.MaxValue)
 				continue;
-
-			if (distanceToTargetFromNeighbor >= maxDistance)
-				continue;
-
+			
 			float neighborDistance = Cell.NeighborDistances[pair.Key];
 
-			float totalDistance = distanceToTargetFromNeighbor + neighborDistance;
+			float totalDistance = distanceToCoreFromNeighbor + neighborDistance;
 
 			if (totalDistance < 0)
 				continue;
@@ -2482,46 +2474,6 @@ public class CellGroup : HumanGroup {
 		}
 
 		return shortestDistance;
-	}
-
-	private float CalculateShortestFactionCoreDistance (Polity polity, out Faction faction) {
-
-		foreach (Faction polityFaction in polity.GetFactions ()) {
-			if (polityFaction.CoreGroup == this) {
-
-				faction = polityFaction;
-				return 0;
-			}
-		}
-
-		faction = polity.DominantFaction;
-//		float shortestDistance = MaxCoreDistance / faction.Prominence;
-		float shortestDistance = MaxCoreDistance;
-	
-		foreach (KeyValuePair<Direction, CellGroup> pair in Neighbors) {
-
-			Faction nFaction;
-		
-			float distanceToCoreFromNeighbor = pair.Value.GetFactionCoreDistance (polity, out nFaction);
-
-			if (distanceToCoreFromNeighbor == float.MaxValue)
-				continue;
-			
-			float neighborDistance = Cell.NeighborDistances[pair.Key];
-
-//			float totalDistance = (distanceToCoreFromNeighbor + neighborDistance) / nFaction.Prominence;
-			float totalDistance = (distanceToCoreFromNeighbor + neighborDistance);
-
-//			if (totalDistance < 0)
-//				continue;
-
-			if (totalDistance < shortestDistance) {
-				shortestDistance = totalDistance;
-				faction = nFaction;
-			}
-		}
-
-		return shortestDistance * faction.Prominence;
 	}
 
 	private float CalculateShortestPolityCoreDistance (Polity polity) {
@@ -2555,10 +2507,8 @@ public class CellGroup : HumanGroup {
 	private void UpdateShortestFactionCoreDistances () {
 	
 		foreach (PolityInfluence pi in _polityInfluences.Values) {
-
-			Faction newFaction;
-			pi.NewFactionCoreDistance = CalculateShortestFactionCoreDistance (pi.Polity, out newFaction);
-			pi.NewFaction = newFaction;
+		
+			pi.NewFactionCoreDistance = CalculateShortestFactionCoreDistance (pi.Polity);
 		}
 	}
 
@@ -2725,19 +2675,7 @@ public class CellGroup : HumanGroup {
 		FindHighestPolityInfluence ();
 	}
 
-	public void SetPolityInfluenceFactionCoreDistance (Polity polity, Faction faction, float factionCoreDistance) {
-
-		PolityInfluence polityInfluence;
-
-		if (!_polityInfluences.TryGetValue (polity.Id, out polityInfluence)) {
-			throw new System.Exception ("Polity with Id " + polity.Id + " not present in group with id " + Id);
-		}
-
-		polityInfluence.NewFaction = faction;
-		polityInfluence.NewFactionCoreDistance = factionCoreDistance;
-	}
-
-	public PolityInfluence SetPolityInfluence (Polity polity, float newInfluenceValue, Faction faction = null, float polityCoreDistance = -1, float factionCoreDistance = -1) {
+	public PolityInfluence SetPolityInfluence (Polity polity, float newInfluenceValue, float polityCoreDistance = -1, float factionCoreDistance = -1) {
 
 		newInfluenceValue = MathUtility.RoundToSixDecimals (newInfluenceValue);
 
@@ -2788,13 +2726,11 @@ public class CellGroup : HumanGroup {
 					polityCoreDistance = CalculateShortestPolityCoreDistance (polity);
 				}
 
-				if ((factionCoreDistance == -1) || (faction == null)) {
-					Faction closestFaction;
-					factionCoreDistance = CalculateShortestFactionCoreDistance (polity, out closestFaction);
-					faction = closestFaction;
+				if (factionCoreDistance == -1) {
+					factionCoreDistance = CalculateShortestFactionCoreDistance (polity);
 				}
 
-				polityInfluence = new PolityInfluence (polity, newInfluenceValue, faction, polityCoreDistance, factionCoreDistance);
+				polityInfluence = new PolityInfluence (polity, newInfluenceValue, polityCoreDistance, factionCoreDistance);
 
 				_polityInfluencesToAdd.Add (polity.Id, polityInfluence);
 			}
@@ -2820,25 +2756,6 @@ public class CellGroup : HumanGroup {
 		}
 
 		polityInfluence.NewValue = newInfluenceValue;
-
-		if (polityCoreDistance == -1) {
-			polityCoreDistance = CalculateShortestPolityCoreDistance (polity);
-		}
-
-		if (polityCoreDistance < polityInfluence.NewPolityCoreDistance) {
-			polityInfluence.NewPolityCoreDistance = polityCoreDistance;
-		}
-
-		if ((factionCoreDistance == -1) || (faction == null)) {
-			Faction closestFaction;
-			factionCoreDistance = CalculateShortestFactionCoreDistance (polity, out closestFaction);
-			faction = closestFaction;
-		}
-
-		if (factionCoreDistance < polityInfluence.NewFactionCoreDistance) {
-			polityInfluence.NewFactionCoreDistance = factionCoreDistance;
-			polityInfluence.NewFaction = faction;
-		}
 
 		return polityInfluence;
 	}
@@ -2968,7 +2885,6 @@ public class CellGroup : HumanGroup {
 		foreach (PolityInfluence p in PolityInfluences) {
 
 			p.Polity = World.GetPolity (p.PolityId);
-			p.Faction = World.GetFaction (p.FactionId);
 			p.NewValue = p.Value;
 
 			if (p.Polity == null) { 

@@ -249,8 +249,6 @@ public class FactionCulture : Culture {
 			}
 		}
 
-		List<CulturalDiscovery> discoveriesToRemove = new List<CulturalDiscovery> (Discoveries.Count);
-
 		foreach (CulturalDiscovery d in Discoveries) {
 
 			int idHash = d.Id.GetHashCode ();
@@ -259,16 +257,9 @@ public class FactionCulture : Culture {
 
 				if (GetNextRandomFloat (RngOffsets.FACTION_CULTURE_DISCOVER_LOSS_CHANCE + idHash) < timeFactor) {
 
-					discoveriesToRemove.Add (d);
-
 					RemoveDiscovery (d);
 				}
 			}
-		}
-
-		foreach (CulturalDiscovery d in discoveriesToRemove) {
-
-			RemoveDiscovery (d);
 		}
 	}
 }
