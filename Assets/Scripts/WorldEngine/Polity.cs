@@ -687,6 +687,64 @@ public abstract class Polity : ISynchronizable {
 		Flags.ForEach (f => _flags.Add (f));
 	}
 
+//	public virtual float CalculateCellMigrationValue (CellGroup sourceGroup, TerrainCell targetCell, float sourceValue)
+//	{
+//		if (sourceValue <= 0)
+//			return 0;
+//
+//		float sourceGroupTotalPolityInfluenceValue = sourceGroup.TotalPolityInfluenceValue;
+//
+//		CellGroup targetGroup = targetCell.Group;
+//
+//		if (targetGroup == null) {
+//			return sourceValue / sourceGroupTotalPolityInfluenceValue;
+//		}
+//
+//		float targetGroupTotalPolityInfluenceValue = targetGroup.TotalPolityInfluenceValue;
+//
+//		if (sourceGroupTotalPolityInfluenceValue <= 0) {
+//		
+//			throw new System.Exception ("sourceGroup.TotalPolityInfluenceValue equal or less than 0: " + sourceGroupTotalPolityInfluenceValue);
+//		}
+//
+//		float influenceFactor = sourceValue / (targetGroupTotalPolityInfluenceValue + sourceGroupTotalPolityInfluenceValue);
+//
+//		influenceFactor = MathUtility.RoundToSixDecimals (influenceFactor);
+//
+////		#if DEBUG
+////		if (Manager.RegisterDebugEvent != null) {
+////			if (sourceGroup.Id == Manager.TracingData.GroupId) {
+////				if (Id == Manager.TracingData.PolityId) {
+////					if ((targetCell.Longitude == Manager.TracingData.Longitude) && (targetCell.Latitude == Manager.TracingData.Latitude)) {
+////						string sourceGroupId = "Id:" + sourceGroup.Id + "|Long:" + sourceGroup.Longitude + "|Lat:" + sourceGroup.Latitude;
+////						string targetLocation = "Long:" + targetCell.Longitude + "|Lat:" + targetCell.Latitude;
+////
+////						if (targetGroup != null) {
+////							targetLocation = "Id:" + targetGroup.Id + "|Long:" + targetGroup.Longitude + "|Lat:" + targetGroup.Latitude;
+////						}
+////
+////						SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+////							"MigrationValue - Group: " + sourceGroupId + 
+////							"Polity Id: " + Id,
+////							"CurrentDate: " + World.CurrentDate + 
+////							", targetLocation: " + targetLocation + 
+////							", sourceValue: " + sourceValue.ToString("F7") + 
+////							", socialOrgFactor: " + socialOrgFactor.ToString("F7") + 
+////							", groupTotalInfluenceValue: " + groupTotalInfluenceValue.ToString("F7") + 
+////							", sourceValueFactor: " + sourceValueFactor.ToString("F7") + 
+////							", influenceFactor: " + influenceFactor.ToString("F7") + 
+////							"");
+////
+////						Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+////					}
+////				}
+////			}
+////		}
+////		#endif
+//
+//		return Mathf.Clamp01 (influenceFactor);
+//	}
+
 	public abstract float CalculateGroupInfluenceExpansionValue (CellGroup sourceGroup, CellGroup targetGroup, float sourceValue);
 
 	public virtual void GroupUpdateEffects (CellGroup group, float influenceValue, float totalPolityInfluenceValue, long timeSpan) {
@@ -698,18 +756,14 @@ public abstract class Polity : ISynchronizable {
 			return;
 		}
 
-		float factionCoreDistance = group.GetFactionCoreDistance (this);
+		float coreFactionDistance = group.GetFactionCoreDistance (this);
 
-		float cohesivenessPrefValue = group.GetPreferenceValue (CulturalPreference.CohesivenessPreferenceId);
+		float coreDistancePlusConstant = coreFactionDistance + CoreDistanceEffectConstant;
 
-		float coreDistanceEffect = CoreDistanceEffectConstant * cohesivenessPrefValue;
+		float distanceFactor = 0;
 
-		float coreDistancePlusEffect = factionCoreDistance + coreDistanceEffect;
-
-		if (coreDistancePlusEffect <= 0)
-			throw new System.Exception ("coreDistancePlusConstant equal or less than zero");
-
-		float distanceFactor = coreDistanceEffect / coreDistancePlusEffect;
+		if (coreDistancePlusConstant > 0)
+			distanceFactor = CoreDistanceEffectConstant / coreDistancePlusConstant;
 
 		TerrainCell groupCell = group.Cell;
 

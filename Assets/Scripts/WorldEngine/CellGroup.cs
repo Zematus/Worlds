@@ -1931,17 +1931,15 @@ public class CellGroup : HumanGroup {
 		}
 	}
 
-	public float GetPreferenceValue (string id) {
-
-		CulturalPreference preference = Culture.GetPreference (id);
-
-		if (preference != null)
-			return preference.Value; 
-
-		return 0;
-	}
-
 	private void PolityUpdateEffects (long timeSpan) {
+
+//		#if DEBUG
+//		if ((Cell.Longitude == 229) && (Cell.Latitude == 120)) {
+//			if ((_polityInfluences.Count + _polityInfluencesToAdd.Count) == 2) {
+//				bool debug = true;
+//			}
+//		}
+//		#endif
 
 		foreach (PolityInfluence polityInfluence in _polityInfluences.Values) {
 

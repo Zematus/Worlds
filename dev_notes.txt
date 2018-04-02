@@ -1,7 +1,8 @@
 BUGS:
 Cleanup rules: Prioritize bugs first by rating bucket (HIGH,MED,LOW) then within each bucket by date from older to newer. When finishing up with all HIGHs, graduate the oldest MED to HIGH and the three oldest LOWs to MEDs then re-sort the MEDs by date.
 
-- (HIGH 3/27/18) The polity influence within a coregroup of a faction goes missing
+- (HIGH 3/18/18) When a player guided faction creates or joins a new tribe it should change selection and guidance focus
+- (HIGH 3/25/18) A Faction's authority preference resets to previous values after a while for no apparent reason
 - (MED 1/17/18) Regions seems to get selected when clicking on polity overlays
 - (MED 1/17/18) Clicking on regions do not highlight them right away until clicked a second time
 - (MED 1/18/18) Check why certain cells get updated very frequently afer the world mostly stabilized
@@ -77,7 +78,7 @@ Decisions Infrastructure (0.03):
 	- Cultural Preferences
 
 - Cultural Preferences
-	- Acculturation/Coexistence/Integration
+	- Acculturation
 	- Agresiveness/Passiveness
 	- Tolerant/Intolerant
 	- Traditionalism/Antitraditionalism

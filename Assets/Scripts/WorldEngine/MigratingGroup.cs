@@ -129,7 +129,7 @@ public class MigratingGroup : HumanGroup {
 			PolityInfluence pi = SourceGroup.GetPolityInfluence (faction.Polity);
 
 			if (pi == null) {
-				throw new System.Exception ("Unable to find Polity with Id: " + faction.Polity.Id);
+				Debug.LogError ("Unable to find Polity with Id: " + faction.Polity.Id);
 			}
 
 			float sourceGroupInfluence = pi.Value;
