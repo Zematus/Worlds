@@ -20,6 +20,8 @@ public class Clan : Faction {
 	public const int MinClanLeaderStartAge = 16 * World.YearLength;
 	public const int MaxClanLeaderStartAge = 50 * World.YearLength;
 
+	public const float MinProminenceDistanceFactor = 0.4f;
+
 	public const int MinSocialOrganizationValue = 400;
 
 	public const int MinCoreMigrationPopulation = 500;
@@ -387,10 +389,73 @@ public class Clan : Faction {
 
 		Polity.UpdateDominantFaction ();
 
+		newClan.UpdateInfluenceFactionCoreDistances ();
+
 		SetToUpdate ();
 		newClan.SetToUpdate ();
 
 		Polity.AddEventMessage (new ClanSplitEventMessage (this, newClan, World.CurrentDate));
+	}
+
+	private void UpdateInfluenceFactionCoreDistances () {
+
+		int maxGroupCount = Polity.InfluencedGroups.Count;
+
+		Dictionary<CellGroup, float> groupDistances = new Dictionary<CellGroup, float> (maxGroupCount);
+
+		Queue<CellGroup> groupsToReview = new Queue<CellGroup> (maxGroupCount);
+
+		HashSet<CellGroup> reviewedOrEnqeuedGroups = new HashSet<CellGroup> ();
+
+		groupsToReview.Enqueue (CoreGroup);
+		reviewedOrEnqeuedGroups.Add (CoreGroup);
+
+		int addedGroupCount = 0;
+
+		while (groupsToReview.Count > 0) {
+
+			CellGroup group = groupsToReview.Dequeue ();
+
+			PolityInfluence polityInfluence = group.GetPolityInfluence (Polity);
+
+			if (polityInfluence == null)
+				continue;
+
+			float currentFactionCoreDistance = polityInfluence.FactionCoreDistance;
+
+			float newFactionCoreDistance = group.CalculateShortestDistance (groupDistances, CellGroup.MaxCoreDistance);
+
+			if (newFactionCoreDistance >= CellGroup.MaxCoreDistance)
+				continue;
+
+//			float currentDistanceFactor = currentFactionCoreDistance / (polityInfluence.Faction.Prominence + MinProminenceDistanceFactor);
+//			float newDistanceFactor = newFactionCoreDistance / (Prominence + MinProminenceDistanceFactor);
+
+			float currentDistanceFactor = currentFactionCoreDistance;
+			float newDistanceFactor = newFactionCoreDistance;
+
+			if (currentDistanceFactor < newDistanceFactor)
+				continue;
+
+			group.SetPolityInfluenceFactionCoreDistance (Polity, this, newFactionCoreDistance);
+
+			addedGroupCount++;
+
+			groupDistances.Add (group, newFactionCoreDistance);
+
+			World.AddGroupToUpdate (group);
+
+			foreach (CellGroup nGroup in group.Neighbors.Values) {
+
+				if (!reviewedOrEnqeuedGroups.Contains (nGroup)) {
+
+					groupsToReview.Enqueue (nGroup);
+					reviewedOrEnqeuedGroups.Add (nGroup);
+				}
+			}
+		}
+
+		Debug.Log ("Groups that switched faction: " + addedGroupCount);
 	}
 
 	public float CalculateAdministrativeLoad () {

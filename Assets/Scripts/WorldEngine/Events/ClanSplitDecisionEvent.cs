@@ -95,6 +95,9 @@ public class ClanSplitDecisionEvent : FactionEvent {
 		if (group.HighestPolityInfluence != pi)
 			return 0;
 
+		if (pi.Faction != _clan)
+			return 0;
+
 		if (!Clan.CanBeClanCore (group))
 			return 0;
 
