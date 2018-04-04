@@ -200,6 +200,12 @@ public abstract class Polity : ISynchronizable {
 
 		Id = GenerateUniqueIdentifier (World.CurrentDate, 100L, idOffset);
 
+		#if DEBUG
+		if (Id == 24461555805612901) {
+			bool debug = true;
+		}
+		#endif
+
 		Culture = new PolityCulture (this);
 
 //		#if DEBUG

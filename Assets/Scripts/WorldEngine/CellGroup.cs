@@ -2675,6 +2675,18 @@ public class CellGroup : HumanGroup {
 
 	public PolityInfluence SetPolityInfluence (Polity polity, float newInfluenceValue, float polityCoreDistance = -1, float factionCoreDistance = -1) {
 
+		#if DEBUG
+		if ((polity.Id == 24461555805612901) && (Id == 44922355057131)) {
+			bool debug = true;
+		}
+		#endif
+
+		#if DEBUG
+		if ((polity.Id == 7283373004613100) && (Id == 44922355057131)) {
+			bool debug = true;
+		}
+		#endif
+
 		newInfluenceValue = MathUtility.RoundToSixDecimals (newInfluenceValue);
 
 //		#if DEBUG

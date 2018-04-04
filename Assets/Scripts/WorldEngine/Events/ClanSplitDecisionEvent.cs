@@ -141,6 +141,12 @@ public class ClanSplitDecisionEvent : FactionEvent {
 			return false;
 		}
 
+		#if DEBUG
+		if (_newClanCoreGroup.Id == 44922355057131) {
+			bool debug = true;
+		}
+		#endif
+
 		// We should use the latest cultural attribute values before calculating chances
 		_clan.PreUpdate ();
 

@@ -132,6 +132,12 @@ public abstract class Faction : ISynchronizable {
 
 		Id = GenerateUniqueIdentifier (World.CurrentDate, 100L, idOffset);
 
+		#if DEBUG
+		if (Id == 24461555805713101) {
+			bool debug = true;
+		}
+		#endif
+
 		Culture = new FactionCulture (this);
 
 		CoreGroup.AddFactionCore (this);
