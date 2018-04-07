@@ -3,7 +3,7 @@ using UnityEngine.Events;
 using UnityEngine.UI;
 using System.Collections;
 
-public abstract class ModalPanelScript : MonoBehaviour {
+public class ModalPanelScript : MonoBehaviour {
 
 	public CanvasGroup ModalPanelCanvasGroup;
 

@@ -47,6 +47,7 @@ public class GuiManagerScript : MonoBehaviour {
 	public AddPopulationDialogScript AddPopulationDialogScript;
 	public FocusPanelScript FocusPanelScript;
 	public GuidingPanelScript GuidingPanelScript;
+	public ModalPanelScript CreditsDialogPanelScript;
 
 	public List<ModalPanelScript> HiddenLowPrioPanels = new List<ModalPanelScript> ();
 
@@ -565,6 +566,13 @@ public class GuiManagerScript : MonoBehaviour {
 
 		HighPrioUninterruptSimulation ();
 	}
+
+	public void CloseCreditsDialog () {
+
+		CreditsDialogPanelScript.SetVisible (false);
+
+		HighPrioUninterruptSimulation ();
+	}
 	
 	public void CloseOptionsMenu () {
 		
@@ -585,6 +593,15 @@ public class GuiManagerScript : MonoBehaviour {
 		SettingsDialogPanelScript.FullscreenToggle.isOn = Manager.IsFullscreen;
 
 		SettingsDialogPanelScript.SetVisible (true);
+
+		InterruptSimulation (true);
+	}
+
+	public void OpenCreditsDialog () {
+
+		MainMenuDialogPanelScript.SetVisible (false);
+
+		CreditsDialogPanelScript.SetVisible (true);
 
 		InterruptSimulation (true);
 	}
