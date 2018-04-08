@@ -156,7 +156,7 @@ public class Manager {
 
 	#endif
 
-	public static string CurrentVersion = "0.029";
+	public static string CurrentVersion = "0.029.5";
 
 //	public static bool RecordingEnabled = false;
 

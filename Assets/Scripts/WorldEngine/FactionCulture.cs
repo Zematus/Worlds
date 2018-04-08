@@ -7,7 +7,7 @@ using UnityEngine.Profiling;
 
 public class FactionCulture : Culture {
 
-	public const long OptimalTimeSpan = CellGroup.GenerationSpan * 100;
+	public const long OptimalTimeSpan = CellGroup.GenerationSpan * 500;
 
 	[XmlIgnore]
 	public Faction Faction;
@@ -249,6 +249,8 @@ public class FactionCulture : Culture {
 			}
 		}
 
+		List<CulturalDiscovery> discoveriesToRemove = new List<CulturalDiscovery> (Discoveries.Count);
+
 		foreach (CulturalDiscovery d in Discoveries) {
 
 			int idHash = d.Id.GetHashCode ();
@@ -257,9 +259,13 @@ public class FactionCulture : Culture {
 
 				if (GetNextRandomFloat (RngOffsets.FACTION_CULTURE_DISCOVER_LOSS_CHANCE + idHash) < timeFactor) {
 
-					RemoveDiscovery (d);
+					discoveriesToRemove.Add (d);
 				}
 			}
+		}
+
+		foreach (CulturalDiscovery d in discoveriesToRemove) {
+			RemoveDiscovery (d);
 		}
 	}
 }

@@ -181,9 +181,9 @@ public class MigratingGroup : HumanGroup {
 
 		foreach (Faction faction in FactionCoresToMigrate) {
 
-			faction.PrepareNewCoreGroup (targetGroup);
+			faction.SetToUpdate ();
 
-			World.AddFactionToUpdate (faction);
+			faction.PrepareNewCoreGroup (targetGroup);
 		}
 	}
 

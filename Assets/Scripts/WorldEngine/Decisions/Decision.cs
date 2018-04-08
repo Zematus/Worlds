@@ -5,6 +5,8 @@ using System.Linq;
 using System.Xml;
 using System.Xml.Serialization;
 
+public delegate void DecisionEffectDelegate ();
+
 public abstract class Decision {
 
 	public string Description;
@@ -24,7 +26,7 @@ public abstract class Decision {
 			_executeMethod ();
 		}
 
-		public Option (string text, string descriptionText, ExecuteDelegate executeMethod) {
+		public Option (string text, string descriptionText, ExecuteDelegate executeMethod = null) {
 
 			Text = text;
 

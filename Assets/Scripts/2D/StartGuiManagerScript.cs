@@ -15,6 +15,7 @@ public class StartGuiManagerScript : MonoBehaviour {
 	public TextInputDialogPanelScript MessageDialogPanelScript;
 	public WorldCustomizationDialogPanelScript SetSeedDialogPanelScript;
 	public WorldCustomizationDialogPanelScript CustomizeWorldDialogPanelScript;
+	public ModalPanelScript CreditsDialogPanelScript;
 
 	public Text VersionText;
 	
@@ -150,6 +151,13 @@ public class StartGuiManagerScript : MonoBehaviour {
 		SettingsDialogPanelScript.SetVisible (true);
 	}
 
+	public void OpenCreditsDialog () {
+
+		MainMenuDialogPanelScript.SetVisible (false);
+
+		CreditsDialogPanelScript.SetVisible (true);
+	}
+
 	public void ToogleFullscreen (bool state) {
 
 		Manager.SetFullscreen (state);
@@ -158,6 +166,13 @@ public class StartGuiManagerScript : MonoBehaviour {
 	public void CloseSettingsDialog () {
 
 		SettingsDialogPanelScript.SetVisible (false);
+
+		MainMenuDialogPanelScript.SetVisible (true);
+	}
+
+	public void CloseCreditsDialog () {
+
+		CreditsDialogPanelScript.SetVisible (false);
 
 		MainMenuDialogPanelScript.SetVisible (true);
 	}

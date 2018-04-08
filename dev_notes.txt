@@ -1,19 +1,27 @@
 BUGS:
+Cleanup rules: Prioritize bugs first by rating bucket (HIGH,MED,LOW) then within each bucket by date from older to newer. When finishing up with all HIGHs, graduate the oldest MED to HIGH and the three oldest LOWs to MEDs then re-sort the MEDs by date.
 
-- (HIGH 1/18/18) Decision dialog overlaps with other modal dialogs (see screenshot bugs\bug_overlap.png)
-- (HIGH 1/18/18) Overlay subtype dialog remains open when guiding faction (see screenshot bugs\bug_overlap.png)
-- (HIGH 1/19/18) Invalid input when trying to generate new world (tries custom world by default, maybe just when tested within editor)
+<<<Insert all new bugs, issues and tasks in Worlds' Github DB>>>
+
 - (MED 1/17/18) Regions seems to get selected when clicking on polity overlays
-- (MED 1/17/18) Clicking on regions do not highlight them rightaway until clicked a second time
+- (MED 1/17/18) Clicking on regions do not highlight them right away until clicked a second time
 - (MED 1/18/18) Check why certain cells get updated very frequently afer the world mostly stabilized
 - (LOW 1/18/18) Sometimes factions appear with exactly the same name (possibly due to both factions having the same core?)
-- (LOW 2/19/18) Expanding polity inflence effects should be calculated on their own phase (outside of the event) to reduce load discrepancies
+- (LOW 2/19/18) Expanding polity inflence effects should be calculated on their own phase (outside of the event) to reduce load 
+- (LOW 3/25/18) Check capitalization in the panel for focused tribes
+- (LOW 3/25/18) Check capitalization and word order for polity names in the infopanel
+- (LOW 3/25/18) Check capitalization and word order int panel for guided faction
+- (LOW 3/27/18) Whne a faction property changes after a decision, if the simulation is paused, the change doesn't reflect on the polity.
 
 TASKS:
 
+- a faction that losses too much prominence should dissapear
+- a decision message should be displayed (or popup) when the dominant faction of a followed polity changes
+- show specific cultural attribute values for factions in tooltips
+- customize decision dialogs to show why it might fail or succeed depending on faction and leader attributes
 - make test builds for patreons
-- add goals to patreon, decent schedule, progress path and a feature wish list
-- advertise the Patreon more
+- add decent schedule, progress path and a feature wish list
+- add a wave influence transfer event that triggers after short spans on neighborging cells that have lower influence
 - add world customization templates
 - allow replacement of populations
 - Rewind, go back in time
@@ -28,6 +36,16 @@ EXTRA:
 
 
 Future developments:
+
+Artisanship - activity
+Metalurgy - knowledge
+
+Types of factions
+Clans - migratory (core should be centroid of territory), nebulous, no focus
+Families - core within an urban area, associated with a trade
+Houses - noble status (caste), associated with a territory, core is capital of territory
+
+Low cohesiveness should reduce polity influence within cellgroups. 
 
 Events to add:
 - Clan Events:
@@ -60,6 +78,7 @@ Decisions Infrastructure (0.03):
 	- Cultural Preferences
 
 - Cultural Preferences
+	- Acculturation
 	- Agresiveness/Passiveness
 	- Tolerant/Intolerant
 	- Traditionalism/Antitraditionalism

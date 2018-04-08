@@ -8,6 +8,8 @@ using System.Xml.Serialization;
 // Agent Attributes
 // -- Charisma
 // -- Wisdom
+// -- Cunning
+// -- Strength
 
 public class Agent : ISynchronizable {
 
@@ -275,6 +277,12 @@ public class Agent : ISynchronizable {
 
 		if (Group == null) {
 			throw new System.Exception ("Missing Group with Id " + GroupId);
+		}
+	}
+
+	public string PossessiveNoun {
+		get { 
+			return (IsFemale) ? "her" : "his"; 
 		}
 	}
 }

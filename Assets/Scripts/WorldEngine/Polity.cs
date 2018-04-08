@@ -200,6 +200,12 @@ public abstract class Polity : ISynchronizable {
 
 		Id = GenerateUniqueIdentifier (World.CurrentDate, 100L, idOffset);
 
+		#if DEBUG
+		if (Id == 24461555805612901) {
+			bool debug = true;
+		}
+		#endif
+
 		Culture = new PolityCulture (this);
 
 //		#if DEBUG
@@ -383,6 +389,8 @@ public abstract class Polity : ISynchronizable {
 		if (DominantFaction != null) {
 		
 			DominantFaction.SetDominant (false);
+
+			World.AddFactionToUpdate (DominantFaction);
 		}
 
 		if ((faction == null) || (!faction.StillPresent))
@@ -402,9 +410,18 @@ public abstract class Polity : ISynchronizable {
 
 			World.AddFactionToUpdate (faction);
 		}
+
+		World.AddPolityToUpdate (this);
 	}
 
-	public IEnumerable<Faction> GetFactions () {
+	public IEnumerable<Faction> GetFactions (bool ordered = false) {
+
+		if (ordered) {
+			List<Faction> sortedFactions = new List<Faction> (_factions.Values);
+			sortedFactions.Sort (Faction.CompareId);
+
+			return sortedFactions;
+		}
 
 		return _factions.Values;
 	}
@@ -443,6 +460,29 @@ public abstract class Polity : ISynchronizable {
 
 			f.Prominence = f.Prominence / totalProminence;
 		}
+	}
+
+	public static void TransferProminence (Faction sourceFaction, Faction targetFaction, float percentage) {
+
+		// Can only tranfer prominence between factions belonging to the same polity
+
+		if (sourceFaction.PolityId != targetFaction.PolityId)
+			throw new System.Exception ("Source faction and target faction do not belong to same polity");
+
+		// Always reduce prominence of source faction and increase promience of target faction
+
+		if ((percentage < 0f) || (percentage > 1f))
+			throw new System.Exception ("Invalid percentage: " + percentage);
+
+		float oldSourceProminenceValue = sourceFaction.Prominence;
+
+		sourceFaction.Prominence = oldSourceProminenceValue * (1f - percentage);
+
+		float prominenceDelta = oldSourceProminenceValue - sourceFaction.Prominence;
+
+		targetFaction.Prominence += prominenceDelta;
+
+		sourceFaction.Polity.UpdateDominantFaction ();
 	}
 
 	public void PrepareToRemoveFromWorld () {
@@ -932,98 +972,14 @@ public abstract class Polity : ISynchronizable {
 
 		_flags.Remove (flag);
 	}
-}
 
-public abstract class PolityEventMessage : WorldEventMessage {
+	public float GetPreferenceValue (string id) {
 
-	[XmlAttribute]
-	public long PolityId;
+		CulturalPreference preference = Culture.GetPreference (id);
 
-	[XmlIgnore]
-	public Polity Polity {
-		get { return World.GetPolity (PolityId); }
-	}
+		if (preference != null)
+			return preference.Value; 
 
-	public PolityEventMessage () {
-
-	}
-
-	public PolityEventMessage (Polity polity, long id, long date) : base (polity.World, id, date) {
-
-		PolityId = polity.Id;
+		return 0;
 	}
 }
-
-public abstract class PolityEvent : WorldEvent {
-
-	[XmlAttribute]
-	public long PolityId;
-
-	[XmlAttribute]
-	public long EventTypeId;
-
-	[XmlIgnore]
-	public Polity Polity;
-
-	public PolityEvent () {
-
-	}
-
-	public PolityEvent (Polity polity, long triggerDate, long eventTypeId) : base (polity.World, triggerDate, GenerateUniqueIdentifier (polity, triggerDate, eventTypeId)) {
-
-		Polity = polity;
-		PolityId = Polity.Id;
-
-		EventTypeId = eventTypeId;
-
-//		#if DEBUG
-//		if (Manager.RegisterDebugEvent != null) {
-//			string polityId = "Id: " + polity.Id;
-//
-//			SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("PolityEvent - Polity: " + polityId, "TriggerDate: " + TriggerDate);
-//
-//			Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-//		}
-//		#endif
-	}
-
-	public static long GenerateUniqueIdentifier (Polity polity, long triggerDate, long eventTypeId) {
-
-		#if DEBUG
-		if (triggerDate >= World.MaxSupportedDate) {
-			Debug.LogWarning ("'triggerDate' shouldn't be greater than " + World.MaxSupportedDate + " (triggerDate = " + triggerDate + ")");
-		}
-		#endif
-
-		return (triggerDate * 1000000000L) + ((polity.Id % 1000000L) * 1000L) + eventTypeId;
-	}
-
-	public override bool IsStillValid () {
-	
-		if (!base.IsStillValid ())
-			return false;
-
-		if (Polity == null)
-			return false;
-
-		return Polity.StillPresent;
-	}
-
-	public override void FinalizeLoad () {
-
-		base.FinalizeLoad ();
-
-		Polity = World.GetPolity (PolityId);
-
-		if (Polity == null) {
-
-			Debug.LogError ("PolityEvent: Polity with Id:" + PolityId + " not found");
-		}
-	}
-
-	public virtual void Reset (long newTriggerDate) {
-
-		Reset (newTriggerDate, GenerateUniqueIdentifier (Polity, newTriggerDate, EventTypeId));
-	}
-}
-

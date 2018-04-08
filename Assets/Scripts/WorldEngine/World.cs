@@ -81,11 +81,14 @@ public static class RngOffsets {
 	public const int BOAT_MAKING_DISCOVERY_EVENT_CALCULATE_TRIGGER_DATE = 900004;
 	public const int PLANT_CULTIVATION_DISCOVERY_EVENT_CALCULATE_TRIGGER_DATE = 900005;
 	public const int CLAN_SPLITTING_EVENT_CALCULATE_TRIGGER_DATE = 900006;
-	public const int CLAN_SPLITTING_EVENT_CAN_TRIGGER = 900009;
-	public const int CLAN_SPLITTING_EVENT_PREFER_SPLIT = 900010;
-	public const int CLAN_SPLITTING_EVENT_MODIFY_ATTRIBUTE = 900011;
-	public const int TRIBE_SPLITTING_EVENT_CALCULATE_TRIGGER_DATE = 900007;
-	public const int CLAN_CORE_MIGRATION_EVENT_CALCULATE_TRIGGER_DATE = 900008;
+	public const int CLAN_SPLITTING_EVENT_PREFER_SPLIT = 900007;
+	public const int CLAN_SPLITTING_EVENT_LEADER_PREVENTS_MODIFY_ATTRIBUTE = 900008;
+	public const int TRIBE_SPLITTING_EVENT_CALCULATE_TRIGGER_DATE = 900010;
+	public const int TRIBE_SPLITTING_EVENT_SPLITCLAN_PREFER_SPLIT = 900011;
+	public const int TRIBE_SPLITTING_EVENT_TRIBE_PREFER_SPLIT = 900012;
+	public const int TRIBE_SPLITTING_EVENT_SPLITCLAN_LEADER_PREVENTS_MODIFY_ATTRIBUTE = 900013;
+	public const int TRIBE_SPLITTING_EVENT_TRIBE_LEADER_PREVENTS_MODIFY_ATTRIBUTE = 900014;
+	public const int CLAN_CORE_MIGRATION_EVENT_CALCULATE_TRIGGER_DATE = 900020;
 
 	public const int EVENT_TRIGGER = 1000000;
 	public const int EVENT_CAN_TRIGGER = 1100000;
@@ -187,7 +190,8 @@ public class World : ISynchronizable {
 		XmlArrayItem (Type = typeof(TribalismDiscoveryEvent)),
 		XmlArrayItem (Type = typeof(PlantCultivationDiscoveryEvent)),
 		XmlArrayItem (Type = typeof(ClanSplitDecisionEvent)),
-		XmlArrayItem (Type = typeof(TribeSplitEvent)),
+		XmlArrayItem (Type = typeof(TribeSplitDecisionEvent)),
+//		XmlArrayItem (Type = typeof(TribeSplitEvent)),
 		XmlArrayItem (Type = typeof(ClanCoreMigrationEvent))]
 	public List<WorldEvent> EventsToHappen;
 
@@ -1247,7 +1251,7 @@ public class World : ISynchronizable {
 
 	public Faction GetFaction (long id) {
 
-		Faction faction;
+		Faction faction = null;
 
 		_factions.TryGetValue (id, out faction);
 
@@ -1292,7 +1296,10 @@ public class World : ISynchronizable {
 
 		Polity polity;
 
-		_polities.TryGetValue (id, out polity);
+		if (!_polities.TryGetValue (id, out polity)) {
+		
+			return null;
+		}
 
 		return polity;
 	}
