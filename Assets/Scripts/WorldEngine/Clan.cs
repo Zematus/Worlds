@@ -354,7 +354,29 @@ public class Clan : Faction {
 
 		Prominence -= splitFactionProminence;
 
-		Clan newClan = new Clan (Polity as Tribe, _splitFactionCoreGroup, splitFactionProminence, this);
+
+
+		float polityInfluenceValue = _splitFactionCoreGroup.GetPolityInfluenceValue (Polity);
+		PolityInfluence highestPolityInfluence = _splitFactionCoreGroup.HighestPolityInfluence;
+
+		Tribe parentTribe = Polity as Tribe;
+
+		// If the polity with the highest influence is different than the source clan's polity and it's value is twice greater switch the new clan's polity to this one.
+		// NOTE: This is sort of a hack to avoid issues with clan/tribe split coincidences (issue #8 github). Try finding a better solution...
+		if (highestPolityInfluence.Value > (polityInfluenceValue * 2)) {
+		
+			if (highestPolityInfluence.Polity is Tribe) {
+			
+				parentTribe = highestPolityInfluence.Polity as Tribe;
+
+				Debug.Log ("parent tribe replaced from " + Polity.Id + " to " + parentTribe.Id + " due to low polity influence value in new core: " + polityInfluenceValue);
+			} else {
+			
+				throw new System.Exception ("Failed to replace new parent polity as it is not a Tribe. Id: " + highestPolityInfluence.Polity.Id);
+			}
+		}
+
+		Clan newClan = new Clan (parentTribe, _splitFactionCoreGroup, splitFactionProminence, this);
 		newClan.Initialize (); // We can initialize right away since the containing polity is already initialized
 
 		// set relationship with parent clan
@@ -370,7 +392,7 @@ public class Clan : Faction {
 
 		float avgNewClanRelationshipValue = AvgClanSplitRelationshipValue + (newClan.CurrentLeader.Charisma - 10) / ClanSplitRelationshipValueCharismaFactor;
 
-		foreach (Faction faction in Polity.GetFactions (true)) {
+		foreach (Faction faction in parentTribe.GetFactions (true)) {
 
 			if (faction == this)
 				continue;
@@ -383,14 +405,14 @@ public class Clan : Faction {
 
 		// finalize
 
-		Polity.AddFaction (newClan);
+		parentTribe.AddFaction (newClan);
 
-		Polity.UpdateDominantFaction ();
+		parentTribe.UpdateDominantFaction ();
 
 		SetToUpdate ();
 		newClan.SetToUpdate ();
 
-		Polity.AddEventMessage (new ClanSplitEventMessage (this, newClan, World.CurrentDate));
+		parentTribe.AddEventMessage (new ClanSplitEventMessage (this, newClan, World.CurrentDate));
 	}
 
 	public float CalculateAdministrativeLoad () {

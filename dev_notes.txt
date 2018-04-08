@@ -3,8 +3,6 @@ Cleanup rules: Prioritize bugs first by rating bucket (HIGH,MED,LOW) then within
 
 <<<Insert all new bugs, issues and tasks in Worlds' Github DB>>>
 
-- (HIGH 3/18/18) When a player guided faction creates or joins a new tribe it should change selection and guidance focus
-- (HIGH 3/25/18) A Faction's authority preference resets to previous values after a while for no apparent reason
 - (MED 1/17/18) Regions seems to get selected when clicking on polity overlays
 - (MED 1/17/18) Clicking on regions do not highlight them right away until clicked a second time
 - (MED 1/18/18) Check why certain cells get updated very frequently afer the world mostly stabilized
