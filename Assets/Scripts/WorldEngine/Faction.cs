@@ -31,7 +31,7 @@ public class FactionRelationship {
 
 public abstract class Faction : ISynchronizable {
 
-	[XmlAttribute("Type")]
+	[XmlAttribute]
 	public string Type;
 
 	[XmlAttribute]
@@ -69,7 +69,7 @@ public abstract class Faction : ISynchronizable {
 	protected float _splitFactionMinProminence;
 	protected float _splitFactionMaxProminence;
 
-	protected Dictionary<long, FactionRelationship> relationships = new Dictionary<long, FactionRelationship> ();
+	protected Dictionary<long, FactionRelationship> _relationships = new Dictionary<long, FactionRelationship> ();
 
 	public Name Name = null;
 
@@ -175,7 +175,7 @@ public abstract class Faction : ISynchronizable {
 			Polity.RemoveFaction (this);
 		}
 
-		foreach (FactionRelationship relationship in relationships.Values) {
+		foreach (FactionRelationship relationship in _relationships.Values) {
 
 			relationship.Faction.RemoveRelationship (this);
 		}
@@ -213,36 +213,36 @@ public abstract class Faction : ISynchronizable {
 
 		value = Mathf.Clamp01 (value);
 
-		if (!relationships.ContainsKey (faction.Id)) {
+		if (!_relationships.ContainsKey (faction.Id)) {
 		
 			FactionRelationship relationship = new FactionRelationship (faction, value);
 
-			relationships.Add (faction.Id, relationship);
+			_relationships.Add (faction.Id, relationship);
 			Relationships.Add (relationship);
 
 		} else {
 
-			relationships[faction.Id].Value = value;
+			_relationships[faction.Id].Value = value;
 		}
 	}
 
 	public void RemoveRelationship (Faction faction) {
 
-		if (!relationships.ContainsKey (faction.Id))
+		if (!_relationships.ContainsKey (faction.Id))
 			throw new System.Exception ("relationship not present: " + faction.Id);
 
-		FactionRelationship relationship = relationships [faction.Id];
+		FactionRelationship relationship = _relationships [faction.Id];
 
 		Relationships.Remove (relationship);
-		relationships.Remove (faction.Id);
+		_relationships.Remove (faction.Id);
 	}
 
 	public float GetRelationshipValue (Faction faction) {
 
-		if (!relationships.ContainsKey (faction.Id))
+		if (!_relationships.ContainsKey (faction.Id))
 			throw new System.Exception ("relationship not present: " + faction.Id);
 
-		return relationships[faction.Id].Value;
+		return _relationships[faction.Id].Value;
 	}
 
 	public void SetToSplit (CellGroup splitFactionCoreGroup, float splitFactionMinProminence, float splitFactionMaxProminence) {
@@ -378,7 +378,7 @@ public abstract class Faction : ISynchronizable {
 
 		foreach (FactionRelationship relationship in Relationships) {
 		
-			relationships.Add (relationship.Id, relationship);
+			_relationships.Add (relationship.Id, relationship);
 			relationship.Faction = World.GetFaction (relationship.Id);
 
 			if (relationship.Faction == null) {

@@ -28,14 +28,16 @@ public class Culture : ISynchronizable {
 		XmlArrayItem(Type = typeof(BiomeSurvivalSkill)),
 		XmlArrayItem(Type = typeof(SeafaringSkill))]
 	public List<CulturalSkill> Skills = new List<CulturalSkill> ();
-	
-	[XmlArrayItem(Type = typeof(PolityCulturalKnowledge)),
+
+	[XmlArrayItem(Type = typeof(CulturalKnowledge)),
+//	[XmlArrayItem(Type = typeof(PolityCulturalKnowledge)),
 		XmlArrayItem(Type = typeof(ShipbuildingKnowledge)),
 		XmlArrayItem(Type = typeof(AgricultureKnowledge)),
 		XmlArrayItem(Type = typeof(SocialOrganizationKnowledge))]
 	public List<CulturalKnowledge> Knowledges = new List<CulturalKnowledge> ();
-	
-	[XmlArrayItem(Type = typeof(PolityCulturalDiscovery)),
+
+	[XmlArrayItem(Type = typeof(CulturalDiscovery)),
+//	[XmlArrayItem(Type = typeof(PolityCulturalDiscovery)),
 		XmlArrayItem(Type = typeof(BoatMakingDiscovery)),
 		XmlArrayItem(Type = typeof(SailingDiscovery)),
 		XmlArrayItem(Type = typeof(TribalismDiscovery)),
