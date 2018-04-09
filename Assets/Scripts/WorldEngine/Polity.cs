@@ -139,6 +139,8 @@ public abstract class Polity : ISynchronizable {
 	[XmlIgnore]
 	public Dictionary<long, CellGroup> InfluencedGroups = new Dictionary<long, CellGroup> ();
 
+	public List<PolityContact> Contacts = new List<PolityContact> ();
+
 	public Agent CurrentLeader {
 
 		get { 
@@ -159,6 +161,8 @@ public abstract class Polity : ISynchronizable {
 
 		}
 	}
+
+	protected Dictionary<long, PolityContact> _contacts = new Dictionary<long, PolityContact> ();
 
 	private Dictionary<long, WeightedGroup> _influencedPopPerGroup = new Dictionary<long, WeightedGroup> ();
 
@@ -199,12 +203,6 @@ public abstract class Polity : ISynchronizable {
 		}
 
 		Id = GenerateUniqueIdentifier (World.CurrentDate, 100L, idOffset);
-
-		#if DEBUG
-		if (Id == 24461555805612901) {
-			bool debug = true;
-		}
-		#endif
 
 		Culture = new PolityCulture (this);
 
@@ -412,6 +410,87 @@ public abstract class Polity : ISynchronizable {
 		}
 
 		World.AddPolityToUpdate (this);
+	}
+
+	public static void AddContact (Polity polityA, Polity polityB, int initialGroupCount) {
+
+		polityA.AddContact (polityB, initialGroupCount);
+		polityB.AddContact (polityA, initialGroupCount);
+	}
+
+	public void AddContact (Polity polity, int initialGroupCount) {
+
+		if (!_contacts.ContainsKey (polity.Id)) {
+
+			PolityContact contact = new PolityContact (polity, initialGroupCount);
+
+			_contacts.Add (polity.Id, contact);
+			Contacts.Add (contact);
+
+		} else {
+
+			throw new System.Exception ("Unable to modify existing polity contact. polityA: " + Id + ", polityB: " + polity.Id);
+		}
+	}
+
+	public void RemoveContact (Polity polity) {
+
+		if (!_contacts.ContainsKey (polity.Id))
+			return;
+
+		PolityContact contact = _contacts [polity.Id];
+
+		Contacts.Remove (contact);
+		_contacts.Remove (polity.Id);
+	}
+
+	public int GetContactGroupCount (Polity polity) {
+
+		if (!_contacts.ContainsKey (polity.Id))
+			return 0;
+
+		return _contacts[polity.Id].GroupCount;
+	}
+
+	public static void IncreaseContactGroupCount (Polity polityA, Polity polityB) {
+
+		polityA.IncreaseContactGroupCount (polityB);
+		polityB.IncreaseContactGroupCount (polityA);
+	}
+
+	public void IncreaseContactGroupCount (Polity polity) {
+
+		if (!_contacts.ContainsKey (polity.Id)) {
+
+			PolityContact contact = new PolityContact (polity);
+
+			_contacts.Add (polity.Id, contact);
+			Contacts.Add (contact);
+		}
+
+		_contacts[polity.Id].GroupCount++;
+	}
+
+	public static void DecreaseContactGroupCount (Polity polityA, Polity polityB) {
+
+		polityA.DecreaseContactGroupCount (polityB);
+		polityB.DecreaseContactGroupCount (polityA);
+	}
+
+	public void DecreaseContactGroupCount (Polity polity) {
+
+		if (!_contacts.ContainsKey (polity.Id))
+			throw new System.Exception ("contact not present: " + polity.Id);
+
+		PolityContact contact = _contacts [polity.Id];
+
+		contact.GroupCount--;
+
+		if (contact.GroupCount <= 0) {
+
+			Contacts.Remove (contact);
+			_contacts.Remove (polity.Id);
+		}
 	}
 
 	public IEnumerable<Faction> GetFactions (bool ordered = false) {
@@ -689,6 +768,16 @@ public abstract class Polity : ISynchronizable {
 		Culture.World = World;
 		Culture.Polity = this;
 		Culture.FinalizeLoad ();
+
+		foreach (PolityContact contact in Contacts) {
+
+			_contacts.Add (contact.Id, contact);
+			contact.Polity = World.GetPolity (contact.Id);
+
+			if (contact.Polity == null) {
+				throw new System.Exception ("Polity is null, Id: " + contact.Id);
+			}
+		}
 
 		Flags.ForEach (f => _flags.Add (f));
 	}

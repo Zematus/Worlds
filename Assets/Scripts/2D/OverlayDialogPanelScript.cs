@@ -20,13 +20,14 @@ public class OverlayDialogPanelScript : DialogPanelScript {
 	public Toggle PopCulturalDiscoveryToggle;
 
 	public Toggle TerritoriesToggle;
-	public Toggle DistancesToCoresToggle;
 	public Toggle InfluenceToggle;
+	public Toggle ContactsToggle;
 	public Toggle PolityCulturalPreferenceToggle;
 	public Toggle PolityCulturalActivityToggle;
 	public Toggle PolityCulturalSkillToggle;
 	public Toggle PolityCulturalKnowledgeToggle;
 	public Toggle PolityCulturalDiscoveryToggle;
+	public Toggle DistancesToCoresToggle;
 
 	public Toggle TemperatureToggle;
 	public Toggle RainfallToggle;
@@ -84,6 +85,7 @@ public class OverlayDialogPanelScript : DialogPanelScript {
 			TerritoriesToggle.isOn = false;
 			DistancesToCoresToggle.isOn = false;
 			InfluenceToggle.isOn = false;
+			ContactsToggle.isOn = false;
 			PolityCulturalPreferenceToggle.isOn = false;
 			PolityCulturalActivityToggle.isOn = false;
 			PolityCulturalSkillToggle.isOn = false;
@@ -123,6 +125,7 @@ public class OverlayDialogPanelScript : DialogPanelScript {
 			(Manager.PlanetOverlay == PlanetOverlay.PolityTerritory) ||
 			(Manager.PlanetOverlay == PlanetOverlay.FactionCoreDistance) ||
 			(Manager.PlanetOverlay == PlanetOverlay.PolityInfluence) ||
+			(Manager.PlanetOverlay == PlanetOverlay.PolityContacts) ||
 			(Manager.PlanetOverlay == PlanetOverlay.PolityCulturalPreference) ||
 			(Manager.PlanetOverlay == PlanetOverlay.PolityCulturalActivity) ||
 			(Manager.PlanetOverlay == PlanetOverlay.PolityCulturalSkill) ||
@@ -150,13 +153,14 @@ public class OverlayDialogPanelScript : DialogPanelScript {
 		PopCulturalDiscoveryToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.PopCulturalDiscovery);
 
 		TerritoriesToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.PolityTerritory);
-		DistancesToCoresToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.FactionCoreDistance);
 		InfluenceToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.PolityInfluence);
+		ContactsToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.PolityContacts);
 		PolityCulturalPreferenceToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.PolityCulturalPreference);
 		PolityCulturalActivityToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.PolityCulturalActivity);
 		PolityCulturalSkillToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.PolityCulturalSkill);
 		PolityCulturalKnowledgeToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.PolityCulturalKnowledge);
 		PolityCulturalDiscoveryToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.PolityCulturalDiscovery);
+		DistancesToCoresToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.FactionCoreDistance);
 
 		TemperatureToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.Temperature);
 		RainfallToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.Rainfall);

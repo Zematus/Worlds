@@ -84,4 +84,80 @@ public static class MathUtility {
 
 		return value + ((1f - value) * percentage);
 	}
+
+	public static float ToPseudoLogaritmicScale01 (int value) {
+
+		// 1, 3, 10, 32, 100, 316, 1000, 3162, 10000, 31623, 100000, 316227
+
+		if (value >= 31623)
+			return 1f;
+
+		if (value >= 10000)
+			return 0.9f;
+
+		if (value >= 3162)
+			return 0.8f;
+
+		if (value >= 1000)
+			return 0.7f;
+
+		if (value >= 316)
+			return 0.6f;
+
+		if (value >= 100)
+			return 0.5f;
+
+		if (value >= 32)
+			return 0.4f;
+
+		if (value >= 10)
+			return 0.3f;
+
+		if (value >= 3)
+			return 0.2f;
+
+		if (value >= 1)
+			return 0.1f;
+
+		return 0f;
+	}
+
+	public static float ToPseudoLogaritmicScale01 (float value, float max) {
+
+		// 1, 3, 10, 32, 100, 316, 1000, 3162, 10000, 31623, 100000, 316227
+
+		if (value >= max)
+			return 1f;
+
+		float scaledMax = max / 31623;
+
+		if (value >= scaledMax * 10000)
+			return 0.9f;
+
+		if (value >= scaledMax * 3162)
+			return 0.8f;
+
+		if (value >= scaledMax * 1000)
+			return 0.7f;
+
+		if (value >= scaledMax * 316)
+			return 0.6f;
+
+		if (value >= scaledMax * 100)
+			return 0.5f;
+
+		if (value >= scaledMax * 32)
+			return 0.4f;
+
+		if (value >= scaledMax * 10)
+			return 0.3f;
+
+		if (value >= scaledMax * 3)
+			return 0.2f;
+
+		if (value >= scaledMax)
+			return 0.1f;
+
+		return 0f;
+	}
 }

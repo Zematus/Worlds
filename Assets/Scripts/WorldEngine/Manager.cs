@@ -27,6 +27,7 @@ public enum PlanetOverlay {
 	PolityTerritory,
 	FactionCoreDistance,
 	PolityInfluence,
+	PolityContacts,
 	PolityCulturalPreference,
 	PolityCulturalActivity,
 	PolityCulturalSkill,
@@ -1408,6 +1409,10 @@ public class Manager {
 			color = SetPolityInfluenceOverlayColor (cell, color);
 			break;
 
+		case PlanetOverlay.PolityContacts:
+			color = SetPolityContactsOverlayColor (cell, color);
+			break;
+
 		case PlanetOverlay.PolityCulturalPreference:
 			color = SetPolityCulturalPreferenceOverlayColor (cell, color);
 			break;
@@ -1850,6 +1855,57 @@ public class Manager {
 		}
 
 		return new Color (red, green, blue);
+	}
+
+	private static Color SetPolityContactsOverlayColor (TerrainCell cell, Color color) {
+
+		float greyscale = (color.r + color.g + color.b);
+
+		color.r = (greyscale + color.r) / 9f;
+		color.g = (greyscale + color.g) / 9f;
+		color.b = (greyscale + color.b) / 9f;
+
+		if (cell.GetBiomePresence (Biome.Ocean) >= 1f)
+			return color;
+
+		if (cell.Group == null)
+			return color;
+
+		color.r += 1.5f / 9f;
+		color.g += 1.5f / 9f;
+		color.b += 1.5f / 9f;
+
+		if (_planetOverlaySubtype == "None")
+			return color;
+
+		Territory territory = cell.EncompassingTerritory;
+
+		if (territory == null)
+			return color;
+
+		float contactValue = 0;
+
+		Territory selectedTerritory = Manager.CurrentWorld.SelectedTerritory;
+
+		if (selectedTerritory != null) {
+			int contactGroupCount = selectedTerritory.Polity.GetContactGroupCount (territory.Polity);
+
+			contactValue = MathUtility.ToPseudoLogaritmicScale01 (contactGroupCount);
+		}
+
+		float value = 0.05f + 0.95f * contactValue;
+
+		Color addedColor = Color.cyan;
+
+		if (IsTerritoryBorder (territory, cell)) {
+
+			// A slightly bluer shade of cyan
+			addedColor = new Color (0, 0.75f, 1.0f);
+		}
+
+		color = (color * (1 - value)) + (addedColor * value);
+
+		return color;
 	}
 
 	private static Color SetPopulationChangeOverlayColor (TerrainCell cell, Color color) {

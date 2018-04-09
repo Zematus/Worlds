@@ -412,6 +412,7 @@ public class GuiManagerScript : MonoBehaviour {
 			(overlay == PlanetOverlay.PolityCulturalKnowledge) ||
 			(overlay == PlanetOverlay.PolityCulturalDiscovery) ||
 			(overlay == PlanetOverlay.PolityTerritory) ||
+			(overlay == PlanetOverlay.PolityContacts) ||
 			(overlay == PlanetOverlay.General);
 	}
 
@@ -1001,6 +1002,9 @@ public class GuiManagerScript : MonoBehaviour {
 		case PlanetOverlay.PolityInfluence: 
 			planetOverlayStr = "_polity_influences"; 
 			break;
+		case PlanetOverlay.PolityContacts: 
+			planetOverlayStr = "_polity_contacts"; 
+			break;
 		case PlanetOverlay.PolityCulturalPreference: 
 			planetOverlayStr = "_polity_cultural_preference_" + _planetOverlaySubtype; 
 			break;
@@ -1324,6 +1328,8 @@ public class GuiManagerScript : MonoBehaviour {
 			ChangePlanetOverlay (PlanetOverlay.FactionCoreDistance, false);
 		} else if (OverlayDialogPanelScript.InfluenceToggle.isOn) {
 			ChangePlanetOverlay (PlanetOverlay.PolityInfluence, false);
+		} else if (OverlayDialogPanelScript.ContactsToggle.isOn) {
+			ChangePlanetOverlay (PlanetOverlay.PolityContacts, false);
 		} else if (OverlayDialogPanelScript.PolityCulturalPreferenceToggle.isOn) {
 			SetPolityCulturalPreferenceOverlay (false);
 		} else if (OverlayDialogPanelScript.PolityCulturalActivityToggle.isOn) {
@@ -2191,6 +2197,71 @@ public class GuiManagerScript : MonoBehaviour {
 		}
 	}
 
+	public void AddCellDataToInfoPanel_PolityContacts (TerrainCell cell) {
+
+		InfoPanelScript.InfoText.text += "\n";
+		InfoPanelScript.InfoText.text += "\n -- Polity Contacts Data -- ";
+		InfoPanelScript.InfoText.text += "\n";
+
+		if (cell.Group == null) {
+
+			InfoPanelScript.InfoText.text += "\n\tNo population at location";
+
+			return;
+		}
+
+		int population = cell.Group.Population;
+
+		if (population <= 0) {
+
+			InfoPanelScript.InfoText.text += "\n\tNo population at location";
+
+			return;
+		}
+
+		Territory territory = cell.EncompassingTerritory;
+
+
+		if (territory == null) {
+			InfoPanelScript.InfoText.text += "\n\tGroup not part of a polity's territory";
+			return;
+		}
+
+		Polity polity = territory.Polity;
+
+		InfoPanelScript.InfoText.text += "\nTerritory of the " + polity.Name.Text + " " + polity.Type.ToLower ();
+		InfoPanelScript.InfoText.text += "\nTranslates to: " + polity.Name.Meaning;
+		InfoPanelScript.InfoText.text += "\n";
+
+		if (polity.Contacts.Count <= 0) {
+
+			InfoPanelScript.InfoText.text += "\nPolity has no contact with other polities...";
+		} else {
+
+			InfoPanelScript.InfoText.text += "\nPolities in contact:";
+		}
+
+		foreach (PolityContact contact in polity.Contacts) {
+		
+			Polity contactPolity = contact.Polity;
+
+			InfoPanelScript.InfoText.text += "\n\n\tPolity: " + contactPolity.Name.Text + " " + contactPolity.Type.ToLower ();
+//			InfoPanelScript.InfoText.text += "\n\tTranslates to: " + contactPolity.Name.Meaning;
+
+			Faction dominantFaction = contactPolity.DominantFaction;
+
+			InfoPanelScript.InfoText.text += "\n\tDominant Faction: " + dominantFaction.Type + " " + dominantFaction.Name;
+//			InfoPanelScript.InfoText.text += "\n\t\tTranslates to: " + dominantFaction.Name.Meaning;
+
+			Agent leader = contactPolity.CurrentLeader;
+
+			InfoPanelScript.InfoText.text += "\n\tLeader: " + leader.Name.Text;
+//			InfoPanelScript.InfoText.text += "\n\tTranslates to: " + leader.Name.Meaning;
+
+			InfoPanelScript.InfoText.text += "\n\tContact Strength: " + contact.GroupCount;
+		}
+	}
+
 	public void AddCellDataToInfoPanel_General (TerrainCell cell) {
 		
 		InfoPanelScript.InfoText.text += "\n";
@@ -2289,7 +2360,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 		PolityInfluence pi = cell.Group.GetPolityInfluence (polity);
 
-		InfoPanelScript.InfoText.text += "Territory of the " + polity.Name.Text + " " + polity.Type.ToLower ();
+		InfoPanelScript.InfoText.text += "\nTerritory of the " + polity.Name.Text + " " + polity.Type.ToLower ();
 		InfoPanelScript.InfoText.text += "\nTranslates to: " + polity.Name.Meaning;
 		InfoPanelScript.InfoText.text += "\n";
 
@@ -2843,6 +2914,11 @@ public class GuiManagerScript : MonoBehaviour {
 		if (_planetOverlay == PlanetOverlay.PolityInfluence) {
 
 			AddCellDataToInfoPanel_PolityInfluence (cell);
+		}
+
+		if (_planetOverlay == PlanetOverlay.PolityContacts) {
+
+			AddCellDataToInfoPanel_PolityContacts (cell);
 		}
 
 		if (_planetOverlay == PlanetOverlay.PolityTerritory) {

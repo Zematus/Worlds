@@ -5,30 +5,6 @@ using System.Xml;
 using System.Xml.Serialization;
 using UnityEngine.Profiling;
 
-public class FactionRelationship {
-
-	[XmlAttribute("Id")]
-	public long Id;
-
-	[XmlAttribute("Val")]
-	public float Value;
-
-	[XmlIgnore]
-	public Faction Faction;
-
-	public FactionRelationship () {
-	}
-
-	public FactionRelationship (Faction faction, float value) {
-
-		Faction = faction;
-
-		Id = faction.Id;
-
-		Value = value;
-	}
-}
-
 public abstract class Faction : ISynchronizable {
 
 	[XmlAttribute]
@@ -65,12 +41,6 @@ public abstract class Faction : ISynchronizable {
 
 	public List<FactionRelationship> Relationships = new List<FactionRelationship> ();
 
-	protected CellGroup _splitFactionCoreGroup;
-	protected float _splitFactionMinProminence;
-	protected float _splitFactionMaxProminence;
-
-	protected Dictionary<long, FactionRelationship> _relationships = new Dictionary<long, FactionRelationship> ();
-
 	public Name Name = null;
 
 	// Do not call this property directly, only for serialization
@@ -100,6 +70,12 @@ public abstract class Faction : ISynchronizable {
 
 	[XmlIgnore]
 	public bool IsInitialized = true;
+
+	protected CellGroup _splitFactionCoreGroup;
+	protected float _splitFactionMinProminence;
+	protected float _splitFactionMaxProminence;
+
+	protected Dictionary<long, FactionRelationship> _relationships = new Dictionary<long, FactionRelationship> ();
 
 	private HashSet<string> _flags = new HashSet<string> ();
 
@@ -131,12 +107,6 @@ public abstract class Faction : ISynchronizable {
 		CoreGroupId = coreGroup.Id;
 
 		Id = GenerateUniqueIdentifier (World.CurrentDate, 100L, idOffset);
-
-		#if DEBUG
-		if (Id == 24461555805713101) {
-			bool debug = true;
-		}
-		#endif
 
 		Culture = new FactionCulture (this);
 
