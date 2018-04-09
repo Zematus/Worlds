@@ -5,7 +5,6 @@ Cleanup rules: Prioritize bugs first by rating bucket (HIGH,MED,LOW) then within
 
 - (MED 1/17/18) Regions seems to get selected when clicking on polity overlays
 - (MED 1/17/18) Clicking on regions do not highlight them right away until clicked a second time
-- (MED 1/18/18) Check why certain cells get updated very frequently afer the world mostly stabilized
 - (LOW 1/18/18) Sometimes factions appear with exactly the same name (possibly due to both factions having the same core?)
 - (LOW 2/19/18) Expanding polity inflence effects should be calculated on their own phase (outside of the event) to reduce load 
 - (LOW 3/25/18) Check capitalization in the panel for focused tribes
