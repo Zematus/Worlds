@@ -3052,6 +3052,9 @@ public class GuiManagerScript : MonoBehaviour {
 		case PlanetOverlay.PolityTerritory:
 			ShowCellInfoToolTip_PolityTerritory (polity, tooltipPos);
 			break;
+		case PlanetOverlay.PolityContacts:
+			ShowCellInfoToolTip_PolityContacts (polity, tooltipPos);
+			break;
 		case PlanetOverlay.PolityCulturalPreference:
 			ShowCellInfoToolTip_PolityCulturalPreference (polity, tooltipPos);
 			break;
@@ -3080,6 +3083,34 @@ public class GuiManagerScript : MonoBehaviour {
 		foreach (Faction faction in polity.GetFactions ()) {
 		
 			text += "\n " + faction.Name.Text + ": " + faction.Prominence.ToString ("P");
+		}
+
+		InfoTooltipScript.DisplayTip (text, position, fadeStart);
+	}
+
+	public void ShowCellInfoToolTip_PolityContacts (Polity polity, Vector3 position, float fadeStart = 5) {
+
+		string polityTitle = polity.Name.Text + " " + polity.Type.ToLower ();
+
+		string text;
+
+		Territory selectedTerritory = Manager.CurrentWorld.SelectedTerritory;
+
+		int groupCount = 0;
+
+		if ((polity.Territory != selectedTerritory) && (selectedTerritory != null)) {
+
+			groupCount = selectedTerritory.Polity.GetContactGroupCount (polity);
+		} 
+
+		if (groupCount > 0) {
+			text = "Neighboring polity: " + polityTitle;
+
+			text += "\n\nOverlaping groups: " + groupCount;
+
+		} else {
+
+			text = polityTitle;
 		}
 
 		InfoTooltipScript.DisplayTip (text, position, fadeStart);

@@ -3,8 +3,6 @@ Cleanup rules: Prioritize bugs first by rating bucket (HIGH,MED,LOW) then within
 
 <<<Insert all new bugs, issues and tasks in Worlds' Github DB>>>
 
-- (MED 1/17/18) Regions seems to get selected when clicking on polity overlays
-- (MED 1/17/18) Clicking on regions do not highlight them right away until clicked a second time
 - (LOW 1/18/18) Sometimes factions appear with exactly the same name (possibly due to both factions having the same core?)
 - (LOW 2/19/18) Expanding polity inflence effects should be calculated on their own phase (outside of the event) to reduce load 
 - (LOW 3/25/18) Check capitalization in the panel for focused tribes
@@ -31,8 +29,6 @@ TASKS:
 EXTRA:
 
 - Don't create MigrationGroup objects on every migration
-
-
 
 Future developments:
 

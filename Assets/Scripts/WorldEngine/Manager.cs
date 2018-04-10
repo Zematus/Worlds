@@ -48,7 +48,11 @@ public enum OverlayColorId {
 	Arability = 0,
 	Farmland = 1,
 	GeneralDensitySubOptimal = 2,
-	GeneralDensityOptimal = 3
+	GeneralDensityOptimal = 3,
+	Territory = 4,
+	TerritoryBorder = 5,
+	SelectedTerritory = 6,
+	ContactedTerritory = 7,
 }
 
 public delegate T ManagerTaskDelegate<T> ();
@@ -174,7 +178,8 @@ public class Manager {
 	public static string ExportPath { get; private set; }
 	
 	public static string WorldName { get; set; }
-	
+
+	public static HashSet<TerrainCell> HighlightedCells { get; private set; }
 	public static HashSet<TerrainCell> UpdatedCells { get; private set; }
 	
 	public static int PixelToCellRatio = 4;
@@ -313,6 +318,7 @@ public class Manager {
 
 		AttributeOverrides = GenerateAttributeOverrides ();
 
+		HighlightedCells = new HashSet<TerrainCell> ();
 		UpdatedCells = new HashSet<TerrainCell> ();
 		_lastUpdatedCells = new List<TerrainCell> ();
 
@@ -555,23 +561,40 @@ public class Manager {
 		//GenerateSphereTextureFromWorld(CurrentWorld);
 		GenerateMapTextureFromWorld(CurrentWorld);
 
-		ResetUpdatedCells ();
+		ResetUpdatedAndHighlightedCells ();
 	}
 
 	public static void AddUpdatedCell (TerrainCell cell, CellUpdateType updateType) {
 
-		if ((_observableUpdateTypes & updateType) == updateType) {
-			
+		if ((_observableUpdateTypes & updateType) != CellUpdateType.None) {
+
 			UpdatedCells.Add (cell);
 		}
 	}
 
 	public static void AddUpdatedCells (ICollection<TerrainCell> cells, CellUpdateType updateType) {
 
-		if ((_observableUpdateTypes & updateType) == updateType) {
+		if ((_observableUpdateTypes & updateType) != CellUpdateType.None) {
 
 			foreach (TerrainCell cell in cells)
 				UpdatedCells.Add (cell);
+		}
+	}
+
+	public static void AddHighlightedCell (TerrainCell cell, CellUpdateType updateType) {
+
+		if ((_observableUpdateTypes & updateType) != CellUpdateType.None) {
+			
+			HighlightedCells.Add (cell);
+		}
+	}
+
+	public static void AddHighlightedCells (ICollection<TerrainCell> cells, CellUpdateType updateType) {
+
+		if ((_observableUpdateTypes & updateType) != CellUpdateType.None) {
+
+			foreach (TerrainCell cell in cells)
+				HighlightedCells.Add (cell);
 		}
 	}
 
@@ -836,12 +859,17 @@ public class Manager {
 			_observableUpdateTypes |= CellUpdateType.Region;
 
 		} else if ((value == PlanetOverlay.PolityTerritory) ||
+			(value == PlanetOverlay.PolityContacts) ||
 			(value == PlanetOverlay.PolityCulturalPreference) ||
 			(value == PlanetOverlay.PolityCulturalActivity) ||
 			(value == PlanetOverlay.PolityCulturalDiscovery) ||
 			(value == PlanetOverlay.PolityCulturalKnowledge) ||
-			(value == PlanetOverlay.PolityCulturalSkill) ||
-			(value == PlanetOverlay.General)) {
+			(value == PlanetOverlay.PolityCulturalSkill)) {
+
+			_observableUpdateTypes &= ~(CellUpdateType.Group | CellUpdateType.Region);
+			_observableUpdateTypes |= CellUpdateType.Territory;
+
+		} else if (value == PlanetOverlay.General) {
 
 			_observableUpdateTypes &= ~CellUpdateType.Region;
 			_observableUpdateTypes |= (CellUpdateType.Group | CellUpdateType.Territory);
@@ -890,7 +918,7 @@ public class Manager {
 
 		if (CurrentWorld.SelectedCell != null) {
 
-			AddUpdatedCell (CurrentWorld.SelectedCell, CellUpdateType.Cell);
+			AddHighlightedCell (CurrentWorld.SelectedCell, CellUpdateType.Cell);
 		
 			CurrentWorld.SelectedCell.IsSelected = false;
 			CurrentWorld.SelectedCell = null;
@@ -898,7 +926,7 @@ public class Manager {
 
 		if (CurrentWorld.SelectedRegion != null) {
 
-			AddUpdatedCells (CurrentWorld.SelectedRegion.GetCells (), CellUpdateType.Region);
+			AddHighlightedCells (CurrentWorld.SelectedRegion.GetCells (), CellUpdateType.Region);
 
 			CurrentWorld.SelectedRegion.IsSelected = false;
 			CurrentWorld.SelectedRegion = null;
@@ -906,10 +934,20 @@ public class Manager {
 
 		if (CurrentWorld.SelectedTerritory != null) {
 
-			AddUpdatedCells (CurrentWorld.SelectedTerritory.GetCells (), CellUpdateType.Territory);
+			AddHighlightedCells (CurrentWorld.SelectedTerritory.GetCells (), CellUpdateType.Territory);
+
+			Polity selectedPolity = CurrentWorld.SelectedTerritory.Polity;
 
 			CurrentWorld.SelectedTerritory.IsSelected = false;
 			CurrentWorld.SelectedTerritory = null;
+
+			if (_planetOverlay == PlanetOverlay.PolityContacts) {
+
+				foreach (PolityContact contact in selectedPolity.Contacts) {
+
+					AddHighlightedCells (contact.Polity.Territory.GetCells (), CellUpdateType.Territory);
+				}
+			}
 		}
 
 		if (cell == null)
@@ -918,14 +956,14 @@ public class Manager {
 		CurrentWorld.SelectedCell = cell;
 		CurrentWorld.SelectedCell.IsSelected = true;
 
-		AddUpdatedCell (CurrentWorld.SelectedCell, CellUpdateType.Cell);
+		AddHighlightedCell (CurrentWorld.SelectedCell, CellUpdateType.Cell);
 
 		if (cell.Region != null) {
 
 			CurrentWorld.SelectedRegion = cell.Region;
 			CurrentWorld.SelectedRegion.IsSelected = true;
 
-			AddUpdatedCells (CurrentWorld.SelectedRegion.GetCells (), CellUpdateType.Territory);
+			AddHighlightedCells (CurrentWorld.SelectedRegion.GetCells (), CellUpdateType.Region);
 		}
 
 		if (cell.EncompassingTerritory != null) {
@@ -933,7 +971,17 @@ public class Manager {
 			CurrentWorld.SelectedTerritory = cell.EncompassingTerritory;
 			CurrentWorld.SelectedTerritory.IsSelected = true;
 
-			AddUpdatedCells (CurrentWorld.SelectedTerritory.GetCells (), CellUpdateType.Territory);
+			AddHighlightedCells (CurrentWorld.SelectedTerritory.GetCells (), CellUpdateType.Territory);
+
+			if (_planetOverlay == PlanetOverlay.PolityContacts) {
+
+				Polity selectedPolity = cell.EncompassingTerritory.Polity;
+
+				foreach (PolityContact contact in selectedPolity.Contacts) {
+
+					AddHighlightedCells (contact.Polity.Territory.GetCells (), CellUpdateType.Territory);
+				}
+			}
 		}
 	}
 
@@ -978,11 +1026,12 @@ public class Manager {
 		CurrentWorld.GuidedFaction = faction;
 	}
 
-	public static void ResetUpdatedCells () {
+	public static void ResetUpdatedAndHighlightedCells () {
 
 		_lastUpdatedCells.Clear ();
 		_lastUpdatedCells.AddRange (UpdatedCells);
 		UpdatedCells.Clear ();
+		HighlightedCells.Clear ();
 	}
 
 	public static void UpdateTextures () {
@@ -998,7 +1047,7 @@ public class Manager {
 //
 //		CurrentSphereTexture.Apply ();
 
-		ResetUpdatedCells ();
+		ResetUpdatedAndHighlightedCells ();
 	}
 
 	public static void UpdateMapTextureColors (Color32[] textureColors) {
@@ -1008,51 +1057,62 @@ public class Manager {
 			if (UpdatedCells.Contains (cell))
 				continue;
 
+			if (HighlightedCells.Contains (cell))
+				continue;
+
 			UpdateMapTextureColorsFromCell (textureColors, cell);
 		}
 		
 		foreach (TerrainCell cell in UpdatedCells) {
+
+			if (HighlightedCells.Contains (cell))
+				continue;
 			
+			UpdateMapTextureColorsFromCell (textureColors, cell, _displayGroupActivity);
+		}
+
+		foreach (TerrainCell cell in HighlightedCells) {
+
 			UpdateMapTextureColorsFromCell (textureColors, cell, _displayGroupActivity);
 		}
 	}
 
-	public static void DisplayCellDataOnMapTexture (Color32[] textureColors, TerrainCell cell, bool showData) {
-
-		CellGroup cellGroup = cell.Group; 
-
-		if ((cellGroup != null) && (cellGroup.SeaMigrationRoute != null)) {
-
-			DisplayRouteOnMapTexture (textureColors, cellGroup.SeaMigrationRoute, showData);
-		}
-
-		World world = cell.World;
-
-		int sizeX = world.Width;
-
-		int r = PixelToCellRatio;
-
-		int i = cell.Longitude;
-		int j = cell.Latitude;
-
-		Color cellColor = GenerateColorFromTerrainCell(cell, _displayGroupActivity);
-
-		if (showData) {
-			cellColor = new Color (0.5f + (cellColor.r * 0.5f), 0.5f + (cellColor.g * 0.5f), 0.5f + (cellColor.b * 0.5f));
-		}
-
-		for (int m = 0; m < r; m++) {
-			for (int n = 0; n < r; n++) {
-
-				int offsetY = sizeX * r * (j * r + n);
-				int offsetX = i * r + m;
-
-				textureColors [offsetY + offsetX] = cellColor;
-			}
-		}
-
-		UpdatedCells.Add (cell);
-	}
+//	public static void DisplayCellDataOnMapTexture (Color32[] textureColors, TerrainCell cell, bool showData) {
+//
+//		CellGroup cellGroup = cell.Group; 
+//
+//		if ((cellGroup != null) && (cellGroup.SeaMigrationRoute != null)) {
+//
+//			DisplayRouteOnMapTexture (textureColors, cellGroup.SeaMigrationRoute, showData);
+//		}
+//
+//		World world = cell.World;
+//
+//		int sizeX = world.Width;
+//
+//		int r = PixelToCellRatio;
+//
+//		int i = cell.Longitude;
+//		int j = cell.Latitude;
+//
+//		Color cellColor = GenerateColorFromTerrainCell(cell, _displayGroupActivity);
+//
+//		if (showData) {
+//			cellColor = new Color (0.5f + (cellColor.r * 0.5f), 0.5f + (cellColor.g * 0.5f), 0.5f + (cellColor.b * 0.5f));
+//		}
+//
+//		for (int m = 0; m < r; m++) {
+//			for (int n = 0; n < r; n++) {
+//
+//				int offsetY = sizeX * r * (j * r + n);
+//				int offsetX = i * r + m;
+//
+//				textureColors [offsetY + offsetX] = cellColor;
+//			}
+//		}
+//
+//		UpdatedCells.Add (cell);
+//	}
 
 	public static void DisplayRouteOnMapTexture (Color32[] textureColors, Route route, bool showRoute) {
 
@@ -1100,8 +1160,12 @@ public class Manager {
 			
 		} else if ((_observableUpdateTypes & CellUpdateType.Territory) == CellUpdateType.Territory) {
 
-			if ((cell.EncompassingTerritory != null) && cell.EncompassingTerritory.IsSelected)
-				return true;
+			if ((cell.EncompassingTerritory != null) && cell.EncompassingTerritory.IsSelected) {
+
+				if (_planetOverlay != PlanetOverlay.PolityContacts) {
+					return true;
+				}
+			}
 		}
 
 		return false;
@@ -1875,9 +1939,6 @@ public class Manager {
 		color.g += 1.5f / 9f;
 		color.b += 1.5f / 9f;
 
-		if (_planetOverlaySubtype == "None")
-			return color;
-
 		Territory territory = cell.EncompassingTerritory;
 
 		if (territory == null)
@@ -1887,23 +1948,43 @@ public class Manager {
 
 		Territory selectedTerritory = Manager.CurrentWorld.SelectedTerritory;
 
-		if (selectedTerritory != null) {
-			int contactGroupCount = selectedTerritory.Polity.GetContactGroupCount (territory.Polity);
+		bool isSelectedTerritory = false;
+		bool isInContact = false;
 
-			contactValue = MathUtility.ToPseudoLogaritmicScale01 (contactGroupCount);
+		if (selectedTerritory != null) {
+
+			if (selectedTerritory != territory) {
+				int contactGroupCount = selectedTerritory.Polity.GetContactGroupCount (territory.Polity);
+
+				contactValue = MathUtility.ToPseudoLogaritmicScale01 (contactGroupCount);
+
+				isInContact = (contactValue > 0);
+
+			} else {
+				contactValue = 1;
+
+				isSelectedTerritory = true;
+			}
 		}
 
-		float value = 0.05f + 0.95f * contactValue;
-
-		Color addedColor = Color.cyan;
+		Color replacementColor = GetOverlayColor(OverlayColorId.Territory);
 
 		if (IsTerritoryBorder (territory, cell)) {
 
-			// A slightly bluer shade of cyan
-			addedColor = new Color (0, 0.75f, 1.0f);
+			replacementColor = GetOverlayColor(OverlayColorId.TerritoryBorder);
 		}
 
-		color = (color * (1 - value)) + (addedColor * value);
+		if (isSelectedTerritory) {
+		
+			replacementColor = (0.25f * replacementColor) + (0.75f * GetOverlayColor (OverlayColorId.SelectedTerritory));
+		} else if (isInContact) {
+
+			float modContactValue = 0.15f + 0.85f * contactValue;
+
+			replacementColor = ((0.25f + 0.75f * (1f - modContactValue)) * replacementColor) + ((0.75f * modContactValue) * GetOverlayColor (OverlayColorId.ContactedTerritory));
+		}
+
+		color = replacementColor;
 
 		return color;
 	}

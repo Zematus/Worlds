@@ -1093,7 +1093,7 @@ public class World : ISynchronizable {
 
 		_cellGroups.Add (group.Id, group);
 
-		Manager.AddUpdatedCell (group.Cell, CellUpdateType.Group);
+		Manager.AddUpdatedCell (group.Cell, CellUpdateType.Group | CellUpdateType.Territory);
 
 		CellGroupCount++;
 	}
@@ -1101,6 +1101,8 @@ public class World : ISynchronizable {
 	public void RemoveGroup (CellGroup group) {
 
 		_cellGroups.Remove (group.Id);
+
+		Manager.AddUpdatedCell (group.Cell, CellUpdateType.Group | CellUpdateType.Territory);
 		
 		CellGroupCount--;
 	}

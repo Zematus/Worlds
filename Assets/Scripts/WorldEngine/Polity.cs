@@ -642,6 +642,8 @@ public abstract class Polity : ISynchronizable {
 
 		NormalizeFactionProminences ();
 
+		Manager.AddUpdatedCells (Territory.GetCells (), CellUpdateType.Territory);
+
 		Profiler.EndSample ();
 	}
 
