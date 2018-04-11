@@ -41,7 +41,7 @@ public class GuiManagerScript : MonoBehaviour {
 	public SettingsDialogPanelScript SettingsDialogPanelScript;
 	public ProgressDialogPanelScript ProgressDialogPanelScript;
 	public ImageDialogPanelScript ActivityDialogPanelScript;
-	public TextInputDialogPanelScript MessageDialogPanelScript;
+	public TextInputDialogPanelScript ErrorMessageDialogPanelScript;
 	public WorldCustomizationDialogPanelScript SetSeedDialogPanelScript;
 	public WorldCustomizationDialogPanelScript CustomizeWorldDialogPanelScript;
 	public AddPopulationDialogScript AddPopulationDialogScript;
@@ -49,7 +49,7 @@ public class GuiManagerScript : MonoBehaviour {
 	public GuidingPanelScript GuidingPanelScript;
 	public ModalPanelScript CreditsDialogPanelScript;
 
-	public List<ModalPanelScript> HiddenLowPrioPanels = new List<ModalPanelScript> ();
+	public List<ModalPanelScript> HiddenInteractionPanels = new List<ModalPanelScript> ();
 
 	public PaletteScript BiomePaletteScript;
 	public PaletteScript MapPaletteScript;
@@ -79,6 +79,7 @@ public class GuiManagerScript : MonoBehaviour {
 	private bool _eventPauseActive = false;
 
 	private bool _pauseButtonPressed = false;
+
 	private bool _pausingDialogActive = false;
 
 	private bool _displayedTip_mapScroll = false;
@@ -112,7 +113,7 @@ public class GuiManagerScript : MonoBehaviour {
 	private Vector2 _beginDragPosition;
 	private Rect _beginDragMapUvRect;
 
-	private bool _displayProgressDialogs = false;
+	private bool _backgroundProcessActive = false;
 	
 	private string _progressMessage = null;
 	private float _progressValue = 0;
@@ -134,7 +135,7 @@ public class GuiManagerScript : MonoBehaviour {
 	private int _lastMapUpdateCount = 0;
 	private float _timeSinceLastMapUpdate = 0;
 
-	private int _lastMaxSpeedLevelIndex;
+	private int _topMaxSpeedLevelIndex;
 	private int _selectedMaxSpeedLevelIndex;
 
 	private bool _infoTextMinimized = false;
@@ -182,8 +183,8 @@ public class GuiManagerScript : MonoBehaviour {
 
 		Manager.LoadAppSettings (@"Worlds.settings");
 		
-		_lastMaxSpeedLevelIndex = Speed.Levels.Length - 1;
-		_selectedMaxSpeedLevelIndex = _lastMaxSpeedLevelIndex;
+		_topMaxSpeedLevelIndex = Speed.Levels.Length - 1;
+		_selectedMaxSpeedLevelIndex = _topMaxSpeedLevelIndex;
 
 		Manager.UpdateMainThreadReference ();
 		
@@ -200,8 +201,9 @@ public class GuiManagerScript : MonoBehaviour {
 		OptionsDialogPanelScript.SetVisible (false);
 		SetSeedDialogPanelScript.SetVisible (false);
 		CustomizeWorldDialogPanelScript.SetVisible (false);
-		MessageDialogPanelScript.SetVisible (false);
+		ErrorMessageDialogPanelScript.SetVisible (false);
 		AddPopulationDialogScript.SetVisible (false);
+
 		FocusPanelScript.SetVisible (false);
 		GuidingPanelScript.SetVisible (false);
 
@@ -264,7 +266,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 		Manager.ExecuteTasks (100);
 		
-		if (_displayProgressDialogs) {
+		if (_backgroundProcessActive) {
 			
 			if (_progressMessage != null) ProgressDialogPanelScript.SetDialogText (_progressMessage);
 			
@@ -279,16 +281,17 @@ public class GuiManagerScript : MonoBehaviour {
 			return;
 		}
 
-		if (_displayProgressDialogs) {
+		if (_backgroundProcessActive) {
 
 			ProgressDialogPanelScript.SetVisible (false);
 			ActivityDialogPanelScript.SetVisible (false);
-			_displayProgressDialogs = false;
+
+			_backgroundProcessActive = false;
 			
 			if (_postProgressOp != null) 
 				_postProgressOp ();
 
-			ShowHiddenLowPrioPanels ();
+			ShowHiddenInteractionPanels ();
 		}
 
 		bool simulationRunning = Manager.SimulationCanRun && Manager.SimulationRunning;
@@ -402,6 +405,158 @@ public class GuiManagerScript : MonoBehaviour {
 		if (_mouseIsOverMap) {
 			ExecuteMapHoverOp ();
 		}
+
+		ReadKeyboardInput ();
+	}
+
+	public bool CanAlterRunningStateOrSpeed () {
+
+		return Manager.SimulationCanRun && !_pausingDialogActive;
+	}
+
+	public void ReadKeyboardInput_TimeControls () {
+
+		if (Input.GetKeyDown (KeyCode.Space))
+		{
+			if (CanAlterRunningStateOrSpeed ()) {
+				PauseSimulation (Manager.SimulationRunning);
+			}
+		}
+
+		if (Input.GetKeyDown (KeyCode.Alpha1))
+		{
+			if (CanAlterRunningStateOrSpeed ()) {
+				SetMaxSpeedLevel (0);
+			}
+		}
+
+		if (Input.GetKeyDown (KeyCode.Alpha2))
+		{
+			if (CanAlterRunningStateOrSpeed ()) {
+				SetMaxSpeedLevel (1);
+			}
+		}
+
+		if (Input.GetKeyDown (KeyCode.Alpha3))
+		{
+			if (CanAlterRunningStateOrSpeed ()) {
+				SetMaxSpeedLevel (2);
+			}
+		}
+
+		if (Input.GetKeyDown (KeyCode.Alpha4))
+		{
+			if (CanAlterRunningStateOrSpeed ()) {
+				SetMaxSpeedLevel (3);
+			}
+		}
+
+		if (Input.GetKeyDown (KeyCode.Alpha5))
+		{
+			if (CanAlterRunningStateOrSpeed ()) {
+				SetMaxSpeedLevel (4);
+			}
+		}
+
+		if (Input.GetKeyDown (KeyCode.Alpha6))
+		{
+			if (CanAlterRunningStateOrSpeed ()) {
+				SetMaxSpeedLevel (5);
+			}
+		}
+
+		if (Input.GetKeyDown (KeyCode.Alpha7))
+		{
+			if (CanAlterRunningStateOrSpeed ()) {
+				SetMaxSpeedLevel (6);
+			}
+		}
+
+		if (Input.GetKeyDown (KeyCode.Alpha8))
+		{
+			if (CanAlterRunningStateOrSpeed ()) {
+				SetMaxSpeedLevel (7);
+			}
+		}
+
+		if (Input.GetKeyDown (KeyCode.KeypadPlus))
+		{
+			if (CanAlterRunningStateOrSpeed ()) {
+				SetMaxSpeedLevel (_selectedMaxSpeedLevelIndex + 1);
+			}
+		}
+
+		if (Input.GetKeyDown (KeyCode.KeypadMinus))
+		{
+			if (CanAlterRunningStateOrSpeed ()) {
+				SetMaxSpeedLevel (_selectedMaxSpeedLevelIndex - 1);
+			}
+		}
+	}
+
+	public void ReadKeyboardInput_Escape () {
+
+		if (Input.GetKeyDown (KeyCode.Escape))
+		{
+			if (!_backgroundProcessActive) {
+
+				if (SaveFileDialogPanelScript.gameObject.activeInHierarchy) {
+
+					CancelSaveAction ();
+
+				} else if (ExportMapDialogPanelScript.gameObject.activeInHierarchy) {
+
+					CancelExportAction ();
+
+				} else if (LoadFileDialogPanelScript.gameObject.activeInHierarchy) {
+
+					CancelLoadAction ();
+
+				} else if (SelectFactionDialogPanelScript.gameObject.activeInHierarchy) {
+
+					CancelSelectFaction ();
+
+				} else if (OverlayDialogPanelScript.gameObject.activeInHierarchy) {
+
+					CloseOverlayMenuAction ();
+
+				} else if (ViewsDialogPanelScript.gameObject.activeInHierarchy) {
+
+					CloseViewsMenuAction ();
+
+				} else if (MainMenuDialogPanelScript.gameObject.activeInHierarchy) {
+
+					CloseMainMenu ();
+
+				} else if (OptionsDialogPanelScript.gameObject.activeInHierarchy) {
+
+					CloseOptionsMenu ();
+
+				} else if ((SetSeedDialogPanelScript.gameObject.activeInHierarchy) || 
+					(CustomizeWorldDialogPanelScript.gameObject.activeInHierarchy)) {
+
+					CancelGenerateAction ();
+
+				} else if (ErrorMessageDialogPanelScript.gameObject.activeInHierarchy) {
+
+					CloseErrorMessageAction ();
+
+				} else if (AddPopulationDialogScript.gameObject.activeInHierarchy) {
+
+					CancelPopulationPlacement ();
+
+				} else {
+
+					OpenMainMenu ();
+				}
+			}
+		}
+	}
+
+	public void ReadKeyboardInput () {
+		
+		ReadKeyboardInput_TimeControls ();
+		ReadKeyboardInput_Escape ();
 	}
 
 	public bool IsPolityOverlay (PlanetOverlay overlay) {
@@ -545,41 +700,41 @@ public class GuiManagerScript : MonoBehaviour {
 		}
 	}
 
-	public void HighPrioUninterruptSimulation () {
+	public void MenuUninterruptSimulation () {
 
 		if (!_eventPauseActive) {
 			InterruptSimulation (false);
 		}
 
-		ShowHiddenLowPrioPanels ();
+		ShowHiddenInteractionPanels ();
 	}
 	
 	public void CloseMainMenu () {
 		
 		MainMenuDialogPanelScript.SetVisible (false);
 		
-		HighPrioUninterruptSimulation ();
+		MenuUninterruptSimulation ();
 	}
 
 	public void CloseSettingsDialog () {
 
 		SettingsDialogPanelScript.SetVisible (false);
 
-		HighPrioUninterruptSimulation ();
+		MenuUninterruptSimulation ();
 	}
 
 	public void CloseCreditsDialog () {
 
 		CreditsDialogPanelScript.SetVisible (false);
 
-		HighPrioUninterruptSimulation ();
+		MenuUninterruptSimulation ();
 	}
 	
 	public void CloseOptionsMenu () {
 		
 		OptionsDialogPanelScript.SetVisible (false);
 
-		ShowHiddenLowPrioPanels ();
+		MenuUninterruptSimulation ();
 	}
 	
 	public void Exit () {
@@ -630,12 +785,12 @@ public class GuiManagerScript : MonoBehaviour {
 		SetSeedDialogPanelScript.SetVisible (false);
 		CustomizeWorldDialogPanelScript.SetVisible (false);
 
-		HighPrioUninterruptSimulation ();
+		MenuUninterruptSimulation ();
 	}
 	
-	public void CloseSeedErrorMessageAction () {
+	public void CloseErrorMessageAction () {
 		
-		MessageDialogPanelScript.SetVisible (false);
+		ErrorMessageDialogPanelScript.SetVisible (false);
 
 		SetGenerationSeed ();
 	}
@@ -658,13 +813,13 @@ public class GuiManagerScript : MonoBehaviour {
 		
 		if (!int.TryParse (seedStr, out seed)) {
 			
-			MessageDialogPanelScript.SetVisible (true);
+			ErrorMessageDialogPanelScript.SetVisible (true);
 			return;
 		}
 		
 		if (seed < 0) {
 			
-			MessageDialogPanelScript.SetVisible (true);
+			ErrorMessageDialogPanelScript.SetVisible (true);
 			return;
 		}
 		
@@ -684,13 +839,13 @@ public class GuiManagerScript : MonoBehaviour {
 		
 		if (!int.TryParse (seedStr, out seed)) {
 			
-			MessageDialogPanelScript.SetVisible (true);
+			ErrorMessageDialogPanelScript.SetVisible (true);
 			return;
 		}
 		
 		if (seed < 0) {
 			
-			MessageDialogPanelScript.SetVisible (true);
+			ErrorMessageDialogPanelScript.SetVisible (true);
 			return;
 		}
 		
@@ -708,7 +863,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 		SetInitialPopulation ();
 
-		_selectedMaxSpeedLevelIndex = _lastMaxSpeedLevelIndex;
+		_selectedMaxSpeedLevelIndex = _topMaxSpeedLevelIndex;
 
 		SetMaxSpeedLevel (_selectedMaxSpeedLevelIndex);
 		
@@ -725,7 +880,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 		_postProgressOp += PostProgressOp_GenerateWorld;
 		
-		_displayProgressDialogs = true;
+		_backgroundProcessActive = true;
 		
 		_regenTextures = true;
 	}
@@ -780,7 +935,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 		Manager.GenerateRandomHumanGroup (population);
 
-		HighPrioUninterruptSimulation ();
+		MenuUninterruptSimulation ();
 		
 		DisplayTip_MapScroll ();
 	}
@@ -809,7 +964,7 @@ public class GuiManagerScript : MonoBehaviour {
 		if (GetMapCoordinatesFromPointerPosition (out point)) {
 			if (AddPopulationGroupAtPosition (point, population)) {
 
-				HighPrioUninterruptSimulation ();
+				MenuUninterruptSimulation ();
 				
 				DisplayTip_MapScroll();
 
@@ -938,15 +1093,17 @@ public class GuiManagerScript : MonoBehaviour {
 		string path = Manager.ExportPath + imageName + ".png";
 		
 		Manager.ExportMapTextureToFileAsync (path, MapImage.uvRect);
+
+		_postProgressOp += PostProgressOp_ExportAction;
 		
-		_displayProgressDialogs = true;
+		_backgroundProcessActive = true;
 	}
 	
 	public void CancelExportAction () {
 		
 		ExportMapDialogPanelScript.SetVisible (false);
 
-		ShowHiddenLowPrioPanels ();
+		MenuUninterruptSimulation ();
 	}
 	
 	public void ExportImageAs () {
@@ -1056,7 +1213,18 @@ public class GuiManagerScript : MonoBehaviour {
 			InterruptSimulation (!Manager.SimulationCanRun);
 		}
 
-		ShowHiddenLowPrioPanels ();
+		ShowHiddenInteractionPanels ();
+	}
+
+	public void PostProgressOp_ExportAction () {
+
+		_postProgressOp -= PostProgressOp_ExportAction;
+
+		if (!_eventPauseActive) {
+			InterruptSimulation (!Manager.SimulationCanRun);
+		}
+
+		ShowHiddenInteractionPanels ();
 	}
 
 	public void SaveAction () {
@@ -1077,14 +1245,14 @@ public class GuiManagerScript : MonoBehaviour {
 
 		_postProgressOp += PostProgressOp_SaveAction;
 		
-		_displayProgressDialogs = true;
+		_backgroundProcessActive = true;
 	}
 
 	public void CancelSaveAction () {
 		
 		SaveFileDialogPanelScript.SetVisible (false);
 
-		HighPrioUninterruptSimulation ();
+		MenuUninterruptSimulation ();
 	}
 
 	public void SaveWorldAs () {
@@ -1121,7 +1289,7 @@ public class GuiManagerScript : MonoBehaviour {
 			return;
 		}
 	
-		if (_selectedMaxSpeedLevelIndex == _lastMaxSpeedLevelIndex)
+		if (_selectedMaxSpeedLevelIndex == _topMaxSpeedLevelIndex)
 			return;
 
 		_selectedMaxSpeedLevelIndex++;
@@ -1145,13 +1313,13 @@ public class GuiManagerScript : MonoBehaviour {
 
 	public void SetMaxSpeedLevel (int speedLevelIndex) {
 
-		_selectedMaxSpeedLevelIndex = speedLevelIndex;
+		_selectedMaxSpeedLevelIndex = Mathf.Clamp (speedLevelIndex, 0, _topMaxSpeedLevelIndex);
 
 		OnFirstMaxSpeedOptionSet.Invoke (_pausingDialogActive || (_selectedMaxSpeedLevelIndex == 0));
-		OnLastMaxSpeedOptionSet.Invoke (_pausingDialogActive || (_selectedMaxSpeedLevelIndex == _lastMaxSpeedLevelIndex));
+		OnLastMaxSpeedOptionSet.Invoke (_pausingDialogActive || (_selectedMaxSpeedLevelIndex == _topMaxSpeedLevelIndex));
 
 		// This is the max amount of iterations to simulate per second
-		Speed selectedSpeed = Speed.Levels [speedLevelIndex];
+		Speed selectedSpeed = Speed.Levels [_selectedMaxSpeedLevelIndex];
 
 		// This is the max amount of iterations to simulate per frame
 		int maxSpeed = (int)Mathf.Ceil(selectedSpeed * MaxDeltaTimeIterations);
@@ -1182,7 +1350,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 		} else {
 
-			HighPrioUninterruptSimulation ();
+			MenuUninterruptSimulation ();
 		}
 
 		GetMaxSpeedOptionFromCurrentWorld ();
@@ -1206,16 +1374,16 @@ public class GuiManagerScript : MonoBehaviour {
 		
 		_postProgressOp += PostProgressOp_LoadAction;
 		
-		_displayProgressDialogs = true;
+		_backgroundProcessActive = true;
 		
 		_regenTextures = true;
 	}
-	
+
 	public void CancelLoadAction () {
 		
 		LoadFileDialogPanelScript.SetVisible (false);
 
-		HighPrioUninterruptSimulation ();
+		MenuUninterruptSimulation ();
 	}
 	
 	public void LoadWorld () {
@@ -1227,9 +1395,24 @@ public class GuiManagerScript : MonoBehaviour {
 		InterruptSimulation (true);
 	}
 
-	public bool AreHighPrioPanelsActive () {
+	public bool AreBackgroundActivityPanelsActive () {
 
-		GameObject[] panels = GameObject.FindGameObjectsWithTag ("HighPrioPanel");
+		GameObject[] panels = GameObject.FindGameObjectsWithTag ("BackgroundActivityPanel");
+
+		foreach (GameObject panel in panels) {
+
+			if (panel.activeInHierarchy) {
+
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	public bool AreMenuPanelsActive () {
+
+		GameObject[] panels = GameObject.FindGameObjectsWithTag ("MenuPanel");
 
 		foreach (GameObject panel in panels) {
 		
@@ -1242,14 +1425,29 @@ public class GuiManagerScript : MonoBehaviour {
 		return false;
 	}
 
-	public void ShowHiddenLowPrioPanels () {
+	public bool AreInteractionPanelsActive () {
+
+		GameObject[] panels = GameObject.FindGameObjectsWithTag ("InteractionPanel");
+
+		foreach (GameObject panel in panels) {
+
+			if (panel.activeInHierarchy) {
+
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	public void ShowHiddenInteractionPanels () {
 	
-		foreach (ModalPanelScript panel in HiddenLowPrioPanels) {
+		foreach (ModalPanelScript panel in HiddenInteractionPanels) {
 
 			panel.SetVisible (true);
 		}
 
-		HiddenLowPrioPanels.Clear ();
+		HiddenInteractionPanels.Clear ();
 	}
 
 	public void RequestDecisionResolution () {
@@ -1258,13 +1456,13 @@ public class GuiManagerScript : MonoBehaviour {
 
 		DecisionDialogPanelScript.Set (decisionToResolve, _selectedMaxSpeedLevelIndex);
 
-		if (!AreHighPrioPanelsActive ()) {
+		if (!AreMenuPanelsActive ()) {
 			
 			DecisionDialogPanelScript.SetVisible (true);
 
 		} else {
 
-			HiddenLowPrioPanels.Add (DecisionDialogPanelScript);
+			HiddenInteractionPanels.Add (DecisionDialogPanelScript);
 		}
 
 		InterruptSimulation (true);
@@ -1366,14 +1564,14 @@ public class GuiManagerScript : MonoBehaviour {
 		
 		OverlayDialogPanelScript.SetVisible (false);
 
-		ShowHiddenLowPrioPanels ();
+		ShowHiddenInteractionPanels ();
 	}
 
 	public void CloseViewsMenuAction () {
 
 		ViewsDialogPanelScript.SetVisible (false);
 
-		ShowHiddenLowPrioPanels ();
+		ShowHiddenInteractionPanels ();
 	}
 	
 	public void SelectOverlays () {
@@ -1396,6 +1594,8 @@ public class GuiManagerScript : MonoBehaviour {
 	public void OpenOptionsMenu () {
 		
 		OptionsDialogPanelScript.SetVisible (true);
+
+		InterruptSimulation (true);
 	}
 
 	public void SetSimulationSpeedStopped (bool state) {
@@ -1439,7 +1639,7 @@ public class GuiManagerScript : MonoBehaviour {
 		SetSimulationSpeedStopped (state);
 
 		OnFirstMaxSpeedOptionSet.Invoke (state || (_selectedMaxSpeedLevelIndex == 0));
-		OnLastMaxSpeedOptionSet.Invoke (state || (_selectedMaxSpeedLevelIndex == _lastMaxSpeedLevelIndex));
+		OnLastMaxSpeedOptionSet.Invoke (state || (_selectedMaxSpeedLevelIndex == _topMaxSpeedLevelIndex));
 
 		Manager.InterruptSimulation (state);
 
@@ -1783,7 +1983,7 @@ public class GuiManagerScript : MonoBehaviour {
 		
 		ViewsDialogPanelScript.SetVisible (false);
 
-		ShowHiddenLowPrioPanels ();
+		ShowHiddenInteractionPanels ();
 	}
 	
 	public void SetElevationView () {
@@ -1794,7 +1994,7 @@ public class GuiManagerScript : MonoBehaviour {
 		
 		ViewsDialogPanelScript.SetVisible (false);
 
-		ShowHiddenLowPrioPanels ();
+		ShowHiddenInteractionPanels ();
 	}
 	
 	public void SetCoastlineView () {
@@ -1805,7 +2005,7 @@ public class GuiManagerScript : MonoBehaviour {
 		
 		ViewsDialogPanelScript.SetVisible (false);
 
-		ShowHiddenLowPrioPanels ();
+		ShowHiddenInteractionPanels ();
 	}
 
 	public void OpenSelectFactionDialog () {
@@ -1825,7 +2025,7 @@ public class GuiManagerScript : MonoBehaviour {
 			Manager.SetGuidedFaction (faction);
 		}
 
-		HighPrioUninterruptSimulation ();
+		MenuUninterruptSimulation ();
 	}
 
 	public void StopGuidingFaction() {
@@ -1837,7 +2037,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 		SelectFactionDialogPanelScript.SetVisible (false);
 
-		HighPrioUninterruptSimulation ();
+		MenuUninterruptSimulation ();
 	}
 
 	public void SetPlayerFocusOnPolity () {
