@@ -215,6 +215,11 @@ public abstract class Faction : ISynchronizable {
 		return _relationships[faction.Id].Value;
 	}
 
+	public bool HasRelationship (Faction faction) {
+
+		return _relationships.ContainsKey (faction.Id);
+	}
+
 	public void SetToSplit (CellGroup splitFactionCoreGroup, float splitFactionMinProminence, float splitFactionMaxProminence) {
 	
 		_splitFactionCoreGroup = splitFactionCoreGroup;

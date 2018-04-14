@@ -406,6 +406,14 @@ public abstract class Polity : ISynchronizable {
 
 			SetCoreGroup (faction.CoreGroup);
 
+			foreach (PolityContact contact in _contacts.Values) {
+			
+				if (!faction.HasRelationship (contact.Polity.DominantFaction)) {
+
+					Faction.SetRelationship (faction, contact.Polity.DominantFaction, 0.5f);
+				}
+			}
+
 			World.AddFactionToUpdate (faction);
 		}
 
@@ -426,6 +434,12 @@ public abstract class Polity : ISynchronizable {
 
 			_contacts.Add (polity.Id, contact);
 			Contacts.Add (contact);
+
+			if (!DominantFaction.HasRelationship (polity.DominantFaction)) {
+			
+				DominantFaction.SetRelationship (polity.DominantFaction, 0.5f);
+			}
+
 
 		} else {
 
@@ -491,6 +505,15 @@ public abstract class Polity : ISynchronizable {
 			Contacts.Remove (contact);
 			_contacts.Remove (polity.Id);
 		}
+
+	}
+
+	public float GetRelationshipValue (Polity polity) {
+
+		if (!_contacts.ContainsKey (polity.Id))
+			throw new System.Exception ("contact not present: " + polity.Id);
+
+		return DominantFaction.GetRelationshipValue (polity.DominantFaction);
 	}
 
 	public IEnumerable<Faction> GetFactions (bool ordered = false) {

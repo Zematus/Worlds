@@ -52,7 +52,8 @@ public enum OverlayColorId {
 	Territory = 4,
 	TerritoryBorder = 5,
 	SelectedTerritory = 6,
-	ContactedTerritory = 7,
+	ContactedTerritoryGood = 7,
+	ContactedTerritoryBad = 8,
 }
 
 public delegate T ManagerTaskDelegate<T> ();
@@ -1951,10 +1952,15 @@ public class Manager {
 		bool isSelectedTerritory = false;
 		bool isInContact = false;
 
+		Polity selectedPolity = null;
+		Polity polity = territory.Polity;
+
 		if (selectedTerritory != null) {
 
+			selectedPolity = selectedTerritory.Polity;
+
 			if (selectedTerritory != territory) {
-				int contactGroupCount = selectedTerritory.Polity.GetContactGroupCount (territory.Polity);
+				int contactGroupCount = selectedPolity.GetContactGroupCount (polity);
 
 				contactValue = MathUtility.ToPseudoLogaritmicScale01 (contactGroupCount);
 
@@ -1979,9 +1985,15 @@ public class Manager {
 			replacementColor = (0.25f * replacementColor) + (0.75f * GetOverlayColor (OverlayColorId.SelectedTerritory));
 		} else if (isInContact) {
 
+			float relationshipVal = selectedPolity.GetRelationshipValue (polity);
+
+			Color contactColor = 
+				GetOverlayColor (OverlayColorId.ContactedTerritoryGood) * (relationshipVal) + 
+				GetOverlayColor (OverlayColorId.ContactedTerritoryBad) * (1f - relationshipVal);
+
 			float modContactValue = 0.15f + 0.85f * contactValue;
 
-			replacementColor = ((0.25f + 0.75f * (1f - modContactValue)) * replacementColor) + ((0.75f * modContactValue) * GetOverlayColor (OverlayColorId.ContactedTerritory));
+			replacementColor = ((0.25f + 0.75f * (1f - modContactValue)) * replacementColor) + ((0.75f * modContactValue) * contactColor);
 		}
 
 		color = replacementColor;
