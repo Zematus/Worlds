@@ -3296,6 +3296,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 		Territory selectedTerritory = Manager.CurrentWorld.SelectedTerritory;
 
+		float relationshipValue = 0;
 		int groupCount = 0;
 
 		if ((polity.Territory != selectedTerritory) && (selectedTerritory != null)) {
@@ -3304,8 +3305,11 @@ public class GuiManagerScript : MonoBehaviour {
 		} 
 
 		if (groupCount > 0) {
+			relationshipValue = selectedTerritory.Polity.GetRelationshipValue (polity);
+
 			text = "Neighboring polity: " + polityTitle;
 
+			text += "\n\nRelationship Value: " + relationshipValue.ToString ("0.000");
 			text += "\n\nOverlaping groups: " + groupCount;
 
 		} else {

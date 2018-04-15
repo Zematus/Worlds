@@ -480,6 +480,11 @@ public abstract class Polity : ISynchronizable {
 
 			_contacts.Add (polity.Id, contact);
 			Contacts.Add (contact);
+
+			if (!DominantFaction.HasRelationship (polity.DominantFaction)) {
+
+				DominantFaction.SetRelationship (polity.DominantFaction, 0.5f);
+			}
 		}
 
 		_contacts[polity.Id].GroupCount++;
@@ -494,7 +499,7 @@ public abstract class Polity : ISynchronizable {
 	public void DecreaseContactGroupCount (Polity polity) {
 
 		if (!_contacts.ContainsKey (polity.Id))
-			throw new System.Exception ("contact not present: " + polity.Id);
+			throw new System.Exception ("(id: " + Id + ") contact not present: " + polity.Id);
 
 		PolityContact contact = _contacts [polity.Id];
 
@@ -511,7 +516,7 @@ public abstract class Polity : ISynchronizable {
 	public float GetRelationshipValue (Polity polity) {
 
 		if (!_contacts.ContainsKey (polity.Id))
-			throw new System.Exception ("contact not present: " + polity.Id);
+			throw new System.Exception ("(id: " + Id + ") contact not present: " + polity.Id);
 
 		return DominantFaction.GetRelationshipValue (polity.DominantFaction);
 	}

@@ -2656,6 +2656,12 @@ public class CellGroup : HumanGroup {
 			} else {
 
 				_polityInfluences.Remove (pi.PolityId);
+
+				// Decreate polity contacts
+				foreach (PolityInfluence epi in _polityInfluences.Values) {
+
+					Polity.DecreaseContactGroupCount (pi.Polity, epi.Polity);
+				}
 			}
 		}
 

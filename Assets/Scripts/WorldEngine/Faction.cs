@@ -199,7 +199,7 @@ public abstract class Faction : ISynchronizable {
 	public void RemoveRelationship (Faction faction) {
 
 		if (!_relationships.ContainsKey (faction.Id))
-			throw new System.Exception ("relationship not present: " + faction.Id);
+			throw new System.Exception ("(id: " + Id + ") relationship not present: " + faction.Id);
 
 		FactionRelationship relationship = _relationships [faction.Id];
 
@@ -210,7 +210,7 @@ public abstract class Faction : ISynchronizable {
 	public float GetRelationshipValue (Faction faction) {
 
 		if (!_relationships.ContainsKey (faction.Id))
-			throw new System.Exception ("relationship not present: " + faction.Id);
+			throw new System.Exception ("(id: " + Id + ") relationship not present: " + faction.Id);
 
 		return _relationships[faction.Id].Value;
 	}
