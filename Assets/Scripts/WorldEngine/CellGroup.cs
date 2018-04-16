@@ -473,6 +473,7 @@ public class CellGroup : HumanGroup {
 		if (initialGroup) {
 			Culture.AddPreferenceToAcquire (CellCulturalPreference.CreateAuthorityPreference (this, 0.5f));
 			Culture.AddPreferenceToAcquire (CellCulturalPreference.CreateCohesionPreference (this, 0.5f));
+			Culture.AddPreferenceToAcquire (CellCulturalPreference.CreateIsolationPreference (this, 0.5f));
 		}
 	}
 

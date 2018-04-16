@@ -6,29 +6,24 @@ using System.Xml.Serialization;
 
 public class ClanDemandsInfluenceDecisionEvent : FactionEvent {
 
-	public const long DateSpanFactorConstant = CellGroup.GenerationSpan * 10;
-	
-	public const float MinInfluenceTrigger = 0.3f;
-	public const float MinCoreDistance = 1000f;
-	public const float MinCoreProminenceValue = 0.5f;
+	public const long DateSpanFactorConstant = CellGroup.GenerationSpan * 5;
 
-	public const int MaxAdministrativeLoad = 500000;
+	public const int MaxAdministrativeLoad = 5000000;
 	public const int MinAdministrativeLoad = 100000;
+	public const int AdministrativeLoadSpan = MaxAdministrativeLoad - MinAdministrativeLoad;
 
 	public const float MaxAdministrativeLoadChanceFactor = 0.05f;
 
 	private Clan _clan;
 
-	private CellGroup _newClanCoreGroup;
-
-	private float _chanceOfSplitting;
+	private float _chanceOfTriggering;
 
 	public ClanDemandsInfluenceDecisionEvent () {
 
 		DoNotSerialize = true;
 	}
 
-	public ClanDemandsInfluenceDecisionEvent (Clan clan, long originalTribeId, long triggerDate) : base (clan, originalTribeId, triggerDate, ClanSplitDecisionEventId) {
+	public ClanDemandsInfluenceDecisionEvent (Clan clan, long originalTribeId, long triggerDate) : base (clan, originalTribeId, triggerDate, ClanDemandsInflenceDecisionEventId) {
 
 		_clan = clan;
 
@@ -42,7 +37,7 @@ public class ClanDemandsInfluenceDecisionEvent : FactionEvent {
 		DoNotSerialize = true;
 	}
 
-	public ClanDemandsInfluenceDecisionEvent (Clan clan, long triggerDate) : base (clan, triggerDate, ClanSplitDecisionEventId) {
+	public ClanDemandsInfluenceDecisionEvent (Clan clan, long triggerDate) : base (clan, triggerDate, ClanDemandsInflenceDecisionEventId) {
 
 		_clan = clan;
 
@@ -51,7 +46,7 @@ public class ClanDemandsInfluenceDecisionEvent : FactionEvent {
 
 	public static long CalculateTriggerDate (Clan clan) {
 
-		float randomFactor = clan.GetNextLocalRandomFloat (RngOffsets.CLAN_SPLITTING_EVENT_CALCULATE_TRIGGER_DATE);
+		float randomFactor = clan.GetNextLocalRandomFloat (RngOffsets.CLAN_DEMANDS_INFLUENCE_EVENT_CALCULATE_TRIGGER_DATE);
 		randomFactor = Mathf.Pow (randomFactor, 2);
 
 		float administrativeLoad = clan.CalculateAdministrativeLoad ();
@@ -61,17 +56,16 @@ public class ClanDemandsInfluenceDecisionEvent : FactionEvent {
 		if (administrativeLoad != Mathf.Infinity) {
 
 			float modAdminLoad = Mathf.Max (0, administrativeLoad - MinAdministrativeLoad);
-			float modHalfFactorAdminLoad = MaxAdministrativeLoad - MinAdministrativeLoad;
 
-			loadFactor = modHalfFactorAdminLoad / (modAdminLoad + modHalfFactorAdminLoad);
+			loadFactor = 1 - AdministrativeLoadSpan / (modAdminLoad + AdministrativeLoadSpan);
 		}
 
-		float cohesionPreferenceValue = clan.GetPreferenceValue (CulturalPreference.CohesionPreferenceId);
+		float authorityPreferenceValue = clan.GetPreferenceValue (CulturalPreference.AuthorityPreferenceId);
 
-		float cohesionPrefFactor = 2 * cohesionPreferenceValue;
-		cohesionPrefFactor = Mathf.Pow (cohesionPrefFactor, 4);
+		float authorityPrefFactor = 2 * (1 - authorityPreferenceValue);
+		authorityPrefFactor = Mathf.Pow (authorityPrefFactor, 4);
 
-		float dateSpan = (1 - randomFactor) * DateSpanFactorConstant * loadFactor * cohesionPrefFactor;
+		float dateSpan = (1 - randomFactor) * DateSpanFactorConstant * loadFactor * authorityPrefFactor;
 
 		long triggerDateSpan = (long)dateSpan + CellGroup.GenerationSpan;
 
@@ -83,48 +77,7 @@ public class ClanDemandsInfluenceDecisionEvent : FactionEvent {
 			triggerDateSpan = CellGroup.MaxUpdateSpan;
 		}
 
-//		#if DEBUG
-//		if (clan.Name.BoldedText == "Nuse-zis") {
-//			Debug.Log ("Clan \"" + clan.Name.BoldedText + "\" splitting event triggerDate span: " + Manager.GetTimeSpanString (triggerDateSpan));
-//		}
-//		#endif
-
 		return clan.World.CurrentDate + triggerDateSpan;
-	}
-
-	public float GetGroupWeight (CellGroup group) {
-
-		if (group == _clan.CoreGroup)
-			return 0;
-
-		PolityProminence pi = group.GetPolityProminence (_clan.Polity);
-
-		if (group.HighestPolityProminence != pi)
-			return 0;
-
-		if (!Clan.CanBeClanCore (group))
-			return 0;
-
-		float coreDistance = pi.FactionCoreDistance - MinCoreDistance;
-
-		if (coreDistance <= 0)
-			return 0;
-
-		float coreDistanceFactor = MinCoreDistance / (MinCoreDistance + coreDistance);
-
-		float minCoreProminenceValue = MinCoreProminenceValue * coreDistanceFactor;
-
-		float value = pi.Value - minCoreProminenceValue;
-
-		if (value <= 0)
-			return 0;
-
-		float weight = pi.Value;
-
-		if (weight < 0)
-			return float.MaxValue;
-
-		return weight;
 	}
 
 	public override bool CanTrigger () {
@@ -134,26 +87,22 @@ public class ClanDemandsInfluenceDecisionEvent : FactionEvent {
 			return false;
 		}
 
-		if (_clan.Influence < MinInfluenceTrigger) {
-			
+		Faction dominantFaction = _clan.Polity.DominantFaction;
+
+		if (dominantFaction == _clan)
 			return false;
-		}
 
-		int rngOffset = (int)(RngOffsets.EVENT_CAN_TRIGGER + Id);
-
-		_newClanCoreGroup = _clan.Polity.GetRandomGroup (rngOffset++, GetGroupWeight, true);
-
-		if (_newClanCoreGroup == null) {
-			
+		if (!(dominantFaction is Clan))
 			return false;
-		}
+
+//		int rngOffset = (int)(RngOffsets.EVENT_CAN_TRIGGER + Id);
 
 		// We should use the latest cultural attribute values before calculating chances
 		_clan.PreUpdate ();
 
-		_chanceOfSplitting = CalculateChanceOfSplitting ();
+		_chanceOfTriggering = CalculateChanceOfTriggering ();
 
-		if (_chanceOfSplitting <= 0) {
+		if (_chanceOfTriggering <= 0) {
 
 			return false;
 		}
@@ -161,17 +110,19 @@ public class ClanDemandsInfluenceDecisionEvent : FactionEvent {
 		return true;
 	}
 
-	public float CalculateChanceOfSplitting () {
+	public float CalculateChanceOfTriggering () {
+
+		Faction dominantFaction = _clan.Polity.DominantFaction;
 
 		float administrativeLoad = _clan.CalculateAdministrativeLoad ();
 
 		if (administrativeLoad == Mathf.Infinity)
-			return 1;
+			return 0;
 
 		float cohesionPreferenceValue = _clan.GetPreferenceValue (CulturalPreference.CohesionPreferenceId);
 
 		if (cohesionPreferenceValue <= 0)
-			return 1;
+			return 0;
 
 		float cohesionPrefFactor = 2 * cohesionPreferenceValue;
 		cohesionPrefFactor = Mathf.Pow (cohesionPrefFactor, 4);
@@ -179,30 +130,49 @@ public class ClanDemandsInfluenceDecisionEvent : FactionEvent {
 		float authorityPreferenceValue = _clan.GetPreferenceValue (CulturalPreference.AuthorityPreferenceId);
 
 		if (authorityPreferenceValue <= 0)
-			return 1;
+			return 0;
 
 		float authorityPrefFactor = 2 * authorityPreferenceValue;
 		authorityPrefFactor = Mathf.Pow (authorityPrefFactor, 4);
 
-		float diffLimitsAdministrativeLoad = MaxAdministrativeLoad - MinAdministrativeLoad;
+		float relationshipValue = _clan.GetRelationshipValue (dominantFaction);
 
-		float modMinAdministrativeLoad = MinAdministrativeLoad * cohesionPrefFactor;
-		float modMaxAdministrativeLoad = modMinAdministrativeLoad + (diffLimitsAdministrativeLoad * _clan.CurrentLeader.Wisdom * _clan.CurrentLeader.Charisma * authorityPrefFactor * MaxAdministrativeLoadChanceFactor);
+		if (relationshipValue >= 1)
+			return 0;
 
-		float chance = (administrativeLoad - modMinAdministrativeLoad) / (modMaxAdministrativeLoad - modMinAdministrativeLoad);
+		float relationshipFactor = 2 * (1 - relationshipValue);
+		relationshipFactor = Mathf.Pow (relationshipFactor, 4);
+
+		float influenceDeltaValue = dominantFaction.Influence - _clan.Influence;
+
+		if (influenceDeltaValue <= 0)
+			return 0;
+
+		if (influenceDeltaValue >= 1)
+			return 1;
+
+		float influenceFactor = 2 * influenceDeltaValue;
+		influenceFactor = Mathf.Pow (influenceFactor, 4);
+
+		float factors = cohesionPrefFactor * authorityPrefFactor * relationshipFactor * influenceFactor * MaxAdministrativeLoadChanceFactor;
+
+		float modMinAdministrativeLoad = MinAdministrativeLoad * factors;
+		float modMaxAdministrativeLoad = MaxAdministrativeLoad * factors;
+
+		float chance = 1 - (administrativeLoad - modMinAdministrativeLoad) / (modMaxAdministrativeLoad - modMinAdministrativeLoad);
 
 		return Mathf.Clamp01 (chance);
 	}
 
 	public override void Trigger () {
 
-		bool preferSplit = _clan.GetNextLocalRandomFloat (RngOffsets.CLAN_SPLITTING_EVENT_PREFER_SPLIT) < _chanceOfSplitting;
+		bool preferSplit = _clan.GetNextLocalRandomFloat (RngOffsets.CLAN_SPLITTING_EVENT_PREFER_SPLIT) < _chanceOfTriggering;
 
 		if (_clan.Polity.IsUnderPlayerFocus || _clan.IsUnderPlayerGuidance) {
 
 			Decision splitDecision;
 
-			if (_chanceOfSplitting >= 1) {
+			if (_chanceOfTriggering >= 1) {
 				splitDecision = new ClanSplitDecision (_clan, _newClanCoreGroup); // Player can't prevent splitting from happening
 			} else {
 				splitDecision = new ClanSplitDecision (_clan, _newClanCoreGroup, preferSplit); // Give player options

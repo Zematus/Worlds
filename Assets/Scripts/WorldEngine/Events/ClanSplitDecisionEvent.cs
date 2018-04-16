@@ -14,6 +14,7 @@ public class ClanSplitDecisionEvent : FactionEvent {
 
 	public const int MaxAdministrativeLoad = 500000;
 	public const int MinAdministrativeLoad = 100000;
+	public const int AdministrativeLoadSpan = MaxAdministrativeLoad - MinAdministrativeLoad;
 
 	public const float MaxAdministrativeLoadChanceFactor = 0.05f;
 
@@ -61,9 +62,8 @@ public class ClanSplitDecisionEvent : FactionEvent {
 		if (administrativeLoad != Mathf.Infinity) {
 
 			float modAdminLoad = Mathf.Max (0, administrativeLoad - MinAdministrativeLoad);
-			float modHalfFactorAdminLoad = MaxAdministrativeLoad - MinAdministrativeLoad;
 
-			loadFactor = modHalfFactorAdminLoad / (modAdminLoad + modHalfFactorAdminLoad);
+			loadFactor = AdministrativeLoadSpan / (modAdminLoad + AdministrativeLoadSpan);
 		}
 
 		float cohesionPreferenceValue = clan.GetPreferenceValue (CulturalPreference.CohesionPreferenceId);
@@ -82,12 +82,6 @@ public class ClanSplitDecisionEvent : FactionEvent {
 
 			triggerDateSpan = CellGroup.MaxUpdateSpan;
 		}
-
-//		#if DEBUG
-//		if (clan.Name.BoldedText == "Nuse-zis") {
-//			Debug.Log ("Clan \"" + clan.Name.BoldedText + "\" splitting event triggerDate span: " + Manager.GetTimeSpanString (triggerDateSpan));
-//		}
-//		#endif
 
 		return clan.World.CurrentDate + triggerDateSpan;
 	}
@@ -184,10 +178,8 @@ public class ClanSplitDecisionEvent : FactionEvent {
 		float authorityPrefFactor = 2 * authorityPreferenceValue;
 		authorityPrefFactor = Mathf.Pow (authorityPrefFactor, 4);
 
-		float diffLimitsAdministrativeLoad = MaxAdministrativeLoad - MinAdministrativeLoad;
-
 		float modMinAdministrativeLoad = MinAdministrativeLoad * cohesionPrefFactor;
-		float modMaxAdministrativeLoad = modMinAdministrativeLoad + (diffLimitsAdministrativeLoad * _clan.CurrentLeader.Wisdom * _clan.CurrentLeader.Charisma * authorityPrefFactor * MaxAdministrativeLoadChanceFactor);
+		float modMaxAdministrativeLoad = modMinAdministrativeLoad + (AdministrativeLoadSpan * _clan.CurrentLeader.Wisdom * _clan.CurrentLeader.Charisma * authorityPrefFactor * MaxAdministrativeLoadChanceFactor);
 
 		float chance = (administrativeLoad - modMinAdministrativeLoad) / (modMaxAdministrativeLoad - modMinAdministrativeLoad);
 

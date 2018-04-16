@@ -45,6 +45,7 @@ public class Clan : Faction {
 
 		AddEvent (new ClanCoreMigrationEvent (this, ClanCoreMigrationEvent.CalculateTriggerDate (this)));
 		AddEvent (new ClanSplitDecisionEvent (this, ClanSplitDecisionEvent.CalculateTriggerDate (this)));
+		AddEvent (new ClanDemandsInfluenceDecisionEvent (this, ClanDemandsInfluenceDecisionEvent.CalculateTriggerDate (this)));
 		AddEvent (new TribeSplitDecisionEvent (this, TribeSplitDecisionEvent.CalculateTriggerDate (this)));
 	}
 
