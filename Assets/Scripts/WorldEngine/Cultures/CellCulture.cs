@@ -276,9 +276,9 @@ public class CellCulture : Culture {
 		}
 	}
 
-	public void UpdatePolityCulturalInfluence (PolityInfluence polityInfluence, long timeSpan) {
+	public void UpdatePolityCulturalProminence (PolityProminence polityProminence, long timeSpan) {
 
-		PolityCulture polityCulture = polityInfluence.Polity.Culture;
+		PolityCulture polityCulture = polityProminence.Polity.Culture;
 
 		foreach (CulturalPreference polityPreference in polityCulture.Preferences) {
 
@@ -290,7 +290,7 @@ public class CellCulture : Culture {
 				AddPreferenceToAcquire (cellPreference);
 			}
 
-			cellPreference.PolityCulturalInfluence (polityPreference, polityInfluence, timeSpan);
+			cellPreference.PolityCulturalProminence (polityPreference, polityProminence, timeSpan);
 		}
 
 		foreach (CulturalActivity polityActivity in polityCulture.Activities) {
@@ -303,7 +303,7 @@ public class CellCulture : Culture {
 				AddActivityToPerform (cellActivity);
 			}
 
-			cellActivity.PolityCulturalInfluence (polityActivity, polityInfluence, timeSpan);
+			cellActivity.PolityCulturalProminence (polityActivity, polityProminence, timeSpan);
 		}
 
 		foreach (CulturalSkill politySkill in polityCulture.Skills) {
@@ -316,7 +316,7 @@ public class CellCulture : Culture {
 				AddSkillToLearn (cellSkill);
 			}
 
-			cellSkill.PolityCulturalInfluence (politySkill, polityInfluence, timeSpan);
+			cellSkill.PolityCulturalProminence (politySkill, polityProminence, timeSpan);
 		}
 
 		foreach (CulturalKnowledge polityKnowledge in polityCulture.Knowledges) {
@@ -329,7 +329,7 @@ public class CellCulture : Culture {
 				AddKnowledgeToLearn (cellKnowledge);
 			}
 
-			cellKnowledge.PolityCulturalInfluence (polityKnowledge, polityInfluence, timeSpan);
+			cellKnowledge.PolityCulturalProminence (polityKnowledge, polityProminence, timeSpan);
 		}
 
 		foreach (CulturalDiscovery polityDiscovery in polityCulture.Discoveries) {
@@ -344,11 +344,11 @@ public class CellCulture : Culture {
 		}
 	}
 
-	public void PostUpdatePolityCulturalInfluence (PolityInfluence polityInfluence) {
+	public void PostUpdatePolityCulturalProminence (PolityProminence polityProminence) {
 
-		PolityCulture polityCulture = polityInfluence.Polity.Culture;
+		PolityCulture polityCulture = polityProminence.Polity.Culture;
 
-		if ((Language == null) || (polityInfluence.Value >= Group.HighestPolityInfluence.Value)) {
+		if ((Language == null) || (polityProminence.Value >= Group.HighestPolityProminence.Value)) {
 
 			Language = polityCulture.Language;
 		}

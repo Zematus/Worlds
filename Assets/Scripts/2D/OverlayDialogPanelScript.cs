@@ -20,7 +20,7 @@ public class OverlayDialogPanelScript : DialogPanelScript {
 	public Toggle PopCulturalDiscoveryToggle;
 
 	public Toggle TerritoriesToggle;
-	public Toggle InfluenceToggle;
+	public Toggle ProminenceToggle;
 	public Toggle ContactsToggle;
 	public Toggle PolityCulturalPreferenceToggle;
 	public Toggle PolityCulturalActivityToggle;
@@ -84,7 +84,7 @@ public class OverlayDialogPanelScript : DialogPanelScript {
 		if (!PolityDataToggle.isOn) {
 			TerritoriesToggle.isOn = false;
 			DistancesToCoresToggle.isOn = false;
-			InfluenceToggle.isOn = false;
+			ProminenceToggle.isOn = false;
 			ContactsToggle.isOn = false;
 			PolityCulturalPreferenceToggle.isOn = false;
 			PolityCulturalActivityToggle.isOn = false;
@@ -124,7 +124,7 @@ public class OverlayDialogPanelScript : DialogPanelScript {
 		PolityDataToggle.isOn = (
 			(Manager.PlanetOverlay == PlanetOverlay.PolityTerritory) ||
 			(Manager.PlanetOverlay == PlanetOverlay.FactionCoreDistance) ||
-			(Manager.PlanetOverlay == PlanetOverlay.PolityInfluence) ||
+			(Manager.PlanetOverlay == PlanetOverlay.PolityProminence) ||
 			(Manager.PlanetOverlay == PlanetOverlay.PolityContacts) ||
 			(Manager.PlanetOverlay == PlanetOverlay.PolityCulturalPreference) ||
 			(Manager.PlanetOverlay == PlanetOverlay.PolityCulturalActivity) ||
@@ -153,7 +153,7 @@ public class OverlayDialogPanelScript : DialogPanelScript {
 		PopCulturalDiscoveryToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.PopCulturalDiscovery);
 
 		TerritoriesToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.PolityTerritory);
-		InfluenceToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.PolityInfluence);
+		ProminenceToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.PolityProminence);
 		ContactsToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.PolityContacts);
 		PolityCulturalPreferenceToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.PolityCulturalPreference);
 		PolityCulturalActivityToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.PolityCulturalActivity);

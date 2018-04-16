@@ -13,7 +13,7 @@ public class ClanSplitEventMessage : FactionEventMessage {
 
 	}
 
-	public ClanSplitEventMessage (Clan oldClan, Clan newClan, long date) : base (newClan, WorldEvent.ClanSplitEventId, date) {
+	public ClanSplitEventMessage (Clan oldClan, Clan newClan, long date) : base (newClan, WorldEvent.ClanSplitDecisionEventId, date) {
 
 		OldClanId = oldClan.Id;
 	}

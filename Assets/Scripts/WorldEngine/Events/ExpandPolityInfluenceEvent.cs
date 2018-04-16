@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
-public class ExpandPolityInfluenceEvent : CellGroupEvent {
+public class ExpandPolityProminenceEvent : CellGroupEvent {
 
 	[XmlAttribute ("TGrpId")]
 	public long TargetGroupId;
@@ -16,12 +16,12 @@ public class ExpandPolityInfluenceEvent : CellGroupEvent {
 	[XmlIgnore]
 	public Polity Polity;
 
-	public ExpandPolityInfluenceEvent () {
+	public ExpandPolityProminenceEvent () {
 
 		DoNotSerialize = true;
 	}
 
-	public ExpandPolityInfluenceEvent (CellGroup group, Polity polity, CellGroup targetGroup, long triggerDate) : base (group, triggerDate, ExpandPolityInfluenceEventId) {
+	public ExpandPolityProminenceEvent (CellGroup group, Polity polity, CellGroup targetGroup, long triggerDate) : base (group, triggerDate, ExpandPolityProminenceEventId) {
 
 		Polity = polity;
 
@@ -59,7 +59,7 @@ public class ExpandPolityInfluenceEvent : CellGroupEvent {
 		if (!base.CanTrigger ())
 			return false;
 
-		PolityInfluence sourcePi = Group.GetPolityInfluence (Polity);
+		PolityProminence sourcePi = Group.GetPolityProminence (Polity);
 
 		if (sourcePi == null)
 			return false;
@@ -75,7 +75,7 @@ public class ExpandPolityInfluenceEvent : CellGroupEvent {
 		//				string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
 		//
 		//				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-		//					"ExpandPolityInfluence:Trigger - Group:" + groupId,
+		//					"ExpandPolityProminence:Trigger - Group:" + groupId,
 		//					"CurrentDate: " + World.CurrentDate + 
 		//					", TriggerDate: " + TriggerDate + 
 		//					", SpawnDate: " + SpawnDate +
@@ -94,10 +94,10 @@ public class ExpandPolityInfluenceEvent : CellGroupEvent {
 		float populationFactor = Group.Population / (float)(Group.Population + TargetGroup.Population);
 		percentToExpand *= populationFactor;
 
-		PolityInfluence sourcePi = Group.GetPolityInfluence (Polity);
+		PolityProminence sourcePi = Group.GetPolityProminence (Polity);
 
 		TargetGroup.Culture.MergeCulture (Group.Culture, percentToExpand);
-		TargetGroup.MergePolityInfluence (sourcePi, percentToExpand);
+		TargetGroup.MergePolityProminence (sourcePi, percentToExpand);
 
 		TryMigrateFactionCores ();
 

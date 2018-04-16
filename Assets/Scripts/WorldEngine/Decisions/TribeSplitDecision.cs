@@ -12,8 +12,8 @@ public class TribeSplitDecision : PolityDecision {
 	public const float BaseMinRelationshipPercentChange = 0.05f;
 	public const float BaseMaxRelationshipPercentChange = 0.15f;
 
-	public const float BaseMinProminencePercentChange = 0.05f;
-	public const float BaseMaxProminencePercentChange = 0.15f;
+	public const float BaseMinInfluencePercentChange = 0.05f;
+	public const float BaseMaxInfluencePercentChange = 0.15f;
 
 	private Tribe _tribe;
 
@@ -57,7 +57,7 @@ public class TribeSplitDecision : PolityDecision {
 		_preferSplit = preferSplit;
 	}
 
-	private void GeneratePreventSplitResultEffectsString_Prominence (out string effectSplitClan, out string effectDominantClan) {
+	private void GeneratePreventSplitResultEffectsString_Influence (out string effectSplitClan, out string effectDominantClan) {
 
 		float charismaFactor = _dominantClan.CurrentLeader.Charisma / 10f;
 		float wisdomFactor = _dominantClan.CurrentLeader.Wisdom / 15f;
@@ -65,24 +65,24 @@ public class TribeSplitDecision : PolityDecision {
 		float attributesFactor = Mathf.Max (charismaFactor, wisdomFactor);
 		attributesFactor = Mathf.Clamp (attributesFactor, 0.5f, 2f);
 
-		float minPercentChange = BaseMinProminencePercentChange / attributesFactor;
-		float maxPercentChange = BaseMaxProminencePercentChange / attributesFactor;
+		float minPercentChange = BaseMinInfluencePercentChange / attributesFactor;
+		float maxPercentChange = BaseMaxInfluencePercentChange / attributesFactor;
 
-		float oldProminenceValue = _dominantClan.Prominence;
+		float oldInfluenceValue = _dominantClan.Influence;
 
-		float minValChange = oldProminenceValue * (1f - minPercentChange);
-		float maxValChange = oldProminenceValue * (1f - maxPercentChange);
+		float minValChange = oldInfluenceValue * (1f - minPercentChange);
+		float maxValChange = oldInfluenceValue * (1f - maxPercentChange);
 
-		float oldSplitClanProminenceValue = _splitClan.Prominence;
+		float oldSplitClanInfluenceValue = _splitClan.Influence;
 
-		float minValChangeSplitClan = oldSplitClanProminenceValue + oldProminenceValue - minValChange;
-		float maxValChangeSplitClan = oldSplitClanProminenceValue + oldProminenceValue - maxValChange;
+		float minValChangeSplitClan = oldSplitClanInfluenceValue + oldInfluenceValue - minValChange;
+		float maxValChangeSplitClan = oldSplitClanInfluenceValue + oldInfluenceValue - maxValChange;
 
-		effectDominantClan = "Clan " + _dominantClan.Name.BoldText + ": prominence within the " + _tribe.Name.BoldText + 
-			" tribe (" + oldProminenceValue.ToString ("P") + ") decreases to: " + minValChange.ToString ("P") + " - " + maxValChange.ToString ("P");
+		effectDominantClan = "Clan " + _dominantClan.Name.BoldText + ": influence within the " + _tribe.Name.BoldText + 
+			" tribe (" + oldInfluenceValue.ToString ("P") + ") decreases to: " + minValChange.ToString ("P") + " - " + maxValChange.ToString ("P");
 
-		effectSplitClan = "Clan " + _splitClan.Name.BoldText + ": prominence within the " + _tribe.Name.BoldText + 
-			" tribe (" + oldSplitClanProminenceValue.ToString ("P") + ") increases to: " + minValChangeSplitClan.ToString ("P") + " - " + maxValChangeSplitClan.ToString ("P");
+		effectSplitClan = "Clan " + _splitClan.Name.BoldText + ": influence within the " + _tribe.Name.BoldText + 
+			" tribe (" + oldSplitClanInfluenceValue.ToString ("P") + ") increases to: " + minValChangeSplitClan.ToString ("P") + " - " + maxValChangeSplitClan.ToString ("P");
 	}
 
 	private string GeneratePreventSplitResultEffectsString_Relationship () {
@@ -107,15 +107,15 @@ public class TribeSplitDecision : PolityDecision {
 
 	private string GeneratePreventSplitResultEffectsString () {
 
-		string splitClanProminenceChangeEffect;
-		string dominantClanProminenceChangeEffect;
+		string splitClanInfluenceChangeEffect;
+		string dominantClanInfluenceChangeEffect;
 
-		GeneratePreventSplitResultEffectsString_Prominence (out splitClanProminenceChangeEffect, out dominantClanProminenceChangeEffect);
+		GeneratePreventSplitResultEffectsString_Influence (out splitClanInfluenceChangeEffect, out dominantClanInfluenceChangeEffect);
 
 		return 
 			"\t• " + GeneratePreventSplitResultEffectsString_Relationship () + "\n" + 
-			"\t• " + dominantClanProminenceChangeEffect + "\n" + 
-			"\t• " + splitClanProminenceChangeEffect;
+			"\t• " + dominantClanInfluenceChangeEffect + "\n" + 
+			"\t• " + splitClanInfluenceChangeEffect;
 	}
 
 	public static void LeaderPreventsSplit_notifySplitClan (Clan splitClan, Clan dominantClan, Tribe originalTribe) {
@@ -151,13 +151,13 @@ public class TribeSplitDecision : PolityDecision {
 
 		int rngOffset = RngOffsets.TRIBE_SPLITTING_EVENT_TRIBE_LEADER_PREVENTS_MODIFY_ATTRIBUTE;
 
-		// Prominence
+		// Influence
 
 		float randomFactor = dominantClan.GetNextLocalRandomFloat (rngOffset++);
-		float prominencePercentChange = (BaseMaxProminencePercentChange - BaseMinProminencePercentChange) * randomFactor + BaseMinProminencePercentChange;
-		prominencePercentChange /= attributesFactor;
+		float influencePercentChange = (BaseMaxInfluencePercentChange - BaseMinInfluencePercentChange) * randomFactor + BaseMinInfluencePercentChange;
+		influencePercentChange /= attributesFactor;
 
-		Polity.TransferProminence (dominantClan, splitClan, prominencePercentChange);
+		Polity.TransferInfluence (dominantClan, splitClan, influencePercentChange);
 
 		// Relationship
 

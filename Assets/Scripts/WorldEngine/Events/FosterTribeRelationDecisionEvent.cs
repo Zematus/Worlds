@@ -4,9 +4,9 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
-public class TribeSplitDecisionEvent : FactionEvent {
+public class FosterTribeRelationDecisionEvent : FactionEvent {
 
-	public const long DateSpanFactorConstant = CellGroup.GenerationSpan * 20;
+	public const long DateSpanFactorConstant = CellGroup.GenerationSpan * 5;
 
 	public const int SplitClanMaxAdministrativeLoad = 500000;
 	public const int SplitClanMinAdministrativeLoad = 100000;
@@ -26,12 +26,12 @@ public class TribeSplitDecisionEvent : FactionEvent {
 	private float _splitClanChanceOfSplitting;
 	private float _tribeChanceOfSplitting;
 
-	public TribeSplitDecisionEvent () {
+	public FosterTribeRelationDecisionEvent () {
 
 		DoNotSerialize = true;
 	}
 
-	public TribeSplitDecisionEvent (Clan splitClan, long originalTribeId, long triggerDate) : base (splitClan, originalTribeId, triggerDate, TribeSplitDecisionEventId) {
+	public FosterTribeRelationDecisionEvent (Clan splitClan, long originalTribeId, long triggerDate) : base (splitClan, originalTribeId, triggerDate, TribeSplitDecisionEventId) {
 
 		_splitClan = splitClan;
 		_originalTribe = World.GetPolity (originalTribeId) as Tribe;
@@ -39,7 +39,7 @@ public class TribeSplitDecisionEvent : FactionEvent {
 		DoNotSerialize = true;
 	}
 
-	public TribeSplitDecisionEvent (Clan splitClan, FactionEventData data) : base (splitClan, data) {
+	public FosterTribeRelationDecisionEvent (Clan splitClan, FactionEventData data) : base (splitClan, data) {
 
 		_splitClan = splitClan;
 		_originalTribe = World.GetPolity (data.OriginalPolityId) as Tribe;
@@ -47,7 +47,7 @@ public class TribeSplitDecisionEvent : FactionEvent {
 		DoNotSerialize = true;
 	}
 
-	public TribeSplitDecisionEvent (Clan splitClan, long triggerDate) : base (splitClan, triggerDate, TribeSplitDecisionEventId) {
+	public FosterTribeRelationDecisionEvent (Clan splitClan, long triggerDate) : base (splitClan, triggerDate, TribeSplitDecisionEventId) {
 
 		_splitClan = splitClan;
 		_originalTribe = splitClan.Polity as Tribe;

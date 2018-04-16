@@ -4,26 +4,26 @@ Cleanup rules: Prioritize bugs first by rating bucket (HIGH,MED,LOW) then within
 <<<Insert all new bugs, issues and tasks in Worlds' Github DB>>>
 
 - (LOW 1/18/18) Sometimes factions appear with exactly the same name (possibly due to both factions having the same core?)
-- (LOW 2/19/18) Expanding polity inflence effects should be calculated on their own phase (outside of the event) to reduce load 
+- (LOW 2/19/18) Expanding polity influence effects should be calculated on their own phase (outside of the event) to reduce load 
 - (LOW 3/25/18) Check capitalization in the panel for focused tribes
 - (LOW 3/25/18) Check capitalization and word order for polity names in the infopanel
-- (LOW 3/25/18) Check capitalization and word order int panel for guided faction
-- (LOW 3/27/18) Whne a faction property changes after a decision, if the simulation is paused, the change doesn't reflect on the polity.
+- (LOW 3/25/18) Check capitalization and word order in panel for guided faction
+- (LOW 3/27/18) When a faction property changes after a decision, if the simulation is paused, the change doesn't reflect on the polity.
 
 TASKS:
 
-- a faction that losses too much prominence should dissapear
+- a faction that losses too much prominence should disappear
 - a decision message should be displayed (or popup) when the dominant faction of a followed polity changes
 - show specific cultural attribute values for factions in tooltips
 - customize decision dialogs to show why it might fail or succeed depending on faction and leader attributes
 - make test builds for patreons
 - add decent schedule, progress path and a feature wish list
-- add a wave influence transfer event that triggers after short spans on neighborging cells that have lower influence
+- add a wave influence transfer event that triggers after short spans on neighboring cells that have lower influence
 - add world customization templates
 - allow replacement of populations
 - Rewind, go back in time
 - Ability to have multiple Overlays at a time
-- Resoultion options
+- Resolution options
 - Log of the world's history
 
 EXTRA:
@@ -33,7 +33,7 @@ EXTRA:
 Future developments:
 
 Artisanship - activity
-Metalurgy - knowledge
+Metallurgy - knowledge
 
 Types of factions
 Clans - migratory (core should be centroid of territory), nebulous, no focus
@@ -48,7 +48,7 @@ Events to add:
 	- Tribe transfer
 - Tribe Events:
 	- Tribe Merge
-	- Transition To Cheifdom (maybe for 0.032)
+	- Transition To Chiefdom (maybe for 0.032)
 
 - Cultural Activities to add:
 	- Raiding/Pillaging
@@ -60,11 +60,11 @@ Decisions Infrastructure (0.03):
 	- Clan Splitting
 	- Leader replacement
 	- Prominence updates
-	- Tribe spliting
+	- Tribe splitting
 
 - Only happen for focused/controlled polities
 - Sometimes should trigger for focused polities when an event would not happen
-- Will autoresolve for focused non-player controlled polities as if the tribe was unfocused 
+- Will auto-resolve for focused non-player controlled polities as if the tribe was unfocused 
 
 - Leader characteristics
 	- Might
@@ -73,9 +73,10 @@ Decisions Infrastructure (0.03):
 	- Cultural Preferences
 
 - Cultural Preferences
+	- Openness
 	- Acculturation
-	- Agresiveness/Passiveness
+	- Aggressiveness/Passiveness
 	- Tolerant/Intolerant
-	- Traditionalism/Antitraditionalism
-	- Matriachy/Patriarchy
+	- Traditionalism/Anti-traditionalism
+	- Matriarchy/Patriarchy
 	- Autocratic/Democratic

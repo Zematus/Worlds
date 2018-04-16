@@ -4,24 +4,6 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
-public class WorldEventSnapshot {
-
-	public System.Type EventType;
-
-	public long TriggerDate;
-	public long SpawnDate;
-	public long Id;
-
-	public WorldEventSnapshot (WorldEvent e) {
-
-		EventType = e.GetType ();
-	
-		TriggerDate = e.TriggerDate;
-		SpawnDate = e.SpawnDate;
-		Id = e.Id;
-	}
-}
-
 public abstract class WorldEvent : ISynchronizable {
 
 	public const long UpdateCellGroupEventId = 0;
@@ -32,12 +14,12 @@ public abstract class WorldEvent : ISynchronizable {
 	public const long BoatMakingDiscoveryEventId = 5;
 	public const long PlantCultivationDiscoveryEventId = 6;
 
-	public const long ClanSplitEventId = 7;
+	public const long ClanSplitDecisionEventId = 7;
 	public const long PreventClanSplitEventId = 8;
 
-	public const long ExpandPolityInfluenceEventId = 9;
+	public const long ExpandPolityProminenceEventId = 9;
 
-	public const long TribeSplitEventId = 10;
+	public const long TribeSplitDecisionEventId = 10;
 	public const long SplitClanPreventTribeSplitEventId = 11;
 	public const long PreventTribeSplitEventId = 12;
 
@@ -58,11 +40,14 @@ public abstract class WorldEvent : ISynchronizable {
 
 	[XmlIgnore]
 	public BinaryTreeNode<long, WorldEvent> Node = null;
-	
-	[XmlAttribute]
+
+	[XmlAttribute("TId")]
+	public long TypeId;
+
+	[XmlAttribute("TDate")]
 	public long TriggerDate;
 
-	[XmlAttribute]
+	[XmlAttribute("SDate")]
 	public long SpawnDate;
 	
 	[XmlAttribute]
@@ -75,9 +60,11 @@ public abstract class WorldEvent : ISynchronizable {
 		Manager.UpdateWorldLoadTrackEventCount ();
 	}
 
-	public WorldEvent (World world, long triggerDate, long id) {
+	public WorldEvent (World world, long triggerDate, long id, long typeId) {
 		
 //		EventCount++;
+
+		TypeId = typeId;
 
 		World = world;
 		TriggerDate = triggerDate;
@@ -98,6 +85,10 @@ public abstract class WorldEvent : ISynchronizable {
 		#endif
 	}
 
+	public WorldEvent (World world, long id, WorldEventData data) : this (world, data.TriggerDate, id, data.TypeId) {
+
+	}
+
 	public void AssociateNode (BinaryTreeNode<long, WorldEvent> node) {
 	
 		if (Node != null) {
@@ -105,6 +96,11 @@ public abstract class WorldEvent : ISynchronizable {
 		}
 
 		Node = node;
+	}
+
+	public virtual WorldEventData GetData () {
+	
+		return new WorldEventData (this);
 	}
 
 	public virtual WorldEventSnapshot GetSnapshot () {

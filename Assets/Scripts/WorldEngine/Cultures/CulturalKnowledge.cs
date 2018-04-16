@@ -299,14 +299,14 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
 		_newValue = newValue;
 	}
 
-	public abstract void PolityCulturalInfluence (CulturalKnowledge polityKnowledge, PolityInfluence polityInfluence, long timeSpan);
+	public abstract void PolityCulturalProminence (CulturalKnowledge polityKnowledge, PolityProminence polityProminence, long timeSpan);
 
-	protected void PolityCulturalInfluenceInternal (CulturalKnowledge polityKnowledge, PolityInfluence polityInfluence, long timeSpan, float timeEffectFactor) {
+	protected void PolityCulturalProminenceInternal (CulturalKnowledge polityKnowledge, PolityProminence polityProminence, long timeSpan, float timeEffectFactor) {
 
-		int rngOffset = RngOffsets.KNOWLEDGE_POLITY_INFLUENCE + RngOffset + (int)polityInfluence.PolityId;
+		int rngOffset = RngOffsets.KNOWLEDGE_POLITY_PROMINENCE + RngOffset + (int)polityProminence.PolityId;
 
 		int targetValue = polityKnowledge.Value;
-		float influenceEffect = polityInfluence.Value;
+		float prominenceEffect = polityProminence.Value;
 
 		TerrainCell groupCell = Group.Cell;
 
@@ -318,7 +318,7 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
 
 		float d;
 		// _newvalue should have been set correctly either by the constructor or by the Update function
-		int valueChange = (int)MathUtility.MultiplyAndGetDecimals (valueDelta, influenceEffect * timeEffect * randomEffect, out d);
+		int valueChange = (int)MathUtility.MultiplyAndGetDecimals (valueDelta, prominenceEffect * timeEffect * randomEffect, out d);
 
 		if (d > Group.GetNextLocalRandomFloat (rngOffset++))
 			valueChange++;
@@ -441,9 +441,9 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge {
 		TryGenerateSailingDiscoveryEvent ();
 	}
 
-	public override void PolityCulturalInfluence (CulturalKnowledge polityKnowledge, PolityInfluence polityInfluence, long timeSpan) {
+	public override void PolityCulturalProminence (CulturalKnowledge polityKnowledge, PolityProminence polityProminence, long timeSpan) {
 
-		PolityCulturalInfluenceInternal (polityKnowledge, polityInfluence, timeSpan, TimeEffectConstant);
+		PolityCulturalProminenceInternal (polityKnowledge, polityProminence, timeSpan, TimeEffectConstant);
 
 		TryGenerateSailingDiscoveryEvent ();
 	}
@@ -608,9 +608,9 @@ public class AgricultureKnowledge : CellCulturalKnowledge {
 		UpdateValueInternal (timeSpan, TimeEffectConstant, _terrainFactor * TerrainFactorModifier);
 	}
 
-	public override void PolityCulturalInfluence (CulturalKnowledge polityKnowledge, PolityInfluence polityInfluence, long timeSpan) {
+	public override void PolityCulturalProminence (CulturalKnowledge polityKnowledge, PolityProminence polityProminence, long timeSpan) {
 
-		PolityCulturalInfluenceInternal (polityKnowledge, polityInfluence, timeSpan, TimeEffectConstant);
+		PolityCulturalProminenceInternal (polityKnowledge, polityProminence, timeSpan, TimeEffectConstant);
 	}
 
 	protected override int CalculateAsymptoteInternal (CulturalDiscovery discovery) {
@@ -757,29 +757,29 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge {
 		return finalPopFactor;
 	}
 
-	private float CalculatePolityInfluenceFactor () {
+	private float CalculatePolityProminenceFactor () {
 
-		float totalInfluence = Group.TotalPolityInfluenceValue * 0.5f;
+		float totalProminence = Group.TotalPolityProminenceValue * 0.5f;
 
-		return totalInfluence;
+		return totalProminence;
 	}
 
 	protected override void UpdateInternal (long timeSpan) {
 
 		float populationFactor = CalculatePopulationFactor ();
 
-		float influenceFactor = CalculatePolityInfluenceFactor ();
+		float prominenceFactor = CalculatePolityProminenceFactor ();
 
-		float totalFactor = populationFactor + (influenceFactor * (1 - populationFactor));
+		float totalFactor = populationFactor + (prominenceFactor * (1 - populationFactor));
 
 		UpdateValueInternal (timeSpan, TimeEffectConstant, totalFactor);
 
 		TryGenerateTribalismDiscoveryEvent ();
 	}
 
-	public override void PolityCulturalInfluence (CulturalKnowledge polityKnowledge, PolityInfluence polityInfluence, long timeSpan) {
+	public override void PolityCulturalProminence (CulturalKnowledge polityKnowledge, PolityProminence polityProminence, long timeSpan) {
 
-		PolityCulturalInfluenceInternal (polityKnowledge, polityInfluence, timeSpan, TimeEffectConstant);
+		PolityCulturalProminenceInternal (polityKnowledge, polityProminence, timeSpan, TimeEffectConstant);
 
 		#if DEBUG
 		if (_newValue < SocialOrganizationKnowledge.MinValueForHoldingTribalism) {

@@ -11,7 +11,7 @@ public class PolityCulture2 : Culture {
 	public Polity Polity;
 
 	[XmlIgnore]
-	private float _totalGroupInfluenceValue;
+	private float _totalGroupProminenceValue;
 
 	public PolityCulture2 () {
 	
@@ -25,7 +25,7 @@ public class PolityCulture2 : Culture {
 		if (World.SelectedCell != null && 
 			World.SelectedCell.Group != null) {
 
-			if (World.SelectedCell.Group.GetPolityInfluenceValue (Polity) > 0) {
+			if (World.SelectedCell.Group.GetPolityProminenceValue (Polity) > 0) {
 
 				Debug.Log ("Debug Selected");
 			}
@@ -163,28 +163,28 @@ public class PolityCulture2 : Culture {
 //				", Activities.Count: " + Activities.Count + 
 //				", Skills.Count: " + Skills.Count + 
 //				", Knowledges.Count: " + Knowledges.Count + 
-//				", Polity.TotalGroupInfluenceValue: " + Polity.TotalGroupInfluenceValue + 
+//				", Polity.TotalGroupProminenceValue: " + Polity.TotalGroupProminenceValue + 
 //				"");
 //		}
 //		#endif
 
-		if (Polity.InfluencedGroups.Count <= 0)
+		if (Polity.ProminencedGroups.Count <= 0)
 			return;
 
 		foreach (CulturalPreference preference in Preferences) {
 
-			preference.Value = MathUtility.RoundToSixDecimals(Mathf.Clamp01 (preference.Value/_totalGroupInfluenceValue));
+			preference.Value = MathUtility.RoundToSixDecimals(Mathf.Clamp01 (preference.Value/_totalGroupProminenceValue));
 		}
 
 		foreach (CulturalActivity activity in Activities) {
 
-			activity.Value = MathUtility.RoundToSixDecimals(Mathf.Clamp01 (activity.Value/_totalGroupInfluenceValue));
-			activity.Contribution = MathUtility.RoundToSixDecimals(Mathf.Clamp01 (activity.Contribution/_totalGroupInfluenceValue));
+			activity.Value = MathUtility.RoundToSixDecimals(Mathf.Clamp01 (activity.Value/_totalGroupProminenceValue));
+			activity.Contribution = MathUtility.RoundToSixDecimals(Mathf.Clamp01 (activity.Contribution/_totalGroupProminenceValue));
 		}
 
 		foreach (CulturalSkill skill in Skills) {
 
-			float realValue = skill.Value / _totalGroupInfluenceValue;
+			float realValue = skill.Value / _totalGroupProminenceValue;
 
 			#if DEBUG
 			if ((realValue > 1.1f) || (realValue < -0.1f)) {
@@ -199,7 +199,7 @@ public class PolityCulture2 : Culture {
 
 
 			float d;
-			int newValue = (int)MathUtility.DivideAndGetDecimals (knowledge.AggregateValue, _totalGroupInfluenceValue, out d);
+			int newValue = (int)MathUtility.DivideAndGetDecimals (knowledge.AggregateValue, _totalGroupProminenceValue, out d);
 
 			if (d > GetNextRandomFloat (RngOffsets.POLITY_CULTURE_NORMALIZE_ATTRIBUTE_VALUES))
 				newValue++;
@@ -210,9 +210,9 @@ public class PolityCulture2 : Culture {
 
 	private void AddGroupCultures () {
 
-		_totalGroupInfluenceValue = 0;
+		_totalGroupProminenceValue = 0;
 
-		foreach (CellGroup group in Polity.InfluencedGroups.Values) {
+		foreach (CellGroup group in Polity.ProminencedGroups.Values) {
 		
 			AddGroupCulture (group);
 		}
@@ -224,20 +224,20 @@ public class PolityCulture2 : Culture {
 //		if (World.SelectedCell != null && 
 //			World.SelectedCell.Group != null) {
 //
-//			if (World.SelectedCell.Group.GetPolityInfluenceValue (Polity) > 0) {
+//			if (World.SelectedCell.Group.GetPolityProminenceValue (Polity) > 0) {
 //
 //				Debug.Log ("Debug Selected");
 //			}
 //		}
 //		#endif
 
-		float influenceValue = group.GetPolityInfluenceValue (Polity);
+		float prominenceValue = group.GetPolityProminenceValue (Polity);
 
-		_totalGroupInfluenceValue += influenceValue;
+		_totalGroupProminenceValue += prominenceValue;
 
-		if (influenceValue <= 0) {
+		if (prominenceValue <= 0) {
 
-			throw new System.Exception ("Polity [" + Polity.Id + "] has influence value of " + influenceValue + " in Group [" + group.Id + "]. Current Date: " + World.CurrentDate);
+			throw new System.Exception ("Polity [" + Polity.Id + "] has prominence value of " + prominenceValue + " in Group [" + group.Id + "]. Current Date: " + World.CurrentDate);
 		}
 
 		foreach (CulturalPreference groupPreference in group.Culture.Preferences) {
@@ -247,13 +247,13 @@ public class PolityCulture2 : Culture {
 			if (preference == null) {
 
 				preference = new CulturalPreference (groupPreference);
-				preference.Value *= influenceValue;
+				preference.Value *= prominenceValue;
 
 				AddPreference (preference);
 
 			} else {
 
-				preference.Value += groupPreference.Value * influenceValue;
+				preference.Value += groupPreference.Value * prominenceValue;
 			}
 		}
 
@@ -264,15 +264,15 @@ public class PolityCulture2 : Culture {
 			if (activity == null) {
 			
 				activity = new CulturalActivity (groupActivity);
-				activity.Value *= influenceValue;
-				activity.Contribution *= influenceValue;
+				activity.Value *= prominenceValue;
+				activity.Contribution *= prominenceValue;
 
 				AddActivity (activity);
 
 			} else {
 			
-				activity.Value += groupActivity.Value * influenceValue;
-				activity.Contribution += groupActivity.Contribution * influenceValue;
+				activity.Value += groupActivity.Value * prominenceValue;
+				activity.Contribution += groupActivity.Contribution * prominenceValue;
 			}
 		}
 
@@ -283,13 +283,13 @@ public class PolityCulture2 : Culture {
 			if (skill == null) {
 
 				skill = new CulturalSkill (groupSkill);
-				skill.Value *= influenceValue;
+				skill.Value *= prominenceValue;
 
 				AddSkill (skill);
 
 			} else {
 
-				skill.Value += groupSkill.Value * influenceValue;
+				skill.Value += groupSkill.Value * prominenceValue;
 			}
 		}
 
@@ -300,13 +300,13 @@ public class PolityCulture2 : Culture {
 			if (knowledge == null) {
 
 				knowledge = new PolityCulturalKnowledge (groupKnowledge);
-				knowledge.AggregateValue = groupKnowledge.Value * influenceValue;
+				knowledge.AggregateValue = groupKnowledge.Value * prominenceValue;
 
 				AddKnowledge (knowledge);
 
 			} else {
 				
-				knowledge.AggregateValue += groupKnowledge.Value * influenceValue;
+				knowledge.AggregateValue += groupKnowledge.Value * prominenceValue;
 			}
 		}
 

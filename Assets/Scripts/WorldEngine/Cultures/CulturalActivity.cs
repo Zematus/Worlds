@@ -142,19 +142,19 @@ public class CellCulturalActivity : CulturalActivity {
 		_newValue = (Value * (1 - timeEffect)) + (targetValue * timeEffect);
 	}
 
-	public void PolityCulturalInfluence (CulturalActivity polityActivity, PolityInfluence polityInfluence, long timeSpan) {
+	public void PolityCulturalProminence (CulturalActivity polityActivity, PolityProminence polityProminence, long timeSpan) {
 
 		float targetValue = polityActivity.Value;
-		float influenceEffect = polityInfluence.Value;
+		float prominenceEffect = polityProminence.Value;
 
 		TerrainCell groupCell = Group.Cell;
 
-		float randomEffect = groupCell.GetNextLocalRandomFloat (RngOffsets.ACTIVITY_POLITY_INFLUENCE + RngOffset + (int)polityInfluence.PolityId);
+		float randomEffect = groupCell.GetNextLocalRandomFloat (RngOffsets.ACTIVITY_POLITY_PROMINENCE + RngOffset + (int)polityProminence.PolityId);
 
 		float timeEffect = timeSpan / (float)(timeSpan + TimeEffectConstant);
 
 		// _newvalue should have been set correctly either by the constructor or by the Update function
-		float change = (targetValue - _newValue) * influenceEffect * timeEffect * randomEffect;
+		float change = (targetValue - _newValue) * prominenceEffect * timeEffect * randomEffect;
 
 		_newValue = _newValue + change;
 	}

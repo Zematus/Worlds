@@ -9,14 +9,11 @@ public abstract class FactionEvent : WorldEvent {
 	[XmlAttribute]
 	public long FactionId;
 
-	[XmlAttribute]
+	[XmlAttribute("OPolId")]
 	public long OriginalPolityId;
 
 	[XmlAttribute]
 	public long CurrentPolityId;
-
-	[XmlAttribute]
-	public long EventTypeId;
 
 	[XmlIgnore]
 	public Faction Faction;
@@ -28,36 +25,41 @@ public abstract class FactionEvent : WorldEvent {
 
 	}
 
-	public FactionEvent (Faction faction, long originalPolityId, long triggerDate, long eventTypeId) : base (faction.World, triggerDate, GenerateUniqueIdentifier (faction, triggerDate, eventTypeId)) {
+	public FactionEvent (Faction faction, long originalPolityId, long triggerDate, long eventTypeId) : base (faction.World, triggerDate, GenerateUniqueIdentifier (faction, triggerDate, eventTypeId), eventTypeId) {
 
 		Faction = faction;
 		FactionId = Faction.Id;
-
-		EventTypeId = eventTypeId;
 
 		OriginalPolityId = originalPolityId;
 		OriginalPolity = World.GetPolity (originalPolityId);
 	}
 
-	public FactionEvent (Faction faction, long triggerDate, long eventTypeId) : base (faction.World, triggerDate, GenerateUniqueIdentifier (faction, triggerDate, eventTypeId)) {
+	public FactionEvent (Faction faction, FactionEventData data) : base (faction.World, data.TriggerDate, GenerateUniqueIdentifier (faction, data.TriggerDate, data.TypeId), data.TypeId) {
 
 		Faction = faction;
 		FactionId = Faction.Id;
 
-		EventTypeId = eventTypeId;
+		OriginalPolityId = data.OriginalPolityId;
+		OriginalPolity = World.GetPolity (OriginalPolityId);
+	}
+
+	public FactionEvent (Faction faction, long triggerDate, long eventTypeId) : base (faction.World, triggerDate, GenerateUniqueIdentifier (faction, triggerDate, eventTypeId), eventTypeId) {
+
+		Faction = faction;
+		FactionId = Faction.Id;
 
 		OriginalPolity = faction.Polity;
 		OriginalPolityId = OriginalPolity.Id;
 
-		//		#if DEBUG
-		//		if (Manager.RegisterDebugEvent != null) {
-		//			string factionId = "Id: " + faction.Id;
-		//
-		//			SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("FactionEvent - Faction: " + factionId, "TriggerDate: " + TriggerDate);
-		//
-		//			Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-		//		}
-		//		#endif
+//		#if DEBUG
+//		if (Manager.RegisterDebugEvent != null) {
+//			string factionId = "Id: " + faction.Id;
+//
+//			SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("FactionEvent - Faction: " + factionId, "TriggerDate: " + TriggerDate);
+//
+//			Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+//		}
+//		#endif
 	}
 
 	public static long GenerateUniqueIdentifier (Faction faction, long triggerDate, long eventTypeId) {
@@ -123,6 +125,11 @@ public abstract class FactionEvent : WorldEvent {
 		OriginalPolity = Faction.Polity;
 		OriginalPolityId = OriginalPolity.Id;
 
-		Reset (newTriggerDate, GenerateUniqueIdentifier (Faction, newTriggerDate, EventTypeId));
+		Reset (newTriggerDate, GenerateUniqueIdentifier (Faction, newTriggerDate, TypeId));
+	}
+
+	public override WorldEventData GetData () {
+
+		return new FactionEventData (this);
 	}
 }

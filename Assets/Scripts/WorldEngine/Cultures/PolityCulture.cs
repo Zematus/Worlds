@@ -99,7 +99,7 @@ public class PolityCulture : Culture {
 
 	private void AddFactionCulture (Faction faction) {
 
-		float prominence = faction.Prominence;
+		float influence = faction.Influence;
 
 		foreach (CulturalPreference p in faction.Culture.Preferences) {
 
@@ -108,13 +108,13 @@ public class PolityCulture : Culture {
 			if (preference == null) {
 
 				preference = new CulturalPreference (p);
-				preference.Value *= prominence;
+				preference.Value *= influence;
 
 				AddPreference (preference);
 
 			} else {
 
-				preference.Value += p.Value * prominence;
+				preference.Value += p.Value * influence;
 			}
 		}
 
@@ -125,15 +125,15 @@ public class PolityCulture : Culture {
 			if (activity == null) {
 			
 				activity = new CulturalActivity (a);
-				activity.Value *= prominence;
-				activity.Contribution *= prominence;
+				activity.Value *= influence;
+				activity.Contribution *= influence;
 
 				AddActivity (activity);
 
 			} else {
 			
-				activity.Value += a.Value * prominence;
-				activity.Contribution += a.Contribution * prominence;
+				activity.Value += a.Value * influence;
+				activity.Contribution += a.Contribution * influence;
 			}
 		}
 
@@ -144,13 +144,13 @@ public class PolityCulture : Culture {
 			if (skill == null) {
 
 				skill = new CulturalSkill (s);
-				skill.Value *= prominence;
+				skill.Value *= influence;
 
 				AddSkill (skill);
 
 			} else {
 
-				skill.Value += s.Value * prominence;
+				skill.Value += s.Value * influence;
 			}
 		}
 
@@ -161,13 +161,13 @@ public class PolityCulture : Culture {
 			if (knowledge == null) {
 
 				knowledge = new CulturalKnowledge (k);
-				knowledge.Value = (int)(k.Value * prominence);
+				knowledge.Value = (int)(k.Value * influence);
 
 				AddKnowledge (knowledge);
 
 			} else {
 				
-				knowledge.Value += (int)(k.Value * prominence);
+				knowledge.Value += (int)(k.Value * influence);
 			}
 		}
 

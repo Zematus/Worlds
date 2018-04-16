@@ -93,7 +93,7 @@ public class TribalismDiscoveryEvent : DiscoveryEvent {
 
 		Tribe newTribe = null;
 
-		if (Group.GetPolityInfluencesCount () <= 0) {
+		if (Group.GetPolityProminencesCount () <= 0) {
 
 			newTribe = new Tribe (Group);
 			newTribe.Initialize ();

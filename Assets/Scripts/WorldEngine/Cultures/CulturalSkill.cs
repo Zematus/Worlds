@@ -208,21 +208,21 @@ public abstract class CellCulturalSkill : CulturalSkill, ISynchronizable {
 		_newValue = newValue;
 	}
 
-	public abstract void PolityCulturalInfluence (CulturalSkill politySkill, PolityInfluence polityInfluence, long timeSpan);
+	public abstract void PolityCulturalProminence (CulturalSkill politySkill, PolityProminence polityProminence, long timeSpan);
 
-	protected void PolityCulturalInfluenceInternal (CulturalSkill politySkill, PolityInfluence polityInfluence, long timeSpan, float timeEffectFactor) {
+	protected void PolityCulturalProminenceInternal (CulturalSkill politySkill, PolityProminence polityProminence, long timeSpan, float timeEffectFactor) {
 
 		float targetValue = politySkill.Value;
-		float influenceEffect = polityInfluence.Value;
+		float prominenceEffect = polityProminence.Value;
 
 		TerrainCell groupCell = Group.Cell;
 
-		float randomEffect = groupCell.GetNextLocalRandomFloat (RngOffsets.SKILL_POLITY_INFLUENCE + RngOffset + (int)polityInfluence.PolityId);
+		float randomEffect = groupCell.GetNextLocalRandomFloat (RngOffsets.SKILL_POLITY_PROMINENCE + RngOffset + (int)polityProminence.PolityId);
 
 		float timeEffect = timeSpan / (float)(timeSpan + timeEffectFactor);
 
 		// _newvalue should have been set correctly either by the constructor or by the Update function
-		float change = (targetValue - _newValue) * influenceEffect * timeEffect * randomEffect;
+		float change = (targetValue - _newValue) * prominenceEffect * timeEffect * randomEffect;
 
 //		#if DEBUG
 //		if (Manager.RegisterDebugEvent != null) {
@@ -231,14 +231,14 @@ public abstract class CellCulturalSkill : CulturalSkill, ISynchronizable {
 //				string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
 //
 //				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-//					"PolityCulturalInfluenceInternal - Group:" + groupId,
+//					"PolityCulturalProminenceInternal - Group:" + groupId,
 //					"CurrentDate: " + Group.World.CurrentDate + 
 //					", Name: " + Name + 
 //					", timeSpan: " + timeSpan + 
 //					", timeEffectFactor: " + timeEffectFactor + 
 //					", randomEffect: " + randomEffect + 
-//					", polity Id: " + polityInfluence.PolityId + 
-//					", polityInfluence.Value: " + influenceEffect + 
+//					", polity Id: " + polityProminence.PolityId + 
+//					", polityProminence.Value: " + prominenceEffect + 
 //					", politySkill.Value: " + targetValue + 
 //					", Value: " + Value + 
 //					", change: " + change + 
@@ -377,9 +377,9 @@ public class BiomeSurvivalSkill : CellCulturalSkill {
 //		RecalculateAdaptation (_neighborhoodBiomePresence);
 	}
 
-	public override void PolityCulturalInfluence (CulturalSkill politySkill, PolityInfluence polityInfluence, long timeSpan) {
+	public override void PolityCulturalProminence (CulturalSkill politySkill, PolityProminence polityProminence, long timeSpan) {
 
-		PolityCulturalInfluenceInternal (politySkill, polityInfluence, timeSpan, TimeEffectConstant);
+		PolityCulturalProminenceInternal (politySkill, polityProminence, timeSpan, TimeEffectConstant);
 
 //		RecalculateAdaptation (_neighborhoodBiomePresence);
 	}
@@ -463,9 +463,9 @@ public class SeafaringSkill : CellCulturalSkill {
 //		RecalculateAdaptation (_neighborhoodOceanPresence);
 	}
 
-	public override void PolityCulturalInfluence (CulturalSkill politySkill, PolityInfluence polityInfluence, long timeSpan) {
+	public override void PolityCulturalProminence (CulturalSkill politySkill, PolityProminence polityProminence, long timeSpan) {
 
-		PolityCulturalInfluenceInternal (politySkill, polityInfluence, timeSpan, TimeEffectConstant);
+		PolityCulturalProminenceInternal (politySkill, polityProminence, timeSpan, TimeEffectConstant);
 
 //		RecalculateAdaptation (_neighborhoodOceanPresence);
 	}

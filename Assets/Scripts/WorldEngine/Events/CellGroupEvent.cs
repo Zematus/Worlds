@@ -4,18 +4,6 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
-public class CellGroupEventSnapshot : WorldEventSnapshot {
-
-	public long GroupId;
-	public CellGroupSnapshot GroupSnapshot;
-
-	public CellGroupEventSnapshot (CellGroupEvent e) : base (e) {
-
-		GroupId = e.GroupId;
-		GroupSnapshot = e.Group.GetSnapshot ();
-	}
-}
-
 public abstract class CellGroupEvent : WorldEvent {
 
 	[XmlAttribute]
@@ -32,7 +20,7 @@ public abstract class CellGroupEvent : WorldEvent {
 	}
 
 	public CellGroupEvent (CellGroup group, long triggerDate, long eventTypeId, long? id = null) : 
-	base (group.World, triggerDate, (id == null) ? GenerateUniqueIdentifier (group, triggerDate, eventTypeId) : id.Value) {
+	base (group.World, triggerDate, (id == null) ? GenerateUniqueIdentifier (group, triggerDate, eventTypeId) : id.Value, eventTypeId) {
 
 		Group = group;
 		GroupId = Group.Id;

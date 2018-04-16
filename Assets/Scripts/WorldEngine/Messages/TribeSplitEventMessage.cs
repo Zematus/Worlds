@@ -16,7 +16,7 @@ public class TribeSplitEventMessage : FactionEventMessage {
 
 	}
 
-	public TribeSplitEventMessage (Clan splitClan, Tribe tribe, Tribe newTribe, long date) : base (splitClan, WorldEvent.TribeSplitEventId, date) {
+	public TribeSplitEventMessage (Clan splitClan, Tribe tribe, Tribe newTribe, long date) : base (splitClan, WorldEvent.TribeSplitDecisionEventId, date) {
 
 		TribeId = tribe.Id;
 		NewTribeId = newTribe.Id;

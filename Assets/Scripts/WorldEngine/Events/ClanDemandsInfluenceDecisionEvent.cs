@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
-public class ClanSplitDecisionEvent : FactionEvent {
+public class ClanDemandsInfluenceDecisionEvent : FactionEvent {
 
 	public const long DateSpanFactorConstant = CellGroup.GenerationSpan * 10;
 	
@@ -23,26 +23,26 @@ public class ClanSplitDecisionEvent : FactionEvent {
 
 	private float _chanceOfSplitting;
 
-	public ClanSplitDecisionEvent () {
+	public ClanDemandsInfluenceDecisionEvent () {
 
 		DoNotSerialize = true;
 	}
 
-	public ClanSplitDecisionEvent (Clan clan, long originalTribeId, long triggerDate) : base (clan, originalTribeId, triggerDate, ClanSplitDecisionEventId) {
+	public ClanDemandsInfluenceDecisionEvent (Clan clan, long originalTribeId, long triggerDate) : base (clan, originalTribeId, triggerDate, ClanSplitDecisionEventId) {
 
 		_clan = clan;
 
 		DoNotSerialize = true;
 	}
 
-	public ClanSplitDecisionEvent (Clan clan, FactionEventData data) : base (clan, data) {
+	public ClanDemandsInfluenceDecisionEvent (Clan clan, FactionEventData data) : base (clan, data) {
 
 		_clan = clan;
 
 		DoNotSerialize = true;
 	}
 
-	public ClanSplitDecisionEvent (Clan clan, long triggerDate) : base (clan, triggerDate, ClanSplitDecisionEventId) {
+	public ClanDemandsInfluenceDecisionEvent (Clan clan, long triggerDate) : base (clan, triggerDate, ClanSplitDecisionEventId) {
 
 		_clan = clan;
 

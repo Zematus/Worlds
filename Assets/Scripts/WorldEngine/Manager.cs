@@ -26,7 +26,7 @@ public enum PlanetOverlay {
 	PopCulturalDiscovery,
 	PolityTerritory,
 	FactionCoreDistance,
-	PolityInfluence,
+	PolityProminence,
 	PolityContacts,
 	PolityCulturalPreference,
 	PolityCulturalActivity,
@@ -1470,8 +1470,8 @@ public class Manager {
 			color = SetFactionCoreDistanceOverlayColor (cell, color);
 			break;
 
-		case PlanetOverlay.PolityInfluence:
-			color = SetPolityInfluenceOverlayColor (cell, color);
+		case PlanetOverlay.PolityProminence:
+			color = SetPolityProminenceOverlayColor (cell, color);
 			break;
 
 		case PlanetOverlay.PolityContacts:
@@ -1797,7 +1797,7 @@ public class Manager {
 
 				Color territoryColor = GenerateColorFromId (territoryPolity.Id, 100);
 
-				PolityInfluence pi = cell.Group.GetPolityInfluence (territoryPolity);
+				PolityProminence pi = cell.Group.GetPolityProminence (territoryPolity);
 
 				float distanceFactor = Mathf.Sqrt (pi.FactionCoreDistance);
 				distanceFactor = 1 - 0.9f * Mathf.Min (1, distanceFactor / 50f);
@@ -1817,7 +1817,7 @@ public class Manager {
 		return color;
 	}
 
-	private static Color SetPolityInfluenceOverlayColor (TerrainCell cell, Color color) {
+	private static Color SetPolityProminenceOverlayColor (TerrainCell cell, Color color) {
 
 		float greyscale = (color.r + color.g + color.b);
 
@@ -1833,18 +1833,18 @@ public class Manager {
 		if (cell.Group != null) {
 
 			int polityCount = 0;
-			float totalInfluenceValueFactor = 0;
+			float totalProminenceValueFactor = 0;
 
 			Color mixedPolityColor = Color.black;
-			foreach (PolityInfluence p in cell.Group.GetPolityInfluences ()) {
+			foreach (PolityProminence p in cell.Group.GetPolityProminences ()) {
 
 				polityCount++;
 
-				float influenceValueFactor = 0.2f + p.Value;
+				float prominenceValueFactor = 0.2f + p.Value;
 
 				Color polityColor = GenerateColorFromId (p.PolityId, 100);
-				polityColor *= influenceValueFactor;
-				totalInfluenceValueFactor += 1.2f;
+				polityColor *= prominenceValueFactor;
+				totalProminenceValueFactor += 1.2f;
 
 				mixedPolityColor += polityColor;
 			}
@@ -1855,7 +1855,7 @@ public class Manager {
 
 			if (polityCount > 0) {
 
-				mixedPolityColor /= totalInfluenceValueFactor;
+				mixedPolityColor /= totalProminenceValueFactor;
 
 				color.r += mixedPolityColor.r * (1 - color.r);
 				color.g += mixedPolityColor.g * (1 - color.g);
@@ -2707,8 +2707,8 @@ public class Manager {
 		case "Political":
 			return SetPolityTerritoryOverlayColor (cell, color);
 
-		case "PolityInfluences":
-			return SetPolityInfluenceOverlayColor (cell, color);
+		case "PolityProminences":
+			return SetPolityProminenceOverlayColor (cell, color);
 
 		case "Rainfall":
 			return SetRainfallOverlayColor (cell, color);

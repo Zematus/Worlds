@@ -23,7 +23,7 @@ public class Tribe : Polity {
 	private static string[] TribeNounVariants = new string[] { 
 		"nation", "tribe", "[ipn(person)]people", "folk", "community", "kin", "{kin:s:}person:s", "{kin:s:}[ipn(man)]men", "{kin:s:}[ipn(woman)]women", "[ipn(child)]children" };
 
-	public const float BaseCoreInfluence = 0.5f;
+	public const float BaseCoreProminence = 0.5f;
 
 //	[XmlAttribute("SpltDate")]
 //	public long TribeSplitEventDate;
@@ -69,9 +69,9 @@ public class Tribe : Polity {
 		////
 
 		float randomValue = coreGroup.Cell.GetNextLocalRandomFloat (RngOffsets.TRIBE_GENERATE_NEW_TRIBE);
-		float coreInfluence = BaseCoreInfluence + randomValue * (1 - BaseCoreInfluence);
+		float coreProminence = BaseCoreProminence + randomValue * (1 - BaseCoreProminence);
 
-		coreGroup.SetPolityInfluence (this, coreInfluence, 0, 0);
+		coreGroup.SetPolityProminence (this, coreProminence, 0, 0);
 
 		World.AddGroupToUpdate (coreGroup);
 
@@ -90,15 +90,15 @@ public class Tribe : Polity {
 
 	public Tribe (Clan triggerClan, Polity parentPolity) : base (TribeType, triggerClan.CoreGroup, parentPolity) {
 
-		triggerClan.ChangePolity (this, triggerClan.Prominence);
+		triggerClan.ChangePolity (this, triggerClan.Influence);
 
-		SwitchCellInfluences (parentPolity, triggerClan);
+		SwitchCellProminences (parentPolity, triggerClan);
 
 		GenerateName ();
 
 		////
 
-//		Debug.Log ("New tribe '" + Name + "' from tribe '" + parentPolity.Name + "' with total transfered prominence = " + transferedProminence);
+//		Debug.Log ("New tribe '" + Name + "' from tribe '" + parentPolity.Name + "' with total transfered influence = " + transferedInfluence);
 	}
 
 	public override void InitializeInternal () {
@@ -115,14 +115,14 @@ public class Tribe : Polity {
 		
 	}
 
-	private void SwitchCellInfluences (Polity sourcePolity, Clan triggerClan) {
+	private void SwitchCellProminences (Polity sourcePolity, Clan triggerClan) {
 
-		float targetPolityProminence = triggerClan.Prominence;
-		float sourcePolityProminence = 1 - targetPolityProminence;
+		float targetPolityInfluence = triggerClan.Influence;
+		float sourcePolityInfluence = 1 - targetPolityInfluence;
 
 		#if DEBUG
-		if (targetPolityProminence <= 0) {
-			throw new System.Exception ("Pulling clan prominence equal or less than zero.");
+		if (targetPolityInfluence <= 0) {
+			throw new System.Exception ("Pulling clan influence equal or less than zero.");
 		}
 		#endif
 
@@ -132,7 +132,7 @@ public class Tribe : Polity {
 //		}
 //		#endif
 
-		int maxGroupCount = sourcePolity.InfluencedGroups.Count;
+		int maxGroupCount = sourcePolity.ProminencedGroups.Count;
 
 		Dictionary<CellGroup, float> groupDistances = new Dictionary<CellGroup, float> (maxGroupCount);
 
@@ -152,7 +152,7 @@ public class Tribe : Polity {
 			if (groupDistances.ContainsKey (group))
 				continue;
 
-			PolityInfluence pi = group.GetPolityInfluence (sourcePolity);
+			PolityProminence pi = group.GetPolityProminence (sourcePolity);
 
 			if (pi == null)
 				continue;
@@ -168,7 +168,7 @@ public class Tribe : Polity {
 
 			float distanceToSourcePolityCore = pi.PolityCoreDistance;
 
-			float percentInfluence = 1f;
+			float percentProminence = 1f;
 
 			if (distanceToSourcePolityCore < CellGroup.MaxCoreDistance) {
 
@@ -181,16 +181,16 @@ public class Tribe : Polity {
 				float targetDistanceFactor = distanceFactor;
 				float sourceDistanceFactor = 1 - distanceFactor;
 
-				float targetPolityWeight = targetPolityProminence * targetDistanceFactor;
-				float sourcePolityWeight = sourcePolityProminence * sourceDistanceFactor;
+				float targetPolityWeight = targetPolityInfluence * targetDistanceFactor;
+				float sourcePolityWeight = sourcePolityInfluence * sourceDistanceFactor;
 
-				percentInfluence = targetPolityWeight / (targetPolityWeight + sourcePolityWeight);
+				percentProminence = targetPolityWeight / (targetPolityWeight + sourcePolityWeight);
 			}
 
-			if (percentInfluence <= 0)
+			if (percentProminence <= 0)
 				continue;
 
-			if (percentInfluence > 0.5f) {
+			if (percentProminence > 0.5f) {
 			
 				switchedCells++;
 
@@ -209,11 +209,11 @@ public class Tribe : Polity {
 				}
 			}
 
-			float influenceValue = pi.Value;
+			float prominenceValue = pi.Value;
 	
-			group.SetPolityInfluence (sourcePolity, influenceValue * (1 - percentInfluence));
+			group.SetPolityProminence (sourcePolity, prominenceValue * (1 - percentProminence));
 
-			group.SetPolityInfluence (this, influenceValue * percentInfluence, distanceToTargetPolityCore, distanceToTargetPolityCore);
+			group.SetPolityProminence (this, prominenceValue * percentProminence, distanceToTargetPolityCore, distanceToTargetPolityCore);
 	
 			World.AddGroupToUpdate (group);
 
@@ -226,7 +226,7 @@ public class Tribe : Polity {
 			}
 		}
 
-		float highestProminence = triggerClan.Prominence;
+		float highestInfluence = triggerClan.Influence;
 		Clan dominantClan = triggerClan;
 
 		foreach (Faction faction in factionsToTransfer) {
@@ -234,18 +234,18 @@ public class Tribe : Polity {
 			Clan clan = faction as Clan;
 
 			if (clan != null) {
-				if (clan.Prominence > highestProminence) {
-					highestProminence = clan.Prominence;
+				if (clan.Influence > highestInfluence) {
+					highestInfluence = clan.Influence;
 					dominantClan = clan;
 				}
 			}
 
-			faction.ChangePolity (this, faction.Prominence);
+			faction.ChangePolity (this, faction.Influence);
 		}
 
 		SetDominantFaction (dominantClan);
 
-//		Debug.Log ("SwitchCellInfluences: source polity cells: " + maxGroupCount + ", reviewed cells: " + reviewedCells + ", switched cells: " + switchedCells);
+//		Debug.Log ("SwitchCellProminences: source polity cells: " + maxGroupCount + ", reviewed cells: " + reviewedCells + ", switched cells: " + switchedCells);
 	}
 
 	private float CalculateShortestCoreDistance (CellGroup group, Dictionary<CellGroup, float> groupDistances) {
@@ -334,21 +334,21 @@ public class Tribe : Polity {
 //		#endif
 	}
 
-	public override float CalculateGroupInfluenceExpansionValue (CellGroup sourceGroup, CellGroup targetGroup, float sourceValue)
+	public override float CalculateGroupProminenceExpansionValue (CellGroup sourceGroup, CellGroup targetGroup, float sourceValue)
 	{
 		if (sourceValue <= 0)
 			return 0;
 
-		float sourceGroupTotalPolityInfluenceValue = sourceGroup.TotalPolityInfluenceValue;
-		float targetGroupTotalPolityInfluenceValue = targetGroup.TotalPolityInfluenceValue;
+		float sourceGroupTotalPolityProminenceValue = sourceGroup.TotalPolityProminenceValue;
+		float targetGroupTotalPolityProminenceValue = targetGroup.TotalPolityProminenceValue;
 
-		if (sourceGroupTotalPolityInfluenceValue <= 0) {
+		if (sourceGroupTotalPolityProminenceValue <= 0) {
 
-			throw new System.Exception ("sourceGroup.TotalPolityInfluenceValue equal or less than 0: " + sourceGroupTotalPolityInfluenceValue);
+			throw new System.Exception ("sourceGroup.TotalPolityProminenceValue equal or less than 0: " + sourceGroupTotalPolityProminenceValue);
 		}
 
-		float influenceFactor = sourceGroupTotalPolityInfluenceValue / (targetGroupTotalPolityInfluenceValue + sourceGroupTotalPolityInfluenceValue);
-		influenceFactor = Mathf.Pow (influenceFactor, 4);
+		float prominenceFactor = sourceGroupTotalPolityProminenceValue / (targetGroupTotalPolityProminenceValue + sourceGroupTotalPolityProminenceValue);
+		prominenceFactor = Mathf.Pow (prominenceFactor, 4);
 
 		float modifiedForagingCapacity = 0;
 		float modifiedSurvivability = 0;
@@ -357,7 +357,7 @@ public class Tribe : Polity {
 
 		float survivabilityFactor = Mathf.Pow (modifiedSurvivability, 2);
 
-		float finalFactor = influenceFactor * survivabilityFactor;
+		float finalFactor = prominenceFactor * survivabilityFactor;
 
 		if (sourceGroup != targetGroup) {
 

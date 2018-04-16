@@ -36,7 +36,7 @@ public class MigratingGroup : HumanGroup {
 	public CellGroup SourceGroup;
 
 	[XmlIgnore]
-	public List <PolityInfluence> PolityInfluences;
+	public List <PolityProminence> PolityProminences;
 
 	[XmlIgnore]
 	public Direction MigrationDirection;
@@ -101,11 +101,11 @@ public class MigratingGroup : HumanGroup {
 		//Culture = new CellCulture(SourceGroup, SourceGroup.Culture);
 		Culture = new BufferCulture (SourceGroup.Culture);
 
-		PolityInfluences = new List<PolityInfluence> ();
+		PolityProminences = new List<PolityProminence> ();
 
-		foreach (PolityInfluence pi in SourceGroup.GetPolityInfluences ()) {
+		foreach (PolityProminence pi in SourceGroup.GetPolityProminences ()) {
 
-			PolityInfluences.Add (new PolityInfluence (pi.Polity, pi.Value));
+			PolityProminences.Add (new PolityProminence (pi.Polity, pi.Value));
 		}
 
 		TryMigrateFactionCores ();
@@ -126,27 +126,27 @@ public class MigratingGroup : HumanGroup {
 
 		foreach (Faction faction in SourceGroup.GetFactionCores ()) {
 
-			PolityInfluence pi = SourceGroup.GetPolityInfluence (faction.Polity);
+			PolityProminence pi = SourceGroup.GetPolityProminence (faction.Polity);
 
 			if (pi == null) {
 				Debug.LogError ("Unable to find Polity with Id: " + faction.Polity.Id);
 			}
 
-			float sourceGroupInfluence = pi.Value;
-			float targetGroupInfluence = sourceGroupInfluence;
+			float sourceGroupProminence = pi.Value;
+			float targetGroupProminence = sourceGroupProminence;
 
 			if (targetGroup != null) {
-				PolityInfluence piTarget = targetGroup.GetPolityInfluence (faction.Polity);
+				PolityProminence piTarget = targetGroup.GetPolityProminence (faction.Polity);
 
 				if (piTarget != null)
-					targetGroupInfluence = piTarget.Value;
+					targetGroupProminence = piTarget.Value;
 				else 
-					targetGroupInfluence = 0f;
+					targetGroupProminence = 0f;
 			}
 
-			float targetNewGroupInfluence = ((sourceGroupInfluence * Population) + (targetGroupInfluence * targetPopulation)) / targetNewPopulation;
+			float targetNewGroupProminence = ((sourceGroupProminence * Population) + (targetGroupProminence * targetPopulation)) / targetNewPopulation;
 
-			if (faction.ShouldMigrateFactionCore (SourceGroup, TargetCell, targetNewGroupInfluence, targetNewPopulation))
+			if (faction.ShouldMigrateFactionCore (SourceGroup, TargetCell, targetNewGroupProminence, targetNewPopulation))
 				FactionCoresToMigrate.Add (faction);
 		}
 	}

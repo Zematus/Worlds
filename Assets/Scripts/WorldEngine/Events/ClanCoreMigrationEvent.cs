@@ -20,6 +20,11 @@ public class ClanCoreMigrationEvent : FactionEvent {
 		DoNotSerialize = true;
 	}
 
+	public ClanCoreMigrationEvent (Clan clan, FactionEventData data) : base (clan, data) {
+
+		DoNotSerialize = true;
+	}
+
 	public ClanCoreMigrationEvent (Clan clan, long triggerDate) : base (clan, triggerDate, ClanCoreMigrationEventId) {
 
 		DoNotSerialize = true;
@@ -75,14 +80,7 @@ public class ClanCoreMigrationEvent : FactionEvent {
 
 			Clan clan = Faction as Clan;
 
-			clan.CoreMigrationEvent = this;
-
-			clan.CoreMigrationEventDate = CalculateTriggerDate (clan);
-
-			Reset (clan.CoreMigrationEventDate);
-			clan.CoreMigrationEventOriginalTribeId = OriginalPolityId;
-
-			World.InsertEventToHappen (this);
+			clan.ResetEvent (WorldEvent.ClanCoreMigrationEventId, CalculateTriggerDate (clan));
 		}
 	}
 
@@ -92,6 +90,6 @@ public class ClanCoreMigrationEvent : FactionEvent {
 
 		Clan clan = Faction as Clan;
 
-		clan.CoreMigrationEvent = this;
+		clan.AddEvent (this);
 	}
 }

@@ -22,13 +22,13 @@ public class PreventedClanTribeSplitDecision : PolityDecision {
 		_splitClan = splitClan;
 	}
 
-	private void GeneratePreventedSplitResultEffectsString_Prominence (out string effectSplitClan, out string effectDominantClan) {
+	private void GeneratePreventedSplitResultEffectsString_Influence (out string effectSplitClan, out string effectDominantClan) {
 
-		effectDominantClan = "Clan " + _dominantClan.Name.BoldText + ": prominence within the " + _tribe.Name.BoldText + 
-			" tribe decreases to: " + _dominantClan.Prominence.ToString ("P");
+		effectDominantClan = "Clan " + _dominantClan.Name.BoldText + ": influence within the " + _tribe.Name.BoldText + 
+			" tribe decreases to: " + _dominantClan.Influence.ToString ("P");
 
-		effectSplitClan = "Clan " + _splitClan.Name.BoldText + ": prominence within the " + _tribe.Name.BoldText + 
-			" tribe increases to: " + _splitClan.Prominence.ToString ("P");
+		effectSplitClan = "Clan " + _splitClan.Name.BoldText + ": influence within the " + _tribe.Name.BoldText + 
+			" tribe increases to: " + _splitClan.Influence.ToString ("P");
 	}
 
 	private string GeneratePreventedSplitResultEffectsString_Relationship () {
@@ -41,15 +41,15 @@ public class PreventedClanTribeSplitDecision : PolityDecision {
 
 	private string GeneratePreventedSplitResultEffectsString () {
 
-		string splitClanProminenceChangeEffect;
-		string dominantClanProminenceChangeEffect;
+		string splitClanInfluenceChangeEffect;
+		string dominantClanInfluenceChangeEffect;
 
-		GeneratePreventedSplitResultEffectsString_Prominence (out splitClanProminenceChangeEffect, out dominantClanProminenceChangeEffect);
+		GeneratePreventedSplitResultEffectsString_Influence (out splitClanInfluenceChangeEffect, out dominantClanInfluenceChangeEffect);
 
 		return 
 			"\t• " + GeneratePreventedSplitResultEffectsString_Relationship () + "\n" + 
-			"\t• " + dominantClanProminenceChangeEffect + "\n" + 
-			"\t• " + splitClanProminenceChangeEffect;
+			"\t• " + dominantClanInfluenceChangeEffect + "\n" + 
+			"\t• " + splitClanInfluenceChangeEffect;
 	}
 
 	public static void TribeLeaderPreventedSplit (Clan splitClan, Clan dominantClan, Tribe tribe) {

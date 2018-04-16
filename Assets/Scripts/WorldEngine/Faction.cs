@@ -20,7 +20,7 @@ public abstract class Faction : ISynchronizable {
 	public long CoreGroupId;
 
 	[XmlAttribute("Prom")]
-	public float Prominence;
+	public float Influence;
 
 	[XmlAttribute("StilPres")]
 	public bool StillPresent = true;
@@ -40,6 +40,8 @@ public abstract class Faction : ISynchronizable {
 	public FactionCulture Culture;
 
 	public List<FactionRelationship> Relationships = new List<FactionRelationship> ();
+
+	public List<FactionEventData> EventDataList = new List<FactionEventData> ();
 
 	public Name Name = null;
 
@@ -72,10 +74,12 @@ public abstract class Faction : ISynchronizable {
 	public bool IsInitialized = true;
 
 	protected CellGroup _splitFactionCoreGroup;
-	protected float _splitFactionMinProminence;
-	protected float _splitFactionMaxProminence;
+	protected float _splitFactionMinInfluence;
+	protected float _splitFactionMaxInfluence;
 
 	protected Dictionary<long, FactionRelationship> _relationships = new Dictionary<long, FactionRelationship> ();
+
+	protected Dictionary<long, FactionEvent> _events = new Dictionary<long, FactionEvent> ();
 
 	private HashSet<string> _flags = new HashSet<string> ();
 
@@ -85,7 +89,7 @@ public abstract class Faction : ISynchronizable {
 
 	}
 
-	public Faction (string type, Polity polity, CellGroup coreGroup, float prominence, Faction parentFaction = null) {
+	public Faction (string type, Polity polity, CellGroup coreGroup, float influence, Faction parentFaction = null) {
 
 		Type = type;
 
@@ -114,7 +118,7 @@ public abstract class Faction : ISynchronizable {
 
 		World.AddGroupToUpdate (CoreGroup);
 
-		Prominence = prominence;
+		Influence = influence;
 
 		GenerateName (parentFaction);
 
@@ -220,11 +224,11 @@ public abstract class Faction : ISynchronizable {
 		return _relationships.ContainsKey (faction.Id);
 	}
 
-	public void SetToSplit (CellGroup splitFactionCoreGroup, float splitFactionMinProminence, float splitFactionMaxProminence) {
+	public void SetToSplit (CellGroup splitFactionCoreGroup, float splitFactionMinInfluence, float splitFactionMaxInfluence) {
 	
 		_splitFactionCoreGroup = splitFactionCoreGroup;
-		_splitFactionMinProminence = splitFactionMinProminence;
-		_splitFactionMaxProminence = splitFactionMaxProminence;
+		_splitFactionMinInfluence = splitFactionMinInfluence;
+		_splitFactionMaxInfluence = splitFactionMaxInfluence;
 
 		World.AddFactionToSplit (this);
 	}
@@ -329,6 +333,13 @@ public abstract class Faction : ISynchronizable {
 
 		Flags = new List<string> (_flags);
 
+		EventDataList.Clear ();
+
+		foreach (FactionEvent e in _events.Values) {
+
+			EventDataList.Add (e.GetData () as FactionEventData);
+		}
+
 		Culture.Synchronize ();
 
 		Name.Synchronize ();
@@ -361,7 +372,39 @@ public abstract class Faction : ISynchronizable {
 			}
 		}
 
+		GenerateEventsFromData ();
+
 		Flags.ForEach (f => _flags.Add (f));
+	}
+
+	protected abstract void GenerateEventsFromData ();
+
+	public void AddEvent (FactionEvent factionEvent) {
+
+		if (_events.ContainsKey (factionEvent.TypeId))
+			throw new System.Exception ("Event of type " + factionEvent.TypeId + " already present");
+	
+		_events.Add (factionEvent.TypeId, factionEvent);
+		World.InsertEventToHappen (factionEvent);
+	}
+
+	public FactionEvent GetEvent (long typeId) {
+
+		if (!_events.ContainsKey (typeId))
+			return null;
+
+		return _events[typeId];
+	}
+
+	public void ResetEvent (long typeId, long newTriggerDate) {
+
+		if (!_events.ContainsKey (typeId))
+			throw new System.Exception ("Unable to find event of type: " + typeId);
+
+		FactionEvent factionEvent = _events [typeId];
+
+		factionEvent.Reset (newTriggerDate);
+		World.InsertEventToHappen (factionEvent);
 	}
 
 	public long GenerateUniqueIdentifier (long date, long oom = 1L, long offset = 0L) {
@@ -415,7 +458,7 @@ public abstract class Faction : ISynchronizable {
 		IsUnderPlayerGuidance = state;
 	}
 
-	public void ChangePolity (Polity targetPolity, float targetProminence) {
+	public void ChangePolity (Polity targetPolity, float targetInfluence) {
 	
 		if ((targetPolity == null) || (!targetPolity.StillPresent)) 
 			throw new System.Exception ("target Polity is null or not Present");
@@ -424,7 +467,7 @@ public abstract class Faction : ISynchronizable {
 
 		Polity = targetPolity;
 		PolityId = Polity.Id;
-		Prominence = targetProminence;
+		Influence = targetInfluence;
 
 		targetPolity.AddFaction (this);
 	}
@@ -434,7 +477,7 @@ public abstract class Faction : ISynchronizable {
 		return false;
 	}
 
-	public virtual bool ShouldMigrateFactionCore (CellGroup sourceGroup, TerrainCell targetCell, float targetInfluence, int targetPopulation) {
+	public virtual bool ShouldMigrateFactionCore (CellGroup sourceGroup, TerrainCell targetCell, float targetProminence, int targetPopulation) {
 
 		return false;
 	}

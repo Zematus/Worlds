@@ -55,9 +55,9 @@ public class SelectFactionDialogPanelScript : ModalPanelScript {
 		List<Faction> factions = new List<Faction> (polity.GetFactions ());
 
 		factions.Sort ((a, b) => {
-			if (a.Prominence > b.Prominence)
+			if (a.Influence > b.Influence)
 				return -1;
-			if (a.Prominence < b.Prominence)
+			if (a.Influence < b.Influence)
 				return 1;
 
 			return 0;
@@ -75,7 +75,7 @@ public class SelectFactionDialogPanelScript : ModalPanelScript {
 
 	private string GenerateFactionButtonStr (Faction faction) {
 
-		return faction.Name.Text + " " + "(Prominence: " + faction.Prominence.ToString("P") + ")";
+		return faction.Name.Text + " " + "(Influence: " + faction.Influence.ToString("P") + ")";
 	}
 
 	private void SetFactionButton (Faction faction, int index) {

@@ -9,9 +9,6 @@ public abstract class PolityEvent : WorldEvent {
 	[XmlAttribute]
 	public long PolityId;
 
-	[XmlAttribute]
-	public long EventTypeId;
-
 	[XmlIgnore]
 	public Polity Polity;
 
@@ -19,12 +16,10 @@ public abstract class PolityEvent : WorldEvent {
 
 	}
 
-	public PolityEvent (Polity polity, long triggerDate, long eventTypeId) : base (polity.World, triggerDate, GenerateUniqueIdentifier (polity, triggerDate, eventTypeId)) {
+	public PolityEvent (Polity polity, long triggerDate, long eventTypeId) : base (polity.World, triggerDate, GenerateUniqueIdentifier (polity, triggerDate, eventTypeId), eventTypeId) {
 
 		Polity = polity;
 		PolityId = Polity.Id;
-
-		EventTypeId = eventTypeId;
 
 		//		#if DEBUG
 		//		if (Manager.RegisterDebugEvent != null) {
@@ -73,6 +68,6 @@ public abstract class PolityEvent : WorldEvent {
 
 	public virtual void Reset (long newTriggerDate) {
 
-		Reset (newTriggerDate, GenerateUniqueIdentifier (Polity, newTriggerDate, EventTypeId));
+		Reset (newTriggerDate, GenerateUniqueIdentifier (Polity, newTriggerDate, TypeId));
 	}
 }

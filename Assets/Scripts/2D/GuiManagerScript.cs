@@ -1156,8 +1156,8 @@ public class GuiManagerScript : MonoBehaviour {
 		case PlanetOverlay.Language: 
 			planetOverlayStr = "_languages"; 
 			break;
-		case PlanetOverlay.PolityInfluence: 
-			planetOverlayStr = "_polity_influences"; 
+		case PlanetOverlay.PolityProminence: 
+			planetOverlayStr = "_polity_prominences"; 
 			break;
 		case PlanetOverlay.PolityContacts: 
 			planetOverlayStr = "_polity_contacts"; 
@@ -1524,8 +1524,8 @@ public class GuiManagerScript : MonoBehaviour {
 			ChangePlanetOverlay (PlanetOverlay.PolityTerritory, false);
 		} else if (OverlayDialogPanelScript.DistancesToCoresToggle.isOn) {
 			ChangePlanetOverlay (PlanetOverlay.FactionCoreDistance, false);
-		} else if (OverlayDialogPanelScript.InfluenceToggle.isOn) {
-			ChangePlanetOverlay (PlanetOverlay.PolityInfluence, false);
+		} else if (OverlayDialogPanelScript.ProminenceToggle.isOn) {
+			ChangePlanetOverlay (PlanetOverlay.PolityProminence, false);
 		} else if (OverlayDialogPanelScript.ContactsToggle.isOn) {
 			ChangePlanetOverlay (PlanetOverlay.PolityContacts, false);
 		} else if (OverlayDialogPanelScript.PolityCulturalPreferenceToggle.isOn) {
@@ -2340,10 +2340,10 @@ public class GuiManagerScript : MonoBehaviour {
 		InfoPanelScript.InfoText.text += "\nTime between updates: " + Manager.GetTimeSpanString(nextUpdateDate - lastUpdateDate);
 	}
 
-	public void AddCellDataToInfoPanel_PolityInfluence (TerrainCell cell) {
+	public void AddCellDataToInfoPanel_PolityProminence (TerrainCell cell) {
 
 		InfoPanelScript.InfoText.text += "\n";
-		InfoPanelScript.InfoText.text += "\n -- Group Polity Influence Data -- ";
+		InfoPanelScript.InfoText.text += "\n -- Group Polity Prominence Data -- ";
 		InfoPanelScript.InfoText.text += "\n";
 
 		if (cell.Group == null) {
@@ -2364,23 +2364,23 @@ public class GuiManagerScript : MonoBehaviour {
 
 		bool firstPolity = true;
 
-		List<PolityInfluence> polityInfluences = cell.Group.GetPolityInfluences ();
+		List<PolityProminence> polityProminences = cell.Group.GetPolityProminences ();
 
-		polityInfluences.Sort ((a, b) => {
+		polityProminences.Sort ((a, b) => {
 			if (a.Value > b.Value) return -1;
 			if (a.Value < b.Value) return 1;
 			return 0;
 		});
 
-		foreach (PolityInfluence polityInfluence in polityInfluences) {
+		foreach (PolityProminence polityProminence in polityProminences) {
 
-			Polity polity = polityInfluence.Polity;
-			float influenceValue = polityInfluence.Value;
-			float factionCoreDistance = polityInfluence.FactionCoreDistance;
-			float polityCoreDistance = polityInfluence.PolityCoreDistance;
-			float administrativeCost = polityInfluence.AdiministrativeCost;
+			Polity polity = polityProminence.Polity;
+			float prominenceValue = polityProminence.Value;
+			float factionCoreDistance = polityProminence.FactionCoreDistance;
+			float polityCoreDistance = polityProminence.PolityCoreDistance;
+			float administrativeCost = polityProminence.AdiministrativeCost;
 
-			if (influenceValue >= 0.001) {
+			if (prominenceValue >= 0.001) {
 
 				if (firstPolity) {
 					InfoPanelScript.InfoText.text += "\nPolities:";
@@ -2389,7 +2389,7 @@ public class GuiManagerScript : MonoBehaviour {
 				}
 
 				InfoPanelScript.InfoText.text += "\n\tPolity: " + polity.Name.Text +
-					"\n\t\tInfluence: " + influenceValue.ToString ("P") +
+					"\n\t\tProminence: " + prominenceValue.ToString ("P") +
 					"\n\t\tDistance to Polity Core: " + polityCoreDistance.ToString ("0.000") +
 					"\n\t\tDistance to Faction Core: " + factionCoreDistance.ToString ("0.000") +
 					"\n\t\tAdministrative Cost: " + administrativeCost.ToString ("0.000");
@@ -2558,7 +2558,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 		Polity polity = territory.Polity;
 
-		PolityInfluence pi = cell.Group.GetPolityInfluence (polity);
+		PolityProminence pi = cell.Group.GetPolityProminence (polity);
 
 		InfoPanelScript.InfoText.text += "\nTerritory of the " + polity.Name.Text + " " + polity.Type.ToLower ();
 		InfoPanelScript.InfoText.text += "\nTranslates to: " + polity.Name.Meaning;
@@ -2590,9 +2590,9 @@ public class GuiManagerScript : MonoBehaviour {
 		List<Faction> factions = new List<Faction> (polity.GetFactions ());
 
 		factions.Sort ((a, b) => {
-			if (a.Prominence > b.Prominence)
+			if (a.Influence > b.Influence)
 				return -1;
-			if (a.Prominence < b.Prominence)
+			if (a.Influence < b.Influence)
 				return 1;
 
 			return 0;
@@ -2602,7 +2602,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 			InfoPanelScript.InfoText.text += "\n\t" + faction.Type + " " + faction.Name;
 			InfoPanelScript.InfoText.text += "\n\t\tCore: " + faction.CoreGroup.Position;
-			InfoPanelScript.InfoText.text += "\n\t\tProminence: " + faction.Prominence.ToString ("P");
+			InfoPanelScript.InfoText.text += "\n\t\tInfluence: " + faction.Influence.ToString ("P");
 
 			Agent factionLeader = faction.CurrentLeader;
 
@@ -2619,16 +2619,16 @@ public class GuiManagerScript : MonoBehaviour {
 		InfoPanelScript.InfoText.text += "\n -- Selected Group's Polity Data -- ";
 		InfoPanelScript.InfoText.text += "\n";
 
-		float percentageOfPopulation = cell.Group.GetPolityInfluenceValue (polity);
-		int influencedPopulation = (int)Mathf.Floor (population * percentageOfPopulation);
+		float percentageOfPopulation = cell.Group.GetPolityProminenceValue (polity);
+		int prominencedPopulation = (int)Mathf.Floor (population * percentageOfPopulation);
 
 		float percentageOfPolity = 1;
 
 		if (totalPopulation > 0) {
-			percentageOfPolity = influencedPopulation / (float)totalPopulation;
+			percentageOfPolity = prominencedPopulation / (float)totalPopulation;
 		}
 
-		InfoPanelScript.InfoText.text += "\n\tInfluenced population: " + influencedPopulation;
+		InfoPanelScript.InfoText.text += "\n\tProminenced population: " + prominencedPopulation;
 		InfoPanelScript.InfoText.text += "\n\tPercentage of polity population: " + percentageOfPolity.ToString ("P");
 		InfoPanelScript.InfoText.text += "\n\tDistance to polity core: " + pi.PolityCoreDistance.ToString ("0.000");
 		InfoPanelScript.InfoText.text += "\n\tDistance to faction core: " + pi.FactionCoreDistance.ToString ("0.000");
@@ -2666,9 +2666,9 @@ public class GuiManagerScript : MonoBehaviour {
 			return;
 		}
 
-		PolityInfluence polityInfluence = cell.Group.HighestPolityInfluence;
+		PolityProminence polityProminence = cell.Group.HighestPolityProminence;
 
-		if (polityInfluence == null) {
+		if (polityProminence == null) {
 
 			InfoPanelScript.InfoText.text += "\n\tGroup not part of a polity";
 
@@ -2677,7 +2677,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 		bool firstPreference = true;
 
-		foreach (CulturalPreference preference in polityInfluence.Polity.Culture.Preferences) {
+		foreach (CulturalPreference preference in polityProminence.Polity.Culture.Preferences) {
 
 			if (firstPreference) {
 				InfoPanelScript.InfoText.text += "\nPreferences:";
@@ -2711,9 +2711,9 @@ public class GuiManagerScript : MonoBehaviour {
 			return;
 		}
 
-		PolityInfluence polityInfluence = cell.Group.HighestPolityInfluence;
+		PolityProminence polityProminence = cell.Group.HighestPolityProminence;
 
-		if (polityInfluence == null) {
+		if (polityProminence == null) {
 
 			InfoPanelScript.InfoText.text += "\n\tGroup not part of a polity";
 
@@ -2722,7 +2722,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 		bool firstActivity = true;
 
-		foreach (CulturalActivity activity in polityInfluence.Polity.Culture.Activities) {
+		foreach (CulturalActivity activity in polityProminence.Polity.Culture.Activities) {
 
 			if (firstActivity) {
 				InfoPanelScript.InfoText.text += "\nActivities:";
@@ -2828,9 +2828,9 @@ public class GuiManagerScript : MonoBehaviour {
 			return;
 		}
 
-		PolityInfluence polityInfluence = cell.Group.HighestPolityInfluence;
+		PolityProminence polityProminence = cell.Group.HighestPolityProminence;
 
-		if (polityInfluence == null) {
+		if (polityProminence == null) {
 
 			InfoPanelScript.InfoText.text += "\n\tGroup not part of a polity";
 
@@ -2839,7 +2839,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 		bool firstSkill = true;
 
-		foreach (CulturalSkill skill in polityInfluence.Polity.Culture.Skills) {
+		foreach (CulturalSkill skill in polityProminence.Polity.Culture.Skills) {
 
 			float skillValue = skill.Value;
 
@@ -2919,9 +2919,9 @@ public class GuiManagerScript : MonoBehaviour {
 			return;
 		}
 
-		PolityInfluence polityInfluence = cell.Group.HighestPolityInfluence;
+		PolityProminence polityProminence = cell.Group.HighestPolityProminence;
 
-		if (polityInfluence == null) {
+		if (polityProminence == null) {
 
 			InfoPanelScript.InfoText.text += "\n\tGroup not part of a polity";
 
@@ -2930,7 +2930,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 		bool firstKnowledge = true;
 
-		foreach (CulturalKnowledge knowledge in polityInfluence.Polity.Culture.Knowledges) {
+		foreach (CulturalKnowledge knowledge in polityProminence.Polity.Culture.Knowledges) {
 
 			float knowledgeValue = knowledge.ScaledValue;
 
@@ -3004,9 +3004,9 @@ public class GuiManagerScript : MonoBehaviour {
 			return;
 		}
 
-		PolityInfluence polityInfluence = cell.Group.HighestPolityInfluence;
+		PolityProminence polityProminence = cell.Group.HighestPolityProminence;
 
-		if (polityInfluence == null) {
+		if (polityProminence == null) {
 
 			InfoPanelScript.InfoText.text += "\n\tGroup not part of a polity";
 
@@ -3015,7 +3015,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 		bool firstDiscovery = true;
 
-		foreach (CulturalDiscovery discovery in polityInfluence.Polity.Culture.Discoveries) {
+		foreach (CulturalDiscovery discovery in polityProminence.Polity.Culture.Discoveries) {
 
 			if (firstDiscovery) {
 				InfoPanelScript.InfoText.text += "\nDiscoveries:";
@@ -3111,9 +3111,9 @@ public class GuiManagerScript : MonoBehaviour {
 			AddCellDataToInfoPanel_UpdateSpan (cell);
 		}
 
-		if (_planetOverlay == PlanetOverlay.PolityInfluence) {
+		if (_planetOverlay == PlanetOverlay.PolityProminence) {
 
-			AddCellDataToInfoPanel_PolityInfluence (cell);
+			AddCellDataToInfoPanel_PolityProminence (cell);
 		}
 
 		if (_planetOverlay == PlanetOverlay.PolityContacts) {
@@ -3278,11 +3278,11 @@ public class GuiManagerScript : MonoBehaviour {
 
 	public void ShowCellInfoToolTip_PolityTerritory (Polity polity, Vector3 position, float fadeStart = 5) {
 
-		string text = polity.Name.Text + " " + polity.Type.ToLower () + "\n\nFaction Prominences:";
+		string text = polity.Name.Text + " " + polity.Type.ToLower () + "\n\nFaction Influences:";
 
 		foreach (Faction faction in polity.GetFactions ()) {
 		
-			text += "\n " + faction.Name.Text + ": " + faction.Prominence.ToString ("P");
+			text += "\n " + faction.Name.Text + ": " + faction.Influence.ToString ("P");
 		}
 
 		InfoTooltipScript.DisplayTip (text, position, fadeStart);

@@ -95,19 +95,19 @@ public class TribeFormationEvent : CellGroupEvent {
 		if (socialOrganizationKnowledge.Value < MinSocialOrganizationKnowledgeTribeFormation)
 			return false;
 
-		float influenceFactor = Mathf.Min(1, Group.TotalPolityInfluenceValue * 3f);
+		float prominenceFactor = Mathf.Min(1, Group.TotalPolityProminenceValue * 3f);
 
-		if (influenceFactor > 0)
+		if (prominenceFactor > 0)
 			return false;
 
-		//		if (influenceFactor <= 0)
+		//		if (prominenceFactor <= 0)
 		//			return true;
 		//
-		//		influenceFactor = Mathf.Pow (1 - influenceFactor, 4);
+		//		prominenceFactor = Mathf.Pow (1 - prominenceFactor, 4);
 		//
 		//		float triggerValue = Group.Cell.GetNextLocalRandomFloat (RngOffsets.EVENT_CAN_TRIGGER + (int)Id);
 		//
-		//		if (triggerValue > influenceFactor)
+		//		if (triggerValue > prominenceFactor)
 		//			return false;
 
 		return true;
