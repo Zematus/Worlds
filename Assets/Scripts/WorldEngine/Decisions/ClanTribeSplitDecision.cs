@@ -198,7 +198,7 @@ public class ClanTribeSplitDecision : PolityDecision {
 		LeaderPreventsSplit (_splitClan, _dominantClan, _tribe);
 	}
 
-	private string GenerateAllowSplitResultMessage () {
+	private string GenerateAllowSplitResultEffectsString () {
 
 		string message = "\t• Clan " + _splitClan.Name.BoldText + " will attempt to leave the " + _tribe.Name.BoldText + " tribe and form a tribe of their own";
 
@@ -250,12 +250,12 @@ public class ClanTribeSplitDecision : PolityDecision {
 		if (_cantPrevent) {
 
 			return new Option[] {
-				new Option ("Oh well...", "Effects:\n" + GenerateAllowSplitResultMessage (), AllowSplit),
+				new Option ("Oh well...", "Effects:\n" + GenerateAllowSplitResultEffectsString (), AllowSplit),
 			};
 		}
 
 		return new Option[] {
-			new Option ("Allow clan to form a new tribe...", "Effects:\n" + GenerateAllowSplitResultMessage (), AllowSplit),
+			new Option ("Allow clan to form a new tribe...", "Effects:\n" + GenerateAllowSplitResultEffectsString (), AllowSplit),
 			new Option ("Prevent clan from leaving tribe...", "Effects:\n" + GeneratePreventSplitResultEffectsString (), PreventSplit)
 		};
 	}

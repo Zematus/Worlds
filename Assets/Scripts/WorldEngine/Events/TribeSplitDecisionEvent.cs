@@ -132,10 +132,10 @@ public class TribeSplitDecisionEvent : FactionEvent {
 
 		_tribeChanceOfSplitting = CalculateChanceOfSplittingForTribe ();
 
-		if (_tribeChanceOfSplitting <= 0) {
-
-			return false;
-		}
+//		if (_tribeChanceOfSplitting <= 0) {
+//
+//			return false;
+//		}
 
 		_splitClanChanceOfSplitting = CalculateChanceOfSplittingForSplitClan ();
 

@@ -8,38 +8,49 @@ public class ClanDemandsInfluenceDecisionEvent : FactionEvent {
 
 	public const long DateSpanFactorConstant = CellGroup.GenerationSpan * 5;
 
-	public const int MaxAdministrativeLoad = 5000000;
-	public const int MinAdministrativeLoad = 100000;
-	public const int AdministrativeLoadSpan = MaxAdministrativeLoad - MinAdministrativeLoad;
+	public const int DemandClanMaxAdministrativeLoad = 5000000;
+	public const int DemandClanMinAdministrativeLoad = 100000;
+	public const int DemandClanAdministrativeLoadSpan = DemandClanMaxAdministrativeLoad - DemandClanMinAdministrativeLoad;
+
+	public const int DominantClanMaxAdministrativeLoad = 500000;
+	public const int DominantClanMinAdministrativeLoad = 100000;
+	public const int DominantClanAdministrativeLoadSpan = DominantClanMaxAdministrativeLoad - DominantClanMinAdministrativeLoad;
 
 	public const float MaxAdministrativeLoadChanceFactor = 0.05f;
 
-	private Clan _clan;
+	private Clan _demandClan;
+	private Clan _dominantClan;
 
-	private float _chanceOfTriggering;
+	private Tribe _originalTribe;
+
+	private float _chanceOfMakingDemand;
+	private float _chanceOfRefusingDemand;
 
 	public ClanDemandsInfluenceDecisionEvent () {
 
 		DoNotSerialize = true;
 	}
 
-	public ClanDemandsInfluenceDecisionEvent (Clan clan, long originalTribeId, long triggerDate) : base (clan, originalTribeId, triggerDate, ClanDemandsInflenceDecisionEventId) {
+	public ClanDemandsInfluenceDecisionEvent (Clan demandClan, long originalTribeId, long triggerDate) : base (demandClan, originalTribeId, triggerDate, ClanDemandsInflenceDecisionEventId) {
 
-		_clan = clan;
-
-		DoNotSerialize = true;
-	}
-
-	public ClanDemandsInfluenceDecisionEvent (Clan clan, FactionEventData data) : base (clan, data) {
-
-		_clan = clan;
+		_demandClan = demandClan;
+		_originalTribe = World.GetPolity (originalTribeId) as Tribe;
 
 		DoNotSerialize = true;
 	}
 
-	public ClanDemandsInfluenceDecisionEvent (Clan clan, long triggerDate) : base (clan, triggerDate, ClanDemandsInflenceDecisionEventId) {
+	public ClanDemandsInfluenceDecisionEvent (Clan demandClan, FactionEventData data) : base (demandClan, data) {
 
-		_clan = clan;
+		_demandClan = demandClan;
+		_originalTribe = World.GetPolity (data.OriginalPolityId) as Tribe;
+
+		DoNotSerialize = true;
+	}
+
+	public ClanDemandsInfluenceDecisionEvent (Clan demandClan, long triggerDate) : base (demandClan, triggerDate, ClanDemandsInflenceDecisionEventId) {
+
+		_demandClan = demandClan;
+		_originalTribe = demandClan.Polity as Tribe;
 
 		DoNotSerialize = true;
 	}
@@ -55,9 +66,9 @@ public class ClanDemandsInfluenceDecisionEvent : FactionEvent {
 
 		if (administrativeLoad != Mathf.Infinity) {
 
-			float modAdminLoad = Mathf.Max (0, administrativeLoad - MinAdministrativeLoad);
+			float modAdminLoad = Mathf.Max (0, administrativeLoad - DemandClanMinAdministrativeLoad);
 
-			loadFactor = 1 - AdministrativeLoadSpan / (modAdminLoad + AdministrativeLoadSpan);
+			loadFactor = 1 - DemandClanAdministrativeLoadSpan / (modAdminLoad + DemandClanAdministrativeLoadSpan);
 		}
 
 		float authorityPreferenceValue = clan.GetPreferenceValue (CulturalPreference.AuthorityPreferenceId);
@@ -87,22 +98,23 @@ public class ClanDemandsInfluenceDecisionEvent : FactionEvent {
 			return false;
 		}
 
-		Faction dominantFaction = _clan.Polity.DominantFaction;
-
-		if (dominantFaction == _clan)
+		if (_demandClan.Polity != OriginalPolity)
 			return false;
 
-		if (!(dominantFaction is Clan))
+		if (_demandClan.IsDominant)
 			return false;
 
-//		int rngOffset = (int)(RngOffsets.EVENT_CAN_TRIGGER + Id);
+		_dominantClan = _originalTribe.DominantFaction as Clan;
 
 		// We should use the latest cultural attribute values before calculating chances
-		_clan.PreUpdate ();
+		_demandClan.PreUpdate ();
+		_dominantClan.PreUpdate ();
 
-		_chanceOfTriggering = CalculateChanceOfTriggering ();
+		_chanceOfRefusingDemand = CalculateChanceOfRefusingDemand ();
 
-		if (_chanceOfTriggering <= 0) {
+		_chanceOfMakingDemand = CalculateChanceOfMakingDemand ();
+
+		if (_chanceOfMakingDemand <= 0) {
 
 			return false;
 		}
@@ -110,16 +122,14 @@ public class ClanDemandsInfluenceDecisionEvent : FactionEvent {
 		return true;
 	}
 
-	public float CalculateChanceOfTriggering () {
+	public float CalculateChanceOfRefusingDemand () {
 
-		Faction dominantFaction = _clan.Polity.DominantFaction;
-
-		float administrativeLoad = _clan.CalculateAdministrativeLoad ();
+		float administrativeLoad = _dominantClan.CalculateAdministrativeLoad ();
 
 		if (administrativeLoad == Mathf.Infinity)
 			return 0;
 
-		float cohesionPreferenceValue = _clan.GetPreferenceValue (CulturalPreference.CohesionPreferenceId);
+		float cohesionPreferenceValue = _dominantClan.GetPreferenceValue (CulturalPreference.CohesionPreferenceId);
 
 		if (cohesionPreferenceValue <= 0)
 			return 0;
@@ -127,7 +137,7 @@ public class ClanDemandsInfluenceDecisionEvent : FactionEvent {
 		float cohesionPrefFactor = 2 * cohesionPreferenceValue;
 		cohesionPrefFactor = Mathf.Pow (cohesionPrefFactor, 4);
 
-		float authorityPreferenceValue = _clan.GetPreferenceValue (CulturalPreference.AuthorityPreferenceId);
+		float authorityPreferenceValue = _dominantClan.GetPreferenceValue (CulturalPreference.AuthorityPreferenceId);
 
 		if (authorityPreferenceValue <= 0)
 			return 0;
@@ -135,7 +145,48 @@ public class ClanDemandsInfluenceDecisionEvent : FactionEvent {
 		float authorityPrefFactor = 2 * authorityPreferenceValue;
 		authorityPrefFactor = Mathf.Pow (authorityPrefFactor, 4);
 
-		float relationshipValue = _clan.GetRelationshipValue (dominantFaction);
+		float relationshipValue = _dominantClan.GetRelationshipValue (_demandClan);
+
+		if (relationshipValue <= 0)
+			return 1;
+
+		float relationshipFactor = 2 * (1 - relationshipValue);
+		relationshipFactor = Mathf.Pow (relationshipFactor, 4);
+
+		float factors = cohesionPrefFactor * authorityPrefFactor * relationshipFactor * MaxAdministrativeLoadChanceFactor;
+
+		float modMinAdministrativeLoad = DominantClanMinAdministrativeLoad * factors;
+		float modMaxAdministrativeLoad = DominantClanMaxAdministrativeLoad * factors;
+
+		float chance = 1 - (administrativeLoad - modMinAdministrativeLoad) / (modMaxAdministrativeLoad - modMinAdministrativeLoad);
+
+		return Mathf.Clamp01 (chance);
+	}
+
+	public float CalculateChanceOfMakingDemand () {
+
+		float administrativeLoad = _demandClan.CalculateAdministrativeLoad ();
+
+		if (administrativeLoad == Mathf.Infinity)
+			return 0;
+
+		float cohesionPreferenceValue = _demandClan.GetPreferenceValue (CulturalPreference.CohesionPreferenceId);
+
+		if (cohesionPreferenceValue <= 0)
+			return 0;
+
+		float cohesionPrefFactor = 2 * cohesionPreferenceValue;
+		cohesionPrefFactor = Mathf.Pow (cohesionPrefFactor, 4);
+
+		float authorityPreferenceValue = _demandClan.GetPreferenceValue (CulturalPreference.AuthorityPreferenceId);
+
+		if (authorityPreferenceValue <= 0)
+			return 0;
+
+		float authorityPrefFactor = 2 * authorityPreferenceValue;
+		authorityPrefFactor = Mathf.Pow (authorityPrefFactor, 4);
+
+		float relationshipValue = _demandClan.GetRelationshipValue (_dominantClan);
 
 		if (relationshipValue >= 1)
 			return 0;
@@ -143,7 +194,7 @@ public class ClanDemandsInfluenceDecisionEvent : FactionEvent {
 		float relationshipFactor = 2 * (1 - relationshipValue);
 		relationshipFactor = Mathf.Pow (relationshipFactor, 4);
 
-		float influenceDeltaValue = dominantFaction.Influence - _clan.Influence;
+		float influenceDeltaValue = _dominantClan.Influence - _demandClan.Influence;
 
 		if (influenceDeltaValue <= 0)
 			return 0;
@@ -156,8 +207,8 @@ public class ClanDemandsInfluenceDecisionEvent : FactionEvent {
 
 		float factors = cohesionPrefFactor * authorityPrefFactor * relationshipFactor * influenceFactor * MaxAdministrativeLoadChanceFactor;
 
-		float modMinAdministrativeLoad = MinAdministrativeLoad * factors;
-		float modMaxAdministrativeLoad = MaxAdministrativeLoad * factors;
+		float modMinAdministrativeLoad = DemandClanMinAdministrativeLoad * factors;
+		float modMaxAdministrativeLoad = DemandClanMaxAdministrativeLoad * factors;
 
 		float chance = 1 - (administrativeLoad - modMinAdministrativeLoad) / (modMaxAdministrativeLoad - modMinAdministrativeLoad);
 
@@ -166,34 +217,32 @@ public class ClanDemandsInfluenceDecisionEvent : FactionEvent {
 
 	public override void Trigger () {
 
-		bool preferSplit = _clan.GetNextLocalRandomFloat (RngOffsets.CLAN_SPLITTING_EVENT_PREFER_SPLIT) < _chanceOfTriggering;
+		bool performDemand = _demandClan.GetNextLocalRandomFloat (RngOffsets.CLAN_DEMANDS_INFLUENCE_PERFORM_DEMAND) < _chanceOfMakingDemand;
 
-		if (_clan.Polity.IsUnderPlayerFocus || _clan.IsUnderPlayerGuidance) {
+		Tribe tribe = _demandClan.Polity as Tribe;
 
-			Decision splitDecision;
+		if (tribe.IsUnderPlayerFocus || _demandClan.IsUnderPlayerGuidance) {
 
-			if (_chanceOfTriggering >= 1) {
-				splitDecision = new ClanSplitDecision (_clan, _newClanCoreGroup); // Player can't prevent splitting from happening
-			} else {
-				splitDecision = new ClanSplitDecision (_clan, _newClanCoreGroup, preferSplit); // Give player options
-			}
+			Decision demandDecision;
 
-			if (_clan.IsUnderPlayerGuidance) {
+			demandDecision = new ClanDemandsInfluenceDecision (tribe, _demandClan, _dominantClan, performDemand);
 
-				World.AddDecisionToResolve (splitDecision);
+			if (_demandClan.IsUnderPlayerGuidance) {
+
+				World.AddDecisionToResolve (demandDecision);
 
 			} else {
 
-				splitDecision.ExecutePreferredOption ();
+				demandDecision.ExecutePreferredOption ();
 			}
 
-		} else if (preferSplit) {
+		} else if (performDemand) {
 
-			ClanSplitDecision.LeaderAllowsSplit (_clan, _newClanCoreGroup);
+			ClanDemandsInfluenceDecision.LeaderDemandsInfluence (_demandClan, _dominantClan, tribe, _chanceOfRefusingDemand);
 
 		} else {
 
-			ClanSplitDecision.LeaderPreventsSplit (_clan);
+			ClanDemandsInfluenceDecision.LeaderAvoidsDemandingInfluence (_demandClan, _dominantClan, tribe);
 		}
 	}
 
@@ -201,9 +250,9 @@ public class ClanDemandsInfluenceDecisionEvent : FactionEvent {
 
 		base.FinalizeLoad ();
 
-		_clan = Faction as Clan;
+		_demandClan = Faction as Clan;
 
-		_clan.AddEvent (this);
+		_demandClan.AddEvent (this);
 	}
 
 	protected override void DestroyInternal () {
