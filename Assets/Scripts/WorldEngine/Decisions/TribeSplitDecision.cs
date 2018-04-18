@@ -38,8 +38,8 @@ public class TribeSplitDecision : PolityDecision {
 		_splitClan = splitClan;
 
 		Description = GenerateDescriptionIntro (tribe, splitClan) +
-			"Unfortunately, the pressure is too high for the tribe leader, " + _dominantClan.CurrentLeader.Name.BoldText + ", to do anything other than let " +
-			"Clan " + splitClan.Name.BoldText + " leave the tribe...";
+			"Unfortunately, the situation is beyond control for the tribe leader, " + _dominantClan.CurrentLeader.Name.BoldText + ", to be able to do anything other than let " +
+			"clan " + splitClan.Name.BoldText + " leave the tribe...";
 
 		_cantPrevent = true;
 	}
