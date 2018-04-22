@@ -4,14 +4,14 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
-public class PreventedClanTribeSplitDecision : PolityDecision {
+public class PreventedClanTribeSplitDecision : FactionDecision {
 
 	private Tribe _tribe;
 
 	private Clan _splitClan;
 	private Clan _dominantClan;
 
-	public PreventedClanTribeSplitDecision (Tribe tribe, Clan splitClan, Clan dominantClan) : base (tribe) {
+	public PreventedClanTribeSplitDecision (Tribe tribe, Clan splitClan, Clan dominantClan) : base (splitClan) {
 
 		_tribe = tribe;
 
@@ -22,34 +22,12 @@ public class PreventedClanTribeSplitDecision : PolityDecision {
 		_splitClan = splitClan;
 	}
 
-	private void GeneratePreventedSplitResultEffectsString_Influence (out string effectSplitClan, out string effectDominantClan) {
-
-		effectDominantClan = "Clan " + _dominantClan.Name.BoldText + ": influence within the " + _tribe.Name.BoldText + 
-			" tribe decreases to: " + _dominantClan.Influence.ToString ("P");
-
-		effectSplitClan = "Clan " + _splitClan.Name.BoldText + ": influence within the " + _tribe.Name.BoldText + 
-			" tribe increases to: " + _splitClan.Influence.ToString ("P");
-	}
-
-	private string GeneratePreventedSplitResultEffectsString_Relationship () {
-
-		float value = _dominantClan.GetRelationshipValue (_splitClan);
-
-		return "Clan " + _dominantClan.Name.BoldText + ": relationship with clan " + _splitClan.Name.BoldText + " increases to: " + 
-			value.ToString ("0.00");
-	}
-
 	private string GeneratePreventedSplitResultEffectsString () {
 
-		string splitClanInfluenceChangeEffect;
-		string dominantClanInfluenceChangeEffect;
-
-		GeneratePreventedSplitResultEffectsString_Influence (out splitClanInfluenceChangeEffect, out dominantClanInfluenceChangeEffect);
-
 		return 
-			"\t• " + GeneratePreventedSplitResultEffectsString_Relationship () + "\n" + 
-			"\t• " + dominantClanInfluenceChangeEffect + "\n" + 
-			"\t• " + splitClanInfluenceChangeEffect;
+			"\t• " + GenerateResultEffectsString_IncreaseRelationship (_dominantClan, _splitClan) + "\n" + 
+			"\t• " + GenerateResultEffectsString_DecreaseInfluence (_dominantClan, _tribe) + "\n" + 
+			"\t• " + GenerateResultEffectsString_IncreaseInfluence (_splitClan, _tribe);
 	}
 
 	public static void TribeLeaderPreventedSplit (Clan splitClan, Clan dominantClan, Tribe tribe) {
@@ -57,7 +35,7 @@ public class PreventedClanTribeSplitDecision : PolityDecision {
 		splitClan.SetToUpdate ();
 		dominantClan.SetToUpdate ();
 
-		tribe.AddEventMessage (new PreventTribeSplitEventMessage (tribe, splitClan, splitClan.CurrentLeader, splitClan.World.CurrentDate));
+		tribe.AddEventMessage (new PreventTribeSplitEventMessage (tribe, splitClan, tribe.CurrentLeader, splitClan.World.CurrentDate));
 	}
 
 	private void PreventedSplit () {

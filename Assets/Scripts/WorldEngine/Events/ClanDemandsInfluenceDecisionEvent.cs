@@ -217,7 +217,7 @@ public class ClanDemandsInfluenceDecisionEvent : FactionEvent {
 
 	public override void Trigger () {
 
-		bool performDemand = _demandClan.GetNextLocalRandomFloat (RngOffsets.CLAN_DEMANDS_INFLUENCE_PERFORM_DEMAND) < _chanceOfMakingDemand;
+		bool performDemand = _demandClan.GetNextLocalRandomFloat (RngOffsets.CLAN_DEMANDS_INFLUENCE_EVENT_PERFORM_DEMAND) < _chanceOfMakingDemand;
 
 		Tribe tribe = _demandClan.Polity as Tribe;
 

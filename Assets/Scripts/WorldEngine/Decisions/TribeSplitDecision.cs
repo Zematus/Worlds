@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
-public class TribeSplitDecision : PolityDecision {
+public class TribeSplitDecision : FactionDecision {
 
 	public const float BaseMinPreferencePercentChange = 0.15f;
 	public const float BaseMaxPreferencePercentChange = 0.30f;
@@ -30,7 +30,7 @@ public class TribeSplitDecision : PolityDecision {
 			"they are no longer part of the " + tribe.Name.BoldText + " tribe and wish for the clan to become their own tribe.\n\n";
 	}
 
-	public TribeSplitDecision (Tribe tribe, Clan splitClan, Clan dominantClan) : base (tribe) {
+	public TribeSplitDecision (Tribe tribe, Clan splitClan, Clan dominantClan) : base (dominantClan) {
 
 		_tribe = tribe;
 
@@ -44,7 +44,7 @@ public class TribeSplitDecision : PolityDecision {
 		_cantPrevent = true;
 	}
 
-	public TribeSplitDecision (Tribe tribe, Clan splitClan, Clan dominantClan, bool preferSplit) : base (tribe) {
+	public TribeSplitDecision (Tribe tribe, Clan splitClan, Clan dominantClan, bool preferSplit) : base (dominantClan) {
 
 		_tribe = tribe;
 
