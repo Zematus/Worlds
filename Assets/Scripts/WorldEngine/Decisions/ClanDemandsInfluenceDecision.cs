@@ -17,115 +17,47 @@ public class ClanDemandsInfluenceDecision : FactionDecision {
 
 	private Tribe _tribe;
 
-	private bool _performDemand = true;
+	private bool _makeDemand = true;
+
+	private float _chanceOfRejecting;
 
 	private Clan _dominantClan;
 	private Clan _demandClan;
 
-	public ClanDemandsInfluenceDecision (Tribe tribe, Clan demandClan, Clan dominantClan, bool performDemand) : base (demandClan) {
+	public ClanDemandsInfluenceDecision (Tribe tribe, Clan demandClan, Clan dominantClan, bool performDemand, float chanceOfRejecting) : base (demandClan) {
 
 		_tribe = tribe;
 
 		_dominantClan = dominantClan;
 		_demandClan = demandClan;
 
+		_chanceOfRejecting = chanceOfRejecting;
+
 		Description = "Influential members of clan " + demandClan.Name.BoldText + " have suggested for clan leader, " + demandClan.CurrentLeader.Name.BoldText + 
 			", to demand to have more influence within the " + tribe.Name.BoldText + " tribe from the current dominant clan, " + dominantClan.Name.BoldText + ".\n\n" +
 			"Should " + demandClan.CurrentLeader.Name.BoldText + " make the demand?";
 
-		_performDemand = performDemand;
-	}
-
-	private string GenerateAvoidDemandingInfluenceResultEffectsString_AuthorityPreference () {
-
-		float charismaFactor = _demandClan.CurrentLeader.Charisma / 10f;
-		float wisdomFactor = _demandClan.CurrentLeader.Wisdom / 15f;
-
-		float attributesFactor = Mathf.Max (charismaFactor, wisdomFactor);
-		attributesFactor = Mathf.Clamp (attributesFactor, 0.5f, 2f);
-
-		float minPercentChange = BaseMinPreferencePercentChange / attributesFactor;
-		float maxPercentChange = BaseMaxPreferencePercentChange / attributesFactor;
-
-		float originalValue = _demandClan.GetPreferenceValue (CulturalPreference.AuthorityPreferenceId);
-
-		float minValChange = MathUtility.DecreaseByPercent (originalValue, minPercentChange);
-		float maxValChange = MathUtility.DecreaseByPercent (originalValue, maxPercentChange);
-
-		return "Clan " + _demandClan.Name.BoldText + ": authority preference (" + originalValue.ToString ("0.00") + ") decreases to: " + 
-			minValChange.ToString ("0.00") + " - " + maxValChange.ToString ("0.00");
-	}
-
-	private string GenerateAvoidDemandingInfluenceResultEffectsString_Relationship () {
-
-		_dominantClan = _tribe.DominantFaction as Clan;
-
-		float charismaFactor = _demandClan.CurrentLeader.Charisma / 10f;
-		float wisdomFactor = _demandClan.CurrentLeader.Wisdom / 15f;
-
-		float attributesFactor = Mathf.Max (charismaFactor, wisdomFactor);
-		attributesFactor = Mathf.Clamp (attributesFactor, 0.5f, 2f);
-
-		float minPercentChange = BaseMinRelationshipPercentChange * attributesFactor;
-		float maxPercentChange = BaseMaxRelationshipPercentChange * attributesFactor;
-
-		float originalValue = _demandClan.GetRelationshipValue (_dominantClan);
-
-		float minValChange = MathUtility.IncreaseByPercent (originalValue, minPercentChange);
-		float maxValChange = MathUtility.IncreaseByPercent (originalValue, maxPercentChange);
-
-		return "Clan " + _demandClan.Name.BoldText + ": relationship with clan " + _dominantClan.Name.BoldText + " (" + originalValue.ToString ("0.00") + ") increases to: " + 
-			minValChange.ToString ("0.00") + " - " + maxValChange.ToString ("0.00");
+		_makeDemand = performDemand;
 	}
 
 	private string GenerateAvoidDemandingInfluenceResultEffectsString () {
 
 		return 
-			"\t• " + GenerateAvoidDemandingInfluenceResultEffectsString_AuthorityPreference () + "\n" +
-			"\t• " + GenerateAvoidDemandingInfluenceResultEffectsString_Relationship ();
+			"\t• " + GenerateEffectsString_DecreasePreference (_demandClan, CulturalPreference.AuthorityPreferenceId, BaseMinPreferencePercentChange, BaseMaxPreferencePercentChange) + "\n" +
+			"\t• " + GenerateEffectsString_IncreaseRelationship (_demandClan, _dominantClan, BaseMinRelationshipPercentChange, BaseMaxRelationshipPercentChange);
 	}
 
 	public static void LeaderAvoidsDemandingInfluence (Clan demandClan, Clan dominantClan, Tribe tribe) {
 
-		float charismaFactor = demandClan.CurrentLeader.Charisma / 10f;
-		float wisdomFactor = demandClan.CurrentLeader.Wisdom / 15f;
-
-		float attributesFactor = Mathf.Max (charismaFactor, wisdomFactor);
-		attributesFactor = Mathf.Clamp (attributesFactor, 0.5f, 2f);
-
 		int rngOffset = RngOffsets.CLAN_DEMANDS_INFLUENCE_EVENT_DEMANDCLAN_LEADER_AVOIDS_DEMAND_MODIFY_ATTRIBUTE;
 
-		// Authority preference
-
-		float randomFactor = demandClan.GetNextLocalRandomFloat (rngOffset++);
-		float authorityPreferencePercentChange = (BaseMaxPreferencePercentChange - BaseMinPreferencePercentChange) * randomFactor + BaseMinPreferencePercentChange;
-		authorityPreferencePercentChange /= attributesFactor;
-
-		demandClan.DecreasePreferenceValue (CulturalPreference.AuthorityPreferenceId, authorityPreferencePercentChange);
-
-		// Influence
-
-		randomFactor = demandClan.GetNextLocalRandomFloat (rngOffset++);
-		float influencePercentChange = (BaseMaxInfluencePercentChange - BaseMinInfluencePercentChange) * randomFactor + BaseMinInfluencePercentChange;
-		influencePercentChange /= attributesFactor;
-
-		Polity.TransferInfluence (demandClan, dominantClan, influencePercentChange);
-
-		// Relationship
-
-		randomFactor = demandClan.GetNextLocalRandomFloat (rngOffset++);
-		float relationshipPercentChange = (BaseMaxRelationshipPercentChange - BaseMinRelationshipPercentChange) * randomFactor + BaseMinRelationshipPercentChange;
-		relationshipPercentChange *= attributesFactor;
-
-		float newValue = MathUtility.IncreaseByPercent (demandClan.GetRelationshipValue (dominantClan), relationshipPercentChange);
-		Faction.SetRelationship (demandClan, dominantClan, newValue);
-
-		// Updates
+		Effect_DecreasePreference (demandClan, CulturalPreference.AuthorityPreferenceId, BaseMinPreferencePercentChange, BaseMaxPreferencePercentChange, rngOffset++);
+		Effect_IncreaseRelationship (demandClan, dominantClan, BaseMinRelationshipPercentChange, BaseMaxRelationshipPercentChange, rngOffset++);
 
 		demandClan.SetToUpdate ();
 		dominantClan.SetToUpdate ();
 
-		tribe.AddEventMessage (new SplitClanPreventTribeSplitEventMessage (demandClan, tribe, demandClan.CurrentLeader, demandClan.World.CurrentDate));
+		tribe.AddEventMessage (new DemandClanAvoidInfluenceDemandEventMessage (demandClan, dominantClan, tribe, demandClan.CurrentLeader, demandClan.World.CurrentDate));
 	}
 
 	private void AvoidDemandingInfluence () {
@@ -133,50 +65,11 @@ public class ClanDemandsInfluenceDecision : FactionDecision {
 		LeaderAvoidsDemandingInfluence (_demandClan, _dominantClan, _tribe);
 	}
 
-	private string GenerateDemandInfluenceResultEffectsString_AuthorityPreference () {
-
-		float charismaFactor = _demandClan.CurrentLeader.Charisma / 10f;
-		float wisdomFactor = _demandClan.CurrentLeader.Wisdom / 15f;
-
-		float attributesFactor = Mathf.Max (charismaFactor, wisdomFactor);
-		attributesFactor = Mathf.Clamp (attributesFactor, 0.5f, 2f);
-
-		float minPercentChange = BaseMinPreferencePercentChange * attributesFactor;
-		float maxPercentChange = BaseMaxPreferencePercentChange * attributesFactor;
-
-		float originalValue = _demandClan.GetPreferenceValue (CulturalPreference.AuthorityPreferenceId);
-
-		float minValChange = MathUtility.IncreaseByPercent (originalValue, minPercentChange);
-		float maxValChange = MathUtility.IncreaseByPercent (originalValue, maxPercentChange);
-
-		return "Clan " + _demandClan.Name.BoldText + ": authority preference (" + originalValue.ToString ("0.00") + ") increases to: " + 
-			minValChange.ToString ("0.00") + " - " + maxValChange.ToString ("0.00");
-	}
-
 	private string GenerateDemandInfluenceResultEffectsString () {
 
 		return 
-			"\t• " + GenerateAvoidDemandingInfluenceResultEffectsString_AuthorityPreference () + "\n" +
-			"\t• The leader of clan " + _dominantClan.Name.BoldText + " will receive the demand for infuence from " + _demandClan.CurrentLeader.Name.BoldText;
-	}
-
-	public static void LeaderDemandsInfluence_AuthorityIncrease (Clan demandClan) {
-
-		float charismaFactor = demandClan.CurrentLeader.Charisma / 10f;
-		float wisdomFactor = demandClan.CurrentLeader.Wisdom / 15f;
-
-		float attributesFactor = Mathf.Max (charismaFactor, wisdomFactor);
-		attributesFactor = Mathf.Clamp (attributesFactor, 0.5f, 2f);
-
-		int rngOffset = RngOffsets.CLAN_DEMANDS_INFLUENCE_EVENT_DEMANDCLAN_LEADER_DEMANDS_MODIFY_ATTRIBUTE;
-
-		// Authority preference
-
-		float randomFactor = demandClan.GetNextLocalRandomFloat (rngOffset++);
-		float authorityPreferencePercentChange = (BaseMaxPreferencePercentChange - BaseMinPreferencePercentChange) * randomFactor + BaseMinPreferencePercentChange;
-		authorityPreferencePercentChange *= attributesFactor;
-
-		demandClan.IncreasePreferenceValue (CulturalPreference.AuthorityPreferenceId, authorityPreferencePercentChange);
+			"\t• " + GenerateEffectsString_IncreasePreference (_demandClan, CulturalPreference.AuthorityPreferenceId, BaseMinPreferencePercentChange, BaseMaxPreferencePercentChange) + "\n" +
+			"\t• The current leader of clan " + _dominantClan.Name.BoldText + " will receive the demand for infuence from " + _demandClan.CurrentLeader.Name.BoldText;
 	}
 
 	public static void LeaderDemandsInfluence_TriggerRejectDecision (Clan demandClan, Clan dominantClan, Tribe originalTribe, float chanceOfRejecting) {
@@ -187,43 +80,45 @@ public class ClanDemandsInfluenceDecision : FactionDecision {
 
 		if (originalTribe.IsUnderPlayerFocus || dominantClan.IsUnderPlayerGuidance) {
 
-			Decision tribeDecision;
+			Decision dominantClanDecision;
 
 			if (chanceOfRejecting >= 1) {
-				tribeDecision = new TribeSplitDecision (originalTribe, demandClan, dominantClan); // Player that controls dominant clan can't prevent splitting from happening
+				dominantClanDecision = new DominantClanHandlesInfluenceDemandDecision (originalTribe, demandClan, dominantClan); // Player that controls dominant clan can't reject demand
 			} else {
-				tribeDecision = new TribeSplitDecision (originalTribe, demandClan, dominantClan, rejectDemand); // Give player options
+				dominantClanDecision = new DominantClanHandlesInfluenceDemandDecision (originalTribe, demandClan, dominantClan, rejectDemand); // Give player options
 			}
 
 			if (dominantClan.IsUnderPlayerGuidance) {
 
-				world.AddDecisionToResolve (tribeDecision);
+				world.AddDecisionToResolve (dominantClanDecision);
 
 			} else {
 
-				tribeDecision.ExecutePreferredOption ();
+				dominantClanDecision.ExecutePreferredOption ();
 			}
 
 		} else if (rejectDemand) {
 
-			TribeSplitDecision.LeaderAllowsSplit (demandClan, dominantClan, originalTribe);
+			DominantClanHandlesInfluenceDemandDecision.LeaderRejectsDemand (demandClan, dominantClan, originalTribe);
 
 		} else {
 
-			TribeSplitDecision.LeaderPreventsSplit (demandClan, dominantClan, originalTribe);
+			DominantClanHandlesInfluenceDemandDecision.LeaderAcceptsDemand (demandClan, dominantClan, originalTribe);
 		}
 	}
 
 	public static void LeaderDemandsInfluence (Clan demandClan, Clan dominantClan, Tribe originalTribe, float chanceOfRejecting) {
 
-		LeaderDemandsInfluence_AuthorityIncrease (demandClan);
+		int rngOffset = RngOffsets.CLAN_DEMANDS_INFLUENCE_EVENT_DEMANDCLAN_LEADER_DEMANDS_MODIFY_ATTRIBUTE;
+
+		Effect_IncreasePreference (demandClan, CulturalPreference.AuthorityPreferenceId, BaseMinPreferencePercentChange, BaseMaxPreferencePercentChange, rngOffset++);
 
 		LeaderDemandsInfluence_TriggerRejectDecision (demandClan, dominantClan, originalTribe, chanceOfRejecting);
 	}
 
 	private void DemandInfluence () {
 
-//		LeaderDemandsInfluence (_demandClan, _dominantClan, _tribe);
+		LeaderDemandsInfluence (_demandClan, _dominantClan, _tribe, _chanceOfRejecting);
 	}
 
 	public override Option[] GetOptions () {
@@ -236,7 +131,7 @@ public class ClanDemandsInfluenceDecision : FactionDecision {
 
 	public override void ExecutePreferredOption ()
 	{
-		if (_performDemand)
+		if (_makeDemand)
 			DemandInfluence ();
 		else
 			AvoidDemandingInfluence ();

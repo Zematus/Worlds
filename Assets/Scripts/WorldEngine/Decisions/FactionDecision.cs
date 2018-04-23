@@ -96,6 +96,35 @@ public abstract class FactionDecision : Decision {
 			minValChange.ToString ("0.00") + " - " + maxValChange.ToString ("0.00");
 	}
 
+	protected static void GenerateEffectsString_TransferInfluence (
+		Faction sourceFaction, Faction targetFaction, Polity polity, float minPercentChange, float maxPercentChange, out string effectStringSourceFaction, out string effectStringTargetFaction) {
+
+		float charismaFactor = sourceFaction.CurrentLeader.Charisma / 10f;
+		float wisdomFactor = sourceFaction.CurrentLeader.Wisdom / 15f;
+
+		float attributesFactor = Mathf.Max (charismaFactor, wisdomFactor);
+		attributesFactor = Mathf.Clamp (attributesFactor, 0.5f, 2f);
+
+		float modMinPercentChange = minPercentChange / attributesFactor;
+		float modMaxPercentChange = maxPercentChange / attributesFactor;
+
+		float oldSourceInfluenceValue = sourceFaction.Influence;
+
+		float minSourceValChange = oldSourceInfluenceValue * (1f - modMinPercentChange);
+		float maxSourceValChange = oldSourceInfluenceValue * (1f - modMaxPercentChange);
+
+		float oldTargetInfluenceValue = targetFaction.Influence;
+
+		float minTargetValChange = oldTargetInfluenceValue + oldSourceInfluenceValue - minSourceValChange;
+		float maxTargetValChange = oldTargetInfluenceValue + oldSourceInfluenceValue - maxSourceValChange;
+
+		effectStringSourceFaction = sourceFaction.Type + " " + sourceFaction.Name.BoldText + ": influence within the " + polity.Name.BoldText + 
+			" " + polity.Type.ToLower () + " (" + oldSourceInfluenceValue.ToString ("P") + ") decreases to: " + minSourceValChange.ToString ("P") + " - " + maxSourceValChange.ToString ("P");
+
+		effectStringTargetFaction = targetFaction.Type + " " + targetFaction.Name.BoldText + ": influence within the " + polity.Name.BoldText + 
+			" " + polity.Type.ToLower () + " (" + oldTargetInfluenceValue.ToString ("P") + ") increases to: " + minTargetValChange.ToString ("P") + " - " + maxTargetValChange.ToString ("P");
+	}
+
 	protected static string GenerateResultEffectsString_IncreaseInfluence (Faction faction, Polity polity) {
 
 		return faction.Type + " " + faction.Name.BoldText + ": influence within the " + polity.Name.BoldText + 

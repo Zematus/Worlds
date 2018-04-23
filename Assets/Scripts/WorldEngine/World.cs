@@ -94,7 +94,8 @@ public static class RngOffsets {
 	public const int CLAN_DEMANDS_INFLUENCE_EVENT_REJECT_DEMAND = 900023;
 	public const int CLAN_DEMANDS_INFLUENCE_EVENT_DEMANDCLAN_LEADER_AVOIDS_DEMAND_MODIFY_ATTRIBUTE = 900024;
 	public const int CLAN_DEMANDS_INFLUENCE_EVENT_DEMANDCLAN_LEADER_DEMANDS_MODIFY_ATTRIBUTE = 900025;
-	public const int CLAN_DEMANDS_INFLUENCE_EVENT_DOMINANTCLAN_LEADER_REJECTS_DEMAND_MODIFY_ATTRIBUTE = 900014;
+	public const int CLAN_DEMANDS_INFLUENCE_EVENT_DOMINANTCLAN_LEADER_REJECTS_DEMAND_MODIFY_ATTRIBUTE = 900026;
+	public const int CLAN_DEMANDS_INFLUENCE_EVENT_DOMINANTCLAN_LEADER_ACCEPTS_DEMAND_MODIFY_ATTRIBUTE = 900027;
 
 	public const int EVENT_TRIGGER = 1000000;
 	public const int EVENT_CAN_TRIGGER = 1100000;
@@ -197,7 +198,7 @@ public class World : ISynchronizable {
 		XmlArrayItem (Type = typeof(PlantCultivationDiscoveryEvent)),
 		XmlArrayItem (Type = typeof(ClanSplitDecisionEvent)),
 		XmlArrayItem (Type = typeof(TribeSplitDecisionEvent)),
-//		XmlArrayItem (Type = typeof(TribeSplitEvent)),
+		XmlArrayItem (Type = typeof(ClanDemandsInfluenceDecisionEvent)),
 		XmlArrayItem (Type = typeof(ClanCoreMigrationEvent))]
 	public List<WorldEvent> EventsToHappen;
 

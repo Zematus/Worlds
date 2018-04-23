@@ -74,6 +74,9 @@ public class Clan : Faction {
 			case WorldEvent.TribeSplitDecisionEventId:
 				AddEvent (new TribeSplitDecisionEvent (this, eData));
 				break;
+			case WorldEvent.ClanDemandsInfluenceDecisionEventId:
+				AddEvent (new ClanDemandsInfluenceDecisionEvent (this, eData));
+				break;
 			default:
 				throw new System.Exception ("Unhandled faction event type id: " + eData.TypeId);
 			}

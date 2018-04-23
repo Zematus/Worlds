@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
-public class RejectedClanInlfuenceDemandEventMessage : PolityEventMessage {
+public class DemandClanAvoidInfluenceDemandEventMessage : FactionEventMessage {
 
 	[XmlAttribute]
 	public long AgentId;
@@ -15,13 +15,13 @@ public class RejectedClanInlfuenceDemandEventMessage : PolityEventMessage {
 	[XmlAttribute]
 	public long DominantClanId;
 
-	public RejectedClanInlfuenceDemandEventMessage () {
+	public DemandClanAvoidInfluenceDemandEventMessage () {
 
 	}
 
-	public RejectedClanInlfuenceDemandEventMessage (Tribe tribe, Clan dominantClan, Clan demandClan, Agent agent, long date) : base (tribe, WorldEvent.RejectInfluenceDemandDecisionEventId, date) {
+	public DemandClanAvoidInfluenceDemandEventMessage (Clan demandClan, Clan dominantClan, Tribe tribe, Agent agent, long date) : base (demandClan, WorldEvent.ClanAvoidsInfluenceDemandDecisionEventId, date) {
 
-		tribe.World.AddMemorableAgent (agent);
+		demandClan.World.AddMemorableAgent (agent);
 
 		AgentId = agent.Id;
 		DemandClanId = demandClan.Id;
@@ -34,6 +34,6 @@ public class RejectedClanInlfuenceDemandEventMessage : PolityEventMessage {
 		Clan demandClan = World.GetFaction (DemandClanId) as Clan;
 		Clan dominantClan = World.GetFaction (DominantClanId) as Clan;
 
-		return leader.Name.BoldText + ", leader of clan " + dominantClan.Name.BoldText + ", has rejected the demand for influence from clan " + demandClan.Name.BoldText + "";
+		return leader.Name.BoldText + ", leader of clan " + demandClan.Name.BoldText + ", has avoided making a demand for more influence from clan " + dominantClan.Name.BoldText;
 	}
 }

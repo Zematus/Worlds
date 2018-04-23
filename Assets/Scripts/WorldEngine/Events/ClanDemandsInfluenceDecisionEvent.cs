@@ -24,14 +24,14 @@ public class ClanDemandsInfluenceDecisionEvent : FactionEvent {
 	private Tribe _originalTribe;
 
 	private float _chanceOfMakingDemand;
-	private float _chanceOfRefusingDemand;
+	private float _chanceOfRejectingDemand;
 
 	public ClanDemandsInfluenceDecisionEvent () {
 
 		DoNotSerialize = true;
 	}
 
-	public ClanDemandsInfluenceDecisionEvent (Clan demandClan, long originalTribeId, long triggerDate) : base (demandClan, originalTribeId, triggerDate, ClanDemandsInflenceDecisionEventId) {
+	public ClanDemandsInfluenceDecisionEvent (Clan demandClan, long originalTribeId, long triggerDate) : base (demandClan, originalTribeId, triggerDate, ClanDemandsInfluenceDecisionEventId) {
 
 		_demandClan = demandClan;
 		_originalTribe = World.GetPolity (originalTribeId) as Tribe;
@@ -47,7 +47,7 @@ public class ClanDemandsInfluenceDecisionEvent : FactionEvent {
 		DoNotSerialize = true;
 	}
 
-	public ClanDemandsInfluenceDecisionEvent (Clan demandClan, long triggerDate) : base (demandClan, triggerDate, ClanDemandsInflenceDecisionEventId) {
+	public ClanDemandsInfluenceDecisionEvent (Clan demandClan, long triggerDate) : base (demandClan, triggerDate, ClanDemandsInfluenceDecisionEventId) {
 
 		_demandClan = demandClan;
 		_originalTribe = demandClan.Polity as Tribe;
@@ -110,7 +110,7 @@ public class ClanDemandsInfluenceDecisionEvent : FactionEvent {
 		_demandClan.PreUpdate ();
 		_dominantClan.PreUpdate ();
 
-		_chanceOfRefusingDemand = CalculateChanceOfRefusingDemand ();
+		_chanceOfRejectingDemand = CalculateChanceOfRefusingDemand ();
 
 		_chanceOfMakingDemand = CalculateChanceOfMakingDemand ();
 
@@ -225,7 +225,7 @@ public class ClanDemandsInfluenceDecisionEvent : FactionEvent {
 
 			Decision demandDecision;
 
-			demandDecision = new ClanDemandsInfluenceDecision (tribe, _demandClan, _dominantClan, performDemand);
+			demandDecision = new ClanDemandsInfluenceDecision (tribe, _demandClan, _dominantClan, performDemand, _chanceOfRejectingDemand);
 
 			if (_demandClan.IsUnderPlayerGuidance) {
 
@@ -238,7 +238,7 @@ public class ClanDemandsInfluenceDecisionEvent : FactionEvent {
 
 		} else if (performDemand) {
 
-			ClanDemandsInfluenceDecision.LeaderDemandsInfluence (_demandClan, _dominantClan, tribe, _chanceOfRefusingDemand);
+			ClanDemandsInfluenceDecision.LeaderDemandsInfluence (_demandClan, _dominantClan, tribe, _chanceOfRejectingDemand);
 
 		} else {
 
@@ -263,7 +263,7 @@ public class ClanDemandsInfluenceDecisionEvent : FactionEvent {
 
 			Clan clan = Faction as Clan;
 
-			clan.ResetEvent (WorldEvent.ClanSplitDecisionEventId, CalculateTriggerDate (clan));
+			clan.ResetEvent (WorldEvent.ClanDemandsInfluenceDecisionEventId, CalculateTriggerDate (clan));
 		}
 	}
 }

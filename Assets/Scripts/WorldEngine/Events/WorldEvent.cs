@@ -25,7 +25,11 @@ public abstract class WorldEvent : ISynchronizable {
 
 	public const long PolityFormationEventId = 13;
 	public const long ClanCoreMigrationEventId = 14;
-	public const long ClanDemandsInflenceDecisionEventId = 15;
+
+	public const long ClanDemandsInfluenceDecisionEventId = 15;
+	public const long ClanAvoidsInfluenceDemandDecisionEventId = 16;
+	public const long RejectInfluenceDemandDecisionEventId = 17;
+	public const long AcceptInfluenceDemandDecisionEventId = 18;
 
 //	public static int EventCount = 0;
 

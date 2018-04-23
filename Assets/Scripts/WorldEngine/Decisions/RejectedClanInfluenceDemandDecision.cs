@@ -29,7 +29,7 @@ public class RejectedClanInfluenceDemandDecision : FactionDecision {
 			"\t• " + GenerateResultEffectsString_IncreasePreference (_dominantClan, CulturalPreference.AuthorityPreferenceId);
 	}
 
-	public static void DominantClanRejectsDemand (Clan demandClan, Clan dominantClan, Tribe tribe) {
+	public static void DominantClanRejectedDemand (Clan demandClan, Clan dominantClan, Tribe tribe) {
 
 		demandClan.SetToUpdate ();
 		dominantClan.SetToUpdate ();
@@ -39,7 +39,7 @@ public class RejectedClanInfluenceDemandDecision : FactionDecision {
 
 	private void RejectedDemand () {
 
-		DominantClanRejectsDemand (_demandClan, _dominantClan, _tribe);
+		DominantClanRejectedDemand (_demandClan, _dominantClan, _tribe);
 	}
 
 	public override Option[] GetOptions () {
