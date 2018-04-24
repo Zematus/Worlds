@@ -12,11 +12,11 @@ public class ClanDemandsInfluenceDecisionEvent : FactionEvent {
 	public const int DemandClanMinAdministrativeLoad = 100000;
 	public const int DemandClanAdministrativeLoadSpan = DemandClanMaxAdministrativeLoad - DemandClanMinAdministrativeLoad;
 
-	public const int DominantClanMaxAdministrativeLoad = 500000;
+	public const int DominantClanMaxAdministrativeLoad = 4000000;
 	public const int DominantClanMinAdministrativeLoad = 100000;
 	public const int DominantClanAdministrativeLoadSpan = DominantClanMaxAdministrativeLoad - DominantClanMinAdministrativeLoad;
 
-	public const float MaxAdministrativeLoadChanceFactor = 0.05f;
+	public const float MaxAdministrativeLoadChanceFactor = 0.5f;
 
 	private Clan _demandClan;
 	private Clan _dominantClan;
@@ -153,7 +153,18 @@ public class ClanDemandsInfluenceDecisionEvent : FactionEvent {
 		float relationshipFactor = 2 * (1 - relationshipValue);
 		relationshipFactor = Mathf.Pow (relationshipFactor, 4);
 
-		float factors = cohesionPrefFactor * authorityPrefFactor * relationshipFactor * MaxAdministrativeLoadChanceFactor;
+		float influenceDeltaValue = _dominantClan.Influence - _demandClan.Influence;
+
+		if (influenceDeltaValue <= 0)
+			return 0;
+
+		if (influenceDeltaValue >= 1)
+			return 1;
+
+		float influenceFactor = 2 * influenceDeltaValue;
+		influenceFactor = Mathf.Pow (influenceFactor, 4);
+
+		float factors = cohesionPrefFactor * authorityPrefFactor * relationshipFactor * influenceFactor * MaxAdministrativeLoadChanceFactor;
 
 		float modMinAdministrativeLoad = DominantClanMinAdministrativeLoad * factors;
 		float modMaxAdministrativeLoad = DominantClanMaxAdministrativeLoad * factors;

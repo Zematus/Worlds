@@ -57,63 +57,16 @@ public class TribeSplitDecision : FactionDecision {
 		_preferSplit = preferSplit;
 	}
 
-	private void GeneratePreventSplitResultEffectsString_Influence (out string effectSplitClan, out string effectDominantClan) {
-
-		float charismaFactor = _dominantClan.CurrentLeader.Charisma / 10f;
-		float wisdomFactor = _dominantClan.CurrentLeader.Wisdom / 15f;
-
-		float attributesFactor = Mathf.Max (charismaFactor, wisdomFactor);
-		attributesFactor = Mathf.Clamp (attributesFactor, 0.5f, 2f);
-
-		float minPercentChange = BaseMinInfluencePercentChange / attributesFactor;
-		float maxPercentChange = BaseMaxInfluencePercentChange / attributesFactor;
-
-		float oldInfluenceValue = _dominantClan.Influence;
-
-		float minValChange = oldInfluenceValue * (1f - minPercentChange);
-		float maxValChange = oldInfluenceValue * (1f - maxPercentChange);
-
-		float oldSplitClanInfluenceValue = _splitClan.Influence;
-
-		float minValChangeSplitClan = oldSplitClanInfluenceValue + oldInfluenceValue - minValChange;
-		float maxValChangeSplitClan = oldSplitClanInfluenceValue + oldInfluenceValue - maxValChange;
-
-		effectDominantClan = "Clan " + _dominantClan.Name.BoldText + ": influence within the " + _tribe.Name.BoldText + 
-			" tribe (" + oldInfluenceValue.ToString ("P") + ") decreases to: " + minValChange.ToString ("P") + " - " + maxValChange.ToString ("P");
-
-		effectSplitClan = "Clan " + _splitClan.Name.BoldText + ": influence within the " + _tribe.Name.BoldText + 
-			" tribe (" + oldSplitClanInfluenceValue.ToString ("P") + ") increases to: " + minValChangeSplitClan.ToString ("P") + " - " + maxValChangeSplitClan.ToString ("P");
-	}
-
-	private string GeneratePreventSplitResultEffectsString_Relationship () {
-
-		float charismaFactor = _dominantClan.CurrentLeader.Charisma / 10f;
-		float wisdomFactor = _dominantClan.CurrentLeader.Wisdom / 15f;
-
-		float attributesFactor = Mathf.Max (charismaFactor, wisdomFactor);
-		attributesFactor = Mathf.Clamp (attributesFactor, 0.5f, 2f);
-
-		float minPercentChange = BaseMinRelationshipPercentChange * attributesFactor;
-		float maxPercentChange = BaseMaxRelationshipPercentChange * attributesFactor;
-
-		float originalValue = _dominantClan.GetRelationshipValue (_splitClan);
-
-		float minValChange = MathUtility.IncreaseByPercent (originalValue, minPercentChange);
-		float maxValChange = MathUtility.IncreaseByPercent (originalValue, maxPercentChange);
-
-		return "Clan " + _dominantClan.Name.BoldText + ": relationship with clan " + _splitClan.Name.BoldText + " (" + originalValue.ToString ("0.00") + ") increases to: " + 
-			minValChange.ToString ("0.00") + " - " + maxValChange.ToString ("0.00");
-	}
-
 	private string GeneratePreventSplitResultEffectsString () {
 
 		string splitClanInfluenceChangeEffect;
 		string dominantClanInfluenceChangeEffect;
 
-		GeneratePreventSplitResultEffectsString_Influence (out splitClanInfluenceChangeEffect, out dominantClanInfluenceChangeEffect);
+		GenerateEffectsString_TransferInfluence (
+			_dominantClan, _splitClan, _tribe, BaseMinInfluencePercentChange, BaseMaxInfluencePercentChange, out dominantClanInfluenceChangeEffect, out splitClanInfluenceChangeEffect);
 
 		return 
-			"\t• " + GeneratePreventSplitResultEffectsString_Relationship () + "\n" + 
+			"\t• " + GenerateEffectsString_IncreaseRelationship (_dominantClan, _splitClan, BaseMinRelationshipPercentChange, BaseMaxRelationshipPercentChange) + "\n" + 
 			"\t• " + dominantClanInfluenceChangeEffect + "\n" + 
 			"\t• " + splitClanInfluenceChangeEffect;
 	}
