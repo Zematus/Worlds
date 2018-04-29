@@ -7,6 +7,7 @@ using UnityEngine.Profiling;
 
 public delegate float GroupValueCalculationDelegate (CellGroup group);
 public delegate float FactionValueCalculationDelegate (Faction faction);
+public delegate float PolityContactValueCalculationDelegate (PolityContact contact);
 
 public abstract class Polity : ISynchronizable {
 
@@ -31,6 +32,9 @@ public abstract class Polity : ISynchronizable {
 	[XmlAttribute("TotalPop")]
 	public float TotalPopulation = 0;
 
+	[XmlAttribute("PromArea")]
+	public float ProminenceArea = 0;
+
 	[XmlAttribute("FctnCount")]
 	public int FactionCount { get; private set; }
 
@@ -47,7 +51,7 @@ public abstract class Polity : ISynchronizable {
 
 	public Name Name;
 
-	public List<long> ProminencedGroupIds;
+	public List<long> ProminenceGroupIds;
 
 	public Territory Territory;
 
@@ -70,9 +74,11 @@ public abstract class Polity : ISynchronizable {
 	public bool WillBeUpdated;
 
 	[XmlIgnore]
-	public Dictionary<long, CellGroup> ProminencedGroups = new Dictionary<long, CellGroup> ();
+	public Dictionary<long, CellGroup> ProminenceGroups = new Dictionary<long, CellGroup> ();
 
 	public List<PolityContact> Contacts = new List<PolityContact> ();
+
+	public List<PolityEventData> EventDataList = new List<PolityEventData> ();
 
 	public Agent CurrentLeader {
 
@@ -95,9 +101,18 @@ public abstract class Polity : ISynchronizable {
 		}
 	}
 
+	protected class WeightedPolityContact : CollectionUtility.ElementWeightPair<PolityContact> {
+
+		public WeightedPolityContact (PolityContact contact, float weight) : base (contact, weight) {
+
+		}
+	}
+
 	protected Dictionary<long, PolityContact> _contacts = new Dictionary<long, PolityContact> ();
 
-	private Dictionary<long, WeightedGroup> _prominencedPopPerGroup = new Dictionary<long, WeightedGroup> ();
+	protected Dictionary<long, PolityEvent> _events = new Dictionary<long, PolityEvent> ();
+
+	private Dictionary<long, WeightedGroup> _polityPopPerGroup = new Dictionary<long, WeightedGroup> ();
 
 	private Dictionary<long, Faction> _factions = new Dictionary<long, Faction> ();
 
@@ -108,8 +123,6 @@ public abstract class Polity : ISynchronizable {
 	#if DEBUG
 	private bool _populationCensusUpdated = false;
 	#endif
-
-//	private bool _coreGroupIsValid = true;
 
 	private HashSet<long> _eventMessageIds = new HashSet<long> ();
 
@@ -189,7 +202,7 @@ public abstract class Polity : ISynchronizable {
 			faction.Destroy (true);
 		}
 
-		foreach (CellGroup group in ProminencedGroups.Values) {
+		foreach (CellGroup group in ProminenceGroups.Values) {
 
 			group.RemovePolityProminence (this);
 
@@ -223,8 +236,6 @@ public abstract class Polity : ISynchronizable {
 	
 		CoreGroup = coreGroup;
 		CoreGroupId = coreGroup.Id;
-
-//		_coreGroupIsValid = true;
 	}
 
 	public long GenerateUniqueIdentifier (long date, long oom = 1L, long offset = 0L) {
@@ -557,7 +568,7 @@ public abstract class Polity : ISynchronizable {
 
 		WillBeUpdated = false;
 
-		if (ProminencedGroups.Count <= 0) {
+		if (ProminenceGroups.Count <= 0) {
 
 			#if DEBUG
 			Debug.Log ("Polity will be removed due to losing all prominenced groups. polity id:" + Id);
@@ -567,21 +578,15 @@ public abstract class Polity : ISynchronizable {
 			return;
 		}
 
-		Profiler.BeginSample ("Run Population Census");
+		Profiler.BeginSample ("Run Census");
 
-		RunPopulationCensus ();
+		RunCensus ();
 
 		Profiler.EndSample ();
 
 		#if DEBUG
 		_populationCensusUpdated = true;
 		#endif
-
-		Profiler.BeginSample ("Update Total Administration Cost");
-
-		UpdateTotalAdministrativeCost ();
-
-		Profiler.EndSample ();
 
 		Profiler.BeginSample ("Update Culture");
 	
@@ -610,19 +615,30 @@ public abstract class Polity : ISynchronizable {
 
 	protected abstract void UpdateInternal ();
 
-	public void RunPopulationCensus () {
+	public void RunCensus () {
 
+		TotalAdministrativeCost = 0;
 		TotalPopulation = 0;
+		ProminenceArea = 0;
 
-		_prominencedPopPerGroup.Clear ();
+		_polityPopPerGroup.Clear ();
 	
-		foreach (CellGroup group in ProminencedGroups.Values) {
+		foreach (CellGroup group in ProminenceGroups.Values) {
 
-			float prominencedPop = group.Population * group.GetPolityProminenceValue (this);
+			PolityProminence pi = group.GetPolityProminence (this);
 
-			TotalPopulation += prominencedPop;
+			if (pi.AdiministrativeCost < float.MaxValue)
+				TotalAdministrativeCost += pi.AdiministrativeCost;
+			else
+				TotalAdministrativeCost = float.MaxValue;
 
-			_prominencedPopPerGroup.Add (group.Id, new WeightedGroup (group, prominencedPop));
+			float polityPop = group.Population * pi.Value;
+
+			TotalPopulation += polityPop;
+
+			_polityPopPerGroup.Add (group.Id, new WeightedGroup (group, polityPop));
+
+			ProminenceArea += group.Cell.Area;
 		}
 	}
 
@@ -636,7 +652,7 @@ public abstract class Polity : ISynchronizable {
 		CellGroup groupWithMostProminencedPop = null;
 		float maxProminencedGroupPopulation = 0;
 	
-		foreach (KeyValuePair<long, WeightedGroup> pair in _prominencedPopPerGroup) {
+		foreach (KeyValuePair<long, WeightedGroup> pair in _polityPopPerGroup) {
 		
 			if (maxProminencedGroupPopulation < pair.Value.Weight) {
 
@@ -651,23 +667,30 @@ public abstract class Polity : ISynchronizable {
 
 	public void AddProminencedGroup (CellGroup group) {
 	
-		ProminencedGroups.Add (group.Id, group);
+		ProminenceGroups.Add (group.Id, group);
 	}
 
 	public void RemoveProminencedGroup (CellGroup group) {
 
-		ProminencedGroups.Remove (group.Id);
+		ProminenceGroups.Remove (group.Id);
 	}
 
 	public virtual void Synchronize () {
 
 		Flags = new List<string> (_flags);
 
+		EventDataList.Clear ();
+
+		foreach (PolityEvent e in _events.Values) {
+
+			EventDataList.Add (e.GetData () as PolityEventData);
+		}
+
 		Culture.Synchronize ();
 
 		Territory.Synchronize ();
 
-		ProminencedGroupIds = new List<long> (ProminencedGroups.Keys);
+		ProminenceGroupIds = new List<long> (ProminenceGroups.Keys);
 
 		FactionIds = new List<long> (_factions.Count);
 
@@ -698,7 +721,7 @@ public abstract class Polity : ISynchronizable {
 			Debug.LogError (message);
 		}
 
-		foreach (long id in ProminencedGroupIds) {
+		foreach (long id in ProminenceGroupIds) {
 
 			CellGroup group = World.GetGroup (id);
 
@@ -707,7 +730,7 @@ public abstract class Polity : ISynchronizable {
 				Debug.LogError (message);
 			}
 
-			ProminencedGroups.Add (group.Id, group);
+			ProminenceGroups.Add (group.Id, group);
 		}
 
 		foreach (long factionId in FactionIds) {
@@ -742,66 +765,40 @@ public abstract class Polity : ISynchronizable {
 			}
 		}
 
+		GenerateEventsFromData ();
+
 		Flags.ForEach (f => _flags.Add (f));
 	}
 
-//	public virtual float CalculateCellMigrationValue (CellGroup sourceGroup, TerrainCell targetCell, float sourceValue)
-//	{
-//		if (sourceValue <= 0)
-//			return 0;
-//
-//		float sourceGroupTotalPolityProminenceValue = sourceGroup.TotalPolityProminenceValue;
-//
-//		CellGroup targetGroup = targetCell.Group;
-//
-//		if (targetGroup == null) {
-//			return sourceValue / sourceGroupTotalPolityProminenceValue;
-//		}
-//
-//		float targetGroupTotalPolityProminenceValue = targetGroup.TotalPolityProminenceValue;
-//
-//		if (sourceGroupTotalPolityProminenceValue <= 0) {
-//		
-//			throw new System.Exception ("sourceGroup.TotalPolityProminenceValue equal or less than 0: " + sourceGroupTotalPolityProminenceValue);
-//		}
-//
-//		float prominenceFactor = sourceValue / (targetGroupTotalPolityProminenceValue + sourceGroupTotalPolityProminenceValue);
-//
-//		prominenceFactor = MathUtility.RoundToSixDecimals (prominenceFactor);
-//
-////		#if DEBUG
-////		if (Manager.RegisterDebugEvent != null) {
-////			if (sourceGroup.Id == Manager.TracingData.GroupId) {
-////				if (Id == Manager.TracingData.PolityId) {
-////					if ((targetCell.Longitude == Manager.TracingData.Longitude) && (targetCell.Latitude == Manager.TracingData.Latitude)) {
-////						string sourceGroupId = "Id:" + sourceGroup.Id + "|Long:" + sourceGroup.Longitude + "|Lat:" + sourceGroup.Latitude;
-////						string targetLocation = "Long:" + targetCell.Longitude + "|Lat:" + targetCell.Latitude;
-////
-////						if (targetGroup != null) {
-////							targetLocation = "Id:" + targetGroup.Id + "|Long:" + targetGroup.Longitude + "|Lat:" + targetGroup.Latitude;
-////						}
-////
-////						SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-////							"MigrationValue - Group: " + sourceGroupId + 
-////							"Polity Id: " + Id,
-////							"CurrentDate: " + World.CurrentDate + 
-////							", targetLocation: " + targetLocation + 
-////							", sourceValue: " + sourceValue.ToString("F7") + 
-////							", socialOrgFactor: " + socialOrgFactor.ToString("F7") + 
-////							", groupTotalProminenceValue: " + groupTotalProminenceValue.ToString("F7") + 
-////							", sourceValueFactor: " + sourceValueFactor.ToString("F7") + 
-////							", prominenceFactor: " + prominenceFactor.ToString("F7") + 
-////							"");
-////
-////						Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-////					}
-////				}
-////			}
-////		}
-////		#endif
-//
-//		return Mathf.Clamp01 (prominenceFactor);
-//	}
+	protected abstract void GenerateEventsFromData ();
+
+	public void AddEvent (PolityEvent polityEvent) {
+
+		if (_events.ContainsKey (polityEvent.TypeId))
+			throw new System.Exception ("Event of type " + polityEvent.TypeId + " already present");
+
+		_events.Add (polityEvent.TypeId, polityEvent);
+		World.InsertEventToHappen (polityEvent);
+	}
+
+	public PolityEvent GetEvent (long typeId) {
+
+		if (!_events.ContainsKey (typeId))
+			return null;
+
+		return _events[typeId];
+	}
+
+	public void ResetEvent (long typeId, long newTriggerDate) {
+
+		if (!_events.ContainsKey (typeId))
+			throw new System.Exception ("Unable to find event of type: " + typeId);
+
+		PolityEvent polityEvent = _events [typeId];
+
+		polityEvent.Reset (newTriggerDate);
+		World.InsertEventToHappen (polityEvent);
+	}
 
 	public abstract float CalculateGroupProminenceExpansionValue (CellGroup sourceGroup, CellGroup targetGroup, float sourceValue);
 
@@ -916,31 +913,14 @@ public abstract class Polity : ISynchronizable {
 		}
 	}
 
-	public void UpdateTotalAdministrativeCost () {
-
-		TotalAdministrativeCost = 0;
-
-		foreach (CellGroup group in ProminencedGroups.Values) {
-
-			PolityProminence pi = group.GetPolityProminence (this);
-
-			TotalAdministrativeCost += pi.AdiministrativeCost;
-
-			if (TotalAdministrativeCost < 0) {
-				TotalAdministrativeCost = float.MaxValue;
-				break;
-			}
-		}
-	}
-
 	public CellGroup GetRandomGroup (int rngOffset, GroupValueCalculationDelegate calculateGroupValue, bool nullIfNoValidGroup = false) {
 
-		WeightedGroup[] weightedGroups = new WeightedGroup[ProminencedGroups.Count];
+		WeightedGroup[] weightedGroups = new WeightedGroup[ProminenceGroups.Count];
 
 		float totalWeight = 0;
 
 		int index = 0;
-		foreach (CellGroup group in ProminencedGroups.Values) {
+		foreach (CellGroup group in ProminenceGroups.Values) {
 
 			float weight = calculateGroupValue (group);
 
@@ -1002,6 +982,39 @@ public abstract class Polity : ISynchronizable {
 		return CollectionUtility.WeightedSelection (weightedFactions, totalWeight, () => GetNextLocalRandomFloat (rngOffset));
 	}
 
+	public PolityContact GetRandomPolityContact (int rngOffset, PolityContactValueCalculationDelegate calculateContactValue, bool nullIfNoValidContact = false) {
+
+		WeightedPolityContact[] weightedContact = new WeightedPolityContact[_contacts.Count];
+
+		float totalWeight = 0;
+
+		int index = 0;
+		foreach (PolityContact contact in _contacts.Values) {
+
+			float weight = calculateContactValue (contact);
+
+			if (weight < 0)
+				throw new System.Exception ("calculateContactValue method returned weight value less than zero: " + weight);
+
+			totalWeight += weight;
+
+			weightedContact [index] = new WeightedPolityContact (contact, weight);
+			index++;
+		}
+
+		if (totalWeight < 0) {
+
+			throw new System.Exception ("Total weight can't be less than zero: " + totalWeight);
+		}
+
+		if ((totalWeight == 0) && nullIfNoValidContact) {
+
+			return null;
+		}
+
+		return CollectionUtility.WeightedSelection (weightedContact, totalWeight, () => GetNextLocalRandomFloat (rngOffset));
+	}
+
 	protected abstract void GenerateName ();
 
 	public void SetFlag (string flag) {
@@ -1033,5 +1046,21 @@ public abstract class Polity : ISynchronizable {
 			return preference.Value; 
 
 		return 0;
+	}
+
+	public float CalculateContactStrength (Polity polity) {
+
+		if (!_contacts.ContainsKey (polity.Id)) {
+			return 0;
+		}
+
+		return CalculateContactStrength (_contacts [polity.Id]);
+	}
+
+	public float CalculateContactStrength (PolityContact contact) {
+
+		float countFactor = contact.GroupCount / (float)ProminenceGroups.Count;
+
+		return ProminenceArea * countFactor;
 	}
 }

@@ -1859,7 +1859,7 @@ public class CellGroup : HumanGroup {
 			return;
 		}
 
-		int groupCount = p.ProminencedGroups.Count;
+		int groupCount = p.ProminenceGroups.Count;
 
 		if (groupCount <= 0)
 			return;
@@ -2519,13 +2519,13 @@ public class CellGroup : HumanGroup {
 		}
 	}
 
-	private float CalculatePolityProminenceAdministrativeCost (PolityProminence pi) {
+	private float CalculateAdministrativeCost (PolityProminence pi) {
 
-		float prominencedPopulation = Population * pi.Value;
+		float polityPopulation = Population * pi.Value;
 
 		float distanceFactor = 500 + pi.FactionCoreDistance;
 
-		float cost = prominencedPopulation * distanceFactor * 0.001f;
+		float cost = polityPopulation * distanceFactor * 0.001f;
 
 		if (cost < 0)
 			return float.MaxValue;
@@ -2537,7 +2537,7 @@ public class CellGroup : HumanGroup {
 
 		foreach (PolityProminence pi in _polityProminences.Values) {
 
-			pi.AdiministrativeCost = CalculatePolityProminenceAdministrativeCost (pi);
+			pi.AdiministrativeCost = CalculateAdministrativeCost (pi);
 		}
 	}
 

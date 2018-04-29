@@ -16,7 +16,7 @@ public class ClanDemandsInfluenceDecisionEvent : FactionEvent {
 	public const int DominantClanMinAdministrativeLoad = 100000;
 	public const int DominantClanAdministrativeLoadSpan = DominantClanMaxAdministrativeLoad - DominantClanMinAdministrativeLoad;
 
-	public const float MaxAdministrativeLoadChanceFactor = 0.5f;
+	public const float DecisionChanceFactor = 0.5f;
 
 	private Clan _demandClan;
 	private Clan _dominantClan;
@@ -27,14 +27,6 @@ public class ClanDemandsInfluenceDecisionEvent : FactionEvent {
 	private float _chanceOfRejectingDemand;
 
 	public ClanDemandsInfluenceDecisionEvent () {
-
-		DoNotSerialize = true;
-	}
-
-	public ClanDemandsInfluenceDecisionEvent (Clan demandClan, long originalTribeId, long triggerDate) : base (demandClan, originalTribeId, triggerDate, ClanDemandsInfluenceDecisionEventId) {
-
-		_demandClan = demandClan;
-		_originalTribe = World.GetPolity (originalTribeId) as Tribe;
 
 		DoNotSerialize = true;
 	}
@@ -164,7 +156,7 @@ public class ClanDemandsInfluenceDecisionEvent : FactionEvent {
 		float influenceFactor = 2 * influenceDeltaValue;
 		influenceFactor = Mathf.Pow (influenceFactor, 4);
 
-		float factors = cohesionPrefFactor * authorityPrefFactor * relationshipFactor * influenceFactor * MaxAdministrativeLoadChanceFactor;
+		float factors = cohesionPrefFactor * authorityPrefFactor * relationshipFactor * influenceFactor * DecisionChanceFactor;
 
 		float modMinAdministrativeLoad = DominantClanMinAdministrativeLoad * factors;
 		float modMaxAdministrativeLoad = DominantClanMaxAdministrativeLoad * factors;
@@ -216,7 +208,7 @@ public class ClanDemandsInfluenceDecisionEvent : FactionEvent {
 		float influenceFactor = 2 * influenceDeltaValue;
 		influenceFactor = Mathf.Pow (influenceFactor, 4);
 
-		float factors = cohesionPrefFactor * authorityPrefFactor * relationshipFactor * influenceFactor * MaxAdministrativeLoadChanceFactor;
+		float factors = cohesionPrefFactor * authorityPrefFactor * relationshipFactor * influenceFactor * DecisionChanceFactor;
 
 		float modMinAdministrativeLoad = DemandClanMinAdministrativeLoad * factors;
 		float modMaxAdministrativeLoad = DemandClanMaxAdministrativeLoad * factors;
@@ -262,6 +254,7 @@ public class ClanDemandsInfluenceDecisionEvent : FactionEvent {
 		base.FinalizeLoad ();
 
 		_demandClan = Faction as Clan;
+		_originalTribe = OriginalPolity as Tribe;
 
 		_demandClan.AddEvent (this);
 	}

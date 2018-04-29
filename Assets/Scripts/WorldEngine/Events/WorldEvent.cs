@@ -31,6 +31,8 @@ public abstract class WorldEvent : ISynchronizable {
 	public const long RejectInfluenceDemandDecisionEventId = 17;
 	public const long AcceptInfluenceDemandDecisionEventId = 18;
 
+	public const long FosterTribeRelationDecisionEventId = 20;
+
 //	public static int EventCount = 0;
 
 	[XmlIgnore]

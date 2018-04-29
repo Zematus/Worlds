@@ -103,7 +103,7 @@ public class Tribe : Polity {
 
 	public override void InitializeInternal () {
 
-		AddBaseEvents ();
+		AddEvent (new FosterTribeRelationDecisionEvent (this, FosterTribeRelationDecisionEvent.CalculateTriggerDate (this)));
 	}
 
 	public static void GenerateTribeNounVariations () {
@@ -111,8 +111,18 @@ public class Tribe : Polity {
 		TribeNounVariations = NamingTools.GenerateNounVariations (TribeNounVariants);
 	}
 
-	private void AddBaseEvents () {
-		
+	protected override void GenerateEventsFromData () {
+
+		foreach (PolityEventData eData in EventDataList) {
+
+			switch (eData.TypeId) {
+			case WorldEvent.FosterTribeRelationDecisionEventId:
+				AddEvent (new FosterTribeRelationDecisionEvent (this, eData));
+				break;
+			default:
+				throw new System.Exception ("Unhandled polity event type id: " + eData.TypeId);
+			}
+		}
 	}
 
 	private void SwitchCellProminences (Polity sourcePolity, Clan triggerClan) {
@@ -132,7 +142,7 @@ public class Tribe : Polity {
 //		}
 //		#endif
 
-		int maxGroupCount = sourcePolity.ProminencedGroups.Count;
+		int maxGroupCount = sourcePolity.ProminenceGroups.Count;
 
 		Dictionary<CellGroup, float> groupDistances = new Dictionary<CellGroup, float> (maxGroupCount);
 

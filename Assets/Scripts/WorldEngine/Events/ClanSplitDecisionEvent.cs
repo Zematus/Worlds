@@ -29,13 +29,6 @@ public class ClanSplitDecisionEvent : FactionEvent {
 		DoNotSerialize = true;
 	}
 
-	public ClanSplitDecisionEvent (Clan clan, long originalTribeId, long triggerDate) : base (clan, originalTribeId, triggerDate, ClanSplitDecisionEventId) {
-
-		_clan = clan;
-
-		DoNotSerialize = true;
-	}
-
 	public ClanSplitDecisionEvent (Clan clan, FactionEventData data) : base (clan, data) {
 
 		_clan = clan;

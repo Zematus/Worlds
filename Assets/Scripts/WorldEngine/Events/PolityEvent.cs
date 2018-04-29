@@ -6,20 +6,38 @@ using System.Xml.Serialization;
 
 public abstract class PolityEvent : WorldEvent {
 
-	[XmlAttribute]
+	[XmlAttribute("PolId")]
 	public long PolityId;
+
+	[XmlAttribute("OFactId")]
+	public long OriginalDominantFactionId;
 
 	[XmlIgnore]
 	public Polity Polity;
 
+	[XmlIgnore]
+	public Faction OriginalDominantFaction;
+
 	public PolityEvent () {
 
+	}
+
+	public PolityEvent (Polity polity, PolityEventData data) : base (polity.World, data.TriggerDate, GenerateUniqueIdentifier (polity, data.TriggerDate, data.TypeId), data.TypeId) {
+
+		Polity = polity;
+		PolityId = Polity.Id;
+
+		OriginalDominantFactionId = data.OriginalDominantFactionId;
+		OriginalDominantFaction = World.GetFaction (OriginalDominantFactionId);
 	}
 
 	public PolityEvent (Polity polity, long triggerDate, long eventTypeId) : base (polity.World, triggerDate, GenerateUniqueIdentifier (polity, triggerDate, eventTypeId), eventTypeId) {
 
 		Polity = polity;
 		PolityId = Polity.Id;
+
+		OriginalDominantFactionId = polity.DominantFaction.Id;
+		OriginalDominantFaction = polity.DominantFaction;
 
 		//		#if DEBUG
 		//		if (Manager.RegisterDebugEvent != null) {
@@ -59,6 +77,7 @@ public abstract class PolityEvent : WorldEvent {
 		base.FinalizeLoad ();
 
 		Polity = World.GetPolity (PolityId);
+		OriginalDominantFaction = World.GetFaction (OriginalDominantFactionId);
 
 		if (Polity == null) {
 
@@ -68,6 +87,14 @@ public abstract class PolityEvent : WorldEvent {
 
 	public virtual void Reset (long newTriggerDate) {
 
+		OriginalDominantFaction = Polity.DominantFaction;
+		OriginalDominantFactionId = OriginalDominantFaction.Id;
+
 		Reset (newTriggerDate, GenerateUniqueIdentifier (Polity, newTriggerDate, TypeId));
+	}
+
+	public override WorldEventData GetData () {
+
+		return new PolityEventData (this);
 	}
 }

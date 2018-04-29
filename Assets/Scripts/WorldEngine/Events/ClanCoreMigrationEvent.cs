@@ -15,11 +15,6 @@ public class ClanCoreMigrationEvent : FactionEvent {
 		DoNotSerialize = true;
 	}
 
-	public ClanCoreMigrationEvent (Clan clan, long originalTribeId, long triggerDate) : base (clan, originalTribeId, triggerDate, ClanCoreMigrationEventId) {
-
-		DoNotSerialize = true;
-	}
-
 	public ClanCoreMigrationEvent (Clan clan, FactionEventData data) : base (clan, data) {
 
 		DoNotSerialize = true;

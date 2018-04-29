@@ -31,14 +31,6 @@ public class TribeSplitDecisionEvent : FactionEvent {
 		DoNotSerialize = true;
 	}
 
-	public TribeSplitDecisionEvent (Clan splitClan, long originalTribeId, long triggerDate) : base (splitClan, originalTribeId, triggerDate, TribeSplitDecisionEventId) {
-
-		_splitClan = splitClan;
-		_originalTribe = World.GetPolity (originalTribeId) as Tribe;
-
-		DoNotSerialize = true;
-	}
-
 	public TribeSplitDecisionEvent (Clan splitClan, FactionEventData data) : base (splitClan, data) {
 
 		_splitClan = splitClan;
