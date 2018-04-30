@@ -16,4 +16,35 @@ public static class StringUtility {
 
 		return output;
 	}
+
+	public static string ToBoldFormat (this string text) {
+	
+		return "<b>" + text + "</b>";
+	}
+
+	public static string FirstLetterToUpper (this string text) {
+
+		if (text.Length <= 1)
+			return text.ToUpper ();
+
+		return text [0].ToString ().ToUpper () + text.Substring (1);
+	}
+
+	public static string FirstLetterToLower (this string text) {
+
+		if (text.Length <= 1)
+			return text.ToLower ();
+
+		return text [0].ToString ().ToLower () + text.Substring (1);
+	}
+
+	public static string AddPossApos (this string text) {
+
+		char lastChar = text.ToLower () [text.Length - 1];
+
+		if ((lastChar == 's') || (lastChar == 'z'))
+			return text + "'";
+
+		return text + "'s";
+	}
 }

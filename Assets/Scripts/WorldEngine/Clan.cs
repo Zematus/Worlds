@@ -49,6 +49,16 @@ public class Clan : Faction {
 		AddEvent (new TribeSplitDecisionEvent (this, TribeSplitDecisionEvent.CalculateTriggerDate (this)));
 	}
 
+	public override string GetNameAndTypeString () {
+
+		return "clan " + Name.Text;
+	}
+
+	public override string GetNameAndTypeStringBold () {
+
+		return "clan " + Name.BoldText;
+	}
+
 	public CellGroup GetCoreGroupMigrationTarget () {
 
 		Direction migrationDirection = CoreGroup.GenerateCoreMigrationDirection ();

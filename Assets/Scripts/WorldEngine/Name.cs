@@ -126,7 +126,7 @@ public class Name : ISynchronizable {
 	}
 
 	public string BoldText {
-		get { return "<b>" + Value.Text + "</b>"; }
+		get { return Value.Text.ToBoldFormat (); }
 	}
 
 	public string Text {

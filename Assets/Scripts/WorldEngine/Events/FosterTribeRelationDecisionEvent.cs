@@ -26,7 +26,7 @@ public class FosterTribeRelationDecisionEvent : PolityEvent {
 	private Clan _originalSourceDominantClan;
 	private Clan _targetDominantClan;
 
-	private float _chanceOfTryingAttempt;
+	private float _chanceOfMakingAttempt;
 	private float _chanceOfRejectingAttempt;
 
 	public FosterTribeRelationDecisionEvent () {
@@ -107,9 +107,9 @@ public class FosterTribeRelationDecisionEvent : PolityEvent {
 
 		_chanceOfRejectingAttempt = CalculateChanceOfRejectingAttempt ();
 
-		_chanceOfTryingAttempt = CalculateChanceOfTryingAttempt ();
+		_chanceOfMakingAttempt = CalculateChanceOfMakingAttempt ();
 
-		if (_chanceOfTryingAttempt <= 0) {
+		if (_chanceOfMakingAttempt <= 0) {
 
 			return false;
 		}
@@ -150,7 +150,7 @@ public class FosterTribeRelationDecisionEvent : PolityEvent {
 		return Mathf.Clamp01 (chance);
 	}
 
-	public float CalculateChanceOfTryingAttempt () {
+	public float CalculateChanceOfMakingAttempt () {
 
 		float contactStrength = _sourceTribe.CalculateContactStrength (_targetTribe);
 
@@ -185,14 +185,14 @@ public class FosterTribeRelationDecisionEvent : PolityEvent {
 
 	public override void Trigger () {
 
-		bool performDemand = _targetTribe.GetNextLocalRandomFloat (RngOffsets.FOSTER_TRIBE_RELATION_EVENT_TRY_ATTEMPT) < _chanceOfTryingAttempt;
+		bool performDemand = _targetTribe.GetNextLocalRandomFloat (RngOffsets.FOSTER_TRIBE_RELATION_EVENT_MAKE_ATTEMPT) < _chanceOfMakingAttempt;
 
 		if (_sourceTribe.IsUnderPlayerFocus || _originalSourceDominantClan.IsUnderPlayerGuidance) {
 
-//			Decision fosterDecision;
-//
+			Decision fosterDecision;
+
 //			fosterDecision = new ClanDemandsInfluenceDecision (tribe, _targetTribe, _sourceTribe, performDemand, _chanceOfRejectingAttempt);
-//
+
 //			if (_originalSourceDominantClan.IsUnderPlayerGuidance) {
 //
 //				World.AddDecisionToResolve (fosterDecision);

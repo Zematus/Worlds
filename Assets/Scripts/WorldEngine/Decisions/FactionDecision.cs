@@ -31,7 +31,7 @@ public abstract class FactionDecision : Decision {
 		float minValChange = MathUtility.IncreaseByPercent (originalValue, modMinPercentChange);
 		float maxValChange = MathUtility.IncreaseByPercent (originalValue, modMaxPercentChange);
 
-		return faction.Type + " " + faction.Name.BoldText + ": " + preference.Name.ToLower () + " preference (" + originalValue.ToString ("0.00") + ") increases to: " + 
+		return faction.GetNameAndTypeStringBold ().FirstLetterToUpper () + ": " + preference.Name.ToLower () + " preference (" + originalValue.ToString ("0.00") + ") increases to: " + 
 			minValChange.ToString ("0.00") + " - " + maxValChange.ToString ("0.00");
 	}
 
@@ -52,7 +52,7 @@ public abstract class FactionDecision : Decision {
 		float minValChange = MathUtility.DecreaseByPercent (originalValue, modMinPercentChange);
 		float maxValChange = MathUtility.DecreaseByPercent (originalValue, modMaxPercentChange);
 
-		return faction.Type + " " + faction.Name.BoldText + ": " + preference.Name.ToLower () + " preference (" + originalValue.ToString ("0.00") + ") decreases to: " + 
+		return faction.GetNameAndTypeStringBold ().FirstLetterToUpper () + ": " + preference.Name.ToLower () + " preference (" + originalValue.ToString ("0.00") + ") decreases to: " + 
 			minValChange.ToString ("0.00") + " - " + maxValChange.ToString ("0.00");
 	}
 
@@ -72,7 +72,7 @@ public abstract class FactionDecision : Decision {
 		float minValChange = MathUtility.IncreaseByPercent (originalValue, modMinPercentChange);
 		float maxValChange = MathUtility.IncreaseByPercent (originalValue, modMaxPercentChange);
 
-		return faction.Type + " " + faction.Name.BoldText + ": relationship with " + targetFaction.Type + " " + targetFaction.Name.BoldText + " (" + originalValue.ToString ("0.00") + ") increases to: " + 
+		return faction.GetNameAndTypeStringBold ().FirstLetterToUpper () + ": relationship with " + targetFaction.GetNameAndTypeStringBold () + " (" + originalValue.ToString ("0.00") + ") increases to: " + 
 			minValChange.ToString ("0.00") + " - " + maxValChange.ToString ("0.00");
 	}
 
@@ -92,7 +92,7 @@ public abstract class FactionDecision : Decision {
 		float minValChange = MathUtility.DecreaseByPercent (originalValue, modMinPercentChange);
 		float maxValChange = MathUtility.DecreaseByPercent (originalValue, modMaxPercentChange);
 
-		return faction.Type + " " + faction.Name.BoldText + ": relationship with " + targetFaction.Type + " " + targetFaction.Name.BoldText + " (" + originalValue.ToString ("0.00") + ") decreases to: " + 
+		return faction.GetNameAndTypeStringBold ().FirstLetterToUpper () + ": relationship with " + targetFaction.GetNameAndTypeStringBold () + " (" + originalValue.ToString ("0.00") + ") decreases to: " + 
 			minValChange.ToString ("0.00") + " - " + maxValChange.ToString ("0.00");
 	}
 
@@ -118,30 +118,28 @@ public abstract class FactionDecision : Decision {
 		float minTargetValChange = oldTargetInfluenceValue + oldSourceInfluenceValue - minSourceValChange;
 		float maxTargetValChange = oldTargetInfluenceValue + oldSourceInfluenceValue - maxSourceValChange;
 
-		effectStringSourceFaction = sourceFaction.Type + " " + sourceFaction.Name.BoldText + ": influence within the " + polity.Name.BoldText + 
-			" " + polity.Type.ToLower () + " (" + oldSourceInfluenceValue.ToString ("P") + ") decreases to: " + minSourceValChange.ToString ("P") + " - " + maxSourceValChange.ToString ("P");
+		effectStringSourceFaction = sourceFaction.GetNameAndTypeStringBold ().FirstLetterToUpper () + ": influence within the " + polity.GetNameAndTypeStringBold () + 
+			" (" + oldSourceInfluenceValue.ToString ("P") + ") decreases to: " + minSourceValChange.ToString ("P") + " - " + maxSourceValChange.ToString ("P");
 
-		effectStringTargetFaction = targetFaction.Type + " " + targetFaction.Name.BoldText + ": influence within the " + polity.Name.BoldText + 
-			" " + polity.Type.ToLower () + " (" + oldTargetInfluenceValue.ToString ("P") + ") increases to: " + minTargetValChange.ToString ("P") + " - " + maxTargetValChange.ToString ("P");
+		effectStringTargetFaction = targetFaction.GetNameAndTypeStringBold ().FirstLetterToUpper () + ": influence within the " + polity.GetNameAndTypeStringBold () + 
+			" (" + oldTargetInfluenceValue.ToString ("P") + ") increases to: " + minTargetValChange.ToString ("P") + " - " + maxTargetValChange.ToString ("P");
 	}
 
 	protected static string GenerateResultEffectsString_IncreaseInfluence (Faction faction, Polity polity) {
 
-		return faction.Type + " " + faction.Name.BoldText + ": influence within the " + polity.Name.BoldText + 
-			" " + polity.Type.ToLower () + " increases to: " + faction.Influence.ToString ("P");
+		return faction.GetNameAndTypeStringBold ().FirstLetterToUpper () + ": influence within the " + polity.GetNameAndTypeStringBold () + " increases to: " + faction.Influence.ToString ("P");
 	}
 
 	protected static string GenerateResultEffectsString_DecreaseInfluence (Faction faction, Polity polity) {
 
-		return faction.Type + " " + faction.Name.BoldText + ": influence within the " + polity.Name.BoldText + 
-			" " + polity.Type.ToLower () + " decreases to: " + faction.Influence.ToString ("P");
+		return faction.GetNameAndTypeStringBold ().FirstLetterToUpper () + ": influence within the " + polity.GetNameAndTypeStringBold () + " decreases to: " + faction.Influence.ToString ("P");
 	}
 
 	protected static string GenerateResultEffectsString_IncreaseRelationship (Faction faction, Faction targetFaction) {
 
 		float value = faction.GetRelationshipValue (targetFaction);
 
-		return faction.Type + " " + faction.Name.BoldText + ": relationship with " + targetFaction.Type + " " + targetFaction.Name.BoldText + " increases to: " + 
+		return faction.GetNameAndTypeStringBold ().FirstLetterToUpper () + ": relationship with " + targetFaction.GetNameAndTypeStringBold () + " increases to: " + 
 			value.ToString ("0.00");
 	}
 
@@ -149,7 +147,7 @@ public abstract class FactionDecision : Decision {
 
 		float value = faction.GetRelationshipValue (targetFaction);
 
-		return faction.Type + " " + faction.Name.BoldText + ": relationship with " + targetFaction.Type + " " + targetFaction.Name.BoldText + " decreases to: " + 
+		return faction.GetNameAndTypeStringBold ().FirstLetterToUpper () + ": relationship with " + targetFaction.GetNameAndTypeStringBold () + " decreases to: " + 
 			value.ToString ("0.00");
 	}
 
@@ -157,7 +155,7 @@ public abstract class FactionDecision : Decision {
 
 		CulturalPreference preference = faction.Culture.GetPreference (preferenceId);
 
-		return faction.Type + " " + faction.Name.BoldText + ": " + preference.Name.ToLower () + " preference increases to: " + 
+		return faction.GetNameAndTypeStringBold ().FirstLetterToUpper () + ": " + preference.Name.ToLower () + " preference increases to: " + 
 			preference.Value.ToString ("0.00");
 	}
 
@@ -165,7 +163,7 @@ public abstract class FactionDecision : Decision {
 
 		CulturalPreference preference = faction.Culture.GetPreference (preferenceId);
 
-		return faction.Type + " " + faction.Name.BoldText + ": " + preference.Name.ToLower () + " preference decreases to: " + 
+		return faction.GetNameAndTypeStringBold ().FirstLetterToUpper () + ": " + preference.Name.ToLower () + " preference decreases to: " + 
 			preference.Value.ToString ("0.00");
 	}
 

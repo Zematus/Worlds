@@ -136,6 +136,20 @@ public abstract class Faction : ISynchronizable {
 	
 	}
 
+	public abstract string GetNameAndTypeString ();
+
+	public abstract string GetNameAndTypeStringBold ();
+
+	public string GetNameAndTypeWithPolityString () {
+	
+		return GetNameAndTypeString () + " of " + Polity.GetNameAndTypeString ();
+	}
+
+	public string GetNameAndTypeWithPolityStringBold () {
+
+		return GetNameAndTypeStringBold () + " of " + Polity.GetNameAndTypeStringBold ();
+	}
+
 	public void Destroy (bool polityBeingDestroyed = false) {
 
 		if (IsUnderPlayerGuidance) {

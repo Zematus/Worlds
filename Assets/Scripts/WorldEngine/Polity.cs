@@ -214,6 +214,10 @@ public abstract class Polity : ISynchronizable {
 		StillPresent = false;
 	}
 
+	public abstract string GetNameAndTypeString ();
+
+	public abstract string GetNameAndTypeStringBold ();
+
 	public void SetUnderPlayerFocus (bool state, bool setDominantFactionFocused = true) {
 	
 		IsUnderPlayerFocus = state;

@@ -106,6 +106,16 @@ public class Tribe : Polity {
 		AddEvent (new FosterTribeRelationDecisionEvent (this, FosterTribeRelationDecisionEvent.CalculateTriggerDate (this)));
 	}
 
+	public override string GetNameAndTypeString () {
+
+		return "the " + Name.Text + " tribe";
+	}
+
+	public override string GetNameAndTypeStringBold () {
+
+		return "the " + Name.BoldText + " tribe";
+	}
+
 	public static void GenerateTribeNounVariations () {
 
 		TribeNounVariations = NamingTools.GenerateNounVariations (TribeNounVariants);
