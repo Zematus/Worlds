@@ -76,16 +76,16 @@ public class ClanDemandsInfluenceDecision : FactionDecision {
 
 		World world = originalTribe.World;
 
-		bool rejectDemand = originalTribe.GetNextLocalRandomFloat (RngOffsets.CLAN_DEMANDS_INFLUENCE_EVENT_REJECT_DEMAND) < chanceOfRejecting;
+		bool acceptDemand = originalTribe.GetNextLocalRandomFloat (RngOffsets.CLAN_DEMANDS_INFLUENCE_EVENT_ACCEPT_DEMAND) > chanceOfRejecting;
 
 		if (originalTribe.IsUnderPlayerFocus || dominantClan.IsUnderPlayerGuidance) {
 
 			Decision dominantClanDecision;
 
-			if (chanceOfRejecting >= 1) {
+			if (chanceOfRejecting <= 0) {
 				dominantClanDecision = new DominantClanHandlesInfluenceDemandDecision (originalTribe, demandClan, dominantClan); // Player that controls dominant clan can't reject demand
 			} else {
-				dominantClanDecision = new DominantClanHandlesInfluenceDemandDecision (originalTribe, demandClan, dominantClan, rejectDemand); // Give player options
+				dominantClanDecision = new DominantClanHandlesInfluenceDemandDecision (originalTribe, demandClan, dominantClan, acceptDemand); // Give player options
 			}
 
 			if (dominantClan.IsUnderPlayerGuidance) {
@@ -97,13 +97,13 @@ public class ClanDemandsInfluenceDecision : FactionDecision {
 				dominantClanDecision.ExecutePreferredOption ();
 			}
 
-		} else if (rejectDemand) {
+		} else if (acceptDemand) {
 
-			DominantClanHandlesInfluenceDemandDecision.LeaderRejectsDemand (demandClan, dominantClan, originalTribe);
+			DominantClanHandlesInfluenceDemandDecision.LeaderAcceptsDemand (demandClan, dominantClan, originalTribe);
 
 		} else {
 
-			DominantClanHandlesInfluenceDemandDecision.LeaderAcceptsDemand (demandClan, dominantClan, originalTribe);
+			DominantClanHandlesInfluenceDemandDecision.LeaderRejectsDemand (demandClan, dominantClan, originalTribe);
 		}
 	}
 

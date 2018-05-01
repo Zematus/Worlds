@@ -22,21 +22,15 @@ public class FosterTribeRelationDecision : PolityDecision {
 	private Tribe _sourceTribe;
 	private Tribe _targetTribe;
 
-	private Clan _sourceDominantClan;
-	private Clan _targetDominantClan;
-
 	public FosterTribeRelationDecision (Tribe sourceTribe, Tribe targetTribe, bool makeAttempt, float chanceOfRejecting) : base (sourceTribe) {
 
 		_sourceTribe = sourceTribe;
 		_targetTribe = targetTribe;
 
-		_sourceDominantClan = sourceTribe.DominantFaction as Clan;
-		_targetDominantClan = targetTribe.DominantFaction as Clan;
-
 		_chanceOfRejecting = chanceOfRejecting;
 
-		Description = targetTribe.GetNameAndTypeStringBold ().FirstLetterToUpper () + " has had a long contact with our tribe, " + sourceTribe.Name.BoldText + 
-			", but our relationship with them is not very strong.\n\n" +
+		Description = targetTribe.GetNameAndTypeStringBold ().FirstLetterToUpper () + " has had a long contact with " + sourceTribe.GetNameAndTypeStringBold () + 
+			", but the relationship between them could be improved upon.\n\n" +
 			"Should " + sourceTribe.CurrentLeader.Name.BoldText + " attempt to foster our relationship with " + targetTribe.GetNameAndTypeStringBold () + "?";
 
 		_makeAttempt = makeAttempt;
@@ -55,88 +49,84 @@ public class FosterTribeRelationDecision : PolityDecision {
 		Effect_IncreasePreference (sourceTribe, CulturalPreference.IsolationPreferenceId, BaseMinPreferencePercentChange, BaseMaxPreferencePercentChange, rngOffset++);
 
 		Clan sourceDominantClan = sourceTribe.DominantFaction as Clan;
-//		Clan targetDominantClan = targetTribe.DominantFaction as Clan;
 
 		sourceDominantClan.SetToUpdate ();
-//		targetDominantClan.SetToUpdate ();
 
-//		sourceTribe.AddEventMessage (new DemandClanAvoidInfluenceDemandEventMessage (sourceTribe, targetTribe, tribe, sourceTribe.CurrentLeader, sourceTribe.World.CurrentDate));
+		sourceTribe.AddEventMessage (new AvoidFosterRelationshipEventMessage (sourceTribe, targetTribe, sourceTribe.CurrentLeader, sourceTribe.World.CurrentDate));
 	}
 
-	private void AvoidDemandingInfluence () {
+	private void AvoidFosteringRelationship () {
 
-//		LeaderAvoidsFosteringRelationship (_sourceTribe, _targetTribe, _sourceDominantClan);
+		LeaderAvoidsFosteringRelationship (_sourceTribe, _targetTribe);
 	}
 
-	private string GenerateDemandInfluenceResultEffectsString () {
+	private string GenerateAttemptFosterRelationshipResultEffectsString () {
 
 		return 
-			"\t• " + GenerateEffectsString_IncreasePreference (_sourceTribe, CulturalPreference.AuthorityPreferenceId, BaseMinPreferencePercentChange, BaseMaxPreferencePercentChange) + "\n" +
-			"\t• The current leader of clan " + _targetTribe.Name.BoldText + " will receive the demand for infuence from " + _sourceTribe.CurrentLeader.Name.BoldText;
+			"\t• " + GenerateEffectsString_DecreasePreference (_sourceTribe, CulturalPreference.IsolationPreferenceId, BaseMinPreferencePercentChange, BaseMaxPreferencePercentChange) + "\n" +
+			"\t• The current leader of " + _targetTribe.GetNameAndTypeStringBold () + " will receive an offer to foster the relationship with " + _sourceTribe.GetNameAndTypeStringBold ();
 	}
 
-	public static void LeaderDemandsInfluence_TriggerRejectDecision (Clan demandClan, Clan dominantClan, Tribe originalTribe, float chanceOfRejecting) {
+	public static void LeaderAttemptsFosterRelationship_TriggerRejectDecision (Tribe sourceTribe, Tribe targetTribe, float chanceOfRejecting) {
 
-		World world = originalTribe.World;
+		World world = sourceTribe.World;
 
-		bool rejectDemand = originalTribe.GetNextLocalRandomFloat (RngOffsets.CLAN_DEMANDS_INFLUENCE_EVENT_REJECT_DEMAND) < chanceOfRejecting;
+		bool acceptOffer = targetTribe.GetNextLocalRandomFloat (RngOffsets.FOSTER_TRIBE_RELATION_EVENT_TARGETTRIBE_LEADER_ACCEPT_OFFER) > chanceOfRejecting;
 
-		if (originalTribe.IsUnderPlayerFocus || dominantClan.IsUnderPlayerGuidance) {
+		Clan targetDominantClan = sourceTribe.DominantFaction as Clan;
 
-			Decision dominantClanDecision;
+		if (targetTribe.IsUnderPlayerFocus || targetDominantClan.IsUnderPlayerGuidance) {
 
-			if (chanceOfRejecting >= 1) {
-				dominantClanDecision = new DominantClanHandlesInfluenceDemandDecision (originalTribe, demandClan, dominantClan); // Player that controls dominant clan can't reject demand
-			} else {
-				dominantClanDecision = new DominantClanHandlesInfluenceDemandDecision (originalTribe, demandClan, dominantClan, rejectDemand); // Give player options
-			}
+			Decision handleOfferDecision;
 
-			if (dominantClan.IsUnderPlayerGuidance) {
+			handleOfferDecision = new HandleFosterTribeRelationAttemptDecision (sourceTribe, targetTribe, acceptOffer); // Give player options
 
-				world.AddDecisionToResolve (dominantClanDecision);
+			if (targetDominantClan.IsUnderPlayerGuidance) {
+
+				world.AddDecisionToResolve (handleOfferDecision);
 
 			} else {
 
-				dominantClanDecision.ExecutePreferredOption ();
+				handleOfferDecision.ExecutePreferredOption ();
 			}
 
-		} else if (rejectDemand) {
+		} else if (acceptOffer) {
 
-			DominantClanHandlesInfluenceDemandDecision.LeaderRejectsDemand (demandClan, dominantClan, originalTribe);
+			HandleFosterTribeRelationAttemptDecision.LeaderAcceptsOffer (sourceTribe, targetTribe);
 
 		} else {
 
-			DominantClanHandlesInfluenceDemandDecision.LeaderAcceptsDemand (demandClan, dominantClan, originalTribe);
+			HandleFosterTribeRelationAttemptDecision.LeaderRejectsOffer (sourceTribe, targetTribe);
 		}
 	}
 
-	public static void LeaderDemandsInfluence (Clan demandClan, Clan dominantClan, Tribe originalTribe, float chanceOfRejecting) {
+	public static void LeaderAttemptsFosterRelationship (Tribe sourceTribe, Tribe targetTribe, float chanceOfRejecting) {
 
 		int rngOffset = RngOffsets.CLAN_DEMANDS_INFLUENCE_EVENT_DEMANDCLAN_LEADER_DEMANDS_MODIFY_ATTRIBUTE;
 
-//		Effect_IncreasePreference (demandClan, CulturalPreference.AuthorityPreferenceId, BaseMinPreferencePercentChange, BaseMaxPreferencePercentChange, rngOffset++);
+		Effect_DecreasePreference (sourceTribe, CulturalPreference.IsolationPreferenceId, BaseMinPreferencePercentChange, BaseMaxPreferencePercentChange, rngOffset++);
 
-		LeaderDemandsInfluence_TriggerRejectDecision (demandClan, dominantClan, originalTribe, chanceOfRejecting);
+		LeaderAttemptsFosterRelationship_TriggerRejectDecision (sourceTribe, targetTribe, chanceOfRejecting);
 	}
 
-	private void DemandInfluence () {
+	private void AttemptToFosterRelationship () {
 
-//		LeaderDemandsInfluence (_sourceTribe, _targetTribe, _sourceDominantClan, _chanceOfRejecting);
+		LeaderAttemptsFosterRelationship (_sourceTribe, _targetTribe, _chanceOfRejecting);
 	}
 
 	public override Option[] GetOptions () {
 
 		return new Option[] {
-			new Option ("Demand more influence...", "Effects:\n" + GenerateDemandInfluenceResultEffectsString (), DemandInfluence),
-			new Option ("Avoid making any demands...", "Effects:\n" + GenerateAvoidFosteringRelationshipResultEffectsString (), AvoidDemandingInfluence)
+			new Option ("Attempt to foster relationship...", "Effects:\n" + GenerateAttemptFosterRelationshipResultEffectsString (), AttemptToFosterRelationship),
+			new Option ("Don't waste time with that...", "Effects:\n" + GenerateAvoidFosteringRelationshipResultEffectsString (), AvoidFosteringRelationship)
 		};
 	}
 
 	public override void ExecutePreferredOption ()
 	{
 		if (_makeAttempt)
-			DemandInfluence ();
+			AttemptToFosterRelationship ();
 		else
-			AvoidDemandingInfluence ();
+			AvoidFosteringRelationship ();
 	}
 }

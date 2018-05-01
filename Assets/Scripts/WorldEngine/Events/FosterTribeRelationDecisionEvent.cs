@@ -27,7 +27,7 @@ public class FosterTribeRelationDecisionEvent : PolityEvent {
 	private Clan _targetDominantClan;
 
 	private float _chanceOfMakingAttempt;
-	private float _chanceOfRejectingAttempt;
+	private float _chanceOfRejectingOffer;
 
 	public FosterTribeRelationDecisionEvent () {
 
@@ -105,7 +105,7 @@ public class FosterTribeRelationDecisionEvent : PolityEvent {
 		_originalSourceDominantClan.PreUpdate ();
 		_targetDominantClan.PreUpdate ();
 
-		_chanceOfRejectingAttempt = CalculateChanceOfRejectingAttempt ();
+		_chanceOfRejectingOffer = CalculateChanceOfRejectingAttempt ();
 
 		_chanceOfMakingAttempt = CalculateChanceOfMakingAttempt ();
 
@@ -185,30 +185,28 @@ public class FosterTribeRelationDecisionEvent : PolityEvent {
 
 	public override void Trigger () {
 
-		bool performDemand = _targetTribe.GetNextLocalRandomFloat (RngOffsets.FOSTER_TRIBE_RELATION_EVENT_MAKE_ATTEMPT) < _chanceOfMakingAttempt;
+		bool attemptFoster = _targetTribe.GetNextLocalRandomFloat (RngOffsets.FOSTER_TRIBE_RELATION_EVENT_MAKE_ATTEMPT) < _chanceOfMakingAttempt;
 
 		if (_sourceTribe.IsUnderPlayerFocus || _originalSourceDominantClan.IsUnderPlayerGuidance) {
 
-			Decision fosterDecision;
+			Decision fosterDecision = new FosterTribeRelationDecision (_targetTribe, _sourceTribe, attemptFoster, _chanceOfRejectingOffer);
 
-//			fosterDecision = new ClanDemandsInfluenceDecision (tribe, _targetTribe, _sourceTribe, performDemand, _chanceOfRejectingAttempt);
+			if (_originalSourceDominantClan.IsUnderPlayerGuidance) {
 
-//			if (_originalSourceDominantClan.IsUnderPlayerGuidance) {
-//
-//				World.AddDecisionToResolve (fosterDecision);
-//
-//			} else {
-//
-//				fosterDecision.ExecutePreferredOption ();
-//			}
+				World.AddDecisionToResolve (fosterDecision);
 
-		} else if (performDemand) {
+			} else {
 
-//			ClanDemandsInfluenceDecision.LeaderDemandsInfluence (_targetTribe, _sourceTribe, tribe, _chanceOfRejectingAttempt);
+				fosterDecision.ExecutePreferredOption ();
+			}
+
+		} else if (attemptFoster) {
+
+			FosterTribeRelationDecision.LeaderAttemptsFosterRelationship (_targetTribe, _sourceTribe, _chanceOfRejectingOffer);
 
 		} else {
 
-//			ClanDemandsInfluenceDecision.LeaderAvoidsDemandingInfluence (_targetTribe, _sourceTribe, tribe);
+			FosterTribeRelationDecision.LeaderAvoidsFosteringRelationship (_targetTribe, _sourceTribe);
 		}
 	}
 
