@@ -8,15 +8,7 @@ public class FosterTribeRelationDecisionEvent : PolityEvent {
 
 	public const long DateSpanFactorConstant = CellGroup.GenerationSpan * 5;
 
-	public const int SourceTribeMaxContactStrength = 1000;
-	public const int SourceTribeMinContactStrength = 10;
-	public const int SourceTribeContactStrengthSpan = SourceTribeMaxContactStrength - SourceTribeMinContactStrength;
-
-	public const int TargetTribeMaxContactStrength = 1000;
-	public const int TargetTribeMinContactStrength = 10;
-	public const int TargetTribeContactStrengthSpan = TargetTribeMaxContactStrength - TargetTribeMinContactStrength;
-
-	public const float DecisionChanceFactor = 0.5f;
+	public const float DecisionChanceFactor = 2f;
 
 	private PolityContact _targetContact;
 
@@ -105,19 +97,31 @@ public class FosterTribeRelationDecisionEvent : PolityEvent {
 		_originalSourceDominantClan.PreUpdate ();
 		_targetDominantClan.PreUpdate ();
 
-		_chanceOfRejectingOffer = CalculateChanceOfRejectingAttempt ();
-
 		_chanceOfMakingAttempt = CalculateChanceOfMakingAttempt ();
 
-		if (_chanceOfMakingAttempt <= 0) {
+		if (_chanceOfMakingAttempt <= 0.10f) {
 
 			return false;
 		}
 
+//		#if DEBUG
+//		if (_targetTribe.Id == 6993753500213400) {
+//			bool debug = true;
+//		}
+//		#endif
+
+//		#if DEBUG
+//		if (_sourceTribe.Id == 6993753500213400) {
+//			bool debug = true;
+//		}
+//		#endif
+
+		_chanceOfRejectingOffer = CalculateChanceOfRejectingOffer ();
+
 		return true;
 	}
 
-	public float CalculateChanceOfRejectingAttempt () {
+	public float CalculateChanceOfRejectingOffer () {
 
 		float contactStrength = _targetTribe.CalculateContactStrength (_sourceTribe);
 
@@ -129,23 +133,11 @@ public class FosterTribeRelationDecisionEvent : PolityEvent {
 		if (isolationPreferenceValue >= 1)
 			return 1;
 
-		float isolationPrefFactor = 2 * isolationPreferenceValue;
-		isolationPrefFactor = Mathf.Pow (isolationPrefFactor, 4);
-
 		float relationshipValue = _targetTribe.GetRelationshipValue (_sourceTribe);
 
 		if (relationshipValue <= 0)
 			return 1;
-
-		float relationshipFactor = 2 * (1 - relationshipValue);
-		relationshipFactor = Mathf.Pow (relationshipFactor, 4);
-
-		float factors = isolationPrefFactor * relationshipFactor * DecisionChanceFactor;
-
-		float modMinContactStrength = TargetTribeMinContactStrength * factors;
-		float modMaxContactStrength = TargetTribeMaxContactStrength * factors;
-
-		float chance = 1 - (contactStrength - modMinContactStrength) / (modMaxContactStrength - modMinContactStrength);
+		float chance = 1 - ((1- isolationPreferenceValue) * relationshipValue * contactStrength * DecisionChanceFactor);
 
 		return Mathf.Clamp01 (chance);
 	}
@@ -160,25 +152,14 @@ public class FosterTribeRelationDecisionEvent : PolityEvent {
 		float isolationPreferenceValue = _sourceTribe.GetPreferenceValue (CulturalPreference.IsolationPreferenceId);
 
 		if (isolationPreferenceValue >= 1)
-			return 1;
-
-		float isolationPrefFactor = 2 * isolationPreferenceValue;
-		isolationPrefFactor = Mathf.Pow (isolationPrefFactor, 4);
+			return 0;
 
 		float relationshipValue = _sourceTribe.GetRelationshipValue (_targetTribe);
 
 		if (relationshipValue <= 0)
-			return 1;
-
-		float relationshipFactor = 2 * (1 - relationshipValue);
-		relationshipFactor = Mathf.Pow (relationshipFactor, 4);
-
-		float factors = isolationPrefFactor * relationshipFactor * DecisionChanceFactor;
-
-		float modMinContactStrength = SourceTribeMinContactStrength * factors;
-		float modMaxContactStrength = SourceTribeMaxContactStrength * factors;
-
-		float chance = 1 - (contactStrength - modMinContactStrength) / (modMaxContactStrength - modMinContactStrength);
+			return 0;
+		
+		float chance = (1- isolationPreferenceValue) * relationshipValue * contactStrength * DecisionChanceFactor;
 
 		return Mathf.Clamp01 (chance);
 	}
@@ -228,7 +209,21 @@ public class FosterTribeRelationDecisionEvent : PolityEvent {
 
 			Tribe tribe = Polity as Tribe;
 
+//			#if DEBUG
+//			if (tribe.Id == 6993753500213400) {
+//				bool debug = true;
+//			}
+//			#endif
+
 			tribe.ResetEvent (WorldEvent.FosterTribeRelationDecisionEventId, CalculateTriggerDate (tribe));
 		}
+	}
+
+	public override void Reset (long newTriggerDate)
+	{
+		base.Reset (newTriggerDate);
+
+		_sourceTribe = Polity as Tribe;
+		_originalSourceDominantClan = Polity.DominantFaction as Clan;
 	}
 }

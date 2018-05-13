@@ -1063,8 +1063,16 @@ public abstract class Polity : ISynchronizable {
 
 	public float CalculateContactStrength (PolityContact contact) {
 
-		float countFactor = contact.GroupCount / (float)ProminenceGroups.Count;
+//		float contactProminenceArea = contact.Polity.ProminenceArea;
+		int contacGroupCount = contact.Polity.ProminenceGroups.Count;
 
-		return ProminenceArea * countFactor;
+//		float minProminenceArea = Mathf.Min(contactProminenceArea, ProminenceArea);
+//		float maxProminenceArea = Mathf.Max(contactProminenceArea, ProminenceArea);
+		float minGroupCount = Mathf.Min(contacGroupCount, ProminenceGroups.Count);
+
+		float countFactor = contact.GroupCount / minGroupCount;
+
+//		return countFactor * maxProminenceArea / minProminenceArea;
+		return countFactor;
 	}
 }

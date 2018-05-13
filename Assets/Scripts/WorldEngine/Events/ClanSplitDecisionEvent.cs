@@ -232,4 +232,11 @@ public class ClanSplitDecisionEvent : FactionEvent {
 			clan.ResetEvent (WorldEvent.ClanSplitDecisionEventId, CalculateTriggerDate (clan));
 		}
 	}
+
+	public override void Reset (long newTriggerDate)
+	{
+		base.Reset (newTriggerDate);
+
+		_clan = Faction as Clan;
+	}
 }

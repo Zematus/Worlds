@@ -270,4 +270,12 @@ public class ClanDemandsInfluenceDecisionEvent : FactionEvent {
 			clan.ResetEvent (WorldEvent.ClanDemandsInfluenceDecisionEventId, CalculateTriggerDate (clan));
 		}
 	}
+
+	public override void Reset (long newTriggerDate)
+	{
+		base.Reset (newTriggerDate);
+
+		_demandClan = Faction as Clan;
+		_originalTribe = OriginalPolity as Tribe;
+	}
 }

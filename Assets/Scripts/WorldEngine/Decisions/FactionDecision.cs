@@ -223,10 +223,10 @@ public abstract class FactionDecision : Decision {
 		attributesFactor = Mathf.Clamp (attributesFactor, 0.5f, 2f);
 
 		float randomFactor = faction.GetNextLocalRandomFloat (rngOffset++);
-		float authorityPreferencePercentChange = (maxPercentChange - minPercentChange) * randomFactor + minPercentChange;
-		authorityPreferencePercentChange *= attributesFactor;
+		float preferencePercentChange = (maxPercentChange - minPercentChange) * randomFactor + minPercentChange;
+		preferencePercentChange *= attributesFactor;
 
-		faction.IncreasePreferenceValue (preferenceId, authorityPreferencePercentChange);
+		faction.IncreasePreferenceValue (preferenceId, preferencePercentChange);
 	}
 
 	public static void Effect_DecreasePreference (Faction faction, string preferenceId, float minPercentChange, float maxPercentChange, int rngOffset) {
@@ -238,9 +238,9 @@ public abstract class FactionDecision : Decision {
 		attributesFactor = Mathf.Clamp (attributesFactor, 0.5f, 2f);
 
 		float randomFactor = faction.GetNextLocalRandomFloat (rngOffset++);
-		float authorityPreferencePercentChange = (maxPercentChange - minPercentChange) * randomFactor + minPercentChange;
-		authorityPreferencePercentChange /= attributesFactor;
+		float preferencePercentChange = (maxPercentChange - minPercentChange) * randomFactor + minPercentChange;
+		preferencePercentChange /= attributesFactor;
 
-		faction.DecreasePreferenceValue (preferenceId, authorityPreferencePercentChange);
+		faction.DecreasePreferenceValue (preferenceId, preferencePercentChange);
 	}
 }

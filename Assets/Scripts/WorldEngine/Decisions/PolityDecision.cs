@@ -199,12 +199,12 @@ public abstract class PolityDecision : Decision {
 		attributesFactor = Mathf.Clamp (attributesFactor, 0.5f, 2f);
 
 		float randomFactor = polity.GetNextLocalRandomFloat (rngOffset++);
-		float authorityPreferencePercentChange = (maxPercentChange - minPercentChange) * randomFactor + minPercentChange;
-		authorityPreferencePercentChange *= attributesFactor;
+		float preferencePercentChange = (maxPercentChange - minPercentChange) * randomFactor + minPercentChange;
+		preferencePercentChange *= attributesFactor;
 
 		Faction dominantFaction = polity.DominantFaction;
 
-		dominantFaction.IncreasePreferenceValue (preferenceId, authorityPreferencePercentChange);
+		dominantFaction.IncreasePreferenceValue (preferenceId, preferencePercentChange);
 	}
 
 	public static void Effect_DecreasePreference (Polity polity, string preferenceId, float minPercentChange, float maxPercentChange, int rngOffset) {
@@ -216,11 +216,11 @@ public abstract class PolityDecision : Decision {
 		attributesFactor = Mathf.Clamp (attributesFactor, 0.5f, 2f);
 
 		float randomFactor = polity.GetNextLocalRandomFloat (rngOffset++);
-		float authorityPreferencePercentChange = (maxPercentChange - minPercentChange) * randomFactor + minPercentChange;
-		authorityPreferencePercentChange /= attributesFactor;
+		float preferencePercentChange = (maxPercentChange - minPercentChange) * randomFactor + minPercentChange;
+		preferencePercentChange /= attributesFactor;
 
 		Faction dominantFaction = polity.DominantFaction;
 
-		dominantFaction.DecreasePreferenceValue (preferenceId, authorityPreferencePercentChange);
+		dominantFaction.DecreasePreferenceValue (preferenceId, preferencePercentChange);
 	}
 }
