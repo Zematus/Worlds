@@ -67,7 +67,7 @@ public class MergeTribesDecision : PolityDecision {
 		return 
 			"\t• " + GenerateEffectsString_DecreasePreference (_sourceTribe, CulturalPreference.IsolationPreferenceId, BaseMinPreferencePercentChange, BaseMaxPreferencePercentChange) + "\n" +
 			"\t• " + GenerateEffectsString_IncreasePreference (_sourceTribe, CulturalPreference.CohesionPreferenceId, BaseMinPreferencePercentChange, BaseMaxPreferencePercentChange) + "\n" +
-			"\t• The current leader of " + _targetTribe.GetNameAndTypeStringBold () + " will receive an offer to merge their tribe with " + _sourceTribe.GetNameAndTypeStringBold ();
+			"\t• The current leader of " + _targetTribe.GetNameAndTypeStringBold () + " will receive an offer to merge their tribe into " + _sourceTribe.GetNameAndTypeStringBold ();
 	}
 
 	public static void LeaderAttemptsMergeTribes_TriggerRejectDecision (Tribe sourceTribe, Tribe targetTribe, float chanceOfRejecting) {
@@ -109,7 +109,7 @@ public class MergeTribesDecision : PolityDecision {
 
 		Effect_DecreasePreference (sourceTribe, CulturalPreference.IsolationPreferenceId, BaseMinPreferencePercentChange, BaseMaxPreferencePercentChange, rngOffset++);
 
-		LeaderAttemptsFosterRelationship_TriggerRejectDecision (sourceTribe, targetTribe, chanceOfRejecting);
+		LeaderAttemptsMergeTribes_TriggerRejectDecision (sourceTribe, targetTribe, chanceOfRejecting);
 	}
 
 	private void AttemptToFosterRelationship () {
@@ -120,8 +120,8 @@ public class MergeTribesDecision : PolityDecision {
 	public override Option[] GetOptions () {
 
 		return new Option[] {
-			new Option ("Attempt to foster relationship...", "Effects:\n" + GenerateAttemptFosterRelationshipResultEffectsString (), AttemptToFosterRelationship),
-			new Option ("Don't waste time with that...", "Effects:\n" + GenerateAvoidMergeTribesAttemptResultEffectsString (), AvoidFosteringRelationship)
+			new Option ("Attempt to foster relationship...", "Effects:\n" + GenerateAttemptMergeTribesResultEffectsString (), AttemptToFosterRelationship),
+			new Option ("Don't waste time with that...", "Effects:\n" + GenerateAvoidMergeTribesAttemptResultEffectsString (), AvoidMergeTribesAttempt)
 		};
 	}
 
@@ -130,6 +130,6 @@ public class MergeTribesDecision : PolityDecision {
 		if (_makeAttempt)
 			AttemptToFosterRelationship ();
 		else
-			AvoidFosteringRelationship ();
+			AvoidMergeTribesAttempt ();
 	}
 }
