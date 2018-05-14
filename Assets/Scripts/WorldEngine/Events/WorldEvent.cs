@@ -36,6 +36,11 @@ public abstract class WorldEvent : ISynchronizable {
 	public const long RejectFosterTribeRelationDecisionEventId = 22;
 	public const long AcceptFosterTribeRelationDecisionEventId = 23;
 
+	public const long MergeTribesDecisionEventId = 25;
+	public const long AvoidMergeTribesAttemptDecisionEventId = 26;
+	public const long RejectMergeTribesOfferDecisionEventId = 27;
+	public const long AcceptMergeTribesOfferDecisionEventId = 28;
+
 //	public static int EventCount = 0;
 
 	[XmlIgnore]

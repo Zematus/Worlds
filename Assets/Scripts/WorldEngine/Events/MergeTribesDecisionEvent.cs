@@ -4,9 +4,9 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
-public class FosterTribeRelationDecisionEvent : PolityEvent {
+public class MergeTribesDecisionEvent : PolityEvent {
 
-	public const long DateSpanFactorConstant = CellGroup.GenerationSpan * 5;
+	public const long DateSpanFactorConstant = CellGroup.GenerationSpan * 25;
 
 	public const float DecisionChanceFactor = 2f;
 
@@ -21,12 +21,12 @@ public class FosterTribeRelationDecisionEvent : PolityEvent {
 	private float _chanceOfMakingAttempt;
 	private float _chanceOfRejectingOffer;
 
-	public FosterTribeRelationDecisionEvent () {
+	public MergeTribesDecisionEvent () {
 
 		DoNotSerialize = true;
 	}
 
-	public FosterTribeRelationDecisionEvent (Tribe sourceTribe, PolityEventData data) : base (sourceTribe, data) {
+	public MergeTribesDecisionEvent (Tribe sourceTribe, PolityEventData data) : base (sourceTribe, data) {
 
 		_sourceTribe = sourceTribe;
 		_originalSourceDominantClan = World.GetFaction (data.OriginalDominantFactionId) as Clan;
@@ -34,7 +34,7 @@ public class FosterTribeRelationDecisionEvent : PolityEvent {
 		DoNotSerialize = true;
 	}
 
-	public FosterTribeRelationDecisionEvent (Tribe sourceTribe, long triggerDate) : base (sourceTribe, triggerDate, FosterTribeRelationDecisionEventId) {
+	public MergeTribesDecisionEvent (Tribe sourceTribe, long triggerDate) : base (sourceTribe, triggerDate, MergeTribesDecisionEventId) {
 
 		_sourceTribe = sourceTribe;
 		_originalSourceDominantClan = sourceTribe.DominantFaction as Clan;
@@ -44,15 +44,20 @@ public class FosterTribeRelationDecisionEvent : PolityEvent {
 
 	public static long CalculateTriggerDate (Tribe tribe) {
 
-		float randomFactor = tribe.GetNextLocalRandomFloat (RngOffsets.FOSTER_TRIBE_RELATION_EVENT_CALCULATE_TRIGGER_DATE);
+		float randomFactor = tribe.GetNextLocalRandomFloat (RngOffsets.MERGE_TRIBES_EVENT_CALCULATE_TRIGGER_DATE);
 		randomFactor = Mathf.Pow (randomFactor, 2);
 
 		float isolationPreferenceValue = tribe.GetPreferenceValue (CulturalPreference.IsolationPreferenceId);
 
-		float isoloationPrefFactor = 2 * isolationPreferenceValue;
-		isoloationPrefFactor = Mathf.Pow (isoloationPrefFactor, 4);
+		float isolationPrefFactor = 2 * isolationPreferenceValue;
+		isolationPrefFactor = Mathf.Pow (isolationPrefFactor, 4);
 
-		float dateSpan = (1 - randomFactor) * DateSpanFactorConstant * isoloationPrefFactor;
+		float cohesionPreferenceValue = tribe.GetPreferenceValue (CulturalPreference.CohesionPreferenceId);
+
+		float cohesionPrefFactor = 2 * (1 - cohesionPreferenceValue);
+		cohesionPrefFactor = Mathf.Pow (cohesionPrefFactor, 4);
+
+		float dateSpan = (1 - randomFactor) * DateSpanFactorConstant * isolationPrefFactor * cohesionPrefFactor;
 
 		long triggerDateSpan = (long)dateSpan + CellGroup.GenerationSpan;
 
@@ -104,18 +109,6 @@ public class FosterTribeRelationDecisionEvent : PolityEvent {
 			return false;
 		}
 
-//		#if DEBUG
-//		if (_targetTribe.Id == 6993753500213400) {
-//			bool debug = true;
-//		}
-//		#endif
-
-//		#if DEBUG
-//		if (_sourceTribe.Id == 6993753500213400) {
-//			bool debug = true;
-//		}
-//		#endif
-
 		_chanceOfRejectingOffer = CalculateChanceOfRejectingOffer ();
 
 		return true;
@@ -133,12 +126,19 @@ public class FosterTribeRelationDecisionEvent : PolityEvent {
 		if (isolationPreferenceValue >= 1)
 			return 1;
 
+		float cohesionPreferenceValue = _sourceTribe.GetPreferenceValue (CulturalPreference.CohesionPreferenceId);
+
+		if (cohesionPreferenceValue <= 0)
+			return 1;
+
 		float relationshipValue = _targetTribe.GetRelationshipValue (_sourceTribe);
 
-		if (relationshipValue <= 0)
+		if (relationshipValue <= 0.5f)
 			return 1;
-		
-		float chance = 1 - ((1- isolationPreferenceValue) * relationshipValue * contactStrength * DecisionChanceFactor);
+
+		float modRelationshipValue = (relationshipValue - 0.5f) * 2;
+
+		float chance = 1 - ((1- isolationPreferenceValue) * cohesionPreferenceValue * modRelationshipValue * contactStrength * DecisionChanceFactor);
 
 		return Mathf.Clamp01 (chance);
 	}
@@ -155,31 +155,38 @@ public class FosterTribeRelationDecisionEvent : PolityEvent {
 		if (isolationPreferenceValue >= 1)
 			return 0;
 
+		float cohesionPreferenceValue = _sourceTribe.GetPreferenceValue (CulturalPreference.CohesionPreferenceId);
+
+		if (cohesionPreferenceValue <= 0)
+			return 0;
+
 		float relationshipValue = _sourceTribe.GetRelationshipValue (_targetTribe);
 
-		if (relationshipValue <= 0)
+		if (relationshipValue <= 0.5f)
 			return 0;
+
+		float modRelationshipValue = (relationshipValue - 0.5f) * 2;
 		
-		float chance = (1- isolationPreferenceValue) * relationshipValue * contactStrength * DecisionChanceFactor;
+		float chance = (1- isolationPreferenceValue) * cohesionPreferenceValue * modRelationshipValue * contactStrength * DecisionChanceFactor;
 
 		return Mathf.Clamp01 (chance);
 	}
 
 	public override void Trigger () {
 
-		bool attemptFoster = _targetTribe.GetNextLocalRandomFloat (RngOffsets.FOSTER_TRIBE_RELATION_EVENT_MAKE_ATTEMPT) < _chanceOfMakingAttempt;
+		bool attemptFoster = _targetTribe.GetNextLocalRandomFloat (RngOffsets.MERGE_TRIBES_EVENT_MAKE_ATTEMPT) < _chanceOfMakingAttempt;
 
 		if (_sourceTribe.IsUnderPlayerFocus || _originalSourceDominantClan.IsUnderPlayerGuidance) {
 
-			Decision fosterDecision = new FosterTribeRelationDecision (_targetTribe, _sourceTribe, attemptFoster, _chanceOfRejectingOffer);
+			Decision mergeDecision = new FosterTribeRelationDecision (_targetTribe, _sourceTribe, attemptFoster, _chanceOfRejectingOffer);
 
 			if (_originalSourceDominantClan.IsUnderPlayerGuidance) {
 
-				World.AddDecisionToResolve (fosterDecision);
+				World.AddDecisionToResolve (mergeDecision);
 
 			} else {
 
-				fosterDecision.ExecutePreferredOption ();
+				mergeDecision.ExecutePreferredOption ();
 			}
 
 		} else if (attemptFoster) {
