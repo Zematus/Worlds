@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
-public class AcceptedFosterRelationshipAttemptEventMessage : PolityEventMessage {
+public class AcceptedMergeTribesOfferEventMessage : PolityEventMessage {
 
 	[XmlAttribute]
 	public long AgentId;
@@ -15,11 +15,11 @@ public class AcceptedFosterRelationshipAttemptEventMessage : PolityEventMessage 
 	[XmlAttribute]
 	public long TargetTribeId;
 
-	public AcceptedFosterRelationshipAttemptEventMessage () {
+	public AcceptedMergeTribesOfferEventMessage () {
 
 	}
 
-	public AcceptedFosterRelationshipAttemptEventMessage (Tribe sourceTribe, Tribe targetTribe, Agent agent, long date) : base (sourceTribe, WorldEvent.AcceptFosterTribeRelationDecisionEventId, date) {
+	public AcceptedMergeTribesOfferEventMessage (Tribe sourceTribe, Tribe targetTribe, Agent agent, long date) : base (sourceTribe, WorldEvent.AcceptFosterTribeRelationDecisionEventId, date) {
 
 		sourceTribe.World.AddMemorableAgent (agent);
 
@@ -34,7 +34,7 @@ public class AcceptedFosterRelationshipAttemptEventMessage : PolityEventMessage 
 		Tribe sourceTribe = World.GetPolity (SourceTribeId) as Tribe;
 		Tribe targetTribe = World.GetPolity (TargetTribeId) as Tribe;
 
-		return leader.Name.BoldText + ", leader of " + targetTribe.GetNameAndTypeStringBold () + ", has accepted the offer from " + 
-			sourceTribe.GetNameAndTypeStringBold () + " to improve the relationship between the two tribes";
+		return leader.Name.BoldText + ", leader of " + targetTribe.GetNameAndTypeStringBold () + ", has accepted the has accepted the offer to merge " +
+			targetTribe.CurrentLeader.PossessiveNoun + " tribe into " + sourceTribe.GetNameAndTypeStringBold ();
 	}
 }

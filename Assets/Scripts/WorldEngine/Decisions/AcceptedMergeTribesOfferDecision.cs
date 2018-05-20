@@ -4,15 +4,15 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
-public class AcceptedFosterTribeRelationDecision : PolityDecision {
+public class AcceptedMergeTribesOfferDecision : PolityDecision {
 
 	private Tribe _sourceTribe;
 	private Tribe _targetTribe;
 
-	public AcceptedFosterTribeRelationDecision (Tribe sourceTribe, Tribe targetTribe) : base (sourceTribe) {
+	public AcceptedMergeTribesOfferDecision (Tribe sourceTribe, Tribe targetTribe) : base (sourceTribe) {
 
-		Description = "The leader of " + targetTribe.GetNameAndTypeStringBold () + ", " + targetTribe.CurrentLeader.Name.BoldText + ", has accepted the offer from " + sourceTribe.GetNameAndTypeStringBold () + 
-			" to improve the relationship between the tribes";
+		Description = "The leader of " + targetTribe.GetNameAndTypeStringBold () + ", " + targetTribe.CurrentLeader.Name.BoldText + ", has accepted the offer to merge " +
+			targetTribe.CurrentLeader.PossessiveNoun + " tribe into " + sourceTribe.GetNameAndTypeStringBold ();
 
 		_targetTribe = targetTribe;
 		_sourceTribe = sourceTribe;
@@ -22,7 +22,8 @@ public class AcceptedFosterTribeRelationDecision : PolityDecision {
 
 		return 
 			"\t• " + GenerateResultEffectsString_IncreaseRelationship (_targetTribe, _sourceTribe) + "\n" + 
-			"\t• " + GenerateResultEffectsString_DecreasePreference (_targetTribe, CulturalPreference.IsolationPreferenceId);
+			"\t• " + GenerateResultEffectsString_DecreasePreference (_targetTribe, CulturalPreference.IsolationPreferenceId) + "\n" + 
+			"\t• " + _targetTribe.GetNameAndTypeStringBold () + " has merged into " + _sourceTribe.GetNameAndTypeStringBold ();
 	}
 
 	public static void TargetTribeAcceptedOffer (Tribe sourceTribe, Tribe targetTribe) {
