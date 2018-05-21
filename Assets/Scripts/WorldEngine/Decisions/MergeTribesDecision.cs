@@ -82,7 +82,7 @@ public class MergeTribesDecision : PolityDecision {
 
 			Decision handleOfferDecision;
 
-			handleOfferDecision = new HandleFosterTribeRelationAttemptDecision (sourceTribe, targetTribe, acceptOffer); // Give player options
+			handleOfferDecision = new HandleMergeTribesOfferDecision (sourceTribe, targetTribe, acceptOffer); // Give player options
 
 			if (targetDominantClan.IsUnderPlayerGuidance) {
 
@@ -95,40 +95,40 @@ public class MergeTribesDecision : PolityDecision {
 
 		} else if (acceptOffer) {
 
-			HandleFosterTribeRelationAttemptDecision.LeaderAcceptsOffer (sourceTribe, targetTribe);
+			HandleMergeTribesOfferDecision.LeaderAcceptsOffer (sourceTribe, targetTribe);
 
 		} else {
 
-			HandleFosterTribeRelationAttemptDecision.LeaderRejectsOffer (sourceTribe, targetTribe);
+			HandleMergeTribesOfferDecision.LeaderRejectsOffer (sourceTribe, targetTribe);
 		}
 	}
 
-	public static void LeaderAttemptsFosterRelationship (Tribe sourceTribe, Tribe targetTribe, float chanceOfRejecting) {
+	public static void LeaderAttemptsMergeTribes (Tribe sourceTribe, Tribe targetTribe, float chanceOfRejecting) {
 
-		int rngOffset = RngOffsets.CLAN_DEMANDS_INFLUENCE_EVENT_DEMANDCLAN_LEADER_DEMANDS_MODIFY_ATTRIBUTE;
+		int rngOffset = RngOffsets.MERGE_TRIBES_EVENT_SOURCETRIBE_LEADER_MAKES_ATTEMPT_MODIFY_ATTRIBUTE;
 
 		Effect_DecreasePreference (sourceTribe, CulturalPreference.IsolationPreferenceId, BaseMinPreferencePercentChange, BaseMaxPreferencePercentChange, rngOffset++);
 
 		LeaderAttemptsMergeTribes_TriggerRejectDecision (sourceTribe, targetTribe, chanceOfRejecting);
 	}
 
-	private void AttemptToFosterRelationship () {
+	private void AttemptToMergeTribes () {
 
-		LeaderAttemptsFosterRelationship (_sourceTribe, _targetTribe, _chanceOfRejecting);
+		LeaderAttemptsMergeTribes (_sourceTribe, _targetTribe, _chanceOfRejecting);
 	}
 
 	public override Option[] GetOptions () {
 
 		return new Option[] {
-			new Option ("Attempt to foster relationship...", "Effects:\n" + GenerateAttemptMergeTribesResultEffectsString (), AttemptToFosterRelationship),
-			new Option ("Don't waste time with that...", "Effects:\n" + GenerateAvoidMergeTribesAttemptResultEffectsString (), AvoidMergeTribesAttempt)
+			new Option ("Attempt to merge tribes...", "Effects:\n" + GenerateAttemptMergeTribesResultEffectsString (), AttemptToMergeTribes),
+			new Option ("We better stay separated...", "Effects:\n" + GenerateAvoidMergeTribesAttemptResultEffectsString (), AvoidMergeTribesAttempt)
 		};
 	}
 
 	public override void ExecutePreferredOption ()
 	{
 		if (_makeAttempt)
-			AttemptToFosterRelationship ();
+			AttemptToMergeTribes ();
 		else
 			AvoidMergeTribesAttempt ();
 	}

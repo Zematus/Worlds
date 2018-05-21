@@ -74,7 +74,7 @@ public abstract class Polity : ISynchronizable {
 	public bool WillBeUpdated;
 
 	[XmlIgnore]
-	public Dictionary<long, CellGroup> ProminenceGroups = new Dictionary<long, CellGroup> ();
+	public Dictionary<long, CellGroup> ProminencedGroups = new Dictionary<long, CellGroup> ();
 
 	public List<PolityContact> Contacts = new List<PolityContact> ();
 
@@ -202,7 +202,7 @@ public abstract class Polity : ISynchronizable {
 			faction.Destroy (true);
 		}
 
-		foreach (CellGroup group in ProminenceGroups.Values) {
+		foreach (CellGroup group in ProminencedGroups.Values) {
 
 			group.RemovePolityProminence (this);
 
@@ -572,7 +572,7 @@ public abstract class Polity : ISynchronizable {
 
 		WillBeUpdated = false;
 
-		if (ProminenceGroups.Count <= 0) {
+		if (ProminencedGroups.Count <= 0) {
 
 			#if DEBUG
 			Debug.Log ("Polity will be removed due to losing all prominenced groups. polity id:" + Id);
@@ -627,7 +627,7 @@ public abstract class Polity : ISynchronizable {
 
 		_polityPopPerGroup.Clear ();
 	
-		foreach (CellGroup group in ProminenceGroups.Values) {
+		foreach (CellGroup group in ProminencedGroups.Values) {
 
 			PolityProminence pi = group.GetPolityProminence (this);
 
@@ -671,12 +671,12 @@ public abstract class Polity : ISynchronizable {
 
 	public void AddProminencedGroup (CellGroup group) {
 	
-		ProminenceGroups.Add (group.Id, group);
+		ProminencedGroups.Add (group.Id, group);
 	}
 
 	public void RemoveProminencedGroup (CellGroup group) {
 
-		ProminenceGroups.Remove (group.Id);
+		ProminencedGroups.Remove (group.Id);
 	}
 
 	public virtual void Synchronize () {
@@ -694,7 +694,7 @@ public abstract class Polity : ISynchronizable {
 
 		Territory.Synchronize ();
 
-		ProminenceGroupIds = new List<long> (ProminenceGroups.Keys);
+		ProminenceGroupIds = new List<long> (ProminencedGroups.Keys);
 
 		FactionIds = new List<long> (_factions.Count);
 
@@ -734,7 +734,7 @@ public abstract class Polity : ISynchronizable {
 				Debug.LogError (message);
 			}
 
-			ProminenceGroups.Add (group.Id, group);
+			ProminencedGroups.Add (group.Id, group);
 		}
 
 		foreach (long factionId in FactionIds) {
@@ -919,12 +919,12 @@ public abstract class Polity : ISynchronizable {
 
 	public CellGroup GetRandomGroup (int rngOffset, GroupValueCalculationDelegate calculateGroupValue, bool nullIfNoValidGroup = false) {
 
-		WeightedGroup[] weightedGroups = new WeightedGroup[ProminenceGroups.Count];
+		WeightedGroup[] weightedGroups = new WeightedGroup[ProminencedGroups.Count];
 
 		float totalWeight = 0;
 
 		int index = 0;
-		foreach (CellGroup group in ProminenceGroups.Values) {
+		foreach (CellGroup group in ProminencedGroups.Values) {
 
 			float weight = calculateGroupValue (group);
 
@@ -1063,12 +1063,47 @@ public abstract class Polity : ISynchronizable {
 
 	public float CalculateContactStrength (PolityContact contact) {
 
-		int contacGroupCount = contact.Polity.ProminenceGroups.Count;
+		int contacGroupCount = contact.Polity.ProminencedGroups.Count;
 
-		float minGroupCount = Mathf.Min(contacGroupCount, ProminenceGroups.Count);
+		float minGroupCount = Mathf.Min(contacGroupCount, ProminencedGroups.Count);
 
 		float countFactor = contact.GroupCount / minGroupCount;
 
 		return countFactor;
+	}
+
+	public void MergePolity (Polity polity) {
+		
+		World.AddPolityToRemove (polity);
+		World.AddPolityToUpdate (this);
+
+		float polPopulation = Mathf.Floor (polity.TotalPopulation);
+
+		if (polPopulation <= 0) {
+
+			return;
+		}
+
+		float localPopulation = Mathf.Floor (TotalPopulation);
+
+		float populationFactor = polPopulation / localPopulation;
+	
+		foreach (Faction faction in polity.GetFactions ()) {
+		
+			faction.ChangePolity (this, faction.Influence * populationFactor);
+
+			faction.SetToUpdate ();
+		}
+
+		foreach (CellGroup group in polity.ProminencedGroups.Values) {
+		
+			float ppValue = group.GetPolityProminenceValue (polity);
+			float localPpValue = group.GetPolityProminenceValue (this);
+
+			group.SetPolityProminence (polity, 0);
+			group.SetPolityProminence (this, localPpValue + ppValue);
+
+			World.AddGroupToUpdate (group);
+		}
 	}
 }

@@ -1859,7 +1859,7 @@ public class CellGroup : HumanGroup {
 			return;
 		}
 
-		int groupCount = p.ProminenceGroups.Count;
+		int groupCount = p.ProminencedGroups.Count;
 
 		if (groupCount <= 0)
 			return;

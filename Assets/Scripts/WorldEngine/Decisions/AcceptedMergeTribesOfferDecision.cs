@@ -31,7 +31,7 @@ public class AcceptedMergeTribesOfferDecision : PolityDecision {
 		sourceTribe.DominantFaction.SetToUpdate ();
 		targetTribe.DominantFaction.SetToUpdate ();
 
-		WorldEventMessage message = new AcceptedFosterRelationshipAttemptEventMessage (sourceTribe, targetTribe, targetTribe.CurrentLeader, sourceTribe.World.CurrentDate);
+		WorldEventMessage message = new AcceptedMergeTribesOfferEventMessage (sourceTribe, targetTribe, targetTribe.CurrentLeader, sourceTribe.World.CurrentDate);
 
 		sourceTribe.AddEventMessage (message);
 		targetTribe.AddEventMessage (message);

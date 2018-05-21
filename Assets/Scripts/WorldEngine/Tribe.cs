@@ -104,6 +104,7 @@ public class Tribe : Polity {
 	public override void InitializeInternal () {
 
 		AddEvent (new FosterTribeRelationDecisionEvent (this, FosterTribeRelationDecisionEvent.CalculateTriggerDate (this)));
+		AddEvent (new MergeTribesDecisionEvent (this, MergeTribesDecisionEvent.CalculateTriggerDate (this)));
 	}
 
 	public override string GetNameAndTypeString () {
@@ -129,6 +130,9 @@ public class Tribe : Polity {
 			case WorldEvent.FosterTribeRelationDecisionEventId:
 				AddEvent (new FosterTribeRelationDecisionEvent (this, eData));
 				break;
+			case WorldEvent.MergeTribesDecisionEventId:
+				AddEvent (new MergeTribesDecisionEvent (this, eData));
+				break;
 			default:
 				throw new System.Exception ("Unhandled polity event type id: " + eData.TypeId);
 			}
@@ -152,7 +156,7 @@ public class Tribe : Polity {
 //		}
 //		#endif
 
-		int maxGroupCount = sourcePolity.ProminenceGroups.Count;
+		int maxGroupCount = sourcePolity.ProminencedGroups.Count;
 
 		Dictionary<CellGroup, float> groupDistances = new Dictionary<CellGroup, float> (maxGroupCount);
 
