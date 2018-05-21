@@ -8,7 +8,7 @@ public class MergeTribesDecisionEvent : PolityEvent {
 
 	public const long DateSpanFactorConstant = CellGroup.GenerationSpan * 25;
 
-	public const float DecisionChanceFactor = 2f;
+	public const float DecisionChanceFactor = 3f;
 
 	private PolityContact _targetContact;
 

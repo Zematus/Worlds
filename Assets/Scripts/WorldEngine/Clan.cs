@@ -331,8 +331,6 @@ public class Clan : Faction {
 
 		Influence -= splitFactionInfluence;
 
-
-
 		float polityProminenceValue = _splitFactionCoreGroup.GetPolityProminenceValue (Polity);
 		PolityProminence highestPolityProminence = _splitFactionCoreGroup.HighestPolityProminence;
 

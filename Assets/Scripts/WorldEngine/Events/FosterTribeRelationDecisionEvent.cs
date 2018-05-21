@@ -8,7 +8,7 @@ public class FosterTribeRelationDecisionEvent : PolityEvent {
 
 	public const long DateSpanFactorConstant = CellGroup.GenerationSpan * 5;
 
-	public const float DecisionChanceFactor = 2f;
+	public const float DecisionChanceFactor = 4f;
 
 	private PolityContact _targetContact;
 

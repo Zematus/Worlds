@@ -2199,8 +2199,12 @@ public class CellGroup : HumanGroup {
 		foragingCapacity = modifiedForagingCapacity * (1 - cell.FarmlandPercentage);
 		survivability = modifiedSurvivability * altitudeSurvivabilityFactor;
 
+		if (foragingCapacity > 1) {
+			throw new System.Exception ("ForagingCapacity greater than 1: " + foragingCapacity);
+		}
+
 		if (survivability > 1) {
-			throw new System.Exception ("Modified survivability greater than 1: " + survivability);
+			throw new System.Exception ("Survivability greater than 1: " + survivability);
 		}
 
 //		#if DEBUG

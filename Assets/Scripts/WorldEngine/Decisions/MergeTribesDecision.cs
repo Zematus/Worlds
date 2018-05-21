@@ -6,14 +6,14 @@ using System.Xml.Serialization;
 
 public class MergeTribesDecision : PolityDecision {
 
-	public const float BaseMinPreferencePercentChange = 0.15f;
-	public const float BaseMaxPreferencePercentChange = 0.30f;
+	public const float BaseMinPreferencePercentChange = 0.05f;
+	public const float BaseMaxPreferencePercentChange = 0.15f;
 
 	public const float BaseMinRelationshipPercentChange = 0.05f;
 	public const float BaseMaxRelationshipPercentChange = 0.15f;
 
-	public const float BaseMinInfluencePercentChange = 0.05f;
-	public const float BaseMaxInfluencePercentChange = 0.15f;
+//	public const float BaseMinInfluencePercentChange = 0.05f;
+//	public const float BaseMaxInfluencePercentChange = 0.15f;
 
 	private bool _makeAttempt = true;
 
