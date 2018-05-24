@@ -8,11 +8,11 @@ public class TribeSplitDecisionEvent : FactionEvent {
 
 	public const long DateSpanFactorConstant = CellGroup.GenerationSpan * 20;
 
-	public const int SplitClanMaxAdministrativeLoad = 500000;
-	public const int SplitClanMinAdministrativeLoad = 100000;
+	public const int SplitClanMaxAdministrativeLoad = 400000;
+	public const int SplitClanMinAdministrativeLoad = 40000;
 
-	public const int TribeMaxAdministrativeLoad = 500000;
-	public const int TribeMinAdministrativeLoad = 100000;
+	public const int TribeMaxAdministrativeLoad = 400000;
+	public const int TribeMinAdministrativeLoad = 40000;
 
 	public const float MaxAdministrativeLoadChanceFactor = 0.05f;
 
@@ -112,11 +112,6 @@ public class TribeSplitDecisionEvent : FactionEvent {
 
 		float influence = _splitClan.Influence;
 
-//		if (influence < MinInfluenceTrigger) {
-//
-//			return false;
-//		}
-
 		float polityCoreDistance = (polityProminence.PolityCoreDistance * influence) - MinCoreDistance;
 
 		if (polityCoreDistance <= 0)
@@ -124,17 +119,18 @@ public class TribeSplitDecisionEvent : FactionEvent {
 
 		_tribeChanceOfSplitting = CalculateChanceOfSplittingForTribe ();
 
-//		if (_tribeChanceOfSplitting <= 0) {
-//
-//			return false;
-//		}
-
 		_splitClanChanceOfSplitting = CalculateChanceOfSplittingForSplitClan ();
 
-		if (_splitClan.IsUnderPlayerGuidance && _splitClanChanceOfSplitting < 0.5f) {
-		
-			return false;
+		#if DEBUG
+		if (OriginalPolity.Id == 6993753500213400) {
+			bool debug = true;
 		}
+		#endif
+
+//		if (_splitClan.IsUnderPlayerGuidance && _splitClanChanceOfSplitting < 0.5f) {
+//		
+//			return false;
+//		}
 
 		if (_splitClanChanceOfSplitting <= 0) {
 

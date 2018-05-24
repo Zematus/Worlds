@@ -12,8 +12,8 @@ public class ClanSplitDecisionEvent : FactionEvent {
 	public const float MinCoreDistance = 1000f;
 	public const float MinCoreProminenceValue = 0.5f;
 
-	public const int MaxAdministrativeLoad = 500000;
-	public const int MinAdministrativeLoad = 100000;
+	public const int MaxAdministrativeLoad = 400000;
+	public const int MinAdministrativeLoad = 80000;
 	public const int AdministrativeLoadSpan = MaxAdministrativeLoad - MinAdministrativeLoad;
 
 	public const float MaxAdministrativeLoadChanceFactor = 0.05f;

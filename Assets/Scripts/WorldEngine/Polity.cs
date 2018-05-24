@@ -893,10 +893,6 @@ public abstract class Polity : ISynchronizable {
 				modifiedForagingCapacity += biomePresence * biome.ForagingCapacity * skill.Value;
 				modifiedSurvivability += biomePresence * (biome.Survivability + skill.Value * (1 - biome.Survivability));
 
-				if (skill.Value > 1) {
-					throw new System.Exception ("skill.Value greater than 1: " + skill.Value);
-				}
-
 //				Profiler.EndSample ();
 
 			} else {
