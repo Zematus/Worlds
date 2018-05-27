@@ -69,11 +69,17 @@ public class FosterTribeRelationDecision : PolityDecision {
 
 	public static void LeaderAttemptsFosterRelationship_TriggerRejectDecision (Tribe sourceTribe, Tribe targetTribe, float chanceOfRejecting) {
 
+		#if DEBUG
+		if (targetTribe.Id == 6993753500213400) {
+			bool debug = true;
+		}
+		#endif
+
 		World world = sourceTribe.World;
 
 		bool acceptOffer = targetTribe.GetNextLocalRandomFloat (RngOffsets.FOSTER_TRIBE_RELATION_EVENT_TARGETTRIBE_LEADER_ACCEPT_OFFER) > chanceOfRejecting;
 
-		Clan targetDominantClan = sourceTribe.DominantFaction as Clan;
+		Clan targetDominantClan = targetTribe.DominantFaction as Clan;
 
 		if (targetTribe.IsUnderPlayerFocus || targetDominantClan.IsUnderPlayerGuidance) {
 

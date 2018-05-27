@@ -76,7 +76,7 @@ public class MergeTribesDecision : PolityDecision {
 
 		bool acceptOffer = targetTribe.GetNextLocalRandomFloat (RngOffsets.MERGE_TRIBES_EVENT_TARGETTRIBE_LEADER_ACCEPT_OFFER) > chanceOfRejecting;
 
-		Clan targetDominantClan = sourceTribe.DominantFaction as Clan;
+		Clan targetDominantClan = targetTribe.DominantFaction as Clan;
 
 		if (targetTribe.IsUnderPlayerFocus || targetDominantClan.IsUnderPlayerGuidance) {
 

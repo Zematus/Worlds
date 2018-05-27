@@ -178,7 +178,7 @@ public class MergeTribesDecisionEvent : PolityEvent {
 
 		if (_sourceTribe.IsUnderPlayerFocus || _originalSourceDominantClan.IsUnderPlayerGuidance) {
 
-			Decision mergeDecision = new MergeTribesDecision (_targetTribe, _sourceTribe, attemptFoster, _chanceOfRejectingOffer);
+			Decision mergeDecision = new MergeTribesDecision (_sourceTribe, _targetTribe, attemptFoster, _chanceOfRejectingOffer);
 
 			if (_originalSourceDominantClan.IsUnderPlayerGuidance) {
 
@@ -191,11 +191,11 @@ public class MergeTribesDecisionEvent : PolityEvent {
 
 		} else if (attemptFoster) {
 
-			MergeTribesDecision.LeaderAttemptsMergeTribes (_targetTribe, _sourceTribe, _chanceOfRejectingOffer);
+			MergeTribesDecision.LeaderAttemptsMergeTribes (_sourceTribe, _targetTribe, _chanceOfRejectingOffer);
 
 		} else {
 
-			MergeTribesDecision.LeaderAvoidsMergeTribesAttempt (_targetTribe, _sourceTribe);
+			MergeTribesDecision.LeaderAvoidsMergeTribesAttempt (_sourceTribe, _targetTribe);
 		}
 	}
 
