@@ -118,6 +118,11 @@ public class FosterTribeRelationDecisionEvent : PolityEvent {
 
 		_chanceOfRejectingOffer = CalculateChanceOfRejectingOffer ();
 
+		if (_chanceOfRejectingOffer >= 1.0f) {
+
+			return false;
+		}
+
 		return true;
 	}
 

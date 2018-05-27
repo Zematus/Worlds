@@ -259,6 +259,14 @@ public abstract class Polity : ISynchronizable {
 
 	public void AddFaction (Faction faction) {
 
+		foreach (Faction existingFaction in _factions.Values) {
+
+			if (!existingFaction.HasRelationship (faction)) {
+			
+				Faction.SetRelationship (existingFaction, faction, 0.5f);
+			}
+		}
+
 		_factions.Add (faction.Id, faction);
 
 		if (!World.ContainsFaction (faction.Id)) {

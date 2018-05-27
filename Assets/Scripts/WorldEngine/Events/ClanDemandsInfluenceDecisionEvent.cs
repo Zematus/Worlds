@@ -104,6 +104,11 @@ public class ClanDemandsInfluenceDecisionEvent : FactionEvent {
 
 		_chanceOfRejectingDemand = CalculateChanceOfRefusingDemand ();
 
+		if (_chanceOfRejectingDemand >= 1) {
+
+			return false;
+		}
+
 		_chanceOfMakingDemand = CalculateChanceOfMakingDemand ();
 
 		if (_chanceOfMakingDemand <= 0) {

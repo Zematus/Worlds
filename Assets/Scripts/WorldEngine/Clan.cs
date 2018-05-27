@@ -363,20 +363,20 @@ public class Clan : Faction {
 
 		SetRelationship (this, newClan, relationshipValue);
 
-		// set relationship with rest of factions in polity
-
-		float avgNewClanRelationshipValue = AvgClanSplitRelationshipValue + (newClan.CurrentLeader.Charisma - 10) / ClanSplitRelationshipValueCharismaFactor;
-
-		foreach (Faction faction in parentTribe.GetFactions (true)) {
-
-			if (faction == this)
-				continue;
-
-			randomValue = GetNextLocalRandomFloat (randomOffset++);
-			relationshipValue = avgNewClanRelationshipValue + (ClanSplitRelationshipValueSpread * (2f * randomValue - 1f));
-
-			SetRelationship (faction, newClan, relationshipValue);
-		}
+//		// set relationship with rest of factions in polity
+//
+//		float avgNewClanRelationshipValue = AvgClanSplitRelationshipValue + (newClan.CurrentLeader.Charisma - 10) / ClanSplitRelationshipValueCharismaFactor;
+//
+//		foreach (Faction faction in parentTribe.GetFactions (true)) {
+//
+//			if (faction == this)
+//				continue;
+//
+//			randomValue = GetNextLocalRandomFloat (randomOffset++);
+//			relationshipValue = avgNewClanRelationshipValue + (ClanSplitRelationshipValueSpread * (2f * randomValue - 1f));
+//
+//			SetRelationship (faction, newClan, relationshipValue);
+//		}
 
 		// finalize
 

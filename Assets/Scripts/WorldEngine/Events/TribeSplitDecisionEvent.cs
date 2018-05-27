@@ -130,7 +130,12 @@ public class TribeSplitDecisionEvent : FactionEvent {
 //		if (_splitClan.IsUnderPlayerGuidance && _splitClanChanceOfSplitting < 0.5f) {
 //		
 //			return false;
-//		}
+		//		}
+
+		if (_tribeChanceOfSplitting <= 0) {
+
+			return false;
+		}
 
 		if (_splitClanChanceOfSplitting <= 0) {
 
