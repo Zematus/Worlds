@@ -126,13 +126,13 @@ public class ClanDemandsInfluenceDecisionEvent : FactionEvent {
 		if (administrativeLoad == Mathf.Infinity)
 			return 0;
 
-		float cohesionPreferenceValue = _dominantClan.GetPreferenceValue (CulturalPreference.CohesionPreferenceId);
-
-		if (cohesionPreferenceValue <= 0)
-			return 0;
-
-		float cohesionPrefFactor = 2 * cohesionPreferenceValue;
-		cohesionPrefFactor = Mathf.Pow (cohesionPrefFactor, 4);
+//		float cohesionPreferenceValue = _dominantClan.GetPreferenceValue (CulturalPreference.CohesionPreferenceId);
+//
+//		if (cohesionPreferenceValue <= 0)
+//			return 0;
+//
+//		float cohesionPrefFactor = 2 * cohesionPreferenceValue;
+//		cohesionPrefFactor = Mathf.Pow (cohesionPrefFactor, 4);
 
 		float authorityPreferenceValue = _dominantClan.GetPreferenceValue (CulturalPreference.AuthorityPreferenceId);
 
@@ -161,7 +161,8 @@ public class ClanDemandsInfluenceDecisionEvent : FactionEvent {
 		float influenceFactor = 2 * influenceDeltaValue;
 		influenceFactor = Mathf.Pow (influenceFactor, 4);
 
-		float factors = cohesionPrefFactor * authorityPrefFactor * relationshipFactor * influenceFactor * DecisionChanceFactor;
+//		float factors = cohesionPrefFactor * authorityPrefFactor * relationshipFactor * influenceFactor * DecisionChanceFactor;
+		float factors = authorityPrefFactor * relationshipFactor * influenceFactor * DecisionChanceFactor;
 
 		float modMinAdministrativeLoad = DominantClanMinAdministrativeLoad * factors;
 		float modMaxAdministrativeLoad = DominantClanMaxAdministrativeLoad * factors;
@@ -178,13 +179,13 @@ public class ClanDemandsInfluenceDecisionEvent : FactionEvent {
 		if (administrativeLoad == Mathf.Infinity)
 			return 0;
 
-		float cohesionPreferenceValue = _demandClan.GetPreferenceValue (CulturalPreference.CohesionPreferenceId);
-
-		if (cohesionPreferenceValue <= 0)
-			return 0;
-
-		float cohesionPrefFactor = 2 * cohesionPreferenceValue;
-		cohesionPrefFactor = Mathf.Pow (cohesionPrefFactor, 4);
+//		float cohesionPreferenceValue = _demandClan.GetPreferenceValue (CulturalPreference.CohesionPreferenceId);
+//
+//		if (cohesionPreferenceValue <= 0)
+//			return 0;
+//
+//		float cohesionPrefFactor = 2 * cohesionPreferenceValue;
+//		cohesionPrefFactor = Mathf.Pow (cohesionPrefFactor, 4);
 
 		float authorityPreferenceValue = _demandClan.GetPreferenceValue (CulturalPreference.AuthorityPreferenceId);
 
@@ -213,7 +214,8 @@ public class ClanDemandsInfluenceDecisionEvent : FactionEvent {
 		float influenceFactor = 2 * influenceDeltaValue;
 		influenceFactor = Mathf.Pow (influenceFactor, 4);
 
-		float factors = cohesionPrefFactor * authorityPrefFactor * relationshipFactor * influenceFactor * DecisionChanceFactor;
+//		float factors = cohesionPrefFactor * authorityPrefFactor * relationshipFactor * influenceFactor * DecisionChanceFactor;
+		float factors = authorityPrefFactor * relationshipFactor * influenceFactor * DecisionChanceFactor;
 
 		float modMinAdministrativeLoad = DemandClanMinAdministrativeLoad * factors;
 		float modMaxAdministrativeLoad = DemandClanMaxAdministrativeLoad * factors;

@@ -99,7 +99,7 @@ public class FosterTribeRelationDecisionEvent : PolityEvent {
 
 		_chanceOfMakingAttempt = CalculateChanceOfMakingAttempt ();
 
-		if (_chanceOfMakingAttempt <= 0.10f) {
+		if (_chanceOfMakingAttempt <= 0.25f) {
 
 			return false;
 		}
@@ -118,7 +118,7 @@ public class FosterTribeRelationDecisionEvent : PolityEvent {
 
 		_chanceOfRejectingOffer = CalculateChanceOfRejectingOffer ();
 
-		if (_chanceOfRejectingOffer >= 1.0f) {
+		if (_chanceOfRejectingOffer >= 0.75f) {
 
 			return false;
 		}
@@ -140,10 +140,10 @@ public class FosterTribeRelationDecisionEvent : PolityEvent {
 
 		float relationshipValue = _targetTribe.GetRelationshipValue (_sourceTribe);
 
-		if (relationshipValue <= 0)
+		if (relationshipValue >= 1)
 			return 1;
 		
-		float chance = 1 - ((1- isolationPreferenceValue) * relationshipValue * contactStrength * DecisionChanceFactor);
+		float chance = 1 - ((1- isolationPreferenceValue) * (1 - relationshipValue) * contactStrength * DecisionChanceFactor);
 
 		return Mathf.Clamp01 (chance);
 	}
@@ -162,10 +162,10 @@ public class FosterTribeRelationDecisionEvent : PolityEvent {
 
 		float relationshipValue = _sourceTribe.GetRelationshipValue (_targetTribe);
 
-		if (relationshipValue <= 0)
+		if (relationshipValue >= 1)
 			return 0;
 		
-		float chance = (1- isolationPreferenceValue) * relationshipValue * contactStrength * DecisionChanceFactor;
+		float chance = (1- isolationPreferenceValue) * (1 - relationshipValue) * contactStrength * DecisionChanceFactor;
 
 		return Mathf.Clamp01 (chance);
 	}

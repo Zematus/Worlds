@@ -164,7 +164,6 @@ public abstract class Faction : ISynchronizable {
 		}
 
 		foreach (FactionRelationship relationship in _relationships.Values) {
-
 			relationship.Faction.RemoveRelationship (this);
 		}
 
@@ -227,8 +226,11 @@ public abstract class Faction : ISynchronizable {
 
 	public float GetRelationshipValue (Faction faction) {
 
-		if (!_relationships.ContainsKey (faction.Id))
-			throw new System.Exception ("(id: " + Id + ") relationship not present: " + faction.Id);
+		// Set a default neutral relationship
+		if (!_relationships.ContainsKey (faction.Id)) {
+			Faction.SetRelationship (this, faction, 0.5f);
+		}
+//			throw new System.Exception ("(id: " + Id + ") relationship not present: " + faction.Id);
 
 		return _relationships[faction.Id].Value;
 	}

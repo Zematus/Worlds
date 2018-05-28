@@ -104,7 +104,7 @@ public class MergeTribesDecisionEvent : PolityEvent {
 
 		_chanceOfMakingAttempt = CalculateChanceOfMakingAttempt ();
 
-		if (_chanceOfMakingAttempt <= 0.10f) {
+		if (_chanceOfMakingAttempt <= 0.0f) {
 
 			return false;
 		}
@@ -128,12 +128,12 @@ public class MergeTribesDecisionEvent : PolityEvent {
 
 		float isolationPreferenceValue = _targetTribe.GetPreferenceValue (CulturalPreference.IsolationPreferenceId);
 
-		if (isolationPreferenceValue >= 1)
+		if (isolationPreferenceValue >= 0.5f)
 			return 1;
 
 		float cohesionPreferenceValue = _sourceTribe.GetPreferenceValue (CulturalPreference.CohesionPreferenceId);
 
-		if (cohesionPreferenceValue <= 0)
+		if (cohesionPreferenceValue <= 0.5f)
 			return 1;
 
 		float relationshipValue = _targetTribe.GetRelationshipValue (_sourceTribe);
@@ -141,9 +141,11 @@ public class MergeTribesDecisionEvent : PolityEvent {
 		if (relationshipValue <= 0.5f)
 			return 1;
 
+		float modIsolationPreferencValue = isolationPreferenceValue * 2;
+		float modCohesionPreferenceValue = (cohesionPreferenceValue - 0.5f) * 2;
 		float modRelationshipValue = (relationshipValue - 0.5f) * 2;
 
-		float chance = 1 - ((1- isolationPreferenceValue) * cohesionPreferenceValue * modRelationshipValue * contactStrength * DecisionChanceFactor);
+		float chance = 1 - ((1 - modIsolationPreferencValue) * modCohesionPreferenceValue * modRelationshipValue * contactStrength * DecisionChanceFactor);
 
 		return Mathf.Clamp01 (chance);
 	}
@@ -157,12 +159,12 @@ public class MergeTribesDecisionEvent : PolityEvent {
 
 		float isolationPreferenceValue = _sourceTribe.GetPreferenceValue (CulturalPreference.IsolationPreferenceId);
 
-		if (isolationPreferenceValue >= 1)
+		if (isolationPreferenceValue >= 0.5f)
 			return 0;
 
 		float cohesionPreferenceValue = _sourceTribe.GetPreferenceValue (CulturalPreference.CohesionPreferenceId);
 
-		if (cohesionPreferenceValue <= 0)
+		if (cohesionPreferenceValue <= 0.5f)
 			return 0;
 
 		float relationshipValue = _sourceTribe.GetRelationshipValue (_targetTribe);
@@ -170,9 +172,11 @@ public class MergeTribesDecisionEvent : PolityEvent {
 		if (relationshipValue <= 0.5f)
 			return 0;
 
+		float modIsolationPreferencValue = isolationPreferenceValue * 2;
+		float modCohesionPreferenceValue = (cohesionPreferenceValue - 0.5f) * 2;
 		float modRelationshipValue = (relationshipValue - 0.5f) * 2;
 		
-		float chance = (1- isolationPreferenceValue) * cohesionPreferenceValue * modRelationshipValue * contactStrength * DecisionChanceFactor;
+		float chance = (1 - modIsolationPreferencValue) * modCohesionPreferenceValue * modRelationshipValue * contactStrength * DecisionChanceFactor;
 
 		return Mathf.Clamp01 (chance);
 	}
