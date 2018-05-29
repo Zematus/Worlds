@@ -12,9 +12,6 @@ public class FosterTribeRelationDecision : PolityDecision {
 	public const float BaseMinRelationshipPercentChange = 0.05f;
 	public const float BaseMaxRelationshipPercentChange = 0.15f;
 
-	public const float BaseMinInfluencePercentChange = 0.05f;
-	public const float BaseMaxInfluencePercentChange = 0.15f;
-
 	private bool _makeAttempt = true;
 
 	private float _chanceOfRejecting;
@@ -69,11 +66,11 @@ public class FosterTribeRelationDecision : PolityDecision {
 
 	public static void LeaderAttemptsFosterRelationship_TriggerRejectDecision (Tribe sourceTribe, Tribe targetTribe, float chanceOfRejecting) {
 
-		#if DEBUG
-		if (targetTribe.Id == 6993753500213400) {
-			bool debug = true;
-		}
-		#endif
+//		#if DEBUG
+//		if (targetTribe.Id == 6993753500213400) {
+//			bool debug = true;
+//		}
+//		#endif
 
 		World world = sourceTribe.World;
 

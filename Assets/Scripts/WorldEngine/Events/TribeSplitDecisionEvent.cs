@@ -121,11 +121,11 @@ public class TribeSplitDecisionEvent : FactionEvent {
 
 		_splitClanChanceOfSplitting = CalculateChanceOfSplittingForSplitClan ();
 
-		#if DEBUG
-		if (OriginalPolity.Id == 6993753500213400) {
-			bool debug = true;
-		}
-		#endif
+//		#if DEBUG
+//		if (OriginalPolity.Id == 6993753500213400) {
+//			bool debug = true;
+//		}
+//		#endif
 
 //		if (_splitClan.IsUnderPlayerGuidance && _splitClanChanceOfSplitting < 0.5f) {
 //		

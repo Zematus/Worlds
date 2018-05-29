@@ -172,11 +172,11 @@ public class FosterTribeRelationDecisionEvent : PolityEvent {
 
 	public override void Trigger () {
 
-		#if DEBUG
-		if (_targetTribe.Id == 6993753500213400) {
-			bool debug = true;
-		}
-		#endif
+//		#if DEBUG
+//		if (_targetTribe.Id == 6993753500213400) {
+//			bool debug = true;
+//		}
+//		#endif
 
 		bool attemptFoster = _targetTribe.GetNextLocalRandomFloat (RngOffsets.FOSTER_TRIBE_RELATION_EVENT_MAKE_ATTEMPT) < _chanceOfMakingAttempt;
 
