@@ -8,7 +8,7 @@ public class FosterTribeRelationDecisionEvent : PolityEvent {
 
 	public const long DateSpanFactorConstant = CellGroup.GenerationSpan * 5;
 
-	public const float DecisionChanceFactor = 4f;
+	public const float ContactStrengthFactor = 1f;
 
 	private PolityContact _targetContact;
 
@@ -99,7 +99,7 @@ public class FosterTribeRelationDecisionEvent : PolityEvent {
 
 		_chanceOfMakingAttempt = CalculateChanceOfMakingAttempt ();
 
-		if (_chanceOfMakingAttempt <= 0.25f) {
+		if (_chanceOfMakingAttempt <= 0.15f) {
 
 			return false;
 		}
@@ -118,7 +118,7 @@ public class FosterTribeRelationDecisionEvent : PolityEvent {
 
 		_chanceOfRejectingOffer = CalculateChanceOfRejectingOffer ();
 
-		if (_chanceOfRejectingOffer >= 0.75f) {
+		if (_chanceOfRejectingOffer >= 0.15f) {
 
 			return false;
 		}
@@ -128,44 +128,38 @@ public class FosterTribeRelationDecisionEvent : PolityEvent {
 
 	public float CalculateChanceOfRejectingOffer () {
 
-		float contactStrength = _targetTribe.CalculateContactStrength (_sourceTribe);
+		float numFactors = 0;
 
-		if (contactStrength <= 0)
-			return 1;
+		float contactStrength = _targetTribe.CalculateContactStrength (_sourceTribe) * ContactStrengthFactor;
+		numFactors++;
 
 		float isolationPreferenceValue = _targetTribe.GetPreferenceValue (CulturalPreference.IsolationPreferenceId);
-
-		if (isolationPreferenceValue >= 1)
-			return 1;
+		numFactors++;
 
 		float relationshipValue = _targetTribe.GetRelationshipValue (_sourceTribe);
+		numFactors++;
 
-		if (relationshipValue >= 1)
-			return 1;
-		
-		float chance = 1 - ((1- isolationPreferenceValue) * (1 - relationshipValue) * contactStrength * DecisionChanceFactor);
+		// average factors
+		float chance = 1 - ((1- isolationPreferenceValue) + (1 - relationshipValue) + contactStrength) / numFactors;
 
 		return Mathf.Clamp01 (chance);
 	}
 
 	public float CalculateChanceOfMakingAttempt () {
 
-		float contactStrength = _sourceTribe.CalculateContactStrength (_targetTribe);
+		float numFactors = 0;
 
-		if (contactStrength <= 0)
-			return 0;
+		float contactStrength = _sourceTribe.CalculateContactStrength (_targetTribe) * ContactStrengthFactor;
+		numFactors++;
 
 		float isolationPreferenceValue = _sourceTribe.GetPreferenceValue (CulturalPreference.IsolationPreferenceId);
-
-		if (isolationPreferenceValue >= 1)
-			return 0;
+		numFactors++;
 
 		float relationshipValue = _sourceTribe.GetRelationshipValue (_targetTribe);
+		numFactors++;
 
-		if (relationshipValue >= 1)
-			return 0;
-		
-		float chance = (1- isolationPreferenceValue) * (1 - relationshipValue) * contactStrength * DecisionChanceFactor;
+		// average factors
+		float chance = ((1- isolationPreferenceValue) + (1 - relationshipValue) + contactStrength) / numFactors;
 
 		return Mathf.Clamp01 (chance);
 	}

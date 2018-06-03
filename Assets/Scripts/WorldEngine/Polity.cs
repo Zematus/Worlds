@@ -1120,4 +1120,32 @@ public abstract class Polity : ISynchronizable {
 			World.AddGroupToUpdate (group);
 		}
 	}
+
+	public float CalculateAdministrativeLoad () {
+
+		float socialOrganizationValue = 0;
+
+		CulturalKnowledge socialOrganizationKnowledge = Culture.GetKnowledge (SocialOrganizationKnowledge.SocialOrganizationKnowledgeId);
+
+		if (socialOrganizationKnowledge != null)
+			socialOrganizationValue = socialOrganizationKnowledge.Value;
+
+		if (socialOrganizationValue < 0) {
+
+			return Mathf.Infinity;
+		}
+
+		float administrativeLoad = TotalAdministrativeCost / socialOrganizationValue;
+
+		administrativeLoad = Mathf.Pow (administrativeLoad, 2);
+
+		if (administrativeLoad < 0) {
+
+			Debug.LogWarning ("administrativeLoad less than 0: " + administrativeLoad);
+
+			return Mathf.Infinity;
+		}
+
+		return administrativeLoad;
+	}
 }

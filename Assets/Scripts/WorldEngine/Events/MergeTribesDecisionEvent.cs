@@ -6,9 +6,15 @@ using System.Xml.Serialization;
 
 public class MergeTribesDecisionEvent : PolityEvent {
 
+	public const int MaxAdministrativeLoad = 600000;
+	public const int MinAdministrativeLoad = 60000;
+	public const int DeltaAdministrativeLoad = MaxAdministrativeLoad - MinAdministrativeLoad;
+
+	public const float MaxAdministrativeLoadChanceFactor = 0.05f;
+
 	public const long DateSpanFactorConstant = CellGroup.GenerationSpan * 25;
 
-	public const float DecisionChanceFactor = 3f;
+	public const float ContactStrengthFactor = 2f;
 
 	private PolityContact _targetContact;
 
@@ -104,12 +110,12 @@ public class MergeTribesDecisionEvent : PolityEvent {
 
 		_chanceOfMakingAttempt = CalculateChanceOfMakingAttempt ();
 
+		_chanceOfRejectingOffer = CalculateChanceOfRejectingOffer ();
+
 		if (_chanceOfMakingAttempt <= 0.0f) {
 
 			return false;
 		}
-
-		_chanceOfRejectingOffer = CalculateChanceOfRejectingOffer ();
 
 		if (_chanceOfRejectingOffer >= 1.0f) {
 
@@ -121,62 +127,98 @@ public class MergeTribesDecisionEvent : PolityEvent {
 
 	public float CalculateChanceOfRejectingOffer () {
 
-		float contactStrength = _targetTribe.CalculateContactStrength (_sourceTribe);
+		float administrativeLoad = _targetTribe.CalculateAdministrativeLoad ();
 
-		if (contactStrength <= 0)
+		if (administrativeLoad == Mathf.Infinity)
 			return 1;
+
+		float numFactors = 0;
+
+		float contactStrength = _targetTribe.CalculateContactStrength (_sourceTribe) * ContactStrengthFactor;
+		numFactors++;
 
 		float isolationPreferenceValue = _targetTribe.GetPreferenceValue (CulturalPreference.IsolationPreferenceId);
+		numFactors++;
 
-		if (isolationPreferenceValue >= 0.5f)
-			return 1;
-
-		float cohesionPreferenceValue = _sourceTribe.GetPreferenceValue (CulturalPreference.CohesionPreferenceId);
-
-		if (cohesionPreferenceValue <= 0.5f)
-			return 1;
+		float cohesionPreferenceValue = _targetTribe.GetPreferenceValue (CulturalPreference.CohesionPreferenceId);
+		numFactors++;
 
 		float relationshipValue = _targetTribe.GetRelationshipValue (_sourceTribe);
-
-		if (relationshipValue <= 0.5f)
-			return 1;
+		numFactors++;
 
 		float modIsolationPreferencValue = isolationPreferenceValue * 2;
 		float modCohesionPreferenceValue = (cohesionPreferenceValue - 0.5f) * 2;
 		float modRelationshipValue = (relationshipValue - 0.5f) * 2;
 
-		float chance = 1 - ((1 - modIsolationPreferencValue) * modCohesionPreferenceValue * modRelationshipValue * contactStrength * DecisionChanceFactor);
+		/// NOTE: Move administrative load stuff to a separate general function
+
+		float authorityPreferenceValue = _targetTribe.GetPreferenceValue (CulturalPreference.AuthorityPreferenceId);
+
+		float cohesionPrefFactor = 2 * cohesionPreferenceValue;
+		cohesionPrefFactor = Mathf.Pow (cohesionPrefFactor, 4);
+
+		float authorityPrefFactor = 2 * authorityPreferenceValue;
+		authorityPrefFactor = Mathf.Pow (authorityPrefFactor, 4);
+
+		float modMinAdministrativeLoad = MinAdministrativeLoad * cohesionPrefFactor;
+		float modMaxAdministrativeLoad = modMinAdministrativeLoad + 
+			(DeltaAdministrativeLoad * _targetTribe.CurrentLeader.Wisdom * _targetTribe.CurrentLeader.Charisma * authorityPrefFactor * MaxAdministrativeLoadChanceFactor);
+
+		float administrativeLoadFactor = (administrativeLoad - modMinAdministrativeLoad) / (modMaxAdministrativeLoad - modMinAdministrativeLoad);
+		numFactors++;
+
+		/// End of NOTE relevant code
+
+		float chance = 1 - ((1 - modIsolationPreferencValue) + modCohesionPreferenceValue + modRelationshipValue + contactStrength + (1 - administrativeLoadFactor)) / numFactors;
 
 		return Mathf.Clamp01 (chance);
 	}
 
 	public float CalculateChanceOfMakingAttempt () {
 
-		float contactStrength = _sourceTribe.CalculateContactStrength (_targetTribe);
+		float administrativeLoad = _sourceTribe.CalculateAdministrativeLoad ();
 
-		if (contactStrength <= 0)
+		if (administrativeLoad == Mathf.Infinity)
 			return 0;
+
+		float numFactors = 0;
+
+		float contactStrength = _sourceTribe.CalculateContactStrength (_targetTribe) * ContactStrengthFactor;
+		numFactors++;
 
 		float isolationPreferenceValue = _sourceTribe.GetPreferenceValue (CulturalPreference.IsolationPreferenceId);
-
-		if (isolationPreferenceValue >= 0.5f)
-			return 0;
+		numFactors++;
 
 		float cohesionPreferenceValue = _sourceTribe.GetPreferenceValue (CulturalPreference.CohesionPreferenceId);
-
-		if (cohesionPreferenceValue <= 0.5f)
-			return 0;
+		numFactors++;
 
 		float relationshipValue = _sourceTribe.GetRelationshipValue (_targetTribe);
-
-		if (relationshipValue <= 0.5f)
-			return 0;
+		numFactors++;
 
 		float modIsolationPreferencValue = isolationPreferenceValue * 2;
 		float modCohesionPreferenceValue = (cohesionPreferenceValue - 0.5f) * 2;
 		float modRelationshipValue = (relationshipValue - 0.5f) * 2;
+
+		/// NOTE: Move administrative load stuff to a separate general function
+
+		float authorityPreferenceValue = _targetTribe.GetPreferenceValue (CulturalPreference.AuthorityPreferenceId);
+
+		float cohesionPrefFactor = 2 * cohesionPreferenceValue;
+		cohesionPrefFactor = Mathf.Pow (cohesionPrefFactor, 4);
+
+		float authorityPrefFactor = 2 * authorityPreferenceValue;
+		authorityPrefFactor = Mathf.Pow (authorityPrefFactor, 4);
+
+		float modMinAdministrativeLoad = MinAdministrativeLoad * cohesionPrefFactor;
+		float modMaxAdministrativeLoad = modMinAdministrativeLoad + 
+			(DeltaAdministrativeLoad * _sourceTribe.CurrentLeader.Wisdom * _sourceTribe.CurrentLeader.Charisma * authorityPrefFactor * MaxAdministrativeLoadChanceFactor);
+
+		float administrativeLoadFactor = (administrativeLoad - modMinAdministrativeLoad) / (modMaxAdministrativeLoad - modMinAdministrativeLoad);
+		numFactors++;
+
+		/// End of NOTE relevant code
 		
-		float chance = (1 - modIsolationPreferencValue) * modCohesionPreferenceValue * modRelationshipValue * contactStrength * DecisionChanceFactor;
+		float chance = ((1 - modIsolationPreferencValue) + modCohesionPreferenceValue + modRelationshipValue + contactStrength + (1 - administrativeLoadFactor)) / numFactors;
 
 		return Mathf.Clamp01 (chance);
 	}

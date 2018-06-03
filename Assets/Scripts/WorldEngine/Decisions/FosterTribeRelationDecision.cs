@@ -6,11 +6,11 @@ using System.Xml.Serialization;
 
 public class FosterTribeRelationDecision : PolityDecision {
 
-	public const float BaseMinPreferencePercentChange = 0.05f;
-	public const float BaseMaxPreferencePercentChange = 0.15f;
+	public const float BaseMinIsolationPreferencePercentIncrease = 0.05f;
+	public const float BaseMaxIsolationPreferencePercentIncrease = 0.15f;
 
-	public const float BaseMinRelationshipPercentChange = 0.05f;
-	public const float BaseMaxRelationshipPercentChange = 0.15f;
+	public const float BaseMinIsolationPreferencePercentDecrease = 0.10f;
+	public const float BaseMaxIsolationPreferencePercentDecrease = 0.30f;
 
 	private bool _makeAttempt = true;
 
@@ -36,14 +36,14 @@ public class FosterTribeRelationDecision : PolityDecision {
 	private string GenerateAvoidFosteringRelationshipResultEffectsString () {
 
 		return 
-			"\t• " + GenerateEffectsString_IncreasePreference (_sourceTribe, CulturalPreference.IsolationPreferenceId, BaseMinPreferencePercentChange, BaseMaxPreferencePercentChange);
+			"\t• " + GenerateEffectsString_IncreasePreference (_sourceTribe, CulturalPreference.IsolationPreferenceId, BaseMinIsolationPreferencePercentIncrease, BaseMaxIsolationPreferencePercentIncrease);
 	}
 
 	public static void LeaderAvoidsFosteringRelationship (Tribe sourceTribe, Tribe targetTribe) {
 
 		int rngOffset = RngOffsets.FOSTER_TRIBE_RELATION_EVENT_SOURCETRIBE_LEADER_AVOIDS_ATTEMPT_MODIFY_ATTRIBUTE;
 
-		Effect_IncreasePreference (sourceTribe, CulturalPreference.IsolationPreferenceId, BaseMinPreferencePercentChange, BaseMaxPreferencePercentChange, rngOffset++);
+		Effect_IncreasePreference (sourceTribe, CulturalPreference.IsolationPreferenceId, BaseMinIsolationPreferencePercentIncrease, BaseMaxIsolationPreferencePercentIncrease, rngOffset++);
 
 		Clan sourceDominantClan = sourceTribe.DominantFaction as Clan;
 
@@ -60,7 +60,7 @@ public class FosterTribeRelationDecision : PolityDecision {
 	private string GenerateAttemptFosterRelationshipResultEffectsString () {
 
 		return 
-			"\t• " + GenerateEffectsString_DecreasePreference (_sourceTribe, CulturalPreference.IsolationPreferenceId, BaseMinPreferencePercentChange, BaseMaxPreferencePercentChange) + "\n" +
+			"\t• " + GenerateEffectsString_DecreasePreference (_sourceTribe, CulturalPreference.IsolationPreferenceId, BaseMinIsolationPreferencePercentDecrease, BaseMaxIsolationPreferencePercentDecrease) + "\n" +
 			"\t• The current leader of " + _targetTribe.GetNameAndTypeStringBold () + " will receive an offer to foster the relationship with " + _sourceTribe.GetNameAndTypeStringBold ();
 	}
 
@@ -107,7 +107,7 @@ public class FosterTribeRelationDecision : PolityDecision {
 
 		int rngOffset = RngOffsets.FOSTER_TRIBE_RELATION_EVENT_SOURCETRIBE_LEADER_MAKES_ATTEMPT_MODIFY_ATTRIBUTE;
 
-		Effect_DecreasePreference (sourceTribe, CulturalPreference.IsolationPreferenceId, BaseMinPreferencePercentChange, BaseMaxPreferencePercentChange, rngOffset++);
+		Effect_DecreasePreference (sourceTribe, CulturalPreference.IsolationPreferenceId, BaseMinIsolationPreferencePercentDecrease, BaseMaxIsolationPreferencePercentDecrease, rngOffset++);
 
 		LeaderAttemptsFosterRelationship_TriggerRejectDecision (sourceTribe, targetTribe, chanceOfRejecting);
 	}
