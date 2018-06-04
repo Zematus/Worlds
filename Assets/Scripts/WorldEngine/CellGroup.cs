@@ -2823,6 +2823,9 @@ public class CellGroup : HumanGroup {
 
 	public override void Synchronize () {
 
+			HasPolityExpansionEvent = false;
+		}
+
 		Flags = new List<string> (_flags);
 
 		Culture.Synchronize ();
@@ -2843,6 +2846,10 @@ public class CellGroup : HumanGroup {
 		
 		base.Synchronize ();
 	}
+
+	#if DEBUG
+	public static int Debug_LoadedGroups = 0;
+	#endif
 	
 	public override void FinalizeLoad () {
 
@@ -2890,7 +2897,7 @@ public class CellGroup : HumanGroup {
 		Culture.FinalizeLoad ();
 
 		if (Cell == null) {
-			Debug.LogError ("Cell is null");
+			throw new System.Exception ("Cell [" + Longitude + "," + Latitude + "] is null");
 		}
 
 		if (SeaMigrationRoute != null) {
@@ -2940,6 +2947,11 @@ public class CellGroup : HumanGroup {
 		if (HasPolityExpansionEvent) {
 
 			Polity expandingPolity = World.GetPolity (ExpandingPolityId);
+
+			if (expandingPolity == null) { 
+				throw new System.Exception ("Missing polity with id:" + ExpandingPolityId);
+			}
+
 			CellGroup targetGroup = World.GetGroup (ExpansionTargetGroupId);
 		
 			PolityExpansionEvent = new ExpandPolityProminenceEvent (this, expandingPolity, targetGroup, PolityExpansionEventDate);
@@ -2953,5 +2965,9 @@ public class CellGroup : HumanGroup {
 			TribeCreationEvent = new TribeFormationEvent (this, TribeFormationEventDate);
 			World.InsertEventToHappen (TribeCreationEvent);
 		}
+
+		#if DEBUG
+		Debug_LoadedGroups++;
+		#endif
 	}
 }

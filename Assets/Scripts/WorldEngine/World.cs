@@ -1487,6 +1487,10 @@ public class World : ISynchronizable {
 
 		// Segment 6
 
+		#if DEBUG
+		CellGroup.Debug_LoadedGroups = 0;
+		#endif
+
 		foreach (CellGroup g in CellGroups) {
 
 			g.FinalizeLoad ();

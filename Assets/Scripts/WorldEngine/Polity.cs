@@ -197,6 +197,11 @@ public abstract class Polity : ISynchronizable {
 
 		List<Faction> factions = new List<Faction> (_factions.Values);
 
+		foreach (PolityContact contact in _contacts.Values) {
+
+			contact.Polity.RemoveContact (this);
+		}
+
 		foreach (Faction faction in factions) {
 
 			faction.Destroy (true);
@@ -730,7 +735,7 @@ public abstract class Polity : ISynchronizable {
 
 		if (CoreGroup == null) {
 			string message = "Missing Group with Id " + CoreGroupId + " in polity with Id " + Id;
-			Debug.LogError (message);
+			throw new System.Exception (message);
 		}
 
 		foreach (long id in ProminenceGroupIds) {
@@ -739,7 +744,7 @@ public abstract class Polity : ISynchronizable {
 
 			if (group == null) {
 				string message = "Missing Group with Id " + id + " in polity with Id " + Id;
-				Debug.LogError (message);
+				throw new System.Exception (message);
 			}
 
 			ProminencedGroups.Add (group.Id, group);
@@ -751,7 +756,7 @@ public abstract class Polity : ISynchronizable {
 
 			if (faction == null) {
 				string message = "Missing Faction with Id " + faction + " in polity with Id " + Id;
-				Debug.LogError (message);
+				throw new System.Exception (message);
 			}
 
 			_factions.Add (factionId, faction);
