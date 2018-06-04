@@ -2823,6 +2823,7 @@ public class CellGroup : HumanGroup {
 
 	public override void Synchronize () {
 
+		if (HasPolityExpansionEvent && !PolityExpansionEvent.IsStillValid ()) {
 			HasPolityExpansionEvent = false;
 		}
 
