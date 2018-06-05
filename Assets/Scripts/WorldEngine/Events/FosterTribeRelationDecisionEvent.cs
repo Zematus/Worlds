@@ -140,7 +140,7 @@ public class FosterTribeRelationDecisionEvent : PolityEvent {
 		numFactors++;
 
 		// average factors
-		float chance = 1 - ((1- isolationPreferenceValue) + (1 - relationshipValue) + contactStrength) / numFactors;
+		float chance = 1 - ((1 - isolationPreferenceValue) + (1 - relationshipValue) + contactStrength) / numFactors;
 
 		return Mathf.Clamp01 (chance);
 	}
@@ -172,7 +172,7 @@ public class FosterTribeRelationDecisionEvent : PolityEvent {
 //		}
 //		#endif
 
-		bool attemptFoster = _targetTribe.GetNextLocalRandomFloat (RngOffsets.FOSTER_TRIBE_RELATION_EVENT_MAKE_ATTEMPT) < _chanceOfMakingAttempt;
+		bool attemptFoster = _sourceTribe.GetNextLocalRandomFloat (RngOffsets.FOSTER_TRIBE_RELATION_EVENT_MAKE_ATTEMPT) < _chanceOfMakingAttempt;
 
 		if (_sourceTribe.IsUnderPlayerFocus || _originalSourceDominantClan.IsUnderPlayerGuidance) {
 

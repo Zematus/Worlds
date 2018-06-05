@@ -225,7 +225,7 @@ public class MergeTribesDecisionEvent : PolityEvent {
 
 	public override void Trigger () {
 
-		bool attemptFoster = _targetTribe.GetNextLocalRandomFloat (RngOffsets.MERGE_TRIBES_EVENT_MAKE_ATTEMPT) < _chanceOfMakingAttempt;
+		bool attemptFoster = _sourceTribe.GetNextLocalRandomFloat (RngOffsets.MERGE_TRIBES_EVENT_MAKE_ATTEMPT) < _chanceOfMakingAttempt;
 
 		if (_sourceTribe.IsUnderPlayerFocus || _originalSourceDominantClan.IsUnderPlayerGuidance) {
 

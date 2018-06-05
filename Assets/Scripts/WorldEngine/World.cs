@@ -119,6 +119,11 @@ public static class RngOffsets {
 	public const int MERGE_TRIBES_EVENT_TARGETTRIBE_LEADER_REJECTS_OFFER_MODIFY_ATTRIBUTE = 900046;
 	public const int MERGE_TRIBES_EVENT_TARGETTRIBE_LEADER_ACCEPTS_OFFER_MODIFY_ATTRIBUTE = 900047;
 
+	public const int OPEN_TRIBE_EVENT_CALCULATE_TRIGGER_DATE = 900050;
+	public const int OPEN_TRIBE_EVENT_MAKE_ATTEMPT = 900051;
+	public const int OPEN_TRIBE_EVENT_SOURCETRIBE_LEADER_AVOIDS_ATTEMPT_MODIFY_ATTRIBUTE = 900052;
+	public const int OPEN_TRIBE_EVENT_SOURCETRIBE_LEADER_MAKES_ATTEMPT_MODIFY_ATTRIBUTE = 900053;
+
 	public const int EVENT_TRIGGER = 1000000;
 	public const int EVENT_CAN_TRIGGER = 1100000;
 
@@ -222,7 +227,9 @@ public class World : ISynchronizable {
 		XmlArrayItem (Type = typeof(TribeSplitDecisionEvent)),
 		XmlArrayItem (Type = typeof(ClanDemandsInfluenceDecisionEvent)),
 		XmlArrayItem (Type = typeof(ClanCoreMigrationEvent)),
-		XmlArrayItem (Type = typeof(FosterTribeRelationDecisionEvent))]
+		XmlArrayItem (Type = typeof(FosterTribeRelationDecisionEvent)),
+		XmlArrayItem (Type = typeof(MergeTribesDecisionEvent)),
+		XmlArrayItem (Type = typeof(OpenTribeDecisionEvent))]
 	public List<WorldEvent> EventsToHappen;
 
 	public List<TerrainCellChanges> TerrainCellChangesList = new List<TerrainCellChanges> ();

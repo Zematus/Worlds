@@ -105,6 +105,7 @@ public class Tribe : Polity {
 
 		AddEvent (new FosterTribeRelationDecisionEvent (this, FosterTribeRelationDecisionEvent.CalculateTriggerDate (this)));
 		AddEvent (new MergeTribesDecisionEvent (this, MergeTribesDecisionEvent.CalculateTriggerDate (this)));
+		AddEvent (new OpenTribeDecisionEvent (this, OpenTribeDecisionEvent.CalculateTriggerDate (this)));
 	}
 
 	public override string GetNameAndTypeString () {
