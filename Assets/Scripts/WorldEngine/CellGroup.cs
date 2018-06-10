@@ -1319,10 +1319,22 @@ public class CellGroup : HumanGroup {
 
 		float migrationChance = cellValue / TotalMigrationValue;
 
+//		#if DEBUG
+//		if (Cell.IsSelected) {
+//			bool debug = true;
+//		}
+//		#endif
+
 		float rollValue = Cell.GetNextLocalRandomFloat (RngOffsets.CELL_GROUP_CONSIDER_LAND_MIGRATION_CHANCE);
 
 		if (rollValue > migrationChance)
 			return;
+
+//		#if DEBUG
+//		if (Cell.IsSelected) {
+//			bool debug = true;
+//		}
+//		#endif
 		
 		float cellSurvivability = 0;
 		float cellForagingCapacity = 0;
@@ -2257,6 +2269,12 @@ public class CellGroup : HumanGroup {
 		}
 		#endif
 
+//		#if DEBUG
+//		if (Cell.IsSelected) {
+//			bool debug = true;
+//		}
+//		#endif
+
 		float randomFactor = Cell.GetNextLocalRandomFloat (RngOffsets.CELL_GROUP_CALCULATE_NEXT_UPDATE);
 		randomFactor = 1f - Mathf.Pow (randomFactor, 4);
 
@@ -2279,6 +2297,12 @@ public class CellGroup : HumanGroup {
 
 		float populationFactor = 0.0001f + Mathf.Abs (OptimalPopulation - Population);
 		populationFactor = 100 * OptimalPopulation / populationFactor;
+
+//		#if DEBUG
+//		if (Cell.IsSelected) {
+//			bool debug = true;
+//		}
+//		#endif
 
 		populationFactor = Mathf.Min(populationFactor, MaxUpdateSpanFactor);
 
@@ -2312,6 +2336,12 @@ public class CellGroup : HumanGroup {
 			}
 		}
 		#endif
+
+//		#if DEBUG
+//		if (Cell.IsSelected) {
+//			bool debug = true;
+//		}
+//		#endif
 
 		return World.CurrentDate + updateSpan;
 	}
