@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
+using UnityEngine.Profiling;
 
 public class BoatMakingDiscoveryEvent : DiscoveryEvent {
 	
@@ -66,7 +67,7 @@ public class BoatMakingDiscoveryEvent : DiscoveryEvent {
 	}
 	
 	public override void Trigger () {
-		
+
 		Group.Culture.AddDiscoveryToFind (new BoatMakingDiscovery ());
 		Group.Culture.AddKnowledgeToLearn (new ShipbuildingKnowledge (Group));
 		World.AddGroupToUpdate (Group);

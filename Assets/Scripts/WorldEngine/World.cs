@@ -997,20 +997,40 @@ public class World : ISynchronizable {
 //
 //				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
 //			}
-//			#endif
+			//			#endif
 
-			Profiler.BeginSample ("Event Trigger");
+			#if DEBUG
+			string eventTypeName = eventToHappen.GetType ().ToString ();
 
-			if (eventToHappen.CanTrigger ()) {
+			Profiler.BeginSample ("Event CanTrigger");
+			Profiler.BeginSample ("Event CanTrigger - " + eventTypeName);
+			#endif
+
+			bool canTrigger = eventToHappen.CanTrigger ();
+
+			#if DEBUG
+			Profiler.EndSample ();
+			Profiler.EndSample ();
+			#endif
+
+			if (canTrigger) {
+
+				#if DEBUG
+				Profiler.BeginSample ("Event Trigger");
+				Profiler.BeginSample ("Event Trigger - " + eventTypeName);
+				#endif
 				
 				eventToHappen.Trigger ();
+
+				#if DEBUG
+				Profiler.EndSample ();
+				Profiler.EndSample ();
+				#endif
 
 			} else {
 				
 				eventToHappen.FailedToTrigger = true;
 			}
-
-			Profiler.EndSample ();
 
 			eventToHappen.Destroy ();
 		}

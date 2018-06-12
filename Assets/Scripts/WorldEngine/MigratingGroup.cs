@@ -23,7 +23,6 @@ public class MigratingGroup : HumanGroup {
 	[XmlAttribute("MigDir")]
 	public int MigrationDirectionInt;
 
-	//public CellCulture Culture;
 	public BufferCulture Culture;
 
 	[XmlIgnore]
@@ -36,7 +35,10 @@ public class MigratingGroup : HumanGroup {
 	public CellGroup SourceGroup;
 
 	[XmlIgnore]
-	public List <PolityProminence> PolityProminences;
+	public List <PolityProminence> PolityProminences = new List<PolityProminence> ();
+
+	[XmlIgnore]
+	public int PolityProminencesCount = 0;
 
 	[XmlIgnore]
 	public Direction MigrationDirection;
@@ -45,6 +47,11 @@ public class MigratingGroup : HumanGroup {
 	}
 
 	public MigratingGroup (World world, float percentPopulation, CellGroup sourceGroup, TerrainCell targetCell, Direction migrationDirection) : base (world) {
+
+		Set (percentPopulation, sourceGroup, targetCell, migrationDirection);
+	}
+
+	public void Set (float percentPopulation, CellGroup sourceGroup, TerrainCell targetCell, Direction migrationDirection) {
 
 		MigrationDirection = migrationDirection;
 
@@ -58,23 +65,23 @@ public class MigratingGroup : HumanGroup {
 		}
 		#endif
 
-//		#if DEBUG
-//		if (Manager.RegisterDebugEvent != null) {
-//			if (sourceGroup.Id == Manager.TracingData.GroupId) {
-//				string groupId = "Id:" + sourceGroup.Id + "|Long:" + sourceGroup.Longitude + "|Lat:" + sourceGroup.Latitude;
-//				string targetInfo = "Long:" + targetCell.Longitude + "|Lat:" + targetCell.Latitude;
-//
-//				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-//					"MigratingGroup:constructor - sourceGroup:" + groupId,
-//					"CurrentDate: " + World.CurrentDate + 
-//					", targetInfo: " + targetInfo + 
-//					", percentPopulation: " + percentPopulation + 
-//					"");
-//
-//				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-//			}
-//		}
-//		#endif
+		//		#if DEBUG
+		//		if (Manager.RegisterDebugEvent != null) {
+		//			if (sourceGroup.Id == Manager.TracingData.GroupId) {
+		//				string groupId = "Id:" + sourceGroup.Id + "|Long:" + sourceGroup.Longitude + "|Lat:" + sourceGroup.Latitude;
+		//				string targetInfo = "Long:" + targetCell.Longitude + "|Lat:" + targetCell.Latitude;
+		//
+		//				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+		//					"MigratingGroup:constructor - sourceGroup:" + groupId,
+		//					"CurrentDate: " + World.CurrentDate + 
+		//					", targetInfo: " + targetInfo + 
+		//					", percentPopulation: " + percentPopulation + 
+		//					"");
+		//
+		//				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+		//			}
+		//		}
+		//		#endif
 
 		TargetCell = targetCell;
 		SourceGroup = sourceGroup;
@@ -98,14 +105,18 @@ public class MigratingGroup : HumanGroup {
 		if (Population <= 0)
 			return false;
 		
-		//Culture = new CellCulture(SourceGroup, SourceGroup.Culture);
 		Culture = new BufferCulture (SourceGroup.Culture);
 
-		PolityProminences = new List<PolityProminence> ();
+		PolityProminencesCount = SourceGroup.PolityProminences.Count;
 
-		foreach (PolityProminence pi in SourceGroup.GetPolityProminences ()) {
+		int minCopyCount = Mathf.Min (PolityProminencesCount, PolityProminences.Count);
 
-			PolityProminences.Add (new PolityProminence (pi.Polity, pi.Value));
+		for (int i = 0; i < minCopyCount; i++) {
+			PolityProminences [i].Set (SourceGroup.PolityProminences [i]);
+		}
+
+		for (int i = minCopyCount; i < PolityProminencesCount; i++) {
+			PolityProminences.Add (new PolityProminence(SourceGroup.PolityProminences [i]));
 		}
 
 		TryMigrateFactionCores ();
@@ -145,6 +156,8 @@ public class MigratingGroup : HumanGroup {
 			}
 
 			float targetNewGroupProminence = ((sourceGroupProminence * Population) + (targetGroupProminence * targetPopulation)) / targetNewPopulation;
+
+			FactionCoresToMigrate.Clear ();
 
 			if (faction.ShouldMigrateFactionCore (SourceGroup, TargetCell, targetNewGroupProminence, targetNewPopulation))
 				FactionCoresToMigrate.Add (faction);

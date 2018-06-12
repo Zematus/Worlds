@@ -357,7 +357,7 @@ public class Manager {
 		long year = date / World.YearLength;
 		int day = (int)(date % World.YearLength);
 
-		return "Year " + year + ", Day " + day;
+		return string.Format ("Year {0}, Day {1}", year, day);
 	}
 
 	public static string GetTimeSpanString (long timespan) {
@@ -365,7 +365,7 @@ public class Manager {
 		long years = timespan / World.YearLength;
 		int days = (int)(timespan % World.YearLength);
 
-		return years + " years, " + days + " days";
+		return string.Format ("{0} years, {1} days", years, days);
 	}
 
 	public static string AddDateToWorldName (string worldName) {
@@ -1836,7 +1836,7 @@ public class Manager {
 			float totalProminenceValueFactor = 0;
 
 			Color mixedPolityColor = Color.black;
-			foreach (PolityProminence p in cell.Group.GetPolityProminences ()) {
+			foreach (PolityProminence p in cell.Group.PolityProminences) {
 
 				polityCount++;
 

@@ -251,20 +251,32 @@ public abstract class Faction : ISynchronizable {
 
 	protected abstract void GenerateName (Faction parentFaction);
 
-	protected Agent RequestCurrentLeader (int leadershipSpan, int minStartAge, int maxStartAge, int offset)
-	{
+	protected Agent RequestCurrentLeader (int leadershipSpan, int minStartAge, int maxStartAge, int offset) {
+		
+//		Profiler.BeginSample ("RequestCurrentLeader - GeneratePastSpawnDate");
+
 		long spawnDate = CoreGroup.GeneratePastSpawnDate (CoreGroup.LastUpdateDate, leadershipSpan, offset++);
+
+//		Profiler.EndSample ();
 
 		if ((LastLeader != null) && (spawnDate < LeaderStartDate)) {
 
 			return LastLeader;
 		}
 
+//		Profiler.BeginSample ("RequestCurrentLeader - GetLocalRandomInt");
+
 		// Generate a birthdate from the leader spawnDate (when the leader takes over)
 		int startAge = minStartAge + CoreGroup.GetLocalRandomInt (spawnDate, offset++, maxStartAge - minStartAge);
 
+//		Profiler.EndSample ();
+
+		Profiler.BeginSample ("RequestCurrentLeader - new Agent");
+
 		LastLeader = new Agent (CoreGroup, spawnDate - startAge);
 		LeaderStartDate = spawnDate;
+
+		Profiler.EndSample ();
 
 		return LastLeader;
 	}

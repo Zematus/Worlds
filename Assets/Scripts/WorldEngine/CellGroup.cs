@@ -152,7 +152,7 @@ public class CellGroup : HumanGroup {
 
 	public CellCulture Culture;
 
-	public List<PolityProminence> PolityProminences;
+	public List<PolityProminence> PolityProminences = new List<PolityProminence> ();
 
 	public List<long> FactionCoreIds;
 
@@ -195,6 +195,9 @@ public class CellGroup : HumanGroup {
 	
 	[XmlIgnore]
 	public TerrainCell Cell;
+
+	[XmlIgnore]
+	public MigratingGroup MigratingGroup = null;
 
 	#if DEBUG
 	[XmlIgnore]
@@ -656,7 +659,7 @@ public class CellGroup : HumanGroup {
 
 		Culture.MergeCulture (group.Culture, percentage);
 
-		MergePolityProminences (group.PolityProminences, percentage);
+		MergePolityProminences (group.PolityProminences, group.PolityProminencesCount, percentage);
 
 //		#if DEBUG
 //		if (Manager.RegisterDebugEvent != null) {
@@ -683,10 +686,19 @@ public class CellGroup : HumanGroup {
 
 	public void MergePolityProminence (PolityProminence sourcePolityProminence, float percentOfTarget) {
 
-		MergePolityProminences (new List<PolityProminence> { sourcePolityProminence }, percentOfTarget);
+		Dictionary<long, PolityProminence> targetPolityProminences = new Dictionary<long, PolityProminence> (_polityProminences);
+
+		foreach (PolityProminence pi in _polityProminencesToAdd.Values) {
+
+			targetPolityProminences.Add (pi.PolityId, pi);
+		}
+
+		MergePolityProminenceInternal_Add (sourcePolityProminence, targetPolityProminences, percentOfTarget);
+
+		MergePolityProminencesInternal_Finalize (targetPolityProminences, percentOfTarget);
 	}
 
-	public void MergePolityProminences (List <PolityProminence> sourcePolityProminences, float percentOfTarget) {
+	public void MergePolityProminences (List <PolityProminence> sourcePolityProminences, int sourceProminencesCount, float percentOfTarget) {
 
 		Dictionary<long, PolityProminence> targetPolityProminences = new Dictionary<long, PolityProminence> (_polityProminences);
 
@@ -695,46 +707,56 @@ public class CellGroup : HumanGroup {
 			targetPolityProminences.Add (pi.PolityId, pi);
 		}
 
-		foreach (PolityProminence pProminence in sourcePolityProminences) {
+		for (int i = 0; i < sourceProminencesCount; i++) {
 
-			Polity polity = pProminence.Polity;
-			float prominenceValue = pProminence.Value;
-
-			float currentNewValue = 0;
-
-			PolityProminence pTargetPolityProminence = null;
-
-			if (targetPolityProminences.TryGetValue (pProminence.PolityId, out pTargetPolityProminence)) {
-			
-				currentNewValue = pTargetPolityProminence.NewValue;
-				targetPolityProminences.Remove (pTargetPolityProminence.PolityId);
-			}
-
-			float newValue = (currentNewValue * (1 - percentOfTarget)) + (prominenceValue * percentOfTarget);
-
-//			#if DEBUG
-//			if (Manager.RegisterDebugEvent != null) {
-//				if (Id == Manager.TracingData.GroupId) {
-//					string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
-//
-//					SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-//						"MergePolities:Add - Group:" + groupId + 
-//						", pProminence.PolityId: " + pProminence.PolityId,
-//						"CurrentDate: " + World.CurrentDate  +
-//						", currentValue: " + currentValue +
-//						", prominenceValue: " + prominenceValue +
-//						", Polity.TotalGroupProminenceValue: " + pProminence.Polity.TotalGroupProminenceValue + 
-//						", newValue: " + newValue +
-//						", percentOfTarget: " + percentOfTarget +
-//						"");
-//
-//					Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-//				}
-//			}
-//			#endif
-
-			SetPolityProminence (polity, newValue);
+			MergePolityProminenceInternal_Add (sourcePolityProminences [i], targetPolityProminences, percentOfTarget);
 		}
+
+		MergePolityProminencesInternal_Finalize (targetPolityProminences, percentOfTarget);
+	}
+
+	private void MergePolityProminenceInternal_Add (PolityProminence sourcePolityProminence, Dictionary<long, PolityProminence> targetPolityProminences, float percentOfTarget) {
+
+		Polity polity = sourcePolityProminence.Polity;
+		float prominenceValue = sourcePolityProminence.Value;
+
+		float currentNewValue = 0;
+
+		PolityProminence pTargetPolityProminence = null;
+
+		if (targetPolityProminences.TryGetValue (sourcePolityProminence.PolityId, out pTargetPolityProminence)) {
+
+			currentNewValue = pTargetPolityProminence.NewValue;
+			targetPolityProminences.Remove (pTargetPolityProminence.PolityId);
+		}
+
+		float newValue = (currentNewValue * (1 - percentOfTarget)) + (prominenceValue * percentOfTarget);
+
+		//			#if DEBUG
+		//			if (Manager.RegisterDebugEvent != null) {
+		//				if (Id == Manager.TracingData.GroupId) {
+		//					string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
+		//
+		//					SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+		//						"MergePolities:Add - Group:" + groupId + 
+		//						", pProminence.PolityId: " + pProminence.PolityId,
+		//						"CurrentDate: " + World.CurrentDate  +
+		//						", currentValue: " + currentValue +
+		//						", prominenceValue: " + prominenceValue +
+		//						", Polity.TotalGroupProminenceValue: " + pProminence.Polity.TotalGroupProminenceValue + 
+		//						", newValue: " + newValue +
+		//						", percentOfTarget: " + percentOfTarget +
+		//						"");
+		//
+		//					Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+		//				}
+		//			}
+		//			#endif
+
+		SetPolityProminence (polity, newValue);
+	}
+
+	private void MergePolityProminencesInternal_Finalize (Dictionary<long, PolityProminence> targetPolityProminences, float percentOfTarget) {
 
 		foreach (PolityProminence pProminence in targetPolityProminences.Values) {
 
@@ -2432,11 +2454,6 @@ public class CellGroup : HumanGroup {
 		return _polityProminences.Count;
 	}
 
-	public List<PolityProminence> GetPolityProminences () {
-
-		return new List<PolityProminence> (_polityProminences.Values);
-	}
-
 	public PolityProminence GetPolityProminence (Polity polity) {
 
 		PolityProminence polityProminence;
@@ -2594,6 +2611,7 @@ public class CellGroup : HumanGroup {
 			} else {
 
 				_polityProminences.Remove (pi.PolityId);
+				PolityProminences.Remove (pi);
 
 				// Decreate polity contacts
 				foreach (PolityProminence epi in _polityProminences.Values) {
@@ -2638,6 +2656,7 @@ public class CellGroup : HumanGroup {
 			}
 		
 			_polityProminences.Add (pi.PolityId, pi);
+			PolityProminences.Add (pi);
 
 			// We want to update the polity if a group is added.
 			SetPolityUpdate (pi, true);
@@ -2691,6 +2710,7 @@ public class CellGroup : HumanGroup {
 			} else {
 
 				_polityProminences.Remove (pi.PolityId);
+				PolityProminences.Remove (pi);
 
 				// Decreate polity contacts
 				foreach (PolityProminence epi in _polityProminences.Values) {
@@ -2860,8 +2880,6 @@ public class CellGroup : HumanGroup {
 		Flags = new List<string> (_flags);
 
 		Culture.Synchronize ();
-
-		PolityProminences = new List<PolityProminence> (_polityProminences.Values);
 
 		if (SeaMigrationRoute != null) {
 			if (!SeaMigrationRoute.Consolidated) {

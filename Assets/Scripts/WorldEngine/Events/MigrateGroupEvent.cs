@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
+using UnityEngine.Profiling;
 
 public class MigrateGroupEvent : CellGroupEvent {
 
@@ -105,9 +106,13 @@ public class MigrateGroupEvent : CellGroupEvent {
 		//		}
 		//		#endif
 
-		MigratingGroup migratingGroup = new MigratingGroup (World, percentToMigrate, Group, TargetCell, MigrationDirection);
+		if (Group.MigratingGroup == null) {
+			Group.MigratingGroup = new MigratingGroup (World, percentToMigrate, Group, TargetCell, MigrationDirection);
+		} else {
+			Group.MigratingGroup.Set (percentToMigrate, Group, TargetCell, MigrationDirection);
+		}
 
-		World.AddMigratingGroup (migratingGroup);
+		World.AddMigratingGroup (Group.MigratingGroup);
 	}
 
 	public override void Synchronize ()

@@ -34,8 +34,34 @@ public class PolityProminence {
 
 	}
 
+	public PolityProminence (PolityProminence polityProminence) {
+
+		Set (polityProminence);
+	}
+
+	public void Set (PolityProminence polityProminence) {
+
+		PolityId = polityProminence.PolityId;
+		Polity = polityProminence.Polity;
+		Value = polityProminence.Value;
+		NewValue = Value;
+
+		AdiministrativeCost = 0;
+
+		PolityCoreDistance = polityProminence.PolityCoreDistance;
+		NewPolityCoreDistance = PolityCoreDistance;
+
+		FactionCoreDistance = polityProminence.FactionCoreDistance;
+		NewFactionCoreDistance = FactionCoreDistance;
+	}
+
 	public PolityProminence (Polity polity, float value, float polityCoreDistance = -1, float factionCoreDistance = -1) {
 	
+		Set (polity, value, polityCoreDistance, factionCoreDistance);
+	}
+
+	public void Set (Polity polity, float value, float polityCoreDistance = -1, float factionCoreDistance = -1) {
+
 		PolityId = polity.Id;
 		Polity = polity;
 		Value = MathUtility.RoundToSixDecimals (value);

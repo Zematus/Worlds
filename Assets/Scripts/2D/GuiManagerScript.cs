@@ -2364,7 +2364,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 		bool firstPolity = true;
 
-		List<PolityProminence> polityProminences = cell.Group.GetPolityProminences ();
+		List<PolityProminence> polityProminences = cell.Group.PolityProminences;
 
 		polityProminences.Sort ((a, b) => {
 			if (a.Value > b.Value) return -1;

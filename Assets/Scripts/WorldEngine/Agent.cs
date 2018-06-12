@@ -10,6 +10,7 @@ using System.Xml.Serialization;
 // -- Wisdom
 // -- Cunning
 // -- Strength
+using UnityEngine.Profiling;
 
 public class Agent : ISynchronizable {
 
@@ -88,11 +89,23 @@ public class Agent : ISynchronizable {
 
 		int idOffset = 0;
 
+		Profiler.BeginSample ("new Agent - GenerateUniqueIdentifier");
+
 		Id = GenerateUniqueIdentifier (birthDate, 1000L, idOffset);
+
+		Profiler.EndSample ();
+
+		Profiler.BeginSample ("new Agent - GenerateBio");
 
 		GenerateBio ();
 
+		Profiler.EndSample ();
+
+		Profiler.BeginSample ("new Agent - GenerateName");
+
 		GenerateName ();
+
+		Profiler.EndSample ();
 	}
 
 	public void Destroy () {

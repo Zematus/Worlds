@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
+using UnityEngine.Profiling;
 
 public class MergeTribesDecisionEvent : PolityEvent {
 
@@ -96,7 +97,11 @@ public class MergeTribesDecisionEvent : PolityEvent {
 
 		int rngOffset = (int)(RngOffsets.EVENT_CAN_TRIGGER + Id);
 
+//		Profiler.BeginSample ("MergeTribesDecisionEvent - _sourceTribe.GetRandomPolityContact");
+
 		_targetContact = _sourceTribe.GetRandomPolityContact (rngOffset++, GetContactWeight, true);
+
+//		Profiler.EndSample ();
 
 		if (_targetContact == null)
 			return false;
@@ -104,13 +109,25 @@ public class MergeTribesDecisionEvent : PolityEvent {
 		_targetTribe = _targetContact.Polity as Tribe;
 		_targetDominantClan = _targetTribe.DominantFaction as Clan;
 
+//		Profiler.BeginSample ("MergeTribesDecisionEvent - clan preUpdates");
+
 		// We should use the latest cultural attribute values before calculating chances
 		_originalSourceDominantClan.PreUpdate ();
 		_targetDominantClan.PreUpdate ();
 
+//		Profiler.EndSample ();
+
+//		Profiler.BeginSample ("MergeTribesDecisionEvent - CalculateChanceOfMakingAttempt");
+
 		_chanceOfMakingAttempt = CalculateChanceOfMakingAttempt ();
 
+//		Profiler.EndSample ();
+
+//		Profiler.BeginSample ("MergeTribesDecisionEvent - CalculateChanceOfRejectingOffer");
+
 		_chanceOfRejectingOffer = CalculateChanceOfRejectingOffer ();
+
+//		Profiler.EndSample ();
 
 		if (_chanceOfMakingAttempt <= 0.0f) {
 
@@ -127,98 +144,198 @@ public class MergeTribesDecisionEvent : PolityEvent {
 
 	public float CalculateChanceOfRejectingOffer () {
 
+//		Profiler.BeginSample ("MergeTribesDecisionEvent - CalculateAdministrativeLoad");
+
 		float administrativeLoad = _targetTribe.CalculateAdministrativeLoad ();
+
+//		Profiler.EndSample ();
 
 		if (administrativeLoad == Mathf.Infinity)
 			return 1;
 
 		float numFactors = 0;
 
+//		Profiler.BeginSample ("MergeTribesDecisionEvent - CalculateContactStrength");
+
 		float contactStrength = _targetTribe.CalculateContactStrength (_sourceTribe) * ContactStrengthFactor;
 		numFactors++;
+
+//		Profiler.EndSample ();
+
+//		Profiler.BeginSample ("MergeTribesDecisionEvent - GetPreferenceValue");
 
 		float isolationPreferenceValue = _targetTribe.GetPreferenceValue (CulturalPreference.IsolationPreferenceId);
 		numFactors++;
 
+//		Profiler.EndSample ();
+
+//		Profiler.BeginSample ("MergeTribesDecisionEvent - GetPreferenceValue");
+
 		float cohesionPreferenceValue = _targetTribe.GetPreferenceValue (CulturalPreference.CohesionPreferenceId);
 		numFactors++;
 
+//		Profiler.EndSample ();
+
+//		Profiler.BeginSample ("MergeTribesDecisionEvent - GetRelationshipValue");
+
 		float relationshipValue = _targetTribe.GetRelationshipValue (_sourceTribe);
 		numFactors++;
+
+//		Profiler.EndSample ();
+
+//		Profiler.BeginSample ("MergeTribesDecisionEvent - value modifications");
 
 		float modIsolationPreferencValue = isolationPreferenceValue * 2;
 		float modCohesionPreferenceValue = (cohesionPreferenceValue - 0.5f) * 2;
 		float modRelationshipValue = (relationshipValue - 0.5f) * 2;
 
+//		Profiler.EndSample ();
+
 		/// NOTE: Move administrative load stuff to a separate general function
 
+//		Profiler.BeginSample ("MergeTribesDecisionEvent - GetPreferenceValue");
+
 		float authorityPreferenceValue = _targetTribe.GetPreferenceValue (CulturalPreference.AuthorityPreferenceId);
+
+//		Profiler.EndSample ();
+
+//		Profiler.BeginSample ("MergeTribesDecisionEvent - factor calculation");
 
 		float cohesionPrefFactor = 2 * cohesionPreferenceValue;
 		cohesionPrefFactor = Mathf.Pow (cohesionPrefFactor, 4);
 
+//		Profiler.EndSample ();
+
+//		Profiler.BeginSample ("MergeTribesDecisionEvent - factor calculation");
+
 		float authorityPrefFactor = 2 * authorityPreferenceValue;
 		authorityPrefFactor = Mathf.Pow (authorityPrefFactor, 4);
 
+//		Profiler.EndSample ();
+
+//		Profiler.BeginSample ("MergeTribesDecisionEvent - admin factor calculation");
+
+		Profiler.BeginSample ("MergeTribesDecisionEvent - get currentLeader");
+
+		Agent targetTribeLeader = _targetTribe.CurrentLeader;
+
+		Profiler.EndSample ();
+
 		float modMinAdministrativeLoad = MinAdministrativeLoad * cohesionPrefFactor;
 		float modMaxAdministrativeLoad = modMinAdministrativeLoad + 
-			(DeltaAdministrativeLoad * _targetTribe.CurrentLeader.Wisdom * _targetTribe.CurrentLeader.Charisma * authorityPrefFactor * MaxAdministrativeLoadChanceFactor);
+			(DeltaAdministrativeLoad * targetTribeLeader.Wisdom * targetTribeLeader.Charisma * authorityPrefFactor * MaxAdministrativeLoadChanceFactor);
 
 		float administrativeLoadFactor = (administrativeLoad - modMinAdministrativeLoad) / (modMaxAdministrativeLoad - modMinAdministrativeLoad);
 		numFactors++;
 
+//		Profiler.EndSample ();
+
 		/// End of NOTE relevant code
 
+//		Profiler.BeginSample ("MergeTribesDecisionEvent - chance calculation");
+
 		float chance = 1 - ((1 - modIsolationPreferencValue) + modCohesionPreferenceValue + modRelationshipValue + contactStrength + (1 - administrativeLoadFactor)) / numFactors;
+
+//		Profiler.EndSample ();
 
 		return Mathf.Clamp01 (chance);
 	}
 
 	public float CalculateChanceOfMakingAttempt () {
 
+//		Profiler.BeginSample ("MergeTribesDecisionEvent - CalculateAdministrativeLoad");
+
 		float administrativeLoad = _sourceTribe.CalculateAdministrativeLoad ();
+
+//		Profiler.EndSample ();
 
 		if (administrativeLoad == Mathf.Infinity)
 			return 0;
 
 		float numFactors = 0;
 
+//		Profiler.BeginSample ("MergeTribesDecisionEvent - CalculateContactStrength");
+
 		float contactStrength = _sourceTribe.CalculateContactStrength (_targetTribe) * ContactStrengthFactor;
 		numFactors++;
+
+//		Profiler.EndSample ();
+
+//		Profiler.BeginSample ("MergeTribesDecisionEvent - GetPreferenceValue");
 
 		float isolationPreferenceValue = _sourceTribe.GetPreferenceValue (CulturalPreference.IsolationPreferenceId);
 		numFactors++;
 
+//		Profiler.EndSample ();
+
+//		Profiler.BeginSample ("MergeTribesDecisionEvent - GetPreferenceValue");
+
 		float cohesionPreferenceValue = _sourceTribe.GetPreferenceValue (CulturalPreference.CohesionPreferenceId);
 		numFactors++;
 
+//		Profiler.EndSample ();
+
+//		Profiler.BeginSample ("MergeTribesDecisionEvent - GetRelationshipValue");
+
 		float relationshipValue = _sourceTribe.GetRelationshipValue (_targetTribe);
 		numFactors++;
+
+//		Profiler.EndSample ();
+
+//		Profiler.BeginSample ("MergeTribesDecisionEvent - value modifications");
 
 		float modIsolationPreferencValue = isolationPreferenceValue * 2;
 		float modCohesionPreferenceValue = (cohesionPreferenceValue - 0.5f) * 2;
 		float modRelationshipValue = (relationshipValue - 0.5f) * 2;
 
+//		Profiler.EndSample ();
+
 		/// NOTE: Move administrative load stuff to a separate general function
 
+//		Profiler.BeginSample ("MergeTribesDecisionEvent - GetPreferenceValue");
+
 		float authorityPreferenceValue = _targetTribe.GetPreferenceValue (CulturalPreference.AuthorityPreferenceId);
+
+//		Profiler.EndSample ();
+
+//		Profiler.BeginSample ("MergeTribesDecisionEvent - factor calculation");
 
 		float cohesionPrefFactor = 2 * cohesionPreferenceValue;
 		cohesionPrefFactor = Mathf.Pow (cohesionPrefFactor, 4);
 
+//		Profiler.EndSample ();
+
+//		Profiler.BeginSample ("MergeTribesDecisionEvent - factor calculation");
+
 		float authorityPrefFactor = 2 * authorityPreferenceValue;
 		authorityPrefFactor = Mathf.Pow (authorityPrefFactor, 4);
 
+//		Profiler.EndSample ();
+
+//		Profiler.BeginSample ("MergeTribesDecisionEvent - admin factor calculation");
+
+		Profiler.BeginSample ("MergeTribesDecisionEvent - get currentLeader");
+
+		Agent sourceTribeLeader = _sourceTribe.CurrentLeader;
+
+		Profiler.EndSample ();
+
 		float modMinAdministrativeLoad = MinAdministrativeLoad * cohesionPrefFactor;
 		float modMaxAdministrativeLoad = modMinAdministrativeLoad + 
-			(DeltaAdministrativeLoad * _sourceTribe.CurrentLeader.Wisdom * _sourceTribe.CurrentLeader.Charisma * authorityPrefFactor * MaxAdministrativeLoadChanceFactor);
+			(DeltaAdministrativeLoad * sourceTribeLeader.Wisdom * sourceTribeLeader.Charisma * authorityPrefFactor * MaxAdministrativeLoadChanceFactor);
 
 		float administrativeLoadFactor = (administrativeLoad - modMinAdministrativeLoad) / (modMaxAdministrativeLoad - modMinAdministrativeLoad);
 		numFactors++;
 
+//		Profiler.EndSample ();
+
 		/// End of NOTE relevant code
+
+//		Profiler.BeginSample ("MergeTribesDecisionEvent - chance calculation");
 		
 		float chance = ((1 - modIsolationPreferencValue) + modCohesionPreferenceValue + modRelationshipValue + contactStrength + (1 - administrativeLoadFactor)) / numFactors;
+
+//		Profiler.EndSample ();
 
 		return Mathf.Clamp01 (chance);
 	}
