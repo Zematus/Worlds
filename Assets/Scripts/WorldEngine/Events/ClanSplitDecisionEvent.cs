@@ -129,19 +129,31 @@ public class ClanSplitDecisionEvent : FactionEvent {
 
 		int rngOffset = (int)(RngOffsets.EVENT_CAN_TRIGGER + Id);
 
-		_newClanCoreGroup = _clan.Polity.GetRandomGroup (rngOffset++, GetGroupWeight, true);
+        Profiler.BeginSample("CanTrigger - _clan.Polity.GetRandomGroup");
+
+        _newClanCoreGroup = _clan.Polity.GetRandomGroup (rngOffset++, GetGroupWeight, true);
+
+        Profiler.EndSample();
 
 		if (_newClanCoreGroup == null) {
 			
 			return false;
-		}
+        }
 
-		// We should use the latest cultural attribute values before calculating chances
-		_clan.PreUpdate ();
+        Profiler.BeginSample("CanTrigger - _clan.PreUpdate");
 
-		_chanceOfSplitting = CalculateChanceOfSplitting ();
+        // We should use the latest cultural attribute values before calculating chances
+        _clan.PreUpdate ();
 
-		if (_chanceOfSplitting <= 0) {
+        Profiler.EndSample();
+
+        Profiler.BeginSample("CanTrigger - CalculateChanceOfSplitting");
+
+        _chanceOfSplitting = CalculateChanceOfSplitting ();
+
+        Profiler.EndSample();
+
+        if (_chanceOfSplitting <= 0) {
 
 			return false;
 		}

@@ -45,27 +45,45 @@ public class Agent : ISynchronizable {
 	[XmlAttribute("StilPres")]
 	public bool StillPresent = true;
 
-	public Name Name = null;
+    [XmlAttribute("NameElem")]
+    public string NameElementId = null;
 
-	[XmlIgnore]
+    [XmlAttribute("NameAttrName")]
+    public string NameAttributeName = null;
+
+    [XmlIgnore]
 	public World World;
 
 	[XmlIgnore]
 	public CellGroup Group;
 
-	public long Age {
+    [XmlIgnore]
+    public Name Name {
+        get {
+            if (_name == null) {
+                GenerateName();
+            }
+
+            return _name;
+        }
+    }
+
+    [XmlIgnore]
+    public long Age {
 		get {
 			return World.CurrentDate - BirthDate;
 		}
 	}
 
-	public int Charisma {
+    [XmlIgnore]
+    public int Charisma {
 		get {
 			return BaseCharisma;
 		}
 	}
 
-	public int Wisdom {
+    [XmlIgnore]
+    public int Wisdom {
 		get {
 			int wisdom = BaseWisdom + (int)(Age / WisdomAgeFactor) - WisdomAgeOffset;
 //			wisdom = (wisdom > MaxAttributeValue) ? MaxAttributeValue : wisdom;
@@ -73,6 +91,8 @@ public class Agent : ISynchronizable {
 			return (wisdom > MinAttributeValue) ? wisdom : MinAttributeValue;
 		}
 	}
+
+    private Name _name = null;
 
 	public Agent () {
 
@@ -101,11 +121,17 @@ public class Agent : ISynchronizable {
 
 		Profiler.EndSample ();
 
-		Profiler.BeginSample ("new Agent - GenerateName");
+        Profiler.BeginSample("new Agent - PregenerateName");
 
-		GenerateName ();
+        PregenerateName();
 
-		Profiler.EndSample ();
+        Profiler.EndSample();
+
+        //Profiler.BeginSample ("new Agent - GenerateName");
+
+		//GenerateName ();
+
+		//Profiler.EndSample ();
 	}
 
 	public void Destroy () {
@@ -177,7 +203,7 @@ public class Agent : ISynchronizable {
 
 		namePhrase = language.TranslatePhrase (untranslatedName);
 
-		Name = new Name (namePhrase, untranslatedName, language, World);
+		_name = new Name (namePhrase, untranslatedName, language, World);
 	}
 
 	private void GenerateNameFromRegionAttribute (RegionAttribute attribute, GetRandomIntDelegate getRandomInt) {
@@ -236,55 +262,83 @@ public class Agent : ISynchronizable {
 
 		namePhrase = language.TranslatePhrase (untranslatedName);
 
-		Name = new Name (namePhrase, untranslatedName, language, World);
+		_name = new Name (namePhrase, untranslatedName, language, World);
 	}
 
-	private void GenerateName () {
+    private void PregenerateName()
+    {
+        int rngOffset = RngOffsets.AGENT_GENERATE_NAME + (int)Group.Id;
 
-		int rngOffset = RngOffsets.AGENT_GENERATE_NAME + (int)Group.Id;
+        GetRandomIntDelegate getRandomInt = (int maxValue) => Group.GetLocalRandomInt(BirthDate, rngOffset++, maxValue);
 
-		GetRandomIntDelegate getRandomInt = (int maxValue) => Group.GetLocalRandomInt (BirthDate, rngOffset++, maxValue);
+        Region region = Group.Cell.Region;
 
-		Region region = Group.Cell.Region;
+        List<Element> remainingElements = new List<Element>(region.Elements.Where(e => e.Associations.Length > 0));
 
-		List<Element> remainingElements = new List<Element> (region.Elements.Where (e => e.Associations.Length > 0));
+        List<RegionAttribute> remainingAttributes = new List<RegionAttribute>(region.Attributes.Where(a => a.Associations.Length > 0));
 
-		List<RegionAttribute> remainingAttributes = new List<RegionAttribute> (region.Attributes.Where (a => a.Associations.Length > 0));
+        int optionCount = remainingElements.Count + remainingAttributes.Count;
 
-		int optionCount = remainingElements.Count + remainingAttributes.Count;
+        if (optionCount <= 0)
+        {
+            throw new System.Exception("No elements nor attributes to choose name from");
+        }
 
-		if (optionCount <= 0) {
+        if (remainingElements.Count > getRandomInt(optionCount))
+        {
+            Element element = remainingElements.RandomSelectAndRemove(getRandomInt);
 
-			throw new System.Exception ("No elements nor attributes to choose name from");
-		}
+            NameElementId = element.Id;
+        }
+        else
+        {
+            RegionAttribute attribute = remainingAttributes.RandomSelectAndRemove(getRandomInt);
 
-		if (remainingElements.Count > getRandomInt (optionCount)) {
+            NameAttributeName = attribute.Name;
+        }
+    }
 
-			Element element = remainingElements.RandomSelectAndRemove (getRandomInt);
+	private void GenerateName ()
+    {
+        int rngOffset = RngOffsets.AGENT_GENERATE_NAME + (int)Group.Id;
+
+        GetRandomIntDelegate getRandomInt = (int maxValue) => Group.GetLocalRandomInt(BirthDate, rngOffset++, maxValue);
+
+        if (NameElementId != null) {
+
+			Element element = Element.Elements[NameElementId];
+
+            Profiler.BeginSample("GenerateName - GenerateNameFromElement");
 
 			GenerateNameFromElement (element, getRandomInt);
 
+            Profiler.EndSample();
+
 		} else {
 
-			RegionAttribute attribute = remainingAttributes.RandomSelectAndRemove (getRandomInt);
+			RegionAttribute attribute = RegionAttribute.Attributes[NameAttributeName];
 
-			GenerateNameFromRegionAttribute (attribute, getRandomInt);
-		}
+            Profiler.BeginSample("GenerateName - GenerateNameFromRegionAttribute");
+
+            GenerateNameFromRegionAttribute (attribute, getRandomInt);
+
+            Profiler.EndSample();
+        }
 
 //		#if DEBUG
 //		Debug.Log ("Leader #" + Id + " name: " + Name);
 //		#endif
 	}
 
-	public virtual void Synchronize () {
-
-		Name.Synchronize ();
+	public virtual void Synchronize ()
+    {
+		//Name.Synchronize ();
 	}
 
-	public virtual void FinalizeLoad () {
-
-		Name.World = World;
-		Name.FinalizeLoad ();
+	public virtual void FinalizeLoad ()
+    {
+		//Name.World = World;
+		//Name.FinalizeLoad ();
 
 		Group = World.GetGroup (GroupId);
 

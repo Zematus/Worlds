@@ -346,6 +346,8 @@ public class TerrainCell : ISynchronizable {
 
 	public int GetLocalRandomInt (long date, int queryOffset, int maxValue) {
 
+        if (maxValue < 2) return 0;
+
 		maxValue = Mathf.Min (PerlinNoise.MaxPermutationValue, maxValue);
 
 		long dateFactor = (date % 256) + (date % 7843); // This operation will reduce to zero or almost zero the number of artifacts resulting from (date & 255) being a constant value in some circumstances

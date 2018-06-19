@@ -936,14 +936,22 @@ public abstract class Polity : ISynchronizable {
 
 	public CellGroup GetRandomGroup (int rngOffset, GroupValueCalculationDelegate calculateGroupValue, bool nullIfNoValidGroup = false) {
 
-		WeightedGroup[] weightedGroups = new WeightedGroup[ProminencedGroups.Count];
+        int maxSampleSize = 50;
+
+        int sampleGroupLength = ProminencedGroups.Count / 50;
+
+        WeightedGroup[] weightedGroups = new WeightedGroup[ProminencedGroups.Count];
 
 		float totalWeight = 0;
 
 		int index = 0;
 		foreach (CellGroup group in ProminencedGroups.Values) {
+            
+            Profiler.BeginSample("GetRandomGroup - calculateGroupValue - " + calculateGroupValue.Method.Module.Name + ":" + calculateGroupValue.Method.Name);
 
-			float weight = calculateGroupValue (group);
+            float weight = calculateGroupValue (group);
+
+            Profiler.EndSample();
 
 			if (weight < 0)
 				throw new System.Exception ("calculateGroupValue method returned weight value less than zero: " + weight);
