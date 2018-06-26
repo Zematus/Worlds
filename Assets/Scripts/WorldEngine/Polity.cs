@@ -460,7 +460,7 @@ public abstract class Polity : ISynchronizable {
 	public void DecreaseContactGroupCount (Polity polity) {
 
 		if (!_contacts.ContainsKey (polity.Id))
-			throw new System.Exception ("(id: " + Id + ") contact not present: " + polity.Id);
+			throw new System.Exception ("(id: " + Id + ") contact not present: " + polity.Id + " - Date: " + World.CurrentDate);
 
 		PolityContact contact = _contacts [polity.Id];
 
@@ -936,16 +936,54 @@ public abstract class Polity : ISynchronizable {
 
 	public CellGroup GetRandomGroup (int rngOffset, GroupValueCalculationDelegate calculateGroupValue, bool nullIfNoValidGroup = false) {
 
-        int maxSampleSize = 50;
+        // Instead of this cumbersome sampling mechanism, create a sample list for each polity that adds/removes groups that update 
+        // or have been selected by this method
 
-        int sampleGroupLength = ProminencedGroups.Count / 50;
+        int maxSampleSize = 20;
 
-        WeightedGroup[] weightedGroups = new WeightedGroup[ProminencedGroups.Count];
+        int sampleGroupLength = 1 + (ProminencedGroups.Count / maxSampleSize);
+
+        int sampleSize = ProminencedGroups.Count / sampleGroupLength;
+
+        if ((sampleGroupLength > 1) && ((ProminencedGroups.Count % sampleGroupLength) > 0)) {
+            sampleSize++;
+        }
+
+        WeightedGroup[] weightedGroups = new WeightedGroup[sampleSize];
 
 		float totalWeight = 0;
 
 		int index = 0;
-		foreach (CellGroup group in ProminencedGroups.Values) {
+        int sampleIndex = 0;
+        int nextGroupToPick = GetNextLocalRandomInt(rngOffset++, sampleGroupLength);
+
+		foreach (CellGroup group in ProminencedGroups.Values)
+        {
+            bool skipGroup = false;
+
+            if ((sampleGroupLength > 1) && (index != nextGroupToPick))
+                skipGroup = true;
+
+            index++;
+
+            if (sampleGroupLength > 1)
+            {
+                if ((index % sampleGroupLength) == 0)
+                {
+                    int groupsRemaining = ProminencedGroups.Count - index;
+
+                    if (groupsRemaining > sampleGroupLength)
+                    {
+                        nextGroupToPick = index + GetNextLocalRandomInt(rngOffset++, sampleGroupLength);
+                    }
+                    else if (groupsRemaining > 0)
+                    {
+                        nextGroupToPick = index + (GetNextLocalRandomInt(rngOffset++, sampleGroupLength) % groupsRemaining);
+                    }
+                }
+            }
+
+            if (skipGroup) continue;
             
             Profiler.BeginSample("GetRandomGroup - calculateGroupValue - " + calculateGroupValue.Method.Module.Name + ":" + calculateGroupValue.Method.Name);
 
@@ -956,14 +994,12 @@ public abstract class Polity : ISynchronizable {
 			if (weight < 0)
 				throw new System.Exception ("calculateGroupValue method returned weight value less than zero: " + weight);
 
-			if ((weight == 0) && nullIfNoValidGroup)
-				continue;
-
 			totalWeight += weight;
 
-			weightedGroups [index] = new WeightedGroup (group, weight);
-			index++;
-		}
+			weightedGroups [sampleIndex] = new WeightedGroup (group, weight);
+
+            sampleIndex++;
+        }
 
 		if (totalWeight < 0) {
 		

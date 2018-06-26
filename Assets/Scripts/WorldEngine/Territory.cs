@@ -97,7 +97,7 @@ public class Territory : ISynchronizable {
 					World.AddRegion (cellRegion);
 			} else {
 
-				Debug.LogError ("No region could be generated");
+                throw new System.Exception("No region could be generated");
 			}
 		}
 	}
@@ -105,9 +105,8 @@ public class Territory : ISynchronizable {
 	public void RemoveCell (TerrainCell cell) {
 
 		if (!_cells.Remove (cell)) {
-
-			Debug.Break ();
-			throw new System.Exception ("Trying to remove cell that has already been removed");
+            
+			throw new System.Exception("Trying to remove cell that is not present in territory");
 		}
 
 		cell.EncompassingTerritory = null;

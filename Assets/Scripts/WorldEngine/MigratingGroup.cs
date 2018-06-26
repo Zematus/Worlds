@@ -107,17 +107,23 @@ public class MigratingGroup : HumanGroup {
 		
 		Culture = new BufferCulture (SourceGroup.Culture);
 
-		PolityProminencesCount = SourceGroup.PolityProminences.Count;
+		PolityProminencesCount = SourceGroup.ExistingPolityProminences.Count;
 
 		int minCopyCount = Mathf.Min (PolityProminencesCount, PolityProminences.Count);
 
-		for (int i = 0; i < minCopyCount; i++) {
-			PolityProminences [i].Set (SourceGroup.PolityProminences [i]);
-		}
+        IEnumerator<PolityProminence> ppEnumerator = SourceGroup.ExistingPolityProminences.GetEnumerator();
 
-		for (int i = minCopyCount; i < PolityProminencesCount; i++) {
-			PolityProminences.Add (new PolityProminence(SourceGroup.PolityProminences [i]));
-		}
+        for (int i = 0; i < minCopyCount; i++)
+        {
+            ppEnumerator.MoveNext();
+            PolityProminences [i].Set (ppEnumerator.Current);
+        }
+
+		for (int i = minCopyCount; i < PolityProminencesCount; i++)
+        {
+            ppEnumerator.MoveNext();
+            PolityProminences.Add (new PolityProminence(ppEnumerator.Current));
+        }
 
 		TryMigrateFactionCores ();
 

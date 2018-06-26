@@ -126,12 +126,6 @@ public class Agent : ISynchronizable {
         PregenerateName();
 
         Profiler.EndSample();
-
-        //Profiler.BeginSample ("new Agent - GenerateName");
-
-		//GenerateName ();
-
-		//Profiler.EndSample ();
 	}
 
 	public void Destroy () {
@@ -337,9 +331,6 @@ public class Agent : ISynchronizable {
 
 	public virtual void FinalizeLoad ()
     {
-		//Name.World = World;
-		//Name.FinalizeLoad ();
-
 		Group = World.GetGroup (GroupId);
 
 		if (Group == null) {
