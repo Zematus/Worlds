@@ -219,10 +219,36 @@ public class CellGroup : HumanGroup {
 	[XmlIgnore]
 	public Dictionary<Direction, CellGroup> Neighbors;
 
-	[XmlIgnore]
-	public PolityProminence HighestPolityProminence = null;
+#if DEBUG
+    [XmlIgnore]
+    public PolityProminence HighestPolityProminence
+    {
+        get
+        {
+            return _highestPolityProminence;
+        }
+        set
+        {
+            if ((Cell.Latitude == 108) && (Cell.Longitude == 362))
+            {
+                Debug.Log("HighestPolityProminence:set - Cell:" + Cell.Position +
+                    ((value != null) ?
+                    (", value.PolityId: " + value.PolityId + ", value.Polity.Id: " + value.Polity.Id) :
+                    ", null value"));
+            }
 
-	private Dictionary<long, PolityProminence> _polityProminences = new Dictionary<long, PolityProminence> ();
+            _highestPolityProminence = value;
+        }
+    }
+
+    private PolityProminence _highestPolityProminence = null;
+#else
+
+    [XmlIgnore]
+    public PolityProminence HighestPolityProminence = null;
+#endif
+
+    private Dictionary<long, PolityProminence> _polityProminences = new Dictionary<long, PolityProminence> ();
 	private HashSet<long> _polityProminencesToRemove = new HashSet<long> ();
 	private Dictionary<long, PolityProminence> _polityProminencesToAdd = new Dictionary<long, PolityProminence> ();
 
@@ -246,13 +272,13 @@ public class CellGroup : HumanGroup {
 		get {
 			int population = (int)Mathf.Floor(ExactPopulation);
 
-			#if DEBUG
+#if DEBUG
 			if (population < -1000) {
 			
 				Debug.Break ();
 				throw new System.Exception ("Debug.Break");
 			}
-			#endif
+#endif
 
 			return population;
 		}
@@ -264,8 +290,8 @@ public class CellGroup : HumanGroup {
 	}
 	
 	public CellGroup (MigratingGroup migratingGroup, int splitPopulation) : this (migratingGroup.World, migratingGroup.TargetCell, splitPopulation, migratingGroup.Culture, migratingGroup.MigrationDirection) {
-
-		foreach (PolityProminence p in migratingGroup.PolityProminences) {
+        
+        foreach (PolityProminence p in migratingGroup.PolityProminences) {
 
 			_polityProminencesToAdd.Add (p.PolityId, p);
 
@@ -280,8 +306,8 @@ public class CellGroup : HumanGroup {
 	}
 
 	public CellGroup (World world, TerrainCell cell, int initialPopulation, Culture baseCulture = null, Direction migrationDirection = Direction.Null) : base(world) {
-
-		InitDate = World.CurrentDate;
+        
+        InitDate = World.CurrentDate;
 		LastUpdateDate = InitDate;
 
 		PreviousExactPopulation = 0;
@@ -304,7 +330,7 @@ public class CellGroup : HumanGroup {
 			PreferredMigrationDirection = migrationDirection;
 		}
 
-		#if DEBUG
+#if DEBUG
 		if (Longitude > 1000) {
 			Debug.LogError ("Longitude[" + Longitude + "] > 1000");
 		}
@@ -312,7 +338,7 @@ public class CellGroup : HumanGroup {
 		if (Latitude > 1000) {
 			Debug.LogError ("Latitude[" + Latitude + "] > 1000");
 		}
-		#endif
+#endif
 
 //		#if DEBUG
 //		if (Manager.RegisterDebugEvent != null) {
@@ -440,15 +466,48 @@ public class CellGroup : HumanGroup {
 		if (HighestPolityProminence == prominence)
 			return;
 
-		if (HighestPolityProminence != null) {
-			HighestPolityProminence.Polity.Territory.RemoveCell (Cell);
+#if DEBUG
+        if ((Cell.Latitude == 108) && (Cell.Longitude == 362))
+        {
+            //if (prominence.Polity.Id == 18939116936608004)
+            //{
+            //    Debug.Log("SetHighestPolityProminence - Cell:" + Cell.Position + ", prominence.Polity.Id: " + prominence.Polity.Id +
+            //        ((HighestPolityProminence != null) ? (", HighestPolityProminence.Polity.Id: " + HighestPolityProminence.Polity.Id) : ", null HighestPolityProminence"));
+            //}
+
+            //if ((HighestPolityProminence != null) && (HighestPolityProminence.Polity.Id == 18939116936608004))
+            //{
+            //    Debug.Log("SetHighestPolityProminence - Cell:" + Cell.Position + ", prominence.Polity.Id: " + prominence.Polity.Id +
+            //        ((HighestPolityProminence != null) ? (", HighestPolityProminence.Polity.Id: " + HighestPolityProminence.Polity.Id) : ", null HighestPolityProminence"));
+            //}
+
+            Debug.Log("SetHighestPolityProminence - Cell:" + Cell.Position + 
+                ", prominence.PolityId: " + prominence.PolityId + ", prominence.Polity.Id: " + prominence.Polity.Id +
+                ((HighestPolityProminence != null) ? 
+                (", HighestPolityProminence.PolityId: " + HighestPolityProminence.PolityId + ", HighestPolityProminence.Polity.Id: " + HighestPolityProminence.Polity.Id) : 
+                ", null HighestPolityProminence"));
+        }
+#endif
+
+        if (HighestPolityProminence != null)
+        {
+            //Profiler.BeginSample("Territory.RemoveCell");
+
+            HighestPolityProminence.Polity.Territory.RemoveCell (Cell);
+
+            //Profiler.EndSample();
 		}
 
 		HighestPolityProminence = prominence;
 
-		if (prominence != null) {
-			prominence.Polity.Territory.AddCell (Cell);
-		}
+		if (prominence != null)
+        {
+            //Profiler.BeginSample("Territory.AddCell");
+
+            prominence.Polity.Territory.AddCell (Cell);
+
+            //Profiler.EndSample();
+        }
 	}
 
 	public void InitializeDefaultEvents () {
@@ -658,13 +717,13 @@ public class CellGroup : HumanGroup {
 
 		ExactPopulation = newPopulation;
 
-		#if DEBUG
+#if DEBUG
 		if (Population < -1000) {
 
 			Debug.Break ();
 			throw new System.Exception ("Debug.Break");
 		}
-		#endif
+#endif
 
 		Culture.MergeCulture (group.Culture, percentage);
 
@@ -830,12 +889,12 @@ public class CellGroup : HumanGroup {
 //		}
 //		#endif
 
-		#if DEBUG
+#if DEBUG
 		if (Population < -1000) {
 			Debug.Break ();
 			throw new System.Exception ("Debug.Break");
 		}
-		#endif
+#endif
 
 		return splitPopulation;
 	}
@@ -1003,11 +1062,11 @@ public class CellGroup : HumanGroup {
 		float altitudeDeltaFactor = CalculateAltitudeDeltaFactor (cell);
 		float altitudeDeltaFactorPow = Mathf.Pow (altitudeDeltaFactor, 4);
 
-		#if DEBUG
+#if DEBUG
 		if (float.IsNaN (altitudeDeltaFactorPow)) {
 			throw new System.Exception ("float.IsNaN (altitudeDeltaFactorPow)");
 		}
-		#endif
+#endif
 
 //		Profiler.EndSample ();
 
@@ -1045,13 +1104,13 @@ public class CellGroup : HumanGroup {
 
 		float cellValue = altitudeDeltaFactorPow * areaFactor * popDifferenceFactor * noMigrationFactor * targetOptimalPopulationFactor;
 
-		#if DEBUG
+#if DEBUG
 		if (float.IsNaN (cellValue)) {
 
 			Debug.Break ();
 			throw new System.Exception ("float.IsNaN (cellValue)");
 		}
-		#endif
+#endif
 
 //		#if DEBUG
 //		if (Manager.RegisterDebugEvent != null) {
@@ -1250,12 +1309,12 @@ public class CellGroup : HumanGroup {
 
 		TotalMigrationValue = MigrationValue;
 
-		#if DEBUG
+#if DEBUG
 		if (float.IsNaN (TotalMigrationValue)) {
 
 			throw new System.Exception ("float.IsNaN (TotalMigrationValue)");
 		}
-		#endif
+#endif
 	}
 
 	private class CellWeight : CollectionUtility.ElementWeightPair<TerrainCell> {
@@ -1339,12 +1398,12 @@ public class CellGroup : HumanGroup {
 
 		TotalMigrationValue += cellValue;
 
-		#if DEBUG
+#if DEBUG
 		if (float.IsNaN (TotalMigrationValue)) {
 
 			throw new System.Exception ("float.IsNaN (TotalMigrationValue)");
 		}
-		#endif
+#endif
 
 //		Profiler.EndSample ();
 
@@ -1717,9 +1776,9 @@ public class CellGroup : HumanGroup {
 
 		foreach (Faction faction in GetFactionCores ()) {
 
-			#if DEBUG
+#if DEBUG
 			Debug.Log ("Faction will be removed due to core group dissapearing. faction id: " + faction.Id + ", group id:" + Id);
-			#endif
+#endif
 
 			World.AddFactionToRemove (faction);
 		}
@@ -1759,13 +1818,13 @@ public class CellGroup : HumanGroup {
 		SetHighestPolityProminence (null);
 	}
 
-	#if DEBUG
+#if DEBUG
 
 	public delegate void UpdateCalledDelegate ();
 
 	public static UpdateCalledDelegate UpdateCalled = null; 
 
-	#endif
+#endif
 
 	public void Update () {
 
@@ -1784,12 +1843,12 @@ public class CellGroup : HumanGroup {
 		if (timeSpan <= 0)
 			return;
 
-		#if DEBUG
+#if DEBUG
 		if (UpdateCalled != null) {
 
 			UpdateCalled ();
 		}
-		#endif
+#endif
 
 		_alreadyUpdated = true;
 
@@ -1913,7 +1972,7 @@ public class CellGroup : HumanGroup {
 
 		float rollValue = Cell.GetNextLocalRandomFloat (RngOffsets.CELL_GROUP_SET_POLITY_UPDATE + (int)p.Id);
 
-		#if DEBUG
+#if DEBUG
 		if (Manager.RegisterDebugEvent != null) {
 
 			System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
@@ -1943,7 +2002,7 @@ public class CellGroup : HumanGroup {
 
 			Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
 		}
-		#endif
+#endif
 
 		if (rollValue <= chanceFactor)
 			World.AddPolityToUpdate (p);
@@ -2130,13 +2189,13 @@ public class CellGroup : HumanGroup {
 
 		optimalPopulation = (int)Mathf.Floor (populationCapacity);
 
-		#if DEBUG
+#if DEBUG
 		if (optimalPopulation < -1000) {
 
 			Debug.Break ();
 			throw new System.Exception ("Debug.Break");
 		}
-		#endif
+#endif
 
 //		#if DEBUG
 //		if (Manager.RegisterDebugEvent != null) {
@@ -2290,7 +2349,7 @@ public class CellGroup : HumanGroup {
 //		}
 //		#endif
 
-		#if DEBUG
+#if DEBUG
 		if (FactionCores.Count > 0) {
 			foreach (Faction faction in FactionCores.Values) {
 				if (faction.CoreGroupId != Id) {
@@ -2298,7 +2357,7 @@ public class CellGroup : HumanGroup {
 				}
 			}
 		}
-		#endif
+#endif
 
 //		#if DEBUG
 //		if (Cell.IsSelected) {
@@ -2347,7 +2406,7 @@ public class CellGroup : HumanGroup {
 		updateSpan = (updateSpan < GenerationSpan) ? GenerationSpan : updateSpan;
 		updateSpan = (updateSpan > MaxUpdateSpan) ? MaxUpdateSpan : updateSpan;
 
-		#if DEBUG
+#if DEBUG
 		if (Manager.RegisterDebugEvent != null) {
 			if (Id == Manager.TracingData.GroupId) {
 				string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
@@ -2366,7 +2425,7 @@ public class CellGroup : HumanGroup {
 				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
 			}
 		}
-		#endif
+#endif
 
 //		#if DEBUG
 //		if (Cell.IsSelected) {
@@ -2393,13 +2452,13 @@ public class CellGroup : HumanGroup {
 
 			population = OptimalPopulation * MathUtility.RoundToSixDecimals (1 - Mathf.Pow(populationFactor, geometricTimeFactor));
 
-			#if DEBUG
+#if DEBUG
 			if ((int)population < -1000) {
 
 				Debug.Break ();
 				throw new System.Exception ("Debug.Break");
 			}
-			#endif
+#endif
 
 //			#if DEBUG
 //			if (Manager.RegisterDebugEvent != null) {
@@ -2426,13 +2485,13 @@ public class CellGroup : HumanGroup {
 
 			population = OptimalPopulation + (ExactPopulation - OptimalPopulation) * MathUtility.RoundToSixDecimals (Mathf.Exp (-timeFactor));
 
-			#if DEBUG
+#if DEBUG
 			if ((int)population < -1000) {
 
 				Debug.Break ();
 				throw new System.Exception ("Debug.Break");
 			}
-			#endif
+#endif
 
 //			#if DEBUG
 //			if (Manager.RegisterDebugEvent != null) {
@@ -2642,9 +2701,9 @@ public class CellGroup : HumanGroup {
 
 					if (faction.PolityId == pi.PolityId) {
 
-						#if DEBUG
+#if DEBUG
 						Debug.Log ("Faction will be removed due to total loss of polity prominence. faction id: " + faction.Id + ", group id:" + Id);
-						#endif
+#endif
 
 						World.AddFactionToRemove (faction);
 					}
@@ -2777,14 +2836,14 @@ public class CellGroup : HumanGroup {
 			TotalPolityProminenceValue += pi.Value;
 		}
 
-		#if DEBUG
+#if DEBUG
 		if (TotalPolityProminenceValue > 1.0) {
 
 			Debug.LogWarning ("Total Polity Prominence Value greater than 1: " + TotalPolityProminenceValue);
 		}
-		#endif
+#endif
 
-		#if DEBUG
+#if DEBUG
 		if (TotalPolityProminenceValue <= 0) {
 
 			if (GetFactionCores ().Count > 0) {
@@ -2792,7 +2851,7 @@ public class CellGroup : HumanGroup {
 				Debug.LogWarning ("Group with no polity prominence has faction cores - Id: " + Id);
 			}
 		}
-		#endif
+#endif
 
 		FindHighestPolityProminence ();
 	}
@@ -2896,7 +2955,11 @@ public class CellGroup : HumanGroup {
 			}
 		}
 
-		SetHighestPolityProminence (highestProminence);
+        //Profiler.BeginSample("Set Highest Polity Prominence");
+
+        SetHighestPolityProminence(highestProminence);
+
+        //Profiler.EndSample();
 	}
 
 	public void RemovePolityProminence (Polity polity) {
@@ -2948,9 +3011,9 @@ public class CellGroup : HumanGroup {
 		base.Synchronize ();
 	}
 
-	#if DEBUG
+#if DEBUG
 	public static int Debug_LoadedGroups = 0;
-	#endif
+#endif
 	
 	public override void FinalizeLoad () {
 
@@ -3067,8 +3130,8 @@ public class CellGroup : HumanGroup {
 			World.InsertEventToHappen (TribeCreationEvent);
 		}
 
-		#if DEBUG
+#if DEBUG
 		Debug_LoadedGroups++;
-		#endif
+#endif
 	}
 }

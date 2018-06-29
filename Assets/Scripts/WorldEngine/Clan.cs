@@ -344,8 +344,11 @@ public class Clan : Faction {
 			
 				parentTribe = highestPolityProminence.Polity as Tribe;
 
-				Debug.Log ("parent tribe replaced from " + Polity.Id + " to " + parentTribe.Id + " due to low polity prominence value in new core: " + polityProminenceValue);
-			} else {
+//#if DEBUG
+//                Debug.Log("parent tribe replaced from " + Polity.Id + " to " + parentTribe.Id + " due to low polity prominence value in new core: " + polityProminenceValue);
+//#endif
+            }
+            else {
 			
 				throw new System.Exception ("Failed to replace new parent polity as it is not a Tribe. Id: " + highestPolityProminence.Polity.Id);
 			}

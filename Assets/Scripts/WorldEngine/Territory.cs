@@ -60,10 +60,9 @@ public class Territory : ISynchronizable {
 	public void AddCell (TerrainCell cell) {
 
 		if (!_cells.Add (cell)) {
-
-			Debug.Break ();
-			throw new System.Exception ("Trying to add cell that has already been added");
-		}
+            
+			throw new System.Exception ("Trying to add cell that has already been added. Cell: " + cell.Position + " Polity.Id: " + Polity.Id);
+        }
 
 		cell.EncompassingTerritory = this;
 		Manager.AddUpdatedCell (cell, CellUpdateType.Territory);
@@ -106,7 +105,7 @@ public class Territory : ISynchronizable {
 
 		if (!_cells.Remove (cell)) {
             
-			throw new System.Exception("Trying to remove cell that is not present in territory");
+			throw new System.Exception("Trying to remove cell that is not present in territory. Cell:" + cell.Position + " Polity.Id:" + Polity.Id);
 		}
 
 		cell.EncompassingTerritory = null;

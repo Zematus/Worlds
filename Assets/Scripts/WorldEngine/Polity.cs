@@ -289,9 +289,9 @@ public abstract class Polity : ISynchronizable {
 
 		if (_factions.Count <= 0) {
 			
-			#if DEBUG
-			Debug.Log ("Polity will be removed due to losing all factions. faction id: " + faction.Id + ", polity id:" + Id);
-			#endif
+			//#if DEBUG
+			//Debug.Log ("Polity will be removed due to losing all factions. faction id: " + faction.Id + ", polity id:" + Id);
+			//#endif
 
 			PrepareToRemoveFromWorld ();
 			return;
