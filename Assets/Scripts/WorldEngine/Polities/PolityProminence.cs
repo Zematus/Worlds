@@ -7,36 +7,36 @@ using UnityEngine.Profiling;
 
 public class PolityProminence {
 
-#if DEBUG
-    public static long CurrentDebugId = 0;
+//#if DEBUG
+//    public static long CurrentDebugId = 0;
 
-    public long DebugId = -1;
+//    public long DebugId = -1;
 
-    [XmlAttribute("PolityId")]
-    public long PolityId_Debug;
+//    [XmlAttribute("PolityId")]
+//    public long PolityId_Debug;
 
-    [XmlIgnore]
-    public long PolityId
-    {
-        get
-        {
-            return PolityId_Debug;
-        }
-        set
-        {
-            //if (!_isMigratingGroup && (Group.Cell.Latitude == 108) && (Group.Cell.Longitude == 362))
-            //{
-            //    Debug.Log("PolityProminence:PolityId:Set - Group.Cell:" + Group.Cell.Position +
-            //    ", old PolityId: " + PolityId_Debug + ", new PolityId: " + value);
-            //}
+//    [XmlIgnore]
+//    public long PolityId
+//    {
+//        get
+//        {
+//            return PolityId_Debug;
+//        }
+//        set
+//        {
+//            //if (!_isMigratingGroup && (Group.Cell.Latitude == 108) && (Group.Cell.Longitude == 362))
+//            //{
+//            //    Debug.Log("PolityProminence:PolityId:Set - Group.Cell:" + Group.Cell.Position +
+//            //    ", old PolityId: " + PolityId_Debug + ", new PolityId: " + value);
+//            //}
 
-            PolityId_Debug = value;
-        }
-    }
-#else
+//            PolityId_Debug = value;
+//        }
+//    }
+//#else
     [XmlAttribute]
 	public long PolityId;
-#endif
+//#endif
     [XmlAttribute("Val")]
 	public float Value;
 	[XmlAttribute("FctDist")]
@@ -71,13 +71,15 @@ public class PolityProminence {
 
         _isMigratingGroup = isMigratingGroup;
 
-        if (!isMigratingGroup)
-        {
-            DebugId = CurrentDebugId;
-            CurrentDebugId++;
-        }
-        
-        Set (polityProminence);
+//#if DEBUG
+//        if (!isMigratingGroup)
+//        {
+//            DebugId = CurrentDebugId;
+//            CurrentDebugId++;
+//        }
+//#endif
+
+        Set(polityProminence);
 	}
 
 	public void Set (PolityProminence polityProminence)
@@ -102,13 +104,15 @@ public class PolityProminence {
 
         _isMigratingGroup = isMigratingGroup;
 
-        if (!isMigratingGroup)
-        {
-            DebugId = CurrentDebugId;
-            CurrentDebugId++;
-        }
+//#if DEBUG
+//        if (!isMigratingGroup)
+//        {
+//            DebugId = CurrentDebugId;
+//            CurrentDebugId++;
+//        }
+//#endif
 
-        Set (polity, value, polityCoreDistance, factionCoreDistance);
+        Set(polity, value, polityCoreDistance, factionCoreDistance);
 	}
 
 	public void Set (Polity polity, float value, float polityCoreDistance = -1, float factionCoreDistance = -1)

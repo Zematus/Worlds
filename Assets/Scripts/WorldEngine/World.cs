@@ -779,21 +779,19 @@ public class World : ISynchronizable {
 	}
 
 	private void MigrateGroups () {
-
-		MigratingGroup[] currentGroupsToMigrate = _migratingGroups.ToArray();
-
-		_migratingGroups.Clear ();
-
-		foreach (MigratingGroup group in currentGroupsToMigrate) {
+        
+		foreach (MigratingGroup group in _migratingGroups) {
 
 			group.SplitFromSourceGroup();
 		}
 
-		foreach (MigratingGroup group in currentGroupsToMigrate) {
+		foreach (MigratingGroup group in _migratingGroups) {
 
 			group.MoveToCell();
-		}
-	}
+        }
+
+        _migratingGroups.Clear();
+    }
 
 	//	private void PerformGroupActions () {
 	//
