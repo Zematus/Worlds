@@ -122,7 +122,7 @@ public class MigratingGroup : HumanGroup {
 		for (int i = minCopyCount; i < PolityProminencesCount; i++)
         {
             ppEnumerator.MoveNext();
-            PolityProminences.Add (new PolityProminence(ppEnumerator.Current));
+            PolityProminences.Add (new PolityProminence(ppEnumerator.Current, true));
         }
 
 		TryMigrateFactionCores ();

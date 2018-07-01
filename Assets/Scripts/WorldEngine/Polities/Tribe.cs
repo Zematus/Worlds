@@ -25,12 +25,6 @@ public class Tribe : Polity {
 
 	public const float BaseCoreProminence = 0.5f;
 
-//	[XmlAttribute("SpltDate")]
-//	public long TribeSplitEventDate;
-//
-//	[XmlIgnore]
-//	public TribeSplitEvent TribeSplitEvent;
-
 	public Tribe () {
 
 	}
@@ -308,21 +302,6 @@ public class Tribe : Polity {
 
 	protected override void UpdateInternal ()
 	{
-//		float administrativeLoadFactor = TribeSplitEvent.CalculateAdministrativeLoadFactor (this);
-//
-//		if (administrativeLoadFactor > TribeSplitEvent.TerminalAdministrativeLoadValue) {
-//			
-//			long tentativeSplitEventDate = TribeSplitEvent.CalculateTriggerDate (this);
-//
-//			if (tentativeSplitEventDate < TribeSplitEventDate) {
-//
-//				TribeSplitEventDate = tentativeSplitEventDate;
-//
-//				TribeSplitEvent.Reset (TribeSplitEventDate);
-//
-//				World.InsertEventToHappen (TribeSplitEvent);
-//			}
-//		}
 	}
 
 	protected override void GenerateName ()

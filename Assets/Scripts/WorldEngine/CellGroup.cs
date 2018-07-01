@@ -293,7 +293,7 @@ public class CellGroup : HumanGroup {
         
         foreach (PolityProminence p in migratingGroup.PolityProminences) {
 
-			_polityProminencesToAdd.Add (p.PolityId, p);
+			_polityProminencesToAdd.Add (p.PolityId, new PolityProminence(p));
 
 			if (p.NewFactionCoreDistance == -1) {
 				p.NewFactionCoreDistance = CalculateShortestFactionCoreDistance (p.Polity);
@@ -466,28 +466,28 @@ public class CellGroup : HumanGroup {
 		if (HighestPolityProminence == prominence)
 			return;
 
-#if DEBUG
-        if ((Cell.Latitude == 108) && (Cell.Longitude == 362))
-        {
-            //if (prominence.Polity.Id == 18939116936608004)
-            //{
-            //    Debug.Log("SetHighestPolityProminence - Cell:" + Cell.Position + ", prominence.Polity.Id: " + prominence.Polity.Id +
-            //        ((HighestPolityProminence != null) ? (", HighestPolityProminence.Polity.Id: " + HighestPolityProminence.Polity.Id) : ", null HighestPolityProminence"));
-            //}
+//#if DEBUG
+//        if ((Cell.Latitude == 108) && (Cell.Longitude == 362))
+//        {
+//            //if (prominence.Polity.Id == 18939116936608004)
+//            //{
+//            //    Debug.Log("SetHighestPolityProminence - Cell:" + Cell.Position + ", prominence.Polity.Id: " + prominence.Polity.Id +
+//            //        ((HighestPolityProminence != null) ? (", HighestPolityProminence.Polity.Id: " + HighestPolityProminence.Polity.Id) : ", null HighestPolityProminence"));
+//            //}
 
-            //if ((HighestPolityProminence != null) && (HighestPolityProminence.Polity.Id == 18939116936608004))
-            //{
-            //    Debug.Log("SetHighestPolityProminence - Cell:" + Cell.Position + ", prominence.Polity.Id: " + prominence.Polity.Id +
-            //        ((HighestPolityProminence != null) ? (", HighestPolityProminence.Polity.Id: " + HighestPolityProminence.Polity.Id) : ", null HighestPolityProminence"));
-            //}
+//            //if ((HighestPolityProminence != null) && (HighestPolityProminence.Polity.Id == 18939116936608004))
+//            //{
+//            //    Debug.Log("SetHighestPolityProminence - Cell:" + Cell.Position + ", prominence.Polity.Id: " + prominence.Polity.Id +
+//            //        ((HighestPolityProminence != null) ? (", HighestPolityProminence.Polity.Id: " + HighestPolityProminence.Polity.Id) : ", null HighestPolityProminence"));
+//            //}
 
-            Debug.Log("SetHighestPolityProminence - Cell:" + Cell.Position + 
-                ", prominence.PolityId: " + prominence.PolityId + ", prominence.Polity.Id: " + prominence.Polity.Id +
-                ((HighestPolityProminence != null) ? 
-                (", HighestPolityProminence.PolityId: " + HighestPolityProminence.PolityId + ", HighestPolityProminence.Polity.Id: " + HighestPolityProminence.Polity.Id) : 
-                ", null HighestPolityProminence"));
-        }
-#endif
+//            Debug.Log("SetHighestPolityProminence - Cell:" + Cell.Position + 
+//                ", prominence.PolityId: " + prominence.PolityId + ", prominence.Polity.Id: " + prominence.Polity.Id +
+//                ((HighestPolityProminence != null) ? 
+//                (", HighestPolityProminence.PolityId: " + HighestPolityProminence.PolityId + ", HighestPolityProminence.Polity.Id: " + HighestPolityProminence.Polity.Id) : 
+//                ", null HighestPolityProminence") + ", CurrentDate: " + World.CurrentDate);
+//        }
+//#endif
 
         if (HighestPolityProminence != null)
         {
@@ -2676,11 +2676,28 @@ public class CellGroup : HumanGroup {
 
 				_polityProminencesToAdd.Remove (pi.PolityId);
 
-			} else {
+#if DEBUG
+                if ((Cell.Latitude == 108) && (Cell.Longitude == 362))
+                {
+                    Debug.Log("PostUpdatePolityProminences_BeforePolityUpdates:_polityProminencesToAdd.Remove - Cell:" + Cell.Position +
+                    ", polityId: " + polityId);
+                }
+#endif
+
+            }
+            else {
                 
-                Profiler.BeginSample("Remove Polity Influence");
+                Profiler.BeginSample("Remove Polity Prominence");
 
                 _polityProminences.Remove (pi.PolityId);
+
+#if DEBUG
+                if ((Cell.Latitude == 108) && (Cell.Longitude == 362))
+                {
+                    Debug.Log("PostUpdatePolityProminences_BeforePolityUpdates:_polityProminences.Remove - Cell:" + Cell.Position +
+                    ", polityId: " + polityId);
+                }
+#endif
 
                 Profiler.EndSample();
 
@@ -2749,6 +2766,14 @@ public class CellGroup : HumanGroup {
             Profiler.BeginSample("Add Polity Influence");
 
             _polityProminences.Add (pi.PolityId, pi);
+
+#if DEBUG
+            if ((Cell.Latitude == 108) && (Cell.Longitude == 362))
+            {
+                Debug.Log("PostUpdatePolityProminences_BeforePolityUpdates:_polityProminences.Add - Cell:" + Cell.Position +
+                ", pi.PolityId: " + pi.PolityId + ", pi.Value: " + pi.Value + ", CurrentDate: " + World.CurrentDate);
+            }
+#endif
 
             Profiler.EndSample();
 
@@ -2821,8 +2846,16 @@ public class CellGroup : HumanGroup {
 
 				_polityProminences.Remove (pi.PolityId);
 
-				// Decreate polity contacts
-				foreach (PolityProminence epi in _polityProminences.Values) {
+#if DEBUG
+                if ((Cell.Latitude == 108) && (Cell.Longitude == 362))
+                {
+                    Debug.Log("PostUpdatePolityProminences_AfterPolityUpdates:_polityProminences.Remove - Cell:" + Cell.Position +
+                    ", polityId: " + polityId);
+                }
+#endif
+
+                // Decreate polity contacts
+                foreach (PolityProminence epi in _polityProminences.Values) {
 
 					Polity.DecreaseContactGroupCount (pi.Polity, epi.Polity);
 				}
@@ -2911,7 +2944,7 @@ public class CellGroup : HumanGroup {
 					factionCoreDistance = CalculateShortestFactionCoreDistance (polity);
 				}
 
-				polityProminence = new PolityProminence (polity, newProminenceValue, polityCoreDistance, factionCoreDistance);
+				polityProminence = new PolityProminence (this, polity, newProminenceValue, polityCoreDistance, factionCoreDistance);
 
 				_polityProminencesToAdd.Add (polity.Id, polityProminence);
 			}
@@ -2941,9 +2974,30 @@ public class CellGroup : HumanGroup {
 		return polityProminence;
 	}
 
-	public void FindHighestPolityProminence () {
+	public void FindHighestPolityProminence ()
+    {
+#if DEBUG
+        if ((Cell.Latitude == 108) && (Cell.Longitude == 362))
+        {
+            string entry = "FindHighestPolityProminence - Cell:" + Cell.Position + ", CurrentDate: " + World.CurrentDate + ", " +
+                ((HighestPolityProminence != null) ?
+                "HighestPolityInfluence.PolityId: " + HighestPolityProminence.PolityId + 
+                ", Polity.Id: " + HighestPolityProminence.Polity.Id + 
+                ", Value: " + HighestPolityProminence.Value +
+                ", DebugId: " + HighestPolityProminence.DebugId :
+                "HighestPolityInfluence is null");
 
-		float highestProminenceValue = float.MinValue;
+
+            foreach (PolityProminence pi in _polityProminences.Values)
+            {
+                entry += "\n --- PolityInfluence.PolityId: " + pi.PolityId + ", Polity.Id: " + pi.Polity.Id + ", Value: " + pi.Value + ", DebugId: " + pi.DebugId;
+            }
+
+            Debug.Log(entry);
+        }
+#endif
+
+        float highestProminenceValue = float.MinValue;
 		PolityProminence highestProminence = null;
 
 		foreach (PolityProminence pi in _polityProminences.Values) {
@@ -2953,7 +3007,7 @@ public class CellGroup : HumanGroup {
 				highestProminenceValue = pi.Value;
 				highestProminence = pi;
 			}
-		}
+        }
 
         //Profiler.BeginSample("Set Highest Polity Prominence");
 
@@ -3077,6 +3131,7 @@ public class CellGroup : HumanGroup {
 
 		foreach (PolityProminence p in PolityProminences) {
 
+            p.Group = this;
 			p.Polity = World.GetPolity (p.PolityId);
 			p.NewValue = p.Value;
 
