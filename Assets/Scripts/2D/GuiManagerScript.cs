@@ -215,17 +215,18 @@ public class GuiManagerScript : MonoBehaviour {
 		
 		if (!Manager.WorldIsReady) {
 
-//			GenerateWorld (false, 407252633);
-//			GenerateWorld (false, 783909167);
-//			GenerateWorld (false, 1446630758);
-//			GenerateWorld (false, 1788799931);
-//			GenerateWorld (false, 616109363);
-			GenerateWorld (false, 1735984055);
-//			GenerateWorld (false, 1065375312);
-//			GenerateWorld (false, 279552712);
+            //GenerateWorld(false, 407252633);
+            //GenerateWorld(false, 783909167);
+            //GenerateWorld(false, 1446630758);
+            //GenerateWorld(false, 1788799931);
+            //GenerateWorld(false, 616109363);
+            //GenerateWorld(false, 1065375312);
+            //GenerateWorld(false, 279552712);
+            //GenerateWorld(false, 1735984055);
+            GenerateWorld(false, 519520942);
 
 
-		} else if (!Manager.SimulationCanRun) {
+        } else if (!Manager.SimulationCanRun) {
 
 			SetInitialPopulation ();
 		} else {

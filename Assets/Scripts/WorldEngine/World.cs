@@ -1320,12 +1320,22 @@ public class World : ISynchronizable {
 		return _factions.ContainsKey (id);
 	}
 
-	public void AddFactionToSplit (Faction faction) {
+	public void AddFactionToSplit (Faction faction)
+    {
+        if (!faction.StillPresent)
+        {
+            Debug.LogWarning("Faction to split no longer present. Id: " + faction.Id + ", Date: " + CurrentDate);
+        }
 
-		_factionsToSplit.Add (faction);
+        _factionsToSplit.Add (faction);
 	}
 
-	public void AddFactionToUpdate (Faction faction) {
+	public void AddFactionToUpdate (Faction faction)
+    {
+        if (!faction.StillPresent)
+        {
+            Debug.LogWarning("Faction to update no longer present. Id: " + faction.Id + ", Date: " + CurrentDate);
+        }
 
 		_factionsToUpdate.Add (faction);
 	}
@@ -1361,9 +1371,14 @@ public class World : ISynchronizable {
 		return polity;
 	}
 
-	public void AddPolityToUpdate (Polity polity) {
+	public void AddPolityToUpdate (Polity polity)
+    {
+        if (!polity.StillPresent)
+        {
+            Debug.LogWarning("Polity to update no longer present. Id: " + polity.Id + ", Date: " + CurrentDate);
+        }
 
-		_politiesToUpdate.Add (polity);
+        _politiesToUpdate.Add (polity);
 		polity.WillBeUpdated = true;
 	}
 

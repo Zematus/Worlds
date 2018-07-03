@@ -29,6 +29,6 @@ public class OpentribeEventMessage : PolityEventMessage {
 		Agent leader = World.GetMemorableAgent (AgentId);
 		Tribe sourceTribe = World.GetPolity (TribeId) as Tribe;
 
-		return leader.Name.BoldText + ", leader of the " + sourceTribe.Name.BoldText + " tribe, has decided open the tribe to external influences";
+		return leader.Name.BoldText + ", leader of the " + sourceTribe.Name.BoldText + " tribe, has decided to open the tribe to external influences";
 	}
 }

@@ -90,15 +90,9 @@ public class PolityProminence {
 		NewValue = Value;
 
 		AdiministrativeCost = 0;
-
-		PolityCoreDistance = polityProminence.PolityCoreDistance;
-		NewPolityCoreDistance = PolityCoreDistance;
-
-		FactionCoreDistance = polityProminence.FactionCoreDistance;
-		NewFactionCoreDistance = FactionCoreDistance;
 	}
 
-	public PolityProminence (CellGroup group, Polity polity, float value, float polityCoreDistance = -1, float factionCoreDistance = -1, bool isMigratingGroup = false)
+	public PolityProminence (CellGroup group, Polity polity, float value, bool isMigratingGroup = false)
     {
         Group = group;
 
@@ -112,10 +106,10 @@ public class PolityProminence {
 //        }
 //#endif
 
-        Set(polity, value, polityCoreDistance, factionCoreDistance);
+        Set(polity, value);
 	}
 
-	public void Set (Polity polity, float value, float polityCoreDistance = -1, float factionCoreDistance = -1)
+	public void Set (Polity polity, float value)
     {
         PolityId = polity.Id;
 		Polity = polity;
@@ -123,12 +117,6 @@ public class PolityProminence {
 		NewValue = Value;
 
 		AdiministrativeCost = 0;
-
-		PolityCoreDistance = polityCoreDistance;
-		NewPolityCoreDistance = polityCoreDistance;
-
-		FactionCoreDistance = factionCoreDistance;
-		NewFactionCoreDistance = factionCoreDistance;
     }
 
     public void PostUpdate () {

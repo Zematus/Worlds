@@ -306,12 +306,12 @@ public abstract class Faction : ISynchronizable {
 	public void PreUpdate () {
 
 		if (!StillPresent) {
-			throw new System.Exception ("Faction is no longer present. Id: " + Id);
+			throw new System.Exception("Faction is no longer present. Id: " + Id + ", Date: " + World.CurrentDate);
 		}
 
 		if (!Polity.StillPresent) {
-			throw new System.Exception ("Faction's polity is no longer present. Id: " + Id + " Polity Id: " + Polity.Id);
-		}
+            throw new System.Exception("Faction's polity is no longer present. Id: " + Id + " Polity Id: " + Polity.Id + ", Date: " + World.CurrentDate);
+        }
 
 		if (_preupdated)
 			return;
@@ -324,6 +324,9 @@ public abstract class Faction : ISynchronizable {
 	}
 
 	public void Update () {
+
+        if (!StillPresent)
+            return;
 
 		PreUpdate ();
 

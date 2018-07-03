@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 using UnityEngine.Profiling;
+using System.Linq;
 
 public delegate float GroupValueCalculationDelegate (CellGroup group);
 public delegate float FactionValueCalculationDelegate (Faction faction);
@@ -193,16 +194,18 @@ public abstract class Polity : ISynchronizable {
 
 		if (IsUnderPlayerFocus) {
 			Manager.UnsetFocusOnPolity (this);
-		}
+        }
 
-		List<Faction> factions = new List<Faction> (_factions.Values);
+        List<PolityContact> contacts = new List<PolityContact>(_contacts.Values);
 
-		foreach (PolityContact contact in _contacts.Values) {
+        foreach (PolityContact contact in contacts) {
 
-			contact.Polity.RemoveContact (this);
-		}
+			Polity.RemoveContact(this, contact.Polity);
+        }
 
-		foreach (Faction faction in factions) {
+        List<Faction> factions = new List<Faction>(_factions.Values);
+
+        foreach (Faction faction in factions) {
 
 			faction.Destroy (true);
 		}
@@ -393,7 +396,7 @@ public abstract class Polity : ISynchronizable {
 
 			PolityContact contact = new PolityContact (polity, initialGroupCount);
 
-			_contacts.Add (polity.Id, contact);
+            _contacts.Add (polity.Id, contact);
 			Contacts.Add (contact);
 
 			if (!DominantFaction.HasRelationship (polity.DominantFaction)) {
@@ -406,16 +409,33 @@ public abstract class Polity : ISynchronizable {
 
 			throw new System.Exception ("Unable to modify existing polity contact. polityA: " + Id + ", polityB: " + polity.Id);
 		}
-	}
+    }
 
-	public void RemoveContact (Polity polity) {
+    public static void RemoveContact(Polity polityA, Polity polityB)
+    {
+        polityA.RemoveContact(polityB);
+        polityB.RemoveContact(polityA);
+    }
+
+    public void RemoveContact (Polity polity) {
 
 		if (!_contacts.ContainsKey (polity.Id))
 			return;
 
 		PolityContact contact = _contacts [polity.Id];
 
-		Contacts.Remove (contact);
+//#if DEBUG
+//        if (((Id == 17933244916317004) && (polity.Id == 17985896316317004)) ||
+//            ((Id == 17985896316317004) && (polity.Id == 17933244916317004)))
+//        {
+//            Debug.Log("Polity.RemoveContact:" +
+//                "\n --- Id: " + Id +
+//                "\n --- polity.Id: " + polity.Id +
+//                "\n --- Date: " + World.CurrentDate);
+//        }
+//#endif
+
+        Contacts.Remove (contact);
 		_contacts.Remove (polity.Id);
 	}
 
@@ -439,7 +459,7 @@ public abstract class Polity : ISynchronizable {
 
 			PolityContact contact = new PolityContact (polity);
 
-			_contacts.Add (polity.Id, contact);
+            _contacts.Add (polity.Id, contact);
 			Contacts.Add (contact);
 
 			if (!DominantFaction.HasRelationship (polity.DominantFaction)) {
@@ -448,7 +468,7 @@ public abstract class Polity : ISynchronizable {
 			}
 		}
 
-		_contacts[polity.Id].GroupCount++;
+        _contacts[polity.Id].GroupCount++;
 	}
 
 	public static void DecreaseContactGroupCount (Polity polityA, Polity polityB) {
@@ -466,9 +486,9 @@ public abstract class Polity : ISynchronizable {
 
 		contact.GroupCount--;
 
-		if (contact.GroupCount <= 0) {
-
-			Contacts.Remove (contact);
+		if (contact.GroupCount <= 0)
+        {
+            Contacts.Remove (contact);
 			_contacts.Remove (polity.Id);
 		}
 
