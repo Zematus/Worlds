@@ -847,7 +847,9 @@ public class Manager {
 
 	public static void SetPlanetOverlay (PlanetOverlay value, string planetOverlaySubtype = "None") {
 
-		if ((value == PlanetOverlay.None) ||
+        _observableUpdateTypes = CellUpdateType.None;
+
+        if ((value == PlanetOverlay.None) ||
 			(value == PlanetOverlay.Arability) ||
 			(value == PlanetOverlay.Rainfall) ||
 			(value == PlanetOverlay.Temperature)) {
@@ -856,7 +858,6 @@ public class Manager {
 
 		} else if (value == PlanetOverlay.Region) {
 			
-			_observableUpdateTypes &= ~(CellUpdateType.Group | CellUpdateType.Territory);
 			_observableUpdateTypes |= CellUpdateType.Region;
 
 		} else if ((value == PlanetOverlay.PolityTerritory) ||
@@ -866,18 +867,15 @@ public class Manager {
 			(value == PlanetOverlay.PolityCulturalDiscovery) ||
 			(value == PlanetOverlay.PolityCulturalKnowledge) ||
 			(value == PlanetOverlay.PolityCulturalSkill)) {
-
-			_observableUpdateTypes &= ~(CellUpdateType.Group | CellUpdateType.Region);
+            
 			_observableUpdateTypes |= CellUpdateType.Territory;
 
 		} else if (value == PlanetOverlay.General) {
-
-			_observableUpdateTypes &= ~CellUpdateType.Region;
+            
 			_observableUpdateTypes |= (CellUpdateType.Group | CellUpdateType.Territory);
 
 		} else {
-
-			_observableUpdateTypes &= ~(CellUpdateType.Territory | CellUpdateType.Region);
+            
 			_observableUpdateTypes |= CellUpdateType.Group;
 		}
 	
@@ -2677,7 +2675,9 @@ public class Manager {
 			if (_manager._currentMaxUpdateSpan < updateSpan)
 				_manager._currentMaxUpdateSpan = updateSpan;
 
-			float maxUpdateSpan = Mathf.Min (_manager._currentMaxUpdateSpan, 10000);
+            float maxUpdateSpan = CellGroup.MaxUpdateSpan;
+
+            maxUpdateSpan = Mathf.Min (_manager._currentMaxUpdateSpan, maxUpdateSpan);
 
 			normalizedValue = 1f - (float)updateSpan / maxUpdateSpan;
 
