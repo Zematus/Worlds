@@ -49,7 +49,7 @@ public class OpenTribeDecision : PolityDecision {
 	private string GenerateOpenTribeResultEffectsString () {
 
 		return 
-			"\t• " + GenerateEffectsString_DecreasePreference (_tribe, CulturalPreference.IsolationPreferenceId, BaseMinIsolationPreferencePercentDecrease, BaseMaxIsolationPreferencePercentDecrease) + "\n";
+			"\t• " + GenerateEffectsString_DecreasePreference (_tribe, CulturalPreference.IsolationPreferenceId, BaseMinIsolationPreferencePercentDecrease, BaseMaxIsolationPreferencePercentDecrease);
 	}
 
 	public static void LeaderOpensTribe (Tribe tribe) {
