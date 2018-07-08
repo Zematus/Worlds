@@ -201,7 +201,7 @@ public class Manager {
 
 	private static bool _isLoadReady = false;
 
-	private static List<TerrainCell> _lastUpdatedCells;
+	private static HashSet<TerrainCell> _lastUpdatedCells;
 
 	private static int _resolutionWidthWindowed = 1366;
 	private static int _resolutionHeightWindowed = 768;
@@ -321,7 +321,7 @@ public class Manager {
 
 		HighlightedCells = new HashSet<TerrainCell> ();
 		UpdatedCells = new HashSet<TerrainCell> ();
-		_lastUpdatedCells = new List<TerrainCell> ();
+		_lastUpdatedCells = new HashSet<TerrainCell> ();
 
 		/// static initalizations
 
@@ -917,7 +917,7 @@ public class Manager {
 
 		if (CurrentWorld.SelectedCell != null) {
 
-			AddHighlightedCell (CurrentWorld.SelectedCell, CellUpdateType.Cell);
+			AddHighlightedCell (CurrentWorld.SelectedCell, CellUpdateType.All);
 		
 			CurrentWorld.SelectedCell.IsSelected = false;
 			CurrentWorld.SelectedCell = null;
@@ -955,7 +955,7 @@ public class Manager {
 		CurrentWorld.SelectedCell = cell;
 		CurrentWorld.SelectedCell.IsSelected = true;
 
-		AddHighlightedCell (CurrentWorld.SelectedCell, CellUpdateType.Cell);
+		AddHighlightedCell (CurrentWorld.SelectedCell, CellUpdateType.All);
 
 		if (cell.Region != null) {
 
@@ -1028,8 +1028,9 @@ public class Manager {
 	public static void ResetUpdatedAndHighlightedCells () {
 
 		_lastUpdatedCells.Clear ();
-		_lastUpdatedCells.AddRange (UpdatedCells);
-		UpdatedCells.Clear ();
+		_lastUpdatedCells.UnionWith(UpdatedCells);
+
+        UpdatedCells.Clear ();
 		HighlightedCells.Clear ();
 	}
 
@@ -1049,31 +1050,31 @@ public class Manager {
 		ResetUpdatedAndHighlightedCells ();
 	}
 
-	public static void UpdateMapTextureColors (Color32[] textureColors) {
-
-		foreach (TerrainCell cell in _lastUpdatedCells) {
-
+	public static void UpdateMapTextureColors (Color32[] textureColors)
+    {
+		foreach (TerrainCell cell in _lastUpdatedCells)
+        {
 			if (UpdatedCells.Contains (cell))
 				continue;
 
 			if (HighlightedCells.Contains (cell))
 				continue;
 
-			UpdateMapTextureColorsFromCell (textureColors, cell);
+			UpdateMapTextureColorsFromCell(textureColors, cell);
 		}
 		
-		foreach (TerrainCell cell in UpdatedCells) {
-
+		foreach (TerrainCell cell in UpdatedCells)
+        {
 			if (HighlightedCells.Contains (cell))
 				continue;
 			
-			UpdateMapTextureColorsFromCell (textureColors, cell, _displayGroupActivity);
+			UpdateMapTextureColorsFromCell(textureColors, cell, _displayGroupActivity);
 		}
 
-		foreach (TerrainCell cell in HighlightedCells) {
-
-			UpdateMapTextureColorsFromCell (textureColors, cell, _displayGroupActivity);
-		}
+		foreach (TerrainCell cell in HighlightedCells)
+        {
+            UpdateMapTextureColorsFromCell(textureColors, cell);
+        }
 	}
 
 //	public static void DisplayCellDataOnMapTexture (Color32[] textureColors, TerrainCell cell, bool showData) {
@@ -1147,24 +1148,22 @@ public class Manager {
 		}
 	}
 
-	public static bool CellShouldBeHighlighted (TerrainCell cell) {
-
+	public static bool CellShouldBeHighlighted (TerrainCell cell)
+    {
 		if (cell.IsSelected)
 			return true;
 	
-		if ((_observableUpdateTypes & CellUpdateType.Region) == CellUpdateType.Region) {
-		
+		if ((_observableUpdateTypes & CellUpdateType.Region) == CellUpdateType.Region)
+        {
 			if ((cell.Region != null) && cell.Region.IsSelected)
 				return true;
 			
-		} else if ((_observableUpdateTypes & CellUpdateType.Territory) == CellUpdateType.Territory) {
-
-			if ((cell.EncompassingTerritory != null) && cell.EncompassingTerritory.IsSelected) {
-
-				if (_planetOverlay != PlanetOverlay.PolityContacts) {
-					return true;
-				}
-			}
+		}
+        else if (((_observableUpdateTypes & CellUpdateType.Territory) == CellUpdateType.Territory) &&
+            (_planetOverlay != PlanetOverlay.PolityContacts))
+        {
+			if ((cell.EncompassingTerritory != null) && cell.EncompassingTerritory.IsSelected)
+                return true;
 		}
 
 		return false;
@@ -2568,15 +2567,18 @@ public class Manager {
 		return color;
 	}
 
-	private static Color SetGeneralOverlayColor (TerrainCell cell, Color color) {
+	private static Color SetGeneralOverlayColor (TerrainCell cell, Color terrainColor)
+    {
+        float greyscale = (terrainColor.r + terrainColor.g + terrainColor.b) / 3f;
+        float greyscaleWeight = 0.9f;
 
-		float normalizedValue = 0;
+        float normalizedValue = 0;
 		float population = 0;
 
 		bool hasGroup = false;
 		bool inTerritory = false;
 		Color densityColorSubOptimal = GetOverlayColor(OverlayColorId.GeneralDensitySubOptimal);
-		Color densityColor = GetOverlayColor(OverlayColorId.GeneralDensityOptimal);
+		Color groupColor = GetOverlayColor(OverlayColorId.GeneralDensityOptimal);
 
 		if (cell.EncompassingTerritory != null) {
 
@@ -2584,39 +2586,38 @@ public class Manager {
 
 			Polity territoryPolity = cell.EncompassingTerritory.Polity;
 
-			densityColor = GenerateColorFromId (territoryPolity.Id, 100);
+			groupColor = GenerateColorFromId (territoryPolity.Id, 100);
 
 			bool isTerritoryBorder = IsTerritoryBorder (cell.EncompassingTerritory, cell);
 			bool isCoreGroup = territoryPolity.CoreGroup == cell.Group;
 
 			if (!isCoreGroup) {
 				if (!isTerritoryBorder) {
-					densityColor /= 2.5f;
+					groupColor /= 2.5f;
 				} else {
-					densityColor /= 1.75f;
+					groupColor /= 1.75f;
 				}
 			}
 
-			densityColor = Color.white * 0.15f + densityColor * 0.85f;
+			groupColor = Color.white * 0.15f + groupColor * 0.85f;
 
-			normalizedValue = 0.3f;
+			normalizedValue = 0.8f;
 		}
 
 		if (cell.Group != null) {
 
 			hasGroup = true;
 
-			int maxPopulation = CurrentWorld.MostPopulousGroup.Population;
+            if (!inTerritory)
+            {
+                int maxPopulation = CurrentWorld.MostPopulousGroup.Population;
 
-			population = cell.Group.Population;
+			    population = cell.Group.Population;
 
-			float maxPopFactor = 0.3f + 0.4f * (population / (float)maxPopulation);
+			    float maxPopFactor = 0.3f + 0.4f * (population / (float)maxPopulation);
 
-			normalizedValue = maxPopFactor;
+			    normalizedValue = maxPopFactor;
 
-			///
-
-			if (!inTerritory) {
 				CellCulturalKnowledge knowledge = cell.Group.Culture.GetKnowledge (SocialOrganizationKnowledge.SocialOrganizationKnowledgeId) as CellCulturalKnowledge;
 
 				if (knowledge != null) {
@@ -2626,31 +2627,29 @@ public class Manager {
 
 					float knowledgeFactor = Mathf.Min (1f, (knowledge.Value - startValue) / (minValue - startValue));
 
-					Color softDensityColor = densityColor * color;
+                    Color softDensityColor = groupColor * terrainColor;
 
-					densityColor = (softDensityColor * knowledgeFactor) + (densityColorSubOptimal * (1f - knowledgeFactor));
+                    groupColor = (softDensityColor * knowledgeFactor) + (densityColorSubOptimal * (1f - knowledgeFactor));
 
 				} else {
 				
-					densityColor = densityColorSubOptimal;
+					groupColor = densityColorSubOptimal;
 				}
 			}
 		}
 
 		if (hasGroup || inTerritory) {
 
-			float greyscale = (color.r + color.g + color.b) / 3f;
+			terrainColor.r = (terrainColor.r * (1 - greyscaleWeight)) + (greyscale * greyscaleWeight);
+			terrainColor.g = (terrainColor.g * (1 - greyscaleWeight)) + (greyscale * greyscaleWeight);
+            terrainColor.b = (terrainColor.b * (1 - greyscaleWeight)) + (greyscale * greyscaleWeight);
 
-			color.r = (color.r + greyscale) / 2f;
-			color.g = (color.g + greyscale) / 2f;
-			color.b = (color.b + greyscale) / 2f;
+            float value = normalizedValue;
 
-			float value = normalizedValue;
-
-			color = (color * (1 - value)) + (densityColor * value);
+			terrainColor = (terrainColor * (1 - value)) + (groupColor * value);
 		}
 
-		return color;
+		return terrainColor;
 	}
 
 	private static Color SetUpdateSpanOverlayColor (TerrainCell cell, Color color) {

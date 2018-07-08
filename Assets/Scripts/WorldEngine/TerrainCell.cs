@@ -24,7 +24,8 @@ public enum CellUpdateType {
 	Group = 0x2,
 	Region = 0x4,
 	Territory = 0x8,
-	Route = 0x10
+	Route = 0x10,
+    All = 0xFF
 }
 
 public struct WorldPosition {

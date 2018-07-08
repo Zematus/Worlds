@@ -32,7 +32,6 @@ public class CellRegion : Region
 
     public void Update()
     {
-
         foreach (TerrainCell cell in _cells)
         {
             Manager.AddUpdatedCell(cell, CellUpdateType.Region);
