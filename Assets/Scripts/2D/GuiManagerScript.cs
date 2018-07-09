@@ -166,11 +166,17 @@ public class GuiManagerScript : MonoBehaviour {
 	{
 		Application.logMessageReceivedThreaded -= HandleLog;
 
-		_debugLogStream.Close ();
+        if (_debugLogStream != null)
+        {
+            _debugLogStream.Close();
+        }
 	}
 
 	public void HandleLog(string logString, string stackTrace, LogType type)
 	{
+        if (_debugLogStream == null)
+            return;
+
 		_debugLogStream.WriteLine (logString);
 
 		#if DEBUG
