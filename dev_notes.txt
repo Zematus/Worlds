@@ -1,14 +1,5 @@
-BUGS:
-Cleanup rules: Prioritize bugs first by rating bucket (HIGH,MED,LOW) then within each bucket by date from older to newer. When finishing up with all HIGHs, graduate the oldest MED to HIGH and the three oldest LOWs to MEDs then re-sort the MEDs by date.
 
 <<<Insert all new bugs, issues and tasks in Worlds' Github DB>>>
-
-- (LOW 1/18/18) Sometimes factions appear with exactly the same name (possibly due to both factions having the same core?)
-- (LOW 2/19/18) Expanding polity influence effects should be calculated on their own phase (outside of the event) to reduce load 
-- (LOW 3/25/18) Check capitalization in the panel for focused tribes
-- (LOW 3/25/18) Check capitalization and word order for polity names in the infopanel
-- (LOW 3/25/18) Check capitalization and word order in panel for guided faction
-- (LOW 3/27/18) When a faction property changes after a decision, if the simulation is paused, the change doesn't reflect on the polity.
 
 TASKS:
 
