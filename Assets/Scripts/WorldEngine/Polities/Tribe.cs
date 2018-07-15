@@ -117,24 +117,28 @@ public class Tribe : Polity {
 		TribeNounVariations = NamingTools.GenerateNounVariations (TribeNounVariants);
 	}
 
-	protected override void GenerateEventsFromData () {
+    protected override void GenerateEventsFromData()
+    {
+        foreach (PolityEventData eData in EventDataList)
+        {
+            switch (eData.TypeId)
+            {
+                case WorldEvent.FosterTribeRelationDecisionEventId:
+                    AddEvent(new FosterTribeRelationDecisionEvent(this, eData));
+                    break;
+                case WorldEvent.MergeTribesDecisionEventId:
+                    AddEvent(new MergeTribesDecisionEvent(this, eData));
+                    break;
+                case WorldEvent.OpenTribeDecisionEventId:
+                    AddEvent(new OpenTribeDecisionEvent(this, eData));
+                    break;
+                default:
+                    throw new System.Exception("Unhandled polity event type id: " + eData.TypeId);
+            }
+        }
+    }
 
-		foreach (PolityEventData eData in EventDataList) {
-
-			switch (eData.TypeId) {
-			case WorldEvent.FosterTribeRelationDecisionEventId:
-				AddEvent (new FosterTribeRelationDecisionEvent (this, eData));
-				break;
-			case WorldEvent.MergeTribesDecisionEventId:
-				AddEvent (new MergeTribesDecisionEvent (this, eData));
-				break;
-			default:
-				throw new System.Exception ("Unhandled polity event type id: " + eData.TypeId);
-			}
-		}
-	}
-
-	private void SwitchCellProminences (Polity sourcePolity, Clan triggerClan) {
+    private void SwitchCellProminences (Polity sourcePolity, Clan triggerClan) {
 
 		float targetPolityInfluence = triggerClan.Influence;
 		float sourcePolityInfluence = 1 - targetPolityInfluence;

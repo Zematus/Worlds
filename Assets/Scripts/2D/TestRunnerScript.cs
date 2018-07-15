@@ -14,31 +14,37 @@ public class TestRunnerScript : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 
-//		Manager.RecordingEnabled = true;
+        //		Manager.RecordingEnabled = true;
 
-//		tests.Add (new SaveLoadTest (407252633, 80, 1, 2, 0, false, true));
-//		tests.Add (new SaveLoadTest (407252633, 100000, 20000, 5));
-//		tests.Add (new SaveLoadTest ("after 5 polities", 783909167, (World world) => {
-//			return world.PolityCount > 5;
-//		}, 200000, 5));
-//		tests.Add (new SaveLoadTest ("after 5 polities", 783909167, (World world) => {
-//			return world.PolityCount > 5;
-//		}, 20000, 10, 0));
-//		tests.Add (new SaveLoadTest ("after 5 polities", 783909167, (World world) => {
-//			return world.PolityCount > 5;
-//		}, 2000, 10, 0));
-//		tests.Add (new SaveLoadTest ("after 5 polities", 783909167, (World world) => {
-//			return world.PolityCount > 5;
-//		}, 200, 10, 2000));
-//		tests.Add (new SaveLoadTest ("after 5 polities", 783909167, (World world) => {
-//			return world.PolityCount > 5;
-//		}, 20, 10, 1600));
-//		tests.Add (new SaveLoadTest ("after 5 polities", 783909167, (World world) => {
-//			return world.PolityCount > 5;
-//		}, 2, 10, 1640));
+        ////		tests.Add (new SaveLoadTest (407252633, 80, 1, 2, 0, false, true));
+        ////		tests.Add (new SaveLoadTest (407252633, 100000, 20000, 5));
+        //tests.Add(new SaveLoadTest("after 5 polities", 783909167, (World world) =>
+        //{
+        //    return world.PolityCount > 5;
+        //}, 200000, 5));
+        //tests.Add(new SaveLoadTest("after 5 polities", 783909167, (World world) =>
+        //{
+        //    return world.PolityCount > 5;
+        //}, 20000, 10, 0));
+        //tests.Add(new SaveLoadTest("after 5 polities", 783909167, (World world) =>
+        //{
+        //    return world.PolityCount > 5;
+        //}, 2000, 10, 0));
+        //tests.Add(new SaveLoadTest("after 5 polities", 783909167, (World world) =>
+        //{
+        //    return world.PolityCount > 5;
+        //}, 200, 10, 6000));
+        //tests.Add(new SaveLoadTest("after 5 polities", 783909167, (World world) =>
+        //{
+        //    return world.PolityCount > 5;
+        //}, 20, 10, 6600));
+        tests.Add(new SaveLoadTest("after 5 polities", 783909167, (World world) =>
+        {
+            return world.PolityCount > 5;
+        }, 2, 10, 6620, trackGenRandomCallers: true));
 
-		#if DEBUG
-		Manager.TracingData.GroupId = 141610233072;
+#if DEBUG
+        Manager.TracingData.GroupId = 141610233072;
 		Manager.TracingData.PolityId = 37601724810000;
 		Manager.TracingData.Longitude = 248;
 		Manager.TracingData.Latitude = 100;
@@ -54,7 +60,7 @@ public class TestRunnerScript : MonoBehaviour {
 //			return world.PolityCount > 5;
 //		}, 200, 10, 0, true, true));
 
-		tests.Add (new LanguageGenerationTest());
+		//tests.Add (new LanguageGenerationTest());
 
 		Debug.Log ("Running Tests...\n");
 	}

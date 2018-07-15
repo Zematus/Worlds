@@ -2,1180 +2,1297 @@
 using System.Collections;
 using System.Collections.Generic;
 
-public class SaveLoadTest : AutomatedTest {
+public class SaveLoadTest : AutomatedTest
+{
 
-	public enum Stage {
+    public enum Stage
+    {
 
-		Generation,
-		GenerationIterations,
-		SavePrecheck,
-		Save,
-		SaveIterations,
-		LoadPrecheck,
-		Load,
-		LoadIterations
-	}
+        Generation,
+        GenerationIterations,
+        SavePrecheck,
+        Save,
+        SaveIterations,
+        LoadPrecheck,
+        Load,
+        LoadIterations
+    }
 
-	public delegate bool SaveConditionDelegate (World world);
+    public delegate bool SaveConditionDelegate(World world);
 
-	private const int MaxIterationsPerUpdate = 500;
-	private const int MaxCallsToGroupUpdate = 1000;
+    private const int MaxIterationsPerUpdate = 500;
+    private const int MaxCallsToGroupUpdate = 1000;
 
-	private const float MaxTimePerUpdate = 0.1f;
+    private const float MaxTimePerUpdate = 0.1f;
 
-	private bool _enhancedTracing = false;
-	private bool _trackGenRandomCallers = false;
+    private bool _enhancedTracing = false;
+    private bool _trackGenRandomCallers = false;
 
-	private int _seed;
+    private int _seed;
 
-	private int _offsetPerCheck;
+    private int _offsetPerCheck;
 
-	private int _filteredEventCountBeforeSave;
-	private int _filteredEventCountAfterSave;
-	private int _filteredEventCountAfterLoad;
-	private int _eventCountAfterSave;
-	private int _eventCountAfterLoad;
-	private int _eventCountAfterSaveSkip;
-	private int _eventCountAfterLoadSkip;
+    private int _filteredEventCountBeforeSave;
+    private int _filteredEventCountAfterSave;
+    private int _filteredEventCountAfterLoad;
+    private int _eventCountAfterSave;
+    private int _eventCountAfterLoad;
+    private int _eventCountAfterSaveSkip;
+    private int _eventCountAfterLoadSkip;
 
-	private List<WorldEvent> _eventsAfterSave;
-	private List<WorldEventSnapshot> _eventSnapshotsAfterSave;
+    private List<WorldEvent> _eventsAfterSave;
+    private List<WorldEventSnapshot> _eventSnapshotsAfterSave;
 
-	private long _saveDate;
-	private long _saveDatePlusOffset;
-	private long _loadDatePlusOffset;
+    private long _saveDate;
+    private long _saveDatePlusOffset;
+    private long _loadDatePlusOffset;
 
-	private int _numChecks;
-	private int _beforeCheckDateSkipOffset;
-	private int _currentCheck;
+    private int _numChecks;
+    private int _beforeCheckDateSkipOffset;
+    private int _currentCheck;
 
-	private Dictionary<string, List<string>> _debugMessages = new Dictionary<string, List<string>> ();
+    private Dictionary<string, List<string>> _debugMessages = new Dictionary<string, List<string>>();
 
-	private Dictionary<string, List<string>>[] _afterSave_DebugMessageLists;
+    private Dictionary<string, List<string>>[] _afterSave_DebugMessageLists;
 
-	private int _totalCallsToAddMigratingGroup = int.MinValue; // If a log displays a negative value for this var then something is wrong with the test
-	private int _totalCallsToAddGroupToUpdate = int.MinValue; // If a log displays a negative value for this var then something is wrong with the test
-	private int _totalCallsToGroupUpdate = int.MinValue; // If a log displays a negative value for this var then something is wrong with the test
-	private int _totalCallsToGetNextLocalRandom = int.MinValue; // If a log displays a negative value for this var then something is wrong with the test
+    private int _totalCallsToAddMigratingGroup = int.MinValue; // If a log displays a negative value for this var then something is wrong with the test
+    private int _totalCallsToAddGroupToUpdate = int.MinValue; // If a log displays a negative value for this var then something is wrong with the test
+    private int _totalCallsToGroupUpdate = int.MinValue; // If a log displays a negative value for this var then something is wrong with the test
+    private int _totalCallsToGetNextLocalRandom = int.MinValue; // If a log displays a negative value for this var then something is wrong with the test
 
-	private int _callsToGroupUpdate = int.MinValue; // If a log displays a negative value for this var then something is wrong with the test
+    private int _callsToGroupUpdate = int.MinValue; // If a log displays a negative value for this var then something is wrong with the test
 
-//	private Dictionary<string, int> _afterSave_AddGroupToUpdateCallers = new Dictionary<string, int> ();
-//	private Dictionary<string, int> _afterLoad_AddGroupToUpdateCallers = new Dictionary<string, int> ();
+    //	private Dictionary<string, int> _afterSave_AddGroupToUpdateCallers = new Dictionary<string, int> ();
+    //	private Dictionary<string, int> _afterLoad_AddGroupToUpdateCallers = new Dictionary<string, int> ();
 
-//	private Dictionary<string, int>[] _afterSave_AddGroupToUpdateCallersByCheck;
+    //	private Dictionary<string, int>[] _afterSave_AddGroupToUpdateCallersByCheck;
 
-	private Dictionary<string, int> _afterSave_GetNextLocalRandomCallers = new Dictionary<string, int> ();
-	private Dictionary<string, int> _afterLoad_GetNextLocalRandomCallers = new Dictionary<string, int> ();
+    private Dictionary<string, int> _afterSave_GetNextLocalRandomCallers = new Dictionary<string, int>();
+    private Dictionary<string, int> _afterLoad_GetNextLocalRandomCallers = new Dictionary<string, int>();
 
-	private Dictionary<string, int>[] _afterSave_GetNextLocalRandomCallersByCheck;
+    private Dictionary<string, int>[] _afterSave_GetNextLocalRandomCallersByCheck;
 
-	private long[] _saveDatePlusOffsets;
+    private long[] _saveDatePlusOffsets;
 
-	private int[] _afterSave_EventCounts;
-	private int[] _afterSave_CallsToAddMigratingGroupCounts;
-	private int[] _afterSave_CallsToAddGroupToUpdateCounts;
-	private int[] _afterSave_CallsToGroupUpdateCounts;
-	private int[] _afterSave_TotalCallsToGetNextLocalRandom;
-	private int[] _afterSave_GroupCounts;
-	private int[] _afterSave_PolityCounts;
-	private int[] _afterSave_TotalTerritorySizes;
-	private int[] _afterSave_RegionCounts;
-	private int[] _afterSave_LanguageCounts;
+    private int[] _afterSave_EventCounts;
+    private int[] _afterSave_CallsToAddMigratingGroupCounts;
+    private int[] _afterSave_CallsToAddGroupToUpdateCounts;
+    private int[] _afterSave_CallsToGroupUpdateCounts;
+    private int[] _afterSave_TotalCallsToGetNextLocalRandom;
+    private int[] _afterSave_GroupCounts;
+    private int[] _afterSave_PolityCounts;
+    private int[] _afterSave_TotalTerritorySizes;
+    private int[] _afterSave_RegionCounts;
+    private int[] _afterSave_LanguageCounts;
 
-//	private TestRecorder _saveRecorder = new TestRecorder ();
-//	private TestRecorder _loadRecorder = new TestRecorder ();
+    //	private TestRecorder _saveRecorder = new TestRecorder ();
+    //	private TestRecorder _loadRecorder = new TestRecorder ();
 
-	private bool _result = true;
+    private bool _result = true;
 
-	private string _savePath;
+    private string _savePath;
 
-	private World _world;
+    private World _world;
 
-	private Stage _stage = Stage.Generation;
+    private Stage _stage = Stage.Generation;
 
-//	private bool _validateRecording = false;
+    //	private bool _validateRecording = false;
 
-	private SaveConditionDelegate _saveCondition;
+    private SaveConditionDelegate _saveCondition;
 
-//	public SaveLoadTest (int seed, int initialDateSkip, int offsetPerCheck, int numChecks, int checksToSkip = 0, bool enhancedTracing = false, bool trackGenRandomCallers = false, bool validateRecording = false) {
-//
-//		Initialize ("with initialSkip: " + initialDateSkip, 
-//			seed, (World world) => {
-//				return (world.CurrentDate >= initialDateSkip);
-//			}, offsetPerCheck, numChecks, checksToSkip, enhancedTracing, trackGenRandomCallers, validateRecording);
-//	}
+    //	public SaveLoadTest (int seed, int initialDateSkip, int offsetPerCheck, int numChecks, int checksToSkip = 0, bool enhancedTracing = false, bool trackGenRandomCallers = false, bool validateRecording = false) {
+    //
+    //		Initialize ("with initialSkip: " + initialDateSkip, 
+    //			seed, (World world) => {
+    //				return (world.CurrentDate >= initialDateSkip);
+    //			}, offsetPerCheck, numChecks, checksToSkip, enhancedTracing, trackGenRandomCallers, validateRecording);
+    //	}
+
+    public SaveLoadTest(string conditionName, int seed, SaveConditionDelegate saveCondition, int offsetPerCheck, int numChecks, int beforeCheckDateSkipOffset = 0, bool enhancedTracing = false, bool trackGenRandomCallers = false, bool validateRecording = false)
+    {
 
-	public SaveLoadTest (string conditionName, int seed, SaveConditionDelegate saveCondition, int offsetPerCheck, int numChecks, int beforeCheckDateSkipOffset = 0, bool enhancedTracing = false, bool trackGenRandomCallers = false, bool validateRecording = false) {
+        Initialize(conditionName, seed, saveCondition, offsetPerCheck, numChecks, beforeCheckDateSkipOffset, enhancedTracing, trackGenRandomCallers, validateRecording);
+    }
+
+    private void Initialize(string conditionName, int seed, SaveConditionDelegate saveCondition, int offsetPerCheck, int numChecks, int beforeCheckDateSkipOffset, bool enhancedTracing, bool trackGenRandomCallers, bool validateRecording)
+    {
+
+        _seed = seed;
+
+        _offsetPerCheck = offsetPerCheck;
+        _numChecks = numChecks;
+        _beforeCheckDateSkipOffset = beforeCheckDateSkipOffset;
 
-		Initialize (conditionName, seed, saveCondition, offsetPerCheck, numChecks, beforeCheckDateSkipOffset, enhancedTracing, trackGenRandomCallers, validateRecording);
-	}
+        _enhancedTracing = enhancedTracing;
+        //		_validateRecording = validateRecording;
+        _trackGenRandomCallers = trackGenRandomCallers;
 
-	private void Initialize (string conditionName, int seed, SaveConditionDelegate saveCondition, int offsetPerCheck, int numChecks, int beforeCheckDateSkipOffset, bool enhancedTracing, bool trackGenRandomCallers, bool validateRecording) {
+        Name = "Save/Load Test " + conditionName
+            + ", world: " + seed
+            + ", numChecks: " + numChecks
+            + ", offsetPerCheck: " + offsetPerCheck
+            + ", beforeCheckDateSkipOffset: " + beforeCheckDateSkipOffset;
 
-		_seed = seed;
+        if (_enhancedTracing)
+        {
+            Name += ", with enhanced tracing";
+        }
+        else
+        {
+            Name += ", without enhanced tracing";
+        }
 
-		_offsetPerCheck = offsetPerCheck;
-		_numChecks = numChecks;
-		_beforeCheckDateSkipOffset = beforeCheckDateSkipOffset;
+        if (_trackGenRandomCallers)
+        {
+            Name += ", tracking RNG callers";
+        }
+        else
+        {
+            Name += ", not tracking RNG callers";
+        }
 
-		_enhancedTracing = enhancedTracing;
-//		_validateRecording = validateRecording;
-		_trackGenRandomCallers = trackGenRandomCallers;
+        //		if (_validateRecording) {
+        //			Name += ", with recording validation";
+        //		} else {
+        //			Name += ", without recording validation";
+        //		}
 
-		Name = "Save/Load Test " + conditionName
-			+ ", world: " + seed
-			+ ", numChecks: " + numChecks
-			+ ", offsetPerCheck: " + offsetPerCheck
-			+ ", beforeCheckDateSkipOffset: " + beforeCheckDateSkipOffset;
+        _saveCondition = saveCondition;
 
-		if (_enhancedTracing) {
-			Name += ", with enhanced tracing";
-		} else {
-			Name += ", without enhanced tracing";
-		}
+        if (_enhancedTracing)
+        {
+            _afterSave_DebugMessageLists = new Dictionary<string, List<string>>[_numChecks];
 
-		if (_trackGenRandomCallers) {
-			Name += ", tracking RNG callers";
-		} else {
-			Name += ", not tracking RNG callers";
-		}
+            //			_afterSave_AddGroupToUpdateCallersByCheck = new Dictionary<string, int>[_numChecks];
+        }
 
-//		if (_validateRecording) {
-//			Name += ", with recording validation";
-//		} else {
-//			Name += ", without recording validation";
-//		}
+        if (_trackGenRandomCallers)
+        {
+            _afterSave_GetNextLocalRandomCallersByCheck = new Dictionary<string, int>[_numChecks];
+        }
 
-		_saveCondition = saveCondition;
+        _saveDatePlusOffsets = new long[_numChecks];
 
-		if (_enhancedTracing) {
-			_afterSave_DebugMessageLists = new Dictionary<string,List<string>>[_numChecks];
+        _afterSave_EventCounts = new int[_numChecks];
+        _afterSave_CallsToAddMigratingGroupCounts = new int[_numChecks];
+        _afterSave_CallsToAddGroupToUpdateCounts = new int[_numChecks];
+        _afterSave_CallsToGroupUpdateCounts = new int[_numChecks];
+        _afterSave_TotalCallsToGetNextLocalRandom = new int[_numChecks];
+        _afterSave_GroupCounts = new int[_numChecks];
+        _afterSave_PolityCounts = new int[_numChecks];
+        _afterSave_TotalTerritorySizes = new int[_numChecks];
+        _afterSave_RegionCounts = new int[_numChecks];
+        _afterSave_LanguageCounts = new int[_numChecks];
+    }
 
-//			_afterSave_AddGroupToUpdateCallersByCheck = new Dictionary<string, int>[_numChecks];
-		}
+    public override void Run()
+    {
 
-		if (_trackGenRandomCallers) {
-			_afterSave_GetNextLocalRandomCallersByCheck = new Dictionary<string, int>[_numChecks];
-		}
-			
-		_saveDatePlusOffsets = new long[_numChecks];
+        switch (_stage)
+        {
 
-		_afterSave_EventCounts = new int[_numChecks];
-		_afterSave_CallsToAddMigratingGroupCounts = new int[_numChecks];
-		_afterSave_CallsToAddGroupToUpdateCounts = new int[_numChecks];
-		_afterSave_CallsToGroupUpdateCounts = new int[_numChecks];
-		_afterSave_TotalCallsToGetNextLocalRandom = new int[_numChecks];
-		_afterSave_GroupCounts = new int[_numChecks];
-		_afterSave_PolityCounts = new int[_numChecks];
-		_afterSave_TotalTerritorySizes = new int[_numChecks];
-		_afterSave_RegionCounts = new int[_numChecks];
-		_afterSave_LanguageCounts = new int[_numChecks];
-	}
+            case Stage.Generation:
 
-	public override void Run () {
+                if (State == TestState.NotStarted)
+                {
 
-		switch (_stage) {
+                    Manager.LoadAppSettings(@"Worlds.settings");
 
-		case Stage.Generation:
-			
-			if (State == TestState.NotStarted) {
+                    Manager.UpdateMainThreadReference();
 
-				Manager.LoadAppSettings (@"Worlds.settings");
+                    _savePath = Manager.SavePath + "TestSaveLoad.plnt";
 
-				Manager.UpdateMainThreadReference ();
-			
-				_savePath = Manager.SavePath + "TestSaveLoad.plnt";
+                    Debug.Log("Generating world " + _seed + "...");
 
-				Debug.Log ("Generating world " + _seed + "...");
+                    Manager.GenerateNewWorldAsync(_seed);
 
-				Manager.GenerateNewWorldAsync (_seed);
+                    State = TestState.Running;
+                }
 
-				State = TestState.Running;
-			}
+                if (!Manager.WorldIsReady)
+                {
+                    return;
+                }
 
-			if (!Manager.WorldIsReady) {
-				return;
-			}
+                if (Manager.PerformingAsyncTask)
+                {
+                    return;
+                }
 
-			if (Manager.PerformingAsyncTask) {
-				return;
-			}
+                int population = (int)Mathf.Ceil(World.StartPopulationDensity * TerrainCell.MaxArea);
 
-			int population = (int)Mathf.Ceil (World.StartPopulationDensity * TerrainCell.MaxArea);
+                Manager.GenerateRandomHumanGroup(population);
 
-			Manager.GenerateRandomHumanGroup (population);
+                _world = Manager.CurrentWorld;
 
-			_world = Manager.CurrentWorld;
+                Debug.Log("Pushing simulation forward before save...");
 
-			Debug.Log ("Pushing simulation forward before save...");
+#if DEBUG
+                CellGroup.UpdateCalled = () =>
+                {
+                    _callsToGroupUpdate++;
+                };
+#endif
 
-			#if DEBUG
-			CellGroup.UpdateCalled = () => {
-				_callsToGroupUpdate++;
-			};
-			#endif
+                _stage = Stage.GenerationIterations;
 
-			_stage = Stage.GenerationIterations;
+                break;
 
-			break;
+            case Stage.GenerationIterations:
 
-		case Stage.GenerationIterations:
-			
-			_callsToGroupUpdate = 0;
-			int iterations = 0;
+                _callsToGroupUpdate = 0;
+                int iterations = 0;
 
-			float startTimeUpdate = Time.realtimeSinceStartup;
+                float startTimeUpdate = Time.realtimeSinceStartup;
 
-			while (!_saveCondition (_world)) {
+                while (!_saveCondition(_world))
+                {
 
-				_world.Iterate ();
+                    _world.Iterate();
 
-				iterations++;
+                    iterations++;
 
-				if ((_callsToGroupUpdate > MaxCallsToGroupUpdate) || ((startTimeUpdate + MaxTimePerUpdate) < Time.realtimeSinceStartup)) {
+                    if ((_callsToGroupUpdate > MaxCallsToGroupUpdate) || ((startTimeUpdate + MaxTimePerUpdate) < Time.realtimeSinceStartup))
+                    {
 
-//					Debug.Log ("Current Date: " + _world.CurrentDate);
-//					Debug.Log ("Calls to Group Update: " + _callsToGroupUpdate + ", Iterations: " + iterations);
-					return;
-				}
-			}
+                        //					Debug.Log ("Current Date: " + _world.CurrentDate);
+                        //					Debug.Log ("Calls to Group Update: " + _callsToGroupUpdate + ", Iterations: " + iterations);
+                        return;
+                    }
+                }
 
-			_saveDate = _world.CurrentDate;
+                _saveDate = _world.CurrentDate;
 
-			Debug.Log ("Save Date: " + _saveDate);
+                Debug.Log("Save Date: " + _saveDate);
 
-//			#if DEBUG
-//			Debug.Log ("Last Random Integer: " + TerrainCell.LastRandomInteger);
-//			#endif
+                //			#if DEBUG
+                //			Debug.Log ("Last Random Integer: " + TerrainCell.LastRandomInteger);
+                //			#endif
 
-			_filteredEventCountBeforeSave = _world.EventsToHappenCount;
-			List<WorldEvent> filteredEventsToHappen = _world.GetFilteredEventsToHappenForSerialization ();
+                _filteredEventCountBeforeSave = _world.EventsToHappenCount;
+                List<WorldEvent> filteredEventsToHappen = _world.GetFilteredEventsToHappenForSerialization();
 
-			Debug.Log ("Number of events before save: " + _filteredEventCountBeforeSave);
-			Debug.Log ("Number of filtered events before save: " + filteredEventsToHappen.Count);
+                Debug.Log("Number of events before save: " + _filteredEventCountBeforeSave);
+                Debug.Log("Number of filtered events before save: " + filteredEventsToHappen.Count);
 
-			_filteredEventCountBeforeSave = filteredEventsToHappen.Count;
+                _filteredEventCountBeforeSave = filteredEventsToHappen.Count;
 
-			Debug.Log ("Saving world...");
+                Debug.Log("Saving world...");
 
-			Manager.SaveWorldAsync (_savePath);
+                Manager.SaveWorldAsync(_savePath);
 
-			_stage = Stage.SavePrecheck;
+                _stage = Stage.SavePrecheck;
 
-			break;
+                break;
 
-		case Stage.SavePrecheck:
+            case Stage.SavePrecheck:
 
-			if (Manager.PerformingAsyncTask) {
-				return;
-			}
+                if (Manager.PerformingAsyncTask)
+                {
+                    return;
+                }
 
-			_filteredEventCountAfterSave = _world.EventsToHappen.Count;
-			Debug.Log ("Number of filtered events after save: " + _filteredEventCountAfterSave);
+                _filteredEventCountAfterSave = _world.EventsToHappen.Count;
+                Debug.Log("Number of filtered events after save: " + _filteredEventCountAfterSave);
 
-			if (_filteredEventCountBeforeSave != _filteredEventCountAfterSave) {
+                if (_filteredEventCountBeforeSave != _filteredEventCountAfterSave)
+                {
 
-				Debug.LogError ("Number of filtered events before and after save are different");
+                    Debug.LogError("Number of filtered events before and after save are different");
 
-				_result = false;
+                    _result = false;
 
-			} else {
+                }
+                else
+                {
 
-				Debug.Log ("Number of filtered events remain equal after save");
-			}
+                    Debug.Log("Number of filtered events remain equal after save");
+                }
 
-			_eventCountAfterSave = _world.EventsToHappenCount;
-			Debug.Log ("Number of remaining events after save: " + _eventCountAfterSave);
+                _eventCountAfterSave = _world.EventsToHappenCount;
+                Debug.Log("Number of remaining events after save: " + _eventCountAfterSave);
 
-			_eventsAfterSave = _world.GetEventsToHappen ();
-			_eventSnapshotsAfterSave = new List<WorldEventSnapshot> (_eventsAfterSave.Count);
+                _eventsAfterSave = _world.GetEventsToHappen();
+                _eventSnapshotsAfterSave = new List<WorldEventSnapshot>(_eventsAfterSave.Count);
 
-			foreach (WorldEvent e in _eventsAfterSave) {
-			
-				_eventSnapshotsAfterSave.Add (e.GetSnapshot ());
-			}
+                foreach (WorldEvent e in _eventsAfterSave)
+                {
 
-			Debug.Log ("Pushing simulation forward after save by at least " + _beforeCheckDateSkipOffset + " years");
+                    _eventSnapshotsAfterSave.Add(e.GetSnapshot());
+                }
 
-			#if DEBUG
-			CellGroup.UpdateCalled = () => {
-				_totalCallsToGroupUpdate++;
-				_callsToGroupUpdate++;
-			};
-			#endif
+                Debug.Log("Pushing simulation forward after save by at least " + _beforeCheckDateSkipOffset + " years");
 
-			_totalCallsToAddMigratingGroup = 0;
-			_totalCallsToAddGroupToUpdate = 0;
-			_totalCallsToGroupUpdate = 0;
+#if DEBUG
+                CellGroup.UpdateCalled = () =>
+                {
+                    _totalCallsToGroupUpdate++;
+                    _callsToGroupUpdate++;
+                };
+#endif
 
-			#if DEBUG
-			World.AddMigratingGroupCalled = () => {
-				_totalCallsToAddMigratingGroup++;
-			};
-			#endif
+                _totalCallsToAddMigratingGroup = 0;
+                _totalCallsToAddGroupToUpdate = 0;
+                _totalCallsToGroupUpdate = 0;
 
-			#if DEBUG
-			World.AddGroupToUpdateCalled = (string callingMethod) => {
-				_totalCallsToAddGroupToUpdate++;
+#if DEBUG
+                World.AddMigratingGroupCalled = () =>
+                {
+                    _totalCallsToAddMigratingGroup++;
+                };
+#endif
 
-//				int callCount;
-//
-//				if (!_afterSave_AddGroupToUpdateCallers.TryGetValue (callingMethod, out callCount)) {
-//
-//					_afterSave_AddGroupToUpdateCallers.Add (callingMethod, 1);
-//
-//				} else {
-//
-//					_afterSave_AddGroupToUpdateCallers[callingMethod] = ++callCount;
-//				}
-			};
-			#endif
+#if DEBUG
+                World.AddGroupToUpdateCalled = (string callingMethod) =>
+                {
+                    _totalCallsToAddGroupToUpdate++;
 
-			_totalCallsToGetNextLocalRandom = 0;
+                    //				int callCount;
+                    //
+                    //				if (!_afterSave_AddGroupToUpdateCallers.TryGetValue (callingMethod, out callCount)) {
+                    //
+                    //					_afterSave_AddGroupToUpdateCallers.Add (callingMethod, 1);
+                    //
+                    //				} else {
+                    //
+                    //					_afterSave_AddGroupToUpdateCallers[callingMethod] = ++callCount;
+                    //				}
+                };
+#endif
 
-			#if DEBUG
-			Manager.TrackGenRandomCallers = false;
+                _totalCallsToGetNextLocalRandom = 0;
 
-			TerrainCell.GetNextLocalRandomCalled = (string callingMethod) => {
-				_totalCallsToGetNextLocalRandom++;
-			};
-			#endif
+#if DEBUG
+                Manager.TrackGenRandomCallers = false;
 
-			_stage = Stage.Save;
+                TerrainCell.GetNextLocalRandomCalled = (string callingMethod) =>
+                {
+                    _totalCallsToGetNextLocalRandom++;
+                };
+#endif
 
-			break;
+                _stage = Stage.Save;
 
-		case Stage.Save:
+                break;
 
-			_callsToGroupUpdate = 0;
-			iterations = 0;
+            case Stage.Save:
 
-			startTimeUpdate = Time.realtimeSinceStartup;
+                _callsToGroupUpdate = 0;
+                iterations = 0;
 
-			while (_world.CurrentDate < (_saveDate + _beforeCheckDateSkipOffset)) {
+                startTimeUpdate = Time.realtimeSinceStartup;
 
-				_world.Iterate ();
+                while (_world.CurrentDate < (_saveDate + _beforeCheckDateSkipOffset))
+                {
 
-				iterations++;
+                    _world.Iterate();
 
-				if ((_callsToGroupUpdate > MaxCallsToGroupUpdate) || ((startTimeUpdate + MaxTimePerUpdate) < Time.realtimeSinceStartup)) {
+                    iterations++;
 
-//					Debug.Log ("Current Date: " + _world.CurrentDate);
-//					Debug.Log ("Calls to Group Update: " + _callsToGroupUpdate + ", Iterations Pre Check: " + iterations);
-					return;
-				}
-			}
+                    if ((_callsToGroupUpdate > MaxCallsToGroupUpdate) || ((startTimeUpdate + MaxTimePerUpdate) < Time.realtimeSinceStartup))
+                    {
 
-			_saveDatePlusOffset = _world.CurrentDate;
+                        //					Debug.Log ("Current Date: " + _world.CurrentDate);
+                        //					Debug.Log ("Calls to Group Update: " + _callsToGroupUpdate + ", Iterations Pre Check: " + iterations);
+                        return;
+                    }
+                }
 
-			Debug.Log ("Save plus offset date: " + _saveDatePlusOffset);
+                _saveDatePlusOffset = _world.CurrentDate;
 
-			#if DEBUG
-			if (_enhancedTracing) {
-				Manager.RegisterDebugEvent = ProcessDebugEvent;
-			}
-			#endif
+                Debug.Log("Save plus offset date: " + _saveDatePlusOffset);
 
-			#if DEBUG
-			Manager.TrackGenRandomCallers = _trackGenRandomCallers;
+#if DEBUG
+                if (_enhancedTracing)
+                {
+                    Manager.RegisterDebugEvent = ProcessDebugEvent;
+                }
+#endif
 
-			TerrainCell.GetNextLocalRandomCalled = (string callingMethod) => {
-				_totalCallsToGetNextLocalRandom++;
+#if DEBUG
+                Manager.TrackGenRandomCallers = _trackGenRandomCallers;
 
-				if (_trackGenRandomCallers) {
-					int callCount;
+                TerrainCell.GetNextLocalRandomCalled = (string callingMethod) =>
+                {
+                    _totalCallsToGetNextLocalRandom++;
 
-					if (!_afterSave_GetNextLocalRandomCallers.TryGetValue (callingMethod, out callCount)) {
+                    if (_trackGenRandomCallers)
+                    {
+                        int callCount;
 
-						_afterSave_GetNextLocalRandomCallers.Add (callingMethod, 1);
+                        if (!_afterSave_GetNextLocalRandomCallers.TryGetValue(callingMethod, out callCount))
+                        {
 
-					} else {
+                            _afterSave_GetNextLocalRandomCallers.Add(callingMethod, 1);
 
-						_afterSave_GetNextLocalRandomCallers[callingMethod] = ++callCount;
-					}
-				}
-			};
-			#endif
+                        }
+                        else
+                        {
 
-//			if (_validateRecording) {
-//				Manager.Recorder = _saveRecorder;
-//			}
+                            _afterSave_GetNextLocalRandomCallers[callingMethod] = ++callCount;
+                        }
+                    }
+                };
+#endif
 
-			_currentCheck = 0;
+                //			if (_validateRecording) {
+                //				Manager.Recorder = _saveRecorder;
+                //			}
 
-			if (_enhancedTracing) {
-				_debugMessages.Clear ();
-			}
+                _currentCheck = 0;
 
-			Debug.Log ("Pushing simulation forward after save [with offset 0]...");
+                if (_enhancedTracing)
+                {
+                    _debugMessages.Clear();
+                }
 
-			_stage = Stage.SaveIterations;
+                Debug.Log("Pushing simulation forward after save [with offset 0]...");
 
-			break;
+                _stage = Stage.SaveIterations;
 
-		case Stage.SaveIterations:
+                break;
 
-			for (int c = _currentCheck; c < _numChecks; c++) {
+            case Stage.SaveIterations:
 
-				int offset = _beforeCheckDateSkipOffset + (c * _offsetPerCheck);
+                for (int c = _currentCheck; c < _numChecks; c++)
+                {
 
-				string checkStr = "[with iteration offset: " + c + " - date offset: " + offset + "]";
+                    int offset = _beforeCheckDateSkipOffset + (c * _offsetPerCheck);
 
-				if (c > _currentCheck) {
-					if (_enhancedTracing) {
-						_debugMessages.Clear ();
-					}
+                    string checkStr = "[with iteration offset: " + c + " - date offset: " + offset + "]";
 
-					Debug.Log ("Pushing simulation forward after save " + checkStr + "...");
-				}
+                    if (c > _currentCheck)
+                    {
+                        if (_enhancedTracing)
+                        {
+                            _debugMessages.Clear();
+                        }
 
-				_callsToGroupUpdate = 0;
-				iterations = 0;
+                        Debug.Log("Pushing simulation forward after save " + checkStr + "...");
+                    }
 
-				startTimeUpdate = Time.realtimeSinceStartup;
+                    _callsToGroupUpdate = 0;
+                    iterations = 0;
 
-				while (_world.CurrentDate < (_saveDatePlusOffset + _offsetPerCheck)) {
+                    startTimeUpdate = Time.realtimeSinceStartup;
 
-					_world.Iterate ();
+                    while (_world.CurrentDate < (_saveDatePlusOffset + _offsetPerCheck))
+                    {
 
-					iterations++;
+                        _world.Iterate();
 
-					if ((_callsToGroupUpdate > MaxCallsToGroupUpdate) || ((startTimeUpdate + MaxTimePerUpdate) < Time.realtimeSinceStartup)) {
+                        iterations++;
 
-//						Debug.Log ("Current Date: " + _world.CurrentDate);
-//						Debug.Log ("Calls to Group Update: " + _callsToGroupUpdate + ", Iterations: " + iterations);
-						_currentCheck = c;
-						return;
-					}
-				}
+                        if ((_callsToGroupUpdate > MaxCallsToGroupUpdate) || ((startTimeUpdate + MaxTimePerUpdate) < Time.realtimeSinceStartup))
+                        {
 
-				_saveDatePlusOffset = _world.CurrentDate;
+                            //						Debug.Log ("Current Date: " + _world.CurrentDate);
+                            //						Debug.Log ("Calls to Group Update: " + _callsToGroupUpdate + ", Iterations: " + iterations);
+                            _currentCheck = c;
+                            return;
+                        }
+                    }
 
-				_world.Synchronize ();
+                    _saveDatePlusOffset = _world.CurrentDate;
 
-				_saveDatePlusOffsets[c] = _saveDatePlusOffset;
+                    _world.Synchronize();
 
-				Debug.Log ("Current Date: " + _world.CurrentDate);
+                    _saveDatePlusOffsets[c] = _saveDatePlusOffset;
 
-				_afterSave_EventCounts[c] = _world.EventsToHappenCount;
-				Debug.Log ("Number of Events after Save " + checkStr + ": " + _afterSave_EventCounts[c]);
+                    Debug.Log("Current Date: " + _world.CurrentDate);
 
-				if (_enhancedTracing) {
+                    _afterSave_EventCounts[c] = _world.EventsToHappenCount;
+                    Debug.Log("Number of Events after Save " + checkStr + ": " + _afterSave_EventCounts[c]);
 
-					int count = 0;
-					foreach (KeyValuePair<string, List<string>> pair in _debugMessages) {
+                    if (_enhancedTracing)
+                    {
 
-						count += pair.Value.Count;
-					}
+                        int count = 0;
+                        foreach (KeyValuePair<string, List<string>> pair in _debugMessages)
+                        {
 
-					Debug.Log ("Number of debugMessage objects stored for " + checkStr + ": " + _debugMessages.Count);
-					Debug.Log ("Number of total messages stored for " + checkStr + ": " + count);
+                            count += pair.Value.Count;
+                        }
 
-					_afterSave_DebugMessageLists[c] = new Dictionary<string, List<string>> (_debugMessages);
-				}
+                        Debug.Log("Number of debugMessage objects stored for " + checkStr + ": " + _debugMessages.Count);
+                        Debug.Log("Number of total messages stored for " + checkStr + ": " + count);
 
-				_afterSave_CallsToAddMigratingGroupCounts[c] = _totalCallsToAddMigratingGroup;
-				Debug.Log ("Total calls to AddMigratingGroup after Save " + checkStr + ": " + _afterSave_CallsToAddMigratingGroupCounts[c]);
+                        _afterSave_DebugMessageLists[c] = new Dictionary<string, List<string>>(_debugMessages);
+                    }
 
-				_afterSave_CallsToAddGroupToUpdateCounts[c] = _totalCallsToAddGroupToUpdate;
-				Debug.Log ("Total calls to AddGroupToUpdate after Save " + checkStr + ": " + _afterSave_CallsToAddGroupToUpdateCounts[c]);
+                    _afterSave_CallsToAddMigratingGroupCounts[c] = _totalCallsToAddMigratingGroup;
+                    Debug.Log("Total calls to AddMigratingGroup after Save " + checkStr + ": " + _afterSave_CallsToAddMigratingGroupCounts[c]);
 
-//				_afterSave_AddGroupToUpdateCallersByCheck[c] = new Dictionary<string, int>(_afterSave_AddGroupToUpdateCallers);
+                    _afterSave_CallsToAddGroupToUpdateCounts[c] = _totalCallsToAddGroupToUpdate;
+                    Debug.Log("Total calls to AddGroupToUpdate after Save " + checkStr + ": " + _afterSave_CallsToAddGroupToUpdateCounts[c]);
 
-				_afterSave_CallsToGroupUpdateCounts[c] = _totalCallsToGroupUpdate;
-				Debug.Log ("Total calls to Group Update after Save " + checkStr + ": " + _afterSave_CallsToGroupUpdateCounts[c]);
+                    //				_afterSave_AddGroupToUpdateCallersByCheck[c] = new Dictionary<string, int>(_afterSave_AddGroupToUpdateCallers);
 
-				_afterSave_TotalCallsToGetNextLocalRandom[c] = _totalCallsToGetNextLocalRandom;
-				Debug.Log ("Total calls to GetNextLocalRandom after Save " + checkStr + ": " + _afterSave_TotalCallsToGetNextLocalRandom[c]);
+                    _afterSave_CallsToGroupUpdateCounts[c] = _totalCallsToGroupUpdate;
+                    Debug.Log("Total calls to Group Update after Save " + checkStr + ": " + _afterSave_CallsToGroupUpdateCounts[c]);
 
-				if (_trackGenRandomCallers) {
-					foreach (KeyValuePair<string, int> pair in _afterSave_GetNextLocalRandomCallers) {
-						
-						Debug.Log ("Total calls by " + pair.Key + " to GetNextLocalRandom after Save " + checkStr + ": " + pair.Value);
-					}
+                    _afterSave_TotalCallsToGetNextLocalRandom[c] = _totalCallsToGetNextLocalRandom;
+                    Debug.Log("Total calls to GetNextLocalRandom after Save " + checkStr + ": " + _afterSave_TotalCallsToGetNextLocalRandom[c]);
 
-					_afterSave_GetNextLocalRandomCallersByCheck [c] = new Dictionary<string, int> (_afterSave_GetNextLocalRandomCallers);
-				}
+                    if (_trackGenRandomCallers)
+                    {
+                        foreach (KeyValuePair<string, int> pair in _afterSave_GetNextLocalRandomCallers)
+                        {
 
-				_afterSave_GroupCounts[c] = _world.CellGroupCount;
-				_afterSave_PolityCounts[c] = _world.PolityCount;
-				_afterSave_RegionCounts[c] = _world.RegionCount;
-				_afterSave_LanguageCounts[c] = _world.LanguageCount;
-				Debug.Log ("Number of Cell Groups after Save " + checkStr + ": " + _afterSave_GroupCounts[c]);
-				Debug.Log ("Number of Polities after Save " + checkStr + ": " + _afterSave_PolityCounts[c]);
-				Debug.Log ("Number of Regions after Save " + checkStr + ": " + _afterSave_RegionCounts[c]);
-				Debug.Log ("Number of Languages after Save " + checkStr + ": " + _afterSave_LanguageCounts[c]);
+                            Debug.Log("Total calls by " + pair.Key + " to GetNextLocalRandom after Save " + checkStr + ": " + pair.Value);
+                        }
 
-				int totalCellCount = 0;
-				foreach (Polity polity in _world.Polities) {
+                        _afterSave_GetNextLocalRandomCallersByCheck[c] = new Dictionary<string, int>(_afterSave_GetNextLocalRandomCallers);
+                    }
 
-					totalCellCount += polity.Territory.CellPositions.Count;
-				}
+                    _afterSave_GroupCounts[c] = _world.CellGroupCount;
+                    _afterSave_PolityCounts[c] = _world.PolityCount;
+                    _afterSave_RegionCounts[c] = _world.RegionCount;
+                    _afterSave_LanguageCounts[c] = _world.LanguageCount;
+                    Debug.Log("Number of Cell Groups after Save " + checkStr + ": " + _afterSave_GroupCounts[c]);
+                    Debug.Log("Number of Polities after Save " + checkStr + ": " + _afterSave_PolityCounts[c]);
+                    Debug.Log("Number of Regions after Save " + checkStr + ": " + _afterSave_RegionCounts[c]);
+                    Debug.Log("Number of Languages after Save " + checkStr + ": " + _afterSave_LanguageCounts[c]);
 
-				_afterSave_TotalTerritorySizes[c] = totalCellCount;
-				Debug.Log ("Total size of territories after Save " + checkStr + ": " + totalCellCount);
-			}
+                    int totalCellCount = 0;
+                    foreach (Polity polity in _world.Polities)
+                    {
 
-			#if DEBUG
-			if (_enhancedTracing) {
-				Manager.RegisterDebugEvent = null;
-			}
-			#endif
+                        totalCellCount += polity.Territory.CellPositions.Count;
+                    }
 
-			Debug.Log ("Loading world...");
+                    _afterSave_TotalTerritorySizes[c] = totalCellCount;
+                    Debug.Log("Total size of territories after Save " + checkStr + ": " + totalCellCount);
+                }
 
-			Manager.LoadWorldAsync (_savePath);
+#if DEBUG
+                if (_enhancedTracing)
+                {
+                    Manager.RegisterDebugEvent = null;
+                }
+#endif
 
-			_stage = Stage.LoadPrecheck;
+                Debug.Log("Loading world...");
 
-			break;
+                Manager.LoadWorldAsync(_savePath);
 
-		case Stage.LoadPrecheck:
+                _stage = Stage.LoadPrecheck;
 
-			if (Manager.PerformingAsyncTask) {
-				return;
-			}
+                break;
 
-			_world = Manager.CurrentWorld;
+            case Stage.LoadPrecheck:
 
-			long loadDate = _world.CurrentDate;
+                if (Manager.PerformingAsyncTask)
+                {
+                    return;
+                }
 
-			Debug.Log ("Date after Load: " + loadDate);
+                _world = Manager.CurrentWorld;
 
-			if (loadDate != _saveDate) {
+                long loadDate = _world.CurrentDate;
 
-				Debug.LogError ("Load date different from Save date");
+                Debug.Log("Date after Load: " + loadDate);
 
-				_result = false;
-			}
+                if (loadDate != _saveDate)
+                {
 
-			_filteredEventCountAfterLoad = _world.EventsToHappen.Count;
-			Debug.Log ("Number of filtered events after Load: " + _filteredEventCountAfterLoad);
+                    Debug.LogError("Load date different from Save date");
 
-			if (_filteredEventCountAfterLoad != _filteredEventCountAfterSave) {
+                    _result = false;
+                }
 
-				Debug.LogError ("Number of filtered events after Load (" + _filteredEventCountAfterLoad + ") different from after Save (" + _filteredEventCountAfterSave + ")");
+                _filteredEventCountAfterLoad = _world.EventsToHappen.Count;
+                Debug.Log("Number of filtered events after Load: " + _filteredEventCountAfterLoad);
 
-				_result = false;
-			}
+                if (_filteredEventCountAfterLoad != _filteredEventCountAfterSave)
+                {
 
-			_eventCountAfterLoad = _world.EventsToHappenCount;
-			Debug.Log ("Number of events after Load: " + _eventCountAfterLoad);
+                    Debug.LogError("Number of filtered events after Load (" + _filteredEventCountAfterLoad + ") different from after Save (" + _filteredEventCountAfterSave + ")");
 
-			if (_eventCountAfterLoad != _eventCountAfterSave) {
+                    _result = false;
+                }
 
-				Debug.LogError ("Event count after Load (" + _eventCountAfterLoad + ") different from after Save (" + _eventCountAfterSave + ")");
+                _eventCountAfterLoad = _world.EventsToHappenCount;
+                Debug.Log("Number of events after Load: " + _eventCountAfterLoad);
 
-				_result = false;
-			}
+                if (_eventCountAfterLoad != _eventCountAfterSave)
+                {
 
-			List<WorldEvent> eventsAfterLoad = _world.GetEventsToHappen ();
+                    Debug.LogError("Event count after Load (" + _eventCountAfterLoad + ") different from after Save (" + _eventCountAfterSave + ")");
 
-			foreach (WorldEventSnapshot eSave in _eventSnapshotsAfterSave) {
+                    _result = false;
+                }
 
-				WorldEvent foundEvent = null;
+                List<WorldEvent> eventsAfterLoad = _world.GetEventsToHappen();
 
-				foreach (WorldEvent eLoad in eventsAfterLoad) {
-				
-					if ((eLoad.GetType () == eSave.EventType) && (eLoad.Id == eSave.Id)) {
-					
-						foundEvent = eLoad;
-						break;
-					}
-				}
+                foreach (WorldEventSnapshot eSave in _eventSnapshotsAfterSave)
+                {
 
-				if (foundEvent != null) {
-				
-					eventsAfterLoad.Remove (foundEvent);
-				} else {
+                    WorldEvent foundEvent = null;
 
-					Debug.LogError ("Event of type '" + eSave.EventType + "' with Id (" + eSave.Id + ") not found after Load");
+                    foreach (WorldEvent eLoad in eventsAfterLoad)
+                    {
 
-					CellGroupEventSnapshot geSave = eSave as CellGroupEventSnapshot;
+                        if ((eLoad.GetType() == eSave.EventType) && (eLoad.Id == eSave.Id))
+                        {
 
-					if (geSave != null) {
+                            foundEvent = eLoad;
+                            break;
+                        }
+                    }
 
-						CellGroup g = _world.GetGroup (geSave.GroupId);
+                    if (foundEvent != null)
+                    {
 
-						if (g == null) {
-							Debug.LogError ("No group with Id (" + geSave.GroupId + ") foun after Load");
-						}
-					}
-				}
-			}
+                        eventsAfterLoad.Remove(foundEvent);
+                    }
+                    else
+                    {
 
-			foreach (WorldEvent eLoad in eventsAfterLoad) {
-				
-				Debug.LogError ("Event of type '" + eLoad.GetType () + "' with Id (" + eLoad.Id + ") from Load not found after Save");
-			}
+                        Debug.LogError("Event of type '" + eSave.EventType + "' with Id (" + eSave.Id + ") not found after Load");
 
-			Debug.Log ("Pushing simulation forward after load by at least " + _beforeCheckDateSkipOffset + " years");
+                        CellGroupEventSnapshot geSave = eSave as CellGroupEventSnapshot;
 
-			#if DEBUG
-			CellGroup.UpdateCalled = () => {
-				_totalCallsToGroupUpdate++;
-				_callsToGroupUpdate++;
-			};
-			#endif
+                        if (geSave != null)
+                        {
 
-			_totalCallsToAddMigratingGroup = 0;
-			_totalCallsToAddGroupToUpdate = 0;
-			_totalCallsToGroupUpdate = 0;
+                            CellGroup g = _world.GetGroup(geSave.GroupId);
 
-			#if DEBUG
-			World.AddMigratingGroupCalled = () => {
-				_totalCallsToAddMigratingGroup++;
-			};
-			#endif
+                            if (g == null)
+                            {
+                                Debug.LogError("No group with Id (" + geSave.GroupId + ") foun after Load");
+                            }
+                        }
+                    }
+                }
 
-			#if DEBUG
-			World.AddGroupToUpdateCalled = (string callingMethod) => {
-				_totalCallsToAddGroupToUpdate++;
+                foreach (WorldEvent eLoad in eventsAfterLoad)
+                {
 
-//				int callCount;
-//
-//				if (!_afterLoad_AddGroupToUpdateCallers.TryGetValue (callingMethod, out callCount)) {
-//
-//					_afterLoad_AddGroupToUpdateCallers.Add (callingMethod, 1);
-//
-//				} else {
-//
-//					_afterLoad_AddGroupToUpdateCallers[callingMethod] = ++callCount;
-//				}
-			};
-			#endif
+                    Debug.LogError("Event of type '" + eLoad.GetType() + "' with Id (" + eLoad.Id + ") from Load not found after Save");
+                }
 
-			_totalCallsToGetNextLocalRandom = 0;
+                Debug.Log("Pushing simulation forward after load by at least " + _beforeCheckDateSkipOffset + " years");
 
-			#if DEBUG
-			Manager.TrackGenRandomCallers = false;
+#if DEBUG
+                CellGroup.UpdateCalled = () =>
+                {
+                    _totalCallsToGroupUpdate++;
+                    _callsToGroupUpdate++;
+                };
+#endif
 
-			TerrainCell.GetNextLocalRandomCalled = (string callingMethod) => {
-				_totalCallsToGetNextLocalRandom++;
-			};
-			#endif
+                _totalCallsToAddMigratingGroup = 0;
+                _totalCallsToAddGroupToUpdate = 0;
+                _totalCallsToGroupUpdate = 0;
 
-			_stage = Stage.Load;
+#if DEBUG
+                World.AddMigratingGroupCalled = () =>
+                {
+                    _totalCallsToAddMigratingGroup++;
+                };
+#endif
 
-			break;
+#if DEBUG
+                World.AddGroupToUpdateCalled = (string callingMethod) =>
+                {
+                    _totalCallsToAddGroupToUpdate++;
 
-		case Stage.Load:
+                    //				int callCount;
+                    //
+                    //				if (!_afterLoad_AddGroupToUpdateCallers.TryGetValue (callingMethod, out callCount)) {
+                    //
+                    //					_afterLoad_AddGroupToUpdateCallers.Add (callingMethod, 1);
+                    //
+                    //				} else {
+                    //
+                    //					_afterLoad_AddGroupToUpdateCallers[callingMethod] = ++callCount;
+                    //				}
+                };
+#endif
 
-			_callsToGroupUpdate = 0;
-			iterations = 0;
+                _totalCallsToGetNextLocalRandom = 0;
 
-			startTimeUpdate = Time.realtimeSinceStartup;
+#if DEBUG
+                Manager.TrackGenRandomCallers = false;
 
-			while (_world.CurrentDate < (_saveDate + _beforeCheckDateSkipOffset)) {
+                TerrainCell.GetNextLocalRandomCalled = (string callingMethod) =>
+                {
+                    _totalCallsToGetNextLocalRandom++;
+                };
+#endif
 
-				_world.Iterate ();
+                _stage = Stage.Load;
 
-				iterations++;
+                break;
 
-				if ((_callsToGroupUpdate > MaxCallsToGroupUpdate) || ((startTimeUpdate + MaxTimePerUpdate) < Time.realtimeSinceStartup)) {
+            case Stage.Load:
 
-//					Debug.Log ("Current Date: " + _world.CurrentDate);
-//					Debug.Log ("Calls to Group Update: " + _callsToGroupUpdate + ", Iterations Pre Check: " + iterations);
-					return;
-				}
-			}
+                _callsToGroupUpdate = 0;
+                iterations = 0;
 
-			_loadDatePlusOffset = _world.CurrentDate;
+                startTimeUpdate = Time.realtimeSinceStartup;
 
-			Debug.Log ("Load plus offset date: " + _loadDatePlusOffset);
+                while (_world.CurrentDate < (_saveDate + _beforeCheckDateSkipOffset))
+                {
 
-			#if DEBUG
-			if (_enhancedTracing) {
-				Manager.RegisterDebugEvent = ProcessDebugEvent;
-			}
-			#endif
+                    _world.Iterate();
 
-			#if DEBUG
-			Manager.TrackGenRandomCallers = _trackGenRandomCallers;
+                    iterations++;
 
-			TerrainCell.GetNextLocalRandomCalled = (string callingMethod) => {
-				_totalCallsToGetNextLocalRandom++;
+                    if ((_callsToGroupUpdate > MaxCallsToGroupUpdate) || ((startTimeUpdate + MaxTimePerUpdate) < Time.realtimeSinceStartup))
+                    {
 
-				if (_trackGenRandomCallers) {
-					int callCount;
+                        //					Debug.Log ("Current Date: " + _world.CurrentDate);
+                        //					Debug.Log ("Calls to Group Update: " + _callsToGroupUpdate + ", Iterations Pre Check: " + iterations);
+                        return;
+                    }
+                }
 
-					if (!_afterLoad_GetNextLocalRandomCallers.TryGetValue (callingMethod, out callCount)) {
+                _loadDatePlusOffset = _world.CurrentDate;
 
-						_afterLoad_GetNextLocalRandomCallers.Add (callingMethod, 1);
+                Debug.Log("Load plus offset date: " + _loadDatePlusOffset);
 
-					} else {
+#if DEBUG
+                if (_enhancedTracing)
+                {
+                    Manager.RegisterDebugEvent = ProcessDebugEvent;
+                }
+#endif
 
-						_afterLoad_GetNextLocalRandomCallers[callingMethod] = ++callCount;
-					}
-				}
-			};
-			#endif
+#if DEBUG
+                Manager.TrackGenRandomCallers = _trackGenRandomCallers;
 
-//			if (_validateRecording) {
-//				Manager.Recorder = _loadRecorder;
-//			}
+                TerrainCell.GetNextLocalRandomCalled = (string callingMethod) =>
+                {
+                    _totalCallsToGetNextLocalRandom++;
 
-			_currentCheck = 0;
+                    if (_trackGenRandomCallers)
+                    {
+                        int callCount;
 
-			if (_enhancedTracing) {
-				_debugMessages.Clear ();
-			}
+                        if (!_afterLoad_GetNextLocalRandomCallers.TryGetValue(callingMethod, out callCount))
+                        {
 
-			Debug.Log ("Pushing simulation forward after load [with offset 0]...");
+                            _afterLoad_GetNextLocalRandomCallers.Add(callingMethod, 1);
 
-			_stage = Stage.LoadIterations;
+                        }
+                        else
+                        {
 
-			break;
+                            _afterLoad_GetNextLocalRandomCallers[callingMethod] = ++callCount;
+                        }
+                    }
+                };
+#endif
 
-		case Stage.LoadIterations:
+                //			if (_validateRecording) {
+                //				Manager.Recorder = _loadRecorder;
+                //			}
 
-			for (int c = _currentCheck; c < _numChecks; c++) {
+                _currentCheck = 0;
 
-				int offset = _beforeCheckDateSkipOffset + (c * _offsetPerCheck);
+                if (_enhancedTracing)
+                {
+                    _debugMessages.Clear();
+                }
 
-				string checkStr = "[with iteration offset: " + c + " - date offset: " + offset + "]";
+                Debug.Log("Pushing simulation forward after load [with offset 0]...");
 
-				if (c > _currentCheck) {
-					if (_enhancedTracing) {
-						_debugMessages.Clear ();
-					}
+                _stage = Stage.LoadIterations;
 
-					Debug.Log ("Pushing simulation forward after load " + checkStr + "...");
-				}
+                break;
 
-				_callsToGroupUpdate = 0;
-				iterations = 0;
+            case Stage.LoadIterations:
 
-				startTimeUpdate = Time.realtimeSinceStartup;
+                for (int c = _currentCheck; c < _numChecks; c++)
+                {
 
-				while (_world.CurrentDate < (_loadDatePlusOffset + _offsetPerCheck)) {
+                    int offset = _beforeCheckDateSkipOffset + (c * _offsetPerCheck);
 
-					_world.Iterate ();
+                    string checkStr = "[with iteration offset: " + c + " - date offset: " + offset + "]";
 
-					iterations++;
+                    if (c > _currentCheck)
+                    {
+                        if (_enhancedTracing)
+                        {
+                            _debugMessages.Clear();
+                        }
 
-					if ((_callsToGroupUpdate > MaxCallsToGroupUpdate) || ((startTimeUpdate + MaxTimePerUpdate) < Time.realtimeSinceStartup)) {
+                        Debug.Log("Pushing simulation forward after load " + checkStr + "...");
+                    }
 
-//						Debug.Log ("Current Date: " + _world.CurrentDate);
-//						Debug.Log ("Calls to Group Update: " + _callsToGroupUpdate + ", Iterations: " + iterations);
-						_currentCheck = c;
-						return;
-					}
-				}
+                    _callsToGroupUpdate = 0;
+                    iterations = 0;
 
-				_loadDatePlusOffset = _world.CurrentDate;
+                    startTimeUpdate = Time.realtimeSinceStartup;
 
-				_world.Synchronize ();
+                    while (_world.CurrentDate < (_loadDatePlusOffset + _offsetPerCheck))
+                    {
 
-				// Validate current date
+                        _world.Iterate();
 
-				Debug.Log ("Current Date: " + _world.CurrentDate);
+                        iterations++;
 
-				if (_saveDatePlusOffsets[c] != _loadDatePlusOffset) {
+                        if ((_callsToGroupUpdate > MaxCallsToGroupUpdate) || ((startTimeUpdate + MaxTimePerUpdate) < Time.realtimeSinceStartup))
+                        {
 
-					Debug.LogError ("Load date after offset different from Save date with offset [" + c + "]:" + _saveDatePlusOffsets[c]);
+                            //						Debug.Log ("Current Date: " + _world.CurrentDate);
+                            //						Debug.Log ("Calls to Group Update: " + _callsToGroupUpdate + ", Iterations: " + iterations);
+                            _currentCheck = c;
+                            return;
+                        }
+                    }
 
-					_result = false;
+                    _loadDatePlusOffset = _world.CurrentDate;
 
-				}
+                    _world.Synchronize();
 
-				// Validate Number of Events
+                    // Validate current date
 
-				Debug.Log ("Number of Events after load " + checkStr + ": " + _world.EventsToHappenCount);
+                    Debug.Log("Current Date: " + _world.CurrentDate);
 
-				if (_afterSave_EventCounts[c] != _world.EventsToHappenCount) {
+                    if (_saveDatePlusOffsets[c] != _loadDatePlusOffset)
+                    {
 
-					Debug.LogError ("Number of events after load " + checkStr + " not equal to: " + _afterSave_EventCounts[c]);
+                        Debug.LogError("Load date after offset different from Save date with offset [" + c + "]:" + _saveDatePlusOffsets[c]);
 
-					_result = false;
+                        _result = false;
 
-				}
+                    }
 
-				if (_enhancedTracing) {
+                    // Validate Number of Events
 
-					// Validate Debug Messages Occurrences
+                    Debug.Log("Number of Events after load " + checkStr + ": " + _world.EventsToHappenCount);
 
-					int count = 0;
-					int savedCount = 0;
-					int savedDebugMessageObjectCount = _afterSave_DebugMessageLists [c].Count;
+                    if (_afterSave_EventCounts[c] != _world.EventsToHappenCount)
+                    {
 
-					foreach (KeyValuePair<string, List<string>> pair in _debugMessages) {
+                        Debug.LogError("Number of events after load " + checkStr + " not equal to: " + _afterSave_EventCounts[c]);
 
-						count += pair.Value.Count;
+                        _result = false;
 
-						List<string> messages;
+                    }
 
-						if (!_afterSave_DebugMessageLists [c].TryGetValue (pair.Key, out messages)) {
+                    if (_enhancedTracing)
+                    {
 
-							foreach (string message in pair.Value) {
+                        // Validate Debug Messages Occurrences
 
-								Debug.LogError ("Debug message of type [" + pair.Key + "] from Load data not found in Save data " + checkStr + ": " + message);
-							}
+                        int count = 0;
+                        int savedCount = 0;
+                        int savedDebugMessageObjectCount = _afterSave_DebugMessageLists[c].Count;
 
-							_result = false;
-							continue;
-						}
+                        foreach (KeyValuePair<string, List<string>> pair in _debugMessages)
+                        {
 
-						savedCount += messages.Count;
+                            count += pair.Value.Count;
 
-						_afterSave_DebugMessageLists [c].Remove (pair.Key);
+                            List<string> messages;
 
-						foreach (string message in pair.Value) {
-							if (!messages.Remove (message)) {
+                            if (!_afterSave_DebugMessageLists[c].TryGetValue(pair.Key, out messages))
+                            {
 
-								Debug.LogError ("Debug message of type [" + pair.Key + "] from Load data not found in Save data " + checkStr + ": " + message);
-								_result = false;
-							}
-						}
+                                foreach (string message in pair.Value)
+                                {
 
-						foreach (string message in messages) {
-							Debug.LogError ("Debug message of type [" + pair.Key + "] from Save data not found in Load data " + checkStr + ": " + message);
-							_result = false;
-						}
-					}
+                                    Debug.LogError("Debug message of type [" + pair.Key + "] from Load data not found in Save data " + checkStr + ": " + message);
+                                }
 
-					foreach (KeyValuePair<string, List<string>> pair in _afterSave_DebugMessageLists[c]) {
+                                _result = false;
+                                continue;
+                            }
 
-						savedCount += pair.Value.Count;
+                            savedCount += messages.Count;
 
-						foreach (string message in pair.Value) {
+                            _afterSave_DebugMessageLists[c].Remove(pair.Key);
 
-							Debug.LogError ("Debug message of type [" + pair.Key + "] from Save data not found in Load data " + checkStr + ": " + message);
-						}
+                            foreach (string message in pair.Value)
+                            {
+                                if (!messages.Remove(message))
+                                {
 
-						_result = false;
-					}
+                                    Debug.LogError("Debug message of type [" + pair.Key + "] from Load data not found in Save data " + checkStr + ": " + message);
+                                    _result = false;
+                                }
+                            }
 
-					Debug.Log ("Number of debugMessage objects stored for " + checkStr + " after Load: " + _debugMessages.Count);
+                            foreach (string message in messages)
+                            {
+                                Debug.LogError("Debug message of type [" + pair.Key + "] from Save data not found in Load data " + checkStr + ": " + message);
+                                _result = false;
+                            }
+                        }
 
-					if (_debugMessages.Count != savedDebugMessageObjectCount) {
+                        foreach (KeyValuePair<string, List<string>> pair in _afterSave_DebugMessageLists[c])
+                        {
 
-						Debug.LogError ("Number of debugMessage objects stored for " + checkStr + " after Load no equal to : " + savedDebugMessageObjectCount);
+                            savedCount += pair.Value.Count;
 
-						_result = false;
+                            foreach (string message in pair.Value)
+                            {
 
-					}
+                                Debug.LogError("Debug message of type [" + pair.Key + "] from Save data not found in Load data " + checkStr + ": " + message);
+                            }
 
-					Debug.Log ("Number of total messages stored for " + checkStr + " after Load: " + count);
+                            _result = false;
+                        }
 
-					if (count != savedCount) {
+                        Debug.Log("Number of debugMessage objects stored for " + checkStr + " after Load: " + _debugMessages.Count);
 
-						Debug.LogError ("Number of total messages stored for " + checkStr + " after Load no equal to : " + savedCount);
+                        if (_debugMessages.Count != savedDebugMessageObjectCount)
+                        {
 
-						_result = false;
+                            Debug.LogError("Number of debugMessage objects stored for " + checkStr + " after Load no equal to : " + savedDebugMessageObjectCount);
 
-					}
-				}
+                            _result = false;
 
-				// Validate calls to AddMigratingGroup
+                        }
 
-				Debug.Log ("Total calls to AddMigratingGroup after Load " + checkStr + ": " + _totalCallsToAddMigratingGroup);
+                        Debug.Log("Number of total messages stored for " + checkStr + " after Load: " + count);
 
-				if (_afterSave_CallsToAddMigratingGroupCounts[c] != _totalCallsToAddMigratingGroup) {
+                        if (count != savedCount)
+                        {
 
-					Debug.LogError ("Total calls to AddMigratingGroup after load with offset not equal to: " + _afterSave_CallsToAddMigratingGroupCounts[c]);
+                            Debug.LogError("Number of total messages stored for " + checkStr + " after Load no equal to : " + savedCount);
 
-					_result = false;
+                            _result = false;
 
-				}
+                        }
+                    }
 
-				// Validate calls to AddGroupToUpdate
+                    // Validate calls to AddMigratingGroup
 
-				Debug.Log ("Total calls to AddGroupToUpdate after Load " + checkStr + ": " + _totalCallsToAddGroupToUpdate);
+                    Debug.Log("Total calls to AddMigratingGroup after Load " + checkStr + ": " + _totalCallsToAddMigratingGroup);
 
-				if (_afterSave_CallsToAddGroupToUpdateCounts[c] != _totalCallsToAddGroupToUpdate) {
+                    if (_afterSave_CallsToAddMigratingGroupCounts[c] != _totalCallsToAddMigratingGroup)
+                    {
 
-					Debug.LogError ("Total calls to AddGroupToUpdate after load with offset not equal to: " + _afterSave_CallsToAddGroupToUpdateCounts[c]);
+                        Debug.LogError("Total calls to AddMigratingGroup after load with offset not equal to: " + _afterSave_CallsToAddMigratingGroupCounts[c]);
 
-					_result = false;
+                        _result = false;
 
-				}
+                    }
 
-//				foreach (KeyValuePair<string, int> pair in _afterLoad_AddGroupToUpdateCallers) {
-//
-//					int saveCallerCount;
-//
-//					if (!_afterSave_AddGroupToUpdateCallersByCheck[c].TryGetValue (pair.Key, out saveCallerCount)) {
-//						saveCallerCount = 0;
-//					}
-//
-//					if (saveCallerCount != pair.Value) {
-//
-//						Debug.Log ("Total calls by " + pair.Key + " to AddGroupToUpdate after Load " + checkStr + ": " + pair.Value);
-//						Debug.LogError ("Total calls by " + pair.Key + " to AddGroupToUpdate after load with offset not equal to: " + saveCallerCount);
-//
-//						_result = false;
-//
-//					}
-//				}
-//
-//				foreach (KeyValuePair<string, int> pair in _afterSave_AddGroupToUpdateCallersByCheck[c]) {
-//
-//					if (!_afterLoad_AddGroupToUpdateCallers.ContainsKey (pair.Key)) {
-//						Debug.Log ("Total calls by " + pair.Key + " to AddGroupToUpdate after Load " + checkStr + ": 0");
-//						Debug.LogError ("Total calls by " + pair.Key + " to AddGroupToUpdate after load with offset not equal to: " + pair.Value);
-//
-//						_result = false;
-//					}
-//				}
+                    // Validate calls to AddGroupToUpdate
 
-				// Validate calls to CellGroup:Update
+                    Debug.Log("Total calls to AddGroupToUpdate after Load " + checkStr + ": " + _totalCallsToAddGroupToUpdate);
 
-				Debug.Log ("Total calls to Group Update after Load " + checkStr + ": " + _totalCallsToGroupUpdate);
+                    if (_afterSave_CallsToAddGroupToUpdateCounts[c] != _totalCallsToAddGroupToUpdate)
+                    {
 
-				if (_afterSave_CallsToGroupUpdateCounts[c] != _totalCallsToGroupUpdate) {
+                        Debug.LogError("Total calls to AddGroupToUpdate after load with offset not equal to: " + _afterSave_CallsToAddGroupToUpdateCounts[c]);
 
-					Debug.LogError ("Total calls to Group Update after load with offset not equal to: " + _afterSave_CallsToGroupUpdateCounts[c]);
+                        _result = false;
 
-					_result = false;
+                    }
 
-				}
+                    //				foreach (KeyValuePair<string, int> pair in _afterLoad_AddGroupToUpdateCallers) {
+                    //
+                    //					int saveCallerCount;
+                    //
+                    //					if (!_afterSave_AddGroupToUpdateCallersByCheck[c].TryGetValue (pair.Key, out saveCallerCount)) {
+                    //						saveCallerCount = 0;
+                    //					}
+                    //
+                    //					if (saveCallerCount != pair.Value) {
+                    //
+                    //						Debug.Log ("Total calls by " + pair.Key + " to AddGroupToUpdate after Load " + checkStr + ": " + pair.Value);
+                    //						Debug.LogError ("Total calls by " + pair.Key + " to AddGroupToUpdate after load with offset not equal to: " + saveCallerCount);
+                    //
+                    //						_result = false;
+                    //
+                    //					}
+                    //				}
+                    //
+                    //				foreach (KeyValuePair<string, int> pair in _afterSave_AddGroupToUpdateCallersByCheck[c]) {
+                    //
+                    //					if (!_afterLoad_AddGroupToUpdateCallers.ContainsKey (pair.Key)) {
+                    //						Debug.Log ("Total calls by " + pair.Key + " to AddGroupToUpdate after Load " + checkStr + ": 0");
+                    //						Debug.LogError ("Total calls by " + pair.Key + " to AddGroupToUpdate after load with offset not equal to: " + pair.Value);
+                    //
+                    //						_result = false;
+                    //					}
+                    //				}
 
+                    // Validate calls to CellGroup:Update
 
-				/// NOTE: TerrainCell.LastRandomInteger might not be consistent because the order in which events are executed for a particular date might change after Load
-				/// 	this shouldn't have any effect on the simulation
-				/// 
-//				// Validate Last Random Integer
-//
-//				Debug.Log ("Last Random Integer after Load " + checkStr + ": " + TerrainCell.LastRandomInteger);
-//
-//			if (_lastRandomIntegerAfterSave1 != _lastRandomIntegerAfterLoad1) {
-//
-//				Debug.LogError ("First last random integer after load not equal to: " + _lastRandomIntegerAfterSave1);
-//
-//				_result = false;
-//
-//			} else {
-//
-//				Debug.Log ("First last random integer after load equal");
-//			}
+                    Debug.Log("Total calls to Group Update after Load " + checkStr + ": " + _totalCallsToGroupUpdate);
 
-				// Validate calls to GetNextLocalRandom
+                    if (_afterSave_CallsToGroupUpdateCounts[c] != _totalCallsToGroupUpdate)
+                    {
 
-				Debug.Log ("Total calls to GetNextLocalRandom after Load " + checkStr + ": " + _totalCallsToGetNextLocalRandom);
+                        Debug.LogError("Total calls to Group Update after load with offset not equal to: " + _afterSave_CallsToGroupUpdateCounts[c]);
 
-				if (_afterSave_TotalCallsToGetNextLocalRandom[c] != _totalCallsToGetNextLocalRandom) {
+                        _result = false;
 
-					Debug.LogError ("Total calls to GetNextLocalRandom after Load " + checkStr + ": " + _totalCallsToGetNextLocalRandom + " not equal to: " + _afterSave_TotalCallsToGetNextLocalRandom[c]);
+                    }
 
-					_result = false;
 
-				}
+                    /// NOTE: TerrainCell.LastRandomInteger might not be consistent because the order in which events are executed for a particular date might change after Load
+                    /// 	this shouldn't have any effect on the simulation
+                    /// 
+                    //				// Validate Last Random Integer
+                    //
+                    //				Debug.Log ("Last Random Integer after Load " + checkStr + ": " + TerrainCell.LastRandomInteger);
+                    //
+                    //			if (_lastRandomIntegerAfterSave1 != _lastRandomIntegerAfterLoad1) {
+                    //
+                    //				Debug.LogError ("First last random integer after load not equal to: " + _lastRandomIntegerAfterSave1);
+                    //
+                    //				_result = false;
+                    //
+                    //			} else {
+                    //
+                    //				Debug.Log ("First last random integer after load equal");
+                    //			}
 
-				if (_trackGenRandomCallers) {
-					foreach (KeyValuePair<string, int> pair in _afterLoad_GetNextLocalRandomCallers) {
+                    // Validate calls to GetNextLocalRandom
 
-						int saveCallerCount;
+                    Debug.Log("Total calls to GetNextLocalRandom after Load " + checkStr + ": " + _totalCallsToGetNextLocalRandom);
 
-						if (!_afterSave_GetNextLocalRandomCallersByCheck [c].TryGetValue (pair.Key, out saveCallerCount)) {
-							saveCallerCount = 0;
-						}
+                    if (_afterSave_TotalCallsToGetNextLocalRandom[c] != _totalCallsToGetNextLocalRandom)
+                    {
 
-						if (saveCallerCount != pair.Value) {
-							Debug.LogError ("Total calls by " + pair.Key + " to GetNextLocalRandom after Load " + checkStr + ": " + pair.Value + " not equal to: " + saveCallerCount);
+                        Debug.LogError("Total calls to GetNextLocalRandom after Load " + checkStr + ": " + _totalCallsToGetNextLocalRandom + " not equal to: " + _afterSave_TotalCallsToGetNextLocalRandom[c]);
 
-							_result = false;
+                        _result = false;
 
-						}
-					}
+                    }
 
-					foreach (KeyValuePair<string, int> pair in _afterSave_GetNextLocalRandomCallersByCheck[c]) {
+                    if (_trackGenRandomCallers)
+                    {
+                        foreach (KeyValuePair<string, int> pair in _afterLoad_GetNextLocalRandomCallers)
+                        {
 
-						if (!_afterLoad_GetNextLocalRandomCallers.ContainsKey (pair.Key)) {
-							Debug.LogError ("Total calls by " + pair.Key + " to GetNextLocalRandom after Load " + checkStr + ": 0 not equal to: " + pair.Value);
+                            int saveCallerCount;
 
-							_result = false;
-						}
-					}
-				}
+                            if (!_afterSave_GetNextLocalRandomCallersByCheck[c].TryGetValue(pair.Key, out saveCallerCount))
+                            {
+                                saveCallerCount = 0;
+                            }
 
-				// Validate Cell Groups
+                            if (saveCallerCount != pair.Value)
+                            {
+                                Debug.LogError("Total calls by " + pair.Key + " to GetNextLocalRandom after Load " + checkStr + ": " + pair.Value + " not equal to: " + saveCallerCount);
 
-				Debug.Log ("Number of Cell Groups after Load " + checkStr + ": " + _world.CellGroupCount);
+                                _result = false;
 
-				if (_afterSave_GroupCounts[c] != _world.CellGroupCount) {
+                            }
+                        }
 
-					Debug.LogError ("Number of cell groups after Load with offset not equal to: " + _afterSave_GroupCounts[c]);
+                        foreach (KeyValuePair<string, int> pair in _afterSave_GetNextLocalRandomCallersByCheck[c])
+                        {
 
-					_result = false;
+                            if (!_afterLoad_GetNextLocalRandomCallers.ContainsKey(pair.Key))
+                            {
+                                Debug.LogError("Total calls by " + pair.Key + " to GetNextLocalRandom after Load " + checkStr + ": 0 not equal to: " + pair.Value);
 
-				}
+                                _result = false;
+                            }
+                        }
+                    }
 
-				// Validate Polities
+                    // Validate Cell Groups
 
-				Debug.Log ("Number of Polities after Load " + checkStr + ": " + _world.PolityCount);
+                    Debug.Log("Number of Cell Groups after Load " + checkStr + ": " + _world.CellGroupCount);
 
-				if (_afterSave_PolityCounts[c] != _world.PolityCount) {
+                    if (_afterSave_GroupCounts[c] != _world.CellGroupCount)
+                    {
 
-					Debug.LogError ("Number of polities after load with offset not equal to: " + _afterSave_PolityCounts[c]);
+                        Debug.LogError("Number of cell groups after Load with offset not equal to: " + _afterSave_GroupCounts[c]);
 
-					_result = false;
+                        _result = false;
 
-				}
+                    }
 
-				// Validate Regions
+                    // Validate Polities
 
-				Debug.Log ("Number of Regions after Load " + checkStr + ": " + _world.RegionCount);
+                    Debug.Log("Number of Polities after Load " + checkStr + ": " + _world.PolityCount);
 
-				if (_afterSave_RegionCounts[c] != _world.RegionCount) {
+                    if (_afterSave_PolityCounts[c] != _world.PolityCount)
+                    {
 
-					Debug.LogError ("Number of regions after load with offset not equal to: " + _afterSave_RegionCounts[c]);
+                        Debug.LogError("Number of polities after load with offset not equal to: " + _afterSave_PolityCounts[c]);
 
-					_result = false;
+                        _result = false;
 
-				}
+                    }
 
-				// Validate Languages
+                    // Validate Regions
 
-				Debug.Log ("Number of Languages after Load " + checkStr + ": " + _world.LanguageCount);
+                    Debug.Log("Number of Regions after Load " + checkStr + ": " + _world.RegionCount);
 
-				if (_afterSave_LanguageCounts[c] != _world.LanguageCount) {
+                    if (_afterSave_RegionCounts[c] != _world.RegionCount)
+                    {
 
-					Debug.LogError ("Number of languages after load with offset not equal to: " + _afterSave_LanguageCounts[c]);
+                        Debug.LogError("Number of regions after load with offset not equal to: " + _afterSave_RegionCounts[c]);
 
-					_result = false;
+                        _result = false;
 
-				}
+                    }
 
-				// Validate TerritorySizes
+                    // Validate Languages
 
-				int totalCellCount = 0;
-				foreach (Polity polity in _world.Polities) {
+                    Debug.Log("Number of Languages after Load " + checkStr + ": " + _world.LanguageCount);
 
-					totalCellCount += polity.Territory.CellPositions.Count;
-				}
+                    if (_afterSave_LanguageCounts[c] != _world.LanguageCount)
+                    {
 
-				Debug.Log ("Total size of territories after Load " + checkStr + ": " + totalCellCount);
+                        Debug.LogError("Number of languages after load with offset not equal to: " + _afterSave_LanguageCounts[c]);
 
-				if (_afterSave_TotalTerritorySizes[c] != totalCellCount) {
+                        _result = false;
 
-					Debug.LogError ("Total size of territories after load with offset not equal to: " + _afterSave_TotalTerritorySizes[c]);
+                    }
 
-					_result = false;
+                    // Validate TerritorySizes
 
-				}
+                    int totalCellCount = 0;
+                    foreach (Polity polity in _world.Polities)
+                    {
 
-				if (!_result) {
-					Debug.Log ("Interrupting Test after encountering discrepancy");
-					break;
-				}
-			}
+                        totalCellCount += polity.Territory.CellPositions.Count;
+                    }
 
-//			// Validate Recorded Entries
-//
-//			if (_validateRecording) {
-//				int saveEntryCount = _saveRecorder.GetEntryCount ();
-//				int loadEntryCount = _loadRecorder.GetEntryCount ();
-//
-//				if (saveEntryCount != loadEntryCount) {
-//
-//					Debug.LogError ("Number of Test Recorder entries different: save=" + saveEntryCount + " load=" + loadEntryCount);
-//				} else {
-//					Debug.Log ("Number of Test Recorder entries: " + saveEntryCount);
-//				}
-//
-//				int maxEntryErrors = 5;
-//				int entryErrorCount = 0;
-//
-//				foreach (KeyValuePair<string,string> pair in _saveRecorder.RecordedData) {
-//			
-//					string entryKey = pair.Key;
-//					string saveEntry = pair.Value;
-//					string loadEntry = _loadRecorder.Recover (entryKey);
-//
-//					if (saveEntry != loadEntry) {
-//					
-//						if (entryErrorCount < maxEntryErrors) {
-//							Debug.LogError ("Entries with key [" + entryKey + "] different...\n\tSave entry: " + saveEntry + "\n\tLoad entry: " + loadEntry);
-//						}
-//
-//						entryErrorCount++;
-//					}
-//				}
-//
-//				entryErrorCount += Mathf.Abs (saveEntryCount - loadEntryCount);
-//
-//				if (entryErrorCount > maxEntryErrors) {
-//					Debug.LogError ("Entry errors not displayed: " + (entryErrorCount - maxEntryErrors));
-//				}
-//
-//				if (entryErrorCount > 0) {
-//					Debug.LogError ("Total entry error count: " + entryErrorCount);
-//				} else {
-//					Debug.Log ("Total entry error count: " + entryErrorCount);
-//				}
-//
-//				Manager.Recorder = DefaultRecorder.Default;
-//			}
+                    Debug.Log("Total size of territories after Load " + checkStr + ": " + totalCellCount);
 
-			if (_result)
-				State = TestState.Succeded;
-			else
-				State = TestState.Failed;
+                    if (_afterSave_TotalTerritorySizes[c] != totalCellCount)
+                    {
 
-			#if DEBUG
-			Manager.TrackGenRandomCallers = false;
-			Manager.RegisterDebugEvent = null;
-			World.AddGroupToUpdateCalled = null;
-			World.AddMigratingGroupCalled = null;
-			CellGroup.UpdateCalled = null;
-			TerrainCell.GetNextLocalRandomCalled = null;
-			#endif
+                        Debug.LogError("Total size of territories after load with offset not equal to: " + _afterSave_TotalTerritorySizes[c]);
 
-			break;
+                        _result = false;
 
-		default:
-			throw new System.Exception ("Unrecognized test stage: " + _stage);
-		}
-	}
+                    }
 
-	public class DebugMessage
-	{
-		public string Identifier;
-		public string Message;
+                    if (!_result)
+                    {
+                        Debug.Log("Interrupting Test after encountering discrepancy");
+                        break;
+                    }
+                }
 
-		public DebugMessage (string identifier, string message) {
+                //			// Validate Recorded Entries
+                //
+                //			if (_validateRecording) {
+                //				int saveEntryCount = _saveRecorder.GetEntryCount ();
+                //				int loadEntryCount = _loadRecorder.GetEntryCount ();
+                //
+                //				if (saveEntryCount != loadEntryCount) {
+                //
+                //					Debug.LogError ("Number of Test Recorder entries different: save=" + saveEntryCount + " load=" + loadEntryCount);
+                //				} else {
+                //					Debug.Log ("Number of Test Recorder entries: " + saveEntryCount);
+                //				}
+                //
+                //				int maxEntryErrors = 5;
+                //				int entryErrorCount = 0;
+                //
+                //				foreach (KeyValuePair<string,string> pair in _saveRecorder.RecordedData) {
+                //			
+                //					string entryKey = pair.Key;
+                //					string saveEntry = pair.Value;
+                //					string loadEntry = _loadRecorder.Recover (entryKey);
+                //
+                //					if (saveEntry != loadEntry) {
+                //					
+                //						if (entryErrorCount < maxEntryErrors) {
+                //							Debug.LogError ("Entries with key [" + entryKey + "] different...\n\tSave entry: " + saveEntry + "\n\tLoad entry: " + loadEntry);
+                //						}
+                //
+                //						entryErrorCount++;
+                //					}
+                //				}
+                //
+                //				entryErrorCount += Mathf.Abs (saveEntryCount - loadEntryCount);
+                //
+                //				if (entryErrorCount > maxEntryErrors) {
+                //					Debug.LogError ("Entry errors not displayed: " + (entryErrorCount - maxEntryErrors));
+                //				}
+                //
+                //				if (entryErrorCount > 0) {
+                //					Debug.LogError ("Total entry error count: " + entryErrorCount);
+                //				} else {
+                //					Debug.Log ("Total entry error count: " + entryErrorCount);
+                //				}
+                //
+                //				Manager.Recorder = DefaultRecorder.Default;
+                //			}
 
-			Identifier = identifier;
-			Message = message;
-		}
-	}
+                if (_result)
+                    State = TestState.Succeded;
+                else
+                    State = TestState.Failed;
 
-	private void ProcessDebugEvent (string eventType, object data) {
+#if DEBUG
+                Manager.TrackGenRandomCallers = false;
+                Manager.RegisterDebugEvent = null;
+                World.AddGroupToUpdateCalled = null;
+                World.AddMigratingGroupCalled = null;
+                CellGroup.UpdateCalled = null;
+                TerrainCell.GetNextLocalRandomCalled = null;
+#endif
 
-		switch (eventType) {
+                break;
 
-		case "DebugMessage":
+            default:
+                throw new System.Exception("Unrecognized test stage: " + _stage);
+        }
+    }
 
-			int count = 0;
+    public class DebugMessage
+    {
+        public string Identifier;
+        public string Message;
 
-			DebugMessage debugMessage = data as DebugMessage;
+        public DebugMessage(string identifier, string message)
+        {
 
-			string identifier = debugMessage.Identifier;
-			string message = debugMessage.Message;
-			string messagePlusCount = message + " [Count:" + count++ + "]";
+            Identifier = identifier;
+            Message = message;
+        }
+    }
 
-			List<string> messages;
+    private void ProcessDebugEvent(string eventType, object data)
+    {
 
-			if (_debugMessages.TryGetValue (identifier, out messages)) {
+        switch (eventType)
+        {
 
-				while (messages.Contains (messagePlusCount)) {
+            case "DebugMessage":
 
-					messagePlusCount = message + " [Count:" + count++ + "]";
-				}
+                int count = 0;
 
-				messages.Add (messagePlusCount);
+                DebugMessage debugMessage = data as DebugMessage;
 
-			} else {
+                string identifier = debugMessage.Identifier;
+                string message = debugMessage.Message;
+                string messagePlusCount = message + " [Count:" + count++ + "]";
 
-				messages = new List<string> ();
-				messages.Add (messagePlusCount);
+                List<string> messages;
 
-				_debugMessages.Add (identifier, messages);
-			}
+                if (_debugMessages.TryGetValue(identifier, out messages))
+                {
 
-			break;
-		}
-	}
+                    while (messages.Contains(messagePlusCount))
+                    {
+
+                        messagePlusCount = message + " [Count:" + count++ + "]";
+                    }
+
+                    messages.Add(messagePlusCount);
+
+                }
+                else
+                {
+
+                    messages = new List<string>();
+                    messages.Add(messagePlusCount);
+
+                    _debugMessages.Add(identifier, messages);
+                }
+
+                break;
+        }
+    }
 }

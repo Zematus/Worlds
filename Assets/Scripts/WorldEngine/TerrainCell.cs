@@ -340,65 +340,73 @@ public class TerrainCell : ISynchronizable {
 		HasCrossingRoutes = CrossingRoutes.Count > 0;
 	}
 
-	public int GetNextLocalRandomInt (int queryOffset, int maxValue) {
-		
-		return GetLocalRandomInt (World.CurrentDate, queryOffset, maxValue);
-	}
+	public int GetNextLocalRandomInt(int queryOffset, int maxValue)
+    {
+        int value = GetLocalRandomInt(World.CurrentDate, queryOffset, maxValue);
 
-	public int GetLocalRandomInt (long date, int queryOffset, int maxValue) {
+#if DEBUG
+        if (GetNextLocalRandomCalled != null)
+        {
+            if (Manager.TrackGenRandomCallers)
+            {
 
+                System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
+
+                System.Reflection.MethodBase method = stackTrace.GetFrame(1).GetMethod();
+                string callingMethod = method.Name;
+
+                int frame = 2;
+                while (callingMethod.Contains("GetNextLocalRandom")
+                    || callingMethod.Contains("GetNextRandom"))
+                {
+                    method = stackTrace.GetFrame(frame).GetMethod();
+                    callingMethod = method.Name;
+
+                    frame++;
+                }
+
+                string callingClass = method.DeclaringType.ToString();
+
+                GetNextLocalRandomCalled(callingClass + ":" + callingMethod);
+
+            }
+            else
+            {
+                GetNextLocalRandomCalled(null);
+            }
+        }
+#endif
+
+        //		#if DEBUG
+        //		if (Manager.RecordingEnabled) {
+        //			LastRandomInteger = value;
+        //			string key = "Long:" + Longitude + "-Lat:" + Latitude + "-Date:" + date + "-LocalIteration:" + LocalIteration;
+
+        //			Manager.Recorder.Record (key, "LastRandomInteger:" + value);
+        //		}
+        //		#endif
+
+        return value;
+    }
+
+    public int GetLocalRandomInt(long date, int queryOffset, int maxValue)
+    {
         if (maxValue < 2) return 0;
 
-		maxValue = Mathf.Min (PerlinNoise.MaxPermutationValue, maxValue);
+        maxValue = Mathf.Min(PerlinNoise.MaxPermutationValue, maxValue);
 
-		long dateFactor = (date % 256) + (date % 7843); // This operation will reduce to zero or almost zero the number of artifacts resulting from (date & 255) being a constant value in some circumstances
+        long dateFactor = (date % 256) + (date % 7843); // This operation will reduce to zero or almost zero the number of artifacts resulting from (date & 255) being a constant value in some circumstances
 
-		int x = Mathf.Abs (World.Seed + Longitude + queryOffset);
-		int y = Mathf.Abs (World.Seed + Latitude + queryOffset);
-		int z = Mathf.Abs (World.Seed + (int)dateFactor + queryOffset);
+        int x = Mathf.Abs(World.Seed + Longitude + queryOffset);
+        int y = Mathf.Abs(World.Seed + Latitude + queryOffset);
+        int z = Mathf.Abs(World.Seed + (int)dateFactor + queryOffset);
 
-		int value = PerlinNoise.GetPermutationValue(x, y, z) % maxValue;
+        int value = PerlinNoise.GetPermutationValue(x, y, z) % maxValue;
 
-		#if DEBUG
-		if (GetNextLocalRandomCalled != null) {
-			if (Manager.TrackGenRandomCallers) {
-				
-				System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
+        return value;
+    }
 
-				System.Reflection.MethodBase method = stackTrace.GetFrame(1).GetMethod();
-				string callingMethod = method.Name;
-
-				int frame = 2;
-				while (callingMethod.Contains ("GetNextLocalRandom") || callingMethod.Contains ("GetNextRandom")) {
-					method = stackTrace.GetFrame(frame).GetMethod();
-					callingMethod = method.Name;
-
-					frame++;
-				}
-
-				string callingClass = method.DeclaringType.ToString();
-
-				GetNextLocalRandomCalled (callingClass + ":" + callingMethod);
-
-			} else {
-				GetNextLocalRandomCalled (null);
-			}
-		}
-		#endif
-
-//		#if DEBUG
-//		if (Manager.RecordingEnabled) {
-//			LastRandomInteger = value;
-//			string key = "Long:" + Longitude + "-Lat:" + Latitude + "-Date:" + date + "-LocalIteration:" + LocalIteration;
-
-//			Manager.Recorder.Record (key, "LastRandomInteger:" + value);
-//		}
-//		#endif
-
-		return value;
-	}
-
-	public float GetNextLocalRandomFloat (int queryOffset) {
+    public float GetNextLocalRandomFloat (int queryOffset) {
 
 		int value = GetNextLocalRandomInt (queryOffset, PerlinNoise.MaxPermutationValue);
 
