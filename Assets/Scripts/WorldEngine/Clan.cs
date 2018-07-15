@@ -416,8 +416,26 @@ public class Clan : Faction {
 			Debug.LogWarning ("administrativeLoad less than 0: " + administrativeLoad);
 
 			return Mathf.Infinity;
-		}
+        }
 
-		return administrativeLoad;
+#if DEBUG
+        if (Manager.RegisterDebugEvent != null)
+        {
+            if (Manager.TracingData.FactionId == Id)
+            {
+                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+                    "Clan:CalculateAdministrativeLoad - ClanId:" + Id,
+                    "CurrentDate: " + World.CurrentDate +
+                    ", socialOrganizationValue: " + socialOrganizationValue +
+                    ", Influence: " + Influence +
+                    ", Polity.TotalAdministrativeCost: " + Polity.TotalAdministrativeCost +
+                    "");
+
+                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+            }
+        }
+#endif
+
+        return administrativeLoad;
 	}
 }

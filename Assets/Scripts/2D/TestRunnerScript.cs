@@ -38,31 +38,33 @@ public class TestRunnerScript : MonoBehaviour {
         //{
         //    return world.PolityCount > 5;
         //}, 20, 10, 6600));
-        tests.Add(new SaveLoadTest("after 5 polities", 783909167, (World world) =>
-        {
-            return world.PolityCount > 5;
-        }, 2, 10, 6620, trackGenRandomCallers: true));
+        //tests.Add(new SaveLoadTest("after 5 polities", 783909167, (World world) =>
+        //{
+        //    return world.PolityCount > 5;
+        //}, 2, 10, 6620, trackGenRandomCallers: true, enhancedTracing: true));
 
 #if DEBUG
         Manager.TracingData.GroupId = 141610233072;
 		Manager.TracingData.PolityId = 37601724810000;
-		Manager.TracingData.Longitude = 248;
+        Manager.TracingData.FactionId = 5501324501614600;
+        Manager.TracingData.Longitude = 248;
 		Manager.TracingData.Latitude = 100;
-		#endif
+#endif
 
-//		tests.Add (new SaveLoadTest ("after 5 polities", 783909167, (World world) => {
-//			return world.PolityCount > 5;
-//		}, 2, 10, 1980, true, true));
-//		tests.Add (new SaveLoadTest ("after 5 polities", 783909167, (World world) => {
-//			return world.PolityCount > 5;
-//		}, 20, 10, 3400, true, true));
-//		tests.Add (new SaveLoadTest ("after 5 polities", 783909167, (World world) => {
-//			return world.PolityCount > 5;
-//		}, 200, 10, 0, true, true));
+        tests.Add(new SaveLoadTest("after 5 polities", 783909167, (World world) =>
+        {
+            return world.PolityCount > 5;
+        }, 2, 10, 6620, true, true));
+        //		tests.Add (new SaveLoadTest ("after 5 polities", 783909167, (World world) => {
+        //			return world.PolityCount > 5;
+        //		}, 20, 10, 3400, true, true));
+        //		tests.Add (new SaveLoadTest ("after 5 polities", 783909167, (World world) => {
+        //			return world.PolityCount > 5;
+        //		}, 200, 10, 0, true, true));
 
-		//tests.Add (new LanguageGenerationTest());
+        //tests.Add (new LanguageGenerationTest());
 
-		Debug.Log ("Running Tests...\n");
+        Debug.Log ("Running Tests...\n");
 	}
 	
 	// Update is called once per frame

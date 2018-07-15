@@ -152,7 +152,8 @@ public class Manager {
 
 		public long GroupId;
 		public long PolityId;
-		public int Longitude;
+        public long FactionId;
+        public int Longitude;
 		public int Latitude;
 	}
 

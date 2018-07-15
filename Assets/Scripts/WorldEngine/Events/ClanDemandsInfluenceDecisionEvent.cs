@@ -105,19 +105,33 @@ public class ClanDemandsInfluenceDecisionEvent : FactionEvent {
 
 		_chanceOfRejectingDemand = CalculateChanceOfRefusingDemand ();
 
-		if (_chanceOfRejectingDemand >= 1) {
-
-			return false;
-		}
-
 		_chanceOfMakingDemand = CalculateChanceOfMakingDemand ();
 
-		if (_chanceOfMakingDemand <= 0) {
+//#if DEBUG
+//        if (Manager.RegisterDebugEvent != null)
+//        {
+//            SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//                "ClanDemandsInfluenceDecisionEvent:CanTrigger - DemandClanId:" + _demandClan.Id + ", DominantClan: " + _dominantClan.Id,
+//                "TriggerDate: " + TriggerDate +
+//                ", _chanceOfRejectingDemand: " + _chanceOfRejectingDemand +
+//                ", _chanceOfMakingDemand: " + _chanceOfMakingDemand +
+//                "");
 
-			return false;
-		}
+//            Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+//        }
+//#endif
 
-		return true;
+        if (_chanceOfRejectingDemand >= 1)
+        {
+            return false;
+        }
+
+        if (_chanceOfMakingDemand <= 0)
+        {
+            return false;
+        }
+
+        return true;
 	}
 
 	public float CalculateChanceOfRefusingDemand () {
@@ -126,14 +140,6 @@ public class ClanDemandsInfluenceDecisionEvent : FactionEvent {
 
 		if (administrativeLoad == Mathf.Infinity)
 			return 0;
-
-//		float cohesionPreferenceValue = _dominantClan.GetPreferenceValue (CulturalPreference.CohesionPreferenceId);
-//
-//		if (cohesionPreferenceValue <= 0)
-//			return 0;
-//
-//		float cohesionPrefFactor = 2 * cohesionPreferenceValue;
-//		cohesionPrefFactor = Mathf.Pow (cohesionPrefFactor, 4);
 
 		float authorityPreferenceValue = _dominantClan.GetPreferenceValue (CulturalPreference.AuthorityPreferenceId);
 
@@ -161,8 +167,7 @@ public class ClanDemandsInfluenceDecisionEvent : FactionEvent {
 
 		float influenceFactor = 2 * influenceDeltaValue;
 		influenceFactor = Mathf.Pow (influenceFactor, 4);
-
-//		float factors = cohesionPrefFactor * authorityPrefFactor * relationshipFactor * influenceFactor * DecisionChanceFactor;
+        
 		float factors = authorityPrefFactor * relationshipFactor * influenceFactor * DecisionChanceFactor;
 
 		float modMinAdministrativeLoad = DominantClanMinAdministrativeLoad * factors;
@@ -170,7 +175,27 @@ public class ClanDemandsInfluenceDecisionEvent : FactionEvent {
 
 		float chance = 1 - (administrativeLoad - modMinAdministrativeLoad) / (modMaxAdministrativeLoad - modMinAdministrativeLoad);
 
-		return Mathf.Clamp01 (chance);
+#if DEBUG
+        if (Manager.RegisterDebugEvent != null)
+        {
+            if ((Manager.TracingData.FactionId == _dominantClan.Id) ||
+                (Manager.TracingData.FactionId == _demandClan.Id))
+            {
+                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+                    "ClanDemandsInfluenceDecisionEvent:CalculateChanceOfRefusingDemand - DemandClanId:" + _demandClan.Id + ", DominantClan: " + _dominantClan.Id,
+                    "TriggerDate: " + TriggerDate +
+                    ", administrativeLoad: " + administrativeLoad +
+                    ", authorityPreferenceValue: " + authorityPreferenceValue +
+                    ", relationshipValue: " + relationshipValue +
+                    ", influenceDeltaValue: " + influenceDeltaValue +
+                    "");
+
+                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+            }
+        }
+#endif
+
+        return Mathf.Clamp01 (chance);
 	}
 
 	public float CalculateChanceOfMakingDemand () {
@@ -179,14 +204,6 @@ public class ClanDemandsInfluenceDecisionEvent : FactionEvent {
 
 		if (administrativeLoad == Mathf.Infinity)
 			return 0;
-
-//		float cohesionPreferenceValue = _demandClan.GetPreferenceValue (CulturalPreference.CohesionPreferenceId);
-//
-//		if (cohesionPreferenceValue <= 0)
-//			return 0;
-//
-//		float cohesionPrefFactor = 2 * cohesionPreferenceValue;
-//		cohesionPrefFactor = Mathf.Pow (cohesionPrefFactor, 4);
 
 		float authorityPreferenceValue = _demandClan.GetPreferenceValue (CulturalPreference.AuthorityPreferenceId);
 
@@ -214,8 +231,7 @@ public class ClanDemandsInfluenceDecisionEvent : FactionEvent {
 
 		float influenceFactor = 2 * influenceDeltaValue;
 		influenceFactor = Mathf.Pow (influenceFactor, 4);
-
-//		float factors = cohesionPrefFactor * authorityPrefFactor * relationshipFactor * influenceFactor * DecisionChanceFactor;
+        
 		float factors = authorityPrefFactor * relationshipFactor * influenceFactor * DecisionChanceFactor;
 
 		float modMinAdministrativeLoad = DemandClanMinAdministrativeLoad * factors;
@@ -223,7 +239,27 @@ public class ClanDemandsInfluenceDecisionEvent : FactionEvent {
 
 		float chance = 1 - (administrativeLoad - modMinAdministrativeLoad) / (modMaxAdministrativeLoad - modMinAdministrativeLoad);
 
-		return Mathf.Clamp01 (chance);
+#if DEBUG
+        if (Manager.RegisterDebugEvent != null)
+        {
+            if ((Manager.TracingData.FactionId == _dominantClan.Id) ||
+                (Manager.TracingData.FactionId == _demandClan.Id))
+            {
+                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+                    "ClanDemandsInfluenceDecisionEvent:CalculateChanceOfMakingDemand - DemandClanId:" + _demandClan.Id + ", DominantClan: " + _dominantClan.Id,
+                    "TriggerDate: " + TriggerDate +
+                    ", administrativeLoad: " + administrativeLoad +
+                    ", authorityPreferenceValue: " + authorityPreferenceValue +
+                    ", relationshipValue: " + relationshipValue +
+                    ", influenceDeltaValue: " + influenceDeltaValue +
+                    "");
+
+                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+            }
+        }
+#endif
+
+        return Mathf.Clamp01 (chance);
 	}
 
 	public override void Trigger () {
