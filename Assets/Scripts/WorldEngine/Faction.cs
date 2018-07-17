@@ -303,9 +303,39 @@ public abstract class Faction : ISynchronizable {
 	
 	}
 
-	public void PreUpdate () {
+	public void PreUpdate ()
+    {
 
-		if (!StillPresent) {
+#if DEBUG
+        if (Manager.RegisterDebugEvent != null)
+        {
+            if (Manager.TracingData.FactionId == Id)
+            {
+                System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
+
+                System.Reflection.MethodBase method = stackTrace.GetFrame(1).GetMethod();
+                string callingMethod = method.Name;
+                string callingClass = method.DeclaringType.ToString();
+
+                float knowledgeValue = 0;
+                CulturalKnowledge knowledge = Culture.GetKnowledge(SocialOrganizationKnowledge.SocialOrganizationKnowledgeId);
+
+                if (knowledge != null)
+                    knowledgeValue = knowledge.Value;
+
+                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+                    "Faction:PreUpdate - Faction Id:" + Id,
+                    "CurrentDate: " + World.CurrentDate +
+                    ", Social organization knowledge value: " + knowledgeValue +
+                    ", Calling method: " + callingClass + ":" + callingMethod +
+                    "");
+
+                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+            }
+        }
+#endif
+
+        if (!StillPresent) {
 			throw new System.Exception("Faction is no longer present. Id: " + Id + ", Date: " + World.CurrentDate);
 		}
 

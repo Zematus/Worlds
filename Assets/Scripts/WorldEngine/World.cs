@@ -1332,6 +1332,47 @@ public class World : ISynchronizable {
 
 	public void AddFactionToUpdate (Faction faction)
     {
+
+#if DEBUG
+        if (Manager.RegisterDebugEvent != null)
+        {
+            if (Manager.TracingData.FactionId == faction.Id)
+            {
+                System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
+
+                System.Reflection.MethodBase method = stackTrace.GetFrame(1).GetMethod();
+                string callingMethod = method.Name;
+
+                int frame = 2;
+                while (callingMethod.Contains("SetFactionUpdates") 
+                    || callingMethod.Contains("SetToUpdate"))
+                {
+                    method = stackTrace.GetFrame(frame).GetMethod();
+                    callingMethod = method.Name;
+
+                    frame++;
+                }
+
+                string callingClass = method.DeclaringType.ToString();
+
+                float knowledgeValue = 0;
+                CulturalKnowledge knowledge = faction.Culture.GetKnowledge(SocialOrganizationKnowledge.SocialOrganizationKnowledgeId);
+
+                if (knowledge != null)
+                    knowledgeValue = knowledge.Value;
+
+                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+                    "World:AddFactionToUpdate - Faction Id:" + faction.Id,
+                    "CurrentDate: " + CurrentDate +
+                    ", Social organization knowledge value: " + knowledgeValue +
+                    ", Calling method: " + callingClass + ":" + callingMethod +
+                    "");
+
+                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+            }
+        }
+#endif
+
         if (!faction.StillPresent)
         {
             Debug.LogWarning("Faction to update no longer present. Id: " + faction.Id + ", Date: " + CurrentDate);

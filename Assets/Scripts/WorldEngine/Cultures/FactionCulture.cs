@@ -204,38 +204,104 @@ public class FactionCulture : Culture {
 			}
 		}
 
-		////// Update Knowledges
+        ////// Update Knowledges
 
-		HashSet<string> foundKnowledgeIds = new HashSet<string> ();
+//#if DEBUG
+//        if (Manager.RegisterDebugEvent != null)
+//        {
+//            if (Manager.TracingData.FactionId == Faction.Id)
+//            {
+//                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//                    "FactionCulture:Update - Knowledges Counts - Faction.Id:" + Faction.Id,
+//                    "CurrentDate: " + World.CurrentDate +
+//                    ", coreCulture.Group.Id: " + coreCulture.Group.Id +
+//                    ", Knowledges.Count: " + Knowledges.Count +
+//                    ", coreCulture.Knowledges.Count: " + coreCulture.Knowledges.Count +
+//                    "");
 
-		foreach (CulturalKnowledge k in coreCulture.Knowledges) {
+//                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+//            }
+//        }
+//#endif
 
+        HashSet<string> foundKnowledgeIds = new HashSet<string> ();
+
+		foreach (CulturalKnowledge k in coreCulture.Knowledges)
+        {
 			foundKnowledgeIds.Add (k.Id);
 
 			CulturalKnowledge knowledge = GetKnowledge (k.Id);
 
-			if (knowledge == null) {
+#if DEBUG
+            int oldKnowledgeValue = 0;
+#endif
+
+            if (knowledge == null)
+            {
 				knowledge = new CulturalKnowledge (k);
-				AddKnowledge (knowledge);
+
+                AddKnowledge(knowledge);
 
 				knowledge.Value = (int)(k.Value * timeFactor);
-			} else {
-
-				knowledge.Value = (int)((knowledge.Value * (1f - timeFactor)) + (k.Value * timeFactor));
 			}
-		}
+            else
+            {
+#if DEBUG
+                oldKnowledgeValue = knowledge.Value;
+#endif
 
-		foreach (CulturalKnowledge k in Knowledges) {
+                knowledge.Value = (int)((knowledge.Value * (1f - timeFactor)) + (k.Value * timeFactor));
+            }
 
-			if (!foundKnowledgeIds.Contains (k.Id)) {
+#if DEBUG
+            if (Manager.RegisterDebugEvent != null)
+            {
+                if (Manager.TracingData.FactionId == Faction.Id)
+                {
+                    SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+                        "FactionCulture:Update - coreCulture.Knowledges - Faction.Id:" + Faction.Id,
+                        "CurrentDate: " + World.CurrentDate +
+                        ", coreCulture.Group.Id: " + coreCulture.Group.Id +
+                        ", knowledge.Id: " + knowledge.Id +
+                        ", oldKnowledgeValue: " + oldKnowledgeValue +
+                        ", k.Value: " + k.Value +
+                        ", knowledge.Value: " + knowledge.Value +
+                        "");
 
+                    Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+                }
+            }
+#endif
+        }
+
+        foreach (CulturalKnowledge k in Knowledges)
+        {
+			if (!foundKnowledgeIds.Contains (k.Id))
+            {
 				k.Value = (int)(k.Value * (1f - timeFactor));
-			}
-		}
 
-		////// Update Discoveries
+//#if DEBUG
+//                if (Manager.RegisterDebugEvent != null)
+//                {
+//                    if (Manager.TracingData.FactionId == Faction.Id)
+//                    {
+//                        SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//                            "FactionCulture:Update - Knowledges - Faction.Id:" + Faction.Id,
+//                            "CurrentDate: " + World.CurrentDate +
+//                            ", k.Id: " + k.Id +
+//                            ", k.Value: " + k.Value +
+//                            "");
 
-		HashSet<string> foundDiscoveryIds = new HashSet<string> ();
+//                        Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+//                    }
+//                }
+//#endif
+            }
+        }
+
+        ////// Update Discoveries
+
+        HashSet<string> foundDiscoveryIds = new HashSet<string> ();
 
 		foreach (CulturalDiscovery d in coreCulture.Discoveries) {
 

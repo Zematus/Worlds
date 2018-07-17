@@ -175,25 +175,25 @@ public class ClanDemandsInfluenceDecisionEvent : FactionEvent {
 
 		float chance = 1 - (administrativeLoad - modMinAdministrativeLoad) / (modMaxAdministrativeLoad - modMinAdministrativeLoad);
 
-#if DEBUG
-        if (Manager.RegisterDebugEvent != null)
-        {
-            if ((Manager.TracingData.FactionId == _dominantClan.Id) ||
-                (Manager.TracingData.FactionId == _demandClan.Id))
-            {
-                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-                    "ClanDemandsInfluenceDecisionEvent:CalculateChanceOfRefusingDemand - DemandClanId:" + _demandClan.Id + ", DominantClan: " + _dominantClan.Id,
-                    "TriggerDate: " + TriggerDate +
-                    ", administrativeLoad: " + administrativeLoad +
-                    ", authorityPreferenceValue: " + authorityPreferenceValue +
-                    ", relationshipValue: " + relationshipValue +
-                    ", influenceDeltaValue: " + influenceDeltaValue +
-                    "");
+//#if DEBUG
+//        if (Manager.RegisterDebugEvent != null)
+//        {
+//            if ((Manager.TracingData.FactionId == _dominantClan.Id) ||
+//                (Manager.TracingData.FactionId == _demandClan.Id))
+//            {
+//                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//                    "ClanDemandsInfluenceDecisionEvent:CalculateChanceOfRefusingDemand - DemandClanId:" + _demandClan.Id + ", DominantClan: " + _dominantClan.Id,
+//                    "TriggerDate: " + TriggerDate +
+//                    ", administrativeLoad: " + administrativeLoad +
+//                    ", authorityPreferenceValue: " + authorityPreferenceValue +
+//                    ", relationshipValue: " + relationshipValue +
+//                    ", influenceDeltaValue: " + influenceDeltaValue +
+//                    "");
 
-                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-            }
-        }
-#endif
+//                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+//            }
+//        }
+//#endif
 
         return Mathf.Clamp01 (chance);
 	}
@@ -239,25 +239,25 @@ public class ClanDemandsInfluenceDecisionEvent : FactionEvent {
 
 		float chance = 1 - (administrativeLoad - modMinAdministrativeLoad) / (modMaxAdministrativeLoad - modMinAdministrativeLoad);
 
-#if DEBUG
-        if (Manager.RegisterDebugEvent != null)
-        {
-            if ((Manager.TracingData.FactionId == _dominantClan.Id) ||
-                (Manager.TracingData.FactionId == _demandClan.Id))
-            {
-                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-                    "ClanDemandsInfluenceDecisionEvent:CalculateChanceOfMakingDemand - DemandClanId:" + _demandClan.Id + ", DominantClan: " + _dominantClan.Id,
-                    "TriggerDate: " + TriggerDate +
-                    ", administrativeLoad: " + administrativeLoad +
-                    ", authorityPreferenceValue: " + authorityPreferenceValue +
-                    ", relationshipValue: " + relationshipValue +
-                    ", influenceDeltaValue: " + influenceDeltaValue +
-                    "");
+//#if DEBUG
+//        if (Manager.RegisterDebugEvent != null)
+//        {
+//            if ((Manager.TracingData.FactionId == _dominantClan.Id) ||
+//                (Manager.TracingData.FactionId == _demandClan.Id))
+//            {
+//                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//                    "ClanDemandsInfluenceDecisionEvent:CalculateChanceOfMakingDemand - DemandClanId:" + _demandClan.Id + ", DominantClan: " + _dominantClan.Id,
+//                    "TriggerDate: " + TriggerDate +
+//                    ", administrativeLoad: " + administrativeLoad +
+//                    ", authorityPreferenceValue: " + authorityPreferenceValue +
+//                    ", relationshipValue: " + relationshipValue +
+//                    ", influenceDeltaValue: " + influenceDeltaValue +
+//                    "");
 
-                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-            }
-        }
-#endif
+//                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+//            }
+//        }
+//#endif
 
         return Mathf.Clamp01 (chance);
 	}

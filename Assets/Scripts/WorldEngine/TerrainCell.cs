@@ -349,7 +349,6 @@ public class TerrainCell : ISynchronizable {
         {
             if (Manager.TrackGenRandomCallers)
             {
-
                 System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
 
                 System.Reflection.MethodBase method = stackTrace.GetFrame(1).GetMethod();
@@ -368,7 +367,6 @@ public class TerrainCell : ISynchronizable {
                 string callingClass = method.DeclaringType.ToString();
 
                 GetNextLocalRandomCalled(callingClass + ":" + callingMethod);
-
             }
             else
             {
