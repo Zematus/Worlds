@@ -51,9 +51,9 @@ public class SaveLoadTest : AutomatedTest
     private int _beforeCheckDateSkipOffset;
     private int _currentCheck;
 
-    private Dictionary<string, List<string>> _debugMessages = new Dictionary<string, List<string>>();
+    private Dictionary<string, List<DebugMessage>> _debugMessages = new Dictionary<string, List<DebugMessage>>();
 
-    private Dictionary<string, List<string>>[] _afterSave_DebugMessageLists;
+    private Dictionary<string, List<DebugMessage>>[] _afterSave_DebugMessageLists;
 
     private int _totalCallsToAddMigratingGroup = int.MinValue; // If a log displays a negative value for this var then something is wrong with the test
     private int _totalCallsToAddGroupToUpdate = int.MinValue; // If a log displays a negative value for this var then something is wrong with the test
@@ -159,7 +159,7 @@ public class SaveLoadTest : AutomatedTest
 
         if (_enhancedTracing)
         {
-            _afterSave_DebugMessageLists = new Dictionary<string, List<string>>[_numChecks];
+            _afterSave_DebugMessageLists = new Dictionary<string, List<DebugMessage>>[_numChecks];
 
             //			_afterSave_AddGroupToUpdateCallersByCheck = new Dictionary<string, int>[_numChecks];
         }
@@ -185,15 +185,12 @@ public class SaveLoadTest : AutomatedTest
 
     public override void Run()
     {
-
         switch (_stage)
         {
-
             case Stage.Generation:
 
                 if (State == TestState.NotStarted)
                 {
-
                     Manager.LoadAppSettings(@"Worlds.settings");
 
                     Manager.UpdateMainThreadReference();
@@ -245,7 +242,6 @@ public class SaveLoadTest : AutomatedTest
 
                 while (!_saveCondition(_world))
                 {
-
                     _world.Iterate();
 
                     iterations++;
@@ -295,15 +291,12 @@ public class SaveLoadTest : AutomatedTest
 
                 if (_filteredEventCountBeforeSave != _filteredEventCountAfterSave)
                 {
-
                     Debug.LogError("Number of filtered events before and after save are different");
 
                     _result = false;
-
                 }
                 else
                 {
-
                     Debug.Log("Number of filtered events remain equal after save");
                 }
 
@@ -315,7 +308,6 @@ public class SaveLoadTest : AutomatedTest
 
                 foreach (WorldEvent e in _eventsAfterSave)
                 {
-
                     _eventSnapshotsAfterSave.Add(e.GetSnapshot());
                 }
 
@@ -382,7 +374,6 @@ public class SaveLoadTest : AutomatedTest
 
                 while (_world.CurrentDate < (_saveDate + _beforeCheckDateSkipOffset))
                 {
-
                     _world.Iterate();
 
                     iterations++;
@@ -454,7 +445,6 @@ public class SaveLoadTest : AutomatedTest
 
                 for (int c = _currentCheck; c < _numChecks; c++)
                 {
-
                     int offset = _beforeCheckDateSkipOffset + (c * _offsetPerCheck);
 
                     string checkStr = "[with iteration offset: " + c + " - date offset: " + offset + "]";
@@ -476,7 +466,6 @@ public class SaveLoadTest : AutomatedTest
 
                     while (_world.CurrentDate < (_saveDatePlusOffset + _offsetPerCheck))
                     {
-
                         _world.Iterate();
 
                         iterations++;
@@ -504,9 +493,8 @@ public class SaveLoadTest : AutomatedTest
 
                     if (_enhancedTracing)
                     {
-
                         int count = 0;
-                        foreach (KeyValuePair<string, List<string>> pair in _debugMessages)
+                        foreach (KeyValuePair<string, List<DebugMessage>> pair in _debugMessages)
                         {
 
                             count += pair.Value.Count;
@@ -515,7 +503,7 @@ public class SaveLoadTest : AutomatedTest
                         Debug.Log("Number of debugMessage objects stored for " + checkStr + ": " + _debugMessages.Count);
                         Debug.Log("Number of total messages stored for " + checkStr + ": " + count);
 
-                        _afterSave_DebugMessageLists[c] = new Dictionary<string, List<string>>(_debugMessages);
+                        _afterSave_DebugMessageLists[c] = new Dictionary<string, List<DebugMessage>>(_debugMessages);
                     }
 
                     _afterSave_CallsToAddMigratingGroupCounts[c] = _totalCallsToAddMigratingGroup;
@@ -555,7 +543,6 @@ public class SaveLoadTest : AutomatedTest
                     int totalCellCount = 0;
                     foreach (Polity polity in _world.Polities)
                     {
-
                         totalCellCount += polity.Territory.CellPositions.Count;
                     }
 
@@ -593,7 +580,6 @@ public class SaveLoadTest : AutomatedTest
 
                 if (loadDate != _saveDate)
                 {
-
                     Debug.LogError("Load date different from Save date");
 
                     _result = false;
@@ -604,7 +590,6 @@ public class SaveLoadTest : AutomatedTest
 
                 if (_filteredEventCountAfterLoad != _filteredEventCountAfterSave)
                 {
-
                     Debug.LogError("Number of filtered events after Load (" + _filteredEventCountAfterLoad + ") different from after Save (" + _filteredEventCountAfterSave + ")");
 
                     _result = false;
@@ -615,7 +600,6 @@ public class SaveLoadTest : AutomatedTest
 
                 if (_eventCountAfterLoad != _eventCountAfterSave)
                 {
-
                     Debug.LogError("Event count after Load (" + _eventCountAfterLoad + ") different from after Save (" + _eventCountAfterSave + ")");
 
                     _result = false;
@@ -625,15 +609,12 @@ public class SaveLoadTest : AutomatedTest
 
                 foreach (WorldEventSnapshot eSave in _eventSnapshotsAfterSave)
                 {
-
                     WorldEvent foundEvent = null;
 
                     foreach (WorldEvent eLoad in eventsAfterLoad)
                     {
-
                         if ((eLoad.GetType() == eSave.EventType) && (eLoad.Id == eSave.Id))
                         {
-
                             foundEvent = eLoad;
                             break;
                         }
@@ -641,12 +622,10 @@ public class SaveLoadTest : AutomatedTest
 
                     if (foundEvent != null)
                     {
-
                         eventsAfterLoad.Remove(foundEvent);
                     }
                     else
                     {
-
                         Debug.LogError("Event of type '" + eSave.EventType + "' with Id (" + eSave.Id + ") not found after Load");
 
                         CellGroupEventSnapshot geSave = eSave as CellGroupEventSnapshot;
@@ -666,7 +645,6 @@ public class SaveLoadTest : AutomatedTest
 
                 foreach (WorldEvent eLoad in eventsAfterLoad)
                 {
-
                     Debug.LogError("Event of type '" + eLoad.GetType() + "' with Id (" + eLoad.Id + ") from Load not found after Save");
                 }
 
@@ -733,7 +711,6 @@ public class SaveLoadTest : AutomatedTest
 
                 while (_world.CurrentDate < (_saveDate + _beforeCheckDateSkipOffset))
                 {
-
                     _world.Iterate();
 
                     iterations++;
@@ -805,7 +782,6 @@ public class SaveLoadTest : AutomatedTest
 
                 for (int c = _currentCheck; c < _numChecks; c++)
                 {
-
                     int offset = _beforeCheckDateSkipOffset + (c * _offsetPerCheck);
 
                     string checkStr = "[with iteration offset: " + c + " - date offset: " + offset + "]";
@@ -827,14 +803,12 @@ public class SaveLoadTest : AutomatedTest
 
                     while (_world.CurrentDate < (_loadDatePlusOffset + _offsetPerCheck))
                     {
-
                         _world.Iterate();
 
                         iterations++;
 
                         if ((_callsToGroupUpdate > MaxCallsToGroupUpdate) || ((startTimeUpdate + MaxTimePerUpdate) < Time.realtimeSinceStartup))
                         {
-
                             //						Debug.Log ("Current Date: " + _world.CurrentDate);
                             //						Debug.Log ("Calls to Group Update: " + _callsToGroupUpdate + ", Iterations: " + iterations);
                             _currentCheck = c;
@@ -852,11 +826,9 @@ public class SaveLoadTest : AutomatedTest
 
                     if (_saveDatePlusOffsets[c] != _loadDatePlusOffset)
                     {
-
                         Debug.LogError("Load date after offset different from Save date with offset [" + c + "]:" + _saveDatePlusOffsets[c]);
 
                         _result = false;
-
                     }
 
                     // Validate Number of Events
@@ -865,72 +837,82 @@ public class SaveLoadTest : AutomatedTest
 
                     if (_afterSave_EventCounts[c] != _world.EventsToHappenCount)
                     {
-
                         Debug.LogError("Number of events after load " + checkStr + " not equal to: " + _afterSave_EventCounts[c]);
 
                         _result = false;
-
                     }
 
                     if (_enhancedTracing)
                     {
-
                         // Validate Debug Messages Occurrences
 
                         int count = 0;
                         int savedCount = 0;
                         int savedDebugMessageObjectCount = _afterSave_DebugMessageLists[c].Count;
 
-                        foreach (KeyValuePair<string, List<string>> pair in _debugMessages)
+                        foreach (KeyValuePair<string, List<DebugMessage>> pair in _debugMessages)
                         {
-
                             count += pair.Value.Count;
 
-                            List<string> messages;
+                            List<DebugMessage> dbgMessages;
 
-                            if (!_afterSave_DebugMessageLists[c].TryGetValue(pair.Key, out messages))
+                            if (!_afterSave_DebugMessageLists[c].TryGetValue(pair.Key, out dbgMessages))
                             {
-
-                                foreach (string message in pair.Value)
+                                foreach (DebugMessage debugMessage in pair.Value)
                                 {
-
-                                    Debug.LogError("Debug message of type [" + pair.Key + "] from Load data not found in Save data " + checkStr + ": " + message);
+                                    Debug.LogError("Debug message of type [" + pair.Key + "] from Load data not found in Save data " + checkStr + ": " + 
+                                        debugMessage.Message + " [CountId:" + debugMessage.CountId + "] [Id:" + debugMessage.Id + "]");
                                 }
 
                                 _result = false;
                                 continue;
                             }
 
-                            savedCount += messages.Count;
+                            savedCount += dbgMessages.Count;
 
                             _afterSave_DebugMessageLists[c].Remove(pair.Key);
 
-                            foreach (string message in pair.Value)
+                            foreach (DebugMessage debugMessage in pair.Value)
                             {
-                                if (!messages.Remove(message))
-                                {
+                                DebugMessage dbgMessageToRemove = null;
 
-                                    Debug.LogError("Debug message of type [" + pair.Key + "] from Load data not found in Save data " + checkStr + ": " + message);
+                                foreach (DebugMessage dbgMessage in dbgMessages)
+                                {
+                                    if ((dbgMessage.CountId == debugMessage.CountId) && (dbgMessage.Message == debugMessage.Message))
+                                    {
+                                        dbgMessageToRemove = dbgMessage;
+                                        break;
+                                    }
+                                }
+
+                                if (dbgMessageToRemove == null)
+                                {
+                                    Debug.LogError("Debug message of type [" + pair.Key + "] from Load data not found in Save data " + checkStr + ": " +
+                                        debugMessage.Message + " [CountId:" + debugMessage.CountId + "] [Id:" + debugMessage.Id + "]");
                                     _result = false;
+                                }
+                                else
+                                {
+                                    dbgMessages.Remove(dbgMessageToRemove);
                                 }
                             }
 
-                            foreach (string message in messages)
+                            foreach (DebugMessage dbgMessage in dbgMessages)
                             {
-                                Debug.LogError("Debug message of type [" + pair.Key + "] from Save data not found in Load data " + checkStr + ": " + message);
+                                Debug.LogError("Debug message of type [" + pair.Key + "] from Save data not found in Load data " + checkStr + ": " +
+                                    dbgMessage.Message + " [CountId:" + dbgMessage.CountId + "] [Id:" + dbgMessage.Id + "]");
                                 _result = false;
                             }
                         }
 
-                        foreach (KeyValuePair<string, List<string>> pair in _afterSave_DebugMessageLists[c])
+                        foreach (KeyValuePair<string, List<DebugMessage>> pair in _afterSave_DebugMessageLists[c])
                         {
-
                             savedCount += pair.Value.Count;
 
-                            foreach (string message in pair.Value)
+                            foreach (DebugMessage dbgMessage in pair.Value)
                             {
-
-                                Debug.LogError("Debug message of type [" + pair.Key + "] from Save data not found in Load data " + checkStr + ": " + message);
+                                Debug.LogError("Debug message of type [" + pair.Key + "] from Save data not found in Load data " + checkStr + ": " +
+                                    dbgMessage.Message + " [CountId:" + dbgMessage.CountId + "] [Id:" + dbgMessage.Id + "]");
                             }
 
                             _result = false;
@@ -940,22 +922,18 @@ public class SaveLoadTest : AutomatedTest
 
                         if (_debugMessages.Count != savedDebugMessageObjectCount)
                         {
-
                             Debug.LogError("Number of debugMessage objects stored for " + checkStr + " after Load no equal to : " + savedDebugMessageObjectCount);
 
                             _result = false;
-
                         }
 
                         Debug.Log("Number of total messages stored for " + checkStr + " after Load: " + count);
 
                         if (count != savedCount)
                         {
-
                             Debug.LogError("Number of total messages stored for " + checkStr + " after Load no equal to : " + savedCount);
 
                             _result = false;
-
                         }
                     }
 
@@ -965,11 +943,9 @@ public class SaveLoadTest : AutomatedTest
 
                     if (_afterSave_CallsToAddMigratingGroupCounts[c] != _totalCallsToAddMigratingGroup)
                     {
-
                         Debug.LogError("Total calls to AddMigratingGroup after load with offset not equal to: " + _afterSave_CallsToAddMigratingGroupCounts[c]);
 
                         _result = false;
-
                     }
 
                     // Validate calls to AddGroupToUpdate
@@ -978,11 +954,9 @@ public class SaveLoadTest : AutomatedTest
 
                     if (_afterSave_CallsToAddGroupToUpdateCounts[c] != _totalCallsToAddGroupToUpdate)
                     {
-
                         Debug.LogError("Total calls to AddGroupToUpdate after load with offset not equal to: " + _afterSave_CallsToAddGroupToUpdateCounts[c]);
 
                         _result = false;
-
                     }
 
                     //				foreach (KeyValuePair<string, int> pair in _afterLoad_AddGroupToUpdateCallers) {
@@ -1019,11 +993,9 @@ public class SaveLoadTest : AutomatedTest
 
                     if (_afterSave_CallsToGroupUpdateCounts[c] != _totalCallsToGroupUpdate)
                     {
-
                         Debug.LogError("Total calls to Group Update after load with offset not equal to: " + _afterSave_CallsToGroupUpdateCounts[c]);
 
                         _result = false;
-
                     }
 
 
@@ -1051,18 +1023,15 @@ public class SaveLoadTest : AutomatedTest
 
                     if (_afterSave_TotalCallsToGetNextLocalRandom[c] != _totalCallsToGetNextLocalRandom)
                     {
-
                         Debug.LogError("Total calls to GetNextLocalRandom after Load " + checkStr + ": " + _totalCallsToGetNextLocalRandom + " not equal to: " + _afterSave_TotalCallsToGetNextLocalRandom[c]);
 
                         _result = false;
-
                     }
 
                     if (_trackGenRandomCallers)
                     {
                         foreach (KeyValuePair<string, int> pair in _afterLoad_GetNextLocalRandomCallers)
                         {
-
                             int saveCallerCount;
 
                             if (!_afterSave_GetNextLocalRandomCallersByCheck[c].TryGetValue(pair.Key, out saveCallerCount))
@@ -1075,13 +1044,11 @@ public class SaveLoadTest : AutomatedTest
                                 Debug.LogError("Total calls by " + pair.Key + " to GetNextLocalRandom after Load " + checkStr + ": " + pair.Value + " not equal to: " + saveCallerCount);
 
                                 _result = false;
-
                             }
                         }
 
                         foreach (KeyValuePair<string, int> pair in _afterSave_GetNextLocalRandomCallersByCheck[c])
                         {
-
                             if (!_afterLoad_GetNextLocalRandomCallers.ContainsKey(pair.Key))
                             {
                                 Debug.LogError("Total calls by " + pair.Key + " to GetNextLocalRandom after Load " + checkStr + ": 0 not equal to: " + pair.Value);
@@ -1097,11 +1064,9 @@ public class SaveLoadTest : AutomatedTest
 
                     if (_afterSave_GroupCounts[c] != _world.CellGroupCount)
                     {
-
                         Debug.LogError("Number of cell groups after Load with offset not equal to: " + _afterSave_GroupCounts[c]);
 
                         _result = false;
-
                     }
 
                     // Validate Polities
@@ -1110,11 +1075,9 @@ public class SaveLoadTest : AutomatedTest
 
                     if (_afterSave_PolityCounts[c] != _world.PolityCount)
                     {
-
                         Debug.LogError("Number of polities after load with offset not equal to: " + _afterSave_PolityCounts[c]);
 
                         _result = false;
-
                     }
 
                     // Validate Regions
@@ -1123,11 +1086,9 @@ public class SaveLoadTest : AutomatedTest
 
                     if (_afterSave_RegionCounts[c] != _world.RegionCount)
                     {
-
                         Debug.LogError("Number of regions after load with offset not equal to: " + _afterSave_RegionCounts[c]);
 
                         _result = false;
-
                     }
 
                     // Validate Languages
@@ -1136,11 +1097,9 @@ public class SaveLoadTest : AutomatedTest
 
                     if (_afterSave_LanguageCounts[c] != _world.LanguageCount)
                     {
-
                         Debug.LogError("Number of languages after load with offset not equal to: " + _afterSave_LanguageCounts[c]);
 
                         _result = false;
-
                     }
 
                     // Validate TerritorySizes
@@ -1148,7 +1107,6 @@ public class SaveLoadTest : AutomatedTest
                     int totalCellCount = 0;
                     foreach (Polity polity in _world.Polities)
                     {
-
                         totalCellCount += polity.Territory.CellPositions.Count;
                     }
 
@@ -1156,11 +1114,9 @@ public class SaveLoadTest : AutomatedTest
 
                     if (_afterSave_TotalTerritorySizes[c] != totalCellCount)
                     {
-
                         Debug.LogError("Total size of territories after load with offset not equal to: " + _afterSave_TotalTerritorySizes[c]);
 
                         _result = false;
-
                     }
 
                     if (!_result)
@@ -1240,11 +1196,17 @@ public class SaveLoadTest : AutomatedTest
 
     public class DebugMessage
     {
+        public static int IdCount = 0;
+
+        public int Id;
+        public int CountId = 0;
+
         public string Identifier;
         public string Message;
 
         public DebugMessage(string identifier, string message)
         {
+            Id = IdCount++;
 
             Identifier = identifier;
             Message = message;
@@ -1253,10 +1215,8 @@ public class SaveLoadTest : AutomatedTest
 
     private void ProcessDebugEvent(string eventType, object data)
     {
-
         switch (eventType)
         {
-
             case "DebugMessage":
 
                 int count = 0;
@@ -1264,30 +1224,37 @@ public class SaveLoadTest : AutomatedTest
                 DebugMessage debugMessage = data as DebugMessage;
 
                 string identifier = debugMessage.Identifier;
-                string message = debugMessage.Message;
-                string messagePlusCount = message + " [Count:" + count++ + "]";
 
-                List<string> messages;
+                List<DebugMessage> dbgMessages;
 
-                if (_debugMessages.TryGetValue(identifier, out messages))
+                if (_debugMessages.TryGetValue(identifier, out dbgMessages))
                 {
-
-                    while (messages.Contains(messagePlusCount))
+                    bool found = true;
+                    while (found)
                     {
-
-                        messagePlusCount = message + " [Count:" + count++ + "]";
+                        found = false;
+                        foreach (DebugMessage dbgMessage in dbgMessages)
+                        {
+                            if ((dbgMessage.CountId == count) && (dbgMessage.Message == debugMessage.Message))
+                            {
+                                found = true;
+                                count++;
+                                break;
+                            }
+                        }
                     }
 
-                    messages.Add(messagePlusCount);
+                    debugMessage.CountId = count;
+
+                    dbgMessages.Add(debugMessage);
 
                 }
                 else
                 {
+                    dbgMessages = new List<DebugMessage>();
+                    dbgMessages.Add(debugMessage);
 
-                    messages = new List<string>();
-                    messages.Add(messagePlusCount);
-
-                    _debugMessages.Add(identifier, messages);
+                    _debugMessages.Add(identifier, dbgMessages);
                 }
 
                 break;
