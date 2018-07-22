@@ -1153,14 +1153,20 @@ public abstract class Polity : ISynchronizable {
 		return countFactor;
 	}
 
-	public void MergePolity (Polity polity) {
-		
+	public void MergePolity (Polity polity)
+    {
 		World.AddPolityToRemove (polity);
 		World.AddPolityToUpdate (this);
 
 		float polPopulation = Mathf.Floor (polity.TotalPopulation);
+        
+#if DEBUG
+        World.PolityMergeCount++;
+#endif
 
-		if (polPopulation <= 0) {
+		if (polPopulation <= 0)
+        {
+            Debug.LogWarning("Merged polity with 0 or less population. this.Id:" + Id + ", polity.Id:" + polity.Id);
 
 			return;
 		}

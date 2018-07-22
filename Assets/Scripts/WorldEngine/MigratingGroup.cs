@@ -199,10 +199,11 @@ public class MigratingGroup : HumanGroup {
 		}
 
 		foreach (Faction faction in FactionCoresToMigrate) {
+            
+            World.AddFactionToUpdate(faction);
+            World.AddPolityToUpdate(faction.Polity);
 
-			faction.SetToUpdate ();
-
-			faction.PrepareNewCoreGroup (targetGroup);
+            faction.PrepareNewCoreGroup (targetGroup);
 		}
 	}
 

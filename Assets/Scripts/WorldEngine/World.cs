@@ -315,8 +315,20 @@ public class World : ISynchronizable {
 
 	[XmlIgnore]
 	public HumanGroup MigrationTaggedGroup = null;
+    
+    [XmlIgnore]
+    public bool GroupsHaveBeenUpdated = false;
+    [XmlIgnore]
+    public bool FactionsHaveBeenUpdated = false;
+    [XmlIgnore]
+    public bool PolitiesHaveBeenUpdated = false;
 
-	private BinaryTree<long, WorldEvent> _eventsToHappen = new BinaryTree<long, WorldEvent> ();
+#if DEBUG
+    [XmlIgnore]
+    public int PolityMergeCount = 0;
+#endif
+
+    private BinaryTree<long, WorldEvent> _eventsToHappen = new BinaryTree<long, WorldEvent> ();
 	
 //	private List<IGroupAction> _groupActionsToPerform = new List<IGroupAction> ();
 
@@ -329,9 +341,8 @@ public class World : ISynchronizable {
 	private HashSet<string> _culturalDiscoveryIdList = new HashSet<string> ();
 
 	private Dictionary<long, CellGroup> _cellGroups = new Dictionary<long, CellGroup> ();
-	
-	private HashSet<CellGroup> _updatedGroups = new HashSet<CellGroup> ();
 
+	private HashSet<CellGroup> _updatedGroups = new HashSet<CellGroup> ();
 	private HashSet<CellGroup> _groupsToUpdate = new HashSet<CellGroup>();
 	private HashSet<CellGroup> _groupsToRemove = new HashSet<CellGroup>();
 
@@ -343,13 +354,13 @@ public class World : ISynchronizable {
 
 	private Dictionary<long, Faction> _factions = new Dictionary<long, Faction> ();
 
-	private HashSet<Faction> _factionsToSplit = new HashSet<Faction>();
+    private HashSet<Faction> _factionsToSplit = new HashSet<Faction>();
 	private HashSet<Faction> _factionsToUpdate = new HashSet<Faction>();
 	private HashSet<Faction> _factionsToRemove = new HashSet<Faction>();
 
 	private Dictionary<long, Polity> _polities = new Dictionary<long, Polity> ();
 
-	private HashSet<Polity> _politiesToUpdate = new HashSet<Polity>();
+    private HashSet<Polity> _politiesToUpdate = new HashSet<Polity>();
 	private HashSet<Polity> _politiesToRemove = new HashSet<Polity>();
 
 	private Dictionary<long, Region> _regions = new Dictionary<long, Region> ();
@@ -764,9 +775,11 @@ public class World : ISynchronizable {
 		}
 	}
 
-	private void UpdateGroups () {
+	private void UpdateGroups ()
+    {
+        GroupsHaveBeenUpdated = true;
 
-		foreach (CellGroup group in _groupsToUpdate) {
+        foreach (CellGroup group in _groupsToUpdate) {
 
 			Profiler.BeginSample ("Group Update");
 
@@ -878,9 +891,11 @@ public class World : ISynchronizable {
 		_factionsToSplit.Clear ();
 	}
 
-	private void UpdateFactions () {
+	private void UpdateFactions ()
+    {
+        FactionsHaveBeenUpdated = true;
 
-		foreach (Faction faction in _factionsToUpdate) {
+        foreach (Faction faction in _factionsToUpdate) {
 
 			Profiler.BeginSample ("Update Faction");
 
@@ -890,7 +905,8 @@ public class World : ISynchronizable {
 		}
 
 		_factionsToUpdate.Clear ();
-	}
+
+    }
 
 	private void RemoveFactions () {
 
@@ -906,9 +922,11 @@ public class World : ISynchronizable {
 		_factionsToRemove.Clear ();
 	}
 
-	private void UpdatePolities () {
+	private void UpdatePolities ()
+    {
+        PolitiesHaveBeenUpdated = true;
 
-		foreach (Polity polity in _politiesToUpdate) {
+        foreach (Polity polity in _politiesToUpdate) {
 
 			Profiler.BeginSample ("Update Polity");
 
@@ -918,7 +936,7 @@ public class World : ISynchronizable {
 		}
 
 		_politiesToUpdate.Clear ();
-	}
+    }
 
 	private void RemovePolities () {
 
@@ -1085,7 +1103,12 @@ public class World : ISynchronizable {
 
 		CurrentDate = _dateToSkipTo;
 
-		return dateSpan;
+        // reset update flags
+        GroupsHaveBeenUpdated = false;
+        FactionsHaveBeenUpdated = false;
+        PolitiesHaveBeenUpdated = false;
+
+        return dateSpan;
 	}
 
 	public List<WorldEvent> GetEventsToHappen () {
@@ -1132,15 +1155,15 @@ public class World : ISynchronizable {
 
 		if (!group.SourceGroup.StillPresent) {
 			Debug.LogWarning ("Sourcegroup is no longer present. Group Id: " + group.SourceGroup.Id);
-		}
+        }
 
-		// Source Group needs to be updated
-		_groupsToUpdate.Add (group.SourceGroup);
+        // Source Group needs to be updated
+        AddGroupToUpdate(group.SourceGroup);
 
 		// If Target Group is present, it also needs to be updated
-		if ((group.TargetCell.Group != null) && (group.TargetCell.Group.StillPresent)) {
-
-			_groupsToUpdate.Add (group.TargetCell.Group);
+		if ((group.TargetCell.Group != null) && (group.TargetCell.Group.StillPresent))
+        {
+            AddGroupToUpdate(group.TargetCell.Group);
 		}
 	}
 	
@@ -1214,10 +1237,16 @@ public class World : ISynchronizable {
 //				AddGroupToUpdateCalled (callingClass + ":" + callingMethod);
 			AddGroupToUpdateCalled (null);
 		}
-		#endif
+#endif
 
-		if (!group.StillPresent) {
-			Debug.LogWarning ("Group to update is no longer present. Id: " + group.Id);
+        if (GroupsHaveBeenUpdated)
+        {
+            Debug.LogWarning("Trying to add group to update after groups have already been updated this iteration. Id: " + group.Id);
+        }
+
+		if (!group.StillPresent)
+        {
+			Debug.LogWarning("Group to update is no longer present. Id: " + group.Id);
 		}
 
 		_groupsToUpdate.Add (group);
@@ -1373,6 +1402,11 @@ public class World : ISynchronizable {
         }
 #endif
 
+        if (FactionsHaveBeenUpdated)
+        {
+            Debug.LogWarning("Trying to add faction to update after factions have already been updated this iteration. Id: " + faction.Id);
+        }
+
         if (!faction.StillPresent)
         {
             Debug.LogWarning("Faction to update no longer present. Id: " + faction.Id + ", Date: " + CurrentDate);
@@ -1414,6 +1448,11 @@ public class World : ISynchronizable {
 
 	public void AddPolityToUpdate (Polity polity)
     {
+        if (PolitiesHaveBeenUpdated)
+        {
+            Debug.LogWarning("Trying to add polity to update after polities have already been updated this iteration. Id: " + polity.Id);
+        }
+
         if (!polity.StillPresent)
         {
             Debug.LogWarning("Polity to update no longer present. Id: " + polity.Id + ", Date: " + CurrentDate);

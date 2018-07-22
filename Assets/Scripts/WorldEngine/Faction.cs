@@ -37,7 +37,10 @@ public abstract class Faction : ISynchronizable {
 	[XmlAttribute("IsCon")]
 	public bool IsUnderPlayerGuidance = false;
 
-	public FactionCulture Culture;
+    [XmlIgnore]
+    public bool IsBeingUpdated = false;
+
+    public FactionCulture Culture;
 
 	public List<FactionRelationship> Relationships = new List<FactionRelationship> ();
 
@@ -116,7 +119,7 @@ public abstract class Faction : ISynchronizable {
 
 		CoreGroup.AddFactionCore (this);
 
-		World.AddGroupToUpdate (CoreGroup);
+		//World.AddGroupToUpdate (CoreGroup);
 
 		Influence = influence;
 
@@ -336,6 +339,11 @@ public abstract class Faction : ISynchronizable {
         }
 #endif
 
+        if (World.FactionsHaveBeenUpdated && !IsBeingUpdated)
+        {
+            Debug.LogWarning("Trying to  preupdate faction after factions have already been updated this iteration. Id: " + Id);
+        }
+
         if (!StillPresent) {
 			throw new System.Exception("Faction is no longer present. Id: " + Id + ", Date: " + World.CurrentDate);
 		}
@@ -352,12 +360,19 @@ public abstract class Faction : ISynchronizable {
 		RequestCurrentLeader ();
 
 		Culture.Update ();
+
+        if (!IsBeingUpdated)
+        {
+            World.AddFactionToUpdate(this);
+        }
 	}
 
 	public void Update () {
 
         if (!StillPresent)
             return;
+
+        IsBeingUpdated = true;
 
 		PreUpdate ();
 
@@ -368,7 +383,9 @@ public abstract class Faction : ISynchronizable {
 		World.AddPolityToUpdate (Polity);
 
 		_preupdated = false;
-	}
+
+        IsBeingUpdated = false;
+    }
 
 	public void PrepareNewCoreGroup (CellGroup coreGroup) {
 

@@ -167,8 +167,10 @@ public class ClanSplitDecision : FactionDecision {
 		float maxInfluence;
 
 		CalculateMinMaxInfluence (clan, out minInfluence, out maxInfluence);
+        
+        newClanCoreGroup.SetToUpdate();
 
-		clan.SetToSplit (newClanCoreGroup, minInfluence, maxInfluence);
+        clan.SetToSplit (newClanCoreGroup, minInfluence, maxInfluence);
 	}
 
 	public static void CalculateMinMaxInfluence (Clan clan, out float minInfluence, out float maxInfluence) {

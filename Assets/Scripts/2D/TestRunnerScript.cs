@@ -18,6 +18,31 @@ public class TestRunnerScript : MonoBehaviour {
 
         ////		tests.Add (new SaveLoadTest (407252633, 80, 1, 2, 0, false, true));
         ////		tests.Add (new SaveLoadTest (407252633, 100000, 20000, 5));
+
+
+#if DEBUG
+        Manager.TracingData.GroupId = 141610233072;
+        Manager.TracingData.PolityId = 37601724810000;
+        Manager.TracingData.FactionId = 5501324501614600;
+        Manager.TracingData.Longitude = 248;
+        Manager.TracingData.Latitude = 100;
+#endif
+
+#if DEBUG
+        SaveLoadTest.SaveConditionDelegate saveCondition = (World world) =>
+        {
+            return (world.PolityMergeCount > 10) && (world.PolityCount > 20);
+        };
+        //tests.Add(new SaveLoadTest("after 20 polities and 10 polity merges", 783909167, saveCondition, 20000000, 10));
+        //tests.Add(new SaveLoadTest("after 20 polities and 10 polity merges", 783909167, saveCondition, 2000000, 10, 0));
+        //tests.Add(new SaveLoadTest("after 20 polities and 10 polity merges", 783909167, saveCondition, 200000, 10, 0));
+        //tests.Add(new SaveLoadTest("after 20 polities and 10 polity merges", 783909167, saveCondition, 20000, 10, 0));
+        //tests.Add(new SaveLoadTest("after 20 polities and 10 polity merges", 783909167, saveCondition, 2000, 10, 100000));
+        //tests.Add(new SaveLoadTest("after 20 polities and 10 polity merges", 783909167, saveCondition, 200, 10, 102000));
+        //tests.Add(new SaveLoadTest("after 20 polities and 10 polity merges", 783909167, saveCondition, 20, 10, 102800));
+        tests.Add(new SaveLoadTest("after 20 polities and 10 polity merges", 783909167, saveCondition, 2, 10, 102880, true, true));
+#endif
+
         //tests.Add(new SaveLoadTest("after 5 polities", 783909167, (World world) =>
         //{
         //    return world.PolityCount > 5;
@@ -43,18 +68,10 @@ public class TestRunnerScript : MonoBehaviour {
         //    return world.PolityCount > 5;
         //}, 2, 10, 6620, trackGenRandomCallers: true, enhancedTracing: true));
 
-#if DEBUG
-        Manager.TracingData.GroupId = 141610233072;
-		Manager.TracingData.PolityId = 37601724810000;
-        Manager.TracingData.FactionId = 5501324501614600;
-        Manager.TracingData.Longitude = 248;
-		Manager.TracingData.Latitude = 100;
-#endif
-
-        tests.Add(new SaveLoadTest("after 5 polities", 783909167, (World world) =>
-        {
-            return world.PolityCount > 5;
-        }, 2, 10, 6620, true, true));
+        //tests.Add(new SaveLoadTest("after 5 polities", 783909167, (World world) =>
+        //{
+        //    return world.PolityCount > 5;
+        //}, 2, 10, 6620, true, true));
         //		tests.Add (new SaveLoadTest ("after 5 polities", 783909167, (World world) => {
         //			return world.PolityCount > 5;
         //		}, 20, 10, 3400, true, true));

@@ -2992,8 +2992,13 @@ public class CellGroup : HumanGroup {
 		_polityProminencesToRemove.Add (polity.Id);
 	}
 
-	public override void Synchronize () {
+    public void SetToUpdate()
+    {
+        World.AddGroupToUpdate(this);
+    }
 
+	public override void Synchronize()
+    {
         PolityProminences = new List<PolityProminence>(_polityProminences.Values);
 
 		if (HasPolityExpansionEvent && !PolityExpansionEvent.IsStillValid ()) {

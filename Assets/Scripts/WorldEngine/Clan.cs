@@ -387,10 +387,11 @@ public class Clan : Faction {
 
 		parentTribe.UpdateDominantFaction ();
 
-		SetToUpdate ();
-		newClan.SetToUpdate ();
+        World.AddFactionToUpdate(this);
+        World.AddFactionToUpdate(newClan);
+        World.AddPolityToUpdate(Polity);
 
-		parentTribe.AddEventMessage (new ClanSplitEventMessage (this, newClan, World.CurrentDate));
+        parentTribe.AddEventMessage (new ClanSplitEventMessage (this, newClan, World.CurrentDate));
 	}
 
 	public float CalculateAdministrativeLoad () {

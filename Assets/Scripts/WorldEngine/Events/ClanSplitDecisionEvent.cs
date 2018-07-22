@@ -143,7 +143,7 @@ public class ClanSplitDecisionEvent : FactionEvent {
         Profiler.BeginSample("CanTrigger - _clan.PreUpdate");
 
         // We should use the latest cultural attribute values before calculating chances
-        _clan.PreUpdate ();
+        _clan.PreUpdate (); // TODO: Do not preupdate factions on CanTrigger
 
         Profiler.EndSample();
 
@@ -192,9 +192,11 @@ public class ClanSplitDecisionEvent : FactionEvent {
 		return Mathf.Clamp01 (chance);
 	}
 
-	public override void Trigger () {
+	public override void Trigger ()
+    {
+        _clan.CoreGroup.SetToUpdate();
 
-		bool preferSplit = _clan.GetNextLocalRandomFloat (RngOffsets.CLAN_SPLITTING_EVENT_PREFER_SPLIT) < _chanceOfSplitting;
+        bool preferSplit = _clan.GetNextLocalRandomFloat (RngOffsets.CLAN_SPLITTING_EVENT_PREFER_SPLIT) < _chanceOfSplitting;
 
 		if (_clan.Polity.IsUnderPlayerFocus || _clan.IsUnderPlayerGuidance) {
 
