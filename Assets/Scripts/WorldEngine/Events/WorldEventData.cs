@@ -9,7 +9,10 @@ public class WorldEventData {
 	[XmlAttribute("TId")]
 	public long TypeId;
 
-	[XmlAttribute("TDate")]
+    [XmlAttribute("SDate")]
+    public long SpawnDate;
+
+    [XmlAttribute("TDate")]
 	public long TriggerDate;
 
 	public WorldEventData () {
@@ -19,6 +22,7 @@ public class WorldEventData {
 	public WorldEventData (WorldEvent e) {
 
 		TypeId = e.TypeId;
+        SpawnDate = e.SpawnDate;
 		TriggerDate = e.TriggerDate;
 	}
 }

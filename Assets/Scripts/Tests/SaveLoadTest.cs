@@ -574,6 +574,8 @@ public class SaveLoadTest : AutomatedTest
 
                 _world = Manager.CurrentWorld;
 
+                DebugMessage.IdCount = 0;
+
                 long loadDate = _world.CurrentDate;
 
                 Debug.Log("Date after Load: " + loadDate);

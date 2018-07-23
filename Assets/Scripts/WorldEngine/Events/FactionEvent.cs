@@ -25,7 +25,7 @@ public abstract class FactionEvent : WorldEvent {
 
 	}
 
-	public FactionEvent (Faction faction, FactionEventData data) : base (faction.World, data.TriggerDate, GenerateUniqueIdentifier (faction, data.TriggerDate, data.TypeId), data.TypeId) {
+	public FactionEvent (Faction faction, FactionEventData data) : base (faction.World, data, GenerateUniqueIdentifier (faction, data.TriggerDate, data.TypeId)) {
 
 		Faction = faction;
 		FactionId = Faction.Id;

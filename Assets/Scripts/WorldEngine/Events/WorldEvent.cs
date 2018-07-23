@@ -75,13 +75,38 @@ public abstract class WorldEvent : ISynchronizable {
 //		EventCount++;
 
 		Manager.UpdateWorldLoadTrackEventCount ();
-	}
+    }
 
-	public WorldEvent (World world, long triggerDate, long id, long typeId) {
-		
-//		EventCount++;
+    public WorldEvent(World world, WorldEventData data, long id)
+    {
+        //		EventCount++;
 
-		TypeId = typeId;
+        TypeId = data.TypeId;
+
+        World = world;
+        TriggerDate = data.TriggerDate;
+        SpawnDate = data.SpawnDate;
+
+        Id = id;
+    }
+
+    public WorldEvent(World world, long triggerDate, long id, long typeId)
+    {
+        //		EventCount++;
+
+#if DEBUG
+        if (id == 160349336613603015)
+        {
+            bool debug = true;
+        }
+
+        if (id == 160349354613603010)
+        {
+            bool debug = true;
+        }
+#endif
+
+        TypeId = typeId;
 
 		World = world;
 		TriggerDate = triggerDate;

@@ -722,9 +722,30 @@ public class World : ISynchronizable {
 		_dateToSkipTo = (_dateToSkipTo < maxDate) ? _dateToSkipTo : maxDate;
 	}
 
-	private bool ValidateEventsToHappenNode (BinaryTreeNode<long, WorldEvent> node) {
+	private bool ValidateEventsToHappenNode (BinaryTreeNode<long, WorldEvent> node)
+    {
 
-		if (!node.Valid) {
+#if DEBUG
+        if (Manager.RegisterDebugEvent != null)
+        {
+            if ((node.Value.Id == 160349336613603015) || (node.Value.Id == 160349354613603010))
+            {
+                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("ValidateEventsToHappenNode:node.Value - Id: " + node.Value.Id,
+                    "node.Value.TriggerDate: " + node.Value.TriggerDate +
+                    ", event type: " + node.Value.GetType() +
+                    ", event spawn date: " + node.Value.SpawnDate +
+                    ", node.Valid: " + node.Valid +
+                    ", node.Value.IsStillValid (): " + node.Value.IsStillValid() +
+                    ", node.Key: " + node.Key +
+                    ", current date: " + CurrentDate +
+                    "");
+
+                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+            }
+        }
+#endif
+
+        if (!node.Valid) {
 
 			node.MarkedForRemoval = true;
 			return false;
@@ -985,9 +1006,25 @@ public class World : ISynchronizable {
 				throw new System.Exception ("eventToHappen.TriggerDate less than zero: " + eventToHappen);
 			}
 
-			if (eventToHappen.TriggerDate > CurrentDate) {
+			if (eventToHappen.TriggerDate > CurrentDate)
+            {
 
-				long maxDate = CurrentDate + MaxTimeToSkip;
+#if DEBUG
+                if (Manager.RegisterDebugEvent != null)
+                {
+                    SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("EvaluateEventsToHappen:eventToHappen - Id: " + eventToHappen.Id, 
+                        "TriggerDate: " + eventToHappen.TriggerDate +
+                        ", event type: " + eventToHappen.GetType() +
+                        ", event spawn date: " + eventToHappen.SpawnDate +
+                        ", datespan: " + (eventToHappen.TriggerDate - eventToHappen.SpawnDate) +
+                        ", current date: " + CurrentDate +
+                        "");
+
+                    Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+                }
+#endif
+
+                long maxDate = CurrentDate + MaxTimeToSkip;
 
 				#if DEBUG
 				if (maxDate >= World.MaxSupportedDate) {
@@ -1093,9 +1130,25 @@ public class World : ISynchronizable {
 
 			WorldEvent futureEventToHappen = _eventsToHappen.Leftmost;
 
-			if (futureEventToHappen.TriggerDate < _dateToSkipTo) {
+			if (futureEventToHappen.TriggerDate < _dateToSkipTo)
+            {
 
-				_dateToSkipTo = futureEventToHappen.TriggerDate;
+#if DEBUG
+                if (Manager.RegisterDebugEvent != null)
+                {
+                    SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("Update:futureEventToHappen - Id: " + futureEventToHappen.Id,
+                        "TriggerDate: " + futureEventToHappen.TriggerDate +
+                        ", event type: " + futureEventToHappen.GetType() +
+                        ", event spawn date: " + futureEventToHappen.SpawnDate +
+                        ", datespan: " + (futureEventToHappen.TriggerDate - futureEventToHappen.SpawnDate) +
+                        ", current date: " + CurrentDate +
+                        "");
+
+                    Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+                }
+#endif
+
+                _dateToSkipTo = futureEventToHappen.TriggerDate;
 			}
 		}
 

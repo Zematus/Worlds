@@ -22,7 +22,7 @@ public abstract class PolityEvent : WorldEvent {
 
 	}
 
-	public PolityEvent (Polity polity, PolityEventData data) : base (polity.World, data.TriggerDate, GenerateUniqueIdentifier (polity, data.TriggerDate, data.TypeId), data.TypeId) {
+	public PolityEvent (Polity polity, PolityEventData data) : base (polity.World, data, GenerateUniqueIdentifier (polity, data.TriggerDate, data.TypeId)) {
 
 		Polity = polity;
 		PolityId = Polity.Id;
