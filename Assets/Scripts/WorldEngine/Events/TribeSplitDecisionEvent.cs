@@ -87,9 +87,37 @@ public class TribeSplitDecisionEvent : FactionEvent {
 		return clan.World.CurrentDate + triggerDateSpan;
 	}
 
-	public override bool CanTrigger () {
+	public override bool CanTrigger ()
+    {
 
-		if (!base.CanTrigger ())
+//#if DEBUG
+//        if ((Id == 160349336613603015L) || (Id == 160349354613603010L))
+//        {
+//            string logMsg = "Event Id: " + Id + " CanTrigger. base.CanTrigger(): " + base.CanTrigger() +
+//                ", _splitClan.Polity == OriginalPolity: " + (_splitClan.Polity == OriginalPolity) +
+//                ", !_splitClan.IsDominant: " + (!_splitClan.IsDominant);
+
+//            if (base.CanTrigger() && (_splitClan.Polity == OriginalPolity) && !_splitClan.IsDominant)
+//            {
+//                _dominantClan = _originalTribe.DominantFaction as Clan;
+
+//                // We should use the latest cultural attribute values before calculating chances
+//                _splitClan.PreUpdate();
+//                _dominantClan.PreUpdate();
+
+//                _tribeChanceOfSplitting = CalculateChanceOfSplittingForTribe();
+//                _splitClanChanceOfSplitting = CalculateChanceOfSplittingForSplitClan();
+
+//                logMsg += ", _tribeChanceOfSplitting: " + _tribeChanceOfSplitting + ", _splitClanChanceOfSplitting: " + _splitClanChanceOfSplitting;
+//            }
+
+//            logMsg += ", current date: " + World.CurrentDate + ", loaded world: " + Manager.Debug_IsLoadedWorld;
+
+//            Debug.LogWarning(logMsg);
+//        }
+//#endif
+        
+        if (!base.CanTrigger ())
 			return false;
 
 		if (_splitClan.Polity != OriginalPolity)
@@ -220,9 +248,17 @@ public class TribeSplitDecisionEvent : FactionEvent {
 		return Mathf.Clamp01 (chance);
 	}
 
-	public override void Trigger () {
+	public override void Trigger ()
+    {
 
-		bool splitClanPreferSplit = _splitClan.GetNextLocalRandomFloat (RngOffsets.TRIBE_SPLITTING_EVENT_SPLITCLAN_PREFER_SPLIT) < _splitClanChanceOfSplitting;
+#if DEBUG
+        if ((Id == 160349336613603015L) || (Id == 160349354613603010L))
+        {
+            Debug.LogWarning("Event Id: " + Id + " has been triggered, current date: " + World.CurrentDate + ", loaded world: " + Manager.Debug_IsLoadedWorld);
+        }
+#endif
+
+        bool splitClanPreferSplit = _splitClan.GetNextLocalRandomFloat (RngOffsets.TRIBE_SPLITTING_EVENT_SPLITCLAN_PREFER_SPLIT) < _splitClanChanceOfSplitting;
 
 		if (_originalTribe.IsUnderPlayerFocus || _splitClan.IsUnderPlayerGuidance) {
 

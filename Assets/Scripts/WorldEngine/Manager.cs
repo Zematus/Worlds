@@ -146,6 +146,8 @@ public class Manager {
 
 	public delegate void RegisterDebugEventDelegate (string eventType, object data);
 
+    public static bool Debug_IsLoadedWorld = false;
+
 	public static RegisterDebugEventDelegate RegisterDebugEvent = null; 
 
 	public class Debug_TracingData {
@@ -796,8 +798,12 @@ public class Manager {
 	}
 	
 	public static void LoadWorldAsync (string path, ProgressCastDelegate progressCastMethod = null) {
-		
-		_manager._simulationRunning = false;
+
+#if DEBUG
+        Debug_IsLoadedWorld = true;
+#endif
+
+        _manager._simulationRunning = false;
 		_manager._performingAsyncTask = true;
 		
 		_manager._progressCastMethod = progressCastMethod;

@@ -127,18 +127,48 @@ public class FactionCulture : Culture {
 
 			CulturalPreference preference = GetPreference (p.Id);
 
-			if (preference == null) {
+#if DEBUG
+            float prevValue = 0;
+#endif
+
+            if (preference == null)
+            {
 				preference = new CulturalPreference (p);
 				AddPreference (preference);
 
 				preference.Value = p.Value * timeFactor;
-			} else {
-				
-				preference.Value = (preference.Value * (1f - timeFactor)) + (p.Value * timeFactor);
 			}
-		}
+            else
+            {
+#if DEBUG
+                prevValue = preference.Value;
+#endif
 
-		foreach (CulturalPreference p in Preferences) {
+                preference.Value = (preference.Value * (1f - timeFactor)) + (p.Value * timeFactor);
+            }
+
+#if DEBUG
+            if (Manager.RegisterDebugEvent != null)
+            {
+                if (Manager.TracingData.FactionId == Faction.Id)
+                {
+                    SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+                        "FactionCulture:Update - coreCulture.Preferences - Faction.Id:" + Faction.Id,
+                        "CurrentDate: " + World.CurrentDate +
+                        ", coreCulture.Group.Id: " + coreCulture.Group.Id +
+                        ", preference.Id: " + preference.Id +
+                        ", prevValue: " + prevValue +
+                        ", p.Value: " + p.Value +
+                        ", preference.Value: " + preference.Value +
+                        "");
+
+                    Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+                }
+            }
+#endif
+        }
+
+        foreach (CulturalPreference p in Preferences) {
 
 			if (!foundPreferenceIds.Contains (p.Id)) {
 

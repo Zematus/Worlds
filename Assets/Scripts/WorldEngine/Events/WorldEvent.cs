@@ -94,18 +94,6 @@ public abstract class WorldEvent : ISynchronizable {
     {
         //		EventCount++;
 
-#if DEBUG
-        if (id == 160349336613603015)
-        {
-            bool debug = true;
-        }
-
-        if (id == 160349354613603010)
-        {
-            bool debug = true;
-        }
-#endif
-
         TypeId = typeId;
 
 		World = world;
@@ -186,7 +174,8 @@ public abstract class WorldEvent : ISynchronizable {
 //		EventCount++;
 
 		TriggerDate = newTriggerDate;
-		Id = newId;
+        SpawnDate = World.CurrentDate;
+        Id = newId;
 
 		FailedToTrigger = false;
 	}

@@ -45,7 +45,7 @@ public abstract class CellGroupEvent : WorldEvent {
 		}
 		#endif
 
-		long id = ((long)triggerDate * 1000000000) + ((long)group.Longitude * 1000000) + ((long)group.Latitude * 1000) + eventTypeId;
+		long id = (triggerDate * 1000000000L) + (group.Longitude * 1000000L) + (group.Latitude * 1000L) + eventTypeId;
 
 		return id;
 	}

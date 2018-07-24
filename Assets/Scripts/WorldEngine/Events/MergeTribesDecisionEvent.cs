@@ -87,9 +87,25 @@ public class MergeTribesDecisionEvent : PolityEvent {
 		return 0;
 	}
 
-	public override bool CanTrigger () {
+	public override bool CanTrigger ()
+    {
 
-		if (!base.CanTrigger ())
+#if DEBUG
+        if (Manager.RegisterDebugEvent != null)
+        {
+            SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+                "MergeTribesDecisionEvent:CanTrigger - Polity.Id:" + Polity.Id,
+                "TriggerDate: " + TriggerDate +
+                ", SpawnDate: " + SpawnDate +
+                ", base.CanTrigger(): " + base.CanTrigger() +
+                ", _sourceTribe.DominantFaction == OriginalDominantFaction: " + (_sourceTribe.DominantFaction == OriginalDominantFaction) +
+                "");
+
+            Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+        }
+#endif
+
+        if (!base.CanTrigger ())
 			return false;
 
 		if (_sourceTribe.DominantFaction != OriginalDominantFaction)
@@ -101,18 +117,31 @@ public class MergeTribesDecisionEvent : PolityEvent {
 
 		_targetContact = _sourceTribe.GetRandomPolityContact (rngOffset++, GetContactWeight, true);
 
-//		Profiler.EndSample ();
+        //		Profiler.EndSample ();
 
-		if (_targetContact == null)
+#if DEBUG
+        if (Manager.RegisterDebugEvent != null)
+        {
+            SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+                "MergeTribesDecisionEvent:CanTrigger - Polity.Id:" + Polity.Id,
+                "TriggerDate: " + TriggerDate +
+                ", _targetContact.Polity.Id: " + _targetContact.Polity.Id +
+                "");
+
+            Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+        }
+#endif
+
+        if (_targetContact == null)
 			return false;
 
 		_targetTribe = _targetContact.Polity as Tribe;
 		_targetDominantClan = _targetTribe.DominantFaction as Clan;
 
-//		Profiler.BeginSample ("MergeTribesDecisionEvent - clan preUpdates");
+        //		Profiler.BeginSample ("MergeTribesDecisionEvent - clan preUpdates");
 
-		// We should use the latest cultural attribute values before calculating chances
-		_originalSourceDominantClan.PreUpdate ();
+        // We should use the latest cultural attribute values before calculating chances
+        _originalSourceDominantClan.PreUpdate ();
 		_targetDominantClan.PreUpdate ();
 
 //		Profiler.EndSample ();

@@ -38,15 +38,15 @@ public class ClanDemandsInfluenceDecisionEvent : FactionEvent {
 		_originalTribe = World.GetPolity (data.OriginalPolityId) as Tribe;
 
 		DoNotSerialize = true;
-	}
+    }
 
-	public ClanDemandsInfluenceDecisionEvent (Clan demandClan, long triggerDate) : base (demandClan, triggerDate, ClanDemandsInfluenceDecisionEventId) {
+    public ClanDemandsInfluenceDecisionEvent (Clan demandClan, long triggerDate) : base (demandClan, triggerDate, ClanDemandsInfluenceDecisionEventId) {
 
 		_demandClan = demandClan;
 		_originalTribe = demandClan.Polity as Tribe;
 
 		DoNotSerialize = true;
-	}
+    }
 
 	public static long CalculateTriggerDate (Clan clan) {
 
@@ -79,17 +79,64 @@ public class ClanDemandsInfluenceDecisionEvent : FactionEvent {
 			#endif
 
 			triggerDateSpan = CellGroup.MaxUpdateSpan;
-		}
+        }
 
-		return clan.World.CurrentDate + triggerDateSpan;
+        long triggerDate = clan.World.CurrentDate + triggerDateSpan;
+
+#if DEBUG
+        if (Manager.RegisterDebugEvent != null)
+        {
+            SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+                "ClanDemandsInfluenceDecisionEvent:CalculateTriggerDate - clan.Id:" + clan.Id,
+                "triggerDate: " + triggerDate +
+                ", triggerDateSpan: " + triggerDateSpan +
+                ", dateSpan: " + dateSpan +
+                ", randomFactor: " + randomFactor +
+                ", loadFactor: " + loadFactor +
+                ", authorityPrefFactor: " + authorityPrefFactor +
+                ", clan.LastUpdateDate: " + clan.LastUpdateDate +
+                ", clan.World.CurrentDate: " + clan.World.CurrentDate +
+                "");
+
+            Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+        }
+#endif
+
+        return triggerDate;
 	}
 
-	public override bool CanTrigger () {
+	public override bool CanTrigger ()
+    {
 
-		if (!base.CanTrigger ()) {
+//#if DEBUG
+//        if ((Id == 160349336613603015L) || (Id == 160349354613603010L))
+//        {
+//            string logMsg = "Event Id: " + Id + " CanTrigger. base.CanTrigger(): " + base.CanTrigger() +
+//                ", _demandClan.Polity == OriginalPolity: " + (_demandClan.Polity == OriginalPolity) +
+//                ", !_demandClan.IsDominant: " + (!_demandClan.IsDominant);
 
-			return false;
-		}
+//            if (base.CanTrigger() && (_demandClan.Polity == OriginalPolity) && !_demandClan.IsDominant)
+//            {
+//                _dominantClan = _originalTribe.DominantFaction as Clan;
+
+//                // We should use the latest cultural attribute values before calculating chances
+//                _demandClan.PreUpdate();
+//                _dominantClan.PreUpdate();
+
+//                _chanceOfRejectingDemand = CalculateChanceOfRefusingDemand();
+//                _chanceOfMakingDemand = CalculateChanceOfMakingDemand();
+
+//                logMsg += ", _chanceOfRejectingDemand: " + _chanceOfRejectingDemand + ", _chanceOfMakingDemand: " + _chanceOfMakingDemand;
+//            }
+
+//            logMsg += ", current date: " + World.CurrentDate + ", loaded world: " + Manager.Debug_IsLoadedWorld;
+
+//            Debug.LogWarning(logMsg);
+//        }
+//#endif
+
+        if (!base.CanTrigger ())
+            return false;
 
 		if (_demandClan.Polity != OriginalPolity)
 			return false;
@@ -262,9 +309,17 @@ public class ClanDemandsInfluenceDecisionEvent : FactionEvent {
         return Mathf.Clamp01 (chance);
 	}
 
-	public override void Trigger () {
+	public override void Trigger ()
+    {
 
-		bool performDemand = _demandClan.GetNextLocalRandomFloat (RngOffsets.CLAN_DEMANDS_INFLUENCE_EVENT_PERFORM_DEMAND) < _chanceOfMakingDemand;
+#if DEBUG
+        if ((Id == 160349336613603015L) || (Id == 160349354613603010L))
+        {
+            Debug.LogWarning("Event Id: " + Id + " has been triggered, current date: " + World.CurrentDate + ", loaded world: " + Manager.Debug_IsLoadedWorld);
+        }
+#endif
+
+        bool performDemand = _demandClan.GetNextLocalRandomFloat (RngOffsets.CLAN_DEMANDS_INFLUENCE_EVENT_PERFORM_DEMAND) < _chanceOfMakingDemand;
 
 		Tribe tribe = _demandClan.Polity as Tribe;
 
@@ -317,9 +372,9 @@ public class ClanDemandsInfluenceDecisionEvent : FactionEvent {
 
 	public override void Reset (long newTriggerDate)
 	{
-		base.Reset (newTriggerDate);
+        base.Reset (newTriggerDate);
 
-		_demandClan = Faction as Clan;
+        _demandClan = Faction as Clan;
 		_originalTribe = OriginalPolity as Tribe;
 	}
 }
