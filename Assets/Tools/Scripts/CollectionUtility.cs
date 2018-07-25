@@ -37,14 +37,12 @@ public static class CollectionUtility {
 		}
 	}
 
-	public static ElementWeightPair<T> WeightedSelection<T> (ElementWeightPair<T>[] elementWeightPairs, float totalWeight, NormalizedValueGeneratorDelegate generator) {
+	public static ElementWeightPair<T> WeightedSelection<T> (ElementWeightPair<T>[] elementWeightPairs, float totalWeight, float selectionValue) {
 
 		int count = elementWeightPairs.Length;
 
 		if (count <= 0)
 			return null;
-
-		float selectionValue = generator ();
 
 		if (totalWeight <= 0) {
 

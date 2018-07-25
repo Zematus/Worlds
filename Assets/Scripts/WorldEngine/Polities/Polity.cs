@@ -1031,7 +1031,7 @@ public abstract class Polity : ISynchronizable {
 			return null;
 		}
 
-		return CollectionUtility.WeightedSelection (weightedGroups, totalWeight, () => GetNextLocalRandomFloat (rngOffset));
+		return CollectionUtility.WeightedSelection (weightedGroups, totalWeight, GetNextLocalRandomFloat (rngOffset));
 	}
 
 	public Faction GetRandomFaction (int rngOffset, FactionValueCalculationDelegate calculateFactionValue, bool nullIfNoValidFaction = false) {
@@ -1064,12 +1064,12 @@ public abstract class Polity : ISynchronizable {
 			return null;
 		}
 
-		return CollectionUtility.WeightedSelection (weightedFactions, totalWeight, () => GetNextLocalRandomFloat (rngOffset));
+		return CollectionUtility.WeightedSelection (weightedFactions, totalWeight, GetNextLocalRandomFloat (rngOffset));
 	}
 
 	public PolityContact GetRandomPolityContact (int rngOffset, PolityContactValueCalculationDelegate calculateContactValue, bool nullIfNoValidContact = false) {
 
-		WeightedPolityContact[] weightedContact = new WeightedPolityContact[_contacts.Count];
+		WeightedPolityContact[] weightedContacts = new WeightedPolityContact[_contacts.Count];
 
 		float totalWeight = 0;
 
@@ -1083,11 +1083,36 @@ public abstract class Polity : ISynchronizable {
 
 			totalWeight += weight;
 
-			weightedContact [index] = new WeightedPolityContact (contact, weight);
+			weightedContacts [index] = new WeightedPolityContact (contact, weight);
 			index++;
-		}
+        }
 
-		if (totalWeight < 0) {
+        float selectionValue = GetNextLocalRandomFloat(rngOffset);
+
+#if DEBUG
+        if (Manager.RegisterDebugEvent != null)
+        {
+            if (Id == Manager.TracingData.PolityId)
+            {
+                string contactWeights = "";
+
+                foreach (WeightedPolityContact wc in weightedContacts)
+                {
+                    contactWeights += "\n\tPolity.Id: " + wc.Value.Id + ", weight: " + wc.Weight;
+                }
+
+                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+                "Polity:GetRandomPolityContact - Polity.Id:" + Id,
+                "selectionValue: " + selectionValue +
+                ", Contact Weights: " + contactWeights +
+                "");
+
+                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+            }
+        }
+#endif
+
+        if (totalWeight < 0) {
 
 			throw new System.Exception ("Total weight can't be less than zero: " + totalWeight);
 		}
@@ -1097,7 +1122,7 @@ public abstract class Polity : ISynchronizable {
 			return null;
 		}
 
-		return CollectionUtility.WeightedSelection (weightedContact, totalWeight, () => GetNextLocalRandomFloat (rngOffset));
+		return CollectionUtility.WeightedSelection (weightedContacts, totalWeight, selectionValue);
 	}
 
 	protected abstract void GenerateName ();

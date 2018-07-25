@@ -1642,8 +1642,9 @@ public class CellGroup : HumanGroup {
 			polityProminenceWeights.Add (new PolityProminenceWeight (pi, pi.Value));
 		}
 
-		PolityProminence selectedPi = CollectionUtility.WeightedSelection (
-			polityProminenceWeights.ToArray (), TotalPolityProminenceValue, () => Cell.GetNextLocalRandomFloat (RngOffsets.CELL_GROUP_CONSIDER_POLITY_PROMINENCE_EXPANSION_POLITY));
+        float selectionValue = Cell.GetNextLocalRandomFloat(RngOffsets.CELL_GROUP_CONSIDER_POLITY_PROMINENCE_EXPANSION_POLITY);
+
+        PolityProminence selectedPi = CollectionUtility.WeightedSelection (polityProminenceWeights.ToArray(), TotalPolityProminenceValue, selectionValue);
 
 //		Profiler.EndSample ();
 

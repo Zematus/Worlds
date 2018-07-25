@@ -308,7 +308,7 @@ public class Route : ISynchronizable {
 		}
 
 		KeyValuePair<Direction, TerrainCell> targetPair = 
-			CollectionUtility.WeightedSelection (coastalCellWeights.ToArray (), totalWeight, () => FirstCell.GetNextLocalRandomFloat (RngOffsets.ROUTE_CHOOSE_NEXT_COASTAL_CELL + rngOffset));
+			CollectionUtility.WeightedSelection (coastalCellWeights.ToArray (), totalWeight, FirstCell.GetNextLocalRandomFloat (RngOffsets.ROUTE_CHOOSE_NEXT_COASTAL_CELL + rngOffset));
 
 		TerrainCell targetCell = targetPair.Value;
 		direction = targetPair.Key;

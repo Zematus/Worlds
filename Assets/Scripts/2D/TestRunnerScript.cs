@@ -22,7 +22,7 @@ public class TestRunnerScript : MonoBehaviour {
 
 #if DEBUG
         Manager.TracingData.GroupId = 141610233072;
-        Manager.TracingData.PolityId = 37601724810000;
+        Manager.TracingData.PolityId = 7964391002314701;
         Manager.TracingData.FactionId = 11266152902613603;
         Manager.TracingData.Longitude = 248;
         Manager.TracingData.Latitude = 100;

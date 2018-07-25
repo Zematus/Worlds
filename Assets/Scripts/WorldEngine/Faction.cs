@@ -329,6 +329,7 @@ public abstract class Faction : ISynchronizable {
                 SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
                     "Faction:PreUpdate - Faction Id:" + Id,
                     "CurrentDate: " + World.CurrentDate +
+                    ", Polity.Id: " + Polity.Id +
                     ", preupdated: " + _preupdated +
                     ", Social organization knowledge value: " + knowledgeValue +
                     ", Calling method: " + callingClass + ":" + callingMethod +

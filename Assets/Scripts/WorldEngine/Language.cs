@@ -612,7 +612,9 @@ public class Language : ISynchronizable {
 			totalWeight += letter.Weight;
 		}
 
-		Letter chossenLetter = CollectionUtility.WeightedSelection (letterSet, totalWeight, () => getRandomFloat ()) as Letter;
+        float selectionValue = getRandomFloat();
+
+        Letter chossenLetter = CollectionUtility.WeightedSelection (letterSet, totalWeight, selectionValue) as Letter;
 
 		return new CharacterGroup (chossenLetter.Value, getRandomFloat () * chossenLetter.Weight);
 	}
@@ -637,12 +639,10 @@ public class Language : ISynchronizable {
 		Letter[] codaLetters,
 		float codaChance,
 		GetRandomFloatDelegate getRandomFloat) {
-
-		CollectionUtility.NormalizedValueGeneratorDelegate valueGeneratorDelegate = new CollectionUtility.NormalizedValueGeneratorDelegate (getRandomFloat);
-
-		string onset = (onsetChance > getRandomFloat ()) ? CollectionUtility.WeightedSelection (onsetLetters, GetLettersTotalWeight (onsetLetters), valueGeneratorDelegate) : string.Empty;
-		string nucleus = (nucleusChance > getRandomFloat ()) ? CollectionUtility.WeightedSelection (nucleusLetters, GetLettersTotalWeight (nucleusLetters), valueGeneratorDelegate) : string.Empty;
-		string coda = (codaChance > getRandomFloat ()) ? CollectionUtility.WeightedSelection (codaLetters, GetLettersTotalWeight (codaLetters), valueGeneratorDelegate) : string.Empty;
+        
+		string onset = (onsetChance > getRandomFloat ()) ? CollectionUtility.WeightedSelection (onsetLetters, GetLettersTotalWeight (onsetLetters), getRandomFloat()) : string.Empty;
+		string nucleus = (nucleusChance > getRandomFloat ()) ? CollectionUtility.WeightedSelection (nucleusLetters, GetLettersTotalWeight (nucleusLetters), getRandomFloat()) : string.Empty;
+		string coda = (codaChance > getRandomFloat ()) ? CollectionUtility.WeightedSelection (codaLetters, GetLettersTotalWeight (codaLetters), getRandomFloat()) : string.Empty;
 
 		if (nucleus == string.Empty) {
 		

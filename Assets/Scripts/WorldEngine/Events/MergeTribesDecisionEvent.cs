@@ -90,20 +90,23 @@ public class MergeTribesDecisionEvent : PolityEvent {
 	public override bool CanTrigger ()
     {
 
-#if DEBUG
-        if (Manager.RegisterDebugEvent != null)
-        {
-            SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-                "MergeTribesDecisionEvent:CanTrigger - Polity.Id:" + Polity.Id,
-                "TriggerDate: " + TriggerDate +
-                ", SpawnDate: " + SpawnDate +
-                ", base.CanTrigger(): " + base.CanTrigger() +
-                ", _sourceTribe.DominantFaction == OriginalDominantFaction: " + (_sourceTribe.DominantFaction == OriginalDominantFaction) +
-                "");
+//#if DEBUG
+//        if (Manager.RegisterDebugEvent != null)
+//        {
+//            if (Polity.Id == 11267065402613603L)
+//            {
+//                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//                    "MergeTribesDecisionEvent:CanTrigger - Polity.Id:" + Polity.Id,
+//                    "TriggerDate: " + TriggerDate +
+//                    ", SpawnDate: " + SpawnDate +
+//                    ", base.CanTrigger(): " + base.CanTrigger() +
+//                    ", _sourceTribe.DominantFaction == OriginalDominantFaction: " + (_sourceTribe.DominantFaction == OriginalDominantFaction) +
+//                    "");
 
-            Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-        }
-#endif
+//                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+//            }
+//        }
+//#endif
 
         if (!base.CanTrigger ())
 			return false;
@@ -119,24 +122,28 @@ public class MergeTribesDecisionEvent : PolityEvent {
 
         //		Profiler.EndSample ();
 
-#if DEBUG
-        if (Manager.RegisterDebugEvent != null)
-        {
-            SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-                "MergeTribesDecisionEvent:CanTrigger - Polity.Id:" + Polity.Id,
-                "TriggerDate: " + TriggerDate +
-                ", _targetContact.Polity.Id: " + _targetContact.Polity.Id +
-                "");
-
-            Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-        }
-#endif
-
         if (_targetContact == null)
 			return false;
 
 		_targetTribe = _targetContact.Polity as Tribe;
 		_targetDominantClan = _targetTribe.DominantFaction as Clan;
+
+#if DEBUG
+        if (Manager.RegisterDebugEvent != null)
+        {
+            //if (_targetTribe.Id == Manager.TracingData.PolityId)
+            //{
+                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+                "MergeTribesDecisionEvent:CanTrigger - Polity.Id:" + Polity.Id,
+                "TriggerDate: " + TriggerDate +
+                ", _targetTribe.Id: " + _targetTribe.Id +
+                ", _targetDominantClan.Id: " + _targetDominantClan.Id +
+                "");
+
+                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+            //}
+        }
+#endif
 
         //		Profiler.BeginSample ("MergeTribesDecisionEvent - clan preUpdates");
 
