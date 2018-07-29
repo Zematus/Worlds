@@ -13,7 +13,21 @@ public delegate float PolityContactValueCalculationDelegate (PolityContact conta
 
 public class XmlSerializableDictionary<TKey, TValue> : Dictionary<TKey, TValue>, IXmlSerializable
 {
-    private readonly string _keyName = typeof(TKey).Name;
+    public class XmlPair<TPKey, TPValue>
+    {
+        public TPKey Key;
+        public TPValue Value;
+
+        public XmlPair()
+        {
+        }
+
+        public XmlPair(TPKey key, TPValue value)
+        {
+            Key = key;
+            Value = value;
+        }
+    }
 
     public XmlSchema GetSchema()
     {
@@ -22,31 +36,33 @@ public class XmlSerializableDictionary<TKey, TValue> : Dictionary<TKey, TValue>,
 
     public void ReadXml(XmlReader reader)
     {
-        XmlSerializer keySerializer = new XmlSerializer(typeof(TKey));
-        XmlSerializer valueSerializer = new XmlSerializer(typeof(TValue));
+        XmlSerializer pairSerializer = new XmlSerializer(typeof(XmlPair<TKey, TValue>[]));
 
         if (reader.Read() && !reader.IsEmptyElement)
         {
-            do
-            {
-                TKey key = (TKey)keySerializer.Deserialize(reader);
-                TValue value = (TValue)valueSerializer.Deserialize(reader);
+            XmlPair<TKey, TValue>[] xmlPairs = (XmlPair<TKey, TValue>[])pairSerializer.Deserialize(reader);
 
-                this.Add(key, value);
+            for (int i = 0; i < xmlPairs.Length; i++)
+            {
+                this.Add(xmlPairs[i].Key, xmlPairs[i].Value);
             }
-            while (reader.ReadToNextSibling(_keyName));
         }
     }
 
     public void WriteXml(XmlWriter writer)
     {
-        XmlSerializer keySerializer = new XmlSerializer(typeof(TKey));
-        XmlSerializer valueSerializer = new XmlSerializer(typeof(TValue));
+        XmlSerializer pairSerializer = new XmlSerializer(typeof(XmlPair<TKey, TValue>[]));
+
+        XmlPair<TKey, TValue>[] xmlPairs = new XmlPair<TKey, TValue>[this.Count];
+
+        int index = 0;
         foreach (KeyValuePair<TKey, TValue> pair in this)
         {
-            keySerializer.Serialize(writer, pair.Key);
-            valueSerializer.Serialize(writer, pair.Value);
+            xmlPairs[index] = new XmlPair<TKey, TValue>(pair.Key, pair.Value);
+            index++;
         }
+
+        pairSerializer.Serialize(writer, xmlPairs);
     }
 }
 
