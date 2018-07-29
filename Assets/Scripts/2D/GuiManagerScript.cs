@@ -2448,7 +2448,8 @@ public class GuiManagerScript : MonoBehaviour {
 			InfoPanelScript.InfoText.text += "\nPolities in contact:";
 		}
 
-		foreach (PolityContact contact in polity.Contacts) {
+		foreach (PolityContact contact in polity.Contacts.Values)
+        {
 		
 			Polity contactPolity = contact.Polity;
 

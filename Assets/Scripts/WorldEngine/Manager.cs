@@ -949,7 +949,7 @@ public class Manager {
 
 			if (_planetOverlay == PlanetOverlay.PolityContacts) {
 
-				foreach (PolityContact contact in selectedPolity.Contacts) {
+				foreach (PolityContact contact in selectedPolity.Contacts.Values) {
 
 					AddHighlightedCells (contact.Polity.Territory.GetCells (), CellUpdateType.Territory);
 				}
@@ -983,7 +983,7 @@ public class Manager {
 
 				Polity selectedPolity = cell.EncompassingTerritory.Polity;
 
-				foreach (PolityContact contact in selectedPolity.Contacts) {
+				foreach (PolityContact contact in selectedPolity.Contacts.Values) {
 
 					AddHighlightedCells (contact.Polity.Territory.GetCells (), CellUpdateType.Territory);
 				}
