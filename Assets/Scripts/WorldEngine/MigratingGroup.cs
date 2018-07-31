@@ -107,11 +107,11 @@ public class MigratingGroup : HumanGroup {
 		
 		Culture = new BufferCulture (SourceGroup.Culture);
 
-		PolityProminencesCount = SourceGroup.ExistingPolityProminences.Count;
+		PolityProminencesCount = SourceGroup.PolityProminences.Count;
 
 		int minCopyCount = Mathf.Min (PolityProminencesCount, PolityProminences.Count);
 
-        IEnumerator<PolityProminence> ppEnumerator = SourceGroup.ExistingPolityProminences.GetEnumerator();
+        IEnumerator<PolityProminence> ppEnumerator = SourceGroup.PolityProminences.Values.GetEnumerator();
 
         for (int i = 0; i < minCopyCount; i++)
         {
@@ -139,9 +139,11 @@ public class MigratingGroup : HumanGroup {
 		if (targetGroup != null) {
 			targetPopulation = targetGroup.Population;
 			targetNewPopulation += targetPopulation;
-		}
+        }
 
-		foreach (Faction faction in SourceGroup.GetFactionCores ()) {
+        FactionCoresToMigrate.Clear();
+
+        foreach (Faction faction in SourceGroup.GetFactionCores ()) {
 
 			PolityProminence pi = SourceGroup.GetPolityProminence (faction.Polity);
 
@@ -163,14 +165,29 @@ public class MigratingGroup : HumanGroup {
 
 			float targetNewGroupProminence = ((sourceGroupProminence * Population) + (targetGroupProminence * targetPopulation)) / targetNewPopulation;
 
-			FactionCoresToMigrate.Clear ();
-
 			if (faction.ShouldMigrateFactionCore (SourceGroup, TargetCell, targetNewGroupProminence, targetNewPopulation))
 				FactionCoresToMigrate.Add (faction);
-		}
-	}
+        }
 
-	public void MoveToCell () {
+#if DEBUG
+        if (Manager.RegisterDebugEvent != null)
+        {
+            if (SourceGroupId == Manager.TracingData.GroupId)
+            {
+                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+                    "TryMigrateFactionCores - SourceGroup:" + SourceGroupId,
+                    "CurrentDate: " + World.CurrentDate +
+                    "SourceGroup.GetFactionCores().Count: " + SourceGroup.GetFactionCores().Count +
+                    ", FactionCoresToMigrate.Count: " + FactionCoresToMigrate.Count +
+                    "");
+
+                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+            }
+        }
+#endif
+    }
+
+    public void MoveToCell () {
 		
 		if (Population <= 0)
 			return;
@@ -204,10 +221,28 @@ public class MigratingGroup : HumanGroup {
             World.AddPolityToUpdate(faction.Polity);
 
             faction.PrepareNewCoreGroup (targetGroup);
-		}
-	}
+        }
 
-	public override void Synchronize ()
+#if DEBUG
+        if (Manager.RegisterDebugEvent != null)
+        {
+            if (SourceGroupId == Manager.TracingData.GroupId)
+            {
+                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+                    "MoveToCell - SourceGroup:" + SourceGroupId,
+                    "CurrentDate: " + World.CurrentDate +
+                    ", Population: " + Population +
+                    ", FactionCoresToMigrate.Count: " + FactionCoresToMigrate.Count +
+                    ", TargetCell.Position: " + TargetCell.Position +
+                    "");
+
+                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+            }
+        }
+#endif
+    }
+
+    public override void Synchronize ()
 	{
 		MigrationDirectionInt = (int)MigrationDirection;
 	}

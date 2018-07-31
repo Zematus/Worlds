@@ -21,8 +21,8 @@ public class TestRunnerScript : MonoBehaviour {
 
 
 #if DEBUG
-        Manager.TracingData.GroupId = 141610233072;
-        Manager.TracingData.PolityId = 7964391002314701;
+        Manager.TracingData.GroupId = 25416809035088;
+        Manager.TracingData.PolityId = 9629580603508800;
         Manager.TracingData.FactionId = 11266152902613603;
         Manager.TracingData.Longitude = 248;
         Manager.TracingData.Latitude = 100;
@@ -34,16 +34,13 @@ public class TestRunnerScript : MonoBehaviour {
             return (world.PolityMergeCount > 10) && (world.PolityCount > 20);
         };
         //tests.Add(new SaveLoadTest("after 20 polities and 10 polity merges", 783909167, saveCondition, 20000000, 10));
-        //tests.Add(new SaveLoadTest("after 20 polities and 10 polity merges", 783909167, saveCondition, 2000000, 10, 0));
-        //tests.Add(new SaveLoadTest("after 20 polities and 10 polity merges", 783909167, saveCondition, 200000, 10, 0));
-        //tests.Add(new SaveLoadTest("after 20 polities and 10 polity merges", 783909167, saveCondition, 20000, 10, 0));
-        //tests.Add(new SaveLoadTest("after 20 polities and 10 polity merges", 783909167, saveCondition, 2000, 10, 100000));
-        //tests.Add(new SaveLoadTest("after 20 polities and 10 polity merges", 783909167, saveCondition, 200, 10, 102000));
-        //tests.Add(new SaveLoadTest("after 20 polities and 10 polity merges", 783909167, saveCondition, 20, 10, 102800));
-        //tests.Add(new SaveLoadTest("after 20 polities and 10 polity merges", 783909167, saveCondition, 2, 10, 102880, true, true));
-        //tests.Add(new SaveLoadTest("after 20 polities and 10 polity merges", 783909167, saveCondition, 2, 10, 90110, true, true));
-        //tests.Add(new SaveLoadTest("after 20 polities and 10 polity merges", 783909167, saveCondition, 2, 10, 6510, true, true));
-        tests.Add(new SaveLoadTest("after 20 polities and 10 polity merges", 783909167, saveCondition, 2, 10, 5310, true, true));
+        tests.Add(new SaveLoadTest("after 20 polities and 10 polity merges", 783909167, saveCondition, 2000000, 10, 40000000));
+        //tests.Add(new SaveLoadTest("after 20 polities and 10 polity merges", 783909167, saveCondition, 200000, 10, 2000000));
+        //tests.Add(new SaveLoadTest("after 20 polities and 10 polity merges", 783909167, saveCondition, 20000, 10, 2000000));
+        //tests.Add(new SaveLoadTest("after 20 polities and 10 polity merges", 783909167, saveCondition, 2000, 10, 2060000));
+        //tests.Add(new SaveLoadTest("after 20 polities and 10 polity merges", 783909167, saveCondition, 200, 10, 2070000));
+        //tests.Add(new SaveLoadTest("after 20 polities and 10 polity merges", 783909167, saveCondition, 20, 10, 2070400));
+        //tests.Add(new SaveLoadTest("after 20 polities and 10 polity merges", 783909167, saveCondition, 2, 10, 2070440, true, true));
 #endif
 
         //tests.Add(new SaveLoadTest("after 5 polities", 783909167, (World world) =>

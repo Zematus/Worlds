@@ -274,9 +274,27 @@ public class Clan : Faction {
 		return false;
 	}
 
-	public override bool ShouldMigrateFactionCore (CellGroup sourceGroup, TerrainCell targetCell, float targetProminence, int targetPopulation) {
+	public override bool ShouldMigrateFactionCore (CellGroup sourceGroup, TerrainCell targetCell, float targetProminence, int targetPopulation)
+    {
 
-		float targetProminenceFactor = Mathf.Max (0, targetProminence - MinCoreMigrationPolityProminence);
+#if DEBUG
+        if (Manager.RegisterDebugEvent != null)
+        {
+            if (sourceGroup.Id == Manager.TracingData.GroupId)
+            {
+                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+                    "ShouldMigrateFactionCore - Clan:" + Id + ", sourceGroup:" + sourceGroup.Id,
+                    "CurrentDate: " + World.CurrentDate +
+                    ", targetPopulation: " + targetPopulation +
+                    ", targetProminence: " + targetProminence +
+                    "");
+
+                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+            }
+        }
+#endif
+
+        float targetProminenceFactor = Mathf.Max (0, targetProminence - MinCoreMigrationPolityProminence);
 
 		if (targetProminenceFactor <= 0)
 			return false;
@@ -301,7 +319,24 @@ public class Clan : Faction {
 
 		float sourceFactor = sourceProminenceFactor * sourcePopulationFactor;
 
-		if (sourceFactor <= 0)
+#if DEBUG
+        if (Manager.RegisterDebugEvent != null)
+        {
+            if (sourceGroup.Id == Manager.TracingData.GroupId)
+            {
+                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+                    "ShouldMigrateFactionCore - Clan:" + Id + ", sourceGroup:" + sourceGroup.Id,
+                    "CurrentDate: " + World.CurrentDate +
+                    ", sourceProminence: " + sourceProminence +
+                    ", sourcePopulation: " + sourcePopulation +
+                    "");
+
+                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+            }
+        }
+#endif
+
+        if (sourceFactor <= 0)
 			return true;
 
 		float targetFactor = targetProminenceFactor * targetPopulationFactor;
@@ -310,10 +345,24 @@ public class Clan : Faction {
 
 		float randomValue = sourceGroup.GetNextLocalRandomFloat (RngOffsets.MIGRATING_GROUP_MOVE_FACTION_CORE + (int)Id);
 
-		if (randomValue > migrateCoreFactor)
-			return true;
+#if DEBUG
+        if (Manager.RegisterDebugEvent != null)
+        {
+            if (sourceGroup.Id == Manager.TracingData.GroupId)
+            {
+                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+                    "ShouldMigrateFactionCore - Clan:" + Id + ", sourceGroup:" + sourceGroup.Id,
+                    "CurrentDate: " + World.CurrentDate +
+                    ", randomValue: " + randomValue +
+                    ", migrateCoreFactor: " + migrateCoreFactor +
+                    "");
 
-		return false;
+                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+            }
+        }
+#endif
+
+        return (randomValue > migrateCoreFactor);
 	}
 
 	public override void Split () {

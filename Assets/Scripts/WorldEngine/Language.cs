@@ -603,21 +603,21 @@ public class Language : ISynchronizable {
 		_getRandomFloat = GenerateGetRandomFloatDelegate ("");
 	}
 
-	public static CharacterGroup GenerateCharacterGroup (Letter[] letterSet, GetRandomFloatDelegate getRandomFloat) {
+	//public static CharacterGroup GenerateCharacterGroup (Letter[] letterSet, GetRandomFloatDelegate getRandomFloat) {
 
-		float totalWeight = 0;
+	//	float totalWeight = 0;
 
-		foreach (Letter letter in letterSet) {
+	//	foreach (Letter letter in letterSet) {
 		
-			totalWeight += letter.Weight;
-		}
+	//		totalWeight += letter.Weight;
+	//	}
 
-        float selectionValue = getRandomFloat();
+ //       float selectionValue = getRandomFloat();
 
-        Letter chossenLetter = CollectionUtility.WeightedSelection (letterSet, totalWeight, selectionValue) as Letter;
+ //       Letter chossenLetter = CollectionUtility.WeightedSelection (letterSet, totalWeight, selectionValue) as Letter;
 
-		return new CharacterGroup (chossenLetter.Value, getRandomFloat () * chossenLetter.Weight);
-	}
+	//	return new CharacterGroup (chossenLetter.Value, getRandomFloat () * chossenLetter.Weight);
+	//}
 
 	private static float GetLettersTotalWeight (Letter[] letters) {
 

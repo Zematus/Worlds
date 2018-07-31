@@ -5,8 +5,8 @@ using System.Xml;
 using System.Xml.Serialization;
 using UnityEngine.Profiling;
 
-public class PolityContact {
-
+public class PolityContact :IKeyedValue<long>
+{
 	[XmlAttribute("Id")]
 	public long Id;
 
@@ -27,4 +27,9 @@ public class PolityContact {
 
 		GroupCount = initialGroupCount;
 	}
+
+    public long GetKey()
+    {
+        return Id;
+    }
 }

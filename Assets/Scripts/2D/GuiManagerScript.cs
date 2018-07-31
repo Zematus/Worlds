@@ -2371,7 +2371,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 		bool firstPolity = true;
 
-		List<PolityProminence> polityProminences = new List<PolityProminence>(cell.Group.ExistingPolityProminences);
+		List<PolityProminence> polityProminences = new List<PolityProminence>(cell.Group.PolityProminences.Values);
 
 		polityProminences.Sort ((a, b) => {
 			if (a.Value > b.Value) return -1;
@@ -2450,7 +2450,6 @@ public class GuiManagerScript : MonoBehaviour {
 
 		foreach (PolityContact contact in polity.Contacts.Values)
         {
-		
 			Polity contactPolity = contact.Polity;
 
 			InfoPanelScript.InfoText.text += "\n\n\tPolity: " + contactPolity.Name.Text + " " + contactPolity.Type.ToLower ();

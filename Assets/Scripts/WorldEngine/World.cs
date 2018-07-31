@@ -1507,6 +1507,38 @@ public class World : ISynchronizable {
 
 	public void AddPolityToUpdate (Polity polity)
     {
+
+#if DEBUG
+        if (Manager.RegisterDebugEvent != null)
+        {
+            if (polity.Id == Manager.TracingData.PolityId)
+            {
+                System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
+
+                System.Reflection.MethodBase method = stackTrace.GetFrame(1).GetMethod();
+                string callingMethod = method.Name;
+
+                //				int frame = 2;
+                //				while (callingMethod.Contains ("GetNextLocalRandom") || callingMethod.Contains ("GetNextRandom")) {
+                //					method = stackTrace.GetFrame(frame).GetMethod();
+                //					callingMethod = method.Name;
+                //
+                //					frame++;
+                //				}
+
+                string callingClass = method.DeclaringType.ToString();
+
+                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+                    "AddPolityToUpdate - Polity:" + polity.Id,
+                    "CurrentDate: " + CurrentDate +
+                    ", caller: " + callingClass + "::" + callingMethod +
+                    "");
+
+                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+            }
+        }
+#endif
+
         if (PolitiesHaveBeenUpdated)
         {
             Debug.LogWarning("Trying to add polity to update after polities have already been updated this iteration. Id: " + polity.Id);

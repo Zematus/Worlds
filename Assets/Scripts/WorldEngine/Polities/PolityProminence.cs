@@ -5,7 +5,7 @@ using System.Xml;
 using System.Xml.Serialization;
 using UnityEngine.Profiling;
 
-public class PolityProminence {
+public class PolityProminence : IKeyedValue<long> {
 
 //#if DEBUG
 //    public static long CurrentDebugId = 0;
@@ -139,4 +139,9 @@ public class PolityProminence {
 		}
 #endif
 	}
+
+    public long GetKey()
+    {
+        return PolityId;
+    }
 }
