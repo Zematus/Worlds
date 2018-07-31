@@ -109,7 +109,7 @@ public abstract class Polity : ISynchronizable {
 
 	protected Dictionary<long, PolityEvent> _events = new Dictionary<long, PolityEvent> ();
 
-	private Dictionary<long, WeightedGroup> _polityPopPerGroup = new Dictionary<long, WeightedGroup> ();
+	//private Dictionary<long, WeightedGroup> _polityPopPerGroup = new Dictionary<long, WeightedGroup> ();
 
 	private HashSet<string> _flags = new HashSet<string> ();
 
@@ -636,49 +636,73 @@ public abstract class Polity : ISynchronizable {
 		TotalPopulation = 0;
 		ProminenceArea = 0;
 
-		_polityPopPerGroup.Clear ();
-	
-		foreach (CellGroup group in ProminencedGroups.Values) {
+        //_polityPopPerGroup.Clear ();
 
-			PolityProminence pi = group.GetPolityProminence (this);
+        Profiler.BeginSample("foreach");
 
-			if (pi.AdiministrativeCost < float.MaxValue)
-				TotalAdministrativeCost += pi.AdiministrativeCost;
+        foreach (CellGroup group in ProminencedGroups.Values) {
+            
+            Profiler.BeginSample("group - GetPolityProminence");
+
+            PolityProminence pi = group.GetPolityProminence (this);
+
+            Profiler.EndSample();
+
+            Profiler.BeginSample("add administrative cost");
+
+            if (pi.AdministrativeCost < float.MaxValue)
+				TotalAdministrativeCost += pi.AdministrativeCost;
 			else
 				TotalAdministrativeCost = float.MaxValue;
 
-			float polityPop = group.Population * pi.Value;
+            Profiler.EndSample();
+
+            Profiler.BeginSample("add pop");
+
+            float polityPop = group.Population * pi.Value;
 
 			TotalPopulation += polityPop;
 
-			_polityPopPerGroup.Add (group.Id, new WeightedGroup (group, polityPop));
+            Profiler.EndSample();
 
-			ProminenceArea += group.Cell.Area;
-		}
-	}
+            //Profiler.BeginSample("add WeightedGroup to _polityPopPerGroup");
 
-	protected CellGroup GetGroupWithMostProminencedPop () {
+            //_polityPopPerGroup.Add (group.Id, new WeightedGroup (group, polityPop));
 
-		#if DEBUG
-		if (!_populationCensusUpdated)
-			Debug.LogWarning ("This function should only be called within polity updates after executing RunPopulationCensus");
-		#endif
+            //Profiler.EndSample();
 
-		CellGroup groupWithMostProminencedPop = null;
-		float maxProminencedGroupPopulation = 0;
+            Profiler.BeginSample("add area");
+
+            ProminenceArea += group.Cell.Area;
+
+            Profiler.EndSample();
+        }
+
+        Profiler.EndSample();
+    }
+
+	//protected CellGroup GetGroupWithMostProminencedPop () {
+
+	//	#if DEBUG
+	//	if (!_populationCensusUpdated)
+	//		Debug.LogWarning ("This function should only be called within polity updates after executing RunPopulationCensus");
+	//	#endif
+
+	//	CellGroup groupWithMostProminencedPop = null;
+	//	float maxProminencedGroupPopulation = 0;
 	
-		foreach (KeyValuePair<long, WeightedGroup> pair in _polityPopPerGroup) {
+	//	foreach (KeyValuePair<long, WeightedGroup> pair in _polityPopPerGroup) {
 		
-			if (maxProminencedGroupPopulation < pair.Value.Weight) {
+	//		if (maxProminencedGroupPopulation < pair.Value.Weight) {
 
-				maxProminencedGroupPopulation = pair.Value.Weight;
+	//			maxProminencedGroupPopulation = pair.Value.Weight;
 
-				groupWithMostProminencedPop = pair.Value.Value;
-			}
-		}
+	//			groupWithMostProminencedPop = pair.Value.Value;
+	//		}
+	//	}
 
-		return groupWithMostProminencedPop;
-	}
+	//	return groupWithMostProminencedPop;
+	//}
 
 	public void AddProminencedGroup (CellGroup group) {
 	

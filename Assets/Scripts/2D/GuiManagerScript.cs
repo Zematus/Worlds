@@ -2385,7 +2385,7 @@ public class GuiManagerScript : MonoBehaviour {
 			float prominenceValue = polityProminence.Value;
 			float factionCoreDistance = polityProminence.FactionCoreDistance;
 			float polityCoreDistance = polityProminence.PolityCoreDistance;
-			float administrativeCost = polityProminence.AdiministrativeCost;
+			float administrativeCost = polityProminence.AdministrativeCost;
 
 			if (prominenceValue >= 0.001) {
 

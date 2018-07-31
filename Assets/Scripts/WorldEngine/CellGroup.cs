@@ -2613,7 +2613,7 @@ public class CellGroup : HumanGroup {
 
 		foreach (PolityProminence pi in PolityProminences.Values) {
 
-			pi.AdiministrativeCost = CalculateAdministrativeCost (pi);
+			pi.AdministrativeCost = CalculateAdministrativeCost (pi);
 		}
 	}
 

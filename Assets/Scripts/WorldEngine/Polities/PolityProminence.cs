@@ -44,7 +44,7 @@ public class PolityProminence : IKeyedValue<long> {
 	[XmlAttribute("PolDist")]
 	public float PolityCoreDistance;
 	[XmlAttribute("Cost")]
-	public float AdiministrativeCost;
+	public float AdministrativeCost;
 
 	[XmlIgnore]
 	public float NewValue;
@@ -89,7 +89,7 @@ public class PolityProminence : IKeyedValue<long> {
 		Value = polityProminence.Value;
 		NewValue = Value;
 
-		AdiministrativeCost = 0;
+		AdministrativeCost = 0;
 	}
 
 	public PolityProminence (CellGroup group, Polity polity, float value, bool isMigratingGroup = false)
@@ -116,7 +116,7 @@ public class PolityProminence : IKeyedValue<long> {
 		Value = MathUtility.RoundToSixDecimals (value);
 		NewValue = Value;
 
-		AdiministrativeCost = 0;
+		AdministrativeCost = 0;
     }
 
     public void PostUpdate () {
