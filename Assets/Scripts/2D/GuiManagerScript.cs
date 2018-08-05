@@ -38,7 +38,8 @@ public class GuiManagerScript : MonoBehaviour {
 	public DialogPanelScript ViewsDialogPanelScript;
 	public DialogPanelScript MainMenuDialogPanelScript;
 	public DialogPanelScript OptionsDialogPanelScript;
-	public SettingsDialogPanelScript SettingsDialogPanelScript;
+    public DialogPanelScript ExceptionDialogPanelScript;
+    public SettingsDialogPanelScript SettingsDialogPanelScript;
 	public ProgressDialogPanelScript ProgressDialogPanelScript;
 	public ImageDialogPanelScript ActivityDialogPanelScript;
 	public TextInputDialogPanelScript ErrorMessageDialogPanelScript;
@@ -140,55 +141,36 @@ public class GuiManagerScript : MonoBehaviour {
 
 	private bool _infoTextMinimized = false;
 
-	private StreamWriter _debugLogStream;
-
 	void OnEnable()
 	{
-		string filename = @".\debug.log";
-
-		if (File.Exists (filename)) {
-		
-			File.Delete (filename);
-		}
-
-		_debugLogStream = File.CreateText(filename);
+        Manager.InitializeDebugLog();
 
 		Application.logMessageReceivedThreaded += HandleLog;
-
-		if (Debug.isDebugBuild) {
-			Debug.Log ("Executing debug build...");
-		} else {
-			Debug.Log ("Executing release build...");
-		}
 	}
 
 	void OnDisable()
 	{
 		Application.logMessageReceivedThreaded -= HandleLog;
 
-        if (_debugLogStream != null)
-        {
-            _debugLogStream.Close();
-        }
+        Manager.CloseDebugLog();
 	}
 
 	public void HandleLog(string logString, string stackTrace, LogType type)
 	{
-        if (_debugLogStream == null)
-            return;
+        Manager.HandleLog(logString, stackTrace, type);
 
-        string worldInfoStr = "";
-
-        if (Manager.CurrentWorld != null)
+        if (type == LogType.Exception)
         {
-            worldInfoStr = "[Date: " + Manager.GetDateString(Manager.CurrentWorld.CurrentDate) + "] - ";
+            Manager.EnqueueTaskAndWait(() =>
+            {
+                PauseSimulation(true);
+
+                ExceptionDialogPanelScript.SetDialogText(logString);
+                ExceptionDialogPanelScript.SetVisible(true);
+
+                return true;
+            });
         }
-
-		_debugLogStream.WriteLine (worldInfoStr + logString);
-
-		#if DEBUG
-		_debugLogStream.Flush ();
-		#endif
 	}
 
 	// Use this for initialization
@@ -201,32 +183,33 @@ public class GuiManagerScript : MonoBehaviour {
 
 		Manager.UpdateMainThreadReference ();
 		
-		SaveFileDialogPanelScript.SetVisible (false);
-		ExportMapDialogPanelScript.SetVisible (false);
-		DecisionDialogPanelScript.SetVisible (false);
-		LoadFileDialogPanelScript.SetVisible (false);
-		SelectFactionDialogPanelScript.SetVisible (false);
-		OverlayDialogPanelScript.SetVisible (false);
-		ViewsDialogPanelScript.SetVisible (false);
-		MainMenuDialogPanelScript.SetVisible (false);
-		ProgressDialogPanelScript.SetVisible (false);
-		ActivityDialogPanelScript.SetVisible (false);
-		OptionsDialogPanelScript.SetVisible (false);
-		SetSeedDialogPanelScript.SetVisible (false);
-		CustomizeWorldDialogPanelScript.SetVisible (false);
-		ErrorMessageDialogPanelScript.SetVisible (false);
-		AddPopulationDialogScript.SetVisible (false);
+		SaveFileDialogPanelScript.SetVisible(false);
+        ExportMapDialogPanelScript.SetVisible(false);
+        DecisionDialogPanelScript.SetVisible(false);
+        LoadFileDialogPanelScript.SetVisible(false);
+        SelectFactionDialogPanelScript.SetVisible(false);
+        OverlayDialogPanelScript.SetVisible(false);
+        ViewsDialogPanelScript.SetVisible(false);
+        MainMenuDialogPanelScript.SetVisible(false);
+        ProgressDialogPanelScript.SetVisible(false);
+        ActivityDialogPanelScript.SetVisible(false);
+        OptionsDialogPanelScript.SetVisible(false);
+        SetSeedDialogPanelScript.SetVisible(false);
+        CustomizeWorldDialogPanelScript.SetVisible(false);
+        ErrorMessageDialogPanelScript.SetVisible(false);
+        ExceptionDialogPanelScript.SetVisible(false);
+        AddPopulationDialogScript.SetVisible(false);
 
-		FocusPanelScript.SetVisible (false);
-		GuidingPanelScript.SetVisible (false);
+        FocusPanelScript.SetVisible(false);
+        GuidingPanelScript.SetVisible(false);
 
-		QuickTipPanelScript.SetVisible (false);
-		InfoTooltipScript.SetVisible (false);
+        QuickTipPanelScript.SetVisible(false);
+        InfoTooltipScript.SetVisible(false);
 
-		_mapLeftClickOp += ClickOp_SelectCell;
-		_mapHoverOp += HoverOp_ShowCellInfoTooltip;
-		
-		if (!Manager.WorldIsReady) {
+        _mapLeftClickOp += ClickOp_SelectCell;
+        _mapHoverOp += HoverOp_ShowCellInfoTooltip;
+
+        if (!Manager.WorldIsReady) {
 
             //GenerateWorld(false, 407252633);
             //GenerateWorld(false, 783909167);
@@ -807,9 +790,14 @@ public class GuiManagerScript : MonoBehaviour {
 		ErrorMessageDialogPanelScript.SetVisible (false);
 
 		SetGenerationSeed ();
-	}
-	
-	public void GenerateWorld (bool randomSeed = true, int seed = 0) {
+    }
+
+    public void CloseExceptionMessageAction()
+    {
+        Exit();
+    }
+
+    public void GenerateWorld (bool randomSeed = true, int seed = 0) {
 
 		if (randomSeed) {
 			seed = Random.Range (0, int.MaxValue);
@@ -884,8 +872,6 @@ public class GuiManagerScript : MonoBehaviour {
 	private void GenerateWorldInternal (int seed) {
 		
 		ProgressDialogPanelScript.SetVisible (true);
-
-        Debug.Log("Generating world with seed: " + seed);
 
         ProgressUpdate (0, "Generating World...", true);
 		

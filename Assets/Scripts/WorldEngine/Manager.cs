@@ -204,7 +204,9 @@ public class Manager {
 
 	private static bool _isLoadReady = false;
 
-	private static HashSet<TerrainCell> _lastUpdatedCells;
+    private static StreamWriter _debugLogStream = null;
+
+    private static HashSet<TerrainCell> _lastUpdatedCells;
 
 	private static int _resolutionWidthWindowed = 1366;
 	private static int _resolutionHeightWindowed = 768;
@@ -329,9 +331,70 @@ public class Manager {
 		/// static initalizations
 
 		Tribe.GenerateTribeNounVariations ();
-	}
+    }
 
-	private void InitializeSavePath () {
+    public static void InitializeDebugLog()
+    {
+        if (_debugLogStream != null)
+            return;
+
+        string filename = @".\debug.log";
+
+        if (File.Exists(filename))
+        {
+            File.Delete(filename);
+        }
+
+        _debugLogStream = File.CreateText(filename);
+
+        string buildType;
+
+        if (Debug.isDebugBuild)
+        {
+            buildType = "debug";
+        }
+        else
+        {
+            buildType = "release";
+        }
+
+        _debugLogStream.WriteLine("Running Worlds " + CurrentVersion + " (" + buildType + ")...");
+        _debugLogStream.Flush();
+    }
+
+    public static void CloseDebugLog()
+    {
+        if (_debugLogStream == null)
+            return;
+
+        _debugLogStream.Close();
+
+        _debugLogStream = null;
+    }
+
+    public static void HandleLog(string logString, string stackTrace, LogType type)
+    {
+        if (_debugLogStream == null)
+            return;
+
+        string worldInfoStr = "";
+
+        if (CurrentWorld != null)
+        {
+            worldInfoStr += "[Date: " + GetDateString(CurrentWorld.CurrentDate) + "] - ";
+        }
+
+        _debugLogStream.WriteLine(worldInfoStr + logString);
+
+        if (type == LogType.Exception)
+        {
+            _debugLogStream.WriteLine("\t" + stackTrace);
+        }
+        
+        _debugLogStream.Flush();
+    }
+
+    private void InitializeSavePath () {
 		
 		string path = Path.GetFullPath (@"Saves\");
 		

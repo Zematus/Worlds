@@ -10,7 +10,8 @@ public class StartGuiManagerScript : MonoBehaviour {
 
 	public LoadFileDialogPanelScript LoadFileDialogPanelScript;
 	public DialogPanelScript MainMenuDialogPanelScript;
-	public SettingsDialogPanelScript SettingsDialogPanelScript;
+    public DialogPanelScript ExceptionDialogPanelScript;
+    public SettingsDialogPanelScript SettingsDialogPanelScript;
 	public ProgressDialogPanelScript ProgressDialogPanelScript;
 	public TextInputDialogPanelScript MessageDialogPanelScript;
 	public WorldCustomizationDialogPanelScript SetSeedDialogPanelScript;
@@ -26,8 +27,43 @@ public class StartGuiManagerScript : MonoBehaviour {
 	
 	private PostProgressOperation _postProgressOp = null;
 
-	// Use this for initialization
-	void Start () {
+    private bool _changingScene = false;
+
+    void OnEnable()
+    {
+        Manager.InitializeDebugLog();
+
+        Application.logMessageReceivedThreaded += HandleLog;
+    }
+
+    void OnDisable()
+    {
+        Application.logMessageReceivedThreaded -= HandleLog;
+
+        if (_changingScene)
+            return;
+
+        Manager.CloseDebugLog();
+    }
+
+    public void HandleLog(string logString, string stackTrace, LogType type)
+    {
+        Manager.HandleLog(logString, stackTrace, type);
+
+        if (type == LogType.Exception)
+        {
+            Manager.EnqueueTaskAndWait(() =>
+            {
+                ExceptionDialogPanelScript.SetDialogText(logString);
+                ExceptionDialogPanelScript.SetVisible(true);
+
+                return true;
+            });
+        }
+    }
+
+    // Use this for initialization
+    void Start () {
 
 		Manager.LoadAppSettings (@"Worlds.settings");
 
@@ -35,14 +71,15 @@ public class StartGuiManagerScript : MonoBehaviour {
 
 		Manager.UpdateMainThreadReference ();
 
-		LoadFileDialogPanelScript.SetVisible (false);
-		ProgressDialogPanelScript.SetVisible (false);
-		SetSeedDialogPanelScript.SetVisible (false);
-		MessageDialogPanelScript.SetVisible (false);
-		CustomizeWorldDialogPanelScript.SetVisible (false);
-		MainMenuDialogPanelScript.SetVisible (true);
-		
-		LoadButton.interactable = HasFilesToLoad ();
+        LoadFileDialogPanelScript.SetVisible(false);
+        ProgressDialogPanelScript.SetVisible(false);
+        SetSeedDialogPanelScript.SetVisible(false);
+        MessageDialogPanelScript.SetVisible(false);
+        ExceptionDialogPanelScript.SetVisible(false);
+        CustomizeWorldDialogPanelScript.SetVisible(false);
+        MainMenuDialogPanelScript.SetVisible(true);
+
+        LoadButton.interactable = HasFilesToLoad ();
 	}
 
 	void Awake () {
@@ -77,6 +114,8 @@ public class StartGuiManagerScript : MonoBehaviour {
 				_postProgressOp ();
 
 			_preparingWorld = false;
+
+            _changingScene = true;
 			
 			SceneManager.LoadScene ("WorldView");
 		}
