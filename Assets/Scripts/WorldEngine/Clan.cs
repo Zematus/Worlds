@@ -463,7 +463,7 @@ public class Clan : Faction {
 
 		if (administrativeLoad < 0) {
 
-			Debug.LogWarning ("administrativeLoad less than 0: " + administrativeLoad);
+			Debug.LogWarning ("administrativeLoad less than 0: " + administrativeLoad + ", Clan Id: " + Id);
 
 			return Mathf.Infinity;
         }

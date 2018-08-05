@@ -177,7 +177,14 @@ public class GuiManagerScript : MonoBehaviour {
         if (_debugLogStream == null)
             return;
 
-		_debugLogStream.WriteLine (logString);
+        string worldInfoStr = "";
+
+        if (Manager.CurrentWorld != null)
+        {
+            worldInfoStr = "[Date: " + Manager.GetDateString(Manager.CurrentWorld.CurrentDate) + "] - ";
+        }
+
+		_debugLogStream.WriteLine (worldInfoStr + logString);
 
 		#if DEBUG
 		_debugLogStream.Flush ();
@@ -229,8 +236,8 @@ public class GuiManagerScript : MonoBehaviour {
             //GenerateWorld(false, 1065375312);
             //GenerateWorld(false, 279552712);
             //GenerateWorld(false, 1735984055);
-            GenerateWorld(false, 519520942);
-
+            //GenerateWorld(false, 519520942);
+            GenerateWorld(false, 592626823);
 
         } else if (!Manager.SimulationCanRun) {
 
@@ -861,10 +868,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 	private void PostProgressOp_GenerateWorld () {
 
-		// TODO: delete next line
-//		ResetUIElements ();
-		
-		Manager.WorldName = "world_" + Manager.CurrentWorld.Seed;
+        Manager.WorldName = "world_" + Manager.CurrentWorld.Seed;
 		
 		SelectionPanelScript.RemoveAllOptions ();
 
@@ -880,8 +884,10 @@ public class GuiManagerScript : MonoBehaviour {
 	private void GenerateWorldInternal (int seed) {
 		
 		ProgressDialogPanelScript.SetVisible (true);
-		
-		ProgressUpdate (0, "Generating World...", true);
+
+        Debug.Log("Generating world with seed: " + seed);
+
+        ProgressUpdate (0, "Generating World...", true);
 		
 		Manager.GenerateNewWorldAsync (seed, ProgressUpdate);
 

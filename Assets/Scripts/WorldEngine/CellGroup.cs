@@ -1793,7 +1793,7 @@ public class CellGroup : HumanGroup {
 	public void Update () {
 
 		if (!StillPresent) {
-			Debug.LogWarning ("Group is no longer present");
+			Debug.LogWarning ("Group is no longer present. Id: " + Id);
 			return;
 		}
 
@@ -2740,7 +2740,7 @@ public class CellGroup : HumanGroup {
 #if DEBUG
 		if (TotalPolityProminenceValue > 1.0) {
 		
-			Debug.LogWarning ("Total Polity Prominence Value greater than 1: " + TotalPolityProminenceValue);
+			Debug.LogWarning ("Total Polity Prominence Value greater than 1: " + TotalPolityProminenceValue + ", Group Id: " + Id);
 		}
 #endif
 
@@ -2749,7 +2749,7 @@ public class CellGroup : HumanGroup {
 
 			if (GetFactionCores ().Count > 0) {
 
-				Debug.LogWarning ("Group with no polity prominence has faction cores - Id: " + Id);
+				Debug.LogWarning ("Group with no polity prominence has faction cores. Id: " + Id);
 			}
 		}
 #endif
@@ -2801,7 +2801,7 @@ public class CellGroup : HumanGroup {
 #if DEBUG
 		if (TotalPolityProminenceValue > 1.0) {
 
-			Debug.LogWarning ("Total Polity Prominence Value greater than 1: " + TotalPolityProminenceValue);
+			Debug.LogWarning ("Total Polity Prominence Value greater than 1: " + TotalPolityProminenceValue + ", Group Id: " + Id);
 		}
 #endif
 
@@ -2810,7 +2810,7 @@ public class CellGroup : HumanGroup {
 
 			if (GetFactionCores ().Count > 0) {
 
-				Debug.LogWarning ("Group with no polity prominence has faction cores - Id: " + Id);
+				Debug.LogWarning ("Group with no polity prominence has faction cores. Id: " + Id);
 			}
 		}
 #endif

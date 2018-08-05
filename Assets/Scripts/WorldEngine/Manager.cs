@@ -165,7 +165,7 @@ public class Manager {
 
 	#endif
 
-	public static string CurrentVersion = "0.029.85";
+	public static string CurrentVersion = "0.03";
 
 //	public static bool RecordingEnabled = false;
 
@@ -665,9 +665,11 @@ public class Manager {
 		if (_manager._progressCastMethod == null) {
 			
 			_manager._progressCastMethod = (value, message, reset) => {};
-		}
+        }
 
-		ThreadPool.QueueUserWorkItem (state => {
+        Debug.Log("Generating world with seed: " + seed);
+
+        ThreadPool.QueueUserWorkItem (state => {
 			
 			GenerateNewWorld (seed);
 			
