@@ -13,7 +13,7 @@ public class OpenTribeDecision : PolityDecision {
 
 	private Tribe _tribe;
 
-	public OpenTribeDecision (Tribe tribe, bool makeAttempt) : base (tribe) {
+	public OpenTribeDecision (Tribe tribe, bool makeAttempt, long eventId) : base (tribe, eventId) {
 
 		_tribe = tribe;
 

@@ -105,18 +105,6 @@ public class FosterTribeRelationDecisionEvent : PolityEvent {
 			return false;
 		}
 
-//		#if DEBUG
-//		if (_targetTribe.Id == 6993753500213400) {
-//			bool debug = true;
-//		}
-//		#endif
-
-//		#if DEBUG
-//		if (_sourceTribe.Id == 6993753500213400) {
-//			bool debug = true;
-//		}
-//		#endif
-
 		_chanceOfRejectingOffer = CalculateChanceOfRejectingOffer ();
 
 		if (_chanceOfRejectingOffer >= 0.15f) {
@@ -167,17 +155,11 @@ public class FosterTribeRelationDecisionEvent : PolityEvent {
 
 	public override void Trigger () {
 
-//		#if DEBUG
-//		if (_targetTribe.Id == 6993753500213400) {
-//			bool debug = true;
-//		}
-//		#endif
-
 		bool attemptFoster = _sourceTribe.GetNextLocalRandomFloat (RngOffsets.FOSTER_TRIBE_RELATION_EVENT_MAKE_ATTEMPT) < _chanceOfMakingAttempt;
 
 		if (_sourceTribe.IsUnderPlayerFocus || _originalSourceDominantClan.IsUnderPlayerGuidance) {
 
-			Decision fosterDecision = new FosterTribeRelationDecision (_sourceTribe, _targetTribe, attemptFoster, _chanceOfRejectingOffer);
+			Decision fosterDecision = new FosterTribeRelationDecision (_sourceTribe, _targetTribe, attemptFoster, _chanceOfRejectingOffer, Id);
 
 			if (_originalSourceDominantClan.IsUnderPlayerGuidance) {
 
@@ -190,7 +172,7 @@ public class FosterTribeRelationDecisionEvent : PolityEvent {
 
 		} else if (attemptFoster) {
 
-			FosterTribeRelationDecision.LeaderAttemptsFosterRelationship (_sourceTribe, _targetTribe, _chanceOfRejectingOffer);
+			FosterTribeRelationDecision.LeaderAttemptsFosterRelationship (_sourceTribe, _targetTribe, _chanceOfRejectingOffer, Id);
 
 		} else {
 
@@ -215,12 +197,6 @@ public class FosterTribeRelationDecisionEvent : PolityEvent {
 		if ((Polity != null) && (Polity.StillPresent)) {
 
 			Tribe tribe = Polity as Tribe;
-
-//			#if DEBUG
-//			if (tribe.Id == 6993753500213400) {
-//				bool debug = true;
-//			}
-//			#endif
 
 			tribe.ResetEvent (WorldEvent.FosterTribeRelationDecisionEventId, CalculateTriggerDate (tribe));
 		}

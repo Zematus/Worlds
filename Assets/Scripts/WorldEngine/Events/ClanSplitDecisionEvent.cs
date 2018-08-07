@@ -11,9 +11,10 @@ public class ClanSplitDecisionEvent : FactionEvent {
 	
 	public const float MinInfluenceTrigger = 0.3f;
 	public const float MinCoreDistance = 1000f;
-	public const float MinCoreProminenceValue = 0.5f;
+	public const float MinProminenceValue = 0.2f;
+    public const int MinPopulation = 50;
 
-	public const int MaxAdministrativeLoad = 400000;
+    public const int MaxAdministrativeLoad = 400000;
 	public const int MinAdministrativeLoad = 80000;
 	public const int AdministrativeLoadSpan = MaxAdministrativeLoad - MinAdministrativeLoad;
 
@@ -42,7 +43,7 @@ public class ClanSplitDecisionEvent : FactionEvent {
 		_clan = clan;
 
 		DoNotSerialize = true;
-	}
+    }
 
 	public static long CalculateTriggerDate (Clan clan) {
 
@@ -93,6 +94,9 @@ public class ClanSplitDecisionEvent : FactionEvent {
 		if (!Clan.CanBeClanCore (group))
 			return 0;
 
+        if (group.Population < Clan.MinCorePopulation)
+            return 0;
+
 		float coreDistance = pi.FactionCoreDistance - MinCoreDistance;
 
 		if (coreDistance <= 0)
@@ -100,7 +104,7 @@ public class ClanSplitDecisionEvent : FactionEvent {
 
 		float coreDistanceFactor = MinCoreDistance / (MinCoreDistance + coreDistance);
 
-		float minCoreProminenceValue = MinCoreProminenceValue * coreDistanceFactor;
+		float minCoreProminenceValue = Mathf.Max(coreDistanceFactor, Clan.MinCorePolityProminence);
 
 		float value = pi.Value - minCoreProminenceValue;
 
@@ -203,9 +207,9 @@ public class ClanSplitDecisionEvent : FactionEvent {
 			Decision splitDecision;
 
 			if (_chanceOfSplitting >= 1) {
-				splitDecision = new ClanSplitDecision (_clan, _newClanCoreGroup); // Player can't prevent splitting from happening
+				splitDecision = new ClanSplitDecision (_clan, _newClanCoreGroup, Id); // Player can't prevent splitting from happening
 			} else {
-				splitDecision = new ClanSplitDecision (_clan, _newClanCoreGroup, preferSplit); // Give player options
+				splitDecision = new ClanSplitDecision (_clan, _newClanCoreGroup, preferSplit, Id); // Give player options
 			}
 
 			if (_clan.IsUnderPlayerGuidance) {
@@ -219,7 +223,7 @@ public class ClanSplitDecisionEvent : FactionEvent {
 
 		} else if (preferSplit) {
 
-			ClanSplitDecision.LeaderAllowsSplit (_clan, _newClanCoreGroup);
+			ClanSplitDecision.LeaderAllowsSplit (_clan, _newClanCoreGroup, Id);
 
 		} else {
 
@@ -250,8 +254,10 @@ public class ClanSplitDecisionEvent : FactionEvent {
 
 	public override void Reset (long newTriggerDate)
 	{
+        long oldId = Id;
+
 		base.Reset (newTriggerDate);
 
-		_clan = Faction as Clan;
+        _clan = Faction as Clan;
 	}
 }

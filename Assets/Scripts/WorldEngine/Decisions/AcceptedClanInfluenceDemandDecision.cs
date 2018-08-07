@@ -11,7 +11,7 @@ public class AcceptedClanInfluenceDemandDecision : FactionDecision {
 	private Clan _demandClan;
 	private Clan _dominantClan;
 
-	public AcceptedClanInfluenceDemandDecision (Tribe tribe, Clan demandClan, Clan dominantClan) : base (demandClan) {
+	public AcceptedClanInfluenceDemandDecision (Tribe tribe, Clan demandClan, Clan dominantClan, long eventId) : base (demandClan, eventId) {
 
 		_tribe = tribe;
 

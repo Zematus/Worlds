@@ -22,8 +22,8 @@ public class Clan : Faction {
 
 	public const int MinSocialOrganizationValue = 400;
 
-	public const int MinCoreMigrationPopulation = 500;
-	public const float MinCoreMigrationPolityProminence = 0.3f;
+	public const int MinCorePopulation = 500;
+	public const float MinCorePolityProminence = 0.3f;
 
 	public const float AvgClanSplitRelationshipValue = 0.5f;
 	public const float ClanSplitRelationshipValueSpread = 0.1f;
@@ -248,10 +248,10 @@ public class Clan : Faction {
 		if (pi == null)
 			return false;
 
-		if (pi.Value < MinCoreMigrationPolityProminence)
+		if (pi.Value < MinCorePolityProminence)
 			return false;
 
-		if (group.Population < MinCoreMigrationPopulation)
+		if (group.Population < MinCorePopulation)
 			return false;
 
 		return true;
@@ -294,12 +294,12 @@ public class Clan : Faction {
         }
 #endif
 
-        float targetProminenceFactor = Mathf.Max (0, targetProminence - MinCoreMigrationPolityProminence);
+        float targetProminenceFactor = Mathf.Max (0, targetProminence - MinCorePolityProminence);
 
 		if (targetProminenceFactor <= 0)
 			return false;
 
-		float targetPopulationFactor = Mathf.Max (0, targetPopulation - MinCoreMigrationPopulation);
+		float targetPopulationFactor = Mathf.Max (0, targetPopulation - MinCorePopulation);
 
 		if (targetPopulationFactor <= 0)
 			return false;
@@ -314,8 +314,8 @@ public class Clan : Faction {
 
 		float sourceProminence = pi.Value;
 
-		float sourceProminenceFactor = Mathf.Max (0, sourceProminence - MinCoreMigrationPolityProminence);
-		float sourcePopulationFactor = Mathf.Max (0, sourcePopulation - MinCoreMigrationPopulation);
+		float sourceProminenceFactor = Mathf.Max (0, sourceProminence - MinCorePolityProminence);
+		float sourcePopulationFactor = Mathf.Max (0, sourcePopulation - MinCorePopulation);
 
 		float sourceFactor = sourceProminenceFactor * sourcePopulationFactor;
 
@@ -380,14 +380,37 @@ public class Clan : Faction {
 
 		Influence -= splitFactionInfluence;
 
+        if (_splitFactionCoreGroup == null)
+        {
+            throw new System.Exception("_splitFactionCoreGroup is null - Clan Id: " + Id + ", Event Id: " + _splitFactionEventId);
+        }
+
 		float polityProminenceValue = _splitFactionCoreGroup.GetPolityProminenceValue (Polity);
 		PolityProminence highestPolityProminence = _splitFactionCoreGroup.HighestPolityProminence;
 
-		Tribe parentTribe = Polity as Tribe;
+        if (highestPolityProminence == null)
+        {
+            throw new System.Exception(
+                "highestPolityProminence is null - Clan Id: " + Id + 
+                ", Group Id: " + _splitFactionCoreGroup.Id + 
+                ", Event Id: " + _splitFactionEventId);
+        }
 
-		// If the polity with the highest prominence is different than the source clan's polity and it's value is twice greater switch the new clan's polity to this one.
-		// NOTE: This is sort of a hack to avoid issues with clan/tribe split coincidences (issue #8 github). Try finding a better solution...
-		if (highestPolityProminence.Value > (polityProminenceValue * 2)) {
+        if (CurrentLeader == null)
+        {
+            throw new System.Exception("CurrentLeader is null - Clan Id: " + Id + ", Event Id: " + _splitFactionEventId);
+        }
+
+        Tribe parentTribe = Polity as Tribe;
+
+        if (parentTribe == null)
+        {
+            throw new System.Exception("parentTribe is null - Clan Id: " + Id + ", Event Id: " + _splitFactionEventId);
+        }
+
+        // If the polity with the highest prominence is different than the source clan's polity and it's value is twice greater switch the new clan's polity to this one.
+        // NOTE: This is sort of a hack to avoid issues with clan/tribe split coincidences (issue #8 github). Try finding a better solution...
+        if (highestPolityProminence.Value > (polityProminenceValue * 2)) {
 		
 			if (highestPolityProminence.Polity is Tribe) {
 			
@@ -397,14 +420,20 @@ public class Clan : Faction {
 //                Debug.Log("parent tribe replaced from " + Polity.Id + " to " + parentTribe.Id + " due to low polity prominence value in new core: " + polityProminenceValue);
 //#endif
             }
-            else {
-			
-				throw new System.Exception ("Failed to replace new parent polity as it is not a Tribe. Id: " + highestPolityProminence.Polity.Id);
+            else
+            {
+				throw new System.Exception ("Failed to replace new parent polity as it is not a Tribe. Id: " + highestPolityProminence.Polity.Id + ", Event Id: " + _splitFactionEventId);
 			}
-		}
+        }
 
-		Clan newClan = new Clan (parentTribe, _splitFactionCoreGroup, splitFactionInfluence, this);
-		newClan.Initialize (); // We can initialize right away since the containing polity is already initialized
+        Clan newClan = new Clan (parentTribe, _splitFactionCoreGroup, splitFactionInfluence, this);
+
+        if (newClan == null)
+        {
+            throw new System.Exception("newClan is null - Clan Id: " + Id + ", Event Id: " + _splitFactionEventId);
+        }
+
+        newClan.Initialize (); // We can initialize right away since the containing polity is already initialized
 
 		// set relationship with parent clan
 
@@ -443,8 +472,8 @@ public class Clan : Faction {
         parentTribe.AddEventMessage (new ClanSplitEventMessage (this, newClan, World.CurrentDate));
 	}
 
-	public float CalculateAdministrativeLoad () {
-
+	public float CalculateAdministrativeLoad ()
+    {
 		float socialOrganizationValue = 0;
 
 		CulturalKnowledge socialOrganizationKnowledge = Culture.GetKnowledge (SocialOrganizationKnowledge.SocialOrganizationKnowledgeId);

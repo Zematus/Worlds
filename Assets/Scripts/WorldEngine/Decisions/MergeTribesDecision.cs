@@ -19,7 +19,7 @@ public class MergeTribesDecision : PolityDecision {
 	private Tribe _sourceTribe;
 	private Tribe _targetTribe;
 
-	public MergeTribesDecision (Tribe sourceTribe, Tribe targetTribe, bool makeAttempt, float chanceOfRejecting) : base (sourceTribe) {
+	public MergeTribesDecision (Tribe sourceTribe, Tribe targetTribe, bool makeAttempt, float chanceOfRejecting, long eventId) : base (sourceTribe, eventId) {
 
 		_sourceTribe = sourceTribe;
 		_targetTribe = targetTribe;
@@ -67,7 +67,7 @@ public class MergeTribesDecision : PolityDecision {
 			"\t• The current leader of " + _targetTribe.GetNameAndTypeStringBold () + " will receive an offer to merge their tribe into " + _sourceTribe.GetNameAndTypeStringBold ();
 	}
 
-	public static void LeaderAttemptsMergeTribes_TriggerRejectDecision (Tribe sourceTribe, Tribe targetTribe, float chanceOfRejecting) {
+	public static void LeaderAttemptsMergeTribes_TriggerRejectDecision (Tribe sourceTribe, Tribe targetTribe, float chanceOfRejecting, long eventId) {
 
 		World world = sourceTribe.World;
 
@@ -79,7 +79,7 @@ public class MergeTribesDecision : PolityDecision {
 
 			Decision handleOfferDecision;
 
-			handleOfferDecision = new HandleMergeTribesOfferDecision (sourceTribe, targetTribe, acceptOffer); // Give player options
+			handleOfferDecision = new HandleMergeTribesOfferDecision (sourceTribe, targetTribe, acceptOffer, eventId); // Give player options
 
 			if (targetDominantClan.IsUnderPlayerGuidance) {
 
@@ -92,26 +92,26 @@ public class MergeTribesDecision : PolityDecision {
 
 		} else if (acceptOffer) {
 
-			HandleMergeTribesOfferDecision.LeaderAcceptsOffer (sourceTribe, targetTribe);
+			HandleMergeTribesOfferDecision.LeaderAcceptsOffer (sourceTribe, targetTribe, eventId);
 
 		} else {
 
-			HandleMergeTribesOfferDecision.LeaderRejectsOffer (sourceTribe, targetTribe);
+			HandleMergeTribesOfferDecision.LeaderRejectsOffer (sourceTribe, targetTribe, eventId);
 		}
 	}
 
-	public static void LeaderAttemptsMergeTribes (Tribe sourceTribe, Tribe targetTribe, float chanceOfRejecting) {
+	public static void LeaderAttemptsMergeTribes (Tribe sourceTribe, Tribe targetTribe, float chanceOfRejecting, long eventId) {
 
 		int rngOffset = RngOffsets.MERGE_TRIBES_EVENT_SOURCETRIBE_LEADER_MAKES_ATTEMPT_MODIFY_ATTRIBUTE;
 
 		Effect_DecreasePreference (sourceTribe, CulturalPreference.IsolationPreferenceId, BaseMinPreferencePercentChange, BaseMaxPreferencePercentChange, rngOffset++);
 
-		LeaderAttemptsMergeTribes_TriggerRejectDecision (sourceTribe, targetTribe, chanceOfRejecting);
+		LeaderAttemptsMergeTribes_TriggerRejectDecision (sourceTribe, targetTribe, chanceOfRejecting, eventId);
 	}
 
 	private void AttemptToMergeTribes () {
 
-		LeaderAttemptsMergeTribes (_sourceTribe, _targetTribe, _chanceOfRejecting);
+		LeaderAttemptsMergeTribes (_sourceTribe, _targetTribe, _chanceOfRejecting, _eventId);
 	}
 
 	public override Option[] GetOptions () {

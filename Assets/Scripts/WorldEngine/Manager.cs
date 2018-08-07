@@ -388,6 +388,7 @@ public class Manager {
 
         if (type == LogType.Exception)
         {
+            stackTrace = stackTrace.Replace("\r\n", "\n").Replace("\n\r", "\n").Replace("\r", "\n").Replace("\n", "\n\t");
             _debugLogStream.WriteLine("\t" + stackTrace);
         }
         
@@ -434,9 +435,12 @@ public class Manager {
 		return string.Format ("{0} years, {1} days", years, days);
 	}
 
-	public static string AddDateToWorldName (string worldName) {
+	public static string AddDateToWorldName (string worldName)
+    {
+        long year = CurrentWorld.CurrentDate / World.YearLength;
+        int day = (int)(CurrentWorld.CurrentDate % World.YearLength);
 
-		return worldName + "_date_" + CurrentWorld.CurrentDate;
+        return worldName + "_date_" + string.Format("{0}_{1}", year, day);
 	}
 
 	public static string RemoveDateFromWorldName (string worldName) {

@@ -32,7 +32,7 @@ public class ClanTribeSplitDecision : FactionDecision {
 			"they are no longer part of the " + tribe.Name.BoldText + " tribe and wish for the clan to become their own tribe.\n\n";
 	}
 
-	public ClanTribeSplitDecision (Tribe tribe, Clan splitClan, Clan dominantClan, float tribeChanceOfSplitting) : base (splitClan) {
+	public ClanTribeSplitDecision (Tribe tribe, Clan splitClan, Clan dominantClan, float tribeChanceOfSplitting, long eventId) : base (splitClan, eventId) {
 
 		_tribe = tribe;
 
@@ -48,7 +48,7 @@ public class ClanTribeSplitDecision : FactionDecision {
 		_dominantClan = dominantClan;
 	}
 
-	public ClanTribeSplitDecision (Tribe tribe, Clan splitClan, Clan dominantClan, bool preferSplit, float tribeChanceOfSplitting) : base (splitClan) {
+	public ClanTribeSplitDecision (Tribe tribe, Clan splitClan, Clan dominantClan, bool preferSplit, float tribeChanceOfSplitting, long eventId) : base (splitClan, eventId) {
 
 		_tribe = tribe;
 
@@ -205,7 +205,7 @@ public class ClanTribeSplitDecision : FactionDecision {
 		return message;
 	}
 
-	public static void LeaderAllowsSplit (Clan splitClan, Clan dominantClan, Tribe originalTribe, float tribeChanceOfSplitting) {
+	public static void LeaderAllowsSplit (Clan splitClan, Clan dominantClan, Tribe originalTribe, float tribeChanceOfSplitting, long eventId) {
 
 		World world = originalTribe.World;
 
@@ -216,9 +216,9 @@ public class ClanTribeSplitDecision : FactionDecision {
 			Decision tribeDecision;
 
 			if (tribeChanceOfSplitting >= 1) {
-				tribeDecision = new TribeSplitDecision (originalTribe, splitClan, dominantClan); // Player that controls dominant clan can't prevent splitting from happening
+				tribeDecision = new TribeSplitDecision (originalTribe, splitClan, dominantClan, eventId); // Player that controls dominant clan can't prevent splitting from happening
 			} else {
-				tribeDecision = new TribeSplitDecision (originalTribe, splitClan, dominantClan, tribePreferSplit); // Give player options
+				tribeDecision = new TribeSplitDecision (originalTribe, splitClan, dominantClan, tribePreferSplit, eventId); // Give player options
 			}
 
 			if (dominantClan.IsUnderPlayerGuidance) {
@@ -236,13 +236,13 @@ public class ClanTribeSplitDecision : FactionDecision {
 
 		} else {
 
-			TribeSplitDecision.LeaderPreventsSplit (splitClan, dominantClan, originalTribe);
+			TribeSplitDecision.LeaderPreventsSplit (splitClan, dominantClan, originalTribe, eventId);
 		}
 	}
 
 	private void AllowSplit () {
 
-		LeaderAllowsSplit (_splitClan, _dominantClan, _tribe, _tribeChanceOfSplitting);
+		LeaderAllowsSplit (_splitClan, _dominantClan, _tribe, _tribeChanceOfSplitting, _eventId);
 	}
 
 	public override Option[] GetOptions () {

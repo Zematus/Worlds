@@ -9,7 +9,7 @@ public class RejectedFosterTribeRelationDecision : PolityDecision {
 	private Tribe _sourceTribe;
 	private Tribe _targetTribe;
 
-	public RejectedFosterTribeRelationDecision (Tribe sourceTribe, Tribe targetTribe) : base (sourceTribe) {
+	public RejectedFosterTribeRelationDecision (Tribe sourceTribe, Tribe targetTribe, long eventId) : base (sourceTribe, eventId) {
 
 		Description = "The leader of " + targetTribe.GetNameAndTypeStringBold () + ", " + targetTribe.CurrentLeader.Name.BoldText + ", has rejected the attempt from " + sourceTribe.GetNameAndTypeStringBold () + 
 			" to improve the relationship between the tribes";

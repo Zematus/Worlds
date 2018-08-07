@@ -150,12 +150,6 @@ public class TribeSplitDecisionEvent : FactionEvent {
 
 		_splitClanChanceOfSplitting = CalculateChanceOfSplittingForSplitClan ();
 
-//		#if DEBUG
-//		if (OriginalPolity.Id == 6993753500213400) {
-//			bool debug = true;
-//		}
-//		#endif
-
 //		if (_splitClan.IsUnderPlayerGuidance && _splitClanChanceOfSplitting < 0.5f) {
 //		
 //			return false;
@@ -265,9 +259,9 @@ public class TribeSplitDecisionEvent : FactionEvent {
 			Decision splitClanDecision;
 
 			if (_splitClanChanceOfSplitting >= 1) {
-				splitClanDecision = new ClanTribeSplitDecision (_originalTribe, _splitClan, _dominantClan, _tribeChanceOfSplitting); // Player that controls split clan can't prevent splitting from happening
+				splitClanDecision = new ClanTribeSplitDecision (_originalTribe, _splitClan, _dominantClan, _tribeChanceOfSplitting, Id); // Player that controls split clan can't prevent splitting from happening
 			} else {
-				splitClanDecision = new ClanTribeSplitDecision (_originalTribe, _splitClan, _dominantClan, splitClanPreferSplit, _tribeChanceOfSplitting); // Give player options
+				splitClanDecision = new ClanTribeSplitDecision (_originalTribe, _splitClan, _dominantClan, splitClanPreferSplit, _tribeChanceOfSplitting, Id); // Give player options
 			}
 
 			if (_splitClan.IsUnderPlayerGuidance) {
@@ -281,7 +275,7 @@ public class TribeSplitDecisionEvent : FactionEvent {
 
 		} else if (splitClanPreferSplit) {
 
-			ClanTribeSplitDecision.LeaderAllowsSplit (_splitClan, _dominantClan, _originalTribe, _tribeChanceOfSplitting);
+			ClanTribeSplitDecision.LeaderAllowsSplit (_splitClan, _dominantClan, _originalTribe, _tribeChanceOfSplitting, Id);
 
 		} else {
 

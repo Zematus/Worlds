@@ -103,7 +103,7 @@ public class OpenTribeDecisionEvent : PolityEvent {
 
 		if (_tribe.IsUnderPlayerFocus || _originalDominantClan.IsUnderPlayerGuidance) {
 
-			Decision openDecision = new OpenTribeDecision (_tribe, attemptToOpen);
+			Decision openDecision = new OpenTribeDecision (_tribe, attemptToOpen, Id);
 
 			if (_originalDominantClan.IsUnderPlayerGuidance) {
 

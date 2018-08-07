@@ -327,7 +327,7 @@ public class ClanDemandsInfluenceDecisionEvent : FactionEvent {
 
 			Decision demandDecision;
 
-			demandDecision = new ClanDemandsInfluenceDecision (tribe, _demandClan, _dominantClan, performDemand, _chanceOfRejectingDemand);
+			demandDecision = new ClanDemandsInfluenceDecision (tribe, _demandClan, _dominantClan, performDemand, _chanceOfRejectingDemand, Id);
 
 			if (_demandClan.IsUnderPlayerGuidance) {
 
@@ -340,7 +340,7 @@ public class ClanDemandsInfluenceDecisionEvent : FactionEvent {
 
 		} else if (performDemand) {
 
-			ClanDemandsInfluenceDecision.LeaderDemandsInfluence (_demandClan, _dominantClan, tribe, _chanceOfRejectingDemand);
+			ClanDemandsInfluenceDecision.LeaderDemandsInfluence (_demandClan, _dominantClan, tribe, _chanceOfRejectingDemand, Id);
 
 		} else {
 

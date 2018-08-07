@@ -76,6 +76,7 @@ public abstract class Faction : ISynchronizable {
 	[XmlIgnore]
 	public bool IsInitialized = true;
 
+    protected long _splitFactionEventId;
 	protected CellGroup _splitFactionCoreGroup;
 	protected float _splitFactionMinInfluence;
 	protected float _splitFactionMaxInfluence;
@@ -243,8 +244,9 @@ public abstract class Faction : ISynchronizable {
 		return _relationships.ContainsKey (faction.Id);
 	}
 
-	public void SetToSplit (CellGroup splitFactionCoreGroup, float splitFactionMinInfluence, float splitFactionMaxInfluence) {
-	
+	public void SetToSplit (CellGroup splitFactionCoreGroup, float splitFactionMinInfluence, float splitFactionMaxInfluence, long eventId) {
+
+        _splitFactionEventId = eventId;
 		_splitFactionCoreGroup = splitFactionCoreGroup;
 		_splitFactionMinInfluence = splitFactionMinInfluence;
 		_splitFactionMaxInfluence = splitFactionMaxInfluence;

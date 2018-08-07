@@ -9,7 +9,7 @@ public class AcceptedFosterTribeRelationDecision : PolityDecision {
 	private Tribe _sourceTribe;
 	private Tribe _targetTribe;
 
-	public AcceptedFosterTribeRelationDecision (Tribe sourceTribe, Tribe targetTribe) : base (sourceTribe) {
+	public AcceptedFosterTribeRelationDecision (Tribe sourceTribe, Tribe targetTribe, long eventId) : base (sourceTribe, eventId) {
 
 		Description = "The leader of " + targetTribe.GetNameAndTypeStringBold () + ", " + targetTribe.CurrentLeader.Name.BoldText + ", has accepted the offer from " + sourceTribe.GetNameAndTypeStringBold () + 
 			" to improve the relationship between the tribes";

@@ -9,7 +9,7 @@ public abstract class PolityDecision : Decision {
 
 	public Polity Polity;
 
-	public PolityDecision (Polity polity) : base () {
+	public PolityDecision (Polity polity, long eventId) : base (eventId) {
 
 		Polity = polity;
 	}

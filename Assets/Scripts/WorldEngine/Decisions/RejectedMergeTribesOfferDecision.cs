@@ -9,7 +9,7 @@ public class RejectedMergeTribesOfferDecision : PolityDecision {
 	private Tribe _sourceTribe;
 	private Tribe _targetTribe;
 
-	public RejectedMergeTribesOfferDecision (Tribe sourceTribe, Tribe targetTribe) : base (sourceTribe) {
+	public RejectedMergeTribesOfferDecision (Tribe sourceTribe, Tribe targetTribe, long eventId) : base (sourceTribe, eventId) {
 
 		Description = "The leader of " + targetTribe.GetNameAndTypeStringBold () + ", " + targetTribe.CurrentLeader.Name.BoldText + ", has rejected the attempt from " + sourceTribe.GetNameAndTypeStringBold () + 
 			" to merge the tribes into one";

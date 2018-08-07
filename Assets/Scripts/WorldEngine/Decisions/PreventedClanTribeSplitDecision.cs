@@ -11,7 +11,7 @@ public class PreventedClanTribeSplitDecision : FactionDecision {
 	private Clan _splitClan;
 	private Clan _dominantClan;
 
-	public PreventedClanTribeSplitDecision (Tribe tribe, Clan splitClan, Clan dominantClan) : base (splitClan) {
+	public PreventedClanTribeSplitDecision (Tribe tribe, Clan splitClan, Clan dominantClan, long eventId) : base (splitClan, eventId) {
 
 		_tribe = tribe;
 

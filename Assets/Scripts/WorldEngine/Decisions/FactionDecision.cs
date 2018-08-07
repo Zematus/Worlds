@@ -9,7 +9,7 @@ public abstract class FactionDecision : Decision {
 
 	public Faction Faction;
 
-	public FactionDecision (Faction faction) : base () {
+	public FactionDecision (Faction faction, long eventId) : base (eventId) {
 
 		Faction = faction;
 	}

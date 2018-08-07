@@ -1738,8 +1738,8 @@ public class CellGroup : HumanGroup {
 
 		StillPresent = false;
 
-		foreach (Faction faction in GetFactionCores ()) {
-
+		foreach (Faction faction in GetFactionCores ())
+        {
 #if DEBUG
 			Debug.Log ("Faction will be removed due to core group dissapearing. faction id: " + faction.Id + ", polity id:" + faction.Polity.Id + ", group id:" + Id + ", date:" + World.CurrentDate);
 #endif
@@ -1777,9 +1777,9 @@ public class CellGroup : HumanGroup {
 
 			// We want to update the polity if a group is removed.
 			SetPolityUpdate (polityProminence, true);
-		}
+        }
 
-		SetHighestPolityProminence (null);
+        SetHighestPolityProminence (null);
 	}
 
 #if DEBUG

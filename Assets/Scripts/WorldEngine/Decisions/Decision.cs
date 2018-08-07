@@ -13,7 +13,9 @@ public abstract class Decision {
 
 	public delegate void ExecuteDelegate ();
 
-	public class Option {
+    protected long _eventId;
+
+    public class Option {
 
 		public string Text;
 
@@ -36,8 +38,9 @@ public abstract class Decision {
 		}
 	}
 
-	public Decision () {
-		
+	public Decision (long eventId) {
+
+        _eventId = eventId;
 	}
 
 	public abstract Option[] GetOptions ();

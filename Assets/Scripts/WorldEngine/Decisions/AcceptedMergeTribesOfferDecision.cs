@@ -9,7 +9,7 @@ public class AcceptedMergeTribesOfferDecision : PolityDecision {
 	private Tribe _sourceTribe;
 	private Tribe _targetTribe;
 
-	public AcceptedMergeTribesOfferDecision (Tribe sourceTribe, Tribe targetTribe) : base (sourceTribe) {
+	public AcceptedMergeTribesOfferDecision (Tribe sourceTribe, Tribe targetTribe, long eventId) : base (sourceTribe, eventId) {
 
 		Description = "The leader of " + targetTribe.GetNameAndTypeStringBold () + ", " + targetTribe.CurrentLeader.Name.BoldText + ", has accepted the offer to merge " +
 			targetTribe.CurrentLeader.PossessiveNoun + " tribe into " + sourceTribe.GetNameAndTypeStringBold ();

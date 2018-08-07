@@ -30,7 +30,7 @@ public class TribeSplitDecision : FactionDecision {
 			"they are no longer part of the " + tribe.Name.BoldText + " tribe and wish for the clan to become their own tribe.\n\n";
 	}
 
-	public TribeSplitDecision (Tribe tribe, Clan splitClan, Clan dominantClan) : base (dominantClan) {
+	public TribeSplitDecision (Tribe tribe, Clan splitClan, Clan dominantClan, long eventId) : base (dominantClan, eventId) {
 
 		_tribe = tribe;
 
@@ -44,7 +44,7 @@ public class TribeSplitDecision : FactionDecision {
 		_cantPrevent = true;
 	}
 
-	public TribeSplitDecision (Tribe tribe, Clan splitClan, Clan dominantClan, bool preferSplit) : base (dominantClan) {
+	public TribeSplitDecision (Tribe tribe, Clan splitClan, Clan dominantClan, bool preferSplit, long eventId) : base (dominantClan, eventId) {
 
 		_tribe = tribe;
 
@@ -71,13 +71,13 @@ public class TribeSplitDecision : FactionDecision {
 			"\t• " + splitClanInfluenceChangeEffect;
 	}
 
-	public static void LeaderPreventsSplit_notifySplitClan (Clan splitClan, Clan dominantClan, Tribe originalTribe) {
+	public static void LeaderPreventsSplit_notifySplitClan (Clan splitClan, Clan dominantClan, Tribe originalTribe, long eventId) {
 
 		World world = originalTribe.World;
 
 		if (originalTribe.IsUnderPlayerFocus || splitClan.IsUnderPlayerGuidance) {
 
-			Decision decision = new PreventedClanTribeSplitDecision (originalTribe, splitClan, dominantClan); // Notify player that tribe leader prevented split
+			Decision decision = new PreventedClanTribeSplitDecision (originalTribe, splitClan, dominantClan, eventId); // Notify player that tribe leader prevented split
 
 			if (splitClan.IsUnderPlayerGuidance) {
 
@@ -94,7 +94,7 @@ public class TribeSplitDecision : FactionDecision {
 		}
 	}
 
-	public static void LeaderPreventsSplit (Clan splitClan, Clan dominantClan, Tribe tribe) {
+	public static void LeaderPreventsSplit (Clan splitClan, Clan dominantClan, Tribe tribe, long eventId) {
 
 		float charismaFactor = splitClan.CurrentLeader.Charisma / 10f;
 		float wisdomFactor = splitClan.CurrentLeader.Wisdom / 15f;
@@ -123,12 +123,12 @@ public class TribeSplitDecision : FactionDecision {
 
 		// Updates
 
-		LeaderPreventsSplit_notifySplitClan (splitClan, dominantClan, tribe);
+		LeaderPreventsSplit_notifySplitClan (splitClan, dominantClan, tribe, eventId);
 	}
 
 	private void PreventSplit () {
 
-		LeaderPreventsSplit (_splitClan, _dominantClan, _tribe);
+		LeaderPreventsSplit (_splitClan, _dominantClan, _tribe, _eventId);
 	}
 
 	private string GenerateAllowSplitResultMessage () {

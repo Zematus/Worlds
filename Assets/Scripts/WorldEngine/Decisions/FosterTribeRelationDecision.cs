@@ -19,7 +19,7 @@ public class FosterTribeRelationDecision : PolityDecision {
 	private Tribe _sourceTribe;
 	private Tribe _targetTribe;
 
-	public FosterTribeRelationDecision (Tribe sourceTribe, Tribe targetTribe, bool makeAttempt, float chanceOfRejecting) : base (sourceTribe) {
+	public FosterTribeRelationDecision (Tribe sourceTribe, Tribe targetTribe, bool makeAttempt, float chanceOfRejecting, long eventId) : base (sourceTribe, eventId) {
 
 		_sourceTribe = sourceTribe;
 		_targetTribe = targetTribe;
@@ -64,13 +64,7 @@ public class FosterTribeRelationDecision : PolityDecision {
 			"\t• The current leader of " + _targetTribe.GetNameAndTypeStringBold () + " will receive an offer to foster the relationship with " + _sourceTribe.GetNameAndTypeStringBold ();
 	}
 
-	public static void LeaderAttemptsFosterRelationship_TriggerRejectDecision (Tribe sourceTribe, Tribe targetTribe, float chanceOfRejecting) {
-
-//		#if DEBUG
-//		if (targetTribe.Id == 6993753500213400) {
-//			bool debug = true;
-//		}
-//		#endif
+	public static void LeaderAttemptsFosterRelationship_TriggerRejectDecision (Tribe sourceTribe, Tribe targetTribe, float chanceOfRejecting, long eventId) {
 
 		World world = sourceTribe.World;
 
@@ -82,7 +76,7 @@ public class FosterTribeRelationDecision : PolityDecision {
 
 			Decision handleOfferDecision;
 
-			handleOfferDecision = new HandleFosterTribeRelationAttemptDecision (sourceTribe, targetTribe, acceptOffer); // Give player options
+			handleOfferDecision = new HandleFosterTribeRelationAttemptDecision (sourceTribe, targetTribe, acceptOffer, eventId); // Give player options
 
 			if (targetDominantClan.IsUnderPlayerGuidance) {
 
@@ -95,26 +89,26 @@ public class FosterTribeRelationDecision : PolityDecision {
 
 		} else if (acceptOffer) {
 
-			HandleFosterTribeRelationAttemptDecision.LeaderAcceptsOffer (sourceTribe, targetTribe);
+			HandleFosterTribeRelationAttemptDecision.LeaderAcceptsOffer (sourceTribe, targetTribe, eventId);
 
 		} else {
 
-			HandleFosterTribeRelationAttemptDecision.LeaderRejectsOffer (sourceTribe, targetTribe);
+			HandleFosterTribeRelationAttemptDecision.LeaderRejectsOffer (sourceTribe, targetTribe, eventId);
 		}
 	}
 
-	public static void LeaderAttemptsFosterRelationship (Tribe sourceTribe, Tribe targetTribe, float chanceOfRejecting) {
+	public static void LeaderAttemptsFosterRelationship (Tribe sourceTribe, Tribe targetTribe, float chanceOfRejecting, long eventId) {
 
 		int rngOffset = RngOffsets.FOSTER_TRIBE_RELATION_EVENT_SOURCETRIBE_LEADER_MAKES_ATTEMPT_MODIFY_ATTRIBUTE;
 
 		Effect_DecreasePreference (sourceTribe, CulturalPreference.IsolationPreferenceId, BaseMinIsolationPreferencePercentDecrease, BaseMaxIsolationPreferencePercentDecrease, rngOffset++);
 
-		LeaderAttemptsFosterRelationship_TriggerRejectDecision (sourceTribe, targetTribe, chanceOfRejecting);
+		LeaderAttemptsFosterRelationship_TriggerRejectDecision (sourceTribe, targetTribe, chanceOfRejecting, eventId);
 	}
 
 	private void AttemptToFosterRelationship () {
 
-		LeaderAttemptsFosterRelationship (_sourceTribe, _targetTribe, _chanceOfRejecting);
+		LeaderAttemptsFosterRelationship (_sourceTribe, _targetTribe, _chanceOfRejecting, _eventId);
 	}
 
 	public override Option[] GetOptions () {

@@ -24,7 +24,7 @@ public class ClanDemandsInfluenceDecision : FactionDecision {
 	private Clan _dominantClan;
 	private Clan _demandClan;
 
-	public ClanDemandsInfluenceDecision (Tribe tribe, Clan demandClan, Clan dominantClan, bool performDemand, float chanceOfRejecting) : base (demandClan) {
+	public ClanDemandsInfluenceDecision (Tribe tribe, Clan demandClan, Clan dominantClan, bool performDemand, float chanceOfRejecting, long eventId) : base (demandClan, eventId) {
 
 		_tribe = tribe;
 
@@ -72,7 +72,7 @@ public class ClanDemandsInfluenceDecision : FactionDecision {
 			"\t• The current leader of clan " + _dominantClan.Name.BoldText + " will receive the demand for infuence from " + _demandClan.CurrentLeader.Name.BoldText;
 	}
 
-	public static void LeaderDemandsInfluence_TriggerRejectDecision (Clan demandClan, Clan dominantClan, Tribe originalTribe, float chanceOfRejecting) {
+	public static void LeaderDemandsInfluence_TriggerRejectDecision (Clan demandClan, Clan dominantClan, Tribe originalTribe, float chanceOfRejecting, long eventId) {
 
 		World world = originalTribe.World;
 
@@ -83,9 +83,9 @@ public class ClanDemandsInfluenceDecision : FactionDecision {
 			Decision dominantClanDecision;
 
 			if (chanceOfRejecting <= 0) {
-				dominantClanDecision = new DominantClanHandlesInfluenceDemandDecision (originalTribe, demandClan, dominantClan); // Player that controls dominant clan can't reject demand
+				dominantClanDecision = new DominantClanHandlesInfluenceDemandDecision (originalTribe, demandClan, dominantClan, eventId); // Player that controls dominant clan can't reject demand
 			} else {
-				dominantClanDecision = new DominantClanHandlesInfluenceDemandDecision (originalTribe, demandClan, dominantClan, acceptDemand); // Give player options
+				dominantClanDecision = new DominantClanHandlesInfluenceDemandDecision (originalTribe, demandClan, dominantClan, acceptDemand, eventId); // Give player options
 			}
 
 			if (dominantClan.IsUnderPlayerGuidance) {
@@ -99,26 +99,26 @@ public class ClanDemandsInfluenceDecision : FactionDecision {
 
 		} else if (acceptDemand) {
 
-			DominantClanHandlesInfluenceDemandDecision.LeaderAcceptsDemand (demandClan, dominantClan, originalTribe);
+			DominantClanHandlesInfluenceDemandDecision.LeaderAcceptsDemand (demandClan, dominantClan, originalTribe, eventId);
 
 		} else {
 
-			DominantClanHandlesInfluenceDemandDecision.LeaderRejectsDemand (demandClan, dominantClan, originalTribe);
+			DominantClanHandlesInfluenceDemandDecision.LeaderRejectsDemand (demandClan, dominantClan, originalTribe, eventId);
 		}
 	}
 
-	public static void LeaderDemandsInfluence (Clan demandClan, Clan dominantClan, Tribe originalTribe, float chanceOfRejecting) {
+	public static void LeaderDemandsInfluence (Clan demandClan, Clan dominantClan, Tribe originalTribe, float chanceOfRejecting, long eventId) {
 
 		int rngOffset = RngOffsets.CLAN_DEMANDS_INFLUENCE_EVENT_DEMANDCLAN_LEADER_DEMANDS_MODIFY_ATTRIBUTE;
 
 		Effect_IncreasePreference (demandClan, CulturalPreference.AuthorityPreferenceId, BaseMinPreferencePercentChange, BaseMaxPreferencePercentChange, rngOffset++);
 
-		LeaderDemandsInfluence_TriggerRejectDecision (demandClan, dominantClan, originalTribe, chanceOfRejecting);
+		LeaderDemandsInfluence_TriggerRejectDecision (demandClan, dominantClan, originalTribe, chanceOfRejecting, eventId);
 	}
 
 	private void DemandInfluence () {
 
-		LeaderDemandsInfluence (_demandClan, _dominantClan, _tribe, _chanceOfRejecting);
+		LeaderDemandsInfluence (_demandClan, _dominantClan, _tribe, _chanceOfRejecting, _eventId);
 	}
 
 	public override Option[] GetOptions () {

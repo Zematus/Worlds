@@ -19,12 +19,12 @@ public class ClanSplitDecision : FactionDecision {
 
 	private CellGroup _newCoreGroup;
 
-	private static string GenerateDescriptionIntro (Clan clan) {
+    private static string GenerateDescriptionIntro (Clan clan) {
 
 		return "Several minor bands within clan " + clan.Name.BoldText + " have become too distant, hardly interacting with the rest of the clan. Now they are becoming their own clan.\n\n";
 	}
 
-	public ClanSplitDecision (Clan clan, CellGroup newCoreGroup) : base (clan) {
+	public ClanSplitDecision (Clan clan, CellGroup newCoreGroup, long eventId) : base (clan, eventId) {
 
 		_clan = clan;
 
@@ -36,7 +36,7 @@ public class ClanSplitDecision : FactionDecision {
 		_newCoreGroup = newCoreGroup;
 	}
 
-	public ClanSplitDecision (Clan clan, CellGroup newCoreGroup, bool preferSplit) : base (clan) {
+	public ClanSplitDecision (Clan clan, CellGroup newCoreGroup, bool preferSplit, long eventId) : base (clan, eventId) {
 
 		_clan = clan;
 
@@ -135,7 +135,7 @@ public class ClanSplitDecision : FactionDecision {
 
 	private void AllowSplit () {
 
-		LeaderAllowsSplit (_clan, _newCoreGroup);
+		LeaderAllowsSplit (_clan, _newCoreGroup, _eventId);
 	}
 
 	public override Option[] GetOptions () {
@@ -161,7 +161,7 @@ public class ClanSplitDecision : FactionDecision {
 			PreventSplit ();
 	}
 
-	public static void LeaderAllowsSplit (Clan clan, CellGroup newClanCoreGroup) {
+	public static void LeaderAllowsSplit (Clan clan, CellGroup newClanCoreGroup, long eventId) {
 
 		float minInfluence;
 		float maxInfluence;
@@ -170,7 +170,7 @@ public class ClanSplitDecision : FactionDecision {
         
         newClanCoreGroup.SetToUpdate();
 
-        clan.SetToSplit (newClanCoreGroup, minInfluence, maxInfluence);
+        clan.SetToSplit (newClanCoreGroup, minInfluence, maxInfluence, eventId);
 	}
 
 	public static void CalculateMinMaxInfluence (Clan clan, out float minInfluence, out float maxInfluence) {
