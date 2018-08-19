@@ -119,9 +119,26 @@ public class StartGuiManagerScript : MonoBehaviour {
 			
 			SceneManager.LoadScene ("WorldView");
 		}
-	}
-	
-	private bool HasFilesToLoad () {
+    }
+
+    private void PostProgressOp_GenerateWorld()
+    {
+        Debug.Log("Finished generating world with seed: " + Manager.CurrentWorld.Seed);
+
+        Manager.WorldName = "world_" + Manager.CurrentWorld.Seed;
+
+        _postProgressOp -= PostProgressOp_GenerateWorld;
+    }
+
+    public void PostProgressOp_LoadAction()
+    {
+        Debug.Log("Finished loading world. Seed: " + Manager.CurrentWorld.Seed +
+            ", Current Date: " + Manager.GetDateString(Manager.CurrentWorld.CurrentDate));
+
+        _postProgressOp -= PostProgressOp_LoadAction;
+    }
+
+    private bool HasFilesToLoad () {
 		
 		string dirPath = Manager.SavePath;
 		
@@ -148,10 +165,12 @@ public class StartGuiManagerScript : MonoBehaviour {
 		string path = LoadFileDialogPanelScript.GetPathToLoad ();
 		
 		Manager.LoadWorldAsync (path, ProgressUpdate);
-		
-		Manager.WorldName = Manager.RemoveDateFromWorldName(Path.GetFileNameWithoutExtension (path));
-		
-		_preparingWorld = true;
+
+        Manager.WorldName = Manager.RemoveDateFromWorldName(Path.GetFileNameWithoutExtension (path));
+
+        _postProgressOp += PostProgressOp_LoadAction;
+
+        _preparingWorld = true;
 	}
 	
 	public void CancelLoadAction () {
@@ -280,13 +299,8 @@ public class StartGuiManagerScript : MonoBehaviour {
 		_preparingWorld = true;
 		
 		Manager.GenerateNewWorldAsync (seed, ProgressUpdate);
-		
-		_postProgressOp = () => {
-			
-			Manager.WorldName = "world_" + Manager.CurrentWorld.Seed;
-			
-			_postProgressOp = null;
-		};
+
+        _postProgressOp += PostProgressOp_GenerateWorld;
 	}
 	
 	public void CustomizeGeneration () {

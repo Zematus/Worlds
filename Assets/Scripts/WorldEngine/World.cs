@@ -1823,8 +1823,10 @@ public class World : ISynchronizable {
 		TerrainCell cell = GetCell (longitude, latitude);
 		
 		CellGroup group = new CellGroup(this, cell, initialPopulation);
-		
-		AddGroup(group);
+
+        Debug.Log(string.Format("Adding population group at {0} with population: {1}", cell.Position, initialPopulation));
+
+        AddGroup(group);
 	}
 
 	public void GenerateRandomHumanGroups (int maxGroups, int initialPopulation) {
@@ -1863,14 +1865,14 @@ public class World : ISynchronizable {
 		for (int i = 0; i < maxGroups; i++) {
 			
 			ManagerTask<int> n = GenerateRandomInteger(0, SuitableCells.Count);
-
-//			Debug.Log ("Selected suitable cell index (from " + SuitableCells.Count + "):" + (int)n);
 			
 			TerrainCell cell = SuitableCells[n];
 			
 			CellGroup group = new CellGroup(this, cell, initialPopulation);
-			
-			AddGroup(group);
+
+            Debug.Log (string.Format("Adding random population group [{0}] at {1} with population: {2}", i, cell.Position, initialPopulation));
+
+            AddGroup(group);
 			
 			if (first) {
 				MigrationTagGroup(group);
@@ -2143,11 +2145,11 @@ public class World : ISynchronizable {
 		return PerlinNoise.GetValue(pos.x, pos.y, pos.z);
 	}
 	
-	private float GetMountainRangeNoiseFromRandomNoise(float noise, float widthFactor) {
-
+	private float GetMountainRangeNoiseFromRandomNoise(float noise, float widthFactor)
+    {
 		noise = (noise * 2) - 1;
 		
-		float value1 = -Mathf.Exp (-Mathf.Pow (noise * widthFactor + 1f, 2));
+		float value1 = -Mathf.Exp (-Mathf.Pow(noise * widthFactor + 1f, 2));
 		float value2 = Mathf.Exp (-Mathf.Pow(noise * widthFactor - 1f, 2));
 
 		float value = (value1 + value2 + 1) / 2f;

@@ -856,6 +856,8 @@ public class GuiManagerScript : MonoBehaviour {
 
 	private void PostProgressOp_GenerateWorld () {
 
+        Debug.Log("Finished generating world with seed: " + Manager.CurrentWorld.Seed);
+
         Manager.WorldName = "world_" + Manager.CurrentWorld.Seed;
 		
 		SelectionPanelScript.RemoveAllOptions ();
@@ -884,24 +886,18 @@ public class GuiManagerScript : MonoBehaviour {
 		_regenTextures = true;
 	}
 
-	// TODO: delete function
-//	private void ResetUIElements () {
-//	
-//		_selectedCell = null;
-//	}
+    public void SetInitialPopulationForTests()
+    {
+        int population = (int)Mathf.Ceil(World.StartPopulationDensity * TerrainCell.MaxArea);
 
-	public void SetInitialPopulationForTests () {
+        Manager.GenerateRandomHumanGroup(population);
 
-		int population = (int)Mathf.Ceil (World.StartPopulationDensity * TerrainCell.MaxArea);
+        InterruptSimulation(false);
 
-		Manager.GenerateRandomHumanGroup (population);
+        DisplayTip_MapScroll();
+    }
 
-		InterruptSimulation (false);
-
-		DisplayTip_MapScroll ();
-	}
-
-	private void SetInitialPopulation () {
+    private void SetInitialPopulation () {
 
 		AddPopulationDialogScript.SetDialogText ("Add Initial Population Group");
 
@@ -920,26 +916,30 @@ public class GuiManagerScript : MonoBehaviour {
 		
 		AddPopulationDialogScript.SetVisible (false);
 
-		DisplayTip_MapScroll ();
-	}
-	
-	public void RandomPopulationPlacement () {
+        Debug.Log("Player chose to cancel population placement.");
 
-		int population = AddPopulationDialogScript.Population;
-		
-		AddPopulationDialogScript.SetVisible (false);
-
-		if (population <= 0)
-			return;
-
-		Manager.GenerateRandomHumanGroup (population);
-
-		MenuUninterruptSimulation ();
-		
-		DisplayTip_MapScroll ();
+        DisplayTip_MapScroll ();
 	}
 
-	public void ClickOp_SelectCell (Vector2 position) {
+    public void RandomPopulationPlacement()
+    {
+        int population = AddPopulationDialogScript.Population;
+
+        AddPopulationDialogScript.SetVisible(false);
+
+        Debug.Log(string.Format("Player chose to do random population placement of {0}...", population));
+
+        if (population <= 0)
+            return;
+
+        Manager.GenerateRandomHumanGroup(population);
+
+        MenuUninterruptSimulation();
+
+        DisplayTip_MapScroll();
+    }
+
+    public void ClickOp_SelectCell (Vector2 position) {
 
 		Vector2 mapCoordinates;
 
@@ -977,8 +977,10 @@ public class GuiManagerScript : MonoBehaviour {
 		int population = AddPopulationDialogScript.Population;
 		
 		AddPopulationDialogScript.SetVisible (false);
-		
-		if (population <= 0)
+
+        Debug.Log(string.Format("Player chose to select cell for population placement of {0}...", population));
+
+        if (population <= 0)
 			return;
 
 		DisplayTip_InitialPopulationPlacement ();
@@ -1204,7 +1206,9 @@ public class GuiManagerScript : MonoBehaviour {
 
 	public void PostProgressOp_SaveAction () {
 
-		LoadButton.interactable = HasFilesToLoad ();
+        Debug.Log("Finished saving world to file.");
+
+        LoadButton.interactable = HasFilesToLoad ();
 		
 		_postProgressOp -= PostProgressOp_SaveAction;
 
@@ -1215,9 +1219,11 @@ public class GuiManagerScript : MonoBehaviour {
 		ShowHiddenInteractionPanels ();
 	}
 
-	public void PostProgressOp_ExportAction () {
+	public void PostProgressOp_ExportAction ()
+    {
+        Debug.Log("Finished exporting world map to .png file.");
 
-		_postProgressOp -= PostProgressOp_ExportAction;
+        _postProgressOp -= PostProgressOp_ExportAction;
 
 		if (!_eventPauseActive) {
 			InterruptSimulation (!Manager.SimulationCanRun);
@@ -1336,12 +1342,12 @@ public class GuiManagerScript : MonoBehaviour {
 		_simulationDateSpan = 0;
 	}
 
-	public void PostProgressOp_LoadAction () {
+	public void PostProgressOp_LoadAction ()
+    {
+        Debug.Log("Finished loading world. Seed: " + Manager.CurrentWorld.Seed + 
+            ", Current Date: " + Manager.GetDateString(Manager.CurrentWorld.CurrentDate));
 
-		// TODO: delete next commented line
-//		ResetUIElements ();
-		
-		SelectionPanelScript.RemoveAllOptions ();
+        SelectionPanelScript.RemoveAllOptions ();
 		
 		if (!Manager.SimulationCanRun) {
 			

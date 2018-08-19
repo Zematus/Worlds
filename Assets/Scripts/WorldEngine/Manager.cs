@@ -165,7 +165,7 @@ public class Manager {
 
 	#endif
 
-	public static string CurrentVersion = "0.03";
+	public static string CurrentVersion = "0.03.01";
 
 //	public static bool RecordingEnabled = false;
 
@@ -616,9 +616,11 @@ public class Manager {
 		if (_manager._progressCastMethod == null) {
 		
 			_manager._progressCastMethod = (value, message, reset) => {};
-		}
-		
-		ThreadPool.QueueUserWorkItem (state => {
+        }
+
+        Debug.Log("Trying to export world map to .png file: " + Path.GetFileName(path));
+
+        ThreadPool.QueueUserWorkItem (state => {
 			
 			ExportMapTextureToFile (path, uvRect);
 			
@@ -734,7 +736,7 @@ public class Manager {
 			_manager._progressCastMethod = (value, message, reset) => {};
         }
 
-        Debug.Log("Generating world with seed: " + seed);
+        Debug.Log("Trying to generate world with seed: " + seed);
 
         ThreadPool.QueueUserWorkItem (state => {
 			
@@ -796,9 +798,11 @@ public class Manager {
 		if (_manager._progressCastMethod == null) {
 			
 			_manager._progressCastMethod = (value, message, reset) => {};
-		}
-		
-		ThreadPool.QueueUserWorkItem (state => {
+        }
+
+        Debug.Log("Trying to save world to file: " + Path.GetFileName(path));
+
+        ThreadPool.QueueUserWorkItem (state => {
 			
 			SaveWorld (path);
 			
@@ -880,9 +884,11 @@ public class Manager {
 		if (_manager._progressCastMethod == null) {
 			
 			_manager._progressCastMethod = (value, message, reset) => {};
-		}
-		
-		ThreadPool.QueueUserWorkItem (state => {
+        }
+
+        Debug.Log("Trying to load world from file: " + Path.GetFileName(path));
+
+        ThreadPool.QueueUserWorkItem (state => {
 			
 			LoadWorld (path);
 			

@@ -244,14 +244,6 @@ public class TribeSplitDecisionEvent : FactionEvent {
 
 	public override void Trigger ()
     {
-
-#if DEBUG
-        if ((Id == 160349336613603015L) || (Id == 160349354613603010L))
-        {
-            Debug.LogWarning("Event Id: " + Id + " has been triggered, current date: " + World.CurrentDate + ", loaded world: " + Manager.Debug_IsLoadedWorld);
-        }
-#endif
-
         bool splitClanPreferSplit = _splitClan.GetNextLocalRandomFloat (RngOffsets.TRIBE_SPLITTING_EVENT_SPLITCLAN_PREFER_SPLIT) < _splitClanChanceOfSplitting;
 
 		if (_originalTribe.IsUnderPlayerFocus || _splitClan.IsUnderPlayerGuidance) {
