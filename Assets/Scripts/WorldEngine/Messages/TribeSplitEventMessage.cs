@@ -22,11 +22,12 @@ public class TribeSplitEventMessage : FactionEventMessage {
 		NewTribeId = newTribe.Id;
 	}
 
-	protected override string GenerateMessage ()
-	{
-		Polity tribe = World.GetPolity (TribeId);
-		Polity newTribe = World.GetPolity (NewTribeId);
+	protected override string GenerateMessage()
+    {
+        PolityInfo tribeInfo = World.GetPolityInfo(TribeId);
+        PolityInfo newTribeInfo = World.GetPolityInfo(NewTribeId);
 
-		return "A new tribe, " + newTribe.Name.BoldText + ", formed by clan " + Faction.Name.BoldText + ", has split from the " +  tribe.Name.BoldText + " Tribe";
-	}
+        return "A new tribe, " + newTribeInfo.Name.BoldText + ", formed by " + 
+            Faction.GetNameAndTypeStringBold() + ", has split from " + tribeInfo.GetNameAndTypeStringBold();
+    }
 }

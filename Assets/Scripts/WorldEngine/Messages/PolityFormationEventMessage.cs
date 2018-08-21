@@ -21,14 +21,17 @@ public class PolityFormationEventMessage : CellEventMessage {
 		PolityId = polity.Id;
 	}
 
-	protected override string GenerateMessage ()
-	{
-		Polity polity = World.GetPolity (PolityId);
+    protected override string GenerateMessage()
+    {
+        PolityInfo polityInfo = World.GetPolityInfo(PolityId);
 
-		if (First) {
-			return "The first polity, " + polity.Name.BoldText + ", formed at " + Position;
-		} else {
-			return "A new polity, " + polity.Name.BoldText + ", formed at " + Position;
-		}
-	}
+        if (First)
+        {
+            return "The first polity, " + polityInfo.Name.BoldText + ", formed at " + Position;
+        }
+        else
+        {
+            return "A new polity, " + polityInfo.Name.BoldText + ", formed at " + Position;
+        }
+    }
 }

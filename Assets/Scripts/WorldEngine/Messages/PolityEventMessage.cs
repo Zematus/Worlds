@@ -10,8 +10,8 @@ public abstract class PolityEventMessage : WorldEventMessage {
 	public long PolityId;
 
 	[XmlIgnore]
-	public Polity Polity {
-		get { return World.GetPolity (PolityId); }
+	public PolityInfo PolityInfo {
+		get { return World.GetPolityInfo (PolityId); }
 	}
 
 	public PolityEventMessage () {

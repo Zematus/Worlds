@@ -5,11 +5,11 @@ using System.Xml;
 using System.Xml.Serialization;
 
 public class AcceptedMergeTribesOfferEventMessage : PolityEventMessage {
+    
+    [XmlAttribute]
+    public long TargetTribeLeaderId;
 
-	[XmlAttribute]
-	public long AgentId;
-
-	[XmlAttribute]
+    [XmlAttribute]
 	public long SourceTribeId;
 
 	[XmlAttribute]
@@ -19,22 +19,22 @@ public class AcceptedMergeTribesOfferEventMessage : PolityEventMessage {
 
 	}
 
-	public AcceptedMergeTribesOfferEventMessage (Tribe sourceTribe, Tribe targetTribe, Agent agent, long date) : base (sourceTribe, WorldEvent.AcceptFosterTribeRelationDecisionEventId, date) {
+	public AcceptedMergeTribesOfferEventMessage (Tribe sourceTribe, Tribe targetTribe, Agent targetTribeLeader, long date) : base (sourceTribe, WorldEvent.AcceptFosterTribeRelationDecisionEventId, date) {
 
-		sourceTribe.World.AddMemorableAgent (agent);
+		sourceTribe.World.AddMemorableAgent (targetTribeLeader);
 
-		AgentId = agent.Id;
+		TargetTribeLeaderId = targetTribeLeader.Id;
 		SourceTribeId = sourceTribe.Id;
 		TargetTribeId = targetTribe.Id;
 	}
 
-	protected override string GenerateMessage ()
-	{
-		Agent leader = World.GetMemorableAgent (AgentId);
-		Tribe sourceTribe = World.GetPolity (SourceTribeId) as Tribe;
-		Tribe targetTribe = World.GetPolity (TargetTribeId) as Tribe;
+    protected override string GenerateMessage()
+    {
+        Agent targetTribeLeader = World.GetMemorableAgent(TargetTribeLeaderId);
+        PolityInfo sourceTribeInfo = World.GetPolityInfo(SourceTribeId);
+        PolityInfo targetTribeInfo = World.GetPolityInfo(TargetTribeId);
 
-		return leader.Name.BoldText + ", leader of " + targetTribe.GetNameAndTypeStringBold () + ", has accepted the has accepted the offer to merge " +
-			targetTribe.CurrentLeader.PossessiveNoun + " tribe into " + sourceTribe.GetNameAndTypeStringBold ();
-	}
+        return targetTribeLeader.Name.BoldText + ", leader of " + targetTribeInfo.GetNameAndTypeStringBold() + ", has accepted the offer to merge " +
+            targetTribeLeader.PossessiveNoun + " tribe into " + sourceTribeInfo.GetNameAndTypeStringBold();
+    }
 }

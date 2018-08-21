@@ -72,20 +72,20 @@ public abstract class PolityEvent : WorldEvent {
 		return Polity.StillPresent;
 	}
 
-	public override void FinalizeLoad () {
+    public override void FinalizeLoad()
+    {
+        base.FinalizeLoad();
 
-		base.FinalizeLoad ();
+        Polity = World.GetPolity(PolityId);
+        OriginalDominantFaction = World.GetFaction(OriginalDominantFactionId);
 
-		Polity = World.GetPolity (PolityId);
-		OriginalDominantFaction = World.GetFaction (OriginalDominantFactionId);
+        if (Polity == null)
+        {
+            Debug.LogError("PolityEvent: Polity with Id:" + PolityId + " not found");
+        }
+    }
 
-		if (Polity == null) {
-
-			Debug.LogError ("PolityEvent: Polity with Id:" + PolityId + " not found");
-		}
-	}
-
-	public virtual void Reset (long newTriggerDate) {
+    public virtual void Reset (long newTriggerDate) {
 
 		OriginalDominantFaction = Polity.DominantFaction;
 		OriginalDominantFactionId = OriginalDominantFaction.Id;

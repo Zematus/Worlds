@@ -99,7 +99,7 @@ public class TribalismDiscoveryEvent : DiscoveryEvent {
 			newTribe = new Tribe (Group);
 			newTribe.Initialize ();
 
-			World.AddPolity (newTribe);
+			World.AddPolityInfo (newTribe.Info);
 			World.AddPolityToUpdate (newTribe);
 		}
 

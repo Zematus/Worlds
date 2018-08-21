@@ -121,7 +121,7 @@ public class TribeFormationEvent : CellGroupEvent {
 		Tribe tribe = new Tribe (Group);
 		tribe.Initialize ();
 
-		World.AddPolity (tribe);
+		World.AddPolityInfo (tribe.Info);
 		World.AddPolityToUpdate (tribe);
 
 		World.AddGroupToUpdate (Group);

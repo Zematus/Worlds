@@ -254,8 +254,6 @@ public class ClanSplitDecisionEvent : FactionEvent {
 
 	public override void Reset (long newTriggerDate)
 	{
-        long oldId = Id;
-
 		base.Reset (newTriggerDate);
 
         _clan = Faction as Clan;

@@ -3055,7 +3055,7 @@ public class CellGroup : HumanGroup {
 		foreach (PolityProminence p in PolityProminences.Values) {
 
             p.Group = this;
-			p.Polity = World.GetPolity (p.PolityId);
+			p.Polity = World.GetPolity(p.PolityId);
 			p.NewValue = p.Value;
 
 			if (p.Polity == null) { 
@@ -3086,7 +3086,7 @@ public class CellGroup : HumanGroup {
 
 		if (HasPolityExpansionEvent) {
 
-			Polity expandingPolity = World.GetPolity (ExpandingPolityId);
+			Polity expandingPolity = World.GetPolity(ExpandingPolityId);
 
 			if (expandingPolity == null) { 
 				throw new System.Exception ("Missing polity with id:" + ExpandingPolityId);

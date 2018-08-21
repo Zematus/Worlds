@@ -35,7 +35,7 @@ public class ClanDemandsInfluenceDecisionEvent : FactionEvent {
 	public ClanDemandsInfluenceDecisionEvent (Clan demandClan, FactionEventData data) : base (demandClan, data) {
 
 		_demandClan = demandClan;
-		_originalTribe = World.GetPolity (data.OriginalPolityId) as Tribe;
+		_originalTribe = World.GetPolity(data.OriginalPolityId) as Tribe;
 
 		DoNotSerialize = true;
     }

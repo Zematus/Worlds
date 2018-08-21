@@ -434,7 +434,7 @@ public abstract class Faction : ISynchronizable {
 
 		CoreGroup = World.GetGroup (CoreGroupId);
 
-		Polity = World.GetPolity (PolityId);
+		Polity = World.GetPolity(PolityId);
 
 		if (Polity == null) {
 			throw new System.Exception ("Missing Polity with Id " + PolityId);

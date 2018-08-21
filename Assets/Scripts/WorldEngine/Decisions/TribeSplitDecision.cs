@@ -143,7 +143,7 @@ public class TribeSplitDecision : FactionDecision {
 		Tribe newTribe = new Tribe (splitClan, originalTribe);
 		newTribe.Initialize ();
 
-		splitClan.World.AddPolity (newTribe);
+		splitClan.World.AddPolityInfo (newTribe.Info);
 
 		splitClan.SetToUpdate ();
 		dominantClan.SetToUpdate ();

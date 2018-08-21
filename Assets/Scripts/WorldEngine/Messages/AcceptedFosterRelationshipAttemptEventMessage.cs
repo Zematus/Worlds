@@ -31,10 +31,10 @@ public class AcceptedFosterRelationshipAttemptEventMessage : PolityEventMessage 
 	protected override string GenerateMessage ()
 	{
 		Agent leader = World.GetMemorableAgent (AgentId);
-		Tribe sourceTribe = World.GetPolity (SourceTribeId) as Tribe;
-		Tribe targetTribe = World.GetPolity (TargetTribeId) as Tribe;
+		PolityInfo sourceTribeInfo = World.GetPolityInfo (SourceTribeId);
+		PolityInfo targetTribeInfo = World.GetPolityInfo (TargetTribeId);
 
-		return leader.Name.BoldText + ", leader of " + targetTribe.GetNameAndTypeStringBold () + ", has accepted the offer from " + 
-			sourceTribe.GetNameAndTypeStringBold () + " to improve the relationship between the two tribes";
+		return leader.Name.BoldText + ", leader of " + targetTribeInfo.GetNameAndTypeStringBold() + ", has accepted the offer from " + 
+			sourceTribeInfo.GetNameAndTypeStringBold() + " to improve the relationship between the two tribes";
 	}
 }

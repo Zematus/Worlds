@@ -24,11 +24,12 @@ public class SplitClanPreventTribeSplitEventMessage : FactionEventMessage {
 		TribeId = tribe.Id;
 	}
 
-	protected override string GenerateMessage ()
-	{
-		Agent leader = World.GetMemorableAgent (AgentId);
-		Tribe tribe = World.GetPolity (TribeId) as Tribe;
+    protected override string GenerateMessage()
+    {
+        Agent leader = World.GetMemorableAgent(AgentId);
+        PolityInfo tribeInfo = World.GetPolityInfo(TribeId);
 
-		return leader.Name.BoldText + ", leader of clan " + Faction.Name.BoldText + ", has prevented " + leader.PossessiveNoun + " clan from leaving the " + tribe.Name.BoldText + " Tribe";
-	}
+        return leader.Name.BoldText + ", leader of " + Faction.GetNameAndTypeStringBold() + ", has prevented " +
+            leader.PossessiveNoun + " clan from leaving " + tribeInfo.GetNameAndTypeStringBold();
+    }
 }

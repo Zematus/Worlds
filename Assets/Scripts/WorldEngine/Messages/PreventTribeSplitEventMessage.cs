@@ -29,6 +29,6 @@ public class PreventTribeSplitEventMessage : PolityEventMessage {
 		Agent leader = World.GetMemorableAgent (AgentId);
 		Clan splitClan = World.GetFaction (SplitClanId) as Clan;
 
-		return leader.Name.BoldText + ", leader of the " + Polity.Name.BoldText + " Tribe, has prevented clan " + splitClan.Name.BoldText + " from leaving the tribe";
+		return leader.Name.BoldText + ", leader of the " + PolityInfo.Name.BoldText + " Tribe, has prevented clan " + splitClan.Name.BoldText + " from leaving the tribe";
 	}
 }

@@ -102,15 +102,15 @@ public class Tribe : Polity {
 		AddEvent (new OpenTribeDecisionEvent (this, OpenTribeDecisionEvent.CalculateTriggerDate (this)));
 	}
 
-	public override string GetNameAndTypeString () {
+	//public override string GetNameAndTypeString () {
 
-		return "the " + Name.Text + " tribe";
-	}
+	//	return "the " + Name.Text + " tribe";
+	//}
 
-	public override string GetNameAndTypeStringBold () {
+	//public override string GetNameAndTypeStringBold () {
 
-		return "the " + Name.BoldText + " tribe";
-	}
+	//	return "the " + Name.BoldText + " tribe";
+	//}
 
 	public static void GenerateTribeNounVariations () {
 
@@ -335,7 +335,8 @@ public class Tribe : Polity {
 
 		Language.Phrase namePhrase = Culture.Language.TranslatePhrase (untranslatedName);
 
-		Name = new Name (namePhrase, untranslatedName, Culture.Language, World);
+        Name name = new Name(namePhrase, untranslatedName, Culture.Language, World);
+        Info.SetNameAndFormat(name, "the {0} tribe");
 
 //		#if DEBUG
 //		Debug.Log ("Tribe #" + Id + " name: " + Name);

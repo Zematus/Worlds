@@ -28,12 +28,13 @@ public class AvoidFosterRelationshipEventMessage : PolityEventMessage {
 		TargetTribeId = targetTribe.Id;
 	}
 
-	protected override string GenerateMessage ()
-	{
-		Agent leader = World.GetMemorableAgent (AgentId);
-		Tribe sourceTribe = World.GetPolity (SourceTribeId) as Tribe;
-		Tribe targetTribe = World.GetPolity (TargetTribeId) as Tribe;
+    protected override string GenerateMessage()
+    {
+        Agent leader = World.GetMemorableAgent(AgentId);
+        PolityInfo sourceTribeInfo = World.GetPolityInfo(SourceTribeId);
+        PolityInfo targetTribeInfo = World.GetPolityInfo(TargetTribeId);
 
-		return leader.Name.BoldText + ", leader of the " + sourceTribe.Name.BoldText + " tribe, has avoided fostering the relationship with the " + targetTribe.Name.BoldText + " tribe";
-	}
+        return leader.Name.BoldText + ", leader of " + sourceTribeInfo.GetNameAndTypeStringBold() + 
+            ", has avoided fostering the relationship with " + targetTribeInfo.GetNameAndTypeStringBold();
+    }
 }

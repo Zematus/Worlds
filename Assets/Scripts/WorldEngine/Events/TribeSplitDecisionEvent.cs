@@ -32,23 +32,23 @@ public class TribeSplitDecisionEvent : FactionEvent {
 		DoNotSerialize = true;
 	}
 
-	public TribeSplitDecisionEvent (Clan splitClan, FactionEventData data) : base (splitClan, data) {
+	public TribeSplitDecisionEvent(Clan splitClan, FactionEventData data) : base(splitClan, data)
+    {
+        _splitClan = splitClan;
+        _originalTribe = World.GetPolity(data.OriginalPolityId) as Tribe;
 
-		_splitClan = splitClan;
-		_originalTribe = World.GetPolity (data.OriginalPolityId) as Tribe;
+        DoNotSerialize = true;
+    }
 
-		DoNotSerialize = true;
-	}
+    public TribeSplitDecisionEvent(Clan splitClan, long triggerDate) : base(splitClan, triggerDate, TribeSplitDecisionEventId)
+    {
+        _splitClan = splitClan;
+        _originalTribe = splitClan.Polity as Tribe;
 
-	public TribeSplitDecisionEvent (Clan splitClan, long triggerDate) : base (splitClan, triggerDate, TribeSplitDecisionEventId) {
+        DoNotSerialize = true;
+    }
 
-		_splitClan = splitClan;
-		_originalTribe = splitClan.Polity as Tribe;
-
-		DoNotSerialize = true;
-	}
-
-	public static long CalculateTriggerDate (Clan clan) {
+    public static long CalculateTriggerDate (Clan clan) {
 
 		float randomFactor = clan.GetNextLocalRandomFloat (RngOffsets.TRIBE_SPLITTING_EVENT_CALCULATE_TRIGGER_DATE);
 		randomFactor = Mathf.Pow (randomFactor, 2);

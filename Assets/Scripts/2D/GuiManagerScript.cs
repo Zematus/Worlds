@@ -359,11 +359,12 @@ public class GuiManagerScript : MonoBehaviour {
 			if (_resetOverlays) {
 				_planetView = PlanetView.Biomes;
 
-				#if DEBUG
-				_planetOverlay = PlanetOverlay.PolityTerritory;
-				#else
+#if DEBUG
+                _planetOverlay = PlanetOverlay.General;
+                //_planetOverlay = PlanetOverlay.PolityTerritory;
+#else
 				_planetOverlay = PlanetOverlay.General;
-				#endif
+#endif
 			}
 
 			Manager.SetPlanetOverlay (_planetOverlay, _planetOverlaySubtype);
@@ -621,12 +622,12 @@ public class GuiManagerScript : MonoBehaviour {
 		return Manager.GetDateString (eventMessage.Date) + " - " + eventMessage.Message;
 	}
 
-	public void ShowEventMessageForPolity (WorldEventMessage eventMessage, long polityId) {
+	public void ShowEventMessageForPolity (WorldEventMessage eventMessage, long polityId)
+    {
+		Polity polity = Manager.CurrentWorld.GetPolity(polityId);
 
-		Polity polity = Manager.CurrentWorld.GetPolity (polityId);
-
-		if (polity != null) {
-			
+		if (polity != null)
+        {
 			WorldPosition corePosition = polity.CoreGroup.Position;
 
 			EventPanelScript.AddEventMessage (GetMessageToShow (eventMessage), () => {
@@ -636,8 +637,9 @@ public class GuiManagerScript : MonoBehaviour {
 				if ((_planetOverlay != PlanetOverlay.PolityTerritory) && (_planetOverlay != PlanetOverlay.General))
 					ChangePlanetOverlay (PlanetOverlay.PolityTerritory);
 			});
-		} else {
-			
+		}
+        else
+        {
 			EventPanelScript.AddEventMessage (GetMessageToShow (eventMessage));
 		}
 	}

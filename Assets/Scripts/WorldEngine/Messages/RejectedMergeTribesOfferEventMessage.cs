@@ -28,13 +28,13 @@ public class RejectedMergeTribesOfferEventMessage : PolityEventMessage {
 		TargetTribeId = targetTribe.Id;
 	}
 
-	protected override string GenerateMessage ()
-	{
-		Agent leader = World.GetMemorableAgent (AgentId);
-		Tribe sourceTribe = World.GetPolity (SourceTribeId) as Tribe;
-		Tribe targetTribe = World.GetPolity (TargetTribeId) as Tribe;
+    protected override string GenerateMessage()
+    {
+        Agent leader = World.GetMemorableAgent(AgentId);
+        PolityInfo sourceTribeInfo = World.GetPolityInfo(SourceTribeId);
+        PolityInfo targetTribeInfo = World.GetPolityInfo(TargetTribeId);
 
-		return leader.Name.BoldText + ", leader of " + targetTribe.GetNameAndTypeStringBold () + ", has rejected the offer from " + 
-			sourceTribe.GetNameAndTypeStringBold () + " for " + leader.PossessiveNoun + " tribe to merge into theirs";
-	}
+        return leader.Name.BoldText + ", leader of " + targetTribeInfo.GetNameAndTypeStringBold() + ", has rejected the offer from " +
+            sourceTribeInfo.GetNameAndTypeStringBold() + " for " + leader.PossessiveNoun + " tribe to merge into theirs";
+    }
 }

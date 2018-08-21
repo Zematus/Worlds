@@ -11,6 +11,7 @@ public delegate float GroupValueCalculationDelegate (CellGroup group);
 public delegate float FactionValueCalculationDelegate (Faction faction);
 public delegate float PolityContactValueCalculationDelegate (PolityContact contact);
 
+[XmlInclude(typeof(Tribe))]
 public abstract class Polity : ISynchronizable {
 
 	public const float TimeEffectConstant = CellGroup.GenerationSpan * 2500;
@@ -18,12 +19,6 @@ public abstract class Polity : ISynchronizable {
 	public const float CoreDistanceEffectConstant = 10000;
 
 	public const float MinPolityProminence = 0.001f;
-
-	[XmlAttribute("Type")]
-	public string Type;
-
-	[XmlAttribute]
-	public long Id;
 
 	[XmlAttribute("CGrpId")]
 	public long CoreGroupId;
@@ -50,8 +45,6 @@ public abstract class Polity : ISynchronizable {
 	public bool IsUnderPlayerFocus = false;
 
 	public List<string> Flags;
-
-	public Name Name;
     
     public DelayedLoadXmlSerializableDictionary<long, CellGroup> ProminencedGroups = new DelayedLoadXmlSerializableDictionary<long, CellGroup>();
 
@@ -68,6 +61,9 @@ public abstract class Polity : ISynchronizable {
     public List<PolityEventData> EventDataList = new List<PolityEventData>();
 
     [XmlIgnore]
+    public PolityInfo Info;
+
+    [XmlIgnore]
 	public World World;
 
 	[XmlIgnore]
@@ -79,14 +75,30 @@ public abstract class Polity : ISynchronizable {
 	[XmlIgnore]
 	public bool WillBeUpdated;
 
-	public Agent CurrentLeader {
+    public string Type
+    {
+        get { return Info.Type; }
+    }
 
-		get { 
-			return DominantFaction.CurrentLeader;
-		}
-	}
+    public long Id
+    {
+        get { return Info.Id; }
+    }
 
-	protected class WeightedGroup : CollectionUtility.ElementWeightPair<CellGroup> {
+    public Name Name
+    {
+        get { return Info.Name; }
+    }
+
+    public Agent CurrentLeader
+    {
+        get
+        {
+            return DominantFaction.CurrentLeader;
+        }
+    }
+
+    protected class WeightedGroup : CollectionUtility.ElementWeightPair<CellGroup> {
 
 		public WeightedGroup (CellGroup group, float weight) : base (group, weight) {
 
@@ -126,9 +138,7 @@ public abstract class Polity : ISynchronizable {
 	}
 
 	protected Polity (string type, CellGroup coreGroup, Polity parentPolity = null) {
-
-		Type = type;
-
+        
 		World = coreGroup.World;
 
 		Territory = new Territory (this);
@@ -143,7 +153,9 @@ public abstract class Polity : ISynchronizable {
 			idOffset = parentPolity.Id + 1;
 		}
 
-		Id = GenerateUniqueIdentifier (World.CurrentDate, 100L, idOffset);
+		long id = GenerateUniqueIdentifier (World.CurrentDate, 100L, idOffset);
+
+        Info = new PolityInfo(type, id, this);
 
 		Culture = new PolityCulture (this);
 
@@ -210,17 +222,29 @@ public abstract class Polity : ISynchronizable {
 
 			World.AddGroupToPostUpdate_AfterPolityUpdate (group);
 		}
+
+        Info.Polity = null;
 		
-		World.RemovePolity (this);
+		//World.RemovePolity (this);
 
 		StillPresent = false;
 	}
 
-	public abstract string GetNameAndTypeString ();
+	//public abstract string GetNameAndTypeString ();
 
-	public abstract string GetNameAndTypeStringBold ();
+	//public abstract string GetNameAndTypeStringBold ();
 
-	public void SetUnderPlayerFocus (bool state, bool setDominantFactionFocused = true) {
+    public string GetNameAndTypeString()
+    {
+        return Info.GetNameAndTypeString();
+    }
+
+    public string GetNameAndTypeStringBold()
+    {
+        return Info.GetNameAndTypeStringBold();
+    }
+
+    public void SetUnderPlayerFocus (bool state, bool setDominantFactionFocused = true) {
 	
 		IsUnderPlayerFocus = state;
 	}
@@ -792,7 +816,7 @@ public abstract class Polity : ISynchronizable {
 
         foreach (PolityContact contact in Contacts.Values)
         {
-			contact.Polity = World.GetPolity (contact.Id);
+			contact.Polity = World.GetPolity(contact.Id);
 
 			if (contact.Polity == null) {
 				throw new System.Exception ("Polity is null, Id: " + contact.Id);

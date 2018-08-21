@@ -31,15 +31,7 @@ public abstract class FactionEvent : WorldEvent {
 		FactionId = Faction.Id;
 
 		OriginalPolityId = data.OriginalPolityId;
-		OriginalPolity = World.GetPolity (OriginalPolityId);
-
-//#if DEBUG
-//        if ((Id == 160349336613603015L) || (Id == 160349354613603010L))
-//        {
-//            Debug.LogWarning("Regenerating Event Id: " + Id + ". Faction Id: " + faction.Id +
-//                ", current date: " + World.CurrentDate + ", loaded world: " + Manager.Debug_IsLoadedWorld);
-//        }
-//#endif
+		OriginalPolity = World.GetPolity(OriginalPolityId);
     }
 
     public FactionEvent (Faction faction, long triggerDate, long eventTypeId) : base (faction.World, triggerDate, GenerateUniqueIdentifier (faction, triggerDate, eventTypeId), eventTypeId) {
@@ -108,43 +100,25 @@ public abstract class FactionEvent : WorldEvent {
 		base.Synchronize ();
 	}
 
-	public override void FinalizeLoad () {
-
+	public override void FinalizeLoad ()
+    {
 		base.FinalizeLoad ();
 
-//		Polity polity = World.GetPolity (CurrentPolityId);
-//
-//		if (polity == null) {
-//
-//			Debug.LogError ("FactionEvent: Polity with Id:" + CurrentPolityId + " not found");
-//		}
+		Faction = World.GetFaction(FactionId);
+		OriginalPolity = World.GetPolity(OriginalPolityId);
 
-		Faction = World.GetFaction (FactionId);
-		OriginalPolity = World.GetPolity (OriginalPolityId);
-
-		if (Faction == null) {
-
-			Debug.LogError ("FactionEvent: Faction with Id:" + FactionId + " not found");
+		if (Faction == null)
+        {
+			Debug.LogError("FactionEvent: Faction with Id:" + FactionId + " not found");
 		}
 	}
 
 	public virtual void Reset (long newTriggerDate)
     {
-//#if DEBUG
-//        long oldId = Id;
-//#endif
-
         OriginalPolity = Faction.Polity;
 		OriginalPolityId = OriginalPolity.Id;
 
 		Reset (newTriggerDate, GenerateUniqueIdentifier (Faction, newTriggerDate, TypeId));
-
-//#if DEBUG
-//        if ((Id == 160336563613603015L) || (Id == 160349336613603015L) || (Id == 160349354613603010L) || (oldId == 160349336613603015L) || (oldId == 160349354613603010L))
-//        {
-//            Debug.LogWarning("Event Id: " + oldId + " has been replaced by event Id: " + Id + ", current date: " + World.CurrentDate + ", loaded world: " + Manager.Debug_IsLoadedWorld);
-//        }
-//#endif
     }
 
     public override WorldEventData GetData () {
