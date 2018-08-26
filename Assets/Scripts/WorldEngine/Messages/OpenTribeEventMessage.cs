@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
-public class OpentribeEventMessage : PolityEventMessage {
+public class OpenTribeEventMessage : PolityEventMessage {
 
 	[XmlAttribute]
 	public long AgentId;
@@ -12,11 +12,11 @@ public class OpentribeEventMessage : PolityEventMessage {
 	[XmlAttribute]
 	public long TribeId;
 
-	public OpentribeEventMessage () {
+	public OpenTribeEventMessage () {
 
 	}
 
-	public OpentribeEventMessage (Tribe tribe, Agent agent, long date) : base (tribe, WorldEvent.OpenTribeDecisionEventId, date) {
+	public OpenTribeEventMessage (Tribe tribe, Agent agent, long date) : base (tribe, WorldEvent.OpenTribeDecisionEventId, date) {
 
 		tribe.World.AddMemorableAgent (agent);
 

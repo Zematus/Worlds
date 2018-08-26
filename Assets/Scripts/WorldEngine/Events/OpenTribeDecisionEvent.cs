@@ -15,28 +15,28 @@ public class OpenTribeDecisionEvent : PolityEvent {
 
 	private float _chanceOfMakingAttempt;
 
-	public OpenTribeDecisionEvent () {
+    public OpenTribeDecisionEvent()
+    {
+        DoNotSerialize = true;
+    }
 
-		DoNotSerialize = true;
-	}
+    public OpenTribeDecisionEvent(Tribe tribe, PolityEventData data) : base(tribe, data)
+    {
+        _tribe = tribe;
+        _originalDominantClan = World.GetFaction(data.OriginalDominantFactionId) as Clan;
 
-	public OpenTribeDecisionEvent (Tribe tribe, PolityEventData data) : base (tribe, data) {
+        DoNotSerialize = true;
+    }
 
-		_tribe = tribe;
-		_originalDominantClan = World.GetFaction (data.OriginalDominantFactionId) as Clan;
+    public OpenTribeDecisionEvent(Tribe tribe, long triggerDate) : base(tribe, triggerDate, OpenTribeDecisionEventId)
+    {
+        _tribe = tribe;
+        _originalDominantClan = tribe.DominantFaction as Clan;
 
-		DoNotSerialize = true;
-	}
+        DoNotSerialize = true;
+    }
 
-	public OpenTribeDecisionEvent (Tribe tribe, long triggerDate) : base (tribe, triggerDate, OpenTribeDecisionEventId) {
-
-		_tribe = tribe;
-		_originalDominantClan = tribe.DominantFaction as Clan;
-
-		DoNotSerialize = true;
-	}
-
-	public static long CalculateTriggerDate (Tribe tribe) {
+    public static long CalculateTriggerDate (Tribe tribe) {
 
 		float randomFactor = tribe.GetNextLocalRandomFloat (RngOffsets.OPEN_TRIBE_EVENT_CALCULATE_TRIGGER_DATE);
 		randomFactor = Mathf.Pow (randomFactor, 2);

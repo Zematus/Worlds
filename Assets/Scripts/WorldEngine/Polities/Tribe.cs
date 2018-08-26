@@ -14,9 +14,10 @@ public class Tribe : Polity {
 
 	public const int TribeLeaderAvgTimeSpan = 41;
 
-	public const string TribeType = "Tribe";
+	public const string PolityType = "Tribe";
+    public const string PolityNameFormat = "the {0} tribe";
 
-	private static string[] PrepositionVariations = new string[] { "from", "of" };
+    private static string[] PrepositionVariations = new string[] { "from", "of" };
 
 	private static Variation[] TribeNounVariations;
 
@@ -29,7 +30,7 @@ public class Tribe : Polity {
 
 	}
 
-	public Tribe (CellGroup coreGroup) : base (TribeType, coreGroup) {
+	public Tribe (CellGroup coreGroup) : base (PolityType, coreGroup) {
 
 		//// Make sure there's a region to spawn into
 
@@ -82,7 +83,7 @@ public class Tribe : Polity {
 		SetDominantFaction (clan);
 	}
 
-	public Tribe (Clan triggerClan, Polity parentPolity) : base (TribeType, triggerClan.CoreGroup, parentPolity) {
+	public Tribe (Clan triggerClan, Polity parentPolity) : base (PolityType, triggerClan.CoreGroup, parentPolity) {
 
 		triggerClan.ChangePolity (this, triggerClan.Influence);
 
@@ -101,16 +102,6 @@ public class Tribe : Polity {
 		AddEvent (new MergeTribesDecisionEvent (this, MergeTribesDecisionEvent.CalculateTriggerDate (this)));
 		AddEvent (new OpenTribeDecisionEvent (this, OpenTribeDecisionEvent.CalculateTriggerDate (this)));
 	}
-
-	//public override string GetNameAndTypeString () {
-
-	//	return "the " + Name.Text + " tribe";
-	//}
-
-	//public override string GetNameAndTypeStringBold () {
-
-	//	return "the " + Name.BoldText + " tribe";
-	//}
 
 	public static void GenerateTribeNounVariations () {
 
@@ -334,14 +325,13 @@ public class Tribe : Polity {
 		}
 
 		Language.Phrase namePhrase = Culture.Language.TranslatePhrase (untranslatedName);
+        
+        Info.Name = new Name(namePhrase, untranslatedName, Culture.Language, World);
 
-        Name name = new Name(namePhrase, untranslatedName, Culture.Language, World);
-        Info.SetNameAndFormat(name, "the {0} tribe");
-
-//		#if DEBUG
-//		Debug.Log ("Tribe #" + Id + " name: " + Name);
-//		#endif
-	}
+        //		#if DEBUG
+        //		Debug.Log ("Tribe #" + Id + " name: " + Name);
+        //		#endif
+    }
 
 	public override float CalculateGroupProminenceExpansionValue (CellGroup sourceGroup, CellGroup targetGroup, float sourceValue)
 	{

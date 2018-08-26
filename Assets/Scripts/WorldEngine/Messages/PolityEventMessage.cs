@@ -10,16 +10,18 @@ public abstract class PolityEventMessage : WorldEventMessage {
 	public long PolityId;
 
 	[XmlIgnore]
-	public PolityInfo PolityInfo {
-		get { return World.GetPolityInfo (PolityId); }
-	}
+    public PolityInfo PolityInfo
+    {
+        get { return World.GetPolityInfo(PolityId); }
+    }
 
-	public PolityEventMessage () {
+    public PolityEventMessage()
+    {
 
-	}
+    }
 
-	public PolityEventMessage (Polity polity, long id, long date) : base (polity.World, id, date) {
-
-		PolityId = polity.Id;
-	}
+    public PolityEventMessage(Polity polity, long id, long date) : base(polity.World, id, date)
+    {
+        PolityId = polity.Id;
+    }
 }

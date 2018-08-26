@@ -32,12 +32,15 @@ public class PolityInfo : ISynchronizable, IKeyedValue<long>
         Id = id;
 
         Polity = polity;
-    }
 
-    public void SetNameAndFormat(Name name, string nameFormat)
-    {
-        Name = name;
-        _nameFormat = nameFormat;
+        switch (Type)
+        {
+            case Tribe.PolityType:
+                _nameFormat = Tribe.PolityNameFormat;
+                break;
+            default:
+                throw new System.Exception("Unhandled Polity type: " + Type);
+        }
     }
 
     public string GetNameAndTypeString()
@@ -59,6 +62,15 @@ public class PolityInfo : ISynchronizable, IKeyedValue<long>
     {
         if (Polity != null)
             Polity.FinalizeLoad();
+
+        switch (Type)
+        {
+            case Tribe.PolityType:
+                _nameFormat = Tribe.PolityNameFormat;
+                break;
+            default:
+                throw new System.Exception("Unhandled Polity type: " + Type);
+        }
     }
 
     public void Synchronize()

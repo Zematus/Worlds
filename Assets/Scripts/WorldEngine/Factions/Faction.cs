@@ -5,13 +5,8 @@ using System.Xml;
 using System.Xml.Serialization;
 using UnityEngine.Profiling;
 
+[XmlInclude(typeof(Clan))]
 public abstract class Faction : ISynchronizable {
-
-	[XmlAttribute]
-	public string Type;
-
-	[XmlAttribute]
-	public long Id;
 
 	[XmlAttribute("PolId")]
 	public long PolityId;
@@ -46,22 +41,15 @@ public abstract class Faction : ISynchronizable {
 
 	public List<FactionEventData> EventDataList = new List<FactionEventData> ();
 
-	public Name Name = null;
-
 	// Do not call this property directly, only for serialization
 	public Agent LastLeader = null;
 
-	// Use this instead to get the leader
-	public Agent CurrentLeader {
-
-		get { 
-			return RequestCurrentLeader ();
-		}
-	}
-
 	public List<string> Flags;
 
-	[XmlIgnore]
+    [XmlIgnore]
+    public FactionInfo Info;
+
+    [XmlIgnore]
 	public World World;
 
 	[XmlIgnore]
@@ -75,6 +63,30 @@ public abstract class Faction : ISynchronizable {
 
 	[XmlIgnore]
 	public bool IsInitialized = true;
+
+    // Use this instead to get the leader
+    public Agent CurrentLeader
+    {
+        get
+        {
+            return RequestCurrentLeader();
+        }
+    }
+
+    public string Type
+    {
+        get { return Info.Type; }
+    }
+
+    public long Id
+    {
+        get { return Info.Id; }
+    }
+
+    public Name Name
+    {
+        get { return Info.Name; }
+    }
 
     protected long _splitFactionEventId;
 	protected CellGroup _splitFactionCoreGroup;
@@ -93,10 +105,8 @@ public abstract class Faction : ISynchronizable {
 
 	}
 
-	public Faction (string type, Polity polity, CellGroup coreGroup, float influence, Faction parentFaction = null) {
-
-		Type = type;
-
+	public Faction(string type, Polity polity, CellGroup coreGroup, float influence, Faction parentFaction = null)
+    {
 		World = polity.World;
 
 		LastUpdateDate = World.CurrentDate;
@@ -114,9 +124,11 @@ public abstract class Faction : ISynchronizable {
 		CoreGroup = coreGroup;
 		CoreGroupId = coreGroup.Id;
 
-		Id = GenerateUniqueIdentifier (World.CurrentDate, 100L, idOffset);
+		long id = GenerateUniqueIdentifier (World.CurrentDate, 100L, idOffset);
 
-		Culture = new FactionCulture (this);
+        Info = new FactionInfo(type, id, this);
+
+        Culture = new FactionCulture (this);
 
 		CoreGroup.AddFactionCore (this);
 
@@ -137,14 +149,20 @@ public abstract class Faction : ISynchronizable {
 	}
 
 	protected virtual void InitializeInternal () {
-	
-	}
 
-	public abstract string GetNameAndTypeString ();
+    }
 
-	public abstract string GetNameAndTypeStringBold ();
+    public string GetNameAndTypeString()
+    {
+        return Info.GetNameAndTypeString();
+    }
 
-	public string GetNameAndTypeWithPolityString () {
+    public string GetNameAndTypeStringBold()
+    {
+        return Info.GetNameAndTypeStringBold();
+    }
+
+    public string GetNameAndTypeWithPolityString () {
 	
 		return GetNameAndTypeString () + " of " + Polity.GetNameAndTypeString ();
 	}
@@ -171,7 +189,7 @@ public abstract class Faction : ISynchronizable {
 			relationship.Faction.RemoveRelationship (this);
 		}
 
-		World.RemoveFaction (this);
+        Info.Faction = null;
 
 		StillPresent = false;
 	}
@@ -447,7 +465,7 @@ public abstract class Faction : ISynchronizable {
 		foreach (FactionRelationship relationship in Relationships) {
 		
 			_relationships.Add (relationship.Id, relationship);
-			relationship.Faction = World.GetFaction (relationship.Id);
+			relationship.Faction = World.GetFaction(relationship.Id);
 
 			if (relationship.Faction == null) {
 				throw new System.Exception ("Faction is null, Id: " + relationship.Id);

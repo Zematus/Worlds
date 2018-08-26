@@ -24,6 +24,6 @@ public class PreventClanSplitEventMessage : FactionEventMessage {
 	{
 		Agent leader = World.GetMemorableAgent (AgentId);
 
-		return leader.Name.BoldText + " has prevented clan " +  Faction.Name.BoldText + " from splitting";
+		return leader.Name.BoldText + " has prevented clan " +  FactionInfo.Name.BoldText + " from splitting";
 	}
 }

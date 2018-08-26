@@ -6,40 +6,40 @@ using System.Xml.Serialization;
 using System.IO;
 using System.Threading;
 
-public enum PlanetView {
-
-	Elevation,
-	Biomes,
-	Coastlines
+public enum PlanetView
+{
+    Elevation,
+    Biomes,
+    Coastlines
 }
 
-public enum PlanetOverlay {
-
-	None,
-	General,
-	PopDensity,
-	FarmlandDistribution,
-	PopCulturalPreference,
-	PopCulturalActivity,
-	PopCulturalSkill,
-	PopCulturalKnowledge,
-	PopCulturalDiscovery,
-	PolityTerritory,
-	FactionCoreDistance,
-	PolityProminence,
-	PolityContacts,
-	PolityCulturalPreference,
-	PolityCulturalActivity,
-	PolityCulturalSkill,
-	PolityCulturalKnowledge,
-	PolityCulturalDiscovery,
-	Temperature,
-	Rainfall,
-	Arability,
-	Region,
-	Language,
-	PopChange,
-	UpdateSpan
+public enum PlanetOverlay
+{
+    None,
+    General,
+    PopDensity,
+    FarmlandDistribution,
+    PopCulturalPreference,
+    PopCulturalActivity,
+    PopCulturalSkill,
+    PopCulturalKnowledge,
+    PopCulturalDiscovery,
+    PolityTerritory,
+    FactionCoreDistance,
+    PolityProminence,
+    PolityContacts,
+    PolityCulturalPreference,
+    PolityCulturalActivity,
+    PolityCulturalSkill,
+    PolityCulturalKnowledge,
+    PolityCulturalDiscovery,
+    Temperature,
+    Rainfall,
+    Arability,
+    Region,
+    Language,
+    PopChange,
+    UpdateSpan
 }
 
 public enum OverlayColorId {

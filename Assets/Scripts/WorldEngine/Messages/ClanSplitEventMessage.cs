@@ -9,19 +9,20 @@ public class ClanSplitEventMessage : FactionEventMessage {
 	[XmlAttribute]
 	public long OldClanId;
 
-	public ClanSplitEventMessage () {
+    public ClanSplitEventMessage()
+    {
 
-	}
+    }
 
-	public ClanSplitEventMessage (Clan oldClan, Clan newClan, long date) : base (newClan, WorldEvent.ClanSplitDecisionEventId, date) {
+    public ClanSplitEventMessage(Clan oldClan, Clan newClan, long date) : base(newClan, WorldEvent.ClanSplitDecisionEventId, date)
+    {
+        OldClanId = oldClan.Id;
+    }
 
-		OldClanId = oldClan.Id;
-	}
+    protected override string GenerateMessage()
+    {
+        FactionInfo oldClanInfo = World.GetFactionInfo(OldClanId);
 
-	protected override string GenerateMessage ()
-	{
-		Faction oldClan = World.GetFaction (OldClanId);
-
-		return "A new clan, " + Faction.Name.BoldText + ", has split from clan " +  oldClan.Name.BoldText;
-	}
+        return "A new clan, " + FactionInfo.Name.BoldText + ", has split from " + oldClanInfo.GetNameAndTypeStringBold();
+    }
 }

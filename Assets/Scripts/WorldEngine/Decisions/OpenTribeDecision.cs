@@ -62,7 +62,7 @@ public class OpenTribeDecision : PolityDecision {
 
 		dominantClan.SetToUpdate ();
 
-		tribe.AddEventMessage (new OpentribeEventMessage (tribe, tribe.CurrentLeader, tribe.World.CurrentDate));
+		tribe.AddEventMessage (new OpenTribeEventMessage (tribe, tribe.CurrentLeader, tribe.World.CurrentDate));
 	}
 
 	private void OpenTribe () {

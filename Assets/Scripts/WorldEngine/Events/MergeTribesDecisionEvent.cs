@@ -28,28 +28,28 @@ public class MergeTribesDecisionEvent : PolityEvent {
 	private float _chanceOfMakingAttempt;
 	private float _chanceOfRejectingOffer;
 
-	public MergeTribesDecisionEvent () {
+    public MergeTribesDecisionEvent()
+    {
+        DoNotSerialize = true;
+    }
 
-		DoNotSerialize = true;
-	}
+    public MergeTribesDecisionEvent(Tribe sourceTribe, PolityEventData data) : base(sourceTribe, data)
+    {
+        _sourceTribe = sourceTribe;
+        _originalSourceDominantClan = World.GetFaction(data.OriginalDominantFactionId) as Clan;
 
-	public MergeTribesDecisionEvent (Tribe sourceTribe, PolityEventData data) : base (sourceTribe, data) {
+        DoNotSerialize = true;
+    }
 
-		_sourceTribe = sourceTribe;
-		_originalSourceDominantClan = World.GetFaction (data.OriginalDominantFactionId) as Clan;
+    public MergeTribesDecisionEvent(Tribe sourceTribe, long triggerDate) : base(sourceTribe, triggerDate, MergeTribesDecisionEventId)
+    {
+        _sourceTribe = sourceTribe;
+        _originalSourceDominantClan = sourceTribe.DominantFaction as Clan;
 
-		DoNotSerialize = true;
-	}
+        DoNotSerialize = true;
+    }
 
-	public MergeTribesDecisionEvent (Tribe sourceTribe, long triggerDate) : base (sourceTribe, triggerDate, MergeTribesDecisionEventId) {
-
-		_sourceTribe = sourceTribe;
-		_originalSourceDominantClan = sourceTribe.DominantFaction as Clan;
-
-		DoNotSerialize = true;
-	}
-
-	public static long CalculateTriggerDate (Tribe tribe) {
+    public static long CalculateTriggerDate (Tribe tribe) {
 
 		float randomFactor = tribe.GetNextLocalRandomFloat (RngOffsets.MERGE_TRIBES_EVENT_CALCULATE_TRIGGER_DATE);
 		randomFactor = Mathf.Pow (randomFactor, 2);

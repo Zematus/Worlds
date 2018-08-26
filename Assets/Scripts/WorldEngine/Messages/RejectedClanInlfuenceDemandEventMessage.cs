@@ -15,25 +15,26 @@ public class RejectedClanInlfuenceDemandEventMessage : PolityEventMessage {
 	[XmlAttribute]
 	public long DominantClanId;
 
-	public RejectedClanInlfuenceDemandEventMessage () {
+	public RejectedClanInlfuenceDemandEventMessage()
+    {
 
-	}
+    }
 
-	public RejectedClanInlfuenceDemandEventMessage (Tribe tribe, Clan dominantClan, Clan demandClan, Agent agent, long date) : base (tribe, WorldEvent.RejectInfluenceDemandDecisionEventId, date) {
+    public RejectedClanInlfuenceDemandEventMessage(Tribe tribe, Clan dominantClan, Clan demandClan, Agent agent, long date) : base(tribe, WorldEvent.RejectInfluenceDemandDecisionEventId, date)
+    {
+        tribe.World.AddMemorableAgent(agent);
 
-		tribe.World.AddMemorableAgent (agent);
+        AgentId = agent.Id;
+        DemandClanId = demandClan.Id;
+        DominantClanId = dominantClan.Id;
+    }
 
-		AgentId = agent.Id;
-		DemandClanId = demandClan.Id;
-		DominantClanId = dominantClan.Id;
-	}
+    protected override string GenerateMessage()
+    {
+        Agent leader = World.GetMemorableAgent(AgentId);
+        FactionInfo demandClanInfo = World.GetFactionInfo(DemandClanId);
+        FactionInfo dominantClanInfo = World.GetFactionInfo(DominantClanId);
 
-	protected override string GenerateMessage ()
-	{
-		Agent leader = World.GetMemorableAgent (AgentId);
-		Clan demandClan = World.GetFaction (DemandClanId) as Clan;
-		Clan dominantClan = World.GetFaction (DominantClanId) as Clan;
-
-		return leader.Name.BoldText + ", leader of clan " + dominantClan.Name.BoldText + ", has rejected the demand for influence from clan " + demandClan.Name.BoldText + "";
-	}
+        return leader.Name.BoldText + ", leader of " + dominantClanInfo.GetNameAndTypeStringBold() + ", has rejected the demand for influence from " + demandClanInfo.GetNameAndTypeStringBold();
+    }
 }

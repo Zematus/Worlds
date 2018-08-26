@@ -27,23 +27,23 @@ public class FosterTribeRelationDecisionEvent : PolityEvent {
 		DoNotSerialize = true;
 	}
 
-	public FosterTribeRelationDecisionEvent (Tribe sourceTribe, PolityEventData data) : base (sourceTribe, data) {
+    public FosterTribeRelationDecisionEvent(Tribe sourceTribe, PolityEventData data) : base(sourceTribe, data)
+    {
+        _sourceTribe = sourceTribe;
+        _originalSourceDominantClan = World.GetFaction(data.OriginalDominantFactionId) as Clan;
 
-		_sourceTribe = sourceTribe;
-		_originalSourceDominantClan = World.GetFaction (data.OriginalDominantFactionId) as Clan;
+        DoNotSerialize = true;
+    }
 
-		DoNotSerialize = true;
-	}
+    public FosterTribeRelationDecisionEvent(Tribe sourceTribe, long triggerDate) : base(sourceTribe, triggerDate, FosterTribeRelationDecisionEventId)
+    {
+        _sourceTribe = sourceTribe;
+        _originalSourceDominantClan = sourceTribe.DominantFaction as Clan;
 
-	public FosterTribeRelationDecisionEvent (Tribe sourceTribe, long triggerDate) : base (sourceTribe, triggerDate, FosterTribeRelationDecisionEventId) {
+        DoNotSerialize = true;
+    }
 
-		_sourceTribe = sourceTribe;
-		_originalSourceDominantClan = sourceTribe.DominantFaction as Clan;
-
-		DoNotSerialize = true;
-	}
-
-	public static long CalculateTriggerDate (Tribe tribe) {
+    public static long CalculateTriggerDate (Tribe tribe) {
 
 		float randomFactor = tribe.GetNextLocalRandomFloat (RngOffsets.FOSTER_TRIBE_RELATION_EVENT_CALCULATE_TRIGGER_DATE);
 		randomFactor = Mathf.Pow (randomFactor, 2);

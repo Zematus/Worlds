@@ -29,13 +29,14 @@ public class Clan : Faction {
 	public const float ClanSplitRelationshipValueSpread = 0.1f;
 	public const float ClanSplitRelationshipValueCharismaFactor = 50f;
 
-	public const string ClanType = "Clan";
+	public const string FactionType = "Clan";
+    public const string FactionNameFormat = "clan {0}";
 
 	public Clan () {
 
 	}
 
-	public Clan (Polity polity, CellGroup coreGroup, float influence, Clan parentClan = null) : base (ClanType, polity, coreGroup, influence, parentClan) {
+	public Clan (Polity polity, CellGroup coreGroup, float influence, Clan parentClan = null) : base (FactionType, polity, coreGroup, influence, parentClan) {
 
 	}
 
@@ -47,16 +48,6 @@ public class Clan : Faction {
 		AddEvent (new ClanSplitDecisionEvent (this, ClanSplitDecisionEvent.CalculateTriggerDate (this)));
 		AddEvent (new ClanDemandsInfluenceDecisionEvent (this, ClanDemandsInfluenceDecisionEvent.CalculateTriggerDate (this)));
 		AddEvent (new TribeSplitDecisionEvent (this, TribeSplitDecisionEvent.CalculateTriggerDate (this)));
-	}
-
-	public override string GetNameAndTypeString () {
-
-		return "clan " + Name.Text;
-	}
-
-	public override string GetNameAndTypeStringBold () {
-
-		return "clan " + Name.BoldText;
 	}
 
 	public CellGroup GetCoreGroupMigrationTarget () {
@@ -202,13 +193,13 @@ public class Clan : Faction {
 		untranslatedName = "[Proper][NP](" + untranslatedName + ")";
 
 		namePhrase = language.TranslatePhrase (untranslatedName);
+        
+        Info.Name = new Name(namePhrase, untranslatedName, language, World);
 
-		Name = new Name (namePhrase, untranslatedName, language, World);
-
-//		#if DEBUG
-//		Debug.Log ("Clan #" + Id + " name: " + Name);
-//		#endif
-	}
+        //		#if DEBUG
+        //		Debug.Log ("Clan #" + Id + " name: " + Name);
+        //		#endif
+    }
 
 	protected override Agent RequestCurrentLeader ()
 	{

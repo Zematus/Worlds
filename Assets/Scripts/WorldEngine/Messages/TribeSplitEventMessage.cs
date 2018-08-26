@@ -28,6 +28,6 @@ public class TribeSplitEventMessage : FactionEventMessage {
         PolityInfo newTribeInfo = World.GetPolityInfo(NewTribeId);
 
         return "A new tribe, " + newTribeInfo.Name.BoldText + ", formed by " + 
-            Faction.GetNameAndTypeStringBold() + ", has split from " + tribeInfo.GetNameAndTypeStringBold();
+            FactionInfo.GetNameAndTypeStringBold() + ", has split from " + tribeInfo.GetNameAndTypeStringBold();
     }
 }

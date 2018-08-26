@@ -245,8 +245,7 @@ public class World : ISynchronizable {
 	[XmlArrayItem (Type = typeof(Agent))]
 	public List<Agent> MemorableAgents;
 
-	[XmlArrayItem (Type = typeof(Clan))]
-	public List<Faction> Factions;
+    public XmlSerializableDictionary<long, FactionInfo> FactionInfos = new XmlSerializableDictionary<long, FactionInfo>();
 
     public XmlSerializableDictionary<long, PolityInfo> PolityInfos = new XmlSerializableDictionary<long, PolityInfo>();
 
@@ -348,8 +347,6 @@ public class World : ISynchronizable {
 	private List<MigratingGroup> _migratingGroups = new List<MigratingGroup> ();
 
 	private Dictionary<long, Agent> _memorableAgents = new Dictionary<long, Agent> ();
-
-	private Dictionary<long, Faction> _factions = new Dictionary<long, Faction> ();
 
     private HashSet<Faction> _factionsToSplit = new HashSet<Faction>();
 	private HashSet<Faction> _factionsToUpdate = new HashSet<Faction>();
@@ -540,12 +537,10 @@ public class World : ISynchronizable {
 
 			a.Synchronize ();
 		}
+        
+		foreach (FactionInfo f in FactionInfos.Values) {
 
-		Factions = new List<Faction> (_factions.Values);
-
-		foreach (Faction f in Factions) {
-
-			f.Synchronize ();
+			f.Synchronize();
 		}
 
 		foreach (PolityInfo p in PolityInfos.Values) {
@@ -1350,44 +1345,49 @@ public class World : ISynchronizable {
 		}
 	}
 
-	public Agent GetMemorableAgent (long id) {
+	public Agent GetMemorableAgent(long id)
+    {
+        Agent agent;
 
-		Agent agent;
+        _memorableAgents.TryGetValue(id, out agent);
 
-		_memorableAgents.TryGetValue (id, out agent);
+        return agent;
+    }
 
-		return agent;
-	}
+    public void AddFactionInfo(FactionInfo factionInfo)
+    {
+        FactionInfos.Add(factionInfo.Id, factionInfo);
 
-	public void AddFaction (Faction faction) {
+        FactionCount++;
+    }
 
-		_factions.Add (faction.Id, faction);
+    public FactionInfo GetFactionInfo(long id)
+    {
+        FactionInfo factionInfo = null;
 
-		FactionCount++;
-	}
+        FactionInfos.TryGetValue(id, out factionInfo);
 
-	public void RemoveFaction (Faction faction) {
+        return factionInfo;
+    }
 
-		_factions.Remove (faction.Id);
+    public Faction GetFaction(long id)
+    {
+        FactionInfo factionInfo;
 
-		FactionCount--;
-	}
+        if (!FactionInfos.TryGetValue(id, out factionInfo))
+        {
+            return null;
+        }
 
-	public Faction GetFaction (long id) {
+        return factionInfo.Faction;
+    }
 
-		Faction faction = null;
+    public bool ContainsFactionInfo(long id)
+    {
+        return FactionInfos.ContainsKey(id);
+    }
 
-		_factions.TryGetValue (id, out faction);
-
-		return faction;
-	}
-
-	public bool ContainsFaction (long id) {
-
-		return _factions.ContainsKey (id);
-	}
-
-	public void AddFactionToSplit (Faction faction)
+    public void AddFactionToSplit (Faction faction)
     {
         if (!faction.StillPresent)
         {
@@ -1483,13 +1483,6 @@ public class World : ISynchronizable {
 
 		PolityCount++;
 	}
-
-	//public void RemovePolity (Polity polity) {
-
-	//	_polities.Remove (polity.Id);
-
-	//	PolityCount--;
-	//}
 
 	public PolityInfo GetPolityInfo (long id)
     {
@@ -1655,12 +1648,14 @@ public class World : ISynchronizable {
             }
         }
 
-        Factions.ForEach (f => {
-
-			f.World = this;
-
-			_factions.Add (f.Id, f);
-		});
+        foreach (FactionInfo fInfo in FactionInfos.Values)
+        {
+            if (fInfo.Faction != null)
+            {
+                fInfo.Faction.Info = fInfo;
+                fInfo.Faction.World = this;
+            }
+        }
 
 		CellGroups.ForEach (g => {
 
@@ -1672,7 +1667,7 @@ public class World : ISynchronizable {
 		// Segment 2
 
 		int elementCount = 0;
-		float totalElementsFactor = progressFactor * (Languages.Count + Regions.Count + Factions.Count + PolityInfos.Count + CellGroups.Count + EventsToHappen.Count);
+		float totalElementsFactor = progressFactor * (Languages.Count + Regions.Count + FactionInfos.Count + PolityInfos.Count + CellGroups.Count + EventsToHappen.Count);
 
 		foreach (Language l in Languages) {
 
@@ -1690,28 +1685,28 @@ public class World : ISynchronizable {
 			castProgress (startProgressValue + (++elementCount/totalElementsFactor), "Initializing Regions...");
 		}
 
-		// Segment 5
+        // Segment 5
 
-		foreach (PolityInfo pInfo in PolityInfos.Values) {
+        foreach (PolityInfo pInfo in PolityInfos.Values)
+        {
+            pInfo.FinalizeLoad();
 
-			pInfo.FinalizeLoad ();
+            castProgress(startProgressValue + (++elementCount / totalElementsFactor), "Initializing Polities...");
+        }
 
-			castProgress (startProgressValue + (++elementCount/totalElementsFactor), "Initializing Polities...");
-		}
+        // Segment 4
 
-		// Segment 4
+        foreach (FactionInfo fInfo in FactionInfos.Values)
+        {
+            fInfo.FinalizeLoad();
 
-		foreach (Faction f in Factions) {
+            castProgress(startProgressValue + (++elementCount / totalElementsFactor), "Initializing Factions...");
+        }
 
-			f.FinalizeLoad ();
+        // Segment 6
 
-			castProgress (startProgressValue + (++elementCount/totalElementsFactor), "Initializing Factions...");
-		}
-
-		// Segment 6
-
-		#if DEBUG
-		CellGroup.Debug_LoadedGroups = 0;
+#if DEBUG
+        CellGroup.Debug_LoadedGroups = 0;
 		#endif
 
 		foreach (CellGroup g in CellGroups) {

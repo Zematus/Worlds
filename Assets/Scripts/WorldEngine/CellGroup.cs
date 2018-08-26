@@ -2998,18 +2998,19 @@ public class CellGroup : HumanGroup {
 
 		PreferredMigrationDirection = (Direction)PreferredMigrationDirectionInt;
 
-		foreach (long id in FactionCoreIds) {
-		
-			Faction faction = World.GetFaction (id);
+        foreach (long id in FactionCoreIds)
+        {
+            Faction faction = World.GetFaction(id);
 
-			if (faction == null) {
-				throw new System.Exception ("Missing faction with id: " + id);
-			}
+            if (faction == null)
+            {
+                throw new System.Exception("Missing faction with id: " + id);
+            }
 
-			FactionCores.Add (id, faction);
-		}
+            FactionCores.Add(id, faction);
+        }
 
-		Flags.ForEach (f => _flags.Add (f));
+        Flags.ForEach (f => _flags.Add (f));
 
 		Cell = World.GetCell (Longitude, Latitude);
 

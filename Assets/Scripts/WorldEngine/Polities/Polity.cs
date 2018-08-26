@@ -224,15 +224,9 @@ public abstract class Polity : ISynchronizable {
 		}
 
         Info.Polity = null;
-		
-		//World.RemovePolity (this);
 
 		StillPresent = false;
 	}
-
-	//public abstract string GetNameAndTypeString ();
-
-	//public abstract string GetNameAndTypeStringBold ();
 
     public string GetNameAndTypeString()
     {
@@ -283,28 +277,29 @@ public abstract class Polity : ISynchronizable {
 		return CoreGroup.GetNextLocalRandomInt (iterationOffset + (int)Id, maxValue);
 	}
 
-	public void AddFaction (Faction faction) {
+    public void AddFaction(Faction faction)
+    {
+        //		foreach (Faction existingFaction in _factions.Values) {
+        //
+        //			if (!existingFaction.HasRelationship (faction)) {
+        //			
+        //				Faction.SetRelationship (existingFaction, faction, 0.5f);
+        //			}
+        //		}
 
-//		foreach (Faction existingFaction in _factions.Values) {
-//
-//			if (!existingFaction.HasRelationship (faction)) {
-//			
-//				Faction.SetRelationship (existingFaction, faction, 0.5f);
-//			}
-//		}
+        Factions.Add(faction.Id, faction);
 
-		Factions.Add (faction.Id, faction);
+        if (!World.ContainsFactionInfo(faction.Id))
+        {
+            World.AddFactionInfo(faction.Info);
+        }
 
-		if (!World.ContainsFaction (faction.Id)) {
-			World.AddFaction (faction);
-		}
+        World.AddFactionToUpdate(faction);
 
-		World.AddFactionToUpdate (faction);
+        FactionCount++;
+    }
 
-		FactionCount++;
-	}
-
-	public void RemoveFaction (Faction faction) {
+    public void RemoveFaction (Faction faction) {
 
 		Factions.Remove (faction.Id);
 

@@ -29,7 +29,7 @@ public class SplitClanPreventTribeSplitEventMessage : FactionEventMessage {
         Agent leader = World.GetMemorableAgent(AgentId);
         PolityInfo tribeInfo = World.GetPolityInfo(TribeId);
 
-        return leader.Name.BoldText + ", leader of " + Faction.GetNameAndTypeStringBold() + ", has prevented " +
+        return leader.Name.BoldText + ", leader of " + FactionInfo.GetNameAndTypeStringBold() + ", has prevented " +
             leader.PossessiveNoun + " clan from leaving " + tribeInfo.GetNameAndTypeStringBold();
     }
 }

@@ -18,39 +18,40 @@ public abstract class PolityEvent : WorldEvent {
 	[XmlIgnore]
 	public Faction OriginalDominantFaction;
 
-	public PolityEvent () {
+    public PolityEvent()
+    {
 
-	}
+    }
 
-	public PolityEvent (Polity polity, PolityEventData data) : base (polity.World, data, GenerateUniqueIdentifier (polity, data.TriggerDate, data.TypeId)) {
+    public PolityEvent(Polity polity, PolityEventData data) : base(polity.World, data, GenerateUniqueIdentifier(polity, data.TriggerDate, data.TypeId))
+    {
+        Polity = polity;
+        PolityId = Polity.Id;
 
-		Polity = polity;
-		PolityId = Polity.Id;
+        OriginalDominantFactionId = data.OriginalDominantFactionId;
+        OriginalDominantFaction = World.GetFaction(OriginalDominantFactionId);
+    }
 
-		OriginalDominantFactionId = data.OriginalDominantFactionId;
-		OriginalDominantFaction = World.GetFaction (OriginalDominantFactionId);
-	}
+    public PolityEvent(Polity polity, long triggerDate, long eventTypeId) : base(polity.World, triggerDate, GenerateUniqueIdentifier(polity, triggerDate, eventTypeId), eventTypeId)
+    {
+        Polity = polity;
+        PolityId = Polity.Id;
 
-	public PolityEvent (Polity polity, long triggerDate, long eventTypeId) : base (polity.World, triggerDate, GenerateUniqueIdentifier (polity, triggerDate, eventTypeId), eventTypeId) {
+        OriginalDominantFactionId = polity.DominantFaction.Id;
+        OriginalDominantFaction = polity.DominantFaction;
 
-		Polity = polity;
-		PolityId = Polity.Id;
+        //		#if DEBUG
+        //		if (Manager.RegisterDebugEvent != null) {
+        //			string polityId = "Id: " + polity.Id;
+        //
+        //			SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("PolityEvent - Polity: " + polityId, "TriggerDate: " + TriggerDate);
+        //
+        //			Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+        //		}
+        //		#endif
+    }
 
-		OriginalDominantFactionId = polity.DominantFaction.Id;
-		OriginalDominantFaction = polity.DominantFaction;
-
-		//		#if DEBUG
-		//		if (Manager.RegisterDebugEvent != null) {
-		//			string polityId = "Id: " + polity.Id;
-		//
-		//			SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("PolityEvent - Polity: " + polityId, "TriggerDate: " + TriggerDate);
-		//
-		//			Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-		//		}
-		//		#endif
-	}
-
-	public static long GenerateUniqueIdentifier (Polity polity, long triggerDate, long eventTypeId) {
+    public static long GenerateUniqueIdentifier (Polity polity, long triggerDate, long eventTypeId) {
 
 		#if DEBUG
 		if (triggerDate >= World.MaxSupportedDate) {

@@ -12,23 +12,24 @@ public class PreventTribeSplitEventMessage : PolityEventMessage {
 	[XmlAttribute]
 	public long SplitClanId;
 
-	public PreventTribeSplitEventMessage () {
+	public PreventTribeSplitEventMessage()
+    {
 
-	}
+    }
 
-	public PreventTribeSplitEventMessage (Tribe tribe, Clan splitClan, Agent agent, long date) : base (tribe, WorldEvent.PreventTribeSplitEventId, date) {
+    public PreventTribeSplitEventMessage(Tribe tribe, Clan splitClan, Agent agent, long date) : base(tribe, WorldEvent.PreventTribeSplitEventId, date)
+    {
+        tribe.World.AddMemorableAgent(agent);
 
-		tribe.World.AddMemorableAgent (agent);
+        AgentId = agent.Id;
+        SplitClanId = splitClan.Id;
+    }
 
-		AgentId = agent.Id;
-		SplitClanId = splitClan.Id;
-	}
+    protected override string GenerateMessage()
+    {
+        Agent leader = World.GetMemorableAgent(AgentId);
+        FactionInfo splitClan = World.GetFactionInfo(SplitClanId);
 
-	protected override string GenerateMessage ()
-	{
-		Agent leader = World.GetMemorableAgent (AgentId);
-		Clan splitClan = World.GetFaction (SplitClanId) as Clan;
-
-		return leader.Name.BoldText + ", leader of the " + PolityInfo.Name.BoldText + " Tribe, has prevented clan " + splitClan.Name.BoldText + " from leaving the tribe";
-	}
+        return leader.Name.BoldText + ", leader of " + PolityInfo.GetNameAndTypeStringBold() + ", has prevented " + splitClan.GetNameAndTypeString() + " from leaving the tribe";
+    }
 }

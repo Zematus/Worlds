@@ -2523,7 +2523,7 @@ public class GuiManagerScript : MonoBehaviour {
 
 			int polPopulation = (int)polity.TotalPopulation;
 
-			if (polity.Type == Tribe.TribeType) {
+			if (polity.Type == Tribe.PolityType) {
 				InfoPanelScript.InfoText.text += polPopulation + " tribe members";
 			} else {
 				InfoPanelScript.InfoText.text += polPopulation + " polity citizens";
