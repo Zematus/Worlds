@@ -323,10 +323,8 @@ public class Tribe : Polity {
 
 			untranslatedName = "[PpPP]([Proper][NP](" + tribeNoun + ") [PP](" + preposition + " [Proper][NP](the " + areaName + ")))";
 		}
-
-		Language.Phrase namePhrase = Culture.Language.TranslatePhrase (untranslatedName);
         
-        Info.Name = new Name(namePhrase, untranslatedName, Culture.Language, World);
+        Info.Name = new Name(untranslatedName, Culture.Language, World);
 
         //		#if DEBUG
         //		Debug.Log ("Tribe #" + Id + " name: " + Name);

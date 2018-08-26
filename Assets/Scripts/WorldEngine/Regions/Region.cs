@@ -383,9 +383,8 @@ public abstract class Region : ISynchronizable {
 		}
 
 		untranslatedName = "[Proper][NP](" + adjective + elementNoun + secondaryAttributeNoun + primaryAttributeNoun + ")";
-		namePhrase = polityLanguage.TranslatePhrase (untranslatedName);
 
-		Name = new Name (namePhrase, untranslatedName, polityLanguage, World);
+		Name = new Name (untranslatedName, polityLanguage, World);
 
 //		#if DEBUG
 //		if (Manager.RegisterDebugEvent != null) {

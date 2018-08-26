@@ -152,7 +152,6 @@ public class Agent : ISynchronizable {
 		Language language = Group.Culture.Language;
 
 		string untranslatedName = "";
-		Language.Phrase namePhrase = null;
 
 		string adjective = element.Adjectives.RandomSelect (getRandomInt, 15);
 
@@ -194,10 +193,8 @@ public class Agent : ISynchronizable {
 
 			untranslatedName = "[PpPP]([Proper][NP](" + subjectNoun + ") [PP](" + association.Relation + " [Proper][NP](" + elementNoun + ")))";
 		}
-
-		namePhrase = language.TranslatePhrase (untranslatedName);
-
-		_name = new Name (namePhrase, untranslatedName, language, World);
+        
+		_name = new Name (untranslatedName, language, World);
 	}
 
 	private void GenerateNameFromRegionAttribute (RegionAttribute attribute, GetRandomIntDelegate getRandomInt) {
@@ -205,7 +202,6 @@ public class Agent : ISynchronizable {
 		Language language = Group.Culture.Language;
 
 		string untranslatedName = "";
-		Language.Phrase namePhrase = null;
 
 		string adjective = attribute.Adjectives.RandomSelect (getRandomInt, 15);
 
@@ -253,10 +249,8 @@ public class Agent : ISynchronizable {
 
 			untranslatedName = "[PpPP]([Proper][NP](" + subjectNoun + ") [PP](" + association.Relation + " [Proper][NP](" + variationNoun + ")))";
 		}
-
-		namePhrase = language.TranslatePhrase (untranslatedName);
-
-		_name = new Name (namePhrase, untranslatedName, language, World);
+        
+		_name = new Name (untranslatedName, language, World);
 	}
 
     private void PregenerateName()

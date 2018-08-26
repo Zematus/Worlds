@@ -111,7 +111,6 @@ public class Clan : Faction {
 		Region region = CoreGroup.Cell.Region;
 
 		string untranslatedName = "";
-		Language.Phrase namePhrase = null;
 
 		if (region.Elements.Count <= 0) {
 			throw new System.Exception ("No elements to choose name from");
@@ -191,10 +190,8 @@ public class Clan : Faction {
 		}
 
 		untranslatedName = "[Proper][NP](" + untranslatedName + ")";
-
-		namePhrase = language.TranslatePhrase (untranslatedName);
         
-        Info.Name = new Name(namePhrase, untranslatedName, language, World);
+        Info.Name = new Name(untranslatedName, language, World);
 
         //		#if DEBUG
         //		Debug.Log ("Clan #" + Id + " name: " + Name);

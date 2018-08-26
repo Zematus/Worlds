@@ -98,31 +98,45 @@ public static class NamingTools {
 
 public class Name : ISynchronizable {
 
-	[XmlAttribute]
+	[XmlAttribute("Lid")]
 	public long LanguageId;
 
-	public Language.Phrase Value;
+    [XmlAttribute("Tm")]
+    public string TaggedMeaning;
 
-	[XmlIgnore]
+    [XmlIgnore]
 	public World World;
 
 	[XmlIgnore]
 	public Language Language;
 
-	public Name () {
+    public Language.Phrase Value
+    {
+        get
+        {
+            if (_value == null)
+            {
+                _value = Language.TranslatePhrase(TaggedMeaning);
+            }
+
+            return _value;
+        }
+    }
+
+    private Language.Phrase _value = null;
+
+    public Name () {
 		
 	}
 
-	public Name (Language.Phrase value, string meaning, Language language, World world) {
+	public Name (string taggedMeaning, Language language, World world) {
 
 		World = world;
 
 		LanguageId = language.Id;
 		Language = language;
 
-		Value = value;
-
-//		Language.TurnIntoProperName (Value, false);
+        TaggedMeaning = taggedMeaning;
 	}
 
 	public string BoldText {
@@ -131,13 +145,15 @@ public class Name : ISynchronizable {
 
 	public string Text {
 		get { return Value.Text; }
-	}
+    }
 
-	public string Meaning {
-		get { return Value.Meaning; }
-	}
+    public string Meaning
+    {
+        get { return Value.Meaning; }
+    }
 
-	public void Synchronize () {
+
+    public void Synchronize () {
 
 		Value.Synchronize ();
 	}
