@@ -990,83 +990,92 @@ public class Manager {
 		SetSelectedCell (CurrentWorld.GetCell (longitude, latitude));
 	}
 
-	public static void SetSelectedCell (WorldPosition position) {
+    public static void SetSelectedCell(WorldPosition position)
+    {
+        SetSelectedCell(CurrentWorld.GetCell(position));
+    }
 
-		SetSelectedCell (CurrentWorld.GetCell (position));
-	}
+    public static void SetSelectedRegion(Region region)
+    {
+        if (CurrentWorld.SelectedRegion != null)
+        {
+            AddHighlightedCells(CurrentWorld.SelectedRegion.GetCells(), CellUpdateType.Region);
 
-	public static void SetSelectedCell (TerrainCell cell) {
+            CurrentWorld.SelectedRegion.IsSelected = false;
+            CurrentWorld.SelectedRegion = null;
+        }
 
-		if (CurrentWorld.SelectedCell != null) {
+        if (region != null)
+        {
+            CurrentWorld.SelectedRegion = region;
+            CurrentWorld.SelectedRegion.IsSelected = true;
 
-			AddHighlightedCell (CurrentWorld.SelectedCell, CellUpdateType.All);
-		
-			CurrentWorld.SelectedCell.IsSelected = false;
-			CurrentWorld.SelectedCell = null;
-		}
+            AddHighlightedCells(CurrentWorld.SelectedRegion.GetCells(), CellUpdateType.Region);
+        }
+    }
 
-		if (CurrentWorld.SelectedRegion != null) {
+    public static void SetSelectedTerritory(Territory territory)
+    {
+        if (CurrentWorld.SelectedTerritory != null)
+        {
+            AddHighlightedCells(CurrentWorld.SelectedTerritory.GetCells(), CellUpdateType.Territory);
 
-			AddHighlightedCells (CurrentWorld.SelectedRegion.GetCells (), CellUpdateType.Region);
+            Polity selectedPolity = CurrentWorld.SelectedTerritory.Polity;
 
-			CurrentWorld.SelectedRegion.IsSelected = false;
-			CurrentWorld.SelectedRegion = null;
-		}
+            CurrentWorld.SelectedTerritory.IsSelected = false;
+            CurrentWorld.SelectedTerritory = null;
 
-		if (CurrentWorld.SelectedTerritory != null) {
+            if (_planetOverlay == PlanetOverlay.PolityContacts)
+            {
+                foreach (PolityContact contact in selectedPolity.Contacts.Values)
+                {
+                    AddHighlightedCells(contact.Polity.Territory.GetCells(), CellUpdateType.Territory);
+                }
+            }
+        }
 
-			AddHighlightedCells (CurrentWorld.SelectedTerritory.GetCells (), CellUpdateType.Territory);
+        if (territory != null)
+        {
+            CurrentWorld.SelectedTerritory = territory;
+            CurrentWorld.SelectedTerritory.IsSelected = true;
 
-			Polity selectedPolity = CurrentWorld.SelectedTerritory.Polity;
+            AddHighlightedCells(CurrentWorld.SelectedTerritory.GetCells(), CellUpdateType.Territory);
 
-			CurrentWorld.SelectedTerritory.IsSelected = false;
-			CurrentWorld.SelectedTerritory = null;
+            if (_planetOverlay == PlanetOverlay.PolityContacts)
+            {
+                Polity selectedPolity = territory.Polity;
 
-			if (_planetOverlay == PlanetOverlay.PolityContacts) {
+                foreach (PolityContact contact in selectedPolity.Contacts.Values)
+                {
+                    AddHighlightedCells(contact.Polity.Territory.GetCells(), CellUpdateType.Territory);
+                }
+            }
+        }
+    }
 
-				foreach (PolityContact contact in selectedPolity.Contacts.Values) {
+	public static void SetSelectedCell(TerrainCell cell)
+    {
+        if (CurrentWorld.SelectedCell != null)
+        {
+            AddHighlightedCell(CurrentWorld.SelectedCell, CellUpdateType.All);
 
-					AddHighlightedCells (contact.Polity.Territory.GetCells (), CellUpdateType.Territory);
-				}
-			}
-		}
+            CurrentWorld.SelectedCell.IsSelected = false;
+            CurrentWorld.SelectedCell = null;
+        }
 
-		if (cell == null)
-			return;
+        if (cell == null)
+            return;
 
-		CurrentWorld.SelectedCell = cell;
-		CurrentWorld.SelectedCell.IsSelected = true;
+        CurrentWorld.SelectedCell = cell;
+        CurrentWorld.SelectedCell.IsSelected = true;
 
-		AddHighlightedCell (CurrentWorld.SelectedCell, CellUpdateType.All);
+        AddHighlightedCell(CurrentWorld.SelectedCell, CellUpdateType.All);
 
-		if (cell.Region != null) {
+        SetSelectedRegion(cell.Region);
+        SetSelectedTerritory(cell.EncompassingTerritory);
+    }
 
-			CurrentWorld.SelectedRegion = cell.Region;
-			CurrentWorld.SelectedRegion.IsSelected = true;
-
-			AddHighlightedCells (CurrentWorld.SelectedRegion.GetCells (), CellUpdateType.Region);
-		}
-
-		if (cell.EncompassingTerritory != null) {
-
-			CurrentWorld.SelectedTerritory = cell.EncompassingTerritory;
-			CurrentWorld.SelectedTerritory.IsSelected = true;
-
-			AddHighlightedCells (CurrentWorld.SelectedTerritory.GetCells (), CellUpdateType.Territory);
-
-			if (_planetOverlay == PlanetOverlay.PolityContacts) {
-
-				Polity selectedPolity = cell.EncompassingTerritory.Polity;
-
-				foreach (PolityContact contact in selectedPolity.Contacts.Values) {
-
-					AddHighlightedCells (contact.Polity.Territory.GetCells (), CellUpdateType.Territory);
-				}
-			}
-		}
-	}
-
-	public static void SetFocusOnPolity (Polity polity) {
+    public static void SetFocusOnPolity (Polity polity) {
 
 		if (polity == null)
 			return;

@@ -196,37 +196,43 @@ public abstract class Polity : ISynchronizable {
 
 	public abstract void InitializeInternal ();
 
-	public void Destroy () {
-
-		if (IsUnderPlayerFocus) {
-			Manager.UnsetFocusOnPolity (this);
+	public void Destroy()
+    {
+        if (Territory.IsSelected)
+        {
+            Manager.SetSelectedTerritory(null);
         }
-        
+
+        if (IsUnderPlayerFocus)
+        {
+            Manager.UnsetFocusOnPolity(this);
+        }
+
         List<PolityContact> contacts = new List<PolityContact>(Contacts.Values);
 
-        foreach (PolityContact contact in contacts) {
-
-			Polity.RemoveContact(this, contact.Polity);
+        foreach (PolityContact contact in contacts)
+        {
+            Polity.RemoveContact(this, contact.Polity);
         }
 
         List<Faction> factions = new List<Faction>(Factions.Values);
 
-        foreach (Faction faction in factions) {
+        foreach (Faction faction in factions)
+        {
+            faction.Destroy(true);
+        }
 
-			faction.Destroy (true);
-		}
+        foreach (CellGroup group in ProminencedGroups.Values)
+        {
+            group.RemovePolityProminence(this);
 
-		foreach (CellGroup group in ProminencedGroups.Values) {
-
-			group.RemovePolityProminence (this);
-
-			World.AddGroupToPostUpdate_AfterPolityUpdate (group);
-		}
+            World.AddGroupToPostUpdate_AfterPolityUpdate(group);
+        }
 
         Info.Polity = null;
 
-		StillPresent = false;
-	}
+        StillPresent = false;
+    }
 
     public string GetNameAndTypeString()
     {

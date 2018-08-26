@@ -2083,8 +2083,15 @@ public class GuiManagerScript : MonoBehaviour {
 
 		#if DEBUG
 		InfoPanelScript.InfoText.text += "\n -- Debug Data -- ";
-		
-		InfoPanelScript.InfoText.text += "\n";
+
+        if ((Manager.CurrentWorld != null) &&
+            (Manager.CurrentWorld.SelectedTerritory != null))
+        {
+            InfoPanelScript.InfoText.text += "\n";
+            InfoPanelScript.InfoText.text += "\nSelected Territory's Polity Id: " + Manager.CurrentWorld.SelectedTerritory.Polity.Id;
+        }
+
+        InfoPanelScript.InfoText.text += "\n";
 		InfoPanelScript.InfoText.text += "\nNumber of Migration Events: " + MigrateGroupEvent.MigrationEventCount;
 		
 		InfoPanelScript.InfoText.text += "\n";
