@@ -1346,8 +1346,13 @@ public class GuiManagerScript : MonoBehaviour {
 
 	public void PostProgressOp_LoadAction ()
     {
-        Debug.Log("Finished loading world. Seed: " + Manager.CurrentWorld.Seed + 
-            ", Current Date: " + Manager.GetDateString(Manager.CurrentWorld.CurrentDate));
+        Debug.Log(string.Format(
+            "Finished loading world. Seed: {0}, Avg. Temperature: {1}, Avg. Rainfall: {2}, Sea Level Offset: {3}, Current Date: {4}",
+            Manager.CurrentWorld.Seed,
+            Manager.CurrentWorld.TemperatureOffset,
+            Manager.CurrentWorld.RainfallOffset,
+            Manager.CurrentWorld.SeaLevelOffset,
+            Manager.GetDateString(Manager.CurrentWorld.CurrentDate)));
 
         SelectionPanelScript.RemoveAllOptions ();
 		

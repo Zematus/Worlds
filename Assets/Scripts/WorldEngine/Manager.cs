@@ -736,7 +736,8 @@ public class Manager {
 			_manager._progressCastMethod = (value, message, reset) => {};
         }
 
-        Debug.Log("Trying to generate world with seed: " + seed);
+        Debug.Log(string.Format("Trying to generate world with seed: {0}, Avg. Temperature: {1}, Avg. Rainfall: {2}, Sea Level Offset: {3}", 
+            seed, TemperatureOffset, RainfallOffset, SeaLevelOffset));
 
         ThreadPool.QueueUserWorkItem (state => {
 			
