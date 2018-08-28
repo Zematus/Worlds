@@ -141,12 +141,15 @@ public class World : ISynchronizable {
 	public const long MaxPossibleTimeToSkip = int.MaxValue / 10;
 	
 	public const float Circumference = 40075; // In kilometers;
-	
-	public const int NumContinents =12;
-	public const float ContinentMinWidthFactor = 5.7f;
-	public const float ContinentMaxWidthFactor = 8.7f;
 
-	public const float AvgPossibleRainfall = 990f;
+    //public const int NumContinents = 12;
+    public const int NumContinents = 10;
+    public const float ContinentMinWidthFactor = 5.7f;
+    public const float ContinentMaxWidthFactor = 8.7f;
+    public const float ContinentMinAgeFactor = 10f;
+    public const float ContinentMaxAgeFactor = 100f;
+
+    public const float AvgPossibleRainfall = 990f;
 	public const float AvgPossibleTemperature = 13.7f;
 	
 	public const float MinPossibleAltitude = -15000;
@@ -367,8 +370,9 @@ public class World : ISynchronizable {
 	private Vector2[] _continentOffsets;
 	private float[] _continentWidths;
 	private float[] _continentHeights;
-	
-	private float _progressIncrement = 0.25f;
+    private float[] _continentPlateAge;
+
+    private float _progressIncrement = 0.25f;
 
 	private float _accumulatedProgress = 0;
 
@@ -452,8 +456,9 @@ public class World : ISynchronizable {
 		_continentOffsets = new Vector2[NumContinents];
 		_continentHeights = new float[NumContinents];
 		_continentWidths = new float[NumContinents];
-		
-		Manager.EnqueueTaskAndWait (() => {
+        _continentPlateAge = new float[NumContinents];
+
+        Manager.EnqueueTaskAndWait (() => {
 			
 			Random.InitState(Seed);
 			return true;
@@ -1883,9 +1888,7 @@ public class World : ISynchronizable {
 			Vector2 prevPos = new Vector2(
 				RandomUtility.Range(0f, Width),
 				RandomUtility.Range(minLatitude, maxLatitude));
-
-			//Vector2 prevPrevPos = prevPos;
-
+            
 			for (int i = 0; i < NumContinents; i++) {
 
 				int widthOff = Random.Range(0, 2) * 3;
@@ -1893,8 +1896,9 @@ public class World : ISynchronizable {
 				_continentOffsets[i] = prevPos;
 				_continentWidths[i] = RandomUtility.Range(ContinentMinWidthFactor + widthOff, ContinentMaxWidthFactor + widthOff);
 				_continentHeights[i] = RandomUtility.Range(ContinentMinWidthFactor + widthOff, ContinentMaxWidthFactor + widthOff);
+                _continentPlateAge[i] = RandomUtility.Range(ContinentMinAgeFactor, ContinentMaxAgeFactor);
 
-				float xPos = Mathf.Repeat(prevPos.x + RandomUtility.Range(Width / longitudeFactor, Width * 2 / longitudeFactor), Width);
+                float xPos = Mathf.Repeat(prevPos.x + RandomUtility.Range(Width / longitudeFactor, Width * 2 / longitudeFactor), Width);
 				float yPos = RandomUtility.Range(minLatitude, maxLatitude);
 
 				if (i % 3 == 2) {
@@ -1902,8 +1906,7 @@ public class World : ISynchronizable {
 				}
 
 				Vector2 newPos = new Vector2(xPos, yPos);
-
-				//prevPrevPos = prevPos;
+                
 				prevPos = newPos;
 			}
 			
@@ -1911,35 +1914,37 @@ public class World : ISynchronizable {
 		});
 	}
 	
-	private float GetContinentModifier (int x, int y) {
+	private float GetContinentModifier(int x, int y)
+    {
+        float maxValue = 0;
+        float widthF = (float)Width;
 
-		float maxValue = 0;
+        for (int i = 0; i < NumContinents; i++)
+        {
+            float dist = GetContinentDistance(i, x, y);
 
-		for (int i = 0; i < NumContinents; i++)
-		{
-			float dist = GetContinentDistance(i, x, y);
+            float value = Mathf.Clamp01(1f - dist / widthF);
 
-			float value = Mathf.Clamp(1f - dist/((float)Width), 0 , 1);
+            float otherValue = value;
 
-			float otherValue = value;
+            if (maxValue < value)
+            {
 
-			if (maxValue < value) {
+                otherValue = maxValue;
+                maxValue = value;
+            }
 
-				otherValue = maxValue;
-				maxValue = value;
-			}
+            float valueMod = otherValue;
+            otherValue *= 2;
+            otherValue = Mathf.Min(1, otherValue);
 
-			float valueMod = otherValue;
-			otherValue *= 2;
-			otherValue = Mathf.Min(1, otherValue);
+            maxValue = MathUtility.MixValues(maxValue, otherValue, valueMod);
+        }
 
-			maxValue = MathUtility.MixValues(maxValue, otherValue, valueMod);
-		}
+        return maxValue;
+    }
 
-		return maxValue;
-	}
-
-	private float GetContinentDistance (int id, int x, int y) {
+    private float GetContinentDistance (int id, int x, int y) {
 		
 		float betaFactor = Mathf.Sin(Mathf.PI * y / Height);
 
@@ -1957,9 +1962,144 @@ public class World : ISynchronizable {
 		float continentHeight = _continentHeights[id];
 		
 		return new Vector2(distX*continentWidth, distY*continentHeight).magnitude;
-	}
+    }
 
-	private void GenerateTerrainAltitude () {
+    //private void GenerateTerrainAltitude()
+    //{
+    //    GenerateContinents();
+
+    //    int sizeX = Width;
+    //    int sizeY = Height;
+
+    //    float radius1 = 0.75f;
+    //    float radius1b = 1.25f;
+    //    float radius2 = 8f;
+    //    float radius3 = 4f;
+    //    float radius4 = 8f;
+    //    float radius5 = 16f;
+    //    float radius6 = 64f;
+    //    float radius7 = 128f;
+    //    float radius8 = 1.5f;
+    //    float radius9 = 1f;
+
+    //    ManagerTask<Vector3> offset1 = GenerateRandomOffsetVector();
+    //    ManagerTask<Vector3> offset2 = GenerateRandomOffsetVector();
+    //    ManagerTask<Vector3> offset1b = GenerateRandomOffsetVector();
+    //    ManagerTask<Vector3> offset2b = GenerateRandomOffsetVector();
+    //    ManagerTask<Vector3> offset3 = GenerateRandomOffsetVector();
+    //    ManagerTask<Vector3> offset4 = GenerateRandomOffsetVector();
+    //    ManagerTask<Vector3> offset5 = GenerateRandomOffsetVector();
+    //    ManagerTask<Vector3> offset6 = GenerateRandomOffsetVector();
+    //    ManagerTask<Vector3> offset7 = GenerateRandomOffsetVector();
+    //    ManagerTask<Vector3> offset8 = GenerateRandomOffsetVector();
+    //    ManagerTask<Vector3> offset9 = GenerateRandomOffsetVector();
+
+    //    for (int i = 0; i < sizeX; i++)
+    //    {
+    //        float beta = (i / (float)sizeX) * Mathf.PI * 2;
+
+    //        for (int j = 0; j < sizeY; j++)
+    //        {
+    //            float alpha = (j / (float)sizeY) * Mathf.PI;
+
+    //            float value1 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius1, offset1);
+    //            float value2 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius2, offset2);
+    //            float value1b = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius1b, offset1b);
+    //            float value2b = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius2, offset2b);
+    //            float value3 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius3, offset3);
+    //            float value4 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius4, offset4);
+    //            float value5 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius5, offset5);
+    //            float value6 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius6, offset6);
+    //            float value7 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius7, offset7);
+    //            float value8 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius8, offset8);
+    //            float value9 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius9, offset9);
+
+    //            value8 = value8 * 1.5f + 0.25f;
+
+    //            float valueA = GetContinentModifier(i, j);
+    //            valueA = MathUtility.MixValues(valueA, value3, 0.22f * value8);
+    //            valueA = MathUtility.MixValues(valueA, value4, 0.15f * value8);
+    //            valueA = MathUtility.MixValues(valueA, value5, 0.1f * value8);
+    //            valueA = MathUtility.MixValues(valueA, value6, 0.03f * value8);
+    //            valueA = MathUtility.MixValues(valueA, value7, 0.005f * value8);
+
+    //            float valueC = MathUtility.MixValues(value1, value9, 0.5f * value8);
+    //            valueC = MathUtility.MixValues(valueC, value2, 0.04f * value8);
+    //            valueC = GetMountainRangeNoiseFromRandomNoise(valueC, 25);
+    //            float valueCb = MathUtility.MixValues(value1b, value9, 0.5f * value8);
+    //            valueCb = MathUtility.MixValues(valueCb, value2b, 0.04f * value8);
+    //            valueCb = GetMountainRangeNoiseFromRandomNoise(valueCb, 25);
+    //            valueC = MathUtility.MixValues(valueC, valueCb, 0.5f * value8);
+
+    //            //				valueC = MathUtility.MixValues(valueC, value3, 0.3f * value8);
+    //            valueC = MathUtility.MixValues(valueC, value3, 0.45f * value8);
+    //            //				valueC = MathUtility.MixValues(valueC, value3, 0.55f * value8);
+    //            valueC = MathUtility.MixValues(valueC, value4, 0.075f);
+    //            valueC = MathUtility.MixValues(valueC, value5, 0.05f);
+    //            valueC = MathUtility.MixValues(valueC, value6, 0.02f);
+    //            valueC = MathUtility.MixValues(valueC, value7, 0.01f);
+
+    //            //				float valueB = MathUtility.MixValues (valueA, (valueA * 0.02f) + 0.49f, Mathf.Max(0, 0.9f * valueA - Mathf.Max(0, (2f * valueC) - 1)));
+    //            //
+    //            //				float valueD = MathUtility.MixValues (valueB, valueC, 0.225f * value8);
+
+    //            float valueB = MathUtility.MixValues(valueA, valueC, 0.35f * value8);
+
+    //            float valueD = MathUtility.MixValues(valueB, (valueA * 0.02f) + 0.49f, Mathf.Clamp01(1.3f * valueA - Mathf.Max(0, (2.5f * valueC) - 1)));
+
+    //            CalculateAndSetAltitude(i, j, valueD);
+    //            //				CalculateAndSetAltitude(i, j, valueC);
+    //            //				CalculateAndSetAltitude(i, j, valueB);
+    //            //				CalculateAndSetAltitude(i, j, valueCb);
+    //            //				CalculateAndSetAltitude(i, j, valueA);
+    //        }
+
+    //        ProgressCastMethod(_accumulatedProgress + _progressIncrement * (i + 1) / (float)sizeX);
+    //    }
+
+    //    _accumulatedProgress += _progressIncrement;
+    //}
+
+    private float GetMountainRangeFromContinentCollision(float[] noises, int i, int j, float widthFactor)
+    {
+        //noise = (noise * 2) - 1;
+        float closest1 = float.MaxValue;
+        float closest2 = float.MaxValue;
+        float age1 = ContinentMinAgeFactor;
+        float age2 = ContinentMinAgeFactor;
+
+        for (int k = 0; k < NumContinents; k++)
+        {
+            float dist = GetContinentDistance(k, i, j) * (noises[k]*0.4f + 0.8f);
+
+            if (dist < closest1)
+            {
+                closest2 = closest1;
+                age2 = age1;
+
+                closest1 = dist;
+                age1 = _continentPlateAge[k];
+            }
+            else if (dist < closest2)
+            {
+                closest2 = dist;
+                age2 = _continentPlateAge[k];
+            }
+        }
+
+        float distDiff = closest1 - closest2;
+        float ageDiffFactor = 2 * (age1 - age2) / (ContinentMaxAgeFactor - ContinentMinAgeFactor);
+        float trenchMagnitude = Mathf.Clamp01(Mathf.Abs(ageDiffFactor));
+
+        float mountainValue = Mathf.Exp(-Mathf.Pow(distDiff * widthFactor + ageDiffFactor, 2));
+        float trenchValue = -trenchMagnitude * Mathf.Exp(-Mathf.Pow(distDiff * widthFactor - ageDiffFactor, 2));
+
+        return mountainValue + trenchValue;
+    }
+
+    private void GenerateTerrainAltitude ()
+    {
+        float widthF = (float)Width;
 
 		GenerateContinents();
 		
@@ -1988,8 +2128,19 @@ public class World : ISynchronizable {
 		ManagerTask<Vector3> offset7 = GenerateRandomOffsetVector();
 		ManagerTask<Vector3> offset8 = GenerateRandomOffsetVector();
 		ManagerTask<Vector3> offset9 = GenerateRandomOffsetVector();
-		
-		for (int i = 0; i < sizeX; i++)
+
+        float radiusK = 3f;
+        float radiusK2 = 15f;
+        ManagerTask<Vector3>[] offsetK = new ManagerTask<Vector3>[NumContinents];
+        ManagerTask<Vector3>[] offsetK2 = new ManagerTask<Vector3>[NumContinents];
+
+        for (int k = 0; k < NumContinents; k++)
+        {
+            offsetK[k] = GenerateRandomOffsetVector();
+            offsetK2[k] = GenerateRandomOffsetVector();
+        }
+
+        for (int i = 0; i < sizeX; i++)
 		{
 			float beta = (i / (float)sizeX) * Mathf.PI * 2;
 			
@@ -1997,59 +2148,83 @@ public class World : ISynchronizable {
 			{
 				float alpha = (j / (float)sizeY) * Mathf.PI;
 
-				float value1 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius1, offset1);
-				float value2 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius2, offset2);
-				float value1b = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius1b, offset1b);
-				float value2b = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius2, offset2b);
-				float value3 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius3, offset3);
-				float value4 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius4, offset4);
-				float value5 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius5, offset5);
-				float value6 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius6, offset6);
-				float value7 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius7, offset7);
-				float value8 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius8, offset8);
-				float value9 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius9, offset9);
+                float value1 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius1, offset1);
+                float value2 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius2, offset2);
+                float value1b = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius1b, offset1b);
+                float value2b = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius2, offset2b);
+                float value3 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius3, offset3);
+                float value4 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius4, offset4);
+                float value5 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius5, offset5);
+                float value6 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius6, offset6);
+                float value7 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius7, offset7);
+                float value8 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius8, offset8);
+                float value9 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius9, offset9);
 
-				value8 = value8 * 1.5f + 0.25f;
+                value8 = value8 * 1.5f + 0.25f;
 
-				float valueA = GetContinentModifier(i, j);
-				valueA = MathUtility.MixValues(valueA, value3, 0.22f * value8);
-				valueA = MathUtility.MixValues(valueA, value4, 0.15f * value8);
-				valueA = MathUtility.MixValues(valueA, value5, 0.1f * value8);
-				valueA = MathUtility.MixValues(valueA, value6, 0.03f * value8);
-				valueA = MathUtility.MixValues(valueA, value7, 0.005f * value8);
-				
-				float valueC = MathUtility.MixValues(value1, value9, 0.5f * value8);
-				valueC = MathUtility.MixValues(valueC, value2, 0.04f * value8);
-				valueC = GetMountainRangeNoiseFromRandomNoise(valueC, 25);
-				float valueCb = MathUtility.MixValues(value1b, value9, 0.5f * value8);
-				valueCb = MathUtility.MixValues(valueCb, value2b, 0.04f * value8);
-				valueCb = GetMountainRangeNoiseFromRandomNoise(valueCb, 25);
-				valueC = MathUtility.MixValues(valueC, valueCb, 0.5f * value8);
+                float valueA = GetContinentModifier(i, j);
+                valueA = MathUtility.MixValues(valueA, value3, 0.22f * value8);
+                valueA = MathUtility.MixValues(valueA, value4, 0.15f * value8);
+                valueA = MathUtility.MixValues(valueA, value5, 0.1f * value8);
+                valueA = MathUtility.MixValues(valueA, value6, 0.03f * value8);
+                valueA = MathUtility.MixValues(valueA, value7, 0.005f * value8);
 
-//				valueC = MathUtility.MixValues(valueC, value3, 0.3f * value8);
-				valueC = MathUtility.MixValues(valueC, value3, 0.45f * value8);
-//				valueC = MathUtility.MixValues(valueC, value3, 0.55f * value8);
-				valueC = MathUtility.MixValues(valueC, value4, 0.075f);
-				valueC = MathUtility.MixValues(valueC, value5, 0.05f);
-				valueC = MathUtility.MixValues(valueC, value6, 0.02f);
-				valueC = MathUtility.MixValues(valueC, value7, 0.01f);
-				
-//				float valueB = MathUtility.MixValues (valueA, (valueA * 0.02f) + 0.49f, Mathf.Max(0, 0.9f * valueA - Mathf.Max(0, (2f * valueC) - 1)));
-//
-//				float valueD = MathUtility.MixValues (valueB, valueC, 0.225f * value8);
+                //float valueC = MathUtility.MixValues(value1, value9, 0.5f * value8);
+                //valueC = MathUtility.MixValues(valueC, value2, 0.04f * value8);
+                //valueC = GetMountainRangeNoiseFromRandomNoise(valueC, 25);
+                //float valueCb = MathUtility.MixValues(value1b, value9, 0.5f * value8);
+                //valueCb = MathUtility.MixValues(valueCb, value2b, 0.04f * value8);
+                //valueCb = GetMountainRangeNoiseFromRandomNoise(valueCb, 25);
+                //valueC = MathUtility.MixValues(valueC, valueCb, 0.5f * value8);
 
-				float valueB = MathUtility.MixValues (valueA, valueC, 0.35f * value8);
+                float[] valuesK = new float[NumContinents];
 
-				float valueD = MathUtility.MixValues (valueB, (valueA * 0.02f) + 0.49f, Mathf.Clamp01(1.3f * valueA - Mathf.Max(0, (2.5f * valueC) - 1)));
+                for (int k = 0; k < NumContinents; k++)
+                {
+                    float valueK = GetRandomNoiseFromPolarCoordinates(alpha, beta, radiusK, offsetK[k]);
+                    float valueK2 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radiusK2, offsetK2[k]);
+                    valuesK[k] = MathUtility.MixValues(valueK, valueK2, 0.1f * value8);
+                }
 
-				CalculateAndSetAltitude(i, j, valueD);
-//				CalculateAndSetAltitude(i, j, valueC);
-//				CalculateAndSetAltitude(i, j, valueB);
-//				CalculateAndSetAltitude(i, j, valueCb);
-//				CalculateAndSetAltitude(i, j, valueA);
-			}
+                float widthFactor = 7f / widthF;
+                float valueC = GetMountainRangeFromContinentCollision(valuesK, i, j, widthFactor);
 
-			ProgressCastMethod (_accumulatedProgress + _progressIncrement * (i + 1)/(float)sizeX);
+                float valueCb = MathUtility.MixValues(value1, value9, 0.5f * value8);
+                valueCb = MathUtility.MixValues(valueCb, value2, 0.04f * value8);
+                valueCb = GetMountainRangeNoiseFromRandomNoise(valueCb, 25);
+                valueC = MathUtility.MixValues(valueC, valueCb, 0.5f * value8);
+
+                valueC = MathUtility.MixValues(valueC, value3, 0.45f * value8);
+                valueC = MathUtility.MixValues(valueC, value4, 0.075f);
+                valueC = MathUtility.MixValues(valueC, value5, 0.05f);
+                valueC = MathUtility.MixValues(valueC, value6, 0.02f);
+                valueC = MathUtility.MixValues(valueC, value7, 0.01f);
+
+                float valueB = MathUtility.MixValues(valueA, valueC, 0.35f * value8);
+
+                //float weightB = Mathf.Clamp01(valueB * 1.5f);
+                //float valueE = MathUtility.MixValues(valueC, valueB, 1);
+                //float valueF = MathUtility.MixValues(valueB, (valueA * 0.02f) + 0.49f, weightB);
+                ////float valueF = (valueA * 0.2f) + 0.4f;
+                ////float weightF = Mathf.Clamp01(1.3f * valueA - Mathf.Max(0, (2.5f * valueC) - 1));
+                ////float weightF = Mathf.Clamp01(1.3f * valueA - Mathf.Max(0, (2.5f * valueC) - 1));
+                ////float valueD = MathUtility.MixValues(valueB, valueF, weightF);
+                //float valueD = MathUtility.MixValues(valueF, valueE, 0.6f * value8);
+                
+                float valueE = (valueB > 0.5f) ? Mathf.Max(valueC, valueB) : valueB;
+                float valueF = Mathf.Min(valueB, (valueA * 0.02f) + 0.49f);
+                float valueD = MathUtility.MixValues(valueF, valueE, valueE);
+
+                //CalculateAndSetAltitude(i, j, valueCb);
+                //CalculateAndSetAltitude(i, j, valueA);
+                //CalculateAndSetAltitude(i, j, valueB);
+                //CalculateAndSetAltitude(i, j, valueC);
+                CalculateAndSetAltitude(i, j, valueD);
+                //CalculateAndSetAltitude(i, j, valueE);
+                //CalculateAndSetAltitude(i, j, valueF);
+            }
+
+            ProgressCastMethod (_accumulatedProgress + _progressIncrement * (i + 1)/(float)sizeX);
 		}
 
 		_accumulatedProgress += _progressIncrement;
