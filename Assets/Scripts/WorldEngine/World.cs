@@ -146,8 +146,6 @@ public class World : ISynchronizable {
     public const int NumContinents = 10;
     public const float ContinentMinWidthFactor = 5.7f;
     public const float ContinentMaxWidthFactor = 8.7f;
-    public const float ContinentMinAgeFactor = 10f;
-    public const float ContinentMaxAgeFactor = 100f;
 
     public const float AvgPossibleRainfall = 990f;
 	public const float AvgPossibleTemperature = 13.7f;
@@ -370,7 +368,7 @@ public class World : ISynchronizable {
 	private Vector2[] _continentOffsets;
 	private float[] _continentWidths;
 	private float[] _continentHeights;
-    private float[] _continentPlateAge;
+    private float[] _continentAltitudeOffsets;
 
     private float _progressIncrement = 0.25f;
 
@@ -456,7 +454,7 @@ public class World : ISynchronizable {
 		_continentOffsets = new Vector2[NumContinents];
 		_continentHeights = new float[NumContinents];
 		_continentWidths = new float[NumContinents];
-        _continentPlateAge = new float[NumContinents];
+        _continentAltitudeOffsets = new float[NumContinents];
 
         Manager.EnqueueTaskAndWait (() => {
 			
@@ -1888,15 +1886,20 @@ public class World : ISynchronizable {
 			Vector2 prevPos = new Vector2(
 				RandomUtility.Range(0f, Width),
 				RandomUtility.Range(minLatitude, maxLatitude));
-            
-			for (int i = 0; i < NumContinents; i++) {
+
+            float altitudeOffsetIncrement = 0.7f;
+            float altitudeOffset = 0;
+
+            for (int i = 0; i < NumContinents; i++) {
 
 				int widthOff = Random.Range(0, 2) * 3;
 				
 				_continentOffsets[i] = prevPos;
 				_continentWidths[i] = RandomUtility.Range(ContinentMinWidthFactor + widthOff, ContinentMaxWidthFactor + widthOff);
 				_continentHeights[i] = RandomUtility.Range(ContinentMinWidthFactor + widthOff, ContinentMaxWidthFactor + widthOff);
-                _continentPlateAge[i] = RandomUtility.Range(ContinentMinAgeFactor, ContinentMaxAgeFactor);
+                _continentAltitudeOffsets[i] = Mathf.Repeat(altitudeOffset + RandomUtility.Range(0f, altitudeOffsetIncrement), 1f);
+                
+                altitudeOffset = Mathf.Repeat(altitudeOffset + altitudeOffsetIncrement, 1f);
 
                 float xPos = Mathf.Repeat(prevPos.x + RandomUtility.Range(Width / longitudeFactor, Width * 2 / longitudeFactor), Width);
 				float yPos = RandomUtility.Range(minLatitude, maxLatitude);
@@ -1936,9 +1939,9 @@ public class World : ISynchronizable {
 
             float valueMod = otherValue;
             otherValue *= 2;
-            otherValue = Mathf.Min(1, otherValue);
+            otherValue = Mathf.Clamp01(otherValue);
 
-            maxValue = MathUtility.MixValues(maxValue, otherValue, valueMod);
+            maxValue = Mathf.Lerp(maxValue, otherValue, valueMod);
         }
 
         return maxValue;
@@ -2063,38 +2066,45 @@ public class World : ISynchronizable {
     private float GetMountainRangeFromContinentCollision(float[] noises, int i, int j, float widthFactor)
     {
         //noise = (noise * 2) - 1;
-        float closest1 = float.MaxValue;
-        float closest2 = float.MaxValue;
-        float age1 = ContinentMinAgeFactor;
-        float age2 = ContinentMinAgeFactor;
+        float distance1 = float.MaxValue;
+        float distance2 = float.MaxValue;
+        float altitude1 = 1f;
+        float altitude2 = 1f;
 
         for (int k = 0; k < NumContinents; k++)
         {
-            float dist = GetContinentDistance(k, i, j) * (noises[k]*0.4f + 0.8f);
+            //float dist = GetContinentDistance(k, i, j) * (noises[k] * 0.4f + 0.8f);
+            float dist = GetContinentDistance(k, i, j);
 
-            if (dist < closest1)
+            if (dist < distance1)
             {
-                closest2 = closest1;
-                age2 = age1;
+                distance2 = distance1;
+                altitude2 = altitude1;
 
-                closest1 = dist;
-                age1 = _continentPlateAge[k];
+                distance1 = dist;
+                altitude1 = _continentAltitudeOffsets[k];
             }
-            else if (dist < closest2)
+            else if (dist < distance2)
             {
-                closest2 = dist;
-                age2 = _continentPlateAge[k];
+                distance2 = dist;
+                altitude2 = _continentAltitudeOffsets[k];
             }
         }
 
-        float distDiff = closest1 - closest2;
-        float ageDiffFactor = 2 * (age1 - age2) / (ContinentMaxAgeFactor - ContinentMinAgeFactor);
-        float trenchMagnitude = Mathf.Clamp01(Mathf.Abs(ageDiffFactor));
+        float highAltitude = Mathf.Max(altitude1, altitude2);
+        float lowAltitude = Mathf.Min(altitude1, altitude2);
 
-        float mountainValue = Mathf.Exp(-Mathf.Pow(distDiff * widthFactor + ageDiffFactor, 2));
-        float trenchValue = -trenchMagnitude * Mathf.Exp(-Mathf.Pow(distDiff * widthFactor - ageDiffFactor, 2));
+        //float altitude = Mathf.Lerp(highAltitude, lowAltitude, distance1 / (distance1 + distance2));
+        float altitude = Mathf.Lerp(altitude1, altitude2, distance1 / (distance1 + distance2));
 
-        return mountainValue + trenchValue;
+        float distDiff = distance1 - distance2;
+        float altitudeDiffFactor = 2 * (altitude1 - altitude2);
+        float trenchMagnitude = Mathf.Clamp01(Mathf.Abs(altitudeDiffFactor));
+
+        float mountainValue = Mathf.Exp(-Mathf.Pow(distDiff * widthFactor + altitudeDiffFactor, 2));
+        float trenchValue = -trenchMagnitude * Mathf.Exp(-Mathf.Pow(distDiff * widthFactor - altitudeDiffFactor, 2));
+
+        return Mathf.Lerp(altitude, mountainValue + trenchValue, 0.0f);
     }
 
     private void GenerateTerrainAltitude ()
@@ -2163,11 +2173,11 @@ public class World : ISynchronizable {
                 value8 = value8 * 1.5f + 0.25f;
 
                 float valueA = GetContinentModifier(i, j);
-                valueA = MathUtility.MixValues(valueA, value3, 0.22f * value8);
-                valueA = MathUtility.MixValues(valueA, value4, 0.15f * value8);
-                valueA = MathUtility.MixValues(valueA, value5, 0.1f * value8);
-                valueA = MathUtility.MixValues(valueA, value6, 0.03f * value8);
-                valueA = MathUtility.MixValues(valueA, value7, 0.005f * value8);
+                valueA = Mathf.Lerp(valueA, value3, 0.22f * value8);
+                valueA = Mathf.Lerp(valueA, value4, 0.15f * value8);
+                valueA = Mathf.Lerp(valueA, value5, 0.1f * value8);
+                valueA = Mathf.Lerp(valueA, value6, 0.03f * value8);
+                valueA = Mathf.Lerp(valueA, value7, 0.005f * value8);
 
                 //float valueC = MathUtility.MixValues(value1, value9, 0.5f * value8);
                 //valueC = MathUtility.MixValues(valueC, value2, 0.04f * value8);
@@ -2183,24 +2193,24 @@ public class World : ISynchronizable {
                 {
                     float valueK = GetRandomNoiseFromPolarCoordinates(alpha, beta, radiusK, offsetK[k]);
                     float valueK2 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radiusK2, offsetK2[k]);
-                    valuesK[k] = MathUtility.MixValues(valueK, valueK2, 0.1f * value8);
+                    valuesK[k] = Mathf.Lerp(valueK, valueK2, 0.1f * value8);
                 }
 
                 float widthFactor = 7f / widthF;
                 float valueC = GetMountainRangeFromContinentCollision(valuesK, i, j, widthFactor);
 
-                float valueCb = MathUtility.MixValues(value1, value9, 0.5f * value8);
-                valueCb = MathUtility.MixValues(valueCb, value2, 0.04f * value8);
-                valueCb = GetMountainRangeNoiseFromRandomNoise(valueCb, 25);
-                valueC = MathUtility.MixValues(valueC, valueCb, 0.5f * value8);
+                //float valueCb = MathUtility.MixValues(value1, value9, 0.5f * value8);
+                //valueCb = MathUtility.MixValues(valueCb, value2, 0.04f * value8);
+                //valueCb = GetMountainRangeNoiseFromRandomNoise(valueCb, 25);
+                //valueC = MathUtility.MixValues(valueC, valueCb, 0.5f * value8);
 
-                valueC = MathUtility.MixValues(valueC, value3, 0.45f * value8);
-                valueC = MathUtility.MixValues(valueC, value4, 0.075f);
-                valueC = MathUtility.MixValues(valueC, value5, 0.05f);
-                valueC = MathUtility.MixValues(valueC, value6, 0.02f);
-                valueC = MathUtility.MixValues(valueC, value7, 0.01f);
+                ////valueC = MathUtility.MixValues(valueC, value3, 0.45f * value8);
+                //valueC = Mathf.Lerp(valueC, value4, 0.075f);
+                //valueC = Mathf.Lerp(valueC, value5, 0.05f);
+                //valueC = Mathf.Lerp(valueC, value6, 0.02f);
+                //valueC = Mathf.Lerp(valueC, value7, 0.01f);
 
-                float valueB = MathUtility.MixValues(valueA, valueC, 0.35f * value8);
+                float valueB = Mathf.Lerp(valueA, valueC, 0.35f * value8);
 
                 //float weightB = Mathf.Clamp01(valueB * 1.5f);
                 //float valueE = MathUtility.MixValues(valueC, valueB, 1);
@@ -2213,13 +2223,13 @@ public class World : ISynchronizable {
                 
                 float valueE = (valueB > 0.5f) ? Mathf.Max(valueC, valueB) : valueB;
                 float valueF = Mathf.Min(valueB, (valueA * 0.02f) + 0.49f);
-                float valueD = MathUtility.MixValues(valueF, valueE, valueE);
+                float valueD = Mathf.Lerp(valueF, valueE, valueE);
 
                 //CalculateAndSetAltitude(i, j, valueCb);
                 //CalculateAndSetAltitude(i, j, valueA);
                 //CalculateAndSetAltitude(i, j, valueB);
-                //CalculateAndSetAltitude(i, j, valueC);
-                CalculateAndSetAltitude(i, j, valueD);
+                CalculateAndSetAltitude(i, j, valueC);
+                //CalculateAndSetAltitude(i, j, valueD);
                 //CalculateAndSetAltitude(i, j, valueE);
                 //CalculateAndSetAltitude(i, j, valueF);
             }
@@ -2382,7 +2392,7 @@ public class World : ISynchronizable {
 
 				value2 = value2 * 1.5f + 0.25f;
 
-				float valueA = MathUtility.MixValues(value1, value3, 0.15f);
+				float valueA = Mathf.Lerp(value1, value3, 0.15f);
 
 //				float latitudeFactor = alpha + (((valueA * 2) - 1f) * Mathf.PI * 0.2f);
 				float latitudeFactor = alpha + (((valueA * 2) - 1f) * Mathf.PI * 0.15f);
@@ -2423,8 +2433,8 @@ public class World : ISynchronizable {
 				                          (offAltitude5 * 0.5f) + 
 				                          (MaxPossibleAltitude * 0.17f * value2) -
 				                          (altitudeValue * 0.25f)) / MaxPossibleAltitude;
-				float rainfallValue = MathUtility.MixValues(latitudeModifier1, altitudeModifier, 0.85f);
-				rainfallValue = MathUtility.MixValues(Mathf.Abs(rainfallValue) * rainfallValue, rainfallValue, 0.75f);
+				float rainfallValue = Mathf.Lerp(latitudeModifier1, altitudeModifier, 0.85f);
+				rainfallValue = Mathf.Lerp(Mathf.Abs(rainfallValue) * rainfallValue, rainfallValue, 0.75f);
 
 				float rainfall = Mathf.Min(MaxPossibleRainfall, CalculateRainfall(rainfallValue));
 				cell.Rainfall = rainfall;

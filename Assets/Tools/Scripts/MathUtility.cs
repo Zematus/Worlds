@@ -26,10 +26,10 @@ public static class MathUtility {
 		return GetCartesianCoordinates(sphericalVector.x, sphericalVector.y, sphericalVector.z);
 	}
 
-	public static float MixValues (float a, float b, float weightB) {
+	//public static float MixValues (float a, float b, float weightB) {
 	
-		return (b * weightB) + (a * (1f - weightB));
-	}
+	//	return (b * weightB) + (a * (1f - weightB));
+	//}
 		
 	public static float RoundToSixDecimals (float value) {
 
