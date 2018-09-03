@@ -142,10 +142,11 @@ public class World : ISynchronizable {
 	
 	public const float Circumference = 40075; // In kilometers;
 
+    public const int NumContinents = 7;
     //public const int NumContinents = 12;
-    public const int NumContinents = 10;
-    public const float ContinentMinWidthFactor = 5.7f;
-    public const float ContinentMaxWidthFactor = 8.7f;
+    public const float ContinentBaseWidthFactor = 0.8f;
+    public const float ContinentMinWidthFactor = ContinentBaseWidthFactor * 5.7f;
+    public const float ContinentMaxWidthFactor = ContinentBaseWidthFactor * 8.7f;
 
     public const float AvgPossibleRainfall = 990f;
 	public const float AvgPossibleTemperature = 13.7f;
@@ -1784,12 +1785,8 @@ public class World : ISynchronizable {
 		ProgressCastMethod (_accumulatedProgress, "Calculating Rainfall...");
 		
 		GenerateTerrainRainfall ();
-		
-		//		ProgressCastMethod (_accumulatedProgress, "Generating Rivers...");
-		//		
-		//		GenerateTerrainRivers ();
-		
-		ProgressCastMethod (_accumulatedProgress, "Calculating Temperatures...");
+
+        ProgressCastMethod (_accumulatedProgress, "Calculating Temperatures...");
 		
 		GenerateTerrainTemperature ();
 		
@@ -2020,41 +2017,35 @@ public class World : ISynchronizable {
     //            value8 = value8 * 1.5f + 0.25f;
 
     //            float valueA = GetContinentModifier(i, j);
-    //            valueA = MathUtility.MixValues(valueA, value3, 0.22f * value8);
-    //            valueA = MathUtility.MixValues(valueA, value4, 0.15f * value8);
-    //            valueA = MathUtility.MixValues(valueA, value5, 0.1f * value8);
-    //            valueA = MathUtility.MixValues(valueA, value6, 0.03f * value8);
-    //            valueA = MathUtility.MixValues(valueA, value7, 0.005f * value8);
+    //            valueA = Mathf.Lerp(valueA, value3, 0.22f * value8);
+    //            valueA = Mathf.Lerp(valueA, value4, 0.15f * value8);
+    //            valueA = Mathf.Lerp(valueA, value5, 0.1f * value8);
+    //            valueA = Mathf.Lerp(valueA, value6, 0.03f * value8);
+    //            valueA = Mathf.Lerp(valueA, value7, 0.005f * value8);
 
-    //            float valueC = MathUtility.MixValues(value1, value9, 0.5f * value8);
-    //            valueC = MathUtility.MixValues(valueC, value2, 0.04f * value8);
+    //            float valueC = Mathf.Lerp(value1, value9, 0.5f * value8);
+    //            valueC = Mathf.Lerp(valueC, value2, 0.04f * value8);
     //            valueC = GetMountainRangeNoiseFromRandomNoise(valueC, 25);
-    //            float valueCb = MathUtility.MixValues(value1b, value9, 0.5f * value8);
-    //            valueCb = MathUtility.MixValues(valueCb, value2b, 0.04f * value8);
+    //            float valueCb = Mathf.Lerp(value1b, value9, 0.5f * value8);
+    //            valueCb = Mathf.Lerp(valueCb, value2b, 0.04f * value8);
     //            valueCb = GetMountainRangeNoiseFromRandomNoise(valueCb, 25);
-    //            valueC = MathUtility.MixValues(valueC, valueCb, 0.5f * value8);
+    //            valueC = Mathf.Lerp(valueC, valueCb, 0.5f * value8);
+                
+    //            valueC = Mathf.Lerp(valueC, value3, 0.45f * value8);
+    //            valueC = Mathf.Lerp(valueC, value4, 0.075f);
+    //            valueC = Mathf.Lerp(valueC, value5, 0.05f);
+    //            valueC = Mathf.Lerp(valueC, value6, 0.02f);
+    //            valueC = Mathf.Lerp(valueC, value7, 0.01f);
 
-    //            //				valueC = MathUtility.MixValues(valueC, value3, 0.3f * value8);
-    //            valueC = MathUtility.MixValues(valueC, value3, 0.45f * value8);
-    //            //				valueC = MathUtility.MixValues(valueC, value3, 0.55f * value8);
-    //            valueC = MathUtility.MixValues(valueC, value4, 0.075f);
-    //            valueC = MathUtility.MixValues(valueC, value5, 0.05f);
-    //            valueC = MathUtility.MixValues(valueC, value6, 0.02f);
-    //            valueC = MathUtility.MixValues(valueC, value7, 0.01f);
+    //            float valueB = Mathf.Lerp(valueA, valueC, 0.35f * value8);
 
-    //            //				float valueB = MathUtility.MixValues (valueA, (valueA * 0.02f) + 0.49f, Mathf.Max(0, 0.9f * valueA - Mathf.Max(0, (2f * valueC) - 1)));
-    //            //
-    //            //				float valueD = MathUtility.MixValues (valueB, valueC, 0.225f * value8);
-
-    //            float valueB = MathUtility.MixValues(valueA, valueC, 0.35f * value8);
-
-    //            float valueD = MathUtility.MixValues(valueB, (valueA * 0.02f) + 0.49f, Mathf.Clamp01(1.3f * valueA - Mathf.Max(0, (2.5f * valueC) - 1)));
+    //            float valueD = Mathf.Lerp(valueB, (valueA * 0.02f) + 0.49f, Mathf.Clamp01(1.3f * valueA - Mathf.Max(0, (2.5f * valueC) - 1)));
 
     //            CalculateAndSetAltitude(i, j, valueD);
-    //            //				CalculateAndSetAltitude(i, j, valueC);
-    //            //				CalculateAndSetAltitude(i, j, valueB);
-    //            //				CalculateAndSetAltitude(i, j, valueCb);
-    //            //				CalculateAndSetAltitude(i, j, valueA);
+    //            //CalculateAndSetAltitude(i, j, valueC);
+    //            //CalculateAndSetAltitude(i, j, valueB);
+    //            //CalculateAndSetAltitude(i, j, valueCb);
+    //            //CalculateAndSetAltitude(i, j, valueA);
     //        }
 
     //        ProgressCastMethod(_accumulatedProgress + _progressIncrement * (i + 1) / (float)sizeX);
@@ -2063,9 +2054,12 @@ public class World : ISynchronizable {
     //    _accumulatedProgress += _progressIncrement;
     //}
 
-    private float GetMountainRangeFromContinentCollision(float[] noises, int i, int j, float widthFactor)
+    private float GetMountainRangeFromContinentCollision(float[] noises, int i, int j)
     {
-        //noise = (noise * 2) - 1;
+        float widthF = (float)Width;
+        float widthFactor = 7f / widthF;
+        float widthFactor2 = ContinentBaseWidthFactor * 0.01f / widthF;
+
         float distance1 = float.MaxValue;
         float distance2 = float.MaxValue;
         float altitude1 = 1f;
@@ -2073,8 +2067,7 @@ public class World : ISynchronizable {
 
         for (int k = 0; k < NumContinents; k++)
         {
-            //float dist = GetContinentDistance(k, i, j) * (noises[k] * 0.4f + 0.8f);
-            float dist = GetContinentDistance(k, i, j);
+            float dist = GetContinentDistance(k, i, j) * (noises[k] * 0.4f + 0.8f);
 
             if (dist < distance1)
             {
@@ -2091,26 +2084,49 @@ public class World : ISynchronizable {
             }
         }
 
-        float highAltitude = Mathf.Max(altitude1, altitude2);
-        float lowAltitude = Mathf.Min(altitude1, altitude2);
+        if (altitude1 < altitude2)
+        {
+            float temp = altitude1;
+            altitude1 = altitude2;
+            altitude2 = temp;
 
-        //float altitude = Mathf.Lerp(highAltitude, lowAltitude, distance1 / (distance1 + distance2));
-        float altitude = Mathf.Lerp(altitude1, altitude2, distance1 / (distance1 + distance2));
+            temp = distance1;
+            distance1 = distance2;
+            distance2 = temp;
+        }
+
+        float worldWidthFactor = 5f * Width / ContinentBaseWidthFactor;
+        float worldWidthFactor2 = 7f * Width / ContinentBaseWidthFactor;
+
+        float distSum = distance1 + distance2;
+        float distSumFactor = Mathf.Pow(worldWidthFactor / (worldWidthFactor + distSum), 2f);
+        float distSumFactor2 = Mathf.Pow(worldWidthFactor2 / (worldWidthFactor2 + distSum), 2f);
 
         float distDiff = distance1 - distance2;
-        float altitudeDiffFactor = 2 * (altitude1 - altitude2);
-        float trenchMagnitude = Mathf.Clamp01(Mathf.Abs(altitudeDiffFactor));
+        float altitudeDiffFactor = -0.5f + 2f * Mathf.Abs(altitude1 - altitude2);
+        //float altitudeDiffFactor2 = -0.2f + 0.5f * Mathf.Abs(altitude1 - altitude2);
+        //float altitudeDiffFactor = 1f;
+        float altitudeDiffFactor2 = 0;
+        float trenchMagnitude = Mathf.Clamp01(altitudeDiffFactor);
+        float trenchMagnitude2 = 0.25f * Mathf.Clamp01(altitudeDiffFactor2);
+        //float trenchMagnitude = 1;
+        //float trenchMagnitude2 = 0.0f;
 
         float mountainValue = Mathf.Exp(-Mathf.Pow(distDiff * widthFactor + altitudeDiffFactor, 2));
         float trenchValue = -trenchMagnitude * Mathf.Exp(-Mathf.Pow(distDiff * widthFactor - altitudeDiffFactor, 2));
+        float mountRangeValue = distSumFactor * (mountainValue + trenchValue);
 
-        return Mathf.Lerp(altitude, mountainValue + trenchValue, 0.0f);
+        float continentMountainValue = Mathf.Exp(-Mathf.Pow(distDiff * widthFactor2 + altitudeDiffFactor2, 2));
+        float continentTrenchValue = -trenchMagnitude2 * Mathf.Exp(-Mathf.Pow(distDiff * widthFactor2 - altitudeDiffFactor2, 2));
+        float continentValue = distSumFactor2 * (continentMountainValue + continentTrenchValue);
+
+        float collisionValue = Mathf.Lerp(continentValue, mountRangeValue, 0.4f);
+        
+        return collisionValue;
     }
 
-    private void GenerateTerrainAltitude ()
+    private void GenerateTerrainAltitude()
     {
-        float widthF = (float)Width;
-
 		GenerateContinents();
 		
 		int sizeX = Width;
@@ -2139,7 +2155,7 @@ public class World : ISynchronizable {
 		ManagerTask<Vector3> offset8 = GenerateRandomOffsetVector();
 		ManagerTask<Vector3> offset9 = GenerateRandomOffsetVector();
 
-        float radiusK = 3f;
+        float radiusK = 4f;
         float radiusK2 = 15f;
         ManagerTask<Vector3>[] offsetK = new ManagerTask<Vector3>[NumContinents];
         ManagerTask<Vector3>[] offsetK2 = new ManagerTask<Vector3>[NumContinents];
@@ -2179,14 +2195,6 @@ public class World : ISynchronizable {
                 valueA = Mathf.Lerp(valueA, value6, 0.03f * value8);
                 valueA = Mathf.Lerp(valueA, value7, 0.005f * value8);
 
-                //float valueC = MathUtility.MixValues(value1, value9, 0.5f * value8);
-                //valueC = MathUtility.MixValues(valueC, value2, 0.04f * value8);
-                //valueC = GetMountainRangeNoiseFromRandomNoise(valueC, 25);
-                //float valueCb = MathUtility.MixValues(value1b, value9, 0.5f * value8);
-                //valueCb = MathUtility.MixValues(valueCb, value2b, 0.04f * value8);
-                //valueCb = GetMountainRangeNoiseFromRandomNoise(valueCb, 25);
-                //valueC = MathUtility.MixValues(valueC, valueCb, 0.5f * value8);
-
                 float[] valuesK = new float[NumContinents];
 
                 for (int k = 0; k < NumContinents; k++)
@@ -2196,31 +2204,20 @@ public class World : ISynchronizable {
                     valuesK[k] = Mathf.Lerp(valueK, valueK2, 0.1f * value8);
                 }
 
-                float widthFactor = 7f / widthF;
-                float valueC = GetMountainRangeFromContinentCollision(valuesK, i, j, widthFactor);
+                float valueC = GetMountainRangeFromContinentCollision(valuesK, i, j);
 
-                //float valueCb = MathUtility.MixValues(value1, value9, 0.5f * value8);
-                //valueCb = MathUtility.MixValues(valueCb, value2, 0.04f * value8);
-                //valueCb = GetMountainRangeNoiseFromRandomNoise(valueCb, 25);
-                //valueC = MathUtility.MixValues(valueC, valueCb, 0.5f * value8);
-
-                ////valueC = MathUtility.MixValues(valueC, value3, 0.45f * value8);
-                //valueC = Mathf.Lerp(valueC, value4, 0.075f);
-                //valueC = Mathf.Lerp(valueC, value5, 0.05f);
-                //valueC = Mathf.Lerp(valueC, value6, 0.02f);
-                //valueC = Mathf.Lerp(valueC, value7, 0.01f);
-
-                float valueB = Mathf.Lerp(valueA, valueC, 0.35f * value8);
-
-                //float weightB = Mathf.Clamp01(valueB * 1.5f);
-                //float valueE = MathUtility.MixValues(valueC, valueB, 1);
-                //float valueF = MathUtility.MixValues(valueB, (valueA * 0.02f) + 0.49f, weightB);
-                ////float valueF = (valueA * 0.2f) + 0.4f;
-                ////float weightF = Mathf.Clamp01(1.3f * valueA - Mathf.Max(0, (2.5f * valueC) - 1));
-                ////float weightF = Mathf.Clamp01(1.3f * valueA - Mathf.Max(0, (2.5f * valueC) - 1));
-                ////float valueD = MathUtility.MixValues(valueB, valueF, weightF);
-                //float valueD = MathUtility.MixValues(valueF, valueE, 0.6f * value8);
+                float valueCb = Mathf.Lerp(value1, value9, 0.5f * value8);
+                valueCb = Mathf.Lerp(valueCb, value2, 0.04f * value8);
+                valueCb = GetMountainRangeNoiseFromRandomNoise(valueCb, 25);
+                valueC = Mathf.Lerp(valueC, valueCb, 0.25f * value8);
                 
+                valueC = Mathf.Lerp(valueC, value4, 0.075f);
+                valueC = Mathf.Lerp(valueC, value5, 0.05f);
+                valueC = Mathf.Lerp(valueC, value6, 0.02f);
+                valueC = Mathf.Lerp(valueC, value7, 0.01f);
+
+                float valueB = Mathf.Lerp(valueA, valueC, 0.45f * value8);
+
                 float valueE = (valueB > 0.5f) ? Mathf.Max(valueC, valueB) : valueB;
                 float valueF = Mathf.Min(valueB, (valueA * 0.02f) + 0.49f);
                 float valueD = Mathf.Lerp(valueF, valueE, valueE);
@@ -2228,8 +2225,8 @@ public class World : ISynchronizable {
                 //CalculateAndSetAltitude(i, j, valueCb);
                 //CalculateAndSetAltitude(i, j, valueA);
                 //CalculateAndSetAltitude(i, j, valueB);
-                CalculateAndSetAltitude(i, j, valueC);
-                //CalculateAndSetAltitude(i, j, valueD);
+                //CalculateAndSetAltitude(i, j, valueC);
+                CalculateAndSetAltitude(i, j, valueD);
                 //CalculateAndSetAltitude(i, j, valueE);
                 //CalculateAndSetAltitude(i, j, valueF);
             }
@@ -2239,60 +2236,8 @@ public class World : ISynchronizable {
 
 		_accumulatedProgress += _progressIncrement;
 	}
-	
-//	private void GenerateTerrainRivers () {
-//
-//		int sizeX = Width;
-//		int sizeY = Height;
-//		
-//		float radius1 = 4f;
-//		float radius2 = 12f;
-//		
-//		ManagerTask<Vector3> offset1 = GenerateRandomOffsetVector();
-//		ManagerTask<Vector3> offset2 = GenerateRandomOffsetVector();
-//		
-//		for (int i = 0; i < sizeX; i++) {
-//
-//			float beta = (i / (float)sizeX) * Mathf.PI * 2;
-//			
-//			for (int j = 0; j < sizeY; j++) {
-//
-//				TerrainCell cell = Terrain[i][j];
-//				
-//				float alpha = (j / (float)sizeY) * Mathf.PI;
-//				
-//				float value1 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius1, offset1);
-//				float value2 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius2, offset2);
-//				
-//				float altitudeValue = cell.Altitude;
-//				float rainfallValue = cell.Rainfall;
-//
-//				float altitudeFactor = Mathf.Max(0, altitudeValue / MaxPossibleAltitude);
-//				float depthFactor = Mathf.Max(0, altitudeValue / MinPossibleAltitude);
-//				float altitudeFactor1 = Mathf.Clamp(10f * altitudeFactor, 0.25f , 1);
-//				float rainfallFactor = Mathf.Max(0, rainfallValue / MaxPossibleRainfall);
-//
-//				float valueA = MathUtility.MixValues(value2, value1, altitudeFactor1);
-//				valueA = GetRiverNoiseFromRandomNoise(valueA, 25);
-//
-//				if (altitudeValue >= 0) {
-//					valueA = valueA * Mathf.Max(1 - altitudeFactor * rainfallFactor * 2.5f, 0);
-//				} else {
-//					valueA = valueA * Mathf.Max(1 - depthFactor * 8, 0);
-//				}
-//
-//				float altitudeMod = valueA * MaxPossibleAltitude * 0.1f;
-//
-//				cell.Altitude -= altitudeMod;
-//			}
-//			
-//			ProgressCastMethod (_accumulatedProgress + _progressIncrement * (i + 1)/(float)sizeX);
-//		}
-//		
-//		_accumulatedProgress += _progressIncrement;
-//	}
-	
-	private ManagerTask<int> GenerateRandomInteger (int min, int max) {
+
+    private ManagerTask<int> GenerateRandomInteger (int min, int max) {
 		
 		return Manager.EnqueueTask (() => Random.Range(min, max));
 	}

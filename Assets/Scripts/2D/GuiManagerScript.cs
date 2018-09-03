@@ -174,16 +174,16 @@ public class GuiManagerScript : MonoBehaviour {
 	}
 
 	// Use this for initialization
-	void Start () {
+	void Start ()
+    {
+        Manager.LoadAppSettings(@"Worlds.settings");
 
-		Manager.LoadAppSettings (@"Worlds.settings");
-		
-		_topMaxSpeedLevelIndex = Speed.Levels.Length - 1;
-		_selectedMaxSpeedLevelIndex = _topMaxSpeedLevelIndex;
+        _topMaxSpeedLevelIndex = Speed.Levels.Length - 1;
+        _selectedMaxSpeedLevelIndex = _topMaxSpeedLevelIndex;
 
-		Manager.UpdateMainThreadReference ();
-		
-		SaveFileDialogPanelScript.SetVisible(false);
+        Manager.UpdateMainThreadReference();
+
+        SaveFileDialogPanelScript.SetVisible(false);
         ExportMapDialogPanelScript.SetVisible(false);
         DecisionDialogPanelScript.SetVisible(false);
         LoadFileDialogPanelScript.SetVisible(false);
@@ -209,8 +209,8 @@ public class GuiManagerScript : MonoBehaviour {
         _mapLeftClickOp += ClickOp_SelectCell;
         _mapHoverOp += HoverOp_ShowCellInfoTooltip;
 
-        if (!Manager.WorldIsReady) {
-
+        if (!Manager.WorldIsReady)
+        {
             //GenerateWorld(false, 407252633);
             //GenerateWorld(false, 783909167);
             //GenerateWorld(false, 1446630758);
@@ -220,34 +220,37 @@ public class GuiManagerScript : MonoBehaviour {
             //GenerateWorld(false, 279552712);
             //GenerateWorld(false, 1735984055);
             //GenerateWorld(false, 519520942);
-            GenerateWorld(false, 592626823);
+            //GenerateWorld(false, 592626823);
+            GenerateWorld(false, 952294588);
 
-        } else if (!Manager.SimulationCanRun) {
+        }
+        else if (!Manager.SimulationCanRun)
+        {
+            SetInitialPopulation();
+        }
+        else
+        {
+            DisplayTip_MapScroll();
+        }
 
-			SetInitialPopulation ();
-		} else {
+        UpdateMapViewButtonText();
 
-			DisplayTip_MapScroll ();
-		}
+        LoadButton.interactable = HasFilesToLoad();
 
-		UpdateMapViewButtonText ();
+        Manager.SetBiomePalette(BiomePaletteScript.Colors);
+        Manager.SetMapPalette(MapPaletteScript.Colors);
+        Manager.SetOverlayPalette(OverlayPaletteScript.Colors);
 
-		LoadButton.interactable = HasFilesToLoad ();
+        _regenTextures = true;
+    }
 
-		Manager.SetBiomePalette (BiomePaletteScript.Colors);
-		Manager.SetMapPalette (MapPaletteScript.Colors);
-		Manager.SetOverlayPalette (OverlayPaletteScript.Colors);
+    void OnDestroy()
+    {
+        Manager.SaveAppSettings(@"Worlds.settings");
+    }
 
-		_regenTextures = true;
-	}
-
-	void OnDestroy () {
-
-		Manager.SaveAppSettings (@"Worlds.settings");
-	}
-	
-	// Update is called once per frame
-	void Update () {
+    // Update is called once per frame
+    void Update () {
 
 		_timeSinceLastMapUpdate += Time.deltaTime;
 
@@ -360,7 +363,7 @@ public class GuiManagerScript : MonoBehaviour {
 				_planetView = PlanetView.Biomes;
 
 #if DEBUG
-                _planetOverlay = PlanetOverlay.General;
+                _planetOverlay = PlanetOverlay.None;
                 //_planetOverlay = PlanetOverlay.PolityTerritory;
 #else
 				_planetOverlay = PlanetOverlay.General;
