@@ -53,13 +53,24 @@ public class PolityProminence : IKeyedValue<long> {
 	[XmlIgnore]
 	public float NewPolityCoreDistance;
 
-	private bool _isMigratingGroup;
+    [XmlIgnore]
+    public PolityProminenceCluster Cluster;
+
+    private bool _isMigratingGroup;
 
 	[XmlIgnore]
 	public Polity Polity;
 
     [XmlIgnore]
     public CellGroup Group;
+
+    public long Id
+    {
+        get
+        {
+            return Group.Id;
+        }
+    }
 
     public PolityProminence () {
 

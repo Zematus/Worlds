@@ -2992,11 +2992,11 @@ public class CellGroup : HumanGroup {
 	public static int Debug_LoadedGroups = 0;
 #endif
 	
-	public override void FinalizeLoad () {
+	public override void FinalizeLoad()
+    {
+        base.FinalizeLoad();
 
-		base.FinalizeLoad ();
-
-		PreferredMigrationDirection = (Direction)PreferredMigrationDirectionInt;
+        PreferredMigrationDirection = (Direction)PreferredMigrationDirectionInt;
 
         foreach (long id in FactionCoreIds)
         {
@@ -3010,105 +3010,113 @@ public class CellGroup : HumanGroup {
             FactionCores.Add(id, faction);
         }
 
-        Flags.ForEach (f => _flags.Add (f));
+        Flags.ForEach(f => _flags.Add(f));
 
-		Cell = World.GetCell (Longitude, Latitude);
+        Cell = World.GetCell(Longitude, Latitude);
 
-		Cell.Group = this;
+        Cell.Group = this;
 
-		Neighbors = new Dictionary<Direction, CellGroup> (8);
+        Neighbors = new Dictionary<Direction, CellGroup>(8);
 
-		foreach (KeyValuePair<Direction,TerrainCell> pair in Cell.Neighbors) {
-		
-			if (pair.Value.Group != null) {
-			
-				CellGroup group = pair.Value.Group;
+        foreach (KeyValuePair<Direction, TerrainCell> pair in Cell.Neighbors)
+        {
 
-				Neighbors.Add (pair.Key, group);
+            if (pair.Value.Group != null)
+            {
+                CellGroup group = pair.Value.Group;
 
-				Direction dir = TerrainCell.ReverseDirection (pair.Key);
+                Neighbors.Add(pair.Key, group);
 
-				group.AddNeighbor (dir, this);
-			}
-		}
-		
-		World.UpdateMostPopulousGroup (this);
+                Direction dir = TerrainCell.ReverseDirection(pair.Key);
 
-		Culture.World = World;
-		Culture.Group = this;
-		Culture.FinalizeLoad ();
+                group.AddNeighbor(dir, this);
+            }
+        }
 
-		if (Cell == null) {
-			throw new System.Exception ("Cell [" + Longitude + "," + Latitude + "] is null");
-		}
+        World.UpdateMostPopulousGroup(this);
 
-		if (SeaMigrationRoute != null) {
+        Culture.World = World;
+        Culture.Group = this;
+        Culture.FinalizeLoad();
 
-			SeaMigrationRoute.World = World;
+        if (Cell == null)
+        {
+            throw new System.Exception("Cell [" + Longitude + "," + Latitude + "] is null");
+        }
 
-			if (SeaMigrationRoute.Consolidated) {
-				SeaMigrationRoute.FinalizeLoad ();
-			} else {
-				SeaMigrationRoute.FirstCell = Cell;
-			}
-		}
+        if (SeaMigrationRoute != null)
+        {
+            SeaMigrationRoute.World = World;
 
-		foreach (PolityProminence p in PolityProminences.Values) {
+            if (SeaMigrationRoute.Consolidated)
+            {
+                SeaMigrationRoute.FinalizeLoad();
+            }
+            else
+            {
+                SeaMigrationRoute.FirstCell = Cell;
+            }
+        }
 
+        foreach (PolityProminence p in PolityProminences.Values)
+        {
             p.Group = this;
-			p.Polity = World.GetPolity(p.PolityId);
-			p.NewValue = p.Value;
+            p.Polity = World.GetPolity(p.PolityId);
+            p.NewValue = p.Value;
 
-			if (p.Polity == null) { 
-				throw new System.Exception ("Missing polity with id:" + p.PolityId);
-			}
+            if (p.Polity == null)
+            {
+                throw new System.Exception("Missing polity with id:" + p.PolityId);
+            }
 
-			if ((HighestPolityProminence == null)  || (HighestPolityProminence.Value < p.Value)) {
-				HighestPolityProminence = p;
-			}
-		}
+            if ((HighestPolityProminence == null) || (HighestPolityProminence.Value < p.Value))
+            {
+                HighestPolityProminence = p;
+            }
+        }
 
-		// Generate Update Event
+        // Generate Update Event
 
-		UpdateEvent = new UpdateCellGroupEvent (this, NextUpdateDate);
-		World.InsertEventToHappen (UpdateEvent);
+        UpdateEvent = new UpdateCellGroupEvent(this, NextUpdateDate);
+        World.InsertEventToHappen(UpdateEvent);
 
-		// Generate Migration Event
+        // Generate Migration Event
 
-		if (HasMigrationEvent) {
-		
-			TerrainCell targetCell = World.GetCell (MigrationTargetLongitude, MigrationTargetLatitude);
+        if (HasMigrationEvent)
+        {
+            TerrainCell targetCell = World.GetCell(MigrationTargetLongitude, MigrationTargetLatitude);
 
-			MigrationEvent = new MigrateGroupEvent (this, targetCell, (Direction)MigrationEventDirectionInt, MigrationEventDate);
-			World.InsertEventToHappen (MigrationEvent);
-		}
+            MigrationEvent = new MigrateGroupEvent(this, targetCell, (Direction)MigrationEventDirectionInt, MigrationEventDate);
+            World.InsertEventToHappen(MigrationEvent);
+        }
 
-		// Generate Polity Expansion Event
+        // Generate Polity Expansion Event
 
-		if (HasPolityExpansionEvent) {
+        if (HasPolityExpansionEvent)
+        {
+            Polity expandingPolity = World.GetPolity(ExpandingPolityId);
 
-			Polity expandingPolity = World.GetPolity(ExpandingPolityId);
+            if (expandingPolity == null)
+            {
+                throw new System.Exception("Missing polity with id:" + ExpandingPolityId);
+            }
 
-			if (expandingPolity == null) { 
-				throw new System.Exception ("Missing polity with id:" + ExpandingPolityId);
-			}
+            CellGroup targetGroup = World.GetGroup(ExpansionTargetGroupId);
 
-			CellGroup targetGroup = World.GetGroup (ExpansionTargetGroupId);
-		
-			PolityExpansionEvent = new ExpandPolityProminenceEvent (this, expandingPolity, targetGroup, PolityExpansionEventDate);
-			World.InsertEventToHappen (PolityExpansionEvent);
-		}
+            PolityExpansionEvent = new ExpandPolityProminenceEvent(this, expandingPolity, targetGroup, PolityExpansionEventDate);
+            World.InsertEventToHappen(PolityExpansionEvent);
+        }
 
-		// Generate Tribe Formation Event
+        // Generate Tribe Formation Event
 
-		if (HasTribeFormationEvent) {
-
-			TribeCreationEvent = new TribeFormationEvent (this, TribeFormationEventDate);
-			World.InsertEventToHappen (TribeCreationEvent);
-		}
+        if (HasTribeFormationEvent)
+        {
+            TribeCreationEvent = new TribeFormationEvent(this, TribeFormationEventDate);
+            World.InsertEventToHappen(TribeCreationEvent);
+        }
 
 #if DEBUG
-		Debug_LoadedGroups++;
+        Debug_LoadedGroups++;
 #endif
-	}
+    }
 }

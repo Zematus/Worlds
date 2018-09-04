@@ -142,9 +142,10 @@ public class World : ISynchronizable {
 	
 	public const float Circumference = 40075; // In kilometers;
 
-    public const int NumContinents = 7;
-    //public const int NumContinents = 12;
-    public const float ContinentBaseWidthFactor = 0.8f;
+    //public const int NumContinents = 7;
+    public const int NumContinents = 12;
+    //public const float ContinentBaseWidthFactor = 0.8f;
+    public const float ContinentBaseWidthFactor = 1.1f;
     public const float ContinentMinWidthFactor = ContinentBaseWidthFactor * 5.7f;
     public const float ContinentMaxWidthFactor = ContinentBaseWidthFactor * 8.7f;
 
@@ -1779,10 +1780,11 @@ public class World : ISynchronizable {
 	public void GenerateTerrain () {
 		
 		ProgressCastMethod (_accumulatedProgress, "Generating Terrain...");
-		
-		GenerateTerrainAltitude ();
-		
-		ProgressCastMethod (_accumulatedProgress, "Calculating Rainfall...");
+
+        //GenerateTerrainAltitude();
+        GenerateTerrainAltitudeOld();
+
+        ProgressCastMethod (_accumulatedProgress, "Calculating Rainfall...");
 		
 		GenerateTerrainRainfall ();
 
@@ -1964,95 +1966,105 @@ public class World : ISynchronizable {
 		return new Vector2(distX*continentWidth, distY*continentHeight).magnitude;
     }
 
-    //private void GenerateTerrainAltitude()
-    //{
-    //    GenerateContinents();
+    private void GenerateTerrainAltitudeOld()
+    {
+        GenerateContinents();
 
-    //    int sizeX = Width;
-    //    int sizeY = Height;
+        int sizeX = Width;
+        int sizeY = Height;
 
-    //    float radius1 = 0.75f;
-    //    float radius1b = 1.25f;
-    //    float radius2 = 8f;
-    //    float radius3 = 4f;
-    //    float radius4 = 8f;
-    //    float radius5 = 16f;
-    //    float radius6 = 64f;
-    //    float radius7 = 128f;
-    //    float radius8 = 1.5f;
-    //    float radius9 = 1f;
+        float radius1 = 0.75f;
+        float radius1b = 1.25f;
+        float radius2 = 8f;
+        float radius3 = 4f;
+        float radius4 = 8f;
+        float radius5 = 16f;
+        float radius6 = 64f;
+        float radius7 = 128f;
+        float radius8 = 1.5f;
+        float radius9 = 1f;
 
-    //    ManagerTask<Vector3> offset1 = GenerateRandomOffsetVector();
-    //    ManagerTask<Vector3> offset2 = GenerateRandomOffsetVector();
-    //    ManagerTask<Vector3> offset1b = GenerateRandomOffsetVector();
-    //    ManagerTask<Vector3> offset2b = GenerateRandomOffsetVector();
-    //    ManagerTask<Vector3> offset3 = GenerateRandomOffsetVector();
-    //    ManagerTask<Vector3> offset4 = GenerateRandomOffsetVector();
-    //    ManagerTask<Vector3> offset5 = GenerateRandomOffsetVector();
-    //    ManagerTask<Vector3> offset6 = GenerateRandomOffsetVector();
-    //    ManagerTask<Vector3> offset7 = GenerateRandomOffsetVector();
-    //    ManagerTask<Vector3> offset8 = GenerateRandomOffsetVector();
-    //    ManagerTask<Vector3> offset9 = GenerateRandomOffsetVector();
+        ManagerTask<Vector3> offset1 = GenerateRandomOffsetVector();
+        ManagerTask<Vector3> offset2 = GenerateRandomOffsetVector();
+        ManagerTask<Vector3> offset1b = GenerateRandomOffsetVector();
+        ManagerTask<Vector3> offset2b = GenerateRandomOffsetVector();
+        ManagerTask<Vector3> offset3 = GenerateRandomOffsetVector();
+        ManagerTask<Vector3> offset4 = GenerateRandomOffsetVector();
+        ManagerTask<Vector3> offset5 = GenerateRandomOffsetVector();
+        ManagerTask<Vector3> offset6 = GenerateRandomOffsetVector();
+        ManagerTask<Vector3> offset7 = GenerateRandomOffsetVector();
+        ManagerTask<Vector3> offset8 = GenerateRandomOffsetVector();
+        ManagerTask<Vector3> offset9 = GenerateRandomOffsetVector();
+        
+        //// Doing this only to make sure that Unity's RNG gets called the same number of times as with the new terrain generation function
+        //ManagerTask<Vector3>[] offsetK = new ManagerTask<Vector3>[NumContinents];
+        //ManagerTask<Vector3>[] offsetK2 = new ManagerTask<Vector3>[NumContinents];
 
-    //    for (int i = 0; i < sizeX; i++)
-    //    {
-    //        float beta = (i / (float)sizeX) * Mathf.PI * 2;
+        //for (int k = 0; k < NumContinents; k++)
+        //{
+        //    offsetK[k] = GenerateRandomOffsetVector();
+        //    offsetK2[k] = GenerateRandomOffsetVector();
+        //}
 
-    //        for (int j = 0; j < sizeY; j++)
-    //        {
-    //            float alpha = (j / (float)sizeY) * Mathf.PI;
+        for (int i = 0; i < sizeX; i++)
+        {
+            float beta = (i / (float)sizeX) * Mathf.PI * 2;
 
-    //            float value1 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius1, offset1);
-    //            float value2 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius2, offset2);
-    //            float value1b = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius1b, offset1b);
-    //            float value2b = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius2, offset2b);
-    //            float value3 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius3, offset3);
-    //            float value4 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius4, offset4);
-    //            float value5 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius5, offset5);
-    //            float value6 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius6, offset6);
-    //            float value7 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius7, offset7);
-    //            float value8 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius8, offset8);
-    //            float value9 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius9, offset9);
+            for (int j = 0; j < sizeY; j++)
+            {
+                float alpha = (j / (float)sizeY) * Mathf.PI;
 
-    //            value8 = value8 * 1.5f + 0.25f;
+                float value1 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius1, offset1);
+                float value2 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius2, offset2);
+                float value1b = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius1b, offset1b);
+                float value2b = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius2, offset2b);
+                float value3 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius3, offset3);
+                float value4 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius4, offset4);
+                float value5 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius5, offset5);
+                float value6 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius6, offset6);
+                float value7 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius7, offset7);
+                float value8 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius8, offset8);
+                float value9 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius9, offset9);
 
-    //            float valueA = GetContinentModifier(i, j);
-    //            valueA = Mathf.Lerp(valueA, value3, 0.22f * value8);
-    //            valueA = Mathf.Lerp(valueA, value4, 0.15f * value8);
-    //            valueA = Mathf.Lerp(valueA, value5, 0.1f * value8);
-    //            valueA = Mathf.Lerp(valueA, value6, 0.03f * value8);
-    //            valueA = Mathf.Lerp(valueA, value7, 0.005f * value8);
+                value8 = value8 * 1.5f + 0.25f;
 
-    //            float valueC = Mathf.Lerp(value1, value9, 0.5f * value8);
-    //            valueC = Mathf.Lerp(valueC, value2, 0.04f * value8);
-    //            valueC = GetMountainRangeNoiseFromRandomNoise(valueC, 25);
-    //            float valueCb = Mathf.Lerp(value1b, value9, 0.5f * value8);
-    //            valueCb = Mathf.Lerp(valueCb, value2b, 0.04f * value8);
-    //            valueCb = GetMountainRangeNoiseFromRandomNoise(valueCb, 25);
-    //            valueC = Mathf.Lerp(valueC, valueCb, 0.5f * value8);
-                
-    //            valueC = Mathf.Lerp(valueC, value3, 0.45f * value8);
-    //            valueC = Mathf.Lerp(valueC, value4, 0.075f);
-    //            valueC = Mathf.Lerp(valueC, value5, 0.05f);
-    //            valueC = Mathf.Lerp(valueC, value6, 0.02f);
-    //            valueC = Mathf.Lerp(valueC, value7, 0.01f);
+                float valueA = GetContinentModifier(i, j);
+                valueA = Mathf.Lerp(valueA, value3, 0.22f * value8);
+                valueA = Mathf.Lerp(valueA, value4, 0.15f * value8);
+                valueA = Mathf.Lerp(valueA, value5, 0.1f * value8);
+                valueA = Mathf.Lerp(valueA, value6, 0.03f * value8);
+                valueA = Mathf.Lerp(valueA, value7, 0.005f * value8);
 
-    //            float valueB = Mathf.Lerp(valueA, valueC, 0.35f * value8);
+                float valueC = Mathf.Lerp(value1, value9, 0.5f * value8);
+                valueC = Mathf.Lerp(valueC, value2, 0.04f * value8);
+                valueC = GetMountainRangeNoiseFromRandomNoise(valueC, 25);
+                float valueCb = Mathf.Lerp(value1b, value9, 0.5f * value8);
+                valueCb = Mathf.Lerp(valueCb, value2b, 0.04f * value8);
+                valueCb = GetMountainRangeNoiseFromRandomNoise(valueCb, 25);
+                valueC = Mathf.Lerp(valueC, valueCb, 0.5f * value8);
 
-    //            float valueD = Mathf.Lerp(valueB, (valueA * 0.02f) + 0.49f, Mathf.Clamp01(1.3f * valueA - Mathf.Max(0, (2.5f * valueC) - 1)));
+                valueC = Mathf.Lerp(valueC, value3, 0.45f * value8);
+                valueC = Mathf.Lerp(valueC, value4, 0.075f);
+                valueC = Mathf.Lerp(valueC, value5, 0.05f);
+                valueC = Mathf.Lerp(valueC, value6, 0.02f);
+                valueC = Mathf.Lerp(valueC, value7, 0.01f);
 
-    //            CalculateAndSetAltitude(i, j, valueD);
-    //            //CalculateAndSetAltitude(i, j, valueC);
-    //            //CalculateAndSetAltitude(i, j, valueB);
-    //            //CalculateAndSetAltitude(i, j, valueCb);
-    //            //CalculateAndSetAltitude(i, j, valueA);
-    //        }
+                float valueB = Mathf.Lerp(valueA, valueC, 0.35f * value8);
 
-    //        ProgressCastMethod(_accumulatedProgress + _progressIncrement * (i + 1) / (float)sizeX);
-    //    }
+                float valueD = Mathf.Lerp(valueB, (valueA * 0.02f) + 0.49f, Mathf.Clamp01(1.3f * valueA - Mathf.Max(0, (2.5f * valueC) - 1)));
 
-    //    _accumulatedProgress += _progressIncrement;
-    //}
+                CalculateAndSetAltitude(i, j, valueD);
+                //CalculateAndSetAltitude(i, j, valueC);
+                //CalculateAndSetAltitude(i, j, valueB);
+                //CalculateAndSetAltitude(i, j, valueCb);
+                //CalculateAndSetAltitude(i, j, valueA);
+            }
+
+            ProgressCastMethod(_accumulatedProgress + _progressIncrement * (i + 1) / (float)sizeX);
+        }
+
+        _accumulatedProgress += _progressIncrement;
+    }
 
     private float GetMountainRangeFromContinentCollision(float[] noises, int i, int j)
     {
@@ -2133,7 +2145,7 @@ public class World : ISynchronizable {
 		int sizeY = Height;
 
 		float radius1 = 0.75f;
-		float radius1b = 1.25f;
+		//float radius1b = 1.25f;
 		float radius2 = 8f;
 		float radius3 = 4f;
 		float radius4 = 8f;
@@ -2145,8 +2157,8 @@ public class World : ISynchronizable {
 
 		ManagerTask<Vector3> offset1 = GenerateRandomOffsetVector();
 		ManagerTask<Vector3> offset2 = GenerateRandomOffsetVector();
-		ManagerTask<Vector3> offset1b = GenerateRandomOffsetVector();
-		ManagerTask<Vector3> offset2b = GenerateRandomOffsetVector();
+		//ManagerTask<Vector3> offset1b = GenerateRandomOffsetVector();
+		//ManagerTask<Vector3> offset2b = GenerateRandomOffsetVector();
 		ManagerTask<Vector3> offset3 = GenerateRandomOffsetVector();
 		ManagerTask<Vector3> offset4 = GenerateRandomOffsetVector();
 		ManagerTask<Vector3> offset5 = GenerateRandomOffsetVector();
@@ -2176,8 +2188,8 @@ public class World : ISynchronizable {
 
                 float value1 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius1, offset1);
                 float value2 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius2, offset2);
-                float value1b = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius1b, offset1b);
-                float value2b = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius2, offset2b);
+                //float value1b = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius1b, offset1b);
+                //float value2b = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius2, offset2b);
                 float value3 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius3, offset3);
                 float value4 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius4, offset4);
                 float value5 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius5, offset5);

@@ -5,6 +5,7 @@ using UnityEngine.UI;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using UnityEngine.Profiling;
 
 public delegate void PostProgressOperation ();
 
@@ -212,16 +213,9 @@ public class GuiManagerScript : MonoBehaviour {
         if (!Manager.WorldIsReady)
         {
             //GenerateWorld(false, 407252633);
-            //GenerateWorld(false, 783909167);
-            //GenerateWorld(false, 1446630758);
-            //GenerateWorld(false, 1788799931);
-            //GenerateWorld(false, 616109363);
-            //GenerateWorld(false, 1065375312);
-            //GenerateWorld(false, 279552712);
-            //GenerateWorld(false, 1735984055);
-            //GenerateWorld(false, 519520942);
-            //GenerateWorld(false, 592626823);
-            GenerateWorld(false, 952294588);
+            //GenerateWorld(false, 1159850609);
+            //GenerateWorld(false, 952294588);
+            GenerateWorld(false, 732011012);
 
         }
         else if (!Manager.SimulationCanRun)
@@ -250,167 +244,190 @@ public class GuiManagerScript : MonoBehaviour {
     }
 
     // Update is called once per frame
-    void Update () {
+    void Update()
+    {
+        _timeSinceLastMapUpdate += Time.deltaTime;
 
-		_timeSinceLastMapUpdate += Time.deltaTime;
+        if (_timeSinceLastMapUpdate > 1)
+        {
+            _lastMapUpdateCount = _mapUpdateCount;
+            _mapUpdateCount = 0;
 
-		if (_timeSinceLastMapUpdate > 1) {
-		
-			_lastMapUpdateCount = _mapUpdateCount;
-			_mapUpdateCount = 0;
+            _timeSinceLastMapUpdate -= 1;
+        }
 
-			_timeSinceLastMapUpdate -= 1;
-		}
+        //UpdateOverlayMenus();
 
-//		UpdateOverlayMenus ();
+        Manager.ExecuteTasks(100);
 
-		Manager.ExecuteTasks (100);
-		
-		if (_backgroundProcessActive) {
-			
-			if (_progressMessage != null) ProgressDialogPanelScript.SetDialogText (_progressMessage);
-			
-			ProgressDialogPanelScript.SetProgress (_progressValue);
-		}
-		
-		if (!Manager.WorldIsReady) {
-			return;
-		}
-		
-		if (Manager.PerformingAsyncTask) {
-			return;
-		}
+        if (_backgroundProcessActive)
+        {
+            if (_progressMessage != null) ProgressDialogPanelScript.SetDialogText(_progressMessage);
 
-		if (_backgroundProcessActive) {
+            ProgressDialogPanelScript.SetProgress(_progressValue);
+        }
 
-			ProgressDialogPanelScript.SetVisible (false);
-			ActivityDialogPanelScript.SetVisible (false);
+        if (!Manager.WorldIsReady)
+        {
+            return;
+        }
 
-			_backgroundProcessActive = false;
-			
-			if (_postProgressOp != null) 
-				_postProgressOp ();
+        if (Manager.PerformingAsyncTask)
+        {
+            return;
+        }
 
-			ShowHiddenInteractionPanels ();
-		}
+        if (_backgroundProcessActive)
+        {
+            ProgressDialogPanelScript.SetVisible(false);
+            ActivityDialogPanelScript.SetVisible(false);
 
-		bool simulationRunning = Manager.SimulationCanRun && Manager.SimulationRunning;
+            _backgroundProcessActive = false;
 
-		if (simulationRunning) {
+            if (_postProgressOp != null)
+                _postProgressOp();
 
-			World world = Manager.CurrentWorld;
+            ShowHiddenInteractionPanels();
+        }
 
-			Speed maxSpeed = Speed.Levels [_selectedMaxSpeedLevelIndex];
+        bool simulationRunning = Manager.SimulationCanRun && Manager.SimulationRunning;
 
-			_accDeltaTime += Time.deltaTime;
+        if (simulationRunning)
+        {
+            Profiler.BeginSample("Perform Simulation");
 
-			if (_accDeltaTime > _maxAccTime) {
+            World world = Manager.CurrentWorld;
 
-				_accDeltaTime -= _maxAccTime;
-				_simulationDateSpan = 0;
-			}
+            Speed maxSpeed = Speed.Levels[_selectedMaxSpeedLevelIndex];
 
-			int maxSimulationDateSpan = (int)Mathf.Ceil(maxSpeed * _accDeltaTime);
+            _accDeltaTime += Time.deltaTime;
 
-			// Simulate additional iterations if we haven't reached the max amount of iterations allowed per the percentage of transpired real time during this cycle
-			if (_simulationDateSpan < maxSimulationDateSpan) {
+            if (_accDeltaTime > _maxAccTime)
+            {
+                _accDeltaTime -= _maxAccTime;
+                _simulationDateSpan = 0;
+            }
 
-				long maxDateSpanBetweenUpdates = (int)Mathf.Ceil(maxSpeed * MaxDeltaTimeIterations);
-				long lastUpdateDate = world.CurrentDate;
+            int maxSimulationDateSpan = (int)Mathf.Ceil(maxSpeed * _accDeltaTime);
 
-				long dateSpan = 0;
+            // Simulate additional iterations if we haven't reached the max amount of iterations allowed per the percentage of transpired real time during this cycle
+            if (_simulationDateSpan < maxSimulationDateSpan)
+            {
+                long maxDateSpanBetweenUpdates = (int)Mathf.Ceil(maxSpeed * MaxDeltaTimeIterations);
+                long lastUpdateDate = world.CurrentDate;
 
-				float startTimeIterations = Time.realtimeSinceStartup;
+                long dateSpan = 0;
 
-				// Simulate up to the max amout of iterations allowed per frame
-				while ((lastUpdateDate + maxDateSpanBetweenUpdates) > world.CurrentDate) {
+                float startTimeIterations = Time.realtimeSinceStartup;
 
-					if (_resolvedDecision) {
-						
-						_resolvedDecision = false;
+                // Simulate up to the max amout of iterations allowed per frame
+                while ((lastUpdateDate + maxDateSpanBetweenUpdates) > world.CurrentDate)
+                {
 
-					} else {
-						
-						world.EvaluateEventsToHappen ();
-					}
+                    if (_resolvedDecision)
+                    {
+                        _resolvedDecision = false;
+                    }
+                    else
+                    {
+                        world.EvaluateEventsToHappen();
+                    }
 
-					if (world.HasDecisionsToResolve ()) {
+                    if (world.HasDecisionsToResolve())
+                    {
+                        RequestDecisionResolution();
+                        break;
+                    }
 
-						RequestDecisionResolution ();
-						break;
-					}
+                    Profiler.BeginSample("World Update");
 
-					dateSpan += world.Update ();
+                    dateSpan += world.Update();
 
-					float deltaTimeIterations = Time.realtimeSinceStartup - startTimeIterations;
+                    Profiler.EndSample();
 
-					// If too much real time was spent simulating after this iteration stop simulating until the next frame
-					if (deltaTimeIterations > MaxDeltaTimeIterations)
-						break;
-				}
+                    float deltaTimeIterations = Time.realtimeSinceStartup - startTimeIterations;
 
-				_simulationDateSpan += dateSpan;
-			}
+                    // If too much real time was spent simulating after this iteration stop simulating until the next frame
+                    if (deltaTimeIterations > MaxDeltaTimeIterations)
+                        break;
+                }
 
-			while (world.EventMessagesLeftToShow () > 0) {
+                _simulationDateSpan += dateSpan;
+            }
 
-				ShowEventMessage (Manager.CurrentWorld.GetNextMessageToShow ());
-			}
-		}
-	
-		if (_regenTextures) {
-			if (_resetOverlays) {
-				_planetView = PlanetView.Biomes;
+            while (world.EventMessagesLeftToShow() > 0)
+            {
+                ShowEventMessage(Manager.CurrentWorld.GetNextMessageToShow());
+            }
+
+            Profiler.EndSample();
+        }
+
+        if (_regenTextures)
+        {
+            Profiler.BeginSample("Regen Textures");
+
+            if (_resetOverlays)
+            {
+                _planetView = PlanetView.Biomes;
 
 #if DEBUG
-                _planetOverlay = PlanetOverlay.None;
-                //_planetOverlay = PlanetOverlay.PolityTerritory;
+                _planetOverlay = PlanetOverlay.General;
 #else
 				_planetOverlay = PlanetOverlay.General;
 #endif
-			}
+            }
 
-			Manager.SetPlanetOverlay (_planetOverlay, _planetOverlaySubtype);
-			Manager.SetPlanetView (_planetView);
-			Manager.SetDisplayRoutes (_displayRoutes);
-			Manager.SetDisplayGroupActivity (_displayGroupActivity);
+            Manager.SetPlanetOverlay(_planetOverlay, _planetOverlaySubtype);
+            Manager.SetPlanetView(_planetView);
+            Manager.SetDisplayRoutes(_displayRoutes);
+            Manager.SetDisplayGroupActivity(_displayGroupActivity);
 
-			if (_resetOverlays) {
-				OverlayChanged.Invoke ();
+            if (_resetOverlays)
+            {
+                OverlayChanged.Invoke();
 
-				_resetOverlays = false;
-			}
+                _resetOverlays = false;
+            }
 
-			Manager.GenerateTextures ();
+            Manager.GenerateTextures();
 
-			MapScript.RefreshTexture ();
+            MapScript.RefreshTexture();
 
-			_mapUpdateCount++;
+            _mapUpdateCount++;
 
-			_regenTextures = false;
+            _regenTextures = false;
 
-		} else {
+            Profiler.EndSample();
+        }
+        else
+        {
+            Profiler.BeginSample("Update Textures");
 
-			Manager.UpdateTextures ();
+            Manager.UpdateTextures();
 
-			_mapUpdateCount++;
-		}
+            _mapUpdateCount++;
 
-		if (MapImage.enabled) {
-			UpdateInfoPanel ();
-			UpdateFocusPanel ();
-			UpdateGuidingPanel ();
-			UpdateSelectionMenu ();
-		}
+            Profiler.EndSample();
+        }
 
-		if (_mouseIsOverMap) {
-			ExecuteMapHoverOp ();
-		}
+        if (MapImage.enabled)
+        {
+            UpdateInfoPanel();
+            UpdateFocusPanel();
+            UpdateGuidingPanel();
+            UpdateSelectionMenu();
+        }
 
-		ReadKeyboardInput ();
-	}
+        if (_mouseIsOverMap)
+        {
+            ExecuteMapHoverOp();
+        }
 
-	public bool CanAlterRunningStateOrSpeed () {
+        ReadKeyboardInput();
+    }
+
+    public bool CanAlterRunningStateOrSpeed () {
 
 		return Manager.SimulationCanRun && !_pausingDialogActive;
 	}

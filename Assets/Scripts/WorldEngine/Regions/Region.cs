@@ -331,7 +331,6 @@ public abstract class Region : ISynchronizable {
 		Language polityLanguage = polity.Culture.Language;
 
 		string untranslatedName;
-		Language.Phrase namePhrase;
 
 		int wordCount = 1;
 
