@@ -74,13 +74,22 @@ public class PolityProminence : IKeyedValue<long> {
 
     public PolityProminence () {
 
-	}
+    }
 
-	public PolityProminence (PolityProminence polityProminence, bool isMigratingGroup = false)
+    public PolityProminence(PolityProminence polityProminence)
     {
         Group = polityProminence.Group;
 
-        _isMigratingGroup = isMigratingGroup;
+        _isMigratingGroup = true;
+
+        Set(polityProminence);
+    }
+
+    public PolityProminence (CellGroup group, PolityProminence polityProminence)
+    {
+        Group = group;
+
+        _isMigratingGroup = false;
 
 //#if DEBUG
 //        if (!isMigratingGroup)

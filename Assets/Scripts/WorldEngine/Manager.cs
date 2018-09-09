@@ -39,7 +39,8 @@ public enum PlanetOverlay
     Region,
     Language,
     PopChange,
-    UpdateSpan
+    UpdateSpan,
+    PolityClusters
 }
 
 public enum OverlayColorId {
@@ -944,6 +945,7 @@ public class Manager {
 			_observableUpdateTypes |= CellUpdateType.Region;
 
 		} else if ((value == PlanetOverlay.PolityTerritory) ||
+            (value == PlanetOverlay.PolityClusters) ||
 			(value == PlanetOverlay.PolityContacts) ||
 			(value == PlanetOverlay.PolityCulturalPreference) ||
 			(value == PlanetOverlay.PolityCulturalActivity) ||
@@ -1555,7 +1557,11 @@ public class Manager {
 			color = SetPolityTerritoryOverlayColor (cell, color);
 			break;
 
-		case PlanetOverlay.FactionCoreDistance:
+            case PlanetOverlay.PolityClusters:
+                color = SetPolityClusterOverlayColor(cell, color);
+                break;
+
+            case PlanetOverlay.FactionCoreDistance:
 			color = SetFactionCoreDistanceOverlayColor (cell, color);
 			break;
 
@@ -1814,59 +1820,108 @@ public class Manager {
 		return color;
 	}
 
-	private static bool IsTerritoryBorder (Territory territory, TerrainCell cell) {
+    private static bool IsTerritoryBorder(Territory territory, TerrainCell cell)
+    {
+        return territory.IsPartOfBorder(cell);
+    }
 
-		return territory.IsPartOfBorder (cell);
-	}
+    private static Color SetPolityTerritoryOverlayColor(TerrainCell cell, Color color)
+    {
+        float greyscale = (color.r + color.g + color.b);
 
-	private static Color SetPolityTerritoryOverlayColor (TerrainCell cell, Color color) {
-		
-		float greyscale = (color.r + color.g + color.b);
+        color.r = (greyscale + color.r) / 9f;
+        color.g = (greyscale + color.g) / 9f;
+        color.b = (greyscale + color.b) / 9f;
 
-		color.r = (greyscale + color.r) / 9f;
-		color.g = (greyscale + color.g) / 9f;
-		color.b = (greyscale + color.b) / 9f;
+        if (cell.GetBiomePresence(Biome.Ocean) >= 1f)
+        {
+            return color;
+        }
 
-		if (cell.GetBiomePresence (Biome.Ocean) >= 1f) {
+        if (cell.EncompassingTerritory != null)
+        {
+            Polity territoryPolity = cell.EncompassingTerritory.Polity;
 
-			return color;
-		}
+            Color territoryColor = GenerateColorFromId(territoryPolity.Id, 100);
 
-		if (cell.EncompassingTerritory != null) {
+            bool isTerritoryBorder = IsTerritoryBorder(cell.EncompassingTerritory, cell);
+            bool isPolityCoreGroup = territoryPolity.CoreGroup == cell.Group;
+            bool isFactionCoreGroup = cell.Group.GetFactionCores().Count > 0;
 
-			Polity territoryPolity = cell.EncompassingTerritory.Polity;
+            if (!isPolityCoreGroup)
+            {
+                if (isFactionCoreGroup)
+                {
+                    territoryColor /= 1.35f;
+                }
+                else if (!isTerritoryBorder)
+                {
+                    territoryColor /= 2.5f;
+                }
+                else
+                {
+                    territoryColor /= 1.75f;
+                }
+            }
 
-			Color territoryColor = GenerateColorFromId (territoryPolity.Id, 100);
+            color.r = territoryColor.r;
+            color.g = territoryColor.g;
+            color.b = territoryColor.b;
+        }
+        else if (cell.Group != null)
+        {
+            color.r += 1.5f / 9f;
+            color.g += 1.5f / 9f;
+            color.b += 1.5f / 9f;
+        }
 
-			bool isTerritoryBorder = IsTerritoryBorder (cell.EncompassingTerritory, cell);
-			bool isPolityCoreGroup = territoryPolity.CoreGroup == cell.Group;
-			bool isFactionCoreGroup = cell.Group.GetFactionCores ().Count > 0;
+        return color;
+    }
 
-			if (!isPolityCoreGroup) {
-				if (isFactionCoreGroup) {
-					territoryColor /= 1.35f;
-				} else if (!isTerritoryBorder) {
-					territoryColor /= 2.5f;
-				} else {
-					territoryColor /= 1.75f;
-				}
-			}
+    private static Color SetPolityClusterOverlayColor(TerrainCell cell, Color color)
+    {
+        float greyscale = (color.r + color.g + color.b);
 
-			color.r = territoryColor.r;
-			color.g = territoryColor.g;
-			color.b = territoryColor.b;
+        color.r = (greyscale + color.r) / 9f;
+        color.g = (greyscale + color.g) / 9f;
+        color.b = (greyscale + color.b) / 9f;
 
-		} else if (cell.Group != null) {
+        if (cell.GetBiomePresence(Biome.Ocean) >= 1f)
+        {
+            return color;
+        }
 
-			color.r += 1.5f / 9f;
-			color.g += 1.5f / 9f;
-			color.b += 1.5f / 9f;
-		}
+        if (cell.Group != null)
+        {
+            if (cell.EncompassingTerritory != null)
+            {
+                Polity territoryPolity = cell.EncompassingTerritory.Polity;
 
-		return color;
-	}
+                PolityProminence prominence = cell.Group.GetPolityProminence(territoryPolity);
 
-	private static Color SetFactionCoreDistanceOverlayColor (TerrainCell cell, Color color) {
+                Color clusterColor = Color.grey;
+
+                if (prominence.Cluster != null)
+                {
+                    clusterColor = GenerateColorFromId(prominence.Cluster.Id, 100);
+                }
+
+                color.r = clusterColor.r;
+                color.g = clusterColor.g;
+                color.b = clusterColor.b;
+            }
+            else
+            {
+                color.r += 1.5f / 9f;
+                color.g += 1.5f / 9f;
+                color.b += 1.5f / 9f;
+            }
+        }
+
+        return color;
+    }
+
+    private static Color SetFactionCoreDistanceOverlayColor (TerrainCell cell, Color color) {
 
 		float greyscale = (color.r + color.g + color.b);
 

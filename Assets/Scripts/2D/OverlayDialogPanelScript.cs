@@ -20,7 +20,7 @@ public class OverlayDialogPanelScript : DialogPanelScript {
 	public Toggle PopCulturalDiscoveryToggle;
 
 	public Toggle TerritoriesToggle;
-	public Toggle ProminenceToggle;
+    public Toggle ProminenceToggle;
 	public Toggle ContactsToggle;
 	public Toggle PolityCulturalPreferenceToggle;
 	public Toggle PolityCulturalActivityToggle;
@@ -37,8 +37,9 @@ public class OverlayDialogPanelScript : DialogPanelScript {
 
 	public Toggle PopChangeToggle;
 	public Toggle UpdateSpanToggle;
+    public Toggle PolityClustersToggle;
 
-	public Toggle DisplayRoutesToggle;
+    public Toggle DisplayRoutesToggle;
 	public Toggle DisplayGroupActivityToggle;
 
 	public Button CloseActionButton;
@@ -104,6 +105,7 @@ public class OverlayDialogPanelScript : DialogPanelScript {
 		if (!DebugDataToggle.isOn) {
 			PopChangeToggle.isOn = false;
 			UpdateSpanToggle.isOn = false;
+            PolityClustersToggle.isOn = false;
 		}
 	}
 
@@ -141,8 +143,9 @@ public class OverlayDialogPanelScript : DialogPanelScript {
 		);
 		DebugDataToggle.isOn = (
 			(Manager.PlanetOverlay == PlanetOverlay.PopChange) ||
-			(Manager.PlanetOverlay == PlanetOverlay.UpdateSpan)
-		);
+			(Manager.PlanetOverlay == PlanetOverlay.UpdateSpan) ||
+            (Manager.PlanetOverlay == PlanetOverlay.PolityClusters)
+        );
 
 		PopDensityToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.PopDensity);
 		FarmlandToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.FarmlandDistribution);
@@ -170,8 +173,9 @@ public class OverlayDialogPanelScript : DialogPanelScript {
 
 		PopChangeToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.PopChange);
 		UpdateSpanToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.UpdateSpan);
+        PolityClustersToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.PolityClusters);
 
-		DisplayRoutesToggle.isOn = Manager.DisplayRoutes;
+        DisplayRoutesToggle.isOn = Manager.DisplayRoutes;
 		DisplayGroupActivityToggle.isOn = Manager.DisplayGroupActivity;
 
 		DontUpdateDialog = false;

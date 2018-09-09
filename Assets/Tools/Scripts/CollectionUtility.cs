@@ -3,105 +3,119 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Xml.Serialization;
 using System;
+using System.Linq;
 
-public delegate int GetRandomIntDelegate (int maxValue);
-public delegate float GetRandomFloatDelegate ();
+public delegate int GetRandomIntDelegate(int maxValue);
+public delegate float GetRandomFloatDelegate();
 
-public static class CollectionUtility {
+public static class CollectionUtility
+{
+    public delegate float NormalizedValueGeneratorDelegate();
 
-	public delegate float NormalizedValueGeneratorDelegate ();
+    public abstract class ElementWeightPair<T>
+    {
+        public T Value;
 
-	public abstract class ElementWeightPair<T> {
+        [XmlAttribute]
+        public float Weight;
 
-		public T Value;
+        public ElementWeightPair()
+        {
 
-		[XmlAttribute]
-		public float Weight;
+        }
 
-		public ElementWeightPair () {
+        public ElementWeightPair(T value, float weight)
+        {
+            Value = value;
+            Weight = weight;
+        }
 
-		}
+        public static implicit operator T(ElementWeightPair<T> pair)
+        {
+            if (pair == null)
+                return default(T);
 
-		public ElementWeightPair (T value, float weight) {
+            return pair.Value;
+        }
+    }
 
-			Value = value;
-			Weight = weight;
-		}
+    public static ElementWeightPair<T> WeightedSelection<T>(ElementWeightPair<T>[] elementWeightPairs, float totalWeight, float selectionValue)
+    {
+        int count = elementWeightPairs.Length;
 
-		public static implicit operator T(ElementWeightPair<T> pair) {
+        if (count <= 0)
+            return null;
 
-			if (pair == null)
-				return default(T);
+        if (totalWeight <= 0)
+        {
+            if (selectionValue == 1) selectionValue = 0;
 
-			return pair.Value;
-		}
-	}
+            int index = (int)Mathf.Floor(selectionValue * count);
 
-	public static ElementWeightPair<T> WeightedSelection<T> (ElementWeightPair<T>[] elementWeightPairs, float totalWeight, float selectionValue) {
+            int i = 0;
+            foreach (ElementWeightPair<T> pair in elementWeightPairs)
+            {
+                if (i == index) return pair;
 
-		int count = elementWeightPairs.Length;
+                i++;
+            }
 
-		if (count <= 0)
-			return null;
+            return null;
+        }
 
-		if (totalWeight <= 0) {
+        float totalNormalizedWeight = 0;
+        foreach (ElementWeightPair<T> pair in elementWeightPairs)
+        {
+            totalNormalizedWeight += pair.Weight / totalWeight;
 
-			if (selectionValue == 1) selectionValue = 0;
+            if (totalNormalizedWeight >= selectionValue) return pair;
+        }
 
-			int index = (int)Mathf.Floor(selectionValue * count);
+        return null;
+    }
 
-			int i = 0;
-			foreach (ElementWeightPair<T> pair in elementWeightPairs) {
+    public static T RandomSelectAndRemove<T>(this List<T> list, GetRandomIntDelegate getRandomInt)
+    {
+        return list.RandomSelect(getRandomInt, 0, true);
+    }
 
-				if (i == index) return pair;
+    public static T RandomSelect<T>(this List<T> list, GetRandomIntDelegate getRandomInt, int emptyInstances = 0, bool remove = false)
+    {
+        if (list.Count <= 0)
+            return default(T);
 
-				i++;
-			}
+        int index = getRandomInt(list.Count + emptyInstances);
 
-			return null;
-		}
+        if (index >= list.Count)
+            return default(T);
 
-		float totalNormalizedWeight = 0;
-		foreach (ElementWeightPair<T> pair in elementWeightPairs) {
+        T item = list[index];
 
-			totalNormalizedWeight += pair.Weight / totalWeight;
+        if (remove)
+            list.RemoveAt(index);
 
-			if (totalNormalizedWeight >= selectionValue) return pair;
-		}
+        return item;
+    }
 
-		return null;
-	}
+    public static T RandomSelect<T>(this IEnumerable<T> enumerable, GetRandomIntDelegate getRandomInt, int emptyInstances = 0)
+    {
+        int count = enumerable.Count();
 
-	public static T RandomSelectAndRemove<T> (this List<T> list, GetRandomIntDelegate getRandomInt) {
+        int index = getRandomInt(count + emptyInstances);
 
-		return list.RandomSelect (getRandomInt, 0, true);
-	}
+        if (index >= count)
+            return default(T);
 
-	public static T RandomSelect<T> (this List<T> list, GetRandomIntDelegate getRandomInt, int emptyInstances = 0, bool remove = false) {
+        return enumerable.ElementAt(index);
+    }
 
-		if (list.Count <= 0)
-			return default(T);
+    public static T RandomSelect<T>(this ICollection<T> collection, GetRandomIntDelegate getRandomInt, int emptyInstances = 0)
+    {
+        int index = getRandomInt(collection.Count + emptyInstances);
 
-		int index = getRandomInt (list.Count + emptyInstances);
+        if (index >= collection.Count)
+            return default(T);
 
-		if (index >= list.Count)
-			return default(T);
-
-		T item = list [index];
-
-		if (remove)
-			list.RemoveAt (index);
-
-		return item;
-	}
-
-	public static T RandomSelect<T> (this IEnumerable<T> enumerable, GetRandomIntDelegate getRandomInt, int emptyInstances = 0) {
-
-		return new List<T> (enumerable).RandomSelect (getRandomInt, emptyInstances);
-	}
-
-	public static T RandomSelect<T> (this ICollection<T> collection, GetRandomIntDelegate getRandomInt, int emptyInstances = 0) {
-
-		return new List<T> (collection).RandomSelect (getRandomInt, emptyInstances);
-	}
+        return collection.ElementAt(index);
+    }
 }

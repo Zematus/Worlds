@@ -116,7 +116,7 @@ public class Clan : Faction {
 			throw new System.Exception ("No elements to choose name from");
 		}
 
-		IEnumerable<string> possibleAdjectives = null;
+		string[] possibleAdjectives = null;
 
 		List<Element> remainingElements = new List<Element> (region.Elements);
 

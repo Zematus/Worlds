@@ -146,7 +146,7 @@ public class Tribe : Polity {
 //		}
 //		#endif
 
-		int maxGroupCount = sourcePolity.ProminencedGroups.Count;
+		int maxGroupCount = sourcePolity.Groups.Count;
 
 		Dictionary<CellGroup, float> groupDistances = new Dictionary<CellGroup, float> (maxGroupCount);
 

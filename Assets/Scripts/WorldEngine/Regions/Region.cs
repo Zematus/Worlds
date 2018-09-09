@@ -275,7 +275,7 @@ public abstract class Region : ISynchronizable {
 
 		RegionAttribute attribute = remainingAttributes.RandomSelectAndRemove (getRandomInt);
 
-		IEnumerable<string> possibleAdjectives = attribute.Adjectives;
+		string[] possibleAdjectives = attribute.Adjectives;
 
 		bool addAttributeNoun = true;
 

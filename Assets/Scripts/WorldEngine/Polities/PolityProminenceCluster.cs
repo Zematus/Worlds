@@ -5,8 +5,8 @@ using UnityEngine;
 
 public class PolityProminenceCluster : ISynchronizable
 {
-    public const int MaxClusterSize = 50;
-    public const int MinSplitClusterSize = 25;
+    public const int MaxSize = 50;
+    public const int MinSplitSize = 25;
 
     [XmlAttribute("Pid")]
     public long PolityId;
@@ -67,8 +67,27 @@ public class PolityProminenceCluster : ISynchronizable
         return null;
     }
 
+    private int _randomOffset;
+
+    private int GetNextLocalRandomInt(int maxValue)
+    {
+        return _polity.GetNextLocalRandomInt((int)Id + _randomOffset, maxValue);
+    }
+
+    public PolityProminence GetRandomProminence(int offset)
+    {
+        _randomOffset = offset;
+        
+        return Prominences.Values.RandomSelect(GetNextLocalRandomInt);
+    }
+
     public PolityProminenceCluster Split(PolityProminence startProminence)
     {
+#if DEBUG
+        int oldSize = Size;
+#endif
+
+        RemoveProminence(startProminence);
         PolityProminenceCluster splitCluster = new PolityProminenceCluster(startProminence);
 
         HashSet<CellGroup> groupsAlreadyTested = new HashSet<CellGroup>
@@ -79,10 +98,8 @@ public class PolityProminenceCluster : ISynchronizable
         Queue<PolityProminence> prominencesToExplore = new Queue<PolityProminence>(Prominences.Count + 1);
         prominencesToExplore.Enqueue(startProminence);
 
-        splitCluster.AddProminence(startProminence);
-
         bool continueExploring = true;
-        while (continueExploring)
+        while (continueExploring && (prominencesToExplore.Count > 0))
         {
             PolityProminence prominenceToExplore = prominencesToExplore.Dequeue();
 
@@ -98,7 +115,7 @@ public class PolityProminenceCluster : ISynchronizable
                     RemoveProminence(prominenceToAdd);
                     splitCluster.AddProminence(prominenceToAdd);
 
-                    if (Size <= MinSplitClusterSize)
+                    if (splitCluster.Size >= MinSplitSize)
                     {
                         continueExploring = false;
                         break;
@@ -110,6 +127,10 @@ public class PolityProminenceCluster : ISynchronizable
                 groupsAlreadyTested.Add(nGroup);
             }
         }
+
+#if DEBUG
+        Debug.Log("Splitted cluster (Id: " + Id + ") of size " + oldSize + " and created new cluster (Id: " + splitCluster.Id + ") of size " + splitCluster.Size);
+#endif
 
         return splitCluster;
     }

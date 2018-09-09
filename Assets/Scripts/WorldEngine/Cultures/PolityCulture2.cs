@@ -168,7 +168,7 @@ public class PolityCulture2 : Culture {
 //		}
 //		#endif
 
-		if (Polity.ProminencedGroups.Count <= 0)
+		if (Polity.Groups.Count <= 0)
 			return;
 
 		foreach (CulturalPreference preference in Preferences) {
@@ -212,7 +212,7 @@ public class PolityCulture2 : Culture {
 
 		_totalGroupProminenceValue = 0;
 
-		foreach (CellGroup group in Polity.ProminencedGroups.Values) {
+		foreach (CellGroup group in Polity.Groups.Values) {
 		
 			AddGroupCulture (group);
 		}

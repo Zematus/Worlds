@@ -1077,156 +1077,161 @@ public class GuiManagerScript : MonoBehaviour {
 		_displayedTip_mapScroll = true;
 	}
 	
-	public void CustomizeGeneration () {
-		
-		SetSeedDialogPanelScript.SetVisible (false);
-		
-		string seedStr = SetSeedDialogPanelScript.GetSeedString ();
-		
-		CustomizeWorldDialogPanelScript.SetVisible (true);
-		
-		CustomizeWorldDialogPanelScript.SetSeedString (seedStr);
-		
-		CustomizeWorldDialogPanelScript.SetTemperatureOffset(Manager.TemperatureOffset);
-		CustomizeWorldDialogPanelScript.SetRainfallOffset(Manager.RainfallOffset);
-		CustomizeWorldDialogPanelScript.SetSeaLevelOffset(Manager.SeaLevelOffset);
-		
-		InterruptSimulation (true);
-	}
+	public void CustomizeGeneration()
+    {
+        SetSeedDialogPanelScript.SetVisible(false);
 
-	private bool HasFilesToLoad () {
+        string seedStr = SetSeedDialogPanelScript.GetSeedString();
 
-		string dirPath = Manager.SavePath;
-		
-		string[] files = Directory.GetFiles (dirPath, "*.PLNT");
+        CustomizeWorldDialogPanelScript.SetVisible(true);
 
-		return files.Length > 0;
-	}
-	
-	public void ExportMapAction () {
-		
-		ExportMapDialogPanelScript.SetVisible (false);
-		
-		ActivityDialogPanelScript.SetVisible (true);
-		
-		ActivityDialogPanelScript.SetDialogText ("Exporting map to PNG file...");
-		
-		string imageName = ExportMapDialogPanelScript.GetName ();
-		
-		string path = Manager.ExportPath + imageName + ".png";
-		
-		Manager.ExportMapTextureToFileAsync (path, MapImage.uvRect);
+        CustomizeWorldDialogPanelScript.SetSeedString(seedStr);
 
-		_postProgressOp += PostProgressOp_ExportAction;
-		
-		_backgroundProcessActive = true;
-	}
-	
-	public void CancelExportAction () {
-		
-		ExportMapDialogPanelScript.SetVisible (false);
+        CustomizeWorldDialogPanelScript.SetTemperatureOffset(Manager.TemperatureOffset);
+        CustomizeWorldDialogPanelScript.SetRainfallOffset(Manager.RainfallOffset);
+        CustomizeWorldDialogPanelScript.SetSeaLevelOffset(Manager.SeaLevelOffset);
 
-		MenuUninterruptSimulation ();
-	}
-	
-	public void ExportImageAs () {
-		
-		OptionsDialogPanelScript.SetVisible (false);
-		
-		string planetViewStr = "";
-		
-		switch (_planetView) {
-		case PlanetView.Biomes: planetViewStr = "_biomes"; break;
-		case PlanetView.Coastlines: planetViewStr = "_coastlines"; break;
-		case PlanetView.Elevation: planetViewStr = "_elevation"; break;
-		default: throw new System.Exception("Unexpected planet view type: " + _planetView);
-		}
-		
-		string planetOverlayStr;
-		
-		switch (_planetOverlay) {
-		case PlanetOverlay.None: planetOverlayStr = ""; break;
-		case PlanetOverlay.General: 
-			planetOverlayStr = "_general"; 
-			break;
-		case PlanetOverlay.PopDensity: 
-			planetOverlayStr = "_population_density"; 
-			break;
-		case PlanetOverlay.FarmlandDistribution: 
-			planetOverlayStr = "_farmland_distribution"; 
-			break;
-		case PlanetOverlay.PopCulturalPreference: 
-			planetOverlayStr = "_population_cultural_preference_" + _planetOverlaySubtype; 
-			break;
-		case PlanetOverlay.PopCulturalActivity: 
-			planetOverlayStr = "_population_cultural_activity_" + _planetOverlaySubtype; 
-			break;
-		case PlanetOverlay.PopCulturalSkill: 
-			planetOverlayStr = "_population_cultural_skill_" + _planetOverlaySubtype; 
-			break;
-		case PlanetOverlay.PopCulturalKnowledge: 
-			planetOverlayStr = "_population_cultural_knowledge_" + _planetOverlaySubtype; 
-			break;
-		case PlanetOverlay.PopCulturalDiscovery: 
-			planetOverlayStr = "_population_cultural_discovery_" + _planetOverlaySubtype; 
-			break;
-		case PlanetOverlay.PolityTerritory: 
-			planetOverlayStr = "_polity_territories"; 
-			break;
-		case PlanetOverlay.FactionCoreDistance: 
-			planetOverlayStr = "_faction_core_distances"; 
-			break;
-		case PlanetOverlay.Language: 
-			planetOverlayStr = "_languages"; 
-			break;
-		case PlanetOverlay.PolityProminence: 
-			planetOverlayStr = "_polity_prominences"; 
-			break;
-		case PlanetOverlay.PolityContacts: 
-			planetOverlayStr = "_polity_contacts"; 
-			break;
-		case PlanetOverlay.PolityCulturalPreference: 
-			planetOverlayStr = "_polity_cultural_preference_" + _planetOverlaySubtype; 
-			break;
-		case PlanetOverlay.PolityCulturalActivity: 
-			planetOverlayStr = "_polity_cultural_activity_" + _planetOverlaySubtype; 
-			break;
-		case PlanetOverlay.PolityCulturalSkill: 
-			planetOverlayStr = "_polity_cultural_skill_" + _planetOverlaySubtype; 
-			break;
-		case PlanetOverlay.PolityCulturalKnowledge: 
-			planetOverlayStr = "_polity_cultural_knowledge_" + _planetOverlaySubtype; 
-			break;
-		case PlanetOverlay.PolityCulturalDiscovery: 
-			planetOverlayStr = "_polity_cultural_discovery_" + _planetOverlaySubtype; 
-			break;
-		case PlanetOverlay.Temperature: 
-			planetOverlayStr = "_temperature"; 
-			break;
-		case PlanetOverlay.Rainfall: 
-			planetOverlayStr = "_rainfall"; 
-			break;
-		case PlanetOverlay.Arability: 
-			planetOverlayStr = "_arability"; 
-			break;
-		case PlanetOverlay.Region: 
-			planetOverlayStr = "_region"; 
-			break;
-		case PlanetOverlay.PopChange: 
-			planetOverlayStr = "_population_change"; 
-			break;
-		case PlanetOverlay.UpdateSpan: 
-			planetOverlayStr = "_update_span"; 
-			break;
-		default: throw new System.Exception("Unexpected planet overlay type: " + _planetOverlay);
-		}
+        InterruptSimulation(true);
+    }
 
-		ExportMapDialogPanelScript.SetName (Manager.AddDateToWorldName(Manager.WorldName) + planetViewStr + planetOverlayStr);
-		
-		ExportMapDialogPanelScript.SetVisible (true);
-	}
+    private bool HasFilesToLoad()
+    {
+        string dirPath = Manager.SavePath;
 
-	public void PostProgressOp_SaveAction () {
+        string[] files = Directory.GetFiles(dirPath, "*.PLNT");
+
+        return files.Length > 0;
+    }
+
+    public void ExportMapAction()
+    {
+        ExportMapDialogPanelScript.SetVisible(false);
+
+        ActivityDialogPanelScript.SetVisible(true);
+
+        ActivityDialogPanelScript.SetDialogText("Exporting map to PNG file...");
+
+        string imageName = ExportMapDialogPanelScript.GetName();
+
+        string path = Manager.ExportPath + imageName + ".png";
+
+        Manager.ExportMapTextureToFileAsync(path, MapImage.uvRect);
+
+        _postProgressOp += PostProgressOp_ExportAction;
+
+        _backgroundProcessActive = true;
+    }
+
+    public void CancelExportAction()
+    {
+        ExportMapDialogPanelScript.SetVisible(false);
+
+        MenuUninterruptSimulation();
+    }
+
+    public void ExportImageAs()
+    {
+        OptionsDialogPanelScript.SetVisible(false);
+
+        string planetViewStr = "";
+
+        switch (_planetView)
+        {
+            case PlanetView.Biomes: planetViewStr = "_biomes"; break;
+            case PlanetView.Coastlines: planetViewStr = "_coastlines"; break;
+            case PlanetView.Elevation: planetViewStr = "_elevation"; break;
+            default: throw new System.Exception("Unexpected planet view type: " + _planetView);
+        }
+
+        string planetOverlayStr;
+
+        switch (_planetOverlay)
+        {
+            case PlanetOverlay.None: planetOverlayStr = ""; break;
+            case PlanetOverlay.General:
+                planetOverlayStr = "_general";
+                break;
+            case PlanetOverlay.PopDensity:
+                planetOverlayStr = "_population_density";
+                break;
+            case PlanetOverlay.FarmlandDistribution:
+                planetOverlayStr = "_farmland_distribution";
+                break;
+            case PlanetOverlay.PopCulturalPreference:
+                planetOverlayStr = "_population_cultural_preference_" + _planetOverlaySubtype;
+                break;
+            case PlanetOverlay.PopCulturalActivity:
+                planetOverlayStr = "_population_cultural_activity_" + _planetOverlaySubtype;
+                break;
+            case PlanetOverlay.PopCulturalSkill:
+                planetOverlayStr = "_population_cultural_skill_" + _planetOverlaySubtype;
+                break;
+            case PlanetOverlay.PopCulturalKnowledge:
+                planetOverlayStr = "_population_cultural_knowledge_" + _planetOverlaySubtype;
+                break;
+            case PlanetOverlay.PopCulturalDiscovery:
+                planetOverlayStr = "_population_cultural_discovery_" + _planetOverlaySubtype;
+                break;
+            case PlanetOverlay.PolityTerritory:
+                planetOverlayStr = "_polity_territories";
+                break;
+            case PlanetOverlay.PolityClusters:
+                planetOverlayStr = "_polity_vlusters";
+                break;
+            case PlanetOverlay.FactionCoreDistance:
+                planetOverlayStr = "_faction_core_distances";
+                break;
+            case PlanetOverlay.Language:
+                planetOverlayStr = "_languages";
+                break;
+            case PlanetOverlay.PolityProminence:
+                planetOverlayStr = "_polity_prominences";
+                break;
+            case PlanetOverlay.PolityContacts:
+                planetOverlayStr = "_polity_contacts";
+                break;
+            case PlanetOverlay.PolityCulturalPreference:
+                planetOverlayStr = "_polity_cultural_preference_" + _planetOverlaySubtype;
+                break;
+            case PlanetOverlay.PolityCulturalActivity:
+                planetOverlayStr = "_polity_cultural_activity_" + _planetOverlaySubtype;
+                break;
+            case PlanetOverlay.PolityCulturalSkill:
+                planetOverlayStr = "_polity_cultural_skill_" + _planetOverlaySubtype;
+                break;
+            case PlanetOverlay.PolityCulturalKnowledge:
+                planetOverlayStr = "_polity_cultural_knowledge_" + _planetOverlaySubtype;
+                break;
+            case PlanetOverlay.PolityCulturalDiscovery:
+                planetOverlayStr = "_polity_cultural_discovery_" + _planetOverlaySubtype;
+                break;
+            case PlanetOverlay.Temperature:
+                planetOverlayStr = "_temperature";
+                break;
+            case PlanetOverlay.Rainfall:
+                planetOverlayStr = "_rainfall";
+                break;
+            case PlanetOverlay.Arability:
+                planetOverlayStr = "_arability";
+                break;
+            case PlanetOverlay.Region:
+                planetOverlayStr = "_region";
+                break;
+            case PlanetOverlay.PopChange:
+                planetOverlayStr = "_population_change";
+                break;
+            case PlanetOverlay.UpdateSpan:
+                planetOverlayStr = "_update_span";
+                break;
+            default: throw new System.Exception("Unexpected planet overlay type: " + _planetOverlay);
+        }
+
+        ExportMapDialogPanelScript.SetName(Manager.AddDateToWorldName(Manager.WorldName) + planetViewStr + planetOverlayStr);
+
+        ExportMapDialogPanelScript.SetVisible(true);
+    }
+
+    public void PostProgressOp_SaveAction () {
 
         Debug.Log("Finished saving world to file.");
 
@@ -1526,80 +1531,134 @@ public class GuiManagerScript : MonoBehaviour {
 		_resolvedDecision = true;
 	}
 
-	public void ChangePlanetOverlayToSelected () {
+    public void ChangePlanetOverlayToSelected()
+    {
 
-		SelectionPanelScript.RemoveAllOptions ();
-		SelectionPanelScript.SetVisible (false);
+        SelectionPanelScript.RemoveAllOptions();
+        SelectionPanelScript.SetVisible(false);
 
-		if (OverlayDialogPanelScript.DontUpdateDialog)
-			return;
+        if (OverlayDialogPanelScript.DontUpdateDialog)
+            return;
 
-		OverlayDialogPanelScript.ResetToggles ();
+        OverlayDialogPanelScript.ResetToggles();
 
-		if (OverlayDialogPanelScript.GeneralDataToggle.isOn) {
-			ChangePlanetOverlay (PlanetOverlay.General, false);
-		} else if (OverlayDialogPanelScript.PopDensityToggle.isOn) {
-			ChangePlanetOverlay (PlanetOverlay.PopDensity, false);
-		} else if (OverlayDialogPanelScript.FarmlandToggle.isOn) {
-			ChangePlanetOverlay (PlanetOverlay.FarmlandDistribution, false);
-		} else if (OverlayDialogPanelScript.PopCulturalPreferenceToggle.isOn) {
-			SetPopCulturalPreferenceOverlay (false);
-		} else if (OverlayDialogPanelScript.PopCulturalActivityToggle.isOn) {
-			SetPopCulturalActivityOverlay (false);
-		} else if (OverlayDialogPanelScript.PopCulturalSkillToggle.isOn) {
-			SetPopCulturalSkillOverlay (false);
-		} else if (OverlayDialogPanelScript.PopCulturalKnowledgeToggle.isOn) {
-			SetPopCulturalKnowledgeOverlay (false);
-		} else if (OverlayDialogPanelScript.PopCulturalDiscoveryToggle.isOn) {
-			SetPopCulturalDiscoveryOverlay (false);
-		} else if (OverlayDialogPanelScript.TerritoriesToggle.isOn) {
-			ChangePlanetOverlay (PlanetOverlay.PolityTerritory, false);
-		} else if (OverlayDialogPanelScript.DistancesToCoresToggle.isOn) {
-			ChangePlanetOverlay (PlanetOverlay.FactionCoreDistance, false);
-		} else if (OverlayDialogPanelScript.ProminenceToggle.isOn) {
-			ChangePlanetOverlay (PlanetOverlay.PolityProminence, false);
-		} else if (OverlayDialogPanelScript.ContactsToggle.isOn) {
-			ChangePlanetOverlay (PlanetOverlay.PolityContacts, false);
-		} else if (OverlayDialogPanelScript.PolityCulturalPreferenceToggle.isOn) {
-			SetPolityCulturalPreferenceOverlay (false);
-		} else if (OverlayDialogPanelScript.PolityCulturalActivityToggle.isOn) {
-			SetPolityCulturalActivityOverlay (false);
-		} else if (OverlayDialogPanelScript.PolityCulturalSkillToggle.isOn) {
-			SetPolityCulturalSkillOverlay (false);
-		} else if (OverlayDialogPanelScript.PolityCulturalKnowledgeToggle.isOn) {
-			SetPolityCulturalKnowledgeOverlay (false);
-		} else if (OverlayDialogPanelScript.PolityCulturalDiscoveryToggle.isOn) {
-			SetPolityCulturalDiscoveryOverlay (false);
-		} else if (OverlayDialogPanelScript.TemperatureToggle.isOn) {
-			ChangePlanetOverlay (PlanetOverlay.Temperature, false);
-		} else if (OverlayDialogPanelScript.RainfallToggle.isOn) {
-			ChangePlanetOverlay (PlanetOverlay.Rainfall, false);
-		} else if (OverlayDialogPanelScript.ArabilityToggle.isOn) {
-			ChangePlanetOverlay (PlanetOverlay.Arability, false);
-		} else if (OverlayDialogPanelScript.RegionToggle.isOn) {
-			ChangePlanetOverlay (PlanetOverlay.Region, false);
-		} else if (OverlayDialogPanelScript.LanguageToggle.isOn) {
-			ChangePlanetOverlay (PlanetOverlay.Language, false);
-		} else if (OverlayDialogPanelScript.PopChangeToggle.isOn) {
-			ChangePlanetOverlay (PlanetOverlay.PopChange, false);
-		} else if (OverlayDialogPanelScript.UpdateSpanToggle.isOn) {
-			ChangePlanetOverlay (PlanetOverlay.UpdateSpan, false);
-		} else {
-			ChangePlanetOverlay (PlanetOverlay.None, false);
-		}
+        if (OverlayDialogPanelScript.GeneralDataToggle.isOn)
+        {
+            ChangePlanetOverlay(PlanetOverlay.General, false);
+        }
+        else if (OverlayDialogPanelScript.PopDensityToggle.isOn)
+        {
+            ChangePlanetOverlay(PlanetOverlay.PopDensity, false);
+        }
+        else if (OverlayDialogPanelScript.FarmlandToggle.isOn)
+        {
+            ChangePlanetOverlay(PlanetOverlay.FarmlandDistribution, false);
+        }
+        else if (OverlayDialogPanelScript.PopCulturalPreferenceToggle.isOn)
+        {
+            SetPopCulturalPreferenceOverlay(false);
+        }
+        else if (OverlayDialogPanelScript.PopCulturalActivityToggle.isOn)
+        {
+            SetPopCulturalActivityOverlay(false);
+        }
+        else if (OverlayDialogPanelScript.PopCulturalSkillToggle.isOn)
+        {
+            SetPopCulturalSkillOverlay(false);
+        }
+        else if (OverlayDialogPanelScript.PopCulturalKnowledgeToggle.isOn)
+        {
+            SetPopCulturalKnowledgeOverlay(false);
+        }
+        else if (OverlayDialogPanelScript.PopCulturalDiscoveryToggle.isOn)
+        {
+            SetPopCulturalDiscoveryOverlay(false);
+        }
+        else if (OverlayDialogPanelScript.TerritoriesToggle.isOn)
+        {
+            ChangePlanetOverlay(PlanetOverlay.PolityTerritory, false);
+        }
+        else if (OverlayDialogPanelScript.PolityClustersToggle.isOn)
+        {
+            ChangePlanetOverlay(PlanetOverlay.PolityClusters, false);
+        }
+        else if (OverlayDialogPanelScript.DistancesToCoresToggle.isOn)
+        {
+            ChangePlanetOverlay(PlanetOverlay.FactionCoreDistance, false);
+        }
+        else if (OverlayDialogPanelScript.ProminenceToggle.isOn)
+        {
+            ChangePlanetOverlay(PlanetOverlay.PolityProminence, false);
+        }
+        else if (OverlayDialogPanelScript.ContactsToggle.isOn)
+        {
+            ChangePlanetOverlay(PlanetOverlay.PolityContacts, false);
+        }
+        else if (OverlayDialogPanelScript.PolityCulturalPreferenceToggle.isOn)
+        {
+            SetPolityCulturalPreferenceOverlay(false);
+        }
+        else if (OverlayDialogPanelScript.PolityCulturalActivityToggle.isOn)
+        {
+            SetPolityCulturalActivityOverlay(false);
+        }
+        else if (OverlayDialogPanelScript.PolityCulturalSkillToggle.isOn)
+        {
+            SetPolityCulturalSkillOverlay(false);
+        }
+        else if (OverlayDialogPanelScript.PolityCulturalKnowledgeToggle.isOn)
+        {
+            SetPolityCulturalKnowledgeOverlay(false);
+        }
+        else if (OverlayDialogPanelScript.PolityCulturalDiscoveryToggle.isOn)
+        {
+            SetPolityCulturalDiscoveryOverlay(false);
+        }
+        else if (OverlayDialogPanelScript.TemperatureToggle.isOn)
+        {
+            ChangePlanetOverlay(PlanetOverlay.Temperature, false);
+        }
+        else if (OverlayDialogPanelScript.RainfallToggle.isOn)
+        {
+            ChangePlanetOverlay(PlanetOverlay.Rainfall, false);
+        }
+        else if (OverlayDialogPanelScript.ArabilityToggle.isOn)
+        {
+            ChangePlanetOverlay(PlanetOverlay.Arability, false);
+        }
+        else if (OverlayDialogPanelScript.RegionToggle.isOn)
+        {
+            ChangePlanetOverlay(PlanetOverlay.Region, false);
+        }
+        else if (OverlayDialogPanelScript.LanguageToggle.isOn)
+        {
+            ChangePlanetOverlay(PlanetOverlay.Language, false);
+        }
+        else if (OverlayDialogPanelScript.PopChangeToggle.isOn)
+        {
+            ChangePlanetOverlay(PlanetOverlay.PopChange, false);
+        }
+        else if (OverlayDialogPanelScript.UpdateSpanToggle.isOn)
+        {
+            ChangePlanetOverlay(PlanetOverlay.UpdateSpan, false);
+        }
+        else
+        {
+            ChangePlanetOverlay(PlanetOverlay.None, false);
+        }
 
-		SetRouteDisplayOverlay (OverlayDialogPanelScript.DisplayRoutesToggle.isOn, false);
-		SetGroupActivityOverlay (OverlayDialogPanelScript.DisplayGroupActivityToggle.isOn, false);
-	}
-	
-	public void CloseOverlayMenuAction () {
-		
-		OverlayDialogPanelScript.SetVisible (false);
+        SetRouteDisplayOverlay(OverlayDialogPanelScript.DisplayRoutesToggle.isOn, false);
+        SetGroupActivityOverlay(OverlayDialogPanelScript.DisplayGroupActivityToggle.isOn, false);
+    }
 
-		ShowHiddenInteractionPanels ();
-	}
+    public void CloseOverlayMenuAction()
+    {
+        OverlayDialogPanelScript.SetVisible(false);
 
-	public void CloseViewsMenuAction () {
+        ShowHiddenInteractionPanels();
+    }
+
+    public void CloseViewsMenuAction () {
 
 		ViewsDialogPanelScript.SetVisible (false);
 
@@ -2379,64 +2438,66 @@ public class GuiManagerScript : MonoBehaviour {
 		InfoPanelScript.InfoText.text += "\nTime between updates: " + Manager.GetTimeSpanString(nextUpdateDate - lastUpdateDate);
 	}
 
-	public void AddCellDataToInfoPanel_PolityProminence (TerrainCell cell) {
+	public void AddCellDataToInfoPanel_PolityProminence(TerrainCell cell)
+    {
+        InfoPanelScript.InfoText.text += "\n";
+        InfoPanelScript.InfoText.text += "\n -- Group Polity Prominence Data -- ";
+        InfoPanelScript.InfoText.text += "\n";
 
-		InfoPanelScript.InfoText.text += "\n";
-		InfoPanelScript.InfoText.text += "\n -- Group Polity Prominence Data -- ";
-		InfoPanelScript.InfoText.text += "\n";
+        if (cell.Group == null)
+        {
+            InfoPanelScript.InfoText.text += "\n\tNo population at location";
 
-		if (cell.Group == null) {
+            return;
+        }
 
-			InfoPanelScript.InfoText.text += "\n\tNo population at location";
+        int population = cell.Group.Population;
 
-			return;
-		}
+        if (population <= 0)
+        {
+            InfoPanelScript.InfoText.text += "\n\tNo population at location";
 
-		int population = cell.Group.Population;
+            return;
+        }
 
-		if (population <= 0) {
+        bool firstPolity = true;
 
-			InfoPanelScript.InfoText.text += "\n\tNo population at location";
+        List<PolityProminence> polityProminences = new List<PolityProminence>(cell.Group.PolityProminences.Values);
 
-			return;
-		}
+        polityProminences.Sort((a, b) =>
+        {
+            if (a.Value > b.Value) return -1;
+            if (a.Value < b.Value) return 1;
+            return 0;
+        });
 
-		bool firstPolity = true;
+        foreach (PolityProminence polityProminence in polityProminences)
+        {
+            Polity polity = polityProminence.Polity;
+            float prominenceValue = polityProminence.Value;
+            float factionCoreDistance = polityProminence.FactionCoreDistance;
+            float polityCoreDistance = polityProminence.PolityCoreDistance;
+            float administrativeCost = polityProminence.AdministrativeCost;
 
-		List<PolityProminence> polityProminences = new List<PolityProminence>(cell.Group.PolityProminences.Values);
+            if (prominenceValue >= 0.001)
+            {
+                if (firstPolity)
+                {
+                    InfoPanelScript.InfoText.text += "\nPolities:";
 
-		polityProminences.Sort ((a, b) => {
-			if (a.Value > b.Value) return -1;
-			if (a.Value < b.Value) return 1;
-			return 0;
-		});
+                    firstPolity = false;
+                }
 
-		foreach (PolityProminence polityProminence in polityProminences) {
+                InfoPanelScript.InfoText.text += "\n\tPolity: " + polity.Name.Text +
+                    "\n\t\tProminence: " + prominenceValue.ToString("P") +
+                    "\n\t\tDistance to Polity Core: " + polityCoreDistance.ToString("0.000") +
+                    "\n\t\tDistance to Faction Core: " + factionCoreDistance.ToString("0.000") +
+                    "\n\t\tAdministrative Cost: " + administrativeCost.ToString("0.000");
+            }
+        }
+    }
 
-			Polity polity = polityProminence.Polity;
-			float prominenceValue = polityProminence.Value;
-			float factionCoreDistance = polityProminence.FactionCoreDistance;
-			float polityCoreDistance = polityProminence.PolityCoreDistance;
-			float administrativeCost = polityProminence.AdministrativeCost;
-
-			if (prominenceValue >= 0.001) {
-
-				if (firstPolity) {
-					InfoPanelScript.InfoText.text += "\nPolities:";
-
-					firstPolity = false;
-				}
-
-				InfoPanelScript.InfoText.text += "\n\tPolity: " + polity.Name.Text +
-					"\n\t\tProminence: " + prominenceValue.ToString ("P") +
-					"\n\t\tDistance to Polity Core: " + polityCoreDistance.ToString ("0.000") +
-					"\n\t\tDistance to Faction Core: " + factionCoreDistance.ToString ("0.000") +
-					"\n\t\tAdministrative Cost: " + administrativeCost.ToString ("0.000");
-			}
-		}
-	}
-
-	public void AddCellDataToInfoPanel_PolityContacts (TerrainCell cell) {
+    public void AddCellDataToInfoPanel_PolityContacts (TerrainCell cell) {
 
 		InfoPanelScript.InfoText.text += "\n";
 		InfoPanelScript.InfoText.text += "\n -- Polity Contacts Data -- ";
@@ -2565,125 +2626,180 @@ public class GuiManagerScript : MonoBehaviour {
 		}
 	}
 
-	public void AddCellDataToInfoPanel_PolityTerritory (TerrainCell cell) {
+    public void AddCellDataToInfoPanel_PolityTerritory(TerrainCell cell)
+    {
+        InfoPanelScript.InfoText.text += "\n";
+        InfoPanelScript.InfoText.text += "\n -- Polity Territory Data -- ";
+        InfoPanelScript.InfoText.text += "\n";
 
-		InfoPanelScript.InfoText.text += "\n";
-		InfoPanelScript.InfoText.text += "\n -- Polity Territory Data -- ";
-		InfoPanelScript.InfoText.text += "\n";
+        if (cell.Group == null)
+        {
+            InfoPanelScript.InfoText.text += "\n\tNo population at location";
 
-		if (cell.Group == null) {
+            return;
+        }
 
-			InfoPanelScript.InfoText.text += "\n\tNo population at location";
+        int population = cell.Group.Population;
 
-			return;
-		}
+        if (population <= 0)
+        {
+            InfoPanelScript.InfoText.text += "\n\tNo population at location";
 
-		int population = cell.Group.Population;
+            return;
+        }
 
-		if (population <= 0) {
+        Territory territory = cell.EncompassingTerritory;
+        
+        if (territory == null)
+        {
+            InfoPanelScript.InfoText.text += "\n\tGroup not part of a polity's territory";
+            return;
+        }
 
-			InfoPanelScript.InfoText.text += "\n\tNo population at location";
+        Polity polity = territory.Polity;
 
-			return;
-		}
+        PolityProminence pi = cell.Group.GetPolityProminence(polity);
 
-		Territory territory = cell.EncompassingTerritory;
+        InfoPanelScript.InfoText.text += "\nTerritory of the " + polity.Name.Text + " " + polity.Type.ToLower();
+        InfoPanelScript.InfoText.text += "\nTranslates to: " + polity.Name.Meaning;
+        InfoPanelScript.InfoText.text += "\n";
 
+        int totalPopulation = (int)Mathf.Floor(polity.TotalPopulation);
 
-		if (territory == null) {
-			InfoPanelScript.InfoText.text += "\n\tGroup not part of a polity's territory";
-			return;
-		}
+        InfoPanelScript.InfoText.text += "\n\tPolity population: " + totalPopulation;
+        InfoPanelScript.InfoText.text += "\n";
 
-		Polity polity = territory.Polity;
+        float administrativeCost = polity.TotalAdministrativeCost;
 
-		PolityProminence pi = cell.Group.GetPolityProminence (polity);
+        InfoPanelScript.InfoText.text += "\n\tAdministrative Cost: " + administrativeCost;
 
-		InfoPanelScript.InfoText.text += "\nTerritory of the " + polity.Name.Text + " " + polity.Type.ToLower ();
-		InfoPanelScript.InfoText.text += "\nTranslates to: " + polity.Name.Meaning;
-		InfoPanelScript.InfoText.text += "\n";
+        Agent leader = polity.CurrentLeader;
 
-		int totalPopulation = (int)Mathf.Floor (polity.TotalPopulation);
+        InfoPanelScript.InfoText.text += "\nLeader: " + leader.Name.Text;
+        InfoPanelScript.InfoText.text += "\nTranslates to: " + leader.Name.Meaning;
+        InfoPanelScript.InfoText.text += "\nBirth Date: " + Manager.GetDateString(leader.BirthDate);
+        InfoPanelScript.InfoText.text += "\nGender: " + ((leader.IsFemale) ? "Female" : "Male");
+        InfoPanelScript.InfoText.text += "\nCharisma: " + leader.Charisma;
+        InfoPanelScript.InfoText.text += "\nWisdom: " + leader.Wisdom;
+        InfoPanelScript.InfoText.text += "\n";
 
-		InfoPanelScript.InfoText.text += "\n\tPolity population: " + totalPopulation;
-		InfoPanelScript.InfoText.text += "\n";
+        InfoPanelScript.InfoText.text += "\n";
+        InfoPanelScript.InfoText.text += "\n -- Polity Factions -- ";
+        InfoPanelScript.InfoText.text += "\n";
 
-		float administrativeCost = polity.TotalAdministrativeCost;
+        List<Faction> factions = new List<Faction>(polity.GetFactions());
 
-		InfoPanelScript.InfoText.text += "\n\tAdministrative Cost: " + administrativeCost;
+        factions.Sort((a, b) =>
+        {
+            if (a.Influence > b.Influence)
+                return -1;
+            if (a.Influence < b.Influence)
+                return 1;
 
-		Agent leader = polity.CurrentLeader;
+            return 0;
+        });
 
-		InfoPanelScript.InfoText.text += "\nLeader: " + leader.Name.Text;
-		InfoPanelScript.InfoText.text += "\nTranslates to: " + leader.Name.Meaning;
-		InfoPanelScript.InfoText.text += "\nBirth Date: " + Manager.GetDateString(leader.BirthDate);
-		InfoPanelScript.InfoText.text += "\nGender: " + ((leader.IsFemale) ? "Female" : "Male");
-		InfoPanelScript.InfoText.text += "\nCharisma: " + leader.Charisma;
-		InfoPanelScript.InfoText.text += "\nWisdom: " + leader.Wisdom;
-		InfoPanelScript.InfoText.text += "\n";
+        foreach (Faction faction in factions)
+        {
+            InfoPanelScript.InfoText.text += "\n\t" + faction.Type + " " + faction.Name;
+            InfoPanelScript.InfoText.text += "\n\t\tCore: " + faction.CoreGroup.Position;
+            InfoPanelScript.InfoText.text += "\n\t\tInfluence: " + faction.Influence.ToString("P");
 
-		InfoPanelScript.InfoText.text += "\n";
-		InfoPanelScript.InfoText.text += "\n -- Polity Factions -- ";
-		InfoPanelScript.InfoText.text += "\n";
+            Agent factionLeader = faction.CurrentLeader;
 
-		List<Faction> factions = new List<Faction> (polity.GetFactions ());
+            InfoPanelScript.InfoText.text += "\n\t\tLeader: " + factionLeader.Name.Text;
+            InfoPanelScript.InfoText.text += "\n\t\tTranslates to: " + factionLeader.Name.Meaning;
+            InfoPanelScript.InfoText.text += "\n\t\tBirth Date: " + Manager.GetDateString(factionLeader.BirthDate);
+            InfoPanelScript.InfoText.text += "\n\t\tGender: " + ((factionLeader.IsFemale) ? "Female" : "Male");
+            InfoPanelScript.InfoText.text += "\n\t\tCharisma: " + factionLeader.Charisma;
+            InfoPanelScript.InfoText.text += "\n\t\tWisdom: " + factionLeader.Wisdom;
+            InfoPanelScript.InfoText.text += "\n";
+        }
 
-		factions.Sort ((a, b) => {
-			if (a.Influence > b.Influence)
-				return -1;
-			if (a.Influence < b.Influence)
-				return 1;
+        InfoPanelScript.InfoText.text += "\n";
+        InfoPanelScript.InfoText.text += "\n -- Selected Group's Polity Data -- ";
+        InfoPanelScript.InfoText.text += "\n";
 
-			return 0;
-		});
+        float percentageOfPopulation = cell.Group.GetPolityProminenceValue(polity);
+        int prominencedPopulation = (int)Mathf.Floor(population * percentageOfPopulation);
 
-		foreach (Faction faction in factions) {
+        float percentageOfPolity = 1;
 
-			InfoPanelScript.InfoText.text += "\n\t" + faction.Type + " " + faction.Name;
-			InfoPanelScript.InfoText.text += "\n\t\tCore: " + faction.CoreGroup.Position;
-			InfoPanelScript.InfoText.text += "\n\t\tInfluence: " + faction.Influence.ToString ("P");
+        if (totalPopulation > 0)
+        {
+            percentageOfPolity = prominencedPopulation / (float)totalPopulation;
+        }
 
-			Agent factionLeader = faction.CurrentLeader;
+        InfoPanelScript.InfoText.text += "\n\tProminenced population: " + prominencedPopulation;
+        InfoPanelScript.InfoText.text += "\n\tPercentage of polity population: " + percentageOfPolity.ToString("P");
+        InfoPanelScript.InfoText.text += "\n\tDistance to polity core: " + pi.PolityCoreDistance.ToString("0.000");
+        InfoPanelScript.InfoText.text += "\n\tDistance to faction core: " + pi.FactionCoreDistance.ToString("0.000");
+    }
 
-			InfoPanelScript.InfoText.text += "\n\t\tLeader: " + factionLeader.Name.Text;
-			InfoPanelScript.InfoText.text += "\n\t\tTranslates to: " + factionLeader.Name.Meaning;
-			InfoPanelScript.InfoText.text += "\n\t\tBirth Date: " + Manager.GetDateString(factionLeader.BirthDate);
-			InfoPanelScript.InfoText.text += "\n\t\tGender: " + ((factionLeader.IsFemale) ? "Female" : "Male");
-			InfoPanelScript.InfoText.text += "\n\t\tCharisma: " + factionLeader.Charisma;
-			InfoPanelScript.InfoText.text += "\n\t\tWisdom: " + factionLeader.Wisdom;
-			InfoPanelScript.InfoText.text += "\n";
-		}
+    public void AddCellDataToInfoPanel_PolityClusters(TerrainCell cell)
+    {
+        InfoPanelScript.InfoText.text += "\n";
+        InfoPanelScript.InfoText.text += "\n -- Group Polity Clusters Data -- ";
+        InfoPanelScript.InfoText.text += "\n";
 
-		InfoPanelScript.InfoText.text += "\n";
-		InfoPanelScript.InfoText.text += "\n -- Selected Group's Polity Data -- ";
-		InfoPanelScript.InfoText.text += "\n";
+        if (cell.Group == null)
+        {
+            InfoPanelScript.InfoText.text += "\n\tNo population at location";
 
-		float percentageOfPopulation = cell.Group.GetPolityProminenceValue (polity);
-		int prominencedPopulation = (int)Mathf.Floor (population * percentageOfPopulation);
+            return;
+        }
 
-		float percentageOfPolity = 1;
+        int population = cell.Group.Population;
 
-		if (totalPopulation > 0) {
-			percentageOfPolity = prominencedPopulation / (float)totalPopulation;
-		}
+        if (population <= 0)
+        {
+            InfoPanelScript.InfoText.text += "\n\tNo population at location";
 
-		InfoPanelScript.InfoText.text += "\n\tProminenced population: " + prominencedPopulation;
-		InfoPanelScript.InfoText.text += "\n\tPercentage of polity population: " + percentageOfPolity.ToString ("P");
-		InfoPanelScript.InfoText.text += "\n\tDistance to polity core: " + pi.PolityCoreDistance.ToString ("0.000");
-		InfoPanelScript.InfoText.text += "\n\tDistance to faction core: " + pi.FactionCoreDistance.ToString ("0.000");
+            return;
+        }
 
-//		SetFocusButton (polity);
-	}
+        bool firstPolity = true;
 
-//	private void SetFocusButton (Polity polity) {
-//
-//		if (!polity.IsUnderPlayerFocus) {
-//			_showFocusButton = true;
-//			_focusButtonText = "Set focus on " + polity.Name.Text;
-//		}
-//	}
+        List<PolityProminence> polityProminences = new List<PolityProminence>(cell.Group.PolityProminences.Values);
 
-	public void AddCellDataToInfoPanel_PolityCulturalPreference (TerrainCell cell) {
+        polityProminences.Sort((a, b) =>
+        {
+            if (a.Value > b.Value) return -1;
+            if (a.Value < b.Value) return 1;
+            return 0;
+        });
+
+        foreach (PolityProminence polityProminence in polityProminences)
+        {
+            Polity polity = polityProminence.Polity;
+            float prominenceValue = polityProminence.Value;
+            PolityProminenceCluster prominenceCluster = polityProminence.Cluster;
+
+            if (prominenceValue >= 0.001)
+            {
+                if (firstPolity)
+                {
+                    InfoPanelScript.InfoText.text += "\nPolities:";
+
+                    firstPolity = false;
+                }
+
+                InfoPanelScript.InfoText.text += "\n\tPolity: " + polity.Name.Text +
+                    "\n\t\tProminence: " + prominenceValue.ToString("P");
+
+                if (prominenceCluster != null)
+                {
+                    InfoPanelScript.InfoText.text += "\n\t\tCluster: " + prominenceCluster.Id.ToString();
+                }
+                else
+                {
+                    InfoPanelScript.InfoText.text += "\n\t\tCluster: null";
+                }
+            }
+        }
+    }
+
+    public void AddCellDataToInfoPanel_PolityCulturalPreference (TerrainCell cell) {
 
 		InfoPanelScript.InfoText.text += "\n";
 		InfoPanelScript.InfoText.text += "\n -- Polity Preference Data -- ";
@@ -3101,135 +3217,140 @@ public class GuiManagerScript : MonoBehaviour {
 			InfoPanelScript.InfoText.text += "\n\t" + discovery.Name;
 		}
 	}
-	
-	public void AddCellDataToInfoPanel (TerrainCell cell) {
 
-		int longitude = cell.Longitude;
-		int latitude = cell.Latitude;
+    public void AddCellDataToInfoPanel(TerrainCell cell)
+    {
+        int longitude = cell.Longitude;
+        int latitude = cell.Latitude;
 
-		InfoPanelScript.InfoText.text += "\n";
-		InfoPanelScript.InfoText.text += string.Format ("\nPosition: Longitude {0}, Latitude {1}", longitude, latitude);
+        InfoPanelScript.InfoText.text += "\n";
+        InfoPanelScript.InfoText.text += string.Format("\nPosition: Longitude {0}, Latitude {1}", longitude, latitude);
 
-		if ((_planetOverlay == PlanetOverlay.None) || 
-			(_planetOverlay == PlanetOverlay.Rainfall) || 
-			(_planetOverlay == PlanetOverlay.Arability) || 
-			(_planetOverlay == PlanetOverlay.Temperature)) {
+        if ((_planetOverlay == PlanetOverlay.None) ||
+            (_planetOverlay == PlanetOverlay.Rainfall) ||
+            (_planetOverlay == PlanetOverlay.Arability) ||
+            (_planetOverlay == PlanetOverlay.Temperature))
+        {
+            AddCellDataToInfoPanel_Terrain(cell);
+        }
 
-			AddCellDataToInfoPanel_Terrain (cell);
-		}
+        if (_planetOverlay == PlanetOverlay.Region)
+        {
+            AddCellDataToInfoPanel_Region(cell);
+        }
 
-		if (_planetOverlay == PlanetOverlay.Region) {
+        if (_planetOverlay == PlanetOverlay.Language)
+        {
+            AddCellDataToInfoPanel_Language(cell);
+        }
 
-			AddCellDataToInfoPanel_Region (cell);
-		}
-
-		if (_planetOverlay == PlanetOverlay.Language) {
-
-			AddCellDataToInfoPanel_Language (cell);
-		}
-
-		if (_planetOverlay == PlanetOverlay.FarmlandDistribution) {
-
-			AddCellDataToInfoPanel_FarmlandDistribution (cell);
-		}
+        if (_planetOverlay == PlanetOverlay.FarmlandDistribution)
+        {
+            AddCellDataToInfoPanel_FarmlandDistribution(cell);
+        }
 
 
-		if (_planetOverlay == PlanetOverlay.General) {
+        if (_planetOverlay == PlanetOverlay.General)
+        {
+            AddCellDataToInfoPanel_General(cell);
+        }
 
-			AddCellDataToInfoPanel_General (cell);
-		}
+        if ((_planetOverlay == PlanetOverlay.PopDensity) ||
+            (_planetOverlay == PlanetOverlay.PopChange))
+        {
+            AddCellDataToInfoPanel_PopDensity(cell);
+        }
 
-		if ((_planetOverlay == PlanetOverlay.PopDensity) || 
-			(_planetOverlay == PlanetOverlay.PopChange)) {
-		
-			AddCellDataToInfoPanel_PopDensity (cell);
-		}
+        if (_planetOverlay == PlanetOverlay.UpdateSpan)
+        {
+            AddCellDataToInfoPanel_UpdateSpan(cell);
+        }
 
-		if (_planetOverlay == PlanetOverlay.UpdateSpan) {
+        if (_planetOverlay == PlanetOverlay.PolityProminence)
+        {
+            AddCellDataToInfoPanel_PolityProminence(cell);
+        }
 
-			AddCellDataToInfoPanel_UpdateSpan (cell);
-		}
+        if (_planetOverlay == PlanetOverlay.PolityContacts)
+        {
+            AddCellDataToInfoPanel_PolityContacts(cell);
+        }
 
-		if (_planetOverlay == PlanetOverlay.PolityProminence) {
+        if (_planetOverlay == PlanetOverlay.PolityTerritory)
+        {
+            AddCellDataToInfoPanel_PolityTerritory(cell);
+        }
 
-			AddCellDataToInfoPanel_PolityProminence (cell);
-		}
+        if (_planetOverlay == PlanetOverlay.PolityClusters)
+        {
+            AddCellDataToInfoPanel_PolityClusters(cell);
+        }
 
-		if (_planetOverlay == PlanetOverlay.PolityContacts) {
+        if (_planetOverlay == PlanetOverlay.FactionCoreDistance)
+        {
+            AddCellDataToInfoPanel_PolityTerritory(cell);
+        }
 
-			AddCellDataToInfoPanel_PolityContacts (cell);
-		}
+        if (_planetOverlay == PlanetOverlay.PolityCulturalPreference)
+        {
+            AddCellDataToInfoPanel_PolityCulturalPreference(cell);
+        }
 
-		if (_planetOverlay == PlanetOverlay.PolityTerritory) {
+        if (_planetOverlay == PlanetOverlay.PopCulturalPreference)
+        {
+            AddCellDataToInfoPanel_PopCulturalPreference(cell);
+        }
 
-			AddCellDataToInfoPanel_PolityTerritory (cell);
-		}
+        if (_planetOverlay == PlanetOverlay.PolityCulturalActivity)
+        {
+            AddCellDataToInfoPanel_PolityCulturalActivity(cell);
+        }
 
-		if (_planetOverlay == PlanetOverlay.FactionCoreDistance) {
+        if (_planetOverlay == PlanetOverlay.PopCulturalActivity)
+        {
+            AddCellDataToInfoPanel_PopCulturalActivity(cell);
+        }
 
-			AddCellDataToInfoPanel_PolityTerritory (cell);
-		}
+        if (_planetOverlay == PlanetOverlay.PolityCulturalSkill)
+        {
+            AddCellDataToInfoPanel_PolityCulturalSkill(cell);
+        }
 
-		if (_planetOverlay == PlanetOverlay.PolityCulturalPreference) {
+        if (_planetOverlay == PlanetOverlay.PopCulturalSkill)
+        {
+            AddCellDataToInfoPanel_PopCulturalSkill(cell);
+        }
 
-			AddCellDataToInfoPanel_PolityCulturalPreference (cell);
-		}
+        if (_planetOverlay == PlanetOverlay.PolityCulturalKnowledge)
+        {
+            AddCellDataToInfoPanel_PolityCulturalKnowledge(cell);
+        }
 
-		if (_planetOverlay == PlanetOverlay.PopCulturalPreference) {
+        if (_planetOverlay == PlanetOverlay.PopCulturalKnowledge)
+        {
+            AddCellDataToInfoPanel_PopCulturalKnowledge(cell);
+        }
 
-			AddCellDataToInfoPanel_PopCulturalPreference (cell);
-		}
+        if (_planetOverlay == PlanetOverlay.PolityCulturalDiscovery)
+        {
+            AddCellDataToInfoPanel_PolityCulturalDiscovery(cell);
+        }
 
-		if (_planetOverlay == PlanetOverlay.PolityCulturalActivity) {
+        if (_planetOverlay == PlanetOverlay.PopCulturalDiscovery)
+        {
+            AddCellDataToInfoPanel_PopCulturalDiscovery(cell);
+        }
+    }
 
-			AddCellDataToInfoPanel_PolityCulturalActivity (cell);
-		}
+    public void AddCellDataToInfoPanel(Vector2 mapPosition)
+    {
+        int longitude = (int)mapPosition.x;
+        int latitude = (int)mapPosition.y;
 
-		if (_planetOverlay == PlanetOverlay.PopCulturalActivity) {
+        AddCellDataToInfoPanel(longitude, latitude);
+    }
 
-			AddCellDataToInfoPanel_PopCulturalActivity (cell);
-		}
-
-		if (_planetOverlay == PlanetOverlay.PolityCulturalSkill) {
-
-			AddCellDataToInfoPanel_PolityCulturalSkill (cell);
-		}
-
-		if (_planetOverlay == PlanetOverlay.PopCulturalSkill) {
-
-			AddCellDataToInfoPanel_PopCulturalSkill (cell);
-		}
-
-		if (_planetOverlay == PlanetOverlay.PolityCulturalKnowledge) {
-
-			AddCellDataToInfoPanel_PolityCulturalKnowledge (cell);
-		}
-
-		if (_planetOverlay == PlanetOverlay.PopCulturalKnowledge) {
-
-			AddCellDataToInfoPanel_PopCulturalKnowledge (cell);
-		}
-
-		if (_planetOverlay == PlanetOverlay.PolityCulturalDiscovery) {
-
-			AddCellDataToInfoPanel_PolityCulturalDiscovery (cell);
-		}
-
-		if (_planetOverlay == PlanetOverlay.PopCulturalDiscovery) {
-
-			AddCellDataToInfoPanel_PopCulturalDiscovery (cell);
-		}
-	}
-	
-	public void AddCellDataToInfoPanel (Vector2 mapPosition) {
-
-		int longitude = (int)mapPosition.x;
-		int latitude = (int)mapPosition.y;
-
-		AddCellDataToInfoPanel (longitude, latitude);
-	}
-
-	public void HoverOp_ShowCellInfoTooltip (Vector2 position) {
+    public void HoverOp_ShowCellInfoTooltip (Vector2 position) {
 
 		Vector2 mapCoordinates;
 

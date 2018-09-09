@@ -278,7 +278,7 @@ public class CellGroup : HumanGroup {
         
         for (int i = 0; i < migratingGroup.PolityProminencesCount; i++)
         {
-            PolityProminence p = new PolityProminence(migratingGroup.PolityProminences[i]);
+            PolityProminence p = new PolityProminence(this, migratingGroup.PolityProminences[i]);
 
             _polityProminencesToAdd.Add(p.PolityId, p);
 
@@ -1761,30 +1761,30 @@ public class CellGroup : HumanGroup {
 		Cell.FarmlandPercentage = 0;
 	}
 
-	public void RemovePolityProminences () {
+    public void RemovePolityProminences()
+    {
+        // Make sure all influencing polities get updated
+        SetPolityUpdates(true);
 
-		// Make sure all influencing polities get updated
-		SetPolityUpdates (true);
+        PolityProminence[] polityProminences = new PolityProminence[PolityProminences.Count];
+        PolityProminences.Values.CopyTo(polityProminences, 0);
 
-		PolityProminence[] polityProminences = new PolityProminence[PolityProminences.Count];
-		PolityProminences.Values.CopyTo (polityProminences, 0);
+        foreach (PolityProminence polityProminence in polityProminences)
+        {
+            Polity polity = polityProminence.Polity;
 
-		foreach (PolityProminence polityProminence in polityProminences) {
+            polity.RemoveGroup(polityProminence);
 
-			Polity polity = polityProminence.Polity;
-
-			polity.RemoveProminencedGroup (this);
-
-			// We want to update the polity if a group is removed.
-			SetPolityUpdate (polityProminence, true);
+            // We want to update the polity if a group is removed.
+            SetPolityUpdate(polityProminence, true);
         }
 
-        SetHighestPolityProminence (null);
-	}
+        SetHighestPolityProminence(null);
+    }
 
 #if DEBUG
 
-	public delegate void UpdateCalledDelegate ();
+    public delegate void UpdateCalledDelegate ();
 
 	public static UpdateCalledDelegate UpdateCalled = null; 
 
@@ -1885,7 +1885,7 @@ public class CellGroup : HumanGroup {
     {
         Polity p = pi.Polity;
 
-        int groupCount = p.ProminencedGroups.Count;
+        int groupCount = p.Groups.Count;
 
 #if DEBUG
         if (Manager.RegisterDebugEvent != null)
@@ -2609,45 +2609,47 @@ public class CellGroup : HumanGroup {
 		return cost;
 	}
 
-	private void UpdatePolityProminenceAdministrativeCosts () {
+	private void UpdatePolityProminenceAdministrativeCosts()
+    {
 
-		foreach (PolityProminence pi in PolityProminences.Values) {
+        foreach (PolityProminence pi in PolityProminences.Values)
+        {
 
-			pi.AdministrativeCost = CalculateAdministrativeCost (pi);
-		}
-	}
+            pi.AdministrativeCost = CalculateAdministrativeCost(pi);
+        }
+    }
 
-	public void PostUpdatePolityProminences_BeforePolityUpdates () {
+    public void PostUpdatePolityProminences_BeforePolityUpdates()
+    {
+        TotalPolityProminenceValue = 0;
 
-		TotalPolityProminenceValue = 0;
+        foreach (long polityId in _polityProminencesToRemove)
+        {
+            PolityProminence polityProminence;
 
-		foreach (long polityId in _polityProminencesToRemove) {
-
-			PolityProminence pi;
-
-			if (!PolityProminences.TryGetValue (polityId, out pi))
+            if (!PolityProminences.TryGetValue(polityId, out polityProminence))
             {
-				if (!_polityProminencesToAdd.TryGetValue (polityId, out pi))
+                if (!_polityProminencesToAdd.TryGetValue(polityId, out polityProminence))
                 {
-					Debug.LogWarning ("Trying to remove nonexisting PolityProminence with id: " + polityId + " from group with id: " + Id);
-				}
+                    Debug.LogWarning("Trying to remove nonexisting PolityProminence with id: " + polityId + " from group with id: " + Id);
+                }
 
-				_polityProminencesToAdd.Remove (pi.PolityId);
+                _polityProminencesToAdd.Remove(polityProminence.PolityId);
             }
             else
             {
                 Profiler.BeginSample("Remove Polity Prominence");
 
-                PolityProminences.Remove (pi.PolityId);
+                PolityProminences.Remove(polityProminence.PolityId);
 
                 Profiler.EndSample();
 
                 Profiler.BeginSample("Decrease Polity Contacts");
 
                 // Decreate polity contacts
-                foreach (PolityProminence epi in PolityProminences.Values) {
-
-					Polity.DecreaseContactGroupCount (pi.Polity, epi.Polity);
+                foreach (PolityProminence epi in PolityProminences.Values)
+                {
+                    Polity.DecreaseContactGroupCount(polityProminence.Polity, epi.Polity);
                 }
 
                 Profiler.EndSample();
@@ -2655,113 +2657,115 @@ public class CellGroup : HumanGroup {
                 Profiler.BeginSample("Remove Faction Cores");
 
                 // Remove all polity faction cores from group
-                foreach (Faction faction in GetFactionCores ()) {
+                foreach (Faction faction in GetFactionCores())
+                {
 
-					if (faction.PolityId == pi.PolityId) {
-
+                    if (faction.PolityId == polityProminence.PolityId)
+                    {
 #if DEBUG
-						Debug.Log ("Faction will be removed due to total loss of polity prominence. faction id: " + faction.Id + ", polity id:" + faction.Polity.Id + ", group id:" + Id + ", date:" + World.CurrentDate);
+                        Debug.Log("Faction will be removed due to total loss of polity prominence. faction id: " + faction.Id + ", polity id:" + faction.Polity.Id + ", group id:" + Id + ", date:" + World.CurrentDate);
 #endif
 
-						World.AddFactionToRemove (faction);
-					}
+                        World.AddFactionToRemove(faction);
+                    }
                 }
 
                 Profiler.EndSample();
 
 #if DEBUG
-                if (this == pi.Polity.CoreGroup) {
-					Debug.LogWarning ("Polity has lost it's core group. Group Id: " + Id + ", Polity Id: " + pi.Polity.Id);
-				}
+                if (this == polityProminence.Polity.CoreGroup)
+                {
+                    Debug.LogWarning("Polity has lost it's core group. Group Id: " + Id + ", Polity Id: " + polityProminence.Polity.Id);
+                }
 #endif
 
                 Profiler.BeginSample("Remove Group from Polity");
 
-                pi.Polity.RemoveProminencedGroup (this);
+                polityProminence.Polity.RemoveGroup(polityProminence);
 
                 Profiler.EndSample();
 
                 Profiler.BeginSample("Set Polity Update");
 
                 // We want to update the polity if a group is removed.
-                SetPolityUpdate (pi, true);
+                SetPolityUpdate(polityProminence, true);
 
                 Profiler.EndSample();
             }
-		}
+        }
 
-		_polityProminencesToRemove.Clear ();
+        _polityProminencesToRemove.Clear();
 
-		foreach (PolityProminence pi in _polityProminencesToAdd.Values) {
-            
+        foreach (PolityProminence prominenceToAdd in _polityProminencesToAdd.Values)
+        {
             Profiler.BeginSample("Increase Polity Contacs");
 
             // Increase polity contacts
-            foreach (PolityProminence epi in PolityProminences.Values)
+            foreach (PolityProminence otherProminence in PolityProminences.Values)
             {
-                Polity.IncreaseContactGroupCount (pi.Polity, epi.Polity);
+                Polity.IncreaseContactGroupCount(prominenceToAdd.Polity, otherProminence.Polity);
             }
 
             Profiler.EndSample();
 
             Profiler.BeginSample("Add Polity Influence");
 
-            PolityProminences.Add (pi.PolityId, pi);
+            PolityProminences.Add(prominenceToAdd.PolityId, prominenceToAdd);
 
             Profiler.EndSample();
 
             Profiler.BeginSample("Set Polity Update");
 
             // We want to update the polity if a group is added.
-            SetPolityUpdate (pi, true);
+            SetPolityUpdate(prominenceToAdd, true);
 
             Profiler.EndSample();
 
             Profiler.BeginSample("Add Group to Polity");
 
-            pi.Polity.AddProminencedGroup (this);
+            prominenceToAdd.Polity.AddGroup(prominenceToAdd);
 
             Profiler.EndSample();
         }
 
-		_polityProminencesToAdd.Clear ();
+        _polityProminencesToAdd.Clear();
 
-		foreach (PolityProminence pi in PolityProminences.Values)
+        foreach (PolityProminence pi in PolityProminences.Values)
         {
             Profiler.BeginSample("Polity Influence Postupdate");
 
-            pi.PostUpdate ();
+            pi.PostUpdate();
 
             Profiler.EndSample();
 
             TotalPolityProminenceValue += pi.Value;
-		}
+        }
 
 #if DEBUG
-		if (TotalPolityProminenceValue > 1.0) {
-		
-			Debug.LogWarning ("Total Polity Prominence Value greater than 1: " + TotalPolityProminenceValue + ", Group Id: " + Id);
-		}
+        if (TotalPolityProminenceValue > 1.0)
+        {
+            Debug.LogWarning("Total Polity Prominence Value greater than 1: " + TotalPolityProminenceValue + ", Group Id: " + Id);
+        }
 #endif
 
 #if DEBUG
-		if (TotalPolityProminenceValue <= 0) {
-
-			if (GetFactionCores ().Count > 0) {
-
-				Debug.LogWarning ("Group with no polity prominence has faction cores. Id: " + Id);
-			}
-		}
+        if (TotalPolityProminenceValue <= 0)
+        {
+            if (GetFactionCores().Count > 0)
+            {
+                Debug.LogWarning("Group with no polity prominence has faction cores. Id: " + Id);
+            }
+        }
 #endif
 
         Profiler.BeginSample("Find Highest Polity Prominence");
 
-        FindHighestPolityProminence ();
+        FindHighestPolityProminence();
 
         Profiler.EndSample();
     }
 
-	public void PostUpdatePolityProminences_AfterPolityUpdates () {
+    public void PostUpdatePolityProminences_AfterPolityUpdates () {
 
 		TotalPolityProminenceValue = 0;
 

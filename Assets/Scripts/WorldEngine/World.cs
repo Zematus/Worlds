@@ -323,6 +323,8 @@ public class World : ISynchronizable {
     public bool FactionsHaveBeenUpdated = false;
     [XmlIgnore]
     public bool PolitiesHaveBeenUpdated = false;
+    [XmlIgnore]
+    public bool PolityClustersHaveBeenUpdated = false;
 
 #if DEBUG
     [XmlIgnore]
@@ -356,7 +358,8 @@ public class World : ISynchronizable {
 	private HashSet<Faction> _factionsToRemove = new HashSet<Faction>();
 
     private HashSet<Polity> _politiesToUpdate = new HashSet<Polity>();
-	private HashSet<Polity> _politiesToRemove = new HashSet<Polity>();
+    private HashSet<Polity> _politiesThatNeedClusterUpdate = new HashSet<Polity>();
+    private HashSet<Polity> _politiesToRemove = new HashSet<Polity>();
 
 	private Dictionary<long, Region> _regions = new Dictionary<long, Region> ();
 
@@ -877,82 +880,101 @@ public class World : ISynchronizable {
 		_groupsToPostUpdate_afterPolityUpdates.Clear ();
 	}
 
-	private void SplitFactions () {
+    private void SplitFactions()
+    {
+        foreach (Faction faction in _factionsToSplit)
+        {
+            Profiler.BeginSample("Split Faction");
 
-		foreach (Faction faction in _factionsToSplit) {
+            faction.Split();
 
-			Profiler.BeginSample ("Split Faction");
+            Profiler.EndSample();
+        }
 
-			faction.Split ();
+        _factionsToSplit.Clear();
+    }
 
-			Profiler.EndSample ();
-		}
-
-		_factionsToSplit.Clear ();
-	}
-
-	private void UpdateFactions ()
+    private void UpdateFactions()
     {
         FactionsHaveBeenUpdated = true;
 
-        foreach (Faction faction in _factionsToUpdate) {
+        foreach (Faction faction in _factionsToUpdate)
+        {
 
-			Profiler.BeginSample ("Update Faction");
+            Profiler.BeginSample("Update Faction");
 
-			faction.Update ();
+            faction.Update();
 
-			Profiler.EndSample ();
-		}
+            Profiler.EndSample();
+        }
 
-		_factionsToUpdate.Clear ();
-
+        _factionsToUpdate.Clear();
     }
 
-	private void RemoveFactions () {
+    private void RemoveFactions()
+    {
+        foreach (Faction faction in _factionsToRemove)
+        {
+            Profiler.BeginSample("Destroy Faction");
 
-		foreach (Faction faction in _factionsToRemove) {
+            faction.Destroy();
 
-			Profiler.BeginSample ("Destroy Faction");
+            Profiler.EndSample();
+        }
 
-			faction.Destroy ();
+        _factionsToRemove.Clear();
+    }
 
-			Profiler.EndSample ();
-		}
-
-		_factionsToRemove.Clear ();
-	}
-
-	private void UpdatePolities ()
+    private void UpdatePolities()
     {
         PolitiesHaveBeenUpdated = true;
 
-        foreach (Polity polity in _politiesToUpdate) {
+        foreach (Polity polity in _politiesToUpdate)
+        {
+            Profiler.BeginSample("Update Polity");
 
-			Profiler.BeginSample ("Update Polity");
+            polity.Update();
 
-			polity.Update ();
+            Profiler.EndSample();
+        }
 
-			Profiler.EndSample ();
-		}
-
-		_politiesToUpdate.Clear ();
+        _politiesToUpdate.Clear();
     }
 
-	private void RemovePolities () {
+    private void UpdatePolityClusters()
+    {
+        PolityClustersHaveBeenUpdated = true;
 
-		foreach (Polity polity in _politiesToRemove) {
+        foreach (Polity polity in _politiesThatNeedClusterUpdate)
+        {
+            if (!polity.StillPresent)
+                continue;
 
-			Profiler.BeginSample ("Destroy Polity");
+            Profiler.BeginSample("Update Polity Clusters");
 
-			polity.Destroy ();
+            polity.ClusterUpdate();
 
-			Profiler.EndSample ();
-		}
+            Profiler.EndSample();
+        }
 
-		_politiesToRemove.Clear ();
-	}
+        _politiesThatNeedClusterUpdate.Clear();
+    }
 
-	public long Iterate () {
+    private void RemovePolities()
+    {
+        foreach (Polity polity in _politiesToRemove)
+        {
+            Profiler.BeginSample("Destroy Polity");
+
+            polity.Destroy();
+
+            Profiler.EndSample();
+        }
+
+        _politiesToRemove.Clear();
+    }
+
+    public long Iterate () {
 	
 		EvaluateEventsToHappen ();
 
@@ -1107,6 +1129,8 @@ public class World : ISynchronizable {
 
 		PostUpdateGroups_AfterPolityUpdates ();
 
+        UpdatePolityClusters();
+
 		//
 		// Skip to Next Event's Date
 		//
@@ -1145,6 +1169,7 @@ public class World : ISynchronizable {
         GroupsHaveBeenUpdated = false;
         FactionsHaveBeenUpdated = false;
         PolitiesHaveBeenUpdated = false;
+        PolityClustersHaveBeenUpdated = false;
 
         return dateSpan;
 	}
@@ -1561,27 +1586,42 @@ public class World : ISynchronizable {
 		polity.WillBeUpdated = true;
 	}
 
-	public void AddPolityToRemove (Polity polity) {
+    public void AddPolityThatNeedsClusterUpdate(Polity polity)
+    {
+        if (PolityClustersHaveBeenUpdated)
+        {
+            Debug.LogWarning("Trying to add polity with clusters to update after polity clusters have already been updated this iteration. Id: " + polity.Id);
+        }
 
-		_politiesToRemove.Add (polity);
-	}
+        if (!polity.StillPresent)
+        {
+            Debug.LogWarning("Polity with clusters to update no longer present. Id: " + polity.Id + ", Date: " + CurrentDate);
+        }
 
-	public void AddDecisionToResolve (Decision decision) {
-	
-		_decisionsToResolve.Enqueue (decision);
-	}
+        _politiesThatNeedClusterUpdate.Add(polity);
+    }
 
-	public bool HasDecisionsToResolve () {
-	
-		return _decisionsToResolve.Count > 0;
-	}
+    public void AddPolityToRemove(Polity polity)
+    {
+        _politiesToRemove.Add(polity);
+    }
 
-	public Decision PullDecisionToResolve () {
+    public void AddDecisionToResolve(Decision decision)
+    {
+        _decisionsToResolve.Enqueue(decision);
+    }
 
-		return _decisionsToResolve.Dequeue ();
-	}
+    public bool HasDecisionsToResolve()
+    {
+        return _decisionsToResolve.Count > 0;
+    }
 
-	public void AddEventMessage (WorldEventMessage eventMessage) {
+    public Decision PullDecisionToResolve()
+    {
+        return _decisionsToResolve.Dequeue();
+    }
+
+    public void AddEventMessage (WorldEventMessage eventMessage) {
 
 		_eventMessagesToShow.Enqueue (eventMessage);
 
