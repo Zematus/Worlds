@@ -823,33 +823,33 @@ public class World : ISynchronizable {
         _migratingGroups.Clear();
     }
 
-	private void PostUpdateGroups_BeforePolityUpdates () {
+    private void PostUpdateGroups_BeforePolityUpdates()
+    {
+        foreach (CellGroup group in _updatedGroups)
+        {
+            Profiler.BeginSample("Cell Group Postupdate Before Polity Updates");
 
-		foreach (CellGroup group in _updatedGroups) {
+            group.PostUpdate_BeforePolityUpdates();
 
-			Profiler.BeginSample ("Cell Group Postupdate Before Polity Updates");
+            Profiler.EndSample();
+        }
+    }
 
-			group.PostUpdate_BeforePolityUpdates ();
+    private void RemoveGroups()
+    {
+        foreach (CellGroup group in _groupsToRemove)
+        {
+            Profiler.BeginSample("Destroy Group");
 
-			Profiler.EndSample ();
-		}
-	}
+            group.Destroy();
 
-	private void RemoveGroups () {
+            Profiler.EndSample();
+        }
 
-		foreach (CellGroup group in _groupsToRemove) {
+        _groupsToRemove.Clear();
+    }
 
-			Profiler.BeginSample ("Destroy Group");
-
-			group.Destroy ();
-
-			Profiler.EndSample ();
-		}
-
-		_groupsToRemove.Clear ();
-	}
-
-	private void SetNextGroupUpdates () {
+    private void SetNextGroupUpdates () {
 
 		foreach (CellGroup group in _updatedGroups) {
 
@@ -1100,48 +1100,45 @@ public class World : ISynchronizable {
 		return true;
 	}
 
-	public long Update () {
+	public long Update()
+    {
+        if (CellGroupCount <= 0)
+            return 0;
 
-		if (CellGroupCount <= 0)
-			return 0;
+        UpdateGroups();
 
-		UpdateGroups ();
+        MigrateGroups();
 
-		MigrateGroups ();
+        PostUpdateGroups_BeforePolityUpdates();
 
-		//		PerformGroupActions ();
-
-		PostUpdateGroups_BeforePolityUpdates ();
-
-		RemoveGroups ();
-
-		SetNextGroupUpdates ();
-
-		SplitFactions ();
-
-		UpdateFactions ();
-
-		RemoveFactions ();
-
-		UpdatePolities ();
-
-		RemovePolities ();
-
-		PostUpdateGroups_AfterPolityUpdates ();
+        RemoveGroups();
 
         UpdatePolityClusters();
 
-		//
-		// Skip to Next Event's Date
-		//
+        SetNextGroupUpdates();
 
-		if (_eventsToHappen.Count > 0) {
+        SplitFactions();
 
-			WorldEvent futureEventToHappen = _eventsToHappen.Leftmost;
+        UpdateFactions();
 
-			if (futureEventToHappen.TriggerDate < _dateToSkipTo)
+        RemoveFactions();
+
+        UpdatePolities();
+
+        RemovePolities();
+
+        PostUpdateGroups_AfterPolityUpdates();
+
+        //
+        // Skip to Next Event's Date
+        //
+
+        if (_eventsToHappen.Count > 0)
+        {
+            WorldEvent futureEventToHappen = _eventsToHappen.Leftmost;
+
+            if (futureEventToHappen.TriggerDate < _dateToSkipTo)
             {
-
 #if DEBUG
                 if (Manager.RegisterDebugEvent != null)
                 {
@@ -1158,12 +1155,12 @@ public class World : ISynchronizable {
 #endif
 
                 _dateToSkipTo = futureEventToHappen.TriggerDate;
-			}
-		}
+            }
+        }
 
-		long dateSpan = _dateToSkipTo - CurrentDate;
+        long dateSpan = _dateToSkipTo - CurrentDate;
 
-		CurrentDate = _dateToSkipTo;
+        CurrentDate = _dateToSkipTo;
 
         // reset update flags
         GroupsHaveBeenUpdated = false;
@@ -1172,65 +1169,65 @@ public class World : ISynchronizable {
         PolityClustersHaveBeenUpdated = false;
 
         return dateSpan;
-	}
+    }
 
-	public List<WorldEvent> GetEventsToHappen () {
-	
-		return _eventsToHappen.Values;
-	}
+    public List<WorldEvent> GetEventsToHappen()
+    {
+        return _eventsToHappen.Values;
+    }
 
-	public void InsertEventToHappen (WorldEvent eventToHappen) {
+    public void InsertEventToHappen(WorldEvent eventToHappen)
+    {
+        //		Profiler.BeginSample ("Insert Event To Happen");
 
-//		Profiler.BeginSample ("Insert Event To Happen");
+        EventsToHappenCount++;
 
-		EventsToHappenCount++;
+        _eventsToHappen.Insert(eventToHappen.TriggerDate, eventToHappen, eventToHappen.AssociateNode);
 
-		_eventsToHappen.Insert (eventToHappen.TriggerDate, eventToHappen, eventToHappen.AssociateNode);
+        //		#if DEBUG
+        //		if (Manager.RegisterDebugEvent != null) {
+        //			SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("Event Added - Id: " + eventToHappen.Id, "TriggerDate: " + eventToHappen.TriggerDate);
+        //
+        //			Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+        //		}
+        //		#endif
 
-//		#if DEBUG
-//		if (Manager.RegisterDebugEvent != null) {
-//			SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("Event Added - Id: " + eventToHappen.Id, "TriggerDate: " + eventToHappen.TriggerDate);
-//
-//			Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-//		}
-//		#endif
+        //		Profiler.EndSample ();
+    }
 
-//		Profiler.EndSample ();
-	}
+#if DEBUG
+    public delegate void AddMigratingGroupCalledDelegate();
 
-	#if DEBUG
+    public static AddMigratingGroupCalledDelegate AddMigratingGroupCalled = null;
+#endif
 
-	public delegate void AddMigratingGroupCalledDelegate ();
+    public void AddMigratingGroup(MigratingGroup group)
+    {
+#if DEBUG
+        if (AddMigratingGroupCalled != null)
+        {
+            AddMigratingGroupCalled();
+        }
+#endif
 
-	public static AddMigratingGroupCalledDelegate AddMigratingGroupCalled = null; 
+        _migratingGroups.Add(group);
 
-	#endif
-	
-	public void AddMigratingGroup (MigratingGroup group) {
-
-		#if DEBUG
-		if (AddMigratingGroupCalled != null) {
-			AddMigratingGroupCalled ();
-		}
-		#endif
-		
-		_migratingGroups.Add (group);
-
-		if (!group.SourceGroup.StillPresent) {
-			Debug.LogWarning ("Sourcegroup is no longer present. Group Id: " + group.SourceGroup.Id);
+        if (!group.SourceGroup.StillPresent)
+        {
+            Debug.LogWarning("Sourcegroup is no longer present. Group Id: " + group.SourceGroup.Id);
         }
 
         // Source Group needs to be updated
         AddGroupToUpdate(group.SourceGroup);
 
-		// If Target Group is present, it also needs to be updated
-		if ((group.TargetCell.Group != null) && (group.TargetCell.Group.StillPresent))
+        // If Target Group is present, it also needs to be updated
+        if ((group.TargetCell.Group != null) && (group.TargetCell.Group.StillPresent))
         {
             AddGroupToUpdate(group.TargetCell.Group);
-		}
-	}
-	
-	public void AddGroup (CellGroup group) {
+        }
+    }
+
+    public void AddGroup (CellGroup group) {
 
 		_cellGroups.Add (group.Id, group);
 

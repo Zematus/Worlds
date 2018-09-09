@@ -145,6 +145,11 @@ public class PolityProminence : IKeyedValue<long> {
 		PolityCoreDistance = NewPolityCoreDistance;
 		FactionCoreDistance = NewFactionCoreDistance;
 
+        if (Cluster != null)
+        {
+            Cluster.RequireNewCensus(true);
+        }
+
 #if DEBUG
 		if (FactionCoreDistance == -1) {
 

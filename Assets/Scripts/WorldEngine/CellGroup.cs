@@ -1734,32 +1734,33 @@ public class CellGroup : HumanGroup {
 		ExpansionTargetGroupId = targetGroup.Id;
 	}
 
-	public void Destroy () {
+	public void Destroy()
+    {
+        StillPresent = false;
 
-		StillPresent = false;
-
-		foreach (Faction faction in GetFactionCores ())
+        foreach (Faction faction in GetFactionCores())
         {
 #if DEBUG
-			Debug.Log ("Faction will be removed due to core group dissapearing. faction id: " + faction.Id + ", polity id:" + faction.Polity.Id + ", group id:" + Id + ", date:" + World.CurrentDate);
+            Debug.Log("Faction will be removed due to core group dissapearing. faction id: " + faction.Id + ", polity id:" + faction.Polity.Id + ", group id:" + Id + ", date:" + World.CurrentDate);
 #endif
 
-			World.AddFactionToRemove (faction);
-		}
+            World.AddFactionToRemove(faction);
+        }
 
-		RemovePolityProminences ();
+        RemovePolityProminences();
 
-		Cell.Group = null;
-		World.RemoveGroup (this);
+        Cell.Group = null;
+        World.RemoveGroup(this);
 
-		foreach (KeyValuePair<Direction, CellGroup> pair in Neighbors) {
-			pair.Value.RemoveNeighbor (TerrainCell.ReverseDirection(pair.Key));
-		}
+        foreach (KeyValuePair<Direction, CellGroup> pair in Neighbors)
+        {
+            pair.Value.RemoveNeighbor(TerrainCell.ReverseDirection(pair.Key));
+        }
 
-		DestroySeaMigrationRoute ();
+        DestroySeaMigrationRoute();
 
-		Cell.FarmlandPercentage = 0;
-	}
+        Cell.FarmlandPercentage = 0;
+    }
 
     public void RemovePolityProminences()
     {
@@ -2730,15 +2731,15 @@ public class CellGroup : HumanGroup {
 
         _polityProminencesToAdd.Clear();
 
-        foreach (PolityProminence pi in PolityProminences.Values)
+        foreach (PolityProminence prominence in PolityProminences.Values)
         {
             Profiler.BeginSample("Polity Influence Postupdate");
 
-            pi.PostUpdate();
+            prominence.PostUpdate();
 
             Profiler.EndSample();
 
-            TotalPolityProminenceValue += pi.Value;
+            TotalPolityProminenceValue += prominence.Value;
         }
 
 #if DEBUG

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Xml.Serialization;
 using UnityEngine;
+using UnityEngine.Profiling;
 
 public class PolityProminenceCluster : ISynchronizable
 {
@@ -13,6 +14,18 @@ public class PolityProminenceCluster : ISynchronizable
 
     [XmlAttribute("Id")]
     public long Id;
+
+    [XmlAttribute("TotalAdmCost")]
+    public float TotalAdministrativeCost = 0;
+
+    [XmlAttribute("TotalPop")]
+    public float TotalPopulation = 0;
+
+    [XmlAttribute("PromArea")]
+    public float ProminenceArea = 0;
+
+    [XmlAttribute("NeedCen")]
+    public bool NeedsNewCensus = true;
 
     public DelayedLoadXmlSerializableDictionary<long, PolityProminence> Prominences = new DelayedLoadXmlSerializableDictionary<long, PolityProminence>();
 
@@ -35,15 +48,64 @@ public class PolityProminenceCluster : ISynchronizable
         AddProminence(startProminence);
     }
 
+    public void RunCensus()
+    {
+        TotalAdministrativeCost = 0;
+        TotalPopulation = 0;
+        ProminenceArea = 0;
+
+        Profiler.BeginSample("foreach group");
+
+        foreach (PolityProminence prominence in Prominences.Values)
+        {
+            Profiler.BeginSample("add administrative cost");
+
+            if (prominence.AdministrativeCost < float.MaxValue)
+                TotalAdministrativeCost += prominence.AdministrativeCost;
+            else
+                TotalAdministrativeCost = float.MaxValue;
+
+            Profiler.EndSample();
+
+            Profiler.BeginSample("add pop");
+
+            float polityPop = prominence.Group.Population * prominence.Value;
+
+            TotalPopulation += polityPop;
+
+            Profiler.EndSample();
+
+            Profiler.BeginSample("add area");
+
+            ProminenceArea += prominence.Group.Cell.Area;
+
+            Profiler.EndSample();
+        }
+
+        Profiler.EndSample();
+
+        NeedsNewCensus = false;
+    }
+
+    public void RequireNewCensus(bool state)
+    {
+        NeedsNewCensus |= state;
+    }
+
     public void AddProminence(PolityProminence prominence)
     {
         Prominences.Add(prominence.Id, prominence);
         prominence.Cluster = this;
+
+        RequireNewCensus(true);
     }
 
     public void RemoveProminence(PolityProminence prominence)
     {
         Prominences.Remove(prominence.Id);
+
+        RequireNewCensus(true);
+
         prominence.Cluster = null;
     }
 
