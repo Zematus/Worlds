@@ -1,0 +1,7 @@
+Performance hotspots:
+
+- Update Textures (when polity overlay is active): 	64%
+- World Update - Update Polity - Update Culture:	11.8%
+- Event CanTrigger - TribeSplitDecisionEvent:		6.2% 
+- Event CanTrigger - ClanDemandsInfluenceDecisionEvent:	4.9% 
+- World Update - Group Update - Polity Update Effects:	3.0%

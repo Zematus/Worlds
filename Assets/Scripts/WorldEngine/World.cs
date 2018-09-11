@@ -333,7 +333,9 @@ public class World : ISynchronizable {
 
     private BinaryTree<long, WorldEvent> _eventsToHappen = new BinaryTree<long, WorldEvent> ();
 
-	private HashSet<int> _terrainCellChangesListIndexes = new HashSet<int> ();
+    private List<WorldEvent> _eventsToHappenNow = new List<WorldEvent>();
+
+    private HashSet<int> _terrainCellChangesListIndexes = new HashSet<int> ();
 
 	private HashSet<string> _culturalPreferenceIdList = new HashSet<string> ();
 	private HashSet<string> _culturalActivityIdList = new HashSet<string> ();
@@ -974,42 +976,41 @@ public class World : ISynchronizable {
         _politiesToRemove.Clear();
     }
 
-    public long Iterate () {
-	
-		EvaluateEventsToHappen ();
+    public long Iterate()
+    {
+        EvaluateEventsToHappen();
 
-		return Update ();
-	}
+        return Update();
+    }
 
-	public bool EvaluateEventsToHappen () {
+    public bool EvaluateEventsToHappen()
+    {
+        if (CellGroupCount <= 0)
+            return false;
 
-		if (CellGroupCount <= 0)
-			return false;
-		
-		//
-		// Evaluate Events that will happen at the current date
-		//
+        //
+        // Evaluate Events that will happen at the current date
+        //
 
-		_dateToSkipTo = CurrentDate + 1;
+        _dateToSkipTo = CurrentDate + 1;
 
-		Profiler.BeginSample ("Evaluate Events");
+        Profiler.BeginSample("Evaluate Events");
 
-		while (true) {
+        while (true)
+        {
+            if (_eventsToHappen.Count <= 0) break;
 
-			if (_eventsToHappen.Count <= 0) break;
+            _eventsToHappen.FindLeftmost(ValidateEventsToHappenNode, InvalidEventsToHappenNodeEffect);
 
-			_eventsToHappen.FindLeftmost (ValidateEventsToHappenNode, InvalidEventsToHappenNodeEffect);
-		
-			WorldEvent eventToHappen = _eventsToHappen.Leftmost;
+            WorldEvent eventToHappen = _eventsToHappen.Leftmost;
 
-			if (eventToHappen.TriggerDate < 0) {
-				Debug.Break ();
-				throw new System.Exception ("eventToHappen.TriggerDate less than zero: " + eventToHappen);
-			}
-
-			if (eventToHappen.TriggerDate > CurrentDate)
+            if (eventToHappen.TriggerDate < 0)
             {
+                throw new System.Exception("eventToHappen.TriggerDate less than zero: " + eventToHappen);
+            }
 
+            if (eventToHappen.TriggerDate > CurrentDate)
+            {
 #if DEBUG
                 if (Manager.RegisterDebugEvent != null)
                 {
@@ -1024,7 +1025,7 @@ public class World : ISynchronizable {
 
                     message += ", current date: " + CurrentDate;
 
-                    SaveLoadTest.DebugMessage debugMessage = 
+                    SaveLoadTest.DebugMessage debugMessage =
                         new SaveLoadTest.DebugMessage("EvaluateEventsToHappen:eventToHappen - Id: " + eventToHappen.Id, message);
 
                     Manager.RegisterDebugEvent("DebugMessage", debugMessage);
@@ -1033,74 +1034,85 @@ public class World : ISynchronizable {
 
                 long maxDate = CurrentDate + MaxTimeToSkip;
 
-				#if DEBUG
-				if (maxDate >= World.MaxSupportedDate) {
-					Debug.LogWarning ("'maxDate' shouldn't be greater than " + World.MaxSupportedDate + " (date = " + maxDate + ")");
-				}
-				#endif
+#if DEBUG
+                if (maxDate >= World.MaxSupportedDate)
+                {
+                    Debug.LogWarning("'maxDate' shouldn't be greater than " + World.MaxSupportedDate + " (date = " + maxDate + ")");
+                }
+#endif
 
-				if (maxDate < 0) {
-					Debug.Break ();
-					throw new System.Exception ("Surpassed date limit (Int64.MaxValue)");
-				}
+                if (maxDate < 0)
+                {
+                    throw new System.Exception("Surpassed date limit (Int64.MaxValue)");
+                }
 
-				_dateToSkipTo = (eventToHappen.TriggerDate < maxDate) ? eventToHappen.TriggerDate : maxDate;
-				break;
-			}
+                _dateToSkipTo = (eventToHappen.TriggerDate < maxDate) ? eventToHappen.TriggerDate : maxDate;
+                break;
+            }
 
-			_eventsToHappen.RemoveLeftmost ();
-			EventsToHappenCount--;
+            _eventsToHappen.RemoveLeftmost();
+            EventsToHappenCount--;
 
-//			#if DEBUG
-//			if (Manager.RegisterDebugEvent != null) {
-//				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("Event Being Triggered", "Triggering");
-//
-//				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-//			}
-			//			#endif
+//#if DEBUG
+//            if (Manager.RegisterDebugEvent != null)
+//            {
+//                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("Event Being Triggered", "Triggering");
 
-			#if DEBUG
-			string eventTypeName = eventToHappen.GetType ().ToString ();
+//                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+//            }
+//#endif
 
-			Profiler.BeginSample ("Event CanTrigger");
-			Profiler.BeginSample ("Event CanTrigger - " + eventTypeName);
-			#endif
+#if DEBUG
+            string eventTypeName = eventToHappen.GetType().ToString();
 
-			bool canTrigger = eventToHappen.CanTrigger ();
+            Profiler.BeginSample("Event CanTrigger");
+            Profiler.BeginSample("Event CanTrigger - " + eventTypeName);
+#endif
 
-			#if DEBUG
-			Profiler.EndSample ();
-			Profiler.EndSample ();
-			#endif
+            bool canTrigger = eventToHappen.CanTrigger();
 
-			if (canTrigger) {
+#if DEBUG
+            Profiler.EndSample();
+            Profiler.EndSample();
+#endif
 
-				#if DEBUG
-				Profiler.BeginSample ("Event Trigger");
-				Profiler.BeginSample ("Event Trigger - " + eventTypeName);
-				#endif
-				
-				eventToHappen.Trigger ();
+            if (canTrigger)
+            {
+                _eventsToHappenNow.Add(eventToHappen);
+            }
+            else
+            {
+                eventToHappen.FailedToTrigger = true;
+                eventToHappen.Destroy();
+            }
+        }
 
-				#if DEBUG
-				Profiler.EndSample ();
-				Profiler.EndSample ();
-				#endif
+        foreach (WorldEvent eventToHappen in _eventsToHappenNow)
+        {
+#if DEBUG
+            string eventTypeName = eventToHappen.GetType().ToString();
 
-			} else {
-				
-				eventToHappen.FailedToTrigger = true;
-			}
+            Profiler.BeginSample("Event Trigger");
+            Profiler.BeginSample("Event Trigger - " + eventTypeName);
+#endif
 
-			eventToHappen.Destroy ();
-		}
+            eventToHappen.Trigger();
 
-		Profiler.EndSample ();
+#if DEBUG
+            Profiler.EndSample();
+            Profiler.EndSample();
+#endif
+            eventToHappen.Destroy();
+        }
 
-		return true;
-	}
+        _eventsToHappenNow.Clear();
 
-	public long Update()
+        Profiler.EndSample();
+
+        return true;
+    }
+
+    public long Update()
     {
         if (CellGroupCount <= 0)
             return 0;

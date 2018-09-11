@@ -23,16 +23,19 @@ public abstract class Polity : ISynchronizable {
 	[XmlAttribute("CGrpId")]
 	public long CoreGroupId;
 
-	[XmlAttribute("TotalAdmCost")]
-	public float TotalAdministrativeCost = 0;
+    [XmlAttribute("TotalAdmCost")]
+    public float TotalAdministrativeCost_Internal = 0; // This is public to be XML-serializable (I know there are more proper solutions. I'm just being lazy)
 
-	[XmlAttribute("TotalPop")]
-	public float TotalPopulation = 0;
+    [XmlAttribute("TotalPop")]
+    public float TotalPopulation_Internal = 0; // This is public to be XML-serializable (I know there are more proper solutions. I'm just being lazy)
 
-	[XmlAttribute("PromArea")]
-	public float ProminenceArea = 0;
+    [XmlAttribute("PromArea")]
+    public float ProminenceArea_Internal = 0; // This is public to be XML-serializable (I know there are more proper solutions. I'm just being lazy)
 
-	[XmlAttribute("FctnCount")]
+    [XmlAttribute("NeedCen")]
+    public bool NeedsNewCensus = true;
+
+    [XmlAttribute("FctnCount")]
 	public int FactionCount { get; private set; }
 
 	[XmlAttribute("StilPres")]
@@ -97,6 +100,57 @@ public abstract class Polity : ISynchronizable {
         get
         {
             return DominantFaction.CurrentLeader;
+        }
+    }
+
+    public float TotalAdministrativeCost
+    {
+        get
+        {
+            if (NeedsNewCensus)
+            {
+                Profiler.BeginSample("Run Census");
+
+                RunCensus();
+
+                Profiler.EndSample();
+            }
+
+            return TotalAdministrativeCost_Internal;
+        }
+    }
+    
+    public float TotalPopulation
+    {
+        get
+        {
+            if (NeedsNewCensus)
+            {
+                Profiler.BeginSample("Run Census");
+
+                RunCensus();
+
+                Profiler.EndSample();
+            }
+
+            return TotalPopulation_Internal;
+        }
+    }
+    
+    public float ProminenceArea
+    {
+        get
+        {
+            if (NeedsNewCensus)
+            {
+                Profiler.BeginSample("Run Census");
+
+                RunCensus();
+
+                Profiler.EndSample();
+            }
+
+            return ProminenceArea_Internal;
         }
     }
 
@@ -622,11 +676,11 @@ public abstract class Polity : ISynchronizable {
 
 		Profiler.EndSample ();
 
-		Profiler.BeginSample ("Run Census");
+		//Profiler.BeginSample ("Run Census");
 
-		RunCensus ();
+		//RunCensus ();
 
-		Profiler.EndSample ();
+		//Profiler.EndSample ();
 
 		Profiler.BeginSample ("Update Culture");
 	
@@ -647,55 +701,55 @@ public abstract class Polity : ISynchronizable {
 
 	public void RunCensus()
     {
-#if DEBUG
-        TotalAdministrativeCost = 0;
-        TotalPopulation = 0;
-        ProminenceArea = 0;
+//#if DEBUG
+//        TotalAdministrativeCost_Internal = 0;
+//        TotalPopulation_Internal = 0;
+//        ProminenceArea_Internal = 0;
 
-        Profiler.BeginSample("foreach group");
+//        Profiler.BeginSample("foreach group");
 
-        foreach (CellGroup group in Groups.Values)
-        {
-            Profiler.BeginSample("group - GetPolityProminence");
+//        foreach (CellGroup group in Groups.Values)
+//        {
+//            Profiler.BeginSample("group - GetPolityProminence");
 
-            PolityProminence pi = group.GetPolityProminence(this);
+//            PolityProminence pi = group.GetPolityProminence(this);
 
-            Profiler.EndSample();
+//            Profiler.EndSample();
 
-            Profiler.BeginSample("add administrative cost");
+//            Profiler.BeginSample("add administrative cost");
 
-            if (pi.AdministrativeCost < float.MaxValue)
-                TotalAdministrativeCost += pi.AdministrativeCost;
-            else
-                TotalAdministrativeCost = float.MaxValue;
+//            if (pi.AdministrativeCost < float.MaxValue)
+//                TotalAdministrativeCost_Internal += pi.AdministrativeCost;
+//            else
+//                TotalAdministrativeCost_Internal = float.MaxValue;
 
-            Profiler.EndSample();
+//            Profiler.EndSample();
 
-            Profiler.BeginSample("add pop");
+//            Profiler.BeginSample("add pop");
 
-            float polityPop = group.Population * pi.Value;
+//            float polityPop = group.Population * pi.Value;
 
-            TotalPopulation += polityPop;
+//            TotalPopulation_Internal += polityPop;
 
-            Profiler.EndSample();
+//            Profiler.EndSample();
 
-            Profiler.BeginSample("add area");
+//            Profiler.BeginSample("add area");
 
-            ProminenceArea += group.Cell.Area;
+//            ProminenceArea_Internal += group.Cell.Area;
 
-            Profiler.EndSample();
-        }
+//            Profiler.EndSample();
+//        }
 
-        Profiler.EndSample();
+//        Profiler.EndSample();
 
-        float obsoleteTotalAdministrativeCost = TotalAdministrativeCost;
-        float obsoleteTotalPopulation = TotalPopulation;
-        float obsoleteProminenceArea = ProminenceArea;
-#endif
+//        float obsoleteTotalAdministrativeCost = TotalAdministrativeCost_Internal;
+//        float obsoleteTotalPopulation = TotalPopulation_Internal;
+//        float obsoleteProminenceArea = ProminenceArea_Internal;
+//#endif
 
-        TotalAdministrativeCost = 0;
-        TotalPopulation = 0;
-        ProminenceArea = 0;
+        TotalAdministrativeCost_Internal = 0;
+        TotalPopulation_Internal = 0;
+        ProminenceArea_Internal = 0;
 
         Profiler.BeginSample("foreach cluster");
 
@@ -728,21 +782,21 @@ public abstract class Polity : ISynchronizable {
             Profiler.BeginSample("add administrative cost");
 
             if (cluster.TotalAdministrativeCost < float.MaxValue)
-                TotalAdministrativeCost += cluster.TotalAdministrativeCost;
+                TotalAdministrativeCost_Internal += cluster.TotalAdministrativeCost;
             else
-                TotalAdministrativeCost = float.MaxValue;
+                TotalAdministrativeCost_Internal = float.MaxValue;
 
             Profiler.EndSample();
 
             Profiler.BeginSample("add pop");
 
-            TotalPopulation += cluster.TotalPopulation;
+            TotalPopulation_Internal += cluster.TotalPopulation;
 
             Profiler.EndSample();
 
             Profiler.BeginSample("add area");
 
-            ProminenceArea += cluster.ProminenceArea;
+            ProminenceArea_Internal += cluster.ProminenceArea;
 
             Profiler.EndSample();
         }
@@ -755,51 +809,55 @@ public abstract class Polity : ISynchronizable {
             Debug.LogError("Groups.Count (" + Groups.Count + ") not equal to totalClusterGroupCount (" + totalClusterGroupCount + ")");
         }
 
-        float newTotalAdministrativeCost = TotalAdministrativeCost;
-        float newTotalPopulation = TotalPopulation;
-        float newProminenceArea = ProminenceArea;
+        float newTotalAdministrativeCost = TotalAdministrativeCost_Internal;
+        float newTotalPopulation = TotalPopulation_Internal;
+        float newProminenceArea = ProminenceArea_Internal;
 
-        float maxPercentDiff = 0.01f;
+        //float maxPercentDiff = 0.01f;
 
-        float percentDiff = newTotalAdministrativeCost / obsoleteTotalAdministrativeCost;
-        percentDiff = Mathf.Abs(1f - percentDiff);
+        //float percentDiff = newTotalAdministrativeCost / obsoleteTotalAdministrativeCost;
+        //percentDiff = Mathf.Abs(1f - percentDiff);
 
-        if (percentDiff > maxPercentDiff)
-        {
-            Debug.LogError("obsoleteTotalAdministrativeCost (" + obsoleteTotalAdministrativeCost +
-                ") percentage difference from newTotalAdministrativeCost (" + newTotalAdministrativeCost + 
-                ") greater than " + maxPercentDiff + " (" + percentDiff + ")");
-        }
+        //if (percentDiff > maxPercentDiff)
+        //{
+        //    Debug.LogError("obsoleteTotalAdministrativeCost (" + obsoleteTotalAdministrativeCost +
+        //        ") percentage difference from newTotalAdministrativeCost (" + newTotalAdministrativeCost + 
+        //        ") greater than " + maxPercentDiff + " (" + percentDiff + ")");
+        //}
 
-        percentDiff = newTotalPopulation / obsoleteTotalPopulation;
-        percentDiff = Mathf.Abs(1f - percentDiff);
+        //percentDiff = newTotalPopulation / obsoleteTotalPopulation;
+        //percentDiff = Mathf.Abs(1f - percentDiff);
 
-        if (percentDiff > maxPercentDiff)
-        {
-            Debug.LogError("obsoleteTotalPopulation (" + obsoleteTotalPopulation +
-                ") percentage difference from newTotalPopulation (" + newTotalPopulation + 
-                ") greater than " + maxPercentDiff + " (" + percentDiff + ")");
-        }
+        //if (percentDiff > maxPercentDiff)
+        //{
+        //    Debug.LogError("obsoleteTotalPopulation (" + obsoleteTotalPopulation +
+        //        ") percentage difference from newTotalPopulation (" + newTotalPopulation + 
+        //        ") greater than " + maxPercentDiff + " (" + percentDiff + ")");
+        //}
 
-        percentDiff = newProminenceArea / obsoleteProminenceArea;
-        percentDiff = Mathf.Abs(1f - percentDiff);
+        //percentDiff = newProminenceArea / obsoleteProminenceArea;
+        //percentDiff = Mathf.Abs(1f - percentDiff);
 
-        if (percentDiff > maxPercentDiff)
-        {
-            Debug.LogError("obsoleteProminenceArea (" + obsoleteProminenceArea +
-                ") percentage difference from newProminenceArea (" + newProminenceArea + 
-                ") greater than " + maxPercentDiff + " (" + percentDiff + ")");
-        }
+        //if (percentDiff > maxPercentDiff)
+        //{
+        //    Debug.LogError("obsoleteProminenceArea (" + obsoleteProminenceArea +
+        //        ") percentage difference from newProminenceArea (" + newProminenceArea + 
+        //        ") greater than " + maxPercentDiff + " (" + percentDiff + ")");
+        //}
 
-        if ((ProminenceClusters.Count > 1) && (updatedClusters > 0))
-        {
-            float percentage = totalUpdatedClusterGroupCount / (float)totalClusterGroupCount;
+        //// This code is only needed to evaluate efficiency. It affects performance a lot because of all the log entries it generates
+        //if ((ProminenceClusters.Count > 1) && (updatedClusters > 0))
+        //{
+        //    float percentage = totalUpdatedClusterGroupCount / (float)totalClusterGroupCount;
 
-            Debug.Log("totalClusterGroupCount: " + totalClusterGroupCount +
-                ", totalUpdatedClusterGroupCount: " + totalUpdatedClusterGroupCount +
-                " (" + percentage.ToString("P") + "). Cluster count: " + ProminenceClusters.Count + ", updated clusters: " + updatedClusters);
-        }
+        //    Debug.Log("totalClusterGroupCount: " + totalClusterGroupCount +
+        //        ", totalUpdatedClusterGroupCount: " + totalUpdatedClusterGroupCount + " (" + percentage.ToString("P") + 
+        //        "). Cluster count: " + ProminenceClusters.Count + 
+        //        ", updated clusters: " + updatedClusters);
+        //}
 #endif
+
+        NeedsNewCensus = false;
     }
 
     public void AddGroup(PolityProminence prominence)

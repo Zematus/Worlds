@@ -90,6 +90,8 @@ public class PolityProminenceCluster : ISynchronizable
     public void RequireNewCensus(bool state)
     {
         NeedsNewCensus |= state;
+
+        _polity.NeedsNewCensus |= state;
     }
 
     public void AddProminence(PolityProminence prominence)
@@ -190,9 +192,9 @@ public class PolityProminenceCluster : ISynchronizable
             }
         }
 
-#if DEBUG
-        Debug.Log("Splitted cluster (Id: " + Id + ") of size " + oldSize + " and created new cluster (Id: " + splitCluster.Id + ") of size " + splitCluster.Size);
-#endif
+//#if DEBUG
+//        Debug.Log("Splitted cluster (Id: " + Id + ") of size " + oldSize + " and created new cluster (Id: " + splitCluster.Id + ") of size " + splitCluster.Size);
+//#endif
 
         return splitCluster;
     }
