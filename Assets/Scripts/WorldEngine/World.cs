@@ -787,39 +787,40 @@ public class World : ISynchronizable {
 		//		#endif
 	}
 
-	private void FilterEventsToHappenNodeEffect (BinaryTreeNode<long, WorldEvent> node) {
+	private void FilterEventsToHappenNodeEffect(BinaryTreeNode<long, WorldEvent> node)
+    {
+        if (node.MarkedForRemoval)
+        {
+            InvalidEventsToHappenNodeEffect(node);
+        }
+    }
 
-		if (node.MarkedForRemoval) {
-			InvalidEventsToHappenNodeEffect (node);
-		}
-	}
-
-	private void UpdateGroups ()
+    private void UpdateGroups()
     {
         GroupsHaveBeenUpdated = true;
 
-        foreach (CellGroup group in _groupsToUpdate) {
+        foreach (CellGroup group in _groupsToUpdate)
+        {
+            Profiler.BeginSample("Group Update");
 
-			Profiler.BeginSample ("Group Update");
+            group.Update();
 
-			group.Update ();
+            Profiler.EndSample();
+        }
 
-			Profiler.EndSample ();
-		}
+        _groupsToUpdate.Clear();
+    }
 
-		_groupsToUpdate.Clear ();
-	}
+    private void MigrateGroups()
+    {
+        foreach (MigratingGroup group in _migratingGroups)
+        {
+            group.SplitFromSourceGroup();
+        }
 
-	private void MigrateGroups () {
-        
-		foreach (MigratingGroup group in _migratingGroups) {
-
-			group.SplitFromSourceGroup();
-		}
-
-		foreach (MigratingGroup group in _migratingGroups) {
-
-			group.MoveToCell();
+        foreach (MigratingGroup group in _migratingGroups)
+        {
+            group.MoveToCell();
         }
 
         _migratingGroups.Clear();
@@ -851,22 +852,21 @@ public class World : ISynchronizable {
         _groupsToRemove.Clear();
     }
 
-    private void SetNextGroupUpdates () {
+    private void SetNextGroupUpdates()
+    {
+        foreach (CellGroup group in _updatedGroups)
+        {
+            Profiler.BeginSample("Cell Group Setup for Next Update");
 
-		foreach (CellGroup group in _updatedGroups) {
+            group.SetupForNextUpdate();
 
-			Profiler.BeginSample ("Cell Group Setup for Next Update");
+            Profiler.EndSample();
+        }
 
-			group.SetupForNextUpdate ();
-			Manager.AddUpdatedCell (group.Cell, CellUpdateType.Group);
+        _updatedGroups.Clear();
+    }
 
-			Profiler.EndSample ();
-		}
-
-		_updatedGroups.Clear ();
-	}
-
-	private void PostUpdateGroups_AfterPolityUpdates () {
+    private void PostUpdateGroups_AfterPolityUpdates () {
 
 		//TODO: This function should not exist. Think of a way to remove it
 
@@ -1239,76 +1239,76 @@ public class World : ISynchronizable {
         }
     }
 
-    public void AddGroup (CellGroup group) {
+    public void AddGroup(CellGroup group)
+    {
+        _cellGroups.Add(group.Id, group);
 
-		_cellGroups.Add (group.Id, group);
+        Manager.AddUpdatedCell(group.Cell, CellUpdateType.Group | CellUpdateType.Territory, CellUpdateSubType.AllButTerrain);
 
-		Manager.AddUpdatedCell (group.Cell, CellUpdateType.Group | CellUpdateType.Territory);
+        CellGroupCount++;
+    }
 
-		CellGroupCount++;
-	}
-	
-	public void RemoveGroup (CellGroup group) {
+    public void RemoveGroup(CellGroup group)
+    {
+        _cellGroups.Remove(group.Id);
 
-		_cellGroups.Remove (group.Id);
+        Manager.AddUpdatedCell(group.Cell, CellUpdateType.Group | CellUpdateType.Territory, CellUpdateSubType.AllButTerrain);
 
-		Manager.AddUpdatedCell (group.Cell, CellUpdateType.Group | CellUpdateType.Territory);
-		
-		CellGroupCount--;
-	}
-	
-	public CellGroup GetGroup (long id) {
+        CellGroupCount--;
+    }
 
-		CellGroup group;
+    public CellGroup GetGroup(long id)
+    {
+        CellGroup group;
 
-		_cellGroups.TryGetValue (id, out group);
+        _cellGroups.TryGetValue(id, out group);
 
-		return group;
-	}
+        return group;
+    }
 
-	#if DEBUG
+#if DEBUG
+    public delegate void AddGroupToUpdateCalledDelegate(string callingMethod);
 
-	public delegate void AddGroupToUpdateCalledDelegate (string callingMethod);
+    public static AddGroupToUpdateCalledDelegate AddGroupToUpdateCalled = null;
+#endif
 
-	public static AddGroupToUpdateCalledDelegate AddGroupToUpdateCalled = null; 
+    public void AddGroupToUpdate(CellGroup group)
+    {
+#if DEBUG
+        //if (Manager.RegisterDebugEvent != null)
+        //{
+        //    if (group.Id == Manager.TracingData.GroupId)
+        //    {
 
-	#endif
+        //        System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
 
-	public void AddGroupToUpdate (CellGroup group) {
+        //        System.Reflection.MethodBase method = stackTrace.GetFrame(1).GetMethod();
+        //        string callingMethod = method.Name;
+        //        string callingClass = method.DeclaringType.ToString();
 
-		#if DEBUG
-//		if (Manager.RegisterDebugEvent != null) {
-//			if (group.Id == Manager.TracingData.GroupId) {
-//				
-//				System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
-//
-//				System.Reflection.MethodBase method = stackTrace.GetFrame(1).GetMethod();
-//				string callingMethod = method.Name;
-//				string callingClass = method.DeclaringType.ToString();
-//
-//				string groupId = "Id:" + group.Id + "|Long:" + group.Longitude + "|Lat:" + group.Latitude;
-//
-//				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-//					"AddGroupToUpdate - Group:" + groupId,
-//					"CurrentDate: " + CurrentDate + 
-//					", Call: " + callingClass + ":" + callingMethod +
-//					"");
-//
-//				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-//			}
-//		}
+        //        string groupId = "Id:" + group.Id + "|Long:" + group.Longitude + "|Lat:" + group.Latitude;
 
-		if (AddGroupToUpdateCalled != null) {
+        //        SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+        //            "AddGroupToUpdate - Group:" + groupId,
+        //            "CurrentDate: " + CurrentDate +
+        //            ", Call: " + callingClass + ":" + callingMethod +
+        //            "");
 
-//				System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
-//
-//				System.Reflection.MethodBase method = stackTrace.GetFrame(1).GetMethod();
-//				string callingMethod = method.Name;
-//				string callingClass = method.DeclaringType.ToString();
-//
-//				AddGroupToUpdateCalled (callingClass + ":" + callingMethod);
-			AddGroupToUpdateCalled (null);
-		}
+        //        Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+        //    }
+        //}
+
+        if (AddGroupToUpdateCalled != null)
+        {
+            //System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
+
+            //System.Reflection.MethodBase method = stackTrace.GetFrame(1).GetMethod();
+            //string callingMethod = method.Name;
+            //string callingClass = method.DeclaringType.ToString();
+
+            //AddGroupToUpdateCalled(callingClass + ":" + callingMethod);
+            AddGroupToUpdateCalled(null);
+        }
 #endif
 
         if (GroupsHaveBeenUpdated)
@@ -1316,20 +1316,20 @@ public class World : ISynchronizable {
             Debug.LogWarning("Trying to add group to update after groups have already been updated this iteration. Id: " + group.Id);
         }
 
-		if (!group.StillPresent)
+        if (!group.StillPresent)
         {
-			Debug.LogWarning("Group to update is no longer present. Id: " + group.Id);
-		}
+            Debug.LogWarning("Group to update is no longer present. Id: " + group.Id);
+        }
 
-		_groupsToUpdate.Add (group);
-	}
-	
-	public void AddGroupToRemove (CellGroup group) {
-		
-		_groupsToRemove.Add (group);
-	}
+        _groupsToUpdate.Add(group);
+    }
 
-	public void AddLanguage (Language language) {
+    public void AddGroupToRemove(CellGroup group)
+    {
+        _groupsToRemove.Add(group);
+    }
+
+    public void AddLanguage (Language language) {
 
 		_languages.Add (language.Id, language);
 

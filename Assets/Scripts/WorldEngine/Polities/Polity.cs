@@ -628,76 +628,76 @@ public abstract class Polity : ISynchronizable {
 		sourceFaction.Polity.UpdateDominantFaction ();
 	}
 
-	public void PrepareToRemoveFromWorld () {
+    public void PrepareToRemoveFromWorld()
+    {
+        World.AddPolityToRemove(this);
 
-		World.AddPolityToRemove (this);
+        _willBeRemoved = true;
+    }
 
-		_willBeRemoved = true;
-	}
+    public void Update()
+    {
+        if (_willBeRemoved)
+        {
+            return;
+        }
 
-	public void Update () {
+        if (!StillPresent)
+        {
+            Debug.LogWarning("Polity is no longer present. Id: " + Id);
 
-		if (_willBeRemoved) {
-			return;
-		}
+            return;
+        }
 
-		if (!StillPresent) {
-			Debug.LogWarning ("Polity is no longer present. Id: " + Id);
+//#if DEBUG
+//        if (Manager.RegisterDebugEvent != null)
+//        {
+//            Manager.RegisterDebugEvent("DebugMessage",
+//                "Update - Polity:" + Id +
+//                ", CurrentDate: " + World.CurrentDate +
+//                ", ProminencedGroups.Count: " + ProminencedGroups.Count +
+//                ", TotalGroupProminenceValue: " + TotalGroupProminenceValue +
+//                "");
+//        }
+//#endif
 
-			return;
-		}
+        WillBeUpdated = false;
 
-//		#if DEBUG
-//		if (Manager.RegisterDebugEvent != null) {
-//			Manager.RegisterDebugEvent ("DebugMessage", 
-//				"Update - Polity:" + Id + 
-//				", CurrentDate: " + World.CurrentDate + 
-//				", ProminencedGroups.Count: " + ProminencedGroups.Count + 
-//				", TotalGroupProminenceValue: " + TotalGroupProminenceValue + 
-//				"");
-//		}
-//		#endif
+        if (Groups.Count <= 0)
+        {
+#if DEBUG
+            Debug.Log("Polity will be removed due to losing all prominenced groups. polity id:" + Id);
+#endif
 
-		WillBeUpdated = false;
+            PrepareToRemoveFromWorld();
+            return;
+        }
 
-		if (Groups.Count <= 0) {
+        Profiler.BeginSample("Normalize Faction Influences");
 
-			#if DEBUG
-			Debug.Log ("Polity will be removed due to losing all prominenced groups. polity id:" + Id);
-			#endif
+        NormalizeFactionInfluences();
 
-			PrepareToRemoveFromWorld ();
-			return;
-		}
+        Profiler.EndSample();
 
-		Profiler.BeginSample ("Normalize Faction Influences");
+        Profiler.BeginSample("Update Culture");
 
-		NormalizeFactionInfluences ();
+        Culture.Update();
 
-		Profiler.EndSample ();
+        Profiler.EndSample();
 
-		//Profiler.BeginSample ("Run Census");
+        Profiler.BeginSample("Update Internal");
 
-		//RunCensus ();
+        UpdateInternal();
 
-		//Profiler.EndSample ();
+        Profiler.EndSample();
 
-		Profiler.BeginSample ("Update Culture");
-	
-		Culture.Update ();
+        Manager.AddUpdatedCells(
+            Territory.GetCells(), 
+            CellUpdateType.Territory, 
+            CellUpdateSubType.Population | CellUpdateSubType.Culture | CellUpdateSubType.Contacts);
+    }
 
-		Profiler.EndSample ();
-
-		Profiler.BeginSample ("Update Internal");
-
-		UpdateInternal ();
-
-		Profiler.EndSample ();
-
-		Manager.AddUpdatedCells (Territory.GetCells (), CellUpdateType.Territory);
-	}
-
-	protected abstract void UpdateInternal ();
+    protected abstract void UpdateInternal();
 
 	public void RunCensus()
     {
@@ -809,9 +809,9 @@ public abstract class Polity : ISynchronizable {
             Debug.LogError("Groups.Count (" + Groups.Count + ") not equal to totalClusterGroupCount (" + totalClusterGroupCount + ")");
         }
 
-        float newTotalAdministrativeCost = TotalAdministrativeCost_Internal;
-        float newTotalPopulation = TotalPopulation_Internal;
-        float newProminenceArea = ProminenceArea_Internal;
+        //float newTotalAdministrativeCost = TotalAdministrativeCost_Internal;
+        //float newTotalPopulation = TotalPopulation_Internal;
+        //float newProminenceArea = ProminenceArea_Internal;
 
         //float maxPercentDiff = 0.01f;
 

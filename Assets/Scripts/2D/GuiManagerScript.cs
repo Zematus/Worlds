@@ -133,11 +133,15 @@ public class GuiManagerScript : MonoBehaviour {
 
 	private bool _resolvedDecision = false;
 
-	private int _mapUpdateCount = 0;
+#if DEBUG
+    private int _mapUpdateCount = 0;
 	private int _lastMapUpdateCount = 0;
-	private float _timeSinceLastMapUpdate = 0;
+    private int _pixelUpdateCount = 0;
+    private int _lastPixelUpdateCount = 0;
+    private float _timeSinceLastMapUpdate = 0;
+#endif
 
-	private int _topMaxSpeedLevelIndex;
+    private int _topMaxSpeedLevelIndex;
 	private int _selectedMaxSpeedLevelIndex;
 
 	private bool _infoTextMinimized = false;
@@ -246,18 +250,21 @@ public class GuiManagerScript : MonoBehaviour {
     // Update is called once per frame
     void Update()
     {
+#if DEBUG
         _timeSinceLastMapUpdate += Time.deltaTime;
 
-        if (_timeSinceLastMapUpdate > 1)
+        if (_timeSinceLastMapUpdate > 1) // Every second
         {
             _lastMapUpdateCount = _mapUpdateCount;
             _mapUpdateCount = 0;
 
+            _lastPixelUpdateCount = _pixelUpdateCount;
+            _pixelUpdateCount = 0;
+
             _timeSinceLastMapUpdate -= 1;
         }
-
-        //UpdateOverlayMenus();
-
+#endif
+        
         Manager.ExecuteTasks(100);
 
         if (_backgroundProcessActive)
@@ -378,6 +385,8 @@ public class GuiManagerScript : MonoBehaviour {
 #endif
             }
 
+            Profiler.BeginSample("Manager.Set*");
+            
             Manager.SetPlanetOverlay(_planetOverlay, _planetOverlaySubtype);
             Manager.SetPlanetView(_planetView);
             Manager.SetDisplayRoutes(_displayRoutes);
@@ -390,11 +399,24 @@ public class GuiManagerScript : MonoBehaviour {
                 _resetOverlays = false;
             }
 
+            Profiler.EndSample();
+
+            Profiler.BeginSample("Manager.GenerateTextures");
+
             Manager.GenerateTextures();
+
+            Profiler.EndSample();
+
+            Profiler.BeginSample("Manager.RefreshTexture");
 
             MapScript.RefreshTexture();
 
+            Profiler.EndSample();
+
+#if DEBUG
+            _pixelUpdateCount += Manager.UpdatedPixelCount;
             _mapUpdateCount++;
+#endif
 
             _regenTextures = false;
 
@@ -406,7 +428,10 @@ public class GuiManagerScript : MonoBehaviour {
 
             Manager.UpdateTextures();
 
+#if DEBUG
+            _pixelUpdateCount += Manager.UpdatedPixelCount;
             _mapUpdateCount++;
+#endif
 
             Profiler.EndSample();
         }
@@ -2179,8 +2204,17 @@ public class GuiManagerScript : MonoBehaviour {
 		InfoPanelScript.InfoText.text += "\nNumber of Migration Events: " + MigrateGroupEvent.MigrationEventCount;
 		
 		InfoPanelScript.InfoText.text += "\n";
-		InfoPanelScript.InfoText.text += "\nMUPS: " + _lastMapUpdateCount;
-		InfoPanelScript.InfoText.text += "\n";
+		InfoPanelScript.InfoText.text += "\nMap Updates Per Second: " + _lastMapUpdateCount;
+        InfoPanelScript.InfoText.text += "\nPixel Updates Per Second: " + _lastPixelUpdateCount;
+
+        if (_lastMapUpdateCount > 0)
+        {
+            int pixelUpdatesPerMapUpdate = _lastPixelUpdateCount / _lastMapUpdateCount;
+
+            InfoPanelScript.InfoText.text += "\nPixel Updates Per Map Update: " + pixelUpdatesPerMapUpdate;
+        }
+
+        InfoPanelScript.InfoText.text += "\n";
 		#endif
 
 //		InfoPanelScript.ShowFocusButton (_showFocusButton);

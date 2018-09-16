@@ -4,163 +4,169 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
-public class Territory : ISynchronizable {
+public class Territory : ISynchronizable
+{
+    public List<WorldPosition> CellPositions;
 
-	public List<WorldPosition> CellPositions;
+    [XmlIgnore]
+    public bool IsSelected = false;
 
-	[XmlIgnore]
-	public bool IsSelected = false;
+    [XmlIgnore]
+    public World World;
 
-	[XmlIgnore]
-	public World World;
+    [XmlIgnore]
+    public Polity Polity;
 
-	[XmlIgnore]
-	public Polity Polity;
+    private HashSet<TerrainCell> _cells = new HashSet<TerrainCell>();
 
-	private HashSet<TerrainCell> _cells = new HashSet<TerrainCell> ();
+    private HashSet<TerrainCell> _borderCells = new HashSet<TerrainCell>();
 
-	private HashSet<TerrainCell> _borderCells = new HashSet<TerrainCell> ();
+    public Territory()
+    {
 
-	public Territory () {
+    }
 
-	}
+    public Territory(Polity polity)
+    {
+        World = polity.World;
+        Polity = polity;
+    }
 
-	public Territory (Polity polity) {
+    public ICollection<TerrainCell> GetCells()
+    {
+        return _cells;
+    }
 
-		World = polity.World;
-		Polity = polity;
-	}
-
-	public ICollection<TerrainCell> GetCells () {
-
-		return _cells;
-	}
-
-	private bool IsPartOfBorderInternal (TerrainCell cell) {
-
-		if (!_cells.Contains (cell)) {
-		
-			return false;
-		}
-
-		foreach (TerrainCell nCell in cell.Neighbors.Values) {
-		
-			if (!_cells.Contains (nCell))
-				return true;
-		}
-
-		return false;
-	}
-
-	public bool IsPartOfBorder (TerrainCell cell) {
-	
-		return _borderCells.Contains (cell);
-	}
-
-	public void AddCell (TerrainCell cell) {
-
-		if (!_cells.Add (cell)) {
-            
-			throw new System.Exception ("Trying to add cell that has already been added. Cell: " + cell.Position + " Polity.Id: " + Polity.Id);
+    private bool IsPartOfBorderInternal(TerrainCell cell)
+    {
+        if (!_cells.Contains(cell))
+        {
+            return false;
         }
 
-		cell.EncompassingTerritory = this;
-		Manager.AddUpdatedCell (cell, CellUpdateType.Territory);
+        foreach (TerrainCell nCell in cell.Neighbors.Values)
+        {
+            if (!_cells.Contains(nCell))
+                return true;
+        }
 
-		if (IsPartOfBorderInternal (cell)) {
-		
-			_borderCells.Add (cell);
-		}
+        return false;
+    }
 
-		foreach (TerrainCell nCell in cell.Neighbors.Values) {
+    public bool IsPartOfBorder(TerrainCell cell)
+    {
+        return _borderCells.Contains(cell);
+    }
 
-			if (_borderCells.Contains (nCell)) {
+    public void AddCell(TerrainCell cell)
+    {
+        if (!_cells.Add(cell))
+        {
 
-				if (!IsPartOfBorderInternal (nCell)) {
-					_borderCells.Remove (nCell);
-					Manager.AddUpdatedCell (nCell, CellUpdateType.Territory);
-				}
-			}
-		}
+            throw new System.Exception("Trying to add cell that has already been added. Cell: " + cell.Position + " Polity.Id: " + Polity.Id);
+        }
 
-		Region cellRegion = cell.Region;
+        cell.EncompassingTerritory = this;
+        Manager.AddUpdatedCell(cell, CellUpdateType.Territory, CellUpdateSubType.Membership);
 
-		if (cellRegion == null) {
+        if (IsPartOfBorderInternal(cell))
+        {
+            _borderCells.Add(cell);
+        }
 
-			cellRegion = Region.TryGenerateRegion (cell);
+        foreach (TerrainCell nCell in cell.Neighbors.Values)
+        {
+            if (_borderCells.Contains(nCell))
+            {
+                if (!IsPartOfBorderInternal(nCell))
+                {
+                    _borderCells.Remove(nCell);
+                    Manager.AddUpdatedCell(nCell, CellUpdateType.Territory, CellUpdateSubType.Membership);
+                }
+            }
+        }
 
-			if (cellRegion != null) {
-				cellRegion.GenerateName (Polity, cell);
+        Region cellRegion = cell.Region;
 
-				if (World.GetRegion (cellRegion.Id) == null)
-					World.AddRegion (cellRegion);
-			} else {
+        if (cellRegion == null)
+        {
+            cellRegion = Region.TryGenerateRegion(cell);
 
+            if (cellRegion != null)
+            {
+                cellRegion.GenerateName(Polity, cell);
+
+                if (World.GetRegion(cellRegion.Id) == null)
+                    World.AddRegion(cellRegion);
+            }
+            else
+            {
                 throw new System.Exception("No region could be generated");
-			}
-		}
-	}
+            }
+        }
+    }
 
-	public void RemoveCell (TerrainCell cell) {
+    public void RemoveCell(TerrainCell cell)
+    {
+        if (!_cells.Remove(cell))
+        {
+            throw new System.Exception("Trying to remove cell that is not present in territory. Cell:" + cell.Position + " Polity.Id:" + Polity.Id);
+        }
 
-		if (!_cells.Remove (cell)) {
-            
-			throw new System.Exception("Trying to remove cell that is not present in territory. Cell:" + cell.Position + " Polity.Id:" + Polity.Id);
-		}
+        cell.EncompassingTerritory = null;
+        Manager.AddUpdatedCell(cell, CellUpdateType.Territory, CellUpdateSubType.Membership);
 
-		cell.EncompassingTerritory = null;
-		Manager.AddUpdatedCell (cell, CellUpdateType.Territory);
+        if (_borderCells.Contains(cell))
+        {
+            _borderCells.Remove(cell);
+        }
 
-		if (_borderCells.Contains (cell)) {
+        foreach (TerrainCell nCell in cell.Neighbors.Values)
+        {
+            if (IsPartOfBorderInternal(nCell))
+            {
+                _borderCells.Add(nCell);
+                Manager.AddUpdatedCell(nCell, CellUpdateType.Territory, CellUpdateSubType.Membership);
+            }
+        }
+    }
 
-			_borderCells.Remove (cell);
-		}
+    public void Synchronize()
+    {
+        CellPositions = new List<WorldPosition>(_cells.Count);
 
-		foreach (TerrainCell nCell in cell.Neighbors.Values) {
+        foreach (TerrainCell cell in _cells)
+        {
+            CellPositions.Add(cell.Position);
+        }
+    }
 
-			if (IsPartOfBorderInternal (nCell)) {
+    public void FinalizeLoad()
+    {
+        foreach (WorldPosition position in CellPositions)
+        {
+            TerrainCell cell = World.GetCell(position);
 
-				_borderCells.Add (nCell);
-				Manager.AddUpdatedCell (nCell, CellUpdateType.Territory);
-			}
-		}
-	}
+            if (cell == null)
+            {
+                throw new System.Exception("Cell missing at position " + position.Longitude + "," + position.Latitude);
+            }
 
-	public void Synchronize () {
+            _cells.Add(cell);
 
-		CellPositions = new List<WorldPosition> (_cells.Count);
+            cell.EncompassingTerritory = this;
+        }
 
-		foreach (TerrainCell cell in _cells) {
-
-			CellPositions.Add (cell.Position);
-		}
-	}
-
-	public void FinalizeLoad () {
-
-		foreach (WorldPosition position in CellPositions) {
-
-			TerrainCell cell = World.GetCell (position);
-
-			if (cell == null) {
-				Debug.Break ();
-				throw new System.Exception ("Cell missing at position " + position.Longitude + "," + position.Latitude);
-			}
-
-			_cells.Add (cell);
-
-			cell.EncompassingTerritory = this;
-		}
-
-		foreach (TerrainCell cell in _cells) {
-
-			foreach (TerrainCell nCell in cell.Neighbors.Values) {
-
-				if (!_cells.Contains (nCell)) {
-					_borderCells.Add (cell);
-					break;
-				}
-			}
-		}
-	}
+        foreach (TerrainCell cell in _cells)
+        {
+            foreach (TerrainCell nCell in cell.Neighbors.Values)
+            {
+                if (!_cells.Contains(nCell))
+                {
+                    _borderCells.Add(cell);
+                    break;
+                }
+            }
+        }
+    }
 }

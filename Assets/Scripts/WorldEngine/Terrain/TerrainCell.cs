@@ -4,112 +4,41 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
-public enum Direction {
-
-	Null = -1,
-	North = 0,
-	Northeast = 1,
-	East = 2,
-	Southeast = 3,
-	South = 4,
-	Southwest = 5,
-	West = 6,
-	Northwest = 7
+public enum Direction
+{
+    Null = -1,
+    North = 0,
+    Northeast = 1,
+    East = 2,
+    Southeast = 3,
+    South = 4,
+    Southwest = 5,
+    West = 6,
+    Northwest = 7
 }
 
-public enum CellUpdateType {
-
-	None = 0x0,
-	Cell = 0x1,
-	Group = 0x2,
-	Region = 0x4,
-	Territory = 0x8,
-	Route = 0x10,
+public enum CellUpdateType
+{
+    None = 0x0,
+    Cell = 0x1,
+    Group = 0x2,
+    Region = 0x4,
+    Territory = 0x8,
+    Route = 0x10,
+    Cluster = 0x20,
     All = 0xFF
 }
 
-public struct WorldPosition {
-
-	[XmlAttribute("Lon")]
-	public int Longitude;
-	[XmlAttribute("Lat")]
-	public int Latitude;
-
-	public WorldPosition (int longitude, int latitude) {
-
-		Longitude = longitude;
-		Latitude = latitude;
-	}
-
-	public override string ToString ()
-	{
-		return string.Format ("[" + Longitude + "," + Latitude + "]");
-	}
-
-	public bool Equals (int longitude, int latitude) {
-
-		return ((Longitude == longitude) && (Latitude == latitude));
-	}
-
-	public bool Equals (WorldPosition p) {
-
-		return Equals (p.Longitude, p.Latitude);
-	}
-
-	public override bool Equals (object p) {
-
-		if (p is WorldPosition)
-			return Equals ((WorldPosition)p);
-		
-		return false;
-	}
-
-	public override int GetHashCode ()
-	{
-		int hash = 91 + Longitude.GetHashCode();
-		hash = (hash * 7) + Latitude.GetHashCode();
-
-		return hash;
-	}
-
-	public static bool operator ==(WorldPosition p1, WorldPosition p2) 
-	{
-		return p1.Equals(p2);
-	}
-
-	public static bool operator !=(WorldPosition p1, WorldPosition p2) 
-	{
-		return !p1.Equals(p2);
-	}
-}
-
-public class TerrainCellChanges {
-
-	[XmlAttribute("Lon")]
-	public int Longitude;
-	[XmlAttribute("Lat")]
-	public int Latitude;
-
-//	[XmlAttribute("It")]
-//	public int LocalIteration = 0;
-	[XmlAttribute("Fp")]
-	public float FarmlandPercentage = 0;
-
-	public List<string> Flags = new List<string> ();
-
-	public TerrainCellChanges () {
-		
-		Manager.UpdateWorldLoadTrackEventCount ();
-	}
-	
-	public TerrainCellChanges (TerrainCell cell) {
-
-		Longitude = cell.Longitude;
-		Latitude = cell.Latitude;
-
-//		LocalIteration = cell.LocalIteration;
-		FarmlandPercentage = cell.FarmlandPercentage;
-	}
+public enum CellUpdateSubType
+{
+    None = 0x0,
+    Culture = 0x1,
+    Population = 0x2,
+    Terrain = 0x4,
+    Contacts = 0x8,
+    Membership = 0x10,
+    All = 0xFF,
+    AllButTerrain = All & ~Terrain
 }
 
 public class TerrainCell : ISynchronizable {

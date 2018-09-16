@@ -210,66 +210,71 @@ public class CellGroup : HumanGroup {
 	[XmlIgnore]
 	public Dictionary<Direction, CellGroup> Neighbors;
 
-//#if DEBUG
-//    [XmlIgnore]
-//    public PolityProminence HighestPolityProminence
-//    {
-//        get
-//        {
-//            return _highestPolityProminence;
-//        }
-//        set
-//        {
-//            if ((Cell.Latitude == 108) && (Cell.Longitude == 362))
-//            {
-//                Debug.Log("HighestPolityProminence:set - Cell:" + Cell.Position +
-//                    ((value != null) ?
-//                    (", value.PolityId: " + value.PolityId + ", value.Polity.Id: " + value.Polity.Id) :
-//                    ", null value"));
-//            }
+    //#if DEBUG
+    //    [XmlIgnore]
+    //    public PolityProminence HighestPolityProminence
+    //    {
+    //        get
+    //        {
+    //            return _highestPolityProminence;
+    //        }
+    //        set
+    //        {
+    //            if ((Cell.Latitude == 108) && (Cell.Longitude == 362))
+    //            {
+    //                Debug.Log("HighestPolityProminence:set - Cell:" + Cell.Position +
+    //                    ((value != null) ?
+    //                    (", value.PolityId: " + value.PolityId + ", value.Polity.Id: " + value.Polity.Id) :
+    //                    ", null value"));
+    //            }
 
-//            _highestPolityProminence = value;
-//        }
-//    }
+    //            _highestPolityProminence = value;
+    //        }
+    //    }
 
-//    private PolityProminence _highestPolityProminence = null;
-//#else
+    //    private PolityProminence _highestPolityProminence = null;
+    //#else
     [XmlIgnore]
     public PolityProminence HighestPolityProminence = null;
-//#endif
+    //#endif
 
-	private HashSet<long> _polityProminencesToRemove = new HashSet<long> ();
-	private Dictionary<long, PolityProminence> _polityProminencesToAdd = new Dictionary<long, PolityProminence> ();
-	
-	private HashSet<string> _flags = new HashSet<string> ();
+    private CellUpdateType _cellUpdateType = CellUpdateType.None;
+    private CellUpdateSubType _cellUpdateSubtype = CellUpdateSubType.None;
 
-	private bool _alreadyUpdated = false;
+    private HashSet<long> _polityProminencesToRemove = new HashSet<long>();
+    private Dictionary<long, PolityProminence> _polityProminencesToAdd = new Dictionary<long, PolityProminence>();
 
-	public int PreviousPopulation {
+    private HashSet<string> _flags = new HashSet<string>();
 
-		get {
-			return (int)Mathf.Floor(PreviousExactPopulation);
-		}
-	}
+    private bool _alreadyUpdated = false;
 
-	public int Population {
+    public int PreviousPopulation
+    {
+        get
+        {
+            return (int)Mathf.Floor(PreviousExactPopulation);
+        }
+    }
 
-		get {
-			int population = (int)Mathf.Floor(ExactPopulation);
+    public int Population
+    {
+        get
+        {
+            int population = (int)Mathf.Floor(ExactPopulation);
 
 #if DEBUG
-			if (population < -1000) {
-			
-				Debug.Break ();
-				throw new System.Exception ("Debug.Break");
-			}
+            if (population < -1000)
+            {
+                Debug.Break();
+                throw new System.Exception("Debug.Break");
+            }
 #endif
 
-			return population;
-		}
-	}
+            return population;
+        }
+    }
 
-	public CellGroup () {
+    public CellGroup () {
 		
 		Manager.UpdateWorldLoadTrackEventCount ();
 	}
@@ -927,90 +932,103 @@ public class CellGroup : HumanGroup {
 		Profiler.EndSample ();
 	}
 
-	public void PostUpdate_AfterPolityUpdates () {
+	public void PostUpdate_AfterPolityUpdates()
+    {
+        PostUpdatePolityProminences_AfterPolityUpdates();
+    }
 
-		PostUpdatePolityProminences_AfterPolityUpdates ();
-	}
+    public bool InfluencingPolityHasKnowledge(string id)
+    {
+        foreach (PolityProminence pi in PolityProminences.Values)
+        {
+            if (pi.Polity.Culture.GetKnowledge(id) != null)
+            {
+                return true;
+            }
+        }
 
-	public bool InfluencingPolityHasKnowledge(string id) {
+        return false;
+    }
 
-		foreach (PolityProminence pi in PolityProminences.Values) {
-			if (pi.Polity.Culture.GetKnowledge (id) != null) {
-				return true;
-			}
-		}
+    public void SetupForNextUpdate()
+    {
+        if (!StillPresent)
+            return;
 
-		return false;
-	}
+        World.UpdateMostPopulousGroup(this);
 
-	public void SetupForNextUpdate () {
+        Profiler.BeginSample("Calculate Optimal Population");
 
-		if (!StillPresent)
-			return;
-		
-		World.UpdateMostPopulousGroup (this);
+        OptimalPopulation = CalculateOptimalPopulation(Cell);
 
-		Profiler.BeginSample ("Calculate Optimal Population");
-		
-		OptimalPopulation = CalculateOptimalPopulation (Cell);
+        Profiler.EndSample();
 
-		Profiler.EndSample ();
+        Profiler.BeginSample("Calculate Local Migration Value");
 
-		Profiler.BeginSample ("Calculate Local Migration Value");
+        CalculateLocalMigrationValue();
 
-		CalculateLocalMigrationValue ();
+        Profiler.EndSample();
 
-		Profiler.EndSample ();
+        Profiler.BeginSample("Consider Land Migration");
 
-		Profiler.BeginSample ("Consider Land Migration");
-		
-		ConsiderLandMigration ();
+        ConsiderLandMigration();
 
-		Profiler.EndSample ();
+        Profiler.EndSample();
 
-		Profiler.BeginSample ("Consider Sea Migration");
+        Profiler.BeginSample("Consider Sea Migration");
 
-		ConsiderSeaMigration ();
+        ConsiderSeaMigration();
 
-		Profiler.EndSample ();
+        Profiler.EndSample();
 
-		Profiler.BeginSample ("Consider Prominence Expansion");
+        Profiler.BeginSample("Consider Prominence Expansion");
 
-		ConsiderPolityProminenceExpansion ();
+        ConsiderPolityProminenceExpansion();
 
-		Profiler.EndSample ();
+        Profiler.EndSample();
 
-		Profiler.BeginSample ("Calculate Next Update Date");
-		
-		NextUpdateDate = CalculateNextUpdateDate ();
+        Profiler.BeginSample("Calculate Next Update Date");
 
-		Profiler.EndSample ();
+        NextUpdateDate = CalculateNextUpdateDate();
 
-		LastUpdateDate = World.CurrentDate;
+        Profiler.EndSample();
 
-		if (UpdateEvent == null) {
-			UpdateEvent = new UpdateCellGroupEvent (this, NextUpdateDate);
-		} else {
-			UpdateEvent.Reset (NextUpdateDate);
-		}
+        LastUpdateDate = World.CurrentDate;
 
-		World.InsertEventToHappen (UpdateEvent);
-	}
+        if (UpdateEvent == null)
+        {
+            UpdateEvent = new UpdateCellGroupEvent(this, NextUpdateDate);
+        }
+        else
+        {
+            UpdateEvent.Reset(NextUpdateDate);
+        }
 
-	public float CalculateAltitudeDeltaFactor (TerrainCell targetCell) {
+        World.InsertEventToHappen(UpdateEvent);
 
-		if (targetCell == Cell)
-			return 0.5f;
+        _cellUpdateType |= CellUpdateType.Group;
+        _cellUpdateSubtype |= CellUpdateSubType.Culture | CellUpdateSubType.Population;
 
-		float altitudeChange = Mathf.Max(0, targetCell.Altitude) - Mathf.Max(0, Cell.Altitude);
-		float altitudeDelta = 2 * altitudeChange / (Cell.Area + targetCell.Area);
+        Manager.AddUpdatedCell(Cell, _cellUpdateType, _cellUpdateSubtype);
 
-		float altitudeDeltaFactor = 1 - (Mathf.Clamp (altitudeDelta, -MaxMigrationAltitudeDelta, MaxMigrationAltitudeDelta) + MaxMigrationAltitudeDelta) / 2 * MaxMigrationAltitudeDelta;
-		
-		return altitudeDeltaFactor;
-	}
+        _cellUpdateType = CellUpdateType.None;
+        _cellUpdateSubtype = CellUpdateSubType.None;
+    }
 
-	public float CalculateMigrationValue (TerrainCell cell) {
+    public float CalculateAltitudeDeltaFactor(TerrainCell targetCell)
+    {
+        if (targetCell == Cell)
+            return 0.5f;
+
+        float altitudeChange = Mathf.Max(0, targetCell.Altitude) - Mathf.Max(0, Cell.Altitude);
+        float altitudeDelta = 2 * altitudeChange / (Cell.Area + targetCell.Area);
+
+        float altitudeDeltaFactor = 1 - (Mathf.Clamp(altitudeDelta, -MaxMigrationAltitudeDelta, MaxMigrationAltitudeDelta) + MaxMigrationAltitudeDelta) / 2 * MaxMigrationAltitudeDelta;
+
+        return altitudeDeltaFactor;
+    }
+
+    public float CalculateMigrationValue (TerrainCell cell) {
 
 //		#if DEBUG
 //		if (cell.IsSelected) {
@@ -2042,88 +2060,92 @@ public class CellGroup : HumanGroup {
 		}
 	}
 
-	private float GetActivityContribution (string activityId) {
-	
-		CellCulturalActivity activity = Culture.GetActivity (activityId) as CellCulturalActivity;
+	private float GetActivityContribution(string activityId)
+    {
+        CellCulturalActivity activity = Culture.GetActivity(activityId) as CellCulturalActivity;
 
-		if (activity == null)
-			return 0;
+        if (activity == null)
+            return 0;
 
-		return activity.Contribution;
-	}
+        return activity.Contribution;
+    }
 
-	private void UpdateTerrainFarmlandPercentage () {
+    private void UpdateTerrainFarmlandPercentage()
+    {
+        //		#if DEBUG
+        //		if (Cell.IsSelected) {
+        //			bool debug = true;
+        //		}
+        //		#endif
 
-//		#if DEBUG
-//		if (Cell.IsSelected) {
-//			bool debug = true;
-//		}
-//		#endif
+        CulturalKnowledge agricultureKnowledge = Culture.GetKnowledge(AgricultureKnowledge.AgricultureKnowledgeId);
 
-		CulturalKnowledge agricultureKnowledge = Culture.GetKnowledge (AgricultureKnowledge.AgricultureKnowledgeId);
+        if (agricultureKnowledge == null)
+        {
+            return;
+        }
 
-		if (agricultureKnowledge == null) {
+        float knowledgeValue = agricultureKnowledge.ScaledValue;
 
-			return;
-		}
+        float techValue = Mathf.Sqrt(knowledgeValue);
 
-		float knowledgeValue = agricultureKnowledge.ScaledValue;
+        float areaPerFarmWorker = techValue / 5f;
 
-		float techValue = Mathf.Sqrt(knowledgeValue);
+        float terrainFactor = AgricultureKnowledge.CalculateTerrainFactorIn(Cell);
 
-		float areaPerFarmWorker = techValue / 5f;
+        float farmingPopulation = GetActivityContribution(CellCulturalActivity.FarmingActivityId) * Population;
 
-		float terrainFactor = AgricultureKnowledge.CalculateTerrainFactorIn (Cell);
+        float maxWorkableArea = areaPerFarmWorker * farmingPopulation;
 
-		float farmingPopulation = GetActivityContribution (CellCulturalActivity.FarmingActivityId) * Population;
+        float availableArea = Cell.Area * terrainFactor;
 
-		float maxWorkableArea = areaPerFarmWorker * farmingPopulation;
+        float farmlandPercentage = 0;
 
-		float availableArea = Cell.Area * terrainFactor;
+        if ((maxWorkableArea > 0) && (availableArea > 0))
+        {
+            float farmlandPercentageAvailableArea = maxWorkableArea / (maxWorkableArea + availableArea);
 
-		float farmlandPercentage = 0;
+            farmlandPercentage = farmlandPercentageAvailableArea * terrainFactor;
+        }
 
-		if ((maxWorkableArea > 0) && (availableArea > 0)) {
+        Cell.FarmlandPercentage = farmlandPercentage;
 
-			float farmlandPercentageAvailableArea = maxWorkableArea / (maxWorkableArea + availableArea);
+        _cellUpdateType |= CellUpdateType.Cell;
+        _cellUpdateSubtype |= CellUpdateSubType.Terrain;
+    }
 
-			farmlandPercentage = farmlandPercentageAvailableArea * terrainFactor;
-		}
+    public void UpdateTravelFactors()
+    {
+        float seafaringValue = 0;
+        float shipbuildingValue = 0;
 
-		Cell.FarmlandPercentage = farmlandPercentage;
-	}
+        foreach (CellCulturalSkill skill in Culture.Skills)
+        {
+            if (skill is SeafaringSkill)
+            {
+                seafaringValue = skill.Value;
+            }
+        }
 
-	public void UpdateTravelFactors () {
+        foreach (CellCulturalKnowledge knowledge in Culture.Knowledges)
+        {
+            if (knowledge is ShipbuildingKnowledge)
+            {
+                shipbuildingValue = knowledge.ScaledValue;
+            }
+        }
 
-		float seafaringValue = 0;
-		float shipbuildingValue = 0;
+//#if DEBUG
+//        if (Cell.IsSelected)
+//        {
+//            bool debug = true;
+//        }
+//#endif
 
-		foreach (CellCulturalSkill skill in Culture.Skills) {
+        SeaTravelFactor = SeaTravelBaseFactor * seafaringValue * shipbuildingValue * TravelWidthFactor;
+    }
 
-			if (skill is SeafaringSkill) {
-
-				seafaringValue = skill.Value;
-			}
-		}
-
-		foreach (CellCulturalKnowledge knowledge in Culture.Knowledges) {
-
-			if (knowledge is ShipbuildingKnowledge) {
-
-				shipbuildingValue = knowledge.ScaledValue;
-			}
-		}
-
-//		#if DEBUG
-//		if (Cell.IsSelected) {
-//			bool debug = true;
-//		}
-//		#endif
-
-		SeaTravelFactor = SeaTravelBaseFactor * seafaringValue * shipbuildingValue * TravelWidthFactor;
-	}
-
-	public int CalculateOptimalPopulation (TerrainCell cell) {
+    public int CalculateOptimalPopulation (TerrainCell cell) {
 
 		int optimalPopulation = 0;
 

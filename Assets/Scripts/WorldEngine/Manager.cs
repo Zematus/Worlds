@@ -5,6 +5,7 @@ using System.Xml;
 using System.Xml.Serialization;
 using System.IO;
 using System.Threading;
+using UnityEngine.Profiling;
 
 public enum PlanetView
 {
@@ -186,8 +187,12 @@ public class Manager {
 
 	public static HashSet<TerrainCell> HighlightedCells { get; private set; }
 	public static HashSet<TerrainCell> UpdatedCells { get; private set; }
-	
-	public static int PixelToCellRatio = 4;
+
+#if DEBUG
+    public static int UpdatedPixelCount = 0;
+#endif
+
+    public static int PixelToCellRatio = 4;
 
 	public static float TemperatureOffset = World.AvgPossibleTemperature;
 	public static float RainfallOffset = World.AvgPossibleRainfall;
@@ -215,8 +220,9 @@ public class Manager {
 	private static bool _resolutionInitialized = false;
 
 	private static CellUpdateType _observableUpdateTypes = CellUpdateType.Cell | CellUpdateType.Group;
+    private static CellUpdateSubType _observableUpdateSubTypes = CellUpdateSubType.None;
 
-	private static Manager _manager = new Manager();
+    private static Manager _manager = new Manager();
 
 	private static PlanetView _planetView = PlanetView.Biomes;
 	private static PlanetOverlay _planetOverlay = PlanetOverlay.None;
@@ -630,49 +636,59 @@ public class Manager {
 		});
 	}
 	
-	public static void GenerateTextures () { 
+	public static void GenerateTextures()
+    {
+#if DEBUG
+        UpdatedPixelCount = 0;
+#endif
 
-		//GenerateSphereTextureFromWorld(CurrentWorld);
-		GenerateMapTextureFromWorld(CurrentWorld);
+        //GenerateSphereTextureFromWorld(CurrentWorld);
+        GenerateMapTextureFromWorld(CurrentWorld);
 
-		ResetUpdatedAndHighlightedCells ();
-	}
+        ResetUpdatedAndHighlightedCells();
+    }
 
-	public static void AddUpdatedCell (TerrainCell cell, CellUpdateType updateType) {
+    public static void AddUpdatedCell(TerrainCell cell, CellUpdateType updateType, CellUpdateSubType updateSubType)
+    {
+        if ((_observableUpdateTypes & updateType) != CellUpdateType.None)
+        {
+            if (_displayGroupActivity || ((_observableUpdateSubTypes & updateSubType) != CellUpdateSubType.None))
+            {
+                UpdatedCells.Add(cell);
+            }
+        }
+    }
 
-		if ((_observableUpdateTypes & updateType) != CellUpdateType.None) {
+    public static void AddUpdatedCells(ICollection<TerrainCell> cells, CellUpdateType updateType, CellUpdateSubType updateSubType)
+    {
+        if ((_observableUpdateTypes & updateType) != CellUpdateType.None)
+        {
+            if (_displayGroupActivity || ((_observableUpdateSubTypes & updateSubType) != CellUpdateSubType.None))
+            {
+                foreach (TerrainCell cell in cells)
+                    UpdatedCells.Add(cell);
+            }
+        }
+    }
 
-			UpdatedCells.Add (cell);
-		}
-	}
+    public static void AddHighlightedCell(TerrainCell cell, CellUpdateType updateType)
+    {
+        if ((_observableUpdateTypes & updateType) != CellUpdateType.None)
+        {
+            HighlightedCells.Add(cell);
+        }
+    }
 
-	public static void AddUpdatedCells (ICollection<TerrainCell> cells, CellUpdateType updateType) {
+    public static void AddHighlightedCells(ICollection<TerrainCell> cells, CellUpdateType updateType)
+    {
+        if ((_observableUpdateTypes & updateType) != CellUpdateType.None)
+        {
+            foreach (TerrainCell cell in cells)
+                HighlightedCells.Add(cell);
+        }
+    }
 
-		if ((_observableUpdateTypes & updateType) != CellUpdateType.None) {
-
-			foreach (TerrainCell cell in cells)
-				UpdatedCells.Add (cell);
-		}
-	}
-
-	public static void AddHighlightedCell (TerrainCell cell, CellUpdateType updateType) {
-
-		if ((_observableUpdateTypes & updateType) != CellUpdateType.None) {
-			
-			HighlightedCells.Add (cell);
-		}
-	}
-
-	public static void AddHighlightedCells (ICollection<TerrainCell> cells, CellUpdateType updateType) {
-
-		if ((_observableUpdateTypes & updateType) != CellUpdateType.None) {
-
-			foreach (TerrainCell cell in cells)
-				HighlightedCells.Add (cell);
-		}
-	}
-
-	public static void GenerateRandomHumanGroup (int initialPopulation) {
+    public static void GenerateRandomHumanGroup (int initialPopulation) {
 
 		World world = _manager._currentWorld;
 		
@@ -915,60 +931,96 @@ public class Manager {
 		_loadTicks = 0;
 	}
 	
-	public static void UpdateWorldLoadTrackEventCount () {
-		
-		if (!_isLoadReady)
-			InitializeWorldLoadTrack ();
-		
-		_loadTicks += 1;
-		
-		float value = ProgressIncrement * _loadTicks / (float)_totalLoadTicks;
-		
-		if (_manager._progressCastMethod != null) {
-			_manager._progressCastMethod (Mathf.Min (1, value));
-		}
-	}
+	public static void UpdateWorldLoadTrackEventCount()
+    {
+        if (!_isLoadReady)
+            InitializeWorldLoadTrack();
 
-	public static void SetPlanetOverlay (PlanetOverlay value, string planetOverlaySubtype = "None") {
+        _loadTicks += 1;
 
+        float value = ProgressIncrement * _loadTicks / (float)_totalLoadTicks;
+
+        if (_manager._progressCastMethod != null)
+        {
+            _manager._progressCastMethod(Mathf.Min(1, value));
+        }
+    }
+
+    private static void SetObservableUpdateTypes(PlanetOverlay overlay, string planetOverlaySubtype = "None")
+    {
         _observableUpdateTypes = CellUpdateType.None;
 
-        if ((value == PlanetOverlay.None) ||
-			(value == PlanetOverlay.Arability) ||
-			(value == PlanetOverlay.Rainfall) ||
-			(value == PlanetOverlay.Temperature)) {
+        if ((overlay == PlanetOverlay.None) ||
+            (overlay == PlanetOverlay.Arability) ||
+            (overlay == PlanetOverlay.Rainfall) ||
+            (overlay == PlanetOverlay.Temperature))
+        {
+            _observableUpdateTypes = CellUpdateType.Cell;
+        }
+        else if (overlay == PlanetOverlay.Region)
+        {
+            _observableUpdateTypes = CellUpdateType.Region;
+        }
+        else if ((overlay == PlanetOverlay.PolityTerritory) ||
+            (overlay == PlanetOverlay.PolityClusters) ||
+            (overlay == PlanetOverlay.PolityContacts) ||
+            (overlay == PlanetOverlay.PolityCulturalPreference) ||
+            (overlay == PlanetOverlay.PolityCulturalActivity) ||
+            (overlay == PlanetOverlay.PolityCulturalDiscovery) ||
+            (overlay == PlanetOverlay.PolityCulturalKnowledge) ||
+            (overlay == PlanetOverlay.PolityCulturalSkill))
+        {
+            _observableUpdateTypes = CellUpdateType.Territory;
+        }
+        else if (overlay == PlanetOverlay.General)
+        {
+            _observableUpdateTypes = CellUpdateType.Group | CellUpdateType.Territory;
+        }
+        else
+        {
+            _observableUpdateTypes = CellUpdateType.Group;
+        }
+    }
 
-			_observableUpdateTypes = CellUpdateType.Cell;
+    private static void SetObservableUpdateSubtypes(PlanetOverlay overlay, string planetOverlaySubtype = "None")
+    {
+        _observableUpdateSubTypes = CellUpdateSubType.None;
 
-		} else if (value == PlanetOverlay.Region) {
-			
-			_observableUpdateTypes |= CellUpdateType.Region;
+        if (overlay == PlanetOverlay.Arability)
+        {
+            _observableUpdateSubTypes = CellUpdateSubType.Terrain;
+        }
+        else if ((overlay == PlanetOverlay.General) ||
+            (overlay == PlanetOverlay.Region) ||
+            (overlay == PlanetOverlay.PolityTerritory) ||
+            (overlay == PlanetOverlay.PolityClusters))
+        {
+            _observableUpdateSubTypes = CellUpdateSubType.Membership;
+        }
+        else if (overlay == PlanetOverlay.PolityContacts)
+        {
+            _observableUpdateSubTypes = CellUpdateSubType.Membership | CellUpdateSubType.Contacts;
+        }
+        else if ((overlay == PlanetOverlay.PolityCulturalPreference) ||
+            (overlay == PlanetOverlay.PolityCulturalActivity) ||
+            (overlay == PlanetOverlay.PolityCulturalDiscovery) ||
+            (overlay == PlanetOverlay.PolityCulturalKnowledge) ||
+            (overlay == PlanetOverlay.PolityCulturalSkill))
+        {
+            _observableUpdateSubTypes = CellUpdateSubType.Membership | CellUpdateSubType.Culture;
+        }
+    }
 
-		} else if ((value == PlanetOverlay.PolityTerritory) ||
-            (value == PlanetOverlay.PolityClusters) ||
-			(value == PlanetOverlay.PolityContacts) ||
-			(value == PlanetOverlay.PolityCulturalPreference) ||
-			(value == PlanetOverlay.PolityCulturalActivity) ||
-			(value == PlanetOverlay.PolityCulturalDiscovery) ||
-			(value == PlanetOverlay.PolityCulturalKnowledge) ||
-			(value == PlanetOverlay.PolityCulturalSkill)) {
-            
-			_observableUpdateTypes |= CellUpdateType.Territory;
+    public static void SetPlanetOverlay(PlanetOverlay overlay, string planetOverlaySubtype = "None")
+    {
+        SetObservableUpdateTypes(overlay, planetOverlaySubtype);
+        SetObservableUpdateSubtypes(overlay, planetOverlaySubtype);
 
-		} else if (value == PlanetOverlay.General) {
-            
-			_observableUpdateTypes |= (CellUpdateType.Group | CellUpdateType.Territory);
+        _planetOverlay = overlay;
+        _planetOverlaySubtype = planetOverlaySubtype;
+    }
 
-		} else {
-            
-			_observableUpdateTypes |= CellUpdateType.Group;
-		}
-	
-		_planetOverlay = value;
-		_planetOverlaySubtype = planetOverlaySubtype;
-	}
-
-	public static void SetDisplayRoutes (bool value) {
+    public static void SetDisplayRoutes (bool value) {
 
 		if (value)
 			_observableUpdateTypes |= CellUpdateType.Route;
@@ -1100,271 +1152,306 @@ public class Manager {
 			
 		polity.SetUnderPlayerFocus (false);
 		CurrentWorld.PolitiesUnderPlayerFocus.Remove (polity);
-	}
+    }
 
-	public static void SetGuidedFaction (Faction faction) {
-
-		if (CurrentWorld.GuidedFaction == faction)
-			return;
-
-		if (CurrentWorld.GuidedFaction != null) {
-
-			CurrentWorld.GuidedFaction.SetUnderPlayerGuidance (false);
-		}
-
-		if (faction != null) {
-			faction.SetUnderPlayerGuidance (true);
-		}
-
-		CurrentWorld.GuidedFaction = faction;
-	}
-
-	public static void ResetUpdatedAndHighlightedCells () {
-
-		_lastUpdatedCells.Clear ();
-		_lastUpdatedCells.UnionWith(UpdatedCells);
-
-        UpdatedCells.Clear ();
-		HighlightedCells.Clear ();
-	}
-
-	public static void UpdateTextures () {
-
-		UpdateMapTextureColors (_manager._currentMapTextureColors);
-		CurrentMapTexture.SetPixels32 (_manager._currentMapTextureColors);
-
-		CurrentMapTexture.Apply ();
-
-		// TODO: Reenable this part for globe view
-//		UpdateSphereTextureColors (_manager._currentSphereTextureColors);
-//		CurrentSphereTexture.SetPixels32 (_manager._currentSphereTextureColors);
-//
-//		CurrentSphereTexture.Apply ();
-
-		ResetUpdatedAndHighlightedCells ();
-	}
-
-	public static void UpdateMapTextureColors (Color32[] textureColors)
+    public static void SetGuidedFaction(Faction faction)
     {
-		foreach (TerrainCell cell in _lastUpdatedCells)
+        if (CurrentWorld.GuidedFaction == faction)
+            return;
+
+        if (CurrentWorld.GuidedFaction != null)
         {
-			if (UpdatedCells.Contains (cell))
-				continue;
+            CurrentWorld.GuidedFaction.SetUnderPlayerGuidance(false);
+        }
 
-			if (HighlightedCells.Contains (cell))
-				continue;
-
-			UpdateMapTextureColorsFromCell(textureColors, cell);
-		}
-		
-		foreach (TerrainCell cell in UpdatedCells)
+        if (faction != null)
         {
-			if (HighlightedCells.Contains (cell))
-				continue;
-			
-			UpdateMapTextureColorsFromCell(textureColors, cell, _displayGroupActivity);
-		}
+            faction.SetUnderPlayerGuidance(true);
+        }
 
-		foreach (TerrainCell cell in HighlightedCells)
+        CurrentWorld.GuidedFaction = faction;
+    }
+
+    public static void ResetUpdatedAndHighlightedCells()
+    {
+        _lastUpdatedCells.Clear();
+        _lastUpdatedCells.UnionWith(UpdatedCells);
+
+        UpdatedCells.Clear();
+        HighlightedCells.Clear();
+    }
+
+    public static void UpdateTextures()
+    {
+#if DEBUG
+        UpdatedPixelCount = 0;
+#endif
+
+        Profiler.BeginSample("UpdateMapTextureColors");
+
+        UpdateMapTextureColors(_manager._currentMapTextureColors);
+
+        Profiler.EndSample();
+
+        Profiler.BeginSample("CurrentMapTexture.SetPixels32");
+
+        CurrentMapTexture.SetPixels32(_manager._currentMapTextureColors);
+
+        Profiler.EndSample();
+
+        Profiler.BeginSample("CurrentMapTexture.Apply");
+
+        CurrentMapTexture.Apply();
+
+        Profiler.EndSample();
+
+        //// TODO: Reenable this part for globe view
+        //UpdateSphereTextureColors(_manager._currentSphereTextureColors);
+        //CurrentSphereTexture.SetPixels32(_manager._currentSphereTextureColors);
+
+        //CurrentSphereTexture.Apply();
+        
+        Profiler.BeginSample("ResetUpdatedAndHighlightedCells");
+
+        ResetUpdatedAndHighlightedCells();
+
+        Profiler.EndSample();
+    }
+
+    public static void UpdateMapTextureColors(Color32[] textureColors)
+    {
+        foreach (TerrainCell cell in _lastUpdatedCells)
+        {
+            if (UpdatedCells.Contains(cell))
+                continue;
+
+            if (HighlightedCells.Contains(cell))
+                continue;
+
+            UpdateMapTextureColorsFromCell(textureColors, cell);
+        }
+
+        foreach (TerrainCell cell in UpdatedCells)
+        {
+            if (HighlightedCells.Contains(cell))
+                continue;
+
+            UpdateMapTextureColorsFromCell(textureColors, cell, _displayGroupActivity);
+
+        }
+
+        foreach (TerrainCell cell in HighlightedCells)
         {
             UpdateMapTextureColorsFromCell(textureColors, cell);
         }
-	}
+    }
 
-//	public static void DisplayCellDataOnMapTexture (Color32[] textureColors, TerrainCell cell, bool showData) {
-//
-//		CellGroup cellGroup = cell.Group; 
-//
-//		if ((cellGroup != null) && (cellGroup.SeaMigrationRoute != null)) {
-//
-//			DisplayRouteOnMapTexture (textureColors, cellGroup.SeaMigrationRoute, showData);
-//		}
-//
-//		World world = cell.World;
-//
-//		int sizeX = world.Width;
-//
-//		int r = PixelToCellRatio;
-//
-//		int i = cell.Longitude;
-//		int j = cell.Latitude;
-//
-//		Color cellColor = GenerateColorFromTerrainCell(cell, _displayGroupActivity);
-//
-//		if (showData) {
-//			cellColor = new Color (0.5f + (cellColor.r * 0.5f), 0.5f + (cellColor.g * 0.5f), 0.5f + (cellColor.b * 0.5f));
-//		}
-//
-//		for (int m = 0; m < r; m++) {
-//			for (int n = 0; n < r; n++) {
-//
-//				int offsetY = sizeX * r * (j * r + n);
-//				int offsetX = i * r + m;
-//
-//				textureColors [offsetY + offsetX] = cellColor;
-//			}
-//		}
-//
-//		UpdatedCells.Add (cell);
-//	}
+    //public static void DisplayCellDataOnMapTexture(Color32[] textureColors, TerrainCell cell, bool showData)
+    //{
+    //    CellGroup cellGroup = cell.Group;
 
-	public static void DisplayRouteOnMapTexture (Color32[] textureColors, Route route, bool showRoute) {
+    //    if ((cellGroup != null) && (cellGroup.SeaMigrationRoute != null))
+    //    {
+    //        DisplayRouteOnMapTexture(textureColors, cellGroup.SeaMigrationRoute, showData);
+    //    }
 
-		World world = route.World;
+    //    World world = cell.World;
 
-		int sizeX = world.Width;
+    //    int sizeX = world.Width;
 
-		int r = PixelToCellRatio;
+    //    int r = PixelToCellRatio;
 
-		foreach (TerrainCell cell in route.Cells) {
+    //    int i = cell.Longitude;
+    //    int j = cell.Latitude;
 
-			int i = cell.Longitude;
-			int j = cell.Latitude;
+    //    Color cellColor = GenerateColorFromTerrainCell(cell, _displayGroupActivity);
 
-			Color cellColor = Color.cyan;
+    //    if (showData)
+    //    {
+    //        cellColor = new Color(0.5f + (cellColor.r * 0.5f), 0.5f + (cellColor.g * 0.5f), 0.5f + (cellColor.b * 0.5f));
+    //    }
 
-			if (!showRoute) {
+    //    for (int m = 0; m < r; m++)
+    //    {
+    //        for (int n = 0; n < r; n++)
+    //        {
+    //            int offsetY = sizeX * r * (j * r + n);
+    //            int offsetX = i * r + m;
 
-				cellColor = GenerateColorFromTerrainCell(cell, _displayGroupActivity);
-			}
+    //            textureColors[offsetY + offsetX] = cellColor;
+    //        }
+    //    }
 
-			for (int m = 0; m < r; m++) {
-				for (int n = 0; n < r; n++) {
+    //    UpdatedCells.Add(cell);
+    //}
 
-					int offsetY = sizeX * r * (j * r + n);
-					int offsetX = i * r + m;
-
-					textureColors [offsetY + offsetX] = cellColor;
-				}
-			}
-
-			UpdatedCells.Add (cell);
-		}
-	}
-
-	public static bool CellShouldBeHighlighted (TerrainCell cell)
+    public static void DisplayRouteOnMapTexture(Color32[] textureColors, Route route, bool showRoute)
     {
-		if (cell.IsSelected)
-			return true;
-	
-		if ((_observableUpdateTypes & CellUpdateType.Region) == CellUpdateType.Region)
+        World world = route.World;
+
+        int sizeX = world.Width;
+
+        int r = PixelToCellRatio;
+
+        foreach (TerrainCell cell in route.Cells)
         {
-			if ((cell.Region != null) && cell.Region.IsSelected)
-				return true;
-			
-		}
+            int i = cell.Longitude;
+            int j = cell.Latitude;
+
+            Color cellColor = Color.cyan;
+
+            if (!showRoute)
+            {
+                cellColor = GenerateColorFromTerrainCell(cell, _displayGroupActivity);
+            }
+
+            for (int m = 0; m < r; m++)
+            {
+                for (int n = 0; n < r; n++)
+                {
+                    int offsetY = sizeX * r * (j * r + n);
+                    int offsetX = i * r + m;
+
+                    textureColors[offsetY + offsetX] = cellColor;
+                }
+            }
+
+            UpdatedCells.Add(cell);
+        }
+    }
+
+    public static bool CellShouldBeHighlighted(TerrainCell cell)
+    {
+        if (cell.IsSelected)
+            return true;
+
+        if ((_observableUpdateTypes & CellUpdateType.Region) == CellUpdateType.Region)
+        {
+            if ((cell.Region != null) && cell.Region.IsSelected)
+                return true;
+        }
         else if (((_observableUpdateTypes & CellUpdateType.Territory) == CellUpdateType.Territory) &&
             (_planetOverlay != PlanetOverlay.PolityContacts))
         {
-			if ((cell.EncompassingTerritory != null) && cell.EncompassingTerritory.IsSelected)
+            if ((cell.EncompassingTerritory != null) && cell.EncompassingTerritory.IsSelected)
                 return true;
-		}
+        }
 
-		return false;
-	}
-	
-	public static void UpdateMapTextureColorsFromCell (Color32[] textureColors, TerrainCell cell, bool highlightCells = false) {
+        return false;
+    }
 
-		World world = cell.World;
+    public static void UpdateMapTextureColorsFromCell(Color32[] textureColors, TerrainCell cell, bool displayActivityCells = false)
+    {
+        World world = cell.World;
 
-		int sizeX = world.Width;
-		
-		int r = PixelToCellRatio;
-		
-		int i = cell.Longitude;
-		int j = cell.Latitude;
-		
-		Color cellColor = GenerateColorFromTerrainCell(cell, highlightCells);
-		
-		for (int m = 0; m < r; m++) {
-			for (int n = 0; n < r; n++) {
-				
-				int offsetY = sizeX * r * (j*r + n);
-				int offsetX = i*r + m;
-				
-				textureColors[offsetY + offsetX] = cellColor;
-			}
-		}
-	}
-	
-	public static Texture2D GenerateMapTextureFromWorld (World world) {
-		
-//		UpdatedCells.Clear ();
-		
-		int sizeX = world.Width;
-		int sizeY = world.Height;
-		
-		int r = PixelToCellRatio;
-		
-		Color32[] textureColors = new Color32[sizeX * sizeY * r * r];
-		
-		Texture2D texture = new Texture2D(sizeX*r, sizeY*r, TextureFormat.ARGB32, false);
-		
-		for (int i = 0; i < sizeX; i++) {
-			for (int j = 0; j < sizeY; j++) {
+        int sizeX = world.Width;
 
-				Color cellColor = GenerateColorFromTerrainCell(world.TerrainCells[i][j]);
+        int r = PixelToCellRatio;
 
-				for (int m = 0; m < r; m++) {
-					for (int n = 0; n < r; n++) {
-						
-						int offsetY = sizeX * r * (j*r + n);
-						int offsetX = i*r + m;
-						
-						textureColors[offsetY + offsetX] = cellColor;
-					}
-				}
-			}
-		}
-		
-		texture.SetPixels32 (textureColors);
+        int i = cell.Longitude;
+        int j = cell.Latitude;
 
-		texture.Apply();
-		
-		_manager._currentMapTextureColors = textureColors;
-		_manager._currentMapTexture = texture;
-		
-		return texture;
-	}
+        Color cellColor = GenerateColorFromTerrainCell(cell, displayActivityCells);
 
-	public static void UpdateSphereTextureColors (Color32[] textureColors) {
+        for (int m = 0; m < r; m++)
+        {
+            for (int n = 0; n < r; n++)
+            {
+                int offsetY = sizeX * r * (j * r + n);
+                int offsetX = i * r + m;
 
-		foreach (TerrainCell cell in UpdatedCells) {
+                textureColors[offsetY + offsetX] = cellColor;
 
-			UpdateSphereTextureColorsFromCell (textureColors, cell);
-		}
-	}
+#if DEBUG
+                UpdatedPixelCount++;
+#endif
+            }
+        }
+    }
 
-	public static void UpdateSphereTextureColorsFromCell (Color32[] textureColors, TerrainCell cell) {
+    public static Texture2D GenerateMapTextureFromWorld(World world)
+    {
+        int sizeX = world.Width;
+        int sizeY = world.Height;
 
-		World world = cell.World;
-		
-		int sizeX = world.Width;
-		int sizeY = world.Height*2;
-		
-		int r = PixelToCellRatio;
+        int r = PixelToCellRatio;
 
-		int i = cell.Longitude;
-		int j = cell.Latitude;
+        Color32[] textureColors = new Color32[sizeX * sizeY * r * r];
 
-		float factorJ = (1f - Mathf.Cos(Mathf.PI*(float)j/(float)sizeY))/2f;
-		
-		int trueJ = (int)(world.Height * factorJ);
-		
-		Color cellColor = GenerateColorFromTerrainCell(world.TerrainCells[i][trueJ]);
-		
-		for (int m = 0; m < r; m++) {
-			for (int n = 0; n < r; n++) {
-				
-				int offsetY = sizeX * r * (j*r + n);
-				int offsetX = i*r + m;
-				
-				textureColors[offsetY + offsetX] = cellColor;
-			}
-		}
-	}
-	
-	public static Texture2D GenerateSphereTextureFromWorld (World world) {
+        Texture2D texture = new Texture2D(sizeX * r, sizeY * r, TextureFormat.ARGB32, false);
+
+        for (int i = 0; i < sizeX; i++)
+        {
+            for (int j = 0; j < sizeY; j++)
+            {
+                Color cellColor = GenerateColorFromTerrainCell(world.TerrainCells[i][j]);
+
+                for (int m = 0; m < r; m++)
+                {
+                    for (int n = 0; n < r; n++)
+                    {
+                        int offsetY = sizeX * r * (j * r + n);
+                        int offsetX = i * r + m;
+
+                        textureColors[offsetY + offsetX] = cellColor;
+
+#if DEBUG
+                        UpdatedPixelCount++;
+#endif
+                    }
+                }
+            }
+        }
+
+        texture.SetPixels32(textureColors);
+
+        texture.Apply();
+
+        _manager._currentMapTextureColors = textureColors;
+        _manager._currentMapTexture = texture;
+
+        return texture;
+    }
+
+    public static void UpdateSphereTextureColors(Color32[] textureColors)
+    {
+        foreach (TerrainCell cell in UpdatedCells)
+        {
+            UpdateSphereTextureColorsFromCell(textureColors, cell);
+        }
+    }
+
+    public static void UpdateSphereTextureColorsFromCell(Color32[] textureColors, TerrainCell cell)
+    {
+        World world = cell.World;
+
+        int sizeX = world.Width;
+        int sizeY = world.Height * 2;
+
+        int r = PixelToCellRatio;
+
+        int i = cell.Longitude;
+        int j = cell.Latitude;
+
+        float factorJ = (1f - Mathf.Cos(Mathf.PI * (float)j / (float)sizeY)) / 2f;
+
+        int trueJ = (int)(world.Height * factorJ);
+
+        Color cellColor = GenerateColorFromTerrainCell(world.TerrainCells[i][trueJ]);
+
+        for (int m = 0; m < r; m++)
+        {
+            for (int n = 0; n < r; n++)
+            {
+                int offsetY = sizeX * r * (j * r + n);
+                int offsetX = i * r + m;
+
+                textureColors[offsetY + offsetX] = cellColor;
+            }
+        }
+    }
+
+    public static Texture2D GenerateSphereTextureFromWorld (World world) {
 
 //		UpdatedCells.Clear ();
 		
@@ -1473,170 +1560,173 @@ public class Manager {
 		return value;
 	}
 	
-	private static bool IsCoastSea (TerrainCell cell) {
+	private static bool IsCoastSea(TerrainCell cell)
+    {
+        if (cell.Altitude <= 0)
+            return false;
 
-		if (cell.Altitude <= 0)
-			return false;
+        return cell.IsPartOfCoastline;
+    }
 
-		return cell.IsPartOfCoastline;
-	}
-	
-	private static bool IsCoastLand (TerrainCell cell) {
-		
-		if (cell.Altitude > 0)
-			return false;
-		
-		return cell.IsPartOfCoastline;
-	}
-	
-	private static Color GenerateColorFromTerrainCell (TerrainCell cell, bool highlightCells = false) {
+    private static bool IsCoastLand(TerrainCell cell)
+    {
+        if (cell.Altitude > 0)
+            return false;
 
-		if (_displayRoutes && cell.HasCrossingRoutes) {
-		
-			return Color.magenta;
-		}
+        return cell.IsPartOfCoastline;
+    }
 
-		Color color = Color.black;
+    private static Color GenerateColorFromTerrainCell(TerrainCell cell, bool displayActivityCells = false)
+    {
+        if (_displayRoutes && cell.HasCrossingRoutes)
+        {
+            return Color.magenta;
+        }
 
-		switch (_planetView) {
-			
-		case PlanetView.Biomes:
-			color = GenerateBiomeColor (cell);
-			break;
-			
-		case PlanetView.Elevation:
-			color = GenerateAltitudeContourColor (cell.Altitude);
-			break;
-			
-		case PlanetView.Coastlines:
-			color = GenerateCoastlineColor (cell);
-			break;
+        Color color = Color.black;
 
-		default:
-			throw new System.Exception ("Unsupported Planet View Type");
-		}
+        switch (_planetView)
+        {
+            case PlanetView.Biomes:
+                color = GenerateBiomeColor(cell);
+                break;
 
-		switch (_planetOverlay) {
-		
-		case PlanetOverlay.None:
-			break;
+            case PlanetView.Elevation:
+                color = GenerateAltitudeContourColor(cell.Altitude);
+                break;
 
-		case PlanetOverlay.General:
-			color = SetGeneralOverlayColor (cell, color);
-			break;
+            case PlanetView.Coastlines:
+                color = GenerateCoastlineColor(cell);
+                break;
 
-		case PlanetOverlay.PopDensity:
-			color = SetPopulationDensityOverlayColor (cell, color);
-			break;
+            default:
+                throw new System.Exception("Unsupported Planet View Type");
+        }
 
-		case PlanetOverlay.FarmlandDistribution:
-			color = SetFarmlandOverlayColor (cell, color);
-			break;
+        switch (_planetOverlay)
+        {
+            case PlanetOverlay.None:
+                break;
 
-		case PlanetOverlay.PopCulturalPreference:
-			color = SetPopCulturalPreferenceOverlayColor (cell, color);
-			break;
+            case PlanetOverlay.General:
+                color = SetGeneralOverlayColor(cell, color);
+                break;
 
-		case PlanetOverlay.PopCulturalActivity:
-			color = SetPopCulturalActivityOverlayColor (cell, color);
-			break;
-			
-		case PlanetOverlay.PopCulturalSkill:
-			color = SetPopCulturalSkillOverlayColor (cell, color);
-			break;
-			
-		case PlanetOverlay.PopCulturalKnowledge:
-			color = SetPopCulturalKnowledgeOverlayColor (cell, color);
-			break;
+            case PlanetOverlay.PopDensity:
+                color = SetPopulationDensityOverlayColor(cell, color);
+                break;
 
-		case PlanetOverlay.PopCulturalDiscovery:
-			color = SetPopCulturalDiscoveryOverlayColor (cell, color);
-			break;
+            case PlanetOverlay.FarmlandDistribution:
+                color = SetFarmlandOverlayColor(cell, color);
+                break;
 
-		case PlanetOverlay.PolityTerritory:
-			color = SetPolityTerritoryOverlayColor (cell, color);
-			break;
+            case PlanetOverlay.PopCulturalPreference:
+                color = SetPopCulturalPreferenceOverlayColor(cell, color);
+                break;
+
+            case PlanetOverlay.PopCulturalActivity:
+                color = SetPopCulturalActivityOverlayColor(cell, color);
+                break;
+
+            case PlanetOverlay.PopCulturalSkill:
+                color = SetPopCulturalSkillOverlayColor(cell, color);
+                break;
+
+            case PlanetOverlay.PopCulturalKnowledge:
+                color = SetPopCulturalKnowledgeOverlayColor(cell, color);
+                break;
+
+            case PlanetOverlay.PopCulturalDiscovery:
+                color = SetPopCulturalDiscoveryOverlayColor(cell, color);
+                break;
+
+            case PlanetOverlay.PolityTerritory:
+                color = SetPolityTerritoryOverlayColor(cell, color);
+                break;
 
             case PlanetOverlay.PolityClusters:
                 color = SetPolityClusterOverlayColor(cell, color);
                 break;
 
             case PlanetOverlay.FactionCoreDistance:
-			color = SetFactionCoreDistanceOverlayColor (cell, color);
-			break;
+                color = SetFactionCoreDistanceOverlayColor(cell, color);
+                break;
 
-		case PlanetOverlay.PolityProminence:
-			color = SetPolityProminenceOverlayColor (cell, color);
-			break;
+            case PlanetOverlay.PolityProminence:
+                color = SetPolityProminenceOverlayColor(cell, color);
+                break;
 
-		case PlanetOverlay.PolityContacts:
-			color = SetPolityContactsOverlayColor (cell, color);
-			break;
+            case PlanetOverlay.PolityContacts:
+                color = SetPolityContactsOverlayColor(cell, color);
+                break;
 
-		case PlanetOverlay.PolityCulturalPreference:
-			color = SetPolityCulturalPreferenceOverlayColor (cell, color);
-			break;
+            case PlanetOverlay.PolityCulturalPreference:
+                color = SetPolityCulturalPreferenceOverlayColor(cell, color);
+                break;
 
-		case PlanetOverlay.PolityCulturalActivity:
-			color = SetPolityCulturalActivityOverlayColor (cell, color);
-			break;
+            case PlanetOverlay.PolityCulturalActivity:
+                color = SetPolityCulturalActivityOverlayColor(cell, color);
+                break;
 
-		case PlanetOverlay.PolityCulturalSkill:
-			color = SetPolityCulturalSkillOverlayColor (cell, color);
-			break;
+            case PlanetOverlay.PolityCulturalSkill:
+                color = SetPolityCulturalSkillOverlayColor(cell, color);
+                break;
 
-		case PlanetOverlay.PolityCulturalKnowledge:
-			color = SetPolityCulturalKnowledgeOverlayColor (cell, color);
-			break;
+            case PlanetOverlay.PolityCulturalKnowledge:
+                color = SetPolityCulturalKnowledgeOverlayColor(cell, color);
+                break;
 
-		case PlanetOverlay.PolityCulturalDiscovery:
-			color = SetPolityCulturalDiscoveryOverlayColor (cell, color);
-			break;
+            case PlanetOverlay.PolityCulturalDiscovery:
+                color = SetPolityCulturalDiscoveryOverlayColor(cell, color);
+                break;
 
-		case PlanetOverlay.Temperature:
-			color = SetTemperatureOverlayColor (cell, color);
-			break;
+            case PlanetOverlay.Temperature:
+                color = SetTemperatureOverlayColor(cell, color);
+                break;
 
-		case PlanetOverlay.Rainfall:
-			color = SetRainfallOverlayColor (cell, color);
-			break;
+            case PlanetOverlay.Rainfall:
+                color = SetRainfallOverlayColor(cell, color);
+                break;
 
-		case PlanetOverlay.Arability:
-			color = SetArabilityOverlayColor (cell, color);
-			break;
+            case PlanetOverlay.Arability:
+                color = SetArabilityOverlayColor(cell, color);
+                break;
 
-		case PlanetOverlay.Region:
-			color = SetRegionOverlayColor (cell, color);
-			break;
+            case PlanetOverlay.Region:
+                color = SetRegionOverlayColor(cell, color);
+                break;
 
-		case PlanetOverlay.Language:
-			color = SetLanguageOverlayColor (cell, color);
-			break;
+            case PlanetOverlay.Language:
+                color = SetLanguageOverlayColor(cell, color);
+                break;
 
-		case PlanetOverlay.PopChange:
-			color = SetPopulationChangeOverlayColor (cell, color);
-			break;
+            case PlanetOverlay.PopChange:
+                color = SetPopulationChangeOverlayColor(cell, color);
+                break;
 
-		case PlanetOverlay.UpdateSpan:
-			color = SetUpdateSpanOverlayColor (cell, color);
-			break;
-			
-		default:
-			throw new System.Exception("Unsupported Planet Overlay Type");
-		}
+            case PlanetOverlay.UpdateSpan:
+                color = SetUpdateSpanOverlayColor(cell, color);
+                break;
 
-		if (CellShouldBeHighlighted (cell)) {
-			color = color * 0.5f + Color.white * 0.5f;
-		} else if (highlightCells) {
-			color = color * 0.75f + Color.white * 0.25f;
-		}
+            default:
+                throw new System.Exception("Unsupported Planet Overlay Type");
+        }
 
-		color.a = 1;
-		
-		return color;
-	}
-	
-	private static Color GenerateCoastlineColor (TerrainCell cell) {
+        if (CellShouldBeHighlighted(cell))
+        {
+            color = color * 0.5f + Color.white * 0.5f;
+        }
+        else if (displayActivityCells)
+        {
+            color = color * 0.75f + Color.white * 0.25f;
+        }
+
+        color.a = 1;
+
+        return color;
+    }
+
+    private static Color GenerateCoastlineColor (TerrainCell cell) {
 		
 		if (_mapPalette.Count == 0) {
 			
