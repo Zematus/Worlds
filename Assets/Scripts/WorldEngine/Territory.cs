@@ -62,12 +62,11 @@ public class Territory : ISynchronizable
     {
         if (!_cells.Add(cell))
         {
-
             throw new System.Exception("Trying to add cell that has already been added. Cell: " + cell.Position + " Polity.Id: " + Polity.Id);
         }
 
         cell.EncompassingTerritory = this;
-        Manager.AddUpdatedCell(cell, CellUpdateType.Territory, CellUpdateSubType.Membership);
+        Manager.AddUpdatedCell(cell, CellUpdateType.Territory | CellUpdateType.Cluster, CellUpdateSubType.Membership);
 
         if (IsPartOfBorderInternal(cell))
         {
@@ -114,7 +113,7 @@ public class Territory : ISynchronizable
         }
 
         cell.EncompassingTerritory = null;
-        Manager.AddUpdatedCell(cell, CellUpdateType.Territory, CellUpdateSubType.Membership);
+        Manager.AddUpdatedCell(cell, CellUpdateType.Territory | CellUpdateType.Cluster, CellUpdateSubType.Membership);
 
         if (_borderCells.Contains(cell))
         {

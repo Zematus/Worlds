@@ -179,6 +179,8 @@ public class PolityProminenceCluster : ISynchronizable
                     RemoveProminence(prominenceToAdd);
                     splitCluster.AddProminence(prominenceToAdd);
 
+                    Manager.AddUpdatedCell(prominenceToAdd.Group.Cell, CellUpdateType.Cluster, CellUpdateSubType.Membership);
+
                     if (splitCluster.Size >= MinSplitSize)
                     {
                         continueExploring = false;

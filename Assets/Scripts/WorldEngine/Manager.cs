@@ -219,7 +219,7 @@ public class Manager {
 
 	private static bool _resolutionInitialized = false;
 
-	private static CellUpdateType _observableUpdateTypes = CellUpdateType.Cell | CellUpdateType.Group;
+	private static CellUpdateType _observableUpdateTypes = CellUpdateType.None;
     private static CellUpdateSubType _observableUpdateSubTypes = CellUpdateSubType.None;
 
     private static Manager _manager = new Manager();
@@ -237,8 +237,9 @@ public class Manager {
 
 	private static bool _displayRoutes = false;
 	private static bool _displayGroupActivity = false;
-	
-	private ProgressCastDelegate _progressCastMethod = null;
+    private static bool _displayGroupActivityWasEnabled = false;
+
+    private ProgressCastDelegate _progressCastMethod = null;
 	
 	private World _currentWorld = null;
 	
@@ -650,25 +651,56 @@ public class Manager {
 
     public static void AddUpdatedCell(TerrainCell cell, CellUpdateType updateType, CellUpdateSubType updateSubType)
     {
-        if ((_observableUpdateTypes & updateType) != CellUpdateType.None)
+        if ((_observableUpdateTypes & updateType) == CellUpdateType.None)
+            return;
+
+        if ((_observableUpdateSubTypes & updateSubType) == CellUpdateSubType.None)
+            return;
+
+        if (_planetOverlay == PlanetOverlay.General)
         {
-            if (_displayGroupActivity || ((_observableUpdateSubTypes & updateSubType) != CellUpdateSubType.None))
+            if ((updateType == CellUpdateType.Territory) && 
+                ((updateSubType & CellUpdateSubType.MembershipAndCore) == CellUpdateSubType.MembershipAndCore))
             {
                 UpdatedCells.Add(cell);
             }
+            else if ((updateType == CellUpdateType.Group) && 
+                ((updateSubType & CellUpdateSubType.Culture) == CellUpdateSubType.Culture))
+            {
+                UpdatedCells.Add(cell);
+            }
+
+            return;
         }
+
+        UpdatedCells.Add(cell);
     }
 
     public static void AddUpdatedCells(ICollection<TerrainCell> cells, CellUpdateType updateType, CellUpdateSubType updateSubType)
     {
-        if ((_observableUpdateTypes & updateType) != CellUpdateType.None)
+        if ((_observableUpdateTypes & updateType) == CellUpdateType.None)
+            return;
+
+        if ((_observableUpdateSubTypes & updateSubType) == CellUpdateSubType.None)
+            return;
+
+        if (_planetOverlay == PlanetOverlay.General)
         {
-            if (_displayGroupActivity || ((_observableUpdateSubTypes & updateSubType) != CellUpdateSubType.None))
+            if ((updateType == CellUpdateType.Territory) &&
+                ((updateSubType & CellUpdateSubType.MembershipAndCore) == CellUpdateSubType.MembershipAndCore))
             {
-                foreach (TerrainCell cell in cells)
-                    UpdatedCells.Add(cell);
+                UpdatedCells.UnionWith(cells);
             }
+            else if ((updateType == CellUpdateType.Group) &&
+                ((updateSubType & CellUpdateSubType.Culture) == CellUpdateSubType.Culture))
+            {
+                UpdatedCells.UnionWith(cells);
+            }
+
+            return;
         }
+
+        UpdatedCells.UnionWith(cells);
     }
 
     public static void AddHighlightedCell(TerrainCell cell, CellUpdateType updateType)
@@ -948,12 +980,14 @@ public class Manager {
 
     private static void SetObservableUpdateTypes(PlanetOverlay overlay, string planetOverlaySubtype = "None")
     {
-        _observableUpdateTypes = CellUpdateType.None;
-
         if ((overlay == PlanetOverlay.None) ||
             (overlay == PlanetOverlay.Arability) ||
             (overlay == PlanetOverlay.Rainfall) ||
             (overlay == PlanetOverlay.Temperature))
+        {
+            _observableUpdateTypes = CellUpdateType.None;
+        }
+        else if (overlay == PlanetOverlay.FarmlandDistribution)
         {
             _observableUpdateTypes = CellUpdateType.Cell;
         }
@@ -961,8 +995,11 @@ public class Manager {
         {
             _observableUpdateTypes = CellUpdateType.Region;
         }
+        else if (overlay == PlanetOverlay.PolityClusters)
+        {
+            _observableUpdateTypes = CellUpdateType.Cluster;
+        }
         else if ((overlay == PlanetOverlay.PolityTerritory) ||
-            (overlay == PlanetOverlay.PolityClusters) ||
             (overlay == PlanetOverlay.PolityContacts) ||
             (overlay == PlanetOverlay.PolityCulturalPreference) ||
             (overlay == PlanetOverlay.PolityCulturalActivity) ||
@@ -984,22 +1021,33 @@ public class Manager {
 
     private static void SetObservableUpdateSubtypes(PlanetOverlay overlay, string planetOverlaySubtype = "None")
     {
-        _observableUpdateSubTypes = CellUpdateSubType.None;
-
-        if (overlay == PlanetOverlay.Arability)
+        if ((overlay == PlanetOverlay.None) ||
+            (overlay == PlanetOverlay.Arability) ||
+            (overlay == PlanetOverlay.Rainfall) ||
+            (overlay == PlanetOverlay.Temperature))
+        {
+            _observableUpdateTypes = CellUpdateType.None;
+        }
+        else if (overlay == PlanetOverlay.FarmlandDistribution)
         {
             _observableUpdateSubTypes = CellUpdateSubType.Terrain;
         }
-        else if ((overlay == PlanetOverlay.General) ||
-            (overlay == PlanetOverlay.Region) ||
-            (overlay == PlanetOverlay.PolityTerritory) ||
+        else if ((overlay == PlanetOverlay.Region) ||
             (overlay == PlanetOverlay.PolityClusters))
         {
             _observableUpdateSubTypes = CellUpdateSubType.Membership;
         }
+        else if (overlay == PlanetOverlay.PolityTerritory)
+        {
+            _observableUpdateSubTypes = CellUpdateSubType.MembershipAndCore;
+        }
         else if (overlay == PlanetOverlay.PolityContacts)
         {
             _observableUpdateSubTypes = CellUpdateSubType.Membership | CellUpdateSubType.Contacts;
+        }
+        else if (overlay == PlanetOverlay.General)
+        {
+            _observableUpdateSubTypes = CellUpdateSubType.MembershipAndCore | CellUpdateSubType.Culture;
         }
         else if ((overlay == PlanetOverlay.PolityCulturalPreference) ||
             (overlay == PlanetOverlay.PolityCulturalActivity) ||
@@ -1008,6 +1056,10 @@ public class Manager {
             (overlay == PlanetOverlay.PolityCulturalSkill))
         {
             _observableUpdateSubTypes = CellUpdateSubType.Membership | CellUpdateSubType.Culture;
+        }
+        else
+        {
+            _observableUpdateSubTypes = CellUpdateSubType.All;
         }
     }
 
@@ -1220,16 +1272,21 @@ public class Manager {
 
     public static void UpdateMapTextureColors(Color32[] textureColors)
     {
-        foreach (TerrainCell cell in _lastUpdatedCells)
+        if (_displayGroupActivityWasEnabled)
         {
-            if (UpdatedCells.Contains(cell))
-                continue;
+            foreach (TerrainCell cell in _lastUpdatedCells)
+            {
+                if (UpdatedCells.Contains(cell))
+                    continue;
 
-            if (HighlightedCells.Contains(cell))
-                continue;
+                if (HighlightedCells.Contains(cell))
+                    continue;
 
-            UpdateMapTextureColorsFromCell(textureColors, cell);
+                UpdateMapTextureColorsFromCell(textureColors, cell);
+            }
         }
+
+        _displayGroupActivityWasEnabled = _displayGroupActivity;
 
         foreach (TerrainCell cell in UpdatedCells)
         {
@@ -2243,7 +2300,7 @@ public class Manager {
 		color.g = (greyscale + color.g) / 6f;
 		color.b = (greyscale + color.b) / 6f;
 
-		float deltaLimitFactor = 0.02f;
+		float deltaLimitFactor = 0.1f;
 
 		float prevPopulation = 0;
 		float population = 0;

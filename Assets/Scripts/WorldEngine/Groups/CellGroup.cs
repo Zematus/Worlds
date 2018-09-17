@@ -380,77 +380,79 @@ public class CellGroup : HumanGroup {
 		World.AddUpdatedGroup (this);
 	}
 
-	public void UpdatePreferredMigrationDirection () {
-	
-		int dir = ((int)PreferredMigrationDirection) + RandomUtility.NoOffsetRange (Cell.GetNextLocalRandomFloat (RngOffsets.CELL_GROUP_UPDATE_MIGRATION_DIRECTION));
+    public void UpdatePreferredMigrationDirection()
+    {
+        int dir = ((int)PreferredMigrationDirection) + RandomUtility.NoOffsetRange(Cell.GetNextLocalRandomFloat(RngOffsets.CELL_GROUP_UPDATE_MIGRATION_DIRECTION));
 
-		PreferredMigrationDirection = Cell.TryGetNeighborDirection (dir);
-	}
+        PreferredMigrationDirection = Cell.TryGetNeighborDirection(dir);
+    }
 
-	public Direction GenerateCoreMigrationDirection () {
+    public Direction GenerateCoreMigrationDirection()
+    {
+        int dir = (int)PreferredMigrationDirection;
 
-		int dir = (int)PreferredMigrationDirection;
+        float fDir = RandomUtility.PseudoNormalRepeatDistribution(Cell.GetNextLocalRandomFloat(RngOffsets.CELL_GROUP_GENERATE_CORE_MIGRATION_DIRECTION), 0.05f, dir, TerrainCell.MaxNeighborDirections);
 
-		float fDir = RandomUtility.PseudoNormalRepeatDistribution (Cell.GetNextLocalRandomFloat (RngOffsets.CELL_GROUP_GENERATE_CORE_MIGRATION_DIRECTION), 0.05f, dir, TerrainCell.MaxNeighborDirections);
+        return TryGetNeighborDirection((int)fDir);
+    }
 
-		return TryGetNeighborDirection ((int)fDir);
-	}
+    public Direction GeneratePolityExpansionDirection()
+    {
+        int dir = (int)PreferredMigrationDirection;
 
-	public Direction GeneratePolityExpansionDirection () {
+        float fDir = RandomUtility.PseudoNormalRepeatDistribution(Cell.GetNextLocalRandomFloat(RngOffsets.CELL_GROUP_GENERATE_PROMINENCE_TRANSFER_DIRECTION), 0.05f, dir, TerrainCell.MaxNeighborDirections);
 
-		int dir = (int)PreferredMigrationDirection;
+        return TryGetNeighborDirection((int)fDir);
+    }
 
-		float fDir = RandomUtility.PseudoNormalRepeatDistribution (Cell.GetNextLocalRandomFloat (RngOffsets.CELL_GROUP_GENERATE_PROMINENCE_TRANSFER_DIRECTION), 0.05f, dir, TerrainCell.MaxNeighborDirections);
+    public Direction GenerateGroupMigrationDirection()
+    {
+        int dir = (int)PreferredMigrationDirection;
 
-		return TryGetNeighborDirection ((int)fDir);
-	}
+        float fDir = RandomUtility.PseudoNormalRepeatDistribution(Cell.GetNextLocalRandomFloat(RngOffsets.CELL_GROUP_GENERATE_GROUP_MIGRATION_DIRECTION), 0.05f, dir, TerrainCell.MaxNeighborDirections);
 
-	public Direction GenerateGroupMigrationDirection () {
+        return Cell.TryGetNeighborDirection((int)fDir);
+    }
 
-		int dir = (int)PreferredMigrationDirection;
+    public void AddFactionCore(Faction faction)
+    {
+        if (!FactionCores.ContainsKey(faction.Id))
+        {
+            FactionCores.Add(faction.Id, faction);
+            Manager.AddUpdatedCell(Cell, CellUpdateType.Territory, CellUpdateSubType.Core);
+        }
+    }
 
-		float fDir = RandomUtility.PseudoNormalRepeatDistribution (Cell.GetNextLocalRandomFloat (RngOffsets.CELL_GROUP_GENERATE_GROUP_MIGRATION_DIRECTION), 0.05f, dir, TerrainCell.MaxNeighborDirections);
+    public void RemoveFactionCore(Faction faction)
+    {
+        if (FactionCores.ContainsKey(faction.Id))
+        {
+            FactionCores.Remove(faction.Id);
+            Manager.AddUpdatedCell(Cell, CellUpdateType.Territory, CellUpdateSubType.Core);
+        }
+    }
 
-		return Cell.TryGetNeighborDirection ((int)fDir);
-	}
+    public bool FactionHasCoreHere(Faction faction)
+    {
+        return FactionCores.ContainsKey(faction.Id);
+    }
 
-	public void AddFactionCore (Faction faction) {
+    public ICollection<Faction> GetFactionCores()
+    {
+        return FactionCores.Values;
+    }
 
-		if (!FactionCores.ContainsKey (faction.Id)) {
+    public CellGroupSnapshot GetSnapshot()
+    {
+        return new CellGroupSnapshot(this);
+    }
 
-			FactionCores.Add (faction.Id, faction);
-		}
-	}
+    public long GenerateUniqueIdentifier(long date, long oom = 1L, long offset = 0L)
+    {
+        return Cell.GenerateUniqueIdentifier(date, oom, offset);
+    }
 
-	public void RemoveFactionCore (Faction faction) {
-
-		if (FactionCores.ContainsKey (faction.Id)) {
-
-			FactionCores.Remove (faction.Id);
-		}
-	}
-
-	public bool FactionHasCoreHere (Faction faction) {
-
-		return FactionCores.ContainsKey (faction.Id);
-	}
-
-	public ICollection<Faction> GetFactionCores () {
-
-		return FactionCores.Values;
-	}
-
-	public CellGroupSnapshot GetSnapshot () {
-	
-		return new CellGroupSnapshot (this);
-	}
-
-	public long GenerateUniqueIdentifier (long date, long oom = 1L, long offset = 0L) {
-
-		return Cell.GenerateUniqueIdentifier (date, oom, offset);
-	}
-
-	public void SetHighestPolityProminence (PolityProminence prominence) {
+    public void SetHighestPolityProminence (PolityProminence prominence) {
 
 		if (HighestPolityProminence == prominence)
 			return;
@@ -1007,7 +1009,7 @@ public class CellGroup : HumanGroup {
         World.InsertEventToHappen(UpdateEvent);
 
         _cellUpdateType |= CellUpdateType.Group;
-        _cellUpdateSubtype |= CellUpdateSubType.Culture | CellUpdateSubType.Population;
+        _cellUpdateSubtype |= CellUpdateSubType.PopulationAndCulture;
 
         Manager.AddUpdatedCell(Cell, _cellUpdateType, _cellUpdateSubtype);
 

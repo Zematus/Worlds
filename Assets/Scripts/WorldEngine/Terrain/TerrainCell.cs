@@ -26,6 +26,7 @@ public enum CellUpdateType
     Territory = 0x8,
     Route = 0x10,
     Cluster = 0x20,
+    GroupTerritoryAndCluster = Group | Territory | Cluster,
     All = 0xFF
 }
 
@@ -34,9 +35,12 @@ public enum CellUpdateSubType
     None = 0x0,
     Culture = 0x1,
     Population = 0x2,
+    PopulationAndCulture = Population | Culture,
     Terrain = 0x4,
     Contacts = 0x8,
     Membership = 0x10,
+    Core = 0x20,
+    MembershipAndCore = Membership | Core,
     All = 0xFF,
     AllButTerrain = All & ~Terrain
 }

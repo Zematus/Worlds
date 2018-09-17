@@ -296,44 +296,51 @@ public abstract class Polity : ISynchronizable {
         return Info.GetNameAndTypeStringBold();
     }
 
-    public void SetUnderPlayerFocus (bool state, bool setDominantFactionFocused = true) {
-	
-		IsUnderPlayerFocus = state;
-	}
+    public void SetUnderPlayerFocus(bool state, bool setDominantFactionFocused = true)
+    {
+        IsUnderPlayerFocus = state;
+    }
 
-	public void AddEventMessage (WorldEventMessage eventMessage) {
+    public void AddEventMessage(WorldEventMessage eventMessage)
+    {
+        if (IsUnderPlayerFocus)
+            World.AddEventMessageToShow(eventMessage);
 
-		if (IsUnderPlayerFocus)
-			World.AddEventMessageToShow (eventMessage);
+        _eventMessageIds.Add(eventMessage.Id);
+    }
 
-		_eventMessageIds.Add (eventMessage.Id);
-	}
+    public bool HasEventMessage(long id)
+    {
+        return _eventMessageIds.Contains(id);
+    }
 
-	public bool HasEventMessage (long id) {
-	
-		return _eventMessageIds.Contains (id);
-	}
+    public void SetCoreGroup(CellGroup coreGroup)
+    {
+        if (CoreGroup != null)
+        {
+            Manager.AddUpdatedCell(CoreGroup.Cell, CellUpdateType.Territory, CellUpdateSubType.Core);
+        }
 
-	public void SetCoreGroup (CellGroup coreGroup) {
-	
-		CoreGroup = coreGroup;
-		CoreGroupId = coreGroup.Id;
-	}
+        CoreGroup = coreGroup;
+        CoreGroupId = coreGroup.Id;
 
-	public long GenerateUniqueIdentifier (long date, long oom = 1L, long offset = 0L) {
+        Manager.AddUpdatedCell(coreGroup.Cell, CellUpdateType.Territory, CellUpdateSubType.Core);
+    }
 
-		return CoreGroup.GenerateUniqueIdentifier (date, oom, offset);
-	}
+    public long GenerateUniqueIdentifier(long date, long oom = 1L, long offset = 0L)
+    {
+        return CoreGroup.GenerateUniqueIdentifier(date, oom, offset);
+    }
 
-	public float GetNextLocalRandomFloat (int iterationOffset) {
+    public float GetNextLocalRandomFloat(int iterationOffset)
+    {
+        return CoreGroup.GetNextLocalRandomFloat(iterationOffset + (int)Id);
+    }
 
-		return CoreGroup.GetNextLocalRandomFloat (iterationOffset + (int)Id);
-	}
-
-	public int GetNextLocalRandomInt (int iterationOffset, int maxValue) {
-
-		return CoreGroup.GetNextLocalRandomInt (iterationOffset + (int)Id, maxValue);
-	}
+    public int GetNextLocalRandomInt(int iterationOffset, int maxValue)
+    {
+        return CoreGroup.GetNextLocalRandomInt(iterationOffset + (int)Id, maxValue);
+    }
 
     public void AddFaction(Faction faction)
     {
@@ -691,10 +698,7 @@ public abstract class Polity : ISynchronizable {
 
         Profiler.EndSample();
 
-        Manager.AddUpdatedCells(
-            Territory.GetCells(), 
-            CellUpdateType.Territory, 
-            CellUpdateSubType.Population | CellUpdateSubType.Culture | CellUpdateSubType.Contacts);
+        Manager.AddUpdatedCells(Territory.GetCells(), CellUpdateType.Territory, CellUpdateSubType.Culture);
     }
 
     protected abstract void UpdateInternal();

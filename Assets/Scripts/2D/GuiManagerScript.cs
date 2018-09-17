@@ -139,6 +139,8 @@ public class GuiManagerScript : MonoBehaviour {
     private int _pixelUpdateCount = 0;
     private int _lastPixelUpdateCount = 0;
     private float _timeSinceLastMapUpdate = 0;
+    private long _lastUpdateDate = 0;
+    private long _lastDateSpan = 0;
 #endif
 
     private int _topMaxSpeedLevelIndex;
@@ -262,6 +264,19 @@ public class GuiManagerScript : MonoBehaviour {
             _pixelUpdateCount = 0;
 
             _timeSinceLastMapUpdate -= 1;
+
+            if (Manager.WorldIsReady)
+            {
+                long currentDate = Manager.CurrentWorld.CurrentDate;
+
+                _lastDateSpan = currentDate - _lastUpdateDate;
+                _lastUpdateDate = currentDate;
+            }
+            else
+            {
+                _lastDateSpan = 0;
+                _lastUpdateDate = 0;
+            }
         }
 #endif
         
@@ -2204,22 +2219,25 @@ public class GuiManagerScript : MonoBehaviour {
 		InfoPanelScript.InfoText.text += "\nNumber of Migration Events: " + MigrateGroupEvent.MigrationEventCount;
 		
 		InfoPanelScript.InfoText.text += "\n";
-		InfoPanelScript.InfoText.text += "\nMap Updates Per Second: " + _lastMapUpdateCount;
-        InfoPanelScript.InfoText.text += "\nPixel Updates Per Second: " + _lastPixelUpdateCount;
+		InfoPanelScript.InfoText.text += "\nMap Updates Per RTS: " + _lastMapUpdateCount;
+        InfoPanelScript.InfoText.text += "\nPixel Updates Per RTS: " + _lastPixelUpdateCount;
 
         if (_lastMapUpdateCount > 0)
         {
-            int pixelUpdatesPerMapUpdate = _lastPixelUpdateCount / _lastMapUpdateCount;
+            float pixelUpdatesPerMapUpdate = _lastPixelUpdateCount / (float)_lastMapUpdateCount;
 
-            InfoPanelScript.InfoText.text += "\nPixel Updates Per Map Update: " + pixelUpdatesPerMapUpdate;
+            InfoPanelScript.InfoText.text += "\nPixel Updates Per Map Update: " + pixelUpdatesPerMapUpdate.ToString("0.00");
         }
 
         InfoPanelScript.InfoText.text += "\n";
-		#endif
+        InfoPanelScript.InfoText.text += "\nSimulated Time Per RTS:";
+        InfoPanelScript.InfoText.text += "\n" + Manager.GetTimeSpanString(_lastDateSpan);
+        InfoPanelScript.InfoText.text += "\n";
+#endif
 
-//		InfoPanelScript.ShowFocusButton (_showFocusButton);
-//		InfoPanelScript.FocusButtonText.text = _focusButtonText;
-	}
+        //		InfoPanelScript.ShowFocusButton (_showFocusButton);
+        //		InfoPanelScript.FocusButtonText.text = _focusButtonText;
+    }
 	
 	public void AddCellDataToInfoPanel (int longitude, int latitude) {
 		
@@ -2392,10 +2410,12 @@ public class GuiManagerScript : MonoBehaviour {
 		}
 
 		int optimalPopulation = cell.Group.OptimalPopulation;
+        int previousPopulation = cell.Group.PreviousPopulation;
 
-		InfoPanelScript.InfoText.text += "\nPopulation: " + population;
-		InfoPanelScript.InfoText.text += "\nPrevious Population: " + cell.Group.PreviousPopulation;
-		InfoPanelScript.InfoText.text += "\nOptimal Population: " + optimalPopulation;
+        InfoPanelScript.InfoText.text += "\nPopulation: " + population;
+		InfoPanelScript.InfoText.text += "\nPrevious Population: " + previousPopulation;
+        InfoPanelScript.InfoText.text += "\nPopulation Change: " + (population - previousPopulation);
+        InfoPanelScript.InfoText.text += "\nOptimal Population: " + optimalPopulation;
 		InfoPanelScript.InfoText.text += "\nPop Density: " + (population / cellArea).ToString ("0.000") + " Pop / Km^2";
 
 		float modifiedSurvivability = 0;
