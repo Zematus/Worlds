@@ -137,7 +137,6 @@ public class RegionAttribute
 
     private RegionAttribute(string name, string[] adjectives, string[] variants, string[] associationStrs)
     {
-
         Name = name;
 
         Adjectives = adjectives;
@@ -148,7 +147,6 @@ public class RegionAttribute
 
         foreach (string assocStr in associationStrs)
         {
-
             associations.AddRange(Association.Parse(assocStr));
         }
 
@@ -157,7 +155,6 @@ public class RegionAttribute
 
     public string GetRandomVariation(GetRandomIntDelegate getRandomInt, Element filterElement = null, bool filterRelationTagged = true)
     {
-
         IEnumerable<Variation> filteredVariations = Variations;
 
         if (filterElement != null)
@@ -175,7 +172,6 @@ public class RegionAttribute
 
     public string GetRandomVariation(GetRandomIntDelegate getRandomInt, string filterStr, bool filterRelationTagged = true)
     {
-
         IEnumerable<Variation> filteredVariations = Variations;
 
         filterStr = filterStr.ToLower();
@@ -195,7 +191,6 @@ public class RegionAttribute
 
     public string GetRandomSingularVariation(GetRandomIntDelegate getRandomInt, bool filterRelationTagged = true)
     {
-
         IEnumerable<Variation> filteredVariations = Variations.Where(v => !Language.IsPluralForm(v.Text));
 
         if (filterRelationTagged)
@@ -208,7 +203,6 @@ public class RegionAttribute
 
     public string GetRandomPluralVariation(GetRandomIntDelegate getRandomInt, bool filterRelationTagged = true)
     {
-
         IEnumerable<Variation> filteredVariations = Variations.Where(v => Language.IsPluralForm(v.Text));
 
         if (filterRelationTagged)
@@ -221,7 +215,6 @@ public class RegionAttribute
 
     public string GetRandomVariation(GetRandomIntDelegate getRandomInt, bool filterRelationTagged)
     {
-
         IEnumerable<Variation> filteredVariations = Variations;
 
         if (filterRelationTagged)

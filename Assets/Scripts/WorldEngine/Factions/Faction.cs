@@ -262,71 +262,73 @@ public abstract class Faction : ISynchronizable {
 		return _relationships.ContainsKey (faction.Id);
 	}
 
-	public void SetToSplit (CellGroup splitFactionCoreGroup, float splitFactionMinInfluence, float splitFactionMaxInfluence, long eventId) {
-
+	public void SetToSplit(CellGroup splitFactionCoreGroup, float splitFactionMinInfluence, float splitFactionMaxInfluence, long eventId)
+    {
         _splitFactionEventId = eventId;
-		_splitFactionCoreGroup = splitFactionCoreGroup;
-		_splitFactionMinInfluence = splitFactionMinInfluence;
-		_splitFactionMaxInfluence = splitFactionMaxInfluence;
+        _splitFactionCoreGroup = splitFactionCoreGroup;
+        _splitFactionMinInfluence = splitFactionMinInfluence;
+        _splitFactionMaxInfluence = splitFactionMaxInfluence;
 
-		World.AddFactionToSplit (this);
-	}
+        World.AddFactionToSplit(this);
+    }
 
-	protected abstract void GenerateName (Faction parentFaction);
+    protected abstract void GenerateName(Faction parentFaction);
 
-	protected Agent RequestCurrentLeader (int leadershipSpan, int minStartAge, int maxStartAge, int offset) {
-		
-//		Profiler.BeginSample ("RequestCurrentLeader - GeneratePastSpawnDate");
+    protected Agent RequestCurrentLeader(int leadershipSpan, int minStartAge, int maxStartAge, int offset)
+    {
+        //		Profiler.BeginSample ("RequestCurrentLeader - GeneratePastSpawnDate");
 
-		long spawnDate = CoreGroup.GeneratePastSpawnDate (CoreGroup.LastUpdateDate, leadershipSpan, offset++);
+        long spawnDate = CoreGroup.GeneratePastSpawnDate(CoreGroup.LastUpdateDate, leadershipSpan, offset++);
 
-//		Profiler.EndSample ();
+        //		Profiler.EndSample ();
 
-		if ((LastLeader != null) && (spawnDate < LeaderStartDate)) {
+        if ((LastLeader != null) && (spawnDate < LeaderStartDate))
+        {
 
-			return LastLeader;
-		}
+            return LastLeader;
+        }
 
-//		Profiler.BeginSample ("RequestCurrentLeader - GetLocalRandomInt");
+        //		Profiler.BeginSample ("RequestCurrentLeader - GetLocalRandomInt");
 
-		// Generate a birthdate from the leader spawnDate (when the leader takes over)
-		int startAge = minStartAge + CoreGroup.GetLocalRandomInt (spawnDate, offset++, maxStartAge - minStartAge);
+        // Generate a birthdate from the leader spawnDate (when the leader takes over)
+        int startAge = minStartAge + CoreGroup.GetLocalRandomInt(spawnDate, offset++, maxStartAge - minStartAge);
 
-//		Profiler.EndSample ();
+        //		Profiler.EndSample ();
 
-		Profiler.BeginSample ("RequestCurrentLeader - new Agent");
+        Profiler.BeginSample("RequestCurrentLeader - new Agent");
 
-		LastLeader = new Agent (CoreGroup, spawnDate - startAge);
-		LeaderStartDate = spawnDate;
+        LastLeader = new Agent(CoreGroup, spawnDate - startAge, Id);
+        LeaderStartDate = spawnDate;
 
-		Profiler.EndSample ();
+        Profiler.EndSample();
 
-		return LastLeader;
-	}
+        return LastLeader;
+    }
 
-	protected Agent RequestNewLeader (int leadershipSpan, int minStartAge, int maxStartAge, int offset)
-	{
-		long spawnDate = CoreGroup.GeneratePastSpawnDate (CoreGroup.LastUpdateDate, leadershipSpan, offset++);
+    protected Agent RequestNewLeader(int leadershipSpan, int minStartAge, int maxStartAge, int offset)
+    {
+        long spawnDate = CoreGroup.GeneratePastSpawnDate(CoreGroup.LastUpdateDate, leadershipSpan, offset++);
 
-		// Generate a birthdate from the leader spawnDate (when the leader takes over)
-		int startAge = minStartAge + CoreGroup.GetLocalRandomInt (spawnDate, offset++, maxStartAge - minStartAge);
+        // Generate a birthdate from the leader spawnDate (when the leader takes over)
+        int startAge = minStartAge + CoreGroup.GetLocalRandomInt(spawnDate, offset++, maxStartAge - minStartAge);
 
-		LastLeader = new Agent (CoreGroup, spawnDate - startAge);
-		LeaderStartDate = spawnDate;
+        LastLeader = new Agent(CoreGroup, spawnDate - startAge, Id);
+        LeaderStartDate = spawnDate;
 
-		return LastLeader;
-	}
+        return LastLeader;
+    }
 
-	protected abstract Agent RequestCurrentLeader ();
-	protected abstract Agent RequestNewLeader ();
+    protected abstract Agent RequestCurrentLeader();
+    protected abstract Agent RequestNewLeader();
 
-	public abstract void Split ();
+    public abstract void Split();
 
-	public virtual void HandleUpdateEvent () {
-	
-	}
+    public virtual void HandleUpdateEvent()
+    {
 
-	public void PreUpdate ()
+    }
+
+    public void PreUpdate ()
     {
 
 #if DEBUG

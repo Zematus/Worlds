@@ -12,329 +12,373 @@ using System.Xml.Serialization;
 // -- Strength
 using UnityEngine.Profiling;
 
-public class Agent : ISynchronizable {
+public class Agent : ISynchronizable
+{
 
-	public const int MaxAttributeValue = 30;
-	public const int MinAttributeValue = 3;
+    public const int MaxAttributeValue = 30;
+    public const int MinAttributeValue = 3;
 
-	public const int AttributeGenMax = 18;
+    public const int AttributeGenMax = 18;
 
-	public const long MaxLifespan = 40151; // Prime number to hide birthdate cycle artifacts
+    public const long MaxLifespan = 40151; // Prime number to hide birthdate cycle artifacts
 
-	public const int WisdomAgeOffset = 7;
-	public const int WisdomAgeFactor = 5 * World.YearLength;
+    public const int WisdomAgeOffset = 7;
+    public const int WisdomAgeFactor = 5 * World.YearLength;
 
-	[XmlAttribute]
-	public long Id;
+    [XmlAttribute]
+    public long Id;
 
-	[XmlAttribute("Birth")]
-	public long BirthDate;
+    [XmlAttribute("Birth")]
+    public long BirthDate;
 
-	[XmlAttribute("Fem")]
-	public bool IsFemale;
+    [XmlAttribute("Fem")]
+    public bool IsFemale;
 
-	[XmlAttribute("Cha")]
-	public int BaseCharisma;
+    [XmlAttribute("Cha")]
+    public int BaseCharisma;
 
-	[XmlAttribute("Wis")]
-	public int BaseWisdom;
+    [XmlAttribute("Wis")]
+    public int BaseWisdom;
 
-	[XmlAttribute("GrpId")]
-	public long GroupId;
+    [XmlAttribute("GrpId")]
+    public long GroupId;
 
-	[XmlAttribute("StilPres")]
-	public bool StillPresent = true;
+    [XmlAttribute("StilPres")]
+    public bool StillPresent = true;
 
-    [XmlAttribute("NameElem")]
-    public string NameElementId = null;
+    //[XmlAttribute("NameElem")]
+    //public string NameElementId = null;
 
-    [XmlAttribute("NameAttrName")]
-    public string NameAttributeName = null;
-
-    [XmlIgnore]
-	public World World;
-
-	[XmlIgnore]
-	public CellGroup Group;
+    //[XmlAttribute("NameAttrName")]
+    //public string NameAttributeName = null;
 
     [XmlIgnore]
-    public Name Name {
-        get {
-            if (_name == null) {
-                GenerateName();
-            }
+    public World World;
+
+    [XmlIgnore]
+    public CellGroup Group;
+
+    [XmlIgnore]
+    public Name Name
+    {
+        get
+        {
+            //if (_name == null)
+            //{
+            //    GenerateName();
+            //}
 
             return _name;
         }
     }
 
     [XmlIgnore]
-    public long Age {
-		get {
-			return World.CurrentDate - BirthDate;
-		}
-	}
+    public long Age
+    {
+        get
+        {
+            return World.CurrentDate - BirthDate;
+        }
+    }
 
     [XmlIgnore]
-    public int Charisma {
-		get {
-			return BaseCharisma;
-		}
-	}
+    public int Charisma
+    {
+        get
+        {
+            return BaseCharisma;
+        }
+    }
 
     [XmlIgnore]
-    public int Wisdom {
-		get {
-			int wisdom = BaseWisdom + (int)(Age / WisdomAgeFactor) - WisdomAgeOffset;
-//			wisdom = (wisdom > MaxAttributeValue) ? MaxAttributeValue : wisdom;
+    public int Wisdom
+    {
+        get
+        {
+            int wisdom = BaseWisdom + (int)(Age / WisdomAgeFactor) - WisdomAgeOffset;
+            //			wisdom = (wisdom > MaxAttributeValue) ? MaxAttributeValue : wisdom;
 
-			return (wisdom > MinAttributeValue) ? wisdom : MinAttributeValue;
-		}
-	}
+            return (wisdom > MinAttributeValue) ? wisdom : MinAttributeValue;
+        }
+    }
 
     private Name _name = null;
 
-	public Agent () {
+    private int _rngOffset;
 
-	}
+    public Agent()
+    {
 
-	public Agent (CellGroup birthGroup, long birthDate) {
+    }
 
-		World = birthGroup.World;
+    public Agent(CellGroup birthGroup, long birthDate, long idOffset)
+    {
+        World = birthGroup.World;
 
-		GroupId = birthGroup.Id;
-		Group = birthGroup;
+        GroupId = birthGroup.Id;
+        Group = birthGroup;
 
-		BirthDate = birthDate;
+        BirthDate = birthDate;
 
-		int idOffset = 0;
+        idOffset += birthGroup.Id;
 
-		Profiler.BeginSample ("new Agent - GenerateUniqueIdentifier");
+        Profiler.BeginSample("new Agent - GenerateUniqueIdentifier");
 
-		Id = GenerateUniqueIdentifier (birthDate, 1000L, idOffset);
+        Id = GenerateUniqueIdentifier(birthDate, 1000L, idOffset);
 
-		Profiler.EndSample ();
+        Profiler.EndSample();
 
-		Profiler.BeginSample ("new Agent - GenerateBio");
+        Profiler.BeginSample("new Agent - GenerateBio");
 
-		GenerateBio ();
+        GenerateBio();
 
-		Profiler.EndSample ();
+        Profiler.EndSample();
 
         Profiler.BeginSample("new Agent - PregenerateName");
 
         PregenerateName();
 
         Profiler.EndSample();
-	}
+    }
 
-	public void Destroy () {
+    public void Destroy()
+    {
+        StillPresent = false;
+    }
 
-		StillPresent = false;
-	}
+    public long GenerateUniqueIdentifier(long date, long oom, long offset)
+    {
+        return Group.GenerateUniqueIdentifier(date, oom, offset);
+    }
 
-	public long GenerateUniqueIdentifier (long date, long oom, long offset) {
+    private void GenerateBio()
+    {
+        int rngOffset = RngOffsets.AGENT_GENERATE_BIO + (int)Id;
 
-		return Group.GenerateUniqueIdentifier (date, oom, offset);
-	}
+        IsFemale = Group.GetLocalRandomFloat(BirthDate, rngOffset++) > 0.5f;
+        BaseCharisma = MinAttributeValue + Group.GetLocalRandomInt(BirthDate, rngOffset++, AttributeGenMax);
+        BaseWisdom = MinAttributeValue + Group.GetLocalRandomInt(BirthDate, rngOffset++, AttributeGenMax);
+    }
 
-	private void GenerateBio () {
+    private void GenerateNameFromElement(Element element, GetRandomIntDelegate getRandomInt)
+    {
+        Language language = Group.Culture.Language;
 
-		int rngOffset = RngOffsets.AGENT_GENERATE_BIO + (int)Group.Id;
+        string untranslatedName;
 
-		IsFemale = Group.GetLocalRandomFloat (BirthDate, rngOffset++) > 0.5f;
-		BaseCharisma = MinAttributeValue + Group.GetLocalRandomInt (BirthDate, rngOffset++, AttributeGenMax);
-		BaseWisdom = MinAttributeValue + Group.GetLocalRandomInt (BirthDate, rngOffset++, AttributeGenMax);
-	}
+        string adjective = element.Adjectives.RandomSelect(getRandomInt, 15);
 
-	private void GenerateNameFromElement (Element element, GetRandomIntDelegate getRandomInt) {
-		
-		Language language = Group.Culture.Language;
+        if (!string.IsNullOrEmpty(adjective))
+        {
+            adjective = "[adj]" + adjective + " ";
+        }
 
-		string untranslatedName = "";
+        Association association = element.Associations.RandomSelect(getRandomInt);
 
-		string adjective = element.Adjectives.RandomSelect (getRandomInt, 15);
+        string nounGender = (IsFemale) ? "[fn]" : "[mn]";
 
-		if (!string.IsNullOrEmpty (adjective)) {
-			adjective = "[adj]" + adjective + " ";
-		}
+        string subjectNoun = "[name]" + nounGender + association.Noun;
 
-		Association association = element.Associations.RandomSelect (getRandomInt);
+        if (association.IsAdjunction)
+        {
+            untranslatedName = "[Proper][NP](" + adjective + "[nad]" + element.SingularName + " " + subjectNoun + ")";
+        }
+        else
+        {
+            string article = 
+                ((association.Form == AssociationForms.DefiniteSingular) ||
+                (association.Form == AssociationForms.DefinitePlural) ||
+                (association.Form == AssociationForms.NameSingular)) ? 
+                "the " : "";
 
-		string nounGender = (IsFemale) ? "[fn]" : "[mn]";
+            string uncountableProp = (association.Form == AssociationForms.Uncountable) ? "[un]" : "";
 
-		string subjectNoun = "[name]" + nounGender + association.Noun;
+            string elementNoun = element.SingularName;
 
-		if (association.IsAdjunction) {
-			untranslatedName = "[Proper][NP](" + adjective + "[nad]" + element.SingularName + " " + subjectNoun + ")";
+            if ((association.Form == AssociationForms.DefinitePlural) ||
+                (association.Form == AssociationForms.IndefinitePlural))
+            {
+                elementNoun = element.PluralName;
+            }
 
-		} else {
+            elementNoun = article + adjective + uncountableProp + elementNoun;
 
-			string article = "";
+            untranslatedName = "[PpPP]([Proper][NP](" + subjectNoun + ") [PP](" + association.Relation + " [Proper][NP](" + elementNoun + ")))";
+        }
 
-			if ((association.Form == AssociationForms.DefiniteSingular) ||
-				(association.Form == AssociationForms.DefinitePlural) ||
-				(association.Form == AssociationForms.NameSingular)) {
+        _name = new Name(untranslatedName, language, World);
+    }
 
-				article = "the ";
-			}
+    private void GenerateNameFromRegionAttribute(RegionAttribute attribute, GetRandomIntDelegate getRandomInt)
+    {
+        Language language = Group.Culture.Language;
 
-			string uncountableProp = (association.Form == AssociationForms.Uncountable) ? "[un]" : "";
+        string untranslatedName;
 
-			string elementNoun = element.SingularName;
+        string adjective = attribute.Adjectives.RandomSelect(getRandomInt, 15);
 
-			if ((association.Form == AssociationForms.DefinitePlural) ||
-				(association.Form == AssociationForms.IndefinitePlural)) {
+        if (!string.IsNullOrEmpty(adjective))
+        {
+            adjective = "[adj]" + adjective + " ";
+        }
 
-				elementNoun = element.PluralName;
-			}
+        Association association = attribute.Associations.RandomSelect(getRandomInt);
 
-			elementNoun = article + adjective + uncountableProp + elementNoun;
+        string nounGender = (IsFemale) ? "[fn]" : "[mn]";
 
-			untranslatedName = "[PpPP]([Proper][NP](" + subjectNoun + ") [PP](" + association.Relation + " [Proper][NP](" + elementNoun + ")))";
-		}
-        
-		_name = new Name (untranslatedName, language, World);
-	}
+        string subjectNoun = "[name]" + nounGender + association.Noun;
 
-	private void GenerateNameFromRegionAttribute (RegionAttribute attribute, GetRandomIntDelegate getRandomInt) {
+        if (association.IsAdjunction)
+        {
+            string variationNoun = attribute.GetRandomSingularVariation(getRandomInt, false);
 
-		Language language = Group.Culture.Language;
+            untranslatedName = "[Proper][NP](" + adjective + "[nad]" + variationNoun + " " + subjectNoun + ")";
+        }
+        else
+        {
+            string article = 
+                ((association.Form == AssociationForms.DefiniteSingular) ||
+                (association.Form == AssociationForms.DefinitePlural) ||
+                (association.Form == AssociationForms.NameSingular)) ? 
+                "the " : "";
 
-		string untranslatedName = "";
+            string uncountableProp = (association.Form == AssociationForms.Uncountable) ? "[un]" : "";
 
-		string adjective = attribute.Adjectives.RandomSelect (getRandomInt, 15);
+            string variationNoun;
 
-		if (!string.IsNullOrEmpty (adjective)) {
-			adjective = "[adj]" + adjective + " ";
-		}
+            if ((association.Form == AssociationForms.DefinitePlural) ||
+                (association.Form == AssociationForms.IndefinitePlural))
+            {
+                variationNoun = attribute.GetRandomPluralVariation(getRandomInt, false);
+            }
+            else
+            {
+                variationNoun = attribute.GetRandomSingularVariation(getRandomInt, false);
+            }
 
-		Association association = attribute.Associations.RandomSelect (getRandomInt);
+            variationNoun = article + adjective + uncountableProp + variationNoun;
 
-		string nounGender = (IsFemale) ? "[fn]" : "[mn]";
+            untranslatedName = "[PpPP]([Proper][NP](" + subjectNoun + ") [PP](" + association.Relation + " [Proper][NP](" + variationNoun + ")))";
+        }
 
-		string subjectNoun = "[name]" + nounGender + association.Noun;
+        _name = new Name(untranslatedName, language, World);
+    }
 
-		if (association.IsAdjunction) {
-
-			string variationNoun = attribute.GetRandomSingularVariation (getRandomInt, false);
-
-			untranslatedName = "[Proper][NP](" + adjective + "[nad]" + variationNoun + " " + subjectNoun + ")";
-
-		} else {
-
-			string article = "";
-
-			if ((association.Form == AssociationForms.DefiniteSingular) ||
-				(association.Form == AssociationForms.DefinitePlural) ||
-				(association.Form == AssociationForms.NameSingular)) {
-
-				article = "the ";
-			}
-
-			string uncountableProp = (association.Form == AssociationForms.Uncountable) ? "[un]" : "";
-
-			string variationNoun;
-
-			if ((association.Form == AssociationForms.DefinitePlural) ||
-			    (association.Form == AssociationForms.IndefinitePlural)) {
-
-				variationNoun = attribute.GetRandomPluralVariation (getRandomInt, false);
-			} else {
-
-				variationNoun = attribute.GetRandomSingularVariation (getRandomInt, false);
-			}
-
-			variationNoun = article + adjective + uncountableProp + variationNoun;
-
-			untranslatedName = "[PpPP]([Proper][NP](" + subjectNoun + ") [PP](" + association.Relation + " [Proper][NP](" + variationNoun + ")))";
-		}
-        
-		_name = new Name (untranslatedName, language, World);
-	}
+    private int GetRandomInt(int maxValue)
+    {
+        return Group.GetLocalRandomInt(BirthDate, _rngOffset++, maxValue);
+    }
 
     private void PregenerateName()
     {
-        int rngOffset = RngOffsets.AGENT_GENERATE_NAME + (int)Group.Id;
-
-        GetRandomIntDelegate getRandomInt = (int maxValue) => Group.GetLocalRandomInt(BirthDate, rngOffset++, maxValue);
+        _rngOffset = RngOffsets.AGENT_PREGENERATE_NAME + (int)Id;
 
         Region region = Group.Cell.Region;
 
-        List<Element> remainingElements = new List<Element>(region.Elements.Where(e => e.Associations.Length > 0));
+        Profiler.BeginSample("region.Elements.Where");
 
-        List<RegionAttribute> remainingAttributes = new List<RegionAttribute>(region.Attributes.Where(a => a.Associations.Length > 0));
+        List<Element> elements = region.Elements;
 
-        int optionCount = remainingElements.Count + remainingAttributes.Count;
+        Profiler.EndSample();
+
+        Profiler.BeginSample("region.Attributes.Where");
+
+        List<RegionAttribute> attributes = region.Attributes;
+
+        Profiler.EndSample();
+
+        int optionCount = elements.Count + attributes.Count;
 
         if (optionCount <= 0)
         {
             throw new System.Exception("No elements nor attributes to choose name from");
         }
 
-        if (remainingElements.Count > getRandomInt(optionCount))
+        Profiler.BeginSample("remainingElements.Count > getRandomInt");
+
+        if (elements.Count > GetRandomInt(optionCount))
         {
-            Element element = remainingElements.RandomSelectAndRemove(getRandomInt);
+            Profiler.BeginSample("RandomSelectAndRemove");
 
-            NameElementId = element.Id;
-        }
-        else
-        {
-            RegionAttribute attribute = remainingAttributes.RandomSelectAndRemove(getRandomInt);
+            Element element = elements.RandomSelect(GetRandomInt);
 
-            NameAttributeName = attribute.Name;
-        }
-    }
-
-	private void GenerateName ()
-    {
-        int rngOffset = RngOffsets.AGENT_GENERATE_NAME + (int)Group.Id;
-
-        GetRandomIntDelegate getRandomInt = (int maxValue) => Group.GetLocalRandomInt(BirthDate, rngOffset++, maxValue);
-
-        if (NameElementId != null) {
-
-			Element element = Element.Elements[NameElementId];
+            Profiler.EndSample();
 
             Profiler.BeginSample("GenerateName - GenerateNameFromElement");
 
-			GenerateNameFromElement (element, getRandomInt);
+            GenerateNameFromElement(element, GetRandomInt);
+
+            Profiler.EndSample();
+        }
+        else
+        {
+            Profiler.BeginSample("RandomSelectAndRemove");
+
+            RegionAttribute attribute = attributes.RandomSelect(GetRandomInt);
 
             Profiler.EndSample();
 
-		} else {
-
-			RegionAttribute attribute = RegionAttribute.Attributes[NameAttributeName];
-
             Profiler.BeginSample("GenerateName - GenerateNameFromRegionAttribute");
 
-            GenerateNameFromRegionAttribute (attribute, getRandomInt);
+            GenerateNameFromRegionAttribute(attribute, GetRandomInt);
 
             Profiler.EndSample();
         }
 
-//		#if DEBUG
-//		Debug.Log ("Leader #" + Id + " name: " + Name);
-//		#endif
-	}
+        Profiler.EndSample();
+    }
 
-	public virtual void Synchronize ()
+    //private void GenerateName()
+    //{
+    //    _rngOffset = RngOffsets.AGENT_GENERATE_NAME + (int)Id;
+
+    //    if (NameElementId != null)
+    //    {
+    //        Element element = Element.Elements[NameElementId];
+
+    //        Profiler.BeginSample("GenerateName - GenerateNameFromElement");
+
+    //        GenerateNameFromElement(element, GetRandomInt);
+
+    //        Profiler.EndSample();
+
+    //    }
+    //    else
+    //    {
+    //        RegionAttribute attribute = RegionAttribute.Attributes[NameAttributeName];
+
+    //        Profiler.BeginSample("GenerateName - GenerateNameFromRegionAttribute");
+
+    //        GenerateNameFromRegionAttribute(attribute, GetRandomInt);
+
+    //        Profiler.EndSample();
+    //    }
+
+    //    //		#if DEBUG
+    //    //		Debug.Log ("Leader #" + Id + " name: " + Name);
+    //    //		#endif
+    //}
+
+    public virtual void Synchronize()
     {
-		//Name.Synchronize ();
-	}
+        //Name.Synchronize ();
+    }
 
-	public virtual void FinalizeLoad ()
+    public virtual void FinalizeLoad()
     {
-		Group = World.GetGroup (GroupId);
+        Group = World.GetGroup(GroupId);
 
-		if (Group == null) {
-			throw new System.Exception ("Missing Group with Id " + GroupId);
-		}
-	}
+        if (Group == null)
+        {
+            throw new System.Exception("Missing Group with Id " + GroupId);
+        }
+    }
 
-	public string PossessiveNoun {
-		get { 
-			return (IsFemale) ? "her" : "his"; 
-		}
-	}
+    public string PossessiveNoun
+    {
+        get
+        {
+            return (IsFemale) ? "her" : "his";
+        }
+    }
 }

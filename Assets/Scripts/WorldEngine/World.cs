@@ -68,7 +68,8 @@ public static class RngOffsets {
 	public const int CLAN_SPLIT = 85500;
 
 	public const int AGENT_GENERATE_BIO = 90000;
-	public const int AGENT_GENERATE_NAME = 91000;
+    public const int AGENT_PREGENERATE_NAME = 90500;
+    //public const int AGENT_GENERATE_NAME = 91000;
 
 	public const int ROUTE_CHOOSE_NEXT_DEPTH_SEA_CELL = 100000;
 	public const int ROUTE_CHOOSE_NEXT_COASTAL_CELL = 110000;
