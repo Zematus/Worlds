@@ -1215,7 +1215,7 @@ public class GuiManagerScript : MonoBehaviour {
             case PlanetOverlay.PolityTerritory:
                 planetOverlayStr = "_polity_territories";
                 break;
-            case PlanetOverlay.PolityClusters:
+            case PlanetOverlay.PolityCluster:
                 planetOverlayStr = "_polity_vlusters";
                 break;
             case PlanetOverlay.FactionCoreDistance:
@@ -1620,7 +1620,7 @@ public class GuiManagerScript : MonoBehaviour {
         }
         else if (OverlayDialogPanelScript.PolityClustersToggle.isOn)
         {
-            ChangePlanetOverlay(PlanetOverlay.PolityClusters, false);
+            ChangePlanetOverlay(PlanetOverlay.PolityCluster, false);
         }
         else if (OverlayDialogPanelScript.DistancesToCoresToggle.isOn)
         {
@@ -3335,7 +3335,7 @@ public class GuiManagerScript : MonoBehaviour {
             AddCellDataToInfoPanel_PolityTerritory(cell);
         }
 
-        if (_planetOverlay == PlanetOverlay.PolityClusters)
+        if (_planetOverlay == PlanetOverlay.PolityCluster)
         {
             AddCellDataToInfoPanel_PolityClusters(cell);
         }

@@ -5,222 +5,228 @@ using System.Linq;
 using System.Xml;
 using System.Xml.Serialization;
 
-public abstract class PolityDecision : Decision {
+public abstract class PolityDecision : Decision
+{
+    public Polity Polity;
 
-	public Polity Polity;
+    public PolityDecision(Polity polity, long eventId) : base(eventId)
+    {
+        Polity = polity;
+    }
 
-	public PolityDecision (Polity polity, long eventId) : base (eventId) {
+    protected static string GenerateEffectsString_IncreasePreference(Polity polity, string preferenceId, float minPercentChange, float maxPercentChange)
+    {
+        float charismaFactor = polity.CurrentLeader.Charisma / 10f;
+        float wisdomFactor = polity.CurrentLeader.Wisdom / 15f;
 
-		Polity = polity;
-	}
+        float attributesFactor = Mathf.Max(charismaFactor, wisdomFactor);
+        attributesFactor = Mathf.Clamp(attributesFactor, 0.5f, 2f);
 
-	protected static string GenerateEffectsString_IncreasePreference (Polity polity, string preferenceId, float minPercentChange, float maxPercentChange) {
+        float modMinPercentChange = minPercentChange * attributesFactor;
+        float modMaxPercentChange = maxPercentChange * attributesFactor;
 
-		float charismaFactor = polity.CurrentLeader.Charisma / 10f;
-		float wisdomFactor = polity.CurrentLeader.Wisdom / 15f;
+        Faction dominantFaction = polity.DominantFaction;
 
-		float attributesFactor = Mathf.Max (charismaFactor, wisdomFactor);
-		attributesFactor = Mathf.Clamp (attributesFactor, 0.5f, 2f);
+        CulturalPreference preference = dominantFaction.Culture.GetPreference(preferenceId);
+        float originalValue = preference.Value;
 
-		float modMinPercentChange = minPercentChange * attributesFactor;
-		float modMaxPercentChange = maxPercentChange * attributesFactor;
+        float minValChange = MathUtility.IncreaseByPercent(originalValue, modMinPercentChange);
+        float maxValChange = MathUtility.IncreaseByPercent(originalValue, modMaxPercentChange);
 
-		Faction dominantFaction = polity.DominantFaction;
+        return polity.GetNameAndTypeStringBold().FirstLetterToUpper() + ": " + dominantFaction.GetNameAndTypeStringBold().AddPossApos() + " " + preference.Name.ToLower() +
+            " preference (" + originalValue.ToString("0.00") + ") increases to: " +
+            minValChange.ToString("0.00") + " - " + maxValChange.ToString("0.00");
+    }
 
-		CulturalPreference preference = dominantFaction.Culture.GetPreference (preferenceId);
-		float originalValue = preference.Value;
+    protected static string GenerateEffectsString_DecreasePreference(Polity polity, string preferenceId, float minPercentChange, float maxPercentChange)
+    {
+        float charismaFactor = polity.CurrentLeader.Charisma / 10f;
+        float wisdomFactor = polity.CurrentLeader.Wisdom / 15f;
 
-		float minValChange = MathUtility.IncreaseByPercent (originalValue, modMinPercentChange);
-		float maxValChange = MathUtility.IncreaseByPercent (originalValue, modMaxPercentChange);
+        float attributesFactor = Mathf.Max(charismaFactor, wisdomFactor);
+        attributesFactor = Mathf.Clamp(attributesFactor, 0.5f, 2f);
 
-		return polity.GetNameAndTypeStringBold ().FirstLetterToUpper () + ": " + dominantFaction.GetNameAndTypeStringBold ().AddPossApos () + " " + preference.Name.ToLower () + 
-			" preference (" + originalValue.ToString ("0.00") + ") increases to: " + 
-			minValChange.ToString ("0.00") + " - " + maxValChange.ToString ("0.00");
-	}
+        float modMinPercentChange = minPercentChange / attributesFactor;
+        float modMaxPercentChange = maxPercentChange / attributesFactor;
 
-	protected static string GenerateEffectsString_DecreasePreference (Polity polity, string preferenceId, float minPercentChange, float maxPercentChange) {
+        Faction dominantFaction = polity.DominantFaction;
 
-		float charismaFactor = polity.CurrentLeader.Charisma / 10f;
-		float wisdomFactor = polity.CurrentLeader.Wisdom / 15f;
+        CulturalPreference preference = dominantFaction.Culture.GetPreference(preferenceId);
+        float originalValue = preference.Value;
 
-		float attributesFactor = Mathf.Max (charismaFactor, wisdomFactor);
-		attributesFactor = Mathf.Clamp (attributesFactor, 0.5f, 2f);
+        float minValChange = MathUtility.DecreaseByPercent(originalValue, modMinPercentChange);
+        float maxValChange = MathUtility.DecreaseByPercent(originalValue, modMaxPercentChange);
 
-		float modMinPercentChange = minPercentChange / attributesFactor;
-		float modMaxPercentChange = maxPercentChange / attributesFactor;
+        return polity.GetNameAndTypeStringBold().FirstLetterToUpper() + ": " + dominantFaction.GetNameAndTypeStringBold().AddPossApos() + " " + preference.Name.ToLower() +
+            " preference (" + originalValue.ToString("0.00") + ") decreases to: " +
+            minValChange.ToString("0.00") + " - " + maxValChange.ToString("0.00");
+    }
 
-		Faction dominantFaction = polity.DominantFaction;
+    protected static string GenerateEffectsString_IncreaseRelationship(Polity polity, Polity targetPolity, float minPercentChange, float maxPercentChange)
+    {
+        float charismaFactor = polity.CurrentLeader.Charisma / 10f;
+        float wisdomFactor = polity.CurrentLeader.Wisdom / 15f;
 
-		CulturalPreference preference = dominantFaction.Culture.GetPreference (preferenceId);
-		float originalValue = preference.Value;
+        float attributesFactor = Mathf.Max(charismaFactor, wisdomFactor);
+        attributesFactor = Mathf.Clamp(attributesFactor, 0.5f, 2f);
 
-		float minValChange = MathUtility.DecreaseByPercent (originalValue, modMinPercentChange);
-		float maxValChange = MathUtility.DecreaseByPercent (originalValue, modMaxPercentChange);
+        float modMinPercentChange = minPercentChange * attributesFactor;
+        float modMaxPercentChange = maxPercentChange * attributesFactor;
 
-		return polity.GetNameAndTypeStringBold ().FirstLetterToUpper () + ": " + dominantFaction.GetNameAndTypeStringBold ().AddPossApos () + " " + preference.Name.ToLower () + 
-			" preference (" + originalValue.ToString ("0.00") + ") decreases to: " + 
-			minValChange.ToString ("0.00") + " - " + maxValChange.ToString ("0.00");
-	}
+        Faction dominantFaction = polity.DominantFaction;
+        Faction targetdominantFaction = targetPolity.DominantFaction;
 
-	protected static string GenerateEffectsString_IncreaseRelationship (Polity polity, Polity targetPolity, float minPercentChange, float maxPercentChange) {
+        float originalValue = dominantFaction.GetRelationshipValue(targetdominantFaction);
 
-		float charismaFactor = polity.CurrentLeader.Charisma / 10f;
-		float wisdomFactor = polity.CurrentLeader.Wisdom / 15f;
+        float minValChange = MathUtility.IncreaseByPercent(originalValue, modMinPercentChange);
+        float maxValChange = MathUtility.IncreaseByPercent(originalValue, modMaxPercentChange);
 
-		float attributesFactor = Mathf.Max (charismaFactor, wisdomFactor);
-		attributesFactor = Mathf.Clamp (attributesFactor, 0.5f, 2f);
+        return polity.GetNameAndTypeStringBold().FirstLetterToUpper() + ": " + dominantFaction.GetNameAndTypeStringBold().AddPossApos() + " relationship with " +
+            targetdominantFaction.GetNameAndTypeWithPolityStringBold() + " (" + originalValue.ToString("0.00") +
+            ") increases to: " + minValChange.ToString("0.00") + " - " + maxValChange.ToString("0.00");
+    }
 
-		float modMinPercentChange = minPercentChange * attributesFactor;
-		float modMaxPercentChange = maxPercentChange * attributesFactor;
+    protected static string GenerateEffectsString_DecreaseRelationship(Polity polity, Polity targetPolity, float minPercentChange, float maxPercentChange)
+    {
+        float charismaFactor = polity.CurrentLeader.Charisma / 10f;
+        float wisdomFactor = polity.CurrentLeader.Wisdom / 15f;
 
-		Faction dominantFaction = polity.DominantFaction;
-		Faction targetdominantFaction = targetPolity.DominantFaction;
+        float attributesFactor = Mathf.Max(charismaFactor, wisdomFactor);
+        attributesFactor = Mathf.Clamp(attributesFactor, 0.5f, 2f);
 
-		float originalValue = dominantFaction.GetRelationshipValue (targetdominantFaction);
+        float modMinPercentChange = minPercentChange / attributesFactor;
+        float modMaxPercentChange = maxPercentChange / attributesFactor;
 
-		float minValChange = MathUtility.IncreaseByPercent (originalValue, modMinPercentChange);
-		float maxValChange = MathUtility.IncreaseByPercent (originalValue, modMaxPercentChange);
+        Faction dominantFaction = polity.DominantFaction;
+        Faction targetdominantFaction = targetPolity.DominantFaction;
 
-		return polity.GetNameAndTypeStringBold ().FirstLetterToUpper () + ": " + dominantFaction.GetNameAndTypeStringBold ().AddPossApos () + " relationship with " + 
-			targetdominantFaction.GetNameAndTypeWithPolityStringBold () + " (" + originalValue.ToString ("0.00") + 
-			") increases to: " + minValChange.ToString ("0.00") + " - " + maxValChange.ToString ("0.00");
-	}
+        float originalValue = dominantFaction.GetRelationshipValue(targetdominantFaction);
 
-	protected static string GenerateEffectsString_DecreaseRelationship (Polity polity, Polity targetPolity, float minPercentChange, float maxPercentChange) {
+        float minValChange = MathUtility.DecreaseByPercent(originalValue, modMinPercentChange);
+        float maxValChange = MathUtility.DecreaseByPercent(originalValue, modMaxPercentChange);
 
-		float charismaFactor = polity.CurrentLeader.Charisma / 10f;
-		float wisdomFactor = polity.CurrentLeader.Wisdom / 15f;
+        return polity.GetNameAndTypeStringBold().FirstLetterToUpper() + ": " + dominantFaction.GetNameAndTypeStringBold().AddPossApos() + " relationship with " +
+            targetdominantFaction.GetNameAndTypeWithPolityStringBold() + " (" + originalValue.ToString("0.00") +
+            ") decreases to: " + minValChange.ToString("0.00") + " - " + maxValChange.ToString("0.00");
+    }
 
-		float attributesFactor = Mathf.Max (charismaFactor, wisdomFactor);
-		attributesFactor = Mathf.Clamp (attributesFactor, 0.5f, 2f);
+    protected static string GenerateResultEffectsString_IncreaseRelationship(Polity polity, Polity targetPolity)
+    {
+        Faction dominantFaction = polity.DominantFaction;
+        Faction targetdominantFaction = targetPolity.DominantFaction;
 
-		float modMinPercentChange = minPercentChange / attributesFactor;
-		float modMaxPercentChange = maxPercentChange / attributesFactor;
+        float value = dominantFaction.GetRelationshipValue(targetdominantFaction);
 
-		Faction dominantFaction = polity.DominantFaction;
-		Faction targetdominantFaction = targetPolity.DominantFaction;
+        return polity.GetNameAndTypeStringBold().FirstLetterToUpper() + ": " + dominantFaction.GetNameAndTypeStringBold().AddPossApos() + " relationship with " +
+            targetdominantFaction.GetNameAndTypeWithPolityStringBold() + " increases to: " + value.ToString("0.00");
+    }
 
-		float originalValue = dominantFaction.GetRelationshipValue (targetdominantFaction);
+    protected static string GenerateResultEffectsString_DecreaseRelationship(Polity polity, Polity targetPolity)
+    {
+        Faction dominantFaction = polity.DominantFaction;
+        Faction targetdominantFaction = targetPolity.DominantFaction;
 
-		float minValChange = MathUtility.DecreaseByPercent (originalValue, modMinPercentChange);
-		float maxValChange = MathUtility.DecreaseByPercent (originalValue, modMaxPercentChange);
+        float value = dominantFaction.GetRelationshipValue(targetdominantFaction);
 
-		return polity.GetNameAndTypeStringBold ().FirstLetterToUpper () + ": " + dominantFaction.GetNameAndTypeStringBold ().AddPossApos () + " relationship with " + 
-			targetdominantFaction.GetNameAndTypeWithPolityStringBold () + " (" + originalValue.ToString ("0.00") + 
-			") decreases to: " + minValChange.ToString ("0.00") + " - " + maxValChange.ToString ("0.00");
-	}
+        return polity.GetNameAndTypeStringBold().FirstLetterToUpper() + ": " + dominantFaction.GetNameAndTypeStringBold().AddPossApos() + " relationship with " +
+            targetdominantFaction.GetNameAndTypeWithPolityStringBold() + " decreases to: " + value.ToString("0.00");
+    }
 
-	protected static string GenerateResultEffectsString_IncreaseRelationship (Polity polity, Polity targetPolity) {
+    protected static string GenerateResultEffectsString_IncreasePreference(Polity polity, string preferenceId)
+    {
+        Faction dominantFaction = polity.DominantFaction;
 
-		Faction dominantFaction = polity.DominantFaction;
-		Faction targetdominantFaction = targetPolity.DominantFaction;
+        CulturalPreference preference = dominantFaction.Culture.GetPreference(preferenceId);
 
-		float value = dominantFaction.GetRelationshipValue (targetdominantFaction);
+        return polity.GetNameAndTypeStringBold().FirstLetterToUpper() + ": " + dominantFaction.GetNameAndTypeStringBold().AddPossApos() + " preference increases to: " +
+            preference.Value.ToString("0.00");
+    }
 
-		return polity.GetNameAndTypeStringBold ().FirstLetterToUpper () + ": " + dominantFaction.GetNameAndTypeStringBold ().AddPossApos () + " relationship with " + 
-			targetdominantFaction.GetNameAndTypeWithPolityStringBold () + " increases to: " + value.ToString ("0.00");
-	}
+    protected static string GenerateResultEffectsString_DecreasePreference(Polity polity, string preferenceId)
+    {
+        Faction dominantFaction = polity.DominantFaction;
 
-	protected static string GenerateResultEffectsString_DecreaseRelationship (Polity polity, Polity targetPolity) {
+        CulturalPreference preference = dominantFaction.Culture.GetPreference(preferenceId);
 
-		Faction dominantFaction = polity.DominantFaction;
-		Faction targetdominantFaction = targetPolity.DominantFaction;
+        return polity.GetNameAndTypeStringBold().FirstLetterToUpper() + ": " + dominantFaction.GetNameAndTypeStringBold().AddPossApos() + " preference decreases to: " +
+            preference.Value.ToString("0.00");
+    }
 
-		float value = dominantFaction.GetRelationshipValue (targetdominantFaction);
+    protected static void Effect_IncreaseRelationship(Polity sourcePolity, Polity targetPolity, float minPercentChange, float maxPercentChange, int rngOffset)
+    {
+        float charismaFactor = sourcePolity.CurrentLeader.Charisma / 10f;
+        float wisdomFactor = sourcePolity.CurrentLeader.Wisdom / 15f;
 
-		return polity.GetNameAndTypeStringBold ().FirstLetterToUpper () + ": " + dominantFaction.GetNameAndTypeStringBold ().AddPossApos () + " relationship with " + 
-			targetdominantFaction.GetNameAndTypeWithPolityStringBold () + " decreases to: " + value.ToString ("0.00");
-	}
+        float attributesFactor = Mathf.Max(charismaFactor, wisdomFactor);
+        attributesFactor = Mathf.Clamp(attributesFactor, 0.5f, 2f);
 
-	protected static string GenerateResultEffectsString_IncreasePreference (Polity polity, string preferenceId) {
+        float randomFactor = sourcePolity.GetNextLocalRandomFloat(rngOffset);
+        float relationshipPercentChange = (maxPercentChange - minPercentChange) * randomFactor + minPercentChange;
+        relationshipPercentChange *= attributesFactor;
 
-		Faction dominantFaction = polity.DominantFaction;
+        Faction sourceDominantFaction = sourcePolity.DominantFaction;
+        Faction targetdominantFaction = targetPolity.DominantFaction;
 
-		CulturalPreference preference = dominantFaction.Culture.GetPreference (preferenceId);
+        float newValue = MathUtility.IncreaseByPercent(sourceDominantFaction.GetRelationshipValue(targetdominantFaction), relationshipPercentChange);
+        Faction.SetRelationship(sourceDominantFaction, targetdominantFaction, newValue);
 
-		return polity.GetNameAndTypeStringBold ().FirstLetterToUpper () + ": " + dominantFaction.GetNameAndTypeStringBold ().AddPossApos () + " preference increases to: " + 
-			preference.Value.ToString ("0.00");
-	}
+        Manager.AddUpdatedCells(sourcePolity, CellUpdateType.Territory, CellUpdateSubType.Relationship);
+        Manager.AddUpdatedCells(targetPolity, CellUpdateType.Territory, CellUpdateSubType.Relationship);
+    }
 
-	protected static string GenerateResultEffectsString_DecreasePreference (Polity polity, string preferenceId) {
+    protected static void Effect_DecreaseRelationship(Polity sourcePolity, Polity targetPolity, float minPercentChange, float maxPercentChange, int rngOffset)
+    {
+        float charismaFactor = sourcePolity.CurrentLeader.Charisma / 10f;
+        float wisdomFactor = sourcePolity.CurrentLeader.Wisdom / 15f;
 
-		Faction dominantFaction = polity.DominantFaction;
+        float attributesFactor = Mathf.Max(charismaFactor, wisdomFactor);
+        attributesFactor = Mathf.Clamp(attributesFactor, 0.5f, 2f);
 
-		CulturalPreference preference = dominantFaction.Culture.GetPreference (preferenceId);
+        float randomFactor = sourcePolity.GetNextLocalRandomFloat(rngOffset);
+        float relationshipPercentChange = (maxPercentChange - minPercentChange) * randomFactor + minPercentChange;
+        relationshipPercentChange /= attributesFactor;
 
-		return polity.GetNameAndTypeStringBold ().FirstLetterToUpper () + ": " + dominantFaction.GetNameAndTypeStringBold ().AddPossApos () + " preference decreases to: " + 
-			preference.Value.ToString ("0.00");
-	}
+        Faction sourceDominantFaction = sourcePolity.DominantFaction;
+        Faction targetdominantFaction = targetPolity.DominantFaction;
 
-	protected static void Effect_IncreaseRelationship (Polity sourcePolity, Polity targetPolity, float minPercentChange, float maxPercentChange, int rngOffset) {
+        float newValue = MathUtility.DecreaseByPercent(sourceDominantFaction.GetRelationshipValue(targetdominantFaction), relationshipPercentChange);
+        Faction.SetRelationship(sourceDominantFaction, targetdominantFaction, newValue);
 
-		float charismaFactor = sourcePolity.CurrentLeader.Charisma / 10f;
-		float wisdomFactor = sourcePolity.CurrentLeader.Wisdom / 15f;
+        Manager.AddUpdatedCells(sourcePolity, CellUpdateType.Territory, CellUpdateSubType.Relationship);
+        Manager.AddUpdatedCells(targetPolity, CellUpdateType.Territory, CellUpdateSubType.Relationship);
+    }
 
-		float attributesFactor = Mathf.Max (charismaFactor, wisdomFactor);
-		attributesFactor = Mathf.Clamp (attributesFactor, 0.5f, 2f);
+    public static void Effect_IncreasePreference(Polity polity, string preferenceId, float minPercentChange, float maxPercentChange, int rngOffset)
+    {
+        float charismaFactor = polity.CurrentLeader.Charisma / 10f;
+        float wisdomFactor = polity.CurrentLeader.Wisdom / 15f;
 
-		float randomFactor = sourcePolity.GetNextLocalRandomFloat (rngOffset);
-		float relationshipPercentChange = (maxPercentChange - minPercentChange) * randomFactor + minPercentChange;
-		relationshipPercentChange *= attributesFactor;
+        float attributesFactor = Mathf.Max(charismaFactor, wisdomFactor);
+        attributesFactor = Mathf.Clamp(attributesFactor, 0.5f, 2f);
 
-		Faction sourceDominantFaction = sourcePolity.DominantFaction;
-		Faction targetdominantFaction = targetPolity.DominantFaction;
+        float randomFactor = polity.GetNextLocalRandomFloat(rngOffset++);
+        float preferencePercentChange = (maxPercentChange - minPercentChange) * randomFactor + minPercentChange;
+        preferencePercentChange *= attributesFactor;
 
-		float newValue = MathUtility.IncreaseByPercent (sourceDominantFaction.GetRelationshipValue (targetdominantFaction), relationshipPercentChange);
-		Faction.SetRelationship (sourceDominantFaction, targetdominantFaction, newValue);
-	}
+        Faction dominantFaction = polity.DominantFaction;
 
-	protected static void Effect_DecreaseRelationship (Polity sourcePolity, Polity targetPolity, float minPercentChange, float maxPercentChange, int rngOffset) {
+        dominantFaction.IncreasePreferenceValue(preferenceId, preferencePercentChange);
+    }
 
-		float charismaFactor = sourcePolity.CurrentLeader.Charisma / 10f;
-		float wisdomFactor = sourcePolity.CurrentLeader.Wisdom / 15f;
+    public static void Effect_DecreasePreference(Polity polity, string preferenceId, float minPercentChange, float maxPercentChange, int rngOffset)
+    {
+        float charismaFactor = polity.CurrentLeader.Charisma / 10f;
+        float wisdomFactor = polity.CurrentLeader.Wisdom / 15f;
 
-		float attributesFactor = Mathf.Max (charismaFactor, wisdomFactor);
-		attributesFactor = Mathf.Clamp (attributesFactor, 0.5f, 2f);
+        float attributesFactor = Mathf.Max(charismaFactor, wisdomFactor);
+        attributesFactor = Mathf.Clamp(attributesFactor, 0.5f, 2f);
 
-		float randomFactor = sourcePolity.GetNextLocalRandomFloat (rngOffset);
-		float relationshipPercentChange = (maxPercentChange - minPercentChange) * randomFactor + minPercentChange;
-		relationshipPercentChange /= attributesFactor;
+        float randomFactor = polity.GetNextLocalRandomFloat(rngOffset++);
+        float preferencePercentChange = (maxPercentChange - minPercentChange) * randomFactor + minPercentChange;
+        preferencePercentChange /= attributesFactor;
 
-		Faction sourceDominantFaction = sourcePolity.DominantFaction;
-		Faction targetdominantFaction = targetPolity.DominantFaction;
+        Faction dominantFaction = polity.DominantFaction;
 
-		float newValue = MathUtility.DecreaseByPercent (sourceDominantFaction.GetRelationshipValue (targetdominantFaction), relationshipPercentChange);
-		Faction.SetRelationship (sourceDominantFaction, targetdominantFaction, newValue);
-	}
-
-	public static void Effect_IncreasePreference (Polity polity, string preferenceId, float minPercentChange, float maxPercentChange, int rngOffset) {
-
-		float charismaFactor = polity.CurrentLeader.Charisma / 10f;
-		float wisdomFactor = polity.CurrentLeader.Wisdom / 15f;
-
-		float attributesFactor = Mathf.Max (charismaFactor, wisdomFactor);
-		attributesFactor = Mathf.Clamp (attributesFactor, 0.5f, 2f);
-
-		float randomFactor = polity.GetNextLocalRandomFloat (rngOffset++);
-		float preferencePercentChange = (maxPercentChange - minPercentChange) * randomFactor + minPercentChange;
-		preferencePercentChange *= attributesFactor;
-
-		Faction dominantFaction = polity.DominantFaction;
-
-		dominantFaction.IncreasePreferenceValue (preferenceId, preferencePercentChange);
-	}
-
-	public static void Effect_DecreasePreference (Polity polity, string preferenceId, float minPercentChange, float maxPercentChange, int rngOffset) {
-
-		float charismaFactor = polity.CurrentLeader.Charisma / 10f;
-		float wisdomFactor = polity.CurrentLeader.Wisdom / 15f;
-
-		float attributesFactor = Mathf.Max (charismaFactor, wisdomFactor);
-		attributesFactor = Mathf.Clamp (attributesFactor, 0.5f, 2f);
-
-		float randomFactor = polity.GetNextLocalRandomFloat (rngOffset++);
-		float preferencePercentChange = (maxPercentChange - minPercentChange) * randomFactor + minPercentChange;
-		preferencePercentChange /= attributesFactor;
-
-		Faction dominantFaction = polity.DominantFaction;
-
-		dominantFaction.DecreasePreferenceValue (preferenceId, preferencePercentChange);
-	}
+        dominantFaction.DecreasePreferenceValue(preferenceId, preferencePercentChange);
+    }
 }

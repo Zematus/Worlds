@@ -1243,7 +1243,7 @@ public class World : ISynchronizable {
     {
         _cellGroups.Add(group.Id, group);
 
-        Manager.AddUpdatedCell(group.Cell, CellUpdateType.GroupTerritoryAndCluster, CellUpdateSubType.AllButTerrain);
+        Manager.AddUpdatedCell(group.Cell, CellUpdateType.GroupTerritoryClusterAndLanguage, CellUpdateSubType.AllButTerrain);
 
         CellGroupCount++;
     }
@@ -1252,7 +1252,7 @@ public class World : ISynchronizable {
     {
         _cellGroups.Remove(group.Id);
 
-        Manager.AddUpdatedCell(group.Cell, CellUpdateType.GroupTerritoryAndCluster, CellUpdateSubType.AllButTerrain);
+        Manager.AddUpdatedCell(group.Cell, CellUpdateType.GroupTerritoryClusterAndLanguage, CellUpdateSubType.AllButTerrain);
 
         CellGroupCount--;
     }

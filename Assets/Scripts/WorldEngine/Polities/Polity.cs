@@ -462,29 +462,36 @@ public abstract class Polity : ISynchronizable {
 		World.AddPolityToUpdate (this);
 	}
 
-	public static void AddContact (Polity polityA, Polity polityB, int initialGroupCount) {
+	public static void AddContact(Polity polityA, Polity polityB, int initialGroupCount)
+    {
+        polityA.AddContact(polityB, initialGroupCount);
+        polityB.AddContact(polityA, initialGroupCount);
+    }
 
-		polityA.AddContact (polityB, initialGroupCount);
-		polityB.AddContact (polityA, initialGroupCount);
-	}
+    private void SetContactUpdatedCells(Polity polity)
+    {
+        Manager.AddUpdatedCells(polity, CellUpdateType.Territory, CellUpdateSubType.Relationship);
+    }
 
-	public void AddContact (Polity polity, int initialGroupCount) {
-
+    public void AddContact(Polity polity, int initialGroupCount)
+    {
         if (!Contacts.ContainsKey(polity.Id))
         {
-			PolityContact contact = new PolityContact (polity, initialGroupCount);
-            
-			Contacts.Add (polity.Id, contact);
+            PolityContact contact = new PolityContact(polity, initialGroupCount);
 
-			if (!DominantFaction.HasRelationship (polity.DominantFaction)) {
-			
-				DominantFaction.SetRelationship (polity.DominantFaction, 0.5f);
-			}
-		}
+            Contacts.Add(polity.Id, contact);
+
+            if (!DominantFaction.HasRelationship(polity.DominantFaction))
+            {
+                DominantFaction.SetRelationship(polity.DominantFaction, 0.5f);
+            }
+
+            SetContactUpdatedCells(polity);
+        }
         else
         {
-			throw new System.Exception ("Unable to modify existing polity contact. polityA: " + Id + ", polityB: " + polity.Id);
-		}
+            throw new System.Exception("Unable to modify existing polity contact. polityA: " + Id + ", polityB: " + polity.Id);
+        }
     }
 
     public static void RemoveContact(Polity polityA, Polity polityB)
@@ -493,78 +500,83 @@ public abstract class Polity : ISynchronizable {
         polityB.RemoveContact(polityA);
     }
 
-    public void RemoveContact (Polity polity) {
-
+    public void RemoveContact(Polity polity)
+    {
         if (!Contacts.ContainsKey(polity.Id))
-			return;
-
-		PolityContact contact = Contacts [polity.Id];
-
-        Contacts.Remove (polity.Id);
-	}
-
-	public int GetContactGroupCount (Polity polity) {
-
-        if (!Contacts.ContainsKey(polity.Id))
-			return 0;
-
-        return Contacts[polity.Id].GroupCount;
-	}
-
-	public static void IncreaseContactGroupCount (Polity polityA, Polity polityB) {
-
-		polityA.IncreaseContactGroupCount (polityB);
-		polityB.IncreaseContactGroupCount (polityA);
-	}
-
-	public void IncreaseContactGroupCount (Polity polity) {
-
-        if (!Contacts.ContainsKey(polity.Id))
-        {
-			PolityContact contact = new PolityContact (polity);
-            
-			Contacts.Add (polity.Id, contact);
-
-			if (!DominantFaction.HasRelationship (polity.DominantFaction)) {
-
-				DominantFaction.SetRelationship (polity.DominantFaction, 0.5f);
-			}
-		}
-
-        Contacts[polity.Id].GroupCount++;
-	}
-
-	public static void DecreaseContactGroupCount (Polity polityA, Polity polityB) {
-
-		polityA.DecreaseContactGroupCount (polityB);
-		polityB.DecreaseContactGroupCount (polityA);
-	}
-
-	public void DecreaseContactGroupCount (Polity polity) {
-
-        if (!Contacts.ContainsKey(polity.Id))
-			throw new System.Exception ("(id: " + Id + ") contact not present: " + polity.Id + " - Date: " + World.CurrentDate);
+            return;
 
         PolityContact contact = Contacts[polity.Id];
 
-		contact.GroupCount--;
+        Contacts.Remove(polity.Id);
 
-		if (contact.GroupCount <= 0)
-        {
-            Contacts.Remove (polity.Id);
-		}
+        SetContactUpdatedCells(polity);
+    }
 
-	}
-
-	public float GetRelationshipValue (Polity polity) {
-
+    public int GetContactGroupCount(Polity polity)
+    {
         if (!Contacts.ContainsKey(polity.Id))
-			throw new System.Exception ("(id: " + Id + ") contact not present: " + polity.Id);
+            return 0;
 
-		return DominantFaction.GetRelationshipValue (polity.DominantFaction);
-	}
+        return Contacts[polity.Id].GroupCount;
+    }
 
-	public IEnumerable<Faction> GetFactions (bool ordered = false) {
+    public static void IncreaseContactGroupCount(Polity polityA, Polity polityB)
+    {
+        polityA.IncreaseContactGroupCount(polityB);
+        polityB.IncreaseContactGroupCount(polityA);
+    }
+
+    public void IncreaseContactGroupCount(Polity polity)
+    {
+        if (!Contacts.ContainsKey(polity.Id))
+        {
+            PolityContact contact = new PolityContact(polity);
+
+            Contacts.Add(polity.Id, contact);
+
+            if (!DominantFaction.HasRelationship(polity.DominantFaction))
+            {
+                DominantFaction.SetRelationship(polity.DominantFaction, 0.5f);
+            }
+        }
+
+        Contacts[polity.Id].GroupCount++;
+
+        SetContactUpdatedCells(polity);
+    }
+
+    public static void DecreaseContactGroupCount(Polity polityA, Polity polityB)
+    {
+        polityA.DecreaseContactGroupCount(polityB);
+        polityB.DecreaseContactGroupCount(polityA);
+    }
+
+    public void DecreaseContactGroupCount(Polity polity)
+    {
+        if (!Contacts.ContainsKey(polity.Id))
+            throw new System.Exception("(id: " + Id + ") contact not present: " + polity.Id + " - Date: " + World.CurrentDate);
+
+        PolityContact contact = Contacts[polity.Id];
+
+        contact.GroupCount--;
+
+        if (contact.GroupCount <= 0)
+        {
+            Contacts.Remove(polity.Id);
+        }
+
+        SetContactUpdatedCells(polity);
+    }
+
+    public float GetRelationshipValue(Polity polity)
+    {
+        if (!Contacts.ContainsKey(polity.Id))
+            throw new System.Exception("(id: " + Id + ") contact not present: " + polity.Id);
+
+        return DominantFaction.GetRelationshipValue(polity.DominantFaction);
+    }
+
+    public IEnumerable<Faction> GetFactions (bool ordered = false) {
 
 		if (ordered) {
 			List<Faction> sortedFactions = new List<Faction> (Factions.Values);

@@ -69,49 +69,67 @@ public class CellCulture : Culture {
 				knowledge.CalculateAsymptote (d);
 			}
 		}
+
+        if (sourceCulture.Language != null)
+        {
+            SetLanguageUpdateCells();
+        }
 	}
 
-	public void AddPreferenceToAcquire (CellCulturalPreference preference) {
+    public void SetLanguageUpdateCells()
+    {
+        if (!Manager.ValidUpdateTypeAndSubtype(CellUpdateType.Language, CellUpdateSubType.Membership))
+            return;
 
-		if (PreferencesToAcquire.ContainsKey (preference.Id))
-			return;
+        Manager.AddUpdatedCell(Group.Cell);
 
-		PreferencesToAcquire.Add (preference.Id, preference);
-	}
+        foreach (CellGroup nGroup in Group.Neighbors.Values)
+        {
+            Manager.AddUpdatedCell(nGroup.Cell);
+        }
+    }
 
-	public void AddActivityToPerform (CellCulturalActivity activity) {
+    public void AddPreferenceToAcquire(CellCulturalPreference preference)
+    {
+        if (PreferencesToAcquire.ContainsKey(preference.Id))
+            return;
 
-		if (ActivitiesToPerform.ContainsKey (activity.Id))
-			return;
+        PreferencesToAcquire.Add(preference.Id, preference);
+    }
 
-		ActivitiesToPerform.Add (activity.Id, activity);
-	}
-	
-	public void AddSkillToLearn (CellCulturalSkill skill) {
+    public void AddActivityToPerform(CellCulturalActivity activity)
+    {
+        if (ActivitiesToPerform.ContainsKey(activity.Id))
+            return;
 
-		if (SkillsToLearn.ContainsKey (skill.Id))
-			return;
+        ActivitiesToPerform.Add(activity.Id, activity);
+    }
 
-		SkillsToLearn.Add (skill.Id, skill);
-	}
-	
-	public void AddKnowledgeToLearn (CellCulturalKnowledge knowledge) {
-		
-		if (KnowledgesToLearn.ContainsKey (knowledge.Id))
-			return;
+    public void AddSkillToLearn(CellCulturalSkill skill)
+    {
+        if (SkillsToLearn.ContainsKey(skill.Id))
+            return;
 
-		KnowledgesToLearn.Add (knowledge.Id, knowledge);
-	}
-	
-	public void AddDiscoveryToFind (CellCulturalDiscovery discovery) {
-		
-		if (DiscoveriesToFind.ContainsKey (discovery.Id))
-			return;
-		
-		DiscoveriesToFind.Add (discovery.Id, discovery);
-	}
+        SkillsToLearn.Add(skill.Id, skill);
+    }
 
-	public CellCulturalPreference GetAcquiredPerferenceOrToAcquire (string id) {
+    public void AddKnowledgeToLearn(CellCulturalKnowledge knowledge)
+    {
+        if (KnowledgesToLearn.ContainsKey(knowledge.Id))
+            return;
+
+        KnowledgesToLearn.Add(knowledge.Id, knowledge);
+    }
+
+    public void AddDiscoveryToFind(CellCulturalDiscovery discovery)
+    {
+        if (DiscoveriesToFind.ContainsKey(discovery.Id))
+            return;
+
+        DiscoveriesToFind.Add(discovery.Id, discovery);
+    }
+
+    public CellCulturalPreference GetAcquiredPerferenceOrToAcquire (string id) {
 
 		CellCulturalPreference preference = GetPreference (id) as CellCulturalPreference;
 
@@ -344,59 +362,67 @@ public class CellCulture : Culture {
 		}
 	}
 
-	public void PostUpdatePolityCulturalProminence (PolityProminence polityProminence) {
+	public void PostUpdatePolityCulturalProminence(PolityProminence polityProminence)
+    {
+        PolityCulture polityCulture = polityProminence.Polity.Culture;
 
-		PolityCulture polityCulture = polityProminence.Polity.Culture;
+        if (((Language == null) || 
+            (polityProminence.Value >= Group.HighestPolityProminence.Value)) &&
+            (Language != polityCulture.Language))
+        {
+            Language = polityCulture.Language;
+            SetLanguageUpdateCells();
+        }
+    }
 
-		if ((Language == null) || (polityProminence.Value >= Group.HighestPolityProminence.Value)) {
+    public void PostUpdateRemoveAttributes()
+    {
+        bool discoveriesLost = false;
 
-			Language = polityCulture.Language;
-		}
-	}
+        foreach (CellCulturalPreference p in _preferencesToLose)
+        {
+            RemovePreference(p);
+        }
 
-	public void PostUpdateRemoveAttributes () {
+        foreach (CellCulturalActivity a in _activitiesToLose)
+        {
+            RemoveActivity(a);
+        }
 
-		bool discoveriesLost = false;
+        foreach (CellCulturalSkill s in _skillsToLose)
+        {
+            RemoveSkill(s);
+        }
 
-		foreach (CellCulturalPreference p in _preferencesToLose) {
-			RemovePreference (p);
-		}
+        foreach (CellCulturalKnowledge k in _knowledgesToLose)
+        {
+            RemoveKnowledge(k);
+            k.LossConsequences();
+        }
 
-		foreach (CellCulturalActivity a in _activitiesToLose) {
-			RemoveActivity (a);
-		}
+        foreach (CellCulturalDiscovery d in _discoveriesToLose)
+        {
+            RemoveDiscovery(d);
+            d.LossConsequences(Group);
+            discoveriesLost = true;
+        }
 
-		foreach (CellCulturalSkill s in _skillsToLose) { 
-			RemoveSkill (s);
-		}
+        if (discoveriesLost)
+        {
+            foreach (CellCulturalKnowledge knowledge in Knowledges)
+            {
+                (knowledge as CellCulturalKnowledge).RecalculateAsymptote();
+            }
+        }
 
-		foreach (CellCulturalKnowledge k in _knowledgesToLose) {
+        _preferencesToLose.Clear();
+        _activitiesToLose.Clear();
+        _skillsToLose.Clear();
+        _knowledgesToLose.Clear();
+        _discoveriesToLose.Clear();
+    }
 
-			RemoveKnowledge (k);
-			k.LossConsequences ();
-		}
-
-		foreach (CellCulturalDiscovery d in _discoveriesToLose) {
-
-			RemoveDiscovery (d);
-			d.LossConsequences (Group);
-			discoveriesLost = true;
-		}
-
-		if (discoveriesLost) {
-			foreach (CellCulturalKnowledge knowledge in Knowledges) {
-				(knowledge as CellCulturalKnowledge).RecalculateAsymptote ();
-			}
-		}
-
-		_preferencesToLose.Clear ();
-		_activitiesToLose.Clear ();
-		_skillsToLose.Clear ();
-		_knowledgesToLose.Clear ();
-		_discoveriesToLose.Clear ();
-	}
-
-	public void PostUpdateAddAttributes () {
+    public void PostUpdateAddAttributes () {
 
 		foreach (CellCulturalPreference preference in PreferencesToAcquire.Values) {
 

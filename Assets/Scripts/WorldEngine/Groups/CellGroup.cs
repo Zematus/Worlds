@@ -6,209 +6,176 @@ using System.Xml.Serialization;
 using System.Linq;
 using UnityEngine.Profiling;
 
-public class CellGroupSnapshot {
+public class CellGroup : HumanGroup
+{
+    public const long GenerationSpan = 25 * World.YearLength;
 
-	public long Id;
+    public const long MaxUpdateSpan = GenerationSpan * 8000;
 
-	public bool HasMigrationEvent;
-	public long MigrationEventDate;
-	public int MigrationTargetLongitude;
-	public int MigrationTargetLatitude;
+    public const float MaxUpdateSpanFactor = MaxUpdateSpan / GenerationSpan;
 
-	public bool HasPolityExpansionEvent;
-	public long PolityExpansionEventDate;
-	public long ExpansionTargetGroupId;
-	public long ExpandingPolityId;
+    public const float NaturalDeathRate = 0.03f; // more or less 0.5/half-life (22.87 years for paleolitic life expectancy of 33 years)
+    public const float NaturalBirthRate = 0.105f; // Should cancel out death rate in perfect circumstances (hunter-gathererers in grasslands)
+    public const float MinChangeRate = -1.0f; // Should cancel out death rate in perfect circumstances (hunter-gathererers in grasslands)
 
-	public bool HasTribeFormationEvent;
-	public long TribeFormationEventDate;
+    public const float NaturalGrowthRate = NaturalBirthRate - NaturalDeathRate;
 
-	public CellGroupSnapshot (CellGroup c) {
+    public const float PopulationForagingConstant = 10;
+    public const float PopulationFarmingConstant = 40;
 
-		Id = c.Id;
+    public const float MinKnowledgeTransferValue = 0.25f;
 
-		HasMigrationEvent = c.HasMigrationEvent;
-		MigrationEventDate = c.MigrationEventDate;
-		MigrationTargetLongitude = c.MigrationTargetLongitude;
-		MigrationTargetLatitude = c.MigrationTargetLatitude;
+    public const float SeaTravelBaseFactor = 500f;
 
-		HasPolityExpansionEvent = c.HasPolityExpansionEvent;
-		PolityExpansionEventDate = c.PolityExpansionEventDate;
-		ExpansionTargetGroupId = c.ExpansionTargetGroupId;
-		ExpandingPolityId = c.ExpandingPolityId;
+    public const float MigrationFactor = 0.1f;
 
-		HasTribeFormationEvent = c.HasTribeFormationEvent;
-		TribeFormationEventDate = c.TribeFormationEventDate;
-	}
-}
+    public const float MaxMigrationAltitudeDelta = 1f; // in meters
 
-public class CellGroup : HumanGroup {
+    public const float MaxCoreDistance = 1000000000000f;
 
-	public const long GenerationSpan = 25 * World.YearLength;
+    public static float TravelWidthFactor;
 
-	public const long MaxUpdateSpan = GenerationSpan * 8000;
+    [XmlAttribute]
+    public long Id;
 
-	public const float MaxUpdateSpanFactor = MaxUpdateSpan / GenerationSpan;
+    [XmlAttribute("PrefMigDir")]
+    public int PreferredMigrationDirectionInt;
 
-	public const float NaturalDeathRate = 0.03f; // more or less 0.5/half-life (22.87 years for paleolitic life expectancy of 33 years)
-	public const float NaturalBirthRate = 0.105f; // Should cancel out death rate in perfect circumstances (hunter-gathererers in grasslands)
-	public const float MinChangeRate = -1.0f; // Should cancel out death rate in perfect circumstances (hunter-gathererers in grasslands)
+    [XmlAttribute("PrevExPop")]
+    public float PreviousExactPopulation;
 
-	public const float NaturalGrowthRate = NaturalBirthRate - NaturalDeathRate;
-	
-	public const float PopulationForagingConstant = 10;
-	public const float PopulationFarmingConstant = 40;
+    [XmlAttribute("ExPop")]
+    public float ExactPopulation; // TODO: Get rid of 'float' population values
 
-	public const float MinKnowledgeTransferValue = 0.25f;
+    [XmlAttribute("StilPres")]
+    public bool StillPresent = true;
 
-	public const float SeaTravelBaseFactor = 500f;
+    [XmlAttribute("InDate")]
+    public long InitDate;
 
-	public const float MigrationFactor = 0.1f;
+    [XmlAttribute("LastUpDate")]
+    public long LastUpdateDate;
 
-	public const float MaxMigrationAltitudeDelta = 1f; // in meters
+    [XmlAttribute("NextUpDate")]
+    public long NextUpdateDate;
 
-	public const float MaxCoreDistance = 1000000000000f;
+    [XmlAttribute("OptPop")]
+    public int OptimalPopulation;
 
-	public static float TravelWidthFactor;
+    [XmlAttribute("Lon")]
+    public int Longitude;
+    [XmlAttribute("Lat")]
+    public int Latitude;
 
-	[XmlAttribute]
-	public long Id;
+    [XmlAttribute("SeaTrFac")]
+    public float SeaTravelFactor = 0;
 
-	[XmlAttribute("PrefMigDir")]
-	public int PreferredMigrationDirectionInt;
+    [XmlAttribute("TotalPolInfVal")]
+    public float TotalPolityProminenceValueFloat = 0;
 
-	[XmlAttribute("PrevExPop")]
-	public float PreviousExactPopulation;
+    [XmlAttribute("MigVal")]
+    public float MigrationValue;
 
-	[XmlAttribute("ExPop")]
-	public float ExactPopulation; // TODO: Get rid of 'float' population values
-	
-	[XmlAttribute("StilPres")]
-	public bool StillPresent = true;
+    [XmlAttribute("TotalMigVal")]
+    public float TotalMigrationValue;
 
-	[XmlAttribute("InDate")]
-	public long InitDate;
-	
-	[XmlAttribute("LastUpDate")]
-	public long LastUpdateDate;
-	
-	[XmlAttribute("NextUpDate")]
-	public long NextUpdateDate;
-	
-	[XmlAttribute("OptPop")]
-	public int OptimalPopulation;
-	
-	[XmlAttribute("Lon")]
-	public int Longitude;
-	[XmlAttribute("Lat")]
-	public int Latitude;
+    [XmlAttribute("PolExpVal")]
+    public float PolityExpansionValue;
 
-	[XmlAttribute("SeaTrFac")]
-	public float SeaTravelFactor = 0;
+    [XmlAttribute("TotalPolExpVal")]
+    public float TotalPolityExpansionValue;
 
-	[XmlAttribute("TotalPolInfVal")]
-	public float TotalPolityProminenceValueFloat = 0;
+    [XmlAttribute("HasMigEv")]
+    public bool HasMigrationEvent = false;
+    [XmlAttribute("MigDate")]
+    public long MigrationEventDate;
+    [XmlAttribute("MigLon")]
+    public int MigrationTargetLongitude;
+    [XmlAttribute("MigLat")]
+    public int MigrationTargetLatitude;
+    [XmlAttribute("MigEvDir")]
+    public int MigrationEventDirectionInt;
 
-	[XmlAttribute("MigVal")]
-	public float MigrationValue;
+    [XmlAttribute("HasExpEv")]
+    public bool HasPolityExpansionEvent = false;
+    [XmlAttribute("PolExpDate")]
+    public long PolityExpansionEventDate;
+    [XmlAttribute("ExpTgtGrpId")]
+    public long ExpansionTargetGroupId;
+    [XmlAttribute("ExpPolId")]
+    public long ExpandingPolityId;
 
-	[XmlAttribute("TotalMigVal")]
-	public float TotalMigrationValue;
+    [XmlAttribute("HasTrbFrmEv")]
+    public bool HasTribeFormationEvent = false;
+    [XmlAttribute("TrbFrmDate")]
+    public long TribeFormationEventDate;
 
-	[XmlAttribute("PolExpVal")]
-	public float PolityExpansionValue;
+    public Route SeaMigrationRoute = null;
 
-	[XmlAttribute("TotalPolExpVal")]
-	public float TotalPolityExpansionValue;
+    public List<string> Flags;
 
-	[XmlAttribute("HasMigEv")]
-	public bool HasMigrationEvent = false;
-	[XmlAttribute("MigDate")]
-	public long MigrationEventDate;
-	[XmlAttribute("MigLon")]
-	public int MigrationTargetLongitude;
-	[XmlAttribute("MigLat")]
-	public int MigrationTargetLatitude;
-	[XmlAttribute("MigEvDir")]
-	public int MigrationEventDirectionInt;
+    public CellCulture Culture;
 
-	[XmlAttribute("HasExpEv")]
-	public bool HasPolityExpansionEvent = false;
-	[XmlAttribute("PolExpDate")]
-	public long PolityExpansionEventDate;
-	[XmlAttribute("ExpTgtGrpId")]
-	public long ExpansionTargetGroupId;
-	[XmlAttribute("ExpPolId")]
-	public long ExpandingPolityId;
-
-	[XmlAttribute("HasTrbFrmEv")]
-	public bool HasTribeFormationEvent = false;
-	[XmlAttribute("TrbFrmDate")]
-	public long TribeFormationEventDate;
-
-	public Route SeaMigrationRoute = null;
-
-	public List<string> Flags;
-
-	public CellCulture Culture;
-
-	public List<long> FactionCoreIds;
+    public List<long> FactionCoreIds;
 
     public XmlSerializableDictionary<long, PolityProminence> PolityProminences = new XmlSerializableDictionary<long, PolityProminence>();
 
     [XmlIgnore]
-	public WorldPosition Position
+    public WorldPosition Position
     {
-		get { 
-			return Cell.Position;
-		}
-	}
+        get
+        {
+            return Cell.Position;
+        }
+    }
 
-	[XmlIgnore]
-	public float TotalPolityProminenceValue
+    [XmlIgnore]
+    public float TotalPolityProminenceValue
     {
-		get {
-			return TotalPolityProminenceValueFloat;
-		}
-		set { 
-			TotalPolityProminenceValueFloat = MathUtility.RoundToSixDecimals (Mathf.Clamp01 (value));
-		}
-	}
+        get
+        {
+            return TotalPolityProminenceValueFloat;
+        }
+        set
+        {
+            TotalPolityProminenceValueFloat = MathUtility.RoundToSixDecimals(Mathf.Clamp01(value));
+        }
+    }
 
-	[XmlIgnore]
-	public Direction PreferredMigrationDirection;
+    [XmlIgnore]
+    public Direction PreferredMigrationDirection;
 
-	[XmlIgnore]
-	public Dictionary<long, Faction> FactionCores = new Dictionary<long, Faction> ();
+    [XmlIgnore]
+    public Dictionary<long, Faction> FactionCores = new Dictionary<long, Faction>();
 
-	[XmlIgnore]
-	public UpdateCellGroupEvent UpdateEvent;
+    [XmlIgnore]
+    public UpdateCellGroupEvent UpdateEvent;
 
-	[XmlIgnore]
-	public MigrateGroupEvent MigrationEvent;
+    [XmlIgnore]
+    public MigrateGroupEvent MigrationEvent;
 
-	[XmlIgnore]
-	public ExpandPolityProminenceEvent PolityExpansionEvent;
+    [XmlIgnore]
+    public ExpandPolityProminenceEvent PolityExpansionEvent;
 
-	[XmlIgnore]
-	public TribeFormationEvent TribeCreationEvent;
-	
-	[XmlIgnore]
-	public TerrainCell Cell;
+    [XmlIgnore]
+    public TribeFormationEvent TribeCreationEvent;
 
-	[XmlIgnore]
-	public MigratingGroup MigratingGroup = null;
+    [XmlIgnore]
+    public TerrainCell Cell;
 
-	#if DEBUG
-	[XmlIgnore]
-	public bool DebugTagged = false;
-	#endif
+    [XmlIgnore]
+    public MigratingGroup MigratingGroup = null;
 
-	[XmlIgnore]
-	public Dictionary<string, BiomeSurvivalSkill> _biomeSurvivalSkills = new Dictionary<string, BiomeSurvivalSkill> (Biome.TypeCount);
+#if DEBUG
+    [XmlIgnore]
+    public bool DebugTagged = false;
+#endif
 
-	[XmlIgnore]
-	public Dictionary<Direction, CellGroup> Neighbors;
+    [XmlIgnore]
+    public Dictionary<string, BiomeSurvivalSkill> _biomeSurvivalSkills = new Dictionary<string, BiomeSurvivalSkill>(Biome.TypeCount);
+
+    [XmlIgnore]
+    public Dictionary<Direction, CellGroup> Neighbors;
 
     //#if DEBUG
     //    [XmlIgnore]
@@ -263,10 +230,9 @@ public class CellGroup : HumanGroup {
             int population = (int)Mathf.Floor(ExactPopulation);
 
 #if DEBUG
-            if (population < -1000)
+            if (population < 0)
             {
-                Debug.Break();
-                throw new System.Exception("Debug.Break");
+                throw new System.Exception("Negative Population: " + population + ", Id: " + Id);
             }
 #endif
 
@@ -274,13 +240,13 @@ public class CellGroup : HumanGroup {
         }
     }
 
-    public CellGroup () {
-		
-		Manager.UpdateWorldLoadTrackEventCount ();
-	}
-	
-	public CellGroup (MigratingGroup migratingGroup, int splitPopulation) : this (migratingGroup.World, migratingGroup.TargetCell, splitPopulation, migratingGroup.Culture, migratingGroup.MigrationDirection) {
-        
+    public CellGroup()
+    {
+        Manager.UpdateWorldLoadTrackEventCount();
+    }
+
+    public CellGroup(MigratingGroup migratingGroup, int splitPopulation) : this(migratingGroup.World, migratingGroup.TargetCell, splitPopulation, migratingGroup.Culture, migratingGroup.MigrationDirection)
+    {
         for (int i = 0; i < migratingGroup.PolityProminencesCount; i++)
         {
             PolityProminence p = new PolityProminence(this, migratingGroup.PolityProminences[i]);
@@ -292,93 +258,102 @@ public class CellGroup : HumanGroup {
             p.NewFactionCoreDistance = p.FactionCoreDistance;
             p.NewPolityCoreDistance = p.PolityCoreDistance;
         }
-	}
+    }
 
-	public CellGroup (World world, TerrainCell cell, int initialPopulation, Culture baseCulture = null, Direction migrationDirection = Direction.Null) : base(world) {
-        
+    public CellGroup(World world, TerrainCell cell, int initialPopulation, Culture baseCulture = null, Direction migrationDirection = Direction.Null) : base(world)
+    {
         InitDate = World.CurrentDate;
-		LastUpdateDate = InitDate;
+        LastUpdateDate = InitDate;
 
-		PreviousExactPopulation = 0;
-		ExactPopulation = initialPopulation;
+        PreviousExactPopulation = 0;
+        ExactPopulation = initialPopulation;
 
-		Cell = cell;
-		Longitude = cell.Longitude;
-		Latitude = cell.Latitude;
+        Cell = cell;
+        Longitude = cell.Longitude;
+        Latitude = cell.Latitude;
 
-		Cell.Group = this;
+        Cell.Group = this;
 
-		Id = Cell.GenerateUniqueIdentifier (World.CurrentDate, 1L, 0);
+        Id = Cell.GenerateUniqueIdentifier(World.CurrentDate, 1L, 0);
 
-		if (migrationDirection == Direction.Null) {
-			int offset = Cell.GetNextLocalRandomInt (RngOffsets.CELL_GROUP_UPDATE_MIGRATION_DIRECTION, TerrainCell.MaxNeighborDirections);
+        if (migrationDirection == Direction.Null)
+        {
+            int offset = Cell.GetNextLocalRandomInt(RngOffsets.CELL_GROUP_UPDATE_MIGRATION_DIRECTION, TerrainCell.MaxNeighborDirections);
 
-			PreferredMigrationDirection = Cell.TryGetNeighborDirection (offset);
-
-		} else {
-			PreferredMigrationDirection = migrationDirection;
-		}
+            PreferredMigrationDirection = Cell.TryGetNeighborDirection(offset);
+        }
+        else
+        {
+            PreferredMigrationDirection = migrationDirection;
+        }
 
 #if DEBUG
-		if (Longitude > 1000) {
-			Debug.LogError ("Longitude[" + Longitude + "] > 1000");
-		}
+        if (Longitude > 1000)
+        {
+            Debug.LogError("Longitude[" + Longitude + "] > 1000");
+        }
 
-		if (Latitude > 1000) {
-			Debug.LogError ("Latitude[" + Latitude + "] > 1000");
-		}
+        if (Latitude > 1000)
+        {
+            Debug.LogError("Latitude[" + Latitude + "] > 1000");
+        }
 #endif
 
-//		#if DEBUG
-//		if (Manager.RegisterDebugEvent != null) {
-//			if (Id == Manager.TracingData.GroupId) {
-//				string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
-//
-//				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-//					"CellGroup:constructor - Group:" + groupId,
-//					"CurrentDate: " + World.CurrentDate + 
-//					", initialPopulation: " + initialPopulation + 
-//					"");
-//
-//				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-//			}
-//		}
-//		#endif
+//#if DEBUG
+//        if (Manager.RegisterDebugEvent != null)
+//        {
+//            if (Id == Manager.TracingData.GroupId)
+//            {
+//                string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
 
-		bool initialGroup = false;
+//                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//                    "CellGroup:constructor - Group:" + groupId,
+//                    "CurrentDate: " + World.CurrentDate +
+//                    ", initialPopulation: " + initialPopulation +
+//                    "");
 
-		if (baseCulture == null) {
-			initialGroup = true;
-			Culture = new CellCulture (this);
-		} else {
-			Culture = new CellCulture (this, baseCulture);
-		}
+//                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+//            }
+//        }
+//#endif
 
-		Neighbors = new Dictionary<Direction, CellGroup> (8);
+        Neighbors = new Dictionary<Direction, CellGroup>(8);
 
-		foreach (KeyValuePair<Direction, TerrainCell> pair in Cell.Neighbors) {
-		
-			if (pair.Value.Group != null) {
+        foreach (KeyValuePair<Direction, TerrainCell> pair in Cell.Neighbors)
+        {
+            if (pair.Value.Group != null)
+            {
+                CellGroup group = pair.Value.Group;
 
-				CellGroup group = pair.Value.Group;
-			
-				Neighbors.Add (pair.Key, group);
+                Neighbors.Add(pair.Key, group);
 
-				Direction dir = TerrainCell.ReverseDirection (pair.Key);
+                Direction dir = TerrainCell.ReverseDirection(pair.Key);
 
-				group.AddNeighbor (dir, this);
-			}
-		}
+                group.AddNeighbor(dir, this);
+            }
+        }
 
-		InitializeDefaultPreferences (initialGroup);
-		InitializeDefaultActivities (initialGroup);
-		InitializeDefaultSkills (initialGroup);
-		InitializeDefaultKnowledges (initialGroup);
+        bool initialGroup = false;
 
-		InitializeDefaultEvents ();
+        if (baseCulture == null)
+        {
+            initialGroup = true;
+            Culture = new CellCulture(this);
+        }
+        else
+        {
+            Culture = new CellCulture(this, baseCulture);
+        }
 
-		World.AddUpdatedGroup (this);
-	}
+        InitializeDefaultPreferences(initialGroup);
+        InitializeDefaultActivities(initialGroup);
+        InitializeDefaultSkills(initialGroup);
+        InitializeDefaultKnowledges(initialGroup);
+
+        InitializeDefaultEvents();
+
+        World.AddUpdatedGroup(this);
+    }
 
     public void UpdatePreferredMigrationDirection()
     {
@@ -452,33 +427,33 @@ public class CellGroup : HumanGroup {
         return Cell.GenerateUniqueIdentifier(date, oom, offset);
     }
 
-    public void SetHighestPolityProminence (PolityProminence prominence) {
-
-		if (HighestPolityProminence == prominence)
-			return;
+    public void SetHighestPolityProminence(PolityProminence prominence)
+    {
+        if (HighestPolityProminence == prominence)
+            return;
 
         if (HighestPolityProminence != null)
         {
             //Profiler.BeginSample("Territory.RemoveCell");
 
-            HighestPolityProminence.Polity.Territory.RemoveCell (Cell);
-
-            //Profiler.EndSample();
-		}
-
-		HighestPolityProminence = prominence;
-
-		if (prominence != null)
-        {
-            //Profiler.BeginSample("Territory.AddCell");
-
-            prominence.Polity.Territory.AddCell (Cell);
+            HighestPolityProminence.Polity.Territory.RemoveCell(Cell);
 
             //Profiler.EndSample();
         }
-	}
 
-	public void InitializeDefaultEvents () {
+        HighestPolityProminence = prominence;
+
+        if (prominence != null)
+        {
+            //Profiler.BeginSample("Territory.AddCell");
+
+            prominence.Polity.Territory.AddCell(Cell);
+
+            //Profiler.EndSample();
+        }
+    }
+
+    public void InitializeDefaultEvents () {
 
 		if (BoatMakingDiscoveryEvent.CanSpawnIn (this)) {
 

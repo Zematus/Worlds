@@ -144,7 +144,7 @@ public class OverlayDialogPanelScript : DialogPanelScript {
 		DebugDataToggle.isOn = (
 			(Manager.PlanetOverlay == PlanetOverlay.PopChange) ||
 			(Manager.PlanetOverlay == PlanetOverlay.UpdateSpan) ||
-            (Manager.PlanetOverlay == PlanetOverlay.PolityClusters)
+            (Manager.PlanetOverlay == PlanetOverlay.PolityCluster)
         );
 
 		PopDensityToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.PopDensity);
@@ -173,7 +173,7 @@ public class OverlayDialogPanelScript : DialogPanelScript {
 
 		PopChangeToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.PopChange);
 		UpdateSpanToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.UpdateSpan);
-        PolityClustersToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.PolityClusters);
+        PolityClustersToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.PolityCluster);
 
         DisplayRoutesToggle.isOn = Manager.DisplayRoutes;
 		DisplayGroupActivityToggle.isOn = Manager.DisplayGroupActivity;
