@@ -5,110 +5,111 @@ using System.Xml.Serialization;
 using System.Text.RegularExpressions;
 using System.Linq;
 
-public class Variation {
+public class Variation
+{
+    public string Tags;
+    public string Text;
 
-	public string Tags;
+    public Variation(string text)
+    {
+        Text = text;
+        Tags = string.Empty;
+    }
 
-	public string Text;
-
-	public Variation (string text) {
-
-		Text = text;
-		Tags = string.Empty;
-	}
-
-	public Variation (string text, string tags) {
-
-		Text = text;
-		Tags = tags;
-	}
+    public Variation(string text, string tags)
+    {
+        Text = text;
+        Tags = tags;
+    }
 }
 
-public static class NamingTools {
+public static class NameTools
+{
+    public static Regex OptionalWordPartRegex = new Regex(@"\{(?:\<(?<tags>\w+)\>)?(?<word>.+?)\}");
+    public static Regex NameRankRegex = new Regex(@"\[\[(?<rank>.+?)\]\](?<word>.+?)");
 
-	public static Regex OptionalWordPartRegex = new Regex (@"\{(?:\<(?<tags>\w+)\>)?(?<word>.+?)\}");
-	public static Regex NameRankRegex = new Regex (@"\[\[(?<rank>.+?)\]\](?<word>.+?)");
+    public static Variation[] GenerateNounVariations(string[] variants)
+    {
+        List<Variation> variations = new List<Variation>();
 
-	public static Variation[] GenerateNounVariations (string[] variants) {
+        foreach (string variant in variants)
+        {
+            GenerateNounVariations(variant, variations);
+        }
 
-		List<Variation> variations = new List<Variation> ();
+        return variations.ToArray();
+    }
 
-		foreach (string variant in variants) {
+    public static void GenerateNounVariations(string variant, List<Variation> variations)
+    {
+        Match match = NameTools.OptionalWordPartRegex.Match(variant);
 
-			GenerateNounVariations (variant, variations);
-		}
+        if (!match.Success)
+        {
+            variations.Add(new Variation(variant));
+            return;
+        }
 
-		return variations.ToArray ();
-	}
+        string v1Str = variant.Replace(match.Value, string.Empty);
+        string v2Str = variant.Replace(match.Value, match.Groups["word"].Value);
 
-	public static void GenerateNounVariations (string variant, List<Variation> variations) {
+        Variation v1 = new Variation(v1Str);
+        Variation v2 = new Variation(v2Str);
 
-		Match match = NamingTools.OptionalWordPartRegex.Match (variant);
+        if (match.Groups["tags"].Success)
+        {
+            if (string.IsNullOrEmpty(v2.Tags))
+                v2.Tags = match.Groups["tags"].Value;
+            else
+                v2.Tags += "," + match.Groups["tags"].Value;
+        }
 
-		if (!match.Success) {
+        GenerateNounVariations(v1, variations);
+        GenerateNounVariations(v2, variations);
+    }
 
-			variations.Add (new Variation (variant));
-			return;
-		}
+    public static void GenerateNounVariations(Variation variation, List<Variation> variations)
+    {
+        Match match = NameTools.OptionalWordPartRegex.Match(variation.Text);
 
-		string v1Str = variant.Replace (match.Value, string.Empty);
-		string v2Str = variant.Replace (match.Value, match.Groups ["word"].Value);
+        if (!match.Success)
+        {
+            variations.Add(variation);
+            return;
+        }
 
-		Variation v1 = new Variation (v1Str);
-		Variation v2 = new Variation (v2Str);
+        string v1Str = variation.Text.Replace(match.Value, string.Empty);
+        string v2Str = variation.Text.Replace(match.Value, match.Groups["word"].Value);
 
-		if (match.Groups ["tags"].Success) {
-			if (string.IsNullOrEmpty(v2.Tags))
-				v2.Tags = match.Groups ["tags"].Value;
-			else
-				v2.Tags += "," + match.Groups ["tags"].Value;
-		}
+        Variation v1 = new Variation(v1Str, variation.Tags);
+        Variation v2 = new Variation(v2Str, variation.Tags);
 
-		GenerateNounVariations (v1, variations);
-		GenerateNounVariations (v2, variations);
-	}
+        if (match.Groups["tags"].Success)
+        {
+            if (string.IsNullOrEmpty(v2.Tags))
+                v2.Tags = match.Groups["tags"].Value;
+            else
+                v2.Tags += "," + match.Groups["tags"].Value;
+        }
 
-	public static void GenerateNounVariations (Variation variation, List<Variation> variations) {
-
-		Match match = NamingTools.OptionalWordPartRegex.Match (variation.Text);
-
-		if (!match.Success) {
-
-			variations.Add (variation);
-			return;
-		}
-
-		string v1Str = variation.Text.Replace (match.Value, string.Empty);
-		string v2Str = variation.Text.Replace (match.Value, match.Groups ["word"].Value);
-
-		Variation v1 = new Variation (v1Str, variation.Tags);
-		Variation v2 = new Variation (v2Str, variation.Tags);
-
-		if (match.Groups ["tags"].Success) {
-			if (string.IsNullOrEmpty(v2.Tags))
-				v2.Tags = match.Groups ["tags"].Value;
-			else
-				v2.Tags += "," + match.Groups ["tags"].Value;
-		}
-
-		GenerateNounVariations (v1, variations);
-		GenerateNounVariations (v2, variations);
-	}
+        GenerateNounVariations(v1, variations);
+        GenerateNounVariations(v2, variations);
+    }
 }
 
-public class Name : ISynchronizable {
-
-	[XmlAttribute("Lid")]
-	public long LanguageId;
+public class Name : ISynchronizable
+{
+    [XmlAttribute("Lid")]
+    public long LanguageId;
 
     [XmlAttribute("Tm")]
     public string TaggedMeaning;
 
     [XmlIgnore]
-	public World World;
+    public World World;
 
-	[XmlIgnore]
-	public Language Language;
+    [XmlIgnore]
+    public Language Language;
 
     public Language.Phrase Value
     {
@@ -125,26 +126,29 @@ public class Name : ISynchronizable {
 
     private Language.Phrase _value = null;
 
-    public Name () {
-		
-	}
+    public Name()
+    {
 
-	public Name (string taggedMeaning, Language language, World world) {
+    }
 
-		World = world;
+    public Name(string taggedMeaning, Language language, World world)
+    {
+        World = world;
 
-		LanguageId = language.Id;
-		Language = language;
+        LanguageId = language.Id;
+        Language = language;
 
         TaggedMeaning = taggedMeaning;
-	}
+    }
 
-	public string BoldText {
-		get { return Value.Text.ToBoldFormat (); }
-	}
+    public string BoldText
+    {
+        get { return Value.Text.ToBoldFormat(); }
+    }
 
-	public string Text {
-		get { return Value.Text; }
+    public string Text
+    {
+        get { return Value.Text; }
     }
 
     public string Meaning
@@ -153,25 +157,22 @@ public class Name : ISynchronizable {
     }
 
 
-    public void Synchronize () {
+    public void Synchronize()
+    {
+    }
 
-		Value.Synchronize ();
-	}
+    public void FinalizeLoad()
+    {
+        Language = World.GetLanguage(LanguageId);
 
-	public void FinalizeLoad () {
+        if (Language == null)
+        {
+            throw new System.Exception("Language can't be null");
+        }
+    }
 
-		Language = World.GetLanguage (LanguageId);
-
-		if (Language == null) {
-		
-			throw new System.Exception ("Language can't be null");
-		}
-
-		Value.FinalizeLoad ();
-	}
-
-	public override string ToString () {
-	
-		return Value.Text + " (" + Value.Meaning + ")";
-	}
+    public override string ToString()
+    {
+        return Value.Text + " (" + Value.Meaning + ")";
+    }
 }

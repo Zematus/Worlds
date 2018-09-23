@@ -3014,7 +3014,10 @@ public class CellGroup : HumanGroup
             FactionCores.Add(id, faction);
         }
 
-        Flags.ForEach(f => _flags.Add(f));
+        foreach (string f in Flags)
+        {
+            _flags.Add(f);
+        }
 
         Cell = World.GetCell(Longitude, Latitude);
 

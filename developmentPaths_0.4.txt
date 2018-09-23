@@ -1,0 +1,23 @@
+For the first milestone vote, there will be only two major development paths to vote for version 0.4: "Politics and Warfare", and "Economy and Trading". Here are the details on both:
+
+- "Politics and Warfare"
+For this development path, The focus will be on adding a set of features that will allow polities (and the players that control them) the ability to develop complex internal politics and to engage into wars with each other. This is a list of possible features to be added:
+	- Tribes can evolve into Chiefdoms, further centralizing control, and giving leaders (chieftains) and prominent clans greater and more permanent control over their polities.
+	- Chiefdoms can evolve into Kingdoms. Once social organization grows enough, a chieftain has the chance to establish a dinasty, guaranteeing a permanent claim on all territories their clan or family currently control and also giving them more administrative capabilities.
+	- Tribes can instead implement a tribal council, giving all clans in the tribe equal voice and the ability to vote for and against decisions taken by the leader. This will give tribes more stability and the ability to expand further without risking fracture.
+	- Polities can raise armies and engage in wars against other polities for land, loot or sovereignity over regions and territories.
+	- Polities can make tributaries or vassals of other polities, giving the ability to extract food from them and get involved in their inner politics.
+
+- "Economy and Trading"
+For this development path, The focus will be on adding a set of features that will add complexity to the (very basic) resource system and allow the development of settlements and trading networks between them. This is a list of possible features to be added:
+	- Add basins and rivers to the world generation process.
+	- Add unique resources, like different types of animals and vegetation that can be exploited by hunter-gatherer and agricultural societies.
+	- Expand agriculture to be based on the discovery and exploitation of unique crops. Therefore giving agricutural societies different development bonuses depending on the crops they exploit.
+	- Once certain cultures manage to domesticate certain type of animals they will be able to develop pastoralism as a cultural activity with unique benefits and drawbacks.
+	- Settlements will develop on their own on favorable locations near rivers, coasts, or central to agricultural regions.
+	- Settlements will concentrate resources and poeple from the regions around them, giving them the ability to specialize labor and develop artisanship as a cultural activity. Artisans will develop wares and crafts as a resource (or set of resources) that give bonuses to the population and can be traded between settlements.
+	- Trading routes can form between settlements both over land and sea, allowing settlements to exchange resources between each other.
+	- Add sea and ocean currents, and make sea routes to follow those currents instead of going through random semilineal paths.
+
+Note that there is probably going to be some level of overlap between both development paths, so there will be work done for both paths in 0.4 regardless of which one gets priority. Also, both lists of features are preliminar and some features might be added, tweaked, or removed depending on how workable they turn out to be. The plan is to at least implement the basic mechanics for each feature to be released before or along with 'Worlds' version 0.4.
+

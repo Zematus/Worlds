@@ -4,7 +4,6 @@ using System.Linq;
 
 public class ElementConstraint
 {
-
     public string Type;
     public object Value;
 
@@ -12,14 +11,12 @@ public class ElementConstraint
 
     private ElementConstraint(string type, object value)
     {
-
         Type = type;
         Value = value;
     }
 
     public static ElementConstraint BuildConstraint(string constraint)
     {
-
         Match match = ConstraintRegex.Match(constraint);
 
         if (!match.Success)
@@ -30,7 +27,6 @@ public class ElementConstraint
 
         switch (type)
         {
-
             case "altitude_above":
                 float altitude_above = float.Parse(valueStr);
 
@@ -64,11 +60,10 @@ public class ElementConstraint
             case "no_attribute":
                 string[] attributeStrs = valueStr.Split(new char[] { ',' });
 
-                RegionAttribute[] attributes = attributeStrs.Select(s => {
-
+                RegionAttribute[] attributes = attributeStrs.Select(s =>
+                {
                     if (!RegionAttribute.Attributes.ContainsKey(s))
                     {
-
                         throw new System.Exception("Attribute not present: " + s);
                     }
 
@@ -80,8 +75,8 @@ public class ElementConstraint
             case "any_attribute":
                 attributeStrs = valueStr.Split(new char[] { ',' });
 
-                attributes = attributeStrs.Select(s => {
-
+                attributes = attributeStrs.Select(s =>
+                {
                     if (!RegionAttribute.Attributes.ContainsKey(s))
                     {
 
@@ -96,11 +91,10 @@ public class ElementConstraint
             case "any_biome":
                 string[] biomeStrs = valueStr.Split(new char[] { ',' });
 
-                Biome[] biomes = biomeStrs.Select(s => {
-
+                Biome[] biomes = biomeStrs.Select(s =>
+                {
                     if (!Biome.Biomes.ContainsKey(s))
                     {
-
                         throw new System.Exception("Biome not present: " + s);
                     }
 
@@ -112,11 +106,10 @@ public class ElementConstraint
             case "main_biome":
                 biomeStrs = valueStr.Split(new char[] { ',' });
 
-                biomes = biomeStrs.Select(s => {
-
+                biomes = biomeStrs.Select(s =>
+                {
                     if (!Biome.Biomes.ContainsKey(s))
                     {
-
                         throw new System.Exception("Biome not present: " + s);
                     }
 
@@ -131,10 +124,8 @@ public class ElementConstraint
 
     public bool Validate(Region region)
     {
-
         switch (Type)
         {
-
             case "altitude_above":
                 return region.AverageAltitude >= (float)Value;
 

@@ -47,7 +47,7 @@ public abstract class Polity : ISynchronizable {
 	[XmlAttribute("IsFoc")]
 	public bool IsUnderPlayerFocus = false;
 
-	public List<string> Flags;
+	//public List<string> Flags;
     
     public DelayedLoadXmlSerializableDictionary<long, CellGroup> Groups = new DelayedLoadXmlSerializableDictionary<long, CellGroup>();
 
@@ -177,7 +177,7 @@ public abstract class Polity : ISynchronizable {
 
 	protected Dictionary<long, PolityEvent> _events = new Dictionary<long, PolityEvent> ();
 
-	private HashSet<string> _flags = new HashSet<string> ();
+	//private HashSet<string> _flags = new HashSet<string> ();
 
 	private bool _willBeRemoved = false;
 
@@ -934,25 +934,27 @@ public abstract class Polity : ISynchronizable {
         _prominencesToAddToClusters.Clear();
     }
 
-	public virtual void Synchronize () {
+	public virtual void Synchronize()
+    {
 
-		Flags = new List<string> (_flags);
+        //Flags = new List<string> (_flags);
 
-		EventDataList.Clear ();
+        EventDataList.Clear();
 
-		foreach (PolityEvent e in _events.Values) {
+        foreach (PolityEvent e in _events.Values)
+        {
 
-			EventDataList.Add (e.GetData () as PolityEventData);
-		}
+            EventDataList.Add(e.GetData() as PolityEventData);
+        }
 
-		Culture.Synchronize ();
+        Culture.Synchronize();
 
-		Territory.Synchronize ();
+        Territory.Synchronize();
 
-		Name.Synchronize ();
+        Name.Synchronize();
 
-		EventMessageIds = new List<long> (_eventMessageIds);
-	}
+        EventMessageIds = new List<long>(_eventMessageIds);
+    }
 
     private CellGroup GetGroupOrThrow(long id)
     {
@@ -980,81 +982,83 @@ public abstract class Polity : ISynchronizable {
         return faction;
     }
 
-    public virtual void FinalizeLoad () {
+    public virtual void FinalizeLoad()
+    {
+        foreach (long messageId in EventMessageIds)
+        {
+            _eventMessageIds.Add(messageId);
+        }
 
-		foreach (long messageId in EventMessageIds) {
+        Name.World = World;
+        Name.FinalizeLoad();
 
-			_eventMessageIds.Add (messageId);
-		}
+        CoreGroup = World.GetGroup(CoreGroupId);
 
-		Name.World = World;
-		Name.FinalizeLoad ();
-
-		CoreGroup = World.GetGroup (CoreGroupId);
-
-		if (CoreGroup == null) {
-			string message = "Missing Group with Id " + CoreGroupId + " in polity with Id " + Id;
-			throw new System.Exception (message);
-		}
+        if (CoreGroup == null)
+        {
+            string message = "Missing Group with Id " + CoreGroupId + " in polity with Id " + Id;
+            throw new System.Exception(message);
+        }
 
         Groups.FinalizeLoad(GetGroupOrThrow);
         Factions.FinalizeLoad(GetFactionOrThrow);
 
-		DominantFaction = GetFaction (DominantFactionId);
+        DominantFaction = GetFaction(DominantFactionId);
 
-		Territory.World = World;
-		Territory.Polity = this;
-		Territory.FinalizeLoad ();
+        Territory.World = World;
+        Territory.Polity = this;
+        Territory.FinalizeLoad();
 
-		Culture.World = World;
-		Culture.Polity = this;
-		Culture.FinalizeLoad ();
+        Culture.World = World;
+        Culture.Polity = this;
+        Culture.FinalizeLoad();
 
         foreach (PolityContact contact in Contacts.Values)
         {
-			contact.Polity = World.GetPolity(contact.Id);
+            contact.Polity = World.GetPolity(contact.Id);
 
-			if (contact.Polity == null) {
-				throw new System.Exception ("Polity is null, Id: " + contact.Id);
-			}
-		}
+            if (contact.Polity == null)
+            {
+                throw new System.Exception("Polity is null, Id: " + contact.Id);
+            }
+        }
 
         GenerateEventsFromData();
 
-		Flags.ForEach (f => _flags.Add (f));
-	}
+        //Flags.ForEach (f => _flags.Add (f));
+    }
 
-	protected abstract void GenerateEventsFromData ();
+    protected abstract void GenerateEventsFromData();
 
-	public void AddEvent (PolityEvent polityEvent) {
+    public void AddEvent(PolityEvent polityEvent)
+    {
+        if (_events.ContainsKey(polityEvent.TypeId))
+            throw new System.Exception("Event of type " + polityEvent.TypeId + " already present");
 
-		if (_events.ContainsKey (polityEvent.TypeId))
-			throw new System.Exception ("Event of type " + polityEvent.TypeId + " already present");
+        _events.Add(polityEvent.TypeId, polityEvent);
+        World.InsertEventToHappen(polityEvent);
+    }
 
-		_events.Add (polityEvent.TypeId, polityEvent);
-		World.InsertEventToHappen (polityEvent);
-	}
+    public PolityEvent GetEvent(long typeId)
+    {
+        if (!_events.ContainsKey(typeId))
+            return null;
 
-	public PolityEvent GetEvent (long typeId) {
+        return _events[typeId];
+    }
 
-		if (!_events.ContainsKey (typeId))
-			return null;
+    public void ResetEvent(long typeId, long newTriggerDate)
+    {
+        if (!_events.ContainsKey(typeId))
+            throw new System.Exception("Unable to find event of type: " + typeId);
 
-		return _events[typeId];
-	}
+        PolityEvent polityEvent = _events[typeId];
 
-	public void ResetEvent (long typeId, long newTriggerDate) {
+        polityEvent.Reset(newTriggerDate);
+        World.InsertEventToHappen(polityEvent);
+    }
 
-		if (!_events.ContainsKey (typeId))
-			throw new System.Exception ("Unable to find event of type: " + typeId);
-
-		PolityEvent polityEvent = _events [typeId];
-
-		polityEvent.Reset (newTriggerDate);
-		World.InsertEventToHappen (polityEvent);
-	}
-
-	public abstract float CalculateGroupProminenceExpansionValue (CellGroup sourceGroup, CellGroup targetGroup, float sourceValue);
+    public abstract float CalculateGroupProminenceExpansionValue (CellGroup sourceGroup, CellGroup targetGroup, float sourceValue);
 
 	public virtual void GroupUpdateEffects (CellGroup group, float prominenceValue, float totalPolityProminenceValue, long timeSpan) {
 
@@ -1344,26 +1348,26 @@ public abstract class Polity : ISynchronizable {
 
 	protected abstract void GenerateName ();
 
-	public void SetFlag (string flag) {
+	//public void SetFlag (string flag) {
 
-		if (_flags.Contains (flag))
-			return;
+	//	if (_flags.Contains (flag))
+	//		return;
 
-		_flags.Add (flag);
-	}
+	//	_flags.Add (flag);
+	//}
 
-	public bool IsFlagSet (string flag) {
+	//public bool IsFlagSet (string flag) {
 
-		return _flags.Contains (flag);
-	}
+	//	return _flags.Contains (flag);
+	//}
 
-	public void UnsetFlag (string flag) {
+	//public void UnsetFlag (string flag) {
 
-		if (!_flags.Contains (flag))
-			return;
+	//	if (!_flags.Contains (flag))
+	//		return;
 
-		_flags.Remove (flag);
-	}
+	//	_flags.Remove (flag);
+	//}
 
 	public float GetPreferenceValue (string id) {
 

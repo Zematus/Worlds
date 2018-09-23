@@ -3,410 +3,286 @@ using System.Collections.Generic;
 using System.Xml.Serialization;
 using System.Linq;
 
-public abstract class Region : ISynchronizable {
+[XmlInclude(typeof(CellRegion))]
+public abstract class Region : ISynchronizable
+{
+    public const float BaseMaxAltitudeDifference = 1000;
+    public const int AltitudeRoundnessTarget = 2000;
+
+    public const float MaxClosedness = 0.5f;
+
+    [XmlIgnore]
+    public RegionInfo Info;
+
+    [XmlIgnore]
+    public bool IsSelected = false;
+
+    [XmlIgnore]
+    public float AverageAltitude;
+    [XmlIgnore]
+    public float AverageRainfall;
+    [XmlIgnore]
+    public float AverageTemperature;
+
+    [XmlIgnore]
+    public float AverageSurvivability;
+    [XmlIgnore]
+    public float AverageForagingCapacity;
+    [XmlIgnore]
+    public float AverageAccessibility;
+    [XmlIgnore]
+    public float AverageArability;
+
+    [XmlIgnore]
+    public float AverageFarmlandPercentage;
+
+    [XmlIgnore]
+    public float TotalArea;
+
+    [XmlIgnore]
+    public string BiomeWithMostPresence = null;
+    [XmlIgnore]
+    public float MostBiomePresence;
+
+    [XmlIgnore]
+    public List<string> PresentBiomeNames = new List<string>();
+    [XmlIgnore]
+    public List<float> BiomePresences = new List<float>();
+
+    [XmlIgnore]
+    public float AverageOuterBorderAltitude;
+    [XmlIgnore]
+    public float MinAltitude;
+    [XmlIgnore]
+    public float MaxAltitude;
+    [XmlIgnore]
+    public float CoastPercentage;
+    [XmlIgnore]
+    public float OceanPercentage;
+
+    public long Id
+    {
+        get
+        {
+            return Info.Id;
+        }
+    }
+
+    public Name Name
+    {
+        get
+        {
+            return Info.Name;
+        }
+    }
+
+    public List<RegionAttribute> Attributes
+    {
+        get
+        {
+            return Info.Attributes;
+        }
+    }
+
+    public List<Element> Elements
+    {
+        get
+        {
+            return Info.Elements;
+        }
+    }
+
+    public World World
+    {
+        get
+        {
+            return Info.World;
+        }
+    }
+
+    protected Dictionary<string, float> _biomePresences;
+
+    private static TerrainCell _startCell;
+    private static int _rngOffset;
 
-	public const float BaseMaxAltitudeDifference = 1000;
-	public const int AltitudeRoundnessTarget = 2000;
+    public Region()
+    {
 
-	public const float MaxClosedness = 0.5f;
+    }
 
-	[XmlAttribute]
-	public long Id;
+    public Region(TerrainCell originCell, Language language)
+    {
+        Info = new RegionInfo(this, originCell, language);
+    }
 
-	public Name Name;
+    public void ResetInfo()
+    {
+        RegionInfo newInfo = new RegionInfo(this, Info.OriginCell, Info.Language);
 
-	[XmlIgnore]
-	public List<RegionAttribute> Attributes = new List<RegionAttribute>();
+        Info.Region = null; // Old region info object should no longer point to this region but remain in memory for further references
 
-	[XmlIgnore]
-	public List<Element> Elements = new List<Element>();
+        Info = newInfo; // Replace info object with new one
+    }
 
-	[XmlIgnore]
-	public bool IsSelected = false;
+    public abstract ICollection<TerrainCell> GetCells();
 
-	[XmlIgnore]
-	public World World;
+    public abstract bool IsInnerBorderCell(TerrainCell cell);
 
-	[XmlIgnore]
-	public float AverageAltitude;
-	[XmlIgnore]
-	public float AverageRainfall;
-	[XmlIgnore]
-	public float AverageTemperature;
+    public virtual void Synchronize()
+    {
+    }
 
-	[XmlIgnore]
-	public float AverageSurvivability;
-	[XmlIgnore]
-	public float AverageForagingCapacity;
-	[XmlIgnore]
-	public float AverageAccessibility;
-	[XmlIgnore]
-	public float AverageArability;
+    public virtual void FinalizeLoad()
+    {
+    }
 
-	[XmlIgnore]
-	public float AverageFarmlandPercentage;
+    public static Region TryGenerateRegion(TerrainCell startCell, Language establishmentLanguage)
+    {
+        if (startCell.GetBiomePresence(Biome.Ocean) >= 1)
+            return null;
 
-	[XmlIgnore]
-	public float TotalArea;
+        if (startCell.Region != null)
+            return null;
 
-	[XmlIgnore]
-	public string BiomeWithMostPresence = null;
-	[XmlIgnore]
-	public float MostBiomePresence;
+        Region region = TryGenerateBiomeRegion(startCell, establishmentLanguage, startCell.BiomeWithMostPresence);
 
-	[XmlIgnore]
-	public List<string> PresentBiomeNames = new List<string>();
-	[XmlIgnore]
-	public List<float> BiomePresences = new List<float>();
+        return region;
+    }
 
-	[XmlIgnore]
-	public float AverageOuterBorderAltitude;
-	[XmlIgnore]
-	public float MinAltitude;
-	[XmlIgnore]
-	public float MaxAltitude;
-	[XmlIgnore]
-	public float CoastPercentage;
-	[XmlIgnore]
-	public float OceanPercentage;
+    private static int GetRandomInt(int maxValue)
+    {
+        return _startCell.GetNextLocalRandomInt(_rngOffset++, maxValue);
+    } 
 
-	protected Dictionary<string, float> _biomePresences;
+    public static Region TryGenerateBiomeRegion(TerrainCell startCell, Language establishmentLanguage, string biomeName)
+    {
+        int regionSize = 1;
 
-	public Region () {
+        HashSet<CellRegion> borderingRegions = new HashSet<CellRegion>();
 
-	}
+        // round the base altitude
+        float baseAltitude = AltitudeRoundnessTarget * Mathf.Round(startCell.Altitude / AltitudeRoundnessTarget);
 
-	public Region (World world, long id) {
+        HashSet<TerrainCell> acceptedCells = new HashSet<TerrainCell>();
+        HashSet<TerrainCell> unacceptedCells = new HashSet<TerrainCell>();
 
-		World = world;
+        acceptedCells.Add(startCell);
 
-//		Id = World.GenerateRegionId ();
-		Id = id;
-	}
+        HashSet<TerrainCell> cellsToExplore = new HashSet<TerrainCell>();
 
-	public abstract ICollection<TerrainCell> GetCells ();
+        foreach (TerrainCell cell in startCell.Neighbors.Values)
+        {
+            cellsToExplore.Add(cell);
+        }
 
-	public abstract bool IsInnerBorderCell (TerrainCell cell);
+        bool addedAcceptedCells = true;
 
-	public virtual void Synchronize () {
+        int borderCells = 0;
 
-		Name.Synchronize ();
-	}
+        while (addedAcceptedCells)
+        {
+            HashSet<TerrainCell> nextCellsToExplore = new HashSet<TerrainCell>();
+            addedAcceptedCells = false;
 
-	public virtual void FinalizeLoad () {
+            if (cellsToExplore.Count <= 0)
+                break;
 
-		Name.World = World;
-		Name.FinalizeLoad ();
-	}
+            float closedness = 1 - cellsToExplore.Count / (float)(cellsToExplore.Count + borderCells);
 
-	public static Region TryGenerateRegion (TerrainCell startCell) {
+            foreach (TerrainCell cell in cellsToExplore)
+            {
+                float closednessFactor = 1;
+                float cutOffFactor = 2;
 
-		if (startCell.GetBiomePresence (Biome.Ocean) >= 1)
-			return null;
-		
-		if (startCell.Region != null)
-			return null;
+                if (MaxClosedness < 1)
+                {
+                    closednessFactor = (1 + MaxClosedness / cutOffFactor) * (1 - closedness) / (1 - MaxClosedness) - MaxClosedness / cutOffFactor;
+                }
 
-		Region region = TryGenerateBiomeRegion (startCell, startCell.BiomeWithMostPresence);
+                float maxAltitudeDifference = BaseMaxAltitudeDifference * closednessFactor;
 
-		return region;
-	}
+                bool accepted = false;
 
-	public static Region TryGenerateBiomeRegion (TerrainCell startCell, string biomeName) {
+                string cellBiomeName = cell.BiomeWithMostPresence;
 
-		int regionSize = 1;
+                if (cell.Region != null)
+                {
+                    borderingRegions.Add(cell.Region as CellRegion);
+                }
+                else if (cellBiomeName == biomeName)
+                {
+                    if (Mathf.Abs(cell.Altitude - baseAltitude) < maxAltitudeDifference)
+                    {
+                        accepted = true;
+                        acceptedCells.Add(cell);
+                        addedAcceptedCells = true;
+                        regionSize++;
 
-		HashSet<CellRegion> borderingRegions = new HashSet<CellRegion> ();
+                        foreach (KeyValuePair<Direction, TerrainCell> pair in cell.Neighbors)
+                        {
+                            TerrainCell ncell = pair.Value;
 
-		// round the base altitude
-		float baseAltitude = AltitudeRoundnessTarget * Mathf.Round (startCell.Altitude / AltitudeRoundnessTarget);
+                            if (cellsToExplore.Contains(ncell))
+                                continue;
 
-		HashSet<TerrainCell> acceptedCells = new HashSet<TerrainCell> ();
-		HashSet<TerrainCell> unacceptedCells = new HashSet<TerrainCell> ();
+                            if (unacceptedCells.Contains(ncell))
+                                continue;
 
-		acceptedCells.Add (startCell);
+                            if (acceptedCells.Contains(ncell))
+                                continue;
 
-		HashSet<TerrainCell> cellsToExplore = new HashSet<TerrainCell> ();
+                            nextCellsToExplore.Add(ncell);
+                        }
+                    }
+                }
 
-		foreach (TerrainCell cell in startCell.Neighbors.Values) {
+                if (!accepted)
+                {
+                    unacceptedCells.Add(cell);
+                    borderCells++;
+                }
+            }
 
-			cellsToExplore.Add (cell);
-		}
+            cellsToExplore = nextCellsToExplore;
+        }
 
-		bool addedAcceptedCells = true;
+        CellRegion region = null;
 
-		int borderCells = 0;
+        if ((regionSize <= 20) && (borderingRegions.Count > 0))
+        {
+            _rngOffset = RngOffsets.REGION_SELECT_BORDER_REGION_TO_REPLACE_WITH;
+            _startCell = startCell;
+            
+            region = borderingRegions.RandomSelect(GetRandomInt);
 
-//		float maxClosedness = 0;
+            region.ResetInfo();
+        }
+        else
+        {
+            region = new CellRegion(startCell, establishmentLanguage);
+        }
 
-		while (addedAcceptedCells) {
-			HashSet<TerrainCell> nextCellsToExplore = new HashSet<TerrainCell> ();
-			addedAcceptedCells = false;
+        foreach (TerrainCell cell in acceptedCells)
+        {
+            region.AddCell(cell);
+        }
 
-			if (cellsToExplore.Count <= 0)
-				break;
+        region.EvaluateAttributes();
 
-			float closedness = 1 - cellsToExplore.Count / (float)(cellsToExplore.Count + borderCells);
+        region.Update();
 
-//			if (closedness > maxClosedness)
-//				maxClosedness = closedness;
+        return region;
+    }
 
-			foreach (TerrainCell cell in cellsToExplore) {
+    public string GetRandomAttributeVariation(GetRandomIntDelegate getRandomInt)
+    {
+        return Info.GetRandomAttributeVariation(getRandomInt);
+    }
 
-				float closednessFactor = 1;
-				float cutOffFactor = 2;
+    public string GetRandomUnstranslatedAreaName(GetRandomIntDelegate getRandomInt, bool isNounAdjunct)
+    {
+        return Info.GetRandomUnstranslatedAreaName(getRandomInt, isNounAdjunct);
+    }
 
-				if (MaxClosedness < 1) {
-					closednessFactor = (1 + MaxClosedness / cutOffFactor) * (1 - closedness) / (1 - MaxClosedness) - MaxClosedness / cutOffFactor;
-				}
-
-				float maxAltitudeDifference = BaseMaxAltitudeDifference * closednessFactor;
-
-				bool accepted = false;
-
-				string cellBiomeName = cell.BiomeWithMostPresence;
-
-				if (cell.Region != null) {
-				
-					borderingRegions.Add (cell.Region as CellRegion);
-
-				} else if (cellBiomeName == biomeName) {
-
-					if (Mathf.Abs (cell.Altitude - baseAltitude) < maxAltitudeDifference) {
-
-						accepted = true;
-						acceptedCells.Add (cell);
-						addedAcceptedCells = true;
-						regionSize++;
-
-						foreach (KeyValuePair<Direction, TerrainCell> pair in cell.Neighbors) {
-
-							TerrainCell ncell = pair.Value;
-
-							if (cellsToExplore.Contains (ncell))
-								continue;
-
-							if (unacceptedCells.Contains (ncell))
-								continue;
-
-							if (acceptedCells.Contains (ncell))
-								continue;
-
-							nextCellsToExplore.Add (ncell);
-						}
-					}
-				}
-
-				if (!accepted) {
-					unacceptedCells.Add (cell);
-					borderCells++;
-				}
-			}
-
-			cellsToExplore = nextCellsToExplore;
-		}
-
-		CellRegion region = null;
-
-		if ((regionSize <= 20) && (borderingRegions.Count > 0)) {
-
-			int rngOffset = RngOffsets.REGION_SELECT_BORDER_REGION;
-
-			GetRandomIntDelegate getRandomInt = (int maxValue) => startCell.GetNextLocalRandomInt (rngOffset++, maxValue);
-
-			region = borderingRegions.RandomSelect (getRandomInt);
-
-		} else {
-			
-			region = new CellRegion (startCell);
-		}
-
-		foreach (TerrainCell cell in acceptedCells) {
-
-			region.AddCell (cell);
-		}
-
-		foreach (CellRegion bRegion in borderingRegions) {
-		
-			region.AddBorderingRegion (bRegion);
-		}
-
-		region.EvaluateAttributes ();
-
-		region.Update ();
-
-		return region;
-	}
-
-	protected void AddAttribute (RegionAttribute attr) {
-
-		Attributes.Add (attr);
-	}
-
-	public string GetRandomAttributeVariation (GetRandomIntDelegate getRandomInt) {
-
-		if (Attributes.Count <= 0) {
-
-			return string.Empty;
-		}
-
-		int index = getRandomInt (Attributes.Count);
-
-		return Attributes [index].GetRandomVariation (getRandomInt);
-	}
-
-//	protected void AddElement (Element elem) {
-//
-//		Elements.Add (elem);
-//	}
-
-	protected void AddElements (IEnumerable<Element> elem) {
-
-		Elements.AddRange (elem);
-	}
-
-	public string GetRandomUnstranslatedAreaName (GetRandomIntDelegate getRandomInt, bool isNounAdjunct) {
-
-		string untranslatedName;
-
-		Element element = Elements.RandomSelect (getRandomInt, isNounAdjunct ? 5 : 20);
-
-		List<RegionAttribute> remainingAttributes = new List<RegionAttribute> (Attributes);
-
-		RegionAttribute attribute = remainingAttributes.RandomSelectAndRemove (getRandomInt);
-
-		string[] possibleAdjectives = attribute.Adjectives;
-
-		bool addAttributeNoun = true;
-
-		int wordCount = 0;
-
-		if (element != null) {
-			possibleAdjectives = element.Adjectives;
-
-			wordCount++;
-
-			if (isNounAdjunct && (getRandomInt (10) > 4)) {
-
-				addAttributeNoun = false;
-			}
-		}
-
-		string attributeNoun = string.Empty;
-
-		if (addAttributeNoun) {
-			attributeNoun = attribute.GetRandomVariation (getRandomInt, element);
-
-			wordCount++;
-		}
-
-		int nullAdjectives = 4 * wordCount * (isNounAdjunct ? 4 : 1);
-
-		string adjective = possibleAdjectives.RandomSelect (getRandomInt, nullAdjectives);
-		if (!string.IsNullOrEmpty (adjective))
-			adjective = "[adj]" + adjective + " ";
-
-		string elementNoun = string.Empty;
-		if (element != null)
-			elementNoun = "[nad]" + element.SingularName + ((addAttributeNoun) ? " " : string.Empty);
-
-		untranslatedName = adjective + elementNoun;
-
-		if (isNounAdjunct) {
-			untranslatedName += (addAttributeNoun) ? ("[nad]" + attributeNoun) : string.Empty;
-		} else {
-			untranslatedName += attributeNoun;
-		}
-
-		return untranslatedName;
-	}
-
-	public void GenerateName (Polity polity, TerrainCell originCell) {
-
-		int rngOffset = RngOffsets.REGION_GENERATE_NAME + (int)polity.Id;
-
-		GetRandomIntDelegate getRandomInt = (int maxValue) => originCell.GetNextLocalRandomInt (rngOffset++, maxValue);
-		Language.GetRandomFloatDelegate getRandomFloat = () => originCell.GetNextLocalRandomFloat (rngOffset++);
-
-		Language polityLanguage = polity.Culture.Language;
-
-		string untranslatedName;
-
-		int wordCount = 1;
-
-		List<RegionAttribute> remainingAttributes = new List<RegionAttribute> (Attributes);
-
-		RegionAttribute primaryAttribute = remainingAttributes.RandomSelectAndRemove (getRandomInt);
-
-		List<Element> remainingElements = new List<Element> (Elements);
-
-		Element firstElement = remainingElements.RandomSelect (getRandomInt, 5, true);
-
-		IEnumerable<string> possibleAdjectives = primaryAttribute.Adjectives;
-
-		if (firstElement != null) {
-			possibleAdjectives = firstElement.Adjectives;
-
-			wordCount++;
-		}
-
-		string primaryAttributeNoun = primaryAttribute.GetRandomVariation (getRandomInt, firstElement);
-
-		string secondaryAttributeNoun = string.Empty;
-
-		int elementFactor = (firstElement != null) ? 8 : 4;
-
-		float secondaryAttributeChance = 4f / (elementFactor + possibleAdjectives.Count ());
-
-		if ((remainingAttributes.Count > 0) && (getRandomFloat () < secondaryAttributeChance)) {
-
-			RegionAttribute secondaryAttribute = remainingAttributes.RandomSelectAndRemove (getRandomInt);
-
-			if (firstElement == null) {
-				possibleAdjectives = possibleAdjectives.Union (secondaryAttribute.Adjectives);
-			}
-
-			secondaryAttributeNoun = "[nad]" + secondaryAttribute.GetRandomVariation (getRandomInt, firstElement) + " ";
-
-			wordCount++;
-		}
-
-		string adjective = possibleAdjectives.RandomSelect (getRandomInt, (int)Mathf.Pow (2, wordCount));
-
-		if (!string.IsNullOrEmpty (adjective))
-			adjective = "[adj]" + adjective + " ";
-
-		string elementNoun = string.Empty;
-		if (firstElement != null) {
-			elementNoun = "[nad]" + firstElement.SingularName + " ";
-		}
-
-		untranslatedName = "[Proper][NP](" + adjective + elementNoun + secondaryAttributeNoun + primaryAttributeNoun + ")";
-
-		Name = new Name (untranslatedName, polityLanguage, World);
-
-//		#if DEBUG
-//		if (Manager.RegisterDebugEvent != null) {
-////			if ((polity.Id == Manager.TracingData.PolityId) && (originCell.Longitude == Manager.TracingData.Longitude) && (originCell.Latitude == Manager.TracingData.Latitude)) {
-//				string polityId = "Id:" + polity.Id;
-//
-//				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-//					"Region::GenerateName - Polity: " + polityId, 
-//					"CurrentDate: " + World.CurrentDate +
-//					", originCell: " + originCell.Position + 
-//					", Attributes: " + Attributes.Count + 
-//					", Elements: " + Elements.Count + 
-//					"");
-//
-//				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-////			}
-//		}
-//		#endif
-
-//		#if DEBUG
-//		Debug.Log ("Region #" + Id + " name: " + Name);
-//		#endif
-	}
-
-	public abstract TerrainCell GetMostCenteredCell ();
+    public abstract TerrainCell GetMostCenteredCell();
 }

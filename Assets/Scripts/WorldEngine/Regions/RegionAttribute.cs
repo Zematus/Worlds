@@ -141,7 +141,7 @@ public class RegionAttribute
 
         Adjectives = adjectives;
 
-        Variations = NamingTools.GenerateNounVariations(variants);
+        Variations = NameTools.GenerateNounVariations(variants);
 
         List<Association> associations = new List<Association>();
 

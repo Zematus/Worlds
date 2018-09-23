@@ -6,9 +6,9 @@ using System.Xml.Serialization;
 
 public struct WorldPosition
 {
-    [XmlAttribute("Lon")]
+    [XmlAttribute("X")]
     public int Longitude;
-    [XmlAttribute("Lat")]
+    [XmlAttribute("Y")]
     public int Latitude;
 
     public WorldPosition(int longitude, int latitude)

@@ -14,7 +14,6 @@ using UnityEngine.Profiling;
 
 public class Agent : ISynchronizable
 {
-
     public const int MaxAttributeValue = 30;
     public const int MinAttributeValue = 3;
 
@@ -40,33 +39,42 @@ public class Agent : ISynchronizable
     [XmlAttribute("Wis")]
     public int BaseWisdom;
 
-    [XmlAttribute("GrpId")]
-    public long GroupId;
-
     [XmlAttribute("StilPres")]
     public bool StillPresent = true;
 
-    //[XmlAttribute("NameElem")]
-    //public string NameElementId = null;
+    [XmlAttribute("LanId")]
+    public long LanguageId;
 
-    //[XmlAttribute("NameAttrName")]
-    //public string NameAttributeName = null;
+    [XmlAttribute("RenId")]
+    public long BirthRegionInfoId;
+
+    public WorldPosition BirthCellPosition;
 
     [XmlIgnore]
     public World World;
 
     [XmlIgnore]
-    public CellGroup Group;
+    public Language Language;
+
+    [XmlIgnore]
+    public RegionInfo BirthRegionInfo;
+
+    [XmlIgnore]
+    public TerrainCell BirthCell;
 
     [XmlIgnore]
     public Name Name
     {
         get
         {
-            //if (_name == null)
-            //{
-            //    GenerateName();
-            //}
+            if (_name == null)
+            {
+                Profiler.BeginSample("Agent - GenerateName");
+
+                GenerateName();
+
+                Profiler.EndSample();
+            }
 
             return _name;
         }
@@ -96,7 +104,6 @@ public class Agent : ISynchronizable
         get
         {
             int wisdom = BaseWisdom + (int)(Age / WisdomAgeFactor) - WisdomAgeOffset;
-            //			wisdom = (wisdom > MaxAttributeValue) ? MaxAttributeValue : wisdom;
 
             return (wisdom > MinAttributeValue) ? wisdom : MinAttributeValue;
         }
@@ -115,8 +122,14 @@ public class Agent : ISynchronizable
     {
         World = birthGroup.World;
 
-        GroupId = birthGroup.Id;
-        Group = birthGroup;
+        BirthCell = birthGroup.Cell;
+        BirthCellPosition = BirthCell.Position;
+
+        BirthRegionInfo = BirthCell.Region.Info;
+        BirthRegionInfoId = BirthRegionInfo.Id;
+
+        Language = birthGroup.Culture.Language;
+        LanguageId = Language.Id;
 
         BirthDate = birthDate;
 
@@ -124,19 +137,13 @@ public class Agent : ISynchronizable
 
         Profiler.BeginSample("new Agent - GenerateUniqueIdentifier");
 
-        Id = GenerateUniqueIdentifier(birthDate, 1000L, idOffset);
+        Id = birthGroup.GenerateUniqueIdentifier(birthDate, 1000L, idOffset);
 
         Profiler.EndSample();
 
         Profiler.BeginSample("new Agent - GenerateBio");
 
-        GenerateBio();
-
-        Profiler.EndSample();
-
-        Profiler.BeginSample("new Agent - PregenerateName");
-
-        PregenerateName();
+        GenerateBio(birthGroup);
 
         Profiler.EndSample();
     }
@@ -146,24 +153,17 @@ public class Agent : ISynchronizable
         StillPresent = false;
     }
 
-    public long GenerateUniqueIdentifier(long date, long oom, long offset)
-    {
-        return Group.GenerateUniqueIdentifier(date, oom, offset);
-    }
-
-    private void GenerateBio()
+    private void GenerateBio(CellGroup birthGroup)
     {
         int rngOffset = RngOffsets.AGENT_GENERATE_BIO + (int)Id;
 
-        IsFemale = Group.GetLocalRandomFloat(BirthDate, rngOffset++) > 0.5f;
-        BaseCharisma = MinAttributeValue + Group.GetLocalRandomInt(BirthDate, rngOffset++, AttributeGenMax);
-        BaseWisdom = MinAttributeValue + Group.GetLocalRandomInt(BirthDate, rngOffset++, AttributeGenMax);
+        IsFemale = birthGroup.GetLocalRandomFloat(BirthDate, rngOffset++) > 0.5f;
+        BaseCharisma = MinAttributeValue + birthGroup.GetLocalRandomInt(BirthDate, rngOffset++, AttributeGenMax);
+        BaseWisdom = MinAttributeValue + birthGroup.GetLocalRandomInt(BirthDate, rngOffset++, AttributeGenMax);
     }
 
     private void GenerateNameFromElement(Element element, GetRandomIntDelegate getRandomInt)
     {
-        Language language = Group.Culture.Language;
-
         string untranslatedName;
 
         string adjective = element.Adjectives.RandomSelect(getRandomInt, 15);
@@ -206,13 +206,11 @@ public class Agent : ISynchronizable
             untranslatedName = "[PpPP]([Proper][NP](" + subjectNoun + ") [PP](" + association.Relation + " [Proper][NP](" + elementNoun + ")))";
         }
 
-        _name = new Name(untranslatedName, language, World);
+        _name = new Name(untranslatedName, Language, World);
     }
 
     private void GenerateNameFromRegionAttribute(RegionAttribute attribute, GetRandomIntDelegate getRandomInt)
     {
-        Language language = Group.Culture.Language;
-
         string untranslatedName;
 
         string adjective = attribute.Adjectives.RandomSelect(getRandomInt, 15);
@@ -261,29 +259,27 @@ public class Agent : ISynchronizable
             untranslatedName = "[PpPP]([Proper][NP](" + subjectNoun + ") [PP](" + association.Relation + " [Proper][NP](" + variationNoun + ")))";
         }
 
-        _name = new Name(untranslatedName, language, World);
+        _name = new Name(untranslatedName, Language, World);
     }
 
     private int GetRandomInt(int maxValue)
     {
-        return Group.GetLocalRandomInt(BirthDate, _rngOffset++, maxValue);
+        return BirthCell.GetLocalRandomInt(BirthDate, _rngOffset++, maxValue);
     }
 
-    private void PregenerateName()
+    private void GenerateName()
     {
-        _rngOffset = RngOffsets.AGENT_PREGENERATE_NAME + (int)Id;
-
-        Region region = Group.Cell.Region;
+        _rngOffset = RngOffsets.AGENT_GENERATE_NAME + (int)Id;
 
         Profiler.BeginSample("region.Elements.Where");
 
-        List<Element> elements = region.Elements;
+        List<Element> elements = BirthRegionInfo.Elements;
 
         Profiler.EndSample();
 
         Profiler.BeginSample("region.Attributes.Where");
 
-        List<RegionAttribute> attributes = region.Attributes;
+        List<RegionAttribute> attributes = BirthRegionInfo.Attributes;
 
         Profiler.EndSample();
 
@@ -328,49 +324,31 @@ public class Agent : ISynchronizable
         Profiler.EndSample();
     }
 
-    //private void GenerateName()
-    //{
-    //    _rngOffset = RngOffsets.AGENT_GENERATE_NAME + (int)Id;
-
-    //    if (NameElementId != null)
-    //    {
-    //        Element element = Element.Elements[NameElementId];
-
-    //        Profiler.BeginSample("GenerateName - GenerateNameFromElement");
-
-    //        GenerateNameFromElement(element, GetRandomInt);
-
-    //        Profiler.EndSample();
-
-    //    }
-    //    else
-    //    {
-    //        RegionAttribute attribute = RegionAttribute.Attributes[NameAttributeName];
-
-    //        Profiler.BeginSample("GenerateName - GenerateNameFromRegionAttribute");
-
-    //        GenerateNameFromRegionAttribute(attribute, GetRandomInt);
-
-    //        Profiler.EndSample();
-    //    }
-
-    //    //		#if DEBUG
-    //    //		Debug.Log ("Leader #" + Id + " name: " + Name);
-    //    //		#endif
-    //}
-
     public virtual void Synchronize()
     {
-        //Name.Synchronize ();
     }
 
     public virtual void FinalizeLoad()
     {
-        Group = World.GetGroup(GroupId);
+        BirthRegionInfo = World.GetRegionInfo(BirthRegionInfoId);
 
-        if (Group == null)
+        if (BirthRegionInfo == null)
         {
-            throw new System.Exception("Missing Group with Id " + GroupId);
+            throw new System.Exception("Missing RegionInfo with Id " + BirthRegionInfoId);
+        }
+
+        Language = World.GetLanguage(LanguageId);
+
+        if (Language == null)
+        {
+            throw new System.Exception("Missing Language with Id " + LanguageId);
+        }
+
+        BirthCell = World.GetCell(BirthCellPosition);
+
+        if (BirthCell == null)
+        {
+            throw new System.Exception("Missing World Cell at Position " + BirthCellPosition);
         }
     }
 

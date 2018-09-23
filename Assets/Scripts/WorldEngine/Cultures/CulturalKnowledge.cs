@@ -229,7 +229,10 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
 
 		Asymptote = CalculateBaseAsymptote ();
 
-		Group.Culture.Discoveries.ForEach (d => Asymptote = Mathf.Max (CalculateAsymptoteInternal (d), Asymptote));
+        foreach (CulturalDiscovery d in Group.Culture.Discoveries)
+        {
+            Asymptote = Mathf.Max(CalculateAsymptoteInternal(d), Asymptote);
+        }
 
 		UpdateProgressLevel ();
 

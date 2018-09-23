@@ -44,7 +44,7 @@ public abstract class Faction : ISynchronizable {
 	// Do not call this property directly, only for serialization
 	public Agent LastLeader = null;
 
-	public List<string> Flags;
+	//public List<string> Flags;
 
     [XmlIgnore]
     public FactionInfo Info;
@@ -97,7 +97,7 @@ public abstract class Faction : ISynchronizable {
 
 	protected Dictionary<long, FactionEvent> _events = new Dictionary<long, FactionEvent> ();
 
-	private HashSet<string> _flags = new HashSet<string> ();
+	//private HashSet<string> _flags = new HashSet<string> ();
 
 	private bool _preupdated = false;
 
@@ -328,8 +328,9 @@ public abstract class Faction : ISynchronizable {
 
     }
 
-    public void PreUpdate ()
+    public void PreUpdate()
     {
+        Profiler.BeginSample("Faction - PreUpdate");
 
 #if DEBUG
         if (Manager.RegisterDebugEvent != null)
@@ -367,50 +368,69 @@ public abstract class Faction : ISynchronizable {
             Debug.LogWarning("Trying to  preupdate faction after factions have already been updated this iteration. Id: " + Id);
         }
 
-        if (!StillPresent) {
-			throw new System.Exception("Faction is no longer present. Id: " + Id + ", Date: " + World.CurrentDate);
-		}
+        if (!StillPresent)
+        {
+            throw new System.Exception("Faction is no longer present. Id: " + Id + ", Date: " + World.CurrentDate);
+        }
 
-		if (!Polity.StillPresent) {
+        if (!Polity.StillPresent)
+        {
             throw new System.Exception("Faction's polity is no longer present. Id: " + Id + " Polity Id: " + Polity.Id + ", Date: " + World.CurrentDate);
         }
 
-		if (_preupdated)
-			return;
-		
-		_preupdated = true;
+        if (_preupdated)
+        {
+            Profiler.EndSample();
+            return;
+        }
 
-		RequestCurrentLeader ();
+        _preupdated = true;
 
-		Culture.Update ();
+        Profiler.BeginSample("RequestCurrentLeader");
+
+        RequestCurrentLeader();
+
+        Profiler.EndSample();
+
+        Profiler.BeginSample("Culture.Update");
+
+        Culture.Update();
+
+        Profiler.EndSample();
 
         if (!IsBeingUpdated)
         {
+            Profiler.BeginSample("World.AddFactionToUpdate");
+
             World.AddFactionToUpdate(this);
+
+            Profiler.EndSample();
         }
-	}
 
-	public void Update () {
+        Profiler.EndSample();
+    }
 
+    public void Update()
+    {
         if (!StillPresent)
             return;
 
         IsBeingUpdated = true;
 
-		PreUpdate ();
+        PreUpdate();
 
-		UpdateInternal ();
+        UpdateInternal();
 
-		LastUpdateDate = World.CurrentDate;
+        LastUpdateDate = World.CurrentDate;
 
-		World.AddPolityToUpdate (Polity);
+        World.AddPolityToUpdate(Polity);
 
-		_preupdated = false;
+        _preupdated = false;
 
         IsBeingUpdated = false;
     }
 
-	public void PrepareNewCoreGroup (CellGroup coreGroup) {
+    public void PrepareNewCoreGroup (CellGroup coreGroup) {
 
 		NewCoreGroup = coreGroup;
 	}
@@ -433,7 +453,7 @@ public abstract class Faction : ISynchronizable {
 
 	public virtual void Synchronize () {
 
-		Flags = new List<string> (_flags);
+		//Flags = new List<string> (_flags);
 
 		EventDataList.Clear ();
 
@@ -475,8 +495,8 @@ public abstract class Faction : ISynchronizable {
 		}
 
 		GenerateEventsFromData ();
-
-		Flags.ForEach (f => _flags.Add (f));
+        
+		//Flags.ForEach (f => _flags.Add (f));
 	}
 
 	protected abstract void GenerateEventsFromData ();
@@ -529,26 +549,26 @@ public abstract class Faction : ISynchronizable {
 		return CoreGroup.GetNextLocalRandomInt (iterationOffset + (int)Id, maxValue);
 	}
 
-	public void SetFlag (string flag) {
+	//public void SetFlag (string flag) {
 
-		if (_flags.Contains (flag))
-			return;
+	//	if (_flags.Contains (flag))
+	//		return;
 
-		_flags.Add (flag);
-	}
+	//	_flags.Add (flag);
+	//}
 
-	public bool IsFlagSet (string flag) {
+	//public bool IsFlagSet (string flag) {
 
-		return _flags.Contains (flag);
-	}
+	//	return _flags.Contains (flag);
+	//}
 
-	public void UnsetFlag (string flag) {
+	//public void UnsetFlag (string flag) {
 
-		if (!_flags.Contains (flag))
-			return;
+	//	if (!_flags.Contains (flag))
+	//		return;
 
-		_flags.Remove (flag);
-	}
+	//	_flags.Remove (flag);
+	//}
 
 	public virtual void SetDominant (bool state) {
 	

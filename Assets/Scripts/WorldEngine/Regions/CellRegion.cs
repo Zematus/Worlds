@@ -7,8 +7,6 @@ public class CellRegion : Region
 {
     public List<WorldPosition> CellPositions;
 
-    public List<long> BorderingRegionIds;
-
     private HashSet<TerrainCell> _cells = new HashSet<TerrainCell>();
 
     private HashSet<TerrainCell> _innerBorderCells = new HashSet<TerrainCell>();
@@ -17,14 +15,12 @@ public class CellRegion : Region
 
     private TerrainCell _mostCenteredCell = null;
 
-    private HashSet<CellRegion> _borderingRegions = new HashSet<CellRegion>();
-
     public CellRegion()
     {
 
     }
 
-    public CellRegion(TerrainCell startCell) : base(startCell.World, startCell.GenerateUniqueIdentifier(startCell.World.CurrentDate))
+    public CellRegion(TerrainCell originCell, Language language) : base(originCell, language)
     {
 
     }
@@ -40,17 +36,7 @@ public class CellRegion : Region
             return false;
 
         cell.Region = this;
-        Manager.AddUpdatedCell(cell, CellUpdateType.Region, CellUpdateSubType.Membership);
-
-        return true;
-    }
-
-    public bool AddBorderingRegion(CellRegion region)
-    {
-        if (!_borderingRegions.Add(region))
-            return false;
-
-        region.AddBorderingRegion(this);
+        //Manager.AddUpdatedCell(cell, CellUpdateType.Region, CellUpdateSubType.Membership);
 
         return true;
     }
@@ -112,7 +98,6 @@ public class CellRegion : Region
 
                     if (_outerBorderCells.Add(nCell))
                     {
-
                         float nCellArea = nCell.Area;
 
                         outerBorderArea += nCellArea;
@@ -212,23 +197,23 @@ public class CellRegion : Region
             }
         }
 
-//#if DEBUG
-//        if (Manager.RegisterDebugEvent != null)
-//        {
-//            //			if ((originCell.Longitude == Manager.TracingData.Longitude) && (originCell.Latitude == Manager.TracingData.Latitude)) {
-//            string regionId = "Id:" + Id;
+        //#if DEBUG
+        //        if (Manager.RegisterDebugEvent != null)
+        //        {
+        //            //			if ((originCell.Longitude == Manager.TracingData.Longitude) && (originCell.Latitude == Manager.TracingData.Latitude)) {
+        //            string regionId = "Id:" + Id;
 
-//            SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-//                "CellRegion::EvaluateAttributes - Region: " + regionId,
-//                "CurrentDate: " + World.CurrentDate +
-//                ", cell count: " + _cells.Count +
-//                ", TotalArea: " + TotalArea +
-//                "");
+        //            SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+        //                "CellRegion::EvaluateAttributes - Region: " + regionId,
+        //                "CurrentDate: " + World.CurrentDate +
+        //                ", cell count: " + _cells.Count +
+        //                ", TotalArea: " + TotalArea +
+        //                "");
 
-//            Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-//            //			}
-//        }
-//#endif
+        //            Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+        //            //			}
+        //        }
+        //#endif
 
         CalculateMostCenteredCell();
 
@@ -256,31 +241,12 @@ public class CellRegion : Region
             CellPositions.Add(cell.Position);
         }
 
-        BorderingRegionIds = new List<long>(_borderingRegions.Count);
-
-        foreach (CellRegion region in _borderingRegions)
-        {
-            BorderingRegionIds.Add(region.Id);
-        }
-
         base.Synchronize();
     }
 
     public override void FinalizeLoad()
     {
         base.FinalizeLoad();
-
-        foreach (long regionId in BorderingRegionIds)
-        {
-            CellRegion region = World.GetRegion(regionId) as CellRegion;
-
-            if (region == null)
-            {
-                throw new System.Exception("CellRegion missing, Id: " + regionId);
-            }
-
-            _borderingRegions.Add(region);
-        }
 
         foreach (WorldPosition position in CellPositions)
         {
@@ -301,34 +267,31 @@ public class CellRegion : Region
 
     private void DefineAttributes()
     {
-        Attributes.Clear();
-
         if ((CoastPercentage > 0.45f) && (CoastPercentage < 0.70f))
         {
-            AddAttribute(RegionAttribute.Coast);
+            Info.AddAttribute(RegionAttribute.Coast);
         }
         else if ((CoastPercentage >= 0.70f) && (CoastPercentage < 1f))
         {
-            AddAttribute(RegionAttribute.Peninsula);
+            Info.AddAttribute(RegionAttribute.Peninsula);
         }
         else if (CoastPercentage >= 1f)
         {
-            AddAttribute(RegionAttribute.Island);
+            Info.AddAttribute(RegionAttribute.Island);
         }
 
         if (AverageAltitude > (AverageOuterBorderAltitude + 200f))
         {
-            AddAttribute(RegionAttribute.Highland);
+            Info.AddAttribute(RegionAttribute.Highland);
         }
 
         if (AverageAltitude < (AverageOuterBorderAltitude - 200f))
         {
-            AddAttribute(RegionAttribute.Valley);
+            Info.AddAttribute(RegionAttribute.Valley);
 
             if (AverageRainfall > 1000)
             {
-
-                AddAttribute(RegionAttribute.Basin);
+                Info.AddAttribute(RegionAttribute.Basin);
             }
         }
 
@@ -337,57 +300,61 @@ public class CellRegion : Region
             switch (BiomeWithMostPresence)
             {
                 case "Desert":
-                    AddAttribute(RegionAttribute.Desert);
+                    Info.AddAttribute(RegionAttribute.Desert);
                     break;
 
                 case "Desertic Tundra":
-                    AddAttribute(RegionAttribute.Desert);
+                    Info.AddAttribute(RegionAttribute.Desert);
                     break;
 
                 case "Forest":
-                    AddAttribute(RegionAttribute.Forest);
+                    Info.AddAttribute(RegionAttribute.Forest);
                     break;
 
                 case "Glacier":
-                    AddAttribute(RegionAttribute.Glacier);
+                    Info.AddAttribute(RegionAttribute.Glacier);
                     break;
 
                 case "Grassland":
-                    AddAttribute(RegionAttribute.Grassland);
+                    Info.AddAttribute(RegionAttribute.Grassland);
                     break;
 
                 case "Ice Cap":
-                    AddAttribute(RegionAttribute.IceCap);
+                    Info.AddAttribute(RegionAttribute.IceCap);
                     break;
 
                 case "Rainforest":
-                    AddAttribute(RegionAttribute.Rainforest);
+                    Info.AddAttribute(RegionAttribute.Rainforest);
 
                     if (AverageTemperature > 20)
-                        AddAttribute(RegionAttribute.Jungle);
+                        Info.AddAttribute(RegionAttribute.Jungle);
                     break;
 
                 case "Taiga":
-                    AddAttribute(RegionAttribute.Taiga);
+                    Info.AddAttribute(RegionAttribute.Taiga);
                     break;
 
                 case "Tundra":
-                    AddAttribute(RegionAttribute.Tundra);
+                    Info.AddAttribute(RegionAttribute.Tundra);
                     break;
             }
         }
 
         if (Attributes.Count <= 0)
         {
-            AddAttribute(RegionAttribute.Region);
+            Info.AddAttribute(RegionAttribute.Region);
         }
     }
 
     private void DefineElements()
     {
-        Elements.Clear();
-
-        AddElements(Element.Elements.Values.Where(e => e.Assignable(this)));
+        foreach (Element e in Element.Elements.Values)
+        {
+            if (e.Assignable(this))
+            {
+                Info.AddElement(e);
+            }
+        }
     }
 
     private void CalculateMostCenteredCell()

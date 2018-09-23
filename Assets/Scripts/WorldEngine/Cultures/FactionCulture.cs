@@ -5,127 +5,82 @@ using System.Xml;
 using System.Xml.Serialization;
 using UnityEngine.Profiling;
 
-public class FactionCulture : Culture {
+public class FactionCulture : Culture
+{
+    public const long OptimalTimeSpan = CellGroup.GenerationSpan * 500;
 
-	public const long OptimalTimeSpan = CellGroup.GenerationSpan * 500;
+    [XmlIgnore]
+    public Faction Faction;
 
-	[XmlIgnore]
-	public Faction Faction;
+    public FactionCulture()
+    {
 
-	public FactionCulture () {
-	
-	}
+    }
 
-	public FactionCulture (Faction faction) : base (faction.World) {
+    public FactionCulture(Faction faction) : base(faction.World)
+    {
+        Faction = faction;
 
-		Faction = faction;
+        CellGroup coreGroup = Faction.CoreGroup;
 
-		CellGroup coreGroup = Faction.CoreGroup;
+        if (coreGroup == null)
+            throw new System.Exception("CoreGroup can't be null at this point");
 
-		if (coreGroup == null)
-			throw new System.Exception ("CoreGroup can't be null at this point");
+        CellCulture coreCulture = coreGroup.Culture;
 
-		CellCulture coreCulture = coreGroup.Culture;
+        foreach (CulturalPreference p in coreCulture.Preferences)
+        {
+            AddPreference(new CulturalPreference(p));
+        }
 
-		foreach (CulturalPreference p in coreCulture.Preferences) {
-			AddPreference (new CulturalPreference (p));
-		}
+        foreach (CulturalActivity a in coreCulture.Activities)
+        {
+            AddActivity(new CulturalActivity(a));
+        }
 
-		foreach (CulturalActivity a in coreCulture.Activities) {
-			AddActivity (new CulturalActivity (a));
-		}
+        foreach (CulturalSkill s in coreCulture.Skills)
+        {
+            AddSkill(new CulturalSkill(s));
+        }
 
-		foreach (CulturalSkill s in coreCulture.Skills) {
-			AddSkill (new CulturalSkill (s));
-		}
+        foreach (CulturalKnowledge k in coreCulture.Knowledges)
+        {
+            AddKnowledge(new CulturalKnowledge(k));
+        }
 
-		foreach (CulturalKnowledge k in coreCulture.Knowledges) {
-			AddKnowledge (new CulturalKnowledge (k));
-		}
+        foreach (CulturalDiscovery d in coreCulture.Discoveries)
+        {
+            AddDiscovery(new CulturalDiscovery(d));
+        }
+    }
 
-		foreach (CulturalDiscovery d in coreCulture.Discoveries) {
-			AddDiscovery (new CulturalDiscovery (d));
-		}
+    public float GetNextRandomFloat(int rngOffset)
+    {
+        return Faction.GetNextLocalRandomFloat(rngOffset);
+    }
 
-//		Language = coreCulture.Language;
-//
-//		if (Language == null) {
-//		
-//			GenerateNewLanguage ();
-//		}
-	}
+    public void Update()
+    {
+        CellGroup coreGroup = Faction.CoreGroup;
 
-	public float GetNextRandomFloat (int rngOffset) {
+        if ((coreGroup == null) || (!coreGroup.StillPresent))
+            throw new System.Exception("CoreGroup is null or no longer present");
 
-		return Faction.GetNextLocalRandomFloat (rngOffset);
-	}
+        CellCulture coreCulture = coreGroup.Culture;
 
-//	private void GenerateNewLanguage () {
-//
-//		Language = new Language (Faction.GenerateUniqueIdentifier (World.CurrentDate, 100L, Faction.Id));
-//
-//		// Generate Articles
-//
-//		Language.GenerateArticleProperties ();
-//
-//		Language.GenerateArticleAdjunctionProperties ();
-//		Language.GenerateArticleSyllables ();
-//		Language.GenerateAllArticles ();
-//
-//		// Generate Noun Indicatives
-//
-//		Language.GenerateNounIndicativeProperties ();
-//
-//		Language.GenerateNounIndicativeAdjunctionProperties ();
-//		Language.GenerateNounIndicativeSyllables ();
-//		Language.GenerateAllNounIndicatives ();
-//
-//		// Generate Verb Indicatives
-//
-//		Language.GenerateVerbIndicativeProperties ();
-//
-//		Language.GenerateVerbIndicativeAdjunctionProperties ();
-//		Language.GenerateVerbIndicativeSyllables ();
-//		Language.GenerateAllVerbIndicatives ();
-//
-//		// Generate Noun, Adjective and Adposition Properties and Syllables
-//
-//		Language.GenerateVerbSyllables ();
-//
-//		Language.GenerateNounAdjunctionProperties ();
-//		Language.GenerateNounSyllables ();
-//
-//		Language.GenerateAdjectiveAdjunctionProperties ();
-//		Language.GenerateAdjectiveSyllables ();
-//
-//		Language.GenerateAdpositionAdjunctionProperties ();
-//		Language.GenerateAdpositionSyllables ();
-//
-//		World.AddLanguage (Language);
-//	}
+        long dateSpan = World.CurrentDate - Faction.LastUpdateDate;
 
-	public void Update () {
+        float timeFactor = dateSpan / (float)(dateSpan + OptimalTimeSpan);
 
-		CellGroup coreGroup = Faction.CoreGroup;
+        ////// Update Preferences
 
-		if ((coreGroup == null) || (!coreGroup.StillPresent))
-			throw new System.Exception ("CoreGroup is null or no longer present");
+        HashSet<string> foundPreferenceIds = new HashSet<string>();
 
-		CellCulture coreCulture = coreGroup.Culture;
+        foreach (CulturalPreference p in coreCulture.Preferences)
+        {
+            foundPreferenceIds.Add(p.Id);
 
-		long dateSpan = World.CurrentDate - Faction.LastUpdateDate;
-
-		float timeFactor = dateSpan / (float)(dateSpan + OptimalTimeSpan);
-
-		////// Update Preferences
-
-		HashSet<string> foundPreferenceIds = new HashSet<string> ();
-
-		foreach (CulturalPreference p in coreCulture.Preferences) {
-
-			foundPreferenceIds.Add (p.Id);
-
-			CulturalPreference preference = GetPreference (p.Id);
+            CulturalPreference preference = GetPreference(p.Id);
 
 #if DEBUG
             float prevValue = 0;
@@ -133,11 +88,11 @@ public class FactionCulture : Culture {
 
             if (preference == null)
             {
-				preference = new CulturalPreference (p);
-				AddPreference (preference);
+                preference = new CulturalPreference(p);
+                AddPreference(preference);
 
-				preference.Value = p.Value * timeFactor;
-			}
+                preference.Value = p.Value * timeFactor;
+            }
             else
             {
 #if DEBUG
@@ -168,99 +123,104 @@ public class FactionCulture : Culture {
 #endif
         }
 
-        foreach (CulturalPreference p in Preferences) {
+        foreach (CulturalPreference p in Preferences)
+        {
+            if (!foundPreferenceIds.Contains(p.Id))
+            {
+                p.Value = (p.Value * (1f - timeFactor));
+            }
+        }
 
-			if (!foundPreferenceIds.Contains (p.Id)) {
+        ////// Update Activities
 
-				p.Value = (p.Value * (1f - timeFactor));
-			}
-		}
+        HashSet<string> foundActivityIds = new HashSet<string>();
 
-		////// Update Activities
+        foreach (CulturalActivity a in coreCulture.Activities)
+        {
+            foundActivityIds.Add(a.Id);
 
-		HashSet<string> foundActivityIds = new HashSet<string> ();
+            CulturalActivity activity = GetActivity(a.Id);
 
-		foreach (CulturalActivity a in coreCulture.Activities) {
+            if (activity == null)
+            {
+                activity = new CulturalActivity(a);
+                AddActivity(activity);
 
-			foundActivityIds.Add (a.Id);
+                activity.Value = a.Value * timeFactor;
+            }
+            else
+            {
+                activity.Value = (activity.Value * (1f - timeFactor)) + (a.Value * timeFactor);
+            }
+        }
 
-			CulturalActivity activity = GetActivity (a.Id);
+        foreach (CulturalActivity a in Activities)
+        {
+            if (!foundActivityIds.Contains(a.Id))
+            {
+                a.Value = (a.Value * (1f - timeFactor));
+            }
+        }
 
-			if (activity == null) {
-				activity = new CulturalActivity (a);
-				AddActivity (activity);
+        ////// Update Skills
 
-				activity.Value = a.Value * timeFactor;
-			} else {
+        HashSet<string> foundSkillIds = new HashSet<string>();
 
-				activity.Value = (activity.Value * (1f - timeFactor)) + (a.Value * timeFactor);
-			}
-		}
+        foreach (CulturalSkill s in coreCulture.Skills)
+        {
+            foundSkillIds.Add(s.Id);
 
-		foreach (CulturalActivity a in Activities) {
+            CulturalSkill skills = GetSkill(s.Id);
 
-			if (!foundActivityIds.Contains (a.Id)) {
+            if (skills == null)
+            {
+                skills = new CulturalSkill(s);
+                AddSkill(skills);
 
-				a.Value = (a.Value * (1f - timeFactor));
-			}
-		}
+                skills.Value = s.Value * timeFactor;
+            }
+            else
+            {
+                skills.Value = (skills.Value * (1f - timeFactor)) + (s.Value * timeFactor);
+            }
+        }
 
-		////// Update Skills
+        foreach (CulturalSkill s in Skills)
+        {
+            if (!foundSkillIds.Contains(s.Id))
+            {
 
-		HashSet<string> foundSkillIds = new HashSet<string> ();
-
-		foreach (CulturalSkill s in coreCulture.Skills) {
-
-			foundSkillIds.Add (s.Id);
-
-			CulturalSkill skills = GetSkill (s.Id);
-
-			if (skills == null) {
-				skills = new CulturalSkill (s);
-				AddSkill (skills);
-
-				skills.Value = s.Value * timeFactor;
-			} else {
-
-				skills.Value = (skills.Value * (1f - timeFactor)) + (s.Value * timeFactor);
-			}
-		}
-
-		foreach (CulturalSkill s in Skills) {
-
-			if (!foundSkillIds.Contains (s.Id)) {
-
-				s.Value = (s.Value * (1f - timeFactor));
-			}
-		}
+                s.Value = (s.Value * (1f - timeFactor));
+            }
+        }
 
         ////// Update Knowledges
 
-//#if DEBUG
-//        if (Manager.RegisterDebugEvent != null)
-//        {
-//            if (Manager.TracingData.FactionId == Faction.Id)
-//            {
-//                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-//                    "FactionCulture:Update - Knowledges Counts - Faction.Id:" + Faction.Id,
-//                    "CurrentDate: " + World.CurrentDate +
-//                    ", coreCulture.Group.Id: " + coreCulture.Group.Id +
-//                    ", Knowledges.Count: " + Knowledges.Count +
-//                    ", coreCulture.Knowledges.Count: " + coreCulture.Knowledges.Count +
-//                    "");
+        //#if DEBUG
+        //        if (Manager.RegisterDebugEvent != null)
+        //        {
+        //            if (Manager.TracingData.FactionId == Faction.Id)
+        //            {
+        //                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+        //                    "FactionCulture:Update - Knowledges Counts - Faction.Id:" + Faction.Id,
+        //                    "CurrentDate: " + World.CurrentDate +
+        //                    ", coreCulture.Group.Id: " + coreCulture.Group.Id +
+        //                    ", Knowledges.Count: " + Knowledges.Count +
+        //                    ", coreCulture.Knowledges.Count: " + coreCulture.Knowledges.Count +
+        //                    "");
 
-//                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-//            }
-//        }
-//#endif
+        //                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+        //            }
+        //        }
+        //#endif
 
-        HashSet<string> foundKnowledgeIds = new HashSet<string> ();
+        HashSet<string> foundKnowledgeIds = new HashSet<string>();
 
-		foreach (CulturalKnowledge k in coreCulture.Knowledges)
+        foreach (CulturalKnowledge k in coreCulture.Knowledges)
         {
-			foundKnowledgeIds.Add (k.Id);
+            foundKnowledgeIds.Add(k.Id);
 
-			CulturalKnowledge knowledge = GetKnowledge (k.Id);
+            CulturalKnowledge knowledge = GetKnowledge(k.Id);
 
 #if DEBUG
             int oldKnowledgeValue = 0;
@@ -268,12 +228,12 @@ public class FactionCulture : Culture {
 
             if (knowledge == null)
             {
-				knowledge = new CulturalKnowledge (k);
+                knowledge = new CulturalKnowledge(k);
 
                 AddKnowledge(knowledge);
 
-				knowledge.Value = (int)(k.Value * timeFactor);
-			}
+                knowledge.Value = (int)(k.Value * timeFactor);
+            }
             else
             {
 #if DEBUG
@@ -306,62 +266,64 @@ public class FactionCulture : Culture {
 
         foreach (CulturalKnowledge k in Knowledges)
         {
-			if (!foundKnowledgeIds.Contains (k.Id))
+            if (!foundKnowledgeIds.Contains(k.Id))
             {
-				k.Value = (int)(k.Value * (1f - timeFactor));
+                k.Value = (int)(k.Value * (1f - timeFactor));
 
-//#if DEBUG
-//                if (Manager.RegisterDebugEvent != null)
-//                {
-//                    if (Manager.TracingData.FactionId == Faction.Id)
-//                    {
-//                        SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-//                            "FactionCulture:Update - Knowledges - Faction.Id:" + Faction.Id,
-//                            "CurrentDate: " + World.CurrentDate +
-//                            ", k.Id: " + k.Id +
-//                            ", k.Value: " + k.Value +
-//                            "");
+                //#if DEBUG
+                //                if (Manager.RegisterDebugEvent != null)
+                //                {
+                //                    if (Manager.TracingData.FactionId == Faction.Id)
+                //                    {
+                //                        SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+                //                            "FactionCulture:Update - Knowledges - Faction.Id:" + Faction.Id,
+                //                            "CurrentDate: " + World.CurrentDate +
+                //                            ", k.Id: " + k.Id +
+                //                            ", k.Value: " + k.Value +
+                //                            "");
 
-//                        Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-//                    }
-//                }
-//#endif
+                //                        Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+                //                    }
+                //                }
+                //#endif
             }
         }
 
         ////// Update Discoveries
 
-        HashSet<string> foundDiscoveryIds = new HashSet<string> ();
+        HashSet<string> foundDiscoveryIds = new HashSet<string>();
 
-		foreach (CulturalDiscovery d in coreCulture.Discoveries) {
+        foreach (CulturalDiscovery d in coreCulture.Discoveries)
+        {
+            foundDiscoveryIds.Add(d.Id);
 
-			foundDiscoveryIds.Add (d.Id);
+            CulturalDiscovery discovery = GetDiscovery(d.Id);
 
-			CulturalDiscovery discovery = GetDiscovery (d.Id);
+            if (discovery == null)
+            {
+                discovery = new CulturalDiscovery(d);
+                AddDiscovery(discovery);
+            }
+        }
 
-			if (discovery == null) {
-				discovery = new CulturalDiscovery (d);
-				AddDiscovery (discovery);
-			}
-		}
+        List<CulturalDiscovery> discoveriesToRemove = new List<CulturalDiscovery>(Discoveries.Count);
 
-		List<CulturalDiscovery> discoveriesToRemove = new List<CulturalDiscovery> (Discoveries.Count);
+        foreach (CulturalDiscovery d in Discoveries)
+        {
+            int idHash = d.Id.GetHashCode();
 
-		foreach (CulturalDiscovery d in Discoveries) {
+            if (!foundDiscoveryIds.Contains(d.Id))
+            {
+                if (GetNextRandomFloat(RngOffsets.FACTION_CULTURE_DISCOVER_LOSS_CHANCE + idHash) < timeFactor)
+                {
+                    discoveriesToRemove.Add(d);
+                }
+            }
+        }
 
-			int idHash = d.Id.GetHashCode ();
-
-			if (!foundDiscoveryIds.Contains (d.Id)) {
-
-				if (GetNextRandomFloat (RngOffsets.FACTION_CULTURE_DISCOVER_LOSS_CHANCE + idHash) < timeFactor) {
-
-					discoveriesToRemove.Add (d);
-				}
-			}
-		}
-
-		foreach (CulturalDiscovery d in discoveriesToRemove) {
-			RemoveDiscovery (d);
-		}
-	}
+        foreach (CulturalDiscovery d in discoveriesToRemove)
+        {
+            RemoveDiscovery(d);
+        }
+    }
 }

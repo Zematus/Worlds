@@ -89,14 +89,16 @@ public class Territory : ISynchronizable
 
         if (cellRegion == null)
         {
-            cellRegion = Region.TryGenerateRegion(cell);
+            cellRegion = Region.TryGenerateRegion(cell, Polity.Culture.Language);
 
             if (cellRegion != null)
             {
-                cellRegion.GenerateName(Polity, cell);
+                if (World.GetRegionInfo(cellRegion.Id) != null)
+                {
+                    throw new System.Exception("RegionInfo with Id " + cellRegion.Id + " already present");
+                }
 
-                if (World.GetRegion(cellRegion.Id) == null)
-                    World.AddRegion(cellRegion);
+                World.AddRegionInfo(cellRegion.Info);
             }
             else
             {

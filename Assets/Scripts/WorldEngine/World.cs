@@ -54,7 +54,7 @@ public static class RngOffsets {
 	public const int POLITY_UPDATE_EFFECTS = 50000;
 
 	public const int REGION_GENERATE_NAME = 60000;
-	public const int REGION_SELECT_BORDER_REGION = 61000;
+	public const int REGION_SELECT_BORDER_REGION_TO_REPLACE_WITH = 61000;
 
 	public const int TRIBE_GENERATE_NEW_TRIBE = 70000;
 	public const int TRIBE_GENERATE_NAME = 71000;
@@ -68,10 +68,9 @@ public static class RngOffsets {
 	public const int CLAN_SPLIT = 85500;
 
 	public const int AGENT_GENERATE_BIO = 90000;
-    public const int AGENT_PREGENERATE_NAME = 90500;
-    //public const int AGENT_GENERATE_NAME = 91000;
+    public const int AGENT_GENERATE_NAME = 91000;
 
-	public const int ROUTE_CHOOSE_NEXT_DEPTH_SEA_CELL = 100000;
+    public const int ROUTE_CHOOSE_NEXT_DEPTH_SEA_CELL = 100000;
 	public const int ROUTE_CHOOSE_NEXT_COASTAL_CELL = 110000;
 	public const int ROUTE_CHOOSE_NEXT_COASTAL_CELL_2 = 120000;
 
@@ -133,15 +132,15 @@ public static class RngOffsets {
 }
 
 [XmlRoot]
-public class World : ISynchronizable {
+public class World : ISynchronizable
+{
+    public const long MaxSupportedDate = 9223372036L;
 
-	public const long MaxSupportedDate = 9223372036L;
+    public const int YearLength = 365;
 
-	public const int YearLength = 365;
+    public const long MaxPossibleTimeToSkip = int.MaxValue / 10;
 
-	public const long MaxPossibleTimeToSkip = int.MaxValue / 10;
-	
-	public const float Circumference = 40075; // In kilometers;
+    public const float Circumference = 40075; // In kilometers;
 
     //public const int NumContinents = 7;
     public const int NumContinents = 12;
@@ -151,173 +150,172 @@ public class World : ISynchronizable {
     public const float ContinentMaxWidthFactor = ContinentBaseWidthFactor * 8.7f;
 
     public const float AvgPossibleRainfall = 990f;
-	public const float AvgPossibleTemperature = 13.7f;
-	
-	public const float MinPossibleAltitude = -15000;
-	public const float MaxPossibleAltitude = 15000;
-	
-	public const float MinPossibleRainfall = 0;
-	public const float MaxPossibleRainfall = 13000;
-	
-	public const float MinPossibleTemperature = -40 - AvgPossibleTemperature;
-	public const float MaxPossibleTemperature = 50 - AvgPossibleTemperature;
+    public const float AvgPossibleTemperature = 13.7f;
 
-	public const float OptimalRainfallForArability = 1000;
-	public const float OptimalTemperatureForArability = 30;
-	public const float MaxRainfallForArability = 7000;
-	public const float MinRainfallForArability = 0;
-	public const float MinTemperatureForArability = -15;
-	
-	public const float StartPopulationDensity = 0.5f;
-	
-	public const int MinStartingPopulation = 100;
-	public const int MaxStartingPopulation = 100000;
+    public const float MinPossibleAltitude = -15000;
+    public const float MaxPossibleAltitude = 15000;
 
-	[XmlAttribute]
-	public int Width { get; private set; }
-	[XmlAttribute]
-	public int Height { get; private set; }
+    public const float MinPossibleRainfall = 0;
+    public const float MaxPossibleRainfall = 13000;
 
-	[XmlAttribute]
-	public int Seed { get; private set; }
-	
-	[XmlAttribute]
-	public long CurrentDate { get; private set; }
+    public const float MinPossibleTemperature = -40 - AvgPossibleTemperature;
+    public const float MaxPossibleTemperature = 50 - AvgPossibleTemperature;
 
-	[XmlAttribute]
-	public long MaxTimeToSkip { get; private set; }
-	
-	[XmlAttribute]
-	public int CellGroupCount { get; private set; }
+    public const float OptimalRainfallForArability = 1000;
+    public const float OptimalTemperatureForArability = 30;
+    public const float MaxRainfallForArability = 7000;
+    public const float MinRainfallForArability = 0;
+    public const float MinTemperatureForArability = -15;
 
-	[XmlAttribute]
-	public int MemorableAgentCount { get; private set; }
+    public const float StartPopulationDensity = 0.5f;
 
-	[XmlAttribute]
-	public int FactionCount { get; private set; }
+    public const int MinStartingPopulation = 100;
+    public const int MaxStartingPopulation = 100000;
 
-	[XmlAttribute]
-	public int PolityCount { get; private set; }
+    [XmlAttribute]
+    public int Width { get; private set; }
+    [XmlAttribute]
+    public int Height { get; private set; }
 
-	[XmlAttribute]
-	public int RegionCount { get; private set; }
+    [XmlAttribute]
+    public int Seed { get; private set; }
 
-	[XmlAttribute]
-	public int LanguageCount { get; private set; }
+    [XmlAttribute]
+    public long CurrentDate { get; private set; }
 
-	[XmlAttribute]
-	public int TerrainCellChangesListCount { get; private set; }
+    [XmlAttribute]
+    public long MaxTimeToSkip { get; private set; }
 
-	[XmlAttribute]
-	public float SeaLevelOffset { get; private set; }
+    [XmlAttribute]
+    public int CellGroupCount { get; private set; }
 
-	[XmlAttribute]
-	public float RainfallOffset { get; private set; }
+    [XmlAttribute]
+    public int MemorableAgentCount { get; private set; }
 
-	[XmlAttribute]
-	public float TemperatureOffset { get; private set; }
+    [XmlAttribute]
+    public int FactionCount { get; private set; }
 
-	// Start wonky segment (save failures might happen here)
+    [XmlAttribute]
+    public int PolityCount { get; private set; }
 
-	[XmlArrayItem (Type = typeof(UpdateCellGroupEvent)),
-		XmlArrayItem (Type = typeof(MigrateGroupEvent)),
-		XmlArrayItem (Type = typeof(ExpandPolityProminenceEvent)),
-		XmlArrayItem (Type = typeof(TribeFormationEvent)),
-		XmlArrayItem (Type = typeof(SailingDiscoveryEvent)),
-		XmlArrayItem (Type = typeof(BoatMakingDiscoveryEvent)),
-		XmlArrayItem (Type = typeof(TribalismDiscoveryEvent)),
-		XmlArrayItem (Type = typeof(PlantCultivationDiscoveryEvent)),
-		XmlArrayItem (Type = typeof(ClanSplitDecisionEvent)),
-		XmlArrayItem (Type = typeof(TribeSplitDecisionEvent)),
-		XmlArrayItem (Type = typeof(ClanDemandsInfluenceDecisionEvent)),
-		XmlArrayItem (Type = typeof(ClanCoreMigrationEvent)),
-		XmlArrayItem (Type = typeof(FosterTribeRelationDecisionEvent)),
-		XmlArrayItem (Type = typeof(MergeTribesDecisionEvent)),
-		XmlArrayItem (Type = typeof(OpenTribeDecisionEvent))]
-	public List<WorldEvent> EventsToHappen;
+    [XmlAttribute]
+    public int RegionCount { get; private set; }
 
-	public List<TerrainCellChanges> TerrainCellChangesList = new List<TerrainCellChanges> ();
+    [XmlAttribute]
+    public int LanguageCount { get; private set; }
 
-	public List<CulturalPreferenceInfo> CulturalPreferenceInfoList = new List<CulturalPreferenceInfo> ();
-	public List<CulturalActivityInfo> CulturalActivityInfoList = new List<CulturalActivityInfo> ();
-	public List<CulturalSkillInfo> CulturalSkillInfoList = new List<CulturalSkillInfo> ();
-	public List<CulturalKnowledgeInfo> CulturalKnowledgeInfoList = new List<CulturalKnowledgeInfo> ();
-	public List<CulturalDiscovery> CulturalDiscoveryInfoList = new List<CulturalDiscovery> ();
+    [XmlAttribute]
+    public int TerrainCellChangesListCount { get; private set; }
 
-	public List<CellGroup> CellGroups;
+    [XmlAttribute]
+    public float SeaLevelOffset { get; private set; }
 
-	[XmlArrayItem (Type = typeof(Agent))]
-	public List<Agent> MemorableAgents;
+    [XmlAttribute]
+    public float RainfallOffset { get; private set; }
+
+    [XmlAttribute]
+    public float TemperatureOffset { get; private set; }
+
+    // Start wonky segment (save failures might happen here)
+
+    [XmlArrayItem(Type = typeof(UpdateCellGroupEvent)),
+        XmlArrayItem(Type = typeof(MigrateGroupEvent)),
+        XmlArrayItem(Type = typeof(ExpandPolityProminenceEvent)),
+        XmlArrayItem(Type = typeof(TribeFormationEvent)),
+        XmlArrayItem(Type = typeof(SailingDiscoveryEvent)),
+        XmlArrayItem(Type = typeof(BoatMakingDiscoveryEvent)),
+        XmlArrayItem(Type = typeof(TribalismDiscoveryEvent)),
+        XmlArrayItem(Type = typeof(PlantCultivationDiscoveryEvent)),
+        XmlArrayItem(Type = typeof(ClanSplitDecisionEvent)),
+        XmlArrayItem(Type = typeof(TribeSplitDecisionEvent)),
+        XmlArrayItem(Type = typeof(ClanDemandsInfluenceDecisionEvent)),
+        XmlArrayItem(Type = typeof(ClanCoreMigrationEvent)),
+        XmlArrayItem(Type = typeof(FosterTribeRelationDecisionEvent)),
+        XmlArrayItem(Type = typeof(MergeTribesDecisionEvent)),
+        XmlArrayItem(Type = typeof(OpenTribeDecisionEvent))]
+    public List<WorldEvent> EventsToHappen;
+
+    public List<TerrainCellChanges> TerrainCellChangesList = new List<TerrainCellChanges>();
+
+    public List<CulturalPreferenceInfo> CulturalPreferenceInfoList = new List<CulturalPreferenceInfo>();
+    public List<CulturalActivityInfo> CulturalActivityInfoList = new List<CulturalActivityInfo>();
+    public List<CulturalSkillInfo> CulturalSkillInfoList = new List<CulturalSkillInfo>();
+    public List<CulturalKnowledgeInfo> CulturalKnowledgeInfoList = new List<CulturalKnowledgeInfo>();
+    public List<CulturalDiscovery> CulturalDiscoveryInfoList = new List<CulturalDiscovery>();
+
+    public List<CellGroup> CellGroups;
+
+    [XmlArrayItem(Type = typeof(Agent))]
+    public List<Agent> MemorableAgents;
 
     public XmlSerializableDictionary<long, FactionInfo> FactionInfos = new XmlSerializableDictionary<long, FactionInfo>();
 
     public XmlSerializableDictionary<long, PolityInfo> PolityInfos = new XmlSerializableDictionary<long, PolityInfo>();
 
-    [XmlArrayItem (Type = typeof(CellRegion))]
-	public List<Region> Regions;
+    public XmlSerializableDictionary<long, RegionInfo> RegionInfos = new XmlSerializableDictionary<long, RegionInfo>();
 
-	// End wonky segment 
+    // End wonky segment 
 
-	public List<Language> Languages;
+    public List<Language> Languages;
 
-	public List<long> EventMessageIds;
+    public List<long> EventMessageIds;
 
-	[XmlIgnore]
-	public int EventsToHappenCount { get; private set; }
+    [XmlIgnore]
+    public int EventsToHappenCount { get; private set; }
 
-	[XmlIgnore]
-	public TerrainCell SelectedCell = null;
-	[XmlIgnore]
-	public Region SelectedRegion = null;
-	[XmlIgnore]
-	public Territory SelectedTerritory = null;
-	[XmlIgnore]
-	public Faction GuidedFaction = null;
-	[XmlIgnore]
-	public HashSet<Polity> PolitiesUnderPlayerFocus = new HashSet<Polity> ();
-	
-	[XmlIgnore]
-	public float MinPossibleAltitudeWithOffset = MinPossibleAltitude - Manager.SeaLevelOffset;
-	[XmlIgnore]
-	public float MaxPossibleAltitudeWithOffset = MaxPossibleAltitude - Manager.SeaLevelOffset;
-	
-	[XmlIgnore]
-	public float MinPossibleRainfallWithOffset = MinPossibleRainfall;
-	[XmlIgnore]
-	public float MaxPossibleRainfallWithOffset = MaxPossibleRainfall * Manager.RainfallOffset / AvgPossibleRainfall;
-	
-	[XmlIgnore]
-	public float MinPossibleTemperatureWithOffset = MinPossibleTemperature + Manager.TemperatureOffset;
-	[XmlIgnore]
-	public float MaxPossibleTemperatureWithOffset = MaxPossibleTemperature + Manager.TemperatureOffset;
-	
-	[XmlIgnore]
-	public float MaxAltitude = float.MinValue;
-	[XmlIgnore]
-	public float MinAltitude = float.MaxValue;
-	
-	[XmlIgnore]
-	public float MaxRainfall = float.MinValue;
-	[XmlIgnore]
-	public float MinRainfall = float.MaxValue;
-	
-	[XmlIgnore]
-	public float MaxTemperature = float.MinValue;
-	[XmlIgnore]
-	public float MinTemperature = float.MaxValue;
-	
-	[XmlIgnore]
-	public TerrainCell[][] TerrainCells;
-	
-	[XmlIgnore]
-	public CellGroup MostPopulousGroup = null;
-	
-	[XmlIgnore]
-	public ProgressCastDelegate ProgressCastMethod { get; set; }
+    [XmlIgnore]
+    public TerrainCell SelectedCell = null;
+    [XmlIgnore]
+    public Region SelectedRegion = null;
+    [XmlIgnore]
+    public Territory SelectedTerritory = null;
+    [XmlIgnore]
+    public Faction GuidedFaction = null;
+    [XmlIgnore]
+    public HashSet<Polity> PolitiesUnderPlayerFocus = new HashSet<Polity>();
 
-	[XmlIgnore]
-	public HumanGroup MigrationTaggedGroup = null;
-    
+    [XmlIgnore]
+    public float MinPossibleAltitudeWithOffset = MinPossibleAltitude - Manager.SeaLevelOffset;
+    [XmlIgnore]
+    public float MaxPossibleAltitudeWithOffset = MaxPossibleAltitude - Manager.SeaLevelOffset;
+
+    [XmlIgnore]
+    public float MinPossibleRainfallWithOffset = MinPossibleRainfall;
+    [XmlIgnore]
+    public float MaxPossibleRainfallWithOffset = MaxPossibleRainfall * Manager.RainfallOffset / AvgPossibleRainfall;
+
+    [XmlIgnore]
+    public float MinPossibleTemperatureWithOffset = MinPossibleTemperature + Manager.TemperatureOffset;
+    [XmlIgnore]
+    public float MaxPossibleTemperatureWithOffset = MaxPossibleTemperature + Manager.TemperatureOffset;
+
+    [XmlIgnore]
+    public float MaxAltitude = float.MinValue;
+    [XmlIgnore]
+    public float MinAltitude = float.MaxValue;
+
+    [XmlIgnore]
+    public float MaxRainfall = float.MinValue;
+    [XmlIgnore]
+    public float MinRainfall = float.MaxValue;
+
+    [XmlIgnore]
+    public float MaxTemperature = float.MinValue;
+    [XmlIgnore]
+    public float MinTemperature = float.MaxValue;
+
+    [XmlIgnore]
+    public TerrainCell[][] TerrainCells;
+
+    [XmlIgnore]
+    public CellGroup MostPopulousGroup = null;
+
+    [XmlIgnore]
+    public ProgressCastDelegate ProgressCastMethod { get; set; }
+
+    [XmlIgnore]
+    public HumanGroup MigrationTaggedGroup = null;
+
     [XmlIgnore]
     public bool GroupsHaveBeenUpdated = false;
     [XmlIgnore]
@@ -332,89 +330,87 @@ public class World : ISynchronizable {
     public int PolityMergeCount = 0;
 #endif
 
-    private BinaryTree<long, WorldEvent> _eventsToHappen = new BinaryTree<long, WorldEvent> ();
+    private BinaryTree<long, WorldEvent> _eventsToHappen = new BinaryTree<long, WorldEvent>();
 
     private List<WorldEvent> _eventsToHappenNow = new List<WorldEvent>();
 
-    private HashSet<int> _terrainCellChangesListIndexes = new HashSet<int> ();
+    private HashSet<int> _terrainCellChangesListIndexes = new HashSet<int>();
 
-	private HashSet<string> _culturalPreferenceIdList = new HashSet<string> ();
-	private HashSet<string> _culturalActivityIdList = new HashSet<string> ();
-	private HashSet<string> _culturalSkillIdList = new HashSet<string> ();
-	private HashSet<string> _culturalKnowledgeIdList = new HashSet<string> ();
-	private HashSet<string> _culturalDiscoveryIdList = new HashSet<string> ();
+    private HashSet<string> _culturalPreferenceIdList = new HashSet<string>();
+    private HashSet<string> _culturalActivityIdList = new HashSet<string>();
+    private HashSet<string> _culturalSkillIdList = new HashSet<string>();
+    private HashSet<string> _culturalKnowledgeIdList = new HashSet<string>();
+    private HashSet<string> _culturalDiscoveryIdList = new HashSet<string>();
 
-	private Dictionary<long, CellGroup> _cellGroups = new Dictionary<long, CellGroup> ();
+    private Dictionary<long, CellGroup> _cellGroups = new Dictionary<long, CellGroup>();
 
-	private HashSet<CellGroup> _updatedGroups = new HashSet<CellGroup> ();
-	private HashSet<CellGroup> _groupsToUpdate = new HashSet<CellGroup>();
-	private HashSet<CellGroup> _groupsToRemove = new HashSet<CellGroup>();
+    private HashSet<CellGroup> _updatedGroups = new HashSet<CellGroup>();
+    private HashSet<CellGroup> _groupsToUpdate = new HashSet<CellGroup>();
+    private HashSet<CellGroup> _groupsToRemove = new HashSet<CellGroup>();
 
-	private HashSet<CellGroup> _groupsToPostUpdate_afterPolityUpdates = new HashSet<CellGroup> ();
+    private HashSet<CellGroup> _groupsToPostUpdate_afterPolityUpdates = new HashSet<CellGroup>();
 
-	private List<MigratingGroup> _migratingGroups = new List<MigratingGroup> ();
+    private List<MigratingGroup> _migratingGroups = new List<MigratingGroup>();
 
-	private Dictionary<long, Agent> _memorableAgents = new Dictionary<long, Agent> ();
+    private Dictionary<long, Agent> _memorableAgents = new Dictionary<long, Agent>();
 
     private HashSet<Faction> _factionsToSplit = new HashSet<Faction>();
-	private HashSet<Faction> _factionsToUpdate = new HashSet<Faction>();
-	private HashSet<Faction> _factionsToRemove = new HashSet<Faction>();
+    private HashSet<Faction> _factionsToUpdate = new HashSet<Faction>();
+    private HashSet<Faction> _factionsToRemove = new HashSet<Faction>();
 
     private HashSet<Polity> _politiesToUpdate = new HashSet<Polity>();
     private HashSet<Polity> _politiesThatNeedClusterUpdate = new HashSet<Polity>();
     private HashSet<Polity> _politiesToRemove = new HashSet<Polity>();
 
-	private Dictionary<long, Region> _regions = new Dictionary<long, Region> ();
+    private Dictionary<long, Language> _languages = new Dictionary<long, Language>();
 
-	private Dictionary<long, Language> _languages = new Dictionary<long, Language> ();
+    private HashSet<long> _eventMessageIds = new HashSet<long>();
+    private Queue<WorldEventMessage> _eventMessagesToShow = new Queue<WorldEventMessage>();
 
-	private HashSet<long> _eventMessageIds = new HashSet<long> ();
-	private Queue<WorldEventMessage> _eventMessagesToShow = new Queue<WorldEventMessage> ();
+    private Queue<Decision> _decisionsToResolve = new Queue<Decision>();
 
-	private Queue<Decision> _decisionsToResolve = new Queue<Decision> ();
-
-	private Vector2[] _continentOffsets;
-	private float[] _continentWidths;
-	private float[] _continentHeights;
+    private Vector2[] _continentOffsets;
+    private float[] _continentWidths;
+    private float[] _continentHeights;
     private float[] _continentAltitudeOffsets;
 
     private float _progressIncrement = 0.25f;
 
-	private float _accumulatedProgress = 0;
+    private float _accumulatedProgress = 0;
 
-	private float _cellMaxSideLength;
+    private float _cellMaxSideLength;
 
-	private long _dateToSkipTo;
+    private long _dateToSkipTo;
 
-	public World () {
+    public World()
+    {
+        Manager.WorldBeingLoaded = this;
 
-		Manager.WorldBeingLoaded = this;
+        ProgressCastMethod = (value, message, reset) => { };
+    }
 
-		ProgressCastMethod = (value, message, reset) => {};
-	}
+    public World(int width, int height, int seed)
+    {
+        ProgressCastMethod = (value, message, reset) => { };
 
-	public World (int width, int height, int seed) {
+        Width = width;
+        Height = height;
+        Seed = seed;
 
-		ProgressCastMethod = (value, message, reset) => {};
-		
-		Width = width;
-		Height = height;
-		Seed = seed;
-		
-		CurrentDate = 0;
-		MaxTimeToSkip = MaxPossibleTimeToSkip;
-		EventsToHappenCount = 0;
-		CellGroupCount = 0;
-		PolityCount = 0;
-		RegionCount = 0;
-		TerrainCellChangesListCount = 0;
+        CurrentDate = 0;
+        MaxTimeToSkip = MaxPossibleTimeToSkip;
+        EventsToHappenCount = 0;
+        CellGroupCount = 0;
+        PolityCount = 0;
+        RegionCount = 0;
+        TerrainCellChangesListCount = 0;
 
-		SeaLevelOffset = Manager.SeaLevelOffset;
-		RainfallOffset = Manager.RainfallOffset;
-		TemperatureOffset = Manager.TemperatureOffset;
-	}
-	
-	public void StartInitialization (float acumulatedProgress, float progressIncrement) {
+        SeaLevelOffset = Manager.SeaLevelOffset;
+        RainfallOffset = Manager.RainfallOffset;
+        TemperatureOffset = Manager.TemperatureOffset;
+    }
+
+    public void StartInitialization (float acumulatedProgress, float progressIncrement) {
 
 		Manager.SeaLevelOffset = SeaLevelOffset;
 		Manager.RainfallOffset = RainfallOffset;
@@ -489,136 +485,135 @@ public class World : ISynchronizable {
 		}
 	}
 
-//	public List<WorldEvent> GetValidEventsToHappen () {
-//	
-//		return _eventsToHappen.GetValues (ValidateEventsToHappenNode);
-//	}
+    //	public List<WorldEvent> GetValidEventsToHappen () {
+    //	
+    //		return _eventsToHappen.GetValues (ValidateEventsToHappenNode);
+    //	}
 
-	public List<WorldEvent> GetFilteredEventsToHappenForSerialization () {
+    public List<WorldEvent> GetFilteredEventsToHappenForSerialization()
+    {
+        return _eventsToHappen.GetValues(FilterEventsToHappenNodeForSerialization);
+    }
 
-		return _eventsToHappen.GetValues (FilterEventsToHappenNodeForSerialization);
-	}
+    public void Synchronize()
+    {
+        EventsToHappen = _eventsToHappen.GetValues(FilterEventsToHappenNodeForSerialization, FilterEventsToHappenNodeEffect, true);
 
-	public void Synchronize () {
+#if DEBUG
+        Dictionary<System.Type, int> eventTypes = new Dictionary<System.Type, int>();
+#endif
 
-		EventsToHappen = _eventsToHappen.GetValues (FilterEventsToHappenNodeForSerialization, FilterEventsToHappenNodeEffect, true);
+        foreach (WorldEvent e in EventsToHappen)
+        {
+#if DEBUG
+            System.Type type = e.GetType();
 
-		#if DEBUG
-		Dictionary<System.Type, int> eventTypes = new Dictionary<System.Type, int> ();
-		#endif
+            if (!eventTypes.ContainsKey(type))
+            {
+                eventTypes.Add(type, 1);
+            }
+            else
+            {
+                eventTypes[type]++;
+            }
+#endif
 
-		foreach (WorldEvent e in EventsToHappen) {
+            e.Synchronize();
+        }
 
-			#if DEBUG
-			System.Type type = e.GetType ();
+#if DEBUG
+        string debugMsg = "Total Groups: " + _cellGroups.Count + "\nSerialized event types:";
 
-			if (!eventTypes.ContainsKey (type)) {
-			
-				eventTypes.Add (type, 1);
-			} else {
-			
-				eventTypes [type]++;
-			}
-			#endif
+        foreach (KeyValuePair<System.Type, int> pair in eventTypes)
+        {
+            debugMsg += "\n\t" + pair.Key + " : " + pair.Value;
+        }
 
-			e.Synchronize ();
-		}
+        Debug.Log(debugMsg);
+#endif
 
-		#if DEBUG
-		string debugMsg = "Total Groups: " + _cellGroups.Count + "\nSerialized event types:";
+        CellGroups = new List<CellGroup>(_cellGroups.Values);
 
-		foreach (KeyValuePair<System.Type, int> pair in eventTypes) {
+        foreach (CellGroup g in CellGroups)
+        {
+            g.Synchronize();
+        }
 
-			debugMsg += "\n\t" + pair.Key + " : " + pair.Value;
-		}
+        MemorableAgents = new List<Agent>(_memorableAgents.Values);
 
-		Debug.Log (debugMsg);
-		#endif
+        foreach (Agent a in MemorableAgents)
+        {
+            a.Synchronize();
+        }
 
-		CellGroups = new List<CellGroup> (_cellGroups.Values);
+        foreach (FactionInfo f in FactionInfos.Values)
+        {
+            f.Synchronize();
+        }
 
-		foreach (CellGroup g in CellGroups) {
-
-			g.Synchronize ();
-		}
-
-		MemorableAgents = new List<Agent> (_memorableAgents.Values);
-
-		foreach (Agent a in MemorableAgents) {
-
-			a.Synchronize ();
-		}
-        
-		foreach (FactionInfo f in FactionInfos.Values) {
-
-			f.Synchronize();
-		}
-
-		foreach (PolityInfo p in PolityInfos.Values) {
-
+        foreach (PolityInfo p in PolityInfos.Values)
+        {
             p.Synchronize();
-		}
+        }
+        
+        foreach (RegionInfo r in RegionInfos.Values)
+        {
+            r.Synchronize();
+        }
 
-		Regions = new List<Region> (_regions.Values);
+        Languages = new List<Language>(_languages.Values);
 
-		foreach (Region r in Regions) {
+        foreach (Language l in Languages)
+        {
+            l.Synchronize();
+        }
 
-			r.Synchronize ();
-		}
+        TerrainCellChangesList.Clear();
+        TerrainCellChangesListCount = 0;
 
-		Languages = new List<Language> (_languages.Values);
+        for (int i = 0; i < Width; i++)
+        {
+            for (int j = 0; j < Height; j++)
+            {
+                TerrainCell cell = TerrainCells[i][j];
 
-		foreach (Language l in Languages) {
+                GetTerrainCellChanges(cell);
+            }
+        }
 
-			l.Synchronize ();
-		}
+        EventMessageIds = new List<long>(_eventMessageIds);
+    }
 
-		TerrainCellChangesList.Clear ();
-		TerrainCellChangesListCount = 0;
+    public void GetTerrainCellChanges(TerrainCell cell)
+    {
+        TerrainCellChanges changes = cell.GetChanges();
 
-		for (int i = 0; i < Width; i++) {
+        if (changes == null)
+            return;
 
-			for (int j = 0; j < Height; j++) {
+        int index = changes.Longitude + (changes.Latitude * Width);
 
-				TerrainCell cell = TerrainCells [i] [j];
+        if (!_terrainCellChangesListIndexes.Add(index))
+            return;
 
-				GetTerrainCellChanges (cell);
-			}
-		}
+        TerrainCellChangesList.Add(changes);
 
-		EventMessageIds = new List<long> (_eventMessageIds);
-	}
+        TerrainCellChangesListCount++;
+    }
 
-	public void GetTerrainCellChanges (TerrainCell cell) {
+    public void SetTerrainCellChanges(TerrainCellChanges changes)
+    {
+        TerrainCell cell = TerrainCells[changes.Longitude][changes.Latitude];
 
-		TerrainCellChanges changes = cell.GetChanges ();
+        cell.SetChanges(changes);
+    }
 
-		if (changes == null)
-			return;
-	
-		int index = changes.Longitude + (changes.Latitude * Width);
+    //	public void AddGroupActionToPerform (KnowledgeTransferAction action) {
+    //	
+    //		_groupActionsToPerform.Add (action);
+    //	}
 
-		if (!_terrainCellChangesListIndexes.Add (index))
-			return;
-
-		TerrainCellChangesList.Add (changes);
-
-		TerrainCellChangesListCount++;
-	}
-
-	public void SetTerrainCellChanges (TerrainCellChanges changes) {
-
-		TerrainCell cell = TerrainCells [changes.Longitude] [changes.Latitude];
-
-		cell.SetChanges (changes);
-	}
-
-//	public void AddGroupActionToPerform (KnowledgeTransferAction action) {
-//	
-//		_groupActionsToPerform.Add (action);
-//	}
-
-	public void AddExistingCulturalPreferenceInfo (CulturalPreferenceInfo baseInfo) {
+    public void AddExistingCulturalPreferenceInfo (CulturalPreferenceInfo baseInfo) {
 
 		if (_culturalPreferenceIdList.Contains (baseInfo.Id))
 			return;
@@ -1330,62 +1325,56 @@ public class World : ISynchronizable {
         _groupsToRemove.Add(group);
     }
 
-    public void AddLanguage (Language language) {
+    public void AddLanguage(Language language)
+    {
+        _languages.Add(language.Id, language);
 
-		_languages.Add (language.Id, language);
+        LanguageCount++;
+    }
 
-		LanguageCount++;
-	}
+    public void RemoveLanguage(Region language)
+    {
+        _languages.Remove(language.Id);
 
-	public void RemoveLanguage (Region language) {
+        LanguageCount--;
+    }
 
-		_languages.Remove (language.Id);
+    public Language GetLanguage(long id)
+    {
+        Language language;
 
-		LanguageCount--;
-	}
+        _languages.TryGetValue(id, out language);
 
-	public Language GetLanguage (long id) {
+        return language;
+    }
 
-		Language language;
+    public void AddRegionInfo(RegionInfo regionInfo)
+    {
+        RegionInfos.Add(regionInfo.Id, regionInfo);
 
-		_languages.TryGetValue (id, out language);
+        RegionCount++;
+    }
 
-		return language;
-	}
+    public RegionInfo GetRegionInfo(long id)
+    {
+        RegionInfo regionInfo;
 
-	public void AddRegion (Region region) {
+        RegionInfos.TryGetValue(id, out regionInfo);
 
-		_regions.Add (region.Id, region);
+        return regionInfo;
+    }
 
-		RegionCount++;
-	}
+    public void AddMemorableAgent(Agent agent)
+    {
+        if (!_memorableAgents.ContainsKey(agent.Id))
+        {
+            _memorableAgents.Add(agent.Id, agent);
 
-	public void RemoveRegion (Region region) {
+            MemorableAgentCount++;
+        }
+    }
 
-		_regions.Remove (region.Id);
-
-		RegionCount--;
-	}
-
-	public Region GetRegion (long id) {
-
-		Region region;
-
-		_regions.TryGetValue (id, out region);
-
-		return region;
-	}
-
-	public void AddMemorableAgent (Agent agent) {
-
-		if (!_memorableAgents.ContainsKey (agent.Id)) {
-			_memorableAgents.Add (agent.Id, agent);
-
-			MemorableAgentCount++;
-		}
-	}
-
-	public Agent GetMemorableAgent(long id)
+    public Agent GetMemorableAgent(long id)
     {
         Agent agent;
 
@@ -1439,7 +1428,6 @@ public class World : ISynchronizable {
 
 	public void AddFactionToUpdate (Faction faction)
     {
-
 #if DEBUG
         if (Manager.RegisterDebugEvent != null)
         {
@@ -1631,68 +1619,66 @@ public class World : ISynchronizable {
         return _decisionsToResolve.Dequeue();
     }
 
-    public void AddEventMessage (WorldEventMessage eventMessage) {
+    public void AddEventMessage(WorldEventMessage eventMessage)
+    {
+        _eventMessagesToShow.Enqueue(eventMessage);
 
-		_eventMessagesToShow.Enqueue (eventMessage);
+        _eventMessageIds.Add(eventMessage.Id);
+    }
 
-		_eventMessageIds.Add (eventMessage.Id);
-	}
+    public void AddEventMessageToShow(WorldEventMessage eventMessage)
+    {
+        if (_eventMessagesToShow.Contains(eventMessage))
+            return;
 
-	public void AddEventMessageToShow (WorldEventMessage eventMessage) {
+        _eventMessagesToShow.Enqueue(eventMessage);
+    }
 
-		if (_eventMessagesToShow.Contains (eventMessage))
-			return;
+    public bool HasEventMessage(long id)
+    {
+        return _eventMessageIds.Contains(id);
+    }
 
-		_eventMessagesToShow.Enqueue (eventMessage);
-	}
+    public WorldEventMessage GetNextMessageToShow()
+    {
+        return _eventMessagesToShow.Dequeue();
+    }
 
-	public bool HasEventMessage (long id) {
+    public int EventMessagesLeftToShow()
+    {
+        return _eventMessagesToShow.Count;
+    }
 
-		return _eventMessageIds.Contains (id);
-	}
+    public void FinalizeLoad(float startProgressValue, float endProgressValue, ProgressCastDelegate castProgress)
+    {
+        if (castProgress == null)
+            castProgress = (value, message, reset) => { };
 
-	public WorldEventMessage GetNextMessageToShow () {
-	
-		return _eventMessagesToShow.Dequeue ();
-	}
+        float progressFactor = 1 / (endProgressValue - startProgressValue);
 
-	public int EventMessagesLeftToShow () {
+        // Segment 1
 
-		return _eventMessagesToShow.Count;
-	}
+        foreach (long messageId in EventMessageIds)
+        {
+            _eventMessageIds.Add(messageId);
+        }
 
-	public void FinalizeLoad (float startProgressValue, float endProgressValue, ProgressCastDelegate castProgress) {
+        foreach (TerrainCellChanges c in TerrainCellChangesList)
+        {
+            int index = c.Longitude + c.Latitude * Width;
 
-		if (castProgress == null)
-			castProgress = (value, message, reset) => {};
+            _terrainCellChangesListIndexes.Add(index);
+        }
 
-		float progressFactor = 1 / (endProgressValue - startProgressValue);
+        foreach (Language l in Languages)
+        {
+            _languages.Add(l.Id, l);
+        }
 
-		// Segment 1
-
-		foreach (long messageId in EventMessageIds) {
-
-			_eventMessageIds.Add (messageId);
-		}
-
-		TerrainCellChangesList.ForEach (c => {
-
-			int index = c.Longitude + c.Latitude * Width;
-
-			_terrainCellChangesListIndexes.Add (index);
-		});
-
-		Languages.ForEach (l => {
-
-			_languages.Add (l.Id, l);
-		});
-
-		Regions.ForEach (r => {
-
-			r.World = this;
-
-			_regions.Add (r.Id, r);
-		});
+        foreach (RegionInfo r in RegionInfos.Values)
+        {
+            r.World = this;
+        }
 
         foreach (PolityInfo pInfo in PolityInfos.Values)
         {
@@ -1712,35 +1698,35 @@ public class World : ISynchronizable {
             }
         }
 
-		CellGroups.ForEach (g => {
+        foreach (CellGroup g in CellGroups)
+        {
+            g.World = this;
 
-			g.World = this;
+            _cellGroups.Add(g.Id, g);
+        }
 
-			_cellGroups.Add (g.Id, g);
-		});
+        // Segment 2
 
-		// Segment 2
+        int elementCount = 0;
+        float totalElementsFactor = progressFactor * (Languages.Count + RegionInfos.Count + FactionInfos.Count + PolityInfos.Count + CellGroups.Count + EventsToHappen.Count);
 
-		int elementCount = 0;
-		float totalElementsFactor = progressFactor * (Languages.Count + Regions.Count + FactionInfos.Count + PolityInfos.Count + CellGroups.Count + EventsToHappen.Count);
+        foreach (Language l in Languages)
+        {
+            l.FinalizeLoad();
 
-		foreach (Language l in Languages) {
+            castProgress(startProgressValue + (++elementCount / totalElementsFactor), "Initializing Languages...");
+        }
 
-			l.FinalizeLoad ();
+        // Segment 3
 
-			castProgress (startProgressValue + (++elementCount/totalElementsFactor), "Initializing Languages...");
-		}
+        foreach (RegionInfo r in RegionInfos.Values)
+        {
+            r.FinalizeLoad();
 
-		// Segment 3
+            castProgress(startProgressValue + (++elementCount / totalElementsFactor), "Initializing Regions...");
+        }
 
-		foreach (Region r in Regions) {
-
-			r.FinalizeLoad ();
-
-			castProgress (startProgressValue + (++elementCount/totalElementsFactor), "Initializing Regions...");
-		}
-
-        // Segment 5
+        // Segment 4
 
         foreach (PolityInfo pInfo in PolityInfos.Values)
         {
@@ -1749,7 +1735,7 @@ public class World : ISynchronizable {
             castProgress(startProgressValue + (++elementCount / totalElementsFactor), "Initializing Polities...");
         }
 
-        // Segment 4
+        // Segment 5
 
         foreach (FactionInfo fInfo in FactionInfos.Values)
         {
@@ -1762,72 +1748,77 @@ public class World : ISynchronizable {
 
 #if DEBUG
         CellGroup.Debug_LoadedGroups = 0;
-		#endif
+#endif
 
-		foreach (CellGroup g in CellGroups) {
+        foreach (CellGroup g in CellGroups)
+        {
+            g.FinalizeLoad();
 
-			g.FinalizeLoad ();
+            castProgress(startProgressValue + (++elementCount / totalElementsFactor), "Initializing Cell Groups...");
+        }
 
-			castProgress (startProgressValue + (++elementCount/totalElementsFactor), "Initializing Cell Groups...");
-		}
+        // Segment 7
 
-		// Segment 7
+        foreach (WorldEvent e in EventsToHappen)
+        {
+            e.World = this;
+            e.FinalizeLoad();
 
-		foreach (WorldEvent e in EventsToHappen) {
+            InsertEventToHappen(e);
+            //			_eventsToHappen.Insert (e.TriggerDate, e);
 
-			e.World = this;
-			e.FinalizeLoad ();
+            castProgress(startProgressValue + (++elementCount / totalElementsFactor), "Initializing Events...");
+        }
 
-			InsertEventToHappen (e);
-//			_eventsToHappen.Insert (e.TriggerDate, e);
+        // Segment 8
 
-			castProgress (startProgressValue + (++elementCount/totalElementsFactor), "Initializing Events...");
-		}
+        foreach (CulturalPreferenceInfo p in CulturalPreferenceInfoList)
+        {
+            _culturalPreferenceIdList.Add(p.Id);
+        }
 
-		// Segment 8
+        foreach (CulturalActivityInfo a in CulturalActivityInfoList)
+        {
+            _culturalActivityIdList.Add(a.Id);
+        }
 
-		foreach (CulturalPreferenceInfo p in CulturalPreferenceInfoList) {
-			_culturalPreferenceIdList.Add (p.Id);
-		}
+        foreach (CulturalSkillInfo s in CulturalSkillInfoList)
+        {
+            _culturalSkillIdList.Add(s.Id);
+        }
 
-		foreach (CulturalActivityInfo a in CulturalActivityInfoList) {
-			_culturalActivityIdList.Add (a.Id);
-		}
+        foreach (CulturalKnowledgeInfo k in CulturalKnowledgeInfoList)
+        {
+            _culturalKnowledgeIdList.Add(k.Id);
+        }
 
-		foreach (CulturalSkillInfo s in CulturalSkillInfoList) {
-			_culturalSkillIdList.Add (s.Id);
-		}
+        foreach (CulturalDiscovery d in CulturalDiscoveryInfoList)
+        {
+            _culturalDiscoveryIdList.Add(d.Id);
+        }
+    }
 
-		foreach (CulturalKnowledgeInfo k in CulturalKnowledgeInfoList) {
-			_culturalKnowledgeIdList.Add (k.Id);
-		}
+    public void FinalizeLoad()
+    {
+        FinalizeLoad(0, 1, null);
+    }
 
-		foreach (CulturalDiscovery d in CulturalDiscoveryInfoList) {
-			_culturalDiscoveryIdList.Add (d.Id);
-		}
-	}
+    public void MigrationTagGroup(HumanGroup group)
+    {
+        MigrationUntagGroup();
 
-	public void FinalizeLoad () {
+        MigrationTaggedGroup = group;
 
-		FinalizeLoad (0, 1, null);
-	}
+        group.MigrationTagged = true;
+    }
 
-	public void MigrationTagGroup (HumanGroup group) {
-	
-		MigrationUntagGroup ();
-		
-		MigrationTaggedGroup = group;
+    public void MigrationUntagGroup()
+    {
+        if (MigrationTaggedGroup != null)
+            MigrationTaggedGroup.MigrationTagged = false;
+    }
 
-		group.MigrationTagged = true;
-	}
-	
-	public void MigrationUntagGroup () {
-		
-		if (MigrationTaggedGroup != null)
-			MigrationTaggedGroup.MigrationTagged = false;
-	}
-	
-	public void GenerateTerrain () {
+    public void GenerateTerrain () {
 		
 		ProgressCastMethod (_accumulatedProgress, "Generating Terrain...");
 
