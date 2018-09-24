@@ -5,182 +5,183 @@ using System.Xml;
 using System.Xml.Serialization;
 using UnityEngine.Profiling;
 
-public class PolityCulture : Culture {
+public class PolityCulture : Culture
+{
+    [XmlIgnore]
+    public Polity Polity;
 
-	[XmlIgnore]
-	public Polity Polity;
+    public PolityCulture()
+    {
 
-	public PolityCulture () {
-	
-	}
+    }
 
-	public PolityCulture (Polity polity) : base (polity.World) {
+    public PolityCulture(Polity polity) : base(polity.World)
+    {
+        Polity = polity;
 
-		Polity = polity;
+        CellGroup coreGroup = Polity.CoreGroup;
 
-		CellGroup coreGroup = Polity.CoreGroup;
+        if (coreGroup == null)
+            throw new System.Exception("CoreGroup can't be null at this point");
 
-		if (coreGroup == null)
-			throw new System.Exception ("CoreGroup can't be null at this point");
+        CellCulture coreCulture = coreGroup.Culture;
 
-		CellCulture coreCulture = coreGroup.Culture;
+        Language = coreCulture.Language;
 
-		Language = coreCulture.Language;
+        if (Language == null)
+        {
+            GenerateNewLanguage();
+        }
+    }
 
-		if (Language == null) {
+    public void Initialize()
+    {
+        AddFactionCultures();
+    }
 
-			GenerateNewLanguage ();
-		}
-	}
+    private void GenerateNewLanguage()
+    {
+        Language = new Language(Polity.GenerateUniqueIdentifier(World.CurrentDate, 100L, Polity.Id));
 
-	public void Initialize () {
-	
-		AddFactionCultures ();
-	}
+        // Generate Articles
 
-	private void GenerateNewLanguage () {
+        Language.GenerateArticleProperties();
 
-		Language = new Language (Polity.GenerateUniqueIdentifier (World.CurrentDate, 100L, Polity.Id));
+        Language.GenerateArticleAdjunctionProperties();
+        Language.GenerateArticleSyllables();
+        Language.GenerateAllArticles();
 
-		// Generate Articles
+        // Generate Noun Indicatives
 
-		Language.GenerateArticleProperties ();
+        Language.GenerateNounIndicativeProperties();
 
-		Language.GenerateArticleAdjunctionProperties ();
-		Language.GenerateArticleSyllables ();
-		Language.GenerateAllArticles ();
+        Language.GenerateNounIndicativeAdjunctionProperties();
+        Language.GenerateNounIndicativeSyllables();
+        Language.GenerateAllNounIndicatives();
 
-		// Generate Noun Indicatives
+        // Generate Verb Indicatives
 
-		Language.GenerateNounIndicativeProperties ();
+        Language.GenerateVerbIndicativeProperties();
 
-		Language.GenerateNounIndicativeAdjunctionProperties ();
-		Language.GenerateNounIndicativeSyllables ();
-		Language.GenerateAllNounIndicatives ();
+        Language.GenerateVerbIndicativeAdjunctionProperties();
+        Language.GenerateVerbIndicativeSyllables();
+        Language.GenerateAllVerbIndicatives();
 
-		// Generate Verb Indicatives
+        // Generate Noun, Adjective and Adposition Properties and Syllables
 
-		Language.GenerateVerbIndicativeProperties ();
+        Language.GenerateVerbSyllables();
+
+        Language.GenerateNounAdjunctionProperties();
+        Language.GenerateNounSyllables();
 
-		Language.GenerateVerbIndicativeAdjunctionProperties ();
-		Language.GenerateVerbIndicativeSyllables ();
-		Language.GenerateAllVerbIndicatives ();
+        Language.GenerateAdjectiveAdjunctionProperties();
+        Language.GenerateAdjectiveSyllables();
 
-		// Generate Noun, Adjective and Adposition Properties and Syllables
-
-		Language.GenerateVerbSyllables ();
-
-		Language.GenerateNounAdjunctionProperties ();
-		Language.GenerateNounSyllables ();
-
-		Language.GenerateAdjectiveAdjunctionProperties ();
-		Language.GenerateAdjectiveSyllables ();
-
-		Language.GenerateAdpositionAdjunctionProperties ();
-		Language.GenerateAdpositionSyllables ();
-
-		World.AddLanguage (Language);
-	}
-
-	public void Update () {
-
-		ClearAttributes ();
-
-		AddFactionCultures ();
-	}
-
-	private void AddFactionCultures () {
-
-		foreach (Faction faction in Polity.GetFactions ()) {
-		
-			AddFactionCulture (faction);
-		}
-	}
-
-	private void AddFactionCulture (Faction faction) {
-
-		float influence = faction.Influence;
-
-		foreach (CulturalPreference p in faction.Culture.Preferences) {
-
-			CulturalPreference preference = GetPreference (p.Id);
-
-			if (preference == null) {
-
-				preference = new CulturalPreference (p);
-				preference.Value *= influence;
-
-				AddPreference (preference);
-
-			} else {
-
-				preference.Value += p.Value * influence;
-			}
-		}
-
-		foreach (CulturalActivity a in faction.Culture.Activities) {
-		
-			CulturalActivity activity = GetActivity (a.Id);
-
-			if (activity == null) {
-			
-				activity = new CulturalActivity (a);
-				activity.Value *= influence;
-				activity.Contribution *= influence;
-
-				AddActivity (activity);
-
-			} else {
-			
-				activity.Value += a.Value * influence;
-				activity.Contribution += a.Contribution * influence;
-			}
-		}
-
-		foreach (CulturalSkill s in faction.Culture.Skills) {
-
-			CulturalSkill skill = GetSkill (s.Id);
-
-			if (skill == null) {
-
-				skill = new CulturalSkill (s);
-				skill.Value *= influence;
-
-				AddSkill (skill);
-
-			} else {
-
-				skill.Value += s.Value * influence;
-			}
-		}
-
-		foreach (CulturalKnowledge k in faction.Culture.Knowledges) {
-
-			CulturalKnowledge knowledge = GetKnowledge (k.Id);
-
-			if (knowledge == null) {
-
-				knowledge = new CulturalKnowledge (k);
-				knowledge.Value = (int)(k.Value * influence);
-
-				AddKnowledge (knowledge);
-
-			} else {
-				
-				knowledge.Value += (int)(k.Value * influence);
-			}
-		}
-
-		foreach (CulturalDiscovery groupDiscovery in faction.Culture.Discoveries) {
-
-			CulturalDiscovery discovery = GetDiscovery (groupDiscovery.Id) as CulturalDiscovery;
-
-			if (discovery == null) {
-
-				discovery = new CulturalDiscovery (groupDiscovery);
-
-				AddDiscovery (discovery);
-			}
-		}
-	}
+        Language.GenerateAdpositionAdjunctionProperties();
+        Language.GenerateAdpositionSyllables();
+
+        World.AddLanguage(Language);
+    }
+
+    public void Update()
+    {
+        ClearAttributes();
+
+        AddFactionCultures();
+    }
+
+    private void AddFactionCultures()
+    {
+        foreach (Faction faction in Polity.GetFactions())
+        {
+            AddFactionCulture(faction);
+        }
+    }
+
+    private void AddFactionCulture(Faction faction)
+    {
+        float influence = faction.Influence;
+
+        foreach (CulturalPreference p in faction.Culture.Preferences.Values)
+        {
+            CulturalPreference preference = GetPreference(p.Id);
+
+            if (preference == null)
+            {
+                preference = new CulturalPreference(p);
+                preference.Value *= influence;
+
+                AddPreference(preference);
+            }
+            else
+            {
+                preference.Value += p.Value * influence;
+            }
+        }
+
+        foreach (CulturalActivity a in faction.Culture.Activities.Values)
+        {
+            CulturalActivity activity = GetActivity(a.Id);
+
+            if (activity == null)
+            {
+                activity = new CulturalActivity(a);
+                activity.Value *= influence;
+                activity.Contribution *= influence;
+
+                AddActivity(activity);
+            }
+            else
+            {
+                activity.Value += a.Value * influence;
+                activity.Contribution += a.Contribution * influence;
+            }
+        }
+
+        foreach (CulturalSkill s in faction.Culture.Skills.Values)
+        {
+            CulturalSkill skill = GetSkill(s.Id);
+
+            if (skill == null)
+            {
+                skill = new CulturalSkill(s);
+                skill.Value *= influence;
+
+                AddSkill(skill);
+            }
+            else
+            {
+                skill.Value += s.Value * influence;
+            }
+        }
+
+        foreach (CulturalKnowledge k in faction.Culture.Knowledges.Values)
+        {
+            CulturalKnowledge knowledge = GetKnowledge(k.Id);
+
+            if (knowledge == null)
+            {
+                knowledge = new CulturalKnowledge(k);
+                knowledge.Value = (int)(k.Value * influence);
+
+                AddKnowledge(knowledge);
+            }
+            else
+            {
+                knowledge.Value += (int)(k.Value * influence);
+            }
+        }
+
+        foreach (CulturalDiscovery groupDiscovery in faction.Culture.Discoveries.Values)
+        {
+            CulturalDiscovery discovery = GetDiscovery(groupDiscovery.Id) as CulturalDiscovery;
+
+            if (discovery == null)
+            {
+                discovery = new CulturalDiscovery(groupDiscovery);
+
+                AddDiscovery(discovery);
+            }
+        }
+    }
 }

@@ -28,27 +28,27 @@ public class FactionCulture : Culture
 
         CellCulture coreCulture = coreGroup.Culture;
 
-        foreach (CulturalPreference p in coreCulture.Preferences)
+        foreach (CulturalPreference p in coreCulture.Preferences.Values)
         {
             AddPreference(new CulturalPreference(p));
         }
 
-        foreach (CulturalActivity a in coreCulture.Activities)
+        foreach (CulturalActivity a in coreCulture.Activities.Values)
         {
             AddActivity(new CulturalActivity(a));
         }
 
-        foreach (CulturalSkill s in coreCulture.Skills)
+        foreach (CulturalSkill s in coreCulture.Skills.Values)
         {
             AddSkill(new CulturalSkill(s));
         }
 
-        foreach (CulturalKnowledge k in coreCulture.Knowledges)
+        foreach (CulturalKnowledge k in coreCulture.Knowledges.Values)
         {
             AddKnowledge(new CulturalKnowledge(k));
         }
 
-        foreach (CulturalDiscovery d in coreCulture.Discoveries)
+        foreach (CulturalDiscovery d in coreCulture.Discoveries.Values)
         {
             AddDiscovery(new CulturalDiscovery(d));
         }
@@ -74,13 +74,15 @@ public class FactionCulture : Culture
 
         ////// Update Preferences
 
-        HashSet<string> foundPreferenceIds = new HashSet<string>();
+        Profiler.BeginSample("Culture - Update Preferences");
 
-        foreach (CulturalPreference p in coreCulture.Preferences)
+        foreach (CulturalPreference p in coreCulture.Preferences.Values)
         {
-            foundPreferenceIds.Add(p.Id);
+            Profiler.BeginSample("GetPreference");
 
             CulturalPreference preference = GetPreference(p.Id);
+
+            Profiler.EndSample();
 
 #if DEBUG
             float prevValue = 0;
@@ -88,18 +90,25 @@ public class FactionCulture : Culture
 
             if (preference == null)
             {
+                Profiler.BeginSample("new CulturalPreference");
+
                 preference = new CulturalPreference(p);
                 AddPreference(preference);
 
                 preference.Value = p.Value * timeFactor;
+
+                Profiler.EndSample();
             }
             else
             {
+                Profiler.BeginSample("update preference.Value");
 #if DEBUG
                 prevValue = preference.Value;
 #endif
 
                 preference.Value = (preference.Value * (1f - timeFactor)) + (p.Value * timeFactor);
+
+                Profiler.EndSample();
             }
 
 #if DEBUG
@@ -123,78 +132,117 @@ public class FactionCulture : Culture
 #endif
         }
 
-        foreach (CulturalPreference p in Preferences)
+        foreach (CulturalPreference p in Preferences.Values)
         {
-            if (!foundPreferenceIds.Contains(p.Id))
+            Profiler.BeginSample("coreCulture.Preferences.ContainsKey");
+
+            if (!coreCulture.Preferences.ContainsKey(p.Id))
             {
                 p.Value = (p.Value * (1f - timeFactor));
             }
+
+            Profiler.EndSample();
         }
+
+        Profiler.EndSample();
 
         ////// Update Activities
 
-        HashSet<string> foundActivityIds = new HashSet<string>();
+        Profiler.BeginSample("Culture - Update Activities");
 
-        foreach (CulturalActivity a in coreCulture.Activities)
+        foreach (CulturalActivity a in coreCulture.Activities.Values)
         {
-            foundActivityIds.Add(a.Id);
+            Profiler.BeginSample("GetActivity");
 
             CulturalActivity activity = GetActivity(a.Id);
 
+            Profiler.EndSample();
+
             if (activity == null)
             {
+                Profiler.BeginSample("new CulturalActivity");
+
                 activity = new CulturalActivity(a);
                 AddActivity(activity);
 
                 activity.Value = a.Value * timeFactor;
+
+                Profiler.EndSample();
             }
             else
             {
+                Profiler.BeginSample("update activity.Value");
+
                 activity.Value = (activity.Value * (1f - timeFactor)) + (a.Value * timeFactor);
+
+                Profiler.EndSample();
             }
         }
 
-        foreach (CulturalActivity a in Activities)
+        foreach (CulturalActivity a in Activities.Values)
         {
-            if (!foundActivityIds.Contains(a.Id))
+            Profiler.BeginSample("coreCulture.Activities.ContainsKey");
+
+            if (!coreCulture.Activities.ContainsKey(a.Id))
             {
                 a.Value = (a.Value * (1f - timeFactor));
             }
+
+            Profiler.EndSample();
         }
+
+        Profiler.EndSample();
 
         ////// Update Skills
 
-        HashSet<string> foundSkillIds = new HashSet<string>();
+        Profiler.BeginSample("Culture - Update Skills");
 
-        foreach (CulturalSkill s in coreCulture.Skills)
+        foreach (CulturalSkill s in coreCulture.Skills.Values)
         {
-            foundSkillIds.Add(s.Id);
+            Profiler.BeginSample("GetSkill");
 
             CulturalSkill skills = GetSkill(s.Id);
 
+            Profiler.EndSample();
+
             if (skills == null)
             {
+                Profiler.BeginSample("new CulturalSkill");
+
                 skills = new CulturalSkill(s);
                 AddSkill(skills);
 
                 skills.Value = s.Value * timeFactor;
+
+                Profiler.EndSample();
             }
             else
             {
+                Profiler.BeginSample("update skills.Value");
+
                 skills.Value = (skills.Value * (1f - timeFactor)) + (s.Value * timeFactor);
+
+                Profiler.EndSample();
             }
         }
 
-        foreach (CulturalSkill s in Skills)
+        foreach (CulturalSkill s in Skills.Values)
         {
-            if (!foundSkillIds.Contains(s.Id))
-            {
+            Profiler.BeginSample("coreCulture.Skills.ContainsKey");
 
+            if (!coreCulture.Skills.ContainsKey(s.Id))
+            {
                 s.Value = (s.Value * (1f - timeFactor));
             }
+
+            Profiler.EndSample();
         }
 
+        Profiler.EndSample();
+
         ////// Update Knowledges
+
+        Profiler.BeginSample("Culture - Update Knowledges");
 
         //#if DEBUG
         //        if (Manager.RegisterDebugEvent != null)
@@ -214,13 +262,13 @@ public class FactionCulture : Culture
         //        }
         //#endif
 
-        HashSet<string> foundKnowledgeIds = new HashSet<string>();
-
-        foreach (CulturalKnowledge k in coreCulture.Knowledges)
+        foreach (CulturalKnowledge k in coreCulture.Knowledges.Values)
         {
-            foundKnowledgeIds.Add(k.Id);
+            Profiler.BeginSample("GetKnowledge");
 
             CulturalKnowledge knowledge = GetKnowledge(k.Id);
+
+            Profiler.EndSample();
 
 #if DEBUG
             int oldKnowledgeValue = 0;
@@ -228,19 +276,26 @@ public class FactionCulture : Culture
 
             if (knowledge == null)
             {
+                Profiler.BeginSample("new CulturalKnowledge");
+
                 knowledge = new CulturalKnowledge(k);
 
                 AddKnowledge(knowledge);
 
                 knowledge.Value = (int)(k.Value * timeFactor);
+
+                Profiler.EndSample();
             }
             else
             {
+                Profiler.BeginSample("update knowledge.Value");
 #if DEBUG
                 oldKnowledgeValue = knowledge.Value;
 #endif
 
                 knowledge.Value = (int)((knowledge.Value * (1f - timeFactor)) + (k.Value * timeFactor));
+
+                Profiler.EndSample();
             }
 
 #if DEBUG
@@ -264,66 +319,90 @@ public class FactionCulture : Culture
 #endif
         }
 
-        foreach (CulturalKnowledge k in Knowledges)
+        foreach (CulturalKnowledge k in Knowledges.Values)
         {
-            if (!foundKnowledgeIds.Contains(k.Id))
+            Profiler.BeginSample("coreCulture.Knowledges.ContainsKey");
+
+            if (!coreCulture.Knowledges.ContainsKey(k.Id))
             {
                 k.Value = (int)(k.Value * (1f - timeFactor));
-
-                //#if DEBUG
-                //                if (Manager.RegisterDebugEvent != null)
-                //                {
-                //                    if (Manager.TracingData.FactionId == Faction.Id)
-                //                    {
-                //                        SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-                //                            "FactionCulture:Update - Knowledges - Faction.Id:" + Faction.Id,
-                //                            "CurrentDate: " + World.CurrentDate +
-                //                            ", k.Id: " + k.Id +
-                //                            ", k.Value: " + k.Value +
-                //                            "");
-
-                //                        Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-                //                    }
-                //                }
-                //#endif
             }
+
+            Profiler.EndSample();
         }
+
+        Profiler.EndSample();
 
         ////// Update Discoveries
 
-        HashSet<string> foundDiscoveryIds = new HashSet<string>();
+        Profiler.BeginSample("Culture - Update Discoveries");
 
-        foreach (CulturalDiscovery d in coreCulture.Discoveries)
+        foreach (CulturalDiscovery d in coreCulture.Discoveries.Values)
         {
-            foundDiscoveryIds.Add(d.Id);
+            Profiler.BeginSample("GetDiscovery");
 
             CulturalDiscovery discovery = GetDiscovery(d.Id);
 
+            Profiler.EndSample();
+
             if (discovery == null)
             {
+                Profiler.BeginSample("new CulturalDiscovery");
+
                 discovery = new CulturalDiscovery(d);
                 AddDiscovery(discovery);
+
+                Profiler.EndSample();
             }
         }
 
-        List<CulturalDiscovery> discoveriesToRemove = new List<CulturalDiscovery>(Discoveries.Count);
+        Profiler.BeginSample("discoveriesToRemove");
 
-        foreach (CulturalDiscovery d in Discoveries)
+        List<CulturalDiscovery> discoveriesToRemove = null;
+
+        Profiler.EndSample();
+
+        int discoveriesLeft = Discoveries.Count;
+        foreach (CulturalDiscovery d in Discoveries.Values)
         {
-            int idHash = d.Id.GetHashCode();
-
-            if (!foundDiscoveryIds.Contains(d.Id))
+            if (!coreCulture.Knowledges.ContainsKey(d.Id))
             {
+                Profiler.BeginSample("GetHashCode");
+
+                int idHash = d.Id.GetHashCode();
+
+                Profiler.EndSample();
+
+                Profiler.BeginSample("discoveriesToRemove.Add");
+
                 if (GetNextRandomFloat(RngOffsets.FACTION_CULTURE_DISCOVER_LOSS_CHANCE + idHash) < timeFactor)
                 {
+                    if (discoveriesToRemove == null)
+                    {
+                        discoveriesToRemove = new List<CulturalDiscovery>(discoveriesLeft);
+                    }
+
                     discoveriesToRemove.Add(d);
                 }
+
+                Profiler.EndSample();
+            }
+
+            discoveriesLeft--;
+        }
+
+        if (discoveriesToRemove != null)
+        {
+            foreach (CulturalDiscovery d in discoveriesToRemove)
+            {
+                Profiler.BeginSample("RemoveDiscovery");
+
+                RemoveDiscovery(d);
+
+                Profiler.EndSample();
             }
         }
 
-        foreach (CulturalDiscovery d in discoveriesToRemove)
-        {
-            RemoveDiscovery(d);
-        }
+        Profiler.EndSample();
     }
 }

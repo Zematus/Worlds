@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
-public class CulturalPreferenceInfo : IKeyedValue<string>
+public class CulturalActivityInfo : IKeyedValue<string>
 {
     [XmlAttribute]
     public string Id;
@@ -15,22 +15,22 @@ public class CulturalPreferenceInfo : IKeyedValue<string>
     [XmlAttribute("RO")]
     public int RngOffset;
 
-    public CulturalPreferenceInfo()
+    public CulturalActivityInfo()
     {
     }
 
-    public CulturalPreferenceInfo(string id, string name, int rngOffset)
+    public CulturalActivityInfo(string id, string name, int rngOffset)
     {
         Id = id;
         Name = name;
         RngOffset = rngOffset;
     }
 
-    public CulturalPreferenceInfo(CulturalPreferenceInfo basePreference)
+    public CulturalActivityInfo(CulturalActivityInfo baseInfo)
     {
-        Id = basePreference.Id;
-        Name = basePreference.Name;
-        RngOffset = basePreference.RngOffset;
+        Id = baseInfo.Id;
+        Name = baseInfo.Name;
+        RngOffset = baseInfo.RngOffset;
     }
 
     public string GetKey()

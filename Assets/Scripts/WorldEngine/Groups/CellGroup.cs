@@ -2096,7 +2096,7 @@ public class CellGroup : HumanGroup
         float seafaringValue = 0;
         float shipbuildingValue = 0;
 
-        foreach (CellCulturalSkill skill in Culture.Skills)
+        foreach (CellCulturalSkill skill in Culture.Skills.Values)
         {
             if (skill is SeafaringSkill)
             {
@@ -2104,7 +2104,7 @@ public class CellGroup : HumanGroup
             }
         }
 
-        foreach (CellCulturalKnowledge knowledge in Culture.Knowledges)
+        foreach (CellCulturalKnowledge knowledge in Culture.Knowledges.Values)
         {
             if (knowledge is ShipbuildingKnowledge)
             {
