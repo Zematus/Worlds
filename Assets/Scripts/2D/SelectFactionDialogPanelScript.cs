@@ -54,16 +54,17 @@ public class SelectFactionDialogPanelScript : ModalPanelScript {
 
 		List<Faction> factions = new List<Faction> (polity.GetFactions ());
 
-		factions.Sort ((a, b) => {
-			if (a.Influence > b.Influence)
-				return -1;
-			if (a.Influence < b.Influence)
-				return 1;
+        factions.Sort((a, b) =>
+        {
+            if (a.Influence > b.Influence)
+                return -1;
+            if (a.Influence < b.Influence)
+                return 1;
 
-			return 0;
-		});
+            return 0;
+        });
 
-		int i = 0;
+        int i = 0;
 
 		foreach (Faction faction in factions) {
 

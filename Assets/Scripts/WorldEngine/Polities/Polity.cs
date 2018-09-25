@@ -576,55 +576,49 @@ public abstract class Polity : ISynchronizable {
         return DominantFaction.GetRelationshipValue(polity.DominantFaction);
     }
 
-    public IEnumerable<Faction> GetFactions (bool ordered = false) {
+    public IEnumerable<Faction> GetFactions()
+    {
+        return Factions.Values;
+    }
 
-		if (ordered) {
-			List<Faction> sortedFactions = new List<Faction> (Factions.Values);
-			sortedFactions.Sort (Faction.CompareId);
+    public IEnumerable<Faction> GetFactions(string type)
+    {
+        foreach (Faction faction in Factions.Values)
+        {
+            if (faction.Type == type)
+                yield return faction;
+        }
+    }
 
-			return sortedFactions;
-		}
+    public IEnumerable<T> GetFactions<T>() where T : Faction
+    {
+        foreach (T faction in Factions.Values)
+        {
+            yield return faction;
+        }
+    }
 
-		return Factions.Values;
-	}
+    public void NormalizeFactionInfluences()
+    {
+        float totalInfluence = 0;
 
-	public IEnumerable<Faction> GetFactions (string type) {
+        foreach (Faction f in Factions.Values)
+        {
+            totalInfluence += f.Influence;
+        }
 
-		foreach (Faction faction in Factions.Values) {
+        if (totalInfluence <= 0)
+        {
+            throw new System.Exception("Total influence equal or less than zero: " + totalInfluence + ", polity id:" + Id);
+        }
 
-			if (faction.Type == type)
-				yield return faction;
-		}
-	}
+        foreach (Faction f in Factions.Values)
+        {
+            f.Influence = f.Influence / totalInfluence;
+        }
+    }
 
-	public IEnumerable<T> GetFactions<T> () where T : Faction {
-
-		foreach (T faction in Factions.Values) {
-
-				yield return faction;
-		}
-	}
-
-	public void NormalizeFactionInfluences () {
-	
-		float totalInfluence = 0;
-
-		foreach (Faction f in Factions.Values) {
-		
-			totalInfluence += f.Influence;
-		}
-
-		if (totalInfluence <= 0) {
-			throw new System.Exception ("Total influence equal or less than zero: " + totalInfluence + ", polity id:" + Id);
-		}
-
-		foreach (Faction f in Factions.Values) {
-
-			f.Influence = f.Influence / totalInfluence;
-		}
-	}
-
-	public static void TransferInfluence (Faction sourceFaction, Faction targetFaction, float percentage) {
+    public static void TransferInfluence (Faction sourceFaction, Faction targetFaction, float percentage) {
 
 		// Can only tranfer influence between factions belonging to the same polity
 

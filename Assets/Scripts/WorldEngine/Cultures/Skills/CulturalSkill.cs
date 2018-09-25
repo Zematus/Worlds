@@ -24,4 +24,9 @@ public class CulturalSkill : CulturalSkillInfo
     {
         Value = baseSkill.Value;
     }
+
+    public void Reset()
+    {
+        Value = 0;
+    }
 }

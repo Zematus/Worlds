@@ -28,4 +28,10 @@ public class CulturalActivity : CulturalActivityInfo
         Value = baseActivity.Value;
         Contribution = baseActivity.Contribution;
     }
+
+    public void Reset()
+    {
+        Value = 0;
+        Contribution = 0;
+    }
 }

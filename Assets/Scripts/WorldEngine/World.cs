@@ -1062,13 +1062,13 @@ public class World : ISynchronizable
             string eventTypeName = eventToHappen.GetType().ToString();
 
             Profiler.BeginSample("Event CanTrigger");
-            Profiler.BeginSample("Event CanTrigger - " + eventTypeName);
+            //Profiler.BeginSample("Event CanTrigger - " + eventTypeName);
 #endif
 
             bool canTrigger = eventToHappen.CanTrigger();
 
 #if DEBUG
-            Profiler.EndSample();
+            //Profiler.EndSample();
             Profiler.EndSample();
 #endif
 

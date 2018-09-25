@@ -36,4 +36,9 @@ public class CulturalPreference : CulturalPreferenceInfo
     {
         Value = basePreference.Value;
     }
+
+    public void Reset()
+    {
+        Value = 0;
+    }
 }

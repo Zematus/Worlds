@@ -153,17 +153,8 @@ public class ClanDemandsInfluenceDecisionEvent : FactionEvent
 
         /////
 
-        Profiler.BeginSample("CalculateChanceOfRefusingDemand");
-
         _chanceOfRejectingDemand = CalculateChanceOfRefusingDemand();
-
-        Profiler.EndSample();
-
-        Profiler.BeginSample("CalculateChanceOfMakingDemand");
-
         _chanceOfMakingDemand = CalculateChanceOfMakingDemand();
-
-        Profiler.EndSample();
 
         //#if DEBUG
         //        if (Manager.RegisterDebugEvent != null)

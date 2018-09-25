@@ -89,9 +89,12 @@ public class Culture : ISynchronizable
         RemovePreference(preference);
     }
 
-    public void ClearPreferences()
+    public void ResetPreferences()
     {
-        Preferences.Clear();
+        foreach (CulturalPreference preference in Preferences.Values)
+        {
+            preference.Reset();
+        }
     }
 
     protected void AddActivity(CulturalActivity activity)
@@ -122,9 +125,12 @@ public class Culture : ISynchronizable
         RemoveActivity(activity);
     }
 
-    public void ClearActivities()
+    public void ResetActivities()
     {
-        Activities.Clear();
+        foreach (CulturalActivity activity in Activities.Values)
+        {
+            activity.Reset();
+        }
     }
 
     protected void AddSkill(CulturalSkill skill)
@@ -145,9 +151,12 @@ public class Culture : ISynchronizable
         Skills.Remove(skill.Id);
     }
 
-    public void ClearSkills()
+    public void ResetSkills()
     {
-        Skills.Clear();
+        foreach (CulturalSkill skill in Skills.Values)
+        {
+            skill.Reset();
+        }
     }
 
     protected void AddKnowledge(CulturalKnowledge knowledge)
@@ -168,9 +177,12 @@ public class Culture : ISynchronizable
         Knowledges.Remove(knowledge.Id);
     }
 
-    public void ClearKnowledges()
+    public void ResetKnowledges()
     {
-        Knowledges.Clear();
+        foreach (CulturalKnowledge knowledge in Knowledges.Values)
+        {
+            knowledge.Reset();
+        }
     }
 
     protected void AddDiscovery(CulturalDiscovery discovery)
@@ -246,12 +258,12 @@ public class Culture : ISynchronizable
         return discovery;
     }
 
-    public void ClearAttributes()
+    public void ResetAttributes()
     {
-        ClearPreferences();
-        ClearActivities();
-        ClearSkills();
-        ClearKnowledges();
+        ResetPreferences();
+        ResetActivities();
+        ResetSkills();
+        ResetKnowledges();
         ClearDiscoveries();
     }
 

@@ -33,4 +33,9 @@ public class CulturalKnowledge : CulturalKnowledgeInfo
     {
         get { return Value * ValueScaleFactor; }
     }
+
+    public void Reset()
+    {
+        Value = 0;
+    }
 }
