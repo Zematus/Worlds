@@ -241,7 +241,7 @@ public class World : ISynchronizable
     public List<CulturalActivityInfo> CulturalActivityInfoList = new List<CulturalActivityInfo>();
     public List<CulturalSkillInfo> CulturalSkillInfoList = new List<CulturalSkillInfo>();
     public List<CulturalKnowledgeInfo> CulturalKnowledgeInfoList = new List<CulturalKnowledgeInfo>();
-    public List<CulturalDiscovery> CulturalDiscoveryInfoList = new List<CulturalDiscovery>();
+    public List<CulturalDiscoveryInfo> CulturalDiscoveryInfoList = new List<CulturalDiscoveryInfo>();
 
     public List<CellGroup> CellGroups;
 
@@ -613,64 +613,64 @@ public class World : ISynchronizable
     //		_groupActionsToPerform.Add (action);
     //	}
 
-    public void AddExistingCulturalPreferenceInfo (CulturalPreferenceInfo baseInfo) {
+    public void AddExistingCulturalPreferenceInfo(CulturalPreferenceInfo baseInfo)
+    {
+        if (_culturalPreferenceIdList.Contains(baseInfo.Id))
+            return;
 
-		if (_culturalPreferenceIdList.Contains (baseInfo.Id))
-			return;
+        CulturalPreferenceInfoList.Add(new CulturalPreferenceInfo(baseInfo));
+        _culturalPreferenceIdList.Add(baseInfo.Id);
+    }
 
-		CulturalPreferenceInfoList.Add (new CulturalPreferenceInfo (baseInfo));
-		_culturalPreferenceIdList.Add (baseInfo.Id);
-	}
+    public void AddExistingCulturalActivityInfo(CulturalActivityInfo baseInfo)
+    {
+        if (_culturalActivityIdList.Contains(baseInfo.Id))
+            return;
 
-	public void AddExistingCulturalActivityInfo (CulturalActivityInfo baseInfo) {
+        CulturalActivityInfoList.Add(new CulturalActivityInfo(baseInfo));
+        _culturalActivityIdList.Add(baseInfo.Id);
+    }
 
-		if (_culturalActivityIdList.Contains (baseInfo.Id))
-			return;
+    public void AddExistingCulturalSkillInfo(CulturalSkillInfo baseInfo)
+    {
+        if (_culturalSkillIdList.Contains(baseInfo.Id))
+            return;
 
-		CulturalActivityInfoList.Add (new CulturalActivityInfo (baseInfo));
-		_culturalActivityIdList.Add (baseInfo.Id);
-	}
+        CulturalSkillInfoList.Add(new CulturalSkillInfo(baseInfo));
+        _culturalSkillIdList.Add(baseInfo.Id);
+    }
 
-	public void AddExistingCulturalSkillInfo (CulturalSkillInfo baseInfo) {
+    public void AddExistingCulturalKnowledgeInfo(CulturalKnowledgeInfo baseInfo)
+    {
+        if (_culturalKnowledgeIdList.Contains(baseInfo.Id))
+            return;
 
-		if (_culturalSkillIdList.Contains (baseInfo.Id))
-			return;
-	
-		CulturalSkillInfoList.Add (new CulturalSkillInfo (baseInfo));
-		_culturalSkillIdList.Add (baseInfo.Id);
-	}
-	
-	public void AddExistingCulturalKnowledgeInfo (CulturalKnowledgeInfo baseInfo) {
-		
-		if (_culturalKnowledgeIdList.Contains (baseInfo.Id))
-			return;
-		
-		CulturalKnowledgeInfoList.Add (new CulturalKnowledgeInfo (baseInfo));
-		_culturalKnowledgeIdList.Add (baseInfo.Id);
-	}
-	
-	public void AddExistingCulturalDiscoveryInfo (CulturalDiscovery baseInfo) {
-		
-		if (_culturalDiscoveryIdList.Contains (baseInfo.Id))
-			return;
-		
-		CulturalDiscoveryInfoList.Add (new CulturalDiscovery (baseInfo));
-		_culturalDiscoveryIdList.Add (baseInfo.Id);
-	}
+        CulturalKnowledgeInfoList.Add(new CulturalKnowledgeInfo(baseInfo));
+        _culturalKnowledgeIdList.Add(baseInfo.Id);
+    }
 
-	public void UpdateMostPopulousGroup (CellGroup contenderGroup) {
-	
-		if (MostPopulousGroup == null) {
+    public void AddExistingCulturalDiscoveryInfo(CulturalDiscoveryInfo baseInfo)
+    {
+        if (_culturalDiscoveryIdList.Contains(baseInfo.Id))
+            return;
 
-			MostPopulousGroup = contenderGroup;
+        CulturalDiscoveryInfoList.Add(new CulturalDiscoveryInfo(baseInfo));
+        _culturalDiscoveryIdList.Add(baseInfo.Id);
+    }
 
-		} else if (MostPopulousGroup.Population < contenderGroup.Population) {
-			
-			MostPopulousGroup = contenderGroup;
-		}
-	}
-	
-	public void AddUpdatedGroup (CellGroup group) {
+    public void UpdateMostPopulousGroup(CellGroup contenderGroup)
+    {
+        if (MostPopulousGroup == null)
+        {
+            MostPopulousGroup = contenderGroup;
+        }
+        else if (MostPopulousGroup.Population < contenderGroup.Population)
+        {
+            MostPopulousGroup = contenderGroup;
+        }
+    }
+
+    public void AddUpdatedGroup (CellGroup group) {
 		
 		_updatedGroups.Add (group);
 	}
@@ -1059,7 +1059,7 @@ public class World : ISynchronizable
 //#endif
 
 #if DEBUG
-            string eventTypeName = eventToHappen.GetType().ToString();
+            //string eventTypeName = eventToHappen.GetType().ToString();
 
             Profiler.BeginSample("Event CanTrigger");
             //Profiler.BeginSample("Event CanTrigger - " + eventTypeName);
@@ -1792,7 +1792,7 @@ public class World : ISynchronizable
             _culturalKnowledgeIdList.Add(k.Id);
         }
 
-        foreach (CulturalDiscovery d in CulturalDiscoveryInfoList)
+        foreach (CulturalDiscoveryInfo d in CulturalDiscoveryInfoList)
         {
             _culturalDiscoveryIdList.Add(d.Id);
         }

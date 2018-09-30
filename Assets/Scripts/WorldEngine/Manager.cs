@@ -2764,41 +2764,39 @@ public class Manager {
 		return color;
 	}
 
-	private static Color SetPopCulturalDiscoveryOverlayColor (TerrainCell cell, Color color) {
+	private static Color SetPopCulturalDiscoveryOverlayColor(TerrainCell cell, Color color)
+    {
+        float greyscale = (color.r + color.g + color.b);
 
-		float greyscale = (color.r + color.g + color.b);
+        color.r = (greyscale + color.r) / 6f;
+        color.g = (greyscale + color.g) / 6f;
+        color.b = (greyscale + color.b) / 6f;
 
-		color.r = (greyscale + color.r) / 6f;
-		color.g = (greyscale + color.g) / 6f;
-		color.b = (greyscale + color.b) / 6f;
+        if (_planetOverlaySubtype == "None")
+            return color;
 
-		if (_planetOverlaySubtype == "None")
-			return color;
+        float normalizedValue = 0;
+        float population = 0;
 
-		float normalizedValue = 0;
-		float population = 0;
+        if (cell.Group != null)
+        {
+            population = cell.Group.Population;
 
-		if (cell.Group != null) {
+            if (cell.Group.Culture.HasDiscovery(_planetOverlaySubtype))
+            {
+                normalizedValue = 1;
+            }
+        }
 
-			CulturalDiscovery discovery = cell.Group.Culture.GetDiscovery(_planetOverlaySubtype);
+        if ((population > 0) && (normalizedValue >= 0.001f))
+        {
+            color = (color * (1 - normalizedValue)) + (Color.cyan * normalizedValue);
+        }
 
-			population = cell.Group.Population;
+        return color;
+    }
 
-			if (discovery != null) {
-
-				normalizedValue = 1;
-			}
-		}
-
-		if ((population > 0) && (normalizedValue >= 0.001f)) {
-
-			color = (color * (1 - normalizedValue)) + (Color.cyan * normalizedValue);
-		}
-
-		return color;
-	}
-
-	private static Color SetPolityCulturalDiscoveryOverlayColor (TerrainCell cell, Color color) {
+    private static Color SetPolityCulturalDiscoveryOverlayColor (TerrainCell cell, Color color) {
 
 		float greyscale = (color.r + color.g + color.b);
 
@@ -2823,10 +2821,8 @@ public class Manager {
 
 		if (territory == null)
 			return color;
-
-		CulturalDiscovery discovery = territory.Polity.Culture.GetDiscovery(_planetOverlaySubtype);
-
-		if (discovery == null)
+        
+		if (!territory.Polity.Culture.HasDiscovery(_planetOverlaySubtype))
 			return color;
 
 		Color addedColor = Color.cyan;

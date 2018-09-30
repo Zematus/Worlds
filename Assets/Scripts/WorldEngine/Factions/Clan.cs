@@ -225,10 +225,8 @@ public class Clan : Faction {
 	{
 		if (!CanBeClanCore(group))
 			return false;
-
-		CulturalDiscovery discovery = group.Culture.GetDiscovery (TribalismDiscovery.TribalismDiscoveryId);
-
-		if (discovery == null)
+        
+		if (!group.Culture.HasDiscovery(TribalismDiscovery.TribalismDiscoveryId))
 			return false;
 
 		PolityProminence pi = group.GetPolityProminence (Polity);

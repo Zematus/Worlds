@@ -52,7 +52,10 @@ public class Culture : ISynchronizable
 
         foreach (CulturalDiscovery d in sourceCulture.Discoveries.Values)
         {
-            AddDiscovery(new CulturalDiscovery(d));
+            if (d.IsPresent)
+            {
+                AddDiscovery(new CulturalDiscovery(d));
+            }
         }
 
         foreach (CulturalKnowledge k in sourceCulture.Knowledges.Values)
@@ -185,10 +188,16 @@ public class Culture : ISynchronizable
         }
     }
 
-    protected void AddDiscovery(CulturalDiscovery discovery)
+    protected void AddDiscovery(CulturalDiscovery discovery, bool setAsPresent = true)
     {
-        if (Discoveries.ContainsKey(discovery.Id))
-            return;
+        bool wasPresent = discovery.WasPresent;
+
+        if (setAsPresent)
+            discovery.Set();
+        else
+            discovery.Reset();
+
+        if (wasPresent) return;
 
         World.AddExistingCulturalDiscoveryInfo(discovery);
         
@@ -200,12 +209,15 @@ public class Culture : ISynchronizable
         if (!Discoveries.ContainsKey(discovery.Id))
             return;
         
-        Discoveries.Remove(discovery.Id);
+        discovery.Reset();
     }
 
-    public void ClearDiscoveries()
+    public void ResetDiscoveries()
     {
-        Discoveries.Clear();
+        foreach (CulturalDiscovery discovery in Discoveries.Values)
+        {
+            discovery.Reset();
+        }
     }
 
     public CulturalPreference GetPreference(string id)
@@ -258,13 +270,23 @@ public class Culture : ISynchronizable
         return discovery;
     }
 
+    public bool HasDiscovery(string id)
+    {
+        CulturalDiscovery discovery = GetDiscovery(id);
+
+        if ((discovery != null) && discovery.IsPresent)
+            return true;
+
+        return false;
+    }
+
     public void ResetAttributes()
     {
         ResetPreferences();
         ResetActivities();
         ResetSkills();
         ResetKnowledges();
-        ClearDiscoveries();
+        ResetDiscoveries();
     }
 
     public virtual void Synchronize()

@@ -14,11 +14,6 @@ public class BoatMakingDiscovery : CellCulturalDiscovery
 
     }
 
-    public static bool IsBoatMakingDiscovery(CulturalDiscovery discovery)
-    {
-        return discovery.Id.Contains(BoatMakingDiscoveryId);
-    }
-
     public override bool CanBeHeld(CellGroup group)
     {
         CulturalKnowledge knowledge = group.Culture.GetKnowledge(ShipbuildingKnowledge.ShipbuildingKnowledgeId);

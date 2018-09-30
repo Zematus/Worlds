@@ -1823,323 +1823,339 @@ public class GuiManagerScript : MonoBehaviour {
 		}
 	}
 
-	public void ChangePlanetOverlay (PlanetOverlay value, string planetOverlaySubtype, bool invokeEvent = true) {
+	public void ChangePlanetOverlay(PlanetOverlay value, string planetOverlaySubtype, bool invokeEvent = true)
+    {
+        _regenTextures |= _planetOverlaySubtype != planetOverlaySubtype;
+        _regenTextures |= _planetOverlay != value;
 
-		_regenTextures |= _planetOverlaySubtype != planetOverlaySubtype;
-		_regenTextures |= _planetOverlay != value;
+        if ((_planetOverlay != value) && (_planetOverlay != PlanetOverlay.None))
+        {
+            _planetOverlaySubtypeCache[_planetOverlay] = _planetOverlaySubtype;
+        }
 
-		if ((_planetOverlay != value) && (_planetOverlay != PlanetOverlay.None)) {
+        _planetOverlaySubtype = planetOverlaySubtype;
 
-			_planetOverlaySubtypeCache[_planetOverlay] = _planetOverlaySubtype;
-		}
+        _planetOverlay = value;
 
-		_planetOverlaySubtype = planetOverlaySubtype;
+        if (invokeEvent)
+        {
+            Manager.SetPlanetOverlay(_planetOverlay, _planetOverlaySubtype);
 
-		_planetOverlay = value;
+            OverlayChanged.Invoke();
+        }
+    }
 
-		if (invokeEvent) {
-			Manager.SetPlanetOverlay (_planetOverlay, _planetOverlaySubtype);
+    public void ChangePlanetOverlay(PlanetOverlay value, bool invokeEvent = true)
+    {
+        _regenTextures |= _planetOverlay != value;
 
-			OverlayChanged.Invoke ();
-		}
-	}
+        if (_regenTextures && (_planetOverlay != PlanetOverlay.None))
+        {
+            _planetOverlaySubtypeCache[_planetOverlay] = _planetOverlaySubtype;
+        }
 
-	public void ChangePlanetOverlay (PlanetOverlay value, bool invokeEvent = true) {
+        _planetOverlay = value;
 
-		_regenTextures |= _planetOverlay != value;
+        if (!_planetOverlaySubtypeCache.TryGetValue(_planetOverlay, out _planetOverlaySubtype))
+        {
+            _planetOverlaySubtype = "None";
+        }
 
-		if (_regenTextures && (_planetOverlay != PlanetOverlay.None)) {
+        if (invokeEvent)
+        {
+            Manager.SetPlanetOverlay(_planetOverlay, _planetOverlaySubtype);
 
-			_planetOverlaySubtypeCache[_planetOverlay] = _planetOverlaySubtype;
-		}
+            OverlayChanged.Invoke();
+        }
+    }
 
-		_planetOverlay = value;
+    public void SetPopCulturalPreferenceOverlay(bool invokeEvent = true)
+    {
+        ChangePlanetOverlay(PlanetOverlay.PopCulturalPreference, invokeEvent);
 
-		if (!_planetOverlaySubtypeCache.TryGetValue (_planetOverlay, out _planetOverlaySubtype)) {
-		
-			_planetOverlaySubtype = "None";
-		}
+        SelectionPanelScript.Title.text = "Displayed Preference:";
 
-		if (invokeEvent) {
-			Manager.SetPlanetOverlay (_planetOverlay, _planetOverlaySubtype);
+        foreach (CulturalPreferenceInfo preferenceInfo in Manager.CurrentWorld.CulturalPreferenceInfoList)
+        {
+            AddSelectionPanelOption(preferenceInfo.Name, preferenceInfo.Id);
+        }
 
-			OverlayChanged.Invoke ();
-		}
-	}
+        SelectionPanelScript.SetVisible(true);
+    }
 
-	public void SetPopCulturalPreferenceOverlay (bool invokeEvent = true) {
+    public void SetPolityCulturalPreferenceOverlay(bool invokeEvent = true)
+    {
+        ChangePlanetOverlay(PlanetOverlay.PolityCulturalPreference, invokeEvent);
 
-		ChangePlanetOverlay (PlanetOverlay.PopCulturalPreference, invokeEvent);
+        SelectionPanelScript.Title.text = "Displayed Preference:";
 
-		SelectionPanelScript.Title.text = "Displayed Preference:";
+        foreach (CulturalPreferenceInfo preferenceInfo in Manager.CurrentWorld.CulturalPreferenceInfoList)
+        {
+            AddSelectionPanelOption(preferenceInfo.Name, preferenceInfo.Id);
+        }
 
-		foreach (CulturalPreferenceInfo preferenceInfo in Manager.CurrentWorld.CulturalPreferenceInfoList) {
+        SelectionPanelScript.SetVisible(true);
+    }
 
-			AddSelectionPanelOption (preferenceInfo.Name, preferenceInfo.Id);
-		}
+    public void SetPopCulturalActivityOverlay(bool invokeEvent = true)
+    {
+        ChangePlanetOverlay(PlanetOverlay.PopCulturalActivity, invokeEvent);
 
-		SelectionPanelScript.SetVisible (true);
-	}
+        SelectionPanelScript.Title.text = "Displayed Activity:";
 
-	public void SetPolityCulturalPreferenceOverlay (bool invokeEvent = true) {
+        foreach (CulturalActivityInfo activityInfo in Manager.CurrentWorld.CulturalActivityInfoList)
+        {
+            AddSelectionPanelOption(activityInfo.Name, activityInfo.Id);
+        }
 
-		ChangePlanetOverlay (PlanetOverlay.PolityCulturalPreference, invokeEvent);
+        SelectionPanelScript.SetVisible(true);
+    }
 
-		SelectionPanelScript.Title.text = "Displayed Preference:";
+    public void SetPolityCulturalActivityOverlay(bool invokeEvent = true)
+    {
+        ChangePlanetOverlay(PlanetOverlay.PolityCulturalActivity, invokeEvent);
 
-		foreach (CulturalPreferenceInfo preferenceInfo in Manager.CurrentWorld.CulturalPreferenceInfoList) {
+        SelectionPanelScript.Title.text = "Displayed Activity:";
 
-			AddSelectionPanelOption (preferenceInfo.Name, preferenceInfo.Id);
-		}
+        foreach (CulturalActivityInfo activityInfo in Manager.CurrentWorld.CulturalActivityInfoList)
+        {
+            AddSelectionPanelOption(activityInfo.Name, activityInfo.Id);
+        }
 
-		SelectionPanelScript.SetVisible (true);
-	}
+        SelectionPanelScript.SetVisible(true);
+    }
 
-	public void SetPopCulturalActivityOverlay (bool invokeEvent = true) {
+    public void SetPopCulturalSkillOverlay(bool invokeEvent = true)
+    {
+        ChangePlanetOverlay(PlanetOverlay.PopCulturalSkill, invokeEvent);
 
-		ChangePlanetOverlay (PlanetOverlay.PopCulturalActivity, invokeEvent);
+        SelectionPanelScript.Title.text = "Displayed Skill:";
 
-		SelectionPanelScript.Title.text = "Displayed Activity:";
+        foreach (CulturalSkillInfo skillInfo in Manager.CurrentWorld.CulturalSkillInfoList)
+        {
+            AddSelectionPanelOption(skillInfo.Name, skillInfo.Id);
+        }
 
-		foreach (CulturalActivityInfo activityInfo in Manager.CurrentWorld.CulturalActivityInfoList) {
+        SelectionPanelScript.SetVisible(true);
+    }
 
-			AddSelectionPanelOption (activityInfo.Name, activityInfo.Id);
-		}
+    public void SetPolityCulturalSkillOverlay(bool invokeEvent = true)
+    {
+        ChangePlanetOverlay(PlanetOverlay.PolityCulturalSkill, invokeEvent);
 
-		SelectionPanelScript.SetVisible (true);
-	}
+        SelectionPanelScript.Title.text = "Displayed Skill:";
 
-	public void SetPolityCulturalActivityOverlay (bool invokeEvent = true) {
+        foreach (CulturalSkillInfo skillInfo in Manager.CurrentWorld.CulturalSkillInfoList)
+        {
+            AddSelectionPanelOption(skillInfo.Name, skillInfo.Id);
+        }
 
-		ChangePlanetOverlay (PlanetOverlay.PolityCulturalActivity, invokeEvent);
+        SelectionPanelScript.SetVisible(true);
+    }
 
-		SelectionPanelScript.Title.text = "Displayed Activity:";
-
-		foreach (CulturalActivityInfo activityInfo in Manager.CurrentWorld.CulturalActivityInfoList) {
-
-			AddSelectionPanelOption (activityInfo.Name, activityInfo.Id);
-		}
-
-		SelectionPanelScript.SetVisible (true);
-	}
-	
-	public void SetPopCulturalSkillOverlay (bool invokeEvent = true) {
-
-		ChangePlanetOverlay (PlanetOverlay.PopCulturalSkill, invokeEvent);
-
-		SelectionPanelScript.Title.text = "Displayed Skill:";
-
-		foreach (CulturalSkillInfo skillInfo in Manager.CurrentWorld.CulturalSkillInfoList) {
-
-			AddSelectionPanelOption (skillInfo.Name, skillInfo.Id);
-		}
-
-		SelectionPanelScript.SetVisible (true);
-	}
-
-	public void SetPolityCulturalSkillOverlay (bool invokeEvent = true) {
-
-		ChangePlanetOverlay (PlanetOverlay.PolityCulturalSkill, invokeEvent);
-
-		SelectionPanelScript.Title.text = "Displayed Skill:";
-
-		foreach (CulturalSkillInfo skillInfo in Manager.CurrentWorld.CulturalSkillInfoList) {
-
-			AddSelectionPanelOption (skillInfo.Name, skillInfo.Id);
-		}
-
-		SelectionPanelScript.SetVisible (true);
-	}
-	
-	public void SetPopCulturalKnowledgeOverlay (bool invokeEvent = true) {
-
-		ChangePlanetOverlay (PlanetOverlay.PopCulturalKnowledge, invokeEvent);
-		
-		SelectionPanelScript.Title.text = "Displayed Knowledge:";
-		
-		foreach (CulturalKnowledgeInfo knowledgeInfo in Manager.CurrentWorld.CulturalKnowledgeInfoList) {
-
-			AddSelectionPanelOption (knowledgeInfo.Name, knowledgeInfo.Id);
-		}
-		
-		SelectionPanelScript.SetVisible (true);
-	}
-
-	public void SetPolityCulturalKnowledgeOverlay (bool invokeEvent = true) {
-
-		ChangePlanetOverlay (PlanetOverlay.PolityCulturalKnowledge, invokeEvent);
-
-		SelectionPanelScript.Title.text = "Displayed Knowledge:";
-
-		foreach (CulturalKnowledgeInfo knowledgeInfo in Manager.CurrentWorld.CulturalKnowledgeInfoList) {
-
-			AddSelectionPanelOption (knowledgeInfo.Name, knowledgeInfo.Id);
-		}
-
-		SelectionPanelScript.SetVisible (true);
-	}
-
-	public void SetPopCulturalDiscoveryOverlay (string planetOverlaySubtype, bool invokeEvent = true) {
-
-		ChangePlanetOverlay (PlanetOverlay.PopCulturalDiscovery, planetOverlaySubtype, invokeEvent);
-
-		SelectionPanelScript.Title.text = "Displayed Discovery:";
-
-		foreach (CulturalDiscovery discoveryInfo in Manager.CurrentWorld.CulturalDiscoveryInfoList) {
-
-			AddSelectionPanelOption (discoveryInfo.Name, discoveryInfo.Id);
-		}
-
-		SelectionPanelScript.SetVisible (true);
-	}
-
-	public void SetPopCulturalDiscoveryOverlay (bool invokeEvent = true) {
-
-		ChangePlanetOverlay (PlanetOverlay.PopCulturalDiscovery, invokeEvent);
-
-		SelectionPanelScript.Title.text = "Displayed Discovery:";
-
-		foreach (CulturalDiscovery discoveryInfo in Manager.CurrentWorld.CulturalDiscoveryInfoList) {
-
-			AddSelectionPanelOption (discoveryInfo.Name, discoveryInfo.Id);
-		}
-
-		SelectionPanelScript.SetVisible (true);
-	}
-
-	public void SetPolityCulturalDiscoveryOverlay (bool invokeEvent = true) {
-
-		ChangePlanetOverlay (PlanetOverlay.PolityCulturalDiscovery, invokeEvent);
-
-		SelectionPanelScript.Title.text = "Displayed Discovery:";
-
-		foreach (CulturalDiscovery discoveryInfo in Manager.CurrentWorld.CulturalDiscoveryInfoList) {
-
-			AddSelectionPanelOption (discoveryInfo.Name, discoveryInfo.Id);
-		}
-
-		SelectionPanelScript.SetVisible (true);
-	}
-
-	public void AddSelectionPanelOption (string optionName, string optionId) {
-
-		SelectionPanelScript.AddOption (optionId, optionName, (state) => {
-			if (state) {
-				_planetOverlaySubtype = optionId;
-			} else if (_planetOverlaySubtype == optionId) {
-				_planetOverlaySubtype = "None";
-			}
-
-			_regenTextures = true;
-		});
-
-		if (_planetOverlaySubtype == optionId) {
-			SelectionPanelScript.SetStateOption (optionId, true);
-		}
-	}
-
-	public void UpdateSelectionMenu () {
-
-		if (!SelectionPanelScript.IsVisible ())
-			return;
-
-		if (_planetOverlay == PlanetOverlay.PopCulturalPreference) {
-
-			foreach (CulturalPreferenceInfo preferenceInfo in Manager.CurrentWorld.CulturalPreferenceInfoList) {
-
-				AddSelectionPanelOption (preferenceInfo.Name, preferenceInfo.Id);
-			}
-		} else if (_planetOverlay == PlanetOverlay.PopCulturalActivity) {
-
-			foreach (CulturalActivityInfo activityInfo in Manager.CurrentWorld.CulturalActivityInfoList) {
-
-				AddSelectionPanelOption (activityInfo.Name, activityInfo.Id);
-			}
-		} else if (_planetOverlay == PlanetOverlay.PopCulturalSkill) {
-			
-			foreach (CulturalSkillInfo skillInfo in Manager.CurrentWorld.CulturalSkillInfoList) {
-
-				AddSelectionPanelOption (skillInfo.Name, skillInfo.Id);
-			}
-		} else if (_planetOverlay == PlanetOverlay.PopCulturalKnowledge) {
-			
-			foreach (CulturalKnowledgeInfo knowledgeInfo in Manager.CurrentWorld.CulturalKnowledgeInfoList) {
-
-				AddSelectionPanelOption (knowledgeInfo.Name, knowledgeInfo.Id);
-			}
-		} else if (_planetOverlay == PlanetOverlay.PopCulturalDiscovery) {
-
-			foreach (CulturalDiscovery discoveryInfo in Manager.CurrentWorld.CulturalDiscoveryInfoList) {
-
-				AddSelectionPanelOption (discoveryInfo.Name, discoveryInfo.Id);
-			}
-		} else if (_planetOverlay == PlanetOverlay.PolityCulturalPreference) {
-
-			foreach (CulturalPreferenceInfo preferenceInfo in Manager.CurrentWorld.CulturalPreferenceInfoList) {
-
-				AddSelectionPanelOption (preferenceInfo.Name, preferenceInfo.Id);
-			}
-		} else if (_planetOverlay == PlanetOverlay.PolityCulturalActivity) {
-
-			foreach (CulturalActivityInfo activityInfo in Manager.CurrentWorld.CulturalActivityInfoList) {
-
-				AddSelectionPanelOption (activityInfo.Name, activityInfo.Id);
-			}
-		} else if (_planetOverlay == PlanetOverlay.PolityCulturalSkill) {
-
-			foreach (CulturalSkillInfo skillInfo in Manager.CurrentWorld.CulturalSkillInfoList) {
-
-				AddSelectionPanelOption (skillInfo.Name, skillInfo.Id);
-			}
-		} else if (_planetOverlay == PlanetOverlay.PolityCulturalKnowledge) {
-
-			foreach (CulturalKnowledgeInfo knowledgeInfo in Manager.CurrentWorld.CulturalKnowledgeInfoList) {
-
-				AddSelectionPanelOption (knowledgeInfo.Name, knowledgeInfo.Id);
-			}
-		} else if (_planetOverlay == PlanetOverlay.PolityCulturalDiscovery) {
-
-			foreach (CulturalDiscovery discoveryInfo in Manager.CurrentWorld.CulturalDiscoveryInfoList) {
-
-				AddSelectionPanelOption (discoveryInfo.Name, discoveryInfo.Id);
-			}
-		}
-	}
-	
-	public void SetBiomeView () {
-		
-		_regenTextures |= _planetView != PlanetView.Biomes;
-		
-		_planetView = PlanetView.Biomes;
-		
-		ViewsDialogPanelScript.SetVisible (false);
-
-		ShowHiddenInteractionPanels ();
-	}
-	
-	public void SetElevationView () {
-		
-		_regenTextures |= _planetView != PlanetView.Elevation;
-		
-		_planetView = PlanetView.Elevation;
-		
-		ViewsDialogPanelScript.SetVisible (false);
-
-		ShowHiddenInteractionPanels ();
-	}
-	
-	public void SetCoastlineView () {
-		
-		_regenTextures |= _planetView != PlanetView.Coastlines;
-		
-		_planetView = PlanetView.Coastlines;
-		
-		ViewsDialogPanelScript.SetVisible (false);
-
-		ShowHiddenInteractionPanels ();
-	}
-
-	public void OpenSelectFactionDialog () {
+    public void SetPopCulturalKnowledgeOverlay(bool invokeEvent = true)
+    {
+        ChangePlanetOverlay(PlanetOverlay.PopCulturalKnowledge, invokeEvent);
+
+        SelectionPanelScript.Title.text = "Displayed Knowledge:";
+
+        foreach (CulturalKnowledgeInfo knowledgeInfo in Manager.CurrentWorld.CulturalKnowledgeInfoList)
+        {
+            AddSelectionPanelOption(knowledgeInfo.Name, knowledgeInfo.Id);
+        }
+
+        SelectionPanelScript.SetVisible(true);
+    }
+
+    public void SetPolityCulturalKnowledgeOverlay(bool invokeEvent = true)
+    {
+        ChangePlanetOverlay(PlanetOverlay.PolityCulturalKnowledge, invokeEvent);
+
+        SelectionPanelScript.Title.text = "Displayed Knowledge:";
+
+        foreach (CulturalKnowledgeInfo knowledgeInfo in Manager.CurrentWorld.CulturalKnowledgeInfoList)
+        {
+            AddSelectionPanelOption(knowledgeInfo.Name, knowledgeInfo.Id);
+        }
+
+        SelectionPanelScript.SetVisible(true);
+    }
+
+    public void SetPopCulturalDiscoveryOverlay(string planetOverlaySubtype, bool invokeEvent = true)
+    {
+        ChangePlanetOverlay(PlanetOverlay.PopCulturalDiscovery, planetOverlaySubtype, invokeEvent);
+
+        SelectionPanelScript.Title.text = "Displayed Discovery:";
+
+        foreach (CulturalDiscoveryInfo discoveryInfo in Manager.CurrentWorld.CulturalDiscoveryInfoList)
+        {
+            AddSelectionPanelOption(discoveryInfo.Name, discoveryInfo.Id);
+        }
+
+        SelectionPanelScript.SetVisible(true);
+    }
+
+    public void SetPopCulturalDiscoveryOverlay(bool invokeEvent = true)
+    {
+        ChangePlanetOverlay(PlanetOverlay.PopCulturalDiscovery, invokeEvent);
+
+        SelectionPanelScript.Title.text = "Displayed Discovery:";
+
+        foreach (CulturalDiscoveryInfo discoveryInfo in Manager.CurrentWorld.CulturalDiscoveryInfoList)
+        {
+            AddSelectionPanelOption(discoveryInfo.Name, discoveryInfo.Id);
+        }
+
+        SelectionPanelScript.SetVisible(true);
+    }
+
+    public void SetPolityCulturalDiscoveryOverlay(bool invokeEvent = true)
+    {
+        ChangePlanetOverlay(PlanetOverlay.PolityCulturalDiscovery, invokeEvent);
+
+        SelectionPanelScript.Title.text = "Displayed Discovery:";
+
+        foreach (CulturalDiscoveryInfo discoveryInfo in Manager.CurrentWorld.CulturalDiscoveryInfoList)
+        {
+            AddSelectionPanelOption(discoveryInfo.Name, discoveryInfo.Id);
+        }
+
+        SelectionPanelScript.SetVisible(true);
+    }
+
+    public void AddSelectionPanelOption(string optionName, string optionId)
+    {
+        SelectionPanelScript.AddOption(optionId, optionName, (state) =>
+        {
+            if (state)
+            {
+                _planetOverlaySubtype = optionId;
+            }
+            else if (_planetOverlaySubtype == optionId)
+            {
+                _planetOverlaySubtype = "None";
+            }
+
+            _regenTextures = true;
+        });
+
+        if (_planetOverlaySubtype == optionId)
+        {
+            SelectionPanelScript.SetStateOption(optionId, true);
+        }
+    }
+
+    public void UpdateSelectionMenu()
+    {
+        if (!SelectionPanelScript.IsVisible())
+            return;
+
+        if (_planetOverlay == PlanetOverlay.PopCulturalPreference)
+        {
+            foreach (CulturalPreferenceInfo preferenceInfo in Manager.CurrentWorld.CulturalPreferenceInfoList)
+            {
+                AddSelectionPanelOption(preferenceInfo.Name, preferenceInfo.Id);
+            }
+        }
+        else if (_planetOverlay == PlanetOverlay.PopCulturalActivity)
+        {
+            foreach (CulturalActivityInfo activityInfo in Manager.CurrentWorld.CulturalActivityInfoList)
+            {
+                AddSelectionPanelOption(activityInfo.Name, activityInfo.Id);
+            }
+        }
+        else if (_planetOverlay == PlanetOverlay.PopCulturalSkill)
+        {
+            foreach (CulturalSkillInfo skillInfo in Manager.CurrentWorld.CulturalSkillInfoList)
+            {
+                AddSelectionPanelOption(skillInfo.Name, skillInfo.Id);
+            }
+        }
+        else if (_planetOverlay == PlanetOverlay.PopCulturalKnowledge)
+        {
+            foreach (CulturalKnowledgeInfo knowledgeInfo in Manager.CurrentWorld.CulturalKnowledgeInfoList)
+            {
+                AddSelectionPanelOption(knowledgeInfo.Name, knowledgeInfo.Id);
+            }
+        }
+        else if (_planetOverlay == PlanetOverlay.PopCulturalDiscovery)
+        {
+            foreach (CulturalDiscoveryInfo discoveryInfo in Manager.CurrentWorld.CulturalDiscoveryInfoList)
+            {
+                AddSelectionPanelOption(discoveryInfo.Name, discoveryInfo.Id);
+            }
+        }
+        else if (_planetOverlay == PlanetOverlay.PolityCulturalPreference)
+        {
+            foreach (CulturalPreferenceInfo preferenceInfo in Manager.CurrentWorld.CulturalPreferenceInfoList)
+            {
+                AddSelectionPanelOption(preferenceInfo.Name, preferenceInfo.Id);
+            }
+        }
+        else if (_planetOverlay == PlanetOverlay.PolityCulturalActivity)
+        {
+            foreach (CulturalActivityInfo activityInfo in Manager.CurrentWorld.CulturalActivityInfoList)
+            {
+                AddSelectionPanelOption(activityInfo.Name, activityInfo.Id);
+            }
+        }
+        else if (_planetOverlay == PlanetOverlay.PolityCulturalSkill)
+        {
+            foreach (CulturalSkillInfo skillInfo in Manager.CurrentWorld.CulturalSkillInfoList)
+            {
+                AddSelectionPanelOption(skillInfo.Name, skillInfo.Id);
+            }
+        }
+        else if (_planetOverlay == PlanetOverlay.PolityCulturalKnowledge)
+        {
+            foreach (CulturalKnowledgeInfo knowledgeInfo in Manager.CurrentWorld.CulturalKnowledgeInfoList)
+            {
+                AddSelectionPanelOption(knowledgeInfo.Name, knowledgeInfo.Id);
+            }
+        }
+        else if (_planetOverlay == PlanetOverlay.PolityCulturalDiscovery)
+        {
+            foreach (CulturalDiscoveryInfo discoveryInfo in Manager.CurrentWorld.CulturalDiscoveryInfoList)
+            {
+                AddSelectionPanelOption(discoveryInfo.Name, discoveryInfo.Id);
+            }
+        }
+    }
+
+    public void SetBiomeView()
+    {
+        _regenTextures |= _planetView != PlanetView.Biomes;
+
+        _planetView = PlanetView.Biomes;
+
+        ViewsDialogPanelScript.SetVisible(false);
+
+        ShowHiddenInteractionPanels();
+    }
+
+    public void SetElevationView()
+    {
+        _regenTextures |= _planetView != PlanetView.Elevation;
+
+        _planetView = PlanetView.Elevation;
+
+        ViewsDialogPanelScript.SetVisible(false);
+
+        ShowHiddenInteractionPanels();
+    }
+
+    public void SetCoastlineView()
+    {
+        _regenTextures |= _planetView != PlanetView.Coastlines;
+
+        _planetView = PlanetView.Coastlines;
+
+        ViewsDialogPanelScript.SetVisible(false);
+
+        ShowHiddenInteractionPanels();
+    }
+
+    public void OpenSelectFactionDialog () {
 
 		SelectFactionDialogPanelScript.SetVisible (true);
 
@@ -3625,42 +3641,41 @@ public class GuiManagerScript : MonoBehaviour {
 		}
 	}
 
-	public void ShowCellInfoToolTip_PolityCulturalDiscovery (Polity polity, Vector3 position, float fadeStart = 5) {
+	public void ShowCellInfoToolTip_PolityCulturalDiscovery(Polity polity, Vector3 position, float fadeStart = 5)
+    {
+        CulturalDiscovery discovery = polity.Culture.GetDiscovery(_planetOverlaySubtype) as CulturalDiscovery;
 
-		PolityCulturalDiscovery discovery = polity.Culture.GetDiscovery (_planetOverlaySubtype) as PolityCulturalDiscovery;
+        if ((discovery != null) && discovery.IsPresent)
+        {
+            InfoTooltipScript.DisplayTip(discovery.Name + " is present", position, fadeStart);
+        }
+        else
+        {
+            InfoTooltipScript.SetVisible(false);
+        }
+    }
 
-		if (discovery != null) {
-			int presenceCount = discovery.PresenceCount;
-			float politySize = polity.Territory.GetCells ().Count;
+    public void ShowCellInfoToolTip_Region(TerrainCell cell)
+    {
+        if (cell.Region == _lastHoveredOverRegion)
+            return;
 
-			float presencePercentage = Mathf.Min (1f, presenceCount / politySize);
-			InfoTooltipScript.DisplayTip (discovery.Name + " Presence: " + presencePercentage.ToString ("P"), position, fadeStart);
-		} else {
-			InfoTooltipScript.SetVisible (false);
-		}
-	}
+        _lastHoveredOverRegion = cell.Region;
 
-	public void ShowCellInfoToolTip_Region (TerrainCell cell) {
+        if (_lastHoveredOverRegion == null)
+        {
+            InfoTooltipScript.SetVisible(false);
+            return;
+        }
 
-		if (cell.Region == _lastHoveredOverRegion)
-			return;
+        WorldPosition regionCenterCellPosition = _lastHoveredOverRegion.GetMostCenteredCell().Position;
 
-		_lastHoveredOverRegion = cell.Region;
+        Vector3 tooltipPos = GetScreenPositionFromMapCoordinates(regionCenterCellPosition) + _tooltipOffset;
 
-		if (_lastHoveredOverRegion == null) {
+        InfoTooltipScript.DisplayTip(_lastHoveredOverRegion.Name.Text, tooltipPos);
+    }
 
-			InfoTooltipScript.SetVisible (false);
-			return;
-		}
-
-		WorldPosition regionCenterCellPosition = _lastHoveredOverRegion.GetMostCenteredCell ().Position;
-
-		Vector3 tooltipPos = GetScreenPositionFromMapCoordinates(regionCenterCellPosition) + _tooltipOffset;
-
-		InfoTooltipScript.DisplayTip (_lastHoveredOverRegion.Name.Text, tooltipPos);
-	}
-
-	public void ShiftMapToPosition (WorldPosition mapPosition) {
+    public void ShiftMapToPosition (WorldPosition mapPosition) {
 
 		Rect mapImageRect = MapImage.rectTransform.rect;
 

@@ -14,11 +14,6 @@ public class TribalismDiscovery : CellCulturalDiscovery
 
     }
 
-    public static bool IsTribalismDiscovery(CulturalDiscovery discovery)
-    {
-        return discovery.Id.Contains(TribalismDiscoveryId);
-    }
-
     public override bool CanBeHeld(CellGroup group)
     {
         CulturalKnowledge knowledge = group.Culture.GetKnowledge(SocialOrganizationKnowledge.SocialOrganizationKnowledgeId);

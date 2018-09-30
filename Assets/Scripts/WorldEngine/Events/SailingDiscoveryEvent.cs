@@ -5,93 +5,93 @@ using System.Xml;
 using System.Xml.Serialization;
 using UnityEngine.Profiling;
 
-public class SailingDiscoveryEvent : DiscoveryEvent {
+public class SailingDiscoveryEvent : DiscoveryEvent
+{
+    public const long DateSpanFactorConstant = CellGroup.GenerationSpan * 10000;
 
-	public const long DateSpanFactorConstant = CellGroup.GenerationSpan * 10000;
+    public const int MinShipBuildingKnowledgeSpawnEventValue = ShipbuildingKnowledge.MinKnowledgeValueForSailingSpawnEvent;
+    public const int MinShipBuildingKnowledgeValue = ShipbuildingKnowledge.MinKnowledgeValueForSailing;
+    public const int OptimalShipBuildingKnowledgeValue = ShipbuildingKnowledge.OptimalKnowledgeValueForSailing;
 
-	public const int MinShipBuildingKnowledgeSpawnEventValue = ShipbuildingKnowledge.MinKnowledgeValueForSailingSpawnEvent;
-	public const int MinShipBuildingKnowledgeValue = ShipbuildingKnowledge.MinKnowledgeValueForSailing;
-	public const int OptimalShipBuildingKnowledgeValue = ShipbuildingKnowledge.OptimalKnowledgeValueForSailing;
+    public const string EventSetFlag = "SailingDiscoveryEvent_Set";
 
-	public const string EventSetFlag = "SailingDiscoveryEvent_Set";
+    public SailingDiscoveryEvent()
+    {
 
-	public SailingDiscoveryEvent () {
-		
-	}
-	
-	public SailingDiscoveryEvent (CellGroup group, long triggerDate) : base (group, triggerDate, SailingDiscoveryEventId) {
-		
-		Group.SetFlag (EventSetFlag);
-	}
-	
-	public static long CalculateTriggerDate (CellGroup group) {
-		
-		float shipBuildingValue = 0;
-		
-		CulturalKnowledge shipbuildingKnowledge = group.Culture.GetKnowledge (ShipbuildingKnowledge.ShipbuildingKnowledgeId);
-		
-		if (shipbuildingKnowledge != null)
-			shipBuildingValue = shipbuildingKnowledge.Value;
+    }
 
-		float randomFactor = group.Cell.GetNextLocalRandomFloat (RngOffsets.SAILING_DISCOVERY_EVENT_CALCULATE_TRIGGER_DATE);
-		randomFactor = randomFactor * randomFactor;
+    public SailingDiscoveryEvent(CellGroup group, long triggerDate) : base(group, triggerDate, SailingDiscoveryEventId)
+    {
+        Group.SetFlag(EventSetFlag);
+    }
 
-		float shipBuildingFactor = (shipBuildingValue - MinShipBuildingKnowledgeValue) / (float)(OptimalShipBuildingKnowledgeValue - MinShipBuildingKnowledgeValue);
-		shipBuildingFactor = Mathf.Clamp01 (shipBuildingFactor) + 0.001f;
+    public static long CalculateTriggerDate(CellGroup group)
+    {
+        float shipBuildingValue = 0;
 
-		float dateSpan = (1 - randomFactor) * DateSpanFactorConstant / shipBuildingFactor;
+        CulturalKnowledge shipbuildingKnowledge = group.Culture.GetKnowledge(ShipbuildingKnowledge.ShipbuildingKnowledgeId);
 
-		long targetDate = (long)(group.World.CurrentDate + dateSpan) + 1;
+        if (shipbuildingKnowledge != null)
+            shipBuildingValue = shipbuildingKnowledge.Value;
 
-		return targetDate;
-	}
-	
-	public static bool CanSpawnIn (CellGroup group) {
+        float randomFactor = group.Cell.GetNextLocalRandomFloat(RngOffsets.SAILING_DISCOVERY_EVENT_CALCULATE_TRIGGER_DATE);
+        randomFactor = randomFactor * randomFactor;
 
-		if (group.IsFlagSet (EventSetFlag))
-			return false;
+        float shipBuildingFactor = (shipBuildingValue - MinShipBuildingKnowledgeValue) / (float)(OptimalShipBuildingKnowledgeValue - MinShipBuildingKnowledgeValue);
+        shipBuildingFactor = Mathf.Clamp01(shipBuildingFactor) + 0.001f;
 
-		if (group.Culture.GetDiscovery (SailingDiscovery.SailingDiscoveryId) != null)
-			return false;
-		
-		return true;
-	}
+        float dateSpan = (1 - randomFactor) * DateSpanFactorConstant / shipBuildingFactor;
 
-	public override bool CanTrigger () {
+        long targetDate = (long)(group.World.CurrentDate + dateSpan) + 1;
 
-		if (!base.CanTrigger ())
-			return false;
-		
-		CulturalDiscovery discovery = Group.Culture.GetDiscovery (SailingDiscovery.SailingDiscoveryId);
-		
-		if (discovery != null)
-			return false;
-		
-		CulturalKnowledge shipbuildingKnowledge = Group.Culture.GetKnowledge (ShipbuildingKnowledge.ShipbuildingKnowledgeId);
-		
-		if (shipbuildingKnowledge == null)
-			return false;
+        return targetDate;
+    }
 
-		if (shipbuildingKnowledge.Value < MinShipBuildingKnowledgeValue)
-		    return false;
+    public static bool CanSpawnIn(CellGroup group)
+    {
+        if (group.IsFlagSet(EventSetFlag))
+            return false;
 
-		return true;
-	}
+        if (group.Culture.HasDiscoveryOrWillHave(SailingDiscovery.SailingDiscoveryId))
+            return false;
 
-	public override void Trigger () {
+        return true;
+    }
 
-		Group.Culture.AddDiscoveryToFind (new SailingDiscovery ());
-		World.AddGroupToUpdate (Group);
+    public override bool CanTrigger()
+    {
+        if (!base.CanTrigger())
+            return false;
+        
+        if (Group.Culture.HasDiscoveryOrWillHave(SailingDiscovery.SailingDiscoveryId))
+            return false;
 
-		TryGenerateEventMessage (SailingDiscoveryEventId, SailingDiscovery.SailingDiscoveryId);
-	}
+        CulturalKnowledge shipbuildingKnowledge = Group.Culture.GetKnowledge(ShipbuildingKnowledge.ShipbuildingKnowledgeId);
 
-	protected override void DestroyInternal ()
-	{
-		if (Group != null) {
-			Group.UnsetFlag (EventSetFlag);
-		}
+        if (shipbuildingKnowledge == null)
+            return false;
 
-		base.DestroyInternal ();
-	}
+        if (shipbuildingKnowledge.Value < MinShipBuildingKnowledgeValue)
+            return false;
+
+        return true;
+    }
+
+    public override void Trigger()
+    {
+        Group.Culture.TryAddDiscoveryToFind(SailingDiscovery.SailingDiscoveryId);
+        World.AddGroupToUpdate(Group);
+
+        TryGenerateEventMessage(SailingDiscoveryEventId, SailingDiscovery.SailingDiscoveryId);
+    }
+
+    protected override void DestroyInternal()
+    {
+        if (Group != null)
+        {
+            Group.UnsetFlag(EventSetFlag);
+        }
+
+        base.DestroyInternal();
+    }
 }

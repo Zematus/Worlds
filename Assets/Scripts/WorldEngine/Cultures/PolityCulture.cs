@@ -250,11 +250,11 @@ public class PolityCulture : Culture
 
         Profiler.BeginSample("foreach CulturalDiscovery");
 
-        foreach (CulturalDiscovery groupDiscovery in faction.Culture.Discoveries.Values)
+        foreach (CulturalDiscovery d in faction.Culture.Discoveries.Values)
         {
             Profiler.BeginSample("GetDiscovery");
 
-            CulturalDiscovery discovery = GetDiscovery(groupDiscovery.Id) as CulturalDiscovery;
+            CulturalDiscovery discovery = GetDiscovery(d.Id);
 
             Profiler.EndSample();
 
@@ -262,9 +262,15 @@ public class PolityCulture : Culture
             {
                 Profiler.BeginSample("AddDiscovery");
 
-                discovery = new CulturalDiscovery(groupDiscovery);
+                AddDiscovery(new CulturalDiscovery(d));
 
-                AddDiscovery(discovery);
+                Profiler.EndSample();
+            }
+            else if (!discovery.IsPresent)
+            {
+                Profiler.BeginSample("discovery.Set");
+
+                discovery.Set();
 
                 Profiler.EndSample();
             }

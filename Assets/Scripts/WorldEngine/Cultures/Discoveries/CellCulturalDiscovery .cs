@@ -11,29 +11,24 @@ public abstract class CellCulturalDiscovery : CulturalDiscovery
 
     }
 
-    public static CellCulturalDiscovery CreateCellInstance(CulturalDiscovery baseDiscovery)
+    public static CellCulturalDiscovery CreateCellInstance(string id)
     {
-        if (BoatMakingDiscovery.IsBoatMakingDiscovery(baseDiscovery))
+        switch (id)
         {
-            return new BoatMakingDiscovery();
+            case BoatMakingDiscovery.BoatMakingDiscoveryId:
+                return new BoatMakingDiscovery();
+
+            case SailingDiscovery.SailingDiscoveryId:
+                return new SailingDiscovery();
+
+            case PlantCultivationDiscovery.PlantCultivationDiscoveryId:
+                return new PlantCultivationDiscovery();
+
+            case TribalismDiscovery.TribalismDiscoveryId:
+                return new TribalismDiscovery();
         }
 
-        if (SailingDiscovery.IsSailingDiscovery(baseDiscovery))
-        {
-            return new SailingDiscovery();
-        }
-
-        if (PlantCultivationDiscovery.IsPlantCultivationDiscovery(baseDiscovery))
-        {
-            return new PlantCultivationDiscovery();
-        }
-
-        if (TribalismDiscovery.IsTribalismDiscovery(baseDiscovery))
-        {
-            return new TribalismDiscovery();
-        }
-
-        throw new System.Exception("Unexpected CulturalDiscovery type: " + baseDiscovery.Id);
+        throw new System.Exception("Unexpected CulturalDiscovery type: " + id);
     }
 
     public abstract bool CanBeHeld(CellGroup group);

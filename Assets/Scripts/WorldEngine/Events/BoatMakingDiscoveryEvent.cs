@@ -5,82 +5,85 @@ using System.Xml;
 using System.Xml.Serialization;
 using UnityEngine.Profiling;
 
-public class BoatMakingDiscoveryEvent : DiscoveryEvent {
-	
-	public const long DateSpanFactorConstant = CellGroup.GenerationSpan * 10000;
+public class BoatMakingDiscoveryEvent : DiscoveryEvent
+{
+    public const long DateSpanFactorConstant = CellGroup.GenerationSpan * 10000;
 
-	public const string EventSetFlag = "BoatMakingDiscoveryEvent_Set";
-	
-	public BoatMakingDiscoveryEvent () {
-		
-	}
-	
-	public BoatMakingDiscoveryEvent (CellGroup group, long triggerDate) : base (group, triggerDate, BoatMakingDiscoveryEventId) {
+    public const string EventSetFlag = "BoatMakingDiscoveryEvent_Set";
 
-		Group.SetFlag (EventSetFlag);
-	}
-	
-	public static long CalculateTriggerDate (CellGroup group) {
-		
-		float oceanPresence = ShipbuildingKnowledge.CalculateNeighborhoodOceanPresenceIn (group);
+    public BoatMakingDiscoveryEvent()
+    {
 
-		float randomFactor = group.Cell.GetNextLocalRandomFloat (RngOffsets.BOAT_MAKING_DISCOVERY_EVENT_CALCULATE_TRIGGER_DATE);
-		randomFactor = randomFactor * randomFactor;
+    }
 
-		float dateSpan = (1 - randomFactor) * DateSpanFactorConstant;
+    public BoatMakingDiscoveryEvent(CellGroup group, long triggerDate) : base(group, triggerDate, BoatMakingDiscoveryEventId)
+    {
+        Group.SetFlag(EventSetFlag);
+    }
 
-		if (oceanPresence > 0) {
+    public static long CalculateTriggerDate(CellGroup group)
+    {
+        float oceanPresence = ShipbuildingKnowledge.CalculateNeighborhoodOceanPresenceIn(group);
 
-			dateSpan /= oceanPresence;
-		} else {
+        float randomFactor = group.Cell.GetNextLocalRandomFloat(RngOffsets.BOAT_MAKING_DISCOVERY_EVENT_CALCULATE_TRIGGER_DATE);
+        randomFactor = randomFactor * randomFactor;
 
-			throw new System.Exception ("Can't calculate valid trigger date");
-		}
+        float dateSpan = (1 - randomFactor) * DateSpanFactorConstant;
 
-		long targetDate = (long)(group.World.CurrentDate + dateSpan) + 1;
+        if (oceanPresence > 0)
+        {
+            dateSpan /= oceanPresence;
+        }
+        else
+        {
+            throw new System.Exception("Can't calculate valid trigger date");
+        }
 
-		return targetDate;
-	}
-	
-	public static bool CanSpawnIn (CellGroup group) {
+        long targetDate = (long)(group.World.CurrentDate + dateSpan) + 1;
 
-		if (group.IsFlagSet (EventSetFlag))
-			return false;
-		
-		if (group.Culture.GetKnowledge (ShipbuildingKnowledge.ShipbuildingKnowledgeId) != null)
-			return false;
-		
-		float oceanPresence = ShipbuildingKnowledge.CalculateNeighborhoodOceanPresenceIn (group);
-		
-		return (oceanPresence > 0);
-	}
-	
-	public override bool CanTrigger () {
-		
-		if (!base.CanTrigger ())
-			return false;
-		
-		if (Group.Culture.GetKnowledge (ShipbuildingKnowledge.ShipbuildingKnowledgeId) != null)
-			return false;
-		
-		return true;
-	}
-	
-	public override void Trigger () {
+        return targetDate;
+    }
 
-		Group.Culture.AddDiscoveryToFind (new BoatMakingDiscovery ());
-		Group.Culture.AddKnowledgeToLearn (new ShipbuildingKnowledge (Group));
-		World.AddGroupToUpdate (Group);
+    public static bool CanSpawnIn(CellGroup group)
+    {
+        if (group.IsFlagSet(EventSetFlag))
+            return false;
 
-		TryGenerateEventMessage (BoatMakingDiscoveryEventId, BoatMakingDiscovery.BoatMakingDiscoveryId);
-	}
+        if (group.Culture.GetKnowledge(ShipbuildingKnowledge.ShipbuildingKnowledgeId) != null)
+            return false;
 
-	protected override void DestroyInternal ()
-	{
-		if (Group != null) {
-			Group.UnsetFlag (EventSetFlag);
-		}
+        float oceanPresence = ShipbuildingKnowledge.CalculateNeighborhoodOceanPresenceIn(group);
 
-		base.DestroyInternal ();
-	}
+        return (oceanPresence > 0);
+    }
+
+    public override bool CanTrigger()
+    {
+        if (!base.CanTrigger())
+            return false;
+
+        if (Group.Culture.GetKnowledge(ShipbuildingKnowledge.ShipbuildingKnowledgeId) != null)
+            return false;
+
+        return true;
+    }
+
+    public override void Trigger()
+    {
+        Group.Culture.TryAddDiscoveryToFind(BoatMakingDiscovery.BoatMakingDiscoveryId);
+        Group.Culture.AddKnowledgeToLearn(new ShipbuildingKnowledge(Group));
+        World.AddGroupToUpdate(Group);
+
+        TryGenerateEventMessage(BoatMakingDiscoveryEventId, BoatMakingDiscovery.BoatMakingDiscoveryId);
+    }
+
+    protected override void DestroyInternal()
+    {
+        if (Group != null)
+        {
+            Group.UnsetFlag(EventSetFlag);
+        }
+
+        base.DestroyInternal();
+    }
 }

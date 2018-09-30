@@ -5,86 +5,89 @@ using System.Xml;
 using System.Xml.Serialization;
 using UnityEngine.Profiling;
 
-public class PlantCultivationDiscoveryEvent : DiscoveryEvent {
+public class PlantCultivationDiscoveryEvent : DiscoveryEvent
+{
+    public const long DateSpanFactorConstant = CellGroup.GenerationSpan * 600000;
 
-	public const long DateSpanFactorConstant = CellGroup.GenerationSpan * 600000;
+    public const string EventSetFlag = "PlantCultivationDiscoveryEvent_Set";
 
-	public const string EventSetFlag = "PlantCultivationDiscoveryEvent_Set";
+    public PlantCultivationDiscoveryEvent()
+    {
 
-	public PlantCultivationDiscoveryEvent () {
+    }
 
-	}
+    public PlantCultivationDiscoveryEvent(CellGroup group, long triggerDate) : base(group, triggerDate, PlantCultivationDiscoveryEventId)
+    {
+        Group.SetFlag(EventSetFlag);
+    }
 
-	public PlantCultivationDiscoveryEvent (CellGroup group, long triggerDate) : base (group, triggerDate, PlantCultivationDiscoveryEventId) {
+    public static long CalculateTriggerDate(CellGroup group)
+    {
+        float terrainFactor = AgricultureKnowledge.CalculateTerrainFactorIn(group.Cell);
 
-		Group.SetFlag (EventSetFlag);
-	}
+        float randomFactor = group.Cell.GetNextLocalRandomFloat(RngOffsets.PLANT_CULTIVATION_DISCOVERY_EVENT_CALCULATE_TRIGGER_DATE);
+        randomFactor = randomFactor * randomFactor;
 
-	public static long CalculateTriggerDate (CellGroup group) {
+        float dateSpan = (1 - randomFactor) * DateSpanFactorConstant;
 
-		float terrainFactor = AgricultureKnowledge.CalculateTerrainFactorIn (group.Cell);
+        if (terrainFactor > 0)
+        {
+            dateSpan /= terrainFactor;
+        }
+        else
+        {
+            throw new System.Exception("Can't calculate valid trigger date");
+        }
 
-		float randomFactor = group.Cell.GetNextLocalRandomFloat (RngOffsets.PLANT_CULTIVATION_DISCOVERY_EVENT_CALCULATE_TRIGGER_DATE);
-		randomFactor = randomFactor * randomFactor;
+        long targetDate = (long)(group.World.CurrentDate + dateSpan) + 1;
 
-		float dateSpan = (1 - randomFactor) * DateSpanFactorConstant;
+        if (targetDate <= group.World.CurrentDate)
+            targetDate = int.MinValue;
 
-		if (terrainFactor > 0) {
+        return targetDate;
+    }
 
-			dateSpan /= terrainFactor;
-		} else {
+    public static bool CanSpawnIn(CellGroup group)
+    {
+        if (group.IsFlagSet(EventSetFlag))
+            return false;
 
-			throw new System.Exception ("Can't calculate valid trigger date");
-		}
+        if (group.Culture.GetKnowledge(AgricultureKnowledge.AgricultureKnowledgeId) != null)
+            return false;
 
-		long targetDate = (long)(group.World.CurrentDate + dateSpan) + 1;
+        float terrainFactor = AgricultureKnowledge.CalculateTerrainFactorIn(group.Cell);
 
-		if (targetDate <= group.World.CurrentDate)
-			targetDate = int.MinValue;
+        return (terrainFactor > 0);
+    }
 
-		return targetDate;
-	}
+    public override bool CanTrigger()
+    {
+        if (!base.CanTrigger())
+            return false;
 
-	public static bool CanSpawnIn (CellGroup group) {
+        if (Group.Culture.GetKnowledge(AgricultureKnowledge.AgricultureKnowledgeId) != null)
+            return false;
 
-		if (group.IsFlagSet (EventSetFlag))
-			return false;
+        return true;
+    }
 
-		if (group.Culture.GetKnowledge (AgricultureKnowledge.AgricultureKnowledgeId) != null)
-			return false;
+    public override void Trigger()
+    {
+        Group.Culture.AddActivityToPerform(CellCulturalActivity.CreateFarmingActivity(Group));
+        Group.Culture.TryAddDiscoveryToFind(PlantCultivationDiscovery.PlantCultivationDiscoveryId);
+        Group.Culture.AddKnowledgeToLearn(new AgricultureKnowledge(Group));
+        World.AddGroupToUpdate(Group);
 
-		float terrainFactor = AgricultureKnowledge.CalculateTerrainFactorIn (group.Cell);
+        TryGenerateEventMessage(PlantCultivationDiscoveryEventId, PlantCultivationDiscovery.PlantCultivationDiscoveryId);
+    }
 
-		return (terrainFactor > 0);
-	}
+    protected override void DestroyInternal()
+    {
+        if (Group != null)
+        {
+            Group.UnsetFlag(EventSetFlag);
+        }
 
-	public override bool CanTrigger () {
-
-		if (!base.CanTrigger ())
-			return false;
-
-		if (Group.Culture.GetKnowledge (AgricultureKnowledge.AgricultureKnowledgeId) != null)
-			return false;
-
-		return true;
-	}
-
-	public override void Trigger () {
-
-		Group.Culture.AddActivityToPerform (CellCulturalActivity.CreateFarmingActivity (Group));
-		Group.Culture.AddDiscoveryToFind (new PlantCultivationDiscovery ());
-		Group.Culture.AddKnowledgeToLearn (new AgricultureKnowledge (Group));
-		World.AddGroupToUpdate (Group);
-
-		TryGenerateEventMessage (PlantCultivationDiscoveryEventId, PlantCultivationDiscovery.PlantCultivationDiscoveryId);
-	}
-
-	protected override void DestroyInternal ()
-	{
-		if (Group != null) {
-			Group.UnsetFlag (EventSetFlag);
-		}
-
-		base.DestroyInternal ();
-	}
+        base.DestroyInternal();
+    }
 }

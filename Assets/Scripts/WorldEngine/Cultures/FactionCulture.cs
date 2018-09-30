@@ -50,7 +50,10 @@ public class FactionCulture : Culture
 
         foreach (CulturalDiscovery d in coreCulture.Discoveries.Values)
         {
-            AddDiscovery(new CulturalDiscovery(d));
+            if (d.IsPresent)
+            {
+                AddDiscovery(new CulturalDiscovery(d));
+            }
         }
     }
 
@@ -339,6 +342,8 @@ public class FactionCulture : Culture
 
         foreach (CulturalDiscovery d in coreCulture.Discoveries.Values)
         {
+            if (!d.IsPresent) continue;
+
             Profiler.BeginSample("GetDiscovery");
 
             CulturalDiscovery discovery = GetDiscovery(d.Id);
@@ -347,10 +352,17 @@ public class FactionCulture : Culture
 
             if (discovery == null)
             {
-                Profiler.BeginSample("new CulturalDiscovery");
+                Profiler.BeginSample("AddDiscovery");
+                
+                AddDiscovery(new CulturalDiscovery(d));
 
-                discovery = new CulturalDiscovery(d);
-                AddDiscovery(discovery);
+                Profiler.EndSample();
+            }
+            else if (!discovery.IsPresent)
+            {
+                Profiler.BeginSample("discovery.Set");
+
+                discovery.Set();
 
                 Profiler.EndSample();
             }

@@ -69,11 +69,14 @@ public class CellCulture : Culture
 
         foreach (CulturalDiscovery d in sourceCulture.Discoveries.Values)
         {
-            AddDiscovery(CellCulturalDiscovery.CreateCellInstance(d));
-
-            foreach (CellCulturalKnowledge knowledge in Knowledges.Values)
+            if (d.IsPresent)
             {
-                knowledge.CalculateAsymptote(d);
+                AddDiscovery(CellCulturalDiscovery.CreateCellInstance(d.Id));
+
+                foreach (CellCulturalKnowledge knowledge in Knowledges.Values)
+                {
+                    knowledge.CalculateAsymptote(d);
+                }
             }
         }
 
@@ -128,12 +131,22 @@ public class CellCulture : Culture
         KnowledgesToLearn.Add(knowledge.Id, knowledge);
     }
 
-    public void AddDiscoveryToFind(CellCulturalDiscovery discovery)
+    public bool TryAddDiscoveryToFind(string id)
     {
-        if (DiscoveriesToFind.ContainsKey(discovery.Id))
-            return;
+        CellCulturalDiscovery discovery = GetDiscovery(id) as CellCulturalDiscovery;
 
-        DiscoveriesToFind.Add(discovery.Id, discovery);
+        if ((discovery != null) && discovery.IsPresent) return false;
+
+        if (DiscoveriesToFind.ContainsKey(id)) return false;
+
+        if (discovery == null)
+        {
+            discovery = CellCulturalDiscovery.CreateCellInstance(id);
+        }
+
+        DiscoveriesToFind.Add(id, discovery);
+
+        return true;
     }
 
     public CellCulturalPreference GetAcquiredPerferenceOrToAcquire (string id) {
@@ -188,20 +201,25 @@ public class CellCulture : Culture
 		return null;
 	}
 
-	public CellCulturalDiscovery GetFoundDiscoveryOrToFind (string id) {
+    //public CellCulturalDiscovery GetFoundDiscoveryOrToFind(string id)
+    //{
+    //    CellCulturalDiscovery discovery = GetDiscovery(id) as CellCulturalDiscovery;
 
-		CellCulturalDiscovery discovery = GetDiscovery (id) as CellCulturalDiscovery;
+    //    if (discovery != null)
+    //        return discovery;
 
-		if (discovery != null)
-			return discovery;
+    //    if (DiscoveriesToFind.TryGetValue(id, out discovery))
+    //        return discovery;
 
-		if (DiscoveriesToFind.TryGetValue (id, out discovery))
-			return discovery;
+    //    return null;
+    //}
 
-		return null;
-	}
+    public bool HasDiscoveryOrWillHave(string id)
+    {
+        return HasDiscovery(id) | DiscoveriesToFind.ContainsKey(id);
+    }
 
-	public void MergeCulture (Culture sourceCulture, float percentage)
+    public void MergeCulture (Culture sourceCulture, float percentage)
     {
 #if DEBUG
         if ((percentage < 0) || (percentage > 1))
@@ -281,13 +299,9 @@ public class CellCulture : Culture
 
         foreach (CulturalDiscovery d in sourceCulture.Discoveries.Values)
         {
-            CellCulturalDiscovery discovery = GetFoundDiscoveryOrToFind(d.Id);
+            if (!d.IsPresent) continue;
 
-            if (discovery == null)
-            {
-                discovery = CellCulturalDiscovery.CreateCellInstance(d);
-                AddDiscoveryToFind(discovery);
-            }
+            TryAddDiscoveryToFind(d.Id);
         }
     }
 
@@ -363,7 +377,6 @@ public class CellCulture : Culture
 
             if (cellKnowledge == null)
             {
-
                 cellKnowledge = CellCulturalKnowledge.CreateCellInstance(Group, polityKnowledge, 0);
                 AddKnowledgeToLearn(cellKnowledge);
             }
@@ -373,13 +386,9 @@ public class CellCulture : Culture
 
         foreach (CulturalDiscovery polityDiscovery in polityCulture.Discoveries.Values)
         {
-            CellCulturalDiscovery cellDiscovery = GetFoundDiscoveryOrToFind(polityDiscovery.Id);
+            if (!polityDiscovery.IsPresent) continue;
 
-            if (cellDiscovery == null)
-            {
-                cellDiscovery = CellCulturalDiscovery.CreateCellInstance(polityDiscovery);
-                AddDiscoveryToFind(cellDiscovery);
-            }
+            TryAddDiscoveryToFind(polityDiscovery.Id);
         }
     }
 
@@ -469,9 +478,11 @@ public class CellCulture : Culture
 
         foreach (CellCulturalDiscovery discovery in DiscoveriesToFind.Values)
         {
-            if (!discovery.CanBeHeld(Group)) continue;
+            bool setAsPresent = discovery.CanBeHeld(Group);
 
-            AddDiscovery(discovery);
+            AddDiscovery(discovery, setAsPresent);
+
+            if (!setAsPresent) continue;
 
             discovery.GainConsequences(Group);
 

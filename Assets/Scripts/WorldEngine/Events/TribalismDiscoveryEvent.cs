@@ -5,141 +5,145 @@ using System.Xml;
 using System.Xml.Serialization;
 using UnityEngine.Profiling;
 
-public class TribalismDiscoveryEvent : DiscoveryEvent {
+public class TribalismDiscoveryEvent : DiscoveryEvent
+{
+    public const long EventMessageId = 0;
+    public const string EventMessagePrefix = "Tribalism Discovered";
 
-	public const long EventMessageId = 0;
-	public const string EventMessagePrefix = "Tribalism Discovered";
+    public const long DateSpanFactorConstant = CellGroup.GenerationSpan * 100;
 
-	public const long DateSpanFactorConstant = CellGroup.GenerationSpan * 100;
+    public const int MinSocialOrganizationKnowledgeForTribalismDiscovery = SocialOrganizationKnowledge.MinValueForTribalismDiscovery;
+    public const int MinSocialOrganizationKnowledgeForHoldingTribalism = SocialOrganizationKnowledge.MinValueForHoldingTribalism;
+    public const int OptimalSocialOrganizationKnowledgeValue = SocialOrganizationKnowledge.OptimalValueForTribalism;
 
-	public const int MinSocialOrganizationKnowledgeForTribalismDiscovery = SocialOrganizationKnowledge.MinValueForTribalismDiscovery;
-	public const int MinSocialOrganizationKnowledgeForHoldingTribalism = SocialOrganizationKnowledge.MinValueForHoldingTribalism;
-	public const int OptimalSocialOrganizationKnowledgeValue = SocialOrganizationKnowledge.OptimalValueForTribalism;
+    public const string EventSetFlag = "TribalismDiscoveryEvent_Set";
 
-	public const string EventSetFlag = "TribalismDiscoveryEvent_Set";
+    public TribalismDiscoveryEvent()
+    {
 
-	public TribalismDiscoveryEvent () {
+    }
 
-	}
+    public TribalismDiscoveryEvent(CellGroup group, long triggerDate) : base(group, triggerDate, TribalismDiscoveryEventId)
+    {
+        Group.SetFlag(EventSetFlag);
+    }
 
-	public TribalismDiscoveryEvent (CellGroup group, long triggerDate) : base (group, triggerDate, TribalismDiscoveryEventId) {
+    public static long CalculateTriggerDate(CellGroup group)
+    {
+        float socialOrganizationValue = 0;
 
-		Group.SetFlag (EventSetFlag);
-	}
+        CulturalKnowledge socialOrganizationKnowledge = group.Culture.GetKnowledge(SocialOrganizationKnowledge.SocialOrganizationKnowledgeId);
 
-	public static long CalculateTriggerDate (CellGroup group) {
+        if (socialOrganizationKnowledge != null)
+            socialOrganizationValue = socialOrganizationKnowledge.Value;
 
-		float socialOrganizationValue = 0;
+        float randomFactor = group.Cell.GetNextLocalRandomFloat(RngOffsets.TRIBALISM_DISCOVERY_EVENT_CALCULATE_TRIGGER_DATE);
+        randomFactor = Mathf.Pow(randomFactor, 2);
 
-		CulturalKnowledge socialOrganizationKnowledge = group.Culture.GetKnowledge (SocialOrganizationKnowledge.SocialOrganizationKnowledgeId);
+        float socialOrganizationFactor = (socialOrganizationValue - MinSocialOrganizationKnowledgeForHoldingTribalism) / (float)(OptimalSocialOrganizationKnowledgeValue - MinSocialOrganizationKnowledgeForHoldingTribalism);
+        socialOrganizationFactor = Mathf.Pow(socialOrganizationFactor, 2);
+        socialOrganizationFactor = Mathf.Clamp(socialOrganizationFactor, 0.001f, 1);
 
-		if (socialOrganizationKnowledge != null)
-			socialOrganizationValue = socialOrganizationKnowledge.Value;
+        float dateSpan = (1 - randomFactor) * DateSpanFactorConstant / socialOrganizationFactor;
 
-		float randomFactor = group.Cell.GetNextLocalRandomFloat (RngOffsets.TRIBALISM_DISCOVERY_EVENT_CALCULATE_TRIGGER_DATE);
-		randomFactor = Mathf.Pow (randomFactor, 2);
+        long targetDate = (long)(group.World.CurrentDate + dateSpan) + 1;
 
-		float socialOrganizationFactor = (socialOrganizationValue - MinSocialOrganizationKnowledgeForHoldingTribalism) / (float)(OptimalSocialOrganizationKnowledgeValue - MinSocialOrganizationKnowledgeForHoldingTribalism);
-		socialOrganizationFactor = Mathf.Pow (socialOrganizationFactor, 2);
-		socialOrganizationFactor = Mathf.Clamp (socialOrganizationFactor, 0.001f, 1);
+        return targetDate;
+    }
 
-		float dateSpan = (1 - randomFactor) * DateSpanFactorConstant / socialOrganizationFactor;
+    public static bool CanSpawnIn(CellGroup group)
+    {
+        if (group.Population < Tribe.MinPopulationForTribeCore)
+            return false;
 
-		long targetDate = (long)(group.World.CurrentDate + dateSpan) + 1;
+        if (group.IsFlagSet(EventSetFlag))
+            return false;
 
-		return targetDate;
-	}
+        if (group.Culture.HasDiscoveryOrWillHave(TribalismDiscovery.TribalismDiscoveryId))
+            return false;
 
-	public static bool CanSpawnIn (CellGroup group) {
+        return true;
+    }
 
-		if (group.Population < Tribe.MinPopulationForTribeCore)
-			return false;
+    public override bool CanTrigger()
+    {
+        if (!base.CanTrigger())
+            return false;
 
-		if (group.IsFlagSet (EventSetFlag))
-			return false;
+        if (Group.Population < Tribe.MinPopulationForTribeCore)
+            return false;
 
-		if (group.Culture.GetFoundDiscoveryOrToFind (TribalismDiscovery.TribalismDiscoveryId) != null)
-			return false;
+        if (Group.Culture.HasDiscoveryOrWillHave(TribalismDiscovery.TribalismDiscoveryId))
+            return false;
 
-		return true;
-	}
+        CulturalKnowledge socialOrganizationKnowledge = Group.Culture.GetKnowledge(SocialOrganizationKnowledge.SocialOrganizationKnowledgeId);
 
-	public override bool CanTrigger () {
+        if (socialOrganizationKnowledge == null)
+            return false;
 
-		if (!base.CanTrigger ())
-			return false;
+        if (socialOrganizationKnowledge.Value < MinSocialOrganizationKnowledgeForTribalismDiscovery)
+            return false;
 
-		if (Group.Population < Tribe.MinPopulationForTribeCore)
-			return false;
+        return true;
+    }
 
-		CulturalDiscovery discovery = Group.Culture.GetFoundDiscoveryOrToFind (TribalismDiscovery.TribalismDiscoveryId);
+    public override void Trigger()
+    {
+        Group.Culture.TryAddDiscoveryToFind(TribalismDiscovery.TribalismDiscoveryId);
 
-		if (discovery != null)
-			return false;
+        Tribe newTribe = null;
 
-		CulturalKnowledge socialOrganizationKnowledge = Group.Culture.GetKnowledge (SocialOrganizationKnowledge.SocialOrganizationKnowledgeId);
+        if (Group.PolityProminences.Count <= 0)
+        {
+            newTribe = new Tribe(Group);
+            newTribe.Initialize();
 
-		if (socialOrganizationKnowledge == null)
-			return false;
+            World.AddPolityInfo(newTribe.Info);
+            World.AddPolityToUpdate(newTribe);
+        }
 
-		if (socialOrganizationKnowledge.Value < MinSocialOrganizationKnowledgeForTribalismDiscovery)
-			return false;
+        World.AddGroupToUpdate(Group);
 
-		return true;
-	}
+        TryGenerateEventMessages(newTribe);
+    }
 
-	public override void Trigger () {
+    protected override void DestroyInternal()
+    {
+        if (Group != null)
+        {
+            Group.UnsetFlag(EventSetFlag);
+        }
 
-		Group.Culture.AddDiscoveryToFind (new TribalismDiscovery ());
+        base.DestroyInternal();
+    }
 
-		Tribe newTribe = null;
+    public void TryGenerateEventMessages(Tribe newTribe)
+    {
+        TryGenerateEventMessage(TribalismDiscoveryEventId, TribalismDiscovery.TribalismDiscoveryId);
 
-		if (Group.PolityProminences.Count <= 0) {
+        if (newTribe != null)
+        {
+            PolityFormationEventMessage formationEventMessage = null;
 
-			newTribe = new Tribe (Group);
-			newTribe.Initialize ();
+            if (!World.HasEventMessage(WorldEvent.PolityFormationEventId))
+            {
+                formationEventMessage = new PolityFormationEventMessage(newTribe, TriggerDate);
 
-			World.AddPolityInfo (newTribe.Info);
-			World.AddPolityToUpdate (newTribe);
-		}
+                World.AddEventMessage(formationEventMessage);
+                formationEventMessage.First = true;
+            }
 
-		World.AddGroupToUpdate (Group);
+            if (Group.Cell.EncompassingTerritory != null)
+            {
+                Polity encompassingPolity = Group.Cell.EncompassingTerritory.Polity;
 
-		TryGenerateEventMessages (newTribe);
-	}
+                if (formationEventMessage == null)
+                {
+                    formationEventMessage = new PolityFormationEventMessage(newTribe, TriggerDate);
+                }
 
-	protected override void DestroyInternal ()
-	{
-		if (Group != null) {
-			Group.UnsetFlag (EventSetFlag);
-		}
-
-		base.DestroyInternal ();
-	}
-
-	public void TryGenerateEventMessages (Tribe newTribe) {
-
-		TryGenerateEventMessage (TribalismDiscoveryEventId, TribalismDiscovery.TribalismDiscoveryId);
-
-		if (newTribe != null) {
-			PolityFormationEventMessage formationEventMessage = null;
-
-			if (!World.HasEventMessage (WorldEvent.PolityFormationEventId)) {
-				formationEventMessage = new PolityFormationEventMessage (newTribe, TriggerDate);
-
-				World.AddEventMessage (formationEventMessage);
-				formationEventMessage.First = true;
-			}
-
-			if (Group.Cell.EncompassingTerritory != null) {
-				Polity encompassingPolity = Group.Cell.EncompassingTerritory.Polity;
-
-				if (formationEventMessage == null) {
-					formationEventMessage = new PolityFormationEventMessage (newTribe, TriggerDate);
-				}
-
-				encompassingPolity.AddEventMessage (formationEventMessage);
-			}
-		}
-	}
+                encompassingPolity.AddEventMessage(formationEventMessage);
+            }
+        }
+    }
 }

@@ -1052,70 +1052,72 @@ public abstract class Polity : ISynchronizable {
         World.InsertEventToHappen(polityEvent);
     }
 
-    public abstract float CalculateGroupProminenceExpansionValue (CellGroup sourceGroup, CellGroup targetGroup, float sourceValue);
+    public abstract float CalculateGroupProminenceExpansionValue(CellGroup sourceGroup, CellGroup targetGroup, float sourceValue);
 
-	public virtual void GroupUpdateEffects (CellGroup group, float prominenceValue, float totalPolityProminenceValue, long timeSpan) {
+    public virtual void GroupUpdateEffects(CellGroup group, float prominenceValue, float totalPolityProminenceValue, long timeSpan)
+    {
+        if (!group.Culture.HasDiscoveryOrWillHave(TribalismDiscovery.TribalismDiscoveryId))
+        {
+            group.SetPolityProminence(this, 0);
 
-		if (group.Culture.GetFoundDiscoveryOrToFind (TribalismDiscovery.TribalismDiscoveryId) == null) {
+            return;
+        }
 
-			group.SetPolityProminence (this, 0);
+        float coreFactionDistance = group.GetFactionCoreDistance(this);
 
-			return;
-		}
+        float coreDistancePlusConstant = coreFactionDistance + CoreDistanceEffectConstant;
 
-		float coreFactionDistance = group.GetFactionCoreDistance (this);
+        float distanceFactor = 0;
 
-		float coreDistancePlusConstant = coreFactionDistance + CoreDistanceEffectConstant;
+        if (coreDistancePlusConstant > 0)
+            distanceFactor = CoreDistanceEffectConstant / coreDistancePlusConstant;
 
-		float distanceFactor = 0;
+        TerrainCell groupCell = group.Cell;
 
-		if (coreDistancePlusConstant > 0)
-			distanceFactor = CoreDistanceEffectConstant / coreDistancePlusConstant;
+        float maxTargetValue = 1f;
+        float minTargetValue = 0.8f * totalPolityProminenceValue;
 
-		TerrainCell groupCell = group.Cell;
+        float randomModifier = groupCell.GetNextLocalRandomFloat(RngOffsets.POLITY_UPDATE_EFFECTS + (int)Id);
+        randomModifier *= distanceFactor;
+        float targetValue = ((maxTargetValue - minTargetValue) * randomModifier) + minTargetValue;
 
-		float maxTargetValue = 1f;
-		float minTargetValue = 0.8f * totalPolityProminenceValue;
+        float scaledValue = (targetValue - totalPolityProminenceValue) * prominenceValue / totalPolityProminenceValue;
+        targetValue = prominenceValue + scaledValue;
 
-		float randomModifier = groupCell.GetNextLocalRandomFloat (RngOffsets.POLITY_UPDATE_EFFECTS + (int)Id);
-		randomModifier *= distanceFactor;
-		float targetValue = ((maxTargetValue - minTargetValue) * randomModifier) + minTargetValue;
+        float timeFactor = timeSpan / (float)(timeSpan + TimeEffectConstant);
 
-		float scaledValue = (targetValue - totalPolityProminenceValue) * prominenceValue / totalPolityProminenceValue;
-		targetValue = prominenceValue + scaledValue;
+        prominenceValue = (prominenceValue * (1 - timeFactor)) + (targetValue * timeFactor);
 
-		float timeFactor = timeSpan / (float)(timeSpan + TimeEffectConstant);
+        prominenceValue = Mathf.Clamp01(prominenceValue);
 
-		prominenceValue = (prominenceValue * (1 - timeFactor)) + (targetValue * timeFactor);
+//#if DEBUG
+//        if (Manager.RegisterDebugEvent != null)
+//        {
+//            if (group.Id == Manager.TracingData.GroupId)
+//            {
+//                string groupId = "Id:" + group.Id + "|Long:" + group.Longitude + "|Lat:" + group.Latitude;
 
-		prominenceValue = Mathf.Clamp01 (prominenceValue);
+//                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//                    "UpdateEffects - Group:" + groupId +
+//                    ", Polity.Id: " + Id,
+//                    "CurrentDate: " + World.CurrentDate +
+//                    ", randomFactor: " + randomFactor +
+//                    ", groupTotalPolityProminenceValue: " + groupTotalPolityProminenceValue +
+//                    ", Polity.TotalGroupProminenceValue: " + TotalGroupProminenceValue +
+//                    ", unmodInflueceValue: " + unmodInflueceValue +
+//                    ", prominenceValue: " + prominenceValue +
+//                    ", group.LastUpdateDate: " + group.LastUpdateDate +
+//                    "");
 
-//		#if DEBUG
-//		if (Manager.RegisterDebugEvent != null) {
-//			if (group.Id == Manager.TracingData.GroupId) {
-//				string groupId = "Id:" + group.Id + "|Long:" + group.Longitude + "|Lat:" + group.Latitude;
-//
-//				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-//					"UpdateEffects - Group:" + groupId + 
-//					", Polity.Id: " + Id,
-//					"CurrentDate: " + World.CurrentDate  +
-//					", randomFactor: " + randomFactor + 
-//					", groupTotalPolityProminenceValue: " + groupTotalPolityProminenceValue + 
-//					", Polity.TotalGroupProminenceValue: " + TotalGroupProminenceValue + 
-//					", unmodInflueceValue: " + unmodInflueceValue + 
-//					", prominenceValue: " + prominenceValue + 
-//					", group.LastUpdateDate: " + group.LastUpdateDate + 
-//					"");
-//
-//				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-//			}
-//		}
-//		#endif
+//                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+//            }
+//        }
+//#endif
 
-		group.SetPolityProminence (this, prominenceValue);
-	}
+        group.SetPolityProminence(this, prominenceValue);
+    }
 
-	public void CalculateAdaptionToCell (TerrainCell cell, out float foragingCapacity, out float survivability) {
+    public void CalculateAdaptionToCell (TerrainCell cell, out float foragingCapacity, out float survivability) {
 
 		float modifiedForagingCapacity = 0;
 		float modifiedSurvivability = 0;

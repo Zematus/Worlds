@@ -14,11 +14,6 @@ public class PlantCultivationDiscovery : CellCulturalDiscovery
 
     }
 
-    public static bool IsPlantCultivationDiscovery(CulturalDiscovery discovery)
-    {
-        return discovery.Id.Contains(PlantCultivationDiscoveryId);
-    }
-
     public override bool CanBeHeld(CellGroup group)
     {
         CulturalKnowledge knowledge = group.Culture.GetKnowledge(AgricultureKnowledge.AgricultureKnowledgeId);
