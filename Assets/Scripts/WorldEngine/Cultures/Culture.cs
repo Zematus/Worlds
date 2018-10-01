@@ -20,7 +20,7 @@ public class Culture : ISynchronizable
     public XmlSerializableDictionary<string, CulturalActivity> Activities = new XmlSerializableDictionary<string, CulturalActivity>();
     public XmlSerializableDictionary<string, CulturalSkill> Skills = new XmlSerializableDictionary<string, CulturalSkill>();
     public XmlSerializableDictionary<string, CulturalKnowledge> Knowledges = new XmlSerializableDictionary<string, CulturalKnowledge>();
-    public XmlSerializableDictionary<string, CulturalDiscovery> Discoveries = new XmlSerializableDictionary<string, CulturalDiscovery>();
+    public XmlSerializableFilterableDictionary<string, CulturalDiscovery> Discoveries = new XmlSerializableFilterableDictionary<string, CulturalDiscovery>();
 
     public Culture()
     {

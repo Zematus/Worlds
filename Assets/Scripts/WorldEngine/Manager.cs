@@ -44,102 +44,18 @@ public enum PlanetOverlay
     PolityCluster
 }
 
-public enum OverlayColorId {
-
-	None = -1,
-	Arability = 0,
-	Farmland = 1,
-	GeneralDensitySubOptimal = 2,
-	GeneralDensityOptimal = 3,
-	Territory = 4,
-	TerritoryBorder = 5,
-	SelectedTerritory = 6,
-	ContactedTerritoryGood = 7,
-	ContactedTerritoryBad = 8,
-}
-
-public delegate T ManagerTaskDelegate<T> ();
-
-public interface IManagerTask {
-
-	void Execute ();
-}
-
-public class ManagerTask<T> : IManagerTask {
-
-	public const int SleepTime = 100;
-
-	public bool IsRunning { get; private set; }
-
-	private ManagerTaskDelegate<T> _taskDelegate;
-
-	private T _result;
-
-	public ManagerTask (ManagerTaskDelegate<T> taskDelegate) {
-
-		IsRunning = true;
-	
-		_taskDelegate = taskDelegate;
-	}
-
-	public void Execute () {
-	
-		_result = _taskDelegate ();
-
-		IsRunning = false;
-	}
-
-	public void Wait () {
-
-		while (IsRunning) {
-		
-			Thread.Sleep (SleepTime);
-		}
-	}
-
-	public T Result {
-
-		get {
-			if (IsRunning) Wait ();
-
-			return _result;
-		}
-	}
-
-	public static implicit operator T(ManagerTask<T> task) {
-
-		return task.Result;
-	}
-}
-
-public class AppSettings {
-
-	public float TemperatureOffset = 0;
-	public float RainfallOffset = 0;
-	public float SeaLevelOffset = 0;
-	public bool Fullscreen = true;
-	public bool FullGameplayInfo = true;
-
-	public AppSettings () {
-	}
-
-	public void Put () {
-
-		TemperatureOffset = Manager.TemperatureOffset;
-		RainfallOffset = Manager.RainfallOffset;
-		SeaLevelOffset = Manager.SeaLevelOffset;
-		Fullscreen = Manager.IsFullscreen;
-		FullGameplayInfo = Manager.ShowFullGameplayInfo;
-	}
-
-	public void Take () {
-
-		Manager.TemperatureOffset = TemperatureOffset;
-		Manager.RainfallOffset = RainfallOffset;
-		Manager.SeaLevelOffset = SeaLevelOffset;
-		Manager.IsFullscreen = Fullscreen;
-		Manager.ShowFullGameplayInfo = FullGameplayInfo;
-	}
+public enum OverlayColorId
+{
+    None = -1,
+    Arability = 0,
+    Farmland = 1,
+    GeneralDensitySubOptimal = 2,
+    GeneralDensityOptimal = 3,
+    Territory = 4,
+    TerritoryBorder = 5,
+    SelectedTerritory = 6,
+    ContactedTerritoryGood = 7,
+    ContactedTerritoryBad = 8,
 }
 
 public class Manager {
@@ -485,58 +401,85 @@ public class Manager {
 		_resolutionInitialized = true;
 	}
 	
-	public static void InterruptSimulation (bool state) {
-		
-		_manager._simulationRunning = !state;
-	}
-	
-	public static void ExecuteTasks (int count) {
+	public static void InterruptSimulation(bool state)
+    {
+        _manager._simulationRunning = !state;
+    }
 
-		for (int i = 0; i < count; i++) {
-		
-			if (!ExecuteNextTask ()) break;
-		}
-	}
-	
-	public static bool ExecuteNextTask () {
+    public static void ExecuteTasks(int count)
+    {
+        for (int i = 0; i < count; i++)
+        {
+            if (!ExecuteNextTask()) break;
+        }
+    }
 
-		IManagerTask task;
-		
-		lock (_manager._taskQueue) {
+    public static bool ExecuteNextTask()
+    {
+        IManagerTask task;
 
-			if (_manager._taskQueue.Count <= 0)
-				return false;
-			
-			task = _manager._taskQueue.Dequeue();
-		}
+        lock (_manager._taskQueue)
+        {
+            if (_manager._taskQueue.Count <= 0)
+                return false;
 
-		task.Execute ();
+            task = _manager._taskQueue.Dequeue();
+        }
 
-		return true;
-	}
+        task.Execute();
 
-	public static ManagerTask<T> EnqueueTask<T> (ManagerTaskDelegate<T> taskDelegate) {
+        return true;
+    }
 
-		ManagerTask<T> task = new ManagerTask<T> (taskDelegate);
+    public static ManagerTask<T> EnqueueTask<T>(ManagerTaskDelegate<T> taskDelegate)
+    {
+        ManagerTask<T> task = new ManagerTask<T>(taskDelegate);
 
-		if (MainThread == Thread.CurrentThread) {
-			task.Execute ();
-		} else {
-			lock (_manager._taskQueue) {
-				
-				_manager._taskQueue.Enqueue (task);
-			}
-		}
+        if (MainThread == Thread.CurrentThread)
+        {
+            task.Execute();
+        }
+        else
+        {
+            lock (_manager._taskQueue)
+            {
+                _manager._taskQueue.Enqueue(task);
+            }
+        }
 
-		return task;
-	}
-	
-	public static void EnqueueTaskAndWait<T> (ManagerTaskDelegate<T> taskDelegate) {
-		
-		EnqueueTask (taskDelegate).Wait ();
-	}
+        return task;
+    }
 
-	public static void SetBiomePalette (IEnumerable<Color> colors) {
+    public static void EnqueueTaskAndWait<T>(ManagerTaskDelegate<T> taskDelegate)
+    {
+        EnqueueTask(taskDelegate).Wait();
+    }
+
+    public static ManagerTask EnqueueTask(ManagerTaskDelegate taskDelegate)
+    {
+        ManagerTask task = new ManagerTask(taskDelegate);
+
+        if (MainThread == Thread.CurrentThread)
+        {
+            task.Execute();
+        }
+        else
+        {
+            lock (_manager._taskQueue)
+            {
+                _manager._taskQueue.Enqueue(task);
+            }
+        }
+
+        return task;
+    }
+
+    public static void EnqueueTaskAndWait(ManagerTaskDelegate taskDelegate)
+    {
+        EnqueueTask(taskDelegate).Wait();
+    }
+
+    public static void SetBiomePalette (IEnumerable<Color> colors) {
 
 		_biomePalette.Clear ();
 		_biomePalette.AddRange (colors);
@@ -738,250 +681,293 @@ public class Manager {
         }
     }
 
-    public static void GenerateRandomHumanGroup (int initialPopulation) {
+    public static void GenerateRandomHumanGroup(int initialPopulation)
+    {
+        World world = _manager._currentWorld;
 
-		World world = _manager._currentWorld;
-		
-		if (_manager._progressCastMethod == null) {
-			world.ProgressCastMethod = (value, message, reset) => {};
-		} else {
-			world.ProgressCastMethod = _manager._progressCastMethod;
-		}
-
-		world.GenerateRandomHumanGroups (1, initialPopulation);
-	}
-
-	public static void GenerateHumanGroup (int longitude, int latitude, int initialPopulation) {
-		
-		World world = _manager._currentWorld;
-		
-		if (_manager._progressCastMethod == null) {
-			world.ProgressCastMethod = (value, message, reset) => {};
-		} else {
-			world.ProgressCastMethod = _manager._progressCastMethod;
-		}
-		
-		world.GenerateHumanGroup (longitude, latitude, initialPopulation);
-	}
-
-	public static void GenerateNewWorld (int seed) {
-
-		_manager._worldReady = false;
-
-		World world = new World(WorldWidth, WorldHeight, seed);
-		
-		if (_manager._progressCastMethod == null) {
-			world.ProgressCastMethod = (value, message, reset) => {};
-		} else {
-			world.ProgressCastMethod = _manager._progressCastMethod;
-		}
-
-		world.StartInitialization (0f, ProgressIncrement);
-		world.Generate ();
-		world.FinishInitialization ();
-
-		ForceWorldCleanup ();
-
-		_manager._currentWorld = world;
-
-		_manager._currentCellSlants = new float?[world.Width, world.Height];
-
-		_manager._currentMaxUpdateSpan = 0;
-
-		_manager._worldReady = true;
-	}
-	
-	public static void GenerateNewWorldAsync (int seed, ProgressCastDelegate progressCastMethod = null) {
-
-		_manager._simulationRunning = false;
-		_manager._performingAsyncTask = true;
-		
-		_manager._progressCastMethod = progressCastMethod;
-
-		if (_manager._progressCastMethod == null) {
-			
-			_manager._progressCastMethod = (value, message, reset) => {};
+        if (_manager._progressCastMethod == null)
+        {
+            world.ProgressCastMethod = (value, message, reset) => { };
+        }
+        else
+        {
+            world.ProgressCastMethod = _manager._progressCastMethod;
         }
 
-        Debug.Log(string.Format("Trying to generate world with seed: {0}, Avg. Temperature: {1}, Avg. Rainfall: {2}, Sea Level Offset: {3}", 
+        world.GenerateRandomHumanGroups(1, initialPopulation);
+    }
+
+    public static void GenerateHumanGroup(int longitude, int latitude, int initialPopulation)
+    {
+        World world = _manager._currentWorld;
+
+        if (_manager._progressCastMethod == null)
+        {
+            world.ProgressCastMethod = (value, message, reset) => { };
+        }
+        else
+        {
+            world.ProgressCastMethod = _manager._progressCastMethod;
+        }
+
+        world.GenerateHumanGroup(longitude, latitude, initialPopulation);
+    }
+
+    public static void GenerateNewWorld(int seed)
+    {
+        _manager._worldReady = false;
+
+        World world = new World(WorldWidth, WorldHeight, seed);
+
+        if (_manager._progressCastMethod == null)
+        {
+            world.ProgressCastMethod = (value, message, reset) => { };
+        }
+        else
+        {
+            world.ProgressCastMethod = _manager._progressCastMethod;
+        }
+
+        world.StartInitialization(0f, ProgressIncrement);
+        world.Generate();
+        world.FinishInitialization();
+
+        ForceWorldCleanup();
+
+        _manager._currentWorld = world;
+
+        _manager._currentCellSlants = new float?[world.Width, world.Height];
+
+        _manager._currentMaxUpdateSpan = 0;
+
+        _manager._worldReady = true;
+    }
+
+    public static void GenerateNewWorldAsync(int seed, ProgressCastDelegate progressCastMethod = null)
+    {
+        _manager._simulationRunning = false;
+        _manager._performingAsyncTask = true;
+
+        _manager._progressCastMethod = progressCastMethod;
+
+        if (_manager._progressCastMethod == null)
+        {
+            _manager._progressCastMethod = (value, message, reset) => { };
+        }
+
+        Debug.Log(string.Format("Trying to generate world with seed: {0}, Avg. Temperature: {1}, Avg. Rainfall: {2}, Sea Level Offset: {3}",
             seed, TemperatureOffset, RainfallOffset, SeaLevelOffset));
 
-        ThreadPool.QueueUserWorkItem (state => {
-			
-			GenerateNewWorld (seed);
-			
-			_manager._performingAsyncTask = false;
-			_manager._simulationRunning = true;
-		});
-	}
+        ThreadPool.QueueUserWorkItem(state =>
+        {
+            try
+            {
+                GenerateNewWorld(seed);
+            }
+            catch (System.Exception e)
+            {
+                EnqueueTaskAndWait(() =>
+                {
+                    throw new System.Exception("Unhandled exception in GenerateNewWorld with seed: " + seed, e);
+                });
+            }
 
-	public static void SaveAppSettings (string path) {
+            _manager._performingAsyncTask = false;
+            _manager._simulationRunning = true;
+        });
+    }
 
-		AppSettings settings = new AppSettings ();
+    public static void SaveAppSettings(string path)
+    {
+        AppSettings settings = new AppSettings();
 
-		settings.Put ();
+        settings.Put();
 
-		XmlSerializer serializer = new XmlSerializer(typeof(AppSettings));
-		FileStream stream = new FileStream(path, FileMode.Create);
+        XmlSerializer serializer = new XmlSerializer(typeof(AppSettings));
+        FileStream stream = new FileStream(path, FileMode.Create);
 
-		serializer.Serialize(stream, settings);
+        serializer.Serialize(stream, settings);
 
-		stream.Close ();
-	}
+        stream.Close();
+    }
 
-	public static void LoadAppSettings (string path) {
+    public static void LoadAppSettings(string path)
+    {
+        if (!File.Exists(path))
+            return;
 
-		if (!File.Exists (path))
-			return;
+        XmlSerializer serializer = new XmlSerializer(typeof(AppSettings));
+        FileStream stream = new FileStream(path, FileMode.Open);
 
-		XmlSerializer serializer = new XmlSerializer(typeof(AppSettings));
-		FileStream stream = new FileStream(path, FileMode.Open);
+        AppSettings settings = serializer.Deserialize(stream) as AppSettings;
 
-		AppSettings settings = serializer.Deserialize(stream) as AppSettings;
+        stream.Close();
 
-		stream.Close ();
+        settings.Take();
+    }
 
-		settings.Take ();
-	}
-	
-	public static void SaveWorld (string path) {
+    public static void SaveWorld(string path)
+    {
+        _manager._currentWorld.Synchronize();
 
-		_manager._currentWorld.Synchronize ();
+        XmlSerializer serializer = new XmlSerializer(typeof(World), _manager.AttributeOverrides);
+        FileStream stream = new FileStream(path, FileMode.Create);
 
-		XmlSerializer serializer = new XmlSerializer(typeof(World), _manager.AttributeOverrides);
-		FileStream stream = new FileStream(path, FileMode.Create);
+        serializer.Serialize(stream, _manager._currentWorld);
 
-		serializer.Serialize(stream, _manager._currentWorld);
+        stream.Close();
+    }
 
-		stream.Close ();
-	}
-	
-	public static void SaveWorldAsync (string path, ProgressCastDelegate progressCastMethod = null) {
-		
-		_manager._simulationRunning = false;
-		_manager._performingAsyncTask = true;
-		
-		_manager._progressCastMethod = progressCastMethod;
-		
-		if (_manager._progressCastMethod == null) {
-			
-			_manager._progressCastMethod = (value, message, reset) => {};
+    public static void SaveWorldAsync(string path, ProgressCastDelegate progressCastMethod = null)
+    {
+        _manager._simulationRunning = false;
+        _manager._performingAsyncTask = true;
+
+        _manager._progressCastMethod = progressCastMethod;
+
+        if (_manager._progressCastMethod == null)
+        {
+            _manager._progressCastMethod = (value, message, reset) => { };
         }
 
         Debug.Log("Trying to save world to file: " + Path.GetFileName(path));
 
-        ThreadPool.QueueUserWorkItem (state => {
-			
-			SaveWorld (path);
-			
-			_manager._performingAsyncTask = false;
-			_manager._simulationRunning = true;
-		});
-	}
+        ThreadPool.QueueUserWorkItem(state =>
+        {
+            try
+            {
+                SaveWorld(path);
+            }
+            catch (System.Exception e)
+            {
+                EnqueueTaskAndWait(() =>
+                {
+                    throw new System.Exception("Unhandled exception in SaveWorld with path: " + path, e);
+                });
+            }
 
-	// NOTE: Make sure there are no outside references to the world object stored in _manager._currentWorld, otherwise it is pointless to call this...
-	// WARNING: Don't abuse this function call.
-	private static void ForceWorldCleanup () {
-	
-		_manager._currentWorld = null;
+            _manager._performingAsyncTask = false;
+            _manager._simulationRunning = true;
+        });
+    }
 
-		System.GC.Collect ();
-		System.GC.WaitForPendingFinalizers ();
-	}
-	
-	public static void LoadWorld (string path) {
+    // NOTE: Make sure there are no outside references to the world object stored in _manager._currentWorld, otherwise it is pointless to call this...
+    // WARNING: Don't abuse this function call.
+    private static void ForceWorldCleanup()
+    {
+        _manager._currentWorld = null;
 
-		_manager._worldReady = false;
+        System.GC.Collect();
+        System.GC.WaitForPendingFinalizers();
+    }
 
-		float baseProgressIncrement = ProgressIncrement;
-		ProgressIncrement = 0.08f;
-		
-		ResetWorldLoadTrack ();
+    public static void LoadWorld(string path)
+    {
+        _manager._worldReady = false;
 
-		XmlSerializer serializer = new XmlSerializer(typeof(World), _manager.AttributeOverrides);
-		FileStream stream = new FileStream(path, FileMode.Open);
+        float baseProgressIncrement = ProgressIncrement;
+        ProgressIncrement = 0.08f;
 
-		World world = serializer.Deserialize(stream) as World;
+        ResetWorldLoadTrack();
 
-		stream.Close ();
-		
-		if (_manager._progressCastMethod == null) {
-			world.ProgressCastMethod = (value, message, reset) => {};
-		} else {
-			world.ProgressCastMethod = _manager._progressCastMethod;
-		}
+        XmlSerializer serializer = new XmlSerializer(typeof(World), _manager.AttributeOverrides);
+        FileStream stream = new FileStream(path, FileMode.Open);
 
-		float initialProgressIncrement = ProgressIncrement;
+        World world = serializer.Deserialize(stream) as World;
 
-		world.StartInitialization (initialProgressIncrement, ProgressIncrement);
-		world.GenerateTerrain ();
-		world.FinishInitialization ();
-		
-		if (_manager._progressCastMethod != null) {
-			_manager._progressCastMethod (0.5f, "Finalizing...");
-		}
+        stream.Close();
 
-		world.FinalizeLoad (0.5f, 1.0f, _manager._progressCastMethod);
+        if (_manager._progressCastMethod == null)
+        {
+            world.ProgressCastMethod = (value, message, reset) => { };
+        }
+        else
+        {
+            world.ProgressCastMethod = _manager._progressCastMethod;
+        }
 
-		ProgressIncrement = baseProgressIncrement;
+        float initialProgressIncrement = ProgressIncrement;
 
-		ForceWorldCleanup ();
+        world.StartInitialization(initialProgressIncrement, ProgressIncrement);
+        world.GenerateTerrain();
+        world.FinishInitialization();
 
-		_manager._currentWorld = world;
+        if (_manager._progressCastMethod != null)
+        {
+            _manager._progressCastMethod(0.5f, "Finalizing...");
+        }
 
-		_manager._currentCellSlants = new float?[world.Width, world.Height];
+        world.FinalizeLoad(0.5f, 1.0f, _manager._progressCastMethod);
 
-		_manager._currentMaxUpdateSpan = 0;
+        ProgressIncrement = baseProgressIncrement;
 
-		WorldBeingLoaded = null;
+        ForceWorldCleanup();
 
-		_manager._worldReady = true;
-	}
-	
-	public static void LoadWorldAsync (string path, ProgressCastDelegate progressCastMethod = null) {
+        _manager._currentWorld = world;
 
+        _manager._currentCellSlants = new float?[world.Width, world.Height];
+
+        _manager._currentMaxUpdateSpan = 0;
+
+        WorldBeingLoaded = null;
+
+        _manager._worldReady = true;
+    }
+
+    public static void LoadWorldAsync(string path, ProgressCastDelegate progressCastMethod = null)
+    {
 #if DEBUG
         Debug_IsLoadedWorld = true;
 #endif
 
         _manager._simulationRunning = false;
-		_manager._performingAsyncTask = true;
-		
-		_manager._progressCastMethod = progressCastMethod;
-		
-		if (_manager._progressCastMethod == null) {
-			
-			_manager._progressCastMethod = (value, message, reset) => {};
+        _manager._performingAsyncTask = true;
+
+        _manager._progressCastMethod = progressCastMethod;
+
+        if (_manager._progressCastMethod == null)
+        {
+            _manager._progressCastMethod = (value, message, reset) => { };
         }
 
         Debug.Log("Trying to load world from file: " + Path.GetFileName(path));
 
-        ThreadPool.QueueUserWorkItem (state => {
-			
-			LoadWorld (path);
-			
-			_manager._performingAsyncTask = false;
-			_manager._simulationRunning = true;
-		});
-	}
+        ThreadPool.QueueUserWorkItem(state =>
+        {
+            try
+            {
+                LoadWorld(path);
+            }
+            catch (System.Exception e)
+            {
+                EnqueueTaskAndWait(() =>
+                {
+                    throw new System.Exception("Unhandled exception in LoadWorld with path: " + path, e);
+                });
+            }
 
-	public static void ResetWorldLoadTrack () {
+            _manager._performingAsyncTask = false;
+            _manager._simulationRunning = true;
+        });
+    }
 
-		_isLoadReady = false;
-	}
+    public static void ResetWorldLoadTrack()
+    {
+        _isLoadReady = false;
+    }
 
-	public static void InitializeWorldLoadTrack () {
+    public static void InitializeWorldLoadTrack()
+    {
+        _isLoadReady = true;
 
-		_isLoadReady = true;
+        _totalLoadTicks = WorldBeingLoaded.EventsToHappenCount;
+        _totalLoadTicks += WorldBeingLoaded.CellGroupCount;
+        _totalLoadTicks += WorldBeingLoaded.TerrainCellChangesListCount;
 
-		_totalLoadTicks = WorldBeingLoaded.EventsToHappenCount;
-		_totalLoadTicks += WorldBeingLoaded.CellGroupCount;
-		_totalLoadTicks += WorldBeingLoaded.TerrainCellChangesListCount;
+        _loadTicks = 0;
+    }
 
-		_loadTicks = 0;
-	}
-	
-	public static void UpdateWorldLoadTrackEventCount()
+    public static void UpdateWorldLoadTrackEventCount()
     {
         if (!_isLoadReady)
             InitializeWorldLoadTrack();

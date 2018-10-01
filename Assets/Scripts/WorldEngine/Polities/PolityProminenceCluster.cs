@@ -39,6 +39,10 @@ public class PolityProminenceCluster : ISynchronizable
 
     private Polity _polity;
 
+    public PolityProminenceCluster()
+    {
+    }
+
     public PolityProminenceCluster(PolityProminence startProminence)
     {
         Id = startProminence.Id;

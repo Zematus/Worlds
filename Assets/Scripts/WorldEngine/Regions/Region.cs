@@ -60,6 +60,7 @@ public abstract class Region : ISynchronizable
     [XmlIgnore]
     public float OceanPercentage;
 
+    [XmlIgnore]
     public long Id
     {
         get
@@ -68,6 +69,7 @@ public abstract class Region : ISynchronizable
         }
     }
 
+    [XmlIgnore]
     public Name Name
     {
         get
@@ -76,6 +78,7 @@ public abstract class Region : ISynchronizable
         }
     }
 
+    [XmlIgnore]
     public List<RegionAttribute> Attributes
     {
         get
@@ -84,6 +87,7 @@ public abstract class Region : ISynchronizable
         }
     }
 
+    [XmlIgnore]
     public List<Element> Elements
     {
         get

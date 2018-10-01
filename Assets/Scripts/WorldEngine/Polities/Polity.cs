@@ -816,7 +816,7 @@ public abstract class Polity : ISynchronizable {
 #if DEBUG
         if (Groups.Count != totalClusterGroupCount)
         {
-            Debug.LogError("Groups.Count (" + Groups.Count + ") not equal to totalClusterGroupCount (" + totalClusterGroupCount + ")");
+            throw new System.Exception("Groups.Count (" + Groups.Count + ") not equal to totalClusterGroupCount (" + totalClusterGroupCount + ")");
         }
 
         //float newTotalAdministrativeCost = TotalAdministrativeCost_Internal;

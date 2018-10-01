@@ -8,7 +8,7 @@ using System.Xml.Serialization;
 [XmlInclude(typeof(SailingDiscovery))]
 [XmlInclude(typeof(TribalismDiscovery))]
 [XmlInclude(typeof(PlantCultivationDiscovery))]
-public class CulturalDiscovery : CulturalDiscoveryInfo
+public class CulturalDiscovery : CulturalDiscoveryInfo, IFilterableValue
 {
     [XmlAttribute("P")]
     public bool IsPresent;
@@ -42,5 +42,10 @@ public class CulturalDiscovery : CulturalDiscoveryInfo
     {
         IsPresent = false;
         WasPresent = true;
+    }
+
+    public bool ShouldFilter()
+    {
+        return !IsPresent;
     }
 }

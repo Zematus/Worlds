@@ -109,7 +109,10 @@ public class RegionInfo : ISynchronizable, IKeyedValue<long>
         }
 
         if (Region != null)
+        {
+            Region.Info = this;
             Region.FinalizeLoad();
+        }
     }
 
     public string GetRandomAttributeVariation(GetRandomIntDelegate getRandomInt)

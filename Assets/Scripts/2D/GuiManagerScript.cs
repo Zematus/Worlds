@@ -162,34 +162,8 @@ public class GuiManagerScript : MonoBehaviour {
         Manager.CloseDebugLog();
 	}
 
-	public void HandleLog(string logString, string stackTrace, LogType type)
-	{
-        Manager.HandleLog(logString, stackTrace, type);
-
-        if (type == LogType.Exception)
-        {
-            Manager.EnqueueTaskAndWait(() =>
-            {
-                PauseSimulation(true);
-
-                ExceptionDialogPanelScript.SetDialogText(logString);
-                ExceptionDialogPanelScript.SetVisible(true);
-
-                return true;
-            });
-        }
-	}
-
-	// Use this for initialization
-	void Start ()
+    public void ResetAllDialogs()
     {
-        Manager.LoadAppSettings(@"Worlds.settings");
-
-        _topMaxSpeedLevelIndex = Speed.Levels.Length - 1;
-        _selectedMaxSpeedLevelIndex = _topMaxSpeedLevelIndex;
-
-        Manager.UpdateMainThreadReference();
-
         SaveFileDialogPanelScript.SetVisible(false);
         ExportMapDialogPanelScript.SetVisible(false);
         DecisionDialogPanelScript.SetVisible(false);
@@ -212,6 +186,39 @@ public class GuiManagerScript : MonoBehaviour {
 
         QuickTipPanelScript.SetVisible(false);
         InfoTooltipScript.SetVisible(false);
+    }
+
+	public void HandleLog(string logString, string stackTrace, LogType type)
+	{
+        Manager.HandleLog(logString, stackTrace, type);
+
+        if (type == LogType.Exception)
+        {
+            Manager.EnqueueTaskAndWait(() =>
+            {
+                PauseSimulation(true);
+
+                ResetAllDialogs();
+
+                ExceptionDialogPanelScript.SetDialogText(logString);
+                ExceptionDialogPanelScript.SetVisible(true);
+
+                return true;
+            });
+        }
+	}
+
+	// Use this for initialization
+	void Start ()
+    {
+        Manager.LoadAppSettings(@"Worlds.settings");
+
+        _topMaxSpeedLevelIndex = Speed.Levels.Length - 1;
+        _selectedMaxSpeedLevelIndex = _topMaxSpeedLevelIndex;
+
+        Manager.UpdateMainThreadReference();
+
+        ResetAllDialogs();
 
         _mapLeftClickOp += ClickOp_SelectCell;
         _mapHoverOp += HoverOp_ShowCellInfoTooltip;
@@ -222,7 +229,6 @@ public class GuiManagerScript : MonoBehaviour {
             //GenerateWorld(false, 1159850609);
             //GenerateWorld(false, 952294588);
             GenerateWorld(false, 732011012);
-
         }
         else if (!Manager.SimulationCanRun)
         {
