@@ -9,25 +9,25 @@ public class PolityProminenceCluster : ISynchronizable
     public const int MaxSize = 50;
     public const int MinSplitSize = 25;
 
-    [XmlAttribute("Pid")]
-    public long PolityId;
-
     [XmlAttribute("Id")]
     public long Id;
 
-    [XmlAttribute("TotalAdmCost")]
+    [XmlAttribute("TAC")]
     public float TotalAdministrativeCost = 0;
 
-    [XmlAttribute("TotalPop")]
+    [XmlAttribute("TP")]
     public float TotalPopulation = 0;
 
-    [XmlAttribute("PromArea")]
+    [XmlAttribute("PA")]
     public float ProminenceArea = 0;
 
-    [XmlAttribute("NeedCen")]
+    [XmlAttribute("NC")]
     public bool NeedsNewCensus = true;
 
     public DelayedLoadXmlSerializableDictionary<long, PolityProminence> Prominences = new DelayedLoadXmlSerializableDictionary<long, PolityProminence>();
+    
+    [XmlIgnore]
+    public Polity Polity;
 
     public int Size
     {
@@ -37,8 +37,6 @@ public class PolityProminenceCluster : ISynchronizable
         }
     }
 
-    private Polity _polity;
-
     public PolityProminenceCluster()
     {
     }
@@ -46,8 +44,7 @@ public class PolityProminenceCluster : ISynchronizable
     public PolityProminenceCluster(PolityProminence startProminence)
     {
         Id = startProminence.Id;
-        PolityId = startProminence.PolityId;
-        _polity = startProminence.Polity;
+        Polity = startProminence.Polity;
 
         AddProminence(startProminence);
     }
@@ -95,7 +92,7 @@ public class PolityProminenceCluster : ISynchronizable
     {
         NeedsNewCensus |= state;
 
-        _polity.NeedsNewCensus |= state;
+        Polity.NeedsNewCensus |= state;
     }
 
     public void AddProminence(PolityProminence prominence)
@@ -135,16 +132,16 @@ public class PolityProminenceCluster : ISynchronizable
         return null;
     }
 
-    private int _randomOffset;
+    private int _rngOffset;
 
     private int GetNextLocalRandomInt(int maxValue)
     {
-        return _polity.GetNextLocalRandomInt((int)Id + _randomOffset, maxValue);
+        return Polity.GetNextLocalRandomInt((int)Id + _rngOffset, maxValue);
     }
 
-    public PolityProminence GetRandomProminence(int offset)
+    public PolityProminence GetRandomProminence(int rngOffset)
     {
-        _randomOffset = offset;
+        _rngOffset = rngOffset;
         
         return Prominences.Values.RandomSelect(GetNextLocalRandomInt);
     }
@@ -207,19 +204,19 @@ public class PolityProminenceCluster : ISynchronizable
 
     private PolityProminence GetProminenceOrThrow(long id)
     {
-        CellGroup group = _polity.World.GetGroup(id);
+        CellGroup group = Polity.World.GetGroup(id);
 
         if (group == null)
         {
-            string message = "Missing Group with Id " + id + " in PolityProminenceCluster of Polity with Id " + PolityId;
+            string message = "Missing Group with Id " + id + " in PolityProminenceCluster of Polity with Id " + Polity.Id;
             throw new System.Exception(message);
         }
 
-        PolityProminence prominence = group.GetPolityProminence(_polity);
+        PolityProminence prominence = group.GetPolityProminence(Polity);
 
         if (prominence == null)
         {
-            string message = "Missing polity prominence with Id " + id + " in PolityProminenceCluster of Polity with Id " + PolityId;
+            string message = "Missing polity prominence with Id " + id + " in PolityProminenceCluster of Polity with Id " + Polity.Id;
             throw new System.Exception(message);
         }
 
@@ -229,6 +226,15 @@ public class PolityProminenceCluster : ISynchronizable
     public void FinalizeLoad()
     {
         Prominences.FinalizeLoad(GetProminenceOrThrow);
+
+        foreach (KeyValuePair<long, PolityProminence> pair in Prominences)
+        {
+            PolityProminence p = pair.Value;
+
+            p.Group = Polity.World.GetGroup(pair.Key);
+            p.Polity = Polity;
+            p.Cluster = this;
+        }
     }
 
     public void Synchronize()

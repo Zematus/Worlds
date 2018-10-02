@@ -47,10 +47,6 @@ public abstract class Polity : ISynchronizable {
 	[XmlAttribute("IsFoc")]
 	public bool IsUnderPlayerFocus = false;
 
-	//public List<string> Flags;
-    
-    public DelayedLoadXmlSerializableDictionary<long, CellGroup> Groups = new DelayedLoadXmlSerializableDictionary<long, CellGroup>();
-
     public List<PolityProminenceCluster> ProminenceClusters = new List<PolityProminenceCluster>();
 
     public Territory Territory;
@@ -64,6 +60,9 @@ public abstract class Polity : ISynchronizable {
     public XmlSerializableDictionary<long, PolityContact> Contacts = new XmlSerializableDictionary<long, PolityContact>();
 
     public List<PolityEventData> EventDataList = new List<PolityEventData>();
+
+    [XmlIgnore]
+    public Dictionary<long, CellGroup> Groups = new Dictionary<long, CellGroup>();
 
     [XmlIgnore]
     public PolityInfo Info;
@@ -176,8 +175,6 @@ public abstract class Polity : ISynchronizable {
 	}
 
 	protected Dictionary<long, PolityEvent> _events = new Dictionary<long, PolityEvent> ();
-
-	//private HashSet<string> _flags = new HashSet<string> ();
 
 	private bool _willBeRemoved = false;
 
@@ -711,52 +708,6 @@ public abstract class Polity : ISynchronizable {
 
 	public void RunCensus()
     {
-//#if DEBUG
-//        TotalAdministrativeCost_Internal = 0;
-//        TotalPopulation_Internal = 0;
-//        ProminenceArea_Internal = 0;
-
-//        Profiler.BeginSample("foreach group");
-
-//        foreach (CellGroup group in Groups.Values)
-//        {
-//            Profiler.BeginSample("group - GetPolityProminence");
-
-//            PolityProminence pi = group.GetPolityProminence(this);
-
-//            Profiler.EndSample();
-
-//            Profiler.BeginSample("add administrative cost");
-
-//            if (pi.AdministrativeCost < float.MaxValue)
-//                TotalAdministrativeCost_Internal += pi.AdministrativeCost;
-//            else
-//                TotalAdministrativeCost_Internal = float.MaxValue;
-
-//            Profiler.EndSample();
-
-//            Profiler.BeginSample("add pop");
-
-//            float polityPop = group.Population * pi.Value;
-
-//            TotalPopulation_Internal += polityPop;
-
-//            Profiler.EndSample();
-
-//            Profiler.BeginSample("add area");
-
-//            ProminenceArea_Internal += group.Cell.Area;
-
-//            Profiler.EndSample();
-//        }
-
-//        Profiler.EndSample();
-
-//        float obsoleteTotalAdministrativeCost = TotalAdministrativeCost_Internal;
-//        float obsoleteTotalPopulation = TotalPopulation_Internal;
-//        float obsoleteProminenceArea = ProminenceArea_Internal;
-//#endif
-
         TotalAdministrativeCost_Internal = 0;
         TotalPopulation_Internal = 0;
         ProminenceArea_Internal = 0;
@@ -816,55 +767,8 @@ public abstract class Polity : ISynchronizable {
 #if DEBUG
         if (Groups.Count != totalClusterGroupCount)
         {
-            throw new System.Exception("Groups.Count (" + Groups.Count + ") not equal to totalClusterGroupCount (" + totalClusterGroupCount + ")");
+            Debug.LogError("Groups.Count (" + Groups.Count + ") not equal to totalClusterGroupCount (" + totalClusterGroupCount + "). Polity Id: " + Id);
         }
-
-        //float newTotalAdministrativeCost = TotalAdministrativeCost_Internal;
-        //float newTotalPopulation = TotalPopulation_Internal;
-        //float newProminenceArea = ProminenceArea_Internal;
-
-        //float maxPercentDiff = 0.01f;
-
-        //float percentDiff = newTotalAdministrativeCost / obsoleteTotalAdministrativeCost;
-        //percentDiff = Mathf.Abs(1f - percentDiff);
-
-        //if (percentDiff > maxPercentDiff)
-        //{
-        //    Debug.LogError("obsoleteTotalAdministrativeCost (" + obsoleteTotalAdministrativeCost +
-        //        ") percentage difference from newTotalAdministrativeCost (" + newTotalAdministrativeCost + 
-        //        ") greater than " + maxPercentDiff + " (" + percentDiff + ")");
-        //}
-
-        //percentDiff = newTotalPopulation / obsoleteTotalPopulation;
-        //percentDiff = Mathf.Abs(1f - percentDiff);
-
-        //if (percentDiff > maxPercentDiff)
-        //{
-        //    Debug.LogError("obsoleteTotalPopulation (" + obsoleteTotalPopulation +
-        //        ") percentage difference from newTotalPopulation (" + newTotalPopulation + 
-        //        ") greater than " + maxPercentDiff + " (" + percentDiff + ")");
-        //}
-
-        //percentDiff = newProminenceArea / obsoleteProminenceArea;
-        //percentDiff = Mathf.Abs(1f - percentDiff);
-
-        //if (percentDiff > maxPercentDiff)
-        //{
-        //    Debug.LogError("obsoleteProminenceArea (" + obsoleteProminenceArea +
-        //        ") percentage difference from newProminenceArea (" + newProminenceArea + 
-        //        ") greater than " + maxPercentDiff + " (" + percentDiff + ")");
-        //}
-
-        //// This code is only needed to evaluate efficiency. It affects performance a lot because of all the log entries it generates
-        //if ((ProminenceClusters.Count > 1) && (updatedClusters > 0))
-        //{
-        //    float percentage = totalUpdatedClusterGroupCount / (float)totalClusterGroupCount;
-
-        //    Debug.Log("totalClusterGroupCount: " + totalClusterGroupCount +
-        //        ", totalUpdatedClusterGroupCount: " + totalUpdatedClusterGroupCount + " (" + percentage.ToString("P") + 
-        //        "). Cluster count: " + ProminenceClusters.Count + 
-        //        ", updated clusters: " + updatedClusters);
-        //}
 #endif
 
         NeedsNewCensus = false;
@@ -888,7 +792,15 @@ public abstract class Polity : ISynchronizable {
             throw new System.Exception("null prominence Cluster - group Id: " + prominence.Id + ", polity Id: " + Id);
         }
 
-        prominence.Cluster.RemoveProminence(prominence);
+        PolityProminenceCluster cluster = prominence.Cluster;
+
+        cluster.RemoveProminence(prominence);
+
+        // Sketchy code. Make sure removing clusters this way is not troublesome for the simulation (and perf)
+        if (cluster.Size <= 0)
+        {
+            ProminenceClusters.Remove(cluster);
+        }
     }
 
     public void ClusterUpdate()
@@ -930,15 +842,16 @@ public abstract class Polity : ISynchronizable {
 
 	public virtual void Synchronize()
     {
-
-        //Flags = new List<string> (_flags);
-
         EventDataList.Clear();
 
         foreach (PolityEvent e in _events.Values)
         {
-
             EventDataList.Add(e.GetData() as PolityEventData);
+        }
+
+        foreach (PolityProminenceCluster cluster in ProminenceClusters)
+        {
+            cluster.Synchronize();
         }
 
         Culture.Synchronize();
@@ -994,7 +907,18 @@ public abstract class Polity : ISynchronizable {
             throw new System.Exception(message);
         }
 
-        Groups.FinalizeLoad(GetGroupOrThrow);
+        foreach (PolityProminenceCluster cluster in ProminenceClusters)
+        {
+            cluster.Polity = this;
+            cluster.FinalizeLoad();
+
+            foreach (PolityProminence p in cluster.Prominences.Values)
+            {
+                Groups.Add(p.Id, p.Group);
+            }
+        }
+
+        //Groups.FinalizeLoad(GetGroupOrThrow);
         Factions.FinalizeLoad(GetFactionOrThrow);
 
         DominantFaction = GetFaction(DominantFactionId);
@@ -1018,8 +942,6 @@ public abstract class Polity : ISynchronizable {
         }
 
         GenerateEventsFromData();
-
-        //Flags.ForEach (f => _flags.Add (f));
     }
 
     protected abstract void GenerateEventsFromData();
@@ -1169,10 +1091,27 @@ public abstract class Polity : ISynchronizable {
 		if (survivability > 1) {
 			throw new System.Exception ("Survivability greater than 1: " + survivability);
 		}
-	}
+    }
 
-	public CellGroup GetRandomGroup (int rngOffset, GroupValueCalculationDelegate calculateGroupValue, bool nullIfNoValidGroup = false) {
+    public CellGroup GetRandomGroup(int rngOffset)
+    {
+        // Pick a random cluster
+        int clusterIndex = GetNextLocalRandomInt(rngOffset++, ProminenceClusters.Count);
+        PolityProminenceCluster cluster = ProminenceClusters[clusterIndex];
 
+        // Pick a random prominence in cluster
+        PolityProminence prominence = cluster.GetRandomProminence(rngOffset++);
+
+        if (prominence == null)
+        {
+            throw new System.Exception("Random picked prominence is null. Polity Id: " + Id);
+        }
+
+        return prominence.Group;
+    }
+
+    public CellGroup GetRandomWeightedGroup(int rngOffset, GroupValueCalculationDelegate calculateGroupValue, bool nullIfNoValidGroup = false)
+    {
         // Instead of this cumbersome sampling mechanism, create a sample list for each polity that adds/removes groups that update 
         // or have been selected by this method
 
@@ -1182,19 +1121,20 @@ public abstract class Polity : ISynchronizable {
 
         int sampleSize = Groups.Count / sampleGroupLength;
 
-        if ((sampleGroupLength > 1) && ((Groups.Count % sampleGroupLength) > 0)) {
+        if ((sampleGroupLength > 1) && ((Groups.Count % sampleGroupLength) > 0))
+        {
             sampleSize++;
         }
 
         WeightedGroup[] weightedGroups = new WeightedGroup[sampleSize];
 
-		float totalWeight = 0;
+        float totalWeight = 0;
 
-		int index = 0;
+        int index = 0;
         int sampleIndex = 0;
         int nextGroupToPick = GetNextLocalRandomInt(rngOffset++, sampleGroupLength);
 
-		foreach (CellGroup group in Groups.Values)
+        foreach (CellGroup group in Groups.Values)
         {
             bool skipGroup = false;
 
@@ -1221,37 +1161,37 @@ public abstract class Polity : ISynchronizable {
             }
 
             if (skipGroup) continue;
-            
+
             Profiler.BeginSample("GetRandomGroup - calculateGroupValue - " + calculateGroupValue.Method.Module.Name + ":" + calculateGroupValue.Method.Name);
 
-            float weight = calculateGroupValue (group);
+            float weight = calculateGroupValue(group);
 
             Profiler.EndSample();
 
-			if (weight < 0)
-				throw new System.Exception ("calculateGroupValue method returned weight value less than zero: " + weight);
+            if (weight < 0)
+                throw new System.Exception("calculateGroupValue method returned weight value less than zero: " + weight);
 
-			totalWeight += weight;
+            totalWeight += weight;
 
-			weightedGroups [sampleIndex] = new WeightedGroup (group, weight);
+            weightedGroups[sampleIndex] = new WeightedGroup(group, weight);
 
             sampleIndex++;
         }
 
-		if (totalWeight < 0) {
-		
-			throw new System.Exception ("Total weight can't be less than zero: " + totalWeight);
-		}
+        if (totalWeight < 0)
+        {
+            throw new System.Exception("Total weight can't be less than zero: " + totalWeight);
+        }
 
-		if ((totalWeight == 0) && nullIfNoValidGroup) {
-		
-			return null;
-		}
+        if ((totalWeight == 0) && nullIfNoValidGroup)
+        {
+            return null;
+        }
 
-		return CollectionUtility.WeightedSelection (weightedGroups, totalWeight, GetNextLocalRandomFloat (rngOffset));
-	}
+        return CollectionUtility.WeightedSelection(weightedGroups, totalWeight, GetNextLocalRandomFloat(rngOffset));
+    }
 
-	public Faction GetRandomFaction (int rngOffset, FactionValueCalculationDelegate calculateFactionValue, bool nullIfNoValidFaction = false) {
+    public Faction GetRandomFaction (int rngOffset, FactionValueCalculationDelegate calculateFactionValue, bool nullIfNoValidFaction = false) {
 
 		WeightedFaction[] weightedFactions = new WeightedFaction[Factions.Count];
 
@@ -1343,27 +1283,6 @@ public abstract class Polity : ISynchronizable {
 	}
 
 	protected abstract void GenerateName ();
-
-	//public void SetFlag (string flag) {
-
-	//	if (_flags.Contains (flag))
-	//		return;
-
-	//	_flags.Add (flag);
-	//}
-
-	//public bool IsFlagSet (string flag) {
-
-	//	return _flags.Contains (flag);
-	//}
-
-	//public void UnsetFlag (string flag) {
-
-	//	if (!_flags.Contains (flag))
-	//		return;
-
-	//	_flags.Remove (flag);
-	//}
 
 	public float GetPreferenceValue (string id) {
 

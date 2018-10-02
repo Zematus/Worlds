@@ -3067,8 +3067,6 @@ public class CellGroup : HumanGroup
 
         foreach (PolityProminence p in PolityProminences.Values)
         {
-            p.Group = this;
-            p.Polity = World.GetPolity(p.PolityId);
             p.NewValue = p.Value;
 
             if (p.Polity == null)

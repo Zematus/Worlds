@@ -5,257 +5,262 @@ using System.Xml;
 using System.Xml.Serialization;
 using UnityEngine.Profiling;
 
-public class ClanSplitDecisionEvent : FactionEvent {
+public class ClanSplitDecisionEvent : FactionEvent
+{
+    public const long DateSpanFactorConstant = CellGroup.GenerationSpan * 10;
 
-	public const long DateSpanFactorConstant = CellGroup.GenerationSpan * 10;
-	
-	public const float MinInfluenceTrigger = 0.3f;
-	public const float MinCoreDistance = 1000f;
-	public const float MinProminenceValue = 0.2f;
+    public const float MinInfluenceTrigger = 0.3f;
+    public const float MinCoreDistance = 1000f;
+    public const float MinProminenceValue = 0.2f;
     public const int MinPopulation = 50;
 
     public const int MaxAdministrativeLoad = 400000;
-	public const int MinAdministrativeLoad = 80000;
-	public const int AdministrativeLoadSpan = MaxAdministrativeLoad - MinAdministrativeLoad;
+    public const int MinAdministrativeLoad = 80000;
+    public const int AdministrativeLoadSpan = MaxAdministrativeLoad - MinAdministrativeLoad;
 
-	public const float MaxAdministrativeLoadChanceFactor = 0.05f;
+    public const float MaxAdministrativeLoadChanceFactor = 0.05f;
 
-	private Clan _clan;
+    private Clan _clan;
 
-	private CellGroup _newClanCoreGroup;
+    private CellGroup _newClanCoreGroup;
 
-	private float _chanceOfSplitting;
+    private float _chanceOfSplitting;
 
-	public ClanSplitDecisionEvent () {
-
-		DoNotSerialize = true;
-	}
-
-	public ClanSplitDecisionEvent (Clan clan, FactionEventData data) : base (clan, data) {
-
-		_clan = clan;
-
-		DoNotSerialize = true;
-	}
-
-	public ClanSplitDecisionEvent (Clan clan, long triggerDate) : base (clan, triggerDate, ClanSplitDecisionEventId) {
-
-		_clan = clan;
-
-		DoNotSerialize = true;
+    public ClanSplitDecisionEvent()
+    {
+        DoNotSerialize = true;
     }
 
-	public static long CalculateTriggerDate (Clan clan) {
+    public ClanSplitDecisionEvent(Clan clan, FactionEventData data) : base(clan, data)
+    {
+        _clan = clan;
 
-		float randomFactor = clan.GetNextLocalRandomFloat (RngOffsets.CLAN_SPLITTING_EVENT_CALCULATE_TRIGGER_DATE);
-		randomFactor = Mathf.Pow (randomFactor, 2);
+        DoNotSerialize = true;
+    }
 
-		float administrativeLoad = clan.CalculateAdministrativeLoad ();
+    public ClanSplitDecisionEvent(Clan clan, long triggerDate) : base(clan, triggerDate, ClanSplitDecisionEventId)
+    {
+        _clan = clan;
 
-		float loadFactor = 1;
+        DoNotSerialize = true;
+    }
 
-		if (administrativeLoad != Mathf.Infinity) {
+    public static long CalculateTriggerDate(Clan clan)
+    {
+        float randomFactor = clan.GetNextLocalRandomFloat(RngOffsets.CLAN_SPLITTING_EVENT_CALCULATE_TRIGGER_DATE);
+        randomFactor = Mathf.Pow(randomFactor, 2);
 
-			float modAdminLoad = Mathf.Max (0, administrativeLoad - MinAdministrativeLoad);
+        float administrativeLoad = clan.CalculateAdministrativeLoad();
 
-			loadFactor = AdministrativeLoadSpan / (modAdminLoad + AdministrativeLoadSpan);
-		}
+        float loadFactor = 1;
 
-		float cohesionPreferenceValue = clan.GetPreferenceValue (CulturalPreference.CohesionPreferenceId);
+        if (administrativeLoad != Mathf.Infinity)
+        {
+            float modAdminLoad = Mathf.Max(0, administrativeLoad - MinAdministrativeLoad);
 
-		float cohesionPrefFactor = 2 * cohesionPreferenceValue;
-		cohesionPrefFactor = Mathf.Pow (cohesionPrefFactor, 4);
+            loadFactor = AdministrativeLoadSpan / (modAdminLoad + AdministrativeLoadSpan);
+        }
 
-		float dateSpan = (1 - randomFactor) * DateSpanFactorConstant * loadFactor * cohesionPrefFactor;
+        float cohesionPreferenceValue = clan.GetPreferenceValue(CulturalPreference.CohesionPreferenceId);
 
-		long triggerDateSpan = (long)dateSpan + CellGroup.GenerationSpan;
+        float cohesionPrefFactor = 2 * cohesionPreferenceValue;
+        cohesionPrefFactor = Mathf.Pow(cohesionPrefFactor, 4);
 
-		if (triggerDateSpan < 0) {
-			#if DEBUG
-			Debug.LogWarning ("updateSpan less than 0: " + triggerDateSpan);
-			#endif
+        float dateSpan = (1 - randomFactor) * DateSpanFactorConstant * loadFactor * cohesionPrefFactor;
 
-			triggerDateSpan = CellGroup.MaxUpdateSpan;
-		}
+        long triggerDateSpan = (long)dateSpan + CellGroup.GenerationSpan;
 
-		return clan.World.CurrentDate + triggerDateSpan;
-	}
+        if (triggerDateSpan < 0)
+        {
+#if DEBUG
+            Debug.LogWarning("updateSpan less than 0: " + triggerDateSpan);
+#endif
 
-	public float GetGroupWeight (CellGroup group) {
+            triggerDateSpan = CellGroup.MaxUpdateSpan;
+        }
 
-		if (group == _clan.CoreGroup)
-			return 0;
+        return clan.World.CurrentDate + triggerDateSpan;
+    }
 
-		PolityProminence pi = group.GetPolityProminence (_clan.Polity);
+    public float GetGroupWeight(CellGroup group)
+    {
+        if (group == _clan.CoreGroup)
+            return 0;
 
-		if (group.HighestPolityProminence != pi)
-			return 0;
+        PolityProminence pi = group.GetPolityProminence(_clan.Polity);
 
-		if (!Clan.CanBeClanCore (group))
-			return 0;
+        if (group.HighestPolityProminence != pi)
+            return 0;
+
+        if (!Clan.CanBeClanCore(group))
+            return 0;
 
         if (group.Population < Clan.MinCorePopulation)
             return 0;
 
-		float coreDistance = pi.FactionCoreDistance - MinCoreDistance;
+        float coreDistance = pi.FactionCoreDistance - MinCoreDistance;
 
-		if (coreDistance <= 0)
-			return 0;
+        if (coreDistance <= 0)
+            return 0;
 
-		float coreDistanceFactor = MinCoreDistance / (MinCoreDistance + coreDistance);
+        float coreDistanceFactor = MinCoreDistance / (MinCoreDistance + coreDistance);
 
-		float minCoreProminenceValue = Mathf.Max(coreDistanceFactor, Clan.MinCorePolityProminence);
+        float minCoreProminenceValue = Mathf.Max(coreDistanceFactor, Clan.MinCorePolityProminence);
 
-		float value = pi.Value - minCoreProminenceValue;
+        float value = pi.Value - minCoreProminenceValue;
 
-		if (value <= 0)
-			return 0;
+        if (value <= 0)
+            return 0;
 
-		float weight = pi.Value;
+        float weight = pi.Value;
 
-		if (weight < 0)
-			return float.MaxValue;
+        if (weight < 0)
+            return float.MaxValue;
 
-		return weight;
-	}
+        return weight;
+    }
 
-	public override bool CanTrigger () {
+    public override bool CanTrigger()
+    {
+        if (!base.CanTrigger())
+        {
+            return false;
+        }
 
-		if (!base.CanTrigger ()) {
+        if (_clan.Influence < MinInfluenceTrigger)
+        {
+            return false;
+        }
 
-			return false;
-		}
-
-		if (_clan.Influence < MinInfluenceTrigger) {
-			
-			return false;
-		}
-
-		int rngOffset = (int)(RngOffsets.EVENT_CAN_TRIGGER + Id);
+        int rngOffset = (int)(RngOffsets.EVENT_CAN_TRIGGER + Id);
 
         Profiler.BeginSample("CanTrigger - _clan.Polity.GetRandomGroup");
-
-        _newClanCoreGroup = _clan.Polity.GetRandomGroup (rngOffset++, GetGroupWeight, true);
+        
+        _newClanCoreGroup = _clan.Polity.GetRandomGroup(rngOffset++);
 
         Profiler.EndSample();
-
-		if (_newClanCoreGroup == null) {
-			
-			return false;
+        
+        if (GetGroupWeight(_newClanCoreGroup) <= 0)
+        {
+            return false;
         }
 
         Profiler.BeginSample("CanTrigger - _clan.PreUpdate");
 
         // We should use the latest cultural attribute values before calculating chances
-        _clan.PreUpdate (); // TODO: Do not preupdate factions on CanTrigger
+        _clan.PreUpdate();
 
         Profiler.EndSample();
 
         Profiler.BeginSample("CanTrigger - CalculateChanceOfSplitting");
 
-        _chanceOfSplitting = CalculateChanceOfSplitting ();
+        _chanceOfSplitting = CalculateChanceOfSplitting();
 
         Profiler.EndSample();
 
-        if (_chanceOfSplitting <= 0) {
+        if (_chanceOfSplitting <= 0)
+        {
+            return false;
+        }
 
-			return false;
-		}
+        return true;
+    }
 
-		return true;
-	}
+    public float CalculateChanceOfSplitting()
+    {
+        float administrativeLoad = _clan.CalculateAdministrativeLoad();
 
-	public float CalculateChanceOfSplitting () {
+        if (administrativeLoad == Mathf.Infinity)
+            return 1;
 
-		float administrativeLoad = _clan.CalculateAdministrativeLoad ();
+        float cohesionPreferenceValue = _clan.GetPreferenceValue(CulturalPreference.CohesionPreferenceId);
 
-		if (administrativeLoad == Mathf.Infinity)
-			return 1;
+        if (cohesionPreferenceValue <= 0)
+            return 1;
 
-		float cohesionPreferenceValue = _clan.GetPreferenceValue (CulturalPreference.CohesionPreferenceId);
+        float cohesionPrefFactor = 2 * cohesionPreferenceValue;
+        cohesionPrefFactor = Mathf.Pow(cohesionPrefFactor, 4);
 
-		if (cohesionPreferenceValue <= 0)
-			return 1;
+        float authorityPreferenceValue = _clan.GetPreferenceValue(CulturalPreference.AuthorityPreferenceId);
 
-		float cohesionPrefFactor = 2 * cohesionPreferenceValue;
-		cohesionPrefFactor = Mathf.Pow (cohesionPrefFactor, 4);
+        if (authorityPreferenceValue <= 0)
+            return 1;
 
-		float authorityPreferenceValue = _clan.GetPreferenceValue (CulturalPreference.AuthorityPreferenceId);
+        float authorityPrefFactor = 2 * authorityPreferenceValue;
+        authorityPrefFactor = Mathf.Pow(authorityPrefFactor, 4);
 
-		if (authorityPreferenceValue <= 0)
-			return 1;
+        float modMinAdministrativeLoad = MinAdministrativeLoad * cohesionPrefFactor;
+        float modMaxAdministrativeLoad = modMinAdministrativeLoad + (AdministrativeLoadSpan * _clan.CurrentLeader.Wisdom * _clan.CurrentLeader.Charisma * authorityPrefFactor * MaxAdministrativeLoadChanceFactor);
 
-		float authorityPrefFactor = 2 * authorityPreferenceValue;
-		authorityPrefFactor = Mathf.Pow (authorityPrefFactor, 4);
+        float chance = (administrativeLoad - modMinAdministrativeLoad) / (modMaxAdministrativeLoad - modMinAdministrativeLoad);
 
-		float modMinAdministrativeLoad = MinAdministrativeLoad * cohesionPrefFactor;
-		float modMaxAdministrativeLoad = modMinAdministrativeLoad + (AdministrativeLoadSpan * _clan.CurrentLeader.Wisdom * _clan.CurrentLeader.Charisma * authorityPrefFactor * MaxAdministrativeLoadChanceFactor);
+        return Mathf.Clamp01(chance);
+    }
 
-		float chance = (administrativeLoad - modMinAdministrativeLoad) / (modMaxAdministrativeLoad - modMinAdministrativeLoad);
-
-		return Mathf.Clamp01 (chance);
-	}
-
-	public override void Trigger ()
+    public override void Trigger()
     {
         _clan.CoreGroup.SetToUpdate();
 
-        bool preferSplit = _clan.GetNextLocalRandomFloat (RngOffsets.CLAN_SPLITTING_EVENT_PREFER_SPLIT) < _chanceOfSplitting;
+        bool preferSplit = _clan.GetNextLocalRandomFloat(RngOffsets.CLAN_SPLITTING_EVENT_PREFER_SPLIT) < _chanceOfSplitting;
 
-		if (_clan.Polity.IsUnderPlayerFocus || _clan.IsUnderPlayerGuidance) {
+        if (_clan.Polity.IsUnderPlayerFocus || _clan.IsUnderPlayerGuidance)
+        {
+            Decision splitDecision;
 
-			Decision splitDecision;
+            if (_chanceOfSplitting >= 1)
+            {
+                splitDecision = new ClanSplitDecision(_clan, _newClanCoreGroup, Id); // Player can't prevent splitting from happening
+            }
+            else
+            {
+                splitDecision = new ClanSplitDecision(_clan, _newClanCoreGroup, preferSplit, Id); // Give player options
+            }
 
-			if (_chanceOfSplitting >= 1) {
-				splitDecision = new ClanSplitDecision (_clan, _newClanCoreGroup, Id); // Player can't prevent splitting from happening
-			} else {
-				splitDecision = new ClanSplitDecision (_clan, _newClanCoreGroup, preferSplit, Id); // Give player options
-			}
+            if (_clan.IsUnderPlayerGuidance)
+            {
+                World.AddDecisionToResolve(splitDecision);
+            }
+            else
+            {
+                splitDecision.ExecutePreferredOption();
+            }
 
-			if (_clan.IsUnderPlayerGuidance) {
+        }
+        else if (preferSplit)
+        {
+            ClanSplitDecision.LeaderAllowsSplit(_clan, _newClanCoreGroup, Id);
+        }
+        else
+        {
+            ClanSplitDecision.LeaderPreventsSplit(_clan);
+        }
+    }
 
-				World.AddDecisionToResolve (splitDecision);
-
-			} else {
-
-				splitDecision.ExecutePreferredOption ();
-			}
-
-		} else if (preferSplit) {
-
-			ClanSplitDecision.LeaderAllowsSplit (_clan, _newClanCoreGroup, Id);
-
-		} else {
-
-			ClanSplitDecision.LeaderPreventsSplit (_clan);
-		}
-	}
-
-	public override void FinalizeLoad () {
-
-		base.FinalizeLoad ();
-
-		_clan = Faction as Clan;
-
-		_clan.AddEvent (this);
-	}
-
-	protected override void DestroyInternal () {
-
-		base.DestroyInternal ();
-
-		if ((Faction != null) && (Faction.StillPresent)) {
-
-			Clan clan = Faction as Clan;
-
-			clan.ResetEvent (WorldEvent.ClanSplitDecisionEventId, CalculateTriggerDate (clan));
-		}
-	}
-
-	public override void Reset (long newTriggerDate)
-	{
-		base.Reset (newTriggerDate);
+    public override void FinalizeLoad()
+    {
+        base.FinalizeLoad();
 
         _clan = Faction as Clan;
-	}
+
+        _clan.AddEvent(this);
+    }
+
+    protected override void DestroyInternal()
+    {
+        base.DestroyInternal();
+
+        if ((Faction != null) && (Faction.StillPresent))
+        {
+            Clan clan = Faction as Clan;
+
+            clan.ResetEvent(WorldEvent.ClanSplitDecisionEventId, CalculateTriggerDate(clan));
+        }
+    }
+
+    public override void Reset(long newTriggerDate)
+    {
+        base.Reset(newTriggerDate);
+
+        _clan = Faction as Clan;
+    }
 }
