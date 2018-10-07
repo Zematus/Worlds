@@ -12,6 +12,8 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge
 
     public const int ShipbuildingKnowledgeRngOffset = 0;
 
+    public const int InitialValue = 100;
+
     public const int MinKnowledgeValueForSailingSpawnEvent = 500;
     public const int MinKnowledgeValueForSailing = 300;
     public const int OptimalKnowledgeValueForSailing = 1000;
@@ -31,22 +33,7 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge
         }
     }
 
-    public ShipbuildingKnowledge(CellGroup group, int value = 100) : base(group, ShipbuildingKnowledgeId, ShipbuildingKnowledgeName, ShipbuildingKnowledgeRngOffset, value)
-    {
-        CalculateNeighborhoodOceanPresence();
-    }
-
-    public ShipbuildingKnowledge(CellGroup group, ShipbuildingKnowledge baseKnowledge) : base(group, baseKnowledge.Id, baseKnowledge.Name, ShipbuildingKnowledgeRngOffset, baseKnowledge.Value, baseKnowledge.Asymptote)
-    {
-        CalculateNeighborhoodOceanPresence();
-    }
-
-    public ShipbuildingKnowledge(CellGroup group, ShipbuildingKnowledge baseKnowledge, int initialValue) : base(group, baseKnowledge.Id, baseKnowledge.Name, ShipbuildingKnowledgeRngOffset, initialValue)
-    {
-        CalculateNeighborhoodOceanPresence();
-    }
-
-    public ShipbuildingKnowledge(CellGroup group, CulturalKnowledge baseKnowledge, int initialValue) : base(group, baseKnowledge.Id, baseKnowledge.Name, ShipbuildingKnowledgeRngOffset, initialValue)
+    public ShipbuildingKnowledge(CellGroup group, int initialValue) : base(group, ShipbuildingKnowledgeId, ShipbuildingKnowledgeName, ShipbuildingKnowledgeRngOffset, initialValue)
     {
         CalculateNeighborhoodOceanPresence();
     }
@@ -193,7 +180,7 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge
         Profiler.EndSample();
     }
 
-    protected override int CalculateBaseAsymptote()
+    protected override int GetBaseAsymptote()
     {
         return 0;
     }

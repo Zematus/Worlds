@@ -32,9 +32,9 @@ public class CulturalDiscovery : CulturalDiscoveryInfo, IFilterableValue
         WasPresent = false;
     }
 
-    public void Set()
+    public void Set(bool isPresent)
     {
-        IsPresent = true;
+        IsPresent = isPresent;
         WasPresent = false;
     }
 

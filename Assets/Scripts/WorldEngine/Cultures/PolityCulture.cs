@@ -270,7 +270,7 @@ public class PolityCulture : Culture
             {
                 Profiler.BeginSample("discovery.Set");
 
-                discovery.Set();
+                discovery.Set(true);
 
                 Profiler.EndSample();
             }

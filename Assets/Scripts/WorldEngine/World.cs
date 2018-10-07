@@ -811,12 +811,20 @@ public class World : ISynchronizable
     {
         foreach (MigratingGroup group in _migratingGroups)
         {
+            Profiler.BeginSample("group.SplitFromSourceGroup");
+
             group.SplitFromSourceGroup();
+
+            Profiler.EndSample();
         }
 
         foreach (MigratingGroup group in _migratingGroups)
         {
+            Profiler.BeginSample("group.MoveToCell");
+
             group.MoveToCell();
+
+            Profiler.EndSample();
         }
 
         _migratingGroups.Clear();
@@ -1113,29 +1121,77 @@ public class World : ISynchronizable
         if (CellGroupCount <= 0)
             return 0;
 
+        Profiler.BeginSample("UpdateGroups");
+
         UpdateGroups();
+
+        Profiler.EndSample();
+
+        Profiler.BeginSample("MigrateGroups");
 
         MigrateGroups();
 
+        Profiler.EndSample();
+
+        Profiler.BeginSample("PostUpdateGroups_BeforePolityUpdates");
+
         PostUpdateGroups_BeforePolityUpdates();
+
+        Profiler.EndSample();
+
+        Profiler.BeginSample("RemoveGroups");
 
         RemoveGroups();
 
+        Profiler.EndSample();
+
+        Profiler.BeginSample("UpdatePolityClusters");
+
         UpdatePolityClusters();
+
+        Profiler.EndSample();
+
+        Profiler.BeginSample("SetNextGroupUpdates");
 
         SetNextGroupUpdates();
 
+        Profiler.EndSample();
+
+        Profiler.BeginSample("SplitFactions");
+
         SplitFactions();
+
+        Profiler.EndSample();
+
+        Profiler.BeginSample("UpdateFactions");
 
         UpdateFactions();
 
+        Profiler.EndSample();
+
+        Profiler.BeginSample("RemoveFactions");
+
         RemoveFactions();
+
+        Profiler.EndSample();
+
+        Profiler.BeginSample("UpdatePolities");
 
         UpdatePolities();
 
+        Profiler.EndSample();
+
+        Profiler.BeginSample("RemovePolities");
+
         RemovePolities();
 
+        Profiler.EndSample();
+
+        Profiler.BeginSample("PostUpdateGroups_AfterPolityUpdates");
+
         PostUpdateGroups_AfterPolityUpdates();
+
+        Profiler.EndSample();
 
         //
         // Skip to Next Event's Date

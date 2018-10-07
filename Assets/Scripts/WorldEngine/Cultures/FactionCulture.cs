@@ -9,6 +9,9 @@ public class FactionCulture : Culture
 {
     public const long OptimalTimeSpan = CellGroup.GenerationSpan * 500;
 
+    [XmlAttribute("DCC")]
+    public bool DifferentCoreCulture = false;
+
     [XmlIgnore]
     public Faction Faction;
 
@@ -45,7 +48,10 @@ public class FactionCulture : Culture
 
         foreach (CulturalKnowledge k in coreCulture.Knowledges.Values)
         {
-            AddKnowledge(new CulturalKnowledge(k));
+            if (k.IsPresent)
+            {
+                AddKnowledge(new CulturalKnowledge(k));
+            }
         }
 
         foreach (CulturalDiscovery d in coreCulture.Discoveries.Values)
@@ -105,6 +111,7 @@ public class FactionCulture : Culture
             else
             {
                 Profiler.BeginSample("update preference.Value");
+
 #if DEBUG
                 prevValue = preference.Value;
 #endif
@@ -362,7 +369,7 @@ public class FactionCulture : Culture
             {
                 Profiler.BeginSample("discovery.Set");
 
-                discovery.Set();
+                discovery.Set(true);
 
                 Profiler.EndSample();
             }

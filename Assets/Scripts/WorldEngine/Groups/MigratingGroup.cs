@@ -3,170 +3,194 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
+using UnityEngine.Profiling;
 
-public class MigratingGroup : HumanGroup {
-	
-	[XmlAttribute]
-	public float PercentPopulation;
+public class MigratingGroup : HumanGroup
+{
+    [XmlAttribute]
+    public float PercentPopulation;
 
-	[XmlAttribute]
-	public int TargetCellLongitude;
-	[XmlAttribute]
-	public int TargetCellLatitude;
+    [XmlAttribute]
+    public int TargetCellLongitude;
+    [XmlAttribute]
+    public int TargetCellLatitude;
 
-	[XmlAttribute]
-	public int Population = 0;
-	
-	[XmlAttribute]
-	public long SourceGroupId;
+    [XmlAttribute]
+    public int Population = 0;
 
-	[XmlAttribute("MigDir")]
-	public int MigrationDirectionInt;
+    [XmlAttribute]
+    public long SourceGroupId;
 
-	public BufferCulture Culture;
+    [XmlAttribute("MigDir")]
+    public int MigrationDirectionInt;
 
-	[XmlIgnore]
-	public List<Faction> FactionCoresToMigrate = new List<Faction> ();
-	
-	[XmlIgnore]
-	public TerrainCell TargetCell;
-	
-	[XmlIgnore]
-	public CellGroup SourceGroup;
+    public BufferCulture Culture;
 
-	[XmlIgnore]
-	public List <PolityProminence> PolityProminences = new List<PolityProminence> ();
+    [XmlIgnore]
+    public List<Faction> FactionCoresToMigrate = new List<Faction>();
 
-	[XmlIgnore]
-	public int PolityProminencesCount = 0;
+    [XmlIgnore]
+    public TerrainCell TargetCell;
 
-	[XmlIgnore]
-	public Direction MigrationDirection;
+    [XmlIgnore]
+    public CellGroup SourceGroup;
 
-	public MigratingGroup () {
-	}
+    [XmlIgnore]
+    public List<PolityProminence> PolityProminences = new List<PolityProminence>();
 
-	public MigratingGroup (World world, float percentPopulation, CellGroup sourceGroup, TerrainCell targetCell, Direction migrationDirection) : base (world) {
+    [XmlIgnore]
+    public int PolityProminencesCount = 0;
 
-		Set (percentPopulation, sourceGroup, targetCell, migrationDirection);
-	}
+    [XmlIgnore]
+    public Direction MigrationDirection;
 
-	public void Set (float percentPopulation, CellGroup sourceGroup, TerrainCell targetCell, Direction migrationDirection) {
+    public MigratingGroup()
+    {
+    }
 
-		MigrationDirection = migrationDirection;
+    public MigratingGroup(World world, float percentPopulation, CellGroup sourceGroup, TerrainCell targetCell, Direction migrationDirection) : base(world)
+    {
+        Set(percentPopulation, sourceGroup, targetCell, migrationDirection);
+    }
 
-		PercentPopulation = percentPopulation;
+    public void Set(float percentPopulation, CellGroup sourceGroup, TerrainCell targetCell, Direction migrationDirection)
+    {
+        MigrationDirection = migrationDirection;
 
-		#if DEBUG
-		if (float.IsNaN (percentPopulation)) {
+        PercentPopulation = percentPopulation;
 
-			Debug.Break ();
-			throw new System.Exception ("float.IsNaN (percentPopulation)");
-		}
-		#endif
+#if DEBUG
+        if (float.IsNaN(percentPopulation))
+        {
+            throw new System.Exception("float.IsNaN (percentPopulation)");
+        }
+#endif
 
-		//		#if DEBUG
-		//		if (Manager.RegisterDebugEvent != null) {
-		//			if (sourceGroup.Id == Manager.TracingData.GroupId) {
-		//				string groupId = "Id:" + sourceGroup.Id + "|Long:" + sourceGroup.Longitude + "|Lat:" + sourceGroup.Latitude;
-		//				string targetInfo = "Long:" + targetCell.Longitude + "|Lat:" + targetCell.Latitude;
-		//
-		//				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-		//					"MigratingGroup:constructor - sourceGroup:" + groupId,
-		//					"CurrentDate: " + World.CurrentDate + 
-		//					", targetInfo: " + targetInfo + 
-		//					", percentPopulation: " + percentPopulation + 
-		//					"");
-		//
-		//				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-		//			}
-		//		}
-		//		#endif
+        //		#if DEBUG
+        //		if (Manager.RegisterDebugEvent != null) {
+        //			if (sourceGroup.Id == Manager.TracingData.GroupId) {
+        //				string groupId = "Id:" + sourceGroup.Id + "|Long:" + sourceGroup.Longitude + "|Lat:" + sourceGroup.Latitude;
+        //				string targetInfo = "Long:" + targetCell.Longitude + "|Lat:" + targetCell.Latitude;
+        //
+        //				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+        //					"MigratingGroup:constructor - sourceGroup:" + groupId,
+        //					"CurrentDate: " + World.CurrentDate + 
+        //					", targetInfo: " + targetInfo + 
+        //					", percentPopulation: " + percentPopulation + 
+        //					"");
+        //
+        //				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+        //			}
+        //		}
+        //		#endif
 
-		TargetCell = targetCell;
-		SourceGroup = sourceGroup;
+        TargetCell = targetCell;
+        SourceGroup = sourceGroup;
 
-		SourceGroupId = SourceGroup.Id;
+        SourceGroupId = SourceGroup.Id;
 
-		TargetCellLongitude = TargetCell.Longitude;
-		TargetCellLatitude = TargetCell.Latitude;
-	}
-	
-	public bool SplitFromSourceGroup () {
-		
-		if (SourceGroup == null)
-			return false;
-		
-		if (!SourceGroup.StillPresent)
-			return false;
-		
-		Population = SourceGroup.SplitGroup(this);
-		
-		if (Population <= 0)
-			return false;
-		
-		Culture = new BufferCulture (SourceGroup.Culture);
+        TargetCellLongitude = TargetCell.Longitude;
+        TargetCellLatitude = TargetCell.Latitude;
+    }
 
-		PolityProminencesCount = SourceGroup.PolityProminences.Count;
+    public bool SplitFromSourceGroup()
+    {
+        if (SourceGroup == null)
+            return false;
 
-		int minCopyCount = Mathf.Min (PolityProminencesCount, PolityProminences.Count);
+        if (!SourceGroup.StillPresent)
+            return false;
+
+        Profiler.BeginSample("SourceGroup.SplitGroup");
+
+        Population = SourceGroup.SplitGroup(this);
+
+        Profiler.EndSample();
+
+        if (Population <= 0)
+            return false;
+
+        Profiler.BeginSample("Culture = new BufferCulture");
+
+        Culture = new BufferCulture(SourceGroup.Culture);
+
+        Profiler.EndSample();
+
+        PolityProminencesCount = SourceGroup.PolityProminences.Count;
+
+        int minCopyCount = Mathf.Min(PolityProminencesCount, PolityProminences.Count);
 
         IEnumerator<PolityProminence> ppEnumerator = SourceGroup.PolityProminences.Values.GetEnumerator();
 
         for (int i = 0; i < minCopyCount; i++)
         {
+            Profiler.BeginSample("PolityProminences[i].Set");
+
             ppEnumerator.MoveNext();
-            PolityProminences [i].Set (ppEnumerator.Current);
+            PolityProminences[i].Set(ppEnumerator.Current);
+
+            Profiler.EndSample();
         }
 
-		for (int i = minCopyCount; i < PolityProminencesCount; i++)
+        for (int i = minCopyCount; i < PolityProminencesCount; i++)
         {
+            Profiler.BeginSample("PolityProminences.Add");
+
             ppEnumerator.MoveNext();
-            PolityProminences.Add (new PolityProminence(ppEnumerator.Current));
+            PolityProminences.Add(new PolityProminence(ppEnumerator.Current));
+
+            Profiler.EndSample();
         }
 
-		TryMigrateFactionCores ();
+        Profiler.BeginSample("TryMigrateFactionCores");
 
-		return true;
-	}
+        TryMigrateFactionCores();
 
-	private void TryMigrateFactionCores () {
+        Profiler.EndSample();
 
-		int targetPopulation = 0;
-		int targetNewPopulation = Population;
+        return true;
+    }
 
-		CellGroup targetGroup = TargetCell.Group;
-		if (targetGroup != null) {
-			targetPopulation = targetGroup.Population;
-			targetNewPopulation += targetPopulation;
+    private void TryMigrateFactionCores()
+    {
+        int targetPopulation = 0;
+        int targetNewPopulation = Population;
+
+        CellGroup targetGroup = TargetCell.Group;
+        if (targetGroup != null)
+        {
+            targetPopulation = targetGroup.Population;
+            targetNewPopulation += targetPopulation;
         }
 
         FactionCoresToMigrate.Clear();
 
-        foreach (Faction faction in SourceGroup.GetFactionCores ()) {
+        foreach (Faction faction in SourceGroup.GetFactionCores())
+        {
+            PolityProminence pi = SourceGroup.GetPolityProminence(faction.Polity);
 
-			PolityProminence pi = SourceGroup.GetPolityProminence (faction.Polity);
+            if (pi == null)
+            {
+                Debug.LogError("Unable to find Polity with Id: " + faction.Polity.Id);
+            }
 
-			if (pi == null) {
-				Debug.LogError ("Unable to find Polity with Id: " + faction.Polity.Id);
-			}
+            float sourceGroupProminence = pi.Value;
+            float targetGroupProminence = sourceGroupProminence;
 
-			float sourceGroupProminence = pi.Value;
-			float targetGroupProminence = sourceGroupProminence;
+            if (targetGroup != null)
+            {
+                PolityProminence piTarget = targetGroup.GetPolityProminence(faction.Polity);
 
-			if (targetGroup != null) {
-				PolityProminence piTarget = targetGroup.GetPolityProminence (faction.Polity);
+                if (piTarget != null)
+                    targetGroupProminence = piTarget.Value;
+                else
+                    targetGroupProminence = 0f;
+            }
 
-				if (piTarget != null)
-					targetGroupProminence = piTarget.Value;
-				else 
-					targetGroupProminence = 0f;
-			}
+            float targetNewGroupProminence = ((sourceGroupProminence * Population) + (targetGroupProminence * targetPopulation)) / targetNewPopulation;
 
-			float targetNewGroupProminence = ((sourceGroupProminence * Population) + (targetGroupProminence * targetPopulation)) / targetNewPopulation;
-
-			if (faction.ShouldMigrateFactionCore (SourceGroup, TargetCell, targetNewGroupProminence, targetNewPopulation))
-				FactionCoresToMigrate.Add (faction);
+            if (faction.ShouldMigrateFactionCore(SourceGroup, TargetCell, targetNewGroupProminence, targetNewPopulation))
+                FactionCoresToMigrate.Add(faction);
         }
 
 #if DEBUG
@@ -187,40 +211,55 @@ public class MigratingGroup : HumanGroup {
 #endif
     }
 
-    public void MoveToCell () {
-		
-		if (Population <= 0)
-			return;
+    public void MoveToCell()
+    {
+        if (Population <= 0)
+            return;
 
-		CellGroup targetGroup = TargetCell.Group;
+        CellGroup targetGroup = TargetCell.Group;
 
-		if (targetGroup != null) {
+        if (targetGroup != null)
+        {
+            if (targetGroup.StillPresent)
+            {
+                Profiler.BeginSample("targetGroup.MergeGroup");
 
-			if (targetGroup.StillPresent) {
+                targetGroup.MergeGroup(this);
 
-				targetGroup.MergeGroup (this);
+                Profiler.EndSample();
 
-				if (SourceGroup.MigrationTagged) {
-					World.MigrationTagGroup (TargetCell.Group);
-				}
-			}
-		} else {
+                if (SourceGroup.MigrationTagged)
+                {
+                    World.MigrationTagGroup(TargetCell.Group);
+                }
+            }
+        }
+        else
+        {
+            Profiler.BeginSample("targetGroup = new CellGroup");
 
-			targetGroup = new CellGroup (this, Population);
+            targetGroup = new CellGroup(this, Population);
 
-			World.AddGroup (targetGroup);
-		
-			if (SourceGroup.MigrationTagged) {
-				World.MigrationTagGroup (targetGroup);
-			}
-		}
+            Profiler.EndSample();
 
-		foreach (Faction faction in FactionCoresToMigrate) {
-            
+            Profiler.BeginSample("World.AddGroup");
+
+            World.AddGroup(targetGroup);
+
+            Profiler.EndSample();
+
+            if (SourceGroup.MigrationTagged)
+            {
+                World.MigrationTagGroup(targetGroup);
+            }
+        }
+
+        foreach (Faction faction in FactionCoresToMigrate)
+        {
             World.AddFactionToUpdate(faction);
             World.AddPolityToUpdate(faction.Polity);
 
-            faction.PrepareNewCoreGroup (targetGroup);
+            faction.PrepareNewCoreGroup(targetGroup);
         }
 
 #if DEBUG
@@ -242,19 +281,19 @@ public class MigratingGroup : HumanGroup {
 #endif
     }
 
-    public override void Synchronize ()
-	{
-		MigrationDirectionInt = (int)MigrationDirection;
-	}
-	
-	public override void FinalizeLoad () {
+    public override void Synchronize()
+    {
+        MigrationDirectionInt = (int)MigrationDirection;
+    }
 
-		MigrationDirection = (Direction)MigrationDirectionInt;
+    public override void FinalizeLoad()
+    {
+        MigrationDirection = (Direction)MigrationDirectionInt;
 
-		base.FinalizeLoad ();
-		
-		TargetCell = World.TerrainCells[TargetCellLongitude][TargetCellLatitude];
-		
-		SourceGroup = World.GetGroup (SourceGroupId);
-	}
+        base.FinalizeLoad();
+
+        TargetCell = World.TerrainCells[TargetCellLongitude][TargetCellLatitude];
+
+        SourceGroup = World.GetGroup(SourceGroupId);
+    }
 }

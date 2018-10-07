@@ -9,10 +9,10 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
 {
     public const float MinProgressLevel = 0.001f;
 
-    [XmlAttribute("PrgLvl")]
+    [XmlAttribute("PL")]
     public float ProgressLevel;
 
-    [XmlAttribute("Asym")]
+    [XmlAttribute("A")]
     public int Asymptote;
 
     [XmlAttribute("RO")]
@@ -50,29 +50,21 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
         _newValue = value;
     }
 
-    public static CellCulturalKnowledge CreateCellInstance(CellGroup group, CulturalKnowledge baseKnowledge)
+    public static CellCulturalKnowledge CreateCellInstance(string id, CellGroup group, int initialValue = 0)
     {
-        return CreateCellInstance(group, baseKnowledge, baseKnowledge.Value);
-    }
-
-    public static CellCulturalKnowledge CreateCellInstance(CellGroup group, CulturalKnowledge baseKnowledge, int initialValue)
-    {
-        if (ShipbuildingKnowledge.IsShipbuildingKnowledge(baseKnowledge))
+        switch (id)
         {
-            return new ShipbuildingKnowledge(group, baseKnowledge, initialValue);
+            case ShipbuildingKnowledge.ShipbuildingKnowledgeId:
+                return new ShipbuildingKnowledge(group, initialValue);
+
+            case AgricultureKnowledge.AgricultureKnowledgeId:
+                return new AgricultureKnowledge(group, initialValue);
+
+            case SocialOrganizationKnowledge.SocialOrganizationKnowledgeId:
+                return new SocialOrganizationKnowledge(group, initialValue);
         }
 
-        if (AgricultureKnowledge.IsAgricultureKnowledge(baseKnowledge))
-        {
-            return new AgricultureKnowledge(group, baseKnowledge, initialValue);
-        }
-
-        if (SocialOrganizationKnowledge.IsSocialOrganizationKnowledge(baseKnowledge))
-        {
-            return new SocialOrganizationKnowledge(group, baseKnowledge, initialValue);
-        }
-
-        throw new System.Exception("Unhandled CulturalKnowledge type: " + baseKnowledge.Id);
+        throw new System.Exception("Unexpected CulturalKnowledge type: " + id);
     }
 
     public int GetHighestAsymptote()
@@ -94,11 +86,11 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
         fInfo.SetValue(this, Mathf.Max(value, currentValue));
     }
 
-    public void Merge(CulturalKnowledge knowledge, float percentage)
+    public void Merge(int value, float percentage)
     {
         float d;
         // _newvalue should have been set correctly either by the constructor or by the Update function
-        int mergedValue = (int)MathUtility.MergeAndGetDecimals(_newValue, knowledge.Value, percentage, out d);
+        int mergedValue = (int)MathUtility.IntLerpAndGetDecimals(_newValue, value, percentage, out d);
 
         if (d > Group.GetNextLocalRandomFloat(RngOffsets.KNOWLEDGE_MERGE + RngOffset))
             mergedValue++;
@@ -116,30 +108,6 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
 #endif
 
         _newValue = mergedValue;
-    }
-
-    // This method should be called only once after a Knowledge is copied from another source group
-    public void DecreaseValue(float percentage)
-    {
-        float d;
-        int modifiedValue = (int)MathUtility.MultiplyAndGetDecimals(_newValue, percentage, out d);
-
-        if (d > Group.GetNextLocalRandomFloat(RngOffsets.KNOWLEDGE_MODIFY_VALUE + RngOffset))
-            modifiedValue++;
-
-#if DEBUG
-        if ((Id == SocialOrganizationKnowledge.SocialOrganizationKnowledgeId) && (modifiedValue < SocialOrganizationKnowledge.MinValueForHoldingTribalism))
-        {
-
-            if (Group.GetFactionCores().Count > 0)
-            {
-
-                Debug.LogWarning("group with low social organization has faction cores - Id: " + Group.Id);
-            }
-        }
-#endif
-
-        _newValue = modifiedValue;
     }
 
     public virtual void Synchronize()
@@ -162,7 +130,7 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
 
     public void CalculateAsymptote()
     {
-        Asymptote = CalculateBaseAsymptote();
+        Asymptote = GetBaseAsymptote();
 
         UpdateProgressLevel();
 
@@ -171,7 +139,7 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
 
     public void RecalculateAsymptote()
     {
-        Asymptote = CalculateBaseAsymptote();
+        Asymptote = GetBaseAsymptote();
 
         foreach (CulturalDiscovery d in Group.Culture.Discoveries.Values)
         {
@@ -232,7 +200,7 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
         float timeEffect = timeSpan / (float)(timeSpan + timeEffectFactor);
 
         float d;
-        int newValue = (int)MathUtility.MergeAndGetDecimals(Value, targetValue, timeEffect, out d);
+        int newValue = (int)MathUtility.IntLerpAndGetDecimals(Value, targetValue, timeEffect, out d);
 
         if (d > Group.GetNextLocalRandomFloat(rngOffset++))
             newValue++;
@@ -296,5 +264,5 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
 
     protected abstract void UpdateInternal(long timeSpan);
     protected abstract int CalculateAsymptoteInternal(CulturalDiscovery discovery);
-    protected abstract int CalculateBaseAsymptote();
+    protected abstract int GetBaseAsymptote();
 }

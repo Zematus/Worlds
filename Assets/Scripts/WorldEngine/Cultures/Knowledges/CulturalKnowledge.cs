@@ -8,12 +8,21 @@ using UnityEngine.Profiling;
 [XmlInclude(typeof(ShipbuildingKnowledge))]
 [XmlInclude(typeof(AgricultureKnowledge))]
 [XmlInclude(typeof(SocialOrganizationKnowledge))]
-public class CulturalKnowledge : CulturalKnowledgeInfo
+public class CulturalKnowledge : CulturalKnowledgeInfo, IFilterableValue
 {
     public const float ValueScaleFactor = 0.01f;
 
-    [XmlAttribute]
+    [XmlAttribute("V")]
     public int Value;
+
+    [XmlIgnore]
+    public bool IsPresent
+    {
+        get
+        {
+            return Value > 0;
+        }
+    }
 
     public CulturalKnowledge()
     {
@@ -37,5 +46,15 @@ public class CulturalKnowledge : CulturalKnowledgeInfo
     public void Reset()
     {
         Value = 0;
+    }
+
+    public void Set(int value)
+    {
+        Value = value;
+    }
+
+    public bool ShouldFilter()
+    {
+        return IsPresent;
     }
 }

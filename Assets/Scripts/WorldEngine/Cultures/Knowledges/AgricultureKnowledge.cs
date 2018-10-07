@@ -10,6 +10,8 @@ public class AgricultureKnowledge : CellCulturalKnowledge
     public const string AgricultureKnowledgeId = "AgricultureKnowledge";
     public const string AgricultureKnowledgeName = "Agriculture";
 
+    public const int InitialValue = 100;
+
     public const int AgricultureKnowledgeRngOffset = 1;
 
     public const float TimeEffectConstant = CellGroup.GenerationSpan * 2000;
@@ -28,22 +30,7 @@ public class AgricultureKnowledge : CellCulturalKnowledge
         }
     }
 
-    public AgricultureKnowledge(CellGroup group, int value = 100) : base(group, AgricultureKnowledgeId, AgricultureKnowledgeName, AgricultureKnowledgeRngOffset, value)
-    {
-        CalculateTerrainFactor();
-    }
-
-    public AgricultureKnowledge(CellGroup group, AgricultureKnowledge baseKnowledge) : base(group, baseKnowledge.Id, baseKnowledge.Name, AgricultureKnowledgeRngOffset, baseKnowledge.Value, baseKnowledge.Asymptote)
-    {
-        CalculateTerrainFactor();
-    }
-
-    public AgricultureKnowledge(CellGroup group, AgricultureKnowledge baseKnowledge, int initialValue) : base(group, baseKnowledge.Id, baseKnowledge.Name, AgricultureKnowledgeRngOffset, initialValue)
-    {
-        CalculateTerrainFactor();
-    }
-
-    public AgricultureKnowledge(CellGroup group, CulturalKnowledge baseKnowledge, int initialValue) : base(group, baseKnowledge.Id, baseKnowledge.Name, AgricultureKnowledgeRngOffset, initialValue)
+    public AgricultureKnowledge(CellGroup group, int initialValue) : base(group, AgricultureKnowledgeId, AgricultureKnowledgeName, AgricultureKnowledgeRngOffset, initialValue)
     {
         CalculateTerrainFactor();
     }
@@ -155,7 +142,7 @@ public class AgricultureKnowledge : CellCulturalKnowledge
         Group.Cell.FarmlandPercentage = 0;
     }
 
-    protected override int CalculateBaseAsymptote()
+    protected override int GetBaseAsymptote()
     {
         return 0;
     }

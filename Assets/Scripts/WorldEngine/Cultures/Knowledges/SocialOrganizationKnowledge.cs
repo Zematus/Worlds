@@ -12,7 +12,8 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge
 
     public const int SocialOrganizationKnowledgeRngOffset = 2;
 
-    public const int StartValue = 100;
+    public const int InitialValue = 100;
+
     public const int MinValueForTribalismDiscovery = 500;
     public const int MinValueForHoldingTribalism = 200;
     public const int OptimalValueForTribalism = 10000;
@@ -30,22 +31,7 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge
         }
     }
 
-    public SocialOrganizationKnowledge(CellGroup group, int value = StartValue) : base(group, SocialOrganizationKnowledgeId, SocialOrganizationKnowledgeName, SocialOrganizationKnowledgeRngOffset, value)
-    {
-
-    }
-
-    public SocialOrganizationKnowledge(CellGroup group, SocialOrganizationKnowledge baseKnowledge) : base(group, baseKnowledge.Id, baseKnowledge.Name, SocialOrganizationKnowledgeRngOffset, baseKnowledge.Value, baseKnowledge.Asymptote)
-    {
-
-    }
-
-    public SocialOrganizationKnowledge(CellGroup group, SocialOrganizationKnowledge baseKnowledge, int initialValue) : base(group, baseKnowledge.Id, baseKnowledge.Name, SocialOrganizationKnowledgeRngOffset, initialValue)
-    {
-
-    }
-
-    public SocialOrganizationKnowledge(CellGroup group, CulturalKnowledge baseKnowledge, int initialValue) : base(group, baseKnowledge.Id, baseKnowledge.Name, SocialOrganizationKnowledgeRngOffset, initialValue)
+    public SocialOrganizationKnowledge(CellGroup group, int initialValue) : base(group, SocialOrganizationKnowledgeId, SocialOrganizationKnowledgeName, SocialOrganizationKnowledgeRngOffset, initialValue)
     {
 
     }
@@ -171,7 +157,7 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge
 
     }
 
-    protected override int CalculateBaseAsymptote()
+    protected override int GetBaseAsymptote()
     {
         return 1000;
     }

@@ -60,11 +60,14 @@ public class CellCulture : Culture
 
         foreach (CulturalKnowledge k in sourceCulture.Knowledges.Values)
         {
-            CellCulturalKnowledge knowledge = CellCulturalKnowledge.CreateCellInstance(group, k);
+            if (k.IsPresent)
+            {
+                CellCulturalKnowledge knowledge = CellCulturalKnowledge.CreateCellInstance(k.Id, group, k.Value);
 
-            AddKnowledge(knowledge);
+                AddKnowledge(knowledge);
 
-            knowledge.CalculateAsymptote();
+                knowledge.CalculateAsymptote();
+            }
         }
 
         foreach (CulturalDiscovery d in sourceCulture.Discoveries.Values)
@@ -123,21 +126,45 @@ public class CellCulture : Culture
         SkillsToLearn.Add(skill.Id, skill);
     }
 
-    public void AddKnowledgeToLearn(CellCulturalKnowledge knowledge)
+    public CellCulturalKnowledge TryAddKnowledgeToLearn(string id, CellGroup group, int initialValue = 0)
     {
-        if (KnowledgesToLearn.ContainsKey(knowledge.Id))
-            return;
+        CellCulturalKnowledge knowledge = GetKnowledge(id) as CellCulturalKnowledge;
 
-        KnowledgesToLearn.Add(knowledge.Id, knowledge);
+        if ((knowledge != null) && knowledge.IsPresent)
+        {
+            return knowledge;
+        }
+
+        if (KnowledgesToLearn.TryGetValue(id, out knowledge))
+        {
+            return knowledge;
+        }
+
+        if (knowledge == null)
+        {
+            knowledge = CellCulturalKnowledge.CreateCellInstance(id, group);
+        }
+
+        knowledge.Set(initialValue);
+
+        KnowledgesToLearn.Add(id, knowledge);
+
+        return knowledge;
     }
 
-    public bool TryAddDiscoveryToFind(string id)
+    public CellCulturalDiscovery TryAddDiscoveryToFind(string id)
     {
         CellCulturalDiscovery discovery = GetDiscovery(id) as CellCulturalDiscovery;
 
-        if ((discovery != null) && discovery.IsPresent) return false;
+        if ((discovery != null) && discovery.IsPresent)
+        {
+            return discovery;
+        }
 
-        if (DiscoveriesToFind.ContainsKey(id)) return false;
+        if (DiscoveriesToFind.TryGetValue(id, out discovery))
+        {
+            return discovery;
+        }
 
         if (discovery == null)
         {
@@ -146,7 +173,7 @@ public class CellCulture : Culture
 
         DiscoveriesToFind.Add(id, discovery);
 
-        return true;
+        return discovery;
     }
 
     public CellCulturalPreference GetAcquiredPerferenceOrToAcquire (string id) {
@@ -188,31 +215,10 @@ public class CellCulture : Culture
 		return null;
 	}
 
-	public CellCulturalKnowledge GetLearnedKnowledgeOrToLearn (string id) {
-
-		CellCulturalKnowledge knowledge = GetKnowledge (id) as CellCulturalKnowledge;
-
-		if (knowledge != null)
-			return knowledge;
-
-		if (KnowledgesToLearn.TryGetValue (id, out knowledge))
-			return knowledge;
-
-		return null;
-	}
-
-    //public CellCulturalDiscovery GetFoundDiscoveryOrToFind(string id)
-    //{
-    //    CellCulturalDiscovery discovery = GetDiscovery(id) as CellCulturalDiscovery;
-
-    //    if (discovery != null)
-    //        return discovery;
-
-    //    if (DiscoveriesToFind.TryGetValue(id, out discovery))
-    //        return discovery;
-
-    //    return null;
-    //}
+    public bool HasKnowledgeOrWillHave(string id)
+    {
+        return HasKnowledge(id) | KnowledgesToLearn.ContainsKey(id);
+    }
 
     public bool HasDiscoveryOrWillHave(string id)
     {
@@ -282,19 +288,10 @@ public class CellCulture : Culture
 
         foreach (CulturalKnowledge k in sourceCulture.Knowledges.Values)
         {
-            CellCulturalKnowledge knowledge = GetLearnedKnowledgeOrToLearn(k.Id);
+            if (!k.IsPresent) continue;
 
-            if (knowledge == null)
-            {
-                knowledge = CellCulturalKnowledge.CreateCellInstance(Group, k);
-                knowledge.DecreaseValue(percentage);
-
-                AddKnowledgeToLearn(knowledge);
-            }
-            else
-            {
-                knowledge.Merge(k, percentage);
-            }
+            CellCulturalKnowledge knowledge = TryAddKnowledgeToLearn(k.Id, Group);
+            knowledge.Merge(k.Value, percentage);
         }
 
         foreach (CulturalDiscovery d in sourceCulture.Discoveries.Values)
@@ -373,13 +370,7 @@ public class CellCulture : Culture
 
         foreach (CulturalKnowledge polityKnowledge in polityCulture.Knowledges.Values)
         {
-            CellCulturalKnowledge cellKnowledge = GetLearnedKnowledgeOrToLearn(polityKnowledge.Id);
-
-            if (cellKnowledge == null)
-            {
-                cellKnowledge = CellCulturalKnowledge.CreateCellInstance(Group, polityKnowledge, 0);
-                AddKnowledgeToLearn(cellKnowledge);
-            }
+            CellCulturalKnowledge cellKnowledge = TryAddKnowledgeToLearn(polityKnowledge.Id, Group);
 
             cellKnowledge.PolityCulturalProminence(polityKnowledge, polityProminence, timeSpan);
         }

@@ -50,17 +50,20 @@ public class Culture : ISynchronizable
             AddSkill(new CulturalSkill(s));
         }
 
+        foreach (CulturalKnowledge k in sourceCulture.Knowledges.Values)
+        {
+            if (k.IsPresent)
+            {
+                AddKnowledge(new CulturalKnowledge(k));
+            }
+        }
+
         foreach (CulturalDiscovery d in sourceCulture.Discoveries.Values)
         {
             if (d.IsPresent)
             {
                 AddDiscovery(new CulturalDiscovery(d));
             }
-        }
-
-        foreach (CulturalKnowledge k in sourceCulture.Knowledges.Values)
-        {
-            AddKnowledge(new CulturalKnowledge(k));
         }
     }
 
@@ -176,8 +179,10 @@ public class Culture : ISynchronizable
     {
         if (!Knowledges.ContainsKey(knowledge.Id))
             return;
+
+        knowledge.Reset();
         
-        Knowledges.Remove(knowledge.Id);
+        //Knowledges.Remove(knowledge.Id);
     }
 
     public void ResetKnowledges()
@@ -193,7 +198,7 @@ public class Culture : ISynchronizable
         bool wasPresent = discovery.WasPresent;
 
         if (setAsPresent)
-            discovery.Set();
+            discovery.Set(true);
         else
             discovery.Reset();
 
@@ -258,6 +263,16 @@ public class Culture : ISynchronizable
             return null;
 
         return knowledge;
+    }
+
+    public bool HasKnowledge(string id)
+    {
+        CulturalKnowledge knowledge = GetKnowledge(id);
+
+        if ((knowledge != null) && knowledge.IsPresent)
+            return true;
+
+        return false;
     }
 
     public CulturalDiscovery GetDiscovery(string id)

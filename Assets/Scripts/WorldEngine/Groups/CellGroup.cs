@@ -482,71 +482,74 @@ public class CellGroup : HumanGroup
 		}
 	}
 
-	public void InitializeDefaultPreferences (bool initialGroup) {
+	public void InitializeDefaultPreferences(bool initialGroup)
+    {
+        if (initialGroup)
+        {
+            Culture.AddPreferenceToAcquire(CellCulturalPreference.CreateAuthorityPreference(this, 0.5f));
+            Culture.AddPreferenceToAcquire(CellCulturalPreference.CreateCohesionPreference(this, 0.5f));
+            Culture.AddPreferenceToAcquire(CellCulturalPreference.CreateIsolationPreference(this, 0.5f));
+        }
+    }
 
-		if (initialGroup) {
-			Culture.AddPreferenceToAcquire (CellCulturalPreference.CreateAuthorityPreference (this, 0.5f));
-			Culture.AddPreferenceToAcquire (CellCulturalPreference.CreateCohesionPreference (this, 0.5f));
-			Culture.AddPreferenceToAcquire (CellCulturalPreference.CreateIsolationPreference (this, 0.5f));
-		}
-	}
+    public void InitializeDefaultActivities(bool initialGroup)
+    {
+        if (initialGroup)
+        {
+            Culture.AddActivityToPerform(CellCulturalActivity.CreateForagingActivity(this, 1f, 1f));
+        }
+    }
 
-	public void InitializeDefaultActivities (bool initialGroup) {
+    public void InitializeDefaultKnowledges(bool initialGroup)
+    {
+        if (initialGroup)
+        {
+            Culture.TryAddKnowledgeToLearn(SocialOrganizationKnowledge.SocialOrganizationKnowledgeId, this, SocialOrganizationKnowledge.InitialValue);
+        }
+    }
 
-		if (initialGroup) {
-			Culture.AddActivityToPerform (CellCulturalActivity.CreateForagingActivity (this, 1f, 1f));
-		}
-	}
+    public void SetFlag(string flag)
+    {
+        if (_flags.Contains(flag))
+            return;
 
-	public void InitializeDefaultKnowledges (bool initialGroup) {
+        _flags.Add(flag);
+    }
 
-		if (initialGroup) {
-			Culture.AddKnowledgeToLearn (new SocialOrganizationKnowledge (this));
-		}
-	}
+    public bool IsFlagSet(string flag)
+    {
+        return _flags.Contains(flag);
+    }
 
-	public void SetFlag (string flag) {
-	
-		if (_flags.Contains (flag))
-			return;
+    public void UnsetFlag(string flag)
+    {
+        if (!_flags.Contains(flag))
+            return;
 
-		_flags.Add (flag);
-	}
+        _flags.Remove(flag);
+    }
 
-	public bool IsFlagSet (string flag) {
-	
-		return _flags.Contains (flag);
-	}
+    public int GetNextLocalRandomInt(int iterationOffset, int maxValue)
+    {
+        return Cell.GetNextLocalRandomInt(iterationOffset, maxValue);
+    }
 
-	public void UnsetFlag (string flag) {
-	
-		if (!_flags.Contains (flag))
-			return;
+    public int GetLocalRandomInt(long date, int iterationOffset, int maxValue)
+    {
+        return Cell.GetLocalRandomInt(date, iterationOffset, maxValue);
+    }
 
-		_flags.Remove (flag);
-	}
+    public float GetNextLocalRandomFloat(int iterationOffset)
+    {
+        return Cell.GetNextLocalRandomFloat(iterationOffset);
+    }
 
-	public int GetNextLocalRandomInt (int iterationOffset, int maxValue) {
-	
-		return Cell.GetNextLocalRandomInt (iterationOffset, maxValue);
-	}
+    public float GetLocalRandomFloat(long date, int iterationOffset)
+    {
+        return Cell.GetLocalRandomFloat(date, iterationOffset);
+    }
 
-	public int GetLocalRandomInt (long date, int iterationOffset, int maxValue) {
-
-		return Cell.GetLocalRandomInt (date, iterationOffset, maxValue);
-	}
-
-	public float GetNextLocalRandomFloat (int iterationOffset) {
-
-		return Cell.GetNextLocalRandomFloat (iterationOffset);
-	}
-
-	public float GetLocalRandomFloat (long date, int iterationOffset) {
-
-		return Cell.GetLocalRandomFloat (date, iterationOffset);
-	}
-
-	public void AddNeighbor (Direction direction, CellGroup group) {
+    public void AddNeighbor (Direction direction, CellGroup group) {
 
 		if (group == null)
 			return;
@@ -767,82 +770,82 @@ public class CellGroup : HumanGroup
 		SetPolityProminence (polity, newValue);
 	}
 
-	private void MergePolityProminencesInternal_Finalize (Dictionary<long, PolityProminence> targetPolityProminences, float percentOfTarget) {
+	private void MergePolityProminencesInternal_Finalize(Dictionary<long, PolityProminence> targetPolityProminences, float percentOfTarget)
+    {
+        foreach (PolityProminence pProminence in targetPolityProminences.Values)
+        {
+            float prominenceValue = pProminence.NewValue;
 
-		foreach (PolityProminence pProminence in targetPolityProminences.Values) {
+            float newValue = prominenceValue * (1 - percentOfTarget);
 
-			float prominenceValue = pProminence.NewValue;
+            //			#if DEBUG
+            //			if (Manager.RegisterDebugEvent != null) {
+            //				if (Id == Manager.TracingData.GroupId) {
+            //
+            //					string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
+            //
+            //					SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+            //						"MergePolities:Rescale - Group:" + groupId + 
+            //						", pProminence.PolityId: " + pProminence.PolityId,
+            //						"CurrentDate: " + World.CurrentDate  +
+            //						", prominenceValue: " + prominenceValue + 
+            //						", Polity.TotalGroupProminenceValue: " + pProminence.Polity.TotalGroupProminenceValue + 
+            //						", newProminenceValue: " + newProminenceValue + 
+            //						", percentOfTarget: " + percentOfTarget + 
+            //						"");
+            //
+            //					Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+            //				}
+            //			}
+            //			#endif
 
-			float newValue = prominenceValue * (1 - percentOfTarget);
+            SetPolityProminence(pProminence.Polity, newValue);
+        }
+    }
 
-			//			#if DEBUG
-			//			if (Manager.RegisterDebugEvent != null) {
-			//				if (Id == Manager.TracingData.GroupId) {
-			//
-			//					string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
-			//
-			//					SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-			//						"MergePolities:Rescale - Group:" + groupId + 
-			//						", pProminence.PolityId: " + pProminence.PolityId,
-			//						"CurrentDate: " + World.CurrentDate  +
-			//						", prominenceValue: " + prominenceValue + 
-			//						", Polity.TotalGroupProminenceValue: " + pProminence.Polity.TotalGroupProminenceValue + 
-			//						", newProminenceValue: " + newProminenceValue + 
-			//						", percentOfTarget: " + percentOfTarget + 
-			//						"");
-			//
-			//					Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-			//				}
-			//			}
-			//			#endif
+    public int SplitGroup(MigratingGroup group)
+    {
+        int splitPopulation = (int)Mathf.Floor(Population * group.PercentPopulation);
 
-			SetPolityProminence (pProminence.Polity, newValue);
-		}
-	}
-	
-	public int SplitGroup (MigratingGroup group) {
+        //		#if DEBUG
+        //		float oldExactPopulation = ExactPopulation;
+        //		#endif
 
-		int splitPopulation = (int)Mathf.Floor(Population * group.PercentPopulation);
+        ExactPopulation -= splitPopulation;
 
-//		#if DEBUG
-//		float oldExactPopulation = ExactPopulation;
-//		#endif
-
-		ExactPopulation -= splitPopulation;
-
-//		#if DEBUG
-//		if (Manager.RegisterDebugEvent != null) {
-//			if ((Id == Manager.TracingData.GroupId) || 
-//				((group.TargetCell.Group != null) && (group.TargetCell.Group.Id == Manager.TracingData.GroupId))) {
-//				string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
-//				string targetInfo = "Long:" + group.TargetCell.Longitude + "|Lat:" + group.TargetCell.Latitude;
-//
-//				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-//					"SplitGroup - sourceGroup:" + groupId,
-//					"CurrentDate: " + World.CurrentDate + 
-//					", targetInfo: " + targetInfo + 
-//					", ExactPopulation: " + ExactPopulation + 
-//					", oldExactPopulation: " + oldExactPopulation + 
-//					", migratingGroup.PercentPopulation: " + group.PercentPopulation + 
-//					", splitPopulation: " + splitPopulation + 
-//					"");
-//
-//				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-//			}
-//		}
-//		#endif
+        //		#if DEBUG
+        //		if (Manager.RegisterDebugEvent != null) {
+        //			if ((Id == Manager.TracingData.GroupId) || 
+        //				((group.TargetCell.Group != null) && (group.TargetCell.Group.Id == Manager.TracingData.GroupId))) {
+        //				string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
+        //				string targetInfo = "Long:" + group.TargetCell.Longitude + "|Lat:" + group.TargetCell.Latitude;
+        //
+        //				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+        //					"SplitGroup - sourceGroup:" + groupId,
+        //					"CurrentDate: " + World.CurrentDate + 
+        //					", targetInfo: " + targetInfo + 
+        //					", ExactPopulation: " + ExactPopulation + 
+        //					", oldExactPopulation: " + oldExactPopulation + 
+        //					", migratingGroup.PercentPopulation: " + group.PercentPopulation + 
+        //					", splitPopulation: " + splitPopulation + 
+        //					"");
+        //
+        //				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+        //			}
+        //		}
+        //		#endif
 
 #if DEBUG
-		if (Population < -1000) {
-			Debug.Break ();
-			throw new System.Exception ("Debug.Break");
-		}
+        if (Population < 0)
+        {
+            throw new System.Exception("Population less than 0");
+        }
 #endif
 
-		return splitPopulation;
-	}
+        return splitPopulation;
+    }
 
-	public void PostUpdate_BeforePolityUpdates () {
+    public void PostUpdate_BeforePolityUpdates () {
 
 #if DEBUG
         if (Manager.RegisterDebugEvent != null)

@@ -75,7 +75,7 @@ public class PlantCultivationDiscoveryEvent : DiscoveryEvent
     {
         Group.Culture.AddActivityToPerform(CellCulturalActivity.CreateFarmingActivity(Group));
         Group.Culture.TryAddDiscoveryToFind(PlantCultivationDiscovery.PlantCultivationDiscoveryId);
-        Group.Culture.AddKnowledgeToLearn(new AgricultureKnowledge(Group));
+        Group.Culture.TryAddKnowledgeToLearn(AgricultureKnowledge.AgricultureKnowledgeId, Group, AgricultureKnowledge.InitialValue);
         World.AddGroupToUpdate(Group);
 
         TryGenerateEventMessage(PlantCultivationDiscoveryEventId, PlantCultivationDiscovery.PlantCultivationDiscoveryId);
