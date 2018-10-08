@@ -181,8 +181,6 @@ public class Culture : ISynchronizable
             return;
 
         knowledge.Reset();
-        
-        //Knowledges.Remove(knowledge.Id);
     }
 
     public void ResetKnowledges()
@@ -193,12 +191,12 @@ public class Culture : ISynchronizable
         }
     }
 
-    protected void AddDiscovery(CulturalDiscovery discovery, bool setAsPresent = true)
+    public void AddDiscovery(CulturalDiscovery discovery, bool setAsPresent = true)
     {
         bool wasPresent = discovery.WasPresent;
 
         if (setAsPresent)
-            discovery.Set(true);
+            discovery.Set();
         else
             discovery.Reset();
 

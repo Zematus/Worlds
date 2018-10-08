@@ -38,6 +38,12 @@ public class CulturalDiscovery : CulturalDiscoveryInfo, IFilterableValue
         WasPresent = false;
     }
 
+    public void Set()
+    {
+        IsPresent = true;
+        WasPresent = false;
+    }
+
     public void Reset()
     {
         IsPresent = false;

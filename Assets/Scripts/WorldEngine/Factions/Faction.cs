@@ -6,63 +6,63 @@ using System.Xml.Serialization;
 using UnityEngine.Profiling;
 
 [XmlInclude(typeof(Clan))]
-public abstract class Faction : ISynchronizable {
+public abstract class Faction : ISynchronizable
+{
+    [XmlAttribute("PolId")]
+    public long PolityId;
 
-	[XmlAttribute("PolId")]
-	public long PolityId;
+    [XmlAttribute("CGrpId")]
+    public long CoreGroupId;
 
-	[XmlAttribute("CGrpId")]
-	public long CoreGroupId;
+    [XmlAttribute("Prom")]
+    public float Influence;
 
-	[XmlAttribute("Prom")]
-	public float Influence;
+    [XmlAttribute("StilPres")]
+    public bool StillPresent = true;
 
-	[XmlAttribute("StilPres")]
-	public bool StillPresent = true;
+    [XmlAttribute("IsDom")]
+    public bool IsDominant = false;
 
-	[XmlAttribute("IsDom")]
-	public bool IsDominant = false;
+    [XmlAttribute("LastUpDate")]
+    public long LastUpdateDate;
 
-	[XmlAttribute("LastUpDate")]
-	public long LastUpdateDate;
+    [XmlAttribute("LeadStDate")]
+    public long LeaderStartDate;
 
-	[XmlAttribute("LeadStDate")]
-	public long LeaderStartDate;
-
-	[XmlAttribute("IsCon")]
-	public bool IsUnderPlayerGuidance = false;
+    [XmlAttribute("IsCon")]
+    public bool IsUnderPlayerGuidance = false;
 
     [XmlIgnore]
     public bool IsBeingUpdated = false;
 
     public FactionCulture Culture;
 
-	public List<FactionRelationship> Relationships = new List<FactionRelationship> ();
+    public List<FactionRelationship> Relationships = new List<FactionRelationship>();
 
-	public List<FactionEventData> EventDataList = new List<FactionEventData> ();
+    public List<FactionEventData> EventDataList = new List<FactionEventData>();
 
-	// Do not call this property directly, only for serialization
-	public Agent LastLeader = null;
+    // Do not call this property directly, only for serialization
+    public Agent LastLeader = null;
 
-	//public List<string> Flags;
+    //public List<string> Flags;
 
     [XmlIgnore]
     public FactionInfo Info;
 
     [XmlIgnore]
-	public World World;
+    public World World;
 
-	[XmlIgnore]
-	public Polity Polity;
+    [XmlIgnore]
+    public Polity Polity;
 
-	[XmlIgnore]
-	public CellGroup CoreGroup;
+    [XmlIgnore]
+    public CellGroup CoreGroup;
 
-	[XmlIgnore]
-	public CellGroup NewCoreGroup = null;
+    [XmlIgnore]
+    public CellGroup NewCoreGroup = null;
 
-	[XmlIgnore]
-	public bool IsInitialized = true;
+    [XmlIgnore]
+    public bool IsInitialized = true;
 
     // Use this instead to get the leader
     public Agent CurrentLeader
@@ -89,66 +89,66 @@ public abstract class Faction : ISynchronizable {
     }
 
     protected long _splitFactionEventId;
-	protected CellGroup _splitFactionCoreGroup;
-	protected float _splitFactionMinInfluence;
-	protected float _splitFactionMaxInfluence;
+    protected CellGroup _splitFactionCoreGroup;
+    protected float _splitFactionMinInfluence;
+    protected float _splitFactionMaxInfluence;
 
-	protected Dictionary<long, FactionRelationship> _relationships = new Dictionary<long, FactionRelationship> ();
+    protected Dictionary<long, FactionRelationship> _relationships = new Dictionary<long, FactionRelationship>();
 
-	protected Dictionary<long, FactionEvent> _events = new Dictionary<long, FactionEvent> ();
+    protected Dictionary<long, FactionEvent> _events = new Dictionary<long, FactionEvent>();
 
-	//private HashSet<string> _flags = new HashSet<string> ();
+    private bool _preupdated = false;
 
-	private bool _preupdated = false;
-
-	public Faction () {
-
-	}
-
-	public Faction(string type, Polity polity, CellGroup coreGroup, float influence, Faction parentFaction = null)
+    public Faction()
     {
-		World = polity.World;
 
-		LastUpdateDate = World.CurrentDate;
+    }
 
-		long idOffset = 0;
+    public Faction(string type, Polity polity, CellGroup coreGroup, float influence, Faction parentFaction = null)
+    {
+        World = polity.World;
 
-		if (parentFaction != null) {
-		
-			idOffset = parentFaction.Id + 1;
-		}
+        LastUpdateDate = World.CurrentDate;
 
-		PolityId = polity.Id;
-		Polity = polity;
+        long idOffset = 0;
 
-		CoreGroup = coreGroup;
-		CoreGroupId = coreGroup.Id;
+        if (parentFaction != null)
+        {
+            idOffset = parentFaction.Id + 1;
+        }
 
-		long id = GenerateUniqueIdentifier (World.CurrentDate, 100L, idOffset);
+        PolityId = polity.Id;
+        Polity = polity;
+
+        CoreGroup = coreGroup;
+        CoreGroupId = coreGroup.Id;
+
+        long id = GenerateUniqueIdentifier(World.CurrentDate, 100L, idOffset);
 
         Info = new FactionInfo(type, id, this);
 
-        Culture = new FactionCulture (this);
+        Culture = new FactionCulture(this);
 
-		CoreGroup.AddFactionCore (this);
+        CoreGroup.AddFactionCore(this);
 
-		//World.AddGroupToUpdate (CoreGroup);
+        //World.AddGroupToUpdate (CoreGroup);
 
-		Influence = influence;
+        Influence = influence;
 
-		GenerateName (parentFaction);
+        GenerateName(parentFaction);
 
-		IsInitialized = false;
-	}
+        IsInitialized = false;
+    }
 
-	public void Initialize () {
+    public void Initialize()
+    {
+        InitializeInternal();
 
-		InitializeInternal ();
-	
-		IsInitialized = true;
-	}
+        IsInitialized = true;
+    }
 
-	protected virtual void InitializeInternal () {
+    protected virtual void InitializeInternal()
+    {
 
     }
 
@@ -162,107 +162,110 @@ public abstract class Faction : ISynchronizable {
         return Info.GetNameAndTypeStringBold();
     }
 
-    public string GetNameAndTypeWithPolityString () {
-	
-		return GetNameAndTypeString () + " of " + Polity.GetNameAndTypeString ();
-	}
+    public string GetNameAndTypeWithPolityString()
+    {
+        return GetNameAndTypeString() + " of " + Polity.GetNameAndTypeString();
+    }
 
-	public string GetNameAndTypeWithPolityStringBold () {
+    public string GetNameAndTypeWithPolityStringBold()
+    {
+        return GetNameAndTypeStringBold() + " of " + Polity.GetNameAndTypeStringBold();
+    }
 
-		return GetNameAndTypeStringBold () + " of " + Polity.GetNameAndTypeStringBold ();
-	}
+    public void Destroy(bool polityBeingDestroyed = false)
+    {
+        if (IsUnderPlayerGuidance)
+        {
+            Manager.SetGuidedFaction(null);
+        }
 
-	public void Destroy (bool polityBeingDestroyed = false) {
+        CoreGroup.RemoveFactionCore(this);
 
-		if (IsUnderPlayerGuidance) {
-		
-			Manager.SetGuidedFaction (null);
-		}
-		
-		CoreGroup.RemoveFactionCore (this);
+        if (!polityBeingDestroyed)
+        {
+            Polity.RemoveFaction(this);
+        }
 
-		if (!polityBeingDestroyed) {
-			Polity.RemoveFaction (this);
-		}
-
-		foreach (FactionRelationship relationship in _relationships.Values) {
-			relationship.Faction.RemoveRelationship (this);
-		}
+        foreach (FactionRelationship relationship in _relationships.Values)
+        {
+            relationship.Faction.RemoveRelationship(this);
+        }
 
         Info.Faction = null;
 
-		StillPresent = false;
-	}
+        StillPresent = false;
+    }
 
-	public static int CompareId (Faction a, Faction b) {
+    public static int CompareId(Faction a, Faction b)
+    {
+        if (a.Id > b.Id)
+            return 1;
 
-		if (a.Id > b.Id)
-			return 1;
+        if (a.Id < b.Id)
+            return -1;
 
-		if (a.Id < b.Id)
-			return -1;
+        return 0;
+    }
 
-		return 0;
-	}
+    public void SetToUpdate()
+    {
+        World.AddGroupToUpdate(CoreGroup);
+        World.AddFactionToUpdate(this);
+        World.AddPolityToUpdate(Polity);
+    }
 
-	public void SetToUpdate () {
+    public static void SetRelationship(Faction factionA, Faction factionB, float value)
+    {
+        factionA.SetRelationship(factionB, value);
+        factionB.SetRelationship(factionA, value);
+    }
 
-		World.AddGroupToUpdate (CoreGroup);
-		World.AddFactionToUpdate (this);
-		World.AddPolityToUpdate (Polity);
-	}
+    public void SetRelationship(Faction faction, float value)
+    {
+        value = Mathf.Clamp01(value);
 
-	public static void SetRelationship (Faction factionA, Faction factionB, float value) {
-	
-		factionA.SetRelationship (factionB, value);
-		factionB.SetRelationship (factionA, value);
-	}
+        if (!_relationships.ContainsKey(faction.Id))
+        {
+            FactionRelationship relationship = new FactionRelationship(faction, value);
 
-	public void SetRelationship (Faction faction, float value) {
+            _relationships.Add(faction.Id, relationship);
+            Relationships.Add(relationship);
 
-		value = Mathf.Clamp01 (value);
+        }
+        else
+        {
+            _relationships[faction.Id].Value = value;
+        }
+    }
 
-		if (!_relationships.ContainsKey (faction.Id)) {
-		
-			FactionRelationship relationship = new FactionRelationship (faction, value);
+    public void RemoveRelationship(Faction faction)
+    {
+        if (!_relationships.ContainsKey(faction.Id))
+            throw new System.Exception("(id: " + Id + ") relationship not present: " + faction.Id);
 
-			_relationships.Add (faction.Id, relationship);
-			Relationships.Add (relationship);
+        FactionRelationship relationship = _relationships[faction.Id];
 
-		} else {
+        Relationships.Remove(relationship);
+        _relationships.Remove(faction.Id);
+    }
 
-			_relationships[faction.Id].Value = value;
-		}
-	}
+    public float GetRelationshipValue(Faction faction)
+    {
+        // Set a default neutral relationship
+        if (!_relationships.ContainsKey(faction.Id))
+        {
+            Faction.SetRelationship(this, faction, 0.5f);
+        }
 
-	public void RemoveRelationship (Faction faction) {
+        return _relationships[faction.Id].Value;
+    }
 
-		if (!_relationships.ContainsKey (faction.Id))
-			throw new System.Exception ("(id: " + Id + ") relationship not present: " + faction.Id);
+    public bool HasRelationship(Faction faction)
+    {
+        return _relationships.ContainsKey(faction.Id);
+    }
 
-		FactionRelationship relationship = _relationships [faction.Id];
-
-		Relationships.Remove (relationship);
-		_relationships.Remove (faction.Id);
-	}
-
-	public float GetRelationshipValue (Faction faction) {
-
-		// Set a default neutral relationship
-		if (!_relationships.ContainsKey (faction.Id)) {
-			Faction.SetRelationship (this, faction, 0.5f);
-		}
-//			throw new System.Exception ("(id: " + Id + ") relationship not present: " + faction.Id);
-
-		return _relationships[faction.Id].Value;
-	}
-
-	public bool HasRelationship (Faction faction) {
-
-		return _relationships.ContainsKey (faction.Id);
-	}
-
-	public void SetToSplit(CellGroup splitFactionCoreGroup, float splitFactionMinInfluence, float splitFactionMaxInfluence, long eventId)
+    public void SetToSplit(CellGroup splitFactionCoreGroup, float splitFactionMinInfluence, float splitFactionMaxInfluence, long eventId)
     {
         _splitFactionEventId = eventId;
         _splitFactionCoreGroup = splitFactionCoreGroup;
@@ -430,211 +433,191 @@ public abstract class Faction : ISynchronizable {
         IsBeingUpdated = false;
     }
 
-    public void PrepareNewCoreGroup (CellGroup coreGroup) {
+    public void PrepareNewCoreGroup(CellGroup coreGroup)
+    {
+        NewCoreGroup = coreGroup;
+    }
 
-		NewCoreGroup = coreGroup;
-	}
+    public void MigrateToNewCoreGroup()
+    {
+        CoreGroup.RemoveFactionCore(this);
 
-	public void MigrateToNewCoreGroup () {
+        CoreGroup = NewCoreGroup;
+        CoreGroupId = NewCoreGroup.Id;
 
-		CoreGroup.RemoveFactionCore (this);
+        CoreGroup.AddFactionCore(this);
 
-		CoreGroup = NewCoreGroup;
-		CoreGroupId = NewCoreGroup.Id;
+        if (IsDominant)
+        {
+            Polity.SetCoreGroup(CoreGroup);
+        }
+    }
 
-		CoreGroup.AddFactionCore (this);
+    protected abstract void UpdateInternal();
+
+    public virtual void Synchronize()
+    {
+        EventDataList.Clear();
+
+        foreach (FactionEvent e in _events.Values)
+        {
+            EventDataList.Add(e.GetData() as FactionEventData);
+        }
+
+        Culture.Synchronize();
+
+        Name.Synchronize();
+    }
 
-		if (IsDominant) {
-			Polity.SetCoreGroup (CoreGroup);
-		}
-	}
+    public virtual void FinalizeLoad()
+    {
+        Name.World = World;
+        Name.FinalizeLoad();
 
-	protected abstract void UpdateInternal ();
+        CoreGroup = World.GetGroup(CoreGroupId);
 
-	public virtual void Synchronize () {
+        Polity = World.GetPolity(PolityId);
 
-		//Flags = new List<string> (_flags);
+        if (Polity == null)
+        {
+            throw new System.Exception("Missing Polity with Id " + PolityId);
+        }
 
-		EventDataList.Clear ();
+        Culture.World = World;
+        Culture.Faction = this;
+        Culture.FinalizeLoad();
+
+        foreach (FactionRelationship relationship in Relationships)
+        {
+            _relationships.Add(relationship.Id, relationship);
+            relationship.Faction = World.GetFaction(relationship.Id);
 
-		foreach (FactionEvent e in _events.Values) {
+            if (relationship.Faction == null)
+            {
+                throw new System.Exception("Faction is null, Id: " + relationship.Id);
+            }
+        }
 
-			EventDataList.Add (e.GetData () as FactionEventData);
-		}
+        GenerateEventsFromData();
+    }
 
-		Culture.Synchronize ();
+    protected abstract void GenerateEventsFromData();
 
-		Name.Synchronize ();
-	}
+    public void AddEvent(FactionEvent factionEvent)
+    {
+        if (_events.ContainsKey(factionEvent.TypeId))
+            throw new System.Exception("Event of type " + factionEvent.TypeId + " already present");
 
-	public virtual void FinalizeLoad () {
+        _events.Add(factionEvent.TypeId, factionEvent);
+        World.InsertEventToHappen(factionEvent);
+    }
 
-		Name.World = World;
-		Name.FinalizeLoad ();
+    public FactionEvent GetEvent(long typeId)
+    {
+        if (!_events.ContainsKey(typeId))
+            return null;
 
-		CoreGroup = World.GetGroup (CoreGroupId);
+        return _events[typeId];
+    }
 
-		Polity = World.GetPolity(PolityId);
+    public void ResetEvent(long typeId, long newTriggerDate)
+    {
+        if (!_events.ContainsKey(typeId))
+            throw new System.Exception("Unable to find event of type: " + typeId);
 
-		if (Polity == null) {
-			throw new System.Exception ("Missing Polity with Id " + PolityId);
-		}
+        FactionEvent factionEvent = _events[typeId];
 
-		Culture.World = World;
-		Culture.Faction = this;
-		Culture.FinalizeLoad ();
+        factionEvent.Reset(newTriggerDate);
+        World.InsertEventToHappen(factionEvent);
+    }
 
-		foreach (FactionRelationship relationship in Relationships) {
-		
-			_relationships.Add (relationship.Id, relationship);
-			relationship.Faction = World.GetFaction(relationship.Id);
+    public long GenerateUniqueIdentifier(long date, long oom = 1L, long offset = 0L)
+    {
+        return CoreGroup.GenerateUniqueIdentifier(date, oom, offset);
+    }
 
-			if (relationship.Faction == null) {
-				throw new System.Exception ("Faction is null, Id: " + relationship.Id);
-			}
-		}
+    public float GetNextLocalRandomFloat(int iterationOffset)
+    {
+        return CoreGroup.GetNextLocalRandomFloat(iterationOffset + (int)Id);
+    }
 
-		GenerateEventsFromData ();
-        
-		//Flags.ForEach (f => _flags.Add (f));
-	}
+    public float GetLocalRandomFloat(int date, int iterationOffset)
+    {
+        return CoreGroup.GetLocalRandomFloat(date, iterationOffset + (int)Id);
+    }
 
-	protected abstract void GenerateEventsFromData ();
+    public int GetNextLocalRandomInt(int iterationOffset, int maxValue)
+    {
+        return CoreGroup.GetNextLocalRandomInt(iterationOffset + (int)Id, maxValue);
+    }
 
-	public void AddEvent (FactionEvent factionEvent) {
+    public virtual void SetDominant(bool state)
+    {
+        IsDominant = state;
+    }
 
-		if (_events.ContainsKey (factionEvent.TypeId))
-			throw new System.Exception ("Event of type " + factionEvent.TypeId + " already present");
-	
-		_events.Add (factionEvent.TypeId, factionEvent);
-		World.InsertEventToHappen (factionEvent);
-	}
+    public void SetUnderPlayerGuidance(bool state)
+    {
+        IsUnderPlayerGuidance = state;
+    }
 
-	public FactionEvent GetEvent (long typeId) {
+    public void ChangePolity(Polity targetPolity, float targetInfluence)
+    {
+        if ((targetPolity == null) || (!targetPolity.StillPresent))
+            throw new System.Exception("target Polity is null or not Present");
 
-		if (!_events.ContainsKey (typeId))
-			return null;
+        Polity.RemoveFaction(this);
 
-		return _events[typeId];
-	}
+        Polity = targetPolity;
+        PolityId = Polity.Id;
+        Influence = targetInfluence;
 
-	public void ResetEvent (long typeId, long newTriggerDate) {
+        targetPolity.AddFaction(this);
 
-		if (!_events.ContainsKey (typeId))
-			throw new System.Exception ("Unable to find event of type: " + typeId);
+        Culture.SetPolityCulture(targetPolity.Culture);
+    }
 
-		FactionEvent factionEvent = _events [typeId];
+    public virtual bool ShouldMigrateFactionCore(CellGroup sourceGroup, CellGroup targetGroup)
+    {
+        return false;
+    }
 
-		factionEvent.Reset (newTriggerDate);
-		World.InsertEventToHappen (factionEvent);
-	}
+    public virtual bool ShouldMigrateFactionCore(CellGroup sourceGroup, TerrainCell targetCell, float targetProminence, int targetPopulation)
+    {
+        return false;
+    }
 
-	public long GenerateUniqueIdentifier (long date, long oom = 1L, long offset = 0L) {
+    public void IncreasePreferenceValue(string id, float percentage)
+    {
+        CulturalPreference preference = Culture.GetPreference(id);
 
-		return CoreGroup.GenerateUniqueIdentifier (date, oom, offset);
-	}
+        if (preference == null)
+            throw new System.Exception("preference is null: " + id);
 
-	public float GetNextLocalRandomFloat (int iterationOffset) {
+        float value = preference.Value;
 
-		return CoreGroup.GetNextLocalRandomFloat (iterationOffset + (int)Id);
-	}
+        preference.Value = MathUtility.IncreaseByPercent(value, percentage);
+    }
 
-	public float GetLocalRandomFloat (int date, int iterationOffset) {
+    public void DecreasePreferenceValue(string id, float percentage)
+    {
+        CulturalPreference preference = Culture.GetPreference(id);
 
-		return CoreGroup.GetLocalRandomFloat (date, iterationOffset + (int)Id);
-	}
+        if (preference == null)
+            throw new System.Exception("preference is null: " + id);
 
-	public int GetNextLocalRandomInt (int iterationOffset, int maxValue) {
+        float value = preference.Value;
 
-		return CoreGroup.GetNextLocalRandomInt (iterationOffset + (int)Id, maxValue);
-	}
+        preference.Value = MathUtility.DecreaseByPercent(value, percentage);
+    }
 
-	//public void SetFlag (string flag) {
+    public float GetPreferenceValue(string id)
+    {
+        CulturalPreference preference = Culture.GetPreference(id);
 
-	//	if (_flags.Contains (flag))
-	//		return;
+        if (preference != null)
+            return preference.Value;
 
-	//	_flags.Add (flag);
-	//}
-
-	//public bool IsFlagSet (string flag) {
-
-	//	return _flags.Contains (flag);
-	//}
-
-	//public void UnsetFlag (string flag) {
-
-	//	if (!_flags.Contains (flag))
-	//		return;
-
-	//	_flags.Remove (flag);
-	//}
-
-	public virtual void SetDominant (bool state) {
-	
-		IsDominant = state;
-	}
-
-	public void SetUnderPlayerGuidance (bool state) {
-
-		IsUnderPlayerGuidance = state;
-	}
-
-	public void ChangePolity (Polity targetPolity, float targetInfluence) {
-	
-		if ((targetPolity == null) || (!targetPolity.StillPresent)) 
-			throw new System.Exception ("target Polity is null or not Present");
-
-		Polity.RemoveFaction (this);
-
-		Polity = targetPolity;
-		PolityId = Polity.Id;
-		Influence = targetInfluence;
-
-		targetPolity.AddFaction (this);
-	}
-
-	public virtual bool ShouldMigrateFactionCore (CellGroup sourceGroup, CellGroup targetGroup) {
-
-		return false;
-	}
-
-	public virtual bool ShouldMigrateFactionCore (CellGroup sourceGroup, TerrainCell targetCell, float targetProminence, int targetPopulation) {
-
-		return false;
-	}
-
-	public void IncreasePreferenceValue (string id, float percentage) {
-
-		CulturalPreference preference = Culture.GetPreference (id);
-
-		if (preference == null)
-			throw new System.Exception ("preference is null: " + id);
-
-		float value = preference.Value;
-
-		preference.Value = MathUtility.IncreaseByPercent (value, percentage);
-	}
-
-	public void DecreasePreferenceValue (string id, float percentage) {
-
-		CulturalPreference preference = Culture.GetPreference (id);
-
-		if (preference == null)
-			throw new System.Exception ("preference is null: " + id);
-
-		float value = preference.Value;
-
-		preference.Value = MathUtility.DecreaseByPercent (value, percentage);
-	}
-
-	public float GetPreferenceValue (string id) {
-
-		CulturalPreference preference = Culture.GetPreference (id);
-
-		if (preference != null)
-			return preference.Value; 
-
-		return 0;
-	}
+        return 0;
+    }
 }

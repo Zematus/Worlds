@@ -98,8 +98,18 @@ public class PolityCulture : Culture
         Profiler.EndSample();
     }
 
+    private void ResetCulture()
+    {
+        foreach (CulturalDiscovery d in Discoveries.Values)
+        {
+            d.Reset();
+        }
+    }
+
     private void AddFactionCultures()
     {
+        ResetCulture();
+
         foreach (Faction faction in Polity.GetFactions())
         {
             Profiler.BeginSample("AddFactionCulture");
@@ -250,29 +260,11 @@ public class PolityCulture : Culture
 
         Profiler.BeginSample("foreach CulturalDiscovery");
 
-        foreach (CulturalDiscovery d in faction.Culture.Discoveries.Values)
+        foreach (FactionCulturalDiscovery d in faction.Culture.Discoveries.Values)
         {
-            Profiler.BeginSample("GetDiscovery");
-
-            CulturalDiscovery discovery = GetDiscovery(d.Id);
-
-            Profiler.EndSample();
-
-            if (discovery == null)
+            if (d.IsPresent)
             {
-                Profiler.BeginSample("AddDiscovery");
-
-                AddDiscovery(new CulturalDiscovery(d));
-
-                Profiler.EndSample();
-            }
-            else if (!discovery.IsPresent)
-            {
-                Profiler.BeginSample("discovery.Set");
-
-                discovery.Set(true);
-
-                Profiler.EndSample();
+                d.UpdatePolityDiscovery();
             }
         }
 

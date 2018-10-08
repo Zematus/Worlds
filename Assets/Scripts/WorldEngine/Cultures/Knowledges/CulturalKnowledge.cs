@@ -24,6 +24,9 @@ public class CulturalKnowledge : CulturalKnowledgeInfo, IFilterableValue
         }
     }
 
+    [XmlIgnore]
+    public bool WasPresent { get; private set; }
+
     public CulturalKnowledge()
     {
     }
@@ -31,11 +34,15 @@ public class CulturalKnowledge : CulturalKnowledgeInfo, IFilterableValue
     public CulturalKnowledge(string id, string name, int value) : base(id, name)
     {
         Value = value;
+
+        WasPresent = false;
     }
 
     public CulturalKnowledge(CulturalKnowledge baseKnowledge) : base(baseKnowledge)
     {
         Value = baseKnowledge.Value;
+
+        WasPresent = false;
     }
 
     public float ScaledValue
@@ -46,11 +53,20 @@ public class CulturalKnowledge : CulturalKnowledgeInfo, IFilterableValue
     public void Reset()
     {
         Value = 0;
+
+        WasPresent = true;
     }
 
     public void Set(int value)
     {
         Value = value;
+
+        WasPresent = false;
+    }
+
+    public void Set()
+    {
+        WasPresent = false;
     }
 
     public bool ShouldFilter()

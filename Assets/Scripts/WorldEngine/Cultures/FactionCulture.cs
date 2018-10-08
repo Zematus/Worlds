@@ -9,9 +9,6 @@ public class FactionCulture : Culture
 {
     public const long OptimalTimeSpan = CellGroup.GenerationSpan * 500;
 
-    [XmlAttribute("DCC")]
-    public bool DifferentCoreCulture = false;
-
     [XmlIgnore]
     public Faction Faction;
 
@@ -58,7 +55,7 @@ public class FactionCulture : Culture
         {
             if (d.IsPresent)
             {
-                AddDiscovery(new CulturalDiscovery(d));
+                AddDiscovery(new FactionCulturalDiscovery(d, coreGroup.Culture, faction.Polity.Culture));
             }
         }
     }
@@ -361,7 +358,7 @@ public class FactionCulture : Culture
             {
                 Profiler.BeginSample("AddDiscovery");
                 
-                AddDiscovery(new CulturalDiscovery(d));
+                AddDiscovery(new FactionCulturalDiscovery(d, coreCulture, Faction.Polity.Culture));
 
                 Profiler.EndSample();
             }
@@ -384,7 +381,7 @@ public class FactionCulture : Culture
         int discoveriesLeft = Discoveries.Count;
         foreach (CulturalDiscovery d in Discoveries.Values)
         {
-            if (!coreCulture.Knowledges.ContainsKey(d.Id))
+            if (!coreCulture.HasDiscoveryOrWillHave(d.Id))
             {
                 Profiler.BeginSample("GetHashCode");
 
@@ -423,5 +420,21 @@ public class FactionCulture : Culture
         }
 
         Profiler.EndSample();
+    }
+
+    public void SetPolityCulture(PolityCulture polityCulture)
+    {
+        foreach (FactionCulturalDiscovery d in Discoveries.Values)
+        {
+            d.SetPolityCulturalDiscovery(polityCulture);
+        }
+    }
+
+    public void SetCoreCulture(CellCulture coreCulture)
+    {
+        foreach (FactionCulturalDiscovery d in Discoveries.Values)
+        {
+            d.SetCoreCulturalDiscovery(coreCulture);
+        }
     }
 }
