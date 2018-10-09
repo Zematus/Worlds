@@ -50,6 +50,13 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
         _newValue = value;
     }
 
+    public override void Set(int value)
+    {
+        base.Set(value);
+
+        _newValue = value;
+    }
+
     public static CellCulturalKnowledge CreateCellInstance(string id, CellGroup group, int initialValue = 0)
     {
         switch (id)

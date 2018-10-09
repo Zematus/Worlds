@@ -276,6 +276,13 @@ public class CellGroup : HumanGroup
 
         Id = Cell.GenerateUniqueIdentifier(World.CurrentDate, 1L, 0);
 
+#if DEBUG
+        if (Id == 36878033105)
+        {
+            bool debug = false;
+        }
+#endif
+
         if (migrationDirection == Direction.Null)
         {
             int offset = Cell.GetNextLocalRandomInt(RngOffsets.CELL_GROUP_UPDATE_MIGRATION_DIRECTION, TerrainCell.MaxNeighborDirections);

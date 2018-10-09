@@ -58,7 +58,7 @@ public class CulturalKnowledge : CulturalKnowledgeInfo, IFilterableValue
         WasPresent = true;
     }
 
-    public void Set(int value)
+    public virtual void Set(int value)
     {
         Value = value;
 

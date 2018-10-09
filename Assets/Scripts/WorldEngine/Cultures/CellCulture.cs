@@ -60,6 +60,13 @@ public class CellCulture : Culture
 
         foreach (CulturalKnowledge k in sourceCulture.Knowledges.Values)
         {
+#if DEBUG
+            if ((Group.Id == 36878033105) && (k.Id == SocialOrganizationKnowledge.SocialOrganizationKnowledgeId))
+            {
+                bool debug = false;
+            }
+#endif
+
             if (k.IsPresent)
             {
                 CellCulturalKnowledge knowledge = CellCulturalKnowledge.CreateCellInstance(k.Id, group, k.Value);
@@ -128,6 +135,13 @@ public class CellCulture : Culture
 
     public CellCulturalKnowledge TryAddKnowledgeToLearn(string id, CellGroup group, int initialValue = 0)
     {
+#if DEBUG
+        if ((Group.Id == 36878033105) && (id == SocialOrganizationKnowledge.SocialOrganizationKnowledgeId))
+        {
+            bool debug = false;
+        }
+#endif
+
         CellCulturalKnowledge knowledge = GetKnowledge(id) as CellCulturalKnowledge;
 
         if ((knowledge != null) && knowledge.IsPresent)
@@ -462,7 +476,14 @@ public class CellCulture : Culture
 
         foreach (CellCulturalKnowledge knowledge in KnowledgesToLearn.Values)
         {
-            AddKnowledge(knowledge);
+            try
+            {
+                AddKnowledge(knowledge);
+            }
+            catch
+            {
+                throw new System.Exception("Attempted to add duplicate knowledge (" + knowledge.Id + ") to group " + Group.Id);
+            }
 
             knowledge.RecalculateAsymptote();
         }

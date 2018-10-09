@@ -175,7 +175,7 @@ public class Culture : ISynchronizable
         if (wasPresent) return;
 
         World.AddExistingCulturalKnowledgeInfo(knowledge);
-        
+
         Knowledges.Add(knowledge.Id, knowledge);
     }
 
