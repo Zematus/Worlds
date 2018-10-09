@@ -309,7 +309,7 @@ public class Tribe : Polity
     {
         Region coreRegion = CoreGroup.Cell.Region;
 
-        int rngOffset = RngOffsets.TRIBE_GENERATE_NAME + (int)Id;
+        int rngOffset = RngOffsets.TRIBE_GENERATE_NAME + unchecked((int)Id);
 
         GetRandomIntDelegate getRandomInt = (int maxValue) => GetNextLocalRandomInt(rngOffset++, maxValue);
         GetRandomFloatDelegate getRandomFloat = () => GetNextLocalRandomFloat(rngOffset++);

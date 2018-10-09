@@ -175,9 +175,9 @@ public abstract class CellCulturalSkill : CulturalSkill, ISynchronizable
 
         TerrainCell groupCell = Group.Cell;
 
-        float randomEffect = groupCell.GetNextLocalRandomFloat(RngOffsets.SKILL_POLITY_PROMINENCE + RngOffset + (int)polityProminence.PolityId);
+        float randomEffect = groupCell.GetNextLocalRandomFloat(RngOffsets.SKILL_POLITY_PROMINENCE + RngOffset + unchecked((int)polityProminence.PolityId));
 
-        float timeEffect = timeSpan / (float)(timeSpan + timeEffectFactor);
+        float timeEffect = timeSpan / (timeSpan + timeEffectFactor);
 
         // _newvalue should have been set correctly either by the constructor or by the Update function
         float change = (targetValue - _newValue) * prominenceEffect * timeEffect * randomEffect;

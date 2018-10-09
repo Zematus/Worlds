@@ -44,8 +44,9 @@ public static class RngOffsets {
 	public const int KNOWLEDGE_MODIFY_VALUE = 20100;
 	public const int KNOWLEDGE_UPDATE_VALUE_INTERNAL = 20200;
 	public const int KNOWLEDGE_POLITY_PROMINENCE = 20300;
+    public const int KNOWLEDGE_FACTION_CORE_UPDATE = 20400;
 
-	public const int SKILL_UPDATE = 30000;
+    public const int SKILL_UPDATE = 30000;
 	public const int SKILL_POLITY_PROMINENCE = 30100;
 
 	public const int POLITY_CULTURE_NORMALIZE_ATTRIBUTE_VALUES = 40000;
@@ -59,7 +60,7 @@ public static class RngOffsets {
 	public const int TRIBE_GENERATE_NEW_TRIBE = 70000;
 	public const int TRIBE_GENERATE_NAME = 71000;
 
-	public const int FACTION_CULTURE_DISCOVER_LOSS_CHANCE = 80500;
+	public const int FACTION_CULTURE_DISCOVERY_LOSS_CHANCE = 80500;
 
 	public const int CLAN_GENERATE_NAME = 85000;
 	public const int CLAN_CHOOSE_CORE_GROUP = 85100;

@@ -451,6 +451,8 @@ public abstract class Faction : ISynchronizable
         {
             Polity.SetCoreGroup(CoreGroup);
         }
+
+        Culture.SetCoreCulture(CoreGroup.Culture);
     }
 
     protected abstract void UpdateInternal();
@@ -538,17 +540,17 @@ public abstract class Faction : ISynchronizable
 
     public float GetNextLocalRandomFloat(int iterationOffset)
     {
-        return CoreGroup.GetNextLocalRandomFloat(iterationOffset + (int)Id);
+        return CoreGroup.GetNextLocalRandomFloat(iterationOffset + unchecked((int)Id));
     }
 
     public float GetLocalRandomFloat(int date, int iterationOffset)
     {
-        return CoreGroup.GetLocalRandomFloat(date, iterationOffset + (int)Id);
+        return CoreGroup.GetLocalRandomFloat(date, iterationOffset + unchecked((int)Id));
     }
 
     public int GetNextLocalRandomInt(int iterationOffset, int maxValue)
     {
-        return CoreGroup.GetNextLocalRandomInt(iterationOffset + (int)Id, maxValue);
+        return CoreGroup.GetNextLocalRandomInt(iterationOffset + unchecked((int)Id), maxValue);
     }
 
     public virtual void SetDominant(bool state)

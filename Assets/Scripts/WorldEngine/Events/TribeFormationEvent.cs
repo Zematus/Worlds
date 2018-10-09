@@ -92,16 +92,6 @@ public class TribeFormationEvent : CellGroupEvent
         if (prominenceFactor > 0)
             return false;
 
-        //if (prominenceFactor <= 0)
-        //    return true;
-
-        //prominenceFactor = Mathf.Pow(1 - prominenceFactor, 4);
-
-        //float triggerValue = Group.Cell.GetNextLocalRandomFloat(RngOffsets.EVENT_CAN_TRIGGER + (int)Id);
-
-        //if (triggerValue > prominenceFactor)
-        //    return false;
-
         return true;
     }
 

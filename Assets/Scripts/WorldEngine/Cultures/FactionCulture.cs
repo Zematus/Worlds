@@ -43,19 +43,19 @@ public class FactionCulture : Culture
             AddSkill(new CulturalSkill(s));
         }
 
-        foreach (CulturalKnowledge k in coreCulture.Knowledges.Values)
+        foreach (CellCulturalKnowledge k in coreCulture.Knowledges.Values)
         {
             if (k.IsPresent)
             {
-                AddKnowledge(new CulturalKnowledge(k));
+                AddKnowledge(new FactionCulturalKnowledge(faction, k, faction.Polity.Culture));
             }
         }
 
-        foreach (CulturalDiscovery d in coreCulture.Discoveries.Values)
+        foreach (CellCulturalDiscovery d in coreCulture.Discoveries.Values)
         {
             if (d.IsPresent)
             {
-                AddDiscovery(new FactionCulturalDiscovery(d, coreGroup.Culture, faction.Polity.Culture));
+                AddDiscovery(new FactionCulturalDiscovery(d, faction.Polity.Culture));
             }
         }
     }
@@ -251,91 +251,9 @@ public class FactionCulture : Culture
 
         Profiler.BeginSample("Culture - Update Knowledges");
 
-        //#if DEBUG
-        //        if (Manager.RegisterDebugEvent != null)
-        //        {
-        //            if (Manager.TracingData.FactionId == Faction.Id)
-        //            {
-        //                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-        //                    "FactionCulture:Update - Knowledges Counts - Faction.Id:" + Faction.Id,
-        //                    "CurrentDate: " + World.CurrentDate +
-        //                    ", coreCulture.Group.Id: " + coreCulture.Group.Id +
-        //                    ", Knowledges.Count: " + Knowledges.Count +
-        //                    ", coreCulture.Knowledges.Count: " + coreCulture.Knowledges.Count +
-        //                    "");
-
-        //                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-        //            }
-        //        }
-        //#endif
-
-        foreach (CulturalKnowledge k in coreCulture.Knowledges.Values)
+        foreach (FactionCulturalKnowledge k in Knowledges.Values)
         {
-            Profiler.BeginSample("GetKnowledge");
-
-            CulturalKnowledge knowledge = GetKnowledge(k.Id);
-
-            Profiler.EndSample();
-
-#if DEBUG
-            int oldKnowledgeValue = 0;
-#endif
-
-            if (knowledge == null)
-            {
-                Profiler.BeginSample("new CulturalKnowledge");
-
-                knowledge = new CulturalKnowledge(k);
-
-                AddKnowledge(knowledge);
-
-                knowledge.Value = (int)(k.Value * timeFactor);
-
-                Profiler.EndSample();
-            }
-            else
-            {
-                Profiler.BeginSample("update knowledge.Value");
-#if DEBUG
-                oldKnowledgeValue = knowledge.Value;
-#endif
-
-                knowledge.Value = (int)((knowledge.Value * (1f - timeFactor)) + (k.Value * timeFactor));
-
-                Profiler.EndSample();
-            }
-
-#if DEBUG
-            if (Manager.RegisterDebugEvent != null)
-            {
-                if (Manager.TracingData.FactionId == Faction.Id)
-                {
-                    SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-                        "FactionCulture:Update - coreCulture.Knowledges - Faction.Id:" + Faction.Id,
-                        "CurrentDate: " + World.CurrentDate +
-                        ", coreCulture.Group.Id: " + coreCulture.Group.Id +
-                        ", knowledge.Id: " + knowledge.Id +
-                        ", oldKnowledgeValue: " + oldKnowledgeValue +
-                        ", k.Value: " + k.Value +
-                        ", knowledge.Value: " + knowledge.Value +
-                        "");
-
-                    Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-                }
-            }
-#endif
-        }
-
-        foreach (CulturalKnowledge k in Knowledges.Values)
-        {
-            Profiler.BeginSample("coreCulture.Knowledges.ContainsKey");
-
-            if (!coreCulture.Knowledges.ContainsKey(k.Id))
-            {
-                k.Value = (int)(k.Value * (1f - timeFactor));
-            }
-
-            Profiler.EndSample();
+            k.UpdateFromCoreKnowledge(timeFactor);
         }
 
         Profiler.EndSample();
@@ -344,86 +262,38 @@ public class FactionCulture : Culture
 
         Profiler.BeginSample("Culture - Update Discoveries");
 
-        foreach (CulturalDiscovery d in coreCulture.Discoveries.Values)
+        foreach (FactionCulturalDiscovery d in Discoveries.Values)
         {
-            if (!d.IsPresent) continue;
-
-            Profiler.BeginSample("GetDiscovery");
-
-            CulturalDiscovery discovery = GetDiscovery(d.Id);
-
-            Profiler.EndSample();
-
-            if (discovery == null)
+            if ((d.CoreCulturalDiscovery == null) || (!d.CoreCulturalDiscovery.IsPresent))
             {
-                Profiler.BeginSample("AddDiscovery");
-                
-                AddDiscovery(new FactionCulturalDiscovery(d, coreCulture, Faction.Polity.Culture));
-
-                Profiler.EndSample();
+                TryRemovingDiscovery(d, timeFactor);
             }
-            else if (!discovery.IsPresent)
+            else
             {
-                Profiler.BeginSample("discovery.Set");
-
-                discovery.Set(true);
-
-                Profiler.EndSample();
-            }
-        }
-
-        Profiler.BeginSample("discoveriesToRemove");
-
-        List<CulturalDiscovery> discoveriesToRemove = null;
-
-        Profiler.EndSample();
-
-        int discoveriesLeft = Discoveries.Count;
-        foreach (CulturalDiscovery d in Discoveries.Values)
-        {
-            if (!coreCulture.HasDiscoveryOrWillHave(d.Id))
-            {
-                Profiler.BeginSample("GetHashCode");
-
-                int idHash = d.Id.GetHashCode();
-
-                Profiler.EndSample();
-
-                Profiler.BeginSample("discoveriesToRemove.Add");
-
-                if (GetNextRandomFloat(RngOffsets.FACTION_CULTURE_DISCOVER_LOSS_CHANCE + idHash) < timeFactor)
-                {
-                    if (discoveriesToRemove == null)
-                    {
-                        discoveriesToRemove = new List<CulturalDiscovery>(discoveriesLeft);
-                    }
-
-                    discoveriesToRemove.Add(d);
-                }
-
-                Profiler.EndSample();
-            }
-
-            discoveriesLeft--;
-        }
-
-        if (discoveriesToRemove != null)
-        {
-            foreach (CulturalDiscovery d in discoveriesToRemove)
-            {
-                Profiler.BeginSample("RemoveDiscovery");
-
-                RemoveDiscovery(d);
-
-                Profiler.EndSample();
+                d.UpdateFromCoreDiscovery();
             }
         }
 
         Profiler.EndSample();
     }
 
+    private void TryRemovingDiscovery(FactionCulturalDiscovery discovery, float timeFactor)
+    {
+        int idHash = discovery.Id.GetHashCode();
+        
+        if (GetNextRandomFloat(RngOffsets.FACTION_CULTURE_DISCOVERY_LOSS_CHANCE + idHash) < timeFactor)
+        {
+            RemoveDiscovery(discovery);
+        }
+    }
+
     public void SetPolityCulture(PolityCulture polityCulture)
     {
+        foreach (FactionCulturalKnowledge k in Knowledges.Values)
+        {
+            k.SetPolityCulturalKnowledge(polityCulture);
+        }
+
         foreach (FactionCulturalDiscovery d in Discoveries.Values)
         {
             d.SetPolityCulturalDiscovery(polityCulture);
@@ -432,9 +302,61 @@ public class FactionCulture : Culture
 
     public void SetCoreCulture(CellCulture coreCulture)
     {
+        SetCoreCultureKnowledges(coreCulture);
+        SetCoreCultureDiscoveries(coreCulture);
+    }
+
+    public void SetCoreCultureKnowledges(CellCulture coreCulture)
+    {
+        foreach (FactionCulturalKnowledge k in Knowledges.Values)
+        {
+            k.CoreCulturalKnowledge = null;
+        }
+
+        foreach (CellCulturalKnowledge k in coreCulture.Knowledges.Values)
+        {
+            AddCoreKnowledge(k);
+        }
+    }
+
+    public void AddCoreKnowledge(CellCulturalKnowledge coreKnowledge)
+    {
+        FactionCulturalKnowledge factionKnowledge = GetKnowledge(coreKnowledge.Id) as FactionCulturalKnowledge;
+
+        if (factionKnowledge == null)
+        {
+            factionKnowledge = new FactionCulturalKnowledge(Faction, coreKnowledge, Faction.Polity.Culture);
+
+            AddKnowledge(factionKnowledge);
+        }
+
+        factionKnowledge.CoreCulturalKnowledge = coreKnowledge;
+    }
+
+    public void SetCoreCultureDiscoveries(CellCulture coreCulture)
+    {
         foreach (FactionCulturalDiscovery d in Discoveries.Values)
         {
-            d.SetCoreCulturalDiscovery(coreCulture);
+            d.CoreCulturalDiscovery = null;
         }
+
+        foreach (CellCulturalDiscovery d in coreCulture.Discoveries.Values)
+        {
+            AddCoreDiscovery(d);
+        }
+    }
+
+    public void AddCoreDiscovery(CellCulturalDiscovery coreDiscovery)
+    {
+        FactionCulturalDiscovery factionDiscovery = GetDiscovery(coreDiscovery.Id) as FactionCulturalDiscovery;
+
+        if (factionDiscovery == null)
+        {
+            factionDiscovery = new FactionCulturalDiscovery(coreDiscovery, Faction.Polity.Culture);
+
+            AddDiscovery(factionDiscovery);
+        }
+
+        factionDiscovery.CoreCulturalDiscovery = coreDiscovery;
     }
 }

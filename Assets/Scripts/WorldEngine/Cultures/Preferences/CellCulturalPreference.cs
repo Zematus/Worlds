@@ -96,7 +96,7 @@ public class CellCulturalPreference : CulturalPreference {
 
 		TerrainCell groupCell = Group.Cell;
 
-		float randomEffect = groupCell.GetNextLocalRandomFloat (RngOffsets.PREFERENCE_POLITY_PROMINENCE + RngOffset + (int)polityProminence.PolityId);
+		float randomEffect = groupCell.GetNextLocalRandomFloat (RngOffsets.PREFERENCE_POLITY_PROMINENCE + RngOffset + unchecked((int)polityProminence.PolityId));
 
 		float timeEffect = timeSpan / (float)(timeSpan + TimeEffectConstant);
 

@@ -10,17 +10,13 @@ public class FactionCulturalDiscovery : CulturalDiscovery
     public CulturalDiscovery PolityCulturalDiscovery;
 
     [XmlIgnore]
-    public CulturalDiscovery CoreCulturalDiscovery;
+    public CellCulturalDiscovery CoreCulturalDiscovery;
 
-    public FactionCulturalDiscovery(CulturalDiscovery baseDiscovery, CellCulture coreCulture, PolityCulture polityCulture) : base(baseDiscovery)
+    public FactionCulturalDiscovery(CellCulturalDiscovery coreDiscovery, PolityCulture polityCulture) : base(coreDiscovery)
     {
-        SetCoreCulturalDiscovery(coreCulture);
+        CoreCulturalDiscovery = coreDiscovery;
+
         SetPolityCulturalDiscovery(polityCulture);
-    }
-
-    public void SetCoreCulturalDiscovery(CellCulture culture)
-    {
-        CoreCulturalDiscovery = culture.GetDiscovery(Id);
     }
 
     public void SetPolityCulturalDiscovery(PolityCulture culture)
@@ -37,7 +33,10 @@ public class FactionCulturalDiscovery : CulturalDiscovery
 
     public void UpdatePolityDiscovery()
     {
-        PolityCulturalDiscovery.Set(true);
+        if (IsPresent)
+        {
+            PolityCulturalDiscovery.Set(true);
+        }
     }
 
     public void UpdateFromCoreDiscovery()

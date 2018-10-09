@@ -59,10 +59,11 @@ public static class MathUtility
         return result;
     }
 
-    public static float IntLerpAndGetDecimals(float a, float b, float f, out float decimals)
+    // a, b inputs need to be greater than 1 for the result to be meaningful
+    public static int LerpToIntAndGetDecimals(int a, int b, float f, out float decimals)
     {
         float ab = Mathf.Lerp(a, b, f);
-        float pab = Mathf.Floor(ab);
+        int pab = Mathf.FloorToInt(ab);
 
         decimals = ab - pab;
 

@@ -845,8 +845,8 @@ public class CellGroup : HumanGroup
         return splitPopulation;
     }
 
-    public void PostUpdate_BeforePolityUpdates () {
-
+    public void PostUpdate_BeforePolityUpdates()
+    {
 #if DEBUG
         if (Manager.RegisterDebugEvent != null)
         {
@@ -864,55 +864,62 @@ public class CellGroup : HumanGroup
 
         _alreadyUpdated = false;
 
-		if (Population < 2) {
-			World.AddGroupToRemove (this);
-			return;
-		}
+        if (Population < 2)
+        {
+            World.AddGroupToRemove(this);
+            return;
+        }
 
-		Profiler.BeginSample ("Update Terrain Farmland Percentage");
+        Profiler.BeginSample("Update Terrain Farmland Percentage");
 
-		UpdateTerrainFarmlandPercentage ();
+        UpdateTerrainFarmlandPercentage();
 
-		Profiler.EndSample ();
+        Profiler.EndSample();
 
-		Profiler.BeginSample ("Culture PostUpdate");
-	
-		Culture.PostUpdate ();
+        Profiler.BeginSample("Culture PostUpdate");
 
-		Profiler.EndSample ();
+        Culture.PostUpdate();
 
-		Profiler.BeginSample ("Set Faction Updates");
+        Profiler.EndSample();
 
-		SetFactionUpdates ();
+        Profiler.BeginSample("Set Faction Updates");
 
-		Profiler.EndSample ();
+        SetFactionUpdates();
 
-		Profiler.BeginSample ("Set Polity Updates");
+        Profiler.EndSample();
 
-		SetPolityUpdates ();
+        Profiler.BeginSample("Culture PostUpdate Cleanup");
 
-		Profiler.EndSample ();
+        Culture.CleanUpAtributesToGet();
 
-		Profiler.BeginSample ("Post Update Polity Prominences");
+        Profiler.EndSample();
 
-		PostUpdatePolityProminences_BeforePolityUpdates ();
+        Profiler.BeginSample("Set Polity Updates");
 
-		Profiler.EndSample ();
+        SetPolityUpdates();
 
-		Profiler.BeginSample ("PostUpdate Polity Cultural Prominences");
+        Profiler.EndSample();
 
-		PostUpdatePolityCulturalProminences ();
+        Profiler.BeginSample("Post Update Polity Prominences");
 
-		Profiler.EndSample ();
+        PostUpdatePolityProminences_BeforePolityUpdates();
 
-		Profiler.BeginSample ("Update Polity Prominence Administrative Costs");
+        Profiler.EndSample();
 
-		UpdatePolityProminenceAdministrativeCosts ();
+        Profiler.BeginSample("PostUpdate Polity Cultural Prominences");
 
-		Profiler.EndSample ();
-	}
+        PostUpdatePolityCulturalProminences();
 
-	public void PostUpdate_AfterPolityUpdates()
+        Profiler.EndSample();
+
+        Profiler.BeginSample("Update Polity Prominence Administrative Costs");
+
+        UpdatePolityProminenceAdministrativeCosts();
+
+        Profiler.EndSample();
+    }
+
+    public void PostUpdate_AfterPolityUpdates()
     {
         PostUpdatePolityProminences_AfterPolityUpdates();
     }
@@ -1782,105 +1789,106 @@ public class CellGroup : HumanGroup
     }
 
 #if DEBUG
+    public delegate void UpdateCalledDelegate();
 
-    public delegate void UpdateCalledDelegate ();
-
-	public static UpdateCalledDelegate UpdateCalled = null; 
-
+    public static UpdateCalledDelegate UpdateCalled = null;
 #endif
 
-	public void Update () {
+    public void Update()
+    {
+        if (!StillPresent)
+        {
+            Debug.LogWarning("Group is no longer present. Id: " + Id);
+            return;
+        }
 
-		if (!StillPresent) {
-			Debug.LogWarning ("Group is no longer present. Id: " + Id);
-			return;
-		}
+        if (_alreadyUpdated)
+            return;
 
-		if (_alreadyUpdated)
-			return;
+        PreviousExactPopulation = ExactPopulation;
 
-		PreviousExactPopulation = ExactPopulation;
-		
-		long timeSpan = World.CurrentDate - LastUpdateDate;
+        long timeSpan = World.CurrentDate - LastUpdateDate;
 
-		if (timeSpan <= 0)
-			return;
+        if (timeSpan <= 0)
+            return;
 
 #if DEBUG
-		if (UpdateCalled != null) {
-
-			UpdateCalled ();
-		}
+        if (UpdateCalled != null)
+        {
+            UpdateCalled();
+        }
 #endif
 
-		_alreadyUpdated = true;
+        _alreadyUpdated = true;
 
-		Profiler.BeginSample ("Update Population");
+        Profiler.BeginSample("Update Population");
 
-		UpdatePopulation (timeSpan);
+        UpdatePopulation(timeSpan);
 
-		Profiler.EndSample ();
+        Profiler.EndSample();
 
-		Profiler.BeginSample ("Update Culture");
+        Profiler.BeginSample("Update Culture");
 
-		UpdateCulture (timeSpan);
+        UpdateCulture(timeSpan);
 
-		Profiler.EndSample ();
+        Profiler.EndSample();
 
-		Profiler.BeginSample ("Update Polity Cultural Prominences");
+        Profiler.BeginSample("Update Polity Cultural Prominences");
 
-		UpdatePolityCulturalProminences (timeSpan);
+        UpdatePolityCulturalProminences(timeSpan);
 
-		Profiler.EndSample ();
+        Profiler.EndSample();
 
-		Profiler.BeginSample ("Polity Update Effects");
+        Profiler.BeginSample("Polity Update Effects");
 
-		PolityUpdateEffects (timeSpan);
+        PolityUpdateEffects(timeSpan);
 
-		Profiler.EndSample ();
+        Profiler.EndSample();
 
-		Profiler.BeginSample ("Update Travel Factors");
+        Profiler.BeginSample("Update Travel Factors");
 
-		UpdateTravelFactors ();
+        UpdateTravelFactors();
 
-		Profiler.EndSample ();
+        Profiler.EndSample();
 
-		Profiler.BeginSample ("Update Shortest Polity Core Distances");
+        Profiler.BeginSample("Update Shortest Polity Core Distances");
 
-		UpdateShortestPolityCoreDistances ();
+        UpdateShortestPolityCoreDistances();
 
-		Profiler.EndSample ();
+        Profiler.EndSample();
 
-		Profiler.BeginSample ("Update Shortest Faction Core Distances");
+        Profiler.BeginSample("Update Shortest Faction Core Distances");
 
-		UpdateShortestFactionCoreDistances ();
+        UpdateShortestFactionCoreDistances();
 
-		Profiler.EndSample ();
+        Profiler.EndSample();
 
-		Profiler.BeginSample ("Update Add Updated Group");
-		
-		World.AddUpdatedGroup (this);
+        Profiler.BeginSample("Update Add Updated Group");
 
-		Profiler.EndSample ();
-	}
+        World.AddUpdatedGroup(this);
 
-	private void SetFactionUpdates () {
+        Profiler.EndSample();
+    }
 
-		foreach (Faction faction in FactionCores.Values) {
+    private void SetFactionUpdates()
+    {
+        foreach (Faction faction in FactionCores.Values)
+        {
+            Culture.UpdateFactionCulture(faction.Culture);
 
-			World.AddFactionToUpdate (faction);
-		}
-	}
+            World.AddFactionToUpdate(faction);
+        }
+    }
 
-	private void SetPolityUpdates (bool forceUpdate = false) {
-	
-		foreach (PolityProminence pi in PolityProminences.Values) {
-		
-			SetPolityUpdate (pi, forceUpdate);
-		}
-	}
+    private void SetPolityUpdates(bool forceUpdate = false)
+    {
+        foreach (PolityProminence pi in PolityProminences.Values)
+        {
+            SetPolityUpdate(pi, forceUpdate);
+        }
+    }
 
-	public void SetPolityUpdate (PolityProminence pi, bool forceUpdate)
+    public void SetPolityUpdate (PolityProminence pi, bool forceUpdate)
     {
         Polity p = pi.Polity;
 
@@ -1939,7 +1947,7 @@ public class CellGroup : HumanGroup
 
 		float chanceFactor = 1f / (float)groupCount;
 
-		float rollValue = Cell.GetNextLocalRandomFloat (RngOffsets.CELL_GROUP_SET_POLITY_UPDATE + (int)p.Id);
+		float rollValue = Cell.GetNextLocalRandomFloat (RngOffsets.CELL_GROUP_SET_POLITY_UPDATE + unchecked((int)p.Id));
 
 #if DEBUG
 		if (Manager.RegisterDebugEvent != null) {

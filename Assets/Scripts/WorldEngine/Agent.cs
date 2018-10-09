@@ -155,7 +155,7 @@ public class Agent : ISynchronizable
 
     private void GenerateBio(CellGroup birthGroup)
     {
-        int rngOffset = RngOffsets.AGENT_GENERATE_BIO + (int)Id;
+        int rngOffset = RngOffsets.AGENT_GENERATE_BIO + unchecked((int)Id);
 
         IsFemale = birthGroup.GetLocalRandomFloat(BirthDate, rngOffset++) > 0.5f;
         BaseCharisma = MinAttributeValue + birthGroup.GetLocalRandomInt(BirthDate, rngOffset++, AttributeGenMax);
@@ -269,7 +269,7 @@ public class Agent : ISynchronizable
 
     private void GenerateName()
     {
-        _rngOffset = RngOffsets.AGENT_GENERATE_NAME + (int)Id;
+        _rngOffset = RngOffsets.AGENT_GENERATE_NAME + unchecked((int)Id);
 
         Profiler.BeginSample("region.Elements.Where");
 

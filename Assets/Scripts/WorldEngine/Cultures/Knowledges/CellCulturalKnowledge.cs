@@ -36,7 +36,7 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
     public CellCulturalKnowledge(CellGroup group, string id, string name, int typeRngOffset, int value) : base(id, name, value)
     {
         Group = group;
-        RngOffset = (int)group.GenerateUniqueIdentifier(group.World.CurrentDate, 100L, typeRngOffset);
+        RngOffset = unchecked((int)group.GenerateUniqueIdentifier(group.World.CurrentDate, 100L, typeRngOffset));
 
         _newValue = value;
     }
@@ -44,7 +44,7 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
     public CellCulturalKnowledge(CellGroup group, string id, string name, int typeRngOffset, int value, int asymptote) : base(id, name, value)
     {
         Group = group;
-        RngOffset = (int)group.GenerateUniqueIdentifier(group.World.CurrentDate, 100L, typeRngOffset);
+        RngOffset = unchecked((int)group.GenerateUniqueIdentifier(group.World.CurrentDate, 100L, typeRngOffset));
         Asymptote = asymptote;
 
         _newValue = value;
@@ -90,7 +90,7 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
     {
         float d;
         // _newvalue should have been set correctly either by the constructor or by the Update function
-        int mergedValue = (int)MathUtility.IntLerpAndGetDecimals(_newValue, value, percentage, out d);
+        int mergedValue = MathUtility.LerpToIntAndGetDecimals(_newValue, value, percentage, out d);
 
         if (d > Group.GetNextLocalRandomFloat(RngOffsets.KNOWLEDGE_MERGE + RngOffset))
             mergedValue++;
@@ -98,10 +98,8 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
 #if DEBUG
         if ((Id == SocialOrganizationKnowledge.SocialOrganizationKnowledgeId) && (mergedValue < SocialOrganizationKnowledge.MinValueForHoldingTribalism))
         {
-
             if (Group.GetFactionCores().Count > 0)
             {
-
                 Debug.LogWarning("group with low social organization has faction cores - Id: " + Group.Id);
             }
         }
@@ -184,23 +182,23 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
         float randomFactor = specificModifier - randomModifier;
         randomFactor = Mathf.Clamp(randomFactor, -1, 1);
 
-        float maxTargetValue = Asymptote;
-        float minTargetValue = 0;
-        float targetValue = 0;
+        int maxTargetValue = Asymptote;
+        int minTargetValue = 0;
+        int targetValue = 0;
 
         if (randomFactor > 0)
         {
-            targetValue = Value + (maxTargetValue - Value) * randomFactor;
+            targetValue = Value + (int)((maxTargetValue - Value) * randomFactor);
         }
         else
         {
-            targetValue = Value - (minTargetValue - Value) * randomFactor;
+            targetValue = Value - (int)((minTargetValue - Value) * randomFactor);
         }
 
-        float timeEffect = timeSpan / (float)(timeSpan + timeEffectFactor);
+        float timeEffect = timeSpan / (timeSpan + timeEffectFactor);
 
         float d;
-        int newValue = (int)MathUtility.IntLerpAndGetDecimals(Value, targetValue, timeEffect, out d);
+        int newValue = MathUtility.LerpToIntAndGetDecimals(Value, targetValue, timeEffect, out d);
 
         if (d > Group.GetNextLocalRandomFloat(rngOffset++))
             newValue++;
@@ -226,7 +224,7 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
 
     protected void PolityCulturalProminenceInternal(CulturalKnowledge polityKnowledge, PolityProminence polityProminence, long timeSpan, float timeEffectFactor)
     {
-        int rngOffset = RngOffsets.KNOWLEDGE_POLITY_PROMINENCE + RngOffset + (int)polityProminence.PolityId;
+        int rngOffset = RngOffsets.KNOWLEDGE_POLITY_PROMINENCE + RngOffset + unchecked((int)polityProminence.PolityId);
 
         int targetValue = polityKnowledge.Value;
         float prominenceEffect = polityProminence.Value;

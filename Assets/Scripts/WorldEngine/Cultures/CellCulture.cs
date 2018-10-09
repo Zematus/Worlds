@@ -176,44 +176,44 @@ public class CellCulture : Culture
         return discovery;
     }
 
-    public CellCulturalPreference GetAcquiredPerferenceOrToAcquire (string id) {
+    public CellCulturalPreference GetAcquiredPerferenceOrToAcquire(string id) {
 
-		CellCulturalPreference preference = GetPreference (id) as CellCulturalPreference;
+        CellCulturalPreference preference = GetPreference(id) as CellCulturalPreference;
 
-		if (preference != null)
-			return preference;
+        if (preference != null)
+            return preference;
 
-		if (PreferencesToAcquire.TryGetValue (id, out preference))
-			return preference;
+        if (PreferencesToAcquire.TryGetValue(id, out preference))
+            return preference;
 
-		return null;
-	}
+        return null;
+    }
 
-	public CellCulturalActivity GetPerformedActivityOrToPerform (string id) {
+    public CellCulturalActivity GetPerformedActivityOrToPerform(string id) {
 
-		CellCulturalActivity activity = GetActivity (id) as CellCulturalActivity;
+        CellCulturalActivity activity = GetActivity(id) as CellCulturalActivity;
 
-		if (activity != null)
-			return activity;
+        if (activity != null)
+            return activity;
 
-		if (ActivitiesToPerform.TryGetValue (id, out activity))
-			return activity;
+        if (ActivitiesToPerform.TryGetValue(id, out activity))
+            return activity;
 
-		return null;
-	}
+        return null;
+    }
 
-	public CellCulturalSkill GetLearnedSkillOrToLearn (string id) {
+    public CellCulturalSkill GetLearnedSkillOrToLearn(string id) {
 
-		CellCulturalSkill skill = GetSkill (id) as CellCulturalSkill;
+        CellCulturalSkill skill = GetSkill(id) as CellCulturalSkill;
 
-		if (skill != null)
-			return skill;
+        if (skill != null)
+            return skill;
 
-		if (SkillsToLearn.TryGetValue (id, out skill))
-			return skill;
+        if (SkillsToLearn.TryGetValue(id, out skill))
+            return skill;
 
-		return null;
-	}
+        return null;
+    }
 
     public bool HasKnowledgeOrWillHave(string id)
     {
@@ -225,7 +225,7 @@ public class CellCulture : Culture
         return HasDiscovery(id) | DiscoveriesToFind.ContainsKey(id);
     }
 
-    public void MergeCulture (Culture sourceCulture, float percentage)
+    public void MergeCulture(Culture sourceCulture, float percentage)
     {
 #if DEBUG
         if ((percentage < 0) || (percentage > 1))
@@ -383,11 +383,11 @@ public class CellCulture : Culture
         }
     }
 
-	public void PostUpdatePolityCulturalProminence(PolityProminence polityProminence)
+    public void PostUpdatePolityCulturalProminence(PolityProminence polityProminence)
     {
         PolityCulture polityCulture = polityProminence.Polity.Culture;
 
-        if (((Language == null) || 
+        if (((Language == null) ||
             (polityProminence.Value >= Group.HighestPolityProminence.Value)) &&
             (Language != polityCulture.Language))
         {
@@ -482,12 +482,6 @@ public class CellCulture : Culture
                 knowledge.CalculateAsymptote(discovery);
             }
         }
-
-        PreferencesToAcquire.Clear();
-        ActivitiesToPerform.Clear();
-        SkillsToLearn.Clear();
-        KnowledgesToLearn.Clear();
-        DiscoveriesToFind.Clear();
     }
 
     public void PostUpdateAttributeValues()
@@ -548,6 +542,23 @@ public class CellCulture : Culture
         PostUpdateAttributeValues();
 
         PostUpdateRemoveAttributes();
+    }
+
+    public void UpdateFactionCulture(FactionCulture factionCulture)
+    {
+        foreach (CellCulturalDiscovery d in DiscoveriesToFind.Values)
+        {
+            factionCulture.AddCoreDiscovery(d);
+        }
+    }
+
+    public void CleanUpAtributesToGet()
+    {
+        PreferencesToAcquire.Clear();
+        ActivitiesToPerform.Clear();
+        SkillsToLearn.Clear();
+        KnowledgesToLearn.Clear();
+        DiscoveriesToFind.Clear();
     }
 
     public float MinimumSkillAdaptationLevel()

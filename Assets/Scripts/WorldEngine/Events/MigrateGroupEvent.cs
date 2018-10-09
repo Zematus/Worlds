@@ -76,7 +76,7 @@ public class MigrateGroupEvent : CellGroupEvent {
 		//		}
 		//		#endif
 
-		float randomFactor = Group.Cell.GetNextLocalRandomFloat (RngOffsets.EVENT_TRIGGER + (int)Id);
+		float randomFactor = Group.Cell.GetNextLocalRandomFloat (RngOffsets.EVENT_TRIGGER + unchecked((int)Id));
 		float percentToMigrate = (1 - Group.MigrationValue/Group.TotalMigrationValue) * randomFactor;
 		percentToMigrate = Mathf.Pow (percentToMigrate, 4);
 

@@ -89,7 +89,7 @@ public class ExpandPolityProminenceEvent : CellGroupEvent {
 		//		}
 		//		#endif
 
-		float randomFactor = Group.Cell.GetNextLocalRandomFloat (RngOffsets.EVENT_TRIGGER + (int)Id);
+		float randomFactor = Group.Cell.GetNextLocalRandomFloat (RngOffsets.EVENT_TRIGGER + unchecked((int)Id));
 		float percentToExpand = Mathf.Pow (randomFactor, 4);
 
 		float populationFactor = Group.Population / (float)(Group.Population + TargetGroup.Population);

@@ -100,9 +100,22 @@ public class PolityCulture : Culture
 
     private void ResetCulture()
     {
+        foreach (PolityCulturalKnowledge k in Knowledges.Values)
+        {
+            k.Reset();
+        }
+
         foreach (CulturalDiscovery d in Discoveries.Values)
         {
             d.Reset();
+        }
+    }
+
+    private void FinalizeUpdateFromFactions()
+    {
+        foreach (PolityCulturalKnowledge k in Knowledges.Values)
+        {
+            k.FinalizeUpdateFromFactions();
         }
     }
 
@@ -118,6 +131,8 @@ public class PolityCulture : Culture
 
             Profiler.EndSample();
         }
+
+        FinalizeUpdateFromFactions();
     }
 
     private void AddFactionCulture(Faction faction)
@@ -227,33 +242,9 @@ public class PolityCulture : Culture
 
         Profiler.BeginSample("foreach CulturalKnowledge");
 
-        foreach (CulturalKnowledge k in faction.Culture.Knowledges.Values)
+        foreach (FactionCulturalKnowledge k in faction.Culture.Knowledges.Values)
         {
-            Profiler.BeginSample("GetKnowledge");
-
-            CulturalKnowledge knowledge = GetKnowledge(k.Id);
-
-            Profiler.EndSample();
-
-            if (knowledge == null)
-            {
-                Profiler.BeginSample("AddKnowledge");
-
-                knowledge = new CulturalKnowledge(k);
-                knowledge.Value = (int)(k.Value * influence);
-
-                AddKnowledge(knowledge);
-
-                Profiler.EndSample();
-            }
-            else
-            {
-                Profiler.BeginSample("update knowledge value");
-
-                knowledge.Value += (int)(k.Value * influence);
-
-                Profiler.EndSample();
-            }
+            k.UpdatePolityKnowledge(influence);
         }
 
         Profiler.EndSample();
@@ -262,10 +253,7 @@ public class PolityCulture : Culture
 
         foreach (FactionCulturalDiscovery d in faction.Culture.Discoveries.Values)
         {
-            if (d.IsPresent)
-            {
-                d.UpdatePolityDiscovery();
-            }
+            d.UpdatePolityDiscovery();
         }
 
         Profiler.EndSample();

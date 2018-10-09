@@ -136,7 +136,7 @@ public class PolityProminenceCluster : ISynchronizable
 
     private int GetNextLocalRandomInt(int maxValue)
     {
-        return Polity.GetNextLocalRandomInt((int)Id + _rngOffset, maxValue);
+        return Polity.GetNextLocalRandomInt(unchecked((int)Id) + _rngOffset, maxValue);
     }
 
     public PolityProminence GetRandomProminence(int rngOffset)

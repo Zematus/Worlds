@@ -84,7 +84,7 @@ public class FosterTribeRelationDecisionEvent : PolityEvent {
 		if (_sourceTribe.DominantFaction != OriginalDominantFaction)
 			return false;
 
-		int rngOffset = (int)(RngOffsets.EVENT_CAN_TRIGGER + Id);
+		int rngOffset = unchecked((int)(RngOffsets.EVENT_CAN_TRIGGER + Id));
 
 		_targetContact = _sourceTribe.GetRandomPolityContact (rngOffset++, GetContactWeight, true);
 

@@ -100,9 +100,9 @@ public class CellCulturalActivity : CulturalActivity
 
         TerrainCell groupCell = Group.Cell;
 
-        float randomEffect = groupCell.GetNextLocalRandomFloat(RngOffsets.ACTIVITY_POLITY_PROMINENCE + RngOffset + (int)polityProminence.PolityId);
+        float randomEffect = groupCell.GetNextLocalRandomFloat(RngOffsets.ACTIVITY_POLITY_PROMINENCE + RngOffset + unchecked((int)polityProminence.PolityId));
 
-        float timeEffect = timeSpan / (float)(timeSpan + TimeEffectConstant);
+        float timeEffect = timeSpan / (timeSpan + TimeEffectConstant);
 
         // _newvalue should have been set correctly either by the constructor or by the Update function
         float change = (targetValue - _newValue) * prominenceEffect * timeEffect * randomEffect;

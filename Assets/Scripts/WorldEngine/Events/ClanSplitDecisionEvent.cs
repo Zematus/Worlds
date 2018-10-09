@@ -132,7 +132,7 @@ public class ClanSplitDecisionEvent : FactionEvent
             return false;
         }
 
-        int rngOffset = (int)(RngOffsets.EVENT_CAN_TRIGGER + Id);
+        int rngOffset = unchecked((int)(RngOffsets.EVENT_CAN_TRIGGER + Id));
 
         Profiler.BeginSample("CanTrigger - _clan.Polity.GetRandomGroup");
         

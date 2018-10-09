@@ -8,6 +8,7 @@ using UnityEngine.Profiling;
 [XmlInclude(typeof(ShipbuildingKnowledge))]
 [XmlInclude(typeof(AgricultureKnowledge))]
 [XmlInclude(typeof(SocialOrganizationKnowledge))]
+[XmlInclude(typeof(FactionCulturalKnowledge))]
 public class CulturalKnowledge : CulturalKnowledgeInfo, IFilterableValue
 {
     public const float ValueScaleFactor = 0.01f;
@@ -50,7 +51,7 @@ public class CulturalKnowledge : CulturalKnowledgeInfo, IFilterableValue
         get { return Value * ValueScaleFactor; }
     }
 
-    public void Reset()
+    public virtual void Reset()
     {
         Value = 0;
 

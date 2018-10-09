@@ -19,7 +19,7 @@ public class Culture : ISynchronizable
     public XmlSerializableDictionary<string, CulturalPreference> Preferences = new XmlSerializableDictionary<string, CulturalPreference>();
     public XmlSerializableDictionary<string, CulturalActivity> Activities = new XmlSerializableDictionary<string, CulturalActivity>();
     public XmlSerializableDictionary<string, CulturalSkill> Skills = new XmlSerializableDictionary<string, CulturalSkill>();
-    public XmlSerializableDictionary<string, CulturalKnowledge> Knowledges = new XmlSerializableDictionary<string, CulturalKnowledge>();
+    public XmlSerializableFilterableDictionary<string, CulturalKnowledge> Knowledges = new XmlSerializableFilterableDictionary<string, CulturalKnowledge>();
     public XmlSerializableFilterableDictionary<string, CulturalDiscovery> Discoveries = new XmlSerializableFilterableDictionary<string, CulturalDiscovery>();
 
     public Culture()
@@ -165,10 +165,14 @@ public class Culture : ISynchronizable
         }
     }
 
-    protected void AddKnowledge(CulturalKnowledge knowledge)
+    public void AddKnowledge(CulturalKnowledge knowledge)
     {
-        if (Knowledges.ContainsKey(knowledge.Id))
-            return;
+        // Set() will reset WasPresent, so we need to store it in a temp variable to be used later
+        bool wasPresent = knowledge.WasPresent;
+
+        knowledge.Set();
+
+        if (wasPresent) return;
 
         World.AddExistingCulturalKnowledgeInfo(knowledge);
         
@@ -177,9 +181,6 @@ public class Culture : ISynchronizable
 
     protected void RemoveKnowledge(CulturalKnowledge knowledge)
     {
-        if (!Knowledges.ContainsKey(knowledge.Id))
-            return;
-
         knowledge.Reset();
     }
 
@@ -193,8 +194,10 @@ public class Culture : ISynchronizable
 
     public void AddDiscovery(CulturalDiscovery discovery, bool setAsPresent = true)
     {
+        // Set() will reset WasPresent, so we need to store it in a temp variable to be used later
         bool wasPresent = discovery.WasPresent;
 
+        // There's a chance that we are adding a discovery that is no longer valid, so we need to set it as not present anymore.
         if (setAsPresent)
             discovery.Set();
         else
@@ -209,9 +212,6 @@ public class Culture : ISynchronizable
 
     protected void RemoveDiscovery(CulturalDiscovery discovery)
     {
-        if (!Discoveries.ContainsKey(discovery.Id))
-            return;
-        
         discovery.Reset();
     }
 

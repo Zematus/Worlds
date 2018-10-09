@@ -69,8 +69,6 @@ public class OpenTribeDecisionEvent : PolityEvent {
 		if (_tribe.DominantFaction != OriginalDominantFaction)
 			return false;
 
-//		int rngOffset = (int)(RngOffsets.EVENT_CAN_TRIGGER + Id);
-
 		// We should use the latest cultural attribute values before calculating chances
 		_originalDominantClan.PreUpdate ();
 

@@ -331,24 +331,16 @@ public abstract class Polity : ISynchronizable {
 
     public float GetNextLocalRandomFloat(int iterationOffset)
     {
-        return CoreGroup.GetNextLocalRandomFloat(iterationOffset + (int)Id);
+        return CoreGroup.GetNextLocalRandomFloat(iterationOffset + unchecked((int)Id));
     }
 
     public int GetNextLocalRandomInt(int iterationOffset, int maxValue)
     {
-        return CoreGroup.GetNextLocalRandomInt(iterationOffset + (int)Id, maxValue);
+        return CoreGroup.GetNextLocalRandomInt(iterationOffset + unchecked((int)Id), maxValue);
     }
 
     public void AddFaction(Faction faction)
     {
-        //		foreach (Faction existingFaction in _factions.Values) {
-        //
-        //			if (!existingFaction.HasRelationship (faction)) {
-        //			
-        //				Faction.SetRelationship (existingFaction, faction, 0.5f);
-        //			}
-        //		}
-
         Factions.Add(faction.Id, faction);
 
         if (!World.ContainsFactionInfo(faction.Id))
@@ -999,7 +991,7 @@ public abstract class Polity : ISynchronizable {
         float maxTargetValue = 1f;
         float minTargetValue = 0.8f * totalPolityProminenceValue;
 
-        float randomModifier = groupCell.GetNextLocalRandomFloat(RngOffsets.POLITY_UPDATE_EFFECTS + (int)Id);
+        float randomModifier = groupCell.GetNextLocalRandomFloat(RngOffsets.POLITY_UPDATE_EFFECTS + unchecked((int)Id));
         randomModifier *= distanceFactor;
         float targetValue = ((maxTargetValue - minTargetValue) * randomModifier) + minTargetValue;
 

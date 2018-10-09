@@ -206,7 +206,7 @@ public class RegionInfo : ISynchronizable, IKeyedValue<long>
 
     private void GenerateName()
     {
-        _rngOffset = RngOffsets.REGION_GENERATE_NAME + (int)Language.Id;
+        _rngOffset = RngOffsets.REGION_GENERATE_NAME + unchecked((int)Language.Id);
 
         string untranslatedName;
 
