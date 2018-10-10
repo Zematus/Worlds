@@ -2687,70 +2687,70 @@ public class Manager {
         return color;
     }
 
-    private static Color SetPolityCulturalKnowledgeOverlayColor (TerrainCell cell, Color color) {
+    private static Color SetPolityCulturalKnowledgeOverlayColor(TerrainCell cell, Color color)
+    {
+        float greyscale = (color.r + color.g + color.b);
 
-		float greyscale = (color.r + color.g + color.b);
+        color.r = (greyscale + color.r) / 9f;
+        color.g = (greyscale + color.g) / 9f;
+        color.b = (greyscale + color.b) / 9f;
 
-		color.r = (greyscale + color.r) / 9f;
-		color.g = (greyscale + color.g) / 9f;
-		color.b = (greyscale + color.b) / 9f;
+        if (cell.GetBiomePresence(Biome.Ocean) >= 1f)
+            return color;
 
-		if (cell.GetBiomePresence (Biome.Ocean) >= 1f)
-			return color;
+        if (cell.Group == null)
+            return color;
 
-		if (cell.Group == null)
-			return color;
+        color.r += 1.5f / 9f;
+        color.g += 1.5f / 9f;
+        color.b += 1.5f / 9f;
 
-		color.r += 1.5f / 9f;
-		color.g += 1.5f / 9f;
-		color.b += 1.5f / 9f;
+        if (_planetOverlaySubtype == "None")
+            return color;
 
-		if (_planetOverlaySubtype == "None")
-			return color;
+        Territory territory = cell.EncompassingTerritory;
 
-		Territory territory = cell.EncompassingTerritory;
+        if (territory == null)
+            return color;
 
-		if (territory == null)
-			return color;
+        CulturalKnowledge knowledge = territory.Polity.Culture.GetKnowledge(_planetOverlaySubtype);
 
-		CulturalKnowledge knowledge = territory.Polity.Culture.GetKnowledge(_planetOverlaySubtype);
+        CellCulturalKnowledge cellKnowledge = territory.Polity.CoreGroup.Culture.GetKnowledge(_planetOverlaySubtype) as CellCulturalKnowledge;
 
-		CellCulturalKnowledge cellKnowledge = territory.Polity.CoreGroup.Culture.GetKnowledge(_planetOverlaySubtype) as CellCulturalKnowledge;
+        if ((knowledge == null) || (!knowledge.IsPresent))
+            return color;
 
-		if ((knowledge == null) || (!knowledge.IsPresent))
-			return color;
-		
-		if ((cellKnowledge == null) || (!cellKnowledge.IsPresent))
-			return color;
+        if ((cellKnowledge == null) || (!cellKnowledge.IsPresent))
+            return color;
 
-		float normalizedValue = 0;
+        float normalizedValue = 0;
 
-		float highestAsymptote = cellKnowledge.GetHighestAsymptote ();
+        float highestAsymptote = cellKnowledge.GetHighestAsymptote();
 
-		if (highestAsymptote <= 0)
-			throw new System.Exception ("Highest Asymptote is less or equal to 0");
+        if (highestAsymptote <= 0)
+            throw new System.Exception("Highest Asymptote is less or equal to 0");
 
-		normalizedValue = knowledge.Value / highestAsymptote;
+        normalizedValue = knowledge.Value / highestAsymptote;
 
-		if (normalizedValue < 0.001)
-			return color;
+        if (normalizedValue < 0.001)
+            return color;
 
-		float value = 0.05f + 0.95f * normalizedValue;
+        float value = 0.05f + 0.95f * normalizedValue;
 
-		Color addedColor = Color.cyan;
+        Color addedColor = Color.cyan;
 
-		if (IsTerritoryBorder (territory, cell)) {
+        if (IsTerritoryBorder(territory, cell))
+        {
+            // A slightly bluer shade of cyan
+            addedColor = new Color(0, 0.75f, 1.0f);
+        }
 
-			// A slightly bluer shade of cyan
-			addedColor = new Color (0, 0.75f, 1.0f);
-		}
+        color = (color * (1 - value)) + (addedColor * value);
 
-		color = (color * (1 - value)) + (addedColor * value);
+        return color;
+    }
 
-		return color;
-	}
-
-	private static Color SetPopCulturalDiscoveryOverlayColor(TerrainCell cell, Color color)
+    private static Color SetPopCulturalDiscoveryOverlayColor(TerrainCell cell, Color color)
     {
         float greyscale = (color.r + color.g + color.b);
 
@@ -2926,14 +2926,14 @@ public class Manager {
 
                 normalizedValue = maxPopFactor;
 
-                CellCulturalKnowledge knowledge = cell.Group.Culture.GetKnowledge(SocialOrganizationKnowledge.SocialOrganizationKnowledgeId) as CellCulturalKnowledge;
+                int knowledgeValue = 0;
 
-                if ((knowledge != null) && knowledge.IsPresent)
+                if (cell.Group.Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.SocialOrganizationKnowledgeId, out knowledgeValue))
                 {
                     float minValue = SocialOrganizationKnowledge.MinValueForHoldingTribalism;
                     float startValue = SocialOrganizationKnowledge.InitialValue;
 
-                    float knowledgeFactor = Mathf.Min(1f, (knowledge.Value - startValue) / (minValue - startValue));
+                    float knowledgeFactor = Mathf.Min(1f, (knowledgeValue - startValue) / (minValue - startValue));
 
                     Color softDensityColor = groupColor * terrainColor;
 

@@ -1507,11 +1507,9 @@ public class World : ISynchronizable
 
                 string callingClass = method.DeclaringType.ToString();
 
-                float knowledgeValue = 0;
-                CulturalKnowledge knowledge = faction.Culture.GetKnowledge(SocialOrganizationKnowledge.SocialOrganizationKnowledgeId);
+                int knowledgeValue = 0;
 
-                if (knowledge != null)
-                    knowledgeValue = knowledge.Value;
+                faction.Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.SocialOrganizationKnowledgeId, out knowledgeValue);
 
                 SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
                     "World:AddFactionToUpdate - Faction Id:" + faction.Id,

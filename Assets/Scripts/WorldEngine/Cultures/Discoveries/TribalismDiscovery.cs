@@ -16,19 +16,16 @@ public class TribalismDiscovery : CellCulturalDiscovery
 
     public override bool CanBeHeld(CellGroup group)
     {
-        CulturalKnowledge knowledge = group.Culture.GetKnowledge(SocialOrganizationKnowledge.SocialOrganizationKnowledgeId);
+        int value = 0;
 
-        if ((knowledge == null) || (!knowledge.IsPresent))
-        {
+        if (!group.Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.SocialOrganizationKnowledgeId, out value))
             return false;
-        }
 
-        if (knowledge.Value < SocialOrganizationKnowledge.MinValueForHoldingTribalism)
+        if (value < SocialOrganizationKnowledge.MinValueForHoldingTribalism)
         {
 #if DEBUG
             if (group.GetFactionCores().Count > 0)
             {
-
                 Debug.LogWarning("Group that will lose tribalism has faction cores - Id: " + group.Id);
             }
 #endif

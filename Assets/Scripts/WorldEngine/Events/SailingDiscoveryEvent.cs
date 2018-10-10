@@ -27,12 +27,9 @@ public class SailingDiscoveryEvent : DiscoveryEvent
 
     public static long CalculateTriggerDate(CellGroup group)
     {
-        float shipBuildingValue = 0;
+        int shipBuildingValue = 0;
 
-        CulturalKnowledge shipbuildingKnowledge = group.Culture.GetKnowledge(ShipbuildingKnowledge.ShipbuildingKnowledgeId);
-
-        if ((shipbuildingKnowledge != null) && (shipbuildingKnowledge.IsPresent))
-            shipBuildingValue = shipbuildingKnowledge.Value;
+        group.Culture.TryGetKnowledgeValue(ShipbuildingKnowledge.ShipbuildingKnowledgeId, out shipBuildingValue);
 
         float randomFactor = group.Cell.GetNextLocalRandomFloat(RngOffsets.SAILING_DISCOVERY_EVENT_CALCULATE_TRIGGER_DATE);
         randomFactor = randomFactor * randomFactor;
@@ -66,15 +63,12 @@ public class SailingDiscoveryEvent : DiscoveryEvent
         if (Group.Culture.HasDiscoveryOrWillHave(SailingDiscovery.SailingDiscoveryId))
             return false;
 
-        CulturalKnowledge shipbuildingKnowledge = Group.Culture.GetKnowledge(ShipbuildingKnowledge.ShipbuildingKnowledgeId);
+        int value = 0;
 
-        if ((shipbuildingKnowledge == null) || (!shipbuildingKnowledge.IsPresent))
+        if (!Group.Culture.TryGetKnowledgeValue(ShipbuildingKnowledge.ShipbuildingKnowledgeId, out value))
             return false;
 
-        if (shipbuildingKnowledge.Value < MinShipBuildingKnowledgeValue)
-            return false;
-
-        return true;
+        return value >= MinShipBuildingKnowledgeValue;
     }
 
     public override void Trigger()

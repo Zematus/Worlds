@@ -1352,14 +1352,11 @@ public abstract class Polity : ISynchronizable {
 
 	public float CalculateAdministrativeLoad()
     {
-        float socialOrganizationValue = 0;
+        int socialOrganizationValue = 0;
 
-        CulturalKnowledge socialOrganizationKnowledge = Culture.GetKnowledge(SocialOrganizationKnowledge.SocialOrganizationKnowledgeId);
+        Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.SocialOrganizationKnowledgeId, out socialOrganizationValue);
 
-        if ((socialOrganizationKnowledge != null) && socialOrganizationKnowledge.IsPresent)
-            socialOrganizationValue = socialOrganizationKnowledge.Value;
-
-        if (socialOrganizationValue < 0)
+        if (socialOrganizationValue <= 0)
         {
             return Mathf.Infinity;
         }

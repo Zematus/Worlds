@@ -3637,14 +3637,9 @@ public class GuiManagerScript : MonoBehaviour {
 
             foreach (Faction faction in polity.GetFactions())
             {
-                knowledge = faction.Culture.GetKnowledge(_planetOverlaySubtype);
-
                 float scaledValue = 0;
 
-                if ((knowledge != null) && knowledge.IsPresent)
-                {
-                    scaledValue = knowledge.ScaledValue;
-                }
+                faction.Culture.TryGetKnowledgeScaledValue(_planetOverlaySubtype, out scaledValue);
 
                 text += "\n " + faction.Name.Text + ": " + scaledValue.ToString("0.000");
             }
@@ -3691,130 +3686,131 @@ public class GuiManagerScript : MonoBehaviour {
         InfoTooltipScript.DisplayTip(_lastHoveredOverRegion.Name.Text, tooltipPos);
     }
 
-    public void ShiftMapToPosition (WorldPosition mapPosition) {
+    public void ShiftMapToPosition(WorldPosition mapPosition)
+    {
+        Rect mapImageRect = MapImage.rectTransform.rect;
 
-		Rect mapImageRect = MapImage.rectTransform.rect;
+        Vector2 normalizedMapPos = new Vector2(mapPosition.Longitude / (float)Manager.CurrentWorld.Width, mapPosition.Latitude / (float)Manager.CurrentWorld.Height);
 
-		Vector2 normalizedMapPos = new Vector2 (mapPosition.Longitude / (float) Manager.CurrentWorld.Width, mapPosition.Latitude / (float) Manager.CurrentWorld.Height);
+        Vector2 mapImagePos = normalizedMapPos - MapImage.uvRect.center;
+        mapImagePos.x = Mathf.Repeat(mapImagePos.x, 1.0f);
 
-		Vector2 mapImagePos = normalizedMapPos - MapImage.uvRect.center;
-		mapImagePos.x = Mathf.Repeat (mapImagePos.x, 1.0f);
+        Rect newUvRect = MapImage.uvRect;
+        newUvRect.x += mapImagePos.x;
 
-		Rect newUvRect = MapImage.uvRect;
-		newUvRect.x += mapImagePos.x;
+        MapImage.uvRect = newUvRect;
+    }
 
-		MapImage.uvRect = newUvRect;
-	}
+    public Vector3 GetScreenPositionFromMapCoordinates(WorldPosition mapPosition)
+    {
+        Rect mapImageRect = MapImage.rectTransform.rect;
 
-	public Vector3 GetScreenPositionFromMapCoordinates (WorldPosition mapPosition) {
+        Vector2 normalizedMapPos = new Vector2(mapPosition.Longitude / (float)Manager.CurrentWorld.Width, mapPosition.Latitude / (float)Manager.CurrentWorld.Height);
 
-		Rect mapImageRect = MapImage.rectTransform.rect;
+        Vector2 mapImagePos = normalizedMapPos - MapImage.uvRect.min;
+        mapImagePos.x = Mathf.Repeat(mapImagePos.x, 1.0f);
 
-		Vector2 normalizedMapPos = new Vector2 (mapPosition.Longitude / (float) Manager.CurrentWorld.Width, mapPosition.Latitude / (float) Manager.CurrentWorld.Height);
+        mapImagePos.Scale(mapImageRect.size);
 
-		Vector2 mapImagePos = normalizedMapPos - MapImage.uvRect.min;
-		mapImagePos.x = Mathf.Repeat (mapImagePos.x, 1.0f);
+        return MapImage.rectTransform.TransformPoint(mapImagePos + mapImageRect.min);
+    }
 
-		mapImagePos.Scale (mapImageRect.size);
+    public bool GetMapCoordinatesFromPointerPosition(Vector2 pointerPosition, out Vector2 mapPosition)
+    {
+        Rect mapImageRect = MapImage.rectTransform.rect;
 
-		return MapImage.rectTransform.TransformPoint (mapImagePos + mapImageRect.min);
-	}
+        Vector3 positionOverMapRect3D = MapImage.rectTransform.InverseTransformPoint(pointerPosition);
 
-	public bool GetMapCoordinatesFromPointerPosition (Vector2 pointerPosition, out Vector2 mapPosition) {
+        Vector2 positionOverMapRect = new Vector2(positionOverMapRect3D.x, positionOverMapRect3D.y);
 
-		Rect mapImageRect = MapImage.rectTransform.rect;
-		
-		Vector3 positionOverMapRect3D = MapImage.rectTransform.InverseTransformPoint (pointerPosition);
-		
-		Vector2 positionOverMapRect = new Vector2 (positionOverMapRect3D.x, positionOverMapRect3D.y);
-		
-		if (mapImageRect.Contains (positionOverMapRect)) {
-			
-			Vector2 relPos = positionOverMapRect - mapImageRect.min;
-			
-			Vector2 uvPos = new Vector2 (relPos.x / mapImageRect.size.x, relPos.y / mapImageRect.size.y);
-			
-			uvPos += MapImage.uvRect.min;
-			
-			float worldLong = Mathf.Repeat (Mathf.Floor(uvPos.x * Manager.CurrentWorld.Width), Manager.CurrentWorld.Width);
-			float worldLat = Mathf.Floor(uvPos.y * Manager.CurrentWorld.Height);
-			
-			mapPosition = new Vector2 (worldLong, worldLat);
-			
-			return true;
-		}
-		
-		mapPosition = -Vector2.one;
-		
-		return false;
-	}
-	
-	public bool GetMapCoordinatesFromPointerPosition (out Vector2 mapPosition) {
+        if (mapImageRect.Contains(positionOverMapRect))
+        {
+            Vector2 relPos = positionOverMapRect - mapImageRect.min;
 
-		return GetMapCoordinatesFromPointerPosition (Input.mousePosition, out mapPosition);
-	}
-	
-	public void DragMap (BaseEventData data) {
-		
-		Rect mapImageRect = MapImage.rectTransform.rect;
-		
-		PointerEventData pointerData = data as PointerEventData;
-		
-		if (pointerData.button != PointerEventData.InputButton.Right)
-			return;
+            Vector2 uvPos = new Vector2(relPos.x / mapImageRect.size.x, relPos.y / mapImageRect.size.y);
 
-		Vector2 delta = pointerData.position - _beginDragPosition;
+            uvPos += MapImage.uvRect.min;
 
-		float uvDelta = delta.x / mapImageRect.width;
+            float worldLong = Mathf.Repeat(Mathf.Floor(uvPos.x * Manager.CurrentWorld.Width), Manager.CurrentWorld.Width);
+            float worldLat = Mathf.Floor(uvPos.y * Manager.CurrentWorld.Height);
 
-		Rect newUvRect = _beginDragMapUvRect;
-		newUvRect.x -= uvDelta;
+            mapPosition = new Vector2(worldLong, worldLat);
 
-		MapImage.uvRect = newUvRect;
-	}
-	
-	public void BeginDragMap (BaseEventData data) {
-		
-		PointerEventData pointerData = data as PointerEventData;
+            return true;
+        }
 
-		if (pointerData.button != PointerEventData.InputButton.Right)
-			return;
+        mapPosition = -Vector2.one;
 
-		_beginDragPosition = pointerData.position;
-		_beginDragMapUvRect = MapImage.uvRect;
-	}
-	
-	public void EndDragMap (BaseEventData data) {
-	}
-	
-	public void SelectCellOnMap (BaseEventData data) {
-		
-		PointerEventData pointerData = data as PointerEventData;
-		
-		if (pointerData.button != PointerEventData.InputButton.Left)
-			return;
+        return false;
+    }
 
-		if (_mapLeftClickOp != null) {
-		
-			_mapLeftClickOp (pointerData.position);
-		}
-	}
+    public bool GetMapCoordinatesFromPointerPosition(out Vector2 mapPosition)
+    {
+        return GetMapCoordinatesFromPointerPosition(Input.mousePosition, out mapPosition);
+    }
 
-	public void ExecuteMapHoverOp () {
+    public void DragMap(BaseEventData data)
+    {
+        Rect mapImageRect = MapImage.rectTransform.rect;
 
-		if (_mapHoverOp != null) {
+        PointerEventData pointerData = data as PointerEventData;
 
-			_mapHoverOp (Input.mousePosition);
-		}
-	}
+        if (pointerData.button != PointerEventData.InputButton.Right)
+            return;
 
-	public void PointerEntersMap (BaseEventData data) {
+        Vector2 delta = pointerData.position - _beginDragPosition;
 
-		_mouseIsOverMap = true;
-	}
+        float uvDelta = delta.x / mapImageRect.width;
 
-	public void PointerExitsMap (BaseEventData data) {
+        Rect newUvRect = _beginDragMapUvRect;
+        newUvRect.x -= uvDelta;
 
-		_mouseIsOverMap = false;
-	}
+        MapImage.uvRect = newUvRect;
+    }
+
+    public void BeginDragMap(BaseEventData data)
+    {
+        PointerEventData pointerData = data as PointerEventData;
+
+        if (pointerData.button != PointerEventData.InputButton.Right)
+            return;
+
+        _beginDragPosition = pointerData.position;
+        _beginDragMapUvRect = MapImage.uvRect;
+    }
+
+    public void EndDragMap(BaseEventData data)
+    {
+    }
+
+    public void SelectCellOnMap(BaseEventData data)
+    {
+        PointerEventData pointerData = data as PointerEventData;
+
+        if (pointerData.button != PointerEventData.InputButton.Left)
+            return;
+
+        if (_mapLeftClickOp != null)
+        {
+            _mapLeftClickOp(pointerData.position);
+        }
+    }
+
+    public void ExecuteMapHoverOp()
+    {
+        if (_mapHoverOp != null)
+        {
+            _mapHoverOp(Input.mousePosition);
+        }
+    }
+
+    public void PointerEntersMap(BaseEventData data)
+    {
+        _mouseIsOverMap = true;
+    }
+
+    public void PointerExitsMap(BaseEventData data)
+    {
+        _mouseIsOverMap = false;
+    }
 }

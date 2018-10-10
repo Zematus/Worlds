@@ -16,14 +16,11 @@ public class SailingDiscovery : CellCulturalDiscovery
 
     public override bool CanBeHeld(CellGroup group)
     {
-        CulturalKnowledge knowledge = group.Culture.GetKnowledge(ShipbuildingKnowledge.ShipbuildingKnowledgeId);
+        int value = 0;
 
-        if ((knowledge == null) || (!knowledge.IsPresent))
+        if (!group.Culture.TryGetKnowledgeValue(ShipbuildingKnowledge.ShipbuildingKnowledgeId, out value))
             return false;
 
-        if (knowledge.Value < ShipbuildingKnowledge.MinKnowledgeValueForSailing)
-            return false;
-
-        return true;
+        return value >= ShipbuildingKnowledge.MinKnowledgeValueForSailing;
     }
 }

@@ -25,12 +25,9 @@ public class TribeFormationEvent : CellGroupEvent
 
     public static long CalculateTriggerDate(CellGroup group)
     {
-        float socialOrganizationValue = 0;
+        int socialOrganizationValue = 0;
 
-        CulturalKnowledge socialOrganizationKnowledge = group.Culture.GetKnowledge(SocialOrganizationKnowledge.SocialOrganizationKnowledgeId);
-
-        if (socialOrganizationKnowledge != null)
-            socialOrganizationValue = socialOrganizationKnowledge.Value;
+        group.Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.SocialOrganizationKnowledgeId, out socialOrganizationValue);
 
         float randomFactor = group.Cell.GetNextLocalRandomFloat(RngOffsets.TRIBE_FORMATION_EVENT_CALCULATE_TRIGGER_DATE);
         randomFactor = Mathf.Pow(randomFactor, 2);
@@ -57,12 +54,12 @@ public class TribeFormationEvent : CellGroupEvent
         if (!group.Culture.HasDiscoveryOrWillHave(TribalismDiscovery.TribalismDiscoveryId))
             return false;
 
-        CulturalKnowledge socialOrganizationKnowledge = group.Culture.GetKnowledge(SocialOrganizationKnowledge.SocialOrganizationKnowledgeId);
+        int value = 0;
 
-        if (socialOrganizationKnowledge == null)
+        if (!group.Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.SocialOrganizationKnowledgeId, out value))
             return false;
 
-        if (socialOrganizationKnowledge.Value < MinSocialOrganizationKnowledgeTribeFormation)
+        if (value < MinSocialOrganizationKnowledgeTribeFormation)
             return false;
 
         return true;
@@ -79,12 +76,12 @@ public class TribeFormationEvent : CellGroupEvent
         if (!Group.Culture.HasDiscoveryOrWillHave(TribalismDiscovery.TribalismDiscoveryId))
             return false;
 
-        CulturalKnowledge socialOrganizationKnowledge = Group.Culture.GetKnowledge(SocialOrganizationKnowledge.SocialOrganizationKnowledgeId);
+        int value = 0;
 
-        if (socialOrganizationKnowledge == null)
+        if (!Group.Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.SocialOrganizationKnowledgeId, out value))
             return false;
 
-        if (socialOrganizationKnowledge.Value < MinSocialOrganizationKnowledgeTribeFormation)
+        if (value < MinSocialOrganizationKnowledgeTribeFormation)
             return false;
 
         float prominenceFactor = Mathf.Min(1, Group.TotalPolityProminenceValue * 3f);

@@ -30,12 +30,9 @@ public class TribalismDiscoveryEvent : DiscoveryEvent
 
     public static long CalculateTriggerDate(CellGroup group)
     {
-        float socialOrganizationValue = 0;
+        int socialOrganizationValue = 0;
 
-        CulturalKnowledge socialOrganizationKnowledge = group.Culture.GetKnowledge(SocialOrganizationKnowledge.SocialOrganizationKnowledgeId);
-
-        if (socialOrganizationKnowledge != null)
-            socialOrganizationValue = socialOrganizationKnowledge.Value;
+        group.Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.SocialOrganizationKnowledgeId, out socialOrganizationValue);
 
         float randomFactor = group.Cell.GetNextLocalRandomFloat(RngOffsets.TRIBALISM_DISCOVERY_EVENT_CALCULATE_TRIGGER_DATE);
         randomFactor = Mathf.Pow(randomFactor, 2);
@@ -76,12 +73,12 @@ public class TribalismDiscoveryEvent : DiscoveryEvent
         if (Group.Culture.HasDiscoveryOrWillHave(TribalismDiscovery.TribalismDiscoveryId))
             return false;
 
-        CulturalKnowledge socialOrganizationKnowledge = Group.Culture.GetKnowledge(SocialOrganizationKnowledge.SocialOrganizationKnowledgeId);
+        int value = 0;
 
-        if (socialOrganizationKnowledge == null)
+        if (!Group.Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.SocialOrganizationKnowledgeId, out value))
             return false;
 
-        if (socialOrganizationKnowledge.Value < MinSocialOrganizationKnowledgeForTribalismDiscovery)
+        if (value < MinSocialOrganizationKnowledgeForTribalismDiscovery)
             return false;
 
         return true;
