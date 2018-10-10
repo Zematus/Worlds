@@ -18,7 +18,7 @@ public class TribalismDiscovery : CellCulturalDiscovery
     {
         CulturalKnowledge knowledge = group.Culture.GetKnowledge(SocialOrganizationKnowledge.SocialOrganizationKnowledgeId);
 
-        if (knowledge == null)
+        if ((knowledge == null) || (!knowledge.IsPresent))
         {
             return false;
         }

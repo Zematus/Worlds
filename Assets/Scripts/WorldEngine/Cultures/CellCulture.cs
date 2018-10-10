@@ -60,13 +60,6 @@ public class CellCulture : Culture
 
         foreach (CulturalKnowledge k in sourceCulture.Knowledges.Values)
         {
-#if DEBUG
-            if ((Group.Id == 36878033105) && (k.Id == SocialOrganizationKnowledge.SocialOrganizationKnowledgeId))
-            {
-                bool debug = false;
-            }
-#endif
-
             if (k.IsPresent)
             {
                 CellCulturalKnowledge knowledge = CellCulturalKnowledge.CreateCellInstance(k.Id, group, k.Value);
@@ -81,6 +74,11 @@ public class CellCulture : Culture
         {
             if (d.IsPresent)
             {
+                if ((d.Id == BoatMakingDiscovery.BoatMakingDiscoveryId) && (group.Id == 26379554040081))
+                {
+                    bool debug = true;
+                }
+
                 AddDiscovery(CellCulturalDiscovery.CreateCellInstance(d.Id));
 
                 foreach (CellCulturalKnowledge knowledge in Knowledges.Values)
@@ -135,13 +133,6 @@ public class CellCulture : Culture
 
     public CellCulturalKnowledge TryAddKnowledgeToLearn(string id, CellGroup group, int initialValue = 0)
     {
-#if DEBUG
-        if ((Group.Id == 36878033105) && (id == SocialOrganizationKnowledge.SocialOrganizationKnowledgeId))
-        {
-            bool debug = false;
-        }
-#endif
-
         CellCulturalKnowledge knowledge = GetKnowledge(id) as CellCulturalKnowledge;
 
         if ((knowledge != null) && knowledge.IsPresent)
@@ -149,9 +140,11 @@ public class CellCulture : Culture
             return knowledge;
         }
 
-        if (KnowledgesToLearn.TryGetValue(id, out knowledge))
+        CellCulturalKnowledge tempKnowledge;
+
+        if (KnowledgesToLearn.TryGetValue(id, out tempKnowledge))
         {
-            return knowledge;
+            return tempKnowledge;
         }
 
         if (knowledge == null)
@@ -175,9 +168,11 @@ public class CellCulture : Culture
             return discovery;
         }
 
-        if (DiscoveriesToFind.TryGetValue(id, out discovery))
+        CellCulturalDiscovery tempDiscovery;
+
+        if (DiscoveriesToFind.TryGetValue(id, out tempDiscovery))
         {
-            return discovery;
+            return tempDiscovery;
         }
 
         if (discovery == null)
@@ -190,8 +185,8 @@ public class CellCulture : Culture
         return discovery;
     }
 
-    public CellCulturalPreference GetAcquiredPerferenceOrToAcquire(string id) {
-
+    public CellCulturalPreference GetAcquiredPerferenceOrToAcquire(string id)
+    {
         CellCulturalPreference preference = GetPreference(id) as CellCulturalPreference;
 
         if (preference != null)
@@ -203,8 +198,8 @@ public class CellCulture : Culture
         return null;
     }
 
-    public CellCulturalActivity GetPerformedActivityOrToPerform(string id) {
-
+    public CellCulturalActivity GetPerformedActivityOrToPerform(string id)
+    {
         CellCulturalActivity activity = GetActivity(id) as CellCulturalActivity;
 
         if (activity != null)
@@ -216,8 +211,8 @@ public class CellCulture : Culture
         return null;
     }
 
-    public CellCulturalSkill GetLearnedSkillOrToLearn(string id) {
-
+    public CellCulturalSkill GetLearnedSkillOrToLearn(string id)
+    {
         CellCulturalSkill skill = GetSkill(id) as CellCulturalSkill;
 
         if (skill != null)
@@ -312,6 +307,11 @@ public class CellCulture : Culture
         {
             if (!d.IsPresent) continue;
 
+            if ((d.Id == BoatMakingDiscovery.BoatMakingDiscoveryId) && (Group.Id == 26379554040081))
+            {
+                bool debug = true;
+            }
+
             TryAddDiscoveryToFind(d.Id);
         }
     }
@@ -393,6 +393,11 @@ public class CellCulture : Culture
         {
             if (!polityDiscovery.IsPresent) continue;
 
+            if ((polityDiscovery.Id == BoatMakingDiscovery.BoatMakingDiscoveryId) && (Group.Id == 26379554040081))
+            {
+                bool debug = true;
+            }
+
             TryAddDiscoveryToFind(polityDiscovery.Id);
         }
     }
@@ -437,6 +442,11 @@ public class CellCulture : Culture
 
         foreach (CellCulturalDiscovery d in _discoveriesToLose)
         {
+            if ((d.Id == BoatMakingDiscovery.BoatMakingDiscoveryId) && (Group.Id == 26379554040081))
+            {
+                bool debug = true;
+            }
+
             RemoveDiscovery(d);
             d.LossConsequences(Group);
             discoveriesLost = true;
@@ -480,7 +490,7 @@ public class CellCulture : Culture
             {
                 AddKnowledge(knowledge);
             }
-            catch
+            catch (System.ArgumentException)
             {
                 throw new System.Exception("Attempted to add duplicate knowledge (" + knowledge.Id + ") to group " + Group.Id);
             }
@@ -492,7 +502,14 @@ public class CellCulture : Culture
         {
             bool setAsPresent = discovery.CanBeHeld(Group);
 
-            AddDiscovery(discovery, setAsPresent);
+            try
+            {
+                AddDiscovery(discovery, setAsPresent);
+            }
+            catch (System.ArgumentException)
+            {
+                throw new System.Exception("Attempted to add duplicate discovery (" + discovery.Id + ") to group " + Group.Id);
+            }
 
             if (!setAsPresent) continue;
 
@@ -549,6 +566,11 @@ public class CellCulture : Culture
 
         foreach (CellCulturalDiscovery discovery in Discoveries.Values)
         {
+            if ((discovery.Id == BoatMakingDiscovery.BoatMakingDiscoveryId) && (Group.Id == 26379554040081))
+            {
+                bool debug = true;
+            }
+
             if (discovery.CanBeHeld(Group))
                 continue;
 

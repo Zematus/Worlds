@@ -16,11 +16,11 @@ public class BoatMakingDiscovery : CellCulturalDiscovery
 
     public override bool CanBeHeld(CellGroup group)
     {
-        CulturalKnowledge knowledge = group.Culture.GetKnowledge(ShipbuildingKnowledge.ShipbuildingKnowledgeId);
+        if (group.Culture.HasKnowledgeOrWillHave(ShipbuildingKnowledge.ShipbuildingKnowledgeId))
+        {
+            return true;
+        }
 
-        if (knowledge == null)
-            return false;
-
-        return true;
+        return false;
     }
 }

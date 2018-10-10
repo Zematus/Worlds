@@ -31,7 +31,7 @@ public class SailingDiscoveryEvent : DiscoveryEvent
 
         CulturalKnowledge shipbuildingKnowledge = group.Culture.GetKnowledge(ShipbuildingKnowledge.ShipbuildingKnowledgeId);
 
-        if (shipbuildingKnowledge != null)
+        if ((shipbuildingKnowledge != null) && (shipbuildingKnowledge.IsPresent))
             shipBuildingValue = shipbuildingKnowledge.Value;
 
         float randomFactor = group.Cell.GetNextLocalRandomFloat(RngOffsets.SAILING_DISCOVERY_EVENT_CALCULATE_TRIGGER_DATE);
@@ -68,7 +68,7 @@ public class SailingDiscoveryEvent : DiscoveryEvent
 
         CulturalKnowledge shipbuildingKnowledge = Group.Culture.GetKnowledge(ShipbuildingKnowledge.ShipbuildingKnowledgeId);
 
-        if (shipbuildingKnowledge == null)
+        if ((shipbuildingKnowledge == null) || (!shipbuildingKnowledge.IsPresent))
             return false;
 
         if (shipbuildingKnowledge.Value < MinShipBuildingKnowledgeValue)

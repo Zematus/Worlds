@@ -275,14 +275,7 @@ public class CellGroup : HumanGroup
         Cell.Group = this;
 
         Id = Cell.GenerateUniqueIdentifier(World.CurrentDate, 1L, 0);
-
-#if DEBUG
-        if (Id == 36878033105)
-        {
-            bool debug = false;
-        }
-#endif
-
+        
         if (migrationDirection == Direction.Null)
         {
             int offset = Cell.GetNextLocalRandomInt(RngOffsets.CELL_GROUP_UPDATE_MIGRATION_DIRECTION, TerrainCell.MaxNeighborDirections);
@@ -935,7 +928,7 @@ public class CellGroup : HumanGroup
     {
         foreach (PolityProminence pi in PolityProminences.Values)
         {
-            if (pi.Polity.Culture.GetKnowledge(id) != null)
+            if (pi.Polity.Culture.HasKnowledge(id))
             {
                 return true;
             }
@@ -2073,14 +2066,12 @@ public class CellGroup : HumanGroup
         //		}
         //		#endif
 
-        CulturalKnowledge agricultureKnowledge = Culture.GetKnowledge(AgricultureKnowledge.AgricultureKnowledgeId);
+        float knowledgeValue = 0;
 
-        if (agricultureKnowledge == null)
+        if (!Culture.TryGetKnowledgeScaledValue(AgricultureKnowledge.AgricultureKnowledgeId, out knowledgeValue))
         {
             return;
         }
-
-        float knowledgeValue = agricultureKnowledge.ScaledValue;
 
         float techValue = Mathf.Sqrt(knowledgeValue);
 
@@ -2208,13 +2199,13 @@ public class CellGroup : HumanGroup
 	public float CalculateFarmingCapacity (TerrainCell cell) {
 
 		float capacityFactor = 0;
-	
-		CulturalKnowledge agricultureKnowledge = Culture.GetKnowledge (AgricultureKnowledge.AgricultureKnowledgeId);
 
-		if (agricultureKnowledge == null)
-			return capacityFactor;
+		float value = 0;
 
-		float value = agricultureKnowledge.ScaledValue;
+        if (!Culture.TryGetKnowledgeScaledValue(AgricultureKnowledge.AgricultureKnowledgeId, out value))
+        {
+            return capacityFactor;
+        }
 
 		float techFactor = Mathf.Sqrt(value);
 

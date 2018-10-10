@@ -2646,48 +2646,48 @@ public class Manager {
 		return color;
 	}
 	
-	private static Color SetPopCulturalKnowledgeOverlayColor (TerrainCell cell, Color color) {
-		
-		float greyscale = (color.r + color.g + color.b);
-		
-		color.r = (greyscale + color.r) / 6f;
-		color.g = (greyscale + color.g) / 6f;
-		color.b = (greyscale + color.b) / 6f;
-		
-		if (_planetOverlaySubtype == "None")
-			return color;
-		
-		float normalizedValue = 0;
-		float population = 0;
-		
-		if (cell.Group != null) {
-			
-			CellCulturalKnowledge knowledge = cell.Group.Culture.GetKnowledge(_planetOverlaySubtype) as CellCulturalKnowledge;
-			
-			population = cell.Group.Population;
-			
-			if (knowledge != null) {
-				
-				float highestAsymptote = knowledge.GetHighestAsymptote ();
-				
-				if (highestAsymptote <= 0)
-					throw new System.Exception ("Highest Asymptote is less or equal to 0");
+	private static Color SetPopCulturalKnowledgeOverlayColor(TerrainCell cell, Color color)
+    {
+        float greyscale = (color.r + color.g + color.b);
 
-				normalizedValue = knowledge.Value / highestAsymptote;
-			}
-		}
-		
-		if ((population > 0) && (normalizedValue >= 0.001f)) {
-			
-			float value = 0.05f + 0.95f * normalizedValue;
-			
-			color = (color * (1 - value)) + (Color.cyan * value);
-		}
-		
-		return color;
-	}
+        color.r = (greyscale + color.r) / 6f;
+        color.g = (greyscale + color.g) / 6f;
+        color.b = (greyscale + color.b) / 6f;
 
-	private static Color SetPolityCulturalKnowledgeOverlayColor (TerrainCell cell, Color color) {
+        if (_planetOverlaySubtype == "None")
+            return color;
+
+        float normalizedValue = 0;
+        float population = 0;
+
+        if (cell.Group != null)
+        {
+            CellCulturalKnowledge knowledge = cell.Group.Culture.GetKnowledge(_planetOverlaySubtype) as CellCulturalKnowledge;
+
+            population = cell.Group.Population;
+
+            if ((knowledge != null) && knowledge.IsPresent)
+            {
+                float highestAsymptote = knowledge.GetHighestAsymptote();
+
+                if (highestAsymptote <= 0)
+                    throw new System.Exception("Highest Asymptote is less or equal to 0");
+
+                normalizedValue = knowledge.Value / highestAsymptote;
+            }
+        }
+
+        if ((population > 0) && (normalizedValue >= 0.001f))
+        {
+            float value = 0.05f + 0.95f * normalizedValue;
+
+            color = (color * (1 - value)) + (Color.cyan * value);
+        }
+
+        return color;
+    }
+
+    private static Color SetPolityCulturalKnowledgeOverlayColor (TerrainCell cell, Color color) {
 
 		float greyscale = (color.r + color.g + color.b);
 
@@ -2717,10 +2717,10 @@ public class Manager {
 
 		CellCulturalKnowledge cellKnowledge = territory.Polity.CoreGroup.Culture.GetKnowledge(_planetOverlaySubtype) as CellCulturalKnowledge;
 
-		if (knowledge == null)
+		if ((knowledge == null) || (!knowledge.IsPresent))
 			return color;
 		
-		if (cellKnowledge == null)
+		if ((cellKnowledge == null) || (!cellKnowledge.IsPresent))
 			return color;
 
 		float normalizedValue = 0;
@@ -2871,92 +2871,96 @@ public class Manager {
 		return color;
 	}
 
-	private static Color SetGeneralOverlayColor (TerrainCell cell, Color terrainColor)
+	private static Color SetGeneralOverlayColor(TerrainCell cell, Color terrainColor)
     {
         float greyscale = (terrainColor.r + terrainColor.g + terrainColor.b) / 3f;
         float greyscaleWeight = 0.9f;
 
         float normalizedValue = 0;
-		float population = 0;
+        float population = 0;
 
-		bool hasGroup = false;
-		bool inTerritory = false;
-		Color densityColorSubOptimal = GetOverlayColor(OverlayColorId.GeneralDensitySubOptimal);
-		Color groupColor = GetOverlayColor(OverlayColorId.GeneralDensityOptimal);
+        bool hasGroup = false;
+        bool inTerritory = false;
+        Color densityColorSubOptimal = GetOverlayColor(OverlayColorId.GeneralDensitySubOptimal);
+        Color groupColor = GetOverlayColor(OverlayColorId.GeneralDensityOptimal);
 
-		if (cell.EncompassingTerritory != null) {
+        if (cell.EncompassingTerritory != null)
+        {
+            inTerritory = true;
 
-			inTerritory = true;
+            Polity territoryPolity = cell.EncompassingTerritory.Polity;
 
-			Polity territoryPolity = cell.EncompassingTerritory.Polity;
+            groupColor = GenerateColorFromId(territoryPolity.Id, 100);
 
-			groupColor = GenerateColorFromId (territoryPolity.Id, 100);
+            bool isTerritoryBorder = IsTerritoryBorder(cell.EncompassingTerritory, cell);
+            bool isCoreGroup = territoryPolity.CoreGroup == cell.Group;
 
-			bool isTerritoryBorder = IsTerritoryBorder (cell.EncompassingTerritory, cell);
-			bool isCoreGroup = territoryPolity.CoreGroup == cell.Group;
+            if (!isCoreGroup)
+            {
+                if (!isTerritoryBorder)
+                {
+                    groupColor /= 2.5f;
+                }
+                else
+                {
+                    groupColor /= 1.75f;
+                }
+            }
 
-			if (!isCoreGroup) {
-				if (!isTerritoryBorder) {
-					groupColor /= 2.5f;
-				} else {
-					groupColor /= 1.75f;
-				}
-			}
+            groupColor = Color.white * 0.15f + groupColor * 0.85f;
 
-			groupColor = Color.white * 0.15f + groupColor * 0.85f;
+            normalizedValue = 0.8f;
+        }
 
-			normalizedValue = 0.8f;
-		}
-
-		if (cell.Group != null) {
-
-			hasGroup = true;
+        if (cell.Group != null)
+        {
+            hasGroup = true;
 
             if (!inTerritory)
             {
                 int maxPopulation = CurrentWorld.MostPopulousGroup.Population;
 
-			    population = cell.Group.Population;
+                population = cell.Group.Population;
 
-			    float maxPopFactor = 0.3f + 0.4f * (population / (float)maxPopulation);
+                float maxPopFactor = 0.3f + 0.4f * (population / (float)maxPopulation);
 
-			    normalizedValue = maxPopFactor;
+                normalizedValue = maxPopFactor;
 
-				CellCulturalKnowledge knowledge = cell.Group.Culture.GetKnowledge (SocialOrganizationKnowledge.SocialOrganizationKnowledgeId) as CellCulturalKnowledge;
+                CellCulturalKnowledge knowledge = cell.Group.Culture.GetKnowledge(SocialOrganizationKnowledge.SocialOrganizationKnowledgeId) as CellCulturalKnowledge;
 
-				if (knowledge != null) {
+                if ((knowledge != null) && knowledge.IsPresent)
+                {
+                    float minValue = SocialOrganizationKnowledge.MinValueForHoldingTribalism;
+                    float startValue = SocialOrganizationKnowledge.InitialValue;
 
-					float minValue = SocialOrganizationKnowledge.MinValueForHoldingTribalism;
-					float startValue = SocialOrganizationKnowledge.InitialValue;
-
-					float knowledgeFactor = Mathf.Min (1f, (knowledge.Value - startValue) / (minValue - startValue));
+                    float knowledgeFactor = Mathf.Min(1f, (knowledge.Value - startValue) / (minValue - startValue));
 
                     Color softDensityColor = groupColor * terrainColor;
 
                     groupColor = (softDensityColor * knowledgeFactor) + (densityColorSubOptimal * (1f - knowledgeFactor));
+                }
+                else
+                {
+                    groupColor = densityColorSubOptimal;
+                }
+            }
+        }
 
-				} else {
-				
-					groupColor = densityColorSubOptimal;
-				}
-			}
-		}
-
-		if (hasGroup || inTerritory) {
-
-			terrainColor.r = (terrainColor.r * (1 - greyscaleWeight)) + (greyscale * greyscaleWeight);
-			terrainColor.g = (terrainColor.g * (1 - greyscaleWeight)) + (greyscale * greyscaleWeight);
+        if (hasGroup || inTerritory)
+        {
+            terrainColor.r = (terrainColor.r * (1 - greyscaleWeight)) + (greyscale * greyscaleWeight);
+            terrainColor.g = (terrainColor.g * (1 - greyscaleWeight)) + (greyscale * greyscaleWeight);
             terrainColor.b = (terrainColor.b * (1 - greyscaleWeight)) + (greyscale * greyscaleWeight);
 
             float value = normalizedValue;
 
-			terrainColor = (terrainColor * (1 - value)) + (groupColor * value);
-		}
+            terrainColor = (terrainColor * (1 - value)) + (groupColor * value);
+        }
 
-		return terrainColor;
-	}
+        return terrainColor;
+    }
 
-	private static Color SetUpdateSpanOverlayColor (TerrainCell cell, Color color) {
+    private static Color SetUpdateSpanOverlayColor (TerrainCell cell, Color color) {
 
 		float greyscale = (color.r + color.g + color.b);
 

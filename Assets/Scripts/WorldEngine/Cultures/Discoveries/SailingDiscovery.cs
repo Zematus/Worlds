@@ -18,7 +18,7 @@ public class SailingDiscovery : CellCulturalDiscovery
     {
         CulturalKnowledge knowledge = group.Culture.GetKnowledge(ShipbuildingKnowledge.ShipbuildingKnowledgeId);
 
-        if (knowledge == null)
+        if ((knowledge == null) || (!knowledge.IsPresent))
             return false;
 
         if (knowledge.Value < ShipbuildingKnowledge.MinKnowledgeValueForSailing)

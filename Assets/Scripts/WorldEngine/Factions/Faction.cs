@@ -346,11 +346,9 @@ public abstract class Faction : ISynchronizable
                 string callingMethod = method.Name;
                 string callingClass = method.DeclaringType.ToString();
 
-                float knowledgeValue = 0;
-                CulturalKnowledge knowledge = Culture.GetKnowledge(SocialOrganizationKnowledge.SocialOrganizationKnowledgeId);
+                int knowledgeValue = 0;
 
-                if (knowledge != null)
-                    knowledgeValue = knowledge.Value;
+                Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.SocialOrganizationKnowledgeId, out knowledgeValue);
 
                 SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
                     "Faction:PreUpdate - Faction Id:" + Id,

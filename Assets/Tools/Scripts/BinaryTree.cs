@@ -199,15 +199,6 @@ public class BinaryTree<TKey, TValue> {
 
 //			Profiler.EndSample ();
 		}
-
-//		#if DEBUG
-//		float sqrtCount = Mathf.Sqrt (Count);
-//
-//		if (level > (sqrtCount * 2)) {
-//		
-//			bool debug = true;
-//		}
-//		#endif
 	}
 
 	public void FindRightmost (FilterNodeDelegate<TKey, TValue> filterNode, FilterNodeEffectDelegate<TKey, TValue> filterNodeEffect) {

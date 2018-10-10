@@ -3627,27 +3627,37 @@ public class GuiManagerScript : MonoBehaviour {
 		}
 	}
 
-	public void ShowCellInfoToolTip_PolityCulturalKnowledge (Polity polity, Vector3 position, float fadeStart = 5) {
+	public void ShowCellInfoToolTip_PolityCulturalKnowledge(Polity polity, Vector3 position, float fadeStart = 5)
+    {
+        CulturalKnowledge knowledge = polity.Culture.GetKnowledge(_planetOverlaySubtype);
 
-		CulturalKnowledge knowledge = polity.Culture.GetKnowledge (_planetOverlaySubtype);
+        if ((knowledge != null) && knowledge.IsPresent)
+        {
+            string text = knowledge.Name + " Value: " + knowledge.ScaledValue.ToString("0.000") + "\n\nFactions:";
 
-		if (knowledge != null) {
-			string text = knowledge.Name + " Value: " + knowledge.ScaledValue.ToString ("0.000") + "\n\nFactions:";
+            foreach (Faction faction in polity.GetFactions())
+            {
+                knowledge = faction.Culture.GetKnowledge(_planetOverlaySubtype);
 
-			foreach (Faction faction in polity.GetFactions ()) {
+                float scaledValue = 0;
 
-				knowledge = faction.Culture.GetKnowledge (_planetOverlaySubtype);
+                if ((knowledge != null) && knowledge.IsPresent)
+                {
+                    scaledValue = knowledge.ScaledValue;
+                }
 
-				text += "\n " + faction.Name.Text + ": " + knowledge.ScaledValue.ToString ("0.000");
-			}
+                text += "\n " + faction.Name.Text + ": " + scaledValue.ToString("0.000");
+            }
 
-			InfoTooltipScript.DisplayTip (text, position, fadeStart);
-		} else {
-			InfoTooltipScript.SetVisible (false);
-		}
-	}
+            InfoTooltipScript.DisplayTip(text, position, fadeStart);
+        }
+        else
+        {
+            InfoTooltipScript.SetVisible(false);
+        }
+    }
 
-	public void ShowCellInfoToolTip_PolityCulturalDiscovery(Polity polity, Vector3 position, float fadeStart = 5)
+    public void ShowCellInfoToolTip_PolityCulturalDiscovery(Polity polity, Vector3 position, float fadeStart = 5)
     {
         CulturalDiscovery discovery = polity.Culture.GetDiscovery(_planetOverlaySubtype) as CulturalDiscovery;
 

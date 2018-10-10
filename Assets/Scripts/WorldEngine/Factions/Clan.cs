@@ -227,15 +227,14 @@ public class Clan : Faction
 
     public static bool CanBeClanCore(CellGroup group)
     {
-        CulturalKnowledge knowledge = group.Culture.GetKnowledge(SocialOrganizationKnowledge.SocialOrganizationKnowledgeId);
+        int value = 0;
 
-        if (knowledge == null)
+        if (!group.Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.SocialOrganizationKnowledgeId, out value))
+        {
             return false;
+        }
 
-        if (knowledge.Value < MinSocialOrganizationValue)
-            return false;
-
-        return true;
+        return value >= MinSocialOrganizationValue;
     }
 
     public bool IsGroupValidCore(CellGroup group)
@@ -462,19 +461,16 @@ public class Clan : Faction
 
     public float CalculateAdministrativeLoad()
     {
-        float socialOrganizationValue = 0;
+        int socialOrganizationValue = 0;
 
-        CulturalKnowledge socialOrganizationKnowledge = Culture.GetKnowledge(SocialOrganizationKnowledge.SocialOrganizationKnowledgeId);
-
-        if (socialOrganizationKnowledge != null)
-            socialOrganizationValue = socialOrganizationKnowledge.Value;
-
-        if (socialOrganizationValue < 0)
+        Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.SocialOrganizationKnowledgeId, out socialOrganizationValue);
+        
+        if (socialOrganizationValue <= 0)
         {
             return Mathf.Infinity;
         }
 
-        float administrativeLoad = Polity.TotalAdministrativeCost * Influence / socialOrganizationValue;
+        float administrativeLoad = Polity.TotalAdministrativeCost * Influence / (float)socialOrganizationValue;
 
         administrativeLoad = Mathf.Pow(administrativeLoad, 2);
 

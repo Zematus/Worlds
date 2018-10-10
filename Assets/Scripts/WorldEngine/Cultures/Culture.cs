@@ -263,6 +263,38 @@ public class Culture : ISynchronizable
         return knowledge;
     }
 
+    public bool TryGetKnowledgeValue(string id, out int value)
+    {
+        value = 0;
+
+        CulturalKnowledge knowledge = GetKnowledge(id);
+
+        if ((knowledge != null) && knowledge.IsPresent)
+        {
+            value = knowledge.Value;
+
+            return true;
+        }
+
+        return false;
+    }
+
+    public bool TryGetKnowledgeScaledValue(string id, out float scaledValue)
+    {
+        scaledValue = 0;
+
+        CulturalKnowledge knowledge = GetKnowledge(id);
+
+        if ((knowledge != null) && knowledge.IsPresent)
+        {
+            scaledValue = knowledge.ScaledValue;
+
+            return true;
+        }
+
+        return false;
+    }
+
     public bool HasKnowledge(string id)
     {
         CulturalKnowledge knowledge = GetKnowledge(id);

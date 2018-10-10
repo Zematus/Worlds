@@ -1350,31 +1350,31 @@ public abstract class Polity : ISynchronizable {
 		}
 	}
 
-	public float CalculateAdministrativeLoad () {
+	public float CalculateAdministrativeLoad()
+    {
+        float socialOrganizationValue = 0;
 
-		float socialOrganizationValue = 0;
+        CulturalKnowledge socialOrganizationKnowledge = Culture.GetKnowledge(SocialOrganizationKnowledge.SocialOrganizationKnowledgeId);
 
-		CulturalKnowledge socialOrganizationKnowledge = Culture.GetKnowledge (SocialOrganizationKnowledge.SocialOrganizationKnowledgeId);
+        if ((socialOrganizationKnowledge != null) && socialOrganizationKnowledge.IsPresent)
+            socialOrganizationValue = socialOrganizationKnowledge.Value;
 
-		if (socialOrganizationKnowledge != null)
-			socialOrganizationValue = socialOrganizationKnowledge.Value;
+        if (socialOrganizationValue < 0)
+        {
+            return Mathf.Infinity;
+        }
 
-		if (socialOrganizationValue < 0) {
+        float administrativeLoad = TotalAdministrativeCost / socialOrganizationValue;
 
-			return Mathf.Infinity;
-		}
+        administrativeLoad = Mathf.Pow(administrativeLoad, 2);
 
-		float administrativeLoad = TotalAdministrativeCost / socialOrganizationValue;
+        if (administrativeLoad < 0)
+        {
+            Debug.LogWarning("administrativeLoad less than 0: " + administrativeLoad);
 
-		administrativeLoad = Mathf.Pow (administrativeLoad, 2);
+            return Mathf.Infinity;
+        }
 
-		if (administrativeLoad < 0) {
-
-			Debug.LogWarning ("administrativeLoad less than 0: " + administrativeLoad);
-
-			return Mathf.Infinity;
-		}
-
-		return administrativeLoad;
-	}
+        return administrativeLoad;
+    }
 }
