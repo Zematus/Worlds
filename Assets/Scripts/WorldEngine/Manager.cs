@@ -122,7 +122,9 @@ public class Manager {
 
 	public static bool IsFullscreen = false;
 
-	public static bool ShowFullGameplayInfo = false;
+    public static bool IsDebugModeEnabled = false;
+
+    public static bool ShowFullGameplayInfo = false;
 
 	private static bool _isLoadReady = false;
 

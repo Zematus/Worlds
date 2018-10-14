@@ -67,15 +67,7 @@ public class MigrateGroupEvent : CellGroupEvent {
 
 			throw new System.Exception ("Total Migration Value equal or less than zero: " + Group.TotalMigrationValue);
 		}
-
-		//		#if DEBUG
-		//		if (Manager.RegisterDebugEvent != null) {
-		//			if ((Group.Id == Manager.TracingData.GroupId) && (World.CurrentDate == 321798)) {
-		//				bool debug = true;
-		//			}
-		//		}
-		//		#endif
-
+        
 		float randomFactor = Group.Cell.GetNextLocalRandomFloat (RngOffsets.EVENT_TRIGGER + unchecked((int)Id));
 		float percentToMigrate = (1 - Group.MigrationValue/Group.TotalMigrationValue) * randomFactor;
 		percentToMigrate = Mathf.Pow (percentToMigrate, 4);

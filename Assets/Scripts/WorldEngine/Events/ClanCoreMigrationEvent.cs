@@ -42,13 +42,7 @@ public class ClanCoreMigrationEvent : FactionEvent {
 
 		if (!base.CanTrigger ())
 			return false;
-
-//		#if DEBUG
-//		if (Faction.Polity.Territory.IsSelected) {
-//			bool debug = true;
-//		}
-//		#endif
-
+        
 		Clan clan = Faction as Clan;
 
 		_targetGroup = clan.GetCoreGroupMigrationTarget ();

@@ -49,7 +49,7 @@ public class SailingDiscoveryEvent : DiscoveryEvent
         if (group.IsFlagSet(EventSetFlag))
             return false;
 
-        if (group.Culture.HasDiscoveryOrWillHave(SailingDiscovery.SailingDiscoveryId))
+        if (group.Culture.HasDiscovery(SailingDiscovery.SailingDiscoveryId))
             return false;
 
         return true;
@@ -60,7 +60,7 @@ public class SailingDiscoveryEvent : DiscoveryEvent
         if (!base.CanTrigger())
             return false;
         
-        if (Group.Culture.HasDiscoveryOrWillHave(SailingDiscovery.SailingDiscoveryId))
+        if (Group.Culture.HasDiscovery(SailingDiscovery.SailingDiscoveryId))
             return false;
 
         int value = 0;

@@ -13,17 +13,11 @@ public class CulturalKnowledge : CulturalKnowledgeInfo, IFilterableValue
 {
     public const float ValueScaleFactor = 0.01f;
 
+    [XmlAttribute("P")]
+    public bool IsPresent;
+
     [XmlAttribute("V")]
     public int Value;
-
-    [XmlIgnore]
-    public bool IsPresent
-    {
-        get
-        {
-            return Value > 0;
-        }
-    }
 
     [XmlIgnore]
     public bool WasPresent { get; private set; }
@@ -36,6 +30,7 @@ public class CulturalKnowledge : CulturalKnowledgeInfo, IFilterableValue
     {
         Value = value;
 
+        IsPresent = false;
         WasPresent = false;
     }
 
@@ -43,6 +38,7 @@ public class CulturalKnowledge : CulturalKnowledgeInfo, IFilterableValue
     {
         Value = baseKnowledge.Value;
 
+        IsPresent = true;
         WasPresent = false;
     }
 
@@ -55,18 +51,13 @@ public class CulturalKnowledge : CulturalKnowledgeInfo, IFilterableValue
     {
         Value = 0;
 
+        IsPresent = false;
         WasPresent = true;
-    }
-
-    public virtual void Set(int value)
-    {
-        Value = value;
-
-        WasPresent = false;
     }
 
     public void Set()
     {
+        IsPresent = true;
         WasPresent = false;
     }
 

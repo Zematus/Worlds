@@ -970,7 +970,7 @@ public abstract class Polity : ISynchronizable {
 
     public virtual void GroupUpdateEffects(CellGroup group, float prominenceValue, float totalPolityProminenceValue, long timeSpan)
     {
-        if (!group.Culture.HasDiscoveryOrWillHave(TribalismDiscovery.TribalismDiscoveryId))
+        if (!group.Culture.HasDiscovery(TribalismDiscovery.TribalismDiscoveryId))
         {
             group.SetPolityProminence(this, 0);
 

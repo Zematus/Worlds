@@ -370,12 +370,6 @@ public class Clan : Faction
 
     public override void Split()
     {
-        //		#if DEBUG
-        //		if (Polity.Territory.IsSelected) {
-        //			bool debug = true;
-        //		}
-        //		#endif
-
         int randomOffset = unchecked((int)(RngOffsets.CLAN_SPLIT + Id));
 
         float randomValue = GetNextLocalRandomFloat(randomOffset++);

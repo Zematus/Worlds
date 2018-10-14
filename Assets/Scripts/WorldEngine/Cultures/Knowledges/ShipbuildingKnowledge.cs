@@ -147,7 +147,7 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge
 
     public override bool WillBeLost()
     {
-        if (Value < 100)
+        if (Value <= 0)
         {
             return !Group.InfluencingPolityHasKnowledge(Id);
         }

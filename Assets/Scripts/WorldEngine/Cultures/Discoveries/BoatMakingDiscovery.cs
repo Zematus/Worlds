@@ -16,7 +16,7 @@ public class BoatMakingDiscovery : CellCulturalDiscovery
 
     public override bool CanBeHeld(CellGroup group)
     {
-        if (group.Culture.HasKnowledgeOrWillHave(ShipbuildingKnowledge.ShipbuildingKnowledgeId))
+        if (group.Culture.HasOrWillHaveKnowledge(ShipbuildingKnowledge.ShipbuildingKnowledgeId))
         {
             return true;
         }

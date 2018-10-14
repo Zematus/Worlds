@@ -13,6 +13,7 @@ public class AppSettings
     public float RainfallOffset = 0;
     public float SeaLevelOffset = 0;
     public bool Fullscreen = true;
+    public bool DebugMode = true;
     public bool FullGameplayInfo = true;
 
     public AppSettings()
@@ -25,6 +26,7 @@ public class AppSettings
         RainfallOffset = Manager.RainfallOffset;
         SeaLevelOffset = Manager.SeaLevelOffset;
         Fullscreen = Manager.IsFullscreen;
+        DebugMode = Manager.IsDebugModeEnabled;
         FullGameplayInfo = Manager.ShowFullGameplayInfo;
     }
 
@@ -34,6 +36,7 @@ public class AppSettings
         Manager.RainfallOffset = RainfallOffset;
         Manager.SeaLevelOffset = SeaLevelOffset;
         Manager.IsFullscreen = Fullscreen;
+        Manager.IsDebugModeEnabled = DebugMode;
         Manager.ShowFullGameplayInfo = FullGameplayInfo;
     }
 }

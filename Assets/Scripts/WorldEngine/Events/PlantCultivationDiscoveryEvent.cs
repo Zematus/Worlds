@@ -52,7 +52,7 @@ public class PlantCultivationDiscoveryEvent : DiscoveryEvent
         if (group.IsFlagSet(EventSetFlag))
             return false;
 
-        if (group.Culture.HasKnowledgeOrWillHave(AgricultureKnowledge.AgricultureKnowledgeId))
+        if (group.Culture.HasKnowledge(AgricultureKnowledge.AgricultureKnowledgeId))
             return false;
 
         float terrainFactor = AgricultureKnowledge.CalculateTerrainFactorIn(group.Cell);
@@ -65,7 +65,7 @@ public class PlantCultivationDiscoveryEvent : DiscoveryEvent
         if (!base.CanTrigger())
             return false;
 
-        if (Group.Culture.HasKnowledgeOrWillHave(AgricultureKnowledge.AgricultureKnowledgeId))
+        if (Group.Culture.HasKnowledge(AgricultureKnowledge.AgricultureKnowledgeId))
             return false;
 
         return true;

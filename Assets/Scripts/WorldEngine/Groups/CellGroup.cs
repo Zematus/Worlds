@@ -1015,105 +1015,95 @@ public class CellGroup : HumanGroup
         return altitudeDeltaFactor;
     }
 
-    public float CalculateMigrationValue (TerrainCell cell) {
-
-//		#if DEBUG
-//		if (cell.IsSelected) {
-//			bool debug = true;
-//		}
-//		#endif
-		
-		float areaFactor = cell.Area / TerrainCell.MaxArea;
-
-//		Profiler.BeginSample ("Calculate Altitude Delta Migration Factor");
-
-		float altitudeDeltaFactor = CalculateAltitudeDeltaFactor (cell);
-		float altitudeDeltaFactorPow = Mathf.Pow (altitudeDeltaFactor, 4);
+    public float CalculateMigrationValue(TerrainCell cell)
+    {
+        float areaFactor = cell.Area / TerrainCell.MaxArea;
+        
+        float altitudeDeltaFactor = CalculateAltitudeDeltaFactor(cell);
+        float altitudeDeltaFactorPow = Mathf.Pow(altitudeDeltaFactor, 4);
 
 #if DEBUG
-		if (float.IsNaN (altitudeDeltaFactorPow)) {
-			throw new System.Exception ("float.IsNaN (altitudeDeltaFactorPow)");
-		}
+        if (float.IsNaN(altitudeDeltaFactorPow))
+        {
+            throw new System.Exception("float.IsNaN (altitudeDeltaFactorPow)");
+        }
 #endif
+        
+        int existingPopulation = 0;
 
-//		Profiler.EndSample ();
+        float popDifferenceFactor = 1;
 
-		int existingPopulation = 0;
+        if (cell.Group != null)
+        {
+            existingPopulation = cell.Group.Population;
 
-		float popDifferenceFactor = 1;
+            popDifferenceFactor = (float)Population / (float)(Population + existingPopulation);
+            popDifferenceFactor = Mathf.Pow(popDifferenceFactor, 4);
+        }
 
-		if (cell.Group != null) {
-			existingPopulation = cell.Group.Population;
+        float noMigrationFactor = 1;
 
-			popDifferenceFactor = (float)Population / (float)(Population + existingPopulation);
-			popDifferenceFactor = Mathf.Pow (popDifferenceFactor, 4);
-		}
+        float optimalPopulation = OptimalPopulation;
 
-		float noMigrationFactor = 1;
+        if (cell != Cell)
+        {
+            noMigrationFactor = MigrationFactor;
+            
+            optimalPopulation = CalculateOptimalPopulation(cell);
+        }
 
-		float optimalPopulation = OptimalPopulation;
+        float targetOptimalPopulationFactor = 0;
 
-		if (cell != Cell) {
-			noMigrationFactor = MigrationFactor;
+        if (optimalPopulation > 0)
+        {
+            targetOptimalPopulationFactor = optimalPopulation / (existingPopulation + optimalPopulation);
+        }
 
-//			Profiler.BeginSample ("Calculate Optimal Population");
-
-			optimalPopulation = CalculateOptimalPopulation (cell);
-
-//			Profiler.EndSample ();
-		}
-
-		float targetOptimalPopulationFactor = 0;
-
-		if (optimalPopulation > 0) {
-			targetOptimalPopulationFactor = optimalPopulation / (existingPopulation + optimalPopulation);
-//			targetOptimalPopulationFactor = Mathf.Pow (targetOptimalPopulationFactor, 4);
-		}
-
-		float cellValue = altitudeDeltaFactorPow * areaFactor * popDifferenceFactor * noMigrationFactor * targetOptimalPopulationFactor;
+        float cellValue = altitudeDeltaFactorPow * areaFactor * popDifferenceFactor * noMigrationFactor * targetOptimalPopulationFactor;
 
 #if DEBUG
-		if (float.IsNaN (cellValue)) {
+        if (float.IsNaN(cellValue))
+        {
 
-			Debug.Break ();
-			throw new System.Exception ("float.IsNaN (cellValue)");
-		}
+            Debug.Break();
+            throw new System.Exception("float.IsNaN (cellValue)");
+        }
 #endif
 
-//		#if DEBUG
-//		if (Manager.RegisterDebugEvent != null) {
-//			if (Id == Manager.TracingData.GroupId) {
-////				if ((Longitude == cell.Longitude) && (Latitude == cell.Latitude)) {
-//					string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
-//					string targetCellInfo = "Long:" + cell.Longitude + "|Lat:" + cell.Latitude;
-//
-//					if (cell.Group != null) {
-//						targetCellInfo = "Id:" + cell.Group.Id + "|" + targetCellInfo;
-//					}
-//
-//					SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-//						"CalculateMigrationValue - Group:" + groupId + 
-//						", targetCell: " + targetCellInfo,
-//						", CurrentDate: " + World.CurrentDate + 
-//						", altitudeDeltaFactor: " + altitudeDeltaFactor + 
-//						", ExactPopulation: " + ExactPopulation + 
-//						", target existingPopulation: " + existingPopulation + 
-//						", popDifferenceFactor: " + popDifferenceFactor + 
-//						", OptimalPopulation: " + OptimalPopulation + 
-//						", target optimalPopulation: " + optimalPopulation + 
-//						", targetOptimalPopulationFactor: " + targetOptimalPopulationFactor + 
-//						"");
-//
-//					Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-////				}
-//			}
-//		}
-//		#endif
+        //		#if DEBUG
+        //		if (Manager.RegisterDebugEvent != null) {
+        //			if (Id == Manager.TracingData.GroupId) {
+        ////				if ((Longitude == cell.Longitude) && (Latitude == cell.Latitude)) {
+        //					string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
+        //					string targetCellInfo = "Long:" + cell.Longitude + "|Lat:" + cell.Latitude;
+        //
+        //					if (cell.Group != null) {
+        //						targetCellInfo = "Id:" + cell.Group.Id + "|" + targetCellInfo;
+        //					}
+        //
+        //					SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+        //						"CalculateMigrationValue - Group:" + groupId + 
+        //						", targetCell: " + targetCellInfo,
+        //						", CurrentDate: " + World.CurrentDate + 
+        //						", altitudeDeltaFactor: " + altitudeDeltaFactor + 
+        //						", ExactPopulation: " + ExactPopulation + 
+        //						", target existingPopulation: " + existingPopulation + 
+        //						", popDifferenceFactor: " + popDifferenceFactor + 
+        //						", OptimalPopulation: " + OptimalPopulation + 
+        //						", target optimalPopulation: " + optimalPopulation + 
+        //						", targetOptimalPopulationFactor: " + targetOptimalPopulationFactor + 
+        //						"");
+        //
+        //					Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+        ////				}
+        //			}
+        //		}
+        //		#endif
 
-		return cellValue;
-	}
+        return cellValue;
+    }
 
-	public long GeneratePastSpawnDate (long baseDate, int cycleLength, int offset = 0) {
+    public long GeneratePastSpawnDate (long baseDate, int cycleLength, int offset = 0) {
 
 		long currentDate = World.CurrentDate;
 
@@ -1306,141 +1296,102 @@ public class CellGroup : HumanGroup
 		}
 	}
 	
-	public void ConsiderLandMigration () {
+	public void ConsiderLandMigration()
+    {
+        if (HasMigrationEvent)
+            return;
+        
+        UpdatePreferredMigrationDirection();
 
-//		#if DEBUG
-//		if (Cell.IsSelected) {
-//			bool debug = true;
-//		}
-//		#endif
+        //		int targetCellIndex = Cell.GetNextLocalRandomInt (RngOffsets.CELL_GROUP_CONSIDER_LAND_MIGRATION_TARGET, Cell.Neighbors.Count);
+        //
+        //		TerrainCell targetCell = Cell.Neighbors.Values.ElementAt (targetCellIndex);
 
-		if (HasMigrationEvent)
-			return;
+        Direction migrationDirection = GenerateGroupMigrationDirection();
 
-//		Profiler.BeginSample ("Select Random Target Cell For Migration");
+        TerrainCell targetCell = Cell.Neighbors[migrationDirection];
+        
+        //		#if DEBUG
+        //		if (Manager.RegisterDebugEvent != null) {
+        //			if (Id == Manager.TracingData.GroupId) {
+        //
+        //				string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
+        //
+        //				string cellInfo = "No target cell";
+        //
+        //				if (targetCell != null) {
+        //					cellInfo = "Long:" + targetCell.Longitude + "|Lat:" + targetCell.Latitude;
+        //				}
+        //
+        //				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+        //					"ConsiderSeaMigration - Group:" + groupId,
+        //					"CurrentDate: " + World.CurrentDate + 
+        //					", target cell: " + cellInfo + 
+        //					"");
+        //
+        //				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+        //			}
+        //		}
+        //		#endif
+        
+        float cellValue = CalculateMigrationValue(targetCell);
 
-		UpdatePreferredMigrationDirection ();
-
-//		int targetCellIndex = Cell.GetNextLocalRandomInt (RngOffsets.CELL_GROUP_CONSIDER_LAND_MIGRATION_TARGET, Cell.Neighbors.Count);
-//
-//		TerrainCell targetCell = Cell.Neighbors.Values.ElementAt (targetCellIndex);
-
-		Direction migrationDirection = GenerateGroupMigrationDirection ();
-
-		TerrainCell targetCell = Cell.Neighbors [migrationDirection];
-
-//		#if DEBUG
-//		if (Cell.IsSelected) {
-//			bool debug = true;
-//		}
-//		#endif
-
-//		#if DEBUG
-//		if (Manager.RegisterDebugEvent != null) {
-//			if (Id == Manager.TracingData.GroupId) {
-//
-//				string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
-//
-//				string cellInfo = "No target cell";
-//
-//				if (targetCell != null) {
-//					cellInfo = "Long:" + targetCell.Longitude + "|Lat:" + targetCell.Latitude;
-//				}
-//
-//				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-//					"ConsiderSeaMigration - Group:" + groupId,
-//					"CurrentDate: " + World.CurrentDate + 
-//					", target cell: " + cellInfo + 
-//					"");
-//
-//				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-//			}
-//		}
-//		#endif
-
-//		Profiler.EndSample ();
-
-//		Profiler.BeginSample ("Calculate Migration Value");
-
-		float cellValue = CalculateMigrationValue (targetCell);
-
-		TotalMigrationValue += cellValue;
+        TotalMigrationValue += cellValue;
 
 #if DEBUG
-		if (float.IsNaN (TotalMigrationValue)) {
+        if (float.IsNaN(TotalMigrationValue))
+        {
 
-			throw new System.Exception ("float.IsNaN (TotalMigrationValue)");
-		}
+            throw new System.Exception("float.IsNaN (TotalMigrationValue)");
+        }
 #endif
+        
+        float migrationChance = cellValue / TotalMigrationValue;
+        
+        float rollValue = Cell.GetNextLocalRandomFloat(RngOffsets.CELL_GROUP_CONSIDER_LAND_MIGRATION_CHANCE);
 
-//		Profiler.EndSample ();
+        if (rollValue > migrationChance)
+            return;
+        
+        float cellSurvivability = 0;
+        float cellForagingCapacity = 0;
+        
+        CalculateAdaptionToCell(targetCell, out cellForagingCapacity, out cellSurvivability);
+        
+        if (cellSurvivability <= 0)
+            return;
+        
+        float cellAltitudeDeltaFactor = CalculateAltitudeDeltaFactor(targetCell);
 
-		float migrationChance = cellValue / TotalMigrationValue;
+        float travelFactor =
+            cellAltitudeDeltaFactor * cellAltitudeDeltaFactor *
+            cellSurvivability * cellSurvivability * targetCell.Accessibility;
 
-//		#if DEBUG
-//		if (Cell.IsSelected) {
-//			bool debug = true;
-//		}
-//		#endif
+        travelFactor = Mathf.Clamp(travelFactor, 0.0001f, 1);
 
-		float rollValue = Cell.GetNextLocalRandomFloat (RngOffsets.CELL_GROUP_CONSIDER_LAND_MIGRATION_CHANCE);
+        int travelTime = (int)Mathf.Ceil(World.YearLength * Cell.Width / (TravelWidthFactor * travelFactor));
 
-		if (rollValue > migrationChance)
-			return;
+        long nextDate = World.CurrentDate + travelTime;
 
-//		#if DEBUG
-//		if (Cell.IsSelected) {
-//			bool debug = true;
-//		}
-//		#endif
-		
-		float cellSurvivability = 0;
-		float cellForagingCapacity = 0;
+        //		#if DEBUG
+        //		if (Manager.RegisterDebugEvent != null) {
+        //			if (Id == Manager.TracingData.GroupId) {
+        //				string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
+        //
+        //				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+        //					"ConsiderLandMigration - Group:" + groupId,
+        //					"CurrentDate: " + World.CurrentDate + 
+        //					"");
+        //
+        //				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+        //			}
+        //		}
+        //		#endif
 
-//		Profiler.BeginSample ("Calculate Adaption To Cell");
-		
-		CalculateAdaptionToCell (targetCell, out cellForagingCapacity, out cellSurvivability);
+        SetMigrationEvent(targetCell, migrationDirection, nextDate);
+    }
 
-//		Profiler.EndSample ();
-
-		if (cellSurvivability <= 0)
-			return;
-
-//		Profiler.BeginSample ("Calculate Altitude Delta Migration Factor");
-
-		float cellAltitudeDeltaFactor = CalculateAltitudeDeltaFactor (targetCell);
-
-//		Profiler.EndSample ();
-
-		float travelFactor = 
-			cellAltitudeDeltaFactor * cellAltitudeDeltaFactor *
-			cellSurvivability * cellSurvivability * targetCell.Accessibility;
-
-		travelFactor = Mathf.Clamp (travelFactor, 0.0001f, 1);
-
-		int travelTime = (int)Mathf.Ceil(World.YearLength * Cell.Width / (TravelWidthFactor * travelFactor));
-		
-		long nextDate = World.CurrentDate + travelTime;
-
-//		#if DEBUG
-//		if (Manager.RegisterDebugEvent != null) {
-//			if (Id == Manager.TracingData.GroupId) {
-//				string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
-//
-//				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-//					"ConsiderLandMigration - Group:" + groupId,
-//					"CurrentDate: " + World.CurrentDate + 
-//					"");
-//
-//				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-//			}
-//		}
-//		#endif
-
-		SetMigrationEvent (targetCell, migrationDirection, nextDate);
-	}
-
-	public void ConsiderSeaMigration () {
+    public void ConsiderSeaMigration () {
 
 		if (SeaTravelFactor <= 0)
 			return;
@@ -2060,12 +2011,6 @@ public class CellGroup : HumanGroup
 
     private void UpdateTerrainFarmlandPercentage()
     {
-        //		#if DEBUG
-        //		if (Cell.IsSelected) {
-        //			bool debug = true;
-        //		}
-        //		#endif
-
         float knowledgeValue = 0;
 
         if (!Culture.TryGetKnowledgeScaledValue(AgricultureKnowledge.AgricultureKnowledgeId, out knowledgeValue))

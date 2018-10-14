@@ -16,7 +16,7 @@ public class PlantCultivationDiscovery : CellCulturalDiscovery
 
     public override bool CanBeHeld(CellGroup group)
     {
-        if (group.Culture.HasKnowledgeOrWillHave(AgricultureKnowledge.AgricultureKnowledgeId))
+        if (group.Culture.HasOrWillHaveKnowledge(AgricultureKnowledge.AgricultureKnowledgeId))
             return true;
 
         return false;

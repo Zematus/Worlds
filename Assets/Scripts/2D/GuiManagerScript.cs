@@ -754,110 +754,116 @@ public class GuiManagerScript : MonoBehaviour {
 		}
 	}
 
-	public void ProgressUpdate (float value, string message = null, bool reset = false) {
-		
-		if (reset || (value >= _progressValue)) {
-			
-			if (message != null) 
-				_progressMessage = message;
-			
-			_progressValue = value;
-		}
-	}
+	public void ProgressUpdate(float value, string message = null, bool reset = false)
+    {
+        if (reset || (value >= _progressValue))
+        {
+            if (message != null)
+                _progressMessage = message;
 
-	public void MenuUninterruptSimulation () {
+            _progressValue = value;
+        }
+    }
 
-		if (!_eventPauseActive) {
-			InterruptSimulation (false);
-		}
+    public void MenuUninterruptSimulation()
+    {
+        if (!_eventPauseActive)
+        {
+            InterruptSimulation(false);
+        }
 
-		ShowHiddenInteractionPanels ();
-	}
-	
-	public void CloseMainMenu () {
-		
-		MainMenuDialogPanelScript.SetVisible (false);
-		
-		MenuUninterruptSimulation ();
-	}
+        ShowHiddenInteractionPanels();
+    }
 
-	public void CloseSettingsDialog () {
+    public void CloseMainMenu()
+    {
+        MainMenuDialogPanelScript.SetVisible(false);
 
-		SettingsDialogPanelScript.SetVisible (false);
+        MenuUninterruptSimulation();
+    }
 
-		MenuUninterruptSimulation ();
-	}
+    public void CloseSettingsDialog()
+    {
+        SettingsDialogPanelScript.SetVisible(false);
 
-	public void CloseCreditsDialog () {
+        MenuUninterruptSimulation();
+    }
 
-		CreditsDialogPanelScript.SetVisible (false);
+    public void CloseCreditsDialog()
+    {
+        CreditsDialogPanelScript.SetVisible(false);
 
-		MenuUninterruptSimulation ();
-	}
-	
-	public void CloseOptionsMenu () {
-		
-		OptionsDialogPanelScript.SetVisible (false);
+        MenuUninterruptSimulation();
+    }
 
-		MenuUninterruptSimulation ();
-	}
-	
-	public void Exit () {
-		
-		Application.Quit();
-	}
+    public void CloseOptionsMenu()
+    {
+        OptionsDialogPanelScript.SetVisible(false);
 
-	public void OpenSettingsDialog () {
+        MenuUninterruptSimulation();
+    }
 
-		MainMenuDialogPanelScript.SetVisible (false);
+    public void Exit()
+    {
+        Application.Quit();
+    }
 
-		SettingsDialogPanelScript.FullscreenToggle.isOn = Manager.IsFullscreen;
+    public void OpenSettingsDialog()
+    {
+        MainMenuDialogPanelScript.SetVisible(false);
 
-		SettingsDialogPanelScript.SetVisible (true);
+        SettingsDialogPanelScript.FullscreenToggle.isOn = Manager.IsFullscreen;
 
-		InterruptSimulation (true);
-	}
+        SettingsDialogPanelScript.SetVisible(true);
 
-	public void OpenCreditsDialog () {
+        InterruptSimulation(true);
+    }
 
-		MainMenuDialogPanelScript.SetVisible (false);
+    public void OpenCreditsDialog()
+    {
+        MainMenuDialogPanelScript.SetVisible(false);
 
-		CreditsDialogPanelScript.SetVisible (true);
+        CreditsDialogPanelScript.SetVisible(true);
 
-		InterruptSimulation (true);
-	}
+        InterruptSimulation(true);
+    }
 
-	public void ToogleFullscreen (bool state) {
-	
-		Manager.SetFullscreen (state);
-	}
+    public void ToogleFullscreen(bool state)
+    {
+        Manager.SetFullscreen(state);
+    }
 
-	public void SetGenerationSeed () {
-		
-		MainMenuDialogPanelScript.SetVisible (false);
+    public void ToogleDebugMode(bool state)
+    {
+        Manager.IsDebugModeEnabled = state;
+    }
 
-		int seed = Random.Range (0, int.MaxValue);
-		
-		SetSeedDialogPanelScript.SetSeedString (seed.ToString());
+    public void SetGenerationSeed()
+    {
+        MainMenuDialogPanelScript.SetVisible(false);
 
-		SetSeedDialogPanelScript.SetVisible (true);
-		
-		InterruptSimulation (true);
-	}
-	
-	public void CancelGenerateAction () {
-		
-		SetSeedDialogPanelScript.SetVisible (false);
-		CustomizeWorldDialogPanelScript.SetVisible (false);
+        int seed = Random.Range(0, int.MaxValue);
 
-		MenuUninterruptSimulation ();
-	}
-	
-	public void CloseErrorMessageAction () {
-		
-		ErrorMessageDialogPanelScript.SetVisible (false);
+        SetSeedDialogPanelScript.SetSeedString(seed.ToString());
 
-		SetGenerationSeed ();
+        SetSeedDialogPanelScript.SetVisible(true);
+
+        InterruptSimulation(true);
+    }
+
+    public void CancelGenerateAction()
+    {
+        SetSeedDialogPanelScript.SetVisible(false);
+        CustomizeWorldDialogPanelScript.SetVisible(false);
+
+        MenuUninterruptSimulation();
+    }
+
+    public void CloseErrorMessageAction()
+    {
+        ErrorMessageDialogPanelScript.SetVisible(false);
+
+        SetGenerationSeed();
     }
 
     public void CloseExceptionMessageAction()
@@ -2161,74 +2167,76 @@ public class GuiManagerScript : MonoBehaviour {
         ShowHiddenInteractionPanels();
     }
 
-    public void OpenSelectFactionDialog () {
+    public void OpenSelectFactionDialog()
+    {
+        SelectFactionDialogPanelScript.SetVisible(true);
 
-		SelectFactionDialogPanelScript.SetVisible (true);
+        InterruptSimulation(true);
+    }
 
-		InterruptSimulation (true);
-	}
+    public void SetFactionToGuideAction()
+    {
+        SelectFactionDialogPanelScript.SetVisible(false);
 
-	public void SetFactionToGuideAction() {
+        Faction faction = SelectFactionDialogPanelScript.ChosenFaction;
 
-		SelectFactionDialogPanelScript.SetVisible (false);
+        if (faction != null)
+        {
+            Manager.SetGuidedFaction(faction);
+        }
 
-		Faction faction = SelectFactionDialogPanelScript.ChosenFaction;
+        MenuUninterruptSimulation();
+    }
 
-		if (faction != null) {
-			Manager.SetGuidedFaction (faction);
-		}
+    public void StopGuidingFaction()
+    {
+        Manager.SetGuidedFaction(null);
+    }
 
-		MenuUninterruptSimulation ();
-	}
+    public void CancelSelectFaction()
+    {
+        SelectFactionDialogPanelScript.SetVisible(false);
 
-	public void StopGuidingFaction() {
+        MenuUninterruptSimulation();
+    }
 
-		Manager.SetGuidedFaction (null);
-	}
+    public void SetPlayerFocusOnPolity()
+    {
+        Territory selectedTerritory = Manager.CurrentWorld.SelectedTerritory;
 
-	public void CancelSelectFaction () {
+        if ((selectedTerritory != null) && !selectedTerritory.Polity.IsUnderPlayerFocus)
+            Manager.SetFocusOnPolity(selectedTerritory.Polity);
+    }
 
-		SelectFactionDialogPanelScript.SetVisible (false);
+    public void UnsetPlayerFocusOnPolity()
+    {
+        Territory selectedTerritory = Manager.CurrentWorld.SelectedTerritory;
 
-		MenuUninterruptSimulation ();
-	}
+        if ((selectedTerritory != null) && selectedTerritory.Polity.IsUnderPlayerFocus)
+            Manager.UnsetFocusOnPolity(selectedTerritory.Polity);
+    }
 
-	public void SetPlayerFocusOnPolity () {
-	
-		Territory selectedTerritory = Manager.CurrentWorld.SelectedTerritory;
+    public void UpdateInfoPanel()
+    {
+        //		_showFocusButton = false;
+        //		_focusButtonText = "";
 
-		if ((selectedTerritory != null) && !selectedTerritory.Polity.IsUnderPlayerFocus)
-			Manager.SetFocusOnPolity (selectedTerritory.Polity);
-	}
+        World world = Manager.CurrentWorld;
 
-	public void UnsetPlayerFocusOnPolity () {
+        InfoPanelScript.InfoText.text = Manager.GetDateString(world.CurrentDate);
 
-		Territory selectedTerritory = Manager.CurrentWorld.SelectedTerritory;
+        if (_infoTextMinimized)
+            return;
 
-		if ((selectedTerritory != null) && selectedTerritory.Polity.IsUnderPlayerFocus)
-			Manager.UnsetFocusOnPolity (selectedTerritory.Polity);
-	}
+        if (Manager.CurrentWorld.SelectedCell != null)
+        {
+            AddCellDataToInfoPanel(Manager.CurrentWorld.SelectedCell);
+        }
 
-	public void UpdateInfoPanel () {
+        InfoPanelScript.InfoText.text += "\n";
 
-//		_showFocusButton = false;
-//		_focusButtonText = "";
-		
-		World world = Manager.CurrentWorld;
-		
-		InfoPanelScript.InfoText.text = Manager.GetDateString (world.CurrentDate);
-
-		if (_infoTextMinimized)
-			return;
-
-		if (Manager.CurrentWorld.SelectedCell != null) {
-			AddCellDataToInfoPanel (Manager.CurrentWorld.SelectedCell);
-		}
-
-		InfoPanelScript.InfoText.text += "\n";
-
-		#if DEBUG
-		InfoPanelScript.InfoText.text += "\n -- Debug Data -- ";
+#if DEBUG
+        InfoPanelScript.InfoText.text += "\n -- Debug Data -- ";
 
         if ((Manager.CurrentWorld != null) &&
             (Manager.CurrentWorld.SelectedTerritory != null))
@@ -2238,10 +2246,10 @@ public class GuiManagerScript : MonoBehaviour {
         }
 
         InfoPanelScript.InfoText.text += "\n";
-		InfoPanelScript.InfoText.text += "\nNumber of Migration Events: " + MigrateGroupEvent.MigrationEventCount;
-		
-		InfoPanelScript.InfoText.text += "\n";
-		InfoPanelScript.InfoText.text += "\nMap Updates Per RTS: " + _lastMapUpdateCount;
+        InfoPanelScript.InfoText.text += "\nNumber of Migration Events: " + MigrateGroupEvent.MigrationEventCount;
+
+        InfoPanelScript.InfoText.text += "\n";
+        InfoPanelScript.InfoText.text += "\nMap Updates Per RTS: " + _lastMapUpdateCount;
         InfoPanelScript.InfoText.text += "\nPixel Updates Per RTS: " + _lastPixelUpdateCount;
 
         if (_lastMapUpdateCount > 0)
@@ -2260,17 +2268,17 @@ public class GuiManagerScript : MonoBehaviour {
         //		InfoPanelScript.ShowFocusButton (_showFocusButton);
         //		InfoPanelScript.FocusButtonText.text = _focusButtonText;
     }
-	
-	public void AddCellDataToInfoPanel (int longitude, int latitude) {
-		
-		TerrainCell cell = Manager.CurrentWorld.GetCell (longitude, latitude);
-		
-		if (cell == null) return;
 
-		AddCellDataToInfoPanel (cell);
-	}
+    public void AddCellDataToInfoPanel(int longitude, int latitude)
+    {
+        TerrainCell cell = Manager.CurrentWorld.GetCell(longitude, latitude);
 
-	public void AddCellDataToInfoPanel_Terrain (TerrainCell cell) {
+        if (cell == null) return;
+
+        AddCellDataToInfoPanel(cell);
+    }
+
+    public void AddCellDataToInfoPanel_Terrain (TerrainCell cell) {
 		
 		float cellArea = cell.Area;
 

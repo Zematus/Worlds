@@ -50,10 +50,9 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
         _newValue = value;
     }
 
-    public override void Set(int value)
+    public void SetInitialValue(int value)
     {
-        base.Set(value);
-
+        Value = value;
         _newValue = value;
     }
 
