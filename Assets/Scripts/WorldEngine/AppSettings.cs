@@ -25,8 +25,8 @@ public class AppSettings
         TemperatureOffset = Manager.TemperatureOffset;
         RainfallOffset = Manager.RainfallOffset;
         SeaLevelOffset = Manager.SeaLevelOffset;
-        Fullscreen = Manager.IsFullscreen;
-        DebugMode = Manager.IsDebugModeEnabled;
+        Fullscreen = Manager.FullScreenEnabled;
+        DebugMode = Manager.DebugModeEnabled;
         FullGameplayInfo = Manager.ShowFullGameplayInfo;
     }
 
@@ -35,8 +35,8 @@ public class AppSettings
         Manager.TemperatureOffset = TemperatureOffset;
         Manager.RainfallOffset = RainfallOffset;
         Manager.SeaLevelOffset = SeaLevelOffset;
-        Manager.IsFullscreen = Fullscreen;
-        Manager.IsDebugModeEnabled = DebugMode;
+        Manager.FullScreenEnabled = Fullscreen;
+        Manager.DebugModeEnabled = DebugMode;
         Manager.ShowFullGameplayInfo = FullGameplayInfo;
     }
 }

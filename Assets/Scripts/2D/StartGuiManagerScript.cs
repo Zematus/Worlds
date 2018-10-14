@@ -209,7 +209,7 @@ public class StartGuiManagerScript : MonoBehaviour {
 
 		MainMenuDialogPanelScript.SetVisible (false);
 
-		SettingsDialogPanelScript.FullscreenToggle.isOn = Manager.IsFullscreen;
+		SettingsDialogPanelScript.FullscreenToggle.isOn = Manager.FullScreenEnabled;
 
 		SettingsDialogPanelScript.SetVisible (true);
 	}

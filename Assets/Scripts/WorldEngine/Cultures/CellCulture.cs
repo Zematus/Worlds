@@ -234,7 +234,6 @@ public class CellCulture : Culture
 #if DEBUG
         if ((percentage < 0) || (percentage > 1))
         {
-
             Debug.LogWarning("percentage value outside the [0,1] range");
         }
 #endif

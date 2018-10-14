@@ -132,8 +132,7 @@ public class GuiManagerScript : MonoBehaviour {
 	private long _simulationDateSpan = 0;
 
 	private bool _resolvedDecision = false;
-
-#if DEBUG
+    
     private int _mapUpdateCount = 0;
 	private int _lastMapUpdateCount = 0;
     private int _pixelUpdateCount = 0;
@@ -141,7 +140,6 @@ public class GuiManagerScript : MonoBehaviour {
     private float _timeSinceLastMapUpdate = 0;
     private long _lastUpdateDate = 0;
     private long _lastDateSpan = 0;
-#endif
 
     private int _topMaxSpeedLevelIndex;
 	private int _selectedMaxSpeedLevelIndex;
@@ -160,7 +158,7 @@ public class GuiManagerScript : MonoBehaviour {
 		Application.logMessageReceivedThreaded -= HandleLog;
 
         Manager.CloseDebugLog();
-	}
+    }
 
     public void ResetAllDialogs()
     {
@@ -258,33 +256,34 @@ public class GuiManagerScript : MonoBehaviour {
     // Update is called once per frame
     void Update()
     {
-#if DEBUG
-        _timeSinceLastMapUpdate += Time.deltaTime;
-
-        if (_timeSinceLastMapUpdate > 1) // Every second
+        if (Manager.DebugModeEnabled)
         {
-            _lastMapUpdateCount = _mapUpdateCount;
-            _mapUpdateCount = 0;
+            _timeSinceLastMapUpdate += Time.deltaTime;
 
-            _lastPixelUpdateCount = _pixelUpdateCount;
-            _pixelUpdateCount = 0;
-
-            _timeSinceLastMapUpdate -= 1;
-
-            if (Manager.WorldIsReady)
+            if (_timeSinceLastMapUpdate > 1) // Every second
             {
-                long currentDate = Manager.CurrentWorld.CurrentDate;
+                _lastMapUpdateCount = _mapUpdateCount;
+                _mapUpdateCount = 0;
 
-                _lastDateSpan = currentDate - _lastUpdateDate;
-                _lastUpdateDate = currentDate;
-            }
-            else
-            {
-                _lastDateSpan = 0;
-                _lastUpdateDate = 0;
+                _lastPixelUpdateCount = _pixelUpdateCount;
+                _pixelUpdateCount = 0;
+
+                _timeSinceLastMapUpdate -= 1;
+
+                if (Manager.WorldIsReady)
+                {
+                    long currentDate = Manager.CurrentWorld.CurrentDate;
+
+                    _lastDateSpan = currentDate - _lastUpdateDate;
+                    _lastUpdateDate = currentDate;
+                }
+                else
+                {
+                    _lastDateSpan = 0;
+                    _lastUpdateDate = 0;
+                }
             }
         }
-#endif
         
         Manager.ExecuteTasks(100);
 
@@ -434,10 +433,11 @@ public class GuiManagerScript : MonoBehaviour {
 
             Profiler.EndSample();
 
-#if DEBUG
-            _pixelUpdateCount += Manager.UpdatedPixelCount;
-            _mapUpdateCount++;
-#endif
+            if (Manager.DebugModeEnabled)
+            {
+                _pixelUpdateCount += Manager.UpdatedPixelCount;
+                _mapUpdateCount++;
+            }
 
             _regenTextures = false;
 
@@ -449,10 +449,11 @@ public class GuiManagerScript : MonoBehaviour {
 
             Manager.UpdateTextures();
 
-#if DEBUG
-            _pixelUpdateCount += Manager.UpdatedPixelCount;
-            _mapUpdateCount++;
-#endif
+            if (Manager.DebugModeEnabled)
+            {
+                _pixelUpdateCount += Manager.UpdatedPixelCount;
+                _mapUpdateCount++;
+            }
 
             Profiler.EndSample();
         }
@@ -812,7 +813,7 @@ public class GuiManagerScript : MonoBehaviour {
     {
         MainMenuDialogPanelScript.SetVisible(false);
 
-        SettingsDialogPanelScript.FullscreenToggle.isOn = Manager.IsFullscreen;
+        SettingsDialogPanelScript.FullscreenToggle.isOn = Manager.FullScreenEnabled;
 
         SettingsDialogPanelScript.SetVisible(true);
 
@@ -835,7 +836,26 @@ public class GuiManagerScript : MonoBehaviour {
 
     public void ToogleDebugMode(bool state)
     {
-        Manager.IsDebugModeEnabled = state;
+        Manager.DebugModeEnabled = state;
+
+        if (state)
+        {
+            _mapUpdateCount = 0;
+            _lastMapUpdateCount = 0;
+            _pixelUpdateCount = 0;
+            _lastPixelUpdateCount = 0;
+            _timeSinceLastMapUpdate = 0;
+            _lastDateSpan = 0;
+
+            if (Manager.WorldIsReady)
+            {
+                _lastUpdateDate = Manager.CurrentWorld.CurrentDate;
+            }
+            else
+            {
+                _lastUpdateDate = 0;
+            }
+        }
     }
 
     public void SetGenerationSeed()
@@ -2235,35 +2255,36 @@ public class GuiManagerScript : MonoBehaviour {
 
         InfoPanelScript.InfoText.text += "\n";
 
-#if DEBUG
-        InfoPanelScript.InfoText.text += "\n -- Debug Data -- ";
-
-        if ((Manager.CurrentWorld != null) &&
-            (Manager.CurrentWorld.SelectedTerritory != null))
+        if (Manager.DebugModeEnabled)
         {
+            InfoPanelScript.InfoText.text += "\n -- Debug Data -- ";
+
+            if ((Manager.CurrentWorld != null) &&
+                (Manager.CurrentWorld.SelectedTerritory != null))
+            {
+                InfoPanelScript.InfoText.text += "\n";
+                InfoPanelScript.InfoText.text += "\nSelected Territory's Polity Id: " + Manager.CurrentWorld.SelectedTerritory.Polity.Id;
+            }
+
             InfoPanelScript.InfoText.text += "\n";
-            InfoPanelScript.InfoText.text += "\nSelected Territory's Polity Id: " + Manager.CurrentWorld.SelectedTerritory.Polity.Id;
+            InfoPanelScript.InfoText.text += "\nNumber of Migration Events: " + MigrateGroupEvent.MigrationEventCount;
+
+            InfoPanelScript.InfoText.text += "\n";
+            InfoPanelScript.InfoText.text += "\nMap Updates Per RTS: " + _lastMapUpdateCount;
+            InfoPanelScript.InfoText.text += "\nPixel Updates Per RTS: " + _lastPixelUpdateCount;
+
+            if (_lastMapUpdateCount > 0)
+            {
+                float pixelUpdatesPerMapUpdate = _lastPixelUpdateCount / (float)_lastMapUpdateCount;
+
+                InfoPanelScript.InfoText.text += "\nPixel Updates Per Map Update: " + pixelUpdatesPerMapUpdate.ToString("0.00");
+            }
+
+            InfoPanelScript.InfoText.text += "\n";
+            InfoPanelScript.InfoText.text += "\nSimulated Time Per RTS:";
+            InfoPanelScript.InfoText.text += "\n" + Manager.GetTimeSpanString(_lastDateSpan);
+            InfoPanelScript.InfoText.text += "\n";
         }
-
-        InfoPanelScript.InfoText.text += "\n";
-        InfoPanelScript.InfoText.text += "\nNumber of Migration Events: " + MigrateGroupEvent.MigrationEventCount;
-
-        InfoPanelScript.InfoText.text += "\n";
-        InfoPanelScript.InfoText.text += "\nMap Updates Per RTS: " + _lastMapUpdateCount;
-        InfoPanelScript.InfoText.text += "\nPixel Updates Per RTS: " + _lastPixelUpdateCount;
-
-        if (_lastMapUpdateCount > 0)
-        {
-            float pixelUpdatesPerMapUpdate = _lastPixelUpdateCount / (float)_lastMapUpdateCount;
-
-            InfoPanelScript.InfoText.text += "\nPixel Updates Per Map Update: " + pixelUpdatesPerMapUpdate.ToString("0.00");
-        }
-
-        InfoPanelScript.InfoText.text += "\n";
-        InfoPanelScript.InfoText.text += "\nSimulated Time Per RTS:";
-        InfoPanelScript.InfoText.text += "\n" + Manager.GetTimeSpanString(_lastDateSpan);
-        InfoPanelScript.InfoText.text += "\n";
-#endif
 
         //		InfoPanelScript.ShowFocusButton (_showFocusButton);
         //		InfoPanelScript.FocusButtonText.text = _focusButtonText;

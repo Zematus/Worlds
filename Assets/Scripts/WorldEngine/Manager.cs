@@ -103,10 +103,8 @@ public class Manager {
 
 	public static HashSet<TerrainCell> HighlightedCells { get; private set; }
 	public static HashSet<TerrainCell> UpdatedCells { get; private set; }
-
-#if DEBUG
+    
     public static int UpdatedPixelCount = 0;
-#endif
 
     public static int PixelToCellRatio = 4;
 
@@ -120,9 +118,8 @@ public class Manager {
 	
 	public static World WorldBeingLoaded = null;
 
-	public static bool IsFullscreen = false;
-
-    public static bool IsDebugModeEnabled = false;
+	public static bool FullScreenEnabled = false;
+    public static bool DebugModeEnabled = false;
 
     public static bool ShowFullGameplayInfo = false;
 
@@ -382,7 +379,7 @@ public class Manager {
 
 	public static void SetFullscreen (bool state) {
 
-		IsFullscreen = state;
+		FullScreenEnabled = state;
 
 		if (state) {
 			Resolution currentResolution = Screen.currentResolution;
@@ -398,7 +395,7 @@ public class Manager {
 		if (_resolutionInitialized)
 			return;
 
-		SetFullscreen (IsFullscreen);
+		SetFullscreen (FullScreenEnabled);
 
 		_resolutionInitialized = true;
 	}

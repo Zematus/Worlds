@@ -49,21 +49,20 @@ public class OverlayDialogPanelScript : DialogPanelScript
     // Use this for initialization
     void Start()
     {
-        bool debugState = false;
-
-#if DEBUG
-        debugState = true;
-#endif
-
-        DebugDataToggle.gameObject.SetActive(debugState);
-        DistancesToCoresToggle.gameObject.SetActive(debugState);
-        PolityClustersToggle.gameObject.SetActive(debugState);
+        UpdateDebugOverlays();
     }
 
     // Update is called once per frame
     void Update()
     {
 
+    }
+
+    public void UpdateDebugOverlays()
+    {
+        DebugDataToggle.gameObject.SetActive(Manager.DebugModeEnabled);
+        DistancesToCoresToggle.gameObject.SetActive(Manager.DebugModeEnabled);
+        PolityClustersToggle.gameObject.SetActive(Manager.DebugModeEnabled);
     }
 
     public void SetCloseAction(UnityAction closeAction)

@@ -6,10 +6,8 @@ using System.Xml.Serialization;
 using UnityEngine.Profiling;
 
 public class MigrateGroupEvent : CellGroupEvent {
-
-	#if DEBUG
+    
 	public static int MigrationEventCount = 0;
-	#endif
 
 	[XmlAttribute("TLon")]
 	public int TargetCellLongitude;
