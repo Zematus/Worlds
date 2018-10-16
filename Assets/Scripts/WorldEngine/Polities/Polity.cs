@@ -353,64 +353,66 @@ public abstract class Polity : ISynchronizable {
         FactionCount++;
     }
 
-    public void RemoveFaction (Faction faction) {
+    public void RemoveFaction(Faction faction)
+    {
+        Factions.Remove(faction.Id);
 
-		Factions.Remove (faction.Id);
+        if (Factions.Count <= 0)
+        {
+            //#if DEBUG
+            //Debug.Log ("Polity will be removed due to losing all factions. faction id: " + faction.Id + ", polity id:" + Id);
+            //#endif
 
-		if (Factions.Count <= 0) {
-			
-			//#if DEBUG
-			//Debug.Log ("Polity will be removed due to losing all factions. faction id: " + faction.Id + ", polity id:" + Id);
-			//#endif
+            PrepareToRemoveFromWorld();
+            return;
+        }
 
-			PrepareToRemoveFromWorld ();
-			return;
-		}
+        if (DominantFaction == faction)
+        {
+            UpdateDominantFaction();
+        }
 
-		if (DominantFaction == faction) {
-			UpdateDominantFaction ();
-		}
+        // There's no point in calling this here as this happens after factions have already been updated or after the polity was destroyed
+        //World.AddFactionToUpdate(faction);
 
-		World.AddFactionToUpdate (faction);
+        FactionCount--;
+    }
 
-		FactionCount--;
-	}
+    public Faction GetFaction(long id)
+    {
+        Faction faction;
 
-	public Faction GetFaction (long id) {
+        Factions.TryGetValue(id, out faction);
 
-		Faction faction;
+        return faction;
+    }
 
-		Factions.TryGetValue (id, out faction);
+    public ICollection<Faction> GetFactions(long id)
+    {
+        return Factions.Values;
+    }
 
-		return faction;
-	}
+    public void UpdateDominantFaction()
+    {
+        Faction mostProminentFaction = null;
+        float greatestInfluence = float.MinValue;
 
-	public ICollection<Faction> GetFactions (long id) {
+        foreach (Faction faction in Factions.Values)
+        {
+            if (faction.Influence > greatestInfluence)
+            {
+                mostProminentFaction = faction;
+                greatestInfluence = faction.Influence;
+            }
+        }
 
-		return Factions.Values;
-	}
+        if ((mostProminentFaction == null) || (!mostProminentFaction.StillPresent))
+            throw new System.Exception("Faction is null or not present");
 
-	public void UpdateDominantFaction () {
-	
-		Faction mostProminentFaction = null;
-		float greatestInfluence = float.MinValue;
+        SetDominantFaction(mostProminentFaction);
+    }
 
-		foreach (Faction faction in Factions.Values) {
-		
-			if (faction.Influence > greatestInfluence) {
-			
-				mostProminentFaction = faction;
-				greatestInfluence = faction.Influence;
-			}
-		}
-
-		if ((mostProminentFaction == null) || (!mostProminentFaction.StillPresent))
-			throw new System.Exception ("Faction is null or not present");
-
-		SetDominantFaction (mostProminentFaction);
-	}
-
-	public void SetDominantFaction (Faction faction) {
+    public void SetDominantFaction (Faction faction) {
 
 		if (DominantFaction == faction)
 			return;

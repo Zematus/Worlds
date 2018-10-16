@@ -19,7 +19,15 @@ public class TribalismDiscovery : CellCulturalDiscovery
         int value = 0;
 
         if (!group.Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.SocialOrganizationKnowledgeId, out value))
+        {
+#if DEBUG
+            if (group.Id == 55200582289076)
+            {
+                bool debug = true;
+            }
+#endif
             return false;
+        }
 
         if (value < SocialOrganizationKnowledge.MinValueForHoldingTribalism)
         {
@@ -29,7 +37,12 @@ public class TribalismDiscovery : CellCulturalDiscovery
                 Debug.LogWarning("Group that will lose tribalism has faction cores - Id: " + group.Id);
             }
 #endif
-
+#if DEBUG
+            if (group.Id == 55200582289076)
+            {
+                bool debug = true;
+            }
+#endif
             return false;
         }
 

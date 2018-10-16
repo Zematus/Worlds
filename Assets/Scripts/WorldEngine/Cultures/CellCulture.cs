@@ -556,6 +556,13 @@ public class CellCulture : Culture
             if (discovery.CanBeHeld(Group))
                 continue;
 
+#if DEBUG
+            if (Group.Id == 55200582289076)
+            {
+                bool debug = true;
+            }
+#endif
+
             _discoveriesToLose.Add(discovery);
         }
     }

@@ -255,6 +255,16 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
 
     public void PostUpdate()
     {
+#if DEBUG
+        if ((Group.Id == 55200582289076) && 
+            (Id == SocialOrganizationKnowledge.SocialOrganizationKnowledgeId) && 
+            (Value >= SocialOrganizationKnowledge.MinValueForHoldingTribalism) &&
+            (_newValue < SocialOrganizationKnowledge.MinValueForHoldingTribalism))
+        {
+            bool debug = true;
+        }
+#endif
+
         Value = _newValue;
 
         UpdateProgressLevel();
