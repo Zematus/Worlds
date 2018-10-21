@@ -5,152 +5,156 @@ using System.Xml;
 using System.Xml.Serialization;
 using UnityEngine.Profiling;
 
-public class MigrateGroupEvent : CellGroupEvent {
-    
-	public static int MigrationEventCount = 0;
+public class MigrateGroupEvent : CellGroupEvent
+{
+    public static int MigrationEventCount = 0;
 
-	[XmlAttribute("TLon")]
-	public int TargetCellLongitude;
-	[XmlAttribute("TLat")]
-	public int TargetCellLatitude;
+    [XmlAttribute("TLon")]
+    public int TargetCellLongitude;
+    [XmlAttribute("TLat")]
+    public int TargetCellLatitude;
 
-	[XmlAttribute("MigDir")]
-	public int MigrationDirectionInt;
+    [XmlAttribute("MigDir")]
+    public int MigrationDirectionInt;
 
-	[XmlIgnore]
-	public TerrainCell TargetCell;
+    [XmlIgnore]
+    public TerrainCell TargetCell;
 
-	[XmlIgnore]
-	public Direction MigrationDirection;
+    [XmlIgnore]
+    public Direction MigrationDirection;
 
-	public MigrateGroupEvent () {
+    public MigrateGroupEvent()
+    {
+#if DEBUG
+        MigrationEventCount++;
+#endif
 
-		#if DEBUG
-		MigrationEventCount++;
-		#endif
+        DoNotSerialize = true;
+    }
 
-		DoNotSerialize = true;
-	}
+    public MigrateGroupEvent(CellGroup group, TerrainCell targetCell, Direction migrationDirection, long triggerDate) : base(group, triggerDate, MigrateGroupEventId)
+    {
+#if DEBUG
+        MigrationEventCount++;
+#endif
 
-	public MigrateGroupEvent (CellGroup group, TerrainCell targetCell, Direction migrationDirection, long triggerDate) : base (group, triggerDate, MigrateGroupEventId) {
+        TargetCell = targetCell;
 
-		#if DEBUG
-		MigrationEventCount++;
-		#endif
+        TargetCellLongitude = TargetCell.Longitude;
+        TargetCellLatitude = TargetCell.Latitude;
 
-		TargetCell = targetCell;
+        MigrationDirection = migrationDirection;
 
-		TargetCellLongitude = TargetCell.Longitude;
-		TargetCellLatitude = TargetCell.Latitude;
+        DoNotSerialize = true;
+    }
 
-		MigrationDirection = migrationDirection;
+    public override bool CanTrigger()
+    {
+        if (!base.CanTrigger())
+            return false;
 
-		DoNotSerialize = true;
-	}
+        if (Group.TotalMigrationValue <= 0)
+            return false;
 
-	public override bool CanTrigger () {
+        return true;
+    }
 
-		if (!base.CanTrigger ())
-			return false;
+    public override void Trigger()
+    {
+        if (Group.TotalMigrationValue <= 0)
+        {
+            throw new System.Exception("Total Migration Value equal or less than zero: " + Group.TotalMigrationValue);
+        }
 
-		if (Group.TotalMigrationValue <= 0)
-			return false;
+        float randomFactor = Group.Cell.GetNextLocalRandomFloat(RngOffsets.EVENT_TRIGGER + unchecked((int)Id));
+        float percentToMigrate = (1 - Group.MigrationValue / Group.TotalMigrationValue) * randomFactor;
+        percentToMigrate = Mathf.Pow(percentToMigrate, 4);
 
-		return true;
-	}
+        percentToMigrate = Mathf.Clamp01(percentToMigrate);
 
-	public override void Trigger () {
+        //		#if DEBUG
+        //		if (Manager.RegisterDebugEvent != null) {
+        //			if ((Group.Id == Manager.TracingData.GroupId) ||
+        //				((TargetCell.Group != null) && (TargetCell.Group.Id == Manager.TracingData.GroupId))) {
+        //				CellGroup targetGroup = TargetCell.Group;
+        //				string targetGroupId = "Id:" + targetGroup.Id + "|Long:" + targetGroup.Longitude + "|Lat:" + targetGroup.Latitude;
+        //				string sourceGroupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
+        //
+        //				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+        //					"MigrateGroupEvent.Trigger - Id: " + Id + ", targetGroup:" + targetGroupId + 
+        //					", sourceGroup:" + sourceGroupId,
+        //					"CurrentDate: " + World.CurrentDate + 
+        //					", targetGroup.Population: " + targetGroup.Population + 
+        //					", randomFactor: " + randomFactor + 
+        //					", Group.MigrationValue: " + Group.MigrationValue + 
+        //					", Group.TotalMigrationValue: " + Group.TotalMigrationValue + 
+        //					", percentToMigrate: " + percentToMigrate + 
+        //					"");
+        //
+        //				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+        //			}
+        //		}
+        //		#endif
 
-		if (Group.TotalMigrationValue <= 0) {
+        if (Group.MigratingGroup == null)
+        {
+            Group.MigratingGroup = new MigratingGroup(World, percentToMigrate, Group, TargetCell, MigrationDirection);
+        }
+        else
+        {
+            Group.MigratingGroup.Set(percentToMigrate, Group, TargetCell, MigrationDirection);
+        }
 
-			throw new System.Exception ("Total Migration Value equal or less than zero: " + Group.TotalMigrationValue);
-		}
-        
-		float randomFactor = Group.Cell.GetNextLocalRandomFloat (RngOffsets.EVENT_TRIGGER + unchecked((int)Id));
-		float percentToMigrate = (1 - Group.MigrationValue/Group.TotalMigrationValue) * randomFactor;
-		percentToMigrate = Mathf.Pow (percentToMigrate, 4);
+        World.AddMigratingGroup(Group.MigratingGroup);
+    }
 
-		percentToMigrate = Mathf.Clamp01 (percentToMigrate);
+    public override void Synchronize()
+    {
+        MigrationDirectionInt = (int)MigrationDirection;
+    }
 
-		//		#if DEBUG
-		//		if (Manager.RegisterDebugEvent != null) {
-		//			if ((Group.Id == Manager.TracingData.GroupId) ||
-		//				((TargetCell.Group != null) && (TargetCell.Group.Id == Manager.TracingData.GroupId))) {
-		//				CellGroup targetGroup = TargetCell.Group;
-		//				string targetGroupId = "Id:" + targetGroup.Id + "|Long:" + targetGroup.Longitude + "|Lat:" + targetGroup.Latitude;
-		//				string sourceGroupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
-		//
-		//				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-		//					"MigrateGroupEvent.Trigger - Id: " + Id + ", targetGroup:" + targetGroupId + 
-		//					", sourceGroup:" + sourceGroupId,
-		//					"CurrentDate: " + World.CurrentDate + 
-		//					", targetGroup.Population: " + targetGroup.Population + 
-		//					", randomFactor: " + randomFactor + 
-		//					", Group.MigrationValue: " + Group.MigrationValue + 
-		//					", Group.TotalMigrationValue: " + Group.TotalMigrationValue + 
-		//					", percentToMigrate: " + percentToMigrate + 
-		//					"");
-		//
-		//				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-		//			}
-		//		}
-		//		#endif
+    public override void FinalizeLoad()
+    {
+        MigrationDirection = (Direction)MigrationDirectionInt;
 
-		if (Group.MigratingGroup == null) {
-			Group.MigratingGroup = new MigratingGroup (World, percentToMigrate, Group, TargetCell, MigrationDirection);
-		} else {
-			Group.MigratingGroup.Set (percentToMigrate, Group, TargetCell, MigrationDirection);
-		}
+        base.FinalizeLoad();
 
-		World.AddMigratingGroup (Group.MigratingGroup);
-	}
+        TargetCell = World.TerrainCells[TargetCellLongitude][TargetCellLatitude];
 
-	public override void Synchronize ()
-	{
-		MigrationDirectionInt = (int)MigrationDirection;
-	}
+        Group.MigrationEvent = this;
+    }
 
-	public override void FinalizeLoad () {
+    protected override void DestroyInternal()
+    {
+#if DEBUG
+        MigrationEventCount--;
+#endif
 
-		MigrationDirection = (Direction)MigrationDirectionInt;
+        if (Group != null)
+        {
+            Group.HasMigrationEvent = false;
+        }
 
-		base.FinalizeLoad ();
+        base.DestroyInternal();
+    }
 
-		TargetCell = World.TerrainCells[TargetCellLongitude][TargetCellLatitude];
+    public void Reset(TerrainCell targetCell, Direction migrationDirection, long triggerDate)
+    {
+#if DEBUG
+        MigrationEventCount++;
+#endif
 
-		Group.MigrationEvent = this;
-	}
+        TargetCell = targetCell;
 
-	protected override void DestroyInternal () {
+        TargetCellLongitude = TargetCell.Longitude;
+        TargetCellLatitude = TargetCell.Latitude;
 
-		#if DEBUG
-		MigrationEventCount--;
-		#endif
+        MigrationDirection = migrationDirection;
 
-		if (Group != null) {
-			Group.HasMigrationEvent = false;
-		}
+        Reset(triggerDate);
 
-		base.DestroyInternal ();
-	}
-
-	public void Reset (TerrainCell targetCell, Direction migrationDirection, long triggerDate) {
-
-		#if DEBUG
-		MigrationEventCount++;
-		#endif
-
-		TargetCell = targetCell;
-
-		TargetCellLongitude = TargetCell.Longitude;
-		TargetCellLatitude = TargetCell.Latitude;
-
-		MigrationDirection = migrationDirection;
-
-		Reset (triggerDate);
-
-		//		#if DEBUG
-		//		GenerateDebugMessage ();
-		//		#endif
-	}
+        //		#if DEBUG
+        //		GenerateDebugMessage ();
+        //		#endif
+    }
 }

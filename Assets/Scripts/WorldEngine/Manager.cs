@@ -2305,127 +2305,127 @@ public class Manager {
         return color;
     }
 
-    private static Color SetPopulationChangeOverlayColor (TerrainCell cell, Color color) {
+    private static Color SetPopulationChangeOverlayColor(TerrainCell cell, Color color)
+    {
+        float greyscale = (color.r + color.g + color.b);
 
-		float greyscale = (color.r + color.g + color.b);
+        color.r = (greyscale + color.r) / 6f;
+        color.g = (greyscale + color.g) / 6f;
+        color.b = (greyscale + color.b) / 6f;
 
-		color.r = (greyscale + color.r) / 6f;
-		color.g = (greyscale + color.g) / 6f;
-		color.b = (greyscale + color.b) / 6f;
+        float deltaLimitFactor = 0.1f;
 
-		float deltaLimitFactor = 0.1f;
+        float prevPopulation = 0;
+        float population = 0;
 
-		float prevPopulation = 0;
-		float population = 0;
+        float delta = 0;
 
-		float delta = 0;
+        if (cell.Group != null)
+        {
+            prevPopulation = cell.Group.PreviousPopulation;
+            population = cell.Group.Population;
 
-		if (cell.Group != null) {
+            delta = population - prevPopulation;
+        }
 
-			prevPopulation = cell.Group.PreviousPopulation;
-			population = cell.Group.Population;
+        if (delta > 0)
+        {
+            float value = delta / (population * deltaLimitFactor);
+            value = Mathf.Clamp01(value);
 
-			delta = population - prevPopulation;
-		}
+            color = (color * (1 - value)) + (Color.green * value);
+        }
+        else if (delta < 0)
+        {
+            float value = -delta / (prevPopulation * deltaLimitFactor);
+            value = Mathf.Clamp01(value);
 
-		if (delta > 0) {
+            color = (color * (1 - value)) + (Color.red * value);
+        }
 
-			float value = delta / (population * deltaLimitFactor);
-			value = Mathf.Clamp01 (value);
+        return color;
+    }
 
-			color = (color * (1 - value)) + (Color.green * value);
-		} else if (delta < 0) {
+    private static Color SetPopulationDensityOverlayColor(TerrainCell cell, Color color)
+    {
+        float greyscale = (color.r + color.g + color.b);
 
-			float value = -delta / (prevPopulation * deltaLimitFactor);
-			value = Mathf.Clamp01 (value);
+        color.r = (greyscale + color.r) / 6f;
+        color.g = (greyscale + color.g) / 6f;
+        color.b = (greyscale + color.b) / 6f;
 
-			color = (color * (1 - value)) + (Color.red * value);
-		}
+        if (CurrentWorld.MostPopulousGroup == null)
+            return color;
 
-		return color;
-	}
-	
-	private static Color SetPopulationDensityOverlayColor (TerrainCell cell, Color color) {
+        int maxPopulation = CurrentWorld.MostPopulousGroup.Population;
 
-		float greyscale = (color.r + color.g + color.b);
+        if (maxPopulation <= 0)
+            return color;
 
-		color.r = (greyscale + color.r) / 6f;
-		color.g = (greyscale + color.g) / 6f;
-		color.b = (greyscale + color.b) / 6f;
+        float maxPopFactor = cell.MaxAreaPercent * maxPopulation / 5f;
 
-		if (CurrentWorld.MostPopulousGroup == null)
-			return color;
+        float population = 0;
 
-		int maxPopulation = CurrentWorld.MostPopulousGroup.Population;
+        if (cell.Group != null)
+        {
+            population = cell.Group.Population;
 
-		if (maxPopulation <= 0)
-			return color;
+            if (cell.Group.MigrationTagged && DisplayMigrationTaggedGroup)
+                return Color.green;
 
-		float areaFactor = cell.Area/TerrainCell.MaxArea;
-		
-		float maxPopFactor = areaFactor * maxPopulation / 5f;
+#if DEBUG
+            if (cell.Group.DebugTagged && DisplayDebugTaggedGroups)
+                return Color.green;
+#endif
+        }
 
-		float population = 0;
+        if (population > 0)
+        {
+            float value = (population + maxPopFactor) / (maxPopulation + maxPopFactor);
 
-		if (cell.Group != null) {
+            color = (color * (1 - value)) + (Color.red * value);
+        }
 
-			population = cell.Group.Population;
-		
-			if (cell.Group.MigrationTagged && DisplayMigrationTaggedGroup)
-				return Color.green;
+        return color;
+    }
 
-			#if DEBUG
-			if (cell.Group.DebugTagged && DisplayDebugTaggedGroups)
-				return Color.green;
-			#endif
-		}
+    private static Color SetPopCulturalPreferenceOverlayColor(TerrainCell cell, Color color)
+    {
+        float greyscale = (color.r + color.g + color.b);
 
-		if (population > 0) {
+        color.r = (greyscale + color.r) / 6f;
+        color.g = (greyscale + color.g) / 6f;
+        color.b = (greyscale + color.b) / 6f;
 
-			float value = (population + maxPopFactor) / (maxPopulation + maxPopFactor);
-			
-			color = (color * (1 - value)) + (Color.red * value);
-		}
+        if (_planetOverlaySubtype == "None")
+            return color;
 
-		return color;
-	}
+        float preferenceValue = 0;
+        float population = 0;
 
-	private static Color SetPopCulturalPreferenceOverlayColor (TerrainCell cell, Color color) {
+        if (cell.Group != null)
+        {
+            CellCulturalPreference preference = cell.Group.Culture.GetPreference(_planetOverlaySubtype) as CellCulturalPreference;
 
-		float greyscale = (color.r + color.g + color.b);
+            population = cell.Group.Population;
 
-		color.r = (greyscale + color.r) / 6f;
-		color.g = (greyscale + color.g) / 6f;
-		color.b = (greyscale + color.b) / 6f;
+            if (preference != null)
+            {
+                preferenceValue = preference.Value;
+            }
+        }
 
-		if (_planetOverlaySubtype == "None")
-			return color;
+        if (population > 0)
+        {
+            float value = 0.05f + 0.95f * preferenceValue;
 
-		float preferenceValue = 0;
-		float population = 0;
+            color = (color * (1 - value)) + (Color.cyan * value);
+        }
 
-		if (cell.Group != null) {
+        return color;
+    }
 
-			CellCulturalPreference preference = cell.Group.Culture.GetPreference(_planetOverlaySubtype) as CellCulturalPreference;
-
-			population = cell.Group.Population;
-
-			if (preference != null) {
-				preferenceValue = preference.Value;
-			}
-		}
-
-		if (population > 0) {
-
-			float value = 0.05f + 0.95f * preferenceValue;
-
-			color = (color * (1 - value)) + (Color.cyan * value);
-		}
-
-		return color;
-	}
-
-	private static Color SetPolityCulturalPreferenceOverlayColor (TerrainCell cell, Color color) {
+    private static Color SetPolityCulturalPreferenceOverlayColor (TerrainCell cell, Color color) {
 
 		float greyscale = (color.r + color.g + color.b);
 
@@ -2932,7 +2932,7 @@ public class Manager {
                     float minValue = SocialOrganizationKnowledge.MinValueForHoldingTribalism;
                     float startValue = SocialOrganizationKnowledge.InitialValue;
 
-                    float knowledgeFactor = Mathf.Min(1f, (knowledgeValue - startValue) / (minValue - startValue));
+                    float knowledgeFactor = Mathf.Clamp01((knowledgeValue - startValue) / (minValue - startValue));
 
                     Color softDensityColor = groupColor * terrainColor;
 

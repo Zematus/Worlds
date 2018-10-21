@@ -40,10 +40,18 @@ public class FactionCulturalKnowledge : CulturalKnowledge
     public void UpdatePolityKnowledge(float influence)
     {
         if (!IsPresent) return;
+        
+        Profiler.BeginSample("PolityCulturalKnowledge.Set()");
 
         PolityCulturalKnowledge.Set();
 
+        Profiler.EndSample();
+
+        Profiler.BeginSample("PolityCulturalKnowledge.AccValue");
+
         PolityCulturalKnowledge.AccValue += Value * influence;
+
+        Profiler.EndSample();
     }
 
     public void UpdateFromCoreKnowledge(float timeFactor)

@@ -125,8 +125,11 @@ public class TerrainCell : ISynchronizable {
 	
 	[XmlIgnore]
 	public float Area;
-	
-	[XmlIgnore]
+
+    [XmlIgnore]
+    public float MaxAreaPercent;
+
+    [XmlIgnore]
 	public World World;
 
 	[XmlIgnore]
@@ -158,6 +161,7 @@ public class TerrainCell : ISynchronizable {
 		Width = width;
 
 		Area = height * width;
+        MaxAreaPercent = Area / MaxArea;
 	}
 
 	public static Direction ReverseDirection (Direction dir) {

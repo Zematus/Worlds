@@ -14,12 +14,14 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge
 
     public const int InitialValue = 100;
 
-    public const int MinValueForTribalismDiscovery = 500;
+    public const int MinValueForTribalismDiscovery = 600;
     public const int MinValueForHoldingTribalism = 200;
-    public const int OptimalValueForTribalism = 10000;
+
+    public const int BaseAsymptote = 1000;
+    public const int TribalismDiscoveryAsymptote = 10000;
 
     public const float TimeEffectConstant = CellGroup.GenerationSpan * 500;
-    public const float PopulationDensityModifier = 10000f;
+    public const float PopulationDensityModifier = 10000f * ValueScaleFactor;
 
     public static int HighestAsymptote = 0;
 
@@ -48,12 +50,9 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge
 
     private float CalculatePopulationFactor()
     {
-        float areaFactor = Group.Cell.Area / TerrainCell.MaxArea;
+        float popFactor = Group.Population;
 
-        //		float popFactor = Group.Population * areaFactor;
-        float popFactor = (float)Group.Population;
-
-        float densityFactor = PopulationDensityModifier * Asymptote * ValueScaleFactor * areaFactor;
+        float densityFactor = PopulationDensityModifier * Asymptote * Group.Cell.MaxAreaPercent;
 
         float finalPopFactor = popFactor / (popFactor + densityFactor);
         finalPopFactor = 0.1f + finalPopFactor * 0.9f;
@@ -63,6 +62,7 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge
 
     private float CalculatePolityProminenceFactor()
     {
+        // This should actually depend on the type of polity, tribes should have little effect
         float totalProminence = Group.TotalPolityProminenceValue * 0.5f;
 
         return totalProminence;
@@ -72,7 +72,7 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge
     {
         float populationFactor = CalculatePopulationFactor();
 
-        float prominenceFactor = CalculatePolityProminenceFactor();
+        float prominenceFactor = Group.TotalPolityProminenceValue;
 
         float totalFactor = populationFactor + (prominenceFactor * (1 - populationFactor));
 
@@ -122,9 +122,8 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge
     {
         switch (discovery.Id)
         {
-
             case TribalismDiscovery.TribalismDiscoveryId:
-                return OptimalValueForTribalism;
+                return TribalismDiscoveryAsymptote;
         }
 
         return 0;
@@ -159,6 +158,6 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge
 
     protected override int GetBaseAsymptote()
     {
-        return 1000;
+        return BaseAsymptote;
     }
 }

@@ -11,7 +11,7 @@ public class TribeFormationEvent : CellGroupEvent
 
     public const int MinSocialOrganizationKnowledgeTribeFormation = SocialOrganizationKnowledge.MinValueForTribalismDiscovery;
     public const int MinSocialOrganizationKnowledgeValue = SocialOrganizationKnowledge.MinValueForHoldingTribalism;
-    public const int OptimalSocialOrganizationKnowledgeValue = SocialOrganizationKnowledge.OptimalValueForTribalism;
+    public const int OptimalSocialOrganizationKnowledgeValue = SocialOrganizationKnowledge.TribalismDiscoveryAsymptote;
 
     public TribeFormationEvent()
     {

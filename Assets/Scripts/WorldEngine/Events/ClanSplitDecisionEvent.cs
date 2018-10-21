@@ -107,17 +107,7 @@ public class ClanSplitDecisionEvent : FactionEvent
 
         float minCoreProminenceValue = Mathf.Max(coreDistanceFactor, Clan.MinCorePolityProminence);
 
-        float value = pi.Value - minCoreProminenceValue;
-
-        if (value <= 0)
-            return 0;
-
-        float weight = pi.Value;
-
-        if (weight < 0)
-            return float.MaxValue;
-
-        return weight;
+        return pi.Value - minCoreProminenceValue;
     }
 
     public override bool CanTrigger()

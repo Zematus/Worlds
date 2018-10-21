@@ -1017,7 +1017,7 @@ public class CellGroup : HumanGroup
 
     public float CalculateMigrationValue(TerrainCell cell)
     {
-        float areaFactor = cell.Area / TerrainCell.MaxArea;
+        float areaFactor = cell.MaxAreaPercent;
         
         float altitudeDeltaFactor = CalculateAltitudeDeltaFactor(cell);
         float altitudeDeltaFactorPow = Mathf.Pow(altitudeDeltaFactor, 4);

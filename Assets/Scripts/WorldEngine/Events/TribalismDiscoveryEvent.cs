@@ -14,7 +14,7 @@ public class TribalismDiscoveryEvent : DiscoveryEvent
 
     public const int MinSocialOrganizationKnowledgeForTribalismDiscovery = SocialOrganizationKnowledge.MinValueForTribalismDiscovery;
     public const int MinSocialOrganizationKnowledgeForHoldingTribalism = SocialOrganizationKnowledge.MinValueForHoldingTribalism;
-    public const int OptimalSocialOrganizationKnowledgeValue = SocialOrganizationKnowledge.OptimalValueForTribalism;
+    public const int OptimalSocialOrganizationKnowledgeValue = SocialOrganizationKnowledge.TribalismDiscoveryAsymptote;
 
     public const string EventSetFlag = "TribalismDiscoveryEvent_Set";
 

@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
+using UnityEngine.Profiling;
 
 public class FactionCulturalDiscovery : CulturalDiscovery
 {
@@ -35,7 +36,11 @@ public class FactionCulturalDiscovery : CulturalDiscovery
     {
         if (IsPresent)
         {
+            Profiler.BeginSample("PolityCulturalDiscovery.Set(true)");
+
             PolityCulturalDiscovery.Set(true);
+
+            Profiler.EndSample();
         }
     }
 

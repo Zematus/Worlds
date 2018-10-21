@@ -110,6 +110,15 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
             }
         }
 #endif
+#if DEBUG
+        if ((Group.Id == 55200582289076) &&
+            (Id == SocialOrganizationKnowledge.SocialOrganizationKnowledgeId) &&
+            (Value >= SocialOrganizationKnowledge.MinValueForHoldingTribalism) &&
+            (mergedValue < SocialOrganizationKnowledge.MinValueForHoldingTribalism))
+        {
+            bool debug = true;
+        }
+#endif
 
         _newValue = mergedValue;
     }
@@ -215,11 +224,20 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
             Debug.LogError("UpdateValueInternal: new value " + newValue + " above Asymptote " + Asymptote);
         }
 #endif
-
 #if DEBUG
         if (newValue > 1000000)
         {
             Debug.LogError("UpdateValueInternal: new value " + newValue + " above 1000000000");
+        }
+#endif
+#if DEBUG
+        if ((Group.Id == 55200582289076) &&
+            (Id == SocialOrganizationKnowledge.SocialOrganizationKnowledgeId) &&
+            (Value >= SocialOrganizationKnowledge.MinValueForHoldingTribalism) &&
+            (newValue < SocialOrganizationKnowledge.MinValueForHoldingTribalism) &&
+            (Asymptote > SocialOrganizationKnowledge.BaseAsymptote))
+        {
+            bool debug = true;
         }
 #endif
 
@@ -249,6 +267,16 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
 
         if (d > Group.GetNextLocalRandomFloat(rngOffset++))
             valueChange++;
+
+#if DEBUG
+        if ((Group.Id == 55200582289076) &&
+            (Id == SocialOrganizationKnowledge.SocialOrganizationKnowledgeId) &&
+            (Value >= SocialOrganizationKnowledge.MinValueForHoldingTribalism) &&
+            (_newValue < SocialOrganizationKnowledge.MinValueForHoldingTribalism))
+        {
+            bool debug = true;
+        }
+#endif
 
         _newValue = _newValue + valueChange;
     }
