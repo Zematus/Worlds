@@ -346,6 +346,16 @@ public class Culture : ISynchronizable
         {
             Language = World.GetLanguage(LanguageId);
         }
+
+        FinalizePropertiesLoad();
+    }
+
+    public virtual void FinalizePropertiesLoad()
+    {
+        foreach (CulturalSkill s in Skills.Values)
+        {
+            s.FinalizeLoad();
+        }
     }
 }
 

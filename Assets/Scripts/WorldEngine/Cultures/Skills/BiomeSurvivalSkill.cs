@@ -11,7 +11,7 @@ public class BiomeSurvivalSkill : CellCulturalSkill
     public const string BiomeSurvivalSkillIdPrefix = "BiomeSurvivalSkill_";
     public const int BiomeSurvivalSkillRngOffsetBase = 1000;
 
-    [XmlAttribute]
+    [XmlIgnore]
     public string BiomeName;
 
     private float _neighborhoodBiomePresence;
@@ -78,6 +78,8 @@ public class BiomeSurvivalSkill : CellCulturalSkill
     public override void FinalizeLoad()
     {
         base.FinalizeLoad();
+
+        BiomeName = Name.Substring(0, Name.IndexOf(" Survival"));
 
         Group.AddBiomeSurvivalSkill(this);
 

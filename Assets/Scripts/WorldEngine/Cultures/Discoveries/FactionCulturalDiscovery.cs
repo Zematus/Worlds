@@ -13,6 +13,10 @@ public class FactionCulturalDiscovery : CulturalDiscovery
     [XmlIgnore]
     public CellCulturalDiscovery CoreCulturalDiscovery;
 
+    public FactionCulturalDiscovery()
+    {
+    }
+
     public FactionCulturalDiscovery(CellCulturalDiscovery coreDiscovery, PolityCulture polityCulture) : base(coreDiscovery)
     {
         CoreCulturalDiscovery = coreDiscovery;

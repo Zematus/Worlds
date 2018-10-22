@@ -61,10 +61,10 @@ public abstract class WorldEvent : ISynchronizable {
 	[XmlAttribute("TId")]
 	public long TypeId;
 
-	[XmlAttribute("TDate")]
+	[XmlAttribute("TD")]
 	public long TriggerDate;
 
-	[XmlAttribute("SDate")]
+	[XmlAttribute("SD")]
 	public long SpawnDate;
 	
 	[XmlAttribute]

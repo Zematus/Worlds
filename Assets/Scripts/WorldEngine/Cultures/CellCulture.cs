@@ -642,10 +642,8 @@ public class CellCulture : Culture
         base.Synchronize();
     }
 
-    public override void FinalizeLoad()
+    public override void FinalizePropertiesLoad()
     {
-        base.FinalizeLoad();
-
         foreach (CellCulturalPreference p in Preferences.Values)
         {
             p.Group = Group;
@@ -659,7 +657,6 @@ public class CellCulture : Culture
         foreach (CellCulturalSkill s in Skills.Values)
         {
             s.Group = Group;
-            s.FinalizeLoad();
         }
 
         foreach (CellCulturalKnowledge k in Knowledges.Values)
@@ -667,5 +664,7 @@ public class CellCulture : Culture
             k.Group = Group;
             k.FinalizeLoad();
         }
+
+        base.FinalizePropertiesLoad();
     }
 }

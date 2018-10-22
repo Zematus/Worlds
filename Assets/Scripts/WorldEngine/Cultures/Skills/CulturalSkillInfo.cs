@@ -4,16 +4,16 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
-public class CulturalSkillInfo : IKeyedValue<string>
+public class CulturalSkillInfo : IKeyedValue<string>, ISynchronizable
 {
     [XmlAttribute]
     public string Id;
 
-    [XmlAttribute("N")]
-    public string Name;
-
     [XmlAttribute("RO")]
     public int RngOffset;
+
+    [XmlIgnore]
+    public string Name;
 
     public CulturalSkillInfo()
     {
@@ -36,5 +36,31 @@ public class CulturalSkillInfo : IKeyedValue<string>
     public string GetKey()
     {
         return Id;
+    }
+
+    public virtual void Synchronize()
+    {
+    }
+
+    public virtual void FinalizeLoad()
+    {
+        if (Id.Contains(BiomeSurvivalSkill.BiomeSurvivalSkillIdPrefix))
+        {
+            string idSuffix = Id.Substring(BiomeSurvivalSkill.BiomeSurvivalSkillIdPrefix.Length);
+
+            Name = BiomeSurvivalSkill.GenerateName(Biome.Biomes[idSuffix.Replace('_', ' ')]);
+        }
+        else
+        {
+            switch (Id)
+            {
+                case SeafaringSkill.SeafaringSkillId:
+                    Name = SeafaringSkill.SeafaringSkillName;
+                    break;
+
+                default:
+                    throw new System.Exception("Unhandled Skill Id: " + Id);
+            }
+        }
     }
 }

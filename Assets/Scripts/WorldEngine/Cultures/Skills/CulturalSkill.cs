@@ -8,7 +8,7 @@ using System.Xml.Serialization;
 [XmlInclude(typeof(SeafaringSkill))]
 public class CulturalSkill : CulturalSkillInfo
 {
-    [XmlAttribute]
+    [XmlAttribute("V")]
     public float Value;
 
     public CulturalSkill()

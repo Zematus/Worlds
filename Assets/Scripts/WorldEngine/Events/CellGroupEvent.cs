@@ -6,11 +6,8 @@ using System.Xml.Serialization;
 
 public abstract class CellGroupEvent : WorldEvent {
 
-	[XmlAttribute]
+	[XmlAttribute("GId")]
 	public long GroupId;
-
-	[XmlAttribute]
-	public long EventTypeId;
 
 	[XmlIgnore]
 	public CellGroup Group;
@@ -24,8 +21,6 @@ public abstract class CellGroupEvent : WorldEvent {
 
 		Group = group;
 		GroupId = Group.Id;
-
-		EventTypeId = eventTypeId;
 
 		#if DEBUG
 		GenerateDebugMessage (false);
@@ -102,7 +97,7 @@ public abstract class CellGroupEvent : WorldEvent {
 
 	public virtual void Reset (long newTriggerDate) {
 
-		Reset (newTriggerDate, GenerateUniqueIdentifier (Group, newTriggerDate, EventTypeId));
+		Reset (newTriggerDate, GenerateUniqueIdentifier (Group, newTriggerDate, TypeId));
 
 		#if DEBUG
 		GenerateDebugMessage (true);

@@ -4,15 +4,15 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
-public abstract class CellCulturalSkill : CulturalSkill, ISynchronizable
+public abstract class CellCulturalSkill : CulturalSkill
 {
-    [XmlAttribute]
+    [XmlAttribute("AL")]
     public float AdaptationLevel;
 
     [XmlIgnore]
     public CellGroup Group;
 
-    public float _newValue;
+    private float _newValue;
 
     public CellCulturalSkill()
     {
@@ -100,16 +100,6 @@ public abstract class CellCulturalSkill : CulturalSkill, ISynchronizable
         //		#endif
 
         _newValue = value;
-    }
-
-    public virtual void Synchronize()
-    {
-
-    }
-
-    public virtual void FinalizeLoad()
-    {
-
     }
 
     public abstract void Update(long timeSpan);

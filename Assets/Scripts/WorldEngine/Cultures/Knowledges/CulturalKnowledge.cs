@@ -63,6 +63,6 @@ public class CulturalKnowledge : CulturalKnowledgeInfo, IFilterableValue
 
     public bool ShouldFilter()
     {
-        return IsPresent;
+        return !IsPresent;
     }
 }

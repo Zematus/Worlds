@@ -16,6 +16,10 @@ public class FactionCulturalKnowledge : CulturalKnowledge
     [XmlIgnore]
     public CellCulturalKnowledge CoreCulturalKnowledge;
 
+    public FactionCulturalKnowledge()
+    {
+    }
+
     public FactionCulturalKnowledge(Faction faction, CellCulturalKnowledge coreKnowledge, PolityCulture polityCulture) : base(coreKnowledge)
     {
         Faction = faction;

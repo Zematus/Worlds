@@ -1839,6 +1839,7 @@ public class World : ISynchronizable
 
         foreach (CulturalSkillInfo s in CulturalSkillInfoList)
         {
+            s.FinalizeLoad();
             _culturalSkillIdList.Add(s.Id);
         }
 
