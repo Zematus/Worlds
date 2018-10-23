@@ -504,7 +504,7 @@ public class CellGroup : HumanGroup
     {
         if (initialGroup)
         {
-            Culture.TryAddKnowledgeToLearn(SocialOrganizationKnowledge.SocialOrganizationKnowledgeId, this, SocialOrganizationKnowledge.InitialValue);
+            Culture.TryAddKnowledgeToLearn(SocialOrganizationKnowledge.KnowledgeId, this, SocialOrganizationKnowledge.InitialValue);
         }
     }
 
@@ -601,7 +601,7 @@ public class CellGroup : HumanGroup
 
 			if (biomeName == Biome.Ocean.Name) {
 
-				if (Culture.GetSkill (SeafaringSkill.SeafaringSkillId) == null) {
+				if (Culture.GetSkill (SeafaringSkill.SkillId) == null) {
 
 					Culture.AddSkillToLearn (new SeafaringSkill (this));
 				}
@@ -2013,7 +2013,7 @@ public class CellGroup : HumanGroup
     {
         float knowledgeValue = 0;
 
-        if (!Culture.TryGetKnowledgeScaledValue(AgricultureKnowledge.AgricultureKnowledgeId, out knowledgeValue))
+        if (!Culture.TryGetKnowledgeScaledValue(AgricultureKnowledge.KnowledgeId, out knowledgeValue))
         {
             return;
         }
@@ -2147,7 +2147,7 @@ public class CellGroup : HumanGroup
 
 		float value = 0;
 
-        if (!Culture.TryGetKnowledgeScaledValue(AgricultureKnowledge.AgricultureKnowledgeId, out value))
+        if (!Culture.TryGetKnowledgeScaledValue(AgricultureKnowledge.KnowledgeId, out value))
         {
             return capacityFactor;
         }

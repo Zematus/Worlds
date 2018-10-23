@@ -7,12 +7,12 @@ using UnityEngine.Profiling;
 
 public class AgricultureKnowledge : CellCulturalKnowledge
 {
-    public const string AgricultureKnowledgeId = "AgricultureKnowledge";
-    public const string AgricultureKnowledgeName = "Agriculture";
+    public const string KnowledgeId = "AgricultureKnowledge";
+    public const string KnowledgeName = "Agriculture";
 
     public const int InitialValue = 100;
 
-    public const int AgricultureKnowledgeRngOffset = 1;
+    public const int KnowledgeRngOffset = 1;
 
     public const float TimeEffectConstant = CellGroup.GenerationSpan * 2000;
     public const float TerrainFactorModifier = 1.5f;
@@ -30,14 +30,14 @@ public class AgricultureKnowledge : CellCulturalKnowledge
         }
     }
 
-    public AgricultureKnowledge(CellGroup group, int initialValue) : base(group, AgricultureKnowledgeId, AgricultureKnowledgeName, AgricultureKnowledgeRngOffset, initialValue)
+    public AgricultureKnowledge(CellGroup group, int initialValue) : base(group, KnowledgeId, KnowledgeName, KnowledgeRngOffset, initialValue)
     {
         CalculateTerrainFactor();
     }
 
     public static bool IsAgricultureKnowledge(CulturalKnowledge knowledge)
     {
-        return knowledge.Id.Contains(AgricultureKnowledgeId);
+        return knowledge.Id.Contains(KnowledgeId);
     }
 
     public override void FinalizeLoad()
@@ -73,7 +73,7 @@ public class AgricultureKnowledge : CellCulturalKnowledge
     {
         switch (discovery.Id)
         {
-            case PlantCultivationDiscovery.PlantCultivationDiscoveryId:
+            case PlantCultivationDiscovery.DiscoveryId:
                 return 1000;
         }
 

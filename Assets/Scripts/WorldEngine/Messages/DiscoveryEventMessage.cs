@@ -27,13 +27,13 @@ public class DiscoveryEventMessage : CellEventMessage {
 	{
 		string prefix = null;
 
-		if (DiscoveryId == SailingDiscovery.SailingDiscoveryId) {
+		if (DiscoveryId == SailingDiscovery.DiscoveryId) {
 			prefix = SailingDiscoveryMessagePrefix;
-		} else if (DiscoveryId == TribalismDiscovery.TribalismDiscoveryId) {
+		} else if (DiscoveryId == TribalismDiscovery.DiscoveryId) {
 			prefix = TribalismDiscoveryMessagePrefix;
-		} else if (DiscoveryId == BoatMakingDiscovery.BoatMakingDiscoveryId) {
+		} else if (DiscoveryId == BoatMakingDiscovery.DiscoveryId) {
 			prefix = BoatMakingDiscoveryMessagePrefix;
-		} else if (DiscoveryId == PlantCultivationDiscovery.PlantCultivationDiscoveryId) {
+		} else if (DiscoveryId == PlantCultivationDiscovery.DiscoveryId) {
 			prefix = PlantCultivationDiscoveryMessagePrefix;
 		} 
 

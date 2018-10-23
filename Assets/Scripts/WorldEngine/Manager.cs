@@ -2927,7 +2927,7 @@ public class Manager {
 
                 int knowledgeValue = 0;
 
-                if (cell.Group.Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.SocialOrganizationKnowledgeId, out knowledgeValue))
+                if (cell.Group.Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.KnowledgeId, out knowledgeValue))
                 {
                     float minValue = SocialOrganizationKnowledge.MinValueForHoldingTribalism;
                     float startValue = SocialOrganizationKnowledge.InitialValue;

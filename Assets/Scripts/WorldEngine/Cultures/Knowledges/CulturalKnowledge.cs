@@ -9,6 +9,7 @@ using UnityEngine.Profiling;
 [XmlInclude(typeof(AgricultureKnowledge))]
 [XmlInclude(typeof(SocialOrganizationKnowledge))]
 [XmlInclude(typeof(FactionCulturalKnowledge))]
+[XmlInclude(typeof(PolityCulturalKnowledge))]
 public class CulturalKnowledge : CulturalKnowledgeInfo, IFilterableValue
 {
     public const float ValueScaleFactor = 0.01f;

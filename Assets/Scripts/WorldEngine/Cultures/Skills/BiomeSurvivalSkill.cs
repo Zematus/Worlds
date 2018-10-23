@@ -8,7 +8,7 @@ public class BiomeSurvivalSkill : CellCulturalSkill
 {
     public const float TimeEffectConstant = CellGroup.GenerationSpan * 1500;
 
-    public const string BiomeSurvivalSkillIdPrefix = "BiomeSurvivalSkill_";
+    public const string SkillIdPrefix = "BiomeSurvivalSkill_";
     public const int BiomeSurvivalSkillRngOffsetBase = 1000;
 
     [XmlIgnore]
@@ -18,7 +18,7 @@ public class BiomeSurvivalSkill : CellCulturalSkill
 
     public static string GenerateId(Biome biome)
     {
-        return BiomeSurvivalSkillIdPrefix + biome.Id;
+        return SkillIdPrefix + biome.Id;
     }
 
     public static string GenerateName(Biome biome)
@@ -72,7 +72,7 @@ public class BiomeSurvivalSkill : CellCulturalSkill
 
     public static bool IsBiomeSurvivalSkill(CulturalSkill skill)
     {
-        return skill.Id.Contains(BiomeSurvivalSkillIdPrefix);
+        return skill.Id.Contains(SkillIdPrefix);
     }
 
     public override void FinalizeLoad()

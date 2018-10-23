@@ -52,7 +52,7 @@ public class PlantCultivationDiscoveryEvent : DiscoveryEvent
         if (group.IsFlagSet(EventSetFlag))
             return false;
 
-        if (group.Culture.HasKnowledge(AgricultureKnowledge.AgricultureKnowledgeId))
+        if (group.Culture.HasKnowledge(AgricultureKnowledge.KnowledgeId))
             return false;
 
         float terrainFactor = AgricultureKnowledge.CalculateTerrainFactorIn(group.Cell);
@@ -65,7 +65,7 @@ public class PlantCultivationDiscoveryEvent : DiscoveryEvent
         if (!base.CanTrigger())
             return false;
 
-        if (Group.Culture.HasKnowledge(AgricultureKnowledge.AgricultureKnowledgeId))
+        if (Group.Culture.HasKnowledge(AgricultureKnowledge.KnowledgeId))
             return false;
 
         return true;
@@ -74,11 +74,11 @@ public class PlantCultivationDiscoveryEvent : DiscoveryEvent
     public override void Trigger()
     {
         Group.Culture.AddActivityToPerform(CellCulturalActivity.CreateFarmingActivity(Group));
-        Group.Culture.TryAddDiscoveryToFind(PlantCultivationDiscovery.PlantCultivationDiscoveryId);
-        Group.Culture.TryAddKnowledgeToLearn(AgricultureKnowledge.AgricultureKnowledgeId, Group, AgricultureKnowledge.InitialValue);
+        Group.Culture.TryAddDiscoveryToFind(PlantCultivationDiscovery.DiscoveryId);
+        Group.Culture.TryAddKnowledgeToLearn(AgricultureKnowledge.KnowledgeId, Group, AgricultureKnowledge.InitialValue);
         World.AddGroupToUpdate(Group);
 
-        TryGenerateEventMessage(PlantCultivationDiscoveryEventId, PlantCultivationDiscovery.PlantCultivationDiscoveryId);
+        TryGenerateEventMessage(PlantCultivationDiscoveryEventId, PlantCultivationDiscovery.DiscoveryId);
     }
 
     protected override void DestroyInternal()

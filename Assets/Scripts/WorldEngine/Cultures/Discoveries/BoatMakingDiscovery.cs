@@ -6,17 +6,17 @@ using System.Xml.Serialization;
 
 public class BoatMakingDiscovery : CellCulturalDiscovery
 {
-    public const string BoatMakingDiscoveryId = "BoatMakingDiscovery";
-    public const string BoatMakingDiscoveryName = "Boat Making";
+    public const string DiscoveryId = "BoatMakingDiscovery";
+    public const string DiscoveryName = "Boat Making";
 
-    public BoatMakingDiscovery() : base(BoatMakingDiscoveryId, BoatMakingDiscoveryName)
+    public BoatMakingDiscovery() : base(DiscoveryId, DiscoveryName)
     {
 
     }
 
     public override bool CanBeHeld(CellGroup group)
     {
-        if (group.Culture.HasOrWillHaveKnowledge(ShipbuildingKnowledge.ShipbuildingKnowledgeId))
+        if (group.Culture.HasOrWillHaveKnowledge(ShipbuildingKnowledge.KnowledgeId))
         {
             return true;
         }

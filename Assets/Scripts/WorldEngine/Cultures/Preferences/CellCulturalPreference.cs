@@ -4,110 +4,110 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
-public class CellCulturalPreference : CulturalPreference {
+public class CellCulturalPreference : CulturalPreference
+{
+    public const float TimeEffectConstant = CellGroup.GenerationSpan * 500;
 
-	public const float TimeEffectConstant = CellGroup.GenerationSpan * 500;
+    [XmlIgnore]
+    public CellGroup Group;
 
-	public const int AuthorityPreferenceRandomOffset = 0;
-	public const int CohesionPreferenceRandomOffset = 1;
-	public const int IsolationPreferenceRandomOffset = 2;
+    private const float MaxChangeDelta = 0.2f;
 
-	[XmlIgnore]
-	public CellGroup Group;
+    private float _newValue;
 
-	private const float MaxChangeDelta = 0.2f;
+    public CellCulturalPreference()
+    {
+    }
 
-	private float _newValue;
+    private CellCulturalPreference(CellGroup group, string id, string name, int rngOffset, float value = 0) : base(id, name, rngOffset, value)
+    {
+        Group = group;
 
-	public CellCulturalPreference () {
-	}
+        _newValue = value;
+    }
 
-	private CellCulturalPreference (CellGroup group, string id, string name, int rngOffset, float value = 0) : base (id, name, rngOffset, value) {
+    public static CellCulturalPreference CreateCellInstance(CellGroup group, CulturalPreference basePreference)
+    {
+        return CreateCellInstance(group, basePreference, basePreference.Value);
+    }
 
-		Group = group;
+    public static CellCulturalPreference CreateCellInstance(CellGroup group, CulturalPreference basePreference, float initialValue)
+    {
+        return new CellCulturalPreference(group, basePreference.Id, basePreference.Name, basePreference.RngOffset, initialValue);
+    }
 
-		_newValue = value;
-	}
+    public static CellCulturalPreference CreateAuthorityPreference(CellGroup group, float value = 0)
+    {
+        return new CellCulturalPreference(group, AuthorityPreferenceId, AuthorityPreferenceName, AuthorityPreferenceRngOffset, value);
+    }
 
-	public static CellCulturalPreference CreateCellInstance (CellGroup group, CulturalPreference basePreference) {
+    public static CellCulturalPreference CreateCohesionPreference(CellGroup group, float value = 0)
+    {
+        return new CellCulturalPreference(group, CohesionPreferenceId, CohesionPreferenceName, CohesionPreferenceRngOffset, value);
+    }
 
-		return CreateCellInstance (group, basePreference, basePreference.Value);
-	}
+    public static CellCulturalPreference CreateIsolationPreference(CellGroup group, float value = 0)
+    {
+        return new CellCulturalPreference(group, IsolationPreferenceId, IsolationPreferenceName, IsolationPreferenceRngOffset, value);
+    }
 
-	public static CellCulturalPreference CreateCellInstance (CellGroup group, CulturalPreference basePreference, float initialValue) {
-	
-		return new CellCulturalPreference (group, basePreference.Id, basePreference.Name, basePreference.RngOffset, initialValue);
-	}
+    public void Merge(CulturalPreference preference, float percentage)
+    {
+        // _newvalue should have been set correctly either by the constructor or by the Update function
+        _newValue = _newValue * (1f - percentage) + preference.Value * percentage;
+    }
 
-	public static CellCulturalPreference CreateAuthorityPreference (CellGroup group, float value = 0) {
-	
-		return new CellCulturalPreference (group, AuthorityPreferenceId, AuthorityPreferenceName, AuthorityPreferenceRandomOffset, value);
-	}
+    // This method should be called only once after a Cultural Value is copied from another source group
+    public void DecreaseValue(float percentage)
+    {
+        _newValue = _newValue * percentage;
+    }
 
-	public static CellCulturalPreference CreateCohesionPreference (CellGroup group, float value = 0) {
+    public void Update(long timeSpan)
+    {
+        TerrainCell groupCell = Group.Cell;
 
-		return new CellCulturalPreference (group, CohesionPreferenceId, CohesionPreferenceName, CohesionPreferenceRandomOffset, value);
-	}
+        float randomModifier = groupCell.GetNextLocalRandomFloat(RngOffsets.PREFERENCE_UPDATE + RngOffset);
+        randomModifier = 1f - (randomModifier * 2f);
+        float randomFactor = MaxChangeDelta * randomModifier;
 
-	public static CellCulturalPreference CreateIsolationPreference (CellGroup group, float value = 0) {
+        float maxTargetValue = 1f;
+        float minTargetValue = 0f;
+        float targetValue = 0;
 
-		return new CellCulturalPreference (group, IsolationPreferenceId, IsolationPreferenceName, IsolationPreferenceRandomOffset, value);
-	}
+        if (randomFactor > 0)
+        {
+            targetValue = Value + (maxTargetValue - Value) * randomFactor;
+        }
+        else
+        {
+            targetValue = Value - (minTargetValue - Value) * randomFactor;
+        }
 
-	public void Merge (CulturalPreference preference, float percentage) {
+        float timeEffect = timeSpan / (float)(timeSpan + TimeEffectConstant);
 
-		// _newvalue should have been set correctly either by the constructor or by the Update function
-		_newValue = _newValue * (1f - percentage) + preference.Value * percentage;
-	}
+        _newValue = (Value * (1 - timeEffect)) + (targetValue * timeEffect);
+    }
 
-	// This method should be called only once after a Cultural Value is copied from another source group
-	public void DecreaseValue (float percentage) {
+    public void PolityCulturalProminence(CulturalPreference polityPreference, PolityProminence polityProminence, long timeSpan)
+    {
+        float targetValue = polityPreference.Value;
+        float prominenceEffect = polityProminence.Value;
 
-		_newValue = _newValue * percentage;
-	}
+        TerrainCell groupCell = Group.Cell;
 
-	public void Update (long timeSpan) {
+        float randomEffect = groupCell.GetNextLocalRandomFloat(RngOffsets.PREFERENCE_POLITY_PROMINENCE + RngOffset + unchecked((int)polityProminence.PolityId));
 
-		TerrainCell groupCell = Group.Cell;
+        float timeEffect = timeSpan / (float)(timeSpan + TimeEffectConstant);
 
-		float randomModifier = groupCell.GetNextLocalRandomFloat (RngOffsets.PREFERENCE_UPDATE + RngOffset);
-		randomModifier = 1f - (randomModifier * 2f);
-		float randomFactor = MaxChangeDelta * randomModifier;
+        // _newvalue should have been set correctly either by the constructor or by the Update function
+        float change = (targetValue - _newValue) * prominenceEffect * timeEffect * randomEffect;
 
-		float maxTargetValue = 1f;
-		float minTargetValue = 0f;
-		float targetValue = 0;
+        _newValue = _newValue + change;
+    }
 
-		if (randomFactor > 0) {
-			targetValue = Value + (maxTargetValue - Value) * randomFactor;
-		} else {
-			targetValue = Value - (minTargetValue - Value) * randomFactor;
-		}
-
-		float timeEffect = timeSpan / (float)(timeSpan + TimeEffectConstant);
-
-		_newValue = (Value * (1 - timeEffect)) + (targetValue * timeEffect);
-	}
-
-	public void PolityCulturalProminence (CulturalPreference polityPreference, PolityProminence polityProminence, long timeSpan) {
-
-		float targetValue = polityPreference.Value;
-		float prominenceEffect = polityProminence.Value;
-
-		TerrainCell groupCell = Group.Cell;
-
-		float randomEffect = groupCell.GetNextLocalRandomFloat (RngOffsets.PREFERENCE_POLITY_PROMINENCE + RngOffset + unchecked((int)polityProminence.PolityId));
-
-		float timeEffect = timeSpan / (float)(timeSpan + TimeEffectConstant);
-
-		// _newvalue should have been set correctly either by the constructor or by the Update function
-		float change = (targetValue - _newValue) * prominenceEffect * timeEffect * randomEffect;
-
-		_newValue = _newValue + change;
-	}
-
-	public void PostUpdate () {
-
-		Value = Mathf.Clamp01 (_newValue);
-	}
+    public void PostUpdate()
+    {
+        Value = Mathf.Clamp01(_newValue);
+    }
 }

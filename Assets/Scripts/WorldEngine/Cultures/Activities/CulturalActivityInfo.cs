@@ -4,15 +4,15 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
-public class CulturalActivityInfo : IKeyedValue<string>
+public class CulturalActivityInfo : IKeyedValue<string>, ISynchronizable
 {
     [XmlAttribute]
     public string Id;
 
-    [XmlAttribute("N")]
+    [XmlIgnore]
     public string Name;
 
-    [XmlAttribute("RO")]
+    [XmlIgnore]
     public int RngOffset;
 
     public CulturalActivityInfo()
@@ -36,5 +36,28 @@ public class CulturalActivityInfo : IKeyedValue<string>
     public string GetKey()
     {
         return Id;
+    }
+
+    public void Synchronize()
+    {
+    }
+
+    public void FinalizeLoad()
+    {
+        switch (Id)
+        {
+            case CellCulturalActivity.FarmingActivityId:
+                Name = CellCulturalActivity.FarmingActivityName;
+                RngOffset = CellCulturalActivity.FarmingActivityRngOffset;
+                break;
+
+            case CellCulturalActivity.ForagingActivityId:
+                Name = CellCulturalActivity.ForagingActivityName;
+                RngOffset = CellCulturalActivity.ForagingActivityRngOffset;
+                break;
+
+            default:
+                throw new System.Exception("Unhandled Activity Id: " + Id);
+        }
     }
 }

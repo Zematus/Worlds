@@ -7,10 +7,10 @@ using System.Xml.Serialization;
 [XmlInclude(typeof(CellCulturalActivity))]
 public class CulturalActivity : CulturalActivityInfo
 {
-    [XmlAttribute]
+    [XmlAttribute("V")]
     public float Value;
 
-    [XmlAttribute]
+    [XmlAttribute("C")]
     public float Contribution = 0;
 
     public CulturalActivity()

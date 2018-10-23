@@ -348,7 +348,7 @@ public abstract class Faction : ISynchronizable
 
                 int knowledgeValue = 0;
 
-                Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.SocialOrganizationKnowledgeId, out knowledgeValue);
+                Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.KnowledgeId, out knowledgeValue);
 
                 SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
                     "Faction:PreUpdate - Faction Id:" + Id,
@@ -486,6 +486,9 @@ public abstract class Faction : ISynchronizable
         Culture.World = World;
         Culture.Faction = this;
         Culture.FinalizeLoad();
+
+        Culture.SetCoreCulture(CoreGroup.Culture);
+        Culture.SetPolityCulture(Polity.Culture);
 
         foreach (FactionRelationship relationship in Relationships)
         {

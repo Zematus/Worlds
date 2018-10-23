@@ -20,6 +20,10 @@ public class CulturalPreference : CulturalPreferenceInfo
     public const string CohesionPreferenceName = "Cohesion";
     public const string IsolationPreferenceName = "Isolation";
 
+    public const int AuthorityPreferenceRngOffset = 0;
+    public const int CohesionPreferenceRngOffset = 1;
+    public const int IsolationPreferenceRngOffset = 2;
+
     [XmlAttribute]
     public float Value;
 

@@ -14,8 +14,8 @@ public class CellCulturalActivity : CulturalActivity
     public const string ForagingActivityName = "Foraging";
     public const string FarmingActivityName = "Farming";
 
-    public const int ForagingActivityRandomOffset = 0;
-    public const int FarmingActivityRandomOffset = 100;
+    public const int ForagingActivityRngOffset = 0;
+    public const int FarmingActivityRngOffset = 100;
 
     [XmlIgnore]
     public CellGroup Group;
@@ -47,12 +47,12 @@ public class CellCulturalActivity : CulturalActivity
 
     public static CellCulturalActivity CreateForagingActivity(CellGroup group, float value = 0, float contribution = 0)
     {
-        return new CellCulturalActivity(group, ForagingActivityId, ForagingActivityName, ForagingActivityRandomOffset, value, contribution);
+        return new CellCulturalActivity(group, ForagingActivityId, ForagingActivityName, ForagingActivityRngOffset, value, contribution);
     }
 
     public static CellCulturalActivity CreateFarmingActivity(CellGroup group, float value = 0, float contribution = 0)
     {
-        return new CellCulturalActivity(group, FarmingActivityId, FarmingActivityName, FarmingActivityRandomOffset, value, contribution);
+        return new CellCulturalActivity(group, FarmingActivityId, FarmingActivityName, FarmingActivityRngOffset, value, contribution);
     }
 
     public void Merge(CulturalActivity activity, float percentage)

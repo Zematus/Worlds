@@ -972,7 +972,7 @@ public abstract class Polity : ISynchronizable {
 
     public virtual void GroupUpdateEffects(CellGroup group, float prominenceValue, float totalPolityProminenceValue, long timeSpan)
     {
-        if (!group.Culture.HasDiscovery(TribalismDiscovery.TribalismDiscoveryId))
+        if (!group.Culture.HasDiscovery(TribalismDiscovery.DiscoveryId))
         {
             group.SetPolityProminence(this, 0);
 
@@ -1356,7 +1356,7 @@ public abstract class Polity : ISynchronizable {
     {
         int socialOrganizationValue = 0;
 
-        Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.SocialOrganizationKnowledgeId, out socialOrganizationValue);
+        Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.KnowledgeId, out socialOrganizationValue);
 
         if (socialOrganizationValue <= 0)
         {

@@ -5,7 +5,7 @@ using System.Xml;
 using System.Xml.Serialization;
 using UnityEngine.Profiling;
 
-public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
+public abstract class CellCulturalKnowledge : CulturalKnowledge
 {
     public const float MinProgressLevel = 0.001f;
 
@@ -16,7 +16,7 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
     public int Asymptote;
 
     [XmlAttribute("RO")]
-    public int RngOffset;
+    public int InstanceRngOffset;
 
     [XmlIgnore]
     public CellGroup Group;
@@ -36,7 +36,7 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
     public CellCulturalKnowledge(CellGroup group, string id, string name, int typeRngOffset, int value) : base(id, name, value)
     {
         Group = group;
-        RngOffset = unchecked((int)group.GenerateUniqueIdentifier(group.World.CurrentDate, 100L, typeRngOffset));
+        InstanceRngOffset = unchecked((int)group.GenerateUniqueIdentifier(group.World.CurrentDate, 100L, typeRngOffset));
 
         _newValue = value;
     }
@@ -44,7 +44,7 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
     public CellCulturalKnowledge(CellGroup group, string id, string name, int typeRngOffset, int value, int asymptote) : base(id, name, value)
     {
         Group = group;
-        RngOffset = unchecked((int)group.GenerateUniqueIdentifier(group.World.CurrentDate, 100L, typeRngOffset));
+        InstanceRngOffset = unchecked((int)group.GenerateUniqueIdentifier(group.World.CurrentDate, 100L, typeRngOffset));
         Asymptote = asymptote;
 
         _newValue = value;
@@ -60,13 +60,13 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
     {
         switch (id)
         {
-            case ShipbuildingKnowledge.ShipbuildingKnowledgeId:
+            case ShipbuildingKnowledge.KnowledgeId:
                 return new ShipbuildingKnowledge(group, initialValue);
 
-            case AgricultureKnowledge.AgricultureKnowledgeId:
+            case AgricultureKnowledge.KnowledgeId:
                 return new AgricultureKnowledge(group, initialValue);
 
-            case SocialOrganizationKnowledge.SocialOrganizationKnowledgeId:
+            case SocialOrganizationKnowledge.KnowledgeId:
                 return new SocialOrganizationKnowledge(group, initialValue);
         }
 
@@ -98,11 +98,11 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
         // _newvalue should have been set correctly either by the constructor or by the Update function
         int mergedValue = MathUtility.LerpToIntAndGetDecimals(_newValue, value, percentage, out d);
 
-        if (d > Group.GetNextLocalRandomFloat(RngOffsets.KNOWLEDGE_MERGE + RngOffset))
+        if (d > Group.GetNextLocalRandomFloat(RngOffsets.KNOWLEDGE_MERGE + InstanceRngOffset))
             mergedValue++;
 
 #if DEBUG
-        if ((Id == SocialOrganizationKnowledge.SocialOrganizationKnowledgeId) && (mergedValue < SocialOrganizationKnowledge.MinValueForHoldingTribalism))
+        if ((Id == SocialOrganizationKnowledge.KnowledgeId) && (mergedValue < SocialOrganizationKnowledge.MinValueForHoldingTribalism))
         {
             if (Group.GetFactionCores().Count > 0)
             {
@@ -110,27 +110,8 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
             }
         }
 #endif
-#if DEBUG
-        if ((Group.Id == 55200582289076) &&
-            (Id == SocialOrganizationKnowledge.SocialOrganizationKnowledgeId) &&
-            (Value >= SocialOrganizationKnowledge.MinValueForHoldingTribalism) &&
-            (mergedValue < SocialOrganizationKnowledge.MinValueForHoldingTribalism))
-        {
-            bool debug = true;
-        }
-#endif
 
         _newValue = mergedValue;
-    }
-
-    public virtual void Synchronize()
-    {
-
-    }
-
-    public virtual void FinalizeLoad()
-    {
-
     }
 
     public void UpdateProgressLevel()
@@ -190,7 +171,7 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
     {
         TerrainCell groupCell = Group.Cell;
 
-        int rngOffset = RngOffsets.KNOWLEDGE_UPDATE_VALUE_INTERNAL + RngOffset;
+        int rngOffset = RngOffsets.KNOWLEDGE_UPDATE_VALUE_INTERNAL + InstanceRngOffset;
 
         float randomModifier = groupCell.GetNextLocalRandomFloat(rngOffset++);
         randomModifier *= randomModifier;
@@ -230,16 +211,6 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
             Debug.LogError("UpdateValueInternal: new value " + newValue + " above 1000000000");
         }
 #endif
-#if DEBUG
-        if ((Group.Id == 55200582289076) &&
-            (Id == SocialOrganizationKnowledge.SocialOrganizationKnowledgeId) &&
-            (Value >= SocialOrganizationKnowledge.MinValueForHoldingTribalism) &&
-            (newValue < SocialOrganizationKnowledge.MinValueForHoldingTribalism) &&
-            (Asymptote > SocialOrganizationKnowledge.BaseAsymptote))
-        {
-            bool debug = true;
-        }
-#endif
 
         _newValue = newValue;
     }
@@ -248,7 +219,7 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
 
     protected void PolityCulturalProminenceInternal(CulturalKnowledge polityKnowledge, PolityProminence polityProminence, long timeSpan, float timeEffectFactor)
     {
-        int rngOffset = RngOffsets.KNOWLEDGE_POLITY_PROMINENCE + RngOffset + unchecked((int)polityProminence.PolityId);
+        int rngOffset = RngOffsets.KNOWLEDGE_POLITY_PROMINENCE + InstanceRngOffset + unchecked((int)polityProminence.PolityId);
 
         int targetValue = polityKnowledge.Value;
         float prominenceEffect = polityProminence.Value;
@@ -268,31 +239,11 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge, ISynchronizable
         if (d > Group.GetNextLocalRandomFloat(rngOffset++))
             valueChange++;
 
-#if DEBUG
-        if ((Group.Id == 55200582289076) &&
-            (Id == SocialOrganizationKnowledge.SocialOrganizationKnowledgeId) &&
-            (Value >= SocialOrganizationKnowledge.MinValueForHoldingTribalism) &&
-            (_newValue < SocialOrganizationKnowledge.MinValueForHoldingTribalism))
-        {
-            bool debug = true;
-        }
-#endif
-
         _newValue = _newValue + valueChange;
     }
 
     public void PostUpdate()
     {
-#if DEBUG
-        if ((Group.Id == 55200582289076) && 
-            (Id == SocialOrganizationKnowledge.SocialOrganizationKnowledgeId) && 
-            (Value >= SocialOrganizationKnowledge.MinValueForHoldingTribalism) &&
-            (_newValue < SocialOrganizationKnowledge.MinValueForHoldingTribalism))
-        {
-            bool debug = true;
-        }
-#endif
-
         Value = _newValue;
 
         UpdateProgressLevel();

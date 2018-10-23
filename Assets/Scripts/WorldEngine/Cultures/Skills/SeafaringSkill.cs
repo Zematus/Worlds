@@ -8,9 +8,9 @@ public class SeafaringSkill : CellCulturalSkill
 {
     public const float TimeEffectConstant = CellGroup.GenerationSpan * 500;
 
-    public const string SeafaringSkillId = "SeafaringSkill";
-    public const string SeafaringSkillName = "Seafaring";
-    public const int SeafaringSkillRngOffset = 0;
+    public const string SkillId = "SeafaringSkill";
+    public const string SkillName = "Seafaring";
+    public const int SkillRngOffset = 0;
 
     private float _neighborhoodOceanPresence;
 
@@ -19,7 +19,7 @@ public class SeafaringSkill : CellCulturalSkill
 
     }
 
-    public SeafaringSkill(CellGroup group, float value = 0f) : base(group, SeafaringSkillId, SeafaringSkillName, SeafaringSkillRngOffset, value)
+    public SeafaringSkill(CellGroup group, float value = 0f) : base(group, SkillId, SkillName, SkillRngOffset, value)
     {
         CalculateNeighborhoodOceanPresence();
     }
@@ -36,7 +36,7 @@ public class SeafaringSkill : CellCulturalSkill
 
     public static bool IsSeafaringSkill(CulturalSkill skill)
     {
-        return skill.Id.Contains(SeafaringSkillId);
+        return skill.Id.Contains(SkillId);
     }
 
     public override void FinalizeLoad()

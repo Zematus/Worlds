@@ -5,12 +5,12 @@ using System.Xml;
 using System.Xml.Serialization;
 using UnityEngine.Profiling;
 
-public class CulturalKnowledgeInfo : IKeyedValue<string>
+public class CulturalKnowledgeInfo : IKeyedValue<string>, ISynchronizable
 {
     [XmlAttribute]
     public string Id;
 
-    [XmlAttribute]
+    [XmlIgnore]
     public string Name;
 
     public CulturalKnowledgeInfo()
@@ -32,5 +32,30 @@ public class CulturalKnowledgeInfo : IKeyedValue<string>
     public string GetKey()
     {
         return Id;
+    }
+
+    public virtual void Synchronize()
+    {
+    }
+
+    public virtual void FinalizeLoad()
+    {
+        switch (Id)
+        {
+            case AgricultureKnowledge.KnowledgeId:
+                Name = AgricultureKnowledge.KnowledgeName;
+                break;
+
+            case ShipbuildingKnowledge.KnowledgeId:
+                Name = ShipbuildingKnowledge.KnowledgeName;
+                break;
+
+            case SocialOrganizationKnowledge.KnowledgeId:
+                Name = SocialOrganizationKnowledge.KnowledgeName;
+                break;
+
+            default:
+                throw new System.Exception("Unhandled Knowledge Id: " + Id);
+        }
     }
 }

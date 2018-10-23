@@ -556,13 +556,6 @@ public class CellCulture : Culture
             if (discovery.CanBeHeld(Group))
                 continue;
 
-#if DEBUG
-            if (Group.Id == 55200582289076)
-            {
-                bool debug = true;
-            }
-#endif
-
             _discoveriesToLose.Add(discovery);
         }
     }
@@ -662,7 +655,6 @@ public class CellCulture : Culture
         foreach (CellCulturalKnowledge k in Knowledges.Values)
         {
             k.Group = Group;
-            k.FinalizeLoad();
         }
 
         base.FinalizePropertiesLoad();

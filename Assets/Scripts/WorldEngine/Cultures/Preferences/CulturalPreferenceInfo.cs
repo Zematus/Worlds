@@ -4,15 +4,15 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
-public class CulturalPreferenceInfo : IKeyedValue<string>
+public class CulturalPreferenceInfo : IKeyedValue<string>, ISynchronizable
 {
     [XmlAttribute]
     public string Id;
 
-    [XmlAttribute("N")]
+    [XmlIgnore]
     public string Name;
 
-    [XmlAttribute("RO")]
+    [XmlIgnore]
     public int RngOffset;
 
     public CulturalPreferenceInfo()
@@ -36,5 +36,33 @@ public class CulturalPreferenceInfo : IKeyedValue<string>
     public string GetKey()
     {
         return Id;
+    }
+
+    public void Synchronize()
+    {
+    }
+
+    public void FinalizeLoad()
+    {
+        switch (Id)
+        {
+            case CulturalPreference.AuthorityPreferenceId:
+                Name = CulturalPreference.AuthorityPreferenceName;
+                RngOffset = CulturalPreference.AuthorityPreferenceRngOffset;
+                break;
+
+            case CulturalPreference.CohesionPreferenceId:
+                Name = CulturalPreference.CohesionPreferenceName;
+                RngOffset = CulturalPreference.CohesionPreferenceRngOffset;
+                break;
+
+            case CulturalPreference.IsolationPreferenceId:
+                Name = CulturalPreference.IsolationPreferenceName;
+                RngOffset = CulturalPreference.IsolationPreferenceRngOffset;
+                break;
+
+            default:
+                throw new System.Exception("Unhandled Preference Id: " + Id);
+        }
     }
 }

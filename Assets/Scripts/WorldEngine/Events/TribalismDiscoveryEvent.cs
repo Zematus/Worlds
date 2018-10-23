@@ -32,7 +32,7 @@ public class TribalismDiscoveryEvent : DiscoveryEvent
     {
         int socialOrganizationValue = 0;
 
-        group.Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.SocialOrganizationKnowledgeId, out socialOrganizationValue);
+        group.Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.KnowledgeId, out socialOrganizationValue);
 
         float randomFactor = group.Cell.GetNextLocalRandomFloat(RngOffsets.TRIBALISM_DISCOVERY_EVENT_CALCULATE_TRIGGER_DATE);
         randomFactor = Mathf.Pow(randomFactor, 2);
@@ -56,7 +56,7 @@ public class TribalismDiscoveryEvent : DiscoveryEvent
         if (group.IsFlagSet(EventSetFlag))
             return false;
 
-        if (group.Culture.HasDiscovery(TribalismDiscovery.TribalismDiscoveryId))
+        if (group.Culture.HasDiscovery(TribalismDiscovery.DiscoveryId))
             return false;
 
         return true;
@@ -70,12 +70,12 @@ public class TribalismDiscoveryEvent : DiscoveryEvent
         if (Group.Population < Tribe.MinPopulationForTribeCore)
             return false;
 
-        if (Group.Culture.HasDiscovery(TribalismDiscovery.TribalismDiscoveryId))
+        if (Group.Culture.HasDiscovery(TribalismDiscovery.DiscoveryId))
             return false;
 
         int value = 0;
 
-        if (!Group.Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.SocialOrganizationKnowledgeId, out value))
+        if (!Group.Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.KnowledgeId, out value))
             return false;
 
         if (value < MinSocialOrganizationKnowledgeForTribalismDiscovery)
@@ -86,7 +86,7 @@ public class TribalismDiscoveryEvent : DiscoveryEvent
 
     public override void Trigger()
     {
-        Group.Culture.TryAddDiscoveryToFind(TribalismDiscovery.TribalismDiscoveryId);
+        Group.Culture.TryAddDiscoveryToFind(TribalismDiscovery.DiscoveryId);
 
         Tribe newTribe = null;
 
@@ -116,7 +116,7 @@ public class TribalismDiscoveryEvent : DiscoveryEvent
 
     public void TryGenerateEventMessages(Tribe newTribe)
     {
-        TryGenerateEventMessage(TribalismDiscoveryEventId, TribalismDiscovery.TribalismDiscoveryId);
+        TryGenerateEventMessage(TribalismDiscoveryEventId, TribalismDiscovery.DiscoveryId);
 
         if (newTribe != null)
         {

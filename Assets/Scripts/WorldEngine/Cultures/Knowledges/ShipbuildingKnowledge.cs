@@ -7,10 +7,10 @@ using UnityEngine.Profiling;
 
 public class ShipbuildingKnowledge : CellCulturalKnowledge
 {
-    public const string ShipbuildingKnowledgeId = "ShipbuildingKnowledge";
-    public const string ShipbuildingKnowledgeName = "Shipbuilding";
+    public const string KnowledgeId = "ShipbuildingKnowledge";
+    public const string KnowledgeName = "Shipbuilding";
 
-    public const int ShipbuildingKnowledgeRngOffset = 0;
+    public const int KnowledgeRngOffset = 0;
 
     public const int InitialValue = 100;
 
@@ -33,14 +33,14 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge
         }
     }
 
-    public ShipbuildingKnowledge(CellGroup group, int initialValue) : base(group, ShipbuildingKnowledgeId, ShipbuildingKnowledgeName, ShipbuildingKnowledgeRngOffset, initialValue)
+    public ShipbuildingKnowledge(CellGroup group, int initialValue) : base(group, KnowledgeId, KnowledgeName, KnowledgeRngOffset, initialValue)
     {
         CalculateNeighborhoodOceanPresence();
     }
 
     public static bool IsShipbuildingKnowledge(CulturalKnowledge knowledge)
     {
-        return knowledge.Id.Contains(ShipbuildingKnowledgeId);
+        return knowledge.Id.Contains(KnowledgeId);
     }
 
     public override void FinalizeLoad()
@@ -123,9 +123,9 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge
         switch (discovery.Id)
         {
 
-            case BoatMakingDiscovery.BoatMakingDiscoveryId:
+            case BoatMakingDiscovery.DiscoveryId:
                 return 1000;
-            case SailingDiscovery.SailingDiscoveryId:
+            case SailingDiscovery.DiscoveryId:
                 return 3000;
         }
 

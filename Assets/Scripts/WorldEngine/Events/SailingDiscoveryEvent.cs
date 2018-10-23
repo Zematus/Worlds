@@ -29,7 +29,7 @@ public class SailingDiscoveryEvent : DiscoveryEvent
     {
         int shipBuildingValue = 0;
 
-        group.Culture.TryGetKnowledgeValue(ShipbuildingKnowledge.ShipbuildingKnowledgeId, out shipBuildingValue);
+        group.Culture.TryGetKnowledgeValue(ShipbuildingKnowledge.KnowledgeId, out shipBuildingValue);
 
         float randomFactor = group.Cell.GetNextLocalRandomFloat(RngOffsets.SAILING_DISCOVERY_EVENT_CALCULATE_TRIGGER_DATE);
         randomFactor = randomFactor * randomFactor;
@@ -49,7 +49,7 @@ public class SailingDiscoveryEvent : DiscoveryEvent
         if (group.IsFlagSet(EventSetFlag))
             return false;
 
-        if (group.Culture.HasDiscovery(SailingDiscovery.SailingDiscoveryId))
+        if (group.Culture.HasDiscovery(SailingDiscovery.DiscoveryId))
             return false;
 
         return true;
@@ -60,12 +60,12 @@ public class SailingDiscoveryEvent : DiscoveryEvent
         if (!base.CanTrigger())
             return false;
         
-        if (Group.Culture.HasDiscovery(SailingDiscovery.SailingDiscoveryId))
+        if (Group.Culture.HasDiscovery(SailingDiscovery.DiscoveryId))
             return false;
 
         int value = 0;
 
-        if (!Group.Culture.TryGetKnowledgeValue(ShipbuildingKnowledge.ShipbuildingKnowledgeId, out value))
+        if (!Group.Culture.TryGetKnowledgeValue(ShipbuildingKnowledge.KnowledgeId, out value))
             return false;
 
         return value >= MinShipBuildingKnowledgeValue;
@@ -73,10 +73,10 @@ public class SailingDiscoveryEvent : DiscoveryEvent
 
     public override void Trigger()
     {
-        Group.Culture.TryAddDiscoveryToFind(SailingDiscovery.SailingDiscoveryId);
+        Group.Culture.TryAddDiscoveryToFind(SailingDiscovery.DiscoveryId);
         World.AddGroupToUpdate(Group);
 
-        TryGenerateEventMessage(SailingDiscoveryEventId, SailingDiscovery.SailingDiscoveryId);
+        TryGenerateEventMessage(SailingDiscoveryEventId, SailingDiscovery.DiscoveryId);
     }
 
     protected override void DestroyInternal()

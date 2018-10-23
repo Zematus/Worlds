@@ -49,7 +49,7 @@ public class BoatMakingDiscoveryEvent : DiscoveryEvent
         if (group.IsFlagSet(EventSetFlag))
             return false;
 
-        if (group.Culture.HasKnowledge(ShipbuildingKnowledge.ShipbuildingKnowledgeId))
+        if (group.Culture.HasKnowledge(ShipbuildingKnowledge.KnowledgeId))
             return false;
 
         float oceanPresence = ShipbuildingKnowledge.CalculateNeighborhoodOceanPresenceIn(group);
@@ -62,7 +62,7 @@ public class BoatMakingDiscoveryEvent : DiscoveryEvent
         if (!base.CanTrigger())
             return false;
 
-        if (Group.Culture.HasKnowledge(ShipbuildingKnowledge.ShipbuildingKnowledgeId))
+        if (Group.Culture.HasKnowledge(ShipbuildingKnowledge.KnowledgeId))
             return false;
 
         return true;
@@ -70,11 +70,11 @@ public class BoatMakingDiscoveryEvent : DiscoveryEvent
 
     public override void Trigger()
     {
-        Group.Culture.TryAddDiscoveryToFind(BoatMakingDiscovery.BoatMakingDiscoveryId);
-        Group.Culture.TryAddKnowledgeToLearn(ShipbuildingKnowledge.ShipbuildingKnowledgeId, Group, ShipbuildingKnowledge.InitialValue);
+        Group.Culture.TryAddDiscoveryToFind(BoatMakingDiscovery.DiscoveryId);
+        Group.Culture.TryAddKnowledgeToLearn(ShipbuildingKnowledge.KnowledgeId, Group, ShipbuildingKnowledge.InitialValue);
         World.AddGroupToUpdate(Group);
 
-        TryGenerateEventMessage(BoatMakingDiscoveryEventId, BoatMakingDiscovery.BoatMakingDiscoveryId);
+        TryGenerateEventMessage(BoatMakingDiscoveryEventId, BoatMakingDiscovery.DiscoveryId);
     }
 
     protected override void DestroyInternal()

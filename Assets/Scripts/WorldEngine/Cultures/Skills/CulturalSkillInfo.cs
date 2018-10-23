@@ -9,7 +9,7 @@ public class CulturalSkillInfo : IKeyedValue<string>, ISynchronizable
     [XmlAttribute]
     public string Id;
 
-    [XmlAttribute("RO")]
+    [XmlIgnore]
     public int RngOffset;
 
     [XmlIgnore]
@@ -44,18 +44,21 @@ public class CulturalSkillInfo : IKeyedValue<string>, ISynchronizable
 
     public virtual void FinalizeLoad()
     {
-        if (Id.Contains(BiomeSurvivalSkill.BiomeSurvivalSkillIdPrefix))
+        if (Id.Contains(BiomeSurvivalSkill.SkillIdPrefix))
         {
-            string idSuffix = Id.Substring(BiomeSurvivalSkill.BiomeSurvivalSkillIdPrefix.Length);
+            string idSuffix = Id.Substring(BiomeSurvivalSkill.SkillIdPrefix.Length);
+            Biome biome = Biome.Biomes[idSuffix.Replace('_', ' ')];
 
-            Name = BiomeSurvivalSkill.GenerateName(Biome.Biomes[idSuffix.Replace('_', ' ')]);
+            Name = BiomeSurvivalSkill.GenerateName(biome);
+            RngOffset = BiomeSurvivalSkill.GenerateRngOffset(biome);
         }
         else
         {
             switch (Id)
             {
-                case SeafaringSkill.SeafaringSkillId:
-                    Name = SeafaringSkill.SeafaringSkillName;
+                case SeafaringSkill.SkillId:
+                    Name = SeafaringSkill.SkillName;
+                    RngOffset = SeafaringSkill.SkillRngOffset;
                     break;
 
                 default:

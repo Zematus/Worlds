@@ -7,10 +7,10 @@ using UnityEngine.Profiling;
 
 public class SocialOrganizationKnowledge : CellCulturalKnowledge
 {
-    public const string SocialOrganizationKnowledgeId = "SocialOrganizationKnowledge";
-    public const string SocialOrganizationKnowledgeName = "Social Organization";
+    public const string KnowledgeId = "SocialOrganizationKnowledge";
+    public const string KnowledgeName = "Social Organization";
 
-    public const int SocialOrganizationKnowledgeRngOffset = 2;
+    public const int KnowledgeRngOffset = 2;
 
     public const int InitialValue = 100;
 
@@ -33,14 +33,14 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge
         }
     }
 
-    public SocialOrganizationKnowledge(CellGroup group, int initialValue) : base(group, SocialOrganizationKnowledgeId, SocialOrganizationKnowledgeName, SocialOrganizationKnowledgeRngOffset, initialValue)
+    public SocialOrganizationKnowledge(CellGroup group, int initialValue) : base(group, KnowledgeId, KnowledgeName, KnowledgeRngOffset, initialValue)
     {
 
     }
 
     public static bool IsSocialOrganizationKnowledge(CulturalKnowledge knowledge)
     {
-        return knowledge.Id.Contains(SocialOrganizationKnowledgeId);
+        return knowledge.Id.Contains(KnowledgeId);
     }
 
     public override void FinalizeLoad()
@@ -122,7 +122,7 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge
     {
         switch (discovery.Id)
         {
-            case TribalismDiscovery.TribalismDiscoveryId:
+            case TribalismDiscovery.DiscoveryId:
                 return TribalismDiscoveryAsymptote;
         }
 

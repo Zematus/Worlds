@@ -229,7 +229,7 @@ public class Clan : Faction
     {
         int value = 0;
 
-        if (!group.Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.SocialOrganizationKnowledgeId, out value))
+        if (!group.Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.KnowledgeId, out value))
         {
             return false;
         }
@@ -242,7 +242,7 @@ public class Clan : Faction
         if (!CanBeClanCore(group))
             return false;
 
-        if (!group.Culture.HasDiscovery(TribalismDiscovery.TribalismDiscoveryId))
+        if (!group.Culture.HasDiscovery(TribalismDiscovery.DiscoveryId))
             return false;
 
         PolityProminence pi = group.GetPolityProminence(Polity);
@@ -457,7 +457,7 @@ public class Clan : Faction
     {
         int socialOrganizationValue = 0;
 
-        Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.SocialOrganizationKnowledgeId, out socialOrganizationValue);
+        Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.KnowledgeId, out socialOrganizationValue);
         
         if (socialOrganizationValue <= 0)
         {

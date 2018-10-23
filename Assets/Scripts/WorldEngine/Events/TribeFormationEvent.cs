@@ -27,7 +27,7 @@ public class TribeFormationEvent : CellGroupEvent
     {
         int socialOrganizationValue = 0;
 
-        group.Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.SocialOrganizationKnowledgeId, out socialOrganizationValue);
+        group.Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.KnowledgeId, out socialOrganizationValue);
 
         float randomFactor = group.Cell.GetNextLocalRandomFloat(RngOffsets.TRIBE_FORMATION_EVENT_CALCULATE_TRIGGER_DATE);
         randomFactor = Mathf.Pow(randomFactor, 2);
@@ -51,12 +51,12 @@ public class TribeFormationEvent : CellGroupEvent
         if (group.Population < Tribe.MinPopulationForTribeCore)
             return false;
 
-        if (!group.Culture.HasDiscovery(TribalismDiscovery.TribalismDiscoveryId))
+        if (!group.Culture.HasDiscovery(TribalismDiscovery.DiscoveryId))
             return false;
 
         int value = 0;
 
-        if (!group.Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.SocialOrganizationKnowledgeId, out value))
+        if (!group.Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.KnowledgeId, out value))
             return false;
 
         if (value < MinSocialOrganizationKnowledgeTribeFormation)
@@ -73,12 +73,12 @@ public class TribeFormationEvent : CellGroupEvent
         if (Group.Population < Tribe.MinPopulationForTribeCore)
             return false;
         
-        if (!Group.Culture.HasDiscovery(TribalismDiscovery.TribalismDiscoveryId))
+        if (!Group.Culture.HasDiscovery(TribalismDiscovery.DiscoveryId))
             return false;
 
         int value = 0;
 
-        if (!Group.Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.SocialOrganizationKnowledgeId, out value))
+        if (!Group.Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.KnowledgeId, out value))
             return false;
 
         if (value < MinSocialOrganizationKnowledgeTribeFormation)

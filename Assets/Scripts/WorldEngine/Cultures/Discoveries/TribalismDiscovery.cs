@@ -6,10 +6,10 @@ using System.Xml.Serialization;
 
 public class TribalismDiscovery : CellCulturalDiscovery
 {
-    public const string TribalismDiscoveryId = "TribalismDiscovery";
-    public const string TribalismDiscoveryName = "Tribalism";
+    public const string DiscoveryId = "TribalismDiscovery";
+    public const string DiscoveryName = "Tribalism";
 
-    public TribalismDiscovery() : base(TribalismDiscoveryId, TribalismDiscoveryName)
+    public TribalismDiscovery() : base(DiscoveryId, DiscoveryName)
     {
 
     }
@@ -18,14 +18,8 @@ public class TribalismDiscovery : CellCulturalDiscovery
     {
         int value = 0;
 
-        if (!group.Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.SocialOrganizationKnowledgeId, out value))
+        if (!group.Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.KnowledgeId, out value))
         {
-#if DEBUG
-            if (group.Id == 55200582289076)
-            {
-                bool debug = true;
-            }
-#endif
             return false;
         }
 
@@ -35,12 +29,6 @@ public class TribalismDiscovery : CellCulturalDiscovery
             if (group.GetFactionCores().Count > 0)
             {
                 Debug.LogWarning("Group that will lose tribalism has faction cores - Id: " + group.Id);
-            }
-#endif
-#if DEBUG
-            if (group.Id == 55200582289076)
-            {
-                bool debug = true;
             }
 #endif
             return false;

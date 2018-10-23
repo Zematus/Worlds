@@ -352,9 +352,29 @@ public class Culture : ISynchronizable
 
     public virtual void FinalizePropertiesLoad()
     {
+        foreach (CulturalPreference p in Preferences.Values)
+        {
+            p.FinalizeLoad();
+        }
+
+        foreach (CulturalActivity a in Activities.Values)
+        {
+            a.FinalizeLoad();
+        }
+
         foreach (CulturalSkill s in Skills.Values)
         {
             s.FinalizeLoad();
+        }
+
+        foreach (CulturalKnowledge k in Knowledges.Values)
+        {
+            k.FinalizeLoad();
+        }
+
+        foreach (CulturalDiscovery d in Discoveries.Values)
+        {
+            d.FinalizeLoad();
         }
     }
 }

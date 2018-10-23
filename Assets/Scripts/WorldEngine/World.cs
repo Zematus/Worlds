@@ -1509,7 +1509,7 @@ public class World : ISynchronizable
 
                 int knowledgeValue = 0;
 
-                faction.Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.SocialOrganizationKnowledgeId, out knowledgeValue);
+                faction.Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.KnowledgeId, out knowledgeValue);
 
                 SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
                     "World:AddFactionToUpdate - Faction Id:" + faction.Id,
@@ -1829,11 +1829,13 @@ public class World : ISynchronizable
 
         foreach (CulturalPreferenceInfo p in CulturalPreferenceInfoList)
         {
+            p.FinalizeLoad();
             _culturalPreferenceIdList.Add(p.Id);
         }
 
         foreach (CulturalActivityInfo a in CulturalActivityInfoList)
         {
+            a.FinalizeLoad();
             _culturalActivityIdList.Add(a.Id);
         }
 
@@ -1845,11 +1847,13 @@ public class World : ISynchronizable
 
         foreach (CulturalKnowledgeInfo k in CulturalKnowledgeInfoList)
         {
+            k.FinalizeLoad();
             _culturalKnowledgeIdList.Add(k.Id);
         }
 
         foreach (CulturalDiscoveryInfo d in CulturalDiscoveryInfoList)
         {
+            d.FinalizeLoad();
             _culturalDiscoveryIdList.Add(d.Id);
         }
     }
