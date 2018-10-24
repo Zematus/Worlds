@@ -1,0 +1,8 @@
+Idea on how to implement basins:
+1- Create a queue of all cells that have some amount of water content (rainfall minus evaporation). (Adding cells to this queue can be done while setting rainfall values)
+2- Go through the queue and for each cell, calculate the lowest altitude neighbor and transfer some portion of the cell's water content toward it. If the target cell is not already in the queue or has already been removed from it, add it to the queue. If no neighbor has lower altitude than this cell just skip it and move to the next item in the queue.
+
+Extra notes:
+- Erosion can be calculated as a percentage of water content, erosion is then substracted from the cell's altitude but this has to be done either after basins are generated or at the same time (need to test it to see how it looks either way)
+- Rivers are present in cells that have a water content above a certain threshold. River direction is equals to water transfer direction.
+- Lakes can be set doing a lake expansion queue process where cells which do not transfer water content anywhere else aquire a lake biome and grow in altitude. If this altitude is greater than the lowest neighbor, the excess water content is spread half and half with the neighboor and the neighbor is added to the lake expansion queue. If the reduced altitude is still greater than the second lowest neighbor then we do the same with it and so on until the modified altidude of the cell is not greater than any of the neighbors. There's a chance this process can continue ad infinitum unless some cutoff measure is applied.

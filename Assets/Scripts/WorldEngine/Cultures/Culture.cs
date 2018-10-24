@@ -7,7 +7,7 @@ using UnityEngine.Profiling;
 
 public class Culture : ISynchronizable
 {
-    [XmlAttribute]
+    [XmlAttribute("LId")]
     public long LanguageId = -1;
 
     [XmlIgnore]

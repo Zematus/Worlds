@@ -38,76 +38,76 @@ public class CellGroup : HumanGroup
     [XmlAttribute]
     public long Id;
 
-    [XmlAttribute("PrefMigDir")]
+    [XmlAttribute("PMD")]
     public int PreferredMigrationDirectionInt;
 
-    [XmlAttribute("PrevExPop")]
+    [XmlAttribute("PEP")]
     public float PreviousExactPopulation;
 
-    [XmlAttribute("ExPop")]
+    [XmlAttribute("EP")]
     public float ExactPopulation; // TODO: Get rid of 'float' population values
 
-    [XmlAttribute("StilPres")]
+    [XmlAttribute("P")]
     public bool StillPresent = true;
 
-    [XmlAttribute("InDate")]
+    [XmlAttribute("ID")]
     public long InitDate;
 
-    [XmlAttribute("LastUpDate")]
+    [XmlAttribute("LUD")]
     public long LastUpdateDate;
 
-    [XmlAttribute("NextUpDate")]
+    [XmlAttribute("NUD")]
     public long NextUpdateDate;
 
-    [XmlAttribute("OptPop")]
+    [XmlAttribute("OP")]
     public int OptimalPopulation;
 
-    [XmlAttribute("Lon")]
+    [XmlAttribute("Lo")]
     public int Longitude;
-    [XmlAttribute("Lat")]
+    [XmlAttribute("La")]
     public int Latitude;
 
-    [XmlAttribute("SeaTrFac")]
+    [XmlAttribute("STF")]
     public float SeaTravelFactor = 0;
 
-    [XmlAttribute("TotalPolInfVal")]
+    [XmlAttribute("TPP")]
     public float TotalPolityProminenceValueFloat = 0;
 
-    [XmlAttribute("MigVal")]
+    [XmlAttribute("MV")]
     public float MigrationValue;
 
-    [XmlAttribute("TotalMigVal")]
+    [XmlAttribute("TMV")]
     public float TotalMigrationValue;
 
-    [XmlAttribute("PolExpVal")]
+    [XmlAttribute("PE")]
     public float PolityExpansionValue;
 
-    [XmlAttribute("TotalPolExpVal")]
+    [XmlAttribute("TPE")]
     public float TotalPolityExpansionValue;
 
-    [XmlAttribute("HasMigEv")]
+    [XmlAttribute("MEv")]
     public bool HasMigrationEvent = false;
-    [XmlAttribute("MigDate")]
+    [XmlAttribute("MD")]
     public long MigrationEventDate;
-    [XmlAttribute("MigLon")]
+    [XmlAttribute("MLo")]
     public int MigrationTargetLongitude;
-    [XmlAttribute("MigLat")]
+    [XmlAttribute("MLa")]
     public int MigrationTargetLatitude;
-    [XmlAttribute("MigEvDir")]
+    [XmlAttribute("MED")]
     public int MigrationEventDirectionInt;
 
-    [XmlAttribute("HasExpEv")]
+    [XmlAttribute("PEEv")]
     public bool HasPolityExpansionEvent = false;
-    [XmlAttribute("PolExpDate")]
+    [XmlAttribute("PED")]
     public long PolityExpansionEventDate;
-    [XmlAttribute("ExpTgtGrpId")]
+    [XmlAttribute("EGId")]
     public long ExpansionTargetGroupId;
-    [XmlAttribute("ExpPolId")]
+    [XmlAttribute("EPId")]
     public long ExpandingPolityId;
 
-    [XmlAttribute("HasTrbFrmEv")]
+    [XmlAttribute("TFEv")]
     public bool HasTribeFormationEvent = false;
-    [XmlAttribute("TrbFrmDate")]
+    [XmlAttribute("TFD")]
     public long TribeFormationEventDate;
 
     public Route SeaMigrationRoute = null;
@@ -1152,116 +1152,111 @@ public class CellGroup : HumanGroup
 		return spawnDate;
 	}
 
-	public void TriggerInterference () {
-	
-		ResetSeaMigrationRoute ();
-	}
+	public void TriggerInterference()
+    {
+        ResetSeaMigrationRoute();
+    }
 
-	public void ResetSeaMigrationRoute () {
-	
-		if (SeaMigrationRoute == null)
-			return;
+    public void ResetSeaMigrationRoute()
+    {
+        if (SeaMigrationRoute == null)
+            return;
 
-		SeaMigrationRoute.Reset ();
-	}
+        SeaMigrationRoute.Reset();
+    }
 
-	public void DestroySeaMigrationRoute () {
+    public void DestroySeaMigrationRoute()
+    {
+        if (SeaMigrationRoute == null)
+            return;
 
-		if (SeaMigrationRoute == null)
-			return;
+        SeaMigrationRoute.Destroy();
+        SeaMigrationRoute = null;
+    }
 
-		SeaMigrationRoute.Destroy ();
-		SeaMigrationRoute = null;
-	}
+    public void GenerateSeaMigrationRoute()
+    {
+        if (!Cell.IsPartOfCoastline)
+            return;
 
-	public void GenerateSeaMigrationRoute () {
+        //		#if DEBUG
+        //		if (Manager.RegisterDebugEvent != null) {
+        //			if (Id == Manager.TracingData.GroupId) {
+        //
+        //				string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
+        //
+        //				bool routePresent = SeaMigrationRoute == null;
+        //
+        //				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+        //					"GenerateSeaMigrationRoute - Group:" + groupId,
+        //					"CurrentDate: " + World.CurrentDate + 
+        //					", route present: " + routePresent + 
+        //					"");
+        //
+        //				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+        //			}
+        //		}
+        //		#endif
 
-		if (!Cell.IsPartOfCoastline)
-			return;
+        if (SeaMigrationRoute == null)
+        {
+            SeaMigrationRoute = new Route(Cell);
+        }
+        else
+        {
+            if (SeaMigrationRoute.FirstCell == null)
+            {
+                Debug.LogError("SeaMigrationRoute.FirstCell is null at " + Cell.Position);
+            }
 
-//		#if DEBUG
-//		if (Manager.RegisterDebugEvent != null) {
-//			if (Id == Manager.TracingData.GroupId) {
-//
-//				string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
-//
-//				bool routePresent = SeaMigrationRoute == null;
-//
-//				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-//					"GenerateSeaMigrationRoute - Group:" + groupId,
-//					"CurrentDate: " + World.CurrentDate + 
-//					", route present: " + routePresent + 
-//					"");
-//
-//				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-//			}
-//		}
-//		#endif
+            SeaMigrationRoute.Reset();
+            SeaMigrationRoute.Build();
+        }
 
-		if (SeaMigrationRoute == null) {
-			SeaMigrationRoute = new Route (Cell);
+        bool invalidRoute = false;
 
-		} else {
-			if (SeaMigrationRoute.FirstCell == null) {
-				Debug.LogError ("SeaMigrationRoute.FirstCell is null at " + Cell.Position);
-			}
+        if (SeaMigrationRoute.LastCell == null)
+            invalidRoute = true;
 
-			SeaMigrationRoute.Reset ();
-			SeaMigrationRoute.Build ();
-		}
+        if (SeaMigrationRoute.LastCell == SeaMigrationRoute.FirstCell)
+            invalidRoute = true;
 
-		bool invalidRoute = false;
+        if (SeaMigrationRoute.MigrationDirection == Direction.Null)
+            invalidRoute = true;
 
-		if (SeaMigrationRoute.LastCell == null)
-			invalidRoute = true;
+        if (SeaMigrationRoute.FirstCell.Neighbors.ContainsValue(SeaMigrationRoute.LastCell))
+            invalidRoute = true;
 
-		if (SeaMigrationRoute.LastCell == SeaMigrationRoute.FirstCell)
-			invalidRoute = true;
+        if (invalidRoute)
+        {
+            return;
+        }
 
-		if (SeaMigrationRoute.MigrationDirection == Direction.Null)
-			invalidRoute = true;
+        SeaMigrationRoute.Consolidate();
 
-		if (SeaMigrationRoute.FirstCell.Neighbors.ContainsValue (SeaMigrationRoute.LastCell))
-			invalidRoute = true;
+        //		#if DEBUG
+        //		if (Manager.RegisterDebugEvent != null) {
+        //			if (Id == Manager.TracingData.GroupId) {
+        //
+        //				string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
+        //
+        //				TerrainCell targetCell = SeaMigrationRoute.LastCell;
+        //
+        //				string cellInfo = "Long:" + targetCell.Longitude + "|Lat:" + targetCell.Latitude;
+        //
+        //				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+        //					"GenerateSeaMigrationRoute - Group:" + groupId,
+        //					"CurrentDate: " + World.CurrentDate + 
+        //					", target cell: " + cellInfo + 
+        //					"");
+        //
+        //				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+        //			}
+        //		}
+        //		#endif
+    }
 
-		if (invalidRoute) {
-		
-//			SeaMigrationRoute.Destroy ();
-			return;
-		}
-
-		SeaMigrationRoute.Consolidate ();
-
-//		#if DEBUG
-//		if (Manager.RegisterDebugEvent != null) {
-//			if (Id == Manager.TracingData.GroupId) {
-//
-//				string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
-//
-//				TerrainCell targetCell = SeaMigrationRoute.LastCell;
-//
-//				string cellInfo = "Long:" + targetCell.Longitude + "|Lat:" + targetCell.Latitude;
-//
-//				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-//					"GenerateSeaMigrationRoute - Group:" + groupId,
-//					"CurrentDate: " + World.CurrentDate + 
-//					", target cell: " + cellInfo + 
-//					"");
-//
-//				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-//			}
-//		}
-//		#endif
-	}
-
-//	public void InitializeLocalMigrationValue () {
-//
-//		MigrationValue = 1;
-//
-//		TotalMigrationValue = 1;
-//	}
-
-	public void CalculateLocalMigrationValue () {
+    public void CalculateLocalMigrationValue () {
 
 		MigrationValue = CalculateMigrationValue (Cell);
 
@@ -2996,7 +2991,6 @@ public class CellGroup : HumanGroup
 
         foreach (KeyValuePair<Direction, TerrainCell> pair in Cell.Neighbors)
         {
-
             if (pair.Value.Group != null)
             {
                 CellGroup group = pair.Value.Group;

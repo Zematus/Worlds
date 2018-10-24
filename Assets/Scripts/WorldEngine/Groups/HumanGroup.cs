@@ -5,7 +5,7 @@ using System.Xml.Serialization;
 
 public abstract class HumanGroup : ISynchronizable {
 
-	[XmlAttribute]
+	[XmlAttribute("MT")]
 	public bool MigrationTagged;
 
 	[XmlIgnore]
