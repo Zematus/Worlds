@@ -166,6 +166,9 @@ public class CellGroup : HumanGroup
     [XmlIgnore]
     public MigratingGroup MigratingGroup = null;
 
+    [XmlIgnore]
+    public bool WillBecomeFactionCore = false;
+
 #if DEBUG
     [XmlIgnore]
     public bool DebugTagged = false;
@@ -922,6 +925,18 @@ public class CellGroup : HumanGroup
     public void PostUpdate_AfterPolityUpdates()
     {
         PostUpdatePolityProminences_AfterPolityUpdates();
+    }
+
+    public void SetToBecomeFactionCore()
+    {
+        WillBecomeFactionCore = true;
+
+        World.AddGroupToCleanupAfterUpdate(this);
+    }
+
+    public void AfterUpdateCleanup()
+    {
+        WillBecomeFactionCore = false;
     }
 
     public bool InfluencingPolityHasKnowledge(string id)
@@ -2841,26 +2856,28 @@ public class CellGroup : HumanGroup
 
         if (newProminenceValue <= Polity.MinPolityProminence)
         {
-            //			#if DEBUG
-            //			foreach (Faction faction in GetFactionCores ()) {
-            //
-            //				if (faction.PolityId == polityProminence.PolityId) {
-            //
-            //					Debug.LogWarning ("Faction belonging to polity to remove has core in cell - group Id: " + Id + " - polity Id: " + polityProminence.PolityId);
-            //				}
-            //			}
-            //			#endif
-
 #if DEBUG
-            if (Id == 55200582289076)
+            foreach (Faction faction in GetFactionCores())
             {
-                bool debug = true;
+                if (faction.PolityId == polityProminence.PolityId)
+                {
+                    Debug.LogWarning("Faction belonging to polity to remove has core in cell - group Id: " + Id + " - polity Id: " + polityProminence.PolityId);
+                }
             }
 #endif
 
-            _polityProminencesToRemove.Add(polityProminence.PolityId);
+            if (!WillBecomeFactionCore)
+            {
+                _polityProminencesToRemove.Add(polityProminence.PolityId);
 
-            return null;
+                return null;
+            }
+            else
+            {
+#if DEBUG
+                Debug.LogWarning("Group is set to become a faction core - group Id: " + Id + " - polity Id: " + polityProminence.PolityId);
+#endif
+            }
         }
 
         if (polityCoreDistance == -1)
@@ -2915,13 +2932,6 @@ public class CellGroup : HumanGroup
         //			}
         //		}
         //		#endif
-
-#if DEBUG
-        if (Id == 55200582289076)
-        {
-            bool debug = true;
-        }
-#endif
 
         _polityProminencesToRemove.Add(polity.Id);
     }

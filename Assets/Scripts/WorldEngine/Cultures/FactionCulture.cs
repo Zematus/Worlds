@@ -359,4 +359,14 @@ public class FactionCulture : Culture
 
         factionDiscovery.CoreCulturalDiscovery = coreDiscovery;
     }
+
+    public override void FinalizePropertiesLoad()
+    {
+        foreach (FactionCulturalKnowledge k in Knowledges.Values)
+        {
+            k.Faction = Faction;
+        }
+
+        base.FinalizePropertiesLoad();
+    }
 }

@@ -350,6 +350,7 @@ public class World : ISynchronizable
     private HashSet<CellGroup> _groupsToRemove = new HashSet<CellGroup>();
 
     private HashSet<CellGroup> _groupsToPostUpdate_afterPolityUpdates = new HashSet<CellGroup>();
+    private HashSet<CellGroup> _groupsToCleanupAfterUpdate = new HashSet<CellGroup>();
 
     private List<MigratingGroup> _migratingGroups = new List<MigratingGroup>();
 
@@ -671,120 +672,126 @@ public class World : ISynchronizable
         }
     }
 
-    public void AddUpdatedGroup (CellGroup group) {
-		
-		_updatedGroups.Add (group);
-	}
-
-	public void AddGroupToPostUpdate_AfterPolityUpdate (CellGroup group) {
-
-		_groupsToPostUpdate_afterPolityUpdates.Add (group);
-	}
-
-	public TerrainCell GetCell (WorldPosition position) {
-	
-		return GetCell (position.Longitude, position.Latitude);
-	}
-	
-	public TerrainCell GetCell (int longitude, int latitude) {
-
-		if ((longitude < 0) || (longitude >= Width))
-			return null;
-		
-		if ((latitude < 0) || (latitude >= Height))
-			return null;
-
-		return TerrainCells[longitude][latitude];
-	}
-
-	public void SetMaxTimeToSkip (long value) {
-	
-		MaxTimeToSkip = (value > 1) ? value : 1;
-
-		long maxDate = CurrentDate + MaxTimeToSkip;
-
-		#if DEBUG
-		if (maxDate >= World.MaxSupportedDate) {
-			Debug.LogWarning ("'maxDate' shouldn't be greater than " + World.MaxSupportedDate + " (date = " + maxDate + ")");
-		}
-		#endif
-
-		if (maxDate < 0) {
-			Debug.Break ();
-			throw new System.Exception ("Surpassed date limit (Int64.MaxValue)");
-		}
-
-		_dateToSkipTo = (_dateToSkipTo < maxDate) ? _dateToSkipTo : maxDate;
-	}
-
-	private bool ValidateEventsToHappenNode (BinaryTreeNode<long, WorldEvent> node)
+    public void AddUpdatedGroup(CellGroup group)
     {
+        _updatedGroups.Add(group);
+    }
 
-//#if DEBUG
-//        if (Manager.RegisterDebugEvent != null)
-//        {
-//            if ((node.Value.Id == 160349336613603015) || (node.Value.Id == 160349354613603010))
-//            {
-//                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("ValidateEventsToHappenNode:node.Value - Id: " + node.Value.Id,
-//                    "node.Value.TriggerDate: " + node.Value.TriggerDate +
-//                    ", event type: " + node.Value.GetType() +
-//                    ", event spawn date: " + node.Value.SpawnDate +
-//                    ", node.Valid: " + node.Valid +
-//                    ", node.Value.IsStillValid (): " + node.Value.IsStillValid() +
-//                    ", node.Key: " + node.Key +
-//                    ", current date: " + CurrentDate +
-//                    "");
+    public void AddGroupToPostUpdate_AfterPolityUpdate(CellGroup group)
+    {
+        _groupsToPostUpdate_afterPolityUpdates.Add(group);
+    }
 
-//                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-//            }
-//        }
-//#endif
+    public void AddGroupToCleanupAfterUpdate(CellGroup group)
+    {
+        _groupsToCleanupAfterUpdate.Add(group);
+    }
 
-        if (!node.Valid) {
+    public TerrainCell GetCell(WorldPosition position)
+    {
+        return GetCell(position.Longitude, position.Latitude);
+    }
 
-			node.MarkedForRemoval = true;
-			return false;
-		}
+    public TerrainCell GetCell(int longitude, int latitude)
+    {
+        if ((longitude < 0) || (longitude >= Width))
+            return null;
 
-		if (!node.Value.IsStillValid ()) {
+        if ((latitude < 0) || (latitude >= Height))
+            return null;
 
-			node.MarkedForRemoval = true;
-			return false;
-		}
+        return TerrainCells[longitude][latitude];
+    }
 
-		if (node.Key != node.Value.TriggerDate) {
-		
-			node.MarkedForRemoval = true;
-			return false;
-		}
+    public void SetMaxTimeToSkip(long value)
+    {
+        MaxTimeToSkip = (value > 1) ? value : 1;
 
-		return true;
-	}
+        long maxDate = CurrentDate + MaxTimeToSkip;
 
-	private bool FilterEventsToHappenNodeForSerialization (BinaryTreeNode<long, WorldEvent> node) {
+#if DEBUG
+        if (maxDate >= World.MaxSupportedDate)
+        {
+            Debug.LogWarning("'maxDate' shouldn't be greater than " + World.MaxSupportedDate + " (date = " + maxDate + ")");
+        }
+#endif
 
-		if (ValidateEventsToHappenNode(node)) {
-			
-			return !node.Value.DoNotSerialize;
-		}
+        if (maxDate < 0)
+        {
+            Debug.Break();
+            throw new System.Exception("Surpassed date limit (Int64.MaxValue)");
+        }
 
-		return false;
-	}
+        _dateToSkipTo = (_dateToSkipTo < maxDate) ? _dateToSkipTo : maxDate;
+    }
 
-	private void InvalidEventsToHappenNodeEffect (BinaryTreeNode<long, WorldEvent> node) {
+    private bool ValidateEventsToHappenNode(BinaryTreeNode<long, WorldEvent> node)
+    {
+        //#if DEBUG
+        //        if (Manager.RegisterDebugEvent != null)
+        //        {
+        //            if ((node.Value.Id == 160349336613603015) || (node.Value.Id == 160349354613603010))
+        //            {
+        //                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("ValidateEventsToHappenNode:node.Value - Id: " + node.Value.Id,
+        //                    "node.Value.TriggerDate: " + node.Value.TriggerDate +
+        //                    ", event type: " + node.Value.GetType() +
+        //                    ", event spawn date: " + node.Value.SpawnDate +
+        //                    ", node.Valid: " + node.Valid +
+        //                    ", node.Value.IsStillValid (): " + node.Value.IsStillValid() +
+        //                    ", node.Key: " + node.Key +
+        //                    ", current date: " + CurrentDate +
+        //                    "");
 
-		EventsToHappenCount--;
+        //                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+        //            }
+        //        }
+        //#endif
 
-		//		#if DEBUG
-		//		if (Manager.RegisterDebugEvent != null) {
-		//			SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("Event Removal", "Removal");
-		//
-		//			Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-		//		}
-		//		#endif
-	}
+        if (!node.Valid)
+        {
+            node.MarkedForRemoval = true;
+            return false;
+        }
 
-	private void FilterEventsToHappenNodeEffect(BinaryTreeNode<long, WorldEvent> node)
+        if (!node.Value.IsStillValid())
+        {
+            node.MarkedForRemoval = true;
+            return false;
+        }
+
+        if (node.Key != node.Value.TriggerDate)
+        {
+            node.MarkedForRemoval = true;
+            return false;
+        }
+
+        return true;
+    }
+
+    private bool FilterEventsToHappenNodeForSerialization(BinaryTreeNode<long, WorldEvent> node)
+    {
+        if (ValidateEventsToHappenNode(node))
+        {
+            return !node.Value.DoNotSerialize;
+        }
+
+        return false;
+    }
+
+    private void InvalidEventsToHappenNodeEffect(BinaryTreeNode<long, WorldEvent> node)
+    {
+        EventsToHappenCount--;
+
+        //		#if DEBUG
+        //		if (Manager.RegisterDebugEvent != null) {
+        //			SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("Event Removal", "Removal");
+        //
+        //			Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+        //		}
+        //		#endif
+    }
+
+    private void FilterEventsToHappenNodeEffect(BinaryTreeNode<long, WorldEvent> node)
     {
         if (node.MarkedForRemoval)
         {
@@ -798,11 +805,7 @@ public class World : ISynchronizable
 
         foreach (CellGroup group in _groupsToUpdate)
         {
-            Profiler.BeginSample("Group Update");
-
             group.Update();
-
-            Profiler.EndSample();
         }
 
         _groupsToUpdate.Clear();
@@ -812,20 +815,12 @@ public class World : ISynchronizable
     {
         foreach (MigratingGroup group in _migratingGroups)
         {
-            Profiler.BeginSample("group.SplitFromSourceGroup");
-
             group.SplitFromSourceGroup();
-
-            Profiler.EndSample();
         }
 
         foreach (MigratingGroup group in _migratingGroups)
         {
-            Profiler.BeginSample("group.MoveToCell");
-
             group.MoveToCell();
-
-            Profiler.EndSample();
         }
 
         _migratingGroups.Clear();
@@ -835,11 +830,7 @@ public class World : ISynchronizable
     {
         foreach (CellGroup group in _updatedGroups)
         {
-            Profiler.BeginSample("Cell Group Postupdate Before Polity Updates");
-
             group.PostUpdate_BeforePolityUpdates();
-
-            Profiler.EndSample();
         }
     }
 
@@ -847,11 +838,7 @@ public class World : ISynchronizable
     {
         foreach (CellGroup group in _groupsToRemove)
         {
-            Profiler.BeginSample("Destroy Group");
-
             group.Destroy();
-
-            Profiler.EndSample();
         }
 
         _groupsToRemove.Clear();
@@ -861,41 +848,37 @@ public class World : ISynchronizable
     {
         foreach (CellGroup group in _updatedGroups)
         {
-            Profiler.BeginSample("Cell Group Setup for Next Update");
-
             group.SetupForNextUpdate();
-
-            Profiler.EndSample();
         }
 
         _updatedGroups.Clear();
     }
 
-    private void PostUpdateGroups_AfterPolityUpdates () {
+    private void PostUpdateGroups_AfterPolityUpdates() // This function takes care of groups afected by polity updates
+    {
+        foreach (CellGroup group in _groupsToPostUpdate_afterPolityUpdates)
+        {
+            group.PostUpdate_AfterPolityUpdates();
+        }
 
-		//TODO: This function should not exist. Think of a way to remove it
+        _groupsToPostUpdate_afterPolityUpdates.Clear();
+    }
 
-		foreach (CellGroup group in _groupsToPostUpdate_afterPolityUpdates) {
+    private void AfterUpdateGroupCleanup() // This function cleans up flags and other properties of cell groups set by events or faction/polity updates
+    {
+        foreach (CellGroup group in _groupsToCleanupAfterUpdate)
+        {
+            group.AfterUpdateCleanup();
+        }
 
-			Profiler.BeginSample ("Cell Group Postupdate After Polity Updates");
-
-			group.PostUpdate_AfterPolityUpdates ();
-
-			Profiler.EndSample ();
-		}
-
-		_groupsToPostUpdate_afterPolityUpdates.Clear ();
-	}
+        _groupsToCleanupAfterUpdate.Clear();
+    }
 
     private void SplitFactions()
     {
         foreach (Faction faction in _factionsToSplit)
         {
-            Profiler.BeginSample("Split Faction");
-
             faction.Split();
-
-            Profiler.EndSample();
         }
 
         _factionsToSplit.Clear();
@@ -907,12 +890,7 @@ public class World : ISynchronizable
 
         foreach (Faction faction in _factionsToUpdate)
         {
-
-            Profiler.BeginSample("Update Faction");
-
             faction.Update();
-
-            Profiler.EndSample();
         }
 
         _factionsToUpdate.Clear();
@@ -922,11 +900,7 @@ public class World : ISynchronizable
     {
         foreach (Faction faction in _factionsToRemove)
         {
-            Profiler.BeginSample("Destroy Faction");
-
             faction.Destroy();
-
-            Profiler.EndSample();
         }
 
         _factionsToRemove.Clear();
@@ -938,11 +912,7 @@ public class World : ISynchronizable
 
         foreach (Polity polity in _politiesToUpdate)
         {
-            Profiler.BeginSample("Update Polity");
-
             polity.Update();
-
-            Profiler.EndSample();
         }
 
         _politiesToUpdate.Clear();
@@ -956,12 +926,8 @@ public class World : ISynchronizable
         {
             if (!polity.StillPresent)
                 continue;
-
-            Profiler.BeginSample("Update Polity Clusters");
-
+            
             polity.ClusterUpdate();
-
-            Profiler.EndSample();
         }
 
         _politiesThatNeedClusterUpdate.Clear();
@@ -971,11 +937,7 @@ public class World : ISynchronizable
     {
         foreach (Polity polity in _politiesToRemove)
         {
-            Profiler.BeginSample("Destroy Polity");
-
             polity.Destroy();
-
-            Profiler.EndSample();
         }
 
         _politiesToRemove.Clear();
@@ -1191,6 +1153,12 @@ public class World : ISynchronizable
         Profiler.BeginSample("PostUpdateGroups_AfterPolityUpdates");
 
         PostUpdateGroups_AfterPolityUpdates();
+
+        Profiler.EndSample();
+
+        Profiler.BeginSample("AfterUpdateGroupCleanup");
+
+        AfterUpdateGroupCleanup();
 
         Profiler.EndSample();
 

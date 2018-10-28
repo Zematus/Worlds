@@ -272,6 +272,8 @@ public abstract class Faction : ISynchronizable
         _splitFactionMinInfluence = splitFactionMinInfluence;
         _splitFactionMaxInfluence = splitFactionMaxInfluence;
 
+        _splitFactionCoreGroup.SetToBecomeFactionCore();
+
         World.AddFactionToSplit(this);
     }
 
