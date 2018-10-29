@@ -2,24 +2,23 @@
 using System.Collections;
 using System.Collections.Generic;
 
-public class TestRunnerScript : MonoBehaviour {
+public class TestRunnerScript : MonoBehaviour
+{
+    public List<AutomatedTest> tests = new List<AutomatedTest>();
 
-	public List<AutomatedTest> tests = new List<AutomatedTest> ();
+    private int _prevTestIndex = -1;
+    private int _testIndex = 0;
 
-	private int _prevTestIndex = -1;
-	private int _testIndex = 0;
+    private int _successes = 0;
 
-	private int _successes = 0;
-
-	// Use this for initialization
-	void Start () {
-
+    // Use this for initialization
+    void Start()
+    {
         //		Manager.RecordingEnabled = true;
 
         ////		tests.Add (new SaveLoadTest (407252633, 80, 1, 2, 0, false, true));
         ////		tests.Add (new SaveLoadTest (407252633, 100000, 20000, 5));
-
-
+        
 #if DEBUG
         Manager.TracingData.GroupId = 25416809035088;
         Manager.TracingData.PolityId = 9629580603508800;
@@ -37,10 +36,10 @@ public class TestRunnerScript : MonoBehaviour {
         //tests.Add(new SaveLoadTest("after 20 polities and 10 polity merges", 783909167, saveCondition, 2000000, 10, 40000000));
         //tests.Add(new SaveLoadTest("after 20 polities and 10 polity merges", 783909167, saveCondition, 200000, 10, 44000000));
         //tests.Add(new SaveLoadTest("after 20 polities and 10 polity merges", 783909167, saveCondition, 20000, 10, 44200000));
-        //tests.Add(new SaveLoadTest("after 20 polities and 10 polity merges", 783909167, saveCondition, 2000, 10, 44380000));
+        //tests.Add(new SaveLoadTest("after 20 polities and 10 polity merges", 783909167, saveCondition, 2000, 10));
         //tests.Add(new SaveLoadTest("after 20 polities and 10 polity merges", 783909167, saveCondition, 200, 10, 44382000));
-        //tests.Add(new SaveLoadTest("after 20 polities and 10 polity merges", 783909167, saveCondition, 20, 10, 44383200));
-        tests.Add(new SaveLoadTest("after 20 polities and 10 polity merges", 783909167, saveCondition, 2, 10, 44383280, true, true));
+        //tests.Add(new SaveLoadTest("after 20 polities and 10 polity merges", 783909167, saveCondition, 20, 10));
+        tests.Add(new SaveLoadTest("after 20 polities and 10 polity merges", 783909167, saveCondition, 2, 10, 20, true, true));
 #endif
 
         //tests.Add(new SaveLoadTest("after 5 polities", 783909167, (World world) =>
@@ -81,37 +80,37 @@ public class TestRunnerScript : MonoBehaviour {
 
         //tests.Add (new LanguageGenerationTest());
 
-        Debug.Log ("Running Tests...\n");
-	}
-	
-	// Update is called once per frame
-	void Update () {
+        Debug.Log("Running Tests...\n");
+    }
 
-		Manager.ExecuteTasks (100);
+    // Update is called once per frame
+    void Update()
+    {
+        Manager.ExecuteTasks(100);
 
-		if (_testIndex == tests.Count) {
+        if (_testIndex == tests.Count)
+        {
+            Debug.Log("\nFinished Tests!");
+            Debug.Log(_successes + " of " + tests.Count + " Succeded");
+            Debug.Break();
+        }
+        else
+        {
+            AutomatedTest test = tests[_testIndex];
 
-			Debug.Log ("\nFinished Tests!");
-			Debug.Log (_successes + " of " + tests.Count + " Succeded");
-			Debug.Break ();
+            if (_prevTestIndex != _testIndex)
+            {
+                Debug.Log("Executing test: " + _testIndex + " - " + test.Name);
 
-		} else {
+                _prevTestIndex = _testIndex;
+            }
 
-			AutomatedTest test = tests [_testIndex];
+            test.Run();
 
-			if (_prevTestIndex != _testIndex) {
-				
-				Debug.Log ("Executing test: " + _testIndex + " - " + test.Name);
+            _successes += (test.State == TestState.Succeded) ? 1 : 0;
 
-				_prevTestIndex = _testIndex;
-			}
-
-			test.Run ();
-
-			_successes += (test.State == TestState.Succeded) ? 1 : 0;
-
-			if ((test.State == TestState.Succeded) || (test.State == TestState.Failed))
-				_testIndex++;
-		}
-	}
+            if ((test.State == TestState.Succeded) || (test.State == TestState.Failed))
+                _testIndex++;
+        }
+    }
 }

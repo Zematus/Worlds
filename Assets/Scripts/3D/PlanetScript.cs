@@ -1,22 +1,18 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class PlanetScript : MonoBehaviour {
+public class PlanetScript : MonoBehaviour
+{
+    // Update is called once per frame
+    void Update()
+    {
+        transform.Rotate(Vector3.up * Time.deltaTime * 10);
+    }
 
-	// Use this for initialization
-	void Start () {
+    public void RefreshTexture()
+    {
+        Texture2D texture = Manager.CurrentSphereTexture;
 
-	}
-	
-	// Update is called once per frame
-	void Update () {
-		transform.Rotate(Vector3.up * Time.deltaTime * 10);
-	}
-
-	public void RefreshTexture () {
-		
-		Texture2D texture = Manager.CurrentSphereTexture;
-		
-		GetComponent<Renderer>().material.mainTexture = texture;
-	}
+        GetComponent<Renderer>().material.mainTexture = texture;
+    }
 }

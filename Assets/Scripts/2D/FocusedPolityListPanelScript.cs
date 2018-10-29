@@ -2,71 +2,72 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class FocusedPolityListPanelScript : MonoBehaviour {
+public class FocusedPolityListPanelScript : MonoBehaviour
+{
+    public FocusedPolityPanelScript FocusedPolityPanelPrefab;
 
-	public FocusedPolityPanelScript FocusedPolityPanelPrefab;
+    private List<FocusedPolityPanelScript> _activePanels = new List<FocusedPolityPanelScript>();
 
-	private List<FocusedPolityPanelScript> _activePanels = new List<FocusedPolityPanelScript> ();
+    private List<FocusedPolityPanelScript> _panelsToremove = new List<FocusedPolityPanelScript>();
+    private List<Polity> _remainingPolities = new List<Polity>();
 
-	private List<FocusedPolityPanelScript> _panelsToremove = new List<FocusedPolityPanelScript> ();
-	private List<Polity> _remainingPolities = new List<Polity> ();
+    // Use this for initialization
+    void Start()
+    {
+        FocusedPolityPanelPrefab.SetVisible(false);
+    }
 
-	// Use this for initialization
-	void Start () {
+    // Update is called once per frame
+    void Update()
+    {
+        _panelsToremove.Clear();
+        _remainingPolities.Clear();
 
-		FocusedPolityPanelPrefab.SetVisible (false);
-	}
-	
-	// Update is called once per frame
-	void Update () {
+        if (Manager.WorldIsReady)
+        {
+            _remainingPolities.AddRange(Manager.CurrentWorld.PolitiesUnderPlayerFocus);
+        }
 
-		_panelsToremove.Clear ();
-		_remainingPolities.Clear ();
+        foreach (FocusedPolityPanelScript panel in _activePanels)
+        {
+            if (!_remainingPolities.Contains(panel.Polity))
+            {
+                _panelsToremove.Add(panel);
+            }
+            else
+            {
+                _remainingPolities.Remove(panel.Polity);
+            }
+        }
 
-		if (Manager.WorldIsReady) {
-			_remainingPolities.AddRange (Manager.CurrentWorld.PolitiesUnderPlayerFocus);
-		}
+        foreach (FocusedPolityPanelScript panel in _panelsToremove)
+        {
+            RemoveFocusedPolityPanel(panel);
+        }
 
-		foreach (FocusedPolityPanelScript panel in _activePanels) {
+        foreach (Polity polity in _remainingPolities)
+        {
+            AddFocusedPolity(polity);
+        }
+    }
 
-			if (!_remainingPolities.Contains (panel.Polity)) {
-			
-				_panelsToremove.Add (panel);
+    public void AddFocusedPolity(Polity polity)
+    {
+        FocusedPolityPanelScript focusedPolityPanel = GameObject.Instantiate(FocusedPolityPanelPrefab) as FocusedPolityPanelScript;
 
-			} else {
+        focusedPolityPanel.Set(polity);
+        focusedPolityPanel.transform.SetParent(transform);
 
-				_remainingPolities.Remove (panel.Polity);
-			}
-		}
+        focusedPolityPanel.SetVisible(true);
 
-		foreach (FocusedPolityPanelScript panel in _panelsToremove) {
+        _activePanels.Add(focusedPolityPanel);
+    }
 
-			RemoveFocusedPolityPanel (panel);
-		}
+    public void RemoveFocusedPolityPanel(FocusedPolityPanelScript panel)
+    {
+        panel.SetVisible(false);
+        GameObject.Destroy(panel);
 
-		foreach (Polity polity in _remainingPolities) {
-
-			AddFocusedPolity (polity);
-		}
-	}
-
-	public void AddFocusedPolity (Polity polity) {
-	
-		FocusedPolityPanelScript focusedPolityPanel = GameObject.Instantiate (FocusedPolityPanelPrefab) as FocusedPolityPanelScript;
-
-		focusedPolityPanel.Set (polity);
-		focusedPolityPanel.transform.SetParent (transform);
-
-		focusedPolityPanel.SetVisible (true);
-
-		_activePanels.Add (focusedPolityPanel);
-	}
-
-	public void RemoveFocusedPolityPanel (FocusedPolityPanelScript panel) {
-
-		panel.SetVisible (false);
-		GameObject.Destroy (panel);
-
-		_activePanels.Remove (panel);
-	}
+        _activePanels.Remove(panel);
+    }
 }

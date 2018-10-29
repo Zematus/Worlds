@@ -3,30 +3,20 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class ButtonWithTooltipScript : MonoBehaviour {
+public class ButtonWithTooltipScript : MonoBehaviour
+{
+    public Text ButtonText;
+    public Text TooltipText;
 
-	public Text ButtonText;
-	public Text TooltipText;
+    public GameObject TooltipPanel;
 
-	public GameObject TooltipPanel;
+    public void PointerEnterHandler()
+    {
+        TooltipPanel.gameObject.SetActive(true);
+    }
 
-	// Use this for initialization
-	void Start () {
-		
-	}
-	
-	// Update is called once per frame
-	void Update () {
-		
-	}
-
-	public void PointerEnterHandler () {
-	
-		TooltipPanel.gameObject.SetActive (true);
-	}
-
-	public void PointerExitHandler () {
-
-		TooltipPanel.gameObject.SetActive (false);
-	}
+    public void PointerExitHandler()
+    {
+        TooltipPanel.gameObject.SetActive(false);
+    }
 }

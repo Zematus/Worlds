@@ -6,141 +6,137 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 
-public class DecisionDialogPanelScript : ModalPanelScript {
+public class DecisionDialogPanelScript : ModalPanelScript
+{
+    public Text DecisionText;
 
-	public Text DecisionText;
+    public Transform OptionsPanelTransform;
 
-	public Transform OptionsPanelTransform;
+    public Button OptionButtonPrefab;
 
-	public Button OptionButtonPrefab;
+    public Text SpeedButtonText;
 
-	public Text SpeedButtonText;
+    public int ResumeSpeedLevelIndex;
 
-	public int ResumeSpeedLevelIndex;
+    public UnityEvent OptionChosenEvent;
 
-	public UnityEvent OptionChosenEvent;
+    private List<Button> _optionButtons = new List<Button>();
 
-	private List<Button> _optionButtons = new List<Button>();
+    private Decision _decision;
 
-	private Decision _decision;
+    private void SetOptions()
+    {
+        _optionButtons.Add(OptionButtonPrefab);
 
-	// Use this for initialization
-	void Start () {
+        Decision.Option[] options = _decision.GetOptions();
 
-	}
-	
-	// Update is called once per frame
-	void Update () {
-	
-	}
+        int i = 0;
 
-	private void SetOptions () {
-		
-		_optionButtons.Add (OptionButtonPrefab);
-	
-		Decision.Option[] options = _decision.GetOptions ();
+        foreach (Decision.Option option in options)
+        {
+            SetOptionButton(option, i);
 
-		int i = 0;
+            i++;
+        }
+    }
 
-		foreach (Decision.Option option in options) {
+    private void SetOptionButton(Decision.Option option, int index)
+    {
+        Button button;
 
-			SetOptionButton (option, i);
+        string text = option.Text;
+        string descriptionText = option.DescriptionText;
 
-			i++;
-		}
-	}
+        if (index < _optionButtons.Count)
+        {
+            button = _optionButtons[index];
+        }
+        else
+        {
+            button = AddOptionButton();
+        }
 
-	private void SetOptionButton (Decision.Option option, int index) {
-	
-		Button button;
+        ButtonWithTooltipScript buttonScript = button.GetComponent<ButtonWithTooltipScript>();
+        buttonScript.ButtonText.text = text;
+        buttonScript.TooltipText.text = descriptionText;
+        buttonScript.TooltipPanel.gameObject.SetActive(false);
 
-		string text = option.Text;
-		string descriptionText = option.DescriptionText;
+        button.onClick.RemoveAllListeners();
 
-		if (index < _optionButtons.Count) {
-			button = _optionButtons[index];
+        button.onClick.AddListener(() =>
+        {
+            option.Execute();
+            OptionChosenEvent.Invoke();
+        });
+    }
 
-		} else {
-			button = AddOptionButton ();
-		}
+    private Button AddOptionButton()
+    {
+        Button newButton = Instantiate(OptionButtonPrefab) as Button;
 
-		ButtonWithTooltipScript buttonScript = button.GetComponent<ButtonWithTooltipScript> ();
-		buttonScript.ButtonText.text = text;
-		buttonScript.TooltipText.text = descriptionText;
-		buttonScript.TooltipPanel.gameObject.SetActive (false);
-		
-		button.onClick.RemoveAllListeners ();
+        newButton.transform.SetParent(OptionsPanelTransform, false);
 
-		button.onClick.AddListener (() => {
-			
-			option.Execute ();
-			OptionChosenEvent.Invoke ();
-		});
-	}
+        _optionButtons.Add(newButton);
 
-	private Button AddOptionButton () {
-	
-		Button newButton = Instantiate (OptionButtonPrefab) as Button;
+        return newButton;
+    }
 
-		newButton.transform.SetParent (OptionsPanelTransform, false);
+    private void RemoveOptionButtons()
+    {
+        bool first = true;
 
-		_optionButtons.Add (newButton);
+        foreach (Button button in _optionButtons)
+        {
+            if (first)
+            {
+                first = false;
+                continue;
+            }
 
-		return newButton;
-	}
+            GameObject.Destroy(button.gameObject);
+        }
 
-	private void RemoveOptionButtons () {
+        _optionButtons.Clear();
+    }
 
-		bool first = true;
+    public override void SetVisible(bool value)
+    {
+        base.SetVisible(value);
 
-		foreach (Button button in _optionButtons) {
-		
-			if (first) {
-				first = false;
-				continue;
-			}
+        if (value)
+        {
+            SetOptions();
+        }
+        else
+        {
+            RemoveOptionButtons();
+        }
+    }
 
-			GameObject.Destroy (button.gameObject);
-		}
+    public void Set(Decision decision, int currentSpeedIndex)
+    {
+        ResumeSpeedLevelIndex = currentSpeedIndex;
 
-		_optionButtons.Clear ();
-	}
+        SpeedButtonText.text = Speed.Levels[currentSpeedIndex];
 
-	public override void SetVisible (bool value) {
-		
-		base.SetVisible (value);
+        DecisionText.text = decision.Description;
 
-		if (value) {
-			SetOptions ();
-		} else {
-			RemoveOptionButtons ();
-		}
-	}
+        _decision = decision;
+    }
 
-	public void Set (Decision decision, int currentSpeedIndex) {
+    public void SelectNextSpeedLevel()
+    {
+        ResumeSpeedLevelIndex++;
 
-		ResumeSpeedLevelIndex = currentSpeedIndex;
+        if (ResumeSpeedLevelIndex == Speed.Levels.Length)
+        {
+            ResumeSpeedLevelIndex = -1;
 
-		SpeedButtonText.text = Speed.Levels[currentSpeedIndex];
-
-		DecisionText.text = decision.Description;
-
-		_decision = decision;
-	}
-
-	public void SelectNextSpeedLevel () {
-
-		ResumeSpeedLevelIndex++;
-
-		if (ResumeSpeedLevelIndex == Speed.Levels.Length) {
-		
-			ResumeSpeedLevelIndex = -1;
-
-			SpeedButtonText.text = Speed.Zero;
-
-		} else {
-
-			SpeedButtonText.text = Speed.Levels[ResumeSpeedLevelIndex];
-		}
-	}
+            SpeedButtonText.text = Speed.Zero;
+        }
+        else
+        {
+            SpeedButtonText.text = Speed.Levels[ResumeSpeedLevelIndex];
+        }
+    }
 }

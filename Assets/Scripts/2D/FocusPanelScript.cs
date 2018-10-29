@@ -3,51 +3,42 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public enum FocusPanelState {
-	SetFocus,
-	UnsetFocus
+public enum FocusPanelState
+{
+    SetFocus,
+    UnsetFocus
 }
 
-public class FocusPanelScript : MonoBehaviour {
+public class FocusPanelScript : MonoBehaviour
+{
+    public Text PolityText;
 
-	public Text PolityText;
+    public Button SetFocusButton;
+    public Button UnsetFocusButton;
+    public Button GuideFactionButton;
 
-	public Button SetFocusButton;
-	public Button UnsetFocusButton;
-	public Button GuideFactionButton;
+    public void SetVisible(bool value)
+    {
+        gameObject.SetActive(value);
+    }
 
-	// Use this for initialization
-	void Start () {
-		
-	}
-	
-	// Update is called once per frame
-	void Update () {
-		
-	}
+    public void SetState(FocusPanelState state, Polity polity)
+    {
+        PolityText.text = polity.Name.Text + " " + polity.Type;
 
-	public void SetVisible (bool value) {
+        switch (state)
+        {
+            case FocusPanelState.SetFocus:
+                SetFocusButton.gameObject.SetActive(true);
+                UnsetFocusButton.gameObject.SetActive(false);
+                GuideFactionButton.gameObject.SetActive(true);
+                break;
 
-		gameObject.SetActive (value);
-	}
-
-	public void SetState (FocusPanelState state, Polity polity) {
-		
-		PolityText.text = polity.Name.Text + " " + polity.Type;
-	
-		switch (state) {
-
-		case FocusPanelState.SetFocus:
-			SetFocusButton.gameObject.SetActive (true);
-			UnsetFocusButton.gameObject.SetActive (false);
-			GuideFactionButton.gameObject.SetActive (true);
-			break;
-
-		case FocusPanelState.UnsetFocus:
-			SetFocusButton.gameObject.SetActive (false);
-			UnsetFocusButton.gameObject.SetActive (true);
-			GuideFactionButton.gameObject.SetActive (true);
-			break;
-		}
-	}
+            case FocusPanelState.UnsetFocus:
+                SetFocusButton.gameObject.SetActive(false);
+                UnsetFocusButton.gameObject.SetActive(true);
+                GuideFactionButton.gameObject.SetActive(true);
+                break;
+        }
+    }
 }

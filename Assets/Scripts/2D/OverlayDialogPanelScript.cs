@@ -52,12 +52,6 @@ public class OverlayDialogPanelScript : DialogPanelScript
         UpdateDebugOverlays();
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-
-    }
-
     public void UpdateDebugOverlays()
     {
         DebugDataToggle.gameObject.SetActive(Manager.DebugModeEnabled);

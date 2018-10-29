@@ -5,54 +5,44 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 
-public class SelectFactionDialogPanelScript : ModalPanelScript {
+public class SelectFactionDialogPanelScript : ModalPanelScript
+{
+    public Button FactionButtonPrefab;
 
-	public Button FactionButtonPrefab;
+    public Button CancelActionButton;
 
-	public Button CancelActionButton;
+    public Transform ActionButtonPanelTransform;
 
-	public Transform ActionButtonPanelTransform;
+    public UnityEvent FactionButtonClickEvent;
 
-	public UnityEvent FactionButtonClickEvent;
+    public Faction ChosenFaction = null;
 
-	public Faction ChosenFaction = null;
+    private List<Button> _factionButtons = new List<Button>();
 
-	private List<Button> _factionButtons = new List<Button>();
+    private void SetFactionButtons()
+    {
+        ChosenFaction = null;
 
-	// Use this for initialization
-	void Start () {
+        Territory selectedTerritory = Manager.CurrentWorld.SelectedTerritory;
 
-	}
-	
-	// Update is called once per frame
-	void Update () {
-	
-	}
+        Polity polity = null;
 
-	private void SetFactionButtons () {
+        if ((polity == null) &&
+            (Manager.CurrentWorld.SelectedTerritory != null) &&
+            (Manager.CurrentWorld.SelectedTerritory.Polity.StillPresent))
 
-		ChosenFaction = null;
+            polity = selectedTerritory.Polity;
 
-		Territory selectedTerritory = Manager.CurrentWorld.SelectedTerritory;
+        if (polity == null)
+        {
+            throw new System.Exception("SetFactionButtons: Both focused polity and selected polity are null...");
+        }
 
-		Polity polity = null;
+        ///////
 
-		if ((polity == null) && 
-			(Manager.CurrentWorld.SelectedTerritory != null) && 
-			(Manager.CurrentWorld.SelectedTerritory.Polity.StillPresent))
+        _factionButtons.Add(FactionButtonPrefab);
 
-			polity = selectedTerritory.Polity;
-
-		if (polity == null) {
-
-			throw new System.Exception ("SetFactionButtons: Both focused polity and selected polity are null...");
-		}
-
-		///////
-
-		_factionButtons.Add (FactionButtonPrefab);
-
-		List<Faction> factions = new List<Faction> (polity.GetFactions ());
+        List<Faction> factions = new List<Faction>(polity.GetFactions());
 
         factions.Sort((a, b) =>
         {
@@ -66,85 +56,91 @@ public class SelectFactionDialogPanelScript : ModalPanelScript {
 
         int i = 0;
 
-		foreach (Faction faction in factions) {
+        foreach (Faction faction in factions)
+        {
+            SetFactionButton(faction, i);
 
-			SetFactionButton (faction, i);
+            i++;
+        }
+    }
 
-			i++;
-		}
-	}
+    private string GenerateFactionButtonStr(Faction faction)
+    {
+        return faction.Name.Text + " " + "(Influence: " + faction.Influence.ToString("P") + ")";
+    }
 
-	private string GenerateFactionButtonStr (Faction faction) {
+    private void SetFactionButton(Faction faction, int index)
+    {
+        Button button;
 
-		return faction.Name.Text + " " + "(Influence: " + faction.Influence.ToString("P") + ")";
-	}
+        if (index < _factionButtons.Count)
+        {
+            button = _factionButtons[index];
+            button.GetComponentInChildren<Text>().text = GenerateFactionButtonStr(faction);
+        }
+        else
+        {
+            button = AddFactionButton(faction);
+        }
 
-	private void SetFactionButton (Faction faction, int index) {
-	
-		Button button;
+        button.onClick.RemoveAllListeners();
 
-		if (index < _factionButtons.Count) {
-			button = _factionButtons[index];
-			button.GetComponentInChildren<Text> ().text = GenerateFactionButtonStr (faction);
+        button.onClick.AddListener(() =>
+        {
+            ChosenFaction = faction;
+            FactionButtonClickEvent.Invoke();
+        });
+    }
 
-		} else {
-			button = AddFactionButton (faction);
-		}
-		
-		button.onClick.RemoveAllListeners ();
+    private Button AddFactionButton(Faction faction)
+    {
+        Button newButton = Instantiate(FactionButtonPrefab) as Button;
 
-		button.onClick.AddListener (() => {
+        newButton.transform.SetParent(transform, false);
+        newButton.GetComponentInChildren<Text>().text = GenerateFactionButtonStr(faction);
 
-			ChosenFaction = faction;
-			FactionButtonClickEvent.Invoke ();
-		});
-	}
+        _factionButtons.Add(newButton);
 
-	private Button AddFactionButton (Faction faction) {
-	
-		Button newButton = Instantiate (FactionButtonPrefab) as Button;
+        ActionButtonPanelTransform.SetAsLastSibling();
 
-		newButton.transform.SetParent (transform, false);
-		newButton.GetComponentInChildren<Text> ().text = GenerateFactionButtonStr (faction);
+        return newButton;
+    }
 
-		_factionButtons.Add (newButton);
+    private void RemoveFactionButtons()
+    {
+        bool first = true;
 
-		ActionButtonPanelTransform.SetAsLastSibling ();
+        foreach (Button button in _factionButtons)
+        {
+            if (first)
+            {
+                first = false;
+                continue;
+            }
 
-		return newButton;
-	}
+            GameObject.Destroy(button.gameObject);
+        }
 
-	private void RemoveFactionButtons () {
+        _factionButtons.Clear();
+    }
 
-		bool first = true;
+    public override void SetVisible(bool value)
+    {
+        base.SetVisible(value);
 
-		foreach (Button button in _factionButtons) {
-		
-			if (first) {
-				first = false;
-				continue;
-			}
+        if (value)
+        {
+            SetFactionButtons();
+        }
+        else
+        {
+            RemoveFactionButtons();
+        }
+    }
 
-			GameObject.Destroy(button.gameObject);
-		}
-
-		_factionButtons.Clear ();
-	}
-
-	public override void SetVisible (bool value) {
-		
-		base.SetVisible (value);
-
-		if (value) {
-			SetFactionButtons ();
-		} else {
-			RemoveFactionButtons ();
-		}
-	}
-	
-	public void SetCancelAction (UnityAction cancelAction) {
-		
-		CancelActionButton.onClick.RemoveAllListeners ();
-		CancelActionButton.onClick.AddListener (cancelAction);
-	}
+    public void SetCancelAction(UnityAction cancelAction)
+    {
+        CancelActionButton.onClick.RemoveAllListeners();
+        CancelActionButton.onClick.AddListener(cancelAction);
+    }
 }

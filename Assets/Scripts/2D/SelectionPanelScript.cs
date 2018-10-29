@@ -4,79 +4,74 @@ using UnityEngine.Events;
 using System.Collections;
 using System.Collections.Generic;
 
-public class SelectionPanelScript : MonoBehaviour {
+public class SelectionPanelScript : MonoBehaviour
+{
+    public Text Title;
 
-	public Text Title;
+    public Toggle PrototypeToggle;
 
-	public Toggle PrototypeToggle;
+    public string SelectedOption = "None";
 
-	public string SelectedOption = "None";
+    public Dictionary<string, Toggle> Toggles = new Dictionary<string, Toggle>();
 
-	public Dictionary<string, Toggle> Toggles = new Dictionary<string, Toggle>();
+    // Use this for initialization
+    void Start()
+    {
+        PrototypeToggle.gameObject.SetActive(false);
+    }
 
-	// Use this for initialization
-	void Start () {
-	
-		PrototypeToggle.gameObject.SetActive (false);
-	}
-	
-	// Update is called once per frame
-	void Update () {
-	
-	}
-	
-	public void SetVisible (bool value) {
-		
-		gameObject.SetActive (value);
-	}
-	
-	public bool IsVisible () {
-		
-		return gameObject.activeInHierarchy;
-	}
+    public void SetVisible(bool value)
+    {
+        gameObject.SetActive(value);
+    }
 
-	public void AddOption (string id, string text, UnityAction<bool> call) {
+    public bool IsVisible()
+    {
+        return gameObject.activeInHierarchy;
+    }
 
-		Toggle toggle = null;
+    public void AddOption(string id, string text, UnityAction<bool> call)
+    {
+        Toggle toggle = null;
 
-		if (Toggles.TryGetValue (id, out toggle)) {
+        if (Toggles.TryGetValue(id, out toggle))
+        {
+            return;
+        }
 
-			return;
-		}
+        toggle = GameObject.Instantiate(PrototypeToggle) as Toggle;
 
-		toggle = GameObject.Instantiate (PrototypeToggle) as Toggle;
+        toggle.onValueChanged.AddListener(call);
+        toggle.transform.SetParent(gameObject.transform);
 
-		toggle.onValueChanged.AddListener (call);
-		toggle.transform.SetParent (gameObject.transform);
+        SelectionToggleScript toggleScript = toggle.gameObject.GetComponent<SelectionToggleScript>();
+        toggleScript.Label.text = text;
 
-		SelectionToggleScript toggleScript = toggle.gameObject.GetComponent<SelectionToggleScript> ();
-		toggleScript.Label.text = text;
-		
-		toggle.gameObject.SetActive (true);
+        toggle.gameObject.SetActive(true);
 
-		Toggles.Add (id, toggle);
-	}
+        Toggles.Add(id, toggle);
+    }
 
-	public void SetStateOption (string id, bool state) {
+    public void SetStateOption(string id, bool state)
+    {
+        Toggle toggle = null;
 
-		Toggle toggle = null;
+        if (Toggles.TryGetValue(id, out toggle))
+        {
+            toggle.isOn = state;
+        }
+    }
 
-		if (Toggles.TryGetValue (id, out toggle)) {
+    public void RemoveAllOptions()
+    {
+        foreach (Toggle toggle in Toggles.Values)
+        {
+            toggle.gameObject.SetActive(false);
+            toggle.transform.SetParent(null);
 
-			toggle.isOn = state;
-		}
-	}
+            GameObject.Destroy(toggle);
+        }
 
-	public void RemoveAllOptions () {
-		
-		foreach (Toggle toggle in Toggles.Values) {
-			
-			toggle.gameObject.SetActive (false);
-			toggle.transform.SetParent (null);
-			
-			GameObject.Destroy (toggle);
-		}
-
-		Toggles.Clear ();
-	}
+        Toggles.Clear();
+    }
 }

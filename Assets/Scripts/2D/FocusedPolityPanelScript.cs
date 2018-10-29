@@ -3,40 +3,30 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class FocusedPolityPanelScript : MonoBehaviour {
+public class FocusedPolityPanelScript : MonoBehaviour
+{
+    public Text PolityText;
 
-	public Text PolityText;
+    public Button UnsetFocusButton;
 
-	public Button UnsetFocusButton;
+    public Polity Polity = null;
 
-	public Polity Polity = null;
+    public void SetVisible(bool value)
+    {
+        gameObject.SetActive(value);
+    }
 
-	// Use this for initialization
-	void Start () {
+    public void Set(Polity polity)
+    {
+        Polity = polity;
 
-	}
+        PolityText.text = polity.Name.Text + " " + polity.Type;
 
-	// Update is called once per frame
-	void Update () {
+        UnsetFocusButton.onClick.RemoveAllListeners();
 
-	}
-
-	public void SetVisible (bool value) {
-
-		gameObject.SetActive (value);
-	}
-
-	public void Set (Polity polity) {
-
-		Polity = polity;
-
-		PolityText.text = polity.Name.Text + " " + polity.Type;
-
-		UnsetFocusButton.onClick.RemoveAllListeners ();
-
-		UnsetFocusButton.onClick.AddListener (() => {
-
-			Manager.UnsetFocusOnPolity (polity);
-		});
-	}
+        UnsetFocusButton.onClick.AddListener(() =>
+        {
+            Manager.UnsetFocusOnPolity(polity);
+        });
+    }
 }
