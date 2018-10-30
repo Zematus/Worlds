@@ -243,7 +243,7 @@ public class World : ISynchronizable
     public List<CulturalSkillInfo> CulturalSkillInfoList = new List<CulturalSkillInfo>();
     public List<CulturalKnowledgeInfo> CulturalKnowledgeInfoList = new List<CulturalKnowledgeInfo>();
     public List<CulturalDiscoveryInfo> CulturalDiscoveryInfoList = new List<CulturalDiscoveryInfo>();
-
+    
     public List<CellGroup> CellGroups;
 
     [XmlArrayItem(Type = typeof(Agent))]

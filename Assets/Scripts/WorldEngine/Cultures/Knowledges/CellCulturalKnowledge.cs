@@ -120,6 +120,24 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
 
         if (Asymptote > 0)
             ProgressLevel = MathUtility.RoundToSixDecimals(Mathf.Clamp01(Value / (float)Asymptote));
+
+//#if DEBUG
+//        if (Manager.RegisterDebugEvent != null)
+//        {
+//            if (Group.Id == Manager.TracingData.GroupId)
+//            {
+//                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//                    "CellCulturalKnowledge.UpdateProgressLevel - Knowledge.Id:" + Id + ", Group.Id:" + Group.Id,
+//                    "CurrentDate: " + Group.World.CurrentDate +
+//                    ", ProgressLevel: " + ProgressLevel +
+//                    ", Value: " + Value +
+//                    ", Asymptote: " + Asymptote +
+//                    "");
+
+//                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+//            }
+//        }
+//#endif
     }
 
     public void CalculateAsymptote()

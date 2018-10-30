@@ -85,6 +85,23 @@ public class AgricultureKnowledge : CellCulturalKnowledge
         if (_terrainFactor <= 0)
             return 1;
 
+#if DEBUG
+        if (Manager.RegisterDebugEvent != null)
+        {
+            if (Group.Id == Manager.TracingData.GroupId)
+            {
+                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+                    "AgricultureKnowledge.CalculateExpectedProgressLevel -  Group.Id:" + Group.Id,
+                    "CurrentDate: " + Group.World.CurrentDate +
+                    ", _terrainFactor: " + _terrainFactor +
+                    ", ProgressLevel: " + ProgressLevel +
+                    "");
+
+                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+            }
+        }
+#endif
+
         return Mathf.Clamp(ProgressLevel / _terrainFactor, MinProgressLevel, 1);
     }
 

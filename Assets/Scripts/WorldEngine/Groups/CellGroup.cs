@@ -959,41 +959,41 @@ public class CellGroup : HumanGroup
 
         World.UpdateMostPopulousGroup(this);
 
-        Profiler.BeginSample("Calculate Optimal Population");
+        //Profiler.BeginSample("Calculate Optimal Population");
 
         OptimalPopulation = CalculateOptimalPopulation(Cell);
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
-        Profiler.BeginSample("Calculate Local Migration Value");
+        //Profiler.BeginSample("Calculate Local Migration Value");
 
         CalculateLocalMigrationValue();
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
-        Profiler.BeginSample("Consider Land Migration");
+        //Profiler.BeginSample("Consider Land Migration");
 
         ConsiderLandMigration();
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
-        Profiler.BeginSample("Consider Sea Migration");
+        //Profiler.BeginSample("Consider Sea Migration");
 
         ConsiderSeaMigration();
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
-        Profiler.BeginSample("Consider Prominence Expansion");
+        //Profiler.BeginSample("Consider Prominence Expansion");
 
         ConsiderPolityProminenceExpansion();
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
-        Profiler.BeginSample("Calculate Next Update Date");
+        //Profiler.BeginSample("Calculate Next Update Date");
 
         NextUpdateDate = CalculateNextUpdateDate();
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
         LastUpdateDate = World.CurrentDate;
 
@@ -2151,299 +2151,313 @@ public class CellGroup : HumanGroup
 		return optimalPopulation;
 	}
 
-	public float CalculateFarmingCapacity (TerrainCell cell) {
+	public float CalculateFarmingCapacity(TerrainCell cell)
+    {
+        float capacityFactor = 0;
 
-		float capacityFactor = 0;
-
-		float value = 0;
+        float value = 0;
 
         if (!Culture.TryGetKnowledgeScaledValue(AgricultureKnowledge.KnowledgeId, out value))
         {
             return capacityFactor;
         }
 
-		float techFactor = Mathf.Sqrt(value);
+        float techFactor = Mathf.Sqrt(value);
 
-		capacityFactor = cell.FarmlandPercentage * techFactor;
+        capacityFactor = cell.FarmlandPercentage * techFactor;
 
-		return capacityFactor;
-	}
+        return capacityFactor;
+    }
 
-	public void CalculateAdaptionToCell (TerrainCell cell, out float foragingCapacity, out float survivability) {
+    public void CalculateAdaptionToCell(TerrainCell cell, out float foragingCapacity, out float survivability)
+    {
+        float modifiedForagingCapacity = 0;
+        float modifiedSurvivability = 0;
 
-		float modifiedForagingCapacity = 0;
-		float modifiedSurvivability = 0;
+        //		#if DEBUG
+        //		string biomeData = "";
+        //		#endif
 
-		//		#if DEBUG
-		//		string biomeData = "";
-		//		#endif
+        //		Profiler.BeginSample ("Get Group Skill Values");
 
-//		Profiler.BeginSample ("Get Group Skill Values");
+        foreach (string biomeName in cell.PresentBiomeNames)
+        {
+            //			Profiler.BeginSample ("Try Get Group Biome Survival Skill");
 
-		foreach (string biomeName in cell.PresentBiomeNames) {
+            float biomePresence = cell.GetBiomePresence(biomeName);
 
-//			Profiler.BeginSample ("Try Get Group Biome Survival Skill");
+            BiomeSurvivalSkill skill = null;
 
-			float biomePresence = cell.GetBiomePresence(biomeName);
+            Biome biome = Biome.Biomes[biomeName];
 
-			BiomeSurvivalSkill skill = null;
+            if (_biomeSurvivalSkills.TryGetValue(biomeName, out skill))
+            {
+                //				Profiler.BeginSample ("Evaluate Group Biome Survival Skill");
 
-			Biome biome = Biome.Biomes[biomeName];
+                modifiedForagingCapacity += biomePresence * biome.ForagingCapacity * skill.Value;
+                modifiedSurvivability += biomePresence * (biome.Survivability + skill.Value * (1 - biome.Survivability));
 
-			if (_biomeSurvivalSkills.TryGetValue (biomeName, out skill)) {
+                //				#if DEBUG
+                //
+                //				if (Manager.RegisterDebugEvent != null) {
+                //					biomeData += "\n\tBiome: " + biomeName + 
+                //						" ForagingCapacity: " + biome.ForagingCapacity + 
+                //						" skillValue: " + skillValue + 
+                //						" biomePresence: " + biomePresence;
+                //				}
+                //
+                //				#endif
 
-//				Profiler.BeginSample ("Evaluate Group Biome Survival Skill");
+                //				Profiler.EndSample ();
+            }
+            else
+            {
+                modifiedSurvivability += biomePresence * biome.Survivability;
+            }
 
-				modifiedForagingCapacity += biomePresence * biome.ForagingCapacity * skill.Value;
-				modifiedSurvivability += biomePresence * (biome.Survivability + skill.Value * (1 - biome.Survivability));
+            //			Profiler.EndSample ();
+        }
 
-//				#if DEBUG
-//
-//				if (Manager.RegisterDebugEvent != null) {
-//					biomeData += "\n\tBiome: " + biomeName + 
-//						" ForagingCapacity: " + biome.ForagingCapacity + 
-//						" skillValue: " + skillValue + 
-//						" biomePresence: " + biomePresence;
-//				}
-//
-//				#endif
+        //		Profiler.EndSample ();
 
-//				Profiler.EndSample ();
+        float altitudeSurvivabilityFactor = 1 - Mathf.Clamp01(cell.Altitude / World.MaxPossibleAltitude);
 
-			} else {
-			
-				modifiedSurvivability += biomePresence * biome.Survivability;
-			}
+        modifiedSurvivability = (modifiedSurvivability * (1 - cell.FarmlandPercentage)) + cell.FarmlandPercentage;
 
-//			Profiler.EndSample ();
-		}
+        foragingCapacity = modifiedForagingCapacity * (1 - cell.FarmlandPercentage);
+        survivability = modifiedSurvivability * altitudeSurvivabilityFactor;
 
-//		Profiler.EndSample ();
+        if (foragingCapacity > 1)
+        {
+            throw new System.Exception("ForagingCapacity greater than 1: " + foragingCapacity);
+        }
 
-		float altitudeSurvivabilityFactor = 1 - Mathf.Clamp01 (cell.Altitude / World.MaxPossibleAltitude);
+        if (survivability > 1)
+        {
+            throw new System.Exception("Survivability greater than 1: " + survivability);
+        }
 
-		modifiedSurvivability = (modifiedSurvivability * (1 - cell.FarmlandPercentage)) + cell.FarmlandPercentage;
+        //		#if DEBUG
+        //		if (Manager.RegisterDebugEvent != null) {
+        //			if (Id == Manager.TracingData.GroupId) {
+        //				if ((cell.Longitude == Longitude) && (cell.Latitude == Latitude)) {
+        //					System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
+        //
+        //					System.Reflection.MethodBase method = stackTrace.GetFrame(2).GetMethod();
+        //					string callingMethod = method.Name;
+        //
+        ////					if (callingMethod.Contains ("CalculateMigrationValue")) {
+        //						string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
+        //						string cellInfo = "Long:" + cell.Longitude + "|Lat:" + cell.Latitude;
+        //
+        //						SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+        //							"CalculateAdaptionToCell - Group:" + groupId,
+        //							"CurrentDate: " + World.CurrentDate + 
+        //							", callingMethod(2): " + callingMethod + 
+        //							", target cell: " + cellInfo + 
+        //							", cell.FarmlandPercentage: " + cell.FarmlandPercentage + 
+        //							", foragingCapacity: " + foragingCapacity + 
+        //							", survivability: " + survivability + 
+        //							", biomeData: " + biomeData + 
+        //							"");
+        //
+        //						Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+        ////					}
+        //				}
+        //			}
+        //		}
+        //		#endif
+    }
 
-		foragingCapacity = modifiedForagingCapacity * (1 - cell.FarmlandPercentage);
-		survivability = modifiedSurvivability * altitudeSurvivabilityFactor;
-
-		if (foragingCapacity > 1) {
-			throw new System.Exception ("ForagingCapacity greater than 1: " + foragingCapacity);
-		}
-
-		if (survivability > 1) {
-			throw new System.Exception ("Survivability greater than 1: " + survivability);
-		}
-
-//		#if DEBUG
-//		if (Manager.RegisterDebugEvent != null) {
-//			if (Id == Manager.TracingData.GroupId) {
-//				if ((cell.Longitude == Longitude) && (cell.Latitude == Latitude)) {
-//					System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
-//
-//					System.Reflection.MethodBase method = stackTrace.GetFrame(2).GetMethod();
-//					string callingMethod = method.Name;
-//
-////					if (callingMethod.Contains ("CalculateMigrationValue")) {
-//						string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
-//						string cellInfo = "Long:" + cell.Longitude + "|Lat:" + cell.Latitude;
-//
-//						SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-//							"CalculateAdaptionToCell - Group:" + groupId,
-//							"CurrentDate: " + World.CurrentDate + 
-//							", callingMethod(2): " + callingMethod + 
-//							", target cell: " + cellInfo + 
-//							", cell.FarmlandPercentage: " + cell.FarmlandPercentage + 
-//							", foragingCapacity: " + foragingCapacity + 
-//							", survivability: " + survivability + 
-//							", biomeData: " + biomeData + 
-//							"");
-//
-//						Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-////					}
-//				}
-//			}
-//		}
-//		#endif
-	}
-
-	public long CalculateNextUpdateDate () {
-
-//		#if DEBUG
-//		if (Cell.IsSelected) {
-//			bool debug = true;
-//		}
-//		#endif
-
-#if DEBUG
-		if (FactionCores.Count > 0) {
-			foreach (Faction faction in FactionCores.Values) {
-				if (faction.CoreGroupId != Id) {
-					Debug.LogError ("Group identifies as faction core when it no longer is. Id: " + Id + ", CoreId: " + faction.CoreGroupId + ", current date: " + World.CurrentDate);
-				}
-			}
-		}
-#endif
-
-//		#if DEBUG
-//		if (Cell.IsSelected) {
-//			bool debug = true;
-//		}
-//		#endif
-
-		float randomFactor = Cell.GetNextLocalRandomFloat (RngOffsets.CELL_GROUP_CALCULATE_NEXT_UPDATE);
-		randomFactor = 1f - Mathf.Pow (randomFactor, 4);
-
-		float migrationFactor = 1;
-
-		if (TotalMigrationValue > 0) {
-			migrationFactor = MigrationValue / TotalMigrationValue;
-			migrationFactor = Mathf.Pow (migrationFactor, 4);
-		}
-
-		float polityExpansionFactor = 1;
-
-		if (TotalPolityExpansionValue > 0) {
-			polityExpansionFactor = PolityExpansionValue / TotalPolityExpansionValue;
-			polityExpansionFactor = Mathf.Pow (polityExpansionFactor, 4);
-		}
-
-		float skillLevelFactor = Culture.MinimumSkillAdaptationLevel ();
-		float knowledgeLevelFactor = Culture.MinimumKnowledgeProgressLevel ();
-
-		float populationFactor = 0.0001f + Mathf.Abs (OptimalPopulation - Population);
-		populationFactor = 100 * OptimalPopulation / populationFactor;
-
-//		#if DEBUG
-//		if (Cell.IsSelected) {
-//			bool debug = true;
-//		}
-//		#endif
-
-		populationFactor = Mathf.Min(populationFactor, MaxUpdateSpanFactor);
-
-		float mixFactor = randomFactor * migrationFactor * polityExpansionFactor * skillLevelFactor * knowledgeLevelFactor * populationFactor;
-
-		long updateSpan = GenerationSpan * (int)mixFactor;
-
-		if (updateSpan < 0)
-			updateSpan = MaxUpdateSpan;
-
-		updateSpan = (updateSpan < GenerationSpan) ? GenerationSpan : updateSpan;
-		updateSpan = (updateSpan > MaxUpdateSpan) ? MaxUpdateSpan : updateSpan;
+    public long CalculateNextUpdateDate()
+    {
+        //		#if DEBUG
+        //		if (Cell.IsSelected) {
+        //			bool debug = true;
+        //		}
+        //		#endif
 
 #if DEBUG
-		if (Manager.RegisterDebugEvent != null) {
-			if (Id == Manager.TracingData.GroupId) {
-				string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
-
-				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-					"CalculateNextUpdateDate - Group:" + groupId, 
-					"CurrentDate: " + World.CurrentDate + 
-					", MigrationValue: " + MigrationValue + 
-					", TotalMigrationValue: " + TotalMigrationValue + 
-					", OptimalPopulation: " + OptimalPopulation + 
-					", ExactPopulation: " + ExactPopulation + 
-					", randomFactor: " + randomFactor +
-					", LastUpdateDate: " + LastUpdateDate +
-					"");
-
-				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-			}
-		}
+        if (FactionCores.Count > 0)
+        {
+            foreach (Faction faction in FactionCores.Values)
+            {
+                if (faction.CoreGroupId != Id)
+                {
+                    Debug.LogError("Group identifies as faction core when it no longer is. Id: " + Id + ", CoreId: " + faction.CoreGroupId + ", current date: " + World.CurrentDate);
+                }
+            }
+        }
 #endif
 
-//		#if DEBUG
-//		if (Cell.IsSelected) {
-//			bool debug = true;
-//		}
-//		#endif
+        //		#if DEBUG
+        //		if (Cell.IsSelected) {
+        //			bool debug = true;
+        //		}
+        //		#endif
 
-		return World.CurrentDate + updateSpan;
-	}
+        float randomFactor = Cell.GetNextLocalRandomFloat(RngOffsets.CELL_GROUP_CALCULATE_NEXT_UPDATE);
+        randomFactor = 1f - Mathf.Pow(randomFactor, 4);
 
-	public float PopulationAfterTime (long time) { // in years
+        float migrationFactor = 1;
 
-		float population = ExactPopulation;
-		
-		if (population == OptimalPopulation)
-			return population;
-		
-		float timeFactor = NaturalGrowthRate * time / (float)GenerationSpan;
+        if (TotalMigrationValue > 0)
+        {
+            migrationFactor = MigrationValue / TotalMigrationValue;
+            migrationFactor = Mathf.Pow(migrationFactor, 4);
+        }
 
-		if (population < OptimalPopulation) {
-			
-			float geometricTimeFactor = Mathf.Pow(2, timeFactor);
-			float populationFactor = 1 - ExactPopulation/(float)OptimalPopulation;
+        float polityExpansionFactor = 1;
 
-			population = OptimalPopulation * MathUtility.RoundToSixDecimals (1 - Mathf.Pow(populationFactor, geometricTimeFactor));
+        if (TotalPolityExpansionValue > 0)
+        {
+            polityExpansionFactor = PolityExpansionValue / TotalPolityExpansionValue;
+            polityExpansionFactor = Mathf.Pow(polityExpansionFactor, 4);
+        }
+
+        float skillLevelFactor = Culture.MinimumSkillAdaptationLevel();
+        float knowledgeLevelFactor = Culture.MinimumKnowledgeProgressLevel();
+
+        float populationFactor = 0.0001f + Mathf.Abs(OptimalPopulation - Population);
+        populationFactor = 100 * OptimalPopulation / populationFactor;
+
+        //		#if DEBUG
+        //		if (Cell.IsSelected) {
+        //			bool debug = true;
+        //		}
+        //		#endif
+
+        populationFactor = Mathf.Min(populationFactor, MaxUpdateSpanFactor);
+
+        float mixFactor = randomFactor * migrationFactor * polityExpansionFactor * skillLevelFactor * knowledgeLevelFactor * populationFactor;
+
+        long updateSpan = GenerationSpan * (int)mixFactor;
+
+        if (updateSpan < 0)
+            updateSpan = MaxUpdateSpan;
+
+        updateSpan = (updateSpan < GenerationSpan) ? GenerationSpan : updateSpan;
+        updateSpan = (updateSpan > MaxUpdateSpan) ? MaxUpdateSpan : updateSpan;
 
 #if DEBUG
-			if ((int)population < -1000) {
+        if (Manager.RegisterDebugEvent != null)
+        {
+            if (Id == Manager.TracingData.GroupId)
+            {
+                string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
 
-				Debug.Break ();
-				throw new System.Exception ("Debug.Break");
-			}
+                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+                    "CalculateNextUpdateDate - Group:" + groupId,
+                    "CurrentDate: " + World.CurrentDate +
+                    ", MigrationValue: " + MigrationValue +
+                    ", TotalMigrationValue: " + TotalMigrationValue +
+                    ", OptimalPopulation: " + OptimalPopulation +
+                    ", ExactPopulation: " + ExactPopulation +
+                    ", randomFactor: " + randomFactor +
+                    ", migrationFactor: " + migrationFactor +
+                    ", polityExpansionFactor: " + polityExpansionFactor +
+                    ", skillLevelFactor: " + skillLevelFactor +
+                    ", knowledgeLevelFactor: " + knowledgeLevelFactor +
+                    ", populationFactor: " + populationFactor +
+                    ", LastUpdateDate: " + LastUpdateDate +
+                    "");
+
+                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+            }
+        }
 #endif
 
-//			#if DEBUG
-//			if (Manager.RegisterDebugEvent != null) {
-//				if (Id == Manager.TracingData.GroupId) {
-//					string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
-//
-//					SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-//						"PopulationAfterTime:increase - Group:" + groupId,
-//						"CurrentDate: " + World.CurrentDate + 
-//						", OptimalPopulation: " + OptimalPopulation + 
-//						", ExactPopulation: " + ExactPopulation + 
-//						", new population: " + population + 
-//						"");
-//
-//					Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-//				}
-//			}
-//			#endif
+        //		#if DEBUG
+        //		if (Cell.IsSelected) {
+        //			bool debug = true;
+        //		}
+        //		#endif
 
-			return population;
-		}
+        return World.CurrentDate + updateSpan;
+    }
 
-		if (population > OptimalPopulation) {
+    public float PopulationAfterTime(long time) // in years
+    {
+        float population = ExactPopulation;
 
-			population = OptimalPopulation + (ExactPopulation - OptimalPopulation) * MathUtility.RoundToSixDecimals (Mathf.Exp (-timeFactor));
+        if (population == OptimalPopulation)
+            return population;
+
+        float timeFactor = NaturalGrowthRate * time / (float)GenerationSpan;
+
+        if (population < OptimalPopulation)
+        {
+            float geometricTimeFactor = Mathf.Pow(2, timeFactor);
+            float populationFactor = 1 - ExactPopulation / (float)OptimalPopulation;
+
+            population = OptimalPopulation * MathUtility.RoundToSixDecimals(1 - Mathf.Pow(populationFactor, geometricTimeFactor));
 
 #if DEBUG
-			if ((int)population < -1000) {
-
-				Debug.Break ();
-				throw new System.Exception ("Debug.Break");
-			}
+            if ((int)population < -1000)
+            {
+                Debug.Break();
+                throw new System.Exception("Debug.Break");
+            }
 #endif
 
-//			#if DEBUG
-//			if (Manager.RegisterDebugEvent != null) {
-//				if (Id == Manager.TracingData.GroupId) {
-//					string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
-//
-//					SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-//						"PopulationAfterTime:decrease - Group:" + groupId,
-//						"CurrentDate: " + World.CurrentDate + 
-//						", OptimalPopulation: " + OptimalPopulation + 
-//						", ExactPopulation: " + ExactPopulation + 
-//						", new population: " + population + 
-//						"");
-//
-//					Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-//				}
-//			}
-//			#endif
-			
-			return population;
-		}
+            //			#if DEBUG
+            //			if (Manager.RegisterDebugEvent != null) {
+            //				if (Id == Manager.TracingData.GroupId) {
+            //					string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
+            //
+            //					SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+            //						"PopulationAfterTime:increase - Group:" + groupId,
+            //						"CurrentDate: " + World.CurrentDate + 
+            //						", OptimalPopulation: " + OptimalPopulation + 
+            //						", ExactPopulation: " + ExactPopulation + 
+            //						", new population: " + population + 
+            //						"");
+            //
+            //					Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+            //				}
+            //			}
+            //			#endif
 
-		return 0;
-	}
+            return population;
+        }
 
-	public PolityProminence GetPolityProminence (Polity polity) {
+        if (population > OptimalPopulation)
+        {
+            population = OptimalPopulation + (ExactPopulation - OptimalPopulation) * MathUtility.RoundToSixDecimals(Mathf.Exp(-timeFactor));
+
+#if DEBUG
+            if ((int)population < -1000)
+            {
+                Debug.Break();
+                throw new System.Exception("Debug.Break");
+            }
+#endif
+
+            //			#if DEBUG
+            //			if (Manager.RegisterDebugEvent != null) {
+            //				if (Id == Manager.TracingData.GroupId) {
+            //					string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
+            //
+            //					SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+            //						"PopulationAfterTime:decrease - Group:" + groupId,
+            //						"CurrentDate: " + World.CurrentDate + 
+            //						", OptimalPopulation: " + OptimalPopulation + 
+            //						", ExactPopulation: " + ExactPopulation + 
+            //						", new population: " + population + 
+            //						"");
+            //
+            //					Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+            //				}
+            //			}
+            //			#endif
+
+            return population;
+        }
+
+        return 0;
+    }
+
+    public PolityProminence GetPolityProminence (Polity polity) {
 
 		PolityProminence polityProminence;
 

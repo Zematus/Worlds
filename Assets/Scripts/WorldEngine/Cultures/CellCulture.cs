@@ -609,12 +609,32 @@ public class CellCulture : Culture
 
         foreach (CellCulturalKnowledge knowledge in Knowledges.Values)
         {
+            if (!knowledge.IsPresent)
+                continue;
+
             float level = knowledge.CalculateExpectedProgressLevel();
 
             if (level < minProgressLevel)
             {
                 minProgressLevel = level;
             }
+
+#if DEBUG
+            if (Manager.RegisterDebugEvent != null)
+            {
+                if (Group.Id == Manager.TracingData.GroupId)
+                {
+                    SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+                        "CellCulture.MinimumKnowledgeProgressLevel - knowledge.Id:" + knowledge.Id + ", Group.Id:" + Group.Id,
+                        "CurrentDate: " + Group.World.CurrentDate +
+                        ", knowledge.CalculateExpectedProgressLevel(): " + level +
+                        ", minProgressLevel: " + minProgressLevel +
+                        "");
+
+                    Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+                }
+            }
+#endif
         }
 
         return minProgressLevel;

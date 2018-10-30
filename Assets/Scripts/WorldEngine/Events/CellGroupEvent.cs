@@ -4,103 +4,108 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
-public abstract class CellGroupEvent : WorldEvent {
+public abstract class CellGroupEvent : WorldEvent
+{
+    [XmlAttribute("GId")]
+    public long GroupId;
 
-	[XmlAttribute("GId")]
-	public long GroupId;
+    [XmlIgnore]
+    public CellGroup Group;
 
-	[XmlIgnore]
-	public CellGroup Group;
+    public CellGroupEvent()
+    {
 
-	public CellGroupEvent () {
+    }
 
-	}
+    public CellGroupEvent(CellGroup group, long triggerDate, long eventTypeId, long? id = null) :
+    base(group.World, triggerDate, (id == null) ? GenerateUniqueIdentifier(group, triggerDate, eventTypeId) : id.Value, eventTypeId)
+    {
+        Group = group;
+        GroupId = Group.Id;
 
-	public CellGroupEvent (CellGroup group, long triggerDate, long eventTypeId, long? id = null) : 
-	base (group.World, triggerDate, (id == null) ? GenerateUniqueIdentifier (group, triggerDate, eventTypeId) : id.Value, eventTypeId) {
+#if DEBUG
+        GenerateDebugMessage(false);
+#endif
+    }
 
-		Group = group;
-		GroupId = Group.Id;
+    public override WorldEventSnapshot GetSnapshot()
+    {
+        return new CellGroupEventSnapshot(this);
+    }
 
-		#if DEBUG
-		GenerateDebugMessage (false);
-		#endif
-	}
+    public static long GenerateUniqueIdentifier(CellGroup group, long triggerDate, long eventTypeId)
+    {
+#if DEBUG
+        if (triggerDate >= World.MaxSupportedDate)
+        {
+            Debug.LogWarning("'triggerDate' shouldn't be greater than " + World.MaxSupportedDate + " (triggerDate = " + triggerDate + ")");
+        }
+#endif
 
-	public override WorldEventSnapshot GetSnapshot ()
-	{
-		return new CellGroupEventSnapshot (this);
-	}
+        long id = (triggerDate * 1000000000L) + (group.Longitude * 1000000L) + (group.Latitude * 1000L) + eventTypeId;
 
-	public static long GenerateUniqueIdentifier (CellGroup group, long triggerDate, long eventTypeId) {
+        return id;
+    }
 
-		#if DEBUG
-		if (triggerDate >= World.MaxSupportedDate) {
-			Debug.LogWarning ("'triggerDate' shouldn't be greater than " + World.MaxSupportedDate + " (triggerDate = " + triggerDate + ")");
-		}
-		#endif
+#if DEBUG
+    protected void GenerateDebugMessage(bool isReset)
+    {
+        if (Manager.RegisterDebugEvent != null)
+        {
+            //			if (Group.Id == Manager.TracingData.GroupId) {
+            string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
 
-		long id = (triggerDate * 1000000000L) + (group.Longitude * 1000000L) + (group.Latitude * 1000L) + eventTypeId;
+            SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("CellGroupEvent - Group:" + groupId + ", Type: " + this.GetType(),
+                "TriggerDate: " + TriggerDate +
+                //				", isReset: " + isReset + 
+                "");
 
-		return id;
-	}
+            Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+            //			}
+        }
+    }
+#endif
 
-	#if DEBUG
-	protected void GenerateDebugMessage (bool isReset) {
+    public override bool IsStillValid()
+    {
+        if (!base.IsStillValid())
+        {
+            return false;
+        }
 
-		if (Manager.RegisterDebugEvent != null) {
-			//			if (Group.Id == Manager.TracingData.GroupId) {
-			string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
+        if (Group == null)
+            return false;
 
-			SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("CellGroupEvent - Group:" + groupId + ", Type: " + this.GetType (), 
-				"TriggerDate: " + TriggerDate + 
-				//				", isReset: " + isReset + 
-				"");
+        return Group.StillPresent;
+    }
 
-			Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-			//			}
-		}
-	}
-	#endif
+    public override void FinalizeLoad()
+    {
+        base.FinalizeLoad();
 
-	public override bool IsStillValid ()
-	{
-		if (!base.IsStillValid ()) {
-			return false;
-		}
+        Group = World.GetGroup(GroupId);
 
-		if (Group == null)
-			return false;
+        if (Group == null)
+        {
 
-		return Group.StillPresent;
-	}
+            Debug.LogError("CellGroupEvent: Group with Id:" + GroupId + " not found");
+        }
+    }
 
-	public override void FinalizeLoad () {
+    protected override void DestroyInternal()
+    {
+        //		if (Group == null)
+        //			return;
 
-		base.FinalizeLoad ();
+        base.DestroyInternal();
+    }
 
-		Group = World.GetGroup (GroupId);
+    public virtual void Reset(long newTriggerDate)
+    {
+        Reset(newTriggerDate, GenerateUniqueIdentifier(Group, newTriggerDate, TypeId));
 
-		if (Group == null) {
-
-			Debug.LogError ("CellGroupEvent: Group with Id:" + GroupId + " not found");
-		}
-	}
-
-	protected override void DestroyInternal ()
-	{
-		//		if (Group == null)
-		//			return;
-
-		base.DestroyInternal ();
-	}
-
-	public virtual void Reset (long newTriggerDate) {
-
-		Reset (newTriggerDate, GenerateUniqueIdentifier (Group, newTriggerDate, TypeId));
-
-		#if DEBUG
-		GenerateDebugMessage (true);
-		#endif
-	}
+#if DEBUG
+        GenerateDebugMessage(true);
+#endif
+    }
 }
