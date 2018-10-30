@@ -432,27 +432,29 @@ public class CellGroup : HumanGroup
 
     public void SetHighestPolityProminence(PolityProminence prominence)
     {
+#if DEBUG
+        if (prominence == null)
+        {
+            if (PolityProminences.Count > 0)
+            {
+                throw new System.Exception("Trying to set HighestPolityProminence to null when there are still polity prominences in group");
+            }
+        }
+#endif
+
         if (HighestPolityProminence == prominence)
             return;
 
         if (HighestPolityProminence != null)
         {
-            //Profiler.BeginSample("Territory.RemoveCell");
-
             HighestPolityProminence.Polity.Territory.RemoveCell(Cell);
-
-            //Profiler.EndSample();
         }
 
         HighestPolityProminence = prominence;
 
         if (prominence != null)
         {
-            //Profiler.BeginSample("Territory.AddCell");
-
             prominence.Polity.Territory.AddCell(Cell);
-
-            //Profiler.EndSample();
         }
     }
 
@@ -1079,7 +1081,6 @@ public class CellGroup : HumanGroup
 #if DEBUG
         if (float.IsNaN(cellValue))
         {
-
             Debug.Break();
             throw new System.Exception("float.IsNaN (cellValue)");
         }
@@ -1728,7 +1729,7 @@ public class CellGroup : HumanGroup
         Cell.FarmlandPercentage = 0;
     }
 
-    public void RemovePolityProminences()
+    public void RemovePolityProminences() // This should be called only when destroying a group
     {
         // Make sure all influencing polities get updated
         SetPolityUpdates(true);
@@ -1745,8 +1746,11 @@ public class CellGroup : HumanGroup
             // We want to update the polity if a group is removed.
             SetPolityUpdate(polityProminence, true);
         }
-
-        SetHighestPolityProminence(null);
+        
+        if (HighestPolityProminence != null)
+        {
+            HighestPolityProminence.Polity.Territory.RemoveCell(Cell);
+        }
     }
 
 #if DEBUG
@@ -1849,7 +1853,7 @@ public class CellGroup : HumanGroup
         }
     }
 
-    public void SetPolityUpdate (PolityProminence pi, bool forceUpdate)
+    public void SetPolityUpdate(PolityProminence pi, bool forceUpdate)
     {
         Polity p = pi.Polity;
 
@@ -1860,7 +1864,6 @@ public class CellGroup : HumanGroup
         {
             if (Id == Manager.TracingData.GroupId)
             {
-
                 System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
 
                 System.Reflection.MethodBase method = stackTrace.GetFrame(1).GetMethod();
@@ -1892,124 +1895,127 @@ public class CellGroup : HumanGroup
         }
 #endif
 
-		if (p.WillBeUpdated)
-			return;
+        if (p.WillBeUpdated)
+            return;
 
         if (groupCount <= 0)
             return;
 
         if (forceUpdate || (p.CoreGroup == this))
         {
-			World.AddPolityToUpdate (p);
-			return;
-		}
+            World.AddPolityToUpdate(p);
+            return;
+        }
 
-		// If group is not the core group then there's a chance no polity update will happen
+        // If group is not the core group then there's a chance no polity update will happen
 
-		float chanceFactor = 1f / (float)groupCount;
+        float chanceFactor = 1f / (float)groupCount;
 
-		float rollValue = Cell.GetNextLocalRandomFloat (RngOffsets.CELL_GROUP_SET_POLITY_UPDATE + unchecked((int)p.Id));
+        float rollValue = Cell.GetNextLocalRandomFloat(RngOffsets.CELL_GROUP_SET_POLITY_UPDATE + unchecked((int)p.Id));
 
 #if DEBUG
-		if (Manager.RegisterDebugEvent != null) {
+        if (Manager.RegisterDebugEvent != null)
+        {
+            System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
 
-			System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
+            System.Reflection.MethodBase method = stackTrace.GetFrame(1).GetMethod();
+            string callingMethod = method.Name;
 
-			System.Reflection.MethodBase method = stackTrace.GetFrame(1).GetMethod();
-			string callingMethod = method.Name;
+            //				int frame = 2;
+            //				while (callingMethod.Contains ("GetNextLocalRandom") || callingMethod.Contains ("GetNextRandom")) {
+            //					method = stackTrace.GetFrame(frame).GetMethod();
+            //					callingMethod = method.Name;
+            //
+            //					frame++;
+            //				}
 
-			//				int frame = 2;
-			//				while (callingMethod.Contains ("GetNextLocalRandom") || callingMethod.Contains ("GetNextRandom")) {
-			//					method = stackTrace.GetFrame(frame).GetMethod();
-			//					callingMethod = method.Name;
-			//
-			//					frame++;
-			//				}
+            string callingClass = method.DeclaringType.ToString();
 
-			string callingClass = method.DeclaringType.ToString();
+            SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+                "SetPolityUpdate - After roll - Group:" + Id,
+                "CurrentDate: " + World.CurrentDate +
+                ", polity Id: " + p.Id +
+                ", chanceFactor: " + chanceFactor +
+                ", rollValue: " + rollValue +
+                ", forceUpdate: " + forceUpdate +
+                ", caller: " + callingClass + "::" + callingMethod +
+                "");
 
-			SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-				"SetPolityUpdate - After roll - Group:" + Id,
-				"CurrentDate: " + World.CurrentDate + 
-				", polity Id: " + p.Id + 
-				", chanceFactor: " + chanceFactor + 
-				", rollValue: " + rollValue + 
-				", forceUpdate: " + forceUpdate + 
-				", caller: " + callingClass + "::" + callingMethod +
-				"");
-
-			Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-		}
+            Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+        }
 #endif
 
-		if (rollValue <= chanceFactor)
-			World.AddPolityToUpdate (p);
-	}
-	
-	private void UpdatePopulation (long timeSpan) {
-		
-		ExactPopulation = PopulationAfterTime (timeSpan);
-	}
-	
-	private void UpdateCulture (long timeSpan) {
-		
-		Culture.Update (timeSpan);
-	}
+        if (rollValue <= chanceFactor)
+            World.AddPolityToUpdate(p);
+    }
 
-	private void UpdatePolityCulturalProminences (long timeSpan) {
-	
-		foreach (PolityProminence pi in PolityProminences.Values) {
-		
-			Culture.UpdatePolityCulturalProminence (pi, timeSpan);
-		}
-	}
-
-	private void PostUpdatePolityCulturalProminences () {
-
-		foreach (PolityProminence pi in PolityProminences.Values) {
-
-			Culture.PostUpdatePolityCulturalProminence (pi);
-		}
-	}
-
-	private void PolityUpdateEffects (long timeSpan)
+    private void UpdatePopulation(long timeSpan)
     {
-		foreach (PolityProminence polityProminence in PolityProminences.Values) {
+        ExactPopulation = PopulationAfterTime(timeSpan);
+    }
 
-			if (_polityProminencesToRemove.Contains (polityProminence.PolityId))
-				continue;
-		
-			Polity polity = polityProminence.Polity;
-			float prominenceValue = polityProminence.NewValue;
+    private void UpdateCulture(long timeSpan)
+    {
+        Culture.Update(timeSpan);
+    }
 
-			polity.GroupUpdateEffects (this, prominenceValue, TotalPolityProminenceValue, timeSpan);
-		}
+    private void UpdatePolityCulturalProminences(long timeSpan)
+    {
+        foreach (PolityProminence pi in PolityProminences.Values)
+        {
+            Culture.UpdatePolityCulturalProminence(pi, timeSpan);
+        }
+    }
 
-		if (HasTribeFormationEvent)
-			return;
+    private void PostUpdatePolityCulturalProminences()
+    {
+        foreach (PolityProminence pi in PolityProminences.Values)
+        {
+            Culture.PostUpdatePolityCulturalProminence(pi);
+        }
+    }
 
-		if (TribeFormationEvent.CanSpawnIn (this)) {
+    private void PolityUpdateEffects(long timeSpan)
+    {
+        foreach (PolityProminence polityProminence in PolityProminences.Values)
+        {
+            if (_polityProminencesToRemove.Contains(polityProminence.PolityId))
+                continue;
 
-			long triggerDate = TribeFormationEvent.CalculateTriggerDate (this);
+            Polity polity = polityProminence.Polity;
+            float prominenceValue = polityProminence.NewValue;
 
-			if (triggerDate == int.MinValue)
-				return;
+            polity.GroupUpdateEffects(this, prominenceValue, TotalPolityProminenceValue, timeSpan);
+        }
 
-			if (TribeCreationEvent == null) {
-				TribeCreationEvent = new TribeFormationEvent (this, triggerDate);
-			} else {
-				TribeCreationEvent.Reset (triggerDate);
-			}
+        if (HasTribeFormationEvent)
+            return;
 
-			World.InsertEventToHappen (TribeCreationEvent);
+        if (TribeFormationEvent.CanSpawnIn(this))
+        {
+            long triggerDate = TribeFormationEvent.CalculateTriggerDate(this);
 
-			HasTribeFormationEvent = true;
+            if (triggerDate == int.MinValue)
+                return;
 
-			TribeFormationEventDate = triggerDate;
-		}
-	}
+            if (TribeCreationEvent == null)
+            {
+                TribeCreationEvent = new TribeFormationEvent(this, triggerDate);
+            }
+            else
+            {
+                TribeCreationEvent.Reset(triggerDate);
+            }
 
-	private float GetActivityContribution(string activityId)
+            World.InsertEventToHappen(TribeCreationEvent);
+
+            HasTribeFormationEvent = true;
+
+            TribeFormationEventDate = triggerDate;
+        }
+    }
+
+    private float GetActivityContribution(string activityId)
     {
         CellCulturalActivity activity = Culture.GetActivity(activityId) as CellCulturalActivity;
 
@@ -2763,7 +2769,7 @@ public class CellGroup : HumanGroup
 
                 if (pi.Polity.StillPresent)
                 {
-                    // Decreate polity contacts
+                    // Decrease polity contacts
                     foreach (PolityProminence epi in PolityProminences.Values)
                     {
                         Polity.DecreaseContactGroupCount(pi.Polity, epi.Polity);
@@ -2920,6 +2926,16 @@ public class CellGroup : HumanGroup
                 highestProminence = pi;
             }
         }
+
+#if DEBUG
+        if (highestProminence == null)
+        {
+            foreach (PolityProminence pi in PolityProminences.Values)
+            {
+                Debug.LogWarning("pi.Id: " + pi.Id +", pi.Value: " + pi.Value);
+            }
+        }
+#endif
 
         //Profiler.BeginSample("Set Highest Polity Prominence");
 

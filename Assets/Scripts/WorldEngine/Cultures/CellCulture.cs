@@ -392,6 +392,11 @@ public class CellCulture : Culture
     {
         PolityCulture polityCulture = polityProminence.Polity.Culture;
 
+        if (Group.HighestPolityProminence == null)
+        {
+            throw new System.Exception("HighestPolityProminence is null");
+        }
+
         if (((Language == null) ||
             (polityProminence.Value >= Group.HighestPolityProminence.Value)) &&
             (Language != polityCulture.Language))

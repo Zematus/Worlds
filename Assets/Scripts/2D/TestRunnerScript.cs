@@ -113,4 +113,24 @@ public class TestRunnerScript : MonoBehaviour
                 _testIndex++;
         }
     }
+
+    void OnEnable()
+    {
+        Application.logMessageReceivedThreaded += HandleLog;
+    }
+
+    void OnDisable()
+    {
+        Application.logMessageReceivedThreaded -= HandleLog;
+    }
+
+    public void HandleLog(string logString, string stackTrace, LogType type)
+    {
+        //Manager.HandleLog(logString, stackTrace, type);
+
+        if (type == LogType.Exception)
+        {
+            Debug.Break();
+        }
+    }
 }
