@@ -18,22 +18,33 @@ public class TribalismDiscovery : CellCulturalDiscovery
     {
         int value = 0;
 
+        bool canBeHeld = true;
+
         if (!group.Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.KnowledgeId, out value))
         {
-            return false;
+            canBeHeld = false;
         }
 
         if (value < SocialOrganizationKnowledge.MinValueForHoldingTribalism)
         {
-#if DEBUG
-            if (group.GetFactionCores().Count > 0)
-            {
-                Debug.LogWarning("Group that will lose tribalism has faction cores - Id: " + group.Id);
-            }
-#endif
-            return false;
+            canBeHeld = false;
         }
 
-        return true;
+#if DEBUG
+        if (!canBeHeld)
+        {
+            if (group.GetFactionCores().Count > 0)
+            {
+                Debug.LogWarning("Group that will lose tribalism has faction cores - Id: " + group.Id + ", value:" + value + ", date:" + group.World.CurrentDate);
+            }
+
+            if (group.WillBecomeFactionCore)
+            {
+                Debug.LogWarning("Group that will lose tribalism will become a faction core - Id: " + group.Id + ", value:" + value + ", date:" + group.World.CurrentDate);
+            }
+        }
+#endif
+
+        return canBeHeld;
     }
 }

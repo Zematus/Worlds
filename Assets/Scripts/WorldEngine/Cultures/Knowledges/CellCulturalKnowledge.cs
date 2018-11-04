@@ -220,13 +220,27 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
 #if DEBUG
         if ((Asymptote > 1) && (newValue > Asymptote) && (newValue > Value))
         {
-            Debug.LogError("UpdateValueInternal: new value " + newValue + " above Asymptote " + Asymptote);
+            throw new System.Exception("UpdateValueInternal: new value " + newValue + " above Asymptote " + Asymptote);
         }
-#endif
-#if DEBUG
+
         if (newValue > 1000000)
         {
-            Debug.LogError("UpdateValueInternal: new value " + newValue + " above 1000000000");
+            throw new System.Exception("UpdateValueInternal: new value " + newValue + " above 1000000000");
+        }
+#endif
+
+#if DEBUG
+        if ((Id == SocialOrganizationKnowledge.KnowledgeId) && (newValue < SocialOrganizationKnowledge.MinValueForHoldingTribalism))
+        {
+            if (Group.GetFactionCores().Count > 0)
+            {
+                Debug.LogWarning("Group with low social organization has faction cores - Id: " + Group.Id + ", newValue:" + newValue);
+            }
+
+            if (Group.WillBecomeFactionCore)
+            {
+                Debug.LogWarning("Group with low social organization will become a faction core - Id: " + Group.Id + ", newValue:" + newValue);
+            }
         }
 #endif
 

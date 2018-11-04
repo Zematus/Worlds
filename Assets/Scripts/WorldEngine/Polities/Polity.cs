@@ -972,6 +972,11 @@ public abstract class Polity : ISynchronizable {
 
     public virtual void GroupUpdateEffects(CellGroup group, float prominenceValue, float totalPolityProminenceValue, long timeSpan)
     {
+        if (totalPolityProminenceValue == 0)
+        {
+            throw new System.Exception("totalPolityProminenceValue is 0. Polity Id:" + Id + ", group.Id:" + group.Id);
+        }
+
         if (!group.Culture.HasDiscovery(TribalismDiscovery.DiscoveryId))
         {
             group.SetPolityProminence(this, 0);
@@ -1006,29 +1011,29 @@ public abstract class Polity : ISynchronizable {
 
         prominenceValue = Mathf.Clamp01(prominenceValue);
 
-//#if DEBUG
-//        if (Manager.RegisterDebugEvent != null)
-//        {
-//            if (group.Id == Manager.TracingData.GroupId)
-//            {
-//                string groupId = "Id:" + group.Id + "|Long:" + group.Longitude + "|Lat:" + group.Latitude;
+        //#if DEBUG
+        //        if (Manager.RegisterDebugEvent != null)
+        //        {
+        //            if (group.Id == Manager.TracingData.GroupId)
+        //            {
+        //                string groupId = "Id:" + group.Id + "|Long:" + group.Longitude + "|Lat:" + group.Latitude;
 
-//                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-//                    "UpdateEffects - Group:" + groupId +
-//                    ", Polity.Id: " + Id,
-//                    "CurrentDate: " + World.CurrentDate +
-//                    ", randomFactor: " + randomFactor +
-//                    ", groupTotalPolityProminenceValue: " + groupTotalPolityProminenceValue +
-//                    ", Polity.TotalGroupProminenceValue: " + TotalGroupProminenceValue +
-//                    ", unmodInflueceValue: " + unmodInflueceValue +
-//                    ", prominenceValue: " + prominenceValue +
-//                    ", group.LastUpdateDate: " + group.LastUpdateDate +
-//                    "");
+        //                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+        //                    "UpdateEffects - Group:" + groupId +
+        //                    ", Polity.Id: " + Id,
+        //                    "CurrentDate: " + World.CurrentDate +
+        //                    ", randomFactor: " + randomFactor +
+        //                    ", groupTotalPolityProminenceValue: " + groupTotalPolityProminenceValue +
+        //                    ", Polity.TotalGroupProminenceValue: " + TotalGroupProminenceValue +
+        //                    ", unmodInflueceValue: " + unmodInflueceValue +
+        //                    ", prominenceValue: " + prominenceValue +
+        //                    ", group.LastUpdateDate: " + group.LastUpdateDate +
+        //                    "");
 
-//                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-//            }
-//        }
-//#endif
+        //                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+        //            }
+        //        }
+        //#endif
 
         group.SetPolityProminence(this, prominenceValue);
     }

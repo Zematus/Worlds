@@ -99,6 +99,7 @@ public class PolityProminence : IKeyedValue<long>
     public void PostUpdate()
     {
         Value = NewValue;
+
         PolityCoreDistance = NewPolityCoreDistance;
         FactionCoreDistance = NewFactionCoreDistance;
 

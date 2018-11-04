@@ -88,10 +88,14 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge
 #if DEBUG
         if (_newValue < SocialOrganizationKnowledge.MinValueForHoldingTribalism)
         {
-
             if (Group.GetFactionCores().Count > 0)
             {
-                Debug.LogWarning("group with low social organization has faction cores - Id: " + Group.Id);
+                Debug.LogWarning("Group with low social organization has faction cores - Id: " + Group.Id + ", _newValue:" + _newValue);
+            }
+
+            if (Group.WillBecomeFactionCore)
+            {
+                Debug.LogWarning("Group with low social organization will become a faction core - Id: " + Group.Id + ", _newValue:" + _newValue);
             }
         }
 #endif

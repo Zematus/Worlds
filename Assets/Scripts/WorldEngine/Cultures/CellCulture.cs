@@ -486,18 +486,19 @@ public class CellCulture : Culture
 
         foreach (CellCulturalDiscovery discovery in DiscoveriesToFind.Values)
         {
-            bool setAsPresent = discovery.CanBeHeld(Group);
+            //bool setAsPresent = discovery.CanBeHeld(Group);
 
             try
             {
-                AddDiscovery(discovery, setAsPresent);
+                //AddDiscovery(discovery, setAsPresent);
+                AddDiscovery(discovery);
             }
             catch (System.ArgumentException)
             {
                 throw new System.Exception("Attempted to add duplicate discovery (" + discovery.Id + ") to group " + Group.Id);
             }
 
-            if (!setAsPresent) continue;
+            //if (!setAsPresent) continue;
 
             discovery.GainConsequences(Group);
 

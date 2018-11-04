@@ -227,6 +227,11 @@ public class Clan : Faction
 
     public static bool CanBeClanCore(CellGroup group)
     {
+        if (!group.Culture.HasDiscovery(TribalismDiscovery.DiscoveryId))
+        {
+            return false;
+        }
+
         int value = 0;
 
         if (!group.Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.KnowledgeId, out value))
@@ -234,7 +239,9 @@ public class Clan : Faction
             return false;
         }
 
-        return value >= MinSocialOrganizationValue;
+        bool hasMinSocialOrg = value >= MinSocialOrganizationValue;
+
+        return hasMinSocialOrg;
     }
 
     public bool IsGroupValidCore(CellGroup group)

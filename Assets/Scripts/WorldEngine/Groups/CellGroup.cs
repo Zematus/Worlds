@@ -875,53 +875,53 @@ public class CellGroup : HumanGroup
             return;
         }
 
-        Profiler.BeginSample("Update Terrain Farmland Percentage");
+        //Profiler.BeginSample("Update Terrain Farmland Percentage");
 
         UpdateTerrainFarmlandPercentage();
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
-        Profiler.BeginSample("Culture PostUpdate");
+        //Profiler.BeginSample("Culture PostUpdate");
 
         Culture.PostUpdate();
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
-        Profiler.BeginSample("Set Faction Updates");
+        //Profiler.BeginSample("Set Faction Updates");
 
         SetFactionUpdates();
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
-        Profiler.BeginSample("Culture PostUpdate Cleanup");
+        //Profiler.BeginSample("Culture PostUpdate Cleanup");
 
         Culture.CleanUpAtributesToGet();
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
-        Profiler.BeginSample("Set Polity Updates");
+        //Profiler.BeginSample("Set Polity Updates");
 
         SetPolityUpdates();
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
-        Profiler.BeginSample("Post Update Polity Prominences");
+        //Profiler.BeginSample("Post Update Polity Prominences");
 
         PostUpdatePolityProminences_BeforePolityUpdates();
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
-        Profiler.BeginSample("PostUpdate Polity Cultural Prominences");
+        //Profiler.BeginSample("PostUpdate Polity Cultural Prominences");
 
         PostUpdatePolityCulturalProminences();
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
-        Profiler.BeginSample("Update Polity Prominence Administrative Costs");
+        //Profiler.BeginSample("Update Polity Prominence Administrative Costs");
 
         UpdatePolityProminenceAdministrativeCosts();
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
     }
 
     public void PostUpdate_AfterPolityUpdates()
@@ -2886,18 +2886,14 @@ public class CellGroup : HumanGroup
             }
 #endif
 
-            if (!WillBecomeFactionCore)
+            if (WillBecomeFactionCore)
             {
-                _polityProminencesToRemove.Add(polityProminence.PolityId);
+                throw new System.Exception("Group is set to become a faction core - group Id: " + Id + " - polity Id: " + polityProminence.PolityId + ", Date:" + World.CurrentDate);
+            }
 
-                return null;
-            }
-            else
-            {
-#if DEBUG
-                Debug.LogWarning("Group is set to become a faction core - group Id: " + Id + " - polity Id: " + polityProminence.PolityId);
-#endif
-            }
+            _polityProminencesToRemove.Add(polityProminence.PolityId);
+
+            return null;
         }
 
         if (polityCoreDistance == -1)
@@ -2907,6 +2903,7 @@ public class CellGroup : HumanGroup
             factionCoreDistance = CalculateShortestFactionCoreDistance(polity);
 
         polityProminence.NewValue = newProminenceValue;
+
         polityProminence.NewPolityCoreDistance = polityCoreDistance;
         polityProminence.NewFactionCoreDistance = factionCoreDistance;
 
@@ -2932,7 +2929,7 @@ public class CellGroup : HumanGroup
         {
             foreach (PolityProminence pi in PolityProminences.Values)
             {
-                Debug.LogWarning("pi.Id: " + pi.Id +", pi.Value: " + pi.Value);
+                Debug.LogWarning("pi.Id: " + pi.Id + ", pi.PolityId: " + pi.PolityId + ", pi.Value: " + pi.Value);
             }
         }
 #endif
