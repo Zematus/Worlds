@@ -114,4 +114,11 @@ public class CellCulturalActivity : CulturalActivity
     {
         Value = Mathf.Clamp01(_newValue);
     }
+
+    public override void FinalizeLoad()
+    {
+        base.FinalizeLoad();
+
+        _newValue = Value;
+    }
 }

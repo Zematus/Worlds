@@ -42,6 +42,27 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
         InstanceRngOffset = unchecked((int)group.GenerateUniqueIdentifier(group.World.CurrentDate, 100L, typeRngOffset));
 
         _newValue = value;
+
+#if DEBUG
+        if (Manager.RegisterDebugEvent != null)
+        {
+            if (Group.Id == Manager.TracingData.GroupId)
+            {
+                string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
+
+                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+                    "CellCulturalKnowledge.CellCulturalKnowledge - Group:" + groupId,
+                    "CurrentDate: " + Group.World.CurrentDate +
+                    ", Id: " + Id +
+                    ", IsPresent: " + IsPresent +
+                    ", Value: " + Value +
+                    ", _newValue: " + _newValue +
+                    "");
+
+                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+            }
+        }
+#endif
     }
 
     public CellCulturalKnowledge(CellGroup group, string id, string name, int typeRngOffset, int value, int asymptote) : base(id, name, value)
@@ -51,12 +72,55 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
         Asymptote = asymptote;
 
         _newValue = value;
+
+#if DEBUG
+        if (Manager.RegisterDebugEvent != null)
+        {
+            if (Group.Id == Manager.TracingData.GroupId)
+            {
+                string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
+
+                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+                    "CellCulturalKnowledge.CellCulturalKnowledge (with asymptote) - Group:" + groupId,
+                    "CurrentDate: " + Group.World.CurrentDate +
+                    ", Id: " + Id +
+                    ", IsPresent: " + IsPresent +
+                    ", Value: " + Value +
+                    ", _newValue: " + _newValue +
+                    ", Asymptote: " + Asymptote +
+                    "");
+
+                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+            }
+        }
+#endif
     }
 
     public void SetInitialValue(int value)
     {
         Value = value;
         _newValue = value;
+
+#if DEBUG
+        if (Manager.RegisterDebugEvent != null)
+        {
+            if (Group.Id == Manager.TracingData.GroupId)
+            {
+                string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
+
+                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+                    "CellCulturalKnowledge.SetInitialValue - Group:" + groupId,
+                    "CurrentDate: " + Group.World.CurrentDate +
+                    ", Id: " + Id +
+                    ", IsPresent: " + IsPresent +
+                    ", Value: " + Value +
+                    ", _newValue: " + _newValue +
+                    "");
+
+                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+            }
+        }
+#endif
     }
 
     public static CellCulturalKnowledge CreateCellInstance(string id, CellGroup group, int initialValue = 0)
@@ -343,4 +407,11 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
     protected abstract void UpdateInternal(long timeSpan);
     protected abstract int CalculateAsymptoteInternal(CulturalDiscovery discovery);
     protected abstract int GetBaseAsymptote();
+
+    public override void FinalizeLoad()
+    {
+        base.FinalizeLoad();
+
+        _newValue = Value;
+    }
 }

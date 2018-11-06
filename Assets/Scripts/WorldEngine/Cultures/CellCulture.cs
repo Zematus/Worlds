@@ -343,6 +343,8 @@ public class CellCulture : Culture
 
         foreach (CellCulturalKnowledge knowledge in Knowledges.Values)
         {
+            if (!knowledge.IsPresent) continue;
+
             knowledge.Update(timeSpan);
         }
     }
@@ -722,7 +724,7 @@ public class CellCulture : Culture
                         "CellCulture.MinimumKnowledgeProgressLevel - knowledge.Id:" + knowledge.Id + ", Group.Id:" + Group.Id,
                         "CurrentDate: " + Group.World.CurrentDate +
                         ", knowledge.IsPresent: " + knowledge.IsPresent +
-                        ", knowledge.WasPresent: " + knowledge.WasPresent +
+                        //", knowledge.WasPresent: " + knowledge.WasPresent +
                         "");
 
                     Manager.RegisterDebugEvent("DebugMessage", debugMessage);

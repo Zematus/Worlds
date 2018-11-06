@@ -110,4 +110,11 @@ public class CellCulturalPreference : CulturalPreference
     {
         Value = Mathf.Clamp01(_newValue);
     }
+
+    public override void FinalizeLoad()
+    {
+        base.FinalizeLoad();
+
+        _newValue = Value;
+    }
 }

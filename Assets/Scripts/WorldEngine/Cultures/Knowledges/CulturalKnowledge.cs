@@ -76,7 +76,7 @@ public class CulturalKnowledge : CulturalKnowledgeInfo, IFilterableValue
                     "CurrentDate: " + group.World.CurrentDate +
                     ", Id: " + Id +
                     ", IsPresent: " + IsPresent +
-                    ", WasPresent: " + WasPresent +
+                    //", WasPresent: " + WasPresent +
                     ", Value: " + Value +
                     ", Calling method 1: " + callingClass1 + ":" + callingMethod1 +
                     //", Calling method 2: " + callingClass2 + ":" + callingMethod2 +
@@ -121,7 +121,7 @@ public class CulturalKnowledge : CulturalKnowledgeInfo, IFilterableValue
                     "CurrentDate: " + group.World.CurrentDate +
                     ", Id: " + Id +
                     ", IsPresent: " + IsPresent +
-                    ", WasPresent: " + WasPresent +
+                    //", WasPresent: " + WasPresent +
                     ", Value: " + Value +
                     ", Calling method 1: " + callingClass1 + ":" + callingMethod1 +
                     ", Calling method 2: " + callingClass2 + ":" + callingMethod2 +

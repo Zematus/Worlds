@@ -213,4 +213,11 @@ public abstract class CellCulturalSkill : CulturalSkill
     }
 
     protected abstract void PostUpdateInternal();
+
+    public override void FinalizeLoad()
+    {
+        base.FinalizeLoad();
+
+        _newValue = Value;
+    }
 }

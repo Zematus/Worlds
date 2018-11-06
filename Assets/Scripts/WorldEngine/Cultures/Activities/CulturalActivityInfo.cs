@@ -38,11 +38,11 @@ public class CulturalActivityInfo : IKeyedValue<string>, ISynchronizable
         return Id;
     }
 
-    public void Synchronize()
+    public virtual void Synchronize()
     {
     }
 
-    public void FinalizeLoad()
+    public virtual void FinalizeLoad()
     {
         switch (Id)
         {

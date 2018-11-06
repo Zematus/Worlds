@@ -43,10 +43,10 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge
         return knowledge.Id.Contains(KnowledgeId);
     }
 
-    public override void FinalizeLoad()
-    {
-        base.FinalizeLoad();
-    }
+    //public override void FinalizeLoad()
+    //{
+    //    base.FinalizeLoad();
+    //}
 
     private float CalculatePopulationFactor()
     {
