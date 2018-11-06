@@ -8,14 +8,8 @@ public class Route : ISynchronizable
 {
     //public List<WorldPosition> CellPositions = new List<WorldPosition>();
 
-    [XmlAttribute("L")]
-    public float Length = 0;
-
     [XmlAttribute("C")]
     public bool Consolidated = false;
-
-    [XmlAttribute("D")]
-    public int MigrationDirectionInt = -1;
 
     [XmlAttribute("CD")]
     public long CreationDate;
@@ -25,6 +19,12 @@ public class Route : ISynchronizable
 
     [XmlAttribute("SLa")]
     public int StartLatitude;
+
+    [XmlIgnore]
+    public float Length = 0;
+
+    [XmlIgnore]
+    public int MigrationDirectionInt = -1;
 
     [XmlIgnore]
     public World World;
@@ -108,6 +108,7 @@ public class Route : ISynchronizable
 
         AddCell(FirstCell);
         LastCell = FirstCell;
+        Length = 0;
 
         TerrainCell nextCell = FirstCell;
         Direction nextDirection;

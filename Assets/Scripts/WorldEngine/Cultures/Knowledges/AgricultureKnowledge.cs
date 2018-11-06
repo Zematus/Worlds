@@ -85,22 +85,22 @@ public class AgricultureKnowledge : CellCulturalKnowledge
         if (_terrainFactor <= 0)
             return 1;
 
-#if DEBUG
-        if (Manager.RegisterDebugEvent != null)
-        {
-            if (Group.Id == Manager.TracingData.GroupId)
-            {
-                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-                    "AgricultureKnowledge.CalculateExpectedProgressLevel -  Group.Id:" + Group.Id,
-                    "CurrentDate: " + Group.World.CurrentDate +
-                    ", _terrainFactor: " + _terrainFactor +
-                    ", ProgressLevel: " + ProgressLevel +
-                    "");
+//#if DEBUG
+//        if (Manager.RegisterDebugEvent != null)
+//        {
+//            if (Group.Id == Manager.TracingData.GroupId)
+//            {
+//                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//                    "AgricultureKnowledge.CalculateExpectedProgressLevel -  Group.Id:" + Group.Id,
+//                    "CurrentDate: " + Group.World.CurrentDate +
+//                    ", _terrainFactor: " + _terrainFactor +
+//                    ", ProgressLevel: " + ProgressLevel +
+//                    "");
 
-                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-            }
-        }
-#endif
+//                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+//            }
+//        }
+//#endif
 
         return Mathf.Clamp(ProgressLevel / _terrainFactor, MinProgressLevel, 1);
     }
@@ -114,7 +114,30 @@ public class AgricultureKnowledge : CellCulturalKnowledge
     {
         if (Value <= 0)
         {
-            return !Group.InfluencingPolityHasKnowledge(Id);
+            bool polityHasKnowledge = Group.InfluencingPolityHasKnowledge(Id);
+
+#if DEBUG
+            if (Manager.RegisterDebugEvent != null)
+            {
+                if (Group.Id == Manager.TracingData.GroupId)
+                {
+                    string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
+
+                    SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+                        "AgricultureKnowledge.WillBeLost - Group:" + groupId,
+                        "CurrentDate: " + Group.World.CurrentDate +
+                        ", Id: " + Id +
+                        ", IsPresent: " + IsPresent +
+                        ", Value: " + Value +
+                        ", polityHasKnowledge: " + polityHasKnowledge +
+                        "");
+
+                    Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+                }
+            }
+#endif
+
+            return !polityHasKnowledge;
         }
 
         return false;

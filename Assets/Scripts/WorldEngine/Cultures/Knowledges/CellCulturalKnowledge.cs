@@ -9,6 +9,9 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
 {
     public const float MinProgressLevel = 0.001f;
 
+    //[XmlAttribute("AD")]
+    //public bool AcquisitionDate;
+
     [XmlAttribute("PL")]
     public float ProgressLevel;
 
@@ -107,6 +110,30 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
             if (Group.GetFactionCores().Count > 0)
             {
                 Debug.LogWarning("group with low social organization has faction cores - Id: " + Group.Id);
+            }
+        }
+#endif
+
+#if DEBUG
+        if (Manager.RegisterDebugEvent != null)
+        {
+            if (Group.Id == Manager.TracingData.GroupId)
+            {
+                string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
+
+                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+                    "CellCulturalKnowledge.Merge - Group:" + groupId,
+                    "CurrentDate: " + Group.World.CurrentDate +
+                    ", Id: " + Id +
+                    ", IsPresent: " + IsPresent +
+                    ", Value: " + Value +
+                    ", _newValue: " + _newValue +
+                    ", mergedValue: " + mergedValue +
+                    ", value (param): " + value +
+                    ", percentage: " + percentage +
+                    "");
+
+                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
             }
         }
 #endif
@@ -240,6 +267,32 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
             if (Group.WillBecomeFactionCore)
             {
                 Debug.LogWarning("Group with low social organization will become a faction core - Id: " + Group.Id + ", newValue:" + newValue);
+            }
+        }
+#endif
+
+#if DEBUG
+        if (Manager.RegisterDebugEvent != null)
+        {
+            if (Group.Id == Manager.TracingData.GroupId)
+            {
+                string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
+
+                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+                    "CellCulturalKnowledge.UpdateValueInternal - Group:" + groupId,
+                    "CurrentDate: " + Group.World.CurrentDate +
+                    ", Id: " + Id +
+                    ", IsPresent: " + IsPresent +
+                    ", Value: " + Value +
+                    ", _newValue: " + _newValue +
+                    ", newValue: " + newValue +
+                    ", targetValue: " + targetValue +
+                    ", Asymptote: " + Asymptote +
+                    ", randomFactor: " + randomFactor +
+                    ", timeEffect: " + timeEffect +
+                    "");
+
+                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
             }
         }
 #endif

@@ -62,6 +62,25 @@ public class CellCulture : Culture
         {
             if (k.IsPresent)
             {
+//#if DEBUG
+//                if (Manager.RegisterDebugEvent != null)
+//                {
+//                    if (Group.Id == Manager.TracingData.GroupId)
+//                    {
+//                        string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
+
+//                        SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//                            "PostUpdateAddAttributes - Group:" + groupId,
+//                            "CurrentDate: " + World.CurrentDate +
+//                            ", k.Id: " + k.Id +
+//                            ", k.IsPresent: " + k.IsPresent +
+//                            "");
+
+//                        Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+//                    }
+//                }
+//#endif
+
                 CellCulturalKnowledge knowledge = CellCulturalKnowledge.CreateCellInstance(k.Id, group, k.Value);
 
                 AddKnowledge(knowledge);
@@ -474,6 +493,25 @@ public class CellCulture : Culture
         {
             try
             {
+//#if DEBUG
+//                if (Manager.RegisterDebugEvent != null)
+//                {
+//                    if (Group.Id == Manager.TracingData.GroupId)
+//                    {
+//                        string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
+
+//                        SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//                            "PostUpdateAddAttributes - Group:" + groupId,
+//                            "CurrentDate: " + World.CurrentDate +
+//                            ", knowledge.Id: " + knowledge.Id +
+//                            ", knowledge.IsPresent: " + knowledge.IsPresent +
+//                            "");
+
+//                        Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+//                    }
+//                }
+//#endif
+
                 AddKnowledge(knowledge);
             }
             catch (System.ArgumentException)
@@ -546,10 +584,70 @@ public class CellCulture : Culture
             if (!knowledge.IsPresent)
                 continue;
 
+#if DEBUG
+            if (Manager.RegisterDebugEvent != null)
+            {
+                if (Group.Id == Manager.TracingData.GroupId)
+                {
+                    string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
+
+                    SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+                        "CellCulture.PostUpdateAttributeValues before PostUpdate() - Group:" + groupId,
+                        "CurrentDate: " + World.CurrentDate +
+                        ", knowledge.Id: " + knowledge.Id +
+                        ", knowledge.IsPresent: " + knowledge.IsPresent +
+                        ", knowledge.Value: " + knowledge.Value +
+                        "");
+
+                    Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+                }
+            }
+#endif
+
             knowledge.PostUpdate();
+
+#if DEBUG
+            if (Manager.RegisterDebugEvent != null)
+            {
+                if (Group.Id == Manager.TracingData.GroupId)
+                {
+                    string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
+
+                    SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+                        "CellCulture.PostUpdateAttributeValues before WillBeLost() - Group:" + groupId,
+                        "CurrentDate: " + World.CurrentDate +
+                        ", knowledge.Id: " + knowledge.Id +
+                        ", knowledge.IsPresent: " + knowledge.IsPresent +
+                        ", knowledge.Value: " + knowledge.Value +
+                        "");
+
+                    Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+                }
+            }
+#endif
 
             if (!knowledge.WillBeLost())
                 continue;
+
+#if DEBUG
+            if (Manager.RegisterDebugEvent != null)
+            {
+                if (Group.Id == Manager.TracingData.GroupId)
+                {
+                    string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
+
+                    SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+                        "CellCulture.PostUpdateAttributeValues after WillBeLost() - Group:" + groupId,
+                        "CurrentDate: " + World.CurrentDate +
+                        ", knowledge.Id: " + knowledge.Id +
+                        ", knowledge.IsPresent: " + knowledge.IsPresent +
+                        ", knowledge.Value: " + knowledge.Value +
+                        "");
+
+                    Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+                }
+            }
+#endif
 
             _knowledgesToLose.Add(knowledge);
         }
@@ -615,6 +713,23 @@ public class CellCulture : Culture
 
         foreach (CellCulturalKnowledge knowledge in Knowledges.Values)
         {
+#if DEBUG
+            if (Manager.RegisterDebugEvent != null)
+            {
+                if (Group.Id == Manager.TracingData.GroupId)
+                {
+                    SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+                        "CellCulture.MinimumKnowledgeProgressLevel - knowledge.Id:" + knowledge.Id + ", Group.Id:" + Group.Id,
+                        "CurrentDate: " + Group.World.CurrentDate +
+                        ", knowledge.IsPresent: " + knowledge.IsPresent +
+                        ", knowledge.WasPresent: " + knowledge.WasPresent +
+                        "");
+
+                    Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+                }
+            }
+#endif
+
             if (!knowledge.IsPresent)
                 continue;
 
@@ -625,22 +740,22 @@ public class CellCulture : Culture
                 minProgressLevel = level;
             }
 
-#if DEBUG
-            if (Manager.RegisterDebugEvent != null)
-            {
-                if (Group.Id == Manager.TracingData.GroupId)
-                {
-                    SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-                        "CellCulture.MinimumKnowledgeProgressLevel - knowledge.Id:" + knowledge.Id + ", Group.Id:" + Group.Id,
-                        "CurrentDate: " + Group.World.CurrentDate +
-                        ", knowledge.CalculateExpectedProgressLevel(): " + level +
-                        ", minProgressLevel: " + minProgressLevel +
-                        "");
+//#if DEBUG
+//            if (Manager.RegisterDebugEvent != null)
+//            {
+//                if (Group.Id == Manager.TracingData.GroupId)
+//                {
+//                    SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//                        "CellCulture.MinimumKnowledgeProgressLevel - knowledge.Id:" + knowledge.Id + ", Group.Id:" + Group.Id,
+//                        "CurrentDate: " + Group.World.CurrentDate +
+//                        ", knowledge.CalculateExpectedProgressLevel(): " + level +
+//                        ", minProgressLevel: " + minProgressLevel +
+//                        "");
 
-                    Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-                }
-            }
-#endif
+//                    Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+//                }
+//            }
+//#endif
         }
 
         return minProgressLevel;

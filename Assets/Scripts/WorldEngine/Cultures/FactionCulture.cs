@@ -47,6 +47,23 @@ public class FactionCulture : Culture
         {
             if (k.IsPresent)
             {
+#if DEBUG
+                if (Manager.RegisterDebugEvent != null)
+                {
+                    if (Manager.TracingData.FactionId == Faction.Id)
+                    {
+                        SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+                            "FactionCulture:FactionCulture - add coreCulture.Knowledges - Faction.Id:" + Faction.Id,
+                            "CurrentDate: " + World.CurrentDate +
+                            ", coreCulture.Group.Id: " + coreCulture.Group.Id +
+                            ", Knowledge Id: " + k.Id +
+                            "");
+
+                        Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+                    }
+                }
+#endif
+
                 AddKnowledge(new FactionCulturalKnowledge(faction, k, faction.Polity.Culture));
             }
         }
@@ -251,8 +268,44 @@ public class FactionCulture : Culture
 
         Profiler.BeginSample("Culture - Update Knowledges");
 
+//#if DEBUG
+//        if (Manager.RegisterDebugEvent != null)
+//        {
+//            if (Manager.TracingData.FactionId == Faction.Id)
+//            {
+//                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//                    "FactionCulture:Update - Update Knowledges - Faction.Id:" + Faction.Id,
+//                    "CurrentDate: " + World.CurrentDate +
+//                    ", coreCulture.Group.Id: " + coreCulture.Group.Id +
+//                    ", Knowledges.Count: " + Knowledges.Count +
+//                    "");
+
+//                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+//            }
+//        }
+//#endif
+
         foreach (FactionCulturalKnowledge k in Knowledges.Values)
         {
+#if DEBUG
+            if (Manager.RegisterDebugEvent != null)
+            {
+                if (k.IsPresent && (Manager.TracingData.FactionId == Faction.Id))
+                {
+                    SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+                        "FactionCulture:Update - Update Knowledges - Faction.Id:" + Faction.Id,
+                        "CurrentDate: " + World.CurrentDate +
+                        ", coreCulture.Group.Id: " + coreCulture.Group.Id +
+                        ", k.Id: " + k.Id +
+                        ", k.IsPresent: " + k.IsPresent +
+                        ", k.Value: " + k.Value +
+                        "");
+
+                    Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+                }
+            }
+#endif
+
             k.UpdateFromCoreKnowledge(timeFactor);
         }
 
@@ -262,11 +315,49 @@ public class FactionCulture : Culture
 
         Profiler.BeginSample("Culture - Update Discoveries");
 
+//#if DEBUG
+//        if (Manager.RegisterDebugEvent != null)
+//        {
+//            if (Manager.TracingData.FactionId == Faction.Id)
+//            {
+//                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//                "FactionCulture:Update - Update Discoveries - Faction.Id:" + Faction.Id,
+//                "CurrentDate: " + World.CurrentDate +
+//                ", coreCulture.Group.Id: " + coreCulture.Group.Id +
+//                ", Discoveries.Count: " + Discoveries.Count +
+//                "");
+
+//                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+//            }
+//        }
+//#endif
+
         foreach (FactionCulturalDiscovery d in Discoveries.Values)
         {
+#if DEBUG
+            if (Manager.RegisterDebugEvent != null)
+            {
+                if (d.IsPresent && (Manager.TracingData.FactionId == Faction.Id))
+                {
+                    SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+                    "FactionCulture:Update - Update Discoveries - Faction.Id:" + Faction.Id,
+                    "CurrentDate: " + World.CurrentDate +
+                    ", coreCulture.Group.Id: " + coreCulture.Group.Id +
+                    ", Discovery Id: " + d.Id +
+                    ", d.IsPresent: " + d.IsPresent +
+                    "");
+
+                    Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+                }
+            }
+#endif
+
             if ((d.CoreCulturalDiscovery == null) || (!d.CoreCulturalDiscovery.IsPresent))
             {
-                TryRemovingDiscovery(d, timeFactor);
+                if (d.IsPresent)
+                {
+                    TryRemovingDiscovery(d, timeFactor);
+                }
             }
             else
             {
@@ -325,6 +416,23 @@ public class FactionCulture : Culture
 
         if (factionKnowledge == null)
         {
+#if DEBUG
+            if (Manager.RegisterDebugEvent != null)
+            {
+                if (Manager.TracingData.FactionId == Faction.Id)
+                {
+                    SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+                        "FactionCulture:AddCoreKnowledge - Faction.Id:" + Faction.Id,
+                        "CurrentDate: " + World.CurrentDate +
+                        ", coreKnowledge.Group.Id: " + coreKnowledge.Group.Id +
+                        ", coreKnowledge.Id: " + coreKnowledge.Id +
+                        "");
+
+                    Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+                }
+            }
+#endif
+
             factionKnowledge = new FactionCulturalKnowledge(Faction, coreKnowledge, Faction.Polity.Culture);
 
             AddKnowledge(factionKnowledge);
