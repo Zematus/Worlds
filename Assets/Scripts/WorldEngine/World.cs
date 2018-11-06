@@ -1175,7 +1175,8 @@ public class World : ISynchronizable
 #if DEBUG
                 if (Manager.RegisterDebugEvent != null)
                 {
-                    SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("Update:futureEventToHappen - Id: " + futureEventToHappen.Id,
+                    SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+                        "Update:futureEventToHappen - Id: " + futureEventToHappen.Id,
                         "TriggerDate: " + futureEventToHappen.TriggerDate +
                         ", event type: " + futureEventToHappen.GetType() +
                         //", event spawn date: " + futureEventToHappen.SpawnDate +
@@ -1561,7 +1562,6 @@ public class World : ISynchronizable
 
     public void AddPolityToUpdate (Polity polity)
     {
-
 #if DEBUG
         if (Manager.RegisterDebugEvent != null)
         {

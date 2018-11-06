@@ -8,6 +8,9 @@ using UnityEngine.Profiling;
 public class FactionCulturalDiscovery : CulturalDiscovery
 {
     [XmlIgnore]
+    public Faction Faction;
+
+    [XmlIgnore]
     public CulturalDiscovery PolityCulturalDiscovery;
 
     [XmlIgnore]
@@ -17,8 +20,10 @@ public class FactionCulturalDiscovery : CulturalDiscovery
     {
     }
 
-    public FactionCulturalDiscovery(CellCulturalDiscovery coreDiscovery, PolityCulture polityCulture) : base(coreDiscovery)
+    public FactionCulturalDiscovery(Faction faction, CellCulturalDiscovery coreDiscovery, PolityCulture polityCulture) : base(coreDiscovery)
     {
+        Faction = faction;
+
         CoreCulturalDiscovery = coreDiscovery;
 
         SetPolityCulturalDiscovery(polityCulture);

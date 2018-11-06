@@ -43,26 +43,26 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
 
         _newValue = value;
 
-#if DEBUG
-        if (Manager.RegisterDebugEvent != null)
-        {
-            if (Group.Id == Manager.TracingData.GroupId)
-            {
-                string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
+//#if DEBUG
+//        if (Manager.RegisterDebugEvent != null)
+//        {
+//            if (Group.Id == Manager.TracingData.GroupId)
+//            {
+//                string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
 
-                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-                    "CellCulturalKnowledge.CellCulturalKnowledge - Group:" + groupId,
-                    "CurrentDate: " + Group.World.CurrentDate +
-                    ", Id: " + Id +
-                    ", IsPresent: " + IsPresent +
-                    ", Value: " + Value +
-                    ", _newValue: " + _newValue +
-                    "");
+//                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//                    "CellCulturalKnowledge.CellCulturalKnowledge - Group:" + groupId,
+//                    "CurrentDate: " + Group.World.CurrentDate +
+//                    ", Id: " + Id +
+//                    ", IsPresent: " + IsPresent +
+//                    ", Value: " + Value +
+//                    ", _newValue: " + _newValue +
+//                    "");
 
-                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-            }
-        }
-#endif
+//                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+//            }
+//        }
+//#endif
     }
 
     public CellCulturalKnowledge(CellGroup group, string id, string name, int typeRngOffset, int value, int asymptote) : base(id, name, value)
@@ -73,27 +73,27 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
 
         _newValue = value;
 
-#if DEBUG
-        if (Manager.RegisterDebugEvent != null)
-        {
-            if (Group.Id == Manager.TracingData.GroupId)
-            {
-                string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
+//#if DEBUG
+//        if (Manager.RegisterDebugEvent != null)
+//        {
+//            if (Group.Id == Manager.TracingData.GroupId)
+//            {
+//                string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
 
-                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-                    "CellCulturalKnowledge.CellCulturalKnowledge (with asymptote) - Group:" + groupId,
-                    "CurrentDate: " + Group.World.CurrentDate +
-                    ", Id: " + Id +
-                    ", IsPresent: " + IsPresent +
-                    ", Value: " + Value +
-                    ", _newValue: " + _newValue +
-                    ", Asymptote: " + Asymptote +
-                    "");
+//                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//                    "CellCulturalKnowledge.CellCulturalKnowledge (with asymptote) - Group:" + groupId,
+//                    "CurrentDate: " + Group.World.CurrentDate +
+//                    ", Id: " + Id +
+//                    ", IsPresent: " + IsPresent +
+//                    ", Value: " + Value +
+//                    ", _newValue: " + _newValue +
+//                    ", Asymptote: " + Asymptote +
+//                    "");
 
-                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-            }
-        }
-#endif
+//                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+//            }
+//        }
+//#endif
     }
 
     public void SetInitialValue(int value)
@@ -101,26 +101,26 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
         Value = value;
         _newValue = value;
 
-#if DEBUG
-        if (Manager.RegisterDebugEvent != null)
-        {
-            if (Group.Id == Manager.TracingData.GroupId)
-            {
-                string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
+//#if DEBUG
+//        if (Manager.RegisterDebugEvent != null)
+//        {
+//            if (Group.Id == Manager.TracingData.GroupId)
+//            {
+//                string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
 
-                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-                    "CellCulturalKnowledge.SetInitialValue - Group:" + groupId,
-                    "CurrentDate: " + Group.World.CurrentDate +
-                    ", Id: " + Id +
-                    ", IsPresent: " + IsPresent +
-                    ", Value: " + Value +
-                    ", _newValue: " + _newValue +
-                    "");
+//                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//                    "CellCulturalKnowledge.SetInitialValue - Group:" + groupId,
+//                    "CurrentDate: " + Group.World.CurrentDate +
+//                    ", Id: " + Id +
+//                    ", IsPresent: " + IsPresent +
+//                    ", Value: " + Value +
+//                    ", _newValue: " + _newValue +
+//                    "");
 
-                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-            }
-        }
-#endif
+//                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+//            }
+//        }
+//#endif
     }
 
     public static CellCulturalKnowledge CreateCellInstance(string id, CellGroup group, int initialValue = 0)
@@ -178,29 +178,29 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
         }
 #endif
 
-#if DEBUG
-        if (Manager.RegisterDebugEvent != null)
-        {
-            if (Group.Id == Manager.TracingData.GroupId)
-            {
-                string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
+//#if DEBUG
+//        if (Manager.RegisterDebugEvent != null)
+//        {
+//            if (Group.Id == Manager.TracingData.GroupId)
+//            {
+//                string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
 
-                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-                    "CellCulturalKnowledge.Merge - Group:" + groupId,
-                    "CurrentDate: " + Group.World.CurrentDate +
-                    ", Id: " + Id +
-                    ", IsPresent: " + IsPresent +
-                    ", Value: " + Value +
-                    ", _newValue: " + _newValue +
-                    ", mergedValue: " + mergedValue +
-                    ", value (param): " + value +
-                    ", percentage: " + percentage +
-                    "");
+//                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//                    "CellCulturalKnowledge.Merge - Group:" + groupId,
+//                    "CurrentDate: " + Group.World.CurrentDate +
+//                    ", Id: " + Id +
+//                    ", IsPresent: " + IsPresent +
+//                    ", Value: " + Value +
+//                    ", _newValue: " + _newValue +
+//                    ", mergedValue: " + mergedValue +
+//                    ", value (param): " + value +
+//                    ", percentage: " + percentage +
+//                    "");
 
-                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-            }
-        }
-#endif
+//                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+//            }
+//        }
+//#endif
 
         _newValue = mergedValue;
     }
@@ -335,31 +335,31 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
         }
 #endif
 
-#if DEBUG
-        if (Manager.RegisterDebugEvent != null)
-        {
-            if (Group.Id == Manager.TracingData.GroupId)
-            {
-                string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
+//#if DEBUG
+//        if (Manager.RegisterDebugEvent != null)
+//        {
+//            if (Group.Id == Manager.TracingData.GroupId)
+//            {
+//                string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
 
-                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-                    "CellCulturalKnowledge.UpdateValueInternal - Group:" + groupId,
-                    "CurrentDate: " + Group.World.CurrentDate +
-                    ", Id: " + Id +
-                    ", IsPresent: " + IsPresent +
-                    ", Value: " + Value +
-                    ", _newValue: " + _newValue +
-                    ", newValue: " + newValue +
-                    ", targetValue: " + targetValue +
-                    ", Asymptote: " + Asymptote +
-                    ", randomFactor: " + randomFactor +
-                    ", timeEffect: " + timeEffect +
-                    "");
+//                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//                    "CellCulturalKnowledge.UpdateValueInternal - Group:" + groupId,
+//                    "CurrentDate: " + Group.World.CurrentDate +
+//                    ", Id: " + Id +
+//                    ", IsPresent: " + IsPresent +
+//                    ", Value: " + Value +
+//                    ", _newValue: " + _newValue +
+//                    ", newValue: " + newValue +
+//                    ", targetValue: " + targetValue +
+//                    ", Asymptote: " + Asymptote +
+//                    ", randomFactor: " + randomFactor +
+//                    ", timeEffect: " + timeEffect +
+//                    "");
 
-                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-            }
-        }
-#endif
+//                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+//            }
+//        }
+//#endif
 
         _newValue = newValue;
     }

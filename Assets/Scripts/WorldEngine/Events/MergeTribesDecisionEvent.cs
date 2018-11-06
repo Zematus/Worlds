@@ -124,22 +124,22 @@ public class MergeTribesDecisionEvent : PolityEvent
         _targetTribe = _targetContact.Polity as Tribe;
         _targetDominantClan = _targetTribe.DominantFaction as Clan;
 
-#if DEBUG
-        if (Manager.RegisterDebugEvent != null)
-        {
-            //if (_targetTribe.Id == Manager.TracingData.PolityId)
-            //{
-            SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-            "MergeTribesDecisionEvent:CanTrigger - Polity.Id:" + Polity.Id,
-            "TriggerDate: " + TriggerDate +
-            ", _targetTribe.Id: " + _targetTribe.Id +
-            ", _targetDominantClan.Id: " + _targetDominantClan.Id +
-            "");
+//#if DEBUG
+//        if (Manager.RegisterDebugEvent != null)
+//        {
+//            //if (_targetTribe.Id == Manager.TracingData.PolityId)
+//            //{
+//            SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//            "MergeTribesDecisionEvent:CanTrigger - Polity.Id:" + Polity.Id,
+//            "TriggerDate: " + TriggerDate +
+//            ", _targetTribe.Id: " + _targetTribe.Id +
+//            ", _targetDominantClan.Id: " + _targetDominantClan.Id +
+//            "");
 
-            Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-            //}
-        }
-#endif
+//            Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+//            //}
+//        }
+//#endif
 
         // We should use the latest cultural attribute values before calculating chances
         _originalSourceDominantClan.PreUpdate();

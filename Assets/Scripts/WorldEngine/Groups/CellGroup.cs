@@ -852,20 +852,20 @@ public class CellGroup : HumanGroup
 
     public void PostUpdate_BeforePolityUpdates()
     {
-#if DEBUG
-        if (Manager.RegisterDebugEvent != null)
-        {
-            if (Id == Manager.TracingData.GroupId)
-            {
-                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-                    "PostUpdate_BeforePolityUpdates - Group:" + Id,
-                    "CurrentDate: " + World.CurrentDate +
-                    "");
+//#if DEBUG
+//        if (Manager.RegisterDebugEvent != null)
+//        {
+//            if (Id == Manager.TracingData.GroupId)
+//            {
+//                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//                    "PostUpdate_BeforePolityUpdates - Group:" + Id,
+//                    "CurrentDate: " + World.CurrentDate +
+//                    "");
 
-                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-            }
-        }
-#endif
+//                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+//            }
+//        }
+//#endif
 
         _alreadyUpdated = false;
 
@@ -1599,140 +1599,201 @@ public class CellGroup : HumanGroup
         }
     }
 
-    public void ConsiderPolityProminenceExpansion () {
+    public void ConsiderPolityProminenceExpansion()
+    {
+        //		#if DEBUG
+        //		if (Cell.IsSelected) {
+        //			bool debug = true;
+        //		}
+        //		#endif
 
-//		#if DEBUG
-//		if (Cell.IsSelected) {
-//			bool debug = true;
-//		}
-//		#endif
+        PolityExpansionValue = 0;
+        TotalPolityExpansionValue = 0;
 
-		PolityExpansionValue = 0;
-		TotalPolityExpansionValue = 0;
+        if (PolityProminences.Count <= 0)
+            return;
 
-		if (PolityProminences.Count <= 0)
-			return;
+        if (Neighbors.Count <= 0)
+            return;
 
-		if (Neighbors.Count <= 0)
-			return;
+        if (HasPolityExpansionEvent)
+            return;
 
-		if (HasPolityExpansionEvent)
-			return;
+        //		Profiler.BeginSample ("Select Random Polity Prominence");
 
-//		Profiler.BeginSample ("Select Random Polity Prominence");
+        List<PolityProminenceWeight> polityProminenceWeights = new List<PolityProminenceWeight>(PolityProminences.Count);
 
-		List<PolityProminenceWeight> polityProminenceWeights = new List<PolityProminenceWeight> (PolityProminences.Count);
+#if DEBUG
+        string polityProminencesStr = "";
+#endif
 
-		foreach (PolityProminence pi in PolityProminences.Values) {
+        foreach (PolityProminence pi in PolityProminences.Values)
+        {
+            polityProminenceWeights.Add(new PolityProminenceWeight(pi, pi.Value));
 
-			polityProminenceWeights.Add (new PolityProminenceWeight (pi, pi.Value));
-		}
+#if DEBUG
+            polityProminencesStr += "[" + pi.PolityId + "|" + pi.Value + "],";
+#endif
+        }
 
         float selectionValue = Cell.GetNextLocalRandomFloat(RngOffsets.CELL_GROUP_CONSIDER_POLITY_PROMINENCE_EXPANSION_POLITY);
 
-        PolityProminence selectedPi = CollectionUtility.WeightedSelection (polityProminenceWeights.ToArray(), TotalPolityProminenceValue, selectionValue);
+#if DEBUG
+        if (Manager.RegisterDebugEvent != null)
+        {
+            if (Id == Manager.TracingData.GroupId)
+            {
+                string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
 
-//		Profiler.EndSample ();
+                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+                    "ConsiderPolityProminenceExpansion - Group:" + groupId,
+                    "CurrentDate: " + World.CurrentDate +
+                    ", Neighbors.Count: " + Neighbors.Count +
+                    ", polityProminencesStr: " + polityProminencesStr +
+                    ", selectionValue: " + selectionValue +
+                    "");
 
-		PolityExpansionValue = 1;
-		TotalPolityExpansionValue = 1;
+                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+            }
+        }
+#endif
 
-//		Profiler.BeginSample ("Select Random Target Group for Polity Expansion");
+        PolityProminence selectedPi = CollectionUtility.WeightedSelection(polityProminenceWeights.ToArray(), TotalPolityProminenceValue, selectionValue);
 
-//		int targetGroupIndex = Cell.GetNextLocalRandomInt (RngOffsets.CELL_GROUP_CONSIDER_POLITY_PROMINENCE_EXPANSION_TARGET, TerrainCell.MaxNeighborDirections);
-//
-//		CellGroup targetGroup = GetNeighborGroup (targetGroupIndex);
+        //		Profiler.EndSample ();
 
-		Direction expansionDirection = GeneratePolityExpansionDirection ();
+        PolityExpansionValue = 1;
+        TotalPolityExpansionValue = 1;
 
-		if (expansionDirection == Direction.Null)
-			return;
+        //		Profiler.BeginSample ("Select Random Target Group for Polity Expansion");
 
-		CellGroup targetGroup = Neighbors [expansionDirection];
+        //		int targetGroupIndex = Cell.GetNextLocalRandomInt (RngOffsets.CELL_GROUP_CONSIDER_POLITY_PROMINENCE_EXPANSION_TARGET, TerrainCell.MaxNeighborDirections);
+        //
+        //		CellGroup targetGroup = GetNeighborGroup (targetGroupIndex);
 
-//		Profiler.EndSample ();
+        Direction expansionDirection = GeneratePolityExpansionDirection();
 
-		if (!targetGroup.StillPresent)
-			return;
+        if (expansionDirection == Direction.Null)
+            return;
 
-//		Profiler.BeginSample ("Calculate Polity Expansion Value");
+        CellGroup targetGroup = Neighbors[expansionDirection];
 
-		float groupValue = selectedPi.Polity.CalculateGroupProminenceExpansionValue (this, targetGroup, selectedPi.Value);
+        //		Profiler.EndSample ();
 
-		if (groupValue <= 0)
-			return;
+        if (!targetGroup.StillPresent)
+            return;
 
-		TotalPolityExpansionValue += groupValue;
+        //		Profiler.BeginSample ("Calculate Polity Expansion Value");
 
-//		Profiler.EndSample ();
+        float groupValue = selectedPi.Polity.CalculateGroupProminenceExpansionValue(this, targetGroup, selectedPi.Value);
 
-		float expansionChance = groupValue / TotalPolityExpansionValue;
+        if (groupValue <= 0)
+            return;
 
-		float rollValue = Cell.GetNextLocalRandomFloat (RngOffsets.CELL_GROUP_CONSIDER_POLITY_PROMINENCE_EXPANSION_CHANCE);
+        TotalPolityExpansionValue += groupValue;
 
-		if (rollValue > expansionChance)
-			return;
+        //		Profiler.EndSample ();
 
-		float cellSurvivability = 0;
-		float cellForagingCapacity = 0;
+        float expansionChance = groupValue / TotalPolityExpansionValue;
 
-		CalculateAdaptionToCell (targetGroup.Cell, out cellForagingCapacity, out cellSurvivability);
+        float rollValue = Cell.GetNextLocalRandomFloat(RngOffsets.CELL_GROUP_CONSIDER_POLITY_PROMINENCE_EXPANSION_CHANCE);
 
-		if (cellSurvivability <= 0)
-			return;
+#if DEBUG
+        if (Manager.RegisterDebugEvent != null)
+        {
+            if (Id == Manager.TracingData.GroupId)
+            {
+                string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
+                string targetGroupId = "Id:" + targetGroup.Id + "|Long:" + targetGroup.Longitude + "|Lat:" + targetGroup.Latitude;
 
-		float cellAltitudeDeltaFactor = CalculateAltitudeDeltaFactor (targetGroup.Cell);
+                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+                    "ConsiderPolityProminenceExpansion - Group:" + groupId,
+                    "CurrentDate: " + World.CurrentDate +
+                    ", Neighbors.Count: " + Neighbors.Count +
+                    //", groupValue: " + groupValue +
+                    //", PolityExpansionValue: " + PolityExpansionValue +
+                    //", TotalPolityExpansionValue: " + TotalPolityExpansionValue +
+                    ", rollValue: " + rollValue +
+                    ", selectedPi.PolityId: " + selectedPi.PolityId +
+                    ", targetGroup: " + targetGroupId +
+                    ", rollValue: " + rollValue +
+                    //", expansionChance: " + expansionChance +
+                    "");
 
-		float travelFactor = 
-			cellAltitudeDeltaFactor * cellAltitudeDeltaFactor *
-			cellSurvivability * cellSurvivability * targetGroup.Cell.Accessibility;
+                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+            }
+        }
+#endif
 
-		travelFactor = Mathf.Clamp (travelFactor, 0.0001f, 1);
+        if (rollValue > expansionChance)
+            return;
 
-		int travelTime = (int)Mathf.Ceil(World.YearLength * Cell.Width / (TravelWidthFactor * travelFactor));
+        float cellSurvivability = 0;
+        float cellForagingCapacity = 0;
 
-		long nextDate = World.CurrentDate + travelTime;
+        CalculateAdaptionToCell(targetGroup.Cell, out cellForagingCapacity, out cellSurvivability);
 
-//		#if DEBUG
-//		if (Manager.RegisterDebugEvent != null) {
-//			if (Id == Manager.TracingData.GroupId) {
-//				string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
-//				string targetGroupId = "Id:" + targetGroup.Id + "|Long:" + targetGroup.Longitude + "|Lat:" + targetGroup.Latitude;
-//
-//				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-//					"ConsiderPolityProminenceExpansion - Group:" + groupId,
-//					"CurrentDate: " + World.CurrentDate + 
-//					"' Neighbors.Count: " + Neighbors.Count +
-//					", groupValue: " + groupValue +  
-//					", TotalPolityExpansionValue: " + TotalPolityExpansionValue + 
-//					", rollValue: " + rollValue + 
-//					", travelFactor: " + travelFactor + 
-//					", nextDate: " + nextDate + 
-//					", selectedPi.PolityId: " + selectedPi.PolityId + 
-//					", targetGroup: " + targetGroupId + 
-//					"");
-//
-//				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-//			}
-//		}
-//		#endif
+        if (cellSurvivability <= 0)
+            return;
 
-		if (PolityExpansionEvent == null) {
-			PolityExpansionEvent = new ExpandPolityProminenceEvent (this, selectedPi.Polity, targetGroup, nextDate);
-		} else {
-			PolityExpansionEvent.Reset (selectedPi.Polity, targetGroup, nextDate);
-		}
+        float cellAltitudeDeltaFactor = CalculateAltitudeDeltaFactor(targetGroup.Cell);
 
-		World.InsertEventToHappen (PolityExpansionEvent);
+        float travelFactor =
+            cellAltitudeDeltaFactor * cellAltitudeDeltaFactor *
+            cellSurvivability * cellSurvivability * targetGroup.Cell.Accessibility;
 
-		HasPolityExpansionEvent = true;
+        travelFactor = Mathf.Clamp(travelFactor, 0.0001f, 1);
 
-		PolityExpansionEventDate = nextDate;
-		ExpandingPolityId = selectedPi.PolityId;
-		ExpansionTargetGroupId = targetGroup.Id;
-	}
+        int travelTime = (int)Mathf.Ceil(World.YearLength * Cell.Width / (TravelWidthFactor * travelFactor));
 
-	public void Destroy()
+        long nextDate = World.CurrentDate + travelTime;
+
+#if DEBUG
+        if (Manager.RegisterDebugEvent != null)
+        {
+            if (Id == Manager.TracingData.GroupId)
+            {
+                string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
+                string targetGroupId = "Id:" + targetGroup.Id + "|Long:" + targetGroup.Longitude + "|Lat:" + targetGroup.Latitude;
+
+                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+                    "ConsiderPolityProminenceExpansion - Group:" + groupId,
+                    "CurrentDate: " + World.CurrentDate +
+                    ", Neighbors.Count: " + Neighbors.Count +
+                    ", groupValue: " + groupValue +
+                    ", PolityExpansionValue: " + PolityExpansionValue +
+                    ", TotalPolityExpansionValue: " + TotalPolityExpansionValue +
+                    ", rollValue: " + rollValue +
+                    ", travelFactor: " + travelFactor +
+                    ", nextDate: " + nextDate +
+                    ", selectedPi.PolityId: " + selectedPi.PolityId +
+                    ", targetGroup: " + targetGroupId +
+                    "");
+
+                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+            }
+        }
+#endif
+
+        if (PolityExpansionEvent == null)
+        {
+            PolityExpansionEvent = new ExpandPolityProminenceEvent(this, selectedPi.Polity, targetGroup, nextDate);
+        }
+        else
+        {
+            PolityExpansionEvent.Reset(selectedPi.Polity, targetGroup, nextDate);
+        }
+
+        World.InsertEventToHappen(PolityExpansionEvent);
+
+        HasPolityExpansionEvent = true;
+
+        PolityExpansionEventDate = nextDate;
+        ExpandingPolityId = selectedPi.PolityId;
+        ExpansionTargetGroupId = targetGroup.Id;
+    }
+
+    public void Destroy()
     {
         StillPresent = false;
 
@@ -1890,41 +1951,41 @@ public class CellGroup : HumanGroup
 
         int groupCount = p.Groups.Count;
 
-#if DEBUG
-        if (Manager.RegisterDebugEvent != null)
-        {
-            if (Id == Manager.TracingData.GroupId)
-            {
-                System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
+//#if DEBUG
+//        if (Manager.RegisterDebugEvent != null)
+//        {
+//            if (Id == Manager.TracingData.GroupId)
+//            {
+//                System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
 
-                System.Reflection.MethodBase method = stackTrace.GetFrame(1).GetMethod();
-                string callingMethod = method.Name;
+//                System.Reflection.MethodBase method = stackTrace.GetFrame(1).GetMethod();
+//                string callingMethod = method.Name;
 
-                //				int frame = 2;
-                //				while (callingMethod.Contains ("GetNextLocalRandom") || callingMethod.Contains ("GetNextRandom")) {
-                //					method = stackTrace.GetFrame(frame).GetMethod();
-                //					callingMethod = method.Name;
-                //
-                //					frame++;
-                //				}
+//                //				int frame = 2;
+//                //				while (callingMethod.Contains ("GetNextLocalRandom") || callingMethod.Contains ("GetNextRandom")) {
+//                //					method = stackTrace.GetFrame(frame).GetMethod();
+//                //					callingMethod = method.Name;
+//                //
+//                //					frame++;
+//                //				}
 
-                string callingClass = method.DeclaringType.ToString();
+//                string callingClass = method.DeclaringType.ToString();
 
-                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-                    "SetPolityUpdate - Group:" + Id,
-                    "CurrentDate: " + World.CurrentDate +
-                    ", forceUpdate: " + forceUpdate +
-                    ", polity Id: " + p.Id +
-                    ", p.WillBeUpdated: " + p.WillBeUpdated +
-                    ", (p.CoreGroup == this): " + (p.CoreGroup == this) +
-                    ", groupCount: " + groupCount +
-                    ", caller: " + callingClass + "::" + callingMethod +
-                    "");
+//                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//                    "SetPolityUpdate - Group:" + Id,
+//                    "CurrentDate: " + World.CurrentDate +
+//                    ", forceUpdate: " + forceUpdate +
+//                    ", polity Id: " + p.Id +
+//                    ", p.WillBeUpdated: " + p.WillBeUpdated +
+//                    ", (p.CoreGroup == this): " + (p.CoreGroup == this) +
+//                    ", groupCount: " + groupCount +
+//                    ", caller: " + callingClass + "::" + callingMethod +
+//                    "");
 
-                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-            }
-        }
-#endif
+//                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+//            }
+//        }
+//#endif
 
         if (p.WillBeUpdated)
             return;
@@ -1944,37 +2005,37 @@ public class CellGroup : HumanGroup
 
         float rollValue = Cell.GetNextLocalRandomFloat(RngOffsets.CELL_GROUP_SET_POLITY_UPDATE + unchecked((int)p.Id));
 
-#if DEBUG
-        if (Manager.RegisterDebugEvent != null)
-        {
-            System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
+//#if DEBUG
+//        if (Manager.RegisterDebugEvent != null)
+//        {
+//            System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
 
-            System.Reflection.MethodBase method = stackTrace.GetFrame(1).GetMethod();
-            string callingMethod = method.Name;
+//            System.Reflection.MethodBase method = stackTrace.GetFrame(1).GetMethod();
+//            string callingMethod = method.Name;
 
-            //				int frame = 2;
-            //				while (callingMethod.Contains ("GetNextLocalRandom") || callingMethod.Contains ("GetNextRandom")) {
-            //					method = stackTrace.GetFrame(frame).GetMethod();
-            //					callingMethod = method.Name;
-            //
-            //					frame++;
-            //				}
+//            //				int frame = 2;
+//            //				while (callingMethod.Contains ("GetNextLocalRandom") || callingMethod.Contains ("GetNextRandom")) {
+//            //					method = stackTrace.GetFrame(frame).GetMethod();
+//            //					callingMethod = method.Name;
+//            //
+//            //					frame++;
+//            //				}
 
-            string callingClass = method.DeclaringType.ToString();
+//            string callingClass = method.DeclaringType.ToString();
 
-            SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-                "SetPolityUpdate - After roll - Group:" + Id,
-                "CurrentDate: " + World.CurrentDate +
-                ", polity Id: " + p.Id +
-                ", chanceFactor: " + chanceFactor +
-                ", rollValue: " + rollValue +
-                ", forceUpdate: " + forceUpdate +
-                ", caller: " + callingClass + "::" + callingMethod +
-                "");
+//            SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//                "SetPolityUpdate - After roll - Group:" + Id,
+//                "CurrentDate: " + World.CurrentDate +
+//                ", polity Id: " + p.Id +
+//                ", chanceFactor: " + chanceFactor +
+//                ", rollValue: " + rollValue +
+//                ", forceUpdate: " + forceUpdate +
+//                ", caller: " + callingClass + "::" + callingMethod +
+//                "");
 
-            Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-        }
-#endif
+//            Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+//        }
+//#endif
 
         if (rollValue <= chanceFactor)
             World.AddPolityToUpdate(p);

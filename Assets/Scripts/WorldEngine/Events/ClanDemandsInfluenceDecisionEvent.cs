@@ -84,24 +84,24 @@ public class ClanDemandsInfluenceDecisionEvent : FactionEvent
 
         long triggerDate = clan.World.CurrentDate + triggerDateSpan;
 
-#if DEBUG
-        if (Manager.RegisterDebugEvent != null)
-        {
-            SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-                "ClanDemandsInfluenceDecisionEvent:CalculateTriggerDate - clan.Id:" + clan.Id,
-                "triggerDate: " + triggerDate +
-                ", triggerDateSpan: " + triggerDateSpan +
-                ", dateSpan: " + dateSpan +
-                ", randomFactor: " + randomFactor +
-                ", loadFactor: " + loadFactor +
-                ", authorityPrefFactor: " + authorityPrefFactor +
-                ", clan.LastUpdateDate: " + clan.LastUpdateDate +
-                ", clan.World.CurrentDate: " + clan.World.CurrentDate +
-                "");
+//#if DEBUG
+//        if (Manager.RegisterDebugEvent != null)
+//        {
+//            SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//                "ClanDemandsInfluenceDecisionEvent:CalculateTriggerDate - clan.Id:" + clan.Id,
+//                "triggerDate: " + triggerDate +
+//                ", triggerDateSpan: " + triggerDateSpan +
+//                ", dateSpan: " + dateSpan +
+//                ", randomFactor: " + randomFactor +
+//                ", loadFactor: " + loadFactor +
+//                ", authorityPrefFactor: " + authorityPrefFactor +
+//                ", clan.LastUpdateDate: " + clan.LastUpdateDate +
+//                ", clan.World.CurrentDate: " + clan.World.CurrentDate +
+//                "");
 
-            Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-        }
-#endif
+//            Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+//        }
+//#endif
 
         return triggerDate;
     }

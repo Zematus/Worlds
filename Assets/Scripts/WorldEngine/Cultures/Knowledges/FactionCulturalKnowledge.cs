@@ -72,24 +72,24 @@ public class FactionCulturalKnowledge : CulturalKnowledge
         if (!IsPresent)
             return;
 
-#if DEBUG
-        if (Manager.RegisterDebugEvent != null)
-        {
-            if (Manager.TracingData.FactionId == Faction.Id)
-            {
-                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-                    "FactionCulturalKnowledge:UpdateFromCoreKnowledge - Faction.Id:" + Faction.Id,
-                    "CurrentDate: " + Faction.World.CurrentDate +
-                    ", Id: " + Id +
-                    ", IsPresent: " + IsPresent +
-                    ", Value: " + Value +
-                    ", targetValue: " + targetValue +
-                    "");
+//#if DEBUG
+//        if (Manager.RegisterDebugEvent != null)
+//        {
+//            if (Manager.TracingData.FactionId == Faction.Id)
+//            {
+//                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//                    "FactionCulturalKnowledge:UpdateFromCoreKnowledge - Faction.Id:" + Faction.Id,
+//                    "CurrentDate: " + Faction.World.CurrentDate +
+//                    ", Id: " + Id +
+//                    ", IsPresent: " + IsPresent +
+//                    ", Value: " + Value +
+//                    ", targetValue: " + targetValue +
+//                    "");
 
-                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-            }
-        }
-#endif
+//                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+//            }
+//        }
+//#endif
 
         float decimals;
 

@@ -586,70 +586,70 @@ public class CellCulture : Culture
             if (!knowledge.IsPresent)
                 continue;
 
-#if DEBUG
-            if (Manager.RegisterDebugEvent != null)
-            {
-                if (Group.Id == Manager.TracingData.GroupId)
-                {
-                    string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
+//#if DEBUG
+//            if (Manager.RegisterDebugEvent != null)
+//            {
+//                if (Group.Id == Manager.TracingData.GroupId)
+//                {
+//                    string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
 
-                    SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-                        "CellCulture.PostUpdateAttributeValues before PostUpdate() - Group:" + groupId,
-                        "CurrentDate: " + World.CurrentDate +
-                        ", knowledge.Id: " + knowledge.Id +
-                        ", knowledge.IsPresent: " + knowledge.IsPresent +
-                        ", knowledge.Value: " + knowledge.Value +
-                        "");
+//                    SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//                        "CellCulture.PostUpdateAttributeValues before PostUpdate() - Group:" + groupId,
+//                        "CurrentDate: " + World.CurrentDate +
+//                        ", knowledge.Id: " + knowledge.Id +
+//                        ", knowledge.IsPresent: " + knowledge.IsPresent +
+//                        ", knowledge.Value: " + knowledge.Value +
+//                        "");
 
-                    Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-                }
-            }
-#endif
+//                    Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+//                }
+//            }
+//#endif
 
             knowledge.PostUpdate();
 
-#if DEBUG
-            if (Manager.RegisterDebugEvent != null)
-            {
-                if (Group.Id == Manager.TracingData.GroupId)
-                {
-                    string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
+//#if DEBUG
+//            if (Manager.RegisterDebugEvent != null)
+//            {
+//                if (Group.Id == Manager.TracingData.GroupId)
+//                {
+//                    string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
 
-                    SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-                        "CellCulture.PostUpdateAttributeValues before WillBeLost() - Group:" + groupId,
-                        "CurrentDate: " + World.CurrentDate +
-                        ", knowledge.Id: " + knowledge.Id +
-                        ", knowledge.IsPresent: " + knowledge.IsPresent +
-                        ", knowledge.Value: " + knowledge.Value +
-                        "");
+//                    SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//                        "CellCulture.PostUpdateAttributeValues before WillBeLost() - Group:" + groupId,
+//                        "CurrentDate: " + World.CurrentDate +
+//                        ", knowledge.Id: " + knowledge.Id +
+//                        ", knowledge.IsPresent: " + knowledge.IsPresent +
+//                        ", knowledge.Value: " + knowledge.Value +
+//                        "");
 
-                    Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-                }
-            }
-#endif
+//                    Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+//                }
+//            }
+//#endif
 
             if (!knowledge.WillBeLost())
                 continue;
 
-#if DEBUG
-            if (Manager.RegisterDebugEvent != null)
-            {
-                if (Group.Id == Manager.TracingData.GroupId)
-                {
-                    string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
+//#if DEBUG
+//            if (Manager.RegisterDebugEvent != null)
+//            {
+//                if (Group.Id == Manager.TracingData.GroupId)
+//                {
+//                    string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
 
-                    SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-                        "CellCulture.PostUpdateAttributeValues after WillBeLost() - Group:" + groupId,
-                        "CurrentDate: " + World.CurrentDate +
-                        ", knowledge.Id: " + knowledge.Id +
-                        ", knowledge.IsPresent: " + knowledge.IsPresent +
-                        ", knowledge.Value: " + knowledge.Value +
-                        "");
+//                    SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//                        "CellCulture.PostUpdateAttributeValues after WillBeLost() - Group:" + groupId,
+//                        "CurrentDate: " + World.CurrentDate +
+//                        ", knowledge.Id: " + knowledge.Id +
+//                        ", knowledge.IsPresent: " + knowledge.IsPresent +
+//                        ", knowledge.Value: " + knowledge.Value +
+//                        "");
 
-                    Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-                }
-            }
-#endif
+//                    Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+//                }
+//            }
+//#endif
 
             _knowledgesToLose.Add(knowledge);
         }
@@ -715,22 +715,22 @@ public class CellCulture : Culture
 
         foreach (CellCulturalKnowledge knowledge in Knowledges.Values)
         {
-#if DEBUG
-            if (Manager.RegisterDebugEvent != null)
-            {
-                if (Group.Id == Manager.TracingData.GroupId)
-                {
-                    SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-                        "CellCulture.MinimumKnowledgeProgressLevel - knowledge.Id:" + knowledge.Id + ", Group.Id:" + Group.Id,
-                        "CurrentDate: " + Group.World.CurrentDate +
-                        ", knowledge.IsPresent: " + knowledge.IsPresent +
-                        //", knowledge.WasPresent: " + knowledge.WasPresent +
-                        "");
+//#if DEBUG
+//            if (Manager.RegisterDebugEvent != null)
+//            {
+//                if (Group.Id == Manager.TracingData.GroupId)
+//                {
+//                    SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//                        "CellCulture.MinimumKnowledgeProgressLevel - knowledge.Id:" + knowledge.Id + ", Group.Id:" + Group.Id,
+//                        "CurrentDate: " + Group.World.CurrentDate +
+//                        ", knowledge.IsPresent: " + knowledge.IsPresent +
+//                        //", knowledge.WasPresent: " + knowledge.WasPresent +
+//                        "");
 
-                    Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-                }
-            }
-#endif
+//                    Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+//                }
+//            }
+//#endif
 
             if (!knowledge.IsPresent)
                 continue;

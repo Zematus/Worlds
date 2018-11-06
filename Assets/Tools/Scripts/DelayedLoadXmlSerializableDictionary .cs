@@ -52,12 +52,21 @@ public class DelayedLoadXmlSerializableDictionary<TKey, TValue> : Dictionary<TKe
         XmlSerializer serializer = new XmlSerializer(typeof(TKey[]));
 
         TKey[] keys = new TKey[this.Count];
+        TValue[] values = new TValue[this.Count];
 
         int index = 0;
-        foreach (TKey key in Keys)
+        foreach (KeyValuePair<TKey,TValue> pair in this)
         {
-            keys[index] = key;
+            keys[index] = pair.Key;
+            values[index] = pair.Value;
             index++;
+        }
+
+        // We need to recreate the table to eliminate future inconsistencies from loaded files
+        Clear();
+        for (int i = 0; i < values.Length; i++)
+        {
+            this.Add(keys[i], values[i]);
         }
 
         serializer.Serialize(writer, keys);

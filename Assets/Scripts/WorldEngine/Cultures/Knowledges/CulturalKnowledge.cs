@@ -50,42 +50,42 @@ public class CulturalKnowledge : CulturalKnowledgeInfo, IFilterableValue
 
     public virtual void Reset()
     {
-#if DEBUG
-        if (Manager.RegisterDebugEvent != null)
-        {
-            CellCulturalKnowledge thisCellKnowledge = this as CellCulturalKnowledge;
+//#if DEBUG
+//        if (Manager.RegisterDebugEvent != null)
+//        {
+//            CellCulturalKnowledge thisCellKnowledge = this as CellCulturalKnowledge;
 
-            if ((thisCellKnowledge != null) && (thisCellKnowledge.Group.Id == Manager.TracingData.GroupId))
-            {
-                System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
+//            if ((thisCellKnowledge != null) && (thisCellKnowledge.Group.Id == Manager.TracingData.GroupId))
+//            {
+//                System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
 
-                System.Reflection.MethodBase method1 = stackTrace.GetFrame(1).GetMethod();
-                string callingMethod1 = method1.Name;
-                string callingClass1 = method1.DeclaringType.ToString();
+//                System.Reflection.MethodBase method1 = stackTrace.GetFrame(1).GetMethod();
+//                string callingMethod1 = method1.Name;
+//                string callingClass1 = method1.DeclaringType.ToString();
 
-                //System.Reflection.MethodBase method2 = stackTrace.GetFrame(2).GetMethod();
-                //string callingMethod2 = method2.Name;
-                //string callingClass2 = method2.DeclaringType.ToString();
+//                //System.Reflection.MethodBase method2 = stackTrace.GetFrame(2).GetMethod();
+//                //string callingMethod2 = method2.Name;
+//                //string callingClass2 = method2.DeclaringType.ToString();
 
-                CellGroup group = thisCellKnowledge.Group;
+//                CellGroup group = thisCellKnowledge.Group;
 
-                string groupId = "Id:" + group.Id + "|Long:" + group.Longitude + "|Lat:" + group.Latitude;
+//                string groupId = "Id:" + group.Id + "|Long:" + group.Longitude + "|Lat:" + group.Latitude;
 
-                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-                    "CellCulturalKnowledge.Reset - Group:" + groupId,
-                    "CurrentDate: " + group.World.CurrentDate +
-                    ", Id: " + Id +
-                    ", IsPresent: " + IsPresent +
-                    //", WasPresent: " + WasPresent +
-                    ", Value: " + Value +
-                    ", Calling method 1: " + callingClass1 + ":" + callingMethod1 +
-                    //", Calling method 2: " + callingClass2 + ":" + callingMethod2 +
-                    "");
+//                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//                    "CellCulturalKnowledge.Reset - Group:" + groupId,
+//                    "CurrentDate: " + group.World.CurrentDate +
+//                    ", Id: " + Id +
+//                    ", IsPresent: " + IsPresent +
+//                    //", WasPresent: " + WasPresent +
+//                    ", Value: " + Value +
+//                    ", Calling method 1: " + callingClass1 + ":" + callingMethod1 +
+//                    //", Calling method 2: " + callingClass2 + ":" + callingMethod2 +
+//                    "");
 
-                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-            }
-        }
-#endif
+//                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+//            }
+//        }
+//#endif
 
         Value = 0;
 
@@ -95,42 +95,42 @@ public class CulturalKnowledge : CulturalKnowledgeInfo, IFilterableValue
 
     public void Set()
     {
-#if DEBUG
-        if (Manager.RegisterDebugEvent != null)
-        {
-            CellCulturalKnowledge thisCellKnowledge = this as CellCulturalKnowledge;
+//#if DEBUG
+//        if (Manager.RegisterDebugEvent != null)
+//        {
+//            CellCulturalKnowledge thisCellKnowledge = this as CellCulturalKnowledge;
 
-            if ((thisCellKnowledge != null) && (thisCellKnowledge.Group.Id == Manager.TracingData.GroupId))
-            {
-                System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
+//            if ((thisCellKnowledge != null) && (thisCellKnowledge.Group.Id == Manager.TracingData.GroupId))
+//            {
+//                System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
 
-                System.Reflection.MethodBase method1 = stackTrace.GetFrame(1).GetMethod();
-                string callingMethod1 = method1.Name;
-                string callingClass1 = method1.DeclaringType.ToString();
+//                System.Reflection.MethodBase method1 = stackTrace.GetFrame(1).GetMethod();
+//                string callingMethod1 = method1.Name;
+//                string callingClass1 = method1.DeclaringType.ToString();
 
-                System.Reflection.MethodBase method2 = stackTrace.GetFrame(2).GetMethod();
-                string callingMethod2 = method2.Name;
-                string callingClass2 = method2.DeclaringType.ToString();
+//                System.Reflection.MethodBase method2 = stackTrace.GetFrame(2).GetMethod();
+//                string callingMethod2 = method2.Name;
+//                string callingClass2 = method2.DeclaringType.ToString();
 
-                CellGroup group = thisCellKnowledge.Group;
+//                CellGroup group = thisCellKnowledge.Group;
 
-                string groupId = "Id:" + group.Id + "|Long:" + group.Longitude + "|Lat:" + group.Latitude;
+//                string groupId = "Id:" + group.Id + "|Long:" + group.Longitude + "|Lat:" + group.Latitude;
 
-                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-                    "CellCulturalKnowledge.Set - Group:" + groupId,
-                    "CurrentDate: " + group.World.CurrentDate +
-                    ", Id: " + Id +
-                    ", IsPresent: " + IsPresent +
-                    //", WasPresent: " + WasPresent +
-                    ", Value: " + Value +
-                    ", Calling method 1: " + callingClass1 + ":" + callingMethod1 +
-                    ", Calling method 2: " + callingClass2 + ":" + callingMethod2 +
-                    "");
+//                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//                    "CellCulturalKnowledge.Set - Group:" + groupId,
+//                    "CurrentDate: " + group.World.CurrentDate +
+//                    ", Id: " + Id +
+//                    ", IsPresent: " + IsPresent +
+//                    //", WasPresent: " + WasPresent +
+//                    ", Value: " + Value +
+//                    ", Calling method 1: " + callingClass1 + ":" + callingMethod1 +
+//                    ", Calling method 2: " + callingClass2 + ":" + callingMethod2 +
+//                    "");
 
-                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-            }
-        }
-#endif
+//                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+//            }
+//        }
+//#endif
 
         IsPresent = true;
         WasPresent = false;

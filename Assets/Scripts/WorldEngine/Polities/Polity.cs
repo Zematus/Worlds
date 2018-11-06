@@ -1245,28 +1245,28 @@ public abstract class Polity : ISynchronizable {
 
         float selectionValue = GetNextLocalRandomFloat(rngOffset);
 
-#if DEBUG
-        if (Manager.RegisterDebugEvent != null)
-        {
-            if (Id == Manager.TracingData.PolityId)
-            {
-                string contactWeights = "";
+//#if DEBUG
+//        if (Manager.RegisterDebugEvent != null)
+//        {
+//            if (Id == Manager.TracingData.PolityId)
+//            {
+//                string contactWeights = "";
 
-                foreach (WeightedPolityContact wc in weightedContacts)
-                {
-                    contactWeights += "\n\tPolity.Id: " + wc.Value.Id + ", weight: " + wc.Weight;
-                }
+//                foreach (WeightedPolityContact wc in weightedContacts)
+//                {
+//                    contactWeights += "\n\tPolity.Id: " + wc.Value.Id + ", weight: " + wc.Weight;
+//                }
 
-                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-                "Polity:GetRandomPolityContact - Polity.Id:" + Id,
-                "selectionValue: " + selectionValue +
-                ", Contact Weights: " + contactWeights +
-                "");
+//                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//                "Polity:GetRandomPolityContact - Polity.Id:" + Id,
+//                "selectionValue: " + selectionValue +
+//                ", Contact Weights: " + contactWeights +
+//                "");
 
-                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-            }
-        }
-#endif
+//                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+//            }
+//        }
+//#endif
 
         if (totalWeight < 0) {
 

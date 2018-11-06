@@ -337,34 +337,34 @@ public abstract class Faction : ISynchronizable
     {
         Profiler.BeginSample("Faction - PreUpdate");
 
-#if DEBUG
-        if (Manager.RegisterDebugEvent != null)
-        {
-            if (Manager.TracingData.FactionId == Id)
-            {
-                System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
+//#if DEBUG
+//        if (Manager.RegisterDebugEvent != null)
+//        {
+//            if (Manager.TracingData.FactionId == Id)
+//            {
+//                System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
 
-                System.Reflection.MethodBase method = stackTrace.GetFrame(1).GetMethod();
-                string callingMethod = method.Name;
-                string callingClass = method.DeclaringType.ToString();
+//                System.Reflection.MethodBase method = stackTrace.GetFrame(1).GetMethod();
+//                string callingMethod = method.Name;
+//                string callingClass = method.DeclaringType.ToString();
 
-                int knowledgeValue = 0;
+//                int knowledgeValue = 0;
 
-                Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.KnowledgeId, out knowledgeValue);
+//                Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.KnowledgeId, out knowledgeValue);
 
-                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-                    "Faction:PreUpdate - Faction Id:" + Id,
-                    "CurrentDate: " + World.CurrentDate +
-                    ", Polity.Id: " + Polity.Id +
-                    ", preupdated: " + _preupdated +
-                    ", Social organization knowledge value: " + knowledgeValue +
-                    ", Calling method: " + callingClass + ":" + callingMethod +
-                    "");
+//                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//                    "Faction:PreUpdate - Faction Id:" + Id,
+//                    "CurrentDate: " + World.CurrentDate +
+//                    ", Polity.Id: " + Polity.Id +
+//                    ", preupdated: " + _preupdated +
+//                    ", Social organization knowledge value: " + knowledgeValue +
+//                    ", Calling method: " + callingClass + ":" + callingMethod +
+//                    "");
 
-                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-            }
-        }
-#endif
+//                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+//            }
+//        }
+//#endif
 
         if (World.FactionsHaveBeenUpdated && !IsBeingUpdated)
         {

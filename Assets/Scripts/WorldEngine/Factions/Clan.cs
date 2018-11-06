@@ -286,22 +286,22 @@ public class Clan : Faction
 
     public override bool ShouldMigrateFactionCore(CellGroup sourceGroup, TerrainCell targetCell, float targetProminence, int targetPopulation)
     {
-#if DEBUG
-        if (Manager.RegisterDebugEvent != null)
-        {
-            if (sourceGroup.Id == Manager.TracingData.GroupId)
-            {
-                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-                    "ShouldMigrateFactionCore - Clan:" + Id + ", sourceGroup:" + sourceGroup.Id,
-                    "CurrentDate: " + World.CurrentDate +
-                    ", targetPopulation: " + targetPopulation +
-                    ", targetProminence: " + targetProminence +
-                    "");
+//#if DEBUG
+//        if (Manager.RegisterDebugEvent != null)
+//        {
+//            if (sourceGroup.Id == Manager.TracingData.GroupId)
+//            {
+//                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//                    "ShouldMigrateFactionCore - Clan:" + Id + ", sourceGroup:" + sourceGroup.Id,
+//                    "CurrentDate: " + World.CurrentDate +
+//                    ", targetPopulation: " + targetPopulation +
+//                    ", targetProminence: " + targetProminence +
+//                    "");
 
-                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-            }
-        }
-#endif
+//                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+//            }
+//        }
+//#endif
 
         float targetProminenceFactor = Mathf.Max(0, targetProminence - MinCorePolityProminence);
 
@@ -329,22 +329,22 @@ public class Clan : Faction
 
         float sourceFactor = sourceProminenceFactor * sourcePopulationFactor;
 
-#if DEBUG
-        if (Manager.RegisterDebugEvent != null)
-        {
-            if (sourceGroup.Id == Manager.TracingData.GroupId)
-            {
-                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-                    "ShouldMigrateFactionCore - Clan:" + Id + ", sourceGroup:" + sourceGroup.Id,
-                    "CurrentDate: " + World.CurrentDate +
-                    ", sourceProminence: " + sourceProminence +
-                    ", sourcePopulation: " + sourcePopulation +
-                    "");
+//#if DEBUG
+//        if (Manager.RegisterDebugEvent != null)
+//        {
+//            if (sourceGroup.Id == Manager.TracingData.GroupId)
+//            {
+//                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//                    "ShouldMigrateFactionCore - Clan:" + Id + ", sourceGroup:" + sourceGroup.Id,
+//                    "CurrentDate: " + World.CurrentDate +
+//                    ", sourceProminence: " + sourceProminence +
+//                    ", sourcePopulation: " + sourcePopulation +
+//                    "");
 
-                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-            }
-        }
-#endif
+//                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+//            }
+//        }
+//#endif
 
         if (sourceFactor <= 0)
             return true;
@@ -355,22 +355,22 @@ public class Clan : Faction
 
         float randomValue = sourceGroup.GetNextLocalRandomFloat(RngOffsets.MIGRATING_GROUP_MOVE_FACTION_CORE + unchecked((int)Id));
 
-#if DEBUG
-        if (Manager.RegisterDebugEvent != null)
-        {
-            if (sourceGroup.Id == Manager.TracingData.GroupId)
-            {
-                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-                    "ShouldMigrateFactionCore - Clan:" + Id + ", sourceGroup:" + sourceGroup.Id,
-                    "CurrentDate: " + World.CurrentDate +
-                    ", randomValue: " + randomValue +
-                    ", migrateCoreFactor: " + migrateCoreFactor +
-                    "");
+//#if DEBUG
+//        if (Manager.RegisterDebugEvent != null)
+//        {
+//            if (sourceGroup.Id == Manager.TracingData.GroupId)
+//            {
+//                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//                    "ShouldMigrateFactionCore - Clan:" + Id + ", sourceGroup:" + sourceGroup.Id,
+//                    "CurrentDate: " + World.CurrentDate +
+//                    ", randomValue: " + randomValue +
+//                    ", migrateCoreFactor: " + migrateCoreFactor +
+//                    "");
 
-                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-            }
-        }
-#endif
+//                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+//            }
+//        }
+//#endif
 
         return (randomValue > migrateCoreFactor);
     }
@@ -482,23 +482,23 @@ public class Clan : Faction
             return Mathf.Infinity;
         }
 
-#if DEBUG
-        if (Manager.RegisterDebugEvent != null)
-        {
-            if (Manager.TracingData.FactionId == Id)
-            {
-                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-                    "Clan:CalculateAdministrativeLoad - ClanId:" + Id,
-                    "CurrentDate: " + World.CurrentDate +
-                    ", socialOrganizationValue: " + socialOrganizationValue +
-                    ", Influence: " + Influence +
-                    ", Polity.TotalAdministrativeCost: " + Polity.TotalAdministrativeCost +
-                    "");
+//#if DEBUG
+//        if (Manager.RegisterDebugEvent != null)
+//        {
+//            if (Manager.TracingData.FactionId == Id)
+//            {
+//                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//                    "Clan:CalculateAdministrativeLoad - ClanId:" + Id,
+//                    "CurrentDate: " + World.CurrentDate +
+//                    ", socialOrganizationValue: " + socialOrganizationValue +
+//                    ", Influence: " + Influence +
+//                    ", Polity.TotalAdministrativeCost: " + Polity.TotalAdministrativeCost +
+//                    "");
 
-                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-            }
-        }
-#endif
+//                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+//            }
+//        }
+//#endif
 
         return administrativeLoad;
     }

@@ -193,22 +193,22 @@ public class MigratingGroup : HumanGroup
                 FactionCoresToMigrate.Add(faction);
         }
 
-#if DEBUG
-        if (Manager.RegisterDebugEvent != null)
-        {
-            if (SourceGroupId == Manager.TracingData.GroupId)
-            {
-                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-                    "TryMigrateFactionCores - SourceGroup:" + SourceGroupId,
-                    "CurrentDate: " + World.CurrentDate +
-                    "SourceGroup.GetFactionCores().Count: " + SourceGroup.GetFactionCores().Count +
-                    ", FactionCoresToMigrate.Count: " + FactionCoresToMigrate.Count +
-                    "");
+//#if DEBUG
+//        if (Manager.RegisterDebugEvent != null)
+//        {
+//            if (SourceGroupId == Manager.TracingData.GroupId)
+//            {
+//                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//                    "TryMigrateFactionCores - SourceGroup:" + SourceGroupId,
+//                    "CurrentDate: " + World.CurrentDate +
+//                    "SourceGroup.GetFactionCores().Count: " + SourceGroup.GetFactionCores().Count +
+//                    ", FactionCoresToMigrate.Count: " + FactionCoresToMigrate.Count +
+//                    "");
 
-                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-            }
-        }
-#endif
+//                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+//            }
+//        }
+//#endif
     }
 
     public void MoveToCell()
@@ -262,23 +262,23 @@ public class MigratingGroup : HumanGroup
             faction.PrepareNewCoreGroup(targetGroup);
         }
 
-#if DEBUG
-        if (Manager.RegisterDebugEvent != null)
-        {
-            if (SourceGroupId == Manager.TracingData.GroupId)
-            {
-                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-                    "MoveToCell - SourceGroup:" + SourceGroupId,
-                    "CurrentDate: " + World.CurrentDate +
-                    ", Population: " + Population +
-                    ", FactionCoresToMigrate.Count: " + FactionCoresToMigrate.Count +
-                    ", TargetCell.Position: " + TargetCell.Position +
-                    "");
+//#if DEBUG
+//        if (Manager.RegisterDebugEvent != null)
+//        {
+//            if (SourceGroupId == Manager.TracingData.GroupId)
+//            {
+//                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//                    "MoveToCell - SourceGroup:" + SourceGroupId,
+//                    "CurrentDate: " + World.CurrentDate +
+//                    ", Population: " + Population +
+//                    ", FactionCoresToMigrate.Count: " + FactionCoresToMigrate.Count +
+//                    ", TargetCell.Position: " + TargetCell.Position +
+//                    "");
 
-                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-            }
-        }
-#endif
+//                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+//            }
+//        }
+//#endif
     }
 
     public override void Synchronize()

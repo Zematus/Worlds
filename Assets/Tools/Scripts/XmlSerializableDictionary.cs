@@ -11,6 +11,14 @@ public interface IKeyedValue<TKey>
 
 public class XmlSerializableDictionary<TKey, TValue> : Dictionary<TKey, TValue>, IXmlSerializable where TValue : IKeyedValue<TKey>
 {
+    private void Recreate(TValue[] values)
+    {
+        for (int i = 0; i < values.Length; i++)
+        {
+            this.Add(values[i].GetKey(), values[i]);
+        }
+    }
+
     public XmlSchema GetSchema()
     {
         return null;
@@ -24,10 +32,7 @@ public class XmlSerializableDictionary<TKey, TValue> : Dictionary<TKey, TValue>,
         {
             TValue[] values = (TValue[])serializer.Deserialize(reader);
 
-            for (int i = 0; i < values.Length; i++)
-            {
-                this.Add(values[i].GetKey(), values[i]);
-            }
+            Recreate(values);
         }
     }
 
@@ -43,6 +48,10 @@ public class XmlSerializableDictionary<TKey, TValue> : Dictionary<TKey, TValue>,
             values[index] = value;
             index++;
         }
+
+        // We need to recreate the table to eliminate future inconsistencies from loaded files
+        Clear();
+        Recreate(values);
 
         serializer.Serialize(writer, values);
     }
