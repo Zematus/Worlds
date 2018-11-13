@@ -103,7 +103,7 @@ public abstract class WorldEvent : ISynchronizable {
 		Id = id;
 
 		#if DEBUG
-		if (Manager.RegisterDebugEvent != null) {
+		if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0)) {
 			if (!this.GetType ().IsSubclassOf (typeof(CellGroupEvent))) {
 				string eventId = "Id: " + id;
 

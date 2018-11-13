@@ -86,7 +86,7 @@ public class AgricultureKnowledge : CellCulturalKnowledge
             return 1;
 
 //#if DEBUG
-//        if (Manager.RegisterDebugEvent != null)
+//        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
 //        {
 //            if (Group.Id == Manager.TracingData.GroupId)
 //            {
@@ -117,7 +117,7 @@ public class AgricultureKnowledge : CellCulturalKnowledge
             bool polityHasKnowledge = Group.InfluencingPolityHasKnowledge(Id);
 
 //#if DEBUG
-//            if (Manager.RegisterDebugEvent != null)
+//            if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
 //            {
 //                if (Group.Id == Manager.TracingData.GroupId)
 //                {

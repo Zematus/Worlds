@@ -91,7 +91,7 @@ public class MergeTribesDecisionEvent : PolityEvent
     public override bool CanTrigger()
     {
         //#if DEBUG
-        //        if (Manager.RegisterDebugEvent != null)
+        //        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
         //        {
         //            if (Polity.Id == 11267065402613603L)
         //            {
@@ -125,7 +125,7 @@ public class MergeTribesDecisionEvent : PolityEvent
         _targetDominantClan = _targetTribe.DominantFaction as Clan;
 
 //#if DEBUG
-//        if (Manager.RegisterDebugEvent != null)
+//        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
 //        {
 //            //if (_targetTribe.Id == Manager.TracingData.PolityId)
 //            //{

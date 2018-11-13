@@ -48,7 +48,7 @@ public class FactionCulture : Culture
             if (k.IsPresent)
             {
 //#if DEBUG
-//                if (Manager.RegisterDebugEvent != null)
+//                if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
 //                {
 //                    if (Manager.TracingData.FactionId == Faction.Id)
 //                    {
@@ -136,7 +136,7 @@ public class FactionCulture : Culture
             }
 
 //#if DEBUG
-//            if (Manager.RegisterDebugEvent != null)
+//            if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
 //            {
 //                if (Manager.TracingData.FactionId == Faction.Id)
 //                {
@@ -269,7 +269,7 @@ public class FactionCulture : Culture
         Profiler.BeginSample("Culture - Update Knowledges");
 
 //#if DEBUG
-//        if (Manager.RegisterDebugEvent != null)
+//        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
 //        {
 //            if (Manager.TracingData.FactionId == Faction.Id)
 //            {
@@ -288,7 +288,7 @@ public class FactionCulture : Culture
         foreach (FactionCulturalKnowledge k in Knowledges.Values)
         {
 //#if DEBUG
-//            if (Manager.RegisterDebugEvent != null)
+//            if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
 //            {
 //                if (k.IsPresent && (Manager.TracingData.FactionId == Faction.Id))
 //                {
@@ -316,7 +316,7 @@ public class FactionCulture : Culture
         Profiler.BeginSample("Culture - Update Discoveries");
 
 //#if DEBUG
-//        if (Manager.RegisterDebugEvent != null)
+//        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
 //        {
 //            if (Manager.TracingData.FactionId == Faction.Id)
 //            {
@@ -335,16 +335,17 @@ public class FactionCulture : Culture
         foreach (FactionCulturalDiscovery d in Discoveries.Values)
         {
 #if DEBUG
-            if (Manager.RegisterDebugEvent != null)
+            if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
             {
                 if (d.IsPresent && (Manager.TracingData.FactionId == Faction.Id))
                 {
                     SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-                    "FactionCulture:Update - Update Discoveries - Faction.Id:" + Faction.Id,
+                    "FactionCulture:Update - Update Discoveries before TryRemovingDiscovery - Faction.Id:" + Faction.Id,
                     "CurrentDate: " + World.CurrentDate +
                     ", coreCulture.Group.Id: " + coreCulture.Group.Id +
                     ", Discovery Id: " + d.Id +
                     ", d.IsPresent: " + d.IsPresent +
+                    //", d.AcquisitionDate: " + d.AcquisitionDate +
                     ", ((d.CoreCulturalDiscovery == null) || (!d.CoreCulturalDiscovery.IsPresent)): " 
                     + ((d.CoreCulturalDiscovery == null) || (!d.CoreCulturalDiscovery.IsPresent)) +
                     "");
@@ -408,6 +409,9 @@ public class FactionCulture : Culture
 
         foreach (CellCulturalKnowledge k in coreCulture.Knowledges.Values)
         {
+            if (!k.IsPresent)
+                continue;
+
             AddCoreKnowledge(k);
         }
     }
@@ -418,26 +422,30 @@ public class FactionCulture : Culture
 
         if (factionKnowledge == null)
         {
-//#if DEBUG
-//            if (Manager.RegisterDebugEvent != null)
-//            {
-//                if (Manager.TracingData.FactionId == Faction.Id)
-//                {
-//                    SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-//                        "FactionCulture:AddCoreKnowledge - Faction.Id:" + Faction.Id,
-//                        "CurrentDate: " + World.CurrentDate +
-//                        ", coreKnowledge.Group.Id: " + coreKnowledge.Group.Id +
-//                        ", coreKnowledge.Id: " + coreKnowledge.Id +
-//                        "");
+            //#if DEBUG
+            //            if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
+            //            {
+            //                if (Manager.TracingData.FactionId == Faction.Id)
+            //                {
+            //                    SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+            //                        "FactionCulture:AddCoreKnowledge - Faction.Id:" + Faction.Id,
+            //                        "CurrentDate: " + World.CurrentDate +
+            //                        ", coreKnowledge.Group.Id: " + coreKnowledge.Group.Id +
+            //                        ", coreKnowledge.Id: " + coreKnowledge.Id +
+            //                        "");
 
-//                    Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-//                }
-//            }
-//#endif
+            //                    Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+            //                }
+            //            }
+            //#endif
 
             factionKnowledge = new FactionCulturalKnowledge(Faction, coreKnowledge, Faction.Polity.Culture);
 
             AddKnowledge(factionKnowledge);
+        }
+        else
+        {
+            factionKnowledge.Set();
         }
 
         factionKnowledge.CoreCulturalKnowledge = coreKnowledge;
@@ -452,6 +460,9 @@ public class FactionCulture : Culture
 
         foreach (CellCulturalDiscovery d in coreCulture.Discoveries.Values)
         {
+            if (!d.IsPresent)
+                continue;
+
             AddCoreDiscovery(d);
         }
     }
@@ -465,6 +476,10 @@ public class FactionCulture : Culture
             factionDiscovery = new FactionCulturalDiscovery(Faction, coreDiscovery, Faction.Polity.Culture);
 
             AddDiscovery(factionDiscovery);
+        }
+        else
+        {
+            factionDiscovery.Set(true);
         }
 
         factionDiscovery.CoreCulturalDiscovery = coreDiscovery;

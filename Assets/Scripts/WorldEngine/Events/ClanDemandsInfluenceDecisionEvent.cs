@@ -85,7 +85,7 @@ public class ClanDemandsInfluenceDecisionEvent : FactionEvent
         long triggerDate = clan.World.CurrentDate + triggerDateSpan;
 
 //#if DEBUG
-//        if (Manager.RegisterDebugEvent != null)
+//        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
 //        {
 //            SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
 //                "ClanDemandsInfluenceDecisionEvent:CalculateTriggerDate - clan.Id:" + clan.Id,
@@ -157,7 +157,7 @@ public class ClanDemandsInfluenceDecisionEvent : FactionEvent
         _chanceOfMakingDemand = CalculateChanceOfMakingDemand();
 
         //#if DEBUG
-        //        if (Manager.RegisterDebugEvent != null)
+        //        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
         //        {
         //            SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
         //                "ClanDemandsInfluenceDecisionEvent:CanTrigger - DemandClanId:" + _demandClan.Id + ", DominantClan: " + _dominantClan.Id,
@@ -225,7 +225,7 @@ public class ClanDemandsInfluenceDecisionEvent : FactionEvent
         float chance = 1 - (administrativeLoad - modMinAdministrativeLoad) / (modMaxAdministrativeLoad - modMinAdministrativeLoad);
 
         //#if DEBUG
-        //        if (Manager.RegisterDebugEvent != null)
+        //        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
         //        {
         //            if ((Manager.TracingData.FactionId == _dominantClan.Id) ||
         //                (Manager.TracingData.FactionId == _demandClan.Id))
@@ -289,7 +289,7 @@ public class ClanDemandsInfluenceDecisionEvent : FactionEvent
         float chance = 1 - (administrativeLoad - modMinAdministrativeLoad) / (modMaxAdministrativeLoad - modMinAdministrativeLoad);
 
         //#if DEBUG
-        //        if (Manager.RegisterDebugEvent != null)
+        //        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
         //        {
         //            if ((Manager.TracingData.FactionId == _dominantClan.Id) ||
         //                (Manager.TracingData.FactionId == _demandClan.Id))

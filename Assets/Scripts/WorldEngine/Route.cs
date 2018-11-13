@@ -124,7 +124,7 @@ public class Route : ISynchronizable
             nextCell = ChooseNextSeaCell(nextCell, rngOffset++, out nextDirection);
 
             //#if DEBUG
-            //            if (Manager.RegisterDebugEvent != null)
+            //            if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
             //            {
             //                if ((FirstCell.Longitude == Manager.TracingData.Longitude) && (FirstCell.Latitude == Manager.TracingData.Latitude))
             //                {
@@ -236,7 +236,7 @@ public class Route : ISynchronizable
         direction = newDirection;
 
         //#if DEBUG
-        //        if (Manager.RegisterDebugEvent != null)
+        //        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
         //        {
         //            if ((FirstCell.Longitude == Manager.TracingData.Longitude) && (FirstCell.Latitude == Manager.TracingData.Latitude))
         //            {
@@ -362,7 +362,7 @@ public class Route : ISynchronizable
         _currentEndRoutePreference += 0.1f;
 
         //#if DEBUG
-        //        if (Manager.RegisterDebugEvent != null)
+        //        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
         //        {
         //            if ((FirstCell.Longitude == Manager.TracingData.Longitude) && (FirstCell.Latitude == Manager.TracingData.Latitude))
         //            {

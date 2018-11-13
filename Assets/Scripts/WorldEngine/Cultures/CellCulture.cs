@@ -63,7 +63,7 @@ public class CellCulture : Culture
             if (k.IsPresent)
             {
 //#if DEBUG
-//                if (Manager.RegisterDebugEvent != null)
+//                if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
 //                {
 //                    if (Group.Id == Manager.TracingData.GroupId)
 //                    {
@@ -496,7 +496,7 @@ public class CellCulture : Culture
             try
             {
 //#if DEBUG
-//                if (Manager.RegisterDebugEvent != null)
+//                if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
 //                {
 //                    if (Group.Id == Manager.TracingData.GroupId)
 //                    {
@@ -587,7 +587,7 @@ public class CellCulture : Culture
                 continue;
 
 //#if DEBUG
-//            if (Manager.RegisterDebugEvent != null)
+//            if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
 //            {
 //                if (Group.Id == Manager.TracingData.GroupId)
 //                {
@@ -609,7 +609,7 @@ public class CellCulture : Culture
             knowledge.PostUpdate();
 
 //#if DEBUG
-//            if (Manager.RegisterDebugEvent != null)
+//            if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
 //            {
 //                if (Group.Id == Manager.TracingData.GroupId)
 //                {
@@ -632,7 +632,7 @@ public class CellCulture : Culture
                 continue;
 
 //#if DEBUG
-//            if (Manager.RegisterDebugEvent != null)
+//            if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
 //            {
 //                if (Group.Id == Manager.TracingData.GroupId)
 //                {
@@ -677,6 +677,11 @@ public class CellCulture : Culture
 
     public void UpdateFactionCulture(FactionCulture factionCulture)
     {
+        foreach (CellCulturalKnowledge k in KnowledgesToLearn.Values)
+        {
+            factionCulture.AddCoreKnowledge(k);
+        }
+
         foreach (CellCulturalDiscovery d in DiscoveriesToFind.Values)
         {
             factionCulture.AddCoreDiscovery(d);
@@ -715,22 +720,22 @@ public class CellCulture : Culture
 
         foreach (CellCulturalKnowledge knowledge in Knowledges.Values)
         {
-//#if DEBUG
-//            if (Manager.RegisterDebugEvent != null)
-//            {
-//                if (Group.Id == Manager.TracingData.GroupId)
-//                {
-//                    SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-//                        "CellCulture.MinimumKnowledgeProgressLevel - knowledge.Id:" + knowledge.Id + ", Group.Id:" + Group.Id,
-//                        "CurrentDate: " + Group.World.CurrentDate +
-//                        ", knowledge.IsPresent: " + knowledge.IsPresent +
-//                        //", knowledge.WasPresent: " + knowledge.WasPresent +
-//                        "");
+#if DEBUG
+            if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
+            {
+                if (Group.Id == Manager.TracingData.GroupId)
+                {
+                    SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+                        "CellCulture.MinimumKnowledgeProgressLevel - knowledge.Id:" + knowledge.Id + ", Group.Id:" + Group.Id,
+                        "CurrentDate: " + Group.World.CurrentDate +
+                        ", knowledge.IsPresent: " + knowledge.IsPresent +
+                        //", knowledge.WasPresent: " + knowledge.WasPresent +
+                        "");
 
-//                    Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-//                }
-//            }
-//#endif
+                    Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+                }
+            }
+#endif
 
             if (!knowledge.IsPresent)
                 continue;
@@ -742,22 +747,22 @@ public class CellCulture : Culture
                 minProgressLevel = level;
             }
 
-//#if DEBUG
-//            if (Manager.RegisterDebugEvent != null)
-//            {
-//                if (Group.Id == Manager.TracingData.GroupId)
-//                {
-//                    SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-//                        "CellCulture.MinimumKnowledgeProgressLevel - knowledge.Id:" + knowledge.Id + ", Group.Id:" + Group.Id,
-//                        "CurrentDate: " + Group.World.CurrentDate +
-//                        ", knowledge.CalculateExpectedProgressLevel(): " + level +
-//                        ", minProgressLevel: " + minProgressLevel +
-//                        "");
+#if DEBUG
+            if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
+            {
+                if (Group.Id == Manager.TracingData.GroupId)
+                {
+                    SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+                        "CellCulture.MinimumKnowledgeProgressLevel - knowledge.Id:" + knowledge.Id + ", Group.Id:" + Group.Id,
+                        "CurrentDate: " + Group.World.CurrentDate +
+                        ", knowledge.CalculateExpectedProgressLevel(): " + level +
+                        //", minProgressLevel: " + minProgressLevel +
+                        "");
 
-//                    Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-//                }
-//            }
-//#endif
+                    Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+                }
+            }
+#endif
         }
 
         return minProgressLevel;

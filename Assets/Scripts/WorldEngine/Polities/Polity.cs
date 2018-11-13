@@ -209,7 +209,7 @@ public abstract class Polity : ISynchronizable {
 		Culture = new PolityCulture (this);
 
 //		#if DEBUG
-//		if (Manager.RegisterDebugEvent != null) {
+//		if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0)) {
 //			if (CoreGroupId == Manager.TracingData.GroupId) {
 //				string groupId = "Id:" + CoreGroupId + "|Long:" + CoreGroup.Longitude + "|Lat:" + CoreGroup.Latitude;
 //
@@ -654,7 +654,7 @@ public abstract class Polity : ISynchronizable {
         }
 
 //#if DEBUG
-//        if (Manager.RegisterDebugEvent != null)
+//        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
 //        {
 //            Manager.RegisterDebugEvent("DebugMessage",
 //                "Update - Polity:" + Id +
@@ -1012,7 +1012,7 @@ public abstract class Polity : ISynchronizable {
         prominenceValue = Mathf.Clamp01(prominenceValue);
 
         //#if DEBUG
-        //        if (Manager.RegisterDebugEvent != null)
+        //        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
         //        {
         //            if (group.Id == Manager.TracingData.GroupId)
         //            {
@@ -1246,7 +1246,7 @@ public abstract class Polity : ISynchronizable {
         float selectionValue = GetNextLocalRandomFloat(rngOffset);
 
 //#if DEBUG
-//        if (Manager.RegisterDebugEvent != null)
+//        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
 //        {
 //            if (Id == Manager.TracingData.PolityId)
 //            {

@@ -728,7 +728,7 @@ public class World : ISynchronizable
     private bool ValidateEventsToHappenNode(BinaryTreeNode<long, WorldEvent> node)
     {
         //#if DEBUG
-        //        if (Manager.RegisterDebugEvent != null)
+        //        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
         //        {
         //            if ((node.Value.Id == 160349336613603015) || (node.Value.Id == 160349354613603010))
         //            {
@@ -783,7 +783,7 @@ public class World : ISynchronizable
         EventsToHappenCount--;
 
         //		#if DEBUG
-        //		if (Manager.RegisterDebugEvent != null) {
+        //		if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0)) {
         //			SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("Event Removal", "Removal");
         //
         //			Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
@@ -979,21 +979,21 @@ public class World : ISynchronizable
             if (eventToHappen.TriggerDate > CurrentDate)
             {
 #if DEBUG
-                if (Manager.RegisterDebugEvent != null)
+                if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
                 {
                     string message = "TriggerDate: " + eventToHappen.TriggerDate +
                         ", event type: " + eventToHappen.GetType();
 
-                    if (eventToHappen is FactionEvent)
-                    {
-                        message += ", event spawn date: " + eventToHappen.SpawnDate +
-                        ", datespan: " + (eventToHappen.TriggerDate - eventToHappen.SpawnDate);
-                    }
+                    ////if (eventToHappen is FactionEvent)
+                    ////{
+                    //    message += ", event spawn date: " + eventToHappen.SpawnDate +
+                    //    ", datespan: " + (eventToHappen.TriggerDate - eventToHappen.SpawnDate);
+                    ////}
 
                     message += ", current date: " + CurrentDate;
 
                     SaveLoadTest.DebugMessage debugMessage =
-                        new SaveLoadTest.DebugMessage("EvaluateEventsToHappen:eventToHappen - Id: " + eventToHappen.Id, message);
+                        new SaveLoadTest.DebugMessage("EvaluateEventsToHappen.eventToHappen - Id: " + eventToHappen.Id, message);
 
                     Manager.RegisterDebugEvent("DebugMessage", debugMessage);
                 }
@@ -1021,7 +1021,7 @@ public class World : ISynchronizable
             EventsToHappenCount--;
 
 //#if DEBUG
-//            if (Manager.RegisterDebugEvent != null)
+//            if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
 //            {
 //                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("Event Being Triggered", "Triggering");
 
@@ -1173,7 +1173,7 @@ public class World : ISynchronizable
             if (futureEventToHappen.TriggerDate < _dateToSkipTo)
             {
 #if DEBUG
-                if (Manager.RegisterDebugEvent != null)
+                if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
                 {
                     SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
                         "Update:futureEventToHappen - Id: " + futureEventToHappen.Id,
@@ -1219,7 +1219,7 @@ public class World : ISynchronizable
         _eventsToHappen.Insert(eventToHappen.TriggerDate, eventToHappen, eventToHappen.AssociateNode);
 
         //		#if DEBUG
-        //		if (Manager.RegisterDebugEvent != null) {
+        //		if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0)) {
         //			SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("Event Added - Id: " + eventToHappen.Id, "TriggerDate: " + eventToHappen.TriggerDate);
         //
         //			Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
@@ -1297,7 +1297,7 @@ public class World : ISynchronizable
     public void AddGroupToUpdate(CellGroup group)
     {
 #if DEBUG
-        //if (Manager.RegisterDebugEvent != null)
+        //if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
         //{
         //    if (group.Id == Manager.TracingData.GroupId)
         //    {
@@ -1455,7 +1455,7 @@ public class World : ISynchronizable
 	public void AddFactionToUpdate (Faction faction)
     {
 #if DEBUG
-        if (Manager.RegisterDebugEvent != null)
+        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
         {
             if (Manager.TracingData.FactionId == faction.Id)
             {
@@ -1484,7 +1484,7 @@ public class World : ISynchronizable
                     "World:AddFactionToUpdate - Faction Id:" + faction.Id,
                     "CurrentDate: " + CurrentDate +
                     ", Social organization knowledge value: " + knowledgeValue +
-                    ", Calling method: " + callingClass + ":" + callingMethod +
+                    ", Calling method: " + callingClass + "." + callingMethod +
                     "");
 
                 Manager.RegisterDebugEvent("DebugMessage", debugMessage);
@@ -1513,7 +1513,7 @@ public class World : ISynchronizable
 
             Debug.LogWarning(
                 "Trying to add faction to update after factions have already been updated this iteration. Id: " + 
-                faction.Id + ", Calling method: " + callingClass + ":" + callingMethod);
+                faction.Id + ", Calling method: " + callingClass + "." + callingMethod);
         }
 
         if (!faction.StillPresent)
@@ -1563,7 +1563,7 @@ public class World : ISynchronizable
     public void AddPolityToUpdate (Polity polity)
     {
 #if DEBUG
-        if (Manager.RegisterDebugEvent != null)
+        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
         {
             if (polity.Id == Manager.TracingData.PolityId)
             {

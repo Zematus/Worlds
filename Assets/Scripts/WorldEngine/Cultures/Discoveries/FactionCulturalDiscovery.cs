@@ -7,6 +7,11 @@ using UnityEngine.Profiling;
 
 public class FactionCulturalDiscovery : CulturalDiscovery
 {
+#if DEBUG
+    [XmlIgnore]
+    public long AcquisitionDate = -1; // This property is used for debugging purposes
+#endif
+
     [XmlIgnore]
     public Faction Faction;
 
@@ -27,6 +32,40 @@ public class FactionCulturalDiscovery : CulturalDiscovery
         CoreCulturalDiscovery = coreDiscovery;
 
         SetPolityCulturalDiscovery(polityCulture);
+
+#if DEBUG
+        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
+        {
+            if (Faction.Id == Manager.TracingData.FactionId)
+            {
+                System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
+
+                System.Reflection.MethodBase method1 = stackTrace.GetFrame(1).GetMethod();
+                string callingMethod1 = method1.Name;
+                string callingClass1 = method1.DeclaringType.ToString();
+
+                System.Reflection.MethodBase method2 = stackTrace.GetFrame(2).GetMethod();
+                string callingMethod2 = method2.Name;
+                string callingClass2 = method2.DeclaringType.ToString();
+
+                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+                    "FactionCulturalDiscovery.FactionCulturalDiscovery - Faction:" + Faction.Id,
+                    "CurrentDate: " + Faction.World.CurrentDate +
+                    ", Id: " + Id +
+                    ", IsPresent: " + IsPresent +
+                    ", ((CoreCulturalDiscovery != null) && (CoreCulturalDiscovery.IsPresent)): " 
+                    + ((CoreCulturalDiscovery != null) && (CoreCulturalDiscovery.IsPresent)) +
+                    //", WasPresent: " + WasPresent +
+                    ", Calling method 1: " + callingClass1 + "." + callingMethod1 +
+                    ", Calling method 2: " + callingClass2 + "." + callingMethod2 +
+                    "");
+
+                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+            }
+        }
+
+        AcquisitionDate = faction.World.CurrentDate;
+#endif
     }
 
     public void SetPolityCulturalDiscovery(PolityCulture culture)
@@ -45,16 +84,48 @@ public class FactionCulturalDiscovery : CulturalDiscovery
     {
         if (IsPresent)
         {
-            Profiler.BeginSample("PolityCulturalDiscovery.Set(true)");
+            //Profiler.BeginSample("PolityCulturalDiscovery.Set(true)");
 
             PolityCulturalDiscovery.Set(true);
 
-            Profiler.EndSample();
+            //Profiler.EndSample();
         }
     }
 
     public void UpdateFromCoreDiscovery()
     {
         Set(true);
+
+#if DEBUG
+        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
+        {
+            if (Faction.Id == Manager.TracingData.FactionId)
+            {
+                System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
+
+                System.Reflection.MethodBase method1 = stackTrace.GetFrame(1).GetMethod();
+                string callingMethod1 = method1.Name;
+                string callingClass1 = method1.DeclaringType.ToString();
+
+                System.Reflection.MethodBase method2 = stackTrace.GetFrame(2).GetMethod();
+                string callingMethod2 = method2.Name;
+                string callingClass2 = method2.DeclaringType.ToString();
+
+                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+                    "FactionCulturalDiscovery.UpdateFromCoreDiscovery - Faction:" + Faction.Id,
+                    "CurrentDate: " + Faction.World.CurrentDate +
+                    ", Id: " + Id +
+                    ", IsPresent: " + IsPresent +
+                    //", WasPresent: " + WasPresent +
+                    ", Calling method 1: " + callingClass1 + "." + callingMethod1 +
+                    ", Calling method 2: " + callingClass2 + "." + callingMethod2 +
+                    "");
+
+                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+            }
+        }
+
+        AcquisitionDate = Faction.World.CurrentDate;
+#endif
     }
 }

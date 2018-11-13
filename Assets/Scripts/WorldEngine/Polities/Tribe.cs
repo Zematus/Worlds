@@ -41,7 +41,7 @@ public class Tribe : Polity
         if (cellRegion == null)
         {
             //			#if DEBUG
-            //			if (Manager.RegisterDebugEvent != null) {
+            //			if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0)) {
             //				if ((Id == Manager.TracingData.PolityId) && (coreCell.Longitude == Manager.TracingData.Longitude) && (coreCell.Latitude == Manager.TracingData.Latitude)) {
             //					bool debug = true;
             //				}

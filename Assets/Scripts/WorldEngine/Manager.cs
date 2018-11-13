@@ -58,32 +58,31 @@ public enum OverlayColorId
     ContactedTerritoryBad = 8,
 }
 
-public class Manager {
-
-	#if DEBUG
-
-	public delegate void RegisterDebugEventDelegate (string eventType, object data);
+public class Manager
+{
+#if DEBUG
+    public delegate void RegisterDebugEventDelegate(string eventType, object data);
 
     public static bool Debug_IsLoadedWorld = false;
 
-	public static RegisterDebugEventDelegate RegisterDebugEvent = null; 
+    public static RegisterDebugEventDelegate RegisterDebugEvent = null;
 
-	public class Debug_TracingData {
-
-		public long GroupId;
-		public long PolityId;
+    public class Debug_TracingData
+    {
+        public long GroupId;
+        public long PolityId;
         public long FactionId;
         public int Longitude;
-		public int Latitude;
-	}
+        public int Latitude;
+        public int Priority;
+    }
 
-	public static Debug_TracingData TracingData = new Manager.Debug_TracingData ();
+    public static Debug_TracingData TracingData = new Manager.Debug_TracingData();
 
-	public static bool TrackGenRandomCallers = false;
+    public static bool TrackGenRandomCallers = false;
+#endif
 
-	#endif
-
-	public static string CurrentVersion = "0.3.0.7";
+    public static string CurrentVersion = "0.3.1";
 
 //	public static bool RecordingEnabled = false;
 

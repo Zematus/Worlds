@@ -71,7 +71,7 @@ public class ExpandPolityProminenceEvent : CellGroupEvent {
 	public override void Trigger () {
 
 		//		#if DEBUG
-		//		if (Manager.RegisterDebugEvent != null) {
+		//		if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0)) {
 		//			if (Group.Id == Manager.TracingData.GroupId) {
 		//				string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
 		//

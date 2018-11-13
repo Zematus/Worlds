@@ -107,13 +107,17 @@ public class SaveLoadTest : AutomatedTest
     //			}, offsetPerCheck, numChecks, checksToSkip, enhancedTracing, trackGenRandomCallers, validateRecording);
     //	}
 
-    public SaveLoadTest(string conditionName, int seed, SaveConditionDelegate saveCondition, int offsetPerCheck, int numChecks, int beforeCheckDateSkipOffset = 0, bool enhancedTracing = false, bool trackGenRandomCallers = false, bool validateRecording = false)
+    public SaveLoadTest(string conditionName, int seed, SaveConditionDelegate saveCondition, int offsetPerCheck, int numChecks, int beforeCheckDateSkipOffset = 0, bool enhancedTracing = false, bool trackGenRandomCallers = false, bool validateRecording = false, int tracingPriority = 5)
     {
-        Initialize(conditionName, seed, saveCondition, offsetPerCheck, numChecks, beforeCheckDateSkipOffset, enhancedTracing, trackGenRandomCallers, validateRecording);
+        Initialize(conditionName, seed, saveCondition, offsetPerCheck, numChecks, beforeCheckDateSkipOffset, enhancedTracing, trackGenRandomCallers, validateRecording, tracingPriority);
     }
 
-    private void Initialize(string conditionName, int seed, SaveConditionDelegate saveCondition, int offsetPerCheck, int numChecks, int beforeCheckDateSkipOffset, bool enhancedTracing, bool trackGenRandomCallers, bool validateRecording)
+    private void Initialize(string conditionName, int seed, SaveConditionDelegate saveCondition, int offsetPerCheck, int numChecks, int beforeCheckDateSkipOffset, bool enhancedTracing, bool trackGenRandomCallers, bool validateRecording, int tracingPriority)
     {
+#if DEBUG
+        Manager.TracingData.Priority = tracingPriority;
+#endif
+
         _seed = seed;
 
         _offsetPerCheck = offsetPerCheck;

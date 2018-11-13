@@ -50,13 +50,14 @@ public abstract class CellGroupEvent : WorldEvent
 #if DEBUG
     protected void GenerateDebugMessage(bool isReset)
     {
-        if (Manager.RegisterDebugEvent != null)
+        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 1))
         {
             //			if (Group.Id == Manager.TracingData.GroupId) {
             string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
 
             SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("CellGroupEvent - Group:" + groupId + ", Type: " + this.GetType(),
-                "TriggerDate: " + TriggerDate +
+                "SpawnDate: " + SpawnDate +
+                ", TriggerDate: " + TriggerDate +
                 //				", isReset: " + isReset + 
                 "");
 

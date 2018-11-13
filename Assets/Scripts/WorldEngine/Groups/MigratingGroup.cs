@@ -67,7 +67,7 @@ public class MigratingGroup : HumanGroup
 #endif
 
         //		#if DEBUG
-        //		if (Manager.RegisterDebugEvent != null) {
+        //		if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0)) {
         //			if (sourceGroup.Id == Manager.TracingData.GroupId) {
         //				string groupId = "Id:" + sourceGroup.Id + "|Long:" + sourceGroup.Longitude + "|Lat:" + sourceGroup.Latitude;
         //				string targetInfo = "Long:" + targetCell.Longitude + "|Lat:" + targetCell.Latitude;
@@ -194,7 +194,7 @@ public class MigratingGroup : HumanGroup
         }
 
 //#if DEBUG
-//        if (Manager.RegisterDebugEvent != null)
+//        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
 //        {
 //            if (SourceGroupId == Manager.TracingData.GroupId)
 //            {
@@ -263,7 +263,7 @@ public class MigratingGroup : HumanGroup
         }
 
 //#if DEBUG
-//        if (Manager.RegisterDebugEvent != null)
+//        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
 //        {
 //            if (SourceGroupId == Manager.TracingData.GroupId)
 //            {

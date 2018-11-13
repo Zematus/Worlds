@@ -41,7 +41,7 @@ public abstract class PolityEvent : WorldEvent {
         OriginalDominantFaction = polity.DominantFaction;
 
         //		#if DEBUG
-        //		if (Manager.RegisterDebugEvent != null) {
+        //		if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0)) {
         //			string polityId = "Id: " + polity.Id;
         //
         //			SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("PolityEvent - Polity: " + polityId, "TriggerDate: " + TriggerDate);

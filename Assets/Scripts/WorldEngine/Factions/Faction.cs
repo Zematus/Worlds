@@ -338,7 +338,7 @@ public abstract class Faction : ISynchronizable
         Profiler.BeginSample("Faction - PreUpdate");
 
 //#if DEBUG
-//        if (Manager.RegisterDebugEvent != null)
+//        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
 //        {
 //            if (Manager.TracingData.FactionId == Id)
 //            {
@@ -358,7 +358,7 @@ public abstract class Faction : ISynchronizable
 //                    ", Polity.Id: " + Polity.Id +
 //                    ", preupdated: " + _preupdated +
 //                    ", Social organization knowledge value: " + knowledgeValue +
-//                    ", Calling method: " + callingClass + ":" + callingMethod +
+//                    ", Calling method: " + callingClass + "." + callingMethod +
 //                    "");
 
 //                Manager.RegisterDebugEvent("DebugMessage", debugMessage);

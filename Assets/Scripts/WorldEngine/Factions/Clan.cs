@@ -287,7 +287,7 @@ public class Clan : Faction
     public override bool ShouldMigrateFactionCore(CellGroup sourceGroup, TerrainCell targetCell, float targetProminence, int targetPopulation)
     {
 //#if DEBUG
-//        if (Manager.RegisterDebugEvent != null)
+//        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
 //        {
 //            if (sourceGroup.Id == Manager.TracingData.GroupId)
 //            {
@@ -330,7 +330,7 @@ public class Clan : Faction
         float sourceFactor = sourceProminenceFactor * sourcePopulationFactor;
 
 //#if DEBUG
-//        if (Manager.RegisterDebugEvent != null)
+//        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
 //        {
 //            if (sourceGroup.Id == Manager.TracingData.GroupId)
 //            {
@@ -356,7 +356,7 @@ public class Clan : Faction
         float randomValue = sourceGroup.GetNextLocalRandomFloat(RngOffsets.MIGRATING_GROUP_MOVE_FACTION_CORE + unchecked((int)Id));
 
 //#if DEBUG
-//        if (Manager.RegisterDebugEvent != null)
+//        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
 //        {
 //            if (sourceGroup.Id == Manager.TracingData.GroupId)
 //            {
@@ -483,7 +483,7 @@ public class Clan : Faction
         }
 
 //#if DEBUG
-//        if (Manager.RegisterDebugEvent != null)
+//        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
 //        {
 //            if (Manager.TracingData.FactionId == Id)
 //            {

@@ -303,7 +303,7 @@ public class CellGroup : HumanGroup
 #endif
 
 //#if DEBUG
-//        if (Manager.RegisterDebugEvent != null)
+//        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
 //        {
 //            if (Id == Manager.TracingData.GroupId)
 //            {
@@ -681,7 +681,7 @@ public class CellGroup : HumanGroup
 		MergePolityProminences (group.PolityProminences, group.PolityProminencesCount, percentage);
 
 //		#if DEBUG
-//		if (Manager.RegisterDebugEvent != null) {
+//		if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0)) {
 //			if (Id == Manager.TracingData.GroupId) {
 //				string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
 //
@@ -752,7 +752,7 @@ public class CellGroup : HumanGroup
 		float newValue = (currentNewValue * (1 - percentOfTarget)) + (prominenceValue * percentOfTarget);
 
 		//			#if DEBUG
-		//			if (Manager.RegisterDebugEvent != null) {
+		//			if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0)) {
 		//				if (Id == Manager.TracingData.GroupId) {
 		//					string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
 		//
@@ -784,7 +784,7 @@ public class CellGroup : HumanGroup
             float newValue = prominenceValue * (1 - percentOfTarget);
 
             //			#if DEBUG
-            //			if (Manager.RegisterDebugEvent != null) {
+            //			if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0)) {
             //				if (Id == Manager.TracingData.GroupId) {
             //
             //					string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
@@ -819,7 +819,7 @@ public class CellGroup : HumanGroup
         ExactPopulation -= splitPopulation;
 
         //		#if DEBUG
-        //		if (Manager.RegisterDebugEvent != null) {
+        //		if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0)) {
         //			if ((Id == Manager.TracingData.GroupId) || 
         //				((group.TargetCell.Group != null) && (group.TargetCell.Group.Id == Manager.TracingData.GroupId))) {
         //				string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
@@ -853,7 +853,7 @@ public class CellGroup : HumanGroup
     public void PostUpdate_BeforePolityUpdates()
     {
 //#if DEBUG
-//        if (Manager.RegisterDebugEvent != null)
+//        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
 //        {
 //            if (Id == Manager.TracingData.GroupId)
 //            {
@@ -1086,35 +1086,50 @@ public class CellGroup : HumanGroup
         }
 #endif
 
-        //		#if DEBUG
-        //		if (Manager.RegisterDebugEvent != null) {
-        //			if (Id == Manager.TracingData.GroupId) {
-        ////				if ((Longitude == cell.Longitude) && (Latitude == cell.Latitude)) {
-        //					string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
-        //					string targetCellInfo = "Long:" + cell.Longitude + "|Lat:" + cell.Latitude;
-        //
-        //					if (cell.Group != null) {
-        //						targetCellInfo = "Id:" + cell.Group.Id + "|" + targetCellInfo;
-        //					}
-        //
-        //					SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-        //						"CalculateMigrationValue - Group:" + groupId + 
-        //						", targetCell: " + targetCellInfo,
-        //						", CurrentDate: " + World.CurrentDate + 
-        //						", altitudeDeltaFactor: " + altitudeDeltaFactor + 
-        //						", ExactPopulation: " + ExactPopulation + 
-        //						", target existingPopulation: " + existingPopulation + 
-        //						", popDifferenceFactor: " + popDifferenceFactor + 
-        //						", OptimalPopulation: " + OptimalPopulation + 
-        //						", target optimalPopulation: " + optimalPopulation + 
-        //						", targetOptimalPopulationFactor: " + targetOptimalPopulationFactor + 
-        //						"");
-        //
-        //					Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-        ////				}
-        //			}
-        //		}
-        //		#endif
+#if DEBUG
+        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
+        {
+            if (Id == Manager.TracingData.GroupId)
+            {
+                //				if ((Longitude == cell.Longitude) && (Latitude == cell.Latitude)) {
+                string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
+                string targetCellInfo = "Long:" + cell.Longitude + "|Lat:" + cell.Latitude;
+
+                if (cell.Group != null)
+                {
+                    targetCellInfo = "Id:" + cell.Group.Id + "|" + targetCellInfo;
+                }
+
+                System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
+
+                System.Reflection.MethodBase method1 = stackTrace.GetFrame(1).GetMethod();
+                string callingMethod1 = method1.Name;
+                string callingClass1 = method1.DeclaringType.ToString();
+
+                System.Reflection.MethodBase method2 = stackTrace.GetFrame(2).GetMethod();
+                string callingMethod2 = method2.Name;
+                string callingClass2 = method2.DeclaringType.ToString();
+
+                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+                    "CalculateMigrationValue - Group:" + groupId +
+                    ", targetCell: " + targetCellInfo,
+                    ", CurrentDate: " + World.CurrentDate +
+                    ", altitudeDeltaFactor: " + altitudeDeltaFactor +
+                    ", ExactPopulation: " + ExactPopulation +
+                    ", target existingPopulation: " + existingPopulation +
+                    ", popDifferenceFactor: " + popDifferenceFactor +
+                    ", OptimalPopulation: " + OptimalPopulation +
+                    ", target optimalPopulation: " + optimalPopulation +
+                    ", targetOptimalPopulationFactor: " + targetOptimalPopulationFactor +
+                    ", Calling method 1: " + callingClass1 + "." + callingMethod1 +
+                    ", Calling method 2: " + callingClass2 + "." + callingMethod2 +
+                    "");
+
+                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+                //				}
+            }
+        }
+#endif
 
         return cellValue;
     }
@@ -1195,24 +1210,25 @@ public class CellGroup : HumanGroup
         if (!Cell.IsPartOfCoastline)
             return;
 
-        //		#if DEBUG
-        //		if (Manager.RegisterDebugEvent != null) {
-        //			if (Id == Manager.TracingData.GroupId) {
-        //
-        //				string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
-        //
-        //				bool routePresent = SeaMigrationRoute == null;
-        //
-        //				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-        //					"GenerateSeaMigrationRoute - Group:" + groupId,
-        //					"CurrentDate: " + World.CurrentDate + 
-        //					", route present: " + routePresent + 
-        //					"");
-        //
-        //				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-        //			}
-        //		}
-        //		#endif
+#if DEBUG
+        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
+        {
+            if (Id == Manager.TracingData.GroupId)
+            {
+                string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
+
+                bool routePresent = SeaMigrationRoute == null;
+
+                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+                    "GenerateSeaMigrationRoute - Group:" + groupId,
+                    "CurrentDate: " + World.CurrentDate +
+                    ", route present: " + routePresent +
+                    "");
+
+                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+            }
+        }
+#endif
 
         if (SeaMigrationRoute == null)
         {
@@ -1250,64 +1266,69 @@ public class CellGroup : HumanGroup
 
         SeaMigrationRoute.Consolidate();
 
-        //		#if DEBUG
-        //		if (Manager.RegisterDebugEvent != null) {
-        //			if (Id == Manager.TracingData.GroupId) {
-        //
-        //				string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
-        //
-        //				TerrainCell targetCell = SeaMigrationRoute.LastCell;
-        //
-        //				string cellInfo = "Long:" + targetCell.Longitude + "|Lat:" + targetCell.Latitude;
-        //
-        //				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-        //					"GenerateSeaMigrationRoute - Group:" + groupId,
-        //					"CurrentDate: " + World.CurrentDate + 
-        //					", target cell: " + cellInfo + 
-        //					"");
-        //
-        //				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-        //			}
-        //		}
-        //		#endif
+#if DEBUG
+        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
+        {
+            if (Id == Manager.TracingData.GroupId)
+            {
+
+                string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
+
+                TerrainCell targetCell = SeaMigrationRoute.LastCell;
+
+                string cellInfo = "Long:" + targetCell.Longitude + "|Lat:" + targetCell.Latitude;
+
+                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+                    "GenerateSeaMigrationRoute - Group:" + groupId,
+                    "CurrentDate: " + World.CurrentDate +
+                    ", target cell: " + cellInfo +
+                    "");
+
+                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+            }
+        }
+#endif
     }
 
-    public void CalculateLocalMigrationValue () {
+    public void CalculateLocalMigrationValue()
+    {
+        MigrationValue = CalculateMigrationValue(Cell);
 
-		MigrationValue = CalculateMigrationValue (Cell);
-
-		TotalMigrationValue = MigrationValue;
+        TotalMigrationValue = MigrationValue;
 
 #if DEBUG
-		if (float.IsNaN (TotalMigrationValue)) {
-
-			throw new System.Exception ("float.IsNaN (TotalMigrationValue)");
-		}
+        if (float.IsNaN(TotalMigrationValue))
+        {
+            throw new System.Exception("float.IsNaN (TotalMigrationValue)");
+        }
 #endif
-	}
+    }
 
-	private class CellWeight : CollectionUtility.ElementWeightPair<TerrainCell> {
+    private class CellWeight : CollectionUtility.ElementWeightPair<TerrainCell>
+    {
+        public CellWeight(TerrainCell cell, float weight) : base(cell, weight)
+        {
 
-		public CellWeight (TerrainCell cell, float weight) : base (cell, weight) {
-			
-		}
-	}
+        }
+    }
 
-	private class GroupWeight : CollectionUtility.ElementWeightPair<CellGroup> {
+    private class GroupWeight : CollectionUtility.ElementWeightPair<CellGroup>
+    {
+        public GroupWeight(CellGroup group, float weight) : base(group, weight)
+        {
 
-		public GroupWeight (CellGroup group, float weight) : base (group, weight) {
+        }
+    }
 
-		}
-	}
+    private class PolityProminenceWeight : CollectionUtility.ElementWeightPair<PolityProminence>
+    {
+        public PolityProminenceWeight(PolityProminence polityProminence, float weight) : base(polityProminence, weight)
+        {
 
-	private class PolityProminenceWeight : CollectionUtility.ElementWeightPair<PolityProminence> {
+        }
+    }
 
-		public PolityProminenceWeight (PolityProminence polityProminence, float weight) : base (polityProminence, weight) {
-
-		}
-	}
-	
-	public void ConsiderLandMigration()
+    public void ConsiderLandMigration()
     {
         if (HasMigrationEvent)
             return;
@@ -1322,30 +1343,30 @@ public class CellGroup : HumanGroup
 
         TerrainCell targetCell = Cell.Neighbors[migrationDirection];
 
-//#if DEBUG
-//        if (Manager.RegisterDebugEvent != null)
-//        {
-//            if (Id == Manager.TracingData.GroupId)
-//            {
-//                string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
+#if DEBUG
+        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
+        {
+            if (Id == Manager.TracingData.GroupId)
+            {
+                string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
 
-//                string cellInfo = "No target cell";
+                string cellInfo = "No target cell";
 
-//                if (targetCell != null)
-//                {
-//                    cellInfo = "Long:" + targetCell.Longitude + "|Lat:" + targetCell.Latitude;
-//                }
+                if (targetCell != null)
+                {
+                    cellInfo = "Long:" + targetCell.Longitude + "|Lat:" + targetCell.Latitude;
+                }
 
-//                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-//                    "ConsiderSeaMigration - Group:" + groupId,
-//                    "CurrentDate: " + World.CurrentDate +
-//                    ", target cell: " + cellInfo +
-//                    "");
+                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+                    "ConsiderLandMigration - Group:" + groupId,
+                    "CurrentDate: " + World.CurrentDate +
+                    ", target cell: " + cellInfo +
+                    "");
 
-//                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-//            }
-//        }
-//#endif
+                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+            }
+        }
+#endif
 
         float cellValue = CalculateMigrationValue(targetCell);
 
@@ -1386,7 +1407,7 @@ public class CellGroup : HumanGroup
         long nextDate = World.CurrentDate + travelTime;
 
 //#if DEBUG
-//        if (Manager.RegisterDebugEvent != null)
+//        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
 //        {
 //            if (Id == Manager.TracingData.GroupId)
 //            {
@@ -1413,25 +1434,25 @@ public class CellGroup : HumanGroup
         if (HasMigrationEvent)
             return;
 
-//#if DEBUG
-//        bool hadMigrationRoute = SeaMigrationRoute != null;
+#if DEBUG
+        bool hadMigrationRoute = SeaMigrationRoute != null;
 
-//        if (Manager.RegisterDebugEvent != null)
-//        {
-//            if (Id == Manager.TracingData.GroupId)
-//            {
-//                string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
+        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
+        {
+            if (Id == Manager.TracingData.GroupId)
+            {
+                string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
 
-//                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-//                    "ConsiderSeaMigration - Group:" + groupId,
-//                    "CurrentDate: " + World.CurrentDate +
-//                    ", has migration route: " + hadMigrationRoute +
-//                    "");
+                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+                    "ConsiderSeaMigration 1 - Group:" + groupId,
+                    "CurrentDate: " + World.CurrentDate +
+                    ", has migration route: " + hadMigrationRoute +
+                    "");
 
-//                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-//            }
-//        }
-//#endif
+                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+            }
+        }
+#endif
 
         if ((SeaMigrationRoute == null) ||
             (!SeaMigrationRoute.Consolidated))
@@ -1446,30 +1467,31 @@ public class CellGroup : HumanGroup
         TerrainCell targetCell = SeaMigrationRoute.LastCell;
         Direction migrationDirection = SeaMigrationRoute.MigrationDirection;
 
-//#if DEBUG
-//        if (Manager.RegisterDebugEvent != null)
-//        {
-//            if (Id == Manager.TracingData.GroupId)
-//            {
-//                string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
+#if DEBUG
+        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
+        {
+            if (Id == Manager.TracingData.GroupId)
+            {
+                string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
 
-//                string cellInfo = "No target cell";
+                string cellInfo = "No target cell";
 
-//                if (targetCell != null)
-//                {
-//                    cellInfo = "Long:" + targetCell.Longitude + "|Lat:" + targetCell.Latitude;
-//                }
+                if (targetCell != null)
+                {
+                    cellInfo = "Long:" + targetCell.Longitude + "|Lat:" + targetCell.Latitude;
+                }
 
-//                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-//                    "ConsiderSeaMigration - Group:" + groupId,
-//                    "CurrentDate: " + World.CurrentDate +
-//                    ", target cell: " + cellInfo +
-//                    "");
+                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+                    "ConsiderSeaMigration 2 - Group:" + groupId,
+                    "CurrentDate: " + World.CurrentDate +
+                    ", SeaMigrationRoute.CreationDate: " + SeaMigrationRoute.CreationDate +
+                    ", target cell: " + cellInfo +
+                    "");
 
-//                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-//            }
-//        }
-//#endif
+                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+            }
+        }
+#endif
 
         if (targetCell == Cell)
             return;
@@ -1499,41 +1521,41 @@ public class CellGroup : HumanGroup
 
         float attemptValue = Cell.GetNextLocalRandomFloat(RngOffsets.CELL_GROUP_CONSIDER_SEA_MIGRATION);
 
-//#if DEBUG
-//        if (Manager.RegisterDebugEvent != null)
-//        {
-//            if (Id == Manager.TracingData.GroupId)
-//            {
-//                string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
+#if DEBUG
+        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
+        {
+            if (Id == Manager.TracingData.GroupId)
+            {
+                string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
 
-//                string cellPositions = "";
+                string cellPositions = "";
 
-//                bool first = true;
-//                foreach (TerrainCell cell in SeaMigrationRoute.Cells)
-//                {
-//                    cellPositions += cell.Position.ToString();
+                bool first = true;
+                foreach (TerrainCell cell in SeaMigrationRoute.Cells)
+                {
+                    cellPositions += cell.Position.ToString();
 
-//                    if (first)
-//                        first = false;
-//                    else
-//                        cellPositions += ",";
-//                }
+                    if (first)
+                        first = false;
+                    else
+                        cellPositions += ",";
+                }
 
-//                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-//                    "ConsiderSeaMigration - Group:" + groupId,
-//                    "CurrentDate: " + World.CurrentDate +
-//                    ", attemptValue: " + attemptValue +
-//                    ", successChance: " + successChance +
-//                    ", SeaTravelFactor: " + SeaTravelFactor +
-//                    ", routeLength: " + routeLength +
-//                    ", route CreationDate: " + SeaMigrationRoute.CreationDate +
-//                    ", route positions: " + cellPositions +
-//                    "");
+                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+                    "ConsiderSeaMigration 3 - Group:" + groupId,
+                    "CurrentDate: " + World.CurrentDate +
+                    ", attemptValue: " + attemptValue +
+                    ", successChance: " + successChance +
+                    ", SeaTravelFactor: " + SeaTravelFactor +
+                    ", routeLength: " + routeLength +
+                    ", route CreationDate: " + SeaMigrationRoute.CreationDate +
+                    ", route positions: " + cellPositions +
+                    "");
 
-//                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-//            }
-//        }
-//#endif
+                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+            }
+        }
+#endif
 
         if (attemptValue >= successChance)
             return;
@@ -1542,22 +1564,22 @@ public class CellGroup : HumanGroup
 
         long nextDate = World.CurrentDate + travelTime;
 
-//#if DEBUG
-//        if (Manager.RegisterDebugEvent != null)
-//        {
-//            if (Id == Manager.TracingData.GroupId)
-//            {
-//                string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
+#if DEBUG
+        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
+        {
+            if (Id == Manager.TracingData.GroupId)
+            {
+                string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
 
-//                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-//                    "ConsiderSeaMigration - Group:" + groupId,
-//                    "CurrentDate: " + World.CurrentDate +
-//                    "");
+                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+                    "ConsiderSeaMigration 4 - Group:" + groupId,
+                    "CurrentDate: " + World.CurrentDate +
+                    "");
 
-//                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-//            }
-//        }
-//#endif
+                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+            }
+        }
+#endif
 
         SetMigrationEvent(targetCell, migrationDirection, nextDate);
     }
@@ -1607,6 +1629,26 @@ public class CellGroup : HumanGroup
         //		}
         //		#endif
 
+#if DEBUG
+        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
+        {
+            if (Id == Manager.TracingData.GroupId)
+            {
+                string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
+
+                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+                    "ConsiderPolityProminenceExpansion Part 1 - Group:" + groupId,
+                    "CurrentDate: " + World.CurrentDate +
+                    ", Neighbors.Count: " + Neighbors.Count +
+                    ", PolityProminences.Count: " + PolityProminences.Count +
+                    ", LastUpdateDate: " + LastUpdateDate +
+                    "");
+
+                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+            }
+        }
+#endif
+
         PolityExpansionValue = 0;
         TotalPolityExpansionValue = 0;
 
@@ -1639,14 +1681,14 @@ public class CellGroup : HumanGroup
         float selectionValue = Cell.GetNextLocalRandomFloat(RngOffsets.CELL_GROUP_CONSIDER_POLITY_PROMINENCE_EXPANSION_POLITY);
 
 #if DEBUG
-        if (Manager.RegisterDebugEvent != null)
+        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
         {
             if (Id == Manager.TracingData.GroupId)
             {
                 string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
 
                 SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-                    "ConsiderPolityProminenceExpansion - Group:" + groupId,
+                    "ConsiderPolityProminenceExpansion Part 2 - Group:" + groupId,
                     "CurrentDate: " + World.CurrentDate +
                     ", Neighbors.Count: " + Neighbors.Count +
                     ", polityProminencesStr: " + polityProminencesStr +
@@ -1699,7 +1741,7 @@ public class CellGroup : HumanGroup
         float rollValue = Cell.GetNextLocalRandomFloat(RngOffsets.CELL_GROUP_CONSIDER_POLITY_PROMINENCE_EXPANSION_CHANCE);
 
 #if DEBUG
-        if (Manager.RegisterDebugEvent != null)
+        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
         {
             if (Id == Manager.TracingData.GroupId)
             {
@@ -1707,7 +1749,7 @@ public class CellGroup : HumanGroup
                 string targetGroupId = "Id:" + targetGroup.Id + "|Long:" + targetGroup.Longitude + "|Lat:" + targetGroup.Latitude;
 
                 SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-                    "ConsiderPolityProminenceExpansion - Group:" + groupId,
+                    "ConsiderPolityProminenceExpansion Part 3 - Group:" + groupId,
                     "CurrentDate: " + World.CurrentDate +
                     ", Neighbors.Count: " + Neighbors.Count +
                     //", groupValue: " + groupValue +
@@ -1749,7 +1791,7 @@ public class CellGroup : HumanGroup
         long nextDate = World.CurrentDate + travelTime;
 
 #if DEBUG
-        if (Manager.RegisterDebugEvent != null)
+        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
         {
             if (Id == Manager.TracingData.GroupId)
             {
@@ -1757,7 +1799,7 @@ public class CellGroup : HumanGroup
                 string targetGroupId = "Id:" + targetGroup.Id + "|Long:" + targetGroup.Longitude + "|Lat:" + targetGroup.Latitude;
 
                 SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-                    "ConsiderPolityProminenceExpansion - Group:" + groupId,
+                    "ConsiderPolityProminenceExpansion Part 4 - Group:" + groupId,
                     "CurrentDate: " + World.CurrentDate +
                     ", Neighbors.Count: " + Neighbors.Count +
                     ", groupValue: " + groupValue +
@@ -1952,7 +1994,7 @@ public class CellGroup : HumanGroup
         int groupCount = p.Groups.Count;
 
 //#if DEBUG
-//        if (Manager.RegisterDebugEvent != null)
+//        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
 //        {
 //            if (Id == Manager.TracingData.GroupId)
 //            {
@@ -2006,7 +2048,7 @@ public class CellGroup : HumanGroup
         float rollValue = Cell.GetNextLocalRandomFloat(RngOffsets.CELL_GROUP_SET_POLITY_UPDATE + unchecked((int)p.Id));
 
 //#if DEBUG
-//        if (Manager.RegisterDebugEvent != null)
+//        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
 //        {
 //            System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
 
@@ -2222,7 +2264,7 @@ public class CellGroup : HumanGroup
 #endif
 
 //		#if DEBUG
-//		if (Manager.RegisterDebugEvent != null) {
+//		if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0)) {
 //			if (Id == Manager.TracingData.GroupId) {
 //				if ((cell.Longitude == Longitude) && (cell.Latitude == Latitude)) {
 //					string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
@@ -2297,7 +2339,7 @@ public class CellGroup : HumanGroup
 
                 //				#if DEBUG
                 //
-                //				if (Manager.RegisterDebugEvent != null) {
+                //				if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0)) {
                 //					biomeData += "\n\tBiome: " + biomeName + 
                 //						" ForagingCapacity: " + biome.ForagingCapacity + 
                 //						" skillValue: " + skillValue + 
@@ -2336,7 +2378,7 @@ public class CellGroup : HumanGroup
         }
 
         //		#if DEBUG
-        //		if (Manager.RegisterDebugEvent != null) {
+        //		if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0)) {
         //			if (Id == Manager.TracingData.GroupId) {
         //				if ((cell.Longitude == Longitude) && (cell.Latitude == Latitude)) {
         //					System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
@@ -2438,7 +2480,7 @@ public class CellGroup : HumanGroup
         updateSpan = (updateSpan > MaxUpdateSpan) ? MaxUpdateSpan : updateSpan;
 
 #if DEBUG
-        if (Manager.RegisterDebugEvent != null)
+        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
         {
             if (Id == Manager.TracingData.GroupId)
             {
@@ -2499,7 +2541,7 @@ public class CellGroup : HumanGroup
 #endif
 
             //			#if DEBUG
-            //			if (Manager.RegisterDebugEvent != null) {
+            //			if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0)) {
             //				if (Id == Manager.TracingData.GroupId) {
             //					string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
             //
@@ -2532,7 +2574,7 @@ public class CellGroup : HumanGroup
 #endif
 
             //			#if DEBUG
-            //			if (Manager.RegisterDebugEvent != null) {
+            //			if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0)) {
             //				if (Id == Manager.TracingData.GroupId) {
             //					string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
             //
@@ -2902,7 +2944,7 @@ public class CellGroup : HumanGroup
         newProminenceValue = MathUtility.RoundToSixDecimals(newProminenceValue);
 
         //		#if DEBUG
-        //		if (Manager.RegisterDebugEvent != null) {
+        //		if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0)) {
         //			if ((Id == Manager.TracingData.GroupId) || (polity.Id == Manager.TracingData.PolityId)) {
         //				string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
         //

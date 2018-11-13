@@ -43,7 +43,7 @@ public abstract class FactionEvent : WorldEvent {
 		OriginalPolityId = OriginalPolity.Id;
 
         //		#if DEBUG
-        //		if (Manager.RegisterDebugEvent != null) {
+        //		if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0)) {
         //			string factionId = "Id: " + faction.Id;
         //
         //			SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("FactionEvent - Faction: " + factionId, "TriggerDate: " + TriggerDate);

@@ -51,7 +51,7 @@ public class CulturalKnowledge : CulturalKnowledgeInfo, IFilterableValue
     public virtual void Reset()
     {
 //#if DEBUG
-//        if (Manager.RegisterDebugEvent != null)
+//        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
 //        {
 //            CellCulturalKnowledge thisCellKnowledge = this as CellCulturalKnowledge;
 
@@ -78,8 +78,8 @@ public class CulturalKnowledge : CulturalKnowledgeInfo, IFilterableValue
 //                    ", IsPresent: " + IsPresent +
 //                    //", WasPresent: " + WasPresent +
 //                    ", Value: " + Value +
-//                    ", Calling method 1: " + callingClass1 + ":" + callingMethod1 +
-//                    //", Calling method 2: " + callingClass2 + ":" + callingMethod2 +
+//                    ", Calling method 1: " + callingClass1 + "." + callingMethod1 +
+//                    //", Calling method 2: " + callingClass2 + "." + callingMethod2 +
 //                    "");
 
 //                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
@@ -96,7 +96,7 @@ public class CulturalKnowledge : CulturalKnowledgeInfo, IFilterableValue
     public void Set()
     {
 //#if DEBUG
-//        if (Manager.RegisterDebugEvent != null)
+//        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
 //        {
 //            CellCulturalKnowledge thisCellKnowledge = this as CellCulturalKnowledge;
 
@@ -123,8 +123,8 @@ public class CulturalKnowledge : CulturalKnowledgeInfo, IFilterableValue
 //                    ", IsPresent: " + IsPresent +
 //                    //", WasPresent: " + WasPresent +
 //                    ", Value: " + Value +
-//                    ", Calling method 1: " + callingClass1 + ":" + callingMethod1 +
-//                    ", Calling method 2: " + callingClass2 + ":" + callingMethod2 +
+//                    ", Calling method 1: " + callingClass1 + "." + callingMethod1 +
+//                    ", Calling method 2: " + callingClass2 + "." + callingMethod2 +
 //                    "");
 
 //                Manager.RegisterDebugEvent("DebugMessage", debugMessage);

@@ -73,7 +73,7 @@ public class MigrateGroupEvent : CellGroupEvent
         percentToMigrate = Mathf.Clamp01(percentToMigrate);
 
         //		#if DEBUG
-        //		if (Manager.RegisterDebugEvent != null) {
+        //		if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0)) {
         //			if ((Group.Id == Manager.TracingData.GroupId) ||
         //				((TargetCell.Group != null) && (TargetCell.Group.Id == Manager.TracingData.GroupId))) {
         //				CellGroup targetGroup = TargetCell.Group;

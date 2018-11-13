@@ -73,7 +73,7 @@ public class FactionCulturalKnowledge : CulturalKnowledge
             return;
 
 //#if DEBUG
-//        if (Manager.RegisterDebugEvent != null)
+//        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
 //        {
 //            if (Manager.TracingData.FactionId == Faction.Id)
 //            {

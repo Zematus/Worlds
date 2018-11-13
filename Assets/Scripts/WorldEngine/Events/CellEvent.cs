@@ -25,7 +25,7 @@ public abstract class CellEvent : WorldEvent {
 		CellLatitude = cell.Latitude;
 
 //		#if DEBUG
-//		if (Manager.RegisterDebugEvent != null) {
+//		if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0)) {
 //			string cellLoc = "Long:" + cell.Longitude + "|Lat:" + cell.Latitude;
 //
 //			SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("CellEvent - Cell: " + cellLoc, "TriggerDate: " + TriggerDate);

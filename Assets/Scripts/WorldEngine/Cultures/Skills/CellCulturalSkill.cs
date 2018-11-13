@@ -51,7 +51,7 @@ public abstract class CellCulturalSkill : CulturalSkill
         float value = _newValue * (1f - percentage) + skill.Value * percentage;
 
         //		#if DEBUG
-        //		if (Manager.RegisterDebugEvent != null) {
+        //		if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0)) {
         //			if (Group.Id == Manager.TracingData.GroupId) {
         //
         //				string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
@@ -80,7 +80,7 @@ public abstract class CellCulturalSkill : CulturalSkill
         float value = _newValue * percentage;
 
         //		#if DEBUG
-        //		if (Manager.RegisterDebugEvent != null) {
+        //		if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0)) {
         //			if (Group.Id == Manager.TracingData.GroupId) {
         //
         //				string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
@@ -130,7 +130,7 @@ public abstract class CellCulturalSkill : CulturalSkill
         float newValue = (Value * (1 - timeEffect)) + (targetValue * timeEffect);
 
         //		#if DEBUG
-        //		if (Manager.RegisterDebugEvent != null) {
+        //		if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0)) {
         //			if (Group.Id == Manager.TracingData.GroupId) {
         //
         //				string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
@@ -173,7 +173,7 @@ public abstract class CellCulturalSkill : CulturalSkill
         float change = (targetValue - _newValue) * prominenceEffect * timeEffect * randomEffect;
 
         //		#if DEBUG
-        //		if (Manager.RegisterDebugEvent != null) {
+        //		if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0)) {
         //			if (Group.Id == Manager.TracingData.GroupId) {
         //
         //				string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
