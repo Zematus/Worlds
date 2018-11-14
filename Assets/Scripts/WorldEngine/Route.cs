@@ -38,6 +38,11 @@ public class Route : ISynchronizable
     [XmlIgnore]
     public List<TerrainCell> Cells = new List<TerrainCell>();
 
+//#if DEBUG
+//    [XmlIgnore]
+//    public List<string> DebugLogs = new List<string>();
+//#endif
+
     public Direction MigrationDirection
     {
         get { return (Direction)MigrationDirectionInt; }
@@ -92,23 +97,26 @@ public class Route : ISynchronizable
             Manager.AddUpdatedCell(cell, CellUpdateType.Route, CellUpdateSubType.All);
         }
 
-        //CellPositions.Clear();
-        Cells.Clear();
-
         Consolidated = false;
     }
 
     private void BuildInternal()
     {
+//#if DEBUG
+//        DebugLogs.Clear();
+//#endif
+
         _isTraversingSea = false;
         _currentEndRoutePreference = 0;
         _currentDirectionOffset = 0;
         _currentCoastPreference = CoastPreferenceIncrement;
-        _currentEndRoutePreference = 0;
+        Length = 0;
+
+        //CellPositions.Clear();
+        Cells.Clear();
 
         AddCell(FirstCell);
         LastCell = FirstCell;
-        Length = 0;
 
         TerrainCell nextCell = FirstCell;
         Direction nextDirection;
@@ -215,7 +223,15 @@ public class Route : ISynchronizable
         Direction newDirection = _traverseDirection;
         float newOffset = _currentDirectionOffset;
 
-        float deviation = 2 * FirstCell.GetLocalRandomFloat(CreationDate, RngOffsets.ROUTE_CHOOSE_NEXT_DEPTH_SEA_CELL + rngOffset) - 1;
+        float rngOutput = FirstCell.GetLocalRandomFloat(CreationDate, RngOffsets.ROUTE_CHOOSE_NEXT_DEPTH_SEA_CELL + rngOffset);
+
+//#if DEBUG
+//        string debugLog = "ChooseNextDepthSeaCell: rng=" + rngOutput +
+//            ", _traverseDirection=" + _traverseDirection +
+//            ", _currentDirectionOffset=" + _currentDirectionOffset;
+//#endif
+
+        float deviation = 2 * rngOutput - 1;
         deviation = (deviation * deviation + 1f) / 2f;
         deviation = newOffset - deviation;
 
@@ -263,10 +279,20 @@ public class Route : ISynchronizable
         //#endif
 
         if (nextCell == null)
+        {
+//#if DEBUG
+//            DebugLogs.Add(debugLog);
+//#endif
             return null;
+        }
 
         if (Cells.Contains(nextCell))
+        {
+//#if DEBUG
+//            DebugLogs.Add(debugLog);
+//#endif
             return null;
+        }
 
         if (nextCell.IsPartOfCoastline)
         {
@@ -275,6 +301,13 @@ public class Route : ISynchronizable
 
             _isTraversingSea = false;
         }
+
+//#if DEBUG
+//        debugLog += ", _currentCoastPreference=" + _currentCoastPreference + 
+//            ", _currentEndRoutePreference=" + _currentEndRoutePreference;
+
+//        DebugLogs.Add(debugLog);
+//#endif
 
         return nextCell;
     }
@@ -326,9 +359,19 @@ public class Route : ISynchronizable
         //        cellWeightsStr += "\n";
         //#endif
 
+//#if DEBUG
+//        string debugLog = "ChooseNextCoastalCell: Cells.Count=" + Cells.Count +
+//            ", coastalCellWeights.Count=" + coastalCellWeights.Count +
+//            ", totalWeight=" + totalWeight;
+//#endif
+
         if (coastalCellWeights.Count == 0)
         {
             direction = Direction.South;
+
+//#if DEBUG
+//            DebugLogs.Add(debugLog);
+//#endif
 
             return null;
         }
@@ -337,11 +380,21 @@ public class Route : ISynchronizable
         {
             direction = Direction.South;
 
+//#if DEBUG
+//            DebugLogs.Add(debugLog);
+//#endif
+
             return null;
         }
 
+        float rngOutput = FirstCell.GetLocalRandomFloat(CreationDate, RngOffsets.ROUTE_CHOOSE_NEXT_COASTAL_CELL + rngOffset);
+
+//#if DEBUG
+//        debugLog += ", rng1=" + rngOutput;
+//#endif
+
         KeyValuePair<Direction, TerrainCell> targetPair =
-            CollectionUtility.WeightedSelection(coastalCellWeights.ToArray(), totalWeight, FirstCell.GetLocalRandomFloat(CreationDate, RngOffsets.ROUTE_CHOOSE_NEXT_COASTAL_CELL + rngOffset));
+            CollectionUtility.WeightedSelection(coastalCellWeights.ToArray(), totalWeight, rngOutput);
 
         TerrainCell targetCell = targetPair.Value;
         direction = targetPair.Key;
@@ -356,10 +409,22 @@ public class Route : ISynchronizable
             _isTraversingSea = true;
             _traverseDirection = direction;
 
-            _currentDirectionOffset = FirstCell.GetLocalRandomFloat(CreationDate, RngOffsets.ROUTE_CHOOSE_NEXT_COASTAL_CELL_2 + rngOffset);
+            rngOutput = FirstCell.GetLocalRandomFloat(CreationDate, RngOffsets.ROUTE_CHOOSE_NEXT_COASTAL_CELL_2 + rngOffset);
+
+//#if DEBUG
+//            debugLog += ", rng2=" + rngOutput + ", _traverseDirection=" + _traverseDirection;
+//#endif
+
+            _currentDirectionOffset = rngOutput;
         }
 
         _currentEndRoutePreference += 0.1f;
+
+//#if DEBUG
+//        debugLog += ", _currentEndRoutePreference=" + _currentEndRoutePreference;
+
+//        DebugLogs.Add(debugLog);
+//#endif
 
         //#if DEBUG
         //        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))

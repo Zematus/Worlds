@@ -1481,11 +1481,14 @@ public class CellGroup : HumanGroup
                     cellInfo = "Long:" + targetCell.Longitude + "|Lat:" + targetCell.Latitude;
                 }
 
+                //string rngOutputs = "[" + string.Join("|", SeaMigrationRoute.DebugLogs.ToArray()) + "]";
+
                 SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
                     "ConsiderSeaMigration 2 - Group:" + groupId,
                     "CurrentDate: " + World.CurrentDate +
                     ", SeaMigrationRoute.CreationDate: " + SeaMigrationRoute.CreationDate +
                     ", target cell: " + cellInfo +
+                    //", SeaMigrationRoute.RngOutputs: " + rngOutputs +
                     "");
 
                 Manager.RegisterDebugEvent("DebugMessage", debugMessage);
@@ -3104,31 +3107,36 @@ public class CellGroup : HumanGroup
 
 	public override void Synchronize()
     {
-		if (HasPolityExpansionEvent && !PolityExpansionEvent.IsStillValid ()) {
-			HasPolityExpansionEvent = false;
-		}
+        if (HasPolityExpansionEvent && !PolityExpansionEvent.IsStillValid())
+        {
+            HasPolityExpansionEvent = false;
+        }
 
-		Flags = new List<string> (_flags);
+        Flags = new List<string>(_flags);
 
-		Culture.Synchronize ();
+        Culture.Synchronize();
 
-		if (SeaMigrationRoute != null) {
-			if (!SeaMigrationRoute.Consolidated) {
-				SeaMigrationRoute = null;
-			} else {
-				SeaMigrationRoute.Synchronize ();
-			}
-		}
+        if (SeaMigrationRoute != null)
+        {
+            if (!SeaMigrationRoute.Consolidated)
+            {
+                SeaMigrationRoute = null;
+            }
+            else
+            {
+                SeaMigrationRoute.Synchronize();
+            }
+        }
 
-		FactionCoreIds = new List<long> (FactionCores.Keys);
+        FactionCoreIds = new List<long>(FactionCores.Keys);
 
-		PreferredMigrationDirectionInt = (int)PreferredMigrationDirection;
-		
-		base.Synchronize ();
-	}
+        PreferredMigrationDirectionInt = (int)PreferredMigrationDirection;
+
+        base.Synchronize();
+    }
 
 #if DEBUG
-	public static int Debug_LoadedGroups = 0;
+    public static int Debug_LoadedGroups = 0;
 #endif
 	
 	public override void FinalizeLoad()

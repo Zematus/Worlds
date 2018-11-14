@@ -107,9 +107,9 @@ public class FactionCulture : Culture
 
             Profiler.EndSample();
 
-#if DEBUG
-            float prevValue = 0;
-#endif
+//#if DEBUG
+//            float prevValue = 0;
+//#endif
 
             if (preference == null)
             {
@@ -126,9 +126,9 @@ public class FactionCulture : Culture
             {
                 Profiler.BeginSample("update preference.Value");
 
-#if DEBUG
-                prevValue = preference.Value;
-#endif
+//#if DEBUG
+//                prevValue = preference.Value;
+//#endif
 
                 preference.Value = (preference.Value * (1f - timeFactor)) + (p.Value * timeFactor);
 

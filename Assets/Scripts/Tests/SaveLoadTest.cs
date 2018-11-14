@@ -4,7 +4,6 @@ using System.Collections.Generic;
 
 public class SaveLoadTest : AutomatedTest
 {
-
     public enum Stage
     {
         Generation,
