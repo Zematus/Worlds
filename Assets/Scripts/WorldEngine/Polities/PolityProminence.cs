@@ -28,7 +28,7 @@ public class PolityProminence : IKeyedValue<long>
     [XmlIgnore]
     public PolityProminenceCluster Cluster;
 
-    private bool _isMigratingGroup;
+    //private bool _isMigratingGroup;
 
     [XmlIgnore]
     public Polity Polity;
@@ -53,7 +53,7 @@ public class PolityProminence : IKeyedValue<long>
     {
         Group = polityProminence.Group;
 
-        _isMigratingGroup = true;
+        //_isMigratingGroup = true;
 
         Set(polityProminence);
     }
@@ -62,7 +62,7 @@ public class PolityProminence : IKeyedValue<long>
     {
         Group = group;
 
-        _isMigratingGroup = false;
+        //_isMigratingGroup = false;
 
         Set(polityProminence);
     }
@@ -81,7 +81,7 @@ public class PolityProminence : IKeyedValue<long>
     {
         Group = group;
 
-        _isMigratingGroup = isMigratingGroup;
+        //_isMigratingGroup = isMigratingGroup;
 
         Set(polity, value);
     }

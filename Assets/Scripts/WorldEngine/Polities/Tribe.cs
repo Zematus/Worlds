@@ -16,14 +16,16 @@ public class Tribe : Polity
     public const string PolityType = "Tribe";
     public const string PolityNameFormat = "the {0} tribe";
 
+    public const float BaseCoreProminence = 0.5f;
+
     private static string[] PrepositionVariations = new string[] { "from", "of" };
 
     private static Variation[] TribeNounVariations;
 
     private static string[] TribeNounVariants = new string[] {
         "nation", "tribe", "[ipn(person)]people", "folk", "community", "kin", "{kin:s:}person:s", "{kin:s:}[ipn(man)]men", "{kin:s:}[ipn(woman)]women", "[ipn(child)]children" };
-
-    public const float BaseCoreProminence = 0.5f;
+    
+    private int _rngOffset;
 
     public Tribe()
     {
@@ -305,20 +307,27 @@ public class Tribe : Polity
     {
     }
 
+    private int GetRandomInt(int maxValue)
+    {
+        return GetNextLocalRandomInt(_rngOffset++, maxValue);
+    }
+
+    private float GetRandomFloat()
+    {
+        return GetNextLocalRandomFloat(_rngOffset++);
+    }
+
     protected override void GenerateName()
     {
         Region coreRegion = CoreGroup.Cell.Region;
 
-        int rngOffset = RngOffsets.TRIBE_GENERATE_NAME + unchecked((int)Id);
+        _rngOffset = RngOffsets.TRIBE_GENERATE_NAME + unchecked((int)Id);
 
-        GetRandomIntDelegate getRandomInt = (int maxValue) => GetNextLocalRandomInt(rngOffset++, maxValue);
-        GetRandomFloatDelegate getRandomFloat = () => GetNextLocalRandomFloat(rngOffset++);
+        string tribeNoun = TribeNounVariations.RandomSelect(GetRandomInt).Text;
 
-        string tribeNoun = TribeNounVariations.RandomSelect(getRandomInt).Text;
+        bool areaNameIsNounAdjunct = (GetRandomFloat() > 0.5f);
 
-        bool areaNameIsNounAdjunct = (getRandomFloat() > 0.5f);
-
-        string areaName = coreRegion.GetRandomUnstranslatedAreaName(getRandomInt, areaNameIsNounAdjunct);
+        string areaName = coreRegion.GetRandomUnstranslatedAreaName(GetRandomInt, areaNameIsNounAdjunct);
 
         string untranslatedName;
 
@@ -328,12 +337,32 @@ public class Tribe : Polity
         }
         else
         {
-            string preposition = PrepositionVariations.RandomSelect(getRandomInt);
+            string preposition = PrepositionVariations.RandomSelect(GetRandomInt);
 
             untranslatedName = "[PpPP]([Proper][NP](" + tribeNoun + ") [PP](" + preposition + " [Proper][NP](the " + areaName + ")))";
         }
 
         Info.Name = new Name(untranslatedName, Culture.Language, World);
+
+#if DEBUG
+        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 1))
+        {
+            //if (Manager.TracingData.PolityId == Id)
+            //{
+                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+                    "Tribe.GenerateName - Polity.Id:" + Id,
+                    "CurrentDate: " + World.CurrentDate +
+                    ", PrepositionVariations.Length: " + PrepositionVariations.Length +
+                    //", PrepositionVariations: [" + string.Join(",", PrepositionVariations) + "]" +
+                    ", PrepositionVariations.Length: " + PrepositionVariations.Length +
+                    ", TribeNounVariations.Length: " + TribeNounVariations.Length +
+                    ", areaName: " + areaName +
+                    "");
+
+                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+            //}
+        }
+#endif
 
         //		#if DEBUG
         //		Debug.Log ("Tribe #" + Id + " name: " + Name);
