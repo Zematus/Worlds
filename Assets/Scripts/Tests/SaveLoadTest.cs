@@ -865,8 +865,15 @@ public class SaveLoadTest : AutomatedTest
                             {
                                 foreach (DebugMessage debugMessage in pair.Value)
                                 {
+                                    string worlddateStr = "";
+
+                                    if (debugMessage.Date > -1)
+                                    {
+                                        worlddateStr = " [Date:" + debugMessage.Date + ", offset:" + (debugMessage.Date - _saveDate) + "]";
+                                    }
+
                                     Debug.LogError("Debug message of type [" + pair.Key + "] from Load data not found in Save data " + checkStr + ": " + 
-                                        debugMessage.Message + " [CountId:" + debugMessage.CountId + "] [Id:" + debugMessage.Id + "]");
+                                        debugMessage.Message + " [CountId:" + debugMessage.CountId + "] [Id:" + debugMessage.Id + "]" + worlddateStr);
                                 }
 
                                 _result = false;
@@ -892,8 +899,15 @@ public class SaveLoadTest : AutomatedTest
 
                                 if (dbgMessageToRemove == null)
                                 {
+                                    string worlddateStr = "";
+
+                                    if (debugMessage.Date > -1)
+                                    {
+                                        worlddateStr = " [Date:" + debugMessage.Date + ", offset:" + (debugMessage.Date - _saveDate) + "]";
+                                    }
+
                                     Debug.LogError("Debug message of type [" + pair.Key + "] from Load data not found in Save data " + checkStr + ": " +
-                                        debugMessage.Message + " [CountId:" + debugMessage.CountId + "] [Id:" + debugMessage.Id + "]");
+                                        debugMessage.Message + " [CountId:" + debugMessage.CountId + "] [Id:" + debugMessage.Id + "]" + worlddateStr);
                                     _result = false;
                                 }
                                 else
@@ -904,8 +918,15 @@ public class SaveLoadTest : AutomatedTest
 
                             foreach (DebugMessage dbgMessage in dbgMessages)
                             {
+                                string worlddateStr = "";
+
+                                if (dbgMessage.Date > -1)
+                                {
+                                    worlddateStr = " [Date:" + dbgMessage.Date + ", offset:" + (dbgMessage.Date - _saveDate) + "]";
+                                }
+
                                 Debug.LogError("Debug message of type [" + pair.Key + "] from Save data not found in Load data " + checkStr + ": " +
-                                    dbgMessage.Message + " [CountId:" + dbgMessage.CountId + "] [Id:" + dbgMessage.Id + "]");
+                                    dbgMessage.Message + " [CountId:" + dbgMessage.CountId + "] [Id:" + dbgMessage.Id + "]" + worlddateStr);
                                 _result = false;
                             }
                         }
@@ -916,8 +937,15 @@ public class SaveLoadTest : AutomatedTest
 
                             foreach (DebugMessage dbgMessage in pair.Value)
                             {
+                                string worlddateStr = "";
+
+                                if (dbgMessage.Date > -1)
+                                {
+                                    worlddateStr = " [Date:" + dbgMessage.Date + ", offset:" + (dbgMessage.Date - _saveDate) + "]";
+                                }
+
                                 Debug.LogError("Debug message of type [" + pair.Key + "] from Save data not found in Load data " + checkStr + ": " +
-                                    dbgMessage.Message + " [CountId:" + dbgMessage.CountId + "] [Id:" + dbgMessage.Id + "]");
+                                    dbgMessage.Message + " [CountId:" + dbgMessage.CountId + "] [Id:" + dbgMessage.Id + "]" + worlddateStr);
                             }
 
                             _result = false;
@@ -1202,6 +1230,8 @@ public class SaveLoadTest : AutomatedTest
 
     public class DebugMessage
     {
+        public long Date;
+
         public static int IdCount = 0;
 
         public int Id;
@@ -1210,12 +1240,14 @@ public class SaveLoadTest : AutomatedTest
         public string Identifier;
         public string Message;
 
-        public DebugMessage(string identifier, string message)
+        public DebugMessage(string identifier, string message, long date = -1)
         {
             Id = IdCount++;
 
             Identifier = identifier;
             Message = message;
+
+            Date = date;
         }
     }
 

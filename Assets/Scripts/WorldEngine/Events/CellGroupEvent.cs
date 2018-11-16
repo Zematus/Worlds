@@ -17,8 +17,13 @@ public abstract class CellGroupEvent : WorldEvent
 
     }
 
-    public CellGroupEvent(CellGroup group, long triggerDate, long eventTypeId, long? id = null) :
-    base(group.World, triggerDate, (id == null) ? GenerateUniqueIdentifier(group, triggerDate, eventTypeId) : id.Value, eventTypeId)
+    public CellGroupEvent(CellGroup group, long triggerDate, long eventTypeId, long? id = null, long originalSpawnDate = -1) :
+        base(
+        group.World, 
+        triggerDate, 
+        (id == null) ? GenerateUniqueIdentifier(group, triggerDate, eventTypeId) : id.Value, 
+        eventTypeId, 
+        originalSpawnDate)
     {
         Group = group;
         GroupId = Group.Id;
@@ -59,7 +64,7 @@ public abstract class CellGroupEvent : WorldEvent
                 "SpawnDate: " + SpawnDate +
                 ", TriggerDate: " + TriggerDate +
                 //				", isReset: " + isReset + 
-                "");
+                "", SpawnDate);
 
             Manager.RegisterDebugEvent("DebugMessage", debugMessage);
             //			}

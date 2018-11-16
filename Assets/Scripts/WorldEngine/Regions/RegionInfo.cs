@@ -11,15 +11,19 @@ public class RegionInfo : ISynchronizable, IKeyedValue<long>
     [XmlAttribute("LId")]
     public long LanguageId;
 
-    [XmlAttribute("FD")]
+    [XmlAttribute("ED")]
     public long EstablishmentDate;
 
     public Region Region;
 
-    public List<string> AttributeNames = new List<string>();
-    public List<string> ElementIds = new List<string>();
-
     public WorldPosition OriginCellPosition;
+
+#if DEBUG
+    [XmlIgnore]
+    public List<string> ElementIds = new List<string>();
+    [XmlIgnore]
+    public List<string> AttributeNames = new List<string>();
+#endif
 
     [XmlIgnore]
     public List<RegionAttribute> Attributes = new List<RegionAttribute>();
@@ -76,13 +80,19 @@ public class RegionInfo : ISynchronizable, IKeyedValue<long>
 
     public void AddAttribute(RegionAttribute attribute)
     {
+#if DEBUG
         AttributeNames.Add(attribute.Name);
+#endif
+
         Attributes.Add(attribute);
     }
 
     public void AddElement(Element element)
     {
+#if DEBUG
         ElementIds.Add(element.Id);
+#endif
+
         Elements.Add(element);
     }
 
@@ -98,15 +108,15 @@ public class RegionInfo : ISynchronizable, IKeyedValue<long>
 
         Language = World.GetLanguage(LanguageId);
 
-        foreach (string attrName in AttributeNames)
-        {
-            Attributes.Add(RegionAttribute.Attributes[attrName]);
-        }
+        //foreach (string attrName in AttributeNames)
+        //{
+        //    Attributes.Add(RegionAttribute.Attributes[attrName]);
+        //}
 
-        foreach (string elemName in ElementIds)
-        {
-            Elements.Add(Element.Elements[elemName]);
-        }
+        //foreach (string elemName in ElementIds)
+        //{
+        //    Elements.Add(Element.Elements[elemName]);
+        //}
 
         if (Region != null)
         {
@@ -190,6 +200,28 @@ public class RegionInfo : ISynchronizable, IKeyedValue<long>
         {
             untranslatedName += attributeNoun;
         }
+
+#if DEBUG
+        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
+        {
+            //if (Manager.TracingData.RegionId == Id)
+            //{
+            SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+                "RegionInfo.GetRandomUnstranslatedAreaName - Region.Id:" + Id,
+                "CurrentDate: " + World.CurrentDate +
+                ", EstablishmentDate: " + EstablishmentDate +
+                ", attribute.Name: " + attribute.Name +
+                ", Attributes.Count: " + Attributes.Count +
+                ", AttributeNames: [" + string.Join(",", AttributeNames.ToArray()) + "]" +
+                ", nullAdjectives: " + nullAdjectives +
+                ", possibleAdjectives: [" + string.Join(",", possibleAdjectives) + "]" +
+                ", untranslatedName: " + untranslatedName +
+                "");
+
+            Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+            //}
+        }
+#endif
 
         return untranslatedName;
     }

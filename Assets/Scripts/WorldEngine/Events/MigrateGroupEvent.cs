@@ -32,7 +32,8 @@ public class MigrateGroupEvent : CellGroupEvent
         DoNotSerialize = true;
     }
 
-    public MigrateGroupEvent(CellGroup group, TerrainCell targetCell, Direction migrationDirection, long triggerDate) : base(group, triggerDate, MigrateGroupEventId)
+    public MigrateGroupEvent(CellGroup group, TerrainCell targetCell, Direction migrationDirection, long triggerDate, long originalSpawnDate = - 1) : 
+        base(group, triggerDate, MigrateGroupEventId, originalSpawnDate: originalSpawnDate)
     {
 #if DEBUG
         MigrationEventCount++;

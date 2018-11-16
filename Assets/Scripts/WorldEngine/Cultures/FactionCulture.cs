@@ -107,9 +107,9 @@ public class FactionCulture : Culture
 
             Profiler.EndSample();
 
-//#if DEBUG
-//            float prevValue = 0;
-//#endif
+#if DEBUG
+            float prevValue = 0;
+#endif
 
             if (preference == null)
             {
@@ -126,34 +126,34 @@ public class FactionCulture : Culture
             {
                 Profiler.BeginSample("update preference.Value");
 
-//#if DEBUG
-//                prevValue = preference.Value;
-//#endif
+#if DEBUG
+                prevValue = preference.Value;
+#endif
 
                 preference.Value = (preference.Value * (1f - timeFactor)) + (p.Value * timeFactor);
 
                 Profiler.EndSample();
             }
 
-//#if DEBUG
-//            if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-//            {
-//                if (Manager.TracingData.FactionId == Faction.Id)
-//                {
-//                    SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-//                        "FactionCulture:Update - coreCulture.Preferences - Faction.Id:" + Faction.Id,
-//                        "CurrentDate: " + World.CurrentDate +
-//                        ", coreCulture.Group.Id: " + coreCulture.Group.Id +
-//                        ", preference.Id: " + preference.Id +
-//                        ", prevValue: " + prevValue +
-//                        ", p.Value: " + p.Value +
-//                        ", preference.Value: " + preference.Value +
-//                        "");
+#if DEBUG
+            if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 1))
+            {
+                if (Manager.TracingData.FactionId == Faction.Id)
+                {
+                    SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+                        "FactionCulture:Update - coreCulture.Preferences - Faction.Id:" + Faction.Id,
+                        "CurrentDate: " + World.CurrentDate +
+                        ", coreCulture.Group.Id: " + coreCulture.Group.Id +
+                        ", preference.Id: " + preference.Id +
+                        ", prevValue: " + prevValue +
+                        ", p.Value: " + p.Value +
+                        ", preference.Value: " + preference.Value +
+                        "");
 
-//                    Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-//                }
-//            }
-//#endif
+                    Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+                }
+            }
+#endif
         }
 
         foreach (CulturalPreference p in Preferences.Values)

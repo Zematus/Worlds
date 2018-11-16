@@ -1059,6 +1059,15 @@ public class World : ISynchronizable
 #if DEBUG
             string eventTypeName = eventToHappen.GetType().ToString();
 
+            if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
+            {
+                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+                    "EvaluateEventsToHappen eventToHappen.Id: " + eventToHappen.Id + ", eventTypeName: " + eventTypeName,
+                    "eventToHappen.SpawnDate: " + eventToHappen.SpawnDate, CurrentDate);
+
+                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+            }
+
             Profiler.BeginSample("Event Trigger");
             Profiler.BeginSample("Event Trigger - " + eventTypeName);
 #endif
@@ -1297,28 +1306,33 @@ public class World : ISynchronizable
     public void AddGroupToUpdate(CellGroup group)
     {
 #if DEBUG
-        //if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-        //{
-        //    if (group.Id == Manager.TracingData.GroupId)
-        //    {
+        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
+        {
+            if (group.Id == Manager.TracingData.GroupId)
+            {
 
-        //        System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
+                System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
 
-        //        System.Reflection.MethodBase method = stackTrace.GetFrame(1).GetMethod();
-        //        string callingMethod = method.Name;
-        //        string callingClass = method.DeclaringType.ToString();
+                System.Reflection.MethodBase method = stackTrace.GetFrame(1).GetMethod();
+                string callingMethod = method.Name;
+                string callingClass = method.DeclaringType.ToString();
 
-        //        string groupId = "Id:" + group.Id + "|Long:" + group.Longitude + "|Lat:" + group.Latitude;
+                method = stackTrace.GetFrame(2).GetMethod();
+                string callingMethod2 = method.Name;
+                string callingClass2 = method.DeclaringType.ToString();
 
-        //        SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-        //            "AddGroupToUpdate - Group:" + groupId,
-        //            "CurrentDate: " + CurrentDate +
-        //            ", Call: " + callingClass + ":" + callingMethod +
-        //            "");
+                string groupId = "Id:" + group.Id + "|Long:" + group.Longitude + "|Lat:" + group.Latitude;
 
-        //        Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-        //    }
-        //}
+                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+                    "AddGroupToUpdate - Group:" + groupId,
+                    "CurrentDate: " + CurrentDate +
+                    ", Call 1: " + callingClass + ":" + callingMethod +
+                    ", Call 2: " + callingClass2 + ":" + callingMethod2 +
+                    "", CurrentDate);
+
+                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+            }
+        }
 
         if (AddGroupToUpdateCalled != null)
         {

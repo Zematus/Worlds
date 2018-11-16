@@ -75,11 +75,26 @@ public class ClanSplitDecisionEvent : FactionEvent
 #if DEBUG
             Debug.LogWarning("updateSpan less than 0: " + triggerDateSpan);
 #endif
-
             triggerDateSpan = CellGroup.MaxUpdateSpan;
         }
 
-        return clan.World.CurrentDate + triggerDateSpan;
+        long triggerDate = clan.World.CurrentDate + triggerDateSpan;
+
+#if DEBUG
+        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
+        {
+            SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("ClanSplitDecisionEvent.CalculateTriggerDate - clan:" + clan.Id,
+                "CurrentDate: " + clan.World.CurrentDate +
+                ", administrativeLoad: " + administrativeLoad +
+                ", cohesionPreferenceValue: " + cohesionPreferenceValue +
+                ", triggerDate: " + triggerDate +
+                "", clan.World.CurrentDate);
+
+            Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+        }
+#endif
+
+        return triggerDate;
     }
 
     public float GetGroupWeight(CellGroup group)
@@ -117,6 +132,21 @@ public class ClanSplitDecisionEvent : FactionEvent
             return false;
         }
 
+#if DEBUG
+        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
+        {
+            if (Manager.TracingData.FactionId == Faction.Id)
+            {
+                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("ClanSplitDecisionEvent.CanTrigger 1 - Faction:" + Faction.Id,
+                    "CurrentDate: " + World.CurrentDate +
+                    ", _clan.Influence: " + _clan.Influence +
+                    "", World.CurrentDate);
+
+                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+            }
+        }
+#endif
+
         if (_clan.Influence < MinInfluenceTrigger)
         {
             return false;
@@ -124,29 +154,62 @@ public class ClanSplitDecisionEvent : FactionEvent
 
         int rngOffset = unchecked((int)(RngOffsets.EVENT_CAN_TRIGGER + Id));
 
-        Profiler.BeginSample("CanTrigger - _clan.Polity.GetRandomGroup");
+        //Profiler.BeginSample("CanTrigger - _clan.Polity.GetRandomGroup");
         
         _newClanCoreGroup = _clan.Polity.GetRandomGroup(rngOffset++);
 
-        Profiler.EndSample();
-        
+        //Profiler.EndSample();
+
+#if DEBUG
+        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
+        {
+            if (Manager.TracingData.FactionId == Faction.Id)
+            {
+                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("ClanSplitDecisionEvent.CanTrigger 2 - Faction:" + Faction.Id,
+                    "CurrentDate: " + World.CurrentDate +
+                    ", _newClanCoreGroup.Id: " + _newClanCoreGroup.Id +
+                    ", _clan.Influence: " + _clan.Influence +
+                    "", World.CurrentDate);
+
+                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+            }
+        }
+#endif
+
         if (GetGroupWeight(_newClanCoreGroup) <= 0)
         {
             return false;
         }
 
-        Profiler.BeginSample("CanTrigger - _clan.PreUpdate");
+        //Profiler.BeginSample("CanTrigger - _clan.PreUpdate");
 
         // We should use the latest cultural attribute values before calculating chances
         _clan.PreUpdate();
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
-        Profiler.BeginSample("CanTrigger - CalculateChanceOfSplitting");
+        //Profiler.BeginSample("CanTrigger - CalculateChanceOfSplitting");
 
         _chanceOfSplitting = CalculateChanceOfSplitting();
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
+
+#if DEBUG
+        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
+        {
+            if (Manager.TracingData.FactionId == Faction.Id)
+            {
+                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("ClanSplitDecisionEvent.CanTrigger 3 - Faction:" + Faction.Id,
+                    "CurrentDate: " + World.CurrentDate +
+                    ", _chanceOfSplitting: " + _chanceOfSplitting +
+                    ", _newClanCoreGroup.Id: " + _newClanCoreGroup.Id +
+                    ", _clan.Influence: " + _clan.Influence +
+                    "", World.CurrentDate);
+
+                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+            }
+        }
+#endif
 
         if (_chanceOfSplitting <= 0)
         {

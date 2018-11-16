@@ -345,7 +345,7 @@ public class Tribe : Polity
         Info.Name = new Name(untranslatedName, Culture.Language, World);
 
 #if DEBUG
-        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 1))
+        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
         {
             //if (Manager.TracingData.PolityId == Id)
             //{

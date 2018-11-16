@@ -5,27 +5,28 @@ using System.Xml;
 using System.Xml.Serialization;
 using UnityEngine.Profiling;
 
-public class UpdateCellGroupEvent : CellGroupEvent {
+public class UpdateCellGroupEvent : CellGroupEvent
+{
+    public UpdateCellGroupEvent()
+    {
+        DoNotSerialize = true;
+    }
 
-	public UpdateCellGroupEvent () {
+    public UpdateCellGroupEvent(CellGroup group, long triggerDate, long? id = null, long originalSpawnDate = -1) :
+        base(group, triggerDate, UpdateCellGroupEventId, id, originalSpawnDate)
+    {
+        DoNotSerialize = true;
+    }
 
-		DoNotSerialize = true;
-	}
+    public override void Trigger()
+    {
+        World.AddGroupToUpdate(Group);
+    }
 
-	public UpdateCellGroupEvent (CellGroup group, long triggerDate, long? id = null) : base (group, triggerDate, UpdateCellGroupEventId, id) {
+    public override void FinalizeLoad()
+    {
+        base.FinalizeLoad();
 
-		DoNotSerialize = true;
-	}
-
-	public override void Trigger () {
-
-		World.AddGroupToUpdate (Group);
-	}
-
-	public override void FinalizeLoad () {
-
-		base.FinalizeLoad ();
-
-		Group.UpdateEvent = this;
-	}
+        Group.UpdateEvent = this;
+    }
 }

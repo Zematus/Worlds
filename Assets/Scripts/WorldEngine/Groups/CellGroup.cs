@@ -55,9 +55,10 @@ public class CellGroup : HumanGroup
 
     [XmlAttribute("LUD")]
     public long LastUpdateDate;
-
     [XmlAttribute("NUD")]
     public long NextUpdateDate;
+    [XmlAttribute("UESD")]
+    public long UpdateEventSpawnDate;
 
     [XmlAttribute("OP")]
     public int OptimalPopulation;
@@ -89,6 +90,8 @@ public class CellGroup : HumanGroup
     public bool HasMigrationEvent = false;
     [XmlAttribute("MD")]
     public long MigrationEventDate;
+    [XmlAttribute("MSD")]
+    public long MigrationEventSpawnDate;
     [XmlAttribute("MLo")]
     public int MigrationTargetLongitude;
     [XmlAttribute("MLa")]
@@ -1008,6 +1011,8 @@ public class CellGroup : HumanGroup
             UpdateEvent.Reset(NextUpdateDate);
         }
 
+        UpdateEventSpawnDate = UpdateEvent.SpawnDate;
+
         World.InsertEventToHappen(UpdateEvent);
 
         _cellUpdateType |= CellUpdateType.Group;
@@ -1603,6 +1608,7 @@ public class CellGroup : HumanGroup
         HasMigrationEvent = true;
 
         MigrationEventDate = nextDate;
+        MigrationEventSpawnDate = MigrationEvent.SpawnDate;
         MigrationTargetLongitude = targetCell.Longitude;
         MigrationTargetLatitude = targetCell.Latitude;
         MigrationEventDirectionInt = (int)migrationDirection;
@@ -2503,7 +2509,7 @@ public class CellGroup : HumanGroup
                     ", knowledgeLevelFactor: " + knowledgeLevelFactor +
                     ", populationFactor: " + populationFactor +
                     ", LastUpdateDate: " + LastUpdateDate +
-                    "");
+                    "", World.CurrentDate);
 
                 Manager.RegisterDebugEvent("DebugMessage", debugMessage);
             }
@@ -3224,7 +3230,7 @@ public class CellGroup : HumanGroup
 
         // Generate Update Event
 
-        UpdateEvent = new UpdateCellGroupEvent(this, NextUpdateDate);
+        UpdateEvent = new UpdateCellGroupEvent(this, NextUpdateDate, originalSpawnDate: UpdateEventSpawnDate);
         World.InsertEventToHappen(UpdateEvent);
 
         // Generate Migration Event

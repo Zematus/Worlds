@@ -72,6 +72,7 @@ public class Manager
         public long GroupId;
         public long PolityId;
         public long FactionId;
+        public long RegionId;
         public int Longitude;
         public int Latitude;
         public int Priority;
