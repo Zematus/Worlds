@@ -29,6 +29,14 @@ public class PolityProminenceCluster : ISynchronizable
     [XmlIgnore]
     public Polity Polity;
 
+#if DEBUG
+    [XmlIgnore]
+    public long CreationDate = -1;
+
+    [XmlIgnore]
+    public long LastProminenceChangeDate = -1;
+#endif
+
     public int Size
     {
         get
@@ -46,10 +54,14 @@ public class PolityProminenceCluster : ISynchronizable
         Id = startProminence.Id;
         Polity = startProminence.Polity;
 
+#if DEBUG
+        CreationDate = Polity.World.CurrentDate;
+#endif
+
         AddProminence(startProminence);
     }
 
-    public void RunCensus()
+public void RunCensus()
     {
         TotalAdministrativeCost = 0;
         TotalPopulation = 0;
@@ -100,6 +112,43 @@ public class PolityProminenceCluster : ISynchronizable
         Prominences.Add(prominence.Id, prominence);
         prominence.Cluster = this;
 
+#if DEBUG
+        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
+        {
+            if (Manager.TracingData.ClusterId == Id)
+            {
+                System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace(true);
+
+                System.Reflection.MethodBase method1 = stackTrace.GetFrame(1).GetMethod();
+                string callingMethod1 = method1.Name;
+                string callingClass1 = method1.DeclaringType.ToString();
+                int line1 = stackTrace.GetFrame(1).GetFileLineNumber();
+
+                System.Reflection.MethodBase method2 = stackTrace.GetFrame(2).GetMethod();
+                string callingMethod2 = method2.Name;
+                string callingClass2 = method2.DeclaringType.ToString();
+                int line2 = stackTrace.GetFrame(2).GetFileLineNumber();
+
+                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("PolityProminenceCluster.AddProminence - Cluster:" + Id,
+                    "CurrentDate: " + Polity.World.CurrentDate +
+                    ", Size: " + Size +
+                    ", Polity.Id: " + Polity.Id +
+                    ", LastProminenceChangeDate: " + LastProminenceChangeDate +
+                    " [offset: " + (LastProminenceChangeDate - Manager.TracingData.LastSaveDate) + "]" +
+                    ", prominence.Id: " + prominence.Id +
+                    ", prominence.Group.LastUpdateDate: " + prominence.Group.LastUpdateDate +
+                    " [offset: " + (prominence.Group.LastUpdateDate - Manager.TracingData.LastSaveDate) + "]" +
+                    ", Calling method 1: " + callingClass1 + "." + callingMethod1 + " [line:" + line1 + "]" +
+                    ", Calling method 2: " + callingClass2 + "." + callingMethod2 + " [line:" + line2 + "]" +
+                    "", Polity.World.CurrentDate);
+
+                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+            }
+        }
+
+        LastProminenceChangeDate = Polity.World.CurrentDate;
+#endif
+
         RequireNewCensus(true);
     }
 
@@ -110,6 +159,28 @@ public class PolityProminenceCluster : ISynchronizable
         RequireNewCensus(true);
 
         prominence.Cluster = null;
+
+#if DEBUG
+        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
+        {
+            if (Manager.TracingData.ClusterId == Id)
+            {
+                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("PolityProminenceCluster.RemoveProminence - Cluster:" + Id,
+                    "CurrentDate: " + Polity.World.CurrentDate +
+                    ", Size: " + Size +
+                    ", LastProminenceChangeDate: " + LastProminenceChangeDate +
+                    " [offset: " + (LastProminenceChangeDate - Manager.TracingData.LastSaveDate) + "]" +
+                    ", prominence.Id: " + prominence.Id +
+                    ", prominence.Group.LastUpdateDate: " + prominence.Group.LastUpdateDate +
+                    " [offset: " + (prominence.Group.LastUpdateDate - Manager.TracingData.LastSaveDate) + "]" +
+                    "", Polity.World.CurrentDate);
+
+                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+            }
+        }
+
+        LastProminenceChangeDate = Polity.World.CurrentDate;
+#endif
     }
 
     public bool HasPolityProminence(PolityProminence prominence)
@@ -152,6 +223,25 @@ public class PolityProminenceCluster : ISynchronizable
         int oldSize = Size;
 #endif
 
+#if DEBUG
+        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
+        {
+            if (Manager.TracingData.ClusterId == Id)
+            {
+                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("PolityProminenceCluster.Split - Cluster:" + Id,
+                    "CurrentDate: " + Polity.World.CurrentDate +
+                    ", Size: " + Size +
+                    ", LastProminenceChangeDate: " + LastProminenceChangeDate +
+                    " [offset: " + (LastProminenceChangeDate - Manager.TracingData.LastSaveDate) + "]" +
+                    "", Polity.World.CurrentDate);
+
+                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+            }
+        }
+
+        LastProminenceChangeDate = Polity.World.CurrentDate;
+#endif
+
         RemoveProminence(startProminence);
         PolityProminenceCluster splitCluster = new PolityProminenceCluster(startProminence);
 
@@ -168,7 +258,7 @@ public class PolityProminenceCluster : ISynchronizable
         {
             PolityProminence prominenceToExplore = prominencesToExplore.Dequeue();
 
-            foreach (CellGroup nGroup in prominenceToExplore.Group.Neighbors.Values)
+            foreach (CellGroup nGroup in prominenceToExplore.Group.NeighborGroups)
             {
                 if (groupsAlreadyTested.Contains(nGroup))
                     continue;

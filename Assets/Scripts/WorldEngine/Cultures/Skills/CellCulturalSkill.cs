@@ -172,30 +172,45 @@ public abstract class CellCulturalSkill : CulturalSkill
         // _newvalue should have been set correctly either by the constructor or by the Update function
         float change = (targetValue - _newValue) * prominenceEffect * timeEffect * randomEffect;
 
-        //		#if DEBUG
-        //		if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0)) {
-        //			if (Group.Id == Manager.TracingData.GroupId) {
-        //
-        //				string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
-        //
-        //				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-        //					"PolityCulturalProminenceInternal - Group:" + groupId,
-        //					"CurrentDate: " + Group.World.CurrentDate + 
-        //					", Name: " + Name + 
-        //					", timeSpan: " + timeSpan + 
-        //					", timeEffectFactor: " + timeEffectFactor + 
-        //					", randomEffect: " + randomEffect + 
-        //					", polity Id: " + polityProminence.PolityId + 
-        //					", polityProminence.Value: " + prominenceEffect + 
-        //					", politySkill.Value: " + targetValue + 
-        //					", Value: " + Value + 
-        //					", change: " + change + 
-        //					"");
-        //
-        //				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-        //			}
-        //		}
-        //		#endif
+//#if DEBUG
+//        if (Manager.RegisterDebugEvent != null)
+//        {
+//            if (Manager.TracingData.Priority <= 0)
+//            {
+//                if (Group.Id == Manager.TracingData.GroupId)
+//                {
+//                    string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
+
+//                    SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//                        "PolityCulturalProminenceInternal - Group:" + groupId,
+//                        "CurrentDate: " + Group.World.CurrentDate +
+//                        ", Name: " + Name +
+//                        ", timeSpan: " + timeSpan +
+//                        ", timeEffectFactor: " + timeEffectFactor +
+//                        ", randomEffect: " + randomEffect +
+//                        ", polity Id: " + polityProminence.PolityId +
+//                        ", polityProminence.Value: " + prominenceEffect +
+//                        ", politySkill.Value: " + targetValue +
+//                        ", Value: " + Value +
+//                        ", change: " + change +
+//                        "", Group.World.CurrentDate);
+
+//                    Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+//                }
+//            }
+//            else if (Manager.TracingData.Priority <= 1)
+//            {
+//                string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
+
+//                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//                    "PolityCulturalProminenceInternal - Group:" + groupId,
+//                    "CurrentDate: " + Group.World.CurrentDate +
+//                    "", Group.World.CurrentDate);
+
+//                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+//            }
+//        }
+//#endif
 
         _newValue = _newValue + change;
     }

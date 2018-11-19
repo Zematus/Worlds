@@ -201,27 +201,27 @@ public class RegionInfo : ISynchronizable, IKeyedValue<long>
             untranslatedName += attributeNoun;
         }
 
-#if DEBUG
-        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-        {
-            //if (Manager.TracingData.RegionId == Id)
-            //{
-            SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-                "RegionInfo.GetRandomUnstranslatedAreaName - Region.Id:" + Id,
-                "CurrentDate: " + World.CurrentDate +
-                ", EstablishmentDate: " + EstablishmentDate +
-                ", attribute.Name: " + attribute.Name +
-                ", Attributes.Count: " + Attributes.Count +
-                ", AttributeNames: [" + string.Join(",", AttributeNames.ToArray()) + "]" +
-                ", nullAdjectives: " + nullAdjectives +
-                ", possibleAdjectives: [" + string.Join(",", possibleAdjectives) + "]" +
-                ", untranslatedName: " + untranslatedName +
-                "");
+//#if DEBUG
+//        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
+//        {
+//            //if (Manager.TracingData.RegionId == Id)
+//            //{
+//            SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//                "RegionInfo.GetRandomUnstranslatedAreaName - Region.Id:" + Id,
+//                "CurrentDate: " + World.CurrentDate +
+//                ", EstablishmentDate: " + EstablishmentDate +
+//                ", attribute.Name: " + attribute.Name +
+//                ", Attributes.Count: " + Attributes.Count +
+//                ", AttributeNames: [" + string.Join(",", AttributeNames.ToArray()) + "]" +
+//                ", nullAdjectives: " + nullAdjectives +
+//                ", possibleAdjectives: [" + string.Join(",", possibleAdjectives) + "]" +
+//                ", untranslatedName: " + untranslatedName +
+//                "");
 
-            Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-            //}
-        }
-#endif
+//            Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+//            //}
+//        }
+//#endif
 
         return untranslatedName;
     }

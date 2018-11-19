@@ -167,8 +167,10 @@ public class ClanSplitDecisionEvent : FactionEvent
             {
                 SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("ClanSplitDecisionEvent.CanTrigger 2 - Faction:" + Faction.Id,
                     "CurrentDate: " + World.CurrentDate +
+                    ", _clan.Polity.Id: " + _clan.Polity.Id +
                     ", _newClanCoreGroup.Id: " + _newClanCoreGroup.Id +
                     ", _clan.Influence: " + _clan.Influence +
+                    ", rngOffset: " + rngOffset +
                     "", World.CurrentDate);
 
                 Manager.RegisterDebugEvent("DebugMessage", debugMessage);

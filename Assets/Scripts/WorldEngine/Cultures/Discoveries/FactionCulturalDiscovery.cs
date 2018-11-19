@@ -34,35 +34,35 @@ public class FactionCulturalDiscovery : CulturalDiscovery
         SetPolityCulturalDiscovery(polityCulture);
 
 #if DEBUG
-        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-        {
-            if (Faction.Id == Manager.TracingData.FactionId)
-            {
-                System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
+        //if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
+        //{
+        //    if (Faction.Id == Manager.TracingData.FactionId)
+        //    {
+        //        System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
 
-                System.Reflection.MethodBase method1 = stackTrace.GetFrame(1).GetMethod();
-                string callingMethod1 = method1.Name;
-                string callingClass1 = method1.DeclaringType.ToString();
+        //        System.Reflection.MethodBase method1 = stackTrace.GetFrame(1).GetMethod();
+        //        string callingMethod1 = method1.Name;
+        //        string callingClass1 = method1.DeclaringType.ToString();
 
-                System.Reflection.MethodBase method2 = stackTrace.GetFrame(2).GetMethod();
-                string callingMethod2 = method2.Name;
-                string callingClass2 = method2.DeclaringType.ToString();
+        //        System.Reflection.MethodBase method2 = stackTrace.GetFrame(2).GetMethod();
+        //        string callingMethod2 = method2.Name;
+        //        string callingClass2 = method2.DeclaringType.ToString();
 
-                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-                    "FactionCulturalDiscovery.FactionCulturalDiscovery - Faction:" + Faction.Id,
-                    "CurrentDate: " + Faction.World.CurrentDate +
-                    ", Id: " + Id +
-                    ", IsPresent: " + IsPresent +
-                    ", ((CoreCulturalDiscovery != null) && (CoreCulturalDiscovery.IsPresent)): " 
-                    + ((CoreCulturalDiscovery != null) && (CoreCulturalDiscovery.IsPresent)) +
-                    //", WasPresent: " + WasPresent +
-                    ", Calling method 1: " + callingClass1 + "." + callingMethod1 +
-                    ", Calling method 2: " + callingClass2 + "." + callingMethod2 +
-                    "");
+        //        SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+        //            "FactionCulturalDiscovery.FactionCulturalDiscovery - Faction:" + Faction.Id,
+        //            "CurrentDate: " + Faction.World.CurrentDate +
+        //            ", Id: " + Id +
+        //            ", IsPresent: " + IsPresent +
+        //            ", ((CoreCulturalDiscovery != null) && (CoreCulturalDiscovery.IsPresent)): " 
+        //            + ((CoreCulturalDiscovery != null) && (CoreCulturalDiscovery.IsPresent)) +
+        //            //", WasPresent: " + WasPresent +
+        //            ", Calling method 1: " + callingClass1 + "." + callingMethod1 +
+        //            ", Calling method 2: " + callingClass2 + "." + callingMethod2 +
+        //            "");
 
-                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-            }
-        }
+        //        Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+        //    }
+        //}
 
         AcquisitionDate = faction.World.CurrentDate;
 #endif
@@ -76,7 +76,7 @@ public class FactionCulturalDiscovery : CulturalDiscovery
         {
             PolityCulturalDiscovery = new CulturalDiscovery(Id, Name);
 
-            culture.AddDiscovery(PolityCulturalDiscovery);
+            culture.AddDiscovery(PolityCulturalDiscovery, false); // will be updated as present if needed by the polity's cultural update
         }
     }
 
@@ -97,33 +97,33 @@ public class FactionCulturalDiscovery : CulturalDiscovery
         Set(true);
 
 #if DEBUG
-        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-        {
-            if (Faction.Id == Manager.TracingData.FactionId)
-            {
-                System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
+        //if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
+        //{
+        //    if (Faction.Id == Manager.TracingData.FactionId)
+        //    {
+        //        System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
 
-                System.Reflection.MethodBase method1 = stackTrace.GetFrame(1).GetMethod();
-                string callingMethod1 = method1.Name;
-                string callingClass1 = method1.DeclaringType.ToString();
+        //        System.Reflection.MethodBase method1 = stackTrace.GetFrame(1).GetMethod();
+        //        string callingMethod1 = method1.Name;
+        //        string callingClass1 = method1.DeclaringType.ToString();
 
-                System.Reflection.MethodBase method2 = stackTrace.GetFrame(2).GetMethod();
-                string callingMethod2 = method2.Name;
-                string callingClass2 = method2.DeclaringType.ToString();
+        //        System.Reflection.MethodBase method2 = stackTrace.GetFrame(2).GetMethod();
+        //        string callingMethod2 = method2.Name;
+        //        string callingClass2 = method2.DeclaringType.ToString();
 
-                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-                    "FactionCulturalDiscovery.UpdateFromCoreDiscovery - Faction:" + Faction.Id,
-                    "CurrentDate: " + Faction.World.CurrentDate +
-                    ", Id: " + Id +
-                    ", IsPresent: " + IsPresent +
-                    //", WasPresent: " + WasPresent +
-                    ", Calling method 1: " + callingClass1 + "." + callingMethod1 +
-                    ", Calling method 2: " + callingClass2 + "." + callingMethod2 +
-                    "");
+        //        SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+        //            "FactionCulturalDiscovery.UpdateFromCoreDiscovery - Faction:" + Faction.Id,
+        //            "CurrentDate: " + Faction.World.CurrentDate +
+        //            ", Id: " + Id +
+        //            ", IsPresent: " + IsPresent +
+        //            //", WasPresent: " + WasPresent +
+        //            ", Calling method 1: " + callingClass1 + "." + callingMethod1 +
+        //            ", Calling method 2: " + callingClass2 + "." + callingMethod2 +
+        //            "");
 
-                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-            }
-        }
+        //        Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+        //    }
+        //}
 
         AcquisitionDate = Faction.World.CurrentDate;
 #endif

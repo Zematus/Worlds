@@ -1306,11 +1306,10 @@ public class World : ISynchronizable
     public void AddGroupToUpdate(CellGroup group)
     {
 #if DEBUG
-        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
+        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 1))
         {
             if (group.Id == Manager.TracingData.GroupId)
             {
-
                 System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
 
                 System.Reflection.MethodBase method = stackTrace.GetFrame(1).GetMethod();
@@ -1469,7 +1468,7 @@ public class World : ISynchronizable
 	public void AddFactionToUpdate (Faction faction)
     {
 #if DEBUG
-        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
+        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 1))
         {
             if (Manager.TracingData.FactionId == faction.Id)
             {
@@ -1499,7 +1498,7 @@ public class World : ISynchronizable
                     "CurrentDate: " + CurrentDate +
                     ", Social organization knowledge value: " + knowledgeValue +
                     ", Calling method: " + callingClass + "." + callingMethod +
-                    "");
+                    "", CurrentDate);
 
                 Manager.RegisterDebugEvent("DebugMessage", debugMessage);
             }
@@ -1577,7 +1576,7 @@ public class World : ISynchronizable
     public void AddPolityToUpdate (Polity polity)
     {
 #if DEBUG
-        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
+        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 1))
         {
             if (polity.Id == Manager.TracingData.PolityId)
             {
@@ -1600,7 +1599,7 @@ public class World : ISynchronizable
                     "AddPolityToUpdate - Polity:" + polity.Id,
                     "CurrentDate: " + CurrentDate +
                     ", caller: " + callingClass + "::" + callingMethod +
-                    "");
+                    "", CurrentDate);
 
                 Manager.RegisterDebugEvent("DebugMessage", debugMessage);
             }

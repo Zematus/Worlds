@@ -55,7 +55,7 @@ public abstract class CellGroupEvent : WorldEvent
 #if DEBUG
     protected void GenerateDebugMessage(bool isReset)
     {
-        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 1))
+        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
         {
             //			if (Group.Id == Manager.TracingData.GroupId) {
             string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;

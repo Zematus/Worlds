@@ -72,10 +72,12 @@ public class Manager
         public long GroupId;
         public long PolityId;
         public long FactionId;
+        public long ClusterId;
         public long RegionId;
         public int Longitude;
         public int Latitude;
         public int Priority;
+        public long LastSaveDate;
     }
 
     public static Debug_TracingData TracingData = new Manager.Debug_TracingData();

@@ -9,7 +9,7 @@ public class PolityCulturalKnowledge : CulturalKnowledge
 {
     [XmlIgnore]
     public float AccValue;
-
+    
     public PolityCulturalKnowledge()
     {
     }

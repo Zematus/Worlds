@@ -259,6 +259,10 @@ public class SaveLoadTest : AutomatedTest
 
                 _saveDate = _world.CurrentDate;
 
+#if DEBUG
+                Manager.TracingData.LastSaveDate = _saveDate;
+#endif
+
                 Debug.Log("Save Date: " + _saveDate);
 
                 //			#if DEBUG

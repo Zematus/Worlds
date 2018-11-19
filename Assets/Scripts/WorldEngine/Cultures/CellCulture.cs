@@ -115,7 +115,7 @@ public class CellCulture : Culture
 
         Manager.AddUpdatedCell(Group.Cell);
 
-        foreach (CellGroup nGroup in Group.Neighbors.Values)
+        foreach (CellGroup nGroup in Group.NeighborGroups)
         {
             Manager.AddUpdatedCell(nGroup.Cell);
         }
@@ -394,6 +394,29 @@ public class CellCulture : Culture
 
         foreach (CulturalKnowledge polityKnowledge in polityCulture.Knowledges.Values)
         {
+#if DEBUG
+            if (Manager.RegisterDebugEvent != null)
+            {
+                if (Manager.TracingData.Priority <= 0)
+                {
+                    if (Group.Id == Manager.TracingData.GroupId)
+                    {
+                        string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
+
+                        SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+                            "CellCulture.UpdatePolityCulturalProminence - Group:" + groupId,
+                            "CurrentDate: " + Group.World.CurrentDate +
+                            ", polityCulture.Polity.Id: " + polityCulture.Polity.Id +
+                            ", polityKnowledge.Name: " + polityKnowledge.Name +
+                            ", polityKnowledge.IsPresent: " + polityKnowledge.IsPresent +
+                            "", Group.World.CurrentDate);
+
+                        Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+                    }
+                }
+            }
+#endif
+
             if (!polityKnowledge.IsPresent) continue;
             
             CellCulturalKnowledge cellKnowledge = TryAddKnowledgeToLearn(polityKnowledge.Id, Group);
@@ -720,22 +743,22 @@ public class CellCulture : Culture
 
         foreach (CellCulturalKnowledge knowledge in Knowledges.Values)
         {
-#if DEBUG
-            if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-            {
-                if (Group.Id == Manager.TracingData.GroupId)
-                {
-                    SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-                        "CellCulture.MinimumKnowledgeProgressLevel - knowledge.Id:" + knowledge.Id + ", Group.Id:" + Group.Id,
-                        "CurrentDate: " + Group.World.CurrentDate +
-                        ", knowledge.IsPresent: " + knowledge.IsPresent +
-                        //", knowledge.WasPresent: " + knowledge.WasPresent +
-                        "");
+//#if DEBUG
+//            if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
+//            {
+//                if (Group.Id == Manager.TracingData.GroupId)
+//                {
+//                    SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//                        "CellCulture.MinimumKnowledgeProgressLevel - knowledge.Id:" + knowledge.Id + ", Group.Id:" + Group.Id,
+//                        "CurrentDate: " + Group.World.CurrentDate +
+//                        ", knowledge.IsPresent: " + knowledge.IsPresent +
+//                        //", knowledge.WasPresent: " + knowledge.WasPresent +
+//                        "");
 
-                    Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-                }
-            }
-#endif
+//                    Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+//                }
+//            }
+//#endif
 
             if (!knowledge.IsPresent)
                 continue;
@@ -747,22 +770,22 @@ public class CellCulture : Culture
                 minProgressLevel = level;
             }
 
-#if DEBUG
-            if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-            {
-                if (Group.Id == Manager.TracingData.GroupId)
-                {
-                    SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-                        "CellCulture.MinimumKnowledgeProgressLevel - knowledge.Id:" + knowledge.Id + ", Group.Id:" + Group.Id,
-                        "CurrentDate: " + Group.World.CurrentDate +
-                        ", knowledge.CalculateExpectedProgressLevel(): " + level +
-                        //", minProgressLevel: " + minProgressLevel +
-                        "");
+//#if DEBUG
+//            if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
+//            {
+//                if (Group.Id == Manager.TracingData.GroupId)
+//                {
+//                    SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//                        "CellCulture.MinimumKnowledgeProgressLevel - knowledge.Id:" + knowledge.Id + ", Group.Id:" + Group.Id,
+//                        "CurrentDate: " + Group.World.CurrentDate +
+//                        ", knowledge.CalculateExpectedProgressLevel(): " + level +
+//                        //", minProgressLevel: " + minProgressLevel +
+//                        "");
 
-                    Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-                }
-            }
-#endif
+//                    Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+//                }
+//            }
+//#endif
         }
 
         return minProgressLevel;

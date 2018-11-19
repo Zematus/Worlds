@@ -165,12 +165,13 @@ public class Culture : ISynchronizable
         }
     }
 
-    public void AddKnowledge(CulturalKnowledge knowledge)
+    public void AddKnowledge(CulturalKnowledge knowledge, bool setAsPresent = true)
     {
         // Set() will reset WasPresent, so we need to store it in a temp variable to be used later
         bool wasPresent = knowledge.WasPresent;
 
-        knowledge.Set();
+        if (setAsPresent)
+            knowledge.Set();
 
         if (wasPresent) return;
 
@@ -200,8 +201,6 @@ public class Culture : ISynchronizable
         // There's a chance that we are adding a discovery that is no longer valid, so we need to set it as not present anymore.
         if (setAsPresent)
             discovery.Set();
-        else
-            discovery.Reset();
 
         if (wasPresent) return;
 

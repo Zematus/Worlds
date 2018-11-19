@@ -126,34 +126,34 @@ public class FactionCulture : Culture
             {
                 Profiler.BeginSample("update preference.Value");
 
-#if DEBUG
-                prevValue = preference.Value;
-#endif
+//#if DEBUG
+//                prevValue = preference.Value;
+//#endif
 
                 preference.Value = (preference.Value * (1f - timeFactor)) + (p.Value * timeFactor);
 
                 Profiler.EndSample();
             }
 
-#if DEBUG
-            if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 1))
-            {
-                if (Manager.TracingData.FactionId == Faction.Id)
-                {
-                    SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-                        "FactionCulture:Update - coreCulture.Preferences - Faction.Id:" + Faction.Id,
-                        "CurrentDate: " + World.CurrentDate +
-                        ", coreCulture.Group.Id: " + coreCulture.Group.Id +
-                        ", preference.Id: " + preference.Id +
-                        ", prevValue: " + prevValue +
-                        ", p.Value: " + p.Value +
-                        ", preference.Value: " + preference.Value +
-                        "");
+//#if DEBUG
+//            if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
+//            {
+//                if (Manager.TracingData.FactionId == Faction.Id)
+//                {
+//                    SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//                        "FactionCulture:Update - coreCulture.Preferences - Faction.Id:" + Faction.Id,
+//                        "CurrentDate: " + World.CurrentDate +
+//                        ", coreCulture.Group.Id: " + coreCulture.Group.Id +
+//                        ", preference.Id: " + preference.Id +
+//                        ", prevValue: " + prevValue +
+//                        ", p.Value: " + p.Value +
+//                        ", preference.Value: " + preference.Value +
+//                        "");
 
-                    Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-                }
-            }
-#endif
+//                    Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+//                }
+//            }
+//#endif
         }
 
         foreach (CulturalPreference p in Preferences.Values)
@@ -334,26 +334,26 @@ public class FactionCulture : Culture
 
         foreach (FactionCulturalDiscovery d in Discoveries.Values)
         {
-#if DEBUG
-            if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-            {
-                if (d.IsPresent && (Manager.TracingData.FactionId == Faction.Id))
-                {
-                    SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-                    "FactionCulture:Update - Update Discoveries before TryRemovingDiscovery - Faction.Id:" + Faction.Id,
-                    "CurrentDate: " + World.CurrentDate +
-                    ", coreCulture.Group.Id: " + coreCulture.Group.Id +
-                    ", Discovery Id: " + d.Id +
-                    ", d.IsPresent: " + d.IsPresent +
-                    //", d.AcquisitionDate: " + d.AcquisitionDate +
-                    ", ((d.CoreCulturalDiscovery == null) || (!d.CoreCulturalDiscovery.IsPresent)): " 
-                    + ((d.CoreCulturalDiscovery == null) || (!d.CoreCulturalDiscovery.IsPresent)) +
-                    "");
+//#if DEBUG
+//            if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
+//            {
+//                if (d.IsPresent && (Manager.TracingData.FactionId == Faction.Id))
+//                {
+//                    SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//                    "FactionCulture:Update - Update Discoveries before TryRemovingDiscovery - Faction.Id:" + Faction.Id,
+//                    "CurrentDate: " + World.CurrentDate +
+//                    ", coreCulture.Group.Id: " + coreCulture.Group.Id +
+//                    ", Discovery Id: " + d.Id +
+//                    ", d.IsPresent: " + d.IsPresent +
+//                    //", d.AcquisitionDate: " + d.AcquisitionDate +
+//                    ", ((d.CoreCulturalDiscovery == null) || (!d.CoreCulturalDiscovery.IsPresent)): " 
+//                    + ((d.CoreCulturalDiscovery == null) || (!d.CoreCulturalDiscovery.IsPresent)) +
+//                    "");
 
-                    Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-                }
-            }
-#endif
+//                    Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+//                }
+//            }
+//#endif
 
             if ((d.CoreCulturalDiscovery == null) || (!d.CoreCulturalDiscovery.IsPresent))
             {
@@ -422,23 +422,6 @@ public class FactionCulture : Culture
 
         if (factionKnowledge == null)
         {
-            //#if DEBUG
-            //            if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-            //            {
-            //                if (Manager.TracingData.FactionId == Faction.Id)
-            //                {
-            //                    SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-            //                        "FactionCulture:AddCoreKnowledge - Faction.Id:" + Faction.Id,
-            //                        "CurrentDate: " + World.CurrentDate +
-            //                        ", coreKnowledge.Group.Id: " + coreKnowledge.Group.Id +
-            //                        ", coreKnowledge.Id: " + coreKnowledge.Id +
-            //                        "");
-
-            //                    Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-            //                }
-            //            }
-            //#endif
-
             factionKnowledge = new FactionCulturalKnowledge(Faction, coreKnowledge, Faction.Polity.Culture);
 
             AddKnowledge(factionKnowledge);
@@ -447,6 +430,23 @@ public class FactionCulture : Culture
         {
             factionKnowledge.Set();
         }
+
+#if DEBUG
+        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
+        {
+            if (Manager.TracingData.FactionId == Faction.Id)
+            {
+                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+                    "FactionCulture:AddCoreKnowledge - Faction.Id:" + Faction.Id,
+                    "CurrentDate: " + World.CurrentDate +
+                    ", coreKnowledge.Group.Id: " + coreKnowledge.Group.Id +
+                    ", coreKnowledge.Id: " + coreKnowledge.Id +
+                    "");
+
+                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+            }
+        }
+#endif
 
         factionKnowledge.CoreCulturalKnowledge = coreKnowledge;
     }

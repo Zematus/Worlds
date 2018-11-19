@@ -236,7 +236,7 @@ public class Tribe : Polity
 
             World.AddGroupToUpdate(group);
 
-            foreach (CellGroup neighborGroup in group.Neighbors.Values)
+            foreach (CellGroup neighborGroup in group.NeighborGroups)
             {
                 if (groupDistances.ContainsKey(neighborGroup))
                     continue;
@@ -282,7 +282,6 @@ public class Tribe : Polity
 
             if (!groupDistances.TryGetValue(pair.Value, out distanceToCoreFromNeighbor))
             {
-
                 continue;
             }
 
@@ -344,25 +343,25 @@ public class Tribe : Polity
 
         Info.Name = new Name(untranslatedName, Culture.Language, World);
 
-#if DEBUG
-        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-        {
-            //if (Manager.TracingData.PolityId == Id)
-            //{
-                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-                    "Tribe.GenerateName - Polity.Id:" + Id,
-                    "CurrentDate: " + World.CurrentDate +
-                    ", PrepositionVariations.Length: " + PrepositionVariations.Length +
-                    //", PrepositionVariations: [" + string.Join(",", PrepositionVariations) + "]" +
-                    ", PrepositionVariations.Length: " + PrepositionVariations.Length +
-                    ", TribeNounVariations.Length: " + TribeNounVariations.Length +
-                    ", areaName: " + areaName +
-                    "");
+//#if DEBUG
+//        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
+//        {
+//            //if (Manager.TracingData.PolityId == Id)
+//            //{
+//                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//                    "Tribe.GenerateName - Polity.Id:" + Id,
+//                    "CurrentDate: " + World.CurrentDate +
+//                    ", PrepositionVariations.Length: " + PrepositionVariations.Length +
+//                    //", PrepositionVariations: [" + string.Join(",", PrepositionVariations) + "]" +
+//                    ", PrepositionVariations.Length: " + PrepositionVariations.Length +
+//                    ", TribeNounVariations.Length: " + TribeNounVariations.Length +
+//                    ", areaName: " + areaName +
+//                    "");
 
-                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-            //}
-        }
-#endif
+//                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+//            //}
+//        }
+//#endif
 
         //		#if DEBUG
         //		Debug.Log ("Tribe #" + Id + " name: " + Name);
