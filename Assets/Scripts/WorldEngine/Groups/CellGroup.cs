@@ -1989,8 +1989,6 @@ public class CellGroup : HumanGroup
     {
         foreach (Faction faction in FactionCores.Values)
         {
-            Culture.UpdateFactionCulture(faction.Culture);
-
             World.AddFactionToUpdate(faction);
         }
     }

@@ -451,8 +451,6 @@ public abstract class Faction : ISynchronizable
         {
             Polity.SetCoreGroup(CoreGroup);
         }
-
-        Culture.SetCoreCulture(CoreGroup.Culture);
     }
 
     protected abstract void UpdateInternal();
@@ -488,9 +486,6 @@ public abstract class Faction : ISynchronizable
         Culture.World = World;
         Culture.Faction = this;
         Culture.FinalizeLoad();
-
-        Culture.SetCoreCulture(CoreGroup.Culture);
-        Culture.SetPolityCulture(Polity.Culture);
 
         foreach (FactionRelationship relationship in Relationships)
         {
@@ -578,8 +573,6 @@ public abstract class Faction : ISynchronizable
         Influence = targetInfluence;
 
         targetPolity.AddFaction(this);
-
-        Culture.SetPolityCulture(targetPolity.Culture);
     }
 
     public virtual bool ShouldMigrateFactionCore(CellGroup sourceGroup, CellGroup targetGroup)

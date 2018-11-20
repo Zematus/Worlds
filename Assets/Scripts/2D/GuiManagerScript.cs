@@ -3660,8 +3660,8 @@ public class GuiManagerScript : MonoBehaviour {
 	public void ShowCellInfoToolTip_PolityCulturalKnowledge(Polity polity, Vector3 position, float fadeStart = 5)
     {
         CulturalKnowledge knowledge = polity.Culture.GetKnowledge(_planetOverlaySubtype);
-
-        if ((knowledge != null) && knowledge.IsPresent)
+        
+        if (knowledge != null)
         {
             string text = knowledge.Name + " Value: " + knowledge.ScaledValue.ToString("0.000") + "\n\nFactions:";
 
@@ -3685,8 +3685,8 @@ public class GuiManagerScript : MonoBehaviour {
     public void ShowCellInfoToolTip_PolityCulturalDiscovery(Polity polity, Vector3 position, float fadeStart = 5)
     {
         CulturalDiscovery discovery = polity.Culture.GetDiscovery(_planetOverlaySubtype) as CulturalDiscovery;
-
-        if ((discovery != null) && discovery.IsPresent)
+        
+        if (discovery != null)
         {
             InfoTooltipScript.DisplayTip(discovery.Name + " is present", position, fadeStart);
         }

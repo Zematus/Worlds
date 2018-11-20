@@ -85,7 +85,7 @@ public class Manager
     public static bool TrackGenRandomCallers = false;
 #endif
 
-    public static string CurrentVersion = "0.3.1";
+    public static string CurrentVersion = "0.3.1.1";
 
 //	public static bool RecordingEnabled = false;
 
@@ -2666,8 +2666,8 @@ public class Manager
             CellCulturalKnowledge knowledge = cell.Group.Culture.GetKnowledge(_planetOverlaySubtype) as CellCulturalKnowledge;
 
             population = cell.Group.Population;
-
-            if ((knowledge != null) && knowledge.IsPresent)
+            
+            if (knowledge != null)
             {
                 float highestAsymptote = knowledge.GetHighestAsymptote();
 
@@ -2717,11 +2717,11 @@ public class Manager
         CulturalKnowledge knowledge = territory.Polity.Culture.GetKnowledge(_planetOverlaySubtype);
 
         CellCulturalKnowledge cellKnowledge = territory.Polity.CoreGroup.Culture.GetKnowledge(_planetOverlaySubtype) as CellCulturalKnowledge;
-
-        if ((knowledge == null) || (!knowledge.IsPresent))
+        
+        if (knowledge == null)
             return color;
-
-        if ((cellKnowledge == null) || (!cellKnowledge.IsPresent))
+        
+        if (cellKnowledge == null)
             return color;
 
         float normalizedValue = 0;

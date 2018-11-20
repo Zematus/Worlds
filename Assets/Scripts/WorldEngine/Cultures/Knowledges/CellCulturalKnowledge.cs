@@ -41,7 +41,6 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
     public CellCulturalKnowledge(CellGroup group, string id, string name, int typeRngOffset, int value) : base(id, name, value)
     {
         Group = group;
-        //InstanceRngOffset = unchecked((int)group.GenerateUniqueIdentifier(group.World.CurrentDate, 100L, typeRngOffset));
         InstanceRngOffset = typeRngOffset;
 
         _newValue = value;
@@ -73,7 +72,6 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
     public CellCulturalKnowledge(CellGroup group, string id, string name, int typeRngOffset, int value, int asymptote) : base(id, name, value)
     {
         Group = group;
-        //InstanceRngOffset = unchecked((int)group.GenerateUniqueIdentifier(group.World.CurrentDate, 100L, typeRngOffset));
         InstanceRngOffset = typeRngOffset;
         Asymptote = asymptote;
 
@@ -255,10 +253,7 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
 
         foreach (CulturalDiscovery d in Group.Culture.Discoveries.Values)
         {
-            if (d.IsPresent)
-            {
-                Asymptote = Mathf.Max(CalculateAsymptoteInternal(d), Asymptote);
-            }
+            Asymptote = Mathf.Max(CalculateAsymptoteInternal(d), Asymptote);
         }
 
         UpdateProgressLevel();

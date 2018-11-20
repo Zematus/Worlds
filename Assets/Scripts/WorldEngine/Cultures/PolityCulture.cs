@@ -98,19 +98,6 @@ public class PolityCulture : Culture
         Profiler.EndSample();
     }
 
-    private void ResetCulture()
-    {
-        foreach (PolityCulturalKnowledge k in Knowledges.Values)
-        {
-            k.Reset();
-        }
-
-        foreach (CulturalDiscovery d in Discoveries.Values)
-        {
-            d.Reset();
-        }
-    }
-
     private void FinalizeUpdateFromFactions()
     {
         foreach (PolityCulturalKnowledge k in Knowledges.Values)
@@ -121,7 +108,7 @@ public class PolityCulture : Culture
 
     private void AddFactionCultures()
     {
-        ResetCulture();
+        //ResetCulture();
 
         foreach (Faction faction in Polity.GetFactions())
         {
@@ -139,52 +126,52 @@ public class PolityCulture : Culture
     {
         float influence = faction.Influence;
 
-        Profiler.BeginSample("foreach CulturalPreference");
+        //Profiler.BeginSample("foreach CulturalPreference");
 
         foreach (CulturalPreference p in faction.Culture.Preferences.Values)
         {
-            Profiler.BeginSample("GetPreference");
+            //Profiler.BeginSample("GetPreference");
 
             CulturalPreference preference = GetPreference(p.Id);
 
-            Profiler.EndSample();
+            //Profiler.EndSample();
 
             if (preference == null)
             {
-                Profiler.BeginSample("AddPreference");
+                //Profiler.BeginSample("AddPreference");
 
                 preference = new CulturalPreference(p);
                 preference.Value *= influence;
 
                 AddPreference(preference);
 
-                Profiler.EndSample();
+                //Profiler.EndSample();
             }
             else
             {
-                Profiler.BeginSample("update preference value");
+                //Profiler.BeginSample("update preference value");
 
                 preference.Value += p.Value * influence;
 
-                Profiler.EndSample();
+                //Profiler.EndSample();
             }
         }
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
-        Profiler.BeginSample("foreach CulturalActivity");
+        //Profiler.BeginSample("foreach CulturalActivity");
 
         foreach (CulturalActivity a in faction.Culture.Activities.Values)
         {
-            Profiler.BeginSample("GetActivity");
+            //Profiler.BeginSample("GetActivity");
 
             CulturalActivity activity = GetActivity(a.Id);
 
-            Profiler.EndSample();
+            //Profiler.EndSample();
 
             if (activity == null)
             {
-                Profiler.BeginSample("AddActivity");
+                //Profiler.BeginSample("AddActivity");
 
                 activity = new CulturalActivity(a);
                 activity.Value *= influence;
@@ -192,70 +179,109 @@ public class PolityCulture : Culture
 
                 AddActivity(activity);
 
-                Profiler.EndSample();
+                //Profiler.EndSample();
             }
             else
             {
-                Profiler.BeginSample("update activity value");
+                //Profiler.BeginSample("update activity value");
 
                 activity.Value += a.Value * influence;
                 activity.Contribution += a.Contribution * influence;
 
-                Profiler.EndSample();
+                //Profiler.EndSample();
             }
         }
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
-        Profiler.BeginSample("foreach CulturalSkill");
+        //Profiler.BeginSample("foreach CulturalSkill");
 
         foreach (CulturalSkill s in faction.Culture.Skills.Values)
         {
-            Profiler.BeginSample("GetSkill");
+            //Profiler.BeginSample("GetSkill");
 
             CulturalSkill skill = GetSkill(s.Id);
 
-            Profiler.EndSample();
+            //Profiler.EndSample();
 
             if (skill == null)
             {
-                Profiler.BeginSample("AddSkill");
+                //Profiler.BeginSample("AddSkill");
 
                 skill = new CulturalSkill(s);
                 skill.Value *= influence;
 
                 AddSkill(skill);
 
-                Profiler.EndSample();
+                //Profiler.EndSample();
             }
             else
             {
-                Profiler.BeginSample("update skill value");
+                //Profiler.BeginSample("update skill value");
 
                 skill.Value += s.Value * influence;
 
-                Profiler.EndSample();
+                //Profiler.EndSample();
             }
         }
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
-        Profiler.BeginSample("foreach CulturalKnowledge");
+        //Profiler.BeginSample("foreach CulturalKnowledge");
 
-        foreach (FactionCulturalKnowledge k in faction.Culture.Knowledges.Values)
+        foreach (CulturalKnowledge k in faction.Culture.Knowledges.Values)
         {
-            k.UpdatePolityKnowledge(influence);
+            //Profiler.BeginSample("GetKnowledge");
+
+            PolityCulturalKnowledge knowledge = GetKnowledge(k.Id) as PolityCulturalKnowledge;
+
+            //Profiler.EndSample();
+
+            if (knowledge == null)
+            {
+                //Profiler.BeginSample("AddKnowledge");
+
+                knowledge = new PolityCulturalKnowledge(k);
+                knowledge.AccValue += k.Value * influence;
+
+                AddKnowledge(knowledge);
+
+                //Profiler.EndSample();
+            }
+            else
+            {
+                //Profiler.BeginSample("update knowledge value");
+
+                knowledge.AccValue += k.Value * influence;
+
+                //Profiler.EndSample();
+            }
         }
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
-        Profiler.BeginSample("foreach CulturalDiscovery");
+        //Profiler.BeginSample("foreach CulturalDiscovery");
 
-        foreach (FactionCulturalDiscovery d in faction.Culture.Discoveries.Values)
+        foreach (CulturalDiscovery d in faction.Culture.Discoveries.Values)
         {
-            d.UpdatePolityDiscovery();
+            //Profiler.BeginSample("GetDiscovery");
+
+            CulturalDiscovery discovery = GetDiscovery(d.Id);
+
+            //Profiler.EndSample();
+
+            if (discovery == null)
+            {
+                //Profiler.BeginSample("AddDiscovery");
+
+                discovery = new CulturalDiscovery(d);
+
+                AddDiscovery(discovery);
+
+                //Profiler.EndSample();
+            }
         }
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
     }
 }

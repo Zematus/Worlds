@@ -8,14 +8,15 @@ using UnityEngine.Profiling;
 public class PolityCulturalKnowledge : CulturalKnowledge
 {
     [XmlIgnore]
-    public float AccValue;
+    public float AccValue = 0;
     
     public PolityCulturalKnowledge()
     {
     }
 
-    public PolityCulturalKnowledge(string id, string name, int value) : base(id, name, value)
+    public PolityCulturalKnowledge(CulturalKnowledge baseKnowledge) : base(baseKnowledge)
     {
+        Value = 0; // this should be set by calling FinalizeUpdateFromFactions afterwards
     }
 
     public void FinalizeUpdateFromFactions()

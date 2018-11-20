@@ -60,45 +60,39 @@ public class CellCulture : Culture
 
         foreach (CulturalKnowledge k in sourceCulture.Knowledges.Values)
         {
-            if (k.IsPresent)
-            {
-//#if DEBUG
-//                if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-//                {
-//                    if (Group.Id == Manager.TracingData.GroupId)
-//                    {
-//                        string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
+            //#if DEBUG
+            //                if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
+            //                {
+            //                    if (Group.Id == Manager.TracingData.GroupId)
+            //                    {
+            //                        string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
 
-//                        SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-//                            "PostUpdateAddAttributes - Group:" + groupId,
-//                            "CurrentDate: " + World.CurrentDate +
-//                            ", k.Id: " + k.Id +
-//                            ", k.IsPresent: " + k.IsPresent +
-//                            "");
+            //                        SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+            //                            "PostUpdateAddAttributes - Group:" + groupId,
+            //                            "CurrentDate: " + World.CurrentDate +
+            //                            ", k.Id: " + k.Id +
+            //                            ", k.IsPresent: " + k.IsPresent +
+            //                            "");
 
-//                        Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-//                    }
-//                }
-//#endif
+            //                        Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+            //                    }
+            //                }
+            //#endif
 
-                CellCulturalKnowledge knowledge = CellCulturalKnowledge.CreateCellInstance(k.Id, group, k.Value);
+            CellCulturalKnowledge knowledge = CellCulturalKnowledge.CreateCellInstance(k.Id, group, k.Value);
 
-                AddKnowledge(knowledge);
+            AddKnowledge(knowledge);
 
-                knowledge.CalculateAsymptote();
-            }
+            knowledge.CalculateAsymptote();
         }
 
         foreach (CulturalDiscovery d in sourceCulture.Discoveries.Values)
         {
-            if (d.IsPresent)
-            {
-                AddDiscovery(CellCulturalDiscovery.CreateCellInstance(d.Id));
+            AddDiscovery(CellCulturalDiscovery.CreateCellInstance(d.Id));
 
-                foreach (CellCulturalKnowledge knowledge in Knowledges.Values)
-                {
-                    knowledge.CalculateAsymptote(d);
-                }
+            foreach (CellCulturalKnowledge knowledge in Knowledges.Values)
+            {
+                knowledge.CalculateAsymptote(d);
             }
         }
 
@@ -148,8 +142,8 @@ public class CellCulture : Culture
     public CellCulturalKnowledge TryAddKnowledgeToLearn(string id, CellGroup group, int initialValue = 0)
     {
         CellCulturalKnowledge knowledge = GetKnowledge(id) as CellCulturalKnowledge;
-
-        if ((knowledge != null) && knowledge.IsPresent)
+        
+        if (knowledge != null)
         {
             return knowledge;
         }
@@ -176,8 +170,8 @@ public class CellCulture : Culture
     public CellCulturalDiscovery TryAddDiscoveryToFind(string id)
     {
         CellCulturalDiscovery discovery = GetDiscovery(id) as CellCulturalDiscovery;
-
-        if ((discovery != null) && discovery.IsPresent)
+        
+        if (discovery != null)
         {
             return discovery;
         }
@@ -310,16 +304,12 @@ public class CellCulture : Culture
 
         foreach (CulturalKnowledge k in sourceCulture.Knowledges.Values)
         {
-            if (!k.IsPresent) continue;
-            
             CellCulturalKnowledge knowledge = TryAddKnowledgeToLearn(k.Id, Group);
             knowledge.Merge(k.Value, percentage);
         }
 
         foreach (CulturalDiscovery d in sourceCulture.Discoveries.Values)
         {
-            if (!d.IsPresent) continue;
-
             TryAddDiscoveryToFind(d.Id);
         }
     }
@@ -343,8 +333,6 @@ public class CellCulture : Culture
 
         foreach (CellCulturalKnowledge knowledge in Knowledges.Values)
         {
-            if (!knowledge.IsPresent) continue;
-
             knowledge.Update(timeSpan);
         }
     }
@@ -408,7 +396,6 @@ public class CellCulture : Culture
                             "CurrentDate: " + Group.World.CurrentDate +
                             ", polityCulture.Polity.Id: " + polityCulture.Polity.Id +
                             ", polityKnowledge.Name: " + polityKnowledge.Name +
-                            ", polityKnowledge.IsPresent: " + polityKnowledge.IsPresent +
                             "", Group.World.CurrentDate);
 
                         Manager.RegisterDebugEvent("DebugMessage", debugMessage);
@@ -416,8 +403,6 @@ public class CellCulture : Culture
                 }
             }
 #endif
-
-            if (!polityKnowledge.IsPresent) continue;
             
             CellCulturalKnowledge cellKnowledge = TryAddKnowledgeToLearn(polityKnowledge.Id, Group);
 
@@ -426,8 +411,6 @@ public class CellCulture : Culture
 
         foreach (CulturalDiscovery polityDiscovery in polityCulture.Discoveries.Values)
         {
-            if (!polityDiscovery.IsPresent) continue;
-
             TryAddDiscoveryToFind(polityDiscovery.Id);
         }
     }
@@ -529,7 +512,6 @@ public class CellCulture : Culture
 //                            "PostUpdateAddAttributes - Group:" + groupId,
 //                            "CurrentDate: " + World.CurrentDate +
 //                            ", knowledge.Id: " + knowledge.Id +
-//                            ", knowledge.IsPresent: " + knowledge.IsPresent +
 //                            "");
 
 //                        Manager.RegisterDebugEvent("DebugMessage", debugMessage);
@@ -606,9 +588,6 @@ public class CellCulture : Culture
 
         foreach (CellCulturalKnowledge knowledge in Knowledges.Values)
         {
-            if (!knowledge.IsPresent)
-                continue;
-
 //#if DEBUG
 //            if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
 //            {
@@ -679,9 +658,6 @@ public class CellCulture : Culture
 
         foreach (CellCulturalDiscovery discovery in Discoveries.Values)
         {
-            if (!discovery.IsPresent)
-                continue;
-
             if (discovery.CanBeHeld(Group))
                 continue;
 
@@ -696,19 +672,6 @@ public class CellCulture : Culture
         PostUpdateAttributeValues();
 
         PostUpdateRemoveAttributes();
-    }
-
-    public void UpdateFactionCulture(FactionCulture factionCulture)
-    {
-        foreach (CellCulturalKnowledge k in KnowledgesToLearn.Values)
-        {
-            factionCulture.AddCoreKnowledge(k);
-        }
-
-        foreach (CellCulturalDiscovery d in DiscoveriesToFind.Values)
-        {
-            factionCulture.AddCoreDiscovery(d);
-        }
     }
 
     public void CleanUpAtributesToGet()
@@ -759,9 +722,6 @@ public class CellCulture : Culture
 //                }
 //            }
 //#endif
-
-            if (!knowledge.IsPresent)
-                continue;
 
             float level = knowledge.CalculateExpectedProgressLevel();
 
