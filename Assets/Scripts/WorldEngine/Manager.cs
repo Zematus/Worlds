@@ -2961,202 +2961,223 @@ public class Manager
         return terrainColor;
     }
 
-    private static Color SetUpdateSpanOverlayColor (TerrainCell cell, Color color) {
+    private static Color SetUpdateSpanOverlayColor(TerrainCell cell, Color color)
+    {
+        float greyscale = (color.r + color.g + color.b);
 
-		float greyscale = (color.r + color.g + color.b);
+        color.r = (greyscale + color.r) / 6f;
+        color.g = (greyscale + color.g) / 6f;
+        color.b = (greyscale + color.b) / 6f;
 
-		color.r = (greyscale + color.r) / 6f;
-		color.g = (greyscale + color.g) / 6f;
-		color.b = (greyscale + color.b) / 6f;
+        float normalizedValue = 0;
+        float population = 0;
 
-		float normalizedValue = 0;
-		float population = 0;
+        if (cell.Group != null)
+        {
+            population = cell.Group.Population;
 
-		if (cell.Group != null) {
+            long lastUpdateDate = cell.Group.LastUpdateDate;
+            long nextUpdateDate = cell.Group.NextUpdateDate;
+            long updateSpan = nextUpdateDate - lastUpdateDate;
 
-			population = cell.Group.Population;
-
-			long lastUpdateDate = cell.Group.LastUpdateDate;
-			long nextUpdateDate = cell.Group.NextUpdateDate;
-			long updateSpan = nextUpdateDate - lastUpdateDate;
-
-			if (_manager._currentMaxUpdateSpan < updateSpan)
-				_manager._currentMaxUpdateSpan = updateSpan;
+            if (_manager._currentMaxUpdateSpan < updateSpan)
+                _manager._currentMaxUpdateSpan = updateSpan;
 
             float maxUpdateSpan = CellGroup.MaxUpdateSpan;
 
-            maxUpdateSpan = Mathf.Min (_manager._currentMaxUpdateSpan, maxUpdateSpan);
+            maxUpdateSpan = Mathf.Min(_manager._currentMaxUpdateSpan, maxUpdateSpan);
 
-			normalizedValue = 1f - (float)updateSpan / maxUpdateSpan;
+            normalizedValue = 1f - (float)updateSpan / maxUpdateSpan;
 
-			normalizedValue = Mathf.Clamp01 (normalizedValue);
-		}
+            normalizedValue = Mathf.Clamp01(normalizedValue);
+        }
 
-		if ((population > 0) && (normalizedValue > 0)) {
+        if ((population > 0) && (normalizedValue > 0))
+        {
+            float value = normalizedValue;
 
-			float value = normalizedValue;
+            color = (color * (1 - value)) + (Color.red * value);
+        }
 
-			color = (color * (1 - value)) + (Color.red * value);
-		}
+        return color;
+    }
 
-		return color;
-	}
+    private static Color SetMiscellanousDataOverlayColor(TerrainCell cell, Color color)
+    {
+        switch (_planetOverlaySubtype)
+        {
+            case "Population":
+                return SetPopulationDensityOverlayColor(cell, color);
 
-	private static Color SetMiscellanousDataOverlayColor (TerrainCell cell, Color color) {
+            case "PopulationChange":
+                return SetPopulationChangeOverlayColor(cell, color);
 
-		switch (_planetOverlaySubtype) {
+            case "Political":
+                return SetPolityTerritoryOverlayColor(cell, color);
 
-		case "Population":
-			return SetPopulationDensityOverlayColor (cell, color);
+            case "PolityProminences":
+                return SetPolityProminenceOverlayColor(cell, color);
 
-		case "PopulationChange":
-			return SetPopulationChangeOverlayColor (cell, color);
+            case "Rainfall":
+                return SetRainfallOverlayColor(cell, color);
 
-		case "Political":
-			return SetPolityTerritoryOverlayColor (cell, color);
+            case "Temperature":
+                return SetTemperatureOverlayColor(cell, color);
 
-		case "PolityProminences":
-			return SetPolityProminenceOverlayColor (cell, color);
+            case "Arability":
+                return SetArabilityOverlayColor(cell, color);
 
-		case "Rainfall":
-			return SetRainfallOverlayColor (cell, color);
+            case "Farmland":
+                return SetFarmlandOverlayColor(cell, color);
 
-		case "Temperature":
-			return SetTemperatureOverlayColor (cell, color);
+            case "UpdateSpan":
+                return SetUpdateSpanOverlayColor(cell, color);
 
-		case "Arability":
-			return SetArabilityOverlayColor (cell, color);
+            case "None":
+                return color;
 
-		case "Farmland":
-			return SetFarmlandOverlayColor (cell, color);
+            default:
+                throw new System.Exception("Unhandled miscellaneous data overlay subtype: " + _planetOverlaySubtype);
+        }
+    }
 
-		case "UpdateSpan":
-			return SetUpdateSpanOverlayColor (cell, color);
+    private static Color SetTemperatureOverlayColor(TerrainCell cell, Color color)
+    {
+        float greyscale = (color.r + color.g + color.b);// * 4 / 3;
 
-		case "None":
-			return color;
+        color.r = (greyscale + color.r) / 6f;
+        color.g = (greyscale + color.g) / 6f;
+        color.b = (greyscale + color.b) / 6f;
 
-		default:
-			throw new System.Exception ("Unhandled miscellaneous data overlay subtype: " + _planetOverlaySubtype);
-		}
-	}
-	
-	private static Color SetTemperatureOverlayColor (TerrainCell cell, Color color) {
-		
-		float greyscale = (color.r + color.g + color.b);// * 4 / 3;
-		
-		color.r = (greyscale + color.r) / 6f;
-		color.g = (greyscale + color.g) / 6f;
-		color.b = (greyscale + color.b) / 6f;
+        Color addColor;
 
-		Color addColor;
-		
-		float span = World.MaxPossibleTemperature - World.MinPossibleTemperature;
-		
-		float value = (cell.Temperature - (World.MinPossibleTemperature + Manager.TemperatureOffset)) / span;
-		
-		addColor = new Color(value, 0, 1f - value);
-		
-		color += addColor * 2f / 3f;
-		
-		return color;
-	}
-	
-	private static Color SetRainfallOverlayColor (TerrainCell cell, Color color) {
-		
-		float greyscale = (color.r + color.g + color.b);// * 4 / 3;
-		
-		color.r = (greyscale + color.r) / 6f;
-		color.g = (greyscale + color.g) / 6f;
-		color.b = (greyscale + color.b) / 6f;
-		
-		Color addColor = Color.black;
-		
-		if (cell.Rainfall > 0) {
-			
-			float value = cell.Rainfall /(2 * World.MaxPossibleRainfall);
-			
-			addColor = Color.green;
-			
-			addColor = new Color (addColor.r * value, addColor.g * value, addColor.b * value);
-		}
+        float span = World.MaxPossibleTemperature - World.MinPossibleTemperature;
 
-		color += addColor * 2f / 3f;
-		
-		return color;
-	}
-	
-	private static Color GenerateAltitudeContourColor (float altitude) {
+        float value = (cell.Temperature - (World.MinPossibleTemperature + Manager.TemperatureOffset)) / span;
 
-		Color color = new Color(1, 0.6f, 0);
-		
-		float shadeValue = 1.0f;
-		
-		float value = Mathf.Max(0, altitude / CurrentWorld.MaxAltitude);
-		
-		if (altitude < 0) {
-			
-			value = Mathf.Max(0, (1f - altitude / CurrentWorld.MinAltitude));
-			
-			color = Color.blue;
-		}
+        addColor = new Color(value, 0, 1f - value);
 
-		while (shadeValue > value)
-		{
-			shadeValue -= 0.15f;
-		}
+        color += addColor * 2f / 3f;
 
-		shadeValue = 0.5f * shadeValue + 0.5f;
+        return color;
+    }
 
-		color = new Color(color.r * shadeValue, color.g * shadeValue, color.b * shadeValue);
-		
-		return color;
-	}
-	
-	private static Color GenerateRainfallContourColor (float rainfall) {
-		
-		float value;
-		
-		Color color = Color.green;
-		
-		float shadeValue = 1.0f;
-		
-		value = Mathf.Max(0, rainfall / CurrentWorld.MaxRainfall);
-		
-		while (shadeValue > value)
-		{
-			shadeValue -= 0.1f;
-		}
-		
-		color = new Color(color.r * shadeValue, color.g * shadeValue, color.b * shadeValue);
-		
-		return color;
-	}
-	
-	private static Color GenerateTemperatureContourColor (float temperature) {
-		
-		float span = CurrentWorld.MaxTemperature - CurrentWorld.MinTemperature;
-		
-		float value;
-		
-		float shadeValue = 1f;
-		
-		value = (temperature - CurrentWorld.MinTemperature) / span;
-		
-		while (shadeValue > value)
-		{
-			shadeValue -= 0.1f;
-		}
-		
-		Color color = new Color(shadeValue, 0, 1f - shadeValue);
-		
-		return color;
-	}
+    private static Color SetRainfallOverlayColor(TerrainCell cell, Color color)
+    {
+        float greyscale = (color.r + color.g + color.b);// * 4 / 3;
 
-	private static XmlAttributeOverrides GenerateAttributeOverrides () {
-		
-		XmlAttributeOverrides attrOverrides = new XmlAttributeOverrides();
+        color.r = (greyscale + color.r) / 6f;
+        color.g = (greyscale + color.g) / 6f;
+        color.b = (greyscale + color.b) / 6f;
 
-		return attrOverrides;
-	}
+        Color addColor = Color.black;
+
+        if (cell.Rainfall > 0)
+        {
+            float value = cell.Rainfall / (2 * World.MaxPossibleRainfall);
+
+            addColor = Color.green;
+
+            addColor = new Color(addColor.r * value, addColor.g * value, addColor.b * value);
+        }
+
+        color += addColor * 2f / 3f;
+
+        return color;
+    }
+
+    private static Color GenerateAltitudeContourColor(float altitude)
+    {
+        Color color = new Color(1, 0.6f, 0);
+
+        float shadeValue = 1.0f;
+
+        float value = Mathf.Max(0, altitude / CurrentWorld.MaxAltitude);
+
+        if (altitude < 0)
+        {
+
+            value = Mathf.Max(0, (1f - altitude / CurrentWorld.MinAltitude));
+
+            color = Color.blue;
+        }
+
+        while (shadeValue > value)
+        {
+            shadeValue -= 0.15f;
+        }
+
+        shadeValue = 0.5f * shadeValue + 0.5f;
+
+        color = new Color(color.r * shadeValue, color.g * shadeValue, color.b * shadeValue);
+
+        return color;
+    }
+
+    private static Color GenerateRainfallContourColor(float rainfall)
+    {
+        float value;
+
+        Color color = Color.green;
+
+        float shadeValue = 1.0f;
+
+        value = Mathf.Max(0, rainfall / CurrentWorld.MaxRainfall);
+
+        while (shadeValue > value)
+        {
+            shadeValue -= 0.1f;
+        }
+
+        color = new Color(color.r * shadeValue, color.g * shadeValue, color.b * shadeValue);
+
+        return color;
+    }
+
+    private static Color GenerateTemperatureContourColor(float temperature)
+    {
+        float span = CurrentWorld.MaxTemperature - CurrentWorld.MinTemperature;
+
+        float value;
+
+        float shadeValue = 1f;
+
+        value = (temperature - CurrentWorld.MinTemperature) / span;
+
+        while (shadeValue > value)
+        {
+            shadeValue -= 0.1f;
+        }
+
+        Color color = new Color(shadeValue, 0, 1f - shadeValue);
+
+        return color;
+    }
+
+    private static XmlAttributeOverrides GenerateAttributeOverrides()
+    {
+        XmlAttributeOverrides attrOverrides = new XmlAttributeOverrides();
+
+        return attrOverrides;
+    }
+
+    private Texture2D LoadTexture(string path)
+    {
+        Texture2D texture;
+
+        if (File.Exists(path))
+        {
+            byte[] data = File.ReadAllBytes(path);
+            texture = new Texture2D(1, 1, TextureFormat.ARGB32, false);
+            if (texture.LoadImage(data))
+                return texture;
+        }
+
+        return null;
+    }
+
+    private bool ValidateTexture(Texture2D texture)
+    {
+        return true;
+    }
 }
