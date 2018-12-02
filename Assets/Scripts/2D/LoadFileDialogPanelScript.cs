@@ -36,13 +36,13 @@ public class LoadFileDialogPanelScript : DialogPanelScript
 
         string dirPath = Manager.SavePath;
 
-        string[] files = Directory.GetFiles(dirPath);
+        string[] files = Directory.GetFiles(dirPath, "*.PLNT");
 
         int i = 0;
 
         foreach (string file in files)
         {
-            string ext = Path.GetExtension(file).ToUpper();
+            string ext = Path.GetExtension(file);
 
             bool found = false;
             foreach (string validExt in _validExtensions)

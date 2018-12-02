@@ -4,28 +4,28 @@ using UnityEngine.SceneManagement;
 using System.Collections;
 using System.IO;
 
-public class StartGuiManagerScript : MonoBehaviour
-{
-    public Button LoadButton;
+public class StartGuiManagerScript : MonoBehaviour {
+	
+	public Button LoadButton;
 
-    public LoadFileDialogPanelScript LoadFileDialogPanelScript;
-    public DialogPanelScript MainMenuDialogPanelScript;
+	public LoadFileDialogPanelScript LoadFileDialogPanelScript;
+	public DialogPanelScript MainMenuDialogPanelScript;
     public DialogPanelScript ExceptionDialogPanelScript;
     public SettingsDialogPanelScript SettingsDialogPanelScript;
-    public ProgressDialogPanelScript ProgressDialogPanelScript;
-    public TextInputDialogPanelScript MessageDialogPanelScript;
-    public WorldCustomizationDialogPanelScript SetSeedDialogPanelScript;
-    public WorldCustomizationDialogPanelScript CustomizeWorldDialogPanelScript;
-    public ModalPanelScript CreditsDialogPanelScript;
+	public ProgressDialogPanelScript ProgressDialogPanelScript;
+	public TextInputDialogPanelScript MessageDialogPanelScript;
+	public WorldCustomizationDialogPanelScript SetSeedDialogPanelScript;
+	public WorldCustomizationDialogPanelScript CustomizeWorldDialogPanelScript;
+	public ModalPanelScript CreditsDialogPanelScript;
 
-    public Text VersionText;
-
-    private bool _preparingWorld = false;
-
-    private string _progressMessage = null;
-    private float _progressValue = 0;
-
-    private PostProgressOperation _postProgressOp = null;
+	public Text VersionText;
+	
+	private bool _preparingWorld = false;
+	
+	private string _progressMessage = null;
+	private float _progressValue = 0;
+	
+	private PostProgressOperation _postProgressOp = null;
 
     private bool _changingScene = false;
 
@@ -63,13 +63,13 @@ public class StartGuiManagerScript : MonoBehaviour
     }
 
     // Use this for initialization
-    void Start()
-    {
-        Manager.LoadAppSettings(@"Worlds.settings");
+    void Start () {
 
-        Manager.InitializeScreen();
+		Manager.LoadAppSettings (@"Worlds.settings");
 
-        Manager.UpdateMainThreadReference();
+		Manager.InitializeScreen ();
+
+		Manager.UpdateMainThreadReference ();
 
         LoadFileDialogPanelScript.SetVisible(false);
         ProgressDialogPanelScript.SetVisible(false);
@@ -79,47 +79,46 @@ public class StartGuiManagerScript : MonoBehaviour
         CustomizeWorldDialogPanelScript.SetVisible(false);
         MainMenuDialogPanelScript.SetVisible(true);
 
-        LoadButton.interactable = HasFilesToLoad();
-    }
+        LoadButton.interactable = HasFilesToLoad ();
+	}
 
-    void Awake()
-    {
-        VersionText.text = "v" + Manager.CurrentVersion;
-    }
+	void Awake () {
 
-    void OnDestroy()
-    {
-        Manager.SaveAppSettings(@"Worlds.settings");
-    }
+		VersionText.text = "v" + Manager.CurrentVersion;
+	}
 
-    // Update is called once per frame
-    void Update()
-    {
-        Manager.ExecuteTasks(100);
+	void OnDestroy () {
 
-        if (_preparingWorld)
-        {
-            if (_progressMessage != null) ProgressDialogPanelScript.SetDialogText(_progressMessage);
+		Manager.SaveAppSettings (@"Worlds.settings");
+	}
+	
+	// Update is called once per frame
+	void Update () {
+		
+		Manager.ExecuteTasks (100);
+		
+		if (_preparingWorld) {
+		
+			if (_progressMessage != null) ProgressDialogPanelScript.SetDialogText (_progressMessage);
+			
+			ProgressDialogPanelScript.SetProgress (_progressValue);
+		}
+		
+		if (!Manager.WorldIsReady) {
+			return;
+		}
+		
+		if (_preparingWorld) {
+			
+			if (_postProgressOp != null) 
+				_postProgressOp ();
 
-            ProgressDialogPanelScript.SetProgress(_progressValue);
-        }
-
-        if (!Manager.WorldIsReady)
-        {
-            return;
-        }
-
-        if (_preparingWorld)
-        {
-            if (_postProgressOp != null)
-                _postProgressOp();
-
-            _preparingWorld = false;
+			_preparingWorld = false;
 
             _changingScene = true;
-
-            SceneManager.LoadScene("WorldView");
-        }
+			
+			SceneManager.LoadScene ("WorldView");
+		}
     }
 
     private void PostProgressOp_GenerateWorld()
@@ -144,199 +143,199 @@ public class StartGuiManagerScript : MonoBehaviour
         _postProgressOp -= PostProgressOp_LoadAction;
     }
 
-    private bool HasFilesToLoad()
-    {
-        string dirPath = Manager.SavePath;
+    private bool HasFilesToLoad () {
+		
+		string dirPath = Manager.SavePath;
+		
+		string[] files = Directory.GetFiles (dirPath, "*.PLNT");
+		
+		return files.Length > 0;
+	}
+	
+	public void LoadWorld () {
+		
+		MainMenuDialogPanelScript.SetVisible (false);
+		
+		LoadFileDialogPanelScript.SetVisible (true);
+	}
+	
+	public void LoadAction () {
+		
+		LoadFileDialogPanelScript.SetVisible (false);
+		
+		ProgressDialogPanelScript.SetVisible (true);
+		
+		ProgressUpdate (0, "Loading World...", true);
+		
+		string path = LoadFileDialogPanelScript.GetPathToLoad ();
+		
+		Manager.LoadWorldAsync (path, ProgressUpdate);
 
-        string[] files = Directory.GetFiles(dirPath, "*.PLNT");
-
-        return files.Length > 0;
-    }
-
-    public void LoadWorld()
-    {
-        MainMenuDialogPanelScript.SetVisible(false);
-
-        LoadFileDialogPanelScript.Initialize(new string[] { ".PLNT" });
-        LoadFileDialogPanelScript.SetVisible(true);
-    }
-
-    public void LoadAction()
-    {
-        LoadFileDialogPanelScript.SetVisible(false);
-
-        ProgressDialogPanelScript.SetVisible(true);
-
-        ProgressUpdate(0, "Loading World...", true);
-
-        string path = LoadFileDialogPanelScript.GetPathToLoad();
-
-        Manager.LoadWorldAsync(path, ProgressUpdate);
-
-        Manager.WorldName = Manager.RemoveDateFromWorldName(Path.GetFileNameWithoutExtension(path));
+        Manager.WorldName = Manager.RemoveDateFromWorldName(Path.GetFileNameWithoutExtension (path));
 
         _postProgressOp += PostProgressOp_LoadAction;
 
         _preparingWorld = true;
-    }
+	}
+	
+	public void CancelLoadAction () {
+		
+		LoadFileDialogPanelScript.SetVisible (false);
+		
+		MainMenuDialogPanelScript.SetVisible (true);
+	}
+	
+	public void SetGenerationSeed () {
+		
+		MainMenuDialogPanelScript.SetVisible (false);
+		
+		int seed = Random.Range (0, int.MaxValue);
+		
+		SetSeedDialogPanelScript.SetSeedString (seed.ToString());
+		
+		SetSeedDialogPanelScript.SetVisible (true);
+		
+	}
+	
+	public void CancelGenerateAction () {
+		
+		SetSeedDialogPanelScript.SetVisible (false);
+		CustomizeWorldDialogPanelScript.SetVisible (false);
 
-    public void CancelLoadAction()
-    {
-        LoadFileDialogPanelScript.SetVisible(false);
+		MainMenuDialogPanelScript.SetVisible (true);
+	}
 
-        MainMenuDialogPanelScript.SetVisible(true);
-    }
+	public void OpenSettingsDialog () {
 
-    public void SetGenerationSeed()
-    {
-        MainMenuDialogPanelScript.SetVisible(false);
+		MainMenuDialogPanelScript.SetVisible (false);
 
-        int seed = Random.Range(0, int.MaxValue);
+		SettingsDialogPanelScript.FullscreenToggle.isOn = Manager.FullScreenEnabled;
 
-        SetSeedDialogPanelScript.SetSeedString(seed.ToString());
+		SettingsDialogPanelScript.SetVisible (true);
+	}
 
-        SetSeedDialogPanelScript.SetVisible(true);
-    }
+	public void OpenCreditsDialog () {
 
-    public void CancelGenerateAction()
-    {
-        SetSeedDialogPanelScript.SetVisible(false);
-        CustomizeWorldDialogPanelScript.SetVisible(false);
+		MainMenuDialogPanelScript.SetVisible (false);
 
-        MainMenuDialogPanelScript.SetVisible(true);
-    }
+		CreditsDialogPanelScript.SetVisible (true);
+	}
 
-    public void OpenSettingsDialog()
-    {
-        MainMenuDialogPanelScript.SetVisible(false);
+	public void ToogleFullscreen (bool state) {
 
-        SettingsDialogPanelScript.FullscreenToggle.isOn = Manager.FullScreenEnabled;
+		Manager.SetFullscreen (state);
+	}
 
-        SettingsDialogPanelScript.SetVisible(true);
-    }
+	public void CloseSettingsDialog () {
 
-    public void OpenCreditsDialog()
-    {
-        MainMenuDialogPanelScript.SetVisible(false);
+		SettingsDialogPanelScript.SetVisible (false);
 
-        CreditsDialogPanelScript.SetVisible(true);
-    }
+		MainMenuDialogPanelScript.SetVisible (true);
+	}
 
-    public void ToogleFullscreen(bool state)
-    {
-        Manager.SetFullscreen(state);
-    }
+	public void CloseCreditsDialog () {
 
-    public void CloseSettingsDialog()
-    {
-        SettingsDialogPanelScript.SetVisible(false);
+		CreditsDialogPanelScript.SetVisible (false);
 
-        MainMenuDialogPanelScript.SetVisible(true);
-    }
+		MainMenuDialogPanelScript.SetVisible (true);
+	}
+	
+	public void CloseSeedErrorMessageAction () {
+		
+		MessageDialogPanelScript.SetVisible (false);
+		
+		SetGenerationSeed ();
+	}
+	
+	public void GenerateWorldWithCustomSeed () {
+		
+		SetSeedDialogPanelScript.SetVisible (false);
+		
+		int seed = 0;
+		string seedStr = SetSeedDialogPanelScript.GetSeedString ();
+		
+		if (!int.TryParse (seedStr, out seed)) {
+			
+			MessageDialogPanelScript.SetVisible (true);
+			return;
+		}
+		
+		if (seed < 0) {
+			
+			MessageDialogPanelScript.SetVisible (true);
+			return;
+		}
+		
+		GenerateWorldInternal (seed);
+	}
+	
+	public void GenerateWorldWithCustomParameters () {
 
-    public void CloseCreditsDialog()
-    {
-        CreditsDialogPanelScript.SetVisible(false);
+		CustomizeWorldDialogPanelScript.SetVisible (false);
+		
+		Manager.TemperatureOffset = CustomizeWorldDialogPanelScript.TemperatureOffset;
+		Manager.RainfallOffset = CustomizeWorldDialogPanelScript.RainfallOffset;
+		Manager.SeaLevelOffset = CustomizeWorldDialogPanelScript.SeaLevelOffset;
+		
+		int seed = 0;
+		string seedStr = CustomizeWorldDialogPanelScript.GetSeedString ();
 
-        MainMenuDialogPanelScript.SetVisible(true);
-    }
+		if (!int.TryParse (seedStr, out seed)) {
+			
+			MessageDialogPanelScript.SetVisible (true);
+			return;
+		}
+		
+		if (seed < 0) {
+			
+			MessageDialogPanelScript.SetVisible (true);
+			return;
+		}
 
-    public void CloseSeedErrorMessageAction()
-    {
-        MessageDialogPanelScript.SetVisible(false);
+		GenerateWorldInternal (seed);
+	}
 
-        SetGenerationSeed();
-    }
+	private void GenerateWorldInternal (int seed) {
 
-    public void GenerateWorldWithCustomSeed()
-    {
-        SetSeedDialogPanelScript.SetVisible(false);
-
-        int seed = 0;
-        string seedStr = SetSeedDialogPanelScript.GetSeedString();
-
-        if (!int.TryParse(seedStr, out seed))
-        {
-            MessageDialogPanelScript.SetVisible(true);
-            return;
-        }
-
-        if (seed < 0)
-        {
-            MessageDialogPanelScript.SetVisible(true);
-            return;
-        }
-
-        GenerateWorldInternal(seed);
-    }
-
-    public void GenerateWorldWithCustomParameters()
-    {
-        CustomizeWorldDialogPanelScript.SetVisible(false);
-
-        Manager.TemperatureOffset = CustomizeWorldDialogPanelScript.TemperatureOffset;
-        Manager.RainfallOffset = CustomizeWorldDialogPanelScript.RainfallOffset;
-        Manager.SeaLevelOffset = CustomizeWorldDialogPanelScript.SeaLevelOffset;
-
-        int seed = 0;
-        string seedStr = CustomizeWorldDialogPanelScript.GetSeedString();
-
-        if (!int.TryParse(seedStr, out seed))
-        {
-            MessageDialogPanelScript.SetVisible(true);
-            return;
-        }
-
-        if (seed < 0)
-        {
-            MessageDialogPanelScript.SetVisible(true);
-            return;
-        }
-
-        GenerateWorldInternal(seed);
-    }
-
-    private void GenerateWorldInternal(int seed)
-    {
-        ProgressDialogPanelScript.SetVisible(true);
-
-        ProgressUpdate(0, "Generating World...", true);
-
-        _preparingWorld = true;
-
-        Manager.GenerateNewWorldAsync(seed, ProgressUpdate);
+		ProgressDialogPanelScript.SetVisible (true);
+		
+		ProgressUpdate (0, "Generating World...", true);
+		
+		_preparingWorld = true;
+		
+		Manager.GenerateNewWorldAsync (seed, ProgressUpdate);
 
         _postProgressOp += PostProgressOp_GenerateWorld;
-    }
+	}
+	
+	public void CustomizeGeneration () {
+		
+		SetSeedDialogPanelScript.SetVisible (false);
 
-    public void CustomizeGeneration()
-    {
-        SetSeedDialogPanelScript.SetVisible(false);
+		string seedStr = SetSeedDialogPanelScript.GetSeedString ();
+		
+		CustomizeWorldDialogPanelScript.SetVisible (true);
 
-        string seedStr = SetSeedDialogPanelScript.GetSeedString();
+		CustomizeWorldDialogPanelScript.SetSeedString (seedStr);
 
-        CustomizeWorldDialogPanelScript.SetVisible(true);
+		CustomizeWorldDialogPanelScript.SetTemperatureOffset(Manager.TemperatureOffset);
+		CustomizeWorldDialogPanelScript.SetRainfallOffset(Manager.RainfallOffset);
+		CustomizeWorldDialogPanelScript.SetSeaLevelOffset(Manager.SeaLevelOffset);
+	}
+	
+	public void ProgressUpdate (float value, string message = null, bool reset = false) {
+		
+		if (reset || (value >= _progressValue)) {
 
-        CustomizeWorldDialogPanelScript.SetSeedString(seedStr);
+			if (message != null) 
+				_progressMessage = message;
 
-        CustomizeWorldDialogPanelScript.SetTemperatureOffset(Manager.TemperatureOffset);
-        CustomizeWorldDialogPanelScript.SetRainfallOffset(Manager.RainfallOffset);
-        CustomizeWorldDialogPanelScript.SetSeaLevelOffset(Manager.SeaLevelOffset);
-    }
-
-    public void ProgressUpdate(float value, string message = null, bool reset = false)
-    {
-        if (reset || (value >= _progressValue))
-        {
-            if (message != null)
-                _progressMessage = message;
-
-            _progressValue = value;
-        }
-    }
-
-    public void Exit()
-    {
-        Application.Quit();
-    }
+			_progressValue = value;
+		}
+	}
+	
+	public void Exit () {
+		
+		Application.Quit();
+	}
 }
