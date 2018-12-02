@@ -7,26 +7,32 @@ using System.IO;
 
 public class LoadFileDialogPanelScript : DialogPanelScript
 {
-    public Button WorldNameButtonPrefab;
+    public GameObject FileListPanel;
+    public Toggle TogglePrefab;
 
     public Button CancelActionButton;
 
-    public Transform ActionButtonPanelTransform;
-
     public UnityEvent LoadButtonClickEvent;
 
-    private List<Button> _worldNameButtons = new List<Button>();
+    private List<Toggle> _fileToggles = new List<Toggle>();
 
     private string _pathToLoad;
+
+    private string[] _validExtensions;
 
     public string GetPathToLoad()
     {
         return _pathToLoad;
     }
 
+    public void Initialize(string[] validExtensions)
+    {
+        _validExtensions = validExtensions;
+    }
+
     private void LoadFileNames()
     {
-        _worldNameButtons.Add(WorldNameButtonPrefab);
+        _fileToggles.Add(TogglePrefab);
 
         string dirPath = Manager.SavePath;
 
@@ -36,58 +42,69 @@ public class LoadFileDialogPanelScript : DialogPanelScript
 
         foreach (string file in files)
         {
-            string name = Path.GetFileNameWithoutExtension(file);
+            string ext = Path.GetExtension(file);
 
-            SetWorldNameButton(name, i);
+            bool found = false;
+            foreach (string validExt in _validExtensions)
+            {
+                found |= ext.Contains(validExt);
+            }
+
+            if (!found) continue;
+
+            string name = Path.GetFileName(file);
+
+            SetFileToggle(name, i);
 
             i++;
         }
     }
 
-    private void SetWorldNameButton(string name, int index)
+    private void SetFileToggle(string name, int index)
     {
-        Button button;
+        Toggle toggle;
 
-        if (index < _worldNameButtons.Count)
+        if (index < _fileToggles.Count)
         {
-            button = _worldNameButtons[index];
-            button.GetComponentInChildren<Text>().text = name;
+            toggle = _fileToggles[index];
+            toggle.GetComponentInChildren<Text>().text = name;
         }
         else
         {
-            button = AddWorldNameButton(name);
+            toggle = AddFileToggle(name);
         }
 
-        button.onClick.RemoveAllListeners();
+        toggle.onValueChanged.RemoveAllListeners();
 
-        string path = Manager.SavePath + name + ".PLNT";
+        string path = Manager.SavePath + name;
 
-        button.onClick.AddListener(() =>
+        toggle.onValueChanged.AddListener(value =>
         {
-            _pathToLoad = path;
-            LoadButtonClickEvent.Invoke();
+            if (value)
+            {
+                _pathToLoad = path;
+                //LoadButtonClickEvent.Invoke();
+            }
         });
     }
 
-    private Button AddWorldNameButton(string name)
+    private Toggle AddFileToggle(string name)
     {
-        Button newButton = Instantiate(WorldNameButtonPrefab) as Button;
+        Toggle newToggle = Instantiate(TogglePrefab) as Toggle;
 
-        newButton.transform.SetParent(transform, false);
-        newButton.GetComponentInChildren<Text>().text = name;
+        newToggle.transform.SetParent(FileListPanel.transform, false);
+        newToggle.GetComponentInChildren<Text>().text = name;
 
-        _worldNameButtons.Add(newButton);
+        _fileToggles.Add(newToggle);
 
-        ActionButtonPanelTransform.SetAsLastSibling();
-
-        return newButton;
+        return newToggle;
     }
 
-    private void RemoveWorldNameButtons()
+    private void ResetToggles()
     {
         bool first = true;
 
-        foreach (Button button in _worldNameButtons)
+        foreach (Toggle toggle in _fileToggles)
         {
             if (first)
             {
@@ -95,10 +112,10 @@ public class LoadFileDialogPanelScript : DialogPanelScript
                 continue;
             }
 
-            GameObject.Destroy(button.gameObject);
+            GameObject.Destroy(toggle.gameObject);
         }
 
-        _worldNameButtons.Clear();
+        _fileToggles.Clear();
     }
 
     public override void SetVisible(bool value)
@@ -111,7 +128,7 @@ public class LoadFileDialogPanelScript : DialogPanelScript
         }
         else
         {
-            RemoveWorldNameButtons();
+            ResetToggles();
         }
     }
 }
