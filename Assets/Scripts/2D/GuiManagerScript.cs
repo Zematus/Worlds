@@ -1468,141 +1468,142 @@ public class GuiManagerScript : MonoBehaviour {
 		_postProgressOp -= PostProgressOp_LoadAction;
 	}
 	
-	public void LoadAction () {
-		
-		LoadFileDialogPanelScript.SetVisible (false);
-		
-		ProgressDialogPanelScript.SetVisible (true);
-		
-		ProgressUpdate (0, "Loading World...", true);
-		
-		string path = LoadFileDialogPanelScript.GetPathToLoad ();
-		
-		Manager.LoadWorldAsync (path, ProgressUpdate);
-		
-		Manager.WorldName = Manager.RemoveDateFromWorldName(Path.GetFileNameWithoutExtension (path));
-		
-		_postProgressOp += PostProgressOp_LoadAction;
-		
-		_backgroundProcessActive = true;
-		
-		_regenTextures = true;
-	}
+	public void LoadAction()
+    {
+        LoadFileDialogPanelScript.SetVisible(false);
 
-	public void CancelLoadAction () {
-		
-		LoadFileDialogPanelScript.SetVisible (false);
+        ProgressDialogPanelScript.SetVisible(true);
 
-		MenuUninterruptSimulation ();
-	}
-	
-	public void LoadWorld () {
+        ProgressUpdate(0, "Loading World...", true);
 
-		MainMenuDialogPanelScript.SetVisible (false);
-		
-		LoadFileDialogPanelScript.SetVisible (true);
+        string path = LoadFileDialogPanelScript.GetPathToLoad();
 
-		InterruptSimulation (true);
-	}
+        Manager.LoadWorldAsync(path, ProgressUpdate);
 
-	public bool AreBackgroundActivityPanelsActive () {
+        Manager.WorldName = Manager.RemoveDateFromWorldName(Path.GetFileNameWithoutExtension(path));
 
-		GameObject[] panels = GameObject.FindGameObjectsWithTag ("BackgroundActivityPanel");
+        _postProgressOp += PostProgressOp_LoadAction;
 
-		foreach (GameObject panel in panels) {
+        _backgroundProcessActive = true;
 
-			if (panel.activeInHierarchy) {
+        _regenTextures = true;
+    }
 
-				return true;
-			}
-		}
+    public void CancelLoadAction()
+    {
+        LoadFileDialogPanelScript.SetVisible(false);
 
-		return false;
-	}
+        MenuUninterruptSimulation();
+    }
 
-	public bool AreMenuPanelsActive () {
+    public void LoadWorld()
+    {
+        MainMenuDialogPanelScript.SetVisible(false);
 
-		GameObject[] panels = GameObject.FindGameObjectsWithTag ("MenuPanel");
+        LoadFileDialogPanelScript.Initialize(new string[] { ".PLNT" });
+        LoadFileDialogPanelScript.SetVisible(true);
 
-		foreach (GameObject panel in panels) {
-		
-			if (panel.activeInHierarchy) {
-			
-				return true;
-			}
-		}
+        InterruptSimulation(true);
+    }
 
-		return false;
-	}
+    public bool AreBackgroundActivityPanelsActive()
+    {
+        GameObject[] panels = GameObject.FindGameObjectsWithTag("BackgroundActivityPanel");
 
-	public bool AreInteractionPanelsActive () {
+        foreach (GameObject panel in panels)
+        {
+            if (panel.activeInHierarchy)
+            {
+                return true;
+            }
+        }
 
-		GameObject[] panels = GameObject.FindGameObjectsWithTag ("InteractionPanel");
+        return false;
+    }
 
-		foreach (GameObject panel in panels) {
+    public bool AreMenuPanelsActive()
+    {
+        GameObject[] panels = GameObject.FindGameObjectsWithTag("MenuPanel");
 
-			if (panel.activeInHierarchy) {
+        foreach (GameObject panel in panels)
+        {
+            if (panel.activeInHierarchy)
+            {
+                return true;
+            }
+        }
 
-				return true;
-			}
-		}
+        return false;
+    }
 
-		return false;
-	}
+    public bool AreInteractionPanelsActive()
+    {
+        GameObject[] panels = GameObject.FindGameObjectsWithTag("InteractionPanel");
 
-	public void ShowHiddenInteractionPanels () {
-	
-		foreach (ModalPanelScript panel in HiddenInteractionPanels) {
+        foreach (GameObject panel in panels)
+        {
+            if (panel.activeInHierarchy)
+            {
+                return true;
+            }
+        }
 
-			panel.SetVisible (true);
-		}
+        return false;
+    }
 
-		HiddenInteractionPanels.Clear ();
-	}
+    public void ShowHiddenInteractionPanels()
+    {
+        foreach (ModalPanelScript panel in HiddenInteractionPanels)
+        {
+            panel.SetVisible(true);
+        }
 
-	public void RequestDecisionResolution () {
+        HiddenInteractionPanels.Clear();
+    }
 
-		Decision decisionToResolve = Manager.CurrentWorld.PullDecisionToResolve ();
+    public void RequestDecisionResolution()
+    {
+        Decision decisionToResolve = Manager.CurrentWorld.PullDecisionToResolve();
 
-		DecisionDialogPanelScript.Set (decisionToResolve, _selectedMaxSpeedLevelIndex);
+        DecisionDialogPanelScript.Set(decisionToResolve, _selectedMaxSpeedLevelIndex);
 
-		if (!AreMenuPanelsActive ()) {
-			
-			DecisionDialogPanelScript.SetVisible (true);
+        if (!AreMenuPanelsActive())
+        {
+            DecisionDialogPanelScript.SetVisible(true);
+        }
+        else
+        {
+            HiddenInteractionPanels.Add(DecisionDialogPanelScript);
+        }
 
-		} else {
+        InterruptSimulation(true);
 
-			HiddenInteractionPanels.Add (DecisionDialogPanelScript);
-		}
+        _eventPauseActive = true;
+    }
 
-		InterruptSimulation (true);
+    public void ResolveDecision()
+    {
+        DecisionDialogPanelScript.SetVisible(false);
 
-		_eventPauseActive = true;
-	}
+        int resumeSpeedLevelIndex = DecisionDialogPanelScript.ResumeSpeedLevelIndex;
 
-	public void ResolveDecision () {
+        if (resumeSpeedLevelIndex == -1)
+        {
+            PauseSimulation(true);
+        }
+        else
+        {
+            _selectedMaxSpeedLevelIndex = resumeSpeedLevelIndex;
 
-		DecisionDialogPanelScript.SetVisible (false);
+            SetMaxSpeedLevel(_selectedMaxSpeedLevelIndex);
+        }
 
-		int resumeSpeedLevelIndex = DecisionDialogPanelScript.ResumeSpeedLevelIndex;
+        InterruptSimulation(false);
 
-		if (resumeSpeedLevelIndex == -1) {
+        _eventPauseActive = false;
 
-			PauseSimulation (true);
-
-		} else {
-
-			_selectedMaxSpeedLevelIndex = resumeSpeedLevelIndex;
-
-			SetMaxSpeedLevel (_selectedMaxSpeedLevelIndex);
-		}
-
-		InterruptSimulation (false);
-
-		_eventPauseActive = false;
-
-		_resolvedDecision = true;
-	}
+        _resolvedDecision = true;
+    }
 
     public void ChangePlanetOverlayToSelected()
     {
