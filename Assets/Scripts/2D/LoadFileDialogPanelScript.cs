@@ -10,12 +10,14 @@ public class LoadFileDialogPanelScript : DialogPanelScript
     public GameObject FileListPanel;
     public Toggle TogglePrefab;
 
-    public Button CancelActionButton;
+    public Text SelectButtonText;
 
-    public UnityEvent LoadButtonClickEvent;
+    public Button SelectButton;
+    public Button CancelButton;
 
     private List<Toggle> _fileToggles = new List<Toggle>();
 
+    private string _basePath;
     private string _pathToLoad;
 
     private string[] _validExtensions;
@@ -25,8 +27,22 @@ public class LoadFileDialogPanelScript : DialogPanelScript
         return _pathToLoad;
     }
 
-    public void Initialize(string[] validExtensions)
+    public void Initialize(
+        string dialogText, 
+        string selectButtonText, 
+        UnityAction selectAction,
+        UnityAction cancelAction,
+        string basePath, 
+        string[] validExtensions = null)
     {
+        SetDialogText(dialogText);
+
+        SelectButtonText.text = selectButtonText;
+
+        SelectButton.onClick.AddListener(selectAction);
+        CancelButton.onClick.AddListener(cancelAction);
+
+        _basePath = basePath;
         _validExtensions = validExtensions;
     }
 
@@ -34,9 +50,7 @@ public class LoadFileDialogPanelScript : DialogPanelScript
     {
         _fileToggles.Add(TogglePrefab);
 
-        string dirPath = Manager.SavePath;
-
-        string[] files = Directory.GetFiles(dirPath);
+        string[] files = Directory.GetFiles(_basePath);
 
         int i = 0;
 
@@ -44,13 +58,16 @@ public class LoadFileDialogPanelScript : DialogPanelScript
         {
             string ext = Path.GetExtension(file).ToUpper();
 
-            bool found = false;
-            foreach (string validExt in _validExtensions)
+            if (_validExtensions != null)
             {
-                found |= ext.Contains(validExt);
-            }
+                bool found = false;
+                foreach (string validExt in _validExtensions)
+                {
+                    found |= ext.Contains(validExt);
+                }
 
-            if (!found) continue;
+                if (!found) continue;
+            }
 
             string name = Path.GetFileName(file);
 
@@ -76,14 +93,13 @@ public class LoadFileDialogPanelScript : DialogPanelScript
 
         toggle.onValueChanged.RemoveAllListeners();
 
-        string path = Manager.SavePath + name;
+        string path = _basePath + name;
 
         toggle.onValueChanged.AddListener(value =>
         {
             if (value)
             {
                 _pathToLoad = path;
-                //LoadButtonClickEvent.Invoke();
             }
         });
     }

@@ -1500,7 +1500,13 @@ public class GuiManagerScript : MonoBehaviour {
     {
         MainMenuDialogPanelScript.SetVisible(false);
 
-        LoadFileDialogPanelScript.Initialize(new string[] { ".PLNT" });
+        LoadFileDialogPanelScript.Initialize(
+            "Select World to Load...",
+            "Load",
+            LoadAction,
+            CancelLoadAction,
+            Manager.SavePath,
+            new string[] { ".PLNT" });
         LoadFileDialogPanelScript.SetVisible(true);
 
         InterruptSimulation(true);
