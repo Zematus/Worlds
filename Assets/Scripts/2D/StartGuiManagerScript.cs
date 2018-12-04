@@ -79,7 +79,7 @@ public class StartGuiManagerScript : MonoBehaviour
         CustomizeWorldDialogPanelScript.SetVisible(false);
         MainMenuDialogPanelScript.SetVisible(true);
 
-        LoadButton.interactable = HasFilesToLoad();
+        LoadButton.interactable = HasSaveFilesToLoad();
     }
 
     void Awake()
@@ -144,7 +144,21 @@ public class StartGuiManagerScript : MonoBehaviour
         _postProgressOp -= PostProgressOp_LoadAction;
     }
 
-    private bool HasFilesToLoad()
+    public void LoadHeightmapImage()
+    {
+        SetSeedDialogPanelScript.SetVisible(false);
+
+        LoadFileDialogPanelScript.Initialize(
+            "Select Heightmap Image to Load...",
+            "Load",
+            LoadHeightmapAction,
+            CancelLoadHeightmapAction,
+            Manager.HeightmapsPath,
+            new string[] { ".PNG" });
+        LoadFileDialogPanelScript.SetVisible(true);
+    }
+
+    private bool HasSaveFilesToLoad()
     {
         string dirPath = Manager.SavePath;
 
@@ -160,14 +174,25 @@ public class StartGuiManagerScript : MonoBehaviour
         LoadFileDialogPanelScript.Initialize(
             "Select World to Load...", 
             "Load", 
-            LoadAction,
-            CancelLoadAction,
+            LoadSaveAction,
+            CancelLoadSaveAction,
             Manager.SavePath, 
             new string[] { ".PLNT" });
         LoadFileDialogPanelScript.SetVisible(true);
     }
 
-    public void LoadAction()
+    public void LoadHeightmapAction()
+    {
+        LoadFileDialogPanelScript.SetVisible(false);
+
+        string path = LoadFileDialogPanelScript.GetPathToLoad();
+        Texture2D texture = Manager.LoadTexture(path);
+
+        SetSeedDialogPanelScript.SetImageTexture(Path.GetFileName(path), texture);
+        SetSeedDialogPanelScript.SetVisible(true);
+    }
+
+    public void LoadSaveAction()
     {
         LoadFileDialogPanelScript.SetVisible(false);
 
@@ -186,7 +211,14 @@ public class StartGuiManagerScript : MonoBehaviour
         _preparingWorld = true;
     }
 
-    public void CancelLoadAction()
+    public void CancelLoadHeightmapAction()
+    {
+        LoadFileDialogPanelScript.SetVisible(false);
+
+        SetSeedDialogPanelScript.SetVisible(true);
+    }
+
+    public void CancelLoadSaveAction()
     {
         LoadFileDialogPanelScript.SetVisible(false);
 

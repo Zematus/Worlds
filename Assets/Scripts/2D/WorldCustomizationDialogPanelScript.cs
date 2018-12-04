@@ -7,6 +7,13 @@ public class WorldCustomizationDialogPanelScript : DialogPanelScript
 {
     public InputField SeedInputField;
 
+    public Button GenerateButton;
+
+    public Image HeightmapImage;
+    public Text InvalidImageText;
+
+    public InputField SelectedFilenameField;
+
     public InputField TemperatureInputField;
     public Slider TemperatureSlider;
     public float TemperatureOffset = 0;
@@ -18,6 +25,8 @@ public class WorldCustomizationDialogPanelScript : DialogPanelScript
     public InputField SeaLevelInputField;
     public Slider SeaLevelSlider;
     public float SeaLevelOffset = 0;
+
+    private bool _hasLoadedValidHeightmap = false;
 
     private float _minTemperatureOffset = -50 + World.AvgPossibleTemperature;
     private float _maxTemperatureOffset = 50 + World.AvgPossibleTemperature;
@@ -258,5 +267,41 @@ public class WorldCustomizationDialogPanelScript : DialogPanelScript
         SeaLevelOffset = value;
 
         SetAltitudeFieldValue(value);
+    }
+
+    public void SetImageLoadingPaneState(bool state)
+    {
+        if (state && !_hasLoadedValidHeightmap)
+        {
+            GenerateButton.interactable = false;
+        }
+        else
+        {
+            GenerateButton.interactable = true;
+        }
+    }
+
+    public void SetImageTexture(string filename, Texture2D texture)
+    {
+        SelectedFilenameField.text = filename;
+
+        _hasLoadedValidHeightmap = texture != null;
+
+        if (_hasLoadedValidHeightmap)
+        {
+            Sprite sprite = Sprite.Create(
+                texture,
+                new Rect(0, 0, texture.width, texture.height),
+                new Vector2(0.5f, 0.5f));
+
+            HeightmapImage.sprite = sprite;
+        }
+        else
+        {
+            HeightmapImage.sprite = null;
+        }
+
+        InvalidImageText.gameObject.SetActive(!_hasLoadedValidHeightmap);
+        GenerateButton.interactable = _hasLoadedValidHeightmap;
     }
 }

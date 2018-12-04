@@ -10,6 +10,8 @@ public class LoadFileDialogPanelScript : DialogPanelScript
     public GameObject FileListPanel;
     public Toggle TogglePrefab;
 
+    public Text NoFilesText;
+
     public Text SelectButtonText;
 
     public Button SelectButton;
@@ -42,12 +44,17 @@ public class LoadFileDialogPanelScript : DialogPanelScript
         SelectButton.onClick.AddListener(selectAction);
         CancelButton.onClick.AddListener(cancelAction);
 
+        SelectButton.interactable = false;
+
         _basePath = basePath;
         _validExtensions = validExtensions;
     }
 
     private void LoadFileNames()
     {
+        FileListPanel.SetActive(true);
+        NoFilesText.gameObject.SetActive(false);
+
         _fileToggles.Add(TogglePrefab);
 
         string[] files = Directory.GetFiles(_basePath);
@@ -63,7 +70,7 @@ public class LoadFileDialogPanelScript : DialogPanelScript
                 bool found = false;
                 foreach (string validExt in _validExtensions)
                 {
-                    found |= ext.Contains(validExt);
+                    found |= ext == validExt.ToUpper();
                 }
 
                 if (!found) continue;
@@ -74,6 +81,16 @@ public class LoadFileDialogPanelScript : DialogPanelScript
             SetFileToggle(name, i);
 
             i++;
+        }
+
+        if (i == 0)
+        {
+            FileListPanel.SetActive(false);
+
+            string extTypes = string.Join(",", _validExtensions);
+
+            NoFilesText.text = "No files of type {" + extTypes + "} found...";
+            NoFilesText.gameObject.SetActive(true);
         }
     }
 
@@ -100,6 +117,7 @@ public class LoadFileDialogPanelScript : DialogPanelScript
             if (value)
             {
                 _pathToLoad = path;
+                SelectButton.interactable = true;
             }
         });
     }

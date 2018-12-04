@@ -85,177 +85,186 @@ public class Manager
     public static bool TrackGenRandomCallers = false;
 #endif
 
-    public static string CurrentVersion = "0.3.1.1";
+    public static string CurrentVersion = "0.3.1.2";
 
-//	public static bool RecordingEnabled = false;
+    //	public static bool RecordingEnabled = false;
 
-//	public static IRecorder Recorder = DefaultRecorder.Default;
+    //	public static IRecorder Recorder = DefaultRecorder.Default;
 
-	public const int WorldWidth = 400;
-	public const int WorldHeight = 200;
+    public const int WorldWidth = 400;
+    public const int WorldHeight = 200;
 
-	public static float ProgressIncrement = 0.20f;
-	
-	public static Thread MainThread { get; private set; }
-	
-	public static string SavePath { get; private set; }
-	public static string ExportPath { get; private set; }
-	
-	public static string WorldName { get; set; }
+    public static float ProgressIncrement = 0.20f;
 
-	public static HashSet<TerrainCell> HighlightedCells { get; private set; }
-	public static HashSet<TerrainCell> UpdatedCells { get; private set; }
-    
+    public static Thread MainThread { get; private set; }
+
+    public static string SavePath { get; private set; }
+    public static string HeightmapsPath { get; private set; }
+    public static string ExportPath { get; private set; }
+
+    public static string WorldName { get; set; }
+
+    public static HashSet<TerrainCell> HighlightedCells { get; private set; }
+    public static HashSet<TerrainCell> UpdatedCells { get; private set; }
+
     public static int UpdatedPixelCount = 0;
 
     public static int PixelToCellRatio = 4;
 
-	public static float TemperatureOffset = World.AvgPossibleTemperature;
-	public static float RainfallOffset = World.AvgPossibleRainfall;
-	public static float SeaLevelOffset = 0;
+    public static float TemperatureOffset = World.AvgPossibleTemperature;
+    public static float RainfallOffset = World.AvgPossibleRainfall;
+    public static float SeaLevelOffset = 0;
 
-	public static bool DisplayMigrationTaggedGroup = false;
-	
-	public static bool DisplayDebugTaggedGroups = false;
-	
-	public static World WorldBeingLoaded = null;
+    public static bool DisplayMigrationTaggedGroup = false;
 
-	public static bool FullScreenEnabled = false;
+    public static bool DisplayDebugTaggedGroups = false;
+
+    public static World WorldBeingLoaded = null;
+
+    public static bool FullScreenEnabled = false;
     public static bool DebugModeEnabled = false;
 
     public static bool ShowFullGameplayInfo = false;
 
-	private static bool _isLoadReady = false;
+    private static bool _isLoadReady = false;
 
     private static StreamWriter _debugLogStream = null;
 
     private static HashSet<TerrainCell> _lastUpdatedCells;
 
-	private static int _resolutionWidthWindowed = 1366;
-	private static int _resolutionHeightWindowed = 768;
+    private static int _resolutionWidthWindowed = 1366;
+    private static int _resolutionHeightWindowed = 768;
 
-	private static bool _resolutionInitialized = false;
+    private static bool _resolutionInitialized = false;
 
-	private static CellUpdateType _observableUpdateTypes = CellUpdateType.None;
+    private static CellUpdateType _observableUpdateTypes = CellUpdateType.None;
     private static CellUpdateSubType _observableUpdateSubTypes = CellUpdateSubType.None;
 
     private static Manager _manager = new Manager();
 
-	private static PlanetView _planetView = PlanetView.Biomes;
-	private static PlanetOverlay _planetOverlay = PlanetOverlay.None;
-	private static string _planetOverlaySubtype = "None";
-	
-	private static List<Color> _biomePalette = new List<Color>();
-	private static List<Color> _mapPalette = new List<Color>();
-	private static List<Color> _overlayPalette = new List<Color>();
-	
-	private static int _totalLoadTicks = 0;
-	private static int _loadTicks = 0;
+    private static PlanetView _planetView = PlanetView.Biomes;
+    private static PlanetOverlay _planetOverlay = PlanetOverlay.None;
+    private static string _planetOverlaySubtype = "None";
 
-	private static bool _displayRoutes = false;
-	private static bool _displayGroupActivity = false;
+    private static List<Color> _biomePalette = new List<Color>();
+    private static List<Color> _mapPalette = new List<Color>();
+    private static List<Color> _overlayPalette = new List<Color>();
+
+    private static int _totalLoadTicks = 0;
+    private static int _loadTicks = 0;
+
+    private static bool _displayRoutes = false;
+    private static bool _displayGroupActivity = false;
     private static bool _displayGroupActivityWasEnabled = false;
 
     private ProgressCastDelegate _progressCastMethod = null;
-	
-	private World _currentWorld = null;
-	
-	private Texture2D _currentSphereTexture = null;
-	private Texture2D _currentMapTexture = null;
-	
-	private Color32[] _currentSphereTextureColors = null;
-	private Color32[] _currentMapTextureColors = null;
 
-	private float?[,] _currentCellSlants;
+    private World _currentWorld = null;
 
-	private long _currentMaxUpdateSpan = 0;
+    private Texture2D _currentSphereTexture = null;
+    private Texture2D _currentMapTexture = null;
 
-	private Queue<IManagerTask> _taskQueue = new Queue<IManagerTask>();
-	
-	private bool _performingAsyncTask = false;
-	private bool _simulationRunning = false;
-	private bool _worldReady = false;
+    private Color32[] _currentSphereTextureColors = null;
+    private Color32[] _currentMapTextureColors = null;
 
-	public XmlAttributeOverrides AttributeOverrides { get; private set; }
-	
-	public static bool PerformingAsyncTask {
-		
-		get {
-			return _manager._performingAsyncTask;
-		}
-	}
+    private float?[,] _currentCellSlants;
 
-	public static bool SimulationRunning {
+    private long _currentMaxUpdateSpan = 0;
 
-		get {
-			return _manager._simulationRunning;
-		}
-	}
+    private Queue<IManagerTask> _taskQueue = new Queue<IManagerTask>();
 
-	public static bool WorldIsReady {
-		
-		get {
-			return _manager._worldReady;
-		}
-	}
-	
-	public static bool SimulationCanRun {
-		
-		get {
+    private bool _performingAsyncTask = false;
+    private bool _simulationRunning = false;
+    private bool _worldReady = false;
 
-			bool canRun = (_manager._currentWorld.CellGroupCount > 0);
+    public XmlAttributeOverrides AttributeOverrides { get; private set; }
 
-			return canRun;
-		}
-	}
+    public static bool PerformingAsyncTask
+    {
+        get
+        {
+            return _manager._performingAsyncTask;
+        }
+    }
 
-	public static PlanetOverlay PlanetOverlay {
+    public static bool SimulationRunning
+    {
+        get
+        {
+            return _manager._simulationRunning;
+        }
+    }
 
-		get { 
-			return _planetOverlay;
-		}
-	}
+    public static bool WorldIsReady
+    {
+        get
+        {
+            return _manager._worldReady;
+        }
+    }
 
-	public static string PlanetOverlaySubtype {
+    public static bool SimulationCanRun
+    {
+        get
+        {
+            bool canRun = (_manager._currentWorld.CellGroupCount > 0);
 
-		get { 
-			return _planetOverlaySubtype;
-		}
-	}
+            return canRun;
+        }
+    }
 
-	public static bool DisplayRoutes {
+    public static PlanetOverlay PlanetOverlay
+    {
+        get
+        {
+            return _planetOverlay;
+        }
+    }
 
-		get { 
-			return _displayRoutes;
-		}
-	}
+    public static string PlanetOverlaySubtype
+    {
+        get
+        {
+            return _planetOverlaySubtype;
+        }
+    }
 
-	public static bool DisplayGroupActivity {
+    public static bool DisplayRoutes
+    {
+        get
+        {
+            return _displayRoutes;
+        }
+    }
 
-		get { 
-			return _displayGroupActivity;
-		}
-	}
-	
-	public static void UpdateMainThreadReference () {
-		
-		MainThread = Thread.CurrentThread;
-	}
+    public static bool DisplayGroupActivity
+    {
+        get
+        {
+            return _displayGroupActivity;
+        }
+    }
 
-	private Manager () {
+    public static void UpdateMainThreadReference()
+    {
+        MainThread = Thread.CurrentThread;
+    }
 
-		InitializeSavePath ();
-		InitializeExportPath ();
+    private Manager()
+    {
+        InitializeSavePath();
+        InitializeHeightmapsPath();
+        InitializeExportPath();
 
-		AttributeOverrides = GenerateAttributeOverrides ();
+        AttributeOverrides = GenerateAttributeOverrides();
 
-		HighlightedCells = new HashSet<TerrainCell> ();
-		UpdatedCells = new HashSet<TerrainCell> ();
-		_lastUpdatedCells = new HashSet<TerrainCell> ();
+        HighlightedCells = new HashSet<TerrainCell>();
+        UpdatedCells = new HashSet<TerrainCell>();
+        _lastUpdatedCells = new HashSet<TerrainCell>();
 
-		/// static initalizations
+        /// static initalizations
 
-		Tribe.GenerateTribeNounVariations ();
+        Tribe.GenerateTribeNounVariations();
     }
 
     public static void InitializeDebugLog()
@@ -320,16 +329,30 @@ public class Manager
         _debugLogStream.Flush();
     }
 
-    private void InitializeSavePath () {
+    private void InitializeSavePath()
+    {
+
+        string path = Path.GetFullPath(@"Saves\");
+
+        if (!Directory.Exists(path))
+        {
+
+            Directory.CreateDirectory(path);
+        }
+
+        SavePath = path;
+    }
+
+    private void InitializeHeightmapsPath () {
 		
-		string path = Path.GetFullPath (@"Saves\");
+		string path = Path.GetFullPath (@"Heightmaps\");
 		
 		if (!Directory.Exists (path)) {
 			
 			Directory.CreateDirectory(path);
 		}
 		
-		SavePath = path;
+		HeightmapsPath = path;
 	}
 	
 	private void InitializeExportPath () {
@@ -3161,7 +3184,7 @@ public class Manager
         return attrOverrides;
     }
 
-    private Texture2D LoadTexture(string path)
+    public static Texture2D LoadTexture(string path)
     {
         Texture2D texture;
 
@@ -3176,7 +3199,7 @@ public class Manager
         return null;
     }
 
-    private bool ValidateTexture(Texture2D texture)
+    private static bool ValidateTexture(Texture2D texture)
     {
         return true;
     }
