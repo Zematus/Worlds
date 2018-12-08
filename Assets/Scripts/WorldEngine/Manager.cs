@@ -7,6 +7,14 @@ using System.IO;
 using System.Threading;
 using UnityEngine.Profiling;
 
+public enum TextureValidationResult
+{
+    Ok,
+    NotMinimumRequiredDimensions,
+    InvalidColorPallete,
+    Unknown
+}
+
 public enum PlanetView
 {
     Elevation,
@@ -737,7 +745,7 @@ public class Manager
         world.GenerateHumanGroup(longitude, latitude, initialPopulation);
     }
 
-    public static void GenerateNewWorld(int seed)
+    public static void GenerateNewWorld(int seed, Texture2D heightmap)
     {
         _manager._worldReady = false;
 
@@ -753,7 +761,7 @@ public class Manager
         }
 
         world.StartInitialization(0f, ProgressIncrement);
-        world.Generate();
+        world.Generate(heightmap);
         world.FinishInitialization();
 
         ForceWorldCleanup();
@@ -767,7 +775,7 @@ public class Manager
         _manager._worldReady = true;
     }
 
-    public static void GenerateNewWorldAsync(int seed, ProgressCastDelegate progressCastMethod = null)
+    public static void GenerateNewWorldAsync(int seed, Texture2D heightmap = null, ProgressCastDelegate progressCastMethod = null)
     {
         _manager._simulationRunning = false;
         _manager._performingAsyncTask = true;
@@ -786,7 +794,7 @@ public class Manager
         {
             try
             {
-                GenerateNewWorld(seed);
+                GenerateNewWorld(seed, heightmap);
             }
             catch (System.Exception e)
             {
@@ -913,7 +921,7 @@ public class Manager
         float initialProgressIncrement = ProgressIncrement;
 
         world.StartInitialization(initialProgressIncrement, ProgressIncrement);
-        world.GenerateTerrain();
+        world.GenerateTerrain(null);
         world.FinishInitialization();
 
         if (_manager._progressCastMethod != null)
@@ -3199,8 +3207,29 @@ public class Manager
         return null;
     }
 
-    private static bool ValidateTexture(Texture2D texture)
+    public static TextureValidationResult ValidateTexture(Texture2D texture)
     {
-        return true;
+        if ((texture.width < WorldWidth) && (texture.height < WorldHeight))
+        {
+            return TextureValidationResult.NotMinimumRequiredDimensions;
+        }
+
+        return TextureValidationResult.Ok;
+    }
+
+    public static void ConvertToGrayscale(Texture2D texture)
+    {
+        Color[] colors = texture.GetPixels();
+        Color[] repColors = new Color[colors.Length];
+
+        for (int i = 0; i < colors.Length; i++)
+        {
+            float grayscale = colors[i].grayscale;
+
+            repColors[i] = new Color(grayscale, grayscale, grayscale, 1);
+        }
+
+        texture.SetPixels(repColors);
+        texture.Apply();
     }
 }

@@ -29,6 +29,8 @@ public class StartGuiManagerScript : MonoBehaviour
 
     private bool _changingScene = false;
 
+    private Texture2D _heightmap = null;
+
     void OnEnable()
     {
         Manager.InitializeDebugLog();
@@ -188,7 +190,24 @@ public class StartGuiManagerScript : MonoBehaviour
         string path = LoadFileDialogPanelScript.GetPathToLoad();
         Texture2D texture = Manager.LoadTexture(path);
 
-        SetSeedDialogPanelScript.SetImageTexture(Path.GetFileName(path), texture);
+        if (texture == null)
+        {
+            SetSeedDialogPanelScript.SetImageTexture(Path.GetFileName(path), null, TextureValidationResult.Unknown);
+        }
+        else
+        {
+            TextureValidationResult result = Manager.ValidateTexture(texture);
+
+            if (result == TextureValidationResult.Ok)
+            {
+                Manager.ConvertToGrayscale(texture);
+            }
+
+            SetSeedDialogPanelScript.SetImageTexture(Path.GetFileName(path), texture, result);
+        }
+
+        _heightmap = texture;
+
         SetSeedDialogPanelScript.SetVisible(true);
     }
 
@@ -342,7 +361,14 @@ public class StartGuiManagerScript : MonoBehaviour
 
         _preparingWorld = true;
 
-        Manager.GenerateNewWorldAsync(seed, ProgressUpdate);
+        if (SetSeedDialogPanelScript.UseHeightmapToggle.isOn)
+        {
+            Manager.GenerateNewWorldAsync(seed, _heightmap, ProgressUpdate);
+        }
+        else
+        {
+            Manager.GenerateNewWorldAsync(seed, null, ProgressUpdate);
+        }
 
         _postProgressOp += PostProgressOp_GenerateWorld;
     }

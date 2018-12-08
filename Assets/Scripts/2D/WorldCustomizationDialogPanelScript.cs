@@ -12,6 +12,8 @@ public class WorldCustomizationDialogPanelScript : DialogPanelScript
     public Image HeightmapImage;
     public Text InvalidImageText;
 
+    public Toggle UseHeightmapToggle;
+
     public InputField SelectedFilenameField;
 
     public InputField TemperatureInputField;
@@ -281,11 +283,28 @@ public class WorldCustomizationDialogPanelScript : DialogPanelScript
         }
     }
 
-    public void SetImageTexture(string filename, Texture2D texture)
+    public void SetImageTexture(string filename, Texture2D texture, TextureValidationResult result)
     {
         SelectedFilenameField.text = filename;
+        
+        _hasLoadedValidHeightmap = (result == TextureValidationResult.Ok) && (texture != null);
 
-        _hasLoadedValidHeightmap = texture != null;
+        switch (result)
+        {
+            case TextureValidationResult.Ok:
+                break;
+            case TextureValidationResult.NotMinimumRequiredDimensions:
+                InvalidImageText.text = "Loaded image doesn't met minimum dimensions...";
+                break;
+            case TextureValidationResult.InvalidColorPallete:
+                InvalidImageText.text = "Loaded image is not grayscale...";
+                break;
+            case TextureValidationResult.Unknown:
+                InvalidImageText.text = "Unknown error trying to load image...";
+                break;
+            default:
+                throw new System.Exception("Unhandled Texture Validation Result: " + result);
+        }
 
         if (_hasLoadedValidHeightmap)
         {

@@ -1859,146 +1859,154 @@ public class World : ISynchronizable
             MigrationTaggedGroup.MigrationTagged = false;
     }
 
-    public void GenerateTerrain () {
-		
-		ProgressCastMethod (_accumulatedProgress, "Generating Terrain...");
+    public void GenerateTerrain(Texture2D heightmap)
+    {
+        ProgressCastMethod(_accumulatedProgress, "Generating Terrain...");
 
-        //GenerateTerrainAltitude();
-        GenerateTerrainAltitudeOld();
+        if (heightmap == null)
+        {
+            //GenerateTerrainAltitude();
+            GenerateTerrainAltitudeOld();
+        }
+        else
+        {
+        }
 
-        ProgressCastMethod (_accumulatedProgress, "Calculating Rainfall...");
-		
-		GenerateTerrainRainfall ();
+        ProgressCastMethod(_accumulatedProgress, "Calculating Rainfall...");
 
-        ProgressCastMethod (_accumulatedProgress, "Calculating Temperatures...");
-		
-		GenerateTerrainTemperature ();
-		
-		ProgressCastMethod (_accumulatedProgress, "Generating Biomes...");
-		
-		GenerateTerrainBiomes ();
+        GenerateTerrainRainfall();
 
-		ProgressCastMethod (_accumulatedProgress, "Generating Arability...");
+        ProgressCastMethod(_accumulatedProgress, "Calculating Temperatures...");
 
-		GenerateTerrainArability ();
-	}
+        GenerateTerrainTemperature();
 
-	public void Generate () {
+        ProgressCastMethod(_accumulatedProgress, "Generating Biomes...");
 
-		GenerateTerrain ();
-		
-		ProgressCastMethod (_accumulatedProgress, "Finalizing...");
-	}
-	
-	public void GenerateHumanGroup (int longitude, int latitude, int initialPopulation) {
-			
-		TerrainCell cell = GetCell (longitude, latitude);
-		
-		CellGroup group = new CellGroup(this, cell, initialPopulation);
+        GenerateTerrainBiomes();
+
+        ProgressCastMethod(_accumulatedProgress, "Generating Arability...");
+
+        GenerateTerrainArability();
+    }
+
+    public void Generate(Texture2D heightmap)
+    {
+        GenerateTerrain(heightmap);
+
+        ProgressCastMethod(_accumulatedProgress, "Finalizing...");
+    }
+
+    public void GenerateHumanGroup(int longitude, int latitude, int initialPopulation)
+    {
+        TerrainCell cell = GetCell(longitude, latitude);
+
+        CellGroup group = new CellGroup(this, cell, initialPopulation);
 
         Debug.Log(string.Format("Adding population group at {0} with population: {1}", cell.Position, initialPopulation));
 
         AddGroup(group);
-	}
+    }
 
-	public void GenerateRandomHumanGroups (int maxGroups, int initialPopulation) {
+    public void GenerateRandomHumanGroups(int maxGroups, int initialPopulation)
+    {
+        ProgressCastMethod(_accumulatedProgress, "Adding Random Human Groups...");
 
-		ProgressCastMethod (_accumulatedProgress, "Adding Random Human Groups...");
-		
-		float minPresence = 0.50f;
-		
-		int sizeX = Width;
-		int sizeY = Height;
-		
-		List<TerrainCell> SuitableCells = new List<TerrainCell> ();
-		
-		for (int i = 0; i < sizeX; i++) {
-			
-			for (int j = 0; j < sizeY; j++) {
-				
-				TerrainCell cell = TerrainCells [i] [j];
-				
-				float biomePresence = cell.GetBiomePresence(Biome.Grassland);
-				
-				if (biomePresence < minPresence) continue;
-				
-				SuitableCells.Add(cell);
-			}
+        float minPresence = 0.50f;
 
-			ProgressCastMethod (_accumulatedProgress + _progressIncrement * (i + 1)/(float)sizeX);
-		}
-		
-		_accumulatedProgress += _progressIncrement;
+        int sizeX = Width;
+        int sizeY = Height;
 
-		maxGroups = Mathf.Min (SuitableCells.Count, maxGroups);
-		
-		bool first = true;
-		
-		for (int i = 0; i < maxGroups; i++) {
-			
-			ManagerTask<int> n = GenerateRandomInteger(0, SuitableCells.Count);
-			
-			TerrainCell cell = SuitableCells[n];
-			
-			CellGroup group = new CellGroup(this, cell, initialPopulation);
+        List<TerrainCell> SuitableCells = new List<TerrainCell>();
 
-            Debug.Log (string.Format("Adding random population group [{0}] at {1} with population: {2}", i, cell.Position, initialPopulation));
+        for (int i = 0; i < sizeX; i++)
+        {
+            for (int j = 0; j < sizeY; j++)
+            {
+                TerrainCell cell = TerrainCells[i][j];
+
+                float biomePresence = cell.GetBiomePresence(Biome.Grassland);
+
+                if (biomePresence < minPresence) continue;
+
+                SuitableCells.Add(cell);
+            }
+
+            ProgressCastMethod(_accumulatedProgress + _progressIncrement * (i + 1) / (float)sizeX);
+        }
+
+        _accumulatedProgress += _progressIncrement;
+
+        maxGroups = Mathf.Min(SuitableCells.Count, maxGroups);
+
+        bool first = true;
+
+        for (int i = 0; i < maxGroups; i++)
+        {
+            ManagerTask<int> n = GenerateRandomInteger(0, SuitableCells.Count);
+
+            TerrainCell cell = SuitableCells[n];
+
+            CellGroup group = new CellGroup(this, cell, initialPopulation);
+
+            Debug.Log(string.Format("Adding random population group [{0}] at {1} with population: {2}", i, cell.Position, initialPopulation));
 
             AddGroup(group);
-			
-			if (first) {
-				MigrationTagGroup(group);
-				
-				first = false;
-			}
-		}
-	}
 
-	private void GenerateContinents () {
-		
-		float longitudeFactor = 15f;
-		float latitudeFactor = 6f;
+            if (first)
+            {
+                MigrationTagGroup(group);
 
-		float minLatitude = Height / latitudeFactor;
-		float maxLatitude = Height * (latitudeFactor - 1f) / latitudeFactor;
-		
-		Manager.EnqueueTaskAndWait (() => {
-			
-			Vector2 prevPos = new Vector2(
-				RandomUtility.Range(0f, Width),
-				RandomUtility.Range(minLatitude, maxLatitude));
+                first = false;
+            }
+        }
+    }
+
+    private void GenerateContinents()
+    {
+        float longitudeFactor = 15f;
+        float latitudeFactor = 6f;
+
+        float minLatitude = Height / latitudeFactor;
+        float maxLatitude = Height * (latitudeFactor - 1f) / latitudeFactor;
+
+        Manager.EnqueueTaskAndWait(() =>
+        {
+            Vector2 prevPos = new Vector2(
+                RandomUtility.Range(0f, Width),
+                RandomUtility.Range(minLatitude, maxLatitude));
 
             float altitudeOffsetIncrement = 0.7f;
             float altitudeOffset = 0;
 
-            for (int i = 0; i < NumContinents; i++) {
+            for (int i = 0; i < NumContinents; i++)
+            {
+                int widthOff = Random.Range(0, 2) * 3;
 
-				int widthOff = Random.Range(0, 2) * 3;
-				
-				_continentOffsets[i] = prevPos;
-				_continentWidths[i] = RandomUtility.Range(ContinentMinWidthFactor + widthOff, ContinentMaxWidthFactor + widthOff);
-				_continentHeights[i] = RandomUtility.Range(ContinentMinWidthFactor + widthOff, ContinentMaxWidthFactor + widthOff);
+                _continentOffsets[i] = prevPos;
+                _continentWidths[i] = RandomUtility.Range(ContinentMinWidthFactor + widthOff, ContinentMaxWidthFactor + widthOff);
+                _continentHeights[i] = RandomUtility.Range(ContinentMinWidthFactor + widthOff, ContinentMaxWidthFactor + widthOff);
                 _continentAltitudeOffsets[i] = Mathf.Repeat(altitudeOffset + RandomUtility.Range(0f, altitudeOffsetIncrement), 1f);
-                
+
                 altitudeOffset = Mathf.Repeat(altitudeOffset + altitudeOffsetIncrement, 1f);
 
                 float xPos = Mathf.Repeat(prevPos.x + RandomUtility.Range(Width / longitudeFactor, Width * 2 / longitudeFactor), Width);
-				float yPos = RandomUtility.Range(minLatitude, maxLatitude);
+                float yPos = RandomUtility.Range(minLatitude, maxLatitude);
 
-				if (i % 3 == 2) {
-					xPos = Mathf.Repeat(prevPos.x + RandomUtility.Range(Width * 4 / longitudeFactor, Width * 5 / longitudeFactor), Width);
-				}
+                if (i % 3 == 2)
+                {
+                    xPos = Mathf.Repeat(prevPos.x + RandomUtility.Range(Width * 4 / longitudeFactor, Width * 5 / longitudeFactor), Width);
+                }
 
-				Vector2 newPos = new Vector2(xPos, yPos);
-                
-				prevPos = newPos;
-			}
-			
-			return true;
-		});
-	}
-	
-	private float GetContinentModifier(int x, int y)
+                Vector2 newPos = new Vector2(xPos, yPos);
+
+                prevPos = newPos;
+            }
+
+            return true;
+        });
+    }
+
+    private float GetContinentModifier(int x, int y)
     {
         float maxValue = 0;
         float widthF = (float)Width;
@@ -2046,6 +2054,11 @@ public class World : ISynchronizable
 		float continentHeight = _continentHeights[id];
 		
 		return new Vector2(distX*continentWidth, distY*continentHeight).magnitude;
+    }
+
+    private void GenerateTerrainFromHeightmap(Texture2D heightmap)
+    {
+
     }
 
     private void GenerateTerrainAltitudeOld()

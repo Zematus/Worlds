@@ -972,7 +972,7 @@ public class GuiManagerScript : MonoBehaviour {
 
         ProgressUpdate (0, "Generating World...", true);
 		
-		Manager.GenerateNewWorldAsync (seed, ProgressUpdate);
+		Manager.GenerateNewWorldAsync (seed, null, ProgressUpdate);
 
 		_postProgressOp += PostProgressOp_GenerateWorld;
 		
