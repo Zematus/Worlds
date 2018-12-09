@@ -1870,6 +1870,7 @@ public class World : ISynchronizable
         }
         else
         {
+            GenerateTerrainFromHeightmap(heightmap);
         }
 
         ProgressCastMethod(_accumulatedProgress, "Calculating Rainfall...");
@@ -2058,7 +2059,62 @@ public class World : ISynchronizable
 
     private void GenerateTerrainFromHeightmap(Texture2D heightmap)
     {
+        int sizeX = Width;
+        int sizeY = Height;
 
+        int hmWidth = 0;
+        int hmHeight = 0;
+        Color[] hmColors = null;
+
+        Manager.EnqueueTaskAndWait(() =>
+        {
+            hmWidth = heightmap.width;
+            hmHeight = heightmap.height;
+
+            hmColors = heightmap.GetPixels();
+        });
+
+        float rowPixelsPerCell = hmWidth / (float)sizeX;
+        float columnPixelsPerCell = hmHeight / (float)sizeY;
+
+        for (int i = 0; i < sizeX; i++)
+        {
+            int heightmapOffsetX = (int)(rowPixelsPerCell * i);
+
+            for (int j = 0; j < sizeY; j++)
+            {
+                int heightmapOffsetY = (int)(columnPixelsPerCell * j);
+
+                int totalPixels = 0;
+                float greyscaleValue = 0;
+
+                int nextOffsetX = (int)(rowPixelsPerCell * (i + 1));
+                for (int k = heightmapOffsetX; k < nextOffsetX; k++)
+                {
+                    int nextOffsetY = (int)(columnPixelsPerCell * (j + 1));
+                    for (int l = heightmapOffsetY; l < nextOffsetY; l++)
+                    {
+                        totalPixels++;
+                        int cIndex = k + (l * hmWidth);
+
+                        greyscaleValue += hmColors[cIndex].grayscale;
+                    }
+                }
+
+                if (totalPixels > 0)
+                {
+                    greyscaleValue /= totalPixels;
+                }
+
+                greyscaleValue = greyscaleValue*0.4f + 0.3f; // NOTE: Bogus adjustment, should be exposed to user
+
+                CalculateAndSetAltitude(i, j, greyscaleValue);
+            }
+
+            ProgressCastMethod(_accumulatedProgress + _progressIncrement * (i + 1) / (float)sizeX);
+        }
+
+        _accumulatedProgress += _progressIncrement;
     }
 
     private void GenerateTerrainAltitudeOld()

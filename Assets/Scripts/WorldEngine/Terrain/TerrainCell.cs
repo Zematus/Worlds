@@ -331,11 +331,11 @@ public class TerrainCell : ISynchronizable {
 
         maxValue = Mathf.Min(PerlinNoise.MaxPermutationValue, maxValue);
 
-        long dateFactor = (date % 256) + (date % 7843); // This operation will reduce to zero or almost zero the number of artifacts resulting from (date & 255) being a constant value in some circumstances
+        int dateFactor = unchecked((int)((date % 256) + (date % 7843))); // This operation will reduce to zero or almost zero the number of artifacts resulting from (date & 255) being a constant value in some circumstances
 
-        int x = Mathf.Abs(World.Seed + Longitude + queryOffset);
-        int y = Mathf.Abs(World.Seed + Latitude + queryOffset);
-        int z = Mathf.Abs(World.Seed + (int)dateFactor + queryOffset);
+        int x = Mathf.Abs(unchecked(World.Seed + Longitude + queryOffset));
+        int y = Mathf.Abs(unchecked(World.Seed + Latitude + queryOffset));
+        int z = Mathf.Abs(unchecked(World.Seed + dateFactor + queryOffset));
 
         int value = PerlinNoise.GetPermutationValue(x, y, z) % maxValue;
 

@@ -511,108 +511,115 @@ public class Manager
         EnqueueTask(taskDelegate).Wait();
     }
 
-    public static void SetBiomePalette (IEnumerable<Color> colors) {
+    public static void SetBiomePalette(IEnumerable<Color> colors)
+    {
+        _biomePalette.Clear();
+        _biomePalette.AddRange(colors);
+    }
 
-		_biomePalette.Clear ();
-		_biomePalette.AddRange (colors);
-	}
-	
-	public static void SetMapPalette (IEnumerable<Color> colors) {
-		
-		_mapPalette.Clear ();
-		_mapPalette.AddRange (colors);
-	}
+    public static void SetMapPalette(IEnumerable<Color> colors)
+    {
+        _mapPalette.Clear();
+        _mapPalette.AddRange(colors);
+    }
 
-	public static void SetOverlayPalette (IEnumerable<Color> colors) {
+    public static void SetOverlayPalette(IEnumerable<Color> colors)
+    {
+        _overlayPalette.Clear();
+        _overlayPalette.AddRange(colors);
+    }
 
-		_overlayPalette.Clear ();
-		_overlayPalette.AddRange (colors);
-	}
+    public static World CurrentWorld
+    {
+        get
+        {
+            return _manager._currentWorld;
+        }
+    }
 
-	public static World CurrentWorld { 
-		get {
+    public static Texture2D CurrentSphereTexture
+    {
+        get
+        {
+            return _manager._currentSphereTexture;
+        }
+    }
 
-			return _manager._currentWorld; 
-		}
-	}
-	
-	public static Texture2D CurrentSphereTexture { 
-		get {
+    public static Texture2D CurrentMapTexture
+    {
+        get
+        {
+            return _manager._currentMapTexture;
+        }
+    }
 
-			return _manager._currentSphereTexture; 
-		}
-	}
-	
-	public static Texture2D CurrentMapTexture { 
-		get {
+    public static void ExportMapTextureToFile(string path, Rect uvRect)
+    {
+        Texture2D mapTexture = _manager._currentMapTexture;
+        Texture2D exportTexture = null;
 
-			return _manager._currentMapTexture; 
-		}
-	}
-	
-	public static void ExportMapTextureToFile (string path, Rect uvRect) {
+        Manager.EnqueueTaskAndWait(() =>
+        {
+            int width = mapTexture.width;
+            int height = mapTexture.height;
 
-		Texture2D mapTexture = _manager._currentMapTexture;
-		Texture2D exportTexture = null;
+            int xOffset = (int)Mathf.Floor(uvRect.x * width);
 
-		Manager.EnqueueTaskAndWait (() => {
-			int width = mapTexture.width;
-			int height = mapTexture.height;
+            exportTexture = new Texture2D(
+                width,
+                height,
+                mapTexture.format,
+                false);
 
-			int xOffset = (int)Mathf.Floor (uvRect.x * width);
+            for (int i = 0; i < width; i++)
+            {
+                for (int j = 0; j < height; j++)
+                {
 
-			exportTexture = new Texture2D (
-				width,
-				height,
-				mapTexture.format,
-				false);
+                    int finalX = (i + xOffset) % width;
 
-			for (int i = 0; i < width; i++) {
-				for (int j = 0; j < height; j++) {
+                    exportTexture.SetPixel(i, j, mapTexture.GetPixel(finalX, j));
+                }
+            }
 
-					int finalX = (i + xOffset) % width;
+            return true;
+        });
 
-					exportTexture.SetPixel (i, j, mapTexture.GetPixel (finalX, j));
-				}
-			}
+        ManagerTask<byte[]> bytes = Manager.EnqueueTask(() => exportTexture.EncodeToPNG());
 
-			return true;
-		});
-		
-		ManagerTask<byte[]> bytes = Manager.EnqueueTask (() => exportTexture.EncodeToPNG ());
+        File.WriteAllBytes(path, bytes);
 
-		File.WriteAllBytes(path, bytes);
+        Manager.EnqueueTaskAndWait(() =>
+        {
+            Object.Destroy(exportTexture);
+            return true;
+        });
+    }
 
-		Manager.EnqueueTaskAndWait (() => {
-			Object.Destroy (exportTexture);
-			return true;
-		});
-	}
-	
-	public static void ExportMapTextureToFileAsync (string path, Rect uvRect, ProgressCastDelegate progressCastMethod = null) {
-		
-		_manager._simulationRunning = false;
-		_manager._performingAsyncTask = true;
-		
-		_manager._progressCastMethod = progressCastMethod;
-		
-		if (_manager._progressCastMethod == null) {
-		
-			_manager._progressCastMethod = (value, message, reset) => {};
+    public static void ExportMapTextureToFileAsync(string path, Rect uvRect, ProgressCastDelegate progressCastMethod = null)
+    {
+        _manager._simulationRunning = false;
+        _manager._performingAsyncTask = true;
+
+        _manager._progressCastMethod = progressCastMethod;
+
+        if (_manager._progressCastMethod == null)
+        {
+            _manager._progressCastMethod = (value, message, reset) => { };
         }
 
         Debug.Log("Trying to export world map to .png file: " + Path.GetFileName(path));
 
-        ThreadPool.QueueUserWorkItem (state => {
-			
-			ExportMapTextureToFile (path, uvRect);
-			
-			_manager._performingAsyncTask = false;
-			_manager._simulationRunning = true;
-		});
-	}
-	
-	public static void GenerateTextures()
+        ThreadPool.QueueUserWorkItem(state =>
+        {
+            ExportMapTextureToFile(path, uvRect);
+
+            _manager._performingAsyncTask = false;
+            _manager._simulationRunning = true;
+        });
+    }
+
+    public static void GenerateTextures()
     {
 #if DEBUG
         UpdatedPixelCount = 0;
