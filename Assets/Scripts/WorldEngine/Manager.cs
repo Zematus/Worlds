@@ -93,8 +93,6 @@ public class Manager
     public static bool TrackGenRandomCallers = false;
 #endif
 
-    public static string CurrentVersion = "0.3.1.2";
-
     //	public static bool RecordingEnabled = false;
 
     //	public static IRecorder Recorder = DefaultRecorder.Default;
@@ -109,6 +107,8 @@ public class Manager
     public static string SavePath { get; private set; }
     public static string HeightmapsPath { get; private set; }
     public static string ExportPath { get; private set; }
+
+    public static string[] SupportedHeightmapFormats = new string[] { ".PSD", ".TIFF", ".JPG", ".TGA", ".PNG", ".BMP", ".PICT" };
 
     public static string WorldName { get; set; }
 
@@ -300,7 +300,7 @@ public class Manager
             buildType = "release";
         }
 
-        _debugLogStream.WriteLine("Running Worlds " + CurrentVersion + " (" + buildType + ")...");
+        _debugLogStream.WriteLine("Running Worlds " + Application.version + " (" + buildType + ")...");
         _debugLogStream.Flush();
     }
 
@@ -3206,7 +3206,8 @@ public class Manager
         if (File.Exists(path))
         {
             byte[] data = File.ReadAllBytes(path);
-            texture = new Texture2D(1, 1, TextureFormat.ARGB32, false);
+            //texture = new Texture2D(1, 1, TextureFormat.ARGB32, false);
+            texture = new Texture2D(1, 1);
             if (texture.LoadImage(data))
                 return texture;
         }
@@ -3224,7 +3225,7 @@ public class Manager
         return TextureValidationResult.Ok;
     }
 
-    public static void ConvertToGrayscale(Texture2D texture)
+    public static void ConvertToGrayscale(Texture2D texture) // Try to avoid using this function and instead just extract the grayscale value directly
     {
         Color[] colors = texture.GetPixels();
         Color[] repColors = new Color[colors.Length];

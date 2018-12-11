@@ -7,134 +7,134 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine.Profiling;
 
-public delegate void PostProgressOperation ();
+public delegate void PostProgressOperation();
 
-public delegate void PointerClickOperation (Vector2 position);
+public delegate void PointerClickOperation(Vector2 position);
 
-public delegate void PointerHoverOperation (Vector2 position);
+public delegate void PointerHoverOperation(Vector2 position);
 
-public class GuiManagerScript : MonoBehaviour {
-	
-	public const float MaxDeltaTimeIterations = 0.02f; // max real time to be spent on iterations on a single frame (this is the value that matters the most performance-wise)
+public class GuiManagerScript : MonoBehaviour
+{
+    public const float MaxDeltaTimeIterations = 0.02f; // max real time to be spent on iterations on a single frame (this is the value that matters the most performance-wise)
 
-	public Text MapViewButtonText;
+    public Text MapViewButtonText;
 
-	public RawImage MapImage;
+    public RawImage MapImage;
 
-	public Button LoadButton;
+    public Button LoadButton;
 
-	public PlanetScript PlanetScript;
-	public MapScript MapScript;
+    public PlanetScript PlanetScript;
+    public MapScript MapScript;
 
-	public InfoTooltipScript InfoTooltipScript;
+    public InfoTooltipScript InfoTooltipScript;
 
-	public InfoPanelScript InfoPanelScript;
-	
-	public TextInputDialogPanelScript SaveFileDialogPanelScript;
-	public TextInputDialogPanelScript ExportMapDialogPanelScript;
-	public DecisionDialogPanelScript DecisionDialogPanelScript;
-	public LoadFileDialogPanelScript LoadFileDialogPanelScript;
-	public SelectFactionDialogPanelScript SelectFactionDialogPanelScript;
-	public OverlayDialogPanelScript OverlayDialogPanelScript;
-	public DialogPanelScript ViewsDialogPanelScript;
-	public DialogPanelScript MainMenuDialogPanelScript;
-	public DialogPanelScript OptionsDialogPanelScript;
+    public InfoPanelScript InfoPanelScript;
+
+    public TextInputDialogPanelScript SaveFileDialogPanelScript;
+    public TextInputDialogPanelScript ExportMapDialogPanelScript;
+    public DecisionDialogPanelScript DecisionDialogPanelScript;
+    public LoadFileDialogPanelScript LoadFileDialogPanelScript;
+    public SelectFactionDialogPanelScript SelectFactionDialogPanelScript;
+    public OverlayDialogPanelScript OverlayDialogPanelScript;
+    public DialogPanelScript ViewsDialogPanelScript;
+    public DialogPanelScript MainMenuDialogPanelScript;
+    public DialogPanelScript OptionsDialogPanelScript;
     public DialogPanelScript ExceptionDialogPanelScript;
     public SettingsDialogPanelScript SettingsDialogPanelScript;
-	public ProgressDialogPanelScript ProgressDialogPanelScript;
-	public ImageDialogPanelScript ActivityDialogPanelScript;
-	public TextInputDialogPanelScript ErrorMessageDialogPanelScript;
-	public WorldCustomizationDialogPanelScript SetSeedDialogPanelScript;
-	public WorldCustomizationDialogPanelScript CustomizeWorldDialogPanelScript;
-	public AddPopulationDialogScript AddPopulationDialogScript;
-	public FocusPanelScript FocusPanelScript;
-	public GuidingPanelScript GuidingPanelScript;
-	public ModalPanelScript CreditsDialogPanelScript;
+    public ProgressDialogPanelScript ProgressDialogPanelScript;
+    public ImageDialogPanelScript ActivityDialogPanelScript;
+    public TextInputDialogPanelScript ErrorMessageDialogPanelScript;
+    public WorldCustomizationDialogPanelScript SetSeedDialogPanelScript;
+    public WorldCustomizationDialogPanelScript CustomizeWorldDialogPanelScript;
+    public AddPopulationDialogScript AddPopulationDialogScript;
+    public FocusPanelScript FocusPanelScript;
+    public GuidingPanelScript GuidingPanelScript;
+    public ModalPanelScript CreditsDialogPanelScript;
 
-	public List<ModalPanelScript> HiddenInteractionPanels = new List<ModalPanelScript> ();
+    public List<ModalPanelScript> HiddenInteractionPanels = new List<ModalPanelScript>();
 
-	public PaletteScript BiomePaletteScript;
-	public PaletteScript MapPaletteScript;
-	public PaletteScript OverlayPaletteScript;
+    public PaletteScript BiomePaletteScript;
+    public PaletteScript MapPaletteScript;
+    public PaletteScript OverlayPaletteScript;
 
-	public SelectionPanelScript SelectionPanelScript;
+    public SelectionPanelScript SelectionPanelScript;
 
-	public QuickTipPanelScript QuickTipPanelScript;
+    public QuickTipPanelScript QuickTipPanelScript;
 
-	public EventPanelScript EventPanelScript;
-	
-	public ToggleEvent OnSimulationInterrupted;
-	public ToggleEvent OnSimulationPaused;
+    public EventPanelScript EventPanelScript;
 
-	public ToggleEvent OnFirstMaxSpeedOptionSet;
-	public ToggleEvent OnLastMaxSpeedOptionSet;
+    public ToggleEvent OnSimulationInterrupted;
+    public ToggleEvent OnSimulationPaused;
 
-	public UnityEvent MapEntitySelected;
+    public ToggleEvent OnFirstMaxSpeedOptionSet;
+    public ToggleEvent OnLastMaxSpeedOptionSet;
 
-	public UnityEvent OverlayChanged;
-	
-	public SpeedChangeEvent OnSimulationSpeedChanged;
+    public UnityEvent MapEntitySelected;
 
-//	private bool _showFocusButton = false;
-//	private string _focusButtonText = "";
+    public UnityEvent OverlayChanged;
 
-	private bool _eventPauseActive = false;
+    public SpeedChangeEvent OnSimulationSpeedChanged;
 
-	private bool _pauseButtonPressed = false;
+    //	private bool _showFocusButton = false;
+    //	private string _focusButtonText = "";
 
-	private bool _pausingDialogActive = false;
+    private bool _eventPauseActive = false;
 
-	private bool _displayedTip_mapScroll = false;
-	private bool _displayedTip_initialPopulation = false;
+    private bool _pauseButtonPressed = false;
 
-	private bool _mouseIsOverMap = false;
+    private bool _pausingDialogActive = false;
 
-	private Vector3 _tooltipOffset = new Vector3 (0, 0);
+    private bool _displayedTip_mapScroll = false;
+    private bool _displayedTip_initialPopulation = false;
 
-	private Language _lastHoveredOverLanguage = null;
-	private Territory _lastHoveredOverTerritory = null;
-	private Region _lastHoveredOverRegion = null;
-	
-	private PlanetView _planetView = PlanetView.Biomes;
+    private bool _mouseIsOverMap = false;
 
-	private PlanetOverlay _planetOverlay = PlanetOverlay.General;
+    private Vector3 _tooltipOffset = new Vector3(0, 0);
 
-	private string _planetOverlaySubtype = "None";
+    private Language _lastHoveredOverLanguage = null;
+    private Territory _lastHoveredOverTerritory = null;
+    private Region _lastHoveredOverRegion = null;
 
-	private Dictionary<PlanetOverlay, string> _planetOverlaySubtypeCache = new Dictionary<PlanetOverlay, string> ();
+    private PlanetView _planetView = PlanetView.Biomes;
 
-	private bool _displayRoutes = false;
-	private bool _displayGroupActivity = false;
+    private PlanetOverlay _planetOverlay = PlanetOverlay.General;
 
-//	private bool _overlayMenusNeedUpdate = true;
+    private string _planetOverlaySubtype = "None";
 
-	private bool _regenTextures = false;
+    private Dictionary<PlanetOverlay, string> _planetOverlaySubtypeCache = new Dictionary<PlanetOverlay, string>();
 
-	private bool _resetOverlays = true;
+    private bool _displayRoutes = false;
+    private bool _displayGroupActivity = false;
 
-	private Vector2 _beginDragPosition;
-	private Rect _beginDragMapUvRect;
+    //	private bool _overlayMenusNeedUpdate = true;
 
-	private bool _backgroundProcessActive = false;
-	
-	private string _progressMessage = null;
-	private float _progressValue = 0;
+    private bool _regenTextures = false;
 
-	private event PostProgressOperation _postProgressOp = null;
+    private bool _resetOverlays = true;
 
-	private event PointerClickOperation _mapLeftClickOp = null;
+    private Vector2 _beginDragPosition;
+    private Rect _beginDragMapUvRect;
 
-	private event PointerHoverOperation _mapHoverOp = null;
-	
-	private const float _maxAccTime = 1.0f; // the standard length of time of a simulation cycle (in real time)
+    private bool _backgroundProcessActive = false;
 
-	private float _accDeltaTime = 0;
-	private long _simulationDateSpan = 0;
+    private string _progressMessage = null;
+    private float _progressValue = 0;
 
-	private bool _resolvedDecision = false;
-    
+    private event PostProgressOperation _postProgressOp = null;
+
+    private event PointerClickOperation _mapLeftClickOp = null;
+
+    private event PointerHoverOperation _mapHoverOp = null;
+
+    private const float _maxAccTime = 1.0f; // the standard length of time of a simulation cycle (in real time)
+
+    private float _accDeltaTime = 0;
+    private long _simulationDateSpan = 0;
+
+    private bool _resolvedDecision = false;
+
     private int _mapUpdateCount = 0;
-	private int _lastMapUpdateCount = 0;
+    private int _lastMapUpdateCount = 0;
     private int _pixelUpdateCount = 0;
     private int _lastPixelUpdateCount = 0;
     private float _timeSinceLastMapUpdate = 0;
@@ -142,11 +142,13 @@ public class GuiManagerScript : MonoBehaviour {
     private long _lastDateSpan = 0;
 
     private int _topMaxSpeedLevelIndex;
-	private int _selectedMaxSpeedLevelIndex;
+    private int _selectedMaxSpeedLevelIndex;
 
-	private bool _infoTextMinimized = false;
+    private bool _infoTextMinimized = false;
 
-	void OnEnable()
+    private Texture2D _heightmap = null;
+
+    void OnEnable()
 	{
         Manager.InitializeDebugLog();
 
@@ -475,222 +477,237 @@ public class GuiManagerScript : MonoBehaviour {
         ReadKeyboardInput();
     }
 
-    public bool CanAlterRunningStateOrSpeed () {
+    public bool CanAlterRunningStateOrSpeed()
+    {
+        return Manager.SimulationCanRun && !_pausingDialogActive;
+    }
 
-		return Manager.SimulationCanRun && !_pausingDialogActive;
-	}
+    public void ReadKeyboardInput_TimeControls()
+    {
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            if (CanAlterRunningStateOrSpeed())
+            {
+                PauseSimulation(Manager.SimulationRunning);
+            }
+        }
 
-	public void ReadKeyboardInput_TimeControls () {
+        if (Input.GetKeyDown(KeyCode.Alpha1))
+        {
+            if (CanAlterRunningStateOrSpeed())
+            {
+                SetMaxSpeedLevel(0);
+            }
+        }
 
-		if (Input.GetKeyDown (KeyCode.Space))
-		{
-			if (CanAlterRunningStateOrSpeed ()) {
-				PauseSimulation (Manager.SimulationRunning);
-			}
-		}
+        if (Input.GetKeyDown(KeyCode.Alpha2))
+        {
+            if (CanAlterRunningStateOrSpeed())
+            {
+                SetMaxSpeedLevel(1);
+            }
+        }
 
-		if (Input.GetKeyDown (KeyCode.Alpha1))
-		{
-			if (CanAlterRunningStateOrSpeed ()) {
-				SetMaxSpeedLevel (0);
-			}
-		}
+        if (Input.GetKeyDown(KeyCode.Alpha3))
+        {
+            if (CanAlterRunningStateOrSpeed())
+            {
+                SetMaxSpeedLevel(2);
+            }
+        }
 
-		if (Input.GetKeyDown (KeyCode.Alpha2))
-		{
-			if (CanAlterRunningStateOrSpeed ()) {
-				SetMaxSpeedLevel (1);
-			}
-		}
+        if (Input.GetKeyDown(KeyCode.Alpha4))
+        {
+            if (CanAlterRunningStateOrSpeed())
+            {
+                SetMaxSpeedLevel(3);
+            }
+        }
 
-		if (Input.GetKeyDown (KeyCode.Alpha3))
-		{
-			if (CanAlterRunningStateOrSpeed ()) {
-				SetMaxSpeedLevel (2);
-			}
-		}
+        if (Input.GetKeyDown(KeyCode.Alpha5))
+        {
+            if (CanAlterRunningStateOrSpeed())
+            {
+                SetMaxSpeedLevel(4);
+            }
+        }
 
-		if (Input.GetKeyDown (KeyCode.Alpha4))
-		{
-			if (CanAlterRunningStateOrSpeed ()) {
-				SetMaxSpeedLevel (3);
-			}
-		}
+        if (Input.GetKeyDown(KeyCode.Alpha6))
+        {
+            if (CanAlterRunningStateOrSpeed())
+            {
+                SetMaxSpeedLevel(5);
+            }
+        }
 
-		if (Input.GetKeyDown (KeyCode.Alpha5))
-		{
-			if (CanAlterRunningStateOrSpeed ()) {
-				SetMaxSpeedLevel (4);
-			}
-		}
+        if (Input.GetKeyDown(KeyCode.Alpha7))
+        {
+            if (CanAlterRunningStateOrSpeed())
+            {
+                SetMaxSpeedLevel(6);
+            }
+        }
 
-		if (Input.GetKeyDown (KeyCode.Alpha6))
-		{
-			if (CanAlterRunningStateOrSpeed ()) {
-				SetMaxSpeedLevel (5);
-			}
-		}
+        if (Input.GetKeyDown(KeyCode.Alpha8))
+        {
+            if (CanAlterRunningStateOrSpeed())
+            {
+                SetMaxSpeedLevel(7);
+            }
+        }
 
-		if (Input.GetKeyDown (KeyCode.Alpha7))
-		{
-			if (CanAlterRunningStateOrSpeed ()) {
-				SetMaxSpeedLevel (6);
-			}
-		}
+        if (Input.GetKeyDown(KeyCode.KeypadPlus))
+        {
+            if (CanAlterRunningStateOrSpeed())
+            {
+                SetMaxSpeedLevel(_selectedMaxSpeedLevelIndex + 1);
+            }
+        }
 
-		if (Input.GetKeyDown (KeyCode.Alpha8))
-		{
-			if (CanAlterRunningStateOrSpeed ()) {
-				SetMaxSpeedLevel (7);
-			}
-		}
+        if (Input.GetKeyDown(KeyCode.KeypadMinus))
+        {
+            if (CanAlterRunningStateOrSpeed())
+            {
+                SetMaxSpeedLevel(_selectedMaxSpeedLevelIndex - 1);
+            }
+        }
+    }
 
-		if (Input.GetKeyDown (KeyCode.KeypadPlus))
-		{
-			if (CanAlterRunningStateOrSpeed ()) {
-				SetMaxSpeedLevel (_selectedMaxSpeedLevelIndex + 1);
-			}
-		}
+    public void ReadKeyboardInput_Escape()
+    {
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            if (!_backgroundProcessActive)
+            {
+                if (SaveFileDialogPanelScript.gameObject.activeInHierarchy)
+                {
+                    CancelSaveAction();
+                }
+                else if (ExportMapDialogPanelScript.gameObject.activeInHierarchy)
+                {
+                    CancelExportAction();
+                }
+                else if (LoadFileDialogPanelScript.gameObject.activeInHierarchy)
+                {
+                    CancelLoadAction();
+                }
+                else if (SelectFactionDialogPanelScript.gameObject.activeInHierarchy)
+                {
+                    CancelSelectFaction();
+                }
+                else if (OverlayDialogPanelScript.gameObject.activeInHierarchy)
+                {
+                    CloseOverlayMenuAction();
+                }
+                else if (ViewsDialogPanelScript.gameObject.activeInHierarchy)
+                {
+                    CloseViewsMenuAction();
+                }
+                else if (MainMenuDialogPanelScript.gameObject.activeInHierarchy)
+                {
+                    CloseMainMenu();
+                }
+                else if (OptionsDialogPanelScript.gameObject.activeInHierarchy)
+                {
+                    CloseOptionsMenu();
+                }
+                else if ((SetSeedDialogPanelScript.gameObject.activeInHierarchy) ||
+                  (CustomizeWorldDialogPanelScript.gameObject.activeInHierarchy))
+                {
+                    CancelGenerateAction();
+                }
+                else if (ErrorMessageDialogPanelScript.gameObject.activeInHierarchy)
+                {
+                    CloseErrorMessageAction();
+                }
+                else if (AddPopulationDialogScript.gameObject.activeInHierarchy)
+                {
+                    CancelPopulationPlacement();
+                }
+                else
+                {
+                    OpenMainMenu();
+                }
+            }
+        }
+    }
 
-		if (Input.GetKeyDown (KeyCode.KeypadMinus))
-		{
-			if (CanAlterRunningStateOrSpeed ()) {
-				SetMaxSpeedLevel (_selectedMaxSpeedLevelIndex - 1);
-			}
-		}
-	}
+    public void ReadKeyboardInput()
+    {
+        ReadKeyboardInput_TimeControls();
+        ReadKeyboardInput_Escape();
+    }
 
-	public void ReadKeyboardInput_Escape () {
+    public bool IsPolityOverlay(PlanetOverlay overlay)
+    {
+        return (overlay == PlanetOverlay.PolityCulturalActivity) ||
+            (overlay == PlanetOverlay.PolityCulturalSkill) ||
+            (overlay == PlanetOverlay.PolityCulturalPreference) ||
+            (overlay == PlanetOverlay.PolityCulturalKnowledge) ||
+            (overlay == PlanetOverlay.PolityCulturalDiscovery) ||
+            (overlay == PlanetOverlay.PolityTerritory) ||
+            (overlay == PlanetOverlay.PolityContacts) ||
+            (overlay == PlanetOverlay.General);
+    }
 
-		if (Input.GetKeyDown (KeyCode.Escape))
-		{
-			if (!_backgroundProcessActive) {
+    public void UpdateFocusPanel()
+    {
+        Polity selectedPolity = null;
+        bool isUnderFocus = false;
 
-				if (SaveFileDialogPanelScript.gameObject.activeInHierarchy) {
+        if ((Manager.CurrentWorld.SelectedTerritory != null) && IsPolityOverlay(_planetOverlay))
+        {
+            selectedPolity = Manager.CurrentWorld.SelectedTerritory.Polity;
 
-					CancelSaveAction ();
+            isUnderFocus |= (Manager.CurrentWorld.PolitiesUnderPlayerFocus.Contains(selectedPolity));
+        }
 
-				} else if (ExportMapDialogPanelScript.gameObject.activeInHierarchy) {
+        if (selectedPolity != null)
+        {
+            FocusPanelScript.SetVisible(true);
 
-					CancelExportAction ();
+            if (isUnderFocus)
+                FocusPanelScript.SetState(FocusPanelState.UnsetFocus, selectedPolity);
+            else
+                FocusPanelScript.SetState(FocusPanelState.SetFocus, selectedPolity);
+        }
+        else
+        {
+            FocusPanelScript.SetVisible(false);
+        }
+    }
 
-				} else if (LoadFileDialogPanelScript.gameObject.activeInHierarchy) {
+    public void UpdateGuidingPanel()
+    {
+        Faction guidedFaction = Manager.CurrentWorld.GuidedFaction;
 
-					CancelLoadAction ();
+        if (guidedFaction != null)
+        {
+            GuidingPanelScript.SetVisible(true);
 
-				} else if (SelectFactionDialogPanelScript.gameObject.activeInHierarchy) {
+            GuidingPanelScript.SetState(guidedFaction);
+        }
+        else
+        {
+            GuidingPanelScript.SetVisible(false);
+        }
+    }
 
-					CancelSelectFaction ();
+    public void SelectAndCenterOnCell(WorldPosition position)
+    {
+        ShiftMapToPosition(position);
 
-				} else if (OverlayDialogPanelScript.gameObject.activeInHierarchy) {
+        Manager.SetSelectedCell(position);
 
-					CloseOverlayMenuAction ();
+        MapEntitySelected.Invoke();
+    }
 
-				} else if (ViewsDialogPanelScript.gameObject.activeInHierarchy) {
+    public string GetMessageToShow(WorldEventMessage eventMessage)
+    {
+        return Manager.GetDateString(eventMessage.Date) + " - " + eventMessage.Message;
+    }
 
-					CloseViewsMenuAction ();
-
-				} else if (MainMenuDialogPanelScript.gameObject.activeInHierarchy) {
-
-					CloseMainMenu ();
-
-				} else if (OptionsDialogPanelScript.gameObject.activeInHierarchy) {
-
-					CloseOptionsMenu ();
-
-				} else if ((SetSeedDialogPanelScript.gameObject.activeInHierarchy) || 
-					(CustomizeWorldDialogPanelScript.gameObject.activeInHierarchy)) {
-
-					CancelGenerateAction ();
-
-				} else if (ErrorMessageDialogPanelScript.gameObject.activeInHierarchy) {
-
-					CloseErrorMessageAction ();
-
-				} else if (AddPopulationDialogScript.gameObject.activeInHierarchy) {
-
-					CancelPopulationPlacement ();
-
-				} else {
-
-					OpenMainMenu ();
-				}
-			}
-		}
-	}
-
-	public void ReadKeyboardInput () {
-		
-		ReadKeyboardInput_TimeControls ();
-		ReadKeyboardInput_Escape ();
-	}
-
-	public bool IsPolityOverlay (PlanetOverlay overlay) {
-	
-		return (overlay == PlanetOverlay.PolityCulturalActivity) ||
-			(overlay == PlanetOverlay.PolityCulturalSkill) ||
-			(overlay == PlanetOverlay.PolityCulturalPreference) ||
-			(overlay == PlanetOverlay.PolityCulturalKnowledge) ||
-			(overlay == PlanetOverlay.PolityCulturalDiscovery) ||
-			(overlay == PlanetOverlay.PolityTerritory) ||
-			(overlay == PlanetOverlay.PolityContacts) ||
-			(overlay == PlanetOverlay.General);
-	}
-
-	public void UpdateFocusPanel () {
-
-		Polity selectedPolity = null;
-		bool isUnderFocus = false;
-
-		if ((Manager.CurrentWorld.SelectedTerritory != null) && IsPolityOverlay(_planetOverlay)) {
-
-			selectedPolity = Manager.CurrentWorld.SelectedTerritory.Polity;
-
-			isUnderFocus |= (Manager.CurrentWorld.PolitiesUnderPlayerFocus.Contains (selectedPolity));
-		}
-
-		if (selectedPolity != null) {
-			FocusPanelScript.SetVisible (true);
-
-			if (isUnderFocus)
-				FocusPanelScript.SetState (FocusPanelState.UnsetFocus, selectedPolity);
-			else
-				FocusPanelScript.SetState (FocusPanelState.SetFocus, selectedPolity);
-
-		} else {
-			FocusPanelScript.SetVisible (false);
-		}
-	}
-
-	public void UpdateGuidingPanel () {
-
-		Faction guidedFaction = Manager.CurrentWorld.GuidedFaction;
-
-		if (guidedFaction != null) {
-			GuidingPanelScript.SetVisible (true);
-
-			GuidingPanelScript.SetState (guidedFaction);
-
-		} else {
-			GuidingPanelScript.SetVisible (false);
-		}
-	}
-
-	public void SelectAndCenterOnCell (WorldPosition position) {
-		
-		ShiftMapToPosition (position);
-
-		Manager.SetSelectedCell (position);
-
-		MapEntitySelected.Invoke ();
-	}
-
-	public string GetMessageToShow (WorldEventMessage eventMessage) {
-
-		return Manager.GetDateString (eventMessage.Date) + " - " + eventMessage.Message;
-	}
-
-	public void ShowEventMessageForPolity (WorldEventMessage eventMessage, long polityId)
+    public void ShowEventMessageForPolity (WorldEventMessage eventMessage, long polityId)
     {
 		Polity polity = Manager.CurrentWorld.GetPolity(polityId);
 
@@ -892,94 +909,102 @@ public class GuiManagerScript : MonoBehaviour {
         Exit();
     }
 
-    public void GenerateWorld (bool randomSeed = true, int seed = 0) {
+    public void GenerateWorld(bool randomSeed = true, int seed = 0)
+    {
+        if (randomSeed)
+        {
+            seed = Random.Range(0, int.MaxValue);
+        }
 
-		if (randomSeed) {
-			seed = Random.Range (0, int.MaxValue);
-		}
-		
-		GenerateWorldInternal (seed);
-	}
-	
-	public void GenerateWorldWithCustomSeed () {
-		
-		SetSeedDialogPanelScript.SetVisible (false);
-		
-		int seed = 0;
-		string seedStr = SetSeedDialogPanelScript.GetSeedString ();
-		
-		if (!int.TryParse (seedStr, out seed)) {
-			
-			ErrorMessageDialogPanelScript.SetVisible (true);
-			return;
-		}
-		
-		if (seed < 0) {
-			
-			ErrorMessageDialogPanelScript.SetVisible (true);
-			return;
-		}
-		
-		GenerateWorldInternal (seed);
-	}
-	
-	public void GenerateWorldWithCustomParameters () {
-		
-		CustomizeWorldDialogPanelScript.SetVisible (false);
-		
-		Manager.TemperatureOffset = CustomizeWorldDialogPanelScript.TemperatureOffset;
-		Manager.RainfallOffset = CustomizeWorldDialogPanelScript.RainfallOffset;
-		Manager.SeaLevelOffset = CustomizeWorldDialogPanelScript.SeaLevelOffset;
-		
-		int seed = 0;
-		string seedStr = CustomizeWorldDialogPanelScript.GetSeedString ();
-		
-		if (!int.TryParse (seedStr, out seed)) {
-			
-			ErrorMessageDialogPanelScript.SetVisible (true);
-			return;
-		}
-		
-		if (seed < 0) {
-			
-			ErrorMessageDialogPanelScript.SetVisible (true);
-			return;
-		}
-		
-		GenerateWorldInternal (seed);
-	}
+        GenerateWorldInternal(seed);
+    }
 
-	private void PostProgressOp_GenerateWorld () {
+    public void GenerateWorldWithCustomSeed()
+    {
+        SetSeedDialogPanelScript.SetVisible(false);
 
+        int seed = 0;
+        string seedStr = SetSeedDialogPanelScript.GetSeedString();
+
+        if (!int.TryParse(seedStr, out seed))
+        {
+            ErrorMessageDialogPanelScript.SetVisible(true);
+            return;
+        }
+
+        if (seed < 0)
+        {
+            ErrorMessageDialogPanelScript.SetVisible(true);
+            return;
+        }
+
+        GenerateWorldInternal(seed);
+    }
+
+    public void GenerateWorldWithCustomParameters()
+    {
+        CustomizeWorldDialogPanelScript.SetVisible(false);
+
+        Manager.TemperatureOffset = CustomizeWorldDialogPanelScript.TemperatureOffset;
+        Manager.RainfallOffset = CustomizeWorldDialogPanelScript.RainfallOffset;
+        Manager.SeaLevelOffset = CustomizeWorldDialogPanelScript.SeaLevelOffset;
+
+        int seed = 0;
+        string seedStr = CustomizeWorldDialogPanelScript.GetSeedString();
+
+        if (!int.TryParse(seedStr, out seed))
+        {
+            ErrorMessageDialogPanelScript.SetVisible(true);
+            return;
+        }
+
+        if (seed < 0)
+        {
+            ErrorMessageDialogPanelScript.SetVisible(true);
+            return;
+        }
+
+        GenerateWorldInternal(seed);
+    }
+
+    private void PostProgressOp_GenerateWorld()
+    {
         Debug.Log("Finished generating world with seed: " + Manager.CurrentWorld.Seed);
 
         Manager.WorldName = "world_" + Manager.CurrentWorld.Seed;
-		
-		SelectionPanelScript.RemoveAllOptions ();
 
-		SetInitialPopulation ();
+        SelectionPanelScript.RemoveAllOptions();
 
-		_selectedMaxSpeedLevelIndex = _topMaxSpeedLevelIndex;
+        SetInitialPopulation();
 
-		SetMaxSpeedLevel (_selectedMaxSpeedLevelIndex);
-		
-		_postProgressOp -= PostProgressOp_GenerateWorld;
-	}
-	
-	private void GenerateWorldInternal (int seed) {
-		
-		ProgressDialogPanelScript.SetVisible (true);
+        _selectedMaxSpeedLevelIndex = _topMaxSpeedLevelIndex;
 
-        ProgressUpdate (0, "Generating World...", true);
-		
-		Manager.GenerateNewWorldAsync (seed, null, ProgressUpdate);
+        SetMaxSpeedLevel(_selectedMaxSpeedLevelIndex);
 
-		_postProgressOp += PostProgressOp_GenerateWorld;
-		
-		_backgroundProcessActive = true;
-		
-		_regenTextures = true;
-	}
+        _postProgressOp -= PostProgressOp_GenerateWorld;
+    }
+
+    private void GenerateWorldInternal(int seed)
+    {
+        ProgressDialogPanelScript.SetVisible(true);
+
+        ProgressUpdate(0, "Generating World...", true);
+
+        if (SetSeedDialogPanelScript.UseHeightmapToggle.isOn)
+        {
+            Manager.GenerateNewWorldAsync(seed, _heightmap, ProgressUpdate);
+        }
+        else
+        {
+            Manager.GenerateNewWorldAsync(seed, null, ProgressUpdate);
+        }
+
+        _postProgressOp += PostProgressOp_GenerateWorld;
+
+        _backgroundProcessActive = true;
+
+        _regenTextures = true;
+    }
 
     public void SetInitialPopulationForTests()
     {
@@ -992,29 +1017,29 @@ public class GuiManagerScript : MonoBehaviour {
         DisplayTip_MapScroll();
     }
 
-    private void SetInitialPopulation () {
+    private void SetInitialPopulation()
+    {
+        AddPopulationDialogScript.SetDialogText("Add Initial Population Group");
 
-		AddPopulationDialogScript.SetDialogText ("Add Initial Population Group");
+        int defaultPopulationValue = (int)Mathf.Ceil(World.StartPopulationDensity * TerrainCell.MaxArea);
 
-		int defaultPopulationValue = (int)Mathf.Ceil (World.StartPopulationDensity * TerrainCell.MaxArea);
+        defaultPopulationValue = Mathf.Clamp(defaultPopulationValue, World.MinStartingPopulation, World.MaxStartingPopulation);
 
-		defaultPopulationValue = Mathf.Clamp (defaultPopulationValue, World.MinStartingPopulation, World.MaxStartingPopulation);
+        AddPopulationDialogScript.SetPopulationValue(defaultPopulationValue);
 
-		AddPopulationDialogScript.SetPopulationValue (defaultPopulationValue);
-	
-		AddPopulationDialogScript.SetVisible (true);
-		
-		InterruptSimulation (true);
-	}
+        AddPopulationDialogScript.SetVisible(true);
 
-	public void CancelPopulationPlacement () {
-		
-		AddPopulationDialogScript.SetVisible (false);
+        InterruptSimulation(true);
+    }
+
+    public void CancelPopulationPlacement()
+    {
+        AddPopulationDialogScript.SetVisible(false);
 
         Debug.Log("Player chose to cancel population placement.");
 
-        DisplayTip_MapScroll ();
-	}
+        DisplayTip_MapScroll();
+    }
 
     public void RandomPopulationPlacement()
     {
@@ -1034,123 +1059,124 @@ public class GuiManagerScript : MonoBehaviour {
         DisplayTip_MapScroll();
     }
 
-    public void ClickOp_SelectCell (Vector2 position) {
+    public void ClickOp_SelectCell(Vector2 position)
+    {
+        Vector2 mapCoordinates;
 
-		Vector2 mapCoordinates;
+        if (!GetMapCoordinatesFromPointerPosition(position, out mapCoordinates))
+            return;
 
-		if (!GetMapCoordinatesFromPointerPosition (position, out mapCoordinates))
-			return;
+        int longitude = (int)mapCoordinates.x;
+        int latitude = (int)mapCoordinates.y;
 
-		int longitude = (int)mapCoordinates.x;
-		int latitude = (int)mapCoordinates.y;
+        Manager.SetSelectedCell(longitude, latitude);
 
-		Manager.SetSelectedCell (longitude, latitude);
+        MapEntitySelected.Invoke();
+    }
 
-		MapEntitySelected.Invoke ();
-	}
+    public void ClickOp_SelectPopulationPlacement(Vector2 position)
+    {
+        int population = AddPopulationDialogScript.Population;
 
-	public void ClickOp_SelectPopulationPlacement (Vector2 position) {
+        Vector2 point;
 
-		int population = AddPopulationDialogScript.Population;
+        if (GetMapCoordinatesFromPointerPosition(out point))
+        {
+            if (AddPopulationGroupAtPosition(point, population))
+            {
+                MenuUninterruptSimulation();
 
-		Vector2 point;
-		
-		if (GetMapCoordinatesFromPointerPosition (out point)) {
-			if (AddPopulationGroupAtPosition (point, population)) {
+                DisplayTip_MapScroll();
 
-				MenuUninterruptSimulation ();
-				
-				DisplayTip_MapScroll();
+                _mapLeftClickOp -= ClickOp_SelectPopulationPlacement;
+            }
+        }
+    }
 
-				_mapLeftClickOp -= ClickOp_SelectPopulationPlacement;
-			}
-		}
-	}
-	
-	public void SelectPopulationPlacement () {
-		
-		int population = AddPopulationDialogScript.Population;
-		
-		AddPopulationDialogScript.SetVisible (false);
+    public void SelectPopulationPlacement()
+    {
+        int population = AddPopulationDialogScript.Population;
+
+        AddPopulationDialogScript.SetVisible(false);
 
         Debug.Log(string.Format("Player chose to select cell for population placement of {0}...", population));
 
         if (population <= 0)
-			return;
+            return;
 
-		DisplayTip_InitialPopulationPlacement ();
+        DisplayTip_InitialPopulationPlacement();
 
-		_mapLeftClickOp += ClickOp_SelectPopulationPlacement;
-	}
-	
-	public bool AddPopulationGroupAtPosition (Vector2 mapPosition, int population) {
+        _mapLeftClickOp += ClickOp_SelectPopulationPlacement;
+    }
 
-		World world = Manager.CurrentWorld;
-		
-		int longitude = (int)mapPosition.x;
-		int latitude = (int)mapPosition.y;
-		
-		if ((longitude < 0) || (longitude >= world.Width))
-			return false;
-		
-		if ((latitude < 0) || (latitude >= world.Height))
-			return false;
+    public bool AddPopulationGroupAtPosition(Vector2 mapPosition, int population)
+    {
+        World world = Manager.CurrentWorld;
 
-		TerrainCell cell = world.GetCell (longitude, latitude);
+        int longitude = (int)mapPosition.x;
+        int latitude = (int)mapPosition.y;
 
-		if (cell.Altitude <= Biome.Ocean.MaxAltitude)
-			return false;
+        if ((longitude < 0) || (longitude >= world.Width))
+            return false;
 
-		Manager.GenerateHumanGroup (longitude, latitude, population);
+        if ((latitude < 0) || (latitude >= world.Height))
+            return false;
 
-		return true;
-	}
+        TerrainCell cell = world.GetCell(longitude, latitude);
 
-	public void DisplayTip_InitialPopulationPlacement () {
-		
-		if (_displayedTip_initialPopulation) {
-			
-			QuickTipPanelScript.SetVisible (false);
-			return;
-		}
+        if (cell.Altitude <= Biome.Ocean.MaxAltitude)
+            return false;
 
-		string message = "Left click on any non-ocean position in the map to place the initial population group\n";
+        Manager.GenerateHumanGroup(longitude, latitude, population);
 
-		if (!_displayedTip_mapScroll) {
-		
-			message += "Right click and drag with the mouse to scroll the map left or right\n";
-		}
+        return true;
+    }
 
-		message += "\n(Click anywhere on this message to close)";
-	
-		QuickTipPanelScript.SetText (message);
-		QuickTipPanelScript.Reset (10);
+    public void DisplayTip_InitialPopulationPlacement()
+    {
+        if (_displayedTip_initialPopulation)
+        {
+            QuickTipPanelScript.SetVisible(false);
+            return;
+        }
 
-		QuickTipPanelScript.SetVisible (true);
-		
-		_displayedTip_initialPopulation = true;
-		_displayedTip_mapScroll = true;
-	}
-	
-	public void DisplayTip_MapScroll () {
+        string message = "Left click on any non-ocean position in the map to place the initial population group\n";
 
-		if (_displayedTip_mapScroll) {
-			
-			QuickTipPanelScript.SetVisible (false);
-			return;
-		}
-		
-		QuickTipPanelScript.SetText (
-			"Right click and drag with the mouse to scroll the map left or right\n" +
-			"\n(Click anywhere on this message to close)");
-		QuickTipPanelScript.Reset (10);
-		
-		QuickTipPanelScript.SetVisible (true);
+        if (!_displayedTip_mapScroll)
+        {
+            message += "Right click and drag with the mouse to scroll the map left or right\n";
+        }
 
-		_displayedTip_mapScroll = true;
-	}
-	
-	public void CustomizeGeneration()
+        message += "\n(Click anywhere on this message to close)";
+
+        QuickTipPanelScript.SetText(message);
+        QuickTipPanelScript.Reset(10);
+
+        QuickTipPanelScript.SetVisible(true);
+
+        _displayedTip_initialPopulation = true;
+        _displayedTip_mapScroll = true;
+    }
+
+    public void DisplayTip_MapScroll()
+    {
+        if (_displayedTip_mapScroll)
+        {
+            QuickTipPanelScript.SetVisible(false);
+            return;
+        }
+
+        QuickTipPanelScript.SetText(
+            "Right click and drag with the mouse to scroll the map left or right\n" +
+            "\n(Click anywhere on this message to close)");
+        QuickTipPanelScript.Reset(10);
+
+        QuickTipPanelScript.SetVisible(true);
+
+        _displayedTip_mapScroll = true;
+    }
+
+    public void CustomizeGeneration()
     {
         SetSeedDialogPanelScript.SetVisible(false);
 
@@ -1165,6 +1191,50 @@ public class GuiManagerScript : MonoBehaviour {
         CustomizeWorldDialogPanelScript.SetSeaLevelOffset(Manager.SeaLevelOffset);
 
         InterruptSimulation(true);
+    }
+
+    public void LoadHeightmapAction()
+    {
+        LoadFileDialogPanelScript.SetVisible(false);
+
+        string path = LoadFileDialogPanelScript.GetPathToLoad();
+        Texture2D texture = Manager.LoadTexture(path);
+
+        if (texture == null)
+        {
+            SetSeedDialogPanelScript.SetImageTexture(Path.GetFileName(path), null, TextureValidationResult.Unknown);
+        }
+        else
+        {
+            TextureValidationResult result = Manager.ValidateTexture(texture);
+
+            SetSeedDialogPanelScript.SetImageTexture(Path.GetFileName(path), texture, result);
+        }
+
+        _heightmap = texture;
+
+        SetSeedDialogPanelScript.SetVisible(true);
+    }
+
+    public void CancelLoadHeightmapAction()
+    {
+        LoadFileDialogPanelScript.SetVisible(false);
+
+        SetSeedDialogPanelScript.SetVisible(true);
+    }
+
+    public void LoadHeightmapImage()
+    {
+        SetSeedDialogPanelScript.SetVisible(false);
+
+        LoadFileDialogPanelScript.Initialize(
+            "Select Heightmap Image to Load...",
+            "Load",
+            LoadHeightmapAction,
+            CancelLoadHeightmapAction,
+            Manager.HeightmapsPath,
+            Manager.SupportedHeightmapFormats);
+        LoadFileDialogPanelScript.SetVisible(true);
     }
 
     private bool HasFilesToLoad()

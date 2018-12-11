@@ -86,7 +86,7 @@ public class StartGuiManagerScript : MonoBehaviour
 
     void Awake()
     {
-        VersionText.text = "v" + Manager.CurrentVersion;
+        VersionText.text = "v" + Application.version;
     }
 
     void OnDestroy()
@@ -156,7 +156,7 @@ public class StartGuiManagerScript : MonoBehaviour
             LoadHeightmapAction,
             CancelLoadHeightmapAction,
             Manager.HeightmapsPath,
-            new string[] { ".PNG" });
+            Manager.SupportedHeightmapFormats);
         LoadFileDialogPanelScript.SetVisible(true);
     }
 
@@ -197,11 +197,6 @@ public class StartGuiManagerScript : MonoBehaviour
         else
         {
             TextureValidationResult result = Manager.ValidateTexture(texture);
-
-            if (result == TextureValidationResult.Ok)
-            {
-                Manager.ConvertToGrayscale(texture);
-            }
 
             SetSeedDialogPanelScript.SetImageTexture(Path.GetFileName(path), texture, result);
         }

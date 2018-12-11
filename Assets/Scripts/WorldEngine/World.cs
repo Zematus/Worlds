@@ -965,9 +965,12 @@ public class World : ISynchronizable
 
         while (true)
         {
-            if (_eventsToHappen.Count <= 0) break;
+            //if (_eventsToHappen.Count <= 0) break;
 
             _eventsToHappen.FindLeftmost(ValidateEventsToHappenNode, InvalidEventsToHappenNodeEffect);
+
+            // FindLeftMost() might have removed events so we need to check if there are events to happen left
+            if (_eventsToHappen.Count <= 0) break;
 
             WorldEvent eventToHappen = _eventsToHappen.Leftmost;
 
@@ -2501,24 +2504,26 @@ public class World : ISynchronizable
 				value2 = value2 * 1.5f + 0.25f;
 
 				float valueA = Mathf.Lerp(value1, value3, 0.15f);
-
-//				float latitudeFactor = alpha + (((valueA * 2) - 1f) * Mathf.PI * 0.2f);
+                
 				float latitudeFactor = alpha + (((valueA * 2) - 1f) * Mathf.PI * 0.15f);
 				float latitudeModifier1 = (1.5f * Mathf.Sin(latitudeFactor)) - 0.5f;
-//				float latitudeModifier2 = Mathf.Cos(latitudeFactor);
 				float latitudeFactor2 = (latitudeFactor * 3) - (Mathf.PI / 2f);
 				float latitudeModifier2 = Mathf.Sin(latitudeFactor2);
 				float latitudeFactor3 = (latitudeFactor * 6) + (Mathf.PI / 4f);
 				float latitudeModifier3 = Mathf.Cos(latitudeFactor3);
 
-				int offCellX = (Width + i + (int)Mathf.Floor(latitudeModifier2 * Width/40f)) % Width;
+                //int offCellX = (Width + i + (int)Mathf.Floor(latitudeModifier2 * Width / 40f)) % Width;
+                //int offCellX2 = (Width + i + (int)Mathf.Floor(latitudeModifier2 * Width / 20f)) % Width;
+                //int offCellX3 = (Width + i + (int)Mathf.Floor(latitudeModifier2 * Width / 10f)) % Width;
+                //int offCellX4 = (Width + i + (int)Mathf.Floor(latitudeModifier2 * Width / 5f)) % Width;
+
+                int offCellX = (Width + i + (int)Mathf.Floor(latitudeModifier2 * Width/40f)) % Width;
 				int offCellX2 = (Width + i + (int)Mathf.Floor(latitudeModifier2 * Width/20f)) % Width;
 				int offCellX3 = (Width + i + (int)Mathf.Floor(latitudeModifier2 * Width/10f)) % Width;
 				int offCellX4 = (Width + i + (int)Mathf.Floor(latitudeModifier2 * Width/5f)) % Width;
-//				int offCellY = j + (int)Mathf.Floor(latitudeModifier2 * Height/10f);
+
 				int offCellY = (int)Mathf.Clamp(j + Mathf.Floor(latitudeModifier3 * Height/20f), 0, Height);
 				offCellY = (offCellY == Height) ? offCellY - 1 : offCellY;
-//				int offCellY = j;
 
 				TerrainCell offCell = TerrainCells[offCellX][j];
 				TerrainCell offCell2 = TerrainCells[offCellX2][j];
@@ -2533,14 +2538,24 @@ public class World : ISynchronizable
 				float offAltitude4 = Mathf.Max(0, offCell4.Altitude);
 				float offAltitude5 = Mathf.Max(0, offCell5.Altitude);
 
-				float altitudeModifier = (altitudeValue - 
-				                          (offAltitude * 0.7f) - 
-				                          (offAltitude2 * 0.6f) -  
-				                          (offAltitude3 * 0.5f) -
-				                          (offAltitude4 * 0.4f) - 
-				                          (offAltitude5 * 0.5f) + 
+                //float altitudeModifier = (altitudeValue -
+                //                          (offAltitude * 0.7f) -
+                //                          (offAltitude2 * 0.6f) -
+                //                          (offAltitude3 * 0.5f) -
+                //                          (offAltitude4 * 0.4f) -
+                //                          (offAltitude5 * 0.5f) +
+                //                          (MaxPossibleAltitude * 0.17f * value2) -
+                //                          (altitudeValue * 0.25f)) / MaxPossibleAltitude;
+
+                float altitudeModifier = (altitudeValue -
+                                          (offAltitude * 1.5f) -
+                                          (offAltitude2 * 1.2f) -
+                                          (offAltitude3 * 0.0f) -
+				                          (offAltitude4 * 0.0f) - 
+				                          (offAltitude5 * 0.0f) + 
 				                          (MaxPossibleAltitude * 0.17f * value2) -
 				                          (altitudeValue * 0.25f)) / MaxPossibleAltitude;
+
 				float rainfallValue = Mathf.Lerp(latitudeModifier1, altitudeModifier, 0.85f);
 				rainfallValue = Mathf.Lerp(Mathf.Abs(rainfallValue) * rainfallValue, rainfallValue, 0.75f);
 
