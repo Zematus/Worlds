@@ -1,0 +1,30 @@
+Editor tools:
+
+- Terrain:
+--- Altitude scaling (scale max/min heights)
+--- Altitude noise brush (Add/Decrease altitude within a brush area using perlin noise)
+- Water:
+--- Modify sea level
+--- (maybe) paint river
+--- (maybe) Fill depresion with water (lakes)
+- Rainfall:
+--- Modify global rainfall level
+--- Rainfall noise brush (Add/Decrease rainfall within a brush area using perlin noise)
+- Temperature:
+--- Modify global temperature level
+--- Temperature noise brush (Add/Decrease temperature within a brush area using perlin noise)
+
+Tool Organization:
+- Sliders:
+--- Altitude scaling (scale max/min heights)
+--- Modify sea level
+--- Modify global rainfall level
+--- Modify global temperature level
+- Brushes:
+--- Altitude noise brush (Add/Decrease altitude within a brush area using perlin noise)
+--- Rainfall noise brush (Add/Decrease rainfall within a brush area using perlin noise)
+--- Temperature noise brush (Add/Decrease temperature within a brush area using perlin noise)
+- Water Tools:
+--- (maybe) paint river
+--- (maybe) Fill depresion with water (lakes)
+

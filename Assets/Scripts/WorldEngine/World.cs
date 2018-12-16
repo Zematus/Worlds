@@ -2519,24 +2519,22 @@ public class World : ISynchronizable
 
                 int offCellX = (Width + i + (int)Mathf.Floor(latitudeModifier2 * Width/40f)) % Width;
 				int offCellX2 = (Width + i + (int)Mathf.Floor(latitudeModifier2 * Width/20f)) % Width;
-				int offCellX3 = (Width + i + (int)Mathf.Floor(latitudeModifier2 * Width/10f)) % Width;
-				int offCellX4 = (Width + i + (int)Mathf.Floor(latitudeModifier2 * Width/5f)) % Width;
 
 				int offCellY = (int)Mathf.Clamp(j + Mathf.Floor(latitudeModifier3 * Height/20f), 0, Height);
 				offCellY = (offCellY == Height) ? offCellY - 1 : offCellY;
 
 				TerrainCell offCell = TerrainCells[offCellX][j];
 				TerrainCell offCell2 = TerrainCells[offCellX2][j];
-				TerrainCell offCell3 = TerrainCells[offCellX3][j];
-				TerrainCell offCell4 = TerrainCells[offCellX4][j];
-				TerrainCell offCell5 = TerrainCells[i][offCellY];
+				//TerrainCell offCell3 = TerrainCells[offCellX3][j];
+				//TerrainCell offCell4 = TerrainCells[offCellX4][j];
+				//TerrainCell offCell5 = TerrainCells[i][offCellY];
 
 				float altitudeValue = Mathf.Max(0, cell.Altitude);
 				float offAltitude = Mathf.Max(0, offCell.Altitude);
 				float offAltitude2 = Mathf.Max(0, offCell2.Altitude);
-				float offAltitude3 = Mathf.Max(0, offCell3.Altitude);
-				float offAltitude4 = Mathf.Max(0, offCell4.Altitude);
-				float offAltitude5 = Mathf.Max(0, offCell5.Altitude);
+				//float offAltitude3 = Mathf.Max(0, offCell3.Altitude);
+				//float offAltitude4 = Mathf.Max(0, offCell4.Altitude);
+				//float offAltitude5 = Mathf.Max(0, offCell5.Altitude);
 
                 //float altitudeModifier = (altitudeValue -
                 //                          (offAltitude * 0.7f) -
@@ -2549,10 +2547,7 @@ public class World : ISynchronizable
 
                 float altitudeModifier = (altitudeValue -
                                           (offAltitude * 1.5f) -
-                                          (offAltitude2 * 1.2f) -
-                                          (offAltitude3 * 0.0f) -
-				                          (offAltitude4 * 0.0f) - 
-				                          (offAltitude5 * 0.0f) + 
+                                          (offAltitude2 * 1.2f) + 
 				                          (MaxPossibleAltitude * 0.17f * value2) -
 				                          (altitudeValue * 0.25f)) / MaxPossibleAltitude;
 
