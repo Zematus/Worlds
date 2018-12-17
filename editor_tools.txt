@@ -27,4 +27,6 @@ Tool Organization:
 - Water Tools:
 --- (maybe) paint river
 --- (maybe) Fill depresion with water (lakes)
+- Other (for future versions):
+--- Special biome brush: replace standard biomes with special biomes on particular regions (fantasy example: giant mushroom forest)
 
