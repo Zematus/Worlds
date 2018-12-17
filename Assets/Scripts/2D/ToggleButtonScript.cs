@@ -36,7 +36,6 @@ public class ToggleButtonScript : MonoBehaviour
         UncheckImage.enabled = !value && !_partialCheck;
         PartialCheckImage.enabled = !value && _partialCheck;
         CheckImage.enabled = value;
-
     }
 
     public void SetPartiallyToggled(bool state)
