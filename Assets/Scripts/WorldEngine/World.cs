@@ -6,130 +6,138 @@ using System.Xml.Serialization;
 using System.IO;
 using UnityEngine.Profiling;
 
-public delegate void ProgressCastDelegate (float value, string message = null, bool reset = false);
+public delegate void ProgressCastDelegate(float value, string message = null, bool reset = false);
 
-public interface ISynchronizable {
-
-	void Synchronize ();
-	void FinalizeLoad ();
+public interface ISynchronizable
+{
+    void Synchronize();
+    void FinalizeLoad();
 }
 
-public static class RngOffsets {
+public static class RngOffsets
+{
+    public const int CELL_GROUP_CONSIDER_LAND_MIGRATION_TARGET = 0;
+    public const int CELL_GROUP_CONSIDER_LAND_MIGRATION_CHANCE = 1;
 
-	public const int CELL_GROUP_CONSIDER_LAND_MIGRATION_TARGET = 0;
-	public const int CELL_GROUP_CONSIDER_LAND_MIGRATION_CHANCE = 1;
+    public const int CELL_GROUP_CONSIDER_SEA_MIGRATION = 2;
 
-	public const int CELL_GROUP_CONSIDER_SEA_MIGRATION = 2;
+    public const int CELL_GROUP_CALCULATE_NEXT_UPDATE = 3;
 
-	public const int CELL_GROUP_CALCULATE_NEXT_UPDATE = 3;
+    public const int CELL_GROUP_SET_POLITY_UPDATE = 4;
 
-	public const int CELL_GROUP_SET_POLITY_UPDATE = 4;
+    public const int CELL_GROUP_CONSIDER_POLITY_PROMINENCE_EXPANSION_POLITY = 5;
+    public const int CELL_GROUP_CONSIDER_POLITY_PROMINENCE_EXPANSION_TARGET = 6;
+    public const int CELL_GROUP_CONSIDER_POLITY_PROMINENCE_EXPANSION_CHANCE = 7;
 
-	public const int CELL_GROUP_CONSIDER_POLITY_PROMINENCE_EXPANSION_POLITY = 5;
-	public const int CELL_GROUP_CONSIDER_POLITY_PROMINENCE_EXPANSION_TARGET = 6;
-	public const int CELL_GROUP_CONSIDER_POLITY_PROMINENCE_EXPANSION_CHANCE = 7;
+    public const int CELL_GROUP_UPDATE_MIGRATION_DIRECTION = 8;
+    public const int CELL_GROUP_GENERATE_GROUP_MIGRATION_DIRECTION = 9;
+    public const int CELL_GROUP_GENERATE_PROMINENCE_TRANSFER_DIRECTION = 10;
+    public const int CELL_GROUP_GENERATE_CORE_MIGRATION_DIRECTION = 11;
 
-	public const int CELL_GROUP_UPDATE_MIGRATION_DIRECTION = 8;
-	public const int CELL_GROUP_GENERATE_GROUP_MIGRATION_DIRECTION = 9;
-	public const int CELL_GROUP_GENERATE_PROMINENCE_TRANSFER_DIRECTION = 10;
-	public const int CELL_GROUP_GENERATE_CORE_MIGRATION_DIRECTION = 11;
+    public const int PREFERENCE_UPDATE = 10000;
+    public const int PREFERENCE_POLITY_PROMINENCE = 10100;
 
-	public const int PREFERENCE_UPDATE = 10000;
-	public const int PREFERENCE_POLITY_PROMINENCE = 10100;
+    public const int ACTIVITY_UPDATE = 11000;
+    public const int ACTIVITY_POLITY_PROMINENCE = 11100;
 
-	public const int ACTIVITY_UPDATE = 11000;
-	public const int ACTIVITY_POLITY_PROMINENCE = 11100;
-
-	public const int KNOWLEDGE_MERGE = 20000;
-	public const int KNOWLEDGE_MODIFY_VALUE = 20100;
-	public const int KNOWLEDGE_UPDATE_VALUE_INTERNAL = 20200;
-	public const int KNOWLEDGE_POLITY_PROMINENCE = 20300;
+    public const int KNOWLEDGE_MERGE = 20000;
+    public const int KNOWLEDGE_MODIFY_VALUE = 20100;
+    public const int KNOWLEDGE_UPDATE_VALUE_INTERNAL = 20200;
+    public const int KNOWLEDGE_POLITY_PROMINENCE = 20300;
     public const int KNOWLEDGE_FACTION_CORE_UPDATE = 20400;
 
     public const int SKILL_UPDATE = 30000;
-	public const int SKILL_POLITY_PROMINENCE = 30100;
+    public const int SKILL_POLITY_PROMINENCE = 30100;
 
-	public const int POLITY_CULTURE_NORMALIZE_ATTRIBUTE_VALUES = 40000;
-	public const int POLITY_CULTURE_GENERATE_NEW_LANGUAGE = 40100;
+    public const int POLITY_CULTURE_NORMALIZE_ATTRIBUTE_VALUES = 40000;
+    public const int POLITY_CULTURE_GENERATE_NEW_LANGUAGE = 40100;
 
-	public const int POLITY_UPDATE_EFFECTS = 50000;
+    public const int POLITY_UPDATE_EFFECTS = 50000;
 
-	public const int REGION_GENERATE_NAME = 60000;
-	public const int REGION_SELECT_BORDER_REGION_TO_REPLACE_WITH = 61000;
+    public const int REGION_GENERATE_NAME = 60000;
+    public const int REGION_SELECT_BORDER_REGION_TO_REPLACE_WITH = 61000;
 
-	public const int TRIBE_GENERATE_NEW_TRIBE = 70000;
-	public const int TRIBE_GENERATE_NAME = 71000;
+    public const int TRIBE_GENERATE_NEW_TRIBE = 70000;
+    public const int TRIBE_GENERATE_NAME = 71000;
 
-	public const int FACTION_CULTURE_DISCOVERY_LOSS_CHANCE = 80500;
+    public const int FACTION_CULTURE_DISCOVERY_LOSS_CHANCE = 80500;
 
-	public const int CLAN_GENERATE_NAME = 85000;
-	public const int CLAN_CHOOSE_CORE_GROUP = 85100;
-	public const int CLAN_CHOOSE_TARGET_GROUP = 85200;
-	public const int CLAN_LEADER_GEN_OFFSET = 85300;
-	public const int CLAN_SPLIT = 85500;
+    public const int CLAN_GENERATE_NAME = 85000;
+    public const int CLAN_CHOOSE_CORE_GROUP = 85100;
+    public const int CLAN_CHOOSE_TARGET_GROUP = 85200;
+    public const int CLAN_LEADER_GEN_OFFSET = 85300;
+    public const int CLAN_SPLIT = 85500;
 
-	public const int AGENT_GENERATE_BIO = 90000;
+    public const int AGENT_GENERATE_BIO = 90000;
     public const int AGENT_GENERATE_NAME = 91000;
 
     public const int ROUTE_CHOOSE_NEXT_DEPTH_SEA_CELL = 100000;
-	public const int ROUTE_CHOOSE_NEXT_COASTAL_CELL = 110000;
-	public const int ROUTE_CHOOSE_NEXT_COASTAL_CELL_2 = 120000;
+    public const int ROUTE_CHOOSE_NEXT_COASTAL_CELL = 110000;
+    public const int ROUTE_CHOOSE_NEXT_COASTAL_CELL_2 = 120000;
 
-	public const int FARM_DEGRADATION_EVENT_CALCULATE_TRIGGER_DATE = 900000;
-	public const int SAILING_DISCOVERY_EVENT_CALCULATE_TRIGGER_DATE = 900001;
-	public const int TRIBALISM_DISCOVERY_EVENT_CALCULATE_TRIGGER_DATE = 900002;
-	public const int TRIBE_FORMATION_EVENT_CALCULATE_TRIGGER_DATE = 900003;
-	public const int BOAT_MAKING_DISCOVERY_EVENT_CALCULATE_TRIGGER_DATE = 900004;
-	public const int PLANT_CULTIVATION_DISCOVERY_EVENT_CALCULATE_TRIGGER_DATE = 900005;
+    public const int FARM_DEGRADATION_EVENT_CALCULATE_TRIGGER_DATE = 900000;
+    public const int SAILING_DISCOVERY_EVENT_CALCULATE_TRIGGER_DATE = 900001;
+    public const int TRIBALISM_DISCOVERY_EVENT_CALCULATE_TRIGGER_DATE = 900002;
+    public const int TRIBE_FORMATION_EVENT_CALCULATE_TRIGGER_DATE = 900003;
+    public const int BOAT_MAKING_DISCOVERY_EVENT_CALCULATE_TRIGGER_DATE = 900004;
+    public const int PLANT_CULTIVATION_DISCOVERY_EVENT_CALCULATE_TRIGGER_DATE = 900005;
 
-	public const int CLAN_SPLITTING_EVENT_CALCULATE_TRIGGER_DATE = 900006;
-	public const int CLAN_SPLITTING_EVENT_PREFER_SPLIT = 900007;
-	public const int CLAN_SPLITTING_EVENT_LEADER_PREVENTS_MODIFY_ATTRIBUTE = 900008;
+    public const int CLAN_SPLITTING_EVENT_CALCULATE_TRIGGER_DATE = 900006;
+    public const int CLAN_SPLITTING_EVENT_PREFER_SPLIT = 900007;
+    public const int CLAN_SPLITTING_EVENT_LEADER_PREVENTS_MODIFY_ATTRIBUTE = 900008;
 
-	public const int TRIBE_SPLITTING_EVENT_CALCULATE_TRIGGER_DATE = 900010;
-	public const int TRIBE_SPLITTING_EVENT_SPLITCLAN_PREFER_SPLIT = 900011;
-	public const int TRIBE_SPLITTING_EVENT_TRIBE_PREFER_SPLIT = 900012;
-	public const int TRIBE_SPLITTING_EVENT_SPLITCLAN_LEADER_PREVENTS_MODIFY_ATTRIBUTE = 900013;
-	public const int TRIBE_SPLITTING_EVENT_TRIBE_LEADER_PREVENTS_MODIFY_ATTRIBUTE = 900014;
+    public const int TRIBE_SPLITTING_EVENT_CALCULATE_TRIGGER_DATE = 900010;
+    public const int TRIBE_SPLITTING_EVENT_SPLITCLAN_PREFER_SPLIT = 900011;
+    public const int TRIBE_SPLITTING_EVENT_TRIBE_PREFER_SPLIT = 900012;
+    public const int TRIBE_SPLITTING_EVENT_SPLITCLAN_LEADER_PREVENTS_MODIFY_ATTRIBUTE = 900013;
+    public const int TRIBE_SPLITTING_EVENT_TRIBE_LEADER_PREVENTS_MODIFY_ATTRIBUTE = 900014;
 
-	public const int CLAN_CORE_MIGRATION_EVENT_CALCULATE_TRIGGER_DATE = 900020;
+    public const int CLAN_CORE_MIGRATION_EVENT_CALCULATE_TRIGGER_DATE = 900020;
 
-	public const int CLAN_DEMANDS_INFLUENCE_EVENT_CALCULATE_TRIGGER_DATE = 900021;
-	public const int CLAN_DEMANDS_INFLUENCE_EVENT_PERFORM_DEMAND = 900022;
-	public const int CLAN_DEMANDS_INFLUENCE_EVENT_ACCEPT_DEMAND = 900023;
-	public const int CLAN_DEMANDS_INFLUENCE_EVENT_DEMANDCLAN_LEADER_AVOIDS_DEMAND_MODIFY_ATTRIBUTE = 900024;
-	public const int CLAN_DEMANDS_INFLUENCE_EVENT_DEMANDCLAN_LEADER_DEMANDS_MODIFY_ATTRIBUTE = 900025;
-	public const int CLAN_DEMANDS_INFLUENCE_EVENT_DOMINANTCLAN_LEADER_REJECTS_DEMAND_MODIFY_ATTRIBUTE = 900026;
-	public const int CLAN_DEMANDS_INFLUENCE_EVENT_DOMINANTCLAN_LEADER_ACCEPTS_DEMAND_MODIFY_ATTRIBUTE = 900027;
+    public const int CLAN_DEMANDS_INFLUENCE_EVENT_CALCULATE_TRIGGER_DATE = 900021;
+    public const int CLAN_DEMANDS_INFLUENCE_EVENT_PERFORM_DEMAND = 900022;
+    public const int CLAN_DEMANDS_INFLUENCE_EVENT_ACCEPT_DEMAND = 900023;
+    public const int CLAN_DEMANDS_INFLUENCE_EVENT_DEMANDCLAN_LEADER_AVOIDS_DEMAND_MODIFY_ATTRIBUTE = 900024;
+    public const int CLAN_DEMANDS_INFLUENCE_EVENT_DEMANDCLAN_LEADER_DEMANDS_MODIFY_ATTRIBUTE = 900025;
+    public const int CLAN_DEMANDS_INFLUENCE_EVENT_DOMINANTCLAN_LEADER_REJECTS_DEMAND_MODIFY_ATTRIBUTE = 900026;
+    public const int CLAN_DEMANDS_INFLUENCE_EVENT_DOMINANTCLAN_LEADER_ACCEPTS_DEMAND_MODIFY_ATTRIBUTE = 900027;
 
-	public const int FOSTER_TRIBE_RELATION_EVENT_CALCULATE_TRIGGER_DATE = 900030;
-	public const int FOSTER_TRIBE_RELATION_EVENT_MAKE_ATTEMPT = 900031;
-	public const int FOSTER_TRIBE_RELATION_EVENT_REJECT_OFFER = 900032;
-	public const int FOSTER_TRIBE_RELATION_EVENT_SOURCETRIBE_LEADER_AVOIDS_ATTEMPT_MODIFY_ATTRIBUTE = 900033;
-	public const int FOSTER_TRIBE_RELATION_EVENT_SOURCETRIBE_LEADER_MAKES_ATTEMPT_MODIFY_ATTRIBUTE = 900034;
-	public const int FOSTER_TRIBE_RELATION_EVENT_TARGETTRIBE_LEADER_ACCEPT_OFFER = 900035;
-	public const int FOSTER_TRIBE_RELATION_EVENT_TARGETTRIBE_LEADER_REJECTS_OFFER_MODIFY_ATTRIBUTE = 900036;
-	public const int FOSTER_TRIBE_RELATION_EVENT_TARGETTRIBE_LEADER_ACCEPTS_OFFER_MODIFY_ATTRIBUTE = 900037;
+    public const int FOSTER_TRIBE_RELATION_EVENT_CALCULATE_TRIGGER_DATE = 900030;
+    public const int FOSTER_TRIBE_RELATION_EVENT_MAKE_ATTEMPT = 900031;
+    public const int FOSTER_TRIBE_RELATION_EVENT_REJECT_OFFER = 900032;
+    public const int FOSTER_TRIBE_RELATION_EVENT_SOURCETRIBE_LEADER_AVOIDS_ATTEMPT_MODIFY_ATTRIBUTE = 900033;
+    public const int FOSTER_TRIBE_RELATION_EVENT_SOURCETRIBE_LEADER_MAKES_ATTEMPT_MODIFY_ATTRIBUTE = 900034;
+    public const int FOSTER_TRIBE_RELATION_EVENT_TARGETTRIBE_LEADER_ACCEPT_OFFER = 900035;
+    public const int FOSTER_TRIBE_RELATION_EVENT_TARGETTRIBE_LEADER_REJECTS_OFFER_MODIFY_ATTRIBUTE = 900036;
+    public const int FOSTER_TRIBE_RELATION_EVENT_TARGETTRIBE_LEADER_ACCEPTS_OFFER_MODIFY_ATTRIBUTE = 900037;
 
-	public const int MERGE_TRIBES_EVENT_CALCULATE_TRIGGER_DATE = 900040;
-	public const int MERGE_TRIBES_EVENT_MAKE_ATTEMPT = 900041;
-	public const int MERGE_TRIBES_EVENT_REJECT_OFFER = 900042;
-	public const int MERGE_TRIBES_EVENT_SOURCETRIBE_LEADER_AVOIDS_ATTEMPT_MODIFY_ATTRIBUTE = 900043;
-	public const int MERGE_TRIBES_EVENT_SOURCETRIBE_LEADER_MAKES_ATTEMPT_MODIFY_ATTRIBUTE = 900044;
-	public const int MERGE_TRIBES_EVENT_TARGETTRIBE_LEADER_ACCEPT_OFFER = 900045;
-	public const int MERGE_TRIBES_EVENT_TARGETTRIBE_LEADER_REJECTS_OFFER_MODIFY_ATTRIBUTE = 900046;
-	public const int MERGE_TRIBES_EVENT_TARGETTRIBE_LEADER_ACCEPTS_OFFER_MODIFY_ATTRIBUTE = 900047;
+    public const int MERGE_TRIBES_EVENT_CALCULATE_TRIGGER_DATE = 900040;
+    public const int MERGE_TRIBES_EVENT_MAKE_ATTEMPT = 900041;
+    public const int MERGE_TRIBES_EVENT_REJECT_OFFER = 900042;
+    public const int MERGE_TRIBES_EVENT_SOURCETRIBE_LEADER_AVOIDS_ATTEMPT_MODIFY_ATTRIBUTE = 900043;
+    public const int MERGE_TRIBES_EVENT_SOURCETRIBE_LEADER_MAKES_ATTEMPT_MODIFY_ATTRIBUTE = 900044;
+    public const int MERGE_TRIBES_EVENT_TARGETTRIBE_LEADER_ACCEPT_OFFER = 900045;
+    public const int MERGE_TRIBES_EVENT_TARGETTRIBE_LEADER_REJECTS_OFFER_MODIFY_ATTRIBUTE = 900046;
+    public const int MERGE_TRIBES_EVENT_TARGETTRIBE_LEADER_ACCEPTS_OFFER_MODIFY_ATTRIBUTE = 900047;
 
-	public const int OPEN_TRIBE_EVENT_CALCULATE_TRIGGER_DATE = 900050;
-	public const int OPEN_TRIBE_EVENT_MAKE_ATTEMPT = 900051;
-	public const int OPEN_TRIBE_EVENT_SOURCETRIBE_LEADER_AVOIDS_ATTEMPT_MODIFY_ATTRIBUTE = 900052;
-	public const int OPEN_TRIBE_EVENT_SOURCETRIBE_LEADER_MAKES_ATTEMPT_MODIFY_ATTRIBUTE = 900053;
+    public const int OPEN_TRIBE_EVENT_CALCULATE_TRIGGER_DATE = 900050;
+    public const int OPEN_TRIBE_EVENT_MAKE_ATTEMPT = 900051;
+    public const int OPEN_TRIBE_EVENT_SOURCETRIBE_LEADER_AVOIDS_ATTEMPT_MODIFY_ATTRIBUTE = 900052;
+    public const int OPEN_TRIBE_EVENT_SOURCETRIBE_LEADER_MAKES_ATTEMPT_MODIFY_ATTRIBUTE = 900053;
 
-	public const int EVENT_TRIGGER = 1000000;
-	public const int EVENT_CAN_TRIGGER = 1100000;
+    public const int EVENT_TRIGGER = 1000000;
+    public const int EVENT_CAN_TRIGGER = 1100000;
 
-	public const int MIGRATING_GROUP_MOVE_FACTION_CORE = 2000000;
-	public const int EXPAND_POLITY_MOVE_FACTION_CORE = 2100000;
+    public const int MIGRATING_GROUP_MOVE_FACTION_CORE = 2000000;
+    public const int EXPAND_POLITY_MOVE_FACTION_CORE = 2100000;
+}
+
+public enum GenerationType
+{
+    Temperature = 0x01,
+    Rainfall = 0x02,
+    TerrainNormal = 0x07,
+    TerrainRegeneration = 0x0B
 }
 
 [XmlRoot]
@@ -209,6 +217,9 @@ public class World : ISynchronizable
     public int TerrainCellChangesListCount { get; private set; }
 
     [XmlAttribute]
+    public float AltitudeScale { get; private set; }
+
+    [XmlAttribute]
     public float SeaLevelOffset { get; private set; }
 
     [XmlAttribute]
@@ -243,7 +254,7 @@ public class World : ISynchronizable
     public List<CulturalSkillInfo> CulturalSkillInfoList = new List<CulturalSkillInfo>();
     public List<CulturalKnowledgeInfo> CulturalKnowledgeInfoList = new List<CulturalKnowledgeInfo>();
     public List<CulturalDiscoveryInfo> CulturalDiscoveryInfoList = new List<CulturalDiscoveryInfo>();
-    
+
     public List<CellGroup> CellGroups;
 
     [XmlArrayItem(Type = typeof(Agent))]
@@ -407,90 +418,104 @@ public class World : ISynchronizable
         RegionCount = 0;
         TerrainCellChangesListCount = 0;
 
+        AltitudeScale = Manager.AltitudeScale;
         SeaLevelOffset = Manager.SeaLevelOffset;
         RainfallOffset = Manager.RainfallOffset;
         TemperatureOffset = Manager.TemperatureOffset;
     }
 
-    public void StartInitialization (float acumulatedProgress, float progressIncrement) {
+    public void StartReinitialization(float acumulatedProgress, float progressIncrement)
+    {
+        Manager.AltitudeScale = AltitudeScale;
+        Manager.SeaLevelOffset = SeaLevelOffset;
+        Manager.RainfallOffset = RainfallOffset;
+        Manager.TemperatureOffset = TemperatureOffset;
 
-		Manager.SeaLevelOffset = SeaLevelOffset;
-		Manager.RainfallOffset = RainfallOffset;
-		Manager.TemperatureOffset = TemperatureOffset;
+        _accumulatedProgress = acumulatedProgress;
+        _progressIncrement = progressIncrement;
 
-		_accumulatedProgress = acumulatedProgress;
-		_progressIncrement = progressIncrement;
-		
-		_cellMaxSideLength = Circumference / Width;
-		TerrainCell.MaxArea = _cellMaxSideLength * _cellMaxSideLength;
-		TerrainCell.MaxWidth = _cellMaxSideLength;
-		CellGroup.TravelWidthFactor = _cellMaxSideLength;
-		
-		TerrainCells = new TerrainCell[Width][];
-		
-		for (int i = 0; i < Width; i++)
-		{
-			TerrainCell[] column = new TerrainCell[Height];
-			
-			for (int j = 0; j < Height; j++)
-			{
-				float alpha = (j / (float)Height) * Mathf.PI;
+        Manager.EnqueueTaskAndWait(() =>
+        {
+            Random.InitState(Seed);
+            return true;
+        });
+    }
 
-				float cellHeight = _cellMaxSideLength;
-				float cellWidth = Mathf.Sin(alpha) * _cellMaxSideLength;
+    public void StartInitialization(float acumulatedProgress, float progressIncrement)
+    {
+        Manager.AltitudeScale = AltitudeScale;
+        Manager.SeaLevelOffset = SeaLevelOffset;
+        Manager.RainfallOffset = RainfallOffset;
+        Manager.TemperatureOffset = TemperatureOffset;
 
-				TerrainCell cell = new TerrainCell (this, i, j, cellHeight, cellWidth);
-				
-				column[j] = cell;
-			}
-			
-			TerrainCells[i] = column;
-		}
-		
-		for (int i = 0; i < Width; i++) {
-			
-			for (int j = 0; j < Height; j++) {
+        _accumulatedProgress = acumulatedProgress;
+        _progressIncrement = progressIncrement;
 
-				TerrainCell cell = TerrainCells [i] [j];
-				
-				cell.InitializeNeighbors();
-			}
-		}
-		
-		_continentOffsets = new Vector2[NumContinents];
-		_continentHeights = new float[NumContinents];
-		_continentWidths = new float[NumContinents];
+        _cellMaxSideLength = Circumference / Width;
+        TerrainCell.MaxArea = _cellMaxSideLength * _cellMaxSideLength;
+        TerrainCell.MaxWidth = _cellMaxSideLength;
+        CellGroup.TravelWidthFactor = _cellMaxSideLength;
+
+        TerrainCells = new TerrainCell[Width][];
+
+        for (int i = 0; i < Width; i++)
+        {
+            TerrainCell[] column = new TerrainCell[Height];
+
+            for (int j = 0; j < Height; j++)
+            {
+                float alpha = (j / (float)Height) * Mathf.PI;
+
+                float cellHeight = _cellMaxSideLength;
+                float cellWidth = Mathf.Sin(alpha) * _cellMaxSideLength;
+
+                TerrainCell cell = new TerrainCell(this, i, j, cellHeight, cellWidth);
+
+                column[j] = cell;
+            }
+
+            TerrainCells[i] = column;
+        }
+
+        for (int i = 0; i < Width; i++)
+        {
+            for (int j = 0; j < Height; j++)
+            {
+                TerrainCell cell = TerrainCells[i][j];
+
+                cell.InitializeNeighbors();
+            }
+        }
+
+        _continentOffsets = new Vector2[NumContinents];
+        _continentHeights = new float[NumContinents];
+        _continentWidths = new float[NumContinents];
         _continentAltitudeOffsets = new float[NumContinents];
 
-        Manager.EnqueueTaskAndWait (() => {
-			
-			Random.InitState(Seed);
-			return true;
-		});
-	}
+        Manager.EnqueueTaskAndWait(() =>
+        {
+            Random.InitState(Seed);
+            return true;
+        });
+    }
 
-	public void FinishInitialization () {
+    public void FinishInitialization()
+    {
+        for (int i = 0; i < Width; i++)
+        {
+            for (int j = 0; j < Height; j++)
+            {
+                TerrainCell cell = TerrainCells[i][j];
 
-		for (int i = 0; i < Width; i++) {
+                cell.InitializeMiscellaneous();
+            }
+        }
 
-			for (int j = 0; j < Height; j++) {
-
-				TerrainCell cell = TerrainCells [i] [j];
-
-				cell.InitializeMiscellaneous();
-			}
-		}
-
-		foreach (TerrainCellChanges changes in TerrainCellChangesList) {
-
-			SetTerrainCellChanges (changes);
-		}
-	}
-
-    //	public List<WorldEvent> GetValidEventsToHappen () {
-    //	
-    //		return _eventsToHappen.GetValues (ValidateEventsToHappenNode);
-    //	}
+        foreach (TerrainCellChanges changes in TerrainCellChangesList)
+        {
+            SetTerrainCellChanges(changes);
+        }
+    }
 
     public List<WorldEvent> GetFilteredEventsToHappenForSerialization()
     {
@@ -557,7 +582,7 @@ public class World : ISynchronizable
         {
             p.Synchronize();
         }
-        
+
         foreach (RegionInfo r in RegionInfos.Values)
         {
             r.Synchronize();
@@ -609,11 +634,6 @@ public class World : ISynchronizable
 
         cell.SetChanges(changes);
     }
-
-    //	public void AddGroupActionToPerform (KnowledgeTransferAction action) {
-    //	
-    //		_groupActionsToPerform.Add (action);
-    //	}
 
     public void AddExistingCulturalPreferenceInfo(CulturalPreferenceInfo baseInfo)
     {
@@ -926,7 +946,7 @@ public class World : ISynchronizable
         {
             if (!polity.StillPresent)
                 continue;
-            
+
             polity.ClusterUpdate();
         }
 
@@ -1023,14 +1043,14 @@ public class World : ISynchronizable
             _eventsToHappen.RemoveLeftmost();
             EventsToHappenCount--;
 
-//#if DEBUG
-//            if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-//            {
-//                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("Event Being Triggered", "Triggering");
+            //#if DEBUG
+            //            if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
+            //            {
+            //                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("Event Being Triggered", "Triggering");
 
-//                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-//            }
-//#endif
+            //                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+            //            }
+            //#endif
 
 #if DEBUG
             //string eventTypeName = eventToHappen.GetType().ToString();
@@ -1458,17 +1478,17 @@ public class World : ISynchronizable
         return FactionInfos.ContainsKey(id);
     }
 
-    public void AddFactionToSplit (Faction faction)
+    public void AddFactionToSplit(Faction faction)
     {
         if (!faction.StillPresent)
         {
             Debug.LogWarning("Faction to split no longer present. Id: " + faction.Id + ", Date: " + CurrentDate);
         }
 
-        _factionsToSplit.Add (faction);
-	}
+        _factionsToSplit.Add(faction);
+    }
 
-	public void AddFactionToUpdate (Faction faction)
+    public void AddFactionToUpdate(Faction faction)
     {
 #if DEBUG
         if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 1))
@@ -1481,7 +1501,7 @@ public class World : ISynchronizable
                 string callingMethod = method.Name;
 
                 int frame = 2;
-                while (callingMethod.Contains("SetFactionUpdates") 
+                while (callingMethod.Contains("SetFactionUpdates")
                     || callingMethod.Contains("SetToUpdate"))
                 {
                     method = stackTrace.GetFrame(frame).GetMethod();
@@ -1528,7 +1548,7 @@ public class World : ISynchronizable
             string callingClass = method.DeclaringType.ToString();
 
             Debug.LogWarning(
-                "Trying to add faction to update after factions have already been updated this iteration. Id: " + 
+                "Trying to add faction to update after factions have already been updated this iteration. Id: " +
                 faction.Id + ", Calling method: " + callingClass + "." + callingMethod);
         }
 
@@ -1537,31 +1557,33 @@ public class World : ISynchronizable
             Debug.LogWarning("Faction to update no longer present. Id: " + faction.Id + ", Date: " + CurrentDate);
         }
 
-		_factionsToUpdate.Add (faction);
-	}
+        _factionsToUpdate.Add(faction);
+    }
 
-	public void AddFactionToRemove (Faction faction) {
-
-		_factionsToRemove.Add (faction);
-	}
-
-	public void AddPolityInfo (PolityInfo polityInfo) {
-
-		PolityInfos.Add (polityInfo.Id, polityInfo);
-
-		PolityCount++;
-	}
-
-	public PolityInfo GetPolityInfo (long id)
+    public void AddFactionToRemove(Faction faction)
     {
-		PolityInfo polityInfo;
 
-		if (!PolityInfos.TryGetValue (id, out polityInfo))
+        _factionsToRemove.Add(faction);
+    }
+
+    public void AddPolityInfo(PolityInfo polityInfo)
+    {
+
+        PolityInfos.Add(polityInfo.Id, polityInfo);
+
+        PolityCount++;
+    }
+
+    public PolityInfo GetPolityInfo(long id)
+    {
+        PolityInfo polityInfo;
+
+        if (!PolityInfos.TryGetValue(id, out polityInfo))
         {
-			return null;
-		}
+            return null;
+        }
 
-		return polityInfo;
+        return polityInfo;
     }
 
     public Polity GetPolity(long id)
@@ -1576,7 +1598,7 @@ public class World : ISynchronizable
         return polityInfo.Polity;
     }
 
-    public void AddPolityToUpdate (Polity polity)
+    public void AddPolityToUpdate(Polity polity)
     {
 #if DEBUG
         if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 1))
@@ -1619,9 +1641,9 @@ public class World : ISynchronizable
             Debug.LogWarning("Polity to update no longer present. Id: " + polity.Id + ", Date: " + CurrentDate);
         }
 
-        _politiesToUpdate.Add (polity);
-		polity.WillBeUpdated = true;
-	}
+        _politiesToUpdate.Add(polity);
+        polity.WillBeUpdated = true;
+    }
 
     public void AddPolityThatNeedsClusterUpdate(Polity polity)
     {
@@ -1862,40 +1884,76 @@ public class World : ISynchronizable
             MigrationTaggedGroup.MigrationTagged = false;
     }
 
-    public void GenerateTerrain(Texture2D heightmap)
+    public void GenerateTerrain(GenerationType type, Texture2D heightmap)
     {
-        ProgressCastMethod(_accumulatedProgress, "Generating Terrain...");
-
-        if (heightmap == null)
+        if ((type & GenerationType.TerrainNormal) == GenerationType.TerrainNormal)
         {
-            //GenerateTerrainAltitude();
-            GenerateTerrainAltitudeOld();
+            if (heightmap == null)
+            {
+                ProgressCastMethod(_accumulatedProgress, "Generating terrain...");
+
+                //GenerateTerrainAltitude();
+                GenerateTerrainAltitudeOld();
+            }
+            else
+            {
+                ProgressCastMethod(_accumulatedProgress, "Generating terrain using heightmap...");
+
+                GenerateTerrainFromHeightmap(heightmap);
+            }
+        }
+        else if ((type & GenerationType.TerrainRegeneration) == GenerationType.TerrainRegeneration)
+        {
+            ProgressCastMethod(_accumulatedProgress, "Regenerating terrain...");
+
+            RegenerateTerrain();
+        }
+
+        if ((type & GenerationType.Rainfall) == GenerationType.Rainfall)
+        {
+            ProgressCastMethod(_accumulatedProgress, "Calculating rainfall...");
+
+            GenerateTerrainRainfall();
         }
         else
         {
-            GenerateTerrainFromHeightmap(heightmap);
+            _accumulatedProgress += _progressIncrement;
         }
 
-        ProgressCastMethod(_accumulatedProgress, "Calculating Rainfall...");
+        if ((type & GenerationType.Temperature) == GenerationType.Temperature)
+        {
+            ProgressCastMethod(_accumulatedProgress, "Calculating temperatures...");
 
-        GenerateTerrainRainfall();
+            GenerateTerrainTemperature();
+        }
+        else
+        {
+            _accumulatedProgress += _progressIncrement;
+        }
 
-        ProgressCastMethod(_accumulatedProgress, "Calculating Temperatures...");
-
-        GenerateTerrainTemperature();
-
-        ProgressCastMethod(_accumulatedProgress, "Generating Biomes...");
+        ProgressCastMethod(_accumulatedProgress, "Generating biomes...");
 
         GenerateTerrainBiomes();
 
-        ProgressCastMethod(_accumulatedProgress, "Generating Arability...");
+        ProgressCastMethod(_accumulatedProgress, "Generating arability...");
 
         GenerateTerrainArability();
     }
 
     public void Generate(Texture2D heightmap)
     {
-        GenerateTerrain(heightmap);
+        TerrainCellChangesList.Clear();
+
+        GenerateTerrain(GenerationType.TerrainNormal, heightmap);
+
+        ProgressCastMethod(_accumulatedProgress, "Finalizing...");
+    }
+
+    public void Regenerate(GenerationType type)
+    {
+        TerrainCellChangesList.Clear();
+
+        GenerateTerrain(type, null);
 
         ProgressCastMethod(_accumulatedProgress, "Finalizing...");
     }
@@ -2040,24 +2098,43 @@ public class World : ISynchronizable
         return maxValue;
     }
 
-    private float GetContinentDistance (int id, int x, int y) {
-		
-		float betaFactor = Mathf.Sin(Mathf.PI * y / Height);
+    private float GetContinentDistance(int id, int x, int y)
+    {
 
-		Vector2 continentOffset = _continentOffsets[id];
-		float contX = continentOffset.x;
-		float contY = continentOffset.y;
-		
-		float distX = Mathf.Min(Mathf.Abs(contX - x), Mathf.Abs(Width + contX - x));
-		distX = Mathf.Min(distX, Mathf.Abs(contX - x - Width));
-		distX *= betaFactor;
-		
-		float distY = Mathf.Abs(contY - y);
-		
-		float continentWidth = _continentWidths[id];
-		float continentHeight = _continentHeights[id];
-		
-		return new Vector2(distX*continentWidth, distY*continentHeight).magnitude;
+        float betaFactor = Mathf.Sin(Mathf.PI * y / Height);
+
+        Vector2 continentOffset = _continentOffsets[id];
+        float contX = continentOffset.x;
+        float contY = continentOffset.y;
+
+        float distX = Mathf.Min(Mathf.Abs(contX - x), Mathf.Abs(Width + contX - x));
+        distX = Mathf.Min(distX, Mathf.Abs(contX - x - Width));
+        distX *= betaFactor;
+
+        float distY = Mathf.Abs(contY - y);
+
+        float continentWidth = _continentWidths[id];
+        float continentHeight = _continentHeights[id];
+
+        return new Vector2(distX * continentWidth, distY * continentHeight).magnitude;
+    }
+
+    private void RegenerateTerrain()
+    {
+        int sizeX = Width;
+        int sizeY = Height;
+
+        for (int i = 0; i < sizeX; i++)
+        {
+            for (int j = 0; j < sizeY; j++)
+            {
+                RecalculateAndSetAltitude(i, j);
+            }
+
+            ProgressCastMethod(_accumulatedProgress + _progressIncrement * (i + 1) / (float)sizeX);
+        }
+
+        _accumulatedProgress += _progressIncrement;
     }
 
     private void GenerateTerrainFromHeightmap(Texture2D heightmap)
@@ -2109,7 +2186,7 @@ public class World : ISynchronizable
                     greyscaleValue /= totalPixels;
                 }
 
-                greyscaleValue = greyscaleValue*0.4f + 0.3f; // NOTE: Bogus adjustment, should be exposed to user
+                //greyscaleValue = greyscaleValue * 0.4f + 0.3f; // NOTE: Bogus adjustment, should be exposed to user
 
                 CalculateAndSetAltitude(i, j, greyscaleValue);
             }
@@ -2149,7 +2226,7 @@ public class World : ISynchronizable
         ManagerTask<Vector3> offset7 = GenerateRandomOffsetVector();
         ManagerTask<Vector3> offset8 = GenerateRandomOffsetVector();
         ManagerTask<Vector3> offset9 = GenerateRandomOffsetVector();
-        
+
         //// Doing this only to make sure that Unity's RNG gets called the same number of times as with the new terrain generation function
         //ManagerTask<Vector3>[] offsetK = new ManagerTask<Vector3>[NumContinents];
         //ManagerTask<Vector3>[] offsetK2 = new ManagerTask<Vector3>[NumContinents];
@@ -2287,39 +2364,39 @@ public class World : ISynchronizable
         float continentValue = distSumFactor2 * (continentMountainValue + continentTrenchValue);
 
         float collisionValue = Mathf.Lerp(continentValue, mountRangeValue, 0.4f);
-        
+
         return collisionValue;
     }
 
     private void GenerateTerrainAltitude()
     {
-		GenerateContinents();
-		
-		int sizeX = Width;
-		int sizeY = Height;
+        GenerateContinents();
 
-		float radius1 = 0.75f;
-		//float radius1b = 1.25f;
-		float radius2 = 8f;
-		float radius3 = 4f;
-		float radius4 = 8f;
-		float radius5 = 16f;
-		float radius6 = 64f;
-		float radius7 = 128f;
-		float radius8 = 1.5f;
-		float radius9 = 1f;
+        int sizeX = Width;
+        int sizeY = Height;
 
-		ManagerTask<Vector3> offset1 = GenerateRandomOffsetVector();
-		ManagerTask<Vector3> offset2 = GenerateRandomOffsetVector();
-		//ManagerTask<Vector3> offset1b = GenerateRandomOffsetVector();
-		//ManagerTask<Vector3> offset2b = GenerateRandomOffsetVector();
-		ManagerTask<Vector3> offset3 = GenerateRandomOffsetVector();
-		ManagerTask<Vector3> offset4 = GenerateRandomOffsetVector();
-		ManagerTask<Vector3> offset5 = GenerateRandomOffsetVector();
-		ManagerTask<Vector3> offset6 = GenerateRandomOffsetVector();
-		ManagerTask<Vector3> offset7 = GenerateRandomOffsetVector();
-		ManagerTask<Vector3> offset8 = GenerateRandomOffsetVector();
-		ManagerTask<Vector3> offset9 = GenerateRandomOffsetVector();
+        float radius1 = 0.75f;
+        //float radius1b = 1.25f;
+        float radius2 = 8f;
+        float radius3 = 4f;
+        float radius4 = 8f;
+        float radius5 = 16f;
+        float radius6 = 64f;
+        float radius7 = 128f;
+        float radius8 = 1.5f;
+        float radius9 = 1f;
+
+        ManagerTask<Vector3> offset1 = GenerateRandomOffsetVector();
+        ManagerTask<Vector3> offset2 = GenerateRandomOffsetVector();
+        //ManagerTask<Vector3> offset1b = GenerateRandomOffsetVector();
+        //ManagerTask<Vector3> offset2b = GenerateRandomOffsetVector();
+        ManagerTask<Vector3> offset3 = GenerateRandomOffsetVector();
+        ManagerTask<Vector3> offset4 = GenerateRandomOffsetVector();
+        ManagerTask<Vector3> offset5 = GenerateRandomOffsetVector();
+        ManagerTask<Vector3> offset6 = GenerateRandomOffsetVector();
+        ManagerTask<Vector3> offset7 = GenerateRandomOffsetVector();
+        ManagerTask<Vector3> offset8 = GenerateRandomOffsetVector();
+        ManagerTask<Vector3> offset9 = GenerateRandomOffsetVector();
 
         float radiusK = 4f;
         float radiusK2 = 15f;
@@ -2333,12 +2410,12 @@ public class World : ISynchronizable
         }
 
         for (int i = 0; i < sizeX; i++)
-		{
-			float beta = (i / (float)sizeX) * Mathf.PI * 2;
-			
-			for (int j = 0; j < sizeY; j++)
-			{
-				float alpha = (j / (float)sizeY) * Mathf.PI;
+        {
+            float beta = (i / (float)sizeX) * Mathf.PI * 2;
+
+            for (int j = 0; j < sizeY; j++)
+            {
+                float alpha = (j / (float)sizeY) * Mathf.PI;
 
                 float value1 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius1, offset1);
                 float value2 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius2, offset2);
@@ -2376,7 +2453,7 @@ public class World : ISynchronizable
                 valueCb = Mathf.Lerp(valueCb, value2, 0.04f * value8);
                 valueCb = GetMountainRangeNoiseFromRandomNoise(valueCb, 25);
                 valueC = Mathf.Lerp(valueC, valueCb, 0.25f * value8);
-                
+
                 valueC = Mathf.Lerp(valueC, value4, 0.075f);
                 valueC = Mathf.Lerp(valueC, value5, 0.05f);
                 valueC = Mathf.Lerp(valueC, value6, 0.02f);
@@ -2397,144 +2474,157 @@ public class World : ISynchronizable
                 //CalculateAndSetAltitude(i, j, valueF);
             }
 
-            ProgressCastMethod (_accumulatedProgress + _progressIncrement * (i + 1)/(float)sizeX);
-		}
+            ProgressCastMethod(_accumulatedProgress + _progressIncrement * (i + 1) / (float)sizeX);
+        }
 
-		_accumulatedProgress += _progressIncrement;
-	}
+        _accumulatedProgress += _progressIncrement;
+    }
 
-    private ManagerTask<int> GenerateRandomInteger (int min, int max) {
-		
-		return Manager.EnqueueTask (() => Random.Range(min, max));
-	}
-
-	private ManagerTask<Vector3> GenerateRandomOffsetVector () {
-
-		return Manager.EnqueueTask (() => {
-//			Vector3 randVector = Random.insideUnitSphere;
-//
-//			randVector.x = (float)System.Math.Round (randVector.x, 4);
-//			randVector.y = (float)System.Math.Round (randVector.y, 4);
-//			randVector.z = (float)System.Math.Round (randVector.z, 4);
-
-			return RandomUtility.insideUnitSphere * 1000;
-		});
-	}
-
-	// Returns a value between 0 and 1
-	private float GetRandomNoiseFromPolarCoordinates (float alpha, float beta, float radius, Vector3 offset) {
-
-		Vector3 pos = MathUtility.GetCartesianCoordinates(alpha,beta,radius) + offset;
-		
-		return PerlinNoise.GetValue(pos.x, pos.y, pos.z);
-	}
-	
-	private float GetMountainRangeNoiseFromRandomNoise(float noise, float widthFactor)
+    private ManagerTask<int> GenerateRandomInteger(int min, int max)
     {
-		noise = (noise * 2) - 1;
-		
-		float value1 = -Mathf.Exp (-Mathf.Pow(noise * widthFactor + 1f, 2));
-		float value2 = Mathf.Exp (-Mathf.Pow(noise * widthFactor - 1f, 2));
+        return Manager.EnqueueTask(() => Random.Range(min, max));
+    }
 
-		float value = (value1 + value2 + 1) / 2f;
-		
-		return value;
-	}
-	
-	private float GetRiverNoiseFromRandomNoise(float noise, float widthFactor) {
-		
-		noise = (noise * 2) - 1;
+    private ManagerTask<Vector3> GenerateRandomOffsetVector()
+    {
+        return Manager.EnqueueTask(() =>
+        {
+            //			Vector3 randVector = Random.insideUnitSphere;
+            //
+            //			randVector.x = (float)System.Math.Round (randVector.x, 4);
+            //			randVector.y = (float)System.Math.Round (randVector.y, 4);
+            //			randVector.z = (float)System.Math.Round (randVector.z, 4);
 
-		float value = Mathf.Exp(-Mathf.Pow(noise * widthFactor, 2));
-		
-		value = (value + 1) / 2f;
-		
-		return value;
-	}
+            return RandomUtility.insideUnitSphere * 1000;
+        });
+    }
 
-	private float CalculateAltitude (float value) {
-	
-		float span = MaxPossibleAltitude - MinPossibleAltitude;
+    // Returns a value between 0 and 1
+    private float GetRandomNoiseFromPolarCoordinates(float alpha, float beta, float radius, Vector3 offset)
+    {
+        Vector3 pos = MathUtility.GetCartesianCoordinates(alpha, beta, radius) + offset;
 
-		float altitude = (value * span) + MinPossibleAltitude;
+        return PerlinNoise.GetValue(pos.x, pos.y, pos.z);
+    }
 
-		altitude -= Manager.SeaLevelOffset;
+    private float GetMountainRangeNoiseFromRandomNoise(float noise, float widthFactor)
+    {
+        noise = (noise * 2) - 1;
 
-		altitude = Mathf.Clamp (altitude, MinPossibleAltitudeWithOffset, MaxPossibleAltitudeWithOffset);
+        float value1 = -Mathf.Exp(-Mathf.Pow(noise * widthFactor + 1f, 2));
+        float value2 = Mathf.Exp(-Mathf.Pow(noise * widthFactor - 1f, 2));
 
-		return altitude;
-	}
-	
-	private void CalculateAndSetAltitude (int longitude, int latitude, float value) {
-		
-		float altitude = CalculateAltitude(value);
-		TerrainCells[longitude][latitude].Altitude = altitude;
-		
-		if (altitude > MaxAltitude) MaxAltitude = altitude;
-		if (altitude < MinAltitude) MinAltitude = altitude;
-	}
-	
-	private void GenerateTerrainRainfall () {
-		
-		int sizeX = Width;
-		int sizeY = Height;
-		
-		float radius1 = 2f;
-		float radius2 = 1f;
-		float radius3 = 16f;
-		
-		ManagerTask<Vector3> offset1 = GenerateRandomOffsetVector();
-		ManagerTask<Vector3> offset2 = GenerateRandomOffsetVector();
-		ManagerTask<Vector3> offset3 = GenerateRandomOffsetVector();
-		
-		for (int i = 0; i < sizeX; i++)
-		{
-			float beta = (i / (float)sizeX) * Mathf.PI * 2;
-			
-			for (int j = 0; j < sizeY; j++)
-			{
-				TerrainCell cell = TerrainCells[i][j];
-				
-				float alpha = (j / (float)sizeY) * Mathf.PI;
-				
-				float value1 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius1, offset1);
-				float value2 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius2, offset2);
-				float value3 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius3, offset3);
+        float value = (value1 + value2 + 1) / 2f;
 
-				value2 = value2 * 1.5f + 0.25f;
+        return value;
+    }
 
-				float valueA = Mathf.Lerp(value1, value3, 0.15f);
-                
-				float latitudeFactor = alpha + (((valueA * 2) - 1f) * Mathf.PI * 0.15f);
-				float latitudeModifier1 = (1.5f * Mathf.Sin(latitudeFactor)) - 0.5f;
-				float latitudeFactor2 = (latitudeFactor * 3) - (Mathf.PI / 2f);
-				float latitudeModifier2 = Mathf.Sin(latitudeFactor2);
-				float latitudeFactor3 = (latitudeFactor * 6) + (Mathf.PI / 4f);
-				float latitudeModifier3 = Mathf.Cos(latitudeFactor3);
+    private float GetRiverNoiseFromRandomNoise(float noise, float widthFactor)
+    {
+        noise = (noise * 2) - 1;
+
+        float value = Mathf.Exp(-Mathf.Pow(noise * widthFactor, 2));
+
+        value = (value + 1) / 2f;
+
+        return value;
+    }
+
+    private float CalculateAltitude(float value)
+    {
+        float span = MaxPossibleAltitude - MinPossibleAltitude;
+
+        float altitude = ((value * span) + MinPossibleAltitude) * AltitudeScale;
+
+        altitude -= SeaLevelOffset;
+
+        altitude = Mathf.Clamp(altitude, MinPossibleAltitudeWithOffset, MaxPossibleAltitudeWithOffset);
+
+        return altitude;
+    }
+
+    private void CalculateAndSetAltitude(int longitude, int latitude, float value)
+    {
+        float altitude = CalculateAltitude(value);
+        TerrainCells[longitude][latitude].Altitude = altitude;
+        TerrainCells[longitude][latitude].BaseValue = value;
+
+        if (altitude > MaxAltitude) MaxAltitude = altitude;
+        if (altitude < MinAltitude) MinAltitude = altitude;
+    }
+
+    private void RecalculateAndSetAltitude(int longitude, int latitude)
+    {
+        float value = TerrainCells[longitude][latitude].BaseValue;
+
+        float altitude = CalculateAltitude(value);
+        TerrainCells[longitude][latitude].Altitude = altitude;
+
+        if (altitude > MaxAltitude) MaxAltitude = altitude;
+        if (altitude < MinAltitude) MinAltitude = altitude;
+    }
+
+    private void GenerateTerrainRainfall()
+    {
+        int sizeX = Width;
+        int sizeY = Height;
+
+        float radius1 = 2f;
+        float radius2 = 1f;
+        float radius3 = 16f;
+
+        ManagerTask<Vector3> offset1 = GenerateRandomOffsetVector();
+        ManagerTask<Vector3> offset2 = GenerateRandomOffsetVector();
+        ManagerTask<Vector3> offset3 = GenerateRandomOffsetVector();
+
+        for (int i = 0; i < sizeX; i++)
+        {
+            float beta = (i / (float)sizeX) * Mathf.PI * 2;
+
+            for (int j = 0; j < sizeY; j++)
+            {
+                TerrainCell cell = TerrainCells[i][j];
+
+                float alpha = (j / (float)sizeY) * Mathf.PI;
+
+                float value1 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius1, offset1);
+                float value2 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius2, offset2);
+                float value3 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius3, offset3);
+
+                value2 = value2 * 1.5f + 0.25f;
+
+                float valueA = Mathf.Lerp(value1, value3, 0.15f);
+
+                float latitudeFactor = alpha + (((valueA * 2) - 1f) * Mathf.PI * 0.15f);
+                float latitudeModifier1 = (1.5f * Mathf.Sin(latitudeFactor)) - 0.5f;
+                float latitudeFactor2 = (latitudeFactor * 3) - (Mathf.PI / 2f);
+                float latitudeModifier2 = Mathf.Sin(latitudeFactor2);
+                float latitudeFactor3 = (latitudeFactor * 6) + (Mathf.PI / 4f);
+                float latitudeModifier3 = Mathf.Cos(latitudeFactor3);
 
                 //int offCellX = (Width + i + (int)Mathf.Floor(latitudeModifier2 * Width / 40f)) % Width;
                 //int offCellX2 = (Width + i + (int)Mathf.Floor(latitudeModifier2 * Width / 20f)) % Width;
                 //int offCellX3 = (Width + i + (int)Mathf.Floor(latitudeModifier2 * Width / 10f)) % Width;
                 //int offCellX4 = (Width + i + (int)Mathf.Floor(latitudeModifier2 * Width / 5f)) % Width;
 
-                int offCellX = (Width + i + (int)Mathf.Floor(latitudeModifier2 * Width/40f)) % Width;
-				int offCellX2 = (Width + i + (int)Mathf.Floor(latitudeModifier2 * Width/20f)) % Width;
+                int offCellX = (Width + i + (int)Mathf.Floor(latitudeModifier2 * Width / 40f)) % Width;
+                int offCellX2 = (Width + i + (int)Mathf.Floor(latitudeModifier2 * Width / 20f)) % Width;
 
-				int offCellY = (int)Mathf.Clamp(j + Mathf.Floor(latitudeModifier3 * Height/20f), 0, Height);
-				offCellY = (offCellY == Height) ? offCellY - 1 : offCellY;
+                int offCellY = (int)Mathf.Clamp(j + Mathf.Floor(latitudeModifier3 * Height / 20f), 0, Height);
+                offCellY = (offCellY == Height) ? offCellY - 1 : offCellY;
 
-				TerrainCell offCell = TerrainCells[offCellX][j];
-				TerrainCell offCell2 = TerrainCells[offCellX2][j];
-				//TerrainCell offCell3 = TerrainCells[offCellX3][j];
-				//TerrainCell offCell4 = TerrainCells[offCellX4][j];
-				//TerrainCell offCell5 = TerrainCells[i][offCellY];
+                TerrainCell offCell = TerrainCells[offCellX][j];
+                TerrainCell offCell2 = TerrainCells[offCellX2][j];
+                //TerrainCell offCell3 = TerrainCells[offCellX3][j];
+                //TerrainCell offCell4 = TerrainCells[offCellX4][j];
+                //TerrainCell offCell5 = TerrainCells[i][offCellY];
 
-				float altitudeValue = Mathf.Max(0, cell.Altitude);
-				float offAltitude = Mathf.Max(0, offCell.Altitude);
-				float offAltitude2 = Mathf.Max(0, offCell2.Altitude);
-				//float offAltitude3 = Mathf.Max(0, offCell3.Altitude);
-				//float offAltitude4 = Mathf.Max(0, offCell4.Altitude);
-				//float offAltitude5 = Mathf.Max(0, offCell5.Altitude);
+                float altitudeValue = Mathf.Max(0, cell.Altitude);
+                float offAltitude = Mathf.Max(0, offCell.Altitude);
+                float offAltitude2 = Mathf.Max(0, offCell2.Altitude);
+                //float offAltitude3 = Mathf.Max(0, offCell3.Altitude);
+                //float offAltitude4 = Mathf.Max(0, offCell4.Altitude);
+                //float offAltitude5 = Mathf.Max(0, offCell5.Altitude);
 
                 //float altitudeModifier = (altitudeValue -
                 //                          (offAltitude * 0.7f) -
@@ -2547,298 +2637,300 @@ public class World : ISynchronizable
 
                 float altitudeModifier = (altitudeValue -
                                           (offAltitude * 1.5f) -
-                                          (offAltitude2 * 1.2f) + 
-				                          (MaxPossibleAltitude * 0.17f * value2) -
-				                          (altitudeValue * 0.25f)) / MaxPossibleAltitude;
-
-				float rainfallValue = Mathf.Lerp(latitudeModifier1, altitudeModifier, 0.85f);
-				rainfallValue = Mathf.Lerp(Mathf.Abs(rainfallValue) * rainfallValue, rainfallValue, 0.75f);
-
-				float rainfall = Mathf.Min(MaxPossibleRainfall, CalculateRainfall(rainfallValue));
-				cell.Rainfall = rainfall;
-
-				if (rainfall > MaxRainfall) MaxRainfall = rainfall;
-				if (rainfall < MinRainfall) MinRainfall = rainfall;
-			}
-			
-			ProgressCastMethod (_accumulatedProgress + _progressIncrement * (i + 1)/(float)sizeX);
-		}
-		
-		_accumulatedProgress += _progressIncrement;
-	}
-	
-	private void GenerateTerrainTemperature () {
-		
-		int sizeX = Width;
-		int sizeY = Height;
-		
-		float radius1 = 2f;
-		float radius2 = 16f;
-		
-		ManagerTask<Vector3> offset1 = GenerateRandomOffsetVector();
-		ManagerTask<Vector3> offset2 = GenerateRandomOffsetVector();
-		
-		for (int i = 0; i < sizeX; i++)
-		{
-			float beta = (i / (float)sizeX) * Mathf.PI * 2;
-			
-			for (int j = 0; j < sizeY; j++)
-			{
-				TerrainCell cell = TerrainCells[i][j];
-				
-				float alpha = (j / (float)sizeY) * Mathf.PI;
-				
-				float value1 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius1, offset1);
-				float value2 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius2, offset2);
-
-				float latitudeModifier = (alpha * 0.9f) + ((value1 + value2) * 0.05f * Mathf.PI);
-
-				float altitudeSpan = MaxPossibleAltitude - MinPossibleAltitude;
-
-				float absAltitude = cell.Altitude - MinPossibleAltitudeWithOffset;
-				
-				float altitudeFactor1 = (absAltitude / altitudeSpan) * 0.7f;
-				float altitudeFactor2 = (Mathf.Clamp01 (cell.Altitude / MaxPossibleAltitude) * 1.3f);
-				float altitudeFactor3 = -0.18f;
-				
-				float temperature = CalculateTemperature(Mathf.Sin(latitudeModifier) - altitudeFactor1 - altitudeFactor2 - altitudeFactor3);
-
-				cell.Temperature = temperature;
-				
-				if (temperature > MaxTemperature) MaxTemperature = temperature;
-				if (temperature < MinTemperature) MinTemperature = temperature;
-			}
-			
-			ProgressCastMethod (_accumulatedProgress + _progressIncrement * (i + 1)/(float)sizeX);
-		}
-		
-		_accumulatedProgress += _progressIncrement;
-	}
-
-	private void GenerateTerrainArability () {
-
-		int sizeX = Width;
-		int sizeY = Height;
+                                          (offAltitude2 * 1.2f) +
+                                          (MaxPossibleAltitude * 0.17f * value2) -
+                                          (altitudeValue * 0.25f)) / MaxPossibleAltitude;
 
-		float radius = 2f;
-
-		ManagerTask<Vector3> offset = GenerateRandomOffsetVector();
+                float rainfallValue = Mathf.Lerp(latitudeModifier1, altitudeModifier, 0.85f);
+                rainfallValue = Mathf.Lerp(Mathf.Abs(rainfallValue) * rainfallValue, rainfallValue, 0.75f);
 
-		for (int i = 0; i < sizeX; i++)
-		{
-			float beta = (i / (float)sizeX) * Mathf.PI * 2;
-
-			for (int j = 0; j < sizeY; j++)
-			{
-				TerrainCell cell = TerrainCells[i][j];
+                float rainfall = Mathf.Min(MaxPossibleRainfall, CalculateRainfall(rainfallValue));
+                cell.Rainfall = rainfall;
 
-				float alpha = (j / (float)sizeY) * Mathf.PI;
+                if (rainfall > MaxRainfall) MaxRainfall = rainfall;
+                if (rainfall < MinRainfall) MinRainfall = rainfall;
+            }
 
-				float baseArability = CalculateCellBaseArability (cell);
+            ProgressCastMethod(_accumulatedProgress + _progressIncrement * (i + 1) / (float)sizeX);
+        }
 
-				cell.Arability = 0;
+        _accumulatedProgress += _progressIncrement;
+    }
 
-				if (baseArability <= 0)
-					continue;
+    private void GenerateTerrainTemperature()
+    {
+        int sizeX = Width;
+        int sizeY = Height;
 
-				// This simulates things like stoniness, impracticality of drainage, excessive salts, etc.
-				float noiseFactor = 0.0f + 1.0f * GetRandomNoiseFromPolarCoordinates(alpha, beta, radius, offset);
+        float radius1 = 2f;
+        float radius2 = 16f;
 
-				cell.Arability = baseArability * noiseFactor;
-			}
+        ManagerTask<Vector3> offset1 = GenerateRandomOffsetVector();
+        ManagerTask<Vector3> offset2 = GenerateRandomOffsetVector();
 
-			ProgressCastMethod (_accumulatedProgress + _progressIncrement * (i + 1)/(float)sizeX);
-		}
+        for (int i = 0; i < sizeX; i++)
+        {
+            float beta = (i / (float)sizeX) * Mathf.PI * 2;
 
-		_accumulatedProgress += _progressIncrement;
-	}
+            for (int j = 0; j < sizeY; j++)
+            {
+                TerrainCell cell = TerrainCells[i][j];
 
-	private void GenerateTerrainBiomes () {
-		
-		int sizeX = Width;
-		int sizeY = Height;
-		
-		for (int i = 0; i < sizeX; i++) {
+                float alpha = (j / (float)sizeY) * Mathf.PI;
 
-			for (int j = 0; j < sizeY; j++) {
+                float value1 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius1, offset1);
+                float value2 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius2, offset2);
 
-				TerrainCell cell = TerrainCells[i][j];
+                float latitudeModifier = (alpha * 0.9f) + ((value1 + value2) * 0.05f * Mathf.PI);
 
-				float totalPresence = 0;
+                float altitudeSpan = MaxPossibleAltitude - MinPossibleAltitude;
 
-				Dictionary<string, float> biomePresences = new Dictionary<string, float> ();
+                float absAltitude = cell.Altitude - MinPossibleAltitudeWithOffset;
 
-				foreach (Biome biome in Biome.Biomes.Values) {
+                float altitudeFactor1 = (absAltitude / altitudeSpan) * 0.7f;
+                float altitudeFactor2 = (Mathf.Clamp01(cell.Altitude / MaxPossibleAltitude) * 1.3f);
+                float altitudeFactor3 = -0.18f;
 
-					float presence = CalculateBiomePresence (cell, biome);
+                float temperature = CalculateTemperature(Mathf.Sin(latitudeModifier) - altitudeFactor1 - altitudeFactor2 - altitudeFactor3);
 
-					if (presence <= 0) continue;
+                cell.Temperature = temperature;
 
-					biomePresences.Add(biome.Name, presence);
+                if (temperature > MaxTemperature) MaxTemperature = temperature;
+                if (temperature < MinTemperature) MinTemperature = temperature;
+            }
 
-					totalPresence += presence;
-				}
+            ProgressCastMethod(_accumulatedProgress + _progressIncrement * (i + 1) / (float)sizeX);
+        }
 
-				cell.Survivability = 0;
-				cell.ForagingCapacity = 0;
-				cell.Accessibility = 0;
+        _accumulatedProgress += _progressIncrement;
+    }
 
-				foreach (Biome biome in Biome.Biomes.Values)
-				{
-					float presence = 0;
+    private void GenerateTerrainArability()
+    {
+        int sizeX = Width;
+        int sizeY = Height;
 
-					if (biomePresences.TryGetValue(biome.Name, out presence))
-					{
-						presence = presence/totalPresence;
+        float radius = 2f;
 
-						cell.AddBiomePresence (biome.Name, presence);
+        ManagerTask<Vector3> offset = GenerateRandomOffsetVector();
 
-						cell.Survivability += biome.Survivability * presence;
-						cell.ForagingCapacity += biome.ForagingCapacity * presence;
-						cell.Accessibility += biome.Accessibility * presence;
-					}
-				}
+        for (int i = 0; i < sizeX; i++)
+        {
+            float beta = (i / (float)sizeX) * Mathf.PI * 2;
 
-				float altitudeSurvivabilityFactor = 1 - Mathf.Clamp01 (cell.Altitude / MaxPossibleAltitude);
+            for (int j = 0; j < sizeY; j++)
+            {
+                TerrainCell cell = TerrainCells[i][j];
 
-				cell.Survivability *= altitudeSurvivabilityFactor;
-			}
-			
-			ProgressCastMethod (_accumulatedProgress + _progressIncrement * (i + 1)/(float)sizeX);
-		}
-		
-		_accumulatedProgress += _progressIncrement;
-	}
+                float alpha = (j / (float)sizeY) * Mathf.PI;
 
-	private float CalculateCellBaseArability (TerrainCell cell) {
+                float baseArability = CalculateCellBaseArability(cell);
 
-		float landFactor = 1 - cell.GetBiomePresence (Biome.Ocean);
+                cell.Arability = 0;
 
-		if (landFactor == 0)
-			return 0;
+                if (baseArability <= 0)
+                    continue;
 
-		float rainfallFactor = 0;
+                // This simulates things like stoniness, impracticality of drainage, excessive salts, etc.
+                float noiseFactor = 0.0f + 1.0f * GetRandomNoiseFromPolarCoordinates(alpha, beta, radius, offset);
 
-		if (cell.Rainfall > OptimalRainfallForArability) {
-		
-			rainfallFactor = (MaxRainfallForArability - cell.Rainfall) / (MaxRainfallForArability - OptimalRainfallForArability);
+                cell.Arability = baseArability * noiseFactor;
+            }
 
-		} else {
-			
-			rainfallFactor = (cell.Rainfall - MinRainfallForArability) / (OptimalRainfallForArability - MinRainfallForArability);
-		}
+            ProgressCastMethod(_accumulatedProgress + _progressIncrement * (i + 1) / (float)sizeX);
+        }
 
-		rainfallFactor = Mathf.Clamp01 (rainfallFactor);
+        _accumulatedProgress += _progressIncrement;
+    }
 
-		float temperatureFactor = (cell.Temperature - MinTemperatureForArability) / (OptimalTemperatureForArability - MinTemperatureForArability);
-		temperatureFactor = Mathf.Clamp01 (temperatureFactor);
+    private void GenerateTerrainBiomes()
+    {
+        int sizeX = Width;
+        int sizeY = Height;
 
-		return rainfallFactor * temperatureFactor * landFactor;
-	}
+        for (int i = 0; i < sizeX; i++)
+        {
+            for (int j = 0; j < sizeY; j++)
+            {
+                TerrainCell cell = TerrainCells[i][j];
 
-	private float CalculateBiomePresence (TerrainCell cell, Biome biome) {
+                float totalPresence = 0;
 
-		float presence = 1f;
+                Dictionary<string, float> biomePresences = new Dictionary<string, float>();
 
-		// Altitude
+                foreach (Biome biome in Biome.Biomes.Values)
+                {
+                    float presence = CalculateBiomePresence(cell, biome);
 
-		float altitudeSpan = biome.MaxAltitude - biome.MinAltitude;
+                    if (presence <= 0) continue;
 
+                    biomePresences.Add(biome.Name, presence);
 
-		float altitudeDiff = cell.Altitude - biome.MinAltitude;
+                    totalPresence += presence;
+                }
 
-		if (altitudeDiff < 0)
-			return -1f;
+                cell.ResetBiomePresences();
 
-		float altitudeFactor = altitudeDiff / altitudeSpan;
+                cell.Survivability = 0;
+                cell.ForagingCapacity = 0;
+                cell.Accessibility = 0;
 
-		if (float.IsInfinity (altitudeSpan)) {
+                foreach (Biome biome in Biome.Biomes.Values)
+                {
+                    float presence = 0;
 
-			altitudeFactor = 0.5f;
-		}
-		
-		if (altitudeFactor > 1)
-			return -1f;
+                    if (biomePresences.TryGetValue(biome.Name, out presence))
+                    {
+                        presence = presence / totalPresence;
 
-		if (altitudeFactor > 0.5f)
-			altitudeFactor = 1f - altitudeFactor;
+                        cell.AddBiomePresence(biome.Name, presence);
 
-		presence *= altitudeFactor*2;
+                        cell.Survivability += biome.Survivability * presence;
+                        cell.ForagingCapacity += biome.ForagingCapacity * presence;
+                        cell.Accessibility += biome.Accessibility * presence;
+                    }
+                }
 
-		// Rainfall
-		
-		float rainfallSpan = biome.MaxRainfall - biome.MinRainfall;
-		
-		float rainfallDiff = cell.Rainfall - biome.MinRainfall;
+                float altitudeSurvivabilityFactor = 1 - Mathf.Clamp01(cell.Altitude / MaxPossibleAltitude);
 
-		if (rainfallDiff < 0)
-			return -1f;
-		
-		float rainfallFactor = rainfallDiff / rainfallSpan;
-		
-		if (float.IsInfinity (rainfallSpan)) {
-			
-			rainfallFactor = 0.5f;
-		}
+                cell.Survivability *= altitudeSurvivabilityFactor;
+            }
 
-		if (rainfallFactor > 1)
-			return -1f;
-		
-		if (rainfallFactor > 0.5f)
-			rainfallFactor = 1f - rainfallFactor;
-		
-		presence *= rainfallFactor*2;
-		
-		// Temperature
-		
-		float temperatureSpan = biome.MaxTemperature - biome.MinTemperature;
-		
-		float temperatureDiff = cell.Temperature - biome.MinTemperature;
+            ProgressCastMethod(_accumulatedProgress + _progressIncrement * (i + 1) / (float)sizeX);
+        }
 
-		if (temperatureDiff < 0)
-			return -1f;
-		
-		float temperatureFactor = temperatureDiff / temperatureSpan;
-		
-		if (float.IsInfinity (temperatureSpan)) {
-			
-			temperatureFactor = 0.5f;
-		}
+        _accumulatedProgress += _progressIncrement;
+    }
 
-		if (temperatureFactor > 1)
-			return -1f;
-		
-		if (temperatureFactor > 0.5f)
-			temperatureFactor = 1f - temperatureFactor;
-		
-		presence *= temperatureFactor*2;
+    private float CalculateCellBaseArability(TerrainCell cell)
+    {
+        float landFactor = 1 - cell.GetBiomePresence(Biome.Ocean);
 
-		return presence;
-	}
-	
-	private float CalculateRainfall (float value) {
-		
-		float span = MaxPossibleRainfallWithOffset - MinPossibleRainfallWithOffset;
+        if (landFactor == 0)
+            return 0;
 
-		float rainfall = (value * span) + MinPossibleRainfallWithOffset;
+        float rainfallFactor = 0;
 
-		float minRainfall = Mathf.Max (0, MinPossibleRainfallWithOffset);
+        if (cell.Rainfall > OptimalRainfallForArability)
+        {
+            rainfallFactor = (MaxRainfallForArability - cell.Rainfall) / (MaxRainfallForArability - OptimalRainfallForArability);
+        }
+        else
+        {
+            rainfallFactor = (cell.Rainfall - MinRainfallForArability) / (OptimalRainfallForArability - MinRainfallForArability);
+        }
 
-		rainfall = Mathf.Clamp(rainfall, minRainfall, MaxPossibleRainfallWithOffset);
-		
-		return rainfall;
-	}
-	
-	private float CalculateTemperature (float value) {
-		
-		float span = MaxPossibleTemperature - MinPossibleTemperature;
-		
-		float temperature = (value * span) + MinPossibleTemperature;
+        rainfallFactor = Mathf.Clamp01(rainfallFactor);
 
-		temperature += Manager.TemperatureOffset;
-		
-		temperature = Mathf.Clamp(temperature, MinPossibleTemperatureWithOffset, MaxPossibleTemperatureWithOffset);
-		
-		return temperature;
-	}
+        float temperatureFactor = (cell.Temperature - MinTemperatureForArability) / (OptimalTemperatureForArability - MinTemperatureForArability);
+        temperatureFactor = Mathf.Clamp01(temperatureFactor);
+
+        return rainfallFactor * temperatureFactor * landFactor;
+    }
+
+    private float CalculateBiomePresence(TerrainCell cell, Biome biome)
+    {
+        float presence = 1f;
+
+        // Altitude
+
+        float altitudeSpan = biome.MaxAltitude - biome.MinAltitude;
+
+
+        float altitudeDiff = cell.Altitude - biome.MinAltitude;
+
+        if (altitudeDiff < 0)
+            return -1f;
+
+        float altitudeFactor = altitudeDiff / altitudeSpan;
+
+        if (float.IsInfinity(altitudeSpan))
+        {
+            altitudeFactor = 0.5f;
+        }
+
+        if (altitudeFactor > 1)
+            return -1f;
+
+        if (altitudeFactor > 0.5f)
+            altitudeFactor = 1f - altitudeFactor;
+
+        presence *= altitudeFactor * 2;
+
+        // Rainfall
+
+        float rainfallSpan = biome.MaxRainfall - biome.MinRainfall;
+
+        float rainfallDiff = cell.Rainfall - biome.MinRainfall;
+
+        if (rainfallDiff < 0)
+            return -1f;
+
+        float rainfallFactor = rainfallDiff / rainfallSpan;
+
+        if (float.IsInfinity(rainfallSpan))
+        {
+            rainfallFactor = 0.5f;
+        }
+
+        if (rainfallFactor > 1)
+            return -1f;
+
+        if (rainfallFactor > 0.5f)
+            rainfallFactor = 1f - rainfallFactor;
+
+        presence *= rainfallFactor * 2;
+
+        // Temperature
+
+        float temperatureSpan = biome.MaxTemperature - biome.MinTemperature;
+
+        float temperatureDiff = cell.Temperature - biome.MinTemperature;
+
+        if (temperatureDiff < 0)
+            return -1f;
+
+        float temperatureFactor = temperatureDiff / temperatureSpan;
+
+        if (float.IsInfinity(temperatureSpan))
+        {
+            temperatureFactor = 0.5f;
+        }
+
+        if (temperatureFactor > 1)
+            return -1f;
+
+        if (temperatureFactor > 0.5f)
+            temperatureFactor = 1f - temperatureFactor;
+
+        presence *= temperatureFactor * 2;
+
+        return presence;
+    }
+
+    private float CalculateRainfall(float value)
+    {
+        float span = MaxPossibleRainfallWithOffset - MinPossibleRainfallWithOffset;
+
+        float rainfall = (value * span) + MinPossibleRainfallWithOffset;
+
+        float minRainfall = Mathf.Max(0, MinPossibleRainfallWithOffset);
+
+        rainfall = Mathf.Clamp(rainfall, minRainfall, MaxPossibleRainfallWithOffset);
+
+        return rainfall;
+    }
+
+    private float CalculateTemperature(float value)
+    {
+        float span = MaxPossibleTemperature - MinPossibleTemperature;
+
+        float temperature = (value * span) + MinPossibleTemperature;
+
+        temperature += TemperatureOffset;
+
+        temperature = Mathf.Clamp(temperature, MinPossibleTemperatureWithOffset, MaxPossibleTemperatureWithOffset);
+
+        return temperature;
+    }
 }

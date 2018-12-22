@@ -46,239 +46,243 @@ public enum CellUpdateSubType
     MembershipAndCore = Membership | Core
 }
 
-public class TerrainCell : ISynchronizable {
+public class TerrainCell : ISynchronizable
+{
+#if DEBUG
 
-	#if DEBUG
+    public delegate void GetNextLocalRandomCalledDelegate(string callerMethod);
 
-	public delegate void GetNextLocalRandomCalledDelegate (string callerMethod);
+    //	public static int LastRandomInteger = 0; 
+    public static GetNextLocalRandomCalledDelegate GetNextLocalRandomCalled = null;
 
-//	public static int LastRandomInteger = 0; 
-	public static GetNextLocalRandomCalledDelegate GetNextLocalRandomCalled = null; 
+#endif
 
-	#endif
+    public const int MaxNeighborDirections = 8;
+    public const int NeighborSearchOffset = 3;
 
-	public const int MaxNeighborDirections = 8;
-	public const int NeighborSearchOffset = 3;
-	
-	[XmlAttribute]
-	public int Longitude;
-	[XmlAttribute]
-	public int Latitude;
-	
-	[XmlAttribute]
-	public float Height;
-	[XmlAttribute]
-	public float Width;
+    [XmlAttribute]
+    public int Longitude;
+    [XmlAttribute]
+    public int Latitude;
 
-	[XmlAttribute]
-	public float Altitude;
-	[XmlAttribute]
-	public float Rainfall;
-	[XmlAttribute]
-	public float Temperature;
+    [XmlAttribute]
+    public float Height;
+    [XmlAttribute]
+    public float Width;
 
-	[XmlAttribute]
-	public float Survivability;
-	[XmlAttribute]
-	public float ForagingCapacity;
-	[XmlAttribute]
-	public float Accessibility;
-	[XmlAttribute]
-	public float Arability;
+    [XmlAttribute]
+    public float BaseValue;
 
-	[XmlAttribute]
-	public bool IsPartOfCoastline;
-//
-//	[XmlAttribute]
-//	public int LocalIteration = 0;
-	[XmlAttribute]
-	public float FarmlandPercentage = 0;
+    [XmlAttribute]
+    public float Altitude;
+    [XmlAttribute]
+    public float Rainfall;
+    [XmlAttribute]
+    public float Temperature;
 
-	[XmlAttribute]
-	public string BiomeWithMostPresence = null;
-	[XmlAttribute]
-	public float MostBiomePresence = 0;
+    [XmlAttribute]
+    public float Survivability;
+    [XmlAttribute]
+    public float ForagingCapacity;
+    [XmlAttribute]
+    public float Accessibility;
+    [XmlAttribute]
+    public float Arability;
 
-	public static float MaxArea;
+    [XmlAttribute]
+    public bool IsPartOfCoastline;
 
-	public static float MaxWidth;
+    [XmlAttribute]
+    public float FarmlandPercentage = 0;
 
-	public List<string> PresentBiomeNames = new List<string>();
-	public List<float> BiomePresences = new List<float>();
-	
-	public CellGroup Group;
+    [XmlAttribute]
+    public string BiomeWithMostPresence = null;
+    [XmlAttribute]
+    public float MostBiomePresence = 0;
 
-	[XmlIgnore]
-	public WorldPosition Position;
+    public static float MaxArea;
 
-	[XmlIgnore]
-	public Region Region = null;
+    public static float MaxWidth;
 
-	[XmlIgnore]
-	public Territory EncompassingTerritory = null;
+    public List<string> PresentBiomeNames = new List<string>();
+    public List<float> BiomePresences = new List<float>();
 
-	[XmlIgnore]
-	public List<Route> CrossingRoutes = new List<Route>();
+    public CellGroup Group;
 
-	[XmlIgnore]
-	public bool HasCrossingRoutes = false;
-	
-	[XmlIgnore]
-	public float Area;
+    [XmlIgnore]
+    public WorldPosition Position;
+
+    [XmlIgnore]
+    public Region Region = null;
+
+    [XmlIgnore]
+    public Territory EncompassingTerritory = null;
+
+    [XmlIgnore]
+    public List<Route> CrossingRoutes = new List<Route>();
+
+    [XmlIgnore]
+    public bool HasCrossingRoutes = false;
+
+    [XmlIgnore]
+    public float Area;
 
     [XmlIgnore]
     public float MaxAreaPercent;
 
     [XmlIgnore]
-	public World World;
+    public World World;
 
-	[XmlIgnore]
-	public bool IsSelected = false;
-	
-	[XmlIgnore]
-	public Dictionary<Direction, TerrainCell> Neighbors { get; private set; }
+    [XmlIgnore]
+    public bool IsSelected = false;
 
-	[XmlIgnore]
-	public Dictionary<Direction, float> NeighborDistances { get; private set; }
+    [XmlIgnore]
+    public Dictionary<Direction, TerrainCell> Neighbors { get; private set; }
 
-	private HashSet<string> _flags = new HashSet<string> ();
+    [XmlIgnore]
+    public Dictionary<Direction, float> NeighborDistances { get; private set; }
 
-	private Dictionary<string, float> _biomePresences = new Dictionary<string, float> ();
+    private HashSet<string> _flags = new HashSet<string>();
 
-	public TerrainCell () {
-		
-	}
+    private Dictionary<string, float> _biomePresences = new Dictionary<string, float>();
 
-	public TerrainCell (World world, int longitude, int latitude, float height, float width) {
+    public TerrainCell()
+    {
 
-		Position = new WorldPosition (longitude, latitude);
-	
-		World = world;
-		Longitude = longitude;
-		Latitude = latitude;
+    }
 
-		Height = height;
-		Width = width;
+    public TerrainCell(World world, int longitude, int latitude, float height, float width)
+    {
+        Position = new WorldPosition(longitude, latitude);
 
-		Area = height * width;
+        World = world;
+        Longitude = longitude;
+        Latitude = latitude;
+
+        Height = height;
+        Width = width;
+
+        Area = height * width;
         MaxAreaPercent = Area / MaxArea;
-	}
+    }
 
-	public static Direction ReverseDirection (Direction dir) {
+    public static Direction ReverseDirection(Direction dir)
+    {
+        return (Direction)(((int)dir + 4) % 8);
+    }
 
-		return (Direction)(((int)dir + 4) % 8);
-	}
+    public Direction GetDirection(TerrainCell targetCell)
+    {
+        foreach (KeyValuePair<Direction, TerrainCell> pair in Neighbors)
+        {
+            if (pair.Value == targetCell)
+            {
+                return pair.Key;
+            }
+        }
 
-	public Direction GetDirection (TerrainCell targetCell) {
+        return Direction.Null;
+    }
 
-		foreach (KeyValuePair<Direction, TerrainCell> pair in Neighbors) {
+    public Direction TryGetNeighborDirection(int offset)
+    {
+        if (Neighbors.Count <= 0)
+            return Direction.Null;
 
-			if (pair.Value == targetCell) {
-			
-				return pair.Key;
-			}
-		}
+        int dir = (int)Mathf.Repeat(offset, MaxNeighborDirections);
 
-		return Direction.Null;
-	}
+        while (true)
+        {
+            if (Neighbors.ContainsKey((Direction)dir))
+                return (Direction)dir;
 
-	public Direction TryGetNeighborDirection (int offset) {
+            dir = (dir + NeighborSearchOffset) % MaxNeighborDirections;
+        }
+    }
 
-		if (Neighbors.Count <= 0)
-			return Direction.Null;
+    public TerrainCell TryGetNeighborCell(int offset)
+    {
+        return Neighbors[TryGetNeighborDirection(offset)];
+    }
 
-		int dir = (int)Mathf.Repeat (offset, MaxNeighborDirections);
+    public long GenerateUniqueIdentifier(long date, long oom = 1L, long offset = 0L)
+    {
+#if DEBUG
+        if (oom > 1000L)
+        {
+            Debug.LogWarning("'oom' shouldn't be greater than 1000 (oom = " + oom + ")");
+        }
 
-		while (true) {
-			if (Neighbors.ContainsKey ((Direction)dir))
-				return (Direction)dir;
+        if (date >= World.MaxSupportedDate)
+        {
+            Debug.LogWarning("'date' shouldn't be greater than " + World.MaxSupportedDate + " (date = " + date + ")");
+        }
+#endif
 
-			dir = (dir + NeighborSearchOffset) % MaxNeighborDirections;
-		}
-	}
+        return (((date * 1000000) + ((long)Longitude * 1000) + (long)Latitude) * oom) + (offset % oom);
+    }
 
-	public TerrainCell TryGetNeighborCell (int offset) {
+    public TerrainCellChanges GetChanges()
+    {
+        // If there where no changes there's no need to create a TerrainCellChanges object
+        if ((FarmlandPercentage == 0) &&
+            //			(LocalIteration == 0) && 
+            (_flags.Count == 0))
+            return null;
 
-		return Neighbors[TryGetNeighborDirection (offset)];
-	}
+        TerrainCellChanges changes = new TerrainCellChanges(this);
 
-	public long GenerateUniqueIdentifier (long date, long oom = 1L, long offset = 0L) {
+        changes.Flags.AddRange(_flags);
 
-		#if DEBUG
-		if (oom > 1000L) {
-			Debug.LogWarning ("'oom' shouldn't be greater than 1000 (oom = " + oom + ")");
-		}
+        return changes;
+    }
 
-		if (date >= World.MaxSupportedDate) {
-			Debug.LogWarning ("'date' shouldn't be greater than " + World.MaxSupportedDate + " (date = " + date + ")");
-		}
-		#endif
+    public void SetChanges(TerrainCellChanges changes)
+    {
+        FarmlandPercentage = changes.FarmlandPercentage;
 
-		return (((date * 1000000) + ((long)Longitude * 1000) + (long)Latitude) * oom) + (offset % oom);
-	}
+        foreach (string flag in changes.Flags)
+        {
+            _flags.Add(flag);
+        }
+    }
 
-	public TerrainCellChanges GetChanges () {
+    public void SetFlag(string flag)
+    {
+        if (_flags.Contains(flag))
+            return;
 
-		// If there where no changes there's no need to create a TerrainCellChanges object
-		if ((FarmlandPercentage == 0) && 
-//			(LocalIteration == 0) && 
-			(_flags.Count == 0))
-			return null;
+        _flags.Add(flag);
+    }
 
-		TerrainCellChanges changes = new TerrainCellChanges (this);
+    public bool IsFlagSet(string flag)
+    {
+        return _flags.Contains(flag);
+    }
 
-		changes.Flags.AddRange (_flags);
+    public void UnsetFlag(string flag)
+    {
+        if (!_flags.Contains(flag))
+            return;
 
-		return changes;
-	}
+        _flags.Remove(flag);
+    }
 
-	public void SetChanges (TerrainCellChanges changes) {
+    public void AddCrossingRoute(Route route)
+    {
+        CrossingRoutes.Add(route);
 
-//		LocalIteration = changes.LocalIteration;
-		FarmlandPercentage = changes.FarmlandPercentage;
+        HasCrossingRoutes = true;
+    }
 
-		foreach (string flag in changes.Flags) {
-		
-			_flags.Add (flag);
-		}
-	}
+    public void RemoveCrossingRoute(Route route)
+    {
+        CrossingRoutes.Remove(route);
 
-	public void SetFlag (string flag) {
+        HasCrossingRoutes = CrossingRoutes.Count > 0;
+    }
 
-		if (_flags.Contains (flag))
-			return;
-
-		_flags.Add (flag);
-	}
-
-	public bool IsFlagSet (string flag) {
-
-		return _flags.Contains (flag);
-	}
-
-	public void UnsetFlag (string flag) {
-
-		if (!_flags.Contains (flag))
-			return;
-
-		_flags.Remove (flag);
-	}
-
-	public void AddCrossingRoute (Route route) {
-	
-		CrossingRoutes.Add (route);
-
-		HasCrossingRoutes = true;
-	}
-
-	public void RemoveCrossingRoute (Route route) {
-
-		CrossingRoutes.Remove (route);
-
-		HasCrossingRoutes = CrossingRoutes.Count > 0;
-	}
-
-	public int GetNextLocalRandomInt(int queryOffset, int maxValue)
+    public int GetNextLocalRandomInt(int queryOffset, int maxValue)
     {
         int value = GetLocalRandomInt(World.CurrentDate, queryOffset, maxValue);
 
@@ -342,178 +346,189 @@ public class TerrainCell : ISynchronizable {
         return value;
     }
 
-    public float GetNextLocalRandomFloat (int queryOffset) {
+    public float GetNextLocalRandomFloat(int queryOffset)
+    {
+        int value = GetNextLocalRandomInt(queryOffset, PerlinNoise.MaxPermutationValue);
 
-		int value = GetNextLocalRandomInt (queryOffset, PerlinNoise.MaxPermutationValue);
+        return value / (float)PerlinNoise.MaxPermutationValue;
+    }
 
-		return value / (float)PerlinNoise.MaxPermutationValue;
-	}
-	
-	public float GetLocalRandomFloat (long date, int queryOffset) {
+    public float GetLocalRandomFloat(long date, int queryOffset)
+    {
+        int value = GetLocalRandomInt(date, queryOffset, PerlinNoise.MaxPermutationValue);
 
-		int value = GetLocalRandomInt (date, queryOffset, PerlinNoise.MaxPermutationValue);
-		
-		return value / (float)PerlinNoise.MaxPermutationValue;
-	}
+        return value / (float)PerlinNoise.MaxPermutationValue;
+    }
 
-	public float GetBiomePresence (Biome biome) {
+    public void ResetBiomePresences()
+    {
+        PresentBiomeNames.Clear();
+        BiomePresences.Clear();
+        _biomePresences.Clear();
 
-		return GetBiomePresence (biome.Name);
-	}
+        MostBiomePresence = 0;
+        BiomeWithMostPresence = null;
+    }
 
-	public void AddBiomePresence (string biomeName, float presence) {
+    public float GetBiomePresence(Biome biome)
+    {
+        return GetBiomePresence(biome.Name);
+    }
 
-		PresentBiomeNames.Add (biomeName);
-		BiomePresences.Add (presence);
+    public void AddBiomePresence(string biomeName, float presence)
+    {
+        PresentBiomeNames.Add(biomeName);
+        BiomePresences.Add(presence);
 
-		_biomePresences [biomeName] = presence;
+        _biomePresences[biomeName] = presence;
 
-		if (MostBiomePresence < presence) {
-		
-			MostBiomePresence = presence;
-			BiomeWithMostPresence = biomeName;
-		}
-	}
-	
-	public float GetBiomePresence (string biomeName) {
+        if (MostBiomePresence < presence)
+        {
+            MostBiomePresence = presence;
+            BiomeWithMostPresence = biomeName;
+        }
+    }
 
-		float value = 0;
+    public float GetBiomePresence(string biomeName)
+    {
+        float value = 0;
 
-		if (!_biomePresences.TryGetValue (biomeName, out value))
-			return 0;
-		
-		return value;
-	}
+        if (!_biomePresences.TryGetValue(biomeName, out value))
+            return 0;
 
-	public void Synchronize () {
-	}
+        return value;
+    }
 
-	public void FinalizeLoad () {
+    public void Synchronize()
+    {
+    }
 
-		Position = new WorldPosition (Longitude, Latitude);
+    public void FinalizeLoad()
+    {
+        Position = new WorldPosition(Longitude, Latitude);
 
-		for (int i = 0; i < BiomePresences.Count; i++) {
-		
-			_biomePresences [PresentBiomeNames [i]] = BiomePresences [i];
-		}
-		
-		InitializeNeighbors ();
+        for (int i = 0; i < BiomePresences.Count; i++)
+        {
+            _biomePresences[PresentBiomeNames[i]] = BiomePresences[i];
+        }
 
-		if (Group != null) {
-		
-			Group.World = World;
-			Group.Cell = this;
+        InitializeNeighbors();
 
-			World.AddGroup(Group);
+        if (Group != null)
+        {
+            Group.World = World;
+            Group.Cell = this;
 
-			Group.FinalizeLoad ();
-		}
-	}
+            World.AddGroup(Group);
 
-	public void InitializeNeighbors () {
-		
-		SetNeighborCells ();
+            Group.FinalizeLoad();
+        }
+    }
 
-		NeighborDistances = new Dictionary<Direction, float> (Neighbors.Count);
+    public void InitializeNeighbors()
+    {
+        SetNeighborCells();
 
-		foreach (KeyValuePair<Direction, TerrainCell> pair in Neighbors) {
+        NeighborDistances = new Dictionary<Direction, float>(Neighbors.Count);
 
-			float distance = CalculateDistance (pair.Value, pair.Key);
+        foreach (KeyValuePair<Direction, TerrainCell> pair in Neighbors)
+        {
+            float distance = CalculateDistance(pair.Value, pair.Key);
 
-			NeighborDistances.Add (pair.Key, distance);
-		}
-	}
+            NeighborDistances.Add(pair.Key, distance);
+        }
+    }
 
-	public float CalculateDistance (TerrainCell cell, Direction direction) {
+    public float CalculateDistance(TerrainCell cell, Direction direction)
+    {
+        float distance = TerrainCell.MaxWidth;
 
-		float distance = TerrainCell.MaxWidth;
+        if ((direction == Direction.Northeast) ||
+            (direction == Direction.Northwest) ||
+            (direction == Direction.Southeast) ||
+            (direction == Direction.Southwest))
+        {
+            float sqMaxWidth = TerrainCell.MaxWidth * TerrainCell.MaxWidth;
 
-		if ((direction == Direction.Northeast) ||
-			(direction == Direction.Northwest) ||
-			(direction == Direction.Southeast) ||
-			(direction == Direction.Southwest)) {
+            float widthSum = (Width + cell.Width) / 2f;
+            float sqCellWidth = widthSum * widthSum;
 
-			float sqMaxWidth = TerrainCell.MaxWidth * TerrainCell.MaxWidth;
+            distance = Mathf.Sqrt(sqMaxWidth + sqCellWidth);
+        }
+        else if ((direction == Direction.East) ||
+          (direction == Direction.West))
+        {
+            distance = cell.Width;
+        }
 
-			float widthSum = (Width + cell.Width) / 2f;
-			float sqCellWidth = widthSum * widthSum;
+        float altitudeDiff = Altitude - cell.Altitude;
+        float sqAltDif = altitudeDiff * altitudeDiff;
+        float sqDistance = distance * distance;
 
-			distance = Mathf.Sqrt (sqMaxWidth + sqCellWidth);
+        distance = Mathf.Sqrt(sqAltDif + sqDistance);
 
-		} else if ((direction == Direction.East) ||
-			(direction == Direction.West)) {
+        return distance;
+    }
 
-			distance = cell.Width;
-		}
+    public void InitializeMiscellaneous()
+    {
+        IsPartOfCoastline = FindIfCoastline();
+    }
 
-		float altitudeDiff = Altitude - cell.Altitude;
-		float sqAltDif = altitudeDiff * altitudeDiff;
-		float sqDistance = distance * distance;
+    public TerrainCell GetNeighborCell(Direction direction)
+    {
+        TerrainCell nCell;
 
-		distance = Mathf.Sqrt (sqAltDif + sqDistance);
+        if (!Neighbors.TryGetValue(direction, out nCell))
+            return null;
 
-		return distance;
-	}
+        return nCell;
+    }
 
-	public void InitializeMiscellaneous () {
+    private void SetNeighborCells()
+    {
+        Neighbors = new Dictionary<Direction, TerrainCell>(8);
 
-		IsPartOfCoastline = FindIfCoastline ();
-	}
+        int wLongitude = (World.Width + Longitude - 1) % World.Width;
+        int eLongitude = (Longitude + 1) % World.Width;
 
-	public TerrainCell GetNeighborCell (Direction direction) {
+        if (Latitude < (World.Height - 1))
+        {
+            Neighbors.Add(Direction.Northwest, World.TerrainCells[wLongitude][Latitude + 1]);
+            Neighbors.Add(Direction.North, World.TerrainCells[Longitude][Latitude + 1]);
+            Neighbors.Add(Direction.Northeast, World.TerrainCells[eLongitude][Latitude + 1]);
+        }
 
-		TerrainCell nCell;
+        Neighbors.Add(Direction.West, World.TerrainCells[wLongitude][Latitude]);
+        Neighbors.Add(Direction.East, World.TerrainCells[eLongitude][Latitude]);
 
-		if (!Neighbors.TryGetValue (direction, out nCell))
-			return null;
+        if (Latitude > 0)
+        {
+            Neighbors.Add(Direction.Southwest, World.TerrainCells[wLongitude][Latitude - 1]);
+            Neighbors.Add(Direction.South, World.TerrainCells[Longitude][Latitude - 1]);
+            Neighbors.Add(Direction.Southeast, World.TerrainCells[eLongitude][Latitude - 1]);
+        }
+    }
 
-		return nCell;
-	}
-	
-	private void SetNeighborCells () {
-		
-		Neighbors = new Dictionary<Direction,TerrainCell> (8);
-		
-		int wLongitude = (World.Width + Longitude - 1) % World.Width;
-		int eLongitude = (Longitude + 1) % World.Width;
-		
-		if (Latitude < (World.Height - 1)) {
-			
-			Neighbors.Add (Direction.Northwest, World.TerrainCells[wLongitude][Latitude + 1]);
-			Neighbors.Add (Direction.North, World.TerrainCells[Longitude][Latitude + 1]);
-			Neighbors.Add (Direction.Northeast, World.TerrainCells[eLongitude][Latitude + 1]);
-		}
-		
-		Neighbors.Add (Direction.West, World.TerrainCells[wLongitude][Latitude]);
-		Neighbors.Add (Direction.East, World.TerrainCells[eLongitude][Latitude]);
-		
-		if (Latitude > 0) {
-			
-			Neighbors.Add (Direction.Southwest, World.TerrainCells[wLongitude][Latitude - 1]);
-			Neighbors.Add (Direction.South, World.TerrainCells[Longitude][Latitude - 1]);
-			Neighbors.Add (Direction.Southeast, World.TerrainCells[eLongitude][Latitude - 1]);
-		}
-	}
+    private bool FindIfCoastline()
+    {
+        if (Altitude <= 0)
+        {
+            foreach (TerrainCell nCell in Neighbors.Values)
+            {
+                if (nCell.Altitude > 0)
+                    return true;
+            }
+        }
+        else
+        {
+            foreach (TerrainCell nCell in Neighbors.Values)
+            {
+                if (nCell.Altitude <= 0)
+                    return true;
+            }
+        }
 
-	private bool FindIfCoastline () {
-
-		if (Altitude <= 0) {
-
-			foreach (TerrainCell nCell in Neighbors.Values) {
-				
-				if (nCell.Altitude > 0)
-					return true;
-			}
-
-		} else {
-
-			foreach (TerrainCell nCell in Neighbors.Values) {
-
-				if (nCell.Altitude <= 0)
-					return true;
-			}
-		}
-
-		return false;
-	}
+        return false;
+    }
 }

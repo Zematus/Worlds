@@ -12,8 +12,8 @@ public class MapEditorToolbarScript : MonoBehaviour
     public SliderControlsScript RainLevelSliderControlsScript;
 
     private const float _minAltitudeScaleOffset = 0;
-    private const float _maxAltitudeScaleOffset = 100;
-    private const float _defaultAltitudeScaleOffset = 100;
+    private const float _maxAltitudeScaleOffset = 1;
+    private const float _defaultAltitudeScaleOffset = 1;
 
     private const float _minSeaLevelOffset = -10000;
     private const float _maxSeaLevelOffset = 10000;

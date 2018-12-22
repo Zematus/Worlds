@@ -119,9 +119,10 @@ public class Manager
 
     public static int PixelToCellRatio = 4;
 
+    public static float AltitudeScale = 1;
+    public static float SeaLevelOffset = 0;
     public static float TemperatureOffset = World.AvgPossibleTemperature;
     public static float RainfallOffset = World.AvgPossibleRainfall;
-    public static float SeaLevelOffset = 0;
 
     public static bool DisplayMigrationTaggedGroup = false;
 
@@ -771,15 +772,13 @@ public class Manager
         world.Generate(heightmap);
         world.FinishInitialization();
 
-        ForceWorldCleanup();
-
         _manager._currentWorld = world;
-
         _manager._currentCellSlants = new float?[world.Width, world.Height];
-
         _manager._currentMaxUpdateSpan = 0;
 
         _manager._worldReady = true;
+
+        ForceWorldCleanup();
     }
 
     public static void GenerateNewWorldAsync(int seed, Texture2D heightmap = null, ProgressCastDelegate progressCastMethod = null)
@@ -794,8 +793,8 @@ public class Manager
             _manager._progressCastMethod = (value, message, reset) => { };
         }
 
-        Debug.Log(string.Format("Trying to generate world with seed: {0}, Avg. Temperature: {1}, Avg. Rainfall: {2}, Sea Level Offset: {3}",
-            seed, TemperatureOffset, RainfallOffset, SeaLevelOffset));
+        Debug.Log(string.Format("Trying to generate world with seed: {0}, Altitude Scale: {1}, Sea Level Offset: {2}, Avg. Temperature: {3}, Avg. Rainfall: {4}",
+            seed, AltitudeScale, SeaLevelOffset, TemperatureOffset, RainfallOffset));
 
         ThreadPool.QueueUserWorkItem(state =>
         {
@@ -808,6 +807,67 @@ public class Manager
                 EnqueueTaskAndWait(() =>
                 {
                     throw new System.Exception("Unhandled exception in GenerateNewWorld with seed: " + seed, e);
+                });
+            }
+
+            _manager._performingAsyncTask = false;
+            _manager._simulationRunning = true;
+        });
+    }
+
+    public static void RegenerateWorld(GenerationType type)
+    {
+        _manager._worldReady = false;
+
+        World world = _manager._currentWorld;
+
+        if (_manager._progressCastMethod == null)
+        {
+            world.ProgressCastMethod = (value, message, reset) => { };
+        }
+        else
+        {
+            world.ProgressCastMethod = _manager._progressCastMethod;
+        }
+
+        world.StartReinitialization(0f, ProgressIncrement);
+        world.Regenerate(type);
+        world.FinishInitialization();
+        
+        _manager._currentCellSlants = new float?[world.Width, world.Height];
+        _manager._currentMaxUpdateSpan = 0;
+
+        _manager._worldReady = true;
+
+        ForceWorldCleanup();
+    }
+
+    public static void RegenerateWorldAsync(GenerationType type, ProgressCastDelegate progressCastMethod = null)
+    {
+        _manager._simulationRunning = false;
+        _manager._performingAsyncTask = true;
+
+        _manager._progressCastMethod = progressCastMethod;
+
+        if (_manager._progressCastMethod == null)
+        {
+            _manager._progressCastMethod = (value, message, reset) => { };
+        }
+
+        Debug.Log(string.Format("Trying to regenerate world with seed: {0}, Altitude Scale: {1}, Sea Level Offset: {2}, Avg. Temperature: {3}, Avg. Rainfall: {4}",
+            _manager._currentWorld.Seed, AltitudeScale, SeaLevelOffset, TemperatureOffset, RainfallOffset));
+
+        ThreadPool.QueueUserWorkItem(state =>
+        {
+            try
+            {
+                RegenerateWorld(type);
+            }
+            catch (System.Exception e)
+            {
+                EnqueueTaskAndWait(() =>
+                {
+                    throw new System.Exception("Unhandled exception in RegenerateWorld", e);
                 });
             }
 
@@ -894,8 +954,6 @@ public class Manager
     // WARNING: Don't abuse this function call.
     private static void ForceWorldCleanup()
     {
-        _manager._currentWorld = null;
-
         System.GC.Collect();
         System.GC.WaitForPendingFinalizers();
     }
@@ -928,7 +986,7 @@ public class Manager
         float initialProgressIncrement = ProgressIncrement;
 
         world.StartInitialization(initialProgressIncrement, ProgressIncrement);
-        world.GenerateTerrain(null);
+        world.GenerateTerrain(GenerationType.TerrainNormal, null);
         world.FinishInitialization();
 
         if (_manager._progressCastMethod != null)
@@ -940,17 +998,15 @@ public class Manager
 
         ProgressIncrement = baseProgressIncrement;
 
-        ForceWorldCleanup();
-
         _manager._currentWorld = world;
-
         _manager._currentCellSlants = new float?[world.Width, world.Height];
-
         _manager._currentMaxUpdateSpan = 0;
 
         WorldBeingLoaded = null;
 
         _manager._worldReady = true;
+
+        ForceWorldCleanup();
     }
 
     public static void LoadWorldAsync(string path, ProgressCastDelegate progressCastMethod = null)

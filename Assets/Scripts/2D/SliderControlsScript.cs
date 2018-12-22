@@ -14,11 +14,24 @@ public class SliderControlsScript : MonoBehaviour
     public string InputFormat = "0.000";
     public string UnitSymbol = "%";
 
+    public bool IsPercentFormat = true;
+
     public float MinValue = 0;
     public float MaxValue = 100;
     public float DefaultValue = 100;
 
     public float CurrentValue = 100;
+
+    public ValueSetEvent ValueSetEvent;
+
+    private const float _maxTimeToInvokeEvent = 1;
+
+    private bool _hasToInvokeEvent = false;
+    private float _timeToInvokeEvent = -1;
+
+    private bool _allowInvokeEvent = false;
+
+    private float _lastCurrentValueSet = 0;
 
     // Use this for initialization
     void Start()
@@ -28,6 +41,17 @@ public class SliderControlsScript : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (_hasToInvokeEvent)
+        {
+            _timeToInvokeEvent -= Time.deltaTime;
+
+            if (_timeToInvokeEvent < 0)
+            {
+                InvokeEvent();
+
+                _hasToInvokeEvent = false;
+            }
+        }
     }
 
     public void Initialize()
@@ -37,12 +61,18 @@ public class SliderControlsScript : MonoBehaviour
 
         SymbolText.text = UnitSymbol;
 
-        Reset();
+        SetValue(DefaultValue);
     }
 
     public void SetValueFromSlider(System.Single value)
     {
         SetValue(value);
+
+        if (_allowInvokeEvent)
+        {
+            _timeToInvokeEvent = _maxTimeToInvokeEvent;
+            _hasToInvokeEvent = true;
+        }
     }
 
     public void SetValueFromInputField(string valueStr)
@@ -51,7 +81,14 @@ public class SliderControlsScript : MonoBehaviour
 
         float.TryParse(valueStr, out value);
 
+        if (IsPercentFormat)
+        {
+            value /= 100f;
+        }
+
         SetValue(value);
+
+        InvokeEvent();
     }
 
     public void SetValue(float value)
@@ -72,5 +109,27 @@ public class SliderControlsScript : MonoBehaviour
     public void Reset()
     {
         SetValue(DefaultValue);
+
+        InvokeEvent();
+    }
+
+    private void InvokeEvent()
+    {
+        if (_lastCurrentValueSet != CurrentValue)
+        {
+            ValueSetEvent.Invoke(CurrentValue);
+
+            _lastCurrentValueSet = CurrentValue;
+        }
+    }
+
+    public void AllowEventInvoke(bool value)
+    {
+        _allowInvokeEvent = value;
+
+        if (value)
+        {
+            _lastCurrentValueSet = CurrentValue;
+        }
     }
 }

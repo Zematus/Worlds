@@ -909,6 +909,66 @@ public class GuiManagerScript : MonoBehaviour
         Exit();
     }
 
+    private void PostProgressOp_RegenerateWorld()
+    {
+        Debug.Log("Finished regenerating world with seed: " + Manager.CurrentWorld.Seed);
+
+        Manager.WorldName = "world_" + Manager.CurrentWorld.Seed;
+
+        SelectionPanelScript.RemoveAllOptions();
+
+        //SetInitialPopulation();
+
+        _selectedMaxSpeedLevelIndex = _topMaxSpeedLevelIndex;
+
+        SetMaxSpeedLevel(_selectedMaxSpeedLevelIndex);
+
+        _postProgressOp -= PostProgressOp_RegenerateWorld;
+    }
+
+    public void RenegerateWorldAltitudeScaleChange(float value)
+    {
+        Manager.AltitudeScale = value;
+
+        RegenerateWorld(GenerationType.TerrainRegeneration);
+    }
+
+    public void RenegerateWorldSeaLevelOffsetChange(float value)
+    {
+        Manager.SeaLevelOffset = value;
+
+        RegenerateWorld(GenerationType.TerrainRegeneration);
+    }
+
+    public void RenegerateWorldTemperatureOffsetChange(float value)
+    {
+        Manager.TemperatureOffset = value;
+
+        RegenerateWorld(GenerationType.Temperature);
+    }
+
+    public void RenegerateWorldRainfallOffsetChange(float value)
+    {
+        Manager.RainfallOffset = value;
+
+        RegenerateWorld(GenerationType.Rainfall);
+    }
+
+    private void RegenerateWorld(GenerationType type)
+    {
+        ProgressDialogPanelScript.SetVisible(true);
+
+        ProgressUpdate(0, "Regenerating World...", true);
+
+        Manager.RegenerateWorldAsync(type, ProgressUpdate);
+
+        _postProgressOp += PostProgressOp_RegenerateWorld;
+
+        _backgroundProcessActive = true;
+
+        _regenTextures = true;
+    }
+
     public void GenerateWorld(bool randomSeed = true, int seed = 0)
     {
         if (randomSeed)

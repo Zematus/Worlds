@@ -136,11 +136,12 @@ public class StartGuiManagerScript : MonoBehaviour
     public void PostProgressOp_LoadAction()
     {
         Debug.Log(string.Format(
-            "Finished loading world. Seed: {0}, Avg. Temperature: {1}, Avg. Rainfall: {2}, Sea Level Offset: {3}, Current Date: {4}",
+            "Finished loading world. Seed: {0}, Altitude Scale: {1}, Sea Level Offset: {2}, Avg. Temperature: {3}, Avg. Rainfall: {4}, Current Date: {5}",
             Manager.CurrentWorld.Seed,
+            Manager.CurrentWorld.AltitudeScale,
+            Manager.CurrentWorld.SeaLevelOffset,
             Manager.CurrentWorld.TemperatureOffset,
             Manager.CurrentWorld.RainfallOffset,
-            Manager.CurrentWorld.SeaLevelOffset,
             Manager.GetDateString(Manager.CurrentWorld.CurrentDate)));
 
         _postProgressOp -= PostProgressOp_LoadAction;

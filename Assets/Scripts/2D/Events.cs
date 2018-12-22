@@ -9,4 +9,7 @@ public class MessageEvent : UnityEvent <string> {}
 public class SpeedChangeEvent : UnityEvent <Speed> {}
 
 [System.Serializable]
-public class ToggleEvent : UnityEvent <bool> {}
+public class ToggleEvent : UnityEvent <bool> { }
+
+[System.Serializable]
+public class ValueSetEvent : UnityEvent<float> { }
