@@ -67,8 +67,6 @@ public class StartGuiManagerScript : MonoBehaviour
     // Use this for initialization
     void Start()
     {
-        Manager.LoadAppSettings(@"Worlds.settings");
-
         Manager.InitializeScreen();
 
         Manager.UpdateMainThreadReference();
@@ -86,6 +84,8 @@ public class StartGuiManagerScript : MonoBehaviour
 
     void Awake()
     {
+        Manager.LoadAppSettings(@"Worlds.settings");
+
         VersionText.text = "v" + Application.version;
     }
 

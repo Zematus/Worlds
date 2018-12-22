@@ -61,7 +61,7 @@ public class SliderControlsScript : MonoBehaviour
 
         SymbolText.text = UnitSymbol;
 
-        SetValue(DefaultValue);
+        SetValue(CurrentValue);
     }
 
     public void SetValueFromSlider(System.Single value)

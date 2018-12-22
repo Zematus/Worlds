@@ -149,15 +149,15 @@ public class GuiManagerScript : MonoBehaviour
     private Texture2D _heightmap = null;
 
     void OnEnable()
-	{
+    {
         Manager.InitializeDebugLog();
 
-		Application.logMessageReceivedThreaded += HandleLog;
-	}
+        Application.logMessageReceivedThreaded += HandleLog;
+    }
 
-	void OnDisable()
-	{
-		Application.logMessageReceivedThreaded -= HandleLog;
+    void OnDisable()
+    {
+        Application.logMessageReceivedThreaded -= HandleLog;
 
         Manager.CloseDebugLog();
     }
@@ -188,8 +188,8 @@ public class GuiManagerScript : MonoBehaviour
         InfoTooltipScript.SetVisible(false);
     }
 
-	public void HandleLog(string logString, string stackTrace, LogType type)
-	{
+    public void HandleLog(string logString, string stackTrace, LogType type)
+    {
         Manager.HandleLog(logString, stackTrace, type);
 
         if (type == LogType.Exception)
@@ -206,13 +206,17 @@ public class GuiManagerScript : MonoBehaviour
                 return true;
             });
         }
-	}
+    }
 
-	// Use this for initialization
-	void Start ()
+    // Use this for initialization
+    void Awake()
     {
         Manager.LoadAppSettings(@"Worlds.settings");
+    }
 
+    // Use this for initialization
+    void Start()
+    {
         _topMaxSpeedLevelIndex = Speed.Levels.Length - 1;
         _selectedMaxSpeedLevelIndex = _topMaxSpeedLevelIndex;
 

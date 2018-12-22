@@ -985,6 +985,11 @@ public class Manager
 
         float initialProgressIncrement = ProgressIncrement;
 
+        Manager.AltitudeScale = world.AltitudeScale;
+        Manager.SeaLevelOffset = world.SeaLevelOffset;
+        Manager.RainfallOffset = world.RainfallOffset;
+        Manager.TemperatureOffset = world.TemperatureOffset;
+
         world.StartInitialization(initialProgressIncrement, ProgressIncrement);
         world.GenerateTerrain(GenerationType.TerrainNormal, null);
         world.FinishInitialization();

@@ -418,18 +418,27 @@ public class World : ISynchronizable
         RegionCount = 0;
         TerrainCellChangesListCount = 0;
 
-        AltitudeScale = Manager.AltitudeScale;
-        SeaLevelOffset = Manager.SeaLevelOffset;
-        RainfallOffset = Manager.RainfallOffset;
-        TemperatureOffset = Manager.TemperatureOffset;
+        //AltitudeScale = Manager.AltitudeScale;
+        //SeaLevelOffset = Manager.SeaLevelOffset;
+        //RainfallOffset = Manager.RainfallOffset;
+        //TemperatureOffset = Manager.TemperatureOffset;
     }
 
     public void StartReinitialization(float acumulatedProgress, float progressIncrement)
     {
-        Manager.AltitudeScale = AltitudeScale;
-        Manager.SeaLevelOffset = SeaLevelOffset;
-        Manager.RainfallOffset = RainfallOffset;
-        Manager.TemperatureOffset = TemperatureOffset;
+        AltitudeScale = Manager.AltitudeScale;
+        SeaLevelOffset = Manager.SeaLevelOffset;
+        RainfallOffset = Manager.RainfallOffset;
+        TemperatureOffset = Manager.TemperatureOffset;
+
+        MinPossibleAltitudeWithOffset = MinPossibleAltitude - Manager.SeaLevelOffset;
+        MaxPossibleAltitudeWithOffset = MaxPossibleAltitude - Manager.SeaLevelOffset;
+
+        MinPossibleRainfallWithOffset = MinPossibleRainfall;
+        MaxPossibleRainfallWithOffset = MaxPossibleRainfall * Manager.RainfallOffset / AvgPossibleRainfall;
+
+        MinPossibleTemperatureWithOffset = MinPossibleTemperature + Manager.TemperatureOffset;
+        MaxPossibleTemperatureWithOffset = MaxPossibleTemperature + Manager.TemperatureOffset;
 
         _accumulatedProgress = acumulatedProgress;
         _progressIncrement = progressIncrement;
@@ -443,10 +452,19 @@ public class World : ISynchronizable
 
     public void StartInitialization(float acumulatedProgress, float progressIncrement)
     {
-        Manager.AltitudeScale = AltitudeScale;
-        Manager.SeaLevelOffset = SeaLevelOffset;
-        Manager.RainfallOffset = RainfallOffset;
-        Manager.TemperatureOffset = TemperatureOffset;
+        AltitudeScale = Manager.AltitudeScale;
+        SeaLevelOffset = Manager.SeaLevelOffset;
+        RainfallOffset = Manager.RainfallOffset;
+        TemperatureOffset = Manager.TemperatureOffset;
+
+        MinPossibleAltitudeWithOffset = MinPossibleAltitude - Manager.SeaLevelOffset;
+        MaxPossibleAltitudeWithOffset = MaxPossibleAltitude - Manager.SeaLevelOffset;
+
+        MinPossibleRainfallWithOffset = MinPossibleRainfall;
+        MaxPossibleRainfallWithOffset = MaxPossibleRainfall * Manager.RainfallOffset / AvgPossibleRainfall;
+
+        MinPossibleTemperatureWithOffset = MinPossibleTemperature + Manager.TemperatureOffset;
+        MaxPossibleTemperatureWithOffset = MaxPossibleTemperature + Manager.TemperatureOffset;
 
         _accumulatedProgress = acumulatedProgress;
         _progressIncrement = progressIncrement;
@@ -1908,6 +1926,12 @@ public class World : ISynchronizable
 
             RegenerateTerrain();
         }
+        else
+        {
+            OffsetTerrainGenRngCalls();
+
+            _accumulatedProgress += _progressIncrement;
+        }
 
         if ((type & GenerationType.Rainfall) == GenerationType.Rainfall)
         {
@@ -1917,6 +1941,8 @@ public class World : ISynchronizable
         }
         else
         {
+            OffsetRainfallGenRngCalls();
+
             _accumulatedProgress += _progressIncrement;
         }
 
@@ -1928,6 +1954,8 @@ public class World : ISynchronizable
         }
         else
         {
+            OffsetTemperatureGenRngCalls();
+
             _accumulatedProgress += _progressIncrement;
         }
 
@@ -2119,8 +2147,29 @@ public class World : ISynchronizable
         return new Vector2(distX * continentWidth, distY * continentHeight).magnitude;
     }
 
+    private void OffsetTerrainGenRngCalls()
+    {
+        GenerateContinents(); // We call this just to ensure 'Random' gets called the same number of times
+
+        // We call 'Random' as many times as the GenerateTerrainFunction would do
+        // to ensure future rng calls output the same results
+        GenerateRandomOffsetVector().Wait();
+        GenerateRandomOffsetVector().Wait();
+        GenerateRandomOffsetVector().Wait();
+        GenerateRandomOffsetVector().Wait();
+        GenerateRandomOffsetVector().Wait();
+        GenerateRandomOffsetVector().Wait();
+        GenerateRandomOffsetVector().Wait();
+        GenerateRandomOffsetVector().Wait();
+        GenerateRandomOffsetVector().Wait();
+        GenerateRandomOffsetVector().Wait();
+        GenerateRandomOffsetVector().Wait();
+    }
+
     private void RegenerateTerrain()
     {
+        OffsetTerrainGenRngCalls();
+
         int sizeX = Width;
         int sizeY = Height;
 
@@ -2139,6 +2188,8 @@ public class World : ISynchronizable
 
     private void GenerateTerrainFromHeightmap(Texture2D heightmap)
     {
+        OffsetTerrainGenRngCalls();
+
         int sizeX = Width;
         int sizeY = Height;
 
@@ -2564,6 +2615,13 @@ public class World : ISynchronizable
         if (altitude < MinAltitude) MinAltitude = altitude;
     }
 
+    private void OffsetRainfallGenRngCalls()
+    {
+        GenerateRandomOffsetVector().Wait();
+        GenerateRandomOffsetVector().Wait();
+        GenerateRandomOffsetVector().Wait();
+    }
+
     private void GenerateTerrainRainfall()
     {
         int sizeX = Width;
@@ -2657,6 +2715,12 @@ public class World : ISynchronizable
         _accumulatedProgress += _progressIncrement;
     }
 
+    private void OffsetTemperatureGenRngCalls()
+    {
+        GenerateRandomOffsetVector().Wait();
+        GenerateRandomOffsetVector().Wait();
+    }
+
     private void GenerateTerrainTemperature()
     {
         int sizeX = Width;
@@ -2692,6 +2756,29 @@ public class World : ISynchronizable
                 float altitudeFactor3 = -0.18f;
 
                 float temperature = CalculateTemperature(Mathf.Sin(latitudeModifier) - altitudeFactor1 - altitudeFactor2 - altitudeFactor3);
+
+#if DEBUG
+                if ((i == 269) && (j == 136))
+                {
+                    Debug.Log(
+                        "temperature:" + temperature +
+                        ", TemperatureOffset:" + TemperatureOffset +
+                        ", MaxPossibleTemperature:" + MaxPossibleTemperature +
+                        ", MinPossibleTemperature:" + MinPossibleTemperature +
+                        ", MaxPossibleTemperatureWithOffset:" + MaxPossibleTemperatureWithOffset +
+                        ", MinPossibleTemperatureWithOffset:" + MinPossibleTemperatureWithOffset +
+                        ", alpha:" + alpha +
+                        ", beta:" + beta +
+                        ", value1:" + value1 +
+                        ", offset1:" + offset1.Result +
+                        ", latitudeModifier:" + latitudeModifier +
+                        ", altitudeFactor1:" + altitudeFactor1 +
+                        ", altitudeFactor2:" + altitudeFactor2 +
+                        ", altitudeFactor3:" + altitudeFactor3 +
+                        ", Seed:" + Seed
+                        );
+                }
+#endif
 
                 cell.Temperature = temperature;
 
