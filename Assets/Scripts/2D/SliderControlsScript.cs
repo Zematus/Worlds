@@ -20,7 +20,23 @@ public class SliderControlsScript : MonoBehaviour
     public float MaxValue = 100;
     public float DefaultValue = 100;
 
-    public float CurrentValue = 100;
+#if DEBUG
+    private float _currentValue;
+
+    public float CurrentValue
+    {
+        get
+        {
+            return _currentValue;
+        }
+        set
+        {
+            _currentValue = value;
+        }
+    }
+#else
+    public float CurrentValue { get; set; }
+#endif
 
     public ValueSetEvent ValueSetEvent;
 
@@ -29,6 +45,7 @@ public class SliderControlsScript : MonoBehaviour
     private bool _hasToInvokeEvent = false;
     private float _timeToInvokeEvent = -1;
 
+    private bool _isSettingValueAlready = false;
     private bool _allowInvokeEvent = false;
 
     private float _lastCurrentValueSet = 0;
@@ -56,6 +73,8 @@ public class SliderControlsScript : MonoBehaviour
 
     public void Initialize()
     {
+        _isSettingValueAlready = true;
+
         Slider.minValue = MinValue;
         Slider.maxValue = MaxValue;
 
@@ -66,6 +85,9 @@ public class SliderControlsScript : MonoBehaviour
 
     public void SetValueFromSlider(System.Single value)
     {
+        if (_isSettingValueAlready)
+            return;
+
         SetValue(value);
 
         if (_allowInvokeEvent)
@@ -86,6 +108,9 @@ public class SliderControlsScript : MonoBehaviour
             value /= 100f;
         }
 
+        if (_isSettingValueAlready)
+            return;
+
         SetValue(value);
 
         InvokeEvent();
@@ -93,6 +118,8 @@ public class SliderControlsScript : MonoBehaviour
 
     public void SetValue(float value)
     {
+        _isSettingValueAlready = true;
+
         if (value < MinValue)
             value = MinValue;
 
@@ -104,6 +131,8 @@ public class SliderControlsScript : MonoBehaviour
         Slider.value = value;
 
         InputField.text = value.ToString(InputFormat);
+
+        _isSettingValueAlready = false;
     }
 
     public void Reset()

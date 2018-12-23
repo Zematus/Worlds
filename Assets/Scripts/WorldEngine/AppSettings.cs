@@ -34,9 +34,10 @@ public class AppSettings
 
     public void Take()
     {
+        Manager.AltitudeScale = AltitudeScale;
+        Manager.SeaLevelOffset = SeaLevelOffset;
         Manager.TemperatureOffset = TemperatureOffset;
         Manager.RainfallOffset = RainfallOffset;
-        Manager.SeaLevelOffset = SeaLevelOffset;
         Manager.FullScreenEnabled = Fullscreen;
         Manager.DebugModeEnabled = DebugMode;
         Manager.ShowFullGameplayInfo = FullGameplayInfo;

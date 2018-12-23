@@ -15,9 +15,6 @@ public class FlattenControlPanelScript : MonoBehaviour
     // Use this for initialization
     void Start()
     {
-        AltitudeScaleSliderControlsScript.MinValue = _minAltitudeScaleOffset;
-        AltitudeScaleSliderControlsScript.MaxValue = _maxAltitudeScaleOffset;
-        AltitudeScaleSliderControlsScript.DefaultValue = _defaultAltitudeScaleOffset;
     }
 
     // Update is called once per frame
@@ -31,6 +28,10 @@ public class FlattenControlPanelScript : MonoBehaviour
 
         if (state)
         {
+            AltitudeScaleSliderControlsScript.MinValue = _minAltitudeScaleOffset;
+            AltitudeScaleSliderControlsScript.MaxValue = _maxAltitudeScaleOffset;
+            AltitudeScaleSliderControlsScript.DefaultValue = _defaultAltitudeScaleOffset;
+
             AltitudeScaleSliderControlsScript.CurrentValue = Manager.AltitudeScale;
             AltitudeScaleSliderControlsScript.Initialize();
         }

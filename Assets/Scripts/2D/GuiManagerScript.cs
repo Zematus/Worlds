@@ -406,7 +406,7 @@ public class GuiManagerScript : MonoBehaviour
                 _planetView = PlanetView.Biomes;
 
 #if DEBUG
-                _planetOverlay = PlanetOverlay.General;
+                _planetOverlay = PlanetOverlay.None;
 #else
 				_planetOverlay = PlanetOverlay.General;
 #endif

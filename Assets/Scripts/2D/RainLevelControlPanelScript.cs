@@ -15,9 +15,6 @@ public class RainLevelControlPanelScript : MonoBehaviour
     // Use this for initialization
     void Start()
     {
-        RainLevelSliderControlsScript.MinValue = _minRainfallOffset;
-        RainLevelSliderControlsScript.MaxValue = _maxRainfallOffset;
-        RainLevelSliderControlsScript.DefaultValue = _defaultRainfallOffset;
     }
 
     // Update is called once per frame
@@ -31,6 +28,10 @@ public class RainLevelControlPanelScript : MonoBehaviour
 
         if (state)
         {
+            RainLevelSliderControlsScript.MinValue = _minRainfallOffset;
+            RainLevelSliderControlsScript.MaxValue = _maxRainfallOffset;
+            RainLevelSliderControlsScript.DefaultValue = _defaultRainfallOffset;
+
             RainLevelSliderControlsScript.CurrentValue = Manager.RainfallOffset;
             RainLevelSliderControlsScript.Initialize();
         }

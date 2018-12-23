@@ -8,16 +8,13 @@ public class TempLevelControlPanelScript : MonoBehaviour
 {
     public SliderControlsScript TempLevelSliderControlsScript;
 
-    private const float _minTemperatureOffset = -50 + World.AvgPossibleTemperature;
+    private const float _minTemperatureOffset = -40 - World.AvgPossibleTemperature;
     private const float _maxTemperatureOffset = 50 + World.AvgPossibleTemperature;
     private const float _defaultTemperatureOffset = World.AvgPossibleTemperature;
 
     // Use this for initialization
     void Start()
     {
-        TempLevelSliderControlsScript.MinValue = _minTemperatureOffset;
-        TempLevelSliderControlsScript.MaxValue = _maxTemperatureOffset;
-        TempLevelSliderControlsScript.DefaultValue = _defaultTemperatureOffset;
     }
 
     // Update is called once per frame
@@ -31,6 +28,10 @@ public class TempLevelControlPanelScript : MonoBehaviour
 
         if (state)
         {
+            TempLevelSliderControlsScript.MinValue = _minTemperatureOffset;
+            TempLevelSliderControlsScript.MaxValue = _maxTemperatureOffset;
+            TempLevelSliderControlsScript.DefaultValue = _defaultTemperatureOffset;
+
             TempLevelSliderControlsScript.CurrentValue = Manager.TemperatureOffset;
             TempLevelSliderControlsScript.Initialize();
         }

@@ -15,9 +15,6 @@ public class SeaLevelControlPanelScript : MonoBehaviour
     // Use this for initialization
     void Start()
     {
-        SeaLevelSliderControlsScript.MinValue = _minSeaLevelOffset;
-        SeaLevelSliderControlsScript.MaxValue = _maxSeaLevelOffset;
-        SeaLevelSliderControlsScript.DefaultValue = _defaultSeaLevelOffset;
     }
 
     // Update is called once per frame
@@ -31,6 +28,10 @@ public class SeaLevelControlPanelScript : MonoBehaviour
 
         if (state)
         {
+            SeaLevelSliderControlsScript.MinValue = _minSeaLevelOffset;
+            SeaLevelSliderControlsScript.MaxValue = _maxSeaLevelOffset;
+            SeaLevelSliderControlsScript.DefaultValue = _defaultSeaLevelOffset;
+
             SeaLevelSliderControlsScript.CurrentValue = Manager.SeaLevelOffset;
             SeaLevelSliderControlsScript.Initialize();
         }
