@@ -440,6 +440,15 @@ public class World : ISynchronizable
         MinPossibleTemperatureWithOffset = MinPossibleTemperature + Manager.TemperatureOffset;
         MaxPossibleTemperatureWithOffset = MaxPossibleTemperature + Manager.TemperatureOffset;
 
+        MaxAltitude = float.MinValue;
+        MinAltitude = float.MaxValue;
+
+        MaxRainfall = float.MinValue;
+        MinRainfall = float.MaxValue;
+
+        MaxTemperature = float.MinValue;
+        MinTemperature = float.MaxValue;
+
         _accumulatedProgress = acumulatedProgress;
         _progressIncrement = progressIncrement;
 
@@ -465,6 +474,15 @@ public class World : ISynchronizable
 
         MinPossibleTemperatureWithOffset = MinPossibleTemperature + Manager.TemperatureOffset;
         MaxPossibleTemperatureWithOffset = MaxPossibleTemperature + Manager.TemperatureOffset;
+
+        MaxAltitude = float.MinValue;
+        MinAltitude = float.MaxValue;
+
+        MaxRainfall = float.MinValue;
+        MinRainfall = float.MaxValue;
+
+        MaxTemperature = float.MinValue;
+        MinTemperature = float.MaxValue;
 
         _accumulatedProgress = acumulatedProgress;
         _progressIncrement = progressIncrement;
@@ -2757,28 +2775,28 @@ public class World : ISynchronizable
 
                 float temperature = CalculateTemperature(Mathf.Sin(latitudeModifier) - altitudeFactor1 - altitudeFactor2 - altitudeFactor3);
 
-#if DEBUG
-                if ((i == 269) && (j == 136))
-                {
-                    Debug.Log(
-                        "temperature:" + temperature +
-                        ", TemperatureOffset:" + TemperatureOffset +
-                        ", MaxPossibleTemperature:" + MaxPossibleTemperature +
-                        ", MinPossibleTemperature:" + MinPossibleTemperature +
-                        ", MaxPossibleTemperatureWithOffset:" + MaxPossibleTemperatureWithOffset +
-                        ", MinPossibleTemperatureWithOffset:" + MinPossibleTemperatureWithOffset +
-                        ", alpha:" + alpha +
-                        ", beta:" + beta +
-                        ", value1:" + value1 +
-                        ", offset1:" + offset1.Result +
-                        ", latitudeModifier:" + latitudeModifier +
-                        ", altitudeFactor1:" + altitudeFactor1 +
-                        ", altitudeFactor2:" + altitudeFactor2 +
-                        ", altitudeFactor3:" + altitudeFactor3 +
-                        ", Seed:" + Seed
-                        );
-                }
-#endif
+//#if DEBUG
+//                if ((i == 269) && (j == 136))
+//                {
+//                    Debug.Log(
+//                        "temperature:" + temperature +
+//                        ", TemperatureOffset:" + TemperatureOffset +
+//                        ", MaxPossibleTemperature:" + MaxPossibleTemperature +
+//                        ", MinPossibleTemperature:" + MinPossibleTemperature +
+//                        ", MaxPossibleTemperatureWithOffset:" + MaxPossibleTemperatureWithOffset +
+//                        ", MinPossibleTemperatureWithOffset:" + MinPossibleTemperatureWithOffset +
+//                        ", alpha:" + alpha +
+//                        ", beta:" + beta +
+//                        ", value1:" + value1 +
+//                        ", offset1:" + offset1.Result +
+//                        ", latitudeModifier:" + latitudeModifier +
+//                        ", altitudeFactor1:" + altitudeFactor1 +
+//                        ", altitudeFactor2:" + altitudeFactor2 +
+//                        ", altitudeFactor3:" + altitudeFactor3 +
+//                        ", Seed:" + Seed
+//                        );
+//                }
+//#endif
 
                 cell.Temperature = temperature;
 
