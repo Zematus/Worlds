@@ -440,15 +440,6 @@ public class World : ISynchronizable
         MinPossibleTemperatureWithOffset = MinPossibleTemperature + Manager.TemperatureOffset;
         MaxPossibleTemperatureWithOffset = MaxPossibleTemperature + Manager.TemperatureOffset;
 
-        MaxAltitude = float.MinValue;
-        MinAltitude = float.MaxValue;
-
-        MaxRainfall = float.MinValue;
-        MinRainfall = float.MaxValue;
-
-        MaxTemperature = float.MinValue;
-        MinTemperature = float.MaxValue;
-
         _accumulatedProgress = acumulatedProgress;
         _progressIncrement = progressIncrement;
 
@@ -474,15 +465,6 @@ public class World : ISynchronizable
 
         MinPossibleTemperatureWithOffset = MinPossibleTemperature + Manager.TemperatureOffset;
         MaxPossibleTemperatureWithOffset = MaxPossibleTemperature + Manager.TemperatureOffset;
-
-        MaxAltitude = float.MinValue;
-        MinAltitude = float.MaxValue;
-
-        MaxRainfall = float.MinValue;
-        MinRainfall = float.MaxValue;
-
-        MaxTemperature = float.MinValue;
-        MinTemperature = float.MaxValue;
 
         _accumulatedProgress = acumulatedProgress;
         _progressIncrement = progressIncrement;
@@ -2171,22 +2153,30 @@ public class World : ISynchronizable
 
         // We call 'Random' as many times as the GenerateTerrainFunction would do
         // to ensure future rng calls output the same results
-        GenerateRandomOffsetVector().Wait();
-        GenerateRandomOffsetVector().Wait();
-        GenerateRandomOffsetVector().Wait();
-        GenerateRandomOffsetVector().Wait();
-        GenerateRandomOffsetVector().Wait();
-        GenerateRandomOffsetVector().Wait();
-        GenerateRandomOffsetVector().Wait();
-        GenerateRandomOffsetVector().Wait();
-        GenerateRandomOffsetVector().Wait();
-        GenerateRandomOffsetVector().Wait();
-        GenerateRandomOffsetVector().Wait();
+
+        Manager.EnqueueTaskAndWait(() =>
+        {
+            // do this as many times as in normal terrain generation (11 times)
+            GenerateRandomOffsetVector();
+            GenerateRandomOffsetVector();
+            GenerateRandomOffsetVector();
+            GenerateRandomOffsetVector();
+            GenerateRandomOffsetVector();
+            GenerateRandomOffsetVector();
+            GenerateRandomOffsetVector();
+            GenerateRandomOffsetVector();
+            GenerateRandomOffsetVector();
+            GenerateRandomOffsetVector();
+            GenerateRandomOffsetVector();
+        });
     }
 
     private void RegenerateTerrain()
     {
         OffsetTerrainGenRngCalls();
+
+        MaxAltitude = float.MinValue;
+        MinAltitude = float.MaxValue;
 
         int sizeX = Width;
         int sizeY = Height;
@@ -2207,6 +2197,9 @@ public class World : ISynchronizable
     private void GenerateTerrainFromHeightmap(Texture2D heightmap)
     {
         OffsetTerrainGenRngCalls();
+
+        MaxAltitude = float.MinValue;
+        MinAltitude = float.MaxValue;
 
         int sizeX = Width;
         int sizeY = Height;
@@ -2268,6 +2261,9 @@ public class World : ISynchronizable
 
     private void GenerateTerrainAltitudeOld()
     {
+        MaxAltitude = float.MinValue;
+        MinAltitude = float.MaxValue;
+
         GenerateContinents();
 
         int sizeX = Width;
@@ -2284,17 +2280,17 @@ public class World : ISynchronizable
         float radius8 = 1.5f;
         float radius9 = 1f;
 
-        ManagerTask<Vector3> offset1 = GenerateRandomOffsetVector();
-        ManagerTask<Vector3> offset2 = GenerateRandomOffsetVector();
-        ManagerTask<Vector3> offset1b = GenerateRandomOffsetVector();
-        ManagerTask<Vector3> offset2b = GenerateRandomOffsetVector();
-        ManagerTask<Vector3> offset3 = GenerateRandomOffsetVector();
-        ManagerTask<Vector3> offset4 = GenerateRandomOffsetVector();
-        ManagerTask<Vector3> offset5 = GenerateRandomOffsetVector();
-        ManagerTask<Vector3> offset6 = GenerateRandomOffsetVector();
-        ManagerTask<Vector3> offset7 = GenerateRandomOffsetVector();
-        ManagerTask<Vector3> offset8 = GenerateRandomOffsetVector();
-        ManagerTask<Vector3> offset9 = GenerateRandomOffsetVector();
+        ManagerTask<Vector3> offset1 = GenerateRandomOffsetVectorTask();
+        ManagerTask<Vector3> offset2 = GenerateRandomOffsetVectorTask();
+        ManagerTask<Vector3> offset1b = GenerateRandomOffsetVectorTask();
+        ManagerTask<Vector3> offset2b = GenerateRandomOffsetVectorTask();
+        ManagerTask<Vector3> offset3 = GenerateRandomOffsetVectorTask();
+        ManagerTask<Vector3> offset4 = GenerateRandomOffsetVectorTask();
+        ManagerTask<Vector3> offset5 = GenerateRandomOffsetVectorTask();
+        ManagerTask<Vector3> offset6 = GenerateRandomOffsetVectorTask();
+        ManagerTask<Vector3> offset7 = GenerateRandomOffsetVectorTask();
+        ManagerTask<Vector3> offset8 = GenerateRandomOffsetVectorTask();
+        ManagerTask<Vector3> offset9 = GenerateRandomOffsetVectorTask();
 
         //// Doing this only to make sure that Unity's RNG gets called the same number of times as with the new terrain generation function
         //ManagerTask<Vector3>[] offsetK = new ManagerTask<Vector3>[NumContinents];
@@ -2455,17 +2451,17 @@ public class World : ISynchronizable
         float radius8 = 1.5f;
         float radius9 = 1f;
 
-        ManagerTask<Vector3> offset1 = GenerateRandomOffsetVector();
-        ManagerTask<Vector3> offset2 = GenerateRandomOffsetVector();
+        ManagerTask<Vector3> offset1 = GenerateRandomOffsetVectorTask();
+        ManagerTask<Vector3> offset2 = GenerateRandomOffsetVectorTask();
         //ManagerTask<Vector3> offset1b = GenerateRandomOffsetVector();
         //ManagerTask<Vector3> offset2b = GenerateRandomOffsetVector();
-        ManagerTask<Vector3> offset3 = GenerateRandomOffsetVector();
-        ManagerTask<Vector3> offset4 = GenerateRandomOffsetVector();
-        ManagerTask<Vector3> offset5 = GenerateRandomOffsetVector();
-        ManagerTask<Vector3> offset6 = GenerateRandomOffsetVector();
-        ManagerTask<Vector3> offset7 = GenerateRandomOffsetVector();
-        ManagerTask<Vector3> offset8 = GenerateRandomOffsetVector();
-        ManagerTask<Vector3> offset9 = GenerateRandomOffsetVector();
+        ManagerTask<Vector3> offset3 = GenerateRandomOffsetVectorTask();
+        ManagerTask<Vector3> offset4 = GenerateRandomOffsetVectorTask();
+        ManagerTask<Vector3> offset5 = GenerateRandomOffsetVectorTask();
+        ManagerTask<Vector3> offset6 = GenerateRandomOffsetVectorTask();
+        ManagerTask<Vector3> offset7 = GenerateRandomOffsetVectorTask();
+        ManagerTask<Vector3> offset8 = GenerateRandomOffsetVectorTask();
+        ManagerTask<Vector3> offset9 = GenerateRandomOffsetVectorTask();
 
         float radiusK = 4f;
         float radiusK2 = 15f;
@@ -2474,8 +2470,8 @@ public class World : ISynchronizable
 
         for (int k = 0; k < NumContinents; k++)
         {
-            offsetK[k] = GenerateRandomOffsetVector();
-            offsetK2[k] = GenerateRandomOffsetVector();
+            offsetK[k] = GenerateRandomOffsetVectorTask();
+            offsetK2[k] = GenerateRandomOffsetVectorTask();
         }
 
         for (int i = 0; i < sizeX; i++)
@@ -2554,17 +2550,16 @@ public class World : ISynchronizable
         return Manager.EnqueueTask(() => Random.Range(min, max));
     }
 
-    private ManagerTask<Vector3> GenerateRandomOffsetVector()
+    private Vector3 GenerateRandomOffsetVector()
+    {
+        return RandomUtility.insideUnitSphere * 1000;
+    }
+
+    private ManagerTask<Vector3> GenerateRandomOffsetVectorTask()
     {
         return Manager.EnqueueTask(() =>
         {
-            //			Vector3 randVector = Random.insideUnitSphere;
-            //
-            //			randVector.x = (float)System.Math.Round (randVector.x, 4);
-            //			randVector.y = (float)System.Math.Round (randVector.y, 4);
-            //			randVector.z = (float)System.Math.Round (randVector.z, 4);
-
-            return RandomUtility.insideUnitSphere * 1000;
+            return GenerateRandomOffsetVector();
         });
     }
 
@@ -2635,13 +2630,16 @@ public class World : ISynchronizable
 
     private void OffsetRainfallGenRngCalls()
     {
-        GenerateRandomOffsetVector().Wait();
-        GenerateRandomOffsetVector().Wait();
-        GenerateRandomOffsetVector().Wait();
+        GenerateRandomOffsetVectorTask().Wait();
+        GenerateRandomOffsetVectorTask().Wait();
+        GenerateRandomOffsetVectorTask().Wait();
     }
 
     private void GenerateTerrainRainfall()
     {
+        MaxRainfall = float.MinValue;
+        MinRainfall = float.MaxValue;
+
         int sizeX = Width;
         int sizeY = Height;
 
@@ -2649,9 +2647,9 @@ public class World : ISynchronizable
         float radius2 = 1f;
         float radius3 = 16f;
 
-        ManagerTask<Vector3> offset1 = GenerateRandomOffsetVector();
-        ManagerTask<Vector3> offset2 = GenerateRandomOffsetVector();
-        ManagerTask<Vector3> offset3 = GenerateRandomOffsetVector();
+        ManagerTask<Vector3> offset1 = GenerateRandomOffsetVectorTask();
+        ManagerTask<Vector3> offset2 = GenerateRandomOffsetVectorTask();
+        ManagerTask<Vector3> offset3 = GenerateRandomOffsetVectorTask();
 
         for (int i = 0; i < sizeX; i++)
         {
@@ -2735,20 +2733,23 @@ public class World : ISynchronizable
 
     private void OffsetTemperatureGenRngCalls()
     {
-        GenerateRandomOffsetVector().Wait();
-        GenerateRandomOffsetVector().Wait();
+        GenerateRandomOffsetVectorTask().Wait();
+        GenerateRandomOffsetVectorTask().Wait();
     }
 
     private void GenerateTerrainTemperature()
     {
+        MaxTemperature = float.MinValue;
+        MinTemperature = float.MaxValue;
+
         int sizeX = Width;
         int sizeY = Height;
 
         float radius1 = 2f;
         float radius2 = 16f;
 
-        ManagerTask<Vector3> offset1 = GenerateRandomOffsetVector();
-        ManagerTask<Vector3> offset2 = GenerateRandomOffsetVector();
+        ManagerTask<Vector3> offset1 = GenerateRandomOffsetVectorTask();
+        ManagerTask<Vector3> offset2 = GenerateRandomOffsetVectorTask();
 
         for (int i = 0; i < sizeX; i++)
         {
@@ -2817,7 +2818,7 @@ public class World : ISynchronizable
 
         float radius = 2f;
 
-        ManagerTask<Vector3> offset = GenerateRandomOffsetVector();
+        ManagerTask<Vector3> offset = GenerateRandomOffsetVectorTask();
 
         for (int i = 0; i < sizeX; i++)
         {
