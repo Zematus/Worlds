@@ -1617,116 +1617,117 @@ public class Manager
         }
     }
 
-    public static Texture2D GenerateSphereTextureFromWorld (World world) {
+    public static Texture2D GenerateSphereTextureFromWorld(World world)
+    {
+        //		UpdatedCells.Clear ();
 
-//		UpdatedCells.Clear ();
-		
-		int sizeX = world.Width;
-		int sizeY = world.Height*2;
-		
-		int r = PixelToCellRatio;
-		
-		Color32[] textureColors = new Color32[sizeX * sizeY * r * r];
-		
-		Texture2D texture = new Texture2D(sizeX*r, sizeY*r, TextureFormat.ARGB32, false);
-		
-		for (int i = 0; i < sizeX; i++)
-		{
-			for (int j = 0; j < sizeY; j++)
-			{
-				float factorJ = (1f - Mathf.Cos(Mathf.PI*(float)j/(float)sizeY))/2f;
+        int sizeX = world.Width;
+        int sizeY = world.Height * 2;
 
-				int trueJ = (int)(world.Height * factorJ);
+        int r = PixelToCellRatio;
 
-				Color cellColor = GenerateColorFromTerrainCell(world.TerrainCells[i][trueJ]);
-				
-				for (int m = 0; m < r; m++) {
-					for (int n = 0; n < r; n++) {
+        Color32[] textureColors = new Color32[sizeX * sizeY * r * r];
 
-						int offsetY = sizeX * r * (j*r + n);
-						int offsetX = i*r + m;
+        Texture2D texture = new Texture2D(sizeX * r, sizeY * r, TextureFormat.ARGB32, false);
 
-						textureColors[offsetY + offsetX] = cellColor;
-					}
-				}
-			}
-		}
+        for (int i = 0; i < sizeX; i++)
+        {
+            for (int j = 0; j < sizeY; j++)
+            {
+                float factorJ = (1f - Mathf.Cos(Mathf.PI * (float)j / (float)sizeY)) / 2f;
 
-		texture.SetPixels32 (textureColors);
+                int trueJ = (int)(world.Height * factorJ);
 
-		texture.Apply();
+                Color cellColor = GenerateColorFromTerrainCell(world.TerrainCells[i][trueJ]);
 
-		_manager._currentSphereTextureColors = textureColors;
-		_manager._currentSphereTexture = texture;
-		
-		return texture;
-	}
+                for (int m = 0; m < r; m++)
+                {
+                    for (int n = 0; n < r; n++)
+                    {
+                        int offsetY = sizeX * r * (j * r + n);
+                        int offsetX = i * r + m;
 
-	private static float GetSlant (TerrainCell cell) {
+                        textureColors[offsetY + offsetX] = cellColor;
+                    }
+                }
+            }
+        }
 
-		if (_manager._currentCellSlants [cell.Longitude, cell.Latitude] != null) {
-		
-			return _manager._currentCellSlants [cell.Longitude, cell.Latitude].Value;
-		}
+        texture.SetPixels32(textureColors);
 
-		Dictionary<Direction, TerrainCell> neighbors = cell.Neighbors;
+        texture.Apply();
 
-		float wAltitude = 0;
-		float eAltitude = 0;
+        _manager._currentSphereTextureColors = textureColors;
+        _manager._currentSphereTexture = texture;
 
-		int c = 0;
-		TerrainCell nCell = null;
+        return texture;
+    }
 
-		if (neighbors.TryGetValue (Direction.West, out nCell)) {
-			
-			wAltitude += nCell.Altitude;
-			c++;
-		}
-		
-		if (neighbors.TryGetValue (Direction.Southwest, out nCell)) {
-			
-			wAltitude += nCell.Altitude;
-			c++;
-		}
-		
-		if (neighbors.TryGetValue (Direction.South, out nCell)) {
-			
-			wAltitude += nCell.Altitude;
-			c++;
-		}
+    private static float GetSlant(TerrainCell cell)
+    {
+        if (_manager._currentCellSlants[cell.Longitude, cell.Latitude] != null)
+        {
+            return _manager._currentCellSlants[cell.Longitude, cell.Latitude].Value;
+        }
 
-		wAltitude /= (float)c;
+        Dictionary<Direction, TerrainCell> neighbors = cell.Neighbors;
 
-		c = 0;
-		
-		if (neighbors.TryGetValue (Direction.East, out nCell)) {
-			
-			eAltitude += nCell.Altitude;
-			c++;
-		}
-		
-		if (neighbors.TryGetValue (Direction.Northeast, out nCell)) {
-			
-			eAltitude += nCell.Altitude;
-			c++;
-		}
-		
-		if (neighbors.TryGetValue (Direction.North, out nCell)) {
-			
-			eAltitude += nCell.Altitude;
-			c++;
-		}
-		
-		eAltitude /= (float)c;
+        float wAltitude = 0;
+        float eAltitude = 0;
 
-		float value = wAltitude - eAltitude;
+        int c = 0;
+        TerrainCell nCell = null;
 
-		_manager._currentCellSlants [cell.Longitude, cell.Latitude] = value;
-	
-		return value;
-	}
-	
-	private static bool IsCoastSea(TerrainCell cell)
+        if (neighbors.TryGetValue(Direction.West, out nCell))
+        {
+            wAltitude += nCell.Altitude;
+            c++;
+        }
+
+        if (neighbors.TryGetValue(Direction.Southwest, out nCell))
+        {
+            wAltitude += nCell.Altitude;
+            c++;
+        }
+
+        if (neighbors.TryGetValue(Direction.South, out nCell))
+        {
+            wAltitude += nCell.Altitude;
+            c++;
+        }
+
+        wAltitude /= (float)c;
+
+        c = 0;
+
+        if (neighbors.TryGetValue(Direction.East, out nCell))
+        {
+            eAltitude += nCell.Altitude;
+            c++;
+        }
+
+        if (neighbors.TryGetValue(Direction.Northeast, out nCell))
+        {
+            eAltitude += nCell.Altitude;
+            c++;
+        }
+
+        if (neighbors.TryGetValue(Direction.North, out nCell))
+        {
+            eAltitude += nCell.Altitude;
+            c++;
+        }
+
+        eAltitude /= (float)c;
+
+        float value = wAltitude - eAltitude;
+
+        _manager._currentCellSlants[cell.Longitude, cell.Latitude] = value;
+
+        return value;
+    }
+
+    private static bool IsCoastSea(TerrainCell cell)
     {
         if (cell.Altitude <= 0)
             return false;
@@ -1912,9 +1913,20 @@ public class Manager
         if (cell.Altitude > 0)
         {
             float slant = GetSlant(cell);
-            float altDiff = CurrentWorld.MaxAltitude - CurrentWorld.MinAltitude;
+            //float altDiff = CurrentWorld.MaxAltitude - CurrentWorld.MinAltitude;
+            float altDiff = World.MaxPossibleAltitude - World.MinPossibleAltitude;
+            altDiff /= 2f;
 
-            float slantFactor = Mathf.Min(1, -(20 * slant / altDiff));
+            float slantFactor = 1;
+            if (altDiff > 0)
+            {
+                slantFactor = slant / altDiff;
+
+                if (slantFactor > 1)
+                    slantFactor = 1;
+            }
+
+            slantFactor = Mathf.Min(1, -(20 * slantFactor));
 
             if (slantFactor > 0.1f)
             {
@@ -1950,9 +1962,20 @@ public class Manager
     private static Color GenerateBiomeColor(TerrainCell cell)
     {
         float slant = GetSlant(cell);
-        float altDiff = CurrentWorld.MaxAltitude - CurrentWorld.MinAltitude;
+        //float altDiff = CurrentWorld.MaxAltitude - CurrentWorld.MinAltitude;
+        float altDiff = World.MaxPossibleAltitude - World.MinPossibleAltitude;
+        altDiff /= 2f;
 
-        float slantFactor = Mathf.Min(1f, (4f + (10f * slant / altDiff)) / 5f);
+        float slantFactor = 1;
+        if (altDiff > 0)
+        {
+            slantFactor = slant / altDiff;
+
+            if (slantFactor > 1)
+                slantFactor = 1;
+        }
+
+        slantFactor = Mathf.Min(1f, (4f + (10f * slantFactor)) / 5f);
 
         float altitudeFactor = Mathf.Min(1f, (0.5f + ((cell.Altitude - CurrentWorld.MinAltitude) / altDiff)) / 1.5f);
 
