@@ -8,10 +8,14 @@ using System.IO;
 using UnityEngine.Profiling;
 
 public delegate void PostProgressOperation();
+public delegate void PointerOperation(Vector2 position);
 
-public delegate void PointerClickOperation(Vector2 position);
-
-public delegate void PointerHoverOperation(Vector2 position);
+public enum GuiMode
+{
+    Simulator,
+    Editor,
+    None
+}
 
 public class GuiManagerScript : MonoBehaviour
 {
@@ -63,6 +67,8 @@ public class GuiManagerScript : MonoBehaviour
 
     public EventPanelScript EventPanelScript;
 
+    public GuiMode Mode = GuiMode.None;
+
     public ToggleEvent OnSimulationInterrupted;
     public ToggleEvent OnSimulationPaused;
 
@@ -70,8 +76,9 @@ public class GuiManagerScript : MonoBehaviour
     public ToggleEvent OnLastMaxSpeedOptionSet;
 
     public UnityEvent MapEntitySelected;
-
     public UnityEvent OverlayChanged;
+
+    public UnityEvent OpenModeSelectionDialogRequested;
 
     public SpeedChangeEvent OnSimulationSpeedChanged;
 
@@ -122,9 +129,8 @@ public class GuiManagerScript : MonoBehaviour
 
     private event PostProgressOperation _postProgressOp = null;
 
-    private event PointerClickOperation _mapLeftClickOp = null;
-
-    private event PointerHoverOperation _mapHoverOp = null;
+    private event PointerOperation _mapLeftClickOp = null;
+    private event PointerOperation _mapHoverOp = null;
 
     private const float _maxAccTime = 1.0f; // the standard length of time of a simulation cycle (in real time)
 
@@ -164,6 +170,9 @@ public class GuiManagerScript : MonoBehaviour
 
     public void ResetAllDialogs()
     {
+        SelectionPanelScript.RemoveAllOptions();
+        SelectionPanelScript.SetVisible(false);
+
         SaveFileDialogPanelScript.SetVisible(false);
         ExportMapDialogPanelScript.SetVisible(false);
         DecisionDialogPanelScript.SetVisible(false);
@@ -179,7 +188,7 @@ public class GuiManagerScript : MonoBehaviour
         CustomizeWorldDialogPanelScript.SetVisible(false);
         ErrorMessageDialogPanelScript.SetVisible(false);
         ExceptionDialogPanelScript.SetVisible(false);
-        AddPopulationDialogScript.SetVisible(false);
+        //AddPopulationDialogScript.SetVisible(false);
 
         FocusPanelScript.SetVisible(false);
         GuidingPanelScript.SetVisible(false);
@@ -235,13 +244,9 @@ public class GuiManagerScript : MonoBehaviour
             GenerateWorld(false, 732011012);
             //GenerateWorld(false, 215020278);
         }
-        else if (!Manager.SimulationCanRun)
-        {
-            SetInitialPopulation();
-        }
         else
         {
-            DisplayTip_MapScroll();
+            OpenModeSelectionDialog();
         }
 
         UpdateMapViewButtonText();
@@ -406,7 +411,7 @@ public class GuiManagerScript : MonoBehaviour
                 _planetView = PlanetView.Biomes;
 
 #if DEBUG
-                _planetOverlay = PlanetOverlay.None;
+                _planetOverlay = PlanetOverlay.General;
 #else
 				_planetOverlay = PlanetOverlay.General;
 #endif
@@ -479,6 +484,16 @@ public class GuiManagerScript : MonoBehaviour
         }
 
         ReadKeyboardInput();
+    }
+
+    public void SetSimulatorMode()
+    {
+        Mode = GuiMode.Simulator;
+    }
+
+    public void SetEditorMode()
+    {
+        Mode = GuiMode.Editor;
     }
 
     public bool CanAlterRunningStateOrSpeed()
@@ -624,13 +639,14 @@ public class GuiManagerScript : MonoBehaviour
                 {
                     CloseErrorMessageAction();
                 }
-                else if (AddPopulationDialogScript.gameObject.activeInHierarchy)
-                {
-                    CancelPopulationPlacement();
-                }
                 else
                 {
-                    OpenMainMenu();
+                    ModalPanelScript activeMenuPanel = GetActiveMenuPanel();
+
+                    if (activeMenuPanel == null)
+                    {
+                        OpenMainMenu();
+                    }
                 }
             }
         }
@@ -1039,7 +1055,7 @@ public class GuiManagerScript : MonoBehaviour
 
         SelectionPanelScript.RemoveAllOptions();
 
-        SetInitialPopulation();
+        OpenModeSelectionDialog();
 
         _selectedMaxSpeedLevelIndex = _topMaxSpeedLevelIndex;
 
@@ -1081,28 +1097,11 @@ public class GuiManagerScript : MonoBehaviour
         DisplayTip_MapScroll();
     }
 
-    private void SetInitialPopulation()
+    public void OpenModeSelectionDialog()
     {
-        AddPopulationDialogScript.SetDialogText("Add Initial Population Group");
-
-        int defaultPopulationValue = (int)Mathf.Ceil(World.StartPopulationDensity * TerrainCell.MaxArea);
-
-        defaultPopulationValue = Mathf.Clamp(defaultPopulationValue, World.MinStartingPopulation, World.MaxStartingPopulation);
-
-        AddPopulationDialogScript.SetPopulationValue(defaultPopulationValue);
-
-        AddPopulationDialogScript.SetVisible(true);
+        OpenModeSelectionDialogRequested.Invoke();
 
         InterruptSimulation(true);
-    }
-
-    public void CancelPopulationPlacement()
-    {
-        AddPopulationDialogScript.SetVisible(false);
-
-        Debug.Log("Player chose to cancel population placement.");
-
-        DisplayTip_MapScroll();
     }
 
     public void RandomPopulationPlacement()
@@ -1438,145 +1437,145 @@ public class GuiManagerScript : MonoBehaviour
         ExportMapDialogPanelScript.SetVisible(true);
     }
 
-    public void PostProgressOp_SaveAction () {
-
+    public void PostProgressOp_SaveAction()
+    {
         Debug.Log("Finished saving world to file.");
 
-        LoadButton.interactable = HasFilesToLoad ();
-		
-		_postProgressOp -= PostProgressOp_SaveAction;
+        LoadButton.interactable = HasFilesToLoad();
 
-		if (!_eventPauseActive) {
-			InterruptSimulation (!Manager.SimulationCanRun);
-		}
+        _postProgressOp -= PostProgressOp_SaveAction;
 
-		ShowHiddenInteractionPanels ();
-	}
+        if (!_eventPauseActive)
+        {
+            InterruptSimulation(!Manager.SimulationCanRun);
+        }
 
-	public void PostProgressOp_ExportAction ()
+        ShowHiddenInteractionPanels();
+    }
+
+    public void PostProgressOp_ExportAction()
     {
         Debug.Log("Finished exporting world map to .png file.");
 
         _postProgressOp -= PostProgressOp_ExportAction;
 
-		if (!_eventPauseActive) {
-			InterruptSimulation (!Manager.SimulationCanRun);
-		}
+        if (!_eventPauseActive)
+        {
+            InterruptSimulation(!Manager.SimulationCanRun);
+        }
 
-		ShowHiddenInteractionPanels ();
-	}
+        ShowHiddenInteractionPanels();
+    }
 
-	public void SaveAction () {
-		
-		SaveFileDialogPanelScript.SetVisible (false);
-		
-		ActivityDialogPanelScript.SetVisible (true);
-		
-		ActivityDialogPanelScript.SetDialogText ("Saving World...");
+    public void SaveAction()
+    {
+        SaveFileDialogPanelScript.SetVisible(false);
 
-		string saveName = SaveFileDialogPanelScript.GetName ();
-		
-		Manager.WorldName = Manager.RemoveDateFromWorldName(saveName);
-		
-		string path = Manager.SavePath + saveName + ".plnt";
+        ActivityDialogPanelScript.SetVisible(true);
 
-		Manager.SaveWorldAsync (path);
+        ActivityDialogPanelScript.SetDialogText("Saving World...");
 
-		_postProgressOp += PostProgressOp_SaveAction;
-		
-		_backgroundProcessActive = true;
-	}
+        string saveName = SaveFileDialogPanelScript.GetName();
 
-	public void CancelSaveAction () {
-		
-		SaveFileDialogPanelScript.SetVisible (false);
+        Manager.WorldName = Manager.RemoveDateFromWorldName(saveName);
 
-		MenuUninterruptSimulation ();
-	}
+        string path = Manager.SavePath + saveName + ".plnt";
 
-	public void SaveWorldAs () {
+        Manager.SaveWorldAsync(path);
 
-		MainMenuDialogPanelScript.SetVisible (false);
+        _postProgressOp += PostProgressOp_SaveAction;
 
-		SaveFileDialogPanelScript.SetName (Manager.AddDateToWorldName(Manager.WorldName));
-		
-		SaveFileDialogPanelScript.SetVisible (true);
+        _backgroundProcessActive = true;
+    }
 
-		InterruptSimulation (true);
-	}
+    public void CancelSaveAction()
+    {
+        SaveFileDialogPanelScript.SetVisible(false);
 
-	public void GetMaxSpeedOptionFromCurrentWorld () {
+        MenuUninterruptSimulation();
+    }
 
-		long maxSpeed = Manager.CurrentWorld.MaxTimeToSkip;
+    public void SaveWorldAs()
+    {
+        MainMenuDialogPanelScript.SetVisible(false);
 
-		for (int i = 0; i < Speed.Levels.Length; i++) {
+        SaveFileDialogPanelScript.SetName(Manager.AddDateToWorldName(Manager.WorldName));
 
-			if (maxSpeed <= Speed.Levels [i]) {
+        SaveFileDialogPanelScript.SetVisible(true);
 
-				_selectedMaxSpeedLevelIndex = i;
+        InterruptSimulation(true);
+    }
 
-				SetMaxSpeedLevel (_selectedMaxSpeedLevelIndex);
+    public void GetMaxSpeedOptionFromCurrentWorld()
+    {
+        long maxSpeed = Manager.CurrentWorld.MaxTimeToSkip;
 
-				break;
-			}
-		}
-	}
+        for (int i = 0; i < Speed.Levels.Length; i++)
+        {
+            if (maxSpeed <= Speed.Levels[i])
+            {
+                _selectedMaxSpeedLevelIndex = i;
 
-	public void IncreaseMaxSpeed () {
+                SetMaxSpeedLevel(_selectedMaxSpeedLevelIndex);
 
-		if (_pauseButtonPressed) {
-			return;
-		}
-	
-		if (_selectedMaxSpeedLevelIndex == _topMaxSpeedLevelIndex)
-			return;
+                break;
+            }
+        }
+    }
 
-		_selectedMaxSpeedLevelIndex++;
+    public void IncreaseMaxSpeed()
+    {
+        if (_pauseButtonPressed)
+            return;
 
-		SetMaxSpeedLevel (_selectedMaxSpeedLevelIndex);
-	}
+        if (_selectedMaxSpeedLevelIndex == _topMaxSpeedLevelIndex)
+            return;
 
-	public void DecreaseMaxSpeed () {
+        _selectedMaxSpeedLevelIndex++;
 
-		if (_pauseButtonPressed) {
-			return;
-		}
+        SetMaxSpeedLevel(_selectedMaxSpeedLevelIndex);
+    }
 
-		if (_selectedMaxSpeedLevelIndex == 0)
-			return;
+    public void DecreaseMaxSpeed()
+    {
+        if (_pauseButtonPressed)
+            return;
 
-		_selectedMaxSpeedLevelIndex--;
+        if (_selectedMaxSpeedLevelIndex == 0)
+            return;
 
-		SetMaxSpeedLevel (_selectedMaxSpeedLevelIndex);
-	}
+        _selectedMaxSpeedLevelIndex--;
 
-	public void SetMaxSpeedLevel (int speedLevelIndex) {
+        SetMaxSpeedLevel(_selectedMaxSpeedLevelIndex);
+    }
 
-		_selectedMaxSpeedLevelIndex = Mathf.Clamp (speedLevelIndex, 0, _topMaxSpeedLevelIndex);
+    public void SetMaxSpeedLevel(int speedLevelIndex)
+    {
+        _selectedMaxSpeedLevelIndex = Mathf.Clamp(speedLevelIndex, 0, _topMaxSpeedLevelIndex);
 
-		OnFirstMaxSpeedOptionSet.Invoke (_pausingDialogActive || (_selectedMaxSpeedLevelIndex == 0));
-		OnLastMaxSpeedOptionSet.Invoke (_pausingDialogActive || (_selectedMaxSpeedLevelIndex == _topMaxSpeedLevelIndex));
+        OnFirstMaxSpeedOptionSet.Invoke(_pausingDialogActive || (_selectedMaxSpeedLevelIndex == 0));
+        OnLastMaxSpeedOptionSet.Invoke(_pausingDialogActive || (_selectedMaxSpeedLevelIndex == _topMaxSpeedLevelIndex));
 
-		// This is the max amount of iterations to simulate per second
-		Speed selectedSpeed = Speed.Levels [_selectedMaxSpeedLevelIndex];
+        // This is the max amount of iterations to simulate per second
+        Speed selectedSpeed = Speed.Levels[_selectedMaxSpeedLevelIndex];
 
-		// This is the max amount of iterations to simulate per frame
-		int maxSpeed = (int)Mathf.Ceil(selectedSpeed * MaxDeltaTimeIterations);
+        // This is the max amount of iterations to simulate per frame
+        int maxSpeed = (int)Mathf.Ceil(selectedSpeed * MaxDeltaTimeIterations);
 
-		Manager.CurrentWorld.SetMaxTimeToSkip (maxSpeed);
+        Manager.CurrentWorld.SetMaxTimeToSkip(maxSpeed);
 
-		OnSimulationSpeedChanged.Invoke (selectedSpeed);
+        OnSimulationSpeedChanged.Invoke(selectedSpeed);
 
-		ResetAccDeltaTime ();
-	}
+        ResetAccDeltaTime();
+    }
 
-	private void ResetAccDeltaTime () {
+    private void ResetAccDeltaTime()
+    {
+        _accDeltaTime = 0;
+        _simulationDateSpan = 0;
+    }
 
-		_accDeltaTime = 0;
-		_simulationDateSpan = 0;
-	}
-
-	public void PostProgressOp_LoadAction ()
+    public void PostProgressOp_LoadAction()
     {
         Debug.Log(string.Format(
             "Finished loading world. Seed: {0}, Avg. Temperature: {1}, Avg. Rainfall: {2}, Sea Level Offset: {3}, Current Date: {4}",
@@ -1586,23 +1585,23 @@ public class GuiManagerScript : MonoBehaviour
             Manager.CurrentWorld.SeaLevelOffset,
             Manager.GetDateString(Manager.CurrentWorld.CurrentDate)));
 
-        SelectionPanelScript.RemoveAllOptions ();
-		
-		if (!Manager.SimulationCanRun) {
-			
-			SetInitialPopulation ();
+        SelectionPanelScript.RemoveAllOptions();
 
-		} else {
+        if (!Manager.SimulationCanRun)
+        {
+            OpenModeSelectionDialog();
+        }
+        else
+        {
+            MenuUninterruptSimulation();
+        }
 
-			MenuUninterruptSimulation ();
-		}
+        GetMaxSpeedOptionFromCurrentWorld();
 
-		GetMaxSpeedOptionFromCurrentWorld ();
-		
-		_postProgressOp -= PostProgressOp_LoadAction;
-	}
-	
-	public void LoadAction()
+        _postProgressOp -= PostProgressOp_LoadAction;
+    }
+
+    public void LoadAction()
     {
         LoadFileDialogPanelScript.SetVisible(false);
 
@@ -1676,6 +1675,23 @@ public class GuiManagerScript : MonoBehaviour
         return false;
     }
 
+    public ModalPanelScript GetActiveMenuPanel()
+    {
+        GameObject[] panels = GameObject.FindGameObjectsWithTag("MenuPanel");
+
+        foreach (GameObject panel in panels)
+        {
+            if (panel.activeInHierarchy)
+            {
+                ModalPanelScript modalPanel = panel.GetComponent<ModalPanelScript>();
+
+                return modalPanel;
+            }
+        }
+
+        return null;
+    }
+
     public bool AreInteractionPanelsActive()
     {
         GameObject[] panels = GameObject.FindGameObjectsWithTag("InteractionPanel");
@@ -1747,7 +1763,6 @@ public class GuiManagerScript : MonoBehaviour
 
     public void ChangePlanetOverlayToSelected()
     {
-
         SelectionPanelScript.RemoveAllOptions();
         SelectionPanelScript.SetVisible(false);
 
@@ -2385,7 +2400,14 @@ public class GuiManagerScript : MonoBehaviour
 
         World world = Manager.CurrentWorld;
 
-        InfoPanelScript.InfoText.text = Manager.GetDateString(world.CurrentDate);
+        if (Mode == GuiMode.Simulator)
+        {
+            InfoPanelScript.InfoText.text = Manager.GetDateString(world.CurrentDate);
+        }
+        else if (Mode == GuiMode.Editor)
+        {
+            InfoPanelScript.InfoText.text = "Map Editor Mode";
+        }
 
         if (_infoTextMinimized)
             return;
