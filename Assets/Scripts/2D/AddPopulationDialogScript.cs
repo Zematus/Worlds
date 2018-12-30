@@ -37,8 +37,6 @@ public class AddPopulationDialogScript : ModalPanelScript
 
     public void CancelOperation()
     {
-        Debug.Log("Player chose to cancel population placement.");
-
         SetVisible(false);
 
         OperationCanceled.Invoke();

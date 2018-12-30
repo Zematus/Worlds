@@ -21,6 +21,8 @@ public class GuiManagerScript : MonoBehaviour
 {
     public const float MaxDeltaTimeIterations = 0.02f; // max real time to be spent on iterations on a single frame (this is the value that matters the most performance-wise)
 
+    public static GuiMode Mode = GuiMode.None;
+
     public Text MapViewButtonText;
 
     public RawImage MapImage;
@@ -66,8 +68,6 @@ public class GuiManagerScript : MonoBehaviour
     public QuickTipPanelScript QuickTipPanelScript;
 
     public EventPanelScript EventPanelScript;
-
-    public GuiMode Mode = GuiMode.None;
 
     public ToggleEvent OnSimulationInterrupted;
     public ToggleEvent OnSimulationPaused;
@@ -410,11 +410,7 @@ public class GuiManagerScript : MonoBehaviour
             {
                 _planetView = PlanetView.Biomes;
 
-#if DEBUG
-                _planetOverlay = PlanetOverlay.General;
-#else
-				_planetOverlay = PlanetOverlay.General;
-#endif
+                _planetOverlay = PlanetOverlay.None;
             }
 
             Profiler.BeginSample("Manager.Set*");
@@ -489,11 +485,31 @@ public class GuiManagerScript : MonoBehaviour
     public void SetSimulatorMode()
     {
         Mode = GuiMode.Simulator;
+
+#if DEBUG
+        ChangePlanetOverlay(PlanetOverlay.General); // When debugging we might like to autoselect a different default overlay
+#else
+		ChangePlanetOverlay(PlanetOverlay.General);
+#endif
+
+        OverlayDialogPanelScript.SetVisibleSimulationOverlays(true);
+
+        Debug.Log("Player activated history simulator mode.");
     }
 
     public void SetEditorMode()
     {
         Mode = GuiMode.Editor;
+
+#if DEBUG
+        ChangePlanetOverlay(PlanetOverlay.None); // When debugging we might like to autoselect a different default overlay
+#else
+		ChangePlanetOverlay(PlanetOverlay.None);
+#endif
+
+        OverlayDialogPanelScript.SetVisibleSimulationOverlays(false);
+
+        Debug.Log("Player activated map editor mode.");
     }
 
     public bool CanAlterRunningStateOrSpeed()
@@ -727,73 +743,75 @@ public class GuiManagerScript : MonoBehaviour
         return Manager.GetDateString(eventMessage.Date) + " - " + eventMessage.Message;
     }
 
-    public void ShowEventMessageForPolity (WorldEventMessage eventMessage, long polityId)
+    public void ShowEventMessageForPolity(WorldEventMessage eventMessage, long polityId)
     {
-		Polity polity = Manager.CurrentWorld.GetPolity(polityId);
+        Polity polity = Manager.CurrentWorld.GetPolity(polityId);
 
-		if (polity != null)
+        if (polity != null)
         {
-			WorldPosition corePosition = polity.CoreGroup.Position;
+            WorldPosition corePosition = polity.CoreGroup.Position;
 
-			EventPanelScript.AddEventMessage (GetMessageToShow (eventMessage), () => {
+            EventPanelScript.AddEventMessage(GetMessageToShow(eventMessage), () =>
+            {
+                SelectAndCenterOnCell(corePosition);
 
-				SelectAndCenterOnCell (corePosition);
-
-				if ((_planetOverlay != PlanetOverlay.PolityTerritory) && (_planetOverlay != PlanetOverlay.General))
-					ChangePlanetOverlay (PlanetOverlay.PolityTerritory);
-			});
-		}
+                if ((_planetOverlay != PlanetOverlay.PolityTerritory) && (_planetOverlay != PlanetOverlay.General))
+                    ChangePlanetOverlay(PlanetOverlay.PolityTerritory);
+            });
+        }
         else
         {
-			EventPanelScript.AddEventMessage (GetMessageToShow (eventMessage));
-		}
-	}
+            EventPanelScript.AddEventMessage(GetMessageToShow(eventMessage));
+        }
+    }
 
-	public void ShowEventMessage (WorldEventMessage eventMessage) {
+    public void ShowEventMessage(WorldEventMessage eventMessage)
+    {
+        if (eventMessage is TribeSplitEventMessage)
+        {
+            TribeSplitEventMessage tribeSplitEventMessage = eventMessage as TribeSplitEventMessage;
 
-		if (eventMessage is TribeSplitEventMessage) {
+            ShowEventMessageForPolity(eventMessage, tribeSplitEventMessage.NewTribeId);
+        }
+        else if (eventMessage is PolityFormationEventMessage)
+        {
+            PolityFormationEventMessage polityFormationEventMessage = eventMessage as PolityFormationEventMessage;
 
-			TribeSplitEventMessage tribeSplitEventMessage = eventMessage as TribeSplitEventMessage;
+            ShowEventMessageForPolity(eventMessage, polityFormationEventMessage.PolityId);
+        }
+        else if (eventMessage is PolityEventMessage)
+        {
+            PolityEventMessage polityEventMessage = eventMessage as PolityEventMessage;
 
-			ShowEventMessageForPolity (eventMessage, tribeSplitEventMessage.NewTribeId);
+            ShowEventMessageForPolity(eventMessage, polityEventMessage.PolityId);
+        }
+        else if (eventMessage is DiscoveryEventMessage)
+        {
+            DiscoveryEventMessage discoveryEventMessage = eventMessage as DiscoveryEventMessage;
 
-		} else if (eventMessage is PolityFormationEventMessage) {
+            EventPanelScript.AddEventMessage(GetMessageToShow(discoveryEventMessage), () =>
+            {
+                SelectAndCenterOnCell(discoveryEventMessage.Position);
 
-			PolityFormationEventMessage polityFormationEventMessage = eventMessage as PolityFormationEventMessage;
+                SetPopCulturalDiscoveryOverlay(discoveryEventMessage.DiscoveryId);
+            });
+        }
+        else if (eventMessage is CellEventMessage)
+        {
+            CellEventMessage cellEventMessage = eventMessage as CellEventMessage;
 
-			ShowEventMessageForPolity (eventMessage, polityFormationEventMessage.PolityId);
+            EventPanelScript.AddEventMessage(GetMessageToShow(cellEventMessage), () =>
+            {
+                SelectAndCenterOnCell(cellEventMessage.Position);
+            });
+        }
+        else
+        {
+            EventPanelScript.AddEventMessage(GetMessageToShow(eventMessage));
+        }
+    }
 
-		} else if (eventMessage is PolityEventMessage) {
-
-			PolityEventMessage polityEventMessage = eventMessage as PolityEventMessage;
-
-			ShowEventMessageForPolity (eventMessage, polityEventMessage.PolityId);
-
-		} else if (eventMessage is DiscoveryEventMessage) {
-
-			DiscoveryEventMessage discoveryEventMessage = eventMessage as DiscoveryEventMessage;
-
-			EventPanelScript.AddEventMessage (GetMessageToShow (discoveryEventMessage), () => {
-
-				SelectAndCenterOnCell (discoveryEventMessage.Position);
-
-				SetPopCulturalDiscoveryOverlay (discoveryEventMessage.DiscoveryId);
-			});
-		} else if (eventMessage is CellEventMessage) {
-		
-			CellEventMessage cellEventMessage = eventMessage as CellEventMessage;
-
-			EventPanelScript.AddEventMessage (GetMessageToShow (cellEventMessage), () => {
-
-				SelectAndCenterOnCell (cellEventMessage.Position);
-			});
-		} else {
-
-			EventPanelScript.AddEventMessage (GetMessageToShow (eventMessage));
-		}
-	}
-
-	public void ProgressUpdate(float value, string message = null, bool reset = false)
+    public void ProgressUpdate(float value, string message = null, bool reset = false)
     {
         if (reset || (value >= _progressValue))
         {
@@ -1049,6 +1067,8 @@ public class GuiManagerScript : MonoBehaviour
 
     private void PostProgressOp_GenerateWorld()
     {
+        EventPanelScript.DestroyMessagePanels(); // We don't want to keep messages referencing previous worlds
+
         Debug.Log("Finished generating world with seed: " + Manager.CurrentWorld.Seed);
 
         Manager.WorldName = "world_" + Manager.CurrentWorld.Seed;
@@ -1100,6 +1120,8 @@ public class GuiManagerScript : MonoBehaviour
     public void OpenModeSelectionDialog()
     {
         OpenModeSelectionDialogRequested.Invoke();
+
+        Debug.Log("Player went back to mode selection dialog.");
 
         InterruptSimulation(true);
     }
@@ -1577,6 +1599,8 @@ public class GuiManagerScript : MonoBehaviour
 
     public void PostProgressOp_LoadAction()
     {
+        EventPanelScript.DestroyMessagePanels(); // We don't want to keep messages referencing previous worlds
+
         Debug.Log(string.Format(
             "Finished loading world. Seed: {0}, Avg. Temperature: {1}, Avg. Rainfall: {2}, Sea Level Offset: {3}, Current Date: {4}",
             Manager.CurrentWorld.Seed,

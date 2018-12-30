@@ -6,8 +6,6 @@ using UnityEngine.EventSystems;
 
 public class PanelDragScript : MonoBehaviour
 {
-    public Camera Camera;
-
     private bool _isDragging = false;
     private Vector3 _offset;
 
@@ -29,11 +27,10 @@ public class PanelDragScript : MonoBehaviour
             return;
 
         _isDragging = true;
+        
+        Vector3 pointerPosition = new Vector3(data.position.x, data.position.y, 0);
 
-        //Vector3 worldPosition = Camera.ScreenToWorldPoint(new Vector3(data.position.x, data.position.y, 0));
-        Vector3 worldPosition = new Vector3(data.position.x, data.position.y, 0);
-
-        _offset = worldPosition - transform.position;
+        _offset = pointerPosition - transform.position;
     }
     
     public void Drag(BaseEventData eventData)
@@ -43,10 +40,13 @@ public class PanelDragScript : MonoBehaviour
 
         PointerEventData data = eventData as PointerEventData;
         
-        //Vector3 worldPosition = Camera.ScreenToWorldPoint(new Vector3(data.position.x, data.position.y, 0));
-        Vector3 worldPosition = new Vector3(data.position.x, data.position.y, 0);
+        Vector3 pointerPosition = new Vector3(data.position.x, data.position.y, 0);
 
-        transform.position = worldPosition - _offset;
+        RectTransform rectTransform = transform as RectTransform;
+
+        Vector3 newPosition = pointerPosition - _offset;
+
+        transform.position = newPosition;
     }
     
     public void EndDrag(BaseEventData eventData)

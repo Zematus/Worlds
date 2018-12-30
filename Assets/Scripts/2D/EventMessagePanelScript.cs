@@ -19,6 +19,8 @@ public class EventMessagePanelScript : MonoBehaviour
 
     private EventMessageGotoDelegate _gotoDelegate = null;
 
+    private EventPanelScript _parentPanel = null;
+
     // Use this for initialization
     void Start()
     {
@@ -42,10 +44,13 @@ public class EventMessagePanelScript : MonoBehaviour
 
         if (CanvasGroup.alpha == 0)
         {
-            gameObject.SetActive(false);
-
-            Destroy(gameObject);
+            Remove();
         }
+    }
+
+    public void SetParentPanel(EventPanelScript panel)
+    {
+        _parentPanel = panel;
     }
 
     public void SetText(string text)
@@ -70,6 +75,13 @@ public class EventMessagePanelScript : MonoBehaviour
 
     public void OnClick()
     {
+        Remove();
+    }
+
+    public void Remove()
+    {
+        _parentPanel.RemoveMessagePanel(this);
+
         gameObject.SetActive(false);
 
         Destroy(gameObject);

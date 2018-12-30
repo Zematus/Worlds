@@ -42,6 +42,8 @@ public class OverlayDialogPanelScript : DialogPanelScript
     public Toggle DisplayRoutesToggle;
     public Toggle DisplayGroupActivityToggle;
 
+    public GameObject Separator;
+
     public Button CloseActionButton;
 
     public bool DontUpdateDialog = false;
@@ -106,6 +108,20 @@ public class OverlayDialogPanelScript : DialogPanelScript
             PopChangeToggle.isOn = false;
             UpdateSpanToggle.isOn = false;
         }
+    }
+
+    public void SetVisibleSimulationOverlays(bool state)
+    {
+        GeneralDataToggle.gameObject.SetActive(state);
+        PopDataToggle.gameObject.SetActive(state);
+        PolityDataToggle.gameObject.SetActive(state);
+        RegionToggle.gameObject.SetActive(state);
+        LanguageToggle.gameObject.SetActive(state);
+
+        Separator.SetActive(state);
+
+        DisplayRoutesToggle.gameObject.SetActive(state);
+        DisplayGroupActivityToggle.gameObject.SetActive(state);
     }
 
     public void UpdateOptions()
