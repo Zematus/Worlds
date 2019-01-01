@@ -883,11 +883,11 @@ public class Manager
         settings.Put();
 
         XmlSerializer serializer = new XmlSerializer(typeof(AppSettings));
-        FileStream stream = new FileStream(path, FileMode.Create);
 
-        serializer.Serialize(stream, settings);
-
-        stream.Close();
+        using (FileStream stream = new FileStream(path, FileMode.Create))
+        {
+            serializer.Serialize(stream, settings);
+        }
     }
 
     public static void LoadAppSettings(string path)
@@ -896,13 +896,13 @@ public class Manager
             return;
 
         XmlSerializer serializer = new XmlSerializer(typeof(AppSettings));
-        FileStream stream = new FileStream(path, FileMode.Open);
 
-        AppSettings settings = serializer.Deserialize(stream) as AppSettings;
+        using (FileStream stream = new FileStream(path, FileMode.Open))
+        {
+            AppSettings settings = serializer.Deserialize(stream) as AppSettings;
 
-        stream.Close();
-
-        settings.Take();
+            settings.Take();
+        }
     }
 
     public static void SaveWorld(string path)
@@ -910,11 +910,11 @@ public class Manager
         _manager._currentWorld.Synchronize();
 
         XmlSerializer serializer = new XmlSerializer(typeof(World), _manager.AttributeOverrides);
-        FileStream stream = new FileStream(path, FileMode.Create);
 
-        serializer.Serialize(stream, _manager._currentWorld);
-
-        stream.Close();
+        using (FileStream stream = new FileStream(path, FileMode.Create))
+        {
+            serializer.Serialize(stream, _manager._currentWorld);
+        }
     }
 
     public static void SaveWorldAsync(string path, ProgressCastDelegate progressCastMethod = null)
@@ -967,12 +967,14 @@ public class Manager
 
         ResetWorldLoadTrack();
 
+        World world;
+
         XmlSerializer serializer = new XmlSerializer(typeof(World), _manager.AttributeOverrides);
-        FileStream stream = new FileStream(path, FileMode.Open);
-
-        World world = serializer.Deserialize(stream) as World;
-
-        stream.Close();
+        
+        using (FileStream stream = new FileStream(path, FileMode.Open))
+        {
+            world = serializer.Deserialize(stream) as World;
+        }
 
         if (_manager._progressCastMethod == null)
         {
@@ -1038,6 +1040,17 @@ public class Manager
             {
                 LoadWorld(path);
             }
+            //catch (IOException e)
+            //{
+            //    // TODO DEBUG: This is a workaround. We shouldn't ignore file sharing violations
+            //    if (System.Runtime.InteropServices.Marshal.GetHRForException(e) != 0x00000020)
+            //    {
+            //        EnqueueTaskAndWait(() =>
+            //        {
+            //            throw new System.Exception("Unhandled exception in LoadWorld with path: " + path, e);
+            //        });
+            //    }
+            //}
             catch (System.Exception e)
             {
                 EnqueueTaskAndWait(() =>
