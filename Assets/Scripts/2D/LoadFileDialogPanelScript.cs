@@ -41,6 +41,9 @@ public class LoadFileDialogPanelScript : DialogPanelScript
 
         SelectButtonText.text = selectButtonText;
 
+        SelectButton.onClick.RemoveAllListeners();
+        CancelButton.onClick.RemoveAllListeners();
+
         SelectButton.onClick.AddListener(selectAction);
         CancelButton.onClick.AddListener(cancelAction);
 
@@ -140,6 +143,8 @@ public class LoadFileDialogPanelScript : DialogPanelScript
 
         foreach (Toggle toggle in _fileToggles)
         {
+            toggle.isOn = false;
+
             if (first)
             {
                 first = false;

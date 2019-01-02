@@ -80,6 +80,9 @@ public class GuiManagerScript : MonoBehaviour
 
     public UnityEvent OpenModeSelectionDialogRequested;
 
+    public UnityEvent EnteredEditorMode;
+    public UnityEvent EnteredSimulationMode;
+
     public SpeedChangeEvent OnSimulationSpeedChanged;
 
     //	private bool _showFocusButton = false;
@@ -494,7 +497,9 @@ public class GuiManagerScript : MonoBehaviour
 
         OverlayDialogPanelScript.SetVisibleSimulationOverlays(true);
 
-        Debug.Log("Player activated history simulator mode.");
+        Debug.Log("Game entered history simulator mode.");
+
+        EnteredSimulationMode.Invoke();
     }
 
     public void SetEditorMode()
@@ -509,7 +514,9 @@ public class GuiManagerScript : MonoBehaviour
 
         OverlayDialogPanelScript.SetVisibleSimulationOverlays(false);
 
-        Debug.Log("Player activated map editor mode.");
+        Debug.Log("Game entered map editor mode.");
+
+        EnteredEditorMode.Invoke();
     }
 
     public bool CanAlterRunningStateOrSpeed()
@@ -1618,6 +1625,8 @@ public class GuiManagerScript : MonoBehaviour
         else
         {
             MenuUninterruptSimulation();
+
+            SetSimulatorMode();
         }
 
         GetMaxSpeedOptionFromCurrentWorld();
