@@ -346,7 +346,7 @@ public class World : ISynchronizable
 
     private List<WorldEvent> _eventsToHappenNow = new List<WorldEvent>();
 
-    private HashSet<int> _terrainCellChangesListIndexes = new HashSet<int>();
+    //private HashSet<int> _terrainCellChangesListIndexes = new HashSet<int>();
 
     private HashSet<string> _culturalPreferenceIdList = new HashSet<string>();
     private HashSet<string> _culturalActivityIdList = new HashSet<string>();
@@ -395,6 +395,8 @@ public class World : ISynchronizable
 
     private long _dateToSkipTo;
 
+    private bool _justLoaded = false;
+
     public World()
     {
         Manager.WorldBeingLoaded = this;
@@ -426,6 +428,8 @@ public class World : ISynchronizable
 
     public void StartReinitialization(float acumulatedProgress, float progressIncrement)
     {
+        _justLoaded = false;
+
         AltitudeScale = Manager.AltitudeScale;
         SeaLevelOffset = Manager.SeaLevelOffset;
         RainfallOffset = Manager.RainfallOffset;
@@ -450,8 +454,10 @@ public class World : ISynchronizable
         });
     }
 
-    public void StartInitialization(float acumulatedProgress, float progressIncrement)
+    public void StartInitialization(float acumulatedProgress, float progressIncrement, bool justLoaded = false)
     {
+        _justLoaded = justLoaded;
+
         AltitudeScale = Manager.AltitudeScale;
         SeaLevelOffset = Manager.SeaLevelOffset;
         RainfallOffset = Manager.RainfallOffset;
@@ -465,6 +471,15 @@ public class World : ISynchronizable
 
         MinPossibleTemperatureWithOffset = MinPossibleTemperature + Manager.TemperatureOffset;
         MaxPossibleTemperatureWithOffset = MaxPossibleTemperature + Manager.TemperatureOffset;
+
+        MaxAltitude = float.MinValue;
+        MinAltitude = float.MaxValue;
+
+        MaxRainfall = float.MinValue;
+        MinRainfall = float.MaxValue;
+
+        MaxTemperature = float.MinValue;
+        MinTemperature = float.MaxValue;
 
         _accumulatedProgress = acumulatedProgress;
         _progressIncrement = progressIncrement;
@@ -510,6 +525,12 @@ public class World : ISynchronizable
         _continentWidths = new float[NumContinents];
         _continentAltitudeOffsets = new float[NumContinents];
 
+        // When it's a loaded world there might be already terrain modifications that we need to set
+        foreach (TerrainCellChanges changes in TerrainCellChangesList)
+        {
+            SetTerrainCellChanges(changes);
+        }
+
         Manager.EnqueueTaskAndWait(() =>
         {
             Random.InitState(Seed);
@@ -527,11 +548,6 @@ public class World : ISynchronizable
 
                 cell.InitializeMiscellaneous();
             }
-        }
-
-        foreach (TerrainCellChanges changes in TerrainCellChangesList)
-        {
-            SetTerrainCellChanges(changes);
         }
     }
 
@@ -638,8 +654,8 @@ public class World : ISynchronizable
 
         int index = changes.Longitude + (changes.Latitude * Width);
 
-        if (!_terrainCellChangesListIndexes.Add(index))
-            return;
+        //if (!_terrainCellChangesListIndexes.Add(index))
+        //    return;
 
         TerrainCellChangesList.Add(changes);
 
@@ -1742,12 +1758,12 @@ public class World : ISynchronizable
             _eventMessageIds.Add(messageId);
         }
 
-        foreach (TerrainCellChanges c in TerrainCellChangesList)
-        {
-            int index = c.Longitude + c.Latitude * Width;
+        //foreach (TerrainCellChanges c in TerrainCellChangesList)
+        //{
+        //    int index = c.Longitude + c.Latitude * Width;
 
-            _terrainCellChangesListIndexes.Add(index);
-        }
+        //    _terrainCellChangesListIndexes.Add(index);
+        //}
 
         foreach (Language l in Languages)
         {
@@ -1970,8 +1986,6 @@ public class World : ISynchronizable
 
     public void Generate(Texture2D heightmap)
     {
-        TerrainCellChangesList.Clear();
-
         GenerateTerrain(GenerationType.TerrainNormal, heightmap);
 
         ProgressCastMethod(_accumulatedProgress, "Finalizing...");
@@ -1979,8 +1993,6 @@ public class World : ISynchronizable
 
     public void Regenerate(GenerationType type)
     {
-        TerrainCellChangesList.Clear();
-
         GenerateTerrain(type, null);
 
         ProgressCastMethod(_accumulatedProgress, "Finalizing...");
@@ -2174,10 +2186,7 @@ public class World : ISynchronizable
     private void RegenerateTerrain()
     {
         OffsetTerrainGenRngCalls();
-
-        MaxAltitude = float.MinValue;
-        MinAltitude = float.MaxValue;
-
+        
         int sizeX = Width;
         int sizeY = Height;
 
@@ -2197,10 +2206,7 @@ public class World : ISynchronizable
     private void GenerateTerrainFromHeightmap(Texture2D heightmap)
     {
         OffsetTerrainGenRngCalls();
-
-        MaxAltitude = float.MinValue;
-        MinAltitude = float.MaxValue;
-
+        
         int sizeX = Width;
         int sizeY = Height;
 
@@ -2250,7 +2256,7 @@ public class World : ISynchronizable
 
                 //greyscaleValue = greyscaleValue * 0.4f + 0.3f; // NOTE: Bogus adjustment, should be exposed to user
 
-                CalculateAndSetAltitude(i, j, greyscaleValue);
+                CalculateAndSetAltitude(i, j, greyscaleValue, true);
             }
 
             ProgressCastMethod(_accumulatedProgress + _progressIncrement * (i + 1) / (float)sizeX);
@@ -2261,9 +2267,6 @@ public class World : ISynchronizable
 
     private void GenerateTerrainAltitudeOld()
     {
-        MaxAltitude = float.MinValue;
-        MinAltitude = float.MaxValue;
-
         GenerateContinents();
 
         int sizeX = Width;
@@ -2292,22 +2295,15 @@ public class World : ISynchronizable
         ManagerTask<Vector3> offset8 = GenerateRandomOffsetVectorTask();
         ManagerTask<Vector3> offset9 = GenerateRandomOffsetVectorTask();
 
-        //// Doing this only to make sure that Unity's RNG gets called the same number of times as with the new terrain generation function
-        //ManagerTask<Vector3>[] offsetK = new ManagerTask<Vector3>[NumContinents];
-        //ManagerTask<Vector3>[] offsetK2 = new ManagerTask<Vector3>[NumContinents];
-
-        //for (int k = 0; k < NumContinents; k++)
-        //{
-        //    offsetK[k] = GenerateRandomOffsetVector();
-        //    offsetK2[k] = GenerateRandomOffsetVector();
-        //}
-
         for (int i = 0; i < sizeX; i++)
         {
             float beta = (i / (float)sizeX) * Mathf.PI * 2;
 
             for (int j = 0; j < sizeY; j++)
             {
+                if (SkipIfModified(i, j))
+                    continue;
+
                 float alpha = (j / (float)sizeY) * Mathf.PI;
 
                 float value1 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius1, offset1);
@@ -2607,11 +2603,24 @@ public class World : ISynchronizable
         return altitude;
     }
 
-    private void CalculateAndSetAltitude(int longitude, int latitude, float value)
+    private bool SkipIfModified(int longitude, int latitude)
+    {
+        if (!_justLoaded)
+            return false;
+
+        return TerrainCells[longitude][latitude].Modified;
+    }
+
+    private void CalculateAndSetAltitude(int longitude, int latitude, float value, bool fromHeightmap = false)
     {
         float altitude = CalculateAltitude(value);
         TerrainCells[longitude][latitude].Altitude = altitude;
         TerrainCells[longitude][latitude].BaseValue = value;
+
+        if (fromHeightmap)
+        {
+            TerrainCells[longitude][latitude].Modified = true;
+        }
 
         if (altitude > MaxAltitude) MaxAltitude = altitude;
         if (altitude < MinAltitude) MinAltitude = altitude;
@@ -2637,9 +2646,6 @@ public class World : ISynchronizable
 
     private void GenerateTerrainRainfall()
     {
-        MaxRainfall = float.MinValue;
-        MinRainfall = float.MaxValue;
-
         int sizeX = Width;
         int sizeY = Height;
 
@@ -2657,6 +2663,9 @@ public class World : ISynchronizable
 
             for (int j = 0; j < sizeY; j++)
             {
+                if (SkipIfModified(i, j))
+                    continue;
+
                 TerrainCell cell = TerrainCells[i][j];
 
                 float alpha = (j / (float)sizeY) * Mathf.PI;
@@ -2739,9 +2748,6 @@ public class World : ISynchronizable
 
     private void GenerateTerrainTemperature()
     {
-        MaxTemperature = float.MinValue;
-        MinTemperature = float.MaxValue;
-
         int sizeX = Width;
         int sizeY = Height;
 
@@ -2757,6 +2763,9 @@ public class World : ISynchronizable
 
             for (int j = 0; j < sizeY; j++)
             {
+                if (SkipIfModified(i, j))
+                    continue;
+
                 TerrainCell cell = TerrainCells[i][j];
 
                 float alpha = (j / (float)sizeY) * Mathf.PI;

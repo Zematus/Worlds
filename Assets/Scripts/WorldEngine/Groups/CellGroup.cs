@@ -2203,7 +2203,11 @@ public class CellGroup : HumanGroup
             farmlandPercentage = farmlandPercentageAvailableArea * terrainFactor;
         }
 
-        Cell.FarmlandPercentage = farmlandPercentage;
+        if (farmlandPercentage != Cell.FarmlandPercentage)
+        {
+            Cell.FarmlandPercentage = farmlandPercentage;
+            Cell.Modified = true; // We need to make sure to store the cell changes to file when saving.
+        }
 
         _cellUpdateType |= CellUpdateType.Cell;
         _cellUpdateSubtype |= CellUpdateSubType.Terrain;

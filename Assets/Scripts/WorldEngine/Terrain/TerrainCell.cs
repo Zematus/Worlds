@@ -61,6 +61,9 @@ public class TerrainCell : ISynchronizable
     public const int NeighborSearchOffset = 3;
 
     [XmlAttribute]
+    public bool Modified = false; // This will be true if the cell has been modified after/during generation by using a heighmap, using the map editor, or by running the simulation
+
+    [XmlAttribute]
     public int Longitude;
     [XmlAttribute]
     public int Latitude;
@@ -224,11 +227,11 @@ public class TerrainCell : ISynchronizable
 
     public TerrainCellChanges GetChanges()
     {
-        // If there where no changes there's no need to create a TerrainCellChanges object
-        if ((FarmlandPercentage == 0) &&
-            //			(LocalIteration == 0) && 
-            (_flags.Count == 0))
+        // If cell hasn't been modified there's no need to create a TerrainCellChanges object
+        if (!Modified)
+        {
             return null;
+        }
 
         TerrainCellChanges changes = new TerrainCellChanges(this);
 
@@ -239,12 +242,28 @@ public class TerrainCell : ISynchronizable
 
     public void SetChanges(TerrainCellChanges changes)
     {
+        Altitude = changes.Altitude;
+        BaseValue = changes.BaseValue;
+        Temperature = changes.Temperature;
+        Rainfall = changes.Rainfall;
+
         FarmlandPercentage = changes.FarmlandPercentage;
 
         foreach (string flag in changes.Flags)
         {
             _flags.Add(flag);
         }
+
+        if (Altitude > World.MaxAltitude) World.MaxAltitude = Altitude;
+        if (Altitude < World.MinAltitude) World.MinAltitude = Altitude;
+
+        if (Rainfall > World.MaxRainfall) World.MaxRainfall = Rainfall;
+        if (Rainfall < World.MinRainfall) World.MinRainfall = Rainfall;
+
+        if (Temperature > World.MaxTemperature) World.MaxTemperature = Temperature;
+        if (Temperature < World.MinTemperature) World.MinTemperature = Temperature;
+
+        Modified = true; // Keep storing the changes to file.
     }
 
     public void SetFlag(string flag)

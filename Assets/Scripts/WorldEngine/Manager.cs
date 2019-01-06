@@ -992,7 +992,7 @@ public class Manager
         Manager.RainfallOffset = world.RainfallOffset;
         Manager.TemperatureOffset = world.TemperatureOffset;
 
-        world.StartInitialization(initialProgressIncrement, ProgressIncrement);
+        world.StartInitialization(initialProgressIncrement, ProgressIncrement, true);
         world.GenerateTerrain(GenerationType.TerrainNormal, null);
         world.FinishInitialization();
 
