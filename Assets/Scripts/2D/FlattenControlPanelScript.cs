@@ -35,5 +35,7 @@ public class FlattenControlPanelScript : MonoBehaviour
             AltitudeScaleSliderControlsScript.CurrentValue = Manager.AltitudeScale;
             AltitudeScaleSliderControlsScript.Initialize();
         }
+
+        AltitudeScaleSliderControlsScript.AllowEventInvoke(state);
     }
 }
