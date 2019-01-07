@@ -173,8 +173,12 @@ public class Manager
     private Texture2D _currentSphereTexture = null;
     private Texture2D _currentMapTexture = null;
 
+    private Texture2D _cursorOverlayTexture = null;
+
     private Color32[] _currentSphereTextureColors = null;
     private Color32[] _currentMapTextureColors = null;
+    
+    private Color32[] _cursorOverlayTextureColors = null;
 
     private float?[,] _currentCellSlants;
 
@@ -554,6 +558,14 @@ public class Manager
         }
     }
 
+    public static Texture2D CursorOverlayTexture
+    {
+        get
+        {
+            return _manager._cursorOverlayTexture;
+        }
+    }
+
     public static void ExportMapTextureToFile(string path, Rect uvRect)
     {
         Texture2D mapTexture = _manager._currentMapTexture;
@@ -618,6 +630,11 @@ public class Manager
             _manager._performingAsyncTask = false;
             _manager._simulationRunning = true;
         });
+    }
+
+    public static void GenerateCursorOverlayTextures()
+    {
+        GenerateCursorOverlayTextureFromWorld(CurrentWorld);
     }
 
     public static void GenerateTextures()
@@ -1546,6 +1563,46 @@ public class Manager
 #endif
             }
         }
+    }
+
+    public static Texture2D GenerateCursorOverlayTextureFromWorld(World world)
+    {
+        int sizeX = world.Width;
+        int sizeY = world.Height;
+
+        int r = PixelToCellRatio;
+
+        Color32[] textureColors = new Color32[sizeX * sizeY * r * r];
+
+        Texture2D texture = new Texture2D(sizeX * r, sizeY * r, TextureFormat.ARGB32, false);
+
+        for (int i = 0; i < sizeX; i++)
+        {
+            for (int j = 0; j < sizeY; j++)
+            {
+                Color cellColor = new Color(0, 0, 0, 0);
+
+                for (int m = 0; m < r; m++)
+                {
+                    for (int n = 0; n < r; n++)
+                    {
+                        int offsetY = sizeX * r * (j * r + n);
+                        int offsetX = i * r + m;
+
+                        textureColors[offsetY + offsetX] = cellColor;
+                    }
+                }
+            }
+        }
+
+        texture.SetPixels32(textureColors);
+
+        texture.Apply();
+
+        _manager._cursorOverlayTextureColors = textureColors;
+        _manager._cursorOverlayTexture = texture;
+
+        return texture;
     }
 
     public static Texture2D GenerateMapTextureFromWorld(World world)

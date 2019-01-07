@@ -26,6 +26,7 @@ public class GuiManagerScript : MonoBehaviour
     public Text MapViewButtonText;
 
     public RawImage MapImage;
+    public RawImage CursorOverlayImage;
 
     public Button LoadButton;
 
@@ -119,6 +120,7 @@ public class GuiManagerScript : MonoBehaviour
     //	private bool _overlayMenusNeedUpdate = true;
 
     private bool _regenTextures = false;
+    private bool _regenCursorOverlayTextures = false;
 
     private bool _resetOverlays = true;
 
@@ -261,6 +263,7 @@ public class GuiManagerScript : MonoBehaviour
         Manager.SetOverlayPalette(OverlayPaletteScript.Colors);
 
         _regenTextures = true;
+        _regenCursorOverlayTextures = true;
     }
 
     void OnDestroy()
@@ -403,6 +406,14 @@ public class GuiManagerScript : MonoBehaviour
             }
 
             Profiler.EndSample();
+        }
+
+        if (_regenCursorOverlayTextures)
+        {
+            Manager.GenerateCursorOverlayTextures();
+            MapScript.RefreshCursorOverlayTexture();
+
+            _regenCursorOverlayTextures = false;
         }
 
         if (_regenTextures)
@@ -1111,6 +1122,7 @@ public class GuiManagerScript : MonoBehaviour
         _backgroundProcessActive = true;
 
         _regenTextures = true;
+        _regenCursorOverlayTextures = true;
     }
 
     public void SetInitialPopulationForTests()
@@ -1653,6 +1665,7 @@ public class GuiManagerScript : MonoBehaviour
         _backgroundProcessActive = true;
 
         _regenTextures = true;
+        _regenCursorOverlayTextures = true;
     }
 
     public void CancelLoadAction()
@@ -3925,6 +3938,7 @@ public class GuiManagerScript : MonoBehaviour
         newUvRect.x += mapImagePos.x;
 
         MapImage.uvRect = newUvRect;
+        CursorOverlayImage.uvRect = newUvRect;
     }
 
     public Vector3 GetScreenPositionFromMapCoordinates(WorldPosition mapPosition)
@@ -3992,6 +4006,7 @@ public class GuiManagerScript : MonoBehaviour
         newUvRect.x -= uvDelta;
 
         MapImage.uvRect = newUvRect;
+        CursorOverlayImage.uvRect = newUvRect;
     }
 
     public void BeginDragMap(BaseEventData data)

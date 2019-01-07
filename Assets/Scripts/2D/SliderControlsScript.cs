@@ -40,7 +40,7 @@ public class SliderControlsScript : MonoBehaviour
 
     public ValueSetEvent ValueSetEvent;
 
-    private const float _maxTimeToInvokeEvent = 1;
+    public float MaxTimeToInvokeEvent = 1;
 
     private bool _hasToInvokeEvent = false;
     private float _timeToInvokeEvent = -1;
@@ -92,7 +92,7 @@ public class SliderControlsScript : MonoBehaviour
 
         if (_allowInvokeEvent)
         {
-            _timeToInvokeEvent = _maxTimeToInvokeEvent;
+            _timeToInvokeEvent = MaxTimeToInvokeEvent;
             _hasToInvokeEvent = true;
         }
     }
