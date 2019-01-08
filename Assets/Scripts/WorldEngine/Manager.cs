@@ -723,19 +723,19 @@ public class Manager
 
     public static void AddHighlightedCell(TerrainCell cell, CellUpdateType updateType)
     {
-        if ((_observableUpdateTypes & updateType) != CellUpdateType.None)
-        {
+        //if ((_observableUpdateTypes & updateType) != CellUpdateType.None)
+        //{
             HighlightedCells.Add(cell);
-        }
+        //}
     }
 
     public static void AddHighlightedCells(ICollection<TerrainCell> cells, CellUpdateType updateType)
     {
-        if ((_observableUpdateTypes & updateType) != CellUpdateType.None)
-        {
+        //if ((_observableUpdateTypes & updateType) != CellUpdateType.None)
+        //{
             foreach (TerrainCell cell in cells)
                 HighlightedCells.Add(cell);
-        }
+        //}
     }
 
     public static void GenerateRandomHumanGroup(int initialPopulation)
@@ -1164,7 +1164,7 @@ public class Manager
             (overlay == PlanetOverlay.Rainfall) ||
             (overlay == PlanetOverlay.Temperature))
         {
-            _observableUpdateTypes = CellUpdateType.None;
+            _observableUpdateSubTypes = CellUpdateSubType.None;
         }
         else if (overlay == PlanetOverlay.FarmlandDistribution)
         {
