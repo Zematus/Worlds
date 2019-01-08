@@ -1409,6 +1409,10 @@ public class Manager
         Profiler.EndSample();
     }
 
+    public static void UpdateCursorOverlayTextureColors(Color32[] textureColors)
+    {
+    }
+
     public static void UpdateMapTextureColors(Color32[] textureColors)
     {
         if (_displayGroupActivityWasEnabled)
@@ -1433,7 +1437,6 @@ public class Manager
                 continue;
 
             UpdateMapTextureColorsFromCell(textureColors, cell, _displayGroupActivity);
-
         }
 
         foreach (TerrainCell cell in HighlightedCells)
@@ -1441,45 +1444,6 @@ public class Manager
             UpdateMapTextureColorsFromCell(textureColors, cell);
         }
     }
-
-    //public static void DisplayCellDataOnMapTexture(Color32[] textureColors, TerrainCell cell, bool showData)
-    //{
-    //    CellGroup cellGroup = cell.Group;
-
-    //    if ((cellGroup != null) && (cellGroup.SeaMigrationRoute != null))
-    //    {
-    //        DisplayRouteOnMapTexture(textureColors, cellGroup.SeaMigrationRoute, showData);
-    //    }
-
-    //    World world = cell.World;
-
-    //    int sizeX = world.Width;
-
-    //    int r = PixelToCellRatio;
-
-    //    int i = cell.Longitude;
-    //    int j = cell.Latitude;
-
-    //    Color cellColor = GenerateColorFromTerrainCell(cell, _displayGroupActivity);
-
-    //    if (showData)
-    //    {
-    //        cellColor = new Color(0.5f + (cellColor.r * 0.5f), 0.5f + (cellColor.g * 0.5f), 0.5f + (cellColor.b * 0.5f));
-    //    }
-
-    //    for (int m = 0; m < r; m++)
-    //    {
-    //        for (int n = 0; n < r; n++)
-    //        {
-    //            int offsetY = sizeX * r * (j * r + n);
-    //            int offsetX = i * r + m;
-
-    //            textureColors[offsetY + offsetX] = cellColor;
-    //        }
-    //    }
-
-    //    UpdatedCells.Add(cell);
-    //}
 
     public static void DisplayRouteOnMapTexture(Color32[] textureColors, Route route, bool showRoute)
     {
