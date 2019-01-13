@@ -7,13 +7,13 @@ using System.Collections;
 public class MapScript : MonoBehaviour
 {
     public RawImage Image;
-    public RawImage CursorOverlayImage;
+    public RawImage PointerOverlayImage;
     public GameObject InfoPanel;
 
     public void SetVisible(bool value)
     {
         Image.enabled = value;
-        CursorOverlayImage.enabled = value;
+        PointerOverlayImage.enabled = value;
 
         InfoPanel.SetActive(value);
     }
@@ -28,8 +28,8 @@ public class MapScript : MonoBehaviour
         Image.texture = Manager.CurrentMapTexture;
     }
 
-    public void RefreshCursorOverlayTexture()
+    public void RefreshPointerOverlayTexture()
     {
-        CursorOverlayImage.texture = Manager.CursorOverlayTexture;
+        PointerOverlayImage.texture = Manager.PointerOverlayTexture;
     }
 }

@@ -115,6 +115,9 @@ public class Manager
     public static HashSet<TerrainCell> HighlightedCells { get; private set; }
     public static HashSet<TerrainCell> UpdatedCells { get; private set; }
 
+    public static TerrainCell PointerTargetCell = null;
+    public static int BrushRadius = 20;
+
     public static int UpdatedPixelCount = 0;
 
     public static int PixelToCellRatio = 4;
@@ -166,6 +169,13 @@ public class Manager
     private static bool _displayGroupActivity = false;
     private static bool _displayGroupActivityWasEnabled = false;
 
+    private static Color _brushColor = new Color(1, 1, 1, 0.1f);
+    private static Color _brushBorderColor = new Color(1, 1, 1, 0.25f);
+    private static Color _transparentColor = new Color(1, 1, 1, 0.0f);
+
+    private static TerrainCell _lastPointerTargetCell = null;
+    private static int _lastBrushRadius = BrushRadius;
+
     private ProgressCastDelegate _progressCastMethod = null;
 
     private World _currentWorld = null;
@@ -173,12 +183,12 @@ public class Manager
     private Texture2D _currentSphereTexture = null;
     private Texture2D _currentMapTexture = null;
 
-    private Texture2D _cursorOverlayTexture = null;
+    private Texture2D _pointerOverlayTexture = null;
 
     private Color32[] _currentSphereTextureColors = null;
     private Color32[] _currentMapTextureColors = null;
     
-    private Color32[] _cursorOverlayTextureColors = null;
+    private Color32[] _pointerOverlayTextureColors = null;
 
     private float?[,] _currentCellSlants;
 
@@ -273,6 +283,7 @@ public class Manager
 
         HighlightedCells = new HashSet<TerrainCell>();
         UpdatedCells = new HashSet<TerrainCell>();
+
         _lastUpdatedCells = new HashSet<TerrainCell>();
 
         /// static initalizations
@@ -558,11 +569,11 @@ public class Manager
         }
     }
 
-    public static Texture2D CursorOverlayTexture
+    public static Texture2D PointerOverlayTexture
     {
         get
         {
-            return _manager._cursorOverlayTexture;
+            return _manager._pointerOverlayTexture;
         }
     }
 
@@ -632,16 +643,17 @@ public class Manager
         });
     }
 
-    public static void GenerateCursorOverlayTextures()
+    public static void GeneratePointerOverlayTextures()
     {
-        GenerateCursorOverlayTextureFromWorld(CurrentWorld);
+        GeneratePointerOverlayTextureFromWorld(CurrentWorld);
     }
 
     public static void GenerateTextures()
     {
-#if DEBUG
-        UpdatedPixelCount = 0;
-#endif
+        if (DebugModeEnabled)
+        {
+            UpdatedPixelCount = 0;
+        }
 
         //GenerateSphereTextureFromWorld(CurrentWorld);
         GenerateMapTextureFromWorld(CurrentWorld);
@@ -723,19 +735,13 @@ public class Manager
 
     public static void AddHighlightedCell(TerrainCell cell, CellUpdateType updateType)
     {
-        //if ((_observableUpdateTypes & updateType) != CellUpdateType.None)
-        //{
-            HighlightedCells.Add(cell);
-        //}
+        HighlightedCells.Add(cell);
     }
 
     public static void AddHighlightedCells(ICollection<TerrainCell> cells, CellUpdateType updateType)
     {
-        //if ((_observableUpdateTypes & updateType) != CellUpdateType.None)
-        //{
-            foreach (TerrainCell cell in cells)
-                HighlightedCells.Add(cell);
-        //}
+        foreach (TerrainCell cell in cells)
+            HighlightedCells.Add(cell);
     }
 
     public static void GenerateRandomHumanGroup(int initialPopulation)
@@ -1211,30 +1217,30 @@ public class Manager
         _planetOverlaySubtype = planetOverlaySubtype;
     }
 
-    public static void SetDisplayRoutes (bool value) {
+    public static void SetDisplayRoutes(bool value)
+    {
+        if (value)
+            _observableUpdateTypes |= CellUpdateType.Route;
+        else
+            _observableUpdateTypes &= ~CellUpdateType.Route;
 
-		if (value)
-			_observableUpdateTypes |= CellUpdateType.Route;
-		else
-			_observableUpdateTypes &= ~CellUpdateType.Route;
-	
-		_displayRoutes = value;
-	}
+        _displayRoutes = value;
+    }
 
-	public static void SetDisplayGroupActivity (bool value) {
+    public static void SetDisplayGroupActivity(bool value)
+    {
+        _displayGroupActivity = value;
+    }
 
-		_displayGroupActivity = value;
-	}
-	
-	public static void SetPlanetView (PlanetView value) {
-		
-		_planetView = value;
-	}
+    public static void SetPlanetView(PlanetView value)
+    {
+        _planetView = value;
+    }
 
-	public static void SetSelectedCell (int longitude, int latitude) {
-
-		SetSelectedCell (CurrentWorld.GetCell (longitude, latitude));
-	}
+    public static void SetSelectedCell(int longitude, int latitude)
+    {
+        SetSelectedCell(CurrentWorld.GetCell(longitude, latitude));
+    }
 
     public static void SetSelectedCell(WorldPosition position)
     {
@@ -1372,11 +1378,28 @@ public class Manager
         HighlightedCells.Clear();
     }
 
+    public static void UpdatePointerOverlayTextures()
+    {
+        if ((_lastPointerTargetCell == PointerTargetCell) && 
+            (_lastBrushRadius == BrushRadius))
+            return;
+
+        UpdatePointerOverlayTextureColors(_manager._pointerOverlayTextureColors);
+        
+        PointerOverlayTexture.SetPixels32(_manager._pointerOverlayTextureColors);
+
+        PointerOverlayTexture.Apply();
+
+        _lastPointerTargetCell = PointerTargetCell;
+        _lastBrushRadius = BrushRadius;
+    }
+
     public static void UpdateTextures()
     {
-#if DEBUG
-        UpdatedPixelCount = 0;
-#endif
+        if (DebugModeEnabled)
+        {
+            UpdatedPixelCount = 0;
+        }
 
         Profiler.BeginSample("UpdateMapTextureColors");
 
@@ -1409,8 +1432,17 @@ public class Manager
         Profiler.EndSample();
     }
 
-    public static void UpdateCursorOverlayTextureColors(Color32[] textureColors)
+    public static void UpdatePointerOverlayTextureColors(Color32[] textureColors)
     {
+        if (_lastPointerTargetCell != null)
+        {
+            UpdatePointerOverlayTextureColorsFromBrush(textureColors, _lastPointerTargetCell, _lastBrushRadius, true);
+        }
+
+        if (PointerTargetCell != null)
+        {
+            UpdatePointerOverlayTextureColorsFromBrush(textureColors, PointerTargetCell, BrushRadius);
+        }
     }
 
     public static void UpdateMapTextureColors(Color32[] textureColors)
@@ -1500,6 +1532,59 @@ public class Manager
         return false;
     }
 
+    public static void UpdatePointerOverlayTextureColorsFromBrush(Color32[] textureColors, TerrainCell centerCell, int radius, bool erase = false)
+    {
+        World world = centerCell.World;
+
+        int sizeX = world.Width;
+        int sizeY = world.Height;
+
+        int r = PixelToCellRatio;
+
+        int centerX = centerCell.Longitude;
+        int centerY = centerCell.Latitude;
+
+        float fRadius = radius - 0.1f;
+
+        int startJ = Mathf.Max(0, centerY - radius + 1);
+        int endJ = Mathf.Min(sizeY, centerY + radius);
+
+        for (int j = startJ; j < endJ; j++)
+        {
+            int jDiff = j - centerY;
+            int iRadius = (int)Mathf.Sqrt((fRadius * fRadius) - (jDiff * jDiff));
+
+            int offsetI = (centerX + sizeX - iRadius) % sizeX;
+            int iDiameter = 1 + (iRadius * 2);
+
+            for (int uI = 0; uI < iDiameter; uI++)
+            {
+                int i = (uI + offsetI) % sizeX;
+
+                int iDiff = i - centerX;
+                float dist = Mathf.Sqrt((iDiff * iDiff) + (jDiff * jDiff));
+
+                bool isBorder = (dist < radius) && (dist > (radius - 1.1f));
+
+                for (int m = 0; m < r; m++)
+                {
+                    for (int n = 0; n < r; n++)
+                    {
+                        int offsetY = sizeX * r * (j * r + n);
+                        int offsetX = i * r + m;
+
+                        if (erase)
+                            textureColors[offsetY + offsetX] = _transparentColor;
+                        else if (isBorder)
+                            textureColors[offsetY + offsetX] = _brushBorderColor;
+                        else
+                            textureColors[offsetY + offsetX] = _brushColor;
+                    }
+                }
+            }
+        }
+    }
+
     public static void UpdateMapTextureColorsFromCell(Color32[] textureColors, TerrainCell cell, bool displayActivityCells = false)
     {
         World world = cell.World;
@@ -1522,14 +1607,15 @@ public class Manager
 
                 textureColors[offsetY + offsetX] = cellColor;
 
-#if DEBUG
-                UpdatedPixelCount++;
-#endif
+                if (DebugModeEnabled)
+                {
+                    UpdatedPixelCount++;
+                }
             }
         }
     }
 
-    public static Texture2D GenerateCursorOverlayTextureFromWorld(World world)
+    public static Texture2D GeneratePointerOverlayTextureFromWorld(World world)
     {
         int sizeX = world.Width;
         int sizeY = world.Height;
@@ -1544,7 +1630,7 @@ public class Manager
         {
             for (int j = 0; j < sizeY; j++)
             {
-                Color cellColor = new Color(0, 0, 0, 0);
+                Color cellColor = _transparentColor;
 
                 for (int m = 0; m < r; m++)
                 {
@@ -1563,8 +1649,8 @@ public class Manager
 
         texture.Apply();
 
-        _manager._cursorOverlayTextureColors = textureColors;
-        _manager._cursorOverlayTexture = texture;
+        _manager._pointerOverlayTextureColors = textureColors;
+        _manager._pointerOverlayTexture = texture;
 
         return texture;
     }
@@ -1595,9 +1681,10 @@ public class Manager
 
                         textureColors[offsetY + offsetX] = cellColor;
 
-#if DEBUG
-                        UpdatedPixelCount++;
-#endif
+                        if (DebugModeEnabled)
+                        {
+                            UpdatedPixelCount++;
+                        }
                     }
                 }
             }
