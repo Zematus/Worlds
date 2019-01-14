@@ -20,23 +20,7 @@ public class SliderControlsScript : MonoBehaviour
     public float MaxValue = 100;
     public float DefaultValue = 100;
 
-#if DEBUG
-    private float _currentValue;
-
-    public float CurrentValue
-    {
-        get
-        {
-            return _currentValue;
-        }
-        set
-        {
-            _currentValue = value;
-        }
-    }
-#else
     public float CurrentValue { get; set; }
-#endif
 
     public ValueSetEvent ValueSetEvent;
 

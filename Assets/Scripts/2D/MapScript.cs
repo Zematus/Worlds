@@ -28,8 +28,18 @@ public class MapScript : MonoBehaviour
         Image.texture = Manager.CurrentMapTexture;
     }
 
+    public void EnablePointerOverlay(bool state)
+    {
+        PointerOverlayImage.enabled = state;
+    }
+
     public void RefreshPointerOverlayTexture()
     {
         PointerOverlayImage.texture = Manager.PointerOverlayTexture;
+    }
+
+    public void SetBrushRadius(float value)
+    {
+        Manager.BrushRadius = (int)value;
     }
 }

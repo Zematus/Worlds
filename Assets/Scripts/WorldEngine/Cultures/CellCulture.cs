@@ -8,7 +8,6 @@ using UnityEngine.Profiling;
 public class CellCulture : Culture
 {
     public const float MinKnowledgeValue = 1f;
-    //	public const float BaseKnowledgeTransferFactor = 0.1f;
 
     [XmlIgnore]
     public CellGroup Group;

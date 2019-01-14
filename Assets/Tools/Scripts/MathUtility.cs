@@ -4,6 +4,16 @@ using System.Collections.Generic;
 
 public static class MathUtility
 {
+    public static float GetMagnitude(float c1, float c2)
+    {
+        return Mathf.Sqrt((c1 * c1) + (c2 * c2));
+    }
+
+    public static float GetComponent(float m, float c)
+    {
+        return Mathf.Sqrt((m * m) - (c * c));
+    }
+
     public static Vector3 GetCartesianCoordinates(float alpha, float beta, float radius)
     {
         if ((alpha < 0) || (alpha > Mathf.PI)) throw new System.Exception("alpha value must be not less than 0 and not greater than Mathf.PI");
@@ -17,24 +27,6 @@ public static class MathUtility
         float y = Mathf.Cos(alpha) * radius;
         float x = sinAlpha * Mathf.Cos(beta) * radius;
         float z = sinAlpha * Mathf.Sin(beta) * radius;
-
-        return new Vector3(x, y, z);
-    }
-
-    public static Vector3 GetCartesianCoordinates2(float alpha, float beta, float radius)
-    {
-        if ((alpha < 0) || (alpha > 1)) throw new System.Exception("alpha value must be not less than 0 and not greater than Mathf.PI");
-
-        while (beta < 0) beta += 1;
-
-        beta = Mathf.Repeat(beta, 2);
-
-        float alphaM = (2 * alpha) - 1f;
-        float alphaScale = 1 - (alpha * alpha);
-
-        float y = Mathf.Cos(alpha) * radius;
-        float x = alphaScale * Mathf.Cos(beta) * radius;
-        float z = alphaScale * Mathf.Sin(beta) * radius;
 
         return new Vector3(x, y, z);
     }

@@ -2123,7 +2123,6 @@ public class World : ISynchronizable
 
             if (maxValue < value)
             {
-
                 otherValue = maxValue;
                 maxValue = value;
             }
@@ -2140,7 +2139,6 @@ public class World : ISynchronizable
 
     private float GetContinentDistance(int id, int x, int y)
     {
-
         float betaFactor = Mathf.Sin(Mathf.PI * y / Height);
 
         Vector2 continentOffset = _continentOffsets[id];
@@ -2155,8 +2153,8 @@ public class World : ISynchronizable
 
         float continentWidth = _continentWidths[id];
         float continentHeight = _continentHeights[id];
-
-        return new Vector2(distX * continentWidth, distY * continentHeight).magnitude;
+        
+        return MathUtility.GetMagnitude(distX * continentWidth, distY * continentHeight);
     }
 
     private void OffsetTerrainGenRngCalls()

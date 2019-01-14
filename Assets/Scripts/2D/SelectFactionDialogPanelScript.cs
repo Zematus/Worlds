@@ -37,9 +37,7 @@ public class SelectFactionDialogPanelScript : ModalPanelScript
         {
             throw new System.Exception("SetFactionButtons: Both focused polity and selected polity are null...");
         }
-
-        ///////
-
+        
         _factionButtons.Add(FactionButtonPrefab);
 
         List<Faction> factions = new List<Faction>(polity.GetFactions());

@@ -3,6 +3,7 @@ using UnityEngine.Events;
 using UnityEngine.UI;
 using System.Collections;
 using UnityEngine.EventSystems;
+using System.Collections.Generic;
 
 public class BrushControlPanelScript : MonoBehaviour
 {
@@ -10,13 +11,19 @@ public class BrushControlPanelScript : MonoBehaviour
     public SliderControlsScript StrengthSliderControlsScript;
     public SliderControlsScript NoiseSliderControlsScript;
 
+    public ValueSetEvent RadiusValueSetEvent;
+    public ValueSetEvent StrengthValueSetEvent;
+    public ValueSetEvent NoiseValueSetEvent;
+
+    public List<Toggle> BrushToggles = new List<Toggle>();
+
     private const float _minRadiusValue = 1;
     private const float _maxRadiusValue = 20;
     private const float _defaultRadiusValue = 4;
 
-    private const float _minStrengthValue = 0.05f;
+    private const float _minStrengthValue = -1f;
     private const float _maxStrengthValue = 1;
-    private const float _defaultStrengthValue = 0.5f;
+    private const float _defaultStrengthValue = 0f;
 
     private const float _minNoiseValue = 0;
     private const float _maxNoiseValue = 1;
@@ -34,6 +41,23 @@ public class BrushControlPanelScript : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+    }
+
+    public void SetRadiusValue(float value)
+    {
+        //RadiusValueSetEvent.Invoke(value);
+
+        Manager.BrushRadius = (int)value;
+    }
+
+    public void SetStrengthValue(float value)
+    {
+        //StrengthValueSetEvent.Invoke(value);
+    }
+
+    public void SetNoiseValue(float value)
+    {
+        //NoiseValueSetEvent.Invoke(value);
     }
 
     public void Activate(bool state)
@@ -62,12 +86,27 @@ public class BrushControlPanelScript : MonoBehaviour
 
             NoiseSliderControlsScript.CurrentValue = _lastNoiseValue;
             NoiseSliderControlsScript.Initialize();
+            
+            //RadiusValueSetEvent.Invoke(_lastRadiusValue);
+            //StrengthValueSetEvent.Invoke(_lastStrengthValue);
+            //NoiseValueSetEvent.Invoke(_lastNoiseValue);
+
+            Manager.BrushRadius = (int)_lastRadiusValue;
+            Manager.IsBrushActive = true;
         }
         else
         {
             _lastRadiusValue = RadiusSliderControlsScript.CurrentValue;
             _lastStrengthValue = StrengthSliderControlsScript.CurrentValue;
             _lastNoiseValue = NoiseSliderControlsScript.CurrentValue;
+
+            bool mantainActive = false;
+            foreach (Toggle toggle in BrushToggles)
+            {
+                mantainActive |= toggle.isOn;
+            }
+
+            Manager.IsBrushActive = mantainActive;
         }
 
         RadiusSliderControlsScript.AllowEventInvoke(state);

@@ -117,6 +117,7 @@ public class Manager
 
     public static TerrainCell PointerTargetCell = null;
     public static int BrushRadius = 20;
+    public static bool IsBrushActive = false;
 
     public static int UpdatedPixelCount = 0;
 
@@ -175,6 +176,7 @@ public class Manager
 
     private static TerrainCell _lastPointerTargetCell = null;
     private static int _lastBrushRadius = BrushRadius;
+    private static bool _wasBrushActive = IsBrushActive;
 
     private ProgressCastDelegate _progressCastMethod = null;
 
@@ -1380,18 +1382,23 @@ public class Manager
 
     public static void UpdatePointerOverlayTextures()
     {
-        if ((_lastPointerTargetCell == PointerTargetCell) && 
-            (_lastBrushRadius == BrushRadius))
-            return;
+        if (_wasBrushActive || IsBrushActive)
+        {
+            if ((_lastPointerTargetCell != PointerTargetCell) ||
+                (_lastBrushRadius != BrushRadius) ||
+                (_wasBrushActive != IsBrushActive))
+            {
+                UpdatePointerOverlayTextureColors(_manager._pointerOverlayTextureColors);
 
-        UpdatePointerOverlayTextureColors(_manager._pointerOverlayTextureColors);
-        
-        PointerOverlayTexture.SetPixels32(_manager._pointerOverlayTextureColors);
+                PointerOverlayTexture.SetPixels32(_manager._pointerOverlayTextureColors);
 
-        PointerOverlayTexture.Apply();
+                PointerOverlayTexture.Apply();
 
-        _lastPointerTargetCell = PointerTargetCell;
-        _lastBrushRadius = BrushRadius;
+                _lastPointerTargetCell = PointerTargetCell;
+                _lastBrushRadius = BrushRadius;
+                _wasBrushActive = IsBrushActive;
+            }
+        }
     }
 
     public static void UpdateTextures()
@@ -1434,12 +1441,12 @@ public class Manager
 
     public static void UpdatePointerOverlayTextureColors(Color32[] textureColors)
     {
-        if (_lastPointerTargetCell != null)
+        if (_wasBrushActive && (_lastPointerTargetCell != null))
         {
             UpdatePointerOverlayTextureColorsFromBrush(textureColors, _lastPointerTargetCell, _lastBrushRadius, true);
         }
 
-        if (PointerTargetCell != null)
+        if (IsBrushActive && (PointerTargetCell != null))
         {
             UpdatePointerOverlayTextureColorsFromBrush(textureColors, PointerTargetCell, BrushRadius);
         }
@@ -1546,23 +1553,39 @@ public class Manager
 
         float fRadius = radius - 0.1f;
 
-        int startJ = Mathf.Max(0, centerY - radius + 1);
-        int endJ = Mathf.Min(sizeY, centerY + radius);
+        int startJ = centerY - radius + 1;
+        int endJ = centerY + radius;
 
         for (int j = startJ; j < endJ; j++)
         {
-            int jDiff = j - centerY;
-            int iRadius = (int)Mathf.Sqrt((fRadius * fRadius) - (jDiff * jDiff));
+            int mJ = j;
+            int mOffsetI = 0;
 
-            int offsetI = (centerX + sizeX - iRadius) % sizeX;
+            if (mJ < 0) // do a polar wrap around the y-axis when near a pole
+            {
+                mJ = -mJ - 1;
+                mOffsetI = sizeX / 2;
+            }
+            else if (mJ >= sizeY)
+            {
+                mJ = (2 * sizeY) - mJ - 1;
+                mOffsetI = sizeX / 2;
+            }
+
+            int jDiff = j - centerY;
+            int iRadius = (int)MathUtility.GetComponent(fRadius, jDiff);
+
+            int offsetI = (centerX + sizeX - iRadius) % sizeX; // make sure the brush wraps around the x-axis
+            mOffsetI = (mOffsetI + centerX + sizeX - iRadius) % sizeX; // also account for radial y-axis wraps
             int iDiameter = 1 + (iRadius * 2);
 
             for (int uI = 0; uI < iDiameter; uI++)
             {
+                int mI = (uI + mOffsetI) % sizeX;
                 int i = (uI + offsetI) % sizeX;
 
                 int iDiff = i - centerX;
-                float dist = Mathf.Sqrt((iDiff * iDiff) + (jDiff * jDiff));
+                float dist = MathUtility.GetMagnitude(iDiff, jDiff);
 
                 bool isBorder = (dist < radius) && (dist > (radius - 1.1f));
 
@@ -1570,8 +1593,8 @@ public class Manager
                 {
                     for (int n = 0; n < r; n++)
                     {
-                        int offsetY = sizeX * r * (j * r + n);
-                        int offsetX = i * r + m;
+                        int offsetY = sizeX * r * (mJ * r + n);
+                        int offsetX = mI * r + m;
 
                         if (erase)
                             textureColors[offsetY + offsetX] = _transparentColor;

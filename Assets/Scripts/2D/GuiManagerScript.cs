@@ -85,10 +85,7 @@ public class GuiManagerScript : MonoBehaviour
     public UnityEvent EnteredSimulationMode;
 
     public SpeedChangeEvent OnSimulationSpeedChanged;
-
-    //	private bool _showFocusButton = false;
-    //	private string _focusButtonText = "";
-
+    
     private bool _eventPauseActive = false;
 
     private bool _pauseButtonPressed = false;
@@ -118,9 +115,7 @@ public class GuiManagerScript : MonoBehaviour
 
     private bool _displayRoutes = false;
     private bool _displayGroupActivity = false;
-
-    //	private bool _overlayMenusNeedUpdate = true;
-
+    
     private bool _regenTextures = false;
     private bool _regenPointerOverlayTextures = false;
 
@@ -194,7 +189,7 @@ public class GuiManagerScript : MonoBehaviour
         CustomizeWorldDialogPanelScript.SetVisible(false);
         ErrorMessageDialogPanelScript.SetVisible(false);
         ExceptionDialogPanelScript.SetVisible(false);
-        //AddPopulationDialogScript.SetVisible(false);
+        AddPopulationDialogScript.SetVisible(false);
 
         FocusPanelScript.SetVisible(false);
         GuidingPanelScript.SetVisible(false);
@@ -408,10 +403,7 @@ public class GuiManagerScript : MonoBehaviour
             Profiler.EndSample();
         }
 
-        if (_mouseIsOverMap)
-        {
-            ExecuteMapHoverOp();
-        }
+        ExecuteMapHoverOps();
 
         if (_regenPointerOverlayTextures)
         {
@@ -422,7 +414,10 @@ public class GuiManagerScript : MonoBehaviour
         }
         else
         {
-            Manager.UpdatePointerOverlayTextures();
+            if (Mode == GuiMode.Editor)
+            {
+                Manager.UpdatePointerOverlayTextures();
+            }
         }
 
         if (_regenTextures)
@@ -504,6 +499,8 @@ public class GuiManagerScript : MonoBehaviour
     {
         Mode = GuiMode.Simulator;
 
+        MapScript.EnablePointerOverlay(false);
+
 #if DEBUG
         ChangePlanetOverlay(PlanetOverlay.General); // When debugging we might like to autoselect a different default overlay
 #else
@@ -520,6 +517,8 @@ public class GuiManagerScript : MonoBehaviour
     public void SetEditorMode()
     {
         Mode = GuiMode.Editor;
+
+        MapScript.EnablePointerOverlay(true);
 
 #if DEBUG
         ChangePlanetOverlay(PlanetOverlay.None); // When debugging we might like to autoselect a different default overlay
@@ -977,8 +976,6 @@ public class GuiManagerScript : MonoBehaviour
 
         SelectionPanelScript.RemoveAllOptions();
 
-        //SetInitialPopulation();
-
         _selectedMaxSpeedLevelIndex = _topMaxSpeedLevelIndex;
 
         SetMaxSpeedLevel(_selectedMaxSpeedLevelIndex);
@@ -1142,6 +1139,8 @@ public class GuiManagerScript : MonoBehaviour
 
     public void OpenModeSelectionDialog()
     {
+        MapScript.EnablePointerOverlay(false);
+
         OpenModeSelectionDialogRequested.Invoke();
 
         Debug.Log("Player went back to mode selection dialog.");
@@ -2455,9 +2454,6 @@ public class GuiManagerScript : MonoBehaviour
 
     public void UpdateInfoPanel()
     {
-        //		_showFocusButton = false;
-        //		_focusButtonText = "";
-
         World world = Manager.CurrentWorld;
 
         if (Mode == GuiMode.Simulator)
@@ -2509,9 +2505,6 @@ public class GuiManagerScript : MonoBehaviour
             InfoPanelScript.InfoText.text += "\n" + Manager.GetTimeSpanString(_lastDateSpan);
             InfoPanelScript.InfoText.text += "\n";
         }
-
-        //		InfoPanelScript.ShowFocusButton (_showFocusButton);
-        //		InfoPanelScript.FocusButtonText.text = _focusButtonText;
     }
 
     public void AddCellDataToInfoPanel(int longitude, int latitude)
@@ -2875,17 +2868,14 @@ public class GuiManagerScript : MonoBehaviour
 			Polity contactPolity = contact.Polity;
 
 			InfoPanelScript.InfoText.text += "\n\n\tPolity: " + contactPolity.Name.Text + " " + contactPolity.Type.ToLower ();
-//			InfoPanelScript.InfoText.text += "\n\tTranslates to: " + contactPolity.Name.Meaning;
 
 			Faction dominantFaction = contactPolity.DominantFaction;
 
 			InfoPanelScript.InfoText.text += "\n\tDominant Faction: " + dominantFaction.Type + " " + dominantFaction.Name;
-//			InfoPanelScript.InfoText.text += "\n\t\tTranslates to: " + dominantFaction.Name.Meaning;
 
 			Agent leader = contactPolity.CurrentLeader;
 
 			InfoPanelScript.InfoText.text += "\n\tLeader: " + leader.Name.Text;
-//			InfoPanelScript.InfoText.text += "\n\tTranslates to: " + leader.Name.Meaning;
 
 			InfoPanelScript.InfoText.text += "\n\tContact Strength: " + contact.GroupCount;
 		}
@@ -3689,11 +3679,11 @@ public class GuiManagerScript : MonoBehaviour
         AddCellDataToInfoPanel(longitude, latitude);
     }
 
-    private TerrainCell GetCellFromPointer(Vector2 position)
+    private TerrainCell GetCellFromPointer(Vector2 position, bool allowSphericalWrap = false)
     {
         Vector2 mapCoordinates;
 
-        if (!GetMapCoordinatesFromPointerPosition(position, out mapCoordinates))
+        if (!GetMapCoordinatesFromPointerPosition(position, out mapCoordinates, allowSphericalWrap))
             return null;
 
         int longitude = (int)mapCoordinates.x;
@@ -3978,7 +3968,7 @@ public class GuiManagerScript : MonoBehaviour
         return MapImage.rectTransform.TransformPoint(mapImagePos + mapImageRect.min);
     }
 
-    public bool GetMapCoordinatesFromPointerPosition(Vector2 pointerPosition, out Vector2 mapPosition)
+    public bool GetMapCoordinatesFromPointerPosition(Vector2 pointerPosition, out Vector2 mapPosition, bool allowSphericalWrap = false)
     {
         Rect mapImageRect = MapImage.rectTransform.rect;
 
@@ -3986,8 +3976,10 @@ public class GuiManagerScript : MonoBehaviour
 
         Vector2 positionOverMapRect = new Vector2(positionOverMapRect3D.x, positionOverMapRect3D.y);
 
-        if (mapImageRect.Contains(positionOverMapRect))
+        if (allowSphericalWrap || mapImageRect.Contains(positionOverMapRect))
         {
+            // TODO: implement spherical wrap
+
             Vector2 relPos = positionOverMapRect - mapImageRect.min;
 
             Vector2 uvPos = new Vector2(relPos.x / mapImageRect.size.x, relPos.y / mapImageRect.size.y);
@@ -4060,9 +4052,9 @@ public class GuiManagerScript : MonoBehaviour
         }
     }
 
-    public void ExecuteMapHoverOp()
+    public void ExecuteMapHoverOps()
     {
-        TerrainCell hoveredCell = GetCellFromPointer(Input.mousePosition);
+        TerrainCell hoveredCell = GetCellFromPointer(Input.mousePosition, false);
 
         if (hoveredCell != _lastHoveredCell)
         {
@@ -4071,6 +4063,9 @@ public class GuiManagerScript : MonoBehaviour
         }
 
         if (hoveredCell == null)
+            return;
+
+        if (!_mouseIsOverMap)
             return;
 
         if (IsPolityOverlay(_planetOverlay))
