@@ -42,8 +42,6 @@ public class PanelDragScript : MonoBehaviour
         
         Vector3 pointerPosition = new Vector3(data.position.x, data.position.y, 0);
 
-        RectTransform rectTransform = transform as RectTransform;
-
         Vector3 newPosition = pointerPosition - _offset;
 
         transform.position = newPosition;

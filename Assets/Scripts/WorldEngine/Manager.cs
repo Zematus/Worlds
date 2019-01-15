@@ -7,6 +7,14 @@ using System.IO;
 using System.Threading;
 using UnityEngine.Profiling;
 
+public enum EditorBrushType
+{
+    Altitude,
+    Temperature,
+    Rainfall,
+    None
+}
+
 public enum TextureValidationResult
 {
     Ok,
@@ -115,9 +123,14 @@ public class Manager
     public static HashSet<TerrainCell> HighlightedCells { get; private set; }
     public static HashSet<TerrainCell> UpdatedCells { get; private set; }
 
-    public static TerrainCell PointerTargetCell = null;
-    public static int BrushRadius = 20;
-    public static bool IsBrushActive = false;
+    public static TerrainCell EditorBrushTargetCell = null;
+    public static int EditorBrushRadius = 20;
+    public static bool EditorBrushIsVisible = false;
+    public static bool EditorBrushIsActive = false;
+
+    public static EditorBrushType EditorBrushType = EditorBrushType.None;
+
+    public static bool PointerIsOverMap = false;
 
     public static int UpdatedPixelCount = 0;
 
@@ -174,9 +187,10 @@ public class Manager
     private static Color _brushBorderColor = new Color(1, 1, 1, 0.25f);
     private static Color _transparentColor = new Color(1, 1, 1, 0.0f);
 
-    private static TerrainCell _lastPointerTargetCell = null;
-    private static int _lastBrushRadius = BrushRadius;
-    private static bool _wasBrushActive = IsBrushActive;
+    private static TerrainCell _lastEditorBrushTargetCell = null;
+    private static int _lastEditorBrushRadius = EditorBrushRadius;
+    private static bool _editorBrushWasVisible = EditorBrushIsVisible;
+    private static bool _editorBrushWasActive = EditorBrushIsActive;
 
     private ProgressCastDelegate _progressCastMethod = null;
 
@@ -1382,23 +1396,111 @@ public class Manager
 
     public static void UpdatePointerOverlayTextures()
     {
-        if (_wasBrushActive || IsBrushActive)
+        if (_editorBrushWasVisible || EditorBrushIsVisible)
         {
-            if ((_lastPointerTargetCell != PointerTargetCell) ||
-                (_lastBrushRadius != BrushRadius) ||
-                (_wasBrushActive != IsBrushActive))
+            if ((_lastEditorBrushTargetCell != EditorBrushTargetCell) ||
+                (_lastEditorBrushRadius != EditorBrushRadius) ||
+                (_editorBrushWasVisible != EditorBrushIsVisible))
             {
                 UpdatePointerOverlayTextureColors(_manager._pointerOverlayTextureColors);
 
                 PointerOverlayTexture.SetPixels32(_manager._pointerOverlayTextureColors);
 
                 PointerOverlayTexture.Apply();
-
-                _lastPointerTargetCell = PointerTargetCell;
-                _lastBrushRadius = BrushRadius;
-                _wasBrushActive = IsBrushActive;
             }
         }
+    }
+
+    public static void ApplyEditorBrush()
+    {
+        if (EditorBrushIsVisible && EditorBrushIsActive &&
+            (EditorBrushType != EditorBrushType.None))
+        {
+            int sizeX = CurrentWorld.Width;
+            int sizeY = CurrentWorld.Height;
+
+            int centerX = EditorBrushTargetCell.Longitude;
+            int centerY = EditorBrushTargetCell.Latitude;
+
+            float fRadius = EditorBrushRadius - 0.1f;
+
+            int startJ = centerY - EditorBrushRadius + 1;
+            int endJ = centerY + EditorBrushRadius;
+
+            for (int j = startJ; j < endJ; j++)
+            {
+                int mJ = j;
+                int mOffsetI = 0;
+
+                if (mJ < 0) // do a polar wrap around the y-axis when near a pole
+                {
+                    mJ = -mJ - 1;
+                    mOffsetI = sizeX / 2;
+                }
+                else if (mJ >= sizeY)
+                {
+                    mJ = (2 * sizeY) - mJ - 1;
+                    mOffsetI = sizeX / 2;
+                }
+
+                int jDiff = j - centerY;
+                int iRadius = (int)MathUtility.GetComponent(fRadius, jDiff);
+
+                int offsetI = (centerX + sizeX - iRadius) % sizeX; // make sure the brush wraps around the x-axis
+                mOffsetI = (mOffsetI + centerX + sizeX - iRadius) % sizeX; // also account for radial y-axis wraps
+                int iDiameter = 1 + (iRadius * 2);
+
+                for (int uI = 0; uI < iDiameter; uI++)
+                {
+                    int mI = (uI + mOffsetI) % sizeX;
+                    int i = (uI + offsetI) % sizeX;
+
+                    int iDiff = i - centerX;
+                    float dist = MathUtility.GetMagnitude(iDiff, jDiff);
+                    float distFactor = (EditorBrushRadius - dist) / EditorBrushRadius;
+
+                    ApplyEditorBrush(i, j, distFactor);
+                }
+            }
+        }
+    }
+
+    private static void ApplyEditorBrush(int longitude, int latitude, float distanceFactor)
+    {
+        switch (EditorBrushType)
+        {
+            case EditorBrushType.Altitude:
+                ApplyEditorBrush_Altitude(longitude, latitude, distanceFactor);
+                break;
+            case EditorBrushType.Temperature:
+                ApplyEditorBrush_Temperature(longitude, latitude, distanceFactor);
+                break;
+            case EditorBrushType.Rainfall:
+                ApplyEditorBrush_Rainfall(longitude, latitude, distanceFactor);
+                break;
+            default:
+                throw new System.Exception("Unhandled Editor Brush Type: " + EditorBrushType);
+        }
+    }
+
+    private static void ApplyEditorBrush_Altitude(int longitude, int latitude, float distanceFactor)
+    {
+    }
+
+    private static void ApplyEditorBrush_Temperature(int longitude, int latitude, float distanceFactor)
+    {
+    }
+
+    private static void ApplyEditorBrush_Rainfall(int longitude, int latitude, float distanceFactor)
+    {
+    }
+
+    public static void UpdateEditorBrushState()
+    {
+        _lastEditorBrushTargetCell = EditorBrushTargetCell;
+        _lastEditorBrushRadius = EditorBrushRadius;
+        _editorBrushWasVisible = EditorBrushIsVisible;
+        _editorBrushWasActive = EditorBrushIsActive;
     }
 
     public static void UpdateTextures()
@@ -1441,14 +1543,14 @@ public class Manager
 
     public static void UpdatePointerOverlayTextureColors(Color32[] textureColors)
     {
-        if (_wasBrushActive && (_lastPointerTargetCell != null))
+        if (_editorBrushWasVisible && (_lastEditorBrushTargetCell != null))
         {
-            UpdatePointerOverlayTextureColorsFromBrush(textureColors, _lastPointerTargetCell, _lastBrushRadius, true);
+            UpdatePointerOverlayTextureColorsFromBrush(textureColors, _lastEditorBrushTargetCell, _lastEditorBrushRadius, true);
         }
 
-        if (IsBrushActive && (PointerTargetCell != null))
+        if (EditorBrushIsVisible && (EditorBrushTargetCell != null))
         {
-            UpdatePointerOverlayTextureColorsFromBrush(textureColors, PointerTargetCell, BrushRadius);
+            UpdatePointerOverlayTextureColorsFromBrush(textureColors, EditorBrushTargetCell, EditorBrushRadius);
         }
     }
 
@@ -3453,19 +3555,19 @@ public class Manager
         return TextureValidationResult.Ok;
     }
 
-    public static void ConvertToGrayscale(Texture2D texture) // Try to avoid using this function and instead just extract the grayscale value directly
-    {
-        Color[] colors = texture.GetPixels();
-        Color[] repColors = new Color[colors.Length];
+    //public static void ConvertToGrayscale(Texture2D texture) // Try to avoid using this function and instead just extract the grayscale value directly
+    //{
+    //    Color[] colors = texture.GetPixels();
+    //    Color[] repColors = new Color[colors.Length];
 
-        for (int i = 0; i < colors.Length; i++)
-        {
-            float grayscale = colors[i].grayscale;
+    //    for (int i = 0; i < colors.Length; i++)
+    //    {
+    //        float grayscale = colors[i].grayscale;
 
-            repColors[i] = new Color(grayscale, grayscale, grayscale, 1);
-        }
+    //        repColors[i] = new Color(grayscale, grayscale, grayscale, 1);
+    //    }
 
-        texture.SetPixels(repColors);
-        texture.Apply();
-    }
+    //    texture.SetPixels(repColors);
+    //    texture.Apply();
+    //}
 }

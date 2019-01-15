@@ -11,9 +11,7 @@ public class BrushControlPanelScript : MonoBehaviour
     public SliderControlsScript StrengthSliderControlsScript;
     public SliderControlsScript NoiseSliderControlsScript;
 
-    public ValueSetEvent RadiusValueSetEvent;
-    public ValueSetEvent StrengthValueSetEvent;
-    public ValueSetEvent NoiseValueSetEvent;
+    public EditorBrushType BrushType;
 
     public List<Toggle> BrushToggles = new List<Toggle>();
 
@@ -45,19 +43,15 @@ public class BrushControlPanelScript : MonoBehaviour
 
     public void SetRadiusValue(float value)
     {
-        //RadiusValueSetEvent.Invoke(value);
-
-        Manager.BrushRadius = (int)value;
+        Manager.EditorBrushRadius = (int)value;
     }
 
     public void SetStrengthValue(float value)
     {
-        //StrengthValueSetEvent.Invoke(value);
     }
 
     public void SetNoiseValue(float value)
     {
-        //NoiseValueSetEvent.Invoke(value);
     }
 
     public void Activate(bool state)
@@ -86,13 +80,10 @@ public class BrushControlPanelScript : MonoBehaviour
 
             NoiseSliderControlsScript.CurrentValue = _lastNoiseValue;
             NoiseSliderControlsScript.Initialize();
-            
-            //RadiusValueSetEvent.Invoke(_lastRadiusValue);
-            //StrengthValueSetEvent.Invoke(_lastStrengthValue);
-            //NoiseValueSetEvent.Invoke(_lastNoiseValue);
 
-            Manager.BrushRadius = (int)_lastRadiusValue;
-            Manager.IsBrushActive = true;
+            Manager.EditorBrushRadius = (int)_lastRadiusValue;
+            Manager.EditorBrushIsVisible = true;
+            Manager.EditorBrushType = BrushType;
         }
         else
         {
@@ -106,7 +97,12 @@ public class BrushControlPanelScript : MonoBehaviour
                 mantainActive |= toggle.isOn;
             }
 
-            Manager.IsBrushActive = mantainActive;
+            Manager.EditorBrushIsVisible = mantainActive;
+
+            if (!mantainActive)
+            {
+                Manager.EditorBrushType = EditorBrushType.None;
+            }
         }
 
         RadiusSliderControlsScript.AllowEventInvoke(state);

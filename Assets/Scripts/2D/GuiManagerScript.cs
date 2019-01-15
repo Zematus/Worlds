@@ -25,9 +25,6 @@ public class GuiManagerScript : MonoBehaviour
 
     public Text MapViewButtonText;
 
-    public RawImage MapImage;
-    public RawImage PointerOverlayImage;
-
     public Button LoadButton;
 
     public PlanetScript PlanetScript;
@@ -95,13 +92,10 @@ public class GuiManagerScript : MonoBehaviour
     private bool _displayedTip_mapScroll = false;
     private bool _displayedTip_initialPopulation = false;
 
-    private bool _mouseIsOverMap = false;
-
     private Vector3 _tooltipOffset = new Vector3(0, 0);
 
     private TerrainCell _lastHoveredCell = null;
-
-    private Language _lastHoveredOverLanguage = null;
+    
     private Territory _lastHoveredOverTerritory = null;
     private Region _lastHoveredOverRegion = null;
 
@@ -120,9 +114,6 @@ public class GuiManagerScript : MonoBehaviour
     private bool _regenPointerOverlayTextures = false;
 
     private bool _resetOverlays = true;
-
-    private Vector2 _beginDragPosition;
-    private Rect _beginDragMapUvRect;
 
     private bool _backgroundProcessActive = false;
 
@@ -484,12 +475,18 @@ public class GuiManagerScript : MonoBehaviour
             Profiler.EndSample();
         }
 
-        if (MapImage.enabled)
+        if (MapScript.MapImage.enabled)
         {
             UpdateInfoPanel();
             UpdateFocusPanel();
             UpdateGuidingPanel();
             UpdateSelectionMenu();
+        }
+
+        if (Mode == GuiMode.Editor)
+        {
+            Manager.ApplyEditorBrush();
+            Manager.UpdateEditorBrushState();
         }
 
         ReadKeyboardInput();
@@ -1365,7 +1362,7 @@ public class GuiManagerScript : MonoBehaviour
 
         string path = Manager.ExportPath + imageName + ".png";
 
-        Manager.ExportMapTextureToFileAsync(path, MapImage.uvRect);
+        Manager.ExportMapTextureToFileAsync(path, MapScript.MapImage.uvRect);
 
         _postProgressOp += PostProgressOp_ExportAction;
 
@@ -2027,7 +2024,7 @@ public class GuiManagerScript : MonoBehaviour
 
     public void UpdateMapViewButtonText()
     {
-        if (MapImage.enabled)
+        if (MapScript.MapImage.enabled)
         {
             MapViewButtonText.text = "View World";
         }
@@ -3940,39 +3937,39 @@ public class GuiManagerScript : MonoBehaviour
 
     public void ShiftMapToPosition(WorldPosition mapPosition)
     {
-        Rect mapImageRect = MapImage.rectTransform.rect;
+        Rect mapImageRect = MapScript.MapImage.rectTransform.rect;
 
         Vector2 normalizedMapPos = new Vector2(mapPosition.Longitude / (float)Manager.CurrentWorld.Width, mapPosition.Latitude / (float)Manager.CurrentWorld.Height);
 
-        Vector2 mapImagePos = normalizedMapPos - MapImage.uvRect.center;
+        Vector2 mapImagePos = normalizedMapPos - MapScript.MapImage.uvRect.center;
         mapImagePos.x = Mathf.Repeat(mapImagePos.x, 1.0f);
 
-        Rect newUvRect = MapImage.uvRect;
+        Rect newUvRect = MapScript.MapImage.uvRect;
         newUvRect.x += mapImagePos.x;
 
-        MapImage.uvRect = newUvRect;
-        PointerOverlayImage.uvRect = newUvRect;
+        MapScript.MapImage.uvRect = newUvRect;
+        MapScript.PointerOverlayImage.uvRect = newUvRect;
     }
 
     public Vector3 GetScreenPositionFromMapCoordinates(WorldPosition mapPosition)
     {
-        Rect mapImageRect = MapImage.rectTransform.rect;
+        Rect mapImageRect = MapScript.MapImage.rectTransform.rect;
 
         Vector2 normalizedMapPos = new Vector2(mapPosition.Longitude / (float)Manager.CurrentWorld.Width, mapPosition.Latitude / (float)Manager.CurrentWorld.Height);
 
-        Vector2 mapImagePos = normalizedMapPos - MapImage.uvRect.min;
+        Vector2 mapImagePos = normalizedMapPos - MapScript.MapImage.uvRect.min;
         mapImagePos.x = Mathf.Repeat(mapImagePos.x, 1.0f);
 
         mapImagePos.Scale(mapImageRect.size);
 
-        return MapImage.rectTransform.TransformPoint(mapImagePos + mapImageRect.min);
+        return MapScript.MapImage.rectTransform.TransformPoint(mapImagePos + mapImageRect.min);
     }
 
     public bool GetMapCoordinatesFromPointerPosition(Vector2 pointerPosition, out Vector2 mapPosition, bool allowSphericalWrap = false)
     {
-        Rect mapImageRect = MapImage.rectTransform.rect;
+        Rect mapImageRect = MapScript.MapImage.rectTransform.rect;
 
-        Vector3 positionOverMapRect3D = MapImage.rectTransform.InverseTransformPoint(pointerPosition);
+        Vector3 positionOverMapRect3D = MapScript.MapImage.rectTransform.InverseTransformPoint(pointerPosition);
 
         Vector2 positionOverMapRect = new Vector2(positionOverMapRect3D.x, positionOverMapRect3D.y);
 
@@ -3984,7 +3981,7 @@ public class GuiManagerScript : MonoBehaviour
 
             Vector2 uvPos = new Vector2(relPos.x / mapImageRect.size.x, relPos.y / mapImageRect.size.y);
 
-            uvPos += MapImage.uvRect.min;
+            uvPos += MapScript.MapImage.uvRect.min;
 
             float worldLong = Mathf.Repeat(Mathf.Floor(uvPos.x * Manager.CurrentWorld.Width), Manager.CurrentWorld.Width);
             float worldLat = Mathf.Floor(uvPos.y * Manager.CurrentWorld.Height);
@@ -4004,41 +4001,6 @@ public class GuiManagerScript : MonoBehaviour
         return GetMapCoordinatesFromPointerPosition(Input.mousePosition, out mapPosition);
     }
 
-    public void DragMap(BaseEventData data)
-    {
-        Rect mapImageRect = MapImage.rectTransform.rect;
-
-        PointerEventData pointerData = data as PointerEventData;
-
-        if (pointerData.button != PointerEventData.InputButton.Right)
-            return;
-
-        Vector2 delta = pointerData.position - _beginDragPosition;
-
-        float uvDelta = delta.x / mapImageRect.width;
-
-        Rect newUvRect = _beginDragMapUvRect;
-        newUvRect.x -= uvDelta;
-
-        MapImage.uvRect = newUvRect;
-        PointerOverlayImage.uvRect = newUvRect;
-    }
-
-    public void BeginDragMap(BaseEventData data)
-    {
-        PointerEventData pointerData = data as PointerEventData;
-
-        if (pointerData.button != PointerEventData.InputButton.Right)
-            return;
-
-        _beginDragPosition = pointerData.position;
-        _beginDragMapUvRect = MapImage.uvRect;
-    }
-
-    public void EndDragMap(BaseEventData data)
-    {
-    }
-
     public void SelectCellOnMap(BaseEventData data)
     {
         PointerEventData pointerData = data as PointerEventData;
@@ -4054,33 +4016,28 @@ public class GuiManagerScript : MonoBehaviour
 
     public void ExecuteMapHoverOps()
     {
+        if (!Manager.PointerIsOverMap)
+        {
+            _lastHoveredCell = null;
+            Manager.EditorBrushTargetCell = null;
+
+            return;
+        }
+
         TerrainCell hoveredCell = GetCellFromPointer(Input.mousePosition, false);
 
         if (hoveredCell != _lastHoveredCell)
         {
             _lastHoveredCell = hoveredCell;
-            Manager.PointerTargetCell = hoveredCell;
+            Manager.EditorBrushTargetCell = hoveredCell;
         }
 
         if (hoveredCell == null)
-            return;
-
-        if (!_mouseIsOverMap)
             return;
 
         if (IsPolityOverlay(_planetOverlay))
             ShowCellInfoToolTip_PolityTerritory(hoveredCell);
         else if (_planetOverlay == PlanetOverlay.Region)
             ShowCellInfoToolTip_Region(hoveredCell);
-    }
-
-    public void PointerEntersMap(BaseEventData data)
-    {
-        _mouseIsOverMap = true;
-    }
-
-    public void PointerExitsMap(BaseEventData data)
-    {
-        _mouseIsOverMap = false;
     }
 }

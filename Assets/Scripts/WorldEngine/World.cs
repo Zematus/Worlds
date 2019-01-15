@@ -346,8 +346,6 @@ public class World : ISynchronizable
 
     private List<WorldEvent> _eventsToHappenNow = new List<WorldEvent>();
 
-    //private HashSet<int> _terrainCellChangesListIndexes = new HashSet<int>();
-
     private HashSet<string> _culturalPreferenceIdList = new HashSet<string>();
     private HashSet<string> _culturalActivityIdList = new HashSet<string>();
     private HashSet<string> _culturalSkillIdList = new HashSet<string>();
@@ -651,11 +649,6 @@ public class World : ISynchronizable
 
         if (changes == null)
             return;
-
-        int index = changes.Longitude + (changes.Latitude * Width);
-
-        //if (!_terrainCellChangesListIndexes.Add(index))
-        //    return;
 
         TerrainCellChangesList.Add(changes);
 
@@ -1757,13 +1750,6 @@ public class World : ISynchronizable
         {
             _eventMessageIds.Add(messageId);
         }
-
-        //foreach (TerrainCellChanges c in TerrainCellChangesList)
-        //{
-        //    int index = c.Longitude + c.Latitude * Width;
-
-        //    _terrainCellChangesListIndexes.Add(index);
-        //}
 
         foreach (Language l in Languages)
         {
