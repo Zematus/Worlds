@@ -395,6 +395,9 @@ public class World : ISynchronizable
 
     private bool _justLoaded = false;
 
+    private ManagerTask<Vector3> _tempNoiseOffset1;
+    private ManagerTask<Vector3> _tempNoiseOffset2;
+
     public World()
     {
         Manager.WorldBeingLoaded = this;
@@ -2249,6 +2252,14 @@ public class World : ISynchronizable
         _accumulatedProgress += _progressIncrement;
     }
 
+    public void ModifyCellTerrain(TerrainCell cell, float valueOffset, float noiseFactor)
+    {
+        float value = cell.BaseValue + valueOffset;
+
+        CalculateAndSetAltitude(cell, value, true);
+        GenerateTerrainTemperatureForCell(cell);
+    }
+
     private void GenerateTerrainAltitudeOld()
     {
         GenerateContinents();
@@ -2595,19 +2606,24 @@ public class World : ISynchronizable
         return TerrainCells[longitude][latitude].Modified;
     }
 
-    private void CalculateAndSetAltitude(int longitude, int latitude, float value, bool fromHeightmap = false)
+    private void CalculateAndSetAltitude(TerrainCell cell, float value, bool modified = false)
     {
         float altitude = CalculateAltitude(value);
-        TerrainCells[longitude][latitude].Altitude = altitude;
-        TerrainCells[longitude][latitude].BaseValue = value;
+        cell.Altitude = altitude;
+        cell.BaseValue = value;
 
-        if (fromHeightmap)
+        if (modified)
         {
-            TerrainCells[longitude][latitude].Modified = true;
+            cell.Modified = true;
         }
 
         if (altitude > MaxAltitude) MaxAltitude = altitude;
         if (altitude < MinAltitude) MinAltitude = altitude;
+    }
+
+    private void CalculateAndSetAltitude(int longitude, int latitude, float value, bool modified = false)
+    {
+        CalculateAndSetAltitude(TerrainCells[longitude][latitude], value, modified);
     }
 
     private void RecalculateAndSetAltitude(int longitude, int latitude)
@@ -2726,8 +2742,68 @@ public class World : ISynchronizable
 
     private void OffsetTemperatureGenRngCalls()
     {
-        GenerateRandomOffsetVectorTask().Wait();
-        GenerateRandomOffsetVectorTask().Wait();
+        // Store values to be used later when regenerating specific cells
+        _tempNoiseOffset1 = GenerateRandomOffsetVectorTask();
+        _tempNoiseOffset2 = GenerateRandomOffsetVectorTask();
+
+        // We need the calls to Random to be resolved before moving on to preserve RNG order
+        _tempNoiseOffset1.Wait();
+        _tempNoiseOffset2.Wait();
+    }
+
+    private void GenerateTerrainTemperatureForCell(TerrainCell cell)
+    {
+        float radius1 = 2f;
+        float radius2 = 16f;
+
+        float longitude = cell.Longitude;
+        float latitude = cell.Latitude;
+
+        float alpha = (latitude / (float)Height) * Mathf.PI;
+        float beta = (longitude / (float)Width) * Mathf.PI * 2;
+
+        float value1 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius1, _tempNoiseOffset1);
+        float value2 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius2, _tempNoiseOffset2);
+
+        float latitudeModifier = (alpha * 0.9f) + ((value1 + value2) * 0.05f * Mathf.PI);
+
+        float altitudeSpan = MaxPossibleAltitude - MinPossibleAltitude;
+
+        float absAltitude = cell.Altitude - MinPossibleAltitudeWithOffset;
+
+        float altitudeFactor1 = (absAltitude / altitudeSpan) * 0.7f;
+        float altitudeFactor2 = (Mathf.Clamp01(cell.Altitude / MaxPossibleAltitude) * 1.3f);
+        float altitudeFactor3 = -0.18f;
+
+        float temperature = CalculateTemperature(Mathf.Sin(latitudeModifier) - altitudeFactor1 - altitudeFactor2 - altitudeFactor3);
+
+//#if DEBUG
+//        if ((i == 269) && (j == 136))
+//        {
+//            Debug.Log(
+//                "temperature:" + temperature +
+//                ", TemperatureOffset:" + TemperatureOffset +
+//                ", MaxPossibleTemperature:" + MaxPossibleTemperature +
+//                ", MinPossibleTemperature:" + MinPossibleTemperature +
+//                ", MaxPossibleTemperatureWithOffset:" + MaxPossibleTemperatureWithOffset +
+//                ", MinPossibleTemperatureWithOffset:" + MinPossibleTemperatureWithOffset +
+//                ", alpha:" + alpha +
+//                ", beta:" + beta +
+//                ", value1:" + value1 +
+//                ", offset1:" + offset1.Result +
+//                ", latitudeModifier:" + latitudeModifier +
+//                ", altitudeFactor1:" + altitudeFactor1 +
+//                ", altitudeFactor2:" + altitudeFactor2 +
+//                ", altitudeFactor3:" + altitudeFactor3 +
+//                ", Seed:" + Seed
+//                );
+//        }
+//#endif
+
+        cell.Temperature = temperature;
+
+        if (temperature > MaxTemperature) MaxTemperature = temperature;
+        if (temperature < MinTemperature) MinTemperature = temperature;
     }
 
     private void GenerateTerrainTemperature()
@@ -2735,11 +2811,8 @@ public class World : ISynchronizable
         int sizeX = Width;
         int sizeY = Height;
 
-        float radius1 = 2f;
-        float radius2 = 16f;
-
-        ManagerTask<Vector3> offset1 = GenerateRandomOffsetVectorTask();
-        ManagerTask<Vector3> offset2 = GenerateRandomOffsetVectorTask();
+        _tempNoiseOffset1 = GenerateRandomOffsetVectorTask();
+        _tempNoiseOffset2 = GenerateRandomOffsetVectorTask();
 
         for (int i = 0; i < sizeX; i++)
         {
@@ -2749,53 +2822,8 @@ public class World : ISynchronizable
             {
                 if (SkipIfModified(i, j))
                     continue;
-
-                TerrainCell cell = TerrainCells[i][j];
-
-                float alpha = (j / (float)sizeY) * Mathf.PI;
-
-                float value1 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius1, offset1);
-                float value2 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius2, offset2);
-
-                float latitudeModifier = (alpha * 0.9f) + ((value1 + value2) * 0.05f * Mathf.PI);
-
-                float altitudeSpan = MaxPossibleAltitude - MinPossibleAltitude;
-
-                float absAltitude = cell.Altitude - MinPossibleAltitudeWithOffset;
-
-                float altitudeFactor1 = (absAltitude / altitudeSpan) * 0.7f;
-                float altitudeFactor2 = (Mathf.Clamp01(cell.Altitude / MaxPossibleAltitude) * 1.3f);
-                float altitudeFactor3 = -0.18f;
-
-                float temperature = CalculateTemperature(Mathf.Sin(latitudeModifier) - altitudeFactor1 - altitudeFactor2 - altitudeFactor3);
-
-//#if DEBUG
-//                if ((i == 269) && (j == 136))
-//                {
-//                    Debug.Log(
-//                        "temperature:" + temperature +
-//                        ", TemperatureOffset:" + TemperatureOffset +
-//                        ", MaxPossibleTemperature:" + MaxPossibleTemperature +
-//                        ", MinPossibleTemperature:" + MinPossibleTemperature +
-//                        ", MaxPossibleTemperatureWithOffset:" + MaxPossibleTemperatureWithOffset +
-//                        ", MinPossibleTemperatureWithOffset:" + MinPossibleTemperatureWithOffset +
-//                        ", alpha:" + alpha +
-//                        ", beta:" + beta +
-//                        ", value1:" + value1 +
-//                        ", offset1:" + offset1.Result +
-//                        ", latitudeModifier:" + latitudeModifier +
-//                        ", altitudeFactor1:" + altitudeFactor1 +
-//                        ", altitudeFactor2:" + altitudeFactor2 +
-//                        ", altitudeFactor3:" + altitudeFactor3 +
-//                        ", Seed:" + Seed
-//                        );
-//                }
-//#endif
-
-                cell.Temperature = temperature;
-
-                if (temperature > MaxTemperature) MaxTemperature = temperature;
-                if (temperature < MinTemperature) MinTemperature = temperature;
+                
+                GenerateTerrainTemperatureForCell(TerrainCells[i][j]);
             }
 
             ProgressCastMethod(_accumulatedProgress + _progressIncrement * (i + 1) / (float)sizeX);

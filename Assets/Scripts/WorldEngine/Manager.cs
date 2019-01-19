@@ -1139,11 +1139,8 @@ public class Manager
         if ((overlay == PlanetOverlay.None) ||
             (overlay == PlanetOverlay.Arability) ||
             (overlay == PlanetOverlay.Rainfall) ||
-            (overlay == PlanetOverlay.Temperature))
-        {
-            _observableUpdateTypes = CellUpdateType.None;
-        }
-        else if (overlay == PlanetOverlay.FarmlandDistribution)
+            (overlay == PlanetOverlay.Temperature) ||
+            (overlay == PlanetOverlay.FarmlandDistribution))
         {
             _observableUpdateTypes = CellUpdateType.Cell;
         }
@@ -1184,11 +1181,8 @@ public class Manager
         if ((overlay == PlanetOverlay.None) ||
             (overlay == PlanetOverlay.Arability) ||
             (overlay == PlanetOverlay.Rainfall) ||
-            (overlay == PlanetOverlay.Temperature))
-        {
-            _observableUpdateSubTypes = CellUpdateSubType.None;
-        }
-        else if (overlay == PlanetOverlay.FarmlandDistribution)
+            (overlay == PlanetOverlay.Temperature) ||
+            (overlay == PlanetOverlay.FarmlandDistribution))
         {
             _observableUpdateSubTypes = CellUpdateSubType.Terrain;
         }
@@ -1457,7 +1451,7 @@ public class Manager
 
                     int iDiff = i - centerX;
                     float dist = MathUtility.GetMagnitude(iDiff, jDiff);
-                    float distFactor = (EditorBrushRadius - dist) / EditorBrushRadius;
+                    float distFactor = dist / EditorBrushRadius;
 
                     ApplyEditorBrush(i, j, distFactor);
                 }
@@ -1485,6 +1479,17 @@ public class Manager
 
     private static void ApplyEditorBrush_Altitude(int longitude, int latitude, float distanceFactor)
     {
+        float strength = 1;
+        float noise = 1;
+
+        float strToValue = 0.1f * MathUtility.GetPseudoNormalDistribution(distanceFactor * 5) / MathUtility.NormalAt0;
+        float valueOffset = strength * strToValue;
+
+        TerrainCell cell = CurrentWorld.GetCell(longitude, latitude);
+
+        CurrentWorld.ModifyCellTerrain(cell, valueOffset, noise);
+
+        AddUpdatedCell(cell, CellUpdateType.Cell, CellUpdateSubType.Terrain);
     }
 
     private static void ApplyEditorBrush_Temperature(int longitude, int latitude, float distanceFactor)
