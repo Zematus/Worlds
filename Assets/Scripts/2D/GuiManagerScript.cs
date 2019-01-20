@@ -229,10 +229,12 @@ public class GuiManagerScript : MonoBehaviour
 
         if (!Manager.WorldIsReady)
         {
+            _heightmap = Manager.LoadTexture(@"Heightmaps\mergetest_4b_3600x1800.png");
+
             //GenerateWorld(false, 407252633);
             //GenerateWorld(false, 1159850609);
             //GenerateWorld(false, 952294588);
-            GenerateWorld(false, 732011012);
+            GenerateWorld(false, 732011012, useHeightmap : true);
             //GenerateWorld(false, 215020278);
         }
         else
@@ -1023,14 +1025,14 @@ public class GuiManagerScript : MonoBehaviour
         _regenTextures = true;
     }
 
-    public void GenerateWorld(bool randomSeed = true, int seed = 0)
+    public void GenerateWorld(bool randomSeed = true, int seed = 0, bool useHeightmap = false)
     {
         if (randomSeed)
         {
             seed = Random.Range(0, int.MaxValue);
         }
 
-        GenerateWorldInternal(seed);
+        GenerateWorldInternal(seed, useHeightmap);
     }
 
     public void GenerateWorldWithCustomSeed()
@@ -1100,13 +1102,13 @@ public class GuiManagerScript : MonoBehaviour
         _postProgressOp -= PostProgressOp_GenerateWorld;
     }
 
-    private void GenerateWorldInternal(int seed)
+    private void GenerateWorldInternal(int seed, bool useHeightmap = false)
     {
         ProgressDialogPanelScript.SetVisible(true);
 
         ProgressUpdate(0, "Generating World...", true);
 
-        if (SetSeedDialogPanelScript.UseHeightmapToggle.isOn)
+        if (SetSeedDialogPanelScript.UseHeightmapToggle.isOn || useHeightmap)
         {
             Manager.GenerateNewWorldAsync(seed, _heightmap, ProgressUpdate);
         }

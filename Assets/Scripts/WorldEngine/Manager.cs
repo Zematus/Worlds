@@ -1446,7 +1446,6 @@ public class Manager
 
                 for (int uI = 0; uI < iDiameter; uI++)
                 {
-                    int mI = (uI + mOffsetI) % sizeX;
                     int i = (uI + offsetI) % sizeX;
 
                     int iDiff = i - centerX;
