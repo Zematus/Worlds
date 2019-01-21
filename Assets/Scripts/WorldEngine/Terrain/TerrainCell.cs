@@ -140,6 +140,9 @@ public class TerrainCell : ISynchronizable
     public bool IsSelected = false;
 
     [XmlIgnore]
+    public List<TerrainCell> RainfallDependentCells = new List<TerrainCell>();
+
+    [XmlIgnore]
     public Dictionary<Direction, TerrainCell> Neighbors { get; private set; }
 
     [XmlIgnore]

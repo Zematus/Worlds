@@ -3678,11 +3678,11 @@ public class GuiManagerScript : MonoBehaviour
         AddCellDataToInfoPanel(longitude, latitude);
     }
 
-    private TerrainCell GetCellFromPointer(Vector2 position, bool allowSphericalWrap = false)
+    private TerrainCell GetCellFromPointer(Vector2 position)
     {
         Vector2 mapCoordinates;
 
-        if (!GetMapCoordinatesFromPointerPosition(position, out mapCoordinates, allowSphericalWrap))
+        if (!GetMapCoordinatesFromPointerPosition(position, out mapCoordinates))
             return null;
 
         int longitude = (int)mapCoordinates.x;
@@ -3967,7 +3967,7 @@ public class GuiManagerScript : MonoBehaviour
         return MapScript.MapImage.rectTransform.TransformPoint(mapImagePos + mapImageRect.min);
     }
 
-    public bool GetMapCoordinatesFromPointerPosition(Vector2 pointerPosition, out Vector2 mapPosition, bool allowSphericalWrap = false)
+    public bool GetMapCoordinatesFromPointerPosition(Vector2 pointerPosition, out Vector2 mapPosition)
     {
         Rect mapImageRect = MapScript.MapImage.rectTransform.rect;
 
@@ -3975,10 +3975,8 @@ public class GuiManagerScript : MonoBehaviour
 
         Vector2 positionOverMapRect = new Vector2(positionOverMapRect3D.x, positionOverMapRect3D.y);
 
-        if (allowSphericalWrap || mapImageRect.Contains(positionOverMapRect))
+        if (mapImageRect.Contains(positionOverMapRect))
         {
-            // TODO: implement spherical wrap
-
             Vector2 relPos = positionOverMapRect - mapImageRect.min;
 
             Vector2 uvPos = new Vector2(relPos.x / mapImageRect.size.x, relPos.y / mapImageRect.size.y);
@@ -4005,6 +4003,9 @@ public class GuiManagerScript : MonoBehaviour
 
     public void SelectCellOnMap(BaseEventData data)
     {
+        if (Manager.EditorBrushIsVisible)
+            return;
+
         PointerEventData pointerData = data as PointerEventData;
 
         if (pointerData.button != PointerEventData.InputButton.Left)
@@ -4018,7 +4019,7 @@ public class GuiManagerScript : MonoBehaviour
 
     public void ExecuteMapHoverOps()
     {
-        if (!Manager.PointerIsOverMap)
+        if (!Manager.PointerIsOverMap && !Manager.EditorBrushIsActive)
         {
             _lastHoveredCell = null;
             Manager.EditorBrushTargetCell = null;
@@ -4026,7 +4027,7 @@ public class GuiManagerScript : MonoBehaviour
             return;
         }
 
-        TerrainCell hoveredCell = GetCellFromPointer(Input.mousePosition, false);
+        TerrainCell hoveredCell = GetCellFromPointer(Input.mousePosition);
 
         if (hoveredCell != _lastHoveredCell)
         {

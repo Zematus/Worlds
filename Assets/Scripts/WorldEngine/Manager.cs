@@ -190,7 +190,7 @@ public class Manager
     private static TerrainCell _lastEditorBrushTargetCell = null;
     private static int _lastEditorBrushRadius = EditorBrushRadius;
     private static bool _editorBrushWasVisible = EditorBrushIsVisible;
-    private static bool _editorBrushWasActive = EditorBrushIsActive;
+    //private static bool _editorBrushWasActive = EditorBrushIsActive;
 
     private ProgressCastDelegate _progressCastMethod = null;
 
@@ -1408,7 +1408,8 @@ public class Manager
     public static void ApplyEditorBrush()
     {
         if (EditorBrushIsVisible && EditorBrushIsActive &&
-            (EditorBrushType != EditorBrushType.None))
+            (EditorBrushType != EditorBrushType.None) &&
+            (EditorBrushTargetCell != null))
         {
             int sizeX = CurrentWorld.Width;
             int sizeY = CurrentWorld.Height;
@@ -1439,21 +1440,27 @@ public class Manager
 
                 int jDiff = j - centerY;
                 int iRadius = (int)MathUtility.GetComponent(fRadius, jDiff);
-
-                int offsetI = (centerX + sizeX - iRadius) % sizeX; // make sure the brush wraps around the x-axis
-                mOffsetI = (mOffsetI + centerX + sizeX - iRadius) % sizeX; // also account for radial y-axis wraps
+                
+                int offsetI = centerX - iRadius;
+                mOffsetI = (mOffsetI + offsetI + sizeX) % sizeX; // make sure the brush wraps around the x-axis and account for radial y-axis wraps
                 int iDiameter = 1 + (iRadius * 2);
 
                 for (int uI = 0; uI < iDiameter; uI++)
                 {
-                    int i = (uI + offsetI) % sizeX;
+                    int mI = (uI + mOffsetI) % sizeX;
+                    int i = uI + offsetI;
 
                     int iDiff = i - centerX;
                     float dist = MathUtility.GetMagnitude(iDiff, jDiff);
                     float distFactor = dist / EditorBrushRadius;
 
-                    ApplyEditorBrush(i, j, distFactor);
+                    ApplyEditorBrush(mI, mJ, distFactor);
                 }
+            }
+
+            if (EditorBrushType == EditorBrushType.Altitude)
+            {
+                CurrentWorld.FinishTerrainGenerationForModifiedCells();
             }
         }
     }
@@ -1476,6 +1483,41 @@ public class Manager
         }
     }
 
+    private static void ResetSlantsAround(TerrainCell cell)
+    {
+        foreach (TerrainCell nCell in cell.Neighbors.Values)
+        {
+            _manager._currentCellSlants[nCell.Longitude, nCell.Latitude] = null;
+        }
+
+        _manager._currentCellSlants[cell.Longitude, cell.Latitude] = null;
+    }
+
+    private static void AddCellAndDependentsToUpdate(TerrainCell cell, CellUpdateType updateType, CellUpdateSubType updateSubType)
+    {
+        foreach (TerrainCell rCell in cell.RainfallDependentCells)
+        {
+            AddUpdatedCell(rCell, updateType, updateSubType);
+        }
+
+        AddUpdatedCell(cell, updateType, updateSubType);
+    }
+
+    private static void AddCellAndNeighborsAndDependentsToUpdate(TerrainCell cell, CellUpdateType updateType, CellUpdateSubType updateSubType)
+    {
+        foreach (TerrainCell nCell in cell.Neighbors.Values)
+        {
+            AddUpdatedCell(nCell, updateType, updateSubType);
+        }
+        
+        foreach (TerrainCell rCell in cell.RainfallDependentCells)
+        {
+            AddUpdatedCell(rCell, updateType, updateSubType);
+        }
+
+        AddUpdatedCell(cell, updateType, updateSubType);
+    }
+
     private static void ApplyEditorBrush_Altitude(int longitude, int latitude, float distanceFactor)
     {
         float strength = 1;
@@ -1488,7 +1530,9 @@ public class Manager
 
         CurrentWorld.ModifyCellTerrain(cell, valueOffset, noise);
 
-        AddUpdatedCell(cell, CellUpdateType.Cell, CellUpdateSubType.Terrain);
+        ResetSlantsAround(cell);
+
+        AddCellAndNeighborsAndDependentsToUpdate(cell, CellUpdateType.Cell, CellUpdateSubType.Terrain);
     }
 
     private static void ApplyEditorBrush_Temperature(int longitude, int latitude, float distanceFactor)
@@ -1504,7 +1548,7 @@ public class Manager
         _lastEditorBrushTargetCell = EditorBrushTargetCell;
         _lastEditorBrushRadius = EditorBrushRadius;
         _editorBrushWasVisible = EditorBrushIsVisible;
-        _editorBrushWasActive = EditorBrushIsActive;
+        //_editorBrushWasActive = EditorBrushIsActive;
     }
 
     public static void UpdateTextures()
@@ -1681,14 +1725,14 @@ public class Manager
             int jDiff = j - centerY;
             int iRadius = (int)MathUtility.GetComponent(fRadius, jDiff);
 
-            int offsetI = (centerX + sizeX - iRadius) % sizeX; // make sure the brush wraps around the x-axis
-            mOffsetI = (mOffsetI + centerX + sizeX - iRadius) % sizeX; // also account for radial y-axis wraps
+            int offsetI = centerX - iRadius;
+            mOffsetI = (mOffsetI + offsetI + sizeX) % sizeX; // make sure the brush wraps around the x-axis and account for radial y-axis wraps
             int iDiameter = 1 + (iRadius * 2);
 
             for (int uI = 0; uI < iDiameter; uI++)
             {
                 int mI = (uI + mOffsetI) % sizeX;
-                int i = (uI + offsetI) % sizeX;
+                int i = uI + offsetI;
 
                 int iDiff = i - centerX;
                 float dist = MathUtility.GetMagnitude(iDiff, jDiff);
