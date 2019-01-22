@@ -5,6 +5,11 @@ using System.Collections.Generic;
 public static class MathUtility
 {
     public const float NormalAt0 = 0.398942f;
+    public const float NormalAt1 = 0.241971f;
+    public const float NormalAt2 = 0.053991f;
+    public const float NormalAt3 = 0.004432f;
+    public const float NormalAt4 = 0.000134f;
+    public const float NormalAt5 = 0.000001f;
 
     public static float GetMagnitude(float c1, float c2)
     {

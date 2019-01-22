@@ -400,6 +400,10 @@ public class World : ISynchronizable
 
     private bool _justLoaded = false;
 
+    private ManagerTask<Vector3> _altitudeBrushNoiseOffset;
+    private ManagerTask<Vector3> _tempBrushNoiseOffset;
+    private ManagerTask<Vector3> _rainfallBrushNoiseOffset;
+
     private ManagerTask<Vector3> _arabilityNoiseOffset;
 
     private ManagerTask<Vector3> _tempNoiseOffset1;
@@ -1992,6 +1996,9 @@ public class World : ISynchronizable
         ProgressCastMethod(_accumulatedProgress, "Generating arability...");
 
         GenerateTerrainArability();
+
+        // These rng values will be later used by the editor brushes when needed but we need to prepare them beforehand
+        OffsetBrushRngCalls();
     }
 
     public void Generate(Texture2D heightmap)
@@ -2273,8 +2280,21 @@ public class World : ISynchronizable
         _accumulatedProgress += _progressIncrement;
     }
 
-    public void ModifyCellTerrain(TerrainCell cell, float valueOffset, float noiseFactor)
+    public void ModifyCellTerrain(TerrainCell cell, float valueOffset, float noiseFactor, float noiseRadius)
     {
+        if (noiseFactor > 0)
+        {
+            float alpha = (cell.Latitude / (float)Height) * Mathf.PI;
+            float beta = (cell.Longitude / (float)Width) * Mathf.PI * 2;
+
+            float rngValue = GetRandomNoiseFromPolarCoordinates(alpha, beta, noiseRadius, _altitudeBrushNoiseOffset);
+
+            valueOffset *= Mathf.Lerp(1, rngValue, noiseFactor);
+        }
+
+        if (valueOffset == 0)
+            return; // No actual changes being made to cell
+
         float value = cell.BaseValue + valueOffset;
 
         CalculateAndSetAltitude(cell, value, true);
@@ -2689,6 +2709,19 @@ public class World : ISynchronizable
 
         if (altitude > MaxAltitude) MaxAltitude = altitude;
         if (altitude < MinAltitude) MinAltitude = altitude;
+    }
+
+    private void OffsetBrushRngCalls()
+    {
+        // Store values to be used later when regenerating specific cells
+        _altitudeBrushNoiseOffset = GenerateRandomOffsetVectorTask();
+        _tempBrushNoiseOffset = GenerateRandomOffsetVectorTask();
+        _rainfallBrushNoiseOffset = GenerateRandomOffsetVectorTask();
+
+        // We need the calls to Random to be resolved before moving on to preserve RNG order
+        _altitudeBrushNoiseOffset.Wait();
+        _tempBrushNoiseOffset.Wait();
+        _rainfallBrushNoiseOffset.Wait();
     }
 
     private void OffsetRainfallGenRngCalls()

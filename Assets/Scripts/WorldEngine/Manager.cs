@@ -108,6 +108,8 @@ public class Manager
     public const int WorldWidth = 400;
     public const int WorldHeight = 200;
 
+    public const float BrushNoiseRadiusFactor = 200;
+
     public static float ProgressIncrement = 0.20f;
 
     public static Thread MainThread { get; private set; }
@@ -125,6 +127,8 @@ public class Manager
 
     public static TerrainCell EditorBrushTargetCell = null;
     public static int EditorBrushRadius = 20;
+    public static float EditorBrushStrength = 0.25f;
+    public static float EditorBrushNoise = 0.0f;
     public static bool EditorBrushIsVisible = false;
     public static bool EditorBrushIsActive = false;
 
@@ -190,7 +194,6 @@ public class Manager
     private static TerrainCell _lastEditorBrushTargetCell = null;
     private static int _lastEditorBrushRadius = EditorBrushRadius;
     private static bool _editorBrushWasVisible = EditorBrushIsVisible;
-    //private static bool _editorBrushWasActive = EditorBrushIsActive;
 
     private ProgressCastDelegate _progressCastMethod = null;
 
@@ -1520,15 +1523,16 @@ public class Manager
 
     private static void ApplyEditorBrush_Altitude(int longitude, int latitude, float distanceFactor)
     {
-        float strength = 1;
-        float noise = 1;
+        float strength = EditorBrushStrength;
+        float noise = EditorBrushNoise;
+        float noiseRadius = BrushNoiseRadiusFactor / (float)EditorBrushRadius;
 
-        float strToValue = 0.1f * MathUtility.GetPseudoNormalDistribution(distanceFactor * 5) / MathUtility.NormalAt0;
+        float strToValue = 0.1f * (MathUtility.GetPseudoNormalDistribution(distanceFactor * 2) - MathUtility.NormalAt2) / (MathUtility.NormalAt0 - MathUtility.NormalAt2);
         float valueOffset = strength * strToValue;
 
         TerrainCell cell = CurrentWorld.GetCell(longitude, latitude);
 
-        CurrentWorld.ModifyCellTerrain(cell, valueOffset, noise);
+        CurrentWorld.ModifyCellTerrain(cell, valueOffset, noise, noiseRadius);
 
         ResetSlantsAround(cell);
 
@@ -1548,7 +1552,6 @@ public class Manager
         _lastEditorBrushTargetCell = EditorBrushTargetCell;
         _lastEditorBrushRadius = EditorBrushRadius;
         _editorBrushWasVisible = EditorBrushIsVisible;
-        //_editorBrushWasActive = EditorBrushIsActive;
     }
 
     public static void UpdateTextures()

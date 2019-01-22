@@ -41,11 +41,6 @@ public class MapScript : MonoBehaviour
         PointerOverlayImage.texture = Manager.PointerOverlayTexture;
     }
 
-    public void SetBrushRadius(float value)
-    {
-        Manager.EditorBrushRadius = (int)value;
-    }
-
     public void PointerEntersMap(BaseEventData data)
     {
         Manager.PointerIsOverMap = true;
@@ -95,13 +90,23 @@ public class MapScript : MonoBehaviour
         {
             BeginDragMap(pointerData);
         }
-        else if (pointerData.button == PointerEventData.InputButton.Left)
+    }
+
+    public void EndDrag(BaseEventData data)
+    {
+    }
+
+    public void PointerDown(BaseEventData data)
+    {
+        PointerEventData pointerData = data as PointerEventData;
+
+        if (pointerData.button == PointerEventData.InputButton.Left)
         {
             Manager.EditorBrushIsActive = true;
         }
     }
 
-    public void EndDrag(BaseEventData data)
+    public void PointerUp(BaseEventData data)
     {
         PointerEventData pointerData = data as PointerEventData;
 

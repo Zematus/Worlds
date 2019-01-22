@@ -15,17 +15,19 @@ public class BrushControlPanelScript : MonoBehaviour
 
     public List<Toggle> BrushToggles = new List<Toggle>();
 
+    public ToggleEvent BrushUntoggleEvent; // This event will fire when the brush is activated / deactivated regardless of type
+
     private const float _minRadiusValue = 1;
     private const float _maxRadiusValue = 20;
-    private const float _defaultRadiusValue = 4;
+    private const float _defaultRadiusValue = 10;
 
     private const float _minStrengthValue = -1f;
     private const float _maxStrengthValue = 1;
-    private const float _defaultStrengthValue = 0f;
+    private const float _defaultStrengthValue = 0.25f;
 
     private const float _minNoiseValue = 0;
     private const float _maxNoiseValue = 1;
-    private const float _defaultNoiseValue = 0;
+    private const float _defaultNoiseValue = 0.25f;
 
     private float _lastRadiusValue = _defaultRadiusValue;
     private float _lastStrengthValue = _defaultStrengthValue;
@@ -48,10 +50,12 @@ public class BrushControlPanelScript : MonoBehaviour
 
     public void SetStrengthValue(float value)
     {
+        Manager.EditorBrushStrength = value;
     }
 
     public void SetNoiseValue(float value)
     {
+        Manager.EditorBrushNoise = value;
     }
 
     public void Activate(bool state)
@@ -82,8 +86,17 @@ public class BrushControlPanelScript : MonoBehaviour
             NoiseSliderControlsScript.Initialize();
 
             Manager.EditorBrushRadius = (int)_lastRadiusValue;
-            Manager.EditorBrushIsVisible = true;
+            Manager.EditorBrushStrength = _lastStrengthValue;
+            Manager.EditorBrushNoise = _lastNoiseValue;
             Manager.EditorBrushType = BrushType;
+
+            if (!Manager.EditorBrushIsVisible)
+            {
+                BrushUntoggleEvent.Invoke(false);
+                Manager.SetSelectedCell(null);
+            }
+
+            Manager.EditorBrushIsVisible = true;
         }
         else
         {
@@ -91,17 +104,20 @@ public class BrushControlPanelScript : MonoBehaviour
             _lastStrengthValue = StrengthSliderControlsScript.CurrentValue;
             _lastNoiseValue = NoiseSliderControlsScript.CurrentValue;
 
-            bool mantainActive = false;
+            // Verify if any of the other brush toggles has been activated
+            bool brushStillActive = false;
             foreach (Toggle toggle in BrushToggles)
             {
-                mantainActive |= toggle.isOn;
+                brushStillActive |= toggle.isOn;
             }
 
-            Manager.EditorBrushIsVisible = mantainActive;
+            Manager.EditorBrushIsVisible = brushStillActive;
 
-            if (!mantainActive)
+            if (!brushStillActive)
             {
                 Manager.EditorBrushType = EditorBrushType.None;
+
+                BrushUntoggleEvent.Invoke(true);
             }
         }
 

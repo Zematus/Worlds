@@ -3678,11 +3678,11 @@ public class GuiManagerScript : MonoBehaviour
         AddCellDataToInfoPanel(longitude, latitude);
     }
 
-    private TerrainCell GetCellFromPointer(Vector2 position)
+    private TerrainCell GetCellFromPointer(Vector2 position, bool allowWrap)
     {
         Vector2 mapCoordinates;
 
-        if (!GetMapCoordinatesFromPointerPosition(position, out mapCoordinates))
+        if (!GetMapCoordinatesFromPointerPosition(position, out mapCoordinates, allowWrap))
             return null;
 
         int longitude = (int)mapCoordinates.x;
@@ -3967,7 +3967,7 @@ public class GuiManagerScript : MonoBehaviour
         return MapScript.MapImage.rectTransform.TransformPoint(mapImagePos + mapImageRect.min);
     }
 
-    public bool GetMapCoordinatesFromPointerPosition(Vector2 pointerPosition, out Vector2 mapPosition)
+    public bool GetMapCoordinatesFromPointerPosition(Vector2 pointerPosition, out Vector2 mapPosition, bool allowWrap = false)
     {
         Rect mapImageRect = MapScript.MapImage.rectTransform.rect;
 
@@ -3975,7 +3975,7 @@ public class GuiManagerScript : MonoBehaviour
 
         Vector2 positionOverMapRect = new Vector2(positionOverMapRect3D.x, positionOverMapRect3D.y);
 
-        if (mapImageRect.Contains(positionOverMapRect))
+        if (mapImageRect.Contains(positionOverMapRect) || allowWrap)
         {
             Vector2 relPos = positionOverMapRect - mapImageRect.min;
 
@@ -3985,6 +3985,17 @@ public class GuiManagerScript : MonoBehaviour
 
             float worldLong = Mathf.Repeat(Mathf.Floor(uvPos.x * Manager.CurrentWorld.Width), Manager.CurrentWorld.Width);
             float worldLat = Mathf.Floor(uvPos.y * Manager.CurrentWorld.Height);
+
+            if (worldLat > (Manager.CurrentWorld.Height - 1))
+            {
+                worldLat = Mathf.Max(0, (2 * Manager.CurrentWorld.Height) - worldLat - 1);
+                worldLong = Mathf.Repeat(Mathf.Floor(worldLong + (Manager.CurrentWorld.Width / 2f)), Manager.CurrentWorld.Width);
+            }
+            else if (worldLat < 0)
+            {
+                worldLat = Mathf.Min(Manager.CurrentWorld.Height - 1, -1 - worldLat);
+                worldLong = Mathf.Repeat(Mathf.Floor(worldLong + (Manager.CurrentWorld.Width / 2f)), Manager.CurrentWorld.Width);
+            }
 
             mapPosition = new Vector2(worldLong, worldLat);
 
@@ -4003,7 +4014,7 @@ public class GuiManagerScript : MonoBehaviour
 
     public void SelectCellOnMap(BaseEventData data)
     {
-        if (Manager.EditorBrushIsVisible)
+        if ((Mode == GuiMode.Editor) && Manager.EditorBrushIsVisible)
             return;
 
         PointerEventData pointerData = data as PointerEventData;
@@ -4027,7 +4038,7 @@ public class GuiManagerScript : MonoBehaviour
             return;
         }
 
-        TerrainCell hoveredCell = GetCellFromPointer(Input.mousePosition);
+        TerrainCell hoveredCell = GetCellFromPointer(Input.mousePosition, Manager.EditorBrushIsActive);
 
         if (hoveredCell != _lastHoveredCell)
         {
