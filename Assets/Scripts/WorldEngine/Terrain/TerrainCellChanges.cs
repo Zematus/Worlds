@@ -11,10 +11,15 @@ public class TerrainCellChanges
     [XmlAttribute("Lat")]
     public int Latitude;
 
+    [XmlAttribute("BA")]
+    public float BaseAltitudeValue;
+    [XmlAttribute("BT")]
+    public float BaseTemperatureValue;
+    [XmlAttribute("BR")]
+    public float BaseRainfallValue;
+
     [XmlAttribute("A")]
     public float Altitude;
-    [XmlAttribute("B")]
-    public float BaseValue;
     [XmlAttribute("T")]
     public float Temperature;
     [XmlAttribute("R")]
@@ -35,8 +40,11 @@ public class TerrainCellChanges
         Longitude = cell.Longitude;
         Latitude = cell.Latitude;
 
+        BaseAltitudeValue = cell.BaseAltitudeValue;
+        BaseTemperatureValue = cell.BaseTemperatureValue;
+        BaseRainfallValue = cell.BaseRainfallValue;
+
         Altitude = cell.Altitude;
-        BaseValue = cell.BaseValue;
         Temperature = cell.Temperature;
         Rainfall = cell.Rainfall;
         

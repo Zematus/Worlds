@@ -74,7 +74,11 @@ public class TerrainCell : ISynchronizable
     public float Width;
 
     [XmlAttribute]
-    public float BaseValue;
+    public float BaseAltitudeValue;
+    [XmlAttribute]
+    public float BaseRainfallValue;
+    [XmlAttribute]
+    public float BaseTemperatureValue;
 
     [XmlAttribute]
     public float Altitude;
@@ -245,8 +249,11 @@ public class TerrainCell : ISynchronizable
 
     public void SetChanges(TerrainCellChanges changes)
     {
+        BaseAltitudeValue = changes.BaseAltitudeValue;
+        BaseTemperatureValue = changes.BaseTemperatureValue;
+        BaseRainfallValue = changes.BaseRainfallValue;
+
         Altitude = changes.Altitude;
-        BaseValue = changes.BaseValue;
         Temperature = changes.Temperature;
         Rainfall = changes.Rainfall;
 

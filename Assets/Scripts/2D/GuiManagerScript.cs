@@ -1000,14 +1000,14 @@ public class GuiManagerScript : MonoBehaviour
     {
         Manager.TemperatureOffset = value;
 
-        RegenerateWorld(GenerationType.Temperature);
+        RegenerateWorld(GenerationType.TemperatureRegeneration);
     }
 
     public void RenegerateWorldRainfallOffsetChange(float value)
     {
         Manager.RainfallOffset = value;
 
-        RegenerateWorld(GenerationType.Rainfall);
+        RegenerateWorld(GenerationType.RainfallRegeneration);
     }
 
     private void RegenerateWorld(GenerationType type)

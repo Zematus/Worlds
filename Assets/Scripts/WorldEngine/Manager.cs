@@ -1496,17 +1496,7 @@ public class Manager
         _manager._currentCellSlants[cell.Longitude, cell.Latitude] = null;
     }
 
-    private static void AddCellAndDependentsToUpdate(TerrainCell cell, CellUpdateType updateType, CellUpdateSubType updateSubType)
-    {
-        foreach (TerrainCell rCell in cell.RainfallDependentCells)
-        {
-            AddUpdatedCell(rCell, updateType, updateSubType);
-        }
-
-        AddUpdatedCell(cell, updateType, updateSubType);
-    }
-
-    private static void AddCellAndNeighborsAndDependentsToUpdate(TerrainCell cell, CellUpdateType updateType, CellUpdateSubType updateSubType)
+    private static void AddUpdatedCellAndNeighborsAndDependents(TerrainCell cell, CellUpdateType updateType, CellUpdateSubType updateSubType)
     {
         foreach (TerrainCell nCell in cell.Neighbors.Values)
         {
@@ -1523,28 +1513,47 @@ public class Manager
 
     private static void ApplyEditorBrush_Altitude(int longitude, int latitude, float distanceFactor)
     {
-        float strength = EditorBrushStrength;
-        float noise = EditorBrushNoise;
+        float strength = EditorBrushStrength / AltitudeScale;
         float noiseRadius = BrushNoiseRadiusFactor / (float)EditorBrushRadius;
 
-        float strToValue = 0.1f * (MathUtility.GetPseudoNormalDistribution(distanceFactor * 2) - MathUtility.NormalAt2) / (MathUtility.NormalAt0 - MathUtility.NormalAt2);
+        float strToValue = 0.02f * (MathUtility.GetPseudoNormalDistribution(distanceFactor * 2) - MathUtility.NormalAt2) / (MathUtility.NormalAt0 - MathUtility.NormalAt2);
         float valueOffset = strength * strToValue;
 
         TerrainCell cell = CurrentWorld.GetCell(longitude, latitude);
 
-        CurrentWorld.ModifyCellTerrain(cell, valueOffset, noise, noiseRadius);
+        CurrentWorld.ModifyCellAltitude(cell, valueOffset, EditorBrushNoise, noiseRadius);
 
         ResetSlantsAround(cell);
 
-        AddCellAndNeighborsAndDependentsToUpdate(cell, CellUpdateType.Cell, CellUpdateSubType.Terrain);
+        AddUpdatedCellAndNeighborsAndDependents(cell, CellUpdateType.Cell, CellUpdateSubType.Terrain);
     }
 
     private static void ApplyEditorBrush_Temperature(int longitude, int latitude, float distanceFactor)
     {
+        float noiseRadius = BrushNoiseRadiusFactor / (float)EditorBrushRadius;
+
+        float strToValue = 0.02f * (MathUtility.GetPseudoNormalDistribution(distanceFactor * 2) - MathUtility.NormalAt2) / (MathUtility.NormalAt0 - MathUtility.NormalAt2);
+        float valueOffset = EditorBrushStrength * strToValue;
+
+        TerrainCell cell = CurrentWorld.GetCell(longitude, latitude);
+
+        CurrentWorld.ModifyCellTemperature(cell, valueOffset, EditorBrushNoise, noiseRadius);
+
+        AddUpdatedCell(cell, CellUpdateType.Cell, CellUpdateSubType.Terrain);
     }
 
     private static void ApplyEditorBrush_Rainfall(int longitude, int latitude, float distanceFactor)
     {
+        float noiseRadius = BrushNoiseRadiusFactor / (float)EditorBrushRadius;
+
+        float strToValue = 0.02f * (MathUtility.GetPseudoNormalDistribution(distanceFactor * 2) - MathUtility.NormalAt2) / (MathUtility.NormalAt0 - MathUtility.NormalAt2);
+        float valueOffset = EditorBrushStrength * strToValue;
+
+        TerrainCell cell = CurrentWorld.GetCell(longitude, latitude);
+
+        CurrentWorld.ModifyCellRainfall(cell, valueOffset, EditorBrushNoise, noiseRadius);
+
+        AddUpdatedCell(cell, CellUpdateType.Cell, CellUpdateSubType.Terrain);
     }
 
     public static void UpdateEditorBrushState()
