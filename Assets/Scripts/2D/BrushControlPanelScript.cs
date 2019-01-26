@@ -7,6 +7,8 @@ using System.Collections.Generic;
 
 public class BrushControlPanelScript : MonoBehaviour
 {
+    public Toggle FlattenToggle;
+
     public SliderControlsScript RadiusSliderControlsScript;
     public SliderControlsScript StrengthSliderControlsScript;
     public SliderControlsScript NoiseSliderControlsScript;
@@ -33,6 +35,8 @@ public class BrushControlPanelScript : MonoBehaviour
     private float _lastStrengthValue = _defaultStrengthValue;
     private float _lastNoiseValue = _defaultNoiseValue;
 
+    private bool _flattenModeIsActive = false;
+
     // Use this for initialization
     void Start()
     {
@@ -41,6 +45,14 @@ public class BrushControlPanelScript : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+    }
+
+    public void ActivateFlattenMode(bool state)
+    {
+        NoiseSliderControlsScript.SetInteractable(!state);
+
+        _flattenModeIsActive = state;
+        Manager.EditorBrushIsFlattenModeIsActive = state;
     }
 
     public void SetRadiusValue(float value)
@@ -97,6 +109,7 @@ public class BrushControlPanelScript : MonoBehaviour
             }
 
             Manager.EditorBrushIsVisible = true;
+            Manager.EditorBrushIsFlattenModeIsActive = _flattenModeIsActive;
         }
         else
         {

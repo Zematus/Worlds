@@ -131,6 +131,7 @@ public class Manager
     public static float EditorBrushNoise = 0.0f;
     public static bool EditorBrushIsVisible = false;
     public static bool EditorBrushIsActive = false;
+    public static bool EditorBrushIsFlattenModeIsActive = false;
 
     public static EditorBrushType EditorBrushType = EditorBrushType.None;
 
@@ -1516,7 +1517,7 @@ public class Manager
         float strength = EditorBrushStrength / AltitudeScale;
         float noiseRadius = BrushNoiseRadiusFactor / (float)EditorBrushRadius;
 
-        float strToValue = 0.02f * (MathUtility.GetPseudoNormalDistribution(distanceFactor * 2) - MathUtility.NormalAt2) / (MathUtility.NormalAt0 - MathUtility.NormalAt2);
+        float strToValue = 0.05f * (MathUtility.GetPseudoNormalDistribution(distanceFactor * 2) - MathUtility.NormalAt2) / (MathUtility.NormalAt0 - MathUtility.NormalAt2);
         float valueOffset = strength * strToValue;
 
         TerrainCell cell = CurrentWorld.GetCell(longitude, latitude);
@@ -1528,11 +1529,30 @@ public class Manager
         AddUpdatedCellAndNeighborsAndDependents(cell, CellUpdateType.Cell, CellUpdateSubType.Terrain);
     }
 
+    private static void ApplyEditorBrushFlatten_Altitude(int longitude, int latitude, float distanceFactor, float targetValue)
+    {
+        float strength = EditorBrushStrength / AltitudeScale;
+
+        float strToValue = 0.05f * (MathUtility.GetPseudoNormalDistribution(distanceFactor * 2) - MathUtility.NormalAt2) / (MathUtility.NormalAt0 - MathUtility.NormalAt2);
+        float valueOffsetFactor = strength * strToValue;
+
+        TerrainCell cell = CurrentWorld.GetCell(longitude, latitude);
+
+        float currentValue = cell.BaseAltitudeValue;
+        float valueOffset = (targetValue - currentValue) * valueOffsetFactor;
+
+        CurrentWorld.ModifyCellAltitude(cell, valueOffset);
+
+        ResetSlantsAround(cell);
+
+        AddUpdatedCellAndNeighborsAndDependents(cell, CellUpdateType.Cell, CellUpdateSubType.Terrain);
+    }
+
     private static void ApplyEditorBrush_Temperature(int longitude, int latitude, float distanceFactor)
     {
         float noiseRadius = BrushNoiseRadiusFactor / (float)EditorBrushRadius;
 
-        float strToValue = 0.02f * (MathUtility.GetPseudoNormalDistribution(distanceFactor * 2) - MathUtility.NormalAt2) / (MathUtility.NormalAt0 - MathUtility.NormalAt2);
+        float strToValue = 0.05f * (MathUtility.GetPseudoNormalDistribution(distanceFactor * 2) - MathUtility.NormalAt2) / (MathUtility.NormalAt0 - MathUtility.NormalAt2);
         float valueOffset = EditorBrushStrength * strToValue;
 
         TerrainCell cell = CurrentWorld.GetCell(longitude, latitude);
@@ -1546,7 +1566,7 @@ public class Manager
     {
         float noiseRadius = BrushNoiseRadiusFactor / (float)EditorBrushRadius;
 
-        float strToValue = 0.02f * (MathUtility.GetPseudoNormalDistribution(distanceFactor * 2) - MathUtility.NormalAt2) / (MathUtility.NormalAt0 - MathUtility.NormalAt2);
+        float strToValue = 0.05f * (MathUtility.GetPseudoNormalDistribution(distanceFactor * 2) - MathUtility.NormalAt2) / (MathUtility.NormalAt0 - MathUtility.NormalAt2);
         float valueOffset = EditorBrushStrength * strToValue;
 
         TerrainCell cell = CurrentWorld.GetCell(longitude, latitude);

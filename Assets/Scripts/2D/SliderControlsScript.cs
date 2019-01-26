@@ -55,6 +55,13 @@ public class SliderControlsScript : MonoBehaviour
         }
     }
 
+    public void SetInteractable(bool state)
+    {
+        ResetButton.interactable = state;
+        Slider.interactable = state;
+        InputField.interactable = state;
+    }
+
     public void Initialize()
     {
         _isSettingValueAlready = true;

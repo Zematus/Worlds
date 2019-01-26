@@ -2334,7 +2334,7 @@ public class World : ISynchronizable
         _accumulatedProgress += _progressIncrement;
     }
 
-    public void ModifyCellAltitude(TerrainCell cell, float valueOffset, float noiseFactor, float noiseRadius)
+    public void ModifyCellAltitude(TerrainCell cell, float valueOffset, float noiseFactor = 0, float noiseRadius = 0)
     {
         if (noiseFactor > 0)
         {
@@ -2388,10 +2388,8 @@ public class World : ISynchronizable
 
         if (valueOffset == 0)
             return; // No actual changes being made to cell
-
-        float value = cell.BaseTemperatureValue + valueOffset;
-
-        CalculateAndSetTemperature(cell, value, true);
+        
+        CalculateAndSetTemperature(cell, cell.BaseTemperatureValue, valueOffset, true);
 
         GenerateTerrainBiomesForCell(cell);
         GenerateTerrainArabilityForCell(cell);
@@ -2412,9 +2410,7 @@ public class World : ISynchronizable
         if (valueOffset == 0)
             return; // No actual changes being made to cell
 
-        float value = cell.BaseRainfallValue + valueOffset;
-
-        CalculateAndSetRainfall(cell, value, true);
+        CalculateAndSetRainfall(cell, cell.BaseRainfallValue, valueOffset, true);
 
         GenerateTerrainBiomesForCell(cell);
         GenerateTerrainArabilityForCell(cell);
@@ -2939,9 +2935,14 @@ public class World : ISynchronizable
         _accumulatedProgress += _progressIncrement;
     }
 
-    private void CalculateAndSetRainfall(TerrainCell cell, float value, bool modified = false)
+    private void CalculateAndSetRainfall(TerrainCell cell, float value, float? offset = null, bool modified = false)
     {
-        float rainfall = CalculateRainfall(value);
+        if (offset != null)
+        {
+            cell.BaseRainfallOffset += offset.Value;
+        }
+
+        float rainfall = CalculateRainfall(value + cell.BaseRainfallOffset);
 
         cell.Rainfall = rainfall;
         cell.BaseRainfallValue = value;
@@ -2958,8 +2959,9 @@ public class World : ISynchronizable
     private void RecalculateAndSetRainfall(int longitude, int latitude)
     {
         float value = TerrainCells[longitude][latitude].BaseRainfallValue;
+        float offset = TerrainCells[longitude][latitude].BaseRainfallOffset;
 
-        float rainfall = CalculateRainfall(value);
+        float rainfall = CalculateRainfall(value + offset);
         TerrainCells[longitude][latitude].Rainfall = rainfall;
 
         if (rainfall > MaxRainfall) MaxRainfall = rainfall;
@@ -3073,9 +3075,14 @@ public class World : ISynchronizable
         _tempNoiseOffset2.Wait();
     }
 
-    private void CalculateAndSetTemperature(TerrainCell cell, float value, bool modified = false)
+    private void CalculateAndSetTemperature(TerrainCell cell, float value, float? offset = null, bool modified = false)
     {
-        float temperature = CalculateTemperature(value);
+        if (offset != null)
+        {
+            cell.BaseTemperatureOffset += offset.Value;
+        }
+
+        float temperature = CalculateTemperature(value + cell.BaseTemperatureOffset);
 
         cell.Temperature = temperature;
         cell.BaseTemperatureValue = value;
@@ -3092,8 +3099,9 @@ public class World : ISynchronizable
     private void RecalculateAndSetTemperature(int longitude, int latitude)
     {
         float value = TerrainCells[longitude][latitude].BaseTemperatureValue;
+        float offset = TerrainCells[longitude][latitude].BaseTemperatureOffset;
 
-        float temperature = CalculateTemperature(value);
+        float temperature = CalculateTemperature(value + offset);
         TerrainCells[longitude][latitude].Temperature = temperature;
 
         if (temperature > MaxTemperature) MaxTemperature = temperature;

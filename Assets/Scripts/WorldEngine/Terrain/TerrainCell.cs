@@ -79,6 +79,11 @@ public class TerrainCell : ISynchronizable
     public float BaseRainfallValue;
     [XmlAttribute]
     public float BaseTemperatureValue;
+    
+    [XmlAttribute]
+    public float BaseRainfallOffset;
+    [XmlAttribute]
+    public float BaseTemperatureOffset;
 
     [XmlAttribute]
     public float Altitude;
@@ -252,6 +257,9 @@ public class TerrainCell : ISynchronizable
         BaseAltitudeValue = changes.BaseAltitudeValue;
         BaseTemperatureValue = changes.BaseTemperatureValue;
         BaseRainfallValue = changes.BaseRainfallValue;
+
+        BaseTemperatureOffset = changes.BaseTemperatureOffset;
+        BaseRainfallOffset = changes.BaseRainfallOffset;
 
         Altitude = changes.Altitude;
         Temperature = changes.Temperature;
