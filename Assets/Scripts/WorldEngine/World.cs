@@ -778,6 +778,24 @@ public class World : ISynchronizable
         return TerrainCells[longitude][latitude];
     }
 
+    public TerrainCell GetCellWithSphericalWrap(int longitude, int latitude)
+    {
+        if (latitude < 0)
+        {
+            latitude = -latitude - 1;
+            longitude += Width / 2;
+        }
+        else if (latitude >= Height)
+        {
+            latitude = 2*Height - latitude - 1;
+            longitude += Width / 2;
+        }
+
+        longitude = (longitude + Width) % Width;
+
+        return TerrainCells[longitude][latitude];
+    }
+
     public void SetMaxTimeToSkip(long value)
     {
         MaxTimeToSkip = (value > 1) ? value : 1;
@@ -2374,7 +2392,7 @@ public class World : ISynchronizable
         _modifiedAltitudeCells.Clear();
     }
 
-    public void ModifyCellTemperature(TerrainCell cell, float valueOffset, float noiseFactor, float noiseRadius)
+    public void ModifyCellTemperature(TerrainCell cell, float valueOffset, float noiseFactor = 0, float noiseRadius = 0)
     {
         if (noiseFactor > 0)
         {
@@ -2395,7 +2413,7 @@ public class World : ISynchronizable
         GenerateTerrainArabilityForCell(cell);
     }
 
-    public void ModifyCellRainfall(TerrainCell cell, float valueOffset, float noiseFactor, float noiseRadius)
+    public void ModifyCellRainfall(TerrainCell cell, float valueOffset, float noiseFactor = 0, float noiseRadius = 0)
     {
         if (noiseFactor > 0)
         {

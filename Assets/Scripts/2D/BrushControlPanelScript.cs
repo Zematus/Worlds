@@ -24,6 +24,7 @@ public class BrushControlPanelScript : MonoBehaviour
     private const float _defaultRadiusValue = 10;
 
     private const float _minStrengthValue = -1f;
+    private const float _minFlattenStrengthValue = 0f;
     private const float _maxStrengthValue = 1;
     private const float _defaultStrengthValue = 0.25f;
 
@@ -53,6 +54,20 @@ public class BrushControlPanelScript : MonoBehaviour
 
         _flattenModeIsActive = state;
         Manager.EditorBrushIsFlattenModeIsActive = state;
+
+        if (_flattenModeIsActive)
+        {
+            StrengthSliderControlsScript.MinValue = _minFlattenStrengthValue;
+            StrengthSliderControlsScript.Slider.minValue = _minFlattenStrengthValue;
+
+            if (StrengthSliderControlsScript.CurrentValue < _minFlattenStrengthValue)
+                StrengthSliderControlsScript.SetValue(_minFlattenStrengthValue);
+        }
+        else
+        {
+            StrengthSliderControlsScript.MinValue = _minStrengthValue;
+            StrengthSliderControlsScript.Slider.minValue = _minStrengthValue;
+        }
     }
 
     public void SetRadiusValue(float value)
@@ -83,7 +98,10 @@ public class BrushControlPanelScript : MonoBehaviour
             RadiusSliderControlsScript.CurrentValue = _lastRadiusValue;
             RadiusSliderControlsScript.Initialize();
 
-            StrengthSliderControlsScript.MinValue = _minStrengthValue;
+            if (_flattenModeIsActive)
+                StrengthSliderControlsScript.MinValue = _minFlattenStrengthValue;
+            else
+                StrengthSliderControlsScript.MinValue = _minStrengthValue;
             StrengthSliderControlsScript.MaxValue = _maxStrengthValue;
             StrengthSliderControlsScript.DefaultValue = _defaultStrengthValue;
 

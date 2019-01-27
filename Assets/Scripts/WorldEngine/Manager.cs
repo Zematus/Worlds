@@ -1458,7 +1458,10 @@ public class Manager
                     float dist = MathUtility.GetMagnitude(iDiff, jDiff);
                     float distFactor = dist / EditorBrushRadius;
 
-                    ApplyEditorBrush(mI, mJ, distFactor);
+                    if (EditorBrushIsFlattenModeIsActive)
+                        ApplyEditorBrushFlatten(mI, mJ, distFactor);
+                    else
+                        ApplyEditorBrush(mI, mJ, distFactor);
                 }
             }
 
@@ -1481,6 +1484,24 @@ public class Manager
                 break;
             case EditorBrushType.Rainfall:
                 ApplyEditorBrush_Rainfall(longitude, latitude, distanceFactor);
+                break;
+            default:
+                throw new System.Exception("Unhandled Editor Brush Type: " + EditorBrushType);
+        }
+    }
+
+    private static void ApplyEditorBrushFlatten(int longitude, int latitude, float distanceFactor)
+    {
+        switch (EditorBrushType)
+        {
+            case EditorBrushType.Altitude:
+                ApplyEditorBrushFlatten_Altitude(longitude, latitude, distanceFactor);
+                break;
+            case EditorBrushType.Temperature:
+                ApplyEditorBrushFlatten_Temperature(longitude, latitude, distanceFactor);
+                break;
+            case EditorBrushType.Rainfall:
+                ApplyEditorBrushFlatten_Rainfall(longitude, latitude, distanceFactor);
                 break;
             default:
                 throw new System.Exception("Unhandled Editor Brush Type: " + EditorBrushType);
@@ -1529,14 +1550,26 @@ public class Manager
         AddUpdatedCellAndNeighborsAndDependents(cell, CellUpdateType.Cell, CellUpdateSubType.Terrain);
     }
 
-    private static void ApplyEditorBrushFlatten_Altitude(int longitude, int latitude, float distanceFactor, float targetValue)
+    private static void ApplyEditorBrushFlatten_Altitude(int longitude, int latitude, float distanceFactor)
     {
         float strength = EditorBrushStrength / AltitudeScale;
+        int sampleRadius = 1;
 
-        float strToValue = 0.05f * (MathUtility.GetPseudoNormalDistribution(distanceFactor * 2) - MathUtility.NormalAt2) / (MathUtility.NormalAt0 - MathUtility.NormalAt2);
+        float strToValue = 0.5f * (MathUtility.GetPseudoNormalDistribution(distanceFactor * 2) - MathUtility.NormalAt2) / (MathUtility.NormalAt0 - MathUtility.NormalAt2);
         float valueOffsetFactor = strength * strToValue;
 
         TerrainCell cell = CurrentWorld.GetCell(longitude, latitude);
+
+        TerrainCell cellNorth = CurrentWorld.GetCellWithSphericalWrap(longitude, latitude - sampleRadius);
+        TerrainCell cellEast = CurrentWorld.GetCellWithSphericalWrap(longitude + sampleRadius, latitude);
+        TerrainCell cellSouth = CurrentWorld.GetCellWithSphericalWrap(longitude, latitude + sampleRadius);
+        TerrainCell cellWest = CurrentWorld.GetCellWithSphericalWrap(longitude - sampleRadius, latitude);
+
+        float targetValue = 
+            (cellNorth.BaseAltitudeValue + 
+            cellEast.BaseAltitudeValue + 
+            cellSouth.BaseAltitudeValue + 
+            cellWest.BaseAltitudeValue) / 4f;
 
         float currentValue = cell.BaseAltitudeValue;
         float valueOffset = (targetValue - currentValue) * valueOffsetFactor;
@@ -1562,6 +1595,34 @@ public class Manager
         AddUpdatedCell(cell, CellUpdateType.Cell, CellUpdateSubType.Terrain);
     }
 
+    private static void ApplyEditorBrushFlatten_Temperature(int longitude, int latitude, float distanceFactor)
+    {
+        int sampleRadius = 1;
+
+        float strToValue = 0.5f * (MathUtility.GetPseudoNormalDistribution(distanceFactor * 2) - MathUtility.NormalAt2) / (MathUtility.NormalAt0 - MathUtility.NormalAt2);
+        float valueOffsetFactor = EditorBrushStrength * strToValue;
+
+        TerrainCell cell = CurrentWorld.GetCell(longitude, latitude);
+
+        TerrainCell cellNorth = CurrentWorld.GetCellWithSphericalWrap(longitude, latitude - sampleRadius);
+        TerrainCell cellEast = CurrentWorld.GetCellWithSphericalWrap(longitude + sampleRadius, latitude);
+        TerrainCell cellSouth = CurrentWorld.GetCellWithSphericalWrap(longitude, latitude + sampleRadius);
+        TerrainCell cellWest = CurrentWorld.GetCellWithSphericalWrap(longitude - sampleRadius, latitude);
+
+        float targetValue =
+            (cellNorth.BaseTemperatureValue + cellNorth.BaseTemperatureOffset +
+            cellEast.BaseTemperatureValue + cellEast.BaseTemperatureOffset +
+            cellSouth.BaseTemperatureValue + cellSouth.BaseTemperatureOffset +
+            cellWest.BaseTemperatureValue + cellWest.BaseTemperatureOffset) / 4f;
+
+        float currentValue = cell.BaseTemperatureValue + cell.BaseTemperatureOffset;
+        float valueOffset = (targetValue - currentValue) * valueOffsetFactor;
+
+        CurrentWorld.ModifyCellTemperature(cell, valueOffset);
+
+        AddUpdatedCell(cell, CellUpdateType.Cell, CellUpdateSubType.Terrain);
+    }
+
     private static void ApplyEditorBrush_Rainfall(int longitude, int latitude, float distanceFactor)
     {
         float noiseRadius = BrushNoiseRadiusFactor / (float)EditorBrushRadius;
@@ -1572,6 +1633,34 @@ public class Manager
         TerrainCell cell = CurrentWorld.GetCell(longitude, latitude);
 
         CurrentWorld.ModifyCellRainfall(cell, valueOffset, EditorBrushNoise, noiseRadius);
+
+        AddUpdatedCell(cell, CellUpdateType.Cell, CellUpdateSubType.Terrain);
+    }
+
+    private static void ApplyEditorBrushFlatten_Rainfall(int longitude, int latitude, float distanceFactor)
+    {
+        int sampleRadius = 1;
+
+        float strToValue = 0.5f * (MathUtility.GetPseudoNormalDistribution(distanceFactor * 2) - MathUtility.NormalAt2) / (MathUtility.NormalAt0 - MathUtility.NormalAt2);
+        float valueOffsetFactor = EditorBrushStrength * strToValue;
+
+        TerrainCell cell = CurrentWorld.GetCell(longitude, latitude);
+
+        TerrainCell cellNorth = CurrentWorld.GetCellWithSphericalWrap(longitude, latitude - sampleRadius);
+        TerrainCell cellEast = CurrentWorld.GetCellWithSphericalWrap(longitude + sampleRadius, latitude);
+        TerrainCell cellSouth = CurrentWorld.GetCellWithSphericalWrap(longitude, latitude + sampleRadius);
+        TerrainCell cellWest = CurrentWorld.GetCellWithSphericalWrap(longitude - sampleRadius, latitude);
+
+        float targetValue =
+            (cellNorth.BaseRainfallValue + cellNorth.BaseRainfallOffset +
+            cellEast.BaseRainfallValue + cellEast.BaseRainfallOffset +
+            cellSouth.BaseRainfallValue + cellSouth.BaseRainfallOffset +
+            cellWest.BaseRainfallValue + cellWest.BaseRainfallOffset) / 4f;
+
+        float currentValue = cell.BaseRainfallValue + cell.BaseRainfallOffset;
+        float valueOffset = (targetValue - currentValue) * valueOffsetFactor;
+
+        CurrentWorld.ModifyCellRainfall(cell, valueOffset);
 
         AddUpdatedCell(cell, CellUpdateType.Cell, CellUpdateSubType.Terrain);
     }

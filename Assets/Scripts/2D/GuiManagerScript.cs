@@ -488,6 +488,7 @@ public class GuiManagerScript : MonoBehaviour
         if (Mode == GuiMode.Editor)
         {
             Manager.ApplyEditorBrush();
+
             Manager.UpdateEditorBrushState();
         }
 
