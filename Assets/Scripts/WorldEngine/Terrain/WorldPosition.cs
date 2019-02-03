@@ -6,6 +6,8 @@ using System.Xml.Serialization;
 
 public struct WorldPosition
 {
+    public static WorldPosition NoPosition = new WorldPosition(-1, -1);
+
     [XmlAttribute("X")]
     public int Longitude;
     [XmlAttribute("Y")]
@@ -24,7 +26,7 @@ public struct WorldPosition
 
     public bool Equals(int longitude, int latitude)
     {
-        return ((Longitude == longitude) && (Latitude == latitude));
+        return (Longitude == longitude) && (Latitude == latitude);
     }
 
     public bool Equals(WorldPosition p)

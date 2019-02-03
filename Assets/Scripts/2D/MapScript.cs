@@ -60,6 +60,9 @@ public class MapScript : MonoBehaviour
 
     private void DragMap(PointerEventData pointerData)
     {
+        if (!_isDraggingMap)
+            return;
+
         Rect mapImageRect = MapImage.rectTransform.rect;
 
         Vector2 delta = pointerData.position - _beginDragPosition;
@@ -94,6 +97,9 @@ public class MapScript : MonoBehaviour
 
     private void BeginDragMap(PointerEventData pointerData)
     {
+        if (Manager.EditorBrushIsActive)
+            return;
+
         _beginDragPosition = pointerData.position;
         _beginDragMapUvRect = MapImage.uvRect;
 
@@ -121,7 +127,10 @@ public class MapScript : MonoBehaviour
 
         if (pointerData.button == PointerEventData.InputButton.Left)
         {
-            Manager.EditorBrushIsActive = true;
+            if (!_isDraggingMap)
+            {
+                Manager.EditorBrushIsActive = true;
+            }
         }
     }
 
@@ -139,7 +148,15 @@ public class MapScript : MonoBehaviour
     {
         PointerEventData pointerData = data as PointerEventData;
 
-        ZoomMap(_zoomDeltaFactor * pointerData.scrollDelta.y);
+        WorldPosition mapPosition = WorldPosition.NoPosition;
+        Vector2 mapPosVector;
+
+        if (GetMapCoordinatesFromPointerPosition(pointerData.position, out mapPosVector))
+        {
+            mapPosition = new WorldPosition((int)mapPosVector.x, (int)mapPosVector.y);
+        }
+
+        ZoomMap(_zoomDeltaFactor * pointerData.scrollDelta.y, mapPosition);
     }
 
     public bool GetMapCoordinatesFromPointerPosition(Vector2 pointerPosition, out Vector2 mapPosition, bool allowWrap = false)
@@ -150,13 +167,13 @@ public class MapScript : MonoBehaviour
 
         Vector2 positionOverMapRect = new Vector2(positionOverMapRect3D.x, positionOverMapRect3D.y);
 
-        if (mapImageRect.Contains(positionOverMapRect) || allowWrap)
+        if (allowWrap || mapImageRect.Contains(positionOverMapRect))
         {
             Vector2 relPos = positionOverMapRect - mapImageRect.min;
 
-            Vector2 uvPos = new Vector2(relPos.x / mapImageRect.size.x, relPos.y / mapImageRect.size.y);
+            Vector2 normPos = new Vector2(relPos.x / mapImageRect.size.x, relPos.y / mapImageRect.size.y);
 
-            uvPos += MapImage.uvRect.min;
+            Vector2 uvPos = (_zoomFactor * normPos) + MapImage.uvRect.min;
 
             float worldLong = Mathf.Repeat(Mathf.Floor(uvPos.x * Manager.CurrentWorld.Width), Manager.CurrentWorld.Width);
             float worldLat = Mathf.Floor(uvPos.y * Manager.CurrentWorld.Height);
@@ -182,10 +199,10 @@ public class MapScript : MonoBehaviour
         return false;
     }
 
-    public void ZoomMap(float delta)
+    public void ZoomMap(float delta, WorldPosition refPosition)
     {
-        if (_isDraggingMap)
-            return; // do not zoom in or out while dragging to avoid image displacement miscalculations.
+        if (_isDraggingMap || Manager.EditorBrushIsActive)
+            return;
 
         _zoomFactor = Mathf.Clamp(_zoomFactor - delta, _minZoomFactor, _maxZoomFactor);
 
@@ -197,9 +214,19 @@ public class MapScript : MonoBehaviour
         float maxUvY = 1f - _zoomFactor;
 
         Rect newUvRect = MapImage.uvRect;
-        Vector2 uvCenter = newUvRect.center;
-        newUvRect.x = uvCenter.x - _zoomFactor / 2f;
-        newUvRect.y = Mathf.Clamp(uvCenter.y - _zoomFactor / 2f, 0, maxUvY);
+        
+        Vector2 uvRefPosition = newUvRect.center;
+
+        if (refPosition != WorldPosition.NoPosition)
+        {
+            uvRefPosition = GetUvPositionFromMapCoordinates(refPosition);
+        }
+
+        Vector2 refDelta = (newUvRect.min - uvRefPosition) * _zoomFactor;
+        Vector2 newUvMin = uvRefPosition + refDelta;
+
+        newUvRect.x = newUvMin.x;
+        newUvRect.y = Mathf.Clamp(newUvMin.y, 0, maxUvY);
 
         newUvRect.width = _zoomFactor;
         newUvRect.height = _zoomFactor;
@@ -229,13 +256,19 @@ public class MapScript : MonoBehaviour
     {
         Rect mapImageRect = MapImage.rectTransform.rect;
 
-        Vector2 normalizedMapPos = new Vector2(mapPosition.Longitude / (float)Manager.CurrentWorld.Width, mapPosition.Latitude / (float)Manager.CurrentWorld.Height);
+        Vector2 normalizedMapPos = GetUvPositionFromMapCoordinates(mapPosition);
 
         Vector2 mapImagePos = normalizedMapPos - MapImage.uvRect.min;
         mapImagePos.x = Mathf.Repeat(mapImagePos.x, 1.0f);
+        mapImagePos /= _zoomFactor;
 
         mapImagePos.Scale(mapImageRect.size);
 
         return MapImage.rectTransform.TransformPoint(mapImagePos + mapImageRect.min);
+    }
+
+    public Vector2 GetUvPositionFromMapCoordinates(WorldPosition mapPosition)
+    {
+        return new Vector2(mapPosition.Longitude / (float)Manager.CurrentWorld.Width, mapPosition.Latitude / (float)Manager.CurrentWorld.Height);
     }
 }
