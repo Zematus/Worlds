@@ -108,6 +108,11 @@ public class Manager
     public const int WorldWidth = 400;
     public const int WorldHeight = 200;
 
+    public const float BrushStrengthFactor_Base = 0.01f;
+    public const float BrushStrengthFactor_Altitude = 0.5f;
+    public const float BrushStrengthFactor_Rainfall = 0.25f;
+    public const float BrushStrengthFactor_Temperature = 0.25f;
+
     public const float BrushNoiseRadiusFactor = 200;
 
     public static float ProgressIncrement = 0.20f;
@@ -1538,7 +1543,8 @@ public class Manager
         float strength = EditorBrushStrength / AltitudeScale;
         float noiseRadius = BrushNoiseRadiusFactor / (float)EditorBrushRadius;
 
-        float strToValue = 0.05f * (MathUtility.GetPseudoNormalDistribution(distanceFactor * 2) - MathUtility.NormalAt2) / (MathUtility.NormalAt0 - MathUtility.NormalAt2);
+        float strToValue = BrushStrengthFactor_Base * BrushStrengthFactor_Altitude * 
+            (MathUtility.GetPseudoNormalDistribution(distanceFactor * 2) - MathUtility.NormalAt2) / (MathUtility.NormalAt0 - MathUtility.NormalAt2);
         float valueOffset = strength * strToValue;
 
         TerrainCell cell = CurrentWorld.GetCell(longitude, latitude);
@@ -1555,7 +1561,8 @@ public class Manager
         float strength = EditorBrushStrength / AltitudeScale;
         int sampleRadius = 1;
 
-        float strToValue = 0.5f * (MathUtility.GetPseudoNormalDistribution(distanceFactor * 2) - MathUtility.NormalAt2) / (MathUtility.NormalAt0 - MathUtility.NormalAt2);
+        float strToValue = BrushStrengthFactor_Altitude *
+            (MathUtility.GetPseudoNormalDistribution(distanceFactor * 2) - MathUtility.NormalAt2) / (MathUtility.NormalAt0 - MathUtility.NormalAt2);
         float valueOffsetFactor = strength * strToValue;
 
         TerrainCell cell = CurrentWorld.GetCell(longitude, latitude);
@@ -1585,7 +1592,8 @@ public class Manager
     {
         float noiseRadius = BrushNoiseRadiusFactor / (float)EditorBrushRadius;
 
-        float strToValue = 0.05f * (MathUtility.GetPseudoNormalDistribution(distanceFactor * 2) - MathUtility.NormalAt2) / (MathUtility.NormalAt0 - MathUtility.NormalAt2);
+        float strToValue = BrushStrengthFactor_Base * BrushStrengthFactor_Temperature *
+            (MathUtility.GetPseudoNormalDistribution(distanceFactor * 2) - MathUtility.NormalAt2) / (MathUtility.NormalAt0 - MathUtility.NormalAt2);
         float valueOffset = EditorBrushStrength * strToValue;
 
         TerrainCell cell = CurrentWorld.GetCell(longitude, latitude);
@@ -1599,7 +1607,8 @@ public class Manager
     {
         int sampleRadius = 1;
 
-        float strToValue = 0.5f * (MathUtility.GetPseudoNormalDistribution(distanceFactor * 2) - MathUtility.NormalAt2) / (MathUtility.NormalAt0 - MathUtility.NormalAt2);
+        float strToValue = BrushStrengthFactor_Temperature *
+            (MathUtility.GetPseudoNormalDistribution(distanceFactor * 2) - MathUtility.NormalAt2) / (MathUtility.NormalAt0 - MathUtility.NormalAt2);
         float valueOffsetFactor = EditorBrushStrength * strToValue;
 
         TerrainCell cell = CurrentWorld.GetCell(longitude, latitude);
@@ -1627,7 +1636,8 @@ public class Manager
     {
         float noiseRadius = BrushNoiseRadiusFactor / (float)EditorBrushRadius;
 
-        float strToValue = 0.05f * (MathUtility.GetPseudoNormalDistribution(distanceFactor * 2) - MathUtility.NormalAt2) / (MathUtility.NormalAt0 - MathUtility.NormalAt2);
+        float strToValue = BrushStrengthFactor_Base * BrushStrengthFactor_Rainfall *
+            (MathUtility.GetPseudoNormalDistribution(distanceFactor * 2) - MathUtility.NormalAt2) / (MathUtility.NormalAt0 - MathUtility.NormalAt2);
         float valueOffset = EditorBrushStrength * strToValue;
 
         TerrainCell cell = CurrentWorld.GetCell(longitude, latitude);
@@ -1641,7 +1651,8 @@ public class Manager
     {
         int sampleRadius = 1;
 
-        float strToValue = 0.5f * (MathUtility.GetPseudoNormalDistribution(distanceFactor * 2) - MathUtility.NormalAt2) / (MathUtility.NormalAt0 - MathUtility.NormalAt2);
+        float strToValue = BrushStrengthFactor_Rainfall *
+            (MathUtility.GetPseudoNormalDistribution(distanceFactor * 2) - MathUtility.NormalAt2) / (MathUtility.NormalAt0 - MathUtility.NormalAt2);
         float valueOffsetFactor = EditorBrushStrength * strToValue;
 
         TerrainCell cell = CurrentWorld.GetCell(longitude, latitude);

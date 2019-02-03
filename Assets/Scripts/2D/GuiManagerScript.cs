@@ -752,7 +752,7 @@ public class GuiManagerScript : MonoBehaviour
 
     public void SelectAndCenterOnCell(WorldPosition position)
     {
-        ShiftMapToPosition(position);
+        MapScript.ShiftMapToPosition(position);
 
         Manager.SetSelectedCell(position);
 
@@ -1166,37 +1166,27 @@ public class GuiManagerScript : MonoBehaviour
         DisplayTip_MapScroll();
     }
 
-    public void ClickOp_SelectCell(Vector2 position)
+    public void ClickOp_SelectCell(Vector2 mapPosition)
     {
-        Vector2 mapCoordinates;
-
-        if (!GetMapCoordinatesFromPointerPosition(position, out mapCoordinates))
-            return;
-
-        int longitude = (int)mapCoordinates.x;
-        int latitude = (int)mapCoordinates.y;
+        int longitude = (int)mapPosition.x;
+        int latitude = (int)mapPosition.y;
 
         Manager.SetSelectedCell(longitude, latitude);
 
         MapEntitySelected.Invoke();
     }
 
-    public void ClickOp_SelectPopulationPlacement(Vector2 position)
+    public void ClickOp_SelectPopulationPlacement(Vector2 mapPosition)
     {
         int population = AddPopulationDialogScript.Population;
 
-        Vector2 point;
-
-        if (GetMapCoordinatesFromPointerPosition(out point))
+        if (AddPopulationGroupAtPosition(mapPosition, population))
         {
-            if (AddPopulationGroupAtPosition(point, population))
-            {
-                MenuUninterruptSimulation();
+            MenuUninterruptSimulation();
 
-                DisplayTip_MapScroll();
+            DisplayTip_MapScroll();
 
-                _mapLeftClickOp -= ClickOp_SelectPopulationPlacement;
-            }
+            _mapLeftClickOp -= ClickOp_SelectPopulationPlacement;
         }
     }
 
@@ -3683,7 +3673,7 @@ public class GuiManagerScript : MonoBehaviour
     {
         Vector2 mapCoordinates;
 
-        if (!GetMapCoordinatesFromPointerPosition(position, out mapCoordinates, allowWrap))
+        if (!MapScript.GetMapCoordinatesFromPointerPosition(position, out mapCoordinates, allowWrap))
             return null;
 
         int longitude = (int)mapCoordinates.x;
@@ -3719,7 +3709,7 @@ public class GuiManagerScript : MonoBehaviour
             throw new System.Exception("Polity can't be null");
         }
 
-        Vector3 tooltipPos = GetScreenPositionFromMapCoordinates(polity.CoreGroup.Cell.Position) + _tooltipOffset;
+        Vector3 tooltipPos = MapScript.GetScreenPositionFromMapCoordinates(polity.CoreGroup.Cell.Position) + _tooltipOffset;
 
         if (polity.Name == null)
         {
@@ -3933,84 +3923,9 @@ public class GuiManagerScript : MonoBehaviour
 
         WorldPosition regionCenterCellPosition = _lastHoveredOverRegion.GetMostCenteredCell().Position;
 
-        Vector3 tooltipPos = GetScreenPositionFromMapCoordinates(regionCenterCellPosition) + _tooltipOffset;
+        Vector3 tooltipPos = MapScript.GetScreenPositionFromMapCoordinates(regionCenterCellPosition) + _tooltipOffset;
 
         InfoTooltipScript.DisplayTip(_lastHoveredOverRegion.Name.Text, tooltipPos);
-    }
-
-    public void ShiftMapToPosition(WorldPosition mapPosition)
-    {
-        Rect mapImageRect = MapScript.MapImage.rectTransform.rect;
-
-        Vector2 normalizedMapPos = new Vector2(mapPosition.Longitude / (float)Manager.CurrentWorld.Width, mapPosition.Latitude / (float)Manager.CurrentWorld.Height);
-
-        Vector2 mapImagePos = normalizedMapPos - MapScript.MapImage.uvRect.center;
-        mapImagePos.x = Mathf.Repeat(mapImagePos.x, 1.0f);
-
-        Rect newUvRect = MapScript.MapImage.uvRect;
-        newUvRect.x += mapImagePos.x;
-
-        MapScript.MapImage.uvRect = newUvRect;
-        MapScript.PointerOverlayImage.uvRect = newUvRect;
-    }
-
-    public Vector3 GetScreenPositionFromMapCoordinates(WorldPosition mapPosition)
-    {
-        Rect mapImageRect = MapScript.MapImage.rectTransform.rect;
-
-        Vector2 normalizedMapPos = new Vector2(mapPosition.Longitude / (float)Manager.CurrentWorld.Width, mapPosition.Latitude / (float)Manager.CurrentWorld.Height);
-
-        Vector2 mapImagePos = normalizedMapPos - MapScript.MapImage.uvRect.min;
-        mapImagePos.x = Mathf.Repeat(mapImagePos.x, 1.0f);
-
-        mapImagePos.Scale(mapImageRect.size);
-
-        return MapScript.MapImage.rectTransform.TransformPoint(mapImagePos + mapImageRect.min);
-    }
-
-    public bool GetMapCoordinatesFromPointerPosition(Vector2 pointerPosition, out Vector2 mapPosition, bool allowWrap = false)
-    {
-        Rect mapImageRect = MapScript.MapImage.rectTransform.rect;
-
-        Vector3 positionOverMapRect3D = MapScript.MapImage.rectTransform.InverseTransformPoint(pointerPosition);
-
-        Vector2 positionOverMapRect = new Vector2(positionOverMapRect3D.x, positionOverMapRect3D.y);
-
-        if (mapImageRect.Contains(positionOverMapRect) || allowWrap)
-        {
-            Vector2 relPos = positionOverMapRect - mapImageRect.min;
-
-            Vector2 uvPos = new Vector2(relPos.x / mapImageRect.size.x, relPos.y / mapImageRect.size.y);
-
-            uvPos += MapScript.MapImage.uvRect.min;
-
-            float worldLong = Mathf.Repeat(Mathf.Floor(uvPos.x * Manager.CurrentWorld.Width), Manager.CurrentWorld.Width);
-            float worldLat = Mathf.Floor(uvPos.y * Manager.CurrentWorld.Height);
-
-            if (worldLat > (Manager.CurrentWorld.Height - 1))
-            {
-                worldLat = Mathf.Max(0, (2 * Manager.CurrentWorld.Height) - worldLat - 1);
-                worldLong = Mathf.Repeat(Mathf.Floor(worldLong + (Manager.CurrentWorld.Width / 2f)), Manager.CurrentWorld.Width);
-            }
-            else if (worldLat < 0)
-            {
-                worldLat = Mathf.Min(Manager.CurrentWorld.Height - 1, -1 - worldLat);
-                worldLong = Mathf.Repeat(Mathf.Floor(worldLong + (Manager.CurrentWorld.Width / 2f)), Manager.CurrentWorld.Width);
-            }
-
-            mapPosition = new Vector2(worldLong, worldLat);
-
-            return true;
-        }
-
-        mapPosition = -Vector2.one;
-
-        return false;
-    }
-
-    public bool GetMapCoordinatesFromPointerPosition(out Vector2 mapPosition)
-    {
-        return GetMapCoordinatesFromPointerPosition(Input.mousePosition, out mapPosition);
     }
 
     public void SelectCellOnMap(BaseEventData data)
@@ -4023,9 +3938,14 @@ public class GuiManagerScript : MonoBehaviour
         if (pointerData.button != PointerEventData.InputButton.Left)
             return;
 
+        Vector2 mapPosition;
+
+        if (!MapScript.GetMapCoordinatesFromPointerPosition(pointerData.position, out mapPosition))
+            return;
+
         if (_mapLeftClickOp != null)
         {
-            _mapLeftClickOp(pointerData.position);
+            _mapLeftClickOp(mapPosition);
         }
     }
 
