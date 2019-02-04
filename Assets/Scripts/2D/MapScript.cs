@@ -147,24 +147,22 @@ public class MapScript : MonoBehaviour
     public void Scroll(BaseEventData data)
     {
         PointerEventData pointerData = data as PointerEventData;
+        
+        Vector2 uvPosition;
 
-        WorldPosition mapPosition = WorldPosition.NoPosition;
-        Vector2 mapPosVector;
-
-        if (GetMapCoordinatesFromPointerPosition(pointerData.position, out mapPosVector))
+        if (!GetUvCoordinatesFromPointerPosition(pointerData.position, out uvPosition))
         {
-            mapPosition = new WorldPosition((int)mapPosVector.x, (int)mapPosVector.y);
+            uvPosition = MapImage.uvRect.center;
         }
 
-        ZoomMap(_zoomDeltaFactor * pointerData.scrollDelta.y, mapPosition);
+        ZoomMap(_zoomDeltaFactor * pointerData.scrollDelta.y, uvPosition);
     }
 
-    public bool GetMapCoordinatesFromPointerPosition(Vector2 pointerPosition, out Vector2 mapPosition, bool allowWrap = false)
+    public bool GetUvCoordinatesFromPointerPosition(Vector2 pointerPosition, out Vector2 uvPosition, bool allowWrap = false)
     {
         Rect mapImageRect = MapImage.rectTransform.rect;
 
         Vector3 positionOverMapRect3D = MapImage.rectTransform.InverseTransformPoint(pointerPosition);
-
         Vector2 positionOverMapRect = new Vector2(positionOverMapRect3D.x, positionOverMapRect3D.y);
 
         if (allowWrap || mapImageRect.Contains(positionOverMapRect))
@@ -173,37 +171,52 @@ public class MapScript : MonoBehaviour
 
             Vector2 normPos = new Vector2(relPos.x / mapImageRect.size.x, relPos.y / mapImageRect.size.y);
 
-            Vector2 uvPos = (_zoomFactor * normPos) + MapImage.uvRect.min;
-
-            float worldLong = Mathf.Repeat(Mathf.Floor(uvPos.x * Manager.CurrentWorld.Width), Manager.CurrentWorld.Width);
-            float worldLat = Mathf.Floor(uvPos.y * Manager.CurrentWorld.Height);
-
-            if (worldLat > (Manager.CurrentWorld.Height - 1))
-            {
-                worldLat = Mathf.Max(0, (2 * Manager.CurrentWorld.Height) - worldLat - 1);
-                worldLong = Mathf.Repeat(Mathf.Floor(worldLong + (Manager.CurrentWorld.Width / 2f)), Manager.CurrentWorld.Width);
-            }
-            else if (worldLat < 0)
-            {
-                worldLat = Mathf.Min(Manager.CurrentWorld.Height - 1, -1 - worldLat);
-                worldLong = Mathf.Repeat(Mathf.Floor(worldLong + (Manager.CurrentWorld.Width / 2f)), Manager.CurrentWorld.Width);
-            }
-
-            mapPosition = new Vector2(worldLong, worldLat);
+            uvPosition = (_zoomFactor * normPos) + MapImage.uvRect.min;
 
             return true;
         }
 
-        mapPosition = -Vector2.one;
+        uvPosition = -Vector2.one;
 
         return false;
     }
 
-    public void ZoomMap(float delta, WorldPosition refPosition)
+    public bool GetMapCoordinatesFromPointerPosition(Vector2 pointerPosition, out Vector2 mapPosition, bool allowWrap = false)
+    {
+        Vector2 uvPosition;
+
+        if (!GetUvCoordinatesFromPointerPosition(pointerPosition, out uvPosition, allowWrap))
+        {
+            mapPosition = -Vector2.one;
+
+            return false;
+        }
+
+        float worldLong = Mathf.Repeat(Mathf.Floor(uvPosition.x * Manager.CurrentWorld.Width), Manager.CurrentWorld.Width);
+        float worldLat = Mathf.Floor(uvPosition.y * Manager.CurrentWorld.Height);
+
+        if (worldLat > (Manager.CurrentWorld.Height - 1))
+        {
+            worldLat = Mathf.Max(0, (2 * Manager.CurrentWorld.Height) - worldLat - 1);
+            worldLong = Mathf.Repeat(Mathf.Floor(worldLong + (Manager.CurrentWorld.Width / 2f)), Manager.CurrentWorld.Width);
+        }
+        else if (worldLat < 0)
+        {
+            worldLat = Mathf.Min(Manager.CurrentWorld.Height - 1, -1 - worldLat);
+            worldLong = Mathf.Repeat(Mathf.Floor(worldLong + (Manager.CurrentWorld.Width / 2f)), Manager.CurrentWorld.Width);
+        }
+
+        mapPosition = new Vector2(worldLong, worldLat);
+
+        return true;
+    }
+
+    public void ZoomMap(float delta, Vector2 uvRefPosition)
     {
         if (_isDraggingMap || Manager.EditorBrushIsActive)
             return;
 
+        float oldZoomFactor = _zoomFactor;
         _zoomFactor = Mathf.Clamp(_zoomFactor - delta, _minZoomFactor, _maxZoomFactor);
 
 #if DEBUG
@@ -215,16 +228,10 @@ public class MapScript : MonoBehaviour
 
         Rect newUvRect = MapImage.uvRect;
         
-        Vector2 uvRefPosition = newUvRect.center;
-
-        if (refPosition != WorldPosition.NoPosition)
-        {
-            uvRefPosition = GetUvPositionFromMapCoordinates(refPosition);
-        }
-
-        Vector2 refDelta = (newUvRect.min - uvRefPosition) * _zoomFactor;
-        Vector2 newUvMin = uvRefPosition + refDelta;
-
+        float zoomDeltaFactor = _zoomFactor / oldZoomFactor;
+        Vector2 refDelta = (uvRefPosition - newUvRect.min) * zoomDeltaFactor;
+        Vector2 newUvMin = uvRefPosition - refDelta;
+        
         newUvRect.x = newUvMin.x;
         newUvRect.y = Mathf.Clamp(newUvMin.y, 0, maxUvY);
 
@@ -256,7 +263,7 @@ public class MapScript : MonoBehaviour
     {
         Rect mapImageRect = MapImage.rectTransform.rect;
 
-        Vector2 normalizedMapPos = GetUvPositionFromMapCoordinates(mapPosition);
+        Vector2 normalizedMapPos = GetNormalizedPositionFromMapCoordinates(mapPosition);
 
         Vector2 mapImagePos = normalizedMapPos - MapImage.uvRect.min;
         mapImagePos.x = Mathf.Repeat(mapImagePos.x, 1.0f);
@@ -267,7 +274,7 @@ public class MapScript : MonoBehaviour
         return MapImage.rectTransform.TransformPoint(mapImagePos + mapImageRect.min);
     }
 
-    public Vector2 GetUvPositionFromMapCoordinates(WorldPosition mapPosition)
+    public Vector2 GetNormalizedPositionFromMapCoordinates(WorldPosition mapPosition)
     {
         return new Vector2(mapPosition.Longitude / (float)Manager.CurrentWorld.Width, mapPosition.Latitude / (float)Manager.CurrentWorld.Height);
     }
