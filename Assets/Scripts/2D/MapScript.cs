@@ -20,6 +20,26 @@ public class MapScript : MonoBehaviour
 
     private float _zoomFactor = 1.0f;
 
+    // Update is called once per frame
+    void Update()
+    {
+        ReadKeyboardInput();
+    }
+
+    public void ReadKeyboardInput()
+    {
+        if (Input.GetKey(KeyCode.KeypadPlus) ||
+            Input.GetKey(KeyCode.Equals))
+        {
+            ZoomKeyPressed(true);
+        }
+        else if (Input.GetKey(KeyCode.KeypadMinus) ||
+            Input.GetKey(KeyCode.Minus))
+        {
+            ZoomKeyPressed(false);
+        }
+    }
+
     public void SetVisible(bool value)
     {
         MapImage.enabled = value;
@@ -156,6 +176,38 @@ public class MapScript : MonoBehaviour
         }
 
         ZoomMap(_zoomDeltaFactor * pointerData.scrollDelta.y, uvPosition);
+    }
+
+    public void ZoomButtonPressed(bool state)
+    {
+        Vector2 pointerPosition = new Vector2(Input.mousePosition.x, Input.mousePosition.y);
+
+        Vector2 uvPosition;
+
+        if (!GetUvCoordinatesFromPointerPosition(pointerPosition, out uvPosition))
+        {
+            uvPosition = MapImage.uvRect.center;
+        }
+
+        float zoomDelta = 2f * (state ? _zoomDeltaFactor : -_zoomDeltaFactor);
+
+        ZoomMap(zoomDelta, uvPosition);
+    }
+
+    public void ZoomKeyPressed(bool state)
+    {
+        Vector2 pointerPosition = new Vector2(Input.mousePosition.x, Input.mousePosition.y);
+
+        Vector2 uvPosition;
+
+        if (!GetUvCoordinatesFromPointerPosition(pointerPosition, out uvPosition))
+        {
+            uvPosition = MapImage.uvRect.center;
+        }
+
+        float zoomDelta = 0.25f * (state ? _zoomDeltaFactor : -_zoomDeltaFactor);
+
+        ZoomMap(zoomDelta, uvPosition);
     }
 
     public bool GetUvCoordinatesFromPointerPosition(Vector2 pointerPosition, out Vector2 uvPosition, bool allowWrap = false)
