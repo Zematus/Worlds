@@ -21,6 +21,9 @@ public class MapEditorToolbarScript : MonoBehaviour
     public Button RedoActionButton;
 
     public ValueSetEvent RegenerateWorldAltitudeScaleChangeEvent;
+    public ValueSetEvent RegenerateWorldSeaLevelOffsetChangeEvent;
+    public ValueSetEvent RegenerateWorldTemperatureOffsetChangeEvent;
+    public ValueSetEvent RegenerateWorldRainfallOffsetChangeEvent;
 
     private Stack<EditorAction> _undoableEditorActions = new Stack<EditorAction>();
     private Stack<EditorAction> _redoableEditorActions = new Stack<EditorAction>();
@@ -132,13 +135,28 @@ public class MapEditorToolbarScript : MonoBehaviour
         PushUndoableAction(action);
     }
 
-    public void OnRegenCompletion()
+    private void OnRegenCompletion()
     {
-        _blockUndoAndRedo = false;
         GuiManager.DeregisterRegenerateWorldPostProgressOp(OnRegenCompletion);
+        _blockUndoAndRedo = false;
     }
 
-    public void RegenerateWorldAltitudeScaleChange_Internal(float value)
+    private void PerformRegenerateWorldAction(System.Action<float> action, float previousValue, float newValue)
+    {
+        EditorAction editorAction = new RenegerateWorldAction
+        {
+            Action = action,
+            PreviousValue = previousValue,
+            NewValue = newValue
+        };
+
+        editorAction.Do();
+
+        PushUndoableAction(editorAction);
+        ResetRedoableActionsStack();
+    }
+
+    private void RegenerateWorldAltitudeScaleChange_Internal(float value)
     {
         _blockUndoAndRedo = true;
         GuiManager.RegisterRegenerateWorldPostProgressOp(OnRegenCompletion);
@@ -148,16 +166,58 @@ public class MapEditorToolbarScript : MonoBehaviour
 
     public void RegenerateWorldAltitudeScaleChange(float value)
     {
-        EditorAction action = new RenegerateWorldAction {
-            Action = RegenerateWorldAltitudeScaleChange_Internal,
-            PreviousValue = Manager.AltitudeScale,
-            NewValue = value
-        };
+        PerformRegenerateWorldAction(
+            RegenerateWorldAltitudeScaleChange_Internal,
+            Manager.AltitudeScale,
+            value);
+    }
 
-        action.Do();
+    private void RegenerateWorldSeaLevelOffsetChange_Internal(float value)
+    {
+        _blockUndoAndRedo = true;
+        GuiManager.RegisterRegenerateWorldPostProgressOp(OnRegenCompletion);
 
-        PushUndoableAction(action);
-        ResetRedoableActionsStack();
+        RegenerateWorldSeaLevelOffsetChangeEvent.Invoke(value);
+    }
+
+    public void RegenerateWorldSeaLevelOffsetChange(float value)
+    {
+        PerformRegenerateWorldAction(
+            RegenerateWorldSeaLevelOffsetChange_Internal,
+            Manager.SeaLevelOffset,
+            value);
+    }
+
+    private void RegenerateWorldTemperatureOffsetChange_Internal(float value)
+    {
+        _blockUndoAndRedo = true;
+        GuiManager.RegisterRegenerateWorldPostProgressOp(OnRegenCompletion);
+
+        RegenerateWorldTemperatureOffsetChangeEvent.Invoke(value);
+    }
+
+    public void RegenerateWorldTemperatureOffsetChange(float value)
+    {
+        PerformRegenerateWorldAction(
+            RegenerateWorldTemperatureOffsetChange_Internal,
+            Manager.TemperatureOffset,
+            value);
+    }
+
+    private void RegenerateWorldRainfallOffsetChange_Internal(float value)
+    {
+        _blockUndoAndRedo = true;
+        GuiManager.RegisterRegenerateWorldPostProgressOp(OnRegenCompletion);
+
+        RegenerateWorldRainfallOffsetChangeEvent.Invoke(value);
+    }
+
+    public void RegenerateWorldRainfallOffsetChange(float value)
+    {
+        PerformRegenerateWorldAction(
+            RegenerateWorldRainfallOffsetChange_Internal,
+            Manager.RainfallOffset,
+            value);
     }
 
     public void ResetActionStacks()
