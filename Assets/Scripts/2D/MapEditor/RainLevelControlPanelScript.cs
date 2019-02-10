@@ -33,7 +33,7 @@ public class RainLevelControlPanelScript : MonoBehaviour
             RainLevelSliderControlsScript.DefaultValue = _defaultRainfallOffset;
 
             RainLevelSliderControlsScript.CurrentValue = Manager.RainfallOffset;
-            RainLevelSliderControlsScript.Initialize();
+            RainLevelSliderControlsScript.Reinitialize();
         }
 
         RainLevelSliderControlsScript.AllowEventInvoke(state);

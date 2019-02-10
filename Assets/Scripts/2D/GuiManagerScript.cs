@@ -121,6 +121,9 @@ public class GuiManagerScript : MonoBehaviour
     private float _progressValue = 0;
 
     private event PostProgressOperation _postProgressOp = null;
+    private event PostProgressOperation _generateWorldPostProgressOp = null;
+    private event PostProgressOperation _regenerateWorldPostProgressOp = null;
+    private event PostProgressOperation _loadWorldPostProgressOp = null;
 
     private event PointerOperation _mapLeftClickOp = null;
 
@@ -158,6 +161,36 @@ public class GuiManagerScript : MonoBehaviour
         Application.logMessageReceivedThreaded -= HandleLog;
 
         Manager.CloseDebugLog();
+    }
+
+    public void RegisterRegenerateWorldPostProgressOp(PostProgressOperation op)
+    {
+        _regenerateWorldPostProgressOp += op;
+    }
+
+    public void DeregisterRegenerateWorldPostProgressOp(PostProgressOperation op)
+    {
+        _regenerateWorldPostProgressOp -= op;
+    }
+
+    public void RegisterGenerateWorldPostProgressOp(PostProgressOperation op)
+    {
+        _generateWorldPostProgressOp += op;
+    }
+
+    public void DeregisterGenerateWorldPostProgressOp(PostProgressOperation op)
+    {
+        _generateWorldPostProgressOp -= op;
+    }
+
+    public void RegisterLoadWorldPostProgressOp(PostProgressOperation op)
+    {
+        _loadWorldPostProgressOp += op;
+    }
+
+    public void DeregisterLoadWorldPostProgressOp(PostProgressOperation op)
+    {
+        _loadWorldPostProgressOp -= op;
     }
 
     public void ResetAllDialogs()
@@ -981,30 +1014,33 @@ public class GuiManagerScript : MonoBehaviour
         SetMaxSpeedLevel(_selectedMaxSpeedLevelIndex);
 
         _postProgressOp -= PostProgressOp_RegenerateWorld;
+
+        if (_regenerateWorldPostProgressOp != null)
+            _regenerateWorldPostProgressOp.Invoke();
     }
 
-    public void RenegerateWorldAltitudeScaleChange(float value)
+    public void RegenerateWorldAltitudeScaleChange(float value)
     {
         Manager.AltitudeScale = value;
 
         RegenerateWorld(GenerationType.TerrainRegeneration);
     }
 
-    public void RenegerateWorldSeaLevelOffsetChange(float value)
+    public void RegenerateWorldSeaLevelOffsetChange(float value)
     {
         Manager.SeaLevelOffset = value;
 
         RegenerateWorld(GenerationType.TerrainRegeneration);
     }
 
-    public void RenegerateWorldTemperatureOffsetChange(float value)
+    public void RegenerateWorldTemperatureOffsetChange(float value)
     {
         Manager.TemperatureOffset = value;
 
         RegenerateWorld(GenerationType.TemperatureRegeneration);
     }
 
-    public void RenegerateWorldRainfallOffsetChange(float value)
+    public void RegenerateWorldRainfallOffsetChange(float value)
     {
         Manager.RainfallOffset = value;
 
@@ -1101,6 +1137,9 @@ public class GuiManagerScript : MonoBehaviour
         SetMaxSpeedLevel(_selectedMaxSpeedLevelIndex);
 
         _postProgressOp -= PostProgressOp_GenerateWorld;
+
+        if (_generateWorldPostProgressOp != null)
+            _generateWorldPostProgressOp.Invoke();
     }
 
     private void GenerateWorldInternal(int seed, bool useHeightmap = false)
@@ -1637,6 +1676,9 @@ public class GuiManagerScript : MonoBehaviour
         GetMaxSpeedOptionFromCurrentWorld();
 
         _postProgressOp -= PostProgressOp_LoadAction;
+
+        if (_loadWorldPostProgressOp != null)
+            _loadWorldPostProgressOp.Invoke();
     }
 
     public void LoadAction()

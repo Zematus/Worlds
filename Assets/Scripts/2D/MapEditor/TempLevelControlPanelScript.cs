@@ -33,7 +33,7 @@ public class TempLevelControlPanelScript : MonoBehaviour
             TempLevelSliderControlsScript.DefaultValue = _defaultTemperatureOffset;
 
             TempLevelSliderControlsScript.CurrentValue = Manager.TemperatureOffset;
-            TempLevelSliderControlsScript.Initialize();
+            TempLevelSliderControlsScript.Reinitialize();
         }
 
         TempLevelSliderControlsScript.AllowEventInvoke(state);

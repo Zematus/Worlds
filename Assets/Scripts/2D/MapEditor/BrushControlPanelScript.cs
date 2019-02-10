@@ -96,7 +96,7 @@ public class BrushControlPanelScript : MonoBehaviour
             RadiusSliderControlsScript.DefaultValue = _defaultRadiusValue;
 
             RadiusSliderControlsScript.CurrentValue = _lastRadiusValue;
-            RadiusSliderControlsScript.Initialize();
+            RadiusSliderControlsScript.Reinitialize();
 
             if (_flattenModeIsActive)
                 StrengthSliderControlsScript.MinValue = _minFlattenStrengthValue;
@@ -106,14 +106,14 @@ public class BrushControlPanelScript : MonoBehaviour
             StrengthSliderControlsScript.DefaultValue = _defaultStrengthValue;
 
             StrengthSliderControlsScript.CurrentValue = _lastStrengthValue;
-            StrengthSliderControlsScript.Initialize();
+            StrengthSliderControlsScript.Reinitialize();
 
             NoiseSliderControlsScript.MinValue = _minNoiseValue;
             NoiseSliderControlsScript.MaxValue = _maxNoiseValue;
             NoiseSliderControlsScript.DefaultValue = _defaultNoiseValue;
 
             NoiseSliderControlsScript.CurrentValue = _lastNoiseValue;
-            NoiseSliderControlsScript.Initialize();
+            NoiseSliderControlsScript.Reinitialize();
 
             Manager.EditorBrushRadius = (int)_lastRadiusValue;
             Manager.EditorBrushStrength = _lastStrengthValue;

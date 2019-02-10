@@ -62,7 +62,7 @@ public class SliderControlsScript : MonoBehaviour
         InputField.interactable = state;
     }
 
-    public void Initialize()
+    public void Reinitialize()
     {
         _isSettingValueAlready = true;
 

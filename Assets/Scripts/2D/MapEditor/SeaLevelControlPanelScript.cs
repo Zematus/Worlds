@@ -33,7 +33,7 @@ public class SeaLevelControlPanelScript : MonoBehaviour
             SeaLevelSliderControlsScript.DefaultValue = _defaultSeaLevelOffset;
 
             SeaLevelSliderControlsScript.CurrentValue = Manager.SeaLevelOffset;
-            SeaLevelSliderControlsScript.Initialize();
+            SeaLevelSliderControlsScript.Reinitialize();
         }
 
         SeaLevelSliderControlsScript.AllowEventInvoke(state);
