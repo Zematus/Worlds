@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
-public class RenegerateWorldAction : EditorAction
+public class RegenerateWorldAction : EditorAction
 {
     public System.Action<float> Action;
 

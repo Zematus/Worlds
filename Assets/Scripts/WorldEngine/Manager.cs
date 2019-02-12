@@ -201,6 +201,14 @@ public class Manager
     private static int _lastEditorBrushRadius = EditorBrushRadius;
     private static bool _editorBrushWasVisible = EditorBrushIsVisible;
 
+    private static Stack<EditorAction> _undoableEditorActions = new Stack<EditorAction>();
+    private static Stack<EditorAction> _redoableEditorActions = new Stack<EditorAction>();
+
+    private static event System.Action _onUndoStackUpdate;
+    private static event System.Action _onRedoStackUpdate;
+
+    private static bool undoAndRedoBlocked = false;
+
     private ProgressCastDelegate _progressCastMethod = null;
 
     private World _currentWorld = null;
@@ -293,6 +301,22 @@ public class Manager
         }
     }
 
+    public static int UndoableEditorActionsCount
+    {
+        get
+        {
+            return _undoableEditorActions.Count;
+        }
+    }
+
+    public static int RedoableEditorActionsCount
+    {
+        get
+        {
+            return _redoableEditorActions.Count;
+        }
+    }
+
     public static void UpdateMainThreadReference()
     {
         MainThread = Thread.CurrentThread;
@@ -314,6 +338,139 @@ public class Manager
         /// static initalizations
 
         Tribe.GenerateTribeNounVariations();
+    }
+
+    public static void BlockUndoAndRedo(bool state)
+    {
+        undoAndRedoBlocked = state;
+    }
+
+    public static void RegisterUndoStackUpdateOp(System.Action op)
+    {
+        _onUndoStackUpdate += op;
+    }
+
+    public static void DeregisterUndoStackUpdateOp(System.Action op)
+    {
+        _onUndoStackUpdate -= op;
+    }
+
+    public static void RegisterRedoStackUpdateOp(System.Action op)
+    {
+        _onRedoStackUpdate += op;
+    }
+
+    public static void DeregisterRedoStackUpdateOp(System.Action op)
+    {
+        _onRedoStackUpdate -= op;
+    }
+
+    public static void UndoEditorAction()
+    {
+        if (undoAndRedoBlocked || EditorBrushIsActive)
+            return;
+
+        if (_undoableEditorActions.Count <= 0)
+            return;
+
+        EditorAction action = PopUndoableAction();
+
+        action.Undo();
+
+        PushRedoableAction(action);
+    }
+
+    public static void RedoEditorAction()
+    {
+        if (undoAndRedoBlocked || EditorBrushIsActive)
+            return;
+
+        if (_redoableEditorActions.Count <= 0)
+            return;
+
+        EditorAction action = PopRedoableAction();
+
+        action.Do();
+
+        PushUndoableAction(action);
+    }
+
+    public static void PerformEditorAction(EditorAction editorAction)
+    {
+        editorAction.Do();
+
+        PushUndoableAction(editorAction);
+        ResetRedoableActionsStack();
+    }
+
+    public static void ResetActionStacks()
+    {
+        ResetUndoableActionsStack();
+        ResetRedoableActionsStack();
+    }
+
+    public static void PushUndoableAction(EditorAction action)
+    {
+        _undoableEditorActions.Push(action);
+
+        if (_onUndoStackUpdate != null)
+        {
+            _onUndoStackUpdate.Invoke();
+        }
+    }
+
+    public static void PushRedoableAction(EditorAction action)
+    {
+        _redoableEditorActions.Push(action);
+
+        if (_onRedoStackUpdate != null)
+        {
+            _onRedoStackUpdate.Invoke();
+        }
+    }
+
+    public static EditorAction PopUndoableAction()
+    {
+        EditorAction action = _undoableEditorActions.Pop();
+
+        if (_onUndoStackUpdate != null)
+        {
+            _onUndoStackUpdate.Invoke();
+        }
+
+        return action;
+    }
+
+    public static EditorAction PopRedoableAction()
+    {
+        EditorAction action = _redoableEditorActions.Pop();
+
+        if (_onRedoStackUpdate != null)
+        {
+            _onRedoStackUpdate.Invoke();
+        }
+
+        return action;
+    }
+
+    public static void ResetUndoableActionsStack()
+    {
+        _undoableEditorActions.Clear();
+
+        if (_onUndoStackUpdate != null)
+        {
+            _onUndoStackUpdate.Invoke();
+        }
+    }
+
+    public static void ResetRedoableActionsStack()
+    {
+        _redoableEditorActions.Clear();
+
+        if (_onRedoStackUpdate != null)
+        {
+            _onRedoStackUpdate.Invoke();
+        }
     }
 
     public static void InitializeDebugLog()
@@ -2346,7 +2503,7 @@ public class Manager
             float slantFactor = 1;
             if (altDiff > 0)
             {
-                slantFactor = slant / altDiff;
+                slantFactor = 0.75f * slant / altDiff;
 
                 if (slantFactor > 1)
                     slantFactor = 1;
@@ -2395,7 +2552,7 @@ public class Manager
         float slantFactor = 1;
         if (altDiff > 0)
         {
-            slantFactor = slant / altDiff;
+            slantFactor = 0.75f * slant / altDiff;
 
             if (slantFactor > 1)
                 slantFactor = 1;

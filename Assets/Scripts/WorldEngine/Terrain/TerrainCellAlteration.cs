@@ -4,7 +4,8 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
-public class TerrainCellChanges
+[XmlType(TypeName = "CellAlt")]
+public class TerrainCellAlteration
 {
     [XmlAttribute("Lon")]
     public int Longitude;
@@ -35,15 +36,20 @@ public class TerrainCellChanges
 
     public List<string> Flags = new List<string>();
 
-    public TerrainCellChanges()
+    [XmlIgnore]
+    public WorldPosition Position;
+
+    public TerrainCellAlteration()
     {
         Manager.UpdateWorldLoadTrackEventCount();
     }
 
-    public TerrainCellChanges(TerrainCell cell)
+    public TerrainCellAlteration(TerrainCell cell)
     {
         Longitude = cell.Longitude;
         Latitude = cell.Latitude;
+
+        Position = cell.Position;
 
         BaseAltitudeValue = cell.BaseAltitudeValue;
         BaseTemperatureValue = cell.BaseTemperatureValue;

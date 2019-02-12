@@ -25,16 +25,14 @@ public class MapEditorToolbarScript : MonoBehaviour
     public ValueSetEvent RegenerateWorldTemperatureOffsetChangeEvent;
     public ValueSetEvent RegenerateWorldRainfallOffsetChangeEvent;
 
-    private Stack<EditorAction> _undoableEditorActions = new Stack<EditorAction>();
-    private Stack<EditorAction> _redoableEditorActions = new Stack<EditorAction>();
-
-    private bool _blockUndoAndRedo = false;
-
     // Use this for initialization
     void Start()
     {
-        GuiManager.RegisterGenerateWorldPostProgressOp(ResetActionStacks);
-        GuiManager.RegisterLoadWorldPostProgressOp(ResetActionStacks);
+        GuiManager.RegisterGenerateWorldPostProgressOp(Manager.ResetActionStacks);
+        GuiManager.RegisterLoadWorldPostProgressOp(Manager.ResetActionStacks);
+
+        Manager.RegisterUndoStackUpdateOp(OnUndoStackUpdate);
+        Manager.RegisterRedoStackUpdateOp(OnRedoStackUpdate);
     }
 
     // Update is called once per frame
@@ -107,58 +105,37 @@ public class MapEditorToolbarScript : MonoBehaviour
 
     public void UndoEditorAction()
     {
-        if (_blockUndoAndRedo)
-            return;
-
-        if (_undoableEditorActions.Count <= 0)
-            return;
-
-        EditorAction action = PopUndoableAction();
-
-        action.Undo();
-
-        PushRedoableAction(action);
+        Manager.UndoEditorAction();
     }
 
     public void RedoEditorAction()
     {
-        if (_blockUndoAndRedo)
-            return;
-
-        if (_redoableEditorActions.Count <= 0)
-            return;
-
-        EditorAction action = PopRedoableAction();
-
-        action.Do();
-
-        PushUndoableAction(action);
+        Manager.RedoEditorAction();
     }
 
     private void OnRegenCompletion()
     {
         GuiManager.DeregisterRegenerateWorldPostProgressOp(OnRegenCompletion);
-        _blockUndoAndRedo = false;
+
+        Manager.BlockUndoAndRedo(false);
     }
 
     private void PerformRegenerateWorldAction(System.Action<float> action, float previousValue, float newValue)
     {
-        EditorAction editorAction = new RenegerateWorldAction
+        EditorAction editorAction = new RegenerateWorldAction
         {
             Action = action,
             PreviousValue = previousValue,
             NewValue = newValue
         };
 
-        editorAction.Do();
-
-        PushUndoableAction(editorAction);
-        ResetRedoableActionsStack();
+        Manager.PerformEditorAction(editorAction);
     }
 
     private void RegenerateWorldAltitudeScaleChange_Internal(float value)
     {
-        _blockUndoAndRedo = true;
+        Manager.BlockUndoAndRedo(true);
+
         GuiManager.RegisterRegenerateWorldPostProgressOp(OnRegenCompletion);
 
         RegenerateWorldAltitudeScaleChangeEvent.Invoke(value);
@@ -174,7 +151,8 @@ public class MapEditorToolbarScript : MonoBehaviour
 
     private void RegenerateWorldSeaLevelOffsetChange_Internal(float value)
     {
-        _blockUndoAndRedo = true;
+        Manager.BlockUndoAndRedo(true);
+
         GuiManager.RegisterRegenerateWorldPostProgressOp(OnRegenCompletion);
 
         RegenerateWorldSeaLevelOffsetChangeEvent.Invoke(value);
@@ -190,7 +168,8 @@ public class MapEditorToolbarScript : MonoBehaviour
 
     private void RegenerateWorldTemperatureOffsetChange_Internal(float value)
     {
-        _blockUndoAndRedo = true;
+        Manager.BlockUndoAndRedo(true);
+
         GuiManager.RegisterRegenerateWorldPostProgressOp(OnRegenCompletion);
 
         RegenerateWorldTemperatureOffsetChangeEvent.Invoke(value);
@@ -206,7 +185,8 @@ public class MapEditorToolbarScript : MonoBehaviour
 
     private void RegenerateWorldRainfallOffsetChange_Internal(float value)
     {
-        _blockUndoAndRedo = true;
+        Manager.BlockUndoAndRedo(true);
+
         GuiManager.RegisterRegenerateWorldPostProgressOp(OnRegenCompletion);
 
         RegenerateWorldRainfallOffsetChangeEvent.Invoke(value);
@@ -220,53 +200,13 @@ public class MapEditorToolbarScript : MonoBehaviour
             value);
     }
 
-    public void ResetActionStacks()
+    private void OnUndoStackUpdate()
     {
-        ResetUndoableActionsStack();
-        ResetRedoableActionsStack();
+        UndoActionButton.interactable = Manager.UndoableEditorActionsCount > 0;
     }
 
-    public void PushUndoableAction(EditorAction action)
+    private void OnRedoStackUpdate()
     {
-        _undoableEditorActions.Push(action);
-        UndoActionButton.interactable = true;
-    }
-
-    public void PushRedoableAction(EditorAction action)
-    {
-        _redoableEditorActions.Push(action);
-        RedoActionButton.interactable = true;
-    }
-
-    public EditorAction PopUndoableAction()
-    {
-        EditorAction action = _undoableEditorActions.Pop();
-
-        if (_undoableEditorActions.Count <= 0)
-            UndoActionButton.interactable = false;
-
-        return action;
-    }
-
-    public EditorAction PopRedoableAction()
-    {
-        EditorAction action = _redoableEditorActions.Pop();
-
-        if (_redoableEditorActions.Count <= 0)
-            RedoActionButton.interactable = false;
-
-        return action;
-    }
-
-    public void ResetUndoableActionsStack()
-    {
-        _undoableEditorActions.Clear();
-        UndoActionButton.interactable = false;
-    }
-
-    public void ResetRedoableActionsStack()
-    {
-        _redoableEditorActions.Clear();
-        RedoActionButton.interactable = false;
+        RedoActionButton.interactable = Manager.RedoableEditorActionsCount > 0;
     }
 }

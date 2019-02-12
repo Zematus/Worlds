@@ -49,7 +49,6 @@ public class GuiManagerScript : MonoBehaviour
     public ImageDialogPanelScript ActivityDialogPanelScript;
     public TextInputDialogPanelScript ErrorMessageDialogPanelScript;
     public WorldCustomizationDialogPanelScript SetSeedDialogPanelScript;
-    public WorldCustomizationDialogPanelScript CustomizeWorldDialogPanelScript;
     public AddPopulationDialogScript AddPopulationDialogScript;
     public FocusPanelScript FocusPanelScript;
     public GuidingPanelScript GuidingPanelScript;
@@ -210,7 +209,6 @@ public class GuiManagerScript : MonoBehaviour
         ActivityDialogPanelScript.SetVisible(false);
         OptionsDialogPanelScript.SetVisible(false);
         SetSeedDialogPanelScript.SetVisible(false);
-        CustomizeWorldDialogPanelScript.SetVisible(false);
         ErrorMessageDialogPanelScript.SetVisible(false);
         ExceptionDialogPanelScript.SetVisible(false);
         AddPopulationDialogScript.SetVisible(false);
@@ -700,8 +698,7 @@ public class GuiManagerScript : MonoBehaviour
                 {
                     CloseOptionsMenu();
                 }
-                else if ((SetSeedDialogPanelScript.gameObject.activeInHierarchy) ||
-                  (CustomizeWorldDialogPanelScript.gameObject.activeInHierarchy))
+                else if (SetSeedDialogPanelScript.gameObject.activeInHierarchy)
                 {
                     CancelGenerateAction();
                 }
@@ -984,7 +981,6 @@ public class GuiManagerScript : MonoBehaviour
     public void CancelGenerateAction()
     {
         SetSeedDialogPanelScript.SetVisible(false);
-        CustomizeWorldDialogPanelScript.SetVisible(false);
 
         MenuUninterruptSimulation();
     }
@@ -1078,32 +1074,6 @@ public class GuiManagerScript : MonoBehaviour
 
         int seed = 0;
         string seedStr = SetSeedDialogPanelScript.GetSeedString();
-
-        if (!int.TryParse(seedStr, out seed))
-        {
-            ErrorMessageDialogPanelScript.SetVisible(true);
-            return;
-        }
-
-        if (seed < 0)
-        {
-            ErrorMessageDialogPanelScript.SetVisible(true);
-            return;
-        }
-
-        GenerateWorldInternal(seed);
-    }
-
-    public void GenerateWorldWithCustomParameters()
-    {
-        CustomizeWorldDialogPanelScript.SetVisible(false);
-
-        Manager.TemperatureOffset = CustomizeWorldDialogPanelScript.TemperatureOffset;
-        Manager.RainfallOffset = CustomizeWorldDialogPanelScript.RainfallOffset;
-        Manager.SeaLevelOffset = CustomizeWorldDialogPanelScript.SeaLevelOffset;
-
-        int seed = 0;
-        string seedStr = CustomizeWorldDialogPanelScript.GetSeedString();
 
         if (!int.TryParse(seedStr, out seed))
         {
@@ -1310,23 +1280,6 @@ public class GuiManagerScript : MonoBehaviour
         QuickTipPanelScript.SetVisible(true);
 
         _displayedTip_mapScroll = true;
-    }
-
-    public void CustomizeGeneration()
-    {
-        SetSeedDialogPanelScript.SetVisible(false);
-
-        string seedStr = SetSeedDialogPanelScript.GetSeedString();
-
-        CustomizeWorldDialogPanelScript.SetVisible(true);
-
-        CustomizeWorldDialogPanelScript.SetSeedString(seedStr);
-
-        CustomizeWorldDialogPanelScript.SetTemperatureOffset(Manager.TemperatureOffset);
-        CustomizeWorldDialogPanelScript.SetRainfallOffset(Manager.RainfallOffset);
-        CustomizeWorldDialogPanelScript.SetSeaLevelOffset(Manager.SeaLevelOffset);
-
-        InterruptSimulation(true);
     }
 
     public void LoadHeightmapAction()

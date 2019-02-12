@@ -249,7 +249,7 @@ public class World : ISynchronizable
         XmlArrayItem(Type = typeof(OpenTribeDecisionEvent))]
     public List<WorldEvent> EventsToHappen;
 
-    public List<TerrainCellChanges> TerrainCellChangesList = new List<TerrainCellChanges>();
+    public List<TerrainCellAlteration> TerrainCellChangesList = new List<TerrainCellAlteration>();
 
     public List<CulturalPreferenceInfo> CulturalPreferenceInfoList = new List<CulturalPreferenceInfo>();
     public List<CulturalActivityInfo> CulturalActivityInfoList = new List<CulturalActivityInfo>();
@@ -309,19 +309,19 @@ public class World : ISynchronizable
     public float MaxPossibleTemperatureWithOffset = MaxPossibleTemperature + Manager.TemperatureOffset;
 
     [XmlIgnore]
-    public float MaxAltitude = float.MinValue;
+    public float MaxAltitude = MaxPossibleAltitude;
     [XmlIgnore]
-    public float MinAltitude = float.MaxValue;
+    public float MinAltitude = MinPossibleAltitude;
 
     [XmlIgnore]
-    public float MaxRainfall = float.MinValue;
+    public float MaxRainfall = MaxPossibleRainfall;
     [XmlIgnore]
-    public float MinRainfall = float.MaxValue;
+    public float MinRainfall = MinPossibleRainfall;
 
     [XmlIgnore]
-    public float MaxTemperature = float.MinValue;
+    public float MaxTemperature = MaxPossibleTemperature;
     [XmlIgnore]
-    public float MinTemperature = float.MaxValue;
+    public float MinTemperature = MinPossibleTemperature;
 
     [XmlIgnore]
     public TerrainCell[][] TerrainCells;
@@ -552,7 +552,7 @@ public class World : ISynchronizable
         _continentAltitudeOffsets = new float[NumContinents];
 
         // When it's a loaded world there might be already terrain modifications that we need to set
-        foreach (TerrainCellChanges changes in TerrainCellChangesList)
+        foreach (TerrainCellAlteration changes in TerrainCellChangesList)
         {
             SetTerrainCellChanges(changes);
         }
@@ -673,7 +673,7 @@ public class World : ISynchronizable
 
     public void GetTerrainCellChanges(TerrainCell cell)
     {
-        TerrainCellChanges changes = cell.GetChanges();
+        TerrainCellAlteration changes = cell.GetAlteration();
 
         if (changes == null)
             return;
@@ -683,7 +683,7 @@ public class World : ISynchronizable
         TerrainCellChangesListCount++;
     }
 
-    public void SetTerrainCellChanges(TerrainCellChanges changes)
+    public void SetTerrainCellChanges(TerrainCellAlteration changes)
     {
         TerrainCell cell = TerrainCells[changes.Longitude][changes.Latitude];
 
@@ -2366,7 +2366,7 @@ public class World : ISynchronizable
 
         if (valueOffset == 0)
             return; // No actual changes being made to cell
-
+        
         float value = cell.BaseAltitudeValue + valueOffset;
 
         CalculateAndSetAltitude(cell, value, true);

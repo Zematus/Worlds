@@ -237,7 +237,7 @@ public class TerrainCell : ISynchronizable
         return (((date * 1000000) + ((long)Longitude * 1000) + (long)Latitude) * oom) + (offset % oom);
     }
 
-    public TerrainCellChanges GetChanges()
+    public TerrainCellAlteration GetAlteration()
     {
         // If cell hasn't been modified there's no need to create a TerrainCellChanges object
         if (!Modified)
@@ -245,14 +245,14 @@ public class TerrainCell : ISynchronizable
             return null;
         }
 
-        TerrainCellChanges changes = new TerrainCellChanges(this);
+        TerrainCellAlteration changes = new TerrainCellAlteration(this);
 
         changes.Flags.AddRange(_flags);
 
         return changes;
     }
 
-    public void SetChanges(TerrainCellChanges changes)
+    public void SetChanges(TerrainCellAlteration changes)
     {
         BaseAltitudeValue = changes.BaseAltitudeValue;
         BaseTemperatureValue = changes.BaseTemperatureValue;

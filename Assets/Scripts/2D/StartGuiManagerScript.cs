@@ -15,7 +15,6 @@ public class StartGuiManagerScript : MonoBehaviour
     public ProgressDialogPanelScript ProgressDialogPanelScript;
     public TextInputDialogPanelScript MessageDialogPanelScript;
     public WorldCustomizationDialogPanelScript SetSeedDialogPanelScript;
-    public WorldCustomizationDialogPanelScript CustomizeWorldDialogPanelScript;
     public ModalPanelScript CreditsDialogPanelScript;
 
     public Text VersionText;
@@ -76,7 +75,6 @@ public class StartGuiManagerScript : MonoBehaviour
         SetSeedDialogPanelScript.SetVisible(false);
         MessageDialogPanelScript.SetVisible(false);
         ExceptionDialogPanelScript.SetVisible(false);
-        CustomizeWorldDialogPanelScript.SetVisible(false);
         MainMenuDialogPanelScript.SetVisible(true);
 
         LoadButton.interactable = HasSaveFilesToLoad();
@@ -254,7 +252,6 @@ public class StartGuiManagerScript : MonoBehaviour
     public void CancelGenerateAction()
     {
         SetSeedDialogPanelScript.SetVisible(false);
-        CustomizeWorldDialogPanelScript.SetVisible(false);
 
         MainMenuDialogPanelScript.SetVisible(true);
     }
@@ -323,32 +320,6 @@ public class StartGuiManagerScript : MonoBehaviour
         GenerateWorldInternal(seed);
     }
 
-    public void GenerateWorldWithCustomParameters()
-    {
-        CustomizeWorldDialogPanelScript.SetVisible(false);
-
-        Manager.TemperatureOffset = CustomizeWorldDialogPanelScript.TemperatureOffset;
-        Manager.RainfallOffset = CustomizeWorldDialogPanelScript.RainfallOffset;
-        Manager.SeaLevelOffset = CustomizeWorldDialogPanelScript.SeaLevelOffset;
-
-        int seed = 0;
-        string seedStr = CustomizeWorldDialogPanelScript.GetSeedString();
-
-        if (!int.TryParse(seedStr, out seed))
-        {
-            MessageDialogPanelScript.SetVisible(true);
-            return;
-        }
-
-        if (seed < 0)
-        {
-            MessageDialogPanelScript.SetVisible(true);
-            return;
-        }
-
-        GenerateWorldInternal(seed);
-    }
-
     private void GenerateWorldInternal(int seed)
     {
         ProgressDialogPanelScript.SetVisible(true);
@@ -367,21 +338,6 @@ public class StartGuiManagerScript : MonoBehaviour
         }
 
         _postProgressOp += PostProgressOp_GenerateWorld;
-    }
-
-    public void CustomizeGeneration()
-    {
-        SetSeedDialogPanelScript.SetVisible(false);
-
-        string seedStr = SetSeedDialogPanelScript.GetSeedString();
-
-        CustomizeWorldDialogPanelScript.SetVisible(true);
-
-        CustomizeWorldDialogPanelScript.SetSeedString(seedStr);
-
-        CustomizeWorldDialogPanelScript.SetTemperatureOffset(Manager.TemperatureOffset);
-        CustomizeWorldDialogPanelScript.SetRainfallOffset(Manager.RainfallOffset);
-        CustomizeWorldDialogPanelScript.SetSeaLevelOffset(Manager.SeaLevelOffset);
     }
 
     public void ProgressUpdate(float value, string message = null, bool reset = false)
