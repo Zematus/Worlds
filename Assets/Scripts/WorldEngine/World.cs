@@ -699,7 +699,14 @@ public class World : ISynchronizable
         GenerateTerrainBiomesForCell(cell);
         GenerateTerrainArabilityForCell(cell);
 
-        Manager.AddUpdatedCell(cell, CellUpdateType.Cell, CellUpdateSubType.All);
+        Manager.AddUpdatedCell(cell, CellUpdateType.Cell, CellUpdateSubType.Terrain);
+        
+        Manager.ResetSlantsAround(cell);
+
+        foreach (TerrainCell nCell in cell.Neighbors.Values)
+        {
+            Manager.AddUpdatedCell(nCell, CellUpdateType.Cell, CellUpdateSubType.Terrain);
+        }
     }
 
     public void AddExistingCulturalPreferenceInfo(CulturalPreferenceInfo baseInfo)

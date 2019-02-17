@@ -7,8 +7,6 @@ using System.Collections.Generic;
 
 public class BrushControlPanelScript : MonoBehaviour
 {
-    public Toggle FlattenToggle;
-
     public SliderControlsScript RadiusSliderControlsScript;
     public SliderControlsScript StrengthSliderControlsScript;
     public SliderControlsScript NoiseSliderControlsScript;

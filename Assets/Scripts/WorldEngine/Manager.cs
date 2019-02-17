@@ -1672,7 +1672,7 @@ public class Manager
         }
     }
 
-    private static void ResetSlantsAround(TerrainCell cell)
+    public static void ResetSlantsAround(TerrainCell cell)
     {
         foreach (TerrainCell nCell in cell.Neighbors.Values)
         {
