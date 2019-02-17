@@ -149,7 +149,7 @@ public class MapScript : MonoBehaviour
         {
             if (!_isDraggingMap)
             {
-                Manager.EditorBrushIsActive = true;
+                Manager.ActivateEditorBrush(true);
             }
         }
     }
@@ -160,7 +160,7 @@ public class MapScript : MonoBehaviour
 
         if (pointerData.button == PointerEventData.InputButton.Left)
         {
-            Manager.EditorBrushIsActive = false;
+            Manager.ActivateEditorBrush(false);
         }
     }
 

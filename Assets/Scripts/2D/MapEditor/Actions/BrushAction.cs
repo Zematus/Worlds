@@ -6,33 +6,55 @@ using System.Xml.Serialization;
 
 public class BrushAction : EditorAction
 {
-    private struct TerrainCellAlterationPair
+    private class TerrainCellAlterationPair
     {
         public TerrainCellAlteration Before;
         public TerrainCellAlteration After;
     }
 
-    private Dictionary<WorldPosition, TerrainCellAlterationPair> _alterationPairs = new Dictionary<WorldPosition, TerrainCellAlterationPair>();
+    private HashSet<TerrainCell> _cellsBeingModified = new HashSet<TerrainCell>();
 
-    public void AddAlterationPair(TerrainCellAlteration before, TerrainCellAlteration after)
+    private Dictionary<WorldPosition, TerrainCellAlterationPair> _alterationPairs = 
+        new Dictionary<WorldPosition, TerrainCellAlterationPair>();
+
+    public void AddCellBeforeAlteration(TerrainCell cellBefore)
     {
         TerrainCellAlterationPair pair;
 
-        if (!_alterationPairs.TryGetValue(before.Position, out pair))
+        if (!_alterationPairs.TryGetValue(cellBefore.Position, out pair))
         {
-            pair = new TerrainCellAlterationPair { Before = before };
+            pair = new TerrainCellAlterationPair { Before = cellBefore.GetAlteration(true) };
 
-            _alterationPairs.Add(before.Position, pair);
+            _alterationPairs.Add(cellBefore.Position, pair);
         }
+    }
 
-        pair.After = after;
+    public void AddCellAfterAlteration(TerrainCell cellAfter)
+    {
+        _cellsBeingModified.Add(cellAfter);
+    }
+
+    public void FinalizeCellAlterations()
+    {
+        foreach (TerrainCell cell in _cellsBeingModified)
+        {
+            _alterationPairs[cell.Position].After = cell.GetAlteration(true);
+        }
     }
 
     public override void Do()
     {
+        foreach (TerrainCellAlterationPair pair in _alterationPairs.Values)
+        {
+            Manager.CurrentWorld.SetTerrainCellAlterationAndFinishRegenCell(pair.After);
+        }
     }
 
     public override void Undo()
     {
+        foreach (TerrainCellAlterationPair pair in _alterationPairs.Values)
+        {
+            Manager.CurrentWorld.SetTerrainCellAlterationAndFinishRegenCell(pair.Before);
+        }
     }
 }

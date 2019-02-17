@@ -34,6 +34,9 @@ public class TerrainCellAlteration
     [XmlAttribute("Fp")]
     public float FarmlandPercentage = 0;
 
+    [XmlAttribute("M")]
+    public bool Modified;
+
     public List<string> Flags = new List<string>();
 
     [XmlIgnore]
@@ -63,5 +66,7 @@ public class TerrainCellAlteration
         Rainfall = cell.Rainfall;
         
         FarmlandPercentage = cell.FarmlandPercentage;
+
+        Modified = cell.Modified;
     }
 }

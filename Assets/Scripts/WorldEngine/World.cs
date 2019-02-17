@@ -216,7 +216,7 @@ public class World : ISynchronizable
     public int LanguageCount { get; private set; }
 
     [XmlAttribute]
-    public int TerrainCellChangesListCount { get; private set; }
+    public int TerrainCellAlterationListCount { get; private set; }
 
     [XmlAttribute]
     public float AltitudeScale { get; private set; }
@@ -249,7 +249,7 @@ public class World : ISynchronizable
         XmlArrayItem(Type = typeof(OpenTribeDecisionEvent))]
     public List<WorldEvent> EventsToHappen;
 
-    public List<TerrainCellAlteration> TerrainCellChangesList = new List<TerrainCellAlteration>();
+    public List<TerrainCellAlteration> TerrainCellAlterationList = new List<TerrainCellAlteration>();
 
     public List<CulturalPreferenceInfo> CulturalPreferenceInfoList = new List<CulturalPreferenceInfo>();
     public List<CulturalActivityInfo> CulturalActivityInfoList = new List<CulturalActivityInfo>();
@@ -438,7 +438,7 @@ public class World : ISynchronizable
         CellGroupCount = 0;
         PolityCount = 0;
         RegionCount = 0;
-        TerrainCellChangesListCount = 0;
+        TerrainCellAlterationListCount = 0;
 
         //AltitudeScale = Manager.AltitudeScale;
         //SeaLevelOffset = Manager.SeaLevelOffset;
@@ -552,9 +552,9 @@ public class World : ISynchronizable
         _continentAltitudeOffsets = new float[NumContinents];
 
         // When it's a loaded world there might be already terrain modifications that we need to set
-        foreach (TerrainCellAlteration changes in TerrainCellChangesList)
+        foreach (TerrainCellAlteration changes in TerrainCellAlterationList)
         {
-            SetTerrainCellChanges(changes);
+            SetTerrainCellAlteration(changes);
         }
 
         Manager.EnqueueTaskAndWait(() =>
@@ -655,8 +655,8 @@ public class World : ISynchronizable
             l.Synchronize();
         }
 
-        TerrainCellChangesList.Clear();
-        TerrainCellChangesListCount = 0;
+        TerrainCellAlterationList.Clear();
+        TerrainCellAlterationListCount = 0;
 
         for (int i = 0; i < Width; i++)
         {
@@ -664,30 +664,42 @@ public class World : ISynchronizable
             {
                 TerrainCell cell = TerrainCells[i][j];
 
-                GetTerrainCellChanges(cell);
+                GetTerrainCellAlteration(cell);
             }
         }
 
         EventMessageIds = new List<long>(_eventMessageIds);
     }
 
-    public void GetTerrainCellChanges(TerrainCell cell)
+    public void GetTerrainCellAlteration(TerrainCell cell)
     {
-        TerrainCellAlteration changes = cell.GetAlteration();
+        TerrainCellAlteration Alteration = cell.GetAlteration();
 
-        if (changes == null)
+        if (Alteration == null)
             return;
 
-        TerrainCellChangesList.Add(changes);
+        TerrainCellAlterationList.Add(Alteration);
 
-        TerrainCellChangesListCount++;
+        TerrainCellAlterationListCount++;
     }
 
-    public void SetTerrainCellChanges(TerrainCellAlteration changes)
+    public TerrainCell SetTerrainCellAlteration(TerrainCellAlteration alteration)
     {
-        TerrainCell cell = TerrainCells[changes.Longitude][changes.Latitude];
+        TerrainCell cell = TerrainCells[alteration.Longitude][alteration.Latitude];
 
-        cell.SetChanges(changes);
+        cell.SetAlteration(alteration);
+
+        return cell;
+    }
+
+    public void SetTerrainCellAlterationAndFinishRegenCell(TerrainCellAlteration alteration)
+    {
+        TerrainCell cell = SetTerrainCellAlteration(alteration);
+
+        GenerateTerrainBiomesForCell(cell);
+        GenerateTerrainArabilityForCell(cell);
+
+        Manager.AddUpdatedCell(cell, CellUpdateType.Cell, CellUpdateSubType.All);
     }
 
     public void AddExistingCulturalPreferenceInfo(CulturalPreferenceInfo baseInfo)
@@ -2366,7 +2378,9 @@ public class World : ISynchronizable
 
         if (valueOffset == 0)
             return; // No actual changes being made to cell
-        
+
+        Manager.ActiveEditorBrushAction.AddCellBeforeAlteration(cell);
+
         float value = cell.BaseAltitudeValue + valueOffset;
 
         CalculateAndSetAltitude(cell, value, true);
@@ -2383,10 +2397,14 @@ public class World : ISynchronizable
     {
         foreach (TerrainCell cell in _modifiedAltitudeCells)
         {
+            Manager.ActiveEditorBrushAction.AddCellBeforeAlteration(cell);
+
             GenerateTerrainRainfallForCell(cell, setDependencies: false);
             GenerateTerrainTemperatureForCell(cell);
             GenerateTerrainBiomesForCell(cell);
             GenerateTerrainArabilityForCell(cell);
+
+            Manager.ActiveEditorBrushAction.AddCellAfterAlteration(cell);
         }
 
         _modifiedAltitudeCells.Clear();
@@ -2406,11 +2424,16 @@ public class World : ISynchronizable
 
         if (valueOffset == 0)
             return; // No actual changes being made to cell
-        
+
+        // Make sure to record cell state before changes are made to it
+        Manager.ActiveEditorBrushAction.AddCellBeforeAlteration(cell);
+
         CalculateAndSetTemperature(cell, cell.BaseTemperatureValue, valueOffset, true);
 
         GenerateTerrainBiomesForCell(cell);
         GenerateTerrainArabilityForCell(cell);
+        
+        Manager.ActiveEditorBrushAction.AddCellAfterAlteration(cell);
     }
 
     public void ModifyCellRainfall(TerrainCell cell, float valueOffset, float noiseFactor = 0, float noiseRadius = 0)
@@ -2428,10 +2451,15 @@ public class World : ISynchronizable
         if (valueOffset == 0)
             return; // No actual changes being made to cell
 
+        // Make sure to record cell state before changes are made to it
+        Manager.ActiveEditorBrushAction.AddCellBeforeAlteration(cell);
+
         CalculateAndSetRainfall(cell, cell.BaseRainfallValue, valueOffset, true);
 
         GenerateTerrainBiomesForCell(cell);
         GenerateTerrainArabilityForCell(cell);
+
+        Manager.ActiveEditorBrushAction.AddCellAfterAlteration(cell);
     }
 
     private void GenerateTerrainAltitudeOld()

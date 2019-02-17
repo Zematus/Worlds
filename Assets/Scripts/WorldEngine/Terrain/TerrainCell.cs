@@ -237,37 +237,39 @@ public class TerrainCell : ISynchronizable
         return (((date * 1000000) + ((long)Longitude * 1000) + (long)Latitude) * oom) + (offset % oom);
     }
 
-    public TerrainCellAlteration GetAlteration()
+    public TerrainCellAlteration GetAlteration(bool regardless = false)
     {
-        // If cell hasn't been modified there's no need to create a TerrainCellChanges object
-        if (!Modified)
+        // If cell hasn't been modified there's no need to create a TerrainCellChanges object (unless it is regardless)
+        if (!regardless && !Modified)
         {
             return null;
         }
 
-        TerrainCellAlteration changes = new TerrainCellAlteration(this);
+        TerrainCellAlteration alteration = new TerrainCellAlteration(this);
 
-        changes.Flags.AddRange(_flags);
+        alteration.Flags.AddRange(_flags);
 
-        return changes;
+        return alteration;
     }
 
-    public void SetChanges(TerrainCellAlteration changes)
+    public void SetAlteration(TerrainCellAlteration alteration)
     {
-        BaseAltitudeValue = changes.BaseAltitudeValue;
-        BaseTemperatureValue = changes.BaseTemperatureValue;
-        BaseRainfallValue = changes.BaseRainfallValue;
+        BaseAltitudeValue = alteration.BaseAltitudeValue;
+        BaseTemperatureValue = alteration.BaseTemperatureValue;
+        BaseRainfallValue = alteration.BaseRainfallValue;
 
-        BaseTemperatureOffset = changes.BaseTemperatureOffset;
-        BaseRainfallOffset = changes.BaseRainfallOffset;
+        BaseTemperatureOffset = alteration.BaseTemperatureOffset;
+        BaseRainfallOffset = alteration.BaseRainfallOffset;
 
-        Altitude = changes.Altitude;
-        Temperature = changes.Temperature;
-        Rainfall = changes.Rainfall;
+        Altitude = alteration.Altitude;
+        Temperature = alteration.Temperature;
+        Rainfall = alteration.Rainfall;
 
-        FarmlandPercentage = changes.FarmlandPercentage;
+        FarmlandPercentage = alteration.FarmlandPercentage;
 
-        foreach (string flag in changes.Flags)
+        Modified = alteration.Modified;
+
+        foreach (string flag in alteration.Flags)
         {
             _flags.Add(flag);
         }
@@ -280,8 +282,6 @@ public class TerrainCell : ISynchronizable
 
         if (Temperature > World.MaxTemperature) World.MaxTemperature = Temperature;
         if (Temperature < World.MinTemperature) World.MinTemperature = Temperature;
-
-        Modified = true; // Keep storing the changes to file.
     }
 
     public void SetFlag(string flag)

@@ -138,6 +138,8 @@ public class Manager
     public static bool EditorBrushIsActive = false;
     public static bool EditorBrushIsFlattenModeIsActive = false;
 
+    public static BrushAction ActiveEditorBrushAction = null;
+
     public static EditorBrushType EditorBrushType = EditorBrushType.None;
 
     public static bool PointerIsOverMap = false;
@@ -1280,7 +1282,7 @@ public class Manager
 
         _totalLoadTicks = WorldBeingLoaded.EventsToHappenCount;
         _totalLoadTicks += WorldBeingLoaded.CellGroupCount;
-        _totalLoadTicks += WorldBeingLoaded.TerrainCellChangesListCount;
+        _totalLoadTicks += WorldBeingLoaded.TerrainCellAlterationListCount;
 
         _loadTicks = 0;
     }
@@ -1693,6 +1695,25 @@ public class Manager
         }
 
         AddUpdatedCell(cell, updateType, updateSubType);
+    }
+
+    public static void ActivateEditorBrush(bool state)
+    {
+        EditorBrushIsActive = state;
+
+        if (state)
+        {
+            ActiveEditorBrushAction = new BrushAction();
+        }
+        else if (ActiveEditorBrushAction != null)
+        {
+            ActiveEditorBrushAction.FinalizeCellAlterations();
+
+            PushUndoableAction(ActiveEditorBrushAction);
+            ResetRedoableActionsStack();
+
+            ActiveEditorBrushAction = null;
+        }
     }
 
     private static void ApplyEditorBrush_Altitude(int longitude, int latitude, float distanceFactor)
