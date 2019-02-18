@@ -2078,6 +2078,35 @@ public class GuiManagerScript : MonoBehaviour
         }
     }
 
+    public void ChangeToTemperatureOverlayFromEditorToolbar(bool state)
+    {
+        if (state)
+        {
+            ChangePlanetOverlay(PlanetOverlay.Temperature);
+        }
+        else
+        {
+            ChangePlanetOverlay(PlanetOverlay.General);
+        }
+    }
+
+    public void ChangeToRainfallOverlayFromEditorToolbar(bool state)
+    {
+        if (state)
+        {
+            ChangePlanetOverlay(PlanetOverlay.Rainfall);
+        }
+        else
+        {
+            ChangePlanetOverlay(PlanetOverlay.General);
+        }
+    }
+
+    public void ChangeToGeneralOverlayFromEditorToolbar()
+    {
+        ChangePlanetOverlay(PlanetOverlay.General);
+    }
+
     public void ChangePlanetOverlay(PlanetOverlay value, bool invokeEvent = true)
     {
         _regenTextures |= _planetOverlay != value;

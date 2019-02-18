@@ -17,6 +17,8 @@ public class BrushControlPanelScript : MonoBehaviour
 
     public ToggleEvent BrushUntoggleEvent; // This event will fire when the brush is activated / deactivated regardless of type
 
+    public ToggleEvent TriggerOverlayChangeEvent; // This event will fire when this panel is activated
+
     private const float _minRadiusValue = 1;
     private const float _maxRadiusValue = 20;
     private const float _defaultRadiusValue = 10;
@@ -29,6 +31,8 @@ public class BrushControlPanelScript : MonoBehaviour
     private const float _minNoiseValue = 0;
     private const float _maxNoiseValue = 1;
     private const float _defaultNoiseValue = 0.25f;
+
+    private bool _enableOverlayWhenActive = true;
 
     private float _lastRadiusValue = _defaultRadiusValue;
     private float _lastStrengthValue = _defaultStrengthValue;
@@ -83,6 +87,13 @@ public class BrushControlPanelScript : MonoBehaviour
         Manager.EditorBrushNoise = value;
     }
 
+    public void SetToEnableOverlay(bool state)
+    {
+        _enableOverlayWhenActive = state;
+
+        TriggerOverlayChangeEvent.Invoke(state);
+    }
+
     public void Activate(bool state)
     {
         gameObject.SetActive(state);
@@ -126,6 +137,8 @@ public class BrushControlPanelScript : MonoBehaviour
 
             Manager.EditorBrushIsVisible = true;
             Manager.EditorBrushIsFlattenModeIsActive = _flattenModeIsActive;
+
+            TriggerOverlayChangeEvent.Invoke(_enableOverlayWhenActive);
         }
         else
         {
