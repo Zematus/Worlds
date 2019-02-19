@@ -122,6 +122,11 @@ public class StartGuiManagerScript : MonoBehaviour
         }
     }
 
+    public void CloseExceptionMessageAction()
+    {
+        Exit();
+    }
+
     private void PostProgressOp_GenerateWorld()
     {
         Debug.Log("Finished generating world with seed: " + Manager.CurrentWorld.Seed);

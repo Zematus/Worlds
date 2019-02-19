@@ -2086,7 +2086,7 @@ public class GuiManagerScript : MonoBehaviour
         }
         else
         {
-            ChangePlanetOverlay(PlanetOverlay.General);
+            ChangePlanetOverlay(PlanetOverlay.None);
         }
     }
 
@@ -2098,13 +2098,13 @@ public class GuiManagerScript : MonoBehaviour
         }
         else
         {
-            ChangePlanetOverlay(PlanetOverlay.General);
+            ChangePlanetOverlay(PlanetOverlay.None);
         }
     }
 
-    public void ChangeToGeneralOverlayFromEditorToolbar()
+    public void DisableAllOverlays()
     {
-        ChangePlanetOverlay(PlanetOverlay.General);
+        ChangePlanetOverlay(PlanetOverlay.None);
     }
 
     public void ChangePlanetOverlay(PlanetOverlay value, bool invokeEvent = true)
