@@ -10,6 +10,11 @@ public class MapScript : MonoBehaviour
     public RawImage PointerOverlayImage;
     public GameObject InfoPanel;
 
+    public UnityEvent ViewsKeyPressed;
+    public UnityEvent OverlayKeyPressed;
+
+    public PlanetViewEvent ChangePlanetViewKeyPressed;
+
     private bool _isDraggingMap = false;
     private Vector2 _beginDragPosition;
     private Rect _beginDragMapUvRect;
@@ -28,6 +33,13 @@ public class MapScript : MonoBehaviour
 
     public void ReadKeyboardInput()
     {
+        ReadKeyboardInput_Zoom();
+        ReadKeyboardInput_MenuPanel();
+        ReadKeyboardInput_MapViews();
+    }
+
+    public void ReadKeyboardInput_Zoom()
+    {
         if (Input.GetKey(KeyCode.KeypadPlus) ||
             Input.GetKey(KeyCode.Equals))
         {
@@ -38,6 +50,52 @@ public class MapScript : MonoBehaviour
         {
             ZoomKeyPressed(false);
         }
+    }
+
+    public void ReadKeyboardInput_MenuPanel()
+    {
+        if (Input.GetKey(KeyCode.B))
+        {
+            SetBiomeView();
+        }
+
+        if (Input.GetKey(KeyCode.E))
+        {
+            SetElevationView();
+        }
+
+        if (Input.GetKey(KeyCode.C))
+        {
+            SetCoastlineView();
+        }
+    }
+
+    public void ReadKeyboardInput_MapViews()
+    {
+        if (Input.GetKey(KeyCode.V))
+        {
+            ViewsKeyPressed.Invoke();
+        }
+
+        if (Input.GetKey(KeyCode.O))
+        {
+            OverlayKeyPressed.Invoke();
+        }
+    }
+
+    public void SetBiomeView()
+    {
+        ChangePlanetViewKeyPressed.Invoke(PlanetView.Biomes);
+    }
+
+    public void SetElevationView()
+    {
+        ChangePlanetViewKeyPressed.Invoke(PlanetView.Elevation);
+    }
+
+    public void SetCoastlineView()
+    {
+        ChangePlanetViewKeyPressed.Invoke(PlanetView.Coastlines);
     }
 
     public void SetVisible(bool value)

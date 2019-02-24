@@ -38,6 +38,9 @@ public class MapEditorToolbarScript : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (!gameObject.activeInHierarchy)
+            return;
+
         ReadKeyboardInput();
     }
 
@@ -70,7 +73,7 @@ public class MapEditorToolbarScript : MonoBehaviour
                 UndoEditorAction();
             }
         }
-        else if (shiftPressed)
+        else
         {
             if (Input.GetKeyDown(KeyCode.Alpha1))
             {

@@ -40,7 +40,6 @@ public class GuiManagerScript : MonoBehaviour
     public LoadFileDialogPanelScript LoadFileDialogPanelScript;
     public SelectFactionDialogPanelScript SelectFactionDialogPanelScript;
     public OverlayDialogPanelScript OverlayDialogPanelScript;
-    public DialogPanelScript ViewsDialogPanelScript;
     public DialogPanelScript MainMenuDialogPanelScript;
     public DialogPanelScript OptionsDialogPanelScript;
     public DialogPanelScript ExceptionDialogPanelScript;
@@ -53,8 +52,6 @@ public class GuiManagerScript : MonoBehaviour
     public FocusPanelScript FocusPanelScript;
     public GuidingPanelScript GuidingPanelScript;
     public ModalPanelScript CreditsDialogPanelScript;
-
-    public List<ModalPanelScript> HiddenInteractionPanels = new List<ModalPanelScript>();
 
     public PaletteScript BiomePaletteScript;
     public PaletteScript MapPaletteScript;
@@ -203,7 +200,6 @@ public class GuiManagerScript : MonoBehaviour
         LoadFileDialogPanelScript.SetVisible(false);
         SelectFactionDialogPanelScript.SetVisible(false);
         OverlayDialogPanelScript.SetVisible(false);
-        ViewsDialogPanelScript.SetVisible(false);
         MainMenuDialogPanelScript.SetVisible(false);
         ProgressDialogPanelScript.SetVisible(false);
         ActivityDialogPanelScript.SetVisible(false);
@@ -351,7 +347,7 @@ public class GuiManagerScript : MonoBehaviour
             if (_postProgressOp != null)
                 _postProgressOp();
 
-            ShowHiddenInteractionPanels();
+            MenuPanelScript.ShowHiddenInteractionPanels();
         }
 
         bool simulationRunning = Manager.SimulationCanRun && Manager.SimulationRunning;
@@ -686,10 +682,6 @@ public class GuiManagerScript : MonoBehaviour
                 {
                     CloseOverlayMenuAction();
                 }
-                else if (ViewsDialogPanelScript.gameObject.activeInHierarchy)
-                {
-                    CloseViewsMenuAction();
-                }
                 else if (MainMenuDialogPanelScript.gameObject.activeInHierarchy)
                 {
                     CloseMainMenu();
@@ -708,7 +700,7 @@ public class GuiManagerScript : MonoBehaviour
                 }
                 else
                 {
-                    ModalPanelScript activeMenuPanel = GetActiveMenuPanel();
+                    ModalPanelScript activeMenuPanel = MenuPanelScript.GetActiveMenuPanel();
 
                     if (activeMenuPanel == null)
                     {
@@ -880,7 +872,7 @@ public class GuiManagerScript : MonoBehaviour
             InterruptSimulation(false);
         }
 
-        ShowHiddenInteractionPanels();
+        MenuPanelScript.ShowHiddenInteractionPanels();
     }
 
     public void CloseMainMenu()
@@ -1476,7 +1468,7 @@ public class GuiManagerScript : MonoBehaviour
             InterruptSimulation(!Manager.SimulationCanRun);
         }
 
-        ShowHiddenInteractionPanels();
+        MenuPanelScript.ShowHiddenInteractionPanels();
     }
 
     public void PostProgressOp_ExportAction()
@@ -1490,7 +1482,7 @@ public class GuiManagerScript : MonoBehaviour
             InterruptSimulation(!Manager.SimulationCanRun);
         }
 
-        ShowHiddenInteractionPanels();
+        MenuPanelScript.ShowHiddenInteractionPanels();
     }
 
     public void SaveAction()
@@ -1679,91 +1671,20 @@ public class GuiManagerScript : MonoBehaviour
         InterruptSimulation(true);
     }
 
-    public bool AreBackgroundActivityPanelsActive()
-    {
-        GameObject[] panels = GameObject.FindGameObjectsWithTag("BackgroundActivityPanel");
-
-        foreach (GameObject panel in panels)
-        {
-            if (panel.activeInHierarchy)
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    public bool AreMenuPanelsActive()
-    {
-        GameObject[] panels = GameObject.FindGameObjectsWithTag("MenuPanel");
-
-        foreach (GameObject panel in panels)
-        {
-            if (panel.activeInHierarchy)
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    public ModalPanelScript GetActiveMenuPanel()
-    {
-        GameObject[] panels = GameObject.FindGameObjectsWithTag("MenuPanel");
-
-        foreach (GameObject panel in panels)
-        {
-            if (panel.activeInHierarchy)
-            {
-                ModalPanelScript modalPanel = panel.GetComponent<ModalPanelScript>();
-
-                return modalPanel;
-            }
-        }
-
-        return null;
-    }
-
-    public bool AreInteractionPanelsActive()
-    {
-        GameObject[] panels = GameObject.FindGameObjectsWithTag("InteractionPanel");
-
-        foreach (GameObject panel in panels)
-        {
-            if (panel.activeInHierarchy)
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    public void ShowHiddenInteractionPanels()
-    {
-        foreach (ModalPanelScript panel in HiddenInteractionPanels)
-        {
-            panel.SetVisible(true);
-        }
-
-        HiddenInteractionPanels.Clear();
-    }
-
     public void RequestDecisionResolution()
     {
         Decision decisionToResolve = Manager.CurrentWorld.PullDecisionToResolve();
 
         DecisionDialogPanelScript.Set(decisionToResolve, _selectedMaxSpeedLevelIndex);
 
-        if (!AreMenuPanelsActive())
+        if (!MenuPanelScript.IsMenuPanelActive())
         {
             DecisionDialogPanelScript.SetVisible(true);
         }
         else
         {
-            HiddenInteractionPanels.Add(DecisionDialogPanelScript);
+            // Hide the decision dialog until all menu panels are inactive
+            MenuPanelScript.HideInteractionPanel(DecisionDialogPanelScript);
         }
 
         InterruptSimulation(true);
@@ -1918,24 +1839,7 @@ public class GuiManagerScript : MonoBehaviour
     {
         OverlayDialogPanelScript.SetVisible(false);
 
-        ShowHiddenInteractionPanels();
-    }
-
-    public void CloseViewsMenuAction()
-    {
-        ViewsDialogPanelScript.SetVisible(false);
-
-        ShowHiddenInteractionPanels();
-    }
-
-    public void SelectOverlays()
-    {
-        OverlayDialogPanelScript.SetVisible(true);
-    }
-
-    public void SelectViews()
-    {
-        ViewsDialogPanelScript.SetVisible(true);
+        MenuPanelScript.ShowHiddenInteractionPanels();
     }
 
     public void OpenMainMenu()
@@ -2383,38 +2287,12 @@ public class GuiManagerScript : MonoBehaviour
             }
         }
     }
-
-    public void SetBiomeView()
+    
+    public void SetView(PlanetView planetView)
     {
-        _regenTextures |= _planetView != PlanetView.Biomes;
+        _regenTextures |= _planetView != planetView;
 
-        _planetView = PlanetView.Biomes;
-
-        ViewsDialogPanelScript.SetVisible(false);
-
-        ShowHiddenInteractionPanels();
-    }
-
-    public void SetElevationView()
-    {
-        _regenTextures |= _planetView != PlanetView.Elevation;
-
-        _planetView = PlanetView.Elevation;
-
-        ViewsDialogPanelScript.SetVisible(false);
-
-        ShowHiddenInteractionPanels();
-    }
-
-    public void SetCoastlineView()
-    {
-        _regenTextures |= _planetView != PlanetView.Coastlines;
-
-        _planetView = PlanetView.Coastlines;
-
-        ViewsDialogPanelScript.SetVisible(false);
-
-        ShowHiddenInteractionPanels();
+        _planetView = planetView;
     }
 
     public void OpenSelectFactionDialog()
