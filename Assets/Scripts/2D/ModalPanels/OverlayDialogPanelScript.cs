@@ -3,7 +3,7 @@ using UnityEngine.Events;
 using UnityEngine.UI;
 using System.Collections;
 
-public class OverlayDialogPanelScript : DialogPanelScript
+public class OverlayDialogPanelScript : MenuPanelScript
 {
     public Toggle GeneralDataToggle;
     public Toggle PopDataToggle;

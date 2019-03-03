@@ -16,3 +16,6 @@ public class ValueSetEvent : UnityEvent<float> { }
 
 [System.Serializable]
 public class PlanetViewEvent : UnityEvent<PlanetView> { }
+
+[System.Serializable]
+public class PlanetOverlayEvent : UnityEvent<PlanetOverlay> { }

@@ -164,6 +164,8 @@ public class Manager
 
     public static bool ShowFullGameplayInfo = false;
 
+    public static GameMode GameMode = GameMode.None;
+
     private static bool _isLoadReady = false;
 
     private static StreamWriter _debugLogStream = null;

@@ -10,7 +10,7 @@ using UnityEngine.Profiling;
 public delegate void PostProgressOperation();
 public delegate void PointerOperation(Vector2 position);
 
-public enum GuiMode
+public enum GameMode
 {
     Simulator,
     Editor,
@@ -20,8 +20,6 @@ public enum GuiMode
 public class GuiManagerScript : MonoBehaviour
 {
     public const float MaxDeltaTimeIterations = 0.02f; // max real time to be spent on iterations on a single frame (this is the value that matters the most performance-wise)
-
-    public static GuiMode Mode = GuiMode.None;
 
     public Text MapViewButtonText;
 
@@ -434,7 +432,7 @@ public class GuiManagerScript : MonoBehaviour
         }
         else
         {
-            if (Mode == GuiMode.Editor)
+            if (Manager.GameMode == GameMode.Editor)
             {
                 Manager.UpdatePointerOverlayTextures();
             }
@@ -512,7 +510,7 @@ public class GuiManagerScript : MonoBehaviour
             UpdateSelectionMenu();
         }
 
-        if (Mode == GuiMode.Editor)
+        if (Manager.GameMode == GameMode.Editor)
         {
             Manager.ApplyEditorBrush();
 
@@ -524,7 +522,7 @@ public class GuiManagerScript : MonoBehaviour
 
     public void SetSimulatorMode()
     {
-        Mode = GuiMode.Simulator;
+        Manager.GameMode = GameMode.Simulator;
 
         MapScript.EnablePointerOverlay(false);
 
@@ -534,8 +532,6 @@ public class GuiManagerScript : MonoBehaviour
 		ChangePlanetOverlay(PlanetOverlay.General);
 #endif
 
-        OverlayDialogPanelScript.SetVisibleSimulationOverlays(true);
-
         Debug.Log("Game entered history simulator mode.");
 
         EnteredSimulationMode.Invoke();
@@ -543,7 +539,7 @@ public class GuiManagerScript : MonoBehaviour
 
     public void SetEditorMode()
     {
-        Mode = GuiMode.Editor;
+        Manager.GameMode = GameMode.Editor;
 
         MapScript.EnablePointerOverlay(true);
 
@@ -552,8 +548,6 @@ public class GuiManagerScript : MonoBehaviour
 #else
 		ChangePlanetOverlay(PlanetOverlay.None);
 #endif
-
-        OverlayDialogPanelScript.SetVisibleSimulationOverlays(false);
 
         Debug.Log("Game entered map editor mode.");
 
@@ -677,10 +671,6 @@ public class GuiManagerScript : MonoBehaviour
                 else if (SelectFactionDialogPanelScript.gameObject.activeInHierarchy)
                 {
                     CancelSelectFaction();
-                }
-                else if (OverlayDialogPanelScript.gameObject.activeInHierarchy)
-                {
-                    CloseOverlayMenuAction();
                 }
                 else if (MainMenuDialogPanelScript.gameObject.activeInHierarchy)
                 {
@@ -1740,23 +1730,23 @@ public class GuiManagerScript : MonoBehaviour
         }
         else if (OverlayDialogPanelScript.PopCulturalPreferenceToggle.isOn)
         {
-            SetPopCulturalPreferenceOverlay(false);
+            ChangePlanetOverlay(PlanetOverlay.PopCulturalPreference, false);
         }
         else if (OverlayDialogPanelScript.PopCulturalActivityToggle.isOn)
         {
-            SetPopCulturalActivityOverlay(false);
+            ChangePlanetOverlay(PlanetOverlay.PopCulturalActivity, false);
         }
         else if (OverlayDialogPanelScript.PopCulturalSkillToggle.isOn)
         {
-            SetPopCulturalSkillOverlay(false);
+            ChangePlanetOverlay(PlanetOverlay.PopCulturalSkill, false);
         }
         else if (OverlayDialogPanelScript.PopCulturalKnowledgeToggle.isOn)
         {
-            SetPopCulturalKnowledgeOverlay(false);
+            ChangePlanetOverlay(PlanetOverlay.PopCulturalKnowledge, false);
         }
         else if (OverlayDialogPanelScript.PopCulturalDiscoveryToggle.isOn)
         {
-            SetPopCulturalDiscoveryOverlay(false);
+            ChangePlanetOverlay(PlanetOverlay.PopCulturalDiscovery, false);
         }
         else if (OverlayDialogPanelScript.TerritoriesToggle.isOn)
         {
@@ -1780,23 +1770,23 @@ public class GuiManagerScript : MonoBehaviour
         }
         else if (OverlayDialogPanelScript.PolityCulturalPreferenceToggle.isOn)
         {
-            SetPolityCulturalPreferenceOverlay(false);
+            ChangePlanetOverlay(PlanetOverlay.PolityCulturalPreference, false);
         }
         else if (OverlayDialogPanelScript.PolityCulturalActivityToggle.isOn)
         {
-            SetPolityCulturalActivityOverlay(false);
+            ChangePlanetOverlay(PlanetOverlay.PolityCulturalActivity, false);
         }
         else if (OverlayDialogPanelScript.PolityCulturalSkillToggle.isOn)
         {
-            SetPolityCulturalSkillOverlay(false);
+            ChangePlanetOverlay(PlanetOverlay.PolityCulturalSkill, false);
         }
         else if (OverlayDialogPanelScript.PolityCulturalKnowledgeToggle.isOn)
         {
-            SetPolityCulturalKnowledgeOverlay(false);
+            ChangePlanetOverlay(PlanetOverlay.PolityCulturalKnowledge, false);
         }
         else if (OverlayDialogPanelScript.PolityCulturalDiscoveryToggle.isOn)
         {
-            SetPolityCulturalDiscoveryOverlay(false);
+            ChangePlanetOverlay(PlanetOverlay.PolityCulturalDiscovery, false);
         }
         else if (OverlayDialogPanelScript.TemperatureToggle.isOn)
         {
@@ -1833,13 +1823,6 @@ public class GuiManagerScript : MonoBehaviour
 
         SetRouteDisplayOverlay(OverlayDialogPanelScript.DisplayRoutesToggle.isOn, false);
         SetGroupActivityOverlay(OverlayDialogPanelScript.DisplayGroupActivityToggle.isOn, false);
-    }
-
-    public void CloseOverlayMenuAction()
-    {
-        OverlayDialogPanelScript.SetVisible(false);
-
-        MenuPanelScript.ShowHiddenInteractionPanels();
     }
 
     public void OpenMainMenu()
@@ -1926,7 +1909,12 @@ public class GuiManagerScript : MonoBehaviour
         }
     }
 
-    public void SetRouteDisplayOverlay(bool value, bool invokeEvent = true)
+    public void SetRouteDisplayOverlay(bool value)
+    {
+        SetRouteDisplayOverlay(value, true);
+    }
+
+    public void SetRouteDisplayOverlay(bool value, bool invokeEvent)
     {
         _regenTextures |= _displayRoutes != value;
 
@@ -1943,7 +1931,12 @@ public class GuiManagerScript : MonoBehaviour
         }
     }
 
-    public void SetGroupActivityOverlay(bool value, bool invokeEvent = true)
+    public void SetGroupActivityOverlay(bool value)
+    {
+        SetGroupActivityOverlay(value, true);
+    }
+
+    public void SetGroupActivityOverlay(bool value, bool invokeEvent)
     {
         _regenTextures |= _displayGroupActivity != value;
 
@@ -1957,28 +1950,6 @@ public class GuiManagerScript : MonoBehaviour
             {
                 OverlayChanged.Invoke();
             }
-        }
-    }
-
-    public void ChangePlanetOverlay(PlanetOverlay value, string planetOverlaySubtype, bool invokeEvent = true)
-    {
-        _regenTextures |= _planetOverlaySubtype != planetOverlaySubtype;
-        _regenTextures |= _planetOverlay != value;
-
-        if ((_planetOverlay != value) && (_planetOverlay != PlanetOverlay.None))
-        {
-            _planetOverlaySubtypeCache[_planetOverlay] = _planetOverlaySubtype;
-        }
-
-        _planetOverlaySubtype = planetOverlaySubtype;
-
-        _planetOverlay = value;
-
-        if (invokeEvent)
-        {
-            Manager.SetPlanetOverlay(_planetOverlay, _planetOverlaySubtype);
-
-            OverlayChanged.Invoke();
         }
     }
 
@@ -2011,21 +1982,21 @@ public class GuiManagerScript : MonoBehaviour
         ChangePlanetOverlay(PlanetOverlay.None);
     }
 
-    public void ChangePlanetOverlay(PlanetOverlay value, bool invokeEvent = true)
+    public void ChangePlanetOverlay(PlanetOverlay overlay, string planetOverlaySubtype, bool invokeEvent = true)
     {
-        _regenTextures |= _planetOverlay != value;
+        _regenTextures |= _planetOverlaySubtype != planetOverlaySubtype;
+        _regenTextures |= _planetOverlay != overlay;
 
-        if (_regenTextures && (_planetOverlay != PlanetOverlay.None))
+        if ((_planetOverlay != overlay) && (_planetOverlay != PlanetOverlay.None))
         {
             _planetOverlaySubtypeCache[_planetOverlay] = _planetOverlaySubtype;
         }
 
-        _planetOverlay = value;
+        _planetOverlaySubtype = planetOverlaySubtype;
 
-        if (!_planetOverlaySubtypeCache.TryGetValue(_planetOverlay, out _planetOverlaySubtype))
-        {
-            _planetOverlaySubtype = "None";
-        }
+        _planetOverlay = overlay;
+
+        HandleOverlayWithSubtypes(overlay);
 
         if (invokeEvent)
         {
@@ -2035,10 +2006,71 @@ public class GuiManagerScript : MonoBehaviour
         }
     }
 
-    public void SetPopCulturalPreferenceOverlay(bool invokeEvent = true)
+    public void ChangePlanetOverlay(PlanetOverlay overlay)
     {
-        ChangePlanetOverlay(PlanetOverlay.PopCulturalPreference, invokeEvent);
+        ChangePlanetOverlay(overlay, true);
+    }
 
+    public void ChangePlanetOverlay(PlanetOverlay overlay, bool invokeEvent)
+    {
+        string currentOverlaySubtype;
+
+        if (!_planetOverlaySubtypeCache.TryGetValue(overlay, out currentOverlaySubtype))
+        {
+            currentOverlaySubtype = "None";
+        }
+
+        ChangePlanetOverlay(overlay, currentOverlaySubtype, invokeEvent);
+    }
+
+    private void HandleOverlayWithSubtypes(PlanetOverlay value)
+    {
+        switch (value)
+        {
+            case PlanetOverlay.PopCulturalPreference:
+                HandleCulturalPreferenceOverlay();
+                break;
+
+            case PlanetOverlay.PolityCulturalPreference:
+                HandleCulturalPreferenceOverlay();
+                break;
+
+            case PlanetOverlay.PopCulturalActivity:
+                HandleCulturalActivityOverlay();
+                break;
+
+            case PlanetOverlay.PolityCulturalActivity:
+                HandleCulturalActivityOverlay();
+                break;
+
+            case PlanetOverlay.PopCulturalSkill:
+                HandleCulturalSkillOverlay();
+                break;
+
+            case PlanetOverlay.PolityCulturalSkill:
+                HandleCulturalSkillOverlay();
+                break;
+
+            case PlanetOverlay.PopCulturalKnowledge:
+                HandleCulturalKnowledgeOverlay();
+                break;
+
+            case PlanetOverlay.PolityCulturalKnowledge:
+                HandleCulturalKnowledgeOverlay();
+                break;
+
+            case PlanetOverlay.PopCulturalDiscovery:
+                HandleCulturalDiscoveryOverlay();
+                break;
+
+            case PlanetOverlay.PolityCulturalDiscovery:
+                HandleCulturalDiscoveryOverlay();
+                break;
+        }
+    }
+
+    private void HandleCulturalPreferenceOverlay()
+    {
         SelectionPanelScript.Title.text = "Displayed Preference:";
 
         foreach (CulturalPreferenceInfo preferenceInfo in Manager.CurrentWorld.CulturalPreferenceInfoList)
@@ -2049,24 +2081,8 @@ public class GuiManagerScript : MonoBehaviour
         SelectionPanelScript.SetVisible(true);
     }
 
-    public void SetPolityCulturalPreferenceOverlay(bool invokeEvent = true)
+    private void HandleCulturalActivityOverlay()
     {
-        ChangePlanetOverlay(PlanetOverlay.PolityCulturalPreference, invokeEvent);
-
-        SelectionPanelScript.Title.text = "Displayed Preference:";
-
-        foreach (CulturalPreferenceInfo preferenceInfo in Manager.CurrentWorld.CulturalPreferenceInfoList)
-        {
-            AddSelectionPanelOption(preferenceInfo.Name, preferenceInfo.Id);
-        }
-
-        SelectionPanelScript.SetVisible(true);
-    }
-
-    public void SetPopCulturalActivityOverlay(bool invokeEvent = true)
-    {
-        ChangePlanetOverlay(PlanetOverlay.PopCulturalActivity, invokeEvent);
-
         SelectionPanelScript.Title.text = "Displayed Activity:";
 
         foreach (CulturalActivityInfo activityInfo in Manager.CurrentWorld.CulturalActivityInfoList)
@@ -2077,24 +2093,8 @@ public class GuiManagerScript : MonoBehaviour
         SelectionPanelScript.SetVisible(true);
     }
 
-    public void SetPolityCulturalActivityOverlay(bool invokeEvent = true)
+    private void HandleCulturalSkillOverlay()
     {
-        ChangePlanetOverlay(PlanetOverlay.PolityCulturalActivity, invokeEvent);
-
-        SelectionPanelScript.Title.text = "Displayed Activity:";
-
-        foreach (CulturalActivityInfo activityInfo in Manager.CurrentWorld.CulturalActivityInfoList)
-        {
-            AddSelectionPanelOption(activityInfo.Name, activityInfo.Id);
-        }
-
-        SelectionPanelScript.SetVisible(true);
-    }
-
-    public void SetPopCulturalSkillOverlay(bool invokeEvent = true)
-    {
-        ChangePlanetOverlay(PlanetOverlay.PopCulturalSkill, invokeEvent);
-
         SelectionPanelScript.Title.text = "Displayed Skill:";
 
         foreach (CulturalSkillInfo skillInfo in Manager.CurrentWorld.CulturalSkillInfoList)
@@ -2105,24 +2105,8 @@ public class GuiManagerScript : MonoBehaviour
         SelectionPanelScript.SetVisible(true);
     }
 
-    public void SetPolityCulturalSkillOverlay(bool invokeEvent = true)
+    private void HandleCulturalKnowledgeOverlay()
     {
-        ChangePlanetOverlay(PlanetOverlay.PolityCulturalSkill, invokeEvent);
-
-        SelectionPanelScript.Title.text = "Displayed Skill:";
-
-        foreach (CulturalSkillInfo skillInfo in Manager.CurrentWorld.CulturalSkillInfoList)
-        {
-            AddSelectionPanelOption(skillInfo.Name, skillInfo.Id);
-        }
-
-        SelectionPanelScript.SetVisible(true);
-    }
-
-    public void SetPopCulturalKnowledgeOverlay(bool invokeEvent = true)
-    {
-        ChangePlanetOverlay(PlanetOverlay.PopCulturalKnowledge, invokeEvent);
-
         SelectionPanelScript.Title.text = "Displayed Knowledge:";
 
         foreach (CulturalKnowledgeInfo knowledgeInfo in Manager.CurrentWorld.CulturalKnowledgeInfoList)
@@ -2133,15 +2117,13 @@ public class GuiManagerScript : MonoBehaviour
         SelectionPanelScript.SetVisible(true);
     }
 
-    public void SetPolityCulturalKnowledgeOverlay(bool invokeEvent = true)
+    private void HandleCulturalDiscoveryOverlay()
     {
-        ChangePlanetOverlay(PlanetOverlay.PolityCulturalKnowledge, invokeEvent);
+        SelectionPanelScript.Title.text = "Displayed Discovery:";
 
-        SelectionPanelScript.Title.text = "Displayed Knowledge:";
-
-        foreach (CulturalKnowledgeInfo knowledgeInfo in Manager.CurrentWorld.CulturalKnowledgeInfoList)
+        foreach (CulturalDiscoveryInfo discoveryInfo in Manager.CurrentWorld.CulturalDiscoveryInfoList)
         {
-            AddSelectionPanelOption(knowledgeInfo.Name, knowledgeInfo.Id);
+            AddSelectionPanelOption(discoveryInfo.Name, discoveryInfo.Id);
         }
 
         SelectionPanelScript.SetVisible(true);
@@ -2150,43 +2132,6 @@ public class GuiManagerScript : MonoBehaviour
     public void SetPopCulturalDiscoveryOverlay(string planetOverlaySubtype, bool invokeEvent = true)
     {
         ChangePlanetOverlay(PlanetOverlay.PopCulturalDiscovery, planetOverlaySubtype, invokeEvent);
-
-        SelectionPanelScript.Title.text = "Displayed Discovery:";
-
-        foreach (CulturalDiscoveryInfo discoveryInfo in Manager.CurrentWorld.CulturalDiscoveryInfoList)
-        {
-            AddSelectionPanelOption(discoveryInfo.Name, discoveryInfo.Id);
-        }
-
-        SelectionPanelScript.SetVisible(true);
-    }
-
-    public void SetPopCulturalDiscoveryOverlay(bool invokeEvent = true)
-    {
-        ChangePlanetOverlay(PlanetOverlay.PopCulturalDiscovery, invokeEvent);
-
-        SelectionPanelScript.Title.text = "Displayed Discovery:";
-
-        foreach (CulturalDiscoveryInfo discoveryInfo in Manager.CurrentWorld.CulturalDiscoveryInfoList)
-        {
-            AddSelectionPanelOption(discoveryInfo.Name, discoveryInfo.Id);
-        }
-
-        SelectionPanelScript.SetVisible(true);
-    }
-
-    public void SetPolityCulturalDiscoveryOverlay(bool invokeEvent = true)
-    {
-        ChangePlanetOverlay(PlanetOverlay.PolityCulturalDiscovery, invokeEvent);
-
-        SelectionPanelScript.Title.text = "Displayed Discovery:";
-
-        foreach (CulturalDiscoveryInfo discoveryInfo in Manager.CurrentWorld.CulturalDiscoveryInfoList)
-        {
-            AddSelectionPanelOption(discoveryInfo.Name, discoveryInfo.Id);
-        }
-
-        SelectionPanelScript.SetVisible(true);
     }
 
     public void AddSelectionPanelOption(string optionName, string optionId)
@@ -2348,11 +2293,11 @@ public class GuiManagerScript : MonoBehaviour
     {
         World world = Manager.CurrentWorld;
 
-        if (Mode == GuiMode.Simulator)
+        if (Manager.GameMode == GameMode.Simulator)
         {
             InfoPanelScript.InfoText.text = Manager.GetDateString(world.CurrentDate);
         }
-        else if (Mode == GuiMode.Editor)
+        else if (Manager.GameMode == GameMode.Editor)
         {
             InfoPanelScript.InfoText.text = "Map Editor Mode";
         }
@@ -3832,7 +3777,7 @@ public class GuiManagerScript : MonoBehaviour
 
     public void SelectCellOnMap(BaseEventData data)
     {
-        if ((Mode == GuiMode.Editor) && Manager.EditorBrushIsVisible)
+        if ((Manager.GameMode == GameMode.Editor) && Manager.EditorBrushIsVisible)
             return;
 
         PointerEventData pointerData = data as PointerEventData;

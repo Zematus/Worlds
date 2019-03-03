@@ -14,6 +14,7 @@ public class MapScript : MonoBehaviour
     public UnityEvent OverlayKeyPressed;
 
     public PlanetViewEvent ChangePlanetViewKeyPressed;
+    public PlanetOverlayEvent ChangePlanetOverlayKeyPressed;
 
     private bool _isDraggingMap = false;
     private Vector2 _beginDragPosition;
@@ -36,6 +37,7 @@ public class MapScript : MonoBehaviour
         ReadKeyboardInput_Zoom();
         ReadKeyboardInput_MenuPanel();
         ReadKeyboardInput_MapViews();
+        ReadKeyboardInput_MapOverlays();
     }
 
     public void ReadKeyboardInput_Zoom()
@@ -54,6 +56,19 @@ public class MapScript : MonoBehaviour
 
     public void ReadKeyboardInput_MenuPanel()
     {
+        if (Input.GetKey(KeyCode.V))
+        {
+            ViewsKeyPressed.Invoke();
+        }
+
+        if (Input.GetKey(KeyCode.O))
+        {
+            OverlayKeyPressed.Invoke();
+        }
+    }
+
+    public void ReadKeyboardInput_MapViews()
+    {
         if (Input.GetKey(KeyCode.B))
         {
             SetBiomeView();
@@ -70,16 +85,29 @@ public class MapScript : MonoBehaviour
         }
     }
 
-    public void ReadKeyboardInput_MapViews()
+    public void ReadKeyboardInput_MapOverlays()
     {
-        if (Input.GetKey(KeyCode.V))
+        if (Input.GetKey(KeyCode.N))
         {
-            ViewsKeyPressed.Invoke();
+            ChangePlanetOverlayKeyPressed.Invoke(PlanetOverlay.None);
         }
 
-        if (Input.GetKey(KeyCode.O))
+        if (Manager.GameMode == GameMode.Simulator)
         {
-            OverlayKeyPressed.Invoke();
+            if (Input.GetKey(KeyCode.G))
+            {
+                ChangePlanetOverlayKeyPressed.Invoke(PlanetOverlay.General);
+            }
+
+            if (Input.GetKey(KeyCode.T))
+            {
+                ChangePlanetOverlayKeyPressed.Invoke(PlanetOverlay.PolityTerritory);
+            }
+
+            if (Input.GetKey(KeyCode.D))
+            {
+                ChangePlanetOverlayKeyPressed.Invoke(PlanetOverlay.PopDensity);
+            }
         }
     }
 
