@@ -147,7 +147,8 @@ public class OverlayDialogPanelScript : MenuPanelScript
             (Manager.PlanetOverlay == PlanetOverlay.PolityCulturalActivity) ||
             (Manager.PlanetOverlay == PlanetOverlay.PolityCulturalSkill) ||
             (Manager.PlanetOverlay == PlanetOverlay.PolityCulturalKnowledge) ||
-            (Manager.PlanetOverlay == PlanetOverlay.PolityCulturalDiscovery)
+            (Manager.PlanetOverlay == PlanetOverlay.PolityCulturalDiscovery) ||
+            (Manager.PlanetOverlay == PlanetOverlay.PolityCluster)
         );
         MiscDataToggle.isOn = (
             (Manager.PlanetOverlay == PlanetOverlay.Temperature) ||
@@ -158,8 +159,7 @@ public class OverlayDialogPanelScript : MenuPanelScript
         );
         DebugDataToggle.isOn = (
             (Manager.PlanetOverlay == PlanetOverlay.PopChange) ||
-            (Manager.PlanetOverlay == PlanetOverlay.UpdateSpan) ||
-            (Manager.PlanetOverlay == PlanetOverlay.PolityCluster)
+            (Manager.PlanetOverlay == PlanetOverlay.UpdateSpan)
         );
 
         PopDensityToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.PopDensity);

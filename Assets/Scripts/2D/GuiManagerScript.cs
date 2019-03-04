@@ -76,7 +76,7 @@ public class GuiManagerScript : MonoBehaviour
     public UnityEvent EnteredSimulationMode;
 
     public SpeedChangeEvent OnSimulationSpeedChanged;
-    
+
     private bool _eventPauseActive = false;
 
     private bool _pauseButtonPressed = false;
@@ -98,6 +98,50 @@ public class GuiManagerScript : MonoBehaviour
     private PlanetOverlay _planetOverlay = PlanetOverlay.General;
 
     private string _planetOverlaySubtype = "None";
+
+    private List<PlanetOverlay> _popOverlays = new List<PlanetOverlay>()
+    {
+        PlanetOverlay.PopDensity,
+        PlanetOverlay.FarmlandDistribution,
+        PlanetOverlay.PopCulturalPreference,
+        PlanetOverlay.PopCulturalActivity,
+        PlanetOverlay.PopCulturalSkill,
+        PlanetOverlay.PopCulturalKnowledge,
+        PlanetOverlay.PopCulturalDiscovery
+    };
+    private int _currentPopOverlay = 0;
+
+    private List<PlanetOverlay> _polityOverlays = new List<PlanetOverlay>()
+    {
+        PlanetOverlay.PolityTerritory,
+        PlanetOverlay.PolityProminence,
+        PlanetOverlay.PolityContacts,
+        PlanetOverlay.PolityCulturalPreference,
+        PlanetOverlay.PolityCulturalActivity,
+        PlanetOverlay.PolityCulturalSkill,
+        PlanetOverlay.PolityCulturalKnowledge,
+        PlanetOverlay.PolityCulturalDiscovery,
+        PlanetOverlay.FactionCoreDistance,
+        PlanetOverlay.PolityCluster
+    };
+    private int _currentPolityOverlay = 0;
+
+    private List<PlanetOverlay> _miscOverlays = new List<PlanetOverlay>()
+    {
+        PlanetOverlay.Temperature,
+        PlanetOverlay.Rainfall,
+        PlanetOverlay.Arability,
+        PlanetOverlay.Region,
+        PlanetOverlay.Language
+    };
+    private int _currentMiscOverlay = 0;
+
+    private List<PlanetOverlay> _debugOverlays = new List<PlanetOverlay>()
+    {
+        PlanetOverlay.PopChange,
+        PlanetOverlay.UpdateSpan
+    };
+    private int _currentDebugOverlay = 0;
 
     private Dictionary<PlanetOverlay, string> _planetOverlaySubtypeCache = new Dictionary<PlanetOverlay, string>();
 
@@ -701,10 +745,133 @@ public class GuiManagerScript : MonoBehaviour
         }
     }
 
+    public void ReadKeyboardInput_MenuPanel()
+    {
+    }
+
+    public void ReadKeyboardInput_MapViews()
+    {
+        if (Input.GetKeyUp(KeyCode.V))
+        {
+            SetView(_planetView.GetNextEnumValue());
+        }
+    }
+
+    public void ReadKeyboardInput_MapOverlays()
+    {
+        if (Input.GetKeyUp(KeyCode.N))
+        {
+            ChangePlanetOverlay(PlanetOverlay.None);
+        }
+
+        if (Manager.GameMode == GameMode.Simulator)
+        {
+            if (Input.GetKeyUp(KeyCode.G))
+            {
+                ChangePlanetOverlay(PlanetOverlay.General);
+            }
+
+            if (Input.GetKeyUp(KeyCode.O))
+            {
+                ActivatePopOverlay();
+            }
+
+            if (Input.GetKeyUp(KeyCode.P))
+            {
+                ActivatePolityOverlay();
+            }
+
+            if (Manager.DebugModeEnabled)
+            {
+                if (Input.GetKeyUp(KeyCode.D))
+                {
+                    ActivateDebugOverlay();
+                }
+            }
+        }
+
+        if (Input.GetKeyUp(KeyCode.M))
+        {
+            ActivateMiscOverlay();
+        }
+    }
+
+    private void ActivatePopOverlay()
+    {
+        if (_popOverlays[_currentPopOverlay] == _planetOverlay)
+        {
+            _currentPopOverlay = (_currentPopOverlay + 1) % _popOverlays.Count;
+        }
+
+        ChangePlanetOverlay(_popOverlays[_currentPopOverlay]);
+    }
+
+    private void ActivatePolityOverlay()
+    {
+        if (_polityOverlays[_currentPolityOverlay] == _planetOverlay)
+        {
+            _currentPolityOverlay = (_currentPolityOverlay + 1) % _polityOverlays.Count;
+
+            if ((!Manager.DebugModeEnabled) &&
+                ((_polityOverlays[_currentPolityOverlay] == PlanetOverlay.FactionCoreDistance) ||
+                (_polityOverlays[_currentPolityOverlay] == PlanetOverlay.PolityCluster)))
+            {
+                _currentPolityOverlay = 0;
+            }
+        }
+
+        ChangePlanetOverlay(_polityOverlays[_currentPolityOverlay]);
+    }
+
+    private void ActivateMiscOverlay()
+    {
+        if (_miscOverlays[_currentMiscOverlay] == _planetOverlay)
+        {
+            _currentMiscOverlay = (_currentMiscOverlay + 1) % _miscOverlays.Count;
+
+            if ((Manager.GameMode == GameMode.Editor) &&
+                ((_miscOverlays[_currentMiscOverlay] == PlanetOverlay.Language) ||
+                (_miscOverlays[_currentMiscOverlay] == PlanetOverlay.Region)))
+            {
+                _currentMiscOverlay = 0;
+            }
+        }
+
+        ChangePlanetOverlay(_miscOverlays[_currentMiscOverlay]);
+    }
+
+    private void ActivateDebugOverlay()
+    {
+        if (_debugOverlays[_currentDebugOverlay] == _planetOverlay)
+        {
+            _currentDebugOverlay = (_currentDebugOverlay + 1) % _debugOverlays.Count;
+        }
+
+        ChangePlanetOverlay(_debugOverlays[_currentDebugOverlay]);
+    }
+
+    public void SetBiomeView()
+    {
+        SetView(PlanetView.Biomes);
+    }
+
+    public void SetElevationView()
+    {
+        SetView(PlanetView.Elevation);
+    }
+
+    public void SetCoastlineView()
+    {
+        SetView(PlanetView.Coastlines);
+    }
+
     public void ReadKeyboardInput()
     {
         ReadKeyboardInput_TimeControls();
         ReadKeyboardInput_Escape();
+        ReadKeyboardInput_MenuPanel();
+        ReadKeyboardInput_MapViews();
+        ReadKeyboardInput_MapOverlays();
     }
 
     public bool IsPolityOverlay(PlanetOverlay overlay)
@@ -1982,6 +2149,41 @@ public class GuiManagerScript : MonoBehaviour
         ChangePlanetOverlay(PlanetOverlay.None);
     }
 
+    public void SetCurrentOverlayIndexInGroup(PlanetOverlay overlay)
+    {
+        int index = _popOverlays.IndexOf(overlay);
+
+        if (index != -1)
+        {
+            _currentPopOverlay = index;
+            return;
+        }
+
+        index = _polityOverlays.IndexOf(overlay);
+
+        if (index != -1)
+        {
+            _currentPolityOverlay = index;
+            return;
+        }
+
+        index = _miscOverlays.IndexOf(overlay);
+
+        if (index != -1)
+        {
+            _currentMiscOverlay = index;
+            return;
+        }
+
+        index = _debugOverlays.IndexOf(overlay);
+
+        if (index != -1)
+        {
+            _currentDebugOverlay = index;
+            return;
+        }
+    }
+
     public void ChangePlanetOverlay(PlanetOverlay overlay, string planetOverlaySubtype, bool invokeEvent = true)
     {
         _regenTextures |= _planetOverlaySubtype != planetOverlaySubtype;
@@ -1996,7 +2198,7 @@ public class GuiManagerScript : MonoBehaviour
 
         _planetOverlay = overlay;
 
-        HandleOverlayWithSubtypes(overlay);
+        SetCurrentOverlayIndexInGroup(overlay);
 
         if (invokeEvent)
         {
@@ -2004,6 +2206,8 @@ public class GuiManagerScript : MonoBehaviour
 
             OverlayChanged.Invoke();
         }
+
+        HandleOverlayWithSubtypes(overlay);
     }
 
     public void ChangePlanetOverlay(PlanetOverlay overlay)

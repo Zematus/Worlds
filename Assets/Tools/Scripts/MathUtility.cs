@@ -99,7 +99,7 @@ public static class MathUtility
         return value + ((1f - value) * percentage);
     }
 
-    // This can be optimized better
+    // TODO: Lazy implementation. Do better...
     public static float GetPseudoNormalDistribution(float x)
     {
         x = Mathf.Abs(x);
@@ -159,7 +159,7 @@ public static class MathUtility
         return 0;
     }
 
-    // This can be optimized better
+    // TODO: Lazy implementation. Do better...
     public static float ToPseudoLogaritmicScale01(int value)
     {
         // 1, 3, 10, 32, 100, 316, 1000, 3162, 10000, 31623, 100000, 316227
@@ -197,7 +197,7 @@ public static class MathUtility
         return 0f;
     }
 
-    // This can be optimized better
+    // TODO: Lazy implementation. Do better...
     public static float ToPseudoLogaritmicScale01(float value, float max)
     {
         // 1, 3, 10, 32, 100, 316, 1000, 3162, 10000, 31623, 100000, 316227
@@ -235,5 +235,34 @@ public static class MathUtility
             return 0.1f;
 
         return 0f;
+    }
+
+    // TODO: Lazy implementation. Do better...
+    public static T GetNextEnumValue<T>(this T value)
+    {
+        if (!typeof(T).IsEnum)
+        {
+            throw new System.ArgumentException("T must be an enumerated type");
+        }
+
+        bool found = false;
+
+        System.Array values = System.Enum.GetValues(typeof(T));
+
+        foreach (T v in values)
+        {
+            if (found)
+                return v;
+
+            if (v.Equals(value))
+            found = true;
+        }
+
+        if (found)
+        {
+            return (T)values.GetValue(0);
+        }
+
+        return default(T);
     }
 }

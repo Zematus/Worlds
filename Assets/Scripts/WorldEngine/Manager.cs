@@ -25,9 +25,9 @@ public enum TextureValidationResult
 
 public enum PlanetView
 {
-    Elevation,
-    Biomes,
-    Coastlines
+    Elevation = 0,
+    Biomes = 1,
+    Coastlines = 2
 }
 
 public enum PlanetOverlay

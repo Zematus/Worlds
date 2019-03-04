@@ -10,12 +10,6 @@ public class MapScript : MonoBehaviour
     public RawImage PointerOverlayImage;
     public GameObject InfoPanel;
 
-    public UnityEvent ViewsKeyPressed;
-    public UnityEvent OverlayKeyPressed;
-
-    public PlanetViewEvent ChangePlanetViewKeyPressed;
-    public PlanetOverlayEvent ChangePlanetOverlayKeyPressed;
-
     private bool _isDraggingMap = false;
     private Vector2 _beginDragPosition;
     private Rect _beginDragMapUvRect;
@@ -35,9 +29,6 @@ public class MapScript : MonoBehaviour
     public void ReadKeyboardInput()
     {
         ReadKeyboardInput_Zoom();
-        ReadKeyboardInput_MenuPanel();
-        ReadKeyboardInput_MapViews();
-        ReadKeyboardInput_MapOverlays();
     }
 
     public void ReadKeyboardInput_Zoom()
@@ -52,78 +43,6 @@ public class MapScript : MonoBehaviour
         {
             ZoomKeyPressed(false);
         }
-    }
-
-    public void ReadKeyboardInput_MenuPanel()
-    {
-        if (Input.GetKey(KeyCode.V))
-        {
-            ViewsKeyPressed.Invoke();
-        }
-
-        if (Input.GetKey(KeyCode.O))
-        {
-            OverlayKeyPressed.Invoke();
-        }
-    }
-
-    public void ReadKeyboardInput_MapViews()
-    {
-        if (Input.GetKey(KeyCode.B))
-        {
-            SetBiomeView();
-        }
-
-        if (Input.GetKey(KeyCode.E))
-        {
-            SetElevationView();
-        }
-
-        if (Input.GetKey(KeyCode.C))
-        {
-            SetCoastlineView();
-        }
-    }
-
-    public void ReadKeyboardInput_MapOverlays()
-    {
-        if (Input.GetKey(KeyCode.N))
-        {
-            ChangePlanetOverlayKeyPressed.Invoke(PlanetOverlay.None);
-        }
-
-        if (Manager.GameMode == GameMode.Simulator)
-        {
-            if (Input.GetKey(KeyCode.G))
-            {
-                ChangePlanetOverlayKeyPressed.Invoke(PlanetOverlay.General);
-            }
-
-            if (Input.GetKey(KeyCode.T))
-            {
-                ChangePlanetOverlayKeyPressed.Invoke(PlanetOverlay.PolityTerritory);
-            }
-
-            if (Input.GetKey(KeyCode.D))
-            {
-                ChangePlanetOverlayKeyPressed.Invoke(PlanetOverlay.PopDensity);
-            }
-        }
-    }
-
-    public void SetBiomeView()
-    {
-        ChangePlanetViewKeyPressed.Invoke(PlanetView.Biomes);
-    }
-
-    public void SetElevationView()
-    {
-        ChangePlanetViewKeyPressed.Invoke(PlanetView.Elevation);
-    }
-
-    public void SetCoastlineView()
-    {
-        ChangePlanetViewKeyPressed.Invoke(PlanetView.Coastlines);
     }
 
     public void SetVisible(bool value)
