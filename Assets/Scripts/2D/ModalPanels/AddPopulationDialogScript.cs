@@ -55,7 +55,7 @@ public class AddPopulationDialogScript : ModalPanelScript
 
     public void ReadKeyboardInput()
     {
-        if (Input.GetKeyDown(KeyCode.Escape))
+        if (Input.GetKeyUp(KeyCode.Escape))
         {
             CancelOperation();
         }

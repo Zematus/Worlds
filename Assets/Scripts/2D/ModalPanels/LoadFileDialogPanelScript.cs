@@ -24,9 +24,28 @@ public class LoadFileDialogPanelScript : DialogPanelScript
 
     private string[] _validExtensions;
 
+    // Update is called once per frame
+    void Update()
+    {
+        ReadKeyboardInput();
+    }
+
+    private void ReadKeyboardInput()
+    {
+        if (Input.GetKeyUp(KeyCode.Escape))
+        {
+            CancelButton.onClick.Invoke();
+        }
+    }
+
     public string GetPathToLoad()
     {
         return _pathToLoad;
+    }
+
+    public void Hide()
+    {
+        SetVisible(false);
     }
 
     public void Initialize(
@@ -44,7 +63,9 @@ public class LoadFileDialogPanelScript : DialogPanelScript
         SelectButton.onClick.RemoveAllListeners();
         CancelButton.onClick.RemoveAllListeners();
 
+        SelectButton.onClick.AddListener(Hide);
         SelectButton.onClick.AddListener(selectAction);
+        CancelButton.onClick.AddListener(Hide);
         CancelButton.onClick.AddListener(cancelAction);
 
         SelectButton.interactable = false;
@@ -157,11 +178,11 @@ public class LoadFileDialogPanelScript : DialogPanelScript
         _fileToggles.Clear();
     }
 
-    public override void SetVisible(bool value)
+    public override void SetVisible(bool state)
     {
-        base.SetVisible(value);
+        base.SetVisible(state);
 
-        if (value)
+        if (state)
         {
             LoadFileNames();
         }

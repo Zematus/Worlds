@@ -26,12 +26,12 @@ public class MapScript : MonoBehaviour
         ReadKeyboardInput();
     }
 
-    public void ReadKeyboardInput()
+    private void ReadKeyboardInput()
     {
         ReadKeyboardInput_Zoom();
     }
 
-    public void ReadKeyboardInput_Zoom()
+    private void ReadKeyboardInput_Zoom()
     {
         if (Input.GetKey(KeyCode.KeypadPlus) ||
             Input.GetKey(KeyCode.Equals))
@@ -199,7 +199,7 @@ public class MapScript : MonoBehaviour
         ZoomMap(zoomDelta, uvPosition);
     }
 
-    public void ZoomKeyPressed(bool state)
+    private void ZoomKeyPressed(bool state)
     {
         Vector2 pointerPosition = new Vector2(Input.mousePosition.x, Input.mousePosition.y);
 

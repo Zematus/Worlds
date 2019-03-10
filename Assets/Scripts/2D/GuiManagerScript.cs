@@ -44,7 +44,7 @@ public class GuiManagerScript : MonoBehaviour
     public SettingsDialogPanelScript SettingsDialogPanelScript;
     public ProgressDialogPanelScript ProgressDialogPanelScript;
     public ImageDialogPanelScript ActivityDialogPanelScript;
-    public TextInputDialogPanelScript ErrorMessageDialogPanelScript;
+    public DialogPanelScript ErrorMessageDialogPanelScript;
     public WorldCustomizationDialogPanelScript SetSeedDialogPanelScript;
     public AddPopulationDialogScript AddPopulationDialogScript;
     public FocusPanelScript FocusPanelScript;
@@ -235,13 +235,9 @@ public class GuiManagerScript : MonoBehaviour
     {
         SelectionPanelScript.RemoveAllOptions();
         SelectionPanelScript.SetVisible(false);
-
-        SaveFileDialogPanelScript.SetVisible(false);
-        ExportMapDialogPanelScript.SetVisible(false);
+        
         DecisionDialogPanelScript.SetVisible(false);
-        LoadFileDialogPanelScript.SetVisible(false);
         SelectFactionDialogPanelScript.SetVisible(false);
-        OverlayDialogPanelScript.SetVisible(false);
         MainMenuDialogPanelScript.SetVisible(false);
         ProgressDialogPanelScript.SetVisible(false);
         ActivityDialogPanelScript.SetVisible(false);
@@ -598,12 +594,12 @@ public class GuiManagerScript : MonoBehaviour
         EnteredEditorMode.Invoke();
     }
 
-    public bool CanAlterRunningStateOrSpeed()
+    private bool CanAlterRunningStateOrSpeed()
     {
         return Manager.SimulationCanRun && !_pausingDialogActive;
     }
 
-    public void ReadKeyboardInput_TimeControls()
+    private void ReadKeyboardInput_TimeControls()
     {
         if (Input.GetKeyDown(KeyCode.Space))
         {
@@ -694,25 +690,13 @@ public class GuiManagerScript : MonoBehaviour
         }
     }
 
-    public void ReadKeyboardInput_Escape()
+    private void ReadKeyboardInput_Escape()
     {
-        if (Input.GetKeyDown(KeyCode.Escape))
+        if (Input.GetKeyUp(KeyCode.Escape))
         {
             if (!_backgroundProcessActive)
             {
-                if (SaveFileDialogPanelScript.gameObject.activeInHierarchy)
-                {
-                    CancelSaveAction();
-                }
-                else if (ExportMapDialogPanelScript.gameObject.activeInHierarchy)
-                {
-                    CancelExportAction();
-                }
-                else if (LoadFileDialogPanelScript.gameObject.activeInHierarchy)
-                {
-                    CancelLoadAction();
-                }
-                else if (SelectFactionDialogPanelScript.gameObject.activeInHierarchy)
+                if (SelectFactionDialogPanelScript.gameObject.activeInHierarchy)
                 {
                     CancelSelectFaction();
                 }
@@ -734,9 +718,9 @@ public class GuiManagerScript : MonoBehaviour
                 }
                 else
                 {
-                    ModalPanelScript activeMenuPanel = MenuPanelScript.GetActiveMenuPanel();
+                    ModalPanelScript activeModalPanel = MenuPanelScript.GetActiveModalPanel();
 
-                    if (activeMenuPanel == null)
+                    if (activeModalPanel == null)
                     {
                         OpenMainMenu();
                     }
@@ -745,11 +729,23 @@ public class GuiManagerScript : MonoBehaviour
         }
     }
 
-    public void ReadKeyboardInput_MenuPanel()
+    private void ReadKeyboardInput_Menus()
     {
+        if (Input.GetKeyUp(KeyCode.X))
+        {
+            ExportImageAs();
+        }
+        else if (Input.GetKeyUp(KeyCode.S))
+        {
+            SaveWorldAs();
+        }
+        else if (Input.GetKeyUp(KeyCode.L))
+        {
+            LoadWorld();
+        }
     }
 
-    public void ReadKeyboardInput_MapViews()
+    private void ReadKeyboardInput_MapViews()
     {
         if (Input.GetKeyUp(KeyCode.V))
         {
@@ -757,7 +753,7 @@ public class GuiManagerScript : MonoBehaviour
         }
     }
 
-    public void ReadKeyboardInput_MapOverlays()
+    private void ReadKeyboardInput_MapOverlays()
     {
         if (Input.GetKeyUp(KeyCode.N))
         {
@@ -865,16 +861,16 @@ public class GuiManagerScript : MonoBehaviour
         SetView(PlanetView.Coastlines);
     }
 
-    public void ReadKeyboardInput()
+    private void ReadKeyboardInput()
     {
         ReadKeyboardInput_TimeControls();
         ReadKeyboardInput_Escape();
-        ReadKeyboardInput_MenuPanel();
+        ReadKeyboardInput_Menus();
         ReadKeyboardInput_MapViews();
         ReadKeyboardInput_MapOverlays();
     }
 
-    public bool IsPolityOverlay(PlanetOverlay overlay)
+    private bool IsPolityOverlay(PlanetOverlay overlay)
     {
         return (overlay == PlanetOverlay.PolityCulturalActivity) ||
             (overlay == PlanetOverlay.PolityCulturalSkill) ||
@@ -886,7 +882,7 @@ public class GuiManagerScript : MonoBehaviour
             (overlay == PlanetOverlay.General);
     }
 
-    public void UpdateFocusPanel()
+    private void UpdateFocusPanel()
     {
         Polity selectedPolity = null;
         bool isUnderFocus = false;
@@ -913,7 +909,7 @@ public class GuiManagerScript : MonoBehaviour
         }
     }
 
-    public void UpdateGuidingPanel()
+    private void UpdateGuidingPanel()
     {
         Faction guidedFaction = Manager.CurrentWorld.GuidedFaction;
 
@@ -1028,6 +1024,11 @@ public class GuiManagerScript : MonoBehaviour
         {
             InterruptSimulation(false);
         }
+    }
+
+    private void MenuUninterruptSimulationInternal()
+    {
+        MenuUninterruptSimulation();
 
         MenuPanelScript.ShowHiddenInteractionPanels();
     }
@@ -1036,28 +1037,28 @@ public class GuiManagerScript : MonoBehaviour
     {
         MainMenuDialogPanelScript.SetVisible(false);
 
-        MenuUninterruptSimulation();
+        MenuUninterruptSimulationInternal();
     }
 
     public void CloseSettingsDialog()
     {
         SettingsDialogPanelScript.SetVisible(false);
 
-        MenuUninterruptSimulation();
+        MenuUninterruptSimulationInternal();
     }
 
     public void CloseCreditsDialog()
     {
         CreditsDialogPanelScript.SetVisible(false);
 
-        MenuUninterruptSimulation();
+        MenuUninterruptSimulationInternal();
     }
 
     public void CloseOptionsMenu()
     {
         OptionsDialogPanelScript.SetVisible(false);
 
-        MenuUninterruptSimulation();
+        MenuUninterruptSimulationInternal();
     }
 
     public void Exit()
@@ -1131,7 +1132,7 @@ public class GuiManagerScript : MonoBehaviour
     {
         SetSeedDialogPanelScript.SetVisible(false);
 
-        MenuUninterruptSimulation();
+        MenuUninterruptSimulationInternal();
     }
 
     public void CloseErrorMessageAction()
@@ -1319,7 +1320,7 @@ public class GuiManagerScript : MonoBehaviour
 
         Manager.GenerateRandomHumanGroup(population);
 
-        MenuUninterruptSimulation();
+        MenuUninterruptSimulationInternal();
 
         DisplayTip_MapScroll();
     }
@@ -1340,7 +1341,7 @@ public class GuiManagerScript : MonoBehaviour
 
         if (AddPopulationGroupAtPosition(mapPosition, population))
         {
-            MenuUninterruptSimulation();
+            MenuUninterruptSimulationInternal();
 
             DisplayTip_MapScroll();
 
@@ -1431,10 +1432,8 @@ public class GuiManagerScript : MonoBehaviour
         _displayedTip_mapScroll = true;
     }
 
-    public void LoadHeightmapAction()
+    private void LoadHeightmapAction()
     {
-        LoadFileDialogPanelScript.SetVisible(false);
-
         string path = LoadFileDialogPanelScript.GetPathToLoad();
         Texture2D texture = Manager.LoadTexture(path);
 
@@ -1454,10 +1453,8 @@ public class GuiManagerScript : MonoBehaviour
         SetSeedDialogPanelScript.SetVisible(true);
     }
 
-    public void CancelLoadHeightmapAction()
+    private void CancelLoadHeightmapAction()
     {
-        LoadFileDialogPanelScript.SetVisible(false);
-
         SetSeedDialogPanelScript.SetVisible(true);
     }
 
@@ -1472,6 +1469,7 @@ public class GuiManagerScript : MonoBehaviour
             CancelLoadHeightmapAction,
             Manager.HeightmapsPath,
             Manager.SupportedHeightmapFormats);
+
         LoadFileDialogPanelScript.SetVisible(true);
     }
 
@@ -1486,13 +1484,11 @@ public class GuiManagerScript : MonoBehaviour
 
     public void ExportMapAction()
     {
-        ExportMapDialogPanelScript.SetVisible(false);
-
         ActivityDialogPanelScript.SetVisible(true);
 
         ActivityDialogPanelScript.SetDialogText("Exporting map to PNG file...");
 
-        string imageName = ExportMapDialogPanelScript.GetName();
+        string imageName = ExportMapDialogPanelScript.GetText();
 
         string path = Manager.ExportPath + imageName + ".png";
 
@@ -1501,13 +1497,6 @@ public class GuiManagerScript : MonoBehaviour
         _postProgressOp += PostProgressOp_ExportAction;
 
         _backgroundProcessActive = true;
-    }
-
-    public void CancelExportAction()
-    {
-        ExportMapDialogPanelScript.SetVisible(false);
-
-        MenuUninterruptSimulation();
     }
 
     public void ExportImageAs()
@@ -1607,9 +1596,10 @@ public class GuiManagerScript : MonoBehaviour
             default: throw new System.Exception("Unexpected planet overlay type: " + _planetOverlay);
         }
 
-        ExportMapDialogPanelScript.SetName(Manager.AddDateToWorldName(Manager.WorldName) + planetViewStr + planetOverlayStr);
-
+        ExportMapDialogPanelScript.SetText(Manager.AddDateToWorldName(Manager.WorldName) + planetViewStr + planetOverlayStr);
         ExportMapDialogPanelScript.SetVisible(true);
+
+        InterruptSimulation(true);
     }
 
     public void PostProgressOp_SaveAction()
@@ -1644,13 +1634,11 @@ public class GuiManagerScript : MonoBehaviour
 
     public void SaveAction()
     {
-        SaveFileDialogPanelScript.SetVisible(false);
-
         ActivityDialogPanelScript.SetVisible(true);
 
         ActivityDialogPanelScript.SetDialogText("Saving World...");
 
-        string saveName = SaveFileDialogPanelScript.GetName();
+        string saveName = SaveFileDialogPanelScript.GetText();
 
         Manager.WorldName = Manager.RemoveDateFromWorldName(saveName);
 
@@ -1663,19 +1651,11 @@ public class GuiManagerScript : MonoBehaviour
         _backgroundProcessActive = true;
     }
 
-    public void CancelSaveAction()
-    {
-        SaveFileDialogPanelScript.SetVisible(false);
-
-        MenuUninterruptSimulation();
-    }
-
     public void SaveWorldAs()
     {
         MainMenuDialogPanelScript.SetVisible(false);
 
-        SaveFileDialogPanelScript.SetName(Manager.AddDateToWorldName(Manager.WorldName));
-
+        SaveFileDialogPanelScript.SetText(Manager.AddDateToWorldName(Manager.WorldName));
         SaveFileDialogPanelScript.SetVisible(true);
 
         InterruptSimulation(true);
@@ -1770,7 +1750,7 @@ public class GuiManagerScript : MonoBehaviour
         }
         else
         {
-            MenuUninterruptSimulation();
+            MenuUninterruptSimulationInternal();
 
             SetSimulatorMode();
         }
@@ -1783,10 +1763,8 @@ public class GuiManagerScript : MonoBehaviour
             _loadWorldPostProgressOp.Invoke();
     }
 
-    public void LoadAction()
+    private void LoadAction()
     {
-        LoadFileDialogPanelScript.SetVisible(false);
-
         ProgressDialogPanelScript.SetVisible(true);
 
         ProgressUpdate(0, "Loading World...", true);
@@ -1805,16 +1783,17 @@ public class GuiManagerScript : MonoBehaviour
         _regenPointerOverlayTextures = true;
     }
 
-    public void CancelLoadAction()
+    private void CancelLoadAction()
     {
-        LoadFileDialogPanelScript.SetVisible(false);
-
-        MenuUninterruptSimulation();
+        MenuUninterruptSimulationInternal();
     }
 
     public void LoadWorld()
     {
         MainMenuDialogPanelScript.SetVisible(false);
+
+        if (MenuPanelScript.IsMenuPanelActive())
+            return; // Can't have more than one menu panel active at a time
 
         LoadFileDialogPanelScript.Initialize(
             "Select World to Load...",
@@ -1823,6 +1802,7 @@ public class GuiManagerScript : MonoBehaviour
             CancelLoadAction,
             Manager.SavePath,
             new string[] { ".PLNT" });
+
         LoadFileDialogPanelScript.SetVisible(true);
 
         InterruptSimulation(true);
@@ -2360,7 +2340,7 @@ public class GuiManagerScript : MonoBehaviour
         }
     }
 
-    public void UpdateSelectionMenu()
+    private void UpdateSelectionMenu()
     {
         if (!SelectionPanelScript.IsVisible())
             return;
@@ -2462,7 +2442,7 @@ public class GuiManagerScript : MonoBehaviour
             Manager.SetGuidedFaction(faction);
         }
 
-        MenuUninterruptSimulation();
+        MenuUninterruptSimulationInternal();
     }
 
     public void StopGuidingFaction()
@@ -2474,7 +2454,7 @@ public class GuiManagerScript : MonoBehaviour
     {
         SelectFactionDialogPanelScript.SetVisible(false);
 
-        MenuUninterruptSimulation();
+        MenuUninterruptSimulationInternal();
     }
 
     public void SetPlayerFocusOnPolity()
@@ -2493,7 +2473,7 @@ public class GuiManagerScript : MonoBehaviour
             Manager.UnsetFocusOnPolity(selectedTerritory.Polity);
     }
 
-    public void UpdateInfoPanel()
+    private void UpdateInfoPanel()
     {
         World world = Manager.CurrentWorld;
 

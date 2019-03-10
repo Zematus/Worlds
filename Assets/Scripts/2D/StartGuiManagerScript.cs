@@ -13,7 +13,7 @@ public class StartGuiManagerScript : MonoBehaviour
     public DialogPanelScript ExceptionDialogPanelScript;
     public SettingsDialogPanelScript SettingsDialogPanelScript;
     public ProgressDialogPanelScript ProgressDialogPanelScript;
-    public TextInputDialogPanelScript MessageDialogPanelScript;
+    public DialogPanelScript MessageDialogPanelScript;
     public WorldCustomizationDialogPanelScript SetSeedDialogPanelScript;
     public ModalPanelScript CreditsDialogPanelScript;
 
@@ -69,8 +69,7 @@ public class StartGuiManagerScript : MonoBehaviour
         Manager.InitializeScreen();
 
         Manager.UpdateMainThreadReference();
-
-        LoadFileDialogPanelScript.SetVisible(false);
+        
         ProgressDialogPanelScript.SetVisible(false);
         SetSeedDialogPanelScript.SetVisible(false);
         MessageDialogPanelScript.SetVisible(false);
@@ -161,6 +160,7 @@ public class StartGuiManagerScript : MonoBehaviour
             CancelLoadHeightmapAction,
             Manager.HeightmapsPath,
             Manager.SupportedHeightmapFormats);
+
         LoadFileDialogPanelScript.SetVisible(true);
     }
 
@@ -184,13 +184,12 @@ public class StartGuiManagerScript : MonoBehaviour
             CancelLoadSaveAction,
             Manager.SavePath, 
             new string[] { ".PLNT" });
+
         LoadFileDialogPanelScript.SetVisible(true);
     }
 
-    public void LoadHeightmapAction()
+    private void LoadHeightmapAction()
     {
-        LoadFileDialogPanelScript.SetVisible(false);
-
         string path = LoadFileDialogPanelScript.GetPathToLoad();
         Texture2D texture = Manager.LoadTexture(path);
 
@@ -212,8 +211,6 @@ public class StartGuiManagerScript : MonoBehaviour
 
     public void LoadSaveAction()
     {
-        LoadFileDialogPanelScript.SetVisible(false);
-
         ProgressDialogPanelScript.SetVisible(true);
 
         ProgressUpdate(0, "Loading World...", true);
@@ -231,15 +228,11 @@ public class StartGuiManagerScript : MonoBehaviour
 
     public void CancelLoadHeightmapAction()
     {
-        LoadFileDialogPanelScript.SetVisible(false);
-
         SetSeedDialogPanelScript.SetVisible(true);
     }
 
     public void CancelLoadSaveAction()
     {
-        LoadFileDialogPanelScript.SetVisible(false);
-
         MainMenuDialogPanelScript.SetVisible(true);
     }
 

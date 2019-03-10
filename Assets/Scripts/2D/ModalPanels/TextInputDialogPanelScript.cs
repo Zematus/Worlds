@@ -3,17 +3,17 @@ using UnityEngine.Events;
 using UnityEngine.UI;
 using System.Collections;
 
-public class TextInputDialogPanelScript : DialogPanelScript
+public class TextInputDialogPanelScript : MenuPanelScript
 {
-    public InputField NameInputField;
+    public InputField TextInputField;
 
-    public void SetName(string name)
+    public void SetText(string text)
     {
-        NameInputField.text = name;
+        TextInputField.text = text;
     }
 
-    public string GetName()
+    public string GetText()
     {
-        return NameInputField.text;
+        return TextInputField.text;
     }
 }

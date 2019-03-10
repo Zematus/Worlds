@@ -6,6 +6,8 @@ using System.Collections.Generic;
 
 public class MenuPanelScript : ModalPanelScript
 {
+    public UnityEvent DialogEscapedEvent;
+
     private static List<ModalPanelScript> _hiddenInteractionPanels = new List<ModalPanelScript>();
 
     // Update is called once per frame
@@ -14,22 +16,29 @@ public class MenuPanelScript : ModalPanelScript
         ReadKeyboardInput();
     }
 
-    public void ReadKeyboardInput()
+    private void ReadKeyboardInput()
     {
-        if (Input.GetKeyDown(KeyCode.Escape))
+        if (Input.GetKeyUp(KeyCode.Escape))
         {
-            SetVisible(false);
+            EscapeDialog();
         }
     }
 
-    public override void SetVisible(bool value)
+    public void EscapeDialog()
     {
-        if (value && IsMenuPanelActive())
+        SetVisible(false);
+
+        DialogEscapedEvent.Invoke();
+    }
+
+    public override void SetVisible(bool state)
+    {
+        if (state && IsMenuPanelActive())
             return; // Can't have more than one menu panel active at a time
 
-        base.SetVisible(value);
+        base.SetVisible(state);
 
-        if (!value)
+        if (!state)
         {
             ShowHiddenInteractionPanels();
         }
@@ -50,7 +59,7 @@ public class MenuPanelScript : ModalPanelScript
         return false;
     }
 
-    public static ModalPanelScript GetActiveMenuPanel()
+    public static ModalPanelScript GetActiveModalPanel()
     {
         GameObject[] panels = GameObject.FindGameObjectsWithTag("MenuPanel");
 
