@@ -19,6 +19,8 @@ public enum GameMode
 
 public class GuiManagerScript : MonoBehaviour
 {
+    public static GuiManagerScript ManagerScript;
+
     public const float MaxDeltaTimeIterations = 0.02f; // max real time to be spent on iterations on a single frame (this is the value that matters the most performance-wise)
 
     public Text MapViewButtonText;
@@ -187,6 +189,8 @@ public class GuiManagerScript : MonoBehaviour
 
     private Texture2D _heightmap = null;
 
+    private List<ModalPanelScript> _hiddenInteractionPanels = new List<ModalPanelScript>();
+
     void OnEnable()
     {
         Manager.InitializeDebugLog();
@@ -277,6 +281,8 @@ public class GuiManagerScript : MonoBehaviour
     // Use this for initialization
     void Awake()
     {
+        ManagerScript = this;
+
         Manager.LoadAppSettings(@"Worlds.settings");
     }
 
@@ -385,7 +391,7 @@ public class GuiManagerScript : MonoBehaviour
             if (_postProgressOp != null)
                 _postProgressOp();
 
-            MenuPanelScript.ShowHiddenInteractionPanels();
+            ShowHiddenInteractionPanels();
         }
 
         bool simulationRunning = Manager.SimulationCanRun && Manager.SimulationRunning;
@@ -716,14 +722,9 @@ public class GuiManagerScript : MonoBehaviour
                 {
                     CloseErrorMessageAction();
                 }
-                else
+                else if (!IsModalPanelActive())
                 {
-                    ModalPanelScript activeModalPanel = MenuPanelScript.GetActiveModalPanel();
-
-                    if (activeModalPanel == null)
-                    {
-                        OpenMainMenu();
-                    }
+                    OpenMainMenu();
                 }
             }
         }
@@ -790,6 +791,39 @@ public class GuiManagerScript : MonoBehaviour
         {
             ActivateMiscOverlay();
         }
+    }
+
+    public static bool IsModalPanelActive()
+    {
+        return IsMenuPanelActive() || IsInteractionPanelActive();
+    }
+
+    public static bool IsMenuPanelActive()
+    {
+        return GameObject.FindGameObjectsWithTag("MenuPanel").Length > 0;
+    }
+
+    public static bool IsInteractionPanelActive()
+    {
+        return GameObject.FindGameObjectsWithTag("InteractionPanel").Length > 0;
+    }
+
+    public void HideInteractionPanel(ModalPanelScript panel)
+    {
+        _hiddenInteractionPanels.Add(panel);
+    }
+
+    public void ShowHiddenInteractionPanels()
+    {
+        if (IsMenuPanelActive())
+            return; // Don't show any hidden panel if there's any menu panel still active.
+
+            foreach (ModalPanelScript panel in _hiddenInteractionPanels)
+        {
+            panel.SetVisible(true);
+        }
+
+        _hiddenInteractionPanels.Clear();
     }
 
     private void ActivatePopOverlay()
@@ -1030,7 +1064,7 @@ public class GuiManagerScript : MonoBehaviour
     {
         MenuUninterruptSimulation();
 
-        MenuPanelScript.ShowHiddenInteractionPanels();
+        ShowHiddenInteractionPanels();
     }
 
     public void CloseMainMenu()
@@ -1615,7 +1649,7 @@ public class GuiManagerScript : MonoBehaviour
             InterruptSimulation(!Manager.SimulationCanRun);
         }
 
-        MenuPanelScript.ShowHiddenInteractionPanels();
+        ShowHiddenInteractionPanels();
     }
 
     public void PostProgressOp_ExportAction()
@@ -1629,7 +1663,7 @@ public class GuiManagerScript : MonoBehaviour
             InterruptSimulation(!Manager.SimulationCanRun);
         }
 
-        MenuPanelScript.ShowHiddenInteractionPanels();
+        ShowHiddenInteractionPanels();
     }
 
     public void SaveAction()
@@ -1791,10 +1825,7 @@ public class GuiManagerScript : MonoBehaviour
     public void LoadWorld()
     {
         MainMenuDialogPanelScript.SetVisible(false);
-
-        if (MenuPanelScript.IsMenuPanelActive())
-            return; // Can't have more than one menu panel active at a time
-
+        
         LoadFileDialogPanelScript.Initialize(
             "Select World to Load...",
             "Load",
@@ -1814,14 +1845,14 @@ public class GuiManagerScript : MonoBehaviour
 
         DecisionDialogPanelScript.Set(decisionToResolve, _selectedMaxSpeedLevelIndex);
 
-        if (!MenuPanelScript.IsMenuPanelActive())
+        if (!IsMenuPanelActive())
         {
             DecisionDialogPanelScript.SetVisible(true);
         }
         else
         {
             // Hide the decision dialog until all menu panels are inactive
-            MenuPanelScript.HideInteractionPanel(DecisionDialogPanelScript);
+            HideInteractionPanel(DecisionDialogPanelScript);
         }
 
         InterruptSimulation(true);

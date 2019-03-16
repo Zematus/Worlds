@@ -7,41 +7,14 @@ public class ModalPanelScript : MonoBehaviour
 {
     public CanvasGroup ModalPanelCanvasGroup;
 
-    public virtual void SetVisible(bool value)
+    public virtual void SetVisible(bool state)
     {
-        ModalPanelCanvasGroup.gameObject.SetActive(value);
-        ModalPanelCanvasGroup.blocksRaycasts = value;
+        if (!state && !gameObject.activeInHierarchy)
+            return; // There's no need to make this dialog invisible if it already is. Also, we want to avoid disabling the canvas group if it's being enabled by another dialog
 
-        gameObject.SetActive(value);
-    }
+        ModalPanelCanvasGroup.gameObject.SetActive(state);
+        ModalPanelCanvasGroup.blocksRaycasts = state;
 
-    public static bool IsBackgroundActivityPanelActive()
-    {
-        GameObject[] panels = GameObject.FindGameObjectsWithTag("BackgroundActivityPanel");
-
-        foreach (GameObject panel in panels)
-        {
-            if (panel.activeInHierarchy)
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    public static bool IsInteractionPanelActive()
-    {
-        GameObject[] panels = GameObject.FindGameObjectsWithTag("InteractionPanel");
-
-        foreach (GameObject panel in panels)
-        {
-            if (panel.activeInHierarchy)
-            {
-                return true;
-            }
-        }
-
-        return false;
+        gameObject.SetActive(state);
     }
 }

@@ -180,6 +180,9 @@ public class LoadFileDialogPanelScript : DialogPanelScript
 
     public override void SetVisible(bool state)
     {
+        if (state && GuiManagerScript.IsModalPanelActive())
+            return; // Can't have more than one menu panel active at a time
+
         base.SetVisible(state);
 
         if (state)
