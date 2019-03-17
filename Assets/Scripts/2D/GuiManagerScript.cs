@@ -246,7 +246,6 @@ public class GuiManagerScript : MonoBehaviour
         ProgressDialogPanelScript.SetVisible(false);
         ActivityDialogPanelScript.SetVisible(false);
         OptionsDialogPanelScript.SetVisible(false);
-        SetSeedDialogPanelScript.SetVisible(false);
         ErrorMessageDialogPanelScript.SetVisible(false);
         ExceptionDialogPanelScript.SetVisible(false);
         AddPopulationDialogScript.SetVisible(false);
@@ -305,12 +304,12 @@ public class GuiManagerScript : MonoBehaviour
             //GenerateWorld(false, 407252633);
             //GenerateWorld(false, 1159850609);
             //GenerateWorld(false, 952294588);
-            GenerateWorld(false, 732011012, useHeightmap : true);
+            GenerateWorld(false, 732011012, useHeightmap: true);
             //GenerateWorld(false, 215020278);
         }
         else
         {
-            OpenModeSelectionDialog();
+            SetGameModeAccordingToCurrentWorld();
         }
 
         UpdateMapViewButtonText();
@@ -333,6 +332,8 @@ public class GuiManagerScript : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        ReadKeyboardInput();
+
         if (Manager.DebugModeEnabled)
         {
             _timeSinceLastMapUpdate += Time.deltaTime;
@@ -562,8 +563,6 @@ public class GuiManagerScript : MonoBehaviour
 
             Manager.UpdateEditorBrushState();
         }
-
-        ReadKeyboardInput();
     }
 
     public void SetSimulatorMode()
@@ -572,15 +571,15 @@ public class GuiManagerScript : MonoBehaviour
 
         MapScript.EnablePointerOverlay(false);
 
+        Debug.Log("Game entered history simulator mode.");
+
+        EnteredSimulationMode.Invoke();
+
 #if DEBUG
         ChangePlanetOverlay(PlanetOverlay.General); // When debugging we might like to autoselect a different default overlay
 #else
 		ChangePlanetOverlay(PlanetOverlay.General);
 #endif
-
-        Debug.Log("Game entered history simulator mode.");
-
-        EnteredSimulationMode.Invoke();
     }
 
     public void SetEditorMode()
@@ -589,15 +588,15 @@ public class GuiManagerScript : MonoBehaviour
 
         MapScript.EnablePointerOverlay(true);
 
+        Debug.Log("Game entered map editor mode.");
+
+        EnteredEditorMode.Invoke();
+
 #if DEBUG
         ChangePlanetOverlay(PlanetOverlay.None); // When debugging we might like to autoselect a different default overlay
 #else
 		ChangePlanetOverlay(PlanetOverlay.None);
 #endif
-
-        Debug.Log("Game entered map editor mode.");
-
-        EnteredEditorMode.Invoke();
     }
 
     private bool CanAlterRunningStateOrSpeed()
@@ -714,10 +713,6 @@ public class GuiManagerScript : MonoBehaviour
                 {
                     CloseOptionsMenu();
                 }
-                else if (SetSeedDialogPanelScript.gameObject.activeInHierarchy)
-                {
-                    CancelGenerateAction();
-                }
                 else if (ErrorMessageDialogPanelScript.gameObject.activeInHierarchy)
                 {
                     CloseErrorMessageAction();
@@ -732,17 +727,30 @@ public class GuiManagerScript : MonoBehaviour
 
     private void ReadKeyboardInput_Menus()
     {
-        if (Input.GetKeyUp(KeyCode.X))
+        bool controlPressed = Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
+
+        if (controlPressed)
         {
-            ExportImageAs();
-        }
-        else if (Input.GetKeyUp(KeyCode.S))
-        {
-            SaveWorldAs();
-        }
-        else if (Input.GetKeyUp(KeyCode.L))
-        {
-            LoadWorld();
+            if (Input.GetKeyUp(KeyCode.X))
+            {
+                ExportImageAs();
+            }
+            else if (Input.GetKeyUp(KeyCode.S))
+            {
+                SaveWorldAs();
+            }
+            else if (Input.GetKeyUp(KeyCode.L))
+            {
+                LoadWorld();
+            }
+            else if (Input.GetKeyUp(KeyCode.G))
+            {
+                SetGenerationSeed();
+            }
+            else if (Input.GetKeyUp(KeyCode.F))
+            {
+                ToogleFullscreen(!Manager.FullScreenEnabled);
+            }
         }
     }
 
@@ -897,6 +905,9 @@ public class GuiManagerScript : MonoBehaviour
 
     private void ReadKeyboardInput()
     {
+        if (_backgroundProcessActive)
+            return; // Do not process keyboard inputs while a background process (generate/load/save/export) is executing.
+
         ReadKeyboardInput_TimeControls();
         ReadKeyboardInput_Escape();
         ReadKeyboardInput_Menus();
@@ -1162,13 +1173,6 @@ public class GuiManagerScript : MonoBehaviour
         InterruptSimulation(true);
     }
 
-    public void CancelGenerateAction()
-    {
-        SetSeedDialogPanelScript.SetVisible(false);
-
-        MenuUninterruptSimulationInternal();
-    }
-
     public void CloseErrorMessageAction()
     {
         ErrorMessageDialogPanelScript.SetVisible(false);
@@ -1254,8 +1258,6 @@ public class GuiManagerScript : MonoBehaviour
 
     public void GenerateWorldWithCustomSeed()
     {
-        SetSeedDialogPanelScript.SetVisible(false);
-
         int seed = 0;
         string seedStr = SetSeedDialogPanelScript.GetSeedString();
 
@@ -1494,8 +1496,6 @@ public class GuiManagerScript : MonoBehaviour
 
     public void LoadHeightmapImage()
     {
-        SetSeedDialogPanelScript.SetVisible(false);
-
         LoadFileDialogPanelScript.Initialize(
             "Select Heightmap Image to Load...",
             "Load",
@@ -1764,6 +1764,22 @@ public class GuiManagerScript : MonoBehaviour
         _simulationDateSpan = 0;
     }
 
+    public void SetGameModeAccordingToCurrentWorld()
+    {
+        if (!Manager.SimulationCanRun)
+        {
+            OpenModeSelectionDialog();
+        }
+        else
+        {
+            MenuUninterruptSimulationInternal();
+
+            SetSimulatorMode();
+        }
+
+        GetMaxSpeedOptionFromCurrentWorld();
+    }
+
     public void PostProgressOp_LoadAction()
     {
         EventPanelScript.DestroyMessagePanels(); // We don't want to keep messages referencing previous worlds
@@ -1778,18 +1794,7 @@ public class GuiManagerScript : MonoBehaviour
 
         SelectionPanelScript.RemoveAllOptions();
 
-        if (!Manager.SimulationCanRun)
-        {
-            OpenModeSelectionDialog();
-        }
-        else
-        {
-            MenuUninterruptSimulationInternal();
-
-            SetSimulatorMode();
-        }
-
-        GetMaxSpeedOptionFromCurrentWorld();
+        SetGameModeAccordingToCurrentWorld();
 
         _postProgressOp -= PostProgressOp_LoadAction;
 
@@ -2105,6 +2110,8 @@ public class GuiManagerScript : MonoBehaviour
             if (invokeEvent)
             {
                 OverlayChanged.Invoke();
+
+                _resetOverlays = false;
             }
         }
     }
@@ -2127,6 +2134,8 @@ public class GuiManagerScript : MonoBehaviour
             if (invokeEvent)
             {
                 OverlayChanged.Invoke();
+
+                _resetOverlays = false;
             }
         }
     }
@@ -2216,6 +2225,8 @@ public class GuiManagerScript : MonoBehaviour
             Manager.SetPlanetOverlay(_planetOverlay, _planetOverlaySubtype);
 
             OverlayChanged.Invoke();
+
+            _resetOverlays = false;
         }
 
         HandleOverlayWithSubtypes(overlay);

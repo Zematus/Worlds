@@ -71,7 +71,6 @@ public class StartGuiManagerScript : MonoBehaviour
         Manager.UpdateMainThreadReference();
         
         ProgressDialogPanelScript.SetVisible(false);
-        SetSeedDialogPanelScript.SetVisible(false);
         MessageDialogPanelScript.SetVisible(false);
         ExceptionDialogPanelScript.SetVisible(false);
         MainMenuDialogPanelScript.SetVisible(true);
@@ -94,6 +93,8 @@ public class StartGuiManagerScript : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        ReadKeyboardInput();
+
         Manager.ExecuteTasks(100);
 
         if (_preparingWorld)
@@ -118,6 +119,30 @@ public class StartGuiManagerScript : MonoBehaviour
             _changingScene = true;
 
             SceneManager.LoadScene("WorldView");
+        }
+    }
+
+    private void ReadKeyboardInput()
+    {
+        if (_preparingWorld)
+            return; // Don't read keyboard while the world is being generated/loaded...
+
+        bool controlPressed = Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
+
+        if (controlPressed)
+        {
+            if (Input.GetKeyUp(KeyCode.L))
+            {
+                LoadWorld();
+            }
+            else if (Input.GetKeyUp(KeyCode.G))
+            {
+                SetGenerationSeed();
+            }
+            else if (Input.GetKeyUp(KeyCode.F))
+            {
+                ToogleFullscreen(!Manager.FullScreenEnabled);
+            }
         }
     }
 
@@ -151,8 +176,6 @@ public class StartGuiManagerScript : MonoBehaviour
 
     public void LoadHeightmapImage()
     {
-        SetSeedDialogPanelScript.SetVisible(false);
-
         LoadFileDialogPanelScript.Initialize(
             "Select Heightmap Image to Load...",
             "Load",
@@ -247,13 +270,6 @@ public class StartGuiManagerScript : MonoBehaviour
         SetSeedDialogPanelScript.SetVisible(true);
     }
 
-    public void CancelGenerateAction()
-    {
-        SetSeedDialogPanelScript.SetVisible(false);
-
-        MainMenuDialogPanelScript.SetVisible(true);
-    }
-
     public void OpenSettingsDialog()
     {
         MainMenuDialogPanelScript.SetVisible(false);
@@ -298,8 +314,6 @@ public class StartGuiManagerScript : MonoBehaviour
 
     public void GenerateWorldWithCustomSeed()
     {
-        SetSeedDialogPanelScript.SetVisible(false);
-
         int seed = 0;
         string seedStr = SetSeedDialogPanelScript.GetSeedString();
 

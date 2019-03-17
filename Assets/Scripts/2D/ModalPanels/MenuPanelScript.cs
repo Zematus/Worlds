@@ -6,7 +6,8 @@ using System.Collections.Generic;
 
 public class MenuPanelScript : ModalPanelScript
 {
-    public UnityEvent DialogEscapedEvent;
+    public UnityEvent MenuEscapedEvent;
+    public UnityEvent MenuHiddenEvent;
 
     // Update is called once per frame
     void Update()
@@ -14,7 +15,7 @@ public class MenuPanelScript : ModalPanelScript
         ReadKeyboardInput();
     }
 
-    private void ReadKeyboardInput()
+    protected virtual void ReadKeyboardInput()
     {
         if (Input.GetKeyUp(KeyCode.Escape))
         {
@@ -25,8 +26,8 @@ public class MenuPanelScript : ModalPanelScript
     public void EscapeDialog()
     {
         SetVisible(false);
-
-        DialogEscapedEvent.Invoke();
+        
+        MenuEscapedEvent.Invoke();
     }
 
     public override void SetVisible(bool state)
@@ -38,7 +39,7 @@ public class MenuPanelScript : ModalPanelScript
 
         if (!state)
         {
-            GuiManagerScript.ManagerScript.ShowHiddenInteractionPanels();
+            MenuHiddenEvent.Invoke();
         }
     }
 }

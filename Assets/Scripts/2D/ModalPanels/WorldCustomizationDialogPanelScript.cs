@@ -3,8 +3,10 @@ using UnityEngine.Events;
 using UnityEngine.UI;
 using System.Collections;
 
-public class WorldCustomizationDialogPanelScript : DialogPanelScript
+public class WorldCustomizationDialogPanelScript : MenuPanelScript
 {
+    public LoadFileDialogPanelScript LoadHeightmapDialogPanel;
+
     public InputField SeedInputField;
 
     public Button GenerateButton;
@@ -17,6 +19,14 @@ public class WorldCustomizationDialogPanelScript : DialogPanelScript
     public InputField SelectedFilenameField;
 
     private bool _hasLoadedValidHeightmap = false;
+
+    protected override void ReadKeyboardInput()
+    {
+        if (LoadHeightmapDialogPanel.gameObject.activeInHierarchy)
+            return; // Do not capture keyboard if the load file dialog is active
+
+        base.ReadKeyboardInput();
+    }
 
     public void SetSeedString(string seedStr)
     {
