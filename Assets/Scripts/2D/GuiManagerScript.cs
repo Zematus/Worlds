@@ -521,6 +521,7 @@ public class GuiManagerScript : MonoBehaviour
             Profiler.BeginSample("Manager.RefreshTexture");
 
             MapScript.RefreshTexture();
+            //PlanetScript.RefreshTexture();
 
             Profiler.EndSample();
 

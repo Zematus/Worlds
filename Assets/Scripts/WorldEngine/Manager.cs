@@ -216,13 +216,11 @@ public class Manager
     private ProgressCastDelegate _progressCastMethod = null;
 
     private World _currentWorld = null;
-
-    private Texture2D _currentSphereTexture = null;
+    
     private Texture2D _currentMapTexture = null;
 
     private Texture2D _pointerOverlayTexture = null;
-
-    private Color32[] _currentSphereTextureColors = null;
+    
     private Color32[] _currentMapTextureColors = null;
     
     private Color32[] _pointerOverlayTextureColors = null;
@@ -739,14 +737,6 @@ public class Manager
         }
     }
 
-    public static Texture2D CurrentSphereTexture
-    {
-        get
-        {
-            return _manager._currentSphereTexture;
-        }
-    }
-
     public static Texture2D CurrentMapTexture
     {
         get
@@ -840,8 +830,7 @@ public class Manager
         {
             UpdatedPixelCount = 0;
         }
-
-        //GenerateSphereTextureFromWorld(CurrentWorld);
+        
         GenerateMapTextureFromWorld(CurrentWorld);
 
         ResetUpdatedAndHighlightedCells();
@@ -1887,12 +1876,6 @@ public class Manager
         CurrentMapTexture.Apply();
 
         Profiler.EndSample();
-
-        //// TODO: Reenable this part for globe view
-        //UpdateSphereTextureColors(_manager._currentSphereTextureColors);
-        //CurrentSphereTexture.SetPixels32(_manager._currentSphereTextureColors);
-
-        //CurrentSphereTexture.Apply();
         
         Profiler.BeginSample("ResetUpdatedAndHighlightedCells");
 
@@ -2181,90 +2164,6 @@ public class Manager
 
         _manager._currentMapTextureColors = textureColors;
         _manager._currentMapTexture = texture;
-
-        return texture;
-    }
-
-    public static void UpdateSphereTextureColors(Color32[] textureColors)
-    {
-        foreach (TerrainCell cell in UpdatedCells)
-        {
-            UpdateSphereTextureColorsFromCell(textureColors, cell);
-        }
-    }
-
-    public static void UpdateSphereTextureColorsFromCell(Color32[] textureColors, TerrainCell cell)
-    {
-        World world = cell.World;
-
-        int sizeX = world.Width;
-        int sizeY = world.Height * 2;
-
-        int r = PixelToCellRatio;
-
-        int i = cell.Longitude;
-        int j = cell.Latitude;
-
-        float factorJ = (1f - Mathf.Cos(Mathf.PI * (float)j / (float)sizeY)) / 2f;
-
-        int trueJ = (int)(world.Height * factorJ);
-
-        Color cellColor = GenerateColorFromTerrainCell(world.TerrainCells[i][trueJ]);
-
-        for (int m = 0; m < r; m++)
-        {
-            for (int n = 0; n < r; n++)
-            {
-                int offsetY = sizeX * r * (j * r + n);
-                int offsetX = i * r + m;
-
-                textureColors[offsetY + offsetX] = cellColor;
-            }
-        }
-    }
-
-    public static Texture2D GenerateSphereTextureFromWorld(World world)
-    {
-        //		UpdatedCells.Clear ();
-
-        int sizeX = world.Width;
-        int sizeY = world.Height * 2;
-
-        int r = PixelToCellRatio;
-
-        Color32[] textureColors = new Color32[sizeX * sizeY * r * r];
-
-        Texture2D texture = new Texture2D(sizeX * r, sizeY * r, TextureFormat.ARGB32, false);
-
-        for (int i = 0; i < sizeX; i++)
-        {
-            for (int j = 0; j < sizeY; j++)
-            {
-                float factorJ = (1f - Mathf.Cos(Mathf.PI * (float)j / (float)sizeY)) / 2f;
-
-                int trueJ = (int)(world.Height * factorJ);
-
-                Color cellColor = GenerateColorFromTerrainCell(world.TerrainCells[i][trueJ]);
-
-                for (int m = 0; m < r; m++)
-                {
-                    for (int n = 0; n < r; n++)
-                    {
-                        int offsetY = sizeX * r * (j * r + n);
-                        int offsetX = i * r + m;
-
-                        textureColors[offsetY + offsetX] = cellColor;
-                    }
-                }
-            }
-        }
-
-        texture.SetPixels32(textureColors);
-
-        texture.Apply();
-
-        _manager._currentSphereTextureColors = textureColors;
-        _manager._currentSphereTexture = texture;
 
         return texture;
     }

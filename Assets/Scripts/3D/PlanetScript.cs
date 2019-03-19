@@ -11,7 +11,7 @@ public class PlanetScript : MonoBehaviour
 
     public void RefreshTexture()
     {
-        Texture2D texture = Manager.CurrentSphereTexture;
+        Texture2D texture = Manager.CurrentMapTexture;
 
         GetComponent<Renderer>().material.mainTexture = texture;
     }
