@@ -417,6 +417,8 @@ public class World : ISynchronizable
 
     private static HashSet<TerrainCell> _modifiedAltitudeCells = new HashSet<TerrainCell>();
 
+    private OpenSimplexNoise _openSimplexNoise;
+
     public World()
     {
         Manager.WorldBeingLoaded = this;
@@ -439,11 +441,6 @@ public class World : ISynchronizable
         PolityCount = 0;
         RegionCount = 0;
         TerrainCellAlterationListCount = 0;
-
-        //AltitudeScale = Manager.AltitudeScale;
-        //SeaLevelOffset = Manager.SeaLevelOffset;
-        //RainfallOffset = Manager.RainfallOffset;
-        //TemperatureOffset = Manager.TemperatureOffset;
     }
 
     public void StartReinitialization(float acumulatedProgress, float progressIncrement)
@@ -479,6 +476,8 @@ public class World : ISynchronizable
 
     public void StartInitialization(float acumulatedProgress, float progressIncrement, bool justLoaded = false)
     {
+        _openSimplexNoise = new OpenSimplexNoise(Seed);
+
         _justLoaded = justLoaded;
 
         AltitudeScale = Manager.AltitudeScale;
@@ -2769,6 +2768,14 @@ public class World : ISynchronizable
         Vector3 pos = MathUtility.GetCartesianCoordinates(alpha, beta, radius) + offset;
 
         return PerlinNoise.GetValue(pos.x, pos.y, pos.z);
+    }
+
+    // Returns a value between 0 and 1
+    private float GetRandomNoiseFromPolarCoordinates_OpenSimplex(float alpha, float beta, float radius, Vector3 offset)
+    {
+        Vector3 pos = MathUtility.GetCartesianCoordinates(alpha, beta, radius) + offset;
+
+        return (float)_openSimplexNoise.eval(pos.x, pos.y, pos.z);
     }
 
     private float GetMountainRangeNoiseFromRandomNoise(float noise, float widthFactor)
