@@ -166,6 +166,8 @@ public class Manager
 
     public static GameMode GameMode = GameMode.None;
 
+    public static bool ViewingGlobe = false;
+
     private static bool _isLoadReady = false;
 
     private static StreamWriter _debugLogStream = null;
@@ -211,7 +213,7 @@ public class Manager
     private static event System.Action _onUndoStackUpdate;
     private static event System.Action _onRedoStackUpdate;
 
-    private static bool undoAndRedoBlocked = false;
+    private static bool _undoAndRedoBlocked = false;
 
     private ProgressCastDelegate _progressCastMethod = null;
 
@@ -344,7 +346,7 @@ public class Manager
 
     public static void BlockUndoAndRedo(bool state)
     {
-        undoAndRedoBlocked = state;
+        _undoAndRedoBlocked = state;
     }
 
     public static void RegisterUndoStackUpdateOp(System.Action op)
@@ -369,7 +371,7 @@ public class Manager
 
     public static void UndoEditorAction()
     {
-        if (undoAndRedoBlocked || EditorBrushIsActive)
+        if (_undoAndRedoBlocked || EditorBrushIsActive)
             return;
 
         if (_undoableEditorActions.Count <= 0)
@@ -384,7 +386,7 @@ public class Manager
 
     public static void RedoEditorAction()
     {
-        if (undoAndRedoBlocked || EditorBrushIsActive)
+        if (_undoAndRedoBlocked || EditorBrushIsActive)
             return;
 
         if (_redoableEditorActions.Count <= 0)

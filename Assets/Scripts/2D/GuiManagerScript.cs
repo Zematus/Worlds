@@ -755,6 +755,24 @@ public class GuiManagerScript : MonoBehaviour
         }
     }
 
+    private void ReadKeyboardInput_Globe()
+    {
+        bool shiftPressed = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
+
+        if (shiftPressed)
+        {
+            if (Input.GetKeyUp(KeyCode.G))
+            {
+                ShiftToGobleView(!Manager.ViewingGlobe);
+            }
+        }
+    }
+
+    private void ShiftToGobleView(bool state)
+    {
+        Manager.ViewingGlobe = state;
+    }
+
     private void ReadKeyboardInput_MapViews()
     {
         if (Input.GetKeyUp(KeyCode.V))

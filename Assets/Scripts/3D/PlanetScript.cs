@@ -2,12 +2,21 @@
 using System.Collections;
 using UnityEngine.EventSystems;
 
+public enum SphereRotationType
+{
+    None,
+    Auto,
+    AutoCameraFollow
+}
+
 public class PlanetScript : MonoBehaviour
 {
     public Camera Camera;
 
     public GameObject SunLight;
     public GameObject FocusLight;
+
+    public GameObject SunReference;
 
     public SphereCollider SphereCollider;
 
@@ -33,17 +42,21 @@ public class PlanetScript : MonoBehaviour
 
     private float _zoomFactor = 1.0f;
 
-    private bool _autoRotateSet = true;
+    private SphereRotationType _rotationType = SphereRotationType.Auto;
 
     // Update is called once per frame
 
     void Update()
     {
+        if (!Manager.ViewingGlobe)
+            return;
+
         ReadKeyboardInput();
 
         Update_HandleMouse();
 
-        if (_autoRotateSet)
+        if ((_rotationType == SphereRotationType.Auto) ||
+            (_rotationType == SphereRotationType.AutoCameraFollow))
         {
             Surface.transform.Rotate(Vector3.up * Time.deltaTime * -2.5f);
         }
@@ -77,22 +90,52 @@ public class PlanetScript : MonoBehaviour
         {
             if (Input.GetKeyUp(KeyCode.R))
             {
-                ToggleAutoRotate();
+                SwitchToNextRotationType();
             }
         }
     }
 
-    private void ToggleAutoRotate()
+    private void SwitchToNextRotationType()
     {
-        SetAutoRotate(!_autoRotateSet);
+        switch (_rotationType)
+        {
+            case SphereRotationType.None:
+                SetRotationType(SphereRotationType.Auto);
+                break;
+            case SphereRotationType.Auto:
+                SetRotationType(SphereRotationType.AutoCameraFollow);
+                break;
+            case SphereRotationType.AutoCameraFollow:
+                SetRotationType(SphereRotationType.None);
+                break;
+            default:
+                throw new System.Exception("Unhandled SphereRotationType: " + _rotationType);
+        }
     }
 
-    private void SetAutoRotate(bool state)
+    private void SetRotationType(SphereRotationType rotationType)
     {
-        _autoRotateSet = state;
+        _rotationType = rotationType;
 
-        SunLight.SetActive(state);
-        FocusLight.SetActive(!state);
+        bool useSunLight = (_rotationType == SphereRotationType.Auto) || (_rotationType == SphereRotationType.AutoCameraFollow);
+
+        SunLight.SetActive(useSunLight);
+        FocusLight.SetActive(!useSunLight);
+
+        //if (!useSunLight)
+        //{
+        //    SunLight.transform.position = SunReference.transform.position;
+        //    SunLight.transform.rotation = SunReference.transform.rotation;
+        //}
+
+        if (_rotationType == SphereRotationType.AutoCameraFollow)
+        {
+            Pivot.transform.parent = Surface.transform;
+        }
+        else
+        {
+            Pivot.transform.parent = transform;
+        }
     }
 
     private void Update_HandleMouse()
@@ -128,6 +171,14 @@ public class PlanetScript : MonoBehaviour
 
     private void HandleMouseScroll()
     {
+        ZoomCamera(_zoomDeltaFactor * Input.mouseScrollDelta.y);
+    }
+
+    public void ZoomButtonPressed(bool state)
+    {
+        float zoomDelta = 2f * (state ? _zoomDeltaFactor : -_zoomDeltaFactor);
+
+        ZoomCamera(zoomDelta);
     }
 
     private void ZoomKeyPressed(bool state)
@@ -141,8 +192,7 @@ public class PlanetScript : MonoBehaviour
     {
         if (_isDraggingSurface)
             return;
-
-        float oldZoomFactor = _zoomFactor;
+        
         _zoomFactor = Mathf.Clamp(_zoomFactor - delta, _minZoomFactor, _maxZoomFactor);
 
         Vector3 cameraPosition = Camera.transform.localPosition;

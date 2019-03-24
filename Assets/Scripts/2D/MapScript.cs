@@ -23,6 +23,9 @@ public class MapScript : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (Manager.ViewingGlobe)
+            return;
+
         ReadKeyboardInput();
     }
 
@@ -185,6 +188,9 @@ public class MapScript : MonoBehaviour
 
     public void ZoomButtonPressed(bool state)
     {
+        if (Manager.ViewingGlobe)
+            return;
+
         Vector2 pointerPosition = new Vector2(Input.mousePosition.x, Input.mousePosition.y);
 
         Vector2 uvPosition;
