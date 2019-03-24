@@ -5,24 +5,94 @@ using UnityEngine.EventSystems;
 public class PlanetScript : MonoBehaviour
 {
     public Camera Camera;
+
+    public GameObject SunLight;
+    public GameObject FocusLight;
+
     public SphereCollider SphereCollider;
 
     public GameObject Pivot;
+    public GameObject InnerPivot;
+
+    public GameObject Surface;
 
     private bool _isDraggingSurface = false;
 
-    private Vector3 _sphereRotateLastDragPosition;
-    private Vector3 _initialDragMousePosition;
+    private Vector3 _lastDragMousePosition;
 
-    private const float _rayDistFactor = 2.5f;
+    private const float _maxCameraDistance = -2.5f;
+    private const float _minCameraDistance = -1.15f;
+
+    private const float _maxZoomFactor = 1f;
+    private const float _minZoomFactor = 0f;
+
+    private const float _maxZoomDragFactor = 1f;
+    private const float _minZoomDragFactor = 0.1f;
+
+    private const float _zoomDeltaFactor = 0.05f;
+
+    private float _zoomFactor = 1.0f;
+
+    private bool _autoRotateSet = true;
 
     // Update is called once per frame
 
     void Update()
     {
+        ReadKeyboardInput();
+
         Update_HandleMouse();
 
-        //transform.Rotate(Vector3.up * Time.deltaTime * 10);
+        if (_autoRotateSet)
+        {
+            Surface.transform.Rotate(Vector3.up * Time.deltaTime * -2.5f);
+        }
+    }
+
+    private void ReadKeyboardInput()
+    {
+        ReadKeyboardInput_Rotation();
+        ReadKeyboardInput_Zoom();
+    }
+
+    private void ReadKeyboardInput_Zoom()
+    {
+        if (Input.GetKey(KeyCode.KeypadPlus) ||
+            Input.GetKey(KeyCode.Equals))
+        {
+            ZoomKeyPressed(true);
+        }
+        else if (Input.GetKey(KeyCode.KeypadMinus) ||
+            Input.GetKey(KeyCode.Minus))
+        {
+            ZoomKeyPressed(false);
+        }
+    }
+
+    private void ReadKeyboardInput_Rotation()
+    {
+        bool controlPressed = Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
+
+        if (controlPressed)
+        {
+            if (Input.GetKeyUp(KeyCode.R))
+            {
+                ToggleAutoRotate();
+            }
+        }
+    }
+
+    private void ToggleAutoRotate()
+    {
+        SetAutoRotate(!_autoRotateSet);
+    }
+
+    private void SetAutoRotate(bool state)
+    {
+        _autoRotateSet = state;
+
+        SunLight.SetActive(state);
+        FocusLight.SetActive(!state);
     }
 
     private void Update_HandleMouse()
@@ -44,6 +114,8 @@ public class PlanetScript : MonoBehaviour
             {
                 BeginDragSurface(Input.mousePosition);
             }
+
+            HandleMouseScroll();
         }
     }
 
@@ -54,82 +126,78 @@ public class PlanetScript : MonoBehaviour
         GetComponent<Renderer>().material.mainTexture = texture;
     }
 
+    private void HandleMouseScroll()
+    {
+    }
+
+    private void ZoomKeyPressed(bool state)
+    {
+        float zoomDelta = 0.25f * (state ? _zoomDeltaFactor : -_zoomDeltaFactor);
+
+        ZoomCamera(zoomDelta);
+    }
+
+    public void ZoomCamera(float delta)
+    {
+        if (_isDraggingSurface)
+            return;
+
+        float oldZoomFactor = _zoomFactor;
+        _zoomFactor = Mathf.Clamp(_zoomFactor - delta, _minZoomFactor, _maxZoomFactor);
+
+        Vector3 cameraPosition = Camera.transform.localPosition;
+        cameraPosition.z = Mathf.Lerp(_minCameraDistance, _maxCameraDistance, _zoomFactor);
+
+        Camera.transform.localPosition = cameraPosition;
+    }
+
     private void DragSurface(Vector3 mousePosition)
     {
         if (!_isDraggingSurface)
             return;
 
-        Ray ray = Camera.ScreenPointToRay(Input.mousePosition);
-
-        float distance = (Camera.transform.position - transform.position).magnitude * _rayDistFactor - Camera.nearClipPlane;
-
-        Vector3 currentDragPosition = ray.GetPoint(distance);
-
-        Vector3 pivotLastDragPosition = Pivot.transform.InverseTransformVector(_sphereRotateLastDragPosition);
-        Vector3 pivotCurrentDragPosition = Pivot.transform.InverseTransformVector(currentDragPosition);
-
-        Vector3 localLastDragPosition = transform.InverseTransformVector(_sphereRotateLastDragPosition);
-        Vector3 localCurrentDragPosition = transform.InverseTransformVector(currentDragPosition);
-
-        float angleXPivot = Vector3.SignedAngle(pivotLastDragPosition, pivotCurrentDragPosition, Vector3.right);
-        float angleY = Vector3.SignedAngle(localLastDragPosition, localCurrentDragPosition, Vector3.up);
-
-        float absDX = Mathf.Max(0.001f, Mathf.Abs(_initialDragMousePosition.x - mousePosition.x));
-        float absDY = Mathf.Max(0.001f, Mathf.Abs(_initialDragMousePosition.y - mousePosition.y));
-
-        // Introduce a rotation bias toward a single axis to minimize rotation wobble
-        angleXPivot *= Mathf.Min(1, absDY / absDX);
-        angleY *= Mathf.Min(1, absDX / absDY);
-
-        Pivot.transform.Rotate(angleXPivot, 0, 0);
-        transform.Rotate(0, angleY, 0);
-
-        Quaternion pivotRotation = Pivot.transform.rotation;
-        Vector3 pivotEulerAngles = pivotRotation.eulerAngles;
+        float zoomDragFactor = Mathf.Lerp(_minZoomDragFactor, _maxZoomDragFactor, _zoomFactor);
         
-        // Prevent the globe pivot from rotating beyond the poles
-        if ((pivotEulerAngles.x > 89) && (pivotEulerAngles.x <= 135))
+        float screenFactor =  110f / Mathf.Min(Screen.height, Screen.width);
+
+        float lastOffsetX = _lastDragMousePosition.x - Screen.height / 2;
+        float lastOffsetY = _lastDragMousePosition.y - Screen.width / 2;
+
+        float offsetX = mousePosition.x - Screen.height / 2;
+        float offsetY = mousePosition.y - Screen.width / 2;
+
+        float innerPivotRotX = (offsetY - lastOffsetY) * screenFactor * zoomDragFactor;
+        float pivotRotY = (offsetX - lastOffsetX) * screenFactor * zoomDragFactor;
+
+        Pivot.transform.Rotate(0, pivotRotY, 0);
+        InnerPivot.transform.Rotate(-innerPivotRotX, 0, 0, Space.Self);
+
+        Quaternion innerPivotRotation = InnerPivot.transform.localRotation;
+        Vector3 innerPivotEulerAngles = innerPivotRotation.eulerAngles;
+        
+        // Prevent the globe's inner pivot from rotating beyond the poles
+        if ((innerPivotEulerAngles.x > 88) && (innerPivotEulerAngles.x <= 135))
         {
-            pivotEulerAngles.x = 89;
+            innerPivotEulerAngles.x = 88;
         }
-        if ((pivotEulerAngles.x < 271) && (pivotEulerAngles.x > 135))
+        if ((innerPivotEulerAngles.x < 272) && (innerPivotEulerAngles.x > 135))
         {
-            pivotEulerAngles.x = 271;
+            innerPivotEulerAngles.x = 272;
         }
-        pivotEulerAngles.y = 0;
-        pivotEulerAngles.z = 0;
+        innerPivotEulerAngles.y = 0;
+        innerPivotEulerAngles.z = 0;
 
-        pivotRotation.eulerAngles = pivotEulerAngles;
-        Pivot.transform.rotation = pivotRotation;
+        innerPivotRotation.eulerAngles = innerPivotEulerAngles;
+        InnerPivot.transform.localRotation = innerPivotRotation;
 
-        _sphereRotateLastDragPosition = currentDragPosition;
-
-        // Lerp initial mouse pos toward current mouse pos to soften axis switching in rotation bias
-        _initialDragMousePosition = Vector3.Lerp(_initialDragMousePosition, mousePosition, 0.25f);
+        _lastDragMousePosition = mousePosition;
     }
 
     private void BeginDragSurface(Vector3 mousePosition)
     {
-        Ray ray = Camera.ScreenPointToRay(Input.mousePosition);
+        _lastDragMousePosition = mousePosition;
         
-        RaycastHit raycastHit; 
-
-        if (!SphereCollider.Raycast(ray, out raycastHit, 50))
-        {
-            Debug.Log("Mouse not within sphere");
-
-            return; // Didn't actually pressed mouse on the sphere's surface
-        }
-
-        _initialDragMousePosition = mousePosition;
-
-        float distance = (Camera.transform.position - transform.position).magnitude * _rayDistFactor - Camera.nearClipPlane;
-
-        _sphereRotateLastDragPosition = ray.GetPoint(distance);
-
         _isDraggingSurface = true;
-
-        Debug.Log("Started surface drag");
     }
 
     public void EndDragSurface(Vector3 mousePosition)
@@ -138,7 +206,5 @@ public class PlanetScript : MonoBehaviour
             return;
 
         _isDraggingSurface = false;
-
-        Debug.Log("Ended surface drag");
     }
 }
