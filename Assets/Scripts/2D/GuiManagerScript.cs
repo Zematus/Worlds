@@ -550,7 +550,7 @@ public class GuiManagerScript : MonoBehaviour
             Profiler.EndSample();
         }
 
-        if (MapScript.MapImage.enabled)
+        if (MapScript.IsVisible())
         {
             UpdateInfoPanel();
             UpdateFocusPanel();
@@ -763,14 +763,9 @@ public class GuiManagerScript : MonoBehaviour
         {
             if (Input.GetKeyUp(KeyCode.G))
             {
-                ShiftToGobleView(!Manager.ViewingGlobe);
+                ToggleGlobeView();
             }
         }
-    }
-
-    private void ShiftToGobleView(bool state)
-    {
-        Manager.ViewingGlobe = state;
     }
 
     private void ReadKeyboardInput_MapViews()
@@ -930,6 +925,7 @@ public class GuiManagerScript : MonoBehaviour
         ReadKeyboardInput_TimeControls();
         ReadKeyboardInput_Escape();
         ReadKeyboardInput_Menus();
+        ReadKeyboardInput_Globe();
         ReadKeyboardInput_MapViews();
         ReadKeyboardInput_MapOverlays();
     }
@@ -2092,16 +2088,19 @@ public class GuiManagerScript : MonoBehaviour
         ResetAccDeltaTime();
     }
 
-    public void UpdateMapView()
+    public void ToggleGlobeView()
     {
-        MapScript.SetVisible(!MapScript.IsVisible());
+        Manager.ViewingGlobe = !Manager.ViewingGlobe;
+
+        MapScript.SetVisible(!Manager.ViewingGlobe);
+        PlanetScript.SetVisible(Manager.ViewingGlobe);
 
         UpdateMapViewButtonText();
     }
 
     public void UpdateMapViewButtonText()
     {
-        if (MapScript.MapImage.enabled)
+        if (MapScript.IsVisible())
         {
             MapViewButtonText.text = "View World";
         }

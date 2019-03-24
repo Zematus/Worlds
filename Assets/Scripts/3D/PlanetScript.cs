@@ -23,6 +23,7 @@ public class PlanetScript : MonoBehaviour
     public GameObject Pivot;
     public GameObject InnerPivot;
 
+    public GameObject AutoRotationPivot;
     public GameObject Surface;
 
     private bool _isDraggingSurface = false;
@@ -58,7 +59,7 @@ public class PlanetScript : MonoBehaviour
         if ((_rotationType == SphereRotationType.Auto) ||
             (_rotationType == SphereRotationType.AutoCameraFollow))
         {
-            Surface.transform.Rotate(Vector3.up * Time.deltaTime * -2.5f);
+            AutoRotationPivot.transform.Rotate(Vector3.up * Time.deltaTime * -2.5f);
         }
     }
 
@@ -130,7 +131,7 @@ public class PlanetScript : MonoBehaviour
 
         if (_rotationType == SphereRotationType.AutoCameraFollow)
         {
-            Pivot.transform.parent = Surface.transform;
+            Pivot.transform.parent = AutoRotationPivot.transform;
         }
         else
         {
@@ -162,6 +163,11 @@ public class PlanetScript : MonoBehaviour
         }
     }
 
+    public void SetVisible(bool state)
+    {
+        Surface.SetActive(state);
+    }
+
     public void RefreshTexture()
     {
         Texture2D texture = Manager.CurrentMapTexture;
@@ -176,6 +182,9 @@ public class PlanetScript : MonoBehaviour
 
     public void ZoomButtonPressed(bool state)
     {
+        if (!Manager.ViewingGlobe)
+            return;
+
         float zoomDelta = 2f * (state ? _zoomDeltaFactor : -_zoomDeltaFactor);
 
         ZoomCamera(zoomDelta);

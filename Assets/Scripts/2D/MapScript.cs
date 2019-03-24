@@ -48,12 +48,10 @@ public class MapScript : MonoBehaviour
         }
     }
 
-    public void SetVisible(bool value)
+    public void SetVisible(bool state)
     {
-        MapImage.enabled = value;
-        PointerOverlayImage.enabled = value;
-
-        InfoPanel.SetActive(value);
+        MapImage.enabled = state;
+        PointerOverlayImage.enabled = state;
     }
 
     public bool IsVisible()
