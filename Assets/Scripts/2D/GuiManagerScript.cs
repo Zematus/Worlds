@@ -23,8 +23,6 @@ public class GuiManagerScript : MonoBehaviour
 
     public const float MaxDeltaTimeIterations = 0.02f; // max real time to be spent on iterations on a single frame (this is the value that matters the most performance-wise)
 
-    public Text MapViewButtonText;
-
     public Button LoadButton;
 
     public PlanetScript PlanetScript;
@@ -76,6 +74,8 @@ public class GuiManagerScript : MonoBehaviour
 
     public UnityEvent EnteredEditorMode;
     public UnityEvent EnteredSimulationMode;
+
+    public ToggleEvent ToggledGlobeViewing;
 
     public SpeedChangeEvent OnSimulationSpeedChanged;
 
@@ -312,8 +312,6 @@ public class GuiManagerScript : MonoBehaviour
             SetGameModeAccordingToCurrentWorld();
         }
 
-        UpdateMapViewButtonText();
-
         LoadButton.interactable = HasFilesToLoad();
 
         Manager.SetBiomePalette(BiomePaletteScript.Colors);
@@ -521,7 +519,7 @@ public class GuiManagerScript : MonoBehaviour
             Profiler.BeginSample("Manager.RefreshTexture");
 
             MapScript.RefreshTexture();
-            //PlanetScript.RefreshTexture();
+            PlanetScript.RefreshTexture();
 
             Profiler.EndSample();
 
@@ -2090,24 +2088,14 @@ public class GuiManagerScript : MonoBehaviour
 
     public void ToggleGlobeView()
     {
-        Manager.ViewingGlobe = !Manager.ViewingGlobe;
+        bool newState = !Manager.ViewingGlobe;
 
-        MapScript.SetVisible(!Manager.ViewingGlobe);
-        PlanetScript.SetVisible(Manager.ViewingGlobe);
+        Manager.ViewingGlobe = newState;
 
-        UpdateMapViewButtonText();
-    }
+        MapScript.SetVisible(!newState);
+        PlanetScript.SetVisible(newState);
 
-    public void UpdateMapViewButtonText()
-    {
-        if (MapScript.IsVisible())
-        {
-            MapViewButtonText.text = "View World";
-        }
-        else
-        {
-            MapViewButtonText.text = "View Map";
-        }
+        ToggledGlobeViewing.Invoke(newState);
     }
 
     public void SetRouteDisplayOverlay(bool value)

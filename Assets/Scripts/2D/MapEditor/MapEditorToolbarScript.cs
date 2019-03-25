@@ -212,4 +212,12 @@ public class MapEditorToolbarScript : MonoBehaviour
     {
         RedoActionButton.interactable = Manager.RedoableEditorActionsCount > 0;
     }
+
+    public void OnSwitchingToGlobeViewing(bool state)
+    {
+        if (Manager.GameMode != GameMode.Editor)
+            return;
+
+        gameObject.SetActive(!state);
+    }
 }

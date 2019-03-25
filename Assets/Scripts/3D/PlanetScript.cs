@@ -172,7 +172,7 @@ public class PlanetScript : MonoBehaviour
     {
         Texture2D texture = Manager.CurrentMapTexture;
 
-        GetComponent<Renderer>().material.mainTexture = texture;
+        Surface.GetComponent<Renderer>().material.mainTexture = texture;
     }
 
     private void HandleMouseScroll()
