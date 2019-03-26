@@ -220,4 +220,12 @@ public class MapEditorToolbarScript : MonoBehaviour
 
         gameObject.SetActive(!state);
     }
+
+    public void SetVisible(bool state)
+    {
+        if (Manager.ViewingGlobe)
+            return;
+
+        gameObject.SetActive(state);
+    }
 }

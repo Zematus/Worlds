@@ -85,14 +85,9 @@ public class PlanetScript : MonoBehaviour
 
     private void ReadKeyboardInput_Rotation()
     {
-        bool controlPressed = Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
-
-        if (controlPressed)
+        if (Input.GetKeyUp(KeyCode.R))
         {
-            if (Input.GetKeyUp(KeyCode.R))
-            {
-                SwitchToNextRotationType();
-            }
+            SwitchToNextRotationType();
         }
     }
 
