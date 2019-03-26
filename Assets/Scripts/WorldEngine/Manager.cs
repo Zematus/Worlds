@@ -168,6 +168,10 @@ public class Manager
 
     public static bool ViewingGlobe = false;
 
+    public static int LastMapUpdateCount = 0;
+    public static int LastPixelUpdateCount = 0;
+    public static long LastDateSpan = 0;
+
     private static bool _isLoadReady = false;
 
     private static StreamWriter _debugLogStream = null;

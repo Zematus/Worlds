@@ -18,8 +18,6 @@ public class PlanetScript : MonoBehaviour
 
     public GameObject SunReference;
 
-    public SphereCollider SphereCollider;
-
     public GameObject Pivot;
     public GameObject InnerPivot;
 
@@ -260,5 +258,55 @@ public class PlanetScript : MonoBehaviour
             return;
 
         _isDraggingSurface = false;
+    }
+
+    public bool GetUvCoordinatesFromPointerPosition(Vector2 pointerPosition, out Vector2 uvPosition)
+    {
+        Ray ray = Camera.ScreenPointToRay(Input.mousePosition);
+
+        RaycastHit raycastHit;
+
+        Collider collider = Surface.GetComponent<Collider>();
+
+        if (!collider.Raycast(ray, out raycastHit, 50))
+        {
+            uvPosition = -Vector2.one;
+
+            return false;
+        }
+
+        uvPosition = raycastHit.textureCoord;
+
+        return true;
+    }
+
+    public bool GetMapCoordinatesFromPointerPosition(Vector2 pointerPosition, out Vector2 mapPosition)
+    {
+        Vector2 uvPosition;
+
+        if (!GetUvCoordinatesFromPointerPosition(pointerPosition, out uvPosition))
+        {
+            mapPosition = -Vector2.one;
+
+            return false;
+        }
+
+        float worldLong = Mathf.Repeat(Mathf.Floor(uvPosition.x * Manager.CurrentWorld.Width), Manager.CurrentWorld.Width);
+        float worldLat = Mathf.Floor(uvPosition.y * Manager.CurrentWorld.Height);
+
+        if (worldLat > (Manager.CurrentWorld.Height - 1))
+        {
+            worldLat = Mathf.Max(0, (2 * Manager.CurrentWorld.Height) - worldLat - 1);
+            worldLong = Mathf.Repeat(Mathf.Floor(worldLong + (Manager.CurrentWorld.Width / 2f)), Manager.CurrentWorld.Width);
+        }
+        else if (worldLat < 0)
+        {
+            worldLat = Mathf.Min(Manager.CurrentWorld.Height - 1, -1 - worldLat);
+            worldLong = Mathf.Repeat(Mathf.Floor(worldLong + (Manager.CurrentWorld.Width / 2f)), Manager.CurrentWorld.Width);
+        }
+
+        mapPosition = new Vector2(worldLong, worldLat);
+
+        return true;
     }
 }
