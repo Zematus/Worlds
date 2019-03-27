@@ -324,19 +324,14 @@ public class MapScript : MonoBehaviour
     {
         Rect mapImageRect = MapImage.rectTransform.rect;
 
-        Vector2 normalizedMapPos = GetNormalizedPositionFromMapCoordinates(mapPosition);
+        Vector2 uvPos = Manager.GetUVFromMapCoordinates(mapPosition);
 
-        Vector2 mapImagePos = normalizedMapPos - MapImage.uvRect.min;
+        Vector2 mapImagePos = uvPos - MapImage.uvRect.min;
         mapImagePos.x = Mathf.Repeat(mapImagePos.x, 1.0f);
         mapImagePos /= _zoomFactor;
 
         mapImagePos.Scale(mapImageRect.size);
 
         return MapImage.rectTransform.TransformPoint(mapImagePos + mapImageRect.min);
-    }
-
-    public Vector2 GetNormalizedPositionFromMapCoordinates(WorldPosition mapPosition)
-    {
-        return new Vector2(mapPosition.Longitude / (float)Manager.CurrentWorld.Width, mapPosition.Latitude / (float)Manager.CurrentWorld.Height);
     }
 }

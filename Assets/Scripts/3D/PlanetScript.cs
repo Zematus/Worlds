@@ -309,4 +309,33 @@ public class PlanetScript : MonoBehaviour
 
         return true;
     }
+
+    public Vector3 GetScreenPositionFromMapCoordinates(WorldPosition mapPosition)
+    {
+        Vector2 uvPos = Manager.GetUVFromMapCoordinates(mapPosition);
+
+        Vector3 closestVertex = Vector3.zero;
+        float closestDistance = float.MaxValue;
+
+        Vector2[] uvOffsets = Surface.GetComponent<MeshFilter>().mesh.uv;
+        Vector3[] vertices = Surface.GetComponent<MeshFilter>().mesh.vertices;
+
+        for (int i = 0; i < vertices.Length; i++)
+        {
+            Vector2 uvOffset = uvOffsets[i];
+            Vector3 vertex = vertices[i];
+
+            float distance = (uvOffset - uvPos).magnitude;
+
+            if (distance < closestDistance)
+            {
+                closestVertex = vertex;
+                closestDistance = distance;
+            }
+        }
+
+        Vector3 vertexWorldPos = Surface.transform.localToWorldMatrix.MultiplyPoint3x4(closestVertex);
+
+        return Camera.WorldToScreenPoint(vertexWorldPos);
+    }
 }

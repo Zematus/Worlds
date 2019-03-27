@@ -2541,6 +2541,18 @@ public class GuiManagerScript : MonoBehaviour
         return cell;
     }
 
+    private Vector3 GetScreenPositionFromMapCoordinates(WorldPosition mapPosition)
+    {
+        if (Manager.ViewingGlobe)
+        {
+            return PlanetScript.GetScreenPositionFromMapCoordinates(mapPosition);
+        }
+        else
+        {
+            return MapScript.GetScreenPositionFromMapCoordinates(mapPosition);
+        }
+    }
+
     private void ShowCellInfoToolTip_PolityTerritory(TerrainCell cell)
     {
         if (cell.EncompassingTerritory == _lastHoveredOverTerritory)
@@ -2561,7 +2573,7 @@ public class GuiManagerScript : MonoBehaviour
             throw new System.Exception("Polity can't be null");
         }
 
-        Vector3 tooltipPos = MapScript.GetScreenPositionFromMapCoordinates(polity.CoreGroup.Cell.Position) + _tooltipOffset;
+        Vector3 tooltipPos = GetScreenPositionFromMapCoordinates(polity.CoreGroup.Cell.Position) + _tooltipOffset;
 
         if (polity.Name == null)
         {
@@ -2775,7 +2787,7 @@ public class GuiManagerScript : MonoBehaviour
 
         WorldPosition regionCenterCellPosition = _lastHoveredOverRegion.GetMostCenteredCell().Position;
 
-        Vector3 tooltipPos = MapScript.GetScreenPositionFromMapCoordinates(regionCenterCellPosition) + _tooltipOffset;
+        Vector3 tooltipPos = GetScreenPositionFromMapCoordinates(regionCenterCellPosition) + _tooltipOffset;
 
         InfoTooltipScript.DisplayTip(_lastHoveredOverRegion.Name.Text, tooltipPos);
     }

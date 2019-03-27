@@ -759,6 +759,11 @@ public class Manager
         }
     }
 
+    public static Vector2 GetUVFromMapCoordinates(WorldPosition mapPosition)
+    {
+        return new Vector2(mapPosition.Longitude / (float)CurrentWorld.Width, mapPosition.Latitude / (float)CurrentWorld.Height);
+    }
+
     public static void ExportMapTextureToFile(string path, Rect uvRect)
     {
         Texture2D mapTexture = _manager._currentMapTexture;
