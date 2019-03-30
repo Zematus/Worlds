@@ -2076,6 +2076,9 @@ public class GuiManagerScript : MonoBehaviour
 
     public void ToggleGlobeView()
     {
+        if (Manager.EditorBrushIsActive)
+            return; // Do not allow map projection switching while brush is active
+
         bool newState = !Manager.ViewingGlobe;
 
         Manager.ViewingGlobe = newState;
@@ -2790,6 +2793,54 @@ public class GuiManagerScript : MonoBehaviour
         Vector3 tooltipPos = GetScreenPositionFromMapCoordinates(regionCenterCellPosition) + _tooltipOffset;
 
         InfoTooltipScript.DisplayTip(_lastHoveredOverRegion.Name.Text, tooltipPos);
+    }
+
+    public void BeginDrag(BaseEventData data)
+    {
+        if (Manager.ViewingGlobe)
+        {
+            PlanetScript.BeginDrag(data);
+        }
+        else
+        {
+            MapScript.BeginDrag(data);
+        }
+    }
+
+    public void Drag(BaseEventData data)
+    {
+        if (Manager.ViewingGlobe)
+        {
+            PlanetScript.Drag(data);
+        }
+        else
+        {
+            MapScript.Drag(data);
+        }
+    }
+
+    public void EndDrag(BaseEventData data)
+    {
+        if (Manager.ViewingGlobe)
+        {
+            PlanetScript.EndDrag(data);
+        }
+        else
+        {
+            MapScript.EndDrag(data);
+        }
+    }
+
+    public void Scroll(BaseEventData data)
+    {
+        if (Manager.ViewingGlobe)
+        {
+            PlanetScript.Scroll(data);
+        }
+        else
+        {
+            MapScript.Scroll(data);
+        }
     }
 
     public void SelectCellOnMap(BaseEventData data)

@@ -52,8 +52,6 @@ public class PlanetScript : MonoBehaviour
 
         ReadKeyboardInput();
 
-        Update_HandleMouse();
-
         if ((_rotationType == SphereRotationType.Auto) ||
             (_rotationType == SphereRotationType.AutoCameraFollow))
         {
@@ -132,30 +130,6 @@ public class PlanetScript : MonoBehaviour
         }
     }
 
-    private void Update_HandleMouse()
-    {
-        if (_isDraggingSurface)
-        {
-            if (Input.GetMouseButton(1))
-            {
-                DragSurface(Input.mousePosition);
-            }
-            else if (Input.GetMouseButtonUp(1))
-            {
-                EndDragSurface(Input.mousePosition);
-            }
-        }
-        else
-        {
-            if (Input.GetMouseButtonDown(1))
-            {
-                BeginDragSurface(Input.mousePosition);
-            }
-
-            HandleMouseScroll();
-        }
-    }
-
     public void SetVisible(bool state)
     {
         Surface.SetActive(state);
@@ -166,11 +140,6 @@ public class PlanetScript : MonoBehaviour
         Texture2D texture = Manager.CurrentMapTexture;
 
         Surface.GetComponent<Renderer>().material.mainTexture = texture;
-    }
-
-    private void HandleMouseScroll()
-    {
-        ZoomCamera(_zoomDeltaFactor * Input.mouseScrollDelta.y);
     }
 
     public void ZoomButtonPressed(bool state)
@@ -337,5 +306,42 @@ public class PlanetScript : MonoBehaviour
         Vector3 vertexWorldPos = Surface.transform.localToWorldMatrix.MultiplyPoint3x4(closestVertex);
 
         return Camera.WorldToScreenPoint(vertexWorldPos);
+    }
+
+    public void BeginDrag(BaseEventData data)
+    {
+        PointerEventData pointerData = data as PointerEventData;
+
+        if (pointerData.button == PointerEventData.InputButton.Right)
+        {
+            BeginDragSurface(pointerData.position);
+        }
+    }
+
+    public void Drag(BaseEventData data)
+    {
+        PointerEventData pointerData = data as PointerEventData;
+
+        if (pointerData.button == PointerEventData.InputButton.Right)
+        {
+            DragSurface(pointerData.position);
+        }
+    }
+
+    public void EndDrag(BaseEventData data)
+    {
+        PointerEventData pointerData = data as PointerEventData;
+
+        if (pointerData.button == PointerEventData.InputButton.Right)
+        {
+            EndDragSurface(pointerData.position);
+        }
+    }
+
+    public void Scroll(BaseEventData data)
+    {
+        PointerEventData pointerData = data as PointerEventData;
+
+        ZoomCamera(_zoomDeltaFactor * pointerData.scrollDelta.y);
     }
 }

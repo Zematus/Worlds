@@ -111,16 +111,6 @@ public class MapScript : MonoBehaviour
         PointerOverlayImage.uvRect = newUvRect;
     }
 
-    public void Drag(BaseEventData data)
-    {
-        PointerEventData pointerData = data as PointerEventData;
-
-        if (pointerData.button == PointerEventData.InputButton.Right)
-        {
-            DragMap(pointerData);
-        }
-    }
-
     private void BeginDragMap(PointerEventData pointerData)
     {
         if (Manager.EditorBrushIsActive)
@@ -130,6 +120,14 @@ public class MapScript : MonoBehaviour
         _beginDragMapUvRect = MapImage.uvRect;
 
         _isDraggingMap = true;
+    }
+
+    public void EndDragMap(PointerEventData pointerData)
+    {
+        if (!_isDraggingMap)
+            return;
+
+        _isDraggingMap = false;
     }
 
     public void BeginDrag(BaseEventData data)
@@ -142,9 +140,24 @@ public class MapScript : MonoBehaviour
         }
     }
 
+    public void Drag(BaseEventData data)
+    {
+        PointerEventData pointerData = data as PointerEventData;
+
+        if (pointerData.button == PointerEventData.InputButton.Right)
+        {
+            DragMap(pointerData);
+        }
+    }
+
     public void EndDrag(BaseEventData data)
     {
-        _isDraggingMap = false;
+        PointerEventData pointerData = data as PointerEventData;
+
+        if (pointerData.button == PointerEventData.InputButton.Right)
+        {
+            EndDragMap(pointerData);
+        }
     }
 
     public void PointerDown(BaseEventData data)
@@ -153,7 +166,7 @@ public class MapScript : MonoBehaviour
 
         if (pointerData.button == PointerEventData.InputButton.Left)
         {
-            if (!_isDraggingMap)
+            if (!Manager.ViewingGlobe && !_isDraggingMap)
             {
                 Manager.ActivateEditorBrush(true);
             }
