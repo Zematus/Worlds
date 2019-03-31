@@ -25,6 +25,9 @@ public class GuiManagerScript : MonoBehaviour
 
     public Button LoadButton;
 
+    public GameObject FlatMapPanel;
+    public GameObject GlobeMapPanel;
+
     public PlanetScript PlanetScript;
     public MapScript MapScript;
 
@@ -2085,6 +2088,15 @@ public class GuiManagerScript : MonoBehaviour
 
         MapScript.SetVisible(!newState);
         PlanetScript.SetVisible(newState);
+
+        if (newState)
+        {
+            MapScript.transform.parent = GlobeMapPanel.transform;
+        }
+        else
+        {
+            MapScript.transform.parent = FlatMapPanel.transform;
+        }
 
         ToggledGlobeViewing.Invoke(newState);
     }
