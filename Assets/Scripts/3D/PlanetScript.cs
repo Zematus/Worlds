@@ -199,7 +199,7 @@ public class PlanetScript : MonoBehaviour
         Camera.transform.localPosition = cameraPosition;
     }
 
-    private void ValidateRotation()
+    private void ValidateInnerPivotRotation()
     {
         Quaternion innerPivotRotation = InnerPivot.transform.localRotation;
         Vector3 innerPivotEulerAngles = innerPivotRotation.eulerAngles;
@@ -220,12 +220,22 @@ public class PlanetScript : MonoBehaviour
         InnerPivot.transform.localRotation = innerPivotRotation;
     }
 
-    private void RotateSurface(float horizontalRotation, float verticalRotation)
+    private void RotateOuterPivot(float horizontalRotation)
     {
         Pivot.transform.Rotate(0, horizontalRotation, 0);
+    }
+
+    private void RotateInnerPivot(float verticalRotation)
+    {
         InnerPivot.transform.Rotate(verticalRotation, 0, 0, Space.Self);
 
-        ValidateRotation();
+        ValidateInnerPivotRotation();
+    }
+
+    private void RotateSurface(float horizontalRotation, float verticalRotation)
+    {
+        RotateOuterPivot(horizontalRotation);
+        RotateInnerPivot(verticalRotation);
     }
 
     private void DragSurface(Vector3 mousePosition)
@@ -352,20 +362,34 @@ public class PlanetScript : MonoBehaviour
 
     public void ShiftSurfaceToPosition(WorldPosition mapPosition)
     {
+        // First, we horizontally rotate the outer pivot
+
         Vector2 screenCenter = new Vector2(Screen.width / 2f, Screen.height / 2f);
+
         Vector3 worldPosScreenCenter = Camera.ScreenToWorldPoint(screenCenter);
         Vector3 pivotPosScreenCenter = Pivot.transform.worldToLocalMatrix.MultiplyPoint3x4(worldPosScreenCenter).normalized;
-        Vector3 innerPivotPosScreenCenter = InnerPivot.transform.worldToLocalMatrix.MultiplyPoint3x4(worldPosScreenCenter).normalized;
+        pivotPosScreenCenter.y = 0; // we project the vector over the globes's equator
 
         Vector3 worldPosition = GetWorldPositionFromMapCoordinates(mapPosition);
         Vector3 pivotPosition = Pivot.transform.worldToLocalMatrix.MultiplyPoint3x4(worldPosition).normalized;
-        Vector3 innerPivotPosition = InnerPivot.transform.worldToLocalMatrix.MultiplyPoint3x4(worldPosition).normalized;
+        pivotPosition.y = 0; // we project the vector over the globes's equator
 
         Vector3 eulerAnglesHorizontal = Quaternion.FromToRotation(pivotPosScreenCenter, pivotPosition).eulerAngles;
+
+        RotateOuterPivot(eulerAnglesHorizontal.y);
+
+        // Second, we vertically rotate the inner pivot
+
+        worldPosScreenCenter = Camera.ScreenToWorldPoint(screenCenter); // the screen position in the scene has to be recalculated
+        Vector3 innerPivotPosScreenCenter = InnerPivot.transform.worldToLocalMatrix.MultiplyPoint3x4(worldPosScreenCenter).normalized;
+
+        worldPosition = GetWorldPositionFromMapCoordinates(mapPosition); // so do we need a new scene position for the surface map position
+        Vector3 innerPivotPosition = InnerPivot.transform.worldToLocalMatrix.MultiplyPoint3x4(worldPosition).normalized;
+        
         Vector3 eulerAnglesVertical = Quaternion.FromToRotation(innerPivotPosScreenCenter, innerPivotPosition).eulerAngles;
 
-        RotateSurface(eulerAnglesHorizontal.y, eulerAnglesVertical.x);
-        
+        RotateInnerPivot(eulerAnglesVertical.x);
+
         SetRotationType(SphereRotationType.AutoCameraFollow);
         SetLightingType(SphereLightingType.CameraLight);
     }
