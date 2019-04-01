@@ -51,8 +51,6 @@ public class PlanetScript : MonoBehaviour
 
     private SphereRotationType _rotationType = SphereRotationType.Auto;
     private SphereLightingType _lightingType = SphereLightingType.SunLight;
-    
-    private SphereRotationType _prevRotationType = SphereRotationType.Auto;
 
     // Update is called once per frame
 
@@ -126,11 +124,11 @@ public class PlanetScript : MonoBehaviour
         
         if (_rotationType == SphereRotationType.AutoCameraFollow)
         {
-            Pivot.transform.parent = AutoRotationPivot.transform;
+            Pivot.transform.SetParent(AutoRotationPivot.transform);
         }
         else
         {
-            Pivot.transform.parent = transform;
+            Pivot.transform.SetParent(transform);
         }
     }
 
@@ -201,6 +199,35 @@ public class PlanetScript : MonoBehaviour
         Camera.transform.localPosition = cameraPosition;
     }
 
+    private void ValidateRotation()
+    {
+        Quaternion innerPivotRotation = InnerPivot.transform.localRotation;
+        Vector3 innerPivotEulerAngles = innerPivotRotation.eulerAngles;
+
+        // Prevent the globe's inner pivot from rotating beyond the poles
+        if ((innerPivotEulerAngles.x > 88) && (innerPivotEulerAngles.x <= 135))
+        {
+            innerPivotEulerAngles.x = 88;
+        }
+        if ((innerPivotEulerAngles.x < 272) && (innerPivotEulerAngles.x > 135))
+        {
+            innerPivotEulerAngles.x = 272;
+        }
+        innerPivotEulerAngles.y = 0;
+        innerPivotEulerAngles.z = 0;
+
+        innerPivotRotation.eulerAngles = innerPivotEulerAngles;
+        InnerPivot.transform.localRotation = innerPivotRotation;
+    }
+
+    private void RotateSurface(float horizontalRotation, float verticalRotation)
+    {
+        Pivot.transform.Rotate(0, horizontalRotation, 0);
+        InnerPivot.transform.Rotate(verticalRotation, 0, 0, Space.Self);
+
+        ValidateRotation();
+    }
+
     private void DragSurface(Vector3 mousePosition)
     {
         if (!_isDraggingSurface)
@@ -219,26 +246,7 @@ public class PlanetScript : MonoBehaviour
         float innerPivotRotX = (offsetY - lastOffsetY) * screenFactor * zoomDragFactor;
         float pivotRotY = (offsetX - lastOffsetX) * screenFactor * zoomDragFactor;
 
-        Pivot.transform.Rotate(0, pivotRotY, 0);
-        InnerPivot.transform.Rotate(-innerPivotRotX, 0, 0, Space.Self);
-
-        Quaternion innerPivotRotation = InnerPivot.transform.localRotation;
-        Vector3 innerPivotEulerAngles = innerPivotRotation.eulerAngles;
-        
-        // Prevent the globe's inner pivot from rotating beyond the poles
-        if ((innerPivotEulerAngles.x > 88) && (innerPivotEulerAngles.x <= 135))
-        {
-            innerPivotEulerAngles.x = 88;
-        }
-        if ((innerPivotEulerAngles.x < 272) && (innerPivotEulerAngles.x > 135))
-        {
-            innerPivotEulerAngles.x = 272;
-        }
-        innerPivotEulerAngles.y = 0;
-        innerPivotEulerAngles.z = 0;
-
-        innerPivotRotation.eulerAngles = innerPivotEulerAngles;
-        InnerPivot.transform.localRotation = innerPivotRotation;
+        RotateSurface(pivotRotY, -innerPivotRotX);
 
         _lastDragMousePosition = mousePosition;
     }
@@ -308,7 +316,7 @@ public class PlanetScript : MonoBehaviour
         return true;
     }
 
-    public Vector3 GetScreenPositionFromMapCoordinates(WorldPosition mapPosition)
+    private Vector3 GetWorldPositionFromMapCoordinates(WorldPosition mapPosition)
     {
         Vector2 uvPos = Manager.GetUVFromMapCoordinates(mapPosition);
 
@@ -331,10 +339,35 @@ public class PlanetScript : MonoBehaviour
                 closestDistance = distance;
             }
         }
+        
+        return Surface.transform.localToWorldMatrix.MultiplyPoint3x4(closestVertex);
+    }
 
-        Vector3 vertexWorldPos = Surface.transform.localToWorldMatrix.MultiplyPoint3x4(closestVertex);
+    public Vector3 GetScreenPositionFromMapCoordinates(WorldPosition mapPosition)
+    {
+        Vector3 worldPosition = GetWorldPositionFromMapCoordinates(mapPosition);
 
-        return Camera.WorldToScreenPoint(vertexWorldPos);
+        return Camera.WorldToScreenPoint(worldPosition);
+    }
+
+    public void ShiftSurfaceToPosition(WorldPosition mapPosition)
+    {
+        Vector2 screenCenter = new Vector2(Screen.width / 2f, Screen.height / 2f);
+        Vector3 worldPosScreenCenter = Camera.ScreenToWorldPoint(screenCenter);
+        Vector3 pivotPosScreenCenter = Pivot.transform.worldToLocalMatrix.MultiplyPoint3x4(worldPosScreenCenter).normalized;
+        Vector3 innerPivotPosScreenCenter = InnerPivot.transform.worldToLocalMatrix.MultiplyPoint3x4(worldPosScreenCenter).normalized;
+
+        Vector3 worldPosition = GetWorldPositionFromMapCoordinates(mapPosition);
+        Vector3 pivotPosition = Pivot.transform.worldToLocalMatrix.MultiplyPoint3x4(worldPosition).normalized;
+        Vector3 innerPivotPosition = InnerPivot.transform.worldToLocalMatrix.MultiplyPoint3x4(worldPosition).normalized;
+
+        Vector3 eulerAnglesHorizontal = Quaternion.FromToRotation(pivotPosScreenCenter, pivotPosition).eulerAngles;
+        Vector3 eulerAnglesVertical = Quaternion.FromToRotation(innerPivotPosScreenCenter, innerPivotPosition).eulerAngles;
+
+        RotateSurface(eulerAnglesHorizontal.y, eulerAnglesVertical.x);
+        
+        SetRotationType(SphereRotationType.AutoCameraFollow);
+        SetLightingType(SphereLightingType.CameraLight);
     }
 
     public void BeginDrag(BaseEventData data)

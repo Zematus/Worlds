@@ -978,9 +978,21 @@ public class GuiManagerScript : MonoBehaviour
         }
     }
 
+    public void ShiftSurfaceToPosition(WorldPosition mapPosition)
+    {
+        if (Manager.ViewingGlobe)
+        {
+            PlanetScript.ShiftSurfaceToPosition(mapPosition);
+        }
+        else
+        {
+            MapScript.ShiftSurfaceToPosition(mapPosition);
+        }
+    }
+
     public void SelectAndCenterOnCell(WorldPosition position)
     {
-        MapScript.ShiftMapToPosition(position);
+        ShiftSurfaceToPosition(position);
 
         Manager.SetSelectedCell(position);
 
@@ -2091,11 +2103,11 @@ public class GuiManagerScript : MonoBehaviour
 
         if (newState)
         {
-            MapScript.transform.parent = GlobeMapPanel.transform;
+            MapScript.transform.SetParent(GlobeMapPanel.transform);
         }
         else
         {
-            MapScript.transform.parent = FlatMapPanel.transform;
+            MapScript.transform.SetParent(FlatMapPanel.transform);
         }
 
         ToggledGlobeViewing.Invoke(newState);

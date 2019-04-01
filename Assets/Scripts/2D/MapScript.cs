@@ -315,13 +315,13 @@ public class MapScript : MonoBehaviour
         SetUvRect(newUvRect);
     }
 
-    public void ShiftMapToPosition(WorldPosition mapPosition)
+    public void ShiftSurfaceToPosition(WorldPosition mapPosition)
     {
         Rect mapImageRect = MapImage.rectTransform.rect;
 
-        Vector2 normalizedMapPos = new Vector2(mapPosition.Longitude / (float)Manager.CurrentWorld.Width, mapPosition.Latitude / (float)Manager.CurrentWorld.Height);
+        Vector2 uvPos = Manager.GetUVFromMapCoordinates(mapPosition);
 
-        Vector2 mapImagePos = normalizedMapPos - MapImage.uvRect.center;
+        Vector2 mapImagePos = uvPos - MapImage.uvRect.center;
         mapImagePos.x = Mathf.Repeat(mapImagePos.x, 1.0f);
 
         float maxUvY = 1f - _zoomFactor;
