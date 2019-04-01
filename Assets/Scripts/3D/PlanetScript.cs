@@ -9,6 +9,12 @@ public enum SphereRotationType
     AutoCameraFollow
 }
 
+public enum SphereLightingType
+{
+    SunLight,
+    CameraLight
+}
+
 public class PlanetScript : MonoBehaviour
 {
     public Camera Camera;
@@ -23,6 +29,8 @@ public class PlanetScript : MonoBehaviour
 
     public GameObject AutoRotationPivot;
     public GameObject Surface;
+
+    public ToggleEvent LightingTypeChangeEvent;
 
     private bool _isDraggingSurface = false;
 
@@ -42,6 +50,9 @@ public class PlanetScript : MonoBehaviour
     private float _zoomFactor = 1.0f;
 
     private SphereRotationType _rotationType = SphereRotationType.Auto;
+    private SphereLightingType _lightingType = SphereLightingType.SunLight;
+    
+    private SphereRotationType _prevRotationType = SphereRotationType.Auto;
 
     // Update is called once per frame
 
@@ -83,22 +94,26 @@ public class PlanetScript : MonoBehaviour
     {
         if (Input.GetKeyUp(KeyCode.R))
         {
-            SwitchToNextRotationType();
+            ToggleRotationType();
+        }
+
+        if (Input.GetKeyUp(KeyCode.L))
+        {
+            ToggleLightingType();
         }
     }
 
-    private void SwitchToNextRotationType()
+    public void ToggleRotationType()
     {
         switch (_rotationType)
         {
-            case SphereRotationType.None:
-                SetRotationType(SphereRotationType.Auto);
-                break;
             case SphereRotationType.Auto:
                 SetRotationType(SphereRotationType.AutoCameraFollow);
                 break;
             case SphereRotationType.AutoCameraFollow:
-                SetRotationType(SphereRotationType.None);
+                SetRotationType(SphereRotationType.Auto);
+                break;
+            case SphereRotationType.None:
                 break;
             default:
                 throw new System.Exception("Unhandled SphereRotationType: " + _rotationType);
@@ -108,18 +123,7 @@ public class PlanetScript : MonoBehaviour
     private void SetRotationType(SphereRotationType rotationType)
     {
         _rotationType = rotationType;
-
-        bool useSunLight = (_rotationType == SphereRotationType.Auto) || (_rotationType == SphereRotationType.AutoCameraFollow);
-
-        SunLight.SetActive(useSunLight);
-        FocusLight.SetActive(!useSunLight);
-
-        //if (!useSunLight)
-        //{
-        //    SunLight.transform.position = SunReference.transform.position;
-        //    SunLight.transform.rotation = SunReference.transform.rotation;
-        //}
-
+        
         if (_rotationType == SphereRotationType.AutoCameraFollow)
         {
             Pivot.transform.parent = AutoRotationPivot.transform;
@@ -128,6 +132,31 @@ public class PlanetScript : MonoBehaviour
         {
             Pivot.transform.parent = transform;
         }
+    }
+
+    public void ToggleLightingType()
+    {
+        switch (_lightingType)
+        {
+            case SphereLightingType.SunLight:
+                SetLightingType(SphereLightingType.CameraLight);
+                break;
+            case SphereLightingType.CameraLight:
+                SetLightingType(SphereLightingType.SunLight);
+                break;
+            default:
+                throw new System.Exception("Unhandled SphereLightingType: " + _lightingType);
+        }
+    }
+
+    private void SetLightingType(SphereLightingType lightingType)
+    {
+        _lightingType = lightingType;
+        
+        SunLight.SetActive(_lightingType == SphereLightingType.SunLight);
+        FocusLight.SetActive(_lightingType == SphereLightingType.CameraLight);
+
+        LightingTypeChangeEvent.Invoke(_lightingType == SphereLightingType.SunLight);
     }
 
     public void SetVisible(bool state)
