@@ -64,7 +64,7 @@ public class PlanetScript : MonoBehaviour
         if ((_rotationType == SphereRotationType.Auto) ||
             (_rotationType == SphereRotationType.AutoCameraFollow))
         {
-            AutoRotationPivot.transform.Rotate(Vector3.up * Time.deltaTime * -2.5f);
+            AutoRotationPivot.transform.Rotate(Vector3.up * Time.deltaTime * -0.5f);
         }
     }
 

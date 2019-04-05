@@ -415,7 +415,8 @@ public class World : ISynchronizable
     private ManagerTask<Vector3> _rainfallNoiseOffset2;
     private ManagerTask<Vector3> _rainfallNoiseOffset3;
 
-    private static HashSet<TerrainCell> _modifiedAltitudeCells = new HashSet<TerrainCell>();
+    private static HashSet<TerrainCell> _cellsToRegen = new HashSet<TerrainCell>();
+    private static HashSet<TerrainCell> _cellsToInit = new HashSet<TerrainCell>();
 
     private OpenSimplexNoise _openSimplexNoise;
 
@@ -697,6 +698,8 @@ public class World : ISynchronizable
 
         GenerateTerrainBiomesForCell(cell);
         GenerateTerrainArabilityForCell(cell);
+
+        cell.InitializeMiscellaneous();
 
         Manager.AddUpdatedCell(cell, CellUpdateType.Cell, CellUpdateSubType.Terrain);
         
@@ -2391,29 +2394,48 @@ public class World : ISynchronizable
 
         CalculateAndSetAltitude(cell, value, true);
 
-        _modifiedAltitudeCells.Add(cell);
+        _cellsToRegen.Add(cell);
+        _cellsToInit.Add(cell);
 
+        // Add rainfall dependent cells that will need to be regen
         foreach (TerrainCell rCell in cell.RainfallDependentCells)
         {
-            _modifiedAltitudeCells.Add(rCell);
+            _cellsToRegen.Add(rCell);
+            _cellsToInit.Add(rCell);
+        }
+
+        // Add neighboor cells that will need to be reinitialized
+        foreach (TerrainCell nCell in cell.Neighbors.Values)
+        {
+            _cellsToInit.Add(nCell);
         }
     }
 
     public void FinishTerrainGenerationForModifiedCells()
     {
-        foreach (TerrainCell cell in _modifiedAltitudeCells)
+        foreach (TerrainCell cell in _cellsToInit)
         {
             Manager.ActiveEditorBrushAction.AddCellBeforeAlteration(cell);
+        }
 
+        foreach (TerrainCell cell in _cellsToRegen)
+        {
             GenerateTerrainRainfallForCell(cell, setDependencies: false);
             GenerateTerrainTemperatureForCell(cell);
             GenerateTerrainBiomesForCell(cell);
             GenerateTerrainArabilityForCell(cell);
+        }
+
+        _cellsToRegen.Clear();
+
+        foreach (TerrainCell cell in _cellsToInit)
+        {
+            cell.InitializeMiscellaneous();
 
             Manager.ActiveEditorBrushAction.AddCellAfterAlteration(cell);
         }
 
-        _modifiedAltitudeCells.Clear();
+        _cellsToInit.Clear();
     }
 
     public void ModifyCellTemperature(TerrainCell cell, float valueOffset, float noiseFactor = 0, float noiseRadius = 0)
