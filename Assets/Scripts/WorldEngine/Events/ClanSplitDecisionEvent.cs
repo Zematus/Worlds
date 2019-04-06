@@ -47,7 +47,7 @@ public class ClanSplitDecisionEvent : FactionEvent
 
     public static long CalculateTriggerDate(Clan clan)
     {
-        float randomFactor = clan.GetNextLocalRandomFloat(RngOffsets.CLAN_SPLITTING_EVENT_CALCULATE_TRIGGER_DATE);
+        float randomFactor = clan.GetNextLocalRandomFloat(RngOffsets.CLAN_SPLITTING_EVENT_CALCULATE_TRIGGER_DATE + (int)clan.Id);
         randomFactor = Mathf.Pow(randomFactor, 2);
 
         float administrativeLoad = clan.CalculateAdministrativeLoad();

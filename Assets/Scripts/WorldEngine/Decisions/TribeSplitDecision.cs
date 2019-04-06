@@ -4,179 +4,179 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
-public class TribeSplitDecision : FactionDecision {
+public class TribeSplitDecision : FactionDecision
+{
+    public const float BaseMinPreferencePercentChange = 0.15f;
+    public const float BaseMaxPreferencePercentChange = 0.30f;
 
-	public const float BaseMinPreferencePercentChange = 0.15f;
-	public const float BaseMaxPreferencePercentChange = 0.30f;
+    public const float BaseMinRelationshipPercentChange = 0.05f;
+    public const float BaseMaxRelationshipPercentChange = 0.15f;
 
-	public const float BaseMinRelationshipPercentChange = 0.05f;
-	public const float BaseMaxRelationshipPercentChange = 0.15f;
+    public const float BaseMinInfluencePercentChange = 0.05f;
+    public const float BaseMaxInfluencePercentChange = 0.15f;
 
-	public const float BaseMinInfluencePercentChange = 0.05f;
-	public const float BaseMaxInfluencePercentChange = 0.15f;
+    private Tribe _tribe;
 
-	private Tribe _tribe;
+    private bool _cantPrevent = false;
+    private bool _preferSplit = true;
 
-	private bool _cantPrevent = false;
-	private bool _preferSplit = true;
+    private Clan _dominantClan;
+    private Clan _splitClan;
 
-	private Clan _dominantClan;
-	private Clan _splitClan;
+    private static string GenerateDescriptionIntro(Tribe tribe, Clan splitClan)
+    {
+        return
+            "The pressures of distance and strained relationships has made most of the populance under clan " + splitClan.Name.BoldText + " to feel that " +
+            "they are no longer part of the " + tribe.Name.BoldText + " tribe and wish for the clan to become their own tribe.\n\n";
+    }
 
-	private static string GenerateDescriptionIntro (Tribe tribe, Clan splitClan) {
+    public TribeSplitDecision(Tribe tribe, Clan splitClan, Clan dominantClan, long eventId) : base(dominantClan, eventId)
+    {
+        _tribe = tribe;
 
-		return 
-			"The pressures of distance and strained relationships has made most of the populance under clan " + splitClan.Name.BoldText + " to feel that " +
-			"they are no longer part of the " + tribe.Name.BoldText + " tribe and wish for the clan to become their own tribe.\n\n";
-	}
+        _dominantClan = dominantClan;
+        _splitClan = splitClan;
 
-	public TribeSplitDecision (Tribe tribe, Clan splitClan, Clan dominantClan, long eventId) : base (dominantClan, eventId) {
+        Description = GenerateDescriptionIntro(tribe, splitClan) +
+            "Unfortunately, the situation is beyond control for the tribe leader, " + _dominantClan.CurrentLeader.Name.BoldText + ", to be able to do anything other than let " +
+            "clan " + splitClan.Name.BoldText + " leave the tribe...";
 
-		_tribe = tribe;
+        _cantPrevent = true;
+    }
 
-		_dominantClan = dominantClan;
-		_splitClan = splitClan;
+    public TribeSplitDecision(Tribe tribe, Clan splitClan, Clan dominantClan, bool preferSplit, long eventId) : base(dominantClan, eventId)
+    {
+        _tribe = tribe;
 
-		Description = GenerateDescriptionIntro (tribe, splitClan) +
-			"Unfortunately, the situation is beyond control for the tribe leader, " + _dominantClan.CurrentLeader.Name.BoldText + ", to be able to do anything other than let " +
-			"clan " + splitClan.Name.BoldText + " leave the tribe...";
+        _dominantClan = dominantClan;
+        _splitClan = splitClan;
 
-		_cantPrevent = true;
-	}
+        Description = GenerateDescriptionIntro(tribe, splitClan) +
+            "Should the tribe leader, " + _dominantClan.CurrentLeader.Name.BoldText + ", allow clan " + splitClan.Name.BoldText + " to leave the tribe and form its own?";
 
-	public TribeSplitDecision (Tribe tribe, Clan splitClan, Clan dominantClan, bool preferSplit, long eventId) : base (dominantClan, eventId) {
+        _preferSplit = preferSplit;
+    }
 
-		_tribe = tribe;
+    private string GeneratePreventSplitResultEffectsString()
+    {
+        string splitClanInfluenceChangeEffect;
+        string dominantClanInfluenceChangeEffect;
 
-		_dominantClan = dominantClan;
-		_splitClan = splitClan;
+        GenerateEffectsString_TransferInfluence(
+            _dominantClan, _splitClan, _tribe, BaseMinInfluencePercentChange, BaseMaxInfluencePercentChange, out dominantClanInfluenceChangeEffect, out splitClanInfluenceChangeEffect);
 
-		Description = GenerateDescriptionIntro (tribe, splitClan) +
-			"Should the tribe leader, " + _dominantClan.CurrentLeader.Name.BoldText + ", allow clan " + splitClan.Name.BoldText + " to leave the tribe and form its own?";
+        return
+            "\t• " + GenerateEffectsString_IncreaseRelationship(_dominantClan, _splitClan, BaseMinRelationshipPercentChange, BaseMaxRelationshipPercentChange) + "\n" +
+            "\t• " + dominantClanInfluenceChangeEffect + "\n" +
+            "\t• " + splitClanInfluenceChangeEffect;
+    }
 
-		_preferSplit = preferSplit;
-	}
+    public static void LeaderPreventsSplit_notifySplitClan(Clan splitClan, Clan dominantClan, Tribe originalTribe, long eventId)
+    {
+        World world = originalTribe.World;
 
-	private string GeneratePreventSplitResultEffectsString () {
+        if (originalTribe.IsUnderPlayerFocus || splitClan.IsUnderPlayerGuidance)
+        {
+            Decision decision = new PreventedClanTribeSplitDecision(originalTribe, splitClan, dominantClan, eventId); // Notify player that tribe leader prevented split
 
-		string splitClanInfluenceChangeEffect;
-		string dominantClanInfluenceChangeEffect;
+            if (splitClan.IsUnderPlayerGuidance)
+            {
+                world.AddDecisionToResolve(decision);
+            }
+            else
+            {
+                decision.ExecutePreferredOption();
+            }
 
-		GenerateEffectsString_TransferInfluence (
-			_dominantClan, _splitClan, _tribe, BaseMinInfluencePercentChange, BaseMaxInfluencePercentChange, out dominantClanInfluenceChangeEffect, out splitClanInfluenceChangeEffect);
+        }
+        else
+        {
+            PreventedClanTribeSplitDecision.TribeLeaderPreventedSplit(splitClan, dominantClan, originalTribe);
+        }
+    }
 
-		return 
-			"\t• " + GenerateEffectsString_IncreaseRelationship (_dominantClan, _splitClan, BaseMinRelationshipPercentChange, BaseMaxRelationshipPercentChange) + "\n" + 
-			"\t• " + dominantClanInfluenceChangeEffect + "\n" + 
-			"\t• " + splitClanInfluenceChangeEffect;
-	}
+    public static void LeaderPreventsSplit(Clan splitClan, Clan dominantClan, Tribe tribe, long eventId)
+    {
+        float charismaFactor = splitClan.CurrentLeader.Charisma / 10f;
+        float wisdomFactor = splitClan.CurrentLeader.Wisdom / 15f;
 
-	public static void LeaderPreventsSplit_notifySplitClan (Clan splitClan, Clan dominantClan, Tribe originalTribe, long eventId) {
+        float attributesFactor = Mathf.Max(charismaFactor, wisdomFactor);
+        attributesFactor = Mathf.Clamp(attributesFactor, 0.5f, 2f);
 
-		World world = originalTribe.World;
+        int rngOffset = RngOffsets.TRIBE_SPLITTING_EVENT_TRIBE_LEADER_PREVENTS_MODIFY_ATTRIBUTE;
 
-		if (originalTribe.IsUnderPlayerFocus || splitClan.IsUnderPlayerGuidance) {
+        // Influence
 
-			Decision decision = new PreventedClanTribeSplitDecision (originalTribe, splitClan, dominantClan, eventId); // Notify player that tribe leader prevented split
+        float randomFactor = dominantClan.GetNextLocalRandomFloat(rngOffset++);
+        float influencePercentChange = (BaseMaxInfluencePercentChange - BaseMinInfluencePercentChange) * randomFactor + BaseMinInfluencePercentChange;
+        influencePercentChange /= attributesFactor;
 
-			if (splitClan.IsUnderPlayerGuidance) {
+        Polity.TransferInfluence(dominantClan, splitClan, influencePercentChange);
 
-				world.AddDecisionToResolve (decision);
+        // Relationship
 
-			} else {
+        randomFactor = dominantClan.GetNextLocalRandomFloat(rngOffset++);
+        float relationshipPercentChange = (BaseMaxRelationshipPercentChange - BaseMinRelationshipPercentChange) * randomFactor + BaseMinRelationshipPercentChange;
+        relationshipPercentChange *= attributesFactor;
 
-				decision.ExecutePreferredOption ();
-			}
+        float newValue = MathUtility.IncreaseByPercent(dominantClan.GetRelationshipValue(splitClan), relationshipPercentChange);
+        Faction.SetRelationship(dominantClan, splitClan, newValue);
 
-		} else {
+        // Updates
 
-			PreventedClanTribeSplitDecision.TribeLeaderPreventedSplit (splitClan, dominantClan, originalTribe);
-		}
-	}
+        LeaderPreventsSplit_notifySplitClan(splitClan, dominantClan, tribe, eventId);
+    }
 
-	public static void LeaderPreventsSplit (Clan splitClan, Clan dominantClan, Tribe tribe, long eventId) {
+    private void PreventSplit()
+    {
+        LeaderPreventsSplit(_splitClan, _dominantClan, _tribe, _eventId);
+    }
 
-		float charismaFactor = splitClan.CurrentLeader.Charisma / 10f;
-		float wisdomFactor = splitClan.CurrentLeader.Wisdom / 15f;
+    private string GenerateAllowSplitResultMessage()
+    {
+        string message = "\t• Clan " + _splitClan.Name.BoldText + " will leave the " + _tribe.Name.BoldText + " tribe and form a tribe of their own";
 
-		float attributesFactor = Mathf.Max (charismaFactor, wisdomFactor);
-		attributesFactor = Mathf.Clamp (attributesFactor, 0.5f, 2f);
+        return message;
+    }
 
-		int rngOffset = RngOffsets.TRIBE_SPLITTING_EVENT_TRIBE_LEADER_PREVENTS_MODIFY_ATTRIBUTE;
+    public static void LeaderAllowsSplit(Clan splitClan, Clan dominantClan, Tribe originalTribe)
+    {
+        Tribe newTribe = new Tribe(splitClan, originalTribe);
+        newTribe.Initialize();
 
-		// Influence
+        splitClan.World.AddPolityInfo(newTribe.Info);
 
-		float randomFactor = dominantClan.GetNextLocalRandomFloat (rngOffset++);
-		float influencePercentChange = (BaseMaxInfluencePercentChange - BaseMinInfluencePercentChange) * randomFactor + BaseMinInfluencePercentChange;
-		influencePercentChange /= attributesFactor;
+        splitClan.SetToUpdate();
+        dominantClan.SetToUpdate();
 
-		Polity.TransferInfluence (dominantClan, splitClan, influencePercentChange);
+        originalTribe.AddEventMessage(new TribeSplitEventMessage(splitClan, originalTribe, newTribe, splitClan.World.CurrentDate));
+    }
 
-		// Relationship
+    private void AllowSplit()
+    {
+        LeaderAllowsSplit(_splitClan, _dominantClan, _tribe);
+    }
 
-		randomFactor = dominantClan.GetNextLocalRandomFloat (rngOffset++);
-		float relationshipPercentChange = (BaseMaxRelationshipPercentChange - BaseMinRelationshipPercentChange) * randomFactor + BaseMinRelationshipPercentChange;
-		relationshipPercentChange *= attributesFactor;
+    public override Option[] GetOptions()
+    {
+        if (_cantPrevent)
+        {
+            return new Option[] {
+                new Option ("Oh well...", "Effects:\n" + GenerateAllowSplitResultMessage (), AllowSplit),
+            };
+        }
 
-		float newValue = MathUtility.IncreaseByPercent (dominantClan.GetRelationshipValue (splitClan), relationshipPercentChange);
-		Faction.SetRelationship (dominantClan, splitClan, newValue);
+        return new Option[] {
+            new Option ("Allow clan to form a new tribe...", "Effects:\n" + GenerateAllowSplitResultMessage (), AllowSplit),
+            new Option ("Prevent clan from leaving tribe...", "Effects:\n" + GeneratePreventSplitResultEffectsString (), PreventSplit)
+        };
+    }
 
-		// Updates
-
-		LeaderPreventsSplit_notifySplitClan (splitClan, dominantClan, tribe, eventId);
-	}
-
-	private void PreventSplit () {
-
-		LeaderPreventsSplit (_splitClan, _dominantClan, _tribe, _eventId);
-	}
-
-	private string GenerateAllowSplitResultMessage () {
-
-		string message = "\t• Clan " + _splitClan.Name.BoldText + " will leave the " + _tribe.Name.BoldText + " tribe and form a tribe of their own";
-
-		return message;
-	}
-
-	public static void LeaderAllowsSplit (Clan splitClan, Clan dominantClan, Tribe originalTribe) {
-
-		Tribe newTribe = new Tribe (splitClan, originalTribe);
-		newTribe.Initialize ();
-
-		splitClan.World.AddPolityInfo (newTribe.Info);
-
-		splitClan.SetToUpdate ();
-		dominantClan.SetToUpdate ();
-
-		originalTribe.AddEventMessage (new TribeSplitEventMessage (splitClan, originalTribe, newTribe, splitClan.World.CurrentDate));
-	}
-
-	private void AllowSplit () {
-
-		LeaderAllowsSplit (_splitClan, _dominantClan, _tribe);
-	}
-
-	public override Option[] GetOptions () {
-
-		if (_cantPrevent) {
-
-			return new Option[] {
-				new Option ("Oh well...", "Effects:\n" + GenerateAllowSplitResultMessage (), AllowSplit),
-			};
-		}
-
-		return new Option[] {
-			new Option ("Allow clan to form a new tribe...", "Effects:\n" + GenerateAllowSplitResultMessage (), AllowSplit),
-			new Option ("Prevent clan from leaving tribe...", "Effects:\n" + GeneratePreventSplitResultEffectsString (), PreventSplit)
-		};
-	}
-
-	public override void ExecutePreferredOption ()
-	{
-		if (_preferSplit)
-			AllowSplit ();
-		else
-			PreventSplit ();
-	}
+    public override void ExecutePreferredOption()
+    {
+        if (_preferSplit)
+            AllowSplit();
+        else
+            PreventSplit();
+    }
 }
-	

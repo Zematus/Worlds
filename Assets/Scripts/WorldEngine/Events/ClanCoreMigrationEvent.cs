@@ -5,81 +5,81 @@ using System.Xml;
 using System.Xml.Serialization;
 using UnityEngine.Profiling;
 
-public class ClanCoreMigrationEvent : FactionEvent {
+public class ClanCoreMigrationEvent : FactionEvent
+{
+    public const long DateSpanFactorConstant = CellGroup.GenerationSpan * 500;
 
-	public const long DateSpanFactorConstant = CellGroup.GenerationSpan * 500;
+    private CellGroup _targetGroup;
 
-	private CellGroup _targetGroup;
+    public ClanCoreMigrationEvent()
+    {
+        DoNotSerialize = true;
+    }
 
-	public ClanCoreMigrationEvent () {
+    public ClanCoreMigrationEvent(Clan clan, FactionEventData data) : base(clan, data)
+    {
+        DoNotSerialize = true;
+    }
 
-		DoNotSerialize = true;
-	}
+    public ClanCoreMigrationEvent(Clan clan, long triggerDate) : base(clan, triggerDate, ClanCoreMigrationEventId)
+    {
+        DoNotSerialize = true;
+    }
 
-	public ClanCoreMigrationEvent (Clan clan, FactionEventData data) : base (clan, data) {
+    public static long CalculateTriggerDate(Clan clan)
+    {
+        float randomFactor = clan.GetNextLocalRandomFloat(RngOffsets.CLAN_CORE_MIGRATION_EVENT_CALCULATE_TRIGGER_DATE);
+        randomFactor = Mathf.Pow(randomFactor, 2);
 
-		DoNotSerialize = true;
-	}
+        float dateSpan = (1 - randomFactor) * DateSpanFactorConstant;
 
-	public ClanCoreMigrationEvent (Clan clan, long triggerDate) : base (clan, triggerDate, ClanCoreMigrationEventId) {
+        long targetDate = (long)(clan.World.CurrentDate + dateSpan) + CellGroup.GenerationSpan;
 
-		DoNotSerialize = true;
-	}
+        return targetDate;
+    }
 
-	public static long CalculateTriggerDate (Clan clan) {
+    public override bool CanTrigger()
+    {
+        if (!base.CanTrigger())
+            return false;
 
-		float randomFactor = clan.GetNextLocalRandomFloat (RngOffsets.CLAN_CORE_MIGRATION_EVENT_CALCULATE_TRIGGER_DATE);
-		randomFactor = Mathf.Pow (randomFactor, 2);
+        Clan clan = Faction as Clan;
 
-		float dateSpan = (1 - randomFactor) * DateSpanFactorConstant;
+        _targetGroup = clan.GetCoreGroupMigrationTarget();
 
-		long targetDate = (long)(clan.World.CurrentDate + dateSpan) + CellGroup.GenerationSpan;
+        if (_targetGroup == null)
+            return false;
 
-		return targetDate;
-	}
+        return Faction.ShouldMigrateFactionCore(Faction.CoreGroup, _targetGroup);
+    }
 
-	public override bool CanTrigger () {
+    public override void Trigger()
+    {
+        World.AddGroupToUpdate(_targetGroup);
 
-		if (!base.CanTrigger ())
-			return false;
-        
-		Clan clan = Faction as Clan;
+        Faction.SetToUpdate();
 
-		_targetGroup = clan.GetCoreGroupMigrationTarget ();
+        Faction.PrepareNewCoreGroup(_targetGroup);
+    }
 
-		if (_targetGroup == null)
-			return false;
+    protected override void DestroyInternal()
+    {
+        base.DestroyInternal();
 
-		return Faction.ShouldMigrateFactionCore (Faction.CoreGroup, _targetGroup);
-	}
+        if ((Faction != null) && (Faction.StillPresent))
+        {
+            Clan clan = Faction as Clan;
 
-	public override void Trigger () {
+            clan.ResetEvent(WorldEvent.ClanCoreMigrationEventId, CalculateTriggerDate(clan));
+        }
+    }
 
-		World.AddGroupToUpdate (_targetGroup);
+    public override void FinalizeLoad()
+    {
+        base.FinalizeLoad();
 
-		Faction.SetToUpdate ();
+        Clan clan = Faction as Clan;
 
-		Faction.PrepareNewCoreGroup (_targetGroup);
-	}
-
-	protected override void DestroyInternal () {
-
-		base.DestroyInternal ();
-
-		if ((Faction != null) && (Faction.StillPresent)) {
-
-			Clan clan = Faction as Clan;
-
-			clan.ResetEvent (WorldEvent.ClanCoreMigrationEventId, CalculateTriggerDate (clan));
-		}
-	}
-
-	public override void FinalizeLoad () {
-
-		base.FinalizeLoad ();
-
-		Clan clan = Faction as Clan;
-
-		clan.AddEvent (this);
-	}
+        clan.AddEvent(this);
+    }
 }

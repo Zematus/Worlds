@@ -50,7 +50,7 @@ public class ClanDemandsInfluenceDecisionEvent : FactionEvent
 
     public static long CalculateTriggerDate(Clan clan)
     {
-        float randomFactor = clan.GetNextLocalRandomFloat(RngOffsets.CLAN_DEMANDS_INFLUENCE_EVENT_CALCULATE_TRIGGER_DATE);
+        float randomFactor = clan.GetNextLocalRandomFloat(RngOffsets.CLAN_DEMANDS_INFLUENCE_EVENT_CALCULATE_TRIGGER_DATE + (int)clan.Id);
         randomFactor = Mathf.Pow(randomFactor, 2);
 
         float administrativeLoad = clan.CalculateAdministrativeLoad();
@@ -84,24 +84,24 @@ public class ClanDemandsInfluenceDecisionEvent : FactionEvent
 
         long triggerDate = clan.World.CurrentDate + triggerDateSpan;
 
-//#if DEBUG
-//        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-//        {
-//            SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-//                "ClanDemandsInfluenceDecisionEvent:CalculateTriggerDate - clan.Id:" + clan.Id,
-//                "triggerDate: " + triggerDate +
-//                ", triggerDateSpan: " + triggerDateSpan +
-//                ", dateSpan: " + dateSpan +
-//                ", randomFactor: " + randomFactor +
-//                ", loadFactor: " + loadFactor +
-//                ", authorityPrefFactor: " + authorityPrefFactor +
-//                ", clan.LastUpdateDate: " + clan.LastUpdateDate +
-//                ", clan.World.CurrentDate: " + clan.World.CurrentDate +
-//                "");
+        //#if DEBUG
+        //        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
+        //        {
+        //            SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+        //                "ClanDemandsInfluenceDecisionEvent:CalculateTriggerDate - clan.Id:" + clan.Id,
+        //                "triggerDate: " + triggerDate +
+        //                ", triggerDateSpan: " + triggerDateSpan +
+        //                ", dateSpan: " + dateSpan +
+        //                ", randomFactor: " + randomFactor +
+        //                ", loadFactor: " + loadFactor +
+        //                ", authorityPrefFactor: " + authorityPrefFactor +
+        //                ", clan.LastUpdateDate: " + clan.LastUpdateDate +
+        //                ", clan.World.CurrentDate: " + clan.World.CurrentDate +
+        //                "");
 
-//            Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-//        }
-//#endif
+        //            Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+        //        }
+        //#endif
 
         return triggerDate;
     }
@@ -134,7 +134,7 @@ public class ClanDemandsInfluenceDecisionEvent : FactionEvent
         //            Debug.LogWarning(logMsg);
         //        }
         //#endif
-        
+
         if (!base.CanTrigger())
             return false;
 

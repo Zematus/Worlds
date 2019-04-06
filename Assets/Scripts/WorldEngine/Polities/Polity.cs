@@ -7,21 +7,21 @@ using UnityEngine.Profiling;
 using System.Linq;
 using System.Xml.Schema;
 
-public delegate float GroupValueCalculationDelegate (CellGroup group);
-public delegate float FactionValueCalculationDelegate (Faction faction);
-public delegate float PolityContactValueCalculationDelegate (PolityContact contact);
+public delegate float GroupValueCalculationDelegate(CellGroup group);
+public delegate float FactionValueCalculationDelegate(Faction faction);
+public delegate float PolityContactValueCalculationDelegate(PolityContact contact);
 
 [XmlInclude(typeof(Tribe))]
-public abstract class Polity : ISynchronizable {
+public abstract class Polity : ISynchronizable
+{
+    public const float TimeEffectConstant = CellGroup.GenerationSpan * 2500;
 
-	public const float TimeEffectConstant = CellGroup.GenerationSpan * 2500;
+    public const float CoreDistanceEffectConstant = 10000;
 
-	public const float CoreDistanceEffectConstant = 10000;
+    public const float MinPolityProminence = 0.001f;
 
-	public const float MinPolityProminence = 0.001f;
-
-	[XmlAttribute("CGrpId")]
-	public long CoreGroupId;
+    [XmlAttribute("CGrpId")]
+    public long CoreGroupId;
 
     [XmlAttribute("TotalAdmCost")]
     public float TotalAdministrativeCost_Internal = 0; // This is public to be XML-serializable (I know there are more proper solutions. I'm just being lazy)
@@ -36,16 +36,16 @@ public abstract class Polity : ISynchronizable {
     public bool NeedsNewCensus = true;
 
     [XmlAttribute("FctnCount")]
-	public int FactionCount { get; private set; }
+    public int FactionCount { get; private set; }
 
-	[XmlAttribute("StilPres")]
-	public bool StillPresent = true;
+    [XmlAttribute("StilPres")]
+    public bool StillPresent = true;
 
-	[XmlAttribute("DomFactId")]
-	public long DominantFactionId;
+    [XmlAttribute("DomFactId")]
+    public long DominantFactionId;
 
-	[XmlAttribute("IsFoc")]
-	public bool IsUnderPlayerFocus = false;
+    [XmlAttribute("IsFoc")]
+    public bool IsUnderPlayerFocus = false;
 
     public List<PolityProminenceCluster> ProminenceClusters = new List<PolityProminenceCluster>();
 
@@ -56,7 +56,7 @@ public abstract class Polity : ISynchronizable {
 
     public Territory Territory;
 
-	public PolityCulture Culture;
+    public PolityCulture Culture;
 
     public DelayedLoadXmlSerializableDictionary<long, Faction> Factions = new DelayedLoadXmlSerializableDictionary<long, Faction>();
 
@@ -73,16 +73,16 @@ public abstract class Polity : ISynchronizable {
     public PolityInfo Info;
 
     [XmlIgnore]
-	public World World;
+    public World World;
 
-	[XmlIgnore]
-	public CellGroup CoreGroup;
+    [XmlIgnore]
+    public CellGroup CoreGroup;
 
-	[XmlIgnore]
-	public Faction DominantFaction;
+    [XmlIgnore]
+    public Faction DominantFaction;
 
-	[XmlIgnore]
-	public bool WillBeUpdated;
+    [XmlIgnore]
+    public bool WillBeUpdated;
 
     public string Type
     {
@@ -123,7 +123,7 @@ public abstract class Polity : ISynchronizable {
             return TotalAdministrativeCost_Internal;
         }
     }
-    
+
     public float TotalPopulation
     {
         get
@@ -140,7 +140,7 @@ public abstract class Polity : ISynchronizable {
             return TotalPopulation_Internal;
         }
     }
-    
+
     public float ProminenceArea
     {
         get
@@ -158,100 +158,98 @@ public abstract class Polity : ISynchronizable {
         }
     }
 
-    protected class WeightedGroup : CollectionUtility.ElementWeightPair<CellGroup> {
+    protected class WeightedGroup : CollectionUtility.ElementWeightPair<CellGroup>
+    {
+        public WeightedGroup(CellGroup group, float weight) : base(group, weight)
+        {
 
-		public WeightedGroup (CellGroup group, float weight) : base (group, weight) {
+        }
+    }
 
-		}
-	}
+    protected class WeightedFaction : CollectionUtility.ElementWeightPair<Faction>
+    {
+        public WeightedFaction(Faction faction, float weight) : base(faction, weight)
+        {
 
-	protected class WeightedFaction : CollectionUtility.ElementWeightPair<Faction> {
+        }
+    }
 
-		public WeightedFaction (Faction faction, float weight) : base (faction, weight) {
+    protected class WeightedPolityContact : CollectionUtility.ElementWeightPair<PolityContact>
+    {
+        public WeightedPolityContact(PolityContact contact, float weight) : base(contact, weight)
+        {
 
-		}
-	}
+        }
+    }
 
-	protected class WeightedPolityContact : CollectionUtility.ElementWeightPair<PolityContact> {
+    protected Dictionary<long, PolityEvent> _events = new Dictionary<long, PolityEvent>();
 
-		public WeightedPolityContact (PolityContact contact, float weight) : base (contact, weight) {
+    private bool _willBeRemoved = false;
 
-		}
-	}
-
-	protected Dictionary<long, PolityEvent> _events = new Dictionary<long, PolityEvent> ();
-
-	private bool _willBeRemoved = false;
-
-    private SortedDictionary<long, PolityProminence> _prominencesToAddToClusters = 
+    private SortedDictionary<long, PolityProminence> _prominencesToAddToClusters =
         new SortedDictionary<long, PolityProminence>();
 
-    private HashSet<long> _eventMessageIds = new HashSet<long> ();
+    private HashSet<long> _eventMessageIds = new HashSet<long>();
 
-	public Polity () {
-	
-	}
+    public Polity()
+    {
 
-	protected Polity (string type, CellGroup coreGroup, Polity parentPolity = null) {
-        
-		World = coreGroup.World;
+    }
 
-		Territory = new Territory (this);
+    protected Polity(string type, CellGroup coreGroup, long idOffset = 0)
+    {
+        World = coreGroup.World;
 
-		CoreGroup = coreGroup;
-		CoreGroupId = coreGroup.Id;
+        Territory = new Territory(this);
 
-		long idOffset = 0;
+        CoreGroup = coreGroup;
+        CoreGroupId = coreGroup.Id;
 
-		if (parentPolity != null) {
-		
-			idOffset = parentPolity.Id + 1;
-		}
-
-		long id = GenerateUniqueIdentifier (World.CurrentDate, 100L, idOffset);
+        long id = GenerateUniqueIdentifier(World.CurrentDate, 100L, idOffset);
 
         Info = new PolityInfo(type, id, this);
 
-		Culture = new PolityCulture (this);
+        Culture = new PolityCulture(this);
 
-//		#if DEBUG
-//		if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0)) {
-//			if (CoreGroupId == Manager.TracingData.GroupId) {
-//				string groupId = "Id:" + CoreGroupId + "|Long:" + CoreGroup.Longitude + "|Lat:" + CoreGroup.Latitude;
-//
-//				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-//					"new Polity - Group:" + groupId + 
-//					", Polity.Id: " + Id,
-//					"CurrentDate: " + World.CurrentDate  +
-//					", CoreGroup:" + groupId + 
-//					", Polity.TotalGroupProminenceValue: " + TotalGroupProminenceValue + 
-//					", coreGroupProminenceValue: " + coreGroupProminenceValue + 
-//					"");
-//
-//				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-//			}
-//		}
-//		#endif
-	}
+        //		#if DEBUG
+        //		if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0)) {
+        //			if (CoreGroupId == Manager.TracingData.GroupId) {
+        //				string groupId = "Id:" + CoreGroupId + "|Long:" + CoreGroup.Longitude + "|Lat:" + CoreGroup.Latitude;
+        //
+        //				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+        //					"new Polity - Group:" + groupId + 
+        //					", Polity.Id: " + Id,
+        //					"CurrentDate: " + World.CurrentDate  +
+        //					", CoreGroup:" + groupId + 
+        //					", Polity.TotalGroupProminenceValue: " + TotalGroupProminenceValue + 
+        //					", coreGroupProminenceValue: " + coreGroupProminenceValue + 
+        //					"");
+        //
+        //				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+        //			}
+        //		}
+        //		#endif
+    }
 
-	public void Initialize () {
-	
-		Culture.Initialize ();
+    public void Initialize()
+    {
+        Culture.Initialize();
 
-		foreach (Faction faction in Factions.Values) {
+        foreach (Faction faction in Factions.Values)
+        {
+            if (!faction.IsInitialized)
+            {
 
-			if (!faction.IsInitialized) {
+                faction.Initialize();
+            }
+        }
 
-				faction.Initialize ();
-			}
-		}
+        InitializeInternal();
+    }
 
-		InitializeInternal ();
-	}
+    public abstract void InitializeInternal();
 
-	public abstract void InitializeInternal ();
-
-	public void Destroy()
+    public void Destroy()
     {
         if (Territory.IsSelected)
         {
@@ -418,48 +416,49 @@ public abstract class Polity : ISynchronizable {
         SetDominantFaction(mostProminentFaction);
     }
 
-    public void SetDominantFaction (Faction faction) {
+    public void SetDominantFaction(Faction faction)
+    {
+        if (DominantFaction == faction)
+            return;
 
-		if (DominantFaction == faction)
-			return;
+        if (DominantFaction != null)
+        {
+            DominantFaction.SetDominant(false);
 
-		if (DominantFaction != null) {
-		
-			DominantFaction.SetDominant (false);
+            World.AddFactionToUpdate(DominantFaction);
+        }
 
-			World.AddFactionToUpdate (DominantFaction);
-		}
+        if ((faction == null) || (!faction.StillPresent))
+            throw new System.Exception("Faction is null or not present");
 
-		if ((faction == null) || (!faction.StillPresent))
-			throw new System.Exception ("Faction is null or not present");
+        if (faction.Polity != this)
+            throw new System.Exception("Faction is not part of polity");
 
-		if (faction.Polity != this)
-			throw new System.Exception ("Faction is not part of polity");
-	
-		DominantFaction = faction;
+        DominantFaction = faction;
 
-		if (faction != null) {
-			DominantFactionId = faction.Id;
+        if (faction != null)
+        {
+            DominantFactionId = faction.Id;
 
-			faction.SetDominant (true);
+            faction.SetDominant(true);
 
-			SetCoreGroup (faction.CoreGroup);
+            SetCoreGroup(faction.CoreGroup);
 
             foreach (PolityContact contact in Contacts.Values)
             {
-				if (!faction.HasRelationship (contact.Polity.DominantFaction)) {
+                if (!faction.HasRelationship(contact.Polity.DominantFaction))
+                {
+                    Faction.SetRelationship(faction, contact.Polity.DominantFaction, 0.5f);
+                }
+            }
 
-					Faction.SetRelationship (faction, contact.Polity.DominantFaction, 0.5f);
-				}
-			}
+            World.AddFactionToUpdate(faction);
+        }
 
-			World.AddFactionToUpdate (faction);
-		}
+        World.AddPolityToUpdate(this);
+    }
 
-		World.AddPolityToUpdate (this);
-	}
-
-	public static void AddContact(Polity polityA, Polity polityB, int initialGroupCount)
+    public static void AddContact(Polity polityA, Polity polityB, int initialGroupCount)
     {
         polityA.AddContact(polityB, initialGroupCount);
         polityB.AddContact(polityA, initialGroupCount);
@@ -615,28 +614,28 @@ public abstract class Polity : ISynchronizable {
         }
     }
 
-    public static void TransferInfluence (Faction sourceFaction, Faction targetFaction, float percentage) {
+    public static void TransferInfluence(Faction sourceFaction, Faction targetFaction, float percentage)
+    {
+        // Can only tranfer influence between factions belonging to the same polity
 
-		// Can only tranfer influence between factions belonging to the same polity
+        if (sourceFaction.PolityId != targetFaction.PolityId)
+            throw new System.Exception("Source faction and target faction do not belong to same polity");
 
-		if (sourceFaction.PolityId != targetFaction.PolityId)
-			throw new System.Exception ("Source faction and target faction do not belong to same polity");
+        // Always reduce influence of source faction and increase promience of target faction
 
-		// Always reduce influence of source faction and increase promience of target faction
+        if ((percentage < 0f) || (percentage > 1f))
+            throw new System.Exception("Invalid percentage: " + percentage);
 
-		if ((percentage < 0f) || (percentage > 1f))
-			throw new System.Exception ("Invalid percentage: " + percentage);
+        float oldSourceInfluenceValue = sourceFaction.Influence;
 
-		float oldSourceInfluenceValue = sourceFaction.Influence;
+        sourceFaction.Influence = oldSourceInfluenceValue * (1f - percentage);
 
-		sourceFaction.Influence = oldSourceInfluenceValue * (1f - percentage);
+        float influenceDelta = oldSourceInfluenceValue - sourceFaction.Influence;
 
-		float influenceDelta = oldSourceInfluenceValue - sourceFaction.Influence;
+        targetFaction.Influence += influenceDelta;
 
-		targetFaction.Influence += influenceDelta;
-
-		sourceFaction.Polity.UpdateDominantFaction ();
-	}
+        sourceFaction.Polity.UpdateDominantFaction();
+    }
 
     public void PrepareToRemoveFromWorld()
     {
@@ -659,17 +658,17 @@ public abstract class Polity : ISynchronizable {
             return;
         }
 
-//#if DEBUG
-//        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-//        {
-//            Manager.RegisterDebugEvent("DebugMessage",
-//                "Update - Polity:" + Id +
-//                ", CurrentDate: " + World.CurrentDate +
-//                ", ProminencedGroups.Count: " + ProminencedGroups.Count +
-//                ", TotalGroupProminenceValue: " + TotalGroupProminenceValue +
-//                "");
-//        }
-//#endif
+        //#if DEBUG
+        //        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
+        //        {
+        //            Manager.RegisterDebugEvent("DebugMessage",
+        //                "Update - Polity:" + Id +
+        //                ", CurrentDate: " + World.CurrentDate +
+        //                ", ProminencedGroups.Count: " + ProminencedGroups.Count +
+        //                ", TotalGroupProminenceValue: " + TotalGroupProminenceValue +
+        //                "");
+        //        }
+        //#endif
 
         WillBeUpdated = false;
 
@@ -706,7 +705,7 @@ public abstract class Polity : ISynchronizable {
 
     protected abstract void UpdateInternal();
 
-	public void RunCensus()
+    public void RunCensus()
     {
         TotalAdministrativeCost_Internal = 0;
         TotalPopulation_Internal = 0;
@@ -820,40 +819,40 @@ public abstract class Polity : ISynchronizable {
 
     public void ClusterUpdate()
     {
-//#if DEBUG
-//        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-//        {
-//            if (Manager.TracingData.PolityId == Id)
-//            {
-//                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("Polity.ClusterUpdate 1 - Polity:" + Id,
-//                    "CurrentDate: " + World.CurrentDate +
-//                    ", _prominencesToAddToClusters.Count: " + _prominencesToAddToClusters.Count +
-//                    ", ProminenceClusters.Count: " + ProminenceClusters.Count +
-//                    "", World.CurrentDate);
+        //#if DEBUG
+        //        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
+        //        {
+        //            if (Manager.TracingData.PolityId == Id)
+        //            {
+        //                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("Polity.ClusterUpdate 1 - Polity:" + Id,
+        //                    "CurrentDate: " + World.CurrentDate +
+        //                    ", _prominencesToAddToClusters.Count: " + _prominencesToAddToClusters.Count +
+        //                    ", ProminenceClusters.Count: " + ProminenceClusters.Count +
+        //                    "", World.CurrentDate);
 
-//                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-//            }
-//        }
-//#endif
+        //                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+        //            }
+        //        }
+        //#endif
 
         foreach (PolityProminence prominence in _prominencesToAddToClusters.Values)
         {
-//#if DEBUG
-//            if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-//            {
-//                if (Manager.TracingData.PolityId == Id)
-//                {
-//                    SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("Polity.ClusterUpdate 2 - Polity:" + Id,
-//                        "CurrentDate: " + World.CurrentDate +
-//                        ", prominence.Id: " + prominence.Id +
-//                        ", prominence.Group.LastUpdateDate: " + prominence.Group.LastUpdateDate +
-//                        " [offset: " + (prominence.Group.LastUpdateDate - Manager.TracingData.LastSaveDate) + "]" +
-//                        "", World.CurrentDate);
+            //#if DEBUG
+            //            if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
+            //            {
+            //                if (Manager.TracingData.PolityId == Id)
+            //                {
+            //                    SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("Polity.ClusterUpdate 2 - Polity:" + Id,
+            //                        "CurrentDate: " + World.CurrentDate +
+            //                        ", prominence.Id: " + prominence.Id +
+            //                        ", prominence.Group.LastUpdateDate: " + prominence.Group.LastUpdateDate +
+            //                        " [offset: " + (prominence.Group.LastUpdateDate - Manager.TracingData.LastSaveDate) + "]" +
+            //                        "", World.CurrentDate);
 
-//                    Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-//                }
-//            }
-//#endif
+            //                    Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+            //                }
+            //            }
+            //#endif
 
             PolityProminenceCluster clusterToAddTo = null;
 
@@ -958,7 +957,7 @@ public abstract class Polity : ISynchronizable {
         _prominencesToAddToClusters.Clear();
     }
 
-	public virtual void Synchronize()
+    public virtual void Synchronize()
     {
         EventDataList.Clear();
 
@@ -1162,58 +1161,61 @@ public abstract class Polity : ISynchronizable {
         group.SetPolityProminence(this, prominenceValue);
     }
 
-    public void CalculateAdaptionToCell (TerrainCell cell, out float foragingCapacity, out float survivability) {
+    public void CalculateAdaptionToCell(TerrainCell cell, out float foragingCapacity, out float survivability)
+    {
+        float modifiedForagingCapacity = 0;
+        float modifiedSurvivability = 0;
 
-		float modifiedForagingCapacity = 0;
-		float modifiedSurvivability = 0;
+        //		Profiler.BeginSample ("Get Polity Skill Values");
 
-//		Profiler.BeginSample ("Get Polity Skill Values");
+        foreach (string biomeName in cell.PresentBiomeNames)
+        {
+            //			Profiler.BeginSample ("Try Get Polity Biome Survival Skill");
 
-		foreach (string biomeName in cell.PresentBiomeNames) {
+            float biomePresence = cell.GetBiomePresence(biomeName);
 
-//			Profiler.BeginSample ("Try Get Polity Biome Survival Skill");
+            Biome biome = Biome.Biomes[biomeName];
 
-			float biomePresence = cell.GetBiomePresence(biomeName);
+            string skillId = BiomeSurvivalSkill.GenerateId(biome);
 
-			Biome biome = Biome.Biomes [biomeName];
+            CulturalSkill skill = Culture.GetSkill(skillId);
 
-			string skillId = BiomeSurvivalSkill.GenerateId (biome);
+            if (skill != null)
+            {
+                //				Profiler.BeginSample ("Evaluate Polity Biome Survival Skill");
 
-			CulturalSkill skill = Culture.GetSkill (skillId);
+                modifiedForagingCapacity += biomePresence * biome.ForagingCapacity * skill.Value;
+                modifiedSurvivability += biomePresence * (biome.Survivability + skill.Value * (1 - biome.Survivability));
 
-			if (skill != null) {
+                //				Profiler.EndSample ();
 
-//				Profiler.BeginSample ("Evaluate Polity Biome Survival Skill");
+            }
+            else
+            {
+                modifiedSurvivability += biomePresence * biome.Survivability;
+            }
 
-				modifiedForagingCapacity += biomePresence * biome.ForagingCapacity * skill.Value;
-				modifiedSurvivability += biomePresence * (biome.Survivability + skill.Value * (1 - biome.Survivability));
+            //			Profiler.EndSample ();
+        }
 
-//				Profiler.EndSample ();
+        //		Profiler.EndSample ();
 
-			} else {
-				
-				modifiedSurvivability += biomePresence * biome.Survivability;
-			}
+        float altitudeSurvivabilityFactor = 1 - Mathf.Clamp01(cell.Altitude / World.MaxPossibleAltitude);
 
-//			Profiler.EndSample ();
-		}
+        modifiedSurvivability = (modifiedSurvivability * (1 - cell.FarmlandPercentage)) + cell.FarmlandPercentage;
 
-//		Profiler.EndSample ();
+        foragingCapacity = modifiedForagingCapacity * (1 - cell.FarmlandPercentage);
+        survivability = modifiedSurvivability * altitudeSurvivabilityFactor;
 
-		float altitudeSurvivabilityFactor = 1 - Mathf.Clamp01 (cell.Altitude / World.MaxPossibleAltitude);
+        if (foragingCapacity > 1)
+        {
+            throw new System.Exception("ForagingCapacity greater than 1: " + foragingCapacity);
+        }
 
-		modifiedSurvivability = (modifiedSurvivability * (1 - cell.FarmlandPercentage)) + cell.FarmlandPercentage;
-
-		foragingCapacity = modifiedForagingCapacity * (1 - cell.FarmlandPercentage);
-		survivability = modifiedSurvivability * altitudeSurvivabilityFactor;
-
-		if (foragingCapacity > 1) {
-			throw new System.Exception ("ForagingCapacity greater than 1: " + foragingCapacity);
-		}
-
-		if (survivability > 1) {
-			throw new System.Exception ("Survivability greater than 1: " + survivability);
-		}
+        if (survivability > 1)
+        {
+            throw new System.Exception("Survivability greater than 1: " + survivability);
+        }
     }
 
     public CellGroup GetRandomGroup(int rngOffset)
@@ -1337,174 +1339,175 @@ public abstract class Polity : ISynchronizable {
         return CollectionUtility.WeightedSelection(weightedGroups, totalWeight, GetNextLocalRandomFloat(rngOffset));
     }
 
-    public Faction GetRandomFaction (int rngOffset, FactionValueCalculationDelegate calculateFactionValue, bool nullIfNoValidFaction = false) {
+    public Faction GetRandomFaction(int rngOffset, FactionValueCalculationDelegate calculateFactionValue, bool nullIfNoValidFaction = false)
+    {
+        WeightedFaction[] weightedFactions = new WeightedFaction[Factions.Count];
 
-		WeightedFaction[] weightedFactions = new WeightedFaction[Factions.Count];
+        float totalWeight = 0;
 
-		float totalWeight = 0;
+        int index = 0;
+        foreach (Faction faction in Factions.Values)
+        {
+            float weight = calculateFactionValue(faction);
 
-		int index = 0;
-		foreach (Faction faction in Factions.Values) {
+            if (weight < 0)
+                throw new System.Exception("calculateFactionValue method returned weight value less than zero: " + weight);
 
-			float weight = calculateFactionValue (faction);
+            totalWeight += weight;
 
-			if (weight < 0)
-				throw new System.Exception ("calculateFactionValue method returned weight value less than zero: " + weight);
+            weightedFactions[index] = new WeightedFaction(faction, weight);
+            index++;
+        }
 
-			totalWeight += weight;
+        if (totalWeight < 0)
+        {
+            throw new System.Exception("Total weight can't be less than zero: " + totalWeight);
+        }
 
-			weightedFactions [index] = new WeightedFaction (faction, weight);
-			index++;
-		}
+        if ((totalWeight == 0) && nullIfNoValidFaction)
+        {
+            return null;
+        }
 
-		if (totalWeight < 0) {
+        return CollectionUtility.WeightedSelection(weightedFactions, totalWeight, GetNextLocalRandomFloat(rngOffset));
+    }
 
-			throw new System.Exception ("Total weight can't be less than zero: " + totalWeight);
-		}
-
-		if ((totalWeight == 0) && nullIfNoValidFaction) {
-
-			return null;
-		}
-
-		return CollectionUtility.WeightedSelection (weightedFactions, totalWeight, GetNextLocalRandomFloat (rngOffset));
-	}
-
-	public PolityContact GetRandomPolityContact (int rngOffset, PolityContactValueCalculationDelegate calculateContactValue, bool nullIfNoValidContact = false)
+    public PolityContact GetRandomPolityContact(int rngOffset, PolityContactValueCalculationDelegate calculateContactValue, bool nullIfNoValidContact = false)
     {
         WeightedPolityContact[] weightedContacts = new WeightedPolityContact[Contacts.Count];
 
-		float totalWeight = 0;
+        float totalWeight = 0;
 
-		int index = 0;
+        int index = 0;
         foreach (PolityContact contact in Contacts.Values)
         {
-			float weight = calculateContactValue (contact);
+            float weight = calculateContactValue(contact);
 
-			if (weight < 0)
-				throw new System.Exception ("calculateContactValue method returned weight value less than zero: " + weight);
+            if (weight < 0)
+                throw new System.Exception("calculateContactValue method returned weight value less than zero: " + weight);
 
-			totalWeight += weight;
+            totalWeight += weight;
 
-			weightedContacts [index] = new WeightedPolityContact (contact, weight);
-			index++;
+            weightedContacts[index] = new WeightedPolityContact(contact, weight);
+            index++;
         }
 
         float selectionValue = GetNextLocalRandomFloat(rngOffset);
 
-//#if DEBUG
-//        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-//        {
-//            if (Id == Manager.TracingData.PolityId)
-//            {
-//                string contactWeights = "";
+        //#if DEBUG
+        //        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
+        //        {
+        //            if (Id == Manager.TracingData.PolityId)
+        //            {
+        //                string contactWeights = "";
 
-//                foreach (WeightedPolityContact wc in weightedContacts)
-//                {
-//                    contactWeights += "\n\tPolity.Id: " + wc.Value.Id + ", weight: " + wc.Weight;
-//                }
+        //                foreach (WeightedPolityContact wc in weightedContacts)
+        //                {
+        //                    contactWeights += "\n\tPolity.Id: " + wc.Value.Id + ", weight: " + wc.Weight;
+        //                }
 
-//                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-//                "Polity:GetRandomPolityContact - Polity.Id:" + Id,
-//                "selectionValue: " + selectionValue +
-//                ", Contact Weights: " + contactWeights +
-//                "");
+        //                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+        //                "Polity:GetRandomPolityContact - Polity.Id:" + Id,
+        //                "selectionValue: " + selectionValue +
+        //                ", Contact Weights: " + contactWeights +
+        //                "");
 
-//                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-//            }
-//        }
-//#endif
+        //                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+        //            }
+        //        }
+        //#endif
 
-        if (totalWeight < 0) {
+        if (totalWeight < 0)
+        {
 
-			throw new System.Exception ("Total weight can't be less than zero: " + totalWeight);
-		}
+            throw new System.Exception("Total weight can't be less than zero: " + totalWeight);
+        }
 
-		if ((totalWeight == 0) && nullIfNoValidContact) {
+        if ((totalWeight == 0) && nullIfNoValidContact)
+        {
+            return null;
+        }
 
-			return null;
-		}
+        return CollectionUtility.WeightedSelection(weightedContacts, totalWeight, selectionValue);
+    }
 
-		return CollectionUtility.WeightedSelection (weightedContacts, totalWeight, selectionValue);
-	}
+    protected abstract void GenerateName();
 
-	protected abstract void GenerateName ();
+    public float GetPreferenceValue(string id)
+    {
+        CulturalPreference preference = Culture.GetPreference(id);
 
-	public float GetPreferenceValue (string id) {
+        if (preference != null)
+            return preference.Value;
 
-		CulturalPreference preference = Culture.GetPreference (id);
+        return 0;
+    }
 
-		if (preference != null)
-			return preference.Value; 
-
-		return 0;
-	}
-
-	public float CalculateContactStrength (Polity polity)
+    public float CalculateContactStrength(Polity polity)
     {
         if (!Contacts.ContainsKey(polity.Id))
         {
-			return 0;
-		}
+            return 0;
+        }
 
         return CalculateContactStrength(Contacts[polity.Id]);
-	}
+    }
 
-	public float CalculateContactStrength (PolityContact contact) {
-
-		int contacGroupCount = contact.Polity.Groups.Count;
-
-		float minGroupCount = Mathf.Min(contacGroupCount, Groups.Count);
-
-		float countFactor = contact.GroupCount / minGroupCount;
-
-		return countFactor;
-	}
-
-	public void MergePolity (Polity polity)
+    public float CalculateContactStrength(PolityContact contact)
     {
-		World.AddPolityToRemove (polity);
-		World.AddPolityToUpdate (this);
+        int contacGroupCount = contact.Polity.Groups.Count;
 
-		float polPopulation = Mathf.Floor (polity.TotalPopulation);
-        
+        float minGroupCount = Mathf.Min(contacGroupCount, Groups.Count);
+
+        float countFactor = contact.GroupCount / minGroupCount;
+
+        return countFactor;
+    }
+
+    public void MergePolity(Polity polity)
+    {
+        World.AddPolityToRemove(polity);
+        World.AddPolityToUpdate(this);
+
+        float polPopulation = Mathf.Floor(polity.TotalPopulation);
+
 #if DEBUG
         World.PolityMergeCount++;
 #endif
 
-		if (polPopulation <= 0)
+        if (polPopulation <= 0)
         {
             Debug.LogWarning("Merged polity with 0 or less population. this.Id:" + Id + ", polity.Id:" + polity.Id);
 
-			return;
-		}
+            return;
+        }
 
-		float localPopulation = Mathf.Floor (TotalPopulation);
+        float localPopulation = Mathf.Floor(TotalPopulation);
 
-		float populationFactor = polPopulation / localPopulation;
+        float populationFactor = polPopulation / localPopulation;
 
-		List<Faction> factionsToMove = new List<Faction> (polity.GetFactions ());
-	
-		foreach (Faction faction in factionsToMove) {
-		
-			faction.ChangePolity (this, faction.Influence * populationFactor);
+        List<Faction> factionsToMove = new List<Faction>(polity.GetFactions());
 
-			faction.SetToUpdate ();
-		}
+        foreach (Faction faction in factionsToMove)
+        {
+            faction.ChangePolity(this, faction.Influence * populationFactor);
 
-		foreach (CellGroup group in polity.Groups.Values) {
-		
-			float ppValue = group.GetPolityProminenceValue (polity);
-			float localPpValue = group.GetPolityProminenceValue (this);
+            faction.SetToUpdate();
+        }
 
-			group.SetPolityProminence (polity, 0);
-			group.SetPolityProminence (this, localPpValue + ppValue);
+        foreach (CellGroup group in polity.Groups.Values)
+        {
+            float ppValue = group.GetPolityProminenceValue(polity);
+            float localPpValue = group.GetPolityProminenceValue(this);
 
-			World.AddGroupToUpdate (group);
-		}
-	}
+            group.SetPolityProminence(polity, 0);
+            group.SetPolityProminence(this, localPpValue + ppValue);
 
-	public float CalculateAdministrativeLoad()
+            World.AddGroupToUpdate(group);
+        }
+    }
+
+    public float CalculateAdministrativeLoad()
     {
         int socialOrganizationValue = 0;
 

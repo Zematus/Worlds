@@ -89,7 +89,7 @@ public class Tribe : Polity
         SetDominantFaction(clan);
     }
 
-    public Tribe(Clan triggerClan, Polity parentPolity) : base(PolityType, triggerClan.CoreGroup, parentPolity)
+    public Tribe(Clan triggerClan, Polity parentPolity) : base(PolityType, triggerClan.CoreGroup, triggerClan.Id)
     {
         triggerClan.ChangePolity(this, triggerClan.Influence);
 
