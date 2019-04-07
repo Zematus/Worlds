@@ -74,31 +74,29 @@ public class PlanetScript : MonoBehaviour
         ReadKeyboardInput_Zoom();
     }
 
+    private void ZoomKeyIsPressed()
+    {
+        ZoomKeyPressed(true);
+    }
+
+    private void ZoomKeyIsNotPressed()
+    {
+        ZoomKeyPressed(false);
+    }
+
     private void ReadKeyboardInput_Zoom()
     {
-        if (Input.GetKey(KeyCode.KeypadPlus) ||
-            Input.GetKey(KeyCode.Equals))
-        {
-            ZoomKeyPressed(true);
-        }
-        else if (Input.GetKey(KeyCode.KeypadMinus) ||
-            Input.GetKey(KeyCode.Minus))
-        {
-            ZoomKeyPressed(false);
-        }
+        Manager.HandleKey(KeyCode.KeypadPlus, false, false, ZoomKeyIsPressed);
+        Manager.HandleKey(KeyCode.Equals, false, false, ZoomKeyIsPressed);
+
+        Manager.HandleKey(KeyCode.KeypadMinus, false, false, ZoomKeyIsNotPressed);
+        Manager.HandleKey(KeyCode.Minus, false, false, ZoomKeyIsNotPressed);
     }
 
     private void ReadKeyboardInput_Rotation()
     {
-        if (Input.GetKeyUp(KeyCode.R))
-        {
-            ToggleRotationType();
-        }
-
-        if (Input.GetKeyUp(KeyCode.L))
-        {
-            ToggleLightingType();
-        }
+        Manager.HandleKeyUp(KeyCode.R, false, false, ToggleRotationType);
+        Manager.HandleKeyUp(KeyCode.L, false, false, ToggleLightingType);
     }
 
     public void ToggleRotationType()

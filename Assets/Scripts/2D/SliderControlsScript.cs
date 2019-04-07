@@ -34,6 +34,8 @@ public class SliderControlsScript : MonoBehaviour
 
     private float _lastCurrentValueSet = 0;
 
+    private bool _inputFieldFocused = false;
+
     // Use this for initialization
     void Start()
     {
@@ -51,6 +53,23 @@ public class SliderControlsScript : MonoBehaviour
                 InvokeEvent();
 
                 _hasToInvokeEvent = false;
+            }
+        }
+
+        if (_inputFieldFocused)
+        {
+            if (!InputField.isFocused)
+            {
+                Manager.InputFieldInUse = false;
+                _inputFieldFocused = false;
+            }
+        }
+        else
+        {
+            if (InputField.isFocused)
+            {
+                Manager.InputFieldInUse = true;
+                _inputFieldFocused = true;
             }
         }
     }

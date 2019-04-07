@@ -599,214 +599,162 @@ public class GuiManagerScript : MonoBehaviour
         return Manager.SimulationCanRun && !_pausingDialogActive;
     }
 
+    private void PauseSimulationIfRunning()
+    {
+        PauseSimulation(Manager.SimulationRunning);
+    }
+
+    private void SetMaxSpeedLevelTo0()
+    {
+        SetMaxSpeedLevel(0);
+    }
+
+    private void SetMaxSpeedLevelTo1()
+    {
+        SetMaxSpeedLevel(1);
+    }
+
+    private void SetMaxSpeedLevelTo2()
+    {
+        SetMaxSpeedLevel(2);
+    }
+
+    private void SetMaxSpeedLevelTo3()
+    {
+        SetMaxSpeedLevel(3);
+    }
+
+    private void SetMaxSpeedLevelTo4()
+    {
+        SetMaxSpeedLevel(4);
+    }
+
+    private void SetMaxSpeedLevelTo5()
+    {
+        SetMaxSpeedLevel(5);
+    }
+
+    private void SetMaxSpeedLevelTo6()
+    {
+        SetMaxSpeedLevel(6);
+    }
+
+    private void SetMaxSpeedLevelTo7()
+    {
+        SetMaxSpeedLevel(7);
+    }
+
+    private void IncreaseMaxSpeedLevel()
+    {
+        SetMaxSpeedLevel(_selectedMaxSpeedLevelIndex + 1);
+    }
+
+    private void DecreaseMaxSpeedLevel()
+    {
+        SetMaxSpeedLevel(_selectedMaxSpeedLevelIndex - 1);
+    }
+
     private void ReadKeyboardInput_TimeControls()
     {
-        if (Input.GetKeyDown(KeyCode.Space))
+        if (CanAlterRunningStateOrSpeed())
         {
-            if (CanAlterRunningStateOrSpeed())
-            {
-                PauseSimulation(Manager.SimulationRunning);
-            }
+            Manager.HandleKeyUp(KeyCode.Space, false, false, PauseSimulationIfRunning);
+            Manager.HandleKeyUp(KeyCode.Alpha1, false, false, SetMaxSpeedLevelTo0);
+            Manager.HandleKeyUp(KeyCode.Alpha2, false, false, SetMaxSpeedLevelTo1);
+            Manager.HandleKeyUp(KeyCode.Alpha3, false, false, SetMaxSpeedLevelTo2);
+            Manager.HandleKeyUp(KeyCode.Alpha4, false, false, SetMaxSpeedLevelTo3);
+            Manager.HandleKeyUp(KeyCode.Alpha5, false, false, SetMaxSpeedLevelTo4);
+            Manager.HandleKeyUp(KeyCode.Alpha6, false, false, SetMaxSpeedLevelTo5);
+            Manager.HandleKeyUp(KeyCode.Alpha7, false, false, SetMaxSpeedLevelTo6);
+            Manager.HandleKeyUp(KeyCode.Alpha8, false, false, SetMaxSpeedLevelTo7);
+            Manager.HandleKeyUp(KeyCode.KeypadPlus, false, true, IncreaseMaxSpeedLevel);
+            Manager.HandleKeyUp(KeyCode.KeypadMinus, false, true, DecreaseMaxSpeedLevel);
         }
+    }
 
-        if (Input.GetKeyDown(KeyCode.Alpha1))
+    private void HandleEscapeOp()
+    {
+        if (!_backgroundProcessActive)
         {
-            if (CanAlterRunningStateOrSpeed())
+            if (SelectFactionDialogPanelScript.gameObject.activeInHierarchy)
             {
-                SetMaxSpeedLevel(0);
+                CancelSelectFaction();
             }
-        }
-
-        if (Input.GetKeyDown(KeyCode.Alpha2))
-        {
-            if (CanAlterRunningStateOrSpeed())
+            else if (MainMenuDialogPanelScript.gameObject.activeInHierarchy)
             {
-                SetMaxSpeedLevel(1);
+                CloseMainMenu();
             }
-        }
-
-        if (Input.GetKeyDown(KeyCode.Alpha3))
-        {
-            if (CanAlterRunningStateOrSpeed())
+            else if (OptionsDialogPanelScript.gameObject.activeInHierarchy)
             {
-                SetMaxSpeedLevel(2);
+                CloseOptionsMenu();
             }
-        }
-
-        if (Input.GetKeyDown(KeyCode.Alpha4))
-        {
-            if (CanAlterRunningStateOrSpeed())
+            else if (ErrorMessageDialogPanelScript.gameObject.activeInHierarchy)
             {
-                SetMaxSpeedLevel(3);
+                CloseErrorMessageAction();
             }
-        }
-
-        if (Input.GetKeyDown(KeyCode.Alpha5))
-        {
-            if (CanAlterRunningStateOrSpeed())
+            else if (!IsModalPanelActive())
             {
-                SetMaxSpeedLevel(4);
-            }
-        }
-
-        if (Input.GetKeyDown(KeyCode.Alpha6))
-        {
-            if (CanAlterRunningStateOrSpeed())
-            {
-                SetMaxSpeedLevel(5);
-            }
-        }
-
-        if (Input.GetKeyDown(KeyCode.Alpha7))
-        {
-            if (CanAlterRunningStateOrSpeed())
-            {
-                SetMaxSpeedLevel(6);
-            }
-        }
-
-        if (Input.GetKeyDown(KeyCode.Alpha8))
-        {
-            if (CanAlterRunningStateOrSpeed())
-            {
-                SetMaxSpeedLevel(7);
-            }
-        }
-
-        if (Input.GetKeyDown(KeyCode.KeypadPlus))
-        {
-            if (CanAlterRunningStateOrSpeed())
-            {
-                SetMaxSpeedLevel(_selectedMaxSpeedLevelIndex + 1);
-            }
-        }
-
-        if (Input.GetKeyDown(KeyCode.KeypadMinus))
-        {
-            if (CanAlterRunningStateOrSpeed())
-            {
-                SetMaxSpeedLevel(_selectedMaxSpeedLevelIndex - 1);
+                OpenMainMenu();
             }
         }
     }
 
     private void ReadKeyboardInput_Escape()
     {
-        if (Input.GetKeyUp(KeyCode.Escape))
-        {
-            if (!_backgroundProcessActive)
-            {
-                if (SelectFactionDialogPanelScript.gameObject.activeInHierarchy)
-                {
-                    CancelSelectFaction();
-                }
-                else if (MainMenuDialogPanelScript.gameObject.activeInHierarchy)
-                {
-                    CloseMainMenu();
-                }
-                else if (OptionsDialogPanelScript.gameObject.activeInHierarchy)
-                {
-                    CloseOptionsMenu();
-                }
-                else if (ErrorMessageDialogPanelScript.gameObject.activeInHierarchy)
-                {
-                    CloseErrorMessageAction();
-                }
-                else if (!IsModalPanelActive())
-                {
-                    OpenMainMenu();
-                }
-            }
-        }
+        Manager.HandleKeyUp(KeyCode.Escape, false, false, HandleEscapeOp);
+    }
+
+    public void ToogleFullscreen()
+    {
+        Manager.SetFullscreen(!Manager.FullScreenEnabled);
     }
 
     private void ReadKeyboardInput_Menus()
     {
-        bool controlPressed = Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
-
-        if (controlPressed)
-        {
-            if (Input.GetKeyUp(KeyCode.X))
-            {
-                ExportImageAs();
-            }
-            else if (Input.GetKeyUp(KeyCode.S))
-            {
-                SaveWorldAs();
-            }
-            else if (Input.GetKeyUp(KeyCode.L))
-            {
-                LoadWorld();
-            }
-            else if (Input.GetKeyUp(KeyCode.G))
-            {
-                SetGenerationSeed();
-            }
-            else if (Input.GetKeyUp(KeyCode.F))
-            {
-                ToogleFullscreen(!Manager.FullScreenEnabled);
-            }
-        }
+        Manager.HandleKeyUp(KeyCode.X, true, false, ExportImageAs);
+        Manager.HandleKeyUp(KeyCode.S, true, false, SaveWorldAs);
+        Manager.HandleKeyUp(KeyCode.L, true, false, LoadWorld);
+        Manager.HandleKeyUp(KeyCode.G, true, false, SetGenerationSeed);
+        Manager.HandleKeyUp(KeyCode.F, true, false, ToogleFullscreen);
     }
 
     private void ReadKeyboardInput_Globe()
     {
-        bool shiftPressed = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
+        Manager.HandleKeyUp(KeyCode.G, false, true, ToggleGlobeView);
+    }
 
-        if (shiftPressed)
-        {
-            if (Input.GetKeyUp(KeyCode.G))
-            {
-                ToggleGlobeView();
-            }
-        }
+    private void SetNextView()
+    {
+        SetView(_planetView.GetNextEnumValue());
     }
 
     private void ReadKeyboardInput_MapViews()
     {
-        if (Input.GetKeyUp(KeyCode.V))
-        {
-            SetView(_planetView.GetNextEnumValue());
-        }
+        Manager.HandleKeyUp(KeyCode.V, false, false, SetNextView);
+    }
+
+    private void ActivateGeneralOverlay()
+    {
+        ChangePlanetOverlay(PlanetOverlay.General);
     }
 
     private void ReadKeyboardInput_MapOverlays()
     {
-        if (Input.GetKeyUp(KeyCode.N))
-        {
-            ChangePlanetOverlay(PlanetOverlay.None);
-        }
+        Manager.HandleKeyUp(KeyCode.N, false, false, DisableAllOverlays);
 
         if (Manager.GameMode == GameMode.Simulator)
         {
-            if (Input.GetKeyUp(KeyCode.G))
-            {
-                ChangePlanetOverlay(PlanetOverlay.General);
-            }
-
-            if (Input.GetKeyUp(KeyCode.O))
-            {
-                ActivatePopOverlay();
-            }
-
-            if (Input.GetKeyUp(KeyCode.P))
-            {
-                ActivatePolityOverlay();
-            }
+            Manager.HandleKeyUp(KeyCode.G, false, false, ActivateGeneralOverlay);
+            Manager.HandleKeyUp(KeyCode.O, false, false, ActivatePopOverlay);
+            Manager.HandleKeyUp(KeyCode.P, false, false, ActivatePolityOverlay);
 
             if (Manager.DebugModeEnabled)
             {
-                if (Input.GetKeyUp(KeyCode.D))
-                {
-                    ActivateDebugOverlay();
-                }
+                Manager.HandleKeyUp(KeyCode.D, false, false, ActivateDebugOverlay);
             }
         }
 
-        if (Input.GetKeyUp(KeyCode.M))
-        {
-            ActivateMiscOverlay();
-        }
+        Manager.HandleKeyUp(KeyCode.M, false, false, ActivateMiscOverlay);
     }
 
     public static bool IsModalPanelActive()

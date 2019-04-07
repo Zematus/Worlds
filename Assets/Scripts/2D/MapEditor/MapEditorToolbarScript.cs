@@ -44,66 +44,53 @@ public class MapEditorToolbarScript : MonoBehaviour
         ReadKeyboardInput();
     }
 
-    public void ReadKeyboardInput()
+    private void ToggleTool1()
     {
-        bool controlPressed = false;
-        bool shiftPressed = false;
+        Toggle1.isOn = !Toggle1.isOn;
+    }
 
-        if (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl))
-        {
-            controlPressed = true;
-        }
+    private void ToggleTool2()
+    {
+        Toggle2.isOn = !Toggle2.isOn;
+    }
 
-        if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
-        {
-            shiftPressed = true;
-        }
+    private void ToggleTool3()
+    {
+        Toggle3.isOn = !Toggle3.isOn;
+    }
 
-        if (controlPressed)
-        {
-            if (shiftPressed)
-            {
-                if (Input.GetKeyDown(KeyCode.Z))
-                {
-                    RedoEditorAction();
-                }
-            }
-            else if (Input.GetKeyDown(KeyCode.Z))
-            {
-                UndoEditorAction();
-            }
-        }
-        else
-        {
-            if (Input.GetKeyDown(KeyCode.Alpha1))
-            {
-                Toggle1.isOn = !Toggle1.isOn;
-            }
-            else if (Input.GetKeyDown(KeyCode.Alpha2))
-            {
-                Toggle2.isOn = !Toggle2.isOn;
-            }
-            else if (Input.GetKeyDown(KeyCode.Alpha3))
-            {
-                Toggle3.isOn = !Toggle3.isOn;
-            }
-            else if (Input.GetKeyDown(KeyCode.Alpha4))
-            {
-                Toggle4.isOn = !Toggle4.isOn;
-            }
-            else if (Input.GetKeyDown(KeyCode.Alpha5))
-            {
-                Toggle5.isOn = !Toggle5.isOn;
-            }
-            else if (Input.GetKeyDown(KeyCode.Alpha6))
-            {
-                Toggle6.isOn = !Toggle6.isOn;
-            }
-            else if (Input.GetKeyDown(KeyCode.Alpha7))
-            {
-                Toggle7.isOn = !Toggle7.isOn;
-            }
-        }
+    private void ToggleTool4()
+    {
+        Toggle4.isOn = !Toggle4.isOn;
+    }
+
+    private void ToggleTool5()
+    {
+        Toggle5.isOn = !Toggle5.isOn;
+    }
+
+    private void ToggleTool6()
+    {
+        Toggle6.isOn = !Toggle6.isOn;
+    }
+
+    private void ToggleTool7()
+    {
+        Toggle7.isOn = !Toggle7.isOn;
+    }
+
+    private void ReadKeyboardInput()
+    {
+        Manager.HandleKeyUp(KeyCode.Z, true, true, RedoEditorAction);
+        Manager.HandleKeyUp(KeyCode.Z, true, false, UndoEditorAction);
+
+        Manager.HandleKeyUp(KeyCode.Alpha1, false, false, ToggleTool1);
+        Manager.HandleKeyUp(KeyCode.Alpha2, false, false, ToggleTool2);
+        Manager.HandleKeyUp(KeyCode.Alpha3, false, false, ToggleTool3);
+        Manager.HandleKeyUp(KeyCode.Alpha4, false, false, ToggleTool4);
+        Manager.HandleKeyUp(KeyCode.Alpha5, false, false, ToggleTool5);
+        Manager.HandleKeyUp(KeyCode.Alpha6, false, false, ToggleTool6);
+        Manager.HandleKeyUp(KeyCode.Alpha7, false, false, ToggleTool7);
     }
 
     public void UndoEditorAction()

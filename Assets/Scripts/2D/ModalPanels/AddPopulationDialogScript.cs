@@ -53,11 +53,8 @@ public class AddPopulationDialogScript : ModalPanelScript
         SetVisible(true);
     }
 
-    public void ReadKeyboardInput()
+    private void ReadKeyboardInput()
     {
-        if (Input.GetKeyUp(KeyCode.Escape))
-        {
-            CancelOperation();
-        }
+        Manager.HandleKeyUp(KeyCode.Escape, false, false, CancelOperation);
     }
 }

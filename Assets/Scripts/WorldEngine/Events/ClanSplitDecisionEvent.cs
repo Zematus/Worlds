@@ -155,7 +155,7 @@ public class ClanSplitDecisionEvent : FactionEvent
         int rngOffset = unchecked((int)(RngOffsets.EVENT_CAN_TRIGGER + Id));
 
         //Profiler.BeginSample("CanTrigger - _clan.Polity.GetRandomGroup");
-        
+
         _newClanCoreGroup = _clan.Polity.GetRandomGroup(rngOffset++);
 
         //Profiler.EndSample();

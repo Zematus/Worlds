@@ -32,10 +32,7 @@ public class LoadFileDialogPanelScript : DialogPanelScript
 
     private void ReadKeyboardInput()
     {
-        if (Input.GetKeyUp(KeyCode.Escape))
-        {
-            CancelButton.onClick.Invoke();
-        }
+        Manager.HandleKeyUp(KeyCode.Escape, false, false, CancelButton.onClick.Invoke);
     }
 
     public string GetPathToLoad()

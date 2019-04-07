@@ -172,6 +172,8 @@ public class Manager
     public static int LastPixelUpdateCount = 0;
     public static long LastDateSpan = 0;
 
+    public static bool InputFieldInUse = false;
+
     private static bool _isLoadReady = false;
 
     private static StreamWriter _debugLogStream = null;
@@ -346,6 +348,53 @@ public class Manager
         /// static initalizations
 
         Tribe.GenerateTribeNounVariations();
+    }
+
+    private static bool CanHandleKeyInput(bool requireCtrl, bool requireShift)
+    {
+        if (requireCtrl != (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl)))
+            return false;
+
+        if (requireShift != (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)))
+            return false;
+
+        if (InputFieldInUse)
+            return false;
+
+        return true;
+    }
+
+    public static void HandleKeyUp(KeyCode keyCode, bool requireCtrl, bool requireShift, System.Action action)
+    {
+        if (!Input.GetKeyUp(keyCode))
+            return;
+
+        if (!CanHandleKeyInput(requireCtrl, requireShift))
+            return;
+
+        action.Invoke();
+    }
+
+    public static void HandleKey(KeyCode keyCode, bool requireCtrl, bool requireShift, System.Action action)
+    {
+        if (!Input.GetKey(keyCode))
+            return;
+
+        if (!CanHandleKeyInput(requireCtrl, requireShift))
+            return;
+
+        action.Invoke();
+    }
+
+    public static void HandleKeyDown(KeyCode keyCode, bool requireCtrl, bool requireShift, System.Action action)
+    {
+        if (!Input.GetKeyDown(keyCode))
+            return;
+
+        if (!CanHandleKeyInput(requireCtrl, requireShift))
+            return;
+
+        action.Invoke();
     }
 
     public static void BlockUndoAndRedo(bool state)

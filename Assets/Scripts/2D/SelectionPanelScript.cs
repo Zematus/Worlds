@@ -29,9 +29,9 @@ public class SelectionPanelScript : MonoBehaviour
         ReadKeyboardInput();
     }
 
-    public void ReadKeyboardInput()
+    private void CycleThroughOptions()
     {
-        if (Input.GetKeyUp(KeyCode.Tab) && (_linkedToggles.Count > 0))
+        if (_linkedToggles.Count > 0)
         {
             if (_toggledNode == null)
             {
@@ -49,6 +49,11 @@ public class SelectionPanelScript : MonoBehaviour
 
             _toggledNode.Value.isOn = true;
         }
+    }
+
+    private void ReadKeyboardInput()
+    {
+        Manager.HandleKeyUp(KeyCode.Tab, false, false, CycleThroughOptions);
     }
 
     public void SetVisible(bool value)

@@ -122,28 +122,19 @@ public class StartGuiManagerScript : MonoBehaviour
         }
     }
 
+    private void ToogleFullscreen()
+    {
+        ToogleFullscreen(!Manager.FullScreenEnabled);
+    }
+
     private void ReadKeyboardInput()
     {
         if (_preparingWorld)
             return; // Don't read keyboard while the world is being generated/loaded...
 
-        bool controlPressed = Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
-
-        if (controlPressed)
-        {
-            if (Input.GetKeyUp(KeyCode.L))
-            {
-                LoadWorld();
-            }
-            else if (Input.GetKeyUp(KeyCode.G))
-            {
-                SetGenerationSeed();
-            }
-            else if (Input.GetKeyUp(KeyCode.F))
-            {
-                ToogleFullscreen(!Manager.FullScreenEnabled);
-            }
-        }
+        Manager.HandleKeyUp(KeyCode.L, true, false, LoadWorld);
+        Manager.HandleKeyUp(KeyCode.G, true, false, SetGenerationSeed);
+        Manager.HandleKeyUp(KeyCode.F, true, false, ToogleFullscreen);
     }
 
     public void CloseExceptionMessageAction()

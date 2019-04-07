@@ -34,18 +34,23 @@ public class MapScript : MonoBehaviour
         ReadKeyboardInput_Zoom();
     }
 
+    private void ZoomKeyIsPressed()
+    {
+        ZoomKeyPressed(true);
+    }
+
+    private void ZoomKeyIsNotPressed()
+    {
+        ZoomKeyPressed(false);
+    }
+
     private void ReadKeyboardInput_Zoom()
     {
-        if (Input.GetKey(KeyCode.KeypadPlus) ||
-            Input.GetKey(KeyCode.Equals))
-        {
-            ZoomKeyPressed(true);
-        }
-        else if (Input.GetKey(KeyCode.KeypadMinus) ||
-            Input.GetKey(KeyCode.Minus))
-        {
-            ZoomKeyPressed(false);
-        }
+        Manager.HandleKey(KeyCode.KeypadPlus, false, false, ZoomKeyIsPressed);
+        Manager.HandleKey(KeyCode.Equals, false, false, ZoomKeyIsPressed);
+
+        Manager.HandleKey(KeyCode.KeypadMinus, false, false, ZoomKeyIsNotPressed);
+        Manager.HandleKey(KeyCode.Minus, false, false, ZoomKeyIsNotPressed);
     }
 
     public void SetVisible(bool state)
