@@ -189,6 +189,8 @@ public class GuiManagerScript : MonoBehaviour
 
     private List<ModalPanelScript> _hiddenInteractionPanels = new List<ModalPanelScript>();
 
+    private System.Exception _cachedException = null;
+
     void OnEnable()
     {
         Manager.InitializeDebugLog();
@@ -261,6 +263,8 @@ public class GuiManagerScript : MonoBehaviour
 
         if (type == LogType.Exception)
         {
+            Manager.EnableLogBackup();
+
             Manager.EnqueueTaskAndWait(() =>
             {
                 PauseSimulation(true);
@@ -280,7 +284,16 @@ public class GuiManagerScript : MonoBehaviour
     {
         ManagerScript = this;
 
-        Manager.LoadAppSettings(@"Worlds.settings");
+        try
+        {
+            Manager.LoadAppSettings(@"Worlds.settings");
+        }
+        catch (System.Exception e)
+        {
+            // store the exception to report it on screen as soon as possible
+            _cachedException = e;
+        }
+
     }
 
     // Use this for initialization
@@ -329,6 +342,14 @@ public class GuiManagerScript : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (_cachedException != null)
+        {
+            System.Exception ce = _cachedException;
+            _cachedException = null;
+
+            throw ce;
+        }
+
         ReadKeyboardInput();
 
         if (Manager.DebugModeEnabled)

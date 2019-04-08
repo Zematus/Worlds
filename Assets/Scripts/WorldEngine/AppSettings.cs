@@ -15,7 +15,6 @@ public class AppSettings
     public float RainfallOffset = 0;
     public bool Fullscreen = true;
     public bool DebugMode = true;
-    public bool FullGameplayInfo = true;
 
     public AppSettings()
     {
@@ -29,7 +28,6 @@ public class AppSettings
         RainfallOffset = Manager.RainfallOffset;
         Fullscreen = Manager.FullScreenEnabled;
         DebugMode = Manager.DebugModeEnabled;
-        FullGameplayInfo = Manager.ShowFullGameplayInfo;
     }
 
     public void Take()
@@ -40,6 +38,5 @@ public class AppSettings
         Manager.RainfallOffset = RainfallOffset;
         Manager.FullScreenEnabled = Fullscreen;
         Manager.DebugModeEnabled = DebugMode;
-        Manager.ShowFullGameplayInfo = FullGameplayInfo;
     }
 }

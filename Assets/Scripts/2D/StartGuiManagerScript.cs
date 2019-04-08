@@ -30,6 +30,8 @@ public class StartGuiManagerScript : MonoBehaviour
 
     private Texture2D _heightmap = null;
 
+    private System.Exception _cachedException = null;
+
     void OnEnable()
     {
         Manager.InitializeDebugLog();
@@ -53,6 +55,8 @@ public class StartGuiManagerScript : MonoBehaviour
 
         if (type == LogType.Exception)
         {
+            Manager.EnableLogBackup();
+
             Manager.EnqueueTaskAndWait(() =>
             {
                 ExceptionDialogPanelScript.SetDialogText(logString);
@@ -80,7 +84,15 @@ public class StartGuiManagerScript : MonoBehaviour
 
     void Awake()
     {
-        Manager.LoadAppSettings(@"Worlds.settings");
+        try
+        {
+            Manager.LoadAppSettings(@"Worlds.settings");
+        }
+        catch (System.Exception e)
+        {
+            // store the exception to report it on screen as soon as possible
+            _cachedException = e;
+        }
 
         VersionText.text = "v" + Application.version;
     }
@@ -93,6 +105,14 @@ public class StartGuiManagerScript : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (_cachedException != null)
+        {
+            System.Exception ce = _cachedException;
+            _cachedException = null;
+
+            throw ce;
+        }
+
         ReadKeyboardInput();
 
         Manager.ExecuteTasks(100);

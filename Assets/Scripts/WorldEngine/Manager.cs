@@ -162,8 +162,6 @@ public class Manager
     public static bool FullScreenEnabled = false;
     public static bool DebugModeEnabled = false;
 
-    public static bool ShowFullGameplayInfo = false;
-
     public static GameMode GameMode = GameMode.None;
 
     public static bool ViewingGlobe = false;
@@ -176,7 +174,10 @@ public class Manager
 
     private static bool _isLoadReady = false;
 
+    private static string _debugLogFilename = @".\debug";
+    private static string _debugLogExt = @".log";
     private static StreamWriter _debugLogStream = null;
+    private static bool _backupDebugLog = false;
 
     private static HashSet<TerrainCell> _lastUpdatedCells;
 
@@ -535,7 +536,7 @@ public class Manager
         if (_debugLogStream != null)
             return;
 
-        string filename = @".\debug.log";
+        string filename = _debugLogFilename + _debugLogExt;
 
         if (File.Exists(filename))
         {
@@ -567,6 +568,13 @@ public class Manager
         _debugLogStream.Close();
 
         _debugLogStream = null;
+
+        if (_backupDebugLog)
+        {
+            string logFilename = _debugLogFilename + _debugLogExt;
+            string backupFilename = _debugLogFilename + System.DateTime.Now.ToString("_dd_MM_yyyy_hh_mm_ss") + _debugLogExt;
+            File.Copy(logFilename, backupFilename);
+        }
     }
 
     public static void HandleLog(string logString, string stackTrace, LogType type)
@@ -590,6 +598,11 @@ public class Manager
         }
         
         _debugLogStream.Flush();
+    }
+
+    public static void EnableLogBackup()
+    {
+        _backupDebugLog = true;
     }
 
     private void InitializeSavePath()
