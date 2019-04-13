@@ -3868,7 +3868,6 @@ public class Manager
         if (File.Exists(path))
         {
             byte[] data = File.ReadAllBytes(path);
-            //texture = new Texture2D(1, 1, TextureFormat.ARGB32, false);
             texture = new Texture2D(1, 1);
             if (texture.LoadImage(data))
                 return texture;

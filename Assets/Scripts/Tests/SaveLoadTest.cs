@@ -28,6 +28,10 @@ public class SaveLoadTest : AutomatedTest
 
     private int _seed;
 
+    private string _heightmapFilename;
+
+    private string _settingsFilename;
+
     private int _offsetPerCheck;
 
     private int _filteredEventCountBeforeSave;
@@ -98,26 +102,22 @@ public class SaveLoadTest : AutomatedTest
 
     private SaveConditionDelegate _saveCondition;
 
-    //	public SaveLoadTest (int seed, int initialDateSkip, int offsetPerCheck, int numChecks, int checksToSkip = 0, bool enhancedTracing = false, bool trackGenRandomCallers = false, bool validateRecording = false) {
-    //
-    //		Initialize ("with initialSkip: " + initialDateSkip, 
-    //			seed, (World world) => {
-    //				return (world.CurrentDate >= initialDateSkip);
-    //			}, offsetPerCheck, numChecks, checksToSkip, enhancedTracing, trackGenRandomCallers, validateRecording);
-    //	}
-
-    public SaveLoadTest(string conditionName, int seed, SaveConditionDelegate saveCondition, int offsetPerCheck, int numChecks, int beforeCheckDateSkipOffset = 0, bool enhancedTracing = false, bool trackGenRandomCallers = false, bool validateRecording = false, int tracingPriority = 5)
+    public SaveLoadTest(string conditionName, int seed, SaveConditionDelegate saveCondition, int offsetPerCheck, int numChecks, int beforeCheckDateSkipOffset = 0, bool enhancedTracing = false, bool trackGenRandomCallers = false, bool validateRecording = false, int tracingPriority = 5, string heightmapFilename = null, string settingsFilename = @"Worlds.settings")
     {
-        Initialize(conditionName, seed, saveCondition, offsetPerCheck, numChecks, beforeCheckDateSkipOffset, enhancedTracing, trackGenRandomCallers, validateRecording, tracingPriority);
+        Initialize(conditionName, seed, saveCondition, offsetPerCheck, numChecks, beforeCheckDateSkipOffset, enhancedTracing, trackGenRandomCallers, validateRecording, tracingPriority, heightmapFilename, settingsFilename);
     }
 
-    private void Initialize(string conditionName, int seed, SaveConditionDelegate saveCondition, int offsetPerCheck, int numChecks, int beforeCheckDateSkipOffset, bool enhancedTracing, bool trackGenRandomCallers, bool validateRecording, int tracingPriority)
+    private void Initialize(string conditionName, int seed, SaveConditionDelegate saveCondition, int offsetPerCheck, int numChecks, int beforeCheckDateSkipOffset, bool enhancedTracing, bool trackGenRandomCallers, bool validateRecording, int tracingPriority, string heightmapFilename, string settingsFilename)
     {
 #if DEBUG
         Manager.TracingData.Priority = tracingPriority;
 #endif
 
         _seed = seed;
+
+        _heightmapFilename = heightmapFilename;
+
+        _settingsFilename = settingsFilename;
 
         _offsetPerCheck = offsetPerCheck;
         _numChecks = numChecks;
@@ -128,10 +128,20 @@ public class SaveLoadTest : AutomatedTest
         _trackGenRandomCallers = trackGenRandomCallers;
 
         Name = "Save/Load Test " + conditionName
-            + ", world: " + seed
+            + ", seed: " + seed
             + ", numChecks: " + numChecks
             + ", offsetPerCheck: " + offsetPerCheck
             + ", beforeCheckDateSkipOffset: " + beforeCheckDateSkipOffset;
+
+        if (heightmapFilename != null)
+        {
+            Name += ", using heightmap file \"" + heightmapFilename + "\"";
+        }
+
+        if (settingsFilename != null)
+        {
+            Name += ", using settings file \"" + settingsFilename + "\"";
+        }
 
         if (_enhancedTracing)
         {
@@ -193,15 +203,15 @@ public class SaveLoadTest : AutomatedTest
 
                 if (State == TestState.NotStarted)
                 {
-                    Manager.LoadAppSettings(@"Worlds.settings");
+                    Manager.LoadAppSettings(_settingsFilename);
 
                     Manager.UpdateMainThreadReference();
 
                     _savePath = Manager.SavePath + "TestSaveLoad.plnt";
 
                     Debug.Log("Generating world " + _seed + "...");
-
-                    Manager.GenerateNewWorldAsync(_seed);
+                    
+                    Manager.GenerateNewWorldAsync(_seed, Manager.LoadTexture(_heightmapFilename));
 
                     State = TestState.Running;
                 }

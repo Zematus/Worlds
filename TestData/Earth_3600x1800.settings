@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="Windows-1252"?>
+<AppSettings xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <AltitudeScale>0.471138418</AltitudeScale>
+  <SeaLevelOffset>-1491.07153</SeaLevelOffset>
+  <TemperatureOffset>13.7</TemperatureOffset>
+  <RainfallOffset>990</RainfallOffset>
+  <Fullscreen>false</Fullscreen>
+  <DebugMode>false</DebugMode>
+</AppSettings>

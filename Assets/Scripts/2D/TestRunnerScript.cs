@@ -35,8 +35,11 @@ public class TestRunnerScript : MonoBehaviour
         {
             return (world.PolityMergeCount > 10) && (world.PolityCount > 20);
         };
+        tests.Add(new SaveLoadTest("after 20 polities and 10 polity merges", 1142453343, saveCondition, 20000000, 10, 
+            heightmapFilename: @"TestData\Earth_3600x1800.png", settingsFilename: @"TestData\Earth_3600x1800.settings"));
+
         //tests.Add(new SaveLoadTest("after 20 polities and 10 polity merges", 783909167, saveCondition, 20000000, 10));
-        tests.Add(new SaveLoadTest("after 20 polities and 10 polity merges", 783909167, saveCondition, 2000000, 10, 60000000));
+        //tests.Add(new SaveLoadTest("after 20 polities and 10 polity merges", 783909167, saveCondition, 2000000, 10, 60000000));
         //tests.Add(new SaveLoadTest("after 20 polities and 10 polity merges", 783909167, saveCondition, 200000, 10, 0, true, true, tracingPriority: 1));
         //tests.Add(new SaveLoadTest("after 20 polities and 10 polity merges", 783909167, saveCondition, 20000, 10, 1600000, true, true, tracingPriority: 1));
         //tests.Add(new SaveLoadTest("after 20 polities and 10 polity merges", 783909167, saveCondition, 2000, 10, 1620000, true, true, tracingPriority: 1));
