@@ -1857,9 +1857,9 @@ public class CellGroup : HumanGroup
 
         foreach (Faction faction in GetFactionCores())
         {
-#if DEBUG
-            Debug.Log("Faction will be removed due to core group dissapearing. faction id: " + faction.Id + ", polity id:" + faction.Polity.Id + ", group id:" + Id + ", date:" + World.CurrentDate);
-#endif
+//#if DEBUG
+//            Debug.Log("Faction will be removed due to core group dissapearing. faction id: " + faction.Id + ", polity id:" + faction.Polity.Id + ", group id:" + Id + ", date:" + World.CurrentDate);
+//#endif
 
             World.AddFactionToRemove(faction);
         }
@@ -2007,41 +2007,41 @@ public class CellGroup : HumanGroup
 
         int groupCount = p.Groups.Count;
 
-//#if DEBUG
-//        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-//        {
-//            if (Id == Manager.TracingData.GroupId)
-//            {
-//                System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
+#if DEBUG
+        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
+        {
+            if (Id == Manager.TracingData.GroupId)
+            {
+                System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
 
-//                System.Reflection.MethodBase method = stackTrace.GetFrame(1).GetMethod();
-//                string callingMethod = method.Name;
+                System.Reflection.MethodBase method = stackTrace.GetFrame(1).GetMethod();
+                string callingMethod = method.Name;
 
-//                //				int frame = 2;
-//                //				while (callingMethod.Contains ("GetNextLocalRandom") || callingMethod.Contains ("GetNextRandom")) {
-//                //					method = stackTrace.GetFrame(frame).GetMethod();
-//                //					callingMethod = method.Name;
-//                //
-//                //					frame++;
-//                //				}
+                //				int frame = 2;
+                //				while (callingMethod.Contains ("GetNextLocalRandom") || callingMethod.Contains ("GetNextRandom")) {
+                //					method = stackTrace.GetFrame(frame).GetMethod();
+                //					callingMethod = method.Name;
+                //
+                //					frame++;
+                //				}
 
-//                string callingClass = method.DeclaringType.ToString();
+                string callingClass = method.DeclaringType.ToString();
 
-//                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-//                    "SetPolityUpdate - Group:" + Id,
-//                    "CurrentDate: " + World.CurrentDate +
-//                    ", forceUpdate: " + forceUpdate +
-//                    ", polity Id: " + p.Id +
-//                    ", p.WillBeUpdated: " + p.WillBeUpdated +
-//                    ", (p.CoreGroup == this): " + (p.CoreGroup == this) +
-//                    ", groupCount: " + groupCount +
-//                    ", caller: " + callingClass + "::" + callingMethod +
-//                    "");
+                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+                    "SetPolityUpdate - Group:" + Id,
+                    "CurrentDate: " + World.CurrentDate +
+                    ", forceUpdate: " + forceUpdate +
+                    ", polity Id: " + p.Id +
+                    //", p.WillBeUpdated: " + p.WillBeUpdated +
+                    ", (p.CoreGroup == this): " + (p.CoreGroup == this) +
+                    ", groupCount: " + groupCount +
+                    ", caller: " + callingClass + "::" + callingMethod +
+                    "");
 
-//                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-//            }
-//        }
-//#endif
+                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+            }
+        }
+#endif
 
         if (p.WillBeUpdated)
             return;
@@ -2059,7 +2059,7 @@ public class CellGroup : HumanGroup
 
         float chanceFactor = 1f / (float)groupCount;
 
-        float rollValue = Cell.GetNextLocalRandomFloat(RngOffsets.CELL_GROUP_SET_POLITY_UPDATE + unchecked((int)p.Id));
+        float rollValue = Cell.GetNextLocalRandomFloat(RngOffsets.CELL_GROUP_SET_POLITY_UPDATE + unchecked((int)p.Id), registerForTesting: false);
 
 //#if DEBUG
 //        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
@@ -2800,9 +2800,9 @@ public class CellGroup : HumanGroup
                 {
                     if (faction.PolityId == polityProminence.PolityId)
                     {
-#if DEBUG
-                        Debug.Log("Faction will be removed due to total loss of polity prominence. faction id: " + faction.Id + ", polity id:" + faction.Polity.Id + ", group id:" + Id + ", date:" + World.CurrentDate);
-#endif
+//#if DEBUG
+//                        Debug.Log("Faction will be removed due to total loss of polity prominence. faction id: " + faction.Id + ", polity id:" + faction.Polity.Id + ", group id:" + Id + ", date:" + World.CurrentDate);
+//#endif
 
                         World.AddFactionToRemove(faction);
                     }
@@ -2810,12 +2810,12 @@ public class CellGroup : HumanGroup
 
                 Profiler.EndSample();
 
-#if DEBUG
-                if (this == polityProminence.Polity.CoreGroup)
-                {
-                    Debug.LogWarning("Polity has lost it's core group. Group Id: " + Id + ", Polity Id: " + polityProminence.Polity.Id);
-                }
-#endif
+//#if DEBUG
+//                if (this == polityProminence.Polity.CoreGroup)
+//                {
+//                    Debug.LogWarning("Polity has lost it's core group. Group Id: " + Id + ", Polity Id: " + polityProminence.Polity.Id);
+//                }
+//#endif
 
                 Profiler.BeginSample("Remove Group from Polity");
 
@@ -2964,32 +2964,32 @@ public class CellGroup : HumanGroup
     {
         newProminenceValue = MathUtility.RoundToSixDecimals(newProminenceValue);
 
-#if DEBUG
-        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-        {
-            if ((Id == Manager.TracingData.GroupId) || (polity.Id == Manager.TracingData.PolityId))
-            {
-                string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
+//#if DEBUG
+//        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
+//        {
+//            if ((Id == Manager.TracingData.GroupId) || (polity.Id == Manager.TracingData.PolityId))
+//            {
+//                string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
 
-                System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
+//                System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
 
-                System.Reflection.MethodBase method = stackTrace.GetFrame(1).GetMethod();
-                string callingMethod = method.Name;
+//                System.Reflection.MethodBase method = stackTrace.GetFrame(1).GetMethod();
+//                string callingMethod = method.Name;
 
-                string callingClass = method.DeclaringType.ToString();
+//                string callingClass = method.DeclaringType.ToString();
 
-                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-                    "SetPolityProminenceValue - Group:" + groupId +
-                    ", polity.Id: " + polity.Id,
-                    "CurrentDate: " + World.CurrentDate +
-                    ", newProminenceValue: " + newProminenceValue +
-                    ", caller: " + callingClass + ":" + callingMethod +
-                    "");
+//                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//                    "SetPolityProminenceValue - Group:" + groupId +
+//                    ", polity.Id: " + polity.Id,
+//                    "CurrentDate: " + World.CurrentDate +
+//                    ", newProminenceValue: " + newProminenceValue +
+//                    ", caller: " + callingClass + ":" + callingMethod +
+//                    "");
 
-                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-            }
-        }
-#endif
+//                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+//            }
+//        }
+//#endif
 
         //		#if DEBUG
         //		if (Cell.IsSelected) {
@@ -3032,15 +3032,15 @@ public class CellGroup : HumanGroup
 
         if (newProminenceValue <= Polity.MinPolityProminence)
         {
-#if DEBUG
-            foreach (Faction faction in GetFactionCores())
-            {
-                if (faction.PolityId == polityProminence.PolityId)
-                {
-                    Debug.LogWarning("Faction belonging to polity to remove has core in cell - group Id: " + Id + " - polity Id: " + polityProminence.PolityId);
-                }
-            }
-#endif
+//#if DEBUG
+//            foreach (Faction faction in GetFactionCores())
+//            {
+//                if (faction.PolityId == polityProminence.PolityId)
+//                {
+//                    Debug.LogWarning("Faction belonging to polity to remove has core in cell - group Id: " + Id + " - polity Id: " + polityProminence.PolityId);
+//                }
+//            }
+//#endif
 
             if (WillBecomeFactionCore)
             {

@@ -395,47 +395,47 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
         if (d > Group.GetNextLocalRandomFloat(rngOffset++))
             valueChange++;
 
-#if DEBUG
-        if (Manager.RegisterDebugEvent != null)
-        {
-            if (Manager.TracingData.Priority <= 0)
-            {
-                if (Group.Id == Manager.TracingData.GroupId)
-                {
-                    string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
+//#if DEBUG
+//        if (Manager.RegisterDebugEvent != null)
+//        {
+//            if (Manager.TracingData.Priority <= 0)
+//            {
+//                if (Group.Id == Manager.TracingData.GroupId)
+//                {
+//                    string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
 
-                    SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-                        "CellCulturalKnowledge.PolityCulturalProminenceInternal - Group:" + groupId,
-                        "CurrentDate: " + Group.World.CurrentDate +
-                        ", Name: " + Name +
-                        ", timeSpan: " + timeSpan +
-                        ", timeEffectFactor: " + timeEffectFactor +
-                        ", randomEffect: " + randomEffect +
-                        ", Group.PolityProminences.Count: " + Group.PolityProminences.Count +
-                        ", polity Id: " + polityProminence.PolityId +
-                        ", polityProminence.Value: " + prominenceEffect +
-                        ", politySkill.Value: " + targetValue +
-                        ", Value: " + Value +
-                        ", _newValue: " + _newValue +
-                        ", valueChange: " + valueChange +
-                        "", Group.World.CurrentDate);
+//                    SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//                        "CellCulturalKnowledge.PolityCulturalProminenceInternal - Group:" + groupId,
+//                        "CurrentDate: " + Group.World.CurrentDate +
+//                        ", Name: " + Name +
+//                        ", timeSpan: " + timeSpan +
+//                        ", timeEffectFactor: " + timeEffectFactor +
+//                        ", randomEffect: " + randomEffect +
+//                        ", Group.PolityProminences.Count: " + Group.PolityProminences.Count +
+//                        ", polity Id: " + polityProminence.PolityId +
+//                        ", polityProminence.Value: " + prominenceEffect +
+//                        ", politySkill.Value: " + targetValue +
+//                        ", Value: " + Value +
+//                        ", _newValue: " + _newValue +
+//                        ", valueChange: " + valueChange +
+//                        "", Group.World.CurrentDate);
 
-                    Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-                }
-            }
-            else if (Manager.TracingData.Priority <= 1)
-            {
-                string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
+//                    Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+//                }
+//            }
+//            else if (Manager.TracingData.Priority <= 1)
+//            {
+//                string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
 
-                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-                    "CellCulturalKnowledge.PolityCulturalProminenceInternal - Group:" + groupId,
-                    "CurrentDate: " + Group.World.CurrentDate +
-                    "", Group.World.CurrentDate);
+//                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//                    "CellCulturalKnowledge.PolityCulturalProminenceInternal - Group:" + groupId,
+//                    "CurrentDate: " + Group.World.CurrentDate +
+//                    "", Group.World.CurrentDate);
 
-                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-            }
-        }
-#endif
+//                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+//            }
+//        }
+//#endif
 
         _newValue = _newValue + valueChange;
     }

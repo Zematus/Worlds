@@ -319,12 +319,12 @@ public class TerrainCell : ISynchronizable
         HasCrossingRoutes = CrossingRoutes.Count > 0;
     }
 
-    public int GetNextLocalRandomInt(int queryOffset, int maxValue)
+    public int GetNextLocalRandomInt(int queryOffset, int maxValue, bool registerForTesting = true)
     {
         int value = GetLocalRandomInt(World.CurrentDate, queryOffset, maxValue);
 
 #if DEBUG
-        if (GetNextLocalRandomCalled != null)
+        if (registerForTesting && (GetNextLocalRandomCalled != null))
         {
             if (Manager.TrackGenRandomCallers)
             {
@@ -383,9 +383,9 @@ public class TerrainCell : ISynchronizable
         return value;
     }
 
-    public float GetNextLocalRandomFloat(int queryOffset)
+    public float GetNextLocalRandomFloat(int queryOffset, bool registerForTesting = true)
     {
-        int value = GetNextLocalRandomInt(queryOffset, PerlinNoise.MaxPermutationValue);
+        int value = GetNextLocalRandomInt(queryOffset, PerlinNoise.MaxPermutationValue, registerForTesting);
 
         return value / (float)PerlinNoise.MaxPermutationValue;
     }

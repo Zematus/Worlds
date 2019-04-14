@@ -2,6 +2,15 @@
 using System.Collections;
 using System.Collections.Generic;
 
+public class SaveLoadTestSettings
+{
+    public int Seed;
+    public string HeightmapFilename = null;
+    public string AppSettingsFilename = @"Worlds.settings";
+
+    public SaveLoadTest.SaveConditionDelegate SaveCondition;
+}
+
 public class SaveLoadTest : AutomatedTest
 {
     public enum Stage
@@ -102,12 +111,17 @@ public class SaveLoadTest : AutomatedTest
 
     private SaveConditionDelegate _saveCondition;
 
-    public SaveLoadTest(string conditionName, int seed, SaveConditionDelegate saveCondition, int offsetPerCheck, int numChecks, int beforeCheckDateSkipOffset = 0, bool enhancedTracing = false, bool trackGenRandomCallers = false, bool validateRecording = false, int tracingPriority = 5, string heightmapFilename = null, string settingsFilename = @"Worlds.settings")
+    public SaveLoadTest(string conditionName, SaveLoadTestSettings settings, int offsetPerCheck, int numChecks, int beforeCheckDateSkipOffset = 0, bool enhancedTracing = false, bool trackGenRandomCallers = false, bool validateRecording = false, int tracingPriority = 5)
     {
-        Initialize(conditionName, seed, saveCondition, offsetPerCheck, numChecks, beforeCheckDateSkipOffset, enhancedTracing, trackGenRandomCallers, validateRecording, tracingPriority, heightmapFilename, settingsFilename);
+        Initialize(conditionName, settings.Seed, settings.SaveCondition, offsetPerCheck, numChecks, beforeCheckDateSkipOffset, enhancedTracing, trackGenRandomCallers, validateRecording, tracingPriority, settings.HeightmapFilename, settings.AppSettingsFilename);
     }
 
-    private void Initialize(string conditionName, int seed, SaveConditionDelegate saveCondition, int offsetPerCheck, int numChecks, int beforeCheckDateSkipOffset, bool enhancedTracing, bool trackGenRandomCallers, bool validateRecording, int tracingPriority, string heightmapFilename, string settingsFilename)
+    public SaveLoadTest(string conditionName, int seed, SaveConditionDelegate saveCondition, int offsetPerCheck, int numChecks, int beforeCheckDateSkipOffset = 0, bool enhancedTracing = false, bool trackGenRandomCallers = false, bool validateRecording = false, int tracingPriority = 5, string heightmapFilename = null, string appSettingsFilename = @"Worlds.settings")
+    {
+        Initialize(conditionName, seed, saveCondition, offsetPerCheck, numChecks, beforeCheckDateSkipOffset, enhancedTracing, trackGenRandomCallers, validateRecording, tracingPriority, heightmapFilename, appSettingsFilename);
+    }
+
+    private void Initialize(string conditionName, int seed, SaveConditionDelegate saveCondition, int offsetPerCheck, int numChecks, int beforeCheckDateSkipOffset, bool enhancedTracing, bool trackGenRandomCallers, bool validateRecording, int tracingPriority, string heightmapFilename, string appSettingsFilename)
     {
 #if DEBUG
         Manager.TracingData.Priority = tracingPriority;
@@ -117,7 +131,7 @@ public class SaveLoadTest : AutomatedTest
 
         _heightmapFilename = heightmapFilename;
 
-        _settingsFilename = settingsFilename;
+        _settingsFilename = appSettingsFilename;
 
         _offsetPerCheck = offsetPerCheck;
         _numChecks = numChecks;
@@ -138,9 +152,9 @@ public class SaveLoadTest : AutomatedTest
             Name += ", using heightmap file \"" + heightmapFilename + "\"";
         }
 
-        if (settingsFilename != null)
+        if (appSettingsFilename != null)
         {
-            Name += ", using settings file \"" + settingsFilename + "\"";
+            Name += ", using settings file \"" + appSettingsFilename + "\"";
         }
 
         if (_enhancedTracing)

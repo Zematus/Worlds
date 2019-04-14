@@ -47,7 +47,7 @@ public class ClanSplitDecisionEvent : FactionEvent
 
     public static long CalculateTriggerDate(Clan clan)
     {
-        float randomFactor = clan.GetNextLocalRandomFloat(RngOffsets.CLAN_SPLITTING_EVENT_CALCULATE_TRIGGER_DATE + (int)clan.Id);
+        float randomFactor = clan.GetNextLocalRandomFloat(RngOffsets.CLAN_SPLITTING_EVENT_CALCULATE_TRIGGER_DATE + unchecked((int)clan.Id));
         randomFactor = Mathf.Pow(randomFactor, 2);
 
         float administrativeLoad = clan.CalculateAdministrativeLoad();
@@ -80,19 +80,19 @@ public class ClanSplitDecisionEvent : FactionEvent
 
         long triggerDate = clan.World.CurrentDate + triggerDateSpan;
 
-#if DEBUG
-        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-        {
-            SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("ClanSplitDecisionEvent.CalculateTriggerDate - clan:" + clan.Id,
-                "CurrentDate: " + clan.World.CurrentDate +
-                ", administrativeLoad: " + administrativeLoad +
-                ", cohesionPreferenceValue: " + cohesionPreferenceValue +
-                ", triggerDate: " + triggerDate +
-                "", clan.World.CurrentDate);
+//#if DEBUG
+//        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
+//        {
+//            SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("ClanSplitDecisionEvent.CalculateTriggerDate - clan:" + clan.Id,
+//                "CurrentDate: " + clan.World.CurrentDate +
+//                ", administrativeLoad: " + administrativeLoad +
+//                ", cohesionPreferenceValue: " + cohesionPreferenceValue +
+//                ", triggerDate: " + triggerDate +
+//                "", clan.World.CurrentDate);
 
-            Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-        }
-#endif
+//            Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+//        }
+//#endif
 
         return triggerDate;
     }
@@ -132,20 +132,20 @@ public class ClanSplitDecisionEvent : FactionEvent
             return false;
         }
 
-#if DEBUG
-        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-        {
-            if (Manager.TracingData.FactionId == Faction.Id)
-            {
-                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("ClanSplitDecisionEvent.CanTrigger 1 - Faction:" + Faction.Id,
-                    "CurrentDate: " + World.CurrentDate +
-                    ", _clan.Influence: " + _clan.Influence +
-                    "", World.CurrentDate);
+//#if DEBUG
+//        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
+//        {
+//            if (Manager.TracingData.FactionId == Faction.Id)
+//            {
+//                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("ClanSplitDecisionEvent.CanTrigger 1 - Faction:" + Faction.Id,
+//                    "CurrentDate: " + World.CurrentDate +
+//                    ", _clan.Influence: " + _clan.Influence +
+//                    "", World.CurrentDate);
 
-                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-            }
-        }
-#endif
+//                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+//            }
+//        }
+//#endif
 
         if (_clan.Influence < MinInfluenceTrigger)
         {
@@ -160,23 +160,23 @@ public class ClanSplitDecisionEvent : FactionEvent
 
         //Profiler.EndSample();
 
-#if DEBUG
-        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-        {
-            if (Manager.TracingData.FactionId == Faction.Id)
-            {
-                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("ClanSplitDecisionEvent.CanTrigger 2 - Faction:" + Faction.Id,
-                    "CurrentDate: " + World.CurrentDate +
-                    ", _clan.Polity.Id: " + _clan.Polity.Id +
-                    ", _newClanCoreGroup.Id: " + _newClanCoreGroup.Id +
-                    ", _clan.Influence: " + _clan.Influence +
-                    ", rngOffset: " + rngOffset +
-                    "", World.CurrentDate);
+//#if DEBUG
+//        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
+//        {
+//            if (Manager.TracingData.FactionId == Faction.Id)
+//            {
+//                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("ClanSplitDecisionEvent.CanTrigger 2 - Faction:" + Faction.Id,
+//                    "CurrentDate: " + World.CurrentDate +
+//                    ", _clan.Polity.Id: " + _clan.Polity.Id +
+//                    ", _newClanCoreGroup.Id: " + _newClanCoreGroup.Id +
+//                    ", _clan.Influence: " + _clan.Influence +
+//                    ", rngOffset: " + rngOffset +
+//                    "", World.CurrentDate);
 
-                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-            }
-        }
-#endif
+//                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+//            }
+//        }
+//#endif
 
         if (GetGroupWeight(_newClanCoreGroup) <= 0)
         {
@@ -196,22 +196,22 @@ public class ClanSplitDecisionEvent : FactionEvent
 
         //Profiler.EndSample();
 
-#if DEBUG
-        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-        {
-            if (Manager.TracingData.FactionId == Faction.Id)
-            {
-                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("ClanSplitDecisionEvent.CanTrigger 3 - Faction:" + Faction.Id,
-                    "CurrentDate: " + World.CurrentDate +
-                    ", _chanceOfSplitting: " + _chanceOfSplitting +
-                    ", _newClanCoreGroup.Id: " + _newClanCoreGroup.Id +
-                    ", _clan.Influence: " + _clan.Influence +
-                    "", World.CurrentDate);
+//#if DEBUG
+//        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
+//        {
+//            if (Manager.TracingData.FactionId == Faction.Id)
+//            {
+//                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("ClanSplitDecisionEvent.CanTrigger 3 - Faction:" + Faction.Id,
+//                    "CurrentDate: " + World.CurrentDate +
+//                    ", _chanceOfSplitting: " + _chanceOfSplitting +
+//                    ", _newClanCoreGroup.Id: " + _newClanCoreGroup.Id +
+//                    ", _clan.Influence: " + _clan.Influence +
+//                    "", World.CurrentDate);
 
-                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-            }
-        }
-#endif
+//                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+//            }
+//        }
+//#endif
 
         if (_chanceOfSplitting <= 0)
         {

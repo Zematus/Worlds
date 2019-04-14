@@ -15,13 +15,10 @@ public class TestRunnerScript : MonoBehaviour
     void Start()
     {
         //		Manager.RecordingEnabled = true;
-
-        ////		tests.Add (new SaveLoadTest (407252633, 80, 1, 2, 0, false, true));
-        ////		tests.Add (new SaveLoadTest (407252633, 100000, 20000, 5));
         
 #if DEBUG
         Manager.TracingData.GroupId = 7102101242056;
-        Manager.TracingData.PolityId = 10817008823906100;
+        Manager.TracingData.PolityId = 16785053513207705;
         Manager.TracingData.FactionId = 10817008823906100;
         Manager.TracingData.ClusterId = 56906352244149;
         Manager.TracingData.RegionId = 214831393248116;
@@ -35,10 +32,31 @@ public class TestRunnerScript : MonoBehaviour
         {
             return (world.PolityMergeCount > 10) && (world.PolityCount > 20);
         };
-        tests.Add(new SaveLoadTest("after 20 polities and 10 polity merges", 1142453343, saveCondition, 20000000, 10, 
-            heightmapFilename: @"TestData\Earth_3600x1800.png", settingsFilename: @"TestData\Earth_3600x1800.settings"));
 
-        //tests.Add(new SaveLoadTest("after 20 polities and 10 polity merges", 783909167, saveCondition, 20000000, 10));
+        //SaveLoadTestSettings testSettings = new SaveLoadTestSettings {
+        //    Seed = 1142453343,
+        //    SaveCondition = saveCondition,
+        //    HeightmapFilename = @"TestData\Earth_3600x1800.png",
+        //    AppSettingsFilename = @"TestData\Earth_3600x1800.settings"
+        //};
+
+        //tests.Add(new SaveLoadTest("after 20 polities and 10 polity merges", testSettings, 20000000, 10));
+        //tests.Add(new SaveLoadTest("after 20 polities and 10 polity merges", testSettings, 2000000, 10));
+        //tests.Add(new SaveLoadTest("after 20 polities and 10 polity merges", testSettings, 200000, 10, 6000000));
+        //tests.Add(new SaveLoadTest("after 20 polities and 10 polity merges", testSettings, 20000, 10, 7400000, true, true, tracingPriority: 1));
+        //tests.Add(new SaveLoadTest("after 20 polities and 10 polity merges", testSettings, 2000, 10, 7460000, true, true, tracingPriority: 1));
+        //tests.Add(new SaveLoadTest("after 20 polities and 10 polity merges", testSettings, 200, 10, 7476000, true, true, tracingPriority: 1));
+        //tests.Add(new SaveLoadTest("after 20 polities and 10 polity merges", testSettings, 20, 10, 7476400, true, true, tracingPriority: 1));
+        //tests.Add(new SaveLoadTest("after 20 polities and 10 polity merges", testSettings, 2, 10, 7476440, true, true, tracingPriority: 0));
+
+        SaveLoadTestSettings testSettings = new SaveLoadTestSettings
+        {
+            Seed = 783909167,
+            SaveCondition = saveCondition,
+            AppSettingsFilename = @"TestData\Default.settings"
+        };
+
+        tests.Add(new SaveLoadTest("after 20 polities and 10 polity merges", testSettings, 20000000, 10));
         //tests.Add(new SaveLoadTest("after 20 polities and 10 polity merges", 783909167, saveCondition, 2000000, 10, 60000000));
         //tests.Add(new SaveLoadTest("after 20 polities and 10 polity merges", 783909167, saveCondition, 200000, 10, 0, true, true, tracingPriority: 1));
         //tests.Add(new SaveLoadTest("after 20 polities and 10 polity merges", 783909167, saveCondition, 20000, 10, 1600000, true, true, tracingPriority: 1));

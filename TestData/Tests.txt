@@ -1,0 +1,88 @@
+Test Areas:
+
+  - Start Scene
+    - Main Menu
+      - Load World
+        - List of Files
+        - Cancel Button
+        - Load Button
+      - Generate World
+        - Seed Input Field
+        - Load Heightmap
+          - Select File
+            - List of Files
+            - Cancel Button
+            - Load Button
+          - Heighmap Preview
+        - Cancel Button
+        - Generate Button
+      - Settings
+        - Fullscreen Mode
+      - Continue
+      - Credits
+      - Exit Game
+    - Load Progress Bar
+    - Generate Progress Bar
+    - Overall Shortcuts
+      - Load World
+      - Generate World
+      - Fullscreen Mode
+      - Escape
+
+  - Main Scene
+    - Main Menu
+      - Load World
+        - List of Files
+        - Cancel Button
+        - Load Button
+      - Save World
+      - Generate World
+        - Seed Input Field
+        - Load Heightmap
+          - Select File
+            - List of Files
+            - Cancel Button
+            - Load Button
+          - Heighmap Preview
+        - Cancel Button
+        - Generate Button
+      - Settings
+        - Fullscreen Mode
+        - Debug Mode
+      - Continue
+      - Credits
+      - Exit Game
+    - Options Menu
+    - Simulation Mode
+    - Editor Mode
+      - Toolbar
+        - Shortcuts
+    - Overall Shortcuts
+      - Load World
+      - Save World
+      - Generate World
+      - Fullscreen Mode
+      - Switch To/From Globe View
+      - Zoom In/Out
+      - Escape
+    - Pointer
+      - Flat Map Mode
+        - Drag Map
+        - Select CellGroup
+        - Select Polity
+        - Select Region
+        - Select Language Area
+        - Hover over Polity
+        - Hover over Region
+        - Hover over Language Area
+        - Zoom In/Out using Mousewheel
+      - Globe Map Mode
+        - Drag Map
+        - Select CellGroup
+        - Select Polity
+        - Select Region
+        - Select Language Area
+        - Hover over Polity
+        - Hover over Region
+        - Hover over Language Area
+        - Zoom In/Out using Mousewheel

@@ -381,27 +381,27 @@ public class CellCulture : Culture
 
         foreach (CulturalKnowledge polityKnowledge in polityCulture.Knowledges.Values)
         {
-#if DEBUG
-            if (Manager.RegisterDebugEvent != null)
-            {
-                if (Manager.TracingData.Priority <= 0)
-                {
-                    if (Group.Id == Manager.TracingData.GroupId)
-                    {
-                        string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
+//#if DEBUG
+//            if (Manager.RegisterDebugEvent != null)
+//            {
+//                if (Manager.TracingData.Priority <= 0)
+//                {
+//                    if (Group.Id == Manager.TracingData.GroupId)
+//                    {
+//                        string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
 
-                        SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-                            "CellCulture.UpdatePolityCulturalProminence - Group:" + groupId,
-                            "CurrentDate: " + Group.World.CurrentDate +
-                            ", polityCulture.Polity.Id: " + polityCulture.Polity.Id +
-                            ", polityKnowledge.Name: " + polityKnowledge.Name +
-                            "", Group.World.CurrentDate);
+//                        SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+//                            "CellCulture.UpdatePolityCulturalProminence - Group:" + groupId,
+//                            "CurrentDate: " + Group.World.CurrentDate +
+//                            ", polityCulture.Polity.Id: " + polityCulture.Polity.Id +
+//                            ", polityKnowledge.Name: " + polityKnowledge.Name +
+//                            "", Group.World.CurrentDate);
 
-                        Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-                    }
-                }
-            }
-#endif
+//                        Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+//                    }
+//                }
+//            }
+//#endif
             
             CellCulturalKnowledge cellKnowledge = TryAddKnowledgeToLearn(polityKnowledge.Id, Group);
 
