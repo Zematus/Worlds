@@ -1297,6 +1297,11 @@ public class GuiManagerScript : MonoBehaviour
 
         SelectionPanelScript.RemoveAllOptions();
 
+        if (Manager.ViewingGlobe)
+        {
+            ToggleGlobeView(); // It's more safe to return to map mode after loading or generating a new world
+        }
+
         OpenModeSelectionDialog();
 
         _selectedMaxSpeedLevelIndex = _topMaxSpeedLevelIndex;
@@ -1804,6 +1809,11 @@ public class GuiManagerScript : MonoBehaviour
             Manager.GetDateString(Manager.CurrentWorld.CurrentDate)));
 
         SelectionPanelScript.RemoveAllOptions();
+
+        if (Manager.ViewingGlobe)
+        {
+            ToggleGlobeView(); // It's more safe to return to map mode after loading or generating a new world
+        }
 
         SetGameModeAccordingToCurrentWorld();
 
