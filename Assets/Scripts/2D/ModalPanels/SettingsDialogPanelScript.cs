@@ -6,4 +6,6 @@ using System.Collections;
 public class SettingsDialogPanelScript : DialogPanelScript
 {
     public Toggle FullscreenToggle;
+    public Toggle UIScalingToggle;
+    public Toggle DebugModeToggle;
 }

@@ -16,6 +16,7 @@ public class EventPanelScript : MonoBehaviour
         eventMessagePanel.SetText(message);
         eventMessagePanel.SetGotoDelegate(gotoDelegate);
         eventMessagePanel.transform.SetParent(transform);
+        eventMessagePanel.transform.localScale = Vector3.one;
 
         _eventMessagePanels.Add(eventMessagePanel);
     }

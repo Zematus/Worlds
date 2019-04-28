@@ -57,6 +57,7 @@ public class FocusedPolityListPanelScript : MonoBehaviour
 
         focusedPolityPanel.Set(polity);
         focusedPolityPanel.transform.SetParent(transform);
+        focusedPolityPanel.transform.localScale = Vector3.one;
 
         focusedPolityPanel.SetVisible(true);
 

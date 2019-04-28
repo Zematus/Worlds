@@ -23,6 +23,8 @@ public class GuiManagerScript : MonoBehaviour
 
     public const float MaxDeltaTimeIterations = 0.02f; // max real time to be spent on iterations on a single frame (this is the value that matters the most performance-wise)
 
+    public CanvasScaler CanvasScaler;
+
     public Button LoadButton;
 
     public GameObject FlatMapPanel;
@@ -299,6 +301,8 @@ public class GuiManagerScript : MonoBehaviour
     // Use this for initialization
     void Start()
     {
+        SetUIScaling(Manager.UIScalingEnabled);
+
         _topMaxSpeedLevelIndex = Speed.Levels.Length - 1;
         _selectedMaxSpeedLevelIndex = _topMaxSpeedLevelIndex;
 
@@ -736,7 +740,7 @@ public class GuiManagerScript : MonoBehaviour
         Manager.HandleKeyUp(KeyCode.S, true, false, SaveWorldAs);
         Manager.HandleKeyUp(KeyCode.L, true, false, LoadWorld);
         Manager.HandleKeyUp(KeyCode.G, true, false, SetGenerationSeed);
-        Manager.HandleKeyUp(KeyCode.F, true, false, ToogleFullscreen);
+        //Manager.HandleKeyUp(KeyCode.F, true, false, ToogleFullscreen);
     }
 
     private void ReadKeyboardInput_Globe()
@@ -1106,6 +1110,8 @@ public class GuiManagerScript : MonoBehaviour
         MainMenuDialogPanelScript.SetVisible(false);
 
         SettingsDialogPanelScript.FullscreenToggle.isOn = Manager.FullScreenEnabled;
+        SettingsDialogPanelScript.UIScalingToggle.isOn = Manager.UIScalingEnabled;
+        SettingsDialogPanelScript.DebugModeToggle.isOn = Manager.DebugModeEnabled;
 
         SettingsDialogPanelScript.SetVisible(true);
 
@@ -1121,9 +1127,23 @@ public class GuiManagerScript : MonoBehaviour
         InterruptSimulation(true);
     }
 
-    public void ToogleFullscreen(bool state)
+    public void SetFullscreen(bool state)
     {
         Manager.SetFullscreen(state);
+    }
+
+    public void SetUIScaling(bool state)
+    {
+        Manager.SetUIScaling(state);
+
+        if (state)
+        {
+            CanvasScaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+        }
+        else
+        {
+            CanvasScaler.uiScaleMode = CanvasScaler.ScaleMode.ConstantPixelSize;
+        }
     }
 
     public void ToogleDebugMode(bool state)

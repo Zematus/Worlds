@@ -160,6 +160,7 @@ public class Manager
     public static World WorldBeingLoaded = null;
 
     public static bool FullScreenEnabled = false;
+    public static bool UIScalingEnabled = false;
     public static bool DebugModeEnabled = false;
 
     public static GameMode GameMode = GameMode.None;
@@ -181,8 +182,8 @@ public class Manager
 
     private static HashSet<TerrainCell> _lastUpdatedCells;
 
-    private static int _resolutionWidthWindowed = 1366;
-    private static int _resolutionHeightWindowed = 768;
+    private static int _resolutionWidthWindowed = 1600;
+    private static int _resolutionHeightWindowed = 900;
 
     private static bool _resolutionInitialized = false;
 
@@ -607,101 +608,109 @@ public class Manager
 
     private void InitializeSavePath()
     {
-
         string path = Path.GetFullPath(@"Saves\");
 
         if (!Directory.Exists(path))
         {
-
             Directory.CreateDirectory(path);
         }
 
         SavePath = path;
     }
 
-    private void InitializeHeightmapsPath () {
-		
-		string path = Path.GetFullPath (@"Heightmaps\");
-		
-		if (!Directory.Exists (path)) {
-			
-			Directory.CreateDirectory(path);
-		}
-		
-		HeightmapsPath = path;
-	}
-	
-	private void InitializeExportPath () {
-		
-		string path = Path.GetFullPath (@"Images\");
-		
-		if (!Directory.Exists (path)) {
-			
-			Directory.CreateDirectory(path);
-		}
-		
-		ExportPath = path;
-	}
+    private void InitializeHeightmapsPath()
+    {
+        string path = Path.GetFullPath(@"Heightmaps\");
 
-	public static string GetDateString (long date) {
+        if (!Directory.Exists(path))
+        {
+            Directory.CreateDirectory(path);
+        }
 
-		long year = date / World.YearLength;
-		int day = (int)(date % World.YearLength);
+        HeightmapsPath = path;
+    }
 
-		return string.Format ("Year {0}, Day {1}", year, day);
-	}
+    private void InitializeExportPath()
+    {
+        string path = Path.GetFullPath(@"Images\");
 
-	public static string GetTimeSpanString (long timespan) {
+        if (!Directory.Exists(path))
+        {
+            Directory.CreateDirectory(path);
+        }
 
-		long years = timespan / World.YearLength;
-		int days = (int)(timespan % World.YearLength);
+        ExportPath = path;
+    }
 
-		return string.Format ("{0} years, {1} days", years, days);
-	}
+    public static string GetDateString(long date)
+    {
+        long year = date / World.YearLength;
+        int day = (int)(date % World.YearLength);
 
-	public static string AddDateToWorldName (string worldName)
+        return string.Format("Year {0}, Day {1}", year, day);
+    }
+
+    public static string GetTimeSpanString(long timespan)
+    {
+        long years = timespan / World.YearLength;
+        int days = (int)(timespan % World.YearLength);
+
+        return string.Format("{0} years, {1} days", years, days);
+    }
+
+    public static string AddDateToWorldName (string worldName)
     {
         long year = CurrentWorld.CurrentDate / World.YearLength;
         int day = (int)(CurrentWorld.CurrentDate % World.YearLength);
 
         return worldName + "_date_" + string.Format("{0}_{1}", year, day);
-	}
+    }
 
-	public static string RemoveDateFromWorldName (string worldName) {
+    public static string RemoveDateFromWorldName(string worldName)
+    {
+        int dateIndex = worldName.LastIndexOf("_date_");
 
-		int dateIndex = worldName.LastIndexOf ("_date_");
+        if (dateIndex > 0)
+        {
+            return worldName.Substring(0, dateIndex);
+        }
 
-		if (dateIndex > 0) {
-			return worldName.Substring (0, dateIndex);
-		}
+        return worldName;
+    }
 
-		return worldName;
-	}
+    public static void SetFullscreen(bool state)
+    {
+        FullScreenEnabled = state;
 
-	public static void SetFullscreen (bool state) {
+        if (state)
+        {
+            Resolution currentResolution = Screen.currentResolution;
 
-		FullScreenEnabled = state;
+            Screen.SetResolution(currentResolution.width, currentResolution.height, state);
+        }
+        else
+        {
+            Screen.SetResolution(_resolutionWidthWindowed, _resolutionHeightWindowed, state);
+        }
+    }
 
-		if (state) {
-			Resolution currentResolution = Screen.currentResolution;
+    public static void SetUIScaling(bool state)
+    {
+        UIScalingEnabled = state;
+    }
 
-			Screen.SetResolution(currentResolution.width, currentResolution.height, state);
-		} else {
-			Screen.SetResolution(_resolutionWidthWindowed, _resolutionHeightWindowed, state);
-		}
-	}
+    public static void InitializeScreen()
+    {
+        if (_resolutionInitialized)
+            return;
 
-	public static void InitializeScreen () {
-	
-		if (_resolutionInitialized)
-			return;
+        SetFullscreen(FullScreenEnabled);
+        SetUIScaling(UIScalingEnabled);
 
-		SetFullscreen (FullScreenEnabled);
+        _resolutionInitialized = true;
+    }
 
-		_resolutionInitialized = true;
-	}
-	
-	public static void InterruptSimulation(bool state)
+    public static void InterruptSimulation(bool state)
     {
         _manager._simulationRunning = !state;
     }
