@@ -3409,7 +3409,7 @@ public class World : ISynchronizable
 
         float altitudeFactor = altitudeDiff / altitudeSpan;
 
-        if (float.IsInfinity(altitudeSpan))
+        if (float.IsInfinity(altitudeFactor))
         {
             altitudeFactor = 0.5f;
         }

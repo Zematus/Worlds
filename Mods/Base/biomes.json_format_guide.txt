@@ -1,0 +1,33 @@
+---- biomes.json format guide ----
+
+-- File Structure --
+
+{
+  "biomes": [ -- list of biomes --
+    {
+      "id":                -- (required) Unique biome identifier, if more than one biome definition share ids, only the last one loaded will be used --
+      "name":              -- (required) String to be used by the game's UI. Please avoid using overlong strings or non-unicode characters
+      "color":             -- (required) HTML color code (#RRGGBB) to use to represent biome on map (transparency values, if added, will be ignored)
+
+      "minAltitude":       -- (optional) minimum cell altitude at which this biome can be present, a value of '0' refers to sea level (meters)
+      "maxAltitude":       -- (optional) maximum cell altitude at which this biome can be present, a value of '0' refers to sea level (meters)
+      "minRainfall":       -- (optional) minimum cell rainfall at which this biome can be present (mm per year)
+      "maxRainfall":       -- (optional) maximum cell rainfall at which this biome can be present (mm per year)
+      "minTemperature":    -- (optional) minimum cell temperature at which this biome can be present (centigrade, yearly average)
+      "maxTemperature":    -- (optional) maximum cell temperature at which this biome can be present (centigrade, yearly average)
+
+      "survivability":     -- (required) base probability of a given human group surviving in this biome (between 0 and 1 inclusive)
+      "foragingCapacity":  -- (required) base foraging capacity this cell provides to a human group (between 0 and 1 inclusive)
+      "accessibility":     -- (required) base travel modifier in and out this cell (between 0 and 1 inclusive)
+    },
+    ... -- additional biomes --
+  ]
+}
+
+-- Notes --
+- Only one biomes.json file can be used per world. If more than one biomes.json file is present across multiple active mod files, only the last one being loaded will be used.
+- remove any trailing commas or the file won't be parsed
+- optional 'min' attribute values (altitude/rainfall/temperature) not defined will be assigned the minimum attribute value of its category
+- optional 'max' attribute values (altitude/rainfall/temperature) not defined will be assigned the maximum attribute value of its category
+
+--

@@ -188,6 +188,7 @@ public class Biome
     public float Accessibility;
 
     public int ColorId;
+    public Color Color;
 
     public Biome()
     {
