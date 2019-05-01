@@ -1407,7 +1407,7 @@ public class GuiManagerScript : MonoBehaviour
 
         TerrainCell cell = world.GetCell(longitude, latitude);
 
-        if (cell.Altitude <= Biome.Ocean.MaxAltitude)
+        if (cell.Altitude <= 0)
             return false;
 
         Manager.GenerateHumanGroup(longitude, latitude, population);

@@ -55,7 +55,7 @@ public class CellRegion : Region
     {
         Dictionary<string, float> biomePresences = new Dictionary<string, float>();
 
-        float oceanicArea = 0;
+        float seaArea = 0;
         float coastalOuterBorderArea = 0;
         float outerBorderArea = 0;
 
@@ -88,7 +88,7 @@ public class CellRegion : Region
 
             bool isInnerBorder = false;
 
-            bool isNotFullyOceanic = (cell.GetBiomePresence(Biome.Ocean) < 1);
+            bool isNotFullySea = (cell.SeaBiomePresence < 1);
 
             foreach (TerrainCell nCell in cell.Neighbors.Values)
             {
@@ -103,7 +103,7 @@ public class CellRegion : Region
                         outerBorderArea += nCellArea;
                         AverageOuterBorderAltitude += cell.Altitude * nCellArea;
 
-                        if (isNotFullyOceanic && (nCell.GetBiomePresence(Biome.Ocean) >= 1))
+                        if (isNotFullySea && (nCell.SeaBiomePresence >= 1))
                         {
                             coastalOuterBorderArea += nCellArea;
                         }
@@ -137,23 +137,24 @@ public class CellRegion : Region
 
             AverageFarmlandPercentage += cell.FarmlandPercentage * cellArea;
 
-            foreach (string biomeName in cell.PresentBiomeNames)
+            foreach (string biomeId in cell.PresentBiomeIds)
             {
-                float presenceArea = cell.GetBiomePresence(biomeName) * cellArea;
+                float presenceArea = cell.GetBiomePresence(biomeId) * cellArea;
 
-                if (biomePresences.ContainsKey(biomeName))
+                if (biomePresences.ContainsKey(biomeId))
                 {
-                    biomePresences[biomeName] += presenceArea;
+                    biomePresences[biomeId] += presenceArea;
                 }
                 else
                 {
-                    biomePresences.Add(biomeName, presenceArea);
+                    biomePresences.Add(biomeId, presenceArea);
                 }
+            }
 
-                if (biomeName == Biome.Ocean.Name)
-                {
-                    oceanicArea += presenceArea;
-                }
+
+            foreach (string biomeId in cell.PresentSeaBiomeIds)
+            {
+                seaArea += cell.GetBiomePresence(biomeId) * cellArea;
             }
 
             TotalArea += cellArea;
@@ -170,13 +171,13 @@ public class CellRegion : Region
 
         AverageFarmlandPercentage /= TotalArea;
 
-        OceanPercentage = oceanicArea / TotalArea;
+        SeaPercentage = seaArea / TotalArea;
 
         AverageOuterBorderAltitude /= outerBorderArea;
 
         CoastPercentage = coastalOuterBorderArea / outerBorderArea;
 
-        PresentBiomeNames = new List<string>(biomePresences.Count);
+        PresentBiomeIds = new List<string>(biomePresences.Count);
         BiomePresences = new List<float>(biomePresences.Count);
 
         _biomePresences = new Dictionary<string, float>(biomePresences.Count);
@@ -185,7 +186,7 @@ public class CellRegion : Region
         {
             float presence = pair.Value / TotalArea;
 
-            PresentBiomeNames.Add(pair.Key);
+            PresentBiomeIds.Add(pair.Key);
             BiomePresences.Add(presence);
 
             _biomePresences.Add(pair.Key, presence);
@@ -299,42 +300,42 @@ public class CellRegion : Region
         {
             switch (BiomeWithMostPresence)
             {
-                case "Desert":
+                case "desert":
                     Info.AddAttribute(RegionAttribute.Desert);
                     break;
 
-                case "Desertic Tundra":
+                case "desertic_tundra":
                     Info.AddAttribute(RegionAttribute.Desert);
                     break;
 
-                case "Forest":
+                case "forest":
                     Info.AddAttribute(RegionAttribute.Forest);
                     break;
 
-                case "Glacier":
+                case "ice_sheet":
                     Info.AddAttribute(RegionAttribute.Glacier);
                     break;
 
-                case "Grassland":
+                case "grassland":
                     Info.AddAttribute(RegionAttribute.Grassland);
                     break;
 
-                case "Ice Cap":
+                case "ice_shelf":
                     Info.AddAttribute(RegionAttribute.IceCap);
                     break;
 
-                case "Rainforest":
+                case "rainforest":
                     Info.AddAttribute(RegionAttribute.Rainforest);
 
                     if (AverageTemperature > 20)
                         Info.AddAttribute(RegionAttribute.Jungle);
                     break;
 
-                case "Taiga":
+                case "taiga":
                     Info.AddAttribute(RegionAttribute.Taiga);
                     break;
 
-                case "Tundra":
+                case "tundra":
                     Info.AddAttribute(RegionAttribute.Tundra);
                     break;
             }

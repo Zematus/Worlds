@@ -151,10 +151,10 @@ public class ElementConstraint
                 return ((RegionAttribute[])Value).Any(a => region.Attributes.Contains(a));
 
             case "any_biome":
-                return ((Biome[])Value).Any(a => region.PresentBiomeNames.Contains(a.Name));
+                return ((Biome[])Value).Any(b => region.PresentBiomeIds.Contains(b.Id));
 
             case "main_biome":
-                return ((Biome[])Value).Any(a => region.BiomeWithMostPresence == a.Name);
+                return ((Biome[])Value).Any(b => region.BiomeWithMostPresence == b.Id);
         }
 
         throw new System.Exception("Unhandled constraint type: " + Type);

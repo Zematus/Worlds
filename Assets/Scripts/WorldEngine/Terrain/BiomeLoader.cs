@@ -17,6 +17,7 @@ public class BiomeLoader
         public string id;
         public string name;
         public string color;
+        public string type;
         public string minAltitude;
         public string maxAltitude;
         public string minRainfall;
@@ -30,43 +31,55 @@ public class BiomeLoader
 
 #pragma warning restore 0649
 
-    public static Biome[] Load(string filename)
+    public static IEnumerable<Biome> Load(string filename)
     {
         string jsonStr = File.ReadAllText(filename);
         
         BiomeLoader loader = JsonUtility.FromJson<BiomeLoader>(jsonStr);
-
-        int length = loader.biomes.Length;
-
-        if (length == 0)
+        
+        for (int i = 0; i < loader.biomes.Length; i++)
         {
-            throw new Exception("No biomes loaded from " + filename);
+            yield return CreateBiome(loader.biomes[i]);
         }
-
-        Biome[] biomes = new Biome[length];
-
-        for (int i = 0; i < length; i++)
-        {
-            biomes[i] = ParseBiome(loader.biomes[i]);
-        }
-
-        return biomes;
     }
 
-    private static Biome ParseBiome(LoadedBiome b)
+    private static Biome CreateBiome(LoadedBiome b)
     {
+        if (string.IsNullOrEmpty(b.id))
+        {
+            throw new ArgumentException("biome id can't be null or empty");
+        }
+
+        if (string.IsNullOrEmpty(b.name))
+        {
+            throw new ArgumentException("biome name can't be null or empty");
+        }
+
         Biome biome = new Biome()
         {
             Id = b.id,
+            IdHash = b.id.GetHashCode(),
             Name = b.name,
             Survivability = b.survivability,
             ForagingCapacity = b.foragingCapacity,
             Accessibility = b.accessibility
         };
 
+        switch (b.type)
+        {
+            case "land":
+                biome.LocationType = Biome.Type.Land;
+                break;
+            case "sea":
+                biome.LocationType = Biome.Type.Sea;
+                break;
+            default:
+                throw new ArgumentException("Unknown biome location type: " + b.type);
+        }
+
         if (!ColorUtility.TryParseHtmlString(b.color, out biome.Color))
         {
-            throw new Exception("Invalid color value: " + b.color);
+            throw new ArgumentException("Invalid color value: " + b.color);
         }
         biome.Color.a = 1;
 
@@ -74,7 +87,7 @@ public class BiomeLoader
         {
             if (!float.TryParse(b.maxAltitude, out biome.MaxAltitude))
             {
-                throw new Exception("Invalid maxAltitude value: " + b.maxAltitude);
+                throw new ArgumentException("Invalid maxAltitude value: " + b.maxAltitude);
             }
         }
         else
@@ -86,7 +99,7 @@ public class BiomeLoader
         {
             if (!float.TryParse(b.minAltitude, out biome.MinAltitude))
             {
-                throw new Exception("Invalid minAltitude value: " + b.minAltitude);
+                throw new ArgumentException("Invalid minAltitude value: " + b.minAltitude);
             }
         }
         else
@@ -98,7 +111,7 @@ public class BiomeLoader
         {
             if (!float.TryParse(b.maxRainfall, out biome.MaxRainfall))
             {
-                throw new Exception("Invalid maxRainfall value: " + b.maxRainfall);
+                throw new ArgumentException("Invalid maxRainfall value: " + b.maxRainfall);
             }
         }
         else
@@ -110,7 +123,7 @@ public class BiomeLoader
         {
             if (!float.TryParse(b.minRainfall, out biome.MinRainfall))
             {
-                throw new Exception("Invalid minRainfall value: " + b.minRainfall);
+                throw new ArgumentException("Invalid minRainfall value: " + b.minRainfall);
             }
         }
         else
@@ -122,7 +135,7 @@ public class BiomeLoader
         {
             if (!float.TryParse(b.maxTemperature, out biome.MaxTemperature))
             {
-                throw new Exception("Invalid maxTemperature value: " + b.maxTemperature);
+                throw new ArgumentException("Invalid maxTemperature value: " + b.maxTemperature);
             }
         }
         else
@@ -134,7 +147,7 @@ public class BiomeLoader
         {
             if (!float.TryParse(b.minTemperature, out biome.MinTemperature))
             {
-                throw new Exception("Invalid minTemperature value: " + b.minTemperature);
+                throw new ArgumentException("Invalid minTemperature value: " + b.minTemperature);
             }
         }
         else

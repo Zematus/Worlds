@@ -116,10 +116,16 @@ public class TerrainCell : ISynchronizable
 
     public static float MaxWidth;
 
-    public List<string> PresentBiomeNames = new List<string>();
+    public List<string> PresentBiomeIds = new List<string>();
     public List<float> BiomePresences = new List<float>();
 
     public CellGroup Group;
+
+    [XmlIgnore]
+    public List<string> PresentSeaBiomeIds = new List<string>();
+
+    [XmlIgnore]
+    public float SeaBiomePresence = 0;
 
     [XmlIgnore]
     public WorldPosition Position;
@@ -399,7 +405,8 @@ public class TerrainCell : ISynchronizable
 
     public void ResetBiomePresences()
     {
-        PresentBiomeNames.Clear();
+        PresentBiomeIds.Clear();
+        PresentSeaBiomeIds.Clear();
         BiomePresences.Clear();
         _biomePresences.Clear();
 
@@ -409,28 +416,34 @@ public class TerrainCell : ISynchronizable
 
     public float GetBiomePresence(Biome biome)
     {
-        return GetBiomePresence(biome.Name);
+        return GetBiomePresence(biome.Id);
     }
 
-    public void AddBiomePresence(string biomeName, float presence)
+    public void AddBiomePresence(Biome biome, float presence)
     {
-        PresentBiomeNames.Add(biomeName);
+        PresentBiomeIds.Add(biome.Id);
         BiomePresences.Add(presence);
 
-        _biomePresences[biomeName] = presence;
+        if (biome.LocationType == Biome.Type.Sea)
+        {
+            PresentSeaBiomeIds.Add(biome.Id);
+            SeaBiomePresence += presence;
+        }
+
+        _biomePresences[biome.Id] = presence;
 
         if (MostBiomePresence < presence)
         {
             MostBiomePresence = presence;
-            BiomeWithMostPresence = biomeName;
+            BiomeWithMostPresence = biome.Id;
         }
     }
 
-    public float GetBiomePresence(string biomeName)
+    public float GetBiomePresence(string biomeId)
     {
         float value = 0;
 
-        if (!_biomePresences.TryGetValue(biomeName, out value))
+        if (!_biomePresences.TryGetValue(biomeId, out value))
             return 0;
 
         return value;
@@ -444,9 +457,19 @@ public class TerrainCell : ISynchronizable
     {
         Position = new WorldPosition(Longitude, Latitude);
 
-        for (int i = 0; i < BiomePresences.Count; i++)
+        for (int i = 0; i < PresentBiomeIds.Count; i++)
         {
-            _biomePresences[PresentBiomeNames[i]] = BiomePresences[i];
+            string biomeId = PresentBiomeIds[i];
+
+            _biomePresences[biomeId] = BiomePresences[i];
+
+            Biome biome = Biome.Biomes[biomeId];
+
+            if (biome.LocationType == Biome.Type.Sea)
+            {
+                PresentSeaBiomeIds.Add(biomeId);
+                SeaBiomePresence += BiomePresences[i];
+            }
         }
 
         InitializeNeighbors();

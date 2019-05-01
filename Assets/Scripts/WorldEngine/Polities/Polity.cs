@@ -1183,13 +1183,13 @@ public abstract class Polity : ISynchronizable
 
         //		Profiler.BeginSample ("Get Polity Skill Values");
 
-        foreach (string biomeName in cell.PresentBiomeNames)
+        foreach (string biomeId in cell.PresentBiomeIds)
         {
             //			Profiler.BeginSample ("Try Get Polity Biome Survival Skill");
 
-            float biomePresence = cell.GetBiomePresence(biomeName);
+            float biomePresence = cell.GetBiomePresence(biomeId);
 
-            Biome biome = Biome.Biomes[biomeName];
+            Biome biome = Biome.Biomes[biomeId];
 
             string skillId = BiomeSurvivalSkill.GenerateId(biome);
 

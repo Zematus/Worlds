@@ -93,11 +93,13 @@ public class InfoPanelScript : MonoBehaviour
         InfoText.text += "\nTemperature: " + cell.Temperature + " C";
         InfoText.text += "\n";
 
-        for (int i = 0; i < cell.PresentBiomeNames.Count; i++)
+        for (int i = 0; i < cell.PresentBiomeIds.Count; i++)
         {
             float percentage = cell.BiomePresences[i];
 
-            InfoText.text += "\nBiome: " + cell.PresentBiomeNames[i];
+            Biome biome = Biome.Biomes[cell.PresentBiomeIds[i]];
+
+            InfoText.text += "\nBiome: " + biome.Name;
             InfoText.text += " (" + percentage.ToString("P") + ")";
         }
 
@@ -162,7 +164,7 @@ public class InfoPanelScript : MonoBehaviour
 
         InfoText.text += "\n";
         InfoText.text += "\nCoast Percentage: " + region.CoastPercentage.ToString("P");
-        InfoText.text += "\nOcean Percentage: " + region.OceanPercentage.ToString("P");
+        InfoText.text += "\nSea Percentage: " + region.SeaPercentage.ToString("P");
 
         InfoText.text += "\n";
         InfoText.text += "\nAverage Altitude: " + region.AverageAltitude + " meters";
@@ -175,11 +177,11 @@ public class InfoPanelScript : MonoBehaviour
         InfoText.text += "\nAverage Border Altitude: " + region.AverageOuterBorderAltitude + " meters";
         InfoText.text += "\n";
 
-        for (int i = 0; i < region.PresentBiomeNames.Count; i++)
+        for (int i = 0; i < region.PresentBiomeIds.Count; i++)
         {
             float percentage = region.BiomePresences[i];
 
-            InfoText.text += "\nBiome: " + region.PresentBiomeNames[i];
+            InfoText.text += "\nBiome: " + region.PresentBiomeIds[i];
             InfoText.text += " (" + percentage.ToString("P") + ")";
         }
 

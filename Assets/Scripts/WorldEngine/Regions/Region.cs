@@ -45,7 +45,7 @@ public abstract class Region : ISynchronizable
     public float MostBiomePresence;
 
     [XmlIgnore]
-    public List<string> PresentBiomeNames = new List<string>();
+    public List<string> PresentBiomeIds = new List<string>();
     [XmlIgnore]
     public List<float> BiomePresences = new List<float>();
 
@@ -58,7 +58,7 @@ public abstract class Region : ISynchronizable
     [XmlIgnore]
     public float CoastPercentage;
     [XmlIgnore]
-    public float OceanPercentage;
+    public float SeaPercentage;
 
     [XmlIgnore]
     public long Id
@@ -142,7 +142,7 @@ public abstract class Region : ISynchronizable
 
     public static Region TryGenerateRegion(TerrainCell startCell, Language establishmentLanguage)
     {
-        if (startCell.GetBiomePresence(Biome.Ocean) >= 1)
+        if (startCell.SeaBiomePresence >= 1)
             return null;
 
         if (startCell.Region != null)

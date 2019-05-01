@@ -12,8 +12,11 @@ public class ScriptTesterScript : MonoBehaviour
     void Start()
     {
         Debug.Log("loading JSON...");
-        
-        Biome[] biomes = BiomeLoader.Load(@"D:\Projects\GitHub\Worlds\Mods\Base\biomes.json");
+
+        foreach (Biome biome in BiomeLoader.Load(@"D:\Projects\GitHub\Worlds\Mods\Base\biomes.json"))
+        {
+            Debug.Log("generated biome: " + biome.Name);
+        }
 
         Debug.Log("finished");
 

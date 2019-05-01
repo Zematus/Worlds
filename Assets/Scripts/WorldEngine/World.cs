@@ -183,6 +183,8 @@ public class World : ISynchronizable
     public const int MinStartingPopulation = 100;
     public const int MaxStartingPopulation = 100000;
 
+    public const float MinSurvivabilityForRandomGroupPlacement = 0.15f;
+
     [XmlAttribute]
     public int Width { get; private set; }
     [XmlAttribute]
@@ -2081,8 +2083,6 @@ public class World : ISynchronizable
     {
         ProgressCastMethod(_accumulatedProgress, "Adding Random Human Groups...");
 
-        float minPresence = 0.50f;
-
         int sizeX = Width;
         int sizeY = Height;
 
@@ -2093,10 +2093,8 @@ public class World : ISynchronizable
             for (int j = 0; j < sizeY; j++)
             {
                 TerrainCell cell = TerrainCells[i][j];
-
-                float biomePresence = cell.GetBiomePresence(Biome.Grassland);
-
-                if (biomePresence < minPresence) continue;
+                
+                if (cell.Survivability < MinSurvivabilityForRandomGroupPlacement) continue;
 
                 SuitableCells.Add(cell);
             }
@@ -3317,7 +3315,7 @@ public class World : ISynchronizable
 
             if (presence <= 0) continue;
 
-            biomePresences.Add(biome.Name, presence);
+            biomePresences.Add(biome.Id, presence);
 
             totalPresence += presence;
         }
@@ -3332,11 +3330,11 @@ public class World : ISynchronizable
         {
             float presence = 0;
 
-            if (biomePresences.TryGetValue(biome.Name, out presence))
+            if (biomePresences.TryGetValue(biome.Id, out presence))
             {
                 presence = presence / totalPresence;
 
-                cell.AddBiomePresence(biome.Name, presence);
+                cell.AddBiomePresence(biome, presence);
 
                 cell.Survivability += biome.Survivability * presence;
                 cell.ForagingCapacity += biome.ForagingCapacity * presence;
@@ -3369,7 +3367,7 @@ public class World : ISynchronizable
 
     private float CalculateCellBaseArability(TerrainCell cell)
     {
-        float landFactor = 1 - cell.GetBiomePresence(Biome.Ocean);
+        float landFactor = 1 - cell.SeaBiomePresence;
 
         if (landFactor == 0)
             return 0;

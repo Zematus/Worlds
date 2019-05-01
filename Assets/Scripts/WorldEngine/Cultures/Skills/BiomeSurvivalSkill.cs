@@ -12,7 +12,7 @@ public class BiomeSurvivalSkill : CellCulturalSkill
     public const int BiomeSurvivalSkillRngOffsetBase = 1000;
 
     [XmlIgnore]
-    public string BiomeName;
+    public string BiomeId;
 
     private float _neighborhoodBiomePresence;
 
@@ -28,7 +28,7 @@ public class BiomeSurvivalSkill : CellCulturalSkill
 
     public static int GenerateRngOffset(Biome biome)
     {
-        return BiomeSurvivalSkillRngOffsetBase + (biome.ColorId * 100);
+        return BiomeSurvivalSkillRngOffsetBase + (biome.IdHash);
     }
 
     public BiomeSurvivalSkill()
@@ -38,7 +38,7 @@ public class BiomeSurvivalSkill : CellCulturalSkill
 
     public BiomeSurvivalSkill(CellGroup group, Biome biome, float value) : base(group, GenerateId(biome), GenerateName(biome), GenerateRngOffset(biome), value)
     {
-        BiomeName = biome.Name;
+        BiomeId = biome.Id;
 
         Group.AddBiomeSurvivalSkill(this);
 
@@ -47,7 +47,7 @@ public class BiomeSurvivalSkill : CellCulturalSkill
 
     public BiomeSurvivalSkill(CellGroup group, BiomeSurvivalSkill baseSkill) : base(group, baseSkill.Id, baseSkill.Name, baseSkill.RngOffset, baseSkill.Value)
     {
-        BiomeName = baseSkill.BiomeName;
+        BiomeId = baseSkill.BiomeId;
 
         Group.AddBiomeSurvivalSkill(this);
 
@@ -56,9 +56,7 @@ public class BiomeSurvivalSkill : CellCulturalSkill
 
     public BiomeSurvivalSkill(CellGroup group, CulturalSkill baseSkill, float initialValue) : base(group, baseSkill.Id, baseSkill.Name, baseSkill.RngOffset, initialValue)
     {
-        int suffixIndex = baseSkill.Name.IndexOf(" Survival");
-
-        BiomeName = baseSkill.Name.Substring(0, suffixIndex);
+        BiomeId = baseSkill.Id.Substring(SkillIdPrefix.Length);
 
         Group.AddBiomeSurvivalSkill(this);
 
@@ -79,7 +77,7 @@ public class BiomeSurvivalSkill : CellCulturalSkill
     {
         base.FinalizeLoad();
 
-        BiomeName = Name.Substring(0, Name.IndexOf(" Survival"));
+        BiomeId = Id.Substring(SkillIdPrefix.Length);
 
         Group.AddBiomeSurvivalSkill(this);
 
@@ -93,11 +91,11 @@ public class BiomeSurvivalSkill : CellCulturalSkill
 
         TerrainCell groupCell = Group.Cell;
 
-        float totalPresence = groupCell.GetBiomePresence(BiomeName) * groupCellBonus;
+        float totalPresence = groupCell.GetBiomePresence(BiomeId) * groupCellBonus;
 
         foreach (TerrainCell c in groupCell.Neighbors.Values)
         {
-            totalPresence += c.GetBiomePresence(BiomeName);
+            totalPresence += c.GetBiomePresence(BiomeId);
             cellCount++;
         }
 

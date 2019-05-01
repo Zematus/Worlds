@@ -12,7 +12,7 @@ public class SeafaringSkill : CellCulturalSkill
     public const string SkillName = "Seafaring";
     public const int SkillRngOffset = 0;
 
-    private float _neighborhoodOceanPresence;
+    private float _neighborhoodSeaPresence;
 
     public SeafaringSkill()
     {
@@ -21,17 +21,17 @@ public class SeafaringSkill : CellCulturalSkill
 
     public SeafaringSkill(CellGroup group, float value = 0f) : base(group, SkillId, SkillName, SkillRngOffset, value)
     {
-        CalculateNeighborhoodOceanPresence();
+        CalculateNeighborhoodSeaPresence();
     }
 
     public SeafaringSkill(CellGroup group, SeafaringSkill baseSkill) : base(group, baseSkill.Id, baseSkill.Name, baseSkill.RngOffset, baseSkill.Value)
     {
-        CalculateNeighborhoodOceanPresence();
+        CalculateNeighborhoodSeaPresence();
     }
 
     public SeafaringSkill(CellGroup group, CulturalSkill baseSkill, float initialValue) : base(group, baseSkill.Id, baseSkill.Name, baseSkill.RngOffset, initialValue)
     {
-        CalculateNeighborhoodOceanPresence();
+        CalculateNeighborhoodSeaPresence();
     }
 
     public static bool IsSeafaringSkill(CulturalSkill skill)
@@ -43,36 +43,35 @@ public class SeafaringSkill : CellCulturalSkill
     {
         base.FinalizeLoad();
 
-        CalculateNeighborhoodOceanPresence();
+        CalculateNeighborhoodSeaPresence();
     }
 
-    public void CalculateNeighborhoodOceanPresence()
+    public void CalculateNeighborhoodSeaPresence()
     {
         int groupCellBonus = 1;
         int cellCount = groupCellBonus;
 
         TerrainCell groupCell = Group.Cell;
 
-        float totalPresence = groupCell.GetBiomePresence(Biome.Ocean.Name) * groupCellBonus;
+        float totalPresence = groupCell.SeaBiomePresence * groupCellBonus;
 
         foreach (TerrainCell c in groupCell.Neighbors.Values)
         {
-            totalPresence += c.GetBiomePresence(Biome.Ocean.Name);
+            totalPresence += c.SeaBiomePresence;
             cellCount++;
         }
 
-        _neighborhoodOceanPresence = totalPresence / cellCount;
+        _neighborhoodSeaPresence = totalPresence / cellCount;
 
-        if ((_neighborhoodOceanPresence < 0) || (_neighborhoodOceanPresence > 1))
+        if ((_neighborhoodSeaPresence < 0) || (_neighborhoodSeaPresence > 1))
         {
-
-            throw new System.Exception("Neighborhood Ocean Presence outside range: " + _neighborhoodOceanPresence);
+            throw new System.Exception("Neighborhood sea presence outside range: " + _neighborhoodSeaPresence);
         }
     }
 
     public override void Update(long timeSpan)
     {
-        UpdateInternal(timeSpan, TimeEffectConstant, _neighborhoodOceanPresence);
+        UpdateInternal(timeSpan, TimeEffectConstant, _neighborhoodSeaPresence);
     }
 
     public override void PolityCulturalProminence(CulturalSkill politySkill, PolityProminence polityProminence, long timeSpan)
@@ -82,6 +81,6 @@ public class SeafaringSkill : CellCulturalSkill
 
     protected override void PostUpdateInternal()
     {
-        RecalculateAdaptation(_neighborhoodOceanPresence);
+        RecalculateAdaptation(_neighborhoodSeaPresence);
     }
 }
