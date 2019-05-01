@@ -115,6 +115,8 @@ public class Manager
 
     public const float BrushNoiseRadiusFactor = 200;
 
+    public const string DefaultModPath = @".\Mods\";
+
     public static float ProgressIncrement = 0.20f;
 
     public static Thread MainThread { get; private set; }
@@ -750,9 +752,9 @@ public class Manager
         return task;
     }
 
-    public static void EnqueueTaskAndWait<T>(ManagerTaskDelegate<T> taskDelegate)
+    public static T EnqueueTaskAndWait<T>(ManagerTaskDelegate<T> taskDelegate)
     {
-        EnqueueTask(taskDelegate).Wait();
+        return EnqueueTask(taskDelegate).Result;
     }
 
     public static ManagerTask EnqueueTask(ManagerTaskDelegate taskDelegate)
@@ -1028,6 +1030,8 @@ public class Manager
     {
         _manager._worldReady = false;
 
+        LoadMods(DefaultModPath);
+
         World world = new World(WorldWidth, WorldHeight, seed);
 
         if (_manager._progressCastMethod == null)
@@ -1237,6 +1241,8 @@ public class Manager
         ProgressIncrement = 0.08f;
 
         ResetWorldLoadTrack();
+
+        LoadMods(DefaultModPath);
 
         World world;
 
@@ -3899,19 +3905,10 @@ public class Manager
         return TextureValidationResult.Ok;
     }
 
-    //public static void ConvertToGrayscale(Texture2D texture) // Try to avoid using this function and instead just extract the grayscale value directly
-    //{
-    //    Color[] colors = texture.GetPixels();
-    //    Color[] repColors = new Color[colors.Length];
+    public static void LoadMods(string modPath)
+    {
+        string baseBiomeModFilename = modPath + @"Base\biomes.json";
 
-    //    for (int i = 0; i < colors.Length; i++)
-    //    {
-    //        float grayscale = colors[i].grayscale;
-
-    //        repColors[i] = new Color(grayscale, grayscale, grayscale, 1);
-    //    }
-
-    //    texture.SetPixels(repColors);
-    //    texture.Apply();
-    //}
+        Biome.LoadModFile(baseBiomeModFilename);
+    }
 }

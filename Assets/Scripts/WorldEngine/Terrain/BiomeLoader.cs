@@ -77,7 +77,7 @@ public class BiomeLoader
                 throw new ArgumentException("Unknown biome location type: " + b.type);
         }
 
-        if (!ColorUtility.TryParseHtmlString(b.color, out biome.Color))
+        if (!Manager.EnqueueTaskAndWait(() => ColorUtility.TryParseHtmlString(b.color, out biome.Color)))
         {
             throw new ArgumentException("Invalid color value: " + b.color);
         }
@@ -116,7 +116,7 @@ public class BiomeLoader
         }
         else
         {
-            biome.MaxRainfall = Biome.MinBiomeRainfall;
+            biome.MaxRainfall = Biome.MaxBiomeRainfall;
         }
 
         if (b.minRainfall != null)

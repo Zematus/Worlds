@@ -56,7 +56,7 @@ public class Biome
     public float ForagingCapacity;
     public float Accessibility;
 
-    public static void LoadBiomes(string filename)
+    public static void LoadModFile(string filename)
     {
         Biomes = new Dictionary<string, Biome>();
 

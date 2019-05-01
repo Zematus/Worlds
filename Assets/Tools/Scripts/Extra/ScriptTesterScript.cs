@@ -11,9 +11,11 @@ public class ScriptTesterScript : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        Manager.UpdateMainThreadReference();
+
         Debug.Log("loading JSON...");
 
-        foreach (Biome biome in BiomeLoader.Load(@"D:\Projects\GitHub\Worlds\Mods\Base\biomes.json"))
+        foreach (Biome biome in BiomeLoader.Load(@"Mods\Base\biomes.json"))
         {
             Debug.Log("generated biome: " + biome.Name);
         }
