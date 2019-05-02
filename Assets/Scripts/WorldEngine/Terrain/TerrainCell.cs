@@ -424,7 +424,7 @@ public class TerrainCell : ISynchronizable
         PresentBiomeIds.Add(biome.Id);
         BiomePresences.Add(presence);
 
-        if (biome.LocationType == Biome.Type.Sea)
+        if (biome.Type == Biome.LocactionType.Sea)
         {
             PresentSeaBiomeIds.Add(biome.Id);
             SeaBiomePresence += presence;
@@ -465,7 +465,7 @@ public class TerrainCell : ISynchronizable
 
             Biome biome = Biome.Biomes[biomeId];
 
-            if (biome.LocationType == Biome.Type.Sea)
+            if (biome.Type == Biome.LocactionType.Sea)
             {
                 PresentSeaBiomeIds.Add(biomeId);
                 SeaBiomePresence += BiomePresences[i];

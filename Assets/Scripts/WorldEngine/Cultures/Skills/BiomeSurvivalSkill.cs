@@ -23,12 +23,12 @@ public class BiomeSurvivalSkill : CellCulturalSkill
 
     public static string GenerateName(Biome biome)
     {
-        return biome.Name + " Survival";
+        return biome.Name.FirstLetterToUpper() + " Survival";
     }
 
     public static int GenerateRngOffset(Biome biome)
     {
-        return BiomeSurvivalSkillRngOffsetBase + (biome.IdHash);
+        return BiomeSurvivalSkillRngOffsetBase + biome.IdHash;
     }
 
     public BiomeSurvivalSkill()

@@ -1,0 +1,11 @@
+{
+  "elements": [
+    {
+      "id": "stone",
+      "name": "stone:s",
+      "adjectives": "white, red, blue, green, yellow, black, grey, big, light, heavy",
+      "constraints": "'altitude_above:0'",
+      "associationStrings": "'[nrv]throw:er,of,ip|ns', '[niv(carry)]carrier,of,p', '[iv(bear,ts,past)]born,by|near,ds|dp'"
+    }
+  ]
+}

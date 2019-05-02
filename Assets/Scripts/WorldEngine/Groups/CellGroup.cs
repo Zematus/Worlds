@@ -612,7 +612,7 @@ public class CellGroup : HumanGroup
 
         foreach (Biome biome in GetPresentBiomesInNeighborhood())
         {
-            if (biome.LocationType == Biome.Type.Sea)
+            if (biome.Type == Biome.LocactionType.Sea)
             {
                 if (Culture.GetSkill(SeafaringSkill.SkillId) == null)
                 {

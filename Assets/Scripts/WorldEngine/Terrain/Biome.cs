@@ -6,7 +6,7 @@ using System.Xml.Serialization;
 
 public class Biome
 {
-    public enum Type
+    public enum LocactionType
     {
         Land,
         Sea
@@ -22,26 +22,13 @@ public class Biome
     public static float MaxBiomeAltitude = World.MaxPossibleAltitude * 3 + 1;
 
     public static Dictionary<string, Biome> Biomes;
-    //public static Dictionary<string, Biome> Biomes = new Dictionary<string, Biome>()
-    //{
-    //    {"Glacier", Glacier},
-    //    {"Ice Cap", IceCap},
-    //    {"Ocean", Ocean},
-    //    {"Grassland", Grassland},
-    //    {"Forest", Forest},
-    //    {"Taiga", Taiga},
-    //    {"Tundra", Tundra},
-    //    {"Desertic Tundra", DeserticTundra},
-    //    {"Desert", Desert},
-    //    {"Rainforest", Rainforest}
-    //};
 
     public string Name;
     public string Id;
     public int IdHash;
 
     public Color Color;
-    public Type LocationType;
+    public LocactionType Type;
 
     public float MinAltitude;
     public float MaxAltitude;

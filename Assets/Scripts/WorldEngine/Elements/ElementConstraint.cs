@@ -4,16 +4,24 @@ using System.Linq;
 
 public class ElementConstraint
 {
-    public string Type;
+    public enum ConstraintType
+    {
+        AltitudeAbove,
+        AltitudeBelow,
+        RainfallAbove,
+        RainfallBelow,
+        TemperatureAbove,
+        TemperatureBelow,
+        NoAttribute,
+        AnyAttribute,
+        AnyBiome,
+        MainBiome
+    }
+
+    public ConstraintType Type;
     public object Value;
 
     public static Regex ConstraintRegex = new Regex(@"^(?<type>[\w_]+):(?<value>.+)$");
-
-    private ElementConstraint(string type, object value)
-    {
-        Type = type;
-        Value = value;
-    }
 
     public static ElementConstraint BuildConstraint(string constraint)
     {
@@ -30,32 +38,32 @@ public class ElementConstraint
             case "altitude_above":
                 float altitude_above = float.Parse(valueStr);
 
-                return new ElementConstraint(type, altitude_above);
+                return new ElementConstraint() { Type = ConstraintType.AltitudeAbove, Value = altitude_above };
 
             case "altitude_below":
                 float altitude_below = float.Parse(valueStr);
 
-                return new ElementConstraint(type, altitude_below);
+                return new ElementConstraint() { Type = ConstraintType.AltitudeBelow, Value = altitude_below };
 
             case "rainfall_above":
                 float rainfall_above = float.Parse(valueStr);
 
-                return new ElementConstraint(type, rainfall_above);
+                return new ElementConstraint() { Type = ConstraintType.RainfallAbove, Value = rainfall_above };
 
             case "rainfall_below":
                 float rainfall_below = float.Parse(valueStr);
 
-                return new ElementConstraint(type, rainfall_below);
+                return new ElementConstraint() { Type = ConstraintType.RainfallBelow, Value = rainfall_below };
 
             case "temperature_above":
                 float temperature_above = float.Parse(valueStr);
 
-                return new ElementConstraint(type, temperature_above);
+                return new ElementConstraint() { Type = ConstraintType.TemperatureAbove, Value = temperature_above };
 
             case "temperature_below":
                 float temperature_below = float.Parse(valueStr);
 
-                return new ElementConstraint(type, temperature_below);
+                return new ElementConstraint() { Type = ConstraintType.TemperatureBelow, Value = temperature_below };
 
             case "no_attribute":
                 string[] attributeStrs = valueStr.Split(new char[] { ',' });
@@ -70,7 +78,7 @@ public class ElementConstraint
                     return RegionAttribute.Attributes[s];
                 }).ToArray();
 
-                return new ElementConstraint(type, attributes);
+                return new ElementConstraint() { Type = ConstraintType.NoAttribute, Value = attributes };
 
             case "any_attribute":
                 attributeStrs = valueStr.Split(new char[] { ',' });
@@ -86,7 +94,7 @@ public class ElementConstraint
                     return RegionAttribute.Attributes[s];
                 }).ToArray();
 
-                return new ElementConstraint(type, attributes);
+                return new ElementConstraint() { Type = ConstraintType.AnyAttribute, Value = attributes };
 
             case "any_biome":
                 string[] biomeStrs = valueStr.Split(new char[] { ',' });
@@ -101,7 +109,7 @@ public class ElementConstraint
                     return Biome.Biomes[s];
                 }).ToArray();
 
-                return new ElementConstraint(type, biomes);
+                return new ElementConstraint() { Type = ConstraintType.AnyBiome, Value = biomes };
 
             case "main_biome":
                 biomeStrs = valueStr.Split(new char[] { ',' });
@@ -116,45 +124,75 @@ public class ElementConstraint
                     return Biome.Biomes[s];
                 }).ToArray();
 
-                return new ElementConstraint(type, biomes);
+                return new ElementConstraint() { Type = ConstraintType.MainBiome, Value = biomes };
         }
 
         throw new System.Exception("Unhandled constraint type: " + type);
+    }
+
+    private bool IsAnyAttribute(Region region, RegionAttribute[] attributes)
+    {
+        foreach (RegionAttribute a in attributes)
+        {
+            if (region.Attributes.Contains(a)) return true;
+        }
+
+        return false;
+    }
+
+    private bool IsAnyBiome(Region region, Biome[] biomes)
+    {
+        foreach (Biome b in biomes)
+        {
+            if (region.PresentBiomeIds.Contains(b.Id)) return true;
+        }
+
+        return false;
+    }
+
+    private bool IsMainBiome(Region region, Biome[] biomes)
+    {
+        foreach (Biome b in biomes)
+        {
+            if (region.BiomeWithMostPresence == b.Id) return true;
+        }
+
+        return false;
     }
 
     public bool Validate(Region region)
     {
         switch (Type)
         {
-            case "altitude_above":
+            case ConstraintType.AltitudeAbove:
                 return region.AverageAltitude >= (float)Value;
 
-            case "altitude_below":
+            case ConstraintType.AltitudeBelow:
                 return region.AverageAltitude < (float)Value;
 
-            case "rainfall_above":
+            case ConstraintType.RainfallAbove:
                 return region.AverageRainfall >= (float)Value;
 
-            case "rainfall_below":
+            case ConstraintType.RainfallBelow:
                 return region.AverageRainfall < (float)Value;
 
-            case "temperature_above":
+            case ConstraintType.TemperatureAbove:
                 return region.AverageTemperature >= (float)Value;
 
-            case "temperature_below":
+            case ConstraintType.TemperatureBelow:
                 return region.AverageTemperature < (float)Value;
 
-            case "no_attribute":
-                return !((RegionAttribute[])Value).Any(a => region.Attributes.Contains(a));
+            case ConstraintType.NoAttribute:
+                return !IsAnyAttribute(region, (RegionAttribute[])Value);
 
-            case "any_attribute":
-                return ((RegionAttribute[])Value).Any(a => region.Attributes.Contains(a));
+            case ConstraintType.AnyAttribute:
+                return IsAnyAttribute(region, (RegionAttribute[])Value);
 
-            case "any_biome":
-                return ((Biome[])Value).Any(b => region.PresentBiomeIds.Contains(b.Id));
+            case ConstraintType.AnyBiome:
+                return IsAnyBiome(region, (Biome[])Value);
 
-            case "main_biome":
-                return ((Biome[])Value).Any(b => region.BiomeWithMostPresence == b.Id);
+            case ConstraintType.MainBiome:
+                return IsMainBiome(region, (Biome[])Value);
         }
 
         throw new System.Exception("Unhandled constraint type: " + Type);

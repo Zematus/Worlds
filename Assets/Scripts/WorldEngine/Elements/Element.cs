@@ -194,7 +194,6 @@ public class Element
 
     private Element(string id, string pluralName, string[] adjectives, string[] constraints, string[] associationStrs)
     {
-
         Id = id;
 
         SingularName = Language.GetSingularForm(pluralName);
@@ -207,7 +206,6 @@ public class Element
         int index = 0;
         foreach (string constraint in constraints)
         {
-
             Constraints[index] = ElementConstraint.BuildConstraint(constraint);
             index++;
         }
@@ -216,7 +214,6 @@ public class Element
 
         foreach (string assocStr in associationStrs)
         {
-
             associations.AddRange(Association.Parse(assocStr));
         }
 
@@ -225,7 +222,11 @@ public class Element
 
     public bool Assignable(Region region)
     {
+        foreach (ElementConstraint c in Constraints)
+        {
+            if (!c.Validate(region)) return false;
+        }
 
-        return Constraints.All(c => c.Validate(region));
+        return true;
     }
 }

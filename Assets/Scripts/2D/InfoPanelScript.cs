@@ -99,7 +99,7 @@ public class InfoPanelScript : MonoBehaviour
 
             Biome biome = Biome.Biomes[cell.PresentBiomeIds[i]];
 
-            InfoText.text += "\nBiome: " + biome.Name;
+            InfoText.text += "\nBiome: " + biome.Name.FirstLetterToUpper();
             InfoText.text += " (" + percentage.ToString("P") + ")";
         }
 
