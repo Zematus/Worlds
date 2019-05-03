@@ -5,7 +5,14 @@
       "name": "stone:s",
       "adjectives": "white, red, blue, green, yellow, black, grey, big, light, heavy",
       "constraints": "'altitude_above:0'",
-      "associationStrings": "'[nrv]throw:er,of,ip|ns', '[niv(carry)]carrier,of,p', '[iv(bear,ts,past)]born,by|near,ds|dp'"
+      "associationStrings": "'[ran]throw:er,of,ip|ns', '[ian(carry)]carrier,of,p', '[iv(bear,ts,past)]born,by|near,ds|dp'"
+    },
+    {
+      "id": "boulder",
+      "name": "boulder:s",
+      "adjectives": "white, red, blue, green, yellow, black, grey, great",
+      "constraints": "'altitude_above:0'",
+      "associationStrings": "'[ran]break:er,of,ip|ns', '[ran]roll:er,of,p', '[ran]lift:er,of,ip|ns', '[ran]throw:er,of,ip|ns', '[iv(bear,ts,past)]born,by|near,ds|dp'"
     }
   ]
 }

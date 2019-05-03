@@ -15,9 +15,16 @@ public class ScriptTesterScript : MonoBehaviour
 
         Debug.Log("loading JSON...");
 
-        foreach (Biome biome in BiomeLoader.Load(@"Mods\Base\biomes.json"))
+        Biome.LoadModFile(@"Mods\Base\biomes.json");
+
+        foreach (Biome biome in Biome.Biomes.Values)
         {
             Debug.Log("generated biome: " + biome.Name);
+        }
+
+        foreach (Element element in ElementLoader.Load(@"Mods\Base\elements.json"))
+        {
+            Debug.Log("generated element: " + element.SingularName);
         }
 
         Debug.Log("finished");

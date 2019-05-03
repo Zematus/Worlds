@@ -7,8 +7,8 @@
     {
       "id":                  -- (required) Unique element identifier, if more than one  definition share ids, only the last one loaded will be used
       "name":                -- (required) name of element (in plural form, see note #3)
-      "adjectives":          -- (required) list of applicable adjectives, separated by commas
-      "constraints":         -- (required) list of application constraints, separated by commas (see note #4)
+      "adjectives":          -- (optional) list of applicable adjectives, separated by commas
+      "constraints":         -- (optional) list of incidence constraints, separated by commas (see note #4)
       "associationStrings":  -- (required) list of sentence association strings, separated by commas (see note #5)
     },
     ... -- additional elements --
@@ -19,7 +19,7 @@
 1. Only one elements.json file can be used per world. If more than one elements.json file is present across multiple active mod files, only the last one being loaded will be used.
 2. Remove any trailing commas or the file won't be parsed
 3. The name string should be written in parseable plural form. Examples: "stone:s", "grass:es". Refer to language_modding_guide.txt for more details on parseable plural names
-4. Each constraint within the list must be encased in single quotes.
+4. Each constraint within the list must be encased within single quotes.
   Types of valid constraints:
   - 'altitude_above', Example: 'altitude_above:0'
   - 'altitude_below', Example: 'altitude_below:0'
@@ -29,8 +29,9 @@
   - 'temperature_below', Example: 'temperature_below:10'
   - 'no_attribute', Example: 'no_attribute:Rainforest,Jungle,Taiga,Forest'
   - 'any_attribute', Example: 'any_attribute:Desert,Delta,Peninsula,Island,Coast'
-  - 'any_attribute', Example: 'any_attribute:Grassland,Tundra,Desert'
+  - 'any_biome', Example: 'any_attribute:Grassland,Tundra,Desert'
   - 'main_biome', Example: 'main_biome:Forest,Taiga,Tundra,Rainforest'
+  If no constraint is defined, then the element can be used in any naming context where it might be required.
 5. Each association string within the list must be encased in single quotes.
   Associations are used along with the element and one or more adjectives to build noun phrases.
   They are composed of three parts: '<association word>,<relations>,<form>'

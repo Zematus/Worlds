@@ -152,9 +152,9 @@ public class Language : ISynchronizable {
 		public const string MasculineNoun = "mn";
 		public const string NeutralNoun = "nn";
 		public const string UncountableNoun = "un";
-		public const string NominalizedRegularVerb = "nrv";
-		public const string NominalizedIrregularVerb = "niv";
-		public const string IrregularPluralNoun = "ipn";
+		public const string RegularAgentNount = "ran";
+		public const string IrregularAgentNount = "ian";
+		public const string IrregularNoun = "in";
 		public const string NounAdjunct = "nad";
 		public const string Adjective = "adj";
 		public const string RegularVerb = "rv";
@@ -456,7 +456,7 @@ public class Language : ISynchronizable {
 	public static Regex PhraseIndexRegex = new Regex (@"{(?<index>\d+)}");
 	public static Regex ArticleRegex = new Regex (@"^((?<def>the)|(?<indef>(a|an)))$");
 	public static Regex PluralSuffixRegex = new Regex (@"^(es|s)$");
-	public static Regex VerbNominalizationSuffixRegex = new Regex (@"^(er|r)$");
+	public static Regex RegularAgentNounSuffixRegex = new Regex (@"^er$");
 	public static Regex ConjugationSuffixRegex = new Regex (@"^(ed|d|s)$");
 
 	[XmlAttribute("ArticleProperties")]
@@ -2681,8 +2681,8 @@ public class Language : ISynchronizable {
 
 			if (parsedWordPart.Attributes.ContainsKey (ParsedWordAttributeId.IrregularVerb) || 
 				parsedWordPart.Attributes.ContainsKey (ParsedWordAttributeId.RegularVerb) || 
-				parsedWordPart.Attributes.ContainsKey (ParsedWordAttributeId.NominalizedIrregularVerb) || 
-				parsedWordPart.Attributes.ContainsKey (ParsedWordAttributeId.NominalizedRegularVerb)) {
+				parsedWordPart.Attributes.ContainsKey (ParsedWordAttributeId.IrregularAgentNount) || 
+				parsedWordPart.Attributes.ContainsKey (ParsedWordAttributeId.RegularAgentNount)) {
 
 				bool isPassiveNoun = false;
 
@@ -2690,9 +2690,9 @@ public class Language : ISynchronizable {
 				string nounMeaning = parsedWordPart.Value;
 				string tense = VerbTenses.Null;
 
-				if (parsedWordPart.Attributes.ContainsKey (ParsedWordAttributeId.NominalizedIrregularVerb)) {
+				if (parsedWordPart.Attributes.ContainsKey (ParsedWordAttributeId.IrregularAgentNount)) {
 
-					verbMeaning = parsedWordPart.Attributes [ParsedWordAttributeId.NominalizedIrregularVerb] [0];
+					verbMeaning = parsedWordPart.Attributes [ParsedWordAttributeId.IrregularAgentNount] [0];
 
 					if (((i + 1) < nounParts.Length) && PluralSuffixRegex.IsMatch (nounParts[i + 1])) {
 						isPlural = true;
@@ -2706,7 +2706,7 @@ public class Language : ISynchronizable {
 					verbMeaning = parsedWordPart.Attributes [ParsedWordAttributeId.IrregularVerb] [0];
 					tense = parsedWordPart.Attributes [ParsedWordAttributeId.IrregularVerb] [2];
 
-				} else if (parsedWordPart.Attributes.ContainsKey (ParsedWordAttributeId.NominalizedRegularVerb)) {
+				} else if (parsedWordPart.Attributes.ContainsKey (ParsedWordAttributeId.RegularAgentNount)) {
 
 					verbMeaning = parsedWordPart.Value;
 					nounMeaning += nounParts [i+1];
@@ -2738,8 +2738,8 @@ public class Language : ISynchronizable {
 			} else {
 
 				string meaning = parsedWordPart.Value;
-				if (parsedWordPart.Attributes.ContainsKey (ParsedWordAttributeId.IrregularPluralNoun)) {
-					meaning = parsedWordPart.Attributes[ParsedWordAttributeId.IrregularPluralNoun][0];
+				if (parsedWordPart.Attributes.ContainsKey (ParsedWordAttributeId.IrregularNoun)) {
+					meaning = parsedWordPart.Attributes[ParsedWordAttributeId.IrregularNoun][0];
 					isPlural = true;
 				}
 
@@ -2865,7 +2865,7 @@ public class Language : ISynchronizable {
 
 		ParsedWord parsedWordPart = ParseWord (nounParts[length - 1]);
 
-		if (parsedWordPart.Attributes.ContainsKey (ParsedWordAttributeId.IrregularPluralNoun)) {
+		if (parsedWordPart.Attributes.ContainsKey (ParsedWordAttributeId.IrregularNoun)) {
 
 			return true;
 
@@ -2897,9 +2897,9 @@ public class Language : ISynchronizable {
 
 		ParsedWord parsedWordPart = ParseWord (nounParts[length - 1]);
 
-		if (parsedWordPart.Attributes.ContainsKey (ParsedWordAttributeId.IrregularPluralNoun)) {
+		if (parsedWordPart.Attributes.ContainsKey (ParsedWordAttributeId.IrregularNoun)) {
 			
-			noun += parsedWordPart.Attributes[ParsedWordAttributeId.IrregularPluralNoun][0];
+			noun += parsedWordPart.Attributes[ParsedWordAttributeId.IrregularNoun][0];
 			
 			return noun;
 		} 
