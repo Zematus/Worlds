@@ -14,7 +14,6 @@ public class ElementConstraint
         TemperatureBelow,
         NoAttribute,
         AnyAttribute,
-        AnyBiome,
         MainBiome
     }
 
@@ -96,25 +95,10 @@ public class ElementConstraint
 
                 return new ElementConstraint() { Type = ConstraintType.AnyAttribute, Value = attributes };
 
-            case "any_biome":
+            case "main_biome":
                 string[] biomeStrs = valueStr.Split(new char[] { ',' });
 
                 Biome[] biomes = biomeStrs.Select(s =>
-                {
-                    if (!Biome.Biomes.ContainsKey(s))
-                    {
-                        throw new System.Exception("Biome not present: " + s);
-                    }
-
-                    return Biome.Biomes[s];
-                }).ToArray();
-
-                return new ElementConstraint() { Type = ConstraintType.AnyBiome, Value = biomes };
-
-            case "main_biome":
-                biomeStrs = valueStr.Split(new char[] { ',' });
-
-                biomes = biomeStrs.Select(s =>
                 {
                     if (!Biome.Biomes.ContainsKey(s))
                     {
@@ -135,16 +119,6 @@ public class ElementConstraint
         foreach (RegionAttribute a in attributes)
         {
             if (region.Attributes.Contains(a)) return true;
-        }
-
-        return false;
-    }
-
-    private bool IsAnyBiome(Region region, Biome[] biomes)
-    {
-        foreach (Biome b in biomes)
-        {
-            if (region.PresentBiomeIds.Contains(b.Id)) return true;
         }
 
         return false;
@@ -187,9 +161,6 @@ public class ElementConstraint
 
             case ConstraintType.AnyAttribute:
                 return IsAnyAttribute(region, (RegionAttribute[])Value);
-
-            case ConstraintType.AnyBiome:
-                return IsAnyBiome(region, (Biome[])Value);
 
             case ConstraintType.MainBiome:
                 return IsMainBiome(region, (Biome[])Value);

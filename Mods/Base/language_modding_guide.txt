@@ -12,20 +12,26 @@ In most cases, nouns must be defined in 'plural' form. If done correctly, the pa
 
 For irregular nouns, the 'in' annotation, encased within brackets, is prefixed. The annotation must include as a parameter the noun's singular spelling. Here are some examples:
 
-  [in(foot)]feet', [in(tooth)]teeth, [in(sky)]skies', '[in(knife)]knives', '[in(man)]men', '[in(child)]children'
+  '[in(foot)]feet', '[in(tooth)]teeth', '[in(sky)]skies', '[in(knife)]knives', '[in(man)]men', '[in(child)]children'
 
 Certain collective nouns, like 'people', can also be assigned a 'singular' spelling ([in(person)]people). This should be rarely done as it can lead to translation ambiguities.
 
 Agent Nouns
 
 Agent nouns are nouns constructed from worlds (in this case specifically, verbs) denoting actions. Examples are runner, builder, carrier. Worlds' language generator can identify the verb part of agent nouns if properly annotated. In this way, the language builder can make both the verb and the noun share a root in any of the languages it constructs. There are two ways to annotate agent nouns:
-  - Regular agent nouns (nouns terminating with 'er') prefix within brackets the annotation 'ran' and separate the suffix element with ':'. Examples:
+  - Regular agent nouns (nouns terminating with 'er' or 'r') prefix within brackets the annotation 'ran' and separate the suffix element with ':'. Examples:
 
-    '[ran]breath:er', '[ran]throw:er', '[ran]burn:er'
+    '[ran]breath:er', '[ran]throw:er', '[ran]burn:er', '[ran]dance:r'
 
   - Irregular agent nouns (slight noun spelling variation) prefix within brackets the annotation 'ian' with the original verb spelling as a parameter. Examples:
 
     '[ian(carry)]carrier', '[ian(translate)]translator'
+
+Noun Adjuncts
+
+Noun Adjuncts are single-word nouns that are associated with other nouns much in the same way as adjectives. These must be annotated with the keyword 'nad'. Here are some examples:
+
+    '[nad]ice cap', '[nad]ice sheet', '[nad]wood table', '[nad]stone tower'
 
 VERBS
 

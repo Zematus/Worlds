@@ -13,6 +13,225 @@
       "adjectives": "white, red, blue, green, yellow, black, grey, great",
       "constraints": "'altitude_above:0'",
       "associationStrings": "'[ran]break:er,of,ip|ns', '[ran]roll:er,of,p', '[ran]lift:er,of,ip|ns', '[ran]throw:er,of,ip|ns', '[iv(bear,ts,past)]born,by|near,ds|dp'"
+    },
+    {
+      "id": "rock",
+      "name": "rock:s",
+      "adjectives": "white, red, blue, green, yellow, black, grey, great, big, light, heavy",
+      "constraints": "'altitude_above:0'",
+      "associationStrings": "'[ran]break:er,of,ip|ns', '[ran]throw:er,of,ip|ns', '[ran]jump:er,of,ip|ns', '[iv(bear,ts,past)]born,by|near,ds|dp'"
+    },
+    {
+      "id": "sand",
+      "name": "sand:s",
+      "adjectives": "white, red, yellow, black, grey, fine, coarse",
+      "constraints": "'any_attribute:Desert,Delta,Peninsula,Island,Coast'",
+      "associationStrings": "'[ran]throw:er,of,u', '[ian(carry)]carrier,of,u', '[iv(bear,ts,past)]born,by,ds|dp'"
+    },
+    {
+      "id": "tree",
+      "name": "tree:s",
+      "adjectives": "white, red, green, yellow, black, dark, pale, dead, great, short, tall, narrow, wide",
+      "constraints": "'main_biome:forest,taiga,rainforest'",
+      "associationStrings": "'[ran]climb:er,of,ip|ns', '[ran]cut:ter,of,ip|ns', '[ran]fell:er,of,ip|ns', '[ran]fell:er,of,p', '[iv(bear,ts,past)]born,under,ip|is|ns', '[iv(bear,ts,past)]born,by|near,ds|dp'"
+    },
+    {
+      "id": "wood",
+      "name": "wood:s",
+      "adjectives": "white, red, green, yellow, black, dark, pale, dead, hard, soft",
+      "constraints": "'main_biome:forest,taiga,rainforest'",
+      "associationStrings": "'[ran]cut:ter,of,u', '[ran]work:er', '[ian(carry)]carrier,of,u'"
+    },
+    {
+      "id": "grass",
+      "name": "grass:es",
+      "adjectives": "wild, dead, tall, short, soft, wet, dry",
+      "constraints": "'main_biome:grassland,tundra'",
+      "associationStrings": "'[ran]cut:ter,of,u', '[ran]pull:er,of,u', '[ran]eat:er,of,u', '[iv(bear,ts,past)]born,in|by|near,ds'"
+    },
+    {
+      "id": "cloud",
+      "name": "cloud:s",
+      "adjectives": "white, red, pink, orange, black, grey, dark, great, thin, deep, light, bright, heavy",
+      "constraints": "'rainfall_above:675'",
+      "associationStrings": "'[ran]observe:r,of,ip', '[ran]watch:er,of,ip', '[ran]gaze:r,of,ip', '[iv(bear,ts,past)]born,under,ip'"
+    },
+    {
+      "id": "moss",
+      "name": "moss:es",
+      "adjectives": "white, red, green, pink, orange, yellow, black, dark, wet",
+      "constraints": "'main_biome:forest,taiga,tundra,rainforest'",
+      "associationStrings": "'[ran]eat:er,of,u', '[ran]grow:er,of,u', '[iv(bear,ts,past)]born,in|by|near,ds'"
+    },
+    {
+      "id": "shrub",
+      "name": "shrub:s",
+      "adjectives": "tall, white, red, green, yellow, black, dark, dry, wide",
+      "constraints": "'main_biome:grassland,tundra,desert'",
+      "associationStrings": "'[ran]burn:er,of,ip', '[iv(bear,ts,past)]born,between,ip', '[iv(bear,ts,past)]born,by|near,ds|dp', '[iv(hide,ts,past)]hidden,between,ip', '[iv(hide,ts,past)]hidden,in,is'"
+    },
+    {
+      "id": "bush",
+      "name": "bush:es",
+      "adjectives": "white, red, green, yellow, black, dark, dry, tiny",
+      "constraints": "'main_biome:grassland,tundra,desert'",
+      "associationStrings": "'[ran]burn:er,of,ip', '[iv(bear,ts,past)]born,between,ip', '[iv(bear,ts,past)]born,by|near,ds|dp', '[iv(hide,ts,past)]hidden,between,ip', '[iv(hide,ts,past)]hidden,in,is'"
+    },
+    {
+      "id": "fire",
+      "name": "fire:s",
+      "adjectives": "wild, white, red, green, blue, yellow, bright",
+      "constraints": "'altitude_above:0', 'temperature_above:0'",
+      "associationStrings": "'[ran]start:er,of,ip|ns', '[iv(bear,ts,past)]born,under,ns', '[iv(bear,ts,past)]born,by|near,ds|dp', '[rv(ts,past)]burn:ed,by,u|ds', '[ran]dance:r'"
+    },
+    {
+      "id": "flame",
+      "name": "flame:s",
+      "adjectives": "wild, white, red, green, blue, yellow, bright",
+      "constraints": "'altitude_above:0', 'temperature_above:0'",
+      "associationStrings": "'[iv(bear,ts,past)]born,under,ns', '[iv(bear,ts,past)]born,by|near,ds|dp', '[rv(ts,past)]burn:ed,by,u|ds', '[ran]dance:r'"
+    },
+    {
+      "id": "water",
+      "name": "water:s",
+      "adjectives": "white, green, blue, clear, dark",
+      "constraints": "'altitude_below:0'",
+      "associationStrings": "'[ran]swim:mer', '[ran]drink:er,of,u|ns', '[iv(bear,ts,past)]born,between,ip', '[iv(bear,ts,past)]born,by,ds', '[rv(ts,past)]soak:ed,by,u', '[rv(ts,past)]drench:ed,by,u'"
+    },
+    {
+      "id": "rain",
+      "name": "rain:s",
+      "adjectives": "heavy, soft, dark",
+      "constraints": "'rainfall_above:675'",
+      "associationStrings": "'[iv(bear,ts,past)]born,under,u|ns', '[iv(bear,ts,past)]born,between,ip', '[rv(ts,past)]bath:ed,by,u', '[rv(ts,past)]soak:ed,by,u', '[rv(ts,past)]drench:ed,by,u', '[ran]dance:r'"
+    },
+    {
+      "id": "storm",
+      "name": "storm:s",
+      "adjectives": "heavy, dark, great",
+      "constraints": "'rainfall_above:675'",
+      "associationStrings": "'[iv(bear,ts,past)]born,under,u|ns', '[iv(bear,ts,past)]born,between,ip|np', '[ran]dance:r'"
+    },
+    {
+      "id": "sun",
+      "name": "sun:s",
+      "adjectives": "white, red, yellow, bright, great",
+      "constraints": "'rainfall_below:1775'",
+      "associationStrings": "'[iv(bear,ts,past)]born,under,ns', '[ran]gaze:r,of,ns', '[iv(hide,ts,past)]hidden,from,ns', '[ran]dance:r'"
+    },
+    {
+      "id": "day",
+      "name": "day:s",
+      "adjectives": "white, red, blue, green, yellow, black, grey, dark, bright, great, short, long, somber, cheerful",
+      "associationStrings": "'[iv(bear,ts,past)]born,in|during,ns', '[iv(bear,ts,past)]born,between,ip', '[ran]drink:er', '[ran]watch:er', '[ran]talk:er', '[ran]dream:er'"
+    },
+    {
+      "id": "night",
+      "name": "night:s",
+      "adjectives": "white, red, blue, green, yellow, black, grey, dark, bright, great, short, long, somber, cheerful",
+      "associationStrings": "'[iv(bear,ts,past)]born,in|during,ns', '[iv(bear,ts,past)]born,between,ip', '[ran]drink:er', '[ran]watch:er', '[ran]talk:er', '[ran]dream:er'"
+    },
+    {
+      "id": "air",
+      "name": "air:s",
+      "associationStrings": "'[ran]breath:er,of,u'"
+    },
+    {
+      "id": "wind",
+      "name": "wind:s",
+      "adjectives": "strong, soft",
+      "constraints": "'no_attribute:Rainforest,Jungle,Taiga,Forest'",
+      "associationStrings": "'[ian(carry)]carrier,of,u|ns'"
+    },
+    {
+      "id": "sky",
+      "name": "[in(sky)]skies",
+      "adjectives": "white, red, blue, green, yellow, black, grey, dark, bright, great",
+      "constraints": "'altitude_above:3000'",
+      "associationStrings": "'[iv(bear,ts,past)]born,under,ns', '[ran]gaze:r,of,ns'"
+    },
+    {
+      "id": "shadow",
+      "name": "shadow:s",
+      "adjectives": "black, dark",
+      "constraints": "'main_biome:forest,taiga,rainforest'",
+      "associationStrings": "'[iv(bear,ts,past)]born,under,ip|ns', '[ran]gaze:r,of,ip', '[ran]walk:er', '[ran]stalk:er', '[iv(hide,ts,past)]hidden,in,ip', '[ran]dance:r', '[rv(ts,past)]scare:d,by,u'"
+    },
+    {
+      "id": "ice",
+      "name": "ice:s",
+      "adjectives": "clear, dark, blue, opaque",
+      "constraints": "'temperature_below:0'",
+      "associationStrings": "'[ian(carry)]carrier,of,u', '[ran]eat:er,of,u', '[ran]walk:er', '[iv(bear,ts,past)]born,in|by|near,ds'"
+    },
+    {
+      "id": "snow",
+      "name": "snow:s",
+      "adjectives": "clear, grey, soft, hard, wet",
+      "constraints": "'temperature_below:5'",
+      "associationStrings": "'[ran]throw:er,of,u', '[ian(carry)]carrier,of,u', '[ran]eat:er,of,u', '[iv(bear,ts,past)]born,in|by|near,ds', '[iv(bear,ts,past)]born,during,ns', '[iv(bear,ts,past)]born,between,ip', '[iv(hide,ts,past)]hidden,in,ip'"
+    },
+    {
+      "id": "peat",
+      "name": "peat:s",
+      "adjectives": "red, green, yellow, black, grey, dark, wet, dry",
+      "constraints": "'altitude_above:0', 'temperature_above:0', 'rainfall_above:675'",
+      "associationStrings": "'[ian(carry)]carrier,of,u', '[ran]use:r,of,u', '[iv(bear,ts,past)]born,in|by|near,ds'"
+    },
+    {
+      "id": "clay",
+      "name": "clay:s",
+      "adjectives": "red, orange, black, grey, white, dark, wet, dry",
+      "constraints": "'altitude_above:0', 'temperature_above:0', 'rainfall_above:675'",
+      "associationStrings": "'[ian(carry)]carrier,of,u', '[ran]use:r,of,u', '[ian(dig)]digger,of,u'"
+    },
+    {
+      "id": "marble",
+      "name": "marble:s",
+      "adjectives": "white, clear, grey, dark",
+      "constraints": "'altitude_above:0'",
+      "associationStrings": "'[ian(carry)]carrier,of,u', '[ran]use:r,of,u'"
+    },
+    {
+      "id": "thunder",
+      "name": "thunder:s",
+      "adjectives": "great, loud",
+      "constraints": "'rainfall_above:675'",
+      "associationStrings": "'[iv(bear,ts,past)]born,during,ip|np', '[rv(ts,past)]scare:d,by,u'"
+    },
+    {
+      "id": "mud",
+      "name": "mud:s",
+      "adjectives": "red, green, yellow, black, grey, dark, wet, dry",
+      "constraints": "'rainfall_above:675'",
+      "associationStrings": "'[ian(carry)]carrier,of,u', '[ran]use:r,of,u', '[ran]eat:er,of,u', '[iv(bear,ts,past)]born,in|near,ds'"
+    },
+    {
+      "id": "dew",
+      "name": "dew:s",
+      "constraints": "'rainfall_above:675'",
+      "associationStrings": "'[rv(ts,past)]bath:ed,by,u', '[rv(ts,past)]soak:ed,by,u'"
+    },
+    {
+      "id": "haze",
+      "name": "haze:s",
+      "adjectives": "light, white",
+      "constraints": "'rainfall_above:675'",
+      "associationStrings": "'[iv(bear,ts,past)]born,during,sp|np', '[iv(hide,ts,past)]hidden,in,ds'"
+    },
+    {
+      "id": "fog",
+      "name": "fog:s",
+      "adjectives": "dense, grey, dark",
+      "constraints": "'rainfall_above:1775'",
+      "associationStrings": "'[iv(bear,ts,past)]born,during,sp|np', '[iv(hide,ts,past)]hidden,in,ds'"
+    },
+    {
+      "id": "dust",
+      "name": "dust:s",
+      "adjectives": "white, red, yellow, black, grey, fine, coarse",
+      "constraints": "'rainfall_below:675'",
+      "associationStrings": "'[ian(carry)]carrier,of,u', '[iv(bear,ts,past)]born,during,sp|np', '[iv(bear,ts,past)]born,in|near,ds'"
     }
   ]
 }

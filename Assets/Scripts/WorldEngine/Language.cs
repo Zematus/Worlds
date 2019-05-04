@@ -456,7 +456,7 @@ public class Language : ISynchronizable {
 	public static Regex PhraseIndexRegex = new Regex (@"{(?<index>\d+)}");
 	public static Regex ArticleRegex = new Regex (@"^((?<def>the)|(?<indef>(a|an)))$");
 	public static Regex PluralSuffixRegex = new Regex (@"^(es|s)$");
-	public static Regex RegularAgentNounSuffixRegex = new Regex (@"^er$");
+	public static Regex AgentNounSuffixRegex = new Regex (@"^(er|r)$");
 	public static Regex ConjugationSuffixRegex = new Regex (@"^(ed|d|s)$");
 
 	[XmlAttribute("ArticleProperties")]

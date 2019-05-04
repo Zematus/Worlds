@@ -1,0 +1,40 @@
+{
+  "regionAttributes": [
+    {
+      "name": "ice sheet",
+      "adjectives": "clear, white, blue, grey",
+      "variants": "[nad]ice sheet, glacier{<relation>:s}",
+      "associationStrings": "'[iv(bear,ts,past)]born,by|near|in,ds|dp', '[rv(ts,past)]raise:d,near|in,ds|dp', '[ran]walk:er,of,ip|ns', '[ran]stride:r,of,ip|ns', '[rv(ts,past)]arrive:d,from,ds'"
+    },
+    {
+      "name": "ice shelf",
+      "adjectives": "clear, white, blue, grey",
+      "variants": "[nad]ice shelf, [nad]ice cap",
+      "associationStrings": "'[iv(bear,ts,past)]born,by|near|in,ds|dp', '[rv(ts,past)]raise:d,near|in,ds|dp', '[ran]walk:er,of,ip|ns', '[ran]stride:r,of,ip|ns', '[rv(ts,past)]arrive:d,from,ds'"
+    },
+    {
+      "name": "ocean",
+      "adjectives": "clear, dark, blue, red, green, grey",
+      "variants": "ocean{<relation>:s}, sea{<relation>:s}",
+      "associationStrings": "'[iv(bear,ts,past)]born,by|near,ds|dp', '[rv(ts,past)]raise:d,near,ds|dp', '[ian(swim)]swimmer,of,ip|ns', '[rv(ts,past)]arrive:d,from,ds'"
+    },
+    {
+      "name": "grassland",
+      "adjectives": "dark, pale, red, green, grey, yellow",
+      "variants": "grass:land{:s}, steppe{:s}, savanna{:s}, shrub:land{:s}, prairie{:s}, range{:s}, field{:s}",
+      "associationStrings": "'[iv(bear,ts,past)]born,by|near|in,ds|dp', '[rv(ts,past)]raise:d,near|in,ds|dp', '[ran]walk:er,of,ip|ns', '[ran]stride:r,of,ip|ns', '[rv(ts,past)]arrive:d,from,ds'"
+    },
+    {
+      "name": "forest",
+      "adjectives": "black, dark, pale, red, blue, grey",
+      "variants": "forest{<relation>:s}, wood:s, wood:land{:s}",
+      "associationStrings": "'[iv(bear,ts,past)]born,by|near|in,ds|dp', '[rv(ts,past)]raise:d,near|in,ds|dp', '[ran]walk:er,of,ip|ns', '[ran]stride:r,of,ip|ns', '[rv(ts,past)]arrive:d,from,ds'"
+    },
+    {
+      "name": "taiga",
+      "adjectives": "white, black, dark, pale, red, blue, grey",
+      "variants": "taiga{<relation>:s}, hinter{:land}{:s}",
+      "associationStrings": "'[iv(bear,ts,past)]born,by|near|in,ds|dp', '[rv(ts,past)]raise:d,near|in,ds|dp', '[ran]walk:er,of,ip|ns', '[ran]stride:r,of,ip|ns', '[rv(ts,past)]arrive:d,from,ds'"
+    }
+  ]
+}

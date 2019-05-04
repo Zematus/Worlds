@@ -10,16 +10,16 @@
       "color":             -- (required) HTML color code (#RRGGBB) to use to represent biome on map (transparency values, if added, will be ignored)
       "type":              -- (required) Indicates if the biome is land-based or sea-based (accepted values: "land", "sea")
 
-      "minAltitude":       -- (optional) minimum cell altitude at which this biome can be present, a value of '0' refers to sea level (meters)
-      "maxAltitude":       -- (optional) maximum cell altitude at which this biome can be present, a value of '0' refers to sea level (meters)
-      "minRainfall":       -- (optional) minimum cell rainfall at which this biome can be present (mm per year)
-      "maxRainfall":       -- (optional) maximum cell rainfall at which this biome can be present (mm per year)
-      "minTemperature":    -- (optional) minimum cell temperature at which this biome can be present (centigrade, yearly average)
-      "maxTemperature":    -- (optional) maximum cell temperature at which this biome can be present (centigrade, yearly average)
+      "minAltitude":       -- (optional) Minimum cell altitude at which this biome can be present, a value of '0' refers to sea level (meters)
+      "maxAltitude":       -- (optional) Maximum cell altitude at which this biome can be present, a value of '0' refers to sea level (meters)
+      "minRainfall":       -- (optional) Minimum cell rainfall at which this biome can be present (mm per year)
+      "maxRainfall":       -- (optional) Maximum cell rainfall at which this biome can be present (mm per year)
+      "minTemperature":    -- (optional) Minimum cell temperature at which this biome can be present (centigrade, yearly average)
+      "maxTemperature":    -- (optional) Maximum cell temperature at which this biome can be present (centigrade, yearly average)
 
-      "survivability":     -- (required) base probability of a given human group surviving in this biome (between 0 and 1 inclusive)
-      "foragingCapacity":  -- (required) base foraging capacity this cell provides to a human group (between 0 and 1 inclusive)
-      "accessibility":     -- (required) base travel modifier in and out this cell (between 0 and 1 inclusive)
+      "survivability":     -- (required) Base probability of a given human group surviving in this biome (between 0 and 1 inclusive)
+      "foragingCapacity":  -- (required) Base foraging capacity this cell provides to a human group (between 0 and 1 inclusive)
+      "accessibility":     -- (required) Base travel modifier in and out this cell (between 0 and 1 inclusive)
     },
     ... -- additional biomes --
   ]

@@ -5,9 +5,16 @@ using System;
 using System.IO;
 using System.Text.RegularExpressions;
 
+public static class QuotedStringListHelper
+{
+    public const string FirstAndLastSingleQuoteRegex = @"(?:^\s*\'\s*)|(?:\s*\'\s*$)";
+    public const string SeparatorSingleQuoteRegex = @"\s*(?:(?:\'\s*,\s*\'))\s*";
+}
+
 [Serializable]
 public class ElementLoader
 {
+
 #pragma warning disable 0649
 
     public LoadedElement[] elements;
@@ -50,7 +57,7 @@ public class ElementLoader
 
         if (string.IsNullOrEmpty(e.associationStrings))
         {
-            throw new ArgumentException("element's associationStrings can't be null or empty");
+            throw new ArgumentException("element's association strings can't be null or empty");
         }
 
         string[] adjectives = null;
@@ -70,25 +77,13 @@ public class ElementLoader
         if (!string.IsNullOrEmpty(e.constraints))
         {
             //Cleanup and split list of constraints
-            string c = Regex.Replace(e.constraints, @"^\s*\'\s*", "");
-            c = Regex.Replace(c, @"\s*\'\s*$", "");
-            constraints = Regex.Split(c, @"\s*(?:(?:\'\s*,\s*\'))\s*");
-
-            for (int i = 0; i < constraints.Length; i++)
-            {
-                Debug.Log("constraints[" + i + "]: " + constraints[i]);
-            }
+            string c = Regex.Replace(e.constraints, QuotedStringListHelper.FirstAndLastSingleQuoteRegex, "");
+            constraints = Regex.Split(c, QuotedStringListHelper.SeparatorSingleQuoteRegex);
         }
 
         //Cleanup and split list of association strings
-        string a = Regex.Replace(e.associationStrings, @"^\s*\'\s*", "");
-        a = Regex.Replace(a, @"\s*\'\s*$", "");
-        associationStrs = Regex.Split(a, @"\s*(?:(?:\'\s*,\s*\'))\s*");
-
-        for (int i = 0; i < associationStrs.Length; i++)
-        {
-            Debug.Log("associationStrs[" + i + "]: " + associationStrs[i]);
-        }
+        string a = Regex.Replace(e.associationStrings, QuotedStringListHelper.FirstAndLastSingleQuoteRegex, "");
+        associationStrs = Regex.Split(a, QuotedStringListHelper.SeparatorSingleQuoteRegex);
 
         Element element = new Element(e.id, e.name, adjectives, constraints, associationStrs);
 

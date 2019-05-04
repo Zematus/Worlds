@@ -22,6 +22,11 @@ public class ScriptTesterScript : MonoBehaviour
             Debug.Log("generated biome: " + biome.Name);
         }
 
+        foreach (RegionAttribute regionAttribute in RegionAttributeLoader.Load(@"Mods\Base\region_attributes.json"))
+        {
+            Debug.Log("generated region attribute: " + regionAttribute.Name);
+        }
+
         foreach (Element element in ElementLoader.Load(@"Mods\Base\elements.json"))
         {
             Debug.Log("generated element: " + element.SingularName);
