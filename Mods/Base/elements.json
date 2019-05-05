@@ -25,7 +25,7 @@
       "id": "sand",
       "name": "sand:s",
       "adjectives": "white, red, yellow, black, grey, fine, coarse",
-      "constraints": "'any_attribute:Desert,Delta,Peninsula,Island,Coast'",
+      "constraints": "'any_attribute:desert,delta,peninsula,island,coast'",
       "associationStrings": "'[ran]throw:er,of,u', '[ian(carry)]carrier,of,u', '[iv(bear,ts,past)]born,by,ds|dp'"
     },
     {
@@ -140,7 +140,7 @@
       "id": "wind",
       "name": "wind:s",
       "adjectives": "strong, soft",
-      "constraints": "'no_attribute:Rainforest,Jungle,Taiga,Forest'",
+      "constraints": "'no_attribute:rainforest,jungle,taiga,forest'",
       "associationStrings": "'[ian(carry)]carrier,of,u|ns'"
     },
     {

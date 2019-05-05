@@ -27,7 +27,7 @@ public class ElementConstraint
         Match match = ConstraintRegex.Match(constraint);
 
         if (!match.Success)
-            throw new System.Exception("Unparseable constraint: " + constraint);
+            throw new System.ArgumentException("Unparseable constraint: " + constraint);
 
         string type = match.Groups["type"].Value;
         string valueStr = match.Groups["value"].Value;

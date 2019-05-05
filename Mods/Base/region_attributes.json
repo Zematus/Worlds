@@ -35,6 +35,71 @@
       "adjectives": "white, black, dark, pale, red, blue, grey",
       "variants": "taiga{<relation>:s}, hinter{:land}{:s}",
       "associationStrings": "'[iv(bear,ts,past)]born,by|near|in,ds|dp', '[rv(ts,past)]raise:d,near|in,ds|dp', '[ran]walk:er,of,ip|ns', '[ran]stride:r,of,ip|ns', '[rv(ts,past)]arrive:d,from,ds'"
+    },
+    {
+      "name": "tundra",
+      "adjectives": "white, black, dark, pale, red, blue, grey",
+      "variants": "tundra{<relation>:s}, waste{:land}{:s}",
+      "associationStrings": "'[iv(bear,ts,past)]born,by|near|in,ds|dp', '[rv(ts,past)]raise:d,near|in,ds|dp', '[ran]walk:er,of,ip|ns', '[ran]stride:r,of,ip|ns', '[rv(ts,past)]arrive:d,from,ds'"
+    },
+    {
+      "name": "desert",
+      "adjectives": "white, red, yellow, black, grey",
+      "variants": "desert{<relation>:s}, sand{:s}",
+      "associationStrings": "'[iv(bear,ts,past)]born,by|near|in,ds|dp', '[rv(ts,past)]raise:d,near|in,ds|dp', '[ran]walk:er,of,ip|ns', '[ran]stride:r,of,ip|ns', '[rv(ts,past)]arrive:d,from,ds'"
+    },
+    {
+      "name": "rainforest",
+      "adjectives": "black, dark, red, blue, grey",
+      "variants": "{rain:}forest{<relation>:s}",
+      "associationStrings": "'[iv(bear,ts,past)]born,by|near|in,ds|dp', '[rv(ts,past)]raise:d,near|in,ds|dp', '[ran]walk:er,of,ip|ns', '[ran]stride:r,of,ip|ns', '[rv(ts,past)]arrive:d,from,ds'"
+    },
+    {
+      "name": "jungle",
+      "adjectives": "black, dark, red, blue, grey",
+      "variants": "jungle{<relation>:s}",
+      "associationStrings": "'[iv(bear,ts,past)]born,by|near|in,ds|dp', '[rv(ts,past)]raise:d,near|in,ds|dp', '[ran]walk:er,of,ip|ns', '[ran]stride:r,of,ip|ns', '[rv(ts,past)]arrive:d,from,ds'"
+    },
+    {
+      "name": "valley",
+      "variants": "valley{<relation>:s}",
+      "associationStrings": "'[iv(bear,ts,past)]born,by|near|in,ds|dp', '[rv(ts,past)]raise:d,near|in,ds|dp', '[ran]walk:er,of,ip|ns', '[ran]stride:r,of,ip|ns', '[rv(ts,past)]arrive:d,from,ds'"
+    },
+    {
+      "name": "highland",
+      "variants": "high:land{:s}",
+      "associationStrings": "'[iv(bear,ts,past)]born,by|near|in,ds|dp', '[rv(ts,past)]raise:d,near|in,ds|dp', '[ran]walk:er,of,ip|ns', '[ran]stride:r,of,ip|ns', '[rv(ts,past)]arrive:d,from,ds'"
+    },
+    {
+      "name": "basin",
+      "variants": "basin{<relation>:s}",
+      "associationStrings": "'[iv(bear,ts,past)]born,by|near|in,ds|dp', '[rv(ts,past)]raise:d,near|in,ds|dp', '[ran]walk:er,of,ip|ns', '[ran]stride:r,of,ip|ns', '[rv(ts,past)]arrive:d,from,ds'"
+    },
+    {
+      "name": "delta",
+      "variants": "delta{<relation>:s}",
+      "associationStrings": "'[iv(bear,ts,past)]born,by|near|in,ds|dp', '[rv(ts,past)]raise:d,near|in,ds|dp', '[ran]walk:er,of,ip|ns', '[ran]stride:r,of,ip|ns', '[rv(ts,past)]arrive:d,from,ds'"
+    },
+    {
+      "name": "peninsula",
+      "variants": "cape{<relation>:s}, horn{<relation>:s}, peninsula{<relation>:s}",
+      "associationStrings": "'[iv(bear,ts,past)]born,by|near|in,ds|dp', '[rv(ts,past)]raise:d,near|in,ds|dp', '[ran]walk:er,of,ip|ns', '[ran]stride:r,of,ip|ns', '[rv(ts,past)]arrive:d,from,ds'"
+    },
+    {
+      "name": "island",
+      "variants": "isle{<relation>:s}, island{<relation>:s}",
+      "associationStrings": "'[iv(bear,ts,past)]born,by|near|in,ds|dp', '[rv(ts,past)]raise:d,near|in,ds|dp', '[ran]walk:er,of,ip|ns', '[ran]stride:r,of,ip|ns', '[rv(ts,past)]arrive:d,from,ds'"
+    },
+    {
+      "name": "coast",
+      "variants": "strand{<relation>:s}, coast{<relation>:s}",
+      "associationStrings": "'[iv(bear,ts,past)]born,by|near|in,ds|dp', '[rv(ts,past)]raise:d,near|in,ds|dp', '[ran]walk:er,of,ip|ns', '[ran]stride:r,of,ip|ns', '[rv(ts,past)]arrive:d,from,ds'"
+    },
+    {
+      "name": "region",
+      "adjectives": "dark, bleak, open",
+      "variants": "region{<relation>:s}, land{:s}",
+      "associationStrings": "'[iv(bear,ts,past)]born,by|near|in,ds|dp', '[rv(ts,past)]raise:d,near|in,ds|dp', '[ran]walk:er,of,ip|ns', '[ran]stride:r,of,ip|ns', '[rv(ts,past)]arrive:d,from,ds'"
     }
   ]
 }

@@ -308,21 +308,21 @@ public class CellRegion : Region
                     Info.AddAttribute(RegionAttribute.Desert);
                     break;
 
-                //case "forest":
-                //    Info.AddAttribute(RegionAttribute.Forest);
-                //    break;
+                case "forest":
+                    Info.AddAttribute(RegionAttribute.Forest);
+                    break;
 
-                //case "ice_sheet":
-                //    Info.AddAttribute(RegionAttribute.Glacier);
-                //    break;
+                case "ice_sheet":
+                    Info.AddAttribute(RegionAttribute.Glacier);
+                    break;
 
-                //case "grassland":
-                //    Info.AddAttribute(RegionAttribute.Grassland);
-                //    break;
+                case "grassland":
+                    Info.AddAttribute(RegionAttribute.Grassland);
+                    break;
 
-                //case "ice_shelf":
-                //    Info.AddAttribute(RegionAttribute.IceCap);
-                //    break;
+                case "ice_shelf":
+                    Info.AddAttribute(RegionAttribute.IceCap);
+                    break;
 
                 case "rainforest":
                     Info.AddAttribute(RegionAttribute.Rainforest);
@@ -331,9 +331,9 @@ public class CellRegion : Region
                         Info.AddAttribute(RegionAttribute.Jungle);
                     break;
 
-                //case "taiga":
-                //    Info.AddAttribute(RegionAttribute.Taiga);
-                //    break;
+                case "taiga":
+                    Info.AddAttribute(RegionAttribute.Taiga);
+                    break;
 
                 case "tundra":
                     Info.AddAttribute(RegionAttribute.Tundra);
