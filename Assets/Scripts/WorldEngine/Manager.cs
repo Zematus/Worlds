@@ -3909,6 +3909,6 @@ public class Manager
     {
         string baseBiomeModFilename = modPath + @"Base\biomes.json";
 
-        Biome.LoadModFile(baseBiomeModFilename);
+        Biome.LoadFile(baseBiomeModFilename);
     }
 }

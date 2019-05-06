@@ -13,21 +13,29 @@ public class ScriptTesterScript : MonoBehaviour
     {
         Manager.UpdateMainThreadReference();
 
-        Debug.Log("loading JSON...");
+        Debug.Log("loading biome mod file...");
 
-        Biome.LoadModFile(@"Mods\Base\biomes.json");
+        Biome.LoadFile(@"Mods\Base\biomes.json");
 
         foreach (Biome biome in Biome.Biomes.Values)
         {
             Debug.Log("generated biome: " + biome.Name);
         }
 
-        foreach (RegionAttribute regionAttribute in RegionAttributeLoader.Load(@"Mods\Base\region_attributes.json"))
+        Debug.Log("loading region attribute mod file...");
+
+        RegionAttribute.LoadFile(@"Mods\Base\region_attributes.json");
+
+        foreach (RegionAttribute regionAttribute in RegionAttribute.Attributes.Values)
         {
             Debug.Log("generated region attribute: " + regionAttribute.Name);
         }
 
-        foreach (Element element in ElementLoader.Load(@"Mods\Base\elements.json"))
+        Debug.Log("loading element mod file...");
+
+        Element.LoadFile(@"Mods\Base\elements.json");
+
+        foreach (Element element in Element.Elements.Values)
         {
             Debug.Log("generated element: " + element.SingularName);
         }

@@ -6,174 +6,181 @@ using System.Linq;
 using System.Xml.Serialization;
 using System.ComponentModel;
 
-public class Language : ISynchronizable {
+public class Language : ISynchronizable
+{
+    [XmlAttribute]
+    public long Id;
 
-	[XmlAttribute]
-	public long Id;
+    public delegate float GetRandomFloatDelegate();
 
-	public delegate float GetRandomFloatDelegate ();
+    public class Phrase : ISynchronizable
+    {
+        [XmlAttribute]
+        public string Original;
+        [XmlAttribute]
+        public string Meaning;
+        [XmlAttribute]
+        public string Text;
 
-	public class Phrase : ISynchronizable {
+        [XmlAttribute("Properties")]
+        public int PropertiesInt;
 
-		[XmlAttribute]
-		public string Original;
-		[XmlAttribute]
-		public string Meaning;
-		[XmlAttribute]
-		public string Text;
+        [XmlIgnore]
+        public PhraseProperties Properties;
 
-		[XmlAttribute("Properties")]
-		public int PropertiesInt;
+        public void Synchronize()
+        {
+            PropertiesInt = (int)Properties;
+        }
 
-		[XmlIgnore]
-		public PhraseProperties Properties;
+        public void FinalizeLoad()
+        {
+            Properties = (PhraseProperties)PropertiesInt;
+        }
 
-		public void Synchronize () {
+        public Phrase()
+        {
 
-			PropertiesInt = (int)Properties;
-		}
+        }
 
-		public void FinalizeLoad () {
+        public Phrase(Phrase phrase)
+        {
+            Original = phrase.Original;
+            Meaning = phrase.Meaning;
+            Text = phrase.Text;
 
-			Properties = (PhraseProperties)PropertiesInt;
-		}
+            Properties = phrase.Properties;
+        }
+    }
 
-		public Phrase () {
-			
-		}
-
-		public Phrase (Phrase phrase) {
-
-			Original = phrase.Original;
-			Meaning = phrase.Meaning;
-			Text = phrase.Text;
-
-			Properties = phrase.Properties;
-		}
-	}
-
-	public class Morpheme : ISynchronizable {
-
-		[XmlAttribute]
-		public string Meaning;
-		[XmlAttribute]
-		public string Value;
+    public class Morpheme : ISynchronizable
+    {
+        [XmlAttribute]
+        public string Meaning;
+        [XmlAttribute]
+        public string Value;
 
 
-		[XmlAttribute]
-		public WordType Type;
+        [XmlAttribute]
+        public WordType Type;
 
-		[XmlAttribute("Properties")]
-		public int PropertiesInt;
+        [XmlAttribute("Properties")]
+        public int PropertiesInt;
 
-		[XmlIgnore]
-		public MorphemeProperties Properties;
+        [XmlIgnore]
+        public MorphemeProperties Properties;
 
-		public void Synchronize () {
+        public void Synchronize()
+        {
+            PropertiesInt = (int)Properties;
+        }
 
-			PropertiesInt = (int)Properties;
-		}
+        public void FinalizeLoad()
+        {
+            Properties = (MorphemeProperties)PropertiesInt;
+        }
+    }
 
-		public void FinalizeLoad () {
+    public class ParsedWord
+    {
+        public string Value;
+        public Dictionary<string, string[]> Attributes = new Dictionary<string, string[]>();
+    }
 
-			Properties = (MorphemeProperties)PropertiesInt;
-		}
-	}
+    public class ParsedPhrase
+    {
+        public string Value;
+        public Dictionary<string, string[]> Attributes = new Dictionary<string, string[]>();
 
-	public class ParsedWord {
+        public Dictionary<int, ParsedPhrase> SubPhrases = new Dictionary<int, ParsedPhrase>();
+    }
 
-		public string Value;
-		public Dictionary<string, string[]> Attributes = new Dictionary<string, string[]> ();
-	}
+    public class Letter : CollectionUtility.ElementWeightPair<string>
+    {
+        public Letter()
+        {
 
-	public class ParsedPhrase {
+        }
 
-		public string Value;
-		public Dictionary<string, string[]> Attributes = new Dictionary<string, string[]> ();
+        public Letter(string letter, float weight) : base(letter, weight)
+        {
 
-		public Dictionary<int, ParsedPhrase> SubPhrases = new Dictionary<int, ParsedPhrase> ();
-	}
+        }
+    }
 
-	public class Letter : CollectionUtility.ElementWeightPair<string> {
+    public class CharacterGroup : CollectionUtility.ElementWeightPair<string>
+    {
+        public CharacterGroup()
+        {
 
-		public Letter () {
+        }
 
-		}
+        public CharacterGroup(string characters, float weight) : base(characters, weight)
+        {
 
-		public Letter (string letter, float weight) : base (letter, weight) {
+        }
 
-		}
-	}
+        public string Characters
+        {
+            get
+            {
+                return Value;
+            }
+        }
+    }
 
-	public class CharacterGroup : CollectionUtility.ElementWeightPair<string> {
+    public static class VerbConjugationKeys
+    {
+        public const string FirstPerson = "first";
+        public const string SecondPerson = "second";
+        public const string ThirdPerson = "third";
 
-		public CharacterGroup () {
-			
-		}
+        public const string FirstPersonSingular = "fs";
+        public const string SecondPersonSingular = "ss";
+        public const string ThirdPersonSingular = "ts";
 
-		public CharacterGroup (string characters, float weight) : base (characters, weight) {
+        public const string FirstPersonPlural = "fp";
+        public const string SecondPersonPlural = "sp";
+        public const string ThirdPersonPlural = "tp";
+    }
 
-		}
+    public static class VerbTenses
+    {
+        public const string Null = "null";
+        public const string Present = "present";
+        public const string Past = "past";
+        public const string Future = "future";
+        public const string Infinitive = "infinitive";
+    }
 
-		public string Characters {
-			get { 
-				return Value;
-			}
-		}
-	}
+    public static class ParsedWordAttributeId
+    {
+        public const string FemenineNoun = "fn";
+        public const string MasculineNoun = "mn";
+        public const string NeutralNoun = "nn";
+        public const string UncountableNoun = "un";
+        public const string RegularAgentNount = "ran";
+        public const string IrregularAgentNount = "ian";
+        public const string IrregularNoun = "in";
+        public const string NounAdjunct = "nad";
+        public const string Adjective = "adj";
+        public const string RegularVerb = "rv";
+        public const string IrregularVerb = "iv";
+        public const string Name = "name";
+        //		public const string Preposition = "pre";
+        //		public const string Import = "import";
+    }
 
-	public static class VerbConjugationKeys {
-		
-		public const string FirstPerson = "first";
-		public const string SecondPerson = "second";
-		public const string ThirdPerson = "third";
+    public static class ParsedPhraseAttributeId
+    {
+        public const string PhrasePlusPrepositionalPhrase = "PpPP";
+        public const string PrepositionalPhrase = "PP";
+        public const string NounPhrase = "NP";
+        public const string Noun = "Noun";
+        public const string ProperName = "Proper";
+    }
 
-		public const string FirstPersonSingular = "fs";
-		public const string SecondPersonSingular = "ss";
-		public const string ThirdPersonSingular = "ts";
-
-		public const string FirstPersonPlural = "fp";
-		public const string SecondPersonPlural = "sp";
-		public const string ThirdPersonPlural = "tp";
-	}
-
-	public static class VerbTenses {
-
-		public const string Null = "null";
-		public const string Present = "present";
-		public const string Past = "past";
-		public const string Future = "future";
-		public const string Infinitive = "infinitive";
-	}
-
-	public static class ParsedWordAttributeId {
-
-		public const string FemenineNoun = "fn";
-		public const string MasculineNoun = "mn";
-		public const string NeutralNoun = "nn";
-		public const string UncountableNoun = "un";
-		public const string RegularAgentNount = "ran";
-		public const string IrregularAgentNount = "ian";
-		public const string IrregularNoun = "in";
-		public const string NounAdjunct = "nad";
-		public const string Adjective = "adj";
-		public const string RegularVerb = "rv";
-		public const string IrregularVerb = "iv";
-		public const string Name = "name";
-//		public const string Preposition = "pre";
-//		public const string Import = "import";
-	}
-
-	public static class ParsedPhraseAttributeId {
-
-		public const string PhrasePlusPrepositionalPhrase = "PpPP";
-		public const string PrepositionalPhrase = "PP";
-		public const string NounPhrase = "NP";
-		public const string Noun = "Noun";
-		public const string ProperName = "Proper";
-	}
-
-	public enum WordType
+    public enum WordType
 	{
 		Article,
 		Indicative,
@@ -315,151 +322,151 @@ public class Language : ISynchronizable {
 		public const string UncountableNeutral = Uncountable + Neutral;// = "UncountableNeutral";
 	}
 
-	// based on frequency of consonants across languages. source: http://phoible.org/
-	public static Letter[] OnsetLetters = new Letter[] { 
-		new Letter ("m", 0.95f),
-		new Letter ("k", 0.94f),
-		new Letter ("j", 0.88f),
-		new Letter ("p", 0.87f),
-		new Letter ("w", 0.84f),
-		new Letter ("n", 0.81f),
-		new Letter ("s", 0.77f),
-		new Letter ("t", 0.74f),
-		new Letter ("b", 0.70f),
-		new Letter ("l", 0.65f),
-		new Letter ("h", 0.65f),
-		new Letter ("d", 0.53f),
-		new Letter ("f", 0.48f),
-		new Letter ("r", 0.37f),
-		new Letter ("z", 0.31f),
-		new Letter ("v", 0.29f),
-		new Letter ("ts", 0.23f),
-		new Letter ("x", 0.18f),
-		new Letter ("kp", 0.17f),
-		new Letter ("c", 0.14f),
-		new Letter ("mb", 0.14f),
-		new Letter ("nd", 0.12f),
-		new Letter ("dz", 0.1f),
-		new Letter ("q", 0.09f),
-		new Letter ("y", 0.038f),
-		new Letter ("ndz", 0.02f),
-		new Letter ("nz", 0.02f),
-		new Letter ("mp", 0.016f),
-		new Letter ("pf", 0.017f),
-		new Letter ("nts", 0.0037f),
-		new Letter ("tr", 0.0028f),
-		new Letter ("dr", 0.0028f),
-		new Letter ("tx", 0.0023f),
-		new Letter ("kx", 0.0023f),
-		new Letter ("ndr", 0.0023f),
-		new Letter ("ps", 0.0018f),
-		new Letter ("dl", 0.00093f),
-		new Letter ("nr", 0.00092f),
-		new Letter ("nh", 0.00092f),
-		new Letter ("nl", 0.00092f),
-		new Letter ("tn", 0.00092f),
-		new Letter ("pm", 0.00092f),
-		new Letter ("tl", 0.00092f),
-		new Letter ("xh", 0.00046f),
-		new Letter ("mv", 0.00046f),
-		new Letter ("ld", 0.00046f),
-		new Letter ("mw", 0.00046f),
-		new Letter ("br", 0.00046f),
-		new Letter ("qn", 0.00046f)
-	};
+    // based on frequency of consonants across languages. source: http://phoible.org/
+    public static Letter[] OnsetLetters = new Letter[] {
+        new Letter ("m", 0.95f),
+        new Letter ("k", 0.94f),
+        new Letter ("j", 0.88f),
+        new Letter ("p", 0.87f),
+        new Letter ("w", 0.84f),
+        new Letter ("n", 0.81f),
+        new Letter ("s", 0.77f),
+        new Letter ("t", 0.74f),
+        new Letter ("b", 0.70f),
+        new Letter ("l", 0.65f),
+        new Letter ("h", 0.65f),
+        new Letter ("d", 0.53f),
+        new Letter ("f", 0.48f),
+        new Letter ("r", 0.37f),
+        new Letter ("z", 0.31f),
+        new Letter ("v", 0.29f),
+        new Letter ("ts", 0.23f),
+        new Letter ("x", 0.18f),
+        new Letter ("kp", 0.17f),
+        new Letter ("c", 0.14f),
+        new Letter ("mb", 0.14f),
+        new Letter ("nd", 0.12f),
+        new Letter ("dz", 0.1f),
+        new Letter ("q", 0.09f),
+        new Letter ("y", 0.038f),
+        new Letter ("ndz", 0.02f),
+        new Letter ("nz", 0.02f),
+        new Letter ("mp", 0.016f),
+        new Letter ("pf", 0.017f),
+        new Letter ("nts", 0.0037f),
+        new Letter ("tr", 0.0028f),
+        new Letter ("dr", 0.0028f),
+        new Letter ("tx", 0.0023f),
+        new Letter ("kx", 0.0023f),
+        new Letter ("ndr", 0.0023f),
+        new Letter ("ps", 0.0018f),
+        new Letter ("dl", 0.00093f),
+        new Letter ("nr", 0.00092f),
+        new Letter ("nh", 0.00092f),
+        new Letter ("nl", 0.00092f),
+        new Letter ("tn", 0.00092f),
+        new Letter ("pm", 0.00092f),
+        new Letter ("tl", 0.00092f),
+        new Letter ("xh", 0.00046f),
+        new Letter ("mv", 0.00046f),
+        new Letter ("ld", 0.00046f),
+        new Letter ("mw", 0.00046f),
+        new Letter ("br", 0.00046f),
+        new Letter ("qn", 0.00046f)
+    };
 
-	// based on frequency of vowels across languages. source: http://phoible.org/
-	public static Letter[] NucleusLetters = new Letter[] { 
-		new Letter ("i", 0.93f),
-		new Letter ("a", 0.91f),
-		new Letter ("u", 0.87f),
-		new Letter ("o", 0.68f),
-		new Letter ("e", 0.68f),
-		new Letter ("y", 0.04f),
-		new Letter ("ai", 0.03f),
-		new Letter ("au", 0.02f),
-		new Letter ("ia", 0.01f),
-		new Letter ("ui", 0.01f),
-		new Letter ("ie", 0.005f),
-		new Letter ("iu", 0.004f),
-		new Letter ("uo", 0.0037f),
-		new Letter ("ea", 0.0028f),
-		new Letter ("oa", 0.0023f),
-		new Letter ("ao", 0.0023f),
-		new Letter ("eu", 0.0023f),
-		new Letter ("ue", 0.0018f),
-		new Letter ("ae", 0.0018f),
-		new Letter ("oe", 0.0013f),
-		new Letter ("ay", 0.00092f),
-		new Letter ("ye", 0.00046f)
-	};
+    // based on frequency of vowels across languages. source: http://phoible.org/
+    public static Letter[] NucleusLetters = new Letter[] {
+        new Letter ("i", 0.93f),
+        new Letter ("a", 0.91f),
+        new Letter ("u", 0.87f),
+        new Letter ("o", 0.68f),
+        new Letter ("e", 0.68f),
+        new Letter ("y", 0.04f),
+        new Letter ("ai", 0.03f),
+        new Letter ("au", 0.02f),
+        new Letter ("ia", 0.01f),
+        new Letter ("ui", 0.01f),
+        new Letter ("ie", 0.005f),
+        new Letter ("iu", 0.004f),
+        new Letter ("uo", 0.0037f),
+        new Letter ("ea", 0.0028f),
+        new Letter ("oa", 0.0023f),
+        new Letter ("ao", 0.0023f),
+        new Letter ("eu", 0.0023f),
+        new Letter ("ue", 0.0018f),
+        new Letter ("ae", 0.0018f),
+        new Letter ("oe", 0.0013f),
+        new Letter ("ay", 0.00092f),
+        new Letter ("ye", 0.00046f)
+    };
 
-	// based on frequency of consonants across languages. source: http://phoible.org/
-	public static Letter[] CodaLetters = new Letter[] { 
-		new Letter ("m", 0.95f),
-		new Letter ("k", 0.94f),
-		new Letter ("j", 0.88f),
-		new Letter ("p", 0.87f),
-		new Letter ("w", 0.84f),
-		new Letter ("n", 0.81f),
-		new Letter ("s", 0.77f),
-		new Letter ("t", 0.74f),
-		new Letter ("b", 0.70f),
-		new Letter ("l", 0.65f),
-		new Letter ("h", 0.65f),
-		new Letter ("d", 0.53f),
-		new Letter ("f", 0.48f),
-		new Letter ("r", 0.37f),
-		new Letter ("z", 0.31f),
-		new Letter ("v", 0.29f),
-		new Letter ("ts", 0.23f),
-		new Letter ("x", 0.18f),
-		new Letter ("kp", 0.17f),
-		new Letter ("c", 0.14f),
-		new Letter ("mb", 0.14f),
-		new Letter ("nd", 0.12f),
-		new Letter ("dz", 0.1f),
-		new Letter ("q", 0.09f),
-		new Letter ("y", 0.038f),
-		new Letter ("ndz", 0.02f),
-		new Letter ("nz", 0.02f),
-		new Letter ("mp", 0.016f),
-		new Letter ("pf", 0.017f),
-		new Letter ("nts", 0.0037f),
-		new Letter ("tr", 0.0028f),
-		new Letter ("dr", 0.0028f),
-		new Letter ("tx", 0.0023f),
-		new Letter ("kx", 0.0023f),
-		new Letter ("ndr", 0.0023f),
-		new Letter ("ps", 0.0018f),
-		new Letter ("dl", 0.00093f),
-		new Letter ("nr", 0.00092f),
-		new Letter ("nh", 0.00092f),
-		new Letter ("nl", 0.00092f),
-		new Letter ("tn", 0.00092f),
-		new Letter ("pm", 0.00092f),
-		new Letter ("tl", 0.00092f),
-		new Letter ("xh", 0.00046f),
-		new Letter ("mv", 0.00046f),
-		new Letter ("ld", 0.00046f),
-		new Letter ("mw", 0.00046f),
-		new Letter ("br", 0.00046f),
-		new Letter ("qn", 0.00046f)
-	};
+    // based on frequency of consonants across languages. source: http://phoible.org/
+    public static Letter[] CodaLetters = new Letter[] {
+        new Letter ("m", 0.95f),
+        new Letter ("k", 0.94f),
+        new Letter ("j", 0.88f),
+        new Letter ("p", 0.87f),
+        new Letter ("w", 0.84f),
+        new Letter ("n", 0.81f),
+        new Letter ("s", 0.77f),
+        new Letter ("t", 0.74f),
+        new Letter ("b", 0.70f),
+        new Letter ("l", 0.65f),
+        new Letter ("h", 0.65f),
+        new Letter ("d", 0.53f),
+        new Letter ("f", 0.48f),
+        new Letter ("r", 0.37f),
+        new Letter ("z", 0.31f),
+        new Letter ("v", 0.29f),
+        new Letter ("ts", 0.23f),
+        new Letter ("x", 0.18f),
+        new Letter ("kp", 0.17f),
+        new Letter ("c", 0.14f),
+        new Letter ("mb", 0.14f),
+        new Letter ("nd", 0.12f),
+        new Letter ("dz", 0.1f),
+        new Letter ("q", 0.09f),
+        new Letter ("y", 0.038f),
+        new Letter ("ndz", 0.02f),
+        new Letter ("nz", 0.02f),
+        new Letter ("mp", 0.016f),
+        new Letter ("pf", 0.017f),
+        new Letter ("nts", 0.0037f),
+        new Letter ("tr", 0.0028f),
+        new Letter ("dr", 0.0028f),
+        new Letter ("tx", 0.0023f),
+        new Letter ("kx", 0.0023f),
+        new Letter ("ndr", 0.0023f),
+        new Letter ("ps", 0.0018f),
+        new Letter ("dl", 0.00093f),
+        new Letter ("nr", 0.00092f),
+        new Letter ("nh", 0.00092f),
+        new Letter ("nl", 0.00092f),
+        new Letter ("tn", 0.00092f),
+        new Letter ("pm", 0.00092f),
+        new Letter ("tl", 0.00092f),
+        new Letter ("xh", 0.00046f),
+        new Letter ("mv", 0.00046f),
+        new Letter ("ld", 0.00046f),
+        new Letter ("mw", 0.00046f),
+        new Letter ("br", 0.00046f),
+        new Letter ("qn", 0.00046f)
+    };
 
-	public static Regex StartsWithVowelRegex = new Regex (@"^[aeiou]");
-	public static Regex EndsWithVowelsRegex = new Regex (@"(?>[aeiou]+)(?>[^aeiou]+)(?<vowels>(?>[aeiou]+))$");
-	public static Regex EndsWithConsonantsRegex = new Regex (@"(?>[^aeiou]+)$");
+    public static Regex StartsWithVowelRegex = new Regex(@"^[aeiou]");
+    public static Regex EndsWithVowelsRegex = new Regex(@"(?>[aeiou]+)(?>[^aeiou]+)(?<vowels>(?>[aeiou]+))$");
+    public static Regex EndsWithConsonantsRegex = new Regex(@"(?>[^aeiou]+)$");
 
-	public static Regex PhrasePartRegex = new Regex (@"\[(?<attr>\w+)(?:\((?<params>(?:\w+,?)+)\))?\](?<phrase>(?:\[\w+(?:\((?:\w+,?)+\))?\])*\((?<value>[^\(\)]+)\))");
-	public static Regex WordPartRegex = new Regex (@"\[(?<attr>\w+)(?:\((?<params>(?:\w+,?)+)\))?\](?<word>(?>(?:\[\w+(?:\((?:\w+,?)+\))?\])*[\w\'\-]+))");
-	public static Regex PhraseIndexRegex = new Regex (@"{(?<index>\d+)}");
-	public static Regex ArticleRegex = new Regex (@"^((?<def>the)|(?<indef>(a|an)))$");
-	public static Regex PluralSuffixRegex = new Regex (@"^(es|s)$");
-	public static Regex AgentNounSuffixRegex = new Regex (@"^(er|r)$");
-	public static Regex ConjugationSuffixRegex = new Regex (@"^(ed|d|s)$");
+    public static Regex PhrasePartRegex = new Regex(@"\[(?<attr>\w+)(?:\((?<params>(?:\w+,?)+)\))?\](?<phrase>(?:\[\w+(?:\((?:\w+,?)+\))?\])*\((?<value>[^\(\)]+)\))");
+    public static Regex WordPartRegex = new Regex(@"\[(?<attr>\w+)(?:\((?<params>(?:\w+,?)+)\))?\](?<word>(?>(?:\[\w+(?:\((?:\w+,?)+\))?\])*[\w\'\-]+))");
+    public static Regex PhraseIndexRegex = new Regex(@"{(?<index>\d+)}");
+    public static Regex ArticleRegex = new Regex(@"^((?<def>the)|(?<indef>(a|an)))$");
+    public static Regex PluralSuffixRegex = new Regex(@"^(es|s)$");
+    public static Regex AgentNounSuffixRegex = new Regex(@"^(\w?er|r)$");
+    public static Regex ConjugationSuffixRegex = new Regex(@"^(\w?ed|d|s)$");
 
-	[XmlAttribute("ArticleProperties")]
+    [XmlAttribute("ArticleProperties")]
 	public int ArticlePropertiesInt;
 	[XmlAttribute("NounIndicativeProperties")]
 	public int NounIndicativePropertiesInt;

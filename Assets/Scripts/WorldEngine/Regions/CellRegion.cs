@@ -268,83 +268,27 @@ public class CellRegion : Region
 
     private void DefineAttributes()
     {
-        if ((CoastPercentage > 0.45f) && (CoastPercentage < 0.70f))
-        {
-            Info.AddAttribute(RegionAttribute.Coast);
-        }
-        else if ((CoastPercentage >= 0.70f) && (CoastPercentage < 1f))
-        {
-            Info.AddAttribute(RegionAttribute.Peninsula);
-        }
-        else if (CoastPercentage >= 1f)
-        {
-            Info.AddAttribute(RegionAttribute.Island);
-        }
+        bool hasAddedAttribute;
 
-        if (AverageAltitude > (AverageOuterBorderAltitude + 200f))
-        {
-            Info.AddAttribute(RegionAttribute.Highland);
-        }
+        HashSet<RegionAttribute> attributesToTest = new HashSet<RegionAttribute>(RegionAttribute.Attributes.Values);
 
-        if (AverageAltitude < (AverageOuterBorderAltitude - 200f))
+        // Since there are attributes that have dependencies on other attributes, we might need to test each attribute more than once.
+        do
         {
-            Info.AddAttribute(RegionAttribute.Valley);
+            hasAddedAttribute = false;
 
-            if (AverageRainfall > 1000)
+            foreach (RegionAttribute r in attributesToTest)
             {
-                Info.AddAttribute(RegionAttribute.Basin);
+                if (r.Assignable(this))
+                {
+                    Info.AddAttribute(r);
+                    hasAddedAttribute = true;
+
+                    attributesToTest.Remove(r); //If the attribute has already been added then we don't need it to test it again
+                }
             }
         }
-
-        if (MostBiomePresence > 0.65f)
-        {
-            switch (BiomeWithMostPresence)
-            {
-                case "desert":
-                    Info.AddAttribute(RegionAttribute.Desert);
-                    break;
-
-                case "desertic_tundra":
-                    Info.AddAttribute(RegionAttribute.Desert);
-                    break;
-
-                case "forest":
-                    Info.AddAttribute(RegionAttribute.Forest);
-                    break;
-
-                case "ice_sheet":
-                    Info.AddAttribute(RegionAttribute.Glacier);
-                    break;
-
-                case "grassland":
-                    Info.AddAttribute(RegionAttribute.Grassland);
-                    break;
-
-                case "ice_shelf":
-                    Info.AddAttribute(RegionAttribute.IceCap);
-                    break;
-
-                case "rainforest":
-                    Info.AddAttribute(RegionAttribute.Rainforest);
-
-                    if (AverageTemperature > 20)
-                        Info.AddAttribute(RegionAttribute.Jungle);
-                    break;
-
-                case "taiga":
-                    Info.AddAttribute(RegionAttribute.Taiga);
-                    break;
-
-                case "tundra":
-                    Info.AddAttribute(RegionAttribute.Tundra);
-                    break;
-            }
-        }
-
-        if (Attributes.Count <= 0)
-        {
-            Info.AddAttribute(RegionAttribute.Region);
-        }
+        while (hasAddedAttribute); // Repeat if at least one new attribute was added in the previous loop
     }
 
     private void DefineElements()

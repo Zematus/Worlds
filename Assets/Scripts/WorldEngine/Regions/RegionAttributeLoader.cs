@@ -19,7 +19,8 @@ public class RegionAttributeLoader
         public string name;
         public string adjectives;
         public string variants;
-        public string associationStrings;
+        public string regionConstraints;
+        public string phraseAssociations;
     }
 
 #pragma warning restore 0649
@@ -48,13 +49,14 @@ public class RegionAttributeLoader
             throw new ArgumentException("region attribute's variants can't be null or empty");
         }
 
-        if (string.IsNullOrEmpty(attr.associationStrings))
+        if (string.IsNullOrEmpty(attr.phraseAssociations))
         {
-            throw new ArgumentException("region attribute's association strings can't be null or empty");
+            throw new ArgumentException("region phrase attribute's association strings can't be null or empty");
         }
 
         string[] adjectives = null;
         string[] variants = null;
+        string[] constraints = null;
         string[] associationStrs = null;
 
         if (!string.IsNullOrEmpty(attr.adjectives))
@@ -74,11 +76,18 @@ public class RegionAttributeLoader
             variants[i] = variants[i].Trim();
         }
 
+        if (!string.IsNullOrEmpty(attr.regionConstraints))
+        {
+            //Cleanup and split list of constraints
+            string c = Regex.Replace(attr.regionConstraints, QuotedStringListHelper.FirstAndLastSingleQuoteRegex, "");
+            constraints = Regex.Split(c, QuotedStringListHelper.SeparatorSingleQuoteRegex);
+        }
+
         //Cleanup and split list of association strings
-        string a = Regex.Replace(attr.associationStrings, QuotedStringListHelper.FirstAndLastSingleQuoteRegex, "");
+        string a = Regex.Replace(attr.phraseAssociations, QuotedStringListHelper.FirstAndLastSingleQuoteRegex, "");
         associationStrs = Regex.Split(a, QuotedStringListHelper.SeparatorSingleQuoteRegex);
 
-        RegionAttribute regionAttribute = new RegionAttribute(attr.name, adjectives, variants, associationStrs);
+        RegionAttribute regionAttribute = new RegionAttribute(attr.name, adjectives, variants, constraints, associationStrs);
 
         return regionAttribute;
     }

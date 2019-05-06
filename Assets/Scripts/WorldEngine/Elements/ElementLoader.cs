@@ -25,8 +25,8 @@ public class ElementLoader
         public string id;
         public string name;
         public string adjectives;
-        public string constraints;
-        public string associationStrings;
+        public string regionConstraints;
+        public string phraseAssociations;
     }
 
 #pragma warning restore 0649
@@ -55,9 +55,9 @@ public class ElementLoader
             throw new ArgumentException("element name can't be null or empty");
         }
 
-        if (string.IsNullOrEmpty(e.associationStrings))
+        if (string.IsNullOrEmpty(e.phraseAssociations))
         {
-            throw new ArgumentException("element's association strings can't be null or empty");
+            throw new ArgumentException("element's phrase association strings can't be null or empty");
         }
 
         string[] adjectives = null;
@@ -74,15 +74,15 @@ public class ElementLoader
             }
         }
 
-        if (!string.IsNullOrEmpty(e.constraints))
+        if (!string.IsNullOrEmpty(e.regionConstraints))
         {
             //Cleanup and split list of constraints
-            string c = Regex.Replace(e.constraints, QuotedStringListHelper.FirstAndLastSingleQuoteRegex, "");
+            string c = Regex.Replace(e.regionConstraints, QuotedStringListHelper.FirstAndLastSingleQuoteRegex, "");
             constraints = Regex.Split(c, QuotedStringListHelper.SeparatorSingleQuoteRegex);
         }
 
         //Cleanup and split list of association strings
-        string a = Regex.Replace(e.associationStrings, QuotedStringListHelper.FirstAndLastSingleQuoteRegex, "");
+        string a = Regex.Replace(e.phraseAssociations, QuotedStringListHelper.FirstAndLastSingleQuoteRegex, "");
         associationStrs = Regex.Split(a, QuotedStringListHelper.SeparatorSingleQuoteRegex);
 
         Element element = new Element(e.id, e.name, adjectives, constraints, associationStrs);

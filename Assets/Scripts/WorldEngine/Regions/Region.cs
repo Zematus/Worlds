@@ -79,7 +79,7 @@ public abstract class Region : ISynchronizable
     }
 
     [XmlIgnore]
-    public List<RegionAttribute> Attributes
+    public Dictionary<string, RegionAttribute> Attributes
     {
         get
         {

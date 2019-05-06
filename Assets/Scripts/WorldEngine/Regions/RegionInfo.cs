@@ -26,7 +26,9 @@ public class RegionInfo : ISynchronizable, IKeyedValue<long>
 #endif
 
     [XmlIgnore]
-    public List<RegionAttribute> Attributes = new List<RegionAttribute>();
+    public Dictionary<string, RegionAttribute> Attributes = new Dictionary<string, RegionAttribute>();
+    [XmlIgnore]
+    public List<RegionAttribute> AttributeList = new List<RegionAttribute>();
 
     [XmlIgnore]
     public List<Element> Elements = new List<Element>();
@@ -84,7 +86,8 @@ public class RegionInfo : ISynchronizable, IKeyedValue<long>
         AttributeNames.Add(attribute.Name);
 #endif
 
-        Attributes.Add(attribute);
+        Attributes.Add(attribute.Name, attribute);
+        AttributeList.Add(attribute);
     }
 
     public void AddElement(Element element)
@@ -134,7 +137,7 @@ public class RegionInfo : ISynchronizable, IKeyedValue<long>
 
         int index = getRandomInt(Attributes.Count);
 
-        return Attributes[index].GetRandomVariation(getRandomInt);
+        return AttributeList[index].GetRandomVariation(getRandomInt);
     }
 
     protected void AddElements(IEnumerable<Element> elem)
@@ -148,7 +151,7 @@ public class RegionInfo : ISynchronizable, IKeyedValue<long>
 
         Element element = Elements.RandomSelect(getRandomInt, isNounAdjunct ? 5 : 20);
 
-        List<RegionAttribute> remainingAttributes = new List<RegionAttribute>(Attributes);
+        List<RegionAttribute> remainingAttributes = new List<RegionAttribute>(AttributeList);
 
         RegionAttribute attribute = remainingAttributes.RandomSelectAndRemove(getRandomInt);
 
@@ -244,7 +247,7 @@ public class RegionInfo : ISynchronizable, IKeyedValue<long>
 
         int wordCount = 1;
 
-        List<RegionAttribute> remainingAttributes = new List<RegionAttribute>(Attributes);
+        List<RegionAttribute> remainingAttributes = new List<RegionAttribute>(AttributeList);
 
         RegionAttribute primaryAttribute = remainingAttributes.RandomSelectAndRemove(GetRandomInt);
 

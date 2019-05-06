@@ -279,7 +279,7 @@ public class Agent : ISynchronizable
 
         Profiler.BeginSample("region.Attributes.Where");
 
-        List<RegionAttribute> attributes = BirthRegionInfo.Attributes;
+        List<RegionAttribute> attributes = BirthRegionInfo.AttributeList;
 
         Profiler.EndSample();
 

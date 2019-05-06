@@ -1,4 +1,4 @@
----- region_attributes.json format guide ----
+---- region_attributes.json Format Guide ----
 
 -- File Structure --
 
@@ -8,7 +8,8 @@
       "name":                -- (required) Name of attribute. Also works as unique indentifier, if more than one definition share a name, only the last one loaded will be used
       "adjectives":          -- (optional) List of applicable adjectives, separated by commas
       "variants":            -- (required) List of naming variations, separated by commas (see note #3)
-      "associationStrings":  -- (required) List of phrase association strings, separated by commas (see note #4)
+      "regionConstraints":   -- (optional) List of region constraints, separated by commas (see note #4)
+      "phraseAssociations":  -- (required) List of phrase association strings, separated by commas (see note #5)
     },
     ... -- additional attributes --
   ]
@@ -18,34 +19,18 @@
 1. Only one region_attributes.json file can be used per world. If more than one region_attributes.json file is present across multiple active mod files, only the last one being loaded will be used.
 2. Remove any trailing commas or the file won't be parsed
 3. At least one variant must be present for each attribute.
+
   Variant nouns are defined as follow: <noun>({(<relation>):<noun or suffix>})(:<noun or suffix>({...}))...
-  Parts enclosed within parenthesis denote optional definition elements. Parts enclosed within brackets indicate that the variant should be decomposed into two variants, one of which should omit the enclosed noun. The "<relation>" keyword (enclosed in '<' and '>') is used to denote parts that should be filtered when constructing specific types of phrases (mostly used to filter plural nouns).
+  Parts enclosed within parenthesis denote optional definition elements. Parts enclosed within brackets indicate that the variant should be decomposed into two variants, one of which omits the enclosed part. The "<relation>" keyword (enclosed in '<' and '>') is used to denote parts that should be filtered when constructing specific types of phrases (mostly used to filter plural nouns).
   Here are some variant examples:
     "glacier{<relation>:s}" - which decomposes into variants "glacier" and "glacier:s"
     "shrub:land{:s}" - which decomposes into variants "shrub:land" and "shrub:land:s"
     "grass:land{:s}" - which decomposes into variants "grass:land" and "grass:land:s"
     "forest{<relation>:s}" - which decomposes into variants "forest" and "forest:s"
     "waste{:land}{:s}" - which decomposes into variants "waste", "waste:s", "waste:land", and "waste:land:s"
-  Refer to language_modding_guide.txt for more details on parseable nouns.
-4. Each association string within the list must be encased in single quotes. Associations are used along with the element and one or more adjectives to build composite words or noun phrases. If an association can be used to forma noun phrase it must have at three parts as follows: '<association word>,<relations>,<form>'
-    - <association word>: an action noun or attributive verb. Refer to language_modding_guide.txt for more details on using association words
-    - <relations>: one or more prepositions (separated by pipes, '|') that can link the association word with the element
-    - <forms>: one or more forms (separated by pipes, '|') the element can take as part of the noun phrase. They can be one of the following:
-      -- 'ns': name singular. Examples: "the stone", "mount"
-      -- 'ds': definite singular. Examples: "the mount", "stone"
-      -- 'is': indefinite singular. Examples: "a stone", "an arch"
-      -- 'dp': definite plural. Examples: "the stones", "mounts"
-      -- 'ip': indefinite plural. Examples: "stones", "archs"
-      -- 'u': uncountable. Examples: "water", "air"
-  Example association strings that can be used to form noun phrases:
-    '[nrv]throw:er,of,ip|ns'
-    '[iv(bear,ts,past)]born,between,ip'
-    '[nrv]break:er,of,ip|ns'
-    '[iv(bear,ts,past)]born,under,ns'
-    '[nrv]cut:ter,of,u'
-  Associations can also be used exclusively to form composite words. In such cases, only the '<association word>'
-  Example association strings that can be used to only form composite words:
-    '[ran]work:er'
-    '[ran]dance:r'
+  Refer to language_modding_guide.txt for more details on how to define translatable nouns.
+
+4. Each region constraint within the list must be encased within single quotes. These are used to decide whether or not to associate the element with a particular region. Refer to region_constraints_guide.txt for more details on how to define and use region constraints
+5. Each phrase association string within the list must be encased in single quotes. These are used to form nouns or noun phrases for procedurally generated proper names and other types of texts. Refer to phrase_association_guide.txt for more details on how to define phrase associations
 
 --
