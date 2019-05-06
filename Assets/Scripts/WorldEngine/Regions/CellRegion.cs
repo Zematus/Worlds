@@ -270,21 +270,41 @@ public class CellRegion : Region
     {
         bool hasAddedAttribute;
 
-        HashSet<RegionAttribute> attributesToTest = new HashSet<RegionAttribute>(RegionAttribute.Attributes.Values);
+        HashSet<RegionAttribute> attributesToSkip = new HashSet<RegionAttribute>();
 
         // Since there are attributes that have dependencies on other attributes, we might need to test each attribute more than once.
         do
         {
             hasAddedAttribute = false;
 
-            foreach (RegionAttribute r in attributesToTest)
+            foreach (RegionAttribute r in RegionAttribute.Attributes.Values)
             {
-                if (r.Assignable(this))
+                if (!attributesToSkip.Contains(r) && r.Assignable(this))
                 {
                     Info.AddAttribute(r);
                     hasAddedAttribute = true;
 
-                    attributesToTest.Remove(r); //If the attribute has already been added then we don't need it to test it again
+                    attributesToSkip.Add(r); // If the attribute has already been added then we don't need it to test it again
+                }
+            }
+        }
+        while (hasAddedAttribute); // Repeat if at least one new attribute was added in the previous loop
+
+        attributesToSkip.Clear();
+
+        // Now validate secondary attributes
+        do
+        {
+            hasAddedAttribute = false;
+
+            foreach (RegionAttribute r in RegionAttribute.SecondaryAttributes.Values)
+            {
+                if (!attributesToSkip.Contains(r) && r.Assignable(this))
+                {
+                    Info.AddAttribute(r);
+                    hasAddedAttribute = true;
+
+                    attributesToSkip.Add(r); // If the attribute has already been added then we don't need it to test it again
                 }
             }
         }

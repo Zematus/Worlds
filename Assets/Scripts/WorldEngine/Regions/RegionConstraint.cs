@@ -22,13 +22,14 @@ public class RegionConstraint
         BiomePresenceBelow,
         NoAttribute,
         AnyAttribute,
+        ZeroPrimaryAttributes,
         MainBiome
     }
 
     public ConstraintType Type;
     public object Value;
 
-    public static Regex ConstraintRegex = new Regex(@"^(?<type>[\w_]+):(?<value>.+)$");
+    public static Regex ConstraintRegex = new Regex(@"^(?<type>[\w_]+)(?::(?<value>.+))?$");
 
     public static RegionConstraint BuildConstraint(string constraint)
     {
@@ -38,7 +39,12 @@ public class RegionConstraint
             throw new System.ArgumentException("Unparseable constraint: " + constraint);
 
         string type = match.Groups["type"].Value;
-        string valueStr = match.Groups["value"].Value;
+        string valueStr = null;
+
+        if (match.Groups["value"] != null)
+        {
+            valueStr = match.Groups["value"].Value;
+        }
 
         switch (type)
         {
@@ -155,6 +161,9 @@ public class RegionConstraint
                 }).ToArray();
 
                 return new RegionConstraint() { Type = ConstraintType.MainBiome, Value = biomes };
+
+            case "zero_primary_attributes":
+                return new RegionConstraint() { Type = ConstraintType.ZeroPrimaryAttributes, Value = null };
         }
 
         throw new System.Exception("Unhandled constraint type: " + type);
@@ -178,6 +187,18 @@ public class RegionConstraint
         }
 
         return false;
+    }
+
+    private int GetPrimaryAttributeCount(Region region)
+    {
+        int count = 0;
+
+        foreach (RegionAttribute a in region.Attributes.Values)
+        {
+            if (!a.Secondary) count++;
+        }
+
+        return count;
     }
 
     public bool Validate(Region region)
@@ -232,6 +253,9 @@ public class RegionConstraint
 
             case ConstraintType.MainBiome:
                 return IsMainBiome(region, (Biome[])Value);
+
+            case ConstraintType.ZeroPrimaryAttributes:
+                return GetPrimaryAttributeCount(region) == 0;
         }
 
         throw new System.Exception("Unhandled constraint type: " + Type);

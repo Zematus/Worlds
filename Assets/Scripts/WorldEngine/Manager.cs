@@ -3910,5 +3910,13 @@ public class Manager
         string baseBiomeModFilename = modPath + @"Base\biomes.json";
 
         Biome.LoadFile(baseBiomeModFilename);
+
+        string baseRegionAttributeModFilename = modPath + @"Base\region_attributes.json";
+
+        RegionAttribute.LoadFile(baseRegionAttributeModFilename);
+
+        string baseElementModFilename = modPath + @"Base\elements.json";
+
+        Element.LoadFile(baseElementModFilename);
     }
 }

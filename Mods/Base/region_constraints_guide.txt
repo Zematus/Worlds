@@ -40,13 +40,17 @@ Here's a list of the current types of region constraints (more to be added in fu
 - 'biome_presence_below'
     Tests if the number of cells within a region that have a particular biome is below a certain percentage (expressed as comma separated pair of a biome identifier (id) and a number between 0.0 and 1.0 inclusive). Example: 'biome_presence_below:desert,0.50'
 
+- 'main_biome'
+    Tests if any of the biomes within the given list is the biome with the most presence within the region (expressed as comma separated list of biome ids). Example: 'main_biome:forest,taiga,tundra,rainforest'
+
 - 'any_attribute'
     Tests if any attribute within the given list is assigned to the region (expressed as comma separated list of strings). Example: 'any_attribute:desert,delta,peninsula,island,coast'
 
 - 'no_attribute'
     Tests if no attribute within the given list is assigned to the region (expressed as comma separated list of strings). Example: 'no_attribute:rainforest,jungle,taiga,forest'
 
-- 'main_biome'
-    Tests if any of the biomes within the given list is the biome with the most presence within the region (expressed as comma separated list of biome ids). Example: 'main_biome:forest,taiga,tundra,rainforest'
+- 'zero_primary_attributes'
+    Tests if no attribute has been assigned to the region. Example: 'zero_primary_attributes'
+    NOTE: This constraint should only be used with secondary attributes
 
   --

@@ -10,6 +10,7 @@
       "variants":            -- (required) List of naming variations, separated by commas (see note #3)
       "regionConstraints":   -- (optional) List of region constraints, separated by commas (see note #4)
       "phraseAssociations":  -- (required) List of phrase association strings, separated by commas (see note #5)
+      "secondary":           -- (optional) 'true' if this attribute should only be validated after all primary attributes have been validated (default: false)
     },
     ... -- additional attributes --
   ]

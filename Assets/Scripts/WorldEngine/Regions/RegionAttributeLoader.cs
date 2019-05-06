@@ -21,6 +21,7 @@ public class RegionAttributeLoader
         public string variants;
         public string regionConstraints;
         public string phraseAssociations;
+        public bool secondary;
     }
 
 #pragma warning restore 0649
@@ -87,7 +88,7 @@ public class RegionAttributeLoader
         string a = Regex.Replace(attr.phraseAssociations, QuotedStringListHelper.FirstAndLastSingleQuoteRegex, "");
         associationStrs = Regex.Split(a, QuotedStringListHelper.SeparatorSingleQuoteRegex);
 
-        RegionAttribute regionAttribute = new RegionAttribute(attr.name, adjectives, variants, constraints, associationStrs);
+        RegionAttribute regionAttribute = new RegionAttribute(attr.name, adjectives, variants, constraints, associationStrs, attr.secondary);
 
         return regionAttribute;
     }

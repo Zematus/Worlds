@@ -13,13 +13,16 @@ public class RegionAttribute
 
     public Variation[] Variations;
 
-    public Association[] Associations;
-
     public RegionConstraint[] Constraints;
 
-    public static Dictionary<string, RegionAttribute> Attributes;
+    public Association[] Associations;
 
-    public RegionAttribute(string name, string[] adjectives, string[] variants, string[] constraints, string[] associationStrs)
+    public bool Secondary;
+
+    public static Dictionary<string, RegionAttribute> Attributes;
+    public static Dictionary<string, RegionAttribute> SecondaryAttributes;
+
+    public RegionAttribute(string name, string[] adjectives, string[] variants, string[] constraints, string[] associationStrs, bool secondary = false)
     {
         Name = name;
 
@@ -58,6 +61,8 @@ public class RegionAttribute
         }
 
         Associations = associations.ToArray();
+
+        Secondary = secondary;
     }
 
     public string GetRandomVariation(GetRandomIntDelegate getRandomInt, Element filterElement = null, bool filterRelationTagged = true)
@@ -145,9 +150,21 @@ public class RegionAttribute
     public static void LoadFile(string filename)
     {
         Attributes = new Dictionary<string, RegionAttribute>();
+        SecondaryAttributes = new Dictionary<string, RegionAttribute>();
 
         foreach (RegionAttribute attribute in RegionAttributeLoader.Load(filename))
         {
+            if (attribute.Secondary)
+            {
+                if (SecondaryAttributes.ContainsKey(attribute.Name))
+                {
+                    throw new System.Exception("duplicate attribute: " + attribute.Name);
+                }
+
+                SecondaryAttributes.Add(attribute.Name, attribute);
+                continue;
+            }
+
             if (Attributes.ContainsKey(attribute.Name))
             {
                 throw new System.Exception("duplicate attribute: " + attribute.Name);
@@ -156,7 +173,7 @@ public class RegionAttribute
             Attributes.Add(attribute.Name, attribute);
         }
 
-        if (Attributes.Count == 0)
+        if ((Attributes.Count == 0) && (SecondaryAttributes.Count == 0))
         {
             throw new System.Exception("No attributes loaded from " + filename);
         }

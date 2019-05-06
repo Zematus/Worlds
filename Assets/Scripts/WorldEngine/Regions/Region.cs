@@ -142,7 +142,14 @@ public abstract class Region : ISynchronizable
 
     public float GetBiomePresence(string biomeId)
     {
-        return _biomePresences[biomeId];
+        float presence;
+
+        if (!_biomePresences.TryGetValue(biomeId, out presence))
+        {
+            return 0.0f;
+        }
+
+        return presence;
     }
 
     public static Region TryGenerateRegion(TerrainCell startCell, Language establishmentLanguage)

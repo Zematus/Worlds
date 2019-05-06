@@ -117,7 +117,9 @@
       "name": "region",
       "adjectives": "dark, bleak, open",
       "variants": "region{<relation>:s}, land{:s}",
-      "phraseAssociations": "'[iv(bear,ts,past)]born,by|near|in,ds|dp', '[rv(ts,past)]raise:d,near|in,ds|dp', '[ran]walk:er,of,ip|ns', '[ran]stride:r,of,ip|ns', '[rv(ts,past)]arrive:d,from,ds'"
+      "regionConstraints": "'zero_primary_attributes'",
+      "phraseAssociations": "'[iv(bear,ts,past)]born,by|near|in,ds|dp', '[rv(ts,past)]raise:d,near|in,ds|dp', '[ran]walk:er,of,ip|ns', '[ran]stride:r,of,ip|ns', '[rv(ts,past)]arrive:d,from,ds'",
+      "secondary": true
     }
   ]
 }
