@@ -1,0 +1,127 @@
+{
+  "biomes": [
+    {
+      "id": "ice_shelf",
+      "name": "ice shelf",
+      "color": "#FDF4EB",
+      "type": "land",
+      "maxAltitude": 0,
+      "maxTemperature": -15,
+      "survivability": 0.0,
+      "foragingCapacity": 0.0001,
+      "accessibility": 0.5
+    },
+    {
+      "id": "ice_sheet",
+      "name": "ice sheet",
+      "color": "#FDF4EB",
+      "type": "land",
+      "minAltitude": 0,
+      "minRainfall": 15,
+      "maxTemperature": -15,
+      "survivability": 0.0,
+      "foragingCapacity": 0.0001,
+      "accessibility": 0.5
+    },
+    {
+      "id": "ocean",
+      "name": "ocean",
+      "color": "#7B0C9D",
+      "type": "sea",
+      "maxAltitude": 0,
+      "minTemperature": -15,
+      "survivability": 0.0,
+      "foragingCapacity": 0.0,
+      "accessibility": 0.0
+    },
+    {
+      "id": "grassland",
+      "name": "grassland",
+      "color": "#FFA66E",
+      "type": "land",
+      "minAltitude": 0,
+      "minRainfall": 15,
+      "maxRainfall": 1575,
+      "minTemperature": -10,
+      "survivability": 1.0,
+      "foragingCapacity": 0.4,
+      "accessibility": 1.0
+    },
+    {
+      "id": "forest",
+      "name": "forest",
+      "color": "#FF7F60",
+      "type": "land",
+      "minAltitude": 0,
+      "minRainfall": 1375,
+      "maxRainfall": 2975,
+      "minTemperature": -10,
+      "survivability": 0.4,
+      "foragingCapacity": 0.5,
+      "accessibility": 0.6
+    },
+    {
+      "id": "taiga",
+      "name": "taiga",
+      "color": "#DE0003",
+      "type": "land",
+      "minAltitude": 0,
+      "minRainfall": 1375,
+      "minTemperature": -20,
+      "maxTemperature": 0,
+      "survivability": 0.2,
+      "foragingCapacity": 0.2,
+      "accessibility": 0.4
+    },
+    {
+      "id": "tundra",
+      "name": "tundra",
+      "color": "#CB7F80",
+      "type": "land",
+      "minAltitude": 0,
+      "minRainfall": 15,
+      "maxRainfall": 1575,
+      "minTemperature": -20,
+      "maxTemperature": 0,
+      "survivability": 0.0,
+      "foragingCapacity": 0.02,
+      "accessibility":1.0
+    },
+    {
+      "id": "desertic_tundra",
+      "name": "desertic tundra",
+      "color": "#FFCEE9",
+      "type": "land",
+      "minAltitude": 0,
+      "maxRainfall": 675,
+      "maxTemperature": 0,
+      "survivability": 0.0,
+      "foragingCapacity": 0.0002,
+      "accessibility": 0.8
+    },
+    {
+      "id": "desert",
+      "name": "desert",
+      "color": "#FDE1AB",
+      "type": "land",
+      "minAltitude": 0,
+      "maxRainfall": 675,
+      "minTemperature": -10,
+      "survivability": 0.0,
+      "foragingCapacity": 0.0004,
+      "accessibility": 0.8
+    },
+    {
+      "id": "rainforest",
+      "name": "rainforest",
+      "color": "#F10083",
+      "type": "land",
+      "minAltitude": 0,
+      "minRainfall": 1775,
+      "minTemperature": -5,
+      "survivability": 0.2,
+      "foragingCapacity": 0.6,
+      "accessibility": 0.2
+    }
+  ]
+}
