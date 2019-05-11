@@ -166,6 +166,9 @@ public class Manager
     public static bool FullScreenEnabled = false;
     public static bool DebugModeEnabled = false;
 
+    public static List<string> ActiveMods = new List<string>();
+    public static bool ModsAlreadyLoaded = false;
+
     public static GameMode GameMode = GameMode.None;
 
     public static bool ViewingGlobe = false;
@@ -1028,6 +1031,14 @@ public class Manager
         world.GenerateHumanGroup(longitude, latitude, initialPopulation);
     }
 
+    public static void SetActiveMods(ICollection<string> mods)
+    {
+        ActiveMods.Clear();
+        ActiveMods.AddRange(mods);
+
+        ModsAlreadyLoaded = false;
+    }
+
     public static void GenerateNewWorld(int seed, Texture2D heightmap)
     {
         _manager._worldReady = false;
@@ -1041,7 +1052,11 @@ public class Manager
         else
             progressCastMethod = _manager._progressCastMethod;
 
-        LoadMods("Base", "TestMod");
+        if (!ModsAlreadyLoaded)
+        {
+            LoadMods(ActiveMods);
+            ModsAlreadyLoaded = true;
+        }
 
         progressCastMethod(LastStageProgress, "Generating World...");
 
@@ -1255,7 +1270,11 @@ public class Manager
 
         ResetWorldLoadTrack();
 
-        LoadMods("Base");
+        if (!ModsAlreadyLoaded)
+        {
+            LoadMods(ActiveMods);
+            ModsAlreadyLoaded = true;
+        }
 
         progressCastMethod(LastStageProgress, "Loading World...");
 
@@ -3917,18 +3936,18 @@ public class Manager
         return TextureValidationResult.Ok;
     }
 
-    public static void LoadMods(params string[] modDirNames)
+    public static void LoadMods(ICollection<string> mods)
     {
-        if (modDirNames.Length == 0)
+        if (mods.Count == 0)
             throw new System.ArgumentException("Number of mods to load can't be zero");
 
         Biome.ResetBiomes();
         RegionAttribute.ResetAttributes();
         Element.ResetElements();
 
-        float progressPerMod = 0.1f / modDirNames.Length;
+        float progressPerMod = 0.1f / mods.Count;
 
-        foreach (string dirName in modDirNames)
+        foreach (string dirName in mods)
         {
             if (_manager._progressCastMethod != null)
             {

@@ -16,6 +16,8 @@ public class AppSettings
     public bool Fullscreen = true;
     public bool DebugMode = true;
 
+    public List<string> ActiveMods = new List<string>();
+
     public AppSettings()
     {
     }
@@ -28,6 +30,9 @@ public class AppSettings
         RainfallOffset = Manager.RainfallOffset;
         Fullscreen = Manager.FullScreenEnabled;
         DebugMode = Manager.DebugModeEnabled;
+
+        ActiveMods.Clear();
+        ActiveMods.AddRange(Manager.ActiveMods);
     }
 
     public void Take()
@@ -38,5 +43,8 @@ public class AppSettings
         Manager.RainfallOffset = RainfallOffset;
         Manager.FullScreenEnabled = Fullscreen;
         Manager.DebugModeEnabled = DebugMode;
+
+        Manager.ActiveMods.Clear();
+        Manager.ActiveMods.AddRange(ActiveMods);
     }
 }
