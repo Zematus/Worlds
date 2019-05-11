@@ -1,4 +1,6 @@
----- biomes.json format guide ----
+---- Biomes Modding guide ----
+
+Biome modding files are located within the 'Biomes' folder. To be valid, mod files must have the .json extension and have the following file structure:
 
 -- File Structure --
 
@@ -20,15 +22,22 @@
       "survivability":     -- (required) Base probability of a given human group surviving in this biome (between 0 and 1 inclusive)
       "foragingCapacity":  -- (required) Base foraging capacity this cell provides to a human group (between 0 and 1 inclusive)
       "accessibility":     -- (required) Base travel modifier in and out this cell (between 0 and 1 inclusive)
+
+      "layerConstraints": [
+        {
+          "layerId":
+          "minValue:"
+          "maxValue:"
+        }
+      ]
     },
     ... -- additional biomes --
   ]
 }
 
 -- Notes --
-1. Only one biomes.json file can be used per world. If more than one biomes.json file is present across multiple active mod files, only the last one being loaded will be used.
-2. Remove any trailing commas or the file won't be parsed
-3. Optional 'min' attribute values (altitude/rainfall/temperature) not defined will be assigned the minimum attribute value of its category
-4. Optional 'max' attribute values (altitude/rainfall/temperature) not defined will be assigned the maximum attribute value of its category
+1. Remove any trailing commas or the file won't be parsed
+2. Optional 'min' attribute values (altitude/rainfall/temperature) not defined will be assigned the minimum attribute value of its category
+3. Optional 'max' attribute values (altitude/rainfall/temperature) not defined will be assigned the maximum attribute value of its category
 
 --

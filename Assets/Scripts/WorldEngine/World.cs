@@ -446,7 +446,7 @@ public class World : ISynchronizable
         TerrainCellAlterationListCount = 0;
     }
 
-    public void StartReinitialization(float acumulatedProgress, float progressIncrement)
+    public void StartReinitialization(float acumulatedProgress, float maxExpectedProgress)
     {
         _justLoaded = false;
 
@@ -468,7 +468,7 @@ public class World : ISynchronizable
         MaxPossibleTemperatureWithOffset = MaxPossibleTemperature + Manager.TemperatureOffset;
 
         _accumulatedProgress = acumulatedProgress;
-        _progressIncrement = progressIncrement;
+        _progressIncrement = (maxExpectedProgress - _accumulatedProgress) / 5f;
 
         Manager.EnqueueTaskAndWait(() =>
         {
@@ -477,7 +477,7 @@ public class World : ISynchronizable
         });
     }
 
-    public void StartInitialization(float acumulatedProgress, float progressIncrement, bool justLoaded = false)
+    public void StartInitialization(float acumulatedProgress, float maxExpectedProgress, bool justLoaded = false)
     {
         _openSimplexNoise = new OpenSimplexNoise(Seed);
 
@@ -510,7 +510,7 @@ public class World : ISynchronizable
         MinTemperature = float.MaxValue;
 
         _accumulatedProgress = acumulatedProgress;
-        _progressIncrement = progressIncrement;
+        _progressIncrement = (maxExpectedProgress - _accumulatedProgress) / 5f;
 
         _cellMaxSideLength = Circumference / Width;
         TerrainCell.MaxArea = _cellMaxSideLength * _cellMaxSideLength;

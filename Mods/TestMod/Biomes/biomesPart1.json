@@ -1,0 +1,64 @@
+{
+  "biomes": [
+    {
+      "id": "ice_shelf",
+      "name": "ice shelf",
+      "color": "#FDF4EB",
+      "type": "land",
+      "maxAltitude": 0,
+      "maxTemperature": -15,
+      "survivability": 0.0,
+      "foragingCapacity": 0.0001,
+      "accessibility": 0.5
+    },
+    {
+      "id": "ice_sheet",
+      "name": "ice sheet",
+      "color": "#FDF4EB",
+      "type": "land",
+      "minAltitude": 0,
+      "minRainfall": 15,
+      "maxTemperature": -15,
+      "survivability": 0.0,
+      "foragingCapacity": 0.0001,
+      "accessibility": 0.5
+    },
+    {
+      "id": "ocean",
+      "name": "ocean",
+      "color": "#7B0C9D",
+      "type": "sea",
+      "maxAltitude": 0,
+      "minTemperature": -15,
+      "survivability": 0.0,
+      "foragingCapacity": 0.0,
+      "accessibility": 0.0
+    },
+    {
+      "id": "grassland",
+      "name": "grassland",
+      "color": "#FFA66E",
+      "type": "land",
+      "minAltitude": 0,
+      "minRainfall": 15,
+      "maxRainfall": 1575,
+      "minTemperature": -10,
+      "survivability": 1.0,
+      "foragingCapacity": 0.4,
+      "accessibility": 1.0
+    },
+    {
+      "id": "forest",
+      "name": "forest",
+      "color": "#FF7F60",
+      "type": "land",
+      "minAltitude": 0,
+      "minRainfall": 1375,
+      "maxRainfall": 2975,
+      "minTemperature": -10,
+      "survivability": 0.4,
+      "foragingCapacity": 0.5,
+      "accessibility": 0.6
+    }
+  ]
+}

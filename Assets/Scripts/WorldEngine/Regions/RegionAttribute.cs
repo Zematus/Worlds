@@ -147,35 +147,35 @@ public class RegionAttribute
         return true;
     }
 
-    public static void LoadFile(string filename)
+    public static void ResetAttributes()
     {
         Attributes = new Dictionary<string, RegionAttribute>();
         SecondaryAttributes = new Dictionary<string, RegionAttribute>();
+    }
 
+    private static void AddAttribute(Dictionary<string, RegionAttribute> attributes, RegionAttribute attribute)
+    {
+        if (attributes.ContainsKey(attribute.Name))
+        {
+            attributes[attribute.Name] = attribute;
+        }
+        else
+        {
+            attributes.Add(attribute.Name, attribute);
+        }
+    }
+
+    public static void LoadRegionAttributesFile(string filename)
+    {
         foreach (RegionAttribute attribute in RegionAttributeLoader.Load(filename))
         {
             if (attribute.Secondary)
             {
-                if (SecondaryAttributes.ContainsKey(attribute.Name))
-                {
-                    throw new System.Exception("duplicate attribute: " + attribute.Name);
-                }
-
-                SecondaryAttributes.Add(attribute.Name, attribute);
+                AddAttribute(SecondaryAttributes, attribute);
                 continue;
             }
 
-            if (Attributes.ContainsKey(attribute.Name))
-            {
-                throw new System.Exception("duplicate attribute: " + attribute.Name);
-            }
-
-            Attributes.Add(attribute.Name, attribute);
-        }
-
-        if ((Attributes.Count == 0) && (SecondaryAttributes.Count == 0))
-        {
-            throw new System.Exception("No attributes loaded from " + filename);
+            AddAttribute(Attributes, attribute);
         }
     }
 }

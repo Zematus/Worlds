@@ -68,23 +68,23 @@ public class Element
         return true;
     }
 
-    public static void LoadFile(string filename)
+    public static void ResetElements()
     {
         Elements = new Dictionary<string, Element>();
+    }
 
+    public static void LoadElementsFile(string filename)
+    {
         foreach (Element element in ElementLoader.Load(filename))
         {
             if (Elements.ContainsKey(element.Id))
             {
-                throw new System.Exception("duplicate element id: " + element.Id);
+                Elements[element.Id] = element;
             }
-
-            Elements.Add(element.Id, element);
-        }
-
-        if (Elements.Count == 0)
-        {
-            throw new System.Exception("No elements loaded from " + filename);
+            else
+            {
+                Elements.Add(element.Id, element);
+            }
         }
     }
 }

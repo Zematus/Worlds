@@ -117,7 +117,9 @@ public class Manager
 
     public const string DefaultModPath = @".\Mods\";
 
-    public static float ProgressIncrement = 0.20f;
+    public const float StageProgressIncFromLoading = 0.1f;
+
+    public static float LastStageProgress = 0;
 
     public static Thread MainThread { get; private set; }
 
@@ -1030,20 +1032,25 @@ public class Manager
     {
         _manager._worldReady = false;
 
-        LoadMods(DefaultModPath);
+        LastStageProgress = 0;
 
-        World world = new World(WorldWidth, WorldHeight, seed);
+        ProgressCastDelegate progressCastMethod;
 
         if (_manager._progressCastMethod == null)
-        {
-            world.ProgressCastMethod = (value, message, reset) => { };
-        }
+            progressCastMethod = (value, message, reset) => { };
         else
-        {
-            world.ProgressCastMethod = _manager._progressCastMethod;
-        }
+            progressCastMethod = _manager._progressCastMethod;
 
-        world.StartInitialization(0f, ProgressIncrement);
+        LoadMods("Base", "TestMod");
+
+        progressCastMethod(LastStageProgress, "Generating World...");
+
+        World world = new World(WorldWidth, WorldHeight, seed)
+        {
+            ProgressCastMethod = progressCastMethod
+        };
+
+        world.StartInitialization(LastStageProgress, 1.0f);
         world.Generate(heightmap);
         world.FinishInitialization();
 
@@ -1105,7 +1112,7 @@ public class Manager
             world.ProgressCastMethod = _manager._progressCastMethod;
         }
 
-        world.StartReinitialization(0f, ProgressIncrement);
+        world.StartReinitialization(0f, 1.0f);
         world.Regenerate(type);
         world.FinishInitialization();
         
@@ -1237,12 +1244,20 @@ public class Manager
     {
         _manager._worldReady = false;
 
-        float baseProgressIncrement = ProgressIncrement;
-        ProgressIncrement = 0.08f;
+        LastStageProgress = 0;
+
+        ProgressCastDelegate progressCastMethod;
+
+        if (_manager._progressCastMethod == null)
+            progressCastMethod = (value, message, reset) => { };
+        else
+            progressCastMethod = _manager._progressCastMethod;
 
         ResetWorldLoadTrack();
 
-        LoadMods(DefaultModPath);
+        LoadMods("Base");
+
+        progressCastMethod(LastStageProgress, "Loading World...");
 
         World world;
 
@@ -1261,26 +1276,23 @@ public class Manager
         {
             world.ProgressCastMethod = _manager._progressCastMethod;
         }
-
-        float initialProgressIncrement = ProgressIncrement;
-
+        
         Manager.AltitudeScale = world.AltitudeScale;
         Manager.SeaLevelOffset = world.SeaLevelOffset;
         Manager.RainfallOffset = world.RainfallOffset;
         Manager.TemperatureOffset = world.TemperatureOffset;
 
-        world.StartInitialization(initialProgressIncrement, ProgressIncrement, true);
+        LastStageProgress += StageProgressIncFromLoading;
+
+        float progressBeforeFinalizing = 0.4f + LastStageProgress;
+
+        world.StartInitialization(LastStageProgress, progressBeforeFinalizing, true);
         world.GenerateTerrain(GenerationType.TerrainNormal, null);
         world.FinishInitialization();
 
-        if (_manager._progressCastMethod != null)
-        {
-            _manager._progressCastMethod(0.5f, "Finalizing...");
-        }
+        progressCastMethod(progressBeforeFinalizing, "Finalizing...");
 
-        world.FinalizeLoad(0.5f, 1.0f, _manager._progressCastMethod);
-
-        ProgressIncrement = baseProgressIncrement;
+        world.FinalizeLoad(progressBeforeFinalizing, 1.0f, _manager._progressCastMethod);
 
         _manager._currentWorld = world;
         _manager._currentCellSlants = new float?[world.Width, world.Height];
@@ -1364,7 +1376,7 @@ public class Manager
 
         _loadTicks += 1;
 
-        float value = ProgressIncrement * _loadTicks / (float)_totalLoadTicks;
+        float value = LastStageProgress + (StageProgressIncFromLoading * _loadTicks / (float)_totalLoadTicks);
 
         if (_manager._progressCastMethod != null)
         {
@@ -3905,18 +3917,64 @@ public class Manager
         return TextureValidationResult.Ok;
     }
 
-    public static void LoadMods(string modPath)
+    public static void LoadMods(params string[] modDirNames)
     {
-        string baseBiomeModFilename = modPath + @"Base\biomes.json";
+        if (modDirNames.Length == 0)
+            throw new System.ArgumentException("Number of mods to load can't be zero");
 
-        Biome.LoadFile(baseBiomeModFilename);
+        Biome.ResetBiomes();
+        RegionAttribute.ResetAttributes();
+        Element.ResetElements();
 
-        string baseRegionAttributeModFilename = modPath + @"Base\region_attributes.json";
+        float progressPerMod = 0.1f / modDirNames.Length;
 
-        RegionAttribute.LoadFile(baseRegionAttributeModFilename);
+        foreach (string dirName in modDirNames)
+        {
+            if (_manager._progressCastMethod != null)
+            {
+                _manager._progressCastMethod(LastStageProgress, "Loading Mod '" + dirName + "'...");
+            }
 
-        string baseElementModFilename = modPath + @"Base\elements.json";
+            LoadMod(DefaultModPath + dirName + @"\", progressPerMod);
 
-        Element.LoadFile(baseElementModFilename);
+            LastStageProgress += progressPerMod;
+        }
+    }
+
+    delegate void LoadModFileDelegate(string filename);
+
+    private static void TryLoadModFiles(LoadModFileDelegate loadModFile, string path, float progressPerModSegment)
+    {
+        if (!Directory.Exists(path))
+            return;
+
+        string[] files = Directory.GetFiles(path, "*.json");
+
+        if (files.Length > 0)
+        {
+            float progressPerFile = progressPerModSegment / files.Length;
+            float accProgress = LastStageProgress;
+
+            foreach (string file in files)
+            {
+                loadModFile(file);
+
+                accProgress += progressPerFile;
+
+                if (_manager._progressCastMethod != null)
+                {
+                    _manager._progressCastMethod(accProgress);
+                }
+            }
+        }
+    }
+
+    private static void LoadMod(string path, float progressPerMod)
+    {
+        float totalSegments = 3f;
+
+        TryLoadModFiles(Biome.LoadBiomesFile, path + @"Biomes", progressPerMod / totalSegments);
+        TryLoadModFiles(RegionAttribute.LoadRegionAttributesFile, path + @"RegionAttributes", progressPerMod / totalSegments);
+        TryLoadModFiles(Element.LoadElementsFile, path + @"Elements", progressPerMod / totalSegments);
     }
 }

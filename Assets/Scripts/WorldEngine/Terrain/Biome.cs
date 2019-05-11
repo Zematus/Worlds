@@ -43,23 +43,23 @@ public class Biome
     public float ForagingCapacity;
     public float Accessibility;
 
-    public static void LoadFile(string filename)
+    public static void ResetBiomes()
     {
         Biomes = new Dictionary<string, Biome>();
+    }
 
+    public static void LoadBiomesFile(string filename)
+    {
         foreach (Biome biome in BiomeLoader.Load(filename))
         {
             if (Biomes.ContainsKey(biome.Id))
             {
-                throw new System.Exception("duplicate biome id: " + biome.Id);
+                Biomes[biome.Id] = biome;
             }
-
-            Biomes.Add(biome.Id, biome);
-        }
-
-        if (Biomes.Count == 0)
-        {
-            throw new System.Exception("No biomes loaded from " + filename);
+            else
+            {
+                Biomes.Add(biome.Id, biome);
+            }
         }
     }
 }

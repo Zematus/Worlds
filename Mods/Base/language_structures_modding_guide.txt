@@ -1,4 +1,4 @@
----- Language Modding Guide ----
+---- Language Structures Modding Guide ----
 
 Procedurally generated languages in 'Worlds' are built by "translating" English words and sentences defined in mod files like elements.json and region_attributes.json and sometimes within the game itself. In order for this to work, the input strings given in those documents must follow a format that instructs the word parser on how to 'understand' each word or phrase. This document attempts to describe the structure and keywords used to facilitate the parsing process.
 

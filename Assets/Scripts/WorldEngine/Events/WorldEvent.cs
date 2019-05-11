@@ -44,8 +44,6 @@ public abstract class WorldEvent : ISynchronizable
     public const long OpenTribeDecisionEventId = 30;
     public const long AvoidOpenTribeDecisionEventId = 31;
 
-    //	public static int EventCount = 0;
-
     [XmlIgnore]
     public World World;
 
@@ -72,15 +70,11 @@ public abstract class WorldEvent : ISynchronizable
 
     public WorldEvent()
     {
-        //		EventCount++;
-
         Manager.UpdateWorldLoadTrackEventCount();
     }
 
     public WorldEvent(World world, WorldEventData data, long id)
     {
-        //		EventCount++;
-
         TypeId = data.TypeId;
 
         World = world;
@@ -92,8 +86,6 @@ public abstract class WorldEvent : ISynchronizable
 
     public WorldEvent(World world, long triggerDate, long id, long typeId, long originalSpawnDate = -1)
     {
-        //		EventCount++;
-
         TypeId = typeId;
 
         World = world;
@@ -169,8 +161,6 @@ public abstract class WorldEvent : ISynchronizable
 
     public void Destroy()
     {
-        //		EventCount--;
-
         DestroyInternal();
     }
 
@@ -181,8 +171,6 @@ public abstract class WorldEvent : ISynchronizable
 
     public virtual void Reset(long newTriggerDate, long newId)
     {
-        //		EventCount++;
-
         TriggerDate = newTriggerDate;
         SpawnDate = World.CurrentDate;
         Id = newId;

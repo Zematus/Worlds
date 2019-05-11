@@ -15,7 +15,7 @@ public class ScriptTesterScript : MonoBehaviour
 
         Debug.Log("loading biome mod file...");
 
-        Biome.LoadFile(@"Mods\Base\biomes.json");
+        Biome.LoadBiomesFile(@"Mods\Base\biomes.json");
 
         foreach (Biome biome in Biome.Biomes.Values)
         {
@@ -24,7 +24,7 @@ public class ScriptTesterScript : MonoBehaviour
 
         Debug.Log("loading region attribute mod file...");
 
-        RegionAttribute.LoadFile(@"Mods\Base\region_attributes.json");
+        RegionAttribute.LoadRegionAttributesFile(@"Mods\Base\region_attributes.json");
 
         foreach (RegionAttribute regionAttribute in RegionAttribute.Attributes.Values)
         {
@@ -33,7 +33,7 @@ public class ScriptTesterScript : MonoBehaviour
 
         Debug.Log("loading element mod file...");
 
-        Element.LoadFile(@"Mods\Base\elements.json");
+        Element.LoadElementsFile(@"Mods\Base\elements.json");
 
         foreach (Element element in Element.Elements.Values)
         {
