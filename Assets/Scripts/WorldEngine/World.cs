@@ -232,6 +232,8 @@ public class World : ISynchronizable
     [XmlAttribute]
     public float TemperatureOffset { get; private set; }
 
+    public List<string> ModPaths;
+
     // Start wonky segment (save failures might happen here)
 
     [XmlArrayItem(Type = typeof(UpdateCellGroupEvent)),

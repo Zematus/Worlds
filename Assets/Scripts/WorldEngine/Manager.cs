@@ -1052,17 +1052,14 @@ public class Manager
         else
             progressCastMethod = _manager._progressCastMethod;
 
-        if (!ModsAlreadyLoaded)
-        {
-            LoadMods(ActiveModPaths);
-            ModsAlreadyLoaded = true;
-        }
+        TryLoadActiveMods();
 
         progressCastMethod(LastStageProgress, "Generating World...");
 
         World world = new World(WorldWidth, WorldHeight, seed)
         {
-            ProgressCastMethod = progressCastMethod
+            ProgressCastMethod = progressCastMethod,
+            ModPaths = new List<string>(ActiveModPaths)
         };
 
         world.StartInitialization(LastStageProgress, 1.0f);
@@ -1255,6 +1252,15 @@ public class Manager
         System.GC.WaitForPendingFinalizers();
     }
 
+    private static void TryLoadActiveMods()
+    {
+        if (!ModsAlreadyLoaded)
+        {
+            LoadMods(ActiveModPaths);
+            ModsAlreadyLoaded = true;
+        }
+    }
+
     public static void LoadWorld(string path)
     {
         _manager._worldReady = false;
@@ -1269,15 +1275,7 @@ public class Manager
             progressCastMethod = _manager._progressCastMethod;
 
         ResetWorldLoadTrack();
-
-        if (!ModsAlreadyLoaded)
-        {
-            LoadMods(ActiveModPaths);
-            ModsAlreadyLoaded = true;
-        }
-
-        progressCastMethod(LastStageProgress, "Loading World...");
-
+        
         World world;
 
         XmlSerializer serializer = new XmlSerializer(typeof(World), _manager.AttributeOverrides);
@@ -1295,13 +1293,19 @@ public class Manager
         {
             world.ProgressCastMethod = _manager._progressCastMethod;
         }
-        
-        Manager.AltitudeScale = world.AltitudeScale;
-        Manager.SeaLevelOffset = world.SeaLevelOffset;
-        Manager.RainfallOffset = world.RainfallOffset;
-        Manager.TemperatureOffset = world.TemperatureOffset;
 
-        LastStageProgress += StageProgressIncFromLoading;
+        LastStageProgress = StageProgressIncFromLoading;
+
+        SetActiveModPaths(world.ModPaths);
+
+        TryLoadActiveMods();
+
+        progressCastMethod(LastStageProgress, "Loading World...");
+
+        AltitudeScale = world.AltitudeScale;
+        SeaLevelOffset = world.SeaLevelOffset;
+        RainfallOffset = world.RainfallOffset;
+        TemperatureOffset = world.TemperatureOffset;
 
         float progressBeforeFinalizing = 0.4f + LastStageProgress;
 
