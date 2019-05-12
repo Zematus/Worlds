@@ -16,7 +16,7 @@ public class AppSettings
     public bool Fullscreen = true;
     public bool DebugMode = true;
 
-    public List<string> ActiveMods = new List<string>();
+    public List<string> ActiveModPaths = new List<string>();
 
     public AppSettings()
     {
@@ -31,8 +31,8 @@ public class AppSettings
         Fullscreen = Manager.FullScreenEnabled;
         DebugMode = Manager.DebugModeEnabled;
 
-        ActiveMods.Clear();
-        ActiveMods.AddRange(Manager.ActiveMods);
+        ActiveModPaths.Clear();
+        ActiveModPaths.AddRange(Manager.ActiveModPaths);
     }
 
     public void Take()
@@ -44,7 +44,7 @@ public class AppSettings
         Manager.FullScreenEnabled = Fullscreen;
         Manager.DebugModeEnabled = DebugMode;
 
-        Manager.ActiveMods.Clear();
-        Manager.ActiveMods.AddRange(ActiveMods);
+        Manager.ActiveModPaths.Clear();
+        Manager.ActiveModPaths.AddRange(ActiveModPaths);
     }
 }

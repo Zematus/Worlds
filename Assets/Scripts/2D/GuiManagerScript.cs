@@ -312,7 +312,7 @@ public class GuiManagerScript : MonoBehaviour
         {
             _heightmap = Manager.LoadTexture(@"Heightmaps\mergetest_4b_3600x1800.png");
 
-            Manager.SetActiveMods(new string[] { "Base", "TestMod" });
+            //Manager.SetActiveModPaths(new string[] { @"Mods\Base", @"Mods\TestMod" });
 
             //GenerateWorld(false, 407252633);
             //GenerateWorld(false, 1159850609);

@@ -166,7 +166,7 @@ public class Manager
     public static bool FullScreenEnabled = false;
     public static bool DebugModeEnabled = false;
 
-    public static List<string> ActiveMods = new List<string>();
+    public static List<string> ActiveModPaths = new List<string>();
     public static bool ModsAlreadyLoaded = false;
 
     public static GameMode GameMode = GameMode.None;
@@ -1031,10 +1031,10 @@ public class Manager
         world.GenerateHumanGroup(longitude, latitude, initialPopulation);
     }
 
-    public static void SetActiveMods(ICollection<string> mods)
+    public static void SetActiveModPaths(ICollection<string> paths)
     {
-        ActiveMods.Clear();
-        ActiveMods.AddRange(mods);
+        ActiveModPaths.Clear();
+        ActiveModPaths.AddRange(paths);
 
         ModsAlreadyLoaded = false;
     }
@@ -1054,7 +1054,7 @@ public class Manager
 
         if (!ModsAlreadyLoaded)
         {
-            LoadMods(ActiveMods);
+            LoadMods(ActiveModPaths);
             ModsAlreadyLoaded = true;
         }
 
@@ -1272,7 +1272,7 @@ public class Manager
 
         if (!ModsAlreadyLoaded)
         {
-            LoadMods(ActiveMods);
+            LoadMods(ActiveModPaths);
             ModsAlreadyLoaded = true;
         }
 
@@ -3936,25 +3936,27 @@ public class Manager
         return TextureValidationResult.Ok;
     }
 
-    public static void LoadMods(ICollection<string> mods)
+    public static void LoadMods(ICollection<string> paths)
     {
-        if (mods.Count == 0)
+        if (paths.Count == 0)
             throw new System.ArgumentException("Number of mods to load can't be zero");
 
         Biome.ResetBiomes();
         RegionAttribute.ResetAttributes();
         Element.ResetElements();
 
-        float progressPerMod = 0.1f / mods.Count;
+        float progressPerMod = 0.1f / paths.Count;
 
-        foreach (string dirName in mods)
+        foreach (string path in paths)
         {
             if (_manager._progressCastMethod != null)
             {
-                _manager._progressCastMethod(LastStageProgress, "Loading Mod '" + dirName + "'...");
+                string directoryName = Path.GetFileName(path);
+
+                _manager._progressCastMethod(LastStageProgress, "Loading Mod '" + directoryName + "'...");
             }
 
-            LoadMod(DefaultModPath + dirName + @"\", progressPerMod);
+            LoadMod(path + @"\", progressPerMod);
 
             LastStageProgress += progressPerMod;
         }
