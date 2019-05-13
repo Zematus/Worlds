@@ -1,4 +1,4 @@
----- Biome Modding guide ----
+---- Biomes Modding guide ----
 
 Biome modding files are located within the 'Biomes' folder. To be valid, mod files must have the .json extension and have the following file structure:
 

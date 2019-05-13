@@ -136,6 +136,7 @@ public class GuiManagerScript : MonoBehaviour
         PlanetOverlay.Temperature,
         PlanetOverlay.Rainfall,
         PlanetOverlay.Arability,
+        PlanetOverlay.Layer,
         PlanetOverlay.Region,
         PlanetOverlay.Language
     };
@@ -1611,6 +1612,9 @@ public class GuiManagerScript : MonoBehaviour
             case PlanetOverlay.Arability:
                 planetOverlayStr = "_arability";
                 break;
+            case PlanetOverlay.Layer:
+                planetOverlayStr = "_layer_" + _planetOverlaySubtype;
+                break;
             case PlanetOverlay.Region:
                 planetOverlayStr = "_region";
                 break;
@@ -1976,6 +1980,10 @@ public class GuiManagerScript : MonoBehaviour
         {
             ChangePlanetOverlay(PlanetOverlay.Arability, false);
         }
+        else if (OverlayDialogPanelScript.LayerToggle.isOn)
+        {
+            ChangePlanetOverlay(PlanetOverlay.Layer, false);
+        }
         else if (OverlayDialogPanelScript.RegionToggle.isOn)
         {
             ChangePlanetOverlay(PlanetOverlay.Region, false);
@@ -2285,6 +2293,10 @@ public class GuiManagerScript : MonoBehaviour
             case PlanetOverlay.PolityCulturalDiscovery:
                 HandleCulturalDiscoveryOverlay();
                 break;
+
+            case PlanetOverlay.Layer:
+                HandleLayerOverlay();
+                break;
         }
     }
 
@@ -2343,6 +2355,18 @@ public class GuiManagerScript : MonoBehaviour
         foreach (CulturalDiscoveryInfo discoveryInfo in Manager.CurrentWorld.CulturalDiscoveryInfoList)
         {
             AddSelectionPanelOption(discoveryInfo.Name, discoveryInfo.Id);
+        }
+
+        SelectionPanelScript.SetVisible(true);
+    }
+
+    private void HandleLayerOverlay()
+    {
+        SelectionPanelScript.Title.text = "Displayed Layer:";
+
+        foreach (Layer layer in Layer.Layers.Values)
+        {
+            AddSelectionPanelOption(layer.Name, layer.Id);
         }
 
         SelectionPanelScript.SetVisible(true);
@@ -2448,6 +2472,13 @@ public class GuiManagerScript : MonoBehaviour
             foreach (CulturalDiscoveryInfo discoveryInfo in Manager.CurrentWorld.CulturalDiscoveryInfoList)
             {
                 AddSelectionPanelOption(discoveryInfo.Name, discoveryInfo.Id);
+            }
+        }
+        else if (_planetOverlay == PlanetOverlay.Layer)
+        {
+            foreach (Layer layer in Layer.Layers.Values)
+            {
+                AddSelectionPanelOption(layer.Name, layer.Id);
             }
         }
     }

@@ -93,6 +93,18 @@ public class InfoPanelScript : MonoBehaviour
         InfoText.text += "\nTemperature: " + cell.Temperature + " C";
         InfoText.text += "\n";
 
+        for (int i = 0; i < cell.PresentLayerIds.Count; i++)
+        {
+            float percentage = cell.LayerPresences[i];
+
+            Layer layer = Layer.Layers[cell.PresentLayerIds[i]];
+
+            InfoText.text += "\nLayer: " + layer.Name.FirstLetterToUpper();
+            InfoText.text += " (" + percentage.ToString("P") + ")";
+        }
+
+        InfoText.text += "\n";
+
         for (int i = 0; i < cell.PresentBiomeIds.Count; i++)
         {
             float percentage = cell.BiomePresences[i];
@@ -1165,6 +1177,7 @@ public class InfoPanelScript : MonoBehaviour
         if ((Manager.PlanetOverlay == PlanetOverlay.None) ||
             (Manager.PlanetOverlay == PlanetOverlay.Rainfall) ||
             (Manager.PlanetOverlay == PlanetOverlay.Arability) ||
+            (Manager.PlanetOverlay == PlanetOverlay.Layer) ||
             (Manager.PlanetOverlay == PlanetOverlay.Temperature))
         {
             AddCellDataToInfoPanel_Terrain(cell);

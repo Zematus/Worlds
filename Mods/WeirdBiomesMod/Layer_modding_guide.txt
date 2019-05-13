@@ -1,0 +1,31 @@
+---- Layer Modding guide ----
+
+Layer modding files are located within the 'Layers' folder. To be valid, mod files must have the .json extension and have the following file structure:
+
+-- File Structure --
+
+{
+  "layers": [ -- list of layers --
+    {
+      "id":                -- (required) Unique layer identifier, if more than one layer definition share ids, only the last one loaded will be used
+      "name":              -- (required) String to be used by the game's UI. Please avoid using overlong strings or non-unicode characters
+      "noiseScale":        -- (required) This affects the size of layer splotches. Larger values will generate larger splotches (Value between 0.01 and 1)
+      "noiseMagnitude":    -- (required) This affects the magnitude of layer values as a factor (Value between 0.001 and 1000)
+
+      "minAltitude":       -- (optional) Minimum cell altitude at which this layer can be present, a value of '0' refers to sea level (meters)
+      "maxAltitude":       -- (optional) Maximum cell altitude at which this layer can be present, a value of '0' refers to sea level (meters)
+      "minRainfall":       -- (optional) Minimum cell rainfall at which this layer can be present (mm per year)
+      "maxRainfall":       -- (optional) Maximum cell rainfall at which this layer can be present (mm per year)
+      "minTemperature":    -- (optional) Minimum cell temperature at which this layer can be present (centigrade, yearly average)
+      "maxTemperature":    -- (optional) Maximum cell temperature at which this layer can be present (centigrade, yearly average)
+    },
+    ... -- additional layers --
+  ]
+}
+
+-- Notes --
+1. Remove any trailing commas or the file won't be parsed
+2. Optional 'min' attribute values (altitude/rainfall/temperature) not defined will be assigned the minimum attribute value of its category
+3. Optional 'max' attribute values (altitude/rainfall/temperature) not defined will be assigned the maximum attribute value of its category
+
+--

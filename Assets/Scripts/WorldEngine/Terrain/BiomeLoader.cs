@@ -55,6 +55,21 @@ public class BiomeLoader
             throw new ArgumentException("biome name can't be null or empty");
         }
 
+        if (!b.survivability.IsInsideRange(0, 1))
+        {
+            throw new ArgumentException("biome survibability must be a value between 0 and 1 (inclusive)");
+        }
+
+        if (!b.foragingCapacity.IsInsideRange(0, 1))
+        {
+            throw new ArgumentException("biome foraging capacity must be a value between 0 and 1 (inclusive)");
+        }
+
+        if (!b.accessibility.IsInsideRange(0, 1))
+        {
+            throw new ArgumentException("biome accessibility must be a value between 0 and 1 (inclusive)");
+        }
+
         Biome biome = new Biome()
         {
             Id = b.id,
@@ -89,6 +104,11 @@ public class BiomeLoader
             {
                 throw new ArgumentException("Invalid maxAltitude value: " + b.maxAltitude);
             }
+
+            if (!biome.MaxAltitude.IsInsideRange(Biome.MinBiomeAltitude, Biome.MaxBiomeAltitude))
+            {
+                throw new ArgumentException("maxAltitude must be a value between " + Biome.MinBiomeAltitude + " and " + Biome.MaxBiomeAltitude);
+            }
         }
         else
         {
@@ -100,6 +120,11 @@ public class BiomeLoader
             if (!float.TryParse(b.minAltitude, out biome.MinAltitude))
             {
                 throw new ArgumentException("Invalid minAltitude value: " + b.minAltitude);
+            }
+
+            if (!biome.MinAltitude.IsInsideRange(Biome.MinBiomeAltitude, Biome.MaxBiomeAltitude))
+            {
+                throw new ArgumentException("minAltitude must be a value between " + Biome.MinBiomeAltitude + " and " + Biome.MaxBiomeAltitude);
             }
         }
         else
@@ -113,6 +138,11 @@ public class BiomeLoader
             {
                 throw new ArgumentException("Invalid maxRainfall value: " + b.maxRainfall);
             }
+
+            if (!biome.MaxRainfall.IsInsideRange(Biome.MinBiomeRainfall, Biome.MaxBiomeRainfall))
+            {
+                throw new ArgumentException("maxRainfall must be a value between " + Biome.MinBiomeRainfall + " and " + Biome.MaxBiomeRainfall);
+            }
         }
         else
         {
@@ -124,6 +154,11 @@ public class BiomeLoader
             if (!float.TryParse(b.minRainfall, out biome.MinRainfall))
             {
                 throw new ArgumentException("Invalid minRainfall value: " + b.minRainfall);
+            }
+
+            if (!biome.MinRainfall.IsInsideRange(Biome.MinBiomeRainfall, Biome.MaxBiomeRainfall))
+            {
+                throw new ArgumentException("minRainfall must be a value between " + Biome.MinBiomeRainfall + " and " + Biome.MaxBiomeRainfall);
             }
         }
         else
@@ -137,6 +172,11 @@ public class BiomeLoader
             {
                 throw new ArgumentException("Invalid maxTemperature value: " + b.maxTemperature);
             }
+
+            if (!biome.MaxTemperature.IsInsideRange(Biome.MinBiomeTemperature, Biome.MaxBiomeTemperature))
+            {
+                throw new ArgumentException("maxTemperature must be a value between " + Biome.MinBiomeTemperature + " and " + Biome.MaxBiomeTemperature);
+            }
         }
         else
         {
@@ -148,6 +188,11 @@ public class BiomeLoader
             if (!float.TryParse(b.minTemperature, out biome.MinTemperature))
             {
                 throw new ArgumentException("Invalid minTemperature value: " + b.minTemperature);
+            }
+
+            if (!biome.MinTemperature.IsInsideRange(Biome.MinBiomeTemperature, Biome.MaxBiomeTemperature))
+            {
+                throw new ArgumentException("minTemperature must be a value between " + Biome.MinBiomeTemperature + " and " + Biome.MaxBiomeTemperature);
             }
         }
         else

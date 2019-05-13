@@ -11,6 +11,16 @@ public static class MathUtility
     public const float NormalAt4 = 0.000134f;
     public const float NormalAt5 = 0.000001f;
 
+    public static bool IsInsideRange(this float value, float minValue, float maxValue)
+    {
+        return (value >= minValue) && (value <= maxValue);
+    }
+
+    public static bool IsInsideRange(this int value, int minValue, int maxValue)
+    {
+        return (value >= minValue) && (value <= maxValue);
+    }
+
     public static float GetMagnitude(float c1, float c2)
     {
         return Mathf.Sqrt((c1 * c1) + (c2 * c2));

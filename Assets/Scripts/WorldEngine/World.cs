@@ -185,6 +185,8 @@ public class World : ISynchronizable
 
     public const float MinSurvivabilityForRandomGroupPlacement = 0.15f;
 
+    public const float TerrainGenerationSteps = 6;
+
     [XmlAttribute]
     public int Width { get; private set; }
     [XmlAttribute]
@@ -419,6 +421,8 @@ public class World : ISynchronizable
     private ManagerTask<Vector3> _rainfallNoiseOffset2;
     private ManagerTask<Vector3> _rainfallNoiseOffset3;
 
+    private Dictionary<string, ManagerTask<Vector3>> _layerNoiseOffsets = new Dictionary<string, ManagerTask<Vector3>>();
+
     private static HashSet<TerrainCell> _cellsToRegen = new HashSet<TerrainCell>();
     private static HashSet<TerrainCell> _cellsToInit = new HashSet<TerrainCell>();
 
@@ -470,7 +474,7 @@ public class World : ISynchronizable
         MaxPossibleTemperatureWithOffset = MaxPossibleTemperature + Manager.TemperatureOffset;
 
         _accumulatedProgress = acumulatedProgress;
-        _progressIncrement = (maxExpectedProgress - _accumulatedProgress) / 5f;
+        _progressIncrement = (maxExpectedProgress - _accumulatedProgress) / TerrainGenerationSteps;
 
         Manager.EnqueueTaskAndWait(() =>
         {
@@ -512,7 +516,7 @@ public class World : ISynchronizable
         MinTemperature = float.MaxValue;
 
         _accumulatedProgress = acumulatedProgress;
-        _progressIncrement = (maxExpectedProgress - _accumulatedProgress) / 5f;
+        _progressIncrement = (maxExpectedProgress - _accumulatedProgress) / TerrainGenerationSteps;
 
         _cellMaxSideLength = Circumference / Width;
         TerrainCell.MaxArea = _cellMaxSideLength * _cellMaxSideLength;
@@ -2044,6 +2048,10 @@ public class World : ISynchronizable
             _accumulatedProgress += _progressIncrement;
         }
 
+        ProgressCastMethod(_accumulatedProgress, "Generating layers...");
+
+        GenerateTerrainLayers();
+
         ProgressCastMethod(_accumulatedProgress, "Generating biomes...");
 
         GenerateTerrainBiomes();
@@ -2375,10 +2383,7 @@ public class World : ISynchronizable
     {
         if (noiseFactor > 0)
         {
-            float alpha = (cell.Latitude / (float)Height) * Mathf.PI;
-            float beta = (cell.Longitude / (float)Width) * Mathf.PI * 2;
-
-            float rngValue = GetRandomNoiseFromPolarCoordinates(alpha, beta, noiseRadius, _altitudeBrushNoiseOffset);
+            float rngValue = GetRandomNoiseFromPolarCoordinates(cell.Alpha, cell.Beta, noiseRadius, _altitudeBrushNoiseOffset);
 
             valueOffset *= Mathf.Lerp(1, rngValue, noiseFactor);
         }
@@ -2440,10 +2445,7 @@ public class World : ISynchronizable
     {
         if (noiseFactor > 0)
         {
-            float alpha = (cell.Latitude / (float)Height) * Mathf.PI;
-            float beta = (cell.Longitude / (float)Width) * Mathf.PI * 2;
-
-            float rngValue = GetRandomNoiseFromPolarCoordinates(alpha, beta, noiseRadius, _tempBrushNoiseOffset);
+            float rngValue = GetRandomNoiseFromPolarCoordinates(cell.Alpha, cell.Beta, noiseRadius, _tempBrushNoiseOffset);
 
             valueOffset *= Mathf.Lerp(1, rngValue, noiseFactor);
         }
@@ -2466,10 +2468,7 @@ public class World : ISynchronizable
     {
         if (noiseFactor > 0)
         {
-            float alpha = (cell.Latitude / (float)Height) * Mathf.PI;
-            float beta = (cell.Longitude / (float)Width) * Mathf.PI * 2;
-
-            float rngValue = GetRandomNoiseFromPolarCoordinates(alpha, beta, noiseRadius, _rainfallBrushNoiseOffset);
+            float rngValue = GetRandomNoiseFromPolarCoordinates(cell.Alpha, cell.Beta, noiseRadius, _rainfallBrushNoiseOffset);
 
             valueOffset *= Mathf.Lerp(1, rngValue, noiseFactor);
         }
@@ -3057,8 +3056,8 @@ public class World : ISynchronizable
         float radius2 = 1f;
         float radius3 = 16f;
 
-        float alpha = (latitude / (float)Height) * Mathf.PI;
-        float beta = (longitude / (float)Width) * Mathf.PI * 2;
+        float alpha = cell.Alpha;
+        float beta = cell.Beta;
 
         float value1 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius1, _rainfallNoiseOffset1);
         float value2 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius2, _rainfallNoiseOffset2);
@@ -3192,12 +3191,9 @@ public class World : ISynchronizable
     {
         float radius1 = 2f;
         float radius2 = 16f;
-
-        float longitude = cell.Longitude;
-        float latitude = cell.Latitude;
-
-        float alpha = (latitude / (float)Height) * Mathf.PI;
-        float beta = (longitude / (float)Width) * Mathf.PI * 2;
+        
+        float alpha = cell.Alpha;
+        float beta = cell.Beta;
 
         float value1 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius1, _tempNoiseOffset1);
         float value2 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius2, _tempNoiseOffset2);
@@ -3265,12 +3261,9 @@ public class World : ISynchronizable
     private void GenerateTerrainArabilityForCell(TerrainCell cell)
     {
         float radius = 2f;
-
-        int longitude = cell.Longitude;
-        int latitude = cell.Latitude;
-
-        float alpha = (latitude / (float)Height) * Mathf.PI;
-        float beta = (longitude / (float)Width) * Mathf.PI * 2;
+        
+        float alpha = cell.Alpha;
+        float beta = cell.Beta;
 
         float baseArability = CalculateCellBaseArability(cell);
 
@@ -3280,7 +3273,7 @@ public class World : ISynchronizable
             return;
 
         // This simulates things like stoniness, impracticality of drainage, excessive salts, etc.
-        float noiseFactor = 0.0f + 1.0f * GetRandomNoiseFromPolarCoordinates(alpha, beta, radius, _arabilityNoiseOffset);
+        float noiseFactor = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius, _arabilityNoiseOffset);
 
         cell.Arability = baseArability * noiseFactor;
     }
@@ -3305,6 +3298,20 @@ public class World : ISynchronizable
         _accumulatedProgress += _progressIncrement;
     }
 
+    private void GenerateTerrainLayersForCell(TerrainCell cell)
+    {
+        cell.ResetLayers();
+
+        foreach (Layer layer in Layer.Layers.Values)
+        {
+            float presence = CalculateLayerPresence(cell, layer);
+
+            if (presence <= 0) continue;
+
+            cell.AddLayerPresence(layer, presence);
+        }
+    }
+
     private void GenerateTerrainBiomesForCell(TerrainCell cell)
     {
         float totalPresence = 0;
@@ -3322,7 +3329,7 @@ public class World : ISynchronizable
             totalPresence += presence;
         }
 
-        cell.ResetBiomePresences();
+        cell.ResetBiomes();
 
         cell.Survivability = 0;
         cell.ForagingCapacity = 0;
@@ -3347,6 +3354,29 @@ public class World : ISynchronizable
         float altitudeSurvivabilityFactor = 1 - Mathf.Clamp01(cell.Altitude / MaxPossibleAltitude);
 
         cell.Survivability *= altitudeSurvivabilityFactor;
+    }
+
+    private void GenerateTerrainLayers()
+    {
+        int sizeX = Width;
+        int sizeY = Height;
+
+        foreach (Layer layer in Layer.Layers.Values)
+        {
+            _layerNoiseOffsets.Add(layer.Id, GenerateRandomOffsetVectorTask());
+        }
+
+        for (int i = 0; i < sizeX; i++)
+        {
+            for (int j = 0; j < sizeY; j++)
+            {
+                GenerateTerrainLayersForCell(TerrainCells[i][j]);
+            }
+
+            ProgressCastMethod(_accumulatedProgress + _progressIncrement * (i + 1) / (float)sizeX);
+        }
+
+        _accumulatedProgress += _progressIncrement;
     }
 
     private void GenerateTerrainBiomes()
@@ -3393,14 +3423,121 @@ public class World : ISynchronizable
         return rainfallFactor * temperatureFactor * landFactor;
     }
 
-    private float CalculateBiomePresence(TerrainCell cell, Biome biome)
+    private float CalculateLayerNoiseFactor(TerrainCell cell, Layer layer)
     {
-        float presence = 1f;
+        float radius = 1 / layer.NoiseScale;
+        
+        float alpha = cell.Alpha;
+        float beta = cell.Beta;
 
-        // Altitude
+        Vector3 noiseOffset = _layerNoiseOffsets[layer.Id].Result;
 
+        float value = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius, noiseOffset);
+        value = (2 * value) - 1; // scale value from (0, 1) to (-1, 1);
+
+        return value * layer.NoiseMagnitude;
+    }
+
+    private float CalculateLayerAltitudeFactor(TerrainCell cell, Layer layer)
+    {
+        float altitudeSpan = layer.MaxAltitude - layer.MinAltitude;
+
+        float altitudeDiff = cell.Altitude - layer.MinAltitude;
+
+        if (altitudeDiff < 0)
+            return -1f;
+
+        float altitudeFactor = altitudeDiff / altitudeSpan;
+
+        if (float.IsInfinity(altitudeFactor))
+        {
+            altitudeFactor = 0.5f;
+        }
+
+        if (altitudeFactor > 1)
+            return -1f;
+
+        if (altitudeFactor > 0.5f)
+            altitudeFactor = 1f - altitudeFactor;
+
+        return altitudeFactor * 2;
+    }
+
+    private float CalculateLayerRainfallFactor(TerrainCell cell, Layer layer)
+    {
+        float rainfallSpan = layer.MaxRainfall - layer.MinRainfall;
+
+        float rainfallDiff = cell.Rainfall - layer.MinRainfall;
+
+        if (rainfallDiff < 0)
+            return -1f;
+
+        float rainfallFactor = rainfallDiff / rainfallSpan;
+
+        if (float.IsInfinity(rainfallSpan))
+        {
+            rainfallFactor = 0.5f;
+        }
+
+        if (rainfallFactor > 1)
+            return -1f;
+
+        if (rainfallFactor > 0.5f)
+            rainfallFactor = 1f - rainfallFactor;
+
+        return rainfallFactor * 2;
+    }
+
+    private float CalculateLayerTemperatureFactor(TerrainCell cell, Layer layer)
+    {
+        float temperatureSpan = layer.MaxTemperature - layer.MinTemperature;
+
+        float temperatureDiff = cell.Temperature - layer.MinTemperature;
+
+        if (temperatureDiff < 0)
+            return -1f;
+
+        float temperatureFactor = temperatureDiff / temperatureSpan;
+
+        if (float.IsInfinity(temperatureSpan))
+        {
+            temperatureFactor = 0.5f;
+        }
+
+        if (temperatureFactor > 1)
+            return -1f;
+
+        if (temperatureFactor > 0.5f)
+            temperatureFactor = 1f - temperatureFactor;
+
+        return temperatureFactor * 2;
+    }
+
+    private float CalculateLayerPresence(TerrainCell cell, Layer layer)
+    {
+        float presence = CalculateLayerNoiseFactor(cell, layer);
+
+        if (presence < 0)
+            return presence;
+
+        presence *= CalculateLayerAltitudeFactor(cell, layer);
+
+        if (presence < 0)
+            return presence;
+
+        presence *= CalculateLayerRainfallFactor(cell, layer);
+
+        if (presence < 0)
+            return presence;
+
+        presence *= CalculateLayerTemperatureFactor(cell, layer);
+
+        return presence;
+    }
+
+    private float CalculateBiomeAltitudeFactor(TerrainCell cell, Biome biome)
+    {
         float altitudeSpan = biome.MaxAltitude - biome.MinAltitude;
-
 
         float altitudeDiff = cell.Altitude - biome.MinAltitude;
 
@@ -3420,10 +3557,11 @@ public class World : ISynchronizable
         if (altitudeFactor > 0.5f)
             altitudeFactor = 1f - altitudeFactor;
 
-        presence *= altitudeFactor * 2;
+        return altitudeFactor * 2;
+    }
 
-        // Rainfall
-
+    private float CalculateBiomeRainfallFactor(TerrainCell cell, Biome biome)
+    {
         float rainfallSpan = biome.MaxRainfall - biome.MinRainfall;
 
         float rainfallDiff = cell.Rainfall - biome.MinRainfall;
@@ -3444,10 +3582,11 @@ public class World : ISynchronizable
         if (rainfallFactor > 0.5f)
             rainfallFactor = 1f - rainfallFactor;
 
-        presence *= rainfallFactor * 2;
+        return rainfallFactor * 2;
+    }
 
-        // Temperature
-
+    private float CalculateBiomeTemperatureFactor(TerrainCell cell, Biome biome)
+    {
         float temperatureSpan = biome.MaxTemperature - biome.MinTemperature;
 
         float temperatureDiff = cell.Temperature - biome.MinTemperature;
@@ -3468,7 +3607,24 @@ public class World : ISynchronizable
         if (temperatureFactor > 0.5f)
             temperatureFactor = 1f - temperatureFactor;
 
-        presence *= temperatureFactor * 2;
+        return temperatureFactor * 2;
+    }
+
+    private float CalculateBiomePresence(TerrainCell cell, Biome biome)
+    {
+        float presence = 1f;
+        
+        presence *= CalculateBiomeAltitudeFactor(cell, biome);
+
+        if (presence < 0)
+            return presence;
+
+        presence *= CalculateBiomeRainfallFactor(cell, biome);
+
+        if (presence < 0)
+            return presence;
+
+        presence *= CalculateBiomeTemperatureFactor(cell, biome);
 
         return presence;
     }

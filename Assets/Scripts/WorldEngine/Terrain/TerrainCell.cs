@@ -119,7 +119,15 @@ public class TerrainCell : ISynchronizable
     public List<string> PresentBiomeIds = new List<string>();
     public List<float> BiomePresences = new List<float>();
 
+    public List<string> PresentLayerIds = new List<string>();
+    public List<float> LayerPresences = new List<float>();
+
     public CellGroup Group;
+
+    [XmlIgnore]
+    public float Alpha;
+    [XmlIgnore]
+    public float Beta;
 
     [XmlIgnore]
     public List<string> PresentSeaBiomeIds = new List<string>();
@@ -166,6 +174,7 @@ public class TerrainCell : ISynchronizable
     private HashSet<string> _flags = new HashSet<string>();
 
     private Dictionary<string, float> _biomePresences = new Dictionary<string, float>();
+    private Dictionary<string, float> _layerPresences = new Dictionary<string, float>();
 
     public TerrainCell()
     {
@@ -179,6 +188,9 @@ public class TerrainCell : ISynchronizable
         World = world;
         Longitude = longitude;
         Latitude = latitude;
+
+        Alpha = (latitude / (float)world.Height) * Mathf.PI;
+        Beta = (longitude / (float)world.Width) * Mathf.PI * 2;
 
         Height = height;
         Width = width;
@@ -403,15 +415,24 @@ public class TerrainCell : ISynchronizable
         return value / (float)PerlinNoise.MaxPermutationValue;
     }
 
-    public void ResetBiomePresences()
+    public void ResetBiomes()
     {
         PresentBiomeIds.Clear();
         PresentSeaBiomeIds.Clear();
         BiomePresences.Clear();
+
         _biomePresences.Clear();
 
         MostBiomePresence = 0;
         BiomeWithMostPresence = null;
+    }
+
+    public void ResetLayers()
+    {
+        PresentLayerIds.Clear();
+        LayerPresences.Clear();
+        
+        _layerPresences.Clear();
     }
 
     public float GetBiomePresence(Biome biome)
@@ -439,11 +460,29 @@ public class TerrainCell : ISynchronizable
         }
     }
 
+    public void AddLayerPresence(Layer layer, float presence)
+    {
+        PresentLayerIds.Add(layer.Id);
+        LayerPresences.Add(presence);
+
+        _layerPresences[layer.Id] = presence;
+    }
+
     public float GetBiomePresence(string biomeId)
     {
         float value = 0;
 
         if (!_biomePresences.TryGetValue(biomeId, out value))
+            return 0;
+
+        return value;
+    }
+
+    public float GetLayerPresence(string layerId)
+    {
+        float value = 0;
+
+        if (!_layerPresences.TryGetValue(layerId, out value))
             return 0;
 
         return value;
@@ -456,6 +495,9 @@ public class TerrainCell : ISynchronizable
     public void FinalizeLoad()
     {
         Position = new WorldPosition(Longitude, Latitude);
+
+        Alpha = (Latitude / (float)World.Height) * Mathf.PI;
+        Beta = (Longitude / (float)World.Width) * Mathf.PI * 2;
 
         for (int i = 0; i < PresentBiomeIds.Count; i++)
         {
@@ -470,6 +512,13 @@ public class TerrainCell : ISynchronizable
                 PresentSeaBiomeIds.Add(biomeId);
                 SeaBiomePresence += BiomePresences[i];
             }
+        }
+
+        for (int i = 0; i < PresentLayerIds.Count; i++)
+        {
+            string layerId = PresentLayerIds[i];
+
+            _layerPresences[layerId] = LayerPresences[i];
         }
 
         InitializeNeighbors();

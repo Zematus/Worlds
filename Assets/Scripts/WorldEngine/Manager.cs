@@ -53,6 +53,7 @@ public enum PlanetOverlay
     Temperature,
     Rainfall,
     Arability,
+    Layer,
     Region,
     Language,
     PopChange,
@@ -72,6 +73,7 @@ public enum OverlayColorId
     SelectedTerritory = 6,
     ContactedTerritoryGood = 7,
     ContactedTerritoryBad = 8,
+    Layer = 9
 }
 
 public class Manager
@@ -1411,6 +1413,7 @@ public class Manager
     {
         if ((overlay == PlanetOverlay.None) ||
             (overlay == PlanetOverlay.Arability) ||
+            (overlay == PlanetOverlay.Layer) ||
             (overlay == PlanetOverlay.Rainfall) ||
             (overlay == PlanetOverlay.Temperature) ||
             (overlay == PlanetOverlay.FarmlandDistribution))
@@ -1453,6 +1456,7 @@ public class Manager
     {
         if ((overlay == PlanetOverlay.None) ||
             (overlay == PlanetOverlay.Arability) ||
+            (overlay == PlanetOverlay.Layer) ||
             (overlay == PlanetOverlay.Rainfall) ||
             (overlay == PlanetOverlay.Temperature) ||
             (overlay == PlanetOverlay.FarmlandDistribution))
@@ -2476,6 +2480,10 @@ public class Manager
 
             case PlanetOverlay.Arability:
                 color = SetArabilityOverlayColor(cell, color);
+                break;
+
+            case PlanetOverlay.Layer:
+                color = SetLayerOverlayColor(cell, color);
                 break;
 
             case PlanetOverlay.Region:
@@ -3597,10 +3605,35 @@ public class Manager
 
         if (normalizedValue >= 0.001f)
         {
-
             float value = 0.05f + 0.95f * normalizedValue;
 
             color = (color * (1 - value)) + (GetOverlayColor(OverlayColorId.Arability) * value);
+        }
+
+        return color;
+    }
+
+    private static Color SetLayerOverlayColor(TerrainCell cell, Color color)
+    {
+        float greyscale = (color.r + color.g + color.b);
+
+        color.r = (greyscale + color.r) / 6f;
+        color.g = (greyscale + color.g) / 6f;
+        color.b = (greyscale + color.b) / 6f;
+
+        if (_planetOverlaySubtype == "None")
+            return color;
+
+        Layer layer = Layer.Layers[_planetOverlaySubtype];
+
+        float presence = cell.GetLayerPresence(_planetOverlaySubtype);
+        float normalizedValue = presence / layer.NoiseMagnitude;
+
+        if (normalizedValue >= 0.001f)
+        {
+            float value = 0.05f + 0.95f * normalizedValue;
+
+            color = (color * (1 - value)) + (GetOverlayColor(OverlayColorId.Layer) * value);
         }
 
         return color;
@@ -3945,6 +3978,7 @@ public class Manager
         if (paths.Count == 0)
             throw new System.ArgumentException("Number of mods to load can't be zero");
 
+        Layer.ResetLayers();
         Biome.ResetBiomes();
         RegionAttribute.ResetAttributes();
         Element.ResetElements();
@@ -3996,10 +4030,11 @@ public class Manager
 
     private static void LoadMod(string path, float progressPerMod)
     {
-        float totalSegments = 3f;
+        float progressPerSegment = progressPerMod / 4f;
 
-        TryLoadModFiles(Biome.LoadBiomesFile, path + @"Biomes", progressPerMod / totalSegments);
-        TryLoadModFiles(RegionAttribute.LoadRegionAttributesFile, path + @"RegionAttributes", progressPerMod / totalSegments);
-        TryLoadModFiles(Element.LoadElementsFile, path + @"Elements", progressPerMod / totalSegments);
+        TryLoadModFiles(Layer.LoadLayersFile, path + @"Layers", progressPerSegment);
+        TryLoadModFiles(Biome.LoadBiomesFile, path + @"Biomes", progressPerSegment);
+        TryLoadModFiles(RegionAttribute.LoadRegionAttributesFile, path + @"RegionAttributes", progressPerSegment);
+        TryLoadModFiles(Element.LoadElementsFile, path + @"Elements", progressPerSegment);
     }
 }

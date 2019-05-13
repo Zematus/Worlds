@@ -1,0 +1,11 @@
+{
+  "layers": [
+    {
+      "id": "test_layer",
+      "name": "test layer",
+      "noiseScale": 1,
+      "noiseMagnitude": 1,
+      "minAltitude": 0
+    }
+  ]
+}
