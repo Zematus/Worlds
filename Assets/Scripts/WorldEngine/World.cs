@@ -3365,6 +3365,8 @@ public class World : ISynchronizable
         int sizeX = Width;
         int sizeY = Height;
 
+        _layerNoiseOffsets.Clear();
+
         foreach (Layer layer in Layer.Layers.Values)
         {
             layer.Reset();
@@ -3639,6 +3641,58 @@ public class World : ISynchronizable
         return temperatureFactor * 2;
     }
 
+    private float CalculateBiomeLayerFactor(TerrainCell cell, Biome.LayerConstraint constraint)
+    {
+        Layer layer = Layer.Layers[constraint.LayerId];
+
+        float cellValue = cell.GetLayerValue(constraint.LayerId) * layer.MaxPossibleValue;
+
+        if (cellValue > 0)
+        {
+            bool debug = true;
+        }
+
+        float valueSpan = constraint.MaxValue - constraint.MinValue;
+
+        float valueDiff = cellValue - constraint.MinValue;
+
+        if (valueDiff < 0)
+            return -1f;
+
+        float valueFactor = valueDiff / valueSpan;
+
+        if (float.IsInfinity(valueSpan))
+        {
+            valueFactor = 0.5f;
+        }
+
+        if (valueFactor > 1)
+            return -1f;
+
+        if (valueFactor > 0.5f)
+            valueFactor = 1f - valueFactor;
+
+        return valueFactor * 2;
+    }
+
+    private float CalculateBiomeLayerFactor(TerrainCell cell, Biome biome)
+    {
+        if (biome.LayerConstraints == null)
+            return 1;
+
+        float layerFactor = 1;
+
+        foreach (Biome.LayerConstraint constraint in biome.LayerConstraints.Values)
+        {
+            layerFactor *= CalculateBiomeLayerFactor(cell, constraint);
+
+            if (layerFactor < 0)
+                return layerFactor;
+        }
+
+        return layerFactor;
+    }
+
     private float CalculateBiomePresence(TerrainCell cell, Biome biome)
     {
         float presence = 1f;
@@ -3654,6 +3708,11 @@ public class World : ISynchronizable
             return presence;
 
         presence *= CalculateBiomeTemperatureFactor(cell, biome);
+
+        if (presence < 0)
+            return presence;
+
+        presence *= CalculateBiomeLayerFactor(cell, biome);
 
         return presence;
     }

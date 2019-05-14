@@ -25,9 +25,9 @@ Biome modding files are located within the 'Biomes' folder. To be valid, mod fil
 
       "layerConstraints": [
         {
-          "layerId":
-          "minValue:"
-          "maxValue:"
+          "layerId":       -- (required) Id of the layer to use as constraint
+          "minValue":      -- (optional) Minimum layer value in cell at which this biome can be present (between -1000000 and 1000000 inclusive) (see note #4 and #6)
+          "maxValue":      -- (optional) Maximum layer value in cell at which this biome can be present (between -1000000 and 1000000 inclusive) (see note #5 and #6)
         }
       ]
     },
@@ -39,5 +39,8 @@ Biome modding files are located within the 'Biomes' folder. To be valid, mod fil
 1. Remove any trailing commas or the file won't be parsed
 2. Optional 'min' attribute values (altitude/rainfall/temperature) not defined will be assigned the minimum attribute value of its category
 3. Optional 'max' attribute values (altitude/rainfall/temperature) not defined will be assigned the maximum attribute value of its category
+4. Only set a minValue if the biome is not supposed to be present at values less than minValue. Otherwise do not add this constraint property
+5. Only set a maxValue if the biome is not supposed to be present at values greater than maxValue. Otherwise do not add this constraint property
+6. A layer constraint's minValue or maxValue shouldn't be greater than the specific layer's maxPossibleValue 
 
 --

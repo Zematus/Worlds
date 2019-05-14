@@ -6,6 +6,9 @@ using System.Xml.Serialization;
 
 public class Layer
 {
+    public const float MinLayerPossibleValue = -1000000;
+    public const float MaxLayerPossibleValue = 1000000;
+
     public static float MinLayerTemperature = World.MinPossibleTemperature * 3 - 1;
     public static float MaxLayerTemperature = World.MaxPossibleTemperature * 3 + 1;
 

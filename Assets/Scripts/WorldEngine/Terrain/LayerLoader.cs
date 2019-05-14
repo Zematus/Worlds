@@ -61,9 +61,9 @@ public class LayerLoader
             throw new ArgumentException("layer noise scale must be a value between 0.01 and 1 (inclusive)");
         }
 
-        if (!l.maxPossibleValue.IsInsideRange(0.001f, 1000000))
+        if (!l.maxPossibleValue.IsInsideRange(1, Layer.MaxLayerPossibleValue))
         {
-            throw new ArgumentException("layer max possible value must be between 0.001 and 1000000 (inclusive)");
+            throw new ArgumentException("layer max possible value must be between 1 and " + Layer.MaxLayerPossibleValue + " (inclusive)");
         }
 
         if (!l.frequency.IsInsideRange(0.01f, 1))

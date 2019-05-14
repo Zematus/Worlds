@@ -14,6 +14,16 @@ public class BiomeLoader
     [Serializable]
     public class LoadedBiome
     {
+        public LoadedLayerConstraint[] layerConstraints;
+
+        [Serializable]
+        public class LoadedLayerConstraint
+        {
+            public string layerId;
+            public string minValue;
+            public string maxValue;
+        }
+
         public string id;
         public string name;
         public string color;
@@ -34,9 +44,9 @@ public class BiomeLoader
     public static IEnumerable<Biome> Load(string filename)
     {
         string jsonStr = File.ReadAllText(filename);
-        
+
         BiomeLoader loader = JsonUtility.FromJson<BiomeLoader>(jsonStr);
-        
+
         for (int i = 0; i < loader.biomes.Length; i++)
         {
             yield return CreateBiome(loader.biomes[i]);
@@ -200,6 +210,82 @@ public class BiomeLoader
             biome.MinTemperature = Biome.MinBiomeTemperature;
         }
 
+        if (b.layerConstraints != null)
+        {
+            biome.LayerConstraints = new Dictionary<string, Biome.LayerConstraint>(b.layerConstraints.Length);
+
+            for (int i = 0; i < b.layerConstraints.Length; i++)
+            {
+                Biome.LayerConstraint constraint = CreateLayerConstraint(b.layerConstraints[i]);
+
+                biome.LayerConstraints.Add(constraint.LayerId, constraint);
+            }
+        }
+
         return biome;
+    }
+
+    private static Biome.LayerConstraint CreateLayerConstraint(LoadedBiome.LoadedLayerConstraint c)
+    {
+        if (string.IsNullOrEmpty(c.layerId))
+        {
+            throw new ArgumentException("constraint's layerId can't be null or empty");
+        }
+
+        Biome.LayerConstraint constraint = new Biome.LayerConstraint()
+        {
+            LayerId = c.layerId
+        };
+
+        if (c.maxValue != null)
+        {
+            if (!float.TryParse(c.maxValue, out constraint.MaxValue))
+            {
+                throw new ArgumentException("Invalid constraint maxValue value: " + c.maxValue);
+            }
+
+            if (!constraint.MaxValue.IsInsideRange(Layer.MinLayerPossibleValue, Layer.MaxLayerPossibleValue))
+            {
+                throw new ArgumentException("maxValue must be a value between " + Layer.MinLayerPossibleValue + " and " + Layer.MaxLayerPossibleValue);
+            }
+        }
+        else
+        {
+            constraint.MaxValue = Layer.MaxLayerPossibleValue;
+        }
+
+        if (c.minValue != null)
+        {
+            if (!float.TryParse(c.minValue, out constraint.MinValue))
+            {
+                throw new ArgumentException("Invalid constraint minValue value: " + c.minValue);
+            }
+
+            if (!constraint.MinValue.IsInsideRange(Layer.MinLayerPossibleValue, Layer.MaxLayerPossibleValue))
+            {
+                throw new ArgumentException("minValue must be a value between " + Layer.MinLayerPossibleValue + " and " + Layer.MaxLayerPossibleValue);
+            }
+        }
+        else
+        {
+            constraint.MinValue = Layer.MinLayerPossibleValue;
+        }
+
+        Layer layer = Layer.Layers[c.layerId];
+
+        if (constraint.MaxValue == Layer.MaxLayerPossibleValue)
+        {
+            constraint.MaxValue = layer.MaxPossibleValue;
+        }
+
+        if (constraint.MinValue == Layer.MinLayerPossibleValue)
+        {
+            if (constraint.MaxValue > 0)
+            {
+                constraint.MinValue = -constraint.MaxValue;
+            }
+        }
+
+        return constraint;
     }
 }

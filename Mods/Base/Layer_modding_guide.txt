@@ -14,7 +14,7 @@ Layer modding files are located within the 'Layers' folder. To be valid, mod fil
 
       "noiseScale":              -- (required) This affects the size of the layer splotches. Larger values will generate larger splotches (Value between 0.01 and 2)
       "secondaryNoiseInfluence": -- (optional) This substracts lower scale noise of the layer splotches. A value of 0 means no secondary noise influence effect (Value between 0 and 1)
-      "maxPossibleValue":        -- (required) What is the maximum possible value this layer can have on a cell (Value between 0.001 and 1000000)
+      "maxPossibleValue":        -- (required) What is the maximum possible value this layer can have on a cell (Value between 1 and 1000000)
       "frequency":               -- (required) What is the probability if this layer being present at all on a cell (Value between 0.01 and 1)
 
       "minAltitude":             -- (optional) Minimum cell altitude at which this layer can be present, a value of '0' refers to sea level (meters)

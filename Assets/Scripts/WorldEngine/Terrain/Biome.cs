@@ -6,6 +6,13 @@ using System.Xml.Serialization;
 
 public class Biome
 {
+    public class LayerConstraint
+    {
+        public string LayerId;
+        public float MinValue;
+        public float MaxValue;
+    }
+
     public enum LocactionType
     {
         Land,
@@ -42,6 +49,8 @@ public class Biome
     public float Survivability;
     public float ForagingCapacity;
     public float Accessibility;
+
+    public Dictionary<string, LayerConstraint> LayerConstraints = null;
 
     public static void ResetBiomes()
     {

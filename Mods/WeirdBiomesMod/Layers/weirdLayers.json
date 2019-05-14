@@ -1,0 +1,16 @@
+{
+  "layers": [
+    {
+      "id": "mycosystem",
+      "name": "mycosystem",
+      "color": "#F10082",
+      "noiseScale": 1,
+      "secondaryNoiseInfluence": 0.2,
+      "maxPossibleValue": 1000,
+      "frequency": 0.4,
+      "minAltitude": 0,
+      "minRainfall": 1375,
+      "minTemperature": -20
+    }
+  ]
+}
