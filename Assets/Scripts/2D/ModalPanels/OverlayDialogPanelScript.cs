@@ -62,6 +62,11 @@ public class OverlayDialogPanelScript : MenuPanelScript
         PolityClustersToggle.gameObject.SetActive(Manager.DebugModeEnabled);
     }
 
+    public void SetLayerOverlay(bool state)
+    {
+        LayerToggle.gameObject.SetActive(state);
+    }
+
     public void SetCloseAction(UnityAction closeAction)
     {
         CloseActionButton.onClick.RemoveAllListeners();

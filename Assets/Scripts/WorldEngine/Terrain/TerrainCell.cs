@@ -120,7 +120,7 @@ public class TerrainCell : ISynchronizable
     public List<float> BiomePresences = new List<float>();
 
     public List<string> PresentLayerIds = new List<string>();
-    public List<float> LayerPresences = new List<float>();
+    public List<float> LayerValue = new List<float>();
 
     public CellGroup Group;
 
@@ -174,7 +174,7 @@ public class TerrainCell : ISynchronizable
     private HashSet<string> _flags = new HashSet<string>();
 
     private Dictionary<string, float> _biomePresences = new Dictionary<string, float>();
-    private Dictionary<string, float> _layerPresences = new Dictionary<string, float>();
+    private Dictionary<string, float> _layerValues = new Dictionary<string, float>();
 
     public TerrainCell()
     {
@@ -430,9 +430,9 @@ public class TerrainCell : ISynchronizable
     public void ResetLayers()
     {
         PresentLayerIds.Clear();
-        LayerPresences.Clear();
+        LayerValue.Clear();
         
-        _layerPresences.Clear();
+        _layerValues.Clear();
     }
 
     public float GetBiomePresence(Biome biome)
@@ -460,12 +460,17 @@ public class TerrainCell : ISynchronizable
         }
     }
 
-    public void AddLayerPresence(Layer layer, float presence)
+    public void AddLayerValue(Layer layer, float value)
     {
         PresentLayerIds.Add(layer.Id);
-        LayerPresences.Add(presence);
+        LayerValue.Add(value);
 
-        _layerPresences[layer.Id] = presence;
+        _layerValues[layer.Id] = value;
+
+        if (layer.MaxPresentValue < value)
+        {
+            layer.MaxPresentValue = value;
+        }
     }
 
     public float GetBiomePresence(string biomeId)
@@ -478,11 +483,11 @@ public class TerrainCell : ISynchronizable
         return value;
     }
 
-    public float GetLayerPresence(string layerId)
+    public float GetLayerValue(string layerId)
     {
         float value = 0;
 
-        if (!_layerPresences.TryGetValue(layerId, out value))
+        if (!_layerValues.TryGetValue(layerId, out value))
             return 0;
 
         return value;
@@ -518,7 +523,7 @@ public class TerrainCell : ISynchronizable
         {
             string layerId = PresentLayerIds[i];
 
-            _layerPresences[layerId] = LayerPresences[i];
+            _layerValues[layerId] = LayerValue[i];
         }
 
         InitializeNeighbors();

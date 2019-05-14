@@ -9,8 +9,10 @@ Element modding files are located within the 'Elements' folder. To be valid, mod
     {
       "id":                  -- (required) Unique element identifier, if more than one definition share ids, only the last one loaded will be used
       "name":                -- (required) Name of element (in plural form, see note #2)
+
       "adjectives":          -- (optional) List of applicable adjectives, separated by commas
       "regionConstraints":   -- (optional) List of region constraints, separated by commas (see note #3)
+      
       "phraseAssociations":  -- (required) List of phrase association strings, separated by commas (see note #4)
     },
     ... -- additional elements --

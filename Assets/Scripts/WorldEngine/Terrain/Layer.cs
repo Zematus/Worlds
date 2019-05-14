@@ -19,9 +19,15 @@ public class Layer
 
     public string Name;
     public string Id;
+    public string Units;
+
+    public Color Color;
 
     public float NoiseScale;
-    public float NoiseMagnitude;
+    public float SecondaryNoiseInfluence;
+    public float MaxPossibleValue;
+    public float Frequency;
+    public float Rarity;
 
     public float MinAltitude;
     public float MaxAltitude;
@@ -31,6 +37,8 @@ public class Layer
 
     public float MinTemperature;
     public float MaxTemperature;
+
+    public float MaxPresentValue = 0.001f;
 
     public static void ResetLayers()
     {
@@ -50,5 +58,10 @@ public class Layer
                 Layers.Add(layer.Id, layer);
             }
         }
+    }
+
+    public void Reset()
+    {
+        MaxPresentValue = 0.001f;
     }
 }

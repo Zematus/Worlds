@@ -107,6 +107,8 @@ public class Manager
 
     //	public static IRecorder Recorder = DefaultRecorder.Default;
 
+    public const string NoOverlaySubtype = "None";
+
     public const int WorldWidth = 400;
     public const int WorldHeight = 200;
 
@@ -120,6 +122,9 @@ public class Manager
     public const string DefaultModPath = @".\Mods\";
 
     public const float StageProgressIncFromLoading = 0.1f;
+
+    public const int MaxEditorBrushRadius = 25;
+    public const int MinEditorBrushRadius = 1;
 
     public static float LastStageProgress = 0;
 
@@ -137,7 +142,7 @@ public class Manager
     public static HashSet<TerrainCell> UpdatedCells { get; private set; }
 
     public static TerrainCell EditorBrushTargetCell = null;
-    public static int EditorBrushRadius = 20;
+    public static int EditorBrushRadius = MaxEditorBrushRadius;
     public static float EditorBrushStrength = 0.25f;
     public static float EditorBrushNoise = 0.0f;
     public static bool EditorBrushIsVisible = false;
@@ -3626,14 +3631,14 @@ public class Manager
 
         Layer layer = Layer.Layers[_planetOverlaySubtype];
 
-        float presence = cell.GetLayerPresence(_planetOverlaySubtype);
-        float normalizedValue = presence / layer.NoiseMagnitude;
+        float normalizedValue = cell.GetLayerValue(_planetOverlaySubtype);
+        normalizedValue = normalizedValue / layer.MaxPresentValue;
 
         if (normalizedValue >= 0.001f)
         {
-            float value = 0.05f + 0.95f * normalizedValue;
+            float intensity = 0.05f + 0.95f * normalizedValue;
 
-            color = (color * (1 - value)) + (GetOverlayColor(OverlayColorId.Layer) * value);
+            color = (color * (1 - intensity)) + (layer.Color * intensity);
         }
 
         return color;

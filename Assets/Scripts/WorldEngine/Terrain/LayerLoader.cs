@@ -16,8 +16,12 @@ public class LayerLoader
     {
         public string id;
         public string name;
+        public string units;
+        public string color;
         public float noiseScale;
-        public float noiseMagnitude;
+        public string secondaryNoiseInfluence;
+        public float maxPossibleValue;
+        public float frequency;
         public string minAltitude;
         public string maxAltitude;
         public string minRainfall;
@@ -52,14 +56,19 @@ public class LayerLoader
             throw new ArgumentException("layer name can't be null or empty");
         }
 
-        if (!l.noiseScale.IsInsideRange(0.01f, 1))
+        if (!l.noiseScale.IsInsideRange(0.01f, 2))
         {
             throw new ArgumentException("layer noise scale must be a value between 0.01 and 1 (inclusive)");
         }
 
-        if (!l.noiseMagnitude.IsInsideRange(0.001f, 1000))
+        if (!l.maxPossibleValue.IsInsideRange(0.001f, 1000000))
         {
-            throw new ArgumentException("layer noise magnitude must be a value between 0.001 and 1000 (inclusive)");
+            throw new ArgumentException("layer max possible value must be between 0.001 and 1000000 (inclusive)");
+        }
+
+        if (!l.frequency.IsInsideRange(0.01f, 1))
+        {
+            throw new ArgumentException("layer frequency must be a value between 0.01 and 1 (inclusive)");
         }
 
         Layer layer = new Layer()
@@ -67,8 +76,42 @@ public class LayerLoader
             Id = l.id,
             Name = l.name,
             NoiseScale = l.noiseScale,
-            NoiseMagnitude = l.noiseMagnitude
+            MaxPossibleValue = l.maxPossibleValue,
+            Frequency = l.frequency,
+            Rarity = 1 - l.frequency
         };
+
+        if (l.units != null)
+        {
+            layer.Units = l.units;
+        }
+        else
+        {
+            layer.Units = string.Empty;
+        }
+
+        if (!Manager.EnqueueTaskAndWait(() => ColorUtility.TryParseHtmlString(l.color, out layer.Color)))
+        {
+            throw new ArgumentException("Invalid color value: " + l.color);
+        }
+        layer.Color.a = 1;
+
+        if (l.secondaryNoiseInfluence != null)
+        {
+            if (!float.TryParse(l.secondaryNoiseInfluence, out layer.SecondaryNoiseInfluence))
+            {
+                throw new ArgumentException("Invalid secondaryNoiseInfluence value: " + l.secondaryNoiseInfluence);
+            }
+
+            if (!layer.SecondaryNoiseInfluence.IsInsideRange(0, 1))
+            {
+                throw new ArgumentException("secondaryNoiseInfluence must be a value between 0 and 1");
+            }
+        }
+        else
+        {
+            layer.SecondaryNoiseInfluence = 0;
+        }
 
         if (l.maxAltitude != null)
         {

@@ -192,6 +192,8 @@ public class GuiManagerScript : MonoBehaviour
 
     private System.Exception _cachedException = null;
 
+    private bool _layersPresent = false;
+
     void OnEnable()
     {
         Manager.InitializeDebugLog();
@@ -324,6 +326,8 @@ public class GuiManagerScript : MonoBehaviour
         }
         else
         {
+            ValidateLayersPresent();
+
             SetGameModeAccordingToCurrentWorld();
         }
 
@@ -824,21 +828,46 @@ public class GuiManagerScript : MonoBehaviour
         ChangePlanetOverlay(_popOverlays[_currentPopOverlay]);
     }
 
+    private void SkipDebugOverlaysIfNotEnabled()
+    {
+        if ((!Manager.DebugModeEnabled) &&
+            ((_polityOverlays[_currentPolityOverlay] == PlanetOverlay.FactionCoreDistance) ||
+            (_polityOverlays[_currentPolityOverlay] == PlanetOverlay.PolityCluster)))
+        {
+            _currentPolityOverlay = 0;
+        }
+    }
+
     private void ActivatePolityOverlay()
     {
         if (_polityOverlays[_currentPolityOverlay] == _planetOverlay)
         {
             _currentPolityOverlay = (_currentPolityOverlay + 1) % _polityOverlays.Count;
-
-            if ((!Manager.DebugModeEnabled) &&
-                ((_polityOverlays[_currentPolityOverlay] == PlanetOverlay.FactionCoreDistance) ||
-                (_polityOverlays[_currentPolityOverlay] == PlanetOverlay.PolityCluster)))
-            {
-                _currentPolityOverlay = 0;
-            }
         }
 
+        SkipDebugOverlaysIfNotEnabled();
+
         ChangePlanetOverlay(_polityOverlays[_currentPolityOverlay]);
+    }
+
+    private void SkipLayerOverlayIfNotPresent()
+    {
+        // Skip layer overlay if now layers are present in this world
+        if ((!_layersPresent) &&
+            (_miscOverlays[_currentMiscOverlay] == PlanetOverlay.Layer))
+        {
+            _currentMiscOverlay = (_currentMiscOverlay + 1) % _miscOverlays.Count;
+        }
+    }
+
+    private void SkipSimulationOverlaysIfEditorMode()
+    {
+        if ((Manager.GameMode == GameMode.Editor) &&
+            ((_miscOverlays[_currentMiscOverlay] == PlanetOverlay.Language) ||
+            (_miscOverlays[_currentMiscOverlay] == PlanetOverlay.Region)))
+        {
+            _currentMiscOverlay = 0;
+        }
     }
 
     private void ActivateMiscOverlay()
@@ -846,14 +875,10 @@ public class GuiManagerScript : MonoBehaviour
         if (_miscOverlays[_currentMiscOverlay] == _planetOverlay)
         {
             _currentMiscOverlay = (_currentMiscOverlay + 1) % _miscOverlays.Count;
-
-            if ((Manager.GameMode == GameMode.Editor) &&
-                ((_miscOverlays[_currentMiscOverlay] == PlanetOverlay.Language) ||
-                (_miscOverlays[_currentMiscOverlay] == PlanetOverlay.Region)))
-            {
-                _currentMiscOverlay = 0;
-            }
         }
+
+        SkipLayerOverlayIfNotPresent();
+        SkipSimulationOverlaysIfEditorMode();
 
         ChangePlanetOverlay(_miscOverlays[_currentMiscOverlay]);
     }
@@ -1280,6 +1305,8 @@ public class GuiManagerScript : MonoBehaviour
 
         SelectionPanelScript.RemoveAllOptions();
 
+        ValidateLayersPresent();
+
         OpenModeSelectionDialog();
 
         _selectedMaxSpeedLevelIndex = _topMaxSpeedLevelIndex;
@@ -1294,6 +1321,8 @@ public class GuiManagerScript : MonoBehaviour
 
     private void GenerateWorldInternal(int seed, bool useHeightmap = false)
     {
+        ChangePlanetOverlay(PlanetOverlay.None, Manager.NoOverlaySubtype);
+
         ProgressDialogPanelScript.SetVisible(true);
 
         ProgressUpdate(0, "Generating World...", true);
@@ -1777,6 +1806,14 @@ public class GuiManagerScript : MonoBehaviour
         GetMaxSpeedOptionFromCurrentWorld();
     }
 
+    public void ValidateLayersPresent()
+    {
+        _layersPresent = Layer.Layers.Count > 0;
+
+        // Disable layer overlay option if no layers are present in this world
+        OverlayDialogPanelScript.SetLayerOverlay(_layersPresent);
+    }
+
     public void PostProgressOp_LoadAction()
     {
         EventPanelScript.DestroyMessagePanels(); // We don't want to keep messages referencing previous worlds
@@ -1791,6 +1828,8 @@ public class GuiManagerScript : MonoBehaviour
 
         SelectionPanelScript.RemoveAllOptions();
 
+        ValidateLayersPresent();
+        
         SetGameModeAccordingToCurrentWorld();
 
         _postProgressOp -= PostProgressOp_LoadAction;
@@ -1801,6 +1840,8 @@ public class GuiManagerScript : MonoBehaviour
 
     private void LoadAction()
     {
+        ChangePlanetOverlay(PlanetOverlay.None, Manager.NoOverlaySubtype);
+        
         ProgressDialogPanelScript.SetVisible(true);
 
         ProgressUpdate(0, "Loading World...", true);
@@ -2387,7 +2428,7 @@ public class GuiManagerScript : MonoBehaviour
             }
             else if (_planetOverlaySubtype == optionId)
             {
-                _planetOverlaySubtype = "None";
+                _planetOverlaySubtype = Manager.NoOverlaySubtype;
             }
 
             _regenTextures = true;

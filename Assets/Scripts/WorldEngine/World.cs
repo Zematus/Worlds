@@ -421,7 +421,7 @@ public class World : ISynchronizable
     private ManagerTask<Vector3> _rainfallNoiseOffset2;
     private ManagerTask<Vector3> _rainfallNoiseOffset3;
 
-    private Dictionary<string, ManagerTask<Vector3>> _layerNoiseOffsets = new Dictionary<string, ManagerTask<Vector3>>();
+    private Dictionary<string, ManagerTask<Vector3>[]> _layerNoiseOffsets = new Dictionary<string, ManagerTask<Vector3>[]>();
 
     private static HashSet<TerrainCell> _cellsToRegen = new HashSet<TerrainCell>();
     private static HashSet<TerrainCell> _cellsToInit = new HashSet<TerrainCell>();
@@ -704,6 +704,7 @@ public class World : ISynchronizable
     {
         TerrainCell cell = SetTerrainCellAlteration(alteration);
 
+        GenerateTerrainLayersForCell(cell);
         GenerateTerrainBiomesForCell(cell);
         GenerateTerrainArabilityForCell(cell);
 
@@ -2425,6 +2426,7 @@ public class World : ISynchronizable
         {
             GenerateTerrainRainfallForCell(cell, setDependencies: false);
             GenerateTerrainTemperatureForCell(cell);
+            GenerateTerrainLayersForCell(cell);
             GenerateTerrainBiomesForCell(cell);
             GenerateTerrainArabilityForCell(cell);
         }
@@ -2458,6 +2460,7 @@ public class World : ISynchronizable
 
         CalculateAndSetTemperature(cell, cell.BaseTemperatureValue, valueOffset, true);
 
+        GenerateTerrainLayersForCell(cell);
         GenerateTerrainBiomesForCell(cell);
         GenerateTerrainArabilityForCell(cell);
 
@@ -2481,6 +2484,7 @@ public class World : ISynchronizable
 
         CalculateAndSetRainfall(cell, cell.BaseRainfallValue, valueOffset, true);
 
+        GenerateTerrainLayersForCell(cell);
         GenerateTerrainBiomesForCell(cell);
         GenerateTerrainArabilityForCell(cell);
 
@@ -3304,11 +3308,11 @@ public class World : ISynchronizable
 
         foreach (Layer layer in Layer.Layers.Values)
         {
-            float presence = CalculateLayerPresence(cell, layer);
+            float value = CalculateLayerValue(cell, layer);
 
-            if (presence <= 0) continue;
+            if (value <= 0) continue;
 
-            cell.AddLayerPresence(layer, presence);
+            cell.AddLayerValue(layer, value);
         }
     }
 
@@ -3363,7 +3367,13 @@ public class World : ISynchronizable
 
         foreach (Layer layer in Layer.Layers.Values)
         {
-            _layerNoiseOffsets.Add(layer.Id, GenerateRandomOffsetVectorTask());
+            layer.Reset();
+
+            ManagerTask<Vector3>[] offsetVectors = new ManagerTask<Vector3>[2];
+            offsetVectors[0] = GenerateRandomOffsetVectorTask();
+            offsetVectors[1] = GenerateRandomOffsetVectorTask();
+
+            _layerNoiseOffsets.Add(layer.Id, offsetVectors);
         }
 
         for (int i = 0; i < sizeX; i++)
@@ -3425,17 +3435,31 @@ public class World : ISynchronizable
 
     private float CalculateLayerNoiseFactor(TerrainCell cell, Layer layer)
     {
-        float radius = 1 / layer.NoiseScale;
-        
+        float radius1 = 1 / layer.NoiseScale;
+        float radius2 = 15 / layer.NoiseScale;
+
         float alpha = cell.Alpha;
         float beta = cell.Beta;
 
-        Vector3 noiseOffset = _layerNoiseOffsets[layer.Id].Result;
+        ManagerTask<Vector3>[] noiseOffsets = _layerNoiseOffsets[layer.Id];
 
-        float value = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius, noiseOffset);
-        value = (2 * value) - 1; // scale value from (0, 1) to (-1, 1);
+        Vector3 noiseOffset1 = noiseOffsets[0].Result;
+        Vector3 noiseOffset2 = noiseOffsets[1].Result;
 
-        return value * layer.NoiseMagnitude;
+        float value = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius1, noiseOffset1);
+
+        value = (value - layer.Rarity) / layer.Frequency;
+
+        if (value < 0)
+            return value; // Values less than 0 will be ignored anyway so no need to continue
+
+        if (layer.SecondaryNoiseInfluence > 0)
+        {
+            float secondaryNoise = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius2, noiseOffset2);
+            value = value - (layer.SecondaryNoiseInfluence * secondaryNoise);
+        }
+
+        return value;
     }
 
     private float CalculateLayerAltitudeFactor(TerrainCell cell, Layer layer)
@@ -3513,26 +3537,31 @@ public class World : ISynchronizable
         return temperatureFactor * 2;
     }
 
-    private float CalculateLayerPresence(TerrainCell cell, Layer layer)
+    private float CalculateLayerValue(TerrainCell cell, Layer layer)
     {
-        float presence = CalculateLayerNoiseFactor(cell, layer);
+        float value = 1;
 
-        if (presence < 0)
-            return presence;
+        if (value < 0)
+            return value;
 
-        presence *= CalculateLayerAltitudeFactor(cell, layer);
+        value *= CalculateLayerAltitudeFactor(cell, layer);
 
-        if (presence < 0)
-            return presence;
+        if (value < 0)
+            return value;
 
-        presence *= CalculateLayerRainfallFactor(cell, layer);
+        value *= CalculateLayerRainfallFactor(cell, layer);
 
-        if (presence < 0)
-            return presence;
+        if (value < 0)
+            return value;
 
-        presence *= CalculateLayerTemperatureFactor(cell, layer);
+        value *= CalculateLayerTemperatureFactor(cell, layer);
 
-        return presence;
+        if (value < 0)
+            return value;
+
+        value *= CalculateLayerNoiseFactor(cell, layer);
+
+        return value;
     }
 
     private float CalculateBiomeAltitudeFactor(TerrainCell cell, Biome biome)

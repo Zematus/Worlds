@@ -1,11 +1,53 @@
 {
   "layers": [
     {
-      "id": "test_layer",
-      "name": "test layer",
+      "id": "test1",
+      "name": "test 1",
+      "units" : "t1",
+      "color": "#00FEFF",
       "noiseScale": 1,
-      "noiseMagnitude": 1,
+      "secondaryNoiseInfluence": 0.2,
+      "maxPossibleValue": 100,
+      "frequency": 0.25,
       "minAltitude": 0
+    },
+    {
+      "id": "test1a",
+      "name": "test 1a",
+      "units" : "t1a",
+      "color": "#00FEFF",
+      "noiseScale": 0.1,
+      "maxPossibleValue": 100,
+      "frequency": 0.25
+    },
+    {
+      "id": "test1b",
+      "name": "test 1b",
+      "units" : "t1b",
+      "color": "#00FEFF",
+      "noiseScale": 0.05,
+      "maxPossibleValue": 100,
+      "frequency": 0.5
+    },
+    {
+      "id": "testx",
+      "name": "test x",
+      "units" : "tx",
+      "color": "#F15CF8",
+      "noiseScale": 2,
+      "maxPossibleValue": 100000,
+      "frequency": 0.5,
+      "minAltitude": 2000
+    },
+    {
+      "id": "testx2",
+      "name": "test x2",
+      "units" : "tx2",
+      "color": "#F15CF8",
+      "noiseScale": 2,
+      "secondaryNoiseInfluence": 0.4,
+      "maxPossibleValue": 100000,
+      "frequency": 0.5
     }
   ]
 }

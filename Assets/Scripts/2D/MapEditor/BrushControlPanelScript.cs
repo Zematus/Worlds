@@ -19,8 +19,8 @@ public class BrushControlPanelScript : MonoBehaviour
 
     public ToggleEvent TriggerOverlayChangeEvent; // This event will fire when this panel is activated
 
-    private const float _minRadiusValue = 1;
-    private const float _maxRadiusValue = 20;
+    private const float _minRadiusValue = Manager.MinEditorBrushRadius;
+    private const float _maxRadiusValue = Manager.MaxEditorBrushRadius;
     private const float _defaultRadiusValue = 10;
 
     private const float _minStrengthValue = -1f;

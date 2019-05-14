@@ -93,17 +93,19 @@ public class InfoPanelScript : MonoBehaviour
         InfoText.text += "\nTemperature: " + cell.Temperature + " C";
         InfoText.text += "\n";
 
-        for (int i = 0; i < cell.PresentLayerIds.Count; i++)
+        if (cell.PresentLayerIds.Count > 0)
         {
-            float percentage = cell.LayerPresences[i];
+            for (int i = 0; i < cell.PresentLayerIds.Count; i++)
+            {
+                Layer layer = Layer.Layers[cell.PresentLayerIds[i]];
+                float value = cell.LayerValue[i] * layer.MaxPossibleValue;
 
-            Layer layer = Layer.Layers[cell.PresentLayerIds[i]];
+                InfoText.text += "\nLayer: " + layer.Name.FirstLetterToUpper();
+                InfoText.text += ": " + value + " " + layer.Units;
+            }
 
-            InfoText.text += "\nLayer: " + layer.Name.FirstLetterToUpper();
-            InfoText.text += " (" + percentage.ToString("P") + ")";
+            InfoText.text += "\n";
         }
-
-        InfoText.text += "\n";
 
         for (int i = 0; i < cell.PresentBiomeIds.Count; i++)
         {
