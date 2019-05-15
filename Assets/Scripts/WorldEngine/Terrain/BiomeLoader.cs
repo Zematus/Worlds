@@ -273,14 +273,14 @@ public class BiomeLoader
 
         Layer layer = Layer.Layers[c.layerId];
 
-        if (constraint.MaxValue == Layer.MaxLayerPossibleValue)
+        if (constraint.MaxValue > layer.MaxPossibleValue)
         {
             constraint.MaxValue = layer.MaxPossibleValue;
         }
 
-        if (constraint.MinValue == Layer.MinLayerPossibleValue)
+        if (constraint.MaxValue > 0)
         {
-            if (constraint.MaxValue > 0)
+            if (constraint.MinValue < -constraint.MaxValue)
             {
                 constraint.MinValue = -constraint.MaxValue;
             }

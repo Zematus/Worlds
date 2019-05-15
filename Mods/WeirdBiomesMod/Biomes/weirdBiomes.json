@@ -16,7 +16,7 @@
       "layerConstraints": [
         {
           "layerId": "mycosystem",
-          "maxValue": 6
+          "maxValue": 100
         }
       ]
     },
@@ -36,7 +36,7 @@
       "layerConstraints": [
         {
           "layerId": "mycosystem",
-          "maxValue": 6
+          "maxValue": 100
         }
       ]
     },
@@ -55,23 +55,7 @@
       "layerConstraints": [
         {
           "layerId": "mycosystem",
-          "maxValue": 6
-        }
-      ]
-    },
-    {
-      "id": "dense_fungi",
-      "name": "dense fungi",
-      "color": "#F10082",
-      "type": "land",
-      "survivability": 0.1,
-      "foragingCapacity": 0.1,
-      "accessibility": 0.2,
-
-      "layerConstraints": [
-        {
-          "layerId": "mycosystem",
-          "minValue": 0
+          "maxValue": 100
         }
       ]
     },
@@ -87,8 +71,7 @@
       "layerConstraints": [
         {
           "layerId": "mycosystem",
-          "minValue": 0,
-          "maxValue": 6
+          "minValue": 0
         }
       ]
     }

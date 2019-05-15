@@ -24,10 +24,13 @@ public class LayerLoader
         public float frequency;
         public string minAltitude;
         public string maxAltitude;
+        public string altitudeSaturationSlope;
         public string minRainfall;
         public string maxRainfall;
+        public string rainfallSaturationSlope;
         public string minTemperature;
         public string maxTemperature;
+        public string temperatureSaturationSlope;
     }
 
 #pragma warning restore 0649
@@ -147,6 +150,23 @@ public class LayerLoader
             layer.MinAltitude = Biome.MinBiomeAltitude;
         }
 
+        if (l.altitudeSaturationSlope != null)
+        {
+            if (!float.TryParse(l.altitudeSaturationSlope, out layer.AltSaturationSlope))
+            {
+                throw new ArgumentException("Invalid altitudeSaturationSlope value: " + l.altitudeSaturationSlope);
+            }
+
+            if (!layer.AltSaturationSlope.IsInsideRange(0.001f, 1000))
+            {
+                throw new ArgumentException("altitudeSaturationSlope must be a value between 0.001 and 1000");
+            }
+        }
+        else
+        {
+            layer.AltSaturationSlope = 1;
+        }
+
         if (l.maxRainfall != null)
         {
             if (!float.TryParse(l.maxRainfall, out layer.MaxRainfall))
@@ -181,6 +201,23 @@ public class LayerLoader
             layer.MinRainfall = Biome.MinBiomeRainfall;
         }
 
+        if (l.rainfallSaturationSlope != null)
+        {
+            if (!float.TryParse(l.rainfallSaturationSlope, out layer.RainSaturationSlope))
+            {
+                throw new ArgumentException("Invalid rainfallSaturationSlope value: " + l.rainfallSaturationSlope);
+            }
+
+            if (!layer.RainSaturationSlope.IsInsideRange(0.001f, 1000))
+            {
+                throw new ArgumentException("rainfallSaturationSlope must be a value between 0.001 and 1000");
+            }
+        }
+        else
+        {
+            layer.RainSaturationSlope = 1;
+        }
+
         if (l.maxTemperature != null)
         {
             if (!float.TryParse(l.maxTemperature, out layer.MaxTemperature))
@@ -213,6 +250,23 @@ public class LayerLoader
         else
         {
             layer.MinTemperature = Biome.MinBiomeTemperature;
+        }
+
+        if (l.temperatureSaturationSlope != null)
+        {
+            if (!float.TryParse(l.temperatureSaturationSlope, out layer.TempSaturationSlope))
+            {
+                throw new ArgumentException("Invalid temperatureSaturationSlope value: " + l.temperatureSaturationSlope);
+            }
+
+            if (!layer.TempSaturationSlope.IsInsideRange(0.001f, 1000))
+            {
+                throw new ArgumentException("temperatureSaturationSlope must be a value between 0.001 and 1000");
+            }
+        }
+        else
+        {
+            layer.TempSaturationSlope = 1;
         }
 
         return layer;

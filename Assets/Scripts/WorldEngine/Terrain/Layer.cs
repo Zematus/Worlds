@@ -34,12 +34,15 @@ public class Layer
 
     public float MinAltitude;
     public float MaxAltitude;
+    public float AltSaturationSlope;
 
     public float MinRainfall;
     public float MaxRainfall;
+    public float RainSaturationSlope;
 
     public float MinTemperature;
     public float MaxTemperature;
+    public float TempSaturationSlope;
 
     public float MaxPresentValue = 0.001f;
 

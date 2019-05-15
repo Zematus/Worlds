@@ -3471,22 +3471,22 @@ public class World : ISynchronizable
         float altitudeDiff = cell.Altitude - layer.MinAltitude;
 
         if (altitudeDiff < 0)
-            return -1f;
+            return -1;
 
         float altitudeFactor = altitudeDiff / altitudeSpan;
 
         if (float.IsInfinity(altitudeFactor))
-        {
-            altitudeFactor = 0.5f;
-        }
+            return -1;
 
         if (altitudeFactor > 1)
-            return -1f;
+            return -1;
 
         if (altitudeFactor > 0.5f)
             altitudeFactor = 1f - altitudeFactor;
 
-        return altitudeFactor * 2;
+        altitudeFactor *= layer.AltSaturationSlope;
+
+        return Mathf.Min(1, altitudeFactor * 2);
     }
 
     private float CalculateLayerRainfallFactor(TerrainCell cell, Layer layer)
@@ -3496,22 +3496,22 @@ public class World : ISynchronizable
         float rainfallDiff = cell.Rainfall - layer.MinRainfall;
 
         if (rainfallDiff < 0)
-            return -1f;
+            return -1;
 
         float rainfallFactor = rainfallDiff / rainfallSpan;
 
         if (float.IsInfinity(rainfallSpan))
-        {
-            rainfallFactor = 0.5f;
-        }
+            return -1;
 
         if (rainfallFactor > 1)
-            return -1f;
+            return -1;
 
         if (rainfallFactor > 0.5f)
             rainfallFactor = 1f - rainfallFactor;
 
-        return rainfallFactor * 2;
+        rainfallFactor *= layer.RainSaturationSlope;
+
+        return Mathf.Min(1, rainfallFactor * 2);
     }
 
     private float CalculateLayerTemperatureFactor(TerrainCell cell, Layer layer)
@@ -3526,17 +3526,17 @@ public class World : ISynchronizable
         float temperatureFactor = temperatureDiff / temperatureSpan;
 
         if (float.IsInfinity(temperatureSpan))
-        {
-            temperatureFactor = 0.5f;
-        }
+            return -1;
 
         if (temperatureFactor > 1)
-            return -1f;
+            return -1;
 
         if (temperatureFactor > 0.5f)
             temperatureFactor = 1f - temperatureFactor;
 
-        return temperatureFactor * 2;
+        temperatureFactor *= layer.TempSaturationSlope;
+
+        return Mathf.Min(1, temperatureFactor * 2);
     }
 
     private float CalculateLayerValue(TerrainCell cell, Layer layer)
@@ -3647,11 +3647,6 @@ public class World : ISynchronizable
 
         float cellValue = cell.GetLayerValue(constraint.LayerId) * layer.MaxPossibleValue;
 
-        if (cellValue > 0)
-        {
-            bool debug = true;
-        }
-
         float valueSpan = constraint.MaxValue - constraint.MinValue;
 
         float valueDiff = cellValue - constraint.MinValue;
@@ -3661,7 +3656,7 @@ public class World : ISynchronizable
 
         float valueFactor = valueDiff / valueSpan;
 
-        if (float.IsInfinity(valueSpan))
+        if (float.IsInfinity(valueFactor))
         {
             valueFactor = 0.5f;
         }

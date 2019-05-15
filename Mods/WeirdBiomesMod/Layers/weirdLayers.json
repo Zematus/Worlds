@@ -6,11 +6,14 @@
       "color": "#F10082",
       "noiseScale": 1,
       "secondaryNoiseInfluence": 0.2,
-      "maxPossibleValue": 1000,
+      "maxPossibleValue": 100,
       "frequency": 0.4,
       "minAltitude": 0,
+      "altitudeSaturationSlope": 1000,
       "minRainfall": 1375,
-      "minTemperature": -20
+      "rainfallSaturationSlope": 2,
+      "minTemperature": -20,
+      "temperatureSaturationSlope": 2
     }
   ]
 }
