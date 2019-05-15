@@ -21,6 +21,11 @@ public static class MathUtility
         return (value >= minValue) && (value <= maxValue);
     }
 
+    public static bool IsInsideRange(this long value, long minValue, long maxValue)
+    {
+        return (value >= minValue) && (value <= maxValue);
+    }
+
     public static float GetMagnitude(float c1, float c2)
     {
         return Mathf.Sqrt((c1 * c1) + (c2 * c2));

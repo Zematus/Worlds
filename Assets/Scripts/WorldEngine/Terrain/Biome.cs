@@ -11,6 +11,7 @@ public class Biome
         public string LayerId;
         public float MinValue;
         public float MaxValue;
+        public float SaturationSlope;
     }
 
     public enum LocactionType
@@ -39,12 +40,15 @@ public class Biome
 
     public float MinAltitude;
     public float MaxAltitude;
+    public float AltSaturationSlope;
 
     public float MinRainfall;
     public float MaxRainfall;
+    public float RainSaturationSlope;
 
     public float MinTemperature;
     public float MaxTemperature;
+    public float TempSaturationSlope;
 
     public float Survivability;
     public float ForagingCapacity;

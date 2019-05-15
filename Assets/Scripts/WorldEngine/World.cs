@@ -833,7 +833,7 @@ public class World : ISynchronizable
         long maxDate = CurrentDate + MaxTimeToSkip;
 
 #if DEBUG
-        if (maxDate >= World.MaxSupportedDate)
+        if (maxDate >= MaxSupportedDate)
         {
             Debug.LogWarning("'maxDate' shouldn't be greater than " + World.MaxSupportedDate + " (date = " + maxDate + ")");
         }
