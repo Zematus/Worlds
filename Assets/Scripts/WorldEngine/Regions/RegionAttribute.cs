@@ -141,7 +141,9 @@ public class RegionAttribute
         {
             filteredVariations = Variations.Where(v => !v.Tags.Contains(RelationTag));
         }
-        
+
+        Variation variation = filteredVariations.RandomSelect(getRandomInt);
+
         return filteredVariations.RandomSelect(getRandomInt).Text;
     }
 

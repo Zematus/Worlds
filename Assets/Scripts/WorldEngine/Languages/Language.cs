@@ -2864,32 +2864,31 @@ public class Language : ISynchronizable
 		return parsedPhrase;
 	}
 
-	public static bool IsPluralForm (string noun) {
+	public static bool IsPluralForm(string noun)
+    {
+        string[] nounParts = noun.Split(new char[] { ':' });
 
-		string[] nounParts = noun.Split (new char[] { ':' });
+        int length = nounParts.Length;
 
-		int length = nounParts.Length;
+        ParsedWord parsedWordPart = ParseWord(nounParts[length - 1]);
 
-		ParsedWord parsedWordPart = ParseWord (nounParts[length - 1]);
+        if (parsedWordPart.Attributes.ContainsKey(ParsedWordAttributeId.IrregularNoun))
+        {
+            return true;
+        }
 
-		if (parsedWordPart.Attributes.ContainsKey (ParsedWordAttributeId.IrregularNoun)) {
+        if (length < 2)
+            return false;
 
-			return true;
+        if (PluralSuffixRegex.IsMatch(nounParts[length - 1]))
+        {
+            return true;
+        }
 
-		} 
+        return false;
+    }
 
-		if (length < 2)
-			return false;
-
-		if (PluralSuffixRegex.IsMatch (nounParts[length - 1])) {
-
-			return true;
-		}
-
-		return false;
-	}
-
-	public static string GetSingularForm (string inputNoun) {
+    public static string GetSingularForm (string inputNoun) {
 
 		string[] nounParts = inputNoun.Split (new char[] { ':' });
 
