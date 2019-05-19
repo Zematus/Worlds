@@ -46,5 +46,6 @@ public class AppSettings
 
         Manager.ActiveModPaths.Clear();
         Manager.ActiveModPaths.AddRange(ActiveModPaths);
+        Manager.ActiveModPaths.Sort();
     }
 }

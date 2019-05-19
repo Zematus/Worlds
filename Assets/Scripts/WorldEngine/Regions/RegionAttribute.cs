@@ -5,11 +5,42 @@ using System.Linq;
 
 public class RegionAttribute
 {
+    public class Instance
+    {
+        public RegionAttribute RegionAttribute;
+
+        public List<string> Adjectives = new List<string>();
+
+        public string Id { get { return RegionAttribute.Id; } }
+        public string Name { get { return RegionAttribute.Name; } }
+
+        public Association[] Associations { get { return RegionAttribute.Associations; } }
+
+        public bool Secondary { get { return RegionAttribute.Secondary; } }
+
+        public string GetRandomVariation(GetRandomIntDelegate getRandomInt, Element filterElement = null, bool filterRelationTagged = true)
+        {
+            return RegionAttribute.GetRandomVariation(getRandomInt, filterElement, filterRelationTagged);
+        }
+
+        public string GetRandomSingularVariation(GetRandomIntDelegate getRandomInt, bool filterRelationTagged = true)
+        {
+            return RegionAttribute.GetRandomSingularVariation(getRandomInt, filterRelationTagged);
+        }
+
+        public string GetRandomPluralVariation(GetRandomIntDelegate getRandomInt, bool filterRelationTagged = true)
+        {
+            return RegionAttribute.GetRandomPluralVariation(getRandomInt, filterRelationTagged);
+        }
+    }
+
     public const string RelationTag = "relation";
+
+    public string Id;
 
     public string Name;
 
-    public string[] Adjectives;
+    public Adjective[] Adjectives;
 
     public Variation[] Variations;
 
@@ -22,13 +53,14 @@ public class RegionAttribute
     public static Dictionary<string, RegionAttribute> Attributes;
     public static Dictionary<string, RegionAttribute> SecondaryAttributes;
 
-    public RegionAttribute(string name, string[] adjectives, string[] variants, string[] constraints, string[] associationStrs, bool secondary = false)
+    public RegionAttribute(string id, string name, Adjective[] adjectives, string[] variants, string[] constraints, string[] associationStrs, bool secondary = false)
     {
+        Id = id;
         Name = name;
 
         if (adjectives == null)
         {
-            Adjectives = new string[] { };
+            Adjectives = new Adjective[] { };
         }
         else
         {
@@ -95,7 +127,7 @@ public class RegionAttribute
 
         if (filterRelationTagged)
         {
-            filteredVariations = Variations.Where(v => !v.Tags.Contains(RegionAttribute.RelationTag));
+            filteredVariations = Variations.Where(v => !v.Tags.Contains(RelationTag));
         }
 
         return filteredVariations.RandomSelect(getRandomInt).Text;
@@ -107,9 +139,9 @@ public class RegionAttribute
 
         if (filterRelationTagged)
         {
-            filteredVariations = Variations.Where(v => !v.Tags.Contains(RegionAttribute.RelationTag));
+            filteredVariations = Variations.Where(v => !v.Tags.Contains(RelationTag));
         }
-
+        
         return filteredVariations.RandomSelect(getRandomInt).Text;
     }
 
@@ -137,6 +169,24 @@ public class RegionAttribute
         return filteredVariations.RandomSelect(getRandomInt).Text;
     }
 
+    public Instance GetInstanceForRegion(Region region)
+    {
+        Instance instance = new Instance()
+        {
+            RegionAttribute = this
+        };
+
+        foreach (Adjective adj in Adjectives)
+        {
+            if (adj.Assignable(region))
+            {
+                instance.Adjectives.Add(adj.Word);
+            }
+        }
+
+        return instance;
+    }
+
     public bool Assignable(Region region)
     {
         foreach (RegionConstraint c in Constraints)
@@ -155,13 +205,13 @@ public class RegionAttribute
 
     private static void AddAttribute(Dictionary<string, RegionAttribute> attributes, RegionAttribute attribute)
     {
-        if (attributes.ContainsKey(attribute.Name))
+        if (attributes.ContainsKey(attribute.Id))
         {
-            attributes[attribute.Name] = attribute;
+            attributes[attribute.Id] = attribute;
         }
         else
         {
-            attributes.Add(attribute.Name, attribute);
+            attributes.Add(attribute.Id, attribute);
         }
     }
 

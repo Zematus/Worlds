@@ -1,0 +1,84 @@
+{
+  "regionAttributes": [
+    {
+      "id": "ocean",
+      "name": "ocean",
+      "adjectives": "clear, dark, blue, green, grey",
+      "variants": "ocean{<relation>:s}, sea{<relation>:s}",
+      "regionConstraints": "'biome_presence_above:ocean,0.5'",
+      "phraseAssociations": "'[iv(bear,ts,past)]born,by|near,ds|dp', '[rv(ts,past)]raise:d,near,ds|dp', '[ran]swim:mer,of,ip|ns', '[rv(ts,past)]arrive:d,from,ds'"
+    },
+    {
+      "id": "crimsom_ocean",
+      "name": "crimsom ocean",
+      "adjectives": "dark, red, grey",
+      "variants": "ocean{<relation>:s}, sea{<relation>:s}",
+      "regionConstraints": "'biome_presence_above:crimsom_ocean,0.5'",
+      "phraseAssociations": "'[iv(bear,ts,past)]born,by|near,ds|dp', '[rv(ts,past)]raise:d,near,ds|dp', '[ran]swim:mer,of,ip|ns', '[rv(ts,past)]arrive:d,from,ds'"
+    },
+    {
+      "id": "forest",
+      "name": "forest",
+      "adjectives": "black, dark, pale, green, grey",
+      "variants": "forest{<relation>:s}, wood:s, wood:land{:s}",
+      "regionConstraints": "'biome_presence_above:forest,0.5'",
+      "phraseAssociations": "'[iv(bear,ts,past)]born,by|near|in,ds|dp', '[rv(ts,past)]raise:d,near|in,ds|dp', '[ran]walk:er,of,ip|ns', '[ran]stride:r,of,ip|ns', '[rv(ts,past)]arrive:d,from,ds'"
+    },
+    {
+      "id": "red_forest",
+      "name": "red forest",
+      "adjectives": "black, dark, pale, red, orange, grey",
+      "variants": "forest{<relation>:s}, wood:s, wood:land{:s}",
+      "regionConstraints": "'biome_presence_above:red_forest,0.5'",
+      "phraseAssociations": "'[iv(bear,ts,past)]born,by|near|in,ds|dp', '[rv(ts,past)]raise:d,near|in,ds|dp', '[ran]walk:er,of,ip|ns', '[ran]stride:r,of,ip|ns', '[rv(ts,past)]arrive:d,from,ds'"
+    },
+    {
+      "id": "taiga",
+      "name": "taiga",
+      "adjectives": "white, black, dark, pale, green, grey",
+      "variants": "taiga{<relation>:s}, hinter{:land}{:s}",
+      "regionConstraints": "'biome_presence_above:taiga,0.5'",
+      "phraseAssociations": "'[iv(bear,ts,past)]born,by|near|in,ds|dp', '[rv(ts,past)]raise:d,near|in,ds|dp', '[ran]walk:er,of,ip|ns', '[ran]stride:r,of,ip|ns', '[rv(ts,past)]arrive:d,from,ds'"
+    },
+    {
+      "id": "dark_taiga",
+      "name": "dark taiga",
+      "adjectives": "black, dark, red, green, grey",
+      "variants": "taiga{<relation>:s}, hinter{:land}{:s}",
+      "regionConstraints": "'biome_presence_above:dark_taiga,0.5'",
+      "phraseAssociations": "'[iv(bear,ts,past)]born,by|near|in,ds|dp', '[rv(ts,past)]raise:d,near|in,ds|dp', '[ran]walk:er,of,ip|ns', '[ran]stride:r,of,ip|ns', '[rv(ts,past)]arrive:d,from,ds'"
+    },
+    {
+      "id": "tundra",
+      "name": "tundra",
+      "adjectives": "white, pale, green, grey",
+      "variants": "tundra{<relation>:s}",
+      "regionConstraints": "'biome_presence_above:tundra,0.5'",
+      "phraseAssociations": "'[iv(bear,ts,past)]born,by|near|in,ds|dp', '[rv(ts,past)]raise:d,near|in,ds|dp', '[ran]walk:er,of,ip|ns', '[ran]stride:r,of,ip|ns', '[rv(ts,past)]arrive:d,from,ds'"
+    },
+    {
+      "id": "cerise_tundra",
+      "name": "cerise tundra",
+      "adjectives": "black, dark, red, pink, cerise, grey",
+      "variants": "tundra{<relation>:s}",
+      "regionConstraints": "'biome_presence_above:cerise_tundra,0.5'",
+      "phraseAssociations": "'[iv(bear,ts,past)]born,by|near|in,ds|dp', '[rv(ts,past)]raise:d,near|in,ds|dp', '[ran]walk:er,of,ip|ns', '[ran]stride:r,of,ip|ns', '[rv(ts,past)]arrive:d,from,ds'"
+    },
+    {
+      "id": "desert",
+      "name": "desert",
+      "adjectives": "white, ocre, yellow, grey",
+      "variants": "desert{<relation>:s}, sand{:s}",
+      "regionConstraints": "'biome_presence_above:desert,0.5'",
+      "phraseAssociations": "'[iv(bear,ts,past)]born,by|near|in,ds|dp', '[rv(ts,past)]raise:d,near|in,ds|dp', '[ran]walk:er,of,ip|ns', '[ran]stride:r,of,ip|ns', '[rv(ts,past)]arrive:d,from,ds'"
+    },
+    {
+      "id": "scarlet_desert",
+      "name": "scarlet desert",
+      "adjectives": "red, cerise, orange, ocre, black, grey",
+      "variants": "desert{<relation>:s}, sand{:s}",
+      "regionConstraints": "'biome_presence_above:scarlet_desert,0.5'",
+      "phraseAssociations": "'[iv(bear,ts,past)]born,by|near|in,ds|dp', '[rv(ts,past)]raise:d,near|in,ds|dp', '[ran]walk:er,of,ip|ns', '[ran]stride:r,of,ip|ns', '[rv(ts,past)]arrive:d,from,ds'"
+    }
+  ]
+}

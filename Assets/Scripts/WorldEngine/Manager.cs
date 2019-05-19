@@ -1042,6 +1042,7 @@ public class Manager
     {
         ActiveModPaths.Clear();
         ActiveModPaths.AddRange(paths);
+        ActiveModPaths.Sort();
 
         ModsAlreadyLoaded = false;
     }
@@ -3985,6 +3986,7 @@ public class Manager
 
         Layer.ResetLayers();
         Biome.ResetBiomes();
+        Adjective.ResetAdjectives();
         RegionAttribute.ResetAttributes();
         Element.ResetElements();
 
@@ -4035,10 +4037,11 @@ public class Manager
 
     private static void LoadMod(string path, float progressPerMod)
     {
-        float progressPerSegment = progressPerMod / 4f;
+        float progressPerSegment = progressPerMod / 5f;
 
         TryLoadModFiles(Layer.LoadLayersFile, path + @"Layers", progressPerSegment);
         TryLoadModFiles(Biome.LoadBiomesFile, path + @"Biomes", progressPerSegment);
+        TryLoadModFiles(Adjective.LoadAdjectivesFile, path + @"Adjectives", progressPerSegment);
         TryLoadModFiles(RegionAttribute.LoadRegionAttributesFile, path + @"RegionAttributes", progressPerSegment);
         TryLoadModFiles(Element.LoadElementsFile, path + @"Elements", progressPerSegment);
     }

@@ -162,7 +162,7 @@ public class Agent : ISynchronizable
         BaseWisdom = MinAttributeValue + birthGroup.GetLocalRandomInt(BirthDate, rngOffset++, AttributeGenMax);
     }
 
-    private void GenerateNameFromElement(Element element, GetRandomIntDelegate getRandomInt)
+    private void GenerateNameFromElement(Element.Instance element, GetRandomIntDelegate getRandomInt)
     {
         string untranslatedName;
 
@@ -209,7 +209,7 @@ public class Agent : ISynchronizable
         _name = new Name(untranslatedName, Language, World);
     }
 
-    private void GenerateNameFromRegionAttribute(RegionAttribute attribute, GetRandomIntDelegate getRandomInt)
+    private void GenerateNameFromRegionAttribute(RegionAttribute.Instance attribute, GetRandomIntDelegate getRandomInt)
     {
         string untranslatedName;
 
@@ -273,13 +273,13 @@ public class Agent : ISynchronizable
 
         Profiler.BeginSample("region.Elements.Where");
 
-        List<Element> elements = BirthRegionInfo.Elements;
+        List<Element.Instance> elements = BirthRegionInfo.Elements;
 
         Profiler.EndSample();
 
         Profiler.BeginSample("region.Attributes.Where");
 
-        List<RegionAttribute> attributes = BirthRegionInfo.AttributeList;
+        List<RegionAttribute.Instance> attributes = BirthRegionInfo.AttributeList;
 
         Profiler.EndSample();
 
@@ -296,7 +296,7 @@ public class Agent : ISynchronizable
         {
             Profiler.BeginSample("RandomSelectAndRemove");
 
-            Element element = elements.RandomSelect(GetRandomInt);
+            Element.Instance element = elements.RandomSelect(GetRandomInt);
 
             Profiler.EndSample();
 
@@ -310,7 +310,7 @@ public class Agent : ISynchronizable
         {
             Profiler.BeginSample("RandomSelectAndRemove");
 
-            RegionAttribute attribute = attributes.RandomSelect(GetRandomInt);
+            RegionAttribute.Instance attribute = attributes.RandomSelect(GetRandomInt);
 
             Profiler.EndSample();
 

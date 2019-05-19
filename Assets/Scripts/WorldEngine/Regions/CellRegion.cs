@@ -281,7 +281,7 @@ public class CellRegion : Region
             {
                 if (!attributesToSkip.Contains(r) && r.Assignable(this))
                 {
-                    Info.AddAttribute(r);
+                    Info.AddAttribute(r.GetInstanceForRegion(this));
                     hasAddedAttribute = true;
 
                     attributesToSkip.Add(r); // If the attribute has already been added then we don't need it to test it again
@@ -301,7 +301,7 @@ public class CellRegion : Region
             {
                 if (!attributesToSkip.Contains(r) && r.Assignable(this))
                 {
-                    Info.AddAttribute(r);
+                    Info.AddAttribute(r.GetInstanceForRegion(this));
                     hasAddedAttribute = true;
 
                     attributesToSkip.Add(r); // If the attribute has already been added then we don't need it to test it again
@@ -317,7 +317,7 @@ public class CellRegion : Region
         {
             if (e.Assignable(this))
             {
-                Info.AddElement(e);
+                Info.AddElement(e.GetInstanceForRegion(this));
             }
         }
     }

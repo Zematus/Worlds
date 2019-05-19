@@ -123,16 +123,16 @@ public class Clan : Faction
             throw new System.Exception("No elements to choose name from");
         }
 
-        string[] possibleAdjectives = null;
+        List<string> possibleAdjectives = null;
 
-        List<Element> remainingElements = new List<Element>(region.Elements);
+        List<Element.Instance> remainingElements = new List<Element.Instance>(region.Elements);
 
         bool addMoreWords = true;
 
         bool isPrimaryNoun = true;
         float extraWordChance = 0.2f;
 
-        List<Element> usedElements = new List<Element>();
+        List<Element.Instance> usedElements = new List<Element.Instance>();
 
         while (addMoreWords)
         {
@@ -145,7 +145,7 @@ public class Clan : Faction
                 throw new System.Exception("No elements to use for name");
             }
 
-            Element element = null;
+            Element.Instance element = null;
 
             if (hasRemainingElements)
             {
@@ -168,7 +168,7 @@ public class Clan : Faction
             else
             {
                 bool first = true;
-                foreach (Element usedElement in usedElements)
+                foreach (Element.Instance usedElement in usedElements)
                 {
                     if (first)
                     {

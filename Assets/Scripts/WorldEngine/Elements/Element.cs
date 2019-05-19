@@ -3,12 +3,25 @@ using System.Linq;
 
 public class Element
 {
+    public class Instance
+    {
+        public Element Element;
+
+        public List<string> Adjectives = new List<string>();
+
+        public string Id { get { return Element.Id; } }
+        public string SingularName { get { return Element.SingularName; } }
+        public string PluralName { get { return Element.PluralName; } }
+
+        public Association[] Associations { get { return Element.Associations; } }
+    }
+
     public string Id;
 
     public string SingularName;
     public string PluralName;
 
-    public string[] Adjectives;
+    public Adjective[] Adjectives;
 
     public Association[] Associations;
 
@@ -16,7 +29,7 @@ public class Element
     
     public static Dictionary<string, Element> Elements;
 
-    public Element(string id, string pluralName, string[] adjectives, string[] constraints, string[] associationStrs)
+    public Element(string id, string pluralName, Adjective[] adjectives, string[] constraints, string[] associationStrs)
     {
         Id = id;
 
@@ -29,7 +42,7 @@ public class Element
         }
         else
         {
-            Adjectives = new string[] { };
+            Adjectives = new Adjective[] { };
         }
 
         if (constraints != null)
@@ -56,6 +69,24 @@ public class Element
         }
 
         Associations = associations.ToArray();
+    }
+
+    public Instance GetInstanceForRegion(Region region)
+    {
+        Instance instance = new Instance()
+        {
+            Element = this
+        };
+
+        foreach (Adjective adj in Adjectives)
+        {
+            if (adj.Assignable(region))
+            {
+                instance.Adjectives.Add(adj.Word);
+            }
+        }
+
+        return instance;
     }
 
     public bool Assignable(Region region)

@@ -1,0 +1,20 @@
+{
+  "regionAttributes": [
+    {
+      "id": "fungi",
+      "name": "fungi",
+      "adjectives": "dark, purple, magenta, grey",
+      "variants": "[in(fungus)]fungi, cap:s",
+      "regionConstraints": "'biome_presence_above:fungi,0.5'",
+      "phraseAssociations": "'[iv(bear,ts,past)]born,by|near|in,ds|dp', '[rv(ts,past)]raise:d,near|in,ds|dp', '[ran]walk:er,of,ip|ns', '[ran]stride:r,of,ip|ns', '[rv(ts,past)]arrive:d,from,ds'"
+    },
+    {
+      "id": "death_fungi",
+      "name": "death fungi",
+      "adjectives": "black, dark, purple, magenta, grey",
+      "variants": "[in(fungus)]fungi, cap:s",
+      "regionConstraints": "'biome_presence_above:death_fungi,0.5'",
+      "phraseAssociations": "'[iv(bear,ts,past)]born,by|near|in,ds|dp', '[rv(ts,past)]raise:d,near|in,ds|dp', '[ran]walk:er,of,ip|ns', '[ran]stride:r,of,ip|ns', '[rv(ts,past)]arrive:d,from,ds'"
+    }
+  ]
+}

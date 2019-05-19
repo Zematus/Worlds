@@ -333,12 +333,9 @@ public class BiomeLoader
             constraint.MaxValue = layer.MaxPossibleValue;
         }
 
-        if (constraint.MaxValue > 0)
+        if (constraint.MinValue < -layer.MaxPossibleValue)
         {
-            if (constraint.MinValue < -constraint.MaxValue)
-            {
-                constraint.MinValue = -constraint.MaxValue;
-            }
+            constraint.MinValue = -layer.MaxPossibleValue;
         }
 
         if (c.saturationSlope != null)

@@ -159,7 +159,7 @@ public class InfoPanelScript : MonoBehaviour
         InfoText.text += "\nAttributes: ";
 
         bool first = true;
-        foreach (RegionAttribute attr in region.Attributes.Values)
+        foreach (RegionAttribute.Instance attr in region.Attributes.Values)
         {
 
             if (first)

@@ -2368,9 +2368,7 @@ public class World : ISynchronizable
                 {
                     greyscaleValue /= totalPixels;
                 }
-
-                //greyscaleValue = greyscaleValue * 0.4f + 0.3f; // NOTE: Bogus adjustment, should be exposed to user
-
+                
                 CalculateAndSetAltitude(i, j, greyscaleValue, true);
             }
 
@@ -3438,7 +3436,7 @@ public class World : ISynchronizable
     private float CalculateLayerNoiseFactor(TerrainCell cell, Layer layer)
     {
         float radius1 = 1 / layer.NoiseScale;
-        float radius2 = 15 / layer.NoiseScale;
+        float radius2 = 10 / layer.NoiseScale;
 
         float alpha = cell.Alpha;
         float beta = cell.Beta;
@@ -3588,6 +3586,8 @@ public class World : ISynchronizable
         if (altitudeFactor > 0.5f)
             altitudeFactor = 1f - altitudeFactor;
 
+        altitudeFactor *= biome.AltSaturationSlope;
+
         return altitudeFactor * 2;
     }
 
@@ -3613,6 +3613,8 @@ public class World : ISynchronizable
         if (rainfallFactor > 0.5f)
             rainfallFactor = 1f - rainfallFactor;
 
+        rainfallFactor *= biome.RainSaturationSlope;
+
         return rainfallFactor * 2;
     }
 
@@ -3637,6 +3639,8 @@ public class World : ISynchronizable
 
         if (temperatureFactor > 0.5f)
             temperatureFactor = 1f - temperatureFactor;
+
+        temperatureFactor *= biome.TempSaturationSlope;
 
         return temperatureFactor * 2;
     }

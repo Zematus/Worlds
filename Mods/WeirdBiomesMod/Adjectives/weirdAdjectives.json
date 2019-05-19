@@ -1,0 +1,74 @@
+{
+  "adjectives": [
+    {
+      "id": "red_necrosilica",
+      "word": "red",
+      "regionConstraints": "'layer_value_above:necrosilica,0'"
+    },
+    {
+      "id": "scarlet_necrosilica",
+      "word": "scarlet",
+      "regionConstraints": "'layer_value_above:necrosilica,0'"
+    },
+    {
+      "id": "crimsom_necrosilica",
+      "word": "crimsom",
+      "regionConstraints": "'layer_value_above:necrosilica,0'"
+    },
+    {
+      "id": "cerise_necrosilica",
+      "word": "cerise",
+      "regionConstraints": "'layer_value_above:necrosilica,0'"
+    },
+    {
+      "id": "black_necrosilica",
+      "word": "black",
+      "regionConstraints": "'layer_value_above:necrosilica,0'"
+    },
+    {
+      "id": "grey_necrosilica",
+      "word": "grey",
+      "regionConstraints": "'layer_value_above:necrosilica,0'"
+    },
+    {
+      "id": "orange_necrosilica",
+      "word": "orange",
+      "regionConstraints": "'layer_value_above:necrosilica,0'"
+    },
+    {
+      "id": "pink_necrosilica",
+      "word": "pink",
+      "regionConstraints": "'layer_value_above:necrosilica,0'"
+    },
+    {
+      "id": "white_no_necrosilica",
+      "word": "white",
+      "regionConstraints": "'layer_value_below:necrosilica,0'"
+    },
+    {
+      "id": "green_no_necrosilica",
+      "word": "green",
+      "regionConstraints": "'layer_value_below:necrosilica,0'"
+    },
+    {
+      "id": "bright_no_necrosilica",
+      "word": "bright",
+      "regionConstraints": "'layer_value_below:necrosilica,0'"
+    },
+    {
+      "id": "clear_no_necrosilica",
+      "word": "clear",
+      "regionConstraints": "'layer_value_below:necrosilica,0'"
+    },
+    {
+      "id": "cheerful_no_necrosilica",
+      "word": "cheerful",
+      "regionConstraints": "'layer_value_below:necrosilica,0'"
+    },
+    {
+      "id": "blue_no_necrosilica",
+      "word": "blue",
+      "regionConstraints": "'layer_value_below:necrosilica,0'"
+    }
+  ]
+}
