@@ -12,6 +12,7 @@ public enum EditorBrushType
     Altitude,
     Temperature,
     Rainfall,
+    Layer,
     None
 }
 

@@ -14,14 +14,14 @@
       "id": "fungus",
       "name": "[in(fungus)]fungi",
       "adjectives": "white_no_necrosilica, red, green_no_necrosilica, purple, magenta, pink, orange, brown, yellow, black_necrosilica, dark, grey",
-      "regionConstraints": "'main_biome:forest,taiga,tundra,rainforest,red_forest,dark_taiga,cerise_tundra,fungi,death_fungi'",
+      "regionConstraints": "'main_biome:forest,taiga,tundra,rainforest,red_forest,dark_taiga,cerise_tundra,fungi,black_fungi'",
       "phraseAssociations": "'[ran]eat:er,of,u', '[ran]grow:er,of,u', '[iv(bear,ts,past)]born,in|by|near,ds'"
     },
     {
       "id": "cap",
       "name": "cap:s",
       "adjectives": "white_no_necrosilica, red, purple, magenta, pink, orange, brown, yellow, black_necrosilica, dark, pale, dead, great, short, tall, narrow, wide, grey",
-      "regionConstraints": "'main_biome:fungi,death_fungi'",
+      "regionConstraints": "'main_biome:fungi,black_fungi'",
       "phraseAssociations": "'[ran]climb:er,of,ip|ns', '[ran]cut:ter,of,ip|ns', '[ran]fell:er,of,ip|ns', '[ran]fell:er,of,p', '[iv(bear,ts,past)]born,under,ip|is|ns', '[iv(bear,ts,past)]born,by|near,ds|dp'"
     }
   ]

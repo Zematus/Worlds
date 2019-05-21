@@ -72,6 +72,7 @@ public class GuiManagerScript : MonoBehaviour
 
     public UnityEvent MapEntitySelected;
     public UnityEvent OverlayChanged;
+    public UnityEvent OverlaySubtypeChanged;
 
     public UnityEvent OpenModeSelectionDialogRequested;
 
@@ -526,9 +527,13 @@ public class GuiManagerScript : MonoBehaviour
 
             if (_resetOverlays)
             {
-                OverlayChanged.Invoke();
+                TriggerOverlayEvents();
 
                 _resetOverlays = false;
+            }
+            else
+            {
+                OverlaySubtypeChanged.Invoke();
             }
 
             Profiler.EndSample();
@@ -1317,7 +1322,7 @@ public class GuiManagerScript : MonoBehaviour
 
     private void GenerateWorldInternal(int seed, bool useHeightmap = false)
     {
-        ChangePlanetOverlay(PlanetOverlay.None, Manager.NoOverlaySubtype);
+        ResetOverlaySelection();
 
         ProgressDialogPanelScript.SetVisible(true);
 
@@ -1834,9 +1839,16 @@ public class GuiManagerScript : MonoBehaviour
             _loadWorldPostProgressOp.Invoke();
     }
 
-    private void LoadAction()
+    private void ResetOverlaySelection()
     {
         ChangePlanetOverlay(PlanetOverlay.None, Manager.NoOverlaySubtype);
+
+        _planetOverlaySubtypeCache.Clear();
+    }
+
+    private void LoadAction()
+    {
+        ResetOverlaySelection();
         
         ProgressDialogPanelScript.SetVisible(true);
 
@@ -2147,7 +2159,7 @@ public class GuiManagerScript : MonoBehaviour
 
             if (invokeEvent)
             {
-                OverlayChanged.Invoke();
+                TriggerOverlayEvents();
 
                 _resetOverlays = false;
             }
@@ -2171,7 +2183,7 @@ public class GuiManagerScript : MonoBehaviour
 
             if (invokeEvent)
             {
-                OverlayChanged.Invoke();
+                TriggerOverlayEvents();
 
                 _resetOverlays = false;
             }
@@ -2195,6 +2207,18 @@ public class GuiManagerScript : MonoBehaviour
         if (state)
         {
             ChangePlanetOverlay(PlanetOverlay.Rainfall);
+        }
+        else
+        {
+            ChangePlanetOverlay(PlanetOverlay.None);
+        }
+    }
+
+    public void ChangeToLayerOverlayFromEditorToolbar(bool state)
+    {
+        if (state)
+        {
+            ChangePlanetOverlay(PlanetOverlay.Layer);
         }
         else
         {
@@ -2262,12 +2286,18 @@ public class GuiManagerScript : MonoBehaviour
         {
             Manager.SetPlanetOverlay(_planetOverlay, _planetOverlaySubtype);
 
-            OverlayChanged.Invoke();
+            TriggerOverlayEvents();
 
             _resetOverlays = false;
         }
 
         HandleOverlayWithSubtypes(overlay);
+    }
+
+    public void TriggerOverlayEvents()
+    {
+        OverlayChanged.Invoke();
+        OverlaySubtypeChanged.Invoke();
     }
 
     public void ChangePlanetOverlay(PlanetOverlay overlay)

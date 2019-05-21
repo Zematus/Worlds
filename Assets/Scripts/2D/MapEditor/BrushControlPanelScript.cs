@@ -7,13 +7,17 @@ using System.Collections.Generic;
 
 public class BrushControlPanelScript : MonoBehaviour
 {
+    public MapEditorToolbarScript ToolbarScript;
+
+    public Text Name;
+
     public SliderControlsScript RadiusSliderControlsScript;
     public SliderControlsScript StrengthSliderControlsScript;
     public SliderControlsScript NoiseSliderControlsScript;
 
-    public EditorBrushType BrushType;
+    public Toggle FlattenModeToggle;
 
-    public List<Toggle> BrushToggles = new List<Toggle>();
+    public EditorBrushType BrushType;
 
     public ToggleEvent BrushUntoggleEvent; // This event will fire when the brush is activated / deactivated regardless of type
 
@@ -48,6 +52,15 @@ public class BrushControlPanelScript : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+    }
+
+    public void ActivateControls(bool state)
+    {
+        RadiusSliderControlsScript.SetInteractable(state);
+        StrengthSliderControlsScript.SetInteractable(state);
+        NoiseSliderControlsScript.SetInteractable(!_flattenModeIsActive && state);
+
+        FlattenModeToggle.interactable = state;
     }
 
     public void ActivateFlattenMode(bool state)
@@ -147,11 +160,7 @@ public class BrushControlPanelScript : MonoBehaviour
             _lastNoiseValue = NoiseSliderControlsScript.CurrentValue;
 
             // Verify if any of the other brush toggles has been activated
-            bool brushStillActive = false;
-            foreach (Toggle toggle in BrushToggles)
-            {
-                brushStillActive |= toggle.isOn;
-            }
+            bool brushStillActive = ToolbarScript.IsBrushToggleActive();
 
             Manager.EditorBrushIsVisible = brushStillActive;
 

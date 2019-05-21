@@ -16,6 +16,7 @@ public class MapEditorToolbarScript : MonoBehaviour
     public Toggle Toggle5;
     public Toggle Toggle6;
     public Toggle Toggle7;
+    public Toggle Toggle8;
 
     public Button UndoActionButton;
     public Button RedoActionButton;
@@ -24,6 +25,10 @@ public class MapEditorToolbarScript : MonoBehaviour
     public ValueSetEvent RegenerateWorldSeaLevelOffsetChangeEvent;
     public ValueSetEvent RegenerateWorldTemperatureOffsetChangeEvent;
     public ValueSetEvent RegenerateWorldRainfallOffsetChangeEvent;
+
+    public List<Toggle> BrushToggles = new List<Toggle>();
+
+    public BrushControlPanelScript LayerBrushControlPanelScript;
 
     // Use this for initialization
     void Start()
@@ -79,6 +84,45 @@ public class MapEditorToolbarScript : MonoBehaviour
         Toggle7.isOn = !Toggle7.isOn;
     }
 
+    private void ToggleTool8()
+    {
+        Toggle8.isOn = !Toggle8.isOn;
+    }
+
+    public void OverlaySubtypeChanged()
+    {
+        if (Manager.EditorBrushType == EditorBrushType.Layer)
+        {
+            bool isLayerOverlaySubtype =
+                (Manager.PlanetOverlay == PlanetOverlay.Layer) &&
+                (Manager.PlanetOverlaySubtype != Manager.NoOverlaySubtype);
+
+            LayerBrushControlPanelScript.ActivateControls(isLayerOverlaySubtype);
+
+            string layerTypeName = "<toggle layer subtype>";
+
+            if (isLayerOverlaySubtype)
+            {
+                layerTypeName = Layer.Layers[Manager.PlanetOverlaySubtype].Name.FirstLetterToUpper();
+            }
+
+            LayerBrushControlPanelScript.Name.text = "Layer Brush: " + layerTypeName;
+
+            Manager.EditorBrushIsVisible = isLayerOverlaySubtype;
+        }
+    }
+
+    public bool IsBrushToggleActive()
+    {
+        foreach (Toggle toggle in BrushToggles)
+        {
+            if (toggle.isOn)
+                return true;
+        }
+
+        return false;
+    }
+
     private void ReadKeyboardInput()
     {
         Manager.HandleKeyUp(KeyCode.Z, true, true, RedoEditorAction);
@@ -91,6 +135,7 @@ public class MapEditorToolbarScript : MonoBehaviour
         Manager.HandleKeyUp(KeyCode.Alpha5, false, false, ToggleTool5);
         Manager.HandleKeyUp(KeyCode.Alpha6, false, false, ToggleTool6);
         Manager.HandleKeyUp(KeyCode.Alpha7, false, false, ToggleTool7);
+        Manager.HandleKeyUp(KeyCode.Alpha8, false, false, ToggleTool8);
     }
 
     public void UndoEditorAction()

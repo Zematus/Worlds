@@ -21,8 +21,8 @@
       ]
     },
     {
-      "id": "death_fungi",
-      "name": "death fungi",
+      "id": "black_fungi",
+      "name": "black fungi",
       "color": "#000000",
       "type": "land",
       "survivability": 0.0,
@@ -41,8 +41,8 @@
       ]
     },
     {
-      "id": "crimsom_ocean",
-      "name": "crimsom ocean",
+      "id": "crimson_ocean",
+      "name": "crimson ocean",
       "color": "#B01900",
       "type": "sea",
       "maxAltitude": 0,

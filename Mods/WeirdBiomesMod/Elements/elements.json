@@ -52,15 +52,15 @@
     {
       "id": "cloud",
       "name": "cloud:s",
-      "adjectives": "white_no_necrosilica, red_necrosilica, scarlet_necrosilica, crimsom_necrosilica, pink, orange, black, grey, dark, great, thin, deep, light, bright_no_necrosilica, heavy",
+      "adjectives": "white_no_necrosilica, red_necrosilica, scarlet_necrosilica, crimson_necrosilica, pink, orange, black, grey, dark, great, thin, deep, light, bright_no_necrosilica, heavy",
       "regionConstraints": "'rainfall_above:675'",
       "phraseAssociations": "'[ran]observe:r,of,ip', '[ran]watch:er,of,ip', '[ran]gaze:r,of,ip', '[iv(bear,ts,past)]born,under,ip'"
     },
     {
       "id": "moss",
       "name": "moss:es",
-      "adjectives": "white_no_necrosilica, red, scarlet_necrosilica, crimsom_necrosilica, green_no_necrosilica, pink, orange, yellow, black, dark, wet",
-      "regionConstraints": "'main_biome:forest,taiga,tundra,rainforest,red_forest,dark_taiga,cerise_tundra,fungi,death_fungi'",
+      "adjectives": "white_no_necrosilica, red, scarlet_necrosilica, crimson_necrosilica, green_no_necrosilica, pink, orange, yellow, black, dark, wet",
+      "regionConstraints": "'main_biome:forest,taiga,tundra,rainforest,red_forest,dark_taiga,cerise_tundra,fungi,black_fungi'",
       "phraseAssociations": "'[ran]eat:er,of,u', '[ran]grow:er,of,u', '[iv(bear,ts,past)]born,in|by|near,ds'"
     },
     {
@@ -94,21 +94,21 @@
     {
       "id": "water",
       "name": "water:s",
-      "adjectives": "white_no_necrosilica, red_necrosilica, scarlet_necrosilica, crimsom_necrosilica, green_no_necrosilica, blue_no_necrosilica, clear_no_necrosilica, dark",
+      "adjectives": "white_no_necrosilica, red_necrosilica, scarlet_necrosilica, crimson_necrosilica, green_no_necrosilica, blue_no_necrosilica, clear_no_necrosilica, dark",
       "regionConstraints": "'altitude_below:0'",
       "phraseAssociations": "'[ran]swim:mer', '[ran]drink:er,of,u|ns', '[iv(bear,ts,past)]born,between,ip', '[iv(bear,ts,past)]born,by,ds', '[rv(ts,past)]soak:ed,by,u', '[rv(ts,past)]drench:ed,by,u'"
     },
     {
       "id": "rain",
       "name": "rain:s",
-      "adjectives": "heavy, red_necrosilica, scarlet_necrosilica, crimsom_necrosilica, soft, dark",
+      "adjectives": "heavy, red_necrosilica, scarlet_necrosilica, crimson_necrosilica, soft, dark",
       "regionConstraints": "'rainfall_above:675'",
       "phraseAssociations": "'[iv(bear,ts,past)]born,under,u|ns', '[iv(bear,ts,past)]born,between,ip', '[rv(ts,past)]bath:ed,by,u', '[rv(ts,past)]soak:ed,by,u', '[rv(ts,past)]drench:ed,by,u', '[ran]dance:r'"
     },
     {
       "id": "storm",
       "name": "storm:s",
-      "adjectives": "heavy, red_necrosilica, crimsom_necrosilica, dark, great",
+      "adjectives": "heavy, red_necrosilica, crimson_necrosilica, dark, great",
       "regionConstraints": "'rainfall_above:675'",
       "phraseAssociations": "'[iv(bear,ts,past)]born,under,u|ns', '[iv(bear,ts,past)]born,between,ip|np', '[ran]dance:r'"
     },
@@ -146,7 +146,7 @@
     {
       "id": "sky",
       "name": "[in(sky)]skies",
-      "adjectives": "white_no_necrosilica, red, scarlet_necrosilica, crimsom_necrosilica, cerise_necrosilica, blue_no_necrosilica, green_no_necrosilica, yellow, black_necrosilica, grey, dark, bright_no_necrosilica, great",
+      "adjectives": "white_no_necrosilica, red, scarlet_necrosilica, crimson_necrosilica, cerise_necrosilica, blue_no_necrosilica, green_no_necrosilica, yellow, black_necrosilica, grey, dark, bright_no_necrosilica, great",
       "regionConstraints": "'altitude_above:3000'",
       "phraseAssociations": "'[iv(bear,ts,past)]born,under,ns', '[ran]gaze:r,of,ns'"
     },
@@ -154,7 +154,7 @@
       "id": "shadow",
       "name": "shadow:s",
       "adjectives": "black, dark",
-      "regionConstraints": "'main_biome:forest,taiga,rainforest,red_forest,dark_taiga,fungi,death_fungi'",
+      "regionConstraints": "'main_biome:forest,taiga,rainforest,red_forest,dark_taiga,fungi,black_fungi'",
       "phraseAssociations": "'[iv(bear,ts,past)]born,under,ip|ns', '[ran]gaze:r,of,ip', '[ran]walk:er', '[ran]stalk:er', '[iv(hide,ts,past)]hidden,in,ip', '[ran]dance:r', '[rv(ts,past)]scare:d,by,u'"
     },
     {
