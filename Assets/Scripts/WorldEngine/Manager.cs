@@ -117,6 +117,7 @@ public class Manager
     public const float BrushStrengthFactor_Altitude = 0.5f;
     public const float BrushStrengthFactor_Rainfall = 0.25f;
     public const float BrushStrengthFactor_Temperature = 0.25f;
+    public const float BrushStrengthFactor_Layer = 0.25f;
 
     public const float BrushNoiseRadiusFactor = 200;
 
@@ -126,6 +127,8 @@ public class Manager
 
     public const int MaxEditorBrushRadius = 25;
     public const int MinEditorBrushRadius = 1;
+
+    public static bool LayersPresent = false;
 
     public static float LastStageProgress = 0;
 
@@ -1765,6 +1768,9 @@ public class Manager
             case EditorBrushType.Rainfall:
                 ApplyEditorBrush_Rainfall(longitude, latitude, distanceFactor);
                 break;
+            case EditorBrushType.Layer:
+                ApplyEditorBrush_Layer(longitude, latitude, distanceFactor);
+                break;
             default:
                 throw new System.Exception("Unhandled Editor Brush Type: " + EditorBrushType);
         }
@@ -1782,6 +1788,9 @@ public class Manager
                 break;
             case EditorBrushType.Rainfall:
                 ApplyEditorBrushFlatten_Rainfall(longitude, latitude, distanceFactor);
+                break;
+            case EditorBrushType.Layer:
+                ApplyEditorBrushFlatten_Layer(longitude, latitude, distanceFactor);
                 break;
             default:
                 throw new System.Exception("Unhandled Editor Brush Type: " + EditorBrushType);
@@ -1815,15 +1824,34 @@ public class Manager
 
     public static void ActivateEditorBrush(bool state)
     {
+        bool useLayerBrush = false;
+
+        if (EditorBrushType == EditorBrushType.Layer)
+        {
+            if (!IsValidLayerId(_planetOverlaySubtype))
+            {
+                return;
+            }
+
+            useLayerBrush = true;
+        }
+
         EditorBrushIsActive = state;
 
         if (state)
         {
-            ActiveEditorBrushAction = new BrushAction();
+            if (useLayerBrush)
+            {
+                ActiveEditorBrushAction = new LayerBrushAction(_planetOverlaySubtype);
+            }
+            else
+            {
+                ActiveEditorBrushAction = new AlterationBrushAction();
+            }
         }
         else if (ActiveEditorBrushAction != null)
         {
-            ActiveEditorBrushAction.FinalizeCellAlterations();
+            ActiveEditorBrushAction.FinalizeCellModifications();
 
             PushUndoableAction(ActiveEditorBrushAction);
             ResetRedoableActionsStack();
@@ -1922,6 +1950,65 @@ public class Manager
         float valueOffset = (targetValue - currentValue) * valueOffsetFactor;
 
         CurrentWorld.ModifyCellTemperature(cell, valueOffset);
+
+        AddUpdatedCell(cell, CellUpdateType.Cell, CellUpdateSubType.Terrain);
+    }
+
+    private static void ApplyEditorBrush_Layer(int longitude, int latitude, float distanceFactor)
+    {
+        if (!IsValidLayerId(_planetOverlaySubtype))
+        {
+            throw new System.Exception("Not a recognized layer Id: " + _planetOverlaySubtype);
+        }
+
+        float noiseRadius = BrushNoiseRadiusFactor / (float)EditorBrushRadius;
+
+        float strToValue = BrushStrengthFactor_Base * BrushStrengthFactor_Layer *
+            (MathUtility.GetPseudoNormalDistribution(distanceFactor * 2) - MathUtility.NormalAt2) / (MathUtility.NormalAt0 - MathUtility.NormalAt2);
+        float valueOffset = EditorBrushStrength * strToValue;
+
+        TerrainCell cell = CurrentWorld.GetCell(longitude, latitude);
+
+        CurrentWorld.ModifyCellLayerData(cell, valueOffset, _planetOverlaySubtype, EditorBrushNoise, noiseRadius);
+
+        AddUpdatedCell(cell, CellUpdateType.Cell, CellUpdateSubType.Terrain);
+    }
+
+    private static bool IsValidLayerId(string layerId)
+    {
+        return Layer.Layers.ContainsKey(layerId);
+    }
+
+    private static void ApplyEditorBrushFlatten_Layer(int longitude, int latitude, float distanceFactor)
+    {
+        if (!IsValidLayerId(_planetOverlaySubtype))
+        {
+            throw new System.Exception("Not a recognized layer Id: " + _planetOverlaySubtype);
+        }
+
+        int sampleRadius = 1;
+
+        float strToValue = BrushStrengthFactor_Layer *
+            (MathUtility.GetPseudoNormalDistribution(distanceFactor * 2) - MathUtility.NormalAt2) / (MathUtility.NormalAt0 - MathUtility.NormalAt2);
+        float valueOffsetFactor = EditorBrushStrength * strToValue;
+
+        TerrainCell cell = CurrentWorld.GetCell(longitude, latitude);
+
+        TerrainCell cellNorth = CurrentWorld.GetCellWithSphericalWrap(longitude, latitude - sampleRadius);
+        TerrainCell cellEast = CurrentWorld.GetCellWithSphericalWrap(longitude + sampleRadius, latitude);
+        TerrainCell cellSouth = CurrentWorld.GetCellWithSphericalWrap(longitude, latitude + sampleRadius);
+        TerrainCell cellWest = CurrentWorld.GetCellWithSphericalWrap(longitude - sampleRadius, latitude);
+
+        float targetValue =
+            (cellNorth.GetLayerValue(_planetOverlaySubtype) +
+            cellEast.GetLayerValue(_planetOverlaySubtype) +
+            cellSouth.GetLayerValue(_planetOverlaySubtype) +
+            cellWest.GetLayerValue(_planetOverlaySubtype)) / 4f;
+
+        float currentValue = cell.GetLayerValue(_planetOverlaySubtype);
+        float valueOffset = (targetValue - currentValue) * valueOffsetFactor;
+
+        CurrentWorld.ModifyCellLayerData(cell, valueOffset, _planetOverlaySubtype);
 
         AddUpdatedCell(cell, CellUpdateType.Cell, CellUpdateSubType.Terrain);
     }
@@ -3632,7 +3719,7 @@ public class Manager
             return color;
 
         Layer layer = Layer.Layers[_planetOverlaySubtype];
-
+        
         float normalizedValue = cell.GetLayerValue(_planetOverlaySubtype);
         normalizedValue = normalizedValue / layer.MaxPresentValue;
 

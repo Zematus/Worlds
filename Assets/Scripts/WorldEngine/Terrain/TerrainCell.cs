@@ -120,7 +120,7 @@ public class TerrainCell : ISynchronizable
     public List<float> BiomePresences = new List<float>();
 
     public List<string> PresentLayerIds = new List<string>();
-    public List<float> LayerValue = new List<float>();
+    public List<CellLayerData> LayerData = new List<CellLayerData>();
 
     public CellGroup Group;
 
@@ -171,10 +171,8 @@ public class TerrainCell : ISynchronizable
     [XmlIgnore]
     public Dictionary<Direction, float> NeighborDistances { get; private set; }
 
-    private HashSet<string> _flags = new HashSet<string>();
-
     private Dictionary<string, float> _biomePresences = new Dictionary<string, float>();
-    private Dictionary<string, float> _layerValues = new Dictionary<string, float>();
+    private Dictionary<string, CellLayerData> _layerData = new Dictionary<string, CellLayerData>();
 
     public TerrainCell()
     {
@@ -255,7 +253,7 @@ public class TerrainCell : ISynchronizable
         return (((date * 1000000) + ((long)Longitude * 1000) + (long)Latitude) * oom) + (offset % oom);
     }
 
-    public TerrainCellAlteration GetAlteration(bool regardless = false)
+    public TerrainCellAlteration GetAlteration(bool regardless = false, bool addLayerData = true)
     {
         // If cell hasn't been modified there's no need to create a TerrainCellChanges object (unless it is regardless)
         if (!regardless && !Modified)
@@ -263,9 +261,7 @@ public class TerrainCell : ISynchronizable
             return null;
         }
 
-        TerrainCellAlteration alteration = new TerrainCellAlteration(this);
-
-        alteration.Flags.AddRange(_flags);
+        TerrainCellAlteration alteration = new TerrainCellAlteration(this, addLayerData);
 
         return alteration;
     }
@@ -284,13 +280,13 @@ public class TerrainCell : ISynchronizable
         Rainfall = alteration.Rainfall;
 
         FarmlandPercentage = alteration.FarmlandPercentage;
+        
+        foreach (CellLayerData data in alteration.LayerData)
+        {
+            SetLayerData(Layer.Layers[data.Id], data.Value, data.Offset);
+        }
 
         Modified = alteration.Modified;
-
-        foreach (string flag in alteration.Flags)
-        {
-            _flags.Add(flag);
-        }
 
         if (Altitude > World.MaxAltitude) World.MaxAltitude = Altitude;
         if (Altitude < World.MinAltitude) World.MinAltitude = Altitude;
@@ -300,27 +296,6 @@ public class TerrainCell : ISynchronizable
 
         if (Temperature > World.MaxTemperature) World.MaxTemperature = Temperature;
         if (Temperature < World.MinTemperature) World.MinTemperature = Temperature;
-    }
-
-    public void SetFlag(string flag)
-    {
-        if (_flags.Contains(flag))
-            return;
-
-        _flags.Add(flag);
-    }
-
-    public bool IsFlagSet(string flag)
-    {
-        return _flags.Contains(flag);
-    }
-
-    public void UnsetFlag(string flag)
-    {
-        if (!_flags.Contains(flag))
-            return;
-
-        _flags.Remove(flag);
     }
 
     public void AddCrossingRoute(Route route)
@@ -427,14 +402,6 @@ public class TerrainCell : ISynchronizable
         BiomeWithMostPresence = null;
     }
 
-    public void ResetLayers()
-    {
-        PresentLayerIds.Clear();
-        LayerValue.Clear();
-        
-        _layerValues.Clear();
-    }
-
     public float GetBiomePresence(Biome biome)
     {
         return GetBiomePresence(biome.Id);
@@ -460,19 +427,6 @@ public class TerrainCell : ISynchronizable
         }
     }
 
-    public void AddLayerValue(Layer layer, float value)
-    {
-        PresentLayerIds.Add(layer.Id);
-        LayerValue.Add(value);
-
-        _layerValues[layer.Id] = value;
-
-        if (layer.MaxPresentValue < value)
-        {
-            layer.MaxPresentValue = value;
-        }
-    }
-
     public float GetBiomePresence(string biomeId)
     {
         float value = 0;
@@ -483,14 +437,94 @@ public class TerrainCell : ISynchronizable
         return value;
     }
 
+    public void ResetLayerData(Layer layer)
+    {
+        CellLayerData data = GetLayerData(layer.Id);
+
+        if (data != null)
+        {
+            data.Value = Mathf.Clamp01(data.BaseValue);
+            data.Offset = 0;
+//#if DEBUG
+//            if (Manager.WorldIsReady)
+//            {
+//                Debug.Log("Reseting cell " + Position + " layer data. data.Value: " + data.Value + ", data.BaseValue: " + data.BaseValue + ", data.BaseOffset: " + data.BaseOffset);
+//            }
+//#endif
+        }
+        else
+        {
+//#if DEBUG
+//            if (Manager.WorldIsReady)
+//            {
+//                Debug.Log("Reseting cell " + Position + " layer data. Data is null");
+//            }
+//#endif
+        }
+
+        if (layer.MaxPresentValue < data.Value)
+        {
+            layer.MaxPresentValue = data.Value;
+        }
+    }
+
+    public void SetLayerData(Layer layer, float value, float offset)
+    {
+        SetLayerData(layer, value, offset, GetLayerData(layer.Id));
+    }
+
+    public void SetLayerData(Layer layer, float value, float offset, CellLayerData data)
+    {
+        if (data == null)
+        {
+            if ((value <= 0) && (offset == 0)) return;
+
+            data = new CellLayerData();
+
+            PresentLayerIds.Add(layer.Id);
+            LayerData.Add(data);
+
+            _layerData[layer.Id] = data;
+        }
+
+        data.BaseValue = value - offset;
+        data.Offset = offset;
+
+        data.Id = layer.Id;
+
+        data.Value = Mathf.Clamp01(value);
+
+        //#if DEBUG
+        //        if (Manager.WorldIsReady)
+        //        {
+        //            Debug.Log("Setting cell " + Position + " layer data. data.Value: " + data.Value + ", data.BaseValue: " + data.BaseValue + ", data.BaseOffset: " + data.BaseOffset);
+        //        }
+        //#endif
+
+        if (layer.MaxPresentValue < data.Value)
+        {
+            layer.MaxPresentValue = data.Value;
+        }
+    }
+
+    public CellLayerData GetLayerData(string layerId)
+    {
+        CellLayerData data;
+
+        if (!_layerData.TryGetValue(layerId, out data))
+            return null;
+
+        return data;
+    }
+
     public float GetLayerValue(string layerId)
     {
-        float value = 0;
+        CellLayerData data;
 
-        if (!_layerValues.TryGetValue(layerId, out value))
+        if (!_layerData.TryGetValue(layerId, out data))
             return 0;
 
-        return value;
+        return data.Value;
     }
 
     public void Synchronize()
@@ -523,7 +557,7 @@ public class TerrainCell : ISynchronizable
         {
             string layerId = PresentLayerIds[i];
 
-            _layerValues[layerId] = LayerValue[i];
+            _layerData[layerId] = LayerData[i];
         }
 
         InitializeNeighbors();

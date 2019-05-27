@@ -408,9 +408,11 @@ public class World : ISynchronizable
 
     private bool _justLoaded = false;
 
-    private ManagerTask<Vector3> _altitudeBrushNoiseOffset;
-    private ManagerTask<Vector3> _tempBrushNoiseOffset;
-    private ManagerTask<Vector3> _rainfallBrushNoiseOffset;
+    private Vector3 _altitudeBrushNoiseOffset;
+    private Vector3 _temperatureBrushNoiseOffset;
+    private Vector3 _rainfallBrushNoiseOffset;
+
+    private Dictionary<string, Vector3> _layerBrushNoiseOffsets = new Dictionary<string, Vector3>();
 
     private ManagerTask<Vector3> _arabilityNoiseOffset;
 
@@ -718,6 +720,27 @@ public class World : ISynchronizable
         {
             Manager.AddUpdatedCell(nCell, CellUpdateType.Cell, CellUpdateSubType.Terrain);
         }
+    }
+
+    public void SetTerrainCellLayerDataAndFinishRegenCell(WorldPosition position, string layerId, CellLayerData data)
+    {
+        TerrainCell cell = TerrainCells[position.Longitude][position.Latitude];
+
+        if (data != null)
+        {
+            cell.SetLayerData(Layer.Layers[layerId], data.Value, data.Offset);
+        }
+        else
+        {
+            cell.ResetLayerData(Layer.Layers[layerId]);
+        }
+
+        GenerateTerrainBiomesForCell(cell);
+        GenerateTerrainArabilityForCell(cell);
+
+        cell.InitializeMiscellaneous();
+
+        Manager.AddUpdatedCell(cell, CellUpdateType.Cell, CellUpdateSubType.Terrain);
     }
 
     public void AddExistingCulturalPreferenceInfo(CulturalPreferenceInfo baseInfo)
@@ -2390,7 +2413,7 @@ public class World : ISynchronizable
         if (valueOffset == 0)
             return; // No actual changes being made to cell
 
-        Manager.ActiveEditorBrushAction.AddCellBeforeAlteration(cell);
+        Manager.ActiveEditorBrushAction.AddCellBeforeModification(cell);
 
         float value = cell.BaseAltitudeValue + valueOffset;
 
@@ -2417,7 +2440,7 @@ public class World : ISynchronizable
     {
         foreach (TerrainCell cell in _cellsToInit)
         {
-            Manager.ActiveEditorBrushAction.AddCellBeforeAlteration(cell);
+            Manager.ActiveEditorBrushAction.AddCellBeforeModification(cell);
         }
 
         foreach (TerrainCell cell in _cellsToRegen)
@@ -2435,7 +2458,7 @@ public class World : ISynchronizable
         {
             cell.InitializeMiscellaneous();
 
-            Manager.ActiveEditorBrushAction.AddCellAfterAlteration(cell);
+            Manager.ActiveEditorBrushAction.AddCellAfterModification(cell);
         }
 
         _cellsToInit.Clear();
@@ -2445,7 +2468,7 @@ public class World : ISynchronizable
     {
         if (noiseFactor > 0)
         {
-            float rngValue = GetRandomNoiseFromPolarCoordinates(cell.Alpha, cell.Beta, noiseRadius, _tempBrushNoiseOffset);
+            float rngValue = GetRandomNoiseFromPolarCoordinates(cell.Alpha, cell.Beta, noiseRadius, _temperatureBrushNoiseOffset);
 
             valueOffset *= Mathf.Lerp(1, rngValue, noiseFactor);
         }
@@ -2454,7 +2477,7 @@ public class World : ISynchronizable
             return; // No actual changes being made to cell
 
         // Make sure to record cell state before changes are made to it
-        Manager.ActiveEditorBrushAction.AddCellBeforeAlteration(cell);
+        Manager.ActiveEditorBrushAction.AddCellBeforeModification(cell);
 
         CalculateAndSetTemperature(cell, cell.BaseTemperatureValue, valueOffset, true);
 
@@ -2462,7 +2485,7 @@ public class World : ISynchronizable
         GenerateTerrainBiomesForCell(cell);
         GenerateTerrainArabilityForCell(cell);
 
-        Manager.ActiveEditorBrushAction.AddCellAfterAlteration(cell);
+        Manager.ActiveEditorBrushAction.AddCellAfterModification(cell);
     }
 
     public void ModifyCellRainfall(TerrainCell cell, float valueOffset, float noiseFactor = 0, float noiseRadius = 0)
@@ -2478,7 +2501,7 @@ public class World : ISynchronizable
             return; // No actual changes being made to cell
 
         // Make sure to record cell state before changes are made to it
-        Manager.ActiveEditorBrushAction.AddCellBeforeAlteration(cell);
+        Manager.ActiveEditorBrushAction.AddCellBeforeModification(cell);
 
         CalculateAndSetRainfall(cell, cell.BaseRainfallValue, valueOffset, true);
 
@@ -2486,7 +2509,31 @@ public class World : ISynchronizable
         GenerateTerrainBiomesForCell(cell);
         GenerateTerrainArabilityForCell(cell);
 
-        Manager.ActiveEditorBrushAction.AddCellAfterAlteration(cell);
+        Manager.ActiveEditorBrushAction.AddCellAfterModification(cell);
+    }
+
+    public void ModifyCellLayerData(TerrainCell cell, float valueOffset, string layerId, float noiseFactor = 0, float noiseRadius = 0)
+    {
+        if (noiseFactor > 0)
+        {
+            float rngValue = 
+                GetRandomNoiseFromPolarCoordinates(cell.Alpha, cell.Beta, noiseRadius, _layerBrushNoiseOffsets[layerId]);
+
+            valueOffset *= Mathf.Lerp(1, rngValue, noiseFactor);
+        }
+
+        if (valueOffset == 0)
+            return; // No actual changes being made to cell
+
+        // Make sure to record cell state before changes are made to it
+        Manager.ActiveEditorBrushAction.AddCellBeforeModification(cell);
+
+        CalculateAndSetTerrainLayerValue(cell, Layer.Layers[layerId], valueOffset);
+        
+        GenerateTerrainBiomesForCell(cell);
+        GenerateTerrainArabilityForCell(cell);
+
+        Manager.ActiveEditorBrushAction.AddCellAfterModification(cell);
     }
 
     private void GenerateTerrainAltitudeOld()
@@ -2893,13 +2940,15 @@ public class World : ISynchronizable
     {
         // Store values to be used later when regenerating specific cells
         _altitudeBrushNoiseOffset = GenerateRandomOffsetVectorTask();
-        _tempBrushNoiseOffset = GenerateRandomOffsetVectorTask();
+        _temperatureBrushNoiseOffset = GenerateRandomOffsetVectorTask();
         _rainfallBrushNoiseOffset = GenerateRandomOffsetVectorTask();
+        
+        _layerBrushNoiseOffsets.Clear();
 
-        // We need the calls to Random to be resolved before moving on to preserve RNG order
-        _altitudeBrushNoiseOffset.Wait();
-        _tempBrushNoiseOffset.Wait();
-        _rainfallBrushNoiseOffset.Wait();
+        foreach (Layer layer in Layer.Layers.Values)
+        {
+            _layerBrushNoiseOffsets.Add(layer.Id, GenerateRandomOffsetVectorTask());
+        }
     }
 
     private void OffsetRainfallGenRngCalls()
@@ -3300,17 +3349,39 @@ public class World : ISynchronizable
         _accumulatedProgress += _progressIncrement;
     }
 
+    private void CalculateAndSetTerrainLayerValue(TerrainCell cell, Layer layer)
+    {
+        CellLayerData data = cell.GetLayerData(layer.Id);
+
+        float offset = 0;
+
+        if (data != null)
+            offset = data.Offset;
+
+        float value = CalculateLayerValue(cell, layer, offset);
+        
+        cell.SetLayerData(layer, value, offset, data);
+    }
+
+    private void CalculateAndSetTerrainLayerValue(TerrainCell cell, Layer layer, float offset)
+    {
+        CellLayerData data = cell.GetLayerData(layer.Id);
+        
+        if (data != null)
+            offset += data.Offset;
+
+        float value = CalculateLayerValue(cell, layer, offset);
+
+        cell.SetLayerData(layer, value, offset, data);
+
+        cell.Modified = true;
+    }
+
     private void GenerateTerrainLayersForCell(TerrainCell cell)
     {
-        cell.ResetLayers();
-
         foreach (Layer layer in Layer.Layers.Values)
         {
-            float value = CalculateLayerValue(cell, layer);
-
-            if (value <= 0) continue;
-
-            cell.AddLayerValue(layer, value);
+            CalculateAndSetTerrainLayerValue(cell, layer);
         }
     }
 
@@ -3537,29 +3608,31 @@ public class World : ISynchronizable
         return Mathf.Min(1, temperatureFactor * 2);
     }
 
-    private float CalculateLayerValue(TerrainCell cell, Layer layer)
+    private float CalculateLayerValue(TerrainCell cell, Layer layer, float offset)
     {
         float value = 1;
 
-        if (value < 0)
+        if (value <= 0)
             return value;
 
         value *= CalculateLayerAltitudeFactor(cell, layer);
 
-        if (value < 0)
+        if (value <= 0)
             return value;
 
         value *= CalculateLayerRainfallFactor(cell, layer);
 
-        if (value < 0)
+        if (value <= 0)
             return value;
 
         value *= CalculateLayerTemperatureFactor(cell, layer);
 
-        if (value < 0)
+        if (value <= 0)
             return value;
 
         value *= CalculateLayerNoiseFactor(cell, layer);
+
+        value = Mathf.Clamp01(value) + offset;
 
         return value;
     }
@@ -3648,7 +3721,7 @@ public class World : ISynchronizable
     private float CalculateBiomeLayerFactor(TerrainCell cell, Biome.LayerConstraint constraint)
     {
         Layer layer = Layer.Layers[constraint.LayerId];
-
+        
         float cellValue = cell.GetLayerValue(constraint.LayerId) * layer.MaxPossibleValue;
 
         float valueSpan = constraint.MaxValue - constraint.MinValue;

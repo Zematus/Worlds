@@ -98,7 +98,9 @@ public class InfoPanelScript : MonoBehaviour
             for (int i = 0; i < cell.PresentLayerIds.Count; i++)
             {
                 Layer layer = Layer.Layers[cell.PresentLayerIds[i]];
-                float value = cell.LayerValue[i] * layer.MaxPossibleValue;
+                float value = cell.LayerData[i].Value * layer.MaxPossibleValue;
+
+                if (value <= 0) continue;
 
                 InfoText.text += "\nLayer: " + layer.Name.FirstLetterToUpper();
                 InfoText.text += ": " + value + " " + layer.Units;

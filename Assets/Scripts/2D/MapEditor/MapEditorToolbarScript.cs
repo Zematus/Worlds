@@ -28,6 +28,8 @@ public class MapEditorToolbarScript : MonoBehaviour
 
     public List<Toggle> BrushToggles = new List<Toggle>();
 
+    public List<Toggle> LayerToggles = new List<Toggle>();
+
     public BrushControlPanelScript LayerBrushControlPanelScript;
 
     // Use this for initialization
@@ -51,41 +53,65 @@ public class MapEditorToolbarScript : MonoBehaviour
 
     private void ToggleTool1()
     {
+        if (LayerToggles.Contains(Toggle1) && !Manager.LayersPresent)
+            return;
+
         Toggle1.isOn = !Toggle1.isOn;
     }
 
     private void ToggleTool2()
     {
+        if (LayerToggles.Contains(Toggle2) && !Manager.LayersPresent)
+            return;
+
         Toggle2.isOn = !Toggle2.isOn;
     }
 
     private void ToggleTool3()
     {
+        if (LayerToggles.Contains(Toggle3) && !Manager.LayersPresent)
+            return;
+
         Toggle3.isOn = !Toggle3.isOn;
     }
 
     private void ToggleTool4()
     {
+        if (LayerToggles.Contains(Toggle4) && !Manager.LayersPresent)
+            return;
+
         Toggle4.isOn = !Toggle4.isOn;
     }
 
     private void ToggleTool5()
     {
+        if (LayerToggles.Contains(Toggle5) && !Manager.LayersPresent)
+            return;
+
         Toggle5.isOn = !Toggle5.isOn;
     }
 
     private void ToggleTool6()
     {
+        if (LayerToggles.Contains(Toggle6) && !Manager.LayersPresent)
+            return;
+
         Toggle6.isOn = !Toggle6.isOn;
     }
 
     private void ToggleTool7()
     {
+        if (LayerToggles.Contains(Toggle7) && !Manager.LayersPresent)
+            return;
+
         Toggle7.isOn = !Toggle7.isOn;
     }
 
     private void ToggleTool8()
     {
+        if (LayerToggles.Contains(Toggle8) && !Manager.LayersPresent)
+            return;
+
         Toggle8.isOn = !Toggle8.isOn;
     }
 
@@ -99,14 +125,14 @@ public class MapEditorToolbarScript : MonoBehaviour
 
             LayerBrushControlPanelScript.ActivateControls(isLayerOverlaySubtype);
 
-            string layerTypeName = "<toggle layer subtype>";
+            string layerTypeName = "<toggle layer subtype to use>";
 
             if (isLayerOverlaySubtype)
             {
                 layerTypeName = Layer.Layers[Manager.PlanetOverlaySubtype].Name.FirstLetterToUpper();
             }
 
-            LayerBrushControlPanelScript.Name.text = "Layer Brush: " + layerTypeName;
+            LayerBrushControlPanelScript.Name.text = "Layer Brush: <b>" + layerTypeName + "</b>";
 
             Manager.EditorBrushIsVisible = isLayerOverlaySubtype;
         }
@@ -257,6 +283,15 @@ public class MapEditorToolbarScript : MonoBehaviour
     {
         if (Manager.ViewingGlobe)
             return;
+
+        if (state)
+        {
+            foreach (Toggle toggle in LayerToggles)
+            {
+                toggle.isOn = toggle.isOn && Manager.LayersPresent;
+                toggle.gameObject.SetActive(Manager.LayersPresent);
+            }
+        }
 
         gameObject.SetActive(state);
     }

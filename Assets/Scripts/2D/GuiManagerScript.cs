@@ -193,8 +193,6 @@ public class GuiManagerScript : MonoBehaviour
 
     private System.Exception _cachedException = null;
 
-    private bool _layersPresent = false;
-
     void OnEnable()
     {
         Manager.InitializeDebugLog();
@@ -854,7 +852,7 @@ public class GuiManagerScript : MonoBehaviour
     private void SkipLayerOverlayIfNotPresent()
     {
         // Skip layer overlay if now layers are present in this world
-        if ((!_layersPresent) &&
+        if ((!Manager.LayersPresent) &&
             (_miscOverlays[_currentMiscOverlay] == PlanetOverlay.Layer))
         {
             _currentMiscOverlay = (_currentMiscOverlay + 1) % _miscOverlays.Count;
@@ -1809,10 +1807,10 @@ public class GuiManagerScript : MonoBehaviour
 
     public void ValidateLayersPresent()
     {
-        _layersPresent = Layer.Layers.Count > 0;
+        Manager.LayersPresent = Layer.Layers.Count > 0;
 
         // Disable layer overlay option if no layers are present in this world
-        OverlayDialogPanelScript.SetLayerOverlay(_layersPresent);
+        OverlayDialogPanelScript.SetLayerOverlay(Manager.LayersPresent);
     }
 
     public void PostProgressOp_LoadAction()
