@@ -6,15 +6,20 @@ using UnityEngine.EventSystems;
 
 public class FlattenControlPanelScript : RegenControlPanelScript
 {
-    public FlattenControlPanelScript()
+    public SliderControlsScript SliderControlsScript;
+
+    public override void ResetSliderControls()
     {
-        _minValue = 0.05f;
-        _maxValue = 1;
-        _defaultValue = 1;
+        SliderControlsScript.MinValue = 0.05f;
+        SliderControlsScript.MaxValue = 1;
+        SliderControlsScript.DefaultValue = 1;
+
+        SliderControlsScript.CurrentValue = Manager.AltitudeScale;
+        SliderControlsScript.Reinitialize();
     }
 
-    protected override float GetCurrentValueFromManager()
+    public override void AllowEventInvoke(bool state)
     {
-        return Manager.AltitudeScale;
+        SliderControlsScript.AllowEventInvoke(state);
     }
 }

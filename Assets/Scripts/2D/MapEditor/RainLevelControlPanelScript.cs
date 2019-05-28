@@ -6,15 +6,20 @@ using UnityEngine.EventSystems;
 
 public class RainLevelControlPanelScript : RegenControlPanelScript
 {
-    public RainLevelControlPanelScript()
+    public SliderControlsScript SliderControlsScript;
+
+    public override void ResetSliderControls()
     {
-        _minValue = -800f + World.AvgPossibleRainfall;
-        _maxValue = 800f + World.AvgPossibleRainfall;
-        _defaultValue = World.AvgPossibleRainfall;
+        SliderControlsScript.MinValue = -800f + World.AvgPossibleRainfall;
+        SliderControlsScript.MaxValue = 800f + World.AvgPossibleRainfall;
+        SliderControlsScript.DefaultValue = World.AvgPossibleRainfall;
+
+        SliderControlsScript.CurrentValue = Manager.RainfallOffset;
+        SliderControlsScript.Reinitialize();
     }
 
-    protected override float GetCurrentValueFromManager()
+    public override void AllowEventInvoke(bool state)
     {
-        return Manager.RainfallOffset;
+        SliderControlsScript.AllowEventInvoke(state);
     }
 }

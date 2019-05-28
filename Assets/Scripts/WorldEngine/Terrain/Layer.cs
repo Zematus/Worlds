@@ -96,4 +96,9 @@ public class Layer
     {
         MaxPresentValue = 0.001f;
     }
+
+    public static bool IsValidLayerId(string layerId)
+    {
+        return Layers.ContainsKey(layerId);
+    }
 }

@@ -17,20 +17,22 @@ public class MapEditorToolbarScript : MonoBehaviour
     public Toggle Toggle6;
     public Toggle Toggle7;
     public Toggle Toggle8;
+    public Toggle Toggle9;
 
     public Button UndoActionButton;
     public Button RedoActionButton;
+
+    public BrushControlPanelScript LayerBrushControlPanelScript;
+    public LayerLevelControlPanelScript LayerLevelControlPanelScript;
+
+    public List<Toggle> BrushToggles = new List<Toggle>();
+    public List<Toggle> LayerToggles = new List<Toggle>();
 
     public ValueSetEvent RegenerateWorldAltitudeScaleChangeEvent;
     public ValueSetEvent RegenerateWorldSeaLevelOffsetChangeEvent;
     public ValueSetEvent RegenerateWorldTemperatureOffsetChangeEvent;
     public ValueSetEvent RegenerateWorldRainfallOffsetChangeEvent;
-
-    public List<Toggle> BrushToggles = new List<Toggle>();
-
-    public List<Toggle> LayerToggles = new List<Toggle>();
-
-    public BrushControlPanelScript LayerBrushControlPanelScript;
+    public ValueSetEvent RegenerateWorldLayerOffsetChangeEvent;
 
     // Use this for initialization
     void Start()
@@ -115,25 +117,40 @@ public class MapEditorToolbarScript : MonoBehaviour
         Toggle8.isOn = !Toggle8.isOn;
     }
 
+    private void ToggleTool9()
+    {
+        if (LayerToggles.Contains(Toggle9) && !Manager.LayersPresent)
+            return;
+
+        Toggle9.isOn = !Toggle9.isOn;
+    }
+
     public void OverlaySubtypeChanged()
     {
+        bool isLayerOverlaySubtype =
+            (Manager.PlanetOverlay == PlanetOverlay.Layer) &&
+            (Manager.PlanetOverlaySubtype != Manager.NoOverlaySubtype);
+
+        string layerTypeName = "<toggle layer subtype to use>";
+
+        if (isLayerOverlaySubtype)
+        {
+            layerTypeName = Layer.Layers[Manager.PlanetOverlaySubtype].Name.FirstLetterToUpper();
+        }
+
+        LayerLevelControlPanelScript.ActivateControls(isLayerOverlaySubtype);
+        LayerBrushControlPanelScript.ActivateControls(isLayerOverlaySubtype);
+
+        LayerBrushControlPanelScript.Name.text = "Layer Brush: <b>" + layerTypeName + "</b>";
+        LayerLevelControlPanelScript.Name.text = "Set Layer Levels: <b>" + layerTypeName + "</b>";
+
+        if (isLayerOverlaySubtype)
+        {
+            LayerLevelControlPanelScript.ResetSliderControls();
+        }
+
         if (Manager.EditorBrushType == EditorBrushType.Layer)
         {
-            bool isLayerOverlaySubtype =
-                (Manager.PlanetOverlay == PlanetOverlay.Layer) &&
-                (Manager.PlanetOverlaySubtype != Manager.NoOverlaySubtype);
-
-            LayerBrushControlPanelScript.ActivateControls(isLayerOverlaySubtype);
-
-            string layerTypeName = "<toggle layer subtype to use>";
-
-            if (isLayerOverlaySubtype)
-            {
-                layerTypeName = Layer.Layers[Manager.PlanetOverlaySubtype].Name.FirstLetterToUpper();
-            }
-
-            LayerBrushControlPanelScript.Name.text = "Layer Brush: <b>" + layerTypeName + "</b>";
-
             Manager.EditorBrushIsVisible = isLayerOverlaySubtype;
         }
     }
@@ -162,6 +179,7 @@ public class MapEditorToolbarScript : MonoBehaviour
         Manager.HandleKeyUp(KeyCode.Alpha6, false, false, ToggleTool6);
         Manager.HandleKeyUp(KeyCode.Alpha7, false, false, ToggleTool7);
         Manager.HandleKeyUp(KeyCode.Alpha8, false, false, ToggleTool8);
+        Manager.HandleKeyUp(KeyCode.Alpha9, false, false, ToggleTool9);
     }
 
     public void UndoEditorAction()

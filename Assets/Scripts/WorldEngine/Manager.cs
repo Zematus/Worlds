@@ -1828,7 +1828,7 @@ public class Manager
 
         if (EditorBrushType == EditorBrushType.Layer)
         {
-            if (!IsValidLayerId(_planetOverlaySubtype))
+            if (!Layer.IsValidLayerId(_planetOverlaySubtype))
             {
                 return;
             }
@@ -1956,7 +1956,7 @@ public class Manager
 
     private static void ApplyEditorBrush_Layer(int longitude, int latitude, float distanceFactor)
     {
-        if (!IsValidLayerId(_planetOverlaySubtype))
+        if (!Layer.IsValidLayerId(_planetOverlaySubtype))
         {
             throw new System.Exception("Not a recognized layer Id: " + _planetOverlaySubtype);
         }
@@ -1974,14 +1974,9 @@ public class Manager
         AddUpdatedCell(cell, CellUpdateType.Cell, CellUpdateSubType.Terrain);
     }
 
-    private static bool IsValidLayerId(string layerId)
-    {
-        return Layer.Layers.ContainsKey(layerId);
-    }
-
     private static void ApplyEditorBrushFlatten_Layer(int longitude, int latitude, float distanceFactor)
     {
-        if (!IsValidLayerId(_planetOverlaySubtype))
+        if (!Layer.IsValidLayerId(_planetOverlaySubtype))
         {
             throw new System.Exception("Not a recognized layer Id: " + _planetOverlaySubtype);
         }
