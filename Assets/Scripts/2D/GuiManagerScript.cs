@@ -23,6 +23,8 @@ public class GuiManagerScript : MonoBehaviour
 
     public const float MaxDeltaTimeIterations = 0.02f; // max real time to be spent on iterations on a single frame (this is the value that matters the most performance-wise)
 
+    public CanvasScaler CanvasScaler;
+
     public Button LoadButton;
 
     public GameObject FlatMapPanel;
@@ -95,7 +97,7 @@ public class GuiManagerScript : MonoBehaviour
     private Vector3 _tooltipOffset = new Vector3(0, 0);
 
     private TerrainCell _lastHoveredCell = null;
-    
+
     private Territory _lastHoveredOverTerritory = null;
     private Region _lastHoveredOverRegion = null;
 
@@ -154,7 +156,7 @@ public class GuiManagerScript : MonoBehaviour
 
     private bool _displayRoutes = false;
     private bool _displayGroupActivity = false;
-    
+
     private bool _regenTextures = false;
     private bool _regenPointerOverlayTextures = false;
 
@@ -241,7 +243,7 @@ public class GuiManagerScript : MonoBehaviour
     {
         SelectionPanelScript.RemoveAllOptions();
         SelectionPanelScript.SetVisible(false);
-        
+
         DecisionDialogPanelScript.SetVisible(false);
         SelectFactionDialogPanelScript.SetVisible(false);
         MainMenuDialogPanelScript.SetVisible(false);
@@ -301,6 +303,8 @@ public class GuiManagerScript : MonoBehaviour
     // Use this for initialization
     void Start()
     {
+        SetUIScaling(Manager.UIScalingEnabled);
+
         _topMaxSpeedLevelIndex = Speed.Levels.Length - 1;
         _selectedMaxSpeedLevelIndex = _topMaxSpeedLevelIndex;
 
@@ -315,7 +319,7 @@ public class GuiManagerScript : MonoBehaviour
             _heightmap = Manager.LoadTexture(@"Heightmaps\mergetest_4b_3600x1800.png");
 
             //Manager.SetActiveModPaths(new string[] { @"Mods\Base", @"Mods\TestMod" });
-            
+
             //GenerateWorld(false, 1142453343, useHeightmap: true);
             GenerateWorld(false, 1582997248);
         }
@@ -382,7 +386,7 @@ public class GuiManagerScript : MonoBehaviour
                 }
             }
         }
-        
+
         Manager.ExecuteTasks(100);
 
         if (_backgroundProcessActive)
@@ -517,7 +521,7 @@ public class GuiManagerScript : MonoBehaviour
             }
 
             Profiler.BeginSample("Manager.Set*");
-            
+
             Manager.SetPlanetOverlay(_planetOverlay, _planetOverlaySubtype);
             Manager.SetPlanetView(_planetView);
             Manager.SetDisplayRoutes(_displayRoutes);
@@ -573,7 +577,7 @@ public class GuiManagerScript : MonoBehaviour
 
             Profiler.EndSample();
         }
-        
+
         InfoPanelScript.UpdateInfoPanel();
         UpdateFocusPanel();
         UpdateGuidingPanel();
@@ -742,7 +746,7 @@ public class GuiManagerScript : MonoBehaviour
         Manager.HandleKeyUp(KeyCode.S, true, false, SaveWorldAs);
         Manager.HandleKeyUp(KeyCode.L, true, false, LoadWorld);
         Manager.HandleKeyUp(KeyCode.G, true, false, SetGenerationSeed);
-        Manager.HandleKeyUp(KeyCode.F, true, false, ToogleFullscreen);
+        //Manager.HandleKeyUp(KeyCode.F, true, false, ToogleFullscreen);
     }
 
     private void ReadKeyboardInput_Globe()
@@ -1133,6 +1137,8 @@ public class GuiManagerScript : MonoBehaviour
         MainMenuDialogPanelScript.SetVisible(false);
 
         SettingsDialogPanelScript.FullscreenToggle.isOn = Manager.FullScreenEnabled;
+        SettingsDialogPanelScript.UIScalingToggle.isOn = Manager.UIScalingEnabled;
+        SettingsDialogPanelScript.DebugModeToggle.isOn = Manager.DebugModeEnabled;
 
         SettingsDialogPanelScript.SetVisible(true);
 
@@ -1148,9 +1154,23 @@ public class GuiManagerScript : MonoBehaviour
         InterruptSimulation(true);
     }
 
-    public void ToogleFullscreen(bool state)
+    public void SetFullscreen(bool state)
     {
         Manager.SetFullscreen(state);
+    }
+
+    public void SetUIScaling(bool state)
+    {
+        Manager.SetUIScaling(state);
+
+        if (state)
+        {
+            CanvasScaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+        }
+        else
+        {
+            CanvasScaler.uiScaleMode = CanvasScaler.ScaleMode.ConstantPixelSize;
+        }
     }
 
     public void ToogleDebugMode(bool state)
@@ -1322,8 +1342,12 @@ public class GuiManagerScript : MonoBehaviour
 
         SelectionPanelScript.RemoveAllOptions();
 
-        ValidateLayersPresent();
+        if (Manager.ViewingGlobe)
+        {
+            ToggleGlobeView(); // It's more safe to return to map mode after loading or generating a new world
+        }
 
+        ValidateLayersPresent();
         OpenModeSelectionDialog();
 
         _selectedMaxSpeedLevelIndex = _topMaxSpeedLevelIndex;
@@ -1845,8 +1869,12 @@ public class GuiManagerScript : MonoBehaviour
 
         SelectionPanelScript.RemoveAllOptions();
 
+        if (Manager.ViewingGlobe)
+        {
+            ToggleGlobeView(); // It's more safe to return to map mode after loading or generating a new world
+        }
+
         ValidateLayersPresent();
-        
         SetGameModeAccordingToCurrentWorld();
 
         _postProgressOp -= PostProgressOp_LoadAction;
@@ -1865,7 +1893,7 @@ public class GuiManagerScript : MonoBehaviour
     private void LoadAction()
     {
         ResetOverlaySelection();
-        
+
         ProgressDialogPanelScript.SetVisible(true);
 
         ProgressUpdate(0, "Loading World...", true);
@@ -1892,7 +1920,7 @@ public class GuiManagerScript : MonoBehaviour
     public void LoadWorld()
     {
         MainMenuDialogPanelScript.SetVisible(false);
-        
+
         LoadFileDialogPanelScript.Initialize(
             "Select World to Load...",
             "Load",
@@ -2565,7 +2593,7 @@ public class GuiManagerScript : MonoBehaviour
             }
         }
     }
-    
+
     public void SetView(PlanetView planetView)
     {
         _regenTextures |= _planetView != planetView;
@@ -2849,7 +2877,7 @@ public class GuiManagerScript : MonoBehaviour
     private void ShowCellInfoToolTip_PolityCulturalKnowledge(Polity polity, Vector3 position, float fadeStart = 5)
     {
         CulturalKnowledge knowledge = polity.Culture.GetKnowledge(_planetOverlaySubtype);
-        
+
         if (knowledge != null)
         {
             string text = knowledge.Name + " Value: " + knowledge.ScaledValue.ToString("0.000") + "\n\nFactions:";
@@ -2874,7 +2902,7 @@ public class GuiManagerScript : MonoBehaviour
     private void ShowCellInfoToolTip_PolityCulturalDiscovery(Polity polity, Vector3 position, float fadeStart = 5)
     {
         CulturalDiscovery discovery = polity.Culture.GetDiscovery(_planetOverlaySubtype) as CulturalDiscovery;
-        
+
         if (discovery != null)
         {
             InfoTooltipScript.DisplayTip(discovery.Name + " is present", position, fadeStart);

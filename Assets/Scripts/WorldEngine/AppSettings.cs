@@ -14,6 +14,7 @@ public class AppSettings
     public float TemperatureOffset = 0;
     public float RainfallOffset = 0;
     public bool Fullscreen = true;
+    public bool UIScaling = true;
     public bool DebugMode = true;
 
     public List<string> ActiveModPaths = new List<string>();
@@ -31,6 +32,7 @@ public class AppSettings
         TemperatureOffset = Manager.TemperatureOffset;
         RainfallOffset = Manager.RainfallOffset;
         Fullscreen = Manager.FullScreenEnabled;
+        UIScaling = Manager.UIScalingEnabled;
         DebugMode = Manager.DebugModeEnabled;
 
         ActiveModPaths.Clear();
@@ -47,6 +49,7 @@ public class AppSettings
         Manager.TemperatureOffset = TemperatureOffset;
         Manager.RainfallOffset = RainfallOffset;
         Manager.FullScreenEnabled = Fullscreen;
+        Manager.UIScalingEnabled = UIScaling;
         Manager.DebugModeEnabled = DebugMode;
 
         Manager.SetActiveModPaths(ActiveModPaths);

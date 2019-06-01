@@ -2023,9 +2023,8 @@ public class World : ISynchronizable
             if (heightmap == null)
             {
                 ProgressCastMethod(_accumulatedProgress, "Generating terrain altitude...");
-
-                //GenerateTerrainAltitude();
-                GenerateTerrainAltitudeOld();
+                
+                GenerateTerrainAltitude();
             }
             else
             {
@@ -2551,7 +2550,7 @@ public class World : ISynchronizable
         Manager.ActiveEditorBrushAction.AddCellAfterModification(cell);
     }
 
-    private void GenerateTerrainAltitudeOld()
+    private void GenerateTerrainAltitude()
     {
         GenerateContinents();
 
@@ -2715,7 +2714,7 @@ public class World : ISynchronizable
         return collisionValue;
     }
 
-    private void GenerateTerrainAltitude()
+    private void GenerateTerrainAltitude2()
     {
         GenerateContinents();
 

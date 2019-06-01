@@ -99,6 +99,7 @@ public class SelectionPanelScript : MonoBehaviour
         toggle.onValueChanged.AddListener(toggleHandler);
 
         toggle.transform.SetParent(gameObject.transform);
+        toggle.transform.localScale = Vector3.one;
 
         SelectionToggleScript toggleScript = toggle.gameObject.GetComponent<SelectionToggleScript>();
         toggleScript.Label.text = text;

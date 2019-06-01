@@ -358,7 +358,7 @@ public class MapEditorToolbarScript : MonoBehaviour
 
     public void SetVisible(bool state)
     {
-        if (Manager.ViewingGlobe)
+        if (state && Manager.ViewingGlobe)
             return;
 
         if (state)
