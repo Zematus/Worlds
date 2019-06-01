@@ -180,6 +180,8 @@ public class Manager
     public static List<string> ActiveModPaths = new List<string>();
     public static bool ModsAlreadyLoaded = false;
 
+    public static Dictionary<string, LayerSettings> LayerSettings = new Dictionary<string, LayerSettings>();
+
     public static GameMode GameMode = GameMode.None;
 
     public static bool ViewingGlobe = false;
@@ -414,6 +416,34 @@ public class Manager
             return;
 
         action.Invoke();
+    }
+
+    public static void ResetLayerSettings()
+    {
+        LayerSettings.Clear();
+    }
+
+    public static void SetLayerSettings(List<LayerSettings> layerSettings)
+    {
+        ResetLayerSettings();
+        
+        foreach (LayerSettings settings in layerSettings)
+        {
+            LayerSettings.Add(settings.Id, settings);
+        }
+    }
+
+    public static LayerSettings GetLayerSettings(string layerId)
+    {
+        LayerSettings settings;
+
+        if (!LayerSettings.TryGetValue(layerId, out settings))
+        {
+            settings = new LayerSettings(Layer.Layers[layerId]);
+            LayerSettings.Add(layerId, settings);
+        }
+
+        return settings;
     }
 
     public static void BlockUndoAndRedo(bool state)
@@ -1071,7 +1101,8 @@ public class Manager
         World world = new World(WorldWidth, WorldHeight, seed)
         {
             ProgressCastMethod = progressCastMethod,
-            ModPaths = new List<string>(ActiveModPaths)
+            ModPaths = new List<string>(ActiveModPaths),
+            LayerSettings = new List<LayerSettings>(LayerSettings.Values)
         };
 
         world.StartInitialization(LastStageProgress, 1.0f);
@@ -1309,6 +1340,7 @@ public class Manager
         LastStageProgress = StageProgressIncFromLoading;
 
         SetActiveModPaths(world.ModPaths);
+        SetLayerSettings(world.LayerSettings);
 
         TryLoadActiveMods();
 

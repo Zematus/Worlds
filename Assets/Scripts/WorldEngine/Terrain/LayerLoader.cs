@@ -80,8 +80,7 @@ public class LayerLoader
             Name = l.name,
             NoiseScale = l.noiseScale,
             MaxPossibleValue = l.maxPossibleValue,
-            Frequency = l.frequency,
-            Rarity = 1 - l.frequency
+            Frequency = l.frequency
         };
 
         if (l.units != null)

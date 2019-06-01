@@ -32,7 +32,8 @@ public class MapEditorToolbarScript : MonoBehaviour
     public ValueSetEvent RegenerateWorldSeaLevelOffsetChangeEvent;
     public ValueSetEvent RegenerateWorldTemperatureOffsetChangeEvent;
     public ValueSetEvent RegenerateWorldRainfallOffsetChangeEvent;
-    public ValueSetEvent RegenerateWorldLayerOffsetChangeEvent;
+    public LayerValueSetEvent RegenerateWorldLayerFrequencyChangeEvent;
+    public LayerValueSetEvent RegenerateWorldLayerNoiseInfluenceChangeEvent;
 
     // Use this for initialization
     void Start()
@@ -211,11 +212,29 @@ public class MapEditorToolbarScript : MonoBehaviour
         Manager.PerformEditorAction(editorAction);
     }
 
-    private void RegenerateWorldAltitudeScaleChange_Internal(float value)
+    private void PerformLayerRegenerateWorldAction(System.Action<string, float> action, string layerId, float previousValue, float newValue)
+    {
+        EditorAction editorAction = new LayerRegenerateWorldAction
+        {
+            Action = action,
+            LayerId = layerId,
+            PreviousValue = previousValue,
+            NewValue = newValue
+        };
+
+        Manager.PerformEditorAction(editorAction);
+    }
+
+    private void RegenerateWorldPreActions()
     {
         Manager.BlockUndoAndRedo(true);
 
         GuiManager.RegisterRegenerateWorldPostProgressOp(OnRegenCompletion);
+    }
+
+    private void RegenerateWorldAltitudeScaleChange_Internal(float value)
+    {
+        RegenerateWorldPreActions();
 
         RegenerateWorldAltitudeScaleChangeEvent.Invoke(value);
     }
@@ -230,9 +249,7 @@ public class MapEditorToolbarScript : MonoBehaviour
 
     private void RegenerateWorldSeaLevelOffsetChange_Internal(float value)
     {
-        Manager.BlockUndoAndRedo(true);
-
-        GuiManager.RegisterRegenerateWorldPostProgressOp(OnRegenCompletion);
+        RegenerateWorldPreActions();
 
         RegenerateWorldSeaLevelOffsetChangeEvent.Invoke(value);
     }
@@ -247,9 +264,7 @@ public class MapEditorToolbarScript : MonoBehaviour
 
     private void RegenerateWorldTemperatureOffsetChange_Internal(float value)
     {
-        Manager.BlockUndoAndRedo(true);
-
-        GuiManager.RegisterRegenerateWorldPostProgressOp(OnRegenCompletion);
+        RegenerateWorldPreActions();
 
         RegenerateWorldTemperatureOffsetChangeEvent.Invoke(value);
     }
@@ -264,9 +279,7 @@ public class MapEditorToolbarScript : MonoBehaviour
 
     private void RegenerateWorldRainfallOffsetChange_Internal(float value)
     {
-        Manager.BlockUndoAndRedo(true);
-
-        GuiManager.RegisterRegenerateWorldPostProgressOp(OnRegenCompletion);
+        RegenerateWorldPreActions();
 
         RegenerateWorldRainfallOffsetChangeEvent.Invoke(value);
     }
@@ -276,6 +289,52 @@ public class MapEditorToolbarScript : MonoBehaviour
         PerformRegenerateWorldAction(
             RegenerateWorldRainfallOffsetChange_Internal,
             Manager.RainfallOffset,
+            value);
+    }
+
+    private void RegenerateWorldLayerFrequencyChange_Internal(string layerId, float value)
+    {
+        RegenerateWorldPreActions();
+
+        RegenerateWorldLayerFrequencyChangeEvent.Invoke(layerId, value);
+    }
+
+    public void RegenerateWorldLayerFrequencyChange(float value)
+    {
+        string layerId = Manager.PlanetOverlaySubtype;
+
+        if (!Layer.IsValidLayerId(layerId))
+        {
+            throw new System.Exception("Invalid Layer: " + layerId);
+        }
+
+        PerformLayerRegenerateWorldAction(
+            RegenerateWorldLayerFrequencyChange_Internal,
+            layerId,
+            Manager.GetLayerSettings(layerId).Frequency,
+            value);
+    }
+
+    private void RegenerateWorldLayerNoiseInfluenceChange_Internal(string layerId, float value)
+    {
+        RegenerateWorldPreActions();
+
+        RegenerateWorldLayerNoiseInfluenceChangeEvent.Invoke(layerId, value);
+    }
+
+    public void RegenerateWorldLayerNoiseInfluenceChange(float value)
+    {
+        string layerId = Manager.PlanetOverlaySubtype;
+
+        if (!Layer.IsValidLayerId(layerId))
+        {
+            throw new System.Exception("Invalid Layer: " + layerId);
+        }
+
+        PerformLayerRegenerateWorldAction(
+            RegenerateWorldLayerNoiseInfluenceChange_Internal,
+            layerId,
+            Manager.GetLayerSettings(layerId).SecondaryNoiseInfluence,
             value);
     }
 

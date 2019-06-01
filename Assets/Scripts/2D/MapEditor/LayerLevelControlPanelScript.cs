@@ -22,19 +22,20 @@ public class LayerLevelControlPanelScript : RegenControlPanelScript
             return;
 
         Layer layer = Layer.Layers[layerId];
+        LayerSettings layerSettings = Manager.GetLayerSettings(layerId);
 
         FrequencySliderControlsScript.MinValue = 0;
         FrequencySliderControlsScript.MaxValue = 1;
         FrequencySliderControlsScript.DefaultValue = layer.Frequency;
 
-        FrequencySliderControlsScript.CurrentValue = layer.Frequency;
+        FrequencySliderControlsScript.CurrentValue = layerSettings.Frequency;
         FrequencySliderControlsScript.Reinitialize();
 
         NoiseInfluenceSliderControlsScript.MinValue = 0;
         NoiseInfluenceSliderControlsScript.MaxValue = 1;
         NoiseInfluenceSliderControlsScript.DefaultValue = layer.SecondaryNoiseInfluence;
 
-        NoiseInfluenceSliderControlsScript.CurrentValue = layer.SecondaryNoiseInfluence;
+        NoiseInfluenceSliderControlsScript.CurrentValue = layerSettings.SecondaryNoiseInfluence;
         NoiseInfluenceSliderControlsScript.Reinitialize();
     }
 

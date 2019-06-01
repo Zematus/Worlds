@@ -139,7 +139,8 @@ public enum GenerationType
     TerrainNormal = 0x07,
     TerrainRegeneration = 0x0B,
     TemperatureRegeneration = 0x10,
-    RainfallRegeneration = 0x20
+    RainfallRegeneration = 0x20,
+    LayerRegeneration = 0x40
 }
 
 [XmlRoot]
@@ -235,6 +236,8 @@ public class World : ISynchronizable
     public float TemperatureOffset { get; private set; }
 
     public List<string> ModPaths;
+
+    public List<LayerSettings> LayerSettings;
 
     // Start wonky segment (save failures might happen here)
 
@@ -458,6 +461,12 @@ public class World : ISynchronizable
     {
         _justLoaded = false;
 
+        foreach (LayerSettings settings in LayerSettings)
+        {
+            LayerSettings mSettings = Manager.GetLayerSettings(settings.Id);
+            settings.CopyValues(mSettings);
+        }
+
         AltitudeScale = Manager.AltitudeScale;
         SeaLevelOffset = Manager.SeaLevelOffset;
         RainfallOffset = Manager.RainfallOffset;
@@ -487,9 +496,15 @@ public class World : ISynchronizable
 
     public void StartInitialization(float acumulatedProgress, float maxExpectedProgress, bool justLoaded = false)
     {
-        _openSimplexNoise = new OpenSimplexNoise(Seed);
+        //_openSimplexNoise = new OpenSimplexNoise(Seed);
 
         _justLoaded = justLoaded;
+
+        foreach (LayerSettings settings in LayerSettings)
+        {
+            LayerSettings mSettings = Manager.GetLayerSettings(settings.Id);
+            settings.CopyValues(mSettings);
+        }
 
         AltitudeScale = Manager.AltitudeScale;
         SeaLevelOffset = Manager.SeaLevelOffset;
@@ -3519,15 +3534,18 @@ public class World : ISynchronizable
 
         float value = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius1, noiseOffset1);
 
-        value = (value - layer.Rarity) / layer.Frequency;
+        LayerSettings layerSettings = Manager.GetLayerSettings(layer.Id);
+
+        float rarity = 1 - layerSettings.Frequency;
+        value = (value - rarity) / layerSettings.Frequency;
 
         if (value < 0)
             return value; // Values less than 0 will be ignored anyway so no need to continue
 
-        if (layer.SecondaryNoiseInfluence > 0)
+        if (layerSettings.SecondaryNoiseInfluence > 0)
         {
             float secondaryNoise = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius2, noiseOffset2);
-            value = value - (layer.SecondaryNoiseInfluence * secondaryNoise);
+            value = value - (layerSettings.SecondaryNoiseInfluence * secondaryNoise);
         }
 
         return value;

@@ -18,6 +18,8 @@ public class AppSettings
 
     public List<string> ActiveModPaths = new List<string>();
 
+    public List<LayerSettings> LayerSettings = new List<LayerSettings>();
+
     public AppSettings()
     {
     }
@@ -33,6 +35,9 @@ public class AppSettings
 
         ActiveModPaths.Clear();
         ActiveModPaths.AddRange(Manager.ActiveModPaths);
+
+        LayerSettings.Clear();
+        LayerSettings.AddRange(Manager.LayerSettings.Values);
     }
 
     public void Take()
@@ -47,5 +52,7 @@ public class AppSettings
         Manager.ActiveModPaths.Clear();
         Manager.ActiveModPaths.AddRange(ActiveModPaths);
         Manager.ActiveModPaths.Sort();
+        
+        Manager.SetLayerSettings(LayerSettings);
     }
 }

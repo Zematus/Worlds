@@ -1249,6 +1249,24 @@ public class GuiManagerScript : MonoBehaviour
         RegenerateWorld(GenerationType.RainfallRegeneration);
     }
 
+    public void RegenerateWorldLayerFrequencyChange(string layerId, float value)
+    {
+        LayerSettings settings = Manager.GetLayerSettings(layerId);
+
+        settings.Frequency = value;
+
+        RegenerateWorld(GenerationType.LayerRegeneration);
+    }
+
+    public void RegenerateWorldLayerNoiseInfluenceChange(string layerId, float value)
+    {
+        LayerSettings settings = Manager.GetLayerSettings(layerId);
+
+        settings.SecondaryNoiseInfluence = value;
+
+        RegenerateWorld(GenerationType.LayerRegeneration);
+    }
+
     private void RegenerateWorld(GenerationType type)
     {
         ProgressDialogPanelScript.SetVisible(true);
