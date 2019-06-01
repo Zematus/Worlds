@@ -49,10 +49,7 @@ public class AppSettings
         Manager.FullScreenEnabled = Fullscreen;
         Manager.DebugModeEnabled = DebugMode;
 
-        Manager.ActiveModPaths.Clear();
-        Manager.ActiveModPaths.AddRange(ActiveModPaths);
-        Manager.ActiveModPaths.Sort();
-        
+        Manager.SetActiveModPaths(ActiveModPaths);
         Manager.SetLayerSettings(LayerSettings);
     }
 }
