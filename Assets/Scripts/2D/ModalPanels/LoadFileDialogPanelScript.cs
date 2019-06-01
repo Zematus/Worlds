@@ -69,7 +69,7 @@ public class LoadFileDialogPanelScript : DialogPanelScript
         ICollection<string> prevSelectedItems = null)
     {
         _pathsToLoad.Clear();
-
+        
         SetDialogText(dialogText);
 
         SelectButtonText.text = selectButtonText;
@@ -188,14 +188,17 @@ public class LoadFileDialogPanelScript : DialogPanelScript
             toggle = AddFileToggle(name);
         }
 
+        toggle.isOn = false; // We need to make sure it is untoggled first before setting it's default state. Otherwise, 'onValueChanged' won't get called
         toggle.group = _selectMultiple? null : ToggleGroup;
 
         string path = _basePath + name;
-
+        
         toggle.onValueChanged.AddListener(value =>
         {
             if (!_selectMultiple)
+            {
                 _pathsToLoad.Clear();
+            }
 
             if (value)
             {

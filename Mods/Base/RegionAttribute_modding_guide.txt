@@ -7,8 +7,9 @@ Region attribute modding files are located within the 'RegionAttributes' folder.
 {
   "region_attributes": [ -- list of attributes --
     {
-      "name":                -- (required) Name of attribute. Also works as unique identifier, if more than one definition share a name, only the last one loaded will be used
-      "adjectives":          -- (optional) List of applicable adjectives, separated by commas
+      "id":                  -- (required) Unique region attribute identifier, if more than one definition share ids, only the last one loaded will be used
+      "name":                -- (required) Name of attribute
+      "adjectives":          -- (optional) List of applicable adjective ids, separated by commas. Ids must be present in at least one active adjective mod file
       "variants":            -- (required) List of naming variations, separated by commas (see note #2)
       "regionConstraints":   -- (optional) List of region constraints, separated by commas (see note #3)
       "phraseAssociations":  -- (required) List of phrase association strings, separated by commas (see note #4)

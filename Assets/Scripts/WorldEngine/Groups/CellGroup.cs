@@ -506,10 +506,7 @@ public class CellGroup : HumanGroup
 
 			long triggerDate = PlantCultivationDiscoveryEvent.CalculateTriggerDate (this);
 
-			if (triggerDate > World.MaxSupportedDate)
-				return;
-
-			if (triggerDate == long.MinValue)
+			if (!triggerDate.IsInsideRange(World.CurrentDate + 1, World.MaxSupportedDate))
 				return;
 
 			World.InsertEventToHappen (new PlantCultivationDiscoveryEvent (this, triggerDate));

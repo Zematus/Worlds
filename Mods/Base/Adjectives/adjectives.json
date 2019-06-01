@@ -1,0 +1,196 @@
+{
+  "adjectives": [
+    {
+      "id": "white",
+      "word": "white"
+    },
+    {
+      "id": "red",
+      "word": "red"
+    },
+    {
+      "id": "scarlet",
+      "word": "scarlet"
+    },
+    {
+      "id": "crimsom",
+      "word": "crimsom"
+    },
+    {
+      "id": "cerise",
+      "word": "cerise"
+    },
+    {
+      "id": "ocre",
+      "word": "ocre"
+    },
+    {
+      "id": "blue",
+      "word": "blue"
+    },
+    {
+      "id": "green",
+      "word": "green"
+    },
+    {
+      "id": "yellow",
+      "word": "yellow"
+    },
+    {
+      "id": "black",
+      "word": "black"
+    },
+    {
+      "id": "grey",
+      "word": "grey"
+    },
+    {
+      "id": "orange",
+      "word": "orange"
+    },
+    {
+      "id": "pink",
+      "word": "pink"
+    },
+    {
+      "id": "purple",
+      "word": "purple"
+    },
+    {
+      "id": "magenta",
+      "word": "magenta"
+    },
+    {
+      "id": "brown",
+      "word": "brown"
+    },
+    {
+      "id": "big",
+      "word": "big"
+    },
+    {
+      "id": "light",
+      "word": "light"
+    },
+    {
+      "id": "heavy",
+      "word": "heavy"
+    },
+    {
+      "id": "great",
+      "word": "great"
+    },
+    {
+      "id": "fine",
+      "word": "fine"
+    },
+    {
+      "id": "coarse",
+      "word": "coarse"
+    },
+    {
+      "id": "dark",
+      "word": "dark"
+    },
+    {
+      "id": "pale",
+      "word": "pale"
+    },
+    {
+      "id": "dead",
+      "word": "dead"
+    },
+    {
+      "id": "short",
+      "word": "short"
+    },
+    {
+      "id": "tall",
+      "word": "tall"
+    },
+    {
+      "id": "narrow",
+      "word": "narrow"
+    },
+    {
+      "id": "wide",
+      "word": "wide"
+    },
+    {
+      "id": "hard",
+      "word": "hard"
+    },
+    {
+      "id": "soft",
+      "word": "soft"
+    },
+    {
+      "id": "wild",
+      "word": "wild"
+    },
+    {
+      "id": "wet",
+      "word": "wet"
+    },
+    {
+      "id": "dry",
+      "word": "dry"
+    },
+    {
+      "id": "thin",
+      "word": "thin"
+    },
+    {
+      "id": "deep",
+      "word": "deep"
+    },
+    {
+      "id": "bright",
+      "word": "bright"
+    },
+    {
+      "id": "tiny",
+      "word": "tiny"
+    },
+    {
+      "id": "clear",
+      "word": "clear"
+    },
+    {
+      "id": "long",
+      "word": "long"
+    },
+    {
+      "id": "somber",
+      "word": "somber"
+    },
+    {
+      "id": "cheerful",
+      "word": "cheerful"
+    },
+    {
+      "id": "strong",
+      "word": "strong"
+    },
+    {
+      "id": "opaque",
+      "word": "opaque"
+    },
+    {
+      "id": "loud",
+      "word": "loud"
+    },
+    {
+      "id": "dense",
+      "word": "dense"
+    },
+    {
+      "id": "bleak",
+      "word": "bleak"
+    },
+    {
+      "id": "open",
+      "word": "open"
+    }
+  ]
+}

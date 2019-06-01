@@ -12,6 +12,7 @@ public enum EditorBrushType
     Altitude,
     Temperature,
     Rainfall,
+    Layer,
     None
 }
 
@@ -53,6 +54,7 @@ public enum PlanetOverlay
     Temperature,
     Rainfall,
     Arability,
+    Layer,
     Region,
     Language,
     PopChange,
@@ -72,6 +74,7 @@ public enum OverlayColorId
     SelectedTerritory = 6,
     ContactedTerritoryGood = 7,
     ContactedTerritoryBad = 8,
+    Layer = 9
 }
 
 public class Manager
@@ -105,6 +108,8 @@ public class Manager
 
     //	public static IRecorder Recorder = DefaultRecorder.Default;
 
+    public const string NoOverlaySubtype = "None";
+
     public const int WorldWidth = 400;
     public const int WorldHeight = 200;
 
@@ -112,12 +117,18 @@ public class Manager
     public const float BrushStrengthFactor_Altitude = 0.5f;
     public const float BrushStrengthFactor_Rainfall = 0.25f;
     public const float BrushStrengthFactor_Temperature = 0.25f;
+    public const float BrushStrengthFactor_Layer = 0.25f;
 
     public const float BrushNoiseRadiusFactor = 200;
 
     public const string DefaultModPath = @".\Mods\";
 
     public const float StageProgressIncFromLoading = 0.1f;
+
+    public const int MaxEditorBrushRadius = 25;
+    public const int MinEditorBrushRadius = 1;
+
+    public static bool LayersPresent = false;
 
     public static float LastStageProgress = 0;
 
@@ -135,7 +146,7 @@ public class Manager
     public static HashSet<TerrainCell> UpdatedCells { get; private set; }
 
     public static TerrainCell EditorBrushTargetCell = null;
-    public static int EditorBrushRadius = 20;
+    public static int EditorBrushRadius = MaxEditorBrushRadius;
     public static float EditorBrushStrength = 0.25f;
     public static float EditorBrushNoise = 0.0f;
     public static bool EditorBrushIsVisible = false;
@@ -168,6 +179,8 @@ public class Manager
 
     public static List<string> ActiveModPaths = new List<string>();
     public static bool ModsAlreadyLoaded = false;
+
+    public static Dictionary<string, LayerSettings> LayerSettings = new Dictionary<string, LayerSettings>();
 
     public static GameMode GameMode = GameMode.None;
 
@@ -403,6 +416,34 @@ public class Manager
             return;
 
         action.Invoke();
+    }
+
+    public static void ResetLayerSettings()
+    {
+        LayerSettings.Clear();
+    }
+
+    public static void SetLayerSettings(List<LayerSettings> layerSettings)
+    {
+        ResetLayerSettings();
+        
+        foreach (LayerSettings settings in layerSettings)
+        {
+            LayerSettings.Add(settings.Id, settings);
+        }
+    }
+
+    public static LayerSettings GetLayerSettings(string layerId)
+    {
+        LayerSettings settings;
+
+        if (!LayerSettings.TryGetValue(layerId, out settings))
+        {
+            settings = new LayerSettings(Layer.Layers[layerId]);
+            LayerSettings.Add(layerId, settings);
+        }
+
+        return settings;
     }
 
     public static void BlockUndoAndRedo(bool state)
@@ -1035,6 +1076,7 @@ public class Manager
     {
         ActiveModPaths.Clear();
         ActiveModPaths.AddRange(paths);
+        ActiveModPaths.Sort();
 
         ModsAlreadyLoaded = false;
     }
@@ -1059,7 +1101,8 @@ public class Manager
         World world = new World(WorldWidth, WorldHeight, seed)
         {
             ProgressCastMethod = progressCastMethod,
-            ModPaths = new List<string>(ActiveModPaths)
+            ModPaths = new List<string>(ActiveModPaths),
+            LayerSettings = new List<LayerSettings>(LayerSettings.Values)
         };
 
         world.StartInitialization(LastStageProgress, 1.0f);
@@ -1297,6 +1340,7 @@ public class Manager
         LastStageProgress = StageProgressIncFromLoading;
 
         SetActiveModPaths(world.ModPaths);
+        SetLayerSettings(world.LayerSettings);
 
         TryLoadActiveMods();
 
@@ -1411,6 +1455,7 @@ public class Manager
     {
         if ((overlay == PlanetOverlay.None) ||
             (overlay == PlanetOverlay.Arability) ||
+            (overlay == PlanetOverlay.Layer) ||
             (overlay == PlanetOverlay.Rainfall) ||
             (overlay == PlanetOverlay.Temperature) ||
             (overlay == PlanetOverlay.FarmlandDistribution))
@@ -1453,6 +1498,7 @@ public class Manager
     {
         if ((overlay == PlanetOverlay.None) ||
             (overlay == PlanetOverlay.Arability) ||
+            (overlay == PlanetOverlay.Layer) ||
             (overlay == PlanetOverlay.Rainfall) ||
             (overlay == PlanetOverlay.Temperature) ||
             (overlay == PlanetOverlay.FarmlandDistribution))
@@ -1754,6 +1800,9 @@ public class Manager
             case EditorBrushType.Rainfall:
                 ApplyEditorBrush_Rainfall(longitude, latitude, distanceFactor);
                 break;
+            case EditorBrushType.Layer:
+                ApplyEditorBrush_Layer(longitude, latitude, distanceFactor);
+                break;
             default:
                 throw new System.Exception("Unhandled Editor Brush Type: " + EditorBrushType);
         }
@@ -1771,6 +1820,9 @@ public class Manager
                 break;
             case EditorBrushType.Rainfall:
                 ApplyEditorBrushFlatten_Rainfall(longitude, latitude, distanceFactor);
+                break;
+            case EditorBrushType.Layer:
+                ApplyEditorBrushFlatten_Layer(longitude, latitude, distanceFactor);
                 break;
             default:
                 throw new System.Exception("Unhandled Editor Brush Type: " + EditorBrushType);
@@ -1804,15 +1856,34 @@ public class Manager
 
     public static void ActivateEditorBrush(bool state)
     {
+        bool useLayerBrush = false;
+
+        if (EditorBrushType == EditorBrushType.Layer)
+        {
+            if (!Layer.IsValidLayerId(_planetOverlaySubtype))
+            {
+                return;
+            }
+
+            useLayerBrush = true;
+        }
+
         EditorBrushIsActive = state;
 
         if (state)
         {
-            ActiveEditorBrushAction = new BrushAction();
+            if (useLayerBrush)
+            {
+                ActiveEditorBrushAction = new LayerBrushAction(_planetOverlaySubtype);
+            }
+            else
+            {
+                ActiveEditorBrushAction = new AlterationBrushAction();
+            }
         }
         else if (ActiveEditorBrushAction != null)
         {
-            ActiveEditorBrushAction.FinalizeCellAlterations();
+            ActiveEditorBrushAction.FinalizeCellModifications();
 
             PushUndoableAction(ActiveEditorBrushAction);
             ResetRedoableActionsStack();
@@ -1911,6 +1982,60 @@ public class Manager
         float valueOffset = (targetValue - currentValue) * valueOffsetFactor;
 
         CurrentWorld.ModifyCellTemperature(cell, valueOffset);
+
+        AddUpdatedCell(cell, CellUpdateType.Cell, CellUpdateSubType.Terrain);
+    }
+
+    private static void ApplyEditorBrush_Layer(int longitude, int latitude, float distanceFactor)
+    {
+        if (!Layer.IsValidLayerId(_planetOverlaySubtype))
+        {
+            throw new System.Exception("Not a recognized layer Id: " + _planetOverlaySubtype);
+        }
+
+        float noiseRadius = BrushNoiseRadiusFactor / (float)EditorBrushRadius;
+
+        float strToValue = BrushStrengthFactor_Base * BrushStrengthFactor_Layer *
+            (MathUtility.GetPseudoNormalDistribution(distanceFactor * 2) - MathUtility.NormalAt2) / (MathUtility.NormalAt0 - MathUtility.NormalAt2);
+        float valueOffset = EditorBrushStrength * strToValue;
+
+        TerrainCell cell = CurrentWorld.GetCell(longitude, latitude);
+
+        CurrentWorld.ModifyCellLayerData(cell, valueOffset, _planetOverlaySubtype, EditorBrushNoise, noiseRadius);
+
+        AddUpdatedCell(cell, CellUpdateType.Cell, CellUpdateSubType.Terrain);
+    }
+
+    private static void ApplyEditorBrushFlatten_Layer(int longitude, int latitude, float distanceFactor)
+    {
+        if (!Layer.IsValidLayerId(_planetOverlaySubtype))
+        {
+            throw new System.Exception("Not a recognized layer Id: " + _planetOverlaySubtype);
+        }
+
+        int sampleRadius = 1;
+
+        float strToValue = BrushStrengthFactor_Layer *
+            (MathUtility.GetPseudoNormalDistribution(distanceFactor * 2) - MathUtility.NormalAt2) / (MathUtility.NormalAt0 - MathUtility.NormalAt2);
+        float valueOffsetFactor = EditorBrushStrength * strToValue;
+
+        TerrainCell cell = CurrentWorld.GetCell(longitude, latitude);
+
+        TerrainCell cellNorth = CurrentWorld.GetCellWithSphericalWrap(longitude, latitude - sampleRadius);
+        TerrainCell cellEast = CurrentWorld.GetCellWithSphericalWrap(longitude + sampleRadius, latitude);
+        TerrainCell cellSouth = CurrentWorld.GetCellWithSphericalWrap(longitude, latitude + sampleRadius);
+        TerrainCell cellWest = CurrentWorld.GetCellWithSphericalWrap(longitude - sampleRadius, latitude);
+
+        float targetValue =
+            (cellNorth.GetLayerValue(_planetOverlaySubtype) +
+            cellEast.GetLayerValue(_planetOverlaySubtype) +
+            cellSouth.GetLayerValue(_planetOverlaySubtype) +
+            cellWest.GetLayerValue(_planetOverlaySubtype)) / 4f;
+
+        float currentValue = cell.GetLayerValue(_planetOverlaySubtype);
+        float valueOffset = (targetValue - currentValue) * valueOffsetFactor;
+
+        CurrentWorld.ModifyCellLayerData(cell, valueOffset, _planetOverlaySubtype);
 
         AddUpdatedCell(cell, CellUpdateType.Cell, CellUpdateSubType.Terrain);
     }
@@ -2476,6 +2601,10 @@ public class Manager
 
             case PlanetOverlay.Arability:
                 color = SetArabilityOverlayColor(cell, color);
+                break;
+
+            case PlanetOverlay.Layer:
+                color = SetLayerOverlayColor(cell, color);
                 break;
 
             case PlanetOverlay.Region:
@@ -3597,10 +3726,35 @@ public class Manager
 
         if (normalizedValue >= 0.001f)
         {
-
             float value = 0.05f + 0.95f * normalizedValue;
 
             color = (color * (1 - value)) + (GetOverlayColor(OverlayColorId.Arability) * value);
+        }
+
+        return color;
+    }
+
+    private static Color SetLayerOverlayColor(TerrainCell cell, Color color)
+    {
+        float greyscale = (color.r + color.g + color.b);
+
+        color.r = (greyscale + color.r) / 6f;
+        color.g = (greyscale + color.g) / 6f;
+        color.b = (greyscale + color.b) / 6f;
+
+        if (_planetOverlaySubtype == "None")
+            return color;
+
+        Layer layer = Layer.Layers[_planetOverlaySubtype];
+        
+        float normalizedValue = cell.GetLayerValue(_planetOverlaySubtype);
+        normalizedValue = normalizedValue / layer.MaxPresentValue;
+
+        if (normalizedValue >= 0.001f)
+        {
+            float intensity = 0.05f + 0.95f * normalizedValue;
+
+            color = (color * (1 - intensity)) + (layer.Color * intensity);
         }
 
         return color;
@@ -3945,7 +4099,9 @@ public class Manager
         if (paths.Count == 0)
             throw new System.ArgumentException("Number of mods to load can't be zero");
 
+        Layer.ResetLayers();
         Biome.ResetBiomes();
+        Adjective.ResetAdjectives();
         RegionAttribute.ResetAttributes();
         Element.ResetElements();
 
@@ -3996,10 +4152,12 @@ public class Manager
 
     private static void LoadMod(string path, float progressPerMod)
     {
-        float totalSegments = 3f;
+        float progressPerSegment = progressPerMod / 5f;
 
-        TryLoadModFiles(Biome.LoadBiomesFile, path + @"Biomes", progressPerMod / totalSegments);
-        TryLoadModFiles(RegionAttribute.LoadRegionAttributesFile, path + @"RegionAttributes", progressPerMod / totalSegments);
-        TryLoadModFiles(Element.LoadElementsFile, path + @"Elements", progressPerMod / totalSegments);
+        TryLoadModFiles(Layer.LoadLayersFile, path + @"Layers", progressPerSegment);
+        TryLoadModFiles(Biome.LoadBiomesFile, path + @"Biomes", progressPerSegment);
+        TryLoadModFiles(Adjective.LoadAdjectivesFile, path + @"Adjectives", progressPerSegment);
+        TryLoadModFiles(RegionAttribute.LoadRegionAttributesFile, path + @"RegionAttributes", progressPerSegment);
+        TryLoadModFiles(Element.LoadElementsFile, path + @"Elements", progressPerSegment);
     }
 }

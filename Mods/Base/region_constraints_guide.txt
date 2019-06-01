@@ -40,6 +40,12 @@ Here's a list of the current types of region constraints (more to be added in fu
 - 'biome_presence_below'
     Tests if the number of cells within a region that have a particular biome is below a certain percentage (expressed as comma separated pair of a biome identifier (id) and a number between 0.0 and 1.0 inclusive). Example: 'biome_presence_below:desert,0.50'
 
+- 'layer_value_above'
+    Tests if the number of cells within a region that have a particular layer is above (or equal) a certain value (expressed as comma separated pair of a layer identifier (id) and a number between 0.0 and 1000000.0 inclusive). Example: 'layer_value_above:<layer_id>,20.0'
+
+- 'layer_value_below'
+    Tests if the number of cells within a region that have a particular layer is below a certain value (expressed as comma separated pair of a biome layer (id) and a number between 0.0 and 1000000.0 inclusive). Example: 'layer_value_below:<layer_id>,100.0'
+
 - 'main_biome'
     Tests if any of the biomes within the given list is the biome with the most presence within the region (expressed as comma separated list of biome ids). Example: 'main_biome:forest,taiga,tundra,rainforest'
 

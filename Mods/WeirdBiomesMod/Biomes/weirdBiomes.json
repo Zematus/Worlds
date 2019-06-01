@@ -1,0 +1,156 @@
+{
+  "biomes": [
+    {
+      "id": "fungi",
+      "name": "fungi",
+      "color": "#F15CF8",
+      "type": "land",
+      "survivability": 0.4,
+      "foragingCapacity": 1,
+      "accessibility": 0.4,
+
+      "layerConstraints": [
+        {
+          "layerId": "mycosystem",
+          "minValue": 0
+        },
+        {
+          "layerId": "necrosilica",
+          "maxValue": 5
+        }
+      ]
+    },
+    {
+      "id": "black_fungi",
+      "name": "black fungi",
+      "color": "#000000",
+      "type": "land",
+      "survivability": 0.0,
+      "foragingCapacity": 0.0,
+      "accessibility": 0.4,
+
+      "layerConstraints": [
+        {
+          "layerId": "mycosystem",
+          "minValue": 0
+        },
+        {
+          "layerId": "necrosilica",
+          "minValue": 0
+        }
+      ]
+    },
+    {
+      "id": "crimson_ocean",
+      "name": "crimson ocean",
+      "color": "#B01900",
+      "type": "sea",
+      "maxAltitude": 0,
+      "minTemperature": -15,
+      "survivability": 0.0,
+      "foragingCapacity": 0.0,
+      "accessibility": 0.0,
+
+      "layerConstraints": [
+        {
+          "layerId": "necrosilica",
+          "minValue": 0
+        }
+      ]
+    },
+    {
+      "id": "red_forest",
+      "name": "red forest",
+      "color": "#FF2A00",
+      "type": "land",
+      "minAltitude": 0,
+      "minRainfall": 1375,
+      "maxRainfall": 2975,
+      "minTemperature": -10,
+      "survivability": 0.2,
+      "foragingCapacity": 0.3,
+      "accessibility": 0.6,
+
+      "layerConstraints": [
+        {
+          "layerId": "mycosystem",
+          "maxValue": 100
+        },
+        {
+          "layerId": "necrosilica",
+          "minValue": 0,
+          "maxValue": 8
+        }
+      ]
+    },
+    {
+      "id": "dark_taiga",
+      "name": "dark taiga",
+      "color": "#722F37",
+      "type": "land",
+      "minAltitude": 0,
+      "minRainfall": 1375,
+      "minTemperature": -20,
+      "maxTemperature": 0,
+      "survivability": 0.1,
+      "foragingCapacity": 0.1,
+      "accessibility": 0.4,
+
+      "layerConstraints": [
+        {
+          "layerId": "mycosystem",
+          "maxValue": 100
+        },
+        {
+          "layerId": "necrosilica",
+          "minValue": 0,
+          "maxValue": 8
+        }
+      ]
+    },
+    {
+      "id": "scarlet_desert",
+      "name": "scarlet desert",
+      "color": "#DC143C",
+      "type": "land",
+      "minAltitude": 0,
+      "minTemperature": -10,
+      "survivability": 0.0,
+      "foragingCapacity": 0.0,
+      "accessibility": 0.8,
+
+      "layerConstraints": [
+        {
+          "layerId": "mycosystem",
+          "maxValue": 100
+        },
+        {
+          "layerId": "necrosilica",
+          "minValue": 0
+        }
+      ]
+    },
+    {
+      "id": "cerise_tundra",
+      "name": "cerise tundra",
+      "color": "#ec3b83",
+      "type": "land",
+      "minAltitude": 0,
+      "maxTemperature": 0,
+      "survivability": 0.0,
+      "foragingCapacity": 0.0,
+      "accessibility": 0.8,
+
+      "layerConstraints": [
+        {
+          "layerId": "mycosystem",
+          "maxValue": 100
+        },
+        {
+          "layerId": "necrosilica",
+          "minValue": 0
+        }
+      ]
+    }
+  ]
+}

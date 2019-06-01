@@ -16,6 +16,7 @@ public class RegionAttributeLoader
     [Serializable]
     public class LoadedRegionAttribute
     {
+        public string id;
         public string name;
         public string adjectives;
         public string variants;
@@ -40,6 +41,11 @@ public class RegionAttributeLoader
 
     private static RegionAttribute CreateRegionAttribute(LoadedRegionAttribute attr)
     {
+        if (string.IsNullOrEmpty(attr.id))
+        {
+            throw new ArgumentException("region attribute id can't be null or empty");
+        }
+
         if (string.IsNullOrEmpty(attr.name))
         {
             throw new ArgumentException("region attribute name can't be null or empty");
@@ -55,21 +61,27 @@ public class RegionAttributeLoader
             throw new ArgumentException("region phrase attribute's association strings can't be null or empty");
         }
 
-        string[] adjectives = null;
+        Adjective[] adjectives = null;
         string[] variants = null;
         string[] constraints = null;
         string[] associationStrs = null;
 
         if (!string.IsNullOrEmpty(attr.adjectives))
         {
-            adjectives = attr.adjectives.Split(',');
+            string[] adjs = attr.adjectives.Split(',');
+            adjectives = new Adjective[adjs.Length];
 
-            for (int i = 0; i < adjectives.Length; i++)
+            for (int i = 0; i < adjs.Length; i++)
             {
-                adjectives[i] = adjectives[i].Trim();
+                string adj = adjs[i].Trim();
+
+                if (!Adjective.Adjectives.TryGetValue(adj, out adjectives[i]))
+                {
+                    Debug.LogWarning("Adjective id not found in loaded adjectives: " + adj);
+                }
             }
         }
-        
+
         variants = attr.variants.Split(',');
 
         for (int i = 0; i < variants.Length; i++)
@@ -88,7 +100,7 @@ public class RegionAttributeLoader
         string a = Regex.Replace(attr.phraseAssociations, QuotedStringListHelper.FirstAndLastSingleQuoteRegex, "");
         associationStrs = Regex.Split(a, QuotedStringListHelper.SeparatorSingleQuoteRegex);
 
-        RegionAttribute regionAttribute = new RegionAttribute(attr.name, adjectives, variants, constraints, associationStrs, attr.secondary);
+        RegionAttribute regionAttribute = new RegionAttribute(attr.id, attr.name, adjectives, variants, constraints, associationStrs, attr.secondary);
 
         return regionAttribute;
     }

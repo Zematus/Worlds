@@ -42,7 +42,9 @@ public class PlantCultivationDiscoveryEvent : DiscoveryEvent
         long targetDate = (long)(group.World.CurrentDate + dateSpan) + 1;
 
         if (targetDate <= group.World.CurrentDate)
+        {
             targetDate = int.MinValue;
+        }
 
         return targetDate;
     }

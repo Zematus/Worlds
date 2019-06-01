@@ -33,6 +33,7 @@ public class OverlayDialogPanelScript : MenuPanelScript
     public Toggle TemperatureToggle;
     public Toggle RainfallToggle;
     public Toggle ArabilityToggle;
+    public Toggle LayerToggle;
     public Toggle RegionToggle;
     public Toggle LanguageToggle;
 
@@ -59,6 +60,11 @@ public class OverlayDialogPanelScript : MenuPanelScript
         DebugDataToggle.gameObject.SetActive(Manager.DebugModeEnabled);
         DistancesToCoresToggle.gameObject.SetActive(Manager.DebugModeEnabled);
         PolityClustersToggle.gameObject.SetActive(Manager.DebugModeEnabled);
+    }
+
+    public void SetLayerOverlay(bool state)
+    {
+        LayerToggle.gameObject.SetActive(state);
     }
 
     public void SetCloseAction(UnityAction closeAction)
@@ -154,6 +160,7 @@ public class OverlayDialogPanelScript : MenuPanelScript
             (Manager.PlanetOverlay == PlanetOverlay.Temperature) ||
             (Manager.PlanetOverlay == PlanetOverlay.Rainfall) ||
             (Manager.PlanetOverlay == PlanetOverlay.Arability) ||
+            (Manager.PlanetOverlay == PlanetOverlay.Layer) ||
             (Manager.PlanetOverlay == PlanetOverlay.Region) ||
             (Manager.PlanetOverlay == PlanetOverlay.Language)
         );
@@ -184,6 +191,7 @@ public class OverlayDialogPanelScript : MenuPanelScript
         TemperatureToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.Temperature);
         RainfallToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.Rainfall);
         ArabilityToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.Arability);
+        LayerToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.Layer);
         RegionToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.Region);
         LanguageToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.Language);
 

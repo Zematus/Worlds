@@ -60,17 +60,23 @@ public class ElementLoader
             throw new ArgumentException("element's phrase association strings can't be null or empty");
         }
 
-        string[] adjectives = null;
+        Adjective[] adjectives = null;
         string[] constraints = null;
         string[] associationStrs = null;
 
         if (!string.IsNullOrEmpty(e.adjectives))
         {
-            adjectives = e.adjectives.Split(',');
+            string[] adjs = e.adjectives.Split(',');
+            adjectives = new Adjective[adjs.Length];
 
-            for (int i = 0; i < adjectives.Length; i++)
+            for (int i = 0; i < adjs.Length; i++)
             {
-                adjectives[i] = adjectives[i].Trim();
+                string adj = adjs[i].Trim();
+
+                if (!Adjective.Adjectives.TryGetValue(adj, out adjectives[i]))
+                {
+                    throw new ArgumentException("adjective id not found in loaded adjectives: " + adj);
+                }
             }
         }
 

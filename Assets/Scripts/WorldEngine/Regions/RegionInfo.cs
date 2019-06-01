@@ -26,12 +26,12 @@ public class RegionInfo : ISynchronizable, IKeyedValue<long>
 #endif
 
     [XmlIgnore]
-    public Dictionary<string, RegionAttribute> Attributes = new Dictionary<string, RegionAttribute>();
+    public Dictionary<string, RegionAttribute.Instance> Attributes = new Dictionary<string, RegionAttribute.Instance>();
     [XmlIgnore]
-    public List<RegionAttribute> AttributeList = new List<RegionAttribute>();
+    public List<RegionAttribute.Instance> AttributeList = new List<RegionAttribute.Instance>();
 
     [XmlIgnore]
-    public List<Element> Elements = new List<Element>();
+    public List<Element.Instance> Elements = new List<Element.Instance>();
 
     [XmlIgnore]
     public World World;
@@ -80,17 +80,17 @@ public class RegionInfo : ISynchronizable, IKeyedValue<long>
         LanguageId = language.Id;
     }
 
-    public void AddAttribute(RegionAttribute attribute)
+    public void AddAttribute(RegionAttribute.Instance attribute)
     {
 #if DEBUG
         AttributeNames.Add(attribute.Name);
 #endif
 
-        Attributes.Add(attribute.Name, attribute);
+        Attributes.Add(attribute.Id, attribute);
         AttributeList.Add(attribute);
     }
 
-    public void AddElement(Element element)
+    public void AddElement(Element.Instance element)
     {
 #if DEBUG
         ElementIds.Add(element.Id);
@@ -140,7 +140,7 @@ public class RegionInfo : ISynchronizable, IKeyedValue<long>
         return AttributeList[index].GetRandomVariation(getRandomInt);
     }
 
-    protected void AddElements(IEnumerable<Element> elem)
+    protected void AddElements(IEnumerable<Element.Instance> elem)
     {
         Elements.AddRange(elem);
     }
@@ -149,21 +149,22 @@ public class RegionInfo : ISynchronizable, IKeyedValue<long>
     {
         string untranslatedName;
 
-        Element element = Elements.RandomSelect(getRandomInt, isNounAdjunct ? 5 : 20);
+        Element.Instance elementInstance = Elements.RandomSelect(getRandomInt, isNounAdjunct ? 5 : 20);
+        Element element = null;
 
-        List<RegionAttribute> remainingAttributes = new List<RegionAttribute>(AttributeList);
+        List<RegionAttribute.Instance> remainingAttributes = new List<RegionAttribute.Instance>(AttributeList);
 
-        RegionAttribute attribute = remainingAttributes.RandomSelectAndRemove(getRandomInt);
+        RegionAttribute.Instance attribute = remainingAttributes.RandomSelectAndRemove(getRandomInt);
 
-        string[] possibleAdjectives = attribute.Adjectives;
+        List<string> possibleAdjectives = attribute.Adjectives;
 
         bool addAttributeNoun = true;
 
         int wordCount = 0;
 
-        if (element != null)
+        if (elementInstance != null)
         {
-            possibleAdjectives = element.Adjectives;
+            possibleAdjectives = elementInstance.Adjectives;
 
             wordCount++;
 
@@ -172,6 +173,8 @@ public class RegionInfo : ISynchronizable, IKeyedValue<long>
 
                 addAttributeNoun = false;
             }
+
+            element = elementInstance.Element;
         }
 
         string attributeNoun = string.Empty;
@@ -190,8 +193,8 @@ public class RegionInfo : ISynchronizable, IKeyedValue<long>
             adjective = "[adj]" + adjective + " ";
 
         string elementNoun = string.Empty;
-        if (element != null)
-            elementNoun = "[nad]" + element.SingularName + ((addAttributeNoun) ? " " : string.Empty);
+        if (elementInstance != null)
+            elementNoun = "[nad]" + elementInstance.SingularName + ((addAttributeNoun) ? " " : string.Empty);
 
         untranslatedName = adjective + elementNoun;
 
@@ -247,36 +250,39 @@ public class RegionInfo : ISynchronizable, IKeyedValue<long>
 
         int wordCount = 1;
 
-        List<RegionAttribute> remainingAttributes = new List<RegionAttribute>(AttributeList);
+        List<RegionAttribute.Instance> remainingAttributes = new List<RegionAttribute.Instance>(AttributeList);
 
-        RegionAttribute primaryAttribute = remainingAttributes.RandomSelectAndRemove(GetRandomInt);
+        RegionAttribute.Instance primaryAttribute = remainingAttributes.RandomSelectAndRemove(GetRandomInt);
 
-        List<Element> remainingElements = new List<Element>(Elements);
+        List<Element.Instance> remainingElements = new List<Element.Instance>(Elements);
 
-        Element firstElement = remainingElements.RandomSelect(GetRandomInt, 5, true);
+        Element.Instance firstElementInstance = remainingElements.RandomSelect(GetRandomInt, 5, true);
+        Element firstElement = null;
 
         IEnumerable<string> possibleAdjectives = primaryAttribute.Adjectives;
 
-        if (firstElement != null)
+        if (firstElementInstance != null)
         {
-            possibleAdjectives = firstElement.Adjectives;
+            possibleAdjectives = firstElementInstance.Adjectives;
 
             wordCount++;
+
+            firstElement = firstElementInstance.Element;
         }
 
         string primaryAttributeNoun = primaryAttribute.GetRandomVariation(GetRandomInt, firstElement);
 
         string secondaryAttributeNoun = string.Empty;
 
-        int elementFactor = (firstElement != null) ? 8 : 4;
+        int elementFactor = (firstElementInstance != null) ? 8 : 4;
 
         float secondaryAttributeChance = 4f / (elementFactor + possibleAdjectives.Count());
 
         if ((remainingAttributes.Count > 0) && (GetRandomFloat() < secondaryAttributeChance))
         {
-            RegionAttribute secondaryAttribute = remainingAttributes.RandomSelectAndRemove(GetRandomInt);
+            RegionAttribute.Instance secondaryAttribute = remainingAttributes.RandomSelectAndRemove(GetRandomInt);
 
-            if (firstElement == null)
+            if (firstElementInstance == null)
             {
                 possibleAdjectives = possibleAdjectives.Union(secondaryAttribute.Adjectives);
             }
@@ -292,9 +298,9 @@ public class RegionInfo : ISynchronizable, IKeyedValue<long>
             adjective = "[adj]" + adjective + " ";
 
         string elementNoun = string.Empty;
-        if (firstElement != null)
+        if (firstElementInstance != null)
         {
-            elementNoun = "[nad]" + firstElement.SingularName + " ";
+            elementNoun = "[nad]" + firstElementInstance.SingularName + " ";
         }
 
         untranslatedName = "[Proper][NP](" + adjective + elementNoun + secondaryAttributeNoun + primaryAttributeNoun + ")";

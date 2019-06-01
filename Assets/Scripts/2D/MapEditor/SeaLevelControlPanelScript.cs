@@ -6,15 +6,20 @@ using UnityEngine.EventSystems;
 
 public class SeaLevelControlPanelScript : RegenControlPanelScript
 {
-    public SeaLevelControlPanelScript()
+    public SliderControlsScript SliderControlsScript;
+
+    public override void ResetSliderControls()
     {
-        _minValue = -10000;
-        _maxValue = 10000;
-        _defaultValue = 0;
+        SliderControlsScript.MinValue = -10000;
+        SliderControlsScript.MaxValue = 10000;
+        SliderControlsScript.DefaultValue = 0;
+
+        SliderControlsScript.CurrentValue = Manager.SeaLevelOffset;
+        SliderControlsScript.Reinitialize();
     }
 
-    protected override float GetCurrentValueFromManager()
+    public override void AllowEventInvoke(bool state)
     {
-        return Manager.SeaLevelOffset;
+        SliderControlsScript.AllowEventInvoke(state);
     }
 }
