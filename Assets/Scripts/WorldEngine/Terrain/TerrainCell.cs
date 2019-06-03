@@ -398,6 +398,7 @@ public class TerrainCell : ISynchronizable
 
         _biomePresences.Clear();
 
+        SeaBiomePresence = 0;
         MostBiomePresence = 0;
         BiomeWithMostPresence = null;
     }
