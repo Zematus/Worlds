@@ -178,7 +178,7 @@ public class CellGroup : HumanGroup
 #endif
 
     [XmlIgnore]
-    public Dictionary<string, BiomeSurvivalSkill> _biomeSurvivalSkills = new Dictionary<string, BiomeSurvivalSkill>(Biome.TypeCount);
+    public Dictionary<string, BiomeSurvivalSkill> _biomeSurvivalSkills = new Dictionary<string, BiomeSurvivalSkill>(Biome.Biomes.Count);
 
     [XmlIgnore]
     public Dictionary<Direction, CellGroup> Neighbors;
@@ -506,10 +506,7 @@ public class CellGroup : HumanGroup
 
 			long triggerDate = PlantCultivationDiscoveryEvent.CalculateTriggerDate (this);
 
-			if (triggerDate > World.MaxSupportedDate)
-				return;
-
-			if (triggerDate == long.MinValue)
+			if (!triggerDate.IsInsideRange(World.CurrentDate + 1, World.MaxSupportedDate))
 				return;
 
 			World.InsertEventToHappen (new PlantCultivationDiscoveryEvent (this, triggerDate));
@@ -610,9 +607,9 @@ public class CellGroup : HumanGroup
             baseValue = 1f;
         }
 
-        foreach (string biomeName in GetPresentBiomesInNeighborhood())
+        foreach (Biome biome in GetPresentBiomesInNeighborhood())
         {
-            if (biomeName == Biome.Ocean.Name)
+            if (biome.Type == Biome.LocactionType.Sea)
             {
                 if (Culture.GetSkill(SeafaringSkill.SkillId) == null)
                 {
@@ -621,8 +618,6 @@ public class CellGroup : HumanGroup
             }
             else
             {
-                Biome biome = Biome.Biomes[biomeName];
-
                 string skillId = BiomeSurvivalSkill.GenerateId(biome);
 
                 if (Culture.GetSkill(skillId) == null)
@@ -635,33 +630,33 @@ public class CellGroup : HumanGroup
 
     public void AddBiomeSurvivalSkill(BiomeSurvivalSkill skill)
     {
-        if (_biomeSurvivalSkills.ContainsKey(skill.BiomeName))
+        if (_biomeSurvivalSkills.ContainsKey(skill.BiomeId))
         {
             Debug.Break();
             throw new System.Exception("Debug.Break");
         }
 
-        _biomeSurvivalSkills.Add(skill.BiomeName, skill);
+        _biomeSurvivalSkills.Add(skill.BiomeId, skill);
     }
 
-    public HashSet<string> GetPresentBiomesInNeighborhood()
+    public HashSet<Biome> GetPresentBiomesInNeighborhood()
     {
-        HashSet<string> biomeNames = new HashSet<string>();
+        HashSet<Biome> biomes = new HashSet<Biome>();
 
-        foreach (string biomeName in Cell.PresentBiomeNames)
+        foreach (string id in Cell.PresentBiomeIds)
         {
-            biomeNames.Add(biomeName);
+            biomes.Add(Biome.Biomes[id]);
         }
 
         foreach (TerrainCell neighborCell in Cell.Neighbors.Values)
         {
-            foreach (string biomeName in neighborCell.PresentBiomeNames)
+            foreach (string id in neighborCell.PresentBiomeIds)
             {
-                biomeNames.Add(biomeName);
+                biomes.Add(Biome.Biomes[id]);
             }
         }
 
-        return biomeNames;
+        return biomes;
     }
 
     public void MergeGroup(MigratingGroup group)
@@ -2338,17 +2333,17 @@ public class CellGroup : HumanGroup
 
         //		Profiler.BeginSample ("Get Group Skill Values");
 
-        foreach (string biomeName in cell.PresentBiomeNames)
+        foreach (string biomeId in cell.PresentBiomeIds)
         {
             //			Profiler.BeginSample ("Try Get Group Biome Survival Skill");
 
-            float biomePresence = cell.GetBiomePresence(biomeName);
+            float biomePresence = cell.GetBiomePresence(biomeId);
 
             BiomeSurvivalSkill skill = null;
 
-            Biome biome = Biome.Biomes[biomeName];
+            Biome biome = Biome.Biomes[biomeId];
 
-            if (_biomeSurvivalSkills.TryGetValue(biomeName, out skill))
+            if (_biomeSurvivalSkills.TryGetValue(biomeId, out skill))
             {
                 //				Profiler.BeginSample ("Evaluate Group Biome Survival Skill");
 

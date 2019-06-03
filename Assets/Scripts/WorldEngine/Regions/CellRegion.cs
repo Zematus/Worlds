@@ -55,7 +55,7 @@ public class CellRegion : Region
     {
         Dictionary<string, float> biomePresences = new Dictionary<string, float>();
 
-        float oceanicArea = 0;
+        float seaArea = 0;
         float coastalOuterBorderArea = 0;
         float outerBorderArea = 0;
 
@@ -88,7 +88,7 @@ public class CellRegion : Region
 
             bool isInnerBorder = false;
 
-            bool isNotFullyOceanic = (cell.GetBiomePresence(Biome.Ocean) < 1);
+            bool isNotFullySea = (cell.SeaBiomePresence < 1);
 
             foreach (TerrainCell nCell in cell.Neighbors.Values)
             {
@@ -103,7 +103,7 @@ public class CellRegion : Region
                         outerBorderArea += nCellArea;
                         AverageOuterBorderAltitude += cell.Altitude * nCellArea;
 
-                        if (isNotFullyOceanic && (nCell.GetBiomePresence(Biome.Ocean) >= 1))
+                        if (isNotFullySea && (nCell.SeaBiomePresence >= 1))
                         {
                             coastalOuterBorderArea += nCellArea;
                         }
@@ -137,23 +137,24 @@ public class CellRegion : Region
 
             AverageFarmlandPercentage += cell.FarmlandPercentage * cellArea;
 
-            foreach (string biomeName in cell.PresentBiomeNames)
+            foreach (string biomeId in cell.PresentBiomeIds)
             {
-                float presenceArea = cell.GetBiomePresence(biomeName) * cellArea;
+                float presenceArea = cell.GetBiomePresence(biomeId) * cellArea;
 
-                if (biomePresences.ContainsKey(biomeName))
+                if (biomePresences.ContainsKey(biomeId))
                 {
-                    biomePresences[biomeName] += presenceArea;
+                    biomePresences[biomeId] += presenceArea;
                 }
                 else
                 {
-                    biomePresences.Add(biomeName, presenceArea);
+                    biomePresences.Add(biomeId, presenceArea);
                 }
+            }
 
-                if (biomeName == Biome.Ocean.Name)
-                {
-                    oceanicArea += presenceArea;
-                }
+
+            foreach (string biomeId in cell.PresentSeaBiomeIds)
+            {
+                seaArea += cell.GetBiomePresence(biomeId) * cellArea;
             }
 
             TotalArea += cellArea;
@@ -170,13 +171,13 @@ public class CellRegion : Region
 
         AverageFarmlandPercentage /= TotalArea;
 
-        OceanPercentage = oceanicArea / TotalArea;
+        SeaPercentage = seaArea / TotalArea;
 
         AverageOuterBorderAltitude /= outerBorderArea;
 
         CoastPercentage = coastalOuterBorderArea / outerBorderArea;
 
-        PresentBiomeNames = new List<string>(biomePresences.Count);
+        PresentBiomeIds = new List<string>(biomePresences.Count);
         BiomePresences = new List<float>(biomePresences.Count);
 
         _biomePresences = new Dictionary<string, float>(biomePresences.Count);
@@ -185,7 +186,7 @@ public class CellRegion : Region
         {
             float presence = pair.Value / TotalArea;
 
-            PresentBiomeNames.Add(pair.Key);
+            PresentBiomeIds.Add(pair.Key);
             BiomePresences.Add(presence);
 
             _biomePresences.Add(pair.Key, presence);
@@ -267,83 +268,47 @@ public class CellRegion : Region
 
     private void DefineAttributes()
     {
-        if ((CoastPercentage > 0.45f) && (CoastPercentage < 0.70f))
-        {
-            Info.AddAttribute(RegionAttribute.Coast);
-        }
-        else if ((CoastPercentage >= 0.70f) && (CoastPercentage < 1f))
-        {
-            Info.AddAttribute(RegionAttribute.Peninsula);
-        }
-        else if (CoastPercentage >= 1f)
-        {
-            Info.AddAttribute(RegionAttribute.Island);
-        }
+        bool hasAddedAttribute;
 
-        if (AverageAltitude > (AverageOuterBorderAltitude + 200f))
-        {
-            Info.AddAttribute(RegionAttribute.Highland);
-        }
+        HashSet<RegionAttribute> attributesToSkip = new HashSet<RegionAttribute>();
 
-        if (AverageAltitude < (AverageOuterBorderAltitude - 200f))
+        // Since there are attributes that have dependencies on other attributes, we might need to test each attribute more than once.
+        do
         {
-            Info.AddAttribute(RegionAttribute.Valley);
+            hasAddedAttribute = false;
 
-            if (AverageRainfall > 1000)
+            foreach (RegionAttribute r in RegionAttribute.Attributes.Values)
             {
-                Info.AddAttribute(RegionAttribute.Basin);
+                if (!attributesToSkip.Contains(r) && r.Assignable(this))
+                {
+                    Info.AddAttribute(r.GetInstanceForRegion(this));
+                    hasAddedAttribute = true;
+
+                    attributesToSkip.Add(r); // If the attribute has already been added then we don't need it to test it again
+                }
             }
         }
+        while (hasAddedAttribute); // Repeat if at least one new attribute was added in the previous loop
 
-        if (MostBiomePresence > 0.65f)
+        attributesToSkip.Clear();
+
+        // Now validate secondary attributes
+        do
         {
-            switch (BiomeWithMostPresence)
+            hasAddedAttribute = false;
+
+            foreach (RegionAttribute r in RegionAttribute.SecondaryAttributes.Values)
             {
-                case "Desert":
-                    Info.AddAttribute(RegionAttribute.Desert);
-                    break;
+                if (!attributesToSkip.Contains(r) && r.Assignable(this))
+                {
+                    Info.AddAttribute(r.GetInstanceForRegion(this));
+                    hasAddedAttribute = true;
 
-                case "Desertic Tundra":
-                    Info.AddAttribute(RegionAttribute.Desert);
-                    break;
-
-                case "Forest":
-                    Info.AddAttribute(RegionAttribute.Forest);
-                    break;
-
-                case "Glacier":
-                    Info.AddAttribute(RegionAttribute.Glacier);
-                    break;
-
-                case "Grassland":
-                    Info.AddAttribute(RegionAttribute.Grassland);
-                    break;
-
-                case "Ice Cap":
-                    Info.AddAttribute(RegionAttribute.IceCap);
-                    break;
-
-                case "Rainforest":
-                    Info.AddAttribute(RegionAttribute.Rainforest);
-
-                    if (AverageTemperature > 20)
-                        Info.AddAttribute(RegionAttribute.Jungle);
-                    break;
-
-                case "Taiga":
-                    Info.AddAttribute(RegionAttribute.Taiga);
-                    break;
-
-                case "Tundra":
-                    Info.AddAttribute(RegionAttribute.Tundra);
-                    break;
+                    attributesToSkip.Add(r); // If the attribute has already been added then we don't need it to test it again
+                }
             }
         }
-
-        if (Attributes.Count <= 0)
-        {
-            Info.AddAttribute(RegionAttribute.Region);
-        }
+        while (hasAddedAttribute); // Repeat if at least one new attribute was added in the previous loop
     }
 
     private void DefineElements()
@@ -352,7 +317,7 @@ public class CellRegion : Region
         {
             if (e.Assignable(this))
             {
-                Info.AddElement(e);
+                Info.AddElement(e.GetInstanceForRegion(this));
             }
         }
     }

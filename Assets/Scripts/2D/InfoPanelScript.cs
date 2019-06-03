@@ -93,11 +93,29 @@ public class InfoPanelScript : MonoBehaviour
         InfoText.text += "\nTemperature: " + cell.Temperature + " C";
         InfoText.text += "\n";
 
-        for (int i = 0; i < cell.PresentBiomeNames.Count; i++)
+        if (cell.PresentLayerIds.Count > 0)
+        {
+            for (int i = 0; i < cell.PresentLayerIds.Count; i++)
+            {
+                Layer layer = Layer.Layers[cell.PresentLayerIds[i]];
+                float value = cell.LayerData[i].Value * layer.MaxPossibleValue;
+
+                if (value <= 0) continue;
+
+                InfoText.text += "\nLayer: " + layer.Name.FirstLetterToUpper();
+                InfoText.text += ": " + value + " " + layer.Units;
+            }
+
+            InfoText.text += "\n";
+        }
+
+        for (int i = 0; i < cell.PresentBiomeIds.Count; i++)
         {
             float percentage = cell.BiomePresences[i];
 
-            InfoText.text += "\nBiome: " + cell.PresentBiomeNames[i];
+            Biome biome = Biome.Biomes[cell.PresentBiomeIds[i]];
+
+            InfoText.text += "\nBiome: " + biome.Name.FirstLetterToUpper();
             InfoText.text += " (" + percentage.ToString("P") + ")";
         }
 
@@ -143,7 +161,7 @@ public class InfoPanelScript : MonoBehaviour
         InfoText.text += "\nAttributes: ";
 
         bool first = true;
-        foreach (RegionAttribute attr in region.Attributes)
+        foreach (RegionAttribute.Instance attr in region.Attributes.Values)
         {
 
             if (first)
@@ -162,7 +180,7 @@ public class InfoPanelScript : MonoBehaviour
 
         InfoText.text += "\n";
         InfoText.text += "\nCoast Percentage: " + region.CoastPercentage.ToString("P");
-        InfoText.text += "\nOcean Percentage: " + region.OceanPercentage.ToString("P");
+        InfoText.text += "\nSea Percentage: " + region.SeaPercentage.ToString("P");
 
         InfoText.text += "\n";
         InfoText.text += "\nAverage Altitude: " + region.AverageAltitude + " meters";
@@ -175,11 +193,11 @@ public class InfoPanelScript : MonoBehaviour
         InfoText.text += "\nAverage Border Altitude: " + region.AverageOuterBorderAltitude + " meters";
         InfoText.text += "\n";
 
-        for (int i = 0; i < region.PresentBiomeNames.Count; i++)
+        for (int i = 0; i < region.PresentBiomeIds.Count; i++)
         {
             float percentage = region.BiomePresences[i];
 
-            InfoText.text += "\nBiome: " + region.PresentBiomeNames[i];
+            InfoText.text += "\nBiome: " + region.PresentBiomeIds[i];
             InfoText.text += " (" + percentage.ToString("P") + ")";
         }
 
@@ -1163,6 +1181,7 @@ public class InfoPanelScript : MonoBehaviour
         if ((Manager.PlanetOverlay == PlanetOverlay.None) ||
             (Manager.PlanetOverlay == PlanetOverlay.Rainfall) ||
             (Manager.PlanetOverlay == PlanetOverlay.Arability) ||
+            (Manager.PlanetOverlay == PlanetOverlay.Layer) ||
             (Manager.PlanetOverlay == PlanetOverlay.Temperature))
         {
             AddCellDataToInfoPanel_Terrain(cell);

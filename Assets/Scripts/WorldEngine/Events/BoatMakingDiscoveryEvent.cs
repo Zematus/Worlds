@@ -23,7 +23,7 @@ public class BoatMakingDiscoveryEvent : DiscoveryEvent
 
     public static long CalculateTriggerDate(CellGroup group)
     {
-        float oceanPresence = ShipbuildingKnowledge.CalculateNeighborhoodOceanPresenceIn(group);
+        float oceanPresence = ShipbuildingKnowledge.CalculateNeighborhoodSeaPresenceIn(group);
 
         float randomFactor = group.Cell.GetNextLocalRandomFloat(RngOffsets.BOAT_MAKING_DISCOVERY_EVENT_CALCULATE_TRIGGER_DATE);
         randomFactor = randomFactor * randomFactor;
@@ -52,7 +52,7 @@ public class BoatMakingDiscoveryEvent : DiscoveryEvent
         if (group.Culture.HasKnowledge(ShipbuildingKnowledge.KnowledgeId))
             return false;
 
-        float oceanPresence = ShipbuildingKnowledge.CalculateNeighborhoodOceanPresenceIn(group);
+        float oceanPresence = ShipbuildingKnowledge.CalculateNeighborhoodSeaPresenceIn(group);
 
         return (oceanPresence > 0);
     }

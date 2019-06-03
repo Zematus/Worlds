@@ -37,7 +37,7 @@ public class TerrainCellAlteration
     [XmlAttribute("M")]
     public bool Modified;
 
-    public List<string> Flags = new List<string>();
+    public List<CellLayerData> LayerData = new List<CellLayerData>();
 
     [XmlIgnore]
     public WorldPosition Position;
@@ -47,7 +47,7 @@ public class TerrainCellAlteration
         Manager.UpdateWorldLoadTrackEventCount();
     }
 
-    public TerrainCellAlteration(TerrainCell cell)
+    public TerrainCellAlteration(TerrainCell cell, bool addLayerData = true)
     {
         Longitude = cell.Longitude;
         Latitude = cell.Latitude;
@@ -66,6 +66,16 @@ public class TerrainCellAlteration
         Rainfall = cell.Rainfall;
         
         FarmlandPercentage = cell.FarmlandPercentage;
+        
+        if (addLayerData)
+        {
+            foreach (CellLayerData data in cell.LayerData)
+            {
+                if (data.Offset == 0) continue;
+
+                LayerData.Add(new CellLayerData(data));
+            }
+        }
 
         Modified = cell.Modified;
     }

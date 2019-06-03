@@ -2,10 +2,11 @@
 using UnityEngine.Events;
 using UnityEngine.UI;
 using System.Collections;
+using System.Collections.Generic;
 
 public class WorldCustomizationDialogPanelScript : MenuPanelScript
 {
-    public LoadFileDialogPanelScript LoadHeightmapDialogPanel;
+    public LoadFileDialogPanelScript LoadFileDialogPanel;
 
     public InputField SeedInputField;
 
@@ -22,7 +23,7 @@ public class WorldCustomizationDialogPanelScript : MenuPanelScript
 
     protected override void ReadKeyboardInput()
     {
-        if (LoadHeightmapDialogPanel.gameObject.activeInHierarchy)
+        if (LoadFileDialogPanel.gameObject.activeInHierarchy)
             return; // Do not capture keyboard if the load file dialog is active
 
         base.ReadKeyboardInput();
@@ -98,5 +99,37 @@ public class WorldCustomizationDialogPanelScript : MenuPanelScript
 
         InvalidImageText.gameObject.SetActive(!_hasLoadedValidHeightmap);
         GenerateButton.interactable = _hasLoadedValidHeightmap;
+    }
+
+    public void SetActiveMods()
+    {
+        SetVisible(false);
+
+        LoadFileDialogPanel.Initialize(
+            "Select Mod Folders to Use...",
+            "Use",
+            SetActiveModsAction,
+            CancelSetActiveModsAction,
+            Manager.DefaultModPath,
+            loadDirectory: true,
+            selectMultiple: true,
+            prevSelectedItems: Manager.ActiveModPaths);
+
+        LoadFileDialogPanel.SetVisible(true);
+    }
+
+    private void SetActiveModsAction()
+    {
+        ICollection<string> paths = LoadFileDialogPanel.GetPathsToLoad();
+
+        Manager.SetActiveModPaths(paths);
+        Manager.ResetLayerSettings();
+
+        SetVisible(true);
+    }
+
+    private void CancelSetActiveModsAction()
+    {
+        SetVisible(true);
     }
 }

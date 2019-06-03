@@ -45,7 +45,7 @@ public abstract class Region : ISynchronizable
     public float MostBiomePresence;
 
     [XmlIgnore]
-    public List<string> PresentBiomeNames = new List<string>();
+    public List<string> PresentBiomeIds = new List<string>();
     [XmlIgnore]
     public List<float> BiomePresences = new List<float>();
 
@@ -58,7 +58,7 @@ public abstract class Region : ISynchronizable
     [XmlIgnore]
     public float CoastPercentage;
     [XmlIgnore]
-    public float OceanPercentage;
+    public float SeaPercentage;
 
     [XmlIgnore]
     public long Id
@@ -79,7 +79,7 @@ public abstract class Region : ISynchronizable
     }
 
     [XmlIgnore]
-    public List<RegionAttribute> Attributes
+    public Dictionary<string, RegionAttribute.Instance> Attributes
     {
         get
         {
@@ -88,7 +88,7 @@ public abstract class Region : ISynchronizable
     }
 
     [XmlIgnore]
-    public List<Element> Elements
+    public List<Element.Instance> Elements
     {
         get
         {
@@ -140,9 +140,21 @@ public abstract class Region : ISynchronizable
     {
     }
 
+    public float GetBiomePresence(string biomeId)
+    {
+        float presence;
+
+        if (!_biomePresences.TryGetValue(biomeId, out presence))
+        {
+            return 0.0f;
+        }
+
+        return presence;
+    }
+
     public static Region TryGenerateRegion(TerrainCell startCell, Language establishmentLanguage)
     {
-        if (startCell.GetBiomePresence(Biome.Ocean) >= 1)
+        if (startCell.SeaBiomePresence >= 1)
             return null;
 
         if (startCell.Region != null)

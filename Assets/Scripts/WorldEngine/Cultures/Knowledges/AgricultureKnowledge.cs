@@ -160,8 +160,8 @@ public class AgricultureKnowledge : CellCulturalKnowledge
             long triggerDate = PlantCultivationDiscoveryEvent.CalculateTriggerDate(Group);
 
             Profiler.EndSample();
-
-            if ((triggerDate <= World.MaxSupportedDate) && (triggerDate > int.MinValue))
+            
+            if (triggerDate.IsInsideRange(Group.World.CurrentDate + 1, World.MaxSupportedDate))
             {
                 Profiler.BeginSample("new PlantCultivationDiscoveryEvent");
 

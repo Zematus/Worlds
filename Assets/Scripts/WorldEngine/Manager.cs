@@ -12,6 +12,7 @@ public enum EditorBrushType
     Altitude,
     Temperature,
     Rainfall,
+    Layer,
     None
 }
 
@@ -53,6 +54,7 @@ public enum PlanetOverlay
     Temperature,
     Rainfall,
     Arability,
+    Layer,
     Region,
     Language,
     PopChange,
@@ -72,6 +74,7 @@ public enum OverlayColorId
     SelectedTerritory = 6,
     ContactedTerritoryGood = 7,
     ContactedTerritoryBad = 8,
+    Layer = 9
 }
 
 public class Manager
@@ -105,6 +108,8 @@ public class Manager
 
     //	public static IRecorder Recorder = DefaultRecorder.Default;
 
+    public const string NoOverlaySubtype = "None";
+
     public const int WorldWidth = 400;
     public const int WorldHeight = 200;
 
@@ -112,10 +117,20 @@ public class Manager
     public const float BrushStrengthFactor_Altitude = 0.5f;
     public const float BrushStrengthFactor_Rainfall = 0.25f;
     public const float BrushStrengthFactor_Temperature = 0.25f;
+    public const float BrushStrengthFactor_Layer = 0.25f;
 
     public const float BrushNoiseRadiusFactor = 200;
 
-    public static float ProgressIncrement = 0.20f;
+    public const string DefaultModPath = @".\Mods\";
+
+    public const float StageProgressIncFromLoading = 0.1f;
+
+    public const int MaxEditorBrushRadius = 25;
+    public const int MinEditorBrushRadius = 1;
+
+    public static bool LayersPresent = false;
+
+    public static float LastStageProgress = 0;
 
     public static Thread MainThread { get; private set; }
 
@@ -131,7 +146,7 @@ public class Manager
     public static HashSet<TerrainCell> UpdatedCells { get; private set; }
 
     public static TerrainCell EditorBrushTargetCell = null;
-    public static int EditorBrushRadius = 20;
+    public static int EditorBrushRadius = MaxEditorBrushRadius;
     public static float EditorBrushStrength = 0.25f;
     public static float EditorBrushNoise = 0.0f;
     public static bool EditorBrushIsVisible = false;
@@ -162,6 +177,11 @@ public class Manager
     public static bool FullScreenEnabled = false;
     public static bool UIScalingEnabled = false;
     public static bool DebugModeEnabled = false;
+
+    public static List<string> ActiveModPaths = new List<string>();
+    public static bool ModsAlreadyLoaded = false;
+
+    public static Dictionary<string, LayerSettings> LayerSettings = new Dictionary<string, LayerSettings>();
 
     public static GameMode GameMode = GameMode.None;
 
@@ -397,6 +417,34 @@ public class Manager
             return;
 
         action.Invoke();
+    }
+
+    public static void ResetLayerSettings()
+    {
+        LayerSettings.Clear();
+    }
+
+    public static void SetLayerSettings(List<LayerSettings> layerSettings)
+    {
+        ResetLayerSettings();
+        
+        foreach (LayerSettings settings in layerSettings)
+        {
+            LayerSettings.Add(settings.Id, settings);
+        }
+    }
+
+    public static LayerSettings GetLayerSettings(string layerId)
+    {
+        LayerSettings settings;
+
+        if (!LayerSettings.TryGetValue(layerId, out settings))
+        {
+            settings = new LayerSettings(Layer.Layers[layerId]);
+            LayerSettings.Add(layerId, settings);
+        }
+
+        return settings;
     }
 
     public static void BlockUndoAndRedo(bool state)
@@ -759,9 +807,9 @@ public class Manager
         return task;
     }
 
-    public static void EnqueueTaskAndWait<T>(ManagerTaskDelegate<T> taskDelegate)
+    public static T EnqueueTaskAndWait<T>(ManagerTaskDelegate<T> taskDelegate)
     {
-        EnqueueTask(taskDelegate).Wait();
+        return EnqueueTask(taskDelegate).Result;
     }
 
     public static ManagerTask EnqueueTask(ManagerTaskDelegate taskDelegate)
@@ -1033,22 +1081,40 @@ public class Manager
         world.GenerateHumanGroup(longitude, latitude, initialPopulation);
     }
 
+    public static void SetActiveModPaths(ICollection<string> paths)
+    {
+        ActiveModPaths.Clear();
+        ActiveModPaths.AddRange(paths);
+        ActiveModPaths.Sort();
+
+        ModsAlreadyLoaded = false;
+    }
+
     public static void GenerateNewWorld(int seed, Texture2D heightmap)
     {
         _manager._worldReady = false;
 
-        World world = new World(WorldWidth, WorldHeight, seed);
+        LastStageProgress = 0;
+
+        ProgressCastDelegate progressCastMethod;
 
         if (_manager._progressCastMethod == null)
-        {
-            world.ProgressCastMethod = (value, message, reset) => { };
-        }
+            progressCastMethod = (value, message, reset) => { };
         else
-        {
-            world.ProgressCastMethod = _manager._progressCastMethod;
-        }
+            progressCastMethod = _manager._progressCastMethod;
 
-        world.StartInitialization(0f, ProgressIncrement);
+        TryLoadActiveMods();
+
+        progressCastMethod(LastStageProgress, "Generating World...");
+
+        World world = new World(WorldWidth, WorldHeight, seed)
+        {
+            ProgressCastMethod = progressCastMethod,
+            ModPaths = new List<string>(ActiveModPaths),
+            LayerSettings = new List<LayerSettings>(LayerSettings.Values)
+        };
+
+        world.StartInitialization(LastStageProgress, 1.0f);
         world.Generate(heightmap);
         world.FinishInitialization();
 
@@ -1110,7 +1176,7 @@ public class Manager
             world.ProgressCastMethod = _manager._progressCastMethod;
         }
 
-        world.StartReinitialization(0f, ProgressIncrement);
+        world.StartReinitialization(0f, 1.0f);
         world.Regenerate(type);
         world.FinishInitialization();
         
@@ -1238,15 +1304,30 @@ public class Manager
         System.GC.WaitForPendingFinalizers();
     }
 
+    private static void TryLoadActiveMods()
+    {
+        if (!ModsAlreadyLoaded)
+        {
+            LoadMods(ActiveModPaths);
+            ModsAlreadyLoaded = true;
+        }
+    }
+
     public static void LoadWorld(string path)
     {
         _manager._worldReady = false;
 
-        float baseProgressIncrement = ProgressIncrement;
-        ProgressIncrement = 0.08f;
+        LastStageProgress = 0;
+
+        ProgressCastDelegate progressCastMethod;
+
+        if (_manager._progressCastMethod == null)
+            progressCastMethod = (value, message, reset) => { };
+        else
+            progressCastMethod = _manager._progressCastMethod;
 
         ResetWorldLoadTrack();
-
+        
         World world;
 
         XmlSerializer serializer = new XmlSerializer(typeof(World), _manager.AttributeOverrides);
@@ -1265,25 +1346,29 @@ public class Manager
             world.ProgressCastMethod = _manager._progressCastMethod;
         }
 
-        float initialProgressIncrement = ProgressIncrement;
+        LastStageProgress = StageProgressIncFromLoading;
 
-        Manager.AltitudeScale = world.AltitudeScale;
-        Manager.SeaLevelOffset = world.SeaLevelOffset;
-        Manager.RainfallOffset = world.RainfallOffset;
-        Manager.TemperatureOffset = world.TemperatureOffset;
+        SetActiveModPaths(world.ModPaths);
+        SetLayerSettings(world.LayerSettings);
 
-        world.StartInitialization(initialProgressIncrement, ProgressIncrement, true);
+        TryLoadActiveMods();
+
+        progressCastMethod(LastStageProgress, "Loading World...");
+
+        AltitudeScale = world.AltitudeScale;
+        SeaLevelOffset = world.SeaLevelOffset;
+        RainfallOffset = world.RainfallOffset;
+        TemperatureOffset = world.TemperatureOffset;
+
+        float progressBeforeFinalizing = 0.4f + LastStageProgress;
+
+        world.StartInitialization(LastStageProgress, progressBeforeFinalizing, true);
         world.GenerateTerrain(GenerationType.TerrainNormal, null);
         world.FinishInitialization();
 
-        if (_manager._progressCastMethod != null)
-        {
-            _manager._progressCastMethod(0.5f, "Finalizing...");
-        }
+        progressCastMethod(progressBeforeFinalizing, "Finalizing...");
 
-        world.FinalizeLoad(0.5f, 1.0f, _manager._progressCastMethod);
-
-        ProgressIncrement = baseProgressIncrement;
+        world.FinalizeLoad(progressBeforeFinalizing, 1.0f, _manager._progressCastMethod);
 
         _manager._currentWorld = world;
         _manager._currentCellSlants = new float?[world.Width, world.Height];
@@ -1367,7 +1452,7 @@ public class Manager
 
         _loadTicks += 1;
 
-        float value = ProgressIncrement * _loadTicks / (float)_totalLoadTicks;
+        float value = LastStageProgress + (StageProgressIncFromLoading * _loadTicks / (float)_totalLoadTicks);
 
         if (_manager._progressCastMethod != null)
         {
@@ -1379,6 +1464,7 @@ public class Manager
     {
         if ((overlay == PlanetOverlay.None) ||
             (overlay == PlanetOverlay.Arability) ||
+            (overlay == PlanetOverlay.Layer) ||
             (overlay == PlanetOverlay.Rainfall) ||
             (overlay == PlanetOverlay.Temperature) ||
             (overlay == PlanetOverlay.FarmlandDistribution))
@@ -1421,6 +1507,7 @@ public class Manager
     {
         if ((overlay == PlanetOverlay.None) ||
             (overlay == PlanetOverlay.Arability) ||
+            (overlay == PlanetOverlay.Layer) ||
             (overlay == PlanetOverlay.Rainfall) ||
             (overlay == PlanetOverlay.Temperature) ||
             (overlay == PlanetOverlay.FarmlandDistribution))
@@ -1722,6 +1809,9 @@ public class Manager
             case EditorBrushType.Rainfall:
                 ApplyEditorBrush_Rainfall(longitude, latitude, distanceFactor);
                 break;
+            case EditorBrushType.Layer:
+                ApplyEditorBrush_Layer(longitude, latitude, distanceFactor);
+                break;
             default:
                 throw new System.Exception("Unhandled Editor Brush Type: " + EditorBrushType);
         }
@@ -1739,6 +1829,9 @@ public class Manager
                 break;
             case EditorBrushType.Rainfall:
                 ApplyEditorBrushFlatten_Rainfall(longitude, latitude, distanceFactor);
+                break;
+            case EditorBrushType.Layer:
+                ApplyEditorBrushFlatten_Layer(longitude, latitude, distanceFactor);
                 break;
             default:
                 throw new System.Exception("Unhandled Editor Brush Type: " + EditorBrushType);
@@ -1772,15 +1865,34 @@ public class Manager
 
     public static void ActivateEditorBrush(bool state)
     {
+        bool useLayerBrush = false;
+
+        if (EditorBrushType == EditorBrushType.Layer)
+        {
+            if (!Layer.IsValidLayerId(_planetOverlaySubtype))
+            {
+                return;
+            }
+
+            useLayerBrush = true;
+        }
+
         EditorBrushIsActive = state;
 
         if (state)
         {
-            ActiveEditorBrushAction = new BrushAction();
+            if (useLayerBrush)
+            {
+                ActiveEditorBrushAction = new LayerBrushAction(_planetOverlaySubtype);
+            }
+            else
+            {
+                ActiveEditorBrushAction = new AlterationBrushAction();
+            }
         }
         else if (ActiveEditorBrushAction != null)
         {
-            ActiveEditorBrushAction.FinalizeCellAlterations();
+            ActiveEditorBrushAction.FinalizeCellModifications();
 
             PushUndoableAction(ActiveEditorBrushAction);
             ResetRedoableActionsStack();
@@ -1879,6 +1991,60 @@ public class Manager
         float valueOffset = (targetValue - currentValue) * valueOffsetFactor;
 
         CurrentWorld.ModifyCellTemperature(cell, valueOffset);
+
+        AddUpdatedCell(cell, CellUpdateType.Cell, CellUpdateSubType.Terrain);
+    }
+
+    private static void ApplyEditorBrush_Layer(int longitude, int latitude, float distanceFactor)
+    {
+        if (!Layer.IsValidLayerId(_planetOverlaySubtype))
+        {
+            throw new System.Exception("Not a recognized layer Id: " + _planetOverlaySubtype);
+        }
+
+        float noiseRadius = BrushNoiseRadiusFactor / (float)EditorBrushRadius;
+
+        float strToValue = BrushStrengthFactor_Base * BrushStrengthFactor_Layer *
+            (MathUtility.GetPseudoNormalDistribution(distanceFactor * 2) - MathUtility.NormalAt2) / (MathUtility.NormalAt0 - MathUtility.NormalAt2);
+        float valueOffset = EditorBrushStrength * strToValue;
+
+        TerrainCell cell = CurrentWorld.GetCell(longitude, latitude);
+
+        CurrentWorld.ModifyCellLayerData(cell, valueOffset, _planetOverlaySubtype, EditorBrushNoise, noiseRadius);
+
+        AddUpdatedCell(cell, CellUpdateType.Cell, CellUpdateSubType.Terrain);
+    }
+
+    private static void ApplyEditorBrushFlatten_Layer(int longitude, int latitude, float distanceFactor)
+    {
+        if (!Layer.IsValidLayerId(_planetOverlaySubtype))
+        {
+            throw new System.Exception("Not a recognized layer Id: " + _planetOverlaySubtype);
+        }
+
+        int sampleRadius = 1;
+
+        float strToValue = BrushStrengthFactor_Layer *
+            (MathUtility.GetPseudoNormalDistribution(distanceFactor * 2) - MathUtility.NormalAt2) / (MathUtility.NormalAt0 - MathUtility.NormalAt2);
+        float valueOffsetFactor = EditorBrushStrength * strToValue;
+
+        TerrainCell cell = CurrentWorld.GetCell(longitude, latitude);
+
+        TerrainCell cellNorth = CurrentWorld.GetCellWithSphericalWrap(longitude, latitude - sampleRadius);
+        TerrainCell cellEast = CurrentWorld.GetCellWithSphericalWrap(longitude + sampleRadius, latitude);
+        TerrainCell cellSouth = CurrentWorld.GetCellWithSphericalWrap(longitude, latitude + sampleRadius);
+        TerrainCell cellWest = CurrentWorld.GetCellWithSphericalWrap(longitude - sampleRadius, latitude);
+
+        float targetValue =
+            (cellNorth.GetLayerValue(_planetOverlaySubtype) +
+            cellEast.GetLayerValue(_planetOverlaySubtype) +
+            cellSouth.GetLayerValue(_planetOverlaySubtype) +
+            cellWest.GetLayerValue(_planetOverlaySubtype)) / 4f;
+
+        float currentValue = cell.GetLayerValue(_planetOverlaySubtype);
+        float valueOffset = (targetValue - currentValue) * valueOffsetFactor;
+
+        CurrentWorld.ModifyCellLayerData(cell, valueOffset, _planetOverlaySubtype);
 
         AddUpdatedCell(cell, CellUpdateType.Cell, CellUpdateSubType.Terrain);
     }
@@ -2446,6 +2612,10 @@ public class Manager
                 color = SetArabilityOverlayColor(cell, color);
                 break;
 
+            case PlanetOverlay.Layer:
+                color = SetLayerOverlayColor(cell, color);
+                break;
+
             case PlanetOverlay.Region:
                 color = SetRegionOverlayColor(cell, color);
                 break;
@@ -2573,13 +2743,13 @@ public class Manager
             return color;
         }
 
-        for (int i = 0; i < cell.PresentBiomeNames.Count; i++)
+        for (int i = 0; i < cell.PresentBiomeIds.Count; i++)
         {
-            string biomeName = cell.PresentBiomeNames[i];
+            string biomeId = cell.PresentBiomeIds[i];
 
-            Biome biome = Biome.Biomes[biomeName];
+            Biome biome = Biome.Biomes[biomeId];
 
-            Color biomeColor = _biomePalette[biome.ColorId];
+            Color biomeColor = biome.Color;
             float biomePresence = cell.BiomePresences[i];
 
             color.r += biomeColor.r * biomePresence;
@@ -2655,7 +2825,7 @@ public class Manager
         color.g = (greyscale + color.g) / 9f;
         color.b = (greyscale + color.b) / 9f;
 
-        if (cell.GetBiomePresence(Biome.Ocean) >= 1f)
+        if (cell.SeaBiomePresence >= 1f)
         {
             return color;
         }
@@ -2701,7 +2871,7 @@ public class Manager
         color.g = (greyscale + color.g) / 9f;
         color.b = (greyscale + color.b) / 9f;
 
-        if (cell.GetBiomePresence(Biome.Ocean) >= 1f)
+        if (cell.SeaBiomePresence >= 1f)
         {
             return color;
         }
@@ -2754,7 +2924,7 @@ public class Manager
         color.g = (greyscale + color.g) / 9f;
         color.b = (greyscale + color.b) / 9f;
 
-        if (cell.GetBiomePresence(Biome.Ocean) >= 1f)
+        if (cell.SeaBiomePresence >= 1f)
         {
             return color;
         }
@@ -2789,152 +2959,7 @@ public class Manager
         return color;
     }
 
-    private static Color SetFactionCoreDistanceOverlayColor (TerrainCell cell, Color color) {
-
-		float greyscale = (color.r + color.g + color.b);
-
-		color.r = (greyscale + color.r) / 9f;
-		color.g = (greyscale + color.g) / 9f;
-		color.b = (greyscale + color.b) / 9f;
-
-		if (cell.GetBiomePresence (Biome.Ocean) >= 1f) {
-
-			return color;
-		}
-
-		if (cell.Group != null) {
-			if (cell.EncompassingTerritory != null) {
-
-				Polity territoryPolity = cell.EncompassingTerritory.Polity;
-
-				Color territoryColor = GenerateColorFromId (territoryPolity.Id, 100);
-
-				PolityProminence pi = cell.Group.GetPolityProminence (territoryPolity);
-
-				float distanceFactor = Mathf.Sqrt (pi.FactionCoreDistance);
-				distanceFactor = 1 - 0.9f * Mathf.Min (1, distanceFactor / 50f);
-
-				color.r = territoryColor.r * distanceFactor;
-				color.g = territoryColor.g * distanceFactor;
-				color.b = territoryColor.b * distanceFactor;
-
-			} else {
-
-				color.r += 1.5f / 9f;
-				color.g += 1.5f / 9f;
-				color.b += 1.5f / 9f;
-			}
-		}
-
-		return color;
-	}
-
-	private static Color SetPolityProminenceOverlayColor (TerrainCell cell, Color color) {
-
-		float greyscale = (color.r + color.g + color.b);
-
-		color.r = (greyscale + color.r) / 9f;
-		color.g = (greyscale + color.g) / 9f;
-		color.b = (greyscale + color.b) / 9f;
-
-		if (cell.GetBiomePresence (Biome.Ocean) >= 1f) {
-
-			return color;
-		}
-
-		if (cell.Group != null) {
-
-			int polityCount = 0;
-			float totalProminenceValueFactor = 0;
-
-			Color mixedPolityColor = Color.black;
-			foreach (PolityProminence p in cell.Group.PolityProminences.Values) {
-
-				polityCount++;
-
-				float prominenceValueFactor = 0.2f + p.Value;
-
-				Color polityColor = GenerateColorFromId (p.PolityId, 100);
-				polityColor *= prominenceValueFactor;
-				totalProminenceValueFactor += 1.2f;
-
-				mixedPolityColor += polityColor;
-			}
-
-			color.r += 1.5f / 9f;
-			color.g += 1.5f / 9f;
-			color.b += 1.5f / 9f;
-
-			if (polityCount > 0) {
-
-				mixedPolityColor /= totalProminenceValueFactor;
-
-				color.r += mixedPolityColor.r * (1 - color.r);
-				color.g += mixedPolityColor.g * (1 - color.g);
-				color.b += mixedPolityColor.b * (1 - color.b);
-
-			}
-		}
-
-		return color;
-	}
-
-	private static Color GenerateColorFromId (long id, int oom) {
-
-		long mId = id / oom;
-	
-		long primaryColor = mId % 3;
-		float secondaryColorIntensity = ((mId / 3) % 4) / 3f;
-		float tertiaryColorIntensity = ((mId / 12) % 2) / 2f;
-		long secondaryColor = (mId / 24) % 2;
-
-		float red = 0;
-		float green = 0;
-		float blue = 0;
-
-		switch (primaryColor) {
-		case 0:
-			red = 1;
-
-			if (secondaryColor == 0) {
-				green = secondaryColorIntensity;
-				blue = tertiaryColorIntensity;
-			} else {
-				blue = secondaryColorIntensity;
-				green = tertiaryColorIntensity;
-			}
-
-			break;
-		case 1:
-			green = 1;
-
-			if (secondaryColor == 0) {
-				blue = secondaryColorIntensity;
-				red = tertiaryColorIntensity;
-			} else {
-				red = secondaryColorIntensity;
-				blue = tertiaryColorIntensity;
-			}
-
-			break;
-		case 2:
-			blue = 1;
-
-			if (secondaryColor == 0) {
-				red = secondaryColorIntensity;
-				green = tertiaryColorIntensity;
-			} else {
-				green = secondaryColorIntensity;
-				red = tertiaryColorIntensity;
-			}
-
-			break;
-		}
-
-		return new Color (red, green, blue);
-	}
-
-	private static Color SetPolityContactsOverlayColor(TerrainCell cell, Color color)
+    private static Color SetFactionCoreDistanceOverlayColor(TerrainCell cell, Color color)
     {
         float greyscale = (color.r + color.g + color.b);
 
@@ -2942,7 +2967,162 @@ public class Manager
         color.g = (greyscale + color.g) / 9f;
         color.b = (greyscale + color.b) / 9f;
 
-        if (cell.GetBiomePresence(Biome.Ocean) >= 1f)
+        if (cell.SeaBiomePresence >= 1f)
+        {
+            return color;
+        }
+
+        if (cell.Group != null)
+        {
+            if (cell.EncompassingTerritory != null)
+            {
+                Polity territoryPolity = cell.EncompassingTerritory.Polity;
+
+                Color territoryColor = GenerateColorFromId(territoryPolity.Id, 100);
+
+                PolityProminence pi = cell.Group.GetPolityProminence(territoryPolity);
+
+                float distanceFactor = Mathf.Sqrt(pi.FactionCoreDistance);
+                distanceFactor = 1 - 0.9f * Mathf.Min(1, distanceFactor / 50f);
+
+                color.r = territoryColor.r * distanceFactor;
+                color.g = territoryColor.g * distanceFactor;
+                color.b = territoryColor.b * distanceFactor;
+            }
+            else
+            {
+                color.r += 1.5f / 9f;
+                color.g += 1.5f / 9f;
+                color.b += 1.5f / 9f;
+            }
+        }
+
+        return color;
+    }
+
+    private static Color SetPolityProminenceOverlayColor(TerrainCell cell, Color color)
+    {
+        float greyscale = (color.r + color.g + color.b);
+
+        color.r = (greyscale + color.r) / 9f;
+        color.g = (greyscale + color.g) / 9f;
+        color.b = (greyscale + color.b) / 9f;
+
+        if (cell.SeaBiomePresence >= 1f)
+        {
+            return color;
+        }
+
+        if (cell.Group != null)
+        {
+            int polityCount = 0;
+            float totalProminenceValueFactor = 0;
+
+            Color mixedPolityColor = Color.black;
+            foreach (PolityProminence p in cell.Group.PolityProminences.Values)
+            {
+                polityCount++;
+
+                float prominenceValueFactor = 0.2f + p.Value;
+
+                Color polityColor = GenerateColorFromId(p.PolityId, 100);
+                polityColor *= prominenceValueFactor;
+                totalProminenceValueFactor += 1.2f;
+
+                mixedPolityColor += polityColor;
+            }
+
+            color.r += 1.5f / 9f;
+            color.g += 1.5f / 9f;
+            color.b += 1.5f / 9f;
+
+            if (polityCount > 0)
+            {
+                mixedPolityColor /= totalProminenceValueFactor;
+
+                color.r += mixedPolityColor.r * (1 - color.r);
+                color.g += mixedPolityColor.g * (1 - color.g);
+                color.b += mixedPolityColor.b * (1 - color.b);
+            }
+        }
+
+        return color;
+    }
+
+    private static Color GenerateColorFromId(long id, int oom)
+    {
+        long mId = id / oom;
+
+        long primaryColor = mId % 3;
+        float secondaryColorIntensity = ((mId / 3) % 4) / 3f;
+        float tertiaryColorIntensity = ((mId / 12) % 2) / 2f;
+        long secondaryColor = (mId / 24) % 2;
+
+        float red = 0;
+        float green = 0;
+        float blue = 0;
+
+        switch (primaryColor)
+        {
+            case 0:
+                red = 1;
+
+                if (secondaryColor == 0)
+                {
+                    green = secondaryColorIntensity;
+                    blue = tertiaryColorIntensity;
+                }
+                else
+                {
+                    blue = secondaryColorIntensity;
+                    green = tertiaryColorIntensity;
+                }
+
+                break;
+            case 1:
+                green = 1;
+
+                if (secondaryColor == 0)
+                {
+                    blue = secondaryColorIntensity;
+                    red = tertiaryColorIntensity;
+                }
+                else
+                {
+                    red = secondaryColorIntensity;
+                    blue = tertiaryColorIntensity;
+                }
+
+                break;
+            case 2:
+                blue = 1;
+
+                if (secondaryColor == 0)
+                {
+                    red = secondaryColorIntensity;
+                    green = tertiaryColorIntensity;
+                }
+                else
+                {
+                    green = secondaryColorIntensity;
+                    red = tertiaryColorIntensity;
+                }
+
+                break;
+        }
+
+        return new Color(red, green, blue);
+    }
+
+    private static Color SetPolityContactsOverlayColor(TerrainCell cell, Color color)
+    {
+        float greyscale = (color.r + color.g + color.b);
+
+        color.r = (greyscale + color.r) / 9f;
+        color.g = (greyscale + color.g) / 9f;
+        color.b = (greyscale + color.b) / 9f;
+
+        if (cell.SeaBiomePresence >= 1f)
             return color;
 
         if (cell.Group == null)
@@ -3136,227 +3316,229 @@ public class Manager
         return color;
     }
 
-    private static Color SetPolityCulturalPreferenceOverlayColor (TerrainCell cell, Color color) {
+    private static Color SetPolityCulturalPreferenceOverlayColor(TerrainCell cell, Color color)
+    {
+        float greyscale = (color.r + color.g + color.b);
 
-		float greyscale = (color.r + color.g + color.b);
+        color.r = (greyscale + color.r) / 9f;
+        color.g = (greyscale + color.g) / 9f;
+        color.b = (greyscale + color.b) / 9f;
 
-		color.r = (greyscale + color.r) / 9f;
-		color.g = (greyscale + color.g) / 9f;
-		color.b = (greyscale + color.b) / 9f;
+        if (cell.SeaBiomePresence >= 1f)
+            return color;
 
-		if (cell.GetBiomePresence (Biome.Ocean) >= 1f)
-			return color;
+        if (cell.Group == null)
+            return color;
 
-		if (cell.Group == null)
-			return color;
+        color.r += 1.5f / 9f;
+        color.g += 1.5f / 9f;
+        color.b += 1.5f / 9f;
 
-		color.r += 1.5f / 9f;
-		color.g += 1.5f / 9f;
-		color.b += 1.5f / 9f;
+        if (_planetOverlaySubtype == "None")
+            return color;
 
-		if (_planetOverlaySubtype == "None")
-			return color;
+        Territory territory = cell.EncompassingTerritory;
 
-		Territory territory = cell.EncompassingTerritory;
+        if (territory == null)
+            return color;
 
-		if (territory == null)
-			return color;
+        CulturalPreference preference = territory.Polity.Culture.GetPreference(_planetOverlaySubtype);
 
-		CulturalPreference preference = territory.Polity.Culture.GetPreference(_planetOverlaySubtype);
+        if (preference == null)
+            return color;
 
-		if (preference == null)
-			return color;
+        float preferenceValue = 0;
 
-		float preferenceValue = 0;
+        preferenceValue = preference.Value;
 
-		preferenceValue = preference.Value;
+        float value = 0.05f + 0.95f * preferenceValue;
 
-		float value = 0.05f + 0.95f * preferenceValue;
+        Color addedColor = Color.cyan;
 
-		Color addedColor = Color.cyan;
+        if (IsTerritoryBorder(territory, cell))
+        {
+            // A slightly bluer shade of cyan
+            addedColor = new Color(0, 0.75f, 1.0f);
+        }
 
-		if (IsTerritoryBorder (territory, cell)) {
+        color = (color * (1 - value)) + (addedColor * value);
 
-			// A slightly bluer shade of cyan
-			addedColor = new Color (0, 0.75f, 1.0f);
-		}
+        return color;
+    }
 
-		color = (color * (1 - value)) + (addedColor * value);
+    private static Color SetPopCulturalActivityOverlayColor(TerrainCell cell, Color color)
+    {
+        float greyscale = (color.r + color.g + color.b);
 
-		return color;
-	}
+        color.r = (greyscale + color.r) / 6f;
+        color.g = (greyscale + color.g) / 6f;
+        color.b = (greyscale + color.b) / 6f;
 
-	private static Color SetPopCulturalActivityOverlayColor (TerrainCell cell, Color color) {
+        if (_planetOverlaySubtype == "None")
+            return color;
 
-		float greyscale = (color.r + color.g + color.b);
+        float activityContribution = 0;
+        float population = 0;
 
-		color.r = (greyscale + color.r) / 6f;
-		color.g = (greyscale + color.g) / 6f;
-		color.b = (greyscale + color.b) / 6f;
+        if (cell.Group != null)
+        {
+            CellCulturalActivity activity = cell.Group.Culture.GetActivity(_planetOverlaySubtype) as CellCulturalActivity;
 
-		if (_planetOverlaySubtype == "None")
-			return color;
+            population = cell.Group.Population;
 
-		float activityContribution = 0;
-		float population = 0;
+            if (activity != null)
+            {
+                activityContribution = activity.Contribution;
+            }
+        }
 
-		if (cell.Group != null) {
+        if ((population > 0) && (activityContribution > 0))
+        {
+            float value = 0.05f + 0.95f * activityContribution;
 
-			CellCulturalActivity activity = cell.Group.Culture.GetActivity(_planetOverlaySubtype) as CellCulturalActivity;
+            color = (color * (1 - value)) + (Color.cyan * value);
+        }
 
-			population = cell.Group.Population;
+        return color;
+    }
 
-			if (activity != null) {
-				activityContribution = activity.Contribution;
-			}
-		}
+    private static Color SetPolityCulturalActivityOverlayColor(TerrainCell cell, Color color)
+    {
+        float greyscale = (color.r + color.g + color.b);
 
-		if ((population > 0) && (activityContribution > 0)) {
+        color.r = (greyscale + color.r) / 9f;
+        color.g = (greyscale + color.g) / 9f;
+        color.b = (greyscale + color.b) / 9f;
 
-			float value = 0.05f + 0.95f * activityContribution;
+        if (cell.SeaBiomePresence >= 1f)
+            return color;
 
-			color = (color * (1 - value)) + (Color.cyan * value);
-		}
+        if (cell.Group == null)
+            return color;
 
-		return color;
-	}
+        color.r += 1.5f / 9f;
+        color.g += 1.5f / 9f;
+        color.b += 1.5f / 9f;
 
-	private static Color SetPolityCulturalActivityOverlayColor (TerrainCell cell, Color color) {
+        if (_planetOverlaySubtype == "None")
+            return color;
 
-		float greyscale = (color.r + color.g + color.b);
+        Territory territory = cell.EncompassingTerritory;
 
-		color.r = (greyscale + color.r) / 9f;
-		color.g = (greyscale + color.g) / 9f;
-		color.b = (greyscale + color.b) / 9f;
+        if (territory == null)
+            return color;
 
-		if (cell.GetBiomePresence (Biome.Ocean) >= 1f)
-			return color;
+        CulturalActivity activity = territory.Polity.Culture.GetActivity(_planetOverlaySubtype);
 
-		if (cell.Group == null)
-			return color;
+        if (activity == null)
+            return color;
 
-		color.r += 1.5f / 9f;
-		color.g += 1.5f / 9f;
-		color.b += 1.5f / 9f;
+        float activityContribution = 0;
 
-		if (_planetOverlaySubtype == "None")
-			return color;
+        activityContribution = activity.Contribution;
 
-		Territory territory = cell.EncompassingTerritory;
+        float value = 0.05f + 0.95f * activityContribution;
 
-		if (territory == null)
-			return color;
+        Color addedColor = Color.cyan;
 
-		CulturalActivity activity = territory.Polity.Culture.GetActivity(_planetOverlaySubtype);
+        if (IsTerritoryBorder(territory, cell))
+        {
+            // A slightly bluer shade of cyan
+            addedColor = new Color(0, 0.75f, 1.0f);
+        }
 
-		if (activity == null)
-			return color;
+        color = (color * (1 - value)) + (addedColor * value);
 
-		float activityContribution = 0;
+        return color;
+    }
 
-		activityContribution = activity.Contribution;
+    private static Color SetPopCulturalSkillOverlayColor(TerrainCell cell, Color color)
+    {
+        float greyscale = (color.r + color.g + color.b);
 
-		float value = 0.05f + 0.95f * activityContribution;
+        color.r = (greyscale + color.r) / 6f;
+        color.g = (greyscale + color.g) / 6f;
+        color.b = (greyscale + color.b) / 6f;
 
-		Color addedColor = Color.cyan;
+        if (_planetOverlaySubtype == "None")
+            return color;
 
-		if (IsTerritoryBorder (territory, cell)) {
+        float skillValue = 0;
+        float population = 0;
 
-			// A slightly bluer shade of cyan
-			addedColor = new Color (0, 0.75f, 1.0f);
-		}
+        if (cell.Group != null)
+        {
+            CellCulturalSkill skill = cell.Group.Culture.GetSkill(_planetOverlaySubtype) as CellCulturalSkill;
 
-		color = (color * (1 - value)) + (addedColor * value);
+            population = cell.Group.Population;
 
-		return color;
-	}
-	
-	private static Color SetPopCulturalSkillOverlayColor (TerrainCell cell, Color color) {
-		
-		float greyscale = (color.r + color.g + color.b);
-		
-		color.r = (greyscale + color.r) / 6f;
-		color.g = (greyscale + color.g) / 6f;
-		color.b = (greyscale + color.b) / 6f;
+            if (skill != null)
+            {
+                skillValue = skill.Value;
+            }
+        }
 
-		if (_planetOverlaySubtype == "None")
-			return color;
+        if ((population > 0) && (skillValue >= 0.001))
+        {
+            float value = 0.05f + 0.95f * skillValue;
 
-		float skillValue = 0;
-		float population = 0;
+            color = (color * (1 - value)) + (Color.cyan * value);
+        }
 
-		if (cell.Group != null) {
+        return color;
+    }
 
-			CellCulturalSkill skill = cell.Group.Culture.GetSkill(_planetOverlaySubtype) as CellCulturalSkill;
-			
-			population = cell.Group.Population;
+    private static Color SetPolityCulturalSkillOverlayColor(TerrainCell cell, Color color)
+    {
+        float greyscale = (color.r + color.g + color.b);
 
-			if (skill != null) {
-				skillValue = skill.Value;
-			}
-		}
-		
-		if ((population > 0) && (skillValue >= 0.001)) {
-			
-			float value = 0.05f + 0.95f * skillValue;
-			
-			color = (color * (1 - value)) + (Color.cyan * value);
-		}
-		
-		return color;
-	}
+        color.r = (greyscale + color.r) / 9f;
+        color.g = (greyscale + color.g) / 9f;
+        color.b = (greyscale + color.b) / 9f;
 
-	private static Color SetPolityCulturalSkillOverlayColor (TerrainCell cell, Color color) {
+        if (cell.Group == null)
+            return color;
 
-		float greyscale = (color.r + color.g + color.b);
+        color.r += 1.5f / 9f;
+        color.g += 1.5f / 9f;
+        color.b += 1.5f / 9f;
 
-		color.r = (greyscale + color.r) / 9f;
-		color.g = (greyscale + color.g) / 9f;
-		color.b = (greyscale + color.b) / 9f;
+        if (_planetOverlaySubtype == "None")
+            return color;
 
-		if (cell.Group == null)
-			return color;
+        Territory territory = cell.EncompassingTerritory;
 
-		color.r += 1.5f / 9f;
-		color.g += 1.5f / 9f;
-		color.b += 1.5f / 9f;
+        if (territory == null)
+            return color;
 
-		if (_planetOverlaySubtype == "None")
-			return color;
+        CulturalSkill skill = territory.Polity.Culture.GetSkill(_planetOverlaySubtype);
 
-		Territory territory = cell.EncompassingTerritory;
+        if (skill == null)
+            return color;
 
-		if (territory == null)
-			return color;
+        float skillValue = 0;
 
-		CulturalSkill skill = territory.Polity.Culture.GetSkill(_planetOverlaySubtype);
+        skillValue = skill.Value;
 
-		if (skill == null)
-			return color;
+        if (skillValue < 0.001)
+            return color;
 
-		float skillValue = 0;
+        float value = 0.05f + 0.95f * skillValue;
 
-		skillValue = skill.Value;
+        Color addedColor = Color.cyan;
 
-		if (skillValue < 0.001)
-			return color;
+        if (IsTerritoryBorder(territory, cell))
+        {
+            // A slightly bluer shade of cyan
+            addedColor = new Color(0, 0.75f, 1.0f);
+        }
 
-		float value = 0.05f + 0.95f * skillValue;
+        color = (color * (1 - value)) + (addedColor * value);
 
-		Color addedColor = Color.cyan;
+        return color;
+    }
 
-		if (IsTerritoryBorder (territory, cell)) {
-
-			// A slightly bluer shade of cyan
-			addedColor = new Color (0, 0.75f, 1.0f);
-		}
-
-		color = (color * (1 - value)) + (addedColor * value);
-
-		return color;
-	}
-	
-	private static Color SetPopCulturalKnowledgeOverlayColor(TerrainCell cell, Color color)
+    private static Color SetPopCulturalKnowledgeOverlayColor(TerrainCell cell, Color color)
     {
         float greyscale = (color.r + color.g + color.b);
 
@@ -3405,7 +3587,7 @@ public class Manager
         color.g = (greyscale + color.g) / 9f;
         color.b = (greyscale + color.b) / 9f;
 
-        if (cell.GetBiomePresence(Biome.Ocean) >= 1f)
+        if (cell.SeaBiomePresence >= 1f)
             return color;
 
         if (cell.Group == null)
@@ -3492,96 +3674,122 @@ public class Manager
         return color;
     }
 
-    private static Color SetPolityCulturalDiscoveryOverlayColor (TerrainCell cell, Color color) {
+    private static Color SetPolityCulturalDiscoveryOverlayColor(TerrainCell cell, Color color)
+    {
+        float greyscale = (color.r + color.g + color.b);
 
-		float greyscale = (color.r + color.g + color.b);
+        color.r = (greyscale + color.r) / 9f;
+        color.g = (greyscale + color.g) / 9f;
+        color.b = (greyscale + color.b) / 9f;
 
-		color.r = (greyscale + color.r) / 9f;
-		color.g = (greyscale + color.g) / 9f;
-		color.b = (greyscale + color.b) / 9f;
+        if (cell.SeaBiomePresence >= 1f)
+            return color;
 
-		if (cell.GetBiomePresence (Biome.Ocean) >= 1f)
-			return color;
+        if (cell.Group == null)
+            return color;
 
-		if (cell.Group == null)
-			return color;
+        color.r += 1.5f / 9f;
+        color.g += 1.5f / 9f;
+        color.b += 1.5f / 9f;
 
-		color.r += 1.5f / 9f;
-		color.g += 1.5f / 9f;
-		color.b += 1.5f / 9f;
+        if (_planetOverlaySubtype == "None")
+            return color;
 
-		if (_planetOverlaySubtype == "None")
-			return color;
+        Territory territory = cell.EncompassingTerritory;
 
-		Territory territory = cell.EncompassingTerritory;
+        if (territory == null)
+            return color;
 
-		if (territory == null)
-			return color;
+        if (!territory.Polity.Culture.HasDiscovery(_planetOverlaySubtype))
+            return color;
+
+        Color addedColor = Color.cyan;
+
+        if (IsTerritoryBorder(territory, cell))
+        {
+            // A slightly bluer shade of cyan
+            addedColor = new Color(0, 0.75f, 1.0f);
+        }
+
+        float normalizedValue = 1;
+
+        color = (color * (1 - normalizedValue)) + (addedColor * normalizedValue);
+
+        return color;
+    }
+
+    private static Color GetOverlayColor(OverlayColorId id)
+    {
+        return _overlayPalette[(int)id];
+    }
+
+    private static Color SetArabilityOverlayColor(TerrainCell cell, Color color)
+    {
+        float greyscale = (color.r + color.g + color.b);
+
+        color.r = (greyscale + color.r) / 6f;
+        color.g = (greyscale + color.g) / 6f;
+        color.b = (greyscale + color.b) / 6f;
+
+        float normalizedValue = cell.Arability;
+
+        if (normalizedValue >= 0.001f)
+        {
+            float value = 0.05f + 0.95f * normalizedValue;
+
+            color = (color * (1 - value)) + (GetOverlayColor(OverlayColorId.Arability) * value);
+        }
+
+        return color;
+    }
+
+    private static Color SetLayerOverlayColor(TerrainCell cell, Color color)
+    {
+        float greyscale = (color.r + color.g + color.b);
+
+        color.r = (greyscale + color.r) / 6f;
+        color.g = (greyscale + color.g) / 6f;
+        color.b = (greyscale + color.b) / 6f;
+
+        if (_planetOverlaySubtype == "None")
+            return color;
+
+        Layer layer = Layer.Layers[_planetOverlaySubtype];
         
-		if (!territory.Polity.Culture.HasDiscovery(_planetOverlaySubtype))
-			return color;
+        float normalizedValue = cell.GetLayerValue(_planetOverlaySubtype);
+        normalizedValue = normalizedValue / layer.MaxPresentValue;
 
-		Color addedColor = Color.cyan;
+        if (normalizedValue >= 0.001f)
+        {
+            float intensity = 0.05f + 0.95f * normalizedValue;
 
-		if (IsTerritoryBorder (territory, cell)) {
+            color = (color * (1 - intensity)) + (layer.Color * intensity);
+        }
 
-			// A slightly bluer shade of cyan
-			addedColor = new Color (0, 0.75f, 1.0f);
-		}
+        return color;
+    }
 
-		float normalizedValue = 1;
+    private static Color SetFarmlandOverlayColor(TerrainCell cell, Color color)
+    {
+        float greyscale = (color.r + color.g + color.b);
 
-		color = (color * (1 - normalizedValue)) + (addedColor * normalizedValue);
+        color.r = (greyscale + color.r) / 6f;
+        color.g = (greyscale + color.g) / 6f;
+        color.b = (greyscale + color.b) / 6f;
 
-		return color;
-	}
+        float normalizedValue = cell.FarmlandPercentage;
 
-	private static Color GetOverlayColor (OverlayColorId id) {
-	
-		return _overlayPalette [(int)id];
-	}
+        if (normalizedValue >= 0.001f)
+        {
+            float value = 0.05f + 0.95f * normalizedValue;
 
-	private static Color SetArabilityOverlayColor (TerrainCell cell, Color color) {
+            color = (color * (1 - value)) + (GetOverlayColor(OverlayColorId.Farmland) * value);
+        }
 
-		float greyscale = (color.r + color.g + color.b);
+        return color;
+    }
 
-		color.r = (greyscale + color.r) / 6f;
-		color.g = (greyscale + color.g) / 6f;
-		color.b = (greyscale + color.b) / 6f;
-
-		float normalizedValue = cell.Arability;
-
-		if (normalizedValue >= 0.001f) {
-
-			float value = 0.05f + 0.95f * normalizedValue;
-
-			color = (color * (1 - value)) + (GetOverlayColor(OverlayColorId.Arability) * value);
-		}
-
-		return color;
-	}
-
-	private static Color SetFarmlandOverlayColor (TerrainCell cell, Color color) {
-
-		float greyscale = (color.r + color.g + color.b);
-
-		color.r = (greyscale + color.r) / 6f;
-		color.g = (greyscale + color.g) / 6f;
-		color.b = (greyscale + color.b) / 6f;
-
-		float normalizedValue = cell.FarmlandPercentage;
-
-		if (normalizedValue >= 0.001f) {
-
-			float value = 0.05f + 0.95f * normalizedValue;
-
-			color = (color * (1 - value)) + (GetOverlayColor(OverlayColorId.Farmland) * value);
-		}
-
-		return color;
-	}
-
-	private static Color SetGeneralOverlayColor(TerrainCell cell, Color terrainColor)
+    private static Color SetGeneralOverlayColor(TerrainCell cell, Color terrainColor)
     {
         float greyscale = (terrainColor.r + terrainColor.g + terrainColor.b) / 3f;
         float greyscaleWeight = 0.9f;
@@ -3895,19 +4103,70 @@ public class Manager
         return TextureValidationResult.Ok;
     }
 
-    //public static void ConvertToGrayscale(Texture2D texture) // Try to avoid using this function and instead just extract the grayscale value directly
-    //{
-    //    Color[] colors = texture.GetPixels();
-    //    Color[] repColors = new Color[colors.Length];
+    public static void LoadMods(ICollection<string> paths)
+    {
+        if (paths.Count == 0)
+            throw new System.ArgumentException("Number of mods to load can't be zero");
 
-    //    for (int i = 0; i < colors.Length; i++)
-    //    {
-    //        float grayscale = colors[i].grayscale;
+        Layer.ResetLayers();
+        Biome.ResetBiomes();
+        Adjective.ResetAdjectives();
+        RegionAttribute.ResetAttributes();
+        Element.ResetElements();
 
-    //        repColors[i] = new Color(grayscale, grayscale, grayscale, 1);
-    //    }
+        float progressPerMod = 0.1f / paths.Count;
 
-    //    texture.SetPixels(repColors);
-    //    texture.Apply();
-    //}
+        foreach (string path in paths)
+        {
+            if (_manager._progressCastMethod != null)
+            {
+                string directoryName = Path.GetFileName(path);
+
+                _manager._progressCastMethod(LastStageProgress, "Loading Mod '" + directoryName + "'...");
+            }
+
+            LoadMod(path + @"\", progressPerMod);
+
+            LastStageProgress += progressPerMod;
+        }
+    }
+
+    delegate void LoadModFileDelegate(string filename);
+
+    private static void TryLoadModFiles(LoadModFileDelegate loadModFile, string path, float progressPerModSegment)
+    {
+        if (!Directory.Exists(path))
+            return;
+
+        string[] files = Directory.GetFiles(path, "*.json");
+
+        if (files.Length > 0)
+        {
+            float progressPerFile = progressPerModSegment / files.Length;
+            float accProgress = LastStageProgress;
+
+            foreach (string file in files)
+            {
+                loadModFile(file);
+
+                accProgress += progressPerFile;
+
+                if (_manager._progressCastMethod != null)
+                {
+                    _manager._progressCastMethod(accProgress);
+                }
+            }
+        }
+    }
+
+    private static void LoadMod(string path, float progressPerMod)
+    {
+        float progressPerSegment = progressPerMod / 5f;
+
+        TryLoadModFiles(Layer.LoadLayersFile, path + @"Layers", progressPerSegment);
+        TryLoadModFiles(Biome.LoadBiomesFile, path + @"Biomes", progressPerSegment);
+        TryLoadModFiles(Adjective.LoadAdjectivesFile, path + @"Adjectives", progressPerSegment);
+        TryLoadModFiles(RegionAttribute.LoadRegionAttributesFile, path + @"RegionAttributes", progressPerSegment);
+        TryLoadModFiles(Element.LoadElementsFile, path + @"Elements", progressPerSegment);
+    }
 }

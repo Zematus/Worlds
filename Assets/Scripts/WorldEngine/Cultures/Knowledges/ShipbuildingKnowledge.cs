@@ -19,11 +19,11 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge
     public const int OptimalKnowledgeValueForSailing = 1000;
 
     public const float TimeEffectConstant = CellGroup.GenerationSpan * 500;
-    public const float NeighborhoodOceanPresenceModifier = 1.5f;
+    public const float NeighborhoodSeaPresenceModifier = 1.5f;
 
     public static int HighestAsymptote = 0;
 
-    private float _neighborhoodOceanPresence;
+    private float _neighborhoodSeaPresence;
 
     public ShipbuildingKnowledge()
     {
@@ -35,7 +35,7 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge
 
     public ShipbuildingKnowledge(CellGroup group, int initialValue) : base(group, KnowledgeId, KnowledgeName, KnowledgeRngOffset, initialValue)
     {
-        CalculateNeighborhoodOceanPresence();
+        CalculateNeighborhoodSeaPresence();
     }
 
     public static bool IsShipbuildingKnowledge(CulturalKnowledge knowledge)
@@ -47,15 +47,15 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge
     {
         base.FinalizeLoad();
 
-        CalculateNeighborhoodOceanPresence();
+        CalculateNeighborhoodSeaPresence();
     }
 
-    public void CalculateNeighborhoodOceanPresence()
+    public void CalculateNeighborhoodSeaPresence()
     {
-        _neighborhoodOceanPresence = CalculateNeighborhoodOceanPresenceIn(Group);
+        _neighborhoodSeaPresence = CalculateNeighborhoodSeaPresenceIn(Group);
     }
 
-    public static float CalculateNeighborhoodOceanPresenceIn(CellGroup group)
+    public static float CalculateNeighborhoodSeaPresenceIn(CellGroup group)
     {
         float neighborhoodPresence;
 
@@ -64,11 +64,11 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge
 
         TerrainCell groupCell = group.Cell;
 
-        float totalPresence = groupCell.GetBiomePresence("Ocean") * groupCellBonus;
+        float totalPresence = groupCell.SeaBiomePresence * groupCellBonus;
 
         foreach (TerrainCell c in groupCell.Neighbors.Values)
         {
-            totalPresence += c.GetBiomePresence("Ocean");
+            totalPresence += c.SeaBiomePresence;
             cellCount++;
         }
 
@@ -76,7 +76,7 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge
 
         if ((neighborhoodPresence < 0) || (neighborhoodPresence > 1))
         {
-            throw new System.Exception("Neighborhood Ocean Presence outside range: " + neighborhoodPresence);
+            throw new System.Exception("Neighborhood sea presence outside range: " + neighborhoodPresence);
         }
 
         return neighborhoodPresence;
@@ -84,7 +84,7 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge
 
     protected override void UpdateInternal(long timeSpan)
     {
-        UpdateValueInternal(timeSpan, TimeEffectConstant, _neighborhoodOceanPresence * NeighborhoodOceanPresenceModifier);
+        UpdateValueInternal(timeSpan, TimeEffectConstant, _neighborhoodSeaPresence * NeighborhoodSeaPresenceModifier);
 
         TryGenerateSailingDiscoveryEvent();
     }
@@ -134,15 +134,15 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge
 
     public override float CalculateExpectedProgressLevel()
     {
-        if (_neighborhoodOceanPresence <= 0)
+        if (_neighborhoodSeaPresence <= 0)
             return 1;
 
-        return Mathf.Clamp(ProgressLevel / _neighborhoodOceanPresence, MinProgressLevel, 1);
+        return Mathf.Clamp(ProgressLevel / _neighborhoodSeaPresence, MinProgressLevel, 1);
     }
 
     public override float CalculateTransferFactor()
     {
-        return (_neighborhoodOceanPresence * 0.9f) + 0.1f;
+        return (_neighborhoodSeaPresence * 0.9f) + 0.1f;
     }
 
     public override bool WillBeLost()

@@ -74,6 +74,7 @@ public class GuiManagerScript : MonoBehaviour
 
     public UnityEvent MapEntitySelected;
     public UnityEvent OverlayChanged;
+    public UnityEvent OverlaySubtypeChanged;
 
     public UnityEvent OpenModeSelectionDialogRequested;
 
@@ -96,7 +97,7 @@ public class GuiManagerScript : MonoBehaviour
     private Vector3 _tooltipOffset = new Vector3(0, 0);
 
     private TerrainCell _lastHoveredCell = null;
-    
+
     private Territory _lastHoveredOverTerritory = null;
     private Region _lastHoveredOverRegion = null;
 
@@ -138,6 +139,7 @@ public class GuiManagerScript : MonoBehaviour
         PlanetOverlay.Temperature,
         PlanetOverlay.Rainfall,
         PlanetOverlay.Arability,
+        PlanetOverlay.Layer,
         PlanetOverlay.Region,
         PlanetOverlay.Language
     };
@@ -154,7 +156,7 @@ public class GuiManagerScript : MonoBehaviour
 
     private bool _displayRoutes = false;
     private bool _displayGroupActivity = false;
-    
+
     private bool _regenTextures = false;
     private bool _regenPointerOverlayTextures = false;
 
@@ -241,7 +243,7 @@ public class GuiManagerScript : MonoBehaviour
     {
         SelectionPanelScript.RemoveAllOptions();
         SelectionPanelScript.SetVisible(false);
-        
+
         DecisionDialogPanelScript.SetVisible(false);
         SelectFactionDialogPanelScript.SetVisible(false);
         MainMenuDialogPanelScript.SetVisible(false);
@@ -316,15 +318,15 @@ public class GuiManagerScript : MonoBehaviour
         {
             _heightmap = Manager.LoadTexture(@"Heightmaps\mergetest_4b_3600x1800.png");
 
-            //GenerateWorld(false, 407252633);
-            //GenerateWorld(false, 1159850609);
-            //GenerateWorld(false, 952294588);
-            //GenerateWorld(false, 732011012, useHeightmap: true);
-            GenerateWorld(false, 1142453343, useHeightmap: true);
-            //GenerateWorld(false, 215020278);
+            //Manager.SetActiveModPaths(new string[] { @"Mods\Base", @"Mods\TestMod" });
+
+            //GenerateWorld(false, 1142453343, useHeightmap: true);
+            GenerateWorld(false, 1582997248);
         }
         else
         {
+            ValidateLayersPresent();
+
             SetGameModeAccordingToCurrentWorld();
         }
 
@@ -384,7 +386,7 @@ public class GuiManagerScript : MonoBehaviour
                 }
             }
         }
-        
+
         Manager.ExecuteTasks(100);
 
         if (_backgroundProcessActive)
@@ -519,7 +521,7 @@ public class GuiManagerScript : MonoBehaviour
             }
 
             Profiler.BeginSample("Manager.Set*");
-            
+
             Manager.SetPlanetOverlay(_planetOverlay, _planetOverlaySubtype);
             Manager.SetPlanetView(_planetView);
             Manager.SetDisplayRoutes(_displayRoutes);
@@ -527,9 +529,13 @@ public class GuiManagerScript : MonoBehaviour
 
             if (_resetOverlays)
             {
-                OverlayChanged.Invoke();
+                TriggerOverlayEvents();
 
                 _resetOverlays = false;
+            }
+            else
+            {
+                OverlaySubtypeChanged.Invoke();
             }
 
             Profiler.EndSample();
@@ -571,7 +577,7 @@ public class GuiManagerScript : MonoBehaviour
 
             Profiler.EndSample();
         }
-        
+
         InfoPanelScript.UpdateInfoPanel();
         UpdateFocusPanel();
         UpdateGuidingPanel();
@@ -825,21 +831,46 @@ public class GuiManagerScript : MonoBehaviour
         ChangePlanetOverlay(_popOverlays[_currentPopOverlay]);
     }
 
+    private void SkipDebugOverlaysIfNotEnabled()
+    {
+        if ((!Manager.DebugModeEnabled) &&
+            ((_polityOverlays[_currentPolityOverlay] == PlanetOverlay.FactionCoreDistance) ||
+            (_polityOverlays[_currentPolityOverlay] == PlanetOverlay.PolityCluster)))
+        {
+            _currentPolityOverlay = 0;
+        }
+    }
+
     private void ActivatePolityOverlay()
     {
         if (_polityOverlays[_currentPolityOverlay] == _planetOverlay)
         {
             _currentPolityOverlay = (_currentPolityOverlay + 1) % _polityOverlays.Count;
-
-            if ((!Manager.DebugModeEnabled) &&
-                ((_polityOverlays[_currentPolityOverlay] == PlanetOverlay.FactionCoreDistance) ||
-                (_polityOverlays[_currentPolityOverlay] == PlanetOverlay.PolityCluster)))
-            {
-                _currentPolityOverlay = 0;
-            }
         }
 
+        SkipDebugOverlaysIfNotEnabled();
+
         ChangePlanetOverlay(_polityOverlays[_currentPolityOverlay]);
+    }
+
+    private void SkipLayerOverlayIfNotPresent()
+    {
+        // Skip layer overlay if now layers are present in this world
+        if ((!Manager.LayersPresent) &&
+            (_miscOverlays[_currentMiscOverlay] == PlanetOverlay.Layer))
+        {
+            _currentMiscOverlay = (_currentMiscOverlay + 1) % _miscOverlays.Count;
+        }
+    }
+
+    private void SkipSimulationOverlaysIfEditorMode()
+    {
+        if ((Manager.GameMode == GameMode.Editor) &&
+            ((_miscOverlays[_currentMiscOverlay] == PlanetOverlay.Language) ||
+            (_miscOverlays[_currentMiscOverlay] == PlanetOverlay.Region)))
+        {
+            _currentMiscOverlay = 0;
+        }
     }
 
     private void ActivateMiscOverlay()
@@ -847,14 +878,10 @@ public class GuiManagerScript : MonoBehaviour
         if (_miscOverlays[_currentMiscOverlay] == _planetOverlay)
         {
             _currentMiscOverlay = (_currentMiscOverlay + 1) % _miscOverlays.Count;
-
-            if ((Manager.GameMode == GameMode.Editor) &&
-                ((_miscOverlays[_currentMiscOverlay] == PlanetOverlay.Language) ||
-                (_miscOverlays[_currentMiscOverlay] == PlanetOverlay.Region)))
-            {
-                _currentMiscOverlay = 0;
-            }
         }
+
+        SkipLayerOverlayIfNotPresent();
+        SkipSimulationOverlaysIfEditorMode();
 
         ChangePlanetOverlay(_miscOverlays[_currentMiscOverlay]);
     }
@@ -1242,6 +1269,24 @@ public class GuiManagerScript : MonoBehaviour
         RegenerateWorld(GenerationType.RainfallRegeneration);
     }
 
+    public void RegenerateWorldLayerFrequencyChange(string layerId, float value)
+    {
+        LayerSettings settings = Manager.GetLayerSettings(layerId);
+
+        settings.Frequency = value;
+
+        RegenerateWorld(GenerationType.LayerRegeneration);
+    }
+
+    public void RegenerateWorldLayerNoiseInfluenceChange(string layerId, float value)
+    {
+        LayerSettings settings = Manager.GetLayerSettings(layerId);
+
+        settings.SecondaryNoiseInfluence = value;
+
+        RegenerateWorld(GenerationType.LayerRegeneration);
+    }
+
     private void RegenerateWorld(GenerationType type)
     {
         ProgressDialogPanelScript.SetVisible(true);
@@ -1302,6 +1347,7 @@ public class GuiManagerScript : MonoBehaviour
             ToggleGlobeView(); // It's more safe to return to map mode after loading or generating a new world
         }
 
+        ValidateLayersPresent();
         OpenModeSelectionDialog();
 
         _selectedMaxSpeedLevelIndex = _topMaxSpeedLevelIndex;
@@ -1316,6 +1362,8 @@ public class GuiManagerScript : MonoBehaviour
 
     private void GenerateWorldInternal(int seed, bool useHeightmap = false)
     {
+        ResetOverlaySelection();
+
         ProgressDialogPanelScript.SetVisible(true);
 
         ProgressUpdate(0, "Generating World...", true);
@@ -1432,7 +1480,7 @@ public class GuiManagerScript : MonoBehaviour
 
         TerrainCell cell = world.GetCell(longitude, latitude);
 
-        if (cell.Altitude <= Biome.Ocean.MaxAltitude)
+        if (cell.Altitude <= 0)
             return false;
 
         Manager.GenerateHumanGroup(longitude, latitude, population);
@@ -1634,6 +1682,9 @@ public class GuiManagerScript : MonoBehaviour
             case PlanetOverlay.Arability:
                 planetOverlayStr = "_arability";
                 break;
+            case PlanetOverlay.Layer:
+                planetOverlayStr = "_layer_" + _planetOverlaySubtype;
+                break;
             case PlanetOverlay.Region:
                 planetOverlayStr = "_region";
                 break;
@@ -1796,6 +1847,14 @@ public class GuiManagerScript : MonoBehaviour
         GetMaxSpeedOptionFromCurrentWorld();
     }
 
+    public void ValidateLayersPresent()
+    {
+        Manager.LayersPresent = Layer.Layers.Count > 0;
+
+        // Disable layer overlay option if no layers are present in this world
+        OverlayDialogPanelScript.SetLayerOverlay(Manager.LayersPresent);
+    }
+
     public void PostProgressOp_LoadAction()
     {
         EventPanelScript.DestroyMessagePanels(); // We don't want to keep messages referencing previous worlds
@@ -1815,6 +1874,7 @@ public class GuiManagerScript : MonoBehaviour
             ToggleGlobeView(); // It's more safe to return to map mode after loading or generating a new world
         }
 
+        ValidateLayersPresent();
         SetGameModeAccordingToCurrentWorld();
 
         _postProgressOp -= PostProgressOp_LoadAction;
@@ -1823,8 +1883,17 @@ public class GuiManagerScript : MonoBehaviour
             _loadWorldPostProgressOp.Invoke();
     }
 
+    private void ResetOverlaySelection()
+    {
+        ChangePlanetOverlay(PlanetOverlay.None, Manager.NoOverlaySubtype);
+
+        _planetOverlaySubtypeCache.Clear();
+    }
+
     private void LoadAction()
     {
+        ResetOverlaySelection();
+
         ProgressDialogPanelScript.SetVisible(true);
 
         ProgressUpdate(0, "Loading World...", true);
@@ -1851,7 +1920,7 @@ public class GuiManagerScript : MonoBehaviour
     public void LoadWorld()
     {
         MainMenuDialogPanelScript.SetVisible(false);
-        
+
         LoadFileDialogPanelScript.Initialize(
             "Select World to Load...",
             "Load",
@@ -2004,6 +2073,10 @@ public class GuiManagerScript : MonoBehaviour
         {
             ChangePlanetOverlay(PlanetOverlay.Arability, false);
         }
+        else if (OverlayDialogPanelScript.LayerToggle.isOn)
+        {
+            ChangePlanetOverlay(PlanetOverlay.Layer, false);
+        }
         else if (OverlayDialogPanelScript.RegionToggle.isOn)
         {
             ChangePlanetOverlay(PlanetOverlay.Region, false);
@@ -2130,7 +2203,7 @@ public class GuiManagerScript : MonoBehaviour
 
             if (invokeEvent)
             {
-                OverlayChanged.Invoke();
+                TriggerOverlayEvents();
 
                 _resetOverlays = false;
             }
@@ -2154,7 +2227,7 @@ public class GuiManagerScript : MonoBehaviour
 
             if (invokeEvent)
             {
-                OverlayChanged.Invoke();
+                TriggerOverlayEvents();
 
                 _resetOverlays = false;
             }
@@ -2178,6 +2251,18 @@ public class GuiManagerScript : MonoBehaviour
         if (state)
         {
             ChangePlanetOverlay(PlanetOverlay.Rainfall);
+        }
+        else
+        {
+            ChangePlanetOverlay(PlanetOverlay.None);
+        }
+    }
+
+    public void ChangeToLayerOverlayFromEditorToolbar(bool state)
+    {
+        if (state)
+        {
+            ChangePlanetOverlay(PlanetOverlay.Layer);
         }
         else
         {
@@ -2245,12 +2330,18 @@ public class GuiManagerScript : MonoBehaviour
         {
             Manager.SetPlanetOverlay(_planetOverlay, _planetOverlaySubtype);
 
-            OverlayChanged.Invoke();
+            TriggerOverlayEvents();
 
             _resetOverlays = false;
         }
 
         HandleOverlayWithSubtypes(overlay);
+    }
+
+    public void TriggerOverlayEvents()
+    {
+        OverlayChanged.Invoke();
+        OverlaySubtypeChanged.Invoke();
     }
 
     public void ChangePlanetOverlay(PlanetOverlay overlay)
@@ -2312,6 +2403,10 @@ public class GuiManagerScript : MonoBehaviour
 
             case PlanetOverlay.PolityCulturalDiscovery:
                 HandleCulturalDiscoveryOverlay();
+                break;
+
+            case PlanetOverlay.Layer:
+                HandleLayerOverlay();
                 break;
         }
     }
@@ -2376,6 +2471,18 @@ public class GuiManagerScript : MonoBehaviour
         SelectionPanelScript.SetVisible(true);
     }
 
+    private void HandleLayerOverlay()
+    {
+        SelectionPanelScript.Title.text = "Displayed Layer:";
+
+        foreach (Layer layer in Layer.Layers.Values)
+        {
+            AddSelectionPanelOption(layer.Name, layer.Id);
+        }
+
+        SelectionPanelScript.SetVisible(true);
+    }
+
     public void SetPopCulturalDiscoveryOverlay(string planetOverlaySubtype, bool invokeEvent = true)
     {
         ChangePlanetOverlay(PlanetOverlay.PopCulturalDiscovery, planetOverlaySubtype, invokeEvent);
@@ -2391,7 +2498,7 @@ public class GuiManagerScript : MonoBehaviour
             }
             else if (_planetOverlaySubtype == optionId)
             {
-                _planetOverlaySubtype = "None";
+                _planetOverlaySubtype = Manager.NoOverlaySubtype;
             }
 
             _regenTextures = true;
@@ -2478,8 +2585,15 @@ public class GuiManagerScript : MonoBehaviour
                 AddSelectionPanelOption(discoveryInfo.Name, discoveryInfo.Id);
             }
         }
+        else if (_planetOverlay == PlanetOverlay.Layer)
+        {
+            foreach (Layer layer in Layer.Layers.Values)
+            {
+                AddSelectionPanelOption(layer.Name, layer.Id);
+            }
+        }
     }
-    
+
     public void SetView(PlanetView planetView)
     {
         _regenTextures |= _planetView != planetView;
@@ -2763,7 +2877,7 @@ public class GuiManagerScript : MonoBehaviour
     private void ShowCellInfoToolTip_PolityCulturalKnowledge(Polity polity, Vector3 position, float fadeStart = 5)
     {
         CulturalKnowledge knowledge = polity.Culture.GetKnowledge(_planetOverlaySubtype);
-        
+
         if (knowledge != null)
         {
             string text = knowledge.Name + " Value: " + knowledge.ScaledValue.ToString("0.000") + "\n\nFactions:";
@@ -2788,7 +2902,7 @@ public class GuiManagerScript : MonoBehaviour
     private void ShowCellInfoToolTip_PolityCulturalDiscovery(Polity polity, Vector3 position, float fadeStart = 5)
     {
         CulturalDiscovery discovery = polity.Culture.GetDiscovery(_planetOverlaySubtype) as CulturalDiscovery;
-        
+
         if (discovery != null)
         {
             InfoTooltipScript.DisplayTip(discovery.Name + " is present", position, fadeStart);

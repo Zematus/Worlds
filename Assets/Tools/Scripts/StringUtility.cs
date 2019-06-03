@@ -3,48 +3,72 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public static class StringUtility {
+public static class StringUtility
+{
+    public static string ReplaceWithWhiteSpace(this string original)
+    {
+        string output = "";
 
-	public static string ReplaceWithWhiteSpace (this string original) {
+        for (int i = 0; i < original.Length; i++)
+        {
+            output += " ";
+        }
 
-		string output = "";
+        return output;
+    }
 
-		for (int i = 0; i < original.Length; i++) {
-		
-			output += " ";
-		}
+    public static string ToBoldFormat(this string text)
+    {
+        return "<b>" + text + "</b>";
+    }
 
-		return output;
-	}
+    public static string FirstLetterToUpper(this string text)
+    {
+        if (text.Length <= 1)
+            return text.ToUpper();
 
-	public static string ToBoldFormat (this string text) {
-	
-		return "<b>" + text + "</b>";
-	}
+        return text[0].ToString().ToUpper() + text.Substring(1);
+    }
 
-	public static string FirstLetterToUpper (this string text) {
+    public static string FirstLetterToLower(this string text)
+    {
+        if (text.Length <= 1)
+            return text.ToLower();
 
-		if (text.Length <= 1)
-			return text.ToUpper ();
+        return text[0].ToString().ToLower() + text.Substring(1);
+    }
 
-		return text [0].ToString ().ToUpper () + text.Substring (1);
-	}
+    public static string AllFirstLettersToUpper(this string text)
+    {
+        string[] words = text.Split(' ');
 
-	public static string FirstLetterToLower (this string text) {
+        for (int i = 0; i < words.Length; i++)
+        {
+            words[i] = words[i].FirstLetterToUpper();
+        }
+        
+        return string.Join(" ", words);
+    }
 
-		if (text.Length <= 1)
-			return text.ToLower ();
+    public static string AllFirstLettersToLower(this string text)
+    {
+        string[] words = text.Split(' ');
 
-		return text [0].ToString ().ToLower () + text.Substring (1);
-	}
+        for (int i = 0; i < words.Length; i++)
+        {
+            words[i] = words[i].FirstLetterToLower();
+        }
 
-	public static string AddPossApos (this string text) {
+        return string.Join(" ", words);
+    }
 
-		char lastChar = text.ToLower () [text.Length - 1];
+    public static string AddPossApos(this string text)
+    {
+        char lastChar = text.ToLower()[text.Length - 1];
 
-		if ((lastChar == 's') || (lastChar == 'z'))
-			return text + "'";
+        if ((lastChar == 's') || (lastChar == 'z'))
+            return text + "'";
 
-		return text + "'s";
-	}
+        return text + "'s";
+    }
 }

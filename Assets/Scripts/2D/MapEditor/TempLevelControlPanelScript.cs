@@ -6,15 +6,20 @@ using UnityEngine.EventSystems;
 
 public class TempLevelControlPanelScript : RegenControlPanelScript
 {
-    public TempLevelControlPanelScript()
+    public SliderControlsScript SliderControlsScript;
+
+    public override void ResetSliderControls()
     {
-        _minValue = -40 - World.AvgPossibleTemperature;
-        _maxValue = 50 + World.AvgPossibleTemperature;
-        _defaultValue = World.AvgPossibleTemperature;
+        SliderControlsScript.MinValue = -40 - World.AvgPossibleTemperature;
+        SliderControlsScript.MaxValue = 50 + World.AvgPossibleTemperature;
+        SliderControlsScript.DefaultValue = World.AvgPossibleTemperature;
+
+        SliderControlsScript.CurrentValue = Manager.TemperatureOffset;
+        SliderControlsScript.Reinitialize();
     }
 
-    protected override float GetCurrentValueFromManager()
+    public override void AllowEventInvoke(bool state)
     {
-        return Manager.TemperatureOffset;
+        SliderControlsScript.AllowEventInvoke(state);
     }
 }

@@ -17,6 +17,10 @@ public class AppSettings
     public bool UIScaling = true;
     public bool DebugMode = true;
 
+    public List<string> ActiveModPaths = new List<string>();
+
+    public List<LayerSettings> LayerSettings = new List<LayerSettings>();
+
     public AppSettings()
     {
     }
@@ -30,6 +34,12 @@ public class AppSettings
         Fullscreen = Manager.FullScreenEnabled;
         UIScaling = Manager.UIScalingEnabled;
         DebugMode = Manager.DebugModeEnabled;
+
+        ActiveModPaths.Clear();
+        ActiveModPaths.AddRange(Manager.ActiveModPaths);
+
+        LayerSettings.Clear();
+        LayerSettings.AddRange(Manager.LayerSettings.Values);
     }
 
     public void Take()
@@ -41,5 +51,8 @@ public class AppSettings
         Manager.FullScreenEnabled = Fullscreen;
         Manager.UIScalingEnabled = UIScaling;
         Manager.DebugModeEnabled = DebugMode;
+
+        Manager.SetActiveModPaths(ActiveModPaths);
+        Manager.SetLayerSettings(LayerSettings);
     }
 }

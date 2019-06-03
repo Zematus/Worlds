@@ -23,7 +23,7 @@ public class Tribe : Polity
     private static Variation[] TribeNounVariations;
 
     private static string[] TribeNounVariants = new string[] {
-        "nation", "tribe", "[ipn(person)]people", "folk", "community", "kin", "{kin:s:}person:s", "{kin:s:}[ipn(man)]men", "{kin:s:}[ipn(woman)]women", "[ipn(child)]children" };
+        "nation", "tribe", "[in(person)]people", "folk", "community", "kin", "{kin:s:}person:s", "{kin:s:}[in(man)]men", "{kin:s:}[in(woman)]women", "[in(child)]children" };
     
     private int _rngOffset;
 

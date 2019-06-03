@@ -11,19 +11,26 @@ public class LoadFileDialogPanelScript : DialogPanelScript
     public Toggle TogglePrefab;
 
     public Text NoFilesText;
-
     public Text SelectButtonText;
 
     public Button SelectButton;
     public Button CancelButton;
 
+    public ToggleGroup ToggleGroup;
+
     private List<Toggle> _fileToggles = new List<Toggle>();
 
     private string _basePath;
-    private string _pathToLoad;
+    private HashSet<string> _pathsToLoad = new HashSet<string>();
+    private string _pathToLoad = null;
 
     private string[] _validExtensions;
 
+    private bool _loadDirectory;
+    private bool _selectMultiple;
+
+    private HashSet<string> _prevSelectedItems = new HashSet<string>();
+    
     // Update is called once per frame
     void Update()
     {
@@ -40,6 +47,11 @@ public class LoadFileDialogPanelScript : DialogPanelScript
         return _pathToLoad;
     }
 
+    public ICollection<string> GetPathsToLoad()
+    {
+        return _pathsToLoad;
+    }
+
     public void Hide()
     {
         SetVisible(false);
@@ -51,8 +63,13 @@ public class LoadFileDialogPanelScript : DialogPanelScript
         UnityAction selectAction,
         UnityAction cancelAction,
         string basePath, 
-        string[] validExtensions = null)
+        string[] validExtensions = null,
+        bool loadDirectory = false,
+        bool selectMultiple = false,
+        ICollection<string> prevSelectedItems = null)
     {
+        _pathsToLoad.Clear();
+        
         SetDialogText(dialogText);
 
         SelectButtonText.text = selectButtonText;
@@ -69,6 +86,19 @@ public class LoadFileDialogPanelScript : DialogPanelScript
 
         _basePath = basePath;
         _validExtensions = validExtensions;
+
+        _loadDirectory = loadDirectory;
+        _selectMultiple = selectMultiple;
+
+        _prevSelectedItems.Clear();
+
+        if (prevSelectedItems != null)
+        {
+            foreach (string path in prevSelectedItems)
+            {
+                _prevSelectedItems.Add(Path.GetFileName(path));
+            }
+        }
     }
 
     private void LoadFileNames()
@@ -99,7 +129,7 @@ public class LoadFileDialogPanelScript : DialogPanelScript
 
             string name = Path.GetFileName(file);
 
-            SetFileToggle(name, i);
+            SetFileToggle(name, i, _prevSelectedItems.Contains(name));
 
             i++;
         }
@@ -115,7 +145,36 @@ public class LoadFileDialogPanelScript : DialogPanelScript
         }
     }
 
-    private void SetFileToggle(string name, int index)
+    private void LoadDirectoryNames()
+    {
+        FileListPanel.SetActive(true);
+        NoFilesText.gameObject.SetActive(false);
+
+        _fileToggles.Add(TogglePrefab);
+
+        string[] directories = Directory.GetDirectories(_basePath);
+
+        int i = 0;
+
+        foreach (string directory in directories)
+        {
+            string name = Path.GetFileName(directory);
+
+            SetFileToggle(name, i, _prevSelectedItems.Contains(name));
+
+            i++;
+        }
+
+        if (i == 0)
+        {
+            FileListPanel.SetActive(false);
+            
+            NoFilesText.text = "No directories found...";
+            NoFilesText.gameObject.SetActive(true);
+        }
+    }
+
+    private void SetFileToggle(string name, int index, bool alreadySelected)
     {
         Toggle toggle;
 
@@ -129,18 +188,33 @@ public class LoadFileDialogPanelScript : DialogPanelScript
             toggle = AddFileToggle(name);
         }
 
-        toggle.onValueChanged.RemoveAllListeners();
+        toggle.isOn = false; // We need to make sure it is untoggled first before setting it's default state. Otherwise, 'onValueChanged' won't get called
+        toggle.group = _selectMultiple? null : ToggleGroup;
 
         string path = _basePath + name;
-
+        
         toggle.onValueChanged.AddListener(value =>
         {
+            if (!_selectMultiple)
+            {
+                _pathsToLoad.Clear();
+            }
+
             if (value)
             {
+                _pathsToLoad.Add(path);
                 _pathToLoad = path;
-                SelectButton.interactable = true;
             }
+            else
+            {
+                _pathsToLoad.Remove(path);
+                _pathToLoad = null;
+            }
+
+            SelectButton.interactable = _pathsToLoad.Count > 0;
         });
+
+        toggle.isOn = alreadySelected;
     }
 
     private Toggle AddFileToggle(string name)
@@ -161,6 +235,7 @@ public class LoadFileDialogPanelScript : DialogPanelScript
 
         foreach (Toggle toggle in _fileToggles)
         {
+            toggle.onValueChanged.RemoveAllListeners();
             toggle.isOn = false;
 
             if (first)
@@ -169,7 +244,7 @@ public class LoadFileDialogPanelScript : DialogPanelScript
                 continue;
             }
 
-            GameObject.Destroy(toggle.gameObject);
+            Destroy(toggle.gameObject);
         }
 
         _fileToggles.Clear();
@@ -184,7 +259,10 @@ public class LoadFileDialogPanelScript : DialogPanelScript
 
         if (state)
         {
-            LoadFileNames();
+            if (_loadDirectory)
+                LoadDirectoryNames();
+            else
+                LoadFileNames();
         }
         else
         {
