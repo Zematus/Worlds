@@ -75,10 +75,7 @@ public class RegionAttributeLoader
             {
                 string adj = adjs[i].Trim();
 
-                if (!Adjective.Adjectives.TryGetValue(adj, out adjectives[i]))
-                {
-                    Debug.LogWarning("Adjective id not found in loaded adjectives: " + adj);
-                }
+                adjectives[i] = Adjective.TryGetAdjectiveOrAdd(adj);
             }
         }
 

@@ -1,0 +1,37 @@
+---- Effects Guide ----
+
+Effects are occurrences that can happen to different types of entities (cells, groups, factions, etc) when an event occurs within the simulation. These can affect the entity in multiple ways depending on the type of effect.
+
+Here's a list of the current types of effects (more to be added in future versions) and how they work:
+
+- 'group_gains_attribute'
+    Assigns an attribute flag to the specified group. the format of the effect is as follows: 'group_gains_attribute:<group_type>,<attribute_flag>'. flags can be any text with no spaces. See attribute_flags.txt for a list of flags hardcoded within the simulation and their effects.
+    These are valid group types:
+    - 'this': the cell group this effect targets
+
+    Examples: 'group_gains_attribute:this,CAN_FORM_TRIBE'
+
+- 'group_losses_attribute'
+    Removes an attribute flag from the specified group. the format of the effect is as follows: 'group_losses_attribute:<group_type>,<attribute_flag>'. flags can be any text with no spaces. See attribute_flags.txt for a list of flags hardcoded within the simulation and their effects.
+    NOTE: If there are multiple valid situations (e.g. multiple discoveries) that allow a group to keep an attribute flag, then the flag won't be removed until none of the situations are valid.
+    These are valid group types:
+    - 'this': the cell group this effect targets
+
+    Examples: 'group_losses_attribute:this,CAN_FORM_TRIBE'
+
+- 'group_gains_knowledge'
+    Assigns the specified knowledge to the specified group. the format of the effect is as follows: 'group_gains_knowledge:<group_type>,<knowledge_id>'
+    These are valid group types:
+    - 'this': the cell group this effect targets
+
+    Examples: 'group_gains_knowledge:this,agricultureKnowledge', 'group_gains_knowledge:this,shipbuildingKnowledge'
+
+- 'group_losses_knowledge'
+    Removes the specified knowledge from the specified group. the format of the effect is as follows: 'group_losses_knowledge:<group_type>,<knowledge_id>'
+    NOTE: If there are multiple valid situations (e.g. multiple discoveries) that allow a group to keep a knowledge, then the knowledge won't be lost until none of the situations are valid.
+    These are valid group types:
+    - 'this': the cell group this effect targets
+
+    Examples: 'group_losses_knowledge:this,agricultureKnowledge', 'group_losses_knowledge:this,shipbuildingKnowledge'
+
+  --

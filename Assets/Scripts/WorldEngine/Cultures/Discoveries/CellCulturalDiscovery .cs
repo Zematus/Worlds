@@ -32,14 +32,4 @@ public abstract class CellCulturalDiscovery : CulturalDiscovery
     }
 
     public abstract bool CanBeHeld(CellGroup group);
-
-    public virtual void LossConsequences(CellGroup group)
-    {
-
-    }
-
-    public virtual void GainConsequences(CellGroup group)
-    {
-
-    }
 }

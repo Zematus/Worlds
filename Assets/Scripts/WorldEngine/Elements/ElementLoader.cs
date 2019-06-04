@@ -73,10 +73,7 @@ public class ElementLoader
             {
                 string adj = adjs[i].Trim();
 
-                if (!Adjective.Adjectives.TryGetValue(adj, out adjectives[i]))
-                {
-                    throw new ArgumentException("adjective id not found in loaded adjectives: " + adj);
-                }
+                adjectives[i] = Adjective.TryGetAdjectiveOrAdd(adj);
             }
         }
 

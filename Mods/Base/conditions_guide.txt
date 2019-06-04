@@ -1,0 +1,16 @@
+---- Conditions Guide ----
+
+Conditions are rules that can be evaluated against different types of entities (cells, groups, factions, etc). These return a boolean value of 'true' when the condition is meet. Otherwise return false.
+
+Here's a list of the current types of conditions (more to be added in future versions) and how they work:
+
+- 'group_has_knowledge'
+    Tests if a group currently possesses a particular knowledge identified by id, and the knowledge level is equal or greater than the specified value (optional integer value between 0 and 10000). the format of the constraint is as follows: 'group_has_knowledge:<group_type>,<knowledge_id>(,<level>)'
+    These are valid group types:
+    - 'this': the cell group this condition is being evaluated for
+    - 'neighbor': any cell group adjacent to the cell group this condition is being evaluated for
+    - 'thisOrNeighbor': the cell group this condition is being evaluated for or any group adjacent to it
+
+    Examples: 'group_has_knowledge:neighbor,agricultureKnowledge', 'group_has_knowledge:this,shipbuildingKnowledge,3'
+
+  --

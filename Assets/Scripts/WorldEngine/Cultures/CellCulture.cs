@@ -460,7 +460,6 @@ public class CellCulture : Culture
         foreach (CellCulturalDiscovery d in _discoveriesToLose)
         {
             RemoveDiscovery(d);
-            d.LossConsequences(Group);
             discoveriesLost = true;
         }
 
@@ -543,8 +542,6 @@ public class CellCulture : Culture
             }
 
             //if (!setAsPresent) continue;
-
-            discovery.GainConsequences(Group);
 
             foreach (CellCulturalKnowledge knowledge in Knowledges.Values)
             {
