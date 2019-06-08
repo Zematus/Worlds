@@ -1,16 +1,43 @@
 ---- Conditions Guide ----
 
-Conditions are rules that can be evaluated against different types of entities (cells, groups, factions, etc). These return a boolean value of 'true' when the condition is meet. Otherwise return false.
+Conditions are rules that can be evaluated against different types of entities (cells, groups, factions, etc). These return a boolean value of 'true' when the condition is meet. Otherwise return false. When chained together on a requirement list of comma separated conditions (e.g. '<condition1>','<condition2>'), all of them must be true for the requirement to pass.
+
+- Condition modifiers -
+
+NEGATION: A condition can be negated by prefixing [NOT] before the condition. A negated condition must be false to pass. Both the prefix and the condition must be enclosed together in single quotes like this: '[NOT]<condition>'
+
+ALTERNATION: Two or more conditions can be set to be alternate by appending them together using the [OR] infix. In which case, if any of the conditions is true then the whole alternation passes. All of the conditions and infixes must be enclosed together in single quotes like this: '<condition1>[OR]<condition2>([OR]<additional conditions>)'
+
+Modifiers can be uses together using parenthesis to set modifier priority (values between parenthesis evaluate first).
+Example: '[NOT](<condition1>[OR]([NOT]<condition2>)[OR]<condition3>)'
 
 Here's a list of the current types of conditions (more to be added in future versions) and how they work:
 
 - 'group_has_knowledge'
-    Tests if a group currently possesses a particular knowledge identified by id, and the knowledge level is equal or greater than the specified value (optional integer value between 0 and 10000). the format of the constraint is as follows: 'group_has_knowledge:<group_type>,<knowledge_id>(,<level>)'
+    Tests if a group currently possesses a particular knowledge identified by id, and the knowledge level is equal or greater than the specified value (optional integer value between 0 and 10000). The format of the constraint is as follows: 'group_has_knowledge:<group_type>,<knowledge_id>(,<level>)'
     These are valid group types:
     - 'this': the cell group this condition is being evaluated for
     - 'neighbor': any cell group adjacent to the cell group this condition is being evaluated for
     - 'thisOrNeighbor': the cell group this condition is being evaluated for or any group adjacent to it
 
-    Examples: 'group_has_knowledge:neighbor,agricultureKnowledge', 'group_has_knowledge:this,shipbuildingKnowledge,3'
+    Examples: 'group_has_knowledge:neighbor,agriculture_knowledge', 'group_has_knowledge:this,shipbuilding_knowledge,3'
 
-  --
+- 'group_min_population'
+    Tests if a group currently possesses at least certain amount of population. The value can be any quantity between 1 and 2,147,483,647. The format of the constraint is as follows: 'group_min_population:<group_type>,<quantity>'
+    These are valid group types:
+    - 'this': the cell group this condition is being evaluated for
+    - 'neighbor': any cell group adjacent to the cell group this condition is being evaluated for
+    - 'thisOrNeighbor': the cell group this condition is being evaluated for or any group adjacent to it
+
+    Examples: 'group_min_population:this,10000'
+
+- 'cell_is_sea'
+    Tests if a cell has a sea type biome. The format of the constraint is as follows: 'cell_is_sea:<cell_type>'
+    These are valid group types:
+    - 'this': the cell this condition is being evaluated for
+    - 'neighbor': any cell adjacent to the cell this condition is being evaluated for
+    - 'thisOrNeighbor': the cell this condition is being evaluated for or any group adjacent to it
+
+    Examples: 'cell_is_sea:neighbor', 'cell_is_sea:this'
+
+--

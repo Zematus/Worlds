@@ -1,0 +1,13 @@
+{
+  "discoveries": [
+    {
+      "id": "boat_making_discovery",
+      "name": "boat making",
+      "gainConditions": "'[NOT] group_has_knowledge:this,shipbuilding_knowledge','cell_is_sea:neighbor'",
+      "holdConditions": "'group_has_knowledge:this,shipbuilding_knowledge'",
+      "gainEffects": "'group_gains_knowledge:this,shipbuilding_knowledge'",
+      "eventTimeToTrigger": 250000,
+      "eventTimeToTriggerFactors":"'neighborhood_sea_presence'"
+    }
+  ]
+}

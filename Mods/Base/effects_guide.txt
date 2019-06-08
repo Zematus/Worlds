@@ -24,7 +24,7 @@ Here's a list of the current types of effects (more to be added in future versio
     These are valid group types:
     - 'this': the cell group this effect targets
 
-    Examples: 'group_gains_knowledge:this,agricultureKnowledge', 'group_gains_knowledge:this,shipbuildingKnowledge'
+    Examples: 'group_gains_knowledge:this,agriculture_knowledge', 'group_gains_knowledge:this,shipbuilding_knowledge'
 
 - 'group_losses_knowledge'
     Removes the specified knowledge from the specified group. the format of the effect is as follows: 'group_losses_knowledge:<group_type>,<knowledge_id>'
@@ -32,6 +32,6 @@ Here's a list of the current types of effects (more to be added in future versio
     These are valid group types:
     - 'this': the cell group this effect targets
 
-    Examples: 'group_losses_knowledge:this,agricultureKnowledge', 'group_losses_knowledge:this,shipbuildingKnowledge'
+    Examples: 'group_losses_knowledge:this,agriculture_knowledge', 'group_losses_knowledge:this,shipbuilding_knowledge'
 
-  --
+--

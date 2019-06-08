@@ -1,0 +1,21 @@
+---- Time-to-trigger Factors Guide ----
+
+Time-to-trigger Factors are properties that alter the base time to trigger of events. With possibly a few exceptions, the greater the factor, the longer it will take for the event to trigger. Note that factors will never have a value less than 1
+
+- Factor Modifiers -
+
+DIVISION: A factor's effect can be inversed (i.e. applied as 1/<factor>) before being applied to the time to trigger by using the [DIV] prefix.
+
+SQUARE: A factor's effect can squared (i.e. multiply the factor by itself) before being applied to the time to trigger by using the [SQ] prefix.
+
+POWER: A factor's effect can elevated to an arbitrary value before being applied to the time to trigger by using the [POW:<x>] prefix, where 'x' is an integer value between 2 and 10.
+
+Modifiers must be enclosed together with factors within single quotes. Modifiers can be used together using parenthesis to set modifier priority (values between parenthesis evaluate first).
+Example: '[SQ]([DIV]<factor>)'
+
+Here's a list of the current types of time-to-trigger-factors (more to be added in future versions) and how they work:
+
+- 'neighborhood_sea_presence'
+    Calculates the total amount of sea-type biomes present in all neighboring cells surrounding the cell where the event is occurring. The factor's value will fall within the range of 1 (no sea presence in any surrounding cell) and 9 (all 8 surrounding cells have 100% sea-type biome presence)
+
+--

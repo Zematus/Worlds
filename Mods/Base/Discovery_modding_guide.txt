@@ -11,12 +11,13 @@ Discovery modding files are located within the 'Discoveries' folder. To be valid
       "name":                       -- (required) Name of discovery
 
       "gainConditions":             -- (optional) List of all conditions a cell group must meet to gain this discovery, separated by commas (see note #2)
-      "holdConditions":             -- (optional) List of all conditions a cell group must meet to hold onto this discovery, separated by commas (see note #2)
+      "holdConditions":             -- (optional) List of all conditions a cell group must meet to hold onto this discovery, separated by commas (see note #2 and note #4)
 
       "gainEffects":                -- (optional) List of all effects triggered on cell group upon gaining this discovery (see note #3)
-      "loseEffects":                -- (optional) List of all effects triggered on cell group upon losing this discovery (see note #3)
+      "lossEffects":                -- (optional) List of all effects triggered on cell group upon losing this discovery (see note #3)
 
-      "eventTimeToTriggerFactors":  -- (optional) Factors that influence how long it will take for this discovery's event to trigger (see note #4)
+      "eventTimeToTrigger":         -- (required) The base amount of time that can pass before the related discovery event happens (value between 1 and 2,147,483,647 days)
+      "eventTimeToTriggerFactors":  -- (optional) List of factors that influence how long it will take for this discovery's event to trigger (see note #5)
 
       "isPresentAtStart":           -- (optional) 'true' if this discovery is already present on a self-spawned group (i.e. a group that is not spawned from a migration)
     },
@@ -28,5 +29,7 @@ Discovery modding files are located within the 'Discoveries' folder. To be valid
 1. Remove any trailing commas or the file won't be parsed
 2. Each condition within the list must be encased within single quotes. Refer to conditions_guide.txt for more details on how to define and use conditions
 3. Each effect within the list must be encased within single quotes. Refer to effects_guide.txt for more details on how to define and use effects
+4. If a discovery no longer meets its hold conditions then it will be removed from the cell group. In which case, the gain conditions might get reevaluated and a subsequent discovery event reassigned to the group if possible
+5. Each factor within the list must be encased within single quotes. Factors, once calculated, will be multiplied against the time-to-trigger base value of a discovery to calculate that maximum amount of time that can pass between the inception of an event and when it finally triggers. Refer to timeToTriggerFactors_guide.txt for more details on how to define and use time-to-trigger factors.
 
 --
