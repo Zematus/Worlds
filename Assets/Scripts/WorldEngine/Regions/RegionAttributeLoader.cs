@@ -89,13 +89,13 @@ public class RegionAttributeLoader
         if (!string.IsNullOrEmpty(attr.regionConstraints))
         {
             //Cleanup and split list of constraints
-            string c = Regex.Replace(attr.regionConstraints, QuotedStringListHelper.FirstAndLastSingleQuoteRegex, "");
-            constraints = Regex.Split(c, QuotedStringListHelper.SeparatorSingleQuoteRegex);
+            string c = Regex.Replace(attr.regionConstraints, ModUtility.FirstAndLastSingleQuoteRegex, "");
+            constraints = Regex.Split(c, ModUtility.SeparatorSingleQuoteRegex);
         }
 
         //Cleanup and split list of association strings
-        string a = Regex.Replace(attr.phraseAssociations, QuotedStringListHelper.FirstAndLastSingleQuoteRegex, "");
-        associationStrs = Regex.Split(a, QuotedStringListHelper.SeparatorSingleQuoteRegex);
+        string a = Regex.Replace(attr.phraseAssociations, ModUtility.FirstAndLastSingleQuoteRegex, "");
+        associationStrs = Regex.Split(a, ModUtility.SeparatorSingleQuoteRegex);
 
         RegionAttribute regionAttribute = new RegionAttribute(attr.id, attr.name, adjectives, variants, constraints, associationStrs, attr.secondary);
 

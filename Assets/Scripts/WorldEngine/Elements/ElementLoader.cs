@@ -5,12 +5,6 @@ using System;
 using System.IO;
 using System.Text.RegularExpressions;
 
-public static class QuotedStringListHelper
-{
-    public const string FirstAndLastSingleQuoteRegex = @"(?:^\s*\'\s*)|(?:\s*\'\s*$)";
-    public const string SeparatorSingleQuoteRegex = @"\s*(?:(?:\'\s*,\s*\'))\s*";
-}
-
 [Serializable]
 public class ElementLoader
 {
@@ -80,13 +74,13 @@ public class ElementLoader
         if (!string.IsNullOrEmpty(e.regionConstraints))
         {
             //Cleanup and split list of constraints
-            string c = Regex.Replace(e.regionConstraints, QuotedStringListHelper.FirstAndLastSingleQuoteRegex, "");
-            constraints = Regex.Split(c, QuotedStringListHelper.SeparatorSingleQuoteRegex);
+            string c = Regex.Replace(e.regionConstraints, ModUtility.FirstAndLastSingleQuoteRegex, "");
+            constraints = Regex.Split(c, ModUtility.SeparatorSingleQuoteRegex);
         }
 
         //Cleanup and split list of association strings
-        string a = Regex.Replace(e.phraseAssociations, QuotedStringListHelper.FirstAndLastSingleQuoteRegex, "");
-        associationStrs = Regex.Split(a, QuotedStringListHelper.SeparatorSingleQuoteRegex);
+        string a = Regex.Replace(e.phraseAssociations, ModUtility.FirstAndLastSingleQuoteRegex, "");
+        associationStrs = Regex.Split(a, ModUtility.SeparatorSingleQuoteRegex);
 
         Element element = new Element(e.id, e.name, adjectives, constraints, associationStrs);
 

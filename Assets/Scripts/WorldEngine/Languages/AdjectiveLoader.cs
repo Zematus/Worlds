@@ -52,8 +52,8 @@ public class AdjectiveLoader
         if (!string.IsNullOrEmpty(adj.regionConstraints))
         {
             //Cleanup and split list of constraints
-            string c = Regex.Replace(adj.regionConstraints, QuotedStringListHelper.FirstAndLastSingleQuoteRegex, "");
-            constraints = Regex.Split(c, QuotedStringListHelper.SeparatorSingleQuoteRegex);
+            string c = Regex.Replace(adj.regionConstraints, ModUtility.FirstAndLastSingleQuoteRegex, "");
+            constraints = Regex.Split(c, ModUtility.SeparatorSingleQuoteRegex);
         }
         
         Adjective adjective = new Adjective(adj.id, adj.word, constraints);
