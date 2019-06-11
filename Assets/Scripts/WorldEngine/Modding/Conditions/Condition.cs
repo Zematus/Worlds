@@ -5,6 +5,8 @@ using System.Text.RegularExpressions;
 
 public abstract class Condition
 {
+    public const string InnerConditionRegex = @"^\s*(?:(?'Open'\()[^\(\)]*)+(?:(?'Inner-Open'\))[^\(\)]*)+(?(Open)(?!))\s*$";
+
     public static Condition BuildCondition(string conditionStr)
     {
         Condition condition = null;
