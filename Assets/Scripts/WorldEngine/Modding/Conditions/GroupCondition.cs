@@ -14,6 +14,24 @@ public abstract class GroupCondition : Condition
 
     public GroupType TargetType;
 
+    public GroupCondition(string typeStr)
+    {
+        switch (typeStr.Trim().ToLower())
+        {
+            case "this":
+                TargetType = GroupType.This;
+                break;
+
+            case "neighbor":
+                TargetType = GroupType.Neighbor;
+                break;
+
+            case "thisorneighbor":
+                TargetType = GroupType.ThisOrNeighbor;
+                break;
+        }
+    }
+
     public override bool Evaluate(CellGroup group)
     {
         switch (TargetType)

@@ -6,32 +6,18 @@ using UnityEngine;
 
 public class ScriptTesterScript : MonoBehaviour
 {
-    public const string InnerConditionRegex = @"^\s*(?:(?'Open'\()[^\(\)]*)+(?:(?'Inner-Open'\))[^\(\)]*)+(?(Open)(?!))\s*$";
-
     // This script is meant to be very simple and to be used to test / develop other scripts. 
     // Kind of like a unit test, but not really...
 
     // Start is called before the first frame update
     void Start()
     {
-        string input = " (abc(xyz)def) ";
+        //string input = "(abc(xyz)def)";
+        string input = "[NOT] (group_has_knowledge:neighbor,agriculture_knowledge [OR] ([NOT]cell_is_sea:this) [OR] cell_is_sea:neighbor)";
 
-        Match m = Regex.Match(input, InnerConditionRegex);
-        if (m.Success == true)
-        {
-            Debug.Log("Inner: " + m.Groups["Inner"].Value);
+        Condition condition = Condition.BuildCondition(input);
 
-            int capCtr = 0;
-            foreach (Capture cap in m.Groups["Inner"].Captures)
-            {
-                Debug.Log("   Inner Capture " + capCtr + ": " + cap.Value);
-                capCtr++;
-            }
-        }
-        else
-        {
-            Debug.Log("Match failed.");
-        }
+        Debug.Log(condition.ToString());
 
         Debug.Break();
     }
