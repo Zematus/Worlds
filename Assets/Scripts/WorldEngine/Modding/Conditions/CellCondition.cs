@@ -14,7 +14,7 @@ public abstract class CellCondition : Condition
 
     public CellType TargetType;
 
-    public CellCondition(string typeStr)
+    protected CellCondition(string typeStr)
     {
         switch (typeStr.Trim().ToLower())
         {
@@ -29,6 +29,9 @@ public abstract class CellCondition : Condition
             case "thisorneighbor":
                 TargetType = CellType.ThisOrNeighbor;
                 break;
+
+            default:
+                throw new System.ArgumentException("Unhandled target type: " + typeStr);
         }
     }
 

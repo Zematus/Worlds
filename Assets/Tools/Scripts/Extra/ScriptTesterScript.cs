@@ -12,12 +12,77 @@ public class ScriptTesterScript : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        //string input = "(abc(xyz)def)";
-        string input = "[NOT] (group_has_knowledge:neighbor,agriculture_knowledge [OR] ([NOT]cell_is_sea:this) [OR] cell_is_sea:neighbor)";
+        string input = "[INV][SQ]neighborhood_sea_presence";
+
+        Match match = Regex.Match(input, ModUtility.MixedStatementRegex);
+        if (match.Success == true)
+        {
+            Debug.Log(match.Groups["operand"].Value + "::" + match.Groups["statement"].Value);
+        }
+        else
+        {
+            Debug.Log("Couldn't match: " + input);
+        }
+
+        input = "[INV][SQ](neighborhood_sea_presence)";
+
+        match = Regex.Match(input, ModUtility.MixedStatementRegex);
+        if (match.Success == true)
+        {
+            Debug.Log(match.Groups["operand"].Value + "::" + match.Groups["statement"].Value);
+        }
+        else
+        {
+            Debug.Log("Couldn't match: " + input);
+        }
+
+        input = "[INV]([SQ]neighborhood_sea_presence)";
+
+        match = Regex.Match(input, ModUtility.MixedStatementRegex);
+        if (match.Success == true)
+        {
+            Debug.Log(match.Groups["operand"].Value + "::" + match.Groups["statement"].Value);
+        }
+        else
+        {
+            Debug.Log("Couldn't match: " + input);
+        }
+
+        input = "([INV][SQ]neighborhood_sea_presence)";
+
+        match = Regex.Match(input, ModUtility.MixedStatementRegex);
+        if (match.Success == true)
+        {
+            Debug.Log(match.Groups["operand"].Value + "::" + match.Groups["statement"].Value);
+        }
+        else
+        {
+            Debug.Log("Couldn't match: " + input);
+        }
+
+        Debug.Break();
+
+        input = "[NOT] (group_has_knowledge:neighbor,agriculture_knowledge,3 [OR] ([NOT]cell_has_sea:this) [OR] cell_has_sea:neighbor,0.30)";
 
         Condition condition = Condition.BuildCondition(input);
 
         Debug.Log(condition.ToString());
+        
+        Factor factor = Factor.BuildFactor("[INV][SQ]neighborhood_sea_presence");
+
+        Debug.Log(factor.ToString());
+
+        factor = Factor.BuildFactor("[INV]([SQ]neighborhood_sea_presence)");
+
+        Debug.Log(factor.ToString());
+
+        factor = Factor.BuildFactor("[SQ]([INV]neighborhood_sea_presence)");
+
+        Debug.Log(factor.ToString());
+
+        factor = Factor.BuildFactor("[SQ][INV](neighborhood_sea_presence)");
+
+        Debug.Log(factor.ToString());
 
         Debug.Break();
     }

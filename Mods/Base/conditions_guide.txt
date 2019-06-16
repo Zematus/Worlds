@@ -4,9 +4,9 @@ Conditions are rules that can be evaluated against different types of entities (
 
 - Condition modifiers -
 
-NEGATION: A condition can be negated by prefixing [NOT] before the condition. A negated condition must be false to pass. Both the prefix and the condition must be enclosed together in single quotes like this: '[NOT]<condition>'
+[NOT] : NEGATION: A condition can be negated by prefixing [NOT] before the condition. A negated condition must be false to pass. Both the prefix and the condition must be enclosed together in single quotes like this: '[NOT]<condition>'
 
-ALTERNATION: Two or more conditions can be set to be alternate by appending them together using the [OR] infix. In which case, if any of the conditions is true then the whole alternation passes. All of the conditions and infixes must be enclosed together in single quotes like this: '<condition1>[OR]<condition2>([OR]<additional conditions>)'
+[OR] - ALTERNATION: Two or more conditions can be set to be alternate by appending them together using the [OR] infix. In which case, if any of the conditions is true then the whole alternation passes. All of the conditions and infixes must be enclosed together in single quotes like this: '<condition1>[OR]<condition2>([OR]<additional conditions>)'
 
 Modifiers can be uses together using parenthesis to set modifier priority (values between parenthesis evaluate first).
 Example: '[NOT](<condition1>[OR]([NOT]<condition2>)[OR]<condition3>)'
@@ -31,13 +31,13 @@ Here's a list of the current types of conditions (more to be added in future ver
 
     Examples: 'group_min_population:this,10000'
 
-- 'cell_is_sea'
-    Tests if a cell has a sea type biome. The format of the constraint is as follows: 'cell_is_sea:<cell_type>'
+- 'cell_has_sea'
+    Tests if a cell has a sea presence equal or greater than 0.01 or than the specified value (optional value between 0 and 1). The format of the constraint is as follows: 'cell_has_sea:<cell_type>(,<min_presence>)'
     These are valid group types:
     - 'this': the cell this condition is being evaluated for
     - 'neighbor': any cell adjacent to the cell this condition is being evaluated for
     - 'thisOrNeighbor': the cell this condition is being evaluated for or any group adjacent to it
 
-    Examples: 'cell_is_sea:neighbor', 'cell_is_sea:this'
+    Examples: 'cell_has_sea:neighbor', 'cell_has_sea:this,0.5'
 
 --

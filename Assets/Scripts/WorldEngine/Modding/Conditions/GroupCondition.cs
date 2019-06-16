@@ -14,7 +14,7 @@ public abstract class GroupCondition : Condition
 
     public GroupType TargetType;
 
-    public GroupCondition(string typeStr)
+    protected GroupCondition(string typeStr)
     {
         switch (typeStr.Trim().ToLower())
         {
@@ -29,6 +29,9 @@ public abstract class GroupCondition : Condition
             case "thisorneighbor":
                 TargetType = GroupType.ThisOrNeighbor;
                 break;
+
+            default:
+                throw new System.ArgumentException("Unhandled target type: " + typeStr);
         }
     }
 

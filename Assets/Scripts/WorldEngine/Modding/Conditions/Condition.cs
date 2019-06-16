@@ -5,46 +5,37 @@ using System.Text.RegularExpressions;
 
 public abstract class Condition
 {
-    public const string BaseConditionRegexPart = @"(?<Cond>[^\(\)]+)";
-    public const string BaseConditionRegex = @"^\s*" + BaseConditionRegexPart + @"\s*$";
-    public const string InnerConditionRegexPart = @"(?:(?<Open>\()[^\(\)]*)+(?:(?<Cond-Open>\))[^\(\)]*)+(?(Open)(?!))";
-    public const string InnerConditionRegex = @"^\s*" + InnerConditionRegexPart + @"\s*$";
-    public const string MixedConditionRegexPart = "(?:" + InnerConditionRegexPart + "|" + BaseConditionRegexPart + ")";
-    public const string MixedConditionRegex = @"^\s*" + MixedConditionRegexPart + @"\s*$";
-    public const string NotConditionRegex = @"^\s*\[NOT\]\s*" + MixedConditionRegexPart + @"\s*$";
-    public const string OrConditionRegex = @"^\s*" + MixedConditionRegexPart + @"\s*\[OR\]\s*(?<Cond2>.+)\s*$";
-
     public static Condition BuildCondition(string conditionStr)
     {
-        Match match = Regex.Match(conditionStr, OrConditionRegex);
+        Match match = Regex.Match(conditionStr, ModUtility.OrStatementRegex);
         if (match.Success == true)
         {
-            string conditionAStr = match.Groups["Cond"].Value;
-            string conditionBStr = match.Groups["Cond2"].Value;
+            string conditionAStr = match.Groups["Statement"].Value;
+            string conditionBStr = match.Groups["Statement2"].Value;
 
             return new OrCondition(conditionAStr, conditionBStr);
         }
 
-        match = Regex.Match(conditionStr, NotConditionRegex);
+        match = Regex.Match(conditionStr, ModUtility.NotStatementRegex);
         if (match.Success == true)
         {
-            conditionStr = match.Groups["Cond"].Value;
+            conditionStr = match.Groups["Statement"].Value;
 
             return new NotCondition(conditionStr);
         }
 
-        match = Regex.Match(conditionStr, InnerConditionRegex);
+        match = Regex.Match(conditionStr, ModUtility.InnerStatementRegex);
         if (match.Success == true)
         {
-            conditionStr = match.Groups["Cond"].Value;
+            conditionStr = match.Groups["Statement"].Value;
 
             return BuildCondition(conditionStr);
         }
 
-        match = Regex.Match(conditionStr, BaseConditionRegex);
+        match = Regex.Match(conditionStr, ModUtility.BaseStatementRegex);
         if (match.Success != true)
         {
-            conditionStr = match.Groups["Cond"].Value;
+            conditionStr = match.Groups["Statement"].Value;
             throw new System.ArgumentException("Not a valid parseable condition: " + conditionStr);
         }
 
@@ -59,13 +50,26 @@ public abstract class Condition
             return new GroupHasKnowledgeCondition(match);
         }
 
-        match = Regex.Match(conditionStr, CellIsSeaCondition.Regex);
+        match = Regex.Match(conditionStr, CellHasSeaCondition.Regex);
         if (match.Success == true)
         {
-            return new CellIsSeaCondition(match);
+            return new CellHasSeaCondition(match);
         }
 
         throw new System.ArgumentException("Not a recognized condition: " + conditionStr);
+    }
+
+    public static Condition[] BuildConditions(ICollection<string> conditionStrs)
+    {
+        Condition[] conditions = new Condition[conditionStrs.Count];
+
+        int i = 0;
+        foreach (string conditionStr in conditionStrs)
+        {
+            conditions[i++] = BuildCondition(conditionStr);
+        }
+
+        return conditions;
     }
 
     public abstract bool Evaluate(CellGroup group);

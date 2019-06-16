@@ -135,6 +135,26 @@ public class TerrainCell : ISynchronizable
     [XmlIgnore]
     public float SeaBiomePresence = 0;
 
+    private float? _neighborhoodSeaBiomePresence = null;
+
+    [XmlIgnore]
+    public float NeighborhoodSeaBiomePresence
+    {
+        get {
+            if (_neighborhoodSeaBiomePresence == null)
+            {
+                _neighborhoodSeaBiomePresence = SeaBiomePresence;
+
+                foreach (TerrainCell nCell in Neighbors.Values)
+                {
+                    _neighborhoodSeaBiomePresence += nCell.SeaBiomePresence;
+                }
+            }
+
+            return _neighborhoodSeaBiomePresence.Value;
+        }
+    }
+
     [XmlIgnore]
     public WorldPosition Position;
 

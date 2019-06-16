@@ -13,6 +13,11 @@ public class DiscoveryClass
     
     public long EventTimeToTrigger;
 
-    public Condition[] GainConditions;
-    public Condition[] HoldConditions;
+    public Condition[] GainConditions = null;
+    public Condition[] HoldConditions = null;
+
+    public Effect[] GainEffects = null;
+    public Effect[] LossEffects = null;
+
+    public Effect[] TimeToTriggerFactors = null;
 }

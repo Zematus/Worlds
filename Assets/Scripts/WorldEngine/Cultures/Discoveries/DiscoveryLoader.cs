@@ -57,13 +57,45 @@ public class DiscoveryLoader
             throw new ArgumentException("discovery event time-to-trigger must be a value between 0 and 2,147,483,647 (inclusive)");
         }
 
-        string[] gainConditions = null;
+        Condition[] gainConditions = null;
+        Condition[] holdConditions = null;
+        Effect[] gainEffects = null;
+        Effect[] lossEffects = null;
 
         if (!string.IsNullOrEmpty(d.gainConditions))
         {
             //Cleanup and split list of conditions
             string c = Regex.Replace(d.gainConditions, ModUtility.FirstAndLastSingleQuoteRegex, "");
-            gainConditions = Regex.Split(c, ModUtility.SeparatorSingleQuoteRegex);
+            string[] gainConditionsStr = Regex.Split(c, ModUtility.SeparatorSingleQuoteRegex);
+
+            gainConditions = Condition.BuildConditions(gainConditionsStr);
+        }
+
+        if (!string.IsNullOrEmpty(d.holdConditions))
+        {
+            //Cleanup and split list of conditions
+            string c = Regex.Replace(d.holdConditions, ModUtility.FirstAndLastSingleQuoteRegex, "");
+            string[] holdConditionsStr = Regex.Split(c, ModUtility.SeparatorSingleQuoteRegex);
+
+            holdConditions = Condition.BuildConditions(holdConditionsStr);
+        }
+
+        if (!string.IsNullOrEmpty(d.gainEffects))
+        {
+            //Cleanup and split list of effects
+            string e = Regex.Replace(d.gainEffects, ModUtility.FirstAndLastSingleQuoteRegex, "");
+            string[] gainEffectsStr = Regex.Split(e, ModUtility.SeparatorSingleQuoteRegex);
+
+            gainEffects = Effect.BuildEffects(gainEffectsStr);
+        }
+
+        if (!string.IsNullOrEmpty(d.lossEffects))
+        {
+            //Cleanup and split list of effects
+            string e = Regex.Replace(d.lossEffects, ModUtility.FirstAndLastSingleQuoteRegex, "");
+            string[] lossEffectsStr = Regex.Split(e, ModUtility.SeparatorSingleQuoteRegex);
+
+            lossEffects = Effect.BuildEffects(lossEffectsStr);
         }
 
         DiscoveryClass discoveryClass = new DiscoveryClass()
@@ -71,7 +103,11 @@ public class DiscoveryLoader
             Id = d.id,
             IdHash = d.id.GetHashCode(),
             Name = d.name,
-            EventTimeToTrigger = d.eventTimeToTrigger
+            EventTimeToTrigger = d.eventTimeToTrigger,
+            GainConditions = gainConditions,
+            HoldConditions = holdConditions,
+            GainEffects = gainEffects,
+            LossEffects = lossEffects
         };
 
         return discoveryClass;

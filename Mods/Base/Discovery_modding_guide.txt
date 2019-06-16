@@ -30,6 +30,6 @@ Discovery modding files are located within the 'Discoveries' folder. To be valid
 2. Each condition within the list must be encased within single quotes. Refer to conditions_guide.txt for more details on how to define and use conditions
 3. Each effect within the list must be encased within single quotes. Refer to effects_guide.txt for more details on how to define and use effects
 4. If a discovery no longer meets its hold conditions then it will be removed from the cell group. In which case, the gain conditions might get reevaluated and a subsequent discovery event reassigned to the group if possible
-5. Each factor within the list must be encased within single quotes. Factors, once calculated, will be multiplied against the time-to-trigger base value of a discovery to calculate that maximum amount of time that can pass between the inception of an event and when it finally triggers. Refer to timeToTriggerFactors_guide.txt for more details on how to define and use time-to-trigger factors.
+5. Each factor within the list must be encased within single quotes. Factors, once calculated, will be multiplied against the time-to-trigger base value of a discovery to calculate that maximum amount of time that can pass between the inception of an event and when it finally triggers. If a factor is zero, the time-to-trigger will be set to a minimum value (e.g. 1 day). Refer to factors_guide.txt for more details on how to define and use factors.
 
 --

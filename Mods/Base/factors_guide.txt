@@ -1,0 +1,21 @@
+---- Factors Guide ----
+
+Factors are properties that can be used to modify other properties like, for example, and event time-to-trigger. Note that factors will always have values between 0 and 1 (inclusive).
+
+- Factor Modifiers -
+
+[SQ] - SQUARE: A factor's effect can squared (i.e. multiply the factor by itself) before being applied to the affected property by using the [SQ] prefix.
+
+[INV] - INVERSE: A factor's effect can be inversed by applying the [INV] prefix so that the affected property becomes inversely proportional (i.e. '[INV]<factor>' equals '1 - <factor>').
+
+Modifiers must be enclosed together with factors within single quotes. Modifiers can be used together using parenthesis to set modifier priority (values between parenthesis evaluate first).
+Example: '[SQ]([INV]<factor>)'
+
+Here's a list of the current types of factors (more to be added in future versions) and how they work:
+
+- 'neighborhood_sea_presence'
+    Calculates the total amount of sea-type biomes present in the target cell and all neighboring cells surrounding the cell. The factor's value will fall within the range of 0 (no sea presence in the target cell nor any surrounding cell) and 1 (all 9 cells have 100% sea-type biome presence)
+
+    Examples: 'neighborhood_sea_presence', '[INV]neighborhood_sea_presence'
+
+--

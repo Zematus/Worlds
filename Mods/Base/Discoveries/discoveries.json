@@ -6,8 +6,8 @@
       "gainConditions": "'[NOT]group_has_knowledge:this,shipbuilding_knowledge','cell_is_sea:neighbor'",
       "holdConditions": "'group_has_knowledge:this,shipbuilding_knowledge'",
       "gainEffects": "'group_gains_knowledge:this,shipbuilding_knowledge'",
-      "eventTimeToTrigger": 250000,
-      "eventTimeToTriggerFactors":"'neighborhood_sea_presence'"
+      "eventTimeToTrigger": 91250000,
+      "eventTimeToTriggerFactors":"'[INV]neighborhood_sea_presence'"
     }
   ]
 }
