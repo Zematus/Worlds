@@ -17,7 +17,7 @@ public class ScriptTesterScript : MonoBehaviour
         Match match = Regex.Match(input, ModUtility.MixedStatementRegex);
         if (match.Success == true)
         {
-            Debug.Log(match.Groups["operand"].Value + "::" + match.Groups["statement"].Value);
+            Debug.Log(match.Groups["unaryOp"].Value + "::" + match.Groups["ops"].Value + match.Groups["statement"].Value);
         }
         else
         {
@@ -29,7 +29,7 @@ public class ScriptTesterScript : MonoBehaviour
         match = Regex.Match(input, ModUtility.MixedStatementRegex);
         if (match.Success == true)
         {
-            Debug.Log(match.Groups["operand"].Value + "::" + match.Groups["statement"].Value);
+            Debug.Log(match.Groups["unaryOp"].Value + "::" + match.Groups["ops"].Value + match.Groups["statement"].Value);
         }
         else
         {
@@ -41,7 +41,7 @@ public class ScriptTesterScript : MonoBehaviour
         match = Regex.Match(input, ModUtility.MixedStatementRegex);
         if (match.Success == true)
         {
-            Debug.Log(match.Groups["operand"].Value + "::" + match.Groups["statement"].Value);
+            Debug.Log(match.Groups["unaryOp"].Value + "::" + match.Groups["ops"].Value + match.Groups["statement"].Value);
         }
         else
         {
@@ -53,7 +53,7 @@ public class ScriptTesterScript : MonoBehaviour
         match = Regex.Match(input, ModUtility.MixedStatementRegex);
         if (match.Success == true)
         {
-            Debug.Log(match.Groups["operand"].Value + "::" + match.Groups["statement"].Value);
+            Debug.Log(match.Groups["unaryOp"].Value + "::" + match.Groups["ops"].Value + match.Groups["statement"].Value);
         }
         else
         {

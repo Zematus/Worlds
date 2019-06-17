@@ -12,12 +12,16 @@ public static class ModUtility
     public const string NumberRegexPart = @"\d+(?:\.\d+)?";
 
     public const string OperandRegexPart = @"\[\w+\]\s*";
-    public const string BaseStatementRegexPart = @"(?<operand>" + OperandRegexPart + @")?(?<statement>[^\(\)]+)";
+    public const string BaseStatementRegexPart = @"(?<unaryOp>" + OperandRegexPart + @")?(?<statement>[^\(\)]+)";
     public const string BaseStatementRegex = @"^\s*" + BaseStatementRegexPart + @"\s*$";
-    public const string InnerStatementRegexPart = @"(?:(?<open>(?<operand>" + OperandRegexPart + @")?\()[^\(\)]*)+(?:(?<statement-open>\))[^\(\)]*)+(?(open)(?!))";
+    public const string InnerStatementRegexPart =
+        @"(?:(?<open>(?:(?<unaryOp>" + OperandRegexPart + @")(?<ops>(?:" + OperandRegexPart  + @")*))?\()[^\(\)]*)+" + 
+        @"(?:(?<statement-open>\))[^\(\)]*)+(?(open)(?!))";
     public const string InnerStatementRegex = @"^\s*" + InnerStatementRegexPart + @"\s*$";
     public const string MixedStatementRegexPart = @"(?:" + InnerStatementRegexPart + "|" + BaseStatementRegexPart + ")";
     public const string MixedStatementRegex = @"^\s*" + MixedStatementRegexPart + @"\s*$";
+    public const string BynaryStatementRegex = 
+        @"^\s*" + MixedStatementRegexPart + @"\s*(?<binaryOp>" + OperandRegexPart + @")(?<statement2>.+)\s*$";
 
     public const string NotStatementRegex = @"^\s*\[NOT\]\s*" + MixedStatementRegexPart + @"\s*$";
     public const string OrStatementRegex = @"^\s*" + MixedStatementRegexPart + @"\s*\[OR\]\s*(?<statement2>.+)\s*$";
