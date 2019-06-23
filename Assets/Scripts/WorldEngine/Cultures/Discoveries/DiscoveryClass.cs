@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
-public class DiscoveryClass
+public class DiscoveryClass : ICellGroupEventGenerator
 {
     public static Dictionary<string, DiscoveryClass> Discoveries;
 
@@ -12,6 +12,8 @@ public class DiscoveryClass
     public string Name;
 
     public int IdHash;
+    public string EventId;
+    public string EventSetFlag;
 
     public Condition[] GainConditions = null;
     public Condition[] HoldConditions = null;
@@ -42,5 +44,46 @@ public class DiscoveryClass
                 Discoveries.Add(discovery.Id, discovery);
             }
         }
+    }
+
+    public static void InitializeDiscoveries()
+    {
+        foreach (DiscoveryClass discovery in Discoveries.Values)
+        {
+            discovery.Initialize();
+        }
+    }
+
+    public void Initialize()
+    {
+        EventId = Id + "_discovery_event";
+        EventSetFlag = EventId + "_set";
+    }
+
+    public bool CanGainDiscovery(CellGroup group)
+    {
+        if (group.Culture.HasDiscovery(Id))
+            return false;
+
+        foreach (Condition condition in GainConditions)
+        {
+            if (!condition.Evaluate(group))
+                return false;
+        }
+
+        return true;
+    }
+
+    public bool CanAssignEventTypeToGroup(CellGroup group)
+    {
+        if (group.IsFlagSet(EventSetFlag))
+            return false;
+
+        return CanGainDiscovery(group);
+    }
+
+    public CellGroupEvent GenerateAndAddEvent(CellGroup group)
+    {
+        throw new System.NotImplementedException();
     }
 }

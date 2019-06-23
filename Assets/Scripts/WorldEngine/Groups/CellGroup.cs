@@ -34,6 +34,8 @@ public class CellGroup : HumanGroup
     public const float MaxCoreDistance = 1000000000000f;
 
     public static float TravelWidthFactor;
+    
+    public static List<ICellGroupEventGenerator> EventGenerators;
 
     [XmlAttribute]
     public long Id;
@@ -385,6 +387,11 @@ public class CellGroup : HumanGroup
             if (Neighbors.TryGetValue(Direction.Northwest, out group))
                 yield return group;
         }
+    }
+
+    public static void ResetEventGenerators()
+    {
+        EventGenerators = new List<ICellGroupEventGenerator>();
     }
 
     public void UpdatePreferredMigrationDirection()

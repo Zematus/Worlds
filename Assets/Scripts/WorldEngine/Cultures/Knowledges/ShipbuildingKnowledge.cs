@@ -7,7 +7,7 @@ using UnityEngine.Profiling;
 
 public class ShipbuildingKnowledge : CellCulturalKnowledge
 {
-    public const string KnowledgeId = "ShipbuildingKnowledge";
+    public const string KnowledgeId = "shipbuilding";
     public const string KnowledgeName = "Shipbuilding";
 
     public const int KnowledgeRngOffset = 0;

@@ -6,7 +6,7 @@ using System.Xml.Serialization;
 
 public class BoatMakingDiscovery : CellCulturalDiscovery
 {
-    public const string DiscoveryId = "BoatMakingDiscovery";
+    public const string DiscoveryId = "boat_making";
     public const string DiscoveryName = "Boat Making";
 
     public BoatMakingDiscovery() : base(DiscoveryId, DiscoveryName)
