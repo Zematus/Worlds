@@ -7,39 +7,79 @@ public abstract class Condition
 {
     public static Condition BuildCondition(string conditionStr)
     {
-        Match match = Regex.Match(conditionStr, ModUtility.OrStatementRegex);
+        Debug.Log("parsing: " + conditionStr);
+
+        Match match = Regex.Match(conditionStr, ModUtility.BinaryOpStatementRegex);
+
         if (match.Success == true)
         {
-            string conditionAStr = match.Groups["Statement"].Value;
-            string conditionBStr = match.Groups["Statement2"].Value;
+            Debug.Log("match: " + match.Value);
+            Debug.Log("statement1: " + ModUtility.Debug_CapturesToString(match.Groups["statement1"]));
+            Debug.Log("binaryOp: " + ModUtility.Debug_CapturesToString(match.Groups["binaryOp"]));
+            Debug.Log("statement2: " + ModUtility.Debug_CapturesToString(match.Groups["statement2"]));
 
-            return new OrCondition(conditionAStr, conditionBStr);
+            return BuildBinaryOpCondition(match);
         }
 
-        match = Regex.Match(conditionStr, ModUtility.NotStatementRegex);
+        match = Regex.Match(conditionStr, ModUtility.UnaryOpStatementRegex);
         if (match.Success == true)
         {
-            conditionStr = match.Groups["Statement"].Value;
+            Debug.Log("match: " + match.Value);
+            Debug.Log("statement: " + ModUtility.Debug_CapturesToString(match.Groups["statement"]));
+            Debug.Log("unaryOp: " + ModUtility.Debug_CapturesToString(match.Groups["unaryOp"]));
 
-            return new NotCondition(conditionStr);
+            return BuildUnaryOpCondition(match);
         }
 
         match = Regex.Match(conditionStr, ModUtility.InnerStatementRegex);
         if (match.Success == true)
         {
-            conditionStr = match.Groups["Statement"].Value;
+            Debug.Log("match: " + match.Value);
+            Debug.Log("innerStatement: " + ModUtility.Debug_CapturesToString(match.Groups["innerStatement"]));
+
+            conditionStr = match.Groups["innerStatement"].Value;
 
             return BuildCondition(conditionStr);
         }
 
         match = Regex.Match(conditionStr, ModUtility.BaseStatementRegex);
-        if (match.Success != true)
+        if (match.Success == true)
         {
-            conditionStr = match.Groups["Statement"].Value;
-            throw new System.ArgumentException("Not a valid parseable condition: " + conditionStr);
+            conditionStr = match.Groups["statement"].Value;
+
+            return BuildBaseCondition(conditionStr);
         }
 
-        return BuildBaseCondition(conditionStr);
+        throw new System.ArgumentException("Not a valid parseable condition: " + conditionStr);
+    }
+
+    private static Condition BuildBinaryOpCondition(Match match)
+    {
+        string conditionAStr = match.Groups["statement1"].Value;
+        string conditionBStr = match.Groups["statement2"].Value;
+        string binaryOpStr = match.Groups["binaryOp"].Value.Trim().ToUpper();
+
+        switch (binaryOpStr)
+        {
+            case "[OR]":
+                return new OrCondition(conditionAStr, conditionBStr);
+        }
+
+        throw new System.ArgumentException("Unrecognized binary op: " + binaryOpStr);
+    }
+
+    private static Condition BuildUnaryOpCondition(Match match)
+    {
+        string conditionStr = match.Groups["statement"].Value;
+        string unaryOp = match.Groups["unaryOp"].Value.Trim().ToUpper();
+
+        switch (unaryOp)
+        {
+            case "[NOT]":
+                return new NotCondition(conditionStr);
+        }
+
+        throw new System.ArgumentException("Unrecognized unary op: " + unaryOp);
     }
 
     private static Condition BuildBaseCondition(string conditionStr)

@@ -11,21 +11,54 @@ public static class ModUtility
     public const string IdentifierRegexPart = @"[a-zA-Z_][a-zA-Z0-9_]*";
     public const string NumberRegexPart = @"\d+(?:\.\d+)?";
 
-    public const string OperandRegexPart = @"\[\w+\]\s*";
-    public const string BaseStatementRegexPart = @"(?<unaryOp>" + OperandRegexPart + @")?(?<statement>[^\(\)]+)";
-    public const string BaseStatementRegex = @"^\s*" + BaseStatementRegexPart + @"\s*$";
+    public const string OperatorRegexPart = @"\[\w+\]";
+    
+    public const string BaseStatementRegexPart = 
+        @"[^\[\]\(\)]+";
     public const string InnerStatementRegexPart =
-        @"(?:(?<open>(?:(?<unaryOp>" + OperandRegexPart + @")(?<ops>(?:" + OperandRegexPart  + @")*))?\()[^\(\)]*)+" + 
-        @"(?:(?<statement-open>\))[^\(\)]*)+(?(open)(?!))";
-    public const string InnerStatementRegex = @"^\s*" + InnerStatementRegexPart + @"\s*$";
-    public const string MixedStatementRegexPart = @"(?:" + InnerStatementRegexPart + "|" + BaseStatementRegexPart + ")";
-    public const string MixedStatementRegex = @"^\s*" + MixedStatementRegexPart + @"\s*$";
-    public const string BynaryStatementRegex = 
-        @"^\s*" + MixedStatementRegexPart + @"\s*(?<binaryOp>" + OperandRegexPart + @")(?<statement2>.+)\s*$";
+        @"(?:(?<open>\()[^\(\)]*?)+" +
+        @"(?:(?<innerStatement-open>\))[^\(\)]*?)+" +
+        @"(?(open)(?!))";
 
-    public const string NotStatementRegex = @"^\s*\[NOT\]\s*" + MixedStatementRegexPart + @"\s*$";
-    public const string OrStatementRegex = @"^\s*" + MixedStatementRegexPart + @"\s*\[OR\]\s*(?<statement2>.+)\s*$";
+    public const string OperandStatementRegexPart =
+        @"(?:" +
+            BaseStatementRegexPart +
+        @")|(?:" +
+            InnerStatementRegexPart +
+        @")";
 
-    public const string InvStatementRegex = @"^\s*\[INV\]\s*" + MixedStatementRegexPart + @"\s*$";
-    public const string SqStatementRegex = @"^\s*\[SQ\]\s*" + MixedStatementRegexPart + @"\s*$";
+    public const string UnaryOpStatementRegex =
+        @"^\s*" +
+        @"(?<unaryOp>" + OperatorRegexPart + @")\s*" +
+        @"(?<statement>" + OperandStatementRegexPart + @")\s*" +
+        @"$";
+    public const string BinaryOpStatementRegex =
+        @"^\s*" +
+        @"(?<statement1>" + OperandStatementRegexPart + @")\s*" +
+        @"(?<binaryOp>" + OperatorRegexPart + @")\s*" +
+        @"(?<statement2>" +
+            @"(?:" + OperandStatementRegexPart + @")" +
+            @"(?:\s*" + 
+                @"(?:" + OperatorRegexPart + @")\s*" +
+                @"(?:" + OperandStatementRegexPart + @")" +
+            @")*" + 
+        @")\s*" +
+        @"$";
+    
+    public const string BaseStatementRegex = @"^\s*(?<statement>" + BaseStatementRegexPart + @")\s*$";
+    public const string OperandStatementRegex = @"^\s*(?<statement>" + OperandStatementRegexPart + @")\s*$";
+    public const string InnerStatementRegex = @"^\s*(?<statement>" + InnerStatementRegexPart + @")\s*$";
+
+    public static string Debug_CapturesToString(Group group)
+    {
+        string cString = "";
+
+        foreach (Capture c in group.Captures)
+        {
+            cString += c.Value + "; ";
+        }
+
+        return cString;
+    }
+
 }

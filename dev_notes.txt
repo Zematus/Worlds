@@ -17,6 +17,8 @@ TASKS:
 - Resolution options
 - Log of the world's history
 
+- In the next open poll add an item for history timelapses
+
 EXTRA:
 
 - Don't create MigrationGroup objects on every migration

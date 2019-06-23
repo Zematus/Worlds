@@ -7,38 +7,54 @@ public abstract class Factor
 {
     public static Factor BuildFactor(string factorStr)
     {
-        Match match = Regex.Match(factorStr, ModUtility.InvStatementRegex);
+        Debug.Log("parsing: " + factorStr);
+
+        Match match = Regex.Match(factorStr, ModUtility.UnaryOpStatementRegex);
         if (match.Success == true)
         {
-            factorStr = match.Groups["Statement"].Value;
+            Debug.Log("match: " + match.Value);
+            Debug.Log("statement: " + ModUtility.Debug_CapturesToString(match.Groups["statement"]));
+            Debug.Log("unaryOp: " + ModUtility.Debug_CapturesToString(match.Groups["unaryOp"]));
 
-            return new InvFactor(factorStr);
-        }
-
-        match = Regex.Match(factorStr, ModUtility.SqStatementRegex);
-        if (match.Success == true)
-        {
-            factorStr = match.Groups["Statement"].Value;
-
-            return new SqFactor(factorStr);
+            return BuildUnaryOpFactor(match);
         }
 
         match = Regex.Match(factorStr, ModUtility.InnerStatementRegex);
         if (match.Success == true)
         {
-            factorStr = match.Groups["Statement"].Value;
+            Debug.Log("match: " + match.Value);
+            Debug.Log("innerStatement: " + ModUtility.Debug_CapturesToString(match.Groups["innerStatement"]));
+
+            factorStr = match.Groups["innerStatement"].Value;
 
             return BuildFactor(factorStr);
         }
 
         match = Regex.Match(factorStr, ModUtility.BaseStatementRegex);
-        if (match.Success != true)
+        if (match.Success == true)
         {
-            factorStr = match.Groups["Statement"].Value;
-            throw new System.ArgumentException("Not a valid parseable factor: " + factorStr);
+            factorStr = match.Groups["statement"].Value;
+
+            return BuildBaseFactor(factorStr);
         }
 
-        return BuildBaseFactor(factorStr);
+        throw new System.ArgumentException("Not a valid parseable factor: " + factorStr);
+    }
+
+    private static Factor BuildUnaryOpFactor(Match match)
+    {
+        string factorStr = match.Groups["statement"].Value;
+        string unaryOp = match.Groups["unaryOp"].Value.Trim().ToUpper();
+
+        switch (unaryOp)
+        {
+            case "[INV]":
+                return new InvFactor(factorStr);
+            case "[SQ]":
+                return new SqFactor(factorStr);
+        }
+
+        throw new System.ArgumentException("Unrecognized unary op: " + unaryOp);
     }
 
     private static Factor BuildBaseFactor(string factorStr)
