@@ -3,18 +3,20 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class GroupGainsKnowledgeEffect : Effect
+public class GroupGainsKnowledgeEffect : GroupEffect
 {
     public const int DefaultInitialValue = 100;
 
     public const string Regex = @"^\s*group_gains_knowledge\s*" +
+        @":\s*(?<type>" + ModUtility.IdentifierRegexPart + @")\s*" +
         @",\s*(?<id>" + ModUtility.IdentifierRegexPart + @")\s*" +
         @"(?:,\s*(?<value>" + ModUtility.NumberRegexPart + @")\s*)?$";
 
     public string KnowledgeId;
     public int InitialValue;
 
-    public GroupGainsKnowledgeEffect(Match match)
+    public GroupGainsKnowledgeEffect(Match match) :
+        base(match.Groups["type"].Value)
     {
         KnowledgeId = match.Groups["id"].Value;
 
@@ -41,7 +43,7 @@ public class GroupGainsKnowledgeEffect : Effect
         }
     }
 
-    public override void Apply(CellGroup group)
+    public override void ApplyToTarget(CellGroup group)
     {
         group.Culture.TryAddKnowledgeToLearn(KnowledgeId, group, InitialValue);
     }

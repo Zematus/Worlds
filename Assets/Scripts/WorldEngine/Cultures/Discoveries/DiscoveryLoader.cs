@@ -61,6 +61,7 @@ public class DiscoveryLoader
         Condition[] holdConditions = null;
         Effect[] gainEffects = null;
         Effect[] lossEffects = null;
+        Factor[] eventTimeToTriggerFactors = null;
 
         if (!string.IsNullOrEmpty(d.gainConditions))
         {
@@ -98,17 +99,35 @@ public class DiscoveryLoader
             lossEffects = Effect.BuildEffects(lossEffectsStr);
         }
 
+        if (!string.IsNullOrEmpty(d.eventTimeToTriggerFactors))
+        {
+            //Cleanup and split list of factors
+            string f = Regex.Replace(d.eventTimeToTriggerFactors, ModUtility.FirstAndLastSingleQuoteRegex, "");
+            string[] timeToTriggerFactorsStr = Regex.Split(f, ModUtility.SeparatorSingleQuoteRegex);
+
+            eventTimeToTriggerFactors = Factor.BuildFactors(timeToTriggerFactorsStr);
+        }
+
         DiscoveryClass discoveryClass = new DiscoveryClass()
         {
             Id = d.id,
             IdHash = d.id.GetHashCode(),
             Name = d.name,
-            EventTimeToTrigger = d.eventTimeToTrigger,
             GainConditions = gainConditions,
             HoldConditions = holdConditions,
             GainEffects = gainEffects,
-            LossEffects = lossEffects
+            LossEffects = lossEffects,
+            EventTimeToTrigger = d.eventTimeToTrigger,
+            EventTimeToTriggerFactors = eventTimeToTriggerFactors,
         };
+
+        if (!string.IsNullOrEmpty(d.isPresentAtStart))
+        {
+            if (!bool.TryParse(d.isPresentAtStart, out discoveryClass.IsPresentAtStart))
+            {
+                throw new ArgumentException("Invalid isPresentAtStart value: " + d.isPresentAtStart);
+            }
+        }
 
         return discoveryClass;
     }

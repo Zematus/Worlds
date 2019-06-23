@@ -7,16 +7,16 @@ public abstract class Condition
 {
     public static Condition BuildCondition(string conditionStr)
     {
-        Debug.Log("parsing: " + conditionStr);
+        //Debug.Log("parsing: " + conditionStr);
 
         Match match = Regex.Match(conditionStr, ModUtility.BinaryOpStatementRegex);
 
         if (match.Success == true)
         {
-            Debug.Log("match: " + match.Value);
-            Debug.Log("statement1: " + ModUtility.Debug_CapturesToString(match.Groups["statement1"]));
-            Debug.Log("binaryOp: " + ModUtility.Debug_CapturesToString(match.Groups["binaryOp"]));
-            Debug.Log("statement2: " + ModUtility.Debug_CapturesToString(match.Groups["statement2"]));
+            //Debug.Log("match: " + match.Value);
+            //Debug.Log("statement1: " + ModUtility.Debug_CapturesToString(match.Groups["statement1"]));
+            //Debug.Log("binaryOp: " + ModUtility.Debug_CapturesToString(match.Groups["binaryOp"]));
+            //Debug.Log("statement2: " + ModUtility.Debug_CapturesToString(match.Groups["statement2"]));
 
             return BuildBinaryOpCondition(match);
         }
@@ -24,9 +24,9 @@ public abstract class Condition
         match = Regex.Match(conditionStr, ModUtility.UnaryOpStatementRegex);
         if (match.Success == true)
         {
-            Debug.Log("match: " + match.Value);
-            Debug.Log("statement: " + ModUtility.Debug_CapturesToString(match.Groups["statement"]));
-            Debug.Log("unaryOp: " + ModUtility.Debug_CapturesToString(match.Groups["unaryOp"]));
+            //Debug.Log("match: " + match.Value);
+            //Debug.Log("statement: " + ModUtility.Debug_CapturesToString(match.Groups["statement"]));
+            //Debug.Log("unaryOp: " + ModUtility.Debug_CapturesToString(match.Groups["unaryOp"]));
 
             return BuildUnaryOpCondition(match);
         }
@@ -34,8 +34,8 @@ public abstract class Condition
         match = Regex.Match(conditionStr, ModUtility.InnerStatementRegex);
         if (match.Success == true)
         {
-            Debug.Log("match: " + match.Value);
-            Debug.Log("innerStatement: " + ModUtility.Debug_CapturesToString(match.Groups["innerStatement"]));
+            //Debug.Log("match: " + match.Value);
+            //Debug.Log("innerStatement: " + ModUtility.Debug_CapturesToString(match.Groups["innerStatement"]));
 
             conditionStr = match.Groups["innerStatement"].Value;
 

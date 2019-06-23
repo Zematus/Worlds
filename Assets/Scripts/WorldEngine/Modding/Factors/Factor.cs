@@ -7,14 +7,14 @@ public abstract class Factor
 {
     public static Factor BuildFactor(string factorStr)
     {
-        Debug.Log("parsing: " + factorStr);
+        //Debug.Log("parsing: " + factorStr);
 
         Match match = Regex.Match(factorStr, ModUtility.UnaryOpStatementRegex);
         if (match.Success == true)
         {
-            Debug.Log("match: " + match.Value);
-            Debug.Log("statement: " + ModUtility.Debug_CapturesToString(match.Groups["statement"]));
-            Debug.Log("unaryOp: " + ModUtility.Debug_CapturesToString(match.Groups["unaryOp"]));
+            //Debug.Log("match: " + match.Value);
+            //Debug.Log("statement: " + ModUtility.Debug_CapturesToString(match.Groups["statement"]));
+            //Debug.Log("unaryOp: " + ModUtility.Debug_CapturesToString(match.Groups["unaryOp"]));
 
             return BuildUnaryOpFactor(match);
         }
@@ -22,8 +22,8 @@ public abstract class Factor
         match = Regex.Match(factorStr, ModUtility.InnerStatementRegex);
         if (match.Success == true)
         {
-            Debug.Log("match: " + match.Value);
-            Debug.Log("innerStatement: " + ModUtility.Debug_CapturesToString(match.Groups["innerStatement"]));
+            //Debug.Log("match: " + match.Value);
+            //Debug.Log("innerStatement: " + ModUtility.Debug_CapturesToString(match.Groups["innerStatement"]));
 
             factorStr = match.Groups["innerStatement"].Value;
 
