@@ -35,7 +35,7 @@ public class CellGroup : HumanGroup
 
     public static float TravelWidthFactor;
     
-    public static List<ICellGroupEventGenerator> EventGenerators;
+    public static List<ICellGroupEventGenerator> OnSpawnEventGenerators;
 
     [XmlAttribute]
     public long Id;
@@ -391,7 +391,18 @@ public class CellGroup : HumanGroup
 
     public static void ResetEventGenerators()
     {
-        EventGenerators = new List<ICellGroupEventGenerator>();
+        OnSpawnEventGenerators = new List<ICellGroupEventGenerator>();
+    }
+
+    public void InitializeOnSpawnEvents()
+    {
+        foreach (ICellGroupEventGenerator generator in OnSpawnEventGenerators)
+        {
+            if (generator.CanAssignEventTypeToGroup(this))
+            {
+                generator.GenerateAndAddEvent(this);
+            }
+        }
     }
 
     public void UpdatePreferredMigrationDirection()

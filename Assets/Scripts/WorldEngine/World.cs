@@ -188,6 +188,8 @@ public class World : ISynchronizable
 
     public const float TerrainGenerationSteps = 6;
 
+    public static Dictionary<string, IWorldEventGenerator> EventGenerators;
+
     [XmlAttribute]
     public int Width { get; private set; }
     [XmlAttribute]
@@ -600,6 +602,23 @@ public class World : ISynchronizable
                 cell.InitializeMiscellaneous();
             }
         }
+    }
+
+    public static void ResetEventGenerators()
+    {
+        EventGenerators = new Dictionary<string, IWorldEventGenerator>();
+    }
+
+    public static IWorldEventGenerator GetGenerator(string id)
+    {
+        IWorldEventGenerator generator;
+
+        if (!EventGenerators.TryGetValue(id, out generator))
+        {
+            return null;
+        }
+
+        return generator;
     }
 
     public List<WorldEvent> GetFilteredEventsToHappenForSerialization()

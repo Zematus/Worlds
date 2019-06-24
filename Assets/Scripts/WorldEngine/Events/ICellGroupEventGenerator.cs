@@ -4,8 +4,10 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
-public interface ICellGroupEventGenerator
+public interface ICellGroupEventGenerator : IWorldEventGenerator
 {
     bool CanAssignEventTypeToGroup(CellGroup group);
     CellGroupEvent GenerateAndAddEvent(CellGroup group);
+    bool CanTriggerEvent(CellGroup group);
+    void TriggerEvent(CellGroup group);
 }

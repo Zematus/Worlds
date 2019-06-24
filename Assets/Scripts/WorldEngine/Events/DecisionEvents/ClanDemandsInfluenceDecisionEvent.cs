@@ -313,12 +313,12 @@ public class ClanDemandsInfluenceDecisionEvent : FactionEvent
 
     public override void Trigger()
     {
-#if DEBUG
-        if ((Id == 160349336613603015L) || (Id == 160349354613603010L))
-        {
-            Debug.LogWarning("Event Id: " + Id + " has been triggered, current date: " + World.CurrentDate + ", loaded world: " + Manager.Debug_IsLoadedWorld);
-        }
-#endif
+//#if DEBUG
+//        if ((Id == 160349336613603015L) || (Id == 160349354613603010L))
+//        {
+//            Debug.LogWarning("Event Id: " + Id + " has been triggered, current date: " + World.CurrentDate + ", loaded world: " + Manager.Debug_IsLoadedWorld);
+//        }
+//#endif
 
         bool performDemand = _demandClan.GetNextLocalRandomFloat(RngOffsets.CLAN_DEMANDS_INFLUENCE_EVENT_PERFORM_DEMAND) < _chanceOfMakingDemand;
 

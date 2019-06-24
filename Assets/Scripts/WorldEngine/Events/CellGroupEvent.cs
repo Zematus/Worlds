@@ -93,8 +93,7 @@ public abstract class CellGroupEvent : WorldEvent
 
         if (Group == null)
         {
-
-            Debug.LogError("CellGroupEvent: Group with Id:" + GroupId + " not found");
+            throw new System.Exception("CellGroupEvent: Group with Id:" + GroupId + " not found");
         }
     }
 

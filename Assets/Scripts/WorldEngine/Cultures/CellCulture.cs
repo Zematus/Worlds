@@ -166,6 +166,21 @@ public class CellCulture : Culture
         return knowledge;
     }
 
+    public void AddDiscoveryToFind(CellCulturalDiscovery discovery)
+    {
+        if (Discoveries.ContainsKey(discovery.Id))
+        {
+            throw new System.Exception("CellCulture: Discoveries already contains " + discovery.Id);
+        }
+
+        if (DiscoveriesToFind.ContainsKey(discovery.Id))
+        {
+            throw new System.Exception("CellCulture: DiscoveriesToFind already contains " + discovery.Id);
+        }
+
+        DiscoveriesToFind.Add(discovery.Id, discovery);
+    }
+
     public CellCulturalDiscovery TryAddDiscoveryToFind(string id)
     {
         CellCulturalDiscovery discovery = GetDiscovery(id) as CellCulturalDiscovery;
@@ -192,7 +207,7 @@ public class CellCulture : Culture
         return discovery;
     }
 
-    public CellCulturalPreference GetAcquiredPerferenceOrToAcquire(string id)
+    public CellCulturalPreference GetAcquiredPreferenceOrToAcquire(string id)
     {
         CellCulturalPreference preference = GetPreference(id) as CellCulturalPreference;
 
@@ -236,7 +251,7 @@ public class CellCulture : Culture
         return HasKnowledge(id) | KnowledgesToLearn.ContainsKey(id);
     }
 
-    public bool HasrWillHaveDiscovery(string id)
+    public bool HasOrWillHaveDiscovery(string id)
     {
         return HasDiscovery(id) | DiscoveriesToFind.ContainsKey(id);
     }
@@ -252,7 +267,7 @@ public class CellCulture : Culture
 
         foreach (CulturalPreference p in sourceCulture.Preferences.Values)
         {
-            CellCulturalPreference preference = GetAcquiredPerferenceOrToAcquire(p.Id);
+            CellCulturalPreference preference = GetAcquiredPreferenceOrToAcquire(p.Id);
 
             if (preference == null)
             {
@@ -342,7 +357,7 @@ public class CellCulture : Culture
 
         foreach (CulturalPreference polityPreference in polityCulture.Preferences.Values)
         {
-            CellCulturalPreference cellPreference = GetAcquiredPerferenceOrToAcquire(polityPreference.Id);
+            CellCulturalPreference cellPreference = GetAcquiredPreferenceOrToAcquire(polityPreference.Id);
 
             if (cellPreference == null)
             {
@@ -529,19 +544,7 @@ public class CellCulture : Culture
 
         foreach (CellCulturalDiscovery discovery in DiscoveriesToFind.Values)
         {
-            //bool setAsPresent = discovery.CanBeHeld(Group);
-
-            try
-            {
-                //AddDiscovery(discovery, setAsPresent);
-                AddDiscovery(discovery);
-            }
-            catch (System.ArgumentException)
-            {
-                throw new System.Exception("Attempted to add duplicate discovery (" + discovery.Id + ") to group " + Group.Id);
-            }
-
-            //if (!setAsPresent) continue;
+            AddDiscovery(discovery);
 
             foreach (CellCulturalKnowledge knowledge in Knowledges.Values)
             {

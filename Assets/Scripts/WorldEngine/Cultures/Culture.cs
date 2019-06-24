@@ -19,8 +19,6 @@ public class Culture : ISynchronizable
     public XmlSerializableDictionary<string, CulturalPreference> Preferences = new XmlSerializableDictionary<string, CulturalPreference>();
     public XmlSerializableDictionary<string, CulturalActivity> Activities = new XmlSerializableDictionary<string, CulturalActivity>();
     public XmlSerializableDictionary<string, CulturalSkill> Skills = new XmlSerializableDictionary<string, CulturalSkill>();
-    //public XmlSerializableFilterableDictionary<string, CulturalKnowledge> Knowledges = new XmlSerializableFilterableDictionary<string, CulturalKnowledge>();
-    //public XmlSerializableFilterableDictionary<string, CulturalDiscovery> Discoveries = new XmlSerializableFilterableDictionary<string, CulturalDiscovery>();
     public XmlSerializableDictionary<string, CulturalKnowledge> Knowledges = new XmlSerializableDictionary<string, CulturalKnowledge>();
     public XmlSerializableDictionary<string, CulturalDiscovery> Discoveries = new XmlSerializableDictionary<string, CulturalDiscovery>();
 
@@ -161,21 +159,6 @@ public class Culture : ISynchronizable
         }
     }
 
-    //public void AddKnowledge(CulturalKnowledge knowledge, bool setAsPresent = true)
-    //{
-    //    // Set() will reset WasPresent, so we need to store it in a temp variable to be used later
-    //    bool wasPresent = knowledge.WasPresent;
-
-    //    if (setAsPresent)
-    //        knowledge.Set();
-
-    //    if (wasPresent) return;
-
-    //    World.AddExistingCulturalKnowledgeInfo(knowledge);
-
-    //    Knowledges.Add(knowledge.Id, knowledge);
-    //}
-
     protected void AddKnowledge(CulturalKnowledge knowledge)
     {
         if (Knowledges.ContainsKey(knowledge.Id))
@@ -185,11 +168,6 @@ public class Culture : ISynchronizable
 
         Knowledges.Add(knowledge.Id, knowledge);
     }
-
-    //protected void RemoveKnowledge(CulturalKnowledge knowledge)
-    //{
-    //    knowledge.Reset();
-    //}
 
     protected void RemoveKnowledge(CulturalKnowledge knowledge)
     {
@@ -207,22 +185,6 @@ public class Culture : ISynchronizable
         }
     }
 
-    //public void AddDiscovery(CulturalDiscovery discovery, bool setAsPresent = true)
-    //{
-    //    // Set() will reset WasPresent, so we need to store it in a temp variable to be used later
-    //    bool wasPresent = discovery.WasPresent;
-
-    //    // There's a chance that we are adding a discovery that is no longer valid, so we need to set it as not present anymore.
-    //    if (setAsPresent)
-    //        discovery.Set();
-
-    //    if (wasPresent) return;
-
-    //    World.AddExistingCulturalDiscoveryInfo(discovery);
-        
-    //    Discoveries.Add(discovery.Id, discovery);
-    //}
-
     protected void AddDiscovery(CulturalDiscovery discovery)
     {
         if (Discoveries.ContainsKey(discovery.Id))
@@ -233,11 +195,6 @@ public class Culture : ISynchronizable
         Discoveries.Add(discovery.Id, discovery);
     }
 
-    //protected void RemoveDiscovery(CulturalDiscovery discovery)
-    //{
-    //    discovery.Reset();
-    //}
-
     protected void RemoveDiscovery(CulturalDiscovery discovery)
     {
         if (!Discoveries.ContainsKey(discovery.Id))
@@ -245,14 +202,6 @@ public class Culture : ISynchronizable
 
         Discoveries.Remove(discovery.Id);
     }
-
-    //public void ResetDiscoveries()
-    //{
-    //    foreach (CulturalDiscovery discovery in Discoveries.Values)
-    //    {
-    //        discovery.Reset();
-    //    }
-    //}
 
     public CulturalPreference GetPreference(string id)
     {
