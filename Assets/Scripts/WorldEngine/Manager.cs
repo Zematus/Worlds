@@ -4108,11 +4108,15 @@ public class Manager
         if (paths.Count == 0)
             throw new System.ArgumentException("Number of mods to load can't be zero");
 
+        World.ResetEventGenerators();
+        CellGroup.ResetEventGenerators();
+
         Layer.ResetLayers();
         Biome.ResetBiomes();
         Adjective.ResetAdjectives();
         RegionAttribute.ResetAttributes();
         Element.ResetElements();
+        Discovery.ResetDiscoveries();
 
         float progressPerMod = 0.1f / paths.Count;
 
@@ -4129,6 +4133,8 @@ public class Manager
 
             LastStageProgress += progressPerMod;
         }
+
+        Discovery.InitializeDiscoveries();
     }
 
     delegate void LoadModFileDelegate(string filename);
@@ -4161,12 +4167,13 @@ public class Manager
 
     private static void LoadMod(string path, float progressPerMod)
     {
-        float progressPerSegment = progressPerMod / 5f;
+        float progressPerSegment = progressPerMod / 6f;
 
         TryLoadModFiles(Layer.LoadLayersFile, path + @"Layers", progressPerSegment);
         TryLoadModFiles(Biome.LoadBiomesFile, path + @"Biomes", progressPerSegment);
         TryLoadModFiles(Adjective.LoadAdjectivesFile, path + @"Adjectives", progressPerSegment);
         TryLoadModFiles(RegionAttribute.LoadRegionAttributesFile, path + @"RegionAttributes", progressPerSegment);
         TryLoadModFiles(Element.LoadElementsFile, path + @"Elements", progressPerSegment);
+        TryLoadModFiles(Discovery.LoadDiscoveriesFile, path + @"Discoveries", progressPerSegment);
     }
 }

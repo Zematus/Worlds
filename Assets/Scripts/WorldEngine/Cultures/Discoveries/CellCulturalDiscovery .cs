@@ -6,6 +6,11 @@ using System.Xml.Serialization;
 
 public abstract class CellCulturalDiscovery : CulturalDiscovery
 {
+    public CellCulturalDiscovery()
+    {
+
+    }
+
     public CellCulturalDiscovery(string id, string name) : base(id, name)
     {
 
@@ -28,8 +33,16 @@ public abstract class CellCulturalDiscovery : CulturalDiscovery
                 return new TribalismDiscovery();
         }
 
-        throw new System.Exception("Unexpected CulturalDiscovery type: " + id);
+        throw new System.Exception("CellCulturalDiscovery: Unexpected CulturalDiscovery type: " + id);
     }
 
     public abstract bool CanBeHeld(CellGroup group);
+
+    public virtual void OnLoss(CellGroup group)
+    {
+    }
+
+    public virtual void OnGain(CellGroup group)
+    {
+    }
 }

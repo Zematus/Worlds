@@ -67,10 +67,10 @@ public class ModTest
 
         Debug.Log("loading discovery mod file...");
 
-        DiscoveryClass.ResetDiscoveries();
-        DiscoveryClass.LoadDiscoveriesFile(@"Mods\Base\Discoveries\discoveries.json");
+        Discovery.ResetDiscoveries();
+        Discovery.LoadDiscoveriesFile(@"Mods\Base\Discoveries\discoveries.json");
 
-        foreach (DiscoveryClass discovery in DiscoveryClass.Discoveries.Values)
+        foreach (Discovery discovery in Discovery.Discoveries.Values)
         {
             Debug.Log("generated discovery: " + discovery.Name);
         }

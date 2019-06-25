@@ -23,12 +23,11 @@ public class DiscoveryLoader
         public string lossEffects;
         public int eventTimeToTrigger;
         public string eventTimeToTriggerFactors;
-        public string isPresentAtStart;
     }
 
 #pragma warning restore 0649
 
-    public static IEnumerable<DiscoveryClass> Load(string filename)
+    public static IEnumerable<Discovery> Load(string filename)
     {
         string jsonStr = File.ReadAllText(filename);
 
@@ -40,7 +39,7 @@ public class DiscoveryLoader
         }
     }
 
-    private static DiscoveryClass CreateDiscoveryClass(LoadedDiscovery d)
+    private static Discovery CreateDiscoveryClass(LoadedDiscovery d)
     {
         if (string.IsNullOrEmpty(d.id))
         {
@@ -108,7 +107,7 @@ public class DiscoveryLoader
             eventTimeToTriggerFactors = Factor.BuildFactors(timeToTriggerFactorsStr);
         }
 
-        DiscoveryClass discoveryClass = new DiscoveryClass()
+        Discovery discoveryClass = new Discovery()
         {
             Id = d.id,
             IdHash = d.id.GetHashCode(),
@@ -120,14 +119,6 @@ public class DiscoveryLoader
             EventTimeToTrigger = d.eventTimeToTrigger,
             EventTimeToTriggerFactors = eventTimeToTriggerFactors,
         };
-
-        if (!string.IsNullOrEmpty(d.isPresentAtStart))
-        {
-            if (!bool.TryParse(d.isPresentAtStart, out discoveryClass.IsPresentAtStart))
-            {
-                throw new ArgumentException("Invalid isPresentAtStart value: " + d.isPresentAtStart);
-            }
-        }
 
         return discoveryClass;
     }

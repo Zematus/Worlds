@@ -400,7 +400,7 @@ public class CellGroup : HumanGroup
         {
             if (generator.CanAssignEventTypeToGroup(this))
             {
-                generator.GenerateAndAddEvent(this);
+                generator.GenerateAndAssignEvent(this);
             }
         }
     }
@@ -505,33 +505,35 @@ public class CellGroup : HumanGroup
         }
     }
 
-    public void InitializeDefaultEvents () {
+    public void InitializeDefaultEvents()
+    {
+        InitializeOnSpawnEvents();
 
-		if (BoatMakingDiscoveryEvent.CanSpawnIn (this)) {
+        if (BoatMakingDiscoveryEvent.CanSpawnIn(this))
+        {
+            long triggerDate = BoatMakingDiscoveryEvent.CalculateTriggerDate(this);
 
-			long triggerDate = BoatMakingDiscoveryEvent.CalculateTriggerDate (this);
+            if (triggerDate > World.MaxSupportedDate)
+                return;
 
-			if (triggerDate > World.MaxSupportedDate)
-				return;
+            if (triggerDate == long.MinValue)
+                return;
 
-			if (triggerDate == long.MinValue)
-				return;
+            World.InsertEventToHappen(new BoatMakingDiscoveryEvent(this, triggerDate));
+        }
 
-			World.InsertEventToHappen (new BoatMakingDiscoveryEvent (this, triggerDate));
-		}
+        if (PlantCultivationDiscoveryEvent.CanSpawnIn(this))
+        {
+            long triggerDate = PlantCultivationDiscoveryEvent.CalculateTriggerDate(this);
 
-		if (PlantCultivationDiscoveryEvent.CanSpawnIn (this)) {
+            if (!triggerDate.IsInsideRange(World.CurrentDate + 1, World.MaxSupportedDate))
+                return;
 
-			long triggerDate = PlantCultivationDiscoveryEvent.CalculateTriggerDate (this);
+            World.InsertEventToHappen(new PlantCultivationDiscoveryEvent(this, triggerDate));
+        }
+    }
 
-			if (!triggerDate.IsInsideRange(World.CurrentDate + 1, World.MaxSupportedDate))
-				return;
-
-			World.InsertEventToHappen (new PlantCultivationDiscoveryEvent (this, triggerDate));
-		}
-	}
-
-	public void InitializeDefaultPreferences(bool initialGroup)
+    public void InitializeDefaultPreferences(bool initialGroup)
     {
         if (initialGroup)
         {

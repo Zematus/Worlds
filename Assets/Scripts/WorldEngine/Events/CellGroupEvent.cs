@@ -99,9 +99,6 @@ public abstract class CellGroupEvent : WorldEvent
 
     protected override void DestroyInternal()
     {
-        //		if (Group == null)
-        //			return;
-
         base.DestroyInternal();
     }
 

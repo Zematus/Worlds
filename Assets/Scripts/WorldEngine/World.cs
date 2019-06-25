@@ -609,7 +609,7 @@ public class World : ISynchronizable
         EventGenerators = new Dictionary<string, IWorldEventGenerator>();
     }
 
-    public static IWorldEventGenerator GetGenerator(string id)
+    public static IWorldEventGenerator GetEventGenerator(string id)
     {
         IWorldEventGenerator generator;
 

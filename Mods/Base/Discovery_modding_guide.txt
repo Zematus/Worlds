@@ -18,8 +18,6 @@ Discovery modding files are located within the 'Discoveries' folder. To be valid
 
       "eventTimeToTrigger":         -- (required) The base maximum amount of time that can pass before the related discovery event happens (value between 1 and 2,147,483,647 days).
       "eventTimeToTriggerFactors":  -- (optional) List of factors that influence how long it will take for this discovery's event to trigger (see note #5)
-
-      "isPresentAtStart":           -- (optional) 'true' if this discovery is already present on a self-spawned group (i.e. a group that is not spawned from a migration)
     },
     ... -- additional discoveries --
   ]

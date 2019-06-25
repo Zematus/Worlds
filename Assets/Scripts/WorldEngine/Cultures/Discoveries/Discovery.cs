@@ -4,25 +4,22 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
-public class DiscoveryClass : ICellGroupEventGenerator
+public class Discovery : CellCulturalDiscovery, ICellGroupEventGenerator
 {
     public class Event : CellGroupEventGeneratorEvent
     {
         public Event(
-            DiscoveryClass discoveryClass,
+            Discovery discovery,
             CellGroup group,
             long triggerDate,
             long eventTypeId) :
-            base(discoveryClass, group, triggerDate, eventTypeId)
+            base(discovery, group, triggerDate, eventTypeId)
         {
         }
     }
 
-    public static Dictionary<string, DiscoveryClass> Discoveries;
-
-    public string Id;
-    public string Name;
-
+    public static Dictionary<string, Discovery> Discoveries;
+    
     public string EventGeneratorId;
 
     public int IdHash;
@@ -37,16 +34,14 @@ public class DiscoveryClass : ICellGroupEventGenerator
     public int EventTimeToTrigger;
     public Factor[] EventTimeToTriggerFactors = null;
 
-    public bool IsPresentAtStart = false;
-
     public static void ResetDiscoveries()
     {
-        Discoveries = new Dictionary<string, DiscoveryClass>();
+        Discoveries = new Dictionary<string, Discovery>();
     }
 
     public static void LoadDiscoveriesFile(string filename)
     {
-        foreach (DiscoveryClass discovery in DiscoveryLoader.Load(filename))
+        foreach (Discovery discovery in DiscoveryLoader.Load(filename))
         {
             if (Discoveries.ContainsKey(discovery.Id))
             {
@@ -61,7 +56,7 @@ public class DiscoveryClass : ICellGroupEventGenerator
 
     public static void InitializeDiscoveries()
     {
-        foreach (DiscoveryClass discovery in Discoveries.Values)
+        foreach (Discovery discovery in Discoveries.Values)
         {
             discovery.Initialize();
         }
@@ -78,7 +73,7 @@ public class DiscoveryClass : ICellGroupEventGenerator
         CellGroup.OnSpawnEventGenerators.Add(this);
     }
 
-    public bool CanGainDiscovery(CellGroup group)
+    public bool CanBeGained(CellGroup group)
     {
         if (group.Culture.HasOrWillHaveDiscovery(Id))
             return false;
@@ -92,12 +87,23 @@ public class DiscoveryClass : ICellGroupEventGenerator
         return true;
     }
 
+    public override bool CanBeHeld(CellGroup group)
+    {
+        foreach (Condition condition in HoldConditions)
+        {
+            if (!condition.Evaluate(group))
+                return false;
+        }
+
+        return true;
+    }
+
     public bool CanAssignEventTypeToGroup(CellGroup group)
     {
         if (group.IsFlagSet(EventSetFlag))
             return false;
 
-        return CanGainDiscovery(group);
+        return CanBeGained(group);
     }
 
     private long CalculateTriggerDate(CellGroup group)
@@ -116,13 +122,11 @@ public class DiscoveryClass : ICellGroupEventGenerator
         return targetDate;
     }
 
-    public CellGroupEvent GenerateAndAddEvent(CellGroup group)
+    public CellGroupEvent GenerateAndAssignEvent(CellGroup group)
     {
         long triggerDate = CalculateTriggerDate(group);
 
         Event discoveryEvent = new Event(this, group, triggerDate, IdHash);
-
-        group.SetFlag(EventSetFlag);
 
         group.World.InsertEventToHappen(discoveryEvent);
 
@@ -131,14 +135,22 @@ public class DiscoveryClass : ICellGroupEventGenerator
 
     public bool CanTriggerEvent(CellGroup group)
     {
-        return CanGainDiscovery(group);
+        return CanBeGained(group);
     }
 
     public void TriggerEvent(CellGroup group)
     {
-        CellCulturalDiscovery discovery = null;
+        group.Culture.AddDiscoveryToFind(this);
+    }
 
-        group.Culture.AddDiscoveryToFind(discovery);
+    public string GetEventGeneratorId()
+    {
+        return EventGeneratorId;
+    }
+
+    public override void OnGain(CellGroup group)
+    {
+        base.OnGain(group);
 
         foreach (Effect effect in GainEffects)
         {
@@ -146,8 +158,23 @@ public class DiscoveryClass : ICellGroupEventGenerator
         }
     }
 
-    public string GetEventGeneratorId()
+    public override void OnLoss(CellGroup group)
     {
-        return EventGeneratorId;
+        base.OnLoss(group);
+
+        foreach (Effect effect in LossEffects)
+        {
+            effect.Apply(group);
+        }
+
+        if (CanAssignEventTypeToGroup(group))
+        {
+            GenerateAndAssignEvent(group);
+        }
+    }
+
+    public string GetEventSetFlag()
+    {
+        return EventSetFlag;
     }
 }

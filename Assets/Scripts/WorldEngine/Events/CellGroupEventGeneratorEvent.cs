@@ -12,6 +12,9 @@ public class CellGroupEventGeneratorEvent : CellGroupEvent
     [XmlIgnore]
     public ICellGroupEventGenerator Generator;
 
+    [XmlIgnore]
+    public string EventSetFlag;
+
     public CellGroupEventGeneratorEvent()
     {
     }
@@ -25,6 +28,9 @@ public class CellGroupEventGeneratorEvent : CellGroupEvent
     {
         Generator = generator;
         GeneratorId = generator.GetEventGeneratorId();
+        EventSetFlag = generator.GetEventSetFlag();
+
+        group.SetFlag(EventSetFlag);
     }
 
     public override bool CanTrigger()
@@ -41,11 +47,21 @@ public class CellGroupEventGeneratorEvent : CellGroupEvent
     {
         base.FinalizeLoad();
 
-        Generator = World.GetGenerator(GeneratorId) as ICellGroupEventGenerator;
+        Generator = World.GetEventGenerator(GeneratorId) as ICellGroupEventGenerator;
 
         if (Generator == null)
         {
             throw new System.Exception("CellGroupEventGeneratorEvent: Generator with Id:" + GeneratorId + " not found");
         }
+    }
+
+    protected override void DestroyInternal()
+    {
+        if (Group != null)
+        {
+            Group.UnsetFlag(EventSetFlag);
+        }
+
+        base.DestroyInternal();
     }
 }

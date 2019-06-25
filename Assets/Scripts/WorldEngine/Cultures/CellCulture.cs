@@ -475,6 +475,8 @@ public class CellCulture : Culture
         foreach (CellCulturalDiscovery d in _discoveriesToLose)
         {
             RemoveDiscovery(d);
+            d.OnLoss(Group);
+
             discoveriesLost = true;
         }
 
@@ -510,6 +512,17 @@ public class CellCulture : Culture
             AddSkill(skill);
         }
 
+        foreach (CellCulturalDiscovery discovery in DiscoveriesToFind.Values)
+        {
+            AddDiscovery(discovery);
+            discovery.OnGain(Group);
+
+            foreach (CellCulturalKnowledge knowledge in Knowledges.Values)
+            {
+                knowledge.CalculateAsymptote(discovery);
+            }
+        }
+
         foreach (CellCulturalKnowledge knowledge in KnowledgesToLearn.Values)
         {
             try
@@ -540,16 +553,6 @@ public class CellCulture : Culture
             }
 
             knowledge.RecalculateAsymptote();
-        }
-
-        foreach (CellCulturalDiscovery discovery in DiscoveriesToFind.Values)
-        {
-            AddDiscovery(discovery);
-
-            foreach (CellCulturalKnowledge knowledge in Knowledges.Values)
-            {
-                knowledge.CalculateAsymptote(discovery);
-            }
         }
     }
 
