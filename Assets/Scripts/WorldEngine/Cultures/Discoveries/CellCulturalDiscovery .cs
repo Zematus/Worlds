@@ -20,8 +20,8 @@ public abstract class CellCulturalDiscovery : CulturalDiscovery
     {
         switch (id)
         {
-            case BoatMakingDiscovery.DiscoveryId:
-                return new BoatMakingDiscovery();
+            //case BoatMakingDiscovery.DiscoveryId:
+            //    return new BoatMakingDiscovery();
 
             case SailingDiscovery.DiscoveryId:
                 return new SailingDiscovery();

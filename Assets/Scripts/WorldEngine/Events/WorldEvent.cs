@@ -8,11 +8,11 @@ public abstract class WorldEvent : ISynchronizable
 {
     public const long UpdateCellGroupEventId = 0;
     public const long MigrateGroupEventId = 1;
-    public const long SailingDiscoveryEventId = 2;
-    public const long TribalismDiscoveryEventId = 3;
+    public const long SailingDiscoveryEventId = 200;
+    public const long TribalismDiscoveryEventId = 300;
     public const long TribeFormationEventId = 4;
-    public const long BoatMakingDiscoveryEventId = 5;
-    public const long PlantCultivationDiscoveryEventId = 6;
+    public const long BoatMakingDiscoveryEventId = 500;
+    public const long PlantCultivationDiscoveryEventId = 600;
 
     public const long ClanSplitDecisionEventId = 7;
     public const long PreventClanSplitEventId = 8;

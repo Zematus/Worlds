@@ -76,7 +76,7 @@ public class SailingDiscoveryEvent : DiscoveryEvent
         Group.Culture.TryAddDiscoveryToFind(SailingDiscovery.DiscoveryId);
         World.AddGroupToUpdate(Group);
 
-        TryGenerateEventMessage(SailingDiscoveryEventId, SailingDiscovery.DiscoveryId);
+        TryGenerateEventMessage(SailingDiscoveryEventId, SailingDiscovery.DiscoveryName);
     }
 
     protected override void DestroyInternal()

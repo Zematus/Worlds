@@ -1055,7 +1055,7 @@ public class GuiManagerScript : MonoBehaviour
             {
                 SelectAndCenterOnCell(discoveryEventMessage.Position);
 
-                SetPopCulturalDiscoveryOverlay(discoveryEventMessage.DiscoveryId);
+                SetPopCulturalDiscoveryOverlay(discoveryEventMessage.DiscoveryName);
             });
         }
         else if (eventMessage is CellEventMessage)

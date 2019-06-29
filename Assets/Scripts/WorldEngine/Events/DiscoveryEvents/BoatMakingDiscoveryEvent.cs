@@ -70,7 +70,7 @@ public class BoatMakingDiscoveryEvent : DiscoveryEvent
 
     public override void Trigger()
     {
-        Group.Culture.TryAddDiscoveryToFind(BoatMakingDiscovery.DiscoveryId);
+        Group.Culture.TryAddDiscoveryToFind(BoatMakingDiscovery.DiscoveryName);
         Group.Culture.TryAddKnowledgeToLearn(ShipbuildingKnowledge.KnowledgeId, Group, ShipbuildingKnowledge.InitialValue);
         World.AddGroupToUpdate(Group);
 

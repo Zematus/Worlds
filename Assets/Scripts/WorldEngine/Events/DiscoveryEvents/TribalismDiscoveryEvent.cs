@@ -116,7 +116,7 @@ public class TribalismDiscoveryEvent : DiscoveryEvent
 
     public void TryGenerateEventMessages(Tribe newTribe)
     {
-        TryGenerateEventMessage(TribalismDiscoveryEventId, TribalismDiscovery.DiscoveryId);
+        TryGenerateEventMessage(TribalismDiscoveryEventId, TribalismDiscovery.DiscoveryName);
 
         if (newTribe != null)
         {

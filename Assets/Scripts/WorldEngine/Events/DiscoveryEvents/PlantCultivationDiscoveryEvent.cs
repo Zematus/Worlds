@@ -80,7 +80,7 @@ public class PlantCultivationDiscoveryEvent : DiscoveryEvent
         Group.Culture.TryAddKnowledgeToLearn(AgricultureKnowledge.KnowledgeId, Group, AgricultureKnowledge.InitialValue);
         World.AddGroupToUpdate(Group);
 
-        TryGenerateEventMessage(PlantCultivationDiscoveryEventId, PlantCultivationDiscovery.DiscoveryId);
+        TryGenerateEventMessage(PlantCultivationDiscoveryEventId, PlantCultivationDiscovery.DiscoveryName);
     }
 
     protected override void DestroyInternal()

@@ -509,18 +509,18 @@ public class CellGroup : HumanGroup
     {
         InitializeOnSpawnEvents();
 
-        if (BoatMakingDiscoveryEvent.CanSpawnIn(this))
-        {
-            long triggerDate = BoatMakingDiscoveryEvent.CalculateTriggerDate(this);
+        //if (BoatMakingDiscoveryEvent.CanSpawnIn(this))
+        //{
+        //    long triggerDate = BoatMakingDiscoveryEvent.CalculateTriggerDate(this);
 
-            if (triggerDate > World.MaxSupportedDate)
-                return;
+        //    if (triggerDate > World.MaxSupportedDate)
+        //        return;
 
-            if (triggerDate == long.MinValue)
-                return;
+        //    if (triggerDate == long.MinValue)
+        //        return;
 
-            World.InsertEventToHappen(new BoatMakingDiscoveryEvent(this, triggerDate));
-        }
+        //    World.InsertEventToHappen(new BoatMakingDiscoveryEvent(this, triggerDate));
+        //}
 
         if (PlantCultivationDiscoveryEvent.CanSpawnIn(this))
         {

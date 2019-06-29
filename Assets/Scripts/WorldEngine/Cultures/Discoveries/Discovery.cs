@@ -8,6 +8,8 @@ public class Discovery : CellCulturalDiscovery, ICellGroupEventGenerator
 {
     public class Event : CellGroupEventGeneratorEvent
     {
+        private Discovery _discovery;
+
         public Event(
             Discovery discovery,
             CellGroup group,
@@ -15,14 +17,61 @@ public class Discovery : CellCulturalDiscovery, ICellGroupEventGenerator
             long eventTypeId) :
             base(discovery, group, triggerDate, eventTypeId)
         {
+            _discovery = discovery;
+        }
+
+        private void TryGenerateEventMessage()
+        {
+            DiscoveryEventMessage eventMessage = null;
+
+            World world = Group.World;
+            TerrainCell cell = Group.Cell;
+
+            if (!world.HasEventMessage(_discovery.UId))
+            {
+                eventMessage = new DiscoveryEventMessage(_discovery.Name, cell, _discovery.UId, TriggerDate);
+
+                world.AddEventMessage(eventMessage);
+            }
+
+            if (cell.EncompassingTerritory != null)
+            {
+                Polity encompassingPolity = cell.EncompassingTerritory.Polity;
+
+                if (!encompassingPolity.HasEventMessage(_discovery.UId))
+                {
+                    if (eventMessage == null)
+                        eventMessage = new DiscoveryEventMessage(_discovery.Name, cell, _discovery.UId, TriggerDate);
+
+                    encompassingPolity.AddEventMessage(eventMessage);
+                }
+            }
+        }
+
+        public override void Trigger()
+        {
+            Group.Culture.AddDiscoveryToFind(_discovery);
+
+            TryGenerateEventMessage();
+        }
+
+        public override bool CanTrigger()
+        {
+            if (!base.CanTrigger())
+                return false;
+
+            return _discovery.CanBeGained(Group);
         }
     }
 
     public static Dictionary<string, Discovery> Discoveries;
+
+    public static int CurrentUId = 0;
     
     public string EventGeneratorId;
 
     public int IdHash;
+    public int UId; // Do not use as seed (no consistency guarantee)
     public string EventSetFlag;
 
     public Condition[] GainConditions = null;
@@ -131,16 +180,6 @@ public class Discovery : CellCulturalDiscovery, ICellGroupEventGenerator
         group.World.InsertEventToHappen(discoveryEvent);
 
         return discoveryEvent;
-    }
-
-    public bool CanTriggerEvent(CellGroup group)
-    {
-        return CanBeGained(group);
-    }
-
-    public void TriggerEvent(CellGroup group)
-    {
-        group.Culture.AddDiscoveryToFind(this);
     }
 
     public string GetEventGeneratorId()

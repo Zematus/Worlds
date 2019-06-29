@@ -20,18 +20,10 @@ Here's a list of the current types of effects (more to be added in future versio
     Examples: 'group_losses_attribute:this,CAN_FORM_TRIBE'
 
 - 'group_gains_knowledge'
-    Assigns the specified knowledge to the specified group, and sets the starting knowledge level to the specified value (optional integer value between 0 and 10000). the format of the effect is as follows: 'group_gains_knowledge:<group_type>,<knowledge_id>(,<level>)'
+    Assigns the specified knowledge to the specified group, and sets the knowledge's level asymptote to the specified value (integer value between 0 and 10000). the format of the effect is as follows: 'group_gains_knowledge:<group_type>,<knowledge_id>,<asynpLevel>'
     These are valid group types:
     - 'this': the cell group this effect targets
 
-    Examples: 'group_gains_knowledge:this,agriculture_knowledge', 'group_gains_knowledge:this,shipbuilding_knowledge,3'
-
-- 'group_losses_knowledge'
-    Removes the specified knowledge from the specified group. the format of the effect is as follows: 'group_losses_knowledge:<group_type>,<knowledge_id>'
-    NOTE: If there are multiple valid situations (e.g. multiple discoveries) that allow a group to keep a knowledge, then the knowledge won't be lost until none of the situations are valid.
-    These are valid group types:
-    - 'this': the cell group this effect targets
-
-    Examples: 'group_losses_knowledge:this,agriculture_knowledge', 'group_losses_knowledge:this,shipbuilding_knowledge'
+    Examples: 'group_gains_knowledge:this,agriculture_knowledge,10', 'group_gains_knowledge:this,shipbuilding_knowledge,30'
 
 --

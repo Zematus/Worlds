@@ -248,7 +248,7 @@ public class World : ISynchronizable
         XmlArrayItem(Type = typeof(ExpandPolityProminenceEvent)),
         XmlArrayItem(Type = typeof(TribeFormationEvent)),
         XmlArrayItem(Type = typeof(SailingDiscoveryEvent)),
-        XmlArrayItem(Type = typeof(BoatMakingDiscoveryEvent)),
+        //XmlArrayItem(Type = typeof(BoatMakingDiscoveryEvent)),
         XmlArrayItem(Type = typeof(TribalismDiscoveryEvent)),
         XmlArrayItem(Type = typeof(PlantCultivationDiscoveryEvent)),
         XmlArrayItem(Type = typeof(ClanSplitDecisionEvent)),

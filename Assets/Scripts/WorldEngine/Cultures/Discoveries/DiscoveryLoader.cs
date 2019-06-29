@@ -111,6 +111,7 @@ public class DiscoveryLoader
         {
             Id = d.id,
             IdHash = d.id.GetHashCode(),
+            UId = Discovery.CurrentUId++,
             Name = d.name,
             GainConditions = gainConditions,
             HoldConditions = holdConditions,

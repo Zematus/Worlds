@@ -122,7 +122,6 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge
     {
         switch (discovery.Id)
         {
-
             case BoatMakingDiscovery.DiscoveryId:
                 return 1000;
             case SailingDiscovery.DiscoveryId:
@@ -155,30 +154,30 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge
         return false;
     }
 
-    public override void LossConsequences()
-    {
-        Profiler.BeginSample("BoatMakingDiscoveryEvent.CanSpawnIn");
+    //public override void LossConsequences()
+    //{
+    //    Profiler.BeginSample("BoatMakingDiscoveryEvent.CanSpawnIn");
 
-        if (BoatMakingDiscoveryEvent.CanSpawnIn(Group))
-        {
-            Profiler.BeginSample("BoatMakingDiscoveryEvent.CalculateTriggerDate");
+    //    if (BoatMakingDiscoveryEvent.CanSpawnIn(Group))
+    //    {
+    //        Profiler.BeginSample("BoatMakingDiscoveryEvent.CalculateTriggerDate");
 
-            long triggerDate = BoatMakingDiscoveryEvent.CalculateTriggerDate(Group);
+    //        long triggerDate = BoatMakingDiscoveryEvent.CalculateTriggerDate(Group);
 
-            Profiler.EndSample();
+    //        Profiler.EndSample();
 
-            if ((triggerDate <= World.MaxSupportedDate) && (triggerDate > long.MinValue))
-            {
-                Profiler.BeginSample("InsertEventToHappen: BoatMakingDiscoveryEvent");
+    //        if ((triggerDate <= World.MaxSupportedDate) && (triggerDate > long.MinValue))
+    //        {
+    //            Profiler.BeginSample("InsertEventToHappen: BoatMakingDiscoveryEvent");
 
-                Group.World.InsertEventToHappen(new BoatMakingDiscoveryEvent(Group, triggerDate));
+    //            Group.World.InsertEventToHappen(new BoatMakingDiscoveryEvent(Group, triggerDate));
 
-                Profiler.EndSample();
-            }
-        }
+    //            Profiler.EndSample();
+    //        }
+    //    }
 
-        Profiler.EndSample();
-    }
+    //    Profiler.EndSample();
+    //}
 
     protected override int GetBaseAsymptote()
     {

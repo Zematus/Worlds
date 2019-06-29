@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
-public class CellGroupEventGeneratorEvent : CellGroupEvent
+public abstract class CellGroupEventGeneratorEvent : CellGroupEvent
 {
     [XmlAttribute("GId")]
     public string GeneratorId;
@@ -31,16 +31,6 @@ public class CellGroupEventGeneratorEvent : CellGroupEvent
         EventSetFlag = generator.GetEventSetFlag();
 
         group.SetFlag(EventSetFlag);
-    }
-
-    public override bool CanTrigger()
-    {
-        return Generator.CanTriggerEvent(Group);
-    }
-
-    public override void Trigger()
-    {
-        Generator.TriggerEvent(Group);
     }
 
     public override void FinalizeLoad()

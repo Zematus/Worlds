@@ -16,13 +16,13 @@ public abstract class DiscoveryEvent : CellGroupEvent
 
     }
 
-    public void TryGenerateEventMessage(long discoveryEventId, string discoveryId)
+    public void TryGenerateEventMessage(long discoveryEventId, string discoveryName)
     {
         DiscoveryEventMessage eventMessage = null;
 
         if (!World.HasEventMessage(discoveryEventId))
         {
-            eventMessage = new DiscoveryEventMessage(discoveryId, Group.Cell, discoveryEventId, TriggerDate);
+            eventMessage = new DiscoveryEventMessage(discoveryName, Group.Cell, discoveryEventId, TriggerDate);
 
             World.AddEventMessage(eventMessage);
         }
@@ -34,7 +34,7 @@ public abstract class DiscoveryEvent : CellGroupEvent
             if (!encompassingPolity.HasEventMessage(discoveryEventId))
             {
                 if (eventMessage == null)
-                    eventMessage = new DiscoveryEventMessage(discoveryId, Group.Cell, discoveryEventId, TriggerDate);
+                    eventMessage = new DiscoveryEventMessage(discoveryName, Group.Cell, discoveryEventId, TriggerDate);
 
                 encompassingPolity.AddEventMessage(eventMessage);
             }

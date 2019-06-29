@@ -451,7 +451,11 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
     public abstract float CalculateTransferFactor();
 
     public abstract bool WillBeLost();
-    public abstract void LossConsequences();
+
+    public virtual void LossConsequences()
+    {
+
+    }
 
     protected abstract void UpdateInternal(long timeSpan);
     protected abstract int CalculateAsymptoteInternal(CulturalDiscovery discovery);
