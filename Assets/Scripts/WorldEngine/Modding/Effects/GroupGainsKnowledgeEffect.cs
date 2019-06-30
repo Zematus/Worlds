@@ -5,16 +5,18 @@ using System.Text.RegularExpressions;
 
 public class GroupGainsKnowledgeEffect : GroupEffect
 {
+    private const int _initialValue = 100;
+
     public const string Regex = @"^\s*group_gains_knowledge\s*" +
         @":\s*(?<type>" + ModUtility.IdentifierRegexPart + @")\s*" +
         @",\s*(?<id>" + ModUtility.IdentifierRegexPart + @")\s*" +
         @",\s*(?<value>" + ModUtility.NumberRegexPart + @")\s*$";
 
     public string KnowledgeId;
-    public int LevelAsymptote;
+    public int AsymptoteLevel;
 
-    public GroupGainsKnowledgeEffect(Match match) :
-        base(match.Groups["type"].Value)
+    public GroupGainsKnowledgeEffect(Match match, string id) :
+        base(match.Groups["type"].Value, id)
     {
         KnowledgeId = match.Groups["id"].Value;
         
@@ -31,17 +33,21 @@ public class GroupGainsKnowledgeEffect : GroupEffect
             throw new System.ArgumentException("GroupGainsKnowledgeEffect: Level asymptote is outside the range of 1 and 10000: " + valueStr);
         }
 
-        LevelAsymptote = (int)(value / CulturalKnowledge.ValueScaleFactor);
+        AsymptoteLevel = (int)(value / CulturalKnowledge.ValueScaleFactor);
+
+        World.KnowledgeAsymptoteLevels[id] = AsymptoteLevel;
     }
 
     public override void ApplyToTarget(CellGroup group)
     {
-        group.Culture.TryAddKnowledgeToLearn(KnowledgeId, group, 1);
+        CellCulturalKnowledge k = group.Culture.TryAddKnowledgeToLearn(KnowledgeId, group, _initialValue);
+
+        k.AddAsymptoteLevel(Id, AsymptoteLevel);
     }
 
     public override string ToString()
     {
         return "'Group Gains Knowledge' Effect, Knowledge Id: " + KnowledgeId + 
-            ", Start Value: " + (LevelAsymptote * CulturalKnowledge.ValueScaleFactor);
+            ", Start Value: " + (AsymptoteLevel * CulturalKnowledge.ValueScaleFactor);
     }
 }

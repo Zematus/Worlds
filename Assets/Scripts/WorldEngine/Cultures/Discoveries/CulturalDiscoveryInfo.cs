@@ -43,9 +43,9 @@ public class CulturalDiscoveryInfo : IKeyedValue<string>, ISynchronizable
     {
         switch (Id)
         {
-            case BoatMakingDiscovery.DiscoveryId:
-                Name = BoatMakingDiscovery.DiscoveryName;
-                break;
+            //case BoatMakingDiscovery.DiscoveryId:
+            //    Name = BoatMakingDiscovery.DiscoveryName;
+            //    break;
 
             case PlantCultivationDiscovery.DiscoveryId:
                 Name = PlantCultivationDiscovery.DiscoveryName;

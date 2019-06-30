@@ -80,13 +80,15 @@ public class DiscoveryLoader
             holdConditions = Condition.BuildConditions(holdConditionsStr);
         }
 
+        string effectId = d.id + "_discovery";
+
         if (!string.IsNullOrEmpty(d.gainEffects))
         {
             //Cleanup and split list of effects
             string e = Regex.Replace(d.gainEffects, ModUtility.FirstAndLastSingleQuoteRegex, "");
             string[] gainEffectsStr = Regex.Split(e, ModUtility.SeparatorSingleQuoteRegex);
 
-            gainEffects = Effect.BuildEffects(gainEffectsStr);
+            gainEffects = Effect.BuildEffects(gainEffectsStr, effectId);
         }
 
         if (!string.IsNullOrEmpty(d.lossEffects))
@@ -95,7 +97,7 @@ public class DiscoveryLoader
             string e = Regex.Replace(d.lossEffects, ModUtility.FirstAndLastSingleQuoteRegex, "");
             string[] lossEffectsStr = Regex.Split(e, ModUtility.SeparatorSingleQuoteRegex);
 
-            lossEffects = Effect.BuildEffects(lossEffectsStr);
+            lossEffects = Effect.BuildEffects(lossEffectsStr, effectId);
         }
 
         if (!string.IsNullOrEmpty(d.eventTimeToTriggerFactors))

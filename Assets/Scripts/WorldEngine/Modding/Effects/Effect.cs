@@ -5,25 +5,32 @@ using System.Text.RegularExpressions;
 
 public abstract class Effect
 {
-    public static Effect BuildEffect(string effectStr)
+    public string Id;
+
+    public Effect(string id)
+    {
+        Id = id;
+    }
+
+    public static Effect BuildEffect(string effectStr, string id)
     {
         Match match = Regex.Match(effectStr, GroupGainsKnowledgeEffect.Regex);
         if (match.Success == true)
         {
-            return new GroupGainsKnowledgeEffect(match);
+            return new GroupGainsKnowledgeEffect(match, id);
         }
 
         throw new System.ArgumentException("Not a recognized effect: " + effectStr);
     }
 
-    public static Effect[] BuildEffects(ICollection<string> effectStrs)
+    public static Effect[] BuildEffects(ICollection<string> effectStrs, string id)
     {
         Effect[] effects = new Effect[effectStrs.Count];
 
         int i = 0;
         foreach (string effectStr in effectStrs)
         {
-            effects[i++] = BuildEffect(effectStr);
+            effects[i++] = BuildEffect(effectStr, id);
         }
 
         return effects;

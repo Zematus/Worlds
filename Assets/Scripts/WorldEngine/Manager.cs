@@ -4108,7 +4108,7 @@ public class Manager
         if (paths.Count == 0)
             throw new System.ArgumentException("Number of mods to load can't be zero");
 
-        World.ResetEventGenerators();
+        World.ResetStaticModData();
         CellGroup.ResetEventGenerators();
 
         Layer.ResetLayers();

@@ -12,7 +12,7 @@ public abstract class GroupEffect : Effect
 
     public GroupType TargetType;
 
-    protected GroupEffect(string typeStr)
+    protected GroupEffect(string typeStr, string id) : base(id)
     {
         switch (typeStr.Trim().ToLower())
         {

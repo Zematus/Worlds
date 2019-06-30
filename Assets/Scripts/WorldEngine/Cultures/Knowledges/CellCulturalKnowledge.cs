@@ -26,6 +26,8 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
     [XmlIgnore]
     public CellGroup Group;
 
+    public List<string> AsymptoteLevelIds = new List<string>();
+
     protected int _newValue;
 
     public float ScaledAsymptote
@@ -69,39 +71,6 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
 #endif
     }
 
-    public CellCulturalKnowledge(CellGroup group, string id, string name, int typeRngOffset, int value, int asymptote) : base(id, name, value)
-    {
-        Group = group;
-        InstanceRngOffset = typeRngOffset;
-        Asymptote = asymptote;
-
-        _newValue = value;
-
-#if DEBUG
-        AcquisitionDate = group.World.CurrentDate;
-
-        //if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-        //{
-        //    if (Group.Id == Manager.TracingData.GroupId)
-        //    {
-        //        string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
-
-        //        SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-        //            "CellCulturalKnowledge.CellCulturalKnowledge (with asymptote) - Group:" + groupId,
-        //            "CurrentDate: " + Group.World.CurrentDate +
-        //            ", Id: " + Id +
-        //            ", IsPresent: " + IsPresent +
-        //            ", Value: " + Value +
-        //            ", _newValue: " + _newValue +
-        //            ", Asymptote: " + Asymptote +
-        //            "");
-
-        //        Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-        //    }
-        //}
-#endif
-    }
-
     public void SetInitialValue(int value)
     {
         Value = value;
@@ -128,6 +97,30 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
 //            }
 //        }
 //#endif
+    }
+
+    public void AddAsymptoteLevel(string id, int asymptoteLevel)
+    {
+        AsymptoteLevelIds.Add(id);
+
+        if (asymptoteLevel > Asymptote)
+        {
+            Asymptote = asymptoteLevel;
+
+            UpdateProgressLevel();
+
+            SetHighestAsymptote(Asymptote);
+        }
+    }
+
+    public void LoadAsymptoteLevels()
+    {
+        Asymptote = GetBaseAsymptote();
+
+        foreach (string id in AsymptoteLevelIds)
+        {
+            Asymptote = Mathf.Max(Asymptote, World.GetKnowledgeAsymptoteLevel(id));
+        }
     }
 
     public static CellCulturalKnowledge CreateCellInstance(string id, CellGroup group, int initialValue = 0)
@@ -240,7 +233,7 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
 
     public void CalculateAsymptote()
     {
-        Asymptote = GetBaseAsymptote();
+        LoadAsymptoteLevels();
 
         UpdateProgressLevel();
 
@@ -249,7 +242,16 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
 
     public void RecalculateAsymptote()
     {
-        Asymptote = GetBaseAsymptote();
+        LoadAsymptoteLevels();
+
+        UpdateProgressLevel();
+
+        SetHighestAsymptote(Asymptote);
+    }
+
+    public void RecalculateAsymptoteOld() // Replace with Non-"Old" and remove CalculateAsymptoteInternal
+    {
+        LoadAsymptoteLevels();
 
         foreach (CulturalDiscovery d in Group.Culture.Discoveries.Values)
         {

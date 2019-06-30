@@ -122,8 +122,8 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge
     {
         switch (discovery.Id)
         {
-            case BoatMakingDiscovery.DiscoveryId:
-                return 1000;
+            //case BoatMakingDiscovery.DiscoveryId:
+            //    return 1000;
             case SailingDiscovery.DiscoveryId:
                 return 3000;
         }

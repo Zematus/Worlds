@@ -189,6 +189,7 @@ public class World : ISynchronizable
     public const float TerrainGenerationSteps = 6;
 
     public static Dictionary<string, IWorldEventGenerator> EventGenerators;
+    public static Dictionary<string, int> KnowledgeAsymptoteLevels;
 
     [XmlAttribute]
     public int Width { get; private set; }
@@ -604,9 +605,10 @@ public class World : ISynchronizable
         }
     }
 
-    public static void ResetEventGenerators()
+    public static void ResetStaticModData()
     {
         EventGenerators = new Dictionary<string, IWorldEventGenerator>();
+        KnowledgeAsymptoteLevels = new Dictionary<string, int>();
     }
 
     public static IWorldEventGenerator GetEventGenerator(string id)
@@ -619,6 +621,18 @@ public class World : ISynchronizable
         }
 
         return generator;
+    }
+
+    public static int GetKnowledgeAsymptoteLevel(string id)
+    {
+        int asymptote;
+
+        if (!KnowledgeAsymptoteLevels.TryGetValue(id, out asymptote))
+        {
+            throw new System.ArgumentException("Unknown knowledge asymptote id: " + id);
+        }
+
+        return asymptote;
     }
 
     public List<WorldEvent> GetFilteredEventsToHappenForSerialization()

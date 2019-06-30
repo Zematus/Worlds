@@ -7,8 +7,6 @@ using UnityEngine.Profiling;
 
 public class CellCulture : Culture
 {
-    public const float MinKnowledgeValue = 1f;
-
     [XmlIgnore]
     public CellGroup Group;
 
@@ -57,6 +55,11 @@ public class CellCulture : Culture
             AddSkill(CellCulturalSkill.CreateCellInstance(group, s));
         }
 
+        foreach (CulturalDiscovery d in sourceCulture.Discoveries.Values)
+        {
+            AddDiscovery(CellCulturalDiscovery.CreateCellInstance(d.Id));
+        }
+
         foreach (CulturalKnowledge k in sourceCulture.Knowledges.Values)
         {
             //#if DEBUG
@@ -82,17 +85,7 @@ public class CellCulture : Culture
 
             AddKnowledge(knowledge);
 
-            knowledge.CalculateAsymptote();
-        }
-
-        foreach (CulturalDiscovery d in sourceCulture.Discoveries.Values)
-        {
-            AddDiscovery(CellCulturalDiscovery.CreateCellInstance(d.Id));
-
-            foreach (CellCulturalKnowledge knowledge in Knowledges.Values)
-            {
-                knowledge.CalculateAsymptote(d);
-            }
+            knowledge.RecalculateAsymptote();
         }
 
         if (sourceCulture.Language != null)
@@ -484,7 +477,7 @@ public class CellCulture : Culture
         {
             foreach (CellCulturalKnowledge knowledge in Knowledges.Values)
             {
-                (knowledge as CellCulturalKnowledge).RecalculateAsymptote();
+                (knowledge as CellCulturalKnowledge).RecalculateAsymptoteOld();
             }
         }
 
@@ -516,11 +509,6 @@ public class CellCulture : Culture
         {
             AddDiscovery(discovery);
             discovery.OnGain(Group);
-
-            foreach (CellCulturalKnowledge knowledge in Knowledges.Values)
-            {
-                knowledge.CalculateAsymptote(discovery);
-            }
         }
 
         foreach (CellCulturalKnowledge knowledge in KnowledgesToLearn.Values)
@@ -552,7 +540,15 @@ public class CellCulture : Culture
                 throw new System.Exception("Attempted to add duplicate knowledge (" + knowledge.Id + ") to group " + Group.Id);
             }
 
-            knowledge.RecalculateAsymptote();
+            knowledge.RecalculateAsymptoteOld();
+        }
+
+        foreach (CellCulturalDiscovery discovery in DiscoveriesToFind.Values)
+        {
+            foreach (CellCulturalKnowledge knowledge in Knowledges.Values)
+            {
+                knowledge.CalculateAsymptote(discovery);
+            }
         }
     }
 
