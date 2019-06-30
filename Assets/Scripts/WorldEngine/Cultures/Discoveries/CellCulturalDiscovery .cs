@@ -33,7 +33,7 @@ public abstract class CellCulturalDiscovery : CulturalDiscovery
                 return new TribalismDiscovery();
         }
 
-        throw new System.Exception("CellCulturalDiscovery: Unexpected CulturalDiscovery type: " + id);
+        return null;
     }
 
     public abstract bool CanBeHeld(CellGroup group);

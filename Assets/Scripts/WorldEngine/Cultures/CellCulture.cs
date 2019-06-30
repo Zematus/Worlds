@@ -57,7 +57,14 @@ public class CellCulture : Culture
 
         foreach (CulturalDiscovery d in sourceCulture.Discoveries.Values)
         {
-            AddDiscovery(CellCulturalDiscovery.CreateCellInstance(d.Id));
+            if (d is Discovery) // This should always be TRUE
+            {
+                AddDiscovery(d);
+            }
+            else
+            {
+                AddDiscovery(CellCulturalDiscovery.CreateCellInstance(d.Id));  //TODO: Get rid of CellCulturalDiscovery.CreateCellInstance
+            }
         }
 
         foreach (CulturalKnowledge k in sourceCulture.Knowledges.Values)
@@ -317,7 +324,14 @@ public class CellCulture : Culture
 
         foreach (CulturalDiscovery d in sourceCulture.Discoveries.Values)
         {
-            TryAddDiscoveryToFind(d.Id);
+            if (d is Discovery) // This should be always TRUE
+            {
+                Group.Culture.AddDiscoveryToFind(d as CellCulturalDiscovery);
+            }
+            else
+            {
+                TryAddDiscoveryToFind(d.Id); //TODO: There shouldn't be a need to call this
+            }
         }
     }
 
@@ -418,7 +432,16 @@ public class CellCulture : Culture
 
         foreach (CulturalDiscovery polityDiscovery in polityCulture.Discoveries.Values)
         {
-            TryAddDiscoveryToFind(polityDiscovery.Id);
+            Discovery discovery = Discovery.GetDiscovery(polityDiscovery.Id);
+
+            if (discovery == null)
+            {
+                TryAddDiscoveryToFind(polityDiscovery.Id); // TODO: there should not be a reason to call this
+            }
+            else
+            {
+                Group.Culture.AddDiscoveryToFind(discovery);
+            }
         }
     }
 
