@@ -139,6 +139,9 @@ public class Discovery : CellCulturalDiscovery, ICellGroupEventGenerator
         if (group.Culture.HasOrWillHaveDiscovery(Id))
             return false;
 
+        if (GainConditions == null)
+            return true;
+
         foreach (Condition condition in GainConditions)
         {
             if (!condition.Evaluate(group))
@@ -150,6 +153,9 @@ public class Discovery : CellCulturalDiscovery, ICellGroupEventGenerator
 
     public override bool CanBeHeld(CellGroup group)
     {
+        if (HoldConditions == null)
+            return true;
+
         foreach (Condition condition in HoldConditions)
         {
             if (!condition.Evaluate(group))
@@ -173,9 +179,12 @@ public class Discovery : CellCulturalDiscovery, ICellGroupEventGenerator
 
         float dateSpan = randomFactor * EventTimeToTrigger;
 
-        foreach (Factor factor in EventTimeToTriggerFactors)
+        if (EventTimeToTriggerFactors != null)
         {
-            dateSpan *= factor.Calculate(group);
+            foreach (Factor factor in EventTimeToTriggerFactors)
+            {
+                dateSpan *= factor.Calculate(group);
+            }
         }
 
         long targetDate = (long)(group.World.CurrentDate + dateSpan) + 1;
@@ -203,6 +212,9 @@ public class Discovery : CellCulturalDiscovery, ICellGroupEventGenerator
     {
         base.OnGain(group);
 
+        if (GainEffects == null)
+            return;
+
         foreach (Effect effect in GainEffects)
         {
             effect.Apply(group);
@@ -213,9 +225,12 @@ public class Discovery : CellCulturalDiscovery, ICellGroupEventGenerator
     {
         base.OnLoss(group);
 
-        foreach (Effect effect in LossEffects)
+        if (LossEffects != null)
         {
-            effect.Apply(group);
+            foreach (Effect effect in LossEffects)
+            {
+                effect.Apply(group);
+            }
         }
 
         if (CanAssignEventTypeToGroup(group))
