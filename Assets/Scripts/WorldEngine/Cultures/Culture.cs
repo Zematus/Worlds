@@ -57,7 +57,14 @@ public class Culture : ISynchronizable
 
         foreach (CulturalDiscovery d in sourceCulture.Discoveries.Values)
         {
-            AddDiscovery(new CulturalDiscovery(d));
+            if (d is Discovery)
+            {
+                AddDiscovery(d);
+            }
+            else
+            {
+                AddDiscovery(new CulturalDiscovery(d));
+            }
         }
     }
 

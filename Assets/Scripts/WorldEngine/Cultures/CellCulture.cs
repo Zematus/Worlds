@@ -63,7 +63,9 @@ public class CellCulture : Culture
             }
             else
             {
-                AddDiscovery(CellCulturalDiscovery.CreateCellInstance(d.Id));  //TODO: Get rid of CellCulturalDiscovery.CreateCellInstance
+                CellCulturalDiscovery dInstance = CellCulturalDiscovery.CreateCellInstance(d.Id);
+                
+                AddDiscovery(dInstance);  //TODO: Get rid of CellCulturalDiscovery.CreateCellInstance
             }
         }
 
@@ -179,6 +181,27 @@ public class CellCulture : Culture
         }
 
         DiscoveriesToFind.Add(discovery.Id, discovery);
+    }
+
+    public void TryAddDiscoveryToFind(Discovery d)
+    {
+        CulturalDiscovery discovery = GetDiscovery(d.Id);
+
+        if (discovery != null)
+        {
+            return;
+        }
+
+        CellCulturalDiscovery tempDiscovery;
+
+        if (DiscoveriesToFind.TryGetValue(d.Id, out tempDiscovery))
+        {
+            return;
+        }
+
+        DiscoveriesToFind.Add(d.Id, d);
+
+        return;
     }
 
     public CellCulturalDiscovery TryAddDiscoveryToFind(string id)
@@ -326,7 +349,7 @@ public class CellCulture : Culture
         {
             if (d is Discovery) // This should be always TRUE
             {
-                Group.Culture.AddDiscoveryToFind(d as CellCulturalDiscovery);
+                TryAddDiscoveryToFind(d as Discovery);
             }
             else
             {
@@ -440,7 +463,7 @@ public class CellCulture : Culture
             }
             else
             {
-                Group.Culture.AddDiscoveryToFind(discovery);
+                TryAddDiscoveryToFind(discovery);
             }
         }
     }
