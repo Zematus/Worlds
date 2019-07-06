@@ -2,14 +2,17 @@
 
 Factors are properties that can be used to modify other properties like, for example, and event time-to-trigger. Note that factors will always have values between 0 and 1 (inclusive).
 
-- Factor Modifiers -
+- Factor operators -
 
 [SQ] - SQUARE: A factor's effect can squared (i.e. multiply the factor by itself) before being applied to the affected property by using the [SQ] prefix.
 
 [INV] - INVERSE: A factor's effect can be inversed by applying the [INV] prefix so that the affected property becomes inversely proportional (i.e. '[INV]<factor>' equals '1 - <factor>').
 
-Modifiers must be enclosed together with factors within single quotes. Modifiers can be used together using parenthesis to set modifier priority (values between parenthesis evaluate first).
+
+Operators must be enclosed together with factors within single quotes. Modifiers can be used together using parenthesis to set modifier priority (values between parenthesis evaluate first).
 Example: '[SQ]([INV]<factor>)'
+
+---
 
 Here's a list of the current types of factors (more to be added in future versions) and how they work:
 

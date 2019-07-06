@@ -1,43 +1,46 @@
 ---- Conditions Guide ----
 
-Conditions are rules that can be evaluated against different types of entities (cells, groups, factions, etc). These return a boolean value of 'true' when the condition is meet. Otherwise return false. When chained together on a requirement list of comma separated conditions (e.g. '<condition1>','<condition2>'), all of them must be true for the requirement to pass.
+Conditions are rules that can be evaluated against different types of entities (cells, groups, factions, etc). These return a boolean value of 'true' when the condition is meet. Otherwise return false. When chained together on a requirement list of comma separated conditions (e.g. '<condition1>','<condition2>'), all of them must be true for the requirement to pass. By default, conditions are evaluated against the base target unless a special operator is specified. For example, group conditions are evaluated by default against the target group unless an operator like [ANY_NEIGHBOR] is prefixed. In which case the condition will be evaluated against the neighbor groups of the target group.
 
-- Condition modifiers -
+- General condition operators -
 
-[NOT] : NEGATION: A condition can be negated by prefixing [NOT] before the condition. A negated condition must be false to pass. Both the prefix and the condition must be enclosed together in single quotes like this: '[NOT]<condition>'
+[NOT] - NEGATION: A condition can be negated by prefixing [NOT] before the condition. A negated condition must be false to pass. Both the prefix and the condition must be enclosed together in single quotes like this: '[NOT]<condition>'
 
-[OR] - ALTERNATION: Two or more conditions can be set to be alternate by appending them together using the [OR] infix. In which case, if any of the conditions is true then the whole alternation passes. All of the conditions and infixes must be enclosed together in single quotes like this: '<condition1>[OR]<condition2>([OR]<additional conditions>)'
+[AND] - CONJUNCTION: Two or more conditions can be evaluated together using the [OR] infix. In which case, all of the conditions within the conjunction must be true for the statement to pass. All of the conditions and infixes in the statement must be enclosed together in single quotes like this: '<condition1>[AND]<condition2>([AND]<additional conditions>)'
 
-Modifiers can be uses together using parenthesis to set modifier priority (values between parenthesis evaluate first).
+[OR] - DISJUNCTION: Two or more conditions can be evaluated together using the [OR] infix. In which case, if any of the conditions within the disjunction is true then the whole statement passes. All of the conditions and infixes in the statement must be enclosed together in single quotes like this: '<condition1>[OR]<condition2>([OR]<additional conditions>)'
+
+- Cell or group condition operators -
+
+[ANY_NEIGHBOR] : The target condition must be true for at least one neighbor terrain cell or cell group. The condition to be evaluated with this operator must be applicable to either terrain cells or cell groups. Both the prefix and the condition must be enclosed together in single quotes like this: '[ANY_NEIGHBOR]<condition>'
+
+[THIS_OR_ANY_NEIGHBOR] : The target condition must be true for the target group or cell or at least one neighbor terrain cell or cell group. The condition to be evaluated with this operator must be applicable to either terrain cells or cell groups. Both the prefix and the condition must be enclosed together in single quotes like this: '[THIS_OR_ANY_NEIGHBOR]<condition>'
+
+[ALL_NEIGHBORS] : The target condition must be true for all neighbor terrain cells or cell groups. The condition to be evaluated with this operator must be applicable to either terrain cells or cell groups. Both the prefix and the condition must be enclosed together in single quotes like this: '[ALL_NEIGHBORS]<condition>'
+
+[THIS_AND_ALL_NEIGHBORS] : The target condition must be true for the target group or cell and all neighbor terrain cells or cell groups. The condition to be evaluated with this operator must be applicable to either terrain cells or cell groups. Both the prefix and the condition must be enclosed together in single quotes like this: '[THIS_AND_ALL_NEIGHBORS]<condition>'
+
+
+Operators can be uses together using parenthesis to set modifier priority (values between parenthesis evaluate first).
 Example: '[NOT](<condition1>[OR]([NOT]<condition2>)[OR]<condition3>)'
+
+---
 
 Here's a list of the current types of conditions (more to be added in future versions) and how they work:
 
 - 'group_has_knowledge'
-    Tests if a group currently possesses a particular knowledge identified by id, and the knowledge level is equal or greater than the specified value (optional integer value between 0 and 10000). The format of the constraint is as follows: 'group_has_knowledge:<group_type>,<knowledge_id>(,<level>)'
-    These are valid group types:
-    - 'this': the cell group this condition is being evaluated for
-    - 'neighbor': any cell group adjacent to the cell group this condition is being evaluated for
-    - 'thisOrNeighbor': the cell group this condition is being evaluated for or any group adjacent to it
+    Tests if a group currently possesses a particular knowledge identified by id, and the knowledge level is equal or greater than the specified value (optional integer value between 0 and 10000). The format of the constraint is as follows: 'group_has_knowledge:<knowledge_id>(,<level>)'
 
-    Examples: 'group_has_knowledge:neighbor,agriculture_knowledge', 'group_has_knowledge:this,shipbuilding_knowledge,3'
+    Examples: 'group_has_knowledge:agriculture_knowledge', 'group_has_knowledge:shipbuilding_knowledge,3'
 
 - 'group_min_population'
-    Tests if a group currently possesses at least certain amount of population. The value can be any quantity between 1 and 2,147,483,647. The format of the constraint is as follows: 'group_min_population:<group_type>,<quantity>'
-    These are valid group types:
-    - 'this': the cell group this condition is being evaluated for
-    - 'neighbor': any cell group adjacent to the cell group this condition is being evaluated for
-    - 'thisOrNeighbor': the cell group this condition is being evaluated for or any group adjacent to it
+    Tests if a group currently possesses at least certain amount of population. The value can be any quantity between 1 and 2,147,483,647. The format of the constraint is as follows: 'group_min_population:<quantity>'
 
-    Examples: 'group_min_population:this,10000'
+    Examples: 'group_min_population:10000'
 
 - 'cell_has_sea'
-    Tests if a cell has a sea presence equal or greater than 0.01 or than the specified value (optional value between 0 and 1). The format of the constraint is as follows: 'cell_has_sea:<cell_type>(,<min_presence>)'
-    These are valid group types:
-    - 'this': the cell this condition is being evaluated for
-    - 'neighbor': any cell adjacent to the cell this condition is being evaluated for
-    - 'thisOrNeighbor': the cell this condition is being evaluated for or any group adjacent to it
+    Tests if a cell has a sea presence equal or greater than 0.01 or than the specified value (optional value between 0 and 1). The format of the constraint is as follows: 'cell_has_sea(:<min_presence>)'
 
-    Examples: 'cell_has_sea:neighbor', 'cell_has_sea:this,0.5'
+    Examples: 'cell_has_sea', 'cell_has_sea:0.5'
 
 --
