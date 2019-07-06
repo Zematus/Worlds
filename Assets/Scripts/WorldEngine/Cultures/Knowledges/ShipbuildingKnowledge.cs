@@ -33,7 +33,8 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge
         }
     }
 
-    public ShipbuildingKnowledge(CellGroup group, int initialValue) : base(group, KnowledgeId, KnowledgeName, KnowledgeRngOffset, initialValue)
+    public ShipbuildingKnowledge(CellGroup group, int initialValue, List<string> asymptoteIds) 
+        : base(group, KnowledgeId, KnowledgeName, KnowledgeRngOffset, initialValue, asymptoteIds)
     {
         CalculateNeighborhoodSeaPresence();
     }
@@ -84,6 +85,13 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge
 
     protected override void UpdateInternal(long timeSpan)
     {
+#if DEBUG
+        if (Group.Cell.IsSelected)
+        {
+            bool debug = true;
+        }
+#endif
+
         UpdateValueInternal(timeSpan, TimeEffectConstant, _neighborhoodSeaPresence * NeighborhoodSeaPresenceModifier);
 
         TryGenerateSailingDiscoveryEvent();

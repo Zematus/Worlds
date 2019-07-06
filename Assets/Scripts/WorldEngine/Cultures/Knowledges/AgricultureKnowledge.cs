@@ -30,7 +30,8 @@ public class AgricultureKnowledge : CellCulturalKnowledge
         }
     }
 
-    public AgricultureKnowledge(CellGroup group, int initialValue) : base(group, KnowledgeId, KnowledgeName, KnowledgeRngOffset, initialValue)
+    public AgricultureKnowledge(CellGroup group, int initialValue, List<string> asymptoteIds) 
+        : base(group, KnowledgeId, KnowledgeName, KnowledgeRngOffset, initialValue, asymptoteIds)
     {
         CalculateTerrainFactor();
     }

@@ -33,7 +33,8 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge
         }
     }
 
-    public SocialOrganizationKnowledge(CellGroup group, int initialValue) : base(group, KnowledgeId, KnowledgeName, KnowledgeRngOffset, initialValue)
+    public SocialOrganizationKnowledge(CellGroup group, int initialValue, List<string> asymptoteIds) 
+        : base(group, KnowledgeId, KnowledgeName, KnowledgeRngOffset, initialValue, asymptoteIds)
     {
 
     }

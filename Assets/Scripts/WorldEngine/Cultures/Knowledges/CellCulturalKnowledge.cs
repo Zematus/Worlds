@@ -26,8 +26,6 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
     [XmlIgnore]
     public CellGroup Group;
 
-    public List<string> AsymptoteLevelIds = new List<string>();
-
     protected int _newValue;
 
     public float ScaledAsymptote
@@ -40,12 +38,21 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
 
     }
 
-    public CellCulturalKnowledge(CellGroup group, string id, string name, int typeRngOffset, int value) : base(id, name, value)
+    public CellCulturalKnowledge(
+        CellGroup group, 
+        string id, 
+        string name, 
+        int typeRngOffset, 
+        int value, 
+        List<string> asymptoteLevelIds) : 
+        base(id, name, value, asymptoteLevelIds)
     {
         Group = group;
         InstanceRngOffset = typeRngOffset;
 
         _newValue = value;
+
+        LoadAsymptoteLevels();
 
 #if DEBUG
         AcquisitionDate = group.World.CurrentDate;
@@ -71,37 +78,48 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
 #endif
     }
 
-    public void SetInitialValue(int value)
+    public void Initialize(int value, List<string> asymptoteLevelIds)
     {
         Value = value;
         _newValue = value;
 
-//#if DEBUG
-//        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-//        {
-//            if (Group.Id == Manager.TracingData.GroupId)
-//            {
-//                string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
+        if (asymptoteLevelIds != null)
+        {
+            foreach (string levelId in asymptoteLevelIds)
+            {
+                AddAsymptoteLevelId(levelId);
+            }
 
-//                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-//                    "CellCulturalKnowledge.SetInitialValue - Group:" + groupId,
-//                    "CurrentDate: " + Group.World.CurrentDate +
-//                    ", Id: " + Id +
-//                    ", IsPresent: " + IsPresent +
-//                    ", Value: " + Value +
-//                    ", _newValue: " + _newValue +
-//                    ", AcquisitionDate: " + AcquisitionDate +
-//                    "");
+            LoadAsymptoteLevels();
+        }
 
-//                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-//            }
-//        }
-//#endif
+        //#if DEBUG
+        //        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
+        //        {
+        //            if (Group.Id == Manager.TracingData.GroupId)
+        //            {
+        //                string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
+
+        //                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+        //                    "CellCulturalKnowledge.SetInitialValue - Group:" + groupId,
+        //                    "CurrentDate: " + Group.World.CurrentDate +
+        //                    ", Id: " + Id +
+        //                    ", IsPresent: " + IsPresent +
+        //                    ", Value: " + Value +
+        //                    ", _newValue: " + _newValue +
+        //                    ", AcquisitionDate: " + AcquisitionDate +
+        //                    "");
+
+        //                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+        //            }
+        //        }
+        //#endif
     }
 
     public void AddAsymptoteLevel(string id, int asymptoteLevel)
     {
-        AsymptoteLevelIds.Add(id);
+        if (!AddAsymptoteLevelId(id))
+            return;
 
         if (asymptoteLevel > Asymptote)
         {
@@ -123,18 +141,18 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
         }
     }
 
-    public static CellCulturalKnowledge CreateCellInstance(string id, CellGroup group, int initialValue = 0)
+    public static CellCulturalKnowledge CreateCellInstance(string id, CellGroup group, int initialValue = 0, List<string> asymptoteIds = null)
     {
         switch (id)
         {
             case ShipbuildingKnowledge.KnowledgeId:
-                return new ShipbuildingKnowledge(group, initialValue);
+                return new ShipbuildingKnowledge(group, initialValue, asymptoteIds);
 
             case AgricultureKnowledge.KnowledgeId:
-                return new AgricultureKnowledge(group, initialValue);
+                return new AgricultureKnowledge(group, initialValue, asymptoteIds);
 
             case SocialOrganizationKnowledge.KnowledgeId:
-                return new SocialOrganizationKnowledge(group, initialValue);
+                return new SocialOrganizationKnowledge(group, initialValue, asymptoteIds);
         }
 
         throw new System.Exception("Unexpected CulturalKnowledge type: " + id);

@@ -15,19 +15,46 @@ public class CulturalKnowledge : CulturalKnowledgeInfo
     
     [XmlAttribute("V")]
     public int Value;
-    
+
+    public List<string> AsymptoteLevelIds = new List<string>();
+
+    private HashSet<string> _asymptoteLevelIds = new HashSet<string>();
+
     public CulturalKnowledge()
     {
     }
 
-    public CulturalKnowledge(string id, string name, int value) : base(id, name)
+    public CulturalKnowledge(string id, string name, int value, List<string> asymptoteLevelIds) : base(id, name)
     {
         Value = value;
+
+        if (asymptoteLevelIds != null)
+        {
+            foreach (string levelId in asymptoteLevelIds)
+            {
+                AddAsymptoteLevelId(levelId);
+            }
+        }
     }
 
     public CulturalKnowledge(CulturalKnowledge baseKnowledge) : base(baseKnowledge)
     {
         Value = baseKnowledge.Value;
+
+        foreach (string levelId in baseKnowledge.AsymptoteLevelIds)
+        {
+            AddAsymptoteLevelId(levelId);
+        }
+    }
+
+    public bool AddAsymptoteLevelId(string id)
+    {
+        if (!_asymptoteLevelIds.Add(id))
+            return false;
+
+        AsymptoteLevelIds.Add(id);
+
+        return true;
     }
 
     public float ScaledValue

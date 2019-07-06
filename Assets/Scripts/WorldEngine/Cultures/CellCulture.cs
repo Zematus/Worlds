@@ -90,7 +90,7 @@ public class CellCulture : Culture
             //                }
             //#endif
 
-            CellCulturalKnowledge knowledge = CellCulturalKnowledge.CreateCellInstance(k.Id, group, k.Value);
+            CellCulturalKnowledge knowledge = CellCulturalKnowledge.CreateCellInstance(k.Id, group, k.Value, k.AsymptoteLevelIds);
 
             AddKnowledge(knowledge);
 
@@ -140,7 +140,7 @@ public class CellCulture : Culture
         SkillsToLearn.Add(skill.Id, skill);
     }
 
-    public CellCulturalKnowledge TryAddKnowledgeToLearn(string id, CellGroup group, int initialValue = 0)
+    public CellCulturalKnowledge TryAddKnowledgeToLearn(string id, CellGroup group, int initialValue = 0, List<string> asymptoteLevelIds = null)
     {
         CellCulturalKnowledge knowledge = GetKnowledge(id) as CellCulturalKnowledge;
         
@@ -161,7 +161,7 @@ public class CellCulture : Culture
             knowledge = CellCulturalKnowledge.CreateCellInstance(id, group);
         }
 
-        knowledge.SetInitialValue(initialValue);
+        knowledge.Initialize(initialValue, asymptoteLevelIds);
 
         KnowledgesToLearn.Add(id, knowledge);
 
