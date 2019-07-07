@@ -3,9 +3,9 @@
     {
       "id": "boat_making",
       "name": "boat making",
-      "gainConditions": "'[NOT]group_has_knowledge:shipbuilding_knowledge','[ANY_NEIGHBOR]cell_has_sea'",
+      "gainConditions": "'[NOT]group_has_knowledge:shipbuilding','[ANY_N_CELL]cell_has_sea'",
       "holdConditions": "'group_has_knowledge:shipbuilding'",
-      "gainEffects": "'group_gains_knowledge:shipbuilding,10'",
+      "gainEffects": "'group_gains_knowledge:this,shipbuilding,10'",
       "eventTimeToTrigger": 91250000,
       "eventTimeToTriggerFactors":"'[INV]neighborhood_sea_presence'"
     }

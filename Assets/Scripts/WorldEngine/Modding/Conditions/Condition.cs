@@ -63,6 +63,8 @@ public abstract class Condition
         {
             case "[OR]":
                 return new OrCondition(conditionAStr, conditionBStr);
+            case "[AND]":
+                return new AndCondition(conditionAStr, conditionBStr);
         }
 
         throw new System.ArgumentException("Unrecognized binary op: " + binaryOpStr);
@@ -77,6 +79,22 @@ public abstract class Condition
         {
             case "[NOT]":
                 return new NotCondition(conditionStr);
+            case "[ANY_N_CELL]":
+                return new AnyNCellCondition(conditionStr);
+            case "[ANY_N_GROUP]":
+                return new AnyNGroupCondition(conditionStr);
+            case "[THIS_OR_ANY_N_CELL]":
+                return new ThisOrAnyNCellCondition(conditionStr);
+            case "[THIS_OR_ANY_N_GROUP]":
+                return new ThisOrAnyNGroupCondition(conditionStr);
+            case "[ALL_N_CELLS]":
+                return new AllNCellsCondition(conditionStr);
+            case "[ALL_N_GROUPS]":
+                return new AllNGroupsCondition(conditionStr);
+            case "[THIS_AND_ALL_N_CELLS]":
+                return new ThisAndAllNCellsCondition(conditionStr);
+            case "[THIS_AND_ALL_N_GROUPS]":
+                return new ThisAndAllNGroupsCondition(conditionStr);
         }
 
         throw new System.ArgumentException("Unrecognized unary op: " + unaryOp);

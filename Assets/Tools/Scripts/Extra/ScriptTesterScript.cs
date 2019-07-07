@@ -12,31 +12,31 @@ public class ScriptTesterScript : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        string input = "group_has_knowledge:neighbor,agriculture_knowledge,3 [OR] ([NOT]cell_has_sea:this)";
+        string input = "[ANY_N_GROUP]group_has_knowledge:agriculture_knowledge,3 [OR] ([NOT]cell_has_sea)";
 
         Condition condition = Condition.BuildCondition(input);
 
         Debug.Log(condition.ToString());
 
-        input = "group_has_knowledge:neighbor,agriculture_knowledge,3 [OR] (cell_has_sea:neighbor,0.10 [OR] cell_has_sea:this)";
+        input = "group_has_knowledge:neighbor,agriculture_knowledge,3 [OR] ([ANY_N_GROUP]cell_has_sea:0.10 [OR] cell_has_sea)";
 
         condition = Condition.BuildCondition(input);
 
         Debug.Log(condition.ToString());
 
-        input = "group_has_knowledge:neighbor,agriculture_knowledge,3 [OR] cell_has_sea:neighbor,0.10 [OR] ([NOT]cell_has_sea:this)";
+        input = "[ANY_N_GROUP]group_has_knowledge:agriculture_knowledge,3 [OR] [ANY_N_GROUP]cell_has_sea:0.10 [OR] ([NOT]cell_has_sea)";
 
         condition = Condition.BuildCondition(input);
 
         Debug.Log(condition.ToString());
 
-        input = "(group_has_knowledge:neighbor,agriculture_knowledge,3 [OR] cell_has_sea:neighbor,0.10 [OR] ([NOT]cell_has_sea:this) [OR] cell_has_sea:neighbor,0.30)";
+        input = "([ANY_N_GROUP]group_has_knowledge:agriculture_knowledge,3 [OR] [ANY_N_GROUP]cell_has_sea:0.10 [OR] ([NOT]cell_has_sea) [OR] [ANY_N_GROUP]cell_has_sea:0.30)";
 
         condition = Condition.BuildCondition(input);
 
         Debug.Log(condition.ToString());
 
-        input = "[NOT] (group_has_knowledge:neighbor,agriculture_knowledge,3 [OR] ([NOT]cell_has_sea:this) [OR] cell_has_sea:neighbor,0.30)";
+        input = "[NOT] ([ANY_N_GROUP]group_has_knowledge:agriculture_knowledge,3 [OR] ([NOT]cell_has_sea) [OR] [ANY_N_GROUP]cell_has_sea:0.30)";
 
         condition = Condition.BuildCondition(input);
 

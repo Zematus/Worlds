@@ -64,6 +64,7 @@ public class ModTest
     public void LoadDiscoveryModTest()
     {
         Manager.UpdateMainThreadReference();
+        World.ResetStaticModData();
 
         Debug.Log("loading discovery mod file...");
 
@@ -74,6 +75,94 @@ public class ModTest
         {
             Debug.Log("generated discovery: " + discovery.Name);
         }
+
+        Debug.Log("finished");
+    }
+
+    [Test]
+    public void ConditionParseTest()
+    {
+        int condCounter = 1;
+
+        string input = "[ANY_N_GROUP]group_has_knowledge:agriculture_knowledge,3";
+
+        Condition condition = Condition.BuildCondition(input);
+
+        Debug.Log("Test condition " + (condCounter++) + ": " + condition.ToString());
+
+        input = "([ANY_N_GROUP]group_has_knowledge:agriculture_knowledge,3)";
+
+        condition = Condition.BuildCondition(input);
+
+        Debug.Log("Test condition " + (condCounter++) + ": " + condition.ToString());
+
+        input = "(([ANY_N_GROUP]group_has_knowledge:agriculture_knowledge,3))";
+
+        condition = Condition.BuildCondition(input);
+
+        Debug.Log("Test condition " + (condCounter++) + ": " + condition.ToString());
+
+        input = "([ANY_N_GROUP]group_has_knowledge:agriculture_knowledge,3) [OR] ([NOT]cell_has_sea)";
+
+        condition = Condition.BuildCondition(input);
+
+        Debug.Log("Test condition " + (condCounter++) + ": " + condition.ToString());
+
+        input = "(([ANY_N_GROUP]group_has_knowledge:agriculture_knowledge,3) [OR] ([NOT]cell_has_sea))";
+
+        condition = Condition.BuildCondition(input);
+
+        Debug.Log("Test condition " + (condCounter++) + ": " + condition.ToString());
+
+        input = "([ANY_N_GROUP]group_has_knowledge:agriculture_knowledge,3) [OR] (([ANY_N_CELL]cell_has_sea:0.10) [OR] cell_has_sea)";
+
+        condition = Condition.BuildCondition(input);
+
+        Debug.Log("Test condition " + (condCounter++) + ": " + condition.ToString());
+
+        input = "([ANY_N_GROUP]group_has_knowledge:agriculture_knowledge,3) [OR] ([ANY_N_CELL]cell_has_sea:0.10) [OR] ([NOT]cell_has_sea)";
+
+        condition = Condition.BuildCondition(input);
+
+        Debug.Log("Test condition " + (condCounter++) + ": " + condition.ToString());
+
+        input = "([ANY_N_GROUP]group_has_knowledge:agriculture_knowledge,3) [OR] ([ANY_N_CELL]cell_has_sea:0.10) [OR] ([NOT]cell_has_sea) [OR] ([ANY_N_CELL]cell_has_sea:0.30)";
+
+        condition = Condition.BuildCondition(input);
+
+        Debug.Log("Test condition " + (condCounter++) + ": " + condition.ToString());
+
+        input = "(([ANY_N_GROUP]group_has_knowledge:agriculture_knowledge,3) [OR] ([ANY_N_CELL]cell_has_sea:0.10) [OR] ([NOT]cell_has_sea) [OR] ([ANY_N_CELL]cell_has_sea:0.30))";
+
+        condition = Condition.BuildCondition(input);
+
+        Debug.Log("Test condition " + (condCounter++) + ": " + condition.ToString());
+
+        input = "[NOT] (([ANY_N_GROUP]group_has_knowledge:agriculture_knowledge,3) [OR] ([NOT]cell_has_sea) [OR] ([ANY_N_CELL]cell_has_sea:0.30))";
+
+        condition = Condition.BuildCondition(input);
+
+        Debug.Log("Test condition " + (condCounter++) + ": " + condition.ToString());
+
+        Debug.Log("finished");
+    }
+
+    [Test]
+    public void FactorParseTest()
+    {
+        int factCounter = 1;
+
+        Factor factor = Factor.BuildFactor("[INV]([SQ]neighborhood_sea_presence)");
+
+        Debug.Log("Test factor " + (factCounter++) + ": " + factor.ToString());
+
+        factor = Factor.BuildFactor("[SQ]([INV]neighborhood_sea_presence)");
+
+        Debug.Log("Test factor " + (factCounter++) + ": " + factor.ToString());
+
+        factor = Factor.BuildFactor("[SQ]([INV](neighborhood_sea_presence))");
+
+        Debug.Log("Test factor " + (factCounter++) + ": " + factor.ToString());
 
         Debug.Log("finished");
     }

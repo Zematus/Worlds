@@ -8,12 +8,11 @@ public class CellHasSeaCondition : CellCondition
     public const float DefaultMinValue = 0.01f;
     
     public const string Regex = @"^\s*cell_has_sea\s*" +
-        @":\s*(?<type>" + ModUtility.IdentifierRegexPart + @")\s*" + 
-        @"(?:,\s*(?<value>" + ModUtility.NumberRegexPart + @")\s*)?$";
+        @"(?::\s*(?<value>" + ModUtility.NumberRegexPart + @")\s*)?$";
 
     public float MinValue;
 
-    public CellHasSeaCondition(Match match) : base(match.Groups["type"].Value)
+    public CellHasSeaCondition(Match match)
     {
         if (!string.IsNullOrEmpty(match.Groups["value"].Value))
         {
@@ -35,13 +34,13 @@ public class CellHasSeaCondition : CellCondition
         }
     }
 
-    protected override bool EvaluateTarget(TerrainCell targetCell)
+    public override bool Evaluate(TerrainCell cell)
     {
-        return targetCell.SeaBiomePresence >= MinValue;
+        return cell.SeaBiomePresence >= MinValue;
     }
 
     public override string ToString()
     {
-        return "'Cell Has Sea' Condition, Target Type: " + TargetType + ", Min Value: " + MinValue;
+        return "'Cell Has Sea' Condition, Min Value: " + MinValue;
     }
 }

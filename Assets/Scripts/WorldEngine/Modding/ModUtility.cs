@@ -16,8 +16,11 @@ public static class ModUtility
     public const string BaseStatementRegexPart = 
         @"[^\[\]\(\)]+";
     public const string InnerStatementRegexPart =
-        @"(?:(?<open>\()[^\(\)]*?)+" +
-        @"(?:(?<innerStatement-open>\))[^\(\)]*?)+" +
+        @"(?:(?:" + 
+            @"(?<open>\()" + 
+        @"|" + 
+            @"(?<innerStatement-open>\))" + 
+        @")[^\(\)]*?)+" +
         @"(?(open)(?!))";
 
     public const string OperandStatementRegexPart =

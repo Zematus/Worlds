@@ -85,13 +85,6 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge
 
     protected override void UpdateInternal(long timeSpan)
     {
-#if DEBUG
-        if (Group.Cell.IsSelected)
-        {
-            bool debug = true;
-        }
-#endif
-
         UpdateValueInternal(timeSpan, TimeEffectConstant, _neighborhoodSeaPresence * NeighborhoodSeaPresenceModifier);
 
         TryGenerateSailingDiscoveryEvent();

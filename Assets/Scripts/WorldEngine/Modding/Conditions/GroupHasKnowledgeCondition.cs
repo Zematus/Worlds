@@ -8,15 +8,13 @@ public class GroupHasKnowledgeCondition : GroupCondition
     public const int DefaultMinValue = 1;
 
     public const string Regex = @"^\s*group_has_knowledge\s*" +
-        @":\s*(?<type>" + ModUtility.IdentifierRegexPart + @")\s*" + 
-        @",\s*(?<id>" + ModUtility.IdentifierRegexPart + @")\s*" +
+        @":\s*(?<id>" + ModUtility.IdentifierRegexPart + @")\s*" +
         @"(?:,\s*(?<value>" + ModUtility.NumberRegexPart + @")\s*)?$";
 
     public string KnowledgeId;
     public int MinValue;
 
-    public GroupHasKnowledgeCondition(Match match) : 
-        base(match.Groups["type"].Value)
+    public GroupHasKnowledgeCondition(Match match)
     {
         KnowledgeId = match.Groups["id"].Value;
 
@@ -43,9 +41,9 @@ public class GroupHasKnowledgeCondition : GroupCondition
         }
     }
 
-    protected override bool EvaluateTarget(CellGroup targetGroup)
+    public override bool Evaluate(CellGroup group)
     {
-        CulturalKnowledge knowledge = targetGroup.Culture.GetKnowledge(KnowledgeId);
+        CulturalKnowledge knowledge = group.Culture.GetKnowledge(KnowledgeId);
 
         if (knowledge != null)
         {
@@ -57,8 +55,7 @@ public class GroupHasKnowledgeCondition : GroupCondition
 
     public override string ToString()
     {
-        return "'Group Has Knowledge' Condition, Target Type: " + TargetType + 
-            ", Knowledge Id: " + KnowledgeId + 
+        return "'Group Has Knowledge' Condition, Knowledge Id: " + KnowledgeId + 
             ", Min Value: " + (MinValue * CulturalKnowledge.ValueScaleFactor);
     }
 }
