@@ -5,7 +5,18 @@
       "name": "boat making",
       "gainConditions": "'[NOT]group_has_knowledge:shipbuilding','[ANY_N_CELL]cell_has_sea'",
       "holdConditions": "'group_has_knowledge:shipbuilding'",
-      "gainEffects": "'group_gains_knowledge:this,shipbuilding,10'",
+      "gainEffects": "'add_group_knowledge_asymptote:this,shipbuilding,10'",
+      "loseEffects": "'remove_group_knowledge_asymptote:this,shipbuilding'",
+      "eventTimeToTrigger": 91250000,
+      "eventTimeToTriggerFactors":"'[INV]neighborhood_sea_presence'"
+    },
+    {
+      "id": "sailing",
+      "name": "sailing",
+      "gainConditions": "'group_has_knowledge:shipbuilding,5','[ANY_N_CELL]cell_has_sea'",
+      "holdConditions": "'group_has_knowledge:shipbuilding,3'",
+      "gainEffects": "'add_group_knowledge_asymptote:this,shipbuilding,30'",
+      "loseEffects": "'remove_group_knowledge_asymptote:this,shipbuilding'",
       "eventTimeToTrigger": 91250000,
       "eventTimeToTriggerFactors":"'[INV]neighborhood_sea_presence'"
     }
