@@ -62,6 +62,13 @@ public class Discovery : CellCulturalDiscovery, ICellGroupEventGenerator
 
             return _discovery.CanBeGained(Group);
         }
+
+        public override void FinalizeLoad()
+        {
+            base.FinalizeLoad();
+
+            _discovery = Generator as Discovery;
+        }
     }
 
     public static Dictionary<string, Discovery> Discoveries;

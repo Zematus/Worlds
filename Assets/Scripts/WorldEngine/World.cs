@@ -189,7 +189,7 @@ public class World : ISynchronizable
     public const float TerrainGenerationSteps = 6;
 
     public static Dictionary<string, IWorldEventGenerator> EventGenerators;
-    public static Dictionary<string, int> KnowledgeAsymptoteLevels;
+    public static Dictionary<string, int> KnowledgeLevelLimits;
 
     [XmlAttribute]
     public int Width { get; private set; }
@@ -248,7 +248,7 @@ public class World : ISynchronizable
         XmlArrayItem(Type = typeof(MigrateGroupEvent)),
         XmlArrayItem(Type = typeof(ExpandPolityProminenceEvent)),
         XmlArrayItem(Type = typeof(TribeFormationEvent)),
-        XmlArrayItem(Type = typeof(SailingDiscoveryEvent)),
+        //XmlArrayItem(Type = typeof(SailingDiscoveryEvent)),
         //XmlArrayItem(Type = typeof(BoatMakingDiscoveryEvent)),
         XmlArrayItem(Type = typeof(TribalismDiscoveryEvent)),
         XmlArrayItem(Type = typeof(PlantCultivationDiscoveryEvent)),
@@ -608,7 +608,7 @@ public class World : ISynchronizable
     public static void ResetStaticModData()
     {
         EventGenerators = new Dictionary<string, IWorldEventGenerator>();
-        KnowledgeAsymptoteLevels = new Dictionary<string, int>();
+        KnowledgeLevelLimits = new Dictionary<string, int>();
     }
 
     public static IWorldEventGenerator GetEventGenerator(string id)
@@ -623,16 +623,16 @@ public class World : ISynchronizable
         return generator;
     }
 
-    public static int GetKnowledgeAsymptoteLevel(string id)
+    public static int GetKnowledgeLevelLimit(string id)
     {
-        int asymptote;
+        int limit;
 
-        if (!KnowledgeAsymptoteLevels.TryGetValue(id, out asymptote))
+        if (!KnowledgeLevelLimits.TryGetValue(id, out limit))
         {
-            throw new System.ArgumentException("Unknown knowledge asymptote id: " + id);
+            throw new System.ArgumentException("Unknown knowledge limit id: " + id);
         }
 
-        return asymptote;
+        return limit;
     }
 
     public List<WorldEvent> GetFilteredEventsToHappenForSerialization()

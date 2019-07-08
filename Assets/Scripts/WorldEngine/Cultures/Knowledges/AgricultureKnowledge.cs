@@ -18,20 +18,20 @@ public class AgricultureKnowledge : CellCulturalKnowledge
     public const float TerrainFactorModifier = 1.5f;
     public const float MinAccesibility = 0.2f;
 
-    public static int HighestAsymptote = 0;
+    public static int HighestLimit = 0;
 
     private float _terrainFactor;
 
     public AgricultureKnowledge()
     {
-        if (Asymptote > HighestAsymptote)
+        if (Limit > HighestLimit)
         {
-            HighestAsymptote = Asymptote;
+            HighestLimit = Limit;
         }
     }
 
-    public AgricultureKnowledge(CellGroup group, int initialValue, List<string> asymptoteIds) 
-        : base(group, KnowledgeId, KnowledgeName, KnowledgeRngOffset, initialValue, asymptoteIds)
+    public AgricultureKnowledge(CellGroup group, int initialValue, List<string> levelLimitIds) 
+        : base(group, KnowledgeId, KnowledgeName, KnowledgeRngOffset, initialValue, levelLimitIds)
     {
         CalculateTerrainFactor();
     }
@@ -70,7 +70,7 @@ public class AgricultureKnowledge : CellCulturalKnowledge
         PolityCulturalProminenceInternal(polityKnowledge, polityProminence, timeSpan, TimeEffectConstant);
     }
 
-    protected override int CalculateAsymptoteInternal(CulturalDiscovery discovery)
+    protected override int CalculateLimitInternal(CulturalDiscovery discovery)
     {
         switch (discovery.Id)
         {
@@ -183,7 +183,7 @@ public class AgricultureKnowledge : CellCulturalKnowledge
         Group.Cell.FarmlandPercentage = 0;
     }
 
-    protected override int GetBaseAsymptote()
+    protected override int GetBaseLimit()
     {
         return 0;
     }

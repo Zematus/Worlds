@@ -3560,12 +3560,12 @@ public class Manager
             
             if (knowledge != null)
             {
-                float highestAsymptote = knowledge.GetHighestAsymptote();
+                float highestLimit = knowledge.GetHighestLimit();
 
-                if (highestAsymptote <= 0)
-                    throw new System.Exception("Highest Asymptote is less or equal to 0");
+                if (highestLimit <= 0)
+                    throw new System.Exception("Highest Limit is less or equal to 0");
 
-                normalizedValue = knowledge.Value / highestAsymptote;
+                normalizedValue = knowledge.Value / highestLimit;
             }
         }
 
@@ -3617,12 +3617,12 @@ public class Manager
 
         float normalizedValue = 0;
 
-        float highestAsymptote = cellKnowledge.GetHighestAsymptote();
+        float highestLimit = cellKnowledge.GetHighestLimit();
 
-        if (highestAsymptote <= 0)
-            throw new System.Exception("Highest Asymptote is less or equal to 0");
+        if (highestLimit <= 0)
+            throw new System.Exception("Highest Limit is less or equal to 0");
 
-        normalizedValue = knowledge.Value / highestAsymptote;
+        normalizedValue = knowledge.Value / highestLimit;
 
         if (normalizedValue < 0.001)
             return color;
@@ -4113,10 +4113,13 @@ public class Manager
 
         Layer.ResetLayers();
         Biome.ResetBiomes();
+
         Adjective.ResetAdjectives();
         RegionAttribute.ResetAttributes();
         Element.ResetElements();
+
         Discovery.ResetDiscoveries();
+        Knowledge.ResetKnowledges();
 
         float progressPerMod = 0.1f / paths.Count;
 
@@ -4134,6 +4137,7 @@ public class Manager
             LastStageProgress += progressPerMod;
         }
 
+        Knowledge.InitializeKnowledges();
         Discovery.InitializeDiscoveries();
     }
 

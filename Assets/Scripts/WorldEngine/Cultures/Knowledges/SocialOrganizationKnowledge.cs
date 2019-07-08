@@ -17,24 +17,24 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge
     public const int MinValueForTribalismDiscovery = 600;
     public const int MinValueForHoldingTribalism = 200;
 
-    public const int BaseAsymptote = 1000;
-    public const int TribalismDiscoveryAsymptote = 10000;
+    public const int BaseLimit = 1000;
+    public const int TribalismDiscoveryLevelLimit = 10000;
 
     public const float TimeEffectConstant = CellGroup.GenerationSpan * 500;
     public const float PopulationDensityModifier = 10000f * ValueScaleFactor;
 
-    public static int HighestAsymptote = 0;
+    public static int HighestLimit = 0;
 
     public SocialOrganizationKnowledge()
     {
-        if (Asymptote > HighestAsymptote)
+        if (Limit > HighestLimit)
         {
-            HighestAsymptote = Asymptote;
+            HighestLimit = Limit;
         }
     }
 
-    public SocialOrganizationKnowledge(CellGroup group, int initialValue, List<string> asymptoteIds) 
-        : base(group, KnowledgeId, KnowledgeName, KnowledgeRngOffset, initialValue, asymptoteIds)
+    public SocialOrganizationKnowledge(CellGroup group, int initialValue, List<string> levelLimitIds) 
+        : base(group, KnowledgeId, KnowledgeName, KnowledgeRngOffset, initialValue, levelLimitIds)
     {
 
     }
@@ -53,7 +53,7 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge
     {
         float popFactor = Group.Population;
 
-        float densityFactor = PopulationDensityModifier * Asymptote * Group.Cell.MaxAreaPercent;
+        float densityFactor = PopulationDensityModifier * Limit * Group.Cell.MaxAreaPercent;
 
         float finalPopFactor = popFactor / (popFactor + densityFactor);
         finalPopFactor = 0.1f + finalPopFactor * 0.9f;
@@ -123,12 +123,12 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge
         }
     }
 
-    protected override int CalculateAsymptoteInternal(CulturalDiscovery discovery)
+    protected override int CalculateLimitInternal(CulturalDiscovery discovery)
     {
         switch (discovery.Id)
         {
             case TribalismDiscovery.DiscoveryId:
-                return TribalismDiscoveryAsymptote;
+                return TribalismDiscoveryLevelLimit;
         }
 
         return 0;
@@ -161,8 +161,8 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge
 
     }
 
-    protected override int GetBaseAsymptote()
+    protected override int GetBaseLimit()
     {
-        return BaseAsymptote;
+        return BaseLimit;
     }
 }

@@ -14,10 +14,10 @@ public abstract class Effect
 
     public static Effect BuildEffect(string effectStr, string id)
     {
-        Match match = Regex.Match(effectStr, GroupGainsKnowledgeEffect.Regex);
+        Match match = Regex.Match(effectStr, AddGroupKnowledgeEffect.Regex);
         if (match.Success == true)
         {
-            return new GroupGainsKnowledgeEffect(match, id);
+            return new AddGroupKnowledgeEffect(match, id);
         }
 
         throw new System.ArgumentException("Not a recognized effect: " + effectStr);

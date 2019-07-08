@@ -4,26 +4,34 @@ Effects are occurrences that can happen to different types of entities (cells, g
 
 Here's a list of the current types of effects (more to be added in future versions) and how they work:
 
-- 'group_gains_attribute'
-    Assigns an attribute flag to the specified group. the format of the effect is as follows: 'group_gains_attribute:<target_group_type>,<attribute_flag>'. flags can be any text with no spaces. See attribute_flags.txt for a list of flags hardcoded within the simulation and their effects.
+- 'add_group_attribute'
+    Assigns an attribute flag to the specified group. the format of the effect is as follows: 'add_group_attribute:<target_group_type>,<attribute_flag>'. flags can be any text with no spaces. See attribute_flags.txt for a list of flags hardcoded within the simulation and their effects.
     These are valid target group types:
     - 'this': the cell group this effect targets
 
-    Examples: 'group_gains_attribute:this,CAN_FORM_TRIBE'
+    Examples: 'add_group_attribute:this,CAN_FORM_TRIBE'
 
-- 'group_losses_attribute'
-    Removes an attribute flag from the specified group. the format of the effect is as follows: 'group_losses_attribute:<target_group_type>,<attribute_flag>'. flags can be any text with no spaces. See attribute_flags.txt for a list of flags hardcoded within the simulation and their effects.
+- 'remove_group_attribute'
+    Removes an attribute flag from the specified group. the format of the effect is as follows: 'remove_group_attribute:<target_group_type>,<attribute_flag>'. flags can be any text with no spaces. See attribute_flags.txt for a list of flags hardcoded within the simulation and their effects.
     NOTE: If there are multiple valid situations (e.g. multiple discoveries) that allow a group to keep an attribute flag, then the flag won't be removed until none of the situations are valid.
     These are valid target group types:
     - 'this': the cell group this effect targets
 
-    Examples: 'group_losses_attribute:this,CAN_FORM_TRIBE'
+    Examples: 'remove_group_attribute:this,CAN_FORM_TRIBE'
 
-- 'group_gains_knowledge'
-    Assigns the specified knowledge to the specified group, and sets the knowledge's level asymptote to the specified value (integer value between 0 and 10000). the format of the effect is as follows: 'group_gains_knowledge:<target_group_type>,<knowledge_id>,<asynpLevel>'
+- 'add_group_knowledge'
+    Assigns the specified knowledge to the specified group, and sets the knowledge's level limit to the specified value (integer value between 0 and 10000). the format of the effect is as follows: 'add_group_knowledge:<target_group_type>,<knowledge_id>,<levelLimit>'
     These are valid target group types:
     - 'this': the cell group this effect targets
 
-    Examples: 'group_gains_knowledge:this,agriculture_knowledge,10', 'group_gains_knowledge:this,shipbuilding_knowledge,30'
+    Examples: 'add_group_knowledge:this,agriculture_knowledge,10', 'add_group_knowledge:this,shipbuilding_knowledge,30'
+
+- 'modify_group_knowledge_limit'
+    Assigns the specified knowledge to the specified group, and modify the knowledge's current level limit by adding the specified value (integer value between 0 and 10000). the format of the effect is as follows: 'modify_group_knowledge_limit:<target_group_type>,<knowledge_id>,<levelLimitDelta>'
+    NOTE: This effect cannot decrease a knowledge level limit below a limit set by 'add_group_knowledge' nor it can increase a specific limit above 10000.
+    These are valid target group types:
+    - 'this': the cell group this effect targets
+
+    Examples: 'modify_group_knowledge_limit:this,shipbuilding_knowledge,20', 'modify_group_knowledge_limit:this,shipbuilding_knowledge,-20'
 
 --

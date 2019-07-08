@@ -90,11 +90,11 @@ public class CellCulture : Culture
             //                }
             //#endif
 
-            CellCulturalKnowledge knowledge = CellCulturalKnowledge.CreateCellInstance(k.Id, group, k.Value, k.AsymptoteLevelIds);
+            CellCulturalKnowledge knowledge = CellCulturalKnowledge.CreateCellInstance(k.Id, group, k.Value, k.LevelLimitIds);
 
             AddKnowledge(knowledge);
 
-            knowledge.RecalculateAsymptote();
+            knowledge.RecalculateLimit();
         }
 
         if (sourceCulture.Language != null)
@@ -140,7 +140,7 @@ public class CellCulture : Culture
         SkillsToLearn.Add(skill.Id, skill);
     }
 
-    public CellCulturalKnowledge TryAddKnowledgeToLearn(string id, CellGroup group, int initialValue = 0, List<string> asymptoteLevelIds = null)
+    public CellCulturalKnowledge TryAddKnowledgeToLearn(string id, CellGroup group, int initialValue = 0, List<string> levelLimitIds = null)
     {
         CellCulturalKnowledge knowledge = GetKnowledge(id) as CellCulturalKnowledge;
         
@@ -161,7 +161,7 @@ public class CellCulture : Culture
             knowledge = CellCulturalKnowledge.CreateCellInstance(id, group);
         }
 
-        knowledge.Initialize(initialValue, asymptoteLevelIds);
+        knowledge.Initialize(initialValue, levelLimitIds);
 
         KnowledgesToLearn.Add(id, knowledge);
 
@@ -523,7 +523,7 @@ public class CellCulture : Culture
         {
             foreach (CellCulturalKnowledge knowledge in Knowledges.Values)
             {
-                (knowledge as CellCulturalKnowledge).RecalculateAsymptoteOld();
+                (knowledge as CellCulturalKnowledge).RecalculateLimit_Old();
             }
         }
 
@@ -586,14 +586,14 @@ public class CellCulture : Culture
                 throw new System.Exception("Attempted to add duplicate knowledge (" + knowledge.Id + ") to group " + Group.Id);
             }
 
-            knowledge.RecalculateAsymptoteOld();
+            knowledge.RecalculateLimit_Old();
         }
 
         foreach (CellCulturalDiscovery discovery in DiscoveriesToFind.Values)
         {
             foreach (CellCulturalKnowledge knowledge in Knowledges.Values)
             {
-                knowledge.CalculateAsymptote(discovery);
+                knowledge.CalculateLimit(discovery);
             }
         }
     }

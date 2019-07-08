@@ -4,8 +4,8 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
-[XmlInclude(typeof(BoatMakingDiscovery))]
-[XmlInclude(typeof(SailingDiscovery))]
+//[XmlInclude(typeof(BoatMakingDiscovery))]
+//[XmlInclude(typeof(SailingDiscovery))]
 [XmlInclude(typeof(TribalismDiscovery))]
 [XmlInclude(typeof(PlantCultivationDiscovery))]
 public class CulturalDiscovery : CulturalDiscoveryInfo

@@ -16,23 +16,23 @@ public class CulturalKnowledge : CulturalKnowledgeInfo
     [XmlAttribute("V")]
     public int Value;
 
-    public List<string> AsymptoteLevelIds = new List<string>();
+    public List<string> LevelLimitIds = new List<string>();
 
-    private HashSet<string> _asymptoteLevelIds = new HashSet<string>();
+    private HashSet<string> _levelLimitIds = new HashSet<string>();
 
     public CulturalKnowledge()
     {
     }
 
-    public CulturalKnowledge(string id, string name, int value, List<string> asymptoteLevelIds) : base(id, name)
+    public CulturalKnowledge(string id, string name, int value, List<string> levelLimitIds) : base(id, name)
     {
         Value = value;
 
-        if (asymptoteLevelIds != null)
+        if (levelLimitIds != null)
         {
-            foreach (string levelId in asymptoteLevelIds)
+            foreach (string levelId in levelLimitIds)
             {
-                AddAsymptoteLevelId(levelId);
+                AddLevelLimitId(levelId);
             }
         }
     }
@@ -41,18 +41,18 @@ public class CulturalKnowledge : CulturalKnowledgeInfo
     {
         Value = baseKnowledge.Value;
 
-        foreach (string levelId in baseKnowledge.AsymptoteLevelIds)
+        foreach (string levelId in baseKnowledge.LevelLimitIds)
         {
-            AddAsymptoteLevelId(levelId);
+            AddLevelLimitId(levelId);
         }
     }
 
-    public bool AddAsymptoteLevelId(string id)
+    public bool AddLevelLimitId(string id)
     {
-        if (!_asymptoteLevelIds.Add(id))
+        if (!_levelLimitIds.Add(id))
             return false;
 
-        AsymptoteLevelIds.Add(id);
+        LevelLimitIds.Add(id);
 
         return true;
     }

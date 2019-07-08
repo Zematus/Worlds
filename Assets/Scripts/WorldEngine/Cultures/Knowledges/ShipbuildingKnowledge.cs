@@ -21,20 +21,20 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge
     public const float TimeEffectConstant = CellGroup.GenerationSpan * 500;
     public const float NeighborhoodSeaPresenceModifier = 1.5f;
 
-    public static int HighestAsymptote = 0;
+    public static int HighestLimit = 0;
 
     private float _neighborhoodSeaPresence;
 
     public ShipbuildingKnowledge()
     {
-        if (Asymptote > HighestAsymptote)
+        if (Limit > HighestLimit)
         {
-            HighestAsymptote = Asymptote;
+            HighestLimit = Limit;
         }
     }
 
-    public ShipbuildingKnowledge(CellGroup group, int initialValue, List<string> asymptoteIds) 
-        : base(group, KnowledgeId, KnowledgeName, KnowledgeRngOffset, initialValue, asymptoteIds)
+    public ShipbuildingKnowledge(CellGroup group, int initialValue, List<string> levelLimitIds) 
+        : base(group, KnowledgeId, KnowledgeName, KnowledgeRngOffset, initialValue, levelLimitIds)
     {
         CalculateNeighborhoodSeaPresence();
     }
@@ -87,47 +87,47 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge
     {
         UpdateValueInternal(timeSpan, TimeEffectConstant, _neighborhoodSeaPresence * NeighborhoodSeaPresenceModifier);
 
-        TryGenerateSailingDiscoveryEvent();
+        //TryGenerateSailingDiscoveryEvent();
     }
 
     public override void PolityCulturalProminence(CulturalKnowledge polityKnowledge, PolityProminence polityProminence, long timeSpan)
     {
         PolityCulturalProminenceInternal(polityKnowledge, polityProminence, timeSpan, TimeEffectConstant);
 
-        TryGenerateSailingDiscoveryEvent();
+        //TryGenerateSailingDiscoveryEvent();
     }
 
-    private void TryGenerateSailingDiscoveryEvent()
+    //private void TryGenerateSailingDiscoveryEvent()
+    //{
+    //    if (Value < SailingDiscoveryEvent.MinShipBuildingKnowledgeSpawnEventValue)
+    //        return;
+
+    //    if (Value > SailingDiscoveryEvent.OptimalShipBuildingKnowledgeValue)
+    //        return;
+
+    //    if (SailingDiscoveryEvent.CanSpawnIn(Group))
+    //    {
+    //        long triggerDate = SailingDiscoveryEvent.CalculateTriggerDate(Group);
+
+    //        if (triggerDate > World.MaxSupportedDate)
+    //            return;
+
+    //        if (triggerDate == long.MinValue)
+    //            return;
+
+    //        Group.World.InsertEventToHappen(new SailingDiscoveryEvent(Group, triggerDate));
+    //    }
+    //}
+
+    protected override int CalculateLimitInternal(CulturalDiscovery discovery)
     {
-        if (Value < SailingDiscoveryEvent.MinShipBuildingKnowledgeSpawnEventValue)
-            return;
-
-        if (Value > SailingDiscoveryEvent.OptimalShipBuildingKnowledgeValue)
-            return;
-
-        if (SailingDiscoveryEvent.CanSpawnIn(Group))
-        {
-            long triggerDate = SailingDiscoveryEvent.CalculateTriggerDate(Group);
-
-            if (triggerDate > World.MaxSupportedDate)
-                return;
-
-            if (triggerDate == long.MinValue)
-                return;
-
-            Group.World.InsertEventToHappen(new SailingDiscoveryEvent(Group, triggerDate));
-        }
-    }
-
-    protected override int CalculateAsymptoteInternal(CulturalDiscovery discovery)
-    {
-        switch (discovery.Id)
-        {
-            //case BoatMakingDiscovery.DiscoveryId:
-            //    return 1000;
-            case SailingDiscovery.DiscoveryId:
-                return 3000;
-        }
+        //switch (discovery.Id)
+        //{
+        //    case BoatMakingDiscovery.DiscoveryId:
+        //        return 1000;
+        //    case SailingDiscovery.DiscoveryId:
+        //        return 3000;
+        //}
 
         return 0;
     }
@@ -180,7 +180,7 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge
     //    Profiler.EndSample();
     //}
 
-    protected override int GetBaseAsymptote()
+    protected override int GetBaseLimit()
     {
         return 0;
     }
