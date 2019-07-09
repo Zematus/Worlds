@@ -3,13 +3,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class NotCondition : Condition
+public class NotCondition : UnaryOpCondition
 {
-    public Condition Condition;
-
-    public NotCondition(string conditionStr)
+    public NotCondition(string conditionStr) : base(conditionStr)
     {
-        Condition = BuildCondition(conditionStr);
     }
 
     public override bool Evaluate(CellGroup group)

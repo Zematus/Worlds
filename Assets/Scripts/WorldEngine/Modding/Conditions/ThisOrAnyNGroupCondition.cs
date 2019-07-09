@@ -3,13 +3,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class ThisOrAnyNGroupCondition : GroupCondition
+public class ThisOrAnyNGroupCondition : UnaryOpGroupCondition
 {
-    public Condition Condition;
-
-    public ThisOrAnyNGroupCondition(string conditionStr)
+    public ThisOrAnyNGroupCondition(string conditionStr) : base (conditionStr)
     {
-        Condition = BuildCondition(conditionStr);
     }
 
     public override bool Evaluate(CellGroup group)

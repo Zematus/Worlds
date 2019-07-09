@@ -3,15 +3,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class AndCondition : Condition
+public class AndCondition : BinaryOpCondition
 {
-    public Condition ConditionA;
-    public Condition ConditionB;
-
-    public AndCondition(string conditionAStr, string conditionBStr)
+    public AndCondition(string conditionAStr, string conditionBStr) : base(conditionAStr, conditionBStr)
     {
-        ConditionA = BuildCondition(conditionAStr);
-        ConditionB = BuildCondition(conditionBStr);
     }
 
     public override bool Evaluate(CellGroup group)

@@ -35,11 +35,11 @@ public class DiscoveryLoader
 
         for (int i = 0; i < loader.discoveries.Length; i++)
         {
-            yield return CreateDiscoveryClass(loader.discoveries[i]);
+            yield return CreateDiscovery(loader.discoveries[i]);
         }
     }
 
-    private static Discovery CreateDiscoveryClass(LoadedDiscovery d)
+    private static Discovery CreateDiscovery(LoadedDiscovery d)
     {
         if (string.IsNullOrEmpty(d.id))
         {
@@ -109,7 +109,7 @@ public class DiscoveryLoader
             eventTimeToTriggerFactors = Factor.BuildFactors(timeToTriggerFactorsStr);
         }
 
-        Discovery discoveryClass = new Discovery()
+        Discovery discovery = new Discovery()
         {
             Id = d.id,
             IdHash = d.id.GetHashCode(),
@@ -123,6 +123,6 @@ public class DiscoveryLoader
             EventTimeToTriggerFactors = eventTimeToTriggerFactors,
         };
 
-        return discoveryClass;
+        return discovery;
     }
 }

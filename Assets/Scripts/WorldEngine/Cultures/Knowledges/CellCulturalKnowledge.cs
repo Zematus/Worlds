@@ -28,6 +28,8 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
 
     protected int _newValue;
 
+    private Knowledge _referenceKnowledge; // TODO: remove when 'Knowledge' replaces 'CellCulturalKnowledge'
+
     public float ScaledLimit
     {
         get { return Limit * ValueScaleFactor; }
@@ -53,6 +55,8 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
         _newValue = value;
 
         LoadLevelLimits();
+
+        _referenceKnowledge = Knowledge.GetKnowledge(id);
 
 #if DEBUG
         AcquisitionDate = group.World.CurrentDate;
@@ -311,6 +315,14 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
     public void Update(long timeSpan)
     {
         UpdateInternal(timeSpan);
+
+        foreach (ICellGroupEventGenerator generator in _referenceKnowledge.OnUpdateEventGenerators)
+        {
+            if (generator.CanAssignEventTypeToGroup(Group))
+            {
+                generator.GenerateAndAssignEvent(Group);
+            }
+        }
     }
 
     protected void UpdateValueInternal(long timeSpan, float timeEffectFactor, float specificModifier)

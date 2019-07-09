@@ -3,15 +3,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class OrCondition : Condition
+public class OrCondition : BinaryOpCondition
 {
-    public Condition ConditionA;
-    public Condition ConditionB;
-
-    public OrCondition(string conditionAStr, string conditionBStr)
+    public OrCondition(string conditionAStr, string conditionBStr) : base(conditionAStr, conditionBStr)
     {
-        ConditionA = BuildCondition(conditionAStr);
-        ConditionB = BuildCondition(conditionBStr);
     }
 
     public override bool Evaluate(CellGroup group)

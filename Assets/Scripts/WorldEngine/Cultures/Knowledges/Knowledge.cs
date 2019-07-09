@@ -18,11 +18,20 @@ public class Knowledge : CellCulturalKnowledge
     }
 
     public static void InitializeKnowledges()
-    { 
+    {
         // TODO: this function should use modded knowledges instead of hardcoded ones
-        Knowledges.Add(ShipbuildingKnowledge.KnowledgeId, new Knowledge());
-        Knowledges.Add(AgricultureKnowledge.KnowledgeId, new Knowledge());
-        Knowledges.Add(SocialOrganizationKnowledge.KnowledgeId, new Knowledge());
+
+        Knowledge shipbuildingKnowledge = new Knowledge();
+        shipbuildingKnowledge.ResetEventGenerators();
+        Knowledges.Add(ShipbuildingKnowledge.KnowledgeId, shipbuildingKnowledge);
+
+        Knowledge agricultureKnowledge = new Knowledge();
+        agricultureKnowledge.ResetEventGenerators();
+        Knowledges.Add(AgricultureKnowledge.KnowledgeId, agricultureKnowledge);
+
+        Knowledge socialOrganizationKnowledge = new Knowledge();
+        socialOrganizationKnowledge.ResetEventGenerators();
+        Knowledges.Add(SocialOrganizationKnowledge.KnowledgeId, socialOrganizationKnowledge);
     }
 
     public static Knowledge GetKnowledge(string id)
@@ -35,6 +44,11 @@ public class Knowledge : CellCulturalKnowledge
         }
 
         return k;
+    }
+
+    public void ResetEventGenerators()
+    {
+        OnUpdateEventGenerators = new List<ICellGroupEventGenerator>();
     }
 
     public override float CalculateExpectedProgressLevel()

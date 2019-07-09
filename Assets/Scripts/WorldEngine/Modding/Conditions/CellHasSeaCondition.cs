@@ -39,6 +39,11 @@ public class CellHasSeaCondition : CellCondition
         return cell.SeaBiomePresence >= MinValue;
     }
 
+    public override string GetPropertyValue(string propertyId)
+    {
+        return null;
+    }
+
     public override string ToString()
     {
         return "'Cell Has Sea' Condition, Min Value: " + MinValue;

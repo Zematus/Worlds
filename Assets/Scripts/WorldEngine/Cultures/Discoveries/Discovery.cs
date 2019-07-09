@@ -139,6 +139,43 @@ public class Discovery : CellCulturalDiscovery, ICellGroupEventGenerator
 
         World.EventGenerators.Add(EventGeneratorId, this);
         CellGroup.OnSpawnEventGenerators.Add(this);
+
+        InitializeOnConditions(GainConditions);
+    }
+
+    private void InitializeOnConditions(Condition[] conditions)
+    {
+        foreach (Condition c in conditions)
+        {
+            if ((c.ConditionType & ConditionType.Knowledge) == ConditionType.Knowledge)
+            {
+                InitializeOnKnowledgeCondition(c);
+            }
+        }
+    }
+
+    private void InitializeOnKnowledgeCondition(Condition c)
+    {
+        string knowledgeIds = c.GetPropertyValue(Condition.Property_KnowledgeId);
+
+        if (knowledgeIds == null)
+        {
+            throw new System.Exception("Discovery: Knowledge condition doesn't reference any Knowledge Ids: " + c.ToString());
+        }
+
+        string[] knowledgeIdArray = c.GetPropertyValue(Condition.Property_KnowledgeId).Split(',');
+
+        foreach (string kId in knowledgeIdArray)
+        {
+            Knowledge knowledge = Knowledge.GetKnowledge(kId);
+
+            if (knowledge == null)
+            {
+                throw new System.Exception("Discovery: Unable to find knowledge with Id: " + kId);
+            }
+
+            knowledge.OnUpdateEventGenerators.Add(this);
+        }
     }
 
     public bool CanBeGained(CellGroup group)

@@ -3,13 +3,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class ThisOrAnyNCellCondition : CellCondition
+public class ThisOrAnyNCellCondition : UnaryOpCellCondition
 {
-    public Condition Condition;
-
-    public ThisOrAnyNCellCondition(string conditionStr)
+    public ThisOrAnyNCellCondition(string conditionStr) : base(conditionStr)
     {
-        Condition = BuildCondition(conditionStr);
     }
 
     public override bool Evaluate(TerrainCell cell)

@@ -20,6 +20,12 @@ public abstract class Effect
             return new AddGroupKnowledgeEffect(match, id);
         }
 
+        match = Regex.Match(effectStr, ModifyGroupKnowledgeLimitEffect.Regex);
+        if (match.Success == true)
+        {
+            return new ModifyGroupKnowledgeLimitEffect(match, id);
+        }
+
         throw new System.ArgumentException("Not a recognized effect: " + effectStr);
     }
 

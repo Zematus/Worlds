@@ -3,8 +3,20 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
+public enum ConditionType
+{
+    None = 0x00,
+    TerrainCell = 0x01,
+    Group = 0x02,
+    Knowledge = 0x04,
+}
+
 public abstract class Condition
 {
+    public const string Property_KnowledgeId = "KnowledgeId";
+
+    public ConditionType ConditionType = ConditionType.None;
+
     public static Condition BuildCondition(string conditionStr)
     {
         //Debug.Log("parsing: " + conditionStr);
@@ -132,4 +144,6 @@ public abstract class Condition
 
     public abstract bool Evaluate(CellGroup group);
     public abstract bool Evaluate(TerrainCell cell);
+
+    public abstract string GetPropertyValue(string propertyId);
 }

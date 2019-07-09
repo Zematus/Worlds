@@ -7,8 +7,8 @@ using UnityEngine.Profiling;
 
 public class AgricultureKnowledge : CellCulturalKnowledge
 {
-    public const string KnowledgeId = "AgricultureKnowledge";
-    public const string KnowledgeName = "Agriculture";
+    public const string KnowledgeId = "agriculture";
+    public const string KnowledgeName = "agriculture";
 
     public const int InitialValue = 100;
 

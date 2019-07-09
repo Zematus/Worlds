@@ -3,13 +3,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class AllNCellsCondition : CellCondition
+public class AllNCellsCondition : UnaryOpCellCondition
 {
-    public Condition Condition;
-
-    public AllNCellsCondition(string conditionStr)
+    public AllNCellsCondition(string conditionStr) : base(conditionStr)
     {
-        Condition = BuildCondition(conditionStr);
     }
 
     public override bool Evaluate(TerrainCell cell)
@@ -22,7 +19,7 @@ public class AllNCellsCondition : CellCondition
 
         return true;
     }
-
+    
     public override string ToString()
     {
         return "ALL_N_CELLS (" + Condition.ToString() + ")";

@@ -39,6 +39,8 @@ public class GroupHasKnowledgeCondition : GroupCondition
         {
             MinValue = DefaultMinValue;
         }
+
+        ConditionType |= ConditionType.Knowledge;
     }
 
     public override bool Evaluate(CellGroup group)
@@ -51,6 +53,17 @@ public class GroupHasKnowledgeCondition : GroupCondition
         }
 
         return false;
+    }
+
+    public override string GetPropertyValue(string propertyId)
+    {
+        switch (propertyId)
+        {
+            case Property_KnowledgeId:
+                return KnowledgeId;
+        }
+
+        return null;
     }
 
     public override string ToString()

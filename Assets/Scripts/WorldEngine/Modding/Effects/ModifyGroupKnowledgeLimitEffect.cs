@@ -25,12 +25,12 @@ public class ModifyGroupKnowledgeLimitEffect : GroupEffect
 
         if (!float.TryParse(valueStr, out value))
         {
-            throw new System.ArgumentException("IncreaseGroupKnowledgeLimitEffect: Level limit increase can't be parsed into a valid floating point number: " + valueStr);
+            throw new System.ArgumentException("ModifyGroupKnowledgeLimitEffect: Level limit increase can't be parsed into a valid floating point number: " + valueStr);
         }
 
         if (!value.IsInsideRange(1, 10000))
         {
-            throw new System.ArgumentException("IncreaseGroupKnowledgeLimitEffect: Level limit increase is outside the range of 1 and 10000: " + valueStr);
+            throw new System.ArgumentException("ModifyGroupKnowledgeLimitEffect: Level limit increase is outside the range of 1 and 10000: " + valueStr);
         }
 
         LevelLimitDelta = (int)(value / CulturalKnowledge.ValueScaleFactor);
@@ -42,7 +42,7 @@ public class ModifyGroupKnowledgeLimitEffect : GroupEffect
 
         if (k == null)
         {
-            throw new System.ArgumentException("IncreaseGroupKnowledgeLimitEffect: Target group doesn't have knowledge: " + KnowledgeId);
+            throw new System.ArgumentException("ModifyGroupKnowledgeLimitEffect: Target group doesn't have knowledge: " + KnowledgeId);
         }
 
         k.ModifyLevelLimit(LevelLimitDelta);

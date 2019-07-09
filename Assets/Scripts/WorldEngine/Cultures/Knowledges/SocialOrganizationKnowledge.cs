@@ -7,8 +7,8 @@ using UnityEngine.Profiling;
 
 public class SocialOrganizationKnowledge : CellCulturalKnowledge
 {
-    public const string KnowledgeId = "SocialOrganizationKnowledge";
-    public const string KnowledgeName = "Social Organization";
+    public const string KnowledgeId = "social_organization";
+    public const string KnowledgeName = "social organization";
 
     public const int KnowledgeRngOffset = 2;
 
