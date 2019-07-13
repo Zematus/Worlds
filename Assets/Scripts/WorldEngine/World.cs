@@ -189,7 +189,6 @@ public class World : ISynchronizable
     public const float TerrainGenerationSteps = 6;
 
     public static Dictionary<string, IWorldEventGenerator> EventGenerators;
-    public static Dictionary<string, int> KnowledgeLevelLimits;
 
     [XmlAttribute]
     public int Width { get; private set; }
@@ -608,7 +607,6 @@ public class World : ISynchronizable
     public static void ResetStaticModData()
     {
         EventGenerators = new Dictionary<string, IWorldEventGenerator>();
-        KnowledgeLevelLimits = new Dictionary<string, int>();
     }
 
     public static IWorldEventGenerator GetEventGenerator(string id)
@@ -621,18 +619,6 @@ public class World : ISynchronizable
         }
 
         return generator;
-    }
-
-    public static int GetKnowledgeLevelLimit(string id)
-    {
-        int limit;
-
-        if (!KnowledgeLevelLimits.TryGetValue(id, out limit))
-        {
-            throw new System.ArgumentException("Unknown knowledge limit id: " + id);
-        }
-
-        return limit;
     }
 
     public List<WorldEvent> GetFilteredEventsToHappenForSerialization()

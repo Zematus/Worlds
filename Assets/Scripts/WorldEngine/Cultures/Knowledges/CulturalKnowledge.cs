@@ -16,50 +16,95 @@ public class CulturalKnowledge : CulturalKnowledgeInfo
     [XmlAttribute("V")]
     public int Value;
 
-    public List<string> LevelLimitIds = new List<string>();
+    [XmlAttribute("L")]
+    public int Limit = -1;
 
-    private HashSet<string> _levelLimitIds = new HashSet<string>();
+    [XmlAttribute("PL")]
+    public float ProgressLevel;
 
     public CulturalKnowledge()
     {
     }
 
-    public CulturalKnowledge(string id, string name, int value, List<string> levelLimitIds) : base(id, name)
+    public CulturalKnowledge(string id, string name, int value, int limit) : base(id, name)
     {
         Value = value;
 
-        if (levelLimitIds != null)
-        {
-            foreach (string levelId in levelLimitIds)
-            {
-                AddLevelLimitId(levelId);
-            }
-        }
+        SetLimit(limit);
+    }
+
+    protected void SetLimit(int limit)
+    {
+        Limit = limit;
+
+        UpdateProgressLevel();
+
+        SetHighestLimit(limit);
     }
 
     public CulturalKnowledge(CulturalKnowledge baseKnowledge) : base(baseKnowledge)
     {
         Value = baseKnowledge.Value;
-
-        foreach (string levelId in baseKnowledge.LevelLimitIds)
-        {
-            AddLevelLimitId(levelId);
-        }
-    }
-
-    public bool AddLevelLimitId(string id)
-    {
-        if (!_levelLimitIds.Add(id))
-            return false;
-
-        LevelLimitIds.Add(id);
-
-        return true;
+        Limit = baseKnowledge.Limit;
     }
 
     public float ScaledValue
     {
         get { return Value * ValueScaleFactor; }
+    }
+
+    public float ScaledLimit
+    {
+        get { return Limit * ValueScaleFactor; }
+    }
+
+    public void UpdateProgressLevel()
+    {
+        ProgressLevel = 0;
+
+        if (Limit > 0)
+            ProgressLevel = MathUtility.RoundToSixDecimals(Mathf.Clamp01(Value / (float)Limit));
+
+        //#if DEBUG
+        //        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
+        //        {
+        //            if (Group.Id == Manager.TracingData.GroupId)
+        //            {
+        //                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+        //                    "CellCulturalKnowledge.UpdateProgressLevel - Knowledge.Id:" + Id + ", Group.Id:" + Group.Id,
+        //                    "CurrentDate: " + Group.World.CurrentDate +
+        //                    ", ProgressLevel: " + ProgressLevel +
+        //                    ", Value: " + Value +
+        //                    ", Limit: " + Limit +
+        //                    "");
+
+        //                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+        //            }
+        //        }
+        //#endif
+    }
+
+    public int GetHighestLimit()
+    {
+        System.Type knowledgeType = this.GetType();
+
+        System.Reflection.FieldInfo fInfo = knowledgeType.GetField("HighestLimit"); // TODO: avoid using reflection
+
+        return (int)fInfo.GetValue(this);
+    }
+
+    public void SetHighestLimit(int value)
+    {
+        System.Type knowledgeType = this.GetType();
+
+        System.Reflection.FieldInfo fInfo = knowledgeType.GetField("HighestLimit"); // TODO: avoid using reflection
+
+        int currentValue = (int)fInfo.GetValue(this);
+
+        if (value > currentValue)
+        {
+            fInfo.SetValue(this, value);
+        }
     }
 
     public virtual void Reset()
@@ -102,5 +147,6 @@ public class CulturalKnowledge : CulturalKnowledgeInfo
         //#endif
 
         Value = 0;
+        Limit = 0;
     }
 }

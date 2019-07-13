@@ -253,6 +253,7 @@ public class PolityCulture : Culture
                 //Profiler.BeginSample("update knowledge value");
 
                 knowledge.AccValue += k.Value * influence;
+                knowledge.Limit = Mathf.Max(k.Limit, knowledge.Limit);
 
                 //Profiler.EndSample();
             }

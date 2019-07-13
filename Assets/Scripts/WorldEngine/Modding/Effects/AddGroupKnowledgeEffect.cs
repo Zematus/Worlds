@@ -34,15 +34,11 @@ public class AddGroupKnowledgeEffect : GroupEffect
         }
 
         LimitLevel = (int)(value / CulturalKnowledge.ValueScaleFactor);
-
-        World.KnowledgeLevelLimits[id] = LimitLevel;
     }
 
     public override void ApplyToTarget(CellGroup group)
     {
-        CellCulturalKnowledge k = group.Culture.TryAddKnowledgeToLearn(KnowledgeId, group, _initialValue);
-
-        k.AddLevelLimit(Id, LimitLevel);
+        group.Culture.TryAddKnowledgeToLearn(KnowledgeId, group, _initialValue, LimitLevel);
     }
 
     public override string ToString()

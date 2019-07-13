@@ -8,7 +8,7 @@ using UnityEngine.Profiling;
 public class ShipbuildingKnowledge : CellCulturalKnowledge
 {
     public const string KnowledgeId = "shipbuilding";
-    public const string KnowledgeName = "Shipbuilding";
+    public const string KnowledgeName = "shipbuilding";
 
     public const int KnowledgeRngOffset = 0;
 
@@ -33,8 +33,8 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge
         }
     }
 
-    public ShipbuildingKnowledge(CellGroup group, int initialValue, List<string> levelLimitIds) 
-        : base(group, KnowledgeId, KnowledgeName, KnowledgeRngOffset, initialValue, levelLimitIds)
+    public ShipbuildingKnowledge(CellGroup group, int initialValue, int initialLimit) 
+        : base(group, KnowledgeId, KnowledgeName, KnowledgeRngOffset, initialValue, initialLimit)
     {
         CalculateNeighborhoodSeaPresence();
     }

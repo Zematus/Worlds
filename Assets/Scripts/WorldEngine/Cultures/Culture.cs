@@ -318,7 +318,6 @@ public class Culture : ISynchronizable
         ResetActivities();
         ResetSkills();
         ResetKnowledges();
-        //ResetDiscoveries();
     }
 
     public virtual void Synchronize()

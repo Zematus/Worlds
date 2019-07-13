@@ -42,7 +42,7 @@ public class ModifyGroupKnowledgeLimitEffect : GroupEffect
 
         if (k == null)
         {
-            throw new System.ArgumentException("ModifyGroupKnowledgeLimitEffect: Target group doesn't have knowledge: " + KnowledgeId);
+            throw new System.ArgumentException("ModifyGroupKnowledgeLimitEffect: Target group doesn't have knowledge: " + KnowledgeId + ", Group Position: " + group.Position);
         }
 
         k.ModifyLevelLimit(LevelLimitDelta);

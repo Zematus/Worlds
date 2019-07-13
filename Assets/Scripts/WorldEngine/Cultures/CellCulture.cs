@@ -90,11 +90,9 @@ public class CellCulture : Culture
             //                }
             //#endif
 
-            CellCulturalKnowledge knowledge = CellCulturalKnowledge.CreateCellInstance(k.Id, group, k.Value, k.LevelLimitIds);
+            CellCulturalKnowledge knowledge = CellCulturalKnowledge.CreateCellInstance(k.Id, group, k.Value, k.Limit);
 
             AddKnowledge(knowledge);
-
-            knowledge.RecalculateLimit();
         }
 
         if (sourceCulture.Language != null)
@@ -140,12 +138,13 @@ public class CellCulture : Culture
         SkillsToLearn.Add(skill.Id, skill);
     }
 
-    public CellCulturalKnowledge TryAddKnowledgeToLearn(string id, CellGroup group, int initialValue = 0, List<string> levelLimitIds = null)
+    public CellCulturalKnowledge TryAddKnowledgeToLearn(string id, CellGroup group, int initialValue, int initialLimit)
     {
         CellCulturalKnowledge knowledge = GetKnowledge(id) as CellCulturalKnowledge;
         
         if (knowledge != null)
         {
+            knowledge.SetLevelLimit(initialLimit);
             return knowledge;
         }
 
@@ -153,15 +152,14 @@ public class CellCulture : Culture
 
         if (KnowledgesToLearn.TryGetValue(id, out tempKnowledge))
         {
+            tempKnowledge.SetLevelLimit(initialLimit);
             return tempKnowledge;
         }
 
         if (knowledge == null)
         {
-            knowledge = CellCulturalKnowledge.CreateCellInstance(id, group);
+            knowledge = CellCulturalKnowledge.CreateCellInstance(id, group, initialValue, initialLimit);
         }
-
-        knowledge.Initialize(initialValue, levelLimitIds);
 
         KnowledgesToLearn.Add(id, knowledge);
 
@@ -341,7 +339,7 @@ public class CellCulture : Culture
 
         foreach (CulturalKnowledge k in sourceCulture.Knowledges.Values)
         {
-            CellCulturalKnowledge knowledge = TryAddKnowledgeToLearn(k.Id, Group);
+            CellCulturalKnowledge knowledge = TryAddKnowledgeToLearn(k.Id, Group, 0, k.Limit);
             knowledge.Merge(k.Value, percentage);
         }
 
@@ -448,7 +446,7 @@ public class CellCulture : Culture
 //            }
 //#endif
             
-            CellCulturalKnowledge cellKnowledge = TryAddKnowledgeToLearn(polityKnowledge.Id, Group);
+            CellCulturalKnowledge cellKnowledge = TryAddKnowledgeToLearn(polityKnowledge.Id, Group, 0, polityKnowledge.Limit);
 
             cellKnowledge.PolityCulturalProminence(polityKnowledge, polityProminence, timeSpan);
         }
@@ -593,7 +591,7 @@ public class CellCulture : Culture
         {
             foreach (CellCulturalKnowledge knowledge in Knowledges.Values)
             {
-                knowledge.CalculateLimit(discovery);
+                knowledge.CalculateLimit_Old(discovery);
             }
         }
     }
