@@ -86,7 +86,7 @@ public class TribalismDiscoveryEvent : DiscoveryEvent
 
     public override void Trigger()
     {
-        Group.Culture.TryAddDiscoveryToFind(TribalismDiscovery.DiscoveryId);
+        Group.Culture.TryAddDiscoveryToFind(TribalismDiscovery.DiscoveryId); // TODO: Deprecate
 
         Tribe newTribe = null;
 

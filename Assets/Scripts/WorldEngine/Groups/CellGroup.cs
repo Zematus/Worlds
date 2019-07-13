@@ -434,9 +434,19 @@ public class CellGroup : HumanGroup
     {
         int dir = (int)PreferredMigrationDirection;
 
+        Profiler.BeginSample("RandomUtility.PseudoNormalRepeatDistribution");
+
         float fDir = RandomUtility.PseudoNormalRepeatDistribution(Cell.GetNextLocalRandomFloat(RngOffsets.CELL_GROUP_GENERATE_GROUP_MIGRATION_DIRECTION), 0.05f, dir, TerrainCell.MaxNeighborDirections);
 
-        return Cell.TryGetNeighborDirection((int)fDir);
+        Profiler.EndSample();
+
+        Profiler.BeginSample("Cell.TryGetNeighborDirection");
+
+        Direction direction = Cell.TryGetNeighborDirection((int)fDir);
+
+        Profiler.EndSample();
+
+        return direction;
     }
 
     public void AddFactionCore(Faction faction)
@@ -900,53 +910,53 @@ public class CellGroup : HumanGroup
             return;
         }
 
-        //Profiler.BeginSample("Update Terrain Farmland Percentage");
+        Profiler.BeginSample("Update Terrain Farmland Percentage");
 
         UpdateTerrainFarmlandPercentage();
 
-        //Profiler.EndSample();
+        Profiler.EndSample();
 
-        //Profiler.BeginSample("Culture PostUpdate");
+        Profiler.BeginSample("Culture PostUpdate");
 
         Culture.PostUpdate();
 
-        //Profiler.EndSample();
+        Profiler.EndSample();
 
-        //Profiler.BeginSample("Set Faction Updates");
+        Profiler.BeginSample("Set Faction Updates");
 
         SetFactionUpdates();
 
-        //Profiler.EndSample();
+        Profiler.EndSample();
 
-        //Profiler.BeginSample("Culture PostUpdate Cleanup");
+        Profiler.BeginSample("Culture PostUpdate Cleanup");
 
         Culture.CleanUpAtributesToGet();
 
-        //Profiler.EndSample();
+        Profiler.EndSample();
 
-        //Profiler.BeginSample("Set Polity Updates");
+        Profiler.BeginSample("Set Polity Updates");
 
         SetPolityUpdates();
 
-        //Profiler.EndSample();
+        Profiler.EndSample();
 
-        //Profiler.BeginSample("Post Update Polity Prominences");
+        Profiler.BeginSample("Post Update Polity Prominences");
 
         PostUpdatePolityProminences_BeforePolityUpdates();
 
-        //Profiler.EndSample();
+        Profiler.EndSample();
 
-        //Profiler.BeginSample("PostUpdate Polity Cultural Prominences");
+        Profiler.BeginSample("PostUpdate Polity Cultural Prominences");
 
         PostUpdatePolityCulturalProminences();
 
-        //Profiler.EndSample();
+        Profiler.EndSample();
 
-        //Profiler.BeginSample("Update Polity Prominence Administrative Costs");
+        Profiler.BeginSample("Update Polity Prominence Administrative Costs");
 
         UpdatePolityProminenceAdministrativeCosts();
 
-        //Profiler.EndSample();
+        Profiler.EndSample();
     }
 
     public void PostUpdate_AfterPolityUpdates()
@@ -986,41 +996,41 @@ public class CellGroup : HumanGroup
 
         World.UpdateMostPopulousGroup(this);
 
-        //Profiler.BeginSample("Calculate Optimal Population");
+        Profiler.BeginSample("Calculate Optimal Population");
 
         OptimalPopulation = CalculateOptimalPopulation(Cell);
 
-        //Profiler.EndSample();
+        Profiler.EndSample();
 
-        //Profiler.BeginSample("Calculate Local Migration Value");
+        Profiler.BeginSample("Calculate Local Migration Value");
 
         CalculateLocalMigrationValue();
 
-        //Profiler.EndSample();
+        Profiler.EndSample();
 
-        //Profiler.BeginSample("Consider Land Migration");
+        Profiler.BeginSample("Consider Land Migration");
 
         ConsiderLandMigration();
 
-        //Profiler.EndSample();
+        Profiler.EndSample();
 
-        //Profiler.BeginSample("Consider Sea Migration");
+        Profiler.BeginSample("Consider Sea Migration");
 
         ConsiderSeaMigration();
 
-        //Profiler.EndSample();
+        Profiler.EndSample();
 
-        //Profiler.BeginSample("Consider Prominence Expansion");
+        Profiler.BeginSample("Consider Prominence Expansion");
 
         ConsiderPolityProminenceExpansion();
 
-        //Profiler.EndSample();
+        Profiler.EndSample();
 
-        //Profiler.BeginSample("Calculate Next Update Date");
+        Profiler.BeginSample("Calculate Next Update Date");
 
         NextUpdateDate = CalculateNextUpdateDate();
 
-        //Profiler.EndSample();
+        Profiler.EndSample();
 
         LastUpdateDate = World.CurrentDate;
 
@@ -1359,54 +1369,66 @@ public class CellGroup : HumanGroup
     {
         if (HasMigrationEvent)
             return;
-        
+
+        Profiler.BeginSample("UpdatePreferredMigrationDirection");
+
         UpdatePreferredMigrationDirection();
+
+        Profiler.EndSample();
 
         //		int targetCellIndex = Cell.GetNextLocalRandomInt (RngOffsets.CELL_GROUP_CONSIDER_LAND_MIGRATION_TARGET, Cell.Neighbors.Count);
         //
         //		TerrainCell targetCell = Cell.Neighbors.Values.ElementAt (targetCellIndex);
 
+        Profiler.BeginSample("GenerateGroupMigrationDirection");
+
         Direction migrationDirection = GenerateGroupMigrationDirection();
 
         TerrainCell targetCell = Cell.Neighbors[migrationDirection];
 
-//#if DEBUG
-//        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-//        {
-//            if (Id == Manager.TracingData.GroupId)
-//            {
-//                string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
+        Profiler.EndSample();
 
-//                string cellInfo = "No target cell";
+        //#if DEBUG
+        //        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
+        //        {
+        //            if (Id == Manager.TracingData.GroupId)
+        //            {
+        //                string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
 
-//                if (targetCell != null)
-//                {
-//                    cellInfo = "Long:" + targetCell.Longitude + "|Lat:" + targetCell.Latitude;
-//                }
+        //                string cellInfo = "No target cell";
 
-//                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-//                    "ConsiderLandMigration - Group:" + groupId,
-//                    "CurrentDate: " + World.CurrentDate +
-//                    ", target cell: " + cellInfo +
-//                    "");
+        //                if (targetCell != null)
+        //                {
+        //                    cellInfo = "Long:" + targetCell.Longitude + "|Lat:" + targetCell.Latitude;
+        //                }
 
-//                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-//            }
-//        }
-//#endif
+        //                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+        //                    "ConsiderLandMigration - Group:" + groupId,
+        //                    "CurrentDate: " + World.CurrentDate +
+        //                    ", target cell: " + cellInfo +
+        //                    "");
+
+        //                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+        //            }
+        //        }
+        //#endif
+
+        Profiler.BeginSample("CalculateMigrationValue");
 
         float cellValue = CalculateMigrationValue(targetCell);
 
         TotalMigrationValue += cellValue;
 
-//#if DEBUG
-//        if (float.IsNaN(TotalMigrationValue))
-//        {
-//            throw new System.Exception("float.IsNaN (TotalMigrationValue)");
-//        }
-//#endif
-        
+        //#if DEBUG
+        //        if (float.IsNaN(TotalMigrationValue))
+        //        {
+        //            throw new System.Exception("float.IsNaN (TotalMigrationValue)");
+        //        }
+        //#endif
+
         float migrationChance = cellValue / TotalMigrationValue;
+
+        Profiler.EndSample();
         
         float rollValue = Cell.GetNextLocalRandomFloat(RngOffsets.CELL_GROUP_CONSIDER_LAND_MIGRATION_CHANCE);
 
@@ -1415,13 +1437,21 @@ public class CellGroup : HumanGroup
         
         float cellSurvivability = 0;
         float cellForagingCapacity = 0;
-        
+
+        Profiler.BeginSample("CalculateAdaptionToCell");
+
         CalculateAdaptionToCell(targetCell, out cellForagingCapacity, out cellSurvivability);
-        
+
+        Profiler.EndSample();
+
         if (cellSurvivability <= 0)
             return;
-        
+
+        Profiler.BeginSample("CalculateAltitudeDeltaFactor");
+
         float cellAltitudeDeltaFactor = CalculateAltitudeDeltaFactor(targetCell);
+
+        Profiler.EndSample();
 
         float travelFactor =
             cellAltitudeDeltaFactor * cellAltitudeDeltaFactor *
@@ -1433,24 +1463,28 @@ public class CellGroup : HumanGroup
 
         long nextDate = World.CurrentDate + travelTime;
 
-//#if DEBUG
-//        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-//        {
-//            if (Id == Manager.TracingData.GroupId)
-//            {
-//                string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
+        //#if DEBUG
+        //        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
+        //        {
+        //            if (Id == Manager.TracingData.GroupId)
+        //            {
+        //                string groupId = "Id:" + Id + "|Long:" + Longitude + "|Lat:" + Latitude;
 
-//                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-//                    "ConsiderLandMigration - Group:" + groupId,
-//                    "CurrentDate: " + World.CurrentDate +
-//                    "");
+        //                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+        //                    "ConsiderLandMigration - Group:" + groupId,
+        //                    "CurrentDate: " + World.CurrentDate +
+        //                    "");
 
-//                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-//            }
-//        }
-//#endif
+        //                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+        //            }
+        //        }
+        //#endif
+
+        Profiler.BeginSample("SetMigrationEvent");
 
         SetMigrationEvent(targetCell, migrationDirection, nextDate);
+
+        Profiler.EndSample();
     }
 
     public void ConsiderSeaMigration()

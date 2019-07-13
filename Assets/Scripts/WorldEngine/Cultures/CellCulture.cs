@@ -21,6 +21,10 @@ public class CellCulture : Culture
     [XmlIgnore]
     public Dictionary<string, CellCulturalDiscovery> DiscoveriesToFind = new Dictionary<string, CellCulturalDiscovery>();
 
+    // DiscoveriesToReceive should only be used when the discovery is gotten trough transfer from other groups or polities
+    [XmlIgnore]
+    public Dictionary<string, CellCulturalDiscovery> DiscoveriesToReceive = new Dictionary<string, CellCulturalDiscovery>();
+
     private HashSet<CellCulturalPreference> _preferencesToLose = new HashSet<CellCulturalPreference>();
     private HashSet<CellCulturalActivity> _activitiesToLose = new HashSet<CellCulturalActivity>();
     private HashSet<CellCulturalSkill> _skillsToLose = new HashSet<CellCulturalSkill>();
@@ -181,25 +185,21 @@ public class CellCulture : Culture
         DiscoveriesToFind.Add(discovery.Id, discovery);
     }
 
-    public void TryAddDiscoveryToFind(Discovery d)
+    public bool TryReceiveDiscovery(Discovery d)
     {
-        CulturalDiscovery discovery = GetDiscovery(d.Id);
-
-        if (discovery != null)
+        if (Discoveries.ContainsKey(d.Id))
         {
-            return;
+            return false;
+        }
+        
+        if (DiscoveriesToFind.ContainsKey(d.Id))
+        {
+            return false;
         }
 
-        CellCulturalDiscovery tempDiscovery;
+        DiscoveriesToReceive.Add(d.Id, d);
 
-        if (DiscoveriesToFind.TryGetValue(d.Id, out tempDiscovery))
-        {
-            return;
-        }
-
-        DiscoveriesToFind.Add(d.Id, d);
-
-        return;
+        return true;
     }
 
     public CellCulturalDiscovery TryAddDiscoveryToFind(string id)
@@ -347,11 +347,11 @@ public class CellCulture : Culture
         {
             if (d is Discovery) // This should be always TRUE
             {
-                TryAddDiscoveryToFind(d as Discovery);
+                TryReceiveDiscovery(d as Discovery);
             }
             else
             {
-                TryAddDiscoveryToFind(d.Id); //TODO: There shouldn't be a need to call this
+                TryAddDiscoveryToFind(d.Id); //TODO: Deprecate this call
             }
         }
     }
@@ -457,11 +457,11 @@ public class CellCulture : Culture
 
             if (discovery == null)
             {
-                TryAddDiscoveryToFind(polityDiscovery.Id); // TODO: there should not be a reason to call this
+                TryAddDiscoveryToFind(polityDiscovery.Id); // TODO: Deprecate this call
             }
             else
             {
-                TryAddDiscoveryToFind(discovery);
+                TryReceiveDiscovery(discovery);
             }
         }
     }
@@ -555,6 +555,11 @@ public class CellCulture : Culture
             discovery.OnGain(Group);
         }
 
+        foreach (CellCulturalDiscovery discovery in DiscoveriesToReceive.Values)
+        {
+            AddDiscovery(discovery);
+        }
+
         foreach (CellCulturalKnowledge knowledge in KnowledgesToLearn.Values)
         {
             try
@@ -584,14 +589,14 @@ public class CellCulture : Culture
                 throw new System.Exception("Attempted to add duplicate knowledge (" + knowledge.Id + ") to group " + Group.Id);
             }
 
-            knowledge.RecalculateLimit_Old();
+            knowledge.RecalculateLimit_Old(); // TODO: Deprecate
         }
 
-        foreach (CellCulturalDiscovery discovery in DiscoveriesToFind.Values)
+        foreach (CellCulturalDiscovery discovery in DiscoveriesToFind.Values) // TODO: Get rid of this foreach
         {
             foreach (CellCulturalKnowledge knowledge in Knowledges.Values)
             {
-                knowledge.CalculateLimit_Old(discovery);
+                knowledge.CalculateLimit_Old(discovery); // TODO: Deprecate
             }
         }
     }
@@ -723,6 +728,7 @@ public class CellCulture : Culture
         SkillsToLearn.Clear();
         KnowledgesToLearn.Clear();
         DiscoveriesToFind.Clear();
+        DiscoveriesToReceive.Clear();
     }
 
     public float MinimumSkillAdaptationLevel()

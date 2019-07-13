@@ -16,7 +16,7 @@ public interface ISynchronizable
 
 public static class RngOffsets
 {
-    public const int CELL_GROUP_CONSIDER_LAND_MIGRATION_TARGET = 0;
+    //public const int CELL_GROUP_CONSIDER_LAND_MIGRATION_TARGET = 0;
     public const int CELL_GROUP_CONSIDER_LAND_MIGRATION_CHANCE = 1;
 
     public const int CELL_GROUP_CONSIDER_SEA_MIGRATION = 2;

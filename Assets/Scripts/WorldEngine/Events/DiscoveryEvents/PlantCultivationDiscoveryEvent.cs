@@ -76,7 +76,7 @@ public class PlantCultivationDiscoveryEvent : DiscoveryEvent
     public override void Trigger()
     {
         Group.Culture.AddActivityToPerform(CellCulturalActivity.CreateFarmingActivity(Group));
-        Group.Culture.TryAddDiscoveryToFind(PlantCultivationDiscovery.DiscoveryId);
+        Group.Culture.TryAddDiscoveryToFind(PlantCultivationDiscovery.DiscoveryId); // TODO: Deprecate
         Group.Culture.TryAddKnowledgeToLearn(AgricultureKnowledge.KnowledgeId, Group, AgricultureKnowledge.InitialValue, 0);
         World.AddGroupToUpdate(Group);
 
