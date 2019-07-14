@@ -126,6 +126,18 @@ public abstract class Condition
             return new CellHasSeaCondition(match);
         }
 
+        match = Regex.Match(conditionStr, CellAccessibilityCondition.Regex);
+        if (match.Success == true)
+        {
+            return new CellAccessibilityCondition(match);
+        }
+
+        match = Regex.Match(conditionStr, CellArabilityCondition.Regex);
+        if (match.Success == true)
+        {
+            return new CellArabilityCondition(match);
+        }
+
         throw new System.ArgumentException("Not a recognized condition: " + conditionStr);
     }
 

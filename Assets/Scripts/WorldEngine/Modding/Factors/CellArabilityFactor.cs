@@ -3,13 +3,11 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class NeighborhoodSeaPresenceFactor : Factor
+public class CellArabilityFactor : Factor
 {
-    public const float MaxSeaPresence = 9;
+    public const string Regex = @"^\s*cell_arability\s*$";
 
-    public const string Regex = @"^\s*neighborhood_sea_presence\s*$";
-
-    public NeighborhoodSeaPresenceFactor(Match match)
+    public CellArabilityFactor(Match match)
     {
     }
 
@@ -20,11 +18,11 @@ public class NeighborhoodSeaPresenceFactor : Factor
 
     public override float Calculate(TerrainCell cell)
     {
-        return cell.NeighborhoodSeaBiomePresence / MaxSeaPresence;
+        return cell.Arability;
     }
 
     public override string ToString()
     {
-        return "'Neighborhood Sea Presence' Factor";
+        return "'Cell Arability' Factor";
     }
 }

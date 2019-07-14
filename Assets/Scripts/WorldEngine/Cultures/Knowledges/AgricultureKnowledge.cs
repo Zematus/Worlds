@@ -74,11 +74,11 @@ public class AgricultureKnowledge : CellCulturalKnowledge
 
     protected override int CalculateLimitInternal(CulturalDiscovery discovery)
     {
-        switch (discovery.Id)
-        {
-            case PlantCultivationDiscovery.DiscoveryId:
-                return 1000;
-        }
+        //switch (discovery.Id)
+        //{
+        //    case PlantCultivationDiscovery.DiscoveryId:
+        //        return 1000;
+        //}
 
         return 0;
     }
@@ -146,42 +146,42 @@ public class AgricultureKnowledge : CellCulturalKnowledge
         return false;
     }
 
-    public override void LossConsequences()
-    {
-        Profiler.BeginSample("RemoveActivity: FarmingActivity");
+    //public override void LossConsequences()
+    //{
+    //    Profiler.BeginSample("RemoveActivity: FarmingActivity");
 
-        Group.Culture.RemoveActivity(CellCulturalActivity.FarmingActivityId);
+    //    Group.Culture.RemoveActivity(CellCulturalActivity.FarmingActivityId);
 
-        Profiler.EndSample();
+    //    Profiler.EndSample();
 
-        Profiler.BeginSample("PlantCultivationDiscoveryEvent.CanSpawnIn");
+    //    Profiler.BeginSample("PlantCultivationDiscoveryEvent.CanSpawnIn");
 
-        if (PlantCultivationDiscoveryEvent.CanSpawnIn(Group))
-        {
-            Profiler.BeginSample("PlantCultivationDiscoveryEvent.CalculateTriggerDate");
+    //    if (PlantCultivationDiscoveryEvent.CanSpawnIn(Group))
+    //    {
+    //        Profiler.BeginSample("PlantCultivationDiscoveryEvent.CalculateTriggerDate");
 
-            long triggerDate = PlantCultivationDiscoveryEvent.CalculateTriggerDate(Group);
+    //        long triggerDate = PlantCultivationDiscoveryEvent.CalculateTriggerDate(Group);
 
-            Profiler.EndSample();
+    //        Profiler.EndSample();
             
-            if (triggerDate.IsInsideRange(Group.World.CurrentDate + 1, World.MaxSupportedDate))
-            {
-                Profiler.BeginSample("new PlantCultivationDiscoveryEvent");
+    //        if (triggerDate.IsInsideRange(Group.World.CurrentDate + 1, World.MaxSupportedDate))
+    //        {
+    //            Profiler.BeginSample("new PlantCultivationDiscoveryEvent");
 
-                PlantCultivationDiscoveryEvent plantCultivationDiscoveryEvent = new PlantCultivationDiscoveryEvent(Group, triggerDate);
+    //            PlantCultivationDiscoveryEvent plantCultivationDiscoveryEvent = new PlantCultivationDiscoveryEvent(Group, triggerDate);
 
-                Profiler.EndSample();
+    //            Profiler.EndSample();
 
-                Profiler.BeginSample("InsertEventToHappen: PlantCultivationDiscoveryEvent");
+    //            Profiler.BeginSample("InsertEventToHappen: PlantCultivationDiscoveryEvent");
 
-                Group.World.InsertEventToHappen(plantCultivationDiscoveryEvent);
+    //            Group.World.InsertEventToHappen(plantCultivationDiscoveryEvent);
 
-                Profiler.EndSample();
-            }
-        }
+    //            Profiler.EndSample();
+    //        }
+    //    }
 
-        Profiler.EndSample();
+    //    Profiler.EndSample();
 
-        Group.Cell.FarmlandPercentage = 0;
-    }
+    //    Group.Cell.FarmlandPercentage = 0;
+    //}
 }

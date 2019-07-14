@@ -26,8 +26,8 @@ public abstract class CellCulturalDiscovery : CulturalDiscovery
             //case SailingDiscovery.DiscoveryId:
             //    return new SailingDiscovery();
 
-            case PlantCultivationDiscovery.DiscoveryId:
-                return new PlantCultivationDiscovery();
+            //case PlantCultivationDiscovery.DiscoveryId:
+            //    return new PlantCultivationDiscovery();
 
             case TribalismDiscovery.DiscoveryId:
                 return new TribalismDiscovery();

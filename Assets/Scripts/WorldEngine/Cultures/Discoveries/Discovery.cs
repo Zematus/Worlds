@@ -87,7 +87,7 @@ public class Discovery : CellCulturalDiscovery, ICellGroupEventGenerator
     public Effect[] GainEffects = null;
     public Effect[] LossEffects = null;
 
-    public int EventTimeToTrigger;
+    public long EventTimeToTrigger;
     public Factor[] EventTimeToTriggerFactors = null;
 
     public static void ResetDiscoveries()

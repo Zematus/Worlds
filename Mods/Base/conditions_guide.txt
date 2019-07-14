@@ -53,4 +53,14 @@ Here's a list of the current types of conditions (more to be added in future ver
 
     Examples: 'cell_has_sea', 'cell_has_sea:0.5'
 
+- 'cell_accessibility'
+    Tests if a cell has an accessibility value (i.e. how accessible the terrain is) equal or greater than 0.01 or than the specified value (optional value between 0 and 1). The format of the constraint is as follows: 'cell_accessibility(:<min_accessibility>)'
+
+    Examples: 'cell_accessibility', 'cell_accessibility:0.2'
+
+- 'cell_arability'
+    Tests if a cell has an arability value (i.e. how arable the land is) equal or greater than 0.01 or than the specified value (optional value between 0 and 1). The format of the constraint is as follows: 'cell_arability(:<min_arability>)'
+
+    Examples: 'cell_arability', 'cell_arability:0.6'
+
 --

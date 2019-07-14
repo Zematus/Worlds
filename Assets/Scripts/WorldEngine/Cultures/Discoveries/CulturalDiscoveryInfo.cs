@@ -47,9 +47,9 @@ public class CulturalDiscoveryInfo : IKeyedValue<string>, ISynchronizable
             //    Name = BoatMakingDiscovery.DiscoveryName;
             //    break;
 
-            case PlantCultivationDiscovery.DiscoveryId:
-                Name = PlantCultivationDiscovery.DiscoveryName;
-                break;
+            //case PlantCultivationDiscovery.DiscoveryId:
+            //    Name = PlantCultivationDiscovery.DiscoveryName;
+            //    break;
                 
             //case SailingDiscovery.DiscoveryId:
             //    Name = SailingDiscovery.DiscoveryName;

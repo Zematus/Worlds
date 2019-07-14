@@ -21,7 +21,7 @@ public class DiscoveryLoader
         public string holdConditions;
         public string gainEffects;
         public string lossEffects;
-        public int eventTimeToTrigger;
+        public long eventTimeToTrigger;
         public string eventTimeToTriggerFactors;
     }
 
@@ -51,9 +51,9 @@ public class DiscoveryLoader
             throw new ArgumentException("discovery name can't be null or empty");
         }
 
-        if (!d.eventTimeToTrigger.IsInsideRange(1, int.MaxValue))
+        if (!d.eventTimeToTrigger.IsInsideRange(1, long.MaxValue))
         {
-            throw new ArgumentException("discovery event time-to-trigger must be a value between 0 and 2,147,483,647 (inclusive)");
+            throw new ArgumentException("discovery event time-to-trigger must be a value between 0 and 9,223,372,036,854,775,807 (inclusive)");
         }
 
         Condition[] gainConditions = null;

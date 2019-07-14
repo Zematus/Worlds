@@ -532,15 +532,15 @@ public class CellGroup : HumanGroup
         //    World.InsertEventToHappen(new BoatMakingDiscoveryEvent(this, triggerDate));
         //}
 
-        if (PlantCultivationDiscoveryEvent.CanSpawnIn(this))
-        {
-            long triggerDate = PlantCultivationDiscoveryEvent.CalculateTriggerDate(this);
+        //if (PlantCultivationDiscoveryEvent.CanSpawnIn(this))
+        //{
+        //    long triggerDate = PlantCultivationDiscoveryEvent.CalculateTriggerDate(this);
 
-            if (!triggerDate.IsInsideRange(World.CurrentDate + 1, World.MaxSupportedDate))
-                return;
+        //    if (!triggerDate.IsInsideRange(World.CurrentDate + 1, World.MaxSupportedDate))
+        //        return;
 
-            World.InsertEventToHappen(new PlantCultivationDiscoveryEvent(this, triggerDate));
-        }
+        //    World.InsertEventToHappen(new PlantCultivationDiscoveryEvent(this, triggerDate));
+        //}
     }
 
     public void InitializeDefaultPreferences(bool initialGroup)
@@ -2228,6 +2228,15 @@ public class CellGroup : HumanGroup
 
         if (!Culture.TryGetKnowledgeScaledValue(AgricultureKnowledge.KnowledgeId, out knowledgeValue))
         {
+            if (Cell.FarmlandPercentage > 0)
+            {
+                Cell.FarmlandPercentage = 0;
+                Cell.Modified = true; // We need to make sure to store the cell changes to file when saving.
+
+                _cellUpdateType |= CellUpdateType.Cell;
+                _cellUpdateSubtype |= CellUpdateSubType.Terrain;
+            }
+
             return;
         }
 
@@ -2256,10 +2265,10 @@ public class CellGroup : HumanGroup
         {
             Cell.FarmlandPercentage = farmlandPercentage;
             Cell.Modified = true; // We need to make sure to store the cell changes to file when saving.
-        }
 
-        _cellUpdateType |= CellUpdateType.Cell;
-        _cellUpdateSubtype |= CellUpdateSubType.Terrain;
+            _cellUpdateType |= CellUpdateType.Cell;
+            _cellUpdateSubtype |= CellUpdateSubType.Terrain;
+        }
     }
 
     public void UpdateTravelFactors()

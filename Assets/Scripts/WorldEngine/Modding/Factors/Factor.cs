@@ -65,6 +65,18 @@ public abstract class Factor
             return new NeighborhoodSeaPresenceFactor(match);
         }
 
+        match = Regex.Match(factorStr, CellAccessibilityFactor.Regex);
+        if (match.Success == true)
+        {
+            return new CellAccessibilityFactor(match);
+        }
+
+        match = Regex.Match(factorStr, CellArabilityFactor.Regex);
+        if (match.Success == true)
+        {
+            return new CellArabilityFactor(match);
+        }
+
         throw new System.ArgumentException("Not a recognized factor: " + factorStr);
     }
 
