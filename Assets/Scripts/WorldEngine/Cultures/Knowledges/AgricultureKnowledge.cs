@@ -12,6 +12,8 @@ public class AgricultureKnowledge : CellCulturalKnowledge
 
     public const int InitialValue = 100;
 
+    public const int BaseLimit = 0;
+
     public const int KnowledgeRngOffset = 1;
 
     public const float TimeEffectConstant = CellGroup.GenerationSpan * 2000;
@@ -181,10 +183,5 @@ public class AgricultureKnowledge : CellCulturalKnowledge
         Profiler.EndSample();
 
         Group.Cell.FarmlandPercentage = 0;
-    }
-
-    protected override int GetBaseLimit()
-    {
-        return 0;
     }
 }

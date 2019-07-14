@@ -160,9 +160,4 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge
     {
 
     }
-
-    protected override int GetBaseLimit()
-    {
-        return BaseLimit;
-    }
 }

@@ -76,11 +76,6 @@ public class Knowledge : CellCulturalKnowledge
         throw new System.NotImplementedException();
     }
 
-    protected override int GetBaseLimit()
-    {
-        throw new System.NotImplementedException();
-    }
-
     protected override void UpdateInternal(long timeSpan)
     {
         throw new System.NotImplementedException();

@@ -141,8 +141,8 @@ public class CellCulture : Culture
 
         SkillsToLearn.Add(skill.Id, skill);
     }
-
-    public CellCulturalKnowledge TryAddKnowledgeToLearn(string id, CellGroup group, int initialValue, int initialLimit)
+    
+    public CellCulturalKnowledge TryAddKnowledgeToLearn(string id, CellGroup group, int initialValue, int initialLimit = -1)
     {
         CellCulturalKnowledge knowledge = GetKnowledge(id) as CellCulturalKnowledge;
         
@@ -193,6 +193,11 @@ public class CellCulture : Culture
         }
         
         if (DiscoveriesToFind.ContainsKey(d.Id))
+        {
+            return false;
+        }
+
+        if (DiscoveriesToReceive.ContainsKey(d.Id))
         {
             return false;
         }

@@ -92,12 +92,24 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
         switch (id)
         {
             case ShipbuildingKnowledge.KnowledgeId:
+
+                if (initialLimit == -1)
+                    initialLimit = ShipbuildingKnowledge.BaseLimit;
+
                 return new ShipbuildingKnowledge(group, initialValue, initialLimit);
 
             case AgricultureKnowledge.KnowledgeId:
+
+                if (initialLimit == -1)
+                    initialLimit = AgricultureKnowledge.BaseLimit;
+
                 return new AgricultureKnowledge(group, initialValue, initialLimit);
 
             case SocialOrganizationKnowledge.KnowledgeId:
+
+                if (initialLimit == -1)
+                    initialLimit = SocialOrganizationKnowledge.BaseLimit;
+
                 return new SocialOrganizationKnowledge(group, initialValue, initialLimit);
         }
 
@@ -364,7 +376,6 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
 
     protected abstract void UpdateInternal(long timeSpan);
     protected abstract int CalculateLimitInternal(CulturalDiscovery discovery); // TODO: Get rid of this method
-    protected abstract int GetBaseLimit(); // TODO: Get rid of this method
 
     public override void FinalizeLoad()
     {

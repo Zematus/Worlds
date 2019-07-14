@@ -565,7 +565,7 @@ public class CellGroup : HumanGroup
     {
         if (initialGroup)
         {
-            Culture.TryAddKnowledgeToLearn(SocialOrganizationKnowledge.KnowledgeId, this, SocialOrganizationKnowledge.InitialValue, 0);
+            Culture.TryAddKnowledgeToLearn(SocialOrganizationKnowledge.KnowledgeId, this, SocialOrganizationKnowledge.InitialValue);
         }
     }
 

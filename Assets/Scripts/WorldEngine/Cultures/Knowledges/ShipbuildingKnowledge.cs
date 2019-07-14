@@ -14,6 +14,7 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge
 
     public const int InitialValue = 100;
 
+    public const int BaseLimit = 0;
     public const int MinKnowledgeValueForSailingSpawnEvent = 500;
     public const int MinKnowledgeValueForSailing = 300;
     public const int OptimalKnowledgeValueForSailing = 1000;
@@ -179,9 +180,4 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge
 
     //    Profiler.EndSample();
     //}
-
-    protected override int GetBaseLimit()
-    {
-        return 0;
-    }
 }
