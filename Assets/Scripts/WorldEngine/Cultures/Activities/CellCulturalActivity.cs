@@ -63,7 +63,7 @@ public class CellCulturalActivity : CulturalActivity
                 return new CellCulturalActivity(group, FarmingActivityId, FarmingActivityName, FarmingActivityRngOffset, value, contribution);
 
             case ForagingActivityId:
-                return new CellCulturalActivity(group, FarmingActivityId, FarmingActivityName, FarmingActivityRngOffset, value, contribution);
+                return new CellCulturalActivity(group, ForagingActivityId, ForagingActivityId, ForagingActivityRngOffset, value, contribution);
         }
 
         throw new System.ArgumentException("CellCulturalActivity: Unrecognized activity Id: " + id);
