@@ -42,6 +42,10 @@ public abstract class CellCulturalDiscovery : CulturalDiscovery
     {
     }
 
+    public virtual void RetryAssignAfterLoss(CellGroup group)
+    {
+    }
+
     public virtual void OnGain(CellGroup group)
     {
     }

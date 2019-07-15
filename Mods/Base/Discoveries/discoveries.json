@@ -4,9 +4,9 @@
       "id": "boat_making",
       "name": "boat making",
       "gainConditions": "'[NOT]group_has_knowledge:shipbuilding','[ANY_N_CELL]cell_has_sea'",
-      "holdConditions": "'group_has_knowledge:shipbuilding'",
+      "holdConditions": "'group_has_knowledge:shipbuilding,0.1'",
       "gainEffects": "'add_group_knowledge:this,shipbuilding,10'",
-      "loseEffects": "'remove_group_knowledge:this,shipbuilding'",
+      "lossEffects": "'remove_group_knowledge:this,shipbuilding'",
       "eventTimeToTrigger": 91250000,
       "eventTimeToTriggerFactors":"'[INV]neighborhood_sea_presence'"
     },
@@ -16,7 +16,7 @@
       "gainConditions": "'group_has_knowledge:shipbuilding,5','[ANY_N_CELL]cell_has_sea'",
       "holdConditions": "'group_has_knowledge:shipbuilding,3'",
       "gainEffects": "'modify_group_knowledge_limit:this,shipbuilding,20'",
-      "loseEffects": "'modify_group_knowledge_limit:this,shipbuilding,-20'",
+      "lossEffects": "'modify_group_knowledge_limit:this,shipbuilding,-20'",
       "eventTimeToTrigger": 91250000,
       "eventTimeToTriggerFactors":"'[INV]neighborhood_sea_presence'"
     },
@@ -24,9 +24,9 @@
       "id": "plant_cultivation",
       "name": "plant cultivation",
       "gainConditions": "'[NOT]group_has_knowledge:agriculture','cell_arability:0.3','cell_accessibility:0.3'",
-      "holdConditions": "'group_has_knowledge:agriculture'",
-      "gainEffects": "'add_group_knowledge:this,agriculture,10', 'add_group_activity:this,farming,0.1'",
-      "loseEffects": "'remove_group_knowledge:this,agriculture', 'remove_group_activity:this,farming'",
+      "holdConditions": "'group_has_knowledge:agriculture,0.1'",
+      "gainEffects": "'add_group_knowledge:this,agriculture,10', 'add_group_activity:this,farming'",
+      "lossEffects": "'remove_group_knowledge:this,agriculture', 'remove_group_activity:this,farming'",
       "eventTimeToTrigger": 5475000000,
       "eventTimeToTriggerFactors":"'[INV]cell_accessibility', '[INV]cell_arability'"
     }

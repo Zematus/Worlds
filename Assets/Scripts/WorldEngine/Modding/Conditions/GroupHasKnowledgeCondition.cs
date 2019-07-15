@@ -28,9 +28,9 @@ public class GroupHasKnowledgeCondition : GroupCondition
                 throw new System.ArgumentException("GroupHasKnowledgeCondition: Min value can't be parsed into a valid floating point number: " + valueStr);
             }
 
-            if (!value.IsInsideRange(1, 10000))
+            if (!value.IsInsideRange(0.01f, CulturalKnowledge.ScaledMaxLevelValue))
             {
-                throw new System.ArgumentException("GroupHasKnowledgeCondition: Min value is outside the range of 1 and 10000: " + valueStr);
+                throw new System.ArgumentException("GroupHasKnowledgeCondition: Min value is outside the range of 0.01 and " + CulturalKnowledge.ScaledMaxLevelValue + ": " + valueStr);
             }
 
             MinValue = (int)(value / CulturalKnowledge.ValueScaleFactor);

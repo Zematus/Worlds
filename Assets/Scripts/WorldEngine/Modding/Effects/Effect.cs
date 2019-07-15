@@ -20,10 +20,28 @@ public abstract class Effect
             return new AddGroupKnowledgeEffect(match, id);
         }
 
+        match = Regex.Match(effectStr, RemoveGroupKnowledgeEffect.Regex);
+        if (match.Success == true)
+        {
+            return new RemoveGroupKnowledgeEffect(match, id);
+        }
+
         match = Regex.Match(effectStr, ModifyGroupKnowledgeLimitEffect.Regex);
         if (match.Success == true)
         {
             return new ModifyGroupKnowledgeLimitEffect(match, id);
+        }
+
+        match = Regex.Match(effectStr, AddGroupActivityEffect.Regex);
+        if (match.Success == true)
+        {
+            return new AddGroupActivityEffect(match, id);
+        }
+
+        match = Regex.Match(effectStr, RemoveGroupActivityEffect.Regex);
+        if (match.Success == true)
+        {
+            return new RemoveGroupActivityEffect(match, id);
         }
 
         throw new System.ArgumentException("Not a recognized effect: " + effectStr);

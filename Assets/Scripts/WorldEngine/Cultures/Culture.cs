@@ -122,16 +122,6 @@ public class Culture : ISynchronizable
         Activities.Remove(activity.Id);
     }
 
-    public void RemoveActivity(string activityId)
-    {
-        CulturalActivity activity = GetActivity(activityId);
-
-        if (activity == null)
-            return;
-
-        RemoveActivity(activity);
-    }
-
     public void ResetActivities()
     {
         foreach (CulturalActivity activity in Activities.Values)

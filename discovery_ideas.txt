@@ -1,0 +1,4 @@
+Discovery ideas
+
+Terraced irrigation : Increases accesibility and arability in terrain with medium altitude deltas
+Slash-and-burn : Increases accessibility and arability in forested/selvatic terrain

@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 
 public class AddGroupKnowledgeEffect : GroupEffect
 {
-    private const int _initialValue = 100;
+    private const int _defaultLimitLevel = 100;
 
     public const string Regex = @"^\s*add_group_knowledge\s*" +
         @":\s*(?<type>" + ModUtility.IdentifierRegexPart + @")\s*" +
@@ -38,7 +38,7 @@ public class AddGroupKnowledgeEffect : GroupEffect
 
     public override void ApplyToTarget(CellGroup group)
     {
-        group.Culture.TryAddKnowledgeToLearn(KnowledgeId, group, _initialValue, LimitLevel);
+        group.Culture.TryAddKnowledgeToLearn(KnowledgeId, _defaultLimitLevel, LimitLevel);
     }
 
     public override string ToString()

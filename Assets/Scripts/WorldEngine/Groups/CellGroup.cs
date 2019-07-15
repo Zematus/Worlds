@@ -557,7 +557,8 @@ public class CellGroup : HumanGroup
     {
         if (initialGroup)
         {
-            Culture.AddActivityToPerform(CellCulturalActivity.CreateForagingActivity(this, 1f, 1f));
+            Culture.AddActivityToPerform(
+                CellCulturalActivity.CreateActivity(CellCulturalActivity.ForagingActivityId, this, 1f, 1f));
         }
     }
 
@@ -565,7 +566,7 @@ public class CellGroup : HumanGroup
     {
         if (initialGroup)
         {
-            Culture.TryAddKnowledgeToLearn(SocialOrganizationKnowledge.KnowledgeId, this, SocialOrganizationKnowledge.InitialValue);
+            Culture.TryAddKnowledgeToLearn(SocialOrganizationKnowledge.KnowledgeId, SocialOrganizationKnowledge.InitialValue);
         }
     }
 

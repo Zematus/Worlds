@@ -276,7 +276,10 @@ public class Discovery : CellCulturalDiscovery, ICellGroupEventGenerator
                 effect.Apply(group);
             }
         }
+    }
 
+    public override void RetryAssignAfterLoss(CellGroup group)
+    {
         if (CanAssignEventTypeToGroup(group))
         {
             GenerateAndAssignEvent(group);

@@ -13,25 +13,48 @@ Here's a list of the current types of effects (more to be added in future versio
 
 - 'remove_group_attribute'
     Removes an attribute flag from the specified group. the format of the effect is as follows: 'remove_group_attribute:<target_group_type>,<attribute_flag>'. flags can be any text with no spaces. See attribute_flags.txt for a list of flags hardcoded within the simulation and their effects.
-    NOTE: If there are multiple valid situations (e.g. multiple discoveries) that allow a group to keep an attribute flag, then the flag won't be removed until none of the situations are valid.
+    NOTE: Try make sure that no more than one 'effector' can remove an attribute at any given time.
     These are valid target group types:
     - 'this': the cell group this effect targets
 
     Examples: 'remove_group_attribute:this,CAN_FORM_TRIBE'
 
 - 'add_group_knowledge'
-    Assigns the specified knowledge to the specified group, and sets the knowledge's level limit to the specified value (integer value between 0 and 10000). the format of the effect is as follows: 'add_group_knowledge:<target_group_type>,<knowledge_id>,<levelLimit>'
+    Assigns the specified knowledge to the specified group, and sets the knowledge's level limit to the specified value (integer value between 1 and 10000). the format of the effect is as follows: 'add_group_knowledge:<target_group_type>,<knowledge_id>,<levelLimit>'
     These are valid target group types:
     - 'this': the cell group this effect targets
 
     Examples: 'add_group_knowledge:this,agriculture_knowledge,10', 'add_group_knowledge:this,shipbuilding_knowledge,30'
 
+- 'remove_group_knowledge'
+    Removes the specified knowledge from the specified group. the format of the effect is as follows: 'remove_group_knowledge:<target_group_type>,<knowledge_id>'
+    NOTE: Try make sure that no more than one 'effector' can remove a knowledge at any given time.
+    These are valid target group types:
+    - 'this': the cell group this effect targets
+
+    Examples: 'remove_group_knowledge:this,agriculture_knowledge', 'remove_group_knowledge:this,shipbuilding_knowledge'
+
 - 'modify_group_knowledge_limit'
-    Assigns the specified knowledge to the specified group, and modify the knowledge's current level limit by adding the specified value (integer value between 0 and 10000). the format of the effect is as follows: 'modify_group_knowledge_limit:<target_group_type>,<knowledge_id>,<levelLimitDelta>'
-    NOTE: This effect cannot decrease a knowledge level limit below a limit set by 'add_group_knowledge' nor it can increase a specific limit above 10000.
+    Assigns the specified knowledge to the specified group, and modify the knowledge's current level limit by adding the specified value (integer value between -10000 and 10000). the format of the effect is as follows: 'modify_group_knowledge_limit:<target_group_type>,<knowledge_id>,<levelLimitDelta>'
+    NOTE: This effect cannot decrease a knowledge level limit below 1 nor it can increase a specific limit above 10000.
     These are valid target group types:
     - 'this': the cell group this effect targets
 
     Examples: 'modify_group_knowledge_limit:this,shipbuilding_knowledge,20', 'modify_group_knowledge_limit:this,shipbuilding_knowledge,-20'
+
+- 'add_group_activity'
+    Assigns the specified activity to the specified group. the format of the effect is as follows: 'add_group_activity:<target_group_type>,<activity_id>'
+    These are valid target group types:
+    - 'this': the cell group this effect targets
+
+    Examples: 'add_group_activity:this,farming'
+
+- 'remove_group_activity'
+    Removes the specified activity from the specified group. the format of the effect is as follows: 'remove_group_activity:<target_group_type>,<activity_id>'
+    NOTE: Try make sure that no more than one 'effector' can remove an activity at any given time.
+    These are valid target group types:
+    - 'this': the cell group this effect targets
+
+    Examples: 'remove_group_activity:this,farming'
 
 --

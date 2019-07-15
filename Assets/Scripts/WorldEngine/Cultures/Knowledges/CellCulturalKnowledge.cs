@@ -77,14 +77,14 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
         }
     }
 
-    public void ModifyLevelLimit(int levelLimitIncrease)
+    public void ModifyLevelLimit(int levelLimitDelta)
     {
         if (Limit == -1)
         {
             throw new System.Exception("CellCulturalKnowledge - ModifyLevelLimit: Limit is unset");
         }
 
-        SetLimit(Limit + levelLimitIncrease);
+        SetLimit(Limit + levelLimitDelta);
     }
 
     public static CellCulturalKnowledge CreateCellInstance(string id, CellGroup group, int initialValue, int initialLimit)
@@ -237,7 +237,7 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
 
         if (newValue > 1000000)
         {
-            throw new System.Exception("UpdateValueInternal: new value " + newValue + " above 1000000000");
+            throw new System.Exception("UpdateValueInternal: new value " + newValue + " above 1000000");
         }
 #endif
 

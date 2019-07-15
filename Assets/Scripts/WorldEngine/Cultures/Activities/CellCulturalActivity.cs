@@ -8,11 +8,11 @@ public class CellCulturalActivity : CulturalActivity
 {
     public const float TimeEffectConstant = CellGroup.GenerationSpan * 500;
 
-    public const string ForagingActivityId = "ForagingActivity";
-    public const string FarmingActivityId = "FarmingActivity";
+    public const string ForagingActivityId = "foraging";
+    public const string FarmingActivityId = "farming";
 
-    public const string ForagingActivityName = "Foraging";
-    public const string FarmingActivityName = "Farming";
+    public const string ForagingActivityName = "foraging";
+    public const string FarmingActivityName = "farming";
 
     public const int ForagingActivityRngOffset = 0;
     public const int FarmingActivityRngOffset = 100;
@@ -45,14 +45,28 @@ public class CellCulturalActivity : CulturalActivity
         return new CellCulturalActivity(group, baseActivity.Id, baseActivity.Name, baseActivity.RngOffset, initialValue, initialContribution);
     }
 
-    public static CellCulturalActivity CreateForagingActivity(CellGroup group, float value = 0, float contribution = 0)
-    {
-        return new CellCulturalActivity(group, ForagingActivityId, ForagingActivityName, ForagingActivityRngOffset, value, contribution);
-    }
+    //public static CellCulturalActivity CreateForagingActivity(CellGroup group, float value = 0, float contribution = 0)
+    //{
+    //    return new CellCulturalActivity(group, ForagingActivityId, ForagingActivityName, ForagingActivityRngOffset, value, contribution);
+    //}
 
-    public static CellCulturalActivity CreateFarmingActivity(CellGroup group, float value = 0, float contribution = 0)
+    //public static CellCulturalActivity CreateFarmingActivity(CellGroup group, float value = 0, float contribution = 0)
+    //{
+    //    return new CellCulturalActivity(group, FarmingActivityId, FarmingActivityName, FarmingActivityRngOffset, value, contribution);
+    //}
+
+    public static CellCulturalActivity CreateActivity(string id, CellGroup group, float value = 0, float contribution = 0)
     {
-        return new CellCulturalActivity(group, FarmingActivityId, FarmingActivityName, FarmingActivityRngOffset, value, contribution);
+        switch (id)
+        {
+            case FarmingActivityId:
+                return new CellCulturalActivity(group, FarmingActivityId, FarmingActivityName, FarmingActivityRngOffset, value, contribution);
+
+            case ForagingActivityId:
+                return new CellCulturalActivity(group, FarmingActivityId, FarmingActivityName, FarmingActivityRngOffset, value, contribution);
+        }
+
+        throw new System.ArgumentException("CellCulturalActivity: Unrecognized activity Id: " + id);
     }
 
     public void Merge(CulturalActivity activity, float percentage)

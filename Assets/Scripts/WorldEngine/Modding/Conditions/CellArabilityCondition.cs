@@ -3,16 +3,16 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class CellAccessibilityCondition : CellCondition
+public class CellArabilityCondition : CellCondition
 {
     public const float DefaultMinValue = 0.01f;
     
-    public const string Regex = @"^\s*cell_accesibility\s*" +
+    public const string Regex = @"^\s*cell_arability\s*" +
         @"(?::\s*(?<value>" + ModUtility.NumberRegexPart + @")\s*)?$";
 
     public float MinValue;
 
-    public CellAccessibilityCondition(Match match)
+    public CellArabilityCondition(Match match)
     {
         if (!string.IsNullOrEmpty(match.Groups["value"].Value))
         {
@@ -20,12 +20,12 @@ public class CellAccessibilityCondition : CellCondition
 
             if (!float.TryParse(valueStr, out MinValue))
             {
-                throw new System.ArgumentException("CellAccesibilityCondition: Min value can't be parsed into a valid floating point number: " + valueStr);
+                throw new System.ArgumentException("CellArabilityCondition: Min value can't be parsed into a valid floating point number: " + valueStr);
             }
 
             if (!MinValue.IsInsideRange(0, 1))
             {
-                throw new System.ArgumentException("CellAccesibilityCondition: Min value is outside the range of 0 and 1: " + valueStr);
+                throw new System.ArgumentException("CellArabilityCondition: Min value is outside the range of 0 and 1: " + valueStr);
             }
         }
         else
@@ -36,7 +36,7 @@ public class CellAccessibilityCondition : CellCondition
 
     public override bool Evaluate(TerrainCell cell)
     {
-        return cell.Accessibility >= MinValue;
+        return cell.Arability >= MinValue;
     }
 
     public override string GetPropertyValue(string propertyId)
@@ -46,6 +46,6 @@ public class CellAccessibilityCondition : CellCondition
 
     public override string ToString()
     {
-        return "'Cell Accessibility' Condition, Min Value: " + MinValue;
+        return "'Cell Arability' Condition, Min Value: " + MinValue;
     }
 }

@@ -11,8 +11,14 @@ using UnityEngine.Profiling;
 [XmlInclude(typeof(PolityCulturalKnowledge))]
 public class CulturalKnowledge : CulturalKnowledgeInfo
 {
+    public const int ScaledMaxLevelValue = 10000;
+
     public const float ValueScaleFactor = 0.01f;
-    
+    public const int InverseScaleFactor = (int)(1 / ValueScaleFactor);
+
+    public const int MinLevelValue = InverseScaleFactor;
+    public const int MaxLevelValue = ScaledMaxLevelValue * InverseScaleFactor;
+
     [XmlAttribute("V")]
     public int Value;
 
@@ -35,6 +41,15 @@ public class CulturalKnowledge : CulturalKnowledgeInfo
 
     protected void SetLimit(int limit)
     {
+        if ((limit < MinLevelValue) || (limit > MaxLevelValue))
+        {
+            float scaledMinLevelValue = MinLevelValue * ValueScaleFactor;
+
+            Debug.LogWarning("CulturalKnowledge: Limit can't be set below " + scaledMinLevelValue  + " or above " + ScaledMaxLevelValue + ", limit: " + (limit * ValueScaleFactor));
+
+            limit = Mathf.Clamp(limit, MinLevelValue, MaxLevelValue);
+        }
+
         Limit = limit;
 
         UpdateProgressLevel();
