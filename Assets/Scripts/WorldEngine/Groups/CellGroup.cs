@@ -118,6 +118,7 @@ public class CellGroup : HumanGroup
     public Route SeaMigrationRoute = null;
 
     public List<string> Flags;
+    public List<string> Attributes;
 
     public CellCulture Culture;
 
@@ -220,6 +221,7 @@ public class CellGroup : HumanGroup
     private Dictionary<long, PolityProminence> _polityProminencesToAdd = new Dictionary<long, PolityProminence>();
 
     private HashSet<string> _flags = new HashSet<string>();
+    private HashSet<string> _attributes = new HashSet<string>();
 
     private bool _alreadyUpdated = false;
 
@@ -589,6 +591,27 @@ public class CellGroup : HumanGroup
             return;
 
         _flags.Remove(flag);
+    }
+
+    public void AddAttribute(string attribute)
+    {
+        if (_attributes.Contains(attribute))
+            return;
+
+        _attributes.Add(attribute);
+    }
+
+    public bool HasAttribute(string attribute)
+    {
+        return _attributes.Contains(attribute);
+    }
+
+    public void RemoveAttribute(string attribute)
+    {
+        if (!_attributes.Contains(attribute))
+            return;
+
+        _attributes.Remove(attribute);
     }
 
     public int GetNextLocalRandomInt(int iterationOffset, int maxValue)
@@ -3191,6 +3214,7 @@ public class CellGroup : HumanGroup
         }
 
         Flags = new List<string>(_flags);
+        Attributes = new List<string>(_attributes);
 
         Culture.Synchronize();
 
@@ -3238,6 +3262,11 @@ public class CellGroup : HumanGroup
         foreach (string f in Flags)
         {
             _flags.Add(f);
+        }
+
+        foreach (string a in Attributes)
+        {
+            _attributes.Add(a);
         }
 
         Cell = World.GetCell(Longitude, Latitude);

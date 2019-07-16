@@ -52,6 +52,8 @@ public class Discovery : CellCulturalDiscovery, ICellGroupEventGenerator
         {
             Group.Culture.AddDiscoveryToFind(_discovery);
 
+            Group.World.AddGroupToUpdate(Group);
+
             TryGenerateEventMessage();
         }
 

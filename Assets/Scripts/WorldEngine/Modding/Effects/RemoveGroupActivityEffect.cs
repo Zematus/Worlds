@@ -24,6 +24,6 @@ public class RemoveGroupActivityEffect : GroupEffect
 
     public override string ToString()
     {
-        return "'Remove Group Activity' Effect, Activity Id: " + ActivityId;
+        return "'Remove Group Activity' Effect, Target Type " + TargetType + ", Activity Id: " + ActivityId;
     }
 }

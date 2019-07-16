@@ -43,7 +43,7 @@ Here's a list of the current types of conditions (more to be added in future ver
 
     Examples: 'group_has_knowledge:agriculture_knowledge', 'group_has_knowledge:shipbuilding_knowledge,3'
 
-- 'group_min_population'
+- 'group_population'
     Tests if a group currently possesses at least certain amount of population. The value can be any quantity between 1 and 2,147,483,647. The format of the constraint is as follows: 'group_min_population:<quantity>'
 
     Examples: 'group_min_population:10000'

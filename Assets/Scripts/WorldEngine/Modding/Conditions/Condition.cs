@@ -120,6 +120,12 @@ public abstract class Condition
             return new GroupHasKnowledgeCondition(match);
         }
 
+        match = Regex.Match(conditionStr, GroupPopulationCondition.Regex);
+        if (match.Success == true)
+        {
+            return new GroupPopulationCondition(match);
+        }
+
         match = Regex.Match(conditionStr, CellHasSeaCondition.Regex);
         if (match.Success == true)
         {
@@ -157,5 +163,8 @@ public abstract class Condition
     public abstract bool Evaluate(CellGroup group);
     public abstract bool Evaluate(TerrainCell cell);
 
-    public abstract string GetPropertyValue(string propertyId);
+    public virtual string GetPropertyValue(string propertyId)
+    {
+        return null;
+    }
 }

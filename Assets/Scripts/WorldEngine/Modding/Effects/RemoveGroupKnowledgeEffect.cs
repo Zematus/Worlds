@@ -24,6 +24,6 @@ public class RemoveGroupKnowledgeEffect : GroupEffect
 
     public override string ToString()
     {
-        return "'Add Group Knowledge' Effect, Knowledge Id: " + KnowledgeId;
+        return "'Add Group Knowledge' Effect, Target Type " + TargetType + ", Knowledge Id: " + KnowledgeId;
     }
 }

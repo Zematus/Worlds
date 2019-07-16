@@ -287,6 +287,65 @@ public abstract class Polity : ISynchronizable
         StillPresent = false;
     }
 
+    // WARNING: This method does not set a group to be updated. 
+    public static bool TryGenerateNewPolity(PolityType type, CellGroup coreGroup)
+    {
+        World world = coreGroup.World;
+
+        if (coreGroup.PolityProminences.Count <= 0)
+        {
+            Polity polity = null;
+
+            switch (type)
+            {
+                case PolityType.Tribe:
+                    polity = new Tribe(coreGroup);
+                    break;
+                default:
+                    throw new System.Exception("TryGeneratePolity: Unhandled polity type: " + type);
+            }
+
+            polity.Initialize();
+
+            world.AddPolityInfo(polity.Info);
+            world.AddPolityToUpdate(polity);
+
+            TryGenerateNewPolityMessages(polity);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    public static void TryGenerateNewPolityMessages(Polity polity)
+    {
+        World world = polity.World;
+        CellGroup coreGroup = polity.CoreGroup;
+
+        PolityFormationEventMessage formationEventMessage = null;
+
+        if (!world.HasEventMessage(WorldEvent.PolityFormationEventId))
+        {
+            formationEventMessage = new PolityFormationEventMessage(polity, world.CurrentDate);
+
+            world.AddEventMessage(formationEventMessage);
+            formationEventMessage.First = true;
+        }
+
+        if (coreGroup.Cell.EncompassingTerritory != null)
+        {
+            Polity encompassingPolity = coreGroup.Cell.EncompassingTerritory.Polity;
+
+            if (formationEventMessage == null)
+            {
+                formationEventMessage = new PolityFormationEventMessage(polity, world.CurrentDate);
+            }
+
+            encompassingPolity.AddEventMessage(formationEventMessage);
+        }
+    }
+
     public string GetNameAndTypeString()
     {
         return Info.GetNameAndTypeString();

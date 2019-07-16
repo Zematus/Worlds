@@ -4,21 +4,6 @@ Effects are occurrences that can happen to different types of entities (cells, g
 
 Here's a list of the current types of effects (more to be added in future versions) and how they work:
 
-- 'add_group_attribute'
-    Assigns an attribute flag to the specified group. the format of the effect is as follows: 'add_group_attribute:<target_group_type>,<attribute_flag>'. flags can be any text with no spaces. See attribute_flags.txt for a list of flags hardcoded within the simulation and their effects.
-    These are valid target group types:
-    - 'this': the cell group this effect targets
-
-    Examples: 'add_group_attribute:this,CAN_FORM_TRIBE'
-
-- 'remove_group_attribute'
-    Removes an attribute flag from the specified group. the format of the effect is as follows: 'remove_group_attribute:<target_group_type>,<attribute_flag>'. flags can be any text with no spaces. See attribute_flags.txt for a list of flags hardcoded within the simulation and their effects.
-    NOTE: Try make sure that no more than one 'effector' can remove an attribute at any given time.
-    These are valid target group types:
-    - 'this': the cell group this effect targets
-
-    Examples: 'remove_group_attribute:this,CAN_FORM_TRIBE'
-
 - 'add_group_knowledge'
     Assigns the specified knowledge to the specified group, and sets the knowledge's level limit to the specified value (integer value between 1 and 10000). the format of the effect is as follows: 'add_group_knowledge:<target_group_type>,<knowledge_id>,<levelLimit>'
     These are valid target group types:
@@ -56,5 +41,29 @@ Here's a list of the current types of effects (more to be added in future versio
     - 'this': the cell group this effect targets
 
     Examples: 'remove_group_activity:this,farming'
+
+- 'add_group_attribute'
+    Assigns the specified attribute to the specified group. the format of the effect is as follows: 'add_group_attribute:<target_group_type>,<attribute>'
+    These are valid target group types:
+    - 'this': the cell group this effect targets
+
+    Examples: 'add_group_attribute:this,CAN_FORM_TRIBE'
+
+- 'remove_group_attribute'
+    Removes the specified attribute from the specified group. the format of the effect is as follows: 'remove_group_attribute:<target_group_type>,<attribute>'
+    NOTE: Try make sure that no more than one 'effector' can remove an attribute at any given time.
+    These are valid target group types:
+    - 'this': the cell group this effect targets
+
+    Examples: 'remove_group_attribute:this,CAN_FORM_TRIBE'
+
+- 'form_polity_on_group'
+    Form if possible a new polity of the specified type centered on the specified group: 'form_polity_on_group:<target_group_type>,<polity_type>'
+    These are valid target group types:
+    - 'this': the cell group this effect targets
+    These are valid polity types types:
+    - 'tribe': form a new tribe with a clan with core on the target group
+
+    Examples: 'form_polity_on_group:this,tribe'
 
 --

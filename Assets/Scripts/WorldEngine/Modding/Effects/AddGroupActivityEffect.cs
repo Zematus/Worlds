@@ -24,6 +24,6 @@ public class AddGroupActivityEffect : GroupEffect
 
     public override string ToString()
     {
-        return "'Add Group Activity' Effect, Activity Id: " + ActivityId;
+        return "'Add Group Activity' Effect, Target Type " + TargetType + ", Activity Id: " + ActivityId;
     }
 }

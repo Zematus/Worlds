@@ -52,7 +52,7 @@ public class ModifyGroupKnowledgeLimitEffect : GroupEffect
 
     public override string ToString()
     {
-        return "'Increase Group Knowledge Limit' Effect, Knowledge Id: " + KnowledgeId + 
+        return "'Increase Group Knowledge Limit' Effect, Target Type " + TargetType + ", Knowledge Id: " + KnowledgeId + 
             ", Level Limit Increase: " + (LevelLimitDelta * CulturalKnowledge.ValueScaleFactor);
     }
 }

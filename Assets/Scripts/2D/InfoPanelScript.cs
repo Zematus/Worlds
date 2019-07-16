@@ -557,7 +557,7 @@ public class InfoPanelScript : MonoBehaviour
 
             int polPopulation = (int)polity.TotalPopulation;
 
-            if (polity.Type == Tribe.PolityType)
+            if (polity.Type == Tribe.PolityTypeStr)
             {
                 InfoText.text += polPopulation + " tribe members";
             }
