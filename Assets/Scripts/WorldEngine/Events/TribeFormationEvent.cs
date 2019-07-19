@@ -51,7 +51,7 @@ public class TribeFormationEvent : CellGroupEvent
         if (group.Population < Tribe.MinPopulationForTribeCore)
             return false;
 
-        if (!group.Culture.HasDiscovery(TribalismDiscovery.DiscoveryId))
+        if (!group.HasAttribute(Polity.CanFormPolityAttribute + "tribe"))
             return false;
 
         int value = 0;
@@ -72,8 +72,8 @@ public class TribeFormationEvent : CellGroupEvent
 
         if (Group.Population < Tribe.MinPopulationForTribeCore)
             return false;
-        
-        if (!Group.Culture.HasDiscovery(TribalismDiscovery.DiscoveryId))
+
+        if (!Group.HasAttribute(Polity.CanFormPolityAttribute + "tribe"))
             return false;
 
         int value = 0;

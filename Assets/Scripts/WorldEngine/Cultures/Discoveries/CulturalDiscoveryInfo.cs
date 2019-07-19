@@ -41,7 +41,7 @@ public class CulturalDiscoveryInfo : IKeyedValue<string>, ISynchronizable
 
     public void FinalizeLoad()
     {
-        switch (Id)
+        switch (Id) // TODO: we don't need to do this anymore
         {
             //case BoatMakingDiscovery.DiscoveryId:
             //    Name = BoatMakingDiscovery.DiscoveryName;
@@ -55,9 +55,9 @@ public class CulturalDiscoveryInfo : IKeyedValue<string>, ISynchronizable
             //    Name = SailingDiscovery.DiscoveryName;
             //    break;
 
-            case TribalismDiscovery.DiscoveryId:
-                Name = TribalismDiscovery.DiscoveryName;
-                break;
+            //case TribalismDiscovery.DiscoveryId:
+            //    Name = TribalismDiscovery.DiscoveryName;
+            //    break;
 
             default:
                 throw new System.Exception("Unhandled Discovery Id: " + Id);

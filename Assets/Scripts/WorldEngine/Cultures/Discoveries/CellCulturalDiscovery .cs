@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
+// TODO: Integrate with 'Discovery' class
 public abstract class CellCulturalDiscovery : CulturalDiscovery
 {
     public CellCulturalDiscovery()
@@ -16,22 +17,22 @@ public abstract class CellCulturalDiscovery : CulturalDiscovery
 
     }
 
-    public static CellCulturalDiscovery CreateCellInstance(string id)
+    public static CellCulturalDiscovery CreateCellInstance(string id) // TODO: deprecate
     {
-        switch (id)
-        {
-            //case BoatMakingDiscovery.DiscoveryId:
-            //    return new BoatMakingDiscovery();
+        //switch (id)
+        //{
+        //    //case BoatMakingDiscovery.DiscoveryId:
+        //    //    return new BoatMakingDiscovery();
 
-            //case SailingDiscovery.DiscoveryId:
-            //    return new SailingDiscovery();
+        //    //case SailingDiscovery.DiscoveryId:
+        //    //    return new SailingDiscovery();
 
-            //case PlantCultivationDiscovery.DiscoveryId:
-            //    return new PlantCultivationDiscovery();
+        //    //case PlantCultivationDiscovery.DiscoveryId:
+        //    //    return new PlantCultivationDiscovery();
 
-            case TribalismDiscovery.DiscoveryId:
-                return new TribalismDiscovery();
-        }
+        //    //case TribalismDiscovery.DiscoveryId:
+        //    //    return new TribalismDiscovery();
+        //}
 
         return null;
     }

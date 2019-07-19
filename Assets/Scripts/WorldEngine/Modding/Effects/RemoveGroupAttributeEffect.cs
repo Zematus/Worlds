@@ -7,7 +7,7 @@ public class RemoveGroupAttributeEffect : GroupEffect
 {
     public const string Regex = @"^\s*remove_group_attribute\s*" +
         @":\s*(?<type>" + ModUtility.IdentifierRegexPart + @")\s*" +
-        @",\s*(?<value>" + ModUtility.IdentifierRegexPart + @")\s*$";
+        @",\s*(?<value>" + ModUtility.AttributeRegexPart + @")\s*$";
 
     public string Attribute;
 

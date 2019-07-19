@@ -20,6 +20,8 @@ public abstract class Polity : ISynchronizable
 
     public const float MinPolityProminence = 0.001f;
 
+    public const string CanFormPolityAttribute = "CAN_FORM_POLITY:";
+
     [XmlAttribute("CGrpId")]
     public long CoreGroupId;
 
@@ -1174,7 +1176,7 @@ public abstract class Polity : ISynchronizable
             throw new System.Exception("totalPolityProminenceValue is 0. Polity Id:" + Id + ", group.Id:" + group.Id);
         }
 
-        if (!group.Culture.HasDiscovery(TribalismDiscovery.DiscoveryId))
+        if (!group.HasAttribute(Polity.CanFormPolityAttribute + "tribe"))
         {
             group.SetPolityProminence(this, 0);
 

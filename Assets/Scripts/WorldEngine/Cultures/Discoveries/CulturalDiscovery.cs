@@ -6,7 +6,7 @@ using System.Xml.Serialization;
 
 //[XmlInclude(typeof(BoatMakingDiscovery))]
 //[XmlInclude(typeof(SailingDiscovery))]
-[XmlInclude(typeof(TribalismDiscovery))]
+//[XmlInclude(typeof(TribalismDiscovery))]
 //[XmlInclude(typeof(PlantCultivationDiscovery))]
 public class CulturalDiscovery : CulturalDiscoveryInfo
 {

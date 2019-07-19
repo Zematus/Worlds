@@ -227,7 +227,7 @@ public class Clan : Faction
 
     public static bool CanBeClanCore(CellGroup group)
     {
-        if (!group.Culture.HasDiscovery(TribalismDiscovery.DiscoveryId))
+        if (!group.HasAttribute(Polity.CanFormPolityAttribute + "tribe"))
         {
             return false;
         }
@@ -249,7 +249,7 @@ public class Clan : Faction
         if (!CanBeClanCore(group))
             return false;
 
-        if (!group.Culture.HasDiscovery(TribalismDiscovery.DiscoveryId))
+        if (!group.HasAttribute(Polity.CanFormPolityAttribute + "tribe"))
             return false;
 
         PolityProminence pi = group.GetPolityProminence(Polity);

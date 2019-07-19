@@ -164,7 +164,7 @@ public class CellGroup : HumanGroup
     public ExpandPolityProminenceEvent PolityExpansionEvent;
 
     [XmlIgnore]
-    public TribeFormationEvent TribeCreationEvent;
+    public TribeFormationEvent TribeFormationEvent;
 
     [XmlIgnore]
     public TerrainCell Cell;
@@ -2219,16 +2219,16 @@ public class CellGroup : HumanGroup
             if (triggerDate == int.MinValue)
                 return;
 
-            if (TribeCreationEvent == null)
+            if (TribeFormationEvent == null)
             {
-                TribeCreationEvent = new TribeFormationEvent(this, triggerDate);
+                TribeFormationEvent = new TribeFormationEvent(this, triggerDate);
             }
             else
             {
-                TribeCreationEvent.Reset(triggerDate);
+                TribeFormationEvent.Reset(triggerDate);
             }
 
-            World.InsertEventToHappen(TribeCreationEvent);
+            World.InsertEventToHappen(TribeFormationEvent);
 
             HasTribeFormationEvent = true;
 
@@ -3365,8 +3365,8 @@ public class CellGroup : HumanGroup
 
         if (HasTribeFormationEvent)
         {
-            TribeCreationEvent = new TribeFormationEvent(this, TribeFormationEventDate);
-            World.InsertEventToHappen(TribeCreationEvent);
+            TribeFormationEvent = new TribeFormationEvent(this, TribeFormationEventDate);
+            World.InsertEventToHappen(TribeFormationEvent);
         }
 
 #if DEBUG

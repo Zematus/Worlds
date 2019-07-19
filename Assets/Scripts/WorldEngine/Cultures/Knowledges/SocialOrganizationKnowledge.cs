@@ -79,7 +79,7 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge
 
         UpdateValueInternal(timeSpan, TimeEffectConstant, totalFactor);
 
-        TryGenerateTribalismDiscoveryEvent();
+        //TryGenerateTribalismDiscoveryEvent();
     }
 
     public override void PolityCulturalProminence(CulturalKnowledge polityKnowledge, PolityProminence polityProminence, long timeSpan)
@@ -101,35 +101,35 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge
         }
 #endif
 
-        TryGenerateTribalismDiscoveryEvent();
+        //TryGenerateTribalismDiscoveryEvent();
     }
 
-    private void TryGenerateTribalismDiscoveryEvent()
-    {
-        if (Value < TribalismDiscoveryEvent.MinSocialOrganizationKnowledgeForTribalismDiscovery)
-            return;
+    //private void TryGenerateTribalismDiscoveryEvent()
+    //{
+    //    if (Value < TribalismDiscoveryEvent.MinSocialOrganizationKnowledgeForTribalismDiscovery)
+    //        return;
 
-        if (Value > TribalismDiscoveryEvent.OptimalSocialOrganizationKnowledgeValue)
-            return;
+    //    if (Value > TribalismDiscoveryEvent.OptimalSocialOrganizationKnowledgeValue)
+    //        return;
 
-        if (TribalismDiscoveryEvent.CanSpawnIn(Group))
-        {
-            long triggerDate = TribalismDiscoveryEvent.CalculateTriggerDate(Group);
+    //    if (TribalismDiscoveryEvent.CanSpawnIn(Group))
+    //    {
+    //        long triggerDate = TribalismDiscoveryEvent.CalculateTriggerDate(Group);
 
-            if (triggerDate == long.MinValue)
-                return;
+    //        if (triggerDate == long.MinValue)
+    //            return;
 
-            Group.World.InsertEventToHappen(new TribalismDiscoveryEvent(Group, triggerDate));
-        }
-    }
+    //        Group.World.InsertEventToHappen(new TribalismDiscoveryEvent(Group, triggerDate));
+    //    }
+    //}
 
     protected override int CalculateLimitInternal(CulturalDiscovery discovery)
     {
-        switch (discovery.Id)
-        {
-            case TribalismDiscovery.DiscoveryId:
-                return TribalismDiscoveryLevelLimit;
-        }
+        //switch (discovery.Id)
+        //{
+        //    case TribalismDiscovery.DiscoveryId:
+        //        return TribalismDiscoveryLevelLimit;
+        //}
 
         return 0;
     }

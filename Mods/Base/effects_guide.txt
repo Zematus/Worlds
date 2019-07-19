@@ -47,7 +47,7 @@ Here's a list of the current types of effects (more to be added in future versio
     These are valid target group types:
     - 'this': the cell group this effect targets
 
-    Examples: 'add_group_attribute:this,CAN_FORM_TRIBE'
+    Examples: 'add_group_attribute:this,CAN_FORM_POLITY:tribe'
 
 - 'remove_group_attribute'
     Removes the specified attribute from the specified group. the format of the effect is as follows: 'remove_group_attribute:<target_group_type>,<attribute>'
@@ -55,7 +55,7 @@ Here's a list of the current types of effects (more to be added in future versio
     These are valid target group types:
     - 'this': the cell group this effect targets
 
-    Examples: 'remove_group_attribute:this,CAN_FORM_TRIBE'
+    Examples: 'remove_group_attribute:this,CAN_FORM_POLITY:tribe'
 
 - 'form_polity_on_group'
     Form if possible a new polity of the specified type centered on the specified group: 'form_polity_on_group:<target_group_type>,<polity_type>'

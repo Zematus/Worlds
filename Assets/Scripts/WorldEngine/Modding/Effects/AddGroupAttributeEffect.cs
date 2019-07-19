@@ -7,7 +7,7 @@ public class AddGroupAttributeEffect : GroupEffect
 {
     public const string Regex = @"^\s*add_group_attribute\s*" +
         @":\s*(?<type>" + ModUtility.IdentifierRegexPart + @")\s*" +
-        @",\s*(?<value>" + ModUtility.IdentifierRegexPart + @")\s*$";
+        @",\s*(?<value>" + ModUtility.AttributeRegexPart + @")\s*$";
 
     public string Attribute;
 

@@ -375,7 +375,7 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
     }
 
     protected abstract void UpdateInternal(long timeSpan);
-    protected abstract int CalculateLimitInternal(CulturalDiscovery discovery); // TODO: Get rid of this method
+    protected abstract int CalculateLimitInternal(CulturalDiscovery discovery); // TODO: Deprecate
 
     public override void FinalizeLoad()
     {

@@ -9,6 +9,7 @@ public static class ModUtility
     public const string SeparatorSingleQuoteRegex = @"\s*(?:(?:\'\s*,\s*\'))\s*";
 
     public const string IdentifierRegexPart = @"[a-zA-Z_][a-zA-Z0-9_]*";
+    public const string AttributeRegexPart = @"[a-zA-Z_][a-zA-Z0-9_:]*";
     public const string NumberRegexPart = @"-?\d+(?:\.\d+)?";
 
     public const string OperatorRegexPart = @"\[\w+\]";
@@ -52,6 +53,7 @@ public static class ModUtility
     public const string OperandStatementRegex = @"^\s*(?<statement>" + OperandStatementRegexPart + @")\s*$";
     public const string InnerStatementRegex = @"^\s*(?<statement>" + InnerStatementRegexPart + @")\s*$";
 
+#if DEBUG
     public static string Debug_CapturesToString(Group group)
     {
         string cString = "";
@@ -63,5 +65,5 @@ public static class ModUtility
 
         return cString;
     }
-
+#endif
 }
