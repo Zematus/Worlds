@@ -67,9 +67,9 @@ public class AgricultureKnowledge : CellCulturalKnowledge
         UpdateValueInternal(timeSpan, TimeEffectConstant, _terrainFactor * TerrainFactorModifier);
     }
 
-    public override void PolityCulturalProminence(CulturalKnowledge polityKnowledge, PolityProminence polityProminence, long timeSpan)
+    public override void AddPolityProminenceEffect(CulturalKnowledge polityKnowledge, PolityProminence polityProminence, long timeSpan)
     {
-        PolityCulturalProminenceInternal(polityKnowledge, polityProminence, timeSpan, TimeEffectConstant);
+        AddPolityProminenceEffectInternal(polityKnowledge, polityProminence, timeSpan, TimeEffectConstant);
     }
 
     protected override int CalculateLimitInternal(CulturalDiscovery discovery)
@@ -146,6 +146,7 @@ public class AgricultureKnowledge : CellCulturalKnowledge
         return false;
     }
 
+    // TODO: cleanup
     //public override void LossConsequences()
     //{
     //    Profiler.BeginSample("RemoveActivity: FarmingActivity");
@@ -163,7 +164,7 @@ public class AgricultureKnowledge : CellCulturalKnowledge
     //        long triggerDate = PlantCultivationDiscoveryEvent.CalculateTriggerDate(Group);
 
     //        Profiler.EndSample();
-            
+
     //        if (triggerDate.IsInsideRange(Group.World.CurrentDate + 1, World.MaxSupportedDate))
     //        {
     //            Profiler.BeginSample("new PlantCultivationDiscoveryEvent");

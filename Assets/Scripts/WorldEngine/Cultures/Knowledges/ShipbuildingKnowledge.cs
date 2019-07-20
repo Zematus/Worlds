@@ -15,6 +15,8 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge
     public const int InitialValue = 100;
 
     public const int BaseLimit = 0;
+
+    // TODO: cleanup
     //public const int MinKnowledgeValueForSailingSpawnEvent = 500;
     //public const int MinKnowledgeValueForSailing = 300;
     //public const int OptimalKnowledgeValueForSailing = 1000;
@@ -87,18 +89,18 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge
     protected override void UpdateInternal(long timeSpan)
     {
         UpdateValueInternal(timeSpan, TimeEffectConstant, _neighborhoodSeaPresence * NeighborhoodSeaPresenceModifier);
-
-        //TryGenerateSailingDiscoveryEvent();
+        
+        //TryGenerateSailingDiscoveryEvent(); // TODO: cleanup
     }
 
-    public override void PolityCulturalProminence(CulturalKnowledge polityKnowledge, PolityProminence polityProminence, long timeSpan)
+    public override void AddPolityProminenceEffect(CulturalKnowledge polityKnowledge, PolityProminence polityProminence, long timeSpan)
     {
-        PolityCulturalProminenceInternal(polityKnowledge, polityProminence, timeSpan, TimeEffectConstant);
+        AddPolityProminenceEffectInternal(polityKnowledge, polityProminence, timeSpan, TimeEffectConstant);
 
-        //TryGenerateSailingDiscoveryEvent();
+        //TryGenerateSailingDiscoveryEvent(); // TODO: cleanup
     }
 
-    //private void TryGenerateSailingDiscoveryEvent()
+    //private void TryGenerateSailingDiscoveryEvent() // TODO: cleanup
     //{
     //    if (Value < SailingDiscoveryEvent.MinShipBuildingKnowledgeSpawnEventValue)
     //        return;
@@ -156,7 +158,7 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge
         return false;
     }
 
-    //public override void LossConsequences()
+    //public override void LossConsequences() // TODO: cleanup
     //{
     //    Profiler.BeginSample("BoatMakingDiscoveryEvent.CanSpawnIn");
 

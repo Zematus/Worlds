@@ -22,7 +22,7 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
 
     protected int _newValue;
 
-    private Knowledge _referenceKnowledge; // TODO: remove when 'Knowledge' replaces 'CellCulturalKnowledge'
+    private Knowledge _referenceKnowledge; // TODO: remove when 'Knowledge' replaces 'CellCulturalKnowledge' (requires Knowledge modding)
 
     public CellCulturalKnowledge()
     {
@@ -288,9 +288,9 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
         _newValue = newValue;
     }
 
-    public abstract void PolityCulturalProminence(CulturalKnowledge polityKnowledge, PolityProminence polityProminence, long timeSpan);
+    public abstract void AddPolityProminenceEffect(CulturalKnowledge polityKnowledge, PolityProminence polityProminence, long timeSpan);
 
-    protected void PolityCulturalProminenceInternal(CulturalKnowledge polityKnowledge, PolityProminence polityProminence, long timeSpan, float timeEffectFactor)
+    protected void AddPolityProminenceEffectInternal(CulturalKnowledge polityKnowledge, PolityProminence polityProminence, long timeSpan, float timeEffectFactor)
     {
         int rngOffset = RngOffsets.KNOWLEDGE_POLITY_PROMINENCE + InstanceRngOffset + unchecked((int)polityProminence.PolityId);
 

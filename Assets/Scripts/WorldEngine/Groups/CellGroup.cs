@@ -255,7 +255,7 @@ public class CellGroup : HumanGroup
         Manager.UpdateWorldLoadTrackEventCount();
     }
 
-    public CellGroup(MigratingGroup migratingGroup, int splitPopulation) : this(migratingGroup.World, migratingGroup.TargetCell, splitPopulation, migratingGroup.Culture, migratingGroup.MigrationDirection)
+    public CellGroup(MigratingGroup migratingGroup, int splitPopulation) : this(migratingGroup.World, migratingGroup.TargetCell, splitPopulation, migratingGroup.Culture, migratingGroup.Attributes, migratingGroup.MigrationDirection)
     {
         for (int i = 0; i < migratingGroup.PolityProminencesCount; i++)
         {
@@ -270,7 +270,7 @@ public class CellGroup : HumanGroup
         }
     }
 
-    public CellGroup(World world, TerrainCell cell, int initialPopulation, Culture baseCulture = null, Direction migrationDirection = Direction.Null) : base(world)
+    public CellGroup(World world, TerrainCell cell, int initialPopulation, Culture baseCulture = null, ICollection<string> baseAttributes = null, Direction migrationDirection = Direction.Null) : base(world)
     {
         InitDate = World.CurrentDate;
         LastUpdateDate = InitDate;
@@ -353,6 +353,14 @@ public class CellGroup : HumanGroup
         else
         {
             Culture = new CellCulture(this, baseCulture);
+        }
+
+        if (baseAttributes != null)
+        {
+            foreach (string attribute in baseAttributes)
+            {
+                _attributes.Add(attribute);
+            }
         }
 
         InitializeDefaultPreferences(initialGroup);
@@ -574,9 +582,6 @@ public class CellGroup : HumanGroup
 
     public void SetFlag(string flag)
     {
-        if (_flags.Contains(flag))
-            return;
-
         _flags.Add(flag);
     }
 
@@ -587,17 +592,11 @@ public class CellGroup : HumanGroup
 
     public void UnsetFlag(string flag)
     {
-        if (!_flags.Contains(flag))
-            return;
-
         _flags.Remove(flag);
     }
 
     public void AddAttribute(string attribute)
     {
-        if (_attributes.Contains(attribute))
-            return;
-
         _attributes.Add(attribute);
     }
 
@@ -606,11 +605,13 @@ public class CellGroup : HumanGroup
         return _attributes.Contains(attribute);
     }
 
+    public ICollection<string> GetAttributes()
+    {
+        return _attributes;
+    }
+
     public void RemoveAttribute(string attribute)
     {
-        if (!_attributes.Contains(attribute))
-            return;
-
         _attributes.Remove(attribute);
     }
 
@@ -713,6 +714,14 @@ public class CellGroup : HumanGroup
         return biomes;
     }
 
+    public void MergeAttributes(ICollection<string> attributes)
+    {
+        foreach (string attribute in attributes)
+        {
+            AddAttribute(attribute);
+        }
+    }
+
     public void MergeGroup(MigratingGroup group)
     {
         float newPopulation = Population + group.Population;
@@ -735,7 +744,7 @@ public class CellGroup : HumanGroup
 #endif
 
         Culture.MergeCulture(group.Culture, percentage);
-
+        MergeAttributes(group.Attributes);
         MergePolityProminences(group.PolityProminences, group.PolityProminencesCount, percentage);
 
         //		#if DEBUG

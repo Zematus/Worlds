@@ -44,11 +44,6 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge
         return knowledge.Id.Contains(KnowledgeId);
     }
 
-    //public override void FinalizeLoad()
-    //{
-    //    base.FinalizeLoad();
-    //}
-
     private float CalculatePopulationFactor()
     {
         float popFactor = Group.Population;
@@ -79,12 +74,13 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge
 
         UpdateValueInternal(timeSpan, TimeEffectConstant, totalFactor);
 
+        // TODO: cleanup
         //TryGenerateTribalismDiscoveryEvent();
     }
 
-    public override void PolityCulturalProminence(CulturalKnowledge polityKnowledge, PolityProminence polityProminence, long timeSpan)
+    public override void AddPolityProminenceEffect(CulturalKnowledge polityKnowledge, PolityProminence polityProminence, long timeSpan)
     {
-        PolityCulturalProminenceInternal(polityKnowledge, polityProminence, timeSpan, TimeEffectConstant);
+        AddPolityProminenceEffectInternal(polityKnowledge, polityProminence, timeSpan, TimeEffectConstant);
 
 #if DEBUG
         if (_newValue < SocialOrganizationKnowledge.MinValueForHoldingTribalism)
@@ -101,9 +97,11 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge
         }
 #endif
 
+        // TODO: cleanup
         //TryGenerateTribalismDiscoveryEvent();
     }
 
+    // TODO: cleanup
     //private void TryGenerateTribalismDiscoveryEvent()
     //{
     //    if (Value < TribalismDiscoveryEvent.MinSocialOrganizationKnowledgeForTribalismDiscovery)

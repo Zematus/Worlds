@@ -1167,12 +1167,6 @@ public class World : ISynchronizable
                     string message = "TriggerDate: " + eventToHappen.TriggerDate +
                         ", event type: " + eventToHappen.GetType();
 
-                    ////if (eventToHappen is FactionEvent)
-                    ////{
-                    //    message += ", event spawn date: " + eventToHappen.SpawnDate +
-                    //    ", datespan: " + (eventToHappen.TriggerDate - eventToHappen.SpawnDate);
-                    ////}
-
                     message += ", current date: " + CurrentDate;
 
                     SaveLoadTest.DebugMessage debugMessage =

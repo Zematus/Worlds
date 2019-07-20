@@ -74,9 +74,9 @@ public class SeafaringSkill : CellCulturalSkill
         UpdateInternal(timeSpan, TimeEffectConstant, _neighborhoodSeaPresence);
     }
 
-    public override void PolityCulturalProminence(CulturalSkill politySkill, PolityProminence polityProminence, long timeSpan)
+    public override void AddPolityProminenceEffect(CulturalSkill politySkill, PolityProminence polityProminence, long timeSpan)
     {
-        PolityCulturalProminenceInternal(politySkill, polityProminence, timeSpan, TimeEffectConstant);
+        AddPolityProminenceEffectInternal(politySkill, polityProminence, timeSpan, TimeEffectConstant);
     }
 
     protected override void PostUpdateInternal()

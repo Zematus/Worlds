@@ -44,6 +44,8 @@ public class MigratingGroup : HumanGroup
     [XmlIgnore]
     public Direction MigrationDirection;
 
+    public List<string> Attributes;
+
     public MigratingGroup()
     {
     }
@@ -113,6 +115,8 @@ public class MigratingGroup : HumanGroup
         Profiler.BeginSample("Culture = new BufferCulture");
 
         Culture = new BufferCulture(SourceGroup.Culture);
+
+        Attributes = new List<string>(SourceGroup.GetAttributes());
 
         Profiler.EndSample();
 

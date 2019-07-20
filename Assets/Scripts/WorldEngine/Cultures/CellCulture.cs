@@ -398,7 +398,7 @@ public class CellCulture : Culture
                 AddPreferenceToAcquire(cellPreference);
             }
 
-            cellPreference.PolityCulturalProminence(polityPreference, polityProminence, timeSpan);
+            cellPreference.AddPolityProminenceEffect(polityPreference, polityProminence, timeSpan);
         }
 
         foreach (CulturalActivity polityActivity in polityCulture.Activities.Values)
@@ -411,7 +411,7 @@ public class CellCulture : Culture
                 AddActivityToPerform(cellActivity);
             }
 
-            cellActivity.PolityCulturalProminence(polityActivity, polityProminence, timeSpan);
+            cellActivity.AddPolityProminenceEffect(polityActivity, polityProminence, timeSpan);
         }
 
         foreach (CulturalSkill politySkill in polityCulture.Skills.Values)
@@ -424,7 +424,7 @@ public class CellCulture : Culture
                 AddSkillToLearn(cellSkill);
             }
 
-            cellSkill.PolityCulturalProminence(politySkill, polityProminence, timeSpan);
+            cellSkill.AddPolityProminenceEffect(politySkill, polityProminence, timeSpan);
         }
 
         foreach (CulturalKnowledge polityKnowledge in polityCulture.Knowledges.Values)
@@ -453,7 +453,7 @@ public class CellCulture : Culture
             
             CellCulturalKnowledge cellKnowledge = TryAddKnowledgeToLearn(polityKnowledge.Id, 0, polityKnowledge.Limit);
 
-            cellKnowledge.PolityCulturalProminence(polityKnowledge, polityProminence, timeSpan);
+            cellKnowledge.AddPolityProminenceEffect(polityKnowledge, polityProminence, timeSpan);
         }
 
         foreach (CulturalDiscovery polityDiscovery in polityCulture.Discoveries.Values)

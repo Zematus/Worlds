@@ -61,7 +61,7 @@ public class Knowledge : CellCulturalKnowledge
         throw new System.NotImplementedException();
     }
 
-    public override void PolityCulturalProminence(CulturalKnowledge polityKnowledge, PolityProminence polityProminence, long timeSpan)
+    public override void AddPolityProminenceEffect(CulturalKnowledge polityKnowledge, PolityProminence polityProminence, long timeSpan)
     {
         throw new System.NotImplementedException();
     }

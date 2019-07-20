@@ -74,8 +74,6 @@ public class Tribe : Polity
 
         coreGroup.SetPolityProminence(this, coreProminence, 0, 0);
 
-        World.AddGroupToUpdate(coreGroup);
-
         GenerateName();
 
         //		Debug.Log ("New tribe '" + Name + "' spawned at " + coreGroup.Cell.Position);

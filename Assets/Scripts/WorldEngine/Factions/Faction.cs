@@ -131,8 +131,6 @@ public abstract class Faction : ISynchronizable
 
         CoreGroup.AddFactionCore(this);
 
-        //World.AddGroupToUpdate (CoreGroup);
-
         Influence = influence;
 
         GenerateName(parentFaction);

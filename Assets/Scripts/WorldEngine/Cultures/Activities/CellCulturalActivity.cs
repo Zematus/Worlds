@@ -107,7 +107,7 @@ public class CellCulturalActivity : CulturalActivity
         _newValue = (Value * (1 - timeEffect)) + (targetValue * timeEffect);
     }
 
-    public void PolityCulturalProminence(CulturalActivity polityActivity, PolityProminence polityProminence, long timeSpan)
+    public void AddPolityProminenceEffect(CulturalActivity polityActivity, PolityProminence polityProminence, long timeSpan)
     {
         float targetValue = polityActivity.Value;
         float prominenceEffect = polityProminence.Value;
