@@ -9,9 +9,9 @@ public class TribeFormationEvent : CellGroupEvent
 {
     public const long DateSpanFactorConstant = CellGroup.GenerationSpan * 100;
 
-    public const int MinSocialOrganizationKnowledgeTribeFormation = SocialOrganizationKnowledge.MinValueForTribalismDiscovery;
-    public const int MinSocialOrganizationKnowledgeValue = SocialOrganizationKnowledge.MinValueForHoldingTribalism;
-    public const int OptimalSocialOrganizationKnowledgeValue = SocialOrganizationKnowledge.TribalismDiscoveryLevelLimit;
+    public const int MinSocialOrganizationKnowledgeTribeFormation = Clan.MinSocialOrganizationValue;
+    public const int MinSocialOrganizationKnowledgeValue = 200;
+    public const int OptimalSocialOrganizationKnowledgeValue = 10000;
 
     public TribeFormationEvent()
     {

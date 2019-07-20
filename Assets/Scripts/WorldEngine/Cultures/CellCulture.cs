@@ -181,7 +181,7 @@ public class CellCulture : Culture
         {
             throw new System.Exception("CellCulture: DiscoveriesToFind already contains " + discovery.Id);
         }
-
+        
         DiscoveriesToFind.Add(discovery.Id, discovery);
     }
 
@@ -201,7 +201,7 @@ public class CellCulture : Culture
         {
             return false;
         }
-
+        
         DiscoveriesToReceive.Add(d.Id, d);
 
         return true;
@@ -227,7 +227,7 @@ public class CellCulture : Culture
         {
             discovery = CellCulturalDiscovery.CreateCellInstance(id);
         }
-
+        
         DiscoveriesToFind.Add(id, discovery);
 
         return discovery;
@@ -491,15 +491,11 @@ public class CellCulture : Culture
 
     public void PostUpdateRemoveAttributes()
     {
-        bool discoveriesLost = false;
-
         // We need to handle discoveries before anything else as they might trigger removal of other cultural attributes
         foreach (CellCulturalDiscovery d in _discoveriesToLose)
         {
             RemoveDiscovery(d);
             d.OnLoss(Group);
-
-            discoveriesLost = true;
         }
 
         foreach (CellCulturalPreference p in _preferencesToLose)
@@ -520,17 +516,9 @@ public class CellCulture : Culture
         foreach (CellCulturalKnowledge k in _knowledgesToLose)
         {
             RemoveKnowledge(k);
-            k.LossConsequences();
         }
 
-        if (discoveriesLost)
-        {
-            foreach (CellCulturalKnowledge knowledge in Knowledges.Values)
-            {
-                (knowledge as CellCulturalKnowledge).RecalculateLimit_Old();
-            }
-        }
-
+        // This should be done only after knowledges have been removed as there are some dependencies
         foreach (CellCulturalDiscovery d in _discoveriesToLose)
         {
             d.RetryAssignAfterLoss(Group);
@@ -599,16 +587,6 @@ public class CellCulture : Culture
             catch (System.ArgumentException)
             {
                 throw new System.Exception("Attempted to add duplicate knowledge (" + knowledge.Id + ") to group " + Group.Id);
-            }
-
-            knowledge.RecalculateLimit_Old(); // TODO: Deprecate
-        }
-
-        foreach (CellCulturalDiscovery discovery in DiscoveriesToFind.Values) // TODO: Get rid of this foreach
-        {
-            foreach (CellCulturalKnowledge knowledge in Knowledges.Values)
-            {
-                knowledge.CalculateLimit_Old(discovery); // TODO: Deprecate
             }
         }
     }

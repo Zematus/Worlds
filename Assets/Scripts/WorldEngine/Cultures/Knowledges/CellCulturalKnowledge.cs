@@ -126,7 +126,7 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
             mergedValue++;
 
 #if DEBUG
-        if ((Id == SocialOrganizationKnowledge.KnowledgeId) && (mergedValue < SocialOrganizationKnowledge.MinValueForHoldingTribalism))
+        if ((Id == SocialOrganizationKnowledge.KnowledgeId) && (mergedValue < SocialOrganizationKnowledge.MinValueForTribeFormation))
         {
             if (Group.GetFactionCores().Count > 0)
             {
@@ -160,28 +160,6 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
 //#endif
 
         _newValue = mergedValue;
-    }
-
-    public void RecalculateLimit_Old() // TODO: Remove this and remove CalculateLimitInternal
-    {
-        foreach (CulturalDiscovery d in Group.Culture.Discoveries.Values)
-        {
-            Limit = Mathf.Max(CalculateLimitInternal(d), Limit);
-        }
-
-        UpdateProgressLevel();
-
-        SetHighestLimit(Limit);
-    }
-
-    public void CalculateLimit_Old(CulturalDiscovery discovery) // TODO: Remove this and remove CalculateLimitInternal
-    {
-        int newLimit = CalculateLimitInternal(discovery);
-
-        if (newLimit > Limit)
-        {
-            SetLimit(newLimit);
-        }
     }
 
     public void Update(long timeSpan)
@@ -242,7 +220,7 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
 #endif
 
 #if DEBUG
-        if ((Id == SocialOrganizationKnowledge.KnowledgeId) && (newValue < SocialOrganizationKnowledge.MinValueForHoldingTribalism))
+        if ((Id == SocialOrganizationKnowledge.KnowledgeId) && (newValue < SocialOrganizationKnowledge.MinValueForTribeFormation))
         {
             if (Group.GetFactionCores().Count > 0)
             {
@@ -369,13 +347,7 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
 
     public abstract bool WillBeLost();
 
-    public virtual void LossConsequences()
-    {
-
-    }
-
     protected abstract void UpdateInternal(long timeSpan);
-    protected abstract int CalculateLimitInternal(CulturalDiscovery discovery); // TODO: Deprecate
 
     public override void FinalizeLoad()
     {

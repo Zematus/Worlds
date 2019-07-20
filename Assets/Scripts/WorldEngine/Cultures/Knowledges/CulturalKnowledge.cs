@@ -11,13 +11,13 @@ using UnityEngine.Profiling;
 [XmlInclude(typeof(PolityCulturalKnowledge))]
 public class CulturalKnowledge : CulturalKnowledgeInfo
 {
-    public const int ScaledMaxLevelValue = 10000;
+    public const int ScaledMaxLimitValue = 10000;
 
     public const float ValueScaleFactor = 0.01f;
     public const int InverseScaleFactor = (int)(1 / ValueScaleFactor);
 
-    public const int MinLevelValue = InverseScaleFactor;
-    public const int MaxLevelValue = ScaledMaxLevelValue * InverseScaleFactor;
+    public const int MinLimitValue = InverseScaleFactor;
+    public const int MaxLimitValue = ScaledMaxLimitValue * InverseScaleFactor;
 
     [XmlAttribute("V")]
     public int Value;
@@ -35,19 +35,19 @@ public class CulturalKnowledge : CulturalKnowledgeInfo
     public CulturalKnowledge(string id, string name, int value, int limit) : base(id, name)
     {
         Value = value;
-
+        
         SetLimit(limit);
     }
 
-    protected void SetLimit(int limit)
+    public void SetLimit(int limit)
     {
-        if ((limit < MinLevelValue) || (limit > MaxLevelValue))
+        if ((limit < MinLimitValue) || (limit > MaxLimitValue))
         {
-            float scaledMinLevelValue = MinLevelValue * ValueScaleFactor;
+            float scaledMinLevelValue = MinLimitValue * ValueScaleFactor;
 
-            Debug.LogWarning("CulturalKnowledge: Limit can't be set below " + scaledMinLevelValue  + " or above " + ScaledMaxLevelValue + ", limit: " + (limit * ValueScaleFactor));
+            Debug.LogWarning("CulturalKnowledge: Limit can't be set below " + scaledMinLevelValue  + " or above " + ScaledMaxLimitValue + ", limit: " + (limit * ValueScaleFactor));
 
-            limit = Mathf.Clamp(limit, MinLevelValue, MaxLevelValue);
+            limit = Mathf.Clamp(limit, MinLimitValue, MaxLimitValue);
         }
 
         Limit = limit;
@@ -60,6 +60,7 @@ public class CulturalKnowledge : CulturalKnowledgeInfo
     public CulturalKnowledge(CulturalKnowledge baseKnowledge) : base(baseKnowledge)
     {
         Value = baseKnowledge.Value;
+        
         Limit = baseKnowledge.Limit;
     }
 

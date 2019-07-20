@@ -28,11 +28,11 @@ public class ModifyGroupKnowledgeLimitEffect : GroupEffect
             throw new System.ArgumentException("ModifyGroupKnowledgeLimitEffect: Level limit delta can't be parsed into a valid floating point number: " + valueStr);
         }
 
-        if (!value.IsInsideRange(-CulturalKnowledge.ScaledMaxLevelValue, CulturalKnowledge.ScaledMaxLevelValue))
+        if (!value.IsInsideRange(-CulturalKnowledge.ScaledMaxLimitValue, CulturalKnowledge.ScaledMaxLimitValue))
         {
             throw new System.ArgumentException(
                 "ModifyGroupKnowledgeLimitEffect: Level limit delta is outside the range of " + 
-                (-CulturalKnowledge.ScaledMaxLevelValue) + " and " + CulturalKnowledge.ScaledMaxLevelValue + ": " + valueStr);
+                (-CulturalKnowledge.ScaledMaxLimitValue) + " and " + CulturalKnowledge.ScaledMaxLimitValue + ": " + valueStr);
         }
 
         LevelLimitDelta = (int)(value / CulturalKnowledge.ValueScaleFactor);

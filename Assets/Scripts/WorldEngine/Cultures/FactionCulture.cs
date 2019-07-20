@@ -297,6 +297,8 @@ public class FactionCulture : Culture
 
                 knowledge.Value = (int)((knowledge.Value * (1f - timeFactor)) + (k.Value * timeFactor));
 
+                knowledge.Limit = Mathf.Max(k.Limit, knowledge.Limit);
+
                 //Profiler.EndSample();
             }
         }

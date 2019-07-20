@@ -72,17 +72,6 @@ public class AgricultureKnowledge : CellCulturalKnowledge
         AddPolityProminenceEffectInternal(polityKnowledge, polityProminence, timeSpan, TimeEffectConstant);
     }
 
-    protected override int CalculateLimitInternal(CulturalDiscovery discovery)
-    {
-        //switch (discovery.Id)
-        //{
-        //    case PlantCultivationDiscovery.DiscoveryId:
-        //        return 1000;
-        //}
-
-        return 0;
-    }
-
     public override float CalculateExpectedProgressLevel()
     {
         if (_terrainFactor <= 0)

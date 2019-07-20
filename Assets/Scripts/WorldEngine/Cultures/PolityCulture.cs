@@ -108,8 +108,6 @@ public class PolityCulture : Culture
 
     private void AddFactionCultures()
     {
-        //ResetCulture();
-
         foreach (Faction faction in Polity.GetFactions())
         {
             Profiler.BeginSample("AddFactionCulture");
@@ -251,8 +249,9 @@ public class PolityCulture : Culture
             else
             {
                 //Profiler.BeginSample("update knowledge value");
-
+                
                 knowledge.AccValue += k.Value * influence;
+
                 knowledge.Limit = Mathf.Max(k.Limit, knowledge.Limit);
 
                 //Profiler.EndSample();
@@ -263,6 +262,7 @@ public class PolityCulture : Culture
 
         //Profiler.BeginSample("foreach CulturalDiscovery");
 
+        // TODO: List of discoveries should be reset beforehand and only add the discovery ids to polity culture instead of creating new objects
         foreach (CulturalDiscovery d in faction.Culture.Discoveries.Values)
         {
             //Profiler.BeginSample("GetDiscovery");
@@ -276,7 +276,7 @@ public class PolityCulture : Culture
                 //Profiler.BeginSample("AddDiscovery");
 
                 discovery = new CulturalDiscovery(d);
-
+                
                 AddDiscovery(discovery);
 
                 //Profiler.EndSample();

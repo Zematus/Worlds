@@ -13,12 +13,10 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge
     public const int KnowledgeRngOffset = 2;
 
     public const int InitialValue = 100;
-
-    public const int MinValueForTribalismDiscovery = 600;
-    public const int MinValueForHoldingTribalism = 200;
+    
+    public const int MinValueForTribeFormation = 200;
 
     public const int BaseLimit = 1000;
-    public const int TribalismDiscoveryLevelLimit = 10000;
 
     public const float TimeEffectConstant = CellGroup.GenerationSpan * 500;
     public const float PopulationDensityModifier = 10000f * ValueScaleFactor;
@@ -73,9 +71,6 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge
         float totalFactor = populationFactor + (prominenceFactor * (1 - populationFactor));
 
         UpdateValueInternal(timeSpan, TimeEffectConstant, totalFactor);
-
-        // TODO: cleanup
-        //TryGenerateTribalismDiscoveryEvent();
     }
 
     public override void AddPolityProminenceEffect(CulturalKnowledge polityKnowledge, PolityProminence polityProminence, long timeSpan)
@@ -83,7 +78,7 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge
         AddPolityProminenceEffectInternal(polityKnowledge, polityProminence, timeSpan, TimeEffectConstant);
 
 #if DEBUG
-        if (_newValue < SocialOrganizationKnowledge.MinValueForHoldingTribalism)
+        if (_newValue < MinValueForTribeFormation)
         {
             if (Group.GetFactionCores().Count > 0)
             {
@@ -96,40 +91,6 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge
             }
         }
 #endif
-
-        // TODO: cleanup
-        //TryGenerateTribalismDiscoveryEvent();
-    }
-
-    // TODO: cleanup
-    //private void TryGenerateTribalismDiscoveryEvent()
-    //{
-    //    if (Value < TribalismDiscoveryEvent.MinSocialOrganizationKnowledgeForTribalismDiscovery)
-    //        return;
-
-    //    if (Value > TribalismDiscoveryEvent.OptimalSocialOrganizationKnowledgeValue)
-    //        return;
-
-    //    if (TribalismDiscoveryEvent.CanSpawnIn(Group))
-    //    {
-    //        long triggerDate = TribalismDiscoveryEvent.CalculateTriggerDate(Group);
-
-    //        if (triggerDate == long.MinValue)
-    //            return;
-
-    //        Group.World.InsertEventToHappen(new TribalismDiscoveryEvent(Group, triggerDate));
-    //    }
-    //}
-
-    protected override int CalculateLimitInternal(CulturalDiscovery discovery)
-    {
-        //switch (discovery.Id)
-        //{
-        //    case TribalismDiscovery.DiscoveryId:
-        //        return TribalismDiscoveryLevelLimit;
-        //}
-
-        return 0;
     }
 
     public override float CalculateExpectedProgressLevel()
@@ -152,10 +113,5 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge
     public override bool WillBeLost()
     {
         return false;
-    }
-
-    public override void LossConsequences()
-    {
-
     }
 }
