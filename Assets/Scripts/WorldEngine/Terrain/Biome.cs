@@ -14,7 +14,7 @@ public class Biome
         public float SaturationSlope;
     }
 
-    public enum LocactionType
+    public enum LocationType
     {
         Land,
         Sea
@@ -36,7 +36,7 @@ public class Biome
     public int IdHash;
 
     public Color Color;
-    public LocactionType Type;
+    public LocationType Type;
 
     public float MinAltitude;
     public float MaxAltitude;

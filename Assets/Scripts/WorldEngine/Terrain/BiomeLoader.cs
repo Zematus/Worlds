@@ -97,10 +97,10 @@ public class BiomeLoader
         switch (b.type)
         {
             case "land":
-                biome.Type = Biome.LocactionType.Land;
+                biome.Type = Biome.LocationType.Land;
                 break;
             case "sea":
-                biome.Type = Biome.LocactionType.Sea;
+                biome.Type = Biome.LocationType.Sea;
                 break;
             default:
                 throw new ArgumentException("Unknown biome location type: " + b.type);

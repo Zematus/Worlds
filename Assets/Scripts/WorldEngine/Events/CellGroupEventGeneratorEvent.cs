@@ -6,7 +6,7 @@ using System.Xml.Serialization;
 
 public abstract class CellGroupEventGeneratorEvent : CellGroupEvent
 {
-    [XmlAttribute("GId")]
+    [XmlAttribute("GnId")]
     public string GeneratorId;
 
     [XmlIgnore]

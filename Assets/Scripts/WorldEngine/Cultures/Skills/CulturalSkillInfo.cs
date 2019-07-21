@@ -47,7 +47,7 @@ public class CulturalSkillInfo : IKeyedValue<string>, ISynchronizable
         if (Id.Contains(BiomeSurvivalSkill.SkillIdPrefix))
         {
             string idSuffix = Id.Substring(BiomeSurvivalSkill.SkillIdPrefix.Length);
-            Biome biome = Biome.Biomes[idSuffix.Replace('_', ' ')];
+            Biome biome = Biome.Biomes[idSuffix];
 
             Name = BiomeSurvivalSkill.GenerateName(biome);
             RngOffset = BiomeSurvivalSkill.GenerateRngOffset(biome);

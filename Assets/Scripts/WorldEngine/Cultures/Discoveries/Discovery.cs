@@ -10,6 +10,10 @@ public class Discovery : ICellGroupEventGenerator
     {
         private Discovery _discovery;
 
+        public Event()
+        {
+        }
+
         public Event(
             Discovery discovery,
             CellGroup group,

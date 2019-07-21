@@ -353,6 +353,8 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
     {
         base.FinalizeLoad();
 
+        _referenceKnowledge = Knowledge.GetKnowledge(Id);
+
         _newValue = Value;
     }
 }
