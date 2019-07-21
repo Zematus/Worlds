@@ -268,5 +268,10 @@ public class PolityCulture : Culture
         }
 
         //Profiler.EndSample();
+
+        foreach (string property in faction.Culture.GetProperties())
+        {
+            AddProperty(property);
+        }
     }
 }

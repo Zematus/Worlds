@@ -19,7 +19,7 @@ public class AddGroupPropertyEffect : GroupEffect
 
     public override void ApplyToTarget(CellGroup group)
     {
-        group.AddProperty(Property);
+        group.Culture.AddPropertyToAquire(Property);
     }
 
     public override string ToString()

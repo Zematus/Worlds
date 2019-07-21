@@ -98,7 +98,6 @@ public class ExpandPolityProminenceEvent : CellGroupEvent
         PolityProminence sourcePi = Group.GetPolityProminence(Polity);
 
         TargetGroup.Culture.MergeCulture(Group.Culture, percentToExpand);
-        TargetGroup.MergeAttributes(Group.GetProperties());
         TargetGroup.MergePolityProminence(sourcePi, percentToExpand);
 
         TryMigrateFactionCores();

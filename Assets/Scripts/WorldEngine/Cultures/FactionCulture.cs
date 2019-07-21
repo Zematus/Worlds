@@ -12,8 +12,6 @@ public class FactionCulture : Culture
     [XmlIgnore]
     public Faction Faction;
 
-    private List<Discovery> _discoveriesToTryToRemove = new List<Discovery>();
-
     public FactionCulture()
     {
 
@@ -344,9 +342,9 @@ public class FactionCulture : Culture
             AddDiscovery(d);
         }
 
-        _discoveriesToTryToRemove.AddRange(Discoveries.Values);
+        List<Discovery> discoveriesToTryToRemove = new List<Discovery>(Discoveries.Values);
 
-        foreach (Discovery d in _discoveriesToTryToRemove)
+        foreach (Discovery d in discoveriesToTryToRemove)
         {
             //Profiler.BeginSample("coreCulture.Discoveries.ContainsKey");
 
@@ -358,9 +356,25 @@ public class FactionCulture : Culture
             //Profiler.EndSample();
         }
 
-        _discoveriesToTryToRemove.Clear();
-
         //Profiler.EndSample();
+    }
+
+    private void UpdateProperties(CellCulture coreCulture)
+    {
+        foreach (string property in coreCulture.GetProperties())
+        {
+            AddProperty(property);
+        }
+
+        List<string> propertiesToTryToRemove = new List<string>(_properties);
+
+        foreach (string property in propertiesToTryToRemove)
+        {
+            if (!coreCulture.HasProperty(property))
+            {
+                RemoveProperty(property);
+            }
+        }
     }
 
     public void Update()
@@ -381,11 +395,12 @@ public class FactionCulture : Culture
         UpdateSkills(coreCulture, timeFactor);
         UpdateKnowledges(coreCulture, timeFactor);
         UpdateDiscoveries(coreCulture, timeFactor);
+        UpdateProperties(coreCulture);
     }
     
     private void TryRemovingDiscovery(Discovery discovery, float timeFactor)
     {
-        int idHash = discovery.Id.GetHashCode();
+        int idHash = discovery.IdHash;
         
         if (GetNextRandomFloat(RngOffsets.FACTION_CULTURE_DISCOVERY_LOSS_CHANCE + idHash) < timeFactor)
         {

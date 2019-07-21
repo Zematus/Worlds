@@ -19,7 +19,7 @@ public class RemoveGroupPropertyEffect : GroupEffect
 
     public override void ApplyToTarget(CellGroup group)
     {
-        group.RemoveProperty(Property);
+        group.Culture.AddPropertyToLose(Property);
     }
 
     public override string ToString()

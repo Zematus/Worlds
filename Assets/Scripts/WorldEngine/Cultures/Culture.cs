@@ -21,10 +21,13 @@ public class Culture : ISynchronizable
     public XmlSerializableDictionary<string, CulturalSkill> Skills = new XmlSerializableDictionary<string, CulturalSkill>();
     public XmlSerializableDictionary<string, CulturalKnowledge> Knowledges = new XmlSerializableDictionary<string, CulturalKnowledge>();
 
-    public List<string> DiscoveryIds = new List<string>();
+    public List<string> DiscoveryIds;
+    public List<string> Properties;
 
     [XmlIgnore]
     public Dictionary<string, Discovery> Discoveries = new Dictionary<string, Discovery>();
+
+    protected HashSet<string> _properties = new HashSet<string>();
 
     public Culture()
     {
@@ -62,6 +65,11 @@ public class Culture : ISynchronizable
         foreach (Discovery d in sourceCulture.Discoveries.Values)
         {
             AddDiscovery(d);
+        }
+
+        foreach (string property in sourceCulture.GetProperties())
+        {
+            AddProperty(property);
         }
     }
 
@@ -179,11 +187,6 @@ public class Culture : ISynchronizable
         }
     }
 
-    public void ResetDiscoveries()
-    {
-        Discoveries.Clear();
-    }
-
     protected void AddDiscovery(Discovery discovery)
     {
         if (Discoveries.ContainsKey(discovery.Id))
@@ -200,6 +203,11 @@ public class Culture : ISynchronizable
             return;
 
         Discoveries.Remove(discovery.Id);
+    }
+
+    public void ResetDiscoveries()
+    {
+        Discoveries.Clear();
     }
 
     public CulturalPreference GetPreference(string id)
@@ -311,6 +319,7 @@ public class Culture : ISynchronizable
         ResetSkills();
         ResetKnowledges();
         ResetDiscoveries();
+        ResetProperties();
     }
 
     public virtual void Synchronize()
@@ -319,6 +328,7 @@ public class Culture : ISynchronizable
             LanguageId = Language.Id;
 
         DiscoveryIds = new List<string>(Discoveries.Keys);
+        Properties = new List<string>(_properties);
     }
 
     public virtual void FinalizeLoad()
@@ -359,6 +369,36 @@ public class Culture : ISynchronizable
 
             Discoveries.Add(discoveryId, discovery);
         }
+
+        foreach (string property in Properties)
+        {
+            _properties.Add(property);
+        }
+    }
+
+    public void AddProperty(string property)
+    {
+        _properties.Add(property);
+    }
+
+    public bool HasProperty(string property)
+    {
+        return _properties.Contains(property);
+    }
+
+    public ICollection<string> GetProperties()
+    {
+        return _properties;
+    }
+
+    public void RemoveProperty(string property)
+    {
+        _properties.Remove(property);
+    }
+
+    public void ResetProperties()
+    {
+        _properties.Clear();
     }
 }
 
