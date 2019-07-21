@@ -20,7 +20,11 @@ public class Culture : ISynchronizable
     public XmlSerializableDictionary<string, CulturalActivity> Activities = new XmlSerializableDictionary<string, CulturalActivity>();
     public XmlSerializableDictionary<string, CulturalSkill> Skills = new XmlSerializableDictionary<string, CulturalSkill>();
     public XmlSerializableDictionary<string, CulturalKnowledge> Knowledges = new XmlSerializableDictionary<string, CulturalKnowledge>();
-    public XmlSerializableDictionary<string, CulturalDiscovery> Discoveries = new XmlSerializableDictionary<string, CulturalDiscovery>();
+
+    public List<string> DiscoveryIds = new List<string>();
+
+    [XmlIgnore]
+    public Dictionary<string, Discovery> Discoveries = new Dictionary<string, Discovery>();
 
     public Culture()
     {
@@ -55,16 +59,9 @@ public class Culture : ISynchronizable
             AddKnowledge(new CulturalKnowledge(k));
         }
 
-        foreach (CulturalDiscovery d in sourceCulture.Discoveries.Values)
+        foreach (Discovery d in sourceCulture.Discoveries.Values)
         {
-            if (d is Discovery)
-            {
-                AddDiscovery(d);
-            }
-            else
-            {
-                AddDiscovery(new CulturalDiscovery(d));
-            }
+            AddDiscovery(d);
         }
     }
 
@@ -182,17 +179,22 @@ public class Culture : ISynchronizable
         }
     }
 
-    protected void AddDiscovery(CulturalDiscovery discovery)
+    public void ResetDiscoveries()
+    {
+        Discoveries.Clear();
+    }
+
+    protected void AddDiscovery(Discovery discovery)
     {
         if (Discoveries.ContainsKey(discovery.Id))
             return;
 
-        World.AddExistingCulturalDiscoveryInfo(discovery);
+        World.AddExistingDiscovery(discovery);
 
         Discoveries.Add(discovery.Id, discovery);
     }
 
-    protected void RemoveDiscovery(CulturalDiscovery discovery)
+    protected void RemoveDiscovery(Discovery discovery)
     {
         if (!Discoveries.ContainsKey(discovery.Id))
             return;
@@ -282,9 +284,9 @@ public class Culture : ISynchronizable
         return false;
     }
 
-    public CulturalDiscovery GetDiscovery(string id)
+    public Discovery GetDiscovery(string id)
     {
-        CulturalDiscovery discovery = null;
+        Discovery discovery = null;
 
         if (!Discoveries.TryGetValue(id, out discovery))
             return null;
@@ -294,7 +296,7 @@ public class Culture : ISynchronizable
 
     public bool HasDiscovery(string id)
     {
-        CulturalDiscovery discovery = GetDiscovery(id);
+        Discovery discovery = GetDiscovery(id);
         
         if (discovery != null)
             return true;
@@ -308,12 +310,15 @@ public class Culture : ISynchronizable
         ResetActivities();
         ResetSkills();
         ResetKnowledges();
+        ResetDiscoveries();
     }
 
     public virtual void Synchronize()
     {
         if (Language != null)
             LanguageId = Language.Id;
+
+        DiscoveryIds = new List<string>(Discoveries.Keys);
     }
 
     public virtual void FinalizeLoad()
@@ -348,9 +353,11 @@ public class Culture : ISynchronizable
             k.FinalizeLoad();
         }
 
-        foreach (CulturalDiscovery d in Discoveries.Values)
+        foreach (string discoveryId in DiscoveryIds)
         {
-            d.FinalizeLoad();
+            Discovery discovery = Discovery.GetDiscovery(discoveryId);
+
+            Discoveries.Add(discoveryId, discovery);
         }
     }
 }

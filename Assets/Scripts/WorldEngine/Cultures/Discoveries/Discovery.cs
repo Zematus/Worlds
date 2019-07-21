@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
-public class Discovery : CellCulturalDiscovery, ICellGroupEventGenerator
+public class Discovery : ICellGroupEventGenerator
 {
     public class Event : CellGroupEventGeneratorEvent
     {
@@ -77,6 +77,9 @@ public class Discovery : CellCulturalDiscovery, ICellGroupEventGenerator
 
     public static int CurrentUId = 0;
     
+    public string Id;
+    public string Name;
+
     public string EventGeneratorId;
 
     public int IdHash;
@@ -197,7 +200,7 @@ public class Discovery : CellCulturalDiscovery, ICellGroupEventGenerator
         return true;
     }
 
-    public override bool CanBeHeld(CellGroup group)
+    public bool CanBeHeld(CellGroup group)
     {
         if (HoldConditions == null)
             return true;
@@ -254,10 +257,8 @@ public class Discovery : CellCulturalDiscovery, ICellGroupEventGenerator
         return EventGeneratorId;
     }
 
-    public override void OnGain(CellGroup group)
+    public void OnGain(CellGroup group)
     {
-        base.OnGain(group);
-
         if (GainEffects == null)
             return;
 
@@ -267,10 +268,8 @@ public class Discovery : CellCulturalDiscovery, ICellGroupEventGenerator
         }
     }
 
-    public override void OnLoss(CellGroup group)
+    public void OnLoss(CellGroup group)
     {
-        base.OnLoss(group);
-
         if (LossEffects != null)
         {
             foreach (Effect effect in LossEffects)
@@ -280,7 +279,7 @@ public class Discovery : CellCulturalDiscovery, ICellGroupEventGenerator
         }
     }
 
-    public override void RetryAssignAfterLoss(CellGroup group)
+    public void RetryAssignAfterLoss(CellGroup group)
     {
         if (CanAssignEventTypeToGroup(group))
         {

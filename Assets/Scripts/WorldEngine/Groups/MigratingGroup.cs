@@ -116,7 +116,7 @@ public class MigratingGroup : HumanGroup
 
         Culture = new BufferCulture(SourceGroup.Culture);
 
-        Attributes = new List<string>(SourceGroup.GetAttributes());
+        Attributes = new List<string>(SourceGroup.GetProperties());
 
         Profiler.EndSample();
 

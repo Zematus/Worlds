@@ -134,44 +134,4 @@ public class AgricultureKnowledge : CellCulturalKnowledge
 
         return false;
     }
-
-    // TODO: cleanup
-    //public override void LossConsequences()
-    //{
-    //    Profiler.BeginSample("RemoveActivity: FarmingActivity");
-
-    //    Group.Culture.RemoveActivity(CellCulturalActivity.FarmingActivityId);
-
-    //    Profiler.EndSample();
-
-    //    Profiler.BeginSample("PlantCultivationDiscoveryEvent.CanSpawnIn");
-
-    //    if (PlantCultivationDiscoveryEvent.CanSpawnIn(Group))
-    //    {
-    //        Profiler.BeginSample("PlantCultivationDiscoveryEvent.CalculateTriggerDate");
-
-    //        long triggerDate = PlantCultivationDiscoveryEvent.CalculateTriggerDate(Group);
-
-    //        Profiler.EndSample();
-
-    //        if (triggerDate.IsInsideRange(Group.World.CurrentDate + 1, World.MaxSupportedDate))
-    //        {
-    //            Profiler.BeginSample("new PlantCultivationDiscoveryEvent");
-
-    //            PlantCultivationDiscoveryEvent plantCultivationDiscoveryEvent = new PlantCultivationDiscoveryEvent(Group, triggerDate);
-
-    //            Profiler.EndSample();
-
-    //            Profiler.BeginSample("InsertEventToHappen: PlantCultivationDiscoveryEvent");
-
-    //            Group.World.InsertEventToHappen(plantCultivationDiscoveryEvent);
-
-    //            Profiler.EndSample();
-    //        }
-    //    }
-
-    //    Profiler.EndSample();
-
-    //    Group.Cell.FarmlandPercentage = 0;
-    //}
 }

@@ -2463,9 +2463,9 @@ public class GuiManagerScript : MonoBehaviour
     {
         SelectionPanelScript.Title.text = "Displayed Discovery:";
 
-        foreach (CulturalDiscoveryInfo discoveryInfo in Manager.CurrentWorld.CulturalDiscoveryInfoList)
+        foreach (Discovery discovery in Manager.CurrentWorld.ExistingDiscoveries.Values)
         {
-            AddSelectionPanelOption(discoveryInfo.Name, discoveryInfo.Id);
+            AddSelectionPanelOption(discovery.Name, discovery.Id);
         }
 
         SelectionPanelScript.SetVisible(true);
@@ -2545,9 +2545,9 @@ public class GuiManagerScript : MonoBehaviour
         }
         else if (_planetOverlay == PlanetOverlay.PopCulturalDiscovery)
         {
-            foreach (CulturalDiscoveryInfo discoveryInfo in Manager.CurrentWorld.CulturalDiscoveryInfoList)
+            foreach (Discovery discovery in Manager.CurrentWorld.ExistingDiscoveries.Values)
             {
-                AddSelectionPanelOption(discoveryInfo.Name, discoveryInfo.Id);
+                AddSelectionPanelOption(discovery.Name, discovery.Id);
             }
         }
         else if (_planetOverlay == PlanetOverlay.PolityCulturalPreference)
@@ -2580,9 +2580,9 @@ public class GuiManagerScript : MonoBehaviour
         }
         else if (_planetOverlay == PlanetOverlay.PolityCulturalDiscovery)
         {
-            foreach (CulturalDiscoveryInfo discoveryInfo in Manager.CurrentWorld.CulturalDiscoveryInfoList)
+            foreach (Discovery discovery in Manager.CurrentWorld.ExistingDiscoveries.Values)
             {
-                AddSelectionPanelOption(discoveryInfo.Name, discoveryInfo.Id);
+                AddSelectionPanelOption(discovery.Name, discovery.Id);
             }
         }
         else if (_planetOverlay == PlanetOverlay.Layer)
@@ -2901,7 +2901,7 @@ public class GuiManagerScript : MonoBehaviour
 
     private void ShowCellInfoToolTip_PolityCulturalDiscovery(Polity polity, Vector3 position, float fadeStart = 5)
     {
-        CulturalDiscovery discovery = polity.Culture.GetDiscovery(_planetOverlaySubtype) as CulturalDiscovery;
+        Discovery discovery = polity.Culture.GetDiscovery(_planetOverlaySubtype) as Discovery;
 
         if (discovery != null)
         {

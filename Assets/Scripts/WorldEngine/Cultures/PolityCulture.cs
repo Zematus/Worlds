@@ -262,25 +262,9 @@ public class PolityCulture : Culture
 
         //Profiler.BeginSample("foreach CulturalDiscovery");
 
-        // TODO: List of discoveries should be reset beforehand and only add the discovery ids to polity culture instead of creating new objects
-        foreach (CulturalDiscovery d in faction.Culture.Discoveries.Values)
+        foreach (Discovery d in faction.Culture.Discoveries.Values)
         {
-            //Profiler.BeginSample("GetDiscovery");
-
-            CulturalDiscovery discovery = GetDiscovery(d.Id);
-
-            //Profiler.EndSample();
-
-            if (discovery == null)
-            {
-                //Profiler.BeginSample("AddDiscovery");
-
-                discovery = new CulturalDiscovery(d);
-                
-                AddDiscovery(discovery);
-
-                //Profiler.EndSample();
-            }
+            AddDiscovery(d);
         }
 
         //Profiler.EndSample();

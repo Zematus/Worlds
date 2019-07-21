@@ -13,7 +13,7 @@ Here's a list of the current types of effects (more to be added in future versio
 
 - 'remove_group_knowledge'
     Removes the specified knowledge from the specified group. the format of the effect is as follows: 'remove_group_knowledge:<target_group_type>,<knowledge_id>'
-    NOTE: Try make sure that no more than one 'effector' can remove a knowledge at any given time.
+    NOTE: Try make sure that no more than one 'effector' can remove a particular knowledge at any given time.
     These are valid target group types:
     - 'this': the cell group this effect targets
 
@@ -36,26 +36,26 @@ Here's a list of the current types of effects (more to be added in future versio
 
 - 'remove_group_activity'
     Removes the specified activity from the specified group. the format of the effect is as follows: 'remove_group_activity:<target_group_type>,<activity_id>'
-    NOTE: Try make sure that no more than one 'effector' can remove an activity at any given time.
+    NOTE: Try make sure that no more than one 'effector' can remove a particular activity at any given time.
     These are valid target group types:
     - 'this': the cell group this effect targets
 
     Examples: 'remove_group_activity:this,farming'
 
-- 'add_group_attribute'
-    Assigns the specified attribute to the specified group. the format of the effect is as follows: 'add_group_attribute:<target_group_type>,<attribute>'
+- 'add_group_property'
+    Assigns the specified property to the specified group. the format of the effect is as follows: 'add_group_property:<target_group_type>,<property>'
     These are valid target group types:
     - 'this': the cell group this effect targets
 
-    Examples: 'add_group_attribute:this,CAN_FORM_POLITY:tribe'
+    Examples: 'add_group_property:this,CAN_FORM_POLITY:tribe'
 
-- 'remove_group_attribute'
-    Removes the specified attribute from the specified group. the format of the effect is as follows: 'remove_group_attribute:<target_group_type>,<attribute>'
-    NOTE: Try make sure that no more than one 'effector' can remove an attribute at any given time.
+- 'remove_group_property'
+    Removes the specified property from the specified group. the format of the effect is as follows: 'remove_group_property:<target_group_type>,<property>'
+    NOTE: Try make sure that no more than one 'effector' can remove a particular property at any given time.
     These are valid target group types:
     - 'this': the cell group this effect targets
 
-    Examples: 'remove_group_attribute:this,CAN_FORM_POLITY:tribe'
+    Examples: 'remove_group_property:this,CAN_FORM_POLITY:tribe'
 
 - 'form_polity_on_group'
     Form if possible a new polity of the specified type centered on the specified group: 'form_polity_on_group:<target_group_type>,<polity_type>'

@@ -44,16 +44,16 @@ public abstract class Effect
             return new RemoveGroupActivityEffect(match, id);
         }
 
-        match = Regex.Match(effectStr, AddGroupAttributeEffect.Regex);
+        match = Regex.Match(effectStr, AddGroupPropertyEffect.Regex);
         if (match.Success == true)
         {
-            return new AddGroupAttributeEffect(match, id);
+            return new AddGroupPropertyEffect(match, id);
         }
 
-        match = Regex.Match(effectStr, RemoveGroupAttributeEffect.Regex);
+        match = Regex.Match(effectStr, RemoveGroupPropertyEffect.Regex);
         if (match.Success == true)
         {
-            return new RemoveGroupAttributeEffect(match, id);
+            return new RemoveGroupPropertyEffect(match, id);
         }
 
         match = Regex.Match(effectStr, FormPolityOnGroupEffect.Regex);

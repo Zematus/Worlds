@@ -3,27 +3,27 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class AddGroupAttributeEffect : GroupEffect
+public class AddGroupPropertyEffect : GroupEffect
 {
-    public const string Regex = @"^\s*add_group_attribute\s*" +
+    public const string Regex = @"^\s*add_group_property\s*" +
         @":\s*(?<type>" + ModUtility.IdentifierRegexPart + @")\s*" +
         @",\s*(?<value>" + ModUtility.AttributeRegexPart + @")\s*$";
 
-    public string Attribute;
+    public string Property;
 
-    public AddGroupAttributeEffect(Match match, string id) :
+    public AddGroupPropertyEffect(Match match, string id) :
         base(match.Groups["type"].Value, id)
     {
-        Attribute = match.Groups["value"].Value;
+        Property = match.Groups["value"].Value;
     }
 
     public override void ApplyToTarget(CellGroup group)
     {
-        group.AddAttribute(Attribute);
+        group.AddProperty(Property);
     }
 
     public override string ToString()
     {
-        return "'Add Group Attribute' Effect, Target Type " + TargetType + ", Attribute Id: " + Attribute;
+        return "'Add Group Property' Effect, Target Type " + TargetType + ", Property: " + Property;
     }
 }

@@ -1407,7 +1407,7 @@ public class Manager
             }
             //catch (IOException e)
             //{
-            //    // TODO DEBUG: This is a workaround. We shouldn't ignore file sharing violations
+            //    // DEBUG: This is a workaround. We shouldn't ignore file sharing violations
             //    if (System.Runtime.InteropServices.Marshal.GetHRForException(e) != 0x00000020)
             //    {
             //        EnqueueTaskAndWait(() =>

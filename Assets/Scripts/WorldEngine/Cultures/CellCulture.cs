@@ -19,17 +19,17 @@ public class CellCulture : Culture
     [XmlIgnore]
     public Dictionary<string, CellCulturalKnowledge> KnowledgesToLearn = new Dictionary<string, CellCulturalKnowledge>();
     [XmlIgnore]
-    public Dictionary<string, CellCulturalDiscovery> DiscoveriesToFind = new Dictionary<string, CellCulturalDiscovery>();
+    public Dictionary<string, Discovery> DiscoveriesToFind = new Dictionary<string, Discovery>();
 
     // DiscoveriesToReceive should only be used when the discovery is gotten trough transfer from other groups or polities
     [XmlIgnore]
-    public Dictionary<string, CellCulturalDiscovery> DiscoveriesToReceive = new Dictionary<string, CellCulturalDiscovery>();
+    public Dictionary<string, Discovery> DiscoveriesToReceive = new Dictionary<string, Discovery>();
 
     private HashSet<CellCulturalPreference> _preferencesToLose = new HashSet<CellCulturalPreference>();
     private HashSet<CellCulturalActivity> _activitiesToStop = new HashSet<CellCulturalActivity>();
     private HashSet<CellCulturalSkill> _skillsToLose = new HashSet<CellCulturalSkill>();
     private HashSet<CellCulturalKnowledge> _knowledgesToLose = new HashSet<CellCulturalKnowledge>();
-    private HashSet<CellCulturalDiscovery> _discoveriesToLose = new HashSet<CellCulturalDiscovery>();
+    private HashSet<Discovery> _discoveriesToLose = new HashSet<Discovery>();
 
     public CellCulture()
     {
@@ -59,18 +59,9 @@ public class CellCulture : Culture
             AddSkill(CellCulturalSkill.CreateCellInstance(group, s));
         }
 
-        foreach (CulturalDiscovery d in sourceCulture.Discoveries.Values)
+        foreach (Discovery d in sourceCulture.Discoveries.Values)
         {
-            if (d is Discovery) // This should always be TRUE
-            {
-                AddDiscovery(d);
-            }
-            else
-            {
-                CellCulturalDiscovery dInstance = CellCulturalDiscovery.CreateCellInstance(d.Id);
-                
-                AddDiscovery(dInstance);  //TODO: Get rid of CellCulturalDiscovery.CreateCellInstance
-            }
+            AddDiscovery(d);
         }
 
         foreach (CulturalKnowledge k in sourceCulture.Knowledges.Values)
@@ -170,7 +161,7 @@ public class CellCulture : Culture
         return knowledge;
     }
 
-    public void AddDiscoveryToFind(CellCulturalDiscovery discovery)
+    public void AddDiscoveryToFind(Discovery discovery)
     {
         if (Discoveries.ContainsKey(discovery.Id))
         {
@@ -205,32 +196,6 @@ public class CellCulture : Culture
         DiscoveriesToReceive.Add(d.Id, d);
 
         return true;
-    }
-
-    public CellCulturalDiscovery TryAddDiscoveryToFind(string id)
-    {
-        CellCulturalDiscovery discovery = GetDiscovery(id) as CellCulturalDiscovery;
-        
-        if (discovery != null)
-        {
-            return discovery;
-        }
-
-        CellCulturalDiscovery tempDiscovery;
-
-        if (DiscoveriesToFind.TryGetValue(id, out tempDiscovery))
-        {
-            return tempDiscovery;
-        }
-
-        if (discovery == null)
-        {
-            discovery = CellCulturalDiscovery.CreateCellInstance(id);
-        }
-        
-        DiscoveriesToFind.Add(id, discovery);
-
-        return discovery;
     }
 
     public CellCulturalPreference GetAcquiredPreferenceOrToAcquire(string id)
@@ -348,16 +313,9 @@ public class CellCulture : Culture
             knowledge.Merge(k.Value, percentage);
         }
 
-        foreach (CulturalDiscovery d in sourceCulture.Discoveries.Values)
+        foreach (Discovery d in sourceCulture.Discoveries.Values)
         {
-            if (d is Discovery) // This should be always TRUE
-            {
-                TryReceiveDiscovery(d as Discovery);
-            }
-            else
-            {
-                TryAddDiscoveryToFind(d.Id); //TODO: Deprecate this call
-            }
+            TryReceiveDiscovery(d as Discovery);
         }
     }
 
@@ -456,18 +414,11 @@ public class CellCulture : Culture
             cellKnowledge.AddPolityProminenceEffect(polityKnowledge, polityProminence, timeSpan);
         }
 
-        foreach (CulturalDiscovery polityDiscovery in polityCulture.Discoveries.Values)
+        foreach (Discovery polityDiscovery in polityCulture.Discoveries.Values)
         {
             Discovery discovery = Discovery.GetDiscovery(polityDiscovery.Id);
 
-            if (discovery == null)
-            {
-                TryAddDiscoveryToFind(polityDiscovery.Id); // TODO: Deprecate this call
-            }
-            else
-            {
-                TryReceiveDiscovery(discovery);
-            }
+            TryReceiveDiscovery(discovery);
         }
     }
 
@@ -492,7 +443,7 @@ public class CellCulture : Culture
     public void PostUpdateRemoveAttributes()
     {
         // We need to handle discoveries before anything else as they might trigger removal of other cultural attributes
-        foreach (CellCulturalDiscovery d in _discoveriesToLose)
+        foreach (Discovery d in _discoveriesToLose)
         {
             RemoveDiscovery(d);
             d.OnLoss(Group);
@@ -519,7 +470,7 @@ public class CellCulture : Culture
         }
 
         // This should be done only after knowledges have been removed as there are some dependencies
-        foreach (CellCulturalDiscovery d in _discoveriesToLose)
+        foreach (Discovery d in _discoveriesToLose)
         {
             d.RetryAssignAfterLoss(Group);
         }
@@ -534,7 +485,7 @@ public class CellCulture : Culture
     public void PostUpdateAddAttributes()
     {
         // We need to handle discoveries before everything else as these can add other type of cultural attributes
-        foreach (CellCulturalDiscovery discovery in DiscoveriesToFind.Values)
+        foreach (Discovery discovery in DiscoveriesToFind.Values)
         {
             AddDiscovery(discovery);
             discovery.OnGain(Group);
@@ -555,7 +506,7 @@ public class CellCulture : Culture
             AddSkill(skill);
         }
 
-        foreach (CellCulturalDiscovery discovery in DiscoveriesToReceive.Values)
+        foreach (Discovery discovery in DiscoveriesToReceive.Values)
         {
             AddDiscovery(discovery);
         }
@@ -693,7 +644,7 @@ public class CellCulture : Culture
             _knowledgesToLose.Add(knowledge);
         }
 
-        foreach (CellCulturalDiscovery discovery in Discoveries.Values)
+        foreach (Discovery discovery in Discoveries.Values)
         {
             if (discovery.CanBeHeld(Group))
                 continue;

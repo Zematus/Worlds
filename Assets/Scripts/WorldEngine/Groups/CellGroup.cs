@@ -118,7 +118,7 @@ public class CellGroup : HumanGroup
     public Route SeaMigrationRoute = null;
 
     public List<string> Flags;
-    public List<string> Attributes;
+    public List<string> Properties;
 
     public CellCulture Culture;
 
@@ -221,7 +221,7 @@ public class CellGroup : HumanGroup
     private Dictionary<long, PolityProminence> _polityProminencesToAdd = new Dictionary<long, PolityProminence>();
 
     private HashSet<string> _flags = new HashSet<string>();
-    private HashSet<string> _attributes = new HashSet<string>();
+    private HashSet<string> _properties = new HashSet<string>();
 
     private bool _alreadyUpdated = false;
 
@@ -270,7 +270,7 @@ public class CellGroup : HumanGroup
         }
     }
 
-    public CellGroup(World world, TerrainCell cell, int initialPopulation, Culture baseCulture = null, ICollection<string> baseAttributes = null, Direction migrationDirection = Direction.Null) : base(world)
+    public CellGroup(World world, TerrainCell cell, int initialPopulation, Culture baseCulture = null, ICollection<string> baseProperties = null, Direction migrationDirection = Direction.Null) : base(world)
     {
         InitDate = World.CurrentDate;
         LastUpdateDate = InitDate;
@@ -355,11 +355,11 @@ public class CellGroup : HumanGroup
             Culture = new CellCulture(this, baseCulture);
         }
 
-        if (baseAttributes != null)
+        if (baseProperties != null)
         {
-            foreach (string attribute in baseAttributes)
+            foreach (string property in baseProperties)
             {
-                _attributes.Add(attribute);
+                _properties.Add(property);
             }
         }
 
@@ -595,24 +595,24 @@ public class CellGroup : HumanGroup
         _flags.Remove(flag);
     }
 
-    public void AddAttribute(string attribute)
+    public void AddProperty(string property)
     {
-        _attributes.Add(attribute);
+        _properties.Add(property);
     }
 
-    public bool HasAttribute(string attribute)
+    public bool HasProperty(string property)
     {
-        return _attributes.Contains(attribute);
+        return _properties.Contains(property);
     }
 
-    public ICollection<string> GetAttributes()
+    public ICollection<string> GetProperties()
     {
-        return _attributes;
+        return _properties;
     }
 
-    public void RemoveAttribute(string attribute)
+    public void RemoveProperty(string property)
     {
-        _attributes.Remove(attribute);
+        _properties.Remove(property);
     }
 
     public int GetNextLocalRandomInt(int iterationOffset, int maxValue)
@@ -718,7 +718,7 @@ public class CellGroup : HumanGroup
     {
         foreach (string attribute in attributes)
         {
-            AddAttribute(attribute);
+            AddProperty(attribute);
         }
     }
 
@@ -3223,7 +3223,7 @@ public class CellGroup : HumanGroup
         }
 
         Flags = new List<string>(_flags);
-        Attributes = new List<string>(_attributes);
+        Properties = new List<string>(_properties);
 
         Culture.Synchronize();
 
@@ -3273,9 +3273,9 @@ public class CellGroup : HumanGroup
             _flags.Add(f);
         }
 
-        foreach (string a in Attributes)
+        foreach (string a in Properties)
         {
-            _attributes.Add(a);
+            _properties.Add(a);
         }
 
         Cell = World.GetCell(Longitude, Latitude);

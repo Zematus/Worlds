@@ -247,17 +247,14 @@ public class World : ISynchronizable
         XmlArrayItem(Type = typeof(MigrateGroupEvent)),
         XmlArrayItem(Type = typeof(ExpandPolityProminenceEvent)),
         XmlArrayItem(Type = typeof(TribeFormationEvent)),
-        //XmlArrayItem(Type = typeof(SailingDiscoveryEvent)),
-        //XmlArrayItem(Type = typeof(BoatMakingDiscoveryEvent)),
-        //XmlArrayItem(Type = typeof(TribalismDiscoveryEvent)),
-        //XmlArrayItem(Type = typeof(PlantCultivationDiscoveryEvent)),
         XmlArrayItem(Type = typeof(ClanSplitDecisionEvent)),
         XmlArrayItem(Type = typeof(TribeSplitDecisionEvent)),
         XmlArrayItem(Type = typeof(ClanDemandsInfluenceDecisionEvent)),
         XmlArrayItem(Type = typeof(ClanCoreMigrationEvent)),
         XmlArrayItem(Type = typeof(FosterTribeRelationDecisionEvent)),
         XmlArrayItem(Type = typeof(MergeTribesDecisionEvent)),
-        XmlArrayItem(Type = typeof(OpenTribeDecisionEvent))]
+        XmlArrayItem(Type = typeof(OpenTribeDecisionEvent)),
+        XmlArrayItem(Type = typeof(Discovery.Event))]
     public List<WorldEvent> EventsToHappen;
 
     public List<TerrainCellAlteration> TerrainCellAlterationList = new List<TerrainCellAlteration>();
@@ -266,7 +263,8 @@ public class World : ISynchronizable
     public List<CulturalActivityInfo> CulturalActivityInfoList = new List<CulturalActivityInfo>();
     public List<CulturalSkillInfo> CulturalSkillInfoList = new List<CulturalSkillInfo>();
     public List<CulturalKnowledgeInfo> CulturalKnowledgeInfoList = new List<CulturalKnowledgeInfo>();
-    public List<CulturalDiscoveryInfo> CulturalDiscoveryInfoList = new List<CulturalDiscoveryInfo>();
+
+    public List<string> ExistingDiscoveryIds = new List<string>();
 
     public List<CellGroup> CellGroups;
 
@@ -360,6 +358,9 @@ public class World : ISynchronizable
     public int PolityMergeCount = 0;
 #endif
 
+    [XmlIgnore]
+    public Dictionary<string, Discovery> ExistingDiscoveries = new Dictionary<string, Discovery>();
+
     private BinaryTree<long, WorldEvent> _eventsToHappen = new BinaryTree<long, WorldEvent>();
 
     private List<WorldEvent> _eventsToHappenNow = new List<WorldEvent>();
@@ -368,7 +369,6 @@ public class World : ISynchronizable
     private HashSet<string> _culturalActivityIdList = new HashSet<string>();
     private HashSet<string> _culturalSkillIdList = new HashSet<string>();
     private HashSet<string> _culturalKnowledgeIdList = new HashSet<string>();
-    private HashSet<string> _culturalDiscoveryIdList = new HashSet<string>();
 
     private Dictionary<long, CellGroup> _cellGroups = new Dictionary<long, CellGroup>();
 
@@ -813,13 +813,13 @@ public class World : ISynchronizable
         _culturalKnowledgeIdList.Add(baseInfo.Id);
     }
 
-    public void AddExistingCulturalDiscoveryInfo(CulturalDiscoveryInfo baseInfo)
+    public void AddExistingDiscovery(Discovery discovery)
     {
-        if (_culturalDiscoveryIdList.Contains(baseInfo.Id))
+        if (ExistingDiscoveries.ContainsKey(discovery.Id))
             return;
 
-        CulturalDiscoveryInfoList.Add(new CulturalDiscoveryInfo(baseInfo));
-        _culturalDiscoveryIdList.Add(baseInfo.Id);
+        ExistingDiscoveryIds.Add(discovery.Id);
+        ExistingDiscoveries.Add(discovery.Id, discovery);
     }
 
     public void UpdateMostPopulousGroup(CellGroup contenderGroup)
@@ -2002,10 +2002,16 @@ public class World : ISynchronizable
             _culturalKnowledgeIdList.Add(k.Id);
         }
 
-        foreach (CulturalDiscoveryInfo d in CulturalDiscoveryInfoList)
+        foreach (string id in ExistingDiscoveryIds)
         {
-            d.FinalizeLoad();
-            _culturalDiscoveryIdList.Add(d.Id);
+            Discovery discovery = Discovery.GetDiscovery(id);
+
+            if (discovery == null)
+            {
+                throw new System.Exception("Unable to find existing discovery: " + id);
+            }
+
+            ExistingDiscoveries.Add(id, discovery);
         }
     }
 

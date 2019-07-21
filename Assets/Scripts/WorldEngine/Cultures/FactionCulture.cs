@@ -12,7 +12,7 @@ public class FactionCulture : Culture
     [XmlIgnore]
     public Faction Faction;
 
-    private List<CulturalDiscovery> _discoveriesToTryToRemove = new List<CulturalDiscovery>();
+    private List<Discovery> _discoveriesToTryToRemove = new List<Discovery>();
 
     public FactionCulture()
     {
@@ -68,9 +68,9 @@ public class FactionCulture : Culture
             //}
         }
 
-        foreach (CellCulturalDiscovery d in coreCulture.Discoveries.Values)
+        foreach (Discovery d in coreCulture.Discoveries.Values)
         {
-            AddDiscovery(new CulturalDiscovery(d));
+            AddDiscovery(d);
         }
     }
 
@@ -339,28 +339,14 @@ public class FactionCulture : Culture
         //        }
         //#endif
 
-        foreach (CulturalDiscovery d in coreCulture.Discoveries.Values)
+        foreach (Discovery d in coreCulture.Discoveries.Values)
         {
-            //Profiler.BeginSample("GetDiscovery");
-
-            CulturalDiscovery discovery = GetDiscovery(d.Id);
-
-            //Profiler.EndSample();
-
-            if (discovery == null)
-            {
-                //Profiler.BeginSample("new CulturalDiscovery");
-
-                discovery = new CulturalDiscovery(d);
-                AddDiscovery(discovery);
-
-                //Profiler.EndSample();
-            }
+            AddDiscovery(d);
         }
 
         _discoveriesToTryToRemove.AddRange(Discoveries.Values);
 
-        foreach (CulturalDiscovery d in _discoveriesToTryToRemove)
+        foreach (Discovery d in _discoveriesToTryToRemove)
         {
             //Profiler.BeginSample("coreCulture.Discoveries.ContainsKey");
 
@@ -397,7 +383,7 @@ public class FactionCulture : Culture
         UpdateDiscoveries(coreCulture, timeFactor);
     }
     
-    private void TryRemovingDiscovery(CulturalDiscovery discovery, float timeFactor)
+    private void TryRemovingDiscovery(Discovery discovery, float timeFactor)
     {
         int idHash = discovery.Id.GetHashCode();
         
