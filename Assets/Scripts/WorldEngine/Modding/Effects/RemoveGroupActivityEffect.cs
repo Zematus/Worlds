@@ -22,6 +22,11 @@ public class RemoveGroupActivityEffect : GroupEffect
         group.Culture.AddActivityToStop(ActivityId);
     }
 
+    public override bool IsDeferred()
+    {
+        return false;
+    }
+
     public override string ToString()
     {
         return "'Remove Group Activity' Effect, Target Type " + TargetType + ", Activity Id: " + ActivityId;

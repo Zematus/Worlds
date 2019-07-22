@@ -22,6 +22,11 @@ public class FormPolityOnGroupEffect : GroupEffect
         Polity.TryGenerateNewPolity(PolityType, group);
     }
 
+    public override bool IsDeferred()
+    {
+        return false;
+    }
+
     public override string ToString()
     {
         return "'Form Polity On Group' Effect, Target Type " + TargetType + ", Polity Type: " + PolityType;

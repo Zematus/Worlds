@@ -223,6 +223,8 @@ public class CellGroup : HumanGroup
 
     private bool _alreadyUpdated = false;
 
+    private List<Effect> _deferredEffects = new List<Effect>();
+
     public int PreviousPopulation
     {
         get
@@ -387,6 +389,11 @@ public class CellGroup : HumanGroup
             if (Neighbors.TryGetValue(Direction.Northwest, out group))
                 yield return group;
         }
+    }
+
+    public void AddDeferredEffect(Effect effect)
+    {
+        _deferredEffects.Add(effect);
     }
 
     public static void ResetEventGenerators()
@@ -877,6 +884,16 @@ public class CellGroup : HumanGroup
 #endif
 
         return splitPopulation;
+    }
+
+    public void ExecuteDeferredEffects()
+    {
+        foreach (Effect effect in _deferredEffects)
+        {
+            effect.Apply(this);
+        }
+
+        _deferredEffects.Clear();
     }
 
     public void PostUpdate_BeforePolityUpdates()

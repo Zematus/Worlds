@@ -22,6 +22,11 @@ public class RemoveGroupPropertyEffect : GroupEffect
         group.Culture.AddPropertyToLose(Property);
     }
 
+    public override bool IsDeferred()
+    {
+        return false;
+    }
+
     public override string ToString()
     {
         return "'Remove Group Property' Effect, Target Type " + TargetType + ", Property: " + Property;

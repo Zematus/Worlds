@@ -22,6 +22,11 @@ public class RemoveGroupKnowledgeEffect : GroupEffect
         group.Culture.AddKnowledgeToLose(KnowledgeId);
     }
 
+    public override bool IsDeferred()
+    {
+        return false;
+    }
+
     public override string ToString()
     {
         return "'Add Group Knowledge' Effect, Target Type " + TargetType + ", Knowledge Id: " + KnowledgeId;

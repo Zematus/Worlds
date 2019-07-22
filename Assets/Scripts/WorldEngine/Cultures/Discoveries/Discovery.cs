@@ -268,6 +268,12 @@ public class Discovery : ICellGroupEventGenerator
 
         foreach (Effect effect in GainEffects)
         {
+            if (effect.IsDeferred())
+            {
+                effect.Defer(group);
+                continue;
+            }
+
             effect.Apply(group);
         }
     }
@@ -278,6 +284,12 @@ public class Discovery : ICellGroupEventGenerator
         {
             foreach (Effect effect in LossEffects)
             {
+                if (effect.IsDeferred())
+                {
+                    effect.Defer(group);
+                    continue;
+                }
+
                 effect.Apply(group);
             }
         }

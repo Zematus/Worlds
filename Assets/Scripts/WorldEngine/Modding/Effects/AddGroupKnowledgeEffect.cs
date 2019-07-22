@@ -46,4 +46,9 @@ public class AddGroupKnowledgeEffect : GroupEffect
         return "'Add Group Knowledge' Effect, Target Type " + TargetType + ", Knowledge Id: " + KnowledgeId + 
             ", Level Limit: " + (LimitLevel * CulturalKnowledge.InverseValueScaleFactor);
     }
+
+    public override bool IsDeferred()
+    {
+        return false;
+    }
 }

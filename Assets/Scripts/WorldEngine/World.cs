@@ -1014,6 +1014,14 @@ public class World : ISynchronizable
         }
     }
 
+    private void ExecuteDeferredEffectsOnGroups()
+    {
+        foreach (CellGroup group in _updatedGroups)
+        {
+            group.ExecuteDeferredEffects();
+        }
+    }
+
     private void RemoveGroups()
     {
         foreach (CellGroup group in _groupsToRemove)
@@ -1285,6 +1293,12 @@ public class World : ISynchronizable
         Profiler.BeginSample("PostUpdateGroups_BeforePolityUpdates");
 
         PostUpdateGroups_BeforePolityUpdates();
+
+        Profiler.EndSample();
+
+        Profiler.BeginSample("ExecuteDeferredEffectsOnGroups");
+
+        ExecuteDeferredEffectsOnGroups();
 
         Profiler.EndSample();
 

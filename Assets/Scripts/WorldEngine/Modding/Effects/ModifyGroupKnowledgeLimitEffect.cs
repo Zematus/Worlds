@@ -43,9 +43,7 @@ public class ModifyGroupKnowledgeLimitEffect : GroupEffect
         CellCulturalKnowledge k = group.Culture.GetKnowledge(KnowledgeId) as CellCulturalKnowledge;
 
         if (k == null)
-        {
-            throw new System.ArgumentException("ModifyGroupKnowledgeLimitEffect: Target group doesn't have knowledge: " + KnowledgeId + ", Group Position: " + group.Position);
-        }
+            return;
 
         k.ModifyLevelLimit(LevelLimitDelta);
     }
@@ -54,5 +52,10 @@ public class ModifyGroupKnowledgeLimitEffect : GroupEffect
     {
         return "'Increase Group Knowledge Limit' Effect, Target Type " + TargetType + ", Knowledge Id: " + KnowledgeId + 
             ", Level Limit Increase: " + (LevelLimitDelta * CulturalKnowledge.InverseValueScaleFactor);
+    }
+
+    public override bool IsDeferred()
+    {
+        return true;
     }
 }

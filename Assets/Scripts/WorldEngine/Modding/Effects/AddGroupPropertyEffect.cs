@@ -22,6 +22,11 @@ public class AddGroupPropertyEffect : GroupEffect
         group.Culture.AddPropertyToAquire(Property);
     }
 
+    public override bool IsDeferred()
+    {
+        return false;
+    }
+
     public override string ToString()
     {
         return "'Add Group Property' Effect, Target Type " + TargetType + ", Property: " + Property;

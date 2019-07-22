@@ -22,6 +22,11 @@ public class AddGroupActivityEffect : GroupEffect
         group.Culture.AddActivityToPerform(CellCulturalActivity.CreateActivity(ActivityId, group));
     }
 
+    public override bool IsDeferred()
+    {
+        return false;
+    }
+
     public override string ToString()
     {
         return "'Add Group Activity' Effect, Target Type " + TargetType + ", Activity Id: " + ActivityId;

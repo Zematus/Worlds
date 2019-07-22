@@ -78,5 +78,12 @@ public abstract class Effect
         return effects;
     }
 
+    public void Defer(CellGroup group)
+    {
+        group.AddDeferredEffect(this);
+    }
+
     public abstract void Apply(CellGroup group);
+
+    public abstract bool IsDeferred();
 }
