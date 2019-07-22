@@ -19,7 +19,7 @@ public class RemoveGroupPropertyEffect : GroupEffect
 
     public override void ApplyToTarget(CellGroup group)
     {
-        group.Culture.AddPropertyToLose(Property);
+        group.AddPropertyToLose(Property);
     }
 
     public override bool IsDeferred()

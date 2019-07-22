@@ -56,12 +56,6 @@ public abstract class Effect
             return new RemoveGroupPropertyEffect(match, id);
         }
 
-        match = Regex.Match(effectStr, FormPolityOnGroupEffect.Regex);
-        if (match.Success == true)
-        {
-            return new FormPolityOnGroupEffect(match, id);
-        }
-
         throw new System.ArgumentException("Not a recognized effect: " + effectStr);
     }
 

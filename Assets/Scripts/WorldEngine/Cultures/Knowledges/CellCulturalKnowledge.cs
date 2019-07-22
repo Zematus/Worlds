@@ -17,6 +17,9 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
     [XmlAttribute("RO")]
     public int InstanceRngOffset;
 
+    [XmlAttribute("L")]
+    public int Limit = -1;
+
     [XmlIgnore]
     public CellGroup Group;
 
@@ -36,7 +39,7 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
         int typeRngOffset, 
         int value, 
         int limit) : 
-        base(id, name, value, limit)
+        base(id, name, value)
     {
         Group = group;
         InstanceRngOffset = typeRngOffset;
@@ -47,7 +50,7 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
 
 #if DEBUG
         AcquisitionDate = group.World.CurrentDate;
-        
+
         //if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
         //{
         //    if (Group.Id == Manager.TracingData.GroupId)
@@ -67,6 +70,8 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
         //    }
         //}
 #endif
+
+        SetLimit(limit);
     }
 
     public void SetLevelLimit(int levelLimit)
@@ -75,6 +80,53 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
         {
             SetLimit(levelLimit);
         }
+    }
+
+    public void SetLimit(int limit)
+    {
+        if ((limit < MinLimitValue) || (limit > MaxLimitValue))
+        {
+            Debug.LogWarning("CulturalKnowledge: Limit can't be set below " + ScaledMinLimitValue + " or above " + ScaledMaxLimitValue + ", id: " + Id + ", limit: " + (limit * InverseValueScaleFactor));
+
+            limit = Mathf.Clamp(limit, MinLimitValue, MaxLimitValue);
+        }
+
+        Limit = limit;
+
+        UpdateProgressLevel();
+
+        SetHighestLimit(limit);
+    }
+
+    public float ScaledLimit
+    {
+        get { return Limit * InverseValueScaleFactor; }
+    }
+
+    public void UpdateProgressLevel()
+    {
+        ProgressLevel = 0;
+
+        if (Limit > 0)
+            ProgressLevel = MathUtility.RoundToSixDecimals(Mathf.Clamp01(Value / (float)Limit));
+
+        //#if DEBUG
+        //        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
+        //        {
+        //            if (Group.Id == Manager.TracingData.GroupId)
+        //            {
+        //                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+        //                    "CellCulturalKnowledge.UpdateProgressLevel - Knowledge.Id:" + Id + ", Group.Id:" + Group.Id,
+        //                    "CurrentDate: " + Group.World.CurrentDate +
+        //                    ", ProgressLevel: " + ProgressLevel +
+        //                    ", Value: " + Value +
+        //                    ", Limit: " + Limit +
+        //                    "");
+
+        //                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+        //            }
+        //        }
+        //#endif
     }
 
     public void ModifyLevelLimit(int levelLimitDelta)
@@ -87,7 +139,7 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
         SetLimit(Limit + levelLimitDelta);
     }
 
-    public static CellCulturalKnowledge CreateCellInstance(string id, CellGroup group, int initialValue, int initialLimit)
+    public static CellCulturalKnowledge CreateCellInstance(string id, CellGroup group, int initialValue, int initialLimit = -1)
     {
         switch (id)
         {

@@ -304,8 +304,6 @@ public class FactionCulture : Culture
                 knowledge.Value = (int)((knowledge.Value * (1f - timeFactor)) + addValue);
             }
 
-            knowledge.Limit = Mathf.Max(k.Limit, knowledge.Limit);
-
             //Profiler.EndSample();
         }
 
@@ -368,24 +366,6 @@ public class FactionCulture : Culture
         //Profiler.EndSample();
     }
 
-    private void UpdateProperties(CellCulture coreCulture)
-    {
-        foreach (string property in coreCulture.GetProperties())
-        {
-            AddProperty(property);
-        }
-
-        List<string> propertiesToTryToRemove = new List<string>(_properties);
-
-        foreach (string property in propertiesToTryToRemove)
-        {
-            if (!coreCulture.HasProperty(property))
-            {
-                RemoveProperty(property);
-            }
-        }
-    }
-
     public void Update()
     {
         CellGroup coreGroup = Faction.CoreGroup;
@@ -404,7 +384,6 @@ public class FactionCulture : Culture
         UpdateSkills(coreCulture, timeFactor);
         UpdateKnowledges(coreCulture, timeFactor);
         UpdateDiscoveries(coreCulture, timeFactor);
-        UpdateProperties(coreCulture);
     }
 
     // TODO: Take care of issue #133 before cleaning up this

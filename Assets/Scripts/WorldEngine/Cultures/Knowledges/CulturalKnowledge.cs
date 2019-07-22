@@ -23,9 +23,6 @@ public class CulturalKnowledge : CulturalKnowledgeInfo
     [XmlAttribute("V")]
     public int Value;
 
-    [XmlAttribute("L")]
-    public int Limit = -1;
-
     [XmlAttribute("PL")]
     public float ProgressLevel;
 
@@ -33,70 +30,19 @@ public class CulturalKnowledge : CulturalKnowledgeInfo
     {
     }
 
-    public CulturalKnowledge(string id, string name, int value, int limit) : base(id, name)
+    public CulturalKnowledge(string id, string name, int value) : base(id, name)
     {
         Value = value;
-        
-        SetLimit(limit);
-    }
-
-    public void SetLimit(int limit)
-    {
-        if ((limit < MinLimitValue) || (limit > MaxLimitValue))
-        {
-            Debug.LogWarning("CulturalKnowledge: Limit can't be set below " + ScaledMinLimitValue  + " or above " + ScaledMaxLimitValue + ", id: " + Id + ", limit: " + (limit * InverseValueScaleFactor));
-
-            limit = Mathf.Clamp(limit, MinLimitValue, MaxLimitValue);
-        }
-
-        Limit = limit;
-
-        UpdateProgressLevel();
-
-        SetHighestLimit(limit);
     }
 
     public CulturalKnowledge(CulturalKnowledge baseKnowledge) : base(baseKnowledge)
     {
         Value = baseKnowledge.Value;
-        
-        Limit = baseKnowledge.Limit;
     }
 
     public float ScaledValue
     {
         get { return Value * InverseValueScaleFactor; }
-    }
-
-    public float ScaledLimit
-    {
-        get { return Limit * InverseValueScaleFactor; }
-    }
-
-    public void UpdateProgressLevel()
-    {
-        ProgressLevel = 0;
-
-        if (Limit > 0)
-            ProgressLevel = MathUtility.RoundToSixDecimals(Mathf.Clamp01(Value / (float)Limit));
-
-        //#if DEBUG
-        //        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-        //        {
-        //            if (Group.Id == Manager.TracingData.GroupId)
-        //            {
-        //                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-        //                    "CellCulturalKnowledge.UpdateProgressLevel - Knowledge.Id:" + Id + ", Group.Id:" + Group.Id,
-        //                    "CurrentDate: " + Group.World.CurrentDate +
-        //                    ", ProgressLevel: " + ProgressLevel +
-        //                    ", Value: " + Value +
-        //                    ", Limit: " + Limit +
-        //                    "");
-
-        //                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-        //            }
-        //        }
-        //#endif
     }
 
     public int GetHighestLimit()
@@ -170,6 +116,5 @@ public class CulturalKnowledge : CulturalKnowledgeInfo
         //#endif
 
         Value = 0;
-        Limit = 0;
     }
 }

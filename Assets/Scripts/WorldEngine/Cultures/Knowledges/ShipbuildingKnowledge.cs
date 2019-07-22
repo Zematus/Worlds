@@ -14,7 +14,7 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge
 
     public const int InitialValue = 100;
 
-    public const int BaseLimit = 0;
+    public const int BaseLimit = MinLimitValue;
 
     public const float TimeEffectConstant = CellGroup.GenerationSpan * 500;
     public const float NeighborhoodSeaPresenceModifier = 1.5f;

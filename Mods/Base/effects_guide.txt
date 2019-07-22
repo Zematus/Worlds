@@ -57,13 +57,4 @@ Here's a list of the current types of effects (more to be added in future versio
 
     Examples: 'remove_group_property:this,CAN_FORM_POLITY:tribe'
 
-- 'form_polity_on_group'
-    Form if possible a new polity of the specified type centered on the specified group: 'form_polity_on_group:<target_group_type>,<polity_type>'
-    These are valid target group types:
-    - 'this': the cell group this effect targets
-    These are valid polity types types:
-    - 'tribe': form a new tribe with a clan with core on the target group
-
-    Examples: 'form_polity_on_group:this,tribe'
-
 --

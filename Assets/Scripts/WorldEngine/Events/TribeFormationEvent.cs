@@ -51,7 +51,7 @@ public class TribeFormationEvent : CellGroupEvent
         if (group.Population < Tribe.MinPopulationForTribeCore)
             return false;
 
-        if (!group.Culture.HasProperty(Polity.CanFormPolityAttribute + "tribe"))
+        if (!group.HasProperty(Polity.CanFormPolityAttribute + "tribe"))
             return false;
 
         int value = 0;
@@ -73,7 +73,7 @@ public class TribeFormationEvent : CellGroupEvent
         if (Group.Population < Tribe.MinPopulationForTribeCore)
             return false;
 
-        if (!Group.Culture.HasProperty(Polity.CanFormPolityAttribute + "tribe"))
+        if (!Group.HasProperty(Polity.CanFormPolityAttribute + "tribe"))
             return false;
 
         int value = 0;

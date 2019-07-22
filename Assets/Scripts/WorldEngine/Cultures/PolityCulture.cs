@@ -268,8 +268,6 @@ public class PolityCulture : Culture
                 
                 knowledge.AccValue += k.Value * influence;
 
-                knowledge.Limit = Mathf.Max(k.Limit, knowledge.Limit);
-
                 //Profiler.EndSample();
             }
         }
@@ -284,10 +282,5 @@ public class PolityCulture : Culture
         }
 
         //Profiler.EndSample();
-
-        foreach (string property in faction.Culture.GetProperties())
-        {
-            AddProperty(property);
-        }
     }
 }

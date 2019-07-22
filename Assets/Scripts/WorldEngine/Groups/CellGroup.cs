@@ -121,6 +121,8 @@ public class CellGroup : HumanGroup
 
     public CellCulture Culture;
 
+    public List<string> Properties;
+
     public List<long> FactionCoreIds;
 
     public XmlSerializableDictionary<long, PolityProminence> PolityProminences = new XmlSerializableDictionary<long, PolityProminence>();
@@ -224,6 +226,11 @@ public class CellGroup : HumanGroup
     private bool _alreadyUpdated = false;
 
     private List<Effect> _deferredEffects = new List<Effect>();
+
+    private HashSet<string> _properties = new HashSet<string>();
+
+    private HashSet<string> _propertiesToAquire = new HashSet<string>();
+    private HashSet<string> _propertiesToLose = new HashSet<string>();
 
     public int PreviousPopulation
     {
@@ -359,6 +366,8 @@ public class CellGroup : HumanGroup
         InitializeDefaultActivities(initialGroup);
         InitializeDefaultSkills(initialGroup);
         InitializeDefaultKnowledges(initialGroup);
+
+        Culture.Initialize();
 
         InitializeDefaultEvents();
 
@@ -896,6 +905,22 @@ public class CellGroup : HumanGroup
         _deferredEffects.Clear();
     }
 
+    public void UpdateProperties()
+    {
+        foreach (string property in _propertiesToAquire)
+        {
+            AddProperty(property);
+        }
+
+        foreach (string property in _propertiesToLose)
+        {
+            RemoveProperty(property);
+        }
+
+        _propertiesToAquire.Clear();
+        _propertiesToLose.Clear();
+    }
+
     public void PostUpdate_BeforePolityUpdates()
     {
         //#if DEBUG
@@ -930,6 +955,12 @@ public class CellGroup : HumanGroup
         Profiler.BeginSample("Culture PostUpdate");
 
         Culture.PostUpdate();
+
+        Profiler.EndSample();
+
+        Profiler.BeginSample("Update Properties");
+
+        UpdateProperties();
 
         Profiler.EndSample();
 
@@ -3191,6 +3222,36 @@ public class CellGroup : HumanGroup
         World.AddGroupToUpdate(this);
     }
 
+    public void AddProperty(string property)
+    {
+        _properties.Add(property);
+    }
+
+    public bool HasProperty(string property)
+    {
+        return _properties.Contains(property);
+    }
+
+    public ICollection<string> GetProperties()
+    {
+        return _properties;
+    }
+
+    public void RemoveProperty(string property)
+    {
+        _properties.Remove(property);
+    }
+
+    public void AddPropertyToAquire(string property)
+    {
+        _propertiesToAquire.Add(property);
+    }
+
+    public void AddPropertyToLose(string property)
+    {
+        _propertiesToLose.Add(property);
+    }
+
     public override void Synchronize()
     {
         if (HasPolityExpansionEvent && !PolityExpansionEvent.IsStillValid())
@@ -3199,6 +3260,7 @@ public class CellGroup : HumanGroup
         }
 
         Flags = new List<string>(_flags);
+        Properties = new List<string>(_properties);
 
         Culture.Synchronize();
 
@@ -3246,6 +3308,11 @@ public class CellGroup : HumanGroup
         foreach (string f in Flags)
         {
             _flags.Add(f);
+        }
+
+        foreach (string property in Properties)
+        {
+            _properties.Add(property);
         }
 
         Cell = World.GetCell(Longitude, Latitude);

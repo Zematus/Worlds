@@ -21,18 +21,11 @@ public class CellCulture : Culture
     [XmlIgnore]
     public Dictionary<string, Discovery> DiscoveriesToFind = new Dictionary<string, Discovery>();
 
-    // DiscoveriesToReceive should only be used when the discovery is gotten through a transfer from other groups or polities
-    [XmlIgnore]
-    public Dictionary<string, Discovery> DiscoveriesToReceive = new Dictionary<string, Discovery>();
-
     private HashSet<CellCulturalPreference> _preferencesToLose = new HashSet<CellCulturalPreference>();
     private HashSet<CellCulturalActivity> _activitiesToStop = new HashSet<CellCulturalActivity>();
     private HashSet<CellCulturalSkill> _skillsToLose = new HashSet<CellCulturalSkill>();
     private HashSet<CellCulturalKnowledge> _knowledgesToLose = new HashSet<CellCulturalKnowledge>();
     private HashSet<Discovery> _discoveriesToLose = new HashSet<Discovery>();
-
-    private HashSet<string> _propertiesToAquire = new HashSet<string>();
-    private HashSet<string> _propertiesToLose = new HashSet<string>();
 
     public CellCulture()
     {
@@ -88,7 +81,7 @@ public class CellCulture : Culture
             //                }
             //#endif
 
-            CellCulturalKnowledge knowledge = CellCulturalKnowledge.CreateCellInstance(k.Id, group, k.Value, k.Limit);
+            CellCulturalKnowledge knowledge = CellCulturalKnowledge.CreateCellInstance(k.Id, group, k.Value);
 
             AddKnowledge(knowledge);
         }
@@ -97,10 +90,13 @@ public class CellCulture : Culture
         {
             SetLanguageUpdateCells();
         }
+    }
 
-        foreach (string property in sourceCulture.GetProperties())
+    public void Initialize()
+    {
+        foreach (Discovery d in Discoveries.Values)
         {
-            AddProperty(property);
+            d.OnGain(Group);
         }
     }
 
@@ -141,16 +137,6 @@ public class CellCulture : Culture
         SkillsToLearn.Add(skill.Id, skill);
     }
 
-    public void AddPropertyToAquire(string property)
-    {
-        _propertiesToAquire.Add(property);
-    }
-
-    public void AddPropertyToLose(string property)
-    {
-        _propertiesToLose.Add(property);
-    }
-
     public CellCulturalKnowledge TryAddKnowledgeToLearn(string id, int initialValue, int initialLimit = -1)
     {
         CellCulturalKnowledge knowledge = GetKnowledge(id) as CellCulturalKnowledge;
@@ -182,38 +168,12 @@ public class CellCulture : Culture
     public void AddDiscoveryToFind(Discovery discovery)
     {
         if (Discoveries.ContainsKey(discovery.Id))
-        {
-            throw new System.Exception("CellCulture: Discoveries already contains " + discovery.Id);
-        }
+            return;
 
         if (DiscoveriesToFind.ContainsKey(discovery.Id))
-        {
-            throw new System.Exception("CellCulture: DiscoveriesToFind already contains " + discovery.Id);
-        }
+            return;
         
         DiscoveriesToFind.Add(discovery.Id, discovery);
-    }
-
-    public bool TryReceiveDiscovery(Discovery d)
-    {
-        if (Discoveries.ContainsKey(d.Id))
-        {
-            return false;
-        }
-        
-        if (DiscoveriesToFind.ContainsKey(d.Id))
-        {
-            return false;
-        }
-
-        if (DiscoveriesToReceive.ContainsKey(d.Id))
-        {
-            return false;
-        }
-        
-        DiscoveriesToReceive.Add(d.Id, d);
-
-        return true;
     }
 
     public CellCulturalPreference GetAcquiredPreferenceOrToAcquire(string id)
@@ -327,18 +287,13 @@ public class CellCulture : Culture
 
         foreach (CulturalKnowledge k in sourceCulture.Knowledges.Values)
         {
-            CellCulturalKnowledge knowledge = TryAddKnowledgeToLearn(k.Id, 0, k.Limit);
+            CellCulturalKnowledge knowledge = TryAddKnowledgeToLearn(k.Id, 0);
             knowledge.Merge(k.Value, percentage);
         }
 
         foreach (Discovery d in sourceCulture.Discoveries.Values)
         {
-            TryReceiveDiscovery(d);
-        }
-        
-        foreach (string property in sourceCulture.GetProperties())
-        {
-            AddPropertyToAquire(property);
+            AddDiscoveryToFind(d);
         }
     }
 
@@ -432,19 +387,14 @@ public class CellCulture : Culture
 //            }
 //#endif
             
-            CellCulturalKnowledge cellKnowledge = TryAddKnowledgeToLearn(polityKnowledge.Id, 0, polityKnowledge.Limit);
+            CellCulturalKnowledge cellKnowledge = TryAddKnowledgeToLearn(polityKnowledge.Id, 0);
 
             cellKnowledge.AddPolityProminenceEffect(polityKnowledge, polityProminence, timeSpan);
         }
 
         foreach (Discovery polityDiscovery in polityCulture.Discoveries.Values)
         {
-            TryReceiveDiscovery(polityDiscovery);
-        }
-
-        foreach (string property in polityCulture.GetProperties())
-        {
-            AddPropertyToAquire(property);
+            AddDiscoveryToFind(polityDiscovery);
         }
     }
 
@@ -495,11 +445,6 @@ public class CellCulture : Culture
             RemoveKnowledge(k);
         }
 
-        foreach (string property in _propertiesToLose)
-        {
-            RemoveProperty(property);
-        }
-
         // This should be done only after knowledges have been removed as there are some dependencies
         foreach (Discovery d in _discoveriesToLose)
         {
@@ -511,7 +456,6 @@ public class CellCulture : Culture
         _skillsToLose.Clear();
         _knowledgesToLose.Clear();
         _discoveriesToLose.Clear();
-        _propertiesToLose.Clear();
     }
 
     public void PostUpdateAddAttributes()
@@ -536,11 +480,6 @@ public class CellCulture : Culture
         foreach (CellCulturalSkill skill in SkillsToLearn.Values)
         {
             AddSkill(skill);
-        }
-
-        foreach (Discovery discovery in DiscoveriesToReceive.Values)
-        {
-            AddDiscovery(discovery);
         }
 
         foreach (CellCulturalKnowledge knowledge in KnowledgesToLearn.Values)
@@ -571,11 +510,6 @@ public class CellCulture : Culture
             {
                 throw new System.Exception("Attempted to add duplicate knowledge (" + knowledge.Id + ") to group " + Group.Id);
             }
-        }
-
-        foreach (string property in _propertiesToAquire)
-        {
-            AddProperty(property);
         }
     }
 
@@ -681,8 +615,6 @@ public class CellCulture : Culture
         SkillsToLearn.Clear();
         KnowledgesToLearn.Clear();
         DiscoveriesToFind.Clear();
-        DiscoveriesToReceive.Clear();
-        _propertiesToAquire.Clear();
     }
 
     public void AddKnowledgeToLose(string knowledgeId)

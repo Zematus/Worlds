@@ -19,7 +19,7 @@ public class AddGroupPropertyEffect : GroupEffect
 
     public override void ApplyToTarget(CellGroup group)
     {
-        group.Culture.AddPropertyToAquire(Property);
+        group.AddPropertyToAquire(Property);
     }
 
     public override bool IsDeferred()
