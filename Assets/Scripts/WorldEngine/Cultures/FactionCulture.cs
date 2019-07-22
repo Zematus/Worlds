@@ -350,7 +350,8 @@ public class FactionCulture : Culture
 
             if (!coreCulture.Discoveries.ContainsKey(d.Id))
             {
-                TryRemovingDiscovery(d, timeFactor);
+                RemoveDiscovery(d);
+                //TryRemovingDiscovery(d, timeFactor); // TODO: Take care of issue #133 before cleaning up this
             }
 
             //Profiler.EndSample();
@@ -397,14 +398,15 @@ public class FactionCulture : Culture
         UpdateDiscoveries(coreCulture, timeFactor);
         UpdateProperties(coreCulture);
     }
-    
-    private void TryRemovingDiscovery(Discovery discovery, float timeFactor)
-    {
-        int idHash = discovery.IdHash;
-        
-        if (GetNextRandomFloat(RngOffsets.FACTION_CULTURE_DISCOVERY_LOSS_CHANCE + idHash) < timeFactor)
-        {
-            RemoveDiscovery(discovery);
-        }
-    }
+
+    // TODO: Take care of issue #133 before cleaning up this
+    //private void TryRemovingDiscovery(Discovery discovery, float timeFactor)
+    //{
+    //    int idHash = discovery.IdHash;
+
+    //    if (GetNextRandomFloat(RngOffsets.FACTION_CULTURE_DISCOVERY_LOSS_CHANCE + idHash) < timeFactor)
+    //    {
+    //        RemoveDiscovery(discovery);
+    //    }
+    //}
 }

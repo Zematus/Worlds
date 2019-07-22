@@ -19,7 +19,7 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge
     public const int BaseLimit = 1000;
 
     public const float TimeEffectConstant = CellGroup.GenerationSpan * 500;
-    public const float PopulationDensityModifier = 10000f * ValueScaleFactor;
+    public const float PopulationDensityModifier = 10000f * InverseValueScaleFactor;
 
     public static int HighestLimit = 0;
 

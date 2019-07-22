@@ -100,9 +100,25 @@ public class PolityCulture : Culture
 
     private void FinalizeUpdateFromFactions()
     {
-        foreach (PolityCulturalKnowledge k in Knowledges.Values)
+        List<CulturalKnowledge> knowledges = new List<CulturalKnowledge>(Knowledges.Values);
+
+        foreach (CulturalKnowledge k in knowledges)
         {
-            k.FinalizeUpdateFromFactions();
+            var knowledge = k as PolityCulturalKnowledge;
+
+            if (knowledge == null)
+            {
+                throw new System.Exception("FinalizeUpdateFromFactions: CulturalKnowledge is not a PolityCulturalKnowledge. Polity Id: " + Polity.Id + ", knowledge Id: " + k.Id);
+            }
+
+            knowledge.FinalizeUpdateFromFactions();
+
+            // This knowledge might no longer be present on any of the influencing factions and thus 
+            // we should remove it from the polity culture
+            if (k.Value <= 0)
+            {
+                RemoveKnowledge(k);
+            }
         }
     }
 

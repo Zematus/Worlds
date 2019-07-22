@@ -12,12 +12,13 @@ using UnityEngine.Profiling;
 public class CulturalKnowledge : CulturalKnowledgeInfo
 {
     public const int ScaledMaxLimitValue = 10000;
+    public const int ScaledMinLimitValue = 1;
 
-    public const float ValueScaleFactor = 0.01f;
-    public const int InverseScaleFactor = (int)(1 / ValueScaleFactor);
+    public const int ValueScaleFactor = 100;
+    public const float InverseValueScaleFactor = 1f / ValueScaleFactor;
 
-    public const int MinLimitValue = InverseScaleFactor;
-    public const int MaxLimitValue = ScaledMaxLimitValue * InverseScaleFactor;
+    public const int MinLimitValue = ScaledMinLimitValue * ValueScaleFactor;
+    public const int MaxLimitValue = ScaledMaxLimitValue * ValueScaleFactor;
 
     [XmlAttribute("V")]
     public int Value;
@@ -43,9 +44,7 @@ public class CulturalKnowledge : CulturalKnowledgeInfo
     {
         if ((limit < MinLimitValue) || (limit > MaxLimitValue))
         {
-            float scaledMinLevelValue = MinLimitValue * ValueScaleFactor;
-
-            Debug.LogWarning("CulturalKnowledge: Limit can't be set below " + scaledMinLevelValue  + " or above " + ScaledMaxLimitValue + ", limit: " + (limit * ValueScaleFactor));
+            Debug.LogWarning("CulturalKnowledge: Limit can't be set below " + ScaledMinLimitValue  + " or above " + ScaledMaxLimitValue + ", id: " + Id + ", limit: " + (limit * InverseValueScaleFactor));
 
             limit = Mathf.Clamp(limit, MinLimitValue, MaxLimitValue);
         }
@@ -66,12 +65,12 @@ public class CulturalKnowledge : CulturalKnowledgeInfo
 
     public float ScaledValue
     {
-        get { return Value * ValueScaleFactor; }
+        get { return Value * InverseValueScaleFactor; }
     }
 
     public float ScaledLimit
     {
-        get { return Limit * ValueScaleFactor; }
+        get { return Limit * InverseValueScaleFactor; }
     }
 
     public void UpdateProgressLevel()

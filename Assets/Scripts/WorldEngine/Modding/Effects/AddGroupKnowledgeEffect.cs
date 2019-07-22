@@ -33,7 +33,7 @@ public class AddGroupKnowledgeEffect : GroupEffect
             throw new System.ArgumentException("AddGroupKnowledgeEffect: Level limit is outside the range of 1 and 10000: " + valueStr);
         }
 
-        LimitLevel = (int)(value / CulturalKnowledge.ValueScaleFactor);
+        LimitLevel = (int)(value / CulturalKnowledge.InverseValueScaleFactor);
     }
 
     public override void ApplyToTarget(CellGroup group)
@@ -44,6 +44,6 @@ public class AddGroupKnowledgeEffect : GroupEffect
     public override string ToString()
     {
         return "'Add Group Knowledge' Effect, Target Type " + TargetType + ", Knowledge Id: " + KnowledgeId + 
-            ", Level Limit: " + (LimitLevel * CulturalKnowledge.ValueScaleFactor);
+            ", Level Limit: " + (LimitLevel * CulturalKnowledge.InverseValueScaleFactor);
     }
 }

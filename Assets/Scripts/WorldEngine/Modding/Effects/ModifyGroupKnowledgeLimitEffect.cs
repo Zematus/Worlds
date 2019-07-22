@@ -35,7 +35,7 @@ public class ModifyGroupKnowledgeLimitEffect : GroupEffect
                 (-CulturalKnowledge.ScaledMaxLimitValue) + " and " + CulturalKnowledge.ScaledMaxLimitValue + ": " + valueStr);
         }
 
-        LevelLimitDelta = (int)(value / CulturalKnowledge.ValueScaleFactor);
+        LevelLimitDelta = (int)(value / CulturalKnowledge.InverseValueScaleFactor);
     }
 
     public override void ApplyToTarget(CellGroup group)
@@ -53,6 +53,6 @@ public class ModifyGroupKnowledgeLimitEffect : GroupEffect
     public override string ToString()
     {
         return "'Increase Group Knowledge Limit' Effect, Target Type " + TargetType + ", Knowledge Id: " + KnowledgeId + 
-            ", Level Limit Increase: " + (LevelLimitDelta * CulturalKnowledge.ValueScaleFactor);
+            ", Level Limit Increase: " + (LevelLimitDelta * CulturalKnowledge.InverseValueScaleFactor);
     }
 }
