@@ -439,9 +439,7 @@ public class CellCulture : Culture
 
         foreach (Discovery polityDiscovery in polityCulture.Discoveries.Values)
         {
-            Discovery discovery = Discovery.GetDiscovery(polityDiscovery.Id);
-
-            TryReceiveDiscovery(discovery);
+            TryReceiveDiscovery(polityDiscovery);
         }
 
         foreach (string property in polityCulture.GetProperties())
@@ -656,31 +654,6 @@ public class CellCulture : Culture
 //                }
 //            }
 //#endif
-
-            if (!knowledge.WillBeLost())
-                continue;
-
-//#if DEBUG
-//            if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-//            {
-//                if (Group.Id == Manager.TracingData.GroupId)
-//                {
-//                    string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
-
-//                    SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-//                        "CellCulture.PostUpdateAttributeValues after WillBeLost() - Group:" + groupId,
-//                        "CurrentDate: " + World.CurrentDate +
-//                        ", knowledge.Id: " + knowledge.Id +
-//                        ", knowledge.IsPresent: " + knowledge.IsPresent +
-//                        ", knowledge.Value: " + knowledge.Value +
-//                        "");
-
-//                    Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-//                }
-//            }
-//#endif
-
-            _knowledgesToLose.Add(knowledge);
         }
 
         foreach (Discovery discovery in Discoveries.Values)

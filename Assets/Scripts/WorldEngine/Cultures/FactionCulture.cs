@@ -285,20 +285,28 @@ public class FactionCulture : Culture
                 knowledge = new CulturalKnowledge(k);
                 AddKnowledge(knowledge);
 
-                knowledge.Value = (int)(k.Value * timeFactor);
-
                 //Profiler.EndSample();
+            }
+
+            //Profiler.BeginSample("update knowledge.Value");
+
+            float addValue = k.Value * timeFactor;
+
+            if (addValue < 1) // Always try approaching the core cell knowledge value regardless how small the timeFactor is
+            {
+                if ((knowledge.Value - k.Value) <= -1)
+                    knowledge.Value++;
+                else if ((knowledge.Value - k.Value) >= 1)
+                    knowledge.Value--;
             }
             else
             {
-                //Profiler.BeginSample("update knowledge.Value");
-
-                knowledge.Value = (int)((knowledge.Value * (1f - timeFactor)) + (k.Value * timeFactor));
-
-                knowledge.Limit = Mathf.Max(k.Limit, knowledge.Limit);
-
-                //Profiler.EndSample();
+                knowledge.Value = (int)((knowledge.Value * (1f - timeFactor)) + addValue);
             }
+
+            knowledge.Limit = Mathf.Max(k.Limit, knowledge.Limit);
+
+            //Profiler.EndSample();
         }
 
         foreach (CulturalKnowledge k in Knowledges.Values)

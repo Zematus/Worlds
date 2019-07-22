@@ -109,9 +109,4 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge
 
         return (populationFactor * 0.9f) + 0.1f;
     }
-
-    public override bool WillBeLost()
-    {
-        return false;
-    }
 }

@@ -345,8 +345,6 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
     public abstract float CalculateExpectedProgressLevel();
     public abstract float CalculateTransferFactor();
 
-    public abstract bool WillBeLost();
-
     protected abstract void UpdateInternal(long timeSpan);
 
     public override void FinalizeLoad()

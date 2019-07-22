@@ -103,14 +103,4 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge
     {
         return (_neighborhoodSeaPresence * 0.9f) + 0.1f;
     }
-
-    public override bool WillBeLost()
-    {
-        if (Value <= 0)
-        {
-            return !Group.InfluencingPolityHasKnowledge(Id);
-        }
-
-        return false;
-    }
 }

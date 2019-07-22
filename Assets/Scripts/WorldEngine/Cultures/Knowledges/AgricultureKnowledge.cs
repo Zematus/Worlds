@@ -101,37 +101,4 @@ public class AgricultureKnowledge : CellCulturalKnowledge
     {
         return (_terrainFactor * 0.9f) + 0.1f;
     }
-
-    public override bool WillBeLost()
-    {
-        if (Value <= 0)
-        {
-            bool polityHasKnowledge = Group.InfluencingPolityHasKnowledge(Id);
-
-//#if DEBUG
-//            if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-//            {
-//                if (Group.Id == Manager.TracingData.GroupId)
-//                {
-//                    string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
-
-//                    SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-//                        "AgricultureKnowledge.WillBeLost - Group:" + groupId,
-//                        "CurrentDate: " + Group.World.CurrentDate +
-//                        ", Id: " + Id +
-//                        ", IsPresent: " + IsPresent +
-//                        ", Value: " + Value +
-//                        ", polityHasKnowledge: " + polityHasKnowledge +
-//                        "");
-
-//                    Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-//                }
-//            }
-//#endif
-
-            return !polityHasKnowledge;
-        }
-
-        return false;
-    }
 }
