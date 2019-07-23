@@ -33,6 +33,10 @@ public class TerrainCellAlteration
 
     [XmlAttribute("Fp")]
     public float FarmlandPercentage = 0;
+    [XmlAttribute("MAr")]
+    public float ModifiedArability = 0;
+    [XmlAttribute("MAcc")]
+    public float ModifiedAccessibility = 0;
 
     [XmlAttribute("M")]
     public bool Modified;
@@ -66,7 +70,9 @@ public class TerrainCellAlteration
         Rainfall = cell.Rainfall;
         
         FarmlandPercentage = cell.FarmlandPercentage;
-        
+        ModifiedAccessibility = cell.ModifiedAccessibility;
+        ModifiedArability = cell.ModifiedArability;
+
         if (addLayerData)
         {
             foreach (CellLayerData data in cell.LayerData)

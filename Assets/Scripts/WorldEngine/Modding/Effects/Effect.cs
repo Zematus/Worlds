@@ -56,6 +56,18 @@ public abstract class Effect
             return new RemoveGroupPropertyEffect(match, id);
         }
 
+        match = Regex.Match(effectStr, ApplyCellArabilityModifierEffect.Regex);
+        if (match.Success == true)
+        {
+            return new ApplyCellArabilityModifierEffect(match, id);
+        }
+
+        match = Regex.Match(effectStr, ApplyCellAccessibilityModifierEffect.Regex);
+        if (match.Success == true)
+        {
+            return new ApplyCellAccessibilityModifierEffect(match, id);
+        }
+
         throw new System.ArgumentException("Not a recognized effect: " + effectStr);
     }
 

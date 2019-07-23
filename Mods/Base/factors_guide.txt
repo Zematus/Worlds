@@ -31,4 +31,9 @@ Here's a list of the current types of factors (more to be added in future versio
 
     Examples: 'cell_arability', '[INV]cell_arability'
 
+- 'cell_hilliness'
+    Returns the hilliness (i.e. how hilly the terrain is) of the terrain cell as a value between 0 and 1
+
+    Examples: 'cell_hilliness', '[INV]cell_hilliness'
+
 --

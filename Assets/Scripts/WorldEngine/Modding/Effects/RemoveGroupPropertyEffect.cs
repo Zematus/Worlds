@@ -3,21 +3,20 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class RemoveGroupPropertyEffect : GroupEffect
+public class RemoveGroupPropertyEffect : Effect
 {
     public const string Regex = @"^\s*remove_group_property\s*" +
-        @":\s*(?<type>" + ModUtility.IdentifierRegexPart + @")\s*" +
-        @",\s*(?<value>" + ModUtility.AttributeRegexPart + @")\s*$";
+        @":\s*(?<value>" + ModUtility.AttributeRegexPart + @")\s*$";
 
     public string Property;
 
     public RemoveGroupPropertyEffect(Match match, string id) :
-        base(match.Groups["type"].Value, id)
+        base(id)
     {
         Property = match.Groups["value"].Value;
     }
 
-    public override void ApplyToTarget(CellGroup group)
+    public override void Apply(CellGroup group)
     {
         group.AddPropertyToLose(Property);
     }
@@ -29,6 +28,6 @@ public class RemoveGroupPropertyEffect : GroupEffect
 
     public override string ToString()
     {
-        return "'Remove Group Property' Effect, Target Type " + TargetType + ", Property: " + Property;
+        return "'Remove Group Property' Effect, Property: " + Property;
     }
 }

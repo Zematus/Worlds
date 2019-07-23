@@ -22,7 +22,8 @@ public class AgricultureKnowledge : CellCulturalKnowledge
 
     public static int HighestLimit = 0;
 
-    private float _terrainFactor;
+    [XmlIgnore]
+    public float TerrainFactor;
 
     public AgricultureKnowledge()
     {
@@ -35,7 +36,7 @@ public class AgricultureKnowledge : CellCulturalKnowledge
     public AgricultureKnowledge(CellGroup group, int initialValue, int initialLimit) 
         : base(group, KnowledgeId, KnowledgeName, KnowledgeRngOffset, initialValue, initialLimit)
     {
-        CalculateTerrainFactor();
+        UpdateTerrainFactor();
     }
 
     public static bool IsAgricultureKnowledge(CulturalKnowledge knowledge)
@@ -47,24 +48,26 @@ public class AgricultureKnowledge : CellCulturalKnowledge
     {
         base.FinalizeLoad();
 
-        CalculateTerrainFactor();
+        UpdateTerrainFactor();
     }
 
-    public void CalculateTerrainFactor()
+    public void UpdateTerrainFactor()
     {
-        _terrainFactor = CalculateTerrainFactorIn(Group.Cell);
+        TerrainFactor = CalculateTerrainFactorIn(Group.Cell);
     }
 
     public static float CalculateTerrainFactorIn(TerrainCell cell)
     {
-        float accesibilityFactor = (cell.Accessibility - MinAccesibility) / (1f - MinAccesibility);
+        float accesibilityFactor = (cell.ModifiedAccessibility - MinAccesibility) / (1f - MinAccesibility);
 
-        return Mathf.Clamp01(cell.Arability * cell.Accessibility * accesibilityFactor);
+        return Mathf.Clamp01(cell.ModifiedArability * cell.ModifiedAccessibility * accesibilityFactor);
     }
 
     protected override void UpdateInternal(long timeSpan)
     {
-        UpdateValueInternal(timeSpan, TimeEffectConstant, _terrainFactor * TerrainFactorModifier);
+        UpdateTerrainFactor();
+
+        UpdateValueInternal(timeSpan, TimeEffectConstant, TerrainFactor * TerrainFactorModifier);
     }
 
     public override void AddPolityProminenceEffect(CulturalKnowledge polityKnowledge, PolityProminence polityProminence, long timeSpan)
@@ -74,7 +77,7 @@ public class AgricultureKnowledge : CellCulturalKnowledge
 
     public override float CalculateExpectedProgressLevel()
     {
-        if (_terrainFactor <= 0)
+        if (TerrainFactor <= 0)
             return 1;
 
 //#if DEBUG
@@ -94,11 +97,11 @@ public class AgricultureKnowledge : CellCulturalKnowledge
 //        }
 //#endif
 
-        return Mathf.Clamp(ProgressLevel / _terrainFactor, MinProgressLevel, 1);
+        return Mathf.Clamp(ProgressLevel / TerrainFactor, MinProgressLevel, 1);
     }
 
     public override float CalculateTransferFactor()
     {
-        return (_terrainFactor * 0.9f) + 0.1f;
+        return (TerrainFactor * 0.9f) + 0.1f;
     }
 }

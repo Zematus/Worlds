@@ -63,4 +63,9 @@ Here's a list of the current types of conditions (more to be added in future ver
 
     Examples: 'cell_arability', 'cell_arability:0.6'
 
+- 'cell_hilliness'
+    Tests if a cell has an hilliness value (i.e. how hilly the terrain is) equal or greater than 0.01 or than the specified value (optional value between 0 and 1). The format of the constraint is as follows: 'cell_hilliness(:<min_hilliness>)'
+
+    Examples: 'cell_hilliness', 'cell_hilliness:0.4'
+
 --

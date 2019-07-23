@@ -139,6 +139,8 @@ public class GuiManagerScript : MonoBehaviour
         PlanetOverlay.Temperature,
         PlanetOverlay.Rainfall,
         PlanetOverlay.Arability,
+        PlanetOverlay.Accessibility,
+        PlanetOverlay.Hilliness,
         PlanetOverlay.Layer,
         PlanetOverlay.Region,
         PlanetOverlay.Language
@@ -1682,6 +1684,12 @@ public class GuiManagerScript : MonoBehaviour
             case PlanetOverlay.Arability:
                 planetOverlayStr = "_arability";
                 break;
+            case PlanetOverlay.Accessibility:
+                planetOverlayStr = "_accessibility";
+                break;
+            case PlanetOverlay.Hilliness:
+                planetOverlayStr = "_hilliness";
+                break;
             case PlanetOverlay.Layer:
                 planetOverlayStr = "_layer_" + _planetOverlaySubtype;
                 break;
@@ -2072,6 +2080,14 @@ public class GuiManagerScript : MonoBehaviour
         else if (OverlayDialogPanelScript.ArabilityToggle.isOn)
         {
             ChangePlanetOverlay(PlanetOverlay.Arability, false);
+        }
+        else if (OverlayDialogPanelScript.AccessibilityToggle.isOn)
+        {
+            ChangePlanetOverlay(PlanetOverlay.Accessibility, false);
+        }
+        else if (OverlayDialogPanelScript.HillinessToggle.isOn)
+        {
+            ChangePlanetOverlay(PlanetOverlay.Hilliness, false);
         }
         else if (OverlayDialogPanelScript.LayerToggle.isOn)
         {

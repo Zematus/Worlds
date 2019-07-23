@@ -122,8 +122,13 @@ public class InfoPanelScript : MonoBehaviour
         InfoText.text += "\n";
         InfoText.text += "\nSurvivability: " + cell.Survivability.ToString("P");
         InfoText.text += "\nForaging Capacity: " + cell.ForagingCapacity.ToString("P");
-        InfoText.text += "\nAccessibility: " + cell.Accessibility.ToString("P");
-        InfoText.text += "\nArability: " + cell.Arability.ToString("P");
+        InfoText.text += "\nAccessibility: " + cell.ModifiedAccessibility.ToString("P");
+        if (cell.ModifiedAccessibility != cell.Accessibility)
+            InfoText.text += "\nOriginal Accessibility: " + cell.Accessibility.ToString("P");
+        InfoText.text += "\nArability: " + cell.ModifiedArability.ToString("P");
+        if (cell.ModifiedArability != cell.Arability)
+            InfoText.text += "\nOriginal Arability: " + cell.Arability.ToString("P");
+        InfoText.text += "\nHilliness: " + cell.Hilliness.ToString("P");
         InfoText.text += "\n";
 
         Region region = cell.Region;
@@ -1181,6 +1186,8 @@ public class InfoPanelScript : MonoBehaviour
         if ((Manager.PlanetOverlay == PlanetOverlay.None) ||
             (Manager.PlanetOverlay == PlanetOverlay.Rainfall) ||
             (Manager.PlanetOverlay == PlanetOverlay.Arability) ||
+            (Manager.PlanetOverlay == PlanetOverlay.Accessibility) ||
+            (Manager.PlanetOverlay == PlanetOverlay.Hilliness) ||
             (Manager.PlanetOverlay == PlanetOverlay.Layer) ||
             (Manager.PlanetOverlay == PlanetOverlay.Temperature))
         {

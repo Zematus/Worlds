@@ -3,20 +3,19 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class AddGroupKnowledgeEffect : GroupEffect
+public class AddGroupKnowledgeEffect : Effect
 {
     private const int _defaultLimitLevel = 100;
 
     public const string Regex = @"^\s*add_group_knowledge\s*" +
-        @":\s*(?<type>" + ModUtility.IdentifierRegexPart + @")\s*" +
-        @",\s*(?<id>" + ModUtility.IdentifierRegexPart + @")\s*" +
+        @":\s*(?<id>" + ModUtility.IdentifierRegexPart + @")\s*" +
         @",\s*(?<value>" + ModUtility.NumberRegexPart + @")\s*$";
 
     public string KnowledgeId;
     public int LimitLevel;
 
     public AddGroupKnowledgeEffect(Match match, string id) :
-        base(match.Groups["type"].Value, id)
+        base(id)
     {
         KnowledgeId = match.Groups["id"].Value;
         
@@ -36,14 +35,14 @@ public class AddGroupKnowledgeEffect : GroupEffect
         LimitLevel = (int)(value / CulturalKnowledge.InverseValueScaleFactor);
     }
 
-    public override void ApplyToTarget(CellGroup group)
+    public override void Apply(CellGroup group)
     {
         group.Culture.TryAddKnowledgeToLearn(KnowledgeId, _defaultLimitLevel, LimitLevel);
     }
 
     public override string ToString()
     {
-        return "'Add Group Knowledge' Effect, Target Type " + TargetType + ", Knowledge Id: " + KnowledgeId + 
+        return "'Add Group Knowledge' Effect, Knowledge Id: " + KnowledgeId + 
             ", Level Limit: " + (LimitLevel * CulturalKnowledge.InverseValueScaleFactor);
     }
 

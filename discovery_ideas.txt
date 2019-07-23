@@ -1,8 +1,14 @@
 Discovery ideas
 
-Terraced irrigation : Increases accesibility and arability in terrain with medium altitude deltas
+Terraced Irrigation : Increases accesibility and arability in terrain with medium altitude deltas
 Slash-and-burn : Increases accessibility and arability in forested/selvatic terrain
+Rudders : Increases the effectiveness of navigation skills
 
-Make biome map show changes in farmland
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+>>>>> Make biome map show changes in farmland
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-DONT FORGET TO DO USE THE 'CAN_FORM_TRIBE' ATTRIBUTE!!!
+
+
+
+

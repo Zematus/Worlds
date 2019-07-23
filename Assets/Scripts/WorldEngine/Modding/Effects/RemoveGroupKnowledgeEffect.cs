@@ -3,21 +3,20 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class RemoveGroupKnowledgeEffect : GroupEffect
+public class RemoveGroupKnowledgeEffect : Effect
 {
     public const string Regex = @"^\s*remove_group_knowledge\s*" +
-        @":\s*(?<type>" + ModUtility.IdentifierRegexPart + @")\s*" +
-        @",\s*(?<id>" + ModUtility.IdentifierRegexPart + @")\s*$";
+        @":\s*(?<id>" + ModUtility.IdentifierRegexPart + @")\s*$";
 
     public string KnowledgeId;
 
     public RemoveGroupKnowledgeEffect(Match match, string id) :
-        base(match.Groups["type"].Value, id)
+        base(id)
     {
         KnowledgeId = match.Groups["id"].Value;
     }
 
-    public override void ApplyToTarget(CellGroup group)
+    public override void Apply(CellGroup group)
     {
         group.Culture.AddKnowledgeToLose(KnowledgeId);
     }
@@ -29,6 +28,6 @@ public class RemoveGroupKnowledgeEffect : GroupEffect
 
     public override string ToString()
     {
-        return "'Add Group Knowledge' Effect, Target Type " + TargetType + ", Knowledge Id: " + KnowledgeId;
+        return "'Add Group Knowledge' Effect, Knowledge Id: " + KnowledgeId;
     }
 }

@@ -115,6 +115,11 @@ public class CellGroup : HumanGroup
     [XmlAttribute("TFD")]
     public long TribeFormationEventDate;
 
+    [XmlAttribute("ArM")]
+    public float ArabilityModifier = 0;
+    [XmlAttribute("AcM")]
+    public float AccessibilityModifier = 0;
+
     public Route SeaMigrationRoute = null;
 
     public List<string> Flags;
@@ -946,6 +951,12 @@ public class CellGroup : HumanGroup
             return;
         }
 
+        Profiler.BeginSample("Update Terrain Attributes");
+
+        UpdateTerrainAttributes();
+
+        Profiler.EndSample();
+
         Profiler.BeginSample("Update Terrain Farmland Percentage");
 
         UpdateTerrainFarmlandPercentage();
@@ -1495,7 +1506,7 @@ public class CellGroup : HumanGroup
 
         float travelFactor =
             cellAltitudeDeltaFactor * cellAltitudeDeltaFactor *
-            cellSurvivability * cellSurvivability * targetCell.Accessibility;
+            cellSurvivability * cellSurvivability * targetCell.ModifiedAccessibility;
 
         travelFactor = Mathf.Clamp(travelFactor, 0.0001f, 1);
 
@@ -1887,7 +1898,7 @@ public class CellGroup : HumanGroup
 
         float travelFactor =
             cellAltitudeDeltaFactor * cellAltitudeDeltaFactor *
-            cellSurvivability * cellSurvivability * targetGroup.Cell.Accessibility;
+            cellSurvivability * cellSurvivability * targetGroup.Cell.ModifiedAccessibility;
 
         travelFactor = Mathf.Clamp(travelFactor, 0.0001f, 1);
 
@@ -1966,6 +1977,11 @@ public class CellGroup : HumanGroup
         DestroySeaMigrationRoute();
 
         Cell.FarmlandPercentage = 0;
+        Cell.ModifiedAccessibility = Cell.Accessibility;
+        Cell.ModifiedArability = Cell.Arability;
+
+        _cellUpdateType |= CellUpdateType.Cell;
+        _cellUpdateSubtype |= CellUpdateSubType.Terrain;
     }
 
     public void RemovePolityProminences() // This should be called only when destroying a group
@@ -2262,16 +2278,47 @@ public class CellGroup : HumanGroup
         return activity.Contribution;
     }
 
+    private void UpdateTerrainAttributes()
+    {
+        if (ArabilityModifier > 0)
+        {
+            float modifiedArability = (Cell.Arability + ArabilityModifier) / (1 + ArabilityModifier);
+
+            if (modifiedArability != Cell.ModifiedArability)
+            {
+                Cell.ModifiedArability = modifiedArability;
+                Cell.Modified = true; // We need to make sure to store the cell changes to file when saving.
+
+                _cellUpdateType |= CellUpdateType.Cell;
+                _cellUpdateSubtype |= CellUpdateSubType.Terrain;
+            }
+        }
+
+        if (AccessibilityModifier > 0)
+        {
+            float modifiedAccessibility = (Cell.Accessibility + AccessibilityModifier) / (1 + AccessibilityModifier);
+
+            if (modifiedAccessibility != Cell.ModifiedAccessibility)
+            {
+                Cell.ModifiedAccessibility = modifiedAccessibility;
+                Cell.Modified = true; // We need to make sure to store the cell changes to file when saving.
+
+                _cellUpdateType |= CellUpdateType.Cell;
+                _cellUpdateSubtype |= CellUpdateSubType.Terrain;
+            }
+        }
+    }
+
     private void UpdateTerrainFarmlandPercentage()
     {
         float knowledgeValue = 0;
+        AgricultureKnowledge knowledge = Culture.GetKnowledge(AgricultureKnowledge.KnowledgeId) as AgricultureKnowledge;
 
-        if (!Culture.TryGetKnowledgeScaledValue(AgricultureKnowledge.KnowledgeId, out knowledgeValue))
+        if (knowledge == null)
         {
             if (Cell.FarmlandPercentage > 0)
             {
                 Cell.FarmlandPercentage = 0;
-                Cell.Modified = true; // We need to make sure to store the cell changes to file when saving.
 
                 _cellUpdateType |= CellUpdateType.Cell;
                 _cellUpdateSubtype |= CellUpdateSubType.Terrain;
@@ -2284,7 +2331,7 @@ public class CellGroup : HumanGroup
 
         float areaPerFarmWorker = techValue / 5f;
 
-        float terrainFactor = AgricultureKnowledge.CalculateTerrainFactorIn(Cell);
+        float terrainFactor = knowledge.TerrainFactor;
 
         float farmingPopulation = GetActivityContribution(CellCulturalActivity.FarmingActivityId) * Population;
 
@@ -2365,7 +2412,7 @@ public class CellGroup : HumanGroup
             populationCapacityByFarming = farmingContribution * PopulationFarmingConstant * cell.Area * farmingCapacity;
         }
 
-        float accesibilityFactor = 0.25f + 0.75f * cell.Accessibility;
+        float accesibilityFactor = 0.25f + 0.75f * cell.ModifiedAccessibility;
 
         float populationCapacity = (populationCapacityByForaging + populationCapacityByFarming) * modifiedSurvivability * accesibilityFactor;
 
@@ -3235,6 +3282,30 @@ public class CellGroup : HumanGroup
     public ICollection<string> GetProperties()
     {
         return _properties;
+    }
+
+    public void ApplyArabilityModifier(float delta)
+    {
+        float value = ArabilityModifier + delta;
+
+        if (value < 0)
+        {
+            Debug.LogWarning("Can't set an arability modifier lower than 0: " + value);
+        }
+
+        ArabilityModifier = Mathf.Clamp01(value);
+    }
+
+    public void ApplyAccessibilityModifier(float delta)
+    {
+        float value = AccessibilityModifier + delta;
+
+        if (value < 0)
+        {
+            Debug.LogWarning("Can't set an accessibility modifier lower than 0: " + value);
+        }
+
+        AccessibilityModifier = Mathf.Clamp01(value);
     }
 
     public void RemoveProperty(string property)

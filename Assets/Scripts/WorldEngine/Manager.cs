@@ -54,6 +54,8 @@ public enum PlanetOverlay
     Temperature,
     Rainfall,
     Arability,
+    Accessibility,
+    Hilliness,
     Layer,
     Region,
     Language,
@@ -74,7 +76,9 @@ public enum OverlayColorId
     SelectedTerritory = 6,
     ContactedTerritoryGood = 7,
     ContactedTerritoryBad = 8,
-    Layer = 9
+    LowValue = 9,
+    MedValue = 10,
+    HighValue = 11,
 }
 
 public class Manager
@@ -1464,6 +1468,8 @@ public class Manager
     {
         if ((overlay == PlanetOverlay.None) ||
             (overlay == PlanetOverlay.Arability) ||
+            (overlay == PlanetOverlay.Accessibility) ||
+            (overlay == PlanetOverlay.Hilliness) ||
             (overlay == PlanetOverlay.Layer) ||
             (overlay == PlanetOverlay.Rainfall) ||
             (overlay == PlanetOverlay.Temperature) ||
@@ -1507,6 +1513,8 @@ public class Manager
     {
         if ((overlay == PlanetOverlay.None) ||
             (overlay == PlanetOverlay.Arability) ||
+            (overlay == PlanetOverlay.Accessibility) ||
+            (overlay == PlanetOverlay.Hilliness) ||
             (overlay == PlanetOverlay.Layer) ||
             (overlay == PlanetOverlay.Rainfall) ||
             (overlay == PlanetOverlay.Temperature) ||
@@ -2612,6 +2620,14 @@ public class Manager
                 color = SetArabilityOverlayColor(cell, color);
                 break;
 
+            case PlanetOverlay.Accessibility:
+                color = SetAccessibilityOverlayColor(cell, color);
+                break;
+
+            case PlanetOverlay.Hilliness:
+                color = SetHillinessOverlayColor(cell, color);
+                break;
+
             case PlanetOverlay.Layer:
                 color = SetLayerOverlayColor(cell, color);
                 break;
@@ -2670,7 +2686,6 @@ public class Manager
         if (cell.Altitude > 0)
         {
             float slant = GetSlant(cell);
-            //float altDiff = CurrentWorld.MaxAltitude - CurrentWorld.MinAltitude;
             float altDiff = World.MaxPossibleAltitude - World.MinPossibleAltitude;
             altDiff /= 2f;
 
@@ -3731,14 +3746,49 @@ public class Manager
         color.g = (greyscale + color.g) / 6f;
         color.b = (greyscale + color.b) / 6f;
 
-        float normalizedValue = cell.Arability;
+        float arability = cell.ModifiedArability;
 
-        if (normalizedValue >= 0.001f)
+        if (arability >= 0.001f)
         {
-            float value = 0.05f + 0.95f * normalizedValue;
+            float value = 0.05f + 0.95f * arability;
 
             color = (color * (1 - value)) + (GetOverlayColor(OverlayColorId.Arability) * value);
         }
+
+        return color;
+    }
+
+    private static Color SetHillinessOverlayColor(TerrainCell cell, Color color)
+    {
+        float greyscale = (color.r + color.g + color.b);
+
+        color.r = greyscale / 6f;
+        color.g = greyscale / 6f;
+        color.b = greyscale / 6f;
+
+        color += (2 / 6f) * GetLowMedHighColor(1 - cell.Hilliness);
+
+        return color;
+    }
+
+    private static Color SetAccessibilityOverlayColor(TerrainCell cell, Color color)
+    {
+        float greyscale = (color.r + color.g + color.b);
+
+        color.r = greyscale / 6f;
+        color.g = greyscale / 6f;
+        color.b = greyscale / 6f;
+        
+        color += (2 / 6f) * GetLowMedHighColor(cell.ModifiedAccessibility);
+
+        return color;
+    }
+
+    private static Color GetLowMedHighColor(float value)
+    {
+        Color color = GetOverlayColor(OverlayColorId.LowValue) * Mathf.Max(0, 1 - (2 * value));
+        color += GetOverlayColor(OverlayColorId.MedValue) * Mathf.Max(0, 1 - 2 * Mathf.Abs(value - 0.5f));
+        color += GetOverlayColor(OverlayColorId.HighValue) * Mathf.Max(0, (2 * value) - 1);
 
         return color;
     }

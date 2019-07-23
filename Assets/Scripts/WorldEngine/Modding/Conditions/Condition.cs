@@ -144,6 +144,12 @@ public abstract class Condition
             return new CellArabilityCondition(match);
         }
 
+        match = Regex.Match(conditionStr, CellHillinessCondition.Regex);
+        if (match.Success == true)
+        {
+            return new CellHillinessCondition(match);
+        }
+
         throw new System.ArgumentException("Not a recognized condition: " + conditionStr);
     }
 

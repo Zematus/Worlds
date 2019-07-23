@@ -60,6 +60,8 @@ public class TerrainCell : ISynchronizable
     public const int MaxNeighborDirections = 8;
     public const int NeighborSearchOffset = 3;
 
+    public const float HillinessSlopeFactor = 0.01f;
+
     [XmlAttribute]
     public bool Modified = false; // This will be true if the cell has been modified after/during generation by using a heighmap, using the map editor, or by running the simulation
 
@@ -100,12 +102,18 @@ public class TerrainCell : ISynchronizable
     public float Accessibility;
     [XmlAttribute]
     public float Arability;
+    [XmlAttribute]
+    public float Hilliness;
 
     [XmlAttribute]
     public bool IsPartOfCoastline;
 
     [XmlAttribute]
     public float FarmlandPercentage = 0;
+    [XmlAttribute]
+    public float ModifiedArability = 0;
+    [XmlAttribute]
+    public float ModifiedAccessibility = 0;
 
     [XmlAttribute]
     public string BiomeWithMostPresence = null;
@@ -300,7 +308,9 @@ public class TerrainCell : ISynchronizable
         Rainfall = alteration.Rainfall;
 
         FarmlandPercentage = alteration.FarmlandPercentage;
-        
+        ModifiedAccessibility = alteration.ModifiedAccessibility;
+        ModifiedArability = alteration.ModifiedArability;
+
         foreach (CellLayerData data in alteration.LayerData)
         {
             SetLayerData(Layer.Layers[data.Id], data.Value, data.Offset);

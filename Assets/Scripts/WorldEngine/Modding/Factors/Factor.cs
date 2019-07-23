@@ -77,6 +77,12 @@ public abstract class Factor
             return new CellArabilityFactor(match);
         }
 
+        match = Regex.Match(factorStr, CellHillinessFactor.Regex);
+        if (match.Success == true)
+        {
+            return new CellHillinessFactor(match);
+        }
+
         throw new System.ArgumentException("Not a recognized factor: " + factorStr);
     }
 
