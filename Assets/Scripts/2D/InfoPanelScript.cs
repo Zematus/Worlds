@@ -80,7 +80,6 @@ public class InfoPanelScript : MonoBehaviour
 
     private void AddCellDataToInfoPanel_Terrain(TerrainCell cell)
     {
-
         float cellArea = cell.Area;
 
         InfoText.text += "\n";
@@ -145,7 +144,6 @@ public class InfoPanelScript : MonoBehaviour
 
     private void AddCellDataToInfoPanel_Region(TerrainCell cell)
     {
-
         Region region = cell.Region;
 
         InfoText.text += "\n";
@@ -168,7 +166,6 @@ public class InfoPanelScript : MonoBehaviour
         bool first = true;
         foreach (RegionAttribute.Instance attr in region.Attributes.Values)
         {
-
             if (first)
             {
                 InfoText.text += attr.Name;
@@ -215,24 +212,18 @@ public class InfoPanelScript : MonoBehaviour
 
     private void AddCellDataToInfoPanel_FarmlandDistribution(TerrainCell cell)
     {
-
         float cellArea = cell.Area;
         float farmlandPercentage = cell.FarmlandPercentage;
+        
+        InfoText.text += "\n";
+        InfoText.text += "\n -- Cell Farmland Distribution Data -- ";
+        InfoText.text += "\n";
 
-        if (farmlandPercentage > 0)
-        {
-
-            InfoText.text += "\n";
-            InfoText.text += "\n -- Cell Farmland Distribution Data -- ";
-            InfoText.text += "\n";
-
-            InfoText.text += "\nFarmland Percentage: " + farmlandPercentage.ToString("P");
-            InfoText.text += "\n";
-        }
+        InfoText.text += "\nFarmland Percentage: " + farmlandPercentage.ToString("P");
+        InfoText.text += "\n";
 
         if (cell.Group == null)
         {
-
             InfoText.text += "\n\tNo population at location";
 
             return;
@@ -242,15 +233,13 @@ public class InfoPanelScript : MonoBehaviour
 
         if (population <= 0)
         {
-
             InfoText.text += "\n\tNo population at location";
 
             return;
         }
 
-        if (cell.FarmlandPercentage > 0)
+        if (farmlandPercentage > 0)
         {
-
             float farmlandArea = farmlandPercentage * cellArea;
 
             InfoText.text += "\nFarmland Area per Pop: " + (farmlandArea / (float)population).ToString("0.000") + " Km^2 / Pop";
@@ -259,7 +248,6 @@ public class InfoPanelScript : MonoBehaviour
 
     private void AddCellDataToInfoPanel_PopDensity(TerrainCell cell)
     {
-
         float cellArea = cell.Area;
 
         InfoText.text += "\n";
@@ -268,7 +256,6 @@ public class InfoPanelScript : MonoBehaviour
 
         if (cell.Group == null)
         {
-
             InfoText.text += "\n\tNo population at location";
 
             return;
@@ -278,7 +265,6 @@ public class InfoPanelScript : MonoBehaviour
 
         if (population <= 0)
         {
-
             InfoText.text += "\n\tNo population at location";
 
             return;
@@ -305,14 +291,12 @@ public class InfoPanelScript : MonoBehaviour
 
     private void AddCellDataToInfoPanel_Language(TerrainCell cell)
     {
-
         InfoText.text += "\n";
         InfoText.text += "\n -- Group Language Data -- ";
         InfoText.text += "\n";
 
         if (cell.Group == null)
         {
-
             InfoText.text += "\n\tNo population at location";
 
             return;
@@ -322,7 +306,6 @@ public class InfoPanelScript : MonoBehaviour
 
         if (population <= 0)
         {
-
             InfoText.text += "\n\tNo population at location";
 
             return;
@@ -332,7 +315,6 @@ public class InfoPanelScript : MonoBehaviour
 
         if (groupLanguage == null)
         {
-
             InfoText.text += "\n\tNo major language spoken at location";
 
             return;
@@ -343,14 +325,12 @@ public class InfoPanelScript : MonoBehaviour
 
     private void AddCellDataToInfoPanel_UpdateSpan(TerrainCell cell)
     {
-
         InfoText.text += "\n";
         InfoText.text += "\n -- Group Update Span Data -- ";
         InfoText.text += "\n";
 
         if (cell.Group == null)
         {
-
             InfoText.text += "\n\tNo population at location";
 
             return;
@@ -360,7 +340,6 @@ public class InfoPanelScript : MonoBehaviour
 
         if (population <= 0)
         {
-
             InfoText.text += "\n\tNo population at location";
 
             return;
@@ -435,14 +414,12 @@ public class InfoPanelScript : MonoBehaviour
 
     private void AddCellDataToInfoPanel_PolityContacts(TerrainCell cell)
     {
-
         InfoText.text += "\n";
         InfoText.text += "\n -- Polity Contacts Data -- ";
         InfoText.text += "\n";
 
         if (cell.Group == null)
         {
-
             InfoText.text += "\n\tNo population at location";
 
             return;
@@ -452,15 +429,13 @@ public class InfoPanelScript : MonoBehaviour
 
         if (population <= 0)
         {
-
             InfoText.text += "\n\tNo population at location";
 
             return;
         }
 
         Territory territory = cell.EncompassingTerritory;
-
-
+        
         if (territory == null)
         {
             InfoText.text += "\n\tGroup not part of a polity's territory";
@@ -475,12 +450,10 @@ public class InfoPanelScript : MonoBehaviour
 
         if (polity.Contacts.Count <= 0)
         {
-
             InfoText.text += "\nPolity has no contact with other polities...";
         }
         else
         {
-
             InfoText.text += "\nPolities in contact:";
         }
 
@@ -504,13 +477,11 @@ public class InfoPanelScript : MonoBehaviour
 
     private void AddCellDataToInfoPanel_General(TerrainCell cell)
     {
-
         InfoText.text += "\n";
         InfoText.text += "\n";
 
         if (cell.Group == null)
         {
-
             InfoText.text += "Uninhabited land";
 
             return;
@@ -520,7 +491,6 @@ public class InfoPanelScript : MonoBehaviour
 
         if (cellPopulation <= 0)
         {
-
             InfoText.text += "Group has zero population";
             Debug.LogError("Group has zero or less population: " + cellPopulation);
 
@@ -531,7 +501,6 @@ public class InfoPanelScript : MonoBehaviour
 
         if (territory == null)
         {
-
             InfoText.text += "Disorganized bands";
             InfoText.text += "\n";
             InfoText.text += "\n";
@@ -541,7 +510,6 @@ public class InfoPanelScript : MonoBehaviour
         }
         else
         {
-
             Polity polity = territory.Polity;
 
             InfoText.text += "Territory of the " + polity.Name.Text + " " + polity.Type.ToLower();

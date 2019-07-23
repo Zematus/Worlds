@@ -3969,45 +3969,6 @@ public class Manager
         return color;
     }
 
-    private static Color SetMiscellanousDataOverlayColor(TerrainCell cell, Color color)
-    {
-        switch (_planetOverlaySubtype)
-        {
-            case "Population":
-                return SetPopulationDensityOverlayColor(cell, color);
-
-            case "PopulationChange":
-                return SetPopulationChangeOverlayColor(cell, color);
-
-            case "Political":
-                return SetPolityTerritoryOverlayColor(cell, color);
-
-            case "PolityProminences":
-                return SetPolityProminenceOverlayColor(cell, color);
-
-            case "Rainfall":
-                return SetRainfallOverlayColor(cell, color);
-
-            case "Temperature":
-                return SetTemperatureOverlayColor(cell, color);
-
-            case "Arability":
-                return SetArabilityOverlayColor(cell, color);
-
-            case "Farmland":
-                return SetFarmlandOverlayColor(cell, color);
-
-            case "UpdateSpan":
-                return SetUpdateSpanOverlayColor(cell, color);
-
-            case "None":
-                return color;
-
-            default:
-                throw new System.Exception("Unhandled miscellaneous data overlay subtype: " + _planetOverlaySubtype);
-        }
-    }
-
     private static Color SetTemperatureOverlayColor(TerrainCell cell, Color color)
     {
         float greyscale = (color.r + color.g + color.b);// * 4 / 3;
