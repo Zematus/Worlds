@@ -2327,6 +2327,8 @@ public class CellGroup : HumanGroup
             return;
         }
 
+        knowledgeValue = knowledge.ScaledValue;
+
         float techValue = Mathf.Sqrt(knowledgeValue);
 
         float areaPerFarmWorker = techValue / 5f;

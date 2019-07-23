@@ -33,10 +33,10 @@
     {
       "id": "terraced_irrigation",
       "name": "terraced irrigation",
-      "gainConditions": "'group_has_knowledge:agriculture,3','cell_arability:0.1','cell_accessibility:0.1','cell_hilliness:0.3'",
+      "gainConditions": "'group_has_knowledge:agriculture,3','cell_arability:0.1','cell_accessibility:0.1','cell_hilliness:0.25'",
       "holdConditions": "'group_has_knowledge:agriculture,1','cell_hilliness:0.15'",
-      "gainEffects": "'apply_cell_arability_modifier:0.5','apply_cell_accessibility_modifier:0.2'",
-      "lossEffects": "'apply_cell_arability_modifier:-0.5','apply_cell_accessibility_modifier:-0.2'",
+      "gainEffects": "'apply_cell_arability_modifier:0.6','apply_cell_accessibility_modifier:0.3'",
+      "lossEffects": "'apply_cell_arability_modifier:-0.6','apply_cell_accessibility_modifier:-0.3'",
       "eventTimeToTrigger": 91250000,
       "eventTimeToTriggerFactors":"'[INV]cell_hilliness'"
     },
