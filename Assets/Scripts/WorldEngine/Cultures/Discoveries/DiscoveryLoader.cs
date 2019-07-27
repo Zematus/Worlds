@@ -17,12 +17,12 @@ public class DiscoveryLoader
     {
         public string id;
         public string name;
-        public string gainConditions;
-        public string holdConditions;
-        public string gainEffects;
-        public string lossEffects;
+        public string[] gainConditions;
+        public string[] holdConditions;
+        public string[] gainEffects;
+        public string[] lossEffects;
         public long eventTimeToTrigger;
-        public string eventTimeToTriggerFactors;
+        public string[] eventTimeToTriggerFactors;
     }
 
 #pragma warning restore 0649
@@ -62,51 +62,31 @@ public class DiscoveryLoader
         Effect[] lossEffects = null;
         Factor[] eventTimeToTriggerFactors = null;
 
-        if (!string.IsNullOrEmpty(d.gainConditions))
+        if (d.gainConditions != null)
         {
-            //Cleanup and split list of conditions
-            string c = Regex.Replace(d.gainConditions, ModUtility.FirstAndLastSingleQuoteRegex, "");
-            string[] gainConditionsStr = Regex.Split(c, ModUtility.SeparatorSingleQuoteRegex);
-
-            gainConditions = Condition.BuildConditions(gainConditionsStr);
+            gainConditions = Condition.BuildConditions(d.gainConditions);
         }
 
-        if (!string.IsNullOrEmpty(d.holdConditions))
+        if (d.holdConditions != null)
         {
-            //Cleanup and split list of conditions
-            string c = Regex.Replace(d.holdConditions, ModUtility.FirstAndLastSingleQuoteRegex, "");
-            string[] holdConditionsStr = Regex.Split(c, ModUtility.SeparatorSingleQuoteRegex);
-
-            holdConditions = Condition.BuildConditions(holdConditionsStr);
+            holdConditions = Condition.BuildConditions(d.holdConditions);
         }
 
         string effectId = d.id + "_discovery";
 
-        if (!string.IsNullOrEmpty(d.gainEffects))
+        if (d.gainEffects != null)
         {
-            //Cleanup and split list of effects
-            string e = Regex.Replace(d.gainEffects, ModUtility.FirstAndLastSingleQuoteRegex, "");
-            string[] gainEffectsStr = Regex.Split(e, ModUtility.SeparatorSingleQuoteRegex);
-
-            gainEffects = Effect.BuildEffects(gainEffectsStr, effectId);
+            gainEffects = Effect.BuildEffects(d.gainEffects, effectId);
         }
 
-        if (!string.IsNullOrEmpty(d.lossEffects))
+        if (d.lossEffects != null)
         {
-            //Cleanup and split list of effects
-            string e = Regex.Replace(d.lossEffects, ModUtility.FirstAndLastSingleQuoteRegex, "");
-            string[] lossEffectsStr = Regex.Split(e, ModUtility.SeparatorSingleQuoteRegex);
-
-            lossEffects = Effect.BuildEffects(lossEffectsStr, effectId);
+            lossEffects = Effect.BuildEffects(d.lossEffects, effectId);
         }
 
-        if (!string.IsNullOrEmpty(d.eventTimeToTriggerFactors))
+        if (d.eventTimeToTriggerFactors != null)
         {
-            //Cleanup and split list of factors
-            string f = Regex.Replace(d.eventTimeToTriggerFactors, ModUtility.FirstAndLastSingleQuoteRegex, "");
-            string[] timeToTriggerFactorsStr = Regex.Split(f, ModUtility.SeparatorSingleQuoteRegex);
-
-            eventTimeToTriggerFactors = Factor.BuildFactors(timeToTriggerFactorsStr);
+            eventTimeToTriggerFactors = Factor.BuildFactors(d.eventTimeToTriggerFactors);
         }
 
         Discovery discovery = new Discovery()

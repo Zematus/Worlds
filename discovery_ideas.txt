@@ -7,12 +7,12 @@ Rudders : Increases the effectiveness of navigation skills
     {
       "id": "slash_and_burn",
       "name": "slash-and-burn",
-      "gainConditions": "'group_has_knowledge:agriculture,4', 'cell_arability:0.1', 'cell_accessibility:0.3', 'cell_woodiness:0.5'",
-      "holdConditions": "'group_has_knowledge:agriculture,2'",
-      "gainEffects": "'woods_to_farmland_conversion:0.6'",
-      "lossEffects": "'woods_to_farmland_conversion:-0.6'",
+      "gainConditions": ["group_has_knowledge:agriculture,4", "cell_arability:0.1", "cell_accessibility:0.3", "cell_woodiness:0.5"],
+      "holdConditions": ["group_has_knowledge:agriculture,2"],
+      "gainEffects": ["woods_to_farmland_conversion:0.6"],
+      "lossEffects": ["woods_to_farmland_conversion:-0.6"],
       "eventTimeToTrigger": 91250000,
-      "eventTimeToTriggerFactors":"'[INV]cell_woodiness'"
+      "eventTimeToTriggerFactors": ["[INV]cell_woodiness"]
     },
 
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
