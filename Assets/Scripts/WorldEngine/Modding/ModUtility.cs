@@ -5,8 +5,8 @@ using System.Text.RegularExpressions;
 
 public static class ModUtility
 {
-    public const string FirstAndLastSingleQuoteRegex = @"(?:^\s*\'\s*)|(?:\s*\'\s*$)";
-    public const string SeparatorSingleQuoteRegex = @"\s*(?:(?:\'\s*,\s*\'))\s*";
+    public const string FirstAndLastSingleQuoteRegex = @"(?:^\s*\'\s*)|(?:\s*\'\s*$)"; // TODO: deprecate
+    public const string SeparatorSingleQuoteRegex = @"\s*(?:(?:\'\s*,\s*\'))\s*"; // TODO: deprecate
 
     public const string IdentifierRegexPart = @"[a-zA-Z_][a-zA-Z0-9_]*";
     public const string AttributeRegexPart = @"[a-zA-Z_][a-zA-Z0-9_:]*";

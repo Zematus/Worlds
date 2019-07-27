@@ -18,9 +18,9 @@ public class ElementLoader
     {
         public string id;
         public string name;
-        public string adjectives;
-        public string regionConstraints;
-        public string phraseAssociations;
+        public string[] adjectives;
+        public string[] regionConstraints;
+        public string[] phraseAssociations;
     }
 
 #pragma warning restore 0649
@@ -49,40 +49,26 @@ public class ElementLoader
             throw new ArgumentException("element name can't be null or empty");
         }
 
-        if (string.IsNullOrEmpty(e.phraseAssociations))
+        if (e.phraseAssociations == null)
         {
-            throw new ArgumentException("element's phrase association strings can't be null or empty");
+            throw new ArgumentException("element's phrase association strings can't be null");
         }
 
         Adjective[] adjectives = null;
-        string[] constraints = null;
-        string[] associationStrs = null;
 
-        if (!string.IsNullOrEmpty(e.adjectives))
+        if (e.adjectives != null)
         {
-            string[] adjs = e.adjectives.Split(',');
-            adjectives = new Adjective[adjs.Length];
+            adjectives = new Adjective[e.adjectives.Length];
 
-            for (int i = 0; i < adjs.Length; i++)
+            for (int i = 0; i < e.adjectives.Length; i++)
             {
-                string adj = adjs[i].Trim();
+                string adj = e.adjectives[i].Trim();
 
                 adjectives[i] = Adjective.TryGetAdjectiveOrAdd(adj);
             }
         }
 
-        if (!string.IsNullOrEmpty(e.regionConstraints))
-        {
-            //Cleanup and split list of constraints
-            string c = Regex.Replace(e.regionConstraints, ModUtility.FirstAndLastSingleQuoteRegex, "");
-            constraints = Regex.Split(c, ModUtility.SeparatorSingleQuoteRegex);
-        }
-
-        //Cleanup and split list of association strings
-        string a = Regex.Replace(e.phraseAssociations, ModUtility.FirstAndLastSingleQuoteRegex, "");
-        associationStrs = Regex.Split(a, ModUtility.SeparatorSingleQuoteRegex);
-
-        Element element = new Element(e.id, e.name, adjectives, constraints, associationStrs);
+        Element element = new Element(e.id, e.name, adjectives, e.regionConstraints, e.phraseAssociations);
 
         return element;
     }

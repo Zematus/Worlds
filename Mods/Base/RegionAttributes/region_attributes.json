@@ -3,140 +3,140 @@
     {
       "id": "ice_sheet",
       "name": "ice sheet",
-      "adjectives": "clear, white, blue, grey",
-      "variants": "[nad]ice sheet, glacier{<relation>:s}",
-      "regionConstraints": "'biome_presence_above:ice_sheet,0.5'",
-      "phraseAssociations": "'[iv(bear,ts,past)]born,by|near|in,ds|dp', '[rv(ts,past)]raise:d,near|in,ds|dp', '[ran]walk:er,of,ip|ns', '[ran]stride:r,of,ip|ns', '[rv(ts,past)]arrive:d,from,ds'"
+      "adjectives": ["clear", "white", "blue", "grey"],
+      "variants": ["[nad]ice sheet", "glacier{<relation>:s}"],
+      "regionConstraints": ["biome_presence_above:ice_sheet,0.5"],
+      "phraseAssociations": ["[iv(bear,ts,past)]born,by|near|in,ds|dp", "[rv(ts,past)]raise:d,near|in,ds|dp", "[ran]walk:er,of,ip|ns", "[ran]stride:r,of,ip|ns", "[rv(ts,past)]arrive:d,from,ds"]
     },
     {
       "id": "ice_shelf",
       "name": "ice shelf",
-      "adjectives": "clear, white, blue, grey",
-      "variants": "[nad]ice shelf, [nad]ice cap",
-      "regionConstraints": "'biome_presence_above:ice_shelf,0.5'",
-      "phraseAssociations": "'[iv(bear,ts,past)]born,by|near|in,ds|dp', '[rv(ts,past)]raise:d,near|in,ds|dp', '[ran]walk:er,of,ip|ns', '[ran]stride:r,of,ip|ns', '[rv(ts,past)]arrive:d,from,ds'"
+      "adjectives": ["clear", "white", "blue", "grey"],
+      "variants": ["[nad]ice shelf", "[nad]ice cap"],
+      "regionConstraints": ["biome_presence_above:ice_shelf,0.5"],
+      "phraseAssociations": ["[iv(bear,ts,past)]born,by|near|in,ds|dp", "[rv(ts,past)]raise:d,near|in,ds|dp", "[ran]walk:er,of,ip|ns", "[ran]stride:r,of,ip|ns", "[rv(ts,past)]arrive:d,from,ds"]
     },
     {
       "id": "ocean",
       "name": "ocean",
-      "adjectives": "clear, dark, blue, red, green, grey",
-      "variants": "ocean{<relation>:s}, sea{<relation>:s}",
-      "regionConstraints": "'biome_presence_above:ocean,0.5'",
-      "phraseAssociations": "'[iv(bear,ts,past)]born,by|near,ds|dp', '[rv(ts,past)]raise:d,near,ds|dp', '[ran]swim:mer,of,ip|ns', '[rv(ts,past)]arrive:d,from,ds'"
+      "adjectives": ["clear", "dark", "blue", "red", "green", "grey"],
+      "variants": ["ocean{<relation>:s}", "sea{<relation>:s}"],
+      "regionConstraints": ["biome_presence_above:ocean,0.5"],
+      "phraseAssociations": ["[iv(bear,ts,past)]born,by|near,ds|dp", "[rv(ts,past)]raise:d,near,ds|dp", "[ran]swim:mer,of,ip|ns", "[rv(ts,past)]arrive:d,from,ds"]
     },
     {
       "id": "grassland",
       "name": "grassland",
-      "adjectives": "dark, pale, red, green, grey, yellow",
-      "variants": "grass:land{:s}, steppe{:s}, savanna{:s}, shrub:land{:s}, prairie{:s}, range{:s}, field{:s}",
-      "regionConstraints": "'biome_presence_above:grassland,0.5'",
-      "phraseAssociations": "'[iv(bear,ts,past)]born,by|near|in,ds|dp', '[rv(ts,past)]raise:d,near|in,ds|dp', '[ran]walk:er,of,ip|ns', '[ran]stride:r,of,ip|ns', '[rv(ts,past)]arrive:d,from,ds'"
+      "adjectives": ["dark", "pale", "red", "green", "grey", "yellow"],
+      "variants": ["grass:land{:s}", "steppe{:s}", "savanna{:s}", "shrub:land{:s}", "prairie{:s}", "range{:s}", "field{:s}"],
+      "regionConstraints": ["biome_presence_above:grassland,0.5"],
+      "phraseAssociations": ["[iv(bear,ts,past)]born,by|near|in,ds|dp", "[rv(ts,past)]raise:d,near|in,ds|dp", "[ran]walk:er,of,ip|ns", "[ran]stride:r,of,ip|ns", "[rv(ts,past)]arrive:d,from,ds"]
     },
     {
       "id": "forest",
       "name": "forest",
-      "adjectives": "black, dark, pale, red, green, grey",
-      "variants": "forest{<relation>:s}, wood:s, wood:land{:s}",
-      "regionConstraints": "'biome_presence_above:forest,0.5'",
-      "phraseAssociations": "'[iv(bear,ts,past)]born,by|near|in,ds|dp', '[rv(ts,past)]raise:d,near|in,ds|dp', '[ran]walk:er,of,ip|ns', '[ran]stride:r,of,ip|ns', '[rv(ts,past)]arrive:d,from,ds'"
+      "adjectives": ["black", "dark", "pale", "red", "green", "grey"],
+      "variants": ["forest{<relation>:s}", "wood:s", "wood:land{:s}"],
+      "regionConstraints": ["biome_presence_above:forest,0.5"],
+      "phraseAssociations": ["[iv(bear,ts,past)]born,by|near|in,ds|dp", "[rv(ts,past)]raise:d,near|in,ds|dp", "[ran]walk:er,of,ip|ns", "[ran]stride:r,of,ip|ns", "[rv(ts,past)]arrive:d,from,ds"]
     },
     {
       "id": "taiga",
       "name": "taiga",
-      "adjectives": "white, black, dark, pale, red, green, grey",
-      "variants": "taiga{<relation>:s}, hinter{:land}{:s}",
-      "regionConstraints": "'biome_presence_above:taiga,0.5'",
-      "phraseAssociations": "'[iv(bear,ts,past)]born,by|near|in,ds|dp', '[rv(ts,past)]raise:d,near|in,ds|dp', '[ran]walk:er,of,ip|ns', '[ran]stride:r,of,ip|ns', '[rv(ts,past)]arrive:d,from,ds'"
+      "adjectives": ["white", "black", "dark", "pale", "red", "green", "grey"],
+      "variants": ["taiga{<relation>:s}", "hinter{:land}{:s}"],
+      "regionConstraints": ["biome_presence_above:taiga,0.5"],
+      "phraseAssociations": ["[iv(bear,ts,past)]born,by|near|in,ds|dp", "[rv(ts,past)]raise:d,near|in,ds|dp", "[ran]walk:er,of,ip|ns", "[ran]stride:r,of,ip|ns", "[rv(ts,past)]arrive:d,from,ds"]
     },
     {
       "id": "tundra",
       "name": "tundra",
-      "adjectives": "white, black, dark, pale, red, green, grey",
-      "variants": "tundra{<relation>:s}",
-      "regionConstraints": "'biome_presence_above:tundra,0.5'",
-      "phraseAssociations": "'[iv(bear,ts,past)]born,by|near|in,ds|dp', '[rv(ts,past)]raise:d,near|in,ds|dp', '[ran]walk:er,of,ip|ns', '[ran]stride:r,of,ip|ns', '[rv(ts,past)]arrive:d,from,ds'"
+      "adjectives": ["white", "black", "dark", "pale", "red", "green", "grey"],
+      "variants": ["tundra{<relation>:s}"],
+      "regionConstraints": ["biome_presence_above:tundra,0.5"],
+      "phraseAssociations": ["[iv(bear,ts,past)]born,by|near|in,ds|dp", "[rv(ts,past)]raise:d,near|in,ds|dp", "[ran]walk:er,of,ip|ns", "[ran]stride:r,of,ip|ns", "[rv(ts,past)]arrive:d,from,ds"]
     },
     {
       "id": "desert",
       "name": "desert",
-      "adjectives": "white, red, yellow, black, grey",
-      "variants": "desert{<relation>:s}, sand{:s}",
-      "regionConstraints": "'biome_presence_above:desert,0.5'",
-      "phraseAssociations": "'[iv(bear,ts,past)]born,by|near|in,ds|dp', '[rv(ts,past)]raise:d,near|in,ds|dp', '[ran]walk:er,of,ip|ns', '[ran]stride:r,of,ip|ns', '[rv(ts,past)]arrive:d,from,ds'"
+      "adjectives": ["white", "red", "yellow", "black", "grey"],
+      "variants": ["desert{<relation>:s}", "sand{:s}"],
+      "regionConstraints": ["biome_presence_above:desert,0.5"],
+      "phraseAssociations": ["[iv(bear,ts,past)]born,by|near|in,ds|dp", "[rv(ts,past)]raise:d,near|in,ds|dp", "[ran]walk:er,of,ip|ns", "[ran]stride:r,of,ip|ns", "[rv(ts,past)]arrive:d,from,ds"]
     },
     {
       "id": "desertic_tundra",
       "name": "desertic tundra",
-      "adjectives": "white, red, yellow, black, grey",
-      "variants": "desert{<relation>:s}, tundra{<relation>:s}, waste{:land}{:s}",
-      "regionConstraints": "'biome_presence_above:desertic_tundra,0.5'",
-      "phraseAssociations": "'[iv(bear,ts,past)]born,by|near|in,ds|dp', '[rv(ts,past)]raise:d,near|in,ds|dp', '[ran]walk:er,of,ip|ns', '[ran]stride:r,of,ip|ns', '[rv(ts,past)]arrive:d,from,ds'"
+      "adjectives": ["white", "red", "yellow", "black", "grey"],
+      "variants": ["desert{<relation>:s}", "tundra{<relation>:s}", "waste{:land}{:s}"],
+      "regionConstraints": ["biome_presence_above:desertic_tundra,0.5"],
+      "phraseAssociations": ["[iv(bear,ts,past)]born,by|near|in,ds|dp", "[rv(ts,past)]raise:d,near|in,ds|dp", "[ran]walk:er,of,ip|ns", "[ran]stride:r,of,ip|ns", "[rv(ts,past)]arrive:d,from,ds"]
     },
     {
       "id": "rainforest",
       "name": "rainforest",
-      "adjectives": "black, dark, red, green, grey",
-      "variants": "{rain:}forest{<relation>:s}",
-      "regionConstraints": "'biome_presence_above:rainforest,0.5'",
-      "phraseAssociations": "'[iv(bear,ts,past)]born,by|near|in,ds|dp', '[rv(ts,past)]raise:d,near|in,ds|dp', '[ran]walk:er,of,ip|ns', '[ran]stride:r,of,ip|ns', '[rv(ts,past)]arrive:d,from,ds'"
+      "adjectives": ["black", "dark", "red", "green", "grey"],
+      "variants": ["{rain:}forest{<relation>:s}"],
+      "regionConstraints": ["biome_presence_above:rainforest,0.5"],
+      "phraseAssociations": ["[iv(bear,ts,past)]born,by|near|in,ds|dp", "[rv(ts,past)]raise:d,near|in,ds|dp", "[ran]walk:er,of,ip|ns", "[ran]stride:r,of,ip|ns", "[rv(ts,past)]arrive:d,from,ds"]
     },
     {
       "id": "jungle",
       "name": "jungle",
-      "adjectives": "black, dark, red, green, grey",
-      "variants": "rain:forest{<relation>:s}, jungle{<relation>:s}",
-      "regionConstraints": "'biome_presence_above:rainforest,0.5', 'temperature_above:20'",
-      "phraseAssociations": "'[iv(bear,ts,past)]born,by|near|in,ds|dp', '[rv(ts,past)]raise:d,near|in,ds|dp', '[ran]walk:er,of,ip|ns', '[ran]stride:r,of,ip|ns', '[rv(ts,past)]arrive:d,from,ds'"
+      "adjectives": ["black", "dark", "red", "green", "grey"],
+      "variants": ["rain:forest{<relation>:s}", "jungle{<relation>:s}"],
+      "regionConstraints": ["biome_presence_above:rainforest,0.5", "temperature_above:20"],
+      "phraseAssociations": ["[iv(bear,ts,past)]born,by|near|in,ds|dp", "[rv(ts,past)]raise:d,near|in,ds|dp", "[ran]walk:er,of,ip|ns", "[ran]stride:r,of,ip|ns", "[rv(ts,past)]arrive:d,from,ds"]
     },
     {
       "id": "valley",
       "name": "valley",
-      "variants": "valley{<relation>:s}",
-      "regionConstraints": "'relative_altitude_below:-200'",
-      "phraseAssociations": "'[iv(bear,ts,past)]born,by|near|in,ds|dp', '[rv(ts,past)]raise:d,near|in,ds|dp', '[ran]walk:er,of,ip|ns', '[ran]stride:r,of,ip|ns', '[rv(ts,past)]arrive:d,from,ds'"
+      "variants": ["valley{<relation>:s}"],
+      "regionConstraints": ["relative_altitude_below:-200"],
+      "phraseAssociations": ["[iv(bear,ts,past)]born,by|near|in,ds|dp", "[rv(ts,past)]raise:d,near|in,ds|dp", "[ran]walk:er,of,ip|ns", "[ran]stride:r,of,ip|ns", "[rv(ts,past)]arrive:d,from,ds"]
     },
     {
       "id": "highland",
       "name": "highland",
-      "variants": "high:land{:s}",
-      "regionConstraints": "'relative_altitude_above:200'",
-      "phraseAssociations": "'[iv(bear,ts,past)]born,by|near|in,ds|dp', '[rv(ts,past)]raise:d,near|in,ds|dp', '[ran]walk:er,of,ip|ns', '[ran]stride:r,of,ip|ns', '[rv(ts,past)]arrive:d,from,ds'"
+      "variants": ["high:land{:s}"],
+      "regionConstraints": ["relative_altitude_above:200"],
+      "phraseAssociations": ["[iv(bear,ts,past)]born,by|near|in,ds|dp", "[rv(ts,past)]raise:d,near|in,ds|dp", "[ran]walk:er,of,ip|ns", "[ran]stride:r,of,ip|ns", "[rv(ts,past)]arrive:d,from,ds"]
     },
     {
       "id": "basin",
       "name": "basin",
-      "variants": "basin{<relation>:s}",
-      "regionConstraints": "'relative_altitude_below:-200', 'rainfall_above:1000'",
-      "phraseAssociations": "'[iv(bear,ts,past)]born,by|near|in,ds|dp', '[rv(ts,past)]raise:d,near|in,ds|dp', '[ran]walk:er,of,ip|ns', '[ran]stride:r,of,ip|ns', '[rv(ts,past)]arrive:d,from,ds'"
+      "variants": ["basin{<relation>:s}"],
+      "regionConstraints": ["relative_altitude_below:-200", "rainfall_above:1000"],
+      "phraseAssociations": ["[iv(bear,ts,past)]born,by|near|in,ds|dp", "[rv(ts,past)]raise:d,near|in,ds|dp", "[ran]walk:er,of,ip|ns", "[ran]stride:r,of,ip|ns", "[rv(ts,past)]arrive:d,from,ds"]
     },
     {
       "id": "peninsula",
       "name": "peninsula",
-      "variants": "cape{<relation>:s}, horn{<relation>:s}, peninsula{<relation>:s}",
-      "regionConstraints": "'coast_percentage_above:0.70', 'coast_percentage_below:1.0'",
-      "phraseAssociations": "'[iv(bear,ts,past)]born,by|near|in,ds|dp', '[rv(ts,past)]raise:d,near|in,ds|dp', '[ran]walk:er,of,ip|ns', '[ran]stride:r,of,ip|ns', '[rv(ts,past)]arrive:d,from,ds'"
+      "variants": ["cape{<relation>:s}", "horn{<relation>:s}", "peninsula{<relation>:s}"],
+      "regionConstraints": ["coast_percentage_above:0.70", "coast_percentage_below:1.0"],
+      "phraseAssociations": ["[iv(bear,ts,past)]born,by|near|in,ds|dp", "[rv(ts,past)]raise:d,near|in,ds|dp", "[ran]walk:er,of,ip|ns", "[ran]stride:r,of,ip|ns", "[rv(ts,past)]arrive:d,from,ds"]
     },
     {
       "id": "island",
       "name": "island",
-      "variants": "isle{<relation>:s}, island{<relation>:s}",
-      "regionConstraints": "'coast_percentage_above:1.0'",
-      "phraseAssociations": "'[iv(bear,ts,past)]born,by|near|in,ds|dp', '[rv(ts,past)]raise:d,near|in,ds|dp', '[ran]walk:er,of,ip|ns', '[ran]stride:r,of,ip|ns', '[rv(ts,past)]arrive:d,from,ds'"
+      "variants": ["isle{<relation>:s}", "island{<relation>:s}"],
+      "regionConstraints": ["coast_percentage_above:1.0"],
+      "phraseAssociations": ["[iv(bear,ts,past)]born,by|near|in,ds|dp", "[rv(ts,past)]raise:d,near|in,ds|dp", "[ran]walk:er,of,ip|ns", "[ran]stride:r,of,ip|ns", "[rv(ts,past)]arrive:d,from,ds"]
     },
     {
       "id": "coast",
       "name": "coast",
-      "variants": "strand{<relation>:s}, coast{<relation>:s}",
-      "regionConstraints": "'coast_percentage_above:0.45', 'coast_percentage_below:0.70'",
-      "phraseAssociations": "'[iv(bear,ts,past)]born,by|near|in,ds|dp', '[rv(ts,past)]raise:d,near|in,ds|dp', '[ran]walk:er,of,ip|ns', '[ran]stride:r,of,ip|ns', '[rv(ts,past)]arrive:d,from,ds'"
+      "variants": ["strand{<relation>:s}", "coast{<relation>:s}"],
+      "regionConstraints": ["coast_percentage_above:0.45", "coast_percentage_below:0.70"],
+      "phraseAssociations": ["[iv(bear,ts,past)]born,by|near|in,ds|dp", "[rv(ts,past)]raise:d,near|in,ds|dp", "[ran]walk:er,of,ip|ns", "[ran]stride:r,of,ip|ns", "[rv(ts,past)]arrive:d,from,ds"]
     },
     {
       "id": "region",
       "name": "region",
-      "adjectives": "dark, bleak, open",
-      "variants": "region{<relation>:s}, land{:s}",
-      "regionConstraints": "'zero_primary_attributes'",
-      "phraseAssociations": "'[iv(bear,ts,past)]born,by|near|in,ds|dp', '[rv(ts,past)]raise:d,near|in,ds|dp', '[ran]walk:er,of,ip|ns', '[ran]stride:r,of,ip|ns', '[rv(ts,past)]arrive:d,from,ds'",
+      "adjectives": ["dark", "bleak", "open"],
+      "variants": ["region{<relation>:s}", "land{:s}"],
+      "regionConstraints": ["zero_primary_attributes"],
+      "phraseAssociations": ["[iv(bear,ts,past)]born,by|near|in,ds|dp", "[rv(ts,past)]raise:d,near|in,ds|dp", "[ran]walk:er,of,ip|ns", "[ran]stride:r,of,ip|ns", "[rv(ts,past)]arrive:d,from,ds"],
       "secondary": true
     }
   ]
