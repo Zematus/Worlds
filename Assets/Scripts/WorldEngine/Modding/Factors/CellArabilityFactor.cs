@@ -18,7 +18,7 @@ public class CellArabilityFactor : Factor
 
     public override float Calculate(TerrainCell cell)
     {
-        return cell.Arability;
+        return cell.BaseArability;
     }
 
     public override string ToString()

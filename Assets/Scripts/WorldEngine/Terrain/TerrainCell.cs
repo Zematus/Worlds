@@ -99,9 +99,9 @@ public class TerrainCell : ISynchronizable
     [XmlAttribute]
     public float ForagingCapacity;
     [XmlAttribute]
-    public float Accessibility;
+    public float BaseAccessibility;
     [XmlAttribute]
-    public float Arability;
+    public float BaseArability;
     [XmlAttribute]
     public float Hilliness;
 
@@ -111,9 +111,9 @@ public class TerrainCell : ISynchronizable
     [XmlAttribute]
     public float FarmlandPercentage = 0;
     [XmlAttribute]
-    public float ModifiedArability = 0;
+    public float Arability = 0;
     [XmlAttribute]
-    public float ModifiedAccessibility = 0;
+    public float Accessibility = 0;
 
     [XmlAttribute]
     public string BiomeWithMostPresence = null;
@@ -308,8 +308,8 @@ public class TerrainCell : ISynchronizable
         Rainfall = alteration.Rainfall;
 
         FarmlandPercentage = alteration.FarmlandPercentage;
-        ModifiedAccessibility = alteration.ModifiedAccessibility;
-        ModifiedArability = alteration.ModifiedArability;
+        Accessibility = alteration.Accessibility;
+        Arability = alteration.Arability;
 
         foreach (CellLayerData data in alteration.LayerData)
         {
@@ -443,7 +443,7 @@ public class TerrainCell : ISynchronizable
         PresentBiomeIds.Add(biome.Id);
         BiomePresences.Add(presence);
 
-        if (biome.Type == Biome.LocationType.Sea)
+        if (biome.TerrainType == BiomeTerrainType.Sea)
         {
             PresentSeaBiomeIds.Add(biome.Id);
             SeaBiomePresence += presence;
@@ -577,7 +577,7 @@ public class TerrainCell : ISynchronizable
 
             Biome biome = Biome.Biomes[biomeId];
 
-            if (biome.Type == Biome.LocationType.Sea)
+            if (biome.TerrainType == BiomeTerrainType.Sea)
             {
                 PresentSeaBiomeIds.Add(biomeId);
                 SeaBiomePresence += BiomePresences[i];

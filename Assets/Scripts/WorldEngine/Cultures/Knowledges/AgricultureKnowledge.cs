@@ -58,9 +58,9 @@ public class AgricultureKnowledge : CellCulturalKnowledge
 
     public static float CalculateTerrainFactorIn(TerrainCell cell)
     {
-        float accesibilityFactor = (cell.ModifiedAccessibility - MinAccesibility) / (1f - MinAccesibility);
+        float accesibilityFactor = (cell.Accessibility - MinAccesibility) / (1f - MinAccesibility);
 
-        return Mathf.Clamp01(cell.ModifiedArability * cell.ModifiedAccessibility * accesibilityFactor);
+        return Mathf.Clamp01(cell.Arability * cell.Accessibility * accesibilityFactor);
     }
 
     protected override void UpdateInternal(long timeSpan)

@@ -18,7 +18,7 @@ public class CellAccessibilityFactor : Factor
 
     public override float Calculate(TerrainCell cell)
     {
-        return cell.Accessibility;
+        return cell.BaseAccessibility;
     }
 
     public override string ToString()

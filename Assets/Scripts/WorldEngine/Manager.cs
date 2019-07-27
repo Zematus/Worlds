@@ -3742,18 +3742,11 @@ public class Manager
     {
         float greyscale = (color.r + color.g + color.b);
 
-        color.r = (greyscale + color.r) / 6f;
-        color.g = (greyscale + color.g) / 6f;
-        color.b = (greyscale + color.b) / 6f;
-
-        float arability = cell.ModifiedArability;
-
-        if (arability >= 0.001f)
-        {
-            float value = 0.05f + 0.95f * arability;
-
-            color = (color * (1 - value)) + (GetOverlayColor(OverlayColorId.Arability) * value);
-        }
+        color.r = greyscale / 6f;
+        color.g = greyscale / 6f;
+        color.b = greyscale / 6f;
+        
+        color += GetOverlayColor(OverlayColorId.Arability) * cell.Arability;
 
         return color;
     }
@@ -3779,7 +3772,7 @@ public class Manager
         color.g = greyscale / 6f;
         color.b = greyscale / 6f;
         
-        color += (2 / 6f) * GetLowMedHighColor(cell.ModifiedAccessibility);
+        color += (2 / 6f) * GetLowMedHighColor(cell.Accessibility);
 
         return color;
     }

@@ -29,6 +29,7 @@ public class BiomeLoader
         public string name;
         public string color;
         public string type;
+        public string[] traits;
         public string minAltitude;
         public string maxAltitude;
         public string altitudeSaturationSlope;
@@ -41,6 +42,7 @@ public class BiomeLoader
         public float survivability;
         public float foragingCapacity;
         public float accessibility;
+        public float arability;
     }
 
 #pragma warning restore 0649
@@ -69,6 +71,11 @@ public class BiomeLoader
             throw new ArgumentException("biome name can't be null or empty");
         }
 
+        if (string.IsNullOrEmpty(b.type))
+        {
+            throw new ArgumentException("biome type can't be null or empty");
+        }
+
         if (!b.survivability.IsInsideRange(0, 1))
         {
             throw new ArgumentException("biome survibability must be a value between 0 and 1 (inclusive)");
@@ -84,6 +91,11 @@ public class BiomeLoader
             throw new ArgumentException("biome accessibility must be a value between 0 and 1 (inclusive)");
         }
 
+        if (!b.arability.IsInsideRange(0, 1))
+        {
+            throw new ArgumentException("biome arability must be a value between 0 and 1 (inclusive)");
+        }
+
         Biome biome = new Biome()
         {
             Id = b.id,
@@ -91,19 +103,38 @@ public class BiomeLoader
             Name = b.name,
             Survivability = b.survivability,
             ForagingCapacity = b.foragingCapacity,
-            Accessibility = b.accessibility
+            Accessibility = b.accessibility,
+            Arability = b.arability
         };
 
         switch (b.type)
         {
             case "land":
-                biome.Type = Biome.LocationType.Land;
+                biome.TerrainType = BiomeTerrainType.Land;
                 break;
             case "sea":
-                biome.Type = Biome.LocationType.Sea;
+                biome.TerrainType = BiomeTerrainType.Sea;
                 break;
             default:
-                throw new ArgumentException("Unknown biome location type: " + b.type);
+                throw new ArgumentException("Unknown biome terrain type: " + b.type);
+        }
+
+        if (b.traits != null)
+        {
+            foreach (string trait in b.traits)
+            {
+                switch (trait.ToLower())
+                {
+                    case "wood":
+                        biome.Traits.Add(BiomeTrait.Wood);
+                        break;
+                    case "field":
+                        biome.Traits.Add(BiomeTrait.Field);
+                        break;
+                    default:
+                        throw new ArgumentException("Unknown biome trait: " + trait);
+                }
+            }
         }
 
         if (!Manager.EnqueueTaskAndWait(() => ColorUtility.TryParseHtmlString(b.color, out biome.Color)))

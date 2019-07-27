@@ -655,7 +655,7 @@ public class CellGroup : HumanGroup
 
         foreach (Biome biome in GetPresentBiomesInNeighborhood())
         {
-            if (biome.Type == Biome.LocationType.Sea)
+            if (biome.TerrainType == BiomeTerrainType.Sea)
             {
                 if (Culture.GetSkill(SeafaringSkill.SkillId) == null)
                 {
@@ -1506,7 +1506,7 @@ public class CellGroup : HumanGroup
 
         float travelFactor =
             cellAltitudeDeltaFactor * cellAltitudeDeltaFactor *
-            cellSurvivability * cellSurvivability * targetCell.ModifiedAccessibility;
+            cellSurvivability * cellSurvivability * targetCell.Accessibility;
 
         travelFactor = Mathf.Clamp(travelFactor, 0.0001f, 1);
 
@@ -1898,7 +1898,7 @@ public class CellGroup : HumanGroup
 
         float travelFactor =
             cellAltitudeDeltaFactor * cellAltitudeDeltaFactor *
-            cellSurvivability * cellSurvivability * targetGroup.Cell.ModifiedAccessibility;
+            cellSurvivability * cellSurvivability * targetGroup.Cell.Accessibility;
 
         travelFactor = Mathf.Clamp(travelFactor, 0.0001f, 1);
 
@@ -1977,8 +1977,8 @@ public class CellGroup : HumanGroup
         DestroySeaMigrationRoute();
 
         Cell.FarmlandPercentage = 0;
-        Cell.ModifiedAccessibility = Cell.Accessibility;
-        Cell.ModifiedArability = Cell.Arability;
+        Cell.Accessibility = Cell.BaseAccessibility;
+        Cell.Arability = Cell.BaseArability;
 
         _cellUpdateType |= CellUpdateType.Cell;
         _cellUpdateSubtype |= CellUpdateSubType.Terrain;
@@ -2282,11 +2282,11 @@ public class CellGroup : HumanGroup
     {
         if (ArabilityModifier > 0)
         {
-            float modifiedArability = (Cell.Arability + ArabilityModifier) / (1 + ArabilityModifier);
+            float modifiedArability = Cell.BaseArability + (1 - Cell.BaseArability) * ArabilityModifier;
 
-            if (modifiedArability != Cell.ModifiedArability)
+            if (modifiedArability != Cell.Arability)
             {
-                Cell.ModifiedArability = modifiedArability;
+                Cell.Arability = modifiedArability;
                 Cell.Modified = true; // We need to make sure to store the cell changes to file when saving.
 
                 _cellUpdateType |= CellUpdateType.Cell;
@@ -2296,11 +2296,11 @@ public class CellGroup : HumanGroup
 
         if (AccessibilityModifier > 0)
         {
-            float modifiedAccessibility = (Cell.Accessibility + AccessibilityModifier) / (1 + AccessibilityModifier);
+            float modifiedAccessibility = Cell.BaseAccessibility + (1 - Cell.BaseAccessibility) * AccessibilityModifier;
 
-            if (modifiedAccessibility != Cell.ModifiedAccessibility)
+            if (modifiedAccessibility != Cell.Accessibility)
             {
-                Cell.ModifiedAccessibility = modifiedAccessibility;
+                Cell.Accessibility = modifiedAccessibility;
                 Cell.Modified = true; // We need to make sure to store the cell changes to file when saving.
 
                 _cellUpdateType |= CellUpdateType.Cell;
@@ -2414,7 +2414,7 @@ public class CellGroup : HumanGroup
             populationCapacityByFarming = farmingContribution * PopulationFarmingConstant * cell.Area * farmingCapacity;
         }
 
-        float accesibilityFactor = 0.25f + 0.75f * cell.ModifiedAccessibility;
+        float accesibilityFactor = 0.25f + 0.75f * cell.Accessibility;
 
         float populationCapacity = (populationCapacityByForaging + populationCapacityByFarming) * modifiedSurvivability * accesibilityFactor;
 

@@ -36,7 +36,7 @@ public class CellAccessibilityCondition : CellCondition
 
     public override bool Evaluate(TerrainCell cell)
     {
-        return cell.Accessibility >= MinValue;
+        return cell.BaseAccessibility >= MinValue;
     }
 
     public override string GetPropertyValue(string propertyId)

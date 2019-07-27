@@ -36,7 +36,7 @@ public class CellArabilityCondition : CellCondition
 
     public override bool Evaluate(TerrainCell cell)
     {
-        return cell.Arability >= MinValue;
+        return cell.BaseArability >= MinValue;
     }
 
     public override string GetPropertyValue(string propertyId)

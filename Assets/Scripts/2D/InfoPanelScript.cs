@@ -121,12 +121,12 @@ public class InfoPanelScript : MonoBehaviour
         InfoText.text += "\n";
         InfoText.text += "\nSurvivability: " + cell.Survivability.ToString("P");
         InfoText.text += "\nForaging Capacity: " + cell.ForagingCapacity.ToString("P");
-        InfoText.text += "\nAccessibility: " + cell.ModifiedAccessibility.ToString("P");
-        if (cell.ModifiedAccessibility != cell.Accessibility)
-            InfoText.text += "\nOriginal Accessibility: " + cell.Accessibility.ToString("P");
-        InfoText.text += "\nArability: " + cell.ModifiedArability.ToString("P");
-        if (cell.ModifiedArability != cell.Arability)
-            InfoText.text += "\nOriginal Arability: " + cell.Arability.ToString("P");
+        InfoText.text += "\nAccessibility: " + cell.Accessibility.ToString("P");
+        if (cell.Accessibility != cell.BaseAccessibility)
+            InfoText.text += "\nOriginal Accessibility: " + cell.BaseAccessibility.ToString("P");
+        InfoText.text += "\nArability: " + cell.Arability.ToString("P");
+        if (cell.Arability != cell.BaseArability)
+            InfoText.text += "\nOriginal Arability: " + cell.BaseArability.ToString("P");
         InfoText.text += "\nHilliness: " + cell.Hilliness.ToString("P");
         InfoText.text += "\n";
 

@@ -173,12 +173,6 @@ public class World : ISynchronizable
     public const float MinPossibleTemperature = -40 - AvgPossibleTemperature;
     public const float MaxPossibleTemperature = 50 - AvgPossibleTemperature;
 
-    public const float OptimalRainfallForArability = 1000;
-    public const float OptimalTemperatureForArability = 30;
-    public const float MaxRainfallForArability = 7000;
-    public const float MinRainfallForArability = 0;
-    public const float MinTemperatureForArability = -15;
-
     public const float StartPopulationDensity = 0.5f;
 
     public const int MinStartingPopulation = 100;
@@ -3408,17 +3402,15 @@ public class World : ISynchronizable
         float beta = cell.Beta;
 
         float baseArability = CalculateCellBaseArability(cell);
-
-        cell.Arability = 0;
-
+        
         if (baseArability <= 0)
             return;
 
         // This simulates things like stoniness, impracticality of drainage, excessive salts, etc.
         float noiseFactor = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius, _arabilityNoiseOffset);
 
-        cell.Arability = baseArability * noiseFactor;
-        cell.ModifiedArability = cell.Arability;
+        cell.BaseArability = baseArability * noiseFactor;
+        cell.Arability = cell.BaseArability;
     }
 
     private void GenerateTerrainArability()
@@ -3498,7 +3490,7 @@ public class World : ISynchronizable
 
         cell.Survivability = 0;
         cell.ForagingCapacity = 0;
-        cell.Accessibility = 0;
+        cell.BaseAccessibility = 0;
 
         foreach (Biome biome in Biome.Biomes.Values)
         {
@@ -3512,12 +3504,12 @@ public class World : ISynchronizable
 
                 cell.Survivability += biome.Survivability * presence;
                 cell.ForagingCapacity += biome.ForagingCapacity * presence;
-                cell.Accessibility += biome.Accessibility * presence;
+                cell.BaseAccessibility += biome.Accessibility * presence;
             }
         }
 
-        cell.Accessibility *= 1 - cell.Hilliness;
-        cell.ModifiedAccessibility = cell.Accessibility;
+        cell.BaseAccessibility *= 1 - cell.Hilliness;
+        cell.Accessibility = cell.BaseAccessibility;
 
         float altitudeSurvivabilityFactor = 1 - Mathf.Clamp01(cell.Altitude / MaxPossibleAltitude);
 
@@ -3575,28 +3567,19 @@ public class World : ISynchronizable
 
     private float CalculateCellBaseArability(TerrainCell cell)
     {
-        float landFactor = 1 - cell.SeaBiomePresence;
+        float biomeFactor = 0;
 
-        if (landFactor == 0)
-            return 0;
-
-        float rainfallFactor = 0;
-
-        if (cell.Rainfall > OptimalRainfallForArability)
+        for (int i = 0; i < cell.PresentBiomeIds.Count; i++)
         {
-            rainfallFactor = (MaxRainfallForArability - cell.Rainfall) / (MaxRainfallForArability - OptimalRainfallForArability);
-        }
-        else
-        {
-            rainfallFactor = (cell.Rainfall - MinRainfallForArability) / (OptimalRainfallForArability - MinRainfallForArability);
+            Biome biome = Biome.Biomes[cell.PresentBiomeIds[i]];
+
+            biomeFactor += biome.Arability * cell.BiomePresences[i];
         }
 
-        rainfallFactor = Mathf.Clamp01(rainfallFactor);
+        float hillinessFactor = 1 - cell.Hilliness;
+        hillinessFactor = Mathf.Clamp01(hillinessFactor);
 
-        float temperatureFactor = (cell.Temperature - MinTemperatureForArability) / (OptimalTemperatureForArability - MinTemperatureForArability);
-        temperatureFactor = Mathf.Clamp01(temperatureFactor);
-
-        return rainfallFactor * temperatureFactor * landFactor;
+        return hillinessFactor * biomeFactor;
     }
 
     private float CalculateLayerNoiseFactor(TerrainCell cell, Layer layer)
