@@ -33,7 +33,7 @@ public class GroupHasKnowledgeCondition : GroupCondition
                 throw new System.ArgumentException("GroupHasKnowledgeCondition: Min value is outside the range of 0.01 and " + CulturalKnowledge.ScaledMaxLimitValue + ": " + valueStr);
             }
 
-            MinValue = (int)(value / CulturalKnowledge.InverseValueScaleFactor);
+            MinValue = (int)(value / MathUtility.IntToFloatScalingFactor);
         }
         else
         {
@@ -69,6 +69,6 @@ public class GroupHasKnowledgeCondition : GroupCondition
     public override string ToString()
     {
         return "'Group Has Knowledge' Condition, Knowledge Id: " + KnowledgeId + 
-            ", Min Value: " + (MinValue * CulturalKnowledge.InverseValueScaleFactor);
+            ", Min Value: " + (MinValue * MathUtility.IntToFloatScalingFactor);
     }
 }

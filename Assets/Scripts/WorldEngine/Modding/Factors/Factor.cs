@@ -83,6 +83,12 @@ public abstract class Factor
             return new CellHillinessFactor(match);
         }
 
+        match = Regex.Match(factorStr, CellWoodPresenceFactor.Regex);
+        if (match.Success == true)
+        {
+            return new CellWoodPresenceFactor(match);
+        }
+
         throw new System.ArgumentException("Not a recognized factor: " + factorStr);
     }
 

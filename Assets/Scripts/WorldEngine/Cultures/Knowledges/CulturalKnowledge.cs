@@ -14,11 +14,8 @@ public class CulturalKnowledge : CulturalKnowledgeInfo
     public const int ScaledMaxLimitValue = 10000;
     public const int ScaledMinLimitValue = 1;
 
-    public const int ValueScaleFactor = 100;
-    public const float InverseValueScaleFactor = 1f / ValueScaleFactor;
-
-    public const int MinLimitValue = ScaledMinLimitValue * ValueScaleFactor;
-    public const int MaxLimitValue = ScaledMaxLimitValue * ValueScaleFactor;
+    public const int MinLimitValue = ScaledMinLimitValue * MathUtility.FloatToIntScalingFactor;
+    public const int MaxLimitValue = ScaledMaxLimitValue * MathUtility.FloatToIntScalingFactor;
 
     [XmlAttribute("V")]
     public int Value;
@@ -42,7 +39,7 @@ public class CulturalKnowledge : CulturalKnowledgeInfo
 
     public float ScaledValue
     {
-        get { return Value * InverseValueScaleFactor; }
+        get { return Value * MathUtility.IntToFloatScalingFactor; }
     }
 
     public int GetHighestLimit()

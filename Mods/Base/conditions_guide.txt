@@ -49,7 +49,7 @@ Here's a list of the current types of conditions (more to be added in future ver
     Examples: 'group_min_population:10000'
 
 - 'cell_has_sea'
-    Tests if a cell has a sea presence equal or greater than 0.01 or than the specified value (optional value between 0 and 1). The format of the constraint is as follows: 'cell_has_sea(:<min_presence>)'
+    Tests if a cell has a sea presence equal or greater than 0.01 or than the specified value (optional value between 0 and 1. See note 1). The format of the constraint is as follows: 'cell_has_sea(:<min_presence>)'
 
     Examples: 'cell_has_sea', 'cell_has_sea:0.5'
 
@@ -67,5 +67,14 @@ Here's a list of the current types of conditions (more to be added in future ver
     Tests if a cell has an hilliness value (i.e. how hilly the terrain is) equal or greater than 0.01 or than the specified value (optional value between 0 and 1). The format of the constraint is as follows: 'cell_hilliness(:<min_hilliness>)'
 
     Examples: 'cell_hilliness', 'cell_hilliness:0.4'
+
+- 'cell_wood_presence'
+    Tests if a cell has a wood presence (i.e. the total amount of biomes with the 'wood' trait) equal or greater than 0.01 or than the specified value (optional value between 0 and 1). The format of the constraint is as follows: 'cell_wood_presence(:<min_wood_presence>)'
+
+    Examples: 'cell_wood_presence', 'cell_wood_presence:0.4'
+
+
+NOTES:
+1.  The parameter has a precision limit of two decimal places (eg. 0.01 is the smallest value possible above 0, and 0.99 the largest possible below 1)
 
 --

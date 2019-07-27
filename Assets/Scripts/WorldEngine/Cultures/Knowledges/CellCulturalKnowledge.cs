@@ -86,7 +86,7 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
     {
         if ((limit < MinLimitValue) || (limit > MaxLimitValue))
         {
-            Debug.LogWarning("CulturalKnowledge: Limit can't be set below " + ScaledMinLimitValue + " or above " + ScaledMaxLimitValue + ", id: " + Id + ", limit: " + (limit * InverseValueScaleFactor));
+            Debug.LogWarning("CulturalKnowledge: Limit can't be set below " + ScaledMinLimitValue + " or above " + ScaledMaxLimitValue + ", id: " + Id + ", limit: " + (limit * MathUtility.IntToFloatScalingFactor));
 
             limit = Mathf.Clamp(limit, MinLimitValue, MaxLimitValue);
         }
@@ -100,7 +100,7 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
 
     public float ScaledLimit
     {
-        get { return Limit * InverseValueScaleFactor; }
+        get { return Limit * MathUtility.IntToFloatScalingFactor; }
     }
 
     public void UpdateProgressLevel()

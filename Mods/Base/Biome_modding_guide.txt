@@ -11,7 +11,7 @@ Biome modding files are located within the 'Biomes' folder. To be valid, mod fil
       "name":                       -- (required) String to be used by the game's UI. Please avoid using overlong strings or non-unicode characters
       "color":                      -- (required) HTML color code (#RRGGBB) to use to represent biome on map (transparency values, if added, will be ignored)
       "type":                       -- (required) Indicates if the biome is land-based or sea-based (accepted values: "land", "sea")
-      "traits":                     -- (optional) List of zero or more additional traits (accepted values: "wood", "field")
+      "traits":                     -- (optional) List of zero or more additional traits (accepted values: "wood")
 
       "minAltitude":                -- (optional) Minimum cell altitude at which this biome can be present, a value of '0' refers to sea level (meters)
       "maxAltitude":                -- (optional) Maximum cell altitude at which this biome can be present, a value of '0' refers to sea level (meters)

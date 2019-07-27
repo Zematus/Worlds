@@ -8,7 +8,7 @@ public class ApplyCellArabilityModifierEffect : Effect
     public const string Regex = @"^\s*apply_cell_arability_modifier\s*" +
         @":\s*(?<value>" + ModUtility.NumberRegexPart + @")\s*$";
     
-    public float ArabilityDelta;
+    public int ArabilityDelta;
 
     public ApplyCellArabilityModifierEffect(Match match, string id) :
         base(id)
@@ -28,7 +28,7 @@ public class ApplyCellArabilityModifierEffect : Effect
                 -1 + " and " + 1 + ": " + valueStr);
         }
 
-        ArabilityDelta = value;
+        ArabilityDelta = (int)(value * MathUtility.FloatToIntScalingFactor);
     }
 
     public override void Apply(CellGroup group)
@@ -43,6 +43,6 @@ public class ApplyCellArabilityModifierEffect : Effect
 
     public override string ToString()
     {
-        return "'Apply Cell Arability Modifier' Effect, Value: " + ArabilityDelta;
+        return "'Apply Cell Arability Modifier' Effect, Value: " + (ArabilityDelta * MathUtility.IntToFloatScalingFactor);
     }
 }

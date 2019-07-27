@@ -22,6 +22,7 @@
       "maxTemperature": -15,
       "survivability": 0.0,
       "foragingCapacity": 0.0001,
+      "accessibility": 0.5,
       "arability": 0.0
     },
     {
@@ -41,7 +42,6 @@
       "name": "grassland",
       "color": "#A7B154",
       "type": "land",
-      "traits": ["field"],
       "minAltitude": 0,
       "minRainfall": 15,
       "maxRainfall": 1575,
@@ -49,7 +49,7 @@
       "survivability": 1.0,
       "foragingCapacity": 0.4,
       "accessibility": 1.0,
-      "arability": 1.0
+      "arability": 0.5
     },
     {
       "id": "forest",
@@ -79,14 +79,13 @@
       "survivability": 0.2,
       "foragingCapacity": 0.2,
       "accessibility": 0.4,
-      "arability": 0.2
+      "arability": 0.1
     },
     {
       "id": "tundra",
       "name": "tundra",
       "color": "#8D9A83",
       "type": "land",
-      "traits": ["field"],
       "minAltitude": 0,
       "minRainfall": 15,
       "maxRainfall": 1575,
@@ -95,7 +94,7 @@
       "survivability": 0.0,
       "foragingCapacity": 0.02,
       "accessibility":1.0,
-      "arability": 0.4
+      "arability": 0.2
     },
     {
       "id": "desertic_tundra",

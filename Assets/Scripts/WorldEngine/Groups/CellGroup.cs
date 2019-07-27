@@ -116,9 +116,9 @@ public class CellGroup : HumanGroup
     public long TribeFormationEventDate;
 
     [XmlAttribute("ArM")]
-    public float ArabilityModifier = 0;
+    public int ArabilityModifier = 0;
     [XmlAttribute("AcM")]
-    public float AccessibilityModifier = 0;
+    public int AccessibilityModifier = 0;
 
     public Route SeaMigrationRoute = null;
 
@@ -2282,7 +2282,7 @@ public class CellGroup : HumanGroup
     {
         if (ArabilityModifier > 0)
         {
-            float modifiedArability = Cell.BaseArability + (1 - Cell.BaseArability) * ArabilityModifier;
+            float modifiedArability = Cell.BaseArability + (1 - Cell.BaseArability) * ArabilityModifier * MathUtility.IntToFloatScalingFactor;
 
             if (modifiedArability != Cell.Arability)
             {
@@ -2296,7 +2296,7 @@ public class CellGroup : HumanGroup
 
         if (AccessibilityModifier > 0)
         {
-            float modifiedAccessibility = Cell.BaseAccessibility + (1 - Cell.BaseAccessibility) * AccessibilityModifier;
+            float modifiedAccessibility = Cell.BaseAccessibility + (1 - Cell.BaseAccessibility) * AccessibilityModifier * MathUtility.IntToFloatScalingFactor;
 
             if (modifiedAccessibility != Cell.Accessibility)
             {
@@ -3286,28 +3286,28 @@ public class CellGroup : HumanGroup
         return _properties;
     }
 
-    public void ApplyArabilityModifier(float delta)
+    public void ApplyArabilityModifier(int delta)
     {
-        float value = ArabilityModifier + delta;
+        int value = ArabilityModifier + delta;
 
         if (value < 0)
         {
             Debug.LogWarning("Can't set an arability modifier lower than 0: " + value);
         }
 
-        ArabilityModifier = Mathf.Clamp01(value);
+        ArabilityModifier = Mathf.Clamp(value, 0, 100);
     }
 
-    public void ApplyAccessibilityModifier(float delta)
+    public void ApplyAccessibilityModifier(int delta)
     {
-        float value = AccessibilityModifier + delta;
+        int value = AccessibilityModifier + delta;
 
         if (value < 0)
         {
             Debug.LogWarning("Can't set an accessibility modifier lower than 0: " + value);
         }
 
-        AccessibilityModifier = Mathf.Clamp01(value);
+        AccessibilityModifier = Mathf.Clamp(value, 0, 100);
     }
 
     public void RemoveProperty(string property)

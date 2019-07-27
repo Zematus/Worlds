@@ -8,7 +8,7 @@ public class ApplyCellAccessibilityModifierEffect : Effect
     public const string Regex = @"^\s*apply_cell_accessibility_modifier\s*" +
         @":\s*(?<value>" + ModUtility.NumberRegexPart + @")\s*$";
 
-    public float AccessibilityDelta;
+    public int AccessibilityDelta;
 
     public ApplyCellAccessibilityModifierEffect(Match match, string id) :
         base(id)
@@ -28,7 +28,7 @@ public class ApplyCellAccessibilityModifierEffect : Effect
                 -1 + " and " + 1 + ": " + valueStr);
         }
 
-        AccessibilityDelta = value;
+        AccessibilityDelta = (int)(value * MathUtility.FloatToIntScalingFactor);
     }
 
     public override void Apply(CellGroup group)
@@ -43,6 +43,6 @@ public class ApplyCellAccessibilityModifierEffect : Effect
 
     public override string ToString()
     {
-        return "'Apply Cell Accessibility Modifier' Effect, Value: " + AccessibilityDelta;
+        return "'Apply Cell Accessibility Modifier' Effect, Value: " + (AccessibilityDelta * MathUtility.IntToFloatScalingFactor);
     }
 }

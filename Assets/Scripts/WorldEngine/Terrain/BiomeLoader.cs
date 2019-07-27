@@ -128,9 +128,6 @@ public class BiomeLoader
                     case "wood":
                         biome.Traits.Add(BiomeTrait.Wood);
                         break;
-                    case "field":
-                        biome.Traits.Add(BiomeTrait.Field);
-                        break;
                     default:
                         throw new ArgumentException("Unknown biome trait: " + trait);
                 }

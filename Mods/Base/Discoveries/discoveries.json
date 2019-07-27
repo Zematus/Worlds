@@ -41,6 +41,16 @@
       "eventTimeToTriggerFactors": ["[INV]cell_hilliness"]
     },
     {
+      "id": "slash_and_burn",
+      "name": "slash-and-burn",
+      "gainConditions": ["group_has_knowledge:agriculture,4", "cell_arability:0.2", "cell_accessibility:0.2", "cell_wood_presence:0.5"],
+      "holdConditions": ["group_has_knowledge:agriculture,2", "cell_arability:0.1", "cell_accessibility:0.1", "cell_wood_presence:0.2"],
+      "gainEffects": ["apply_cell_arability_modifier:0.5", "apply_cell_accessibility_modifier:0.7"],
+      "lossEffects": ["apply_cell_arability_modifier:-0.5", "apply_cell_accessibility_modifier:-0.7"],
+      "eventTimeToTrigger": 91250000,
+      "eventTimeToTriggerFactors": ["[INV]cell_wood_presence"]
+    },
+    {
       "id": "tribalism",
       "name": "tribalism",
       "gainConditions": ["group_has_knowledge:social_organization,6", "group_population:500"],

@@ -180,7 +180,7 @@ public class World : ISynchronizable
 
     public const float MinSurvivabilityForRandomGroupPlacement = 0.15f;
 
-    public const float TerrainGenerationSteps = 7;
+    public const float TerrainGenerationSteps = 8;
 
     public static Dictionary<string, IWorldEventGenerator> EventGenerators;
 
@@ -736,7 +736,7 @@ public class World : ISynchronizable
 
         GenerateTerrainLayers(cell);
         GenerateTerrainBiomes(cell);
-        GenerateTerrainArability(cell);
+        CalculateTerrainArability(cell);
 
         cell.InitializeMiscellaneous();
 
@@ -764,7 +764,7 @@ public class World : ISynchronizable
         }
 
         GenerateTerrainBiomes(cell);
-        GenerateTerrainArability(cell);
+        CalculateTerrainArability(cell);
 
         cell.InitializeMiscellaneous();
 
@@ -2075,7 +2075,7 @@ public class World : ISynchronizable
 
         ProgressCastMethod(_accumulatedProgress, "Calculating hilliness...");
 
-        GenerateTerrainHilliness();
+        CalculateTerrainHilliness();
 
         if ((type & GenerationType.Rainfall) == GenerationType.Rainfall)
         {
@@ -2127,7 +2127,11 @@ public class World : ISynchronizable
 
         ProgressCastMethod(_accumulatedProgress, "Generating arability...");
 
-        GenerateTerrainArability();
+        CalculateTerrainArability();
+
+        ProgressCastMethod(_accumulatedProgress, "Generating wood presence...");
+
+        CalculateTerrainWoodPresence();
 
         // These rng values will be later used by the editor brushes when needed but we need to prepare them beforehand
         OffsetBrushRngCalls();
@@ -2490,12 +2494,13 @@ public class World : ISynchronizable
 
         foreach (TerrainCell cell in _cellsToRegen)
         {
-            GenerateTerrainHilliness(cell);
+            CalculateTerrainHilliness(cell);
             GenerateTerrainRainfall(cell, setDependencies: false);
             GenerateTerrainTemperature(cell);
             GenerateTerrainLayers(cell);
             GenerateTerrainBiomes(cell);
-            GenerateTerrainArability(cell);
+            CalculateTerrainArability(cell);
+            CalculateTerrainWoodPresence(cell);
         }
 
         _cellsToRegen.Clear();
@@ -2529,7 +2534,7 @@ public class World : ISynchronizable
 
         GenerateTerrainLayers(cell);
         GenerateTerrainBiomes(cell);
-        GenerateTerrainArability(cell);
+        CalculateTerrainArability(cell);
 
         Manager.ActiveEditorBrushAction.AddCellAfterModification(cell);
     }
@@ -2553,7 +2558,7 @@ public class World : ISynchronizable
 
         GenerateTerrainLayers(cell);
         GenerateTerrainBiomes(cell);
-        GenerateTerrainArability(cell);
+        CalculateTerrainArability(cell);
 
         Manager.ActiveEditorBrushAction.AddCellAfterModification(cell);
     }
@@ -2577,7 +2582,7 @@ public class World : ISynchronizable
         CalculateAndSetTerrainLayerValue(cell, Layer.Layers[layerId], valueOffset);
         
         GenerateTerrainBiomes(cell);
-        GenerateTerrainArability(cell);
+        CalculateTerrainArability(cell);
 
         Manager.ActiveEditorBrushAction.AddCellAfterModification(cell);
     }
@@ -3284,7 +3289,7 @@ public class World : ISynchronizable
         if (temperature < MinTemperature) MinTemperature = temperature;
     }
 
-    private void GenerateTerrainHilliness(TerrainCell cell)
+    private void CalculateTerrainHilliness(TerrainCell cell)
     {
         float altitudeDelta = 0;
         float cellAltitude = cell.Altitude;
@@ -3299,6 +3304,23 @@ public class World : ISynchronizable
         float slope = (altitudeDelta * altitudeDelta) / cell.Area;
 
         cell.Hilliness = Mathf.Clamp01(slope * TerrainCell.HillinessSlopeFactor);
+    }
+
+    private void CalculateTerrainWoodPresence(TerrainCell cell)
+    {
+        float biomeFactor = 0;
+
+        for (int i = 0; i < cell.PresentBiomeIds.Count; i++)
+        {
+            Biome biome = Biome.Biomes[cell.PresentBiomeIds[i]];
+
+            if (biome.Traits.Contains(BiomeTrait.Wood))
+            {
+                biomeFactor += cell.BiomePresences[i];
+            }
+        }
+
+        cell.WoodPresence = Mathf.Clamp01(biomeFactor);
     }
 
     private void GenerateTerrainTemperature(TerrainCell cell)
@@ -3348,7 +3370,7 @@ public class World : ISynchronizable
         //#endif
     }
 
-    private void GenerateTerrainHilliness()
+    private void CalculateTerrainHilliness()
     {
         int sizeX = Width;
         int sizeY = Height;
@@ -3357,11 +3379,25 @@ public class World : ISynchronizable
         {
             for (int j = 0; j < sizeY; j++)
             {
-                // TODO: Remove comments when sure that this is not necessary
-                //if (SkipIfModified(i, j))
-                //    continue;
+                CalculateTerrainHilliness(TerrainCells[i][j]);
+            }
 
-                GenerateTerrainHilliness(TerrainCells[i][j]);
+            ProgressCastMethod(_accumulatedProgress + _progressIncrement * (i + 1) / (float)sizeX);
+        }
+
+        _accumulatedProgress += _progressIncrement;
+    }
+
+    private void CalculateTerrainWoodPresence()
+    {
+        int sizeX = Width;
+        int sizeY = Height;
+
+        for (int i = 0; i < sizeX; i++)
+        {
+            for (int j = 0; j < sizeY; j++)
+            {
+                CalculateTerrainWoodPresence(TerrainCells[i][j]);
             }
 
             ProgressCastMethod(_accumulatedProgress + _progressIncrement * (i + 1) / (float)sizeX);
@@ -3394,17 +3430,33 @@ public class World : ISynchronizable
         _accumulatedProgress += _progressIncrement;
     }
 
-    private void GenerateTerrainArability(TerrainCell cell)
+    private void CalculateTerrainArability(TerrainCell cell)
     {
         float radius = 2f;
         
         float alpha = cell.Alpha;
         float beta = cell.Beta;
 
-        float baseArability = CalculateCellBaseArability(cell);
-        
+        float biomeFactor = 0;
+
+        for (int i = 0; i < cell.PresentBiomeIds.Count; i++)
+        {
+            Biome biome = Biome.Biomes[cell.PresentBiomeIds[i]];
+
+            biomeFactor += biome.Arability * cell.BiomePresences[i];
+        }
+
+        float hillinessFactor = 1 - cell.Hilliness;
+        hillinessFactor = Mathf.Clamp01(hillinessFactor);
+
+        float baseArability = hillinessFactor * biomeFactor;
+
         if (baseArability <= 0)
+        {
+            cell.BaseArability = 0;
+            cell.Arability = 0;
             return;
+        }
 
         // This simulates things like stoniness, impracticality of drainage, excessive salts, etc.
         float noiseFactor = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius, _arabilityNoiseOffset);
@@ -3413,7 +3465,7 @@ public class World : ISynchronizable
         cell.Arability = cell.BaseArability;
     }
 
-    private void GenerateTerrainArability()
+    private void CalculateTerrainArability()
     {
         int sizeX = Width;
         int sizeY = Height;
@@ -3424,7 +3476,7 @@ public class World : ISynchronizable
         {
             for (int j = 0; j < sizeY; j++)
             {
-                GenerateTerrainArability(TerrainCells[i][j]);
+                CalculateTerrainArability(TerrainCells[i][j]);
             }
 
             ProgressCastMethod(_accumulatedProgress + _progressIncrement * (i + 1) / (float)sizeX);
