@@ -141,6 +141,7 @@ public class GuiManagerScript : MonoBehaviour
         PlanetOverlay.Arability,
         PlanetOverlay.Accessibility,
         PlanetOverlay.Hilliness,
+        PlanetOverlay.WoodPresence,
         PlanetOverlay.Layer,
         PlanetOverlay.Region,
         PlanetOverlay.Language
@@ -1057,7 +1058,7 @@ public class GuiManagerScript : MonoBehaviour
             {
                 SelectAndCenterOnCell(discoveryEventMessage.Position);
 
-                SetPopCulturalDiscoveryOverlay(discoveryEventMessage.DiscoveryName);
+                SetPopCulturalDiscoveryOverlay(discoveryEventMessage.Discovery.Id);
             });
         }
         else if (eventMessage is CellEventMessage)
@@ -1690,6 +1691,9 @@ public class GuiManagerScript : MonoBehaviour
             case PlanetOverlay.Hilliness:
                 planetOverlayStr = "_hilliness";
                 break;
+            case PlanetOverlay.WoodPresence:
+                planetOverlayStr = "_woodPresence";
+                break;
             case PlanetOverlay.Layer:
                 planetOverlayStr = "_layer_" + _planetOverlaySubtype;
                 break;
@@ -2088,6 +2092,10 @@ public class GuiManagerScript : MonoBehaviour
         else if (OverlayDialogPanelScript.HillinessToggle.isOn)
         {
             ChangePlanetOverlay(PlanetOverlay.Hilliness, false);
+        }
+        else if (OverlayDialogPanelScript.WoodPresenceToggle.isOn)
+        {
+            ChangePlanetOverlay(PlanetOverlay.WoodPresence, false);
         }
         else if (OverlayDialogPanelScript.LayerToggle.isOn)
         {

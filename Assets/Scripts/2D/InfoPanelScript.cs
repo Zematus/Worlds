@@ -108,14 +108,25 @@ public class InfoPanelScript : MonoBehaviour
             InfoText.text += "\n";
         }
 
+        InfoText.text += "\nBiomes:";
+
+        float farmlandPerc = cell.FarmlandPercentage;
+        float wildPerc = 1 - farmlandPerc;
+
         for (int i = 0; i < cell.PresentBiomeIds.Count; i++)
         {
-            float percentage = cell.BiomePresences[i];
+            float percentage = cell.BiomePresences[i] * wildPerc;
 
             Biome biome = Biome.Biomes[cell.PresentBiomeIds[i]];
 
-            InfoText.text += "\nBiome: " + biome.Name.FirstLetterToUpper();
+            InfoText.text += "\n\t" + biome.Name.FirstLetterToUpper() + ":";
             InfoText.text += " (" + percentage.ToString("P") + ")";
+        }
+
+        if (farmlandPerc > 0)
+        {
+            InfoText.text += "\n\tFarmland:";
+            InfoText.text += " (" + farmlandPerc.ToString("P") + ")";
         }
 
         InfoText.text += "\n";
@@ -128,6 +139,7 @@ public class InfoPanelScript : MonoBehaviour
         if (cell.Arability != cell.BaseArability)
             InfoText.text += "\nOriginal Arability: " + cell.BaseArability.ToString("P");
         InfoText.text += "\nHilliness: " + cell.Hilliness.ToString("P");
+        InfoText.text += "\nWood Presence: " + (cell.WoodPresence * wildPerc).ToString("P");
         InfoText.text += "\n";
 
         Region region = cell.Region;
@@ -285,8 +297,8 @@ public class InfoPanelScript : MonoBehaviour
         cell.Group.CalculateAdaptionToCell(cell, out modifiedForagingCapacity, out modifiedSurvivability);
 
         InfoText.text += "\n";
-        InfoText.text += "\nModified Survivability: " + modifiedSurvivability.ToString("P");
-        InfoText.text += "\nModified Foraging Capacity: " + modifiedForagingCapacity.ToString("P");
+        InfoText.text += "\nSurvivability: " + modifiedSurvivability.ToString("P");
+        InfoText.text += "\nForaging Capacity: " + modifiedForagingCapacity.ToString("P");
     }
 
     private void AddCellDataToInfoPanel_Language(TerrainCell cell)
@@ -1156,6 +1168,7 @@ public class InfoPanelScript : MonoBehaviour
             (Manager.PlanetOverlay == PlanetOverlay.Arability) ||
             (Manager.PlanetOverlay == PlanetOverlay.Accessibility) ||
             (Manager.PlanetOverlay == PlanetOverlay.Hilliness) ||
+            (Manager.PlanetOverlay == PlanetOverlay.WoodPresence) ||
             (Manager.PlanetOverlay == PlanetOverlay.Layer) ||
             (Manager.PlanetOverlay == PlanetOverlay.Temperature))
         {

@@ -18,7 +18,7 @@ public class AdjectiveLoader
     {
         public string id;
         public string word;
-        public string regionConstraints;
+        public string[] regionConstraints;
     }
 
 #pragma warning restore 0649
@@ -47,16 +47,7 @@ public class AdjectiveLoader
             throw new ArgumentException("adjective word can't be null or empty");
         }
         
-        string[] constraints = null;
-
-        if (!string.IsNullOrEmpty(adj.regionConstraints))
-        {
-            //Cleanup and split list of constraints
-            string c = Regex.Replace(adj.regionConstraints, ModUtility.FirstAndLastSingleQuoteRegex, "");
-            constraints = Regex.Split(c, ModUtility.SeparatorSingleQuoteRegex);
-        }
-        
-        Adjective adjective = new Adjective(adj.id, adj.word, constraints);
+        Adjective adjective = new Adjective(adj.id, adj.word, adj.regionConstraints);
 
         return adjective;
     }

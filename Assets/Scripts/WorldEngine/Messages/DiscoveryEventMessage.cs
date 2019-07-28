@@ -6,22 +6,26 @@ using System.Xml.Serialization;
 
 public class DiscoveryEventMessage : CellEventMessage
 {
-    [XmlAttribute]
-    public string DiscoveryName;
+    [XmlAttribute("DId")]
+    public string DiscoveryId;
+
+    [XmlIgnore]
+    public Discovery Discovery;
 
     public DiscoveryEventMessage()
     {
 
     }
 
-    public DiscoveryEventMessage(string discoveryName, TerrainCell cell, long id, long date) : base(cell, id, date)
+    public DiscoveryEventMessage(Discovery discovery, TerrainCell cell, long id, long date) : base(cell, id, date)
     {
-        DiscoveryName = discoveryName;
+        DiscoveryId = discovery.Id;
+        Discovery = discovery;
     }
 
     protected override string GenerateMessage()
     {
-        string prefix = DiscoveryName + " discovered";
+        string prefix = Discovery.Name + " discovered";
 
         Territory territory = World.GetCell(Position).EncompassingTerritory;
 

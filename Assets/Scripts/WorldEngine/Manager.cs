@@ -56,6 +56,7 @@ public enum PlanetOverlay
     Arability,
     Accessibility,
     Hilliness,
+    WoodPresence,
     Layer,
     Region,
     Language,
@@ -1470,6 +1471,7 @@ public class Manager
             (overlay == PlanetOverlay.Arability) ||
             (overlay == PlanetOverlay.Accessibility) ||
             (overlay == PlanetOverlay.Hilliness) ||
+            (overlay == PlanetOverlay.WoodPresence) ||
             (overlay == PlanetOverlay.Layer) ||
             (overlay == PlanetOverlay.Rainfall) ||
             (overlay == PlanetOverlay.Temperature) ||
@@ -1515,6 +1517,7 @@ public class Manager
             (overlay == PlanetOverlay.Arability) ||
             (overlay == PlanetOverlay.Accessibility) ||
             (overlay == PlanetOverlay.Hilliness) ||
+            (overlay == PlanetOverlay.WoodPresence) ||
             (overlay == PlanetOverlay.Layer) ||
             (overlay == PlanetOverlay.Rainfall) ||
             (overlay == PlanetOverlay.Temperature) ||
@@ -2628,6 +2631,10 @@ public class Manager
                 color = SetHillinessOverlayColor(cell, color);
                 break;
 
+            case PlanetOverlay.WoodPresence:
+                color = SetWoodPresenceOverlayColor(cell, color);
+                break;
+
             case PlanetOverlay.Layer:
                 color = SetLayerOverlayColor(cell, color);
                 break;
@@ -2770,6 +2777,11 @@ public class Manager
             color.r += biomeColor.r * biomePresence;
             color.g += biomeColor.g * biomePresence;
             color.b += biomeColor.b * biomePresence;
+        }
+
+        if (cell.FarmlandPercentage > 0)
+        {
+            color = color * (1 - cell.FarmlandPercentage) + GetOverlayColor(OverlayColorId.Farmland) * cell.FarmlandPercentage;
         }
 
         return color * slantFactor * altitudeFactor;
@@ -3760,6 +3772,19 @@ public class Manager
         color.b = greyscale / 6f;
 
         color += (2 / 6f) * GetLowMedHighColor(1 - cell.Hilliness);
+
+        return color;
+    }
+
+    private static Color SetWoodPresenceOverlayColor(TerrainCell cell, Color color)
+    {
+        float greyscale = (color.r + color.g + color.b);
+
+        color.r = greyscale / 6f;
+        color.g = greyscale / 6f;
+        color.b = greyscale / 6f;
+
+        color += (2 / 6f) * GetLowMedHighColor(cell.WoodPresence * (1 - cell.FarmlandPercentage));
 
         return color;
     }

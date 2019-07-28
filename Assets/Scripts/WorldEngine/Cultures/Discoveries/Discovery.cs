@@ -33,7 +33,7 @@ public class Discovery : ICellGroupEventGenerator
 
             if (!world.HasEventMessage(_discovery.UId))
             {
-                eventMessage = new DiscoveryEventMessage(_discovery.Name, cell, _discovery.UId, TriggerDate);
+                eventMessage = new DiscoveryEventMessage(_discovery, cell, _discovery.UId, TriggerDate);
 
                 world.AddEventMessage(eventMessage);
             }
@@ -45,7 +45,7 @@ public class Discovery : ICellGroupEventGenerator
                 if (!encompassingPolity.HasEventMessage(_discovery.UId))
                 {
                     if (eventMessage == null)
-                        eventMessage = new DiscoveryEventMessage(_discovery.Name, cell, _discovery.UId, TriggerDate);
+                        eventMessage = new DiscoveryEventMessage(_discovery, cell, _discovery.UId, TriggerDate);
 
                     encompassingPolity.AddEventMessage(eventMessage);
                 }
