@@ -139,7 +139,7 @@ public class InfoPanelScript : MonoBehaviour
         if (cell.Arability != cell.BaseArability)
             InfoText.text += "\nOriginal Arability: " + cell.BaseArability.ToString("P");
         InfoText.text += "\nHilliness: " + cell.Hilliness.ToString("P");
-        InfoText.text += "\nWood Presence: " + (cell.WoodPresence * wildPerc).ToString("P");
+        InfoText.text += "\nWood Coverage: " + (cell.WoodCoverage * wildPerc).ToString("P");
         InfoText.text += "\n";
 
         Region region = cell.Region;
@@ -1168,7 +1168,7 @@ public class InfoPanelScript : MonoBehaviour
             (Manager.PlanetOverlay == PlanetOverlay.Arability) ||
             (Manager.PlanetOverlay == PlanetOverlay.Accessibility) ||
             (Manager.PlanetOverlay == PlanetOverlay.Hilliness) ||
-            (Manager.PlanetOverlay == PlanetOverlay.WoodPresence) ||
+            (Manager.PlanetOverlay == PlanetOverlay.WoodCoverage) ||
             (Manager.PlanetOverlay == PlanetOverlay.Layer) ||
             (Manager.PlanetOverlay == PlanetOverlay.Temperature))
         {

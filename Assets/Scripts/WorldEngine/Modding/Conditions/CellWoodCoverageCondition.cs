@@ -3,16 +3,16 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class CellWoodPresenceCondition : CellCondition
+public class CellWoodCoverageCondition : CellCondition
 {
     public const float DefaultMinValue = 0.01f;
     
-    public const string Regex = @"^\s*cell_wood_presence\s*" +
+    public const string Regex = @"^\s*cell_wood_coverage\s*" +
         @"(?::\s*(?<value>" + ModUtility.NumberRegexPart + @")\s*)?$";
 
     public float MinValue;
 
-    public CellWoodPresenceCondition(Match match)
+    public CellWoodCoverageCondition(Match match)
     {
         if (!string.IsNullOrEmpty(match.Groups["value"].Value))
         {
@@ -20,12 +20,12 @@ public class CellWoodPresenceCondition : CellCondition
 
             if (!float.TryParse(valueStr, out MinValue))
             {
-                throw new System.ArgumentException("CellWoodPresenceCondition: Min value can't be parsed into a valid floating point number: " + valueStr);
+                throw new System.ArgumentException("CellWoodCoverageCondition: Min value can't be parsed into a valid floating point number: " + valueStr);
             }
 
             if (!MinValue.IsInsideRange(0, 1))
             {
-                throw new System.ArgumentException("CellWoodPresenceCondition: Min value is outside the range of 0 and 1: " + valueStr);
+                throw new System.ArgumentException("CellWoodCoverageCondition: Min value is outside the range of 0 and 1: " + valueStr);
             }
         }
         else
@@ -36,7 +36,7 @@ public class CellWoodPresenceCondition : CellCondition
 
     public override bool Evaluate(TerrainCell cell)
     {
-        return cell.WoodPresence >= MinValue;
+        return cell.WoodCoverage >= MinValue;
     }
 
     public override string GetPropertyValue(string propertyId)
@@ -46,6 +46,6 @@ public class CellWoodPresenceCondition : CellCondition
 
     public override string ToString()
     {
-        return "'Cell Wood Presence' Condition, Min Value: " + MinValue;
+        return "'Cell Wood Coverage' Condition, Min Value: " + MinValue;
     }
 }

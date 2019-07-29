@@ -3320,7 +3320,7 @@ public class World : ISynchronizable
             }
         }
 
-        cell.WoodPresence = Mathf.Clamp01(biomeFactor);
+        cell.WoodCoverage = Mathf.Clamp01(biomeFactor);
     }
 
     private void GenerateTerrainTemperature(TerrainCell cell)

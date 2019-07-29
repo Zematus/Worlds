@@ -105,7 +105,7 @@ public class TerrainCell : ISynchronizable
     [XmlAttribute]
     public float Hilliness;
     [XmlAttribute]
-    public float WoodPresence;
+    public float WoodCoverage;
 
     [XmlAttribute]
     public bool IsPartOfCoastline;

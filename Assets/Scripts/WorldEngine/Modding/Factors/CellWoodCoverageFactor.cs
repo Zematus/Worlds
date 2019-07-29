@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 
 public class CellWoodPresenceFactor : Factor
 {
-    public const string Regex = @"^\s*cell_wood_presence\s*$";
+    public const string Regex = @"^\s*cell_wood_coverage\s*$";
 
     public CellWoodPresenceFactor(Match match)
     {
@@ -18,7 +18,7 @@ public class CellWoodPresenceFactor : Factor
 
     public override float Calculate(TerrainCell cell)
     {
-        return cell.WoodPresence;
+        return cell.WoodCoverage;
     }
 
     public override string ToString()

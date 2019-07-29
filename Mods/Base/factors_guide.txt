@@ -36,9 +36,9 @@ Here's a list of the current types of factors (more to be added in future versio
 
     Examples: 'cell_hilliness', '[INV]cell_hilliness'
 
-- 'cell_wood_presence'
-    Returns the wood presence (i.e. the total amount of biomes with the 'wood' trait) of the terrain cell as a value between 0 and 1
+- 'cell_wood_coverage'
+    Returns the wood coverage (i.e. the total amount of biome presence on a cell with the 'wood' trait) of the terrain cell as a value between 0 and 1
 
-    Examples: 'cell_wood_presence', '[INV]cell_wood_presence'
+    Examples: 'cell_wood_coverage', '[INV]cell_wood_coverage'
 
 --

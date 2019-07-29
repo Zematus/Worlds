@@ -56,7 +56,7 @@ public enum PlanetOverlay
     Arability,
     Accessibility,
     Hilliness,
-    WoodPresence,
+    WoodCoverage,
     Layer,
     Region,
     Language,
@@ -1471,7 +1471,7 @@ public class Manager
             (overlay == PlanetOverlay.Arability) ||
             (overlay == PlanetOverlay.Accessibility) ||
             (overlay == PlanetOverlay.Hilliness) ||
-            (overlay == PlanetOverlay.WoodPresence) ||
+            (overlay == PlanetOverlay.WoodCoverage) ||
             (overlay == PlanetOverlay.Layer) ||
             (overlay == PlanetOverlay.Rainfall) ||
             (overlay == PlanetOverlay.Temperature) ||
@@ -1517,7 +1517,7 @@ public class Manager
             (overlay == PlanetOverlay.Arability) ||
             (overlay == PlanetOverlay.Accessibility) ||
             (overlay == PlanetOverlay.Hilliness) ||
-            (overlay == PlanetOverlay.WoodPresence) ||
+            (overlay == PlanetOverlay.WoodCoverage) ||
             (overlay == PlanetOverlay.Layer) ||
             (overlay == PlanetOverlay.Rainfall) ||
             (overlay == PlanetOverlay.Temperature) ||
@@ -2631,8 +2631,8 @@ public class Manager
                 color = SetHillinessOverlayColor(cell, color);
                 break;
 
-            case PlanetOverlay.WoodPresence:
-                color = SetWoodPresenceOverlayColor(cell, color);
+            case PlanetOverlay.WoodCoverage:
+                color = SetWoodCoverageOverlayColor(cell, color);
                 break;
 
             case PlanetOverlay.Layer:
@@ -3776,7 +3776,7 @@ public class Manager
         return color;
     }
 
-    private static Color SetWoodPresenceOverlayColor(TerrainCell cell, Color color)
+    private static Color SetWoodCoverageOverlayColor(TerrainCell cell, Color color)
     {
         float greyscale = (color.r + color.g + color.b);
 
@@ -3784,7 +3784,7 @@ public class Manager
         color.g = greyscale / 6f;
         color.b = greyscale / 6f;
 
-        color += (2 / 6f) * GetLowMedHighColor(cell.WoodPresence * (1 - cell.FarmlandPercentage));
+        color += (2 / 6f) * GetLowMedHighColor(cell.WoodCoverage * (1 - cell.FarmlandPercentage));
 
         return color;
     }

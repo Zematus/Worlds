@@ -68,10 +68,10 @@ Here's a list of the current types of conditions (more to be added in future ver
 
     Examples: 'cell_hilliness', 'cell_hilliness:0.4'
 
-- 'cell_wood_presence'
-    Tests if a cell has a wood presence (i.e. the total amount of biomes with the 'wood' trait) equal or greater than 0.01 or than the specified value (optional value between 0 and 1). The format of the constraint is as follows: 'cell_wood_presence(:<min_wood_presence>)'
+- 'cell_wood_coverage'
+    Tests if a cell has a wood coverage (i.e. the total amount of biome presence on a cell with the 'wood' trait) equal or greater than 0.01 or than the specified value (optional value between 0 and 1). The format of the constraint is as follows: 'cell_wood_coverage(:<min_wood_coverage>)'
 
-    Examples: 'cell_wood_presence', 'cell_wood_presence:0.4'
+    Examples: 'cell_wood_coverage', 'cell_wood_coverage:0.4'
 
 
 NOTES:

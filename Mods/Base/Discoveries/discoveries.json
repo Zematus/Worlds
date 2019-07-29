@@ -11,12 +11,32 @@
       "eventTimeToTriggerFactors": ["[INV]neighborhood_sea_presence"]
     },
     {
-      "id": "sailing",
-      "name": "sailing",
+      "id": "rudders",
+      "name": "rudders",
       "gainConditions": ["group_has_knowledge:shipbuilding,5", "[ANY_N_CELL]cell_has_sea"],
       "holdConditions": ["group_has_knowledge:shipbuilding,3"],
-      "gainEffects": ["modify_group_knowledge_limit:shipbuilding,20"],
-      "lossEffects": ["modify_group_knowledge_limit:shipbuilding,-20"],
+      "gainEffects": ["modify_group_knowledge_limit:shipbuilding,5", "modify_group_skill_factor:seafaring,0.5"],
+      "lossEffects": ["modify_group_knowledge_limit:shipbuilding,-5", "modify_group_skill_factor:seafaring,-0.5"],
+      "eventTimeToTrigger": 91250000,
+      "eventTimeToTriggerFactors": ["[INV]neighborhood_sea_presence"]
+    },
+    {
+      "id": "sailing",
+      "name": "sailing",
+      "gainConditions": ["group_has_knowledge:shipbuilding,10", "[AT_LEAST_N_CELLS:3]cell_has_sea"],
+      "holdConditions": ["group_has_knowledge:shipbuilding,7"],
+      "gainEffects": ["modify_group_knowledge_limit:shipbuilding,15"],
+      "lossEffects": ["modify_group_knowledge_limit:shipbuilding,-15"],
+      "eventTimeToTrigger": 91250000,
+      "eventTimeToTriggerFactors": ["[INV]neighborhood_sea_presence"]
+    },
+    {
+      "id": "keels",
+      "name": "keels",
+      "gainConditions": ["group_has_knowledge:shipbuilding,15", "[ANY_N_CELL]cell_has_sea"],
+      "holdConditions": ["group_has_knowledge:shipbuilding,12"],
+      "gainEffects": ["modify_navigation_range_factor:0.5"],
+      "lossEffects": ["modify_navigation_range_factor:-0.5"],
       "eventTimeToTrigger": 91250000,
       "eventTimeToTriggerFactors": ["[INV]neighborhood_sea_presence"]
     },
@@ -43,12 +63,12 @@
     {
       "id": "slash_and_burn",
       "name": "slash-and-burn",
-      "gainConditions": ["group_has_knowledge:agriculture,4", "cell_arability:0.2", "cell_accessibility:0.2", "cell_wood_presence:0.3"],
-      "holdConditions": ["group_has_knowledge:agriculture,2", "cell_arability:0.1", "cell_accessibility:0.1", "cell_wood_presence:0.2"],
+      "gainConditions": ["group_has_knowledge:agriculture,4", "cell_arability:0.2", "cell_accessibility:0.2", "cell_wood_coverage:0.3"],
+      "holdConditions": ["group_has_knowledge:agriculture,2", "cell_arability:0.1", "cell_accessibility:0.1", "cell_wood_coverage:0.2"],
       "gainEffects": ["apply_cell_arability_modifier:0.5", "apply_cell_accessibility_modifier:0.7"],
       "lossEffects": ["apply_cell_arability_modifier:-0.5", "apply_cell_accessibility_modifier:-0.7"],
       "eventTimeToTrigger": 91250000,
-      "eventTimeToTriggerFactors": ["[INV]cell_wood_presence"]
+      "eventTimeToTriggerFactors": ["[INV]cell_wood_coverage"]
     },
     {
       "id": "tribalism",

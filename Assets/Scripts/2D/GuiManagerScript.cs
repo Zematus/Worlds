@@ -141,7 +141,7 @@ public class GuiManagerScript : MonoBehaviour
         PlanetOverlay.Arability,
         PlanetOverlay.Accessibility,
         PlanetOverlay.Hilliness,
-        PlanetOverlay.WoodPresence,
+        PlanetOverlay.WoodCoverage,
         PlanetOverlay.Layer,
         PlanetOverlay.Region,
         PlanetOverlay.Language
@@ -1691,7 +1691,7 @@ public class GuiManagerScript : MonoBehaviour
             case PlanetOverlay.Hilliness:
                 planetOverlayStr = "_hilliness";
                 break;
-            case PlanetOverlay.WoodPresence:
+            case PlanetOverlay.WoodCoverage:
                 planetOverlayStr = "_woodPresence";
                 break;
             case PlanetOverlay.Layer:
@@ -2093,9 +2093,9 @@ public class GuiManagerScript : MonoBehaviour
         {
             ChangePlanetOverlay(PlanetOverlay.Hilliness, false);
         }
-        else if (OverlayDialogPanelScript.WoodPresenceToggle.isOn)
+        else if (OverlayDialogPanelScript.WoodCoverageToggle.isOn)
         {
-            ChangePlanetOverlay(PlanetOverlay.WoodPresence, false);
+            ChangePlanetOverlay(PlanetOverlay.WoodCoverage, false);
         }
         else if (OverlayDialogPanelScript.LayerToggle.isOn)
         {

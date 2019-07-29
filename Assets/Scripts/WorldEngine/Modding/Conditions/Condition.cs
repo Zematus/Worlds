@@ -150,10 +150,10 @@ public abstract class Condition
             return new CellHillinessCondition(match);
         }
 
-        match = Regex.Match(conditionStr, CellWoodPresenceCondition.Regex);
+        match = Regex.Match(conditionStr, CellWoodCoverageCondition.Regex);
         if (match.Success == true)
         {
-            return new CellWoodPresenceCondition(match);
+            return new CellWoodCoverageCondition(match);
         }
 
         throw new System.ArgumentException("Not a recognized condition: " + conditionStr);
