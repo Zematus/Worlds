@@ -5,8 +5,6 @@ using System.Text.RegularExpressions;
 
 public class NeighborhoodSeaPresenceFactor : Factor
 {
-    public const float MaxSeaPresence = 9;
-
     public const string Regex = @"^\s*neighborhood_sea_presence\s*$";
 
     public NeighborhoodSeaPresenceFactor(Match match)
@@ -20,7 +18,7 @@ public class NeighborhoodSeaPresenceFactor : Factor
 
     public override float Calculate(TerrainCell cell)
     {
-        return cell.NeighborhoodSeaBiomePresence / MaxSeaPresence;
+        return cell.NeighborhoodSeaBiomePresence / TerrainCell.MaxNeighborhoodSeaPresence;
     }
 
     public override string ToString()

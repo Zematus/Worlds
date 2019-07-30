@@ -60,6 +60,8 @@ public class TerrainCell : ISynchronizable
     public const int MaxNeighborDirections = 8;
     public const int NeighborSearchOffset = 3;
 
+    public const int MaxNeighborhoodSeaPresence = 9;
+
     public const float HillinessSlopeFactor = 0.01f;
 
     [XmlAttribute]

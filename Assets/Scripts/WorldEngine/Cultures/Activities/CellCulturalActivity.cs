@@ -10,12 +10,15 @@ public class CellCulturalActivity : CulturalActivity
 
     public const string ForagingActivityId = "foraging";
     public const string FarmingActivityId = "farming";
+    public const string FishingActivityId = "fishing";
 
     public const string ForagingActivityName = "foraging";
     public const string FarmingActivityName = "farming";
+    public const string FishingActivityName = "fishing";
 
     public const int ForagingActivityRngOffset = 0;
     public const int FarmingActivityRngOffset = 100;
+    public const int FishingActivityRngOffset = 200;
 
     [XmlIgnore]
     public CellGroup Group;
@@ -45,16 +48,6 @@ public class CellCulturalActivity : CulturalActivity
         return new CellCulturalActivity(group, baseActivity.Id, baseActivity.Name, baseActivity.RngOffset, initialValue, initialContribution);
     }
 
-    //public static CellCulturalActivity CreateForagingActivity(CellGroup group, float value = 0, float contribution = 0)
-    //{
-    //    return new CellCulturalActivity(group, ForagingActivityId, ForagingActivityName, ForagingActivityRngOffset, value, contribution);
-    //}
-
-    //public static CellCulturalActivity CreateFarmingActivity(CellGroup group, float value = 0, float contribution = 0)
-    //{
-    //    return new CellCulturalActivity(group, FarmingActivityId, FarmingActivityName, FarmingActivityRngOffset, value, contribution);
-    //}
-
     public static CellCulturalActivity CreateActivity(string id, CellGroup group, float value = 0, float contribution = 0)
     {
         switch (id)
@@ -63,7 +56,10 @@ public class CellCulturalActivity : CulturalActivity
                 return new CellCulturalActivity(group, FarmingActivityId, FarmingActivityName, FarmingActivityRngOffset, value, contribution);
 
             case ForagingActivityId:
-                return new CellCulturalActivity(group, ForagingActivityId, ForagingActivityId, ForagingActivityRngOffset, value, contribution);
+                return new CellCulturalActivity(group, ForagingActivityId, ForagingActivityName, ForagingActivityRngOffset, value, contribution);
+
+            case FishingActivityId:
+                return new CellCulturalActivity(group, FishingActivityId, FishingActivityName, FishingActivityRngOffset, value, contribution);
         }
 
         throw new System.ArgumentException("CellCulturalActivity: Unrecognized activity Id: " + id);

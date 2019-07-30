@@ -22,6 +22,7 @@ public class CellGroup : HumanGroup
 
     public const float PopulationForagingConstant = 10;
     public const float PopulationFarmingConstant = 40;
+    public const float PopulationFishingConstant = 5;
 
     public const float MinKnowledgeTransferValue = 0.25f;
 
@@ -2423,14 +2424,14 @@ public class CellGroup : HumanGroup
     {
         int optimalPopulation = 0;
 
-        float modifiedForagingCapacity = 0;
-        float modifiedSurvivability = 0;
+        float foragingCapacity = 0;
+        float survivability = 0;
 
         float foragingContribution = GetActivityContribution(CellCulturalActivity.ForagingActivityId);
 
-        CalculateAdaptionToCell(cell, out modifiedForagingCapacity, out modifiedSurvivability);
+        CalculateAdaptionToCell(cell, out foragingCapacity, out survivability);
 
-        float populationCapacityByForaging = foragingContribution * PopulationForagingConstant * cell.Area * modifiedForagingCapacity;
+        float populationCapacityByForaging = foragingContribution * PopulationForagingConstant * cell.Area * foragingCapacity;
 
         float farmingContribution = GetActivityContribution(CellCulturalActivity.FarmingActivityId);
         float populationCapacityByFarming = 0;
@@ -2442,9 +2443,19 @@ public class CellGroup : HumanGroup
             populationCapacityByFarming = farmingContribution * PopulationFarmingConstant * cell.Area * farmingCapacity;
         }
 
+        float fishingContribution = GetActivityContribution(CellCulturalActivity.FishingActivityId);
+        float populationCapacityByFishing = 0;
+
+        if (fishingContribution > 0)
+        {
+            float fishingCapacity = CalculateFishingCapacity(cell);
+
+            populationCapacityByFishing = fishingContribution * PopulationFishingConstant * cell.Area * fishingCapacity;
+        }
+
         float accesibilityFactor = 0.25f + 0.75f * cell.Accessibility;
 
-        float populationCapacity = (populationCapacityByForaging + populationCapacityByFarming) * modifiedSurvivability * accesibilityFactor;
+        float populationCapacity = (populationCapacityByForaging + populationCapacityByFarming + populationCapacityByFishing) * survivability * accesibilityFactor;
 
         optimalPopulation = (int)Mathf.Floor(populationCapacity);
 
@@ -2498,6 +2509,24 @@ public class CellGroup : HumanGroup
         float techFactor = Mathf.Sqrt(value);
 
         capacityFactor = cell.FarmlandPercentage * techFactor;
+
+        return capacityFactor;
+    }
+
+    public float CalculateFishingCapacity(TerrainCell cell)
+    {
+        float capacityFactor = 0;
+
+        float value = 0;
+
+        if (!Culture.TryGetKnowledgeScaledValue(ShipbuildingKnowledge.KnowledgeId, out value))
+        {
+            return capacityFactor;
+        }
+
+        float techFactor = Mathf.Sqrt(value);
+
+        capacityFactor = techFactor * cell.NeighborhoodSeaBiomePresence;
 
         return capacityFactor;
     }
