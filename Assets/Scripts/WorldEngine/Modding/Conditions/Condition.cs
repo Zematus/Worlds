@@ -69,47 +69,49 @@ public abstract class Condition
     {
         string conditionAStr = match.Groups["statement1"].Value;
         string conditionBStr = match.Groups["statement2"].Value;
-        string binaryOpStr = match.Groups["binaryOp"].Value.Trim().ToUpper();
+        string opStr = match.Groups["opStr"].Value.Trim().ToUpper();
 
-        switch (binaryOpStr)
+        switch (opStr)
         {
-            case "[OR]":
+            case "OR":
                 return new OrCondition(conditionAStr, conditionBStr);
-            case "[AND]":
+            case "AND":
                 return new AndCondition(conditionAStr, conditionBStr);
         }
 
-        throw new System.ArgumentException("Unrecognized binary op: " + binaryOpStr);
+        throw new System.ArgumentException("Unrecognized binary op: " + opStr);
     }
 
     private static Condition BuildUnaryOpCondition(Match match)
     {
         string conditionStr = match.Groups["statement"].Value;
-        string unaryOp = match.Groups["unaryOp"].Value.Trim().ToUpper();
+        string opStr = match.Groups["opStr"].Value.Trim().ToUpper();
 
-        switch (unaryOp)
+        switch (opStr)
         {
-            case "[NOT]":
+            case "NOT":
                 return new NotCondition(conditionStr);
-            case "[ANY_N_CELL]":
+            case "ANY_N_CELL":
                 return new AnyNCellCondition(conditionStr);
-            case "[ANY_N_GROUP]":
+            case "ANY_N_GROUP":
                 return new AnyNGroupCondition(conditionStr);
-            case "[THIS_OR_ANY_N_CELL]":
-                return new ThisOrAnyNCellCondition(conditionStr);
-            case "[THIS_OR_ANY_N_GROUP]":
-                return new ThisOrAnyNGroupCondition(conditionStr);
-            case "[ALL_N_CELLS]":
+            case "ALL_N_CELLS":
                 return new AllNCellsCondition(conditionStr);
-            case "[ALL_N_GROUPS]":
+            case "ALL_N_GROUPS":
                 return new AllNGroupsCondition(conditionStr);
-            case "[THIS_AND_ALL_N_CELLS]":
-                return new ThisAndAllNCellsCondition(conditionStr);
-            case "[THIS_AND_ALL_N_GROUPS]":
-                return new ThisAndAllNGroupsCondition(conditionStr);
+
+            case "AT_LEAST_N_CELLS":
+                string opParam = match.Groups["opParam"].Value.Trim();
+
+                return new AtLeastNCellsCondition(conditionStr, opParam);
+
+            case "AT_LEAST_N_GROUPS":
+                opParam = match.Groups["opParam"].Value.Trim();
+
+                return new AtLeastNGroupsCondition(conditionStr, opParam);
         }
 
-        throw new System.ArgumentException("Unrecognized unary op: " + unaryOp);
+        throw new System.ArgumentException("Unrecognized unary op: " + opStr);
     }
 
     private static Condition BuildBaseCondition(string conditionStr)

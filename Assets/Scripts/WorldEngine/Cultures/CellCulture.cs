@@ -645,6 +645,20 @@ public class CellCulture : Culture
         _activitiesToStop.Add(activity as CellCulturalActivity);
     }
 
+    public void AddSkillToLose(string skillId)
+    {
+        CulturalSkill skill = null;
+
+        if (!Skills.TryGetValue(skillId, out skill))
+        {
+            Debug.LogWarning("CellCulture: Trying to remove skill that is not present: " + skillId);
+
+            return;
+        }
+
+        _skillsToLose.Add(skill as CellCulturalSkill);
+    }
+
     public float MinimumSkillAdaptationLevel()
     {
         float minAdaptationLevel = 1f;

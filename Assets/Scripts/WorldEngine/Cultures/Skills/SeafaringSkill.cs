@@ -8,8 +8,8 @@ public class SeafaringSkill : CellCulturalSkill
 {
     public const float TimeEffectConstant = CellGroup.GenerationSpan * 500;
 
-    public const string SkillId = "SeafaringSkill";
-    public const string SkillName = "Seafaring";
+    public const string SkillId = "seafaring";
+    public const string SkillName = "seafaring";
     public const int SkillRngOffset = 0;
 
     private float _neighborhoodSeaPresence;
@@ -36,7 +36,12 @@ public class SeafaringSkill : CellCulturalSkill
 
     public static bool IsSeafaringSkill(CulturalSkill skill)
     {
-        return skill.Id.Contains(SkillId);
+        return IsSeafaringSkill(skill.Id);
+    }
+
+    public static bool IsSeafaringSkill(string skillId)
+    {
+        return skillId == SkillId;
     }
 
     public override void FinalizeLoad()

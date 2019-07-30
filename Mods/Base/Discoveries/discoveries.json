@@ -3,22 +3,12 @@
     {
       "id": "boat_making",
       "name": "boat making",
-      "gainConditions": ["[NOT]group_has_knowledge:shipbuilding", "[ANY_N_CELL]cell_has_sea"],
+      "gainConditions": ["[NOT]group_has_knowledge:shipbuilding", "[ANY_N_CELL]cell_has_sea", "cell_wood_coverage:0.3"],
       "holdConditions": ["group_has_knowledge:shipbuilding,0.1"],
-      "gainEffects": ["add_group_knowledge:shipbuilding,10"],
-      "lossEffects": ["remove_group_knowledge:shipbuilding"],
-      "eventTimeToTrigger": 91250000,
-      "eventTimeToTriggerFactors": ["[INV]neighborhood_sea_presence"]
-    },
-    {
-      "id": "rudders",
-      "name": "rudders",
-      "gainConditions": ["group_has_knowledge:shipbuilding,5", "[ANY_N_CELL]cell_has_sea"],
-      "holdConditions": ["group_has_knowledge:shipbuilding,3"],
-      "gainEffects": ["modify_group_knowledge_limit:shipbuilding,5", "modify_group_skill_factor:seafaring,0.5"],
-      "lossEffects": ["modify_group_knowledge_limit:shipbuilding,-5", "modify_group_skill_factor:seafaring,-0.5"],
-      "eventTimeToTrigger": 91250000,
-      "eventTimeToTriggerFactors": ["[INV]neighborhood_sea_presence"]
+      "gainEffects": ["add_group_knowledge:shipbuilding,10", "add_group_activity:fishing", "add_group_skill:seafaring"],
+      "lossEffects": ["remove_group_knowledge:shipbuilding", "remove_group_activity:fishing", "remove_group_skill:seafaring"],
+      "eventTimeToTrigger": 456250000,
+      "eventTimeToTriggerFactors": ["[INV]neighborhood_sea_presence", "[INV]cell_wood_coverage"]
     },
     {
       "id": "sailing",
@@ -27,17 +17,7 @@
       "holdConditions": ["group_has_knowledge:shipbuilding,7"],
       "gainEffects": ["modify_group_knowledge_limit:shipbuilding,15"],
       "lossEffects": ["modify_group_knowledge_limit:shipbuilding,-15"],
-      "eventTimeToTrigger": 91250000,
-      "eventTimeToTriggerFactors": ["[INV]neighborhood_sea_presence"]
-    },
-    {
-      "id": "keels",
-      "name": "keels",
-      "gainConditions": ["group_has_knowledge:shipbuilding,15", "[ANY_N_CELL]cell_has_sea"],
-      "holdConditions": ["group_has_knowledge:shipbuilding,12"],
-      "gainEffects": ["modify_navigation_range_factor:0.5"],
-      "lossEffects": ["modify_navigation_range_factor:-0.5"],
-      "eventTimeToTrigger": 91250000,
+      "eventTimeToTrigger": 273750000,
       "eventTimeToTriggerFactors": ["[INV]neighborhood_sea_presence"]
     },
     {

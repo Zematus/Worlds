@@ -4,31 +4,27 @@ Conditions are rules that can be evaluated against different types of entities (
 
 - General condition operators -
 
-[NOT] : A condition can be negated by prefixing [NOT] before the condition. A negated condition must be false to pass. Both the prefix and the condition must be enclosed together in single quotes like this: '[NOT]<condition>'
+[NOT] : A condition can be negated by prefixing [NOT] before the condition. A negated condition must be false to pass. Both the prefix and the condition must be enclosed together in quotes like this: '[NOT]<condition>'
 
-[AND] : Two or more conditions can be evaluated together using the [AND] infix. In which case, all of the conditions within the conjunction must be true for the statement to pass. All of the conditions and infixes in the statement must be enclosed together in single quotes like this: '<condition1>[AND]<condition2>([AND]<additional conditions>)'
+[AND] : Two or more conditions can be evaluated together using the [AND] infix. In which case, all of the conditions within the conjunction must be true for the statement to pass. All of the conditions and infixes in the statement must be enclosed together in quotes like this: '<condition1>[AND]<condition2>([AND]<additional conditions>)'
 
-[OR] : Two or more conditions can be evaluated together using the [OR] infix. In which case, if any of the conditions within the disjunction is true then the whole statement passes. All of the conditions and infixes in the statement must be enclosed together in single quotes like this: '<condition1>[OR]<condition2>([OR]<additional conditions>)'
+[OR] : Two or more conditions can be evaluated together using the [OR] infix. In which case, if any of the conditions within the disjunction is true then the whole statement passes. All of the conditions and infixes in the statement must be enclosed together in quotes like this: '<condition1>[OR]<condition2>([OR]<additional conditions>)'
 
 - Group condition operators -
 
-[ANY_N_GROUP] : The target condition must be true for at least one neighbor cell group. The condition to be evaluated with this operator must be applicable to cell groups. Both the prefix and the condition must be enclosed together in single quotes like this: '[ANY_N_GROUP]<condition>'
+[ANY_N_GROUP] : The target condition must be true for at least one neighbor cell group. The condition to be evaluated with this operator must be applicable to cell groups. Both the prefix and the condition must be enclosed together in quotes like this: '[ANY_N_GROUP]<condition>'
 
-[THIS_OR_ANY_N_GROUP] : The target condition must be true for the target cell group or at least one neighbor cell group. The condition to be evaluated with this operator must be applicable to cell groups. Both the prefix and the condition must be enclosed together in single quotes like this: '[THIS_OR_ANY_N_GROUP]<condition>'
+[ALL_N_GROUPS] : The target condition must be true for all neighbor cell groups. The condition to be evaluated with this operator must be applicable to cell groups. Both the prefix and the condition must be enclosed together in quotes like this: '[ALL_N_GROUPS]<condition>'
 
-[ALL_N_GROUPS] : The target condition must be true for all neighbor cell groups. The condition to be evaluated with this operator must be applicable to cell groups. Both the prefix and the condition must be enclosed together in single quotes like this: '[ALL_N_GROUPS]<condition>'
-
-[THIS_AND_ALL_N_GROUPS] : The target condition must be true for the target cell group and all neighbor cell groups. The condition to be evaluated with this operator must be applicable to cell groups. Both the prefix and the condition must be enclosed together in single quotes like this: '[THIS_AND_ALL_N_GROUPS]<condition>'
+[AT_LEAST_N_GROUPS:<count>] : The target condition must be true for at least <count> cell groups. The condition to be evaluated with this operator must be applicable to cell groups. Both the prefix and the condition must be enclosed together in quotes like this: '[ALL_N_GROUPS]<condition>'
 
 - Cell condition operators -
 
-[ANY_N_CELL] : The target condition must be true for at least one neighbor terrain cell. The condition to be evaluated with this operator must be applicable to terrain cells. Both the prefix and the condition must be enclosed together in single quotes like this: '[ANY_N_CELL]<condition>'
+[ANY_N_CELL] : The target condition must be true for at least one neighbor terrain cell. The condition to be evaluated with this operator must be applicable to terrain cells. Both the prefix and the condition must be enclosed together in quotes like this: '[ANY_N_CELL]<condition>'
 
-[THIS_OR_ANY_N_CELL] : The target condition must be true for the target terrain cell or at least one neighbor terrain cell. The condition to be evaluated with this operator must be applicable to terrain cells. Both the prefix and the condition must be enclosed together in single quotes like this: '[THIS_OR_ANY_N_CELL]<condition>'
+[ALL_N_CELLS] : The target condition must be true for all neighbor terrain cells. The condition to be evaluated with this operator must be applicable to terrain cells. Both the prefix and the condition must be enclosed together in quotes like this: '[ALL_N_CELLS]<condition>'
 
-[ALL_N_CELLS] : The target condition must be true for all neighbor terrain cells. The condition to be evaluated with this operator must be applicable to terrain cells. Both the prefix and the condition must be enclosed together in single quotes like this: '[ALL_N_CELLS]<condition>'
-
-[THIS_AND_ALL_N_CELLS] : The target condition must be true for the target terrain cell and all neighbor terrain cells. The condition to be evaluated with this operator must be applicable to terrain cells. Both the prefix and the condition must be enclosed together in single quotes like this: '[THIS_AND_ALL_N_CELLS]<condition>'
+[AT_LEAST_N_CELLS:<count>] : The target condition must be true for at least <count> terrain cells. The condition to be evaluated with this operator must be applicable to terrain cells. Both the prefix and the condition must be enclosed together in quotes like this: '[ALL_N_GROUPS]<condition>'
 
 
 Operators can be uses together using parenthesis to set modifier priority (values between parenthesis evaluate first).

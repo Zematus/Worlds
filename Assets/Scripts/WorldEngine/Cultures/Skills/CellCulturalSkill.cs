@@ -45,6 +45,23 @@ public abstract class CellCulturalSkill : CulturalSkill
         throw new System.Exception("Unhandled CulturalSkill type: " + baseSkill.Id);
     }
 
+    public static CellCulturalSkill CreateCellInstance(string id, CellGroup group, float initialValue = 0)
+    {
+        if (BiomeSurvivalSkill.IsBiomeSurvivalSkill(id))
+        {
+            Biome biome = Biome.Biomes[BiomeSurvivalSkill.GetBiomeId(id)];
+
+            return new BiomeSurvivalSkill(group, biome, initialValue);
+        }
+
+        if (SeafaringSkill.IsSeafaringSkill(id))
+        {
+            return new SeafaringSkill(group, initialValue);
+        }
+
+        throw new System.Exception("Unhandled CulturalSkill type: " + id);
+    }
+
     public void Merge(CulturalSkill skill, float percentage)
     {
         // _newvalue should have been set correctly either by the constructor or by the Update function

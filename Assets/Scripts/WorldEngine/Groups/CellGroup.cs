@@ -142,6 +142,32 @@ public class CellGroup : HumanGroup
     }
 
     [XmlIgnore]
+    public float ScaledArabilityModifier
+    {
+        get
+        {
+            return ArabilityModifier * MathUtility.IntToFloatScalingFactor;
+        }
+        set
+        {
+            ArabilityModifier = (int)(value * MathUtility.FloatToIntScalingFactor);
+        }
+    }
+
+    [XmlIgnore]
+    public float ScaledAccessibilityModifier
+    {
+        get
+        {
+            return AccessibilityModifier * MathUtility.IntToFloatScalingFactor;
+        }
+        set
+        {
+            AccessibilityModifier = (int)(value * MathUtility.FloatToIntScalingFactor);
+        }
+    }
+
+    [XmlIgnore]
     public float TotalPolityProminenceValue
     {
         get
@@ -2282,7 +2308,8 @@ public class CellGroup : HumanGroup
     {
         if (ArabilityModifier > 0)
         {
-            float modifiedArability = Cell.BaseArability + (1 - Cell.BaseArability) * ArabilityModifier * MathUtility.IntToFloatScalingFactor;
+            float modifiedArability = Cell.BaseArability + (1 - Cell.BaseArability) * ScaledArabilityModifier;
+            modifiedArability = Mathf.Clamp01(modifiedArability);
 
             if (modifiedArability != Cell.Arability)
             {
@@ -2296,7 +2323,8 @@ public class CellGroup : HumanGroup
 
         if (AccessibilityModifier > 0)
         {
-            float modifiedAccessibility = Cell.BaseAccessibility + (1 - Cell.BaseAccessibility) * AccessibilityModifier * MathUtility.IntToFloatScalingFactor;
+            float modifiedAccessibility = Cell.BaseAccessibility + (1 - Cell.BaseAccessibility) * ScaledAccessibilityModifier;
+            modifiedAccessibility = Mathf.Clamp01(modifiedAccessibility);
 
             if (modifiedAccessibility != Cell.Accessibility)
             {
@@ -3295,7 +3323,7 @@ public class CellGroup : HumanGroup
             Debug.LogWarning("Can't set an arability modifier lower than 0: " + value);
         }
 
-        ArabilityModifier = Mathf.Clamp(value, 0, 100);
+        ArabilityModifier = Mathf.Clamp(value, 0, MathUtility.FloatToIntScalingFactor);
     }
 
     public void ApplyAccessibilityModifier(int delta)
@@ -3307,7 +3335,7 @@ public class CellGroup : HumanGroup
             Debug.LogWarning("Can't set an accessibility modifier lower than 0: " + value);
         }
 
-        AccessibilityModifier = Mathf.Clamp(value, 0, 100);
+        AccessibilityModifier = Mathf.Clamp(value, 0, MathUtility.FloatToIntScalingFactor);
     }
 
     public void RemoveProperty(string property)

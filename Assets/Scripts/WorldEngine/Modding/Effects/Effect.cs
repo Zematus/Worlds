@@ -50,6 +50,18 @@ public abstract class Effect
             return new AddGroupPropertyEffect(match, id);
         }
 
+        match = Regex.Match(effectStr, AddGroupSkillEffect.Regex);
+        if (match.Success == true)
+        {
+            return new AddGroupSkillEffect(match, id);
+        }
+
+        match = Regex.Match(effectStr, RemoveGroupSkillEffect.Regex);
+        if (match.Success == true)
+        {
+            return new RemoveGroupSkillEffect(match, id);
+        }
+
         match = Regex.Match(effectStr, RemoveGroupPropertyEffect.Regex);
         if (match.Success == true)
         {
