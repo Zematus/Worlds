@@ -9,7 +9,8 @@
       "maxTemperature": -15,
       "survivability": 0.0,
       "foragingCapacity": 0.0001,
-      "accessibility": 0.5
+      "accessibility": 0.5,
+      "arability": 0.0
     },
     {
       "id": "ice_sheet",
@@ -21,7 +22,8 @@
       "maxTemperature": -15,
       "survivability": 0.0,
       "foragingCapacity": 0.0001,
-      "accessibility": 0.5
+      "accessibility": 0.5,
+      "arability": 0.0
     },
     {
       "id": "ocean",
@@ -32,7 +34,8 @@
       "minTemperature": -15,
       "survivability": 0.0,
       "foragingCapacity": 0.0,
-      "accessibility": 0.0
+      "accessibility": 0.0,
+      "arability": 0.0
     },
     {
       "id": "grassland",
@@ -45,20 +48,23 @@
       "minTemperature": -10,
       "survivability": 1.0,
       "foragingCapacity": 0.4,
-      "accessibility": 1.0
+      "accessibility": 1.0,
+      "arability": 0.5
     },
     {
       "id": "forest",
       "name": "forest",
       "color": "#FF7F60",
       "type": "land",
+      "traits": ["wood"],
       "minAltitude": 0,
       "minRainfall": 1375,
       "maxRainfall": 2975,
       "minTemperature": -10,
       "survivability": 0.4,
       "foragingCapacity": 0.5,
-      "accessibility": 0.6
+      "accessibility": 0.6,
+      "arability": 0.3
     }
   ]
 }

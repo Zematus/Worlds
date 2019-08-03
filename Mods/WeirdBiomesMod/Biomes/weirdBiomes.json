@@ -6,8 +6,9 @@
       "color": "#F15CF8",
       "type": "land",
       "survivability": 0.4,
-      "foragingCapacity": 1,
+      "foragingCapacity": 0.6,
       "accessibility": 0.4,
+      "arability": 0.0,
 
       "layerConstraints": [
         {
@@ -28,6 +29,7 @@
       "survivability": 0.0,
       "foragingCapacity": 0.0,
       "accessibility": 0.4,
+      "arability": 0.0,
 
       "layerConstraints": [
         {
@@ -50,6 +52,7 @@
       "survivability": 0.0,
       "foragingCapacity": 0.0,
       "accessibility": 0.0,
+      "arability": 0.0,
 
       "layerConstraints": [
         {
@@ -63,6 +66,7 @@
       "name": "red forest",
       "color": "#FF2A00",
       "type": "land",
+      "traits": ["wood"],
       "minAltitude": 0,
       "minRainfall": 1375,
       "maxRainfall": 2975,
@@ -70,6 +74,7 @@
       "survivability": 0.2,
       "foragingCapacity": 0.3,
       "accessibility": 0.6,
+      "arability": 0.0,
 
       "layerConstraints": [
         {
@@ -88,6 +93,7 @@
       "name": "dark taiga",
       "color": "#722F37",
       "type": "land",
+      "traits": ["wood"],
       "minAltitude": 0,
       "minRainfall": 1375,
       "minTemperature": -20,
@@ -95,6 +101,7 @@
       "survivability": 0.1,
       "foragingCapacity": 0.1,
       "accessibility": 0.4,
+      "arability": 0.0,
 
       "layerConstraints": [
         {
@@ -118,6 +125,7 @@
       "survivability": 0.0,
       "foragingCapacity": 0.0,
       "accessibility": 0.8,
+      "arability": 0.0,
 
       "layerConstraints": [
         {
@@ -140,6 +148,7 @@
       "survivability": 0.0,
       "foragingCapacity": 0.0,
       "accessibility": 0.8,
+      "arability": 0.0,
 
       "layerConstraints": [
         {

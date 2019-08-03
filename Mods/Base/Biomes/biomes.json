@@ -10,7 +10,7 @@
       "survivability": 0.0,
       "foragingCapacity": 0.0001,
       "accessibility": 0.5,
-      "arability": 0
+      "arability": 0.0
     },
     {
       "id": "ice_sheet",
