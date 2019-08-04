@@ -99,16 +99,24 @@ public class RegionAttribute
 
     public string GetRandomVariation(GetRandomIntDelegate getRandomInt, Element filterElement = null, bool filterRelationTagged = true)
     {
-        IEnumerable<Variation> filteredVariations = Variations;
+        IEnumerable<Variation> filteredVariations;
 
         if (filterElement != null)
         {
             filteredVariations = Variations.Where(v => !v.Text.Contains(filterElement.SingularName));
         }
-
-        if (filterRelationTagged)
+        else if (filterRelationTagged)
         {
             filteredVariations = Variations.Where(v => !v.Tags.Contains(RelationTag));
+        }
+        else
+        {
+            filteredVariations = Variations;
+        }
+
+        if (filteredVariations == null)
+        {
+            throw new System.NullReferenceException();
         }
 
         return filteredVariations.RandomSelect(getRandomInt).Text;
