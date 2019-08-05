@@ -98,7 +98,7 @@ public class CellCulturalActivity : CulturalActivity
             targetValue = Value - (minTargetValue - Value) * randomFactor;
         }
 
-        float timeEffect = timeSpan / (float)(timeSpan + TimeEffectConstant);
+        float timeEffect = timeSpan / (timeSpan + TimeEffectConstant);
 
         _newValue = (Value * (1 - timeEffect)) + (targetValue * timeEffect);
     }
@@ -123,6 +123,16 @@ public class CellCulturalActivity : CulturalActivity
     public void PostUpdate()
     {
         Value = Mathf.Clamp01(_newValue);
+    }
+
+    public bool CanPerform(CellGroup group)
+    {
+        if (Id == FishingActivityId)
+        {
+            return group.Cell.NeighborhoodSeaBiomePresence > 0;
+        }
+
+        return true;
     }
 
     public override void FinalizeLoad()

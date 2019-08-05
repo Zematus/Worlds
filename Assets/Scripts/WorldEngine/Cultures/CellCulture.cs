@@ -526,6 +526,11 @@ public class CellCulture : Culture
         {
             activity.PostUpdate();
             totalActivityValue += activity.Value;
+
+            if (!activity.CanPerform(Group))
+            {
+                _activitiesToStop.Add(activity);
+            }
         }
 
         foreach (CellCulturalActivity activity in Activities.Values)

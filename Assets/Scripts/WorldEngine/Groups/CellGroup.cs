@@ -21,12 +21,12 @@ public class CellGroup : HumanGroup
     public const float NaturalGrowthRate = NaturalBirthRate - NaturalDeathRate;
 
     public const float PopulationForagingConstant = 10;
-    public const float PopulationFarmingConstant = 40;
+    public const float PopulationFarmingConstant = 5;
     public const float PopulationFishingConstant = 5;
 
     public const float MinKnowledgeTransferValue = 0.25f;
 
-    public const float SeaTravelBaseFactor = 500f;
+    public const float SeaTravelBaseFactor = 100f;
 
     public const float MigrationFactor = 0.1f;
 
@@ -120,6 +120,8 @@ public class CellGroup : HumanGroup
     public int ArabilityModifier = 0;
     [XmlAttribute("AcM")]
     public int AccessibilityModifier = 0;
+    [XmlAttribute("NvM")]
+    public int NavigationRangeModifier = 0;
 
     public Route SeaMigrationRoute = null;
 
@@ -607,6 +609,12 @@ public class CellGroup : HumanGroup
         {
             Culture.AddActivityToPerform(
                 CellCulturalActivity.CreateActivity(CellCulturalActivity.ForagingActivityId, this, 1f, 1f));
+        }
+
+        if (Cell.NeighborhoodSeaBiomePresence > 0)
+        {
+            Culture.AddActivityToPerform(
+                CellCulturalActivity.CreateActivity(CellCulturalActivity.FishingActivityId, this));
         }
     }
 
@@ -2075,8 +2083,8 @@ public class CellGroup : HumanGroup
         Profiler.EndSample();
 
         Profiler.BeginSample("Update Culture");
-
-        UpdateCulture(timeSpan);
+        
+        Culture.Update(timeSpan);
 
         Profiler.EndSample();
 
@@ -2234,11 +2242,6 @@ public class CellGroup : HumanGroup
         ExactPopulation = PopulationAfterTime(timeSpan);
     }
 
-    private void UpdateCulture(long timeSpan)
-    {
-        Culture.Update(timeSpan);
-    }
-
     private void UpdatePolityCulturalProminences(long timeSpan)
     {
         foreach (PolityProminence pi in PolityProminences.Values)
@@ -2394,21 +2397,8 @@ public class CellGroup : HumanGroup
         float seafaringValue = 0;
         float shipbuildingValue = 0;
 
-        foreach (CellCulturalSkill skill in Culture.Skills.Values)
-        {
-            if (skill is SeafaringSkill)
-            {
-                seafaringValue = skill.Value;
-            }
-        }
-
-        foreach (CellCulturalKnowledge knowledge in Culture.Knowledges.Values)
-        {
-            if (knowledge is ShipbuildingKnowledge)
-            {
-                shipbuildingValue = knowledge.ScaledValue;
-            }
-        }
+        Culture.TryGetSkillValue(SeafaringSkill.SkillId, out seafaringValue);
+        Culture.TryGetKnowledgeScaledValue(ShipbuildingKnowledge.KnowledgeId, out shipbuildingValue);
 
         //#if DEBUG
         //        if (Cell.IsSelected)
@@ -2417,7 +2407,9 @@ public class CellGroup : HumanGroup
         //        }
         //#endif
 
-        SeaTravelFactor = SeaTravelBaseFactor * seafaringValue * shipbuildingValue * TravelWidthFactor;
+        float rangeFactor = 1 + (NavigationRangeModifier * MathUtility.IntToFloatScalingFactor);
+
+        SeaTravelFactor = SeaTravelBaseFactor * seafaringValue * shipbuildingValue * TravelWidthFactor * rangeFactor;
     }
 
     public int CalculateOptimalPopulation(TerrainCell cell)
@@ -2506,7 +2498,7 @@ public class CellGroup : HumanGroup
             return capacityFactor;
         }
 
-        float techFactor = Mathf.Sqrt(value);
+        float techFactor = value;
 
         capacityFactor = cell.FarmlandPercentage * techFactor;
 
@@ -2515,18 +2507,15 @@ public class CellGroup : HumanGroup
 
     public float CalculateFishingCapacity(TerrainCell cell)
     {
-        float capacityFactor = 0;
+        float noTechBaseValue = 0.5f;
 
         float value = 0;
 
-        if (!Culture.TryGetKnowledgeScaledValue(ShipbuildingKnowledge.KnowledgeId, out value))
-        {
-            return capacityFactor;
-        }
+        Culture.TryGetKnowledgeScaledValue(ShipbuildingKnowledge.KnowledgeId, out value);
+        
+        float techFactor = value + noTechBaseValue;
 
-        float techFactor = Mathf.Sqrt(value);
-
-        capacityFactor = techFactor * cell.NeighborhoodSeaBiomePresence;
+        float capacityFactor = techFactor * cell.NeighborhoodSeaBiomePresence;
 
         return capacityFactor;
     }
@@ -3365,6 +3354,18 @@ public class CellGroup : HumanGroup
         }
 
         AccessibilityModifier = Mathf.Clamp(value, 0, MathUtility.FloatToIntScalingFactor);
+    }
+
+    public void ApplyNavigationRangeModifier(int delta)
+    {
+        int value = NavigationRangeModifier + delta;
+
+        if (value < 0)
+        {
+            Debug.LogWarning("Can't set an navigation range modifier lower than 0: " + value);
+        }
+
+        NavigationRangeModifier = Mathf.Max(value, 0);
     }
 
     public void RemoveProperty(string property)

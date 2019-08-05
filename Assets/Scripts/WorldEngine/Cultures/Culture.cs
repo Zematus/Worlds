@@ -222,6 +222,11 @@ public class Culture : ISynchronizable
         return activity;
     }
 
+    public bool HasActivity(string id)
+    {
+        return Activities.ContainsKey(id);
+    }
+
     public CulturalSkill GetSkill(string id)
     {
         CulturalSkill skill = null;
@@ -230,6 +235,22 @@ public class Culture : ISynchronizable
             return null;
 
         return skill;
+    }
+
+    public bool TryGetSkillValue(string id, out float value)
+    {
+        value = 0;
+
+        CulturalSkill skill = GetSkill(id);
+
+        if (skill != null)
+        {
+            value = skill.Value;
+
+            return true;
+        }
+
+        return false;
     }
 
     public CulturalKnowledge GetKnowledge(string id)

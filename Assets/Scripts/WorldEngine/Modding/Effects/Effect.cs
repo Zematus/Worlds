@@ -80,6 +80,12 @@ public abstract class Effect
             return new ApplyCellAccessibilityModifierEffect(match, id);
         }
 
+        match = Regex.Match(effectStr, ApplyGroupNavigationRangeModifierEffect.Regex);
+        if (match.Success == true)
+        {
+            return new ApplyGroupNavigationRangeModifierEffect(match, id);
+        }
+
         throw new System.ArgumentException("Not a recognized effect: " + effectStr);
     }
 
