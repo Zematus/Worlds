@@ -12,7 +12,7 @@ public class ModTest
         Debug.Log("loading biome mod file...");
 
         Biome.ResetBiomes();
-        Biome.LoadBiomesFile(@"Mods\Base\Biomes\biomes.json");
+        Biome.LoadBiomesFile(@"Mods\TestBase\Biomes\biomes.json");
         
         foreach (Biome biome in Biome.Biomes.Values)
         {
@@ -31,7 +31,7 @@ public class ModTest
 
         Adjective.ResetAdjectives();
         RegionAttribute.ResetAttributes();
-        RegionAttribute.LoadRegionAttributesFile(@"Mods\Base\RegionAttributes\region_attributes.json");
+        RegionAttribute.LoadRegionAttributesFile(@"Mods\TestBase\RegionAttributes\region_attributes.json");
 
         foreach (RegionAttribute regionAttribute in RegionAttribute.Attributes.Values)
         {
@@ -50,7 +50,7 @@ public class ModTest
 
         Adjective.ResetAdjectives();
         Element.ResetElements();
-        Element.LoadElementsFile(@"Mods\Base\Elements\elements.json");
+        Element.LoadElementsFile(@"Mods\TestBase\Elements\elements.json");
 
         foreach (Element element in Element.Elements.Values)
         {
@@ -69,7 +69,7 @@ public class ModTest
         Debug.Log("loading discovery mod file...");
 
         Discovery.ResetDiscoveries();
-        Discovery.LoadDiscoveriesFile(@"Mods\Base\Discoveries\discoveries.json");
+        Discovery.LoadDiscoveriesFile(@"Mods\TestBase\Discoveries\discoveries.json");
 
         foreach (Discovery discovery in Discovery.Discoveries.Values)
         {

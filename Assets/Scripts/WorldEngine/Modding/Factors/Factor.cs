@@ -77,6 +77,24 @@ public abstract class Factor
             return new CellArabilityFactor(match);
         }
 
+        match = Regex.Match(factorStr, CellForagingCapacityFactor.Regex);
+        if (match.Success == true)
+        {
+            return new CellForagingCapacityFactor(match);
+        }
+
+        match = Regex.Match(factorStr, CellSurvivabilityFactor.Regex);
+        if (match.Success == true)
+        {
+            return new CellSurvivabilityFactor(match);
+        }
+
+        match = Regex.Match(factorStr, CellBiomePresenceFactor.Regex);
+        if (match.Success == true)
+        {
+            return new CellBiomePresenceFactor(match);
+        }
+
         match = Regex.Match(factorStr, CellHillinessFactor.Regex);
         if (match.Success == true)
         {

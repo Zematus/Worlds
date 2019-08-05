@@ -80,6 +80,8 @@ public enum OverlayColorId
     LowValue = 9,
     MedValue = 10,
     HighValue = 11,
+    ActiveRoute = 12,
+    InactiveRoute = 13,
 }
 
 public class Manager
@@ -2511,7 +2513,11 @@ public class Manager
     {
         if (_displayRoutes && cell.HasCrossingRoutes)
         {
-            return Color.magenta;
+            foreach (Route route in cell.CrossingRoutes)
+            {
+                if (route.Used)
+                    return GetOverlayColor(OverlayColorId.ActiveRoute);
+            }
         }
 
         Color color = Color.black;

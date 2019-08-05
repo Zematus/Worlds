@@ -146,6 +146,24 @@ public abstract class Condition
             return new CellArabilityCondition(match);
         }
 
+        match = Regex.Match(conditionStr, CellForagingCapacityCondition.Regex);
+        if (match.Success == true)
+        {
+            return new CellForagingCapacityCondition(match);
+        }
+
+        match = Regex.Match(conditionStr, CellSurvivabilityCondition.Regex);
+        if (match.Success == true)
+        {
+            return new CellSurvivabilityCondition(match);
+        }
+
+        match = Regex.Match(conditionStr, CellBiomePresenceCondition.Regex);
+        if (match.Success == true)
+        {
+            return new CellBiomePresenceCondition(match);
+        }
+
         match = Regex.Match(conditionStr, CellHillinessCondition.Regex);
         if (match.Success == true)
         {

@@ -8,6 +8,9 @@ public class Route : ISynchronizable
 {
     //public List<WorldPosition> CellPositions = new List<WorldPosition>();
 
+    [XmlAttribute("U")]
+    public bool Used = false;
+
     [XmlAttribute("C")]
     public bool Consolidated = false;
 

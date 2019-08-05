@@ -1707,8 +1707,10 @@ public class CellGroup : HumanGroup
         //        }
         //#endif
 
-        if (attemptValue >= successChance)
+        if (attemptValue > successChance)
             return;
+
+        SeaMigrationRoute.Used = true;
 
         int travelTime = (int)Mathf.Ceil(World.YearLength * routeLength / SeaTravelFactor);
 
