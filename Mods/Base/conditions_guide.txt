@@ -49,6 +49,21 @@ Here's a list of the current types of conditions (more to be added in future ver
 
     Examples: 'cell_has_sea', 'cell_has_sea:0.5'
 
+- 'cell_altitude'
+    Tests if a cell has an altitude (in meters) equal or greater than the specified value (optional value between -15000 and 15000). The format of the constraint is as follows: 'cell_altitude:<min_altitude>'
+
+    Examples: 'cell_altitude:-1000', 'cell_altitude:4000'
+
+- 'cell_rainfall'
+    Tests if a cell has a yearly rainfall (in mm) equal or greater than the specified value (optional value between 0 and 13000). The format of the constraint is as follows: 'cell_rainfall:<min_rainfall>'
+
+    Examples: 'cell_rainfall:100', 'cell_rainfall:5000'
+
+- 'cell_temperature'
+    Tests if a cell has a yearly average temperature (in centigrades) equal or greater than the specified value (optional value between -53.7 and 36.3). The format of the constraint is as follows: 'cell_temperature:<min_temperature>'
+
+    Examples: 'cell_temperature:-15', 'cell_temperature:10'
+
 - 'cell_accessibility'
     Tests if a cell has an accessibility value (i.e. how accessible the terrain is) equal or greater than 0.01 or than the specified value (optional value between 0 and 1). The format of the constraint is as follows: 'cell_accessibility(:<min_accessibility>)'
 
@@ -73,6 +88,11 @@ Here's a list of the current types of conditions (more to be added in future ver
     Tests if a cell has an biome presence value (i.e. percentage of area in cell covered by such biome) equal or greater than 0.01 or than the specified value (optional value between 0 and 1). The format of the constraint is as follows: 'cell_biome_presence:<biome_id>(,<min_presence>)'
 
     Examples: 'cell_biome_presence:forest', 'cell_biome_presence:desert,0.3'
+
+- 'cell_biome_most_present'
+    Tests if a biome is the most present in a cell (i.e. greatest occupied area). The format of the constraint is as follows: 'cell_biome_most_present:<biome_id>'
+
+    Examples: 'cell_biome_most_present:grassland', 'cell_biome_most_present:tundra'
 
 - 'cell_hilliness'
     Tests if a cell has an hilliness value (i.e. how hilly the terrain is) equal or greater than 0.01 or than the specified value (optional value between 0 and 1). The format of the constraint is as follows: 'cell_hilliness(:<min_hilliness>)'

@@ -134,6 +134,24 @@ public abstract class Condition
             return new CellHasSeaCondition(match);
         }
 
+        match = Regex.Match(conditionStr, CellAltitudeCondition.Regex);
+        if (match.Success == true)
+        {
+            return new CellAltitudeCondition(match);
+        }
+
+        match = Regex.Match(conditionStr, CellRainfallCondition.Regex);
+        if (match.Success == true)
+        {
+            return new CellRainfallCondition(match);
+        }
+
+        match = Regex.Match(conditionStr, CellTemperatureCondition.Regex);
+        if (match.Success == true)
+        {
+            return new CellTemperatureCondition(match);
+        }
+
         match = Regex.Match(conditionStr, CellAccessibilityCondition.Regex);
         if (match.Success == true)
         {
@@ -162,6 +180,12 @@ public abstract class Condition
         if (match.Success == true)
         {
             return new CellBiomePresenceCondition(match);
+        }
+
+        match = Regex.Match(conditionStr, CellBiomeMostPresentCondition.Regex);
+        if (match.Success == true)
+        {
+            return new CellBiomeMostPresentCondition(match);
         }
 
         match = Regex.Match(conditionStr, CellHillinessCondition.Regex);
