@@ -12,14 +12,28 @@ public class ModTest
         Debug.Log("loading biome mod file...");
 
         Biome.ResetBiomes();
-        Biome.LoadBiomesFile(@"Mods\TestBase\Biomes\biomes.json");
+        Biome.LoadBiomesFile(@"Mods\Test\Biomes\biomes.json");
         
         foreach (Biome biome in Biome.Biomes.Values)
         {
             Debug.Log("generated biome: " + biome.Name);
         }
-        
-        Debug.Log("finished");
+    }
+
+    [Test]
+    public void LoadLayersModTest()
+    {
+        Manager.UpdateMainThreadReference();
+
+        Debug.Log("loading layer mod file...");
+
+        Layer.ResetLayers();
+        Layer.LoadLayersFile(@"Mods\Test\Layers\weirdLayers.json");
+
+        foreach (Layer layer in Layer.Layers.Values)
+        {
+            Debug.Log("generated layer: " + layer.Name);
+        }
     }
 
     [Test]
@@ -31,14 +45,12 @@ public class ModTest
 
         Adjective.ResetAdjectives();
         RegionAttribute.ResetAttributes();
-        RegionAttribute.LoadRegionAttributesFile(@"Mods\TestBase\RegionAttributes\region_attributes.json");
+        RegionAttribute.LoadRegionAttributesFile(@"Mods\Test\RegionAttributes\region_attributes.json");
 
         foreach (RegionAttribute regionAttribute in RegionAttribute.Attributes.Values)
         {
             Debug.Log("generated region attribute: " + regionAttribute.Name);
         }
-
-        Debug.Log("finished");
     }
 
     [Test]
@@ -50,14 +62,12 @@ public class ModTest
 
         Adjective.ResetAdjectives();
         Element.ResetElements();
-        Element.LoadElementsFile(@"Mods\TestBase\Elements\elements.json");
+        Element.LoadElementsFile(@"Mods\Test\Elements\elements.json");
 
         foreach (Element element in Element.Elements.Values)
         {
             Debug.Log("generated element: " + element.SingularName);
         }
-
-        Debug.Log("finished");
     }
 
     [Test]
@@ -69,14 +79,12 @@ public class ModTest
         Debug.Log("loading discovery mod file...");
 
         Discovery.ResetDiscoveries();
-        Discovery.LoadDiscoveriesFile(@"Mods\TestBase\Discoveries\discoveries.json");
+        Discovery.LoadDiscoveriesFile(@"Mods\Test\Discoveries\discoveries.json");
 
         foreach (Discovery discovery in Discovery.Discoveries.Values)
         {
             Debug.Log("generated discovery: " + discovery.Name);
         }
-
-        Debug.Log("finished");
     }
 
     [Test]
@@ -143,8 +151,6 @@ public class ModTest
         condition = Condition.BuildCondition(input);
 
         Debug.Log("Test condition " + (condCounter++) + ": " + condition.ToString());
-
-        Debug.Log("finished");
     }
 
     [Test]
@@ -163,7 +169,71 @@ public class ModTest
         factor = Factor.BuildFactor("[SQ]([INV](neighborhood_sea_presence))");
 
         Debug.Log("Test factor " + (factCounter++) + ": " + factor.ToString());
+    }
 
-        Debug.Log("finished");
+    [Test]
+    public void CoditionTypeTest()
+    {
+        Biome.ResetBiomes();
+        Biome.LoadBiomesFile(@"Mods\Test\Biomes\biomes.json");
+
+        Layer.ResetLayers();
+        Layer.LoadLayersFile(@"Mods\Test\Layers\weirdLayers.json");
+
+        int condCounter = 1;
+
+        string input = "cell_biome_presence:desert,0.3";
+
+        Condition condition = Condition.BuildCondition(input);
+
+        Debug.Log("Test condition " + (condCounter++) + ": " + condition.ToString());
+
+        input = "cell_biome_most_present:grassland";
+
+        condition = Condition.BuildCondition(input);
+
+        Debug.Log("Test condition " + (condCounter++) + ": " + condition.ToString());
+
+        input = "group_population:10000";
+
+        condition = Condition.BuildCondition(input);
+
+        Debug.Log("Test condition " + (condCounter++) + ": " + condition.ToString());
+
+        input = "cell_layer_value:mycosystem,20";
+
+        condition = Condition.BuildCondition(input);
+
+        Debug.Log("Test condition " + (condCounter++) + ": " + condition.ToString());
+
+        input = "cell_altitude:-1000";
+
+        condition = Condition.BuildCondition(input);
+
+        Debug.Log("Test condition " + (condCounter++) + ": " + condition.ToString());
+
+        input = "cell_rainfall:100";
+
+        condition = Condition.BuildCondition(input);
+
+        Debug.Log("Test condition " + (condCounter++) + ": " + condition.ToString());
+
+        input = "cell_temperature:-15";
+
+        condition = Condition.BuildCondition(input);
+
+        Debug.Log("Test condition " + (condCounter++) + ": " + condition.ToString());
+
+        input = "cell_foraging_capacity:0.5";
+
+        condition = Condition.BuildCondition(input);
+
+        Debug.Log("Test condition " + (condCounter++) + ": " + condition.ToString());
+
+        input = "cell_survivability:0.6";
+
+        condition = Condition.BuildCondition(input);
+
+        Debug.Log("Test condition " + (condCounter++) + ": " + condition.ToString());
     }
 }

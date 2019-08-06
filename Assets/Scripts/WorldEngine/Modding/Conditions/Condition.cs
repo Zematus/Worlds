@@ -182,6 +182,12 @@ public abstract class Condition
             return new CellBiomePresenceCondition(match);
         }
 
+        match = Regex.Match(conditionStr, CellLayerValueCondition.Regex);
+        if (match.Success == true)
+        {
+            return new CellLayerValueCondition(match);
+        }
+
         match = Regex.Match(conditionStr, CellBiomeMostPresentCondition.Regex);
         if (match.Success == true)
         {

@@ -40,9 +40,9 @@ Here's a list of the current types of conditions (more to be added in future ver
     Examples: 'group_has_knowledge:agriculture_knowledge', 'group_has_knowledge:shipbuilding_knowledge,3'
 
 - 'group_population'
-    Tests if a group currently possesses at least certain amount of population. The value can be any quantity between 1 and 2,147,483,647. The format of the constraint is as follows: 'group_min_population:<quantity>'
+    Tests if a group currently possesses at least certain amount of population. The value can be any quantity between 1 and 2,147,483,647. The format of the constraint is as follows: 'group_population:<quantity>'
 
-    Examples: 'group_min_population:10000'
+    Examples: 'group_population:10000'
 
 - 'cell_has_sea'
     Tests if a cell has a sea presence equal or greater than 0.01 or than the specified value (optional value between 0 and 1. See note 1). The format of the constraint is as follows: 'cell_has_sea(:<min_presence>)'
@@ -50,17 +50,17 @@ Here's a list of the current types of conditions (more to be added in future ver
     Examples: 'cell_has_sea', 'cell_has_sea:0.5'
 
 - 'cell_altitude'
-    Tests if a cell has an altitude (in meters) equal or greater than the specified value (optional value between -15000 and 15000). The format of the constraint is as follows: 'cell_altitude:<min_altitude>'
+    Tests if a cell has an altitude (in meters) equal or greater than the specified value (value between -15000 and 15000). The format of the constraint is as follows: 'cell_altitude:<min_altitude>'
 
     Examples: 'cell_altitude:-1000', 'cell_altitude:4000'
 
 - 'cell_rainfall'
-    Tests if a cell has a yearly rainfall (in mm) equal or greater than the specified value (optional value between 0 and 13000). The format of the constraint is as follows: 'cell_rainfall:<min_rainfall>'
+    Tests if a cell has a yearly rainfall (in mm) equal or greater than the specified value (value between 0 and 13000). The format of the constraint is as follows: 'cell_rainfall:<min_rainfall>'
 
     Examples: 'cell_rainfall:100', 'cell_rainfall:5000'
 
 - 'cell_temperature'
-    Tests if a cell has a yearly average temperature (in centigrades) equal or greater than the specified value (optional value between -53.7 and 36.3). The format of the constraint is as follows: 'cell_temperature:<min_temperature>'
+    Tests if a cell has a yearly average temperature (in centigrades) equal or greater than the specified value (value between -53.7 and 36.3). The format of the constraint is as follows: 'cell_temperature:<min_temperature>'
 
     Examples: 'cell_temperature:-15', 'cell_temperature:10'
 
@@ -88,6 +88,11 @@ Here's a list of the current types of conditions (more to be added in future ver
     Tests if a cell has an biome presence value (i.e. percentage of area in cell covered by such biome) equal or greater than 0.01 or than the specified value (optional value between 0 and 1). The format of the constraint is as follows: 'cell_biome_presence:<biome_id>(,<min_presence>)'
 
     Examples: 'cell_biome_presence:forest', 'cell_biome_presence:desert,0.3'
+
+- 'cell_layer_value'
+    Tests if a cell has a layer value equal or greater than the specified value (value between 0 and the layer's max possible value). The format of the constraint is as follows: 'cell_layer_value:<layer_id>,<min_presence>'
+
+    Examples: 'cell_layer_value:mycosystem,20', 'cell_biome_presence:necrosilica,50'
 
 - 'cell_biome_most_present'
     Tests if a biome is the most present in a cell (i.e. greatest occupied area). The format of the constraint is as follows: 'cell_biome_most_present:<biome_id>'
