@@ -170,6 +170,9 @@ public class World : ISynchronizable
     public const float MinPossibleRainfall = -AvgPossibleRainfall;
     public const float MaxPossibleRainfall = 13000;
 
+    public const float RiverEvaporationFactor = 0.1f;
+    public const float MinRiverTransferBufferValue = 1f;
+
     public const float MinPossibleTemperature = -40 - AvgPossibleTemperature;
     public const float MaxPossibleTemperature = 50 - AvgPossibleTemperature;
 
@@ -180,7 +183,7 @@ public class World : ISynchronizable
 
     public const float MinSurvivabilityForRandomGroupPlacement = 0.15f;
 
-    public const float TerrainGenerationSteps = 8;
+    public const float TerrainGenerationSteps = 9;
 
     public static Dictionary<string, IWorldEventGenerator> EventGenerators;
 
@@ -325,6 +328,9 @@ public class World : ISynchronizable
     public float MaxTemperature = MaxPossibleTemperature;
     [XmlIgnore]
     public float MinTemperature = MinPossibleTemperature;
+
+    [XmlIgnore]
+    public float MaxRainfallAccumulation = 0;
 
     [XmlIgnore]
     public TerrainCell[][] TerrainCells;
@@ -2084,6 +2090,10 @@ public class World : ISynchronizable
             ResetRainfallDependencies();
             GenerateTerrainRainfall();
             //GenerateTerrainRainfall2();
+
+            ProgressCastMethod(_accumulatedProgress, "Generating Irrigation Basins...");
+
+            GenerateRiverBasins();
         }
         else if ((type & GenerationType.RainfallRegeneration) == GenerationType.RainfallRegeneration)
         {
@@ -3245,6 +3255,121 @@ public class World : ISynchronizable
         _accumulatedProgress += _progressIncrement;
     }
 
+    private void GenerateRiverBasins()
+    {
+        int sizeX = Width;
+        int sizeY = Height;
+
+        MaxRainfallAccumulation = 0;
+
+        float firstPartLength = 0.1f;
+        float secondPartLength = 1 - firstPartLength;
+
+        HashSet<TerrainCell> queuedCells = new HashSet<TerrainCell>();
+        Queue<TerrainCell> cellsToIrrigateFrom = new Queue<TerrainCell>(sizeX * sizeY);
+
+        // find cells that are higher than neighbors
+        for (int i = 0; i < sizeX; i++)
+        {
+            for (int j = 0; j < sizeY; j++)
+            {
+                TerrainCell cell = TerrainCells[i][j];
+
+                if (cell.Altitude <= 0)
+                    continue;
+
+                cell.Buffer = cell.Rainfall;
+                cell.RainfallAccumulation = cell.Buffer;
+
+                MaxRainfallAccumulation = Mathf.Max(MaxRainfallAccumulation, cell.RainfallAccumulation);
+
+                if (cell.Buffer <= 0)
+                    continue;
+
+                bool higherThanNeighbors = true;
+                foreach (TerrainCell nCell in cell.Neighbors.Values)
+                {
+                    if ((nCell.Altitude > cell.Altitude) && (nCell.Rainfall > 0))
+                    {
+                        higherThanNeighbors = false;
+                        break;
+                    }
+                }
+
+                if (!higherThanNeighbors)
+                    continue;
+
+                cellsToIrrigateFrom.Enqueue(cell);
+                queuedCells.Add(cell);
+            }
+
+            ProgressCastMethod(_accumulatedProgress + _progressIncrement * firstPartLength * (i + 1) / sizeX);
+        }
+
+        int irrigatedCells = 0;
+
+        while (cellsToIrrigateFrom.Count > 0)
+        {
+            TerrainCell cell = cellsToIrrigateFrom.Dequeue();
+            queuedCells.Remove(cell);
+
+            irrigatedCells++;
+
+            if ((irrigatedCells % 100) == 0)
+            {
+                float progressPercent = irrigatedCells / (float)(irrigatedCells + cellsToIrrigateFrom.Count);
+
+                ProgressCastMethod(_accumulatedProgress + _progressIncrement * secondPartLength * progressPercent);
+            }
+
+            if (cell.Buffer < MinRiverTransferBufferValue)
+                continue;
+
+            float totalAltDifference = 0;
+            foreach (TerrainCell nCell in cell.Neighbors.Values)
+            {
+                float diff = Mathf.Max(0, cell.Altitude - nCell.Altitude);
+                totalAltDifference += diff;
+            }
+
+            if (totalAltDifference <= 0)
+                continue;
+
+            foreach (TerrainCell nCell in cell.Neighbors.Values)
+            {
+                float percent = 0;
+
+                float diff = Mathf.Max(0, cell.Altitude - nCell.Altitude);
+                percent = diff / totalAltDifference;
+
+                if ((percent == 0) || (nCell.Altitude <= 0))
+                    continue;
+
+                float rainfallTransfer = cell.Buffer * percent;
+                float evaporation = (rainfallTransfer * RiverEvaporationFactor);
+                rainfallTransfer -= evaporation;
+
+                if (rainfallTransfer <= 0)
+                    continue;
+
+                nCell.Buffer += rainfallTransfer;
+                nCell.RainfallAccumulation += rainfallTransfer;
+
+                MaxRainfallAccumulation = Mathf.Max(MaxRainfallAccumulation, nCell.RainfallAccumulation);
+
+                if (queuedCells.Contains(nCell))
+                    continue;
+
+                cellsToIrrigateFrom.Enqueue(nCell);
+                queuedCells.Add(nCell);
+            }
+
+            cell.Buffer = 0;
+        }
+
+        _accumulatedProgress += _progressIncrement;
+    }
+
     private void OffsetTemperatureGenRngCalls()
     {
         // Store values to be used later when regenerating specific cells
@@ -3801,7 +3926,7 @@ public class World : ISynchronizable
     {
         float rainfallSpan = biome.MaxRainfall - biome.MinRainfall;
 
-        float rainfallDiff = cell.Rainfall - biome.MinRainfall;
+        float rainfallDiff = cell.RainfallAccumulation - biome.MinRainfall;
 
         if (rainfallDiff < 0)
             return -1f;

@@ -53,6 +53,7 @@ public enum PlanetOverlay
     PolityCulturalDiscovery,
     Temperature,
     Rainfall,
+    RiverBasins,
     Arability,
     Accessibility,
     Hilliness,
@@ -82,6 +83,7 @@ public enum OverlayColorId
     HighValue = 11,
     ActiveRoute = 12,
     InactiveRoute = 13,
+    RiverBasins = 14,
 }
 
 public class Manager
@@ -1476,6 +1478,7 @@ public class Manager
             (overlay == PlanetOverlay.WoodCoverage) ||
             (overlay == PlanetOverlay.Layer) ||
             (overlay == PlanetOverlay.Rainfall) ||
+            (overlay == PlanetOverlay.RiverBasins) ||
             (overlay == PlanetOverlay.Temperature) ||
             (overlay == PlanetOverlay.FarmlandDistribution))
         {
@@ -1522,6 +1525,7 @@ public class Manager
             (overlay == PlanetOverlay.WoodCoverage) ||
             (overlay == PlanetOverlay.Layer) ||
             (overlay == PlanetOverlay.Rainfall) ||
+            (overlay == PlanetOverlay.RiverBasins) ||
             (overlay == PlanetOverlay.Temperature) ||
             (overlay == PlanetOverlay.FarmlandDistribution))
         {
@@ -2623,6 +2627,10 @@ public class Manager
 
             case PlanetOverlay.Rainfall:
                 color = SetRainfallOverlayColor(cell, color);
+                break;
+
+            case PlanetOverlay.RiverBasins:
+                color = SetRiverBasinsOverlayColor(cell, color);
                 break;
 
             case PlanetOverlay.Arability:
@@ -3754,6 +3762,24 @@ public class Manager
     private static Color GetOverlayColor(OverlayColorId id)
     {
         return _overlayPalette[(int)id];
+    }
+
+    private static Color SetRiverBasinsOverlayColor(TerrainCell cell, Color color)
+    {
+        float greyscale = (color.r + color.g + color.b);
+
+        color.r = greyscale / 6f;
+        color.g = greyscale / 6f;
+        color.b = greyscale / 6f;
+
+        if (cell.RainfallAccumulation > 0)
+        {
+            float value = 0.1f + (0.90f * cell.RainfallAccumulation / CurrentWorld.MaxRainfallAccumulation);
+
+            color += GetOverlayColor(OverlayColorId.RiverBasins) * value;
+        }
+
+        return color;
     }
 
     private static Color SetArabilityOverlayColor(TerrainCell cell, Color color)

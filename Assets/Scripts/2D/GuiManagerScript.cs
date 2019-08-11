@@ -138,6 +138,7 @@ public class GuiManagerScript : MonoBehaviour
     {
         PlanetOverlay.Temperature,
         PlanetOverlay.Rainfall,
+        PlanetOverlay.RiverBasins,
         PlanetOverlay.Arability,
         PlanetOverlay.Accessibility,
         PlanetOverlay.Hilliness,
@@ -1682,6 +1683,9 @@ public class GuiManagerScript : MonoBehaviour
             case PlanetOverlay.Rainfall:
                 planetOverlayStr = "_rainfall";
                 break;
+            case PlanetOverlay.RiverBasins:
+                planetOverlayStr = "_river_basins";
+                break;
             case PlanetOverlay.Arability:
                 planetOverlayStr = "_arability";
                 break;
@@ -2080,6 +2084,10 @@ public class GuiManagerScript : MonoBehaviour
         else if (OverlayDialogPanelScript.RainfallToggle.isOn)
         {
             ChangePlanetOverlay(PlanetOverlay.Rainfall, false);
+        }
+        else if (OverlayDialogPanelScript.RiverBasinsToggle.isOn)
+        {
+            ChangePlanetOverlay(PlanetOverlay.RiverBasins, false);
         }
         else if (OverlayDialogPanelScript.ArabilityToggle.isOn)
         {

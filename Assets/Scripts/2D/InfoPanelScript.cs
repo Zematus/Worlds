@@ -89,6 +89,7 @@ public class InfoPanelScript : MonoBehaviour
         InfoText.text += "\nArea: " + cellArea + " Km^2";
         InfoText.text += "\nAltitude: " + cell.Altitude + " meters";
         InfoText.text += "\nRainfall: " + cell.Rainfall + " mm / year";
+        InfoText.text += "\nRainfall Accumulation: " + cell.RainfallAccumulation + " mm / year";
         InfoText.text += "\nTemperature: " + cell.Temperature + " C";
         InfoText.text += "\n";
 
@@ -1165,6 +1166,7 @@ public class InfoPanelScript : MonoBehaviour
 
         if ((Manager.PlanetOverlay == PlanetOverlay.None) ||
             (Manager.PlanetOverlay == PlanetOverlay.Rainfall) ||
+            (Manager.PlanetOverlay == PlanetOverlay.RiverBasins) ||
             (Manager.PlanetOverlay == PlanetOverlay.Arability) ||
             (Manager.PlanetOverlay == PlanetOverlay.Accessibility) ||
             (Manager.PlanetOverlay == PlanetOverlay.Hilliness) ||
