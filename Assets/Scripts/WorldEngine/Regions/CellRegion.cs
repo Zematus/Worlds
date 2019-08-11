@@ -132,8 +132,8 @@ public class CellRegion : Region
 
             AverageSurvivability += cell.Survivability * cellArea;
             AverageForagingCapacity += cell.ForagingCapacity * cellArea;
-            AverageAccessibility += cell.Accessibility * cellArea;
-            AverageArability += cell.Arability * cellArea;
+            AverageAccessibility += cell.BaseAccessibility * cellArea;
+            AverageArability += cell.BaseArability * cellArea;
 
             AverageFarmlandPercentage += cell.FarmlandPercentage * cellArea;
 

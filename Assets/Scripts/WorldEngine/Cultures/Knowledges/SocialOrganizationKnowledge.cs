@@ -7,33 +7,32 @@ using UnityEngine.Profiling;
 
 public class SocialOrganizationKnowledge : CellCulturalKnowledge
 {
-    public const string KnowledgeId = "SocialOrganizationKnowledge";
-    public const string KnowledgeName = "Social Organization";
+    public const string KnowledgeId = "social_organization";
+    public const string KnowledgeName = "social organization";
 
     public const int KnowledgeRngOffset = 2;
 
     public const int InitialValue = 100;
+    
+    public const int MinValueForTribeFormation = 200;
 
-    public const int MinValueForTribalismDiscovery = 600;
-    public const int MinValueForHoldingTribalism = 200;
-
-    public const int BaseAsymptote = 1000;
-    public const int TribalismDiscoveryAsymptote = 10000;
+    public const int BaseLimit = 1000;
 
     public const float TimeEffectConstant = CellGroup.GenerationSpan * 500;
-    public const float PopulationDensityModifier = 10000f * ValueScaleFactor;
+    public const float PopulationDensityModifier = 10000f * MathUtility.IntToFloatScalingFactor;
 
-    public static int HighestAsymptote = 0;
+    public static int HighestLimit = 0;
 
     public SocialOrganizationKnowledge()
     {
-        if (Asymptote > HighestAsymptote)
+        if (Limit > HighestLimit)
         {
-            HighestAsymptote = Asymptote;
+            HighestLimit = Limit;
         }
     }
 
-    public SocialOrganizationKnowledge(CellGroup group, int initialValue) : base(group, KnowledgeId, KnowledgeName, KnowledgeRngOffset, initialValue)
+    public SocialOrganizationKnowledge(CellGroup group, int initialValue, int initialLimit) 
+        : base(group, KnowledgeId, KnowledgeName, KnowledgeRngOffset, initialValue, initialLimit)
     {
 
     }
@@ -43,16 +42,11 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge
         return knowledge.Id.Contains(KnowledgeId);
     }
 
-    //public override void FinalizeLoad()
-    //{
-    //    base.FinalizeLoad();
-    //}
-
     private float CalculatePopulationFactor()
     {
         float popFactor = Group.Population;
 
-        float densityFactor = PopulationDensityModifier * Asymptote * Group.Cell.MaxAreaPercent;
+        float densityFactor = PopulationDensityModifier * Limit * Group.Cell.MaxAreaPercent;
 
         float finalPopFactor = popFactor / (popFactor + densityFactor);
         finalPopFactor = 0.1f + finalPopFactor * 0.9f;
@@ -77,16 +71,14 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge
         float totalFactor = populationFactor + (prominenceFactor * (1 - populationFactor));
 
         UpdateValueInternal(timeSpan, TimeEffectConstant, totalFactor);
-
-        TryGenerateTribalismDiscoveryEvent();
     }
 
-    public override void PolityCulturalProminence(CulturalKnowledge polityKnowledge, PolityProminence polityProminence, long timeSpan)
+    public override void AddPolityProminenceEffect(CulturalKnowledge polityKnowledge, PolityProminence polityProminence, long timeSpan)
     {
-        PolityCulturalProminenceInternal(polityKnowledge, polityProminence, timeSpan, TimeEffectConstant);
+        AddPolityProminenceEffectInternal(polityKnowledge, polityProminence, timeSpan, TimeEffectConstant);
 
 #if DEBUG
-        if (_newValue < SocialOrganizationKnowledge.MinValueForHoldingTribalism)
+        if (_newValue < MinValueForTribeFormation)
         {
             if (Group.GetFactionCores().Count > 0)
             {
@@ -99,38 +91,6 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge
             }
         }
 #endif
-
-        TryGenerateTribalismDiscoveryEvent();
-    }
-
-    private void TryGenerateTribalismDiscoveryEvent()
-    {
-        if (Value < TribalismDiscoveryEvent.MinSocialOrganizationKnowledgeForTribalismDiscovery)
-            return;
-
-        if (Value > TribalismDiscoveryEvent.OptimalSocialOrganizationKnowledgeValue)
-            return;
-
-        if (TribalismDiscoveryEvent.CanSpawnIn(Group))
-        {
-            long triggerDate = TribalismDiscoveryEvent.CalculateTriggerDate(Group);
-
-            if (triggerDate == long.MinValue)
-                return;
-
-            Group.World.InsertEventToHappen(new TribalismDiscoveryEvent(Group, triggerDate));
-        }
-    }
-
-    protected override int CalculateAsymptoteInternal(CulturalDiscovery discovery)
-    {
-        switch (discovery.Id)
-        {
-            case TribalismDiscovery.DiscoveryId:
-                return TribalismDiscoveryAsymptote;
-        }
-
-        return 0;
     }
 
     public override float CalculateExpectedProgressLevel()
@@ -148,20 +108,5 @@ public class SocialOrganizationKnowledge : CellCulturalKnowledge
         float populationFactor = CalculatePopulationFactor();
 
         return (populationFactor * 0.9f) + 0.1f;
-    }
-
-    public override bool WillBeLost()
-    {
-        return false;
-    }
-
-    public override void LossConsequences()
-    {
-
-    }
-
-    protected override int GetBaseAsymptote()
-    {
-        return BaseAsymptote;
     }
 }

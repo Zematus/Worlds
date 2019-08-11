@@ -139,6 +139,9 @@ public class GuiManagerScript : MonoBehaviour
         PlanetOverlay.Temperature,
         PlanetOverlay.Rainfall,
         PlanetOverlay.Arability,
+        PlanetOverlay.Accessibility,
+        PlanetOverlay.Hilliness,
+        PlanetOverlay.WoodCoverage,
         PlanetOverlay.Layer,
         PlanetOverlay.Region,
         PlanetOverlay.Language
@@ -1055,7 +1058,7 @@ public class GuiManagerScript : MonoBehaviour
             {
                 SelectAndCenterOnCell(discoveryEventMessage.Position);
 
-                SetPopCulturalDiscoveryOverlay(discoveryEventMessage.DiscoveryId);
+                SetPopCulturalDiscoveryOverlay(discoveryEventMessage.Discovery.Id);
             });
         }
         else if (eventMessage is CellEventMessage)
@@ -1682,6 +1685,15 @@ public class GuiManagerScript : MonoBehaviour
             case PlanetOverlay.Arability:
                 planetOverlayStr = "_arability";
                 break;
+            case PlanetOverlay.Accessibility:
+                planetOverlayStr = "_accessibility";
+                break;
+            case PlanetOverlay.Hilliness:
+                planetOverlayStr = "_hilliness";
+                break;
+            case PlanetOverlay.WoodCoverage:
+                planetOverlayStr = "_woodPresence";
+                break;
             case PlanetOverlay.Layer:
                 planetOverlayStr = "_layer_" + _planetOverlaySubtype;
                 break;
@@ -2073,6 +2085,18 @@ public class GuiManagerScript : MonoBehaviour
         {
             ChangePlanetOverlay(PlanetOverlay.Arability, false);
         }
+        else if (OverlayDialogPanelScript.AccessibilityToggle.isOn)
+        {
+            ChangePlanetOverlay(PlanetOverlay.Accessibility, false);
+        }
+        else if (OverlayDialogPanelScript.HillinessToggle.isOn)
+        {
+            ChangePlanetOverlay(PlanetOverlay.Hilliness, false);
+        }
+        else if (OverlayDialogPanelScript.WoodCoverageToggle.isOn)
+        {
+            ChangePlanetOverlay(PlanetOverlay.WoodCoverage, false);
+        }
         else if (OverlayDialogPanelScript.LayerToggle.isOn)
         {
             ChangePlanetOverlay(PlanetOverlay.Layer, false);
@@ -2463,9 +2487,9 @@ public class GuiManagerScript : MonoBehaviour
     {
         SelectionPanelScript.Title.text = "Displayed Discovery:";
 
-        foreach (CulturalDiscoveryInfo discoveryInfo in Manager.CurrentWorld.CulturalDiscoveryInfoList)
+        foreach (Discovery discovery in Manager.CurrentWorld.ExistingDiscoveries.Values)
         {
-            AddSelectionPanelOption(discoveryInfo.Name, discoveryInfo.Id);
+            AddSelectionPanelOption(discovery.Name, discovery.Id);
         }
 
         SelectionPanelScript.SetVisible(true);
@@ -2545,9 +2569,9 @@ public class GuiManagerScript : MonoBehaviour
         }
         else if (_planetOverlay == PlanetOverlay.PopCulturalDiscovery)
         {
-            foreach (CulturalDiscoveryInfo discoveryInfo in Manager.CurrentWorld.CulturalDiscoveryInfoList)
+            foreach (Discovery discovery in Manager.CurrentWorld.ExistingDiscoveries.Values)
             {
-                AddSelectionPanelOption(discoveryInfo.Name, discoveryInfo.Id);
+                AddSelectionPanelOption(discovery.Name, discovery.Id);
             }
         }
         else if (_planetOverlay == PlanetOverlay.PolityCulturalPreference)
@@ -2580,9 +2604,9 @@ public class GuiManagerScript : MonoBehaviour
         }
         else if (_planetOverlay == PlanetOverlay.PolityCulturalDiscovery)
         {
-            foreach (CulturalDiscoveryInfo discoveryInfo in Manager.CurrentWorld.CulturalDiscoveryInfoList)
+            foreach (Discovery discovery in Manager.CurrentWorld.ExistingDiscoveries.Values)
             {
-                AddSelectionPanelOption(discoveryInfo.Name, discoveryInfo.Id);
+                AddSelectionPanelOption(discovery.Name, discovery.Id);
             }
         }
         else if (_planetOverlay == PlanetOverlay.Layer)
@@ -2901,7 +2925,7 @@ public class GuiManagerScript : MonoBehaviour
 
     private void ShowCellInfoToolTip_PolityCulturalDiscovery(Polity polity, Vector3 position, float fadeStart = 5)
     {
-        CulturalDiscovery discovery = polity.Culture.GetDiscovery(_planetOverlaySubtype) as CulturalDiscovery;
+        Discovery discovery = polity.Culture.GetDiscovery(_planetOverlaySubtype) as Discovery;
 
         if (discovery != null)
         {

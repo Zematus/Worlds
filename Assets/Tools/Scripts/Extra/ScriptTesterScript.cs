@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Text.RegularExpressions;
 using UnityEngine;
 
 public class ScriptTesterScript : MonoBehaviour
@@ -11,36 +12,49 @@ public class ScriptTesterScript : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        Manager.UpdateMainThreadReference();
+        string input = "[ANY_N_GROUP]group_has_knowledge:agriculture_knowledge,3 [OR] ([NOT]cell_has_sea)";
 
-        Debug.Log("loading biome mod file...");
+        Condition condition = Condition.BuildCondition(input);
 
-        Biome.LoadBiomesFile(@"Mods\Base\biomes.json");
+        Debug.Log(condition.ToString());
 
-        foreach (Biome biome in Biome.Biomes.Values)
-        {
-            Debug.Log("generated biome: " + biome.Name);
-        }
+        input = "group_has_knowledge:neighbor,agriculture_knowledge,3 [OR] ([ANY_N_GROUP]cell_has_sea:0.10 [OR] cell_has_sea)";
 
-        Debug.Log("loading region attribute mod file...");
+        condition = Condition.BuildCondition(input);
 
-        RegionAttribute.LoadRegionAttributesFile(@"Mods\Base\region_attributes.json");
+        Debug.Log(condition.ToString());
 
-        foreach (RegionAttribute regionAttribute in RegionAttribute.Attributes.Values)
-        {
-            Debug.Log("generated region attribute: " + regionAttribute.Name);
-        }
+        input = "[ANY_N_GROUP]group_has_knowledge:agriculture_knowledge,3 [OR] [ANY_N_GROUP]cell_has_sea:0.10 [OR] ([NOT]cell_has_sea)";
 
-        Debug.Log("loading element mod file...");
+        condition = Condition.BuildCondition(input);
 
-        Element.LoadElementsFile(@"Mods\Base\elements.json");
+        Debug.Log(condition.ToString());
 
-        foreach (Element element in Element.Elements.Values)
-        {
-            Debug.Log("generated element: " + element.SingularName);
-        }
+        input = "([ANY_N_GROUP]group_has_knowledge:agriculture_knowledge,3 [OR] [ANY_N_GROUP]cell_has_sea:0.10 [OR] ([NOT]cell_has_sea) [OR] [ANY_N_GROUP]cell_has_sea:0.30)";
 
-        Debug.Log("finished");
+        condition = Condition.BuildCondition(input);
+
+        Debug.Log(condition.ToString());
+
+        input = "[NOT] ([ANY_N_GROUP]group_has_knowledge:agriculture_knowledge,3 [OR] ([NOT]cell_has_sea) [OR] [ANY_N_GROUP]cell_has_sea:0.30)";
+
+        condition = Condition.BuildCondition(input);
+
+        Debug.Log(condition.ToString());
+
+        ///////////////
+
+        Factor factor = Factor.BuildFactor("[INV]([SQ]neighborhood_sea_presence)");
+
+        Debug.Log(factor.ToString());
+
+        factor = Factor.BuildFactor("[SQ]([INV]neighborhood_sea_presence)");
+
+        Debug.Log(factor.ToString());
+
+        factor = Factor.BuildFactor("[SQ]([INV](neighborhood_sea_presence))");
+
+        Debug.Log(factor.ToString());
 
         Debug.Break();
     }

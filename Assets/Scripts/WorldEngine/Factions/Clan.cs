@@ -20,7 +20,7 @@ public class Clan : Faction
     public const int MinClanLeaderStartAge = 16 * World.YearLength;
     public const int MaxClanLeaderStartAge = 50 * World.YearLength;
 
-    public const int MinSocialOrganizationValue = SocialOrganizationKnowledge.MinValueForTribalismDiscovery;
+    public const int MinSocialOrganizationValue = 600;
 
     public const int MinCorePopulation = 500;
     public const float MinCorePolityProminence = 0.3f;
@@ -227,7 +227,7 @@ public class Clan : Faction
 
     public static bool CanBeClanCore(CellGroup group)
     {
-        if (!group.Culture.HasDiscovery(TribalismDiscovery.DiscoveryId))
+        if (!group.HasProperty(Polity.CanFormPolityAttribute + "tribe"))
         {
             return false;
         }
@@ -249,7 +249,7 @@ public class Clan : Faction
         if (!CanBeClanCore(group))
             return false;
 
-        if (!group.Culture.HasDiscovery(TribalismDiscovery.DiscoveryId))
+        if (!group.HasProperty(Polity.CanFormPolityAttribute + "tribe"))
             return false;
 
         PolityProminence pi = group.GetPolityProminence(Polity);

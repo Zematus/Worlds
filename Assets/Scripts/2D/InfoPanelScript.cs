@@ -80,7 +80,6 @@ public class InfoPanelScript : MonoBehaviour
 
     private void AddCellDataToInfoPanel_Terrain(TerrainCell cell)
     {
-
         float cellArea = cell.Area;
 
         InfoText.text += "\n";
@@ -109,21 +108,38 @@ public class InfoPanelScript : MonoBehaviour
             InfoText.text += "\n";
         }
 
+        InfoText.text += "\nBiomes:";
+
+        float farmlandPerc = cell.FarmlandPercentage;
+        float wildPerc = 1 - farmlandPerc;
+
         for (int i = 0; i < cell.PresentBiomeIds.Count; i++)
         {
-            float percentage = cell.BiomePresences[i];
+            float percentage = cell.BiomePresences[i] * wildPerc;
 
             Biome biome = Biome.Biomes[cell.PresentBiomeIds[i]];
 
-            InfoText.text += "\nBiome: " + biome.Name.FirstLetterToUpper();
+            InfoText.text += "\n\t" + biome.Name.FirstLetterToUpper() + ":";
             InfoText.text += " (" + percentage.ToString("P") + ")";
+        }
+
+        if (farmlandPerc > 0)
+        {
+            InfoText.text += "\n\tFarmland:";
+            InfoText.text += " (" + farmlandPerc.ToString("P") + ")";
         }
 
         InfoText.text += "\n";
         InfoText.text += "\nSurvivability: " + cell.Survivability.ToString("P");
         InfoText.text += "\nForaging Capacity: " + cell.ForagingCapacity.ToString("P");
         InfoText.text += "\nAccessibility: " + cell.Accessibility.ToString("P");
+        if (cell.Accessibility != cell.BaseAccessibility)
+            InfoText.text += "\nOriginal Accessibility: " + cell.BaseAccessibility.ToString("P");
         InfoText.text += "\nArability: " + cell.Arability.ToString("P");
+        if (cell.Arability != cell.BaseArability)
+            InfoText.text += "\nOriginal Arability: " + cell.BaseArability.ToString("P");
+        InfoText.text += "\nHilliness: " + cell.Hilliness.ToString("P");
+        InfoText.text += "\nWood Coverage: " + (cell.WoodCoverage * wildPerc).ToString("P");
         InfoText.text += "\n";
 
         Region region = cell.Region;
@@ -140,7 +156,6 @@ public class InfoPanelScript : MonoBehaviour
 
     private void AddCellDataToInfoPanel_Region(TerrainCell cell)
     {
-
         Region region = cell.Region;
 
         InfoText.text += "\n";
@@ -163,7 +178,6 @@ public class InfoPanelScript : MonoBehaviour
         bool first = true;
         foreach (RegionAttribute.Instance attr in region.Attributes.Values)
         {
-
             if (first)
             {
                 InfoText.text += attr.Name;
@@ -210,24 +224,18 @@ public class InfoPanelScript : MonoBehaviour
 
     private void AddCellDataToInfoPanel_FarmlandDistribution(TerrainCell cell)
     {
-
         float cellArea = cell.Area;
         float farmlandPercentage = cell.FarmlandPercentage;
+        
+        InfoText.text += "\n";
+        InfoText.text += "\n -- Cell Farmland Distribution Data -- ";
+        InfoText.text += "\n";
 
-        if (farmlandPercentage > 0)
-        {
-
-            InfoText.text += "\n";
-            InfoText.text += "\n -- Cell Farmland Distribution Data -- ";
-            InfoText.text += "\n";
-
-            InfoText.text += "\nFarmland Percentage: " + farmlandPercentage.ToString("P");
-            InfoText.text += "\n";
-        }
+        InfoText.text += "\nFarmland Percentage: " + farmlandPercentage.ToString("P");
+        InfoText.text += "\n";
 
         if (cell.Group == null)
         {
-
             InfoText.text += "\n\tNo population at location";
 
             return;
@@ -237,15 +245,13 @@ public class InfoPanelScript : MonoBehaviour
 
         if (population <= 0)
         {
-
             InfoText.text += "\n\tNo population at location";
 
             return;
         }
 
-        if (cell.FarmlandPercentage > 0)
+        if (farmlandPercentage > 0)
         {
-
             float farmlandArea = farmlandPercentage * cellArea;
 
             InfoText.text += "\nFarmland Area per Pop: " + (farmlandArea / (float)population).ToString("0.000") + " Km^2 / Pop";
@@ -254,7 +260,6 @@ public class InfoPanelScript : MonoBehaviour
 
     private void AddCellDataToInfoPanel_PopDensity(TerrainCell cell)
     {
-
         float cellArea = cell.Area;
 
         InfoText.text += "\n";
@@ -263,7 +268,6 @@ public class InfoPanelScript : MonoBehaviour
 
         if (cell.Group == null)
         {
-
             InfoText.text += "\n\tNo population at location";
 
             return;
@@ -273,7 +277,6 @@ public class InfoPanelScript : MonoBehaviour
 
         if (population <= 0)
         {
-
             InfoText.text += "\n\tNo population at location";
 
             return;
@@ -294,20 +297,18 @@ public class InfoPanelScript : MonoBehaviour
         cell.Group.CalculateAdaptionToCell(cell, out modifiedForagingCapacity, out modifiedSurvivability);
 
         InfoText.text += "\n";
-        InfoText.text += "\nModified Survivability: " + modifiedSurvivability.ToString("P");
-        InfoText.text += "\nModified Foraging Capacity: " + modifiedForagingCapacity.ToString("P");
+        InfoText.text += "\nSurvivability: " + modifiedSurvivability.ToString("P");
+        InfoText.text += "\nForaging Capacity: " + modifiedForagingCapacity.ToString("P");
     }
 
     private void AddCellDataToInfoPanel_Language(TerrainCell cell)
     {
-
         InfoText.text += "\n";
         InfoText.text += "\n -- Group Language Data -- ";
         InfoText.text += "\n";
 
         if (cell.Group == null)
         {
-
             InfoText.text += "\n\tNo population at location";
 
             return;
@@ -317,7 +318,6 @@ public class InfoPanelScript : MonoBehaviour
 
         if (population <= 0)
         {
-
             InfoText.text += "\n\tNo population at location";
 
             return;
@@ -327,7 +327,6 @@ public class InfoPanelScript : MonoBehaviour
 
         if (groupLanguage == null)
         {
-
             InfoText.text += "\n\tNo major language spoken at location";
 
             return;
@@ -338,14 +337,12 @@ public class InfoPanelScript : MonoBehaviour
 
     private void AddCellDataToInfoPanel_UpdateSpan(TerrainCell cell)
     {
-
         InfoText.text += "\n";
         InfoText.text += "\n -- Group Update Span Data -- ";
         InfoText.text += "\n";
 
         if (cell.Group == null)
         {
-
             InfoText.text += "\n\tNo population at location";
 
             return;
@@ -355,7 +352,6 @@ public class InfoPanelScript : MonoBehaviour
 
         if (population <= 0)
         {
-
             InfoText.text += "\n\tNo population at location";
 
             return;
@@ -430,14 +426,12 @@ public class InfoPanelScript : MonoBehaviour
 
     private void AddCellDataToInfoPanel_PolityContacts(TerrainCell cell)
     {
-
         InfoText.text += "\n";
         InfoText.text += "\n -- Polity Contacts Data -- ";
         InfoText.text += "\n";
 
         if (cell.Group == null)
         {
-
             InfoText.text += "\n\tNo population at location";
 
             return;
@@ -447,15 +441,13 @@ public class InfoPanelScript : MonoBehaviour
 
         if (population <= 0)
         {
-
             InfoText.text += "\n\tNo population at location";
 
             return;
         }
 
         Territory territory = cell.EncompassingTerritory;
-
-
+        
         if (territory == null)
         {
             InfoText.text += "\n\tGroup not part of a polity's territory";
@@ -470,12 +462,10 @@ public class InfoPanelScript : MonoBehaviour
 
         if (polity.Contacts.Count <= 0)
         {
-
             InfoText.text += "\nPolity has no contact with other polities...";
         }
         else
         {
-
             InfoText.text += "\nPolities in contact:";
         }
 
@@ -499,13 +489,11 @@ public class InfoPanelScript : MonoBehaviour
 
     private void AddCellDataToInfoPanel_General(TerrainCell cell)
     {
-
         InfoText.text += "\n";
         InfoText.text += "\n";
 
         if (cell.Group == null)
         {
-
             InfoText.text += "Uninhabited land";
 
             return;
@@ -515,7 +503,6 @@ public class InfoPanelScript : MonoBehaviour
 
         if (cellPopulation <= 0)
         {
-
             InfoText.text += "Group has zero population";
             Debug.LogError("Group has zero or less population: " + cellPopulation);
 
@@ -526,7 +513,6 @@ public class InfoPanelScript : MonoBehaviour
 
         if (territory == null)
         {
-
             InfoText.text += "Disorganized bands";
             InfoText.text += "\n";
             InfoText.text += "\n";
@@ -536,7 +522,6 @@ public class InfoPanelScript : MonoBehaviour
         }
         else
         {
-
             Polity polity = territory.Polity;
 
             InfoText.text += "Territory of the " + polity.Name.Text + " " + polity.Type.ToLower();
@@ -557,7 +542,7 @@ public class InfoPanelScript : MonoBehaviour
 
             int polPopulation = (int)polity.TotalPopulation;
 
-            if (polity.Type == Tribe.PolityType)
+            if (polity.Type == Tribe.PolityTypeStr)
             {
                 InfoText.text += polPopulation + " tribe members";
             }
@@ -1120,7 +1105,7 @@ public class InfoPanelScript : MonoBehaviour
 
         bool firstDiscovery = true;
 
-        foreach (CulturalDiscovery discovery in polityProminence.Polity.Culture.Discoveries.Values)
+        foreach (Discovery discovery in polityProminence.Polity.Culture.Discoveries.Values)
         {
             if (firstDiscovery)
             {
@@ -1157,7 +1142,7 @@ public class InfoPanelScript : MonoBehaviour
 
         bool firstDiscovery = true;
 
-        foreach (CulturalDiscovery discovery in cell.Group.Culture.Discoveries.Values)
+        foreach (Discovery discovery in cell.Group.Culture.Discoveries.Values)
         {
             if (firstDiscovery)
             {
@@ -1181,6 +1166,9 @@ public class InfoPanelScript : MonoBehaviour
         if ((Manager.PlanetOverlay == PlanetOverlay.None) ||
             (Manager.PlanetOverlay == PlanetOverlay.Rainfall) ||
             (Manager.PlanetOverlay == PlanetOverlay.Arability) ||
+            (Manager.PlanetOverlay == PlanetOverlay.Accessibility) ||
+            (Manager.PlanetOverlay == PlanetOverlay.Hilliness) ||
+            (Manager.PlanetOverlay == PlanetOverlay.WoodCoverage) ||
             (Manager.PlanetOverlay == PlanetOverlay.Layer) ||
             (Manager.PlanetOverlay == PlanetOverlay.Temperature))
         {

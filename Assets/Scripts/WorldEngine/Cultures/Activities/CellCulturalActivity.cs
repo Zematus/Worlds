@@ -8,14 +8,17 @@ public class CellCulturalActivity : CulturalActivity
 {
     public const float TimeEffectConstant = CellGroup.GenerationSpan * 500;
 
-    public const string ForagingActivityId = "ForagingActivity";
-    public const string FarmingActivityId = "FarmingActivity";
+    public const string ForagingActivityId = "foraging";
+    public const string FarmingActivityId = "farming";
+    public const string FishingActivityId = "fishing";
 
-    public const string ForagingActivityName = "Foraging";
-    public const string FarmingActivityName = "Farming";
+    public const string ForagingActivityName = "foraging";
+    public const string FarmingActivityName = "farming";
+    public const string FishingActivityName = "fishing";
 
     public const int ForagingActivityRngOffset = 0;
     public const int FarmingActivityRngOffset = 100;
+    public const int FishingActivityRngOffset = 200;
 
     [XmlIgnore]
     public CellGroup Group;
@@ -45,14 +48,21 @@ public class CellCulturalActivity : CulturalActivity
         return new CellCulturalActivity(group, baseActivity.Id, baseActivity.Name, baseActivity.RngOffset, initialValue, initialContribution);
     }
 
-    public static CellCulturalActivity CreateForagingActivity(CellGroup group, float value = 0, float contribution = 0)
+    public static CellCulturalActivity CreateActivity(string id, CellGroup group, float value = 0, float contribution = 0)
     {
-        return new CellCulturalActivity(group, ForagingActivityId, ForagingActivityName, ForagingActivityRngOffset, value, contribution);
-    }
+        switch (id)
+        {
+            case FarmingActivityId:
+                return new CellCulturalActivity(group, FarmingActivityId, FarmingActivityName, FarmingActivityRngOffset, value, contribution);
 
-    public static CellCulturalActivity CreateFarmingActivity(CellGroup group, float value = 0, float contribution = 0)
-    {
-        return new CellCulturalActivity(group, FarmingActivityId, FarmingActivityName, FarmingActivityRngOffset, value, contribution);
+            case ForagingActivityId:
+                return new CellCulturalActivity(group, ForagingActivityId, ForagingActivityName, ForagingActivityRngOffset, value, contribution);
+
+            case FishingActivityId:
+                return new CellCulturalActivity(group, FishingActivityId, FishingActivityName, FishingActivityRngOffset, value, contribution);
+        }
+
+        throw new System.ArgumentException("CellCulturalActivity: Unrecognized activity Id: " + id);
     }
 
     public void Merge(CulturalActivity activity, float percentage)
@@ -88,12 +98,12 @@ public class CellCulturalActivity : CulturalActivity
             targetValue = Value - (minTargetValue - Value) * randomFactor;
         }
 
-        float timeEffect = timeSpan / (float)(timeSpan + TimeEffectConstant);
+        float timeEffect = timeSpan / (timeSpan + TimeEffectConstant);
 
         _newValue = (Value * (1 - timeEffect)) + (targetValue * timeEffect);
     }
 
-    public void PolityCulturalProminence(CulturalActivity polityActivity, PolityProminence polityProminence, long timeSpan)
+    public void AddPolityProminenceEffect(CulturalActivity polityActivity, PolityProminence polityProminence, long timeSpan)
     {
         float targetValue = polityActivity.Value;
         float prominenceEffect = polityProminence.Value;
@@ -113,6 +123,16 @@ public class CellCulturalActivity : CulturalActivity
     public void PostUpdate()
     {
         Value = Mathf.Clamp01(_newValue);
+    }
+
+    public bool CanPerform(CellGroup group)
+    {
+        if (Id == FishingActivityId)
+        {
+            return group.Cell.NeighborhoodSeaBiomePresence > 0;
+        }
+
+        return true;
     }
 
     public override void FinalizeLoad()

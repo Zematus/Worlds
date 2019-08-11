@@ -5,12 +5,6 @@ using System;
 using System.IO;
 using System.Text.RegularExpressions;
 
-public static class QuotedStringListHelper
-{
-    public const string FirstAndLastSingleQuoteRegex = @"(?:^\s*\'\s*)|(?:\s*\'\s*$)";
-    public const string SeparatorSingleQuoteRegex = @"\s*(?:(?:\'\s*,\s*\'))\s*";
-}
-
 [Serializable]
 public class ElementLoader
 {
@@ -24,9 +18,9 @@ public class ElementLoader
     {
         public string id;
         public string name;
-        public string adjectives;
-        public string regionConstraints;
-        public string phraseAssociations;
+        public string[] adjectives;
+        public string[] regionConstraints;
+        public string[] phraseAssociations;
     }
 
 #pragma warning restore 0649
@@ -55,43 +49,26 @@ public class ElementLoader
             throw new ArgumentException("element name can't be null or empty");
         }
 
-        if (string.IsNullOrEmpty(e.phraseAssociations))
+        if (e.phraseAssociations == null)
         {
-            throw new ArgumentException("element's phrase association strings can't be null or empty");
+            throw new ArgumentException("element's phrase association strings can't be null");
         }
 
         Adjective[] adjectives = null;
-        string[] constraints = null;
-        string[] associationStrs = null;
 
-        if (!string.IsNullOrEmpty(e.adjectives))
+        if (e.adjectives != null)
         {
-            string[] adjs = e.adjectives.Split(',');
-            adjectives = new Adjective[adjs.Length];
+            adjectives = new Adjective[e.adjectives.Length];
 
-            for (int i = 0; i < adjs.Length; i++)
+            for (int i = 0; i < e.adjectives.Length; i++)
             {
-                string adj = adjs[i].Trim();
+                string adj = e.adjectives[i].Trim();
 
-                if (!Adjective.Adjectives.TryGetValue(adj, out adjectives[i]))
-                {
-                    throw new ArgumentException("adjective id not found in loaded adjectives: " + adj);
-                }
+                adjectives[i] = Adjective.TryGetAdjectiveOrAdd(adj);
             }
         }
 
-        if (!string.IsNullOrEmpty(e.regionConstraints))
-        {
-            //Cleanup and split list of constraints
-            string c = Regex.Replace(e.regionConstraints, QuotedStringListHelper.FirstAndLastSingleQuoteRegex, "");
-            constraints = Regex.Split(c, QuotedStringListHelper.SeparatorSingleQuoteRegex);
-        }
-
-        //Cleanup and split list of association strings
-        string a = Regex.Replace(e.phraseAssociations, QuotedStringListHelper.FirstAndLastSingleQuoteRegex, "");
-        associationStrs = Regex.Split(a, QuotedStringListHelper.SeparatorSingleQuoteRegex);
-
-        Element element = new Element(e.id, e.name, adjectives, constraints, associationStrs);
+        Element element = new Element(e.id, e.name, adjectives, e.regionConstraints, e.phraseAssociations);
 
         return element;
     }

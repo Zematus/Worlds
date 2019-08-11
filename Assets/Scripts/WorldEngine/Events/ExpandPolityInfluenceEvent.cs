@@ -5,153 +5,155 @@ using System.Xml;
 using System.Xml.Serialization;
 using UnityEngine.Profiling;
 
-public class ExpandPolityProminenceEvent : CellGroupEvent {
+public class ExpandPolityProminenceEvent : CellGroupEvent
+{
+    [XmlAttribute("TGrpId")]
+    public long TargetGroupId;
+    [XmlAttribute("PolId")]
+    public long PolityId;
 
-	[XmlAttribute ("TGrpId")]
-	public long TargetGroupId;
-	[XmlAttribute ("PolId")]
-	public long PolityId;
+    [XmlIgnore]
+    public CellGroup TargetGroup;
+    [XmlIgnore]
+    public Polity Polity;
 
-	[XmlIgnore]
-	public CellGroup TargetGroup;
-	[XmlIgnore]
-	public Polity Polity;
+    public ExpandPolityProminenceEvent()
+    {
+        DoNotSerialize = true;
+    }
 
-	public ExpandPolityProminenceEvent () {
+    public ExpandPolityProminenceEvent(CellGroup group, Polity polity, CellGroup targetGroup, long triggerDate) : base(group, triggerDate, ExpandPolityProminenceEventId)
+    {
+        Polity = polity;
 
-		DoNotSerialize = true;
-	}
+        PolityId = polity.Id;
 
-	public ExpandPolityProminenceEvent (CellGroup group, Polity polity, CellGroup targetGroup, long triggerDate) : base (group, triggerDate, ExpandPolityProminenceEventId) {
+        TargetGroup = targetGroup;
 
-		Polity = polity;
+        TargetGroupId = TargetGroup.Id;
 
-		PolityId = polity.Id;
+        DoNotSerialize = true;
+    }
 
-		TargetGroup = targetGroup;
+    public override bool IsStillValid()
+    {
+        if (!base.IsStillValid())
+            return false;
 
-		TargetGroupId = TargetGroup.Id;
+        if (Polity == null)
+            return false;
 
-		DoNotSerialize = true;
-	}
+        if (!Polity.StillPresent)
+            return false;
 
-	public override bool IsStillValid () {
+        if (TargetGroup == null)
+            return false;
 
-		if (!base.IsStillValid ())
-			return false;
+        if (!TargetGroup.StillPresent)
+            return false;
 
-		if (Polity == null)
-			return false;
+        return true;
+    }
 
-		if (!Polity.StillPresent)
-			return false;
+    public override bool CanTrigger()
+    {
+        if (!base.CanTrigger())
+            return false;
 
-		if (TargetGroup == null)
-			return false;
+        PolityProminence sourcePi = Group.GetPolityProminence(Polity);
 
-		if (!TargetGroup.StillPresent)
-			return false;
+        if (sourcePi == null)
+            return false;
 
-		return true;
-	}
+        return true;
+    }
 
-	public override bool CanTrigger () {
+    public override void Trigger()
+    {
+        //		#if DEBUG
+        //		if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0)) {
+        //			if (Group.Id == Manager.TracingData.GroupId) {
+        //				string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
+        //
+        //				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+        //					"ExpandPolityProminence:Trigger - Group:" + groupId,
+        //					"CurrentDate: " + World.CurrentDate + 
+        //					", TriggerDate: " + TriggerDate + 
+        //					", SpawnDate: " + SpawnDate +
+        //					", PolityId: " + PolityId + 
+        //					", TargetGroup Id: " + TargetGroupId + 
+        //					"");
+        //
+        //				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
+        //			}
+        //		}
+        //		#endif
 
-		if (!base.CanTrigger ())
-			return false;
+        float randomFactor = Group.Cell.GetNextLocalRandomFloat(RngOffsets.EVENT_TRIGGER + unchecked((int)Id));
+        float percentToExpand = Mathf.Pow(randomFactor, 4);
 
-		PolityProminence sourcePi = Group.GetPolityProminence (Polity);
+        float populationFactor = Group.Population / (float)(Group.Population + TargetGroup.Population);
+        percentToExpand *= populationFactor;
 
-		if (sourcePi == null)
-			return false;
+        PolityProminence sourcePi = Group.GetPolityProminence(Polity);
 
-		return true;
-	}
+        TargetGroup.Culture.MergeCulture(Group.Culture, percentToExpand);
+        TargetGroup.MergePolityProminence(sourcePi, percentToExpand);
 
-	public override void Trigger () {
+        TryMigrateFactionCores();
 
-		//		#if DEBUG
-		//		if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0)) {
-		//			if (Group.Id == Manager.TracingData.GroupId) {
-		//				string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
-		//
-		//				SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-		//					"ExpandPolityProminence:Trigger - Group:" + groupId,
-		//					"CurrentDate: " + World.CurrentDate + 
-		//					", TriggerDate: " + TriggerDate + 
-		//					", SpawnDate: " + SpawnDate +
-		//					", PolityId: " + PolityId + 
-		//					", TargetGroup Id: " + TargetGroupId + 
-		//					"");
-		//
-		//				Manager.RegisterDebugEvent ("DebugMessage", debugMessage);
-		//			}
-		//		}
-		//		#endif
+        World.AddGroupToUpdate(Group);
+        World.AddGroupToUpdate(TargetGroup);
+    }
 
-		float randomFactor = Group.Cell.GetNextLocalRandomFloat (RngOffsets.EVENT_TRIGGER + unchecked((int)Id));
-		float percentToExpand = Mathf.Pow (randomFactor, 4);
+    private void TryMigrateFactionCores()
+    {
+        List<Faction> factionCoresToMigrate = new List<Faction>();
 
-		float populationFactor = Group.Population / (float)(Group.Population + TargetGroup.Population);
-		percentToExpand *= populationFactor;
+        foreach (Faction faction in Group.GetFactionCores())
+        {
+            if (faction.ShouldMigrateFactionCore(Group, TargetGroup))
+            {
+                factionCoresToMigrate.Add(faction);
+            }
+        }
 
-		PolityProminence sourcePi = Group.GetPolityProminence (Polity);
+        foreach (Faction faction in factionCoresToMigrate)
+        {
+            faction.SetToUpdate();
 
-		TargetGroup.Culture.MergeCulture (Group.Culture, percentToExpand);
-		TargetGroup.MergePolityProminence (sourcePi, percentToExpand);
+            faction.PrepareNewCoreGroup(TargetGroup);
+        }
+    }
 
-		TryMigrateFactionCores ();
+    public override void FinalizeLoad()
+    {
+        base.FinalizeLoad();
 
-		World.AddGroupToUpdate (Group);
-		World.AddGroupToUpdate (TargetGroup);
-	}
+        TargetGroup = World.GetGroup(TargetGroupId);
+        Polity = World.GetPolity(PolityId);
 
-	private void TryMigrateFactionCores () {
+        Group.PolityExpansionEvent = this;
+    }
 
-		List<Faction> factionCoresToMigrate = new List<Faction> ();
+    protected override void DestroyInternal()
+    {
+        if (Group != null)
+        {
+            Group.HasPolityExpansionEvent = false;
+        }
 
-		foreach (Faction faction in Group.GetFactionCores ()) {
+        base.DestroyInternal();
+    }
 
-			if (faction.ShouldMigrateFactionCore (Group, TargetGroup)) {
-				factionCoresToMigrate.Add (faction);
-			}
-		}
+    public void Reset(Polity polity, CellGroup targetGroup, long triggerDate)
+    {
+        TargetGroup = targetGroup;
+        TargetGroupId = TargetGroup.Id;
 
-		foreach (Faction faction in factionCoresToMigrate) {
+        Polity = polity;
+        PolityId = Polity.Id;
 
-			faction.SetToUpdate ();
-
-			faction.PrepareNewCoreGroup (TargetGroup);
-		}
-	}
-
-	public override void FinalizeLoad () {
-
-		base.FinalizeLoad ();
-
-		TargetGroup = World.GetGroup (TargetGroupId);
-		Polity = World.GetPolity (PolityId);
-
-		Group.PolityExpansionEvent = this;
-	}
-
-	protected override void DestroyInternal () {
-
-		if (Group != null) {
-			Group.HasPolityExpansionEvent = false;
-		}
-
-		base.DestroyInternal ();
-	}
-
-	public void Reset (Polity polity, CellGroup targetGroup, long triggerDate) {
-
-		TargetGroup = targetGroup;
-		TargetGroupId = TargetGroup.Id;
-
-		Polity = polity;
-		PolityId = Polity.Id;
-
-		Reset (triggerDate);
-	}
+        Reset(triggerDate);
+    }
 }

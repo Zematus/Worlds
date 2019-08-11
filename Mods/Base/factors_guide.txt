@@ -1,0 +1,59 @@
+---- Factors Guide ----
+
+Factors are properties that can be used to modify other properties like, for example, and event time-to-trigger. Note that factors will always have values between 0 and 1 (inclusive).
+
+- Factor operators -
+
+[SQ] - SQUARE: A factor's effect can squared (i.e. multiply the factor by itself) before being applied to the affected property by using the [SQ] prefix.
+
+[INV] - INVERSE: A factor's effect can be inversed by applying the [INV] prefix so that the affected property becomes inversely proportional (i.e. '[INV]<factor>' equals '1 - <factor>').
+
+
+Operators must be enclosed together with factors within single quotes. Modifiers can be used together using parenthesis to set modifier priority (values between parenthesis evaluate first).
+Example: '[SQ]([INV]<factor>)'
+
+---
+
+Here's a list of the current types of factors (more to be added in future versions) and how they work:
+
+- 'neighborhood_sea_presence'
+    Calculates the total amount of sea-type biomes present in the target cell and all neighboring cells surrounding the cell. The factor's value will fall within the range of 0 (no sea presence in the target cell nor any surrounding cell) and 1 (all 9 cells have 100% sea-type biome presence)
+
+    Examples: 'neighborhood_sea_presence', '[INV]neighborhood_sea_presence'
+
+- 'cell_accessibility'
+    Returns the accessibility (i.e. how accessible the terrain is) of the terrain cell as a value between 0 and 1
+
+    Examples: 'cell_accessibility', '[INV]cell_accessibility'
+
+- 'cell_arability'
+    Returns the arability (i.e. how arable the land is) of the terrain cell as a value between 0 and 1
+
+    Examples: 'cell_arability', '[INV]cell_arability'
+
+- 'cell_foraging_capacity'
+    Returns the foraging capacity (i.e. how many resources can be extracted through foraging) of the terrain cell as a value between 0 and 1
+
+    Examples: 'cell_foraging_capacity', '[INV]cell_foraging_capacity'
+
+- 'cell_survivability'
+    Returns the survivability (i.e. how easy is for humans to survive on that cell) of the terrain cell as a value between 0 and 1
+
+    Examples: 'cell_survivability', '[INV]cell_survivability'
+
+- 'cell_biome_presence'
+    Returns the presence of a particular biome (i.e. percentage of area in cell covered by such biome) of the terrain cell as a value between 0 and 1
+
+    Examples: 'cell_biome_presence:forest', '[INV]cell_biome_presence:desert'
+
+- 'cell_hilliness'
+    Returns the hilliness (i.e. how hilly the terrain is) of the terrain cell as a value between 0 and 1
+
+    Examples: 'cell_hilliness', '[INV]cell_hilliness'
+
+- 'cell_wood_coverage'
+    Returns the wood coverage (i.e. the total amount of biome presence on a cell with the 'wood' trait) of the terrain cell as a value between 0 and 1
+
+    Examples: 'cell_wood_coverage', '[INV]cell_wood_coverage'
+
+--

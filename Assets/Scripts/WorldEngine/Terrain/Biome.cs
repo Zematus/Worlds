@@ -4,6 +4,17 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
+public enum BiomeTerrainType
+{
+    Land,
+    Sea
+}
+
+public enum BiomeTrait
+{
+    Wood
+}
+
 public class Biome
 {
     public class LayerConstraint
@@ -12,12 +23,6 @@ public class Biome
         public float MinValue;
         public float MaxValue;
         public float SaturationSlope;
-    }
-
-    public enum LocactionType
-    {
-        Land,
-        Sea
     }
 
     public static float MinBiomeTemperature = World.MinPossibleTemperature * 3 - 1;
@@ -36,7 +41,8 @@ public class Biome
     public int IdHash;
 
     public Color Color;
-    public LocactionType Type;
+    public BiomeTerrainType TerrainType;
+    public HashSet<BiomeTrait> Traits = new HashSet<BiomeTrait>();
 
     public float MinAltitude;
     public float MaxAltitude;
@@ -53,6 +59,7 @@ public class Biome
     public float Survivability;
     public float ForagingCapacity;
     public float Accessibility;
+    public float Arability;
 
     public Dictionary<string, LayerConstraint> LayerConstraints = null;
 

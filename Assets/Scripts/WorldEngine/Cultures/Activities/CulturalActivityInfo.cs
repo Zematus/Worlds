@@ -56,6 +56,11 @@ public class CulturalActivityInfo : IKeyedValue<string>, ISynchronizable
                 RngOffset = CellCulturalActivity.ForagingActivityRngOffset;
                 break;
 
+            case CellCulturalActivity.FishingActivityId:
+                Name = CellCulturalActivity.FishingActivityName;
+                RngOffset = CellCulturalActivity.FishingActivityRngOffset;
+                break;
+
             default:
                 throw new System.Exception("Unhandled Activity Id: " + Id);
         }

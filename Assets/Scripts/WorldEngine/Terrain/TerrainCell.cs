@@ -60,6 +60,10 @@ public class TerrainCell : ISynchronizable
     public const int MaxNeighborDirections = 8;
     public const int NeighborSearchOffset = 3;
 
+    public const int MaxNeighborhoodSeaPresence = 9;
+
+    public const float HillinessSlopeFactor = 0.01f;
+
     [XmlAttribute]
     public bool Modified = false; // This will be true if the cell has been modified after/during generation by using a heighmap, using the map editor, or by running the simulation
 
@@ -97,15 +101,23 @@ public class TerrainCell : ISynchronizable
     [XmlAttribute]
     public float ForagingCapacity;
     [XmlAttribute]
-    public float Accessibility;
+    public float BaseAccessibility;
     [XmlAttribute]
-    public float Arability;
+    public float BaseArability;
+    [XmlAttribute]
+    public float Hilliness;
+    [XmlAttribute]
+    public float WoodCoverage;
 
     [XmlAttribute]
     public bool IsPartOfCoastline;
 
     [XmlAttribute]
     public float FarmlandPercentage = 0;
+    [XmlAttribute]
+    public float Arability = 0;
+    [XmlAttribute]
+    public float Accessibility = 0;
 
     [XmlAttribute]
     public string BiomeWithMostPresence = null;
@@ -134,6 +146,26 @@ public class TerrainCell : ISynchronizable
 
     [XmlIgnore]
     public float SeaBiomePresence = 0;
+
+    private float? _neighborhoodSeaBiomePresence = null;
+
+    [XmlIgnore]
+    public float NeighborhoodSeaBiomePresence
+    {
+        get {
+            if (_neighborhoodSeaBiomePresence == null)
+            {
+                _neighborhoodSeaBiomePresence = SeaBiomePresence;
+
+                foreach (TerrainCell nCell in Neighbors.Values)
+                {
+                    _neighborhoodSeaBiomePresence += nCell.SeaBiomePresence;
+                }
+            }
+
+            return _neighborhoodSeaBiomePresence.Value;
+        }
+    }
 
     [XmlIgnore]
     public WorldPosition Position;
@@ -280,7 +312,9 @@ public class TerrainCell : ISynchronizable
         Rainfall = alteration.Rainfall;
 
         FarmlandPercentage = alteration.FarmlandPercentage;
-        
+        Accessibility = alteration.Accessibility;
+        Arability = alteration.Arability;
+
         foreach (CellLayerData data in alteration.LayerData)
         {
             SetLayerData(Layer.Layers[data.Id], data.Value, data.Offset);
@@ -413,7 +447,7 @@ public class TerrainCell : ISynchronizable
         PresentBiomeIds.Add(biome.Id);
         BiomePresences.Add(presence);
 
-        if (biome.Type == Biome.LocactionType.Sea)
+        if (biome.TerrainType == BiomeTerrainType.Sea)
         {
             PresentSeaBiomeIds.Add(biome.Id);
             SeaBiomePresence += presence;
@@ -547,7 +581,7 @@ public class TerrainCell : ISynchronizable
 
             Biome biome = Biome.Biomes[biomeId];
 
-            if (biome.Type == Biome.LocactionType.Sea)
+            if (biome.TerrainType == BiomeTerrainType.Sea)
             {
                 PresentSeaBiomeIds.Add(biomeId);
                 SeaBiomePresence += BiomePresences[i];

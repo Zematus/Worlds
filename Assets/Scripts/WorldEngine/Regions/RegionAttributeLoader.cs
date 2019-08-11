@@ -18,10 +18,10 @@ public class RegionAttributeLoader
     {
         public string id;
         public string name;
-        public string adjectives;
-        public string variants;
-        public string regionConstraints;
-        public string phraseAssociations;
+        public string[] adjectives;
+        public string[] variants;
+        public string[] regionConstraints;
+        public string[] phraseAssociations;
         public bool secondary;
     }
 
@@ -51,56 +51,39 @@ public class RegionAttributeLoader
             throw new ArgumentException("region attribute name can't be null or empty");
         }
 
-        if (string.IsNullOrEmpty(attr.variants))
+        if (attr.variants == null)
         {
-            throw new ArgumentException("region attribute's variants can't be null or empty");
+            throw new ArgumentException("region attribute's variants can't be null");
         }
 
-        if (string.IsNullOrEmpty(attr.phraseAssociations))
+        if (attr.phraseAssociations == null)
         {
-            throw new ArgumentException("region phrase attribute's association strings can't be null or empty");
+            throw new ArgumentException("region phrase attribute's association strings can't be null");
         }
 
         Adjective[] adjectives = null;
         string[] variants = null;
-        string[] constraints = null;
-        string[] associationStrs = null;
 
-        if (!string.IsNullOrEmpty(attr.adjectives))
+        if (attr.adjectives != null)
         {
-            string[] adjs = attr.adjectives.Split(',');
-            adjectives = new Adjective[adjs.Length];
+            adjectives = new Adjective[attr.adjectives.Length];
 
-            for (int i = 0; i < adjs.Length; i++)
+            for (int i = 0; i < attr.adjectives.Length; i++)
             {
-                string adj = adjs[i].Trim();
+                string adj = attr.adjectives[i].Trim();
 
-                if (!Adjective.Adjectives.TryGetValue(adj, out adjectives[i]))
-                {
-                    Debug.LogWarning("Adjective id not found in loaded adjectives: " + adj);
-                }
+                adjectives[i] = Adjective.TryGetAdjectiveOrAdd(adj);
             }
         }
 
-        variants = attr.variants.Split(',');
+        variants = attr.variants;
 
         for (int i = 0; i < variants.Length; i++)
         {
             variants[i] = variants[i].Trim();
         }
 
-        if (!string.IsNullOrEmpty(attr.regionConstraints))
-        {
-            //Cleanup and split list of constraints
-            string c = Regex.Replace(attr.regionConstraints, QuotedStringListHelper.FirstAndLastSingleQuoteRegex, "");
-            constraints = Regex.Split(c, QuotedStringListHelper.SeparatorSingleQuoteRegex);
-        }
-
-        //Cleanup and split list of association strings
-        string a = Regex.Replace(attr.phraseAssociations, QuotedStringListHelper.FirstAndLastSingleQuoteRegex, "");
-        associationStrs = Regex.Split(a, QuotedStringListHelper.SeparatorSingleQuoteRegex);
-
-        RegionAttribute regionAttribute = new RegionAttribute(attr.id, attr.name, adjectives, variants, constraints, associationStrs, attr.secondary);
+        RegionAttribute regionAttribute = new RegionAttribute(attr.id, attr.name, adjectives, variants, attr.regionConstraints, attr.phraseAssociations, attr.secondary);
 
         return regionAttribute;
     }

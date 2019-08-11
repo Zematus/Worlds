@@ -11,11 +11,18 @@ using UnityEngine.Profiling;
 [XmlInclude(typeof(PolityCulturalKnowledge))]
 public class CulturalKnowledge : CulturalKnowledgeInfo
 {
-    public const float ValueScaleFactor = 0.01f;
-    
+    public const int ScaledMaxLimitValue = 10000;
+    public const int ScaledMinLimitValue = 1;
+
+    public const int MinLimitValue = ScaledMinLimitValue * MathUtility.FloatToIntScalingFactor;
+    public const int MaxLimitValue = ScaledMaxLimitValue * MathUtility.FloatToIntScalingFactor;
+
     [XmlAttribute("V")]
     public int Value;
-    
+
+    [XmlAttribute("PL")]
+    public float ProgressLevel;
+
     public CulturalKnowledge()
     {
     }
@@ -32,7 +39,38 @@ public class CulturalKnowledge : CulturalKnowledgeInfo
 
     public float ScaledValue
     {
-        get { return Value * ValueScaleFactor; }
+        get { return Value * MathUtility.IntToFloatScalingFactor; }
+    }
+
+    public int GetHighestLimit()
+    {
+        //Profiler.BeginSample("Reflection...");
+
+        System.Type knowledgeType = this.GetType();
+
+        System.Reflection.FieldInfo fInfo = knowledgeType.GetField("HighestLimit"); // TODO: avoid using reflection
+
+        //Profiler.EndSample();
+
+        return (int)fInfo.GetValue(this);
+    }
+
+    public void SetHighestLimit(int value)
+    {
+        //Profiler.BeginSample("Reflection...");
+
+        System.Type knowledgeType = this.GetType();
+
+        System.Reflection.FieldInfo fInfo = knowledgeType.GetField("HighestLimit"); // TODO: avoid using reflection
+
+        int currentValue = (int)fInfo.GetValue(this);
+
+        if (value > currentValue)
+        {
+            fInfo.SetValue(this, value);
+        }
+
+        //Profiler.EndSample();
     }
 
     public virtual void Reset()

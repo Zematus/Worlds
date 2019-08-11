@@ -7,33 +7,32 @@ using UnityEngine.Profiling;
 
 public class ShipbuildingKnowledge : CellCulturalKnowledge
 {
-    public const string KnowledgeId = "ShipbuildingKnowledge";
-    public const string KnowledgeName = "Shipbuilding";
+    public const string KnowledgeId = "shipbuilding";
+    public const string KnowledgeName = "shipbuilding";
 
     public const int KnowledgeRngOffset = 0;
 
     public const int InitialValue = 100;
 
-    public const int MinKnowledgeValueForSailingSpawnEvent = 500;
-    public const int MinKnowledgeValueForSailing = 300;
-    public const int OptimalKnowledgeValueForSailing = 1000;
+    public const int BaseLimit = MinLimitValue;
 
     public const float TimeEffectConstant = CellGroup.GenerationSpan * 500;
     public const float NeighborhoodSeaPresenceModifier = 1.5f;
 
-    public static int HighestAsymptote = 0;
+    public static int HighestLimit = 0;
 
     private float _neighborhoodSeaPresence;
 
     public ShipbuildingKnowledge()
     {
-        if (Asymptote > HighestAsymptote)
+        if (Limit > HighestLimit)
         {
-            HighestAsymptote = Asymptote;
+            HighestLimit = Limit;
         }
     }
 
-    public ShipbuildingKnowledge(CellGroup group, int initialValue) : base(group, KnowledgeId, KnowledgeName, KnowledgeRngOffset, initialValue)
+    public ShipbuildingKnowledge(CellGroup group, int initialValue, int initialLimit) 
+        : base(group, KnowledgeId, KnowledgeName, KnowledgeRngOffset, initialValue, initialLimit)
     {
         CalculateNeighborhoodSeaPresence();
     }
@@ -85,51 +84,11 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge
     protected override void UpdateInternal(long timeSpan)
     {
         UpdateValueInternal(timeSpan, TimeEffectConstant, _neighborhoodSeaPresence * NeighborhoodSeaPresenceModifier);
-
-        TryGenerateSailingDiscoveryEvent();
     }
 
-    public override void PolityCulturalProminence(CulturalKnowledge polityKnowledge, PolityProminence polityProminence, long timeSpan)
+    public override void AddPolityProminenceEffect(CulturalKnowledge polityKnowledge, PolityProminence polityProminence, long timeSpan)
     {
-        PolityCulturalProminenceInternal(polityKnowledge, polityProminence, timeSpan, TimeEffectConstant);
-
-        TryGenerateSailingDiscoveryEvent();
-    }
-
-    private void TryGenerateSailingDiscoveryEvent()
-    {
-        if (Value < SailingDiscoveryEvent.MinShipBuildingKnowledgeSpawnEventValue)
-            return;
-
-        if (Value > SailingDiscoveryEvent.OptimalShipBuildingKnowledgeValue)
-            return;
-
-        if (SailingDiscoveryEvent.CanSpawnIn(Group))
-        {
-            long triggerDate = SailingDiscoveryEvent.CalculateTriggerDate(Group);
-
-            if (triggerDate > World.MaxSupportedDate)
-                return;
-
-            if (triggerDate == long.MinValue)
-                return;
-
-            Group.World.InsertEventToHappen(new SailingDiscoveryEvent(Group, triggerDate));
-        }
-    }
-
-    protected override int CalculateAsymptoteInternal(CulturalDiscovery discovery)
-    {
-        switch (discovery.Id)
-        {
-
-            case BoatMakingDiscovery.DiscoveryId:
-                return 1000;
-            case SailingDiscovery.DiscoveryId:
-                return 3000;
-        }
-
-        return 0;
+        AddPolityProminenceEffectInternal(polityKnowledge, polityProminence, timeSpan, TimeEffectConstant);
     }
 
     public override float CalculateExpectedProgressLevel()
@@ -143,45 +102,5 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge
     public override float CalculateTransferFactor()
     {
         return (_neighborhoodSeaPresence * 0.9f) + 0.1f;
-    }
-
-    public override bool WillBeLost()
-    {
-        if (Value <= 0)
-        {
-            return !Group.InfluencingPolityHasKnowledge(Id);
-        }
-
-        return false;
-    }
-
-    public override void LossConsequences()
-    {
-        Profiler.BeginSample("BoatMakingDiscoveryEvent.CanSpawnIn");
-
-        if (BoatMakingDiscoveryEvent.CanSpawnIn(Group))
-        {
-            Profiler.BeginSample("BoatMakingDiscoveryEvent.CalculateTriggerDate");
-
-            long triggerDate = BoatMakingDiscoveryEvent.CalculateTriggerDate(Group);
-
-            Profiler.EndSample();
-
-            if ((triggerDate <= World.MaxSupportedDate) && (triggerDate > long.MinValue))
-            {
-                Profiler.BeginSample("InsertEventToHappen: BoatMakingDiscoveryEvent");
-
-                Group.World.InsertEventToHappen(new BoatMakingDiscoveryEvent(Group, triggerDate));
-
-                Profiler.EndSample();
-            }
-        }
-
-        Profiler.EndSample();
-    }
-
-    protected override int GetBaseAsymptote()
-    {
-        return 0;
     }
 }

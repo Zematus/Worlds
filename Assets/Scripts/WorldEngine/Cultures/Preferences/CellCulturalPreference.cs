@@ -89,7 +89,7 @@ public class CellCulturalPreference : CulturalPreference
         _newValue = (Value * (1 - timeEffect)) + (targetValue * timeEffect);
     }
 
-    public void PolityCulturalProminence(CulturalPreference polityPreference, PolityProminence polityProminence, long timeSpan)
+    public void AddPolityProminenceEffect(CulturalPreference polityPreference, PolityProminence polityProminence, long timeSpan)
     {
         float targetValue = polityPreference.Value;
         float prominenceEffect = polityProminence.Value;

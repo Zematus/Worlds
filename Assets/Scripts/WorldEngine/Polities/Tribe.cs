@@ -13,7 +13,7 @@ public class Tribe : Polity
 
     public const int TribeLeaderAvgTimeSpan = 41;
 
-    public const string PolityType = "Tribe";
+    public const string PolityTypeStr = "tribe";
     public const string PolityNameFormat = "the {0} tribe";
 
     public const float BaseCoreProminence = 0.5f;
@@ -32,7 +32,7 @@ public class Tribe : Polity
 
     }
 
-    public Tribe(CellGroup coreGroup) : base(PolityType, coreGroup)
+    public Tribe(CellGroup coreGroup) : base(PolityTypeStr, coreGroup)
     {
         //// Make sure there's a region to spawn into
 
@@ -74,8 +74,6 @@ public class Tribe : Polity
 
         coreGroup.SetPolityProminence(this, coreProminence, 0, 0);
 
-        World.AddGroupToUpdate(coreGroup);
-
         GenerateName();
 
         //		Debug.Log ("New tribe '" + Name + "' spawned at " + coreGroup.Cell.Position);
@@ -89,7 +87,7 @@ public class Tribe : Polity
         SetDominantFaction(clan);
     }
 
-    public Tribe(Clan triggerClan, Polity parentPolity) : base(PolityType, triggerClan.CoreGroup, triggerClan.Id)
+    public Tribe(Clan triggerClan, Polity parentPolity) : base(PolityTypeStr, triggerClan.CoreGroup, triggerClan.Id)
     {
         triggerClan.ChangePolity(this, triggerClan.Influence);
 

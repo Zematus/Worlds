@@ -7,8 +7,6 @@ using UnityEngine.Profiling;
 
 public class CellCulture : Culture
 {
-    public const float MinKnowledgeValue = 1f;
-
     [XmlIgnore]
     public CellGroup Group;
 
@@ -21,13 +19,13 @@ public class CellCulture : Culture
     [XmlIgnore]
     public Dictionary<string, CellCulturalKnowledge> KnowledgesToLearn = new Dictionary<string, CellCulturalKnowledge>();
     [XmlIgnore]
-    public Dictionary<string, CellCulturalDiscovery> DiscoveriesToFind = new Dictionary<string, CellCulturalDiscovery>();
+    public Dictionary<string, Discovery> DiscoveriesToFind = new Dictionary<string, Discovery>();
 
     private HashSet<CellCulturalPreference> _preferencesToLose = new HashSet<CellCulturalPreference>();
-    private HashSet<CellCulturalActivity> _activitiesToLose = new HashSet<CellCulturalActivity>();
+    private HashSet<CellCulturalActivity> _activitiesToStop = new HashSet<CellCulturalActivity>();
     private HashSet<CellCulturalSkill> _skillsToLose = new HashSet<CellCulturalSkill>();
     private HashSet<CellCulturalKnowledge> _knowledgesToLose = new HashSet<CellCulturalKnowledge>();
-    private HashSet<CellCulturalDiscovery> _discoveriesToLose = new HashSet<CellCulturalDiscovery>();
+    private HashSet<Discovery> _discoveriesToLose = new HashSet<Discovery>();
 
     public CellCulture()
     {
@@ -57,6 +55,11 @@ public class CellCulture : Culture
             AddSkill(CellCulturalSkill.CreateCellInstance(group, s));
         }
 
+        foreach (Discovery d in sourceCulture.Discoveries.Values)
+        {
+            AddDiscovery(d);
+        }
+
         foreach (CulturalKnowledge k in sourceCulture.Knowledges.Values)
         {
             //#if DEBUG
@@ -81,23 +84,19 @@ public class CellCulture : Culture
             CellCulturalKnowledge knowledge = CellCulturalKnowledge.CreateCellInstance(k.Id, group, k.Value);
 
             AddKnowledge(knowledge);
-
-            knowledge.CalculateAsymptote();
-        }
-
-        foreach (CulturalDiscovery d in sourceCulture.Discoveries.Values)
-        {
-            AddDiscovery(CellCulturalDiscovery.CreateCellInstance(d.Id));
-
-            foreach (CellCulturalKnowledge knowledge in Knowledges.Values)
-            {
-                knowledge.CalculateAsymptote(d);
-            }
         }
 
         if (sourceCulture.Language != null)
         {
             SetLanguageUpdateCells();
+        }
+    }
+
+    public void Initialize()
+    {
+        foreach (Discovery d in Discoveries.Values)
+        {
+            d.OnGain(Group);
         }
     }
 
@@ -138,12 +137,13 @@ public class CellCulture : Culture
         SkillsToLearn.Add(skill.Id, skill);
     }
 
-    public CellCulturalKnowledge TryAddKnowledgeToLearn(string id, CellGroup group, int initialValue = 0)
+    public CellCulturalKnowledge TryAddKnowledgeToLearn(string id, int initialValue, int initialLimit = -1)
     {
         CellCulturalKnowledge knowledge = GetKnowledge(id) as CellCulturalKnowledge;
         
         if (knowledge != null)
         {
+            knowledge.SetLevelLimit(initialLimit);
             return knowledge;
         }
 
@@ -151,48 +151,32 @@ public class CellCulture : Culture
 
         if (KnowledgesToLearn.TryGetValue(id, out tempKnowledge))
         {
+            tempKnowledge.SetLevelLimit(initialLimit);
             return tempKnowledge;
         }
 
         if (knowledge == null)
         {
-            knowledge = CellCulturalKnowledge.CreateCellInstance(id, group);
+            knowledge = CellCulturalKnowledge.CreateCellInstance(id, Group, initialValue, initialLimit);
         }
-
-        knowledge.SetInitialValue(initialValue);
 
         KnowledgesToLearn.Add(id, knowledge);
 
         return knowledge;
     }
 
-    public CellCulturalDiscovery TryAddDiscoveryToFind(string id)
+    public void AddDiscoveryToFind(Discovery discovery)
     {
-        CellCulturalDiscovery discovery = GetDiscovery(id) as CellCulturalDiscovery;
+        if (Discoveries.ContainsKey(discovery.Id))
+            return;
+
+        if (DiscoveriesToFind.ContainsKey(discovery.Id))
+            return;
         
-        if (discovery != null)
-        {
-            return discovery;
-        }
-
-        CellCulturalDiscovery tempDiscovery;
-
-        if (DiscoveriesToFind.TryGetValue(id, out tempDiscovery))
-        {
-            return tempDiscovery;
-        }
-
-        if (discovery == null)
-        {
-            discovery = CellCulturalDiscovery.CreateCellInstance(id);
-        }
-
-        DiscoveriesToFind.Add(id, discovery);
-
-        return discovery;
+        DiscoveriesToFind.Add(discovery.Id, discovery);
     }
 
-    public CellCulturalPreference GetAcquiredPerferenceOrToAcquire(string id)
+    public CellCulturalPreference GetAcquiredPreferenceOrToAcquire(string id)
     {
         CellCulturalPreference preference = GetPreference(id) as CellCulturalPreference;
 
@@ -236,7 +220,7 @@ public class CellCulture : Culture
         return HasKnowledge(id) | KnowledgesToLearn.ContainsKey(id);
     }
 
-    public bool HasrWillHaveDiscovery(string id)
+    public bool HasOrWillHaveDiscovery(string id)
     {
         return HasDiscovery(id) | DiscoveriesToFind.ContainsKey(id);
     }
@@ -252,7 +236,7 @@ public class CellCulture : Culture
 
         foreach (CulturalPreference p in sourceCulture.Preferences.Values)
         {
-            CellCulturalPreference preference = GetAcquiredPerferenceOrToAcquire(p.Id);
+            CellCulturalPreference preference = GetAcquiredPreferenceOrToAcquire(p.Id);
 
             if (preference == null)
             {
@@ -303,13 +287,13 @@ public class CellCulture : Culture
 
         foreach (CulturalKnowledge k in sourceCulture.Knowledges.Values)
         {
-            CellCulturalKnowledge knowledge = TryAddKnowledgeToLearn(k.Id, Group);
+            CellCulturalKnowledge knowledge = TryAddKnowledgeToLearn(k.Id, 0);
             knowledge.Merge(k.Value, percentage);
         }
 
-        foreach (CulturalDiscovery d in sourceCulture.Discoveries.Values)
+        foreach (Discovery d in sourceCulture.Discoveries.Values)
         {
-            TryAddDiscoveryToFind(d.Id);
+            AddDiscoveryToFind(d);
         }
     }
 
@@ -342,7 +326,7 @@ public class CellCulture : Culture
 
         foreach (CulturalPreference polityPreference in polityCulture.Preferences.Values)
         {
-            CellCulturalPreference cellPreference = GetAcquiredPerferenceOrToAcquire(polityPreference.Id);
+            CellCulturalPreference cellPreference = GetAcquiredPreferenceOrToAcquire(polityPreference.Id);
 
             if (cellPreference == null)
             {
@@ -350,7 +334,7 @@ public class CellCulture : Culture
                 AddPreferenceToAcquire(cellPreference);
             }
 
-            cellPreference.PolityCulturalProminence(polityPreference, polityProminence, timeSpan);
+            cellPreference.AddPolityProminenceEffect(polityPreference, polityProminence, timeSpan);
         }
 
         foreach (CulturalActivity polityActivity in polityCulture.Activities.Values)
@@ -363,7 +347,7 @@ public class CellCulture : Culture
                 AddActivityToPerform(cellActivity);
             }
 
-            cellActivity.PolityCulturalProminence(polityActivity, polityProminence, timeSpan);
+            cellActivity.AddPolityProminenceEffect(polityActivity, polityProminence, timeSpan);
         }
 
         foreach (CulturalSkill politySkill in polityCulture.Skills.Values)
@@ -376,7 +360,7 @@ public class CellCulture : Culture
                 AddSkillToLearn(cellSkill);
             }
 
-            cellSkill.PolityCulturalProminence(politySkill, polityProminence, timeSpan);
+            cellSkill.AddPolityProminenceEffect(politySkill, polityProminence, timeSpan);
         }
 
         foreach (CulturalKnowledge polityKnowledge in polityCulture.Knowledges.Values)
@@ -403,14 +387,14 @@ public class CellCulture : Culture
 //            }
 //#endif
             
-            CellCulturalKnowledge cellKnowledge = TryAddKnowledgeToLearn(polityKnowledge.Id, Group);
+            CellCulturalKnowledge cellKnowledge = TryAddKnowledgeToLearn(polityKnowledge.Id, 0);
 
-            cellKnowledge.PolityCulturalProminence(polityKnowledge, polityProminence, timeSpan);
+            cellKnowledge.AddPolityProminenceEffect(polityKnowledge, polityProminence, timeSpan);
         }
 
-        foreach (CulturalDiscovery polityDiscovery in polityCulture.Discoveries.Values)
+        foreach (Discovery polityDiscovery in polityCulture.Discoveries.Values)
         {
-            TryAddDiscoveryToFind(polityDiscovery.Id);
+            AddDiscoveryToFind(polityDiscovery);
         }
     }
 
@@ -434,14 +418,19 @@ public class CellCulture : Culture
 
     public void PostUpdateRemoveAttributes()
     {
-        bool discoveriesLost = false;
+        // We need to handle discoveries before anything else as they might trigger removal of other cultural attributes
+        foreach (Discovery d in _discoveriesToLose)
+        {
+            RemoveDiscovery(d);
+            d.OnLoss(Group);
+        }
 
         foreach (CellCulturalPreference p in _preferencesToLose)
         {
             RemovePreference(p);
         }
-
-        foreach (CellCulturalActivity a in _activitiesToLose)
+        
+        foreach (CellCulturalActivity a in _activitiesToStop)
         {
             RemoveActivity(a);
         }
@@ -454,26 +443,16 @@ public class CellCulture : Culture
         foreach (CellCulturalKnowledge k in _knowledgesToLose)
         {
             RemoveKnowledge(k);
-            k.LossConsequences();
         }
 
-        foreach (CellCulturalDiscovery d in _discoveriesToLose)
+        // This should be done only after knowledges have been removed as there are some dependencies
+        foreach (Discovery d in _discoveriesToLose)
         {
-            RemoveDiscovery(d);
-            d.LossConsequences(Group);
-            discoveriesLost = true;
-        }
-
-        if (discoveriesLost)
-        {
-            foreach (CellCulturalKnowledge knowledge in Knowledges.Values)
-            {
-                (knowledge as CellCulturalKnowledge).RecalculateAsymptote();
-            }
+            d.RetryAssignAfterLoss(Group);
         }
 
         _preferencesToLose.Clear();
-        _activitiesToLose.Clear();
+        _activitiesToStop.Clear();
         _skillsToLose.Clear();
         _knowledgesToLose.Clear();
         _discoveriesToLose.Clear();
@@ -481,6 +460,13 @@ public class CellCulture : Culture
 
     public void PostUpdateAddAttributes()
     {
+        // We need to handle discoveries before everything else as these can add other type of cultural attributes
+        foreach (Discovery discovery in DiscoveriesToFind.Values)
+        {
+            AddDiscovery(discovery);
+            discovery.OnGain(Group);
+        }
+
         foreach (CellCulturalPreference preference in PreferencesToAcquire.Values)
         {
             AddPreference(preference);
@@ -524,32 +510,6 @@ public class CellCulture : Culture
             {
                 throw new System.Exception("Attempted to add duplicate knowledge (" + knowledge.Id + ") to group " + Group.Id);
             }
-
-            knowledge.RecalculateAsymptote();
-        }
-
-        foreach (CellCulturalDiscovery discovery in DiscoveriesToFind.Values)
-        {
-            //bool setAsPresent = discovery.CanBeHeld(Group);
-
-            try
-            {
-                //AddDiscovery(discovery, setAsPresent);
-                AddDiscovery(discovery);
-            }
-            catch (System.ArgumentException)
-            {
-                throw new System.Exception("Attempted to add duplicate discovery (" + discovery.Id + ") to group " + Group.Id);
-            }
-
-            //if (!setAsPresent) continue;
-
-            discovery.GainConsequences(Group);
-
-            foreach (CellCulturalKnowledge knowledge in Knowledges.Values)
-            {
-                knowledge.CalculateAsymptote(discovery);
-            }
         }
     }
 
@@ -566,6 +526,11 @@ public class CellCulture : Culture
         {
             activity.PostUpdate();
             totalActivityValue += activity.Value;
+
+            if (!activity.CanPerform(Group))
+            {
+                _activitiesToStop.Add(activity);
+            }
         }
 
         foreach (CellCulturalActivity activity in Activities.Values)
@@ -628,34 +593,9 @@ public class CellCulture : Culture
 //                }
 //            }
 //#endif
-
-            if (!knowledge.WillBeLost())
-                continue;
-
-//#if DEBUG
-//            if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-//            {
-//                if (Group.Id == Manager.TracingData.GroupId)
-//                {
-//                    string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
-
-//                    SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-//                        "CellCulture.PostUpdateAttributeValues after WillBeLost() - Group:" + groupId,
-//                        "CurrentDate: " + World.CurrentDate +
-//                        ", knowledge.Id: " + knowledge.Id +
-//                        ", knowledge.IsPresent: " + knowledge.IsPresent +
-//                        ", knowledge.Value: " + knowledge.Value +
-//                        "");
-
-//                    Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-//                }
-//            }
-//#endif
-
-            _knowledgesToLose.Add(knowledge);
         }
 
-        foreach (CellCulturalDiscovery discovery in Discoveries.Values)
+        foreach (Discovery discovery in Discoveries.Values)
         {
             if (discovery.CanBeHeld(Group))
                 continue;
@@ -680,6 +620,48 @@ public class CellCulture : Culture
         SkillsToLearn.Clear();
         KnowledgesToLearn.Clear();
         DiscoveriesToFind.Clear();
+    }
+
+    public void AddKnowledgeToLose(string knowledgeId)
+    {
+        CulturalKnowledge knowledge = null;
+
+        if (!Knowledges.TryGetValue(knowledgeId, out knowledge))
+        {
+            Debug.LogWarning("CellCulture: Trying to remove knowledge that is not present: " + knowledgeId);
+
+            return;
+        }
+
+        _knowledgesToLose.Add(knowledge as CellCulturalKnowledge);
+    }
+
+    public void AddActivityToStop(string activityId)
+    {
+        CulturalActivity activity = null;
+
+        if (!Activities.TryGetValue(activityId, out activity))
+        {
+            Debug.LogWarning("CellCulture: Trying to remove activity that is not present: " + activityId);
+
+            return;
+        }
+
+        _activitiesToStop.Add(activity as CellCulturalActivity);
+    }
+
+    public void AddSkillToLose(string skillId)
+    {
+        CulturalSkill skill = null;
+
+        if (!Skills.TryGetValue(skillId, out skill))
+        {
+            Debug.LogWarning("CellCulture: Trying to remove skill that is not present: " + skillId);
+
+            return;
+        }
+
+        _skillsToLose.Add(skill as CellCulturalSkill);
     }
 
     public float MinimumSkillAdaptationLevel()

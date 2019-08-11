@@ -11,7 +11,7 @@ public class Adjective
     
     public static Dictionary<string, Adjective> Adjectives;
 
-    public Adjective(string id, string word, string[] constraints)
+    public Adjective(string id, string word, string[] constraints = null)
     {
         Id = id;
         
@@ -62,5 +62,19 @@ public class Adjective
                 Adjectives.Add(adjective.Id, adjective);
             }
         }
+    }
+
+    public static Adjective TryGetAdjectiveOrAdd(string adj)
+    {
+        Adjective adjective;
+
+        if (!Adjectives.TryGetValue(adj, out adjective))
+        {
+            adjective = new Adjective(adj, adj);
+
+            Adjectives.Add(adjective.Id, adjective);
+        }
+
+        return adjective;
     }
 }

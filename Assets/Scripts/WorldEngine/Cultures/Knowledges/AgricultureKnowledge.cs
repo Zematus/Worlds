@@ -7,10 +7,12 @@ using UnityEngine.Profiling;
 
 public class AgricultureKnowledge : CellCulturalKnowledge
 {
-    public const string KnowledgeId = "AgricultureKnowledge";
-    public const string KnowledgeName = "Agriculture";
+    public const string KnowledgeId = "agriculture";
+    public const string KnowledgeName = "agriculture";
 
     public const int InitialValue = 100;
+
+    public const int BaseLimit = MinLimitValue;
 
     public const int KnowledgeRngOffset = 1;
 
@@ -18,21 +20,23 @@ public class AgricultureKnowledge : CellCulturalKnowledge
     public const float TerrainFactorModifier = 1.5f;
     public const float MinAccesibility = 0.2f;
 
-    public static int HighestAsymptote = 0;
+    public static int HighestLimit = 0;
 
-    private float _terrainFactor;
+    [XmlIgnore]
+    public float TerrainFactor;
 
     public AgricultureKnowledge()
     {
-        if (Asymptote > HighestAsymptote)
+        if (Limit > HighestLimit)
         {
-            HighestAsymptote = Asymptote;
+            HighestLimit = Limit;
         }
     }
 
-    public AgricultureKnowledge(CellGroup group, int initialValue) : base(group, KnowledgeId, KnowledgeName, KnowledgeRngOffset, initialValue)
+    public AgricultureKnowledge(CellGroup group, int initialValue, int initialLimit) 
+        : base(group, KnowledgeId, KnowledgeName, KnowledgeRngOffset, initialValue, initialLimit)
     {
-        CalculateTerrainFactor();
+        UpdateTerrainFactor();
     }
 
     public static bool IsAgricultureKnowledge(CulturalKnowledge knowledge)
@@ -44,12 +48,12 @@ public class AgricultureKnowledge : CellCulturalKnowledge
     {
         base.FinalizeLoad();
 
-        CalculateTerrainFactor();
+        UpdateTerrainFactor();
     }
 
-    public void CalculateTerrainFactor()
+    public void UpdateTerrainFactor()
     {
-        _terrainFactor = CalculateTerrainFactorIn(Group.Cell);
+        TerrainFactor = CalculateTerrainFactorIn(Group.Cell);
     }
 
     public static float CalculateTerrainFactorIn(TerrainCell cell)
@@ -61,28 +65,19 @@ public class AgricultureKnowledge : CellCulturalKnowledge
 
     protected override void UpdateInternal(long timeSpan)
     {
-        UpdateValueInternal(timeSpan, TimeEffectConstant, _terrainFactor * TerrainFactorModifier);
+        UpdateTerrainFactor();
+
+        UpdateValueInternal(timeSpan, TimeEffectConstant, TerrainFactor * TerrainFactorModifier);
     }
 
-    public override void PolityCulturalProminence(CulturalKnowledge polityKnowledge, PolityProminence polityProminence, long timeSpan)
+    public override void AddPolityProminenceEffect(CulturalKnowledge polityKnowledge, PolityProminence polityProminence, long timeSpan)
     {
-        PolityCulturalProminenceInternal(polityKnowledge, polityProminence, timeSpan, TimeEffectConstant);
-    }
-
-    protected override int CalculateAsymptoteInternal(CulturalDiscovery discovery)
-    {
-        switch (discovery.Id)
-        {
-            case PlantCultivationDiscovery.DiscoveryId:
-                return 1000;
-        }
-
-        return 0;
+        AddPolityProminenceEffectInternal(polityKnowledge, polityProminence, timeSpan, TimeEffectConstant);
     }
 
     public override float CalculateExpectedProgressLevel()
     {
-        if (_terrainFactor <= 0)
+        if (TerrainFactor <= 0)
             return 1;
 
 //#if DEBUG
@@ -102,88 +97,11 @@ public class AgricultureKnowledge : CellCulturalKnowledge
 //        }
 //#endif
 
-        return Mathf.Clamp(ProgressLevel / _terrainFactor, MinProgressLevel, 1);
+        return Mathf.Clamp(ProgressLevel / TerrainFactor, MinProgressLevel, 1);
     }
 
     public override float CalculateTransferFactor()
     {
-        return (_terrainFactor * 0.9f) + 0.1f;
-    }
-
-    public override bool WillBeLost()
-    {
-        if (Value <= 0)
-        {
-            bool polityHasKnowledge = Group.InfluencingPolityHasKnowledge(Id);
-
-//#if DEBUG
-//            if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-//            {
-//                if (Group.Id == Manager.TracingData.GroupId)
-//                {
-//                    string groupId = "Id:" + Group.Id + "|Long:" + Group.Longitude + "|Lat:" + Group.Latitude;
-
-//                    SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-//                        "AgricultureKnowledge.WillBeLost - Group:" + groupId,
-//                        "CurrentDate: " + Group.World.CurrentDate +
-//                        ", Id: " + Id +
-//                        ", IsPresent: " + IsPresent +
-//                        ", Value: " + Value +
-//                        ", polityHasKnowledge: " + polityHasKnowledge +
-//                        "");
-
-//                    Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-//                }
-//            }
-//#endif
-
-            return !polityHasKnowledge;
-        }
-
-        return false;
-    }
-
-    public override void LossConsequences()
-    {
-        Profiler.BeginSample("RemoveActivity: FarmingActivity");
-
-        Group.Culture.RemoveActivity(CellCulturalActivity.FarmingActivityId);
-
-        Profiler.EndSample();
-
-        Profiler.BeginSample("PlantCultivationDiscoveryEvent.CanSpawnIn");
-
-        if (PlantCultivationDiscoveryEvent.CanSpawnIn(Group))
-        {
-            Profiler.BeginSample("PlantCultivationDiscoveryEvent.CalculateTriggerDate");
-
-            long triggerDate = PlantCultivationDiscoveryEvent.CalculateTriggerDate(Group);
-
-            Profiler.EndSample();
-            
-            if (triggerDate.IsInsideRange(Group.World.CurrentDate + 1, World.MaxSupportedDate))
-            {
-                Profiler.BeginSample("new PlantCultivationDiscoveryEvent");
-
-                PlantCultivationDiscoveryEvent plantCultivationDiscoveryEvent = new PlantCultivationDiscoveryEvent(Group, triggerDate);
-
-                Profiler.EndSample();
-
-                Profiler.BeginSample("InsertEventToHappen: PlantCultivationDiscoveryEvent");
-
-                Group.World.InsertEventToHappen(plantCultivationDiscoveryEvent);
-
-                Profiler.EndSample();
-            }
-        }
-
-        Profiler.EndSample();
-
-        Group.Cell.FarmlandPercentage = 0;
-    }
-
-    protected override int GetBaseAsymptote()
-    {
-        return 0;
+        return (TerrainFactor * 0.9f) + 0.1f;
     }
 }

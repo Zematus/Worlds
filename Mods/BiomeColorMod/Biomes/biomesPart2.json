@@ -5,13 +5,15 @@
       "name": "taiga",
       "color": "#DE0003",
       "type": "land",
+      "traits": ["wood"],
       "minAltitude": 0,
       "minRainfall": 1375,
       "minTemperature": -20,
       "maxTemperature": 0,
       "survivability": 0.2,
       "foragingCapacity": 0.2,
-      "accessibility": 0.4
+      "accessibility": 0.4,
+      "arability": 0.1
     },
     {
       "id": "tundra",
@@ -25,7 +27,8 @@
       "maxTemperature": 0,
       "survivability": 0.0,
       "foragingCapacity": 0.02,
-      "accessibility":1.0
+      "accessibility":1.0,
+      "arability": 0.2
     },
     {
       "id": "desertic_tundra",
@@ -37,7 +40,8 @@
       "maxTemperature": 0,
       "survivability": 0.0,
       "foragingCapacity": 0.0002,
-      "accessibility": 0.8
+      "accessibility": 0.8,
+      "arability": 0.0
     },
     {
       "id": "desert",
@@ -49,19 +53,22 @@
       "minTemperature": -10,
       "survivability": 0.0,
       "foragingCapacity": 0.0004,
-      "accessibility": 0.8
+      "accessibility": 0.8,
+      "arability": 0.0
     },
     {
       "id": "rainforest",
       "name": "rainforest",
       "color": "#F10083",
       "type": "land",
+      "traits": ["wood"],
       "minAltitude": 0,
       "minRainfall": 1775,
       "minTemperature": -5,
       "survivability": 0.2,
       "foragingCapacity": 0.6,
-      "accessibility": 0.2
+      "accessibility": 0.2,
+      "arability": 0.1
     }
   ]
 }

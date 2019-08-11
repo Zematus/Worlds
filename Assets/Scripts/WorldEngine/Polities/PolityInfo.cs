@@ -7,6 +7,12 @@ using UnityEngine.Profiling;
 using System.Linq;
 using System.Xml.Schema;
 
+public enum PolityType
+{
+    None,
+    Tribe
+}
+
 public class PolityInfo : ISynchronizable, IKeyedValue<long>
 {
 	[XmlAttribute("T")]
@@ -21,6 +27,8 @@ public class PolityInfo : ISynchronizable, IKeyedValue<long>
 
     private string _nameFormat;
 
+    private PolityType _type;
+
     public PolityInfo()
     {
 	
@@ -28,18 +36,38 @@ public class PolityInfo : ISynchronizable, IKeyedValue<long>
 
 	public PolityInfo(string type, long id, Polity polity)
     {
-		Type = type;
         Id = id;
 
         Polity = polity;
 
-        switch (Type)
+        SetType(type);
+    }
+
+    public static PolityType GetPolityType(string typeStr)
+    {
+        switch (typeStr)
         {
-            case Tribe.PolityType:
+            case Tribe.PolityTypeStr:
+                return PolityType.Tribe;
+            default:
+                throw new System.Exception("PolityInfo: Unrecognized polity type: " + typeStr);
+        }
+    }
+
+    private void SetType(string typeStr)
+    {
+        Type = typeStr;
+
+        _type = GetPolityType(typeStr);
+
+        switch (_type)
+        {
+            case PolityType.Tribe:
+                _type = PolityType.Tribe;
                 _nameFormat = Tribe.PolityNameFormat;
                 break;
             default:
-                throw new System.Exception("Unhandled Polity type: " + Type);
+                throw new System.Exception("PolityInfo: Unhandled polity type: " + _type);
         }
     }
 
@@ -62,15 +90,8 @@ public class PolityInfo : ISynchronizable, IKeyedValue<long>
     {
         if (Polity != null)
             Polity.FinalizeLoad();
-
-        switch (Type)
-        {
-            case Tribe.PolityType:
-                _nameFormat = Tribe.PolityNameFormat;
-                break;
-            default:
-                throw new System.Exception("Unhandled Polity type: " + Type);
-        }
+        
+        SetType(Type);
     }
 
     public void Synchronize()

@@ -4,6 +4,9 @@ using System.Collections.Generic;
 
 public static class MathUtility
 {
+    public const int FloatToIntScalingFactor = 100;
+    public const float IntToFloatScalingFactor = 1f / FloatToIntScalingFactor;
+
     public const float NormalAt0 = 0.398942f;
     public const float NormalAt1 = 0.241971f;
     public const float NormalAt2 = 0.053991f;

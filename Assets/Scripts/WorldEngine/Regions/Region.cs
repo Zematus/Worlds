@@ -170,7 +170,7 @@ public abstract class Region : ISynchronizable
         return _startCell.GetNextLocalRandomInt(_rngOffset++, maxValue);
     } 
 
-    public static Region TryGenerateBiomeRegion(TerrainCell startCell, Language establishmentLanguage, string biomeName)
+    public static Region TryGenerateBiomeRegion(TerrainCell startCell, Language establishmentLanguage, string biomeId)
     {
         int regionSize = 1;
 
@@ -219,13 +219,13 @@ public abstract class Region : ISynchronizable
 
                 bool accepted = false;
 
-                string cellBiomeName = cell.BiomeWithMostPresence;
+                string cellBiomeId = cell.BiomeWithMostPresence;
 
                 if (cell.Region != null)
                 {
                     borderingRegions.Add(cell.Region as CellRegion);
                 }
-                else if (cellBiomeName == biomeName)
+                else if (cellBiomeId == biomeId)
                 {
                     if (Mathf.Abs(cell.Altitude - baseAltitude) < maxAltitudeDifference)
                     {

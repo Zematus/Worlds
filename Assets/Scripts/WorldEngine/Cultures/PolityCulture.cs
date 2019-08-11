@@ -100,16 +100,30 @@ public class PolityCulture : Culture
 
     private void FinalizeUpdateFromFactions()
     {
-        foreach (PolityCulturalKnowledge k in Knowledges.Values)
+        List<CulturalKnowledge> knowledges = new List<CulturalKnowledge>(Knowledges.Values);
+
+        foreach (CulturalKnowledge k in knowledges)
         {
-            k.FinalizeUpdateFromFactions();
+            var knowledge = k as PolityCulturalKnowledge;
+
+            if (knowledge == null)
+            {
+                throw new System.Exception("FinalizeUpdateFromFactions: CulturalKnowledge is not a PolityCulturalKnowledge. Polity Id: " + Polity.Id + ", knowledge Id: " + k.Id);
+            }
+
+            knowledge.FinalizeUpdateFromFactions();
+
+            // This knowledge might no longer be present on any of the influencing factions and thus 
+            // we should remove it from the polity culture
+            if (k.Value <= 0)
+            {
+                RemoveKnowledge(k);
+            }
         }
     }
 
     private void AddFactionCultures()
     {
-        //ResetCulture();
-
         foreach (Faction faction in Polity.GetFactions())
         {
             Profiler.BeginSample("AddFactionCulture");
@@ -251,7 +265,7 @@ public class PolityCulture : Culture
             else
             {
                 //Profiler.BeginSample("update knowledge value");
-
+                
                 knowledge.AccValue += k.Value * influence;
 
                 //Profiler.EndSample();
@@ -262,24 +276,9 @@ public class PolityCulture : Culture
 
         //Profiler.BeginSample("foreach CulturalDiscovery");
 
-        foreach (CulturalDiscovery d in faction.Culture.Discoveries.Values)
+        foreach (Discovery d in faction.Culture.Discoveries.Values)
         {
-            //Profiler.BeginSample("GetDiscovery");
-
-            CulturalDiscovery discovery = GetDiscovery(d.Id);
-
-            //Profiler.EndSample();
-
-            if (discovery == null)
-            {
-                //Profiler.BeginSample("AddDiscovery");
-
-                discovery = new CulturalDiscovery(d);
-
-                AddDiscovery(discovery);
-
-                //Profiler.EndSample();
-            }
+            AddDiscovery(d);
         }
 
         //Profiler.EndSample();

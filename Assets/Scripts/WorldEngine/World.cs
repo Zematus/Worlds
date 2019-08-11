@@ -16,7 +16,7 @@ public interface ISynchronizable
 
 public static class RngOffsets
 {
-    public const int CELL_GROUP_CONSIDER_LAND_MIGRATION_TARGET = 0;
+    //public const int CELL_GROUP_CONSIDER_LAND_MIGRATION_TARGET = 0;
     public const int CELL_GROUP_CONSIDER_LAND_MIGRATION_CHANCE = 1;
 
     public const int CELL_GROUP_CONSIDER_SEA_MIGRATION = 2;
@@ -173,12 +173,6 @@ public class World : ISynchronizable
     public const float MinPossibleTemperature = -40 - AvgPossibleTemperature;
     public const float MaxPossibleTemperature = 50 - AvgPossibleTemperature;
 
-    public const float OptimalRainfallForArability = 1000;
-    public const float OptimalTemperatureForArability = 30;
-    public const float MaxRainfallForArability = 7000;
-    public const float MinRainfallForArability = 0;
-    public const float MinTemperatureForArability = -15;
-
     public const float StartPopulationDensity = 0.5f;
 
     public const int MinStartingPopulation = 100;
@@ -186,7 +180,9 @@ public class World : ISynchronizable
 
     public const float MinSurvivabilityForRandomGroupPlacement = 0.15f;
 
-    public const float TerrainGenerationSteps = 6;
+    public const float TerrainGenerationSteps = 8;
+
+    public static Dictionary<string, IWorldEventGenerator> EventGenerators;
 
     [XmlAttribute]
     public int Width { get; private set; }
@@ -245,17 +241,14 @@ public class World : ISynchronizable
         XmlArrayItem(Type = typeof(MigrateGroupEvent)),
         XmlArrayItem(Type = typeof(ExpandPolityProminenceEvent)),
         XmlArrayItem(Type = typeof(TribeFormationEvent)),
-        XmlArrayItem(Type = typeof(SailingDiscoveryEvent)),
-        XmlArrayItem(Type = typeof(BoatMakingDiscoveryEvent)),
-        XmlArrayItem(Type = typeof(TribalismDiscoveryEvent)),
-        XmlArrayItem(Type = typeof(PlantCultivationDiscoveryEvent)),
         XmlArrayItem(Type = typeof(ClanSplitDecisionEvent)),
         XmlArrayItem(Type = typeof(TribeSplitDecisionEvent)),
         XmlArrayItem(Type = typeof(ClanDemandsInfluenceDecisionEvent)),
         XmlArrayItem(Type = typeof(ClanCoreMigrationEvent)),
         XmlArrayItem(Type = typeof(FosterTribeRelationDecisionEvent)),
         XmlArrayItem(Type = typeof(MergeTribesDecisionEvent)),
-        XmlArrayItem(Type = typeof(OpenTribeDecisionEvent))]
+        XmlArrayItem(Type = typeof(OpenTribeDecisionEvent)),
+        XmlArrayItem(Type = typeof(Discovery.Event))]
     public List<WorldEvent> EventsToHappen;
 
     public List<TerrainCellAlteration> TerrainCellAlterationList = new List<TerrainCellAlteration>();
@@ -264,7 +257,8 @@ public class World : ISynchronizable
     public List<CulturalActivityInfo> CulturalActivityInfoList = new List<CulturalActivityInfo>();
     public List<CulturalSkillInfo> CulturalSkillInfoList = new List<CulturalSkillInfo>();
     public List<CulturalKnowledgeInfo> CulturalKnowledgeInfoList = new List<CulturalKnowledgeInfo>();
-    public List<CulturalDiscoveryInfo> CulturalDiscoveryInfoList = new List<CulturalDiscoveryInfo>();
+
+    public List<string> ExistingDiscoveryIds = new List<string>();
 
     public List<CellGroup> CellGroups;
 
@@ -358,6 +352,9 @@ public class World : ISynchronizable
     public int PolityMergeCount = 0;
 #endif
 
+    [XmlIgnore]
+    public Dictionary<string, Discovery> ExistingDiscoveries = new Dictionary<string, Discovery>();
+
     private BinaryTree<long, WorldEvent> _eventsToHappen = new BinaryTree<long, WorldEvent>();
 
     private List<WorldEvent> _eventsToHappenNow = new List<WorldEvent>();
@@ -366,7 +363,6 @@ public class World : ISynchronizable
     private HashSet<string> _culturalActivityIdList = new HashSet<string>();
     private HashSet<string> _culturalSkillIdList = new HashSet<string>();
     private HashSet<string> _culturalKnowledgeIdList = new HashSet<string>();
-    private HashSet<string> _culturalDiscoveryIdList = new HashSet<string>();
 
     private Dictionary<long, CellGroup> _cellGroups = new Dictionary<long, CellGroup>();
 
@@ -457,7 +453,7 @@ public class World : ISynchronizable
         TerrainCellAlterationListCount = 0;
     }
 
-    public void StartReinitialization(float acumulatedProgress, float maxExpectedProgress)
+    public void StartReinitialization(float accumulatedProgress, float maxExpectedProgress)
     {
         _justLoaded = false;
 
@@ -484,7 +480,7 @@ public class World : ISynchronizable
         MinPossibleTemperatureWithOffset = MinPossibleTemperature + Manager.TemperatureOffset;
         MaxPossibleTemperatureWithOffset = MaxPossibleTemperature + Manager.TemperatureOffset;
 
-        _accumulatedProgress = acumulatedProgress;
+        _accumulatedProgress = accumulatedProgress;
         _progressIncrement = (maxExpectedProgress - _accumulatedProgress) / TerrainGenerationSteps;
 
         Manager.EnqueueTaskAndWait(() =>
@@ -494,7 +490,7 @@ public class World : ISynchronizable
         });
     }
 
-    public void StartInitialization(float acumulatedProgress, float maxExpectedProgress, bool justLoaded = false)
+    public void StartInitialization(float accumulatedProgress, float maxExpectedProgress, bool justLoaded = false)
     {
         //_openSimplexNoise = new OpenSimplexNoise(Seed);
 
@@ -532,7 +528,7 @@ public class World : ISynchronizable
         MaxTemperature = float.MinValue;
         MinTemperature = float.MaxValue;
 
-        _accumulatedProgress = acumulatedProgress;
+        _accumulatedProgress = accumulatedProgress;
         _progressIncrement = (maxExpectedProgress - _accumulatedProgress) / TerrainGenerationSteps;
 
         _cellMaxSideLength = Circumference / Width;
@@ -600,6 +596,23 @@ public class World : ISynchronizable
                 cell.InitializeMiscellaneous();
             }
         }
+    }
+
+    public static void ResetStaticModData()
+    {
+        EventGenerators = new Dictionary<string, IWorldEventGenerator>();
+    }
+
+    public static IWorldEventGenerator GetEventGenerator(string id)
+    {
+        IWorldEventGenerator generator;
+
+        if (!EventGenerators.TryGetValue(id, out generator))
+        {
+            return null;
+        }
+
+        return generator;
     }
 
     public List<WorldEvent> GetFilteredEventsToHappenForSerialization()
@@ -721,9 +734,9 @@ public class World : ISynchronizable
     {
         TerrainCell cell = SetTerrainCellAlteration(alteration);
 
-        GenerateTerrainLayersForCell(cell);
-        GenerateTerrainBiomesForCell(cell);
-        GenerateTerrainArabilityForCell(cell);
+        GenerateTerrainLayers(cell);
+        GenerateTerrainBiomes(cell);
+        CalculateTerrainArability(cell);
 
         cell.InitializeMiscellaneous();
 
@@ -750,8 +763,8 @@ public class World : ISynchronizable
             cell.ResetLayerData(Layer.Layers[layerId]);
         }
 
-        GenerateTerrainBiomesForCell(cell);
-        GenerateTerrainArabilityForCell(cell);
+        GenerateTerrainBiomes(cell);
+        CalculateTerrainArability(cell);
 
         cell.InitializeMiscellaneous();
 
@@ -794,13 +807,13 @@ public class World : ISynchronizable
         _culturalKnowledgeIdList.Add(baseInfo.Id);
     }
 
-    public void AddExistingCulturalDiscoveryInfo(CulturalDiscoveryInfo baseInfo)
+    public void AddExistingDiscovery(Discovery discovery)
     {
-        if (_culturalDiscoveryIdList.Contains(baseInfo.Id))
+        if (ExistingDiscoveries.ContainsKey(discovery.Id))
             return;
 
-        CulturalDiscoveryInfoList.Add(new CulturalDiscoveryInfo(baseInfo));
-        _culturalDiscoveryIdList.Add(baseInfo.Id);
+        ExistingDiscoveryIds.Add(discovery.Id);
+        ExistingDiscoveries.Add(discovery.Id, discovery);
     }
 
     public void UpdateMostPopulousGroup(CellGroup contenderGroup)
@@ -995,6 +1008,14 @@ public class World : ISynchronizable
         }
     }
 
+    private void ExecuteDeferredEffectsOnGroups()
+    {
+        foreach (CellGroup group in _updatedGroups)
+        {
+            group.ExecuteDeferredEffects();
+        }
+    }
+
     private void RemoveGroups()
     {
         foreach (CellGroup group in _groupsToRemove)
@@ -1148,12 +1169,6 @@ public class World : ISynchronizable
                     string message = "TriggerDate: " + eventToHappen.TriggerDate +
                         ", event type: " + eventToHappen.GetType();
 
-                    ////if (eventToHappen is FactionEvent)
-                    ////{
-                    //    message += ", event spawn date: " + eventToHappen.SpawnDate +
-                    //    ", datespan: " + (eventToHappen.TriggerDate - eventToHappen.SpawnDate);
-                    ////}
-
                     message += ", current date: " + CurrentDate;
 
                     SaveLoadTest.DebugMessage debugMessage =
@@ -1272,6 +1287,12 @@ public class World : ISynchronizable
         Profiler.BeginSample("PostUpdateGroups_BeforePolityUpdates");
 
         PostUpdateGroups_BeforePolityUpdates();
+
+        Profiler.EndSample();
+
+        Profiler.BeginSample("ExecuteDeferredEffectsOnGroups");
+
+        ExecuteDeferredEffectsOnGroups();
 
         Profiler.EndSample();
 
@@ -1989,10 +2010,16 @@ public class World : ISynchronizable
             _culturalKnowledgeIdList.Add(k.Id);
         }
 
-        foreach (CulturalDiscoveryInfo d in CulturalDiscoveryInfoList)
+        foreach (string id in ExistingDiscoveryIds)
         {
-            d.FinalizeLoad();
-            _culturalDiscoveryIdList.Add(d.Id);
+            Discovery discovery = Discovery.GetDiscovery(id);
+
+            if (discovery == null)
+            {
+                throw new System.Exception("Unable to find existing discovery: " + id);
+            }
+
+            ExistingDiscoveries.Add(id, discovery);
         }
     }
 
@@ -2046,6 +2073,10 @@ public class World : ISynchronizable
             _accumulatedProgress += _progressIncrement;
         }
 
+        ProgressCastMethod(_accumulatedProgress, "Calculating hilliness...");
+
+        CalculateTerrainHilliness();
+
         if ((type & GenerationType.Rainfall) == GenerationType.Rainfall)
         {
             ProgressCastMethod(_accumulatedProgress, "Calculating rainfall...");
@@ -2096,7 +2127,11 @@ public class World : ISynchronizable
 
         ProgressCastMethod(_accumulatedProgress, "Generating arability...");
 
-        GenerateTerrainArability();
+        CalculateTerrainArability();
+
+        ProgressCastMethod(_accumulatedProgress, "Generating wood presence...");
+
+        CalculateTerrainWoodPresence();
 
         // These rng values will be later used by the editor brushes when needed but we need to prepare them beforehand
         OffsetBrushRngCalls();
@@ -2459,11 +2494,13 @@ public class World : ISynchronizable
 
         foreach (TerrainCell cell in _cellsToRegen)
         {
-            GenerateTerrainRainfallForCell(cell, setDependencies: false);
-            GenerateTerrainTemperatureForCell(cell);
-            GenerateTerrainLayersForCell(cell);
-            GenerateTerrainBiomesForCell(cell);
-            GenerateTerrainArabilityForCell(cell);
+            CalculateTerrainHilliness(cell);
+            GenerateTerrainRainfall(cell, setDependencies: false);
+            GenerateTerrainTemperature(cell);
+            GenerateTerrainLayers(cell);
+            GenerateTerrainBiomes(cell);
+            CalculateTerrainArability(cell);
+            CalculateTerrainWoodPresence(cell);
         }
 
         _cellsToRegen.Clear();
@@ -2495,9 +2532,9 @@ public class World : ISynchronizable
 
         CalculateAndSetTemperature(cell, cell.BaseTemperatureValue, valueOffset, true);
 
-        GenerateTerrainLayersForCell(cell);
-        GenerateTerrainBiomesForCell(cell);
-        GenerateTerrainArabilityForCell(cell);
+        GenerateTerrainLayers(cell);
+        GenerateTerrainBiomes(cell);
+        CalculateTerrainArability(cell);
 
         Manager.ActiveEditorBrushAction.AddCellAfterModification(cell);
     }
@@ -2519,9 +2556,9 @@ public class World : ISynchronizable
 
         CalculateAndSetRainfall(cell, cell.BaseRainfallValue, valueOffset, true);
 
-        GenerateTerrainLayersForCell(cell);
-        GenerateTerrainBiomesForCell(cell);
-        GenerateTerrainArabilityForCell(cell);
+        GenerateTerrainLayers(cell);
+        GenerateTerrainBiomes(cell);
+        CalculateTerrainArability(cell);
 
         Manager.ActiveEditorBrushAction.AddCellAfterModification(cell);
     }
@@ -2544,8 +2581,8 @@ public class World : ISynchronizable
 
         CalculateAndSetTerrainLayerValue(cell, Layer.Layers[layerId], valueOffset);
         
-        GenerateTerrainBiomesForCell(cell);
-        GenerateTerrainArabilityForCell(cell);
+        GenerateTerrainBiomes(cell);
+        CalculateTerrainArability(cell);
 
         Manager.ActiveEditorBrushAction.AddCellAfterModification(cell);
     }
@@ -3112,7 +3149,7 @@ public class World : ISynchronizable
         if (rainfall < MinRainfall) MinRainfall = rainfall;
     }
 
-    private void GenerateTerrainRainfallForCell(TerrainCell cell, bool justSetRainfallSources = false, bool setDependencies = true)
+    private void GenerateTerrainRainfall(TerrainCell cell, bool justSetRainfallSources = false, bool setDependencies = true)
     {
         int longitude = cell.Longitude;
         int latitude = cell.Latitude;
@@ -3199,7 +3236,7 @@ public class World : ISynchronizable
         {
             for (int j = 0; j < sizeY; j++)
             {
-                GenerateTerrainRainfallForCell(TerrainCells[i][j], SkipIfModified(i, j));
+                GenerateTerrainRainfall(TerrainCells[i][j], SkipIfModified(i, j));
             }
 
             ProgressCastMethod(_accumulatedProgress + _progressIncrement * (i + 1) / (float)sizeX);
@@ -3252,7 +3289,41 @@ public class World : ISynchronizable
         if (temperature < MinTemperature) MinTemperature = temperature;
     }
 
-    private void GenerateTerrainTemperatureForCell(TerrainCell cell)
+    private void CalculateTerrainHilliness(TerrainCell cell)
+    {
+        float altitudeDelta = 0;
+        float cellAltitude = cell.Altitude;
+
+        foreach (TerrainCell nCell in cell.Neighbors.Values)
+        {
+            altitudeDelta += Mathf.Abs(cellAltitude - nCell.Altitude);
+        }
+
+        altitudeDelta /= cell.Neighbors.Count;
+
+        float slope = (altitudeDelta * altitudeDelta) / cell.Area;
+
+        cell.Hilliness = Mathf.Clamp01(slope * TerrainCell.HillinessSlopeFactor);
+    }
+
+    private void CalculateTerrainWoodPresence(TerrainCell cell)
+    {
+        float biomeFactor = 0;
+
+        for (int i = 0; i < cell.PresentBiomeIds.Count; i++)
+        {
+            Biome biome = Biome.Biomes[cell.PresentBiomeIds[i]];
+
+            if (biome.Traits.Contains(BiomeTrait.Wood))
+            {
+                biomeFactor += cell.BiomePresences[i];
+            }
+        }
+
+        cell.WoodCoverage = Mathf.Clamp01(biomeFactor);
+    }
+
+    private void GenerateTerrainTemperature(TerrainCell cell)
     {
         float radius1 = 2f;
         float radius2 = 16f;
@@ -3299,6 +3370,42 @@ public class World : ISynchronizable
         //#endif
     }
 
+    private void CalculateTerrainHilliness()
+    {
+        int sizeX = Width;
+        int sizeY = Height;
+        
+        for (int i = 0; i < sizeX; i++)
+        {
+            for (int j = 0; j < sizeY; j++)
+            {
+                CalculateTerrainHilliness(TerrainCells[i][j]);
+            }
+
+            ProgressCastMethod(_accumulatedProgress + _progressIncrement * (i + 1) / (float)sizeX);
+        }
+
+        _accumulatedProgress += _progressIncrement;
+    }
+
+    private void CalculateTerrainWoodPresence()
+    {
+        int sizeX = Width;
+        int sizeY = Height;
+
+        for (int i = 0; i < sizeX; i++)
+        {
+            for (int j = 0; j < sizeY; j++)
+            {
+                CalculateTerrainWoodPresence(TerrainCells[i][j]);
+            }
+
+            ProgressCastMethod(_accumulatedProgress + _progressIncrement * (i + 1) / (float)sizeX);
+        }
+
+        _accumulatedProgress += _progressIncrement;
+    }
+
     private void GenerateTerrainTemperature()
     {
         int sizeX = Width;
@@ -3314,7 +3421,7 @@ public class World : ISynchronizable
                 if (SkipIfModified(i, j))
                     continue;
 
-                GenerateTerrainTemperatureForCell(TerrainCells[i][j]);
+                GenerateTerrainTemperature(TerrainCells[i][j]);
             }
 
             ProgressCastMethod(_accumulatedProgress + _progressIncrement * (i + 1) / (float)sizeX);
@@ -3323,27 +3430,42 @@ public class World : ISynchronizable
         _accumulatedProgress += _progressIncrement;
     }
 
-    private void GenerateTerrainArabilityForCell(TerrainCell cell)
+    private void CalculateTerrainArability(TerrainCell cell)
     {
         float radius = 2f;
         
         float alpha = cell.Alpha;
         float beta = cell.Beta;
 
-        float baseArability = CalculateCellBaseArability(cell);
+        float biomeFactor = 0;
 
-        cell.Arability = 0;
+        for (int i = 0; i < cell.PresentBiomeIds.Count; i++)
+        {
+            Biome biome = Biome.Biomes[cell.PresentBiomeIds[i]];
+
+            biomeFactor += biome.Arability * cell.BiomePresences[i];
+        }
+
+        float hillinessFactor = 1 - cell.Hilliness;
+        hillinessFactor = Mathf.Clamp01(hillinessFactor);
+
+        float baseArability = hillinessFactor * biomeFactor;
 
         if (baseArability <= 0)
+        {
+            cell.BaseArability = 0;
+            cell.Arability = 0;
             return;
+        }
 
         // This simulates things like stoniness, impracticality of drainage, excessive salts, etc.
         float noiseFactor = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius, _arabilityNoiseOffset);
 
-        cell.Arability = baseArability * noiseFactor;
+        cell.BaseArability = baseArability * noiseFactor;
+        cell.Arability = cell.BaseArability;
     }
 
-    private void GenerateTerrainArability()
+    private void CalculateTerrainArability()
     {
         int sizeX = Width;
         int sizeY = Height;
@@ -3354,7 +3476,7 @@ public class World : ISynchronizable
         {
             for (int j = 0; j < sizeY; j++)
             {
-                GenerateTerrainArabilityForCell(TerrainCells[i][j]);
+                CalculateTerrainArability(TerrainCells[i][j]);
             }
 
             ProgressCastMethod(_accumulatedProgress + _progressIncrement * (i + 1) / (float)sizeX);
@@ -3391,7 +3513,7 @@ public class World : ISynchronizable
         cell.Modified = true;
     }
 
-    private void GenerateTerrainLayersForCell(TerrainCell cell)
+    private void GenerateTerrainLayers(TerrainCell cell)
     {
         foreach (Layer layer in Layer.Layers.Values)
         {
@@ -3399,7 +3521,7 @@ public class World : ISynchronizable
         }
     }
 
-    private void GenerateTerrainBiomesForCell(TerrainCell cell)
+    private void GenerateTerrainBiomes(TerrainCell cell)
     {
         float totalPresence = 0;
 
@@ -3420,7 +3542,7 @@ public class World : ISynchronizable
 
         cell.Survivability = 0;
         cell.ForagingCapacity = 0;
-        cell.Accessibility = 0;
+        cell.BaseAccessibility = 0;
 
         foreach (Biome biome in Biome.Biomes.Values)
         {
@@ -3434,9 +3556,12 @@ public class World : ISynchronizable
 
                 cell.Survivability += biome.Survivability * presence;
                 cell.ForagingCapacity += biome.ForagingCapacity * presence;
-                cell.Accessibility += biome.Accessibility * presence;
+                cell.BaseAccessibility += biome.Accessibility * presence;
             }
         }
+
+        cell.BaseAccessibility *= 1 - cell.Hilliness;
+        cell.Accessibility = cell.BaseAccessibility;
 
         float altitudeSurvivabilityFactor = 1 - Mathf.Clamp01(cell.Altitude / MaxPossibleAltitude);
 
@@ -3465,7 +3590,7 @@ public class World : ISynchronizable
         {
             for (int j = 0; j < sizeY; j++)
             {
-                GenerateTerrainLayersForCell(TerrainCells[i][j]);
+                GenerateTerrainLayers(TerrainCells[i][j]);
             }
 
             ProgressCastMethod(_accumulatedProgress + _progressIncrement * (i + 1) / (float)sizeX);
@@ -3483,7 +3608,7 @@ public class World : ISynchronizable
         {
             for (int j = 0; j < sizeY; j++)
             {
-                GenerateTerrainBiomesForCell(TerrainCells[i][j]);
+                GenerateTerrainBiomes(TerrainCells[i][j]);
             }
 
             ProgressCastMethod(_accumulatedProgress + _progressIncrement * (i + 1) / (float)sizeX);
@@ -3494,28 +3619,19 @@ public class World : ISynchronizable
 
     private float CalculateCellBaseArability(TerrainCell cell)
     {
-        float landFactor = 1 - cell.SeaBiomePresence;
+        float biomeFactor = 0;
 
-        if (landFactor == 0)
-            return 0;
-
-        float rainfallFactor = 0;
-
-        if (cell.Rainfall > OptimalRainfallForArability)
+        for (int i = 0; i < cell.PresentBiomeIds.Count; i++)
         {
-            rainfallFactor = (MaxRainfallForArability - cell.Rainfall) / (MaxRainfallForArability - OptimalRainfallForArability);
-        }
-        else
-        {
-            rainfallFactor = (cell.Rainfall - MinRainfallForArability) / (OptimalRainfallForArability - MinRainfallForArability);
+            Biome biome = Biome.Biomes[cell.PresentBiomeIds[i]];
+
+            biomeFactor += biome.Arability * cell.BiomePresences[i];
         }
 
-        rainfallFactor = Mathf.Clamp01(rainfallFactor);
+        float hillinessFactor = 1 - cell.Hilliness;
+        hillinessFactor = Mathf.Clamp01(hillinessFactor);
 
-        float temperatureFactor = (cell.Temperature - MinTemperatureForArability) / (OptimalTemperatureForArability - MinTemperatureForArability);
-        temperatureFactor = Mathf.Clamp01(temperatureFactor);
-
-        return rainfallFactor * temperatureFactor * landFactor;
+        return hillinessFactor * biomeFactor;
     }
 
     private float CalculateLayerNoiseFactor(TerrainCell cell, Layer layer)

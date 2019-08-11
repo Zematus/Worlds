@@ -9,9 +9,9 @@ public class TribeFormationEvent : CellGroupEvent
 {
     public const long DateSpanFactorConstant = CellGroup.GenerationSpan * 100;
 
-    public const int MinSocialOrganizationKnowledgeTribeFormation = SocialOrganizationKnowledge.MinValueForTribalismDiscovery;
-    public const int MinSocialOrganizationKnowledgeValue = SocialOrganizationKnowledge.MinValueForHoldingTribalism;
-    public const int OptimalSocialOrganizationKnowledgeValue = SocialOrganizationKnowledge.TribalismDiscoveryAsymptote;
+    public const int MinSocialOrganizationKnowledgeTribeFormation = Clan.MinSocialOrganizationValue;
+    public const int MinSocialOrganizationKnowledgeValue = 200;
+    public const int OptimalSocialOrganizationKnowledgeValue = 10000;
 
     public TribeFormationEvent()
     {
@@ -51,7 +51,7 @@ public class TribeFormationEvent : CellGroupEvent
         if (group.Population < Tribe.MinPopulationForTribeCore)
             return false;
 
-        if (!group.Culture.HasDiscovery(TribalismDiscovery.DiscoveryId))
+        if (!group.HasProperty(Polity.CanFormPolityAttribute + "tribe"))
             return false;
 
         int value = 0;
@@ -72,8 +72,8 @@ public class TribeFormationEvent : CellGroupEvent
 
         if (Group.Population < Tribe.MinPopulationForTribeCore)
             return false;
-        
-        if (!Group.Culture.HasDiscovery(TribalismDiscovery.DiscoveryId))
+
+        if (!Group.HasProperty(Polity.CanFormPolityAttribute + "tribe"))
             return false;
 
         int value = 0;

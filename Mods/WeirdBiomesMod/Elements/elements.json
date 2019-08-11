@@ -3,235 +3,235 @@
     {
       "id": "stone",
       "name": "stone:s",
-      "adjectives": "white_no_necrosilica, red_necrosilica, blue_no_necrosilica, green_no_necrosilica, yellow, black, grey, big, light, heavy",
-      "regionConstraints": "'altitude_above:0'",
-      "phraseAssociations": "'[ran]throw:er,of,ip|ns', '[ian(carry)]carrier,of,p', '[iv(bear,ts,past)]born,by|near,ds|dp'"
+      "adjectives": ["white_no_necrosilica", "red_necrosilica", "blue_no_necrosilica", "green_no_necrosilica", "yellow", "black", "grey", "big", "light", "heavy"],
+      "regionConstraints": ["altitude_above:0"],
+      "phraseAssociations": ["[ran]throw:er,of,ip|ns", "[ian(carry)]carrier,of,p", "[iv(bear,ts,past)]born,by|near,ds|dp"]
     },
     {
       "id": "boulder",
       "name": "boulder:s",
-      "adjectives": "white_no_necrosilica, red_necrosilica, blue_no_necrosilica, green_no_necrosilica, yellow, black, grey, great",
-      "regionConstraints": "'altitude_above:0'",
-      "phraseAssociations": "'[ran]break:er,of,ip|ns', '[ran]roll:er,of,p', '[ran]lift:er,of,ip|ns', '[ran]throw:er,of,ip|ns', '[iv(bear,ts,past)]born,by|near,ds|dp'"
+      "adjectives": ["white_no_necrosilica", "red_necrosilica", "blue_no_necrosilica", "green_no_necrosilica", "yellow", "black", "grey", "great"],
+      "regionConstraints": ["altitude_above:0"],
+      "phraseAssociations": ["[ran]break:er,of,ip|ns", "[ran]roll:er,of,p", "[ran]lift:er,of,ip|ns", "[ran]throw:er,of,ip|ns", "[iv(bear,ts,past)]born,by|near,ds|dp"]
     },
     {
       "id": "rock",
       "name": "rock:s",
-      "adjectives": "white_no_necrosilica, red_necrosilica, blue_no_necrosilica, green_no_necrosilica, yellow, black, grey, great, big, light, heavy",
-      "regionConstraints": "'altitude_above:0'",
-      "phraseAssociations": "'[ran]break:er,of,ip|ns', '[ran]throw:er,of,ip|ns', '[ran]jump:er,of,ip|ns', '[iv(bear,ts,past)]born,by|near,ds|dp'"
+      "adjectives": ["white_no_necrosilica", "red_necrosilica", "blue_no_necrosilica", "green_no_necrosilica", "yellow", "black", "grey", "great", "big", "light", "heavy"],
+      "regionConstraints": ["altitude_above:0"],
+      "phraseAssociations": ["[ran]break:er,of,ip|ns", "[ran]throw:er,of,ip|ns", "[ran]jump:er,of,ip|ns", "[iv(bear,ts,past)]born,by|near,ds|dp"]
     },
     {
       "id": "sand",
       "name": "sand:s",
-      "adjectives": "white_no_necrosilica, red_necrosilica, yellow, black_necrosilica, grey, fine, coarse",
-      "regionConstraints": "'any_attribute:desert,scarlet_desert,peninsula,island,coast'",
-      "phraseAssociations": "'[ran]throw:er,of,u', '[ian(carry)]carrier,of,u', '[iv(bear,ts,past)]born,by,ds|dp'"
+      "adjectives": ["white_no_necrosilica", "red_necrosilica", "yellow", "black_necrosilica", "grey", "fine", "coarse"],
+      "regionConstraints": ["any_attribute:desert,scarlet_desert,peninsula,island,coast"],
+      "phraseAssociations": ["[ran]throw:er,of,u", "[ian(carry)]carrier,of,u", "[iv(bear,ts,past)]born,by,ds|dp"]
     },
     {
       "id": "tree",
       "name": "tree:s",
-      "adjectives": "white_no_necrosilica, red_necrosilica, green_no_necrosilica, yellow, black_necrosilica, dark, pale, dead, great, short, tall, narrow, wide",
-      "regionConstraints": "'main_biome:forest,taiga,rainforest,red_forest,dark_taiga'",
-      "phraseAssociations": "'[ran]climb:er,of,ip|ns', '[ran]cut:ter,of,ip|ns', '[ran]fell:er,of,ip|ns', '[ran]fell:er,of,p', '[iv(bear,ts,past)]born,under,ip|is|ns', '[iv(bear,ts,past)]born,by|near,ds|dp'"
+      "adjectives": ["white_no_necrosilica", "red_necrosilica", "green_no_necrosilica", "yellow", "black_necrosilica", "dark", "pale", "dead", "great", "short", "tall", "narrow", "wide"],
+      "regionConstraints": ["main_biome:forest,taiga,rainforest,red_forest,dark_taiga"],
+      "phraseAssociations": ["[ran]climb:er,of,ip|ns", "[ran]cut:ter,of,ip|ns", "[ran]fell:er,of,ip|ns", "[ran]fell:er,of,p", "[iv(bear,ts,past)]born,under,ip|is|ns", "[iv(bear,ts,past)]born,by|near,ds|dp"]
     },
     {
       "id": "wood",
       "name": "wood:s",
-      "adjectives": "white_no_necrosilica, red, green_no_necrosilica, yellow, black, dark, pale, dead, hard, soft",
-      "regionConstraints": "'main_biome:forest,taiga,rainforest,red_forest,dark_taiga'",
-      "phraseAssociations": "'[ran]cut:ter,of,u', '[ran]work:er', '[ian(carry)]carrier,of,u'"
+      "adjectives": ["white_no_necrosilica", "red", "green_no_necrosilica", "yellow", "black", "dark", "pale", "dead", "hard", "soft"],
+      "regionConstraints": ["main_biome:forest,taiga,rainforest,red_forest,dark_taiga"],
+      "phraseAssociations": ["[ran]cut:ter,of,u", "[ran]work:er", "[ian(carry)]carrier,of,u"]
     },
     {
       "id": "grass",
       "name": "grass:es",
-      "adjectives": "wild, red_necrosilica, dead, tall, short, soft, wet, dry",
-      "regionConstraints": "'main_biome:grassland,tundra,cerise_tundra'",
-      "phraseAssociations": "'[ran]cut:ter,of,u', '[ran]pull:er,of,u', '[ran]eat:er,of,u', '[iv(bear,ts,past)]born,in|by|near,ds'"
+      "adjectives": ["wild", "red_necrosilica", "dead", "tall", "short", "soft", "wet", "dry"],
+      "regionConstraints": ["main_biome:grassland,tundra,cerise_tundra"],
+      "phraseAssociations": ["[ran]cut:ter,of,u", "[ran]pull:er,of,u", "[ran]eat:er,of,u", "[iv(bear,ts,past)]born,in|by|near,ds"]
     },
     {
       "id": "cloud",
       "name": "cloud:s",
-      "adjectives": "white_no_necrosilica, red_necrosilica, scarlet_necrosilica, crimson_necrosilica, pink, orange, black, grey, dark, great, thin, deep, light, bright_no_necrosilica, heavy",
-      "regionConstraints": "'rainfall_above:675'",
-      "phraseAssociations": "'[ran]observe:r,of,ip', '[ran]watch:er,of,ip', '[ran]gaze:r,of,ip', '[iv(bear,ts,past)]born,under,ip'"
+      "adjectives": ["white_no_necrosilica", "red_necrosilica", "scarlet_necrosilica", "crimson_necrosilica", "pink", "orange", "black", "grey", "dark", "great", "thin", "deep", "light", "bright_no_necrosilica", "heavy"],
+      "regionConstraints": ["rainfall_above:675"],
+      "phraseAssociations": ["[ran]observe:r,of,ip", "[ran]watch:er,of,ip", "[ran]gaze:r,of,ip", "[iv(bear,ts,past)]born,under,ip"]
     },
     {
       "id": "moss",
       "name": "moss:es",
-      "adjectives": "white_no_necrosilica, red, scarlet_necrosilica, crimson_necrosilica, green_no_necrosilica, pink, orange, yellow, black, dark, wet",
-      "regionConstraints": "'main_biome:forest,taiga,tundra,rainforest,red_forest,dark_taiga,cerise_tundra,fungi,black_fungi'",
-      "phraseAssociations": "'[ran]eat:er,of,u', '[ran]grow:er,of,u', '[iv(bear,ts,past)]born,in|by|near,ds'"
+      "adjectives": ["white_no_necrosilica", "red", "scarlet_necrosilica", "crimson_necrosilica", "green_no_necrosilica", "pink", "orange", "yellow", "black", "dark", "wet"],
+      "regionConstraints": ["main_biome:forest,taiga,tundra,rainforest,red_forest,dark_taiga,cerise_tundra,fungi,black_fungi"],
+      "phraseAssociations": ["[ran]eat:er,of,u", "[ran]grow:er,of,u", "[iv(bear,ts,past)]born,in|by|near,ds"]
     },
     {
       "id": "shrub",
       "name": "shrub:s",
-      "adjectives": "tall, white_no_necrosilica, red_necrosilica, green_no_necrosilica, yellow, black_necrosilica, dark, dry, wide",
-      "regionConstraints": "'main_biome:grassland,tundra,desert,cerise_tundra,scarlet_desert'",
-      "phraseAssociations": "'[ran]burn:er,of,ip', '[iv(bear,ts,past)]born,between,ip', '[iv(bear,ts,past)]born,by|near,ds|dp', '[iv(hide,ts,past)]hidden,between,ip', '[iv(hide,ts,past)]hidden,in,is'"
+      "adjectives": ["tall", "white_no_necrosilica", "red_necrosilica", "green_no_necrosilica", "yellow", "black_necrosilica", "dark", "dry", "wide"],
+      "regionConstraints": ["main_biome:grassland,tundra,desert,cerise_tundra,scarlet_desert"],
+      "phraseAssociations": ["[ran]burn:er,of,ip", "[iv(bear,ts,past)]born,between,ip", "[iv(bear,ts,past)]born,by|near,ds|dp", "[iv(hide,ts,past)]hidden,between,ip", "[iv(hide,ts,past)]hidden,in,is"]
     },
     {
       "id": "bush",
       "name": "bush:es",
-      "adjectives": "white_no_necrosilica, red_necrosilica, green_no_necrosilica, yellow, black_necrosilica, dark, dry, tiny",
-      "regionConstraints": "'main_biome:grassland,tundra,desert,cerise_tundra,scarlet_desert'",
-      "phraseAssociations": "'[ran]burn:er,of,ip', '[iv(bear,ts,past)]born,between,ip', '[iv(bear,ts,past)]born,by|near,ds|dp', '[iv(hide,ts,past)]hidden,between,ip', '[iv(hide,ts,past)]hidden,in,is'"
+      "adjectives": ["white_no_necrosilica", "red_necrosilica", "green_no_necrosilica", "yellow", "black_necrosilica", "dark", "dry", "tiny"],
+      "regionConstraints": ["main_biome:grassland,tundra,desert,cerise_tundra,scarlet_desert"],
+      "phraseAssociations": ["[ran]burn:er,of,ip", "[iv(bear,ts,past)]born,between,ip", "[iv(bear,ts,past)]born,by|near,ds|dp", "[iv(hide,ts,past)]hidden,between,ip", "[iv(hide,ts,past)]hidden,in,is"]
     },
     {
       "id": "fire",
       "name": "fire:s",
-      "adjectives": "wild, white, red, green, blue, yellow, bright",
-      "regionConstraints": "'altitude_above:0', 'temperature_above:0'",
-      "phraseAssociations": "'[ran]start:er,of,ip|ns', '[iv(bear,ts,past)]born,under,ns', '[iv(bear,ts,past)]born,by|near,ds|dp', '[rv(ts,past)]burn:ed,by,u|ds', '[ran]dance:r'"
+      "adjectives": ["wild", "white", "red", "green", "blue", "yellow", "bright"],
+      "regionConstraints": ["altitude_above:0", "temperature_above:0"],
+      "phraseAssociations": ["[ran]start:er,of,ip|ns", "[iv(bear,ts,past)]born,under,ns", "[iv(bear,ts,past)]born,by|near,ds|dp", "[rv(ts,past)]burn:ed,by,u|ds", "[ran]dance:r"]
     },
     {
       "id": "flame",
       "name": "flame:s",
-      "adjectives": "wild, white, red, green, blue, yellow, bright",
-      "regionConstraints": "'altitude_above:0', 'temperature_above:0'",
-      "phraseAssociations": "'[iv(bear,ts,past)]born,under,ns', '[iv(bear,ts,past)]born,by|near,ds|dp', '[rv(ts,past)]burn:ed,by,u|ds', '[ran]dance:r'"
+      "adjectives": ["wild", "white", "red", "green", "blue", "yellow", "bright"],
+      "regionConstraints": ["altitude_above:0", "temperature_above:0"],
+      "phraseAssociations": ["[iv(bear,ts,past)]born,under,ns", "[iv(bear,ts,past)]born,by|near,ds|dp", "[rv(ts,past)]burn:ed,by,u|ds", "[ran]dance:r"]
     },
     {
       "id": "water",
       "name": "water:s",
-      "adjectives": "white_no_necrosilica, red_necrosilica, scarlet_necrosilica, crimson_necrosilica, green_no_necrosilica, blue_no_necrosilica, clear_no_necrosilica, dark",
-      "regionConstraints": "'altitude_below:0'",
-      "phraseAssociations": "'[ran]swim:mer', '[ran]drink:er,of,u|ns', '[iv(bear,ts,past)]born,between,ip', '[iv(bear,ts,past)]born,by,ds', '[rv(ts,past)]soak:ed,by,u', '[rv(ts,past)]drench:ed,by,u'"
+      "adjectives": ["white_no_necrosilica", "red_necrosilica", "scarlet_necrosilica", "crimson_necrosilica", "green_no_necrosilica", "blue_no_necrosilica", "clear_no_necrosilica", "dark"],
+      "regionConstraints": ["altitude_below:0"],
+      "phraseAssociations": ["[ran]swim:mer", "[ran]drink:er,of,u|ns", "[iv(bear,ts,past)]born,between,ip", "[iv(bear,ts,past)]born,by,ds", "[rv(ts,past)]soak:ed,by,u", "[rv(ts,past)]drench:ed,by,u"]
     },
     {
       "id": "rain",
       "name": "rain:s",
-      "adjectives": "heavy, red_necrosilica, scarlet_necrosilica, crimson_necrosilica, soft, dark",
-      "regionConstraints": "'rainfall_above:675'",
-      "phraseAssociations": "'[iv(bear,ts,past)]born,under,u|ns', '[iv(bear,ts,past)]born,between,ip', '[rv(ts,past)]bath:ed,by,u', '[rv(ts,past)]soak:ed,by,u', '[rv(ts,past)]drench:ed,by,u', '[ran]dance:r'"
+      "adjectives": ["heavy", "red_necrosilica", "scarlet_necrosilica", "crimson_necrosilica", "soft", "dark"],
+      "regionConstraints": ["rainfall_above:675"],
+      "phraseAssociations": ["[iv(bear,ts,past)]born,under,u|ns", "[iv(bear,ts,past)]born,between,ip", "[rv(ts,past)]bath:ed,by,u", "[rv(ts,past)]soak:ed,by,u", "[rv(ts,past)]drench:ed,by,u", "[ran]dance:r"]
     },
     {
       "id": "storm",
       "name": "storm:s",
-      "adjectives": "heavy, red_necrosilica, crimson_necrosilica, dark, great",
-      "regionConstraints": "'rainfall_above:675'",
-      "phraseAssociations": "'[iv(bear,ts,past)]born,under,u|ns', '[iv(bear,ts,past)]born,between,ip|np', '[ran]dance:r'"
+      "adjectives": ["heavy", "red_necrosilica", "crimson_necrosilica", "dark", "great"],
+      "regionConstraints": ["rainfall_above:675"],
+      "phraseAssociations": ["[iv(bear,ts,past)]born,under,u|ns", "[iv(bear,ts,past)]born,between,ip|np", "[ran]dance:r"]
     },
     {
       "id": "sun",
       "name": "sun:s",
-      "adjectives": "white_no_necrosilica, red, yellow, bright, great",
-      "regionConstraints": "'rainfall_below:1775'",
-      "phraseAssociations": "'[iv(bear,ts,past)]born,under,ns', '[ran]gaze:r,of,ns', '[iv(hide,ts,past)]hidden,from,ns', '[ran]dance:r'"
+      "adjectives": ["white_no_necrosilica", "red", "yellow", "bright", "great"],
+      "regionConstraints": ["rainfall_below:1775"],
+      "phraseAssociations": ["[iv(bear,ts,past)]born,under,ns", "[ran]gaze:r,of,ns", "[iv(hide,ts,past)]hidden,from,ns", "[ran]dance:r"]
     },
     {
       "id": "day",
       "name": "day:s",
-      "adjectives": "white_no_necrosilica, red_necrosilica, blue_no_necrosilica, green_no_necrosilica, yellow, black_necrosilica, grey, dark, bright_no_necrosilica, great, short, long, somber, cheerful_no_necrosilica",
-      "phraseAssociations": "'[iv(bear,ts,past)]born,in|during,ns', '[iv(bear,ts,past)]born,between,ip', '[ran]drink:er', '[ran]watch:er', '[ran]talk:er', '[ran]dream:er'"
+      "adjectives": ["white_no_necrosilica", "red_necrosilica", "blue_no_necrosilica", "green_no_necrosilica", "yellow", "black_necrosilica", "grey", "dark", "bright_no_necrosilica", "great", "short", "long", "somber", "cheerful_no_necrosilica"],
+      "phraseAssociations": ["[iv(bear,ts,past)]born,in|during,ns", "[iv(bear,ts,past)]born,between,ip", "[ran]drink:er", "[ran]watch:er", "[ran]talk:er", "[ran]dream:er"]
     },
     {
       "id": "night",
       "name": "night:s",
-      "adjectives": "white_no_necrosilica, blue_no_necrosilica, green_no_necrosilica, black, dark, great, short, long, somber, cheerful_no_necrosilica",
-      "phraseAssociations": "'[iv(bear,ts,past)]born,in|during,ns', '[iv(bear,ts,past)]born,between,ip', '[ran]drink:er', '[ran]watch:er', '[ran]talk:er', '[ran]dream:er'"
+      "adjectives": ["white_no_necrosilica", "blue_no_necrosilica", "green_no_necrosilica", "black", "dark", "great", "short", "long", "somber", "cheerful_no_necrosilica"],
+      "phraseAssociations": ["[iv(bear,ts,past)]born,in|during,ns", "[iv(bear,ts,past)]born,between,ip", "[ran]drink:er", "[ran]watch:er", "[ran]talk:er", "[ran]dream:er"]
     },
     {
       "id": "air",
       "name": "air:s",
-      "phraseAssociations": "'[ran]breath:er,of,u'"
+      "phraseAssociations": ["[ran]breath:er,of,u"]
     },
     {
       "id": "wind",
       "name": "wind:s",
-      "adjectives": "strong, soft",
-      "regionConstraints": "'no_attribute:rainforest,jungle,taiga,forest'",
-      "phraseAssociations": "'[ian(carry)]carrier,of,u|ns'"
+      "adjectives": ["strong", "soft"],
+      "regionConstraints": ["no_attribute:rainforest,jungle,taiga,forest"],
+      "phraseAssociations": ["[ian(carry)]carrier,of,u|ns"]
     },
     {
       "id": "sky",
       "name": "[in(sky)]skies",
-      "adjectives": "white_no_necrosilica, red, scarlet_necrosilica, crimson_necrosilica, cerise_necrosilica, blue_no_necrosilica, green_no_necrosilica, yellow, black_necrosilica, grey, dark, bright_no_necrosilica, great",
-      "regionConstraints": "'altitude_above:3000'",
-      "phraseAssociations": "'[iv(bear,ts,past)]born,under,ns', '[ran]gaze:r,of,ns'"
+      "adjectives": ["white_no_necrosilica", "red", "scarlet_necrosilica", "crimson_necrosilica", "cerise_necrosilica", "blue_no_necrosilica", "green_no_necrosilica", "yellow", "black_necrosilica", "grey", "dark", "bright_no_necrosilica", "great"],
+      "regionConstraints": ["altitude_above:3000"],
+      "phraseAssociations": ["[iv(bear,ts,past)]born,under,ns", "[ran]gaze:r,of,ns"]
     },
     {
       "id": "shadow",
       "name": "shadow:s",
-      "adjectives": "black, dark",
-      "regionConstraints": "'main_biome:forest,taiga,rainforest,red_forest,dark_taiga,fungi,black_fungi'",
-      "phraseAssociations": "'[iv(bear,ts,past)]born,under,ip|ns', '[ran]gaze:r,of,ip', '[ran]walk:er', '[ran]stalk:er', '[iv(hide,ts,past)]hidden,in,ip', '[ran]dance:r', '[rv(ts,past)]scare:d,by,u'"
+      "adjectives": ["black", "dark"],
+      "regionConstraints": ["main_biome:forest,taiga,rainforest,red_forest,dark_taiga,fungi,black_fungi"],
+      "phraseAssociations": ["[iv(bear,ts,past)]born,under,ip|ns", "[ran]gaze:r,of,ip", "[ran]walk:er", "[ran]stalk:er", "[iv(hide,ts,past)]hidden,in,ip", "[ran]dance:r", "[rv(ts,past)]scare:d,by,u"]
     },
     {
       "id": "ice",
       "name": "ice:s",
-      "adjectives": "clear, dark, blue_no_necrosilica, opaque",
-      "regionConstraints": "'temperature_below:0'",
-      "phraseAssociations": "'[ian(carry)]carrier,of,u', '[ran]eat:er,of,u', '[ran]walk:er', '[iv(bear,ts,past)]born,in|by|near,ds'"
+      "adjectives": ["clear", "dark", "blue_no_necrosilica", "opaque"],
+      "regionConstraints": ["temperature_below:0"],
+      "phraseAssociations": ["[ian(carry)]carrier,of,u", "[ran]eat:er,of,u", "[ran]walk:er", "[iv(bear,ts,past)]born,in|by|near,ds"]
     },
     {
       "id": "snow",
       "name": "snow:s",
-      "adjectives": "clear, grey, soft, hard, wet",
-      "regionConstraints": "'temperature_below:5'",
-      "phraseAssociations": "'[ran]throw:er,of,u', '[ian(carry)]carrier,of,u', '[ran]eat:er,of,u', '[iv(bear,ts,past)]born,in|by|near,ds', '[iv(bear,ts,past)]born,during,ns', '[iv(bear,ts,past)]born,between,ip', '[iv(hide,ts,past)]hidden,in,ip'"
+      "adjectives": ["clear", "grey", "soft", "hard", "wet"],
+      "regionConstraints": ["temperature_below:5"],
+      "phraseAssociations": ["[ran]throw:er,of,u", "[ian(carry)]carrier,of,u", "[ran]eat:er,of,u", "[iv(bear,ts,past)]born,in|by|near,ds", "[iv(bear,ts,past)]born,during,ns", "[iv(bear,ts,past)]born,between,ip", "[iv(hide,ts,past)]hidden,in,ip"]
     },
     {
       "id": "peat",
       "name": "peat:s",
-      "adjectives": "red, green_no_necrosilica, yellow, black, grey, dark, wet, dry",
-      "regionConstraints": "'altitude_above:0', 'temperature_above:0', 'rainfall_above:675'",
-      "phraseAssociations": "'[ian(carry)]carrier,of,u', '[ran]use:r,of,u', '[iv(bear,ts,past)]born,in|by|near,ds'"
+      "adjectives": ["red", "green_no_necrosilica", "yellow", "black", "grey", "dark", "wet", "dry"],
+      "regionConstraints": ["altitude_above:0", "temperature_above:0", "rainfall_above:675"],
+      "phraseAssociations": ["[ian(carry)]carrier,of,u", "[ran]use:r,of,u", "[iv(bear,ts,past)]born,in|by|near,ds"]
     },
     {
       "id": "clay",
       "name": "clay:s",
-      "adjectives": "red, orange, black, grey, white_no_necrosilica, dark, wet, dry",
-      "regionConstraints": "'altitude_above:0', 'temperature_above:0', 'rainfall_above:675'",
-      "phraseAssociations": "'[ian(carry)]carrier,of,u', '[ran]use:r,of,u', '[ian(dig)]digger,of,u'"
+      "adjectives": ["red", "orange", "black", "grey", "white_no_necrosilica", "dark", "wet", "dry"],
+      "regionConstraints": ["altitude_above:0", "temperature_above:0", "rainfall_above:675"],
+      "phraseAssociations": ["[ian(carry)]carrier,of,u", "[ran]use:r,of,u", "[ian(dig)]digger,of,u"]
     },
     {
       "id": "marble",
       "name": "marble:s",
-      "adjectives": "white_no_necrosilica, clear_no_necrosilica, grey, dark",
-      "regionConstraints": "'altitude_above:0'",
-      "phraseAssociations": "'[ian(carry)]carrier,of,u', '[ran]use:r,of,u'"
+      "adjectives": ["white_no_necrosilica", "clear_no_necrosilica", "grey", "dark"],
+      "regionConstraints": ["altitude_above:0"],
+      "phraseAssociations": ["[ian(carry)]carrier,of,u", "[ran]use:r,of,u"]
     },
     {
       "id": "thunder",
       "name": "thunder:s",
-      "adjectives": "great, loud",
-      "regionConstraints": "'rainfall_above:675'",
-      "phraseAssociations": "'[iv(bear,ts,past)]born,during,ip|np', '[rv(ts,past)]scare:d,by,u'"
+      "adjectives": ["great", "loud"],
+      "regionConstraints": ["rainfall_above:675"],
+      "phraseAssociations": ["[iv(bear,ts,past)]born,during,ip|np", "[rv(ts,past)]scare:d,by,u"]
     },
     {
       "id": "mud",
       "name": "mud:s",
-      "adjectives": "red, green_no_necrosilica, yellow, black, grey, dark, wet, dry",
-      "regionConstraints": "'rainfall_above:675'",
-      "phraseAssociations": "'[ian(carry)]carrier,of,u', '[ran]use:r,of,u', '[ran]eat:er,of,u', '[iv(bear,ts,past)]born,in|near,ds'"
+      "adjectives": ["red", "green_no_necrosilica", "yellow", "black", "grey", "dark", "wet", "dry"],
+      "regionConstraints": ["rainfall_above:675"],
+      "phraseAssociations": ["[ian(carry)]carrier,of,u", "[ran]use:r,of,u", "[ran]eat:er,of,u", "[iv(bear,ts,past)]born,in|near,ds"]
     },
     {
       "id": "dew",
       "name": "dew:s",
-      "regionConstraints": "'rainfall_above:675'",
-      "phraseAssociations": "'[rv(ts,past)]bath:ed,by,u', '[rv(ts,past)]soak:ed,by,u'"
+      "regionConstraints": ["rainfall_above:675"],
+      "phraseAssociations": ["[rv(ts,past)]bath:ed,by,u", "[rv(ts,past)]soak:ed,by,u"]
     },
     {
       "id": "haze",
       "name": "haze:s",
-      "adjectives": "light, red_necrosilica, cerise_necrosilica, white_no_necrosilica",
-      "regionConstraints": "'rainfall_above:675'",
-      "phraseAssociations": "'[iv(bear,ts,past)]born,during,sp|np', '[iv(hide,ts,past)]hidden,in,ds'"
+      "adjectives": ["light", "red_necrosilica", "cerise_necrosilica", "white_no_necrosilica"],
+      "regionConstraints": ["rainfall_above:675"],
+      "phraseAssociations": ["[iv(bear,ts,past)]born,during,sp|np", "[iv(hide,ts,past)]hidden,in,ds"]
     },
     {
       "id": "fog",
       "name": "fog:s",
-      "adjectives": "dense, grey, dark",
-      "regionConstraints": "'rainfall_above:1775'",
-      "phraseAssociations": "'[iv(bear,ts,past)]born,during,sp|np', '[iv(hide,ts,past)]hidden,in,ds'"
+      "adjectives": ["dense", "grey", "dark"],
+      "regionConstraints": ["rainfall_above:1775"],
+      "phraseAssociations": ["[iv(bear,ts,past)]born,during,sp|np", "[iv(hide,ts,past)]hidden,in,ds"]
     },
     {
       "id": "dust",
       "name": "dust:s",
-      "adjectives": "white_no_necrosilica, red_necrosilica, yellow, black_necrosilica, grey, fine, coarse",
-      "regionConstraints": "'rainfall_below:675'",
-      "phraseAssociations": "'[ian(carry)]carrier,of,u', '[iv(bear,ts,past)]born,during,sp|np', '[iv(bear,ts,past)]born,in|near,ds'"
+      "adjectives": ["white_no_necrosilica", "red_necrosilica", "yellow", "black_necrosilica", "grey", "fine", "coarse"],
+      "regionConstraints": ["rainfall_below:675"],
+      "phraseAssociations": ["[ian(carry)]carrier,of,u", "[iv(bear,ts,past)]born,during,sp|np", "[iv(bear,ts,past)]born,in|near,ds"]
     }
   ]
 }

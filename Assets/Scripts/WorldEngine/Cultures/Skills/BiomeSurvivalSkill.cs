@@ -8,7 +8,7 @@ public class BiomeSurvivalSkill : CellCulturalSkill
 {
     public const float TimeEffectConstant = CellGroup.GenerationSpan * 1500;
 
-    public const string SkillIdPrefix = "BiomeSurvivalSkill_";
+    public const string SkillIdSuffix = "_survival";
     public const int BiomeSurvivalSkillRngOffsetBase = 1000;
 
     [XmlIgnore]
@@ -18,12 +18,12 @@ public class BiomeSurvivalSkill : CellCulturalSkill
 
     public static string GenerateId(Biome biome)
     {
-        return SkillIdPrefix + biome.Id;
+        return biome.Id + SkillIdSuffix;
     }
 
     public static string GenerateName(Biome biome)
     {
-        return biome.Name.FirstLetterToUpper() + " Survival";
+        return biome.Name + " survival";
     }
 
     public static int GenerateRngOffset(Biome biome)
@@ -56,7 +56,7 @@ public class BiomeSurvivalSkill : CellCulturalSkill
 
     public BiomeSurvivalSkill(CellGroup group, CulturalSkill baseSkill, float initialValue) : base(group, baseSkill.Id, baseSkill.Name, baseSkill.RngOffset, initialValue)
     {
-        BiomeId = baseSkill.Id.Substring(SkillIdPrefix.Length);
+        BiomeId = GetBiomeId(baseSkill.Id);
 
         Group.AddBiomeSurvivalSkill(this);
 
@@ -70,14 +70,24 @@ public class BiomeSurvivalSkill : CellCulturalSkill
 
     public static bool IsBiomeSurvivalSkill(CulturalSkill skill)
     {
-        return skill.Id.Contains(SkillIdPrefix);
+        return IsBiomeSurvivalSkill(skill.Id);
+    }
+
+    public static bool IsBiomeSurvivalSkill(string skillId)
+    {
+        return skillId.Contains(SkillIdSuffix);
+    }
+
+    public static string GetBiomeId(string skillId)
+    {
+        return skillId.Substring(0, skillId.Length - SkillIdSuffix.Length);
     }
 
     public override void FinalizeLoad()
     {
         base.FinalizeLoad();
 
-        BiomeId = Id.Substring(SkillIdPrefix.Length);
+        BiomeId = GetBiomeId(Id);
 
         Group.AddBiomeSurvivalSkill(this);
 
@@ -112,9 +122,9 @@ public class BiomeSurvivalSkill : CellCulturalSkill
         UpdateInternal(timeSpan, TimeEffectConstant, _neighborhoodBiomePresence);
     }
 
-    public override void PolityCulturalProminence(CulturalSkill politySkill, PolityProminence polityProminence, long timeSpan)
+    public override void AddPolityProminenceEffect(CulturalSkill politySkill, PolityProminence polityProminence, long timeSpan)
     {
-        PolityCulturalProminenceInternal(politySkill, polityProminence, timeSpan, TimeEffectConstant);
+        AddPolityProminenceEffectInternal(politySkill, polityProminence, timeSpan, TimeEffectConstant);
     }
 
     protected override void PostUpdateInternal()

@@ -12,8 +12,6 @@ public class FactionCulture : Culture
     [XmlIgnore]
     public Faction Faction;
 
-    private List<CulturalDiscovery> _discoveriesToTryToRemove = new List<CulturalDiscovery>();
-
     public FactionCulture()
     {
 
@@ -68,9 +66,9 @@ public class FactionCulture : Culture
             //}
         }
 
-        foreach (CellCulturalDiscovery d in coreCulture.Discoveries.Values)
+        foreach (Discovery d in coreCulture.Discoveries.Values)
         {
-            AddDiscovery(new CulturalDiscovery(d));
+            AddDiscovery(d);
         }
     }
 
@@ -287,18 +285,26 @@ public class FactionCulture : Culture
                 knowledge = new CulturalKnowledge(k);
                 AddKnowledge(knowledge);
 
-                knowledge.Value = (int)(k.Value * timeFactor);
-
                 //Profiler.EndSample();
+            }
+
+            //Profiler.BeginSample("update knowledge.Value");
+
+            float addValue = k.Value * timeFactor;
+
+            if (addValue < 1) // Always try approaching the core cell knowledge value regardless how small the timeFactor is
+            {
+                if ((knowledge.Value - k.Value) <= -1)
+                    knowledge.Value++;
+                else if ((knowledge.Value - k.Value) >= 1)
+                    knowledge.Value--;
             }
             else
             {
-                //Profiler.BeginSample("update knowledge.Value");
-
-                knowledge.Value = (int)((knowledge.Value * (1f - timeFactor)) + (k.Value * timeFactor));
-
-                //Profiler.EndSample();
+                knowledge.Value = (int)((knowledge.Value * (1f - timeFactor)) + addValue);
             }
+
+            //Profiler.EndSample();
         }
 
         foreach (CulturalKnowledge k in Knowledges.Values)
@@ -337,40 +343,25 @@ public class FactionCulture : Culture
         //        }
         //#endif
 
-        foreach (CulturalDiscovery d in coreCulture.Discoveries.Values)
+        foreach (Discovery d in coreCulture.Discoveries.Values)
         {
-            //Profiler.BeginSample("GetDiscovery");
-
-            CulturalDiscovery discovery = GetDiscovery(d.Id);
-
-            //Profiler.EndSample();
-
-            if (discovery == null)
-            {
-                //Profiler.BeginSample("new CulturalDiscovery");
-
-                discovery = new CulturalDiscovery(d);
-                AddDiscovery(discovery);
-
-                //Profiler.EndSample();
-            }
+            AddDiscovery(d);
         }
 
-        _discoveriesToTryToRemove.AddRange(Discoveries.Values);
+        List<Discovery> discoveriesToTryToRemove = new List<Discovery>(Discoveries.Values);
 
-        foreach (CulturalDiscovery d in _discoveriesToTryToRemove)
+        foreach (Discovery d in discoveriesToTryToRemove)
         {
             //Profiler.BeginSample("coreCulture.Discoveries.ContainsKey");
 
             if (!coreCulture.Discoveries.ContainsKey(d.Id))
             {
-                TryRemovingDiscovery(d, timeFactor);
+                RemoveDiscovery(d);
+                //TryRemovingDiscovery(d, timeFactor); // TODO: Take care of issue #133 before cleaning up this
             }
 
             //Profiler.EndSample();
         }
-
-        _discoveriesToTryToRemove.Clear();
 
         //Profiler.EndSample();
     }
@@ -394,14 +385,15 @@ public class FactionCulture : Culture
         UpdateKnowledges(coreCulture, timeFactor);
         UpdateDiscoveries(coreCulture, timeFactor);
     }
-    
-    private void TryRemovingDiscovery(CulturalDiscovery discovery, float timeFactor)
-    {
-        int idHash = discovery.Id.GetHashCode();
-        
-        if (GetNextRandomFloat(RngOffsets.FACTION_CULTURE_DISCOVERY_LOSS_CHANCE + idHash) < timeFactor)
-        {
-            RemoveDiscovery(discovery);
-        }
-    }
+
+    // TODO: Take care of issue #133 before cleaning up this
+    //private void TryRemovingDiscovery(Discovery discovery, float timeFactor)
+    //{
+    //    int idHash = discovery.IdHash;
+
+    //    if (GetNextRandomFloat(RngOffsets.FACTION_CULTURE_DISCOVERY_LOSS_CHANCE + idHash) < timeFactor)
+    //    {
+    //        RemoveDiscovery(discovery);
+    //    }
+    //}
 }

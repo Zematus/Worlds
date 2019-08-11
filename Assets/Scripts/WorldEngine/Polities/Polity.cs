@@ -20,6 +20,8 @@ public abstract class Polity : ISynchronizable
 
     public const float MinPolityProminence = 0.001f;
 
+    public const string CanFormPolityAttribute = "CAN_FORM_POLITY:";
+
     [XmlAttribute("CGrpId")]
     public long CoreGroupId;
 
@@ -285,6 +287,65 @@ public abstract class Polity : ISynchronizable
         Info.Polity = null;
 
         StillPresent = false;
+    }
+
+    // WARNING: This method does not set a group to be updated. 
+    public static bool TryGenerateNewPolity(PolityType type, CellGroup coreGroup)
+    {
+        World world = coreGroup.World;
+
+        if (coreGroup.PolityProminences.Count <= 0)
+        {
+            Polity polity = null;
+
+            switch (type)
+            {
+                case PolityType.Tribe:
+                    polity = new Tribe(coreGroup);
+                    break;
+                default:
+                    throw new System.Exception("TryGeneratePolity: Unhandled polity type: " + type);
+            }
+
+            polity.Initialize();
+
+            world.AddPolityInfo(polity.Info);
+            world.AddPolityToUpdate(polity);
+
+            TryGenerateNewPolityMessages(polity);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    public static void TryGenerateNewPolityMessages(Polity polity)
+    {
+        World world = polity.World;
+        CellGroup coreGroup = polity.CoreGroup;
+
+        PolityFormationEventMessage formationEventMessage = null;
+
+        if (!world.HasEventMessage(WorldEvent.PolityFormationEventId))
+        {
+            formationEventMessage = new PolityFormationEventMessage(polity, world.CurrentDate);
+
+            world.AddEventMessage(formationEventMessage);
+            formationEventMessage.First = true;
+        }
+
+        if (coreGroup.Cell.EncompassingTerritory != null)
+        {
+            Polity encompassingPolity = coreGroup.Cell.EncompassingTerritory.Polity;
+
+            if (formationEventMessage == null)
+            {
+                formationEventMessage = new PolityFormationEventMessage(polity, world.CurrentDate);
+            }
+
+            encompassingPolity.AddEventMessage(formationEventMessage);
+        }
     }
 
     public string GetNameAndTypeString()
@@ -1115,7 +1176,7 @@ public abstract class Polity : ISynchronizable
             throw new System.Exception("totalPolityProminenceValue is 0. Polity Id:" + Id + ", group.Id:" + group.Id);
         }
 
-        if (!group.Culture.HasDiscovery(TribalismDiscovery.DiscoveryId))
+        if (!group.HasProperty(CanFormPolityAttribute + "tribe"))
         {
             group.SetPolityProminence(this, 0);
 

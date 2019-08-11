@@ -45,6 +45,23 @@ public abstract class CellCulturalSkill : CulturalSkill
         throw new System.Exception("Unhandled CulturalSkill type: " + baseSkill.Id);
     }
 
+    public static CellCulturalSkill CreateCellInstance(string id, CellGroup group, float initialValue = 0)
+    {
+        if (BiomeSurvivalSkill.IsBiomeSurvivalSkill(id))
+        {
+            Biome biome = Biome.Biomes[BiomeSurvivalSkill.GetBiomeId(id)];
+
+            return new BiomeSurvivalSkill(group, biome, initialValue);
+        }
+
+        if (SeafaringSkill.IsSeafaringSkill(id))
+        {
+            return new SeafaringSkill(group, initialValue);
+        }
+
+        throw new System.Exception("Unhandled CulturalSkill type: " + id);
+    }
+
     public void Merge(CulturalSkill skill, float percentage)
     {
         // _newvalue should have been set correctly either by the constructor or by the Update function
@@ -156,9 +173,9 @@ public abstract class CellCulturalSkill : CulturalSkill
         _newValue = newValue;
     }
 
-    public abstract void PolityCulturalProminence(CulturalSkill politySkill, PolityProminence polityProminence, long timeSpan);
+    public abstract void AddPolityProminenceEffect(CulturalSkill politySkill, PolityProminence polityProminence, long timeSpan);
 
-    protected void PolityCulturalProminenceInternal(CulturalSkill politySkill, PolityProminence polityProminence, long timeSpan, float timeEffectFactor)
+    protected void AddPolityProminenceEffectInternal(CulturalSkill politySkill, PolityProminence polityProminence, long timeSpan, float timeEffectFactor)
     {
         float targetValue = politySkill.Value;
         float prominenceEffect = polityProminence.Value;

@@ -54,6 +54,9 @@ public enum PlanetOverlay
     Temperature,
     Rainfall,
     Arability,
+    Accessibility,
+    Hilliness,
+    WoodCoverage,
     Layer,
     Region,
     Language,
@@ -74,7 +77,11 @@ public enum OverlayColorId
     SelectedTerritory = 6,
     ContactedTerritoryGood = 7,
     ContactedTerritoryBad = 8,
-    Layer = 9
+    LowValue = 9,
+    MedValue = 10,
+    HighValue = 11,
+    ActiveRoute = 12,
+    InactiveRoute = 13,
 }
 
 public class Manager
@@ -1407,7 +1414,7 @@ public class Manager
             }
             //catch (IOException e)
             //{
-            //    // TODO DEBUG: This is a workaround. We shouldn't ignore file sharing violations
+            //    // DEBUG: This is a workaround. We shouldn't ignore file sharing violations
             //    if (System.Runtime.InteropServices.Marshal.GetHRForException(e) != 0x00000020)
             //    {
             //        EnqueueTaskAndWait(() =>
@@ -1464,6 +1471,9 @@ public class Manager
     {
         if ((overlay == PlanetOverlay.None) ||
             (overlay == PlanetOverlay.Arability) ||
+            (overlay == PlanetOverlay.Accessibility) ||
+            (overlay == PlanetOverlay.Hilliness) ||
+            (overlay == PlanetOverlay.WoodCoverage) ||
             (overlay == PlanetOverlay.Layer) ||
             (overlay == PlanetOverlay.Rainfall) ||
             (overlay == PlanetOverlay.Temperature) ||
@@ -1507,6 +1517,9 @@ public class Manager
     {
         if ((overlay == PlanetOverlay.None) ||
             (overlay == PlanetOverlay.Arability) ||
+            (overlay == PlanetOverlay.Accessibility) ||
+            (overlay == PlanetOverlay.Hilliness) ||
+            (overlay == PlanetOverlay.WoodCoverage) ||
             (overlay == PlanetOverlay.Layer) ||
             (overlay == PlanetOverlay.Rainfall) ||
             (overlay == PlanetOverlay.Temperature) ||
@@ -2500,7 +2513,11 @@ public class Manager
     {
         if (_displayRoutes && cell.HasCrossingRoutes)
         {
-            return Color.magenta;
+            foreach (Route route in cell.CrossingRoutes)
+            {
+                if (route.Used)
+                    return GetOverlayColor(OverlayColorId.ActiveRoute);
+            }
         }
 
         Color color = Color.black;
@@ -2612,6 +2629,18 @@ public class Manager
                 color = SetArabilityOverlayColor(cell, color);
                 break;
 
+            case PlanetOverlay.Accessibility:
+                color = SetAccessibilityOverlayColor(cell, color);
+                break;
+
+            case PlanetOverlay.Hilliness:
+                color = SetHillinessOverlayColor(cell, color);
+                break;
+
+            case PlanetOverlay.WoodCoverage:
+                color = SetWoodCoverageOverlayColor(cell, color);
+                break;
+
             case PlanetOverlay.Layer:
                 color = SetLayerOverlayColor(cell, color);
                 break;
@@ -2670,7 +2699,6 @@ public class Manager
         if (cell.Altitude > 0)
         {
             float slant = GetSlant(cell);
-            //float altDiff = CurrentWorld.MaxAltitude - CurrentWorld.MinAltitude;
             float altDiff = World.MaxPossibleAltitude - World.MinPossibleAltitude;
             altDiff /= 2f;
 
@@ -2755,6 +2783,11 @@ public class Manager
             color.r += biomeColor.r * biomePresence;
             color.g += biomeColor.g * biomePresence;
             color.b += biomeColor.b * biomePresence;
+        }
+
+        if (cell.FarmlandPercentage > 0)
+        {
+            color = color * (1 - cell.FarmlandPercentage) + GetOverlayColor(OverlayColorId.Farmland) * cell.FarmlandPercentage;
         }
 
         return color * slantFactor * altitudeFactor;
@@ -3560,12 +3593,12 @@ public class Manager
             
             if (knowledge != null)
             {
-                float highestAsymptote = knowledge.GetHighestAsymptote();
+                float highestLimit = knowledge.GetHighestLimit();
 
-                if (highestAsymptote <= 0)
-                    throw new System.Exception("Highest Asymptote is less or equal to 0");
+                if (highestLimit <= 0)
+                    throw new System.Exception("Highest Limit is less or equal to 0");
 
-                normalizedValue = knowledge.Value / highestAsymptote;
+                normalizedValue = knowledge.Value / highestLimit;
             }
         }
 
@@ -3617,12 +3650,12 @@ public class Manager
 
         float normalizedValue = 0;
 
-        float highestAsymptote = cellKnowledge.GetHighestAsymptote();
+        float highestLimit = cellKnowledge.GetHighestLimit();
 
-        if (highestAsymptote <= 0)
-            throw new System.Exception("Highest Asymptote is less or equal to 0");
+        if (highestLimit <= 0)
+            throw new System.Exception("Highest Limit is less or equal to 0");
 
-        normalizedValue = knowledge.Value / highestAsymptote;
+        normalizedValue = knowledge.Value / highestLimit;
 
         if (normalizedValue < 0.001)
             return color;
@@ -3727,18 +3760,59 @@ public class Manager
     {
         float greyscale = (color.r + color.g + color.b);
 
-        color.r = (greyscale + color.r) / 6f;
-        color.g = (greyscale + color.g) / 6f;
-        color.b = (greyscale + color.b) / 6f;
+        color.r = greyscale / 6f;
+        color.g = greyscale / 6f;
+        color.b = greyscale / 6f;
+        
+        color += GetOverlayColor(OverlayColorId.Arability) * cell.Arability;
 
-        float normalizedValue = cell.Arability;
+        return color;
+    }
 
-        if (normalizedValue >= 0.001f)
-        {
-            float value = 0.05f + 0.95f * normalizedValue;
+    private static Color SetHillinessOverlayColor(TerrainCell cell, Color color)
+    {
+        float greyscale = (color.r + color.g + color.b);
 
-            color = (color * (1 - value)) + (GetOverlayColor(OverlayColorId.Arability) * value);
-        }
+        color.r = greyscale / 6f;
+        color.g = greyscale / 6f;
+        color.b = greyscale / 6f;
+
+        color += (2 / 6f) * GetLowMedHighColor(1 - cell.Hilliness);
+
+        return color;
+    }
+
+    private static Color SetWoodCoverageOverlayColor(TerrainCell cell, Color color)
+    {
+        float greyscale = (color.r + color.g + color.b);
+
+        color.r = greyscale / 6f;
+        color.g = greyscale / 6f;
+        color.b = greyscale / 6f;
+
+        color += (2 / 6f) * GetLowMedHighColor(cell.WoodCoverage * (1 - cell.FarmlandPercentage));
+
+        return color;
+    }
+
+    private static Color SetAccessibilityOverlayColor(TerrainCell cell, Color color)
+    {
+        float greyscale = (color.r + color.g + color.b);
+
+        color.r = greyscale / 6f;
+        color.g = greyscale / 6f;
+        color.b = greyscale / 6f;
+        
+        color += (2 / 6f) * GetLowMedHighColor(cell.Accessibility);
+
+        return color;
+    }
+
+    private static Color GetLowMedHighColor(float value)
+    {
+        Color color = GetOverlayColor(OverlayColorId.LowValue) * Mathf.Max(0, 1 - (2 * value));
+        color += GetOverlayColor(OverlayColorId.MedValue) * Mathf.Max(0, 1 - 2 * Mathf.Abs(value - 0.5f));
+        color += GetOverlayColor(OverlayColorId.HighValue) * Mathf.Max(0, (2 * value) - 1);
 
         return color;
     }
@@ -3848,7 +3922,7 @@ public class Manager
 
                 if (cell.Group.Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.KnowledgeId, out knowledgeValue))
                 {
-                    float minValue = SocialOrganizationKnowledge.MinValueForHoldingTribalism;
+                    float minValue = SocialOrganizationKnowledge.MinValueForTribeFormation;
                     float startValue = SocialOrganizationKnowledge.InitialValue;
 
                     float knowledgeFactor = Mathf.Clamp01((knowledgeValue - startValue) / (minValue - startValue));
@@ -3917,45 +3991,6 @@ public class Manager
         }
 
         return color;
-    }
-
-    private static Color SetMiscellanousDataOverlayColor(TerrainCell cell, Color color)
-    {
-        switch (_planetOverlaySubtype)
-        {
-            case "Population":
-                return SetPopulationDensityOverlayColor(cell, color);
-
-            case "PopulationChange":
-                return SetPopulationChangeOverlayColor(cell, color);
-
-            case "Political":
-                return SetPolityTerritoryOverlayColor(cell, color);
-
-            case "PolityProminences":
-                return SetPolityProminenceOverlayColor(cell, color);
-
-            case "Rainfall":
-                return SetRainfallOverlayColor(cell, color);
-
-            case "Temperature":
-                return SetTemperatureOverlayColor(cell, color);
-
-            case "Arability":
-                return SetArabilityOverlayColor(cell, color);
-
-            case "Farmland":
-                return SetFarmlandOverlayColor(cell, color);
-
-            case "UpdateSpan":
-                return SetUpdateSpanOverlayColor(cell, color);
-
-            case "None":
-                return color;
-
-            default:
-                throw new System.Exception("Unhandled miscellaneous data overlay subtype: " + _planetOverlaySubtype);
-        }
     }
 
     private static Color SetTemperatureOverlayColor(TerrainCell cell, Color color)
@@ -4108,11 +4143,18 @@ public class Manager
         if (paths.Count == 0)
             throw new System.ArgumentException("Number of mods to load can't be zero");
 
+        World.ResetStaticModData();
+        CellGroup.ResetEventGenerators();
+
         Layer.ResetLayers();
         Biome.ResetBiomes();
+
         Adjective.ResetAdjectives();
         RegionAttribute.ResetAttributes();
         Element.ResetElements();
+
+        Discovery.ResetDiscoveries();
+        Knowledge.ResetKnowledges();
 
         float progressPerMod = 0.1f / paths.Count;
 
@@ -4129,6 +4171,9 @@ public class Manager
 
             LastStageProgress += progressPerMod;
         }
+
+        Knowledge.InitializeKnowledges();
+        Discovery.InitializeDiscoveries();
     }
 
     delegate void LoadModFileDelegate(string filename);
@@ -4161,12 +4206,13 @@ public class Manager
 
     private static void LoadMod(string path, float progressPerMod)
     {
-        float progressPerSegment = progressPerMod / 5f;
+        float progressPerSegment = progressPerMod / 6f;
 
         TryLoadModFiles(Layer.LoadLayersFile, path + @"Layers", progressPerSegment);
         TryLoadModFiles(Biome.LoadBiomesFile, path + @"Biomes", progressPerSegment);
         TryLoadModFiles(Adjective.LoadAdjectivesFile, path + @"Adjectives", progressPerSegment);
         TryLoadModFiles(RegionAttribute.LoadRegionAttributesFile, path + @"RegionAttributes", progressPerSegment);
         TryLoadModFiles(Element.LoadElementsFile, path + @"Elements", progressPerSegment);
+        TryLoadModFiles(Discovery.LoadDiscoveriesFile, path + @"Discoveries", progressPerSegment);
     }
 }

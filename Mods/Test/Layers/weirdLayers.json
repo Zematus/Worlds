@@ -1,0 +1,28 @@
+{
+  "layers": [
+    {
+      "id": "mycosystem",
+      "name": "mycosystem",
+      "color": "#F10082",
+      "noiseScale": 0.6,
+      "secondaryNoiseInfluence": 0.3,
+      "maxPossibleValue": 100,
+      "frequency": 0.7,
+      "minAltitude": 0,
+      "altitudeSaturationSlope": 1000,
+      "minRainfall": 1375,
+      "rainfallSaturationSlope": 2,
+      "minTemperature": -20,
+      "temperatureSaturationSlope": 2
+    },
+    {
+      "id": "necrosilica",
+      "name": "necrosilica",
+      "color": "#AE0022",
+      "noiseScale": 1,
+      "secondaryNoiseInfluence": 0.2,
+      "maxPossibleValue": 100,
+      "frequency": 0.45
+    }
+  ]
+}

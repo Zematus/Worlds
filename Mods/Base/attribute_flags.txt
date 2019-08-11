@@ -1,0 +1,6 @@
+---- Attribute Flags ----
+
+Here's an exhaustive list of all flags hardcoded within the simulation and their effects. NOTE: Flags are case sensitive.
+
+- CAN_FORM_POLITY<polity_type>: When gaining this attribute, the target group will try to form a new polity of the type specified in <polity_type> immediately if no other polity is present in the cell. If the group already had this flag but no polity is present (e.g. all polities where removed while having this flag), then a polity formation event will be scheduled to occur for that group at some point in the future.
+Valid Polity Types: tribe
