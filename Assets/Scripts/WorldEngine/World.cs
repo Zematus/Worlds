@@ -171,7 +171,10 @@ public class World : ISynchronizable
     public const float MaxPossibleRainfall = 13000;
 
     public const float RiverEvaporationFactor = 0.1f;
-    public const float MinRiverTransferBufferValue = 1f;
+    public const float RiverFlushFactor = 0.6f;
+    public const float HeightToRainfallConversionFactor = 1000f;
+    public const float RainfallToHeightConversionFactor = 1f / HeightToRainfallConversionFactor;
+    public const float MinRiverFlow = HeightToRainfallConversionFactor / 100f;
 
     public const float MinPossibleTemperature = -40 - AvgPossibleTemperature;
     public const float MaxPossibleTemperature = 50 - AvgPossibleTemperature;
@@ -433,7 +436,7 @@ public class World : ISynchronizable
     private static HashSet<TerrainCell> _cellsToRegen = new HashSet<TerrainCell>();
     private static HashSet<TerrainCell> _cellsToInit = new HashSet<TerrainCell>();
 
-    private OpenSimplexNoise _openSimplexNoise;
+    //private OpenSimplexNoise _openSimplexNoise;
 
     public World()
     {
@@ -2899,13 +2902,13 @@ public class World : ISynchronizable
         return PerlinNoise.GetValue(pos.x, pos.y, pos.z);
     }
 
-    // Returns a value between 0 and 1
-    private float GetRandomNoiseFromPolarCoordinates_OpenSimplex(float alpha, float beta, float radius, Vector3 offset)
-    {
-        Vector3 pos = MathUtility.GetCartesianCoordinates(alpha, beta, radius) + offset;
+    //// Returns a value between 0 and 1
+    //private float GetRandomNoiseFromPolarCoordinates_OpenSimplex(float alpha, float beta, float radius, Vector3 offset)
+    //{
+    //    Vector3 pos = MathUtility.GetCartesianCoordinates(alpha, beta, radius) + offset;
 
-        return (float)_openSimplexNoise.eval(pos.x, pos.y, pos.z);
-    }
+    //    return (float)_openSimplexNoise.eval(pos.x, pos.y, pos.z);
+    //}
 
     private float GetMountainRangeNoiseFromRandomNoise(float noise, float widthFactor)
     {
@@ -3286,10 +3289,13 @@ public class World : ISynchronizable
                 if (cell.Buffer <= 0)
                     continue;
 
+                float modAltitude = cell.Altitude - (cell.Rainfall * RainfallToHeightConversionFactor);
+
                 bool higherThanNeighbors = true;
                 foreach (TerrainCell nCell in cell.Neighbors.Values)
                 {
-                    if ((nCell.Altitude > cell.Altitude) && (nCell.Rainfall > 0))
+                    float nModAltitude = nCell.Altitude - (nCell.Rainfall * RainfallToHeightConversionFactor);
+                    if ((nModAltitude > modAltitude) && (nCell.Rainfall > MinRiverFlow))
                     {
                         higherThanNeighbors = false;
                         break;
@@ -3315,20 +3321,24 @@ public class World : ISynchronizable
 
             irrigatedCells++;
 
-            if ((irrigatedCells % 100) == 0)
+            if ((irrigatedCells % sizeY) == 0)
             {
                 float progressPercent = irrigatedCells / (float)(irrigatedCells + cellsToIrrigateFrom.Count);
 
                 ProgressCastMethod(_accumulatedProgress + _progressIncrement * secondPartLength * progressPercent);
             }
 
-            if (cell.Buffer < MinRiverTransferBufferValue)
+            float modAltitude = cell.Altitude - (cell.RainfallAccumulation * RainfallToHeightConversionFactor);
+
+            if (cell.Buffer < MinRiverFlow)
                 continue;
 
             float totalAltDifference = 0;
             foreach (TerrainCell nCell in cell.Neighbors.Values)
             {
-                float diff = Mathf.Max(0, cell.Altitude - nCell.Altitude);
+                float nModAltitude = nCell.Altitude - (nCell.RainfallAccumulation * RainfallToHeightConversionFactor);
+
+                float diff = Mathf.Max(0, modAltitude - nModAltitude);
                 totalAltDifference += diff;
             }
 
@@ -3338,8 +3348,9 @@ public class World : ISynchronizable
             foreach (TerrainCell nCell in cell.Neighbors.Values)
             {
                 float percent = 0;
+                float nModAltitude = nCell.Altitude - (nCell.RainfallAccumulation * RainfallToHeightConversionFactor);
 
-                float diff = Mathf.Max(0, cell.Altitude - nCell.Altitude);
+                float diff = Mathf.Max(0, modAltitude - nModAltitude);
                 percent = diff / totalAltDifference;
 
                 if ((percent == 0) || (nCell.Altitude <= 0))
@@ -3899,7 +3910,9 @@ public class World : ISynchronizable
     {
         float altitudeSpan = biome.MaxAltitude - biome.MinAltitude;
 
-        float altitudeDiff = cell.Altitude - biome.MinAltitude;
+        float modAltitude = cell.Altitude - (cell.RainfallAccumulation * RainfallToHeightConversionFactor);
+
+        float altitudeDiff = modAltitude - biome.MinAltitude;
 
         if (altitudeDiff < 0)
             return -1f;

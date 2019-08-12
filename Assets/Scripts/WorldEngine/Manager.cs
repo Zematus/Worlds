@@ -4050,9 +4050,11 @@ public class Manager
 
         Color addColor = Color.black;
 
+        float maxPossibleRainfall = Mathf.Max(World.MaxPossibleRainfall, CurrentWorld.MaxRainfall);
+
         if (cell.Rainfall > 0)
         {
-            float value = cell.Rainfall / (2 * World.MaxPossibleRainfall);
+            float value = 0.05f + (0.95f * cell.Rainfall / maxPossibleRainfall);
 
             addColor = Color.green;
 
