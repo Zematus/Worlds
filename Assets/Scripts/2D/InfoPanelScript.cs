@@ -1169,7 +1169,7 @@ public class InfoPanelScript : MonoBehaviour
 
         if ((Manager.PlanetOverlay == PlanetOverlay.None) ||
             (Manager.PlanetOverlay == PlanetOverlay.Rainfall) ||
-            (Manager.PlanetOverlay == PlanetOverlay.RiverBasins) ||
+            (Manager.PlanetOverlay == PlanetOverlay.DrainageBasins) ||
             (Manager.PlanetOverlay == PlanetOverlay.Arability) ||
             (Manager.PlanetOverlay == PlanetOverlay.Accessibility) ||
             (Manager.PlanetOverlay == PlanetOverlay.Hilliness) ||

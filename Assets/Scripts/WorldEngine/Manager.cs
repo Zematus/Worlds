@@ -53,7 +53,7 @@ public enum PlanetOverlay
     PolityCulturalDiscovery,
     Temperature,
     Rainfall,
-    RiverBasins,
+    DrainageBasins,
     Arability,
     Accessibility,
     Hilliness,
@@ -1478,7 +1478,7 @@ public class Manager
             (overlay == PlanetOverlay.WoodCoverage) ||
             (overlay == PlanetOverlay.Layer) ||
             (overlay == PlanetOverlay.Rainfall) ||
-            (overlay == PlanetOverlay.RiverBasins) ||
+            (overlay == PlanetOverlay.DrainageBasins) ||
             (overlay == PlanetOverlay.Temperature) ||
             (overlay == PlanetOverlay.FarmlandDistribution))
         {
@@ -1525,7 +1525,7 @@ public class Manager
             (overlay == PlanetOverlay.WoodCoverage) ||
             (overlay == PlanetOverlay.Layer) ||
             (overlay == PlanetOverlay.Rainfall) ||
-            (overlay == PlanetOverlay.RiverBasins) ||
+            (overlay == PlanetOverlay.DrainageBasins) ||
             (overlay == PlanetOverlay.Temperature) ||
             (overlay == PlanetOverlay.FarmlandDistribution))
         {
@@ -2629,8 +2629,8 @@ public class Manager
                 color = SetRainfallOverlayColor(cell, color);
                 break;
 
-            case PlanetOverlay.RiverBasins:
-                color = SetRiverBasinsOverlayColor(cell, color);
+            case PlanetOverlay.DrainageBasins:
+                color = SetDrainageBasinOverlayColor(cell, color);
                 break;
 
             case PlanetOverlay.Arability:
@@ -3764,7 +3764,7 @@ public class Manager
         return _overlayPalette[(int)id];
     }
 
-    private static Color SetRiverBasinsOverlayColor(TerrainCell cell, Color color)
+    private static Color SetDrainageBasinOverlayColor(TerrainCell cell, Color color)
     {
         float greyscale = (color.r + color.g + color.b);
 

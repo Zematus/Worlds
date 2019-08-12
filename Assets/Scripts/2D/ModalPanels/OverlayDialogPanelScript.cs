@@ -32,7 +32,7 @@ public class OverlayDialogPanelScript : MenuPanelScript
 
     public Toggle TemperatureToggle;
     public Toggle RainfallToggle;
-    public Toggle RiverBasinsToggle;
+    public Toggle DrainageBasinsToggle;
     public Toggle ArabilityToggle;
     public Toggle AccessibilityToggle;
     public Toggle HillinessToggle;
@@ -108,7 +108,7 @@ public class OverlayDialogPanelScript : MenuPanelScript
         {
             TemperatureToggle.isOn = false;
             RainfallToggle.isOn = false;
-            RiverBasinsToggle.isOn = false;
+            DrainageBasinsToggle.isOn = false;
             ArabilityToggle.isOn = false;
             AccessibilityToggle.isOn = false;
             HillinessToggle.isOn = false;
@@ -167,7 +167,7 @@ public class OverlayDialogPanelScript : MenuPanelScript
         MiscDataToggle.isOn = (
             (Manager.PlanetOverlay == PlanetOverlay.Temperature) ||
             (Manager.PlanetOverlay == PlanetOverlay.Rainfall) ||
-            (Manager.PlanetOverlay == PlanetOverlay.RiverBasins) ||
+            (Manager.PlanetOverlay == PlanetOverlay.DrainageBasins) ||
             (Manager.PlanetOverlay == PlanetOverlay.Arability) ||
             (Manager.PlanetOverlay == PlanetOverlay.Accessibility) ||
             (Manager.PlanetOverlay == PlanetOverlay.Hilliness) ||
@@ -202,7 +202,7 @@ public class OverlayDialogPanelScript : MenuPanelScript
 
         TemperatureToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.Temperature);
         RainfallToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.Rainfall);
-        RiverBasinsToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.RiverBasins);
+        DrainageBasinsToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.DrainageBasins);
         ArabilityToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.Arability);
         AccessibilityToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.Accessibility);
         HillinessToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.Hilliness);
