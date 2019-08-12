@@ -58,7 +58,7 @@ public abstract class Region : ISynchronizable
     [XmlIgnore]
     public float CoastPercentage;
     [XmlIgnore]
-    public float SeaPercentage;
+    public float WaterPercentage;
 
     [XmlIgnore]
     public long Id
@@ -154,7 +154,7 @@ public abstract class Region : ISynchronizable
 
     public static Region TryGenerateRegion(TerrainCell startCell, Language establishmentLanguage)
     {
-        if (startCell.SeaBiomePresence >= 1)
+        if (startCell.WaterBiomePresence >= 1)
             return null;
 
         if (startCell.Region != null)

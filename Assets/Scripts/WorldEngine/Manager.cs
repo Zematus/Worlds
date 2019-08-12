@@ -2866,7 +2866,7 @@ public class Manager
         color.g = (greyscale + color.g) / 9f;
         color.b = (greyscale + color.b) / 9f;
 
-        if (cell.SeaBiomePresence >= 1f)
+        if (cell.WaterBiomePresence >= 1f)
         {
             return color;
         }
@@ -2912,7 +2912,7 @@ public class Manager
         color.g = (greyscale + color.g) / 9f;
         color.b = (greyscale + color.b) / 9f;
 
-        if (cell.SeaBiomePresence >= 1f)
+        if (cell.WaterBiomePresence >= 1f)
         {
             return color;
         }
@@ -2965,7 +2965,7 @@ public class Manager
         color.g = (greyscale + color.g) / 9f;
         color.b = (greyscale + color.b) / 9f;
 
-        if (cell.SeaBiomePresence >= 1f)
+        if (cell.WaterBiomePresence >= 1f)
         {
             return color;
         }
@@ -3008,7 +3008,7 @@ public class Manager
         color.g = (greyscale + color.g) / 9f;
         color.b = (greyscale + color.b) / 9f;
 
-        if (cell.SeaBiomePresence >= 1f)
+        if (cell.WaterBiomePresence >= 1f)
         {
             return color;
         }
@@ -3049,7 +3049,7 @@ public class Manager
         color.g = (greyscale + color.g) / 9f;
         color.b = (greyscale + color.b) / 9f;
 
-        if (cell.SeaBiomePresence >= 1f)
+        if (cell.WaterBiomePresence >= 1f)
         {
             return color;
         }
@@ -3163,7 +3163,7 @@ public class Manager
         color.g = (greyscale + color.g) / 9f;
         color.b = (greyscale + color.b) / 9f;
 
-        if (cell.SeaBiomePresence >= 1f)
+        if (cell.WaterBiomePresence >= 1f)
             return color;
 
         if (cell.Group == null)
@@ -3365,7 +3365,7 @@ public class Manager
         color.g = (greyscale + color.g) / 9f;
         color.b = (greyscale + color.b) / 9f;
 
-        if (cell.SeaBiomePresence >= 1f)
+        if (cell.WaterBiomePresence >= 1f)
             return color;
 
         if (cell.Group == null)
@@ -3451,7 +3451,7 @@ public class Manager
         color.g = (greyscale + color.g) / 9f;
         color.b = (greyscale + color.b) / 9f;
 
-        if (cell.SeaBiomePresence >= 1f)
+        if (cell.WaterBiomePresence >= 1f)
             return color;
 
         if (cell.Group == null)
@@ -3628,7 +3628,7 @@ public class Manager
         color.g = (greyscale + color.g) / 9f;
         color.b = (greyscale + color.b) / 9f;
 
-        if (cell.SeaBiomePresence >= 1f)
+        if (cell.WaterBiomePresence >= 1f)
             return color;
 
         if (cell.Group == null)
@@ -3723,7 +3723,7 @@ public class Manager
         color.g = (greyscale + color.g) / 9f;
         color.b = (greyscale + color.b) / 9f;
 
-        if (cell.SeaBiomePresence >= 1f)
+        if (cell.WaterBiomePresence >= 1f)
             return color;
 
         if (cell.Group == null)

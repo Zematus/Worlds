@@ -58,11 +58,11 @@ public class SeafaringSkill : CellCulturalSkill
 
         TerrainCell groupCell = Group.Cell;
 
-        float totalPresence = groupCell.SeaBiomePresence * groupCellBonus;
+        float totalPresence = groupCell.WaterBiomePresence * groupCellBonus;
 
         foreach (TerrainCell c in groupCell.Neighbors.Values)
         {
-            totalPresence += c.SeaBiomePresence;
+            totalPresence += c.WaterBiomePresence;
             cellCount++;
         }
 

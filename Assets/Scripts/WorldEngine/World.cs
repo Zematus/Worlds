@@ -170,14 +170,14 @@ public class World : ISynchronizable
     public const float MinPossibleRainfall = -AvgPossibleRainfall;
     public const float MaxPossibleRainfall = 13000;
 
+    public const float MinPossibleTemperature = -50 - AvgPossibleTemperature;
+    public const float MaxPossibleTemperature = 30 + AvgPossibleTemperature;
+
     public const float RiverEvaporationFactor = 0.1f;
     public const float RiverFlushFactor = 0.6f;
     public const float HeightToRainfallConversionFactor = 1000f;
     public const float RainfallToHeightConversionFactor = 1f / HeightToRainfallConversionFactor;
     public const float MinRiverFlow = HeightToRainfallConversionFactor / 100f;
-
-    public const float MinPossibleTemperature = -40 - AvgPossibleTemperature;
-    public const float MaxPossibleTemperature = 50 - AvgPossibleTemperature;
 
     public const float StartPopulationDensity = 0.5f;
 

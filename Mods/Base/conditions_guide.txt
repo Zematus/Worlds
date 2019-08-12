@@ -60,7 +60,7 @@ Here's a list of the current types of conditions (more to be added in future ver
     Examples: 'cell_rainfall:100', 'cell_rainfall:5000'
 
 - 'cell_temperature'
-    Tests if a cell has a yearly average temperature (in centigrades) equal or greater than the specified value (value between -53.7 and 36.3). The format of the constraint is as follows: 'cell_temperature:<min_temperature>'
+    Tests if a cell has a yearly average temperature (in centigrades) equal or greater than the specified value (value between -63.7 and 43.7). The format of the constraint is as follows: 'cell_temperature:<min_temperature>'
 
     Examples: 'cell_temperature:-15', 'cell_temperature:10'
 

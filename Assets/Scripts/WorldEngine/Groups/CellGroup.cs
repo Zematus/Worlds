@@ -690,7 +690,7 @@ public class CellGroup : HumanGroup
 
         foreach (Biome biome in GetPresentBiomesInNeighborhood())
         {
-            if (biome.TerrainType == BiomeTerrainType.Sea)
+            if ((biome.TerrainType == BiomeTerrainType.Water) && biome.Traits.Contains(BiomeTrait.Sea))
             {
                 if (Culture.GetSkill(SeafaringSkill.SkillId) == null)
                 {

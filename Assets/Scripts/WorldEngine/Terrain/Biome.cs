@@ -7,12 +7,15 @@ using System.Xml.Serialization;
 public enum BiomeTerrainType
 {
     Land,
-    Sea
+    Water
 }
 
 public enum BiomeTrait
 {
-    Wood
+    Wood,
+    Sea,
+    Lake,
+    River
 }
 
 public class Biome

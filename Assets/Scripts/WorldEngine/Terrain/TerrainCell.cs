@@ -116,9 +116,9 @@ public class TerrainCell
     public float Alpha;
     public float Beta;
     
-    public List<string> PresentSeaBiomeIds = new List<string>();
+    public List<string> PresentWaterBiomeIds = new List<string>();
     
-    public float SeaBiomePresence = 0;
+    public float WaterBiomePresence = 0;
 
     private float? _neighborhoodSeaBiomePresence = null;
     
@@ -127,11 +127,11 @@ public class TerrainCell
         get {
             if (_neighborhoodSeaBiomePresence == null)
             {
-                _neighborhoodSeaBiomePresence = SeaBiomePresence;
+                _neighborhoodSeaBiomePresence = WaterBiomePresence;
 
                 foreach (TerrainCell nCell in Neighbors.Values)
                 {
-                    _neighborhoodSeaBiomePresence += nCell.SeaBiomePresence;
+                    _neighborhoodSeaBiomePresence += nCell.WaterBiomePresence;
                 }
             }
 
@@ -385,12 +385,12 @@ public class TerrainCell
     public void ResetBiomes()
     {
         PresentBiomeIds.Clear();
-        PresentSeaBiomeIds.Clear();
+        PresentWaterBiomeIds.Clear();
         BiomePresences.Clear();
 
         _biomePresences.Clear();
 
-        SeaBiomePresence = 0;
+        WaterBiomePresence = 0;
         MostBiomePresence = 0;
         BiomeWithMostPresence = null;
     }
@@ -405,10 +405,10 @@ public class TerrainCell
         PresentBiomeIds.Add(biome.Id);
         BiomePresences.Add(presence);
 
-        if (biome.TerrainType == BiomeTerrainType.Sea)
+        if (biome.TerrainType == BiomeTerrainType.Water)
         {
-            PresentSeaBiomeIds.Add(biome.Id);
-            SeaBiomePresence += presence;
+            PresentWaterBiomeIds.Add(biome.Id);
+            WaterBiomePresence += presence;
         }
 
         _biomePresences[biome.Id] = presence;

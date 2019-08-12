@@ -55,7 +55,7 @@ public class CellRegion : Region
     {
         Dictionary<string, float> biomePresences = new Dictionary<string, float>();
 
-        float seaArea = 0;
+        float waterArea = 0;
         float coastalOuterBorderArea = 0;
         float outerBorderArea = 0;
 
@@ -88,7 +88,7 @@ public class CellRegion : Region
 
             bool isInnerBorder = false;
 
-            bool isNotFullySea = (cell.SeaBiomePresence < 1);
+            bool isNotFullyWater = (cell.WaterBiomePresence < 1);
 
             foreach (TerrainCell nCell in cell.Neighbors.Values)
             {
@@ -103,7 +103,7 @@ public class CellRegion : Region
                         outerBorderArea += nCellArea;
                         AverageOuterBorderAltitude += cell.Altitude * nCellArea;
 
-                        if (isNotFullySea && (nCell.SeaBiomePresence >= 1))
+                        if (isNotFullyWater && (nCell.WaterBiomePresence >= 1))
                         {
                             coastalOuterBorderArea += nCellArea;
                         }
@@ -152,9 +152,9 @@ public class CellRegion : Region
             }
 
 
-            foreach (string biomeId in cell.PresentSeaBiomeIds)
+            foreach (string biomeId in cell.PresentWaterBiomeIds)
             {
-                seaArea += cell.GetBiomePresence(biomeId) * cellArea;
+                waterArea += cell.GetBiomePresence(biomeId) * cellArea;
             }
 
             TotalArea += cellArea;
@@ -171,7 +171,7 @@ public class CellRegion : Region
 
         AverageFarmlandPercentage /= TotalArea;
 
-        SeaPercentage = seaArea / TotalArea;
+        WaterPercentage = waterArea / TotalArea;
 
         AverageOuterBorderAltitude /= outerBorderArea;
 

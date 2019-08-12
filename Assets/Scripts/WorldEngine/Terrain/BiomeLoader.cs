@@ -112,8 +112,8 @@ public class BiomeLoader
             case "land":
                 biome.TerrainType = BiomeTerrainType.Land;
                 break;
-            case "sea":
-                biome.TerrainType = BiomeTerrainType.Sea;
+            case "water":
+                biome.TerrainType = BiomeTerrainType.Water;
                 break;
             default:
                 throw new ArgumentException("Unknown biome terrain type: " + b.type);
@@ -127,6 +127,15 @@ public class BiomeLoader
                 {
                     case "wood":
                         biome.Traits.Add(BiomeTrait.Wood);
+                        break;
+                    case "sea":
+                        biome.Traits.Add(BiomeTrait.Sea);
+                        break;
+                    case "lake":
+                        biome.Traits.Add(BiomeTrait.Lake);
+                        break;
+                    case "river":
+                        biome.Traits.Add(BiomeTrait.River);
                         break;
                     default:
                         throw new ArgumentException("Unknown biome trait: " + trait);

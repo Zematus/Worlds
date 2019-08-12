@@ -172,7 +172,7 @@ public class Route : ISynchronizable
 
             AddCell(nextCell);
 
-            if (nextCell.SeaBiomePresence <= 0)
+            if (nextCell.WaterBiomePresence <= 0)
                 break;
 
             LastCell = nextCell;
@@ -340,7 +340,7 @@ public class Route : ISynchronizable
             if (Cells.Contains(nCell))
                 continue;
 
-            float seaPresence = nCell.SeaBiomePresence;
+            float seaPresence = nCell.WaterBiomePresence;
 
             float weight = seaPresence;
 

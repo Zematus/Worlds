@@ -198,7 +198,7 @@ public class InfoPanelScript : MonoBehaviour
 
         InfoText.text += "\n";
         InfoText.text += "\nCoast Percentage: " + region.CoastPercentage.ToString("P");
-        InfoText.text += "\nSea Percentage: " + region.SeaPercentage.ToString("P");
+        InfoText.text += "\nWater Percentage: " + region.WaterPercentage.ToString("P");
 
         InfoText.text += "\n";
         InfoText.text += "\nAverage Altitude: " + region.AverageAltitude + " meters";
