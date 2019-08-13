@@ -51,10 +51,10 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge
 
     public void CalculateNeighborhoodSeaPresence()
     {
-        _neighborhoodSeaPresence = CalculateNeighborhoodSeaPresenceIn(Group);
+        _neighborhoodSeaPresence = CalculateNeighborhoodWaterPresenceIn(Group);
     }
 
-    public static float CalculateNeighborhoodSeaPresenceIn(CellGroup group)
+    public static float CalculateNeighborhoodWaterPresenceIn(CellGroup group)
     {
         float neighborhoodPresence;
 

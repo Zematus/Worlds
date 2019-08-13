@@ -34,6 +34,9 @@ public class Biome
     public static float MinBiomeRainfall = World.MinPossibleRainfall * 3 - 1;
     public static float MaxBiomeRainfall = World.MaxPossibleRainfall * 3 + 1;
 
+    public static float MinBiomeMoisture = World.MinPossibleRainfall * 3 - 1;
+    public static float MaxBiomeMoisture = World.MaxPossibleRainfall * 10000 + 1;
+
     public static float MinBiomeAltitude = World.MinPossibleAltitude * 3 - 1;
     public static float MaxBiomeAltitude = World.MaxPossibleAltitude * 3 + 1;
 
@@ -53,7 +56,9 @@ public class Biome
 
     public float MinRainfall;
     public float MaxRainfall;
-    public float RainSaturationSlope;
+    public float MinMoisture;
+    public float MaxMoisture;
+    public float WaterSaturationSlope;
 
     public float MinTemperature;
     public float MaxTemperature;

@@ -120,25 +120,33 @@ public class TerrainCell
     
     public float WaterBiomePresence = 0;
 
-    private float? _neighborhoodSeaBiomePresence = null;
+    private float? _neighborhoodWaterBiomePresence = null;
     
-    public float NeighborhoodSeaBiomePresence
+    public float NeighborhoodWaterBiomePresence
     {
         get {
-            if (_neighborhoodSeaBiomePresence == null)
+            if (_neighborhoodWaterBiomePresence == null)
             {
-                _neighborhoodSeaBiomePresence = WaterBiomePresence;
+                _neighborhoodWaterBiomePresence = WaterBiomePresence;
 
                 foreach (TerrainCell nCell in Neighbors.Values)
                 {
-                    _neighborhoodSeaBiomePresence += nCell.WaterBiomePresence;
+                    _neighborhoodWaterBiomePresence += nCell.WaterBiomePresence;
                 }
             }
 
-            return _neighborhoodSeaBiomePresence.Value;
+            return _neighborhoodWaterBiomePresence.Value;
         }
     }
-    
+
+    public float WaterErosionAdjustedAltitude
+    {
+        get
+        {
+            return Altitude * RainfallAccumulation * World.RainfallToHeightConversionFactor;
+        }
+    }
+
     public WorldPosition Position;
     
     public Region Region = null;

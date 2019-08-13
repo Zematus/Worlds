@@ -129,7 +129,7 @@ public class CellCulturalActivity : CulturalActivity
     {
         if (Id == FishingActivityId)
         {
-            return group.Cell.NeighborhoodSeaBiomePresence > 0;
+            return group.Cell.NeighborhoodWaterBiomePresence > 0;
         }
 
         return true;

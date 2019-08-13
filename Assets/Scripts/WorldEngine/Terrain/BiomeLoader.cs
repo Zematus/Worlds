@@ -35,7 +35,9 @@ public class BiomeLoader
         public string altitudeSaturationSlope;
         public string minRainfall;
         public string maxRainfall;
-        public string rainfallSaturationSlope;
+        public string minMoisture;
+        public string maxMoisture;
+        public string waterSaturationSlope;
         public string minTemperature;
         public string maxTemperature;
         public string temperatureSaturationSlope;
@@ -234,21 +236,55 @@ public class BiomeLoader
             biome.MinRainfall = Biome.MinBiomeRainfall;
         }
 
-        if (b.rainfallSaturationSlope != null)
+        if (b.maxMoisture != null)
         {
-            if (!float.TryParse(b.rainfallSaturationSlope, out biome.RainSaturationSlope))
+            if (!float.TryParse(b.maxMoisture, out biome.MaxMoisture))
             {
-                throw new ArgumentException("Invalid rainfallSaturationSlope value: " + b.rainfallSaturationSlope);
+                throw new ArgumentException("Invalid maxMoisture value: " + b.maxMoisture);
             }
 
-            if (!biome.RainSaturationSlope.IsInsideRange(0.001f, 1000))
+            if (!biome.MaxRainfall.IsInsideRange(Biome.MinBiomeMoisture, Biome.MaxBiomeMoisture))
+            {
+                throw new ArgumentException("maxMoisture must be a value between " + Biome.MinBiomeMoisture + " and " + Biome.MaxBiomeMoisture);
+            }
+        }
+        else
+        {
+            biome.MaxMoisture = Biome.MaxBiomeMoisture;
+        }
+
+        if (b.minMoisture != null)
+        {
+            if (!float.TryParse(b.minMoisture, out biome.MinMoisture))
+            {
+                throw new ArgumentException("Invalid minMoisture value: " + b.minMoisture);
+            }
+
+            if (!biome.MinRainfall.IsInsideRange(Biome.MinBiomeMoisture, Biome.MaxBiomeMoisture))
+            {
+                throw new ArgumentException("minMoisture must be a value between " + Biome.MinBiomeMoisture + " and " + Biome.MaxBiomeMoisture);
+            }
+        }
+        else
+        {
+            biome.MinMoisture = Biome.MinBiomeMoisture;
+        }
+
+        if (b.waterSaturationSlope != null)
+        {
+            if (!float.TryParse(b.waterSaturationSlope, out biome.WaterSaturationSlope))
+            {
+                throw new ArgumentException("Invalid rainfallSaturationSlope value: " + b.waterSaturationSlope);
+            }
+
+            if (!biome.WaterSaturationSlope.IsInsideRange(0.001f, 1000))
             {
                 throw new ArgumentException("rainfallSaturationSlope must be a value between 0.001 and 1000");
             }
         }
         else
         {
-            biome.RainSaturationSlope = 1;
+            biome.WaterSaturationSlope = 1;
         }
 
         if (b.maxTemperature != null)

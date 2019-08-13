@@ -85,14 +85,12 @@ public class InfoPanelScript : MonoBehaviour
         InfoText.text += "\n";
         InfoText.text += "\n -- Cell Terrain Data -- ";
         InfoText.text += "\n";
-
-        float modAltitude = cell.Altitude - (cell.RainfallAccumulation * World.RainfallToHeightConversionFactor);
-
+        
         InfoText.text += "\nArea: " + cellArea + " Km^2";
         InfoText.text += "\nAltitude: " + cell.Altitude + " meters";
-        InfoText.text += "\nModified Altitude: " + modAltitude + " meters";
+        InfoText.text += "\nAltitude after erosion: " + cell.WaterErosionAdjustedAltitude + " meters";
         InfoText.text += "\nRainfall: " + cell.Rainfall + " mm / year";
-        InfoText.text += "\nRainfall Accumulation: " + cell.RainfallAccumulation + " mm / year";
+        InfoText.text += "\nRainfall accumulation: " + cell.RainfallAccumulation + " mm / year";
         InfoText.text += "\nTemperature: " + cell.Temperature + " C";
         InfoText.text += "\n";
 

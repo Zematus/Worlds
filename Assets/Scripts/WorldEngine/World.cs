@@ -3289,12 +3289,12 @@ public class World : ISynchronizable
                 if (cell.Buffer <= 0)
                     continue;
 
-                float modAltitude = cell.Altitude - (cell.Rainfall * RainfallToHeightConversionFactor);
+                float modAltitude = cell.WaterErosionAdjustedAltitude;
 
                 bool higherThanNeighbors = true;
                 foreach (TerrainCell nCell in cell.Neighbors.Values)
                 {
-                    float nModAltitude = nCell.Altitude - (nCell.Rainfall * RainfallToHeightConversionFactor);
+                    float nModAltitude = nCell.WaterErosionAdjustedAltitude;
                     if ((nModAltitude > modAltitude) && (nCell.Rainfall > MinRiverFlow))
                     {
                         higherThanNeighbors = false;
@@ -3328,7 +3328,7 @@ public class World : ISynchronizable
                 ProgressCastMethod(_accumulatedProgress + _progressIncrement * secondPartLength * progressPercent);
             }
 
-            float modAltitude = cell.Altitude - (cell.RainfallAccumulation * RainfallToHeightConversionFactor);
+            float modAltitude = cell.WaterErosionAdjustedAltitude;
 
             if (cell.Buffer < MinRiverFlow)
                 continue;
@@ -3336,7 +3336,7 @@ public class World : ISynchronizable
             float totalAltDifference = 0;
             foreach (TerrainCell nCell in cell.Neighbors.Values)
             {
-                float nModAltitude = nCell.Altitude - (nCell.RainfallAccumulation * RainfallToHeightConversionFactor);
+                float nModAltitude = nCell.WaterErosionAdjustedAltitude;
 
                 float diff = Mathf.Max(0, modAltitude - nModAltitude);
                 totalAltDifference += diff;
@@ -3348,7 +3348,7 @@ public class World : ISynchronizable
             foreach (TerrainCell nCell in cell.Neighbors.Values)
             {
                 float percent = 0;
-                float nModAltitude = nCell.Altitude - (nCell.RainfallAccumulation * RainfallToHeightConversionFactor);
+                float nModAltitude = nCell.WaterErosionAdjustedAltitude;
 
                 float diff = Mathf.Max(0, modAltitude - nModAltitude);
                 percent = diff / totalAltDifference;
@@ -3910,9 +3910,7 @@ public class World : ISynchronizable
     {
         float altitudeSpan = biome.MaxAltitude - biome.MinAltitude;
 
-        float modAltitude = cell.Altitude - (cell.RainfallAccumulation * RainfallToHeightConversionFactor);
-
-        float altitudeDiff = modAltitude - biome.MinAltitude;
+        float altitudeDiff = cell.WaterErosionAdjustedAltitude - biome.MinAltitude;
 
         if (altitudeDiff < 0)
             return -1f;
@@ -3939,7 +3937,7 @@ public class World : ISynchronizable
     {
         float rainfallSpan = biome.MaxRainfall - biome.MinRainfall;
 
-        float rainfallDiff = cell.RainfallAccumulation - biome.MinRainfall;
+        float rainfallDiff = cell.Rainfall - biome.MinRainfall;
 
         if (rainfallDiff < 0)
             return -1f;
@@ -3957,7 +3955,7 @@ public class World : ISynchronizable
         if (rainfallFactor > 0.5f)
             rainfallFactor = 1f - rainfallFactor;
 
-        rainfallFactor *= biome.RainSaturationSlope;
+        rainfallFactor *= biome.WaterSaturationSlope;
 
         return rainfallFactor * 2;
     }

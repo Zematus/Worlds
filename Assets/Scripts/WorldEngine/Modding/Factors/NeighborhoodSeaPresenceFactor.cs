@@ -18,7 +18,7 @@ public class NeighborhoodSeaPresenceFactor : Factor
 
     public override float Calculate(TerrainCell cell)
     {
-        return cell.NeighborhoodSeaBiomePresence / TerrainCell.MaxNeighborhoodSeaPresence;
+        return cell.NeighborhoodWaterBiomePresence / TerrainCell.MaxNeighborhoodSeaPresence;
     }
 
     public override string ToString()

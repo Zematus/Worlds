@@ -611,7 +611,7 @@ public class CellGroup : HumanGroup
                 CellCulturalActivity.CreateActivity(CellCulturalActivity.ForagingActivityId, this, 1f, 1f));
         }
 
-        if (Cell.NeighborhoodSeaBiomePresence > 0)
+        if (Cell.NeighborhoodWaterBiomePresence > 0)
         {
             Culture.AddActivityToPerform(
                 CellCulturalActivity.CreateActivity(CellCulturalActivity.FishingActivityId, this));
@@ -2517,7 +2517,7 @@ public class CellGroup : HumanGroup
         
         float techFactor = value + noTechBaseValue;
 
-        float capacityFactor = techFactor * cell.NeighborhoodSeaBiomePresence;
+        float capacityFactor = techFactor * cell.NeighborhoodWaterBiomePresence;
 
         return capacityFactor;
     }
