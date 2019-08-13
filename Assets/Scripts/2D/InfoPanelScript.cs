@@ -90,7 +90,7 @@ public class InfoPanelScript : MonoBehaviour
         InfoText.text += "\nAltitude: " + cell.Altitude + " meters";
         InfoText.text += "\nAltitude after erosion: " + cell.WaterErosionAdjustedAltitude + " meters";
         InfoText.text += "\nRainfall: " + cell.Rainfall + " mm / year";
-        InfoText.text += "\nRainfall accumulation: " + cell.RainfallAccumulation + " mm / year";
+        InfoText.text += "\nMoisture: " + cell.Moisture + " mm";
         InfoText.text += "\nTemperature: " + cell.Temperature + " C";
         InfoText.text += "\n";
 

@@ -3772,9 +3772,9 @@ public class Manager
         color.g = greyscale / 6f;
         color.b = greyscale / 6f;
 
-        if (cell.RainfallAccumulation > 0)
+        if (cell.Moisture > 0)
         {
-            float value = 0.1f + (0.90f * cell.RainfallAccumulation / CurrentWorld.MaxRainfallAccumulation);
+            float value = 0.1f + (0.90f * cell.Moisture / CurrentWorld.MaxMoisture);
 
             color += GetOverlayColor(OverlayColorId.RiverBasins) * value;
         }

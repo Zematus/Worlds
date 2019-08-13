@@ -83,7 +83,7 @@ public class TerrainCell
     public float Rainfall;
     public float Temperature;
 
-    public float RainfallAccumulation = 0;
+    public float Moisture = 0;
     public float Buffer = 0;
 
     public float Survivability;
@@ -143,7 +143,7 @@ public class TerrainCell
     {
         get
         {
-            return Altitude * RainfallAccumulation * World.RainfallToHeightConversionFactor;
+            return Altitude - Moisture * World.RainfallToHeightConversionFactor;
         }
     }
 

@@ -333,7 +333,7 @@ public class World : ISynchronizable
     public float MinTemperature = MinPossibleTemperature;
 
     [XmlIgnore]
-    public float MaxRainfallAccumulation = 0;
+    public float MaxMoisture = 0;
 
     [XmlIgnore]
     public TerrainCell[][] TerrainCells;
@@ -3263,7 +3263,7 @@ public class World : ISynchronizable
         int sizeX = Width;
         int sizeY = Height;
 
-        MaxRainfallAccumulation = 0;
+        MaxMoisture = 0;
 
         float firstPartLength = 0.1f;
         float secondPartLength = 1 - firstPartLength;
@@ -3282,9 +3282,9 @@ public class World : ISynchronizable
                     continue;
 
                 cell.Buffer = cell.Rainfall;
-                cell.RainfallAccumulation = cell.Buffer;
+                cell.Moisture = cell.Buffer;
 
-                MaxRainfallAccumulation = Mathf.Max(MaxRainfallAccumulation, cell.RainfallAccumulation);
+                MaxMoisture = Mathf.Max(MaxMoisture, cell.Moisture);
 
                 if (cell.Buffer <= 0)
                     continue;
@@ -3364,9 +3364,9 @@ public class World : ISynchronizable
                     continue;
 
                 nCell.Buffer += rainfallTransfer;
-                nCell.RainfallAccumulation += rainfallTransfer;
+                nCell.Moisture += rainfallTransfer;
 
-                MaxRainfallAccumulation = Mathf.Max(MaxRainfallAccumulation, nCell.RainfallAccumulation);
+                MaxMoisture = Mathf.Max(MaxMoisture, nCell.Moisture);
 
                 if (queuedCells.Contains(nCell))
                     continue;
@@ -3933,31 +3933,68 @@ public class World : ISynchronizable
         return altitudeFactor * 2;
     }
 
-    private float CalculateBiomeRainfallFactor(TerrainCell cell, Biome biome)
+    private float CalculateRiverBiomeWaterFactor(TerrainCell cell, Biome biome)
     {
-        float rainfallSpan = biome.MaxRainfall - biome.MinRainfall;
+        float moistureSpan = biome.MaxMoisture - biome.MinMoisture;
+        float moistureDiff = cell.Moisture - biome.MinMoisture;
 
-        float rainfallDiff = cell.Rainfall - biome.MinRainfall;
-
-        if (rainfallDiff < 0)
+        if (moistureDiff < 0)
             return -1f;
 
-        float rainfallFactor = rainfallDiff / rainfallSpan;
+        float waterFactor = moistureDiff / moistureSpan;
 
-        if (float.IsInfinity(rainfallSpan))
+        if (float.IsInfinity(moistureSpan))
         {
-            rainfallFactor = 0.5f;
+            waterFactor = 0.5f;
         }
 
-        if (rainfallFactor > 1)
+        if (waterFactor > 1)
             return -1f;
 
-        if (rainfallFactor > 0.5f)
-            rainfallFactor = 1f - rainfallFactor;
+        if (waterFactor > 0.5f)
+            waterFactor = 1f - waterFactor;
 
-        rainfallFactor *= biome.WaterSaturationSlope;
+        waterFactor *= biome.WaterSaturationSlope;
 
-        return rainfallFactor * 2;
+        return waterFactor * 2;
+    }
+
+    private float CalculateBiomeWaterFactor(TerrainCell cell, Biome biome)
+    {
+        float moistureSpan = biome.MaxMoisture - biome.MinMoisture;
+        float rainfallSpan = biome.MaxRainfall - biome.MinRainfall;
+
+        float moistureDiff = cell.Moisture - biome.MinMoisture;
+        float rainfallDiff = cell.Rainfall - biome.MinRainfall;
+
+        float waterDiff = rainfallDiff;
+        float waterSpan = rainfallSpan;
+
+        if (moistureDiff > rainfallDiff)
+        {
+            waterDiff = moistureDiff;
+            waterSpan = moistureSpan;
+        }
+
+        if (waterDiff < 0)
+            return -1f;
+
+        float waterFactor = waterDiff / waterSpan;
+
+        if (float.IsInfinity(waterSpan))
+        {
+            waterFactor = 0.5f;
+        }
+
+        if (waterFactor > 1)
+            return -1f;
+
+        if (waterFactor > 0.5f)
+            waterFactor = 1f - waterFactor;
+
+        waterFactor *= biome.WaterSaturationSlope;
+
+        return waterFactor * 2;
     }
 
     private float CalculateBiomeTemperatureFactor(TerrainCell cell, Biome biome)
@@ -4037,13 +4074,20 @@ public class World : ISynchronizable
     private float CalculateBiomePresence(TerrainCell cell, Biome biome)
     {
         float presence = 1f;
+
+        if (biome.Traits.Contains(BiomeTrait.River))
+        {
+            presence *= CalculateRiverBiomeWaterFactor(cell, biome);
+
+            return presence;
+        }
         
         presence *= CalculateBiomeAltitudeFactor(cell, biome);
 
         if (presence < 0)
             return presence;
 
-        presence *= CalculateBiomeRainfallFactor(cell, biome);
+        presence *= CalculateBiomeWaterFactor(cell, biome);
 
         if (presence < 0)
             return presence;
