@@ -3659,7 +3659,7 @@ public class World : ISynchronizable
 
     private void GenerateTerrainBiomes(TerrainCell cell)
     {
-        float totalPresence = 0;
+        float totalBiomePresence = 0;
 
         Dictionary<string, float> biomePresences = new Dictionary<string, float>();
 
@@ -3671,7 +3671,7 @@ public class World : ISynchronizable
 
             biomePresences.Add(biome.Id, presence);
 
-            totalPresence += presence;
+            totalBiomePresence += presence;
         }
 
         cell.ResetBiomes();
@@ -3686,7 +3686,7 @@ public class World : ISynchronizable
 
             if (biomePresences.TryGetValue(biome.Id, out presence))
             {
-                presence = presence / totalPresence;
+                presence = presence / totalBiomePresence;
 
                 cell.AddBiomePresence(biome, presence);
 
@@ -3943,11 +3943,6 @@ public class World : ISynchronizable
 
         float waterFactor = moistureDiff / moistureSpan;
 
-        if (float.IsInfinity(moistureSpan))
-        {
-            waterFactor = 0.5f;
-        }
-
         if (waterFactor > 1)
             return -1f;
 
@@ -3961,30 +3956,24 @@ public class World : ISynchronizable
 
     private float CalculateBiomeWaterFactor(TerrainCell cell, Biome biome)
     {
+        if (biome.Traits.Contains(BiomeTrait.River))
+        {
+            return CalculateRiverBiomeWaterFactor(cell, biome);
+        }
+
         float moistureSpan = biome.MaxMoisture - biome.MinMoisture;
         float rainfallSpan = biome.MaxRainfall - biome.MinRainfall;
 
         float moistureDiff = cell.Moisture - biome.MinMoisture;
         float rainfallDiff = cell.Rainfall - biome.MinRainfall;
 
-        float waterDiff = rainfallDiff;
-        float waterSpan = rainfallSpan;
-
-        if (moistureDiff > rainfallDiff)
-        {
-            waterDiff = moistureDiff;
-            waterSpan = moistureSpan;
-        }
-
-        if (waterDiff < 0)
+        if ((moistureDiff < 0) && (rainfallDiff < 0))
             return -1f;
 
-        float waterFactor = waterDiff / waterSpan;
+        float moistureFactor = moistureDiff / moistureSpan;
+        float rainfallFactor = rainfallDiff / rainfallSpan;
 
-        if (float.IsInfinity(waterSpan))
-        {
-            waterFactor = 0.5f;
-        }
+        float waterFactor = Mathf.Max(moistureFactor, rainfallFactor);
 
         if (waterFactor > 1)
             return -1f;
@@ -4074,13 +4063,6 @@ public class World : ISynchronizable
     private float CalculateBiomePresence(TerrainCell cell, Biome biome)
     {
         float presence = 1f;
-
-        if (biome.Traits.Contains(BiomeTrait.River))
-        {
-            presence *= CalculateRiverBiomeWaterFactor(cell, biome);
-
-            return presence;
-        }
         
         presence *= CalculateBiomeAltitudeFactor(cell, biome);
 
