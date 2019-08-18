@@ -35,8 +35,8 @@ public class BiomeLoader
         public string altitudeSaturationSlope;
         public string minRainfall;
         public string maxRainfall;
-        public string minMoisture;
-        public string maxMoisture;
+        public string minWaterAccumulation;
+        public string maxWaterAccumulation;
         public string waterSaturationSlope;
         public string minTemperature;
         public string maxTemperature;
@@ -71,6 +71,11 @@ public class BiomeLoader
         if (string.IsNullOrEmpty(b.name))
         {
             throw new ArgumentException("biome name can't be null or empty");
+        }
+
+        if (string.IsNullOrEmpty(b.color))
+        {
+            throw new ArgumentException("biome color can't be null or empty");
         }
 
         if (string.IsNullOrEmpty(b.type))
@@ -132,12 +137,6 @@ public class BiomeLoader
                         break;
                     case "sea":
                         biome.Traits.Add(BiomeTrait.Sea);
-                        break;
-                    case "lake":
-                        biome.Traits.Add(BiomeTrait.Lake);
-                        break;
-                    case "river":
-                        biome.Traits.Add(BiomeTrait.River);
                         break;
                     default:
                         throw new ArgumentException("Unknown biome trait: " + trait);
@@ -236,38 +235,38 @@ public class BiomeLoader
             biome.MinRainfall = Biome.MinBiomeRainfall;
         }
 
-        if (b.maxMoisture != null)
+        if (b.maxWaterAccumulation != null)
         {
-            if (!float.TryParse(b.maxMoisture, out biome.MaxMoisture))
+            if (!float.TryParse(b.maxWaterAccumulation, out biome.MaxWaterAcc))
             {
-                throw new ArgumentException("Invalid maxMoisture value: " + b.maxMoisture);
+                throw new ArgumentException("Invalid maxWaterAccumulation value: " + b.maxWaterAccumulation);
             }
 
-            if (!biome.MaxRainfall.IsInsideRange(Biome.MinBiomeMoisture, Biome.MaxBiomeMoisture))
+            if (!biome.MaxRainfall.IsInsideRange(Biome.MinBiomeWaterAccumulation, Biome.MaxBiomeWaterAcc))
             {
-                throw new ArgumentException("maxMoisture must be a value between " + Biome.MinBiomeMoisture + " and " + Biome.MaxBiomeMoisture);
+                throw new ArgumentException("maxWaterAccumulation must be a value between " + Biome.MinBiomeWaterAccumulation + " and " + Biome.MaxBiomeWaterAcc);
             }
         }
         else
         {
-            biome.MaxMoisture = Biome.MaxBiomeMoisture;
+            biome.MaxWaterAcc = Biome.MaxBiomeWaterAcc;
         }
 
-        if (b.minMoisture != null)
+        if (b.minWaterAccumulation != null)
         {
-            if (!float.TryParse(b.minMoisture, out biome.MinMoisture))
+            if (!float.TryParse(b.minWaterAccumulation, out biome.MinWaterAcc))
             {
-                throw new ArgumentException("Invalid minMoisture value: " + b.minMoisture);
+                throw new ArgumentException("Invalid minWaterAccumulation value: " + b.minWaterAccumulation);
             }
 
-            if (!biome.MinRainfall.IsInsideRange(Biome.MinBiomeMoisture, Biome.MaxBiomeMoisture))
+            if (!biome.MinRainfall.IsInsideRange(Biome.MinBiomeWaterAccumulation, Biome.MaxBiomeWaterAcc))
             {
-                throw new ArgumentException("minMoisture must be a value between " + Biome.MinBiomeMoisture + " and " + Biome.MaxBiomeMoisture);
+                throw new ArgumentException("minWaterAccumulation must be a value between " + Biome.MinBiomeWaterAccumulation + " and " + Biome.MaxBiomeWaterAcc);
             }
         }
         else
         {
-            biome.MinMoisture = Biome.MinBiomeMoisture;
+            biome.MinWaterAcc = Biome.MinBiomeWaterAccumulation;
         }
 
         if (b.waterSaturationSlope != null)

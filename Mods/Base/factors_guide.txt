@@ -41,10 +41,10 @@ Here's a list of the current types of factors (more to be added in future versio
 
     Examples: 'cell_survivability', '[INV]cell_survivability'
 
-- 'cell_biome_presence'
+- 'cell_biome_relative_presence'
     Returns the presence of a particular biome (i.e. percentage of area in cell covered by such biome) of the terrain cell as a value between 0 and 1
 
-    Examples: 'cell_biome_presence:forest', '[INV]cell_biome_presence:desert'
+    Examples: 'cell_biome_relative_presence:forest', '[INV]cell_biome_relative_presence:desert'
 
 - 'cell_hilliness'
     Returns the hilliness (i.e. how hilly the terrain is) of the terrain cell as a value between 0 and 1

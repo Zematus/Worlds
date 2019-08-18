@@ -36,7 +36,7 @@ public class CellHasSeaCondition : CellCondition
 
     public override bool Evaluate(TerrainCell cell)
     {
-        return cell.WaterBiomePresence >= MinValue;
+        return cell.WaterBiomeRelPresence >= MinValue;
     }
 
     public override string ToString()

@@ -3,11 +3,11 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class CellBiomePresenceCondition : CellCondition
+public class CellBiomeRelPresenceCondition : CellCondition
 {
     public const float DefaultMinValue = 0.01f;
     
-    public const string Regex = @"^\s*cell_biome_presence\s*" +
+    public const string Regex = @"^\s*cell_biome_relative_presence\s*" +
         @":\s*(?<id>" + ModUtility.IdentifierRegexPart + @")\s*" +
         @"(?:,\s*(?<value>" + ModUtility.NumberRegexPart + @")\s*)?$";
 
@@ -15,7 +15,7 @@ public class CellBiomePresenceCondition : CellCondition
 
     public float MinValue;
 
-    public CellBiomePresenceCondition(Match match)
+    public CellBiomeRelPresenceCondition(Match match)
     {
         _biomeId = match.Groups["id"].Value;
 
@@ -46,7 +46,7 @@ public class CellBiomePresenceCondition : CellCondition
 
     public override bool Evaluate(TerrainCell cell)
     {
-        return cell.GetBiomePresence(_biomeId) >= MinValue;
+        return cell.GetBiomeRelPresence(_biomeId) >= MinValue;
     }
 
     public override string GetPropertyValue(string propertyId)

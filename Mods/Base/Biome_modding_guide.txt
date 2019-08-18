@@ -9,7 +9,7 @@ Biome modding files are located within the 'Biomes' folder. To be valid, mod fil
     {
       "id":                         -- (required) Unique biome identifier, if more than one biome definition share ids, only the last one loaded will be used
       "name":                       -- (required) String to be used by the game's UI. Please avoid using overlong strings or non-unicode characters
-      "color":                      -- (required) HTML color code (#RRGGBB) to use to represent biome on map (transparency values, if added, will be ignored)
+      "color":                      -- (required) HTML color code ("#RRGGBB") used to represent biome on map (transparency values, if added, will be ignored)
       "type":                       -- (required) Indicates if the biome is land-based or sea-based (accepted values: "land", "sea")
       "traits":                     -- (optional) List of zero or more additional traits (accepted values: "wood")
 
@@ -18,9 +18,9 @@ Biome modding files are located within the 'Biomes' folder. To be valid, mod fil
       "altitudeSaturationSlope":    -- (optional) Slope with which the biome will reach max altitude saturation within the cell (between 0.001 and 1000 inclusive) (see note #7)
       "minRainfall":                -- (optional) Minimum cell rainfall at which this biome can be present (mm per m^2 per year)
       "maxRainfall":                -- (optional) Maximum cell rainfall at which this biome can be present (mm per m^2 per year)
-      "minMoisture":                -- (optional) Minimum cell soil moisture at which this biome can be present (mm per m^2)
-      "maxMoisture":                -- (optional) Maximum cell soil moisture at which this biome can be present (mm per m^2)
-      "waterSaturationSlope":    -- (optional) Slope with which the biome will reach max rainfall or moisture saturation within the cell (between 0.001 and 1000 inclusive) (see note #7)
+      "minWaterAccumulation":       -- (optional) Minimum cell non-oceanic water accumulation at which this biome can be present (mm per m^2)
+      "maxWaterAccumulation":       -- (optional) Maximum cell non-oceanic water accumulation at which this biome can be present (mm per m^2)
+      "waterSaturationSlope":       -- (optional) Slope with which the biome will reach max rainfall or moisture saturation within the cell (between 0.001 and 1000 inclusive) (see note #7)
       "minTemperature":             -- (optional) Minimum cell temperature at which this biome can be present (centigrade, yearly average)
       "maxTemperature":             -- (optional) Maximum cell temperature at which this biome can be present (centigrade, yearly average)
       "temperatureSaturationSlope": -- (optional) Slope with which the biome will reach max temperature saturation within the cell (between 0.001 and 1000 inclusive) (see note #7)

@@ -176,10 +176,10 @@ public abstract class Condition
             return new CellSurvivabilityCondition(match);
         }
 
-        match = Regex.Match(conditionStr, CellBiomePresenceCondition.Regex);
+        match = Regex.Match(conditionStr, CellBiomeRelPresenceCondition.Regex);
         if (match.Success == true)
         {
-            return new CellBiomePresenceCondition(match);
+            return new CellBiomeRelPresenceCondition(match);
         }
 
         match = Regex.Match(conditionStr, CellLayerValueCondition.Regex);

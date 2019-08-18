@@ -690,7 +690,7 @@ public class CellGroup : HumanGroup
 
         foreach (Biome biome in GetPresentBiomesInNeighborhood())
         {
-            if ((biome.TerrainType == BiomeTerrainType.Water) && biome.Traits.Contains(BiomeTrait.Sea))
+            if (biome.Traits.Contains(BiomeTrait.Sea))
             {
                 if (Culture.GetSkill(SeafaringSkill.SkillId) == null)
                 {
@@ -2537,7 +2537,7 @@ public class CellGroup : HumanGroup
         {
             //			Profiler.BeginSample ("Try Get Group Biome Survival Skill");
 
-            float biomePresence = cell.GetBiomePresence(biomeId);
+            float biomeRelPresence = cell.GetBiomeRelPresence(biomeId);
 
             BiomeSurvivalSkill skill = null;
 
@@ -2547,8 +2547,8 @@ public class CellGroup : HumanGroup
             {
                 //				Profiler.BeginSample ("Evaluate Group Biome Survival Skill");
 
-                modifiedForagingCapacity += biomePresence * biome.ForagingCapacity * skill.Value;
-                modifiedSurvivability += biomePresence * (biome.Survivability + skill.Value * (1 - biome.Survivability));
+                modifiedForagingCapacity += biomeRelPresence * biome.ForagingCapacity * skill.Value;
+                modifiedSurvivability += biomeRelPresence * (biome.Survivability + skill.Value * (1 - biome.Survivability));
 
                 //				#if DEBUG
                 //
@@ -2565,7 +2565,7 @@ public class CellGroup : HumanGroup
             }
             else
             {
-                modifiedSurvivability += biomePresence * biome.Survivability;
+                modifiedSurvivability += biomeRelPresence * biome.Survivability;
             }
 
             //			Profiler.EndSample ();

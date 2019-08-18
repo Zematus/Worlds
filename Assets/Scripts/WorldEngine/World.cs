@@ -333,7 +333,7 @@ public class World : ISynchronizable
     public float MinTemperature = MinPossibleTemperature;
 
     [XmlIgnore]
-    public float MaxMoisture = 0;
+    public float MaxWaterAccumulation = 0;
 
     [XmlIgnore]
     public TerrainCell[][] TerrainCells;
@@ -2094,7 +2094,7 @@ public class World : ISynchronizable
             GenerateTerrainRainfall();
             //GenerateTerrainRainfall2();
 
-            ProgressCastMethod(_accumulatedProgress, "Generating Irrigation Basins...");
+            ProgressCastMethod(_accumulatedProgress, "Generating Drainage Basins...");
 
             GenerateRiverBasins();
         }
@@ -3028,106 +3028,105 @@ public class World : ISynchronizable
         _rainfallNoiseOffset3.Wait();
     }
 
-    private const float _minConcentrationDecFactor = 0.005f;
-    private const float _altitudeConcentrationDecFactor = 5f / MaxPossibleAltitude;
-    private const float _maxLatitudeWindFactor = 2;
-    private const float _maxLongitudeWindFactor = 1;
-    private const float _baseWindComponentOffsetFactor = 2;
+    //private const float _minConcentrationDecFactor = 0.005f;
+    //private const float _altitudeConcentrationDecFactor = 5f / MaxPossibleAltitude;
+    //private const float _maxLatitudeWindFactor = 2;
+    //private const float _maxLongitudeWindFactor = 1;
+    //private const float _baseWindComponentOffsetFactor = 2;
 
-    private const float _minRainfallFactor = 0.8f;
-    private const float _altitudeRainfallFactor = 5f / MaxPossibleAltitude;
-    //private const float _moistureToRainfallValue = 0.05f;
-    private const float _moistureToRainfallValue = 0.03f;
+    //private const float _minRainfallFactor = 0.8f;
+    //private const float _altitudeRainfallFactor = 5f / MaxPossibleAltitude;
+    //private const float _moistureToRainfallValue = 0.03f;
 
-    private float GetMoistureFromCell(float longitudeOffset, float latitudeOffset, float concentration = 1, bool convertToRainfall = false)
-    {
-        float componentOffsetFactor = _baseWindComponentOffsetFactor * Width / 400f;
-        float maxMoisture = 1;
+    //private float GetMoistureFromCell(float longitudeOffset, float latitudeOffset, float concentration = 1, bool convertToRainfall = false)
+    //{
+    //    float componentOffsetFactor = _baseWindComponentOffsetFactor * Width / 400f;
+    //    float maxWaterAccumulation = 1;
 
-        int longitude = Mathf.FloorToInt(longitudeOffset);
-        int latitude = Mathf.FloorToInt(latitudeOffset);
+    //    int longitude = Mathf.FloorToInt(longitudeOffset);
+    //    int latitude = Mathf.FloorToInt(latitudeOffset);
 
-        TerrainCell cell = TerrainCells[longitude][latitude];
+    //    TerrainCell cell = TerrainCells[longitude][latitude];
 
-        float moisture = (cell.Altitude < 0) ? maxMoisture : 0;
+    //    float moisture = (cell.Altitude < 0) ? maxWaterAccumulation : 0;
 
-        float latWindFactor = _maxLatitudeWindFactor * Mathf.Sin(latitude * Mathf.PI / Height);
-        float latDirectionFactor = Mathf.Sin(latitude * 3 * Mathf.PI / Height);
+    //    float latWindFactor = _maxLatitudeWindFactor * Mathf.Sin(latitude * Mathf.PI / Height);
+    //    float latDirectionFactor = Mathf.Sin(latitude * 3 * Mathf.PI / Height);
 
-        float longitudeComponent = -latWindFactor * latDirectionFactor * Mathf.Abs(latDirectionFactor);
-        float latitudeComponent = -_maxLongitudeWindFactor * Mathf.Sin(latitude * 6 * Mathf.PI / Height);
+    //    float longitudeComponent = -latWindFactor * latDirectionFactor * Mathf.Abs(latDirectionFactor);
+    //    float latitudeComponent = -_maxLongitudeWindFactor * Mathf.Sin(latitude * 6 * Mathf.PI / Height);
 
-        float largestAbsWindComponent = Mathf.Max(Mathf.Abs(longitudeComponent), Mathf.Abs(latitudeComponent));
+    //    float largestAbsWindComponent = Mathf.Max(Mathf.Abs(longitudeComponent), Mathf.Abs(latitudeComponent));
 
-        if (largestAbsWindComponent < 0.001f)
-            return (convertToRainfall) ? 0 : moisture;
+    //    if (largestAbsWindComponent < 0.001f)
+    //        return (convertToRainfall) ? 0 : moisture;
 
-        longitudeOffset += componentOffsetFactor * longitudeComponent / largestAbsWindComponent;
-        latitudeOffset += componentOffsetFactor * latitudeComponent / largestAbsWindComponent;
+    //    longitudeOffset += componentOffsetFactor * longitudeComponent / largestAbsWindComponent;
+    //    latitudeOffset += componentOffsetFactor * latitudeComponent / largestAbsWindComponent;
 
-        if ((latitudeOffset < 0) || (latitudeOffset > (Height - 1)))
-            return (convertToRainfall) ? 0 : moisture;
+    //    if ((latitudeOffset < 0) || (latitudeOffset > (Height - 1)))
+    //        return (convertToRainfall) ? 0 : moisture;
 
-        longitudeOffset = Mathf.Repeat(longitudeOffset, Width);
+    //    longitudeOffset = Mathf.Repeat(longitudeOffset, Width);
 
-        int nextLongitude = Mathf.FloorToInt(longitudeOffset);
-        int nextLatitude = Mathf.FloorToInt(latitudeOffset);
+    //    int nextLongitude = Mathf.FloorToInt(longitudeOffset);
+    //    int nextLatitude = Mathf.FloorToInt(latitudeOffset);
 
-        TerrainCell nextCell = TerrainCells[nextLongitude][nextLatitude];
+    //    TerrainCell nextCell = TerrainCells[nextLongitude][nextLatitude];
 
-        float concentrationDecFactor = _minConcentrationDecFactor / largestAbsWindComponent;
+    //    float concentrationDecFactor = _minConcentrationDecFactor / largestAbsWindComponent;
 
-        float altitude1 = Mathf.Max(0, cell.Altitude);
-        float altitude2 = Mathf.Max(0, nextCell.Altitude);
-        float altitudeDeltaDecFactor = Mathf.Pow(_altitudeConcentrationDecFactor * Mathf.Max(0, altitude2 - altitude1), 2);
+    //    float altitude1 = Mathf.Max(0, cell.Altitude);
+    //    float altitude2 = Mathf.Max(0, nextCell.Altitude);
+    //    float altitudeDeltaDecFactor = Mathf.Pow(_altitudeConcentrationDecFactor * Mathf.Max(0, altitude2 - altitude1), 2);
 
-        concentration -= Mathf.Max(concentrationDecFactor, altitudeDeltaDecFactor);
+    //    concentration -= Mathf.Max(concentrationDecFactor, altitudeDeltaDecFactor);
 
-        if (concentration <= 0)
-            return (convertToRainfall) ? 0 : moisture;
+    //    if (concentration <= 0)
+    //        return (convertToRainfall) ? 0 : moisture;
 
-        moisture += concentration * GetMoistureFromCell(longitudeOffset, latitudeOffset, concentration);
+    //    moisture += concentration * GetMoistureFromCell(longitudeOffset, latitudeOffset, concentration);
 
-        if (convertToRainfall)
-        {
-            float minRainfallFactor = _minRainfallFactor * largestAbsWindComponent;
-            float altitudeDeltaRainFactor = Mathf.Pow(_altitudeRainfallFactor * Mathf.Max(0, altitude1 - altitude2), 2);
+    //    if (convertToRainfall)
+    //    {
+    //        float minRainfallFactor = _minRainfallFactor * largestAbsWindComponent;
+    //        float altitudeDeltaRainFactor = Mathf.Pow(_altitudeRainfallFactor * Mathf.Max(0, altitude1 - altitude2), 2);
 
-            float rainfallFactor = Mathf.Lerp(minRainfallFactor, altitudeDeltaRainFactor, 0.85f);
-            return moisture * _moistureToRainfallValue * rainfallFactor;
-        }
+    //        float rainfallFactor = Mathf.Lerp(minRainfallFactor, altitudeDeltaRainFactor, 0.85f);
+    //        return moisture * _moistureToRainfallValue * rainfallFactor;
+    //    }
 
-        return moisture;
-    }
+    //    return moisture;
+    //}
 
-    private void GenerateTerrainRainfall2()
-    {
-        int sizeX = Width;
-        int sizeY = Height;
+    //private void GenerateTerrainRainfall2()
+    //{
+    //    int sizeX = Width;
+    //    int sizeY = Height;
 
-        for (int i = 0; i < sizeX; i++)
-        {
-            for (int j = 0; j < sizeY; j++)
-            {
-                if (SkipIfModified(i, j))
-                    continue;
+    //    for (int i = 0; i < sizeX; i++)
+    //    {
+    //        for (int j = 0; j < sizeY; j++)
+    //        {
+    //            if (SkipIfModified(i, j))
+    //                continue;
 
-                TerrainCell cell = TerrainCells[i][j];
+    //            TerrainCell cell = TerrainCells[i][j];
 
-                float rainfallValue = GetMoistureFromCell(i, j, convertToRainfall: true);
+    //            float rainfallValue = GetMoistureFromCell(i, j, convertToRainfall: true);
 
-                float rainfall = Mathf.Min(MaxPossibleRainfall, CalculateRainfall(rainfallValue));
-                cell.Rainfall = rainfall;
+    //            float rainfall = Mathf.Min(MaxPossibleRainfall, CalculateRainfall(rainfallValue));
+    //            cell.Rainfall = rainfall;
 
-                if (rainfall > MaxRainfall) MaxRainfall = rainfall;
-                if (rainfall < MinRainfall) MinRainfall = rainfall;
-            }
+    //            if (rainfall > MaxRainfall) MaxRainfall = rainfall;
+    //            if (rainfall < MinRainfall) MinRainfall = rainfall;
+    //        }
 
-            ProgressCastMethod(_accumulatedProgress + _progressIncrement * (i + 1) / (float)sizeX);
-        }
+    //        ProgressCastMethod(_accumulatedProgress + _progressIncrement * (i + 1) / (float)sizeX);
+    //    }
 
-        _accumulatedProgress += _progressIncrement;
-    }
+    //    _accumulatedProgress += _progressIncrement;
+    //}
 
     private void CalculateAndSetRainfall(TerrainCell cell, float value, float? offset = null, bool modified = false)
     {
@@ -3263,7 +3262,7 @@ public class World : ISynchronizable
         int sizeX = Width;
         int sizeY = Height;
 
-        MaxMoisture = 0;
+        MaxWaterAccumulation = 0;
 
         float firstPartLength = 0.1f;
         float secondPartLength = 1 - firstPartLength;
@@ -3282,19 +3281,19 @@ public class World : ISynchronizable
                     continue;
 
                 cell.Buffer = cell.Rainfall;
-                cell.Moisture = cell.Buffer;
+                cell.WaterAccumulation = cell.Buffer;
 
-                MaxMoisture = Mathf.Max(MaxMoisture, cell.Moisture);
+                MaxWaterAccumulation = Mathf.Max(MaxWaterAccumulation, cell.WaterAccumulation);
 
                 if (cell.Buffer <= 0)
                     continue;
 
-                float modAltitude = cell.WaterErosionAdjustedAltitude;
+                float modAltitude = cell.ErosionAdjustedAltitude;
 
                 bool higherThanNeighbors = true;
                 foreach (TerrainCell nCell in cell.Neighbors.Values)
                 {
-                    float nModAltitude = nCell.WaterErosionAdjustedAltitude;
+                    float nModAltitude = nCell.ErosionAdjustedAltitude;
                     if ((nModAltitude > modAltitude) && (nCell.Rainfall > MinRiverFlow))
                     {
                         higherThanNeighbors = false;
@@ -3328,7 +3327,7 @@ public class World : ISynchronizable
                 ProgressCastMethod(_accumulatedProgress + _progressIncrement * secondPartLength * progressPercent);
             }
 
-            float modAltitude = cell.WaterErosionAdjustedAltitude;
+            float modAltitude = cell.ErosionAdjustedAltitude;
 
             if (cell.Buffer < MinRiverFlow)
                 continue;
@@ -3336,7 +3335,7 @@ public class World : ISynchronizable
             float totalAltDifference = 0;
             foreach (TerrainCell nCell in cell.Neighbors.Values)
             {
-                float nModAltitude = nCell.WaterErosionAdjustedAltitude;
+                float nModAltitude = nCell.ErosionAdjustedAltitude;
 
                 float diff = Mathf.Max(0, modAltitude - nModAltitude);
                 totalAltDifference += diff;
@@ -3348,7 +3347,7 @@ public class World : ISynchronizable
             foreach (TerrainCell nCell in cell.Neighbors.Values)
             {
                 float percent = 0;
-                float nModAltitude = nCell.WaterErosionAdjustedAltitude;
+                float nModAltitude = nCell.ErosionAdjustedAltitude;
 
                 float diff = Mathf.Max(0, modAltitude - nModAltitude);
                 percent = diff / totalAltDifference;
@@ -3364,9 +3363,9 @@ public class World : ISynchronizable
                     continue;
 
                 nCell.Buffer += rainfallTransfer;
-                nCell.Moisture += rainfallTransfer;
+                nCell.WaterAccumulation += rainfallTransfer;
 
-                MaxMoisture = Mathf.Max(MaxMoisture, nCell.Moisture);
+                MaxWaterAccumulation = Mathf.Max(MaxWaterAccumulation, nCell.WaterAccumulation);
 
                 if (queuedCells.Contains(nCell))
                     continue;
@@ -3452,7 +3451,7 @@ public class World : ISynchronizable
 
             if (biome.Traits.Contains(BiomeTrait.Wood))
             {
-                biomeFactor += cell.BiomePresences[i];
+                biomeFactor += cell.BiomeRelPresences[i];
             }
         }
 
@@ -3579,7 +3578,7 @@ public class World : ISynchronizable
         {
             Biome biome = Biome.Biomes[cell.PresentBiomeIds[i]];
 
-            biomeFactor += biome.Arability * cell.BiomePresences[i];
+            biomeFactor += biome.Arability * cell.BiomeRelPresences[i];
         }
 
         float hillinessFactor = 1 - cell.Hilliness;
@@ -3682,17 +3681,18 @@ public class World : ISynchronizable
 
         foreach (Biome biome in Biome.Biomes.Values)
         {
-            float presence = 0;
+            float absPresence = 0;
 
-            if (biomePresences.TryGetValue(biome.Id, out presence))
+            if (biomePresences.TryGetValue(biome.Id, out absPresence))
             {
-                presence = presence / totalBiomePresence;
+                float relPresence = absPresence / totalBiomePresence;
 
-                cell.AddBiomePresence(biome, presence);
+                cell.BiomeAbsPresences.Add(absPresence);
+                cell.AddBiomeRelPresence(biome, relPresence);
 
-                cell.Survivability += biome.Survivability * presence;
-                cell.ForagingCapacity += biome.ForagingCapacity * presence;
-                cell.BaseAccessibility += biome.Accessibility * presence;
+                cell.Survivability += biome.Survivability * relPresence;
+                cell.ForagingCapacity += biome.ForagingCapacity * relPresence;
+                cell.BaseAccessibility += biome.Accessibility * relPresence;
             }
         }
 
@@ -3761,7 +3761,7 @@ public class World : ISynchronizable
         {
             Biome biome = Biome.Biomes[cell.PresentBiomeIds[i]];
 
-            biomeFactor += biome.Arability * cell.BiomePresences[i];
+            biomeFactor += biome.Arability * cell.BiomeRelPresences[i];
         }
 
         float hillinessFactor = 1 - cell.Hilliness;
@@ -3910,7 +3910,7 @@ public class World : ISynchronizable
     {
         float altitudeSpan = biome.MaxAltitude - biome.MinAltitude;
 
-        float altitudeDiff = cell.WaterErosionAdjustedAltitude - biome.MinAltitude;
+        float altitudeDiff = cell.ErosionAdjustedAltitude - biome.MinAltitude;
 
         if (altitudeDiff < 0)
             return -1f;
@@ -3933,15 +3933,15 @@ public class World : ISynchronizable
         return altitudeFactor * 2;
     }
 
-    private float CalculateRiverBiomeWaterFactor(TerrainCell cell, Biome biome)
+    private float CalculateWaterBiomeWaterFactor(TerrainCell cell, Biome biome)
     {
-        float moistureSpan = biome.MaxMoisture - biome.MinMoisture;
-        float moistureDiff = cell.Moisture - biome.MinMoisture;
+        float waterAccSpan = biome.MaxWaterAcc - biome.MinWaterAcc;
+        float waterAccDiff = cell.WaterAccumulation - biome.MinWaterAcc;
 
-        if (moistureDiff < 0)
+        if (waterAccDiff < 0)
             return -1f;
 
-        float waterFactor = moistureDiff / moistureSpan;
+        float waterFactor = waterAccDiff / waterAccSpan;
 
         if (waterFactor > 1)
             return -1f;
@@ -3956,21 +3956,21 @@ public class World : ISynchronizable
 
     private float CalculateBiomeWaterFactor(TerrainCell cell, Biome biome)
     {
-        if (biome.Traits.Contains(BiomeTrait.River))
+        if (biome.TerrainType == BiomeTerrainType.Water)
         {
-            return CalculateRiverBiomeWaterFactor(cell, biome);
+            return CalculateWaterBiomeWaterFactor(cell, biome);
         }
 
-        float moistureSpan = biome.MaxMoisture - biome.MinMoisture;
+        float waterAccSpan = biome.MaxWaterAcc - biome.MinWaterAcc;
         float rainfallSpan = biome.MaxRainfall - biome.MinRainfall;
 
-        float moistureDiff = cell.Moisture - biome.MinMoisture;
+        float waterAccDiff = cell.WaterAccumulation - biome.MinWaterAcc;
         float rainfallDiff = cell.Rainfall - biome.MinRainfall;
 
-        if ((moistureDiff < 0) && (rainfallDiff < 0))
+        if ((waterAccDiff < 0) && (rainfallDiff < 0))
             return -1f;
 
-        float moistureFactor = moistureDiff / moistureSpan;
+        float moistureFactor = waterAccDiff / waterAccSpan;
         float rainfallFactor = rainfallDiff / rainfallSpan;
 
         float waterFactor = Mathf.Max(moistureFactor, rainfallFactor);
@@ -4069,7 +4069,10 @@ public class World : ISynchronizable
         if (presence < 0)
             return presence;
 
-        presence *= CalculateBiomeWaterFactor(cell, biome);
+        if (!biome.Traits.Contains(BiomeTrait.Sea))
+        {
+            presence *= CalculateBiomeWaterFactor(cell, biome);
+        }
 
         if (presence < 0)
             return presence;

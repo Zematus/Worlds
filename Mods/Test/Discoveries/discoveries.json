@@ -78,6 +78,6 @@
       "gainEffects": ["add_group_property:CAN_FORM_POLITY:tribe"],
       "lossEffects": ["remove_group_property:CAN_FORM_POLITY:tribe"],
       "eventTimeToTrigger": 912500
-    },
+    }
   ]
 }

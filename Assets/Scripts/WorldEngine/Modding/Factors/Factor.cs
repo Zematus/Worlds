@@ -89,10 +89,10 @@ public abstract class Factor
             return new CellSurvivabilityFactor(match);
         }
 
-        match = Regex.Match(factorStr, CellBiomePresenceFactor.Regex);
+        match = Regex.Match(factorStr, CellBiomeRelPresenceFactor.Regex);
         if (match.Success == true)
         {
-            return new CellBiomePresenceFactor(match);
+            return new CellBiomeRelPresenceFactor(match);
         }
 
         match = Regex.Match(factorStr, CellHillinessFactor.Regex);

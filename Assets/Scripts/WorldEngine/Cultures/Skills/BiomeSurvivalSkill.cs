@@ -101,11 +101,11 @@ public class BiomeSurvivalSkill : CellCulturalSkill
 
         TerrainCell groupCell = Group.Cell;
 
-        float totalPresence = groupCell.GetBiomePresence(BiomeId) * groupCellBonus;
+        float totalPresence = groupCell.GetBiomeRelPresence(BiomeId) * groupCellBonus;
 
         foreach (TerrainCell c in groupCell.Neighbors.Values)
         {
-            totalPresence += c.GetBiomePresence(BiomeId);
+            totalPresence += c.GetBiomeRelPresence(BiomeId);
             cellCount++;
         }
 

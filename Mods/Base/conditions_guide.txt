@@ -84,15 +84,15 @@ Here's a list of the current types of conditions (more to be added in future ver
 
     Examples: 'cell_survivability', 'cell_survivability:0.6'
 
-- 'cell_biome_presence'
-    Tests if a cell has an biome presence value (i.e. percentage of area in cell covered by such biome) equal or greater than 0.01 or than the specified value (optional value between 0 and 1). The format of the constraint is as follows: 'cell_biome_presence:<biome_id>(,<min_presence>)'
+- 'cell_biome_relative_presence'
+    Tests if a cell has an biome relative presence value (i.e. percentage of area in cell covered by such biome) equal or greater than 0.01 or than the specified value (optional value between 0 and 1). The format of the constraint is as follows: 'cell_biome_relative_presence:<biome_id>(,<min_presence>)'
 
-    Examples: 'cell_biome_presence:forest', 'cell_biome_presence:desert,0.3'
+    Examples: 'cell_biome_relative_presence:forest', 'cell_biome_relative_presence:desert,0.3'
 
 - 'cell_layer_value'
     Tests if a cell has a layer value equal or greater than the specified value (value between 0 and the layer's max possible value). The format of the constraint is as follows: 'cell_layer_value:<layer_id>,<min_presence>'
 
-    Examples: 'cell_layer_value:mycosystem,20', 'cell_biome_presence:necrosilica,50'
+    Examples: 'cell_layer_value:mycosystem,20', 'cell_layer_value:necrosilica,50'
 
 - 'cell_biome_most_present'
     Tests if a biome is the most present in a cell (i.e. greatest occupied area). The format of the constraint is as follows: 'cell_biome_most_present:<biome_id>'

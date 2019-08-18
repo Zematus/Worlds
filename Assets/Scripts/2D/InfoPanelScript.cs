@@ -87,10 +87,11 @@ public class InfoPanelScript : MonoBehaviour
         InfoText.text += "\n";
         
         InfoText.text += "\nArea: " + cellArea + " Km^2";
-        InfoText.text += "\nAltitude: " + cell.Altitude + " meters";
-        InfoText.text += "\nAltitude after erosion: " + cell.WaterErosionAdjustedAltitude + " meters";
+        InfoText.text += "\nAltitude: " + cell.ErosionAdjustedAltitude + " meters";
+        if (Manager.DebugModeEnabled && (cell.ErosionAdjustedAltitude != cell.Altitude))
+            InfoText.text += "\nOriginal Altitude: " + cell.Altitude + " meters";
         InfoText.text += "\nRainfall: " + cell.Rainfall + " mm / year";
-        InfoText.text += "\nMoisture: " + cell.Moisture + " mm";
+        InfoText.text += "\nWater Accumulation: " + cell.WaterAccumulation + " mm";
         InfoText.text += "\nTemperature: " + cell.Temperature + " C";
         InfoText.text += "\n";
 
@@ -112,12 +113,12 @@ public class InfoPanelScript : MonoBehaviour
 
         InfoText.text += "\nBiomes:";
 
-        float farmlandPerc = cell.FarmlandPercentage;
-        float wildPerc = 1 - farmlandPerc;
+        float farmlandPercent = cell.FarmlandPercentage;
+        float wildernessPercent = 1 - farmlandPercent;
 
         for (int i = 0; i < cell.PresentBiomeIds.Count; i++)
         {
-            float percentage = cell.BiomePresences[i] * wildPerc;
+            float percentage = cell.BiomeRelPresences[i] * wildernessPercent;
 
             Biome biome = Biome.Biomes[cell.PresentBiomeIds[i]];
 
@@ -125,10 +126,10 @@ public class InfoPanelScript : MonoBehaviour
             InfoText.text += " (" + percentage.ToString("P") + ")";
         }
 
-        if (farmlandPerc > 0)
+        if (farmlandPercent > 0)
         {
             InfoText.text += "\n\tFarmland:";
-            InfoText.text += " (" + farmlandPerc.ToString("P") + ")";
+            InfoText.text += " (" + farmlandPercent.ToString("P") + ")";
         }
 
         InfoText.text += "\n";
@@ -141,7 +142,7 @@ public class InfoPanelScript : MonoBehaviour
         if (cell.Arability != cell.BaseArability)
             InfoText.text += "\nOriginal Arability: " + cell.BaseArability.ToString("P");
         InfoText.text += "\nHilliness: " + cell.Hilliness.ToString("P");
-        InfoText.text += "\nWood Coverage: " + (cell.WoodCoverage * wildPerc).ToString("P");
+        InfoText.text += "\nWood Coverage: " + (cell.WoodCoverage * wildernessPercent).ToString("P");
         InfoText.text += "\n";
 
         Region region = cell.Region;

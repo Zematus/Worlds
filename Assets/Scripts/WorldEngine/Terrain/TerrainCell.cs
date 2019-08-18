@@ -83,7 +83,7 @@ public class TerrainCell
     public float Rainfall;
     public float Temperature;
 
-    public float Moisture = 0;
+    public float WaterAccumulation = 0;
     public float Buffer = 0;
 
     public float Survivability;
@@ -106,7 +106,8 @@ public class TerrainCell
     public static float MaxWidth;
 
     public List<string> PresentBiomeIds = new List<string>();
-    public List<float> BiomePresences = new List<float>();
+    public List<float> BiomeRelPresences = new List<float>();
+    public List<float> BiomeAbsPresences = new List<float>();
 
     public List<string> PresentLayerIds = new List<string>();
     public List<CellLayerData> LayerData = new List<CellLayerData>();
@@ -118,7 +119,7 @@ public class TerrainCell
     
     public List<string> PresentWaterBiomeIds = new List<string>();
     
-    public float WaterBiomePresence = 0;
+    public float WaterBiomeRelPresence = 0;
 
     private float? _neighborhoodWaterBiomePresence = null;
     
@@ -127,11 +128,11 @@ public class TerrainCell
         get {
             if (_neighborhoodWaterBiomePresence == null)
             {
-                _neighborhoodWaterBiomePresence = WaterBiomePresence;
+                _neighborhoodWaterBiomePresence = WaterBiomeRelPresence;
 
                 foreach (TerrainCell nCell in Neighbors.Values)
                 {
-                    _neighborhoodWaterBiomePresence += nCell.WaterBiomePresence;
+                    _neighborhoodWaterBiomePresence += nCell.WaterBiomeRelPresence;
                 }
             }
 
@@ -139,11 +140,11 @@ public class TerrainCell
         }
     }
 
-    public float WaterErosionAdjustedAltitude
+    public float ErosionAdjustedAltitude
     {
         get
         {
-            return Altitude - Moisture * World.RainfallToHeightConversionFactor;
+            return Altitude - WaterAccumulation * World.RainfallToHeightConversionFactor;
         }
     }
 
@@ -169,7 +170,7 @@ public class TerrainCell
     public Dictionary<Direction, TerrainCell> Neighbors { get; private set; }
     public Dictionary<Direction, float> NeighborDistances { get; private set; }
 
-    private Dictionary<string, float> _biomePresences = new Dictionary<string, float>();
+    private Dictionary<string, float> _biomeRelPresences = new Dictionary<string, float>();
     private Dictionary<string, CellLayerData> _layerData = new Dictionary<string, CellLayerData>();
 
     public TerrainCell()
@@ -394,45 +395,40 @@ public class TerrainCell
     {
         PresentBiomeIds.Clear();
         PresentWaterBiomeIds.Clear();
-        BiomePresences.Clear();
+        BiomeRelPresences.Clear();
 
-        _biomePresences.Clear();
+        _biomeRelPresences.Clear();
 
-        WaterBiomePresence = 0;
+        WaterBiomeRelPresence = 0;
         MostBiomePresence = 0;
         BiomeWithMostPresence = null;
     }
 
-    public float GetBiomePresence(Biome biome)
-    {
-        return GetBiomePresence(biome.Id);
-    }
-
-    public void AddBiomePresence(Biome biome, float presence)
+    public void AddBiomeRelPresence(Biome biome, float relPresence)
     {
         PresentBiomeIds.Add(biome.Id);
-        BiomePresences.Add(presence);
+        BiomeRelPresences.Add(relPresence);
 
         if (biome.TerrainType == BiomeTerrainType.Water)
         {
             PresentWaterBiomeIds.Add(biome.Id);
-            WaterBiomePresence += presence;
+            WaterBiomeRelPresence += relPresence;
         }
 
-        _biomePresences[biome.Id] = presence;
+        _biomeRelPresences[biome.Id] = relPresence;
 
-        if (MostBiomePresence < presence)
+        if (MostBiomePresence < relPresence)
         {
-            MostBiomePresence = presence;
+            MostBiomePresence = relPresence;
             BiomeWithMostPresence = biome.Id;
         }
     }
 
-    public float GetBiomePresence(string biomeId)
+    public float GetBiomeRelPresence(string biomeId)
     {
         float value = 0;
 
-        if (!_biomePresences.TryGetValue(biomeId, out value))
+        if (!_biomeRelPresences.TryGetValue(biomeId, out value))
             return 0;
 
         return value;
@@ -615,11 +611,11 @@ public class TerrainCell
 
     private bool FindIfCoastline()
     {
-        if (Altitude <= 0)
+        if (ErosionAdjustedAltitude <= 0)
         {
             foreach (TerrainCell nCell in Neighbors.Values)
             {
-                if (nCell.Altitude > 0)
+                if (nCell.ErosionAdjustedAltitude > 0)
                     return true;
             }
         }
@@ -627,7 +623,7 @@ public class TerrainCell
         {
             foreach (TerrainCell nCell in Neighbors.Values)
             {
-                if (nCell.Altitude <= 0)
+                if (nCell.ErosionAdjustedAltitude <= 0)
                     return true;
             }
         }

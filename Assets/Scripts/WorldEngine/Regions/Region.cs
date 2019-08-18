@@ -154,7 +154,7 @@ public abstract class Region : ISynchronizable
 
     public static Region TryGenerateRegion(TerrainCell startCell, Language establishmentLanguage)
     {
-        if (startCell.WaterBiomePresence >= 1)
+        if (startCell.WaterBiomeRelPresence >= 1)
             return null;
 
         if (startCell.Region != null)
