@@ -174,7 +174,6 @@ public class World : ISynchronizable
     public const float MaxPossibleTemperature = 30 + AvgPossibleTemperature;
 
     public const float RiverEvaporationFactor = 0.1f;
-    public const float RiverFlushFactor = 0.6f;
     public const float HeightToRainfallConversionFactor = 1000f;
     public const float RainfallToHeightConversionFactor = 1f / HeightToRainfallConversionFactor;
     public const float MinRiverFlow = HeightToRainfallConversionFactor / 100f;
@@ -2096,7 +2095,7 @@ public class World : ISynchronizable
 
             ProgressCastMethod(_accumulatedProgress, "Generating Drainage Basins...");
 
-            GenerateRiverBasins();
+            GenerateDrainageBasins();
         }
         else if ((type & GenerationType.RainfallRegeneration) == GenerationType.RainfallRegeneration)
         {
@@ -3257,7 +3256,7 @@ public class World : ISynchronizable
         _accumulatedProgress += _progressIncrement;
     }
 
-    private void GenerateRiverBasins()
+    private void GenerateDrainageBasins()
     {
         int sizeX = Width;
         int sizeY = Height;
@@ -3332,12 +3331,16 @@ public class World : ISynchronizable
             if (cell.Buffer < MinRiverFlow)
                 continue;
 
+            //float flowStrengthFactor = Mathf.Max(1, cell.WaterAccumulation / MaxPossibleRainfall);
+
             float totalAltDifference = 0;
             foreach (TerrainCell nCell in cell.Neighbors.Values)
             {
                 float nModAltitude = nCell.ErosionAdjustedAltitude;
 
                 float diff = Mathf.Max(0, modAltitude - nModAltitude);
+
+                //totalAltDifference += Mathf.Pow(diff, flowStrengthFactor);
                 totalAltDifference += diff;
             }
 
@@ -3350,6 +3353,7 @@ public class World : ISynchronizable
                 float nModAltitude = nCell.ErosionAdjustedAltitude;
 
                 float diff = Mathf.Max(0, modAltitude - nModAltitude);
+                //percent = Mathf.Pow(diff, flowStrengthFactor) / totalAltDifference;
                 percent = diff / totalAltDifference;
 
                 if ((percent == 0) || (nCell.Altitude <= 0))

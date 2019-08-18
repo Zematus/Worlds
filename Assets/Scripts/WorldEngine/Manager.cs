@@ -3774,7 +3774,10 @@ public class Manager
 
         if (cell.WaterAccumulation > 0)
         {
-            float value = 0.1f + (0.90f * cell.WaterAccumulation / CurrentWorld.MaxWaterAccumulation);
+            float accPercent = 1 - cell.WaterAccumulation / CurrentWorld.MaxWaterAccumulation;
+            accPercent = Mathf.Pow(accPercent, 10);
+            accPercent = 1 - accPercent;
+            float value = 0.1f + (0.90f * accPercent);
 
             color += GetOverlayColor(OverlayColorId.RiverBasins) * value;
         }
@@ -4090,46 +4093,6 @@ public class Manager
         shadeValue = 0.5f * shadeValue + 0.5f;
 
         color = new Color(color.r * shadeValue, color.g * shadeValue, color.b * shadeValue);
-
-        return color;
-    }
-
-    private static Color GenerateRainfallContourColor(float rainfall)
-    {
-        float value;
-
-        Color color = Color.green;
-
-        float shadeValue = 1.0f;
-
-        value = Mathf.Max(0, rainfall / CurrentWorld.MaxRainfall);
-
-        while (shadeValue > value)
-        {
-            shadeValue -= 0.1f;
-        }
-
-        color = new Color(color.r * shadeValue, color.g * shadeValue, color.b * shadeValue);
-
-        return color;
-    }
-
-    private static Color GenerateTemperatureContourColor(float temperature)
-    {
-        float span = CurrentWorld.MaxTemperature - CurrentWorld.MinTemperature;
-
-        float value;
-
-        float shadeValue = 1f;
-
-        value = (temperature - CurrentWorld.MinTemperature) / span;
-
-        while (shadeValue > value)
-        {
-            shadeValue -= 0.1f;
-        }
-
-        Color color = new Color(shadeValue, 0, 1f - shadeValue);
 
         return color;
     }
