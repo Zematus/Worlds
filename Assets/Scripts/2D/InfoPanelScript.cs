@@ -87,9 +87,7 @@ public class InfoPanelScript : MonoBehaviour
         InfoText.text += "\n";
         
         InfoText.text += "\nArea: " + cellArea + " Km^2";
-        InfoText.text += "\nAltitude: " + cell.ErosionAdjustedAltitude + " meters";
-        if (Manager.DebugModeEnabled && (cell.ErosionAdjustedAltitude != cell.Altitude))
-            InfoText.text += "\nOriginal Altitude: " + cell.Altitude + " meters";
+        InfoText.text += "\nAltitude: " + cell.Altitude + " meters";
         InfoText.text += "\nRainfall: " + cell.Rainfall + " mm / year";
         InfoText.text += "\nWater Accumulation: " + cell.WaterAccumulation + " mm";
         InfoText.text += "\nTemperature: " + cell.Temperature + " C";

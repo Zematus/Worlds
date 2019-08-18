@@ -140,14 +140,6 @@ public class TerrainCell
         }
     }
 
-    public float ErosionAdjustedAltitude
-    {
-        get
-        {
-            return Altitude - WaterAccumulation * World.RainfallToHeightConversionFactor;
-        }
-    }
-
     public WorldPosition Position;
     
     public Region Region = null;
@@ -611,11 +603,11 @@ public class TerrainCell
 
     private bool FindIfCoastline()
     {
-        if (ErosionAdjustedAltitude <= 0)
+        if (WaterBiomeRelPresence > 0.5f)
         {
             foreach (TerrainCell nCell in Neighbors.Values)
             {
-                if (nCell.ErosionAdjustedAltitude > 0)
+                if (nCell.WaterBiomeRelPresence < 0.5f)
                     return true;
             }
         }
@@ -623,7 +615,7 @@ public class TerrainCell
         {
             foreach (TerrainCell nCell in Neighbors.Values)
             {
-                if (nCell.ErosionAdjustedAltitude <= 0)
+                if (nCell.WaterBiomeRelPresence >= 0.5f)
                     return true;
             }
         }

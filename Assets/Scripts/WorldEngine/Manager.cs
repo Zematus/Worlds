@@ -2499,7 +2499,7 @@ public class Manager
 
     private static bool IsCoastWater(TerrainCell cell)
     {
-        if (cell.ErosionAdjustedAltitude <= 0)
+        if (cell.WaterBiomeRelPresence < 0.5f)
             return false;
 
         return cell.IsPartOfCoastline;
@@ -2507,7 +2507,7 @@ public class Manager
 
     private static bool IsCoastLand(TerrainCell cell)
     {
-        if (cell.ErosionAdjustedAltitude > 0)
+        if (cell.WaterBiomeRelPresence >= 0.5f)
             return false;
 
         return cell.IsPartOfCoastline;
@@ -2533,7 +2533,7 @@ public class Manager
                 break;
 
             case PlanetView.Elevation:
-                color = GenerateAltitudeContourColor(cell.ErosionAdjustedAltitude);
+                color = GenerateAltitudeContourColor(cell);
                 break;
 
             case PlanetView.Coastlines:
@@ -2701,10 +2701,10 @@ public class Manager
 
         if (IsCoastLand(cell))
         {
-            return _mapPalette[3];
+            //return _mapPalette[3];
         }
 
-        if (cell.ErosionAdjustedAltitude > 0)
+        if (cell.Altitude > 0)
         {
             float slant = GetSlant(cell);
             float altDiff = World.MaxPossibleAltitude - World.MinPossibleAltitude;
@@ -2770,7 +2770,7 @@ public class Manager
 
         slantFactor = Mathf.Min(1f, (4f + (10f * slantFactor)) / 5f);
 
-        float altitudeFactor = Mathf.Min(1f, (0.5f + ((cell.ErosionAdjustedAltitude - CurrentWorld.MinAltitude) / altDiff)) / 1.5f);
+        float altitudeFactor = Mathf.Min(1f, (0.5f + ((cell.Altitude - CurrentWorld.MinAltitude) / altDiff)) / 1.5f);
 
         Color color = Color.black;
 
@@ -4069,25 +4069,25 @@ public class Manager
         return color;
     }
 
-    private static Color GenerateAltitudeContourColor(float altitude)
+    private static Color GenerateAltitudeContourColor(TerrainCell cell)
     {
         Color color = new Color(1, 0.6f, 0);
 
         float shadeValue = 1.0f;
 
+        float altitude = cell.Altitude;
+
         float value = Mathf.Max(0, altitude / CurrentWorld.MaxAltitude);
 
-        if (altitude < 0)
+        if (cell.WaterBiomeRelPresence >= 0.5f)
         {
-
-            value = Mathf.Max(0, (1f - altitude / CurrentWorld.MinAltitude));
-
+            value = Mathf.Max(0, 1f - altitude / CurrentWorld.MinAltitude);
             color = Color.blue;
         }
 
         while (shadeValue > value)
         {
-            shadeValue -= 0.15f;
+            shadeValue -= 0.05f;
         }
 
         shadeValue = 0.5f * shadeValue + 0.5f;

@@ -185,7 +185,7 @@ public class World : ISynchronizable
 
     public const float MinSurvivabilityForRandomGroupPlacement = 0.15f;
 
-    public const float TerrainGenerationSteps = 9;
+    public const float TerrainGenerationSteps = 10;
 
     public static Dictionary<string, IWorldEventGenerator> EventGenerators;
 
@@ -2081,10 +2081,6 @@ public class World : ISynchronizable
             _accumulatedProgress += _progressIncrement;
         }
 
-        ProgressCastMethod(_accumulatedProgress, "Calculating hilliness...");
-
-        CalculateTerrainHilliness();
-
         if ((type & GenerationType.Rainfall) == GenerationType.Rainfall)
         {
             ProgressCastMethod(_accumulatedProgress, "Calculating rainfall...");
@@ -2096,12 +2092,18 @@ public class World : ISynchronizable
             ProgressCastMethod(_accumulatedProgress, "Generating Drainage Basins...");
 
             GenerateDrainageBasins();
+            GenerateDrainageBasins(); // repeat to simulate geological scale erosion
         }
         else if ((type & GenerationType.RainfallRegeneration) == GenerationType.RainfallRegeneration)
         {
             ProgressCastMethod(_accumulatedProgress, "Recalculating rainfall...");
 
             RegenerateTerrainRainfall();
+
+            ProgressCastMethod(_accumulatedProgress, "Regenerating Drainage Basins...");
+
+            GenerateDrainageBasins();
+            GenerateDrainageBasins(); // repeat to simulate geological scale erosion
         }
         else
         {
@@ -2109,6 +2111,10 @@ public class World : ISynchronizable
 
             _accumulatedProgress += _progressIncrement;
         }
+
+        ProgressCastMethod(_accumulatedProgress, "Calculating hilliness...");
+
+        CalculateTerrainHilliness();
 
         if ((type & GenerationType.Temperature) == GenerationType.Temperature)
         {
@@ -2506,8 +2512,8 @@ public class World : ISynchronizable
 
         foreach (TerrainCell cell in _cellsToRegen)
         {
-            CalculateTerrainHilliness(cell);
             GenerateTerrainRainfall(cell, setDependencies: false);
+            CalculateTerrainHilliness(cell);
             GenerateTerrainTemperature(cell);
             GenerateTerrainLayers(cell);
             GenerateTerrainBiomes(cell);
@@ -3264,7 +3270,8 @@ public class World : ISynchronizable
         MaxWaterAccumulation = 0;
 
         float firstPartLength = 0.1f;
-        float secondPartLength = 1 - firstPartLength;
+        float secondPartLength = 0.8f;
+        float thirdPartLength = 0.1f;
 
         HashSet<TerrainCell> queuedCells = new HashSet<TerrainCell>();
         Queue<TerrainCell> cellsToIrrigateFrom = new Queue<TerrainCell>(sizeX * sizeY);
@@ -3286,13 +3293,13 @@ public class World : ISynchronizable
 
                 if (cell.Buffer <= 0)
                     continue;
-
-                float modAltitude = cell.ErosionAdjustedAltitude;
+                
+                float modAltitude = cell.Altitude;
 
                 bool higherThanNeighbors = true;
                 foreach (TerrainCell nCell in cell.Neighbors.Values)
                 {
-                    float nModAltitude = nCell.ErosionAdjustedAltitude;
+                    float nModAltitude = nCell.Altitude;
                     if ((nModAltitude > modAltitude) && (nCell.Rainfall > MinRiverFlow))
                     {
                         higherThanNeighbors = false;
@@ -3310,8 +3317,8 @@ public class World : ISynchronizable
             ProgressCastMethod(_accumulatedProgress + _progressIncrement * firstPartLength * (i + 1) / sizeX);
         }
 
+        // irrigate cells
         int irrigatedCells = 0;
-
         while (cellsToIrrigateFrom.Count > 0)
         {
             TerrainCell cell = cellsToIrrigateFrom.Dequeue();
@@ -3325,22 +3332,19 @@ public class World : ISynchronizable
 
                 ProgressCastMethod(_accumulatedProgress + _progressIncrement * secondPartLength * progressPercent);
             }
-
-            float modAltitude = cell.ErosionAdjustedAltitude;
+            
+            float modAltitude = cell.Altitude;
 
             if (cell.Buffer < MinRiverFlow)
                 continue;
 
-            //float flowStrengthFactor = Mathf.Max(1, cell.WaterAccumulation / MaxPossibleRainfall);
-
             float totalAltDifference = 0;
             foreach (TerrainCell nCell in cell.Neighbors.Values)
             {
-                float nModAltitude = nCell.ErosionAdjustedAltitude;
+                float nModAltitude = nCell.Altitude;
 
                 float diff = Mathf.Max(0, modAltitude - nModAltitude);
-
-                //totalAltDifference += Mathf.Pow(diff, flowStrengthFactor);
+                
                 totalAltDifference += diff;
             }
 
@@ -3350,10 +3354,9 @@ public class World : ISynchronizable
             foreach (TerrainCell nCell in cell.Neighbors.Values)
             {
                 float percent = 0;
-                float nModAltitude = nCell.ErosionAdjustedAltitude;
+                float nModAltitude = nCell.Altitude;
 
                 float diff = Mathf.Max(0, modAltitude - nModAltitude);
-                //percent = Mathf.Pow(diff, flowStrengthFactor) / totalAltDifference;
                 percent = diff / totalAltDifference;
 
                 if ((percent == 0) || (nCell.Altitude <= 0))
@@ -3379,6 +3382,29 @@ public class World : ISynchronizable
             }
 
             cell.Buffer = 0;
+        }
+
+        if (MaxWaterAccumulation > 0)
+        {
+            // erode cell altitudes
+            for (int i = 0; i < sizeX; i++)
+            {
+                for (int j = 0; j < sizeY; j++)
+                {
+                    TerrainCell cell = TerrainCells[i][j];
+
+                    if (cell.WaterAccumulation > 0)
+                    {
+                        float rainfallFactor = MaxPossibleRainfall / Mathf.Max(cell.Rainfall + MaxPossibleRainfall, 1);
+                        float waterAccFactor = 1 - Mathf.Min(1, cell.WaterAccumulation / (MaxPossibleRainfall));
+                        waterAccFactor = 1 - Mathf.Pow(waterAccFactor, 10);
+
+                        cell.Altitude -= 50 * waterAccFactor * rainfallFactor;
+                    }
+                }
+
+                ProgressCastMethod(_accumulatedProgress + _progressIncrement * thirdPartLength * (i + 1) / sizeX);
+            }
         }
 
         _accumulatedProgress += _progressIncrement;
@@ -3914,7 +3940,7 @@ public class World : ISynchronizable
     {
         float altitudeSpan = biome.MaxAltitude - biome.MinAltitude;
 
-        float altitudeDiff = cell.ErosionAdjustedAltitude - biome.MinAltitude;
+        float altitudeDiff = cell.Altitude - biome.MinAltitude;
 
         if (altitudeDiff < 0)
             return -1f;
