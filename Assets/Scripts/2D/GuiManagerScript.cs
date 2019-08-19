@@ -325,7 +325,9 @@ public class GuiManagerScript : MonoBehaviour
             //Manager.SetActiveModPaths(new string[] { @"Mods\Base", @"Mods\TestMod" });
 
             //GenerateWorld(false, 1142453343, useHeightmap: true);
-            GenerateWorld(false, 1582997248);
+            //GenerateWorld(false, 1582997248);
+            //GenerateWorld(false, 266440697);
+            GenerateWorld(false, 744563535);
         }
         else
         {

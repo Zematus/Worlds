@@ -138,6 +138,9 @@ public class BiomeLoader
                     case "sea":
                         biome.Traits.Add(BiomeTrait.Sea);
                         break;
+                    case "ice":
+                        biome.Traits.Add(BiomeTrait.Ice);
+                        break;
                     default:
                         throw new ArgumentException("Unknown biome trait: " + trait);
                 }

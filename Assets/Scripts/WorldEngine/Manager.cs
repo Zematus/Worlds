@@ -2699,13 +2699,11 @@ public class Manager
             return _mapPalette[2];
         }
 
-        if (IsCoastLand(cell))
-        {
-            //return _mapPalette[3];
-        }
-
         if (cell.Altitude > 0)
         {
+            if (cell.WaterBiomeRelPresence >= 0.5f)
+                return _mapPalette[3];
+
             float slant = GetSlant(cell);
             float altDiff = World.MaxPossibleAltitude - World.MinPossibleAltitude;
             altDiff /= 2f;
@@ -4083,6 +4081,11 @@ public class Manager
         {
             value = Mathf.Max(0, 1f - altitude / CurrentWorld.MinAltitude);
             color = Color.blue;
+        }
+
+        if (Biome.Biomes[cell.BiomeWithMostPresence].Traits.Contains(BiomeTrait.Ice))
+        {
+            color = Color.white;
         }
 
         while (shadeValue > value)

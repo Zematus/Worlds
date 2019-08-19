@@ -13,7 +13,8 @@ public enum BiomeTerrainType
 public enum BiomeTrait
 {
     Wood,
-    Sea
+    Sea,
+    Ice
 }
 
 public class Biome
