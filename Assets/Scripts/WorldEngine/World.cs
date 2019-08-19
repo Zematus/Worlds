@@ -2089,6 +2089,7 @@ public class World : ISynchronizable
         {
             ProgressCastMethod(_accumulatedProgress, "Calculating rainfall...");
 
+            ResetDrainage();
             ResetRainfallDependencies();
             GenerateTerrainRainfall();
             //GenerateTerrainRainfall2();
@@ -2102,6 +2103,7 @@ public class World : ISynchronizable
         {
             ProgressCastMethod(_accumulatedProgress, "Recalculating rainfall...");
 
+            ResetDrainage();
             RegenerateTerrainRainfall();
 
             ProgressCastMethod(_accumulatedProgress, "Regenerating Drainage Basins...");
@@ -2981,6 +2983,7 @@ public class World : ISynchronizable
     {
         float altitude = CalculateAltitude(value);
 
+        cell.NoErosionAltitude = altitude;
         cell.Altitude = altitude;
         cell.BaseAltitudeValue = value;
 
@@ -3000,10 +3003,12 @@ public class World : ISynchronizable
 
     private void RecalculateAndSetAltitude(int longitude, int latitude)
     {
-        float value = TerrainCells[longitude][latitude].BaseAltitudeValue;
+        TerrainCell cell = TerrainCells[longitude][latitude];
+        float value = cell.BaseAltitudeValue;
 
         float altitude = CalculateAltitude(value);
-        TerrainCells[longitude][latitude].Altitude = altitude;
+        cell.NoErosionAltitude = altitude;
+        cell.Altitude = altitude;
 
         if (altitude > MaxAltitude) MaxAltitude = altitude;
         if (altitude < MinAltitude) MinAltitude = altitude;
@@ -3222,12 +3227,12 @@ public class World : ISynchronizable
         if (justSetRainfallSources)
             return;
 
-        float altitudeValue = Mathf.Max(0, cell.Altitude);
-        float offAltitude = Mathf.Max(0, offCell.Altitude);
-        float offAltitude2 = Mathf.Max(0, offCell2.Altitude);
-        float offAltitude3 = Mathf.Max(0, offCell3.Altitude);
-        float offAltitude4 = Mathf.Max(0, offCell4.Altitude);
-        float offAltitude5 = Mathf.Max(0, offCell5.Altitude);
+        float altitudeValue = Mathf.Max(0, cell.NoErosionAltitude);
+        float offAltitude = Mathf.Max(0, offCell.NoErosionAltitude);
+        float offAltitude2 = Mathf.Max(0, offCell2.NoErosionAltitude);
+        float offAltitude3 = Mathf.Max(0, offCell3.NoErosionAltitude);
+        float offAltitude4 = Mathf.Max(0, offCell4.NoErosionAltitude);
+        float offAltitude5 = Mathf.Max(0, offCell5.NoErosionAltitude);
 
         float altitudeModifier = (altitudeValue -
                                   (offAltitude * 0.7f) -
@@ -3265,6 +3270,25 @@ public class World : ISynchronizable
 
         _accumulatedProgress += _progressIncrement;
     }
+    private void ResetDrainage()
+    {
+        int sizeX = Width;
+        int sizeY = Height;
+        
+        for (int i = 0; i < sizeX; i++)
+        {
+            for (int j = 0; j < sizeY; j++)
+            {
+                ResetDrainage(TerrainCells[i][j]);
+            }
+        }
+    }
+
+    private void ResetDrainage(TerrainCell cell)
+    {
+        cell.Buffer = 0;
+        cell.Altitude = cell.NoErosionAltitude;
+    }
 
     private void GenerateDrainageBasins()
     {
@@ -3289,11 +3313,6 @@ public class World : ISynchronizable
 
                 if (cell.Altitude <= 0)
                     continue;
-
-                //if (cell.Buffer > 0)
-                //{
-                //    bool debug = true;
-                //}
 
                 cell.Buffer += cell.Rainfall;
                 cell.WaterAccumulation = cell.Buffer;

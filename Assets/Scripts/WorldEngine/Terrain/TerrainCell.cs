@@ -78,7 +78,8 @@ public class TerrainCell
     
     public float BaseRainfallOffset;
     public float BaseTemperatureOffset;
-    
+
+    public float NoErosionAltitude;
     public float Altitude;
     public float Rainfall;
     public float Temperature;
@@ -266,6 +267,7 @@ public class TerrainCell
         BaseTemperatureOffset = alteration.BaseTemperatureOffset;
         BaseRainfallOffset = alteration.BaseRainfallOffset;
 
+        NoErosionAltitude = alteration.Altitude;
         Altitude = alteration.Altitude;
         Temperature = alteration.Temperature;
         Rainfall = alteration.Rainfall;
@@ -603,11 +605,11 @@ public class TerrainCell
 
     private bool FindIfCoastline()
     {
-        if (WaterBiomeRelPresence > 0.5f)
+        if (WaterBiomeRelPresence > 0.25f)
         {
             foreach (TerrainCell nCell in Neighbors.Values)
             {
-                if (nCell.WaterBiomeRelPresence < 0.5f)
+                if (nCell.WaterBiomeRelPresence < 0.25f)
                     return true;
             }
         }
@@ -615,7 +617,7 @@ public class TerrainCell
         {
             foreach (TerrainCell nCell in Neighbors.Values)
             {
-                if (nCell.WaterBiomeRelPresence >= 0.5f)
+                if (nCell.WaterBiomeRelPresence >= 0.25f)
                     return true;
             }
         }

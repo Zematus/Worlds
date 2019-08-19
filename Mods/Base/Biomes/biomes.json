@@ -47,7 +47,7 @@
       "color": "#1C4254",
       "type": "water",
       "minAltitude": 0,
-      "minWaterAccumulation": 21400,
+      "minWaterAccumulation": 3150,
       "maxWaterAccumulation": 53000,
       "minTemperature": -15,
       "survivability": 0.0,

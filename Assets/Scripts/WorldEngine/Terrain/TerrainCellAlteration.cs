@@ -65,7 +65,7 @@ public class TerrainCellAlteration
         BaseTemperatureOffset = cell.BaseTemperatureOffset;
         BaseRainfallOffset = cell.BaseRainfallOffset;
 
-        Altitude = cell.Altitude;
+        Altitude = cell.NoErosionAltitude;
         Temperature = cell.Temperature;
         Rainfall = cell.Rainfall;
         
