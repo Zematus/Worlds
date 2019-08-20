@@ -2499,7 +2499,7 @@ public class Manager
 
     private static bool IsCoastWater(TerrainCell cell)
     {
-        if (cell.WaterBiomeRelPresence < 0.25f)
+        if (cell.WaterBiomeRelPresence < 0.5f)
             return false;
 
         return cell.IsPartOfCoastline;
@@ -2507,7 +2507,7 @@ public class Manager
 
     private static bool IsCoastLand(TerrainCell cell)
     {
-        if (cell.WaterBiomeRelPresence >= 0.25f)
+        if (cell.WaterBiomeRelPresence >= 0.5f)
             return false;
 
         return cell.IsPartOfCoastline;
@@ -2701,7 +2701,7 @@ public class Manager
 
         if (cell.Altitude > 0)
         {
-            if (cell.WaterBiomeRelPresence >= 0.25f)
+            if (cell.WaterBiomeRelPresence >= 0.5f)
                 return _mapPalette[3];
 
             float slant = GetSlant(cell);

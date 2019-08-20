@@ -173,11 +173,11 @@ public class World : ISynchronizable
     public const float MinPossibleTemperature = -50 - AvgPossibleTemperature;
     public const float MaxPossibleTemperature = 30 + AvgPossibleTemperature;
 
-    public const float RiverEvaporationFactor = 0.25f;
+    public const float RiverEvaporationFactor = 0.2f;
     public const float OceanDispersalFactor = 0.25f;
     public const float MinOceanDispersal = 50f;
     public const float WaterErosionFactor = 50f;
-    public const float LakeAccumulationFactor = 0.5f;
+    public const float LakeAccumulationFactor = 5f;
     public const float HeightToRainfallConversionFactor = 1000f;
     public const float RainfallToHeightConversionFactor = 1f / HeightToRainfallConversionFactor;
     public const float MinRiverFlow = HeightToRainfallConversionFactor / 100f;
@@ -3331,6 +3331,7 @@ public class World : ISynchronizable
                     if ((nCellAltitude > cellAltitude) && (nCell.Buffer > MinRiverFlow))
                     {
                         higherThanNeighbors = false;
+                        cell.WaterAccumulation = cell.Rainfall;
                         break;
                     }
                 }

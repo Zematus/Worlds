@@ -605,11 +605,11 @@ public class TerrainCell
 
     private bool FindIfCoastline()
     {
-        if (WaterBiomeRelPresence > 0.25f)
+        if (WaterBiomeRelPresence > 0.5f)
         {
             foreach (TerrainCell nCell in Neighbors.Values)
             {
-                if (nCell.WaterBiomeRelPresence < 0.25f)
+                if (nCell.WaterBiomeRelPresence < 0.5f)
                     return true;
             }
         }
@@ -617,7 +617,7 @@ public class TerrainCell
         {
             foreach (TerrainCell nCell in Neighbors.Values)
             {
-                if (nCell.WaterBiomeRelPresence >= 0.25f)
+                if (nCell.WaterBiomeRelPresence >= 0.5f)
                     return true;
             }
         }
