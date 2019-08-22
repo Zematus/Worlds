@@ -4083,7 +4083,7 @@ public class Manager
             color = Color.blue;
         }
 
-        if (Biome.Biomes[cell.BiomeWithMostPresence].Traits.Contains(BiomeTrait.Ice))
+        if (Biome.Biomes[cell.BiomeWithMostPresence].TerrainType == BiomeTerrainType.Ice)
         {
             color = Color.white;
         }

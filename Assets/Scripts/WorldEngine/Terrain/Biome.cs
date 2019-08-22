@@ -7,14 +7,14 @@ using System.Xml.Serialization;
 public enum BiomeTerrainType
 {
     Land,
-    Water
+    Water,
+    Ice
 }
 
 public enum BiomeTrait
 {
     Wood,
-    Sea,
-    Ice
+    Sea
 }
 
 public class Biome
@@ -38,6 +38,13 @@ public class Biome
 
     public static float MinBiomeAltitude = World.MinPossibleAltitude * 3 - 1;
     public static float MaxBiomeAltitude = World.MaxPossibleAltitude * 3 + 1;
+
+    public static float MaxLoadedIceBiomeTemperature = float.MinValue;
+    public static float MinLoadedIceBiomeTemperature = float.MaxValue;
+    public static float MaxLoadedIceBiomeRainfall = float.MinValue;
+    public static float MinLoadedIceBiomeRainfall = float.MaxValue;
+    public static float MaxLoadedIceBiomeAltitude = float.MinValue;
+    public static float MinLoadedIceBiomeAltitude = float.MaxValue;
 
     public static Dictionary<string, Biome> Biomes;
 
@@ -87,6 +94,45 @@ public class Biome
             {
                 Biomes.Add(biome.Id, biome);
             }
+
+            if (biome.TerrainType == BiomeTerrainType.Ice)
+            {
+                MaxLoadedIceBiomeTemperature = Mathf.Max(biome.MaxTemperature, MaxLoadedIceBiomeTemperature);
+                MinLoadedIceBiomeTemperature = Mathf.Min(biome.MinTemperature, MinLoadedIceBiomeTemperature);
+                MaxLoadedIceBiomeRainfall = Mathf.Max(biome.MaxRainfall, MaxLoadedIceBiomeRainfall);
+                MinLoadedIceBiomeRainfall = Mathf.Min(biome.MinRainfall, MinLoadedIceBiomeRainfall);
+                MaxLoadedIceBiomeAltitude = Mathf.Max(biome.MaxAltitude, MaxLoadedIceBiomeAltitude);
+                MinLoadedIceBiomeAltitude = Mathf.Min(biome.MinAltitude, MinLoadedIceBiomeAltitude);
+            }
         }
+    }
+
+    public static bool CellHasIce(TerrainCell cell)
+    {
+        if ((cell.Temperature > MaxLoadedIceBiomeTemperature) || (cell.Temperature < MinLoadedIceBiomeTemperature))
+            return false;
+
+        if ((cell.Rainfall > MaxLoadedIceBiomeRainfall) || (cell.Rainfall < MinLoadedIceBiomeRainfall))
+            return false;
+
+        if ((cell.Altitude > MaxLoadedIceBiomeAltitude) || (cell.Altitude < MinLoadedIceBiomeAltitude))
+            return false;
+
+        foreach (Biome biome in Biomes.Values)
+        {
+            if (biome.TerrainType == BiomeTerrainType.Ice)
+            {
+                if ((cell.Temperature > biome.MaxTemperature) || (cell.Temperature < biome.MinTemperature))
+                    return false;
+
+                if ((cell.Rainfall > biome.MaxRainfall) || (cell.Rainfall < biome.MinRainfall))
+                    return false;
+
+                if ((cell.Altitude > biome.MaxAltitude) || (cell.Altitude < biome.MinAltitude))
+                    return false;
+            }
+        }
+
+        return true;
     }
 }

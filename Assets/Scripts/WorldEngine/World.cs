@@ -176,7 +176,7 @@ public class World : ISynchronizable
     public const float RiverEvaporationFactor = 0.2f;
     public const float OceanDispersalFactor = 0.25f;
     public const float MinOceanDispersal = 50f;
-    public const float WaterErosionFactor = 50f;
+    public const float WaterErosionFactor = 400f;
     public const float LakeAccumulationFactor = 5f;
     public const float HeightToRainfallConversionFactor = 1000f;
     public const float RainfallToHeightConversionFactor = 1f / HeightToRainfallConversionFactor;
@@ -304,11 +304,6 @@ public class World : ISynchronizable
     public float MinPossibleAltitudeWithOffset = MinPossibleAltitude - Manager.SeaLevelOffset;
     [XmlIgnore]
     public float MaxPossibleAltitudeWithOffset = MaxPossibleAltitude - Manager.SeaLevelOffset;
-
-    //[XmlIgnore]
-    //public float MinPossibleRainfallWithOffset = MinPossibleRainfall;
-    //[XmlIgnore]
-    //public float MaxPossibleRainfallWithOffset = MaxPossibleRainfall * Manager.RainfallOffset / AvgPossibleRainfall;
 
     [XmlIgnore]
     public float MinPossibleRainfallWithOffset = MinPossibleRainfall + Manager.RainfallOffset;
@@ -483,9 +478,6 @@ public class World : ISynchronizable
         MinPossibleAltitudeWithOffset = MinPossibleAltitude - Manager.SeaLevelOffset;
         MaxPossibleAltitudeWithOffset = MaxPossibleAltitude - Manager.SeaLevelOffset;
 
-        //MinPossibleRainfallWithOffset = MinPossibleRainfall;
-        //MaxPossibleRainfallWithOffset = MaxPossibleRainfall * Manager.RainfallOffset / AvgPossibleRainfall;
-
         MinPossibleRainfallWithOffset = MinPossibleRainfall + Manager.RainfallOffset;
         MaxPossibleRainfallWithOffset = MaxPossibleRainfall + Manager.RainfallOffset;
 
@@ -521,9 +513,6 @@ public class World : ISynchronizable
 
         MinPossibleAltitudeWithOffset = MinPossibleAltitude - Manager.SeaLevelOffset;
         MaxPossibleAltitudeWithOffset = MaxPossibleAltitude - Manager.SeaLevelOffset;
-
-        //MinPossibleRainfallWithOffset = MinPossibleRainfall;
-        //MaxPossibleRainfallWithOffset = MaxPossibleRainfall * Manager.RainfallOffset / AvgPossibleRainfall;
 
         MinPossibleRainfallWithOffset = MinPossibleRainfall + Manager.RainfallOffset;
         MaxPossibleRainfallWithOffset = MaxPossibleRainfall + Manager.RainfallOffset;
@@ -3301,6 +3290,7 @@ public class World : ISynchronizable
         float secondPartLength = 0.8f;
         float thirdPartLength = 0.1f;
 
+        HashSet<TerrainCell> erodedCells = new HashSet<TerrainCell>();
         HashSet<TerrainCell> queuedDrainCells = new HashSet<TerrainCell>();
         Queue<TerrainCell> cellsToDrainFrom = new Queue<TerrainCell>(sizeX * sizeY);
 
@@ -3310,6 +3300,7 @@ public class World : ISynchronizable
             for (int j = 0; j < sizeY; j++)
             {
                 TerrainCell cell = TerrainCells[i][j];
+                cell.Buffer2 = 0;
 
                 if (cell.Altitude <= 0)
                     continue;
@@ -3341,6 +3332,7 @@ public class World : ISynchronizable
 
                 cellsToDrainFrom.Enqueue(cell);
                 queuedDrainCells.Add(cell);
+                erodedCells.Add(cell);
             }
 
             ProgressCastMethod(_accumulatedProgress + _progressIncrement * firstPartLength * (i + 1) / sizeX);
@@ -3429,7 +3421,7 @@ public class World : ISynchronizable
 
         if (MaxWaterAccumulation > 0)
         {
-            // erode cell altitudes
+            // set cells to erode
             for (int i = 0; i < sizeX; i++)
             {
                 for (int j = 0; j < sizeY; j++)
@@ -3438,11 +3430,15 @@ public class World : ISynchronizable
 
                     if (cell.WaterAccumulation > 0)
                     {
-                        float rainfallFactor = MaxPossibleRainfall / Mathf.Max(cell.Rainfall + MaxPossibleRainfall, 1);
-                        float waterAccFactor = 1 - Mathf.Min(1, cell.WaterAccumulation / (3 * MaxPossibleRainfall));
-                        waterAccFactor = 1 - Mathf.Pow(waterAccFactor, 10);
+                        float rainfallFactor = Mathf.Max(Mathf.Pow(cell.Rainfall, 2), 0);
+                        rainfallFactor = 0.2f + MaxPossibleRainfall / (rainfallFactor + MaxPossibleRainfall);
+                        //float waterAccFactor = 1 - Mathf.Min(1, cell.WaterAccumulation / (3 * MaxPossibleRainfall));
+                        //waterAccFactor = 1 - Mathf.Pow(waterAccFactor, 10);
+                        float waterAccFactor = Mathf.Min(1, cell.WaterAccumulation / (3 * MaxPossibleRainfall));
+                        //waterAccFactor = Mathf.Pow(waterAccFactor, 1f);
 
-                        cell.Altitude -= WaterErosionFactor * waterAccFactor * rainfallFactor;
+                        cell.Buffer2 += WaterErosionFactor * waterAccFactor * rainfallFactor;
+                        erodedCells.Add(cell);
                     }
                 }
 
@@ -3450,6 +3446,13 @@ public class World : ISynchronizable
             }
         }
 
+        // erode cells
+        foreach (TerrainCell cell in erodedCells)
+        {
+            cell.Altitude -= cell.Buffer2;
+        }
+
+        // set lake cells
         foreach (TerrainCell cell in sinkCells)
         {
             cell.Buffer = cell.WaterAccumulation * LakeAccumulationFactor;
