@@ -177,7 +177,7 @@ public class World : ISynchronizable
     public const float OceanDispersalFactor = 0.25f;
     public const float MinOceanDispersal = 50f;
     public const float WaterErosionFactor = 400f;
-    public const float FlowInertiaFactor = 5f;
+    public const float FlowInertiaFactor = 10f;
     public const float LakeAccumulationFactor = 1f;
     public const float HeightToRainfallConversionFactor = 1000f;
     public const float RainfallToHeightConversionFactor = 1f / HeightToRainfallConversionFactor;
