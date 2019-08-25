@@ -4083,9 +4083,16 @@ public class Manager
             color = Color.blue;
         }
 
-        if (Biome.Biomes[cell.BiomeWithMostPresence].TerrainType == BiomeTerrainType.Ice)
+        if (cell.BiomeWithMostPresence != null)
         {
-            color = Color.white;
+            if (Biome.Biomes[cell.BiomeWithMostPresence].TerrainType == BiomeTerrainType.Ice)
+            {
+                color = Color.white;
+            }
+        }
+        else
+        {
+            Debug.LogWarning("cell has no biome presence: " + cell.Position);
         }
 
         while (shadeValue > value)

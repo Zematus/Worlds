@@ -172,13 +172,13 @@ public class World : ISynchronizable
 
     public const float MinPossibleTemperature = -50 - AvgPossibleTemperature;
     public const float MaxPossibleTemperature = 30 + AvgPossibleTemperature;
-
-    public const float RiverEvaporationFactor = 0.25f;
+    
     public const float OceanDispersalFactor = 0.25f;
     public const float MinOceanDispersal = 50f;
-    public const float WaterErosionFactor = 400f;
-    public const float FlowInertiaFactor = 10f;
+    public const float WaterErosionFactor = 600f;
+    public const float FlowInertiaFactor = 1f;
     public const float LakeAccumulationFactor = 1f;
+    public const float IceAccumulationFactor = 1f;
     public const float HeightToRainfallConversionFactor = 1000f;
     public const float RainfallToHeightConversionFactor = 1f / HeightToRainfallConversionFactor;
     public const float MinRiverFlow = HeightToRainfallConversionFactor / 100f;
@@ -2075,43 +2075,6 @@ public class World : ISynchronizable
             _accumulatedProgress += _progressIncrement;
         }
 
-        if ((type & GenerationType.Rainfall) == GenerationType.Rainfall)
-        {
-            ProgressCastMethod(_accumulatedProgress, "Calculating rainfall...");
-
-            ResetDrainage();
-            ResetRainfallDependencies();
-            GenerateTerrainRainfall();
-            //GenerateTerrainRainfall2();
-
-            ProgressCastMethod(_accumulatedProgress, "Generating Drainage Basins...");
-
-            GenerateDrainageBasins();
-            GenerateDrainageBasins(); // repeat to simulate geological scale erosion
-        }
-        else if ((type & GenerationType.RainfallRegeneration) == GenerationType.RainfallRegeneration)
-        {
-            ProgressCastMethod(_accumulatedProgress, "Recalculating rainfall...");
-
-            ResetDrainage();
-            RegenerateTerrainRainfall();
-
-            ProgressCastMethod(_accumulatedProgress, "Regenerating Drainage Basins...");
-
-            GenerateDrainageBasins();
-            GenerateDrainageBasins(); // repeat to simulate geological scale erosion
-        }
-        else
-        {
-            OffsetRainfallGenRngCalls();
-
-            _accumulatedProgress += _progressIncrement;
-        }
-
-        ProgressCastMethod(_accumulatedProgress, "Calculating hilliness...");
-
-        CalculateTerrainHilliness();
-
         if ((type & GenerationType.Temperature) == GenerationType.Temperature)
         {
             ProgressCastMethod(_accumulatedProgress, "Calculating temperatures...");
@@ -2130,6 +2093,43 @@ public class World : ISynchronizable
 
             _accumulatedProgress += _progressIncrement;
         }
+
+        if ((type & GenerationType.Rainfall) == GenerationType.Rainfall)
+        {
+            ProgressCastMethod(_accumulatedProgress, "Calculating rainfall...");
+
+            ResetDrainage();
+            ResetRainfallDependencies();
+            GenerateTerrainRainfall();
+            //GenerateTerrainRainfall2();
+
+            ProgressCastMethod(_accumulatedProgress, "Generating Drainage Basins...");
+
+            GenerateDrainageBasins();
+            GenerateDrainageBasins(false); // repeat to simulate geological scale erosion
+        }
+        else if ((type & GenerationType.RainfallRegeneration) == GenerationType.RainfallRegeneration)
+        {
+            ProgressCastMethod(_accumulatedProgress, "Recalculating rainfall...");
+
+            ResetDrainage();
+            RegenerateTerrainRainfall();
+
+            ProgressCastMethod(_accumulatedProgress, "Regenerating Drainage Basins...");
+
+            GenerateDrainageBasins();
+            GenerateDrainageBasins(false); // repeat to simulate geological scale erosion
+        }
+        else
+        {
+            OffsetRainfallGenRngCalls();
+
+            _accumulatedProgress += _progressIncrement;
+        }
+
+        ProgressCastMethod(_accumulatedProgress, "Calculating hilliness...");
+
+        CalculateTerrainHilliness();
 
         ProgressCastMethod(_accumulatedProgress, "Generating layers...");
 
@@ -3280,7 +3280,7 @@ public class World : ISynchronizable
         cell.Altitude = cell.NoErosionAltitude;
     }
 
-    private void GenerateDrainageBasins()
+    private void GenerateDrainageBasins(bool doErosion = true)
     {
         int sizeX = Width;
         int sizeY = Height;
@@ -3306,7 +3306,14 @@ public class World : ISynchronizable
                 if (cell.Altitude <= 0)
                     continue;
 
-                cell.Buffer += cell.Rainfall;
+                float initialInput = cell.Rainfall;
+
+                if (Biome.CellHasIce(cell))
+                {
+                    initialInput *= IceAccumulationFactor;
+                }
+
+                cell.Buffer += initialInput;
                 cell.WaterAccumulation = cell.Buffer;
 
                 MaxWaterAccumulation = Mathf.Max(MaxWaterAccumulation, cell.WaterAccumulation);
@@ -3398,9 +3405,27 @@ public class World : ISynchronizable
                 float waterLoss = 0;
 
                 if (nCellAltitude <= 0)
+                {
                     waterLoss = Mathf.Max(rainfallTransfer * OceanDispersalFactor, MinOceanDispersal);
+                }
                 else
-                    waterLoss = rainfallTransfer * RiverEvaporationFactor;
+                {
+                    float bottomMinRiverFlow = 500.0f;
+                    float topMinRiverFlow = 2000.0f;
+                    float maxRiverLoss = 500000.0f;
+                    float bottomLossFactor = 0.2f;
+                    float topLossFactor = 1f;
+                    float minTemp = 0.0f;
+                    float maxTemp = 70.0f;
+
+                    float tempFactor = Mathf.Clamp01((cell.Temperature - minTemp) / (maxTemp - minTemp));
+                    float lossFactor = tempFactor * (topLossFactor - bottomLossFactor) + bottomLossFactor;
+
+                    float minRiverLevel = tempFactor * (topMinRiverFlow - bottomMinRiverFlow) + bottomMinRiverFlow;
+                    float transferMinusMinLevel = Mathf.Max(0, rainfallTransfer - minRiverLevel);
+
+                    waterLoss = Mathf.Min(transferMinusMinLevel * lossFactor, maxRiverLoss);
+                }
 
                 rainfallTransfer -= waterLoss;
 
@@ -3422,7 +3447,7 @@ public class World : ISynchronizable
             cell.Buffer = 0;
         }
 
-        if (MaxWaterAccumulation > 0)
+        if (doErosion && (MaxWaterAccumulation > 0))
         {
             // set cells to erode
             for (int i = 0; i < sizeX; i++)
@@ -3437,8 +3462,9 @@ public class World : ISynchronizable
                         rainfallFactor = 0.2f + MaxPossibleRainfall / (rainfallFactor + MaxPossibleRainfall);
                         //float waterAccFactor = 1 - Mathf.Min(1, cell.WaterAccumulation / (3 * MaxPossibleRainfall));
                         //waterAccFactor = 1 - Mathf.Pow(waterAccFactor, 10);
-                        float waterAccFactor = Mathf.Min(1, cell.WaterAccumulation / (1 * MaxPossibleRainfall));
-                        waterAccFactor = Mathf.Pow(waterAccFactor, 10f);
+                        float rainfallScalingFactor = 1f * MaxPossibleRainfall;
+                        float waterAccFactor = cell.WaterAccumulation / (cell.WaterAccumulation + rainfallScalingFactor);
+                        //waterAccFactor = Mathf.Pow(waterAccFactor, 10f);
 
                         cell.Buffer2 += WaterErosionFactor * waterAccFactor * rainfallFactor;
                         erodedCells.Add(cell);
@@ -4014,6 +4040,11 @@ public class World : ISynchronizable
 
         altitudeFactor *= biome.AltSaturationSlope;
 
+        if (altitudeFactor == 0)
+        {
+            altitudeFactor = 0.005f; // We don't want to return 0 ever as it messes up with biome asignations
+        }
+
         return altitudeFactor * 2;
     }
 
@@ -4034,6 +4065,11 @@ public class World : ISynchronizable
             waterFactor = 1f - waterFactor;
 
         waterFactor *= biome.WaterSaturationSlope;
+
+        if (waterFactor == 0)
+        {
+            waterFactor = 0.005f; // We don't want to return 0 ever as it messes up with biome asignations
+        }
 
         return waterFactor * 2;
     }
@@ -4067,6 +4103,11 @@ public class World : ISynchronizable
 
         waterFactor *= biome.WaterSaturationSlope;
 
+        if (waterFactor == 0)
+        {
+            waterFactor = 0.005f; // We don't want to return 0 ever as it messes up with biome asignations
+        }
+
         return waterFactor * 2;
     }
 
@@ -4093,6 +4134,11 @@ public class World : ISynchronizable
             temperatureFactor = 1f - temperatureFactor;
 
         temperatureFactor *= biome.TempSaturationSlope;
+
+        if (temperatureFactor == 0)
+        {
+            temperatureFactor = 0.005f; // We don't want to return 0 ever as it messes up with biome asignations
+        }
 
         return temperatureFactor * 2;
     }
@@ -4123,6 +4169,11 @@ public class World : ISynchronizable
         if (valueFactor > 0.5f)
             valueFactor = 1f - valueFactor;
 
+        if (valueFactor == 0)
+        {
+            valueFactor = 0.005f; // We don't want to return 0 ever as it messes up with biome asignations
+        }
+
         return valueFactor * 2;
     }
 
@@ -4137,7 +4188,7 @@ public class World : ISynchronizable
         {
             layerFactor *= CalculateBiomeLayerFactor(cell, constraint);
 
-            if (layerFactor < 0)
+            if (layerFactor <= 0)
                 return layerFactor;
         }
 
@@ -4147,10 +4198,10 @@ public class World : ISynchronizable
     private float CalculateBiomePresence(TerrainCell cell, Biome biome)
     {
         float presence = 1f;
-        
+
         presence *= CalculateBiomeAltitudeFactor(cell, biome);
 
-        if (presence < 0)
+        if (presence <= 0)
             return presence;
 
         if (!biome.Traits.Contains(BiomeTrait.Sea))
@@ -4158,12 +4209,12 @@ public class World : ISynchronizable
             presence *= CalculateBiomeWaterFactor(cell, biome);
         }
 
-        if (presence < 0)
+        if (presence <= 0)
             return presence;
 
         presence *= CalculateBiomeTemperatureFactor(cell, biome);
 
-        if (presence < 0)
+        if (presence <= 0)
             return presence;
 
         presence *= CalculateBiomeLayerFactor(cell, biome);

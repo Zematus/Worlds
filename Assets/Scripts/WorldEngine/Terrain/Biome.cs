@@ -118,21 +118,24 @@ public class Biome
         if ((cell.Altitude > MaxLoadedIceBiomeAltitude) || (cell.Altitude < MinLoadedIceBiomeAltitude))
             return false;
 
+        bool hasIce = false;
         foreach (Biome biome in Biomes.Values)
         {
             if (biome.TerrainType == BiomeTerrainType.Ice)
             {
                 if ((cell.Temperature > biome.MaxTemperature) || (cell.Temperature < biome.MinTemperature))
-                    return false;
+                    continue;
 
                 if ((cell.Rainfall > biome.MaxRainfall) || (cell.Rainfall < biome.MinRainfall))
-                    return false;
+                    continue;
 
                 if ((cell.Altitude > biome.MaxAltitude) || (cell.Altitude < biome.MinAltitude))
-                    return false;
+                    continue;
+
+                hasIce = true;
             }
         }
 
-        return true;
+        return hasIce;
     }
 }
