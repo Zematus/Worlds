@@ -181,7 +181,7 @@ public class World : ISynchronizable
     public const float IceAccumulationFactor = 1f;
     public const float HeightToRainfallConversionFactor = 1000f;
     public const float RainfallToHeightConversionFactor = 1f / HeightToRainfallConversionFactor;
-    public const float MinRiverFlow = HeightToRainfallConversionFactor / 100f;
+    public const float MinRiverFlow = HeightToRainfallConversionFactor / 10f;
 
     public const float StartPopulationDensity = 0.5f;
 
@@ -2094,31 +2094,20 @@ public class World : ISynchronizable
             _accumulatedProgress += _progressIncrement;
         }
 
+        ResetDrainage();
+
         if ((type & GenerationType.Rainfall) == GenerationType.Rainfall)
         {
             ProgressCastMethod(_accumulatedProgress, "Calculating rainfall...");
-
-            ResetDrainage();
+            
             ResetRainfallDependencies();
             GenerateTerrainRainfall();
-            //GenerateTerrainRainfall2();
-
-            ProgressCastMethod(_accumulatedProgress, "Generating Drainage Basins...");
-
-            GenerateDrainageBasins();
-            GenerateDrainageBasins(false); // repeat to simulate geological scale erosion
         }
         else if ((type & GenerationType.RainfallRegeneration) == GenerationType.RainfallRegeneration)
         {
             ProgressCastMethod(_accumulatedProgress, "Recalculating rainfall...");
 
-            ResetDrainage();
             RegenerateTerrainRainfall();
-
-            ProgressCastMethod(_accumulatedProgress, "Regenerating Drainage Basins...");
-
-            GenerateDrainageBasins();
-            GenerateDrainageBasins(false); // repeat to simulate geological scale erosion
         }
         else
         {
@@ -2126,6 +2115,11 @@ public class World : ISynchronizable
 
             _accumulatedProgress += _progressIncrement;
         }
+
+        ProgressCastMethod(_accumulatedProgress, "Generating Drainage Basins...");
+
+        GenerateDrainageBasins();
+        GenerateDrainageBasins(false); // repeat to simulate geological scale erosion
 
         ProgressCastMethod(_accumulatedProgress, "Calculating hilliness...");
 
@@ -3032,106 +3026,6 @@ public class World : ISynchronizable
         _rainfallNoiseOffset3.Wait();
     }
 
-    //private const float _minConcentrationDecFactor = 0.005f;
-    //private const float _altitudeConcentrationDecFactor = 5f / MaxPossibleAltitude;
-    //private const float _maxLatitudeWindFactor = 2;
-    //private const float _maxLongitudeWindFactor = 1;
-    //private const float _baseWindComponentOffsetFactor = 2;
-
-    //private const float _minRainfallFactor = 0.8f;
-    //private const float _altitudeRainfallFactor = 5f / MaxPossibleAltitude;
-    //private const float _moistureToRainfallValue = 0.03f;
-
-    //private float GetMoistureFromCell(float longitudeOffset, float latitudeOffset, float concentration = 1, bool convertToRainfall = false)
-    //{
-    //    float componentOffsetFactor = _baseWindComponentOffsetFactor * Width / 400f;
-    //    float maxWaterAccumulation = 1;
-
-    //    int longitude = Mathf.FloorToInt(longitudeOffset);
-    //    int latitude = Mathf.FloorToInt(latitudeOffset);
-
-    //    TerrainCell cell = TerrainCells[longitude][latitude];
-
-    //    float moisture = (cell.Altitude < 0) ? maxWaterAccumulation : 0;
-
-    //    float latWindFactor = _maxLatitudeWindFactor * Mathf.Sin(latitude * Mathf.PI / Height);
-    //    float latDirectionFactor = Mathf.Sin(latitude * 3 * Mathf.PI / Height);
-
-    //    float longitudeComponent = -latWindFactor * latDirectionFactor * Mathf.Abs(latDirectionFactor);
-    //    float latitudeComponent = -_maxLongitudeWindFactor * Mathf.Sin(latitude * 6 * Mathf.PI / Height);
-
-    //    float largestAbsWindComponent = Mathf.Max(Mathf.Abs(longitudeComponent), Mathf.Abs(latitudeComponent));
-
-    //    if (largestAbsWindComponent < 0.001f)
-    //        return (convertToRainfall) ? 0 : moisture;
-
-    //    longitudeOffset += componentOffsetFactor * longitudeComponent / largestAbsWindComponent;
-    //    latitudeOffset += componentOffsetFactor * latitudeComponent / largestAbsWindComponent;
-
-    //    if ((latitudeOffset < 0) || (latitudeOffset > (Height - 1)))
-    //        return (convertToRainfall) ? 0 : moisture;
-
-    //    longitudeOffset = Mathf.Repeat(longitudeOffset, Width);
-
-    //    int nextLongitude = Mathf.FloorToInt(longitudeOffset);
-    //    int nextLatitude = Mathf.FloorToInt(latitudeOffset);
-
-    //    TerrainCell nextCell = TerrainCells[nextLongitude][nextLatitude];
-
-    //    float concentrationDecFactor = _minConcentrationDecFactor / largestAbsWindComponent;
-
-    //    float altitude1 = Mathf.Max(0, cell.Altitude);
-    //    float altitude2 = Mathf.Max(0, nextCell.Altitude);
-    //    float altitudeDeltaDecFactor = Mathf.Pow(_altitudeConcentrationDecFactor * Mathf.Max(0, altitude2 - altitude1), 2);
-
-    //    concentration -= Mathf.Max(concentrationDecFactor, altitudeDeltaDecFactor);
-
-    //    if (concentration <= 0)
-    //        return (convertToRainfall) ? 0 : moisture;
-
-    //    moisture += concentration * GetMoistureFromCell(longitudeOffset, latitudeOffset, concentration);
-
-    //    if (convertToRainfall)
-    //    {
-    //        float minRainfallFactor = _minRainfallFactor * largestAbsWindComponent;
-    //        float altitudeDeltaRainFactor = Mathf.Pow(_altitudeRainfallFactor * Mathf.Max(0, altitude1 - altitude2), 2);
-
-    //        float rainfallFactor = Mathf.Lerp(minRainfallFactor, altitudeDeltaRainFactor, 0.85f);
-    //        return moisture * _moistureToRainfallValue * rainfallFactor;
-    //    }
-
-    //    return moisture;
-    //}
-
-    //private void GenerateTerrainRainfall2()
-    //{
-    //    int sizeX = Width;
-    //    int sizeY = Height;
-
-    //    for (int i = 0; i < sizeX; i++)
-    //    {
-    //        for (int j = 0; j < sizeY; j++)
-    //        {
-    //            if (SkipIfModified(i, j))
-    //                continue;
-
-    //            TerrainCell cell = TerrainCells[i][j];
-
-    //            float rainfallValue = GetMoistureFromCell(i, j, convertToRainfall: true);
-
-    //            float rainfall = Mathf.Min(MaxPossibleRainfall, CalculateRainfall(rainfallValue));
-    //            cell.Rainfall = rainfall;
-
-    //            if (rainfall > MaxRainfall) MaxRainfall = rainfall;
-    //            if (rainfall < MinRainfall) MinRainfall = rainfall;
-    //        }
-
-    //        ProgressCastMethod(_accumulatedProgress + _progressIncrement * (i + 1) / (float)sizeX);
-    //    }
-
-    //    _accumulatedProgress += _progressIncrement;
-    //}
-
     private void CalculateAndSetRainfall(TerrainCell cell, float value, float? offset = null, bool modified = false)
     {
         if (offset != null)
@@ -3413,10 +3307,10 @@ public class World : ISynchronizable
                     float bottomMinRiverFlow = 500.0f;
                     float topMinRiverFlow = 2000.0f;
                     float maxRiverLoss = 500000.0f;
-                    float bottomLossFactor = 0.2f;
+                    float bottomLossFactor = 0.25f;
                     float topLossFactor = 1f;
                     float minTemp = 0.0f;
-                    float maxTemp = 70.0f;
+                    float maxTemp = 40.0f;
 
                     float tempFactor = Mathf.Clamp01((cell.Temperature - minTemp) / (maxTemp - minTemp));
                     float lossFactor = tempFactor * (topLossFactor - bottomLossFactor) + bottomLossFactor;
