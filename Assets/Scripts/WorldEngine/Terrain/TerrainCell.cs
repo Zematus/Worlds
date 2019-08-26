@@ -190,6 +190,14 @@ public class TerrainCell
         MaxAreaPercent = Area / MaxArea;
     }
 
+    public static int CompareNoErosionAltitude(TerrainCell a, TerrainCell b)
+    {
+        if (a.NoErosionAltitude > b.NoErosionAltitude) return -1;
+        if (a.NoErosionAltitude < b.NoErosionAltitude) return 1;
+
+        return 0;
+    }
+
     public static Direction ReverseDirection(Direction dir)
     {
         return (Direction)(((int)dir + 4) % 8);
