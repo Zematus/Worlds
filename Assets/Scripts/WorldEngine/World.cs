@@ -3091,7 +3091,6 @@ public class World : ISynchronizable
 
         HashSet<TerrainCell> erodedCells = new HashSet<TerrainCell>();
         HashSet<TerrainCell> queuedDrainCells = new HashSet<TerrainCell>();
-        //Queue<TerrainCell> cellsToDrainFrom = new Queue<TerrainCell>(sizeX * sizeY);
         BinaryHeap<TerrainCell> cellsToDrainFrom = new BinaryHeap<TerrainCell>(TerrainCell.CompareNoErosionAltitude, 500000);
 
 #if DEBUG
@@ -3142,8 +3141,7 @@ public class World : ISynchronizable
 
                 if (!higherThanNeighbors)
                     continue;
-
-                //cellsToDrainFrom.Enqueue(cell);
+                
                 cellsToDrainFrom.Insert(cell);
                 queuedDrainCells.Add(cell);
                 erodedCells.Add(cell);
@@ -3156,14 +3154,11 @@ public class World : ISynchronizable
 
             ProgressCastMethod(_accumulatedProgress + _progressIncrement * firstPartLength * (i + 1) / sizeX);
         }
-
-        //HashSet<TerrainCell> sinkCells = new HashSet<TerrainCell>();
-
+        
         // drain cells
         int drainedCells = 0;
         while (cellsToDrainFrom.Count > 0)
         {
-            //TerrainCell cell = cellsToDrainFrom.Dequeue();
             TerrainCell cell = cellsToDrainFrom.Extract(false);
             queuedDrainCells.Remove(cell);
 
@@ -3184,25 +3179,33 @@ public class World : ISynchronizable
                 continue;
             }
 
+            float maxDiff = 0;
+            TerrainCell bestNCell = null;
+
             float totalAltDifference = 0;
             foreach (TerrainCell nCell in cell.Neighbors.Values)
             {
                 float nCellAltitude = Mathf.Max(0, nCell.Altitude + nCell.WaterAccumulation * OverflowFactor * RainfallToHeightConversionFactor);
 
                 float diff = Mathf.Max(0, cellAltitude - nCellAltitude);
-                //diff *= RainfallToHeightConversionFactor;
-                //diff = Mathf.Pow(diff, 2);
+
+                if (maxDiff < diff)
+                {
+                    maxDiff = diff;
+                    bestNCell = nCell;
+                }
 
                 totalAltDifference += diff;
             }
 
             if (totalAltDifference <= 0)
             {
-                //sinkCells.Add(cell);
                 continue;
             }
 
-            //bool addToSinkCells = cellAltitude > 0;
+            float bestCellRiverFlow = (bestNCell.Altitude > 0) ? 500.0f : 0f;
+            float bufferLeft = Mathf.Max(0, cell.Buffer - bestCellRiverFlow);
+            float bufferBonus = Mathf.Min(bestCellRiverFlow, cell.Buffer);
 
             foreach (TerrainCell nCell in cell.Neighbors.Values)
             {
@@ -3210,21 +3213,26 @@ public class World : ISynchronizable
                 float nCellAltitude = Mathf.Max(0, nCell.Altitude + nCell.WaterAccumulation * OverflowFactor * RainfallToHeightConversionFactor);
 
                 float diff = Mathf.Max(0, cellAltitude - nCellAltitude);
-                //diff *= RainfallToHeightConversionFactor;
-                //diff = Mathf.Pow(diff, 2);
 
                 percent = diff / totalAltDifference;
                 
                 if (percent == 0)
                     continue;
 
-                float rainfallTransfer = cell.Buffer * percent;
+                float rainfallTransfer = bufferLeft * percent;
+
+                if (nCell == bestNCell)
+                {
+                    rainfallTransfer += bufferBonus;
+                }
+
+                float editorFactor = 0.85f;
+                rainfallTransfer = Mathf.Min(rainfallTransfer, rainfallTransfer * editorFactor);
 
                 float waterLoss = 0;
 
                 if (nCellAltitude <= 0)
                 {
-                    //addToSinkCells = false;
                     waterLoss = Mathf.Max(rainfallTransfer * OceanDispersalFactor, MinOceanDispersal);
                 }
                 else
@@ -3251,15 +3259,13 @@ public class World : ISynchronizable
                     float altFactor = Mathf.Clamp01(cell.Altitude / maxAlt);
                     float maxRiverLoss = altFactor * (1 - percent) * (topMaxRiverLoss - bottomMaxRiverLoss) + bottomMaxRiverLoss;
 
-                    waterLoss = Mathf.Min(transferMinusMinLevel * lossFactor, maxRiverLoss);
+                    waterLoss = editorFactor * Mathf.Min(transferMinusMinLevel * lossFactor, maxRiverLoss);
                 }
 
                 rainfallTransfer -= waterLoss;
 
                 if (rainfallTransfer <= 0)
                     continue;
-
-                //addToSinkCells = false;
 
                 nCell.Buffer += rainfallTransfer;
                 nCell.WaterAccumulation += rainfallTransfer;
@@ -3275,17 +3281,10 @@ public class World : ISynchronizable
 
                 totalInserts++;
 #endif
-
-                //cellsToDrainFrom.Enqueue(nCell);
+                
                 cellsToDrainFrom.Insert(nCell);
                 queuedDrainCells.Add(nCell);
             }
-
-            //if (addToSinkCells)
-            //{
-            //    sinkCells.Add(cell);
-            //    continue;
-            //}
 
             cell.Buffer = 0;
         }
@@ -3303,11 +3302,8 @@ public class World : ISynchronizable
                     {
                         float rainfallFactor = Mathf.Max(Mathf.Pow(cell.Rainfall, 2), 0);
                         rainfallFactor = 0.2f + MaxPossibleRainfall / (rainfallFactor + MaxPossibleRainfall);
-                        //float waterAccFactor = 1 - Mathf.Min(1, cell.WaterAccumulation / (3 * MaxPossibleRainfall));
-                        //waterAccFactor = 1 - Mathf.Pow(waterAccFactor, 10);
                         float rainfallScalingFactor = 0.2f * MaxPossibleRainfall;
                         float waterAccFactor = cell.WaterAccumulation / (cell.WaterAccumulation + rainfallScalingFactor);
-                        //waterAccFactor = Mathf.Pow(waterAccFactor, 10f);
 
                         cell.Buffer2 += WaterErosionFactor * waterAccFactor * rainfallFactor;
                         erodedCells.Add(cell);
@@ -3323,12 +3319,6 @@ public class World : ISynchronizable
         {
             cell.Altitude -= cell.Buffer2;
         }
-
-        //// set lake cells
-        //foreach (TerrainCell cell in sinkCells)
-        //{
-        //    cell.Buffer = cell.WaterAccumulation * LakeAccumulationFactor;
-        //}
 
 #if DEBUG
         Debug.Log("Drainage - total inserts: " + totalInserts + 
