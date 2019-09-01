@@ -2690,14 +2690,16 @@ public class World : ISynchronizable
                 valueC = Mathf.Lerp(valueC, value7, 0.01f);
 
                 float valueB = Mathf.Lerp(valueA, valueC, 0.35f * value8);
+                float valueBe = ErodeNoise(valueB, 15, 3);
+                float valueBb = (valueBe * 0.5f) + 0.5f;
+                
+                float valueBc = (valueB * 0.85f + 0.15f) * valueBe;
 
-                float valueD = Mathf.Lerp(valueB, (valueA * 0.02f) + 0.49f, Mathf.Clamp01(1.3f * valueA - Mathf.Max(0, (2.5f * valueC) - 1)));
+                float valueCc = valueC * valueBe;
+                
+                float valueD = Mathf.Max(valueCc, valueBc * 0.85f, valueBb * 0.55f);
 
                 CalculateAndSetAltitude(i, j, valueD);
-                //CalculateAndSetAltitude(i, j, valueC);
-                //CalculateAndSetAltitude(i, j, valueB);
-                //CalculateAndSetAltitude(i, j, valueCb);
-                //CalculateAndSetAltitude(i, j, valueA);
             }
 
             ProgressCastMethod(_accumulatedProgress + _progressIncrement * (i + 1) / (float)sizeX);
@@ -2756,13 +2758,9 @@ public class World : ISynchronizable
 
         float distDiff = distance1 - distance2;
         float altitudeDiffFactor = -0.5f + 2f * Mathf.Abs(altitude1 - altitude2);
-        //float altitudeDiffFactor2 = -0.2f + 0.5f * Mathf.Abs(altitude1 - altitude2);
-        //float altitudeDiffFactor = 1f;
         float altitudeDiffFactor2 = 0;
         float trenchMagnitude = Mathf.Clamp01(altitudeDiffFactor);
         float trenchMagnitude2 = 0.25f * Mathf.Clamp01(altitudeDiffFactor2);
-        //float trenchMagnitude = 1;
-        //float trenchMagnitude2 = 0.0f;
 
         float mountainValue = Mathf.Exp(-Mathf.Pow(distDiff * widthFactor + altitudeDiffFactor, 2));
         float trenchValue = -trenchMagnitude * Mathf.Exp(-Mathf.Pow(distDiff * widthFactor - altitudeDiffFactor, 2));
@@ -2776,119 +2774,7 @@ public class World : ISynchronizable
 
         return collisionValue;
     }
-
-    private void GenerateTerrainAltitude2()
-    {
-        GenerateContinents();
-
-        int sizeX = Width;
-        int sizeY = Height;
-
-        float radius1 = 0.75f;
-        //float radius1b = 1.25f;
-        float radius2 = 8f;
-        float radius3 = 4f;
-        float radius4 = 8f;
-        float radius5 = 16f;
-        float radius6 = 64f;
-        float radius7 = 128f;
-        float radius8 = 1.5f;
-        float radius9 = 1f;
-
-        ManagerTask<Vector3> offset1 = GenerateRandomOffsetVectorTask();
-        ManagerTask<Vector3> offset2 = GenerateRandomOffsetVectorTask();
-        //ManagerTask<Vector3> offset1b = GenerateRandomOffsetVector();
-        //ManagerTask<Vector3> offset2b = GenerateRandomOffsetVector();
-        ManagerTask<Vector3> offset3 = GenerateRandomOffsetVectorTask();
-        ManagerTask<Vector3> offset4 = GenerateRandomOffsetVectorTask();
-        ManagerTask<Vector3> offset5 = GenerateRandomOffsetVectorTask();
-        ManagerTask<Vector3> offset6 = GenerateRandomOffsetVectorTask();
-        ManagerTask<Vector3> offset7 = GenerateRandomOffsetVectorTask();
-        ManagerTask<Vector3> offset8 = GenerateRandomOffsetVectorTask();
-        ManagerTask<Vector3> offset9 = GenerateRandomOffsetVectorTask();
-
-        float radiusK = 4f;
-        float radiusK2 = 15f;
-        ManagerTask<Vector3>[] offsetK = new ManagerTask<Vector3>[NumContinents];
-        ManagerTask<Vector3>[] offsetK2 = new ManagerTask<Vector3>[NumContinents];
-
-        for (int k = 0; k < NumContinents; k++)
-        {
-            offsetK[k] = GenerateRandomOffsetVectorTask();
-            offsetK2[k] = GenerateRandomOffsetVectorTask();
-        }
-
-        for (int i = 0; i < sizeX; i++)
-        {
-            float beta = (i / (float)sizeX) * Mathf.PI * 2;
-
-            for (int j = 0; j < sizeY; j++)
-            {
-                float alpha = (j / (float)sizeY) * Mathf.PI;
-
-                float value1 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius1, offset1);
-                float value2 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius2, offset2);
-                //float value1b = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius1b, offset1b);
-                //float value2b = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius2, offset2b);
-                float value3 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius3, offset3);
-                float value4 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius4, offset4);
-                float value5 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius5, offset5);
-                float value6 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius6, offset6);
-                float value7 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius7, offset7);
-                float value8 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius8, offset8);
-                float value9 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius9, offset9);
-
-                value8 = value8 * 1.5f + 0.25f;
-
-                float valueA = GetContinentModifier(i, j);
-                valueA = Mathf.Lerp(valueA, value3, 0.22f * value8);
-                valueA = Mathf.Lerp(valueA, value4, 0.15f * value8);
-                valueA = Mathf.Lerp(valueA, value5, 0.1f * value8);
-                valueA = Mathf.Lerp(valueA, value6, 0.03f * value8);
-                valueA = Mathf.Lerp(valueA, value7, 0.005f * value8);
-
-                float[] valuesK = new float[NumContinents];
-
-                for (int k = 0; k < NumContinents; k++)
-                {
-                    float valueK = GetRandomNoiseFromPolarCoordinates(alpha, beta, radiusK, offsetK[k]);
-                    float valueK2 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radiusK2, offsetK2[k]);
-                    valuesK[k] = Mathf.Lerp(valueK, valueK2, 0.1f * value8);
-                }
-
-                float valueC = GetMountainRangeFromContinentCollision(valuesK, i, j);
-
-                float valueCb = Mathf.Lerp(value1, value9, 0.5f * value8);
-                valueCb = Mathf.Lerp(valueCb, value2, 0.04f * value8);
-                valueCb = GetMountainRangeNoiseFromRandomNoise(valueCb, 25);
-                valueC = Mathf.Lerp(valueC, valueCb, 0.25f * value8);
-
-                valueC = Mathf.Lerp(valueC, value4, 0.075f);
-                valueC = Mathf.Lerp(valueC, value5, 0.05f);
-                valueC = Mathf.Lerp(valueC, value6, 0.02f);
-                valueC = Mathf.Lerp(valueC, value7, 0.01f);
-
-                float valueB = Mathf.Lerp(valueA, valueC, 0.45f * value8);
-
-                float valueE = (valueB > 0.5f) ? Mathf.Max(valueC, valueB) : valueB;
-                float valueF = Mathf.Min(valueB, (valueA * 0.02f) + 0.49f);
-                float valueD = Mathf.Lerp(valueF, valueE, valueE);
-
-                //CalculateAndSetAltitude(i, j, valueCb);
-                //CalculateAndSetAltitude(i, j, valueA);
-                //CalculateAndSetAltitude(i, j, valueB);
-                //CalculateAndSetAltitude(i, j, valueC);
-                CalculateAndSetAltitude(i, j, valueD);
-                //CalculateAndSetAltitude(i, j, valueE);
-                //CalculateAndSetAltitude(i, j, valueF);
-            }
-
-            ProgressCastMethod(_accumulatedProgress + _progressIncrement * (i + 1) / (float)sizeX);
-        }
-
-        _accumulatedProgress += _progressIncrement;
-    }
-
+    
     private ManagerTask<int> GenerateRandomInteger(int min, int max)
     {
         return Manager.EnqueueTask(() => Random.Range(min, max));
@@ -2923,6 +2809,15 @@ public class World : ISynchronizable
     //    return (float)_openSimplexNoise.eval(pos.x, pos.y, pos.z);
     //}
 
+    private float ErodeNoise(float noise, float widthFactor, float offset)
+    {
+        noise = (noise * 2) - 1;
+
+        float value = 1 / (1 + Mathf.Exp(-(noise * widthFactor + offset)));
+
+        return value;
+    }
+
     private float GetMountainRangeNoiseFromRandomNoise(float noise, float widthFactor)
     {
         noise = (noise * 2) - 1;
@@ -2931,17 +2826,6 @@ public class World : ISynchronizable
         float value2 = Mathf.Exp(-Mathf.Pow(noise * widthFactor - 1f, 2));
 
         float value = (value1 + value2 + 1) / 2f;
-
-        return value;
-    }
-
-    private float GetRiverNoiseFromRandomNoise(float noise, float widthFactor)
-    {
-        noise = (noise * 2) - 1;
-
-        float value = Mathf.Exp(-Mathf.Pow(noise * widthFactor, 2));
-
-        value = (value + 1) / 2f;
 
         return value;
     }
@@ -3145,8 +3029,7 @@ public class World : ISynchronizable
                                   (MaxPossibleAltitude * 0.17f * value2) -
                                   (altitudeValue * 0.25f)) / MaxPossibleAltitude;
 
-        float rainfallValue = Mathf.Lerp(Mathf.Abs(latitudeModifier2), altitudeModifier, 0.85f);
-        rainfallValue = Mathf.Lerp(Mathf.Abs(rainfallValue) * rainfallValue, rainfallValue, 0.75f);
+        float rainfallValue = Mathf.Lerp(Mathf.Abs(latitudeModifier2), altitudeModifier, 0.95f);
 
         CalculateAndSetRainfall(cell, rainfallValue);
     }
