@@ -3179,21 +3179,12 @@ public class World : ISynchronizable
                 continue;
             }
 
-            float maxDiff = 0;
-            TerrainCell bestNCell = null;
-
             float totalAltDifference = 0;
             foreach (TerrainCell nCell in cell.Neighbors.Values)
             {
                 float nCellAltitude = Mathf.Max(0, nCell.Altitude + nCell.WaterAccumulation * OverflowFactor * RainfallToHeightConversionFactor);
 
                 float diff = Mathf.Max(0, cellAltitude - nCellAltitude);
-
-                if (maxDiff < diff)
-                {
-                    maxDiff = diff;
-                    bestNCell = nCell;
-                }
 
                 totalAltDifference += diff;
             }
@@ -3202,10 +3193,6 @@ public class World : ISynchronizable
             {
                 continue;
             }
-
-            float bestCellRiverFlow = (bestNCell.Altitude > 0) ? 500.0f : 0f;
-            float bufferLeft = Mathf.Max(0, cell.Buffer - bestCellRiverFlow);
-            float bufferBonus = Mathf.Min(bestCellRiverFlow, cell.Buffer);
 
             foreach (TerrainCell nCell in cell.Neighbors.Values)
             {
@@ -3219,12 +3206,7 @@ public class World : ISynchronizable
                 if (percent == 0)
                     continue;
 
-                float rainfallTransfer = bufferLeft * percent;
-
-                if (nCell == bestNCell)
-                {
-                    rainfallTransfer += bufferBonus;
-                }
+                float rainfallTransfer = cell.Buffer * percent;
 
                 float editorFactor = 0.85f;
                 rainfallTransfer = Mathf.Min(rainfallTransfer, rainfallTransfer * editorFactor);

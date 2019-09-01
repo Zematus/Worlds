@@ -18,6 +18,7 @@ public class MapEditorToolbarScript : MonoBehaviour
     public Toggle Toggle7;
     public Toggle Toggle8;
     public Toggle Toggle9;
+    public Toggle Toggle0;
 
     public Button UndoActionButton;
     public Button RedoActionButton;
@@ -126,6 +127,14 @@ public class MapEditorToolbarScript : MonoBehaviour
         Toggle9.isOn = !Toggle9.isOn;
     }
 
+    private void ToggleTool0()
+    {
+        if (LayerToggles.Contains(Toggle9) && !Manager.LayersPresent)
+            return;
+
+        Toggle0.isOn = !Toggle0.isOn;
+    }
+
     public void OverlaySubtypeChanged()
     {
         bool isLayerOverlaySubtype =
@@ -181,6 +190,7 @@ public class MapEditorToolbarScript : MonoBehaviour
         Manager.HandleKeyUp(KeyCode.Alpha7, false, false, ToggleTool7);
         Manager.HandleKeyUp(KeyCode.Alpha8, false, false, ToggleTool8);
         Manager.HandleKeyUp(KeyCode.Alpha9, false, false, ToggleTool9);
+        Manager.HandleKeyUp(KeyCode.Alpha0, false, false, ToggleTool0);
     }
 
     public void UndoEditorAction()
