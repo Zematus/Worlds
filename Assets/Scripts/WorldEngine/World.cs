@@ -163,6 +163,7 @@ public class World : ISynchronizable
 
     public const float AvgPossibleRainfall = 990f;
     public const float AvgPossibleTemperature = 13.7f;
+    public const float DefaultRiverStrength = 0.5f;
 
     public const float MinPossibleAltitude = -15000;
     public const float MaxPossibleAltitude = 15000;
@@ -234,6 +235,9 @@ public class World : ISynchronizable
 
     [XmlAttribute]
     public float SeaLevelOffset { get; private set; }
+
+    [XmlAttribute]
+    public float RiverStrength { get; private set; }
 
     [XmlAttribute]
     public float RainfallOffset { get; private set; }
@@ -476,6 +480,7 @@ public class World : ISynchronizable
 
         AltitudeScale = Manager.AltitudeScale;
         SeaLevelOffset = Manager.SeaLevelOffset;
+        RiverStrength = Manager.RiverStrength;
         RainfallOffset = Manager.RainfallOffset;
         TemperatureOffset = Manager.TemperatureOffset;
 
@@ -512,6 +517,7 @@ public class World : ISynchronizable
 
         AltitudeScale = Manager.AltitudeScale;
         SeaLevelOffset = Manager.SeaLevelOffset;
+        RiverStrength = Manager.RiverStrength;
         RainfallOffset = Manager.RainfallOffset;
         TemperatureOffset = Manager.TemperatureOffset;
 
@@ -3208,9 +3214,6 @@ public class World : ISynchronizable
 
                 float rainfallTransfer = cell.Buffer * percent;
 
-                float editorFactor = 0.85f;
-                rainfallTransfer = Mathf.Min(rainfallTransfer, rainfallTransfer * editorFactor);
-
                 float waterLoss = 0;
 
                 if (nCellAltitude <= 0)
@@ -3219,12 +3222,25 @@ public class World : ISynchronizable
                 }
                 else
                 {
+                    float baseRiverStrength = 0.65f;
+                    float bottomLossFactor = 0.5f;
+                    float topLossFactor = 0.8f;
+
+                    if (RiverStrength < baseRiverStrength)
+                    {
+                        rainfallTransfer *= RiverStrength / baseRiverStrength;
+                    }
+                    else
+                    {
+                        float riverStrengthFactor = 1 - (RiverStrength - baseRiverStrength) * 2;
+                        bottomLossFactor *= riverStrengthFactor;
+                        topLossFactor *= riverStrengthFactor;
+                    }
+
                     float bottomMinRiverFlow = 500.0f;
                     float topMinRiverFlow = 2000.0f;
                     float bottomMaxRiverLoss = 1000.0f;
                     float topMaxRiverLoss = 40000.0f;
-                    float bottomLossFactor = 0.5f;
-                    float topLossFactor = 0.8f;
                     float minTemp = 0.0f;
                     float maxTemp = 40.0f;
                     float maxRain = 5000.0f;
@@ -3235,13 +3251,13 @@ public class World : ISynchronizable
 
                     float rainFactor = Mathf.Clamp01(cell.Rainfall / maxRain);
                     float rainTempFactor = Mathf.Min(1 - rainFactor, tempFactor);
-                    float minRiverLevel = rainTempFactor * (topMinRiverFlow - bottomMinRiverFlow) + bottomMinRiverFlow;
-                    float transferMinusMinLevel = Mathf.Max(0, rainfallTransfer - minRiverLevel);
+                    float minRiverFlow = rainTempFactor * (topMinRiverFlow - bottomMinRiverFlow) + bottomMinRiverFlow;
+                    float transferMinusMinLevel = Mathf.Max(0, rainfallTransfer - minRiverFlow);
 
                     float altFactor = Mathf.Clamp01(cell.Altitude / maxAlt);
                     float maxRiverLoss = altFactor * (1 - percent) * (topMaxRiverLoss - bottomMaxRiverLoss) + bottomMaxRiverLoss;
 
-                    waterLoss = editorFactor * Mathf.Min(transferMinusMinLevel * lossFactor, maxRiverLoss);
+                    waterLoss = Mathf.Min(transferMinusMinLevel * lossFactor, maxRiverLoss);
                 }
 
                 rainfallTransfer -= waterLoss;

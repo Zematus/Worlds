@@ -31,6 +31,7 @@ public class MapEditorToolbarScript : MonoBehaviour
 
     public ValueSetEvent RegenerateWorldAltitudeScaleChangeEvent;
     public ValueSetEvent RegenerateWorldSeaLevelOffsetChangeEvent;
+    public ValueSetEvent RegenerateWorldRiverLevelOffsetChangeEvent;
     public ValueSetEvent RegenerateWorldTemperatureOffsetChangeEvent;
     public ValueSetEvent RegenerateWorldRainfallOffsetChangeEvent;
     public LayerValueSetEvent RegenerateWorldLayerFrequencyChangeEvent;
@@ -269,6 +270,21 @@ public class MapEditorToolbarScript : MonoBehaviour
         PerformRegenerateWorldAction(
             RegenerateWorldSeaLevelOffsetChange_Internal,
             Manager.SeaLevelOffset,
+            value);
+    }
+
+    private void RegenerateWorldRiverLevelOffsetChange_Internal(float value)
+    {
+        RegenerateWorldPreActions();
+
+        RegenerateWorldRiverLevelOffsetChangeEvent.Invoke(value);
+    }
+
+    public void RegenerateWorldRiverLevelOffsetChange(float value)
+    {
+        PerformRegenerateWorldAction(
+            RegenerateWorldRiverLevelOffsetChange_Internal,
+            Manager.RiverStrength,
             value);
     }
 

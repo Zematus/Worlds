@@ -174,6 +174,7 @@ public class Manager
 
     public static float AltitudeScale = 1;
     public static float SeaLevelOffset = 0;
+    public static float RiverStrength = World.DefaultRiverStrength;
     public static float TemperatureOffset = World.AvgPossibleTemperature;
     public static float RainfallOffset = World.AvgPossibleRainfall;
 
@@ -1148,8 +1149,8 @@ public class Manager
             _manager._progressCastMethod = (value, message, reset) => { };
         }
 
-        Debug.Log(string.Format("Trying to generate world with seed: {0}, Altitude Scale: {1}, Sea Level Offset: {2}, Avg. Temperature: {3}, Avg. Rainfall: {4}",
-            seed, AltitudeScale, SeaLevelOffset, TemperatureOffset, RainfallOffset));
+        Debug.Log(string.Format("Trying to generate world with seed: {0}, Altitude Scale: {1}, Sea Level Offset: {2}, River Strength: {3}, Avg. Temperature: {4}, Avg. Rainfall: {5}",
+            seed, AltitudeScale, SeaLevelOffset, RiverStrength, TemperatureOffset, RainfallOffset));
 
         ThreadPool.QueueUserWorkItem(state =>
         {
@@ -1209,8 +1210,8 @@ public class Manager
             _manager._progressCastMethod = (value, message, reset) => { };
         }
 
-        Debug.Log(string.Format("Trying to regenerate world with seed: {0}, Altitude Scale: {1}, Sea Level Offset: {2}, Avg. Temperature: {3}, Avg. Rainfall: {4}",
-            _manager._currentWorld.Seed, AltitudeScale, SeaLevelOffset, TemperatureOffset, RainfallOffset));
+        Debug.Log(string.Format("Trying to regenerate world with seed: {0}, Altitude Scale: {1}, Sea Level Offset: {2}, River Strength: {3}, Avg. Temperature: {4}, Avg. Rainfall: {5}",
+            _manager._currentWorld.Seed, AltitudeScale, SeaLevelOffset, RiverStrength, TemperatureOffset, RainfallOffset));
 
         ThreadPool.QueueUserWorkItem(state =>
         {
@@ -1366,6 +1367,7 @@ public class Manager
 
         AltitudeScale = world.AltitudeScale;
         SeaLevelOffset = world.SeaLevelOffset;
+        RiverStrength = world.RiverStrength;
         RainfallOffset = world.RainfallOffset;
         TemperatureOffset = world.TemperatureOffset;
 

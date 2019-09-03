@@ -1263,6 +1263,13 @@ public class GuiManagerScript : MonoBehaviour
         RegenerateWorld(GenerationType.TerrainRegeneration);
     }
 
+    public void RegenerateWorldRiverLevelOffsetChange(float value)
+    {
+        Manager.RiverStrength = value;
+
+        RegenerateWorld(GenerationType.TerrainRegeneration);
+    }
+
     public void RegenerateWorldTemperatureOffsetChange(float value)
     {
         Manager.TemperatureOffset = value;
@@ -1880,11 +1887,12 @@ public class GuiManagerScript : MonoBehaviour
         EventPanelScript.DestroyMessagePanels(); // We don't want to keep messages referencing previous worlds
 
         Debug.Log(string.Format(
-            "Finished loading world. Seed: {0}, Avg. Temperature: {1}, Avg. Rainfall: {2}, Sea Level Offset: {3}, Current Date: {4}",
+            "Finished loading world. Seed: {0}, Avg. Temperature: {1}, Avg. Rainfall: {2}, Sea Level Offset: {3}, River Level Strength: {4}, Current Date: {5}",
             Manager.CurrentWorld.Seed,
             Manager.CurrentWorld.TemperatureOffset,
             Manager.CurrentWorld.RainfallOffset,
             Manager.CurrentWorld.SeaLevelOffset,
+            Manager.CurrentWorld.RiverStrength,
             Manager.GetDateString(Manager.CurrentWorld.CurrentDate)));
 
         SelectionPanelScript.RemoveAllOptions();
