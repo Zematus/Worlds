@@ -182,7 +182,7 @@ public class World : ISynchronizable
     //public const float IceAccumulationFactor = 1f;
     public const float HeightToRainfallConversionFactor = 1000f;
     public const float RainfallToHeightConversionFactor = 1f / HeightToRainfallConversionFactor;
-    public const float MinRiverFlow = HeightToRainfallConversionFactor / 10f;
+    public const float MinRiverFlow = HeightToRainfallConversionFactor / 50f;
 
     public const float StartPopulationDensity = 0.5f;
 
@@ -3181,7 +3181,7 @@ public class World : ISynchronizable
 
             if (cell.Buffer < MinRiverFlow)
             {
-                cell.Buffer = 0;
+                //cell.Buffer = 0;
                 continue;
             }
 
@@ -3200,7 +3200,32 @@ public class World : ISynchronizable
                 continue;
             }
 
+            List<TerrainCell> cellsToKeep = new List<TerrainCell>(cell.Neighbors.Count);
+
             foreach (TerrainCell nCell in cell.Neighbors.Values)
+            {
+                float percent = 0;
+                float nCellAltitude = Mathf.Max(0, nCell.Altitude + nCell.WaterAccumulation * OverflowFactor * RainfallToHeightConversionFactor);
+
+                float diff = Mathf.Max(0, cellAltitude - nCellAltitude);
+
+                percent = diff / totalAltDifference;
+
+                if (percent == 0)
+                    continue;
+                
+                float rainfallTransfer = cell.Buffer * percent;
+
+                if (rainfallTransfer < MinRiverFlow)
+                {
+                    totalAltDifference -= diff;
+                    continue;
+                }
+
+                cellsToKeep.Add(nCell);
+            }
+
+            foreach (TerrainCell nCell in cellsToKeep)
             {
                 float percent = 0;
                 float nCellAltitude = Mathf.Max(0, nCell.Altitude + nCell.WaterAccumulation * OverflowFactor * RainfallToHeightConversionFactor);
