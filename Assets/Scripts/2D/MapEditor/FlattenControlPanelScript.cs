@@ -12,7 +12,7 @@ public class FlattenControlPanelScript : RegenControlPanelScript
     {
         SliderControlsScript.MinValue = 0.05f;
         SliderControlsScript.MaxValue = 1;
-        SliderControlsScript.DefaultValue = 1;
+        SliderControlsScript.DefaultValue = World.DefaultAltitudeScale;
 
         SliderControlsScript.CurrentValue = Manager.AltitudeScale;
         SliderControlsScript.Reinitialize();

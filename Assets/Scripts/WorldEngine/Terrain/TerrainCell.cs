@@ -275,11 +275,12 @@ public class TerrainCell
 
         BaseTemperatureOffset = alteration.BaseTemperatureOffset;
         BaseRainfallOffset = alteration.BaseRainfallOffset;
-
-        NoErosionAltitude = alteration.Altitude;
+        
+        NoErosionAltitude = alteration.NoErosionAltitude;
         Altitude = alteration.Altitude;
         Temperature = alteration.Temperature;
         Rainfall = alteration.Rainfall;
+        WaterAccumulation = alteration.WaterAccumulation;
 
         FarmlandPercentage = alteration.FarmlandPercentage;
         Accessibility = alteration.Accessibility;

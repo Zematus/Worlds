@@ -31,6 +31,14 @@ public class BinaryHeap<T>
         LastInsertedOnTop = false;
     }
 
+    public void Clear()
+    {
+        _arrayList.Clear();
+        _arrayList.Add(new T[_arraySize]);
+
+        Count = 0;
+    }
+
     private void InsertAt(T item, int index)
     {
         int listIndex = index / _arraySize;

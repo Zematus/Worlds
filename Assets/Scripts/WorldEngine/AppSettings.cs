@@ -11,7 +11,7 @@ public class AppSettings
 {
     public float AltitudeScale = 0;
     public float SeaLevelOffset = 0;
-    public float RiverLevelOffset = 0;
+    public float RiverStrength = 0;
     public float TemperatureOffset = 0;
     public float RainfallOffset = 0;
     public bool Fullscreen = true;
@@ -30,7 +30,7 @@ public class AppSettings
     {
         AltitudeScale = Manager.AltitudeScale;
         SeaLevelOffset = Manager.SeaLevelOffset;
-        RiverLevelOffset = Manager.RiverStrength;
+        RiverStrength = Manager.RiverStrength;
         TemperatureOffset = Manager.TemperatureOffset;
         RainfallOffset = Manager.RainfallOffset;
         Fullscreen = Manager.FullScreenEnabled;
@@ -48,7 +48,7 @@ public class AppSettings
     {
         Manager.AltitudeScale = AltitudeScale;
         Manager.SeaLevelOffset = SeaLevelOffset;
-        Manager.RiverStrength = RiverLevelOffset;
+        Manager.RiverStrength = RiverStrength;
         Manager.TemperatureOffset = TemperatureOffset;
         Manager.RainfallOffset = RainfallOffset;
         Manager.FullScreenEnabled = Fullscreen;
