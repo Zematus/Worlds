@@ -2590,14 +2590,22 @@ public class World : ISynchronizable
 
             if (!cell.DrainageDone)
             {
+                bool reInsert = false;
+
                 foreach (TerrainCell nCell in cell.Neighbors.Values)
                 {
                     float nCellAltitude = Mathf.Max(0, CalculateAltitudePlusAccumulation(nCell));
 
                     if (nCellAltitude > cellAltitude)
                     {
-                        AddToDrainageRegen(nCell, false);
+                        reInsert |= AddToDrainageRegen(nCell, false);
                     }
+                }
+
+                if (reInsert)
+                {
+                    _drainageHeap.Insert(cell);
+                    continue;
                 }
 
                 if (doErosion)
@@ -2646,10 +2654,10 @@ public class World : ISynchronizable
         _drainageHeap.Clear();
     }
 
-    public void AddToDrainageRegen(TerrainCell cell, bool resetDrainage = true)
+    public bool AddToDrainageRegen(TerrainCell cell, bool resetDrainage = true)
     {
         if (_cellsToDrainage.Contains(cell))
-            return;
+            return false;
 
         _cellsToInitAfterDrainageRegen.Add(cell);
         Manager.ActiveEditorBrushAction.AddCellBeforeModification(cell);
@@ -2674,6 +2682,8 @@ public class World : ISynchronizable
 
         _cellsToDrainage.Add(cell);
         _drainageHeap.Insert(cell);
+
+        return true;
     }
 
     public void FinishTerrainGenerationForModifiedCells()
@@ -3287,7 +3297,7 @@ public class World : ISynchronizable
         cell.Altitude = cell.NoErosionAltitude;
     }
 
-    private delegate void addToCellsToDrainDelegate(TerrainCell cell, bool reset);
+    private delegate bool addToCellsToDrainDelegate(TerrainCell cell, bool reset);
 
     private void DrainToNeighbors(TerrainCell cell, addToCellsToDrainDelegate addToCellsToDrain)
     {
@@ -3453,10 +3463,12 @@ public class World : ISynchronizable
             DrainToNeighbors(cell, (nCell, reset) =>
             {
                 if (queuedDrainCells.Contains(nCell))
-                    return;
+                    return false;
 
                 cellsToDrain.Insert(nCell);
                 queuedDrainCells.Add(nCell);
+
+                return true;
             });
         }
 
