@@ -36,7 +36,6 @@ public class CellRegion : Region
             return false;
 
         cell.Region = this;
-        //Manager.AddUpdatedCell(cell, CellUpdateType.Region, CellUpdateSubType.Membership);
 
         return true;
     }

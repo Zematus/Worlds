@@ -1867,21 +1867,6 @@ public class Manager
         _manager._currentCellSlants[cell.Longitude, cell.Latitude] = null;
     }
 
-    private static void AddUpdatedCellAndNeighborsAndDependents(TerrainCell cell, CellUpdateType updateType, CellUpdateSubType updateSubType)
-    {
-        foreach (TerrainCell nCell in cell.Neighbors.Values)
-        {
-            AddUpdatedCell(nCell, updateType, updateSubType);
-        }
-        
-        foreach (TerrainCell rCell in cell.RainfallDependentCells)
-        {
-            AddUpdatedCell(rCell, updateType, updateSubType);
-        }
-
-        AddUpdatedCell(cell, updateType, updateSubType);
-    }
-
     public static void ActivateEditorBrush(bool state)
     {
         bool useLayerBrush = false;
@@ -1908,11 +1893,13 @@ public class Manager
             {
                 ActiveEditorBrushAction = new AlterationBrushAction();
             }
-
-            CurrentWorld.ClearDrainageRegenCollections();
         }
         else if (ActiveEditorBrushAction != null)
         {
+            CurrentWorld.PerformTerrainAlterationDrainageRegen();
+            CurrentWorld.RepeatTerrainAlterationDrainageRegen();
+            CurrentWorld.FinalizeTerrainAlterationDrainageRegen();
+
             ActiveEditorBrushAction.FinalizeCellModifications();
 
             PushUndoableAction(ActiveEditorBrushAction);
@@ -1936,8 +1923,6 @@ public class Manager
         CurrentWorld.ModifyCellAltitude(cell, valueOffset, EditorBrushNoise, noiseRadius);
 
         ResetSlantsAround(cell);
-
-        AddUpdatedCellAndNeighborsAndDependents(cell, CellUpdateType.Cell, CellUpdateSubType.Terrain);
     }
 
     private static void ApplyEditorBrushFlatten_Altitude(int longitude, int latitude, float distanceFactor)
@@ -1968,8 +1953,6 @@ public class Manager
         CurrentWorld.ModifyCellAltitude(cell, valueOffset);
 
         ResetSlantsAround(cell);
-
-        AddUpdatedCellAndNeighborsAndDependents(cell, CellUpdateType.Cell, CellUpdateSubType.Terrain);
     }
 
     private static void ApplyEditorBrush_Temperature(int longitude, int latitude, float distanceFactor)
@@ -1983,8 +1966,6 @@ public class Manager
         TerrainCell cell = CurrentWorld.GetCell(longitude, latitude);
 
         CurrentWorld.ModifyCellTemperature(cell, valueOffset, EditorBrushNoise, noiseRadius);
-
-        AddUpdatedCell(cell, CellUpdateType.Cell, CellUpdateSubType.Terrain);
     }
 
     private static void ApplyEditorBrushFlatten_Temperature(int longitude, int latitude, float distanceFactor)
@@ -2012,8 +1993,6 @@ public class Manager
         float valueOffset = (targetValue - currentValue) * valueOffsetFactor;
 
         CurrentWorld.ModifyCellTemperature(cell, valueOffset);
-
-        AddUpdatedCell(cell, CellUpdateType.Cell, CellUpdateSubType.Terrain);
     }
 
     private static void ApplyEditorBrush_Layer(int longitude, int latitude, float distanceFactor)
@@ -2032,8 +2011,6 @@ public class Manager
         TerrainCell cell = CurrentWorld.GetCell(longitude, latitude);
 
         CurrentWorld.ModifyCellLayerData(cell, valueOffset, _planetOverlaySubtype, EditorBrushNoise, noiseRadius);
-
-        AddUpdatedCell(cell, CellUpdateType.Cell, CellUpdateSubType.Terrain);
     }
 
     private static void ApplyEditorBrushFlatten_Layer(int longitude, int latitude, float distanceFactor)
@@ -2066,8 +2043,6 @@ public class Manager
         float valueOffset = (targetValue - currentValue) * valueOffsetFactor;
 
         CurrentWorld.ModifyCellLayerData(cell, valueOffset, _planetOverlaySubtype);
-
-        AddUpdatedCell(cell, CellUpdateType.Cell, CellUpdateSubType.Terrain);
     }
 
     private static void ApplyEditorBrush_Rainfall(int longitude, int latitude, float distanceFactor)
@@ -2081,8 +2056,6 @@ public class Manager
         TerrainCell cell = CurrentWorld.GetCell(longitude, latitude);
 
         CurrentWorld.ModifyCellRainfall(cell, valueOffset, EditorBrushNoise, noiseRadius);
-
-        AddUpdatedCell(cell, CellUpdateType.Cell, CellUpdateSubType.Terrain);
     }
 
     private static void ApplyEditorBrushFlatten_Rainfall(int longitude, int latitude, float distanceFactor)
@@ -2110,8 +2083,6 @@ public class Manager
         float valueOffset = (targetValue - currentValue) * valueOffsetFactor;
 
         CurrentWorld.ModifyCellRainfall(cell, valueOffset);
-
-        AddUpdatedCell(cell, CellUpdateType.Cell, CellUpdateSubType.Terrain);
     }
 
     public static void UpdateEditorBrushState()
