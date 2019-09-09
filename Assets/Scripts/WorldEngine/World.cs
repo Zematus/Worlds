@@ -2536,7 +2536,7 @@ public class World : ISynchronizable
                 }
             }
             
-            rainfallTransfer -= Mathf.Max(0, CalculateWaterLoss(cell, rainfallTransfer)));
+            rainfallTransfer -= Mathf.Max(0, CalculateWaterLoss(cell, rainfallTransfer));
 
             cell.WaterAccumulation += Mathf.Max(0, rainfallTransfer);
 
@@ -2739,34 +2739,25 @@ public class World : ISynchronizable
                 float valueA = GetContinentModifier(i, j);
                 valueA = Mathf.Lerp(valueA, value3, 0.22f * value8);
                 valueA = Mathf.Lerp(valueA, value4, 0.15f * value8);
-                valueA = Mathf.Lerp(valueA, value5, 0.1f * value8);
-                valueA = Mathf.Lerp(valueA, value6, 0.03f * value8);
-                valueA = Mathf.Lerp(valueA, value7, 0.005f * value8);
+                float valueAa = Mathf.Lerp(valueA, value5, 0.1f * value8);
+                valueAa = Mathf.Lerp(valueAa, value6, 0.03f * value8);
+                valueAa = Mathf.Lerp(valueAa, value7, 0.005f * value8);
 
                 float valueC = Mathf.Lerp(value1, value9, 0.5f * value8);
                 valueC = Mathf.Lerp(valueC, value2, 0.04f * value8);
-                valueC = GetMountainRangeNoiseFromRandomNoise(valueC, 25);
-                float valueCb = Mathf.Lerp(value1b, value9, 0.5f * value8);
-                valueCb = Mathf.Lerp(valueCb, value2b, 0.04f * value8);
-                valueCb = GetMountainRangeNoiseFromRandomNoise(valueCb, 25);
-                valueC = Mathf.Lerp(valueC, valueCb, 0.5f * value8);
+                valueC = Mathf.Lerp(valueC, value3, 0.02f * value8);
+                valueC = GetMountainRangeNoiseFromRandomNoise(valueC, valueAa, 35);
 
-                valueC = Mathf.Lerp(valueC, value3, 0.45f * value8);
-                valueC = Mathf.Lerp(valueC, value4, 0.075f);
-                valueC = Mathf.Lerp(valueC, value5, 0.05f);
-                valueC = Mathf.Lerp(valueC, value6, 0.02f);
-                valueC = Mathf.Lerp(valueC, value7, 0.01f);
+                float valueB = Mathf.Lerp(valueAa, valueC, 0.35f * value8);
+                float valueBe = ErodeNoise(valueB, 25, 10);
+                valueBe = Mathf.Lerp(valueBe, 0.5f, 0.5f);
+                //float valueBa = Mathf.Lerp(valueBe, valueA, 0.01f);
 
-                float valueB = Mathf.Lerp(valueA, valueC, 0.35f * value8);
-                float valueBe = ErodeNoise(valueB, 15, 3);
-                float valueBb = (valueBe * 0.5f) + 0.5f;
+                float valueD = Mathf.Lerp(valueC, valueBe, 0.7f);
+                valueD = Mathf.Lerp(valueD, value5, 0.1f * valueC);
+                valueD = Mathf.Lerp(valueD, value6, 0.03f * valueC);
+                valueD = Mathf.Lerp(valueD, value7, 0.005f * valueC);
                 
-                float valueBc = (valueB * 0.85f + 0.15f) * valueBe;
-
-                float valueCc = valueC * valueBe;
-                
-                float valueD = Mathf.Max(valueCc, valueBc * 0.85f, valueBb * 0.55f);
-
                 CalculateAndSetAltitude(i, j, valueD);
             }
 
@@ -2886,14 +2877,36 @@ public class World : ISynchronizable
         return value;
     }
 
-    private float GetMountainRangeNoiseFromRandomNoise(float noise, float widthFactor)
+    private float GetMountainRangeNoiseFromRandomNoise(float noise, float filter, float widthFactor)
     {
-        noise = (noise * 2) - 1;
+        float scaledNoise = (noise * 2) - 1;
+        
+        int count = 5;
+        float widthFactor2 = widthFactor / 10;
+        float offsetFactor = widthFactor / 35f;
+        float offsetFactor2 = widthFactor2 / 35f;
+        float offset = 0.5f + (count / 2f);
 
-        float value1 = -Mathf.Exp(-Mathf.Pow(noise * widthFactor + 1f, 2));
-        float value2 = Mathf.Exp(-Mathf.Pow(noise * widthFactor - 1f, 2));
+        float value = 0;
 
-        float value = (value1 + value2 + 1) / 2f;
+        for (int i = 1; i <= count; i++)
+        {
+            float countFactor = (count - i) / (float)count;
+            float fi = Mathf.Max(0, filter - countFactor);
+
+            if (fi <= 0)
+                continue;
+
+            fi /= 1 - countFactor;
+
+            float si = (i - offset) * 2 * offsetFactor;
+            float vAdd1 = Mathf.Exp(-Mathf.Pow(scaledNoise * widthFactor + si, 2)) * fi;
+
+            float si2 = (i - offset) * 2 * offsetFactor2;
+            float vAdd2 = Mathf.Exp(-Mathf.Pow(scaledNoise * widthFactor2 + si2, 2)) * fi;
+            
+            value += Mathf.Lerp(vAdd1, vAdd2, 0.1f);
+        }
 
         return value;
     }
@@ -3376,13 +3389,17 @@ public class World : ISynchronizable
         }
         else
         {
-            float baseRiverStrength = 0.65f;
+            float baseRiverStrength = DefaultRiverStrength;
             float bottomLossFactor = 0.5f;
             float topLossFactor = 0.8f;
 
+            float adjRainTransfer = rainfallTransfer;
+            float baseWaterLoss = 0;
+
             if (RiverStrength < baseRiverStrength)
             {
-                rainfallTransfer *= RiverStrength / baseRiverStrength;
+                adjRainTransfer *= RiverStrength / baseRiverStrength;
+                baseWaterLoss = rainfallTransfer - adjRainTransfer;
             }
             else
             {
@@ -3406,12 +3423,12 @@ public class World : ISynchronizable
             float rainFactor = Mathf.Clamp01(cell.Rainfall / maxRain);
             float rainTempFactor = Mathf.Min(1 - rainFactor, tempFactor);
             float minRiverFlow = rainTempFactor * (topMinRiverFlow - bottomMinRiverFlow) + bottomMinRiverFlow;
-            float transferMinusMinLevel = Mathf.Max(0, rainfallTransfer - minRiverFlow);
+            float transferMinusMinLevel = Mathf.Max(0, adjRainTransfer - minRiverFlow);
 
             float altFactor = Mathf.Clamp01(cell.Altitude / maxAlt);
             float maxRiverLoss = altFactor * (topMaxRiverLoss - bottomMaxRiverLoss) + bottomMaxRiverLoss;
 
-            return Mathf.Min(transferMinusMinLevel * lossFactor, maxRiverLoss);
+            return baseWaterLoss + Mathf.Min(transferMinusMinLevel * lossFactor, maxRiverLoss);
         }
     }
 
