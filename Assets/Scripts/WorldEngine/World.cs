@@ -424,6 +424,16 @@ public class World : ISynchronizable
 
     private Dictionary<string, Vector3> _layerBrushNoiseOffsets = new Dictionary<string, Vector3>();
 
+    private ManagerTask<Vector3> _altitudeNoiseOffset1;
+    private ManagerTask<Vector3> _altitudeNoiseOffset2;
+    private ManagerTask<Vector3> _altitudeNoiseOffset3;
+    private ManagerTask<Vector3> _altitudeNoiseOffset4;
+    private ManagerTask<Vector3> _altitudeNoiseOffset5;
+    private ManagerTask<Vector3> _altitudeNoiseOffset6;
+    private ManagerTask<Vector3> _altitudeNoiseOffset7;
+    private ManagerTask<Vector3> _altitudeNoiseOffset8;
+    private ManagerTask<Vector3> _altitudeNoiseOffset9;
+
     private ManagerTask<Vector3> _arabilityNoiseOffset;
 
     private ManagerTask<Vector3> _tempNoiseOffset1;
@@ -2061,6 +2071,10 @@ public class World : ISynchronizable
     {
         ResetDrainage();
 
+        GenerateRandomNoiseAltitudeOffsetsAndContinents();
+        GenerateRandomNoiseTemperatureOffsets();
+        GenerateRandomNoiseRainfallOffsets();
+        
         if ((type & GenerationType.TerrainNormal) == GenerationType.TerrainNormal)
         {
             if (heightmap == null)
@@ -2084,8 +2098,6 @@ public class World : ISynchronizable
         }
         else
         {
-            OffsetAltitudeGenRngCalls();
-
             _accumulatedProgress += _progressIncrement;
         }
 
@@ -2103,8 +2115,6 @@ public class World : ISynchronizable
         }
         else
         {
-            OffsetTemperatureGenRngCalls();
-
             _accumulatedProgress += _progressIncrement;
         }
 
@@ -2123,8 +2133,6 @@ public class World : ISynchronizable
         }
         else
         {
-            OffsetRainfallGenRngCalls();
-
             _accumulatedProgress += _progressIncrement;
         }
 
@@ -2326,33 +2334,24 @@ public class World : ISynchronizable
         return MathUtility.GetMagnitude(distX * continentWidth, distY * continentHeight);
     }
 
-    private void OffsetAltitudeGenRngCalls()
+    private void GenerateRandomNoiseAltitudeOffsetsAndContinents()
     {
-        GenerateContinents(); // We call this just to ensure 'Random' gets called the same number of times
+        GenerateContinents();
 
-        // We call 'Random' as many times as the GenerateTerrainFunction would do
-        // to ensure future rng calls output the same results
-
-        Manager.EnqueueTaskAndWait(() =>
-        {
-            // do this as many times as in normal terrain generation (11 times)
-            GenerateRandomOffsetVector();
-            GenerateRandomOffsetVector();
-            GenerateRandomOffsetVector();
-            GenerateRandomOffsetVector();
-            GenerateRandomOffsetVector();
-            GenerateRandomOffsetVector();
-            GenerateRandomOffsetVector();
-            GenerateRandomOffsetVector();
-            GenerateRandomOffsetVector();
-            GenerateRandomOffsetVector();
-            GenerateRandomOffsetVector();
-        });
+        _altitudeNoiseOffset1 = GenerateRandomOffsetVectorTask();
+        _altitudeNoiseOffset2 = GenerateRandomOffsetVectorTask();
+        _altitudeNoiseOffset3 = GenerateRandomOffsetVectorTask();
+        _altitudeNoiseOffset4 = GenerateRandomOffsetVectorTask();
+        _altitudeNoiseOffset5 = GenerateRandomOffsetVectorTask();
+        _altitudeNoiseOffset6 = GenerateRandomOffsetVectorTask();
+        _altitudeNoiseOffset7 = GenerateRandomOffsetVectorTask();
+        _altitudeNoiseOffset8 = GenerateRandomOffsetVectorTask();
+        _altitudeNoiseOffset9 = GenerateRandomOffsetVectorTask();
     }
 
     private void RegenerateTerrainAltitude()
     {
-        OffsetAltitudeGenRngCalls();
+        GenerateRandomNoiseAltitudeOffsetsAndContinents();
 
         int sizeX = Width;
         int sizeY = Height;
@@ -2372,8 +2371,6 @@ public class World : ISynchronizable
 
     private void RegenerateTerrainTemperature()
     {
-        OffsetTemperatureGenRngCalls();
-
         int sizeX = Width;
         int sizeY = Height;
 
@@ -2392,8 +2389,6 @@ public class World : ISynchronizable
 
     private void RegenerateTerrainRainfall()
     {
-        OffsetRainfallGenRngCalls();
-
         int sizeX = Width;
         int sizeY = Height;
 
@@ -2412,8 +2407,6 @@ public class World : ISynchronizable
 
     private void GenerateTerrainAltitudeFromHeightmap(Texture2D heightmap)
     {
-        OffsetAltitudeGenRngCalls();
-
         int sizeX = Width;
         int sizeY = Height;
 
@@ -2484,7 +2477,22 @@ public class World : ISynchronizable
 
         Manager.ActiveEditorBrushAction.AddCellBeforeModification(cell);
 
-        float value = cell.BaseAltitudeValue + valueOffset;
+        // Add some extra noise to enhance river formation
+        float radius5 = 16f;
+        float radius6 = 64f;
+        float radius7 = 128f;
+        float radius8 = 1.5f;
+
+        float value5 = GetRandomNoiseFromPolarCoordinates(cell.Alpha, cell.Beta, radius5, _altitudeNoiseOffset5);
+        float value6 = GetRandomNoiseFromPolarCoordinates(cell.Alpha, cell.Beta, radius6, _altitudeNoiseOffset6);
+        float value7 = GetRandomNoiseFromPolarCoordinates(cell.Alpha, cell.Beta, radius7, _altitudeNoiseOffset7);
+        float value8 = GetRandomNoiseFromPolarCoordinates(cell.Alpha, cell.Beta, radius8, _altitudeNoiseOffset8);
+
+        float valueOffsetA = Mathf.Lerp(valueOffset, value5 * valueOffset, 0.4f * value8);
+        valueOffsetA = Mathf.Lerp(valueOffsetA, value6 * valueOffset, 0.24f * value8);
+        valueOffsetA = Mathf.Lerp(valueOffsetA, value7 * valueOffset, 0.08f * value8);
+
+        float value = cell.BaseAltitudeValue + valueOffsetA;
 
         CalculateAndSetAltitude(cell, value, true);
 
@@ -2627,7 +2635,7 @@ public class World : ISynchronizable
 
         foreach (TerrainCell cell in _cellsToFinalizeDrainageRegen)
         {
-            AddToDrainageRegen(cell, true);
+            AddToDrainageRegen(cell, resetAltitude: false);
         }
 
         PerformTerrainAlterationDrainageRegen(false);
@@ -2658,7 +2666,7 @@ public class World : ISynchronizable
         _drainageHeap.Clear();
     }
 
-    public bool AddToDrainageRegen(TerrainCell cell, bool resetDrainage = true)
+    public bool AddToDrainageRegen(TerrainCell cell, bool resetDrainage = true, bool resetAltitude = true)
     {
         if (_cellsToDrainage.Contains(cell))
             return false;
@@ -2673,7 +2681,7 @@ public class World : ISynchronizable
 
         if (resetDrainage)
         {
-            ResetDrainage(cell);
+            ResetDrainage(cell, resetAltitude);
 
             if (cell.Altitude > 0)
             {
@@ -2809,8 +2817,6 @@ public class World : ISynchronizable
 
     private void GenerateTerrainAltitude()
     {
-        GenerateContinents();
-
         int sizeX = Width;
         int sizeY = Height;
 
@@ -2824,18 +2830,6 @@ public class World : ISynchronizable
         float radius8 = 1.5f;
         float radius9 = 1f;
 
-        ManagerTask<Vector3> offset1 = GenerateRandomOffsetVectorTask();
-        ManagerTask<Vector3> offset2 = GenerateRandomOffsetVectorTask();
-        ManagerTask<Vector3> offset1b = GenerateRandomOffsetVectorTask();
-        ManagerTask<Vector3> offset2b = GenerateRandomOffsetVectorTask();
-        ManagerTask<Vector3> offset3 = GenerateRandomOffsetVectorTask();
-        ManagerTask<Vector3> offset4 = GenerateRandomOffsetVectorTask();
-        ManagerTask<Vector3> offset5 = GenerateRandomOffsetVectorTask();
-        ManagerTask<Vector3> offset6 = GenerateRandomOffsetVectorTask();
-        ManagerTask<Vector3> offset7 = GenerateRandomOffsetVectorTask();
-        ManagerTask<Vector3> offset8 = GenerateRandomOffsetVectorTask();
-        ManagerTask<Vector3> offset9 = GenerateRandomOffsetVectorTask();
-
         for (int i = 0; i < sizeX; i++)
         {
             float beta = (i / (float)sizeX) * Mathf.PI * 2;
@@ -2847,15 +2841,15 @@ public class World : ISynchronizable
 
                 float alpha = (j / (float)sizeY) * Mathf.PI;
 
-                float value1 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius1, offset1);
-                float value2 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius2, offset2);
-                float value3 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius3, offset3);
-                float value4 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius4, offset4);
-                float value5 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius5, offset5);
-                float value6 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius6, offset6);
-                float value7 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius7, offset7);
-                float value8 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius8, offset8);
-                float value9 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius9, offset9);
+                float value1 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius1, _altitudeNoiseOffset1);
+                float value2 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius2, _altitudeNoiseOffset2);
+                float value3 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius3, _altitudeNoiseOffset3);
+                float value4 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius4, _altitudeNoiseOffset4);
+                float value5 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius5, _altitudeNoiseOffset5);
+                float value6 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius6, _altitudeNoiseOffset6);
+                float value7 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius7, _altitudeNoiseOffset7);
+                float value8 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius8, _altitudeNoiseOffset8);
+                float value9 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius9, _altitudeNoiseOffset9);
 
                 value8 = value8 * 1.5f + 0.25f;
 
@@ -3124,17 +3118,12 @@ public class World : ISynchronizable
         }
     }
 
-    private void OffsetRainfallGenRngCalls()
+    private void GenerateRandomNoiseRainfallOffsets()
     {
         // Store values to be used later when regenerating specific cells
         _rainfallNoiseOffset1 = GenerateRandomOffsetVectorTask();
         _rainfallNoiseOffset2 = GenerateRandomOffsetVectorTask();
         _rainfallNoiseOffset3 = GenerateRandomOffsetVectorTask();
-
-        // We need the calls to Random to be resolved before moving on to preserve RNG order
-        _rainfallNoiseOffset1.Wait();
-        _rainfallNoiseOffset2.Wait();
-        _rainfallNoiseOffset3.Wait();
     }
 
     private void CalculateAndSetRainfall(TerrainCell cell, float value, float? offset = null, bool modified = false)
@@ -3253,10 +3242,6 @@ public class World : ISynchronizable
         int sizeX = Width;
         int sizeY = Height;
 
-        _rainfallNoiseOffset1 = GenerateRandomOffsetVectorTask();
-        _rainfallNoiseOffset2 = GenerateRandomOffsetVectorTask();
-        _rainfallNoiseOffset3 = GenerateRandomOffsetVectorTask();
-
         for (int i = 0; i < sizeX; i++)
         {
             for (int j = 0; j < sizeY; j++)
@@ -3291,15 +3276,19 @@ public class World : ISynchronizable
         }
     }
 
-    private void ResetDrainage(TerrainCell cell)
+    private void ResetDrainage(TerrainCell cell, bool resetAltitude = true)
     {
         cell.Buffer = 0;
         cell.DrainageDone = false;
         cell.WaterAccumulation = 0;
-        cell.Altitude = cell.NoErosionAltitude;
+
+        if (resetAltitude)
+        {
+            cell.Altitude = cell.NoErosionAltitude;
+        }
     }
 
-    private delegate bool addToCellsToDrainDelegate(TerrainCell cell, bool reset);
+    private delegate bool addToCellsToDrainDelegate(TerrainCell cell, bool resetDrainage, bool resetAltitude);
 
     private void DrainToNeighbors(TerrainCell cell, addToCellsToDrainDelegate addToCellsToDrain)
     {
@@ -3377,7 +3366,7 @@ public class World : ISynchronizable
             
             nCell.Buffer += rainfallTransfer;
 
-            addToCellsToDrain(nCell, true);
+            addToCellsToDrain(nCell, true, true);
         }
     }
 
@@ -3460,7 +3449,7 @@ public class World : ISynchronizable
                 ProgressCastMethod(_accumulatedProgress + _progressIncrement * secondPartLength * progressPercent);
             }
 
-            DrainToNeighbors(cell, (nCell, reset) =>
+            DrainToNeighbors(cell, (nCell, resetDrainage, resetAltitude) =>
             {
                 if (queuedDrainCells.Contains(nCell))
                     return false;
@@ -3556,15 +3545,11 @@ public class World : ISynchronizable
         }
     }
 
-    private void OffsetTemperatureGenRngCalls()
+    private void GenerateRandomNoiseTemperatureOffsets()
     {
         // Store values to be used later when regenerating specific cells
         _tempNoiseOffset1 = GenerateRandomOffsetVectorTask();
         _tempNoiseOffset2 = GenerateRandomOffsetVectorTask();
-
-        // We need the calls to Random to be resolved before moving on to preserve RNG order
-        _tempNoiseOffset1.Wait();
-        _tempNoiseOffset2.Wait();
     }
 
     private void CalculateAndSetTemperature(TerrainCell cell, float value, float? offset = null, bool modified = false)
@@ -3721,9 +3706,6 @@ public class World : ISynchronizable
     {
         int sizeX = Width;
         int sizeY = Height;
-
-        _tempNoiseOffset1 = GenerateRandomOffsetVectorTask();
-        _tempNoiseOffset2 = GenerateRandomOffsetVectorTask();
 
         for (int i = 0; i < sizeX; i++)
         {
