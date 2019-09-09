@@ -86,7 +86,6 @@ public class TerrainCell
 
     public float WaterAccumulation = 0;
     public float Buffer = 0;
-    public float Buffer2 = 0;
     public bool DrainageDone = false;
 
     public float Survivability;
