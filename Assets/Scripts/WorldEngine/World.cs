@@ -2478,19 +2478,14 @@ public class World : ISynchronizable
         Manager.ActiveEditorBrushAction.AddCellBeforeModification(cell);
 
         // Add some extra noise to enhance river formation
-        float radius5 = 16f;
         float radius6 = 64f;
         float radius7 = 128f;
-        float radius8 = 1.5f;
-
-        float value5 = GetRandomNoiseFromPolarCoordinates(cell.Alpha, cell.Beta, radius5, _altitudeNoiseOffset5);
+        
         float value6 = GetRandomNoiseFromPolarCoordinates(cell.Alpha, cell.Beta, radius6, _altitudeNoiseOffset6);
         float value7 = GetRandomNoiseFromPolarCoordinates(cell.Alpha, cell.Beta, radius7, _altitudeNoiseOffset7);
-        float value8 = GetRandomNoiseFromPolarCoordinates(cell.Alpha, cell.Beta, radius8, _altitudeNoiseOffset8);
-
-        float valueOffsetA = Mathf.Lerp(valueOffset, value5 * valueOffset, 0.4f * value8);
-        valueOffsetA = Mathf.Lerp(valueOffsetA, value6 * valueOffset, 0.24f * value8);
-        valueOffsetA = Mathf.Lerp(valueOffsetA, value7 * valueOffset, 0.08f * value8);
+        
+        float valueOffsetA = Mathf.Lerp(valueOffset, value6 * valueOffset, 0.2f);
+        valueOffsetA = Mathf.Lerp(valueOffsetA, value7 * valueOffset, 0.1f);
 
         float value = cell.BaseAltitudeValue + valueOffsetA;
 
@@ -2828,7 +2823,8 @@ public class World : ISynchronizable
         float radius6 = 64f;
         float radius7 = 128f;
         float radius8 = 1.5f;
-        float radius9 = 1f;
+        //float radius9 = 1f;
+        float radius9 = 0.5f;
 
         for (int i = 0; i < sizeX; i++)
         {
@@ -2852,6 +2848,7 @@ public class World : ISynchronizable
                 float value9 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius9, _altitudeNoiseOffset9);
 
                 value8 = value8 * 1.5f + 0.25f;
+                //float value10 = value9 * 0.8f + 0.1f;
 
                 float valueA = GetContinentModifier(i, j);
                 valueA = Mathf.Lerp(valueA, value3, 0.22f * value8);
@@ -2863,9 +2860,12 @@ public class World : ISynchronizable
                 float valueC = Mathf.Lerp(value1, value9, 0.5f * value8);
                 valueC = Mathf.Lerp(valueC, value2, 0.04f * value8);
                 valueC = Mathf.Lerp(valueC, value3, 0.02f * value8);
-                valueC = GetMountainRangeNoiseFromRandomNoise(valueC, valueAa, 35);
+                valueC = GetMountainRangeFromRandomNoise(valueC, valueAa, 40);
+                //valueC += GetMountainRangeFromRandomNoise(valueC, valueAa, 35, 100);
 
+                //float valueB = Mathf.Lerp(valueAa, valueC, value10);
                 float valueB = Mathf.Lerp(valueAa, valueC, 0.35f * value8);
+                //float valueB = Mathf.Lerp(valueAa, valueC, 0.40f * value8);
                 float valueBe = ErodeNoise(valueB, 25, 10);
                 valueBe = Mathf.Lerp(valueBe, 0.5f, 0.5f);
                 //float valueBa = Mathf.Lerp(valueBe, valueA, 0.01f);
@@ -2994,35 +2994,47 @@ public class World : ISynchronizable
         return value;
     }
 
-    private float GetMountainRangeNoiseFromRandomNoise(float noise, float filter, float widthFactor)
+    private float GetMountainRangeFromRandomNoise(float noise, float filter, float widthFactor, float baseOffset = 0)
     {
+        filter = filter * 1.2f - 0.2f;
+        //filter *= filter;
+        //filter *= 2;
+        //filter -= 0.25f;
+
         float scaledNoise = (noise * 2) - 1;
         
         int count = 5;
-        float widthFactor2 = widthFactor / 10;
-        float offsetFactor = widthFactor / 35f;
-        float offsetFactor2 = widthFactor2 / 35f;
+
+        float div1 = 5f;
+        float baseOffset2 = baseOffset / div1;
+        float widthFactor2 = widthFactor / div1;
+
+        float div2 = 40f;
+        float offsetFactor = widthFactor / div2;
+        float offsetFactor2 = widthFactor2 / div2;
+
         float offset = 0.5f + (count / 2f);
 
         float value = 0;
 
         for (int i = 1; i <= count; i++)
         {
-            float countFactor = (count - i) / (float)count;
-            float fi = Mathf.Max(0, filter - countFactor);
+            float countFactor = i / (float)count;
+            countFactor = 1 - countFactor;
+            float fi = Mathf.Clamp01(filter - countFactor);
 
             if (fi <= 0)
                 continue;
-
+            
             fi /= 1 - countFactor;
 
-            float si = (i - offset) * 2 * offsetFactor;
+            float si = (i - offset) * 2 * offsetFactor + baseOffset;
             float vAdd1 = Mathf.Exp(-Mathf.Pow(scaledNoise * widthFactor + si, 2)) * fi;
 
-            float si2 = (i - offset) * 2 * offsetFactor2;
+            float si2 = (i - offset) * 2 * offsetFactor2 + baseOffset2;
             float vAdd2 = Mathf.Exp(-Mathf.Pow(scaledNoise * widthFactor2 + si2, 2)) * fi;
             
-            value += Mathf.Lerp(vAdd1, vAdd2, 0.1f);
+            value += Mathf.Lerp(vAdd1, vAdd2, 0.2f);
         }
 
         return value;
