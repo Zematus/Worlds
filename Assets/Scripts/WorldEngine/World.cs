@@ -2860,21 +2860,28 @@ public class World : ISynchronizable
                 float valueC = Mathf.Lerp(value1, value9, 0.5f * value8);
                 valueC = Mathf.Lerp(valueC, value2, 0.04f * value8);
                 valueC = Mathf.Lerp(valueC, value3, 0.02f * value8);
-                valueC = GetMountainRangeFromRandomNoise(valueC, valueAa, 40);
-                //valueC += GetMountainRangeFromRandomNoise(valueC, valueAa, 35, 100);
+                float valueCa = GetMountainRangeFromRandomNoise(valueC, valueAa, 40, 40);
 
-                //float valueB = Mathf.Lerp(valueAa, valueC, value10);
+                float valueE = Mathf.Lerp(value1, value4, 0.5f * value8);
+                valueE = Mathf.Lerp(valueE, value2, 0.04f * value8);
+                valueE = Mathf.Lerp(valueE, value3, 0.02f * value8);
+                valueE = GetMountainRangeFromRandomNoise(valueE, valueAa, 20, 10);
+                valueE = valueE * valueCa;
+                valueCa = Mathf.Lerp(valueCa, valueE, 0.25f);
+
+                float valueCb = GetMountainRangeFromRandomNoise(valueC, valueAa, 8, 40);
+                valueC = Mathf.Lerp(valueCa, valueCb, 0.2f);
+
                 float valueB = Mathf.Lerp(valueAa, valueC, 0.35f * value8);
-                //float valueB = Mathf.Lerp(valueAa, valueC, 0.40f * value8);
                 float valueBe = ErodeNoise(valueB, 25, 10);
                 valueBe = Mathf.Lerp(valueBe, 0.5f, 0.5f);
-                //float valueBa = Mathf.Lerp(valueBe, valueA, 0.01f);
 
                 float valueD = Mathf.Lerp(valueC, valueBe, 0.7f);
                 valueD = Mathf.Lerp(valueD, value5, 0.1f * valueC);
                 valueD = Mathf.Lerp(valueD, value6, 0.03f * valueC);
                 valueD = Mathf.Lerp(valueD, value7, 0.005f * valueC);
-                
+
+                //valueD = valueE;
                 CalculateAndSetAltitude(i, j, valueD);
             }
 
@@ -2994,24 +3001,15 @@ public class World : ISynchronizable
         return value;
     }
 
-    private float GetMountainRangeFromRandomNoise(float noise, float filter, float widthFactor, float baseOffset = 0)
+    private float GetMountainRangeFromRandomNoise(float noise, float filter, float widthFactor, float widthDivisor)
     {
-        filter = filter * 1.2f - 0.2f;
-        //filter *= filter;
-        //filter *= 2;
-        //filter -= 0.25f;
+        //filter = filter * 1.2f - 0.2f;
 
         float scaledNoise = (noise * 2) - 1;
         
         int count = 5;
-
-        float div1 = 5f;
-        float baseOffset2 = baseOffset / div1;
-        float widthFactor2 = widthFactor / div1;
-
-        float div2 = 40f;
-        float offsetFactor = widthFactor / div2;
-        float offsetFactor2 = widthFactor2 / div2;
+        
+        float offsetFactor = widthFactor / widthDivisor;
 
         float offset = 0.5f + (count / 2f);
 
@@ -3020,21 +3018,17 @@ public class World : ISynchronizable
         for (int i = 1; i <= count; i++)
         {
             float countFactor = i / (float)count;
-            countFactor = 1 - countFactor;
-            float fi = Mathf.Clamp01(filter - countFactor);
+            float countFactor2 = 1 - countFactor;
+            float fi = Mathf.Clamp01(filter - countFactor2);
 
             if (fi <= 0)
                 continue;
             
-            fi /= 1 - countFactor;
+            fi /= 1 - countFactor2;
+            fi *= countFactor;
 
-            float si = (i - offset) * 2 * offsetFactor + baseOffset;
-            float vAdd1 = Mathf.Exp(-Mathf.Pow(scaledNoise * widthFactor + si, 2)) * fi;
-
-            float si2 = (i - offset) * 2 * offsetFactor2 + baseOffset2;
-            float vAdd2 = Mathf.Exp(-Mathf.Pow(scaledNoise * widthFactor2 + si2, 2)) * fi;
-            
-            value += Mathf.Lerp(vAdd1, vAdd2, 0.2f);
+            float si = (i - offset) * 2 * offsetFactor;
+            value += Mathf.Exp(-Mathf.Pow(scaledNoise * widthFactor + si, 2)) * fi;
         }
 
         return value;
