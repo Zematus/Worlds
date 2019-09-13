@@ -56,6 +56,19 @@ public static class MathUtility
         return new Vector3(x, y, z);
     }
 
+    public static Vector2 GetSphereProjection(float x, float y, float z, float alpha, float beta)
+    {
+        if ((alpha < 0) || (alpha > Mathf.PI)) throw new System.Exception("alpha value must be not less than 0 and not greater than Mathf.PI");
+
+        while (beta < 0) beta += Mathf.PI;
+
+        beta = Mathf.Repeat(beta, 2 * Mathf.PI);
+
+        float sinAlpha = Mathf.Sin(alpha);
+
+        return new Vector2(0, 0);
+    }
+
     public static Vector3 GetCartesianCoordinates(Vector3 sphericalVector)
     {
         return GetCartesianCoordinates(sphericalVector.x, sphericalVector.y, sphericalVector.z);

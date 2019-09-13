@@ -70,10 +70,6 @@ public class PerlinNoise
         int Y = y & 255;
         int Z = z & 255;
 
-        //		int oX = x % 255;
-        //		int oY = y % 255;
-        //		int oZ = z % 255;
-
         int A = _permutation[X] + Y;
         int AA = _permutation[A] + Z;
         int AB = _permutation[AA];
@@ -94,11 +90,6 @@ public class PerlinNoise
     // Returns a value between 0 and 1
     public static float GetValue(float x, float y, float z)
     {
-        //		int[] p = new int[512];
-        //
-        //		for (int i=0; i < 256 ; i++) 
-        //			p[256 + i] = p[i] = _permutation[i];
-
         int fx = (int)(Mathf.Floor(x));
         int fy = (int)(Mathf.Floor(y));
         int fz = (int)(Mathf.Floor(z));
@@ -125,17 +116,97 @@ public class PerlinNoise
 
         return scale(
             lerp(w,
-                 lerp(v,
-                     lerp(u,
-             grad(_permutation[AA], x, y, z),
-             grad(_permutation[BA], x - 1, y, z)),
-             lerp(u, grad(_permutation[AB], x, y - 1, z),
-             grad(_permutation[BB], x - 1, y - 1, z))),
-                 lerp(v, lerp(u,
-                     grad(_permutation[AA + 1], x, y, z - 1),
-                     grad(_permutation[BA + 1], x - 1, y, z - 1)),
-             lerp(u, grad(_permutation[AB + 1], x, y - 1, z - 1),
-             grad(_permutation[BB + 1], x - 1, y - 1, z - 1)))));
+                lerp(v, 
+                    lerp(u,
+                        grad(_permutation[AA], x, y, z),
+                        grad(_permutation[BA], x - 1, y, z)
+                        ),
+                    lerp(u, 
+                        grad(_permutation[AB], x, y - 1, z),
+                        grad(_permutation[BB], x - 1, y - 1, z)
+                        )
+                    ),
+                lerp(v, 
+                    lerp(u,
+                        grad(_permutation[AA + 1], x, y, z - 1),
+                        grad(_permutation[BA + 1], x - 1, y, z - 1)
+                        ),
+                    lerp(u, 
+                        grad(_permutation[AB + 1], x, y - 1, z - 1),
+                        grad(_permutation[BB + 1], x - 1, y - 1, z - 1)
+                        )
+                    )
+                )
+            );
+    }
+
+    // Returns a Perlin noise 3d vector as an array of 3 values
+    public static float[] Get3DVector(float x, float y, float z)
+    {
+        int fx = (int)(Mathf.Floor(x));
+        int fy = (int)(Mathf.Floor(y));
+        int fz = (int)(Mathf.Floor(z));
+
+        int X = fx & 255;
+        int Y = fy & 255;
+        int Z = fz & 255;
+
+        x -= Mathf.Floor(x);
+        y -= Mathf.Floor(y);
+        z -= Mathf.Floor(z);
+
+        float u = fade(x);
+        float v = fade(y);
+        float w = fade(z);
+
+        int A = _permutation[X] + Y;
+        int AA = _permutation[A] + Z;
+        int AB = _permutation[A + 1] + Z;
+
+        int B = _permutation[X + 1] + Y;
+        int BA = _permutation[B] + Z;
+        int BB = _permutation[B + 1] + Z;
+
+        float[] values = new float[] {
+            grad(_permutation[AA], x, y, z),
+            grad(_permutation[BA], x - 1, y, z),
+            grad(_permutation[AB], x, y - 1, z),
+            grad(_permutation[BB], x - 1, y - 1, z),
+            grad(_permutation[AA + 1], x, y, z - 1),
+            grad(_permutation[BA + 1], x - 1, y, z - 1),
+            grad(_permutation[AB + 1], x, y - 1, z - 1),
+            grad(_permutation[BB + 1], x - 1, y - 1, z - 1)
+        };
+
+        // w for z;
+        // v for y;
+        // u for x;
+
+        float zValue = lerp(v,
+                lerp(u, values[0], values[1]),
+                lerp(u, values[2], values[3])
+                ) - lerp(v,
+                lerp(u, values[4], values[5]),
+                lerp(u, values[6], values[7])
+                );
+
+        float yValue = lerp(w,
+                lerp(u, values[0], values[1]),
+                lerp(u, values[4], values[5])
+                ) - lerp(w,
+                lerp(u, values[2], values[3]),
+                lerp(u, values[6], values[7])
+                );
+
+        float xValue = lerp(v,
+                lerp(w, values[0], values[4]),
+                lerp(w, values[2], values[6])
+                ) - lerp(v,
+                lerp(w, values[1], values[5]),
+                lerp(w, values[3], values[7])
+                );
+
+        return new float[] { xValue / 2f, yValue / 2f, zValue / 2f };
     }
 
     private static float fade(float t)
