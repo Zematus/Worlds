@@ -65,13 +65,18 @@ public static class MathUtility
         beta = Mathf.Repeat(beta, 2 * Mathf.PI);
 
         float sinAlpha = Mathf.Sin(alpha);
+        float cosAlpha = Mathf.Cos(alpha);
+        float sinBeta = Mathf.Sin(beta);
+        float cosBeta = Mathf.Cos(beta);
 
-        return new Vector2(0, 0);
-    }
+        float aX = x * -cosAlpha * cosBeta;
+        float aY = y * sinAlpha;
+        float aZ = z * -cosAlpha * sinBeta;
 
-    public static Vector3 GetCartesianCoordinates(Vector3 sphericalVector)
-    {
-        return GetCartesianCoordinates(sphericalVector.x, sphericalVector.y, sphericalVector.z);
+        float bX = x * sinBeta;
+        float bZ = z * cosBeta;
+
+        return new Vector2(aX + aY + aZ, bX + bZ);
     }
 
     public static float RoundToSixDecimals(float value)

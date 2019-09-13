@@ -2984,6 +2984,17 @@ public class World : ISynchronizable
         return PerlinNoise.GetValue(pos.x, pos.y, pos.z);
     }
 
+    // Returns an angle from vector noise
+    private float GetAngle(float alpha, float beta, float radius, Vector3 offset)
+    {
+        Vector3 pos = MathUtility.GetCartesianCoordinates(alpha, beta, radius) + offset;
+
+        float[] array3D = PerlinNoise.Get3DVector(pos.x, pos.y, pos.z);
+        Vector2 projection = MathUtility.GetSphereProjection(array3D[0], array3D[1], array3D[2], alpha, beta);
+
+        return Mathf.Atan2(projection.y, projection.x);
+    }
+
     //// Returns a value between 0 and 1
     //private float GetRandomNoiseFromPolarCoordinates_OpenSimplex(float alpha, float beta, float radius, Vector3 offset)
     //{
