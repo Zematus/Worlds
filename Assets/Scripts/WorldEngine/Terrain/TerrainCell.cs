@@ -63,19 +63,19 @@ public class TerrainCell
     public const int MaxNeighborhoodSeaPresence = 9;
 
     public const float HillinessSlopeFactor = 0.01f;
-    
+
     public bool Modified = false; // This will be true if the cell has been modified after/during generation by using a heighmap, using the map editor, or by running the simulation
-    
+
     public int Longitude;
     public int Latitude;
-    
+
     public float Height;
     public float Width;
-    
+
     public float BaseAltitudeValue;
     public float BaseRainfallValue;
     public float BaseTemperatureValue;
-    
+
     public float BaseRainfallOffset;
     public float BaseTemperatureOffset;
 
@@ -87,6 +87,14 @@ public class TerrainCell
     public float WaterAccumulation = 0;
     public float Buffer = 0;
     public bool DrainageDone = false;
+
+    public float FlowingWater
+    {
+        get
+        {
+            return WaterAccumulation - Rainfall;
+        }
+    }
 
     public float Survivability;
     public float ForagingCapacity;

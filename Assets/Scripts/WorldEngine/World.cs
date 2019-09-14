@@ -164,7 +164,7 @@ public class World : ISynchronizable
     public const float DefaultAltitudeScale = 0.75f;
     public const float AvgPossibleRainfall = 990f;
     public const float AvgPossibleTemperature = 13.7f;
-    public const float DefaultRiverStrength = 0.65f;
+    public const float DefaultRiverStrength = 0.55f;
 
     public const float MinPossibleAltitude = -15000;
     public const float MaxPossibleAltitude = 15000;
@@ -2513,75 +2513,6 @@ public class World : ISynchronizable
         return cell.Altitude + cell.WaterAccumulation * OverflowFactor * RainfallToHeightConversionFactor;
     }
 
-    public float CalculateDrainageTowards(TerrainCell sourceCell, TerrainCell targetCell)
-    {
-        float sourceCellAltitude = Mathf.Max(0, CalculateAltitudePlusAccumulation(sourceCell));
-        float targetCellAltitude = Mathf.Max(0, CalculateAltitudePlusAccumulation(targetCell));
-
-        float diff = sourceCellAltitude - targetCellAltitude;
-        if (diff < 0)
-        {
-            return 0;
-        }
-
-        float totalAltDifference = 0;
-        foreach (TerrainCell nCell in sourceCell.Neighbors.Values)
-        {
-            float nCellAltitude = Mathf.Max(0, CalculateAltitudePlusAccumulation(nCell));
-
-            float nDiff = Mathf.Max(0, sourceCellAltitude - nCellAltitude);
-
-            totalAltDifference += nDiff;
-        }
-
-        if (totalAltDifference <= 0)
-        {
-            return 0;
-        }
-        
-        float totalDiffBuffer = totalAltDifference;
-
-        foreach (TerrainCell nCell in sourceCell.Neighbors.Values)
-        {
-            float nCellAltitude = Mathf.Max(0, CalculateAltitudePlusAccumulation(nCell));
-
-            float nDiff = Mathf.Max(0, sourceCellAltitude - nCellAltitude);
-
-            float nPercent = nDiff / totalDiffBuffer;
-
-            if (nPercent == 0)
-                continue;
-            
-            if ((sourceCell.WaterAccumulation * nPercent) < MinRiverFlow)
-            {
-                if (nCell == targetCell)
-                {
-                    return 0;
-                }
-
-                totalAltDifference -= nDiff;
-
-                continue;
-            }
-        }
-
-        if (totalAltDifference <= 1)
-        {
-            return 0;
-        }
-
-        float percent = diff / totalAltDifference;
-
-        float rainfallTransfer = sourceCell.WaterAccumulation * percent;
-
-        if (rainfallTransfer > 10000)
-        {
-            bool debug = true;
-        }
-
-        return rainfallTransfer;
-    }
-
     public void PerformTerrainAlterationDrainageRegen(bool doErosion = true)
     {
         while (_drainageHeap.Count > 0)
@@ -2593,7 +2524,7 @@ public class World : ISynchronizable
             {
                 bool reInsert = false;
 
-                cell.WaterAccumulation += cell.Buffer - CalculateWaterLoss(cell, cell.Buffer);
+                cell.WaterAccumulation += cell.Buffer;// - CalculateWaterLoss(cell, cell.Buffer);
 
                 MaxWaterAccumulation = Mathf.Max(MaxWaterAccumulation, cell.WaterAccumulation);
 
@@ -2847,6 +2778,8 @@ public class World : ISynchronizable
                 float value8 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius8, _altitudeNoiseOffset8);
                 float value9 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius9, _altitudeNoiseOffset9);
 
+                //float angleValue9 = GetRandomAngleNoiseFromPolarCoordinates(alpha, beta, radius9, _altitudeNoiseOffset9);
+
                 value8 = value8 * 1.5f + 0.25f;
                 //float value10 = value9 * 0.8f + 0.1f;
 
@@ -2869,19 +2802,26 @@ public class World : ISynchronizable
                 valueE = valueE * valueCa;
                 valueCa = Mathf.Lerp(valueCa, valueE, 0.25f);
 
-                float valueCb = GetMountainRangeFromRandomNoise(valueC, valueAa, 8, 40);
+                float valueCb = GetMountainRangeFromRandomNoise(valueC, valueAa, 4, 40);
+
+                //float valueF = Mathf.Lerp(value1, angleValue9, 0.5f * value8);
+                //valueF = Mathf.Lerp(valueF, value2, 0.4f * value8);
+                //valueF = Mathf.Lerp(valueF, value3, 0.2f * value8);
+                //valueF = GetMountainInterjectionFromAngleValue(valueF, 200);
+                //valueCa = Mathf.Lerp(valueCa, valueF * valueCa, 0.5f);
+
                 valueC = Mathf.Lerp(valueCa, valueCb, 0.2f);
 
                 float valueB = Mathf.Lerp(valueAa, valueC, 0.35f * value8);
                 float valueBe = ErodeNoise(valueB, 25, 10);
                 valueBe = Mathf.Lerp(valueBe, 0.5f, 0.5f);
 
-                float valueD = Mathf.Lerp(valueC, valueBe, 0.7f);
+                float valueD = Mathf.Lerp(valueC, valueBe, 0.68f);
                 valueD = Mathf.Lerp(valueD, value5, 0.1f * valueC);
                 valueD = Mathf.Lerp(valueD, value6, 0.03f * valueC);
                 valueD = Mathf.Lerp(valueD, value7, 0.005f * valueC);
 
-                //valueD = valueE;
+                //valueD = valueF;
                 CalculateAndSetAltitude(i, j, valueD);
             }
 
@@ -2984,15 +2924,23 @@ public class World : ISynchronizable
         return PerlinNoise.GetValue(pos.x, pos.y, pos.z);
     }
 
-    // Returns an angle from vector noise
-    private float GetAngle(float alpha, float beta, float radius, Vector3 offset)
+    // Returns an angle from vector noise (in radians, 0 to 2*Pi)
+    private float GetRandomAngleNoiseFromPolarCoordinates(float alpha, float beta, float radius, Vector3 offset)
     {
         Vector3 pos = MathUtility.GetCartesianCoordinates(alpha, beta, radius) + offset;
 
-        float[] array3D = PerlinNoise.Get3DVector(pos.x, pos.y, pos.z);
-        Vector2 projection = MathUtility.GetSphereProjection(array3D[0], array3D[1], array3D[2], alpha, beta);
+        float[] vector3D = PerlinNoise.Get3DVector(pos.x, pos.y, pos.z);
+        Vector2 projection = MathUtility.GetSphereProjection(vector3D, alpha, beta);
 
         return Mathf.Atan2(projection.y, projection.x);
+    }
+
+    // Get mountain interjections
+    private float GetMountainInterjectionFromAngleValue(float angleNoise, float scaleFactor)
+    {
+        float scaledNoise = scaleFactor * angleNoise / (Mathf.PI * 2f);
+
+        return (Mathf.Sin(scaledNoise) + 1) / 2f;
     }
 
     //// Returns a value between 0 and 1
@@ -3014,7 +2962,7 @@ public class World : ISynchronizable
 
     private float GetMountainRangeFromRandomNoise(float noise, float filter, float widthFactor, float widthDivisor)
     {
-        //filter = filter * 1.2f - 0.2f;
+        filter = filter * 1.2f - 0.2f;
 
         float scaledNoise = (noise * 2) - 1;
         
@@ -3309,6 +3257,8 @@ public class World : ISynchronizable
 
     private void DrainToNeighbors(TerrainCell cell, addToCellsToDrainDelegate addToCellsToDrain)
     {
+        float diffPow = 2.5f;
+
         cell.DrainageDone = true;
 
         if (cell.WaterAccumulation < MinRiverFlow)
@@ -3327,6 +3277,7 @@ public class World : ISynchronizable
             nAltitudes[nCell] = nCellAltitude;
 
             float diff = Mathf.Max(0, cellAltitude - nCellAltitude);
+            diff = Mathf.Pow(diff, diffPow);
 
             totalAltDifference += diff;
         }
@@ -3344,6 +3295,7 @@ public class World : ISynchronizable
             float nCellAltitude = nAltitudes[nCell];
 
             float diff = Mathf.Max(0, cellAltitude - nCellAltitude);
+            diff = Mathf.Pow(diff, diffPow);
 
             float percent = diff / totalDiffBuffer;
 
@@ -3369,6 +3321,7 @@ public class World : ISynchronizable
             float nCellAltitude = nAltitudes[nCell];
 
             float diff = Mathf.Max(0, cellAltitude - nCellAltitude);
+            diff = Mathf.Pow(diff, diffPow);
 
             float percent = diff / totalAltDifference;
 
@@ -3453,7 +3406,7 @@ public class World : ISynchronizable
             TerrainCell cell = cellsToDrain.Extract(false);
             //queuedDrainCells.Remove(cell);
 
-            cell.WaterAccumulation += cell.Buffer - CalculateWaterLoss(cell, cell.Buffer);
+            cell.WaterAccumulation += cell.Buffer;// - CalculateWaterLoss(cell, cell.Buffer);
 
             MaxWaterAccumulation = Mathf.Max(MaxWaterAccumulation, cell.WaterAccumulation);
 
@@ -3506,7 +3459,7 @@ public class World : ISynchronizable
         }
         else
         {
-            float baseRiverStrength = DefaultRiverStrength;
+            float baseRiverStrength = 0.65f;
             float bottomLossFactor = 0.25f;
             float topLossFactor = 0.4f;
 
@@ -4118,7 +4071,7 @@ public class World : ISynchronizable
     private float CalculateWaterBiomeWaterFactor(TerrainCell cell, Biome biome)
     {
         float waterAccSpan = biome.MaxWaterAcc - biome.MinWaterAcc;
-        float waterAccDiff = cell.WaterAccumulation - biome.MinWaterAcc;
+        float waterAccDiff = cell.FlowingWater - biome.MinWaterAcc;
 
         if (waterAccDiff < 0)
             return -1f;
@@ -4151,7 +4104,7 @@ public class World : ISynchronizable
         float waterAccSpan = biome.MaxWaterAcc - biome.MinWaterAcc;
         float rainfallSpan = biome.MaxRainfall - biome.MinRainfall;
 
-        float waterAccDiff = cell.WaterAccumulation - biome.MinWaterAcc;
+        float waterAccDiff = cell.FlowingWater - biome.MinWaterAcc;
         float rainfallDiff = cell.Rainfall - biome.MinRainfall;
 
         if ((waterAccDiff < 0) && (rainfallDiff < 0))

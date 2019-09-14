@@ -56,6 +56,11 @@ public static class MathUtility
         return new Vector3(x, y, z);
     }
 
+    public static Vector2 GetSphereProjection(float[] vector, float alpha, float beta)
+    {
+        return GetSphereProjection(vector[0], vector[1], vector[2], alpha, beta);
+    }
+
     public static Vector2 GetSphereProjection(float x, float y, float z, float alpha, float beta)
     {
         if ((alpha < 0) || (alpha > Mathf.PI)) throw new System.Exception("alpha value must be not less than 0 and not greater than Mathf.PI");
