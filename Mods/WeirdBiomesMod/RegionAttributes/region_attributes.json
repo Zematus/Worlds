@@ -1,19 +1,19 @@
 {
   "regionAttributes": [
     {
-      "id": "ocean",
-      "name": "ocean",
+      "id": "sea",
+      "name": "sea",
       "adjectives": ["clear", "dark", "blue", "green", "grey"],
-      "variants": ["ocean{<relation>:s}", "sea{<relation>:s}"],
-      "regionConstraints": ["biome_presence_above:ocean,0.5"],
+      "variants": ["sea{<relation>:s}"],
+      "regionConstraints": ["biome_presence_above:sea,0.5"],
       "phraseAssociations": ["[iv(bear,ts,past)]born,by|near,ds|dp", "[rv(ts,past)]raise:d,near,ds|dp", "[ran]swim:mer,of,ip|ns", "[rv(ts,past)]arrive:d,from,ds"]
     },
     {
-      "id": "crimson_ocean",
-      "name": "crimson ocean",
+      "id": "crimson_sea",
+      "name": "crimson sea",
       "adjectives": ["dark", "red", "grey"],
-      "variants": ["ocean{<relation>:s}", "sea{<relation>:s}"],
-      "regionConstraints": ["biome_presence_above:crimson_ocean,0.5"],
+      "variants": ["sea{<relation>:s}"],
+      "regionConstraints": ["biome_presence_above:crimson_sea,0.5"],
       "phraseAssociations": ["[iv(bear,ts,past)]born,by|near,ds|dp", "[rv(ts,past)]raise:d,near,ds|dp", "[ran]swim:mer,of,ip|ns", "[rv(ts,past)]arrive:d,from,ds"]
     },
     {

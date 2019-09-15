@@ -34,6 +34,12 @@ Here's a list of the current types of region constraints (more to be added in fu
 - 'temperature_below'
     Tests if the average temperature of a region is below a certain value (expressed in centigrade). Example: 'temperature_below:10'
 
+- 'flowing_water_above'
+    Tests is the average amount of flowing water within a region is above a certain value (expressed as  a number between 0.0 and 100000000.0 inclusive). Example: 'flowing_water_above:100.0'
+
+- 'flowing_water_below'
+    Tests is the average amount of flowing water within a region is below a certain value (expressed as  a number between 0.0 and 100000000.0 inclusive). Example: 'flowing_water_below:10000.0'
+
 - 'biome_presence_above'
     Tests if the number of cells within a region that have a particular biome is above (or equal) a certain percentage (expressed as comma separated pair of a biome identifier (id) and a number between 0.0 and 1.0 inclusive). Example: 'biome_presence_above:ice_sheet,0.65'
 

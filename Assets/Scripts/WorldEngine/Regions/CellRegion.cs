@@ -66,6 +66,7 @@ public class CellRegion : Region
         AverageAltitude = 0;
         AverageRainfall = 0;
         AverageTemperature = 0;
+        AverageFlowingWater = 0;
 
         AverageSurvivability = 0;
         AverageForagingCapacity = 0;
@@ -128,6 +129,7 @@ public class CellRegion : Region
             AverageAltitude += cell.Altitude * cellArea;
             AverageRainfall += cell.Rainfall * cellArea;
             AverageTemperature += cell.Temperature * cellArea;
+            AverageFlowingWater += cell.FlowingWater * cellArea;
 
             AverageSurvivability += cell.Survivability * cellArea;
             AverageForagingCapacity += cell.ForagingCapacity * cellArea;
@@ -162,6 +164,7 @@ public class CellRegion : Region
         AverageAltitude /= TotalArea;
         AverageRainfall /= TotalArea;
         AverageTemperature /= TotalArea;
+        AverageFlowingWater /= TotalArea;
 
         AverageSurvivability /= TotalArea;
         AverageForagingCapacity /= TotalArea;

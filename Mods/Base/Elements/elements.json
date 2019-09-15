@@ -95,8 +95,22 @@
       "id": "water",
       "name": "water:s",
       "adjectives": ["white", "green", "blue", "clear", "dark"],
-      "regionConstraints": ["altitude_below:0"],
+      "regionConstraints": ["main_biome:sea,river"],
       "phraseAssociations": ["[ran]swim:mer", "[ran]drink:er,of,u|ns", "[iv(bear,ts,past)]born,between,ip", "[iv(bear,ts,past)]born,by,ds", "[rv(ts,past)]soak:ed,by,u", "[rv(ts,past)]drench:ed,by,u"]
+    },
+    {
+      "id": "stream",
+      "name": "stream",
+      "adjectives": ["clear", "dark", "blue", "red", "green", "grey"],
+      "regionConstraints": ["flowing_water_above:50"],
+      "phraseAssociations": ["[iv(bear,ts,past)]born,by|near,ds|dp", "[iv(bear,ts,past)]born,between,ip", "[iv(bear,ts,past)]born,by,ds", "[rv(ts,past)]raise:d,near,ds|dp"]
+    },
+    {
+      "id": "current",
+      "name": "current:s",
+      "adjectives": ["white", "green", "blue", "clear", "dark"],
+      "regionConstraints": ["flowing_water_above:500"],
+      "phraseAssociations": ["[ran]swim:mer", "[iv(bear,ts,past)]born,between,ip", "[iv(bear,ts,past)]born,by,ds", "[rv(ts,past)]soak:ed,by,ip", "[rv(ts,past)]drench:ed,by,ip"]
     },
     {
       "id": "rain",

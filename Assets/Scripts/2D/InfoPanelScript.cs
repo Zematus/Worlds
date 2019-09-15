@@ -200,6 +200,7 @@ public class InfoPanelScript : MonoBehaviour
         InfoText.text += "\n";
         InfoText.text += "\nAverage Altitude: " + region.AverageAltitude + " meters";
         InfoText.text += "\nAverage Rainfall: " + region.AverageRainfall + " mm / year";
+        InfoText.text += "\nAverage Flowing Water: " + region.AverageFlowingWater + " mm";
         InfoText.text += "\nAverage Temperature: " + region.AverageTemperature + " C";
         InfoText.text += "\n";
 

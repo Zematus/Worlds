@@ -17,11 +17,11 @@
       "phraseAssociations": ["[iv(bear,ts,past)]born,by|near|in,ds|dp", "[rv(ts,past)]raise:d,near|in,ds|dp", "[ran]walk:er,of,ip|ns", "[ran]stride:r,of,ip|ns", "[rv(ts,past)]arrive:d,from,ds"]
     },
     {
-      "id": "ocean",
-      "name": "ocean",
+      "id": "sea",
+      "name": "sea",
       "adjectives": ["clear", "dark", "blue", "red", "green", "grey"],
-      "variants": ["ocean{<relation>:s}", "sea{<relation>:s}"],
-      "regionConstraints": ["biome_presence_above:ocean,0.5"],
+      "variants": ["sea{<relation>:s}"],
+      "regionConstraints": ["biome_presence_above:sea,0.5"],
       "phraseAssociations": ["[iv(bear,ts,past)]born,by|near,ds|dp", "[rv(ts,past)]raise:d,near,ds|dp", "[ran]swim:mer,of,ip|ns", "[rv(ts,past)]arrive:d,from,ds"]
     },
     {

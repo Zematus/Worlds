@@ -23,6 +23,8 @@ public abstract class Region : ISynchronizable
     public float AverageRainfall;
     [XmlIgnore]
     public float AverageTemperature;
+    [XmlIgnore]
+    public float AverageFlowingWater;
 
     [XmlIgnore]
     public float AverageSurvivability;

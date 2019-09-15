@@ -164,7 +164,7 @@ public class World : ISynchronizable
     public const float DefaultAltitudeScale = 0.75f;
     public const float AvgPossibleRainfall = 990f;
     public const float AvgPossibleTemperature = 13.7f;
-    public const float DefaultRiverStrength = 0.55f;
+    public const float DefaultRiverStrength = 0.50f;
 
     public const float MinPossibleAltitude = -15000;
     public const float MaxPossibleAltitude = 15000;
@@ -4218,13 +4218,13 @@ public class World : ISynchronizable
 
     private float CalculateWaterBiomeWaterFactor(TerrainCell cell, Biome biome)
     {
-        float waterAccSpan = biome.MaxWaterAcc - biome.MinWaterAcc;
-        float waterAccDiff = cell.FlowingWater - biome.MinWaterAcc;
+        float flowwingWaterSpan = biome.MaxFlowingWater - biome.MinFlowingWater;
+        float flowingWaterDiff = cell.FlowingWater - biome.MinFlowingWater;
 
-        if (waterAccDiff < 0)
+        if (flowingWaterDiff < 0)
             return -1f;
 
-        float waterFactor = waterAccDiff / waterAccSpan;
+        float waterFactor = flowingWaterDiff / flowwingWaterSpan;
 
         if (waterFactor > 1)
             return -1f;
@@ -4249,16 +4249,16 @@ public class World : ISynchronizable
             return CalculateWaterBiomeWaterFactor(cell, biome);
         }
 
-        float waterAccSpan = biome.MaxWaterAcc - biome.MinWaterAcc;
+        float flowingWaterSpan = biome.MaxFlowingWater - biome.MinFlowingWater;
         float rainfallSpan = biome.MaxRainfall - biome.MinRainfall;
 
-        float waterAccDiff = cell.FlowingWater - biome.MinWaterAcc;
+        float flowingWaterDiff = cell.FlowingWater - biome.MinFlowingWater;
         float rainfallDiff = cell.Rainfall - biome.MinRainfall;
 
-        if ((waterAccDiff < 0) && (rainfallDiff < 0))
+        if ((flowingWaterDiff < 0) && (rainfallDiff < 0))
             return -1f;
 
-        float moistureFactor = waterAccDiff / waterAccSpan;
+        float moistureFactor = flowingWaterDiff / flowingWaterSpan;
         float rainfallFactor = rainfallDiff / rainfallSpan;
 
         float waterFactor = Mathf.Max(moistureFactor, rainfallFactor);
