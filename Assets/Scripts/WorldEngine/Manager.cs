@@ -3745,9 +3745,9 @@ public class Manager
         color.g = greyscale / 6f;
         color.b = greyscale / 6f;
 
-        if (cell.WaterAccumulation > 0)
+        if (cell.FlowingWater > 0)
         {
-            float accPercent = 1 - cell.WaterAccumulation / CurrentWorld.MaxWaterAccumulation;
+            float accPercent = 1 - cell.FlowingWater / (CurrentWorld.MaxWaterAccumulation - cell.Rainfall);
             accPercent = Mathf.Pow(accPercent, 10);
             accPercent = 1 - accPercent;
             float value = 0.1f + (0.90f * accPercent);

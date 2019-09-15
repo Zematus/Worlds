@@ -3192,12 +3192,160 @@ public class World : ISynchronizable
                                   (offAltitude2 * 0.6f) -
                                   (offAltitude3 * 0.5f) -
                                   (offAltitude4 * 0.4f) -
-                                  (offAltitude5 * 0.3f) +
+                                  (offAltitude5 * 0.3f) -
                                   (offAltitude6 * 0.2f) +
                                   (MaxPossibleAltitude * 0.17f * value2) -
                                   (altitudeValue * 0.25f)) / MaxPossibleAltitude;
 
+        float temperatureFactor = Mathf.Min(0, cell.Temperature + 15) / (MinTemperature + 15);
+
         float rainfallValue = Mathf.Lerp(Mathf.Abs(latitudeModifier2), altitudeModifier, 0.95f);
+        rainfallValue = Mathf.Max(rainfallValue, temperatureFactor * 0.1f);
+
+        CalculateAndSetRainfall(cell, rainfallValue);
+    }
+
+    private void GenerateTerrainRainfall2(TerrainCell cell, bool justSetRainfallSources = false, bool setDependencies = true)
+    {
+        int longitude = cell.Longitude;
+        int latitude = cell.Latitude;
+
+        float radius1 = 2f;
+        float radius2 = 1f;
+        float radius3 = 16f;
+
+        float alpha = cell.Alpha;
+        float beta = cell.Beta;
+
+        float value1 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius1, _rainfallNoiseOffset1);
+        float value2 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius2, _rainfallNoiseOffset2);
+        float value3 = GetRandomNoiseFromPolarCoordinates(alpha, beta, radius3, _rainfallNoiseOffset3);
+
+        value2 = value2 * 1.5f + 0.25f;
+
+        float valueA = Mathf.Lerp(value1, value3, 0.15f);
+
+        float latitudeFactor = alpha + (((valueA * 2) - 1f) * Mathf.PI * 0.15f);
+        float latitudeModifier1 = Mathf.Sin(latitudeFactor);
+        float latitudeFactor2 = (latitudeFactor * 3);
+        float latitudeModifier2 = -latitudeModifier1 * Mathf.Sin(latitudeFactor2);
+        float latitudeFactor3 = (latitudeFactor * 6);
+        float latitudeModifier3 = -Mathf.Sin(latitudeFactor3);
+
+        int offCellX = (Width + longitude + (int)Mathf.Floor(latitudeModifier2 * Width / 40f)) % Width;
+        int offCellX2 = (Width + longitude + (int)Mathf.Floor(latitudeModifier2 * Width / 20f)) % Width;
+        int offCellX3 = (Width + longitude + (int)Mathf.Floor(latitudeModifier2 * Width / 10f)) % Width;
+        int offCellX4 = (Width + longitude + (int)Mathf.Floor(latitudeModifier2 * Width / 5f)) % Width;
+        int offCellX5 = (Width + longitude + (int)Mathf.Floor(latitudeModifier2 * Width / 2.5f)) % Width;
+        int offCellX6 = (Width + longitude + (int)Mathf.Floor(latitudeModifier2 * Width / 1.25f)) % Width;
+
+        int offCellY = Mathf.Clamp(latitude + Mathf.FloorToInt(latitudeModifier3 * Height / 20f), 0, Height - 1);
+        int offCellY2 = Mathf.Clamp(latitude + Mathf.FloorToInt(latitudeModifier3 * Height / 10f), 0, Height - 1);
+
+        TerrainCell offCell = TerrainCells[offCellX][offCellY2];
+        TerrainCell offCell2 = TerrainCells[offCellX2][offCellY];
+        TerrainCell offCell3 = TerrainCells[offCellX3][latitude];
+        TerrainCell offCell4 = TerrainCells[offCellX4][latitude];
+        TerrainCell offCell5 = TerrainCells[offCellX5][latitude];
+        TerrainCell offCell6 = TerrainCells[offCellX6][latitude];
+        //TerrainCell offCell6 = TerrainCells[longitude][offCellY];
+        //TerrainCell offCell7 = TerrainCells[longitude][offCellY2];
+
+        if (setDependencies)
+        {
+            offCell.RainfallDependentCells.Add(cell);
+            offCell2.RainfallDependentCells.Add(cell);
+            offCell3.RainfallDependentCells.Add(cell);
+            offCell4.RainfallDependentCells.Add(cell);
+            offCell5.RainfallDependentCells.Add(cell);
+            offCell6.RainfallDependentCells.Add(cell);
+            //offCell6.RainfallDependentCells.Add(cell);
+            //offCell7.RainfallDependentCells.Add(cell);
+        }
+
+        if (justSetRainfallSources)
+            return;
+
+        float altitudeDiv = MaxRainfall;
+
+        /////
+
+        float altitudeFactor = Mathf.Max(0, cell.Altitude) + 500;
+        float altitudeValue = 0;
+        float minusValue = 0;
+        float count = 1;
+        float countInc = 1f;
+
+        if (offCell.Altitude <= 0)
+        {
+            float altValue = Mathf.Clamp01((altitudeFactor - minusValue) / altitudeDiv) * 1f;
+            altitudeValue += altValue / count;
+            count += countInc;
+        }
+
+        minusValue = Mathf.Max(minusValue, offCell.Altitude);
+
+        if (offCell2.Altitude <= 0)
+        {
+            float altValue = Mathf.Clamp01((altitudeFactor - minusValue) / altitudeDiv) * 1f;
+            altitudeValue += altValue / count;
+            count += countInc;
+        }
+
+        minusValue = Mathf.Max(minusValue, offCell2.Altitude);
+
+        if (offCell3.Altitude <= 0)
+        {
+            float altValue = Mathf.Clamp01((altitudeFactor - minusValue) / altitudeDiv) * 1f;
+            altitudeValue += altValue / count;
+            count += countInc;
+        }
+
+        minusValue = Mathf.Max(minusValue, offCell3.Altitude);
+
+        if (offCell4.Altitude <= 0)
+        {
+            float altValue = Mathf.Clamp01((altitudeFactor - minusValue) / altitudeDiv) * 1f;
+            altitudeValue += altValue / count;
+            count += countInc;
+        }
+
+        minusValue = Mathf.Max(minusValue, offCell4.Altitude);
+
+        if (offCell5.Altitude <= 0)
+        {
+            float altValue = Mathf.Clamp01((altitudeFactor - minusValue) / altitudeDiv) * 1f;
+            altitudeValue += altValue / count;
+            count += countInc;
+        }
+
+        minusValue = Mathf.Max(minusValue, offCell5.Altitude);
+
+        if (offCell6.Altitude <= 0)
+        {
+            float altValue = Mathf.Clamp01((altitudeFactor - minusValue) / altitudeDiv) * 1f;
+            altitudeValue += altValue / count;
+            count += countInc;
+        }
+
+        /////
+
+        //float altitudeFactor2 = altitudeFactor;
+        //float minusValue2 = 0;
+
+        //if (offCell6.Altitude <= 0)
+        //    altitudeValue += Mathf.Clamp01((altitudeFactor2 - minusValue2) / altitudeDiv) * 1f;
+
+        //minusValue2 = Mathf.Max(minusValue2, offCell6.Altitude);
+
+        //if (offCell7.Altitude <= 0)
+        //    altitudeValue += Mathf.Clamp01((altitudeFactor2 - minusValue2) / altitudeDiv) * 1f;
+
+        ///////
+
+        float rainfallValue = Mathf.Lerp(Mathf.Abs(latitudeModifier2), altitudeValue, 0.9f);
+        rainfallValue = Mathf.Clamp01(rainfallValue * 1.1f - 0.1f);
+        //rainfallValue = Mathf.Clamp01(rainfallValue);
 
         CalculateAndSetRainfall(cell, rainfallValue);
     }
