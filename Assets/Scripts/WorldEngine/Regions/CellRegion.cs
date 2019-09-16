@@ -151,8 +151,7 @@ public class CellRegion : Region
                     biomePresences.Add(biomeId, presenceArea);
                 }
             }
-
-
+            
             foreach (string biomeId in cell.PresentWaterBiomeIds)
             {
                 waterArea += cell.GetBiomeRelPresence(biomeId) * cellArea;

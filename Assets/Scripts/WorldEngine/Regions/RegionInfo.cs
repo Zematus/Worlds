@@ -150,7 +150,6 @@ public class RegionInfo : ISynchronizable, IKeyedValue<long>
         string untranslatedName;
 
         Element.Instance elementInstance = Elements.RandomSelect(getRandomInt, isNounAdjunct ? 5 : 20);
-        Element element = null;
 
         List<RegionAttribute.Instance> remainingAttributes = new List<RegionAttribute.Instance>(AttributeList);
 
@@ -170,18 +169,20 @@ public class RegionInfo : ISynchronizable, IKeyedValue<long>
 
             if (isNounAdjunct && (getRandomInt(10) > 4))
             {
-
                 addAttributeNoun = false;
             }
-
-            element = elementInstance.Element;
         }
 
         string attributeNoun = string.Empty;
 
         if (addAttributeNoun)
         {
-            attributeNoun = attribute.GetRandomVariation(getRandomInt, element);
+            attributeNoun = attribute.GetRandomVariation(getRandomInt);
+
+            if ((elementInstance != null) && attributeNoun.Contains(elementInstance.SingularName))
+            {
+                elementInstance = null;
+            }
 
             wordCount++;
         }
@@ -194,13 +195,13 @@ public class RegionInfo : ISynchronizable, IKeyedValue<long>
 
         string elementNoun = string.Empty;
         if (elementInstance != null)
-            elementNoun = "[nad]" + elementInstance.SingularName + ((addAttributeNoun) ? " " : string.Empty);
+            elementNoun = Language.CreateNounAdjunct(elementInstance.SingularName) + ((addAttributeNoun) ? " " : string.Empty);
 
         untranslatedName = adjective + elementNoun;
 
         if (isNounAdjunct)
         {
-            untranslatedName += (addAttributeNoun) ? ("[nad]" + attributeNoun) : string.Empty;
+            untranslatedName += (addAttributeNoun) ? Language.CreateNounAdjunct(attributeNoun) : string.Empty;
         }
         else
         {
@@ -270,7 +271,12 @@ public class RegionInfo : ISynchronizable, IKeyedValue<long>
             firstElement = firstElementInstance.Element;
         }
 
-        string primaryAttributeNoun = primaryAttribute.GetRandomVariation(GetRandomInt, firstElement);
+        string primaryAttributeNoun = primaryAttribute.GetRandomVariation(GetRandomInt);
+
+        if ((firstElementInstance != null) && primaryAttributeNoun.Contains(firstElement.SingularName))
+        {
+            firstElementInstance = null;
+        }
 
         string secondaryAttributeNoun = string.Empty;
 
@@ -282,12 +288,17 @@ public class RegionInfo : ISynchronizable, IKeyedValue<long>
         {
             RegionAttribute.Instance secondaryAttribute = remainingAttributes.RandomSelectAndRemove(GetRandomInt);
 
+            secondaryAttributeNoun = Language.CreateNounAdjunct(secondaryAttribute.GetRandomVariation(GetRandomInt)) + " ";
+
+            if ((firstElementInstance != null) && secondaryAttributeNoun.Contains(firstElement.SingularName))
+            {
+                firstElementInstance = null;
+            }
+
             if (firstElementInstance == null)
             {
                 possibleAdjectives = possibleAdjectives.Union(secondaryAttribute.Adjectives);
             }
-
-            secondaryAttributeNoun = "[nad]" + secondaryAttribute.GetRandomVariation(GetRandomInt, firstElement) + " ";
 
             wordCount++;
         }
@@ -300,7 +311,7 @@ public class RegionInfo : ISynchronizable, IKeyedValue<long>
         string elementNoun = string.Empty;
         if (firstElementInstance != null)
         {
-            elementNoun = "[nad]" + firstElementInstance.SingularName + " ";
+            elementNoun = Language.CreateNounAdjunct(firstElementInstance.SingularName) + " ";
         }
 
         untranslatedName = "[Proper][NP](" + adjective + elementNoun + secondaryAttributeNoun + primaryAttributeNoun + ")";

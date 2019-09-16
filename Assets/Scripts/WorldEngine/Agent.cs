@@ -181,7 +181,7 @@ public class Agent : ISynchronizable
 
         if (association.IsAdjunction)
         {
-            untranslatedName = "[Proper][NP](" + adjective + "[nad]" + element.SingularName + " " + subjectNoun + ")";
+            untranslatedName = "[Proper][NP](" + adjective + Language.CreateNounAdjunct(element.SingularName) + " " + subjectNoun + ")";
         }
         else
         {
@@ -230,7 +230,7 @@ public class Agent : ISynchronizable
         {
             string variationNoun = attribute.GetRandomSingularVariation(getRandomInt, false);
 
-            untranslatedName = "[Proper][NP](" + adjective + "[nad]" + variationNoun + " " + subjectNoun + ")";
+            untranslatedName = "[Proper][NP](" + adjective + Language.CreateNounAdjunct(variationNoun) + " " + subjectNoun + ")";
         }
         else
         {

@@ -2562,9 +2562,9 @@ public class Language : ISynchronizable
 
 
 		return translatedPhrase;
-	}
+    }
 
-	public Phrase TranslatePhrase (string untranslatedPhrase) {
+    public Phrase TranslatePhrase (string untranslatedPhrase) {
 
 		return TranslatePhrase (ParsePhrase (untranslatedPhrase));
 	}
@@ -2916,29 +2916,50 @@ public class Language : ISynchronizable
 		}
 
 		return inputNoun;
-	}
+    }
 
-	public static ParsedWord ParseWord (string word) {
+    public static string CreateNounAdjunct(string word)
+    {
+        if (!word.Contains("[nad]"))
+        {
+            return "[nad]" + word;
+        }
 
-		ParsedWord parsedWord = new ParsedWord ();
+        string[] wordParts = word.Split(' ');
 
-		while (true) {
-			Match match = WordPartRegex.Match (word);
+        foreach (string wordPart in wordParts)
+        {
+            if (wordPart.Contains("[nad]"))
+            {
+                return wordPart;
+            }
+        }
 
-			if (!match.Success)
-				break;
+        return "[nad]" + wordParts[0];
+    }
 
-			word = word.Replace (match.Value, match.Groups ["word"].Value);
+    public static ParsedWord ParseWord(string word)
+    {
+        ParsedWord parsedWord = new ParsedWord();
 
-			parsedWord.Attributes.Add (match.Groups ["attr"].Value, match.Groups ["params"].Success ? match.Groups ["params"].Value.Split (new char[] {','}) : null);
-		}
+        while (true)
+        {
+            Match match = WordPartRegex.Match(word);
 
-		parsedWord.Value = word;
+            if (!match.Success)
+                break;
 
-		return parsedWord;
-	}
+            word = word.Replace(match.Value, match.Groups["word"].Value);
 
-	public static Phrase Agglutinate (Phrase phrase) {
+            parsedWord.Attributes.Add(match.Groups["attr"].Value, match.Groups["params"].Success ? match.Groups["params"].Value.Split(new char[] { ',' }) : null);
+        }
+
+        parsedWord.Value = word;
+
+        return parsedWord;
+    }
+
+    public static Phrase Agglutinate (Phrase phrase) {
 
 		Phrase agglutinatedPhrase = new Phrase (phrase);
 
