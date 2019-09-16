@@ -182,86 +182,141 @@ public abstract class Region : ISynchronizable
         float baseAltitude = AltitudeRoundnessTarget * Mathf.Round(startCell.Altitude / AltitudeRoundnessTarget);
 
         HashSet<TerrainCell> acceptedCells = new HashSet<TerrainCell>();
-        HashSet<TerrainCell> unacceptedCells = new HashSet<TerrainCell>();
+        HashSet<TerrainCell> rejectedCells = new HashSet<TerrainCell>();
+        HashSet<TerrainCell> exploredCells = new HashSet<TerrainCell>();
 
         acceptedCells.Add(startCell);
+        exploredCells.Add(startCell);
 
-        HashSet<TerrainCell> cellsToExplore = new HashSet<TerrainCell>();
+        Queue<TerrainCell> cellsToExplore = new Queue<TerrainCell>();
 
         foreach (TerrainCell cell in startCell.Neighbors.Values)
         {
-            cellsToExplore.Add(cell);
+            cellsToExplore.Enqueue(cell);
+            exploredCells.Add(cell);
         }
-
-        bool addedAcceptedCells = true;
 
         int borderCells = 0;
 
-        while (addedAcceptedCells)
+        while (cellsToExplore.Count > 0)
         {
-            HashSet<TerrainCell> nextCellsToExplore = new HashSet<TerrainCell>();
-            addedAcceptedCells = false;
+            int toExploreCount = cellsToExplore.Count;
 
-            if (cellsToExplore.Count <= 0)
-                break;
+            float closedness = 1 - toExploreCount / (float)(toExploreCount + borderCells);
 
-            float closedness = 1 - cellsToExplore.Count / (float)(cellsToExplore.Count + borderCells);
+            TerrainCell cell = cellsToExplore.Dequeue();
+            
+            float closednessFactor = 1;
+            float cutOffFactor = 2;
 
-            foreach (TerrainCell cell in cellsToExplore)
+            if (MaxClosedness < 1)
             {
-                float closednessFactor = 1;
-                float cutOffFactor = 2;
+                closednessFactor = (1 + MaxClosedness / cutOffFactor) * (1 - closedness) / (1 - MaxClosedness) - MaxClosedness / cutOffFactor;
+            }
 
-                if (MaxClosedness < 1)
+            float maxAltitudeDifference = BaseMaxAltitudeDifference * closednessFactor;
+
+            bool accepted = false;
+
+            string cellBiomeId = cell.BiomeWithMostPresence;
+
+            if (cell.Region != null) // if cell belongs to another region, reject
+            {
+                borderingRegions.Add(cell.Region as CellRegion);
+            }
+            else if (cellBiomeId == biomeId) // if cell has target biome, accept
+            {
+                accepted = true;
+            }
+            else // if cell is surrounded by a majority of cells with target biome, accept
+            {
+                int nSurroundCount = 0;
+                int minNSurroundCount = 3;
+
+                foreach (TerrainCell nCell in cell.Neighbors.Values)
                 {
-                    closednessFactor = (1 + MaxClosedness / cutOffFactor) * (1 - closedness) / (1 - MaxClosedness) - MaxClosedness / cutOffFactor;
-                }
-
-                float maxAltitudeDifference = BaseMaxAltitudeDifference * closednessFactor;
-
-                bool accepted = false;
-
-                string cellBiomeId = cell.BiomeWithMostPresence;
-
-                if (cell.Region != null)
-                {
-                    borderingRegions.Add(cell.Region as CellRegion);
-                }
-                else if (cellBiomeId == biomeId)
-                {
-                    if (Mathf.Abs(cell.Altitude - baseAltitude) < maxAltitudeDifference)
+                    if ((nCell.BiomeWithMostPresence == biomeId) || acceptedCells.Contains(nCell))
                     {
-                        accepted = true;
-                        acceptedCells.Add(cell);
-                        addedAcceptedCells = true;
-                        regionSize++;
-
-                        foreach (KeyValuePair<Direction, TerrainCell> pair in cell.Neighbors)
-                        {
-                            TerrainCell ncell = pair.Value;
-
-                            if (cellsToExplore.Contains(ncell))
-                                continue;
-
-                            if (unacceptedCells.Contains(ncell))
-                                continue;
-
-                            if (acceptedCells.Contains(ncell))
-                                continue;
-
-                            nextCellsToExplore.Add(ncell);
-                        }
+                        nSurroundCount++;
+                    }
+                    else
+                    {
+                        nSurroundCount = 0;
                     }
                 }
 
-                if (!accepted)
+                foreach (TerrainCell nCell in cell.Neighbors.Values)
                 {
-                    unacceptedCells.Add(cell);
-                    borderCells++;
+                    if ((nCell.BiomeWithMostPresence == biomeId) || acceptedCells.Contains(nCell))
+                    {
+                        nSurroundCount++;
+                    }
+                    else
+                    {
+                        nSurroundCount = 0;
+                    }
+                }
+
+                int secondRepeatCount = 1;
+                foreach (TerrainCell nCell in cell.Neighbors.Values)
+                {
+                    // repeat until minNSurroundCount
+                    if (secondRepeatCount >= minNSurroundCount)
+                        break;
+
+                    if (nCell.BiomeWithMostPresence == biomeId)
+                    {
+                        nSurroundCount++;
+                    }
+                    else
+                    {
+                        nSurroundCount = 0;
+                    }
+
+                    secondRepeatCount++;
+                }
+
+                if (nSurroundCount >= minNSurroundCount)
+                {
+                    accepted = true;
                 }
             }
 
-            cellsToExplore = nextCellsToExplore;
+            if (accepted)
+            {
+                if (Mathf.Abs(cell.Altitude - baseAltitude) < maxAltitudeDifference)
+                {
+                    acceptedCells.Add(cell);
+                    regionSize++;
+
+                    foreach (TerrainCell nCell in cell.Neighbors.Values)
+                    {
+                        if (rejectedCells.Contains(nCell))
+                        {
+                            // give another chance;
+                            rejectedCells.Remove(nCell);
+                            borderCells--;
+                        }
+                        else if (exploredCells.Contains(nCell))
+                        {
+                            continue;
+                        }
+
+                        cellsToExplore.Enqueue(nCell);
+                        exploredCells.Add(nCell);
+                    }
+                }
+                else
+                {
+                    accepted = false;
+                }
+            }
+
+            if (!accepted)
+            {
+                rejectedCells.Add(cell);
+                borderCells++;
+            }
         }
 
         CellRegion region = null;
