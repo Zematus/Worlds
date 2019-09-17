@@ -2962,7 +2962,7 @@ public class World : ISynchronizable
 
     private float GetMountainRangeFromRandomNoise(float noise, float filter, float widthFactor, float widthDivisor)
     {
-        filter = filter * 1.2f - 0.2f;
+        filter = filter * 1.1f - 0.1f;
 
         float scaledNoise = (noise * 2) - 1;
         
@@ -3502,6 +3502,8 @@ public class World : ISynchronizable
         HashSet<TerrainCell> queuedDrainCells = new HashSet<TerrainCell>();
         BinaryHeap<TerrainCell> cellsToDrain = new BinaryHeap<TerrainCell>(TerrainCell.CompareNoErosionAltitude, 500000);
 
+        Debug.Log("Generating Rivers - River Strength: " + RiverStrength);
+
         // find cells that are higher than neighbors
         for (int i = 0; i < sizeX; i++)
         {
@@ -3546,13 +3548,19 @@ public class World : ISynchronizable
 
             ProgressCastMethod(_accumulatedProgress + _progressIncrement * firstPartLength * (i + 1) / sizeX);
         }
-        
+
+        Debug.Log("Generating Rivers - Cells to drain: " + cellsToDrain.Count);
+
+        int cellsDrained = 0;
+
         // drain cells
         int drainedCells = 0;
         while (cellsToDrain.Count > 0)
         {
             TerrainCell cell = cellsToDrain.Extract(false);
             //queuedDrainCells.Remove(cell);
+
+            cellsDrained++;
 
             cell.WaterAccumulation += cell.Buffer;// - CalculateWaterLoss(cell, cell.Buffer);
 
@@ -3578,6 +3586,8 @@ public class World : ISynchronizable
                 return true;
             });
         }
+
+        Debug.Log("Generating Rivers - Total cells drained: " + cellsDrained);
 
         if (doErosion && (MaxWaterAccumulation > 0))
         {

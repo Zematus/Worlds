@@ -188,7 +188,7 @@ public class Manager
     public static bool UIScalingEnabled = false;
     public static bool DebugModeEnabled = false;
 
-    public static List<string> ActiveModPaths = new List<string>();
+    public static List<string> ActiveModPaths = new List<string>() { @"Mods\Base" };
     public static bool ModsAlreadyLoaded = false;
 
     public static Dictionary<string, LayerSettings> LayerSettings = new Dictionary<string, LayerSettings>();
@@ -1249,7 +1249,9 @@ public class Manager
     public static void LoadAppSettings(string path)
     {
         if (!File.Exists(path))
+        {
             return;
+        }
 
         XmlSerializer serializer = new XmlSerializer(typeof(AppSettings));
 
