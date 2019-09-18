@@ -1,6 +1,6 @@
 // Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
 
-// Copied from https://forum.unity.com/threads/sprite-shader-with-greyscale.222693/ 
+// From https://forum.unity.com/threads/sprite-shader-with-greyscale.222693/ 
 // Original author: RChrispy
 
 Shader "Sprites/GrayScale"

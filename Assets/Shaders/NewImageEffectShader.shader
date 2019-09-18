@@ -1,9 +1,10 @@
-﻿Shader "Hidden/NewImageEffectShader"
+﻿Shader "Sprites/TestAnimated"
 {
-    Properties
-    {
-        _MainTex ("Texture", 2D) = "white" {}
-    }
+	Properties
+	{
+		_MainTex("Texture", 2D) = "white" {}
+		_ScrollSpeeds("Scroll Speeds", vector) = (-5, -20, 0, 0)
+	}
     SubShader
     {
         // No culling or depth
@@ -29,15 +30,23 @@
                 float4 vertex : SV_POSITION;
             };
 
-            v2f vert (appdata v)
-            {
-                v2f o;
-                o.vertex = UnityObjectToClipPos(v.vertex);
-                o.uv = v.uv;
-                return o;
-            }
+			sampler2D _MainTex;
+			float4 _MainTex_ST;
+			// Declare our new parameter here so it's visible to the CG shader
+			float4 _ScrollSpeeds;
 
-            sampler2D _MainTex;
+			v2f vert(appdata v)
+			{
+				v2f o;
+				o.vertex = UnityObjectToClipPos(v.vertex);
+				o.uv = TRANSFORM_TEX(v.uv, _MainTex);
+
+				// Shift the uvs over time.
+				o.uv += _ScrollSpeeds * _Time.x;
+
+				UNITY_TRANSFER_FOG(o, o.vertex);
+				return o;
+			}
 
             fixed4 frag (v2f i) : SV_Target
             {
