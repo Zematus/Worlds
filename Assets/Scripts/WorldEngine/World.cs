@@ -2070,8 +2070,6 @@ public class World : ISynchronizable
 
     public void GenerateTerrain(GenerationType type, Texture2D heightmap)
     {
-        ResetDrainage();
-
         GenerateRandomNoiseAltitudeOffsetsAndContinents();
         GenerateRandomNoiseTemperatureOffsets();
         GenerateRandomNoiseRainfallOffsets();
@@ -2140,7 +2138,7 @@ public class World : ISynchronizable
         ProgressCastMethod(_accumulatedProgress, "Generating Drainage Basins...");
 
         GenerateDrainageBasins();
-        GenerateDrainageBasins(false); // repeat to simulate geological scale erosion
+        GenerateDrainageBasins(false, false); // repeat to simulate geological scale erosion
 
         ProgressCastMethod(_accumulatedProgress, "Calculating hilliness...");
 
@@ -2526,7 +2524,7 @@ public class World : ISynchronizable
             {
                 bool reInsert = false;
 
-                cell.WaterAccumulation += cell.Buffer;// - CalculateWaterLoss(cell, cell.Buffer);
+                cell.WaterAccumulation += cell.Buffer;
 
                 MaxWaterAccumulation = Mathf.Max(MaxWaterAccumulation, cell.WaterAccumulation);
 
@@ -2610,6 +2608,8 @@ public class World : ISynchronizable
         if (resetDrainage)
         {
             ResetDrainage(cell, resetAltitude);
+
+            cell.RiverId = cell.Latitude * Width + cell.Longitude;
 
             if (cell.Altitude > 0)
             {
@@ -3387,28 +3387,12 @@ public class World : ISynchronizable
         _accumulatedProgress += _progressIncrement;
     }
 
-    private void ResetDrainage()
-    {
-        int sizeX = Width;
-        int sizeY = Height;
-        
-        for (int i = 0; i < sizeX; i++)
-        {
-            for (int j = 0; j < sizeY; j++)
-            {
-                TerrainCell cell = TerrainCells[i][j];
-
-                if (SkipIfLoaded(cell))
-                    continue;
-
-                ResetDrainage(cell);
-            }
-        }
-    }
-
-    private void ResetDrainage(TerrainCell cell, bool resetAltitude = true)
+    private void ResetDrainage(TerrainCell cell, bool resetAltitude)
     {
         cell.Buffer = 0;
+        cell.Buffer2 = 0;
+        cell.RiverId = -1;
+        cell.RiverLength = 0;
         cell.DrainageDone = false;
         cell.WaterAccumulation = 0;
 
@@ -3501,11 +3485,18 @@ public class World : ISynchronizable
             
             nCell.Buffer += rainfallTransfer;
 
+            if (nCell.Buffer2 < rainfallTransfer)
+            {
+                nCell.Buffer2 = rainfallTransfer;
+                nCell.RiverId = cell.RiverId;
+                nCell.RiverLength = cell.RiverLength + 1;
+            }
+
             addToCellsToDrain(nCell, true, true);
         }
     }
 
-    private void GenerateDrainageBasins(bool doErosion = true)
+    private void GenerateDrainageBasins(bool doErosion = true, bool resetAltitude = true)
     {
         int sizeX = Width;
         int sizeY = Height;
@@ -3530,8 +3521,10 @@ public class World : ISynchronizable
 
                 if (SkipIfLoaded(cell))
                     continue;
-                
-                cell.Buffer = 0;
+
+                ResetDrainage(cell, resetAltitude);
+
+                cell.RiverId = cell.Latitude * Width + cell.Longitude;
 
                 if (cell.Altitude <= 0)
                     continue;
@@ -3579,7 +3572,7 @@ public class World : ISynchronizable
 
             cellsDrained++;
 
-            cell.WaterAccumulation += cell.Buffer;// - CalculateWaterLoss(cell, cell.Buffer);
+            cell.WaterAccumulation += cell.Buffer;
 
             MaxWaterAccumulation = Mathf.Max(MaxWaterAccumulation, cell.WaterAccumulation);
 
@@ -3592,7 +3585,7 @@ public class World : ISynchronizable
                 ProgressCastMethod(_accumulatedProgress + _progressIncrement * secondPartLength * progressPercent);
             }
 
-            DrainToNeighbors(cell, (nCell, resetDrainage, resetAltitude) =>
+            DrainToNeighbors(cell, (nCell, rD, rA) =>
             {
                 if (queuedDrainCells.Contains(nCell))
                     return false;

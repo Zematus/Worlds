@@ -2795,7 +2795,7 @@ public class Manager
 
         if (region != null)
         {
-            Color regionIdColor = GenerateColorFromId(region.Id, 1);
+            Color regionIdColor = GenerateColorFromId(region.Id);
 
             Color regionColor = (biomeColor * 0.85f) + (regionIdColor * 0.15f);
 
@@ -3065,7 +3065,7 @@ public class Manager
         return color;
     }
 
-    private static Color GenerateColorFromId(long id, int oom)
+    private static Color GenerateColorFromId(long id, int oom = 1)
     {
         long mId = id / oom;
 
@@ -3755,6 +3755,9 @@ public class Manager
             float value = 0.1f + (0.90f * accPercent);
 
             color += GetOverlayColor(OverlayColorId.RiverBasins) * value;
+
+            //Color riverColor = GenerateColorFromId(cell.RiverId);
+            //color += riverColor * value;
         }
 
         return color;
