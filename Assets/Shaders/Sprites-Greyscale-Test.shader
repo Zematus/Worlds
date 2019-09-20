@@ -47,8 +47,8 @@ Shader "Sprites/GrayScale"
 
 			struct v2f
 			{
-				float4 vertex   : SV_POSITION;
-				fixed4 color : COLOR;
+				float4 vertex	: SV_POSITION;
+				fixed4 color	: COLOR;
 				half2 texcoord  : TEXCOORD0;
 			};
 
@@ -73,7 +73,7 @@ Shader "Sprites/GrayScale"
 			fixed4 frag(v2f IN) : COLOR
 			{
 				half4 texcol = tex2D(_MainTex, IN.texcoord);
-				texcol.rgb = lerp(texcol.rgb, dot(texcol.rgb, float3(0.3, 0.59, 0.11)), _EffectAmount);
+				texcol.rgb = lerp(texcol.rgb, dot(texcol.rgb, float3(0.3, 0.59, 0.11)), frac(_Time.y + IN.texcoord.x));
 				texcol = texcol * IN.color;
 				return texcol;
 			}
