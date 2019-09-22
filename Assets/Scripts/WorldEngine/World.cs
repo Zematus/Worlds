@@ -183,6 +183,8 @@ public class World : ISynchronizable
     public const float RainfallToHeightConversionFactor = 1f / HeightToRainfallConversionFactor;
     public const float MinRiverFlow = HeightToRainfallConversionFactor / 50f;
 
+    public const float TemperatureHoldOffFactor = 0.65f;
+
     public const float StartPopulationDensity = 0.5f;
 
     public const int MinStartingPopulation = 100;
@@ -451,7 +453,7 @@ public class World : ISynchronizable
     private static HashSet<TerrainCell> _cellsToInitAfterDrainageRegen = new HashSet<TerrainCell>();
 
     private static HashSet<TerrainCell> _cellsToDrainage = new HashSet<TerrainCell>();
-    private static BinaryHeap<TerrainCell> _drainageHeap = new BinaryHeap<TerrainCell>(TerrainCell.CompareNoErosionAltitude);
+    private static BinaryHeap<TerrainCell> _drainageHeap = new BinaryHeap<TerrainCell>(TerrainCell.CompareOriginalAltitude);
     private static HashSet<TerrainCell> _cellsToFinalizeDrainageRegen = new HashSet<TerrainCell>();
 
     //private OpenSimplexNoise _openSimplexNoise;
@@ -2513,6 +2515,19 @@ public class World : ISynchronizable
         return cell.Altitude + cell.WaterAccumulation * OverflowFactor * RainfallToHeightConversionFactor;
     }
 
+    public void UpdateWater(TerrainCell cell)
+    {
+        cell.WaterAccumulation += cell.Buffer;
+
+        if (cell.WaterAccumulation > 0)
+        {
+            float tempAcc = cell.Buffer3 + ((cell.Altitude > 0) ? (cell.Temperature * cell.Rainfall) : 0);
+            cell.Temperature = Mathf.Lerp(cell.Temperature, tempAcc / cell.WaterAccumulation, TemperatureHoldOffFactor);
+        }
+
+        MaxWaterAccumulation = Mathf.Max(MaxWaterAccumulation, cell.WaterAccumulation);
+    }
+
     public void PerformTerrainAlterationDrainageRegen(bool doErosion = true)
     {
         while (_drainageHeap.Count > 0)
@@ -2524,9 +2539,7 @@ public class World : ISynchronizable
             {
                 bool reInsert = false;
 
-                cell.WaterAccumulation += cell.Buffer;
-
-                MaxWaterAccumulation = Mathf.Max(MaxWaterAccumulation, cell.WaterAccumulation);
+                UpdateWater(cell);
 
                 float cellAltitude = Mathf.Max(0, CalculateAltitudePlusAccumulation(cell));
 
@@ -2561,7 +2574,7 @@ public class World : ISynchronizable
 
         foreach (TerrainCell cell in _cellsToFinalizeDrainageRegen)
         {
-            AddToDrainageRegen(cell, resetAltitude: false);
+            AddToDrainageRegen(cell, resetTerrain: false);
         }
 
         PerformTerrainAlterationDrainageRegen(false);
@@ -2592,7 +2605,7 @@ public class World : ISynchronizable
         _drainageHeap.Clear();
     }
 
-    public bool AddToDrainageRegen(TerrainCell cell, bool resetDrainage = true, bool resetAltitude = true)
+    public bool AddToDrainageRegen(TerrainCell cell, bool resetDrainage = true, bool resetTerrain = true)
     {
         if (_cellsToDrainage.Contains(cell))
             return false;
@@ -2607,7 +2620,7 @@ public class World : ISynchronizable
 
         if (resetDrainage)
         {
-            ResetDrainage(cell, resetAltitude);
+            ResetDrainage(cell, resetTerrain);
 
             cell.RiverId = cell.Latitude * Width + cell.Longitude;
 
@@ -3054,7 +3067,7 @@ public class World : ISynchronizable
     {
         float altitude = CalculateAltitude(value);
 
-        cell.NoErosionAltitude = altitude;
+        cell.OriginalAltitude = altitude;
         cell.Altitude = altitude;
         cell.BaseAltitudeValue = value;
 
@@ -3078,7 +3091,7 @@ public class World : ISynchronizable
         float value = cell.BaseAltitudeValue;
 
         float altitude = CalculateAltitude(value);
-        cell.NoErosionAltitude = altitude;
+        cell.OriginalAltitude = altitude;
         cell.Altitude = altitude;
 
         if (altitude > MaxAltitude) MaxAltitude = altitude;
@@ -3196,13 +3209,13 @@ public class World : ISynchronizable
         if (justSetRainfallSources)
             return;
 
-        float altitudeValue = Mathf.Max(0, cell.NoErosionAltitude);
-        float offAltitude = Mathf.Max(0, offCell.NoErosionAltitude);
-        float offAltitude2 = Mathf.Max(0, offCell2.NoErosionAltitude);
-        float offAltitude3 = Mathf.Max(0, offCell3.NoErosionAltitude);
-        float offAltitude4 = Mathf.Max(0, offCell4.NoErosionAltitude);
-        float offAltitude5 = Mathf.Max(0, offCell5.NoErosionAltitude);
-        float offAltitude6 = Mathf.Max(0, offCell6.NoErosionAltitude);
+        float altitudeValue = Mathf.Max(0, cell.Altitude);
+        float offAltitude = Mathf.Max(0, offCell.Altitude);
+        float offAltitude2 = Mathf.Max(0, offCell2.Altitude);
+        float offAltitude3 = Mathf.Max(0, offCell3.Altitude);
+        float offAltitude4 = Mathf.Max(0, offCell4.Altitude);
+        float offAltitude5 = Mathf.Max(0, offCell5.Altitude);
+        float offAltitude6 = Mathf.Max(0, offCell6.Altitude);
 
         float altitudeModifier = (altitudeValue -
                                   (offAltitude * 0.7f) -
@@ -3387,18 +3400,20 @@ public class World : ISynchronizable
         _accumulatedProgress += _progressIncrement;
     }
 
-    private void ResetDrainage(TerrainCell cell, bool resetAltitude)
+    private void ResetDrainage(TerrainCell cell, bool resetTerrain)
     {
         cell.Buffer = 0;
         cell.Buffer2 = 0;
+        cell.Buffer3 = 0;
         cell.RiverId = -1;
         cell.RiverLength = 0;
         cell.DrainageDone = false;
         cell.WaterAccumulation = 0;
 
-        if (resetAltitude)
+        if (resetTerrain)
         {
-            cell.Altitude = cell.NoErosionAltitude;
+            cell.Altitude = cell.OriginalAltitude;
+            cell.Temperature = cell.OriginalTemperature;
         }
     }
 
@@ -3484,6 +3499,7 @@ public class World : ISynchronizable
                 continue;
             
             nCell.Buffer += rainfallTransfer;
+            nCell.Buffer3 += cell.Temperature * rainfallTransfer;
 
             if (nCell.Buffer2 < rainfallTransfer)
             {
@@ -3496,7 +3512,7 @@ public class World : ISynchronizable
         }
     }
 
-    private void GenerateDrainageBasins(bool doErosion = true, bool resetAltitude = true)
+    private void GenerateDrainageBasins(bool doErosion = true, bool resetTerrain = true)
     {
         int sizeX = Width;
         int sizeY = Height;
@@ -3508,7 +3524,7 @@ public class World : ISynchronizable
         float thirdPartLength = 0.1f;
         
         HashSet<TerrainCell> queuedDrainCells = new HashSet<TerrainCell>();
-        BinaryHeap<TerrainCell> cellsToDrain = new BinaryHeap<TerrainCell>(TerrainCell.CompareNoErosionAltitude, 500000);
+        BinaryHeap<TerrainCell> cellsToDrain = new BinaryHeap<TerrainCell>(TerrainCell.CompareOriginalAltitude, 500000);
 
         //Debug.Log("Generating Rivers - River Strength: " + RiverStrength);
 
@@ -3522,7 +3538,7 @@ public class World : ISynchronizable
                 if (SkipIfLoaded(cell))
                     continue;
 
-                ResetDrainage(cell, resetAltitude);
+                ResetDrainage(cell, resetTerrain);
 
                 cell.RiverId = cell.Latitude * Width + cell.Longitude;
 
@@ -3572,9 +3588,7 @@ public class World : ISynchronizable
 
             cellsDrained++;
 
-            cell.WaterAccumulation += cell.Buffer;
-
-            MaxWaterAccumulation = Mathf.Max(MaxWaterAccumulation, cell.WaterAccumulation);
+            UpdateWater(cell);
 
             drainedCells++;
 
@@ -3700,6 +3714,7 @@ public class World : ISynchronizable
         float temperature = CalculateTemperature(value + cell.BaseTemperatureOffset);
 
         cell.Temperature = temperature;
+        cell.OriginalTemperature = temperature;
         cell.BaseTemperatureValue = value;
 
         if (modified)

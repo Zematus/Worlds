@@ -79,14 +79,16 @@ public class TerrainCell
     public float BaseRainfallOffset;
     public float BaseTemperatureOffset;
 
-    public float NoErosionAltitude;
+    public float OriginalAltitude;
     public float Altitude;
     public float Rainfall;
     public float Temperature;
+    public float OriginalTemperature;
 
     public float WaterAccumulation = 0;
     public float Buffer = 0;
     public float Buffer2 = 0;
+    public float Buffer3 = 0;
     public int RiverId = -1;
     public int RiverLength = 0;
     public bool DrainageDone = false;
@@ -201,10 +203,10 @@ public class TerrainCell
         MaxAreaPercent = Area / MaxArea;
     }
 
-    public static int CompareNoErosionAltitude(TerrainCell a, TerrainCell b)
+    public static int CompareOriginalAltitude(TerrainCell a, TerrainCell b)
     {
-        if (a.NoErosionAltitude > b.NoErosionAltitude) return -1;
-        if (a.NoErosionAltitude < b.NoErosionAltitude) return 1;
+        if (a.OriginalAltitude > b.OriginalAltitude) return -1;
+        if (a.OriginalAltitude < b.OriginalAltitude) return 1;
 
         return 0;
     }
@@ -287,9 +289,10 @@ public class TerrainCell
         BaseTemperatureOffset = alteration.BaseTemperatureOffset;
         BaseRainfallOffset = alteration.BaseRainfallOffset;
         
-        NoErosionAltitude = alteration.NoErosionAltitude;
+        OriginalAltitude = alteration.OriginalAltitude;
         Altitude = alteration.Altitude;
         Temperature = alteration.Temperature;
+        OriginalTemperature = alteration.OriginalTemperature;
         Rainfall = alteration.Rainfall;
         WaterAccumulation = alteration.WaterAccumulation;
 
