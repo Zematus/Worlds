@@ -183,7 +183,7 @@ public class World : ISynchronizable
     public const float RainfallToHeightConversionFactor = 1f / HeightToRainfallConversionFactor;
     public const float MinRiverFlow = HeightToRainfallConversionFactor / 50f;
 
-    public const float TemperatureHoldOffFactor = 0.65f;
+    public const float TemperatureHoldOffFactor = 0.35f;
 
     public const float StartPopulationDensity = 0.5f;
 
@@ -2075,7 +2075,9 @@ public class World : ISynchronizable
         GenerateRandomNoiseAltitudeOffsetsAndContinents();
         GenerateRandomNoiseTemperatureOffsets();
         GenerateRandomNoiseRainfallOffsets();
-        
+
+        ResetDrainage(true);
+
         if ((type & GenerationType.TerrainNormal) == GenerationType.TerrainNormal)
         {
             if (heightmap == null)
@@ -2696,6 +2698,11 @@ public class World : ISynchronizable
         CalculateTerrainArability(cell);
         CalculateTerrainWoodPresence(cell);
 
+        if (cell.Altitude > 0)
+        {
+            AddToDrainageRegen(cell);
+        }
+
         Manager.AddUpdatedCell(cell, CellUpdateType.Cell, CellUpdateSubType.Terrain);
         Manager.ActiveEditorBrushAction.AddCellAfterModification(cell);
     }
@@ -3144,11 +3151,12 @@ public class World : ISynchronizable
 
     private void RecalculateAndSetRainfall(int longitude, int latitude)
     {
-        float value = TerrainCells[longitude][latitude].BaseRainfallValue;
-        float offset = TerrainCells[longitude][latitude].BaseRainfallOffset;
+        TerrainCell cell = TerrainCells[longitude][latitude];
+        float value = cell.BaseRainfallValue;
+        float offset = cell.BaseRainfallOffset;
 
         float rainfall = CalculateRainfall(value + offset);
-        TerrainCells[longitude][latitude].Rainfall = rainfall;
+        cell.Rainfall = rainfall;
 
         if (rainfall > MaxRainfall) MaxRainfall = rainfall;
         if (rainfall < MinRainfall) MinRainfall = rainfall;
@@ -3398,6 +3406,25 @@ public class World : ISynchronizable
         }
 
         _accumulatedProgress += _progressIncrement;
+    }
+
+    private void ResetDrainage(bool resetTerrain)
+    {
+        int sizeX = Width;
+        int sizeY = Height;
+
+        for (int i = 0; i < sizeX; i++)
+        {
+            for (int j = 0; j < sizeY; j++)
+            {
+                TerrainCell cell = TerrainCells[i][j];
+
+                if (SkipIfLoaded(cell))
+                    continue;
+
+                ResetDrainage(cell, resetTerrain);
+            }
+        }
     }
 
     private void ResetDrainage(TerrainCell cell, bool resetTerrain)
@@ -3717,6 +3744,11 @@ public class World : ISynchronizable
         cell.OriginalTemperature = temperature;
         cell.BaseTemperatureValue = value;
 
+        if (cell.IsSelected)
+        {
+            bool debug = true;
+        }
+
         if (modified)
         {
             cell.Modified = true;
@@ -3728,11 +3760,13 @@ public class World : ISynchronizable
 
     private void RecalculateAndSetTemperature(int longitude, int latitude)
     {
-        float value = TerrainCells[longitude][latitude].BaseTemperatureValue;
-        float offset = TerrainCells[longitude][latitude].BaseTemperatureOffset;
+        TerrainCell cell = TerrainCells[longitude][latitude];
+        float value = cell.BaseTemperatureValue;
+        float offset = cell.BaseTemperatureOffset;
 
         float temperature = CalculateTemperature(value + offset);
-        TerrainCells[longitude][latitude].Temperature = temperature;
+        cell.Temperature = temperature;
+        cell.OriginalTemperature = temperature;
 
         if (temperature > MaxTemperature) MaxTemperature = temperature;
         if (temperature < MinTemperature) MinTemperature = temperature;
