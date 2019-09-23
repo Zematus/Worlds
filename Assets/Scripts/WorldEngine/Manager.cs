@@ -2476,7 +2476,7 @@ public class Manager
 
     private static bool IsCoastWater(TerrainCell cell)
     {
-        if (cell.WaterBiomeRelPresence < 0.5f)
+        if (cell.WaterBiomePresence < 0.5f)
             return false;
 
         return cell.IsPartOfCoastline;
@@ -2484,7 +2484,7 @@ public class Manager
 
     private static bool IsCoastLand(TerrainCell cell)
     {
-        if (cell.WaterBiomeRelPresence >= 0.5f)
+        if (cell.WaterBiomePresence >= 0.5f)
             return false;
 
         return cell.IsPartOfCoastline;
@@ -2678,7 +2678,7 @@ public class Manager
 
         if (cell.Altitude > 0)
         {
-            if (cell.WaterBiomeRelPresence >= 0.5f)
+            if (cell.WaterBiomePresence >= 0.5f)
                 return _mapPalette[3];
 
             float slant = GetSlant(cell);
@@ -2760,7 +2760,7 @@ public class Manager
 
             Biome biome = Biome.Biomes[biomeId];
 
-            float biomeRelPresence = cell.BiomeRelPresences[i];
+            float biomeRelPresence = cell.BiomePresences[i];
             Color biomeColor = biome.Color;
 
             color.r += biomeColor.r * biomeRelPresence;
@@ -2841,7 +2841,7 @@ public class Manager
         color.g = (greyscale + color.g) / 9f;
         color.b = (greyscale + color.b) / 9f;
 
-        if (cell.WaterBiomeRelPresence >= 1f)
+        if (cell.WaterBiomePresence >= 1f)
         {
             return color;
         }
@@ -2887,7 +2887,7 @@ public class Manager
         color.g = (greyscale + color.g) / 9f;
         color.b = (greyscale + color.b) / 9f;
 
-        if (cell.WaterBiomeRelPresence >= 1f)
+        if (cell.WaterBiomePresence >= 1f)
         {
             return color;
         }
@@ -2940,7 +2940,7 @@ public class Manager
         color.g = (greyscale + color.g) / 9f;
         color.b = (greyscale + color.b) / 9f;
 
-        if (cell.WaterBiomeRelPresence >= 1f)
+        if (cell.WaterBiomePresence >= 1f)
         {
             return color;
         }
@@ -2983,7 +2983,7 @@ public class Manager
         color.g = (greyscale + color.g) / 9f;
         color.b = (greyscale + color.b) / 9f;
 
-        if (cell.WaterBiomeRelPresence >= 1f)
+        if (cell.WaterBiomePresence >= 1f)
         {
             return color;
         }
@@ -3024,7 +3024,7 @@ public class Manager
         color.g = (greyscale + color.g) / 9f;
         color.b = (greyscale + color.b) / 9f;
 
-        if (cell.WaterBiomeRelPresence >= 1f)
+        if (cell.WaterBiomePresence >= 1f)
         {
             return color;
         }
@@ -3138,7 +3138,7 @@ public class Manager
         color.g = (greyscale + color.g) / 9f;
         color.b = (greyscale + color.b) / 9f;
 
-        if (cell.WaterBiomeRelPresence >= 1f)
+        if (cell.WaterBiomePresence >= 1f)
             return color;
 
         if (cell.Group == null)
@@ -3340,7 +3340,7 @@ public class Manager
         color.g = (greyscale + color.g) / 9f;
         color.b = (greyscale + color.b) / 9f;
 
-        if (cell.WaterBiomeRelPresence >= 1f)
+        if (cell.WaterBiomePresence >= 1f)
             return color;
 
         if (cell.Group == null)
@@ -3426,7 +3426,7 @@ public class Manager
         color.g = (greyscale + color.g) / 9f;
         color.b = (greyscale + color.b) / 9f;
 
-        if (cell.WaterBiomeRelPresence >= 1f)
+        if (cell.WaterBiomePresence >= 1f)
             return color;
 
         if (cell.Group == null)
@@ -3603,7 +3603,7 @@ public class Manager
         color.g = (greyscale + color.g) / 9f;
         color.b = (greyscale + color.b) / 9f;
 
-        if (cell.WaterBiomeRelPresence >= 1f)
+        if (cell.WaterBiomePresence >= 1f)
             return color;
 
         if (cell.Group == null)
@@ -3698,7 +3698,7 @@ public class Manager
         color.g = (greyscale + color.g) / 9f;
         color.b = (greyscale + color.b) / 9f;
 
-        if (cell.WaterBiomeRelPresence >= 1f)
+        if (cell.WaterBiomePresence >= 1f)
             return color;
 
         if (cell.Group == null)
@@ -3797,7 +3797,7 @@ public class Manager
         color.g = greyscale / 6f;
         color.b = greyscale / 6f;
 
-        color += (2 / 6f) * GetLowMedHighColor(cell.WoodCoverage * (1 - cell.FarmlandPercentage));
+        color += (2 / 6f) * GetLowMedHighColor(cell.GetBiomeTraitPresence("wood") * (1 - cell.FarmlandPercentage));
 
         return color;
     }
@@ -4057,7 +4057,7 @@ public class Manager
 
         float value = Mathf.Max(0, altitude / CurrentWorld.MaxAltitude);
 
-        if (cell.WaterBiomeRelPresence >= 0.5f)
+        if (cell.WaterBiomePresence >= 0.5f)
         {
             value = Mathf.Max(0, 1f - altitude / CurrentWorld.MinAltitude);
             color = Color.blue;

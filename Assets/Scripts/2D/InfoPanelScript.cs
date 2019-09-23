@@ -116,7 +116,7 @@ public class InfoPanelScript : MonoBehaviour
 
         for (int i = 0; i < cell.PresentBiomeIds.Count; i++)
         {
-            float percentage = cell.BiomeRelPresences[i] * wildernessPercent;
+            float percentage = cell.BiomePresences[i] * wildernessPercent;
 
             Biome biome = Biome.Biomes[cell.PresentBiomeIds[i]];
 
@@ -140,7 +140,6 @@ public class InfoPanelScript : MonoBehaviour
         if (cell.Arability != cell.BaseArability)
             InfoText.text += "\nOriginal Arability: " + cell.BaseArability.ToString("P");
         InfoText.text += "\nHilliness: " + cell.Hilliness.ToString("P");
-        InfoText.text += "\nWood Coverage: " + (cell.WoodCoverage * wildernessPercent).ToString("P");
         InfoText.text += "\n";
 
         Region region = cell.Region;

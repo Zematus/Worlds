@@ -11,12 +11,6 @@ public enum BiomeTerrainType
     Ice
 }
 
-public enum BiomeTrait
-{
-    Wood,
-    Sea
-}
-
 public class Biome
 {
     public class LayerConstraint
@@ -54,7 +48,7 @@ public class Biome
     
     public Color Color = Color.black;
     public BiomeTerrainType TerrainType;
-    public HashSet<BiomeTrait> Traits = new HashSet<BiomeTrait>();
+    public HashSet<string> Traits = new HashSet<string>();
 
     public float MinAltitude;
     public float MaxAltitude;

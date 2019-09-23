@@ -3,14 +3,14 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class CellBiomeRelPresenceFactor : Factor
+public class CellBiomePresenceFactor : Factor
 {
     public const string Regex = @"^\s*cell_biome_presence\s*" +
         @":\s* (?<id>" + ModUtility.IdentifierRegexPart + @")\s*$";
 
     private string _biomeId;
 
-    public CellBiomeRelPresenceFactor(Match match)
+    public CellBiomePresenceFactor(Match match)
     {
         _biomeId = match.Groups["id"].Value;
 
@@ -27,7 +27,7 @@ public class CellBiomeRelPresenceFactor : Factor
 
     public override float Calculate(TerrainCell cell)
     {
-        return cell.GetBiomeRelPresence(_biomeId);
+        return cell.GetBiomePresence(_biomeId);
     }
 
     public override string ToString()

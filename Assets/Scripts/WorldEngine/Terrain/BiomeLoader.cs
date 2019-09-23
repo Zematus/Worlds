@@ -133,17 +133,7 @@ public class BiomeLoader
         {
             foreach (string trait in b.traits)
             {
-                switch (trait.ToLower())
-                {
-                    case "wood":
-                        biome.Traits.Add(BiomeTrait.Wood);
-                        break;
-                    case "sea":
-                        biome.Traits.Add(BiomeTrait.Sea);
-                        break;
-                    default:
-                        throw new ArgumentException("Unknown biome trait: " + trait);
-                }
+                biome.Traits.Add(trait.Trim().ToLower());
             }
         }
 

@@ -149,11 +149,7 @@ public class CellGroup : HumanGroup
     {
         get
         {
-            return ArabilityModifier * MathUtility.IntToFloatScalingFactor;
-        }
-        set
-        {
-            ArabilityModifier = (int)(value * MathUtility.FloatToIntScalingFactor);
+            return Mathf.Clamp01(ArabilityModifier * MathUtility.IntToFloatScalingFactor);
         }
     }
 
@@ -162,11 +158,7 @@ public class CellGroup : HumanGroup
     {
         get
         {
-            return AccessibilityModifier * MathUtility.IntToFloatScalingFactor;
-        }
-        set
-        {
-            AccessibilityModifier = (int)(value * MathUtility.FloatToIntScalingFactor);
+            return Mathf.Clamp01(AccessibilityModifier * MathUtility.IntToFloatScalingFactor);
         }
     }
 
@@ -690,7 +682,7 @@ public class CellGroup : HumanGroup
 
         foreach (Biome biome in GetPresentBiomesInNeighborhood())
         {
-            if (biome.Traits.Contains(BiomeTrait.Sea))
+            if (biome.Traits.Contains("sea"))
             {
                 if (Culture.GetSkill(SeafaringSkill.SkillId) == null)
                 {
@@ -2537,7 +2529,7 @@ public class CellGroup : HumanGroup
         {
             //			Profiler.BeginSample ("Try Get Group Biome Survival Skill");
 
-            float biomeRelPresence = cell.GetBiomeRelPresence(biomeId);
+            float biomeRelPresence = cell.GetBiomePresence(biomeId);
 
             BiomeSurvivalSkill skill = null;
 
@@ -3343,7 +3335,7 @@ public class CellGroup : HumanGroup
             Debug.LogWarning("Can't set an arability modifier lower than 0: " + value);
         }
 
-        ArabilityModifier = Mathf.Clamp(value, 0, MathUtility.FloatToIntScalingFactor);
+        ArabilityModifier = value;
     }
 
     public void ApplyAccessibilityModifier(int delta)
@@ -3355,7 +3347,7 @@ public class CellGroup : HumanGroup
             Debug.LogWarning("Can't set an accessibility modifier lower than 0: " + value);
         }
 
-        AccessibilityModifier = Mathf.Clamp(value, 0, MathUtility.FloatToIntScalingFactor);
+        AccessibilityModifier = value;
     }
 
     public void ApplyNavigationRangeModifier(int delta)

@@ -88,7 +88,7 @@ public class CellRegion : Region
 
             bool isInnerBorder = false;
 
-            bool isNotFullyWater = (cell.WaterBiomeRelPresence < 1);
+            bool isNotFullyWater = (cell.WaterBiomePresence < 1);
 
             foreach (TerrainCell nCell in cell.Neighbors.Values)
             {
@@ -103,7 +103,7 @@ public class CellRegion : Region
                         outerBorderArea += nCellArea;
                         AverageOuterBorderAltitude += cell.Altitude * nCellArea;
 
-                        if (isNotFullyWater && (nCell.WaterBiomeRelPresence >= 1))
+                        if (isNotFullyWater && (nCell.WaterBiomePresence >= 1))
                         {
                             coastalOuterBorderArea += nCellArea;
                         }
@@ -140,7 +140,7 @@ public class CellRegion : Region
 
             foreach (string biomeId in cell.PresentBiomeIds)
             {
-                float presenceArea = cell.GetBiomeRelPresence(biomeId) * cellArea;
+                float presenceArea = cell.GetBiomePresence(biomeId) * cellArea;
 
                 if (biomePresences.ContainsKey(biomeId))
                 {
@@ -154,7 +154,7 @@ public class CellRegion : Region
             
             foreach (string biomeId in cell.PresentWaterBiomeIds)
             {
-                waterArea += cell.GetBiomeRelPresence(biomeId) * cellArea;
+                waterArea += cell.GetBiomePresence(biomeId) * cellArea;
             }
 
             TotalArea += cellArea;

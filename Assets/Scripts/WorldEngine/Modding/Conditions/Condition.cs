@@ -128,10 +128,10 @@ public abstract class Condition
             return new GroupPopulationCondition(match);
         }
 
-        match = Regex.Match(conditionStr, CellHasSeaCondition.Regex);
+        match = Regex.Match(conditionStr, CellBiomeTypePresenceCondition.Regex);
         if (match.Success == true)
         {
-            return new CellHasSeaCondition(match);
+            return new CellBiomeTypePresenceCondition(match);
         }
 
         match = Regex.Match(conditionStr, CellAltitudeCondition.Regex);
@@ -176,10 +176,10 @@ public abstract class Condition
             return new CellSurvivabilityCondition(match);
         }
 
-        match = Regex.Match(conditionStr, CellBiomeRelPresenceCondition.Regex);
+        match = Regex.Match(conditionStr, CellBiomePresenceCondition.Regex);
         if (match.Success == true)
         {
-            return new CellBiomeRelPresenceCondition(match);
+            return new CellBiomePresenceCondition(match);
         }
 
         match = Regex.Match(conditionStr, CellLayerValueCondition.Regex);
@@ -200,10 +200,16 @@ public abstract class Condition
             return new CellHillinessCondition(match);
         }
 
-        match = Regex.Match(conditionStr, CellWoodCoverageCondition.Regex);
+        match = Regex.Match(conditionStr, CellFlowingWaterCondition.Regex);
         if (match.Success == true)
         {
-            return new CellWoodCoverageCondition(match);
+            return new CellFlowingWaterCondition(match);
+        }
+
+        match = Regex.Match(conditionStr, CellBiomeTraitPresenceCondition.Regex);
+        if (match.Success == true)
+        {
+            return new CellBiomeTraitPresenceCondition(match);
         }
 
         throw new System.ArgumentException("Not a recognized condition: " + conditionStr);

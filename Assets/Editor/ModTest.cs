@@ -12,7 +12,7 @@ public class ModTest
         Debug.Log("loading biome mod file...");
 
         Biome.ResetBiomes();
-        Biome.LoadBiomesFile(@"Mods\Test\Biomes\biomes.json");
+        Biome.LoadBiomesFile(@"Mods\Base\Biomes\biomes.json");
         
         foreach (Biome biome in Biome.Biomes.Values)
         {
@@ -28,7 +28,7 @@ public class ModTest
         Debug.Log("loading layer mod file...");
 
         Layer.ResetLayers();
-        Layer.LoadLayersFile(@"Mods\Test\Layers\weirdLayers.json");
+        Layer.LoadLayersFile(@"Mods\WeirdBiomesMod\Layers\weirdLayers.json");
 
         foreach (Layer layer in Layer.Layers.Values)
         {
@@ -45,7 +45,7 @@ public class ModTest
 
         Adjective.ResetAdjectives();
         RegionAttribute.ResetAttributes();
-        RegionAttribute.LoadRegionAttributesFile(@"Mods\Test\RegionAttributes\region_attributes.json");
+        RegionAttribute.LoadRegionAttributesFile(@"Mods\Base\RegionAttributes\region_attributes.json");
 
         foreach (RegionAttribute regionAttribute in RegionAttribute.Attributes.Values)
         {
@@ -62,7 +62,7 @@ public class ModTest
 
         Adjective.ResetAdjectives();
         Element.ResetElements();
-        Element.LoadElementsFile(@"Mods\Test\Elements\elements.json");
+        Element.LoadElementsFile(@"Mods\Base\Elements\elements.json");
 
         foreach (Element element in Element.Elements.Values)
         {
@@ -79,7 +79,7 @@ public class ModTest
         Debug.Log("loading discovery mod file...");
 
         Discovery.ResetDiscoveries();
-        Discovery.LoadDiscoveriesFile(@"Mods\Test\Discoveries\discoveries.json");
+        Discovery.LoadDiscoveriesFile(@"Mods\Base\Discoveries\discoveries.json");
 
         foreach (Discovery discovery in Discovery.Discoveries.Values)
         {
@@ -176,10 +176,10 @@ public class ModTest
     //public void ConditionTypeTest()
     //{
     //    Biome.ResetBiomes();
-    //    Biome.LoadBiomesFile(@"Mods\Test\Biomes\biomes.json");
+    //    Biome.LoadBiomesFile(@"Mods\Base\Biomes\biomes.json");
 
     //    Layer.ResetLayers();
-    //    Layer.LoadLayersFile(@"Mods\Test\Layers\weirdLayers.json");
+    //    Layer.LoadLayersFile(@"Mods\WeirdBiomesMod\Layers\weirdLayers.json");
 
     //    int condCounter = 1;
 

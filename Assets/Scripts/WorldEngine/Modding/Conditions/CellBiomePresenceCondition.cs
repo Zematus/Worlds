@@ -3,11 +3,11 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class CellBiomeRelPresenceCondition : CellCondition
+public class CellBiomePresenceCondition : CellCondition
 {
     public const float DefaultMinValue = 0.01f;
     
-    public const string Regex = @"^\s*cell_biome_relative_presence\s*" +
+    public const string Regex = @"^\s*cell_biome_presence\s*" +
         @":\s*(?<id>" + ModUtility.IdentifierRegexPart + @")\s*" +
         @"(?:,\s*(?<value>" + ModUtility.NumberRegexPart + @")\s*)?$";
 
@@ -15,7 +15,7 @@ public class CellBiomeRelPresenceCondition : CellCondition
 
     public float MinValue;
 
-    public CellBiomeRelPresenceCondition(Match match)
+    public CellBiomePresenceCondition(Match match)
     {
         _biomeId = match.Groups["id"].Value;
 
@@ -33,9 +33,9 @@ public class CellBiomeRelPresenceCondition : CellCondition
                 throw new System.ArgumentException("CellBiomePresenceCondition: Min value can't be parsed into a valid floating point number: " + valueStr);
             }
 
-            if (!MinValue.IsInsideRange(0, 1))
+            if (!MinValue.IsInsideRange(DefaultMinValue, 1))
             {
-                throw new System.ArgumentException("CellBiomePresenceCondition: Min value is outside the range of 0 and 1: " + valueStr);
+                throw new System.ArgumentException("CellBiomePresenceCondition: Min value is outside the range of " + DefaultMinValue + " and 1: " + valueStr);
             }
         }
         else
@@ -46,7 +46,7 @@ public class CellBiomeRelPresenceCondition : CellCondition
 
     public override bool Evaluate(TerrainCell cell)
     {
-        return cell.GetBiomeRelPresence(_biomeId) >= MinValue;
+        return cell.GetBiomePresence(_biomeId) >= MinValue;
     }
 
     public override string GetPropertyValue(string propertyId)

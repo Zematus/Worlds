@@ -1248,7 +1248,7 @@ public abstract class Polity : ISynchronizable
         {
             //			Profiler.BeginSample ("Try Get Polity Biome Survival Skill");
 
-            float biomePresence = cell.GetBiomeRelPresence(biomeId);
+            float biomePresence = cell.GetBiomePresence(biomeId);
 
             Biome biome = Biome.Biomes[biomeId];
 

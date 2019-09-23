@@ -59,10 +59,16 @@ public abstract class Factor
 
     private static Factor BuildBaseFactor(string factorStr)
     {
-        Match match = Regex.Match(factorStr, NeighborhoodSeaPresenceFactor.Regex);
+        Match match = Regex.Match(factorStr, NeighborhoodBiomeTypePresenceFactor.Regex);
         if (match.Success == true)
         {
-            return new NeighborhoodSeaPresenceFactor(match);
+            return new NeighborhoodBiomeTypePresenceFactor(match);
+        }
+
+        match = Regex.Match(factorStr, NeighborhoodBiomeTraitPresenceFactor.Regex);
+        if (match.Success == true)
+        {
+            return new NeighborhoodBiomeTraitPresenceFactor(match);
         }
 
         match = Regex.Match(factorStr, CellAccessibilityFactor.Regex);
@@ -89,10 +95,10 @@ public abstract class Factor
             return new CellSurvivabilityFactor(match);
         }
 
-        match = Regex.Match(factorStr, CellBiomeRelPresenceFactor.Regex);
+        match = Regex.Match(factorStr, CellBiomePresenceFactor.Regex);
         if (match.Success == true)
         {
-            return new CellBiomeRelPresenceFactor(match);
+            return new CellBiomePresenceFactor(match);
         }
 
         match = Regex.Match(factorStr, CellHillinessFactor.Regex);
@@ -101,10 +107,22 @@ public abstract class Factor
             return new CellHillinessFactor(match);
         }
 
-        match = Regex.Match(factorStr, CellWoodPresenceFactor.Regex);
+        match = Regex.Match(factorStr, CellFlowingWaterFactor.Regex);
         if (match.Success == true)
         {
-            return new CellWoodPresenceFactor(match);
+            return new CellFlowingWaterFactor(match);
+        }
+
+        match = Regex.Match(factorStr, CellBiomeTraitPresenceFactor.Regex);
+        if (match.Success == true)
+        {
+            return new CellBiomeTraitPresenceFactor(match);
+        }
+
+        match = Regex.Match(factorStr, CellBiomeTypePresenceFactor.Regex);
+        if (match.Success == true)
+        {
+            return new CellBiomeTypePresenceFactor(match);
         }
 
         throw new System.ArgumentException("Not a recognized factor: " + factorStr);

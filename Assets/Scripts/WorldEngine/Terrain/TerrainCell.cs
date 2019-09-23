@@ -60,7 +60,7 @@ public class TerrainCell
     public const int MaxNeighborDirections = 8;
     public const int NeighborSearchOffset = 3;
 
-    public const int MaxNeighborhoodSeaPresence = 9;
+    public const int MaxNeighborhoodCellCount = 9;
 
     public const float HillinessSlopeFactor = 0.01f;
 
@@ -106,7 +106,6 @@ public class TerrainCell
     public float BaseAccessibility;
     public float BaseArability;
     public float Hilliness;
-    public float WoodCoverage;
     
     public bool IsPartOfCoastline;
     
@@ -121,7 +120,7 @@ public class TerrainCell
     public static float MaxWidth;
 
     public List<string> PresentBiomeIds = new List<string>();
-    public List<float> BiomeRelPresences = new List<float>();
+    public List<float> BiomePresences = new List<float>();
     public List<float> BiomeAbsPresences = new List<float>();
 
     public List<string> PresentLayerIds = new List<string>();
@@ -134,7 +133,7 @@ public class TerrainCell
     
     public List<string> PresentWaterBiomeIds = new List<string>();
     
-    public float WaterBiomeRelPresence = 0;
+    public float WaterBiomePresence = 0;
 
     private float? _neighborhoodWaterBiomePresence = null;
     
@@ -143,11 +142,11 @@ public class TerrainCell
         get {
             if (_neighborhoodWaterBiomePresence == null)
             {
-                _neighborhoodWaterBiomePresence = WaterBiomeRelPresence;
+                _neighborhoodWaterBiomePresence = WaterBiomePresence;
 
                 foreach (TerrainCell nCell in Neighbors.Values)
                 {
-                    _neighborhoodWaterBiomePresence += nCell.WaterBiomeRelPresence;
+                    _neighborhoodWaterBiomePresence += nCell.WaterBiomePresence;
                 }
             }
 
@@ -177,7 +176,7 @@ public class TerrainCell
     public Dictionary<Direction, TerrainCell> Neighbors { get; private set; }
     public Dictionary<Direction, float> NeighborDistances { get; private set; }
 
-    private Dictionary<string, float> _biomeRelPresences = new Dictionary<string, float>();
+    private Dictionary<string, float> _biomePresences = new Dictionary<string, float>();
     private Dictionary<string, CellLayerData> _layerData = new Dictionary<string, CellLayerData>();
 
     public TerrainCell()
@@ -413,11 +412,11 @@ public class TerrainCell
     {
         PresentBiomeIds.Clear();
         PresentWaterBiomeIds.Clear();
-        BiomeRelPresences.Clear();
+        BiomePresences.Clear();
 
-        _biomeRelPresences.Clear();
+        _biomePresences.Clear();
 
-        WaterBiomeRelPresence = 0;
+        WaterBiomePresence = 0;
         MostBiomePresence = 0;
         BiomeWithMostPresence = null;
     }
@@ -425,15 +424,15 @@ public class TerrainCell
     public void AddBiomeRelPresence(Biome biome, float relPresence)
     {
         PresentBiomeIds.Add(biome.Id);
-        BiomeRelPresences.Add(relPresence);
+        BiomePresences.Add(relPresence);
 
         if (biome.TerrainType == BiomeTerrainType.Water)
         {
             PresentWaterBiomeIds.Add(biome.Id);
-            WaterBiomeRelPresence += relPresence;
+            WaterBiomePresence += relPresence;
         }
 
-        _biomeRelPresences[biome.Id] = relPresence;
+        _biomePresences[biome.Id] = relPresence;
 
         if (MostBiomePresence < relPresence)
         {
@@ -442,11 +441,67 @@ public class TerrainCell
         }
     }
 
-    public float GetBiomeRelPresence(string biomeId)
+    public float GetBiomeTypePresence(BiomeTerrainType type)
+    {
+        float typePresence = 0;
+
+        for (int i = 0; i < PresentBiomeIds.Count; i++)
+        {
+            Biome biome = Biome.Biomes[PresentBiomeIds[i]];
+
+            if (biome.TerrainType == type)
+
+            typePresence += BiomePresences[i];
+        }
+
+        return typePresence;
+    }
+
+    public float GetNeighborhoodBiomeTypePresence(BiomeTerrainType type)
+    {
+        float presence = GetBiomeTypePresence(type);
+
+        foreach (TerrainCell nCell in Neighbors.Values)
+        {
+            presence += nCell.GetBiomeTypePresence(type);
+        }
+
+        return presence;
+    }
+
+    public float GetBiomeTraitPresence(string trait)
+    {
+        float traitPresence = 0;
+
+        for (int i = 0; i < PresentBiomeIds.Count; i++)
+        {
+            Biome biome = Biome.Biomes[PresentBiomeIds[i]];
+
+            if (biome.Traits.Contains(trait))
+
+                traitPresence += BiomePresences[i];
+        }
+
+        return traitPresence;
+    }
+
+    public float GetNeighborhoodBiomeTraitPresence(string trait)
+    {
+        float presence = GetBiomeTraitPresence(trait);
+
+        foreach (TerrainCell nCell in Neighbors.Values)
+        {
+            presence += nCell.GetBiomeTraitPresence(trait);
+        }
+
+        return presence;
+    }
+
+    public float GetBiomePresence(string biomeId)
     {
         float value = 0;
 
-        if (!_biomeRelPresences.TryGetValue(biomeId, out value))
+        if (!_biomePresences.TryGetValue(biomeId, out value))
             return 0;
 
         return value;
@@ -629,11 +684,11 @@ public class TerrainCell
 
     private bool FindIfCoastline()
     {
-        if (WaterBiomeRelPresence > 0.5f)
+        if (WaterBiomePresence > 0.5f)
         {
             foreach (TerrainCell nCell in Neighbors.Values)
             {
-                if (nCell.WaterBiomeRelPresence < 0.5f)
+                if (nCell.WaterBiomePresence < 0.5f)
                     return true;
             }
         }
@@ -641,7 +696,7 @@ public class TerrainCell
         {
             foreach (TerrainCell nCell in Neighbors.Values)
             {
-                if (nCell.WaterBiomeRelPresence >= 0.5f)
+                if (nCell.WaterBiomePresence >= 0.5f)
                     return true;
             }
         }
