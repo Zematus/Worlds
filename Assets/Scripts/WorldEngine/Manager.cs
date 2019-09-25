@@ -258,11 +258,13 @@ public class Manager
     private World _currentWorld = null;
     
     private Texture2D _currentMapTexture = null;
+    private Texture2D _currentMapOverlayTexture = null;
 
     private Texture2D _pointerOverlayTexture = null;
     
     private Color32[] _currentMapTextureColors = null;
-    
+    private Color32[] _currentMapOverlayTextureColors = null;
+
     private Color32[] _pointerOverlayTextureColors = null;
 
     private float?[,] _currentCellSlants;
@@ -880,6 +882,14 @@ public class Manager
         }
     }
 
+    public static Texture2D CurrentMapOverlayTexture
+    {
+        get
+        {
+            return _manager._currentMapOverlayTexture;
+        }
+    }
+
     public static Texture2D PointerOverlayTexture
     {
         get
@@ -971,7 +981,7 @@ public class Manager
             UpdatedPixelCount = 0;
         }
         
-        GenerateMapTextureFromWorld(CurrentWorld);
+        GenerateMapTexturesFromWorld(CurrentWorld);
 
         ResetUpdatedAndHighlightedCells();
     }
@@ -2101,29 +2111,32 @@ public class Manager
             UpdatedPixelCount = 0;
         }
 
-        Profiler.BeginSample("UpdateMapTextureColors");
+        //Profiler.BeginSample("UpdateMapTextureColors");
 
-        UpdateMapTextureColors(_manager._currentMapTextureColors);
+        UpdateMapTextureColors();
+        UpdateMapOverlayTextureColors();
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
-        Profiler.BeginSample("CurrentMapTexture.SetPixels32");
+        //Profiler.BeginSample("CurrentMapTexture.SetPixels32");
 
         CurrentMapTexture.SetPixels32(_manager._currentMapTextureColors);
+        CurrentMapOverlayTexture.SetPixels32(_manager._currentMapOverlayTextureColors);
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
-        Profiler.BeginSample("CurrentMapTexture.Apply");
+        //Profiler.BeginSample("CurrentMapTexture.Apply");
 
         CurrentMapTexture.Apply();
+        CurrentMapOverlayTexture.Apply();
 
-        Profiler.EndSample();
-        
-        Profiler.BeginSample("ResetUpdatedAndHighlightedCells");
+        //Profiler.EndSample();
+
+        //Profiler.BeginSample("ResetUpdatedAndHighlightedCells");
 
         ResetUpdatedAndHighlightedCells();
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
     }
 
     public static void UpdatePointerOverlayTextureColors(Color32[] textureColors)
@@ -2139,8 +2152,10 @@ public class Manager
         }
     }
 
-    public static void UpdateMapTextureColors(Color32[] textureColors)
+    public static void UpdateMapTextureColors()
     {
+        Color32[] textureColors = _manager._currentMapTextureColors;
+
         if (_displayGroupActivityWasEnabled)
         {
             foreach (TerrainCell cell in _lastUpdatedCells)
@@ -2162,7 +2177,7 @@ public class Manager
             if (HighlightedCells.Contains(cell))
                 continue;
 
-            UpdateMapTextureColorsFromCell(textureColors, cell, _displayGroupActivity);
+            UpdateMapTextureColorsFromCell(textureColors, cell);
         }
 
         foreach (TerrainCell cell in HighlightedCells)
@@ -2171,38 +2186,37 @@ public class Manager
         }
     }
 
-    public static void DisplayRouteOnMapTexture(Color32[] textureColors, Route route, bool showRoute)
+    public static void UpdateMapOverlayTextureColors()
     {
-        World world = route.World;
+        Color32[] overlayTextureColors = _manager._currentMapOverlayTextureColors;
 
-        int sizeX = world.Width;
-
-        int r = PixelToCellRatio;
-
-        foreach (TerrainCell cell in route.Cells)
+        if (_displayGroupActivityWasEnabled)
         {
-            int i = cell.Longitude;
-            int j = cell.Latitude;
-
-            Color cellColor = Color.cyan;
-
-            if (!showRoute)
+            foreach (TerrainCell cell in _lastUpdatedCells)
             {
-                cellColor = GenerateColorFromTerrainCell(cell, _displayGroupActivity);
+                if (UpdatedCells.Contains(cell))
+                    continue;
+
+                if (HighlightedCells.Contains(cell))
+                    continue;
+                
+                UpdateMapOverlayTextureColorsFromCell(overlayTextureColors, cell);
             }
+        }
 
-            for (int m = 0; m < r; m++)
-            {
-                for (int n = 0; n < r; n++)
-                {
-                    int offsetY = sizeX * r * (j * r + n);
-                    int offsetX = i * r + m;
+        _displayGroupActivityWasEnabled = _displayGroupActivity;
 
-                    textureColors[offsetY + offsetX] = cellColor;
-                }
-            }
+        foreach (TerrainCell cell in UpdatedCells)
+        {
+            if (HighlightedCells.Contains(cell))
+                continue;
+            
+            UpdateMapOverlayTextureColorsFromCell(overlayTextureColors, cell, _displayGroupActivity);
+        }
 
-            UpdatedCells.Add(cell);
+        foreach (TerrainCell cell in HighlightedCells)
+        {
+            UpdateMapOverlayTextureColorsFromCell(overlayTextureColors, cell);
         }
     }
 
@@ -2295,7 +2309,7 @@ public class Manager
         }
     }
 
-    public static void UpdateMapTextureColorsFromCell(Color32[] textureColors, TerrainCell cell, bool displayActivityCells = false)
+    public static void UpdateMapTextureColorsFromCell(Color32[] textureColors, TerrainCell cell)
     {
         World world = cell.World;
 
@@ -2306,7 +2320,37 @@ public class Manager
         int i = cell.Longitude;
         int j = cell.Latitude;
 
-        Color cellColor = GenerateColorFromTerrainCell(cell, displayActivityCells);
+        Color cellColor = GenerateColorFromTerrainCell(cell);
+
+        for (int m = 0; m < r; m++)
+        {
+            for (int n = 0; n < r; n++)
+            {
+                int offsetY = sizeX * r * (j * r + n);
+                int offsetX = i * r + m;
+
+                textureColors[offsetY + offsetX] = cellColor;
+
+                if (DebugModeEnabled)
+                {
+                    UpdatedPixelCount++;
+                }
+            }
+        }
+    }
+
+    public static void UpdateMapOverlayTextureColorsFromCell(Color32[] textureColors, TerrainCell cell, bool displayActivityCells = false)
+    {
+        World world = cell.World;
+
+        int sizeX = world.Width;
+
+        int r = PixelToCellRatio;
+
+        int i = cell.Longitude;
+        int j = cell.Latitude;
+
+        Color cellColor = GenerateOverlayColorFromTerrainCell(cell, displayActivityCells);
 
         for (int m = 0; m < r; m++)
         {
@@ -2365,7 +2409,7 @@ public class Manager
         return texture;
     }
 
-    public static Texture2D GenerateMapTextureFromWorld(World world)
+    public static void GenerateMapTexturesFromWorld(World world)
     {
         int sizeX = world.Width;
         int sizeY = world.Height;
@@ -2373,14 +2417,14 @@ public class Manager
         int r = PixelToCellRatio;
 
         Color32[] textureColors = new Color32[sizeX * sizeY * r * r];
-
-        Texture2D texture = new Texture2D(sizeX * r, sizeY * r, TextureFormat.ARGB32, false);
+        Color32[] overlayTextureColors = new Color32[sizeX * sizeY * r * r];
 
         for (int i = 0; i < sizeX; i++)
         {
             for (int j = 0; j < sizeY; j++)
             {
                 Color cellColor = GenerateColorFromTerrainCell(world.TerrainCells[i][j]);
+                Color cellOverlayColor = GenerateOverlayColorFromTerrainCell(world.TerrainCells[i][j]);
 
                 for (int m = 0; m < r; m++)
                 {
@@ -2390,6 +2434,7 @@ public class Manager
                         int offsetX = i * r + m;
 
                         textureColors[offsetY + offsetX] = cellColor;
+                        overlayTextureColors[offsetY + offsetX] = cellOverlayColor;
 
                         if (DebugModeEnabled)
                         {
@@ -2400,14 +2445,20 @@ public class Manager
             }
         }
 
+        Texture2D texture = new Texture2D(sizeX * r, sizeY * r, TextureFormat.ARGB32, false);
+        Texture2D overlayTexture = new Texture2D(sizeX * r, sizeY * r, TextureFormat.ARGB32, false);
+
         texture.SetPixels32(textureColors);
+        overlayTexture.SetPixels32(overlayTextureColors);
 
         texture.Apply();
+        overlayTexture.Apply();
 
         _manager._currentMapTextureColors = textureColors;
         _manager._currentMapTexture = texture;
 
-        return texture;
+        _manager._currentMapOverlayTextureColors = overlayTextureColors;
+        _manager._currentMapOverlayTexture = overlayTexture;
     }
 
     private static float GetSlant(TerrainCell cell)
@@ -2490,17 +2541,8 @@ public class Manager
         return cell.IsPartOfCoastline;
     }
 
-    private static Color GenerateColorFromTerrainCell(TerrainCell cell, bool displayActivityCells = false)
+    private static Color GenerateColorFromTerrainCell(TerrainCell cell)
     {
-        if (_displayRoutes && cell.HasCrossingRoutes)
-        {
-            foreach (Route route in cell.CrossingRoutes)
-            {
-                if (route.Used)
-                    return GetOverlayColor(OverlayColorId.ActiveRoute);
-            }
-        }
-
         Color color = Color.black;
 
         switch (_planetView)
@@ -2520,6 +2562,24 @@ public class Manager
             default:
                 throw new System.Exception("Unsupported Planet View Type");
         }
+
+        color.a = 1;
+
+        return color;
+    }
+
+    private static Color GenerateOverlayColorFromTerrainCell(TerrainCell cell, bool displayActivityCells = false)
+    {
+        if (_displayRoutes && cell.HasCrossingRoutes)
+        {
+            foreach (Route route in cell.CrossingRoutes)
+            {
+                if (route.Used)
+                    return GetOverlayColor(OverlayColorId.ActiveRoute);
+            }
+        }
+
+        Color color = Color.black;
 
         switch (_planetOverlay)
         {
@@ -2658,8 +2718,6 @@ public class Manager
         {
             color = color * 0.75f + Color.white * 0.25f;
         }
-
-        color.a = 1;
 
         return color;
     }
