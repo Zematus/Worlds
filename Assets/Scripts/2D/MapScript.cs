@@ -7,6 +7,7 @@ using System.Collections;
 public class MapScript : MonoBehaviour
 {
     public RawImage MapImage;
+    public RawImage MapOverlayImage;
     public RawImage PointerOverlayImage;
     public GameObject InfoPanel;
 
@@ -56,17 +57,19 @@ public class MapScript : MonoBehaviour
     public void SetVisible(bool state)
     {
         MapImage.enabled = state;
+        MapOverlayImage.enabled = state;
         PointerOverlayImage.enabled = state;
     }
 
-    public bool IsVisible()
-    {
-        return MapImage.enabled;
-    }
+    //public bool IsVisible()
+    //{
+    //    return MapImage.enabled;
+    //}
 
     public void RefreshTexture()
     {
         MapImage.texture = Manager.CurrentMapTexture;
+        MapOverlayImage.texture = Manager.CurrentMapOverlayTexture;
     }
 
     public void EnablePointerOverlay(bool state)
@@ -113,6 +116,7 @@ public class MapScript : MonoBehaviour
     private void SetUvRect(Rect newUvRect)
     {
         MapImage.uvRect = newUvRect;
+        MapOverlayImage.uvRect = newUvRect;
         PointerOverlayImage.uvRect = newUvRect;
     }
 

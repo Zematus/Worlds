@@ -2579,7 +2579,14 @@ public class Manager
             }
         }
 
-        Color color = Color.black;
+        Color color = _transparentColor;
+
+        int? maxPopulation = null;
+
+        if (CurrentWorld.MostPopulousGroup != null)
+        {
+            maxPopulation = CurrentWorld.MostPopulousGroup.Population;
+        }
 
         switch (_planetOverlay)
         {
@@ -2587,11 +2594,11 @@ public class Manager
                 break;
 
             case PlanetOverlay.General:
-                color = SetGeneralOverlayColor(cell, color);
+                color = SetGeneralOverlayColor(cell, color, maxPopulation);
                 break;
 
             case PlanetOverlay.PopDensity:
-                color = SetPopulationDensityOverlayColor(cell, color);
+                color = SetPopulationDensityOverlayColor(cell, color, maxPopulation);
                 break;
 
             case PlanetOverlay.FarmlandDistribution:
@@ -3185,7 +3192,7 @@ public class Manager
                 break;
         }
 
-        return new Color(red, green, blue);
+        return new Color(red, green, blue, 1.0f);
     }
 
     private static Color SetPolityContactsOverlayColor(TerrainCell cell, Color color)
@@ -3311,7 +3318,7 @@ public class Manager
         return color;
     }
 
-    private static Color SetPopulationDensityOverlayColor(TerrainCell cell, Color color)
+    private static Color SetPopulationDensityOverlayColor(TerrainCell cell, Color color, int? maxPopulation)
     {
         float greyscale = (color.r + color.g + color.b);
 
@@ -3319,15 +3326,10 @@ public class Manager
         color.g = (greyscale + color.g) / 6f;
         color.b = (greyscale + color.b) / 6f;
 
-        if (CurrentWorld.MostPopulousGroup == null)
+        if ((maxPopulation == null) || (maxPopulation <= 0))
             return color;
 
-        int maxPopulation = CurrentWorld.MostPopulousGroup.Population;
-
-        if (maxPopulation <= 0)
-            return color;
-
-        float maxPopFactor = cell.MaxAreaPercent * maxPopulation / 5f;
+        float maxPopFactor = cell.MaxAreaPercent * maxPopulation.Value / 5f;
 
         float population = 0;
 
@@ -3346,7 +3348,7 @@ public class Manager
 
         if (population > 0)
         {
-            float value = (population + maxPopFactor) / (maxPopulation + maxPopFactor);
+            float value = (population + maxPopFactor) / (maxPopulation.Value + maxPopFactor);
 
             color = (color * (1 - value)) + (Color.red * value);
         }
@@ -3928,14 +3930,8 @@ public class Manager
         return color;
     }
 
-    private static Color SetGeneralOverlayColor(TerrainCell cell, Color terrainColor)
+    private static Color SetGeneralOverlayColor(TerrainCell cell, Color baseColor, int? maxPopulation)
     {
-        float greyscale = (terrainColor.r + terrainColor.g + terrainColor.b) / 3f;
-        float greyscaleWeight = 0.9f;
-
-        float normalizedValue = 0;
-        float population = 0;
-
         bool hasGroup = false;
         bool inTerritory = false;
         Color densityColorSubOptimal = GetOverlayColor(OverlayColorId.GeneralDensitySubOptimal);
@@ -3963,10 +3959,6 @@ public class Manager
                     groupColor /= 1.75f;
                 }
             }
-
-            groupColor = Color.white * 0.15f + groupColor * 0.85f;
-
-            normalizedValue = 0.8f;
         }
 
         if (cell.Group != null)
@@ -3975,26 +3967,14 @@ public class Manager
 
             if (!inTerritory)
             {
-                int maxPopulation = CurrentWorld.MostPopulousGroup.Population;
-
-                population = cell.Group.Population;
-
-                float maxPopFactor = 0.3f + 0.4f * (population / (float)maxPopulation);
-
-                normalizedValue = maxPopFactor;
-
-                int knowledgeValue = 0;
-
-                if (cell.Group.Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.KnowledgeId, out knowledgeValue))
+                if (cell.Group.Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.KnowledgeId, out int knowledgeValue))
                 {
                     float minValue = SocialOrganizationKnowledge.MinValueForTribeFormation;
                     float startValue = SocialOrganizationKnowledge.InitialValue;
 
                     float knowledgeFactor = Mathf.Clamp01((knowledgeValue - startValue) / (minValue - startValue));
-
-                    Color softDensityColor = groupColor * terrainColor;
-
-                    groupColor = (softDensityColor * knowledgeFactor) + (densityColorSubOptimal * (1f - knowledgeFactor));
+                    
+                    groupColor = (groupColor * knowledgeFactor) + densityColorSubOptimal * (1f - knowledgeFactor);
                 }
                 else
                 {
@@ -4003,18 +3983,18 @@ public class Manager
             }
         }
 
-        if (hasGroup || inTerritory)
+        if (hasGroup && !inTerritory)
         {
-            terrainColor.r = (terrainColor.r * (1 - greyscaleWeight)) + (greyscale * greyscaleWeight);
-            terrainColor.g = (terrainColor.g * (1 - greyscaleWeight)) + (greyscale * greyscaleWeight);
-            terrainColor.b = (terrainColor.b * (1 - greyscaleWeight)) + (greyscale * greyscaleWeight);
-
-            float value = normalizedValue;
-
-            terrainColor = (terrainColor * (1 - value)) + (groupColor * value);
+            baseColor = groupColor;
+            baseColor.a *= 0.5f;
+        }
+        else if (inTerritory)
+        {
+            baseColor = groupColor;
+            baseColor.a *= 0.95f;
         }
 
-        return terrainColor;
+        return baseColor;
     }
 
     private static Color SetUpdateSpanOverlayColor(TerrainCell cell, Color color)
