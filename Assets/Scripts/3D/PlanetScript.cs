@@ -162,9 +162,10 @@ public class PlanetScript : MonoBehaviour
 
     public void RefreshTexture()
     {
-        Texture2D texture = Manager.CurrentMapTexture;
+        Material[] materials = Surface.GetComponent<Renderer>().materials;
 
-        Surface.GetComponent<Renderer>().material.mainTexture = texture;
+        materials[1].mainTexture = Manager.CurrentMapTexture;
+        materials[0].mainTexture = Manager.CurrentMapOverlayTexture;
     }
 
     public void ZoomButtonPressed(bool state)
