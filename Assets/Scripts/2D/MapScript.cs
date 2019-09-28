@@ -11,6 +11,9 @@ public class MapScript : MonoBehaviour
     public RawImage PointerOverlayImage;
     public GameObject InfoPanel;
 
+    public Material Default;
+    public Material Subdued;
+
     private bool _isDraggingMap = false;
     private Vector2 _beginDragPosition;
     private Rect _beginDragMapUvRect;
@@ -61,15 +64,22 @@ public class MapScript : MonoBehaviour
         PointerOverlayImage.enabled = state;
     }
 
-    //public bool IsVisible()
-    //{
-    //    return MapImage.enabled;
-    //}
-
     public void RefreshTexture()
     {
         MapImage.texture = Manager.CurrentMapTexture;
         MapOverlayImage.texture = Manager.CurrentMapOverlayTexture;
+    }
+
+    public void SetSubdued(bool state)
+    {
+        if (state)
+        {
+            MapImage.material = Subdued;
+        }
+        else
+        {
+            MapImage.material = Default;
+        }
     }
 
     public void EnablePointerOverlay(bool state)

@@ -2409,6 +2409,21 @@ public class Manager
         return texture;
     }
 
+    public static bool SubdueMapTexture()
+    {
+        switch (_planetOverlay)
+        {
+            case PlanetOverlay.None:
+                return false;
+
+            case PlanetOverlay.General:
+                return false;
+
+            default:
+                return true;
+        }
+    }
+
     public static void GenerateMapTexturesFromWorld(World world)
     {
         int sizeX = world.Width;
@@ -3320,12 +3335,6 @@ public class Manager
 
     private static Color SetPopulationDensityOverlayColor(TerrainCell cell, Color color, int? maxPopulation)
     {
-        float greyscale = (color.r + color.g + color.b);
-
-        color.r = (greyscale + color.r) / 6f;
-        color.g = (greyscale + color.g) / 6f;
-        color.b = (greyscale + color.b) / 6f;
-
         if ((maxPopulation == null) || (maxPopulation <= 0))
             return color;
 
@@ -3344,13 +3353,13 @@ public class Manager
             if (cell.Group.DebugTagged && DisplayDebugTaggedGroups)
                 return Color.green;
 #endif
-        }
 
-        if (population > 0)
-        {
-            float value = (population + maxPopFactor) / (maxPopulation.Value + maxPopFactor);
+            if (population > 0)
+            {
+                float value = (population + maxPopFactor) / (maxPopulation.Value + maxPopFactor);
 
-            color = (color * (1 - value)) + (Color.red * value);
+                color = Color.red * value;
+            }
         }
 
         return color;

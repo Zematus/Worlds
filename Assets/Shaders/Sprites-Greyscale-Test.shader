@@ -3,7 +3,7 @@
 // From https://forum.unity.com/threads/sprite-shader-with-greyscale.222693/ 
 // Original author: RChrispy
 
-Shader "Sprites/GrayScale"
+Shader "Sprites/GrayScale-Test"
 {
 	Properties
 	{
