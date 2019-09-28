@@ -11,8 +11,7 @@ public class MapScript : MonoBehaviour
     public RawImage PointerOverlayImage;
     public GameObject InfoPanel;
 
-    public Material Default;
-    public Material Subdued;
+    public ShaderSettingsScript ShaderSettings;
 
     private bool _isDraggingMap = false;
     private Vector2 _beginDragPosition;
@@ -74,11 +73,13 @@ public class MapScript : MonoBehaviour
     {
         if (state)
         {
-            MapImage.material = Subdued;
+            MapImage.material.SetColor("_Color", ShaderSettings.SubduedColor);
+            MapImage.material.SetFloat("_EffectAmount", ShaderSettings.SubduedGrayness);
         }
         else
         {
-            MapImage.material = Default;
+            MapImage.material.SetColor("_Color", ShaderSettings.DefaultColor);
+            MapImage.material.SetFloat("_EffectAmount", ShaderSettings.DefaultGrayness);
         }
     }
 

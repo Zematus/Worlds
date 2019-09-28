@@ -30,6 +30,8 @@ public class PlanetScript : MonoBehaviour
     public GameObject AutoRotationPivot;
     public GameObject Surface;
 
+    public ShaderSettingsScript ShaderSettings;
+
     public ToggleEvent LightingTypeChangeEvent;
 
     private bool _isDraggingSurface = false;
@@ -166,6 +168,22 @@ public class PlanetScript : MonoBehaviour
 
         materials[1].mainTexture = Manager.CurrentMapTexture;
         materials[0].mainTexture = Manager.CurrentMapOverlayTexture;
+    }
+
+    public void SetSubdued(bool state)
+    {
+        Material[] materials = Surface.GetComponent<Renderer>().materials;
+
+        if (state)
+        {
+            materials[1].SetColor("_Color", ShaderSettings.SubduedColor);
+            materials[1].SetFloat("_EffectAmount", ShaderSettings.SubduedGrayness);
+        }
+        else
+        {
+            materials[1].SetColor("_Color", ShaderSettings.DefaultColor);
+            materials[1].SetFloat("_EffectAmount", ShaderSettings.DefaultGrayness);
+        }
     }
 
     public void ZoomButtonPressed(bool state)

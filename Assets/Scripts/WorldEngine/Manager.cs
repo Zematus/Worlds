@@ -2409,7 +2409,7 @@ public class Manager
         return texture;
     }
 
-    public static bool SubdueMapTexture()
+    public static bool SubduedMapTexture()
     {
         switch (_planetOverlay)
         {
