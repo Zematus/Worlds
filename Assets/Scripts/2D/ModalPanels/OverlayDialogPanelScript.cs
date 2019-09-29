@@ -36,7 +36,7 @@ public class OverlayDialogPanelScript : MenuPanelScript
     public Toggle ArabilityToggle;
     public Toggle AccessibilityToggle;
     public Toggle HillinessToggle;
-    public Toggle WoodCoverageToggle;
+    public Toggle BiomeTraitToggle;
     public Toggle LayerToggle;
     public Toggle RegionToggle;
     public Toggle LanguageToggle;
@@ -112,7 +112,7 @@ public class OverlayDialogPanelScript : MenuPanelScript
             ArabilityToggle.isOn = false;
             AccessibilityToggle.isOn = false;
             HillinessToggle.isOn = false;
-            WoodCoverageToggle.isOn = false;
+            BiomeTraitToggle.isOn = false;
             RegionToggle.isOn = false;
             LanguageToggle.isOn = false;
         }
@@ -171,7 +171,7 @@ public class OverlayDialogPanelScript : MenuPanelScript
             (Manager.PlanetOverlay == PlanetOverlay.Arability) ||
             (Manager.PlanetOverlay == PlanetOverlay.Accessibility) ||
             (Manager.PlanetOverlay == PlanetOverlay.Hilliness) ||
-            (Manager.PlanetOverlay == PlanetOverlay.WoodCoverage) ||
+            (Manager.PlanetOverlay == PlanetOverlay.BiomeTrait) ||
             (Manager.PlanetOverlay == PlanetOverlay.Layer) ||
             (Manager.PlanetOverlay == PlanetOverlay.Region) ||
             (Manager.PlanetOverlay == PlanetOverlay.Language)
@@ -206,7 +206,7 @@ public class OverlayDialogPanelScript : MenuPanelScript
         ArabilityToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.Arability);
         AccessibilityToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.Accessibility);
         HillinessToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.Hilliness);
-        WoodCoverageToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.WoodCoverage);
+        BiomeTraitToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.BiomeTrait);
         LayerToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.Layer);
         RegionToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.Region);
         LanguageToggle.isOn = (Manager.PlanetOverlay == PlanetOverlay.Language);

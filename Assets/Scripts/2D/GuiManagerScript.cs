@@ -142,7 +142,7 @@ public class GuiManagerScript : MonoBehaviour
         PlanetOverlay.Arability,
         PlanetOverlay.Accessibility,
         PlanetOverlay.Hilliness,
-        PlanetOverlay.WoodCoverage,
+        PlanetOverlay.BiomeTrait,
         PlanetOverlay.Layer,
         PlanetOverlay.Region,
         PlanetOverlay.Language
@@ -1717,8 +1717,8 @@ public class GuiManagerScript : MonoBehaviour
             case PlanetOverlay.Hilliness:
                 planetOverlayStr = "_hilliness";
                 break;
-            case PlanetOverlay.WoodCoverage:
-                planetOverlayStr = "_woodPresence";
+            case PlanetOverlay.BiomeTrait:
+                planetOverlayStr = "_biome_trait_" + _planetOverlaySubtype;
                 break;
             case PlanetOverlay.Layer:
                 planetOverlayStr = "_layer_" + _planetOverlaySubtype;
@@ -2125,9 +2125,9 @@ public class GuiManagerScript : MonoBehaviour
         {
             ChangePlanetOverlay(PlanetOverlay.Hilliness, false);
         }
-        else if (OverlayDialogPanelScript.WoodCoverageToggle.isOn)
+        else if (OverlayDialogPanelScript.BiomeTraitToggle.isOn)
         {
-            ChangePlanetOverlay(PlanetOverlay.WoodCoverage, false);
+            ChangePlanetOverlay(PlanetOverlay.BiomeTrait, false);
         }
         else if (OverlayDialogPanelScript.LayerToggle.isOn)
         {
@@ -2407,9 +2407,7 @@ public class GuiManagerScript : MonoBehaviour
 
     public void ChangePlanetOverlay(PlanetOverlay overlay, bool invokeEvent)
     {
-        string currentOverlaySubtype;
-
-        if (!_planetOverlaySubtypeCache.TryGetValue(overlay, out currentOverlaySubtype))
+        if (!_planetOverlaySubtypeCache.TryGetValue(overlay, out string currentOverlaySubtype))
         {
             currentOverlaySubtype = "None";
         }
@@ -2464,12 +2462,16 @@ public class GuiManagerScript : MonoBehaviour
             case PlanetOverlay.Layer:
                 HandleLayerOverlay();
                 break;
+
+            case PlanetOverlay.BiomeTrait:
+                HandleBiomeTraitOverlay();
+                break;
         }
     }
 
     private void HandleCulturalPreferenceOverlay()
     {
-        SelectionPanelScript.Title.text = "Displayed Preference:";
+        SelectionPanelScript.Title.text = "Preferences";
 
         foreach (CulturalPreferenceInfo preferenceInfo in Manager.CurrentWorld.CulturalPreferenceInfoList)
         {
@@ -2481,7 +2483,7 @@ public class GuiManagerScript : MonoBehaviour
 
     private void HandleCulturalActivityOverlay()
     {
-        SelectionPanelScript.Title.text = "Displayed Activity:";
+        SelectionPanelScript.Title.text = "Activities";
 
         foreach (CulturalActivityInfo activityInfo in Manager.CurrentWorld.CulturalActivityInfoList)
         {
@@ -2493,7 +2495,7 @@ public class GuiManagerScript : MonoBehaviour
 
     private void HandleCulturalSkillOverlay()
     {
-        SelectionPanelScript.Title.text = "Displayed Skill:";
+        SelectionPanelScript.Title.text = "Skills";
 
         foreach (CulturalSkillInfo skillInfo in Manager.CurrentWorld.CulturalSkillInfoList)
         {
@@ -2505,7 +2507,7 @@ public class GuiManagerScript : MonoBehaviour
 
     private void HandleCulturalKnowledgeOverlay()
     {
-        SelectionPanelScript.Title.text = "Displayed Knowledge:";
+        SelectionPanelScript.Title.text = "Knowledges";
 
         foreach (CulturalKnowledgeInfo knowledgeInfo in Manager.CurrentWorld.CulturalKnowledgeInfoList)
         {
@@ -2517,7 +2519,7 @@ public class GuiManagerScript : MonoBehaviour
 
     private void HandleCulturalDiscoveryOverlay()
     {
-        SelectionPanelScript.Title.text = "Displayed Discovery:";
+        SelectionPanelScript.Title.text = "Discoveries";
 
         foreach (Discovery discovery in Manager.CurrentWorld.ExistingDiscoveries.Values)
         {
@@ -2529,11 +2531,23 @@ public class GuiManagerScript : MonoBehaviour
 
     private void HandleLayerOverlay()
     {
-        SelectionPanelScript.Title.text = "Displayed Layer:";
+        SelectionPanelScript.Title.text = "Layers";
 
         foreach (Layer layer in Layer.Layers.Values)
         {
             AddSelectionPanelOption(layer.Name, layer.Id);
+        }
+
+        SelectionPanelScript.SetVisible(true);
+    }
+
+    private void HandleBiomeTraitOverlay()
+    {
+        SelectionPanelScript.Title.text = "Biome Traits";
+
+        foreach (string trait in Biome.AllTraits)
+        {
+            AddSelectionPanelOption(trait, trait);
         }
 
         SelectionPanelScript.SetVisible(true);

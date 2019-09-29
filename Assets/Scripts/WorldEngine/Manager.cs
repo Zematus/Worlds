@@ -57,7 +57,7 @@ public enum PlanetOverlay
     Arability,
     Accessibility,
     Hilliness,
-    WoodCoverage,
+    BiomeTrait,
     Layer,
     Region,
     Language,
@@ -1502,7 +1502,7 @@ public class Manager
             (overlay == PlanetOverlay.Arability) ||
             (overlay == PlanetOverlay.Accessibility) ||
             (overlay == PlanetOverlay.Hilliness) ||
-            (overlay == PlanetOverlay.WoodCoverage) ||
+            (overlay == PlanetOverlay.BiomeTrait) ||
             (overlay == PlanetOverlay.Layer) ||
             (overlay == PlanetOverlay.Rainfall) ||
             (overlay == PlanetOverlay.DrainageBasins) ||
@@ -1549,7 +1549,7 @@ public class Manager
             (overlay == PlanetOverlay.Arability) ||
             (overlay == PlanetOverlay.Accessibility) ||
             (overlay == PlanetOverlay.Hilliness) ||
-            (overlay == PlanetOverlay.WoodCoverage) ||
+            (overlay == PlanetOverlay.BiomeTrait) ||
             (overlay == PlanetOverlay.Layer) ||
             (overlay == PlanetOverlay.Rainfall) ||
             (overlay == PlanetOverlay.DrainageBasins) ||
@@ -2728,8 +2728,8 @@ public class Manager
                 color = SetHillinessOverlayColor(cell, color);
                 break;
 
-            case PlanetOverlay.WoodCoverage:
-                color = SetWoodCoverageOverlayColor(cell, color);
+            case PlanetOverlay.BiomeTrait:
+                color = SetBiomeTraitPresenceOverlayColor(cell, color);
                 break;
 
             case PlanetOverlay.Layer:
@@ -3614,15 +3614,12 @@ public class Manager
         return color;
     }
 
-    private static Color SetWoodCoverageOverlayColor(TerrainCell cell, Color color)
+    private static Color SetBiomeTraitPresenceOverlayColor(TerrainCell cell, Color color)
     {
-        float greyscale = (color.r + color.g + color.b);
+        if (_planetOverlaySubtype == "None")
+            return color;
 
-        color.r = greyscale / 6f;
-        color.g = greyscale / 6f;
-        color.b = greyscale / 6f;
-
-        color += (2 / 6f) * GetLowMedHighColor(cell.GetBiomeTraitPresence("wood") * (1 - cell.FarmlandPercentage));
+        color = GetLowMedHighColor(cell.GetBiomeTraitPresence(_planetOverlaySubtype) * (1 - cell.FarmlandPercentage));
 
         return color;
     }

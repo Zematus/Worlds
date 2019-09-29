@@ -1170,7 +1170,7 @@ public class InfoPanelScript : MonoBehaviour
             (Manager.PlanetOverlay == PlanetOverlay.Arability) ||
             (Manager.PlanetOverlay == PlanetOverlay.Accessibility) ||
             (Manager.PlanetOverlay == PlanetOverlay.Hilliness) ||
-            (Manager.PlanetOverlay == PlanetOverlay.WoodCoverage) ||
+            (Manager.PlanetOverlay == PlanetOverlay.BiomeTrait) ||
             (Manager.PlanetOverlay == PlanetOverlay.Layer) ||
             (Manager.PlanetOverlay == PlanetOverlay.Temperature))
         {

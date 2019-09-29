@@ -42,6 +42,8 @@ public class Biome
 
     public static Dictionary<string, Biome> Biomes;
 
+    public static HashSet<string> AllTraits = new HashSet<string>();
+
     public string Name;
     public string Id;
     public int IdHash;

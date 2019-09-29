@@ -133,7 +133,10 @@ public class BiomeLoader
         {
             foreach (string trait in b.traits)
             {
-                biome.Traits.Add(trait.Trim().ToLower());
+                string traitId = trait.Trim().ToLower();
+
+                biome.Traits.Add(traitId);
+                Biome.AllTraits.Add(traitId);
             }
         }
 
