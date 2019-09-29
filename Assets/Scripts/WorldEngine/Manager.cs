@@ -2887,21 +2887,14 @@ public class Manager
 
     private static Color SetRegionOverlayColor(TerrainCell cell, Color color)
     {
-        Color biomeColor = color;
-
-        float greyscale = (color.r + color.g + color.b);
-
-        color.r = (greyscale + color.r) / 6f;
-        color.g = (greyscale + color.g) / 6f;
-        color.b = (greyscale + color.b) / 6f;
-
         Region region = cell.Region;
 
         if (region != null)
         {
-            Color regionIdColor = GenerateColorFromId(region.Id);
-
-            Color regionColor = (biomeColor * 0.85f) + (regionIdColor * 0.15f);
+            Color regionColor = GenerateColorFromId(region.Id);
+            
+            Biome mostPresentBiome = Biome.Biomes[region.BiomeWithMostPresence];
+            regionColor = mostPresentBiome.Color * 0.85f + regionColor * 0.15f;
 
             bool isRegionBorder = IsRegionBorder(region, cell);
 
@@ -2910,9 +2903,9 @@ public class Manager
                 regionColor /= 1.5f;
             }
 
-            color.r = regionColor.r;
-            color.g = regionColor.g;
-            color.b = regionColor.b;
+            regionColor.a = 0.5f;
+
+            color = regionColor;
         }
 
         return color;
@@ -2939,23 +2932,8 @@ public class Manager
 
     private static Color SetLanguageOverlayColor(TerrainCell cell, Color color)
     {
-        float greyscale = (color.r + color.g + color.b);
-
-        color.r = (greyscale + color.r) / 9f;
-        color.g = (greyscale + color.g) / 9f;
-        color.b = (greyscale + color.b) / 9f;
-
-        if (cell.WaterBiomePresence >= 1f)
-        {
-            return color;
-        }
-
         if (cell.Group != null)
         {
-            color.r += 1.5f / 9f;
-            color.g += 1.5f / 9f;
-            color.b += 1.5f / 9f;
-
             Language groupLanguage = cell.Group.Culture.Language;
 
             if (groupLanguage != null)
@@ -2969,9 +2947,13 @@ public class Manager
                     languageColor /= 2f;
                 }
 
-                color.r = languageColor.r;
-                color.g = languageColor.g;
-                color.b = languageColor.b;
+                languageColor.a = 0.85f;
+
+                color = languageColor;
+            }
+            else
+            {
+                color = GetUnincorporatedGroupColor();
             }
         }
 
@@ -3255,12 +3237,6 @@ public class Manager
 
     private static Color SetPopulationChangeOverlayColor(TerrainCell cell, Color color)
     {
-        float greyscale = (color.r + color.g + color.b);
-
-        color.r = (greyscale + color.r) / 6f;
-        color.g = (greyscale + color.g) / 6f;
-        color.b = (greyscale + color.b) / 6f;
-
         float deltaLimitFactor = 0.1f;
 
         float prevPopulation = 0;
@@ -3281,14 +3257,14 @@ public class Manager
             float value = delta / (population * deltaLimitFactor);
             value = Mathf.Clamp01(value);
 
-            color = (color * (1 - value)) + (Color.green * value);
+            color = Color.green * value;
         }
         else if (delta < 0)
         {
             float value = -delta / (prevPopulation * deltaLimitFactor);
             value = Mathf.Clamp01(value);
 
-            color = (color * (1 - value)) + (Color.red * value);
+            color = Color.red * value;
         }
 
         return color;
@@ -3643,11 +3619,10 @@ public class Manager
 
     private static Color SetLayerOverlayColor(TerrainCell cell, Color color)
     {
-        float greyscale = (color.r + color.g + color.b);
+        float baseAlpha = 0.5f;
 
-        color.r = (greyscale + color.r) / 6f;
-        color.g = (greyscale + color.g) / 6f;
-        color.b = (greyscale + color.b) / 6f;
+        color = Color.black;
+        color.a = baseAlpha;
 
         if (_planetOverlaySubtype == "None")
             return color;
@@ -3659,9 +3634,10 @@ public class Manager
 
         if (normalizedValue >= 0.001f)
         {
-            float intensity = 0.05f + 0.95f * normalizedValue;
+            float intensity = 0.15f + 0.85f * normalizedValue;
 
-            color = (color * (1 - intensity)) + (layer.Color * intensity);
+            color += layer.Color * intensity;
+            color.a = baseAlpha + ((1 - baseAlpha) * intensity);
         }
 
         return color;
@@ -3737,12 +3713,12 @@ public class Manager
         if (hasGroup && !inTerritory)
         {
             baseColor = groupColor;
-            baseColor.a *= 0.5f;
+            baseColor.a = 0.5f;
         }
         else if (inTerritory)
         {
             baseColor = groupColor;
-            baseColor.a *= 0.95f;
+            baseColor.a = 0.85f;
         }
 
         return baseColor;
@@ -3750,12 +3726,6 @@ public class Manager
 
     private static Color SetUpdateSpanOverlayColor(TerrainCell cell, Color color)
     {
-        float greyscale = (color.r + color.g + color.b);
-
-        color.r = (greyscale + color.r) / 6f;
-        color.g = (greyscale + color.g) / 6f;
-        color.b = (greyscale + color.b) / 6f;
-
         float normalizedValue = 0;
         float population = 0;
 
@@ -3774,16 +3744,14 @@ public class Manager
 
             maxUpdateSpan = Mathf.Min(_manager._currentMaxUpdateSpan, maxUpdateSpan);
 
-            normalizedValue = 1f - (float)updateSpan / maxUpdateSpan;
+            normalizedValue = 1f - updateSpan / maxUpdateSpan;
 
             normalizedValue = Mathf.Clamp01(normalizedValue);
         }
 
         if ((population > 0) && (normalizedValue > 0))
         {
-            float value = normalizedValue;
-
-            color = (color * (1 - value)) + (Color.red * value);
+            color = Color.red * normalizedValue;
         }
 
         return color;
