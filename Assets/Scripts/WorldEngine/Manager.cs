@@ -2983,24 +2983,21 @@ public class Manager
         return territory.IsPartOfBorder(cell);
     }
 
+    private static Color GetUnincorporatedGroupColor()
+    {
+        Color color = GetOverlayColor(OverlayColorId.GeneralDensityOptimal);
+        color.a = 0.5f;
+
+        return color;
+    }
+
     private static Color SetPolityTerritoryOverlayColor(TerrainCell cell, Color color)
     {
-        float greyscale = (color.r + color.g + color.b);
-
-        color.r = (greyscale + color.r) / 9f;
-        color.g = (greyscale + color.g) / 9f;
-        color.b = (greyscale + color.b) / 9f;
-
-        if (cell.WaterBiomePresence >= 1f)
-        {
-            return color;
-        }
-
         if (cell.EncompassingTerritory != null)
         {
             Polity territoryPolity = cell.EncompassingTerritory.Polity;
 
-            Color territoryColor = GenerateColorFromId(territoryPolity.Id, 100);
+            color = GenerateColorFromId(territoryPolity.Id, 100);
 
             bool isTerritoryBorder = IsTerritoryBorder(cell.EncompassingTerritory, cell);
             bool isPolityCoreGroup = territoryPolity.CoreGroup == cell.Group;
@@ -3010,27 +3007,23 @@ public class Manager
             {
                 if (isFactionCoreGroup)
                 {
-                    territoryColor /= 1.35f;
+                    color /= 1.35f;
                 }
                 else if (!isTerritoryBorder)
                 {
-                    territoryColor /= 2.5f;
+                    color /= 2.5f;
                 }
                 else
                 {
-                    territoryColor /= 1.75f;
+                    color /= 1.75f;
                 }
             }
 
-            color.r = territoryColor.r;
-            color.g = territoryColor.g;
-            color.b = territoryColor.b;
+            color.a = 1;
         }
         else if (cell.Group != null)
         {
-            color.r += 1.5f / 9f;
-            color.g += 1.5f / 9f;
-            color.b += 1.5f / 9f;
+            color = GetUnincorporatedGroupColor();
         }
 
         return color;
@@ -3038,17 +3031,6 @@ public class Manager
 
     private static Color SetPolityClusterOverlayColor(TerrainCell cell, Color color)
     {
-        float greyscale = (color.r + color.g + color.b);
-
-        color.r = (greyscale + color.r) / 9f;
-        color.g = (greyscale + color.g) / 9f;
-        color.b = (greyscale + color.b) / 9f;
-
-        if (cell.WaterBiomePresence >= 1f)
-        {
-            return color;
-        }
-
         if (cell.Group != null)
         {
             if (cell.EncompassingTerritory != null)
@@ -3061,18 +3043,12 @@ public class Manager
 
                 if (prominence.Cluster != null)
                 {
-                    clusterColor = GenerateColorFromId(prominence.Cluster.Id, 100);
+                    color = GenerateColorFromId(prominence.Cluster.Id, 100);
                 }
-
-                color.r = clusterColor.r;
-                color.g = clusterColor.g;
-                color.b = clusterColor.b;
             }
             else
             {
-                color.r += 1.5f / 9f;
-                color.g += 1.5f / 9f;
-                color.b += 1.5f / 9f;
+                color = GetUnincorporatedGroupColor();
             }
         }
 
@@ -3081,17 +3057,6 @@ public class Manager
 
     private static Color SetFactionCoreDistanceOverlayColor(TerrainCell cell, Color color)
     {
-        float greyscale = (color.r + color.g + color.b);
-
-        color.r = (greyscale + color.r) / 9f;
-        color.g = (greyscale + color.g) / 9f;
-        color.b = (greyscale + color.b) / 9f;
-
-        if (cell.WaterBiomePresence >= 1f)
-        {
-            return color;
-        }
-
         if (cell.Group != null)
         {
             if (cell.EncompassingTerritory != null)
@@ -3105,15 +3070,12 @@ public class Manager
                 float distanceFactor = Mathf.Sqrt(pi.FactionCoreDistance);
                 distanceFactor = 1 - 0.9f * Mathf.Min(1, distanceFactor / 50f);
 
-                color.r = territoryColor.r * distanceFactor;
-                color.g = territoryColor.g * distanceFactor;
-                color.b = territoryColor.b * distanceFactor;
+                color = territoryColor * distanceFactor;
+                color.a = 1;
             }
             else
             {
-                color.r += 1.5f / 9f;
-                color.g += 1.5f / 9f;
-                color.b += 1.5f / 9f;
+                color = GetUnincorporatedGroupColor();
             }
         }
 
@@ -3122,17 +3084,6 @@ public class Manager
 
     private static Color SetPolityProminenceOverlayColor(TerrainCell cell, Color color)
     {
-        float greyscale = (color.r + color.g + color.b);
-
-        color.r = (greyscale + color.r) / 9f;
-        color.g = (greyscale + color.g) / 9f;
-        color.b = (greyscale + color.b) / 9f;
-
-        if (cell.WaterBiomePresence >= 1f)
-        {
-            return color;
-        }
-
         if (cell.Group != null)
         {
             int polityCount = 0;
@@ -3147,22 +3098,20 @@ public class Manager
 
                 Color polityColor = GenerateColorFromId(p.PolityId, 100);
                 polityColor *= prominenceValueFactor;
-                totalProminenceValueFactor += 1.2f;
+                totalProminenceValueFactor += prominenceValueFactor;
 
                 mixedPolityColor += polityColor;
             }
 
-            color.r += 1.5f / 9f;
-            color.g += 1.5f / 9f;
-            color.b += 1.5f / 9f;
+            color = GetUnincorporatedGroupColor();
 
-            if (polityCount > 0)
+            if ((polityCount > 0) && (totalProminenceValueFactor > 0))
             {
-                mixedPolityColor /= totalProminenceValueFactor;
+                totalProminenceValueFactor = Mathf.Clamp01(totalProminenceValueFactor);
+                mixedPolityColor /= polityCount;
+                mixedPolityColor.a = 1;
 
-                color.r += mixedPolityColor.r * (1 - color.r);
-                color.g += mixedPolityColor.g * (1 - color.g);
-                color.b += mixedPolityColor.b * (1 - color.b);
+                color = (color * (1 - totalProminenceValueFactor)) + (mixedPolityColor * totalProminenceValueFactor);
             }
         }
 
@@ -3236,26 +3185,13 @@ public class Manager
 
     private static Color SetPolityContactsOverlayColor(TerrainCell cell, Color color)
     {
-        float greyscale = (color.r + color.g + color.b);
-
-        color.r = (greyscale + color.r) / 9f;
-        color.g = (greyscale + color.g) / 9f;
-        color.b = (greyscale + color.b) / 9f;
-
-        if (cell.WaterBiomePresence >= 1f)
-            return color;
-
         if (cell.Group == null)
             return color;
-
-        color.r += 1.5f / 9f;
-        color.g += 1.5f / 9f;
-        color.b += 1.5f / 9f;
-
+        
         Territory territory = cell.EncompassingTerritory;
 
         if (territory == null)
-            return color;
+            return GetUnincorporatedGroupColor();
 
         float contactValue = 0;
 
@@ -3308,7 +3244,8 @@ public class Manager
 
             float modContactValue = 0.15f + 0.85f * contactValue;
 
-            replacementColor = ((0.25f + 0.75f * (1f - modContactValue)) * replacementColor) + ((0.75f * modContactValue) * contactColor);
+            replacementColor = ((0.25f + 0.75f * (1f - modContactValue)) * replacementColor)
+                + ((0.75f * modContactValue) * contactColor);
         }
 
         color = replacementColor;
@@ -3389,123 +3326,79 @@ public class Manager
         return color;
     }
 
+    private static Color GetPopCulturalAttributeOverlayColor(float value)
+    {
+        value = 0.15f + 0.85f * Mathf.Clamp01(value);
+
+        return Color.cyan * value;
+    }
+
+    private static Color GetPolityCulturalAttributeOverlayColor(float value, bool isTerritoryBorder = false)
+    {
+        Color baseColor = GetUnincorporatedGroupColor();
+
+        Color color = isTerritoryBorder ? new Color(0, 0.75f, 1.0f) : Color.cyan;
+
+        value = 0.15f + 0.85f * Mathf.Clamp01(value);
+
+        return (baseColor * (1 - value)) + (color * value);
+    }
+
     private static Color SetPopCulturalPreferenceOverlayColor(TerrainCell cell, Color color)
     {
-        float greyscale = (color.r + color.g + color.b);
-
-        color.r = (greyscale + color.r) / 6f;
-        color.g = (greyscale + color.g) / 6f;
-        color.b = (greyscale + color.b) / 6f;
-
         if (_planetOverlaySubtype == "None")
             return color;
-
-        float preferenceValue = 0;
-        float population = 0;
-
+        
         if (cell.Group != null)
         {
-            CellCulturalPreference preference = cell.Group.Culture.GetPreference(_planetOverlaySubtype) as CellCulturalPreference;
-
-            population = cell.Group.Population;
-
-            if (preference != null)
+            if ((cell.Group.Population > 0) &&
+                cell.Group.Culture.GetPreference(_planetOverlaySubtype) is CellCulturalPreference preference)
             {
-                preferenceValue = preference.Value;
+                color = GetPopCulturalAttributeOverlayColor(preference.Value);
             }
         }
-
-        if (population > 0)
-        {
-            float value = 0.05f + 0.95f * preferenceValue;
-
-            color = (color * (1 - value)) + (Color.cyan * value);
-        }
-
+        
         return color;
     }
 
     private static Color SetPolityCulturalPreferenceOverlayColor(TerrainCell cell, Color color)
     {
-        float greyscale = (color.r + color.g + color.b);
-
-        color.r = (greyscale + color.r) / 9f;
-        color.g = (greyscale + color.g) / 9f;
-        color.b = (greyscale + color.b) / 9f;
-
-        if (cell.WaterBiomePresence >= 1f)
-            return color;
-
         if (cell.Group == null)
             return color;
 
-        color.r += 1.5f / 9f;
-        color.g += 1.5f / 9f;
-        color.b += 1.5f / 9f;
-
         if (_planetOverlaySubtype == "None")
-            return color;
+            return GetUnincorporatedGroupColor();
 
         Territory territory = cell.EncompassingTerritory;
 
         if (territory == null)
-            return color;
+            return GetUnincorporatedGroupColor();
 
         CulturalPreference preference = territory.Polity.Culture.GetPreference(_planetOverlaySubtype);
 
         if (preference == null)
-            return color;
+            return GetUnincorporatedGroupColor();
 
-        float preferenceValue = 0;
-
-        preferenceValue = preference.Value;
-
-        float value = 0.05f + 0.95f * preferenceValue;
-
-        Color addedColor = Color.cyan;
-
-        if (IsTerritoryBorder(territory, cell))
-        {
-            // A slightly bluer shade of cyan
-            addedColor = new Color(0, 0.75f, 1.0f);
-        }
-
-        color = (color * (1 - value)) + (addedColor * value);
-
+        color = GetPolityCulturalAttributeOverlayColor(preference.Value, IsTerritoryBorder(territory, cell));
+        
         return color;
     }
 
     private static Color SetPopCulturalActivityOverlayColor(TerrainCell cell, Color color)
     {
-        float greyscale = (color.r + color.g + color.b);
-
-        color.r = (greyscale + color.r) / 6f;
-        color.g = (greyscale + color.g) / 6f;
-        color.b = (greyscale + color.b) / 6f;
-
         if (_planetOverlaySubtype == "None")
             return color;
-
-        float activityContribution = 0;
-        float population = 0;
-
+        
         if (cell.Group != null)
         {
-            CellCulturalActivity activity = cell.Group.Culture.GetActivity(_planetOverlaySubtype) as CellCulturalActivity;
-
-            population = cell.Group.Population;
-
-            if (activity != null)
+            if ((cell.Group.Population > 0) && 
+                cell.Group.Culture.GetActivity(_planetOverlaySubtype) is CellCulturalActivity activity)
             {
-                activityContribution = activity.Contribution;
+                if (activity.Contribution > 0)
+                {
+                    color = GetPopCulturalAttributeOverlayColor(activity.Contribution);
+                }
             }
-        }
-
-        if ((population > 0) && (activityContribution > 0))
-        {
-            float value = 0.05f + 0.95f * activityContribution;
-
-            color = (color * (1 - value)) + (Color.cyan * value);
         }
 
         return color;
@@ -3513,85 +3406,42 @@ public class Manager
 
     private static Color SetPolityCulturalActivityOverlayColor(TerrainCell cell, Color color)
     {
-        float greyscale = (color.r + color.g + color.b);
-
-        color.r = (greyscale + color.r) / 9f;
-        color.g = (greyscale + color.g) / 9f;
-        color.b = (greyscale + color.b) / 9f;
-
-        if (cell.WaterBiomePresence >= 1f)
-            return color;
-
         if (cell.Group == null)
             return color;
 
-        color.r += 1.5f / 9f;
-        color.g += 1.5f / 9f;
-        color.b += 1.5f / 9f;
-
         if (_planetOverlaySubtype == "None")
-            return color;
+            return GetUnincorporatedGroupColor();
 
         Territory territory = cell.EncompassingTerritory;
 
         if (territory == null)
-            return color;
+            return GetUnincorporatedGroupColor();
 
         CulturalActivity activity = territory.Polity.Culture.GetActivity(_planetOverlaySubtype);
 
         if (activity == null)
-            return color;
+            return GetUnincorporatedGroupColor();
 
-        float activityContribution = 0;
-
-        activityContribution = activity.Contribution;
-
-        float value = 0.05f + 0.95f * activityContribution;
-
-        Color addedColor = Color.cyan;
-
-        if (IsTerritoryBorder(territory, cell))
-        {
-            // A slightly bluer shade of cyan
-            addedColor = new Color(0, 0.75f, 1.0f);
-        }
-
-        color = (color * (1 - value)) + (addedColor * value);
+        color = GetPolityCulturalAttributeOverlayColor(activity.Contribution, IsTerritoryBorder(territory, cell));
 
         return color;
     }
 
     private static Color SetPopCulturalSkillOverlayColor(TerrainCell cell, Color color)
     {
-        float greyscale = (color.r + color.g + color.b);
-
-        color.r = (greyscale + color.r) / 6f;
-        color.g = (greyscale + color.g) / 6f;
-        color.b = (greyscale + color.b) / 6f;
-
         if (_planetOverlaySubtype == "None")
             return color;
-
-        float skillValue = 0;
-        float population = 0;
-
+        
         if (cell.Group != null)
         {
-            CellCulturalSkill skill = cell.Group.Culture.GetSkill(_planetOverlaySubtype) as CellCulturalSkill;
-
-            population = cell.Group.Population;
-
-            if (skill != null)
+            if ((cell.Group.Population > 0) && 
+                cell.Group.Culture.GetSkill(_planetOverlaySubtype) is CellCulturalSkill skill)
             {
-                skillValue = skill.Value;
+                if (skill.Value >= 0.001)
+                {
+                    color = GetPopCulturalAttributeOverlayColor(skill.Value);
+                }
             }
-        }
-
-        if ((population > 0) && (skillValue >= 0.001))
-        {
-            float value = 0.05f + 0.95f * skillValue;
-
-            color = (color * (1 - value)) + (Color.cyan * value);
         }
 
         return color;
@@ -3599,90 +3449,49 @@ public class Manager
 
     private static Color SetPolityCulturalSkillOverlayColor(TerrainCell cell, Color color)
     {
-        float greyscale = (color.r + color.g + color.b);
-
-        color.r = (greyscale + color.r) / 9f;
-        color.g = (greyscale + color.g) / 9f;
-        color.b = (greyscale + color.b) / 9f;
-
         if (cell.Group == null)
             return color;
-
-        color.r += 1.5f / 9f;
-        color.g += 1.5f / 9f;
-        color.b += 1.5f / 9f;
-
+        
         if (_planetOverlaySubtype == "None")
-            return color;
+            return GetUnincorporatedGroupColor();
 
         Territory territory = cell.EncompassingTerritory;
 
         if (territory == null)
-            return color;
+            return GetUnincorporatedGroupColor();
 
         CulturalSkill skill = territory.Polity.Culture.GetSkill(_planetOverlaySubtype);
 
         if (skill == null)
-            return color;
+            return GetUnincorporatedGroupColor();
 
-        float skillValue = 0;
-
-        skillValue = skill.Value;
-
-        if (skillValue < 0.001)
-            return color;
-
-        float value = 0.05f + 0.95f * skillValue;
-
-        Color addedColor = Color.cyan;
-
-        if (IsTerritoryBorder(territory, cell))
-        {
-            // A slightly bluer shade of cyan
-            addedColor = new Color(0, 0.75f, 1.0f);
-        }
-
-        color = (color * (1 - value)) + (addedColor * value);
+        color = GetPolityCulturalAttributeOverlayColor(skill.Value, IsTerritoryBorder(territory, cell));
 
         return color;
     }
 
     private static Color SetPopCulturalKnowledgeOverlayColor(TerrainCell cell, Color color)
     {
-        float greyscale = (color.r + color.g + color.b);
-
-        color.r = (greyscale + color.r) / 6f;
-        color.g = (greyscale + color.g) / 6f;
-        color.b = (greyscale + color.b) / 6f;
-
         if (_planetOverlaySubtype == "None")
             return color;
-
-        float normalizedValue = 0;
-        float population = 0;
-
+        
         if (cell.Group != null)
         {
-            CellCulturalKnowledge knowledge = cell.Group.Culture.GetKnowledge(_planetOverlaySubtype) as CellCulturalKnowledge;
-
-            population = cell.Group.Population;
-            
-            if (knowledge != null)
+            if ((cell.Group.Population > 0) && 
+                cell.Group.Culture.GetKnowledge(_planetOverlaySubtype) is CellCulturalKnowledge knowledge)
             {
                 float highestLimit = knowledge.GetHighestLimit();
 
                 if (highestLimit <= 0)
                     throw new System.Exception("Highest Limit is less or equal to 0");
 
-                normalizedValue = knowledge.Value / highestLimit;
+                float normalizedValue = knowledge.Value / highestLimit;
+
+                if (normalizedValue >= 0.001f)
+                {
+                    color = GetPopCulturalAttributeOverlayColor(normalizedValue);
+                }
             }
-        }
-
-        if ((population > 0) && (normalizedValue >= 0.001f))
-        {
-            float value = 0.05f + 0.95f * normalizedValue;
-
-            color = (color * (1 - value)) + (Color.cyan * value);
         }
 
         return color;
@@ -3690,39 +3499,24 @@ public class Manager
 
     private static Color SetPolityCulturalKnowledgeOverlayColor(TerrainCell cell, Color color)
     {
-        float greyscale = (color.r + color.g + color.b);
-
-        color.r = (greyscale + color.r) / 9f;
-        color.g = (greyscale + color.g) / 9f;
-        color.b = (greyscale + color.b) / 9f;
-
-        if (cell.WaterBiomePresence >= 1f)
-            return color;
-
         if (cell.Group == null)
             return color;
 
-        color.r += 1.5f / 9f;
-        color.g += 1.5f / 9f;
-        color.b += 1.5f / 9f;
-
         if (_planetOverlaySubtype == "None")
-            return color;
+            return GetUnincorporatedGroupColor();
 
         Territory territory = cell.EncompassingTerritory;
 
         if (territory == null)
-            return color;
+            return GetUnincorporatedGroupColor();
 
         CulturalKnowledge knowledge = territory.Polity.Culture.GetKnowledge(_planetOverlaySubtype);
-
-        CellCulturalKnowledge cellKnowledge = territory.Polity.CoreGroup.Culture.GetKnowledge(_planetOverlaySubtype) as CellCulturalKnowledge;
         
         if (knowledge == null)
-            return color;
-        
-        if (cellKnowledge == null)
-            return color;
+            return GetUnincorporatedGroupColor();
+
+        if (!(territory.Polity.CoreGroup.Culture.GetKnowledge(_planetOverlaySubtype) is CellCulturalKnowledge cellKnowledge))
+            return GetUnincorporatedGroupColor();
 
         float normalizedValue = 0;
 
@@ -3733,51 +3527,22 @@ public class Manager
 
         normalizedValue = knowledge.Value / highestLimit;
 
-        if (normalizedValue < 0.001)
-            return color;
-
-        float value = 0.05f + 0.95f * normalizedValue;
-
-        Color addedColor = Color.cyan;
-
-        if (IsTerritoryBorder(territory, cell))
-        {
-            // A slightly bluer shade of cyan
-            addedColor = new Color(0, 0.75f, 1.0f);
-        }
-
-        color = (color * (1 - value)) + (addedColor * value);
+        color = GetPolityCulturalAttributeOverlayColor(normalizedValue, IsTerritoryBorder(territory, cell));
 
         return color;
     }
 
     private static Color SetPopCulturalDiscoveryOverlayColor(TerrainCell cell, Color color)
     {
-        float greyscale = (color.r + color.g + color.b);
-
-        color.r = (greyscale + color.r) / 6f;
-        color.g = (greyscale + color.g) / 6f;
-        color.b = (greyscale + color.b) / 6f;
-
         if (_planetOverlaySubtype == "None")
             return color;
-
-        float normalizedValue = 0;
-        float population = 0;
-
+        
         if (cell.Group != null)
         {
-            population = cell.Group.Population;
-
-            if (cell.Group.Culture.HasDiscovery(_planetOverlaySubtype))
+            if ((cell.Group.Population > 0) && cell.Group.Culture.HasDiscovery(_planetOverlaySubtype))
             {
-                normalizedValue = 1;
+                color = GetPopCulturalAttributeOverlayColor(1);
             }
-        }
-
-        if ((population > 0) && (normalizedValue >= 0.001f))
-        {
-            color = (color * (1 - normalizedValue)) + (Color.cyan * normalizedValue);
         }
 
         return color;
@@ -3785,44 +3550,21 @@ public class Manager
 
     private static Color SetPolityCulturalDiscoveryOverlayColor(TerrainCell cell, Color color)
     {
-        float greyscale = (color.r + color.g + color.b);
-
-        color.r = (greyscale + color.r) / 9f;
-        color.g = (greyscale + color.g) / 9f;
-        color.b = (greyscale + color.b) / 9f;
-
-        if (cell.WaterBiomePresence >= 1f)
-            return color;
-
         if (cell.Group == null)
             return color;
 
-        color.r += 1.5f / 9f;
-        color.g += 1.5f / 9f;
-        color.b += 1.5f / 9f;
-
         if (_planetOverlaySubtype == "None")
-            return color;
+            return GetUnincorporatedGroupColor();
 
         Territory territory = cell.EncompassingTerritory;
 
         if (territory == null)
-            return color;
+            return GetUnincorporatedGroupColor();
 
         if (!territory.Polity.Culture.HasDiscovery(_planetOverlaySubtype))
-            return color;
+            return GetUnincorporatedGroupColor();
 
-        Color addedColor = Color.cyan;
-
-        if (IsTerritoryBorder(territory, cell))
-        {
-            // A slightly bluer shade of cyan
-            addedColor = new Color(0, 0.75f, 1.0f);
-        }
-
-        float normalizedValue = 1;
-
-        color = (color * (1 - normalizedValue)) + (addedColor * normalizedValue);
+        color = GetPolityCulturalAttributeOverlayColor(1, IsTerritoryBorder(territory, cell));
 
         return color;
     }
@@ -3834,11 +3576,9 @@ public class Manager
 
     private static Color SetDrainageBasinOverlayColor(TerrainCell cell, Color color)
     {
-        float greyscale = (color.r + color.g + color.b);
-
-        color.r = greyscale / 6f;
-        color.g = greyscale / 6f;
-        color.b = greyscale / 6f;
+        float baseAlpha = 0.35f;
+        color = Color.black;
+        color.a = baseAlpha;
 
         if (cell.FlowingWater > 0)
         {
@@ -3847,10 +3587,11 @@ public class Manager
             accPercent = 1 - accPercent;
             float value = 0.1f + (0.90f * accPercent);
 
-            color += GetOverlayColor(OverlayColorId.RiverBasins) * value;
-
             //Color riverColor = GenerateColorFromId(cell.RiverId);
             //color += riverColor * value;
+
+            color += GetOverlayColor(OverlayColorId.RiverBasins) * value;
+            color.a = baseAlpha + (1 - baseAlpha) * value;
         }
 
         return color;
@@ -3858,26 +3599,17 @@ public class Manager
 
     private static Color SetArabilityOverlayColor(TerrainCell cell, Color color)
     {
-        float greyscale = (color.r + color.g + color.b);
+        float baseAlpha = 0.5f;
 
-        color.r = greyscale / 6f;
-        color.g = greyscale / 6f;
-        color.b = greyscale / 6f;
-        
-        color += GetOverlayColor(OverlayColorId.Arability) * cell.Arability;
+        color = GetOverlayColor(OverlayColorId.Arability) * cell.Arability;
+        color.a = baseAlpha + ((1 - baseAlpha) * cell.Arability);
 
         return color;
     }
 
     private static Color SetHillinessOverlayColor(TerrainCell cell, Color color)
     {
-        float greyscale = (color.r + color.g + color.b);
-
-        color.r = greyscale / 6f;
-        color.g = greyscale / 6f;
-        color.b = greyscale / 6f;
-
-        color += (2 / 6f) * GetLowMedHighColor(1 - cell.Hilliness);
+        color = GetLowMedHighColor(1 - cell.Hilliness);
 
         return color;
     }
@@ -3897,13 +3629,7 @@ public class Manager
 
     private static Color SetAccessibilityOverlayColor(TerrainCell cell, Color color)
     {
-        float greyscale = (color.r + color.g + color.b);
-
-        color.r = greyscale / 6f;
-        color.g = greyscale / 6f;
-        color.b = greyscale / 6f;
-        
-        color += (2 / 6f) * GetLowMedHighColor(cell.Accessibility);
+        color = GetLowMedHighColor(cell.Accessibility);
 
         return color;
     }
@@ -3913,6 +3639,7 @@ public class Manager
         Color color = GetOverlayColor(OverlayColorId.LowValue) * Mathf.Max(0, 1 - (2 * value));
         color += GetOverlayColor(OverlayColorId.MedValue) * Mathf.Max(0, 1 - 2 * Mathf.Abs(value - 0.5f));
         color += GetOverlayColor(OverlayColorId.HighValue) * Mathf.Max(0, (2 * value) - 1);
+        color *= 0.5f;
 
         return color;
     }
@@ -4067,33 +3794,20 @@ public class Manager
 
     private static Color SetTemperatureOverlayColor(TerrainCell cell, Color color)
     {
-        float greyscale = (color.r + color.g + color.b);// * 4 / 3;
-
-        color.r = (greyscale + color.r) / 6f;
-        color.g = (greyscale + color.g) / 6f;
-        color.b = (greyscale + color.b) / 6f;
-
-        Color addColor;
-
         float span = World.MaxPossibleTemperature - World.MinPossibleTemperature;
 
         float value = (cell.Temperature - (World.MinPossibleTemperature + Manager.TemperatureOffset)) / span;
 
-        addColor = new Color(value, 0, 1f - value);
-
-        color += addColor * 2f / 3f;
+        color = new Color(value, 0, 1f - value)
+        {
+            a = 0.65f
+        };
 
         return color;
     }
 
     private static Color SetRainfallOverlayColor(TerrainCell cell, Color color)
     {
-        float greyscale = (color.r + color.g + color.b);// * 4 / 3;
-
-        color.r = (greyscale + color.r) / 6f;
-        color.g = (greyscale + color.g) / 6f;
-        color.b = (greyscale + color.b) / 6f;
-
         Color addColor = Color.black;
 
         float maxPossibleRainfall = Mathf.Max(World.MaxPossibleRainfall, CurrentWorld.MaxRainfall);
@@ -4102,12 +3816,11 @@ public class Manager
         {
             float value = 0.05f + (0.95f * cell.Rainfall / maxPossibleRainfall);
 
-            addColor = Color.green;
-
-            addColor = new Color(addColor.r * value, addColor.g * value, addColor.b * value);
+            addColor = Color.green * value;
         }
 
-        color += addColor * 2f / 3f;
+        color = addColor;
+        color.a = 0.65f;
 
         return color;
     }
