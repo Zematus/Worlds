@@ -161,7 +161,8 @@ public class GuiManagerScript : MonoBehaviour
     private bool _displayRoutes = false;
     private bool _displayGroupActivity = false;
 
-    private bool _regenTextures = false;
+    private bool _regenMapTexture = false;
+    private bool _regenMapOverlayTexture = false;
     private bool _regenPointerOverlayTextures = false;
 
     private bool _resetOverlays = true;
@@ -346,7 +347,8 @@ public class GuiManagerScript : MonoBehaviour
         Manager.SetMapPalette(MapPaletteScript.Colors);
         Manager.SetOverlayPalette(OverlayPaletteScript.Colors);
 
-        _regenTextures = true;
+        _regenMapTexture = true;
+        _regenMapOverlayTexture = true;
         _regenPointerOverlayTextures = true;
     }
 
@@ -519,7 +521,7 @@ public class GuiManagerScript : MonoBehaviour
             }
         }
 
-        if (_regenTextures)
+        if (_regenMapTexture || _regenMapOverlayTexture)
         {
             Profiler.BeginSample("Regen Textures");
 
@@ -552,7 +554,7 @@ public class GuiManagerScript : MonoBehaviour
 
             Profiler.BeginSample("Manager.GenerateTextures");
 
-            Manager.GenerateTextures();
+            Manager.GenerateTextures(_regenMapTexture, _regenMapOverlayTexture);
 
             Profiler.EndSample();
 
@@ -573,7 +575,8 @@ public class GuiManagerScript : MonoBehaviour
                 _mapUpdateCount++;
             }
 
-            _regenTextures = false;
+            _regenMapTexture = false;
+            _regenMapOverlayTexture = false;
 
             Profiler.EndSample();
         }
@@ -1320,7 +1323,8 @@ public class GuiManagerScript : MonoBehaviour
 
         _backgroundProcessActive = true;
 
-        _regenTextures = true;
+        _regenMapTexture = true;
+        _regenMapOverlayTexture = true;
     }
 
     public void GenerateWorld(bool randomSeed = true, int seed = 0, bool useHeightmap = false)
@@ -1402,7 +1406,8 @@ public class GuiManagerScript : MonoBehaviour
 
         _backgroundProcessActive = true;
 
-        _regenTextures = true;
+        _regenMapTexture = true;
+        _regenMapOverlayTexture = true;
         _regenPointerOverlayTextures = true;
     }
 
@@ -1942,7 +1947,8 @@ public class GuiManagerScript : MonoBehaviour
 
         _backgroundProcessActive = true;
 
-        _regenTextures = true;
+        _regenMapTexture = true;
+        _regenMapOverlayTexture = true;
         _regenPointerOverlayTextures = true;
     }
 
@@ -2243,11 +2249,11 @@ public class GuiManagerScript : MonoBehaviour
 
     public void SetRouteDisplayOverlay(bool value, bool invokeEvent)
     {
-        _regenTextures |= _displayRoutes != value;
+        _regenMapOverlayTexture |= _displayRoutes != value;
 
         _displayRoutes = value;
 
-        if (_regenTextures)
+        if (_regenMapOverlayTexture)
         {
             Manager.SetDisplayRoutes(_displayRoutes);
 
@@ -2267,11 +2273,11 @@ public class GuiManagerScript : MonoBehaviour
 
     public void SetGroupActivityOverlay(bool value, bool invokeEvent)
     {
-        _regenTextures |= _displayGroupActivity != value;
+        _regenMapOverlayTexture |= _displayGroupActivity != value;
 
         _displayGroupActivity = value;
 
-        if (_regenTextures)
+        if (_regenMapOverlayTexture)
         {
             Manager.SetDisplayGroupActivity(_displayGroupActivity);
 
@@ -2362,8 +2368,8 @@ public class GuiManagerScript : MonoBehaviour
 
     public void ChangePlanetOverlay(PlanetOverlay overlay, string planetOverlaySubtype, bool invokeEvent = true)
     {
-        _regenTextures |= _planetOverlaySubtype != planetOverlaySubtype;
-        _regenTextures |= _planetOverlay != overlay;
+        _regenMapOverlayTexture |= _planetOverlaySubtype != planetOverlaySubtype;
+        _regenMapOverlayTexture |= _planetOverlay != overlay;
 
         if ((_planetOverlay != overlay) && (_planetOverlay != PlanetOverlay.None))
         {
@@ -2551,7 +2557,7 @@ public class GuiManagerScript : MonoBehaviour
                 _planetOverlaySubtype = Manager.NoOverlaySubtype;
             }
 
-            _regenTextures = true;
+            _regenMapOverlayTexture = true;
         });
 
         if (_planetOverlaySubtype == optionId)
@@ -2646,7 +2652,7 @@ public class GuiManagerScript : MonoBehaviour
 
     public void SetView(PlanetView planetView)
     {
-        _regenTextures |= _planetView != planetView;
+        _regenMapTexture |= _planetView != planetView;
 
         _planetView = planetView;
     }

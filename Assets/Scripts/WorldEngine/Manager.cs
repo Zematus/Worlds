@@ -153,6 +153,7 @@ public class Manager
 
     public static HashSet<TerrainCell> HighlightedCells { get; private set; }
     public static HashSet<TerrainCell> UpdatedCells { get; private set; }
+    public static HashSet<TerrainCell> TerrainUpdatedCells { get; private set; }
 
     public static TerrainCell EditorBrushTargetCell = null;
     public static int EditorBrushRadius = MaxEditorBrushRadius;
@@ -376,6 +377,7 @@ public class Manager
 
         HighlightedCells = new HashSet<TerrainCell>();
         UpdatedCells = new HashSet<TerrainCell>();
+        TerrainUpdatedCells = new HashSet<TerrainCell>();
 
         _lastUpdatedCells = new HashSet<TerrainCell>();
 
@@ -974,14 +976,22 @@ public class Manager
         GeneratePointerOverlayTextureFromWorld(CurrentWorld);
     }
 
-    public static void GenerateTextures()
+    public static void GenerateTextures(bool doMapTexture, bool doOverlayMapTexture)
     {
         if (DebugModeEnabled)
         {
             UpdatedPixelCount = 0;
         }
-        
-        GenerateMapTexturesFromWorld(CurrentWorld);
+
+        if (doMapTexture)
+        {
+            GenerateMapTextureFromWorld(CurrentWorld);
+        }
+
+        if (doOverlayMapTexture)
+        {
+            GenerateMapOverlayTextureFromWorld(CurrentWorld);
+        }
 
         ResetUpdatedAndHighlightedCells();
     }
@@ -1022,24 +1032,17 @@ public class Manager
         UpdatedCells.Add(cell);
     }
 
-    // Only use this function if ValidUpdateTypeAndSubtype has already been called
-    public static void AddUpdatedCells(Polity polity)
-    {
-        UpdatedCells.UnionWith(polity.Territory.GetCells());
-    }
-
-    // Only use this function if ValidUpdateTypeAndSubtype has already been called
-    public static void AddUpdatedCells(ICollection<TerrainCell> cells)
-    {
-        UpdatedCells.UnionWith(cells);
-    }
-
     public static void AddUpdatedCell(TerrainCell cell, CellUpdateType updateType, CellUpdateSubType updateSubType)
     {
         if (!ValidUpdateTypeAndSubtype(updateType, updateSubType))
             return;
 
         UpdatedCells.Add(cell);
+
+        if ((updateSubType & CellUpdateSubType.Terrain) == CellUpdateSubType.Terrain)
+        {
+            TerrainUpdatedCells.Add(cell);
+        }
     }
 
     public static void AddUpdatedCells(Polity polity, CellUpdateType updateType, CellUpdateSubType updateSubType)
@@ -1048,6 +1051,11 @@ public class Manager
             return;
 
         UpdatedCells.UnionWith(polity.Territory.GetCells());
+
+        if ((updateSubType & CellUpdateSubType.Terrain) == CellUpdateSubType.Terrain)
+        {
+            TerrainUpdatedCells.UnionWith(polity.Territory.GetCells());
+        }
     }
 
     public static void AddUpdatedCells(ICollection<TerrainCell> cells, CellUpdateType updateType, CellUpdateSubType updateSubType)
@@ -1056,6 +1064,11 @@ public class Manager
             return;
 
         UpdatedCells.UnionWith(cells);
+
+        if ((updateSubType & CellUpdateSubType.Terrain) == CellUpdateSubType.Terrain)
+        {
+            TerrainUpdatedCells.UnionWith(cells);
+        }
     }
 
     public static void AddHighlightedCell(TerrainCell cell, CellUpdateType updateType)
@@ -1744,6 +1757,7 @@ public class Manager
         _lastUpdatedCells.UnionWith(UpdatedCells);
 
         UpdatedCells.Clear();
+        TerrainUpdatedCells.Clear();
         HighlightedCells.Clear();
     }
 
@@ -2156,31 +2170,7 @@ public class Manager
     {
         Color32[] textureColors = _manager._currentMapTextureColors;
 
-        if (_displayGroupActivityWasEnabled)
-        {
-            foreach (TerrainCell cell in _lastUpdatedCells)
-            {
-                if (UpdatedCells.Contains(cell))
-                    continue;
-
-                if (HighlightedCells.Contains(cell))
-                    continue;
-
-                UpdateMapTextureColorsFromCell(textureColors, cell);
-            }
-        }
-
-        _displayGroupActivityWasEnabled = _displayGroupActivity;
-
-        foreach (TerrainCell cell in UpdatedCells)
-        {
-            if (HighlightedCells.Contains(cell))
-                continue;
-
-            UpdateMapTextureColorsFromCell(textureColors, cell);
-        }
-
-        foreach (TerrainCell cell in HighlightedCells)
+        foreach (TerrainCell cell in TerrainUpdatedCells)
         {
             UpdateMapTextureColorsFromCell(textureColors, cell);
         }
@@ -2424,7 +2414,7 @@ public class Manager
         }
     }
 
-    public static void GenerateMapTexturesFromWorld(World world)
+    public static void GenerateMapTextureFromWorld(World world)
     {
         int sizeX = world.Width;
         int sizeY = world.Height;
@@ -2432,14 +2422,12 @@ public class Manager
         int r = PixelToCellRatio;
 
         Color32[] textureColors = new Color32[sizeX * sizeY * r * r];
-        Color32[] overlayTextureColors = new Color32[sizeX * sizeY * r * r];
 
         for (int i = 0; i < sizeX; i++)
         {
             for (int j = 0; j < sizeY; j++)
             {
                 Color cellColor = GenerateColorFromTerrainCell(world.TerrainCells[i][j]);
-                Color cellOverlayColor = GenerateOverlayColorFromTerrainCell(world.TerrainCells[i][j]);
 
                 for (int m = 0; m < r; m++)
                 {
@@ -2449,7 +2437,6 @@ public class Manager
                         int offsetX = i * r + m;
 
                         textureColors[offsetY + offsetX] = cellColor;
-                        overlayTextureColors[offsetY + offsetX] = cellOverlayColor;
 
                         if (DebugModeEnabled)
                         {
@@ -2461,16 +2448,53 @@ public class Manager
         }
 
         Texture2D texture = new Texture2D(sizeX * r, sizeY * r, TextureFormat.ARGB32, false);
-        Texture2D overlayTexture = new Texture2D(sizeX * r, sizeY * r, TextureFormat.ARGB32, false);
 
         texture.SetPixels32(textureColors);
-        overlayTexture.SetPixels32(overlayTextureColors);
 
         texture.Apply();
-        overlayTexture.Apply();
 
         _manager._currentMapTextureColors = textureColors;
         _manager._currentMapTexture = texture;
+    }
+
+    public static void GenerateMapOverlayTextureFromWorld(World world)
+    {
+        int sizeX = world.Width;
+        int sizeY = world.Height;
+
+        int r = PixelToCellRatio;
+        
+        Color32[] overlayTextureColors = new Color32[sizeX * sizeY * r * r];
+
+        for (int i = 0; i < sizeX; i++)
+        {
+            for (int j = 0; j < sizeY; j++)
+            {
+                Color cellOverlayColor = GenerateOverlayColorFromTerrainCell(world.TerrainCells[i][j]);
+
+                for (int m = 0; m < r; m++)
+                {
+                    for (int n = 0; n < r; n++)
+                    {
+                        int offsetY = sizeX * r * (j * r + n);
+                        int offsetX = i * r + m;
+                        
+                        overlayTextureColors[offsetY + offsetX] = cellOverlayColor;
+
+                        if (DebugModeEnabled)
+                        {
+                            UpdatedPixelCount++;
+                        }
+                    }
+                }
+            }
+        }
+        
+        Texture2D overlayTexture = new Texture2D(sizeX * r, sizeY * r, TextureFormat.ARGB32, false);
+        
+        overlayTexture.SetPixels32(overlayTextureColors);
+        
+        overlayTexture.Apply();
 
         _manager._currentMapOverlayTextureColors = overlayTextureColors;
         _manager._currentMapOverlayTexture = overlayTexture;
