@@ -3945,19 +3945,13 @@ public class Manager
 
     private static Color SetFarmlandOverlayColor(TerrainCell cell, Color color)
     {
-        float greyscale = (color.r + color.g + color.b);
+        float value = cell.FarmlandPercentage;
 
-        color.r = (greyscale + color.r) / 6f;
-        color.g = (greyscale + color.g) / 6f;
-        color.b = (greyscale + color.b) / 6f;
-
-        float normalizedValue = cell.FarmlandPercentage;
-
-        if (normalizedValue >= 0.001f)
+        if (value >= 0.05f)
         {
-            float value = 0.05f + 0.95f * normalizedValue;
+            value = 0.15f + 0.85f * value;
 
-            color = (color * (1 - value)) + (GetOverlayColor(OverlayColorId.Farmland) * value);
+            color = GetOverlayColor(OverlayColorId.Farmland) * value;
         }
 
         return color;

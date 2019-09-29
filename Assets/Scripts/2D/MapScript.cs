@@ -23,6 +23,12 @@ public class MapScript : MonoBehaviour
 
     private float _zoomFactor = 1.0f;
 
+    void Start()
+    {
+        // Prevent material (asset) from being overwritten
+        MapImage.material = new Material(MapImage.material);
+    }
+
     // Update is called once per frame
     void Update()
     {
