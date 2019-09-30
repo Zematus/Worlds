@@ -3435,6 +3435,23 @@ public class World : ISynchronizable
         }
     }
 
+    private float GetDirectionDistanceFactor(Direction dir)
+    {
+        switch (dir)
+        {
+            case Direction.Northeast:
+                return 1.41f;
+            case Direction.Northwest:
+                return 1.41f;
+            case Direction.Southeast:
+                return 1.41f;
+            case Direction.Southwest:
+                return 1.41f;
+        }
+
+        return 1;
+    }
+
     private delegate bool addToCellsToDrainDelegate(TerrainCell cell, bool resetDrainage, bool resetAltitude);
 
     private void DrainToNeighbors(TerrainCell cell, addToCellsToDrainDelegate addToCellsToDrain)
@@ -3469,12 +3486,12 @@ public class World : ISynchronizable
             return;
         }
 
-        List<TerrainCell> cellsToKeep = new List<TerrainCell>(cell.Neighbors.Count);
+        List<KeyValuePair<Direction, TerrainCell>> cellsToKeep = new List<KeyValuePair<Direction, TerrainCell>>(cell.Neighbors.Count);
         float totalDiffBuffer = totalAltDifference;
 
-        foreach (TerrainCell nCell in cell.Neighbors.Values)
+        foreach (KeyValuePair<Direction, TerrainCell> nPair in cell.Neighbors)
         {
-            float nCellAltitude = nAltitudes[nCell];
+            float nCellAltitude = nAltitudes[nPair.Value];
 
             float diff = Mathf.Max(0, cellAltitude - nCellAltitude);
             diff = Mathf.Pow(diff, diffPow);
@@ -3492,14 +3509,16 @@ public class World : ISynchronizable
                 continue;
             }
 
-            if (SkipIfLoaded(nCell))
+            if (SkipIfLoaded(nPair.Value))
                 continue;
 
-            cellsToKeep.Add(nCell);
+            cellsToKeep.Add(nPair);
         }
 
-        foreach (TerrainCell nCell in cellsToKeep)
+        foreach (KeyValuePair<Direction, TerrainCell> nPair in cellsToKeep)
         {
+            TerrainCell nCell = nPair.Value;
+
             float nCellAltitude = nAltitudes[nCell];
 
             float diff = Mathf.Max(0, cellAltitude - nCellAltitude);
@@ -3519,11 +3538,13 @@ public class World : ISynchronizable
             nCell.Buffer += rainfallTransfer;
             nCell.Buffer3 += cell.Temperature * rainfallTransfer;
 
+            float dirFactor = GetDirectionDistanceFactor(nPair.Key);
+
             if (nCell.Buffer2 < rainfallTransfer)
             {
                 nCell.Buffer2 = rainfallTransfer;
                 nCell.RiverId = cell.RiverId;
-                nCell.RiverLength = cell.RiverLength + 1;
+                nCell.RiverLength = cell.RiverLength + dirFactor;
             }
 
             addToCellsToDrain(nCell, true, true);

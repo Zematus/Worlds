@@ -13,6 +13,9 @@ public class MapScript : MonoBehaviour
 
     public ShaderSettingsScript ShaderSettings;
 
+    public Material DefaultMaterial;
+    public Material DrainageMaterial;
+
     private bool _isDraggingMap = false;
     private Vector2 _beginDragPosition;
     private Rect _beginDragMapUvRect;
@@ -73,19 +76,27 @@ public class MapScript : MonoBehaviour
     {
         MapImage.texture = Manager.CurrentMapTexture;
         MapOverlayImage.texture = Manager.CurrentMapOverlayTexture;
-    }
 
-    public void SetSubdued(bool state)
-    {
-        if (state)
+        if ((Manager.PlanetOverlay == PlanetOverlay.None) ||
+            (Manager.PlanetOverlay == PlanetOverlay.General))
+        {
+            MapImage.material.SetColor("_Color", ShaderSettings.DefaultColor);
+            MapImage.material.SetFloat("_EffectAmount", ShaderSettings.DefaultGrayness);
+        }
+        else
         {
             MapImage.material.SetColor("_Color", ShaderSettings.SubduedColor);
             MapImage.material.SetFloat("_EffectAmount", ShaderSettings.SubduedGrayness);
         }
+
+        if (Manager.PlanetOverlay == PlanetOverlay.DrainageBasins)
+        {
+            MapOverlayImage.material = DrainageMaterial;
+            MapOverlayImage.material.SetTexture("_LengthTex", Manager.CurrentMapOverlayShaderInfoTexture);
+        }
         else
         {
-            MapImage.material.SetColor("_Color", ShaderSettings.DefaultColor);
-            MapImage.material.SetFloat("_EffectAmount", ShaderSettings.DefaultGrayness);
+            MapOverlayImage.material = DefaultMaterial;
         }
     }
 

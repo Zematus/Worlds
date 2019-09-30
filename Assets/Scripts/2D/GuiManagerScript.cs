@@ -563,10 +563,6 @@ public class GuiManagerScript : MonoBehaviour
             MapScript.RefreshTexture();
             PlanetScript.RefreshTexture();
 
-            bool subduedMapTexture = Manager.SubduedMapTexture();
-            MapScript.SetSubdued(subduedMapTexture);
-            PlanetScript.SetSubdued(subduedMapTexture);
-
             Profiler.EndSample();
 
             if (Manager.DebugModeEnabled)

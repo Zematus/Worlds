@@ -90,7 +90,7 @@ public class TerrainCell
     public float Buffer2 = 0;
     public float Buffer3 = 0;
     public int RiverId = -1;
-    public int RiverLength = 0;
+    public float RiverLength = 0;
     public bool DrainageDone = false;
 
     public float FlowingWater

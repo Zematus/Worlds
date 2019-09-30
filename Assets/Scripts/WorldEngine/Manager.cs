@@ -260,11 +260,13 @@ public class Manager
     
     private Texture2D _currentMapTexture = null;
     private Texture2D _currentMapOverlayTexture = null;
+    private Texture2D _currentMapOverlayShaderInfoTexture = null;
 
     private Texture2D _pointerOverlayTexture = null;
     
     private Color32[] _currentMapTextureColors = null;
     private Color32[] _currentMapOverlayTextureColors = null;
+    private Color32[] _currentMapOverlayShaderInfoColor = null;
 
     private Color32[] _pointerOverlayTextureColors = null;
 
@@ -892,6 +894,14 @@ public class Manager
         }
     }
 
+    public static Texture2D CurrentMapOverlayShaderInfoTexture
+    {
+        get
+        {
+            return _manager._currentMapOverlayShaderInfoTexture;
+        }
+    }
+
     public static Texture2D PointerOverlayTexture
     {
         get
@@ -991,6 +1001,11 @@ public class Manager
         if (doOverlayMapTexture)
         {
             GenerateMapOverlayTextureFromWorld(CurrentWorld);
+
+            if (PlanetOverlay == PlanetOverlay.DrainageBasins)
+            {
+                GenerateMapOverlayShaderInfoTextureFromWorld(CurrentWorld);
+            }
         }
 
         ResetUpdatedAndHighlightedCells();
@@ -2130,6 +2145,11 @@ public class Manager
         UpdateMapTextureColors();
         UpdateMapOverlayTextureColors();
 
+        if (PlanetOverlay == PlanetOverlay.DrainageBasins)
+        {
+            UpdateMapOverlayShaderTextureColors();
+        }
+
         //Profiler.EndSample();
 
         //Profiler.BeginSample("CurrentMapTexture.SetPixels32");
@@ -2137,12 +2157,22 @@ public class Manager
         CurrentMapTexture.SetPixels32(_manager._currentMapTextureColors);
         CurrentMapOverlayTexture.SetPixels32(_manager._currentMapOverlayTextureColors);
 
+        if (PlanetOverlay == PlanetOverlay.DrainageBasins)
+        {
+            CurrentMapOverlayShaderInfoTexture.SetPixels32(_manager._currentMapOverlayShaderInfoColor);
+        }
+
         //Profiler.EndSample();
 
         //Profiler.BeginSample("CurrentMapTexture.Apply");
 
         CurrentMapTexture.Apply();
         CurrentMapOverlayTexture.Apply();
+
+        if (PlanetOverlay == PlanetOverlay.DrainageBasins)
+        {
+            CurrentMapOverlayShaderInfoTexture.Apply();
+        }
 
         //Profiler.EndSample();
 
@@ -2207,6 +2237,16 @@ public class Manager
         foreach (TerrainCell cell in HighlightedCells)
         {
             UpdateMapOverlayTextureColorsFromCell(overlayTextureColors, cell);
+        }
+    }
+
+    public static void UpdateMapOverlayShaderTextureColors()
+    {
+        Color32[] overlayShaderInfoColors = _manager._currentMapOverlayShaderInfoColor;
+        
+        foreach (TerrainCell cell in UpdatedCells)
+        {
+            UpdateMapOverlayShaderTextureColorsFromCell(overlayShaderInfoColors, cell);
         }
     }
 
@@ -2359,6 +2399,36 @@ public class Manager
         }
     }
 
+    public static void UpdateMapOverlayShaderTextureColorsFromCell(Color32[] textureColors, TerrainCell cell)
+    {
+        World world = cell.World;
+
+        int sizeX = world.Width;
+
+        int r = PixelToCellRatio;
+
+        int i = cell.Longitude;
+        int j = cell.Latitude;
+
+        Color cellColor = GenerateOverlayShaderInfoFromTerrainCell(cell);
+
+        for (int m = 0; m < r; m++)
+        {
+            for (int n = 0; n < r; n++)
+            {
+                int offsetY = sizeX * r * (j * r + n);
+                int offsetX = i * r + m;
+
+                textureColors[offsetY + offsetX] = cellColor;
+
+                if (DebugModeEnabled)
+                {
+                    UpdatedPixelCount++;
+                }
+            }
+        }
+    }
+
     public static Texture2D GeneratePointerOverlayTextureFromWorld(World world)
     {
         int sizeX = world.Width;
@@ -2397,21 +2467,6 @@ public class Manager
         _manager._pointerOverlayTexture = texture;
 
         return texture;
-    }
-
-    public static bool SubduedMapTexture()
-    {
-        switch (_planetOverlay)
-        {
-            case PlanetOverlay.None:
-                return false;
-
-            case PlanetOverlay.General:
-                return false;
-
-            default:
-                return true;
-        }
     }
 
     public static void GenerateMapTextureFromWorld(World world)
@@ -2470,7 +2525,8 @@ public class Manager
         {
             for (int j = 0; j < sizeY; j++)
             {
-                Color cellOverlayColor = GenerateOverlayColorFromTerrainCell(world.TerrainCells[i][j]);
+                Color cellOverlayColor = 
+                    GenerateOverlayColorFromTerrainCell(world.TerrainCells[i][j]);
 
                 for (int m = 0; m < r; m++)
                 {
@@ -2498,6 +2554,50 @@ public class Manager
 
         _manager._currentMapOverlayTextureColors = overlayTextureColors;
         _manager._currentMapOverlayTexture = overlayTexture;
+    }
+
+    public static void GenerateMapOverlayShaderInfoTextureFromWorld(World world)
+    {
+        int sizeX = world.Width;
+        int sizeY = world.Height;
+
+        int r = PixelToCellRatio;
+        
+        Color32[] overlayShaderInfoColors = new Color32[sizeX * sizeY * r * r];
+
+        for (int i = 0; i < sizeX; i++)
+        {
+            for (int j = 0; j < sizeY; j++)
+            {
+                Color cellOverlayColor =
+                    GenerateOverlayShaderInfoFromTerrainCell(world.TerrainCells[i][j]);
+
+                for (int m = 0; m < r; m++)
+                {
+                    for (int n = 0; n < r; n++)
+                    {
+                        int offsetY = sizeX * r * (j * r + n);
+                        int offsetX = i * r + m;
+
+                        overlayShaderInfoColors[offsetY + offsetX] = cellOverlayColor;
+
+                        if (DebugModeEnabled)
+                        {
+                            UpdatedPixelCount++;
+                        }
+                    }
+                }
+            }
+        }
+
+        Texture2D overlayShaderInfoTexture = new Texture2D(sizeX * r, sizeY * r, TextureFormat.ARGB32, false);
+
+        overlayShaderInfoTexture.SetPixels32(overlayShaderInfoColors);
+
+        overlayShaderInfoTexture.Apply();
+        
+        _manager._currentMapOverlayShaderInfoColor = overlayShaderInfoColors;
+        _manager._currentMapOverlayShaderInfoTexture = overlayShaderInfoTexture;
     }
 
     private static float GetSlant(TerrainCell cell)
@@ -2763,6 +2863,20 @@ public class Manager
         else if (displayActivityCells)
         {
             color = color * 0.75f + Color.white * 0.25f;
+        }
+
+        return color;
+    }
+
+    private static Color GenerateOverlayShaderInfoFromTerrainCell(TerrainCell cell)
+    {
+        Color color = _transparentColor;
+
+        switch (_planetOverlay)
+        {
+            case PlanetOverlay.DrainageBasins:
+                color = SetDrainageBasinOverlayShaderInfoColor(cell);
+                break;
         }
 
         return color;
@@ -3568,6 +3682,22 @@ public class Manager
 
             color += GetOverlayColor(OverlayColorId.RiverBasins) * value;
             color.a = baseAlpha + (1 - baseAlpha) * value;
+        }
+
+        return color;
+    }
+
+    private static Color SetDrainageBasinOverlayShaderInfoColor(TerrainCell cell)
+    {
+        Color color = Color.black;
+
+        if (cell.FlowingWater > 0)
+        {
+            float flowOffset = ((cell.RiverId * 11) + cell.RiverLength) / 10f;
+
+            float riverLengthValue = Mathf.Repeat(flowOffset, 1);
+
+            color = Color.white * riverLengthValue;
         }
 
         return color;
