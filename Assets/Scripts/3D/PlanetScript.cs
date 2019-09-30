@@ -32,6 +32,9 @@ public class PlanetScript : MonoBehaviour
 
     public ShaderSettingsScript ShaderSettings;
 
+    public Material DefaultMaterial;
+    public Material DrainageMaterial;
+
     public ToggleEvent LightingTypeChangeEvent;
 
     private bool _isDraggingSurface = false;
@@ -164,10 +167,12 @@ public class PlanetScript : MonoBehaviour
 
     public void RefreshTexture()
     {
-        Material[] materials = Surface.GetComponent<Renderer>().materials;
+        Material[] materials = Surface.GetComponent<Renderer>().sharedMaterials;
 
         materials[1].mainTexture = Manager.CurrentMapTexture;
-        materials[0].mainTexture = Manager.CurrentMapOverlayTexture;
+
+        DefaultMaterial.mainTexture = Manager.CurrentMapOverlayTexture;
+        DrainageMaterial.mainTexture = Manager.CurrentMapOverlayTexture;
 
         if ((Manager.PlanetOverlay == PlanetOverlay.None) ||
             (Manager.PlanetOverlay == PlanetOverlay.General))
@@ -180,6 +185,18 @@ public class PlanetScript : MonoBehaviour
             materials[1].SetColor("_Color", ShaderSettings.SubduedColor);
             materials[1].SetFloat("_EffectAmount", ShaderSettings.SubduedGrayness);
         }
+
+        if (Manager.PlanetOverlay == PlanetOverlay.DrainageBasins)
+        {
+            materials[0] = DrainageMaterial;
+            materials[0].SetTexture("_LengthTex", Manager.CurrentMapOverlayShaderInfoTexture);
+        }
+        else
+        {
+            materials[0] = DefaultMaterial;
+        }
+
+        Surface.GetComponent<Renderer>().sharedMaterials = materials;
     }
 
     public void ZoomButtonPressed(bool state)
