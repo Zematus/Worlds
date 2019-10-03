@@ -169,7 +169,7 @@ public class PlanetScript : MonoBehaviour
     {
         Material[] materials = Surface.GetComponent<Renderer>().sharedMaterials;
 
-        materials[1].mainTexture = Manager.CurrentMapTexture;
+        materials[2].mainTexture = Manager.CurrentMapTexture;
 
         DefaultMaterial.mainTexture = Manager.CurrentMapOverlayTexture;
         DrainageMaterial.mainTexture = Manager.CurrentMapOverlayTexture;
@@ -177,24 +177,26 @@ public class PlanetScript : MonoBehaviour
         if ((Manager.PlanetOverlay == PlanetOverlay.None) ||
             (Manager.PlanetOverlay == PlanetOverlay.General))
         {
-            materials[1].SetColor("_Color", ShaderSettings.DefaultColor);
-            materials[1].SetFloat("_EffectAmount", ShaderSettings.DefaultGrayness);
+            materials[2].SetColor("_Color", ShaderSettings.DefaultColor);
+            materials[2].SetFloat("_EffectAmount", ShaderSettings.DefaultGrayness);
         }
         else
         {
-            materials[1].SetColor("_Color", ShaderSettings.SubduedColor);
-            materials[1].SetFloat("_EffectAmount", ShaderSettings.SubduedGrayness);
+            materials[2].SetColor("_Color", ShaderSettings.SubduedColor);
+            materials[2].SetFloat("_EffectAmount", ShaderSettings.SubduedGrayness);
         }
 
-        if (Manager.PlanetOverlay == PlanetOverlay.DrainageBasins)
+        if (Manager.AnimationShadersEnabled && (Manager.PlanetOverlay == PlanetOverlay.DrainageBasins))
         {
-            materials[0] = DrainageMaterial;
-            materials[0].SetTexture("_LengthTex", Manager.CurrentMapOverlayShaderInfoTexture);
+            materials[1] = DrainageMaterial;
+            materials[1].SetTexture("_LengthTex", Manager.CurrentMapOverlayShaderInfoTexture);
         }
         else
         {
-            materials[0] = DefaultMaterial;
+            materials[1] = DefaultMaterial;
         }
+
+        materials[0].mainTexture = Manager.CurrentMapActivityTexture;
 
         Surface.GetComponent<Renderer>().sharedMaterials = materials;
     }

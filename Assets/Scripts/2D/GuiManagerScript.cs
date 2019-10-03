@@ -1153,6 +1153,7 @@ public class GuiManagerScript : MonoBehaviour
         SettingsDialogPanelScript.FullscreenToggle.isOn = Manager.FullScreenEnabled;
         SettingsDialogPanelScript.UIScalingToggle.isOn = Manager.UIScalingEnabled;
         SettingsDialogPanelScript.DebugModeToggle.isOn = Manager.DebugModeEnabled;
+        SettingsDialogPanelScript.AnimationShadersToggle.isOn = Manager.AnimationShadersEnabled;
 
         SettingsDialogPanelScript.SetVisible(true);
 
@@ -1210,6 +1211,13 @@ public class GuiManagerScript : MonoBehaviour
                 _lastUpdateDate = 0;
             }
         }
+    }
+
+    public void ToogleAnimationShaders(bool state)
+    {
+        Manager.AnimationShadersEnabled = state;
+
+        _regenMapOverlayTexture = true;
     }
 
     public void SetGenerationSeed()

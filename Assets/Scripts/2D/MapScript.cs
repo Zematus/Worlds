@@ -8,6 +8,7 @@ public class MapScript : MonoBehaviour
 {
     public RawImage MapImage;
     public RawImage MapOverlayImage;
+    public RawImage MapActivityImage;
     public RawImage PointerOverlayImage;
     public GameObject InfoPanel;
 
@@ -29,7 +30,7 @@ public class MapScript : MonoBehaviour
     void Start()
     {
         // Prevent material (asset) from being overwritten
-        MapImage.material = new Material(MapImage.material);
+        MapImage.material = new Material(MapImage.material); //TODO: Doesn't work, but only a problem in Unity3D Editor
     }
 
     // Update is called once per frame
@@ -69,6 +70,7 @@ public class MapScript : MonoBehaviour
     {
         MapImage.enabled = state;
         MapOverlayImage.enabled = state;
+        MapActivityImage.enabled = state;
         PointerOverlayImage.enabled = state;
     }
 
@@ -76,6 +78,7 @@ public class MapScript : MonoBehaviour
     {
         MapImage.texture = Manager.CurrentMapTexture;
         MapOverlayImage.texture = Manager.CurrentMapOverlayTexture;
+        MapActivityImage.texture = Manager.CurrentMapActivityTexture;
 
         if ((Manager.PlanetOverlay == PlanetOverlay.None) ||
             (Manager.PlanetOverlay == PlanetOverlay.General))
@@ -89,7 +92,7 @@ public class MapScript : MonoBehaviour
             MapImage.material.SetFloat("_EffectAmount", ShaderSettings.SubduedGrayness);
         }
 
-        if (Manager.PlanetOverlay == PlanetOverlay.DrainageBasins)
+        if (Manager.AnimationShadersEnabled && (Manager.PlanetOverlay == PlanetOverlay.DrainageBasins))
         {
             MapOverlayImage.material = DrainageMaterial;
             MapOverlayImage.material.SetTexture("_LengthTex", Manager.CurrentMapOverlayShaderInfoTexture);
@@ -145,6 +148,7 @@ public class MapScript : MonoBehaviour
     {
         MapImage.uvRect = newUvRect;
         MapOverlayImage.uvRect = newUvRect;
+        MapActivityImage.uvRect = newUvRect;
         PointerOverlayImage.uvRect = newUvRect;
     }
 

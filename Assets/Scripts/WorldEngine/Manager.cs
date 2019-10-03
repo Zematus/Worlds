@@ -122,7 +122,7 @@ public class Manager
     public const int WorldWidth = 400;
     public const int WorldHeight = 200;
 
-    public const float BrushStrengthFactor_Base = 0.01f;
+    public const float BrushStrengthFactor_Base = 0.04f;
     public const float BrushStrengthFactor_Altitude = 0.5f;
     public const float BrushStrengthFactor_Rainfall = 0.25f;
     public const float BrushStrengthFactor_Temperature = 0.25f;
@@ -188,6 +188,7 @@ public class Manager
     public static bool FullScreenEnabled = false;
     public static bool UIScalingEnabled = false;
     public static bool DebugModeEnabled = false;
+    public static bool AnimationShadersEnabled = true;
 
     public static List<string> ActiveModPaths = new List<string>() { @"Mods\Base" };
     public static bool ModsAlreadyLoaded = false;
@@ -260,6 +261,7 @@ public class Manager
     
     private Texture2D _currentMapTexture = null;
     private Texture2D _currentMapOverlayTexture = null;
+    private Texture2D _currentMapActivityTexture = null;
     private Texture2D _currentMapOverlayShaderInfoTexture = null;
 
     private Texture2D _pointerOverlayTexture = null;
@@ -267,6 +269,7 @@ public class Manager
     private Color32[] _currentMapTextureColors = null;
     private Color32[] _currentMapOverlayTextureColors = null;
     private Color32[] _currentMapOverlayShaderInfoColor = null;
+    private Color32[] _currentMapActivityTextureColors = null;
 
     private Color32[] _pointerOverlayTextureColors = null;
 
@@ -894,6 +897,14 @@ public class Manager
         }
     }
 
+    public static Texture2D CurrentMapActivityTexture
+    {
+        get
+        {
+            return _manager._currentMapActivityTexture;
+        }
+    }
+
     public static Texture2D CurrentMapOverlayShaderInfoTexture
     {
         get
@@ -1001,8 +1012,9 @@ public class Manager
         if (doOverlayMapTexture)
         {
             GenerateMapOverlayTextureFromWorld(CurrentWorld);
+            GenerateMapActivityTextureFromWorld(CurrentWorld);
 
-            if (PlanetOverlay == PlanetOverlay.DrainageBasins)
+            if (Manager.AnimationShadersEnabled && (PlanetOverlay == PlanetOverlay.DrainageBasins))
             {
                 GenerateMapOverlayShaderInfoTextureFromWorld(CurrentWorld);
             }
@@ -2144,8 +2156,9 @@ public class Manager
 
         UpdateMapTextureColors();
         UpdateMapOverlayTextureColors();
+        UpdateMapActivityTextureColors();
 
-        if (PlanetOverlay == PlanetOverlay.DrainageBasins)
+        if (Manager.AnimationShadersEnabled && (PlanetOverlay == PlanetOverlay.DrainageBasins))
         {
             UpdateMapOverlayShaderTextureColors();
         }
@@ -2156,8 +2169,9 @@ public class Manager
 
         CurrentMapTexture.SetPixels32(_manager._currentMapTextureColors);
         CurrentMapOverlayTexture.SetPixels32(_manager._currentMapOverlayTextureColors);
+        CurrentMapActivityTexture.SetPixels32(_manager._currentMapActivityTextureColors);
 
-        if (PlanetOverlay == PlanetOverlay.DrainageBasins)
+        if (Manager.AnimationShadersEnabled && (PlanetOverlay == PlanetOverlay.DrainageBasins))
         {
             CurrentMapOverlayShaderInfoTexture.SetPixels32(_manager._currentMapOverlayShaderInfoColor);
         }
@@ -2168,8 +2182,9 @@ public class Manager
 
         CurrentMapTexture.Apply();
         CurrentMapOverlayTexture.Apply();
+        CurrentMapActivityTexture.Apply();
 
-        if (PlanetOverlay == PlanetOverlay.DrainageBasins)
+        if (Manager.AnimationShadersEnabled && (PlanetOverlay == PlanetOverlay.DrainageBasins))
         {
             CurrentMapOverlayShaderInfoTexture.Apply();
         }
@@ -2208,7 +2223,17 @@ public class Manager
 
     public static void UpdateMapOverlayTextureColors()
     {
-        Color32[] overlayTextureColors = _manager._currentMapOverlayTextureColors;
+        Color32[] textureColors = _manager._currentMapOverlayTextureColors;
+
+        foreach (TerrainCell cell in UpdatedCells)
+        {
+            UpdateMapOverlayTextureColorsFromCell(textureColors, cell);
+        }
+    }
+
+    public static void UpdateMapActivityTextureColors()
+    {
+        Color32[] textureColors = _manager._currentMapActivityTextureColors;
 
         if (_displayGroupActivityWasEnabled)
         {
@@ -2219,24 +2244,27 @@ public class Manager
 
                 if (HighlightedCells.Contains(cell))
                     continue;
-                
-                UpdateMapOverlayTextureColorsFromCell(overlayTextureColors, cell);
+
+                UpdateMapActivityTextureColorsFromCell(textureColors, cell);
             }
         }
 
         _displayGroupActivityWasEnabled = _displayGroupActivity;
 
-        foreach (TerrainCell cell in UpdatedCells)
+        if (_displayRoutes || _displayGroupActivity)
         {
-            if (HighlightedCells.Contains(cell))
-                continue;
-            
-            UpdateMapOverlayTextureColorsFromCell(overlayTextureColors, cell, _displayGroupActivity);
+            foreach (TerrainCell cell in UpdatedCells)
+            {
+                if (HighlightedCells.Contains(cell))
+                    continue;
+
+                UpdateMapActivityTextureColorsFromCell(textureColors, cell, _displayGroupActivity);
+            }
         }
 
         foreach (TerrainCell cell in HighlightedCells)
         {
-            UpdateMapOverlayTextureColorsFromCell(overlayTextureColors, cell);
+            UpdateMapActivityTextureColorsFromCell(textureColors, cell);
         }
     }
 
@@ -2369,7 +2397,7 @@ public class Manager
         }
     }
 
-    public static void UpdateMapOverlayTextureColorsFromCell(Color32[] textureColors, TerrainCell cell, bool displayActivityCells = false)
+    public static void UpdateMapOverlayTextureColorsFromCell(Color32[] textureColors, TerrainCell cell)
     {
         World world = cell.World;
 
@@ -2380,7 +2408,37 @@ public class Manager
         int i = cell.Longitude;
         int j = cell.Latitude;
 
-        Color cellColor = GenerateOverlayColorFromTerrainCell(cell, displayActivityCells);
+        Color cellColor = GenerateOverlayColorFromTerrainCell(cell);
+
+        for (int m = 0; m < r; m++)
+        {
+            for (int n = 0; n < r; n++)
+            {
+                int offsetY = sizeX * r * (j * r + n);
+                int offsetX = i * r + m;
+
+                textureColors[offsetY + offsetX] = cellColor;
+
+                if (DebugModeEnabled)
+                {
+                    UpdatedPixelCount++;
+                }
+            }
+        }
+    }
+
+    public static void UpdateMapActivityTextureColorsFromCell(Color32[] textureColors, TerrainCell cell, bool displayActivityCells = false)
+    {
+        World world = cell.World;
+
+        int sizeX = world.Width;
+
+        int r = PixelToCellRatio;
+
+        int i = cell.Longitude;
+        int j = cell.Latitude;
+
+        Color cellColor = GenerateActivityColorFromTerrainCell(cell, displayActivityCells);
 
         for (int m = 0; m < r; m++)
         {
@@ -2469,20 +2527,22 @@ public class Manager
         return texture;
     }
 
-    public static void GenerateMapTextureFromWorld(World world)
+    private delegate Color GenerateColorFromTerrainCellDelegate(TerrainCell cell);
+
+    private static void GenerateTextureColorsFromWorld(World world, GenerateColorFromTerrainCellDelegate generateColorFromTerrainCell, out Color32[] textureColors, out Texture2D texture)
     {
         int sizeX = world.Width;
         int sizeY = world.Height;
 
         int r = PixelToCellRatio;
 
-        Color32[] textureColors = new Color32[sizeX * sizeY * r * r];
+        textureColors = new Color32[sizeX * sizeY * r * r];
 
         for (int i = 0; i < sizeX; i++)
         {
             for (int j = 0; j < sizeY; j++)
             {
-                Color cellColor = GenerateColorFromTerrainCell(world.TerrainCells[i][j]);
+                Color cellColor = generateColorFromTerrainCell(world.TerrainCells[i][j]);
 
                 for (int m = 0; m < r; m++)
                 {
@@ -2502,11 +2562,16 @@ public class Manager
             }
         }
 
-        Texture2D texture = new Texture2D(sizeX * r, sizeY * r, TextureFormat.ARGB32, false);
+        texture = new Texture2D(sizeX * r, sizeY * r, TextureFormat.ARGB32, false);
 
         texture.SetPixels32(textureColors);
 
         texture.Apply();
+    }
+
+    public static void GenerateMapTextureFromWorld(World world)
+    {
+        GenerateTextureColorsFromWorld(world, GenerateColorFromTerrainCell, out Color32[] textureColors, out Texture2D texture);
 
         _manager._currentMapTextureColors = textureColors;
         _manager._currentMapTexture = texture;
@@ -2514,90 +2579,26 @@ public class Manager
 
     public static void GenerateMapOverlayTextureFromWorld(World world)
     {
-        int sizeX = world.Width;
-        int sizeY = world.Height;
-
-        int r = PixelToCellRatio;
+        GenerateTextureColorsFromWorld(world, GenerateOverlayColorFromTerrainCell, out Color32[] textureColors, out Texture2D texture);
         
-        Color32[] overlayTextureColors = new Color32[sizeX * sizeY * r * r];
+        _manager._currentMapOverlayTextureColors = textureColors;
+        _manager._currentMapOverlayTexture = texture;
+    }
 
-        for (int i = 0; i < sizeX; i++)
-        {
-            for (int j = 0; j < sizeY; j++)
-            {
-                Color cellOverlayColor = 
-                    GenerateOverlayColorFromTerrainCell(world.TerrainCells[i][j]);
-
-                for (int m = 0; m < r; m++)
-                {
-                    for (int n = 0; n < r; n++)
-                    {
-                        int offsetY = sizeX * r * (j * r + n);
-                        int offsetX = i * r + m;
-                        
-                        overlayTextureColors[offsetY + offsetX] = cellOverlayColor;
-
-                        if (DebugModeEnabled)
-                        {
-                            UpdatedPixelCount++;
-                        }
-                    }
-                }
-            }
-        }
+    public static void GenerateMapActivityTextureFromWorld(World world)
+    {
+        GenerateTextureColorsFromWorld(world, GenerateActivityColorFromTerrainCell, out Color32[] textureColors, out Texture2D texture);
         
-        Texture2D overlayTexture = new Texture2D(sizeX * r, sizeY * r, TextureFormat.ARGB32, false);
-        
-        overlayTexture.SetPixels32(overlayTextureColors);
-        
-        overlayTexture.Apply();
-
-        _manager._currentMapOverlayTextureColors = overlayTextureColors;
-        _manager._currentMapOverlayTexture = overlayTexture;
+        _manager._currentMapActivityTextureColors = textureColors;
+        _manager._currentMapActivityTexture = texture;
     }
 
     public static void GenerateMapOverlayShaderInfoTextureFromWorld(World world)
     {
-        int sizeX = world.Width;
-        int sizeY = world.Height;
-
-        int r = PixelToCellRatio;
+        GenerateTextureColorsFromWorld(world, GenerateOverlayShaderInfoFromTerrainCell, out Color32[] textureColors, out Texture2D texture);
         
-        Color32[] overlayShaderInfoColors = new Color32[sizeX * sizeY * r * r];
-
-        for (int i = 0; i < sizeX; i++)
-        {
-            for (int j = 0; j < sizeY; j++)
-            {
-                Color cellOverlayColor =
-                    GenerateOverlayShaderInfoFromTerrainCell(world.TerrainCells[i][j]);
-
-                for (int m = 0; m < r; m++)
-                {
-                    for (int n = 0; n < r; n++)
-                    {
-                        int offsetY = sizeX * r * (j * r + n);
-                        int offsetX = i * r + m;
-
-                        overlayShaderInfoColors[offsetY + offsetX] = cellOverlayColor;
-
-                        if (DebugModeEnabled)
-                        {
-                            UpdatedPixelCount++;
-                        }
-                    }
-                }
-            }
-        }
-
-        Texture2D overlayShaderInfoTexture = new Texture2D(sizeX * r, sizeY * r, TextureFormat.ARGB32, false);
-
-        overlayShaderInfoTexture.SetPixels32(overlayShaderInfoColors);
-
-        overlayShaderInfoTexture.Apply();
-        
-        _manager._currentMapOverlayShaderInfoColor = overlayShaderInfoColors;
-        _manager._currentMapOverlayShaderInfoTexture = overlayShaderInfoTexture;
+        _manager._currentMapOverlayShaderInfoColor = textureColors;
+        _manager._currentMapOverlayShaderInfoTexture = texture;
     }
 
     private static float GetSlant(TerrainCell cell)
@@ -2707,17 +2708,8 @@ public class Manager
         return color;
     }
 
-    private static Color GenerateOverlayColorFromTerrainCell(TerrainCell cell, bool displayActivityCells = false)
+    private static Color GenerateOverlayColorFromTerrainCell(TerrainCell cell)
     {
-        if (_displayRoutes && cell.HasCrossingRoutes)
-        {
-            foreach (Route route in cell.CrossingRoutes)
-            {
-                if (route.Used)
-                    return GetOverlayColor(OverlayColorId.ActiveRoute);
-            }
-        }
-
         Color color = _transparentColor;
 
         int? maxPopulation = null;
@@ -2856,16 +2848,35 @@ public class Manager
                 throw new System.Exception("Unsupported Planet Overlay Type");
         }
 
+        return color;
+    }
+
+    private static Color GenerateActivityColorFromTerrainCell(TerrainCell cell)
+    {
+        return GenerateActivityColorFromTerrainCell(cell, false);
+    }
+
+    private static Color GenerateActivityColorFromTerrainCell(TerrainCell cell, bool displayActivityCells)
+    {
+        if (_displayRoutes && cell.HasCrossingRoutes)
+        {
+            foreach (Route route in cell.CrossingRoutes)
+            {
+                if (route.Used)
+                    return GetOverlayColor(OverlayColorId.ActiveRoute);
+            }
+        }
+        
         if (CellShouldBeHighlighted(cell))
         {
-            color = color * 0.5f + Color.white * 0.5f;
+            return Color.white * 0.75f;
         }
         else if (displayActivityCells)
         {
-            color = color * 0.75f + Color.white * 0.25f;
+            return Color.white * 0.5f;
         }
 
-        return color;
+        return _transparentColor;
     }
 
     private static Color GenerateOverlayShaderInfoFromTerrainCell(TerrainCell cell)

@@ -17,6 +17,7 @@ public class AppSettings
     public bool Fullscreen = true;
     public bool UIScaling = true;
     public bool DebugMode = true;
+    public bool AnimationShaders = true;
 
     public List<string> ActiveModPaths = new List<string>();
 
@@ -36,6 +37,7 @@ public class AppSettings
         Fullscreen = Manager.FullScreenEnabled;
         UIScaling = Manager.UIScalingEnabled;
         DebugMode = Manager.DebugModeEnabled;
+        AnimationShaders = Manager.AnimationShadersEnabled;
 
         ActiveModPaths.Clear();
         ActiveModPaths.AddRange(Manager.ActiveModPaths);
@@ -54,6 +56,7 @@ public class AppSettings
         Manager.FullScreenEnabled = Fullscreen;
         Manager.UIScalingEnabled = UIScaling;
         Manager.DebugModeEnabled = DebugMode;
+        Manager.AnimationShadersEnabled = AnimationShaders;
 
         Manager.SetActiveModPaths(ActiveModPaths);
         Manager.SetLayerSettings(LayerSettings);
