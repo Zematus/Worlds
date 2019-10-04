@@ -4153,29 +4153,31 @@ public class World : ISynchronizable
         return Mathf.Min(1, altitudeFactor * 2);
     }
 
-    private float CalculateLayerRainfallFactor(TerrainCell cell, Layer layer)
+    private float CalculateLayerWaterFactor(TerrainCell cell, Layer layer)
     {
+        float flowingWaterSpan = layer.MaxFlowingWater - layer.MinFlowingWater;
         float rainfallSpan = layer.MaxRainfall - layer.MinRainfall;
 
+        float flowingWaterDiff = cell.FlowingWater - layer.MinFlowingWater;
         float rainfallDiff = cell.Rainfall - layer.MinRainfall;
 
-        if (rainfallDiff < 0)
-            return -1;
+        if ((flowingWaterDiff < 0) && (rainfallDiff < 0))
+            return -1f;
 
+        float moistureFactor = flowingWaterDiff / flowingWaterSpan;
         float rainfallFactor = rainfallDiff / rainfallSpan;
 
-        if (float.IsInfinity(rainfallSpan))
-            return -1;
+        float waterFactor = Mathf.Max(moistureFactor, rainfallFactor);
 
-        if (rainfallFactor > 1)
-            return -1;
+        if (waterFactor > 1)
+            return -1f;
 
-        if (rainfallFactor > 0.5f)
-            rainfallFactor = 1f - rainfallFactor;
+        if (waterFactor > 0.5f)
+            waterFactor = 1f - waterFactor;
 
-        rainfallFactor *= layer.RainSaturationSlope;
+        waterFactor *= layer.WaterSaturationSlope;
 
-        return Mathf.Min(1, rainfallFactor * 2);
+        return Mathf.Max(1, waterFactor * 2);
     }
 
     private float CalculateLayerTemperatureFactor(TerrainCell cell, Layer layer)
@@ -4215,7 +4217,7 @@ public class World : ISynchronizable
         if (value <= 0)
             return value;
 
-        value *= CalculateLayerRainfallFactor(cell, layer);
+        value *= CalculateLayerWaterFactor(cell, layer);
 
         if (value <= 0)
             return value;
@@ -4319,12 +4321,7 @@ public class World : ISynchronizable
 
         waterFactor *= biome.WaterSaturationSlope;
 
-        if (waterFactor == 0)
-        {
-            waterFactor = 0.005f; // We don't want to return 0 ever as it messes up with biome asignations
-        }
-
-        return waterFactor * 2;
+        return Mathf.Max(0.005f, waterFactor * 2);
     }
 
     private float CalculateBiomeTemperatureFactor(TerrainCell cell, Biome biome)

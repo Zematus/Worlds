@@ -5,8 +5,6 @@
       "name": "fungi",
       "color": "#F15CF8",
       "type": "land",
-      "traits": ["mussirio"],
-      "maxFlowingWater": 7700,
       "survivability": 0.4,
       "foragingCapacity": 0.6,
       "accessibility": 0.4,
@@ -15,7 +13,7 @@
       "layerConstraints": [
         {
           "layerId": "mycosystem",
-          "minValue": 1
+          "minValue": 0
         },
         {
           "layerId": "necrosilica",
@@ -28,7 +26,6 @@
       "name": "black fungi",
       "color": "#000000",
       "type": "land",
-      "maxFlowingWater": 7700,
       "survivability": 0.0,
       "foragingCapacity": 0.0,
       "accessibility": 0.4,
@@ -37,11 +34,11 @@
       "layerConstraints": [
         {
           "layerId": "mycosystem",
-          "minValue": 1
+          "minValue": 0
         },
         {
           "layerId": "necrosilica",
-          "minValue": 1
+          "minValue": 0
         }
       ]
     },
@@ -61,7 +58,7 @@
       "layerConstraints": [
         {
           "layerId": "necrosilica",
-          "minValue": 1
+          "minValue": 0
         }
       ]
     },
@@ -81,7 +78,7 @@
       "layerConstraints": [
         {
           "layerId": "necrosilica",
-          "minValue": 1
+          "minValue": 0
         }
       ]
     },
@@ -109,7 +106,7 @@
         },
         {
           "layerId": "necrosilica",
-          "minValue": 1,
+          "minValue": 0,
           "maxValue": 8
         }
       ]
@@ -138,7 +135,7 @@
         },
         {
           "layerId": "necrosilica",
-          "minValue": 1,
+          "minValue": 0,
           "maxValue": 8
         }
       ]
@@ -162,7 +159,7 @@
         },
         {
           "layerId": "necrosilica",
-          "minValue": 1
+          "minValue": 0
         }
       ]
     },
@@ -185,7 +182,7 @@
         },
         {
           "layerId": "necrosilica",
-          "minValue": 1
+          "minValue": 0
         }
       ]
     }

@@ -99,20 +99,6 @@
       "phraseAssociations": ["[ran]swim:mer", "[ran]drink:er,of,u|ns", "[iv(bear,ts,past)]born,between,ip", "[iv(bear,ts,past)]born,by,ds", "[rv(ts,past)]soak:ed,by,u", "[rv(ts,past)]drench:ed,by,u"]
     },
     {
-      "id": "stream",
-      "name": "stream",
-      "adjectives": ["clear_no_necrosilica", "dark", "blue_no_necrosilica", "red_necrosilica", "green_no_necrosilica", "grey"],
-      "regionConstraints": ["flowing_water_above:50"],
-      "phraseAssociations": ["[iv(bear,ts,past)]born,by|near,ds|dp", "[iv(bear,ts,past)]born,between,ip", "[iv(bear,ts,past)]born,by,ds", "[rv(ts,past)]raise:d,near,ds|dp"]
-    },
-    {
-      "id": "current",
-      "name": "current:s",
-      "adjectives": ["white_no_necrosilica", "green_no_necrosilica", "blue_no_necrosilica", "clear_no_necrosilica", "dark"],
-      "regionConstraints": ["flowing_water_above:500"],
-      "phraseAssociations": ["[ran]swim:mer", "[iv(bear,ts,past)]born,between,ip", "[iv(bear,ts,past)]born,by,ds", "[rv(ts,past)]soak:ed,by,ip", "[rv(ts,past)]drench:ed,by,ip"]
-    },
-    {
       "id": "rain",
       "name": "rain:s",
       "adjectives": ["heavy", "red_necrosilica", "scarlet_necrosilica", "crimson_necrosilica", "soft", "dark"],

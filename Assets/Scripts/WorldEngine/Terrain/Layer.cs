@@ -15,6 +15,9 @@ public class Layer
     public static float MinLayerRainfall = World.MinPossibleRainfall * 3 - 1;
     public static float MaxLayerRainfall = World.MaxPossibleRainfall * 3 + 1;
 
+    public static float MinLayerFlowingWater = World.MinPossibleRainfall * 3 - 1;
+    public static float MaxLayerFlowingWater = World.MaxPossibleRainfall * 10000 + 1;
+
     public static float MinLayerAltitude = World.MinPossibleAltitude * 3 - 1;
     public static float MaxLayerAltitude = World.MaxPossibleAltitude * 3 + 1;
 
@@ -37,7 +40,9 @@ public class Layer
 
     public float MinRainfall;
     public float MaxRainfall;
-    public float RainSaturationSlope;
+    public float MinFlowingWater;
+    public float MaxFlowingWater;
+    public float WaterSaturationSlope;
 
     public float MinTemperature;
     public float MaxTemperature;

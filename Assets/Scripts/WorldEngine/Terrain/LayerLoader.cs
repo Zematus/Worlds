@@ -27,7 +27,9 @@ public class LayerLoader
         public string altitudeSaturationSlope;
         public string minRainfall;
         public string maxRainfall;
-        public string rainfallSaturationSlope;
+        public string minFlowingWater;
+        public string maxFlowingWater;
+        public string waterSaturationSlope;
         public string minTemperature;
         public string maxTemperature;
         public string temperatureSaturationSlope;
@@ -180,7 +182,7 @@ public class LayerLoader
         }
         else
         {
-            layer.MaxRainfall = Biome.MaxBiomeRainfall;
+            layer.MaxRainfall = Layer.MaxLayerRainfall;
         }
 
         if (l.minRainfall != null)
@@ -197,24 +199,58 @@ public class LayerLoader
         }
         else
         {
-            layer.MinRainfall = Biome.MinBiomeRainfall;
+            layer.MinRainfall = Layer.MinLayerRainfall;
         }
 
-        if (l.rainfallSaturationSlope != null)
+        if (l.maxFlowingWater != null)
         {
-            if (!float.TryParse(l.rainfallSaturationSlope, out layer.RainSaturationSlope))
+            if (!float.TryParse(l.maxFlowingWater, out layer.MaxFlowingWater))
             {
-                throw new ArgumentException("Invalid rainfallSaturationSlope value: " + l.rainfallSaturationSlope);
+                throw new ArgumentException("Invalid minFlowingWater value: " + l.maxFlowingWater);
             }
 
-            if (!layer.RainSaturationSlope.IsInsideRange(0.001f, 1000))
+            if (!layer.MaxRainfall.IsInsideRange(Layer.MinLayerFlowingWater, Layer.MaxLayerFlowingWater))
             {
-                throw new ArgumentException("rainfallSaturationSlope must be a value between 0.001 and 1000");
+                throw new ArgumentException("minFlowingWater must be a value between " + Layer.MinLayerFlowingWater + " and " + Layer.MaxLayerFlowingWater);
             }
         }
         else
         {
-            layer.RainSaturationSlope = 1;
+            layer.MaxFlowingWater = Layer.MaxLayerFlowingWater;
+        }
+
+        if (l.minFlowingWater != null)
+        {
+            if (!float.TryParse(l.minFlowingWater, out layer.MinFlowingWater))
+            {
+                throw new ArgumentException("Invalid minFlowingWater value: " + l.minFlowingWater);
+            }
+
+            if (!layer.MinRainfall.IsInsideRange(Layer.MinLayerFlowingWater, Layer.MaxLayerFlowingWater))
+            {
+                throw new ArgumentException("minFlowingWater must be a value between " + Layer.MinLayerFlowingWater + " and " + Layer.MaxLayerFlowingWater);
+            }
+        }
+        else
+        {
+            layer.MinFlowingWater = Layer.MinLayerFlowingWater;
+        }
+
+        if (l.waterSaturationSlope != null)
+        {
+            if (!float.TryParse(l.waterSaturationSlope, out layer.WaterSaturationSlope))
+            {
+                throw new ArgumentException("Invalid waterSaturationSlope value: " + l.waterSaturationSlope);
+            }
+
+            if (!layer.WaterSaturationSlope.IsInsideRange(0.001f, 1000))
+            {
+                throw new ArgumentException("waterSaturationSlope must be a value between 0.001 and 1000");
+            }
+        }
+        else
+        {
+            layer.WaterSaturationSlope = 1;
         }
 
         if (l.maxTemperature != null)

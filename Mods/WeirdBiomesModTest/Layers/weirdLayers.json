@@ -11,8 +11,7 @@
       "minAltitude": 0,
       "altitudeSaturationSlope": 1000,
       "minRainfall": 1375,
-      "minFlowingWater": 1375,
-      "waterSaturationSlope": 2,
+      "rainfallSaturationSlope": 2,
       "minTemperature": -20,
       "temperatureSaturationSlope": 2
     },

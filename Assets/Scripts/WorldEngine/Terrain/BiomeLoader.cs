@@ -269,12 +269,12 @@ public class BiomeLoader
         {
             if (!float.TryParse(b.waterSaturationSlope, out biome.WaterSaturationSlope))
             {
-                throw new ArgumentException("Invalid rainfallSaturationSlope value: " + b.waterSaturationSlope);
+                throw new ArgumentException("Invalid waterSaturationSlope value: " + b.waterSaturationSlope);
             }
 
             if (!biome.WaterSaturationSlope.IsInsideRange(0.001f, 1000))
             {
-                throw new ArgumentException("rainfallSaturationSlope must be a value between 0.001 and 1000");
+                throw new ArgumentException("waterSaturationSlope must be a value between 0.001 and 1000");
             }
         }
         else
