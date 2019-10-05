@@ -4284,12 +4284,7 @@ public class World : ISynchronizable
 
         waterFactor *= biome.WaterSaturationSlope;
 
-        if (waterFactor == 0)
-        {
-            waterFactor = 0.005f; // We don't want to return 0 ever as it messes up with biome asignations
-        }
-
-        return waterFactor * 2;
+        return Mathf.Max(0.005f, waterFactor * 2);
     }
 
     private float CalculateBiomeWaterFactor(TerrainCell cell, Biome biome)

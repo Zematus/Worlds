@@ -15,7 +15,8 @@
       "layerConstraints": [
         {
           "layerId": "mycosystem",
-          "minValue": 1
+          "minValue": 1,
+          "saturationSlope": 0.1
         },
         {
           "layerId": "necrosilica",
@@ -37,7 +38,8 @@
       "layerConstraints": [
         {
           "layerId": "mycosystem",
-          "minValue": 1
+          "minValue": 1,
+          "saturationSlope": 0.1
         },
         {
           "layerId": "necrosilica",
@@ -149,6 +151,8 @@
       "color": "#DC143C",
       "type": "land",
       "minAltitude": 0,
+      "maxRainfall": 7700,
+      "maxFlowingWater": 7700,
       "minTemperature": -10,
       "survivability": 0.0,
       "foragingCapacity": 0.0,
@@ -172,6 +176,8 @@
       "color": "#ec3b83",
       "type": "land",
       "minAltitude": 0,
+      "maxRainfall": 7700,
+      "maxFlowingWater": 7700,
       "maxTemperature": 0,
       "survivability": 0.0,
       "foragingCapacity": 0.0,
