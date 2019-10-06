@@ -9,22 +9,27 @@ public class Culture : ISynchronizable
 {
     [XmlAttribute("LId")]
     public long LanguageId = -1;
+    
+    public List<CulturalPreference> Preferences = null;
+    public List<CulturalActivity> Activities = null;
+    public List<CulturalSkill> Skills = null;
+    public List<CulturalKnowledge> Knowledges = null;
+
+    public List<string> DiscoveryIds;
 
     [XmlIgnore]
     public World World;
 
     [XmlIgnore]
     public Language Language { get; protected set; }
-    
-    public XmlSerializableDictionary<string, CulturalPreference> Preferences = new XmlSerializableDictionary<string, CulturalPreference>();
-    public XmlSerializableDictionary<string, CulturalActivity> Activities = new XmlSerializableDictionary<string, CulturalActivity>();
-    public XmlSerializableDictionary<string, CulturalSkill> Skills = new XmlSerializableDictionary<string, CulturalSkill>();
-    public XmlSerializableDictionary<string, CulturalKnowledge> Knowledges = new XmlSerializableDictionary<string, CulturalKnowledge>();
-
-    public List<string> DiscoveryIds;
 
     [XmlIgnore]
     public Dictionary<string, Discovery> Discoveries = new Dictionary<string, Discovery>();
+
+    protected Dictionary<string, CulturalPreference> _preferences = new Dictionary<string, CulturalPreference>();
+    protected Dictionary<string, CulturalActivity> _activities = new Dictionary<string, CulturalActivity>();
+    protected Dictionary<string, CulturalSkill> _skills = new Dictionary<string, CulturalSkill>();
+    protected Dictionary<string, CulturalKnowledge> _knowledges = new Dictionary<string, CulturalKnowledge>();
 
     public Culture()
     {
@@ -39,22 +44,22 @@ public class Culture : ISynchronizable
 
     public Culture(Culture sourceCulture) : this(sourceCulture.World, sourceCulture.Language)
     {
-        foreach (CulturalPreference p in sourceCulture.Preferences.Values)
+        foreach (CulturalPreference p in sourceCulture._preferences.Values)
         {
             AddPreference(new CulturalPreference(p));
         }
 
-        foreach (CulturalActivity a in sourceCulture.Activities.Values)
+        foreach (CulturalActivity a in sourceCulture._activities.Values)
         {
             AddActivity(new CulturalActivity(a));
         }
 
-        foreach (CulturalSkill s in sourceCulture.Skills.Values)
+        foreach (CulturalSkill s in sourceCulture._skills.Values)
         {
             AddSkill(new CulturalSkill(s));
         }
 
-        foreach (CulturalKnowledge k in sourceCulture.Knowledges.Values)
+        foreach (CulturalKnowledge k in sourceCulture._knowledges.Values)
         {
             AddKnowledge(new CulturalKnowledge(k));
         }
@@ -67,20 +72,20 @@ public class Culture : ISynchronizable
 
     protected void AddPreference(CulturalPreference preference)
     {
-        if (Preferences.ContainsKey(preference.Id))
+        if (_preferences.ContainsKey(preference.Id))
             return;
 
         World.AddExistingCulturalPreferenceInfo(preference);
         
-        Preferences.Add(preference.Id, preference);
+        _preferences.Add(preference.Id, preference);
     }
 
     protected void RemovePreference(CulturalPreference preference)
     {
-        if (!Preferences.ContainsKey(preference.Id))
+        if (!_preferences.ContainsKey(preference.Id))
             return;
         
-        Preferences.Remove(preference.Id);
+        _preferences.Remove(preference.Id);
     }
 
     public void RemovePreference(string preferenceId)
@@ -95,7 +100,7 @@ public class Culture : ISynchronizable
 
     public void ResetPreferences()
     {
-        foreach (CulturalPreference preference in Preferences.Values)
+        foreach (CulturalPreference preference in _preferences.Values)
         {
             preference.Reset();
         }
@@ -103,25 +108,25 @@ public class Culture : ISynchronizable
 
     protected void AddActivity(CulturalActivity activity)
     {
-        if (Activities.ContainsKey(activity.Id))
+        if (_activities.ContainsKey(activity.Id))
             return;
 
         World.AddExistingCulturalActivityInfo(activity);
         
-        Activities.Add(activity.Id, activity);
+        _activities.Add(activity.Id, activity);
     }
 
     protected void RemoveActivity(CulturalActivity activity)
     {
-        if (!Activities.ContainsKey(activity.Id))
+        if (!_activities.ContainsKey(activity.Id))
             return;
         
-        Activities.Remove(activity.Id);
+        _activities.Remove(activity.Id);
     }
 
     public void ResetActivities()
     {
-        foreach (CulturalActivity activity in Activities.Values)
+        foreach (CulturalActivity activity in _activities.Values)
         {
             activity.Reset();
         }
@@ -129,25 +134,25 @@ public class Culture : ISynchronizable
 
     protected void AddSkill(CulturalSkill skill)
     {
-        if (Skills.ContainsKey(skill.Id))
+        if (_skills.ContainsKey(skill.Id))
             return;
 
         World.AddExistingCulturalSkillInfo(skill);
         
-        Skills.Add(skill.Id, skill);
+        _skills.Add(skill.Id, skill);
     }
 
     protected void RemoveSkill(CulturalSkill skill)
     {
-        if (!Skills.ContainsKey(skill.Id))
+        if (!_skills.ContainsKey(skill.Id))
             return;
         
-        Skills.Remove(skill.Id);
+        _skills.Remove(skill.Id);
     }
 
     public void ResetSkills()
     {
-        foreach (CulturalSkill skill in Skills.Values)
+        foreach (CulturalSkill skill in _skills.Values)
         {
             skill.Reset();
         }
@@ -155,25 +160,25 @@ public class Culture : ISynchronizable
 
     protected void AddKnowledge(CulturalKnowledge knowledge)
     {
-        if (Knowledges.ContainsKey(knowledge.Id))
+        if (_knowledges.ContainsKey(knowledge.Id))
             return;
 
         World.AddExistingCulturalKnowledgeInfo(knowledge);
 
-        Knowledges.Add(knowledge.Id, knowledge);
+        _knowledges.Add(knowledge.Id, knowledge);
     }
 
     protected void RemoveKnowledge(CulturalKnowledge knowledge)
     {
-        if (!Knowledges.ContainsKey(knowledge.Id))
+        if (!_knowledges.ContainsKey(knowledge.Id))
             return;
 
-        Knowledges.Remove(knowledge.Id);
+        _knowledges.Remove(knowledge.Id);
     }
 
     public void ResetKnowledges()
     {
-        foreach (CulturalKnowledge knowledge in Knowledges.Values)
+        foreach (CulturalKnowledge knowledge in _knowledges.Values)
         {
             knowledge.Reset();
         }
@@ -202,21 +207,27 @@ public class Culture : ISynchronizable
         Discoveries.Clear();
     }
 
+    public ICollection<CulturalPreference> GetPreferences()
+    {
+        return _preferences.Values;
+    }
+
     public CulturalPreference GetPreference(string id)
     {
-        CulturalPreference preference = null;
-
-        if (!Preferences.TryGetValue(id, out preference))
+        if (!_preferences.TryGetValue(id, out CulturalPreference preference))
             return null;
 
         return preference;
     }
 
+    public ICollection<CulturalActivity> GetActivities()
+    {
+        return _activities.Values;
+    }
+
     public CulturalActivity GetActivity(string id)
     {
-        CulturalActivity activity = null;
-
-        if (!Activities.TryGetValue(id, out activity))
+        if (!_activities.TryGetValue(id, out CulturalActivity activity))
             return null;
 
         return activity;
@@ -224,14 +235,17 @@ public class Culture : ISynchronizable
 
     public bool HasActivity(string id)
     {
-        return Activities.ContainsKey(id);
+        return _activities.ContainsKey(id);
+    }
+
+    public ICollection<CulturalSkill> GetSkills()
+    {
+        return _skills.Values;
     }
 
     public CulturalSkill GetSkill(string id)
     {
-        CulturalSkill skill = null;
-
-        if (!Skills.TryGetValue(id, out skill))
+        if (!_skills.TryGetValue(id, out CulturalSkill skill))
             return null;
 
         return skill;
@@ -253,11 +267,14 @@ public class Culture : ISynchronizable
         return false;
     }
 
+    public ICollection<CulturalKnowledge> GetKnowledges()
+    {
+        return _knowledges.Values;
+    }
+
     public CulturalKnowledge GetKnowledge(string id)
     {
-        CulturalKnowledge knowledge = null;
-
-        if (!Knowledges.TryGetValue(id, out knowledge))
+        if (!_knowledges.TryGetValue(id, out CulturalKnowledge knowledge))
             return null;
 
         return knowledge;
@@ -307,9 +324,7 @@ public class Culture : ISynchronizable
 
     public Discovery GetDiscovery(string id)
     {
-        Discovery discovery = null;
-
-        if (!Discoveries.TryGetValue(id, out discovery))
+        if (!Discoveries.TryGetValue(id, out Discovery discovery))
             return null;
 
         return discovery;
@@ -336,6 +351,22 @@ public class Culture : ISynchronizable
 
     public virtual void Synchronize()
     {
+        Preferences = new List<CulturalPreference>(_preferences.Values);
+        Activities = new List<CulturalActivity>(_activities.Values);
+        Skills = new List<CulturalSkill>(_skills.Values);
+        Knowledges = new List<CulturalKnowledge>(_knowledges.Values);
+
+        // Reset property dictionaries to ensure they are ordered in the same way the would be in the save file
+        _preferences.Clear();
+        _activities.Clear();
+        _skills.Clear();
+        _knowledges.Clear();
+
+        LoadPreferences();
+        LoadActivities();
+        LoadSkills();
+        LoadKnowledges();
+
         if (Language != null)
             LanguageId = Language.Id;
 
@@ -352,24 +383,63 @@ public class Culture : ISynchronizable
         FinalizePropertiesLoad();
     }
 
+    public void LoadPreferences()
+    {
+        foreach (CulturalPreference p in Preferences)
+        {
+            _preferences.Add(p.Id, p);
+        }
+    }
+
+    public void LoadActivities()
+    {
+        foreach (CulturalActivity a in Activities)
+        {
+            _activities.Add(a.Id, a);
+        }
+    }
+
+    public void LoadSkills()
+    {
+        foreach (CulturalSkill s in Skills)
+        {
+            _skills.Add(s.Id, s);
+        }
+    }
+
+    public void LoadKnowledges()
+    {
+        foreach (CulturalKnowledge k in Knowledges)
+        {
+            _knowledges.Add(k.Id, k);
+        }
+    }
+
     public virtual void FinalizePropertiesLoad()
     {
-        foreach (CulturalPreference p in Preferences.Values)
+        LoadPreferences();
+        LoadActivities();
+        LoadSkills();
+        LoadKnowledges();
+
+        /////
+
+        foreach (CulturalPreference p in Preferences)
         {
             p.FinalizeLoad();
         }
 
-        foreach (CulturalActivity a in Activities.Values)
+        foreach (CulturalActivity a in Activities)
         {
             a.FinalizeLoad();
         }
 
-        foreach (CulturalSkill s in Skills.Values)
+        foreach (CulturalSkill s in Skills)
         {
             s.FinalizeLoad();
         }
 
-        foreach (CulturalKnowledge k in Knowledges.Values)
+        foreach (CulturalKnowledge k in Knowledges)
         {
             k.FinalizeLoad();
         }

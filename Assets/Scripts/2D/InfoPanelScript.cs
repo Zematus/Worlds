@@ -760,7 +760,7 @@ public class InfoPanelScript : MonoBehaviour
 
         bool firstPreference = true;
 
-        foreach (CulturalPreference preference in polityProminence.Polity.Culture.Preferences.Values)
+        foreach (CulturalPreference preference in polityProminence.Polity.Culture.GetPreferences())
         {
             if (firstPreference)
             {
@@ -806,7 +806,7 @@ public class InfoPanelScript : MonoBehaviour
 
         bool firstActivity = true;
 
-        foreach (CulturalActivity activity in polityProminence.Polity.Culture.Activities.Values)
+        foreach (CulturalActivity activity in polityProminence.Polity.Culture.GetActivities())
         {
             if (firstActivity)
             {
@@ -843,7 +843,7 @@ public class InfoPanelScript : MonoBehaviour
 
         bool firstPreference = true;
 
-        foreach (CulturalPreference preference in cell.Group.Culture.Preferences.Values)
+        foreach (CulturalPreference preference in cell.Group.Culture.GetPreferences())
         {
             if (firstPreference)
             {
@@ -880,7 +880,7 @@ public class InfoPanelScript : MonoBehaviour
 
         bool firstActivity = true;
 
-        foreach (CulturalActivity activity in cell.Group.Culture.Activities.Values)
+        foreach (CulturalActivity activity in cell.Group.Culture.GetActivities())
         {
             if (firstActivity)
             {
@@ -926,7 +926,7 @@ public class InfoPanelScript : MonoBehaviour
 
         bool firstSkill = true;
 
-        foreach (CulturalSkill skill in polityProminence.Polity.Culture.Skills.Values)
+        foreach (CulturalSkill skill in polityProminence.Polity.Culture.GetSkills())
         {
             float skillValue = skill.Value;
 
@@ -968,7 +968,7 @@ public class InfoPanelScript : MonoBehaviour
 
         bool firstSkill = true;
 
-        foreach (CulturalSkill skill in cell.Group.Culture.Skills.Values)
+        foreach (CulturalSkill skill in cell.Group.Culture.GetSkills())
         {
             float skillValue = skill.Value;
 
@@ -1019,7 +1019,7 @@ public class InfoPanelScript : MonoBehaviour
 
         bool firstKnowledge = true;
 
-        foreach (CulturalKnowledge knowledge in polityProminence.Polity.Culture.Knowledges.Values)
+        foreach (CulturalKnowledge knowledge in polityProminence.Polity.Culture.GetKnowledges())
         {
             float knowledgeValue = knowledge.ScaledValue;
 
@@ -1058,7 +1058,7 @@ public class InfoPanelScript : MonoBehaviour
 
         bool firstKnowledge = true;
 
-        foreach (CulturalKnowledge knowledge in cell.Group.Culture.Knowledges.Values)
+        foreach (CulturalKnowledge knowledge in cell.Group.Culture.GetKnowledges())
         {
             float knowledgeValue = knowledge.ScaledValue;
 

@@ -1501,7 +1501,7 @@ public class Manager
     {
         _isLoadReady = true;
 
-        _totalLoadTicks = WorldBeingLoaded.EventsToHappenCount;
+        _totalLoadTicks = WorldBeingLoaded.SerializedEventCount;
         _totalLoadTicks += WorldBeingLoaded.CellGroupCount;
         _totalLoadTicks += WorldBeingLoaded.TerrainCellAlterationListCount;
 

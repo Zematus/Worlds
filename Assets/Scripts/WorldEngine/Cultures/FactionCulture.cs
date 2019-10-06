@@ -28,22 +28,22 @@ public class FactionCulture : Culture
 
         CellCulture coreCulture = coreGroup.Culture;
 
-        foreach (CulturalPreference p in coreCulture.Preferences.Values)
+        foreach (CulturalPreference p in coreCulture.GetPreferences())
         {
             AddPreference(new CulturalPreference(p));
         }
 
-        foreach (CulturalActivity a in coreCulture.Activities.Values)
+        foreach (CulturalActivity a in coreCulture.GetActivities())
         {
             AddActivity(new CulturalActivity(a));
         }
 
-        foreach (CulturalSkill s in coreCulture.Skills.Values)
+        foreach (CulturalSkill s in coreCulture.GetSkills())
         {
             AddSkill(new CulturalSkill(s));
         }
 
-        foreach (CellCulturalKnowledge k in coreCulture.Knowledges.Values)
+        foreach (CellCulturalKnowledge k in coreCulture.GetKnowledges())
         {
             //#if DEBUG
             //                if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
@@ -81,7 +81,7 @@ public class FactionCulture : Culture
     {
         //Profiler.BeginSample("Culture - Update Preferences");
 
-        foreach (CulturalPreference p in coreCulture.Preferences.Values)
+        foreach (CulturalPreference p in coreCulture.GetPreferences())
         {
             //Profiler.BeginSample("GetPreference");
 
@@ -138,13 +138,13 @@ public class FactionCulture : Culture
             //#endif
         }
 
-        foreach (CulturalPreference p in Preferences.Values)
+        foreach (CulturalPreference p in _preferences.Values)
         {
             //Profiler.BeginSample("coreCulture.Preferences.ContainsKey");
 
-            if (!coreCulture.Preferences.ContainsKey(p.Id))
+            if (coreCulture.GetPreference(p.Id) != null)
             {
-                p.Value = (p.Value * (1f - timeFactor));
+                p.Value = p.Value * (1f - timeFactor);
             }
 
             //Profiler.EndSample();
@@ -157,7 +157,7 @@ public class FactionCulture : Culture
     {
         //Profiler.BeginSample("Culture - Update Activities");
 
-        foreach (CulturalActivity a in coreCulture.Activities.Values)
+        foreach (CulturalActivity a in coreCulture.GetActivities())
         {
             //Profiler.BeginSample("GetActivity");
 
@@ -186,13 +186,13 @@ public class FactionCulture : Culture
             }
         }
 
-        foreach (CulturalActivity a in Activities.Values)
+        foreach (CulturalActivity a in _activities.Values)
         {
             //Profiler.BeginSample("coreCulture.Activities.ContainsKey");
 
-            if (!coreCulture.Activities.ContainsKey(a.Id))
+            if (coreCulture.GetActivity(a.Id) == null)
             {
-                a.Value = (a.Value * (1f - timeFactor));
+                a.Value = a.Value * (1f - timeFactor);
             }
 
             //Profiler.EndSample();
@@ -205,7 +205,7 @@ public class FactionCulture : Culture
     {
         //Profiler.BeginSample("Culture - Update Skills");
 
-        foreach (CulturalSkill s in coreCulture.Skills.Values)
+        foreach (CulturalSkill s in coreCulture.GetSkills())
         {
             //Profiler.BeginSample("GetSkill");
 
@@ -234,13 +234,13 @@ public class FactionCulture : Culture
             }
         }
 
-        foreach (CulturalSkill s in Skills.Values)
+        foreach (CulturalSkill s in _skills.Values)
         {
             //Profiler.BeginSample("coreCulture.Skills.ContainsKey");
 
-            if (!coreCulture.Skills.ContainsKey(s.Id))
+            if (coreCulture.GetSkill(s.Id) == null)
             {
-                s.Value = (s.Value * (1f - timeFactor));
+                s.Value = s.Value * (1f - timeFactor);
             }
 
             //Profiler.EndSample();
@@ -270,7 +270,7 @@ public class FactionCulture : Culture
         //        }
         //#endif
 
-        foreach (CellCulturalKnowledge k in coreCulture.Knowledges.Values)
+        foreach (CellCulturalKnowledge k in coreCulture.GetKnowledges())
         {
             //Profiler.BeginSample("GetKnowledge");
 
@@ -307,11 +307,11 @@ public class FactionCulture : Culture
             //Profiler.EndSample();
         }
 
-        foreach (CulturalKnowledge k in Knowledges.Values)
+        foreach (CulturalKnowledge k in _knowledges.Values)
         {
             //Profiler.BeginSample("coreCulture.Skills.ContainsKey");
 
-            if (!coreCulture.Knowledges.ContainsKey(k.Id))
+            if (coreCulture.GetKnowledge(k.Id) == null)
             {
                 k.Value = (int)(k.Value * (1f - timeFactor));
             }

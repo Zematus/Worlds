@@ -19,9 +19,9 @@ public class TerrainCellAlteration
     [XmlAttribute("BR")]
     public float BaseRainfallValue;
 
-    [XmlAttribute("OT")]
+    [XmlAttribute("BTO")]
     public float BaseTemperatureOffset;
-    [XmlAttribute("OR")]
+    [XmlAttribute("BRO")]
     public float BaseRainfallOffset;
 
     [XmlAttribute("A")]

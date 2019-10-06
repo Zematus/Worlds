@@ -22,31 +22,31 @@ public abstract class Polity : ISynchronizable
 
     public const string CanFormPolityAttribute = "CAN_FORM_POLITY:";
 
-    [XmlAttribute("CGrpId")]
+    [XmlAttribute("GId")]
     public long CoreGroupId;
 
-    [XmlAttribute("TotalAdmCost")]
+    [XmlAttribute("AC")]
     public float TotalAdministrativeCost_Internal = 0; // This is public to be XML-serializable (I know there are more proper solutions. I'm just being lazy)
 
-    [XmlAttribute("TotalPop")]
+    [XmlAttribute("P")]
     public float TotalPopulation_Internal = 0; // This is public to be XML-serializable (I know there are more proper solutions. I'm just being lazy)
 
-    [XmlAttribute("PromArea")]
+    [XmlAttribute("A")]
     public float ProminenceArea_Internal = 0; // This is public to be XML-serializable (I know there are more proper solutions. I'm just being lazy)
 
-    [XmlAttribute("NeedCen")]
+    [XmlAttribute("NC")]
     public bool NeedsNewCensus = true;
 
-    [XmlAttribute("FctnCount")]
-    public int FactionCount { get; private set; }
+    [XmlAttribute("FC")]
+    public int FactionCount { get; set; }
 
-    [XmlAttribute("StilPres")]
+    [XmlAttribute("SP")]
     public bool StillPresent = true;
 
-    [XmlAttribute("DomFactId")]
+    [XmlAttribute("FId")]
     public long DominantFactionId;
 
-    [XmlAttribute("IsFoc")]
+    [XmlAttribute("IF")]
     public bool IsUnderPlayerFocus = false;
 
     public List<PolityProminenceCluster> ProminenceClusters = new List<PolityProminenceCluster>();
@@ -64,6 +64,7 @@ public abstract class Polity : ISynchronizable
 
     public List<long> EventMessageIds;
 
+    [XmlIgnore]
     public XmlSerializableDictionary<long, PolityContact> Contacts = new XmlSerializableDictionary<long, PolityContact>();
 
     public List<PolityEventData> EventDataList = new List<PolityEventData>();

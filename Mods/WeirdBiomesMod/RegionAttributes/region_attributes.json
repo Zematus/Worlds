@@ -17,6 +17,22 @@
       "phraseAssociations": ["[iv(bear,ts,past)]born,by|near,ds|dp", "[rv(ts,past)]raise:d,near,ds|dp", "[ran]swim:mer,of,ip|ns", "[rv(ts,past)]arrive:d,from,ds"]
     },
     {
+      "id": "river",
+      "name": "river",
+      "adjectives": ["clear", "dark", "blue", "red", "green", "grey"],
+      "variants": ["river{<relation>:s}"],
+      "regionConstraints": ["biome_presence_above:river,0.5"],
+      "phraseAssociations": ["[iv(bear,ts,past)]born,by|near,ds|dp", "[rv(ts,past)]raise:d,near,ds|dp", "[ran]swim:mer,of,ip|ns", "[rv(ts,past)]arrive:d,from,ds"]
+    },
+    {
+      "id": "crimson_river",
+      "name": "crimson river",
+      "adjectives": ["clear", "dark", "blue", "red", "green", "grey"],
+      "variants": ["river{<relation>:s}"],
+      "regionConstraints": ["biome_presence_above:crimsom_river,0.5"],
+      "phraseAssociations": ["[iv(bear,ts,past)]born,by|near,ds|dp", "[rv(ts,past)]raise:d,near,ds|dp", "[ran]swim:mer,of,ip|ns", "[rv(ts,past)]arrive:d,from,ds"]
+    },
+    {
       "id": "forest",
       "name": "forest",
       "adjectives": ["black", "dark", "pale", "green", "grey"],

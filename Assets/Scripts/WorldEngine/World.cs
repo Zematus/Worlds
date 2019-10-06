@@ -197,54 +197,57 @@ public class World : ISynchronizable
     public static Dictionary<string, IWorldEventGenerator> EventGenerators;
 
     [XmlAttribute]
-    public int Width { get; private set; }
+    public int Width { get; set; }
     [XmlAttribute]
-    public int Height { get; private set; }
+    public int Height { get; set; }
 
     [XmlAttribute]
-    public int Seed { get; private set; }
+    public int Seed { get; set; }
 
     [XmlAttribute]
-    public long CurrentDate { get; private set; }
+    public long CurrentDate { get; set; }
 
     [XmlAttribute]
-    public long MaxTimeToSkip { get; private set; }
+    public long MaxTimeToSkip { get; set; }
 
     [XmlAttribute]
-    public int CellGroupCount { get; private set; }
+    public int CellGroupCount { get; set; }
 
     [XmlAttribute]
-    public int MemorableAgentCount { get; private set; }
+    public int MemorableAgentCount { get; set; }
 
     [XmlAttribute]
-    public int FactionCount { get; private set; }
+    public int FactionCount { get; set; }
 
     [XmlAttribute]
-    public int PolityCount { get; private set; }
+    public int PolityCount { get; set; }
 
     [XmlAttribute]
-    public int RegionCount { get; private set; }
+    public int RegionCount { get; set; }
 
     [XmlAttribute]
-    public int LanguageCount { get; private set; }
+    public int LanguageCount { get; set; }
 
     [XmlAttribute]
-    public int TerrainCellAlterationListCount { get; private set; }
+    public int TerrainCellAlterationListCount { get; set; }
 
     [XmlAttribute]
-    public float AltitudeScale { get; private set; }
+    public float AltitudeScale { get; set; }
 
     [XmlAttribute]
-    public float SeaLevelOffset { get; private set; }
+    public float SeaLevelOffset { get; set; }
 
     [XmlAttribute]
-    public float RiverStrength { get; private set; }
+    public float RiverStrength { get; set; }
 
     [XmlAttribute]
-    public float RainfallOffset { get; private set; }
+    public float RainfallOffset { get; set; }
 
     [XmlAttribute]
-    public float TemperatureOffset { get; private set; }
+    public float TemperatureOffset { get; set; }
+
+    [XmlAttribute]
+    public int SerializedEventCount { get; set; }
 
     public List<string> ModPaths;
 
@@ -274,16 +277,19 @@ public class World : ISynchronizable
     public List<CulturalKnowledgeInfo> CulturalKnowledgeInfoList = new List<CulturalKnowledgeInfo>();
 
     public List<string> ExistingDiscoveryIds = new List<string>();
-
+    
     public List<CellGroup> CellGroups;
 
     [XmlArrayItem(Type = typeof(Agent))]
     public List<Agent> MemorableAgents;
 
+    [XmlIgnore]
     public XmlSerializableDictionary<long, FactionInfo> FactionInfos = new XmlSerializableDictionary<long, FactionInfo>();
 
+    [XmlIgnore]
     public XmlSerializableDictionary<long, PolityInfo> PolityInfos = new XmlSerializableDictionary<long, PolityInfo>();
 
+    [XmlIgnore]
     public XmlSerializableDictionary<long, RegionInfo> RegionInfos = new XmlSerializableDictionary<long, RegionInfo>();
 
     // End wonky segment 
@@ -648,6 +654,7 @@ public class World : ISynchronizable
     public void Synchronize()
     {
         EventsToHappen = _eventsToHappen.GetValues(FilterEventsToHappenNodeForSerialization, FilterEventsToHappenNodeEffect, true);
+        SerializedEventCount = EventsToHappen.Count;
 
 #if DEBUG
         Dictionary<System.Type, int> eventTypes = new Dictionary<System.Type, int>();
