@@ -101,52 +101,42 @@ public class MigratingGroup : HumanGroup
         if (!SourceGroup.StillPresent)
             return false;
 
-        Profiler.BeginSample("SourceGroup.SplitGroup");
+        //Profiler.BeginSample("SourceGroup.SplitGroup");
 
         Population = SourceGroup.SplitGroup(this);
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
         if (Population <= 0)
             return false;
 
-        Profiler.BeginSample("Culture = new BufferCulture");
+        //Profiler.BeginSample("Culture = new BufferCulture");
 
         Culture = new BufferCulture(SourceGroup.Culture);
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
-        PolityProminencesCount = SourceGroup.PolityProminences.Count;
+        PolityProminencesCount = SourceGroup.GetPolityProminences().Count;
+        int currentPPCount = PolityProminences.Count;
 
-        int minCopyCount = Mathf.Min(PolityProminencesCount, PolityProminences.Count);
-
-        IEnumerator<PolityProminence> ppEnumerator = SourceGroup.PolityProminences.Values.GetEnumerator();
-
-        for (int i = 0; i < minCopyCount; i++)
+        int i = 0;
+        foreach (PolityProminence pp in SourceGroup.GetPolityProminences())
         {
-            Profiler.BeginSample("PolityProminences[i].Set");
-
-            ppEnumerator.MoveNext();
-            PolityProminences[i].Set(ppEnumerator.Current);
-
-            Profiler.EndSample();
+            if (i < currentPPCount)
+            {
+                PolityProminences[i].Set(pp);
+            }
+            else
+            {
+                PolityProminences.Add(new PolityProminence(pp));
+            }
         }
 
-        for (int i = minCopyCount; i < PolityProminencesCount; i++)
-        {
-            Profiler.BeginSample("PolityProminences.Add");
-
-            ppEnumerator.MoveNext();
-            PolityProminences.Add(new PolityProminence(ppEnumerator.Current));
-
-            Profiler.EndSample();
-        }
-
-        Profiler.BeginSample("TryMigrateFactionCores");
+        //Profiler.BeginSample("TryMigrateFactionCores");
 
         TryMigrateFactionCores();
 
-        Profiler.EndSample();
+        //Profiler.EndSample();
 
         return true;
     }

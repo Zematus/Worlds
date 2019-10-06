@@ -1688,7 +1688,7 @@ public class Manager
 
             if (_planetOverlay == PlanetOverlay.PolityContacts)
             {
-                foreach (PolityContact contact in selectedPolity.Contacts.Values)
+                foreach (PolityContact contact in selectedPolity.GetContacts())
                 {
                     AddHighlightedCells(contact.Polity.Territory.GetCells(), CellUpdateType.Territory);
                 }
@@ -1706,7 +1706,7 @@ public class Manager
             {
                 Polity selectedPolity = territory.Polity;
 
-                foreach (PolityContact contact in selectedPolity.Contacts.Values)
+                foreach (PolityContact contact in selectedPolity.GetContacts())
                 {
                     AddHighlightedCells(contact.Polity.Territory.GetCells(), CellUpdateType.Territory);
                 }
@@ -3197,7 +3197,7 @@ public class Manager
             float totalProminenceValueFactor = 0;
 
             Color mixedPolityColor = Color.black;
-            foreach (PolityProminence p in cell.Group.PolityProminences.Values)
+            foreach (PolityProminence p in cell.Group.GetPolityProminences())
             {
                 polityCount++;
 

@@ -283,14 +283,9 @@ public class World : ISynchronizable
     [XmlArrayItem(Type = typeof(Agent))]
     public List<Agent> MemorableAgents;
 
-    [XmlIgnore]
-    public XmlSerializableDictionary<long, FactionInfo> FactionInfos = new XmlSerializableDictionary<long, FactionInfo>();
-
-    [XmlIgnore]
-    public XmlSerializableDictionary<long, PolityInfo> PolityInfos = new XmlSerializableDictionary<long, PolityInfo>();
-
-    [XmlIgnore]
-    public XmlSerializableDictionary<long, RegionInfo> RegionInfos = new XmlSerializableDictionary<long, RegionInfo>();
+    public List<FactionInfo> FactionInfos = null;
+    public List<PolityInfo> PolityInfos = null;
+    public List<RegionInfo> RegionInfos = null;
 
     // End wonky segment 
 
@@ -373,6 +368,10 @@ public class World : ISynchronizable
 
     [XmlIgnore]
     public Dictionary<string, Discovery> ExistingDiscoveries = new Dictionary<string, Discovery>();
+
+    private Dictionary<long, FactionInfo> _factionInfos = new Dictionary<long, FactionInfo>();
+    private Dictionary<long, PolityInfo> _polityInfos = new Dictionary<long, PolityInfo>();
+    private Dictionary<long, RegionInfo> _regionInfos = new Dictionary<long, RegionInfo>();
 
     private BinaryTree<long, WorldEvent> _eventsToHappen = new BinaryTree<long, WorldEvent>();
 
@@ -703,17 +702,17 @@ public class World : ISynchronizable
             a.Synchronize();
         }
 
-        foreach (FactionInfo f in FactionInfos.Values)
+        foreach (FactionInfo f in _factionInfos.Values)
         {
             f.Synchronize();
         }
 
-        foreach (PolityInfo p in PolityInfos.Values)
+        foreach (PolityInfo p in _polityInfos.Values)
         {
             p.Synchronize();
         }
 
-        foreach (RegionInfo r in RegionInfos.Values)
+        foreach (RegionInfo r in _regionInfos.Values)
         {
             r.Synchronize();
         }
@@ -739,6 +738,19 @@ public class World : ISynchronizable
         }
 
         EventMessageIds = new List<long>(_eventMessageIds);
+
+        RegionInfos = new List<RegionInfo>(_regionInfos.Values);
+        PolityInfos = new List<PolityInfo>(_polityInfos.Values);
+        FactionInfos = new List<FactionInfo>(_factionInfos.Values);
+
+        // Reload infos to make sure they appear in the same order as in the save file
+        _regionInfos.Clear();
+        _polityInfos.Clear();
+        _factionInfos.Clear();
+
+        LoadRegionInfos();
+        LoadPolityInfos();
+        LoadFactionInfos();
     }
 
     public void GetTerrainCellAlteration(TerrainCell cell)
@@ -1607,7 +1619,7 @@ public class World : ISynchronizable
 
     public void AddRegionInfo(RegionInfo regionInfo)
     {
-        RegionInfos.Add(regionInfo.Id, regionInfo);
+        _regionInfos.Add(regionInfo.Id, regionInfo);
 
         RegionCount++;
     }
@@ -1616,7 +1628,7 @@ public class World : ISynchronizable
     {
         RegionInfo regionInfo;
 
-        RegionInfos.TryGetValue(id, out regionInfo);
+        _regionInfos.TryGetValue(id, out regionInfo);
 
         return regionInfo;
     }
@@ -1642,7 +1654,7 @@ public class World : ISynchronizable
 
     public void AddFactionInfo(FactionInfo factionInfo)
     {
-        FactionInfos.Add(factionInfo.Id, factionInfo);
+        _factionInfos.Add(factionInfo.Id, factionInfo);
 
         FactionCount++;
     }
@@ -1651,7 +1663,7 @@ public class World : ISynchronizable
     {
         FactionInfo factionInfo = null;
 
-        FactionInfos.TryGetValue(id, out factionInfo);
+        _factionInfos.TryGetValue(id, out factionInfo);
 
         return factionInfo;
     }
@@ -1660,7 +1672,7 @@ public class World : ISynchronizable
     {
         FactionInfo factionInfo;
 
-        if (!FactionInfos.TryGetValue(id, out factionInfo))
+        if (!_factionInfos.TryGetValue(id, out factionInfo))
         {
             return null;
         }
@@ -1670,7 +1682,7 @@ public class World : ISynchronizable
 
     public bool ContainsFactionInfo(long id)
     {
-        return FactionInfos.ContainsKey(id);
+        return _factionInfos.ContainsKey(id);
     }
 
     public void AddFactionToSplit(Faction faction)
@@ -1762,16 +1774,19 @@ public class World : ISynchronizable
 
     public void AddPolityInfo(PolityInfo polityInfo)
     {
-        PolityInfos.Add(polityInfo.Id, polityInfo);
+        _polityInfos.Add(polityInfo.Id, polityInfo);
 
         PolityCount++;
     }
 
+    public ICollection<PolityInfo> GetPolityInfos()
+    {
+        return _polityInfos.Values;
+    }
+
     public PolityInfo GetPolityInfo(long id)
     {
-        PolityInfo polityInfo;
-
-        if (!PolityInfos.TryGetValue(id, out polityInfo))
+        if (!_polityInfos.TryGetValue(id, out PolityInfo polityInfo))
         {
             return null;
         }
@@ -1781,9 +1796,7 @@ public class World : ISynchronizable
 
     public Polity GetPolity(long id)
     {
-        PolityInfo polityInfo;
-
-        if (!PolityInfos.TryGetValue(id, out polityInfo))
+        if (!_polityInfos.TryGetValue(id, out PolityInfo polityInfo))
         {
             return null;
         }
@@ -1903,12 +1916,40 @@ public class World : ISynchronizable
         return _eventMessagesToShow.Count;
     }
 
+    private void LoadRegionInfos()
+    {
+        foreach (RegionInfo r in RegionInfos)
+        {
+            _regionInfos.Add(r.Id, r);
+        }
+    }
+
+    private void LoadPolityInfos()
+    {
+        foreach (PolityInfo pInfo in PolityInfos)
+        {
+            _polityInfos.Add(pInfo.Id, pInfo);
+        }
+    }
+
+    private void LoadFactionInfos()
+    {
+        foreach (FactionInfo fInfo in FactionInfos)
+        {
+            _factionInfos.Add(fInfo.Id, fInfo);
+        }
+    }
+
     public void FinalizeLoad(float startProgressValue, float endProgressValue, ProgressCastDelegate castProgress)
     {
         if (castProgress == null)
             castProgress = (value, message, reset) => { };
 
         float progressFactor = 1 / (endProgressValue - startProgressValue);
+
+        LoadRegionInfos();
+        LoadPolityInfos();
+        LoadFactionInfos();
 
         // Segment 1
 
@@ -1922,12 +1963,12 @@ public class World : ISynchronizable
             _languages.Add(l.Id, l);
         }
 
-        foreach (RegionInfo r in RegionInfos.Values)
+        foreach (RegionInfo r in _regionInfos.Values)
         {
             r.World = this;
         }
 
-        foreach (PolityInfo pInfo in PolityInfos.Values)
+        foreach (PolityInfo pInfo in _polityInfos.Values)
         {
             if (pInfo.Polity != null)
             {
@@ -1936,7 +1977,7 @@ public class World : ISynchronizable
             }
         }
 
-        foreach (FactionInfo fInfo in FactionInfos.Values)
+        foreach (FactionInfo fInfo in _factionInfos.Values)
         {
             if (fInfo.Faction != null)
             {
@@ -1955,7 +1996,7 @@ public class World : ISynchronizable
         // Segment 2
 
         int elementCount = 0;
-        float totalElementsFactor = progressFactor * (Languages.Count + RegionInfos.Count + FactionInfos.Count + PolityInfos.Count + CellGroups.Count + EventsToHappen.Count);
+        float totalElementsFactor = progressFactor * (Languages.Count + _regionInfos.Count + _factionInfos.Count + _polityInfos.Count + CellGroups.Count + EventsToHappen.Count);
 
         foreach (Language l in Languages)
         {
@@ -1966,7 +2007,7 @@ public class World : ISynchronizable
 
         // Segment 3
 
-        foreach (RegionInfo r in RegionInfos.Values)
+        foreach (RegionInfo r in _regionInfos.Values)
         {
             r.FinalizeLoad();
 
@@ -1975,7 +2016,7 @@ public class World : ISynchronizable
 
         // Segment 4
 
-        foreach (PolityInfo pInfo in PolityInfos.Values)
+        foreach (PolityInfo pInfo in _polityInfos.Values)
         {
             pInfo.FinalizeLoad();
 
@@ -1984,7 +2025,7 @@ public class World : ISynchronizable
 
         // Segment 5
 
-        foreach (FactionInfo fInfo in FactionInfos.Values)
+        foreach (FactionInfo fInfo in _factionInfos.Values)
         {
             fInfo.FinalizeLoad();
 

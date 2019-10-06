@@ -571,7 +571,7 @@ public class SaveLoadTest : AutomatedTest
                     Debug.Log("Number of Languages after Save " + checkStr + ": " + _afterSave_LanguageCounts[c]);
 
                     int totalCellCount = 0;
-                    foreach (PolityInfo polityInfo in _world.PolityInfos.Values)
+                    foreach (PolityInfo polityInfo in _world.GetPolityInfos())
                     {
                         if (polityInfo.Polity != null)
                             totalCellCount += polityInfo.Polity.Territory.CellPositions.Count;
@@ -1166,7 +1166,7 @@ public class SaveLoadTest : AutomatedTest
                     // Validate TerritorySizes
 
                     int totalCellCount = 0;
-                    foreach (PolityInfo polityInfo in _world.PolityInfos.Values)
+                    foreach (PolityInfo polityInfo in _world.GetPolityInfos())
                     {
                         if (polityInfo.Polity != null)
                             totalCellCount += polityInfo.Polity.Territory.CellPositions.Count;

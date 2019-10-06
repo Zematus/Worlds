@@ -1919,10 +1919,7 @@ public class CellGroup : HumanGroup
         if (rollValue > expansionChance)
             return;
 
-        float cellSurvivability = 0;
-        float cellForagingCapacity = 0;
-
-        CalculateAdaptionToCell(targetGroup.Cell, out cellForagingCapacity, out cellSurvivability);
+        CalculateAdaptionToCell(targetGroup.Cell, out float cellForagingCapacity, out float cellSurvivability);
 
         if (cellSurvivability <= 0)
             return;
@@ -2806,11 +2803,14 @@ public class CellGroup : HumanGroup
         return 0;
     }
 
+    public ICollection<PolityProminence> GetPolityProminences()
+    {
+        return _polityProminences.Values;
+    }
+
     public PolityProminence GetPolityProminence(Polity polity)
     {
-        PolityProminence polityProminence;
-
-        if (!_polityProminences.TryGetValue(polity.Id, out polityProminence))
+        if (!_polityProminences.TryGetValue(polity.Id, out PolityProminence polityProminence))
             return null;
 
         return polityProminence;
@@ -2818,9 +2818,7 @@ public class CellGroup : HumanGroup
 
     public float GetPolityProminenceValue(Polity polity)
     {
-        PolityProminence polityProminence;
-
-        if (!_polityProminences.TryGetValue(polity.Id, out polityProminence))
+        if (!_polityProminences.TryGetValue(polity.Id, out PolityProminence polityProminence))
             return 0;
 
         return polityProminence.Value;
@@ -2828,9 +2826,7 @@ public class CellGroup : HumanGroup
 
     public float GetFactionCoreDistance(Polity polity)
     {
-        PolityProminence polityProminence;
-
-        if (!_polityProminences.TryGetValue(polity.Id, out polityProminence))
+        if (!_polityProminences.TryGetValue(polity.Id, out PolityProminence polityProminence))
         {
             return float.MaxValue;
         }
@@ -2840,9 +2836,7 @@ public class CellGroup : HumanGroup
 
     public float GetPolityCoreDistance(Polity polity)
     {
-        PolityProminence polityProminence;
-
-        if (!_polityProminences.TryGetValue(polity.Id, out polityProminence))
+        if (!_polityProminences.TryGetValue(polity.Id, out PolityProminence polityProminence))
         {
             return float.MaxValue;
         }
@@ -3383,6 +3377,12 @@ public class CellGroup : HumanGroup
 
     public override void Synchronize()
     {
+        PolityProminences = new List<PolityProminence>(_polityProminences.Values);
+
+        // Reload prominences to reorder them as they would appear in the save file
+        _polityProminences.Clear();
+        LoadPolityProminences();
+
         if (HasPolityExpansionEvent && !PolityExpansionEvent.IsStillValid())
         {
             HasPolityExpansionEvent = false;
@@ -3416,9 +3416,19 @@ public class CellGroup : HumanGroup
     public static int Debug_LoadedGroups = 0;
 #endif
 
+    public void LoadPolityProminences()
+    {
+        foreach (PolityProminence p in PolityProminences)
+        {
+            _polityProminences.Add(p.PolityId, p);
+        }
+    }
+
     public override void FinalizeLoad()
     {
         base.FinalizeLoad();
+
+        LoadPolityProminences();
 
         PreferredMigrationDirection = (Direction)PreferredMigrationDirectionInt;
 

@@ -64,8 +64,7 @@ public abstract class Polity : ISynchronizable
 
     public List<long> EventMessageIds;
 
-    [XmlIgnore]
-    public XmlSerializableDictionary<long, PolityContact> Contacts = new XmlSerializableDictionary<long, PolityContact>();
+    public List<PolityContact> Contacts = null;
 
     public List<PolityEventData> EventDataList = new List<PolityEventData>();
 
@@ -194,6 +193,8 @@ public abstract class Polity : ISynchronizable
 
     private HashSet<long> _eventMessageIds = new HashSet<long>();
 
+    private Dictionary<long, PolityContact> _contacts = new Dictionary<long, PolityContact>();
+
     public Polity()
     {
 
@@ -264,7 +265,7 @@ public abstract class Polity : ISynchronizable
             Manager.UnsetFocusOnPolity(this);
         }
 
-        List<PolityContact> contacts = new List<PolityContact>(Contacts.Values);
+        List<PolityContact> contacts = new List<PolityContact>(_contacts.Values);
 
         foreach (PolityContact contact in contacts)
         {
@@ -295,7 +296,7 @@ public abstract class Polity : ISynchronizable
     {
         World world = coreGroup.World;
 
-        if (coreGroup.PolityProminences.Count <= 0)
+        if (coreGroup.GetPolityProminences().Count <= 0)
         {
             Polity polity = null;
 
@@ -506,7 +507,7 @@ public abstract class Polity : ISynchronizable
 
             SetCoreGroup(faction.CoreGroup);
 
-            foreach (PolityContact contact in Contacts.Values)
+            foreach (PolityContact contact in _contacts.Values)
             {
                 if (!faction.HasRelationship(contact.Polity.DominantFaction))
                 {
@@ -533,11 +534,11 @@ public abstract class Polity : ISynchronizable
 
     public void AddContact(Polity polity, int initialGroupCount)
     {
-        if (!Contacts.ContainsKey(polity.Id))
+        if (!_contacts.ContainsKey(polity.Id))
         {
             PolityContact contact = new PolityContact(polity, initialGroupCount);
 
-            Contacts.Add(polity.Id, contact);
+            _contacts.Add(polity.Id, contact);
 
             if (!DominantFaction.HasRelationship(polity.DominantFaction))
             {
@@ -560,22 +561,27 @@ public abstract class Polity : ISynchronizable
 
     public void RemoveContact(Polity polity)
     {
-        if (!Contacts.ContainsKey(polity.Id))
+        if (!_contacts.ContainsKey(polity.Id))
             return;
 
-        PolityContact contact = Contacts[polity.Id];
+        PolityContact contact = _contacts[polity.Id];
 
-        Contacts.Remove(polity.Id);
+        _contacts.Remove(polity.Id);
 
         SetContactUpdatedCells(polity);
     }
 
+    public ICollection<PolityContact> GetContacts()
+    {
+        return _contacts.Values;
+    }
+
     public int GetContactGroupCount(Polity polity)
     {
-        if (!Contacts.ContainsKey(polity.Id))
+        if (!_contacts.ContainsKey(polity.Id))
             return 0;
 
-        return Contacts[polity.Id].GroupCount;
+        return _contacts[polity.Id].GroupCount;
     }
 
     public static void IncreaseContactGroupCount(Polity polityA, Polity polityB)
@@ -586,11 +592,11 @@ public abstract class Polity : ISynchronizable
 
     public void IncreaseContactGroupCount(Polity polity)
     {
-        if (!Contacts.ContainsKey(polity.Id))
+        if (!_contacts.ContainsKey(polity.Id))
         {
             PolityContact contact = new PolityContact(polity);
 
-            Contacts.Add(polity.Id, contact);
+            _contacts.Add(polity.Id, contact);
 
             if (!DominantFaction.HasRelationship(polity.DominantFaction))
             {
@@ -598,7 +604,7 @@ public abstract class Polity : ISynchronizable
             }
         }
 
-        Contacts[polity.Id].GroupCount++;
+        _contacts[polity.Id].GroupCount++;
 
         SetContactUpdatedCells(polity);
     }
@@ -611,16 +617,16 @@ public abstract class Polity : ISynchronizable
 
     public void DecreaseContactGroupCount(Polity polity)
     {
-        if (!Contacts.ContainsKey(polity.Id))
+        if (!_contacts.ContainsKey(polity.Id))
             throw new System.Exception("(id: " + Id + ") contact not present: " + polity.Id + " - Date: " + World.CurrentDate);
 
-        PolityContact contact = Contacts[polity.Id];
+        PolityContact contact = _contacts[polity.Id];
 
         contact.GroupCount--;
 
         if (contact.GroupCount <= 0)
         {
-            Contacts.Remove(polity.Id);
+            _contacts.Remove(polity.Id);
         }
 
         SetContactUpdatedCells(polity);
@@ -628,7 +634,7 @@ public abstract class Polity : ISynchronizable
 
     public float GetRelationshipValue(Polity polity)
     {
-        if (!Contacts.ContainsKey(polity.Id))
+        if (!_contacts.ContainsKey(polity.Id))
             throw new System.Exception("(id: " + Id + ") contact not present: " + polity.Id);
 
         return DominantFaction.GetRelationshipValue(polity.DominantFaction);
@@ -1054,6 +1060,12 @@ public abstract class Polity : ISynchronizable
 
         Name.Synchronize();
 
+        Contacts = new List<PolityContact>(_contacts.Values);
+
+        // Reload contacts to ensure order is equal to that in the save file
+        _contacts.Clear();
+        LoadContacts();
+
         EventMessageIds = new List<long>(_eventMessageIds);
     }
 
@@ -1083,8 +1095,18 @@ public abstract class Polity : ISynchronizable
         return faction;
     }
 
-    public virtual void FinalizeLoad()
+    private void LoadContacts()
     {
+        foreach (PolityContact contact in Contacts)
+        {
+            _contacts.Add(contact.Id, contact);
+        }
+    }
+
+public virtual void FinalizeLoad()
+    {
+        LoadContacts();
+
         foreach (long messageId in EventMessageIds)
         {
             _eventMessageIds.Add(messageId);
@@ -1125,7 +1147,7 @@ public abstract class Polity : ISynchronizable
         Culture.Polity = this;
         Culture.FinalizeLoad();
 
-        foreach (PolityContact contact in Contacts.Values)
+        foreach (PolityContact contact in _contacts.Values)
         {
             contact.Polity = World.GetPolity(contact.Id);
 
@@ -1451,12 +1473,12 @@ public abstract class Polity : ISynchronizable
 
     public PolityContact GetRandomPolityContact(int rngOffset, PolityContactValueCalculationDelegate calculateContactValue, bool nullIfNoValidContact = false)
     {
-        WeightedPolityContact[] weightedContacts = new WeightedPolityContact[Contacts.Count];
+        WeightedPolityContact[] weightedContacts = new WeightedPolityContact[_contacts.Count];
 
         float totalWeight = 0;
 
         int index = 0;
-        foreach (PolityContact contact in Contacts.Values)
+        foreach (PolityContact contact in _contacts.Values)
         {
             float weight = calculateContactValue(contact);
 
@@ -1522,12 +1544,12 @@ public abstract class Polity : ISynchronizable
 
     public float CalculateContactStrength(Polity polity)
     {
-        if (!Contacts.ContainsKey(polity.Id))
+        if (!_contacts.ContainsKey(polity.Id))
         {
             return 0;
         }
 
-        return CalculateContactStrength(Contacts[polity.Id]);
+        return CalculateContactStrength(_contacts[polity.Id]);
     }
 
     public float CalculateContactStrength(PolityContact contact)

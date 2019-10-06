@@ -390,7 +390,7 @@ public class InfoPanelScript : MonoBehaviour
 
         bool firstPolity = true;
 
-        List<PolityProminence> polityProminences = new List<PolityProminence>(cell.Group.PolityProminences.Values);
+        List<PolityProminence> polityProminences = new List<PolityProminence>(cell.Group.GetPolityProminences());
 
         polityProminences.Sort((a, b) =>
         {
@@ -461,7 +461,7 @@ public class InfoPanelScript : MonoBehaviour
         InfoText.text += "\nTranslates to: " + polity.Name.Meaning;
         InfoText.text += "\n";
 
-        if (polity.Contacts.Count <= 0)
+        if (polity.GetContacts().Count <= 0)
         {
             InfoText.text += "\nPolity has no contact with other polities...";
         }
@@ -470,7 +470,7 @@ public class InfoPanelScript : MonoBehaviour
             InfoText.text += "\nPolities in contact:";
         }
 
-        foreach (PolityContact contact in polity.Contacts.Values)
+        foreach (PolityContact contact in polity.GetContacts())
         {
             Polity contactPolity = contact.Polity;
 
@@ -688,7 +688,7 @@ public class InfoPanelScript : MonoBehaviour
 
         bool firstPolity = true;
 
-        List<PolityProminence> polityProminences = new List<PolityProminence>(cell.Group.PolityProminences.Values);
+        List<PolityProminence> polityProminences = new List<PolityProminence>(cell.Group.GetPolityProminences());
 
         polityProminences.Sort((a, b) =>
         {
