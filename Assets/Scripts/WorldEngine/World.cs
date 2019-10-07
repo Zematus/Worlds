@@ -287,9 +287,9 @@ public class World : ISynchronizable
     public List<PolityInfo> PolityInfos = null;
     public List<RegionInfo> RegionInfos = null;
 
-    // End wonky segment 
+    public List<Language> Languages = null;
 
-    public List<Language> Languages;
+    // End wonky segment 
 
     public List<long> EventMessageIds;
 
@@ -718,6 +718,10 @@ public class World : ISynchronizable
         }
 
         Languages = new List<Language>(_languages.Values);
+
+        // Reload languages to make sure they are in the same order as in the save file
+        _languages.Clear();
+        LoadLanguages();
 
         foreach (Language l in Languages)
         {
@@ -1610,9 +1614,7 @@ public class World : ISynchronizable
 
     public Language GetLanguage(long id)
     {
-        Language language;
-
-        _languages.TryGetValue(id, out language);
+        _languages.TryGetValue(id, out Language language);
 
         return language;
     }
@@ -1940,7 +1942,15 @@ public class World : ISynchronizable
         }
     }
 
-    public void FinalizeLoad(float startProgressValue, float endProgressValue, ProgressCastDelegate castProgress)
+    private void LoadLanguages()
+    {
+        foreach (Language l in Languages)
+        {
+            _languages.Add(l.Id, l);
+        }
+    }
+
+public void FinalizeLoad(float startProgressValue, float endProgressValue, ProgressCastDelegate castProgress)
     {
         if (castProgress == null)
             castProgress = (value, message, reset) => { };
@@ -1958,10 +1968,7 @@ public class World : ISynchronizable
             _eventMessageIds.Add(messageId);
         }
 
-        foreach (Language l in Languages)
-        {
-            _languages.Add(l.Id, l);
-        }
+        LoadLanguages();
 
         foreach (RegionInfo r in _regionInfos.Values)
         {

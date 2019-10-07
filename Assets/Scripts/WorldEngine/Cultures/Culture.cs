@@ -380,6 +380,7 @@ public class Culture : ISynchronizable
             Language = World.GetLanguage(LanguageId);
         }
 
+        PrefinalizePropertiesLoad();
         FinalizePropertiesLoad();
     }
 
@@ -415,15 +416,16 @@ public class Culture : ISynchronizable
         }
     }
 
-    public virtual void FinalizePropertiesLoad()
+    public virtual void PrefinalizePropertiesLoad()
     {
         LoadPreferences();
         LoadActivities();
         LoadSkills();
         LoadKnowledges();
+    }
 
-        /////
-
+    public void FinalizePropertiesLoad()
+    {
         foreach (CulturalPreference p in Preferences)
         {
             p.FinalizeLoad();

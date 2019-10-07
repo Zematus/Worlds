@@ -111,7 +111,7 @@ public class Clan : Faction
             rngOffset += unchecked((int)parentFaction.Id);
 
         GetRandomIntDelegate getRandomInt = (int maxValue) => Polity.GetNextLocalRandomInt(rngOffset++, maxValue);
-        Language.GetRandomFloatDelegate getRandomFloat = () => Polity.GetNextLocalRandomFloat(rngOffset++);
+        GetRandomFloatDelegate getRandomFloat = () => Polity.GetNextLocalRandomFloat(rngOffset++);
 
         Language language = Polity.Culture.Language;
         Region region = CoreGroup.Cell.Region;

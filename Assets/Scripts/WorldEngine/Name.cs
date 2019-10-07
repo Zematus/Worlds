@@ -111,7 +111,7 @@ public class Name : ISynchronizable
     [XmlIgnore]
     public Language Language;
 
-    public Language.Phrase Value
+    public Phrase Value
     {
         get
         {
@@ -124,7 +124,7 @@ public class Name : ISynchronizable
         }
     }
 
-    private Language.Phrase _value = null;
+    private Phrase _value = null;
 
     public Name()
     {

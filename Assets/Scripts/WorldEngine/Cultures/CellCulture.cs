@@ -747,8 +747,10 @@ public class CellCulture : Culture
         base.Synchronize();
     }
 
-    public override void FinalizePropertiesLoad()
+    public override void PrefinalizePropertiesLoad()
     {
+        base.PrefinalizePropertiesLoad();
+
         foreach (CellCulturalPreference p in _preferences.Values)
         {
             p.Group = Group;
@@ -768,7 +770,5 @@ public class CellCulture : Culture
         {
             k.Group = Group;
         }
-
-        base.FinalizePropertiesLoad();
     }
 }
