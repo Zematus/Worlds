@@ -2011,6 +2011,7 @@ public class World : ISynchronizable
         foreach (CellGroup g in CellGroups)
         {
             g.World = this;
+            g.PrefinalizeLoad();
 
             _cellGroups.Add(g.Id, g);
         }
@@ -2060,7 +2061,7 @@ public class World : ISynchronizable
         CellGroup.Debug_LoadedGroups = 0;
 #endif
 
-        foreach (CellGroup g in CellGroups)
+        foreach (CellGroup g in _cellGroups.Values)
         {
             g.FinalizeLoad();
 

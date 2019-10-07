@@ -3424,11 +3424,14 @@ public class CellGroup : HumanGroup
         }
     }
 
+    public void PrefinalizeLoad()
+    {
+        LoadPolityProminences();
+    }
+
     public override void FinalizeLoad()
     {
         base.FinalizeLoad();
-
-        LoadPolityProminences();
 
         PreferredMigrationDirection = (Direction)PreferredMigrationDirectionInt;
 
