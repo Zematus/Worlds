@@ -40,17 +40,17 @@ public class CellCulture : Culture
     {
         Group = group;
 
-        foreach (CulturalPreference p in sourceCulture.Preferences.Values)
+        foreach (CulturalPreference p in sourceCulture.GetPreferences())
         {
             AddPreference(CellCulturalPreference.CreateCellInstance(group, p));
         }
 
-        foreach (CulturalActivity a in sourceCulture.Activities.Values)
+        foreach (CulturalActivity a in sourceCulture.GetActivities())
         {
             AddActivity(CellCulturalActivity.CreateCellInstance(group, a));
         }
 
-        foreach (CulturalSkill s in sourceCulture.Skills.Values)
+        foreach (CulturalSkill s in sourceCulture.GetSkills())
         {
             AddSkill(CellCulturalSkill.CreateCellInstance(group, s));
         }
@@ -60,7 +60,7 @@ public class CellCulture : Culture
             AddDiscovery(d);
         }
 
-        foreach (CulturalKnowledge k in sourceCulture.Knowledges.Values)
+        foreach (CulturalKnowledge k in sourceCulture.GetKnowledges())
         {
             //#if DEBUG
             //                if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
@@ -234,7 +234,7 @@ public class CellCulture : Culture
         }
 #endif
 
-        foreach (CulturalPreference p in sourceCulture.Preferences.Values)
+        foreach (CulturalPreference p in sourceCulture.GetPreferences())
         {
             CellCulturalPreference preference = GetAcquiredPreferenceOrToAcquire(p.Id);
 
@@ -251,7 +251,7 @@ public class CellCulture : Culture
             }
         }
 
-        foreach (CulturalActivity a in sourceCulture.Activities.Values)
+        foreach (CulturalActivity a in sourceCulture.GetActivities())
         {
             CellCulturalActivity activity = GetPerformedActivityOrToPerform(a.Id);
 
@@ -268,7 +268,7 @@ public class CellCulture : Culture
             }
         }
 
-        foreach (CulturalSkill s in sourceCulture.Skills.Values)
+        foreach (CulturalSkill s in sourceCulture.GetSkills())
         {
             CellCulturalSkill skill = GetLearnedSkillOrToLearn(s.Id);
 
@@ -285,7 +285,7 @@ public class CellCulture : Culture
             }
         }
 
-        foreach (CulturalKnowledge k in sourceCulture.Knowledges.Values)
+        foreach (CulturalKnowledge k in sourceCulture.GetKnowledges())
         {
             CellCulturalKnowledge knowledge = TryAddKnowledgeToLearn(k.Id, 0);
             knowledge.Merge(k.Value, percentage);
@@ -299,22 +299,22 @@ public class CellCulture : Culture
 
     public void Update(long timeSpan)
     {
-        foreach (CellCulturalPreference preference in Preferences.Values)
+        foreach (CellCulturalPreference preference in _preferences.Values)
         {
             preference.Update(timeSpan);
         }
 
-        foreach (CellCulturalActivity activity in Activities.Values)
+        foreach (CellCulturalActivity activity in _activities.Values)
         {
             activity.Update(timeSpan);
         }
 
-        foreach (CellCulturalSkill skill in Skills.Values)
+        foreach (CellCulturalSkill skill in _skills.Values)
         {
             skill.Update(timeSpan);
         }
 
-        foreach (CellCulturalKnowledge knowledge in Knowledges.Values)
+        foreach (CellCulturalKnowledge knowledge in _knowledges.Values)
         {
             knowledge.Update(timeSpan);
         }
@@ -324,7 +324,7 @@ public class CellCulture : Culture
     {
         PolityCulture polityCulture = polityProminence.Polity.Culture;
 
-        foreach (CulturalPreference polityPreference in polityCulture.Preferences.Values)
+        foreach (CulturalPreference polityPreference in polityCulture.GetPreferences())
         {
             CellCulturalPreference cellPreference = GetAcquiredPreferenceOrToAcquire(polityPreference.Id);
 
@@ -337,7 +337,7 @@ public class CellCulture : Culture
             cellPreference.AddPolityProminenceEffect(polityPreference, polityProminence, timeSpan);
         }
 
-        foreach (CulturalActivity polityActivity in polityCulture.Activities.Values)
+        foreach (CulturalActivity polityActivity in polityCulture.GetActivities())
         {
             CellCulturalActivity cellActivity = GetPerformedActivityOrToPerform(polityActivity.Id);
 
@@ -350,7 +350,7 @@ public class CellCulture : Culture
             cellActivity.AddPolityProminenceEffect(polityActivity, polityProminence, timeSpan);
         }
 
-        foreach (CulturalSkill politySkill in polityCulture.Skills.Values)
+        foreach (CulturalSkill politySkill in polityCulture.GetSkills())
         {
             CellCulturalSkill cellSkill = GetLearnedSkillOrToLearn(politySkill.Id);
 
@@ -363,7 +363,7 @@ public class CellCulture : Culture
             cellSkill.AddPolityProminenceEffect(politySkill, polityProminence, timeSpan);
         }
 
-        foreach (CulturalKnowledge polityKnowledge in polityCulture.Knowledges.Values)
+        foreach (CulturalKnowledge polityKnowledge in polityCulture.GetKnowledges())
         {
 //#if DEBUG
 //            if (Manager.RegisterDebugEvent != null)
@@ -515,14 +515,14 @@ public class CellCulture : Culture
 
     public void PostUpdateAttributeValues()
     {
-        foreach (CellCulturalPreference preference in Preferences.Values)
+        foreach (CellCulturalPreference preference in _preferences.Values)
         {
             preference.PostUpdate();
         }
 
         float totalActivityValue = 0;
 
-        foreach (CellCulturalActivity activity in Activities.Values)
+        foreach (CellCulturalActivity activity in _activities.Values)
         {
             activity.PostUpdate();
             totalActivityValue += activity.Value;
@@ -533,7 +533,7 @@ public class CellCulture : Culture
             }
         }
 
-        foreach (CellCulturalActivity activity in Activities.Values)
+        foreach (CellCulturalActivity activity in _activities.Values)
         {
             if (totalActivityValue > 0)
             {
@@ -541,16 +541,16 @@ public class CellCulture : Culture
             }
             else
             {
-                activity.Contribution = 1f / Activities.Count;
+                activity.Contribution = 1f / _activities.Count;
             }
         }
 
-        foreach (CellCulturalSkill skill in Skills.Values)
+        foreach (CellCulturalSkill skill in _skills.Values)
         {
             skill.PostUpdate();
         }
 
-        foreach (CellCulturalKnowledge knowledge in Knowledges.Values)
+        foreach (CellCulturalKnowledge knowledge in _knowledges.Values)
         {
 //#if DEBUG
 //            if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
@@ -626,7 +626,7 @@ public class CellCulture : Culture
     {
         CulturalKnowledge knowledge = null;
 
-        if (!Knowledges.TryGetValue(knowledgeId, out knowledge))
+        if (!_knowledges.TryGetValue(knowledgeId, out knowledge))
         {
             Debug.LogWarning("CellCulture: Trying to remove knowledge that is not present: " + knowledgeId);
 
@@ -640,7 +640,7 @@ public class CellCulture : Culture
     {
         CulturalActivity activity = null;
 
-        if (!Activities.TryGetValue(activityId, out activity))
+        if (!_activities.TryGetValue(activityId, out activity))
         {
             Debug.LogWarning("CellCulture: Trying to remove activity that is not present: " + activityId);
 
@@ -654,7 +654,7 @@ public class CellCulture : Culture
     {
         CulturalSkill skill = null;
 
-        if (!Skills.TryGetValue(skillId, out skill))
+        if (!_skills.TryGetValue(skillId, out skill))
         {
             Debug.LogWarning("CellCulture: Trying to remove skill that is not present: " + skillId);
 
@@ -668,7 +668,7 @@ public class CellCulture : Culture
     {
         float minAdaptationLevel = 1f;
 
-        foreach (CellCulturalSkill skill in Skills.Values)
+        foreach (CellCulturalSkill skill in _skills.Values)
         {
             float level = skill.AdaptationLevel;
 
@@ -685,7 +685,7 @@ public class CellCulture : Culture
     {
         float minProgressLevel = 1f;
 
-        foreach (CellCulturalKnowledge knowledge in Knowledges.Values)
+        foreach (CellCulturalKnowledge knowledge in _knowledges.Values)
         {
 //#if DEBUG
 //            if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
@@ -734,12 +734,12 @@ public class CellCulture : Culture
 
     public override void Synchronize()
     {
-        foreach (CellCulturalSkill s in Skills.Values)
+        foreach (CellCulturalSkill s in _skills.Values)
         {
             s.Synchronize();
         }
 
-        foreach (CellCulturalKnowledge k in Knowledges.Values)
+        foreach (CellCulturalKnowledge k in _knowledges.Values)
         {
             k.Synchronize();
         }
@@ -747,28 +747,28 @@ public class CellCulture : Culture
         base.Synchronize();
     }
 
-    public override void FinalizePropertiesLoad()
+    public override void PrefinalizePropertiesLoad()
     {
-        foreach (CellCulturalPreference p in Preferences.Values)
+        base.PrefinalizePropertiesLoad();
+
+        foreach (CellCulturalPreference p in _preferences.Values)
         {
             p.Group = Group;
         }
 
-        foreach (CellCulturalActivity a in Activities.Values)
+        foreach (CellCulturalActivity a in _activities.Values)
         {
             a.Group = Group;
         }
 
-        foreach (CellCulturalSkill s in Skills.Values)
+        foreach (CellCulturalSkill s in _skills.Values)
         {
             s.Group = Group;
         }
 
-        foreach (CellCulturalKnowledge k in Knowledges.Values)
+        foreach (CellCulturalKnowledge k in _knowledges.Values)
         {
             k.Group = Group;
         }
-
-        base.FinalizePropertiesLoad();
     }
 }

@@ -13,6 +13,7 @@ public interface IFilterableValue
 /// NOTE: Do not use this class nor any unsorted collection derived from it to perform random element selection as the future order of elements might change after a reload
 ////////////////////////////
 
+[System.Obsolete]
 public class XmlSerializableFilterableDictionary<TKey, TValue> : Dictionary<TKey, TValue>, IXmlSerializable where TValue : IKeyedValue<TKey>, IFilterableValue
 {
     public XmlSchema GetSchema()

@@ -16,11 +16,6 @@ Example: '[SQ]([INV]<factor>)'
 
 Here's a list of the current types of factors (more to be added in future versions) and how they work:
 
-- 'neighborhood_sea_presence'
-    Calculates the total amount of sea-type biomes present in the target cell and all neighboring cells surrounding the cell. The factor's value will fall within the range of 0 (no sea presence in the target cell nor any surrounding cell) and 1 (all 9 cells have 100% sea-type biome presence)
-
-    Examples: 'neighborhood_sea_presence', '[INV]neighborhood_sea_presence'
-
 - 'cell_accessibility'
     Returns the accessibility (i.e. how accessible the terrain is) of the terrain cell as a value between 0 and 1
 
@@ -41,19 +36,39 @@ Here's a list of the current types of factors (more to be added in future versio
 
     Examples: 'cell_survivability', '[INV]cell_survivability'
 
-- 'cell_biome_presence'
-    Returns the presence of a particular biome (i.e. percentage of area in cell covered by such biome) of the terrain cell as a value between 0 and 1
-
-    Examples: 'cell_biome_presence:forest', '[INV]cell_biome_presence:desert'
-
 - 'cell_hilliness'
     Returns the hilliness (i.e. how hilly the terrain is) of the terrain cell as a value between 0 and 1
 
     Examples: 'cell_hilliness', '[INV]cell_hilliness'
 
-- 'cell_wood_coverage'
-    Returns the wood coverage (i.e. the total amount of biome presence on a cell with the 'wood' trait) of the terrain cell as a value between 0 and 1
+- 'cell_flowing_water'
+    Returns the amount of flowing water on the terrain cell, divided by the 'max_flowing_water' parameter (a value between 10 and 100000), as a value between 0 and 1
 
-    Examples: 'cell_wood_coverage', '[INV]cell_wood_coverage'
+    Examples: 'cell_flowing_water:2000', '[INV]cell_flowing_water:5000'
+
+- 'cell_biome_presence'
+    Returns the presence of a particular biome (i.e. percentage of area in cell covered by such biome) of the terrain cell as a value between 0 and 1
+
+    Examples: 'cell_biome_presence:forest', '[INV]cell_biome_presence:desert'
+
+- 'cell_biome_type_presence'
+    Returns the presence of a particular biome type (i.e. percentage of area in cell covered by biomes of said type) of the terrain cell as a value between 0 and 1
+
+    Examples: 'cell_biome_type_presence:water', '[INV]cell_biome_type_presence:land'
+
+- 'neighborhood_biome_type_presence'
+    Calculates the total amount of biomes of a particular type present in the target cell and all neighboring cells surrounding the cell. The factor's value will fall within the range of 0 (no type presence in the target cell nor any surrounding cell) and 1 (all 9 cells have 100% biome presence of type)
+
+    Examples: 'neighborhood_biome_type_presence:water', '[INV]neighborhood_biome_type_presence:ice'
+
+- 'cell_biome_trait_presence'
+    Returns the presence of a particular biome trait (ie. 'wood', 'sea') of the terrain cell as a value between 0 and 1
+
+    Examples: 'cell_biome_trait_presence:sea', '[INV]cell_biome_trait_presence:wood'
+
+- 'neighborhood_biome_ttrait_presence'
+    Calculates the total presence of a particular biome trait in the target cell and all neighboring cells surrounding the cell. The factor's value will fall within the range of 0 (no trait presence in the target cell nor any surrounding cell) and 1 (all 9 cells have 100% biome presence of trait)
+
+    Examples: 'neighborhood_biome_trait_presence:sea', '[INV]neighborhood_biome_trait_presence:wood'
 
 --

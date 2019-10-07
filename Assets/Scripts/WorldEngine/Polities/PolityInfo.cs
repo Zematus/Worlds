@@ -20,9 +20,9 @@ public class PolityInfo : ISynchronizable, IKeyedValue<long>
 
 	[XmlAttribute]
 	public long Id;
-
-	public Name Name;
-
+    
+    public Name Name;
+    
     public Polity Polity;
 
     private string _nameFormat;

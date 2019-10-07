@@ -28,7 +28,7 @@ public class LanguageGenerationTest : AutomatedTest
 
             entry += "\nArticle properties: " + Language.AdjunctionPropertiesToString(language.ArticleAdjunctionProperties);
             entry += "\nArticles:";
-            foreach (Language.Morpheme word in language.Articles)
+            foreach (Morpheme word in language.Articles)
             {
                 entry += "\n    " + word.Meaning + " : " + word.Value;
             }
@@ -42,7 +42,7 @@ public class LanguageGenerationTest : AutomatedTest
 
             entry += "\nNoun indicative properties: " + Language.AdjunctionPropertiesToString(language.NounIndicativeAdjunctionProperties);
             entry += "\nNoun indicatives:";
-            foreach (Language.Morpheme word in language.NounIndicatives)
+            foreach (Morpheme word in language.NounIndicatives)
             {
                 entry += "\n    " + word.Meaning + " : " + word.Value;
             }
@@ -56,7 +56,7 @@ public class LanguageGenerationTest : AutomatedTest
 
             entry += "\nVerb indicative properties: " + Language.AdjunctionPropertiesToString(language.VerbIndicativeAdjunctionProperties);
             entry += "\nVerb indicatives:";
-            foreach (Language.Morpheme word in language.VerbIndicatives)
+            foreach (Morpheme word in language.VerbIndicatives)
             {
                 entry += "\n    " + word.Meaning + " : " + word.Value;
             }
@@ -79,7 +79,7 @@ public class LanguageGenerationTest : AutomatedTest
             entry += "\n";
 
             string untranslatedPhrase = "[PpPP]([NP](the [in(woman)][fn]women) [PP](from [NP](a town)))";
-            Language.Phrase translatedPhrase = language.TranslatePhrase(untranslatedPhrase);
+            Phrase translatedPhrase = language.TranslatePhrase(untranslatedPhrase);
             language.LocalizePhrase(translatedPhrase);
 
             entry += "\n\t" + translatedPhrase.Text + " (" + translatedPhrase.Meaning + ")";
@@ -130,28 +130,28 @@ public class LanguageGenerationTest : AutomatedTest
             ///
 
             entry += "\nGenerated adpositions:";
-            foreach (Language.Morpheme word in language.Adpositions)
+            foreach (Morpheme word in language.Adpositions)
             {
                 entry += "\n    " + word.Meaning + " : " + word.Value;
             }
             entry += "\n";
 
             entry += "\nGenerated adjectives:";
-            foreach (Language.Morpheme word in language.Adjectives)
+            foreach (Morpheme word in language.Adjectives)
             {
                 entry += "\n    " + word.Meaning + " : " + word.Value;
             }
             entry += "\n";
 
             entry += "\nGenerated verbs:";
-            foreach (Language.Morpheme word in language.Verbs)
+            foreach (Morpheme word in language.Verbs)
             {
                 entry += "\n    " + word.Meaning + " : " + word.Value;
             }
             entry += "\n";
 
             entry += "\nGenerated nouns:";
-            foreach (Language.Morpheme word in language.Nouns)
+            foreach (Morpheme word in language.Nouns)
             {
                 entry += "\n    " + word.Meaning + " : " + word.Value;
             }

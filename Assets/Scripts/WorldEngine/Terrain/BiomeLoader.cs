@@ -35,7 +35,9 @@ public class BiomeLoader
         public string altitudeSaturationSlope;
         public string minRainfall;
         public string maxRainfall;
-        public string rainfallSaturationSlope;
+        public string minFlowingWater;
+        public string maxFlowingWater;
+        public string waterSaturationSlope;
         public string minTemperature;
         public string maxTemperature;
         public string temperatureSaturationSlope;
@@ -69,6 +71,11 @@ public class BiomeLoader
         if (string.IsNullOrEmpty(b.name))
         {
             throw new ArgumentException("biome name can't be null or empty");
+        }
+
+        if (string.IsNullOrEmpty(b.color))
+        {
+            throw new ArgumentException("biome color can't be null or empty");
         }
 
         if (string.IsNullOrEmpty(b.type))
@@ -112,8 +119,11 @@ public class BiomeLoader
             case "land":
                 biome.TerrainType = BiomeTerrainType.Land;
                 break;
-            case "sea":
-                biome.TerrainType = BiomeTerrainType.Sea;
+            case "water":
+                biome.TerrainType = BiomeTerrainType.Water;
+                break;
+            case "ice":
+                biome.TerrainType = BiomeTerrainType.Ice;
                 break;
             default:
                 throw new ArgumentException("Unknown biome terrain type: " + b.type);
@@ -123,14 +133,10 @@ public class BiomeLoader
         {
             foreach (string trait in b.traits)
             {
-                switch (trait.ToLower())
-                {
-                    case "wood":
-                        biome.Traits.Add(BiomeTrait.Wood);
-                        break;
-                    default:
-                        throw new ArgumentException("Unknown biome trait: " + trait);
-                }
+                string traitId = trait.Trim().ToLower();
+
+                biome.Traits.Add(traitId);
+                Biome.AllTraits.Add(traitId);
             }
         }
 
@@ -225,21 +231,55 @@ public class BiomeLoader
             biome.MinRainfall = Biome.MinBiomeRainfall;
         }
 
-        if (b.rainfallSaturationSlope != null)
+        if (b.maxFlowingWater != null)
         {
-            if (!float.TryParse(b.rainfallSaturationSlope, out biome.RainSaturationSlope))
+            if (!float.TryParse(b.maxFlowingWater, out biome.MaxFlowingWater))
             {
-                throw new ArgumentException("Invalid rainfallSaturationSlope value: " + b.rainfallSaturationSlope);
+                throw new ArgumentException("Invalid minFlowingWater value: " + b.maxFlowingWater);
             }
 
-            if (!biome.RainSaturationSlope.IsInsideRange(0.001f, 1000))
+            if (!biome.MaxRainfall.IsInsideRange(Biome.MinBiomeFlowingWater, Biome.MaxBiomeFlowingWater))
             {
-                throw new ArgumentException("rainfallSaturationSlope must be a value between 0.001 and 1000");
+                throw new ArgumentException("minFlowingWater must be a value between " + Biome.MinBiomeFlowingWater + " and " + Biome.MaxBiomeFlowingWater);
             }
         }
         else
         {
-            biome.RainSaturationSlope = 1;
+            biome.MaxFlowingWater = Biome.MaxBiomeFlowingWater;
+        }
+
+        if (b.minFlowingWater != null)
+        {
+            if (!float.TryParse(b.minFlowingWater, out biome.MinFlowingWater))
+            {
+                throw new ArgumentException("Invalid minFlowingWater value: " + b.minFlowingWater);
+            }
+
+            if (!biome.MinRainfall.IsInsideRange(Biome.MinBiomeFlowingWater, Biome.MaxBiomeFlowingWater))
+            {
+                throw new ArgumentException("minFlowingWater must be a value between " + Biome.MinBiomeFlowingWater + " and " + Biome.MaxBiomeFlowingWater);
+            }
+        }
+        else
+        {
+            biome.MinFlowingWater = Biome.MinBiomeFlowingWater;
+        }
+
+        if (b.waterSaturationSlope != null)
+        {
+            if (!float.TryParse(b.waterSaturationSlope, out biome.WaterSaturationSlope))
+            {
+                throw new ArgumentException("Invalid waterSaturationSlope value: " + b.waterSaturationSlope);
+            }
+
+            if (!biome.WaterSaturationSlope.IsInsideRange(0.001f, 1000))
+            {
+                throw new ArgumentException("waterSaturationSlope must be a value between 0.001 and 1000");
+            }
+        }
+        else
+        {
+            biome.WaterSaturationSlope = 1;
         }
 
         if (b.maxTemperature != null)

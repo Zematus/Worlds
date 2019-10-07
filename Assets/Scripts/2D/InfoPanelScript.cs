@@ -85,10 +85,11 @@ public class InfoPanelScript : MonoBehaviour
         InfoText.text += "\n";
         InfoText.text += "\n -- Cell Terrain Data -- ";
         InfoText.text += "\n";
-
+        
         InfoText.text += "\nArea: " + cellArea + " Km^2";
         InfoText.text += "\nAltitude: " + cell.Altitude + " meters";
         InfoText.text += "\nRainfall: " + cell.Rainfall + " mm / year";
+        InfoText.text += "\nWater Accumulation: " + cell.WaterAccumulation + " mm";
         InfoText.text += "\nTemperature: " + cell.Temperature + " C";
         InfoText.text += "\n";
 
@@ -110,12 +111,12 @@ public class InfoPanelScript : MonoBehaviour
 
         InfoText.text += "\nBiomes:";
 
-        float farmlandPerc = cell.FarmlandPercentage;
-        float wildPerc = 1 - farmlandPerc;
+        float farmlandPercent = cell.FarmlandPercentage;
+        float wildernessPercent = 1 - farmlandPercent;
 
         for (int i = 0; i < cell.PresentBiomeIds.Count; i++)
         {
-            float percentage = cell.BiomePresences[i] * wildPerc;
+            float percentage = cell.BiomePresences[i] * wildernessPercent;
 
             Biome biome = Biome.Biomes[cell.PresentBiomeIds[i]];
 
@@ -123,10 +124,10 @@ public class InfoPanelScript : MonoBehaviour
             InfoText.text += " (" + percentage.ToString("P") + ")";
         }
 
-        if (farmlandPerc > 0)
+        if (farmlandPercent > 0)
         {
             InfoText.text += "\n\tFarmland:";
-            InfoText.text += " (" + farmlandPerc.ToString("P") + ")";
+            InfoText.text += " (" + farmlandPercent.ToString("P") + ")";
         }
 
         InfoText.text += "\n";
@@ -139,7 +140,6 @@ public class InfoPanelScript : MonoBehaviour
         if (cell.Arability != cell.BaseArability)
             InfoText.text += "\nOriginal Arability: " + cell.BaseArability.ToString("P");
         InfoText.text += "\nHilliness: " + cell.Hilliness.ToString("P");
-        InfoText.text += "\nWood Coverage: " + (cell.WoodCoverage * wildPerc).ToString("P");
         InfoText.text += "\n";
 
         Region region = cell.Region;
@@ -194,11 +194,12 @@ public class InfoPanelScript : MonoBehaviour
 
         InfoText.text += "\n";
         InfoText.text += "\nCoast Percentage: " + region.CoastPercentage.ToString("P");
-        InfoText.text += "\nSea Percentage: " + region.SeaPercentage.ToString("P");
+        InfoText.text += "\nWater Percentage: " + region.WaterPercentage.ToString("P");
 
         InfoText.text += "\n";
         InfoText.text += "\nAverage Altitude: " + region.AverageAltitude + " meters";
         InfoText.text += "\nAverage Rainfall: " + region.AverageRainfall + " mm / year";
+        InfoText.text += "\nAverage Flowing Water: " + region.AverageFlowingWater + " mm";
         InfoText.text += "\nAverage Temperature: " + region.AverageTemperature + " C";
         InfoText.text += "\n";
 
@@ -389,7 +390,7 @@ public class InfoPanelScript : MonoBehaviour
 
         bool firstPolity = true;
 
-        List<PolityProminence> polityProminences = new List<PolityProminence>(cell.Group.PolityProminences.Values);
+        List<PolityProminence> polityProminences = new List<PolityProminence>(cell.Group.GetPolityProminences());
 
         polityProminences.Sort((a, b) =>
         {
@@ -460,7 +461,7 @@ public class InfoPanelScript : MonoBehaviour
         InfoText.text += "\nTranslates to: " + polity.Name.Meaning;
         InfoText.text += "\n";
 
-        if (polity.Contacts.Count <= 0)
+        if (polity.GetContacts().Count <= 0)
         {
             InfoText.text += "\nPolity has no contact with other polities...";
         }
@@ -469,7 +470,7 @@ public class InfoPanelScript : MonoBehaviour
             InfoText.text += "\nPolities in contact:";
         }
 
-        foreach (PolityContact contact in polity.Contacts.Values)
+        foreach (PolityContact contact in polity.GetContacts())
         {
             Polity contactPolity = contact.Polity;
 
@@ -687,7 +688,7 @@ public class InfoPanelScript : MonoBehaviour
 
         bool firstPolity = true;
 
-        List<PolityProminence> polityProminences = new List<PolityProminence>(cell.Group.PolityProminences.Values);
+        List<PolityProminence> polityProminences = new List<PolityProminence>(cell.Group.GetPolityProminences());
 
         polityProminences.Sort((a, b) =>
         {
@@ -759,7 +760,7 @@ public class InfoPanelScript : MonoBehaviour
 
         bool firstPreference = true;
 
-        foreach (CulturalPreference preference in polityProminence.Polity.Culture.Preferences.Values)
+        foreach (CulturalPreference preference in polityProminence.Polity.Culture.GetPreferences())
         {
             if (firstPreference)
             {
@@ -805,7 +806,7 @@ public class InfoPanelScript : MonoBehaviour
 
         bool firstActivity = true;
 
-        foreach (CulturalActivity activity in polityProminence.Polity.Culture.Activities.Values)
+        foreach (CulturalActivity activity in polityProminence.Polity.Culture.GetActivities())
         {
             if (firstActivity)
             {
@@ -842,7 +843,7 @@ public class InfoPanelScript : MonoBehaviour
 
         bool firstPreference = true;
 
-        foreach (CulturalPreference preference in cell.Group.Culture.Preferences.Values)
+        foreach (CulturalPreference preference in cell.Group.Culture.GetPreferences())
         {
             if (firstPreference)
             {
@@ -879,7 +880,7 @@ public class InfoPanelScript : MonoBehaviour
 
         bool firstActivity = true;
 
-        foreach (CulturalActivity activity in cell.Group.Culture.Activities.Values)
+        foreach (CulturalActivity activity in cell.Group.Culture.GetActivities())
         {
             if (firstActivity)
             {
@@ -925,7 +926,7 @@ public class InfoPanelScript : MonoBehaviour
 
         bool firstSkill = true;
 
-        foreach (CulturalSkill skill in polityProminence.Polity.Culture.Skills.Values)
+        foreach (CulturalSkill skill in polityProminence.Polity.Culture.GetSkills())
         {
             float skillValue = skill.Value;
 
@@ -967,7 +968,7 @@ public class InfoPanelScript : MonoBehaviour
 
         bool firstSkill = true;
 
-        foreach (CulturalSkill skill in cell.Group.Culture.Skills.Values)
+        foreach (CulturalSkill skill in cell.Group.Culture.GetSkills())
         {
             float skillValue = skill.Value;
 
@@ -1018,7 +1019,7 @@ public class InfoPanelScript : MonoBehaviour
 
         bool firstKnowledge = true;
 
-        foreach (CulturalKnowledge knowledge in polityProminence.Polity.Culture.Knowledges.Values)
+        foreach (CulturalKnowledge knowledge in polityProminence.Polity.Culture.GetKnowledges())
         {
             float knowledgeValue = knowledge.ScaledValue;
 
@@ -1057,7 +1058,7 @@ public class InfoPanelScript : MonoBehaviour
 
         bool firstKnowledge = true;
 
-        foreach (CulturalKnowledge knowledge in cell.Group.Culture.Knowledges.Values)
+        foreach (CulturalKnowledge knowledge in cell.Group.Culture.GetKnowledges())
         {
             float knowledgeValue = knowledge.ScaledValue;
 
@@ -1165,10 +1166,11 @@ public class InfoPanelScript : MonoBehaviour
 
         if ((Manager.PlanetOverlay == PlanetOverlay.None) ||
             (Manager.PlanetOverlay == PlanetOverlay.Rainfall) ||
+            (Manager.PlanetOverlay == PlanetOverlay.DrainageBasins) ||
             (Manager.PlanetOverlay == PlanetOverlay.Arability) ||
             (Manager.PlanetOverlay == PlanetOverlay.Accessibility) ||
             (Manager.PlanetOverlay == PlanetOverlay.Hilliness) ||
-            (Manager.PlanetOverlay == PlanetOverlay.WoodCoverage) ||
+            (Manager.PlanetOverlay == PlanetOverlay.BiomeTrait) ||
             (Manager.PlanetOverlay == PlanetOverlay.Layer) ||
             (Manager.PlanetOverlay == PlanetOverlay.Temperature))
         {

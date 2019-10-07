@@ -26,8 +26,8 @@
       "arability": 0.0
     },
     {
-      "id": "ocean",
-      "name": "ocean",
+      "id": "sea",
+      "name": "sea",
       "color": "#7B0C9D",
       "type": "sea",
       "maxAltitude": 0,

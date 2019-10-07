@@ -6,14 +6,15 @@
       "color": "#F10082",
       "noiseScale": 0.6,
       "secondaryNoiseInfluence": 0.3,
-      "maxPossibleValue": 100,
+      "maxPossibleValue": 50,
       "frequency": 0.7,
       "minAltitude": 0,
-      "altitudeSaturationSlope": 1000,
+      "altitudeSaturationSlope": 100,
       "minRainfall": 1375,
-      "rainfallSaturationSlope": 2,
+      "minFlowingWater": 1375,
+      "waterSaturationSlope": 1,
       "minTemperature": -20,
-      "temperatureSaturationSlope": 2
+      "temperatureSaturationSlope": 1
     },
     {
       "id": "necrosilica",
@@ -21,7 +22,7 @@
       "color": "#AE0022",
       "noiseScale": 1,
       "secondaryNoiseInfluence": 0.2,
-      "maxPossibleValue": 100,
+      "maxPossibleValue": 20,
       "frequency": 0.45
     }
   ]

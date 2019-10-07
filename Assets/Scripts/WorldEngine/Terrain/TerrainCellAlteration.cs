@@ -19,17 +19,23 @@ public class TerrainCellAlteration
     [XmlAttribute("BR")]
     public float BaseRainfallValue;
 
-    [XmlAttribute("OT")]
+    [XmlAttribute("BTO")]
     public float BaseTemperatureOffset;
-    [XmlAttribute("OR")]
+    [XmlAttribute("BRO")]
     public float BaseRainfallOffset;
 
     [XmlAttribute("A")]
     public float Altitude;
+    [XmlAttribute("OA")]
+    public float OriginalAltitude;
     [XmlAttribute("T")]
     public float Temperature;
+    [XmlAttribute("OT")]
+    public float OriginalTemperature;
     [XmlAttribute("R")]
     public float Rainfall;
+    [XmlAttribute("W")]
+    public float WaterAccumulation;
 
     [XmlAttribute("Fp")]
     public float FarmlandPercentage = 0;
@@ -65,9 +71,12 @@ public class TerrainCellAlteration
         BaseTemperatureOffset = cell.BaseTemperatureOffset;
         BaseRainfallOffset = cell.BaseRainfallOffset;
 
+        OriginalAltitude = cell.OriginalAltitude;
         Altitude = cell.Altitude;
         Temperature = cell.Temperature;
+        OriginalTemperature = cell.OriginalTemperature;
         Rainfall = cell.Rainfall;
+        WaterAccumulation = cell.WaterAccumulation;
         
         FarmlandPercentage = cell.FarmlandPercentage;
         Accessibility = cell.Accessibility;

@@ -10,7 +10,7 @@ public class TempLevelControlPanelScript : RegenControlPanelScript
 
     public override void ResetSliderControls()
     {
-        SliderControlsScript.MinValue = -40 - World.AvgPossibleTemperature;
+        SliderControlsScript.MinValue = -50 - World.AvgPossibleTemperature;
         SliderControlsScript.MaxValue = 50 + World.AvgPossibleTemperature;
         SliderControlsScript.DefaultValue = World.AvgPossibleTemperature;
 

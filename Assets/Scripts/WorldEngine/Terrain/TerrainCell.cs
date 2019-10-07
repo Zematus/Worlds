@@ -46,7 +46,7 @@ public enum CellUpdateSubType
     MembershipAndCore = Membership | Core
 }
 
-public class TerrainCell : ISynchronizable
+public class TerrainCell
 {
 #if DEBUG
 
@@ -60,147 +60,120 @@ public class TerrainCell : ISynchronizable
     public const int MaxNeighborDirections = 8;
     public const int NeighborSearchOffset = 3;
 
-    public const int MaxNeighborhoodSeaPresence = 9;
+    public const int MaxNeighborhoodCellCount = 9;
 
     public const float HillinessSlopeFactor = 0.01f;
 
-    [XmlAttribute]
     public bool Modified = false; // This will be true if the cell has been modified after/during generation by using a heighmap, using the map editor, or by running the simulation
 
-    [XmlAttribute]
     public int Longitude;
-    [XmlAttribute]
     public int Latitude;
 
-    [XmlAttribute]
     public float Height;
-    [XmlAttribute]
     public float Width;
 
-    [XmlAttribute]
     public float BaseAltitudeValue;
-    [XmlAttribute]
     public float BaseRainfallValue;
-    [XmlAttribute]
     public float BaseTemperatureValue;
-    
-    [XmlAttribute]
+
     public float BaseRainfallOffset;
-    [XmlAttribute]
     public float BaseTemperatureOffset;
 
-    [XmlAttribute]
+    public float OriginalAltitude;
     public float Altitude;
-    [XmlAttribute]
     public float Rainfall;
-    [XmlAttribute]
     public float Temperature;
+    public float OriginalTemperature;
 
-    [XmlAttribute]
+    public float WaterAccumulation = 0;
+    public float Buffer = 0;
+    public float Buffer2 = 0;
+    public float Buffer3 = 0;
+    public int RiverId = -1;
+    public float RiverLength = 0;
+    public bool DrainageDone = false;
+
+    public float FlowingWater
+    {
+        get
+        {
+            return WaterAccumulation - Rainfall;
+        }
+    }
+
     public float Survivability;
-    [XmlAttribute]
     public float ForagingCapacity;
-    [XmlAttribute]
     public float BaseAccessibility;
-    [XmlAttribute]
     public float BaseArability;
-    [XmlAttribute]
     public float Hilliness;
-    [XmlAttribute]
-    public float WoodCoverage;
-
-    [XmlAttribute]
+    
     public bool IsPartOfCoastline;
-
-    [XmlAttribute]
+    
     public float FarmlandPercentage = 0;
-    [XmlAttribute]
     public float Arability = 0;
-    [XmlAttribute]
     public float Accessibility = 0;
-
-    [XmlAttribute]
+    
     public string BiomeWithMostPresence = null;
-    [XmlAttribute]
     public float MostBiomePresence = 0;
 
     public static float MaxArea;
-
     public static float MaxWidth;
 
     public List<string> PresentBiomeIds = new List<string>();
     public List<float> BiomePresences = new List<float>();
+    public List<float> BiomeAbsPresences = new List<float>();
 
     public List<string> PresentLayerIds = new List<string>();
     public List<CellLayerData> LayerData = new List<CellLayerData>();
 
     public CellGroup Group;
-
-    [XmlIgnore]
+    
     public float Alpha;
-    [XmlIgnore]
     public float Beta;
+    
+    public List<string> PresentWaterBiomeIds = new List<string>();
+    
+    public float WaterBiomePresence = 0;
 
-    [XmlIgnore]
-    public List<string> PresentSeaBiomeIds = new List<string>();
-
-    [XmlIgnore]
-    public float SeaBiomePresence = 0;
-
-    private float? _neighborhoodSeaBiomePresence = null;
-
-    [XmlIgnore]
-    public float NeighborhoodSeaBiomePresence
+    private float? _neighborhoodWaterBiomePresence = null;
+    
+    public float NeighborhoodWaterBiomePresence
     {
         get {
-            if (_neighborhoodSeaBiomePresence == null)
+            if (_neighborhoodWaterBiomePresence == null)
             {
-                _neighborhoodSeaBiomePresence = SeaBiomePresence;
+                _neighborhoodWaterBiomePresence = WaterBiomePresence;
 
                 foreach (TerrainCell nCell in Neighbors.Values)
                 {
-                    _neighborhoodSeaBiomePresence += nCell.SeaBiomePresence;
+                    _neighborhoodWaterBiomePresence += nCell.WaterBiomePresence;
                 }
             }
 
-            return _neighborhoodSeaBiomePresence.Value;
+            return _neighborhoodWaterBiomePresence.Value;
         }
     }
 
-    [XmlIgnore]
     public WorldPosition Position;
-
-    [XmlIgnore]
+    
     public Region Region = null;
-
-    [XmlIgnore]
+    
     public Territory EncompassingTerritory = null;
-
-    [XmlIgnore]
+    
     public List<Route> CrossingRoutes = new List<Route>();
-
-    [XmlIgnore]
+    
     public bool HasCrossingRoutes = false;
-
-    [XmlIgnore]
+    
     public float Area;
-
-    [XmlIgnore]
     public float MaxAreaPercent;
-
-    [XmlIgnore]
+    
     public World World;
-
-    [XmlIgnore]
+    
     public bool IsSelected = false;
-
-    [XmlIgnore]
+    
     public List<TerrainCell> RainfallDependentCells = new List<TerrainCell>();
-
-    [XmlIgnore]
+    
     public Dictionary<Direction, TerrainCell> Neighbors { get; private set; }
-
-    [XmlIgnore]
     public Dictionary<Direction, float> NeighborDistances { get; private set; }
 
     private Dictionary<string, float> _biomePresences = new Dictionary<string, float>();
@@ -227,6 +200,14 @@ public class TerrainCell : ISynchronizable
 
         Area = height * width;
         MaxAreaPercent = Area / MaxArea;
+    }
+
+    public static int CompareOriginalAltitude(TerrainCell a, TerrainCell b)
+    {
+        if (a.OriginalAltitude > b.OriginalAltitude) return -1;
+        if (a.OriginalAltitude < b.OriginalAltitude) return 1;
+
+        return 0;
     }
 
     public static Direction ReverseDirection(Direction dir)
@@ -306,10 +287,13 @@ public class TerrainCell : ISynchronizable
 
         BaseTemperatureOffset = alteration.BaseTemperatureOffset;
         BaseRainfallOffset = alteration.BaseRainfallOffset;
-
+        
+        OriginalAltitude = alteration.OriginalAltitude;
         Altitude = alteration.Altitude;
         Temperature = alteration.Temperature;
+        OriginalTemperature = alteration.OriginalTemperature;
         Rainfall = alteration.Rainfall;
+        WaterAccumulation = alteration.WaterAccumulation;
 
         FarmlandPercentage = alteration.FarmlandPercentage;
         Accessibility = alteration.Accessibility;
@@ -427,39 +411,90 @@ public class TerrainCell : ISynchronizable
     public void ResetBiomes()
     {
         PresentBiomeIds.Clear();
-        PresentSeaBiomeIds.Clear();
+        PresentWaterBiomeIds.Clear();
         BiomePresences.Clear();
 
         _biomePresences.Clear();
 
-        SeaBiomePresence = 0;
+        WaterBiomePresence = 0;
         MostBiomePresence = 0;
         BiomeWithMostPresence = null;
     }
 
-    public float GetBiomePresence(Biome biome)
-    {
-        return GetBiomePresence(biome.Id);
-    }
-
-    public void AddBiomePresence(Biome biome, float presence)
+    public void AddBiomeRelPresence(Biome biome, float relPresence)
     {
         PresentBiomeIds.Add(biome.Id);
-        BiomePresences.Add(presence);
+        BiomePresences.Add(relPresence);
 
-        if (biome.TerrainType == BiomeTerrainType.Sea)
+        if (biome.TerrainType == BiomeTerrainType.Water)
         {
-            PresentSeaBiomeIds.Add(biome.Id);
-            SeaBiomePresence += presence;
+            PresentWaterBiomeIds.Add(biome.Id);
+            WaterBiomePresence += relPresence;
         }
 
-        _biomePresences[biome.Id] = presence;
+        _biomePresences[biome.Id] = relPresence;
 
-        if (MostBiomePresence < presence)
+        if (MostBiomePresence < relPresence)
         {
-            MostBiomePresence = presence;
+            MostBiomePresence = relPresence;
             BiomeWithMostPresence = biome.Id;
         }
+    }
+
+    public float GetBiomeTypePresence(BiomeTerrainType type)
+    {
+        float typePresence = 0;
+
+        for (int i = 0; i < PresentBiomeIds.Count; i++)
+        {
+            Biome biome = Biome.Biomes[PresentBiomeIds[i]];
+
+            if (biome.TerrainType == type)
+
+            typePresence += BiomePresences[i];
+        }
+
+        return typePresence;
+    }
+
+    public float GetNeighborhoodBiomeTypePresence(BiomeTerrainType type)
+    {
+        float presence = GetBiomeTypePresence(type);
+
+        foreach (TerrainCell nCell in Neighbors.Values)
+        {
+            presence += nCell.GetBiomeTypePresence(type);
+        }
+
+        return presence;
+    }
+
+    public float GetBiomeTraitPresence(string trait)
+    {
+        float traitPresence = 0;
+
+        for (int i = 0; i < PresentBiomeIds.Count; i++)
+        {
+            Biome biome = Biome.Biomes[PresentBiomeIds[i]];
+
+            if (biome.Traits.Contains(trait))
+
+                traitPresence += BiomePresences[i];
+        }
+
+        return traitPresence;
+    }
+
+    public float GetNeighborhoodBiomeTraitPresence(string trait)
+    {
+        float presence = GetBiomeTraitPresence(trait);
+
+        foreach (TerrainCell nCell in Neighbors.Values)
+        {
+            presence += nCell.GetBiomeTraitPresence(trait);
+        }
+
+        return presence;
     }
 
     public float GetBiomePresence(string biomeId)
@@ -562,52 +597,6 @@ public class TerrainCell : ISynchronizable
         return data.Value;
     }
 
-    public void Synchronize()
-    {
-    }
-
-    public void FinalizeLoad()
-    {
-        Position = new WorldPosition(Longitude, Latitude);
-
-        Alpha = (Latitude / (float)World.Height) * Mathf.PI;
-        Beta = (Longitude / (float)World.Width) * Mathf.PI * 2;
-
-        for (int i = 0; i < PresentBiomeIds.Count; i++)
-        {
-            string biomeId = PresentBiomeIds[i];
-
-            _biomePresences[biomeId] = BiomePresences[i];
-
-            Biome biome = Biome.Biomes[biomeId];
-
-            if (biome.TerrainType == BiomeTerrainType.Sea)
-            {
-                PresentSeaBiomeIds.Add(biomeId);
-                SeaBiomePresence += BiomePresences[i];
-            }
-        }
-
-        for (int i = 0; i < PresentLayerIds.Count; i++)
-        {
-            string layerId = PresentLayerIds[i];
-
-            _layerData[layerId] = LayerData[i];
-        }
-
-        InitializeNeighbors();
-
-        if (Group != null)
-        {
-            Group.World = World;
-            Group.Cell = this;
-
-            World.AddGroup(Group);
-
-            Group.FinalizeLoad();
-        }
-    }
-
     public void InitializeNeighbors()
     {
         SetNeighborCells();
@@ -695,11 +684,11 @@ public class TerrainCell : ISynchronizable
 
     private bool FindIfCoastline()
     {
-        if (Altitude <= 0)
+        if (WaterBiomePresence > 0.5f)
         {
             foreach (TerrainCell nCell in Neighbors.Values)
             {
-                if (nCell.Altitude > 0)
+                if (nCell.WaterBiomePresence < 0.5f)
                     return true;
             }
         }
@@ -707,7 +696,7 @@ public class TerrainCell : ISynchronizable
         {
             foreach (TerrainCell nCell in Neighbors.Values)
             {
-                if (nCell.Altitude <= 0)
+                if (nCell.WaterBiomePresence >= 0.5f)
                     return true;
             }
         }

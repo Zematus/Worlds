@@ -172,7 +172,7 @@ public class Route : ISynchronizable
 
             AddCell(nextCell);
 
-            if (nextCell.SeaBiomePresence <= 0)
+            if (nextCell.WaterBiomePresence <= 0)
                 break;
 
             LastCell = nextCell;
@@ -340,14 +340,14 @@ public class Route : ISynchronizable
             if (Cells.Contains(nCell))
                 continue;
 
-            float seaPresence = nCell.SeaBiomePresence;
+            float waterPresence = nCell.WaterBiomePresence;
 
-            float weight = seaPresence;
+            float weight = waterPresence;
 
             if (nCell.IsPartOfCoastline)
                 weight *= _currentCoastPreference;
 
-            weight += (1f - seaPresence) * _currentEndRoutePreference;
+            weight += (1f - waterPresence) * _currentEndRoutePreference;
 
             coastalCellWeights.Add(new CoastalCellValue(nPair, weight));
 

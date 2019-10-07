@@ -51,10 +51,10 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge
 
     public void CalculateNeighborhoodSeaPresence()
     {
-        _neighborhoodSeaPresence = CalculateNeighborhoodSeaPresenceIn(Group);
+        _neighborhoodSeaPresence = CalculateNeighborhoodWaterPresenceIn(Group);
     }
 
-    public static float CalculateNeighborhoodSeaPresenceIn(CellGroup group)
+    public static float CalculateNeighborhoodWaterPresenceIn(CellGroup group)
     {
         float neighborhoodPresence;
 
@@ -63,11 +63,11 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge
 
         TerrainCell groupCell = group.Cell;
 
-        float totalPresence = groupCell.SeaBiomePresence * groupCellBonus;
+        float totalPresence = groupCell.WaterBiomePresence * groupCellBonus;
 
         foreach (TerrainCell c in groupCell.Neighbors.Values)
         {
-            totalPresence += c.SeaBiomePresence;
+            totalPresence += c.WaterBiomePresence;
             cellCount++;
         }
 

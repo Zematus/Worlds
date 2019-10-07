@@ -5,6 +5,8 @@
       "name": "fungi",
       "color": "#F15CF8",
       "type": "land",
+      "traits": ["mussirio"],
+      "maxFlowingWater": 7700,
       "survivability": 0.4,
       "foragingCapacity": 0.6,
       "accessibility": 0.4,
@@ -13,7 +15,8 @@
       "layerConstraints": [
         {
           "layerId": "mycosystem",
-          "minValue": 0
+          "minValue": 1,
+          "saturationSlope": 0.1
         },
         {
           "layerId": "necrosilica",
@@ -26,6 +29,7 @@
       "name": "black fungi",
       "color": "#000000",
       "type": "land",
+      "maxFlowingWater": 7700,
       "survivability": 0.0,
       "foragingCapacity": 0.0,
       "accessibility": 0.4,
@@ -34,19 +38,21 @@
       "layerConstraints": [
         {
           "layerId": "mycosystem",
-          "minValue": 0
+          "minValue": 1,
+          "saturationSlope": 0.1
         },
         {
           "layerId": "necrosilica",
-          "minValue": 0
+          "minValue": 1
         }
       ]
     },
     {
-      "id": "crimson_ocean",
-      "name": "crimson ocean",
+      "id": "crimson_sea",
+      "name": "crimson sea",
       "color": "#B01900",
-      "type": "sea",
+      "type": "water",
+      "traits": ["sea"],
       "maxAltitude": 0,
       "minTemperature": -15,
       "survivability": 0.0,
@@ -57,7 +63,27 @@
       "layerConstraints": [
         {
           "layerId": "necrosilica",
-          "minValue": 0
+          "minValue": 1
+        }
+      ]
+    },
+    {
+      "id": "crimsom_river",
+      "name": "crimsom river",
+      "color": "#B01900",
+      "type": "water",
+      "minAltitude": 0,
+      "minFlowingWater": 4700,
+      "minTemperature": -20,
+      "survivability": 0.0,
+      "foragingCapacity": 0.0,
+      "accessibility": 0.0,
+      "arability": 0.0,
+
+      "layerConstraints": [
+        {
+          "layerId": "necrosilica",
+          "minValue": 1
         }
       ]
     },
@@ -70,6 +96,8 @@
       "minAltitude": 0,
       "minRainfall": 1375,
       "maxRainfall": 2975,
+      "minFlowingWater": 1375,
+      "maxFlowingWater": 2975,
       "minTemperature": -10,
       "survivability": 0.2,
       "foragingCapacity": 0.3,
@@ -83,7 +111,7 @@
         },
         {
           "layerId": "necrosilica",
-          "minValue": 0,
+          "minValue": 1,
           "maxValue": 8
         }
       ]
@@ -96,6 +124,8 @@
       "traits": ["wood"],
       "minAltitude": 0,
       "minRainfall": 1375,
+      "minFlowingWater": 1375,
+      "maxFlowingWater": 7700,
       "minTemperature": -20,
       "maxTemperature": 0,
       "survivability": 0.1,
@@ -110,7 +140,7 @@
         },
         {
           "layerId": "necrosilica",
-          "minValue": 0,
+          "minValue": 1,
           "maxValue": 8
         }
       ]
@@ -121,6 +151,8 @@
       "color": "#DC143C",
       "type": "land",
       "minAltitude": 0,
+      "maxRainfall": 7700,
+      "maxFlowingWater": 7700,
       "minTemperature": -10,
       "survivability": 0.0,
       "foragingCapacity": 0.0,
@@ -134,7 +166,7 @@
         },
         {
           "layerId": "necrosilica",
-          "minValue": 0
+          "minValue": 1
         }
       ]
     },
@@ -144,6 +176,8 @@
       "color": "#ec3b83",
       "type": "land",
       "minAltitude": 0,
+      "maxRainfall": 7700,
+      "maxFlowingWater": 7700,
       "maxTemperature": 0,
       "survivability": 0.0,
       "foragingCapacity": 0.0,
@@ -157,7 +191,7 @@
         },
         {
           "layerId": "necrosilica",
-          "minValue": 0
+          "minValue": 1
         }
       ]
     }

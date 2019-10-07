@@ -9,6 +9,7 @@ public interface IKeyedValue<TKey>
     TKey GetKey();
 }
 
+[System.Obsolete]
 public class XmlSerializableDictionary<TKey, TValue> : Dictionary<TKey, TValue>, IXmlSerializable where TValue : IKeyedValue<TKey>
 {
     private void Recreate(TValue[] values)

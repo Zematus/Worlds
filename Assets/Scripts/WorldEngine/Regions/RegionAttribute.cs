@@ -18,9 +18,9 @@ public class RegionAttribute
 
         public bool Secondary { get { return RegionAttribute.Secondary; } }
 
-        public string GetRandomVariation(GetRandomIntDelegate getRandomInt, Element filterElement = null, bool filterRelationTagged = true)
+        public string GetRandomVariation(GetRandomIntDelegate getRandomInt, bool filterRelationTagged = true)
         {
-            return RegionAttribute.GetRandomVariation(getRandomInt, filterElement, filterRelationTagged);
+            return RegionAttribute.GetRandomVariation(getRandomInt, filterRelationTagged);
         }
 
         public string GetRandomSingularVariation(GetRandomIntDelegate getRandomInt, bool filterRelationTagged = true)
@@ -97,31 +97,6 @@ public class RegionAttribute
         Secondary = secondary;
     }
 
-    public string GetRandomVariation(GetRandomIntDelegate getRandomInt, Element filterElement = null, bool filterRelationTagged = true)
-    {
-        IEnumerable<Variation> filteredVariations;
-
-        if (filterElement != null)
-        {
-            filteredVariations = Variations.Where(v => !v.Text.Contains(filterElement.SingularName));
-        }
-        else if (filterRelationTagged)
-        {
-            filteredVariations = Variations.Where(v => !v.Tags.Contains(RelationTag));
-        }
-        else
-        {
-            filteredVariations = Variations;
-        }
-
-        if (filteredVariations == null)
-        {
-            throw new System.NullReferenceException();
-        }
-
-        return filteredVariations.RandomSelect(getRandomInt).Text;
-    }
-
     public string GetRandomVariation(GetRandomIntDelegate getRandomInt, string filterStr, bool filterRelationTagged = true)
     {
         IEnumerable<Variation> filteredVariations = Variations;
@@ -159,7 +134,7 @@ public class RegionAttribute
 
         if (filterRelationTagged)
         {
-            filteredVariations = Variations.Where(v => !v.Tags.Contains(RegionAttribute.RelationTag));
+            filteredVariations = Variations.Where(v => !v.Tags.Contains(RelationTag));
         }
 
         return filteredVariations.RandomSelect(getRandomInt).Text;
@@ -171,7 +146,7 @@ public class RegionAttribute
 
         if (filterRelationTagged)
         {
-            filteredVariations = Variations.Where(v => !v.Tags.Contains(RegionAttribute.RelationTag));
+            filteredVariations = Variations.Where(v => !v.Tags.Contains(RelationTag));
         }
 
         return filteredVariations.RandomSelect(getRandomInt).Text;

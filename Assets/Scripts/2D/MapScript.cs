@@ -7,8 +7,15 @@ using System.Collections;
 public class MapScript : MonoBehaviour
 {
     public RawImage MapImage;
+    public RawImage MapOverlayImage;
+    public RawImage MapActivityImage;
     public RawImage PointerOverlayImage;
     public GameObject InfoPanel;
+
+    public ShaderSettingsScript ShaderSettings;
+
+    public Material DefaultMaterial;
+    public Material DrainageMaterial;
 
     private bool _isDraggingMap = false;
     private Vector2 _beginDragPosition;
@@ -19,6 +26,12 @@ public class MapScript : MonoBehaviour
     private const float _zoomDeltaFactor = 0.05f;
 
     private float _zoomFactor = 1.0f;
+
+    void Start()
+    {
+        // Prevent material (asset) from being overwritten
+        MapImage.material = new Material(MapImage.material); //TODO: Doesn't work, but only a problem in Unity3D Editor
+    }
 
     // Update is called once per frame
     void Update()
@@ -56,17 +69,38 @@ public class MapScript : MonoBehaviour
     public void SetVisible(bool state)
     {
         MapImage.enabled = state;
+        MapOverlayImage.enabled = state;
+        MapActivityImage.enabled = state;
         PointerOverlayImage.enabled = state;
-    }
-
-    public bool IsVisible()
-    {
-        return MapImage.enabled;
     }
 
     public void RefreshTexture()
     {
         MapImage.texture = Manager.CurrentMapTexture;
+        MapOverlayImage.texture = Manager.CurrentMapOverlayTexture;
+        MapActivityImage.texture = Manager.CurrentMapActivityTexture;
+
+        if ((Manager.PlanetOverlay == PlanetOverlay.None) ||
+            (Manager.PlanetOverlay == PlanetOverlay.General))
+        {
+            MapImage.material.SetColor("_Color", ShaderSettings.DefaultColor);
+            MapImage.material.SetFloat("_EffectAmount", ShaderSettings.DefaultGrayness);
+        }
+        else
+        {
+            MapImage.material.SetColor("_Color", ShaderSettings.SubduedColor);
+            MapImage.material.SetFloat("_EffectAmount", ShaderSettings.SubduedGrayness);
+        }
+
+        if (Manager.AnimationShadersEnabled && (Manager.PlanetOverlay == PlanetOverlay.DrainageBasins))
+        {
+            MapOverlayImage.material = DrainageMaterial;
+            MapOverlayImage.material.SetTexture("_LengthTex", Manager.CurrentMapOverlayShaderInfoTexture);
+        }
+        else
+        {
+            MapOverlayImage.material = DefaultMaterial;
+        }
     }
 
     public void EnablePointerOverlay(bool state)
@@ -113,6 +147,8 @@ public class MapScript : MonoBehaviour
     private void SetUvRect(Rect newUvRect)
     {
         MapImage.uvRect = newUvRect;
+        MapOverlayImage.uvRect = newUvRect;
+        MapActivityImage.uvRect = newUvRect;
         PointerOverlayImage.uvRect = newUvRect;
     }
 

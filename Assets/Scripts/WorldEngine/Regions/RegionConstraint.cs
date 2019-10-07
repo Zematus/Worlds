@@ -18,6 +18,8 @@ public class RegionConstraint
         RainfallBelow,
         TemperatureAbove,
         TemperatureBelow,
+        FlowingWaterAbove,
+        FlowingWaterBelow,
         BiomePresenceAbove,
         BiomePresenceBelow,
         LayerValueAbove,
@@ -125,6 +127,20 @@ public class RegionConstraint
                     throw new System.ArgumentException("Invalid constraint temperature_below value: " + temperature_below);
 
                 return new RegionConstraint() { Type = ConstraintType.TemperatureBelow, Value = temperature_below };
+
+            case "flowing_water_above":
+                float flowing_water_above;
+                if (!float.TryParse(valueStr, out flowing_water_above))
+                    throw new System.ArgumentException("Invalid constraint flowing_water_above value: " + flowing_water_above);
+
+                return new RegionConstraint() { Type = ConstraintType.FlowingWaterAbove, Value = flowing_water_above };
+
+            case "flowing_water_below":
+                float flowing_water_below;
+                if (!float.TryParse(valueStr, out flowing_water_below))
+                    throw new System.ArgumentException("Invalid constraint flowing_water_below value: " + flowing_water_below);
+
+                return new RegionConstraint() { Type = ConstraintType.FlowingWaterBelow, Value = flowing_water_below };
 
             case "biome_presence_above":
                 string[] valueStrs = valueStr.Split(new char[] { ',' });
@@ -300,6 +316,12 @@ public class RegionConstraint
 
             case ConstraintType.TemperatureBelow:
                 return region.AverageTemperature < (float)Value;
+
+            case ConstraintType.FlowingWaterAbove:
+                return region.AverageFlowingWater >= (float)Value;
+
+            case ConstraintType.FlowingWaterBelow:
+                return region.AverageFlowingWater < (float)Value;
 
             case ConstraintType.BiomePresenceAbove:
                 IdentifierValuePair biomePresencePair = (IdentifierValuePair)Value;

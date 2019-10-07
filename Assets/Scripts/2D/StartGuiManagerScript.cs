@@ -178,10 +178,11 @@ public class StartGuiManagerScript : MonoBehaviour
     public void PostProgressOp_LoadAction()
     {
         Debug.Log(string.Format(
-            "Finished loading world. Seed: {0}, Altitude Scale: {1}, Sea Level Offset: {2}, Avg. Temperature: {3}, Avg. Rainfall: {4}, Current Date: {5}",
+            "Finished loading world. Seed: {0}, Altitude Scale: {1}, Sea Level Offset: {2}, River Strength: {3}, Avg. Temperature: {4}, Avg. Rainfall: {5}, Current Date: {6}",
             Manager.CurrentWorld.Seed,
             Manager.CurrentWorld.AltitudeScale,
             Manager.CurrentWorld.SeaLevelOffset,
+            Manager.CurrentWorld.RiverStrength,
             Manager.CurrentWorld.TemperatureOffset,
             Manager.CurrentWorld.RainfallOffset,
             Manager.GetDateString(Manager.CurrentWorld.CurrentDate)));
@@ -292,6 +293,7 @@ public class StartGuiManagerScript : MonoBehaviour
         SettingsDialogPanelScript.FullscreenToggle.isOn = Manager.FullScreenEnabled;
         SettingsDialogPanelScript.UIScalingToggle.isOn = Manager.UIScalingEnabled;
         SettingsDialogPanelScript.DebugModeToggle.isOn = Manager.DebugModeEnabled;
+        SettingsDialogPanelScript.AnimationShadersToggle.isOn = Manager.AnimationShadersEnabled;
 
         SettingsDialogPanelScript.SetVisible(true);
     }

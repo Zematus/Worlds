@@ -30,6 +30,11 @@ public class PlanetScript : MonoBehaviour
     public GameObject AutoRotationPivot;
     public GameObject Surface;
 
+    public ShaderSettingsScript ShaderSettings;
+
+    public Material DefaultMaterial;
+    public Material DrainageMaterial;
+
     public ToggleEvent LightingTypeChangeEvent;
 
     private bool _isDraggingSurface = false;
@@ -162,9 +167,38 @@ public class PlanetScript : MonoBehaviour
 
     public void RefreshTexture()
     {
-        Texture2D texture = Manager.CurrentMapTexture;
+        Material[] materials = Surface.GetComponent<Renderer>().sharedMaterials;
 
-        Surface.GetComponent<Renderer>().material.mainTexture = texture;
+        materials[2].mainTexture = Manager.CurrentMapTexture;
+
+        DefaultMaterial.mainTexture = Manager.CurrentMapOverlayTexture;
+        DrainageMaterial.mainTexture = Manager.CurrentMapOverlayTexture;
+
+        if ((Manager.PlanetOverlay == PlanetOverlay.None) ||
+            (Manager.PlanetOverlay == PlanetOverlay.General))
+        {
+            materials[2].SetColor("_Color", ShaderSettings.DefaultColor);
+            materials[2].SetFloat("_EffectAmount", ShaderSettings.DefaultGrayness);
+        }
+        else
+        {
+            materials[2].SetColor("_Color", ShaderSettings.SubduedColor);
+            materials[2].SetFloat("_EffectAmount", ShaderSettings.SubduedGrayness);
+        }
+
+        if (Manager.AnimationShadersEnabled && (Manager.PlanetOverlay == PlanetOverlay.DrainageBasins))
+        {
+            materials[1] = DrainageMaterial;
+            materials[1].SetTexture("_LengthTex", Manager.CurrentMapOverlayShaderInfoTexture);
+        }
+        else
+        {
+            materials[1] = DefaultMaterial;
+        }
+
+        materials[0].mainTexture = Manager.CurrentMapActivityTexture;
+
+        Surface.GetComponent<Renderer>().sharedMaterials = materials;
     }
 
     public void ZoomButtonPressed(bool state)

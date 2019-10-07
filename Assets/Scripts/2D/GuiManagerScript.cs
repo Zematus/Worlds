@@ -138,10 +138,11 @@ public class GuiManagerScript : MonoBehaviour
     {
         PlanetOverlay.Temperature,
         PlanetOverlay.Rainfall,
+        PlanetOverlay.DrainageBasins,
         PlanetOverlay.Arability,
         PlanetOverlay.Accessibility,
         PlanetOverlay.Hilliness,
-        PlanetOverlay.WoodCoverage,
+        PlanetOverlay.BiomeTrait,
         PlanetOverlay.Layer,
         PlanetOverlay.Region,
         PlanetOverlay.Language
@@ -160,7 +161,8 @@ public class GuiManagerScript : MonoBehaviour
     private bool _displayRoutes = false;
     private bool _displayGroupActivity = false;
 
-    private bool _regenTextures = false;
+    private bool _regenMapTexture = false;
+    private bool _regenMapOverlayTexture = false;
     private bool _regenPointerOverlayTextures = false;
 
     private bool _resetOverlays = true;
@@ -321,10 +323,19 @@ public class GuiManagerScript : MonoBehaviour
         {
             _heightmap = Manager.LoadTexture(@"Heightmaps\mergetest_4b_3600x1800.png");
 
-            //Manager.SetActiveModPaths(new string[] { @"Mods\Base", @"Mods\TestMod" });
+            //Manager.SetActiveModPaths(new string[] { @"Mods\Base", @"Mods\WeirdBiomesMod" });
+            Manager.SetActiveModPaths(new string[] { @"Mods\Base" });
 
             //GenerateWorld(false, 1142453343, useHeightmap: true);
-            GenerateWorld(false, 1582997248);
+            //GenerateWorld(false, 1582997248);
+            //GenerateWorld(false, 266440697);
+            //GenerateWorld(false, 744563535);
+            //GenerateWorld(false, 16666383);
+            //GenerateWorld(false, 483016245);
+            //GenerateWorld(false, 1060158945);
+            //GenerateWorld(false, 1645709120);
+            GenerateWorld(false, 888101979);
+            //GenerateWorld(false, 6353535);
         }
         else
         {
@@ -339,7 +350,8 @@ public class GuiManagerScript : MonoBehaviour
         Manager.SetMapPalette(MapPaletteScript.Colors);
         Manager.SetOverlayPalette(OverlayPaletteScript.Colors);
 
-        _regenTextures = true;
+        _regenMapTexture = true;
+        _regenMapOverlayTexture = true;
         _regenPointerOverlayTextures = true;
     }
 
@@ -512,7 +524,7 @@ public class GuiManagerScript : MonoBehaviour
             }
         }
 
-        if (_regenTextures)
+        if (_regenMapTexture || _regenMapOverlayTexture)
         {
             Profiler.BeginSample("Regen Textures");
 
@@ -545,7 +557,7 @@ public class GuiManagerScript : MonoBehaviour
 
             Profiler.BeginSample("Manager.GenerateTextures");
 
-            Manager.GenerateTextures();
+            Manager.GenerateTextures(_regenMapTexture, _regenMapOverlayTexture);
 
             Profiler.EndSample();
 
@@ -562,7 +574,8 @@ public class GuiManagerScript : MonoBehaviour
                 _mapUpdateCount++;
             }
 
-            _regenTextures = false;
+            _regenMapTexture = false;
+            _regenMapOverlayTexture = false;
 
             Profiler.EndSample();
         }
@@ -1142,6 +1155,7 @@ public class GuiManagerScript : MonoBehaviour
         SettingsDialogPanelScript.FullscreenToggle.isOn = Manager.FullScreenEnabled;
         SettingsDialogPanelScript.UIScalingToggle.isOn = Manager.UIScalingEnabled;
         SettingsDialogPanelScript.DebugModeToggle.isOn = Manager.DebugModeEnabled;
+        SettingsDialogPanelScript.AnimationShadersToggle.isOn = Manager.AnimationShadersEnabled;
 
         SettingsDialogPanelScript.SetVisible(true);
 
@@ -1201,6 +1215,13 @@ public class GuiManagerScript : MonoBehaviour
         }
     }
 
+    public void ToogleAnimationShaders(bool state)
+    {
+        Manager.AnimationShadersEnabled = state;
+
+        _regenMapOverlayTexture = true;
+    }
+
     public void SetGenerationSeed()
     {
         MainMenuDialogPanelScript.SetVisible(false);
@@ -1258,6 +1279,13 @@ public class GuiManagerScript : MonoBehaviour
         RegenerateWorld(GenerationType.TerrainRegeneration);
     }
 
+    public void RegenerateWorldRiverLevelOffsetChange(float value)
+    {
+        Manager.RiverStrength = value;
+
+        RegenerateWorld(GenerationType.TerrainRegeneration);
+    }
+
     public void RegenerateWorldTemperatureOffsetChange(float value)
     {
         Manager.TemperatureOffset = value;
@@ -1302,7 +1330,8 @@ public class GuiManagerScript : MonoBehaviour
 
         _backgroundProcessActive = true;
 
-        _regenTextures = true;
+        _regenMapTexture = true;
+        _regenMapOverlayTexture = true;
     }
 
     public void GenerateWorld(bool randomSeed = true, int seed = 0, bool useHeightmap = false)
@@ -1384,7 +1413,8 @@ public class GuiManagerScript : MonoBehaviour
 
         _backgroundProcessActive = true;
 
-        _regenTextures = true;
+        _regenMapTexture = true;
+        _regenMapOverlayTexture = true;
         _regenPointerOverlayTextures = true;
     }
 
@@ -1682,6 +1712,9 @@ public class GuiManagerScript : MonoBehaviour
             case PlanetOverlay.Rainfall:
                 planetOverlayStr = "_rainfall";
                 break;
+            case PlanetOverlay.DrainageBasins:
+                planetOverlayStr = "_drainage_basins";
+                break;
             case PlanetOverlay.Arability:
                 planetOverlayStr = "_arability";
                 break;
@@ -1691,8 +1724,8 @@ public class GuiManagerScript : MonoBehaviour
             case PlanetOverlay.Hilliness:
                 planetOverlayStr = "_hilliness";
                 break;
-            case PlanetOverlay.WoodCoverage:
-                planetOverlayStr = "_woodPresence";
+            case PlanetOverlay.BiomeTrait:
+                planetOverlayStr = "_biome_trait_" + _planetOverlaySubtype;
                 break;
             case PlanetOverlay.Layer:
                 planetOverlayStr = "_layer_" + _planetOverlaySubtype;
@@ -1872,11 +1905,12 @@ public class GuiManagerScript : MonoBehaviour
         EventPanelScript.DestroyMessagePanels(); // We don't want to keep messages referencing previous worlds
 
         Debug.Log(string.Format(
-            "Finished loading world. Seed: {0}, Avg. Temperature: {1}, Avg. Rainfall: {2}, Sea Level Offset: {3}, Current Date: {4}",
+            "Finished loading world. Seed: {0}, Avg. Temperature: {1}, Avg. Rainfall: {2}, Sea Level Offset: {3}, River Level Strength: {4}, Current Date: {5}",
             Manager.CurrentWorld.Seed,
             Manager.CurrentWorld.TemperatureOffset,
             Manager.CurrentWorld.RainfallOffset,
             Manager.CurrentWorld.SeaLevelOffset,
+            Manager.CurrentWorld.RiverStrength,
             Manager.GetDateString(Manager.CurrentWorld.CurrentDate)));
 
         SelectionPanelScript.RemoveAllOptions();
@@ -1920,7 +1954,8 @@ public class GuiManagerScript : MonoBehaviour
 
         _backgroundProcessActive = true;
 
-        _regenTextures = true;
+        _regenMapTexture = true;
+        _regenMapOverlayTexture = true;
         _regenPointerOverlayTextures = true;
     }
 
@@ -2081,6 +2116,10 @@ public class GuiManagerScript : MonoBehaviour
         {
             ChangePlanetOverlay(PlanetOverlay.Rainfall, false);
         }
+        else if (OverlayDialogPanelScript.DrainageBasinsToggle.isOn)
+        {
+            ChangePlanetOverlay(PlanetOverlay.DrainageBasins, false);
+        }
         else if (OverlayDialogPanelScript.ArabilityToggle.isOn)
         {
             ChangePlanetOverlay(PlanetOverlay.Arability, false);
@@ -2093,9 +2132,9 @@ public class GuiManagerScript : MonoBehaviour
         {
             ChangePlanetOverlay(PlanetOverlay.Hilliness, false);
         }
-        else if (OverlayDialogPanelScript.WoodCoverageToggle.isOn)
+        else if (OverlayDialogPanelScript.BiomeTraitToggle.isOn)
         {
-            ChangePlanetOverlay(PlanetOverlay.WoodCoverage, false);
+            ChangePlanetOverlay(PlanetOverlay.BiomeTrait, false);
         }
         else if (OverlayDialogPanelScript.LayerToggle.isOn)
         {
@@ -2217,11 +2256,11 @@ public class GuiManagerScript : MonoBehaviour
 
     public void SetRouteDisplayOverlay(bool value, bool invokeEvent)
     {
-        _regenTextures |= _displayRoutes != value;
+        _regenMapOverlayTexture |= _displayRoutes != value;
 
         _displayRoutes = value;
 
-        if (_regenTextures)
+        if (_regenMapOverlayTexture)
         {
             Manager.SetDisplayRoutes(_displayRoutes);
 
@@ -2241,11 +2280,11 @@ public class GuiManagerScript : MonoBehaviour
 
     public void SetGroupActivityOverlay(bool value, bool invokeEvent)
     {
-        _regenTextures |= _displayGroupActivity != value;
+        _regenMapOverlayTexture |= _displayGroupActivity != value;
 
         _displayGroupActivity = value;
 
-        if (_regenTextures)
+        if (_regenMapOverlayTexture)
         {
             Manager.SetDisplayGroupActivity(_displayGroupActivity);
 
@@ -2336,8 +2375,8 @@ public class GuiManagerScript : MonoBehaviour
 
     public void ChangePlanetOverlay(PlanetOverlay overlay, string planetOverlaySubtype, bool invokeEvent = true)
     {
-        _regenTextures |= _planetOverlaySubtype != planetOverlaySubtype;
-        _regenTextures |= _planetOverlay != overlay;
+        _regenMapOverlayTexture |= _planetOverlaySubtype != planetOverlaySubtype;
+        _regenMapOverlayTexture |= _planetOverlay != overlay;
 
         if ((_planetOverlay != overlay) && (_planetOverlay != PlanetOverlay.None))
         {
@@ -2375,9 +2414,7 @@ public class GuiManagerScript : MonoBehaviour
 
     public void ChangePlanetOverlay(PlanetOverlay overlay, bool invokeEvent)
     {
-        string currentOverlaySubtype;
-
-        if (!_planetOverlaySubtypeCache.TryGetValue(overlay, out currentOverlaySubtype))
+        if (!_planetOverlaySubtypeCache.TryGetValue(overlay, out string currentOverlaySubtype))
         {
             currentOverlaySubtype = "None";
         }
@@ -2432,12 +2469,16 @@ public class GuiManagerScript : MonoBehaviour
             case PlanetOverlay.Layer:
                 HandleLayerOverlay();
                 break;
+
+            case PlanetOverlay.BiomeTrait:
+                HandleBiomeTraitOverlay();
+                break;
         }
     }
 
     private void HandleCulturalPreferenceOverlay()
     {
-        SelectionPanelScript.Title.text = "Displayed Preference:";
+        SelectionPanelScript.Title.text = "Preferences";
 
         foreach (CulturalPreferenceInfo preferenceInfo in Manager.CurrentWorld.CulturalPreferenceInfoList)
         {
@@ -2449,7 +2490,7 @@ public class GuiManagerScript : MonoBehaviour
 
     private void HandleCulturalActivityOverlay()
     {
-        SelectionPanelScript.Title.text = "Displayed Activity:";
+        SelectionPanelScript.Title.text = "Activities";
 
         foreach (CulturalActivityInfo activityInfo in Manager.CurrentWorld.CulturalActivityInfoList)
         {
@@ -2461,7 +2502,7 @@ public class GuiManagerScript : MonoBehaviour
 
     private void HandleCulturalSkillOverlay()
     {
-        SelectionPanelScript.Title.text = "Displayed Skill:";
+        SelectionPanelScript.Title.text = "Skills";
 
         foreach (CulturalSkillInfo skillInfo in Manager.CurrentWorld.CulturalSkillInfoList)
         {
@@ -2473,7 +2514,7 @@ public class GuiManagerScript : MonoBehaviour
 
     private void HandleCulturalKnowledgeOverlay()
     {
-        SelectionPanelScript.Title.text = "Displayed Knowledge:";
+        SelectionPanelScript.Title.text = "Knowledges";
 
         foreach (CulturalKnowledgeInfo knowledgeInfo in Manager.CurrentWorld.CulturalKnowledgeInfoList)
         {
@@ -2485,7 +2526,7 @@ public class GuiManagerScript : MonoBehaviour
 
     private void HandleCulturalDiscoveryOverlay()
     {
-        SelectionPanelScript.Title.text = "Displayed Discovery:";
+        SelectionPanelScript.Title.text = "Discoveries";
 
         foreach (Discovery discovery in Manager.CurrentWorld.ExistingDiscoveries.Values)
         {
@@ -2497,11 +2538,23 @@ public class GuiManagerScript : MonoBehaviour
 
     private void HandleLayerOverlay()
     {
-        SelectionPanelScript.Title.text = "Displayed Layer:";
+        SelectionPanelScript.Title.text = "Layers";
 
         foreach (Layer layer in Layer.Layers.Values)
         {
             AddSelectionPanelOption(layer.Name, layer.Id);
+        }
+
+        SelectionPanelScript.SetVisible(true);
+    }
+
+    private void HandleBiomeTraitOverlay()
+    {
+        SelectionPanelScript.Title.text = "Biome Traits";
+
+        foreach (string trait in Biome.AllTraits)
+        {
+            AddSelectionPanelOption(trait, trait);
         }
 
         SelectionPanelScript.SetVisible(true);
@@ -2525,7 +2578,7 @@ public class GuiManagerScript : MonoBehaviour
                 _planetOverlaySubtype = Manager.NoOverlaySubtype;
             }
 
-            _regenTextures = true;
+            _regenMapOverlayTexture = true;
         });
 
         if (_planetOverlaySubtype == optionId)
@@ -2620,7 +2673,7 @@ public class GuiManagerScript : MonoBehaviour
 
     public void SetView(PlanetView planetView)
     {
-        _regenTextures |= _planetView != planetView;
+        _regenMapTexture |= _planetView != planetView;
 
         _planetView = planetView;
     }

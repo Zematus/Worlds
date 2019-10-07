@@ -100,7 +100,7 @@ public class PolityCulture : Culture
 
     private void FinalizeUpdateFromFactions()
     {
-        List<CulturalKnowledge> knowledges = new List<CulturalKnowledge>(Knowledges.Values);
+        List<CulturalKnowledge> knowledges = new List<CulturalKnowledge>(_knowledges.Values);
 
         foreach (CulturalKnowledge k in knowledges)
         {
@@ -142,7 +142,7 @@ public class PolityCulture : Culture
 
         //Profiler.BeginSample("foreach CulturalPreference");
 
-        foreach (CulturalPreference p in faction.Culture.Preferences.Values)
+        foreach (CulturalPreference p in faction.Culture.GetPreferences())
         {
             //Profiler.BeginSample("GetPreference");
 
@@ -175,7 +175,7 @@ public class PolityCulture : Culture
 
         //Profiler.BeginSample("foreach CulturalActivity");
 
-        foreach (CulturalActivity a in faction.Culture.Activities.Values)
+        foreach (CulturalActivity a in faction.Culture.GetActivities())
         {
             //Profiler.BeginSample("GetActivity");
 
@@ -210,7 +210,7 @@ public class PolityCulture : Culture
 
         //Profiler.BeginSample("foreach CulturalSkill");
 
-        foreach (CulturalSkill s in faction.Culture.Skills.Values)
+        foreach (CulturalSkill s in faction.Culture.GetSkills())
         {
             //Profiler.BeginSample("GetSkill");
 
@@ -243,7 +243,7 @@ public class PolityCulture : Culture
 
         //Profiler.BeginSample("foreach CulturalKnowledge");
 
-        foreach (CulturalKnowledge k in faction.Culture.Knowledges.Values)
+        foreach (CulturalKnowledge k in faction.Culture.GetKnowledges())
         {
             //Profiler.BeginSample("GetKnowledge");
 

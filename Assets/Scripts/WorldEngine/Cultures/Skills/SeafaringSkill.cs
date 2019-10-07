@@ -21,17 +21,17 @@ public class SeafaringSkill : CellCulturalSkill
 
     public SeafaringSkill(CellGroup group, float value = 0f) : base(group, SkillId, SkillName, SkillRngOffset, value)
     {
-        CalculateNeighborhoodSeaPresence();
+        CalculateNeighborhoodWaterPresence();
     }
 
     public SeafaringSkill(CellGroup group, SeafaringSkill baseSkill) : base(group, baseSkill.Id, baseSkill.Name, baseSkill.RngOffset, baseSkill.Value)
     {
-        CalculateNeighborhoodSeaPresence();
+        CalculateNeighborhoodWaterPresence();
     }
 
     public SeafaringSkill(CellGroup group, CulturalSkill baseSkill, float initialValue) : base(group, baseSkill.Id, baseSkill.Name, baseSkill.RngOffset, initialValue)
     {
-        CalculateNeighborhoodSeaPresence();
+        CalculateNeighborhoodWaterPresence();
     }
 
     public static bool IsSeafaringSkill(CulturalSkill skill)
@@ -48,21 +48,21 @@ public class SeafaringSkill : CellCulturalSkill
     {
         base.FinalizeLoad();
 
-        CalculateNeighborhoodSeaPresence();
+        CalculateNeighborhoodWaterPresence();
     }
 
-    public void CalculateNeighborhoodSeaPresence()
+    public void CalculateNeighborhoodWaterPresence()
     {
         int groupCellBonus = 1;
         int cellCount = groupCellBonus;
 
         TerrainCell groupCell = Group.Cell;
 
-        float totalPresence = groupCell.SeaBiomePresence * groupCellBonus;
+        float totalPresence = groupCell.WaterBiomePresence * groupCellBonus;
 
         foreach (TerrainCell c in groupCell.Neighbors.Values)
         {
-            totalPresence += c.SeaBiomePresence;
+            totalPresence += c.WaterBiomePresence;
             cellCount++;
         }
 

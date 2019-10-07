@@ -33,9 +33,9 @@ public class CellBiomePresenceCondition : CellCondition
                 throw new System.ArgumentException("CellBiomePresenceCondition: Min value can't be parsed into a valid floating point number: " + valueStr);
             }
 
-            if (!MinValue.IsInsideRange(0, 1))
+            if (!MinValue.IsInsideRange(DefaultMinValue, 1))
             {
-                throw new System.ArgumentException("CellBiomePresenceCondition: Min value is outside the range of 0 and 1: " + valueStr);
+                throw new System.ArgumentException("CellBiomePresenceCondition: Min value is outside the range of " + DefaultMinValue + " and 1: " + valueStr);
             }
         }
         else
