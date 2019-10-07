@@ -807,6 +807,11 @@ public class CellGroup : HumanGroup
             targetPolityProminences.Add(pi.PolityId, pi);
         }
 
+        if (sourcePolityProminences.Count < sourceProminencesCount)
+        {
+            throw new System.Exception("sourcePolityProminences.Count less than sourceProminencesCount: " + sourcePolityProminences.Count + " < " + sourceProminencesCount);
+        }
+
         for (int i = 0; i < sourceProminencesCount; i++)
         {
             MergePolityProminenceInternal_Add(sourcePolityProminences[i], targetPolityProminences, percentOfTarget);

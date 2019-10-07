@@ -130,6 +130,8 @@ public class MigratingGroup : HumanGroup
             {
                 PolityProminences.Add(new PolityProminence(pp));
             }
+
+            i++;
         }
 
         //Profiler.BeginSample("TryMigrateFactionCores");
