@@ -717,13 +717,7 @@ public class World : ISynchronizable
             r.Synchronize();
         }
 
-        Languages = new List<Language>(_languages.Values);
-
-        // Reload languages to make sure they are in the same order as in the save file
-        _languages.Clear();
-        LoadLanguages();
-
-        foreach (Language l in Languages)
+        foreach (Language l in _languages.Values)
         {
             l.Synchronize();
         }
@@ -742,6 +736,12 @@ public class World : ISynchronizable
         }
 
         EventMessageIds = new List<long>(_eventMessageIds);
+
+        Languages = new List<Language>(_languages.Values);
+
+        // Reload languages to make sure they are in the same order as in the save file
+        _languages.Clear();
+        LoadLanguages();
 
         RegionInfos = new List<RegionInfo>(_regionInfos.Values);
         PolityInfos = new List<PolityInfo>(_polityInfos.Values);
@@ -1924,6 +1924,10 @@ public class World : ISynchronizable
         {
             _regionInfos.Add(r.Id, r);
         }
+
+#if DEBUG
+        Debug.Log("Loaded Region Infos: " + RegionInfos.Count);
+#endif
     }
 
     private void LoadPolityInfos()
@@ -1932,6 +1936,10 @@ public class World : ISynchronizable
         {
             _polityInfos.Add(pInfo.Id, pInfo);
         }
+
+#if DEBUG
+        Debug.Log("Loaded Polity Infos: " + PolityInfos.Count);
+#endif
     }
 
     private void LoadFactionInfos()
@@ -1940,6 +1948,10 @@ public class World : ISynchronizable
         {
             _factionInfos.Add(fInfo.Id, fInfo);
         }
+
+#if DEBUG
+        Debug.Log("Loaded Faction Infos: " + FactionInfos.Count);
+#endif
     }
 
     private void LoadLanguages()
@@ -1948,9 +1960,13 @@ public class World : ISynchronizable
         {
             _languages.Add(l.Id, l);
         }
+
+#if DEBUG
+        Debug.Log("Loaded Languages: " + Languages.Count);
+#endif
     }
 
-public void FinalizeLoad(float startProgressValue, float endProgressValue, ProgressCastDelegate castProgress)
+    public void FinalizeLoad(float startProgressValue, float endProgressValue, ProgressCastDelegate castProgress)
     {
         if (castProgress == null)
             castProgress = (value, message, reset) => { };
@@ -1960,6 +1976,7 @@ public void FinalizeLoad(float startProgressValue, float endProgressValue, Progr
         LoadRegionInfos();
         LoadPolityInfos();
         LoadFactionInfos();
+        LoadLanguages();
 
         // Segment 1
 
@@ -1967,8 +1984,6 @@ public void FinalizeLoad(float startProgressValue, float endProgressValue, Progr
         {
             _eventMessageIds.Add(messageId);
         }
-
-        LoadLanguages();
 
         foreach (RegionInfo r in _regionInfos.Values)
         {

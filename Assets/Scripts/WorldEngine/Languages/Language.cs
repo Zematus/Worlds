@@ -143,28 +143,28 @@ public class Language : ISynchronizable
     public static Regex PluralSuffixRegex = new Regex(@"^(es|s)$");
     public static Regex AgentNounSuffixRegex = new Regex(@"^(\w?er|r)$");
     public static Regex ConjugationSuffixRegex = new Regex(@"^(\w?ed|d|s)$");
-    
-    //[XmlAttribute]
+
+    [XmlAttribute]
     public long Id;
-    
-    //[XmlAttribute("AP")]
+
+    [XmlAttribute("AP")]
     public int ArticlePropertiesInt;
-    //[XmlAttribute("NIP")]
+    [XmlAttribute("NIP")]
     public int NounIndicativePropertiesInt;
-    //[XmlAttribute("VIP")]
+    [XmlAttribute("VIP")]
     public int VerbIndicativePropertiesInt;
-    
-    //[XmlAttribute("AAP")]
+
+    [XmlAttribute("AAP")]
     public int ArticleAdjunctionPropertiesInt;
-    //[XmlAttribute("NIAP")]
+    [XmlAttribute("NIAP")]
     public int NounIndicativeAdjunctionPropertiesInt;
-    //[XmlAttribute("VIAP")]
+    [XmlAttribute("VIAP")]
     public int VerbIndicativeAdjunctionPropertiesInt;
-    //[XmlAttribute("AdpAP")]
+    [XmlAttribute("AdpAP")]
     public int AdpositionAdjunctionPropertiesInt;
-    //[XmlAttribute("AdjAP")]
+    [XmlAttribute("AdjAP")]
     public int AdjectiveAdjunctionPropertiesInt;
-    //[XmlAttribute("NAP")]
+    [XmlAttribute("NAP")]
     public int NounAdjunctionPropertiesInt;
     
     public SyllableSet ArticleSyllables = new SyllableSet();

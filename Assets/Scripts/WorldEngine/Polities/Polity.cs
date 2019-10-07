@@ -51,22 +51,22 @@ public abstract class Polity : ISynchronizable
 
     public List<PolityProminenceCluster> ProminenceClusters = new List<PolityProminenceCluster>();
 
-#if DEBUG
-    [XmlIgnore]
-    public long LastClusterAddedDate = -1;
-#endif
-
     public Territory Territory;
 
     public PolityCulture Culture;
 
-    public DelayedLoadXmlSerializableDictionary<long, Faction> Factions = new DelayedLoadXmlSerializableDictionary<long, Faction>();
+    public List<long> FactionIds = null;
 
     public List<long> EventMessageIds;
 
     public List<PolityContact> Contacts = null;
 
     public List<PolityEventData> EventDataList = new List<PolityEventData>();
+
+#if DEBUG
+    [XmlIgnore]
+    public long LastClusterAddedDate = -1;
+#endif
 
     [XmlIgnore]
     public Dictionary<long, CellGroup> Groups = new Dictionary<long, CellGroup>();
@@ -186,6 +186,8 @@ public abstract class Polity : ISynchronizable
 
     protected Dictionary<long, PolityEvent> _events = new Dictionary<long, PolityEvent>();
 
+    private Dictionary<long, Faction> _factions = new Dictionary<long, Faction>();
+
     private bool _willBeRemoved = false;
 
     private SortedDictionary<long, PolityProminence> _prominencesToAddToClusters =
@@ -239,7 +241,7 @@ public abstract class Polity : ISynchronizable
     {
         Culture.Initialize();
 
-        foreach (Faction faction in Factions.Values)
+        foreach (Faction faction in _factions.Values)
         {
             if (!faction.IsInitialized)
             {
@@ -272,7 +274,7 @@ public abstract class Polity : ISynchronizable
             Polity.RemoveContact(this, contact.Polity);
         }
 
-        List<Faction> factions = new List<Faction>(Factions.Values);
+        List<Faction> factions = new List<Faction>(_factions.Values);
 
         foreach (Faction faction in factions)
         {
@@ -408,7 +410,7 @@ public abstract class Polity : ISynchronizable
 
     public void AddFaction(Faction faction)
     {
-        Factions.Add(faction.Id, faction);
+        _factions.Add(faction.Id, faction);
 
         if (!World.ContainsFactionInfo(faction.Id))
         {
@@ -422,9 +424,9 @@ public abstract class Polity : ISynchronizable
 
     public void RemoveFaction(Faction faction)
     {
-        Factions.Remove(faction.Id);
+        _factions.Remove(faction.Id);
 
-        if (Factions.Count <= 0)
+        if (_factions.Count <= 0)
         {
             //#if DEBUG
             //Debug.Log ("Polity will be removed due to losing all factions. faction id: " + faction.Id + ", polity id:" + Id);
@@ -449,14 +451,14 @@ public abstract class Polity : ISynchronizable
     {
         Faction faction;
 
-        Factions.TryGetValue(id, out faction);
+        _factions.TryGetValue(id, out faction);
 
         return faction;
     }
 
     public ICollection<Faction> GetFactions(long id)
     {
-        return Factions.Values;
+        return _factions.Values;
     }
 
     public void UpdateDominantFaction()
@@ -464,7 +466,7 @@ public abstract class Polity : ISynchronizable
         Faction mostProminentFaction = null;
         float greatestInfluence = float.MinValue;
 
-        foreach (Faction faction in Factions.Values)
+        foreach (Faction faction in _factions.Values)
         {
             if (faction.Influence > greatestInfluence)
             {
@@ -642,12 +644,12 @@ public abstract class Polity : ISynchronizable
 
     public IEnumerable<Faction> GetFactions()
     {
-        return Factions.Values;
+        return _factions.Values;
     }
 
     public IEnumerable<Faction> GetFactions(string type)
     {
-        foreach (Faction faction in Factions.Values)
+        foreach (Faction faction in _factions.Values)
         {
             if (faction.Type == type)
                 yield return faction;
@@ -656,7 +658,7 @@ public abstract class Polity : ISynchronizable
 
     public IEnumerable<T> GetFactions<T>() where T : Faction
     {
-        foreach (T faction in Factions.Values)
+        foreach (T faction in _factions.Values)
         {
             yield return faction;
         }
@@ -666,7 +668,7 @@ public abstract class Polity : ISynchronizable
     {
         float totalInfluence = 0;
 
-        foreach (Faction f in Factions.Values)
+        foreach (Faction f in _factions.Values)
         {
             totalInfluence += f.Influence;
         }
@@ -676,7 +678,7 @@ public abstract class Polity : ISynchronizable
             throw new System.Exception("Total influence equal or less than zero: " + totalInfluence + ", polity id:" + Id);
         }
 
-        foreach (Faction f in Factions.Values)
+        foreach (Faction f in _factions.Values)
         {
             f.Influence = f.Influence / totalInfluence;
         }
@@ -1066,6 +1068,12 @@ public abstract class Polity : ISynchronizable
         _contacts.Clear();
         LoadContacts();
 
+        FactionIds = new List<long>(_factions.Keys);
+
+        // Reload factions to ensure order is equal to that in the save file
+        _factions.Clear();
+        LoadFactions();
+
         EventMessageIds = new List<long>(_eventMessageIds);
     }
 
@@ -1103,7 +1111,15 @@ public abstract class Polity : ISynchronizable
         }
     }
 
-public virtual void FinalizeLoad()
+    public void LoadFactions()
+    {
+        foreach (long id in FactionIds)
+        {
+            _factions.Add(id, GetFactionOrThrow(id));
+        }
+    }
+
+    public virtual void FinalizeLoad()
     {
         LoadContacts();
 
@@ -1128,14 +1144,15 @@ public virtual void FinalizeLoad()
             cluster.Polity = this;
             cluster.FinalizeLoad();
 
-            foreach (PolityProminence p in cluster.Prominences.Values)
+            foreach (PolityProminence p in cluster.GetPolityProminences())
             {
                 Groups.Add(p.Id, p.Group);
             }
         }
 
         //Groups.FinalizeLoad(GetGroupOrThrow);
-        Factions.FinalizeLoad(GetFactionOrThrow);
+
+        LoadFactions();
 
         DominantFaction = GetFaction(DominantFactionId);
 
@@ -1440,12 +1457,12 @@ public virtual void FinalizeLoad()
 
     public Faction GetRandomFaction(int rngOffset, FactionValueCalculationDelegate calculateFactionValue, bool nullIfNoValidFaction = false)
     {
-        WeightedFaction[] weightedFactions = new WeightedFaction[Factions.Count];
+        WeightedFaction[] weightedFactions = new WeightedFaction[_factions.Count];
 
         float totalWeight = 0;
 
         int index = 0;
-        foreach (Faction faction in Factions.Values)
+        foreach (Faction faction in _factions.Values)
         {
             float weight = calculateFactionValue(faction);
 

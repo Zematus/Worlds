@@ -6,6 +6,7 @@ using System.Xml.Serialization;
 
 public delegate TValue GetValueDelegate<TKey, TValue>(TKey key);
 
+[System.Obsolete]
 public class DelayedLoadXmlSerializableDictionary<TKey, TValue> : Dictionary<TKey, TValue>, IXmlSerializable
 {
     private HashSet<TKey> _keyBuffer = null;
