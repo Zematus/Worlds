@@ -74,3 +74,4 @@ $RECYCLE.BIN/
 *.lnk
 *.suo
 bug_output.txt
+*.log

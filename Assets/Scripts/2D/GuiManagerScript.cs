@@ -172,6 +172,9 @@ public class GuiManagerScript : MonoBehaviour
     private string _progressMessage = null;
     private float _progressValue = 0;
 
+    private bool _hasToSetInitialPopulation = true;
+    private bool _worldCouldBeSavedAfterEdit = false;
+
     private event PostProgressOperation _postProgressOp = null;
     private event PostProgressOperation _generateWorldPostProgressOp = null;
     private event PostProgressOperation _regenerateWorldPostProgressOp = null;
@@ -615,6 +618,17 @@ public class GuiManagerScript : MonoBehaviour
 
         Debug.Log("Game entered history simulator mode.");
 
+        if (_worldCouldBeSavedAfterEdit)
+        {
+            _hasToSetInitialPopulation = true;
+
+            SaveEditedWorldBeforeStarting();
+        }
+        else
+        {
+            AddPopulationDialogScript.InitializeAndShow();
+        }
+
         EnteredSimulationMode.Invoke();
 
 #if DEBUG
@@ -631,6 +645,8 @@ public class GuiManagerScript : MonoBehaviour
         MapScript.EnablePointerOverlay(true);
 
         Debug.Log("Game entered map editor mode.");
+
+        _worldCouldBeSavedAfterEdit = true;
 
         EnteredEditorMode.Invoke();
 
@@ -1742,10 +1758,40 @@ public class GuiManagerScript : MonoBehaviour
             default: throw new System.Exception("Unexpected planet overlay type: " + _planetOverlay);
         }
 
-        ExportMapDialogPanelScript.SetText(Manager.AddDateToWorldName(Manager.WorldName) + planetViewStr + planetOverlayStr);
+        string worldName = Manager.WorldName;
+
+        if (Manager.GameMode == GameMode.Simulator)
+        {
+            worldName = Manager.AddDateToWorldName(worldName);
+        }
+
+        ExportMapDialogPanelScript.SetText(worldName + planetViewStr + planetOverlayStr);
         ExportMapDialogPanelScript.SetVisible(true);
 
         InterruptSimulation(true);
+    }
+
+    public void SaveAttemptCompleted()
+    {
+        if (Manager.GameMode == GameMode.Simulator)
+        {
+            _worldCouldBeSavedAfterEdit = false;
+
+            if (_hasToSetInitialPopulation)
+            {
+                AddPopulationDialogScript.InitializeAndShow();
+
+                _hasToSetInitialPopulation = false;
+                return;
+            }
+        }
+
+        if (!_eventPauseActive)
+        {
+            InterruptSimulation(!Manager.SimulationCanRun);
+        }
+
+        ShowHiddenInteractionPanels();
     }
 
     public void PostProgressOp_SaveAction()
@@ -1756,12 +1802,7 @@ public class GuiManagerScript : MonoBehaviour
 
         _postProgressOp -= PostProgressOp_SaveAction;
 
-        if (!_eventPauseActive)
-        {
-            InterruptSimulation(!Manager.SimulationCanRun);
-        }
-
-        ShowHiddenInteractionPanels();
+        SaveAttemptCompleted();
     }
 
     public void PostProgressOp_ExportAction()
@@ -1801,10 +1842,29 @@ public class GuiManagerScript : MonoBehaviour
     {
         MainMenuDialogPanelScript.SetVisible(false);
 
-        SaveFileDialogPanelScript.SetText(Manager.AddDateToWorldName(Manager.WorldName));
+        string worldName = Manager.WorldName;
+
+        if (Manager.GameMode == GameMode.Simulator)
+        {
+            worldName = Manager.AddDateToWorldName(worldName);
+        }
+
+        SaveFileDialogPanelScript.SetText(worldName);
+        SaveFileDialogPanelScript.SetCancelButtonText("Cancel");
+        SaveFileDialogPanelScript.SetRecommendationTextVisible(false);
+
         SaveFileDialogPanelScript.SetVisible(true);
 
         InterruptSimulation(true);
+    }
+
+    public void SaveEditedWorldBeforeStarting()
+    {
+        SaveFileDialogPanelScript.SetText(Manager.WorldName);
+        SaveFileDialogPanelScript.SetCancelButtonText("Skip");
+        SaveFileDialogPanelScript.SetRecommendationTextVisible(true);
+
+        SaveFileDialogPanelScript.SetVisible(true);
     }
 
     public void GetMaxSpeedOptionFromCurrentWorld()
