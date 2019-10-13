@@ -1,7 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
-using System.Collections;
 using System.IO;
 
 public class StartGuiManagerScript : MonoBehaviour
@@ -34,6 +33,7 @@ public class StartGuiManagerScript : MonoBehaviour
 
     private System.Exception _cachedException = null;
 
+    /// <summary>Called when the StartGuiManager GameObject is enabled.</summary>
     void OnEnable()
     {
         Manager.InitializeDebugLog();
@@ -41,6 +41,7 @@ public class StartGuiManagerScript : MonoBehaviour
         Application.logMessageReceivedThreaded += HandleLog;
     }
 
+    /// <summary>Called when the StartGuiManager GameObject is disabled.</summary>
     void OnDisable()
     {
         Application.logMessageReceivedThreaded -= HandleLog;
@@ -51,6 +52,10 @@ public class StartGuiManagerScript : MonoBehaviour
         Manager.CloseDebugLog();
     }
 
+    /// <summary>Handler used for logging, tracing and debugging.</summary>
+    /// <param name="logString">The string to be logged.</param>
+    /// <param name="stackTrace">The stack trace.</param>
+    /// <param name="type">The type of log message.</param>
     public void HandleLog(string logString, string stackTrace, LogType type)
     {
         Manager.HandleLog(logString, stackTrace, type);
@@ -69,7 +74,8 @@ public class StartGuiManagerScript : MonoBehaviour
         }
     }
 
-    // Use this for initialization
+    /// <summary>Called on the frame when the StartGuiManager script is enabled.</summary>
+    /// <remarks>Use this for initialization.</remarks>
     void Start()
     {
         Manager.InitializeScreen();
@@ -86,6 +92,8 @@ public class StartGuiManagerScript : MonoBehaviour
         LoadButton.interactable = HasSaveFilesToLoad();
     }
 
+    /// <summary>Called when the StartGuiManager script instance is being loaded.</summary>
+    /// <remarks>Used to initialize settings before the game starts.</remarks>
     void Awake()
     {
         try
@@ -101,12 +109,14 @@ public class StartGuiManagerScript : MonoBehaviour
         VersionText.text = "v" + Application.version;
     }
 
+    /// <summary>Occurs when exiting the game.</summary>
     void OnDestroy()
     {
         Manager.SaveAppSettings(@"Worlds.settings");
     }
 
-    // Update is called once per frame
+    /// <summary>Checks world generation progress and switches scene on completion.</summary>
+    /// <remarks>Update is called once per frame.</remarks>
     void Update()
     {
         if (_cachedException != null)
@@ -135,8 +145,7 @@ public class StartGuiManagerScript : MonoBehaviour
 
         if (_preparingWorld)
         {
-            if (_postProgressOp != null)
-                _postProgressOp();
+            _postProgressOp?.Invoke();
 
             _preparingWorld = false;
 
@@ -146,11 +155,12 @@ public class StartGuiManagerScript : MonoBehaviour
         }
     }
 
-    private void ToogleFullscreen()
+    private void ToggleFullscreen()
     {
         SetFullscreen(!Manager.FullScreenEnabled);
     }
 
+    /// <summary>Reads the keyboard input.</summary>
     private void ReadKeyboardInput()
     {
         if (_preparingWorld)
@@ -158,14 +168,16 @@ public class StartGuiManagerScript : MonoBehaviour
 
         Manager.HandleKeyUp(KeyCode.L, true, false, LoadWorld);
         Manager.HandleKeyUp(KeyCode.G, true, false, SetGenerationSeed);
-        //Manager.HandleKeyUp(KeyCode.F, true, false, ToogleFullscreen);
+        //Manager.HandleKeyUp(KeyCode.F, true, false, ToggleFullscreen);
     }
 
+    /// <summary>Called after closing the exception message dialog panel.</summary>
     public void CloseExceptionMessageAction()
     {
         Exit();
     }
 
+    /// <summary>Called once the world is finished generating.</summary>
     private void PostProgressOp_GenerateWorld()
     {
         Debug.Log("Finished generating world with seed: " + Manager.CurrentWorld.Seed);
@@ -175,6 +187,7 @@ public class StartGuiManagerScript : MonoBehaviour
         _postProgressOp -= PostProgressOp_GenerateWorld;
     }
 
+    /// <summary>Called once the world is finished loading.</summary>
     public void PostProgressOp_LoadAction()
     {
         Debug.Log(string.Format(
@@ -190,6 +203,7 @@ public class StartGuiManagerScript : MonoBehaviour
         _postProgressOp -= PostProgressOp_LoadAction;
     }
 
+    /// <summary>Starts to load the heightmap image.</summary>
     public void LoadHeightmapImage()
     {
         LoadFileDialogPanelScript.Initialize(
@@ -203,6 +217,10 @@ public class StartGuiManagerScript : MonoBehaviour
         LoadFileDialogPanelScript.SetVisible(true);
     }
 
+    /// <summary>Determines whether there are save files to load.</summary>
+    /// <returns>
+    ///   <c>true</c> if there are save files to load; otherwise, <c>false</c>.
+    /// </returns>
     private bool HasSaveFilesToLoad()
     {
         string dirPath = Manager.SavePath;
@@ -212,6 +230,7 @@ public class StartGuiManagerScript : MonoBehaviour
         return files.Length > 0;
     }
 
+    /// <summary>Initializes world loading.</summary>
     public void LoadWorld()
     {
         MainMenuDialogPanelScript.SetVisible(false);
@@ -227,6 +246,7 @@ public class StartGuiManagerScript : MonoBehaviour
         LoadFileDialogPanelScript.SetVisible(true);
     }
 
+    /// <summary>Loads the heightmap.</summary>
     private void LoadHeightmapAction()
     {
         string path = LoadFileDialogPanelScript.GetPathToLoad();
@@ -248,6 +268,7 @@ public class StartGuiManagerScript : MonoBehaviour
         SetSeedDialogPanelScript.SetVisible(true);
     }
 
+    /// <summary>Loads the world.</summary>
     public void LoadSaveAction()
     {
         ProgressDialogPanelScript.SetVisible(true);
@@ -265,16 +286,19 @@ public class StartGuiManagerScript : MonoBehaviour
         _preparingWorld = true;
     }
 
+    /// <summary>Cancels the load heightmap action.</summary>
     public void CancelLoadHeightmapAction()
     {
         SetSeedDialogPanelScript.SetVisible(true);
     }
 
+    /// <summary>Cancels the load save action.</summary>
     public void CancelLoadSaveAction()
     {
         MainMenuDialogPanelScript.SetVisible(true);
     }
 
+    /// <summary>Sets the generation seed.</summary>
     public void SetGenerationSeed()
     {
         MainMenuDialogPanelScript.SetVisible(false);
@@ -286,6 +310,7 @@ public class StartGuiManagerScript : MonoBehaviour
         SetSeedDialogPanelScript.SetVisible(true);
     }
 
+    /// <summary>Opens the settings dialog.</summary>
     public void OpenSettingsDialog()
     {
         MainMenuDialogPanelScript.SetVisible(false);
@@ -298,6 +323,7 @@ public class StartGuiManagerScript : MonoBehaviour
         SettingsDialogPanelScript.SetVisible(true);
     }
 
+    /// <summary>Opens the credits dialog.</summary>
     public void OpenCreditsDialog()
     {
         MainMenuDialogPanelScript.SetVisible(false);
@@ -305,11 +331,15 @@ public class StartGuiManagerScript : MonoBehaviour
         CreditsDialogPanelScript.SetVisible(true);
     }
 
+    /// <summary>Sets the game's fullscreen option.</summary>
+    /// <param name="state">If set to <c>true</c>, the game goes fullscreen.</param>
     public void SetFullscreen(bool state)
     {
         Manager.SetFullscreen(state);
     }
 
+    /// <summary>Sets the game's UI scaling option.</summary>
+    /// <param name="state">If set to <c>true</c>, the UI is scaling to screen size.</param>
     public void SetUIScaling(bool state)
     {
         Manager.SetUIScaling(state);
@@ -324,6 +354,7 @@ public class StartGuiManagerScript : MonoBehaviour
         }
     }
 
+    /// <summary>Closes the settings dialog.</summary>
     public void CloseSettingsDialog()
     {
         SettingsDialogPanelScript.SetVisible(false);
@@ -331,6 +362,7 @@ public class StartGuiManagerScript : MonoBehaviour
         MainMenuDialogPanelScript.SetVisible(true);
     }
 
+    /// <summary>Closes the credits dialog.</summary>
     public void CloseCreditsDialog()
     {
         CreditsDialogPanelScript.SetVisible(false);
@@ -338,6 +370,7 @@ public class StartGuiManagerScript : MonoBehaviour
         MainMenuDialogPanelScript.SetVisible(true);
     }
 
+    /// <summary>Closes the seed error message action.</summary>
     public void CloseSeedErrorMessageAction()
     {
         MessageDialogPanelScript.SetVisible(false);
@@ -345,12 +378,12 @@ public class StartGuiManagerScript : MonoBehaviour
         SetGenerationSeed();
     }
 
+    /// <summary>Generates the world with a custom seed.</summary>
     public void GenerateWorldWithCustomSeed()
     {
-        int seed = 0;
         string seedStr = SetSeedDialogPanelScript.GetSeedString();
 
-        if (!int.TryParse(seedStr, out seed))
+        if (!int.TryParse(seedStr, out int seed))
         {
             MessageDialogPanelScript.SetVisible(true);
             return;
@@ -365,6 +398,8 @@ public class StartGuiManagerScript : MonoBehaviour
         GenerateWorldInternal(seed);
     }
 
+    /// <summary>Generates the world.</summary>
+    /// <param name="seed">The seed.</param>
     private void GenerateWorldInternal(int seed)
     {
         ProgressDialogPanelScript.SetVisible(true);
@@ -385,6 +420,10 @@ public class StartGuiManagerScript : MonoBehaviour
         _postProgressOp += PostProgressOp_GenerateWorld;
     }
 
+    /// <summary>Updates the progress bar for generating/loading the world.</summary>
+    /// <param name="value">Current progess value.</param>
+    /// <param name="message">Message to display on progress bar.</param>
+    /// <param name="reset">If set to <c>true</c>, the progress value is reset.</param>
     public void ProgressUpdate(float value, string message = null, bool reset = false)
     {
         if (reset || (value >= _progressValue))
@@ -396,6 +435,7 @@ public class StartGuiManagerScript : MonoBehaviour
         }
     }
 
+    /// <summary>Exits the game.</summary>
     public void Exit()
     {
         Application.Quit();
