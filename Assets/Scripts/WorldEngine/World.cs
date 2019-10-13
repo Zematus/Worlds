@@ -155,9 +155,9 @@ public class World : ISynchronizable
     public const float Circumference = 40075; // In kilometers;
 
     //public const int NumContinents = 7;
-    public const int NumContinents = 12;
-    //public const float ContinentBaseWidthFactor = 0.8f;
-    public const float ContinentBaseWidthFactor = 1.1f;
+    public const int NumContinents = 15;
+    //public const float ContinentBaseWidthFactor = 0.95f;
+    public const float ContinentBaseWidthFactor = 1.1f; // Smaller number == bigger masses
     public const float ContinentMinWidthFactor = ContinentBaseWidthFactor * 5.7f;
     public const float ContinentMaxWidthFactor = ContinentBaseWidthFactor * 8.7f;
 
@@ -2357,7 +2357,7 @@ public class World : ISynchronizable
     private float GetContinentModifier(int x, int y)
     {
         float maxValue = 0;
-        float widthF = (float)Width;
+        float widthF = Width;
 
         for (int i = 0; i < NumContinents; i++)
         {

@@ -1244,7 +1244,7 @@ public class GuiManagerScript : MonoBehaviour
 
         int seed = Random.Range(0, int.MaxValue);
 
-        SetSeedDialogPanelScript.SetSeedString(seed.ToString());
+        SetSeedDialogPanelScript.SetSeed(seed);
 
         SetSeedDialogPanelScript.SetVisible(true);
 
@@ -1360,20 +1360,21 @@ public class GuiManagerScript : MonoBehaviour
         GenerateWorldInternal(seed, useHeightmap);
     }
 
+    private void ShowErrorMessage(string message)
+    {
+        ErrorMessageDialogPanelScript.SetDialogText(message);
+        ErrorMessageDialogPanelScript.SetVisible(true);
+    }
+
     public void GenerateWorldWithCustomSeed()
     {
-        int seed = 0;
-        string seedStr = SetSeedDialogPanelScript.GetSeedString();
+        int seed = SetSeedDialogPanelScript.GetSeed();
 
-        if (!int.TryParse(seedStr, out seed))
-        {
-            ErrorMessageDialogPanelScript.SetVisible(true);
-            return;
-        }
+        string errorMessage = "Invalid Input, please use a value between 0 and " + int.MaxValue;
 
         if (seed < 0)
         {
-            ErrorMessageDialogPanelScript.SetVisible(true);
+            ShowErrorMessage(errorMessage);
             return;
         }
 

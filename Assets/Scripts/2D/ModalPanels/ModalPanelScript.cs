@@ -12,7 +12,7 @@ public class ModalPanelScript : MonoBehaviour
         if (!state && !gameObject.activeInHierarchy)
             return; // There's no need to make this dialog invisible if it already is. Also, we want to avoid disabling the canvas group if it's being enabled by another dialog
 
-        ModalPanelCanvasGroup.gameObject.SetActive(state);
+        ModalPanelCanvasGroup.GetComponent<ModalActivationScript>().Activate(state);
         ModalPanelCanvasGroup.blocksRaycasts = state;
 
         gameObject.SetActive(state);

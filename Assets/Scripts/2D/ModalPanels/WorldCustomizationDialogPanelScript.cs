@@ -21,6 +21,8 @@ public class WorldCustomizationDialogPanelScript : MenuPanelScript
 
     private bool _hasLoadedValidHeightmap = false;
 
+    private int _previousInputValue = 0;
+
     protected override void ReadKeyboardInput()
     {
         if (LoadFileDialogPanel.gameObject.activeInHierarchy)
@@ -29,23 +31,25 @@ public class WorldCustomizationDialogPanelScript : MenuPanelScript
         base.ReadKeyboardInput();
     }
 
-    public void SetSeedString(string seedStr)
+    public void SetSeed(int seed)
     {
-        SeedInputField.text = seedStr;
+        _previousInputValue = seed;
+        SeedInputField.text = _previousInputValue.ToString();
     }
 
-    public string GetSeedString()
+    public int GetSeed()
     {
-        return SeedInputField.text;
+        return _previousInputValue;
     }
 
     public void SeedValueChange()
     {
-        int value = 0;
+        if (int.TryParse(SeedInputField.text, out int value))
+        {
+            _previousInputValue = value;
+        }
 
-        int.TryParse(SeedInputField.text, out value);
-
-        SeedInputField.text = value.ToString();
+        SeedInputField.text = _previousInputValue.ToString();
     }
 
     public void SetImageLoadingPaneState(bool state)
