@@ -33,7 +33,7 @@ public class StartGuiManagerScript : MonoBehaviour
 
     private System.Exception _cachedException = null;
 
-    /// <summary>Called when the StartGuiManager GameObject is enabled.</summary>
+    /// <summary>Called when the GameObject is enabled.</summary>
     void OnEnable()
     {
         Manager.InitializeDebugLog();
@@ -41,7 +41,7 @@ public class StartGuiManagerScript : MonoBehaviour
         Application.logMessageReceivedThreaded += HandleLog;
     }
 
-    /// <summary>Called when the StartGuiManager GameObject is disabled.</summary>
+    /// <summary>Called when the GameObject is disabled.</summary>
     void OnDisable()
     {
         Application.logMessageReceivedThreaded -= HandleLog;
@@ -74,7 +74,7 @@ public class StartGuiManagerScript : MonoBehaviour
         }
     }
 
-    /// <summary>Called on the frame when the StartGuiManager script is enabled.</summary>
+    /// <summary>Called on the frame when a script is enabled.</summary>
     /// <remarks>Use this for initialization.</remarks>
     void Start()
     {
@@ -92,8 +92,7 @@ public class StartGuiManagerScript : MonoBehaviour
         LoadButton.interactable = HasSaveFilesToLoad();
     }
 
-    /// <summary>Called when the StartGuiManager script instance is being loaded.</summary>
-    /// <remarks>Used to initialize settings before the game starts.</remarks>
+    /// <summary>Called when the script instance is being loaded.</summary>
     void Awake()
     {
         try
@@ -109,14 +108,13 @@ public class StartGuiManagerScript : MonoBehaviour
         VersionText.text = "v" + Application.version;
     }
 
-    /// <summary>Occurs when exiting the game.</summary>
+    /// <summary>Occurs when exiting the current scene.</summary>
     void OnDestroy()
     {
         Manager.SaveAppSettings(@"Worlds.settings");
     }
 
-    /// <summary>Checks world generation progress and switches scene on completion.</summary>
-    /// <remarks>Update is called once per frame.</remarks>
+    /// <summary>Update is called once per frame.</summary>
     void Update()
     {
         if (_cachedException != null)
@@ -131,6 +129,7 @@ public class StartGuiManagerScript : MonoBehaviour
 
         Manager.ExecuteTasks(100);
 
+        // The world is still being prepared, so update the progress bar.
         if (_preparingWorld)
         {
             if (_progressMessage != null) ProgressDialogPanelScript.SetDialogText(_progressMessage);
@@ -138,11 +137,13 @@ public class StartGuiManagerScript : MonoBehaviour
             ProgressDialogPanelScript.SetProgress(_progressValue);
         }
 
+        // If the world is not ready yet, don't switch scenes.
         if (!Manager.WorldIsReady)
         {
             return;
         }
 
+        // The world is ready, so the scene switches to world view.
         if (_preparingWorld)
         {
             _postProgressOp?.Invoke();
@@ -203,7 +204,7 @@ public class StartGuiManagerScript : MonoBehaviour
         _postProgressOp -= PostProgressOp_LoadAction;
     }
 
-    /// <summary>Starts to load the heightmap image.</summary>
+    /// <summary>Initializes the The 'Load File' dialog for heightmap loading.</summary>
     public void LoadHeightmapImage()
     {
         LoadFileDialogPanelScript.Initialize(
@@ -230,7 +231,7 @@ public class StartGuiManagerScript : MonoBehaviour
         return files.Length > 0;
     }
 
-    /// <summary>Initializes world loading.</summary>
+    /// <summary>Initializes the The 'Load File' dialog for world loading.</summary>
     public void LoadWorld()
     {
         MainMenuDialogPanelScript.SetVisible(false);
@@ -298,7 +299,7 @@ public class StartGuiManagerScript : MonoBehaviour
         MainMenuDialogPanelScript.SetVisible(true);
     }
 
-    /// <summary>Sets the generation seed.</summary>
+    /// <summary>Opens the 'Generate New World' dialog.</summary>
     public void SetGenerationSeed()
     {
         MainMenuDialogPanelScript.SetVisible(false);

@@ -1,11 +1,8 @@
 using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
-using System.Xml;
 using System.Xml.Serialization;
 using System.IO;
 using System.Threading;
-using UnityEngine.Profiling;
 
 public enum EditorBrushType
 {
@@ -455,9 +452,7 @@ public class Manager
 
     public static LayerSettings GetLayerSettings(string layerId)
     {
-        LayerSettings settings;
-
-        if (!LayerSettings.TryGetValue(layerId, out settings))
+        if (!LayerSettings.TryGetValue(layerId, out LayerSettings settings))
         {
             settings = new LayerSettings(Layer.Layers[layerId]);
             LayerSettings.Add(layerId, settings);
@@ -1515,12 +1510,9 @@ public class Manager
 
         _loadTicks += 1;
 
-        float value = LastStageProgress + (StageProgressIncFromLoading * _loadTicks / (float)_totalLoadTicks);
+        float value = LastStageProgress + (StageProgressIncFromLoading * _loadTicks / _totalLoadTicks);
 
-        if (_manager._progressCastMethod != null)
-        {
-            _manager._progressCastMethod(Mathf.Min(1, value));
-        }
+        _manager._progressCastMethod?.Invoke(Mathf.Min(1, value));
     }
 
     private static void SetObservableUpdateTypes(PlanetOverlay overlay, string planetOverlaySubtype = "None")
@@ -3619,15 +3611,12 @@ public class Manager
         if (!(territory.Polity.CoreGroup.Culture.GetKnowledge(_planetOverlaySubtype) is CellCulturalKnowledge cellKnowledge))
             return GetUnincorporatedGroupColor();
 
-        float normalizedValue = 0;
-
         float highestLimit = cellKnowledge.GetHighestLimit();
 
         if (highestLimit <= 0)
             throw new System.Exception("Highest Limit is less or equal to 0");
 
-        normalizedValue = knowledge.Value / highestLimit;
-
+        float normalizedValue = knowledge.Value / highestLimit;
         color = GetPolityCulturalAttributeOverlayColor(normalizedValue, IsTerritoryBorder(territory, cell));
 
         return color;
@@ -4061,10 +4050,7 @@ public class Manager
 
                 accProgress += progressPerFile;
 
-                if (_manager._progressCastMethod != null)
-                {
-                    _manager._progressCastMethod(accProgress);
-                }
+                _manager._progressCastMethod?.Invoke(accProgress);
             }
         }
     }
