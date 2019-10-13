@@ -2590,7 +2590,16 @@ public class World : ISynchronizable
         if (cell.WaterAccumulation > 0)
         {
             float tempAcc = cell.Buffer3 + ((cell.Altitude > 0) ? (cell.Temperature * cell.Rainfall) : 0);
-            cell.Temperature = Mathf.Lerp(cell.Temperature, tempAcc / cell.WaterAccumulation, TemperatureHoldOffFactor);
+            float newTemp = Mathf.Lerp(cell.Temperature, tempAcc / cell.WaterAccumulation, TemperatureHoldOffFactor);
+
+#if DEBUG
+            if (!newTemp.IsInsideRange(MinPossibleTemperatureWithOffset - 0.5f, MaxPossibleTemperatureWithOffset + 0.5f))
+            {
+                Debug.Log("Invalid newTemp: " + newTemp);
+            }
+#endif
+
+            cell.Temperature = Mathf.Clamp(newTemp, MinPossibleTemperatureWithOffset, MaxPossibleTemperatureWithOffset);
         }
 
         MaxWaterAccumulation = Mathf.Max(MaxWaterAccumulation, cell.WaterAccumulation);
@@ -2674,35 +2683,46 @@ public class World : ISynchronizable
 
     public bool AddToDrainageRegen(TerrainCell cell, bool resetDrainage = true, bool resetTerrain = true)
     {
-        if (_cellsToDrainage.Contains(cell))
-            return false;
+        bool justAdded = true;
 
-        _cellsToInitAfterDrainageRegen.Add(cell);
-        Manager.ActiveEditorBrushAction.AddCellBeforeModification(cell);
-        foreach (TerrainCell nCell in cell.Neighbors.Values)
+        if (_cellsToDrainage.Contains(cell))
         {
-            _cellsToInitAfterDrainageRegen.Add(nCell);
-            Manager.ActiveEditorBrushAction.AddCellBeforeModification(nCell);
+            justAdded = false;
+        }
+        else
+        {
+            _cellsToInitAfterDrainageRegen.Add(cell);
+            Manager.ActiveEditorBrushAction.AddCellBeforeModification(cell);
+            foreach (TerrainCell nCell in cell.Neighbors.Values)
+            {
+                _cellsToInitAfterDrainageRegen.Add(nCell);
+                Manager.ActiveEditorBrushAction.AddCellBeforeModification(nCell);
+            }
+
+            _cellsToDrainage.Add(cell);
+            _drainageHeap.Insert(cell);
+
+            if (resetDrainage)
+            {
+                ResetDrainage(cell, resetTerrain);
+
+                cell.RiverId = cell.Latitude * Width + cell.Longitude;
+
+                _cellsToFinalizeDrainageRegen.Add(cell);
+            }
         }
 
         if (resetDrainage)
         {
-            ResetDrainage(cell, resetTerrain);
-
-            cell.RiverId = cell.Latitude * Width + cell.Longitude;
-
             if (cell.Altitude > 0)
             {
+                // Rainfall could have been altered after this cell had already been added to the drainageHeap,
+                // so we need to update the cell's water acc accordingly.
                 cell.WaterAccumulation = cell.Rainfall;
             }
-
-            _cellsToFinalizeDrainageRegen.Add(cell);
         }
 
-        _cellsToDrainage.Add(cell);
-        _drainageHeap.Insert(cell);
-
-        return true;
+        return justAdded;
     }
 
     public void FinishTerrainGenerationForModifiedCells()
@@ -3502,6 +3522,14 @@ public class World : ISynchronizable
         if (resetTerrain)
         {
             cell.Altitude = cell.OriginalAltitude;
+
+#if DEBUG
+            if (!cell.OriginalTemperature.IsInsideRange(MinPossibleTemperatureWithOffset - 0.5f, MaxPossibleTemperatureWithOffset + 0.5f))
+            {
+                Debug.Log("Invalid cell.OriginalTemperature: " + cell.OriginalTemperature);
+            }
+#endif
+
             cell.Temperature = cell.OriginalTemperature;
         }
     }
@@ -3823,6 +3851,13 @@ public class World : ISynchronizable
 
         float temperature = CalculateTemperature(value + cell.BaseTemperatureOffset);
 
+#if DEBUG
+        if (!temperature.IsInsideRange(MinPossibleTemperatureWithOffset - 0.5f, MaxPossibleTemperatureWithOffset + 0.5f))
+        {
+            Debug.Log("Invalid temperature: " + temperature);
+        }
+#endif
+
         cell.Temperature = temperature;
         cell.OriginalTemperature = temperature;
         cell.BaseTemperatureValue = value;
@@ -3850,6 +3885,14 @@ public class World : ISynchronizable
         float offset = cell.BaseTemperatureOffset;
 
         float temperature = CalculateTemperature(value + offset);
+
+#if DEBUG
+        if (!temperature.IsInsideRange(MinPossibleTemperatureWithOffset - 0.5f, MaxPossibleTemperatureWithOffset + 0.5f))
+        {
+            Debug.Log("Invalid temperature: " + temperature);
+        }
+#endif
+
         cell.Temperature = temperature;
         cell.OriginalTemperature = temperature;
 
