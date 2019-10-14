@@ -422,7 +422,7 @@ public class StartGuiManagerScript : MonoBehaviour
     }
 
     /// <summary>Updates the progress bar for generating/loading the world.</summary>
-    /// <param name="value">Current progess value.</param>
+    /// <param name="value">Current progress value.</param>
     /// <param name="message">Message to display on progress bar.</param>
     /// <param name="reset">If set to <c>true</c>, the progress value is reset.</param>
     public void ProgressUpdate(float value, string message = null, bool reset = false)

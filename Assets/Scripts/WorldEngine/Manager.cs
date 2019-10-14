@@ -105,7 +105,7 @@ public class Manager
         public long LastSaveDate;
     }
 
-    public static Debug_TracingData TracingData = new Manager.Debug_TracingData();
+    public static Debug_TracingData TracingData = new Debug_TracingData();
 
     public static bool TrackGenRandomCallers = false;
 #endif
@@ -282,87 +282,25 @@ public class Manager
 
     public XmlAttributeOverrides AttributeOverrides { get; private set; }
 
-    public static bool PerformingAsyncTask
-    {
-        get
-        {
-            return _manager._performingAsyncTask;
-        }
-    }
+    public static bool PerformingAsyncTask => _manager._performingAsyncTask;
 
-    public static bool SimulationRunning
-    {
-        get
-        {
-            return _manager._simulationRunning;
-        }
-    }
+    public static bool SimulationRunning => _manager._simulationRunning;
 
-    public static bool WorldIsReady
-    {
-        get
-        {
-            return _manager._worldReady;
-        }
-    }
+    public static bool WorldIsReady => _manager._worldReady;
 
-    public static bool SimulationCanRun
-    {
-        get
-        {
-            bool canRun = (_manager._currentWorld.CellGroupCount > 0);
+    public static bool SimulationCanRun => _manager._currentWorld.CellGroupCount > 0;
 
-            return canRun;
-        }
-    }
+    public static PlanetOverlay PlanetOverlay => _planetOverlay;
 
-    public static PlanetOverlay PlanetOverlay
-    {
-        get
-        {
-            return _planetOverlay;
-        }
-    }
+    public static string PlanetOverlaySubtype => _planetOverlaySubtype;
 
-    public static string PlanetOverlaySubtype
-    {
-        get
-        {
-            return _planetOverlaySubtype;
-        }
-    }
+    public static bool DisplayRoutes => _displayRoutes;
 
-    public static bool DisplayRoutes
-    {
-        get
-        {
-            return _displayRoutes;
-        }
-    }
+    public static bool DisplayGroupActivity => _displayGroupActivity;
 
-    public static bool DisplayGroupActivity
-    {
-        get
-        {
-            return _displayGroupActivity;
-        }
-    }
+    public static int UndoableEditorActionsCount => _undoableEditorActions.Count;
 
-    public static int UndoableEditorActionsCount
-    {
-        get
-        {
-            return _undoableEditorActions.Count;
-        }
-    }
-
-    public static int RedoableEditorActionsCount
-    {
-        get
-        {
-            return _redoableEditorActions.Count;
-        }
-    }
+    public static int RedoableEditorActionsCount => _redoableEditorActions.Count;
 
     public static void UpdateMainThreadReference()
     {
@@ -383,7 +321,7 @@ public class Manager
 
         _lastUpdatedCells = new HashSet<TerrainCell>();
 
-        /// static initalizations
+        // static initializations
 
         Tribe.GenerateTribeNounVariations();
     }
@@ -534,30 +472,21 @@ public class Manager
     {
         _undoableEditorActions.Push(action);
 
-        if (_onUndoStackUpdate != null)
-        {
-            _onUndoStackUpdate.Invoke();
-        }
+        _onUndoStackUpdate?.Invoke();
     }
 
     public static void PushRedoableAction(EditorAction action)
     {
         _redoableEditorActions.Push(action);
 
-        if (_onRedoStackUpdate != null)
-        {
-            _onRedoStackUpdate.Invoke();
-        }
+        _onRedoStackUpdate?.Invoke();
     }
 
     public static EditorAction PopUndoableAction()
     {
         EditorAction action = _undoableEditorActions.Pop();
 
-        if (_onUndoStackUpdate != null)
-        {
-            _onUndoStackUpdate.Invoke();
-        }
+        _onUndoStackUpdate?.Invoke();
 
         return action;
     }
@@ -566,10 +495,7 @@ public class Manager
     {
         EditorAction action = _redoableEditorActions.Pop();
 
-        if (_onRedoStackUpdate != null)
-        {
-            _onRedoStackUpdate.Invoke();
-        }
+        _onRedoStackUpdate?.Invoke();
 
         return action;
     }
@@ -578,20 +504,14 @@ public class Manager
     {
         _undoableEditorActions.Clear();
 
-        if (_onUndoStackUpdate != null)
-        {
-            _onUndoStackUpdate.Invoke();
-        }
+        _onUndoStackUpdate?.Invoke();
     }
 
     public static void ResetRedoableActionsStack()
     {
         _redoableEditorActions.Clear();
 
-        if (_onRedoStackUpdate != null)
-        {
-            _onRedoStackUpdate.Invoke();
-        }
+        _onRedoStackUpdate?.Invoke();
     }
 
     public static void InitializeDebugLog()
@@ -608,16 +528,7 @@ public class Manager
 
         _debugLogStream = File.CreateText(filename);
 
-        string buildType;
-
-        if (Debug.isDebugBuild)
-        {
-            buildType = "debug";
-        }
-        else
-        {
-            buildType = "release";
-        }
+        string buildType = Debug.isDebugBuild ? "debug" : "release";
 
         _debugLogStream.WriteLine("Running Worlds " + Application.version + " (" + buildType + ")...");
         _debugLogStream.Flush();
@@ -632,12 +543,14 @@ public class Manager
 
         _debugLogStream = null;
 
-        if (_backupDebugLog)
-        {
-            string logFilename = _debugLogFilename + _debugLogExt;
-            string backupFilename = _debugLogFilename + System.DateTime.Now.ToString("_dd_MM_yyyy_hh_mm_ss") + _debugLogExt;
-            File.Copy(logFilename, backupFilename);
-        }
+        if (!_backupDebugLog)
+            return;
+
+        string logFilename = _debugLogFilename + _debugLogExt;
+
+        string backupFilename = _debugLogFilename + System.DateTime.Now.ToString("_dd_MM_yyyy_hh_mm_ss") + _debugLogExt;
+        
+        File.Copy(logFilename, backupFilename);
     }
 
     public static void HandleLog(string logString, string stackTrace, LogType type)
@@ -668,7 +581,7 @@ public class Manager
         _backupDebugLog = true;
     }
 
-    private void InitializeSavePath()
+    private static void InitializeSavePath()
     {
         string path = Path.GetFullPath(@"Saves\");
 
@@ -680,7 +593,7 @@ public class Manager
         SavePath = path;
     }
 
-    private void InitializeHeightmapsPath()
+    private static void InitializeHeightmapsPath()
     {
         string path = Path.GetFullPath(@"Heightmaps\");
 
@@ -692,7 +605,7 @@ public class Manager
         HeightmapsPath = path;
     }
 
-    private void InitializeExportPath()
+    private static void InitializeExportPath()
     {
         string path = Path.GetFullPath(@"Images\");
 
@@ -748,11 +661,11 @@ public class Manager
         {
             Resolution currentResolution = Screen.currentResolution;
 
-            Screen.SetResolution(currentResolution.width, currentResolution.height, state);
+            Screen.SetResolution(currentResolution.width, currentResolution.height, true);
         }
         else
         {
-            Screen.SetResolution(_resolutionWidthWindowed, _resolutionHeightWindowed, state);
+            Screen.SetResolution(_resolutionWidthWindowed, _resolutionHeightWindowed, false);
         }
     }
 
@@ -868,53 +781,17 @@ public class Manager
         _overlayPalette.AddRange(colors);
     }
 
-    public static World CurrentWorld
-    {
-        get
-        {
-            return _manager._currentWorld;
-        }
-    }
+    public static World CurrentWorld => _manager._currentWorld;
 
-    public static Texture2D CurrentMapTexture
-    {
-        get
-        {
-            return _manager._currentMapTexture;
-        }
-    }
+    public static Texture2D CurrentMapTexture => _manager._currentMapTexture;
 
-    public static Texture2D CurrentMapOverlayTexture
-    {
-        get
-        {
-            return _manager._currentMapOverlayTexture;
-        }
-    }
+    public static Texture2D CurrentMapOverlayTexture => _manager._currentMapOverlayTexture;
 
-    public static Texture2D CurrentMapActivityTexture
-    {
-        get
-        {
-            return _manager._currentMapActivityTexture;
-        }
-    }
+    public static Texture2D CurrentMapActivityTexture => _manager._currentMapActivityTexture;
 
-    public static Texture2D CurrentMapOverlayShaderInfoTexture
-    {
-        get
-        {
-            return _manager._currentMapOverlayShaderInfoTexture;
-        }
-    }
+    public static Texture2D CurrentMapOverlayShaderInfoTexture => _manager._currentMapOverlayShaderInfoTexture;
 
-    public static Texture2D PointerOverlayTexture
-    {
-        get
-        {
-            return _manager._pointerOverlayTexture;
-        }
-    }
+    public static Texture2D PointerOverlayTexture => _manager._pointerOverlayTexture;
 
     public static Vector2 GetUVFromMapCoordinates(WorldPosition mapPosition)
     {
@@ -969,12 +846,7 @@ public class Manager
         _manager._simulationRunning = false;
         _manager._performingAsyncTask = true;
 
-        _manager._progressCastMethod = progressCastMethod;
-
-        if (_manager._progressCastMethod == null)
-        {
-            _manager._progressCastMethod = (value, message, reset) => { };
-        }
+        _manager._progressCastMethod = progressCastMethod ?? ((value, message, reset) => { });
 
         Debug.Log("Trying to export world map to .png file: " + Path.GetFileName(path));
 
@@ -1029,23 +901,23 @@ public class Manager
         if ((_observableUpdateSubTypes & updateSubType) == CellUpdateSubType.None)
             return false;
 
-        if (_planetOverlay == PlanetOverlay.General)
-        {
-            if (((updateType & CellUpdateType.Territory) != CellUpdateType.None) &&
-                ((updateSubType & CellUpdateSubType.MembershipAndCore) != CellUpdateSubType.None))
-            {
-                return true;
-            }
-            else if (((updateType & CellUpdateType.Group) != CellUpdateType.None) &&
-                ((updateSubType & CellUpdateSubType.Culture) != CellUpdateSubType.None))
-            {
-                return true;
-            }
+        if (_planetOverlay != PlanetOverlay.General)
+            return true;
 
-            return false;
+        if (((updateType & CellUpdateType.Territory) != CellUpdateType.None) &&
+            ((updateSubType & CellUpdateSubType.MembershipAndCore) != CellUpdateSubType.None))
+        {
+            return true;
         }
 
-        return true;
+        if (((updateType & CellUpdateType.Group) != CellUpdateType.None) &&
+            ((updateSubType & CellUpdateSubType.Culture) != CellUpdateSubType.None))
+        {
+            return true;
+        }
+
+        return false;
+
     }
 
     // Only use this function if ValidUpdateTypeAndSubtype has already been called
@@ -1108,14 +980,7 @@ public class Manager
     {
         World world = _manager._currentWorld;
 
-        if (_manager._progressCastMethod == null)
-        {
-            world.ProgressCastMethod = (value, message, reset) => { };
-        }
-        else
-        {
-            world.ProgressCastMethod = _manager._progressCastMethod;
-        }
+        world.ProgressCastMethod = _manager._progressCastMethod ?? ((value, message, reset) => { });
 
         world.GenerateRandomHumanGroups(1, initialPopulation);
     }
@@ -1124,14 +989,7 @@ public class Manager
     {
         World world = _manager._currentWorld;
 
-        if (_manager._progressCastMethod == null)
-        {
-            world.ProgressCastMethod = (value, message, reset) => { };
-        }
-        else
-        {
-            world.ProgressCastMethod = _manager._progressCastMethod;
-        }
+        world.ProgressCastMethod = _manager._progressCastMethod ?? ((value, message, reset) => { });
 
         world.GenerateHumanGroup(longitude, latitude, initialPopulation);
     }
@@ -1151,12 +1009,7 @@ public class Manager
 
         LastStageProgress = 0;
 
-        ProgressCastDelegate progressCastMethod;
-
-        if (_manager._progressCastMethod == null)
-            progressCastMethod = (value, message, reset) => { };
-        else
-            progressCastMethod = _manager._progressCastMethod;
+        ProgressCastDelegate progressCastMethod = _manager._progressCastMethod ?? ((value, message, reset) => { });
 
         TryLoadActiveMods();
 
@@ -1187,12 +1040,7 @@ public class Manager
         _manager._simulationRunning = false;
         _manager._performingAsyncTask = true;
 
-        _manager._progressCastMethod = progressCastMethod;
-
-        if (_manager._progressCastMethod == null)
-        {
-            _manager._progressCastMethod = (value, message, reset) => { };
-        }
+        _manager._progressCastMethod = progressCastMethod ?? ((value, message, reset) => { });
 
         Debug.Log(string.Format("Trying to generate world with seed: {0}, Altitude Scale: {1}, Sea Level Offset: {2}, River Strength: {3}, Avg. Temperature: {4}, Avg. Rainfall: {5}",
             seed, AltitudeScale, SeaLevelOffset, RiverStrength, TemperatureOffset, RainfallOffset));
@@ -1222,14 +1070,7 @@ public class Manager
 
         World world = _manager._currentWorld;
 
-        if (_manager._progressCastMethod == null)
-        {
-            world.ProgressCastMethod = (value, message, reset) => { };
-        }
-        else
-        {
-            world.ProgressCastMethod = _manager._progressCastMethod;
-        }
+        world.ProgressCastMethod = _manager._progressCastMethod ?? ((value, message, reset) => { });
 
         world.StartReinitialization(0f, 1.0f);
         world.Regenerate(type);
@@ -1248,12 +1089,7 @@ public class Manager
         _manager._simulationRunning = false;
         _manager._performingAsyncTask = true;
 
-        _manager._progressCastMethod = progressCastMethod;
-
-        if (_manager._progressCastMethod == null)
-        {
-            _manager._progressCastMethod = (value, message, reset) => { };
-        }
+        _manager._progressCastMethod = progressCastMethod ?? ((value, message, reset) => { });
 
         Debug.Log(string.Format("Trying to regenerate world with seed: {0}, Altitude Scale: {1}, Sea Level Offset: {2}, River Strength: {3}, Avg. Temperature: {4}, Avg. Rainfall: {5}",
             _manager._currentWorld.Seed, AltitudeScale, SeaLevelOffset, RiverStrength, TemperatureOffset, RainfallOffset));
@@ -1302,9 +1138,8 @@ public class Manager
 
         using (FileStream stream = new FileStream(path, FileMode.Open))
         {
-            AppSettings settings = serializer.Deserialize(stream) as AppSettings;
-
-            settings.Take();
+            if (serializer.Deserialize(stream) is AppSettings settings)
+                settings.Take();
         }
     }
 
@@ -1325,12 +1160,7 @@ public class Manager
         _manager._simulationRunning = false;
         _manager._performingAsyncTask = true;
 
-        _manager._progressCastMethod = progressCastMethod;
-
-        if (_manager._progressCastMethod == null)
-        {
-            _manager._progressCastMethod = (value, message, reset) => { };
-        }
+        _manager._progressCastMethod = progressCastMethod ?? ((value, message, reset) => { });
 
         Debug.Log("Trying to save world to file: " + Path.GetFileName(path));
 
@@ -1363,11 +1193,11 @@ public class Manager
 
     private static void TryLoadActiveMods()
     {
-        if (!ModsAlreadyLoaded)
-        {
-            LoadMods(ActiveModPaths);
-            ModsAlreadyLoaded = true;
-        }
+        if (ModsAlreadyLoaded)
+            return;
+
+        LoadMods(ActiveModPaths);
+        ModsAlreadyLoaded = true;
     }
 
     public static void LoadWorld(string path)
@@ -1376,12 +1206,7 @@ public class Manager
 
         LastStageProgress = 0;
 
-        ProgressCastDelegate progressCastMethod;
-
-        if (_manager._progressCastMethod == null)
-            progressCastMethod = (value, message, reset) => { };
-        else
-            progressCastMethod = _manager._progressCastMethod;
+        ProgressCastDelegate progressCastMethod = _manager._progressCastMethod ?? ((value, message, reset) => { });
 
         ResetWorldLoadTrack();
         
@@ -1394,14 +1219,7 @@ public class Manager
             world = serializer.Deserialize(stream) as World;
         }
 
-        if (_manager._progressCastMethod == null)
-        {
-            world.ProgressCastMethod = (value, message, reset) => { };
-        }
-        else
-        {
-            world.ProgressCastMethod = _manager._progressCastMethod;
-        }
+        world.ProgressCastMethod = _manager._progressCastMethod ?? ((value, message, reset) => { });
 
         LastStageProgress = StageProgressIncFromLoading;
 
@@ -1448,12 +1266,7 @@ public class Manager
         _manager._simulationRunning = false;
         _manager._performingAsyncTask = true;
 
-        _manager._progressCastMethod = progressCastMethod;
-
-        if (_manager._progressCastMethod == null)
-        {
-            _manager._progressCastMethod = (value, message, reset) => { };
-        }
+        _manager._progressCastMethod = progressCastMethod ?? ((value, message, reset) => { });
 
         Debug.Log("Trying to load world from file: " + Path.GetFileName(path));
 
@@ -1517,95 +1330,87 @@ public class Manager
 
     private static void SetObservableUpdateTypes(PlanetOverlay overlay, string planetOverlaySubtype = "None")
     {
-        if ((overlay == PlanetOverlay.None) ||
-            (overlay == PlanetOverlay.Arability) ||
-            (overlay == PlanetOverlay.Accessibility) ||
-            (overlay == PlanetOverlay.Hilliness) ||
-            (overlay == PlanetOverlay.BiomeTrait) ||
-            (overlay == PlanetOverlay.Layer) ||
-            (overlay == PlanetOverlay.Rainfall) ||
-            (overlay == PlanetOverlay.DrainageBasins) ||
-            (overlay == PlanetOverlay.Temperature) ||
-            (overlay == PlanetOverlay.FarmlandDistribution))
+        switch (overlay)
         {
-            _observableUpdateTypes = CellUpdateType.Cell;
-        }
-        else if (overlay == PlanetOverlay.Region)
-        {
-            _observableUpdateTypes = CellUpdateType.Region;
-        }
-        else if (overlay == PlanetOverlay.PolityCluster)
-        {
-            _observableUpdateTypes = CellUpdateType.Cluster;
-        }
-        else if (overlay == PlanetOverlay.Language)
-        {
-            _observableUpdateTypes = CellUpdateType.Language;
-        }
-        else if ((overlay == PlanetOverlay.PolityTerritory) ||
-            (overlay == PlanetOverlay.PolityContacts) ||
-            (overlay == PlanetOverlay.PolityCulturalPreference) ||
-            (overlay == PlanetOverlay.PolityCulturalActivity) ||
-            (overlay == PlanetOverlay.PolityCulturalDiscovery) ||
-            (overlay == PlanetOverlay.PolityCulturalKnowledge) ||
-            (overlay == PlanetOverlay.PolityCulturalSkill))
-        {
-            _observableUpdateTypes = CellUpdateType.Territory;
-        }
-        else if (overlay == PlanetOverlay.General)
-        {
-            _observableUpdateTypes = CellUpdateType.Group | CellUpdateType.Territory;
-        }
-        else
-        {
-            _observableUpdateTypes = CellUpdateType.Group;
+            case PlanetOverlay.None:
+            case PlanetOverlay.Arability:
+            case PlanetOverlay.Accessibility:
+            case PlanetOverlay.Hilliness:
+            case PlanetOverlay.BiomeTrait:
+            case PlanetOverlay.Layer:
+            case PlanetOverlay.Rainfall:
+            case PlanetOverlay.DrainageBasins:
+            case PlanetOverlay.Temperature:
+            case PlanetOverlay.FarmlandDistribution:
+                _observableUpdateTypes = CellUpdateType.Cell;
+                break;
+            case PlanetOverlay.Region:
+                _observableUpdateTypes = CellUpdateType.Region;
+                break;
+            case PlanetOverlay.PolityCluster:
+                _observableUpdateTypes = CellUpdateType.Cluster;
+                break;
+            case PlanetOverlay.Language:
+                _observableUpdateTypes = CellUpdateType.Language;
+                break;
+            case PlanetOverlay.PolityTerritory:
+            case PlanetOverlay.PolityContacts:
+            case PlanetOverlay.PolityCulturalPreference:
+            case PlanetOverlay.PolityCulturalActivity:
+            case PlanetOverlay.PolityCulturalDiscovery:
+            case PlanetOverlay.PolityCulturalKnowledge:
+            case PlanetOverlay.PolityCulturalSkill:
+                _observableUpdateTypes = CellUpdateType.Territory;
+                break;
+            case PlanetOverlay.General:
+                _observableUpdateTypes = CellUpdateType.Group | CellUpdateType.Territory;
+                break;
+            default:
+                _observableUpdateTypes = CellUpdateType.Group;
+                break;
         }
     }
 
     private static void SetObservableUpdateSubtypes(PlanetOverlay overlay, string planetOverlaySubtype = "None")
     {
-        if ((overlay == PlanetOverlay.None) ||
-            (overlay == PlanetOverlay.Arability) ||
-            (overlay == PlanetOverlay.Accessibility) ||
-            (overlay == PlanetOverlay.Hilliness) ||
-            (overlay == PlanetOverlay.BiomeTrait) ||
-            (overlay == PlanetOverlay.Layer) ||
-            (overlay == PlanetOverlay.Rainfall) ||
-            (overlay == PlanetOverlay.DrainageBasins) ||
-            (overlay == PlanetOverlay.Temperature) ||
-            (overlay == PlanetOverlay.FarmlandDistribution))
+        switch (overlay)
         {
-            _observableUpdateSubTypes = CellUpdateSubType.Terrain;
-        }
-        else if ((overlay == PlanetOverlay.Region) ||
-            (overlay == PlanetOverlay.PolityCluster) ||
-            (overlay == PlanetOverlay.Language))
-        {
-            _observableUpdateSubTypes = CellUpdateSubType.Membership;
-        }
-        else if (overlay == PlanetOverlay.PolityTerritory)
-        {
-            _observableUpdateSubTypes = CellUpdateSubType.MembershipAndCore;
-        }
-        else if (overlay == PlanetOverlay.PolityContacts)
-        {
-            _observableUpdateSubTypes = CellUpdateSubType.Membership | CellUpdateSubType.Relationship;
-        }
-        else if (overlay == PlanetOverlay.General)
-        {
-            _observableUpdateSubTypes = CellUpdateSubType.MembershipAndCore | CellUpdateSubType.Culture;
-        }
-        else if ((overlay == PlanetOverlay.PolityCulturalPreference) ||
-            (overlay == PlanetOverlay.PolityCulturalActivity) ||
-            (overlay == PlanetOverlay.PolityCulturalDiscovery) ||
-            (overlay == PlanetOverlay.PolityCulturalKnowledge) ||
-            (overlay == PlanetOverlay.PolityCulturalSkill))
-        {
-            _observableUpdateSubTypes = CellUpdateSubType.Membership | CellUpdateSubType.Culture;
-        }
-        else
-        {
-            _observableUpdateSubTypes = CellUpdateSubType.All;
+            case PlanetOverlay.None:
+            case PlanetOverlay.Arability:
+            case PlanetOverlay.Accessibility:
+            case PlanetOverlay.Hilliness:
+            case PlanetOverlay.BiomeTrait:
+            case PlanetOverlay.Layer:
+            case PlanetOverlay.Rainfall:
+            case PlanetOverlay.DrainageBasins:
+            case PlanetOverlay.Temperature:
+            case PlanetOverlay.FarmlandDistribution:
+                _observableUpdateSubTypes = CellUpdateSubType.Terrain;
+                break;
+            case PlanetOverlay.Region:
+            case PlanetOverlay.PolityCluster:
+            case PlanetOverlay.Language:
+                _observableUpdateSubTypes = CellUpdateSubType.Membership;
+                break;
+            case PlanetOverlay.PolityTerritory:
+                _observableUpdateSubTypes = CellUpdateSubType.MembershipAndCore;
+                break;
+            case PlanetOverlay.PolityContacts:
+                _observableUpdateSubTypes = CellUpdateSubType.Membership | CellUpdateSubType.Relationship;
+                break;
+            case PlanetOverlay.General:
+                _observableUpdateSubTypes = CellUpdateSubType.MembershipAndCore | CellUpdateSubType.Culture;
+                break;
+            case PlanetOverlay.PolityCulturalPreference:
+            case PlanetOverlay.PolityCulturalActivity:
+            case PlanetOverlay.PolityCulturalDiscovery:
+            case PlanetOverlay.PolityCulturalKnowledge:
+            case PlanetOverlay.PolityCulturalSkill:
+                _observableUpdateSubTypes = CellUpdateSubType.Membership | CellUpdateSubType.Culture;
+                break;
+            default:
+                _observableUpdateSubTypes = CellUpdateSubType.All;
+                break;
         }
     }
 
@@ -1757,15 +1562,9 @@ public class Manager
         if (CurrentWorld.GuidedFaction == faction)
             return;
 
-        if (CurrentWorld.GuidedFaction != null)
-        {
-            CurrentWorld.GuidedFaction.SetUnderPlayerGuidance(false);
-        }
+        CurrentWorld.GuidedFaction?.SetUnderPlayerGuidance(false);
 
-        if (faction != null)
-        {
-            faction.SetUnderPlayerGuidance(true);
-        }
+        faction?.SetUnderPlayerGuidance(true);
 
         CurrentWorld.GuidedFaction = faction;
     }
@@ -1957,7 +1756,7 @@ public class Manager
     private static void ApplyEditorBrush_Altitude(int longitude, int latitude, float distanceFactor)
     {
         float strength = EditorBrushStrength / AltitudeScale;
-        float noiseRadius = BrushNoiseRadiusFactor / (float)EditorBrushRadius;
+        float noiseRadius = BrushNoiseRadiusFactor / EditorBrushRadius;
 
         float strToValue = BrushStrengthFactor_Base * BrushStrengthFactor_Altitude * 
             (MathUtility.GetPseudoNormalDistribution(distanceFactor * 2) - MathUtility.NormalAt2) / (MathUtility.NormalAt0 - MathUtility.NormalAt2);
@@ -2002,7 +1801,7 @@ public class Manager
 
     private static void ApplyEditorBrush_Temperature(int longitude, int latitude, float distanceFactor)
     {
-        float noiseRadius = BrushNoiseRadiusFactor / (float)EditorBrushRadius;
+        float noiseRadius = BrushNoiseRadiusFactor / EditorBrushRadius;
 
         float strToValue = BrushStrengthFactor_Base * BrushStrengthFactor_Temperature *
             (MathUtility.GetPseudoNormalDistribution(distanceFactor * 2) - MathUtility.NormalAt2) / (MathUtility.NormalAt0 - MathUtility.NormalAt2);
@@ -2047,7 +1846,7 @@ public class Manager
             throw new System.Exception("Not a recognized layer Id: " + _planetOverlaySubtype);
         }
 
-        float noiseRadius = BrushNoiseRadiusFactor / (float)EditorBrushRadius;
+        float noiseRadius = BrushNoiseRadiusFactor / EditorBrushRadius;
 
         float strToValue = BrushStrengthFactor_Base * BrushStrengthFactor_Layer *
             (MathUtility.GetPseudoNormalDistribution(distanceFactor * 2) - MathUtility.NormalAt2) / (MathUtility.NormalAt0 - MathUtility.NormalAt2);
@@ -2092,7 +1891,7 @@ public class Manager
 
     private static void ApplyEditorBrush_Rainfall(int longitude, int latitude, float distanceFactor)
     {
-        float noiseRadius = BrushNoiseRadiusFactor / (float)EditorBrushRadius;
+        float noiseRadius = BrushNoiseRadiusFactor / EditorBrushRadius;
 
         float strToValue = BrushStrengthFactor_Base * BrushStrengthFactor_Rainfall *
             (MathUtility.GetPseudoNormalDistribution(distanceFactor * 2) - MathUtility.NormalAt2) / (MathUtility.NormalAt0 - MathUtility.NormalAt2);
@@ -2626,7 +2425,7 @@ public class Manager
             c++;
         }
 
-        wAltitude /= (float)c;
+        wAltitude /= c;
 
         c = 0;
 
@@ -2648,7 +2447,7 @@ public class Manager
             c++;
         }
 
-        eAltitude /= (float)c;
+        eAltitude /= c;
 
         float value = wAltitude - eAltitude;
 
@@ -3032,10 +2831,7 @@ public class Manager
     {
         foreach (TerrainCell nCell in cell.Neighbors.Values)
         {
-            if (nCell.Group == null)
-                return true;
-
-            Language nLanguage = nCell.Group.Culture.Language;
+            Language nLanguage = nCell.Group?.Culture.Language;
 
             if (nLanguage == null)
                 return true;
@@ -3394,11 +3190,9 @@ public class Manager
 
         float maxPopFactor = cell.MaxAreaPercent * maxPopulation.Value / 5f;
 
-        float population = 0;
-
         if (cell.Group != null)
         {
-            population = cell.Group.Population;
+            float population = cell.Group.Population;
 
             if (cell.Group.MigrationTagged && DisplayMigrationTaggedGroup)
                 return Color.green;
@@ -3969,12 +3763,10 @@ public class Manager
 
     public static Texture2D LoadTexture(string path)
     {
-        Texture2D texture;
-
         if (File.Exists(path))
         {
             byte[] data = File.ReadAllBytes(path);
-            texture = new Texture2D(1, 1);
+            Texture2D texture = new Texture2D(1, 1);
             if (texture.LoadImage(data))
                 return texture;
         }
