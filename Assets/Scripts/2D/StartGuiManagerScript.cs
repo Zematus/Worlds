@@ -159,6 +159,8 @@ public class StartGuiManagerScript : MonoBehaviour
     private void ToggleFullscreen()
     {
         SetFullscreen(!Manager.FullScreenEnabled);
+
+        SettingsDialogPanelScript.FullscreenToggle.isOn = Manager.FullScreenEnabled;
     }
 
     /// <summary>Reads the keyboard input.</summary>
@@ -169,7 +171,7 @@ public class StartGuiManagerScript : MonoBehaviour
 
         Manager.HandleKeyUp(KeyCode.L, true, false, LoadWorld);
         Manager.HandleKeyUp(KeyCode.G, true, false, SetGenerationSeed);
-        //Manager.HandleKeyUp(KeyCode.F, true, false, ToggleFullscreen);
+        Manager.HandleKeyUp(KeyCode.F, true, false, ToggleFullscreen);
     }
 
     /// <summary>Called after closing the exception message dialog panel.</summary>
