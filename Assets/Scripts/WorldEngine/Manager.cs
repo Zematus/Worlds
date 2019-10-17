@@ -307,6 +307,7 @@ public class Manager
         MainThread = Thread.CurrentThread;
     }
 
+    /// <summary>Initializes the game manager.</summary>
     private Manager()
     {
         InitializeSavePath();
@@ -326,6 +327,12 @@ public class Manager
         Tribe.GenerateTribeNounVariations();
     }
 
+    /// <summary>Determines if the required control and shift keys were used.</summary>
+    /// <param name="requireCtrl">If set to <c>true</c>, requires either control key.</param>
+    /// <param name="requireShift">If set to <c>true</c>, requires either shift key.</param>
+    /// <returns>
+    ///   <c>true</c> if the required control and shift keys were used; otherwise, <c>false</c>.
+    /// </returns>
     private static bool CanHandleKeyInput(bool requireCtrl, bool requireShift)
     {
         if (requireCtrl != (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl)))
@@ -340,6 +347,11 @@ public class Manager
         return true;
     }
 
+    /// <summary>Called on the frame when the key identified by <c>keyCode</c> has been released.</summary>
+    /// <param name="keyCode">The key code.</param>
+    /// <param name="requireCtrl">If set to <c>true</c>, requires either control key.</param>
+    /// <param name="requireShift">If set to <c>true</c>, requires either shift key.</param>
+    /// <param name="action">Function to be called if key input is valid.</param>
     public static void HandleKeyUp(KeyCode keyCode, bool requireCtrl, bool requireShift, System.Action action)
     {
         if (!Input.GetKeyUp(keyCode))
@@ -351,6 +363,11 @@ public class Manager
         action.Invoke();
     }
 
+    /// <summary>Called when the key identified by <c>keyCode</c> is being held down.</summary>
+    /// <param name="keyCode">The key code.</param>
+    /// <param name="requireCtrl">If set to <c>true</c>, requires either control key.</param>
+    /// <param name="requireShift">If set to <c>true</c>, requires either shift key.</param>
+    /// <param name="action">Function to be called if key input is valid.</param>
     public static void HandleKey(KeyCode keyCode, bool requireCtrl, bool requireShift, System.Action action)
     {
         if (!Input.GetKey(keyCode))
@@ -362,6 +379,11 @@ public class Manager
         action.Invoke();
     }
 
+    /// <summary>Called on the frame when a key identified by <c>keyCode</c> is initially pressed down.</summary>
+    /// <param name="keyCode">The key code.</param>
+    /// <param name="requireCtrl">If set to <c>true</c>, requires either control key.</param>
+    /// <param name="requireShift">If set to <c>true</c>, requires either shift key.</param>
+    /// <param name="action">Function to be called if key input is valid.</param>
     public static void HandleKeyDown(KeyCode keyCode, bool requireCtrl, bool requireShift, System.Action action)
     {
         if (!Input.GetKeyDown(keyCode))
@@ -373,11 +395,14 @@ public class Manager
         action.Invoke();
     }
 
+    /// <summary>Clears the layer settings.</summary>
     public static void ResetLayerSettings()
     {
         LayerSettings.Clear();
     }
 
+    /// <summary>Sets the layer settings.</summary>
+    /// <param name="layerSettings">The list of layer settings to be set.</param>
     public static void SetLayerSettings(List<LayerSettings> layerSettings)
     {
         ResetLayerSettings();
@@ -388,6 +413,11 @@ public class Manager
         }
     }
 
+    /// <summary>Gets the associated layer settings for an id matching to <c>layerID</c>.</summary>
+    /// <param name="layerId">The layer identifier.</param>
+    /// <returns>
+    ///   The layer settings associated with <c>layerId</c>.
+    /// </returns>
     public static LayerSettings GetLayerSettings(string layerId)
     {
         if (!LayerSettings.TryGetValue(layerId, out LayerSettings settings))
@@ -399,6 +429,8 @@ public class Manager
         return settings;
     }
 
+    /// <summary>Blocks the ability to undo and redo actions on the editor.</summary>
+    /// <param name="state">If set to <c>true</c>, blocking is active.</param>
     public static void BlockUndoAndRedo(bool state)
     {
         _undoAndRedoBlocked = state;
@@ -424,6 +456,7 @@ public class Manager
         _onRedoStackUpdate -= op;
     }
 
+    /// <summary>Undoes the last action in the editor.</summary>
     public static void UndoEditorAction()
     {
         if (_undoAndRedoBlocked || EditorBrushIsActive)
@@ -439,6 +472,7 @@ public class Manager
         PushRedoableAction(action);
     }
 
+    /// <summary>Redoes the last action in the editor.</summary>
     public static void RedoEditorAction()
     {
         if (_undoAndRedoBlocked || EditorBrushIsActive)
@@ -454,6 +488,8 @@ public class Manager
         PushUndoableAction(action);
     }
 
+    /// <summary>Performs the action identified by <c>editorAction</c> in the editor.</summary>
+    /// <param name="editorAction">The action to be done in the editor.</param>
     public static void PerformEditorAction(EditorAction editorAction)
     {
         editorAction.Do();
@@ -462,12 +498,15 @@ public class Manager
         ResetRedoableActionsStack();
     }
 
+    /// <summary>Resets the undoable and redoable action stacks.</summary>
     public static void ResetActionStacks()
     {
         ResetUndoableActionsStack();
         ResetRedoableActionsStack();
     }
 
+    /// <summary>Pushes the undoable action identified by <c>action</c> onto the undoable stack.</summary>
+    /// <param name="action">The action to be pushed.</param>
     public static void PushUndoableAction(EditorAction action)
     {
         _undoableEditorActions.Push(action);
@@ -475,6 +514,8 @@ public class Manager
         _onUndoStackUpdate?.Invoke();
     }
 
+    /// <summary>Pushes the redoable action identified by <c>action</c> onto the redoable stack.</summary>
+    /// <param name="action">The action to be pushed.</param>
     public static void PushRedoableAction(EditorAction action)
     {
         _redoableEditorActions.Push(action);
@@ -482,6 +523,11 @@ public class Manager
         _onRedoStackUpdate?.Invoke();
     }
 
+
+    /// <summary>Pops the last action that can be undone.</summary>
+    /// <returns>
+    ///   Action last performed on the editor.
+    /// </returns>
     public static EditorAction PopUndoableAction()
     {
         EditorAction action = _undoableEditorActions.Pop();
@@ -491,6 +537,10 @@ public class Manager
         return action;
     }
 
+    /// <summary>Pops the last action that can be redone.</summary>
+    /// <returns>
+    ///   Action last undone on the editor.
+    /// </returns>
     public static EditorAction PopRedoableAction()
     {
         EditorAction action = _redoableEditorActions.Pop();
@@ -500,6 +550,7 @@ public class Manager
         return action;
     }
 
+    /// <summary>Resets the undoable action stack.</summary>
     public static void ResetUndoableActionsStack()
     {
         _undoableEditorActions.Clear();
@@ -507,6 +558,7 @@ public class Manager
         _onUndoStackUpdate?.Invoke();
     }
 
+    /// <summary>Resets the redoable action stack.</summary>
     public static void ResetRedoableActionsStack()
     {
         _redoableEditorActions.Clear();
@@ -514,6 +566,8 @@ public class Manager
         _onRedoStackUpdate?.Invoke();
     }
 
+    /// <summary>Initializes the debug log.</summary>
+    /// <remarks>Will overwrite an old log with the same name.</remarks>
     public static void InitializeDebugLog()
     {
         if (_debugLogStream != null)
@@ -534,6 +588,8 @@ public class Manager
         _debugLogStream.Flush();
     }
 
+    /// <summary>Closes the debug log.</summary>
+    /// <remarks>Will create a backup of the log if an exception occurs.</remarks>
     public static void CloseDebugLog()
     {
         if (_debugLogStream == null)
@@ -553,6 +609,10 @@ public class Manager
         File.Copy(logFilename, backupFilename);
     }
 
+    /// <summary>Handler used for logging, tracing and debugging.</summary>
+    /// <param name="logString">The string to be logged.</param>
+    /// <param name="stackTrace">The stack trace.</param>
+    /// <param name="type">The type of log message.</param>
     public static void HandleLog(string logString, string stackTrace, LogType type)
     {
         if (_debugLogStream == null)
@@ -576,11 +636,15 @@ public class Manager
         _debugLogStream.Flush();
     }
 
+
+    /// <summary>Flags the log to be backed up.</summary>
     public static void EnableLogBackup()
     {
         _backupDebugLog = true;
     }
 
+    /// <summary>Initializes the save path.</summary>
+    /// <remarks>Will create the directory if it does not already exist.</remarks>
     private static void InitializeSavePath()
     {
         string path = Path.GetFullPath(@"Saves\");
@@ -593,6 +657,8 @@ public class Manager
         SavePath = path;
     }
 
+    /// <summary>Initializes the heightmaps path.</summary>
+    /// <remarks>Will create the directory if it does not already exist.</remarks>
     private static void InitializeHeightmapsPath()
     {
         string path = Path.GetFullPath(@"Heightmaps\");
@@ -605,6 +671,8 @@ public class Manager
         HeightmapsPath = path;
     }
 
+    /// <summary>Initializes the export image path.</summary>
+    /// <remarks>Will create the directory if it does not already exist.</remarks>
     private static void InitializeExportPath()
     {
         string path = Path.GetFullPath(@"Images\");
@@ -617,6 +685,11 @@ public class Manager
         ExportPath = path;
     }
 
+    /// <summary>Generates a string representation of the date based on its numeric form.</summary>
+    /// <param name="date">The date in numeric form.</param>
+    /// <returns>
+    ///   A string representation of the date.
+    /// </returns>
     public static string GetDateString(long date)
     {
         long year = date / World.YearLength;
@@ -625,6 +698,11 @@ public class Manager
         return string.Format("Year {0}, Day {1}", year, day);
     }
 
+    /// <summary>Generates a string representation of the timespan based on its numeric form.</summary>
+    /// <param name="timespan">The timespan in numeric form.</param>
+    /// <returns>
+    ///   A string representation of the timespan.
+    /// </returns>
     public static string GetTimeSpanString(long timespan)
     {
         long years = timespan / World.YearLength;
@@ -633,6 +711,12 @@ public class Manager
         return string.Format("{0} years, {1} days", years, days);
     }
 
+
+    /// <summary>Adds the current date to the world name.</summary>
+    /// <param name="worldName">Name of the world.</param>
+    /// <returns>
+    ///   The world name appended by the current date.
+    /// </returns>
     public static string AddDateToWorldName (string worldName)
     {
         long year = CurrentWorld.CurrentDate / World.YearLength;
@@ -641,6 +725,11 @@ public class Manager
         return worldName + "_date_" + string.Format("{0}_{1}", year, day);
     }
 
+    /// <summary>Removes the date if present from the world name.</summary>
+    /// <param name="worldName">Name of the world with possible appended date.</param>
+    /// <returns>
+    ///   The world name.
+    /// </returns>
     public static string RemoveDateFromWorldName(string worldName)
     {
         int dateIndex = worldName.LastIndexOf("_date_");
@@ -653,6 +742,8 @@ public class Manager
         return worldName;
     }
 
+    /// <summary>Sets the game to fullscreen or windowed mode based on <c>state</c>.</summary>
+    /// <param name="state">If set to <c>true</c>, makes the game go fullscreen.</param>
     public static void SetFullscreen(bool state)
     {
         FullScreenEnabled = state;
@@ -669,11 +760,16 @@ public class Manager
         }
     }
 
+    /// <summary>Enables or disables UI scaling based on <c>state</c>.</summary>
+    /// <param name="state">If set to <c>true</c>, UI scaling is activated.</param>
     public static void SetUIScaling(bool state)
     {
         UIScalingEnabled = state;
     }
 
+
+    /// <summary>Initializes the screen.</summary>
+    /// <remarks>Fullscreen and UI scaling options are initialized here.</remarks>
     public static void InitializeScreen()
     {
         if (_resolutionInitialized)
@@ -685,11 +781,15 @@ public class Manager
         _resolutionInitialized = true;
     }
 
+    /// <summary>Interrupts or resumes the simulation based on <c>state</c>.</summary>
+    /// <param name="state">If set to <c>true</c>, stops the simulation.</param>
     public static void InterruptSimulation(bool state)
     {
         _manager._simulationRunning = !state;
     }
 
+    /// <summary>Executes a number of tasks determined by <c>count</c>.</summary>
+    /// <param name="count">The number of tasks to execute.</param>
     public static void ExecuteTasks(int count)
     {
         for (int i = 0; i < count; i++)
@@ -698,6 +798,10 @@ public class Manager
         }
     }
 
+    /// <summary>Executes the next task.</summary>
+    /// <returns>
+    ///   <c>true</c> if there is another task to execute; otherwise, <c>false</c>.
+    /// </returns>
     public static bool ExecuteNextTask()
     {
         IManagerTask task;
@@ -715,6 +819,11 @@ public class Manager
         return true;
     }
 
+    /// <summary>Enqueues the generic type task identified by <c>taskDelegate</c>.</summary>
+    /// <param name="taskDelegate">The generic type task to be enqueued.</param>
+    /// <returns>
+    ///   The task that was just enqueued.
+    /// </returns>
     public static ManagerTask<T> EnqueueTask<T>(ManagerTaskDelegate<T> taskDelegate)
     {
         ManagerTask<T> task = new ManagerTask<T>(taskDelegate);
@@ -734,11 +843,21 @@ public class Manager
         return task;
     }
 
+    /// <summary>Enqueues the generic type task identified by <c>taskDelegate</c> and waits for the result.</summary>
+    /// <param name="taskDelegate">The generic type task to be enqueued.</param>
+    /// <returns>
+    ///   The result of the enqueued task.
+    /// </returns>
     public static T EnqueueTaskAndWait<T>(ManagerTaskDelegate<T> taskDelegate)
     {
         return EnqueueTask(taskDelegate).Result;
     }
 
+    /// <summary>Enqueues the task identified by <c>taskDelegate</c>.</summary>
+    /// <param name="taskDelegate">The task to be enqueued.</param>
+    /// <returns>
+    ///   The task that was just enqueued.
+    /// </returns>
     public static ManagerTask EnqueueTask(ManagerTaskDelegate taskDelegate)
     {
         ManagerTask task = new ManagerTask(taskDelegate);
@@ -758,23 +877,32 @@ public class Manager
         return task;
     }
 
+    /// <summary>Enqueues the task identified by <c>taskDelegate</c> and waits.</summary>
+    /// <param name="taskDelegate">The task to be enqueued.</param>
     public static void EnqueueTaskAndWait(ManagerTaskDelegate taskDelegate)
     {
         EnqueueTask(taskDelegate).Wait();
     }
 
+
+    /// <summary>Sets the range of colors for the biome palette.</summary>
+    /// <param name="colors">The list of colors to be set.</param>
     public static void SetBiomePalette(IEnumerable<Color> colors)
     {
         _biomePalette.Clear();
         _biomePalette.AddRange(colors);
     }
 
+    /// <summary>Sets the range of colors for the map palette.</summary>
+    /// <param name="colors">The list of colors to be set.</param>
     public static void SetMapPalette(IEnumerable<Color> colors)
     {
         _mapPalette.Clear();
         _mapPalette.AddRange(colors);
     }
 
+    /// <summary>Sets the range of colors for the overlay palette.</summary>
+    /// <param name="colors">The list of colors to be set.</param>
     public static void SetOverlayPalette(IEnumerable<Color> colors)
     {
         _overlayPalette.Clear();
@@ -798,6 +926,10 @@ public class Manager
         return new Vector2(mapPosition.Longitude / (float)CurrentWorld.Width, mapPosition.Latitude / (float)CurrentWorld.Height);
     }
 
+
+    /// <summary>Exports the map texture to file.</summary>
+    /// <param name="path">The export image path.</param>
+    /// <param name="uvRect">The map image texture coordinates.</param>
     public static void ExportMapTextureToFile(string path, Rect uvRect)
     {
         Texture2D mapTexture = _manager._currentMapTexture;
@@ -841,11 +973,15 @@ public class Manager
         });
     }
 
+    /// <summary>Exports the map texture to file asynchronously.</summary>
+    /// <param name="path">The export image path.</param>
+    /// <param name="uvRect">The map image texture coordinates.</param>
+    /// <param name="progressCastMethod">The progress cast method.</param>
     public static void ExportMapTextureToFileAsync(string path, Rect uvRect, ProgressCastDelegate progressCastMethod = null)
     {
         _manager._simulationRunning = false;
         _manager._performingAsyncTask = true;
-
+        
         _manager._progressCastMethod = progressCastMethod ?? ((value, message, reset) => { });
 
         Debug.Log("Trying to export world map to .png file: " + Path.GetFileName(path));
@@ -859,11 +995,15 @@ public class Manager
         });
     }
 
+    /// <summary>Generates the pointer overlay textures.</summary>
     public static void GeneratePointerOverlayTextures()
     {
         GeneratePointerOverlayTextureFromWorld(CurrentWorld);
     }
 
+    /// <summary>Generates the map textures.</summary>
+    /// <param name="doMapTexture">If set to <c>true</c>, map textures are generated from the current world.</param>
+    /// <param name="doOverlayMapTexture">If set to <c>true</c>, map overlay textures are generated from the current world.</param>
     public static void GenerateTextures(bool doMapTexture, bool doOverlayMapTexture)
     {
         if (DebugModeEnabled)
@@ -890,6 +1030,12 @@ public class Manager
         ResetUpdatedAndHighlightedCells();
     }
 
+    /// <summary>Validates the cell update type and subtype combination.</summary>
+    /// <param name="updateType">Type of cell update.</param>
+    /// <param name="updateSubType">Subtype of cell update.</param>
+    /// <returns>
+    ///   <c>true</c> if the cell update type and subtype combination is valid; otherwise, <c>false</c>.
+    /// </returns>
     public static bool ValidUpdateTypeAndSubtype(CellUpdateType updateType, CellUpdateSubType updateSubType)
     {
         if (_displayRoutes && ((updateType & CellUpdateType.Route) != CellUpdateType.None))
@@ -920,12 +1066,21 @@ public class Manager
 
     }
 
-    // Only use this function if ValidUpdateTypeAndSubtype has already been called
+    /// <summary>Adds the cell to updated cells without checking its update type and subtype.</summary>
+    /// <param name="cell">The cell to be added to updated cells.</param>
+    /// <remarks>Only use this function if ValidUpdateTypeAndSubtype has already been called.</remarks>
     public static void AddUpdatedCell(TerrainCell cell)
     {
         UpdatedCells.Add(cell);
     }
 
+    /// <summary>Adds the cell to updated cells after checking its update type and subtype.</summary>
+    /// <param name="cell">The cell to be added to updated cells.</param>
+    /// <param name="updateType">Type of cell update.</param>
+    /// <param name="updateSubType">Subtype of cell update.</param>
+    /// <remarks>
+    ///   If <c>updateSubType</c> is <c>CellUpdateSubType.Terrain</c>, then the <c>cell</c> will also be added to updated terrain cells.
+    /// </remarks>
     public static void AddUpdatedCell(TerrainCell cell, CellUpdateType updateType, CellUpdateSubType updateSubType)
     {
         if (!ValidUpdateTypeAndSubtype(updateType, updateSubType))
@@ -939,6 +1094,13 @@ public class Manager
         }
     }
 
+    /// <summary>Adds the cells within a polity's territory to updated cells after checking its update type and subtype.</summary>
+    /// <param name="polity">The polity whose territory's cells are to be added to updated cells.</param>
+    /// <param name="updateType">Type of cell update.</param>
+    /// <param name="updateSubType">Subtype of cell update.</param>
+    /// <remarks>
+    ///   If <c>updateSubType</c> is <c>CellUpdateSubType.Terrain</c>, then the <c>cell</c> will also be added to updated terrain cells.
+    /// </remarks>
     public static void AddUpdatedCells(Polity polity, CellUpdateType updateType, CellUpdateSubType updateSubType)
     {
         if (!ValidUpdateTypeAndSubtype(updateType, updateSubType))
@@ -952,6 +1114,13 @@ public class Manager
         }
     }
 
+    /// <summary>Adds the cells within a territory to updated cells after checking its update type and subtype.</summary>
+    /// <param name="cells">The territory whose cells are to be added to updated cells.</param>
+    /// <param name="updateType">Type of cell update.</param>
+    /// <param name="updateSubType">Subtype of cell update.</param>
+    /// <remarks>
+    ///   If <c>updateSubType</c> is <c>CellUpdateSubType.Terrain</c>, then the <c>cell</c> will also be added to updated terrain cells.
+    /// </remarks>
     public static void AddUpdatedCells(ICollection<TerrainCell> cells, CellUpdateType updateType, CellUpdateSubType updateSubType)
     {
         if (!ValidUpdateTypeAndSubtype(updateType, updateSubType))
@@ -965,11 +1134,17 @@ public class Manager
         }
     }
 
+    /// <summary>Adds the cell to highlighed cells.</summary>
+    /// <param name="cell">The cell to be added to highlighed cells.</param>
+    /// <param name="updateType">Type of cell update.</param>
     public static void AddHighlightedCell(TerrainCell cell, CellUpdateType updateType)
     {
         HighlightedCells.Add(cell);
     }
 
+    /// <summary>Adds the cells within a territory to highlighed cells.</summary>
+    /// <param name="cells">The territory whose cells are to be added to highlighed cells.</param>
+    /// <param name="updateType">Type of cell update.</param>
     public static void AddHighlightedCells(ICollection<TerrainCell> cells, CellUpdateType updateType)
     {
         foreach (TerrainCell cell in cells)
