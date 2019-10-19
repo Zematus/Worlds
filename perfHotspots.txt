@@ -1,6 +1,0 @@
-- Performance hotspots - 
-
-Slow:
-- Preupdating faction cultures
-- Updating Polity cultures
-
