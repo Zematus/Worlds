@@ -1,11 +1,12 @@
-﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using System.Xml;
-using System.Xml.Serialization;
+﻿using ProtoBuf;
 
+[ProtoContract]
+[ProtoInclude(100, typeof(FactionEventMessage))]
+[ProtoInclude(200, typeof(DiscoveryEventMessage))]
+[ProtoInclude(300, typeof(PolityFormationEventMessage))]
 public abstract class CellEventMessage : WorldEventMessage {
 
+    [ProtoMember(1)]
 	public WorldPosition Position;
 
 	public CellEventMessage () {

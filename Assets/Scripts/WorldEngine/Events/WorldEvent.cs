@@ -1,22 +1,10 @@
 ﻿using ProtoBuf;
 
 [ProtoContract]
-[ProtoInclude(100, typeof(UpdateCellGroupEvent))]
-[ProtoInclude(200, typeof(MigrateGroupEvent))]
-[ProtoInclude(300, typeof(ExpandPolityProminenceEvent))]
-[ProtoInclude(400, typeof(TribeFormationEvent))]
-[ProtoInclude(500, typeof(ClanSplitDecisionEvent))]
-[ProtoInclude(600, typeof(TribeSplitDecisionEvent))]
-[ProtoInclude(700, typeof(ClanDemandsInfluenceDecisionEvent))]
-[ProtoInclude(800, typeof(ClanCoreMigrationEvent))]
-[ProtoInclude(900, typeof(FosterTribeRelationDecisionEvent))]
-[ProtoInclude(1000, typeof(MergeTribesDecisionEvent))]
-[ProtoInclude(1100, typeof(OpenTribeDecisionEvent))]
-[ProtoInclude(1200, typeof(Discovery.Event))]
-[ProtoInclude(1300, typeof(CellEvent))]
-[ProtoInclude(1400, typeof(CellGroupEvent))]
-[ProtoInclude(1500, typeof(FactionEvent))]
-[ProtoInclude(1600, typeof(PolityEvent))]
+[ProtoInclude(100, typeof(CellEvent))]
+[ProtoInclude(200, typeof(CellGroupEvent))]
+[ProtoInclude(300, typeof(FactionEvent))]
+[ProtoInclude(400, typeof(PolityEvent))]
 public abstract class WorldEvent : ISynchronizable
 {
     public const long UpdateCellGroupEventId = 0;

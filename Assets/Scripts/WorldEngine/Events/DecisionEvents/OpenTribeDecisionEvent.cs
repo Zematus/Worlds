@@ -1,10 +1,7 @@
 ﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using System.Xml;
-using System.Xml.Serialization;
-using UnityEngine.Profiling;
+using ProtoBuf;
 
+[ProtoContract]
 public class OpenTribeDecisionEvent : PolityEvent {
 
 	public const long DateSpanFactorConstant = CellGroup.GenerationSpan * 50;

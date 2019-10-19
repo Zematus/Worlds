@@ -1,6 +1,7 @@
 using ProtoBuf;
 
 [ProtoContract]
+[ProtoInclude(100, typeof(Discovery.Event))]
 public abstract class CellGroupEventGeneratorEvent : CellGroupEvent
 {
     [ProtoMember(1)]

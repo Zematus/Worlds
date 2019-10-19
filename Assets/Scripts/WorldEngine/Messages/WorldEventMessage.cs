@@ -1,26 +1,21 @@
-﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using System.Xml;
-using System.Xml.Serialization;
+﻿using ProtoBuf;
 
+[ProtoContract]
+[ProtoInclude(100, typeof(PolityEventMessage))]
+[ProtoInclude(200, typeof(CellEventMessage))]
 public abstract class WorldEventMessage {
 
-	[XmlAttribute]
+	[ProtoMember(1)]
 	public long Id;
 
-	[XmlAttribute]
-	public long Date;
+    [ProtoMember(1)]
+    public long Date;
 
-	[XmlIgnore]
 	public World World;
 
-	[XmlIgnore]
-	public string Message {
-		get { return GenerateMessage (); }
-	}
+	public string Message => GenerateMessage ();
 
-	public WorldEventMessage () {
+    public WorldEventMessage () {
 	
 	}
 

@@ -1,10 +1,7 @@
 ﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using System.Xml;
-using System.Xml.Serialization;
-using UnityEngine.Profiling;
+using ProtoBuf;
 
+[ProtoContract]
 public class TribeFormationEvent : CellGroupEvent
 {
     public const long DateSpanFactorConstant = CellGroup.GenerationSpan * 100;
@@ -25,9 +22,7 @@ public class TribeFormationEvent : CellGroupEvent
 
     public static long CalculateTriggerDate(CellGroup group)
     {
-        int socialOrganizationValue = 0;
-
-        group.Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.KnowledgeId, out socialOrganizationValue);
+        group.Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.KnowledgeId, out var socialOrganizationValue);
 
         float randomFactor = group.Cell.GetNextLocalRandomFloat(RngOffsets.TRIBE_FORMATION_EVENT_CALCULATE_TRIGGER_DATE);
         randomFactor = Mathf.Pow(randomFactor, 2);
@@ -54,9 +49,7 @@ public class TribeFormationEvent : CellGroupEvent
         if (!group.HasProperty(Polity.CanFormPolityAttribute + "tribe"))
             return false;
 
-        int value = 0;
-
-        if (!group.Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.KnowledgeId, out value))
+        if (!group.Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.KnowledgeId, out var value))
             return false;
 
         if (value < MinSocialOrganizationKnowledgeTribeFormation)
@@ -76,9 +69,7 @@ public class TribeFormationEvent : CellGroupEvent
         if (!Group.HasProperty(Polity.CanFormPolityAttribute + "tribe"))
             return false;
 
-        int value = 0;
-
-        if (!Group.Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.KnowledgeId, out value))
+        if (!Group.Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.KnowledgeId, out var value))
             return false;
 
         if (value < MinSocialOrganizationKnowledgeTribeFormation)
@@ -112,10 +103,7 @@ public class TribeFormationEvent : CellGroupEvent
             formationEventMessage.First = true;
         }
 
-        if (encompassingTerritory != null)
-        {
-            encompassingTerritory.Polity.AddEventMessage(formationEventMessage);
-        }
+        encompassingTerritory?.Polity.AddEventMessage(formationEventMessage);
     }
 
     protected override void DestroyInternal()

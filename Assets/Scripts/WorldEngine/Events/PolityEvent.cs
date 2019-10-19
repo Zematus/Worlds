@@ -2,6 +2,9 @@
 using ProtoBuf;
 
 [ProtoContract]
+[ProtoInclude(100, typeof(FosterTribeRelationDecisionEvent))]
+[ProtoInclude(200, typeof(MergeTribesDecisionEvent))]
+[ProtoInclude(300, typeof(OpenTribeDecisionEvent))]
 public abstract class PolityEvent : WorldEvent {
 
 	[ProtoMember(1)]

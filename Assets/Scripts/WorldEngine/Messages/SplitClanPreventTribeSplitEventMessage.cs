@@ -1,16 +1,13 @@
-﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using System.Xml;
-using System.Xml.Serialization;
+﻿using ProtoBuf;
 
+[ProtoContract]
 public class SplitClanPreventTribeSplitEventMessage : FactionEventMessage {
 
-	[XmlAttribute]
-	public long AgentId;
+    [ProtoMember(1)]
+    public long AgentId;
 
-	[XmlAttribute]
-	public long TribeId;
+    [ProtoMember(2)]
+    public long TribeId;
 
 	public SplitClanPreventTribeSplitEventMessage () {
 

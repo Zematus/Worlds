@@ -1,19 +1,16 @@
-﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using System.Xml;
-using System.Xml.Serialization;
+﻿using ProtoBuf;
 
+[ProtoContract]
 public class RejectedMergeTribesOfferEventMessage : PolityEventMessage {
 
-	[XmlAttribute]
-	public long AgentId;
+    [ProtoMember(1)]
+    public long AgentId;
 
-	[XmlAttribute]
-	public long SourceTribeId;
+    [ProtoMember(2)]
+    public long SourceTribeId;
 
-	[XmlAttribute]
-	public long TargetTribeId;
+    [ProtoMember(3)]
+    public long TargetTribeId;
 
 	public RejectedMergeTribesOfferEventMessage () {
 

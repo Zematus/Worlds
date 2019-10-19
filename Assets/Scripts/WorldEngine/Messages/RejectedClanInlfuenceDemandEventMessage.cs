@@ -1,19 +1,16 @@
-﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using System.Xml;
-using System.Xml.Serialization;
+﻿using ProtoBuf;
 
+[ProtoContract]
 public class RejectedClanInlfuenceDemandEventMessage : PolityEventMessage {
 
-	[XmlAttribute]
+	[ProtoMember(1)]
 	public long AgentId;
 
-	[XmlAttribute]
-	public long DemandClanId;
+    [ProtoMember(2)]
+    public long DemandClanId;
 
-	[XmlAttribute]
-	public long DominantClanId;
+    [ProtoMember(3)]
+    public long DominantClanId;
 
 	public RejectedClanInlfuenceDemandEventMessage()
     {

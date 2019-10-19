@@ -2004,6 +2004,11 @@ public class World : ISynchronizable
 
         // Segment 1
 
+        if (EventMessageIds.Contains(0))
+        {
+            EventMessageIds.Remove(0);
+        }
+
         foreach (long messageId in EventMessageIds)
         {
             _eventMessageIds.Add(messageId);

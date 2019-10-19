@@ -3,6 +3,10 @@ using ProtoBuf;
 
 [ProtoContract]
 [ProtoInclude(100, typeof(CellGroupEventGeneratorEvent))]
+[ProtoInclude(200, typeof(ExpandPolityProminenceEvent))]
+[ProtoInclude(300, typeof(MigrateGroupEvent))]
+[ProtoInclude(400, typeof(TribeFormationEvent))]
+[ProtoInclude(500, typeof(UpdateCellGroupEvent))]
 public abstract class CellGroupEvent : WorldEvent
 {
     [ProtoMember(1)]

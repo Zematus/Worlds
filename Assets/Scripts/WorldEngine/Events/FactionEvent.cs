@@ -2,6 +2,10 @@
 using ProtoBuf;
 
 [ProtoContract]
+[ProtoInclude(100, typeof(ClanCoreMigrationEvent))]
+[ProtoInclude(200, typeof(ClanDemandsInfluenceDecisionEvent))]
+[ProtoInclude(300, typeof(ClanSplitDecisionEvent))]
+[ProtoInclude(400, typeof(TribeSplitDecisionEvent))]
 public abstract class FactionEvent : WorldEvent {
 
 	[ProtoMember(1)]

@@ -1,19 +1,17 @@
-﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using System.Xml;
-using System.Xml.Serialization;
+﻿using ProtoBuf;
 
+[ProtoContract]
+[ProtoInclude(100, typeof(ClanSplitEventMessage))]
+[ProtoInclude(200, typeof(DemandClanAvoidInfluenceDemandEventMessage))]
+[ProtoInclude(300, typeof(PreventClanSplitEventMessage))]
+[ProtoInclude(400, typeof(SplitClanPreventTribeSplitEventMessage))]
+[ProtoInclude(500, typeof(TribeSplitEventMessage))]
 public abstract class FactionEventMessage : CellEventMessage {
 
-	[XmlAttribute]
+	[ProtoMember(1)]
 	public long FactionId;
 
-    [XmlIgnore]
-    public FactionInfo FactionInfo
-    {
-        get { return World.GetFactionInfo(FactionId); }
-    }
+    public FactionInfo FactionInfo => World.GetFactionInfo(FactionId);
 
     public FactionEventMessage()
     {

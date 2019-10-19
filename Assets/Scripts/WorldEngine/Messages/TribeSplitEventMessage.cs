@@ -1,16 +1,13 @@
-﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using System.Xml;
-using System.Xml.Serialization;
+﻿using ProtoBuf;
 
+[ProtoContract]
 public class TribeSplitEventMessage : FactionEventMessage {
 
-	[XmlAttribute]
-	public long TribeId;
+    [ProtoMember(1)]
+    public long TribeId;
 
-	[XmlAttribute]
-	public long NewTribeId;
+    [ProtoMember(2)]
+    public long NewTribeId;
 
 	public TribeSplitEventMessage () {
 

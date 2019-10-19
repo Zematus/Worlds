@@ -1,18 +1,15 @@
-﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using System.Xml;
-using System.Xml.Serialization;
+﻿using ProtoBuf;
 
+[ProtoContract]
 public class AcceptedFosterRelationshipAttemptEventMessage : PolityEventMessage {
 
-	[XmlAttribute]
+	[ProtoMember(1)]
 	public long AgentId;
 
-	[XmlAttribute]
+	[ProtoMember(2)]
 	public long SourceTribeId;
 
-	[XmlAttribute]
+	[ProtoMember(3)]
 	public long TargetTribeId;
 
 	public AcceptedFosterRelationshipAttemptEventMessage()
