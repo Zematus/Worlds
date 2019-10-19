@@ -327,7 +327,9 @@ public class Manager
         Tribe.GenerateTribeNounVariations();
     }
 
-    /// <summary>Determines if the required control and shift keys were used.</summary>
+    /// <summary>
+    ///   Determines if the required control and shift keys were used, and that the user is not interacting with an input field.
+    /// </summary>
     /// <param name="requireCtrl">If set to <c>true</c>, requires either control key.</param>
     /// <param name="requireShift">If set to <c>true</c>, requires either shift key.</param>
     /// <returns>
@@ -436,21 +438,29 @@ public class Manager
         _undoAndRedoBlocked = state;
     }
 
+    /// <summary>Registers the listener for events related to the undoable action stack.</summary>
+    /// <param name="op">The listener to be registered.</param>
     public static void RegisterUndoStackUpdateOp(System.Action op)
     {
         _onUndoStackUpdate += op;
     }
 
+    /// <summary>Deregisters the listener for events related to the undoable action stack.</summary>
+    /// <param name="op">The listener to be deregistered.</param>
     public static void DeregisterUndoStackUpdateOp(System.Action op)
     {
         _onUndoStackUpdate -= op;
     }
 
+    /// <summary>Registers the listener for events related to the redoable action stack.</summary>
+    /// <param name="op">The listener to be registered.</param>
     public static void RegisterRedoStackUpdateOp(System.Action op)
     {
         _onRedoStackUpdate += op;
     }
 
+    /// <summary>Deregisters the listener for events related to the redoable action stack.</summary>
+    /// <param name="op">The listener to be deregistered.</param>
     public static void DeregisterRedoStackUpdateOp(System.Action op)
     {
         _onRedoStackUpdate -= op;
@@ -522,7 +532,6 @@ public class Manager
 
         _onRedoStackUpdate?.Invoke();
     }
-
 
     /// <summary>Pops the last action that can be undone.</summary>
     /// <returns>
@@ -636,7 +645,6 @@ public class Manager
         _debugLogStream.Flush();
     }
 
-
     /// <summary>Flags the log to be backed up.</summary>
     public static void EnableLogBackup()
     {
@@ -711,7 +719,6 @@ public class Manager
         return string.Format("{0} years, {1} days", years, days);
     }
 
-
     /// <summary>Adds the current date to the world name.</summary>
     /// <param name="worldName">Name of the world.</param>
     /// <returns>
@@ -725,7 +732,7 @@ public class Manager
         return worldName + "_date_" + string.Format("{0}_{1}", year, day);
     }
 
-    /// <summary>Removes the date if present from the world name.</summary>
+    /// <summary>Removes the date, if present, from the world name.</summary>
     /// <param name="worldName">Name of the world with possible appended date.</param>
     /// <returns>
     ///   The world name.
@@ -766,7 +773,6 @@ public class Manager
     {
         UIScalingEnabled = state;
     }
-
 
     /// <summary>Initializes the screen.</summary>
     /// <remarks>Fullscreen and UI scaling options are initialized here.</remarks>
@@ -884,7 +890,6 @@ public class Manager
         EnqueueTask(taskDelegate).Wait();
     }
 
-
     /// <summary>Sets the range of colors for the biome palette.</summary>
     /// <param name="colors">The list of colors to be set.</param>
     public static void SetBiomePalette(IEnumerable<Color> colors)
@@ -921,13 +926,17 @@ public class Manager
 
     public static Texture2D PointerOverlayTexture => _manager._pointerOverlayTexture;
 
+    /// <summary>Converts a set of coordinates from the world map into a texture's UV coordinates.</summary>
+    /// <param name="mapPosition">The set of coordinates from the world map.</param>
+    /// <returns>
+    ///   UV Coodinates for a texture.
+    /// </returns>
     public static Vector2 GetUVFromMapCoordinates(WorldPosition mapPosition)
     {
         return new Vector2(mapPosition.Longitude / (float)CurrentWorld.Width, mapPosition.Latitude / (float)CurrentWorld.Height);
     }
 
-
-    /// <summary>Exports the map texture to file.</summary>
+    /// <summary>Exports the map texture to a file.</summary>
     /// <param name="path">The export image path.</param>
     /// <param name="uvRect">The map image texture coordinates.</param>
     public static void ExportMapTextureToFile(string path, Rect uvRect)
@@ -935,7 +944,7 @@ public class Manager
         Texture2D mapTexture = _manager._currentMapTexture;
         Texture2D exportTexture = null;
 
-        Manager.EnqueueTaskAndWait(() =>
+        EnqueueTaskAndWait(() =>
         {
             int width = mapTexture.width;
             int height = mapTexture.height;
@@ -962,11 +971,11 @@ public class Manager
             return true;
         });
 
-        ManagerTask<byte[]> bytes = Manager.EnqueueTask(() => exportTexture.EncodeToPNG());
+        ManagerTask<byte[]> bytes = EnqueueTask(() => exportTexture.EncodeToPNG());
 
         File.WriteAllBytes(path, bytes);
 
-        Manager.EnqueueTaskAndWait(() =>
+        EnqueueTaskAndWait(() =>
         {
             Object.Destroy(exportTexture);
             return true;
@@ -1021,7 +1030,7 @@ public class Manager
             GenerateMapOverlayTextureFromWorld(CurrentWorld);
             GenerateMapActivityTextureFromWorld(CurrentWorld);
 
-            if (Manager.AnimationShadersEnabled && (PlanetOverlay == PlanetOverlay.DrainageBasins))
+            if (AnimationShadersEnabled && (PlanetOverlay == PlanetOverlay.DrainageBasins))
             {
                 GenerateMapOverlayShaderInfoTextureFromWorld(CurrentWorld);
             }
@@ -1151,6 +1160,8 @@ public class Manager
             HighlightedCells.Add(cell);
     }
 
+    /// <summary>Generates one random human group with an initial population.</summary>
+    /// <param name="initialPopulation">The initial population.</param>
     public static void GenerateRandomHumanGroup(int initialPopulation)
     {
         World world = _manager._currentWorld;
@@ -1160,6 +1171,10 @@ public class Manager
         world.GenerateRandomHumanGroups(1, initialPopulation);
     }
 
+    /// <summary>Generates a human group with an initial population at a specific set of coordinates.</summary>
+    /// <param name="longitude">The longitude.</param>
+    /// <param name="latitude">The latitude.</param>
+    /// <param name="initialPopulation">The initial population.</param>
     public static void GenerateHumanGroup(int longitude, int latitude, int initialPopulation)
     {
         World world = _manager._currentWorld;
@@ -1169,6 +1184,9 @@ public class Manager
         world.GenerateHumanGroup(longitude, latitude, initialPopulation);
     }
 
+    /// <summary>Sets the current active mod paths.</summary>
+    /// <param name="paths">The collection containing all the activated mod paths.</param>
+    /// <remarks>Will clear the old list of active mod paths.</remarks>
     public static void SetActiveModPaths(ICollection<string> paths)
     {
         ActiveModPaths.Clear();
@@ -1178,6 +1196,9 @@ public class Manager
         ModsAlreadyLoaded = false;
     }
 
+    /// <summary>Generates a new world.</summary>
+    /// <param name="seed">The seed used to set the random number generator state.</param>
+    /// <param name="heightmap">The heightmap to generate the world from if present.</param>
     public static void GenerateNewWorld(int seed, Texture2D heightmap)
     {
         _manager._worldReady = false;
@@ -1210,6 +1231,10 @@ public class Manager
         ForceWorldCleanup();
     }
 
+    /// <summary>Generates a new world asynchronously.</summary>
+    /// <param name="seed">The seed used to set the random number generator state.</param>
+    /// <param name="heightmap">The heightmap to generate the world from if present.</param>
+    /// <param name="progressCastMethod">The progress cast method.</param>
     public static void GenerateNewWorldAsync(int seed, Texture2D heightmap = null, ProgressCastDelegate progressCastMethod = null)
     {
         _manager._simulationRunning = false;
@@ -1239,6 +1264,8 @@ public class Manager
         });
     }
 
+    /// <summary>Regenerates one type of the generation in the world.</summary>
+    /// <param name="type">The type to be regenerated; i.e., terrain, temperature, rain, etc.</param>
     public static void RegenerateWorld(GenerationType type)
     {
         _manager._worldReady = false;
@@ -1259,6 +1286,9 @@ public class Manager
         ForceWorldCleanup();
     }
 
+    /// <summary>Regenerates the world asynchronous.</summary>
+    /// <param name="type">The type to be regenerated; i.e., terrain, temperature, rain, etc.</param>
+    /// <param name="progressCastMethod">The progress cast method.</param>
     public static void RegenerateWorldAsync(GenerationType type, ProgressCastDelegate progressCastMethod = null)
     {
         _manager._simulationRunning = false;
@@ -1288,6 +1318,8 @@ public class Manager
         });
     }
 
+    /// <summary>Saves the game's settings to a file specified by <c>path</c>.</summary>
+    /// <param name="path">The path to be saved to.</param>
     public static void SaveAppSettings(string path)
     {
         AppSettings settings = new AppSettings();
@@ -1302,6 +1334,8 @@ public class Manager
         }
     }
 
+    /// <summary>Loads the game's settings from a file specified by <c>path</c>.</summary>
+    /// <param name="path">The path to be loaded from.</param>
     public static void LoadAppSettings(string path)
     {
         if (!File.Exists(path))
@@ -1318,6 +1352,9 @@ public class Manager
         }
     }
 
+
+    /// <summary>Saves the world to a file specified by <c>path</c>.</summary>
+    /// <param name="path">The path to be saved to.</param>
     public static void SaveWorld(string path)
     {
         _manager._currentWorld.Synchronize();
@@ -1330,6 +1367,9 @@ public class Manager
         }
     }
 
+    /// <summary>Saves the world to a file specified by <c>path</c> asynchronously.</summary>
+    /// <param name="path">The path to be saved to.</param>
+    /// <param name="progressCastMethod">The progress cast method.</param>
     public static void SaveWorldAsync(string path, ProgressCastDelegate progressCastMethod = null)
     {
         _manager._simulationRunning = false;
@@ -1358,14 +1398,18 @@ public class Manager
         });
     }
 
-    // NOTE: Make sure there are no outside references to the world object stored in _manager._currentWorld, otherwise it is pointless to call this...
-    // WARNING: Don't abuse this function call.
+    /// <summary>Forces the world to be cleaned up.</summary>
+    /// <para>
+    ///   NOTE: Make sure there are no outside references to the world object stored in _manager._currentWorld, otherwise it is pointless to call this...
+    ///   WARNING: Don't abuse this function call.
+    /// </para>
     private static void ForceWorldCleanup()
     {
         System.GC.Collect();
         System.GC.WaitForPendingFinalizers();
     }
 
+    /// <summary>Tries to load active mods.</summary>
     private static void TryLoadActiveMods()
     {
         if (ModsAlreadyLoaded)
@@ -1375,6 +1419,8 @@ public class Manager
         ModsAlreadyLoaded = true;
     }
 
+    /// <summary>Loads the world from a file specified by <c>path</c>.</summary>
+    /// <param name="path">The path to be loaded from.</param>
     public static void LoadWorld(string path)
     {
         _manager._worldReady = false;
@@ -1432,6 +1478,9 @@ public class Manager
         ForceWorldCleanup();
     }
 
+    /// <summary>Loads the world from a file specified by <c>path</c> asynchronously.</summary>
+    /// <param name="path">The path to be loaded from.</param>
+    /// <param name="progressCastMethod">The progress cast method.</param>
     public static void LoadWorldAsync(string path, ProgressCastDelegate progressCastMethod = null)
     {
 #if DEBUG
@@ -1475,6 +1524,7 @@ public class Manager
         });
     }
 
+    /// <summary>Resets the world load progress.</summary>
     public static void ResetWorldLoadTrack()
     {
         _isLoadReady = false;
@@ -2124,7 +2174,7 @@ public class Manager
         UpdateMapOverlayTextureColors();
         UpdateMapActivityTextureColors();
 
-        if (Manager.AnimationShadersEnabled && (PlanetOverlay == PlanetOverlay.DrainageBasins))
+        if (AnimationShadersEnabled && (PlanetOverlay == PlanetOverlay.DrainageBasins))
         {
             UpdateMapOverlayShaderTextureColors();
         }
@@ -2137,7 +2187,7 @@ public class Manager
         CurrentMapOverlayTexture.SetPixels32(_manager._currentMapOverlayTextureColors);
         CurrentMapActivityTexture.SetPixels32(_manager._currentMapActivityTextureColors);
 
-        if (Manager.AnimationShadersEnabled && (PlanetOverlay == PlanetOverlay.DrainageBasins))
+        if (AnimationShadersEnabled && (PlanetOverlay == PlanetOverlay.DrainageBasins))
         {
             CurrentMapOverlayShaderInfoTexture.SetPixels32(_manager._currentMapOverlayShaderInfoColor);
         }
@@ -2150,7 +2200,7 @@ public class Manager
         CurrentMapOverlayTexture.Apply();
         CurrentMapActivityTexture.Apply();
 
-        if (Manager.AnimationShadersEnabled && (PlanetOverlay == PlanetOverlay.DrainageBasins))
+        if (AnimationShadersEnabled && (PlanetOverlay == PlanetOverlay.DrainageBasins))
         {
             CurrentMapOverlayShaderInfoTexture.Apply();
         }
@@ -2908,14 +2958,14 @@ public class Manager
 
         if (altitude < 0)
         {
-            value = (2 - altitude / World.MinPossibleAltitude - Manager.SeaLevelOffset) / 2f;
+            value = (2 - altitude / World.MinPossibleAltitude - SeaLevelOffset) / 2f;
 
             Color color1 = Color.blue;
 
             return new Color(color1.r * value, color1.g * value, color1.b * value);
         }
 
-        value = (1 + altitude / (World.MaxPossibleAltitude - Manager.SeaLevelOffset)) / 2f;
+        value = (1 + altitude / (World.MaxPossibleAltitude - SeaLevelOffset)) / 2f;
 
         Color color2 = new Color(1f, 0.6f, 0);
 
@@ -3265,7 +3315,7 @@ public class Manager
 
         float contactValue = 0;
 
-        Territory selectedTerritory = Manager.CurrentWorld.SelectedTerritory;
+        Territory selectedTerritory = CurrentWorld.SelectedTerritory;
 
         bool isSelectedTerritory = false;
         bool isInContact = false;
@@ -3860,7 +3910,7 @@ public class Manager
     {
         float span = World.MaxPossibleTemperature - World.MinPossibleTemperature;
 
-        float value = (cell.Temperature - (World.MinPossibleTemperature + Manager.TemperatureOffset)) / span;
+        float value = (cell.Temperature - (World.MinPossibleTemperature + TemperatureOffset)) / span;
 
         color = new Color(value, 0, 1f - value)
         {
@@ -3938,15 +3988,14 @@ public class Manager
 
     public static Texture2D LoadTexture(string path)
     {
-        if (File.Exists(path))
-        {
-            byte[] data = File.ReadAllBytes(path);
-            Texture2D texture = new Texture2D(1, 1);
-            if (texture.LoadImage(data))
-                return texture;
-        }
+        if (!File.Exists(path))
+            return null;
 
-        return null;
+        byte[] data = File.ReadAllBytes(path);
+
+        Texture2D texture = new Texture2D(1, 1);
+
+        return texture.LoadImage(data) ? texture : null;
     }
 
     public static TextureValidationResult ValidateTexture(Texture2D texture)
