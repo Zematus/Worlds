@@ -1,18 +1,14 @@
-using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using System.Xml;
-using System.Xml.Serialization;
+using ProtoBuf;
 
+[ProtoContract]
+[ProtoInclude(100, typeof(CulturalSkill))]
 public class CulturalSkillInfo : IKeyedValue<string>, ISynchronizable
 {
-    [XmlAttribute]
+    [ProtoMember(1)]
     public string Id;
 
-    [XmlIgnore]
     public int RngOffset;
 
-    [XmlIgnore]
     public string Name;
 
     public CulturalSkillInfo()

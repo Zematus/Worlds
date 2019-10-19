@@ -1,15 +1,12 @@
-using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using System.Xml;
-using System.Xml.Serialization;
+using ProtoBuf;
 
 // Cultural Preferences
 // -- Authority
 // -- Cohesion
 // -- Isolation
 
-[XmlInclude(typeof(CellCulturalPreference))]
+[ProtoContract]
+[ProtoInclude(100, typeof(CellCulturalPreference))]
 public class CulturalPreference : CulturalPreferenceInfo
 {
     public const string AuthorityPreferenceId = "AuthorityPreference";
@@ -24,7 +21,7 @@ public class CulturalPreference : CulturalPreferenceInfo
     public const int CohesionPreferenceRngOffset = 1;
     public const int IsolationPreferenceRngOffset = 2;
 
-    [XmlAttribute]
+    [ProtoMember(1)]
     public float Value;
 
     public CulturalPreference()

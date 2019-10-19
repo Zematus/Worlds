@@ -1,49 +1,45 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using System.Xml.Serialization;
-using UnityEngine;
+﻿using System.Collections.Generic;
 using UnityEngine.Profiling;
+using ProtoBuf;
 
+[ProtoContract]
 public class PolityProminenceCluster : ISynchronizable
 {
     public const int MaxSize = 50;
     public const int MinSplitSize = 25;
 
-    [XmlAttribute("Id")]
+    [ProtoMember(1)]
     public long Id;
 
-    [XmlAttribute("TAC")]
+    [ProtoMember(2)]
     public float TotalAdministrativeCost = 0;
 
-    [XmlAttribute("TP")]
+    [ProtoMember(3)]
     public float TotalPopulation = 0;
 
-    [XmlAttribute("PA")]
+    [ProtoMember(4)]
     public float ProminenceArea = 0;
 
-    [XmlAttribute("NC")]
+    [ProtoMember(5)]
     public bool NeedsNewCensus = true;
 
-    public List<long> ProminenceIds = null;
+    [ProtoMember(6, OverwriteList = true)]
+    private List<long> _ProminenceIds;
+    public List<long> ProminenceIds
+    {
+        get => _ProminenceIds ?? (_ProminenceIds = new List<long>());
+        set => _ProminenceIds = value;
+    }
 
-    [XmlIgnore]
     public Polity Polity;
 
 #if DEBUG
-    [XmlIgnore]
     public long CreationDate = -1;
 
-    [XmlIgnore]
     public long LastProminenceChangeDate = -1;
 #endif
 
-    public int Size
-    {
-        get
-        {
-            return _prominences.Count;
-        }
-    }
+    public int Size => _prominences.Count;
 
     private Dictionary<long, PolityProminence> _prominences = new Dictionary<long, PolityProminence>();
 

@@ -1,11 +1,10 @@
 ﻿using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Linq;
-using System.Xml.Serialization;
-using System.ComponentModel;
+using ProtoBuf;
 
+[ProtoContract]
 public class Language : ISynchronizable
 {
     private class ParsedWord
@@ -28,13 +27,7 @@ public class Language : ISynchronizable
         {
         }
 
-        public string Characters
-        {
-            get
-            {
-                return Value;
-            }
-        }
+        public string Characters => Value;
     }
 
     public static class VerbConjugationKeys
@@ -144,73 +137,126 @@ public class Language : ISynchronizable
     public static Regex AgentNounSuffixRegex = new Regex(@"^(\w?er|r)$");
     public static Regex ConjugationSuffixRegex = new Regex(@"^(\w?ed|d|s)$");
 
-    [XmlAttribute]
+    [ProtoMember(1)]
     public long Id;
 
-    [XmlAttribute("AP")]
+    [ProtoMember(2)]
     public int ArticlePropertiesInt;
-    [XmlAttribute("NIP")]
+    [ProtoMember(3)]
     public int NounIndicativePropertiesInt;
-    [XmlAttribute("VIP")]
+    [ProtoMember(4)]
     public int VerbIndicativePropertiesInt;
 
-    [XmlAttribute("AAP")]
+    [ProtoMember(5)]
     public int ArticleAdjunctionPropertiesInt;
-    [XmlAttribute("NIAP")]
+    [ProtoMember(6)]
     public int NounIndicativeAdjunctionPropertiesInt;
-    [XmlAttribute("VIAP")]
+    [ProtoMember(7)]
     public int VerbIndicativeAdjunctionPropertiesInt;
-    [XmlAttribute("AdpAP")]
+    [ProtoMember(8)]
     public int AdpositionAdjunctionPropertiesInt;
-    [XmlAttribute("AdjAP")]
+    [ProtoMember(9)]
     public int AdjectiveAdjunctionPropertiesInt;
-    [XmlAttribute("NAP")]
+    [ProtoMember(10)]
     public int NounAdjunctionPropertiesInt;
-    
-    public SyllableSet ArticleSyllables = new SyllableSet();
-    public SyllableSet DerivativeArticleStartSyllables = new SyllableSet();
-    public SyllableSet DerivativeArticleNextSyllables = new SyllableSet();
-    
-    public SyllableSet NounIndicativeSyllables = new SyllableSet();
-    public SyllableSet DerivativeNounIndicativeStartSyllables = new SyllableSet();
-    public SyllableSet DerivativeNounIndicativeNextSyllables = new SyllableSet();
-    
-    public SyllableSet VerbIndicativeSyllables = new SyllableSet();
-    public SyllableSet DerivativeVerbIndicativeStartSyllables = new SyllableSet();
-    public SyllableSet DerivativeVerbIndicativeNextSyllables = new SyllableSet();
-    
-    public SyllableSet AdpositionStartSyllables = new SyllableSet();
-    public SyllableSet AdpositionNextSyllables = new SyllableSet();
-    
-    public SyllableSet AdjectiveStartSyllables = new SyllableSet();
-    public SyllableSet AdjectiveNextSyllables = new SyllableSet();
-    
-    public SyllableSet NounStartSyllables = new SyllableSet();
-    public SyllableSet NounNextSyllables = new SyllableSet();
-    
-    public SyllableSet VerbStartSyllables = new SyllableSet();
-    public SyllableSet VerbNextSyllables = new SyllableSet();
-    
-    public List<Morpheme> Articles;
-    public List<Morpheme> NounIndicatives;
-    public List<Morpheme> VerbIndicatives;
-    
-    public List<Morpheme> Adpositions = new List<Morpheme>();
-    public List<Morpheme> Adjectives = new List<Morpheme>();
-    public List<Morpheme> Nouns = new List<Morpheme>();
-    public List<Morpheme> Verbs = new List<Morpheme>();
 
-    [XmlIgnore]
+    [ProtoMember(11)]
+    public SyllableSet ArticleSyllables = new SyllableSet();
+    [ProtoMember(12)]
+    public SyllableSet DerivativeArticleStartSyllables = new SyllableSet();
+    [ProtoMember(13)]
+    public SyllableSet DerivativeArticleNextSyllables = new SyllableSet();
+
+    [ProtoMember(14)]
+    public SyllableSet NounIndicativeSyllables = new SyllableSet();
+    [ProtoMember(15)]
+    public SyllableSet DerivativeNounIndicativeStartSyllables = new SyllableSet();
+    [ProtoMember(16)]
+    public SyllableSet DerivativeNounIndicativeNextSyllables = new SyllableSet();
+
+    [ProtoMember(17)]
+    public SyllableSet VerbIndicativeSyllables = new SyllableSet();
+    [ProtoMember(18)]
+    public SyllableSet DerivativeVerbIndicativeStartSyllables = new SyllableSet();
+    [ProtoMember(19)]
+    public SyllableSet DerivativeVerbIndicativeNextSyllables = new SyllableSet();
+
+    [ProtoMember(20)]
+    public SyllableSet AdpositionStartSyllables = new SyllableSet();
+    [ProtoMember(21)]
+    public SyllableSet AdpositionNextSyllables = new SyllableSet();
+
+    [ProtoMember(22)]
+    public SyllableSet AdjectiveStartSyllables = new SyllableSet();
+    [ProtoMember(23)]
+    public SyllableSet AdjectiveNextSyllables = new SyllableSet();
+
+    [ProtoMember(24)]
+    public SyllableSet NounStartSyllables = new SyllableSet();
+    [ProtoMember(25)]
+    public SyllableSet NounNextSyllables = new SyllableSet();
+
+    [ProtoMember(26)]
+    public SyllableSet VerbStartSyllables = new SyllableSet();
+    [ProtoMember(27)]
+    public SyllableSet VerbNextSyllables = new SyllableSet();
+
+    [ProtoMember(28, OverwriteList = true)]
+    private List<Morpheme> _Articles;
+    public List<Morpheme> Articles
+    {
+        get => _Articles ?? (_Articles = new List<Morpheme>());
+        set => _Articles = value;
+    }
+    [ProtoMember(29, OverwriteList = true)]
+    private List<Morpheme> _NounIndicatives;
+    public List<Morpheme> NounIndicatives
+    {
+        get => _NounIndicatives ?? (_NounIndicatives = new List<Morpheme>());
+        set => _NounIndicatives = value;
+    }
+    [ProtoMember(30, OverwriteList = true)]
+    private List<Morpheme> _VerbIndicatives;
+    public List<Morpheme> VerbIndicatives
+    {
+        get => _VerbIndicatives ?? (_VerbIndicatives = new List<Morpheme>());
+        set => _VerbIndicatives = value;
+    }
+
+    [ProtoMember(31, OverwriteList = true)]
+    private List<Morpheme> _Adpositions;
+    public List<Morpheme> Adpositions
+    {
+        get => _Adpositions ?? (_Adpositions = new List<Morpheme>());
+        set => _Adpositions = value;
+    }
+    [ProtoMember(32, OverwriteList = true)]
+    private List<Morpheme> _Adjectives;
+    public List<Morpheme> Adjectives
+    {
+        get => _Adjectives ?? (_Adjectives = new List<Morpheme>());
+        set => _Adjectives = value;
+    }
+    [ProtoMember(33, OverwriteList = true)]
+    private List<Morpheme> _Nouns;
+    public List<Morpheme> Nouns
+    {
+        get => _Nouns ?? (_Nouns = new List<Morpheme>());
+        set => _Nouns = value;
+    }
+    [ProtoMember(34, OverwriteList = true)]
+    private List<Morpheme> _Verbs;
+    public List<Morpheme> Verbs
+    {
+        get => _Verbs ?? (_Verbs = new List<Morpheme>());
+        set => _Verbs = value;
+    }
+
     public AdjunctionProperties ArticleAdjunctionProperties;
-    [XmlIgnore]
     public AdjunctionProperties NounIndicativeAdjunctionProperties;
-    [XmlIgnore]
     public AdjunctionProperties VerbIndicativeAdjunctionProperties;
-    [XmlIgnore]
     public AdjunctionProperties AdpositionAdjunctionProperties;
-    [XmlIgnore]
     public AdjunctionProperties AdjectiveAdjunctionProperties;
-    [XmlIgnore]
     public AdjunctionProperties NounAdjunctionProperties;
 
     private GeneralArticleProperties _articleProperties;

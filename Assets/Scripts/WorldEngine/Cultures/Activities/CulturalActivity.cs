@@ -1,16 +1,13 @@
-using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using System.Xml;
-using System.Xml.Serialization;
+using ProtoBuf;
 
-[XmlInclude(typeof(CellCulturalActivity))]
+[ProtoContract]
+[ProtoInclude(100, typeof(CellCulturalActivity))]
 public class CulturalActivity : CulturalActivityInfo
 {
-    [XmlAttribute("V")]
+    [ProtoMember(1)]
     public float Value;
 
-    [XmlAttribute("C")]
+    [ProtoMember(2)]
     public float Contribution = 0;
 
     public CulturalActivity()

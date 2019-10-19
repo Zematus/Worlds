@@ -1,26 +1,24 @@
 using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using System.Xml;
-using System.Xml.Serialization;
-using UnityEngine.Profiling;
+using ProtoBuf;
 
+[ProtoContract]
+[ProtoInclude(100, typeof(ShipbuildingKnowledge))]
+[ProtoInclude(200, typeof(AgricultureKnowledge))]
+[ProtoInclude(300, typeof(SocialOrganizationKnowledge))]
 public abstract class CellCulturalKnowledge : CulturalKnowledge
 {
 #if DEBUG
-    [XmlIgnore]
     public long AcquisitionDate = -1; // This property is used for debugging purposes
 #endif
 
     public const float MinProgressLevel = 0.001f;
 
-    [XmlAttribute("RO")]
+    [ProtoMember(1)]
     public int InstanceRngOffset;
 
-    [XmlAttribute("L")]
+    [ProtoMember(2)]
     public int Limit = -1;
 
-    [XmlIgnore]
     public CellGroup Group;
 
     protected int _newValue;
@@ -98,10 +96,7 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
         SetHighestLimit(limit);
     }
 
-    public float ScaledLimit
-    {
-        get { return Limit * MathUtility.IntToFloatScalingFactor; }
-    }
+    public float ScaledLimit => Limit * MathUtility.IntToFloatScalingFactor;
 
     public void UpdateProgressLevel()
     {
@@ -170,9 +165,8 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
 
     public void Merge(int value, float percentage)
     {
-        float d;
         // _newvalue should have been set correctly either by the constructor or by the Update function
-        int mergedValue = MathUtility.LerpToIntAndGetDecimals(_newValue, value, percentage, out d);
+        int mergedValue = MathUtility.LerpToIntAndGetDecimals(_newValue, value, percentage, out float d);
 
         if (d > Group.GetNextLocalRandomFloat(RngOffsets.KNOWLEDGE_MERGE + InstanceRngOffset))
             mergedValue++;
@@ -253,8 +247,7 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
 
         float timeEffect = timeSpan / (timeSpan + timeEffectFactor);
 
-        float d;
-        int newValue = MathUtility.LerpToIntAndGetDecimals(Value, targetValue, timeEffect, out d);
+        int newValue = MathUtility.LerpToIntAndGetDecimals(Value, targetValue, timeEffect, out var d);
 
         if (d > Group.GetNextLocalRandomFloat(rngOffset++))
             newValue++;
@@ -335,9 +328,8 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
 
         int valueDelta = targetValue - _newValue;
 
-        float d;
         // _newvalue should have been set correctly either by the constructor or by the Update function
-        int valueChange = (int)MathUtility.MultiplyAndGetDecimals(valueDelta, prominenceEffect * timeEffect * randomEffect, out d);
+        int valueChange = (int)MathUtility.MultiplyAndGetDecimals(valueDelta, prominenceEffect * timeEffect * randomEffect, out var d);
 
         if (d > Group.GetNextLocalRandomFloat(rngOffset++))
             valueChange++;
@@ -384,7 +376,7 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
 //        }
 //#endif
 
-        _newValue = _newValue + valueChange;
+        _newValue += valueChange;
     }
 
     public void PostUpdate()

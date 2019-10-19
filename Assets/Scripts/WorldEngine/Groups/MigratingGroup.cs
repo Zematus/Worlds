@@ -1,47 +1,41 @@
 using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
-using System.Xml;
-using System.Xml.Serialization;
 using UnityEngine.Profiling;
+using ProtoBuf;
 
+[ProtoContract]
 public class MigratingGroup : HumanGroup
 {
-    [XmlAttribute]
+    [ProtoMember(1)]
     public float PercentPopulation;
 
-    [XmlAttribute]
+    [ProtoMember(2)]
     public int TargetCellLongitude;
-    [XmlAttribute]
+    [ProtoMember(3)]
     public int TargetCellLatitude;
 
-    [XmlAttribute]
+    [ProtoMember(4)]
     public int Population = 0;
 
-    [XmlAttribute]
+    [ProtoMember(5)]
     public long SourceGroupId;
 
-    [XmlAttribute("MigDir")]
+    [ProtoMember(6)]
     public int MigrationDirectionInt;
 
+    [ProtoMember(7)]
     public BufferCulture Culture;
 
-    [XmlIgnore]
     public List<Faction> FactionCoresToMigrate = new List<Faction>();
 
-    [XmlIgnore]
     public TerrainCell TargetCell;
 
-    [XmlIgnore]
     public CellGroup SourceGroup;
 
-    [XmlIgnore]
     public List<PolityProminence> PolityProminences = new List<PolityProminence>();
 
-    [XmlIgnore]
     public int PolityProminencesCount = 0;
 
-    [XmlIgnore]
     public Direction MigrationDirection;
 
     public MigratingGroup()

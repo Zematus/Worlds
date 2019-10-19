@@ -1,20 +1,18 @@
-﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using System.Xml;
-using System.Xml.Serialization;
-using UnityEngine.Profiling;
+﻿using ProtoBuf;
 
+[ProtoContract]
 public class FactionInfo : ISynchronizable, IKeyedValue<long>
 {
-    [XmlAttribute("T")]
+    [ProtoMember(1)]
     public string Type;
 
-    [XmlAttribute]
+    [ProtoMember(2)]
     public long Id;
 
+    [ProtoMember(3)]
     public Name Name = null;
 
+    [ProtoMember(4)]
     public Faction Faction;
 
     private string _nameFormat;

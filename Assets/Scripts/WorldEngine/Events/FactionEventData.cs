@@ -1,13 +1,10 @@
-﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using System.Xml;
-using System.Xml.Serialization;
+﻿using ProtoBuf;
 
+[ProtoContract]
 public class FactionEventData : WorldEventData {
 
-	[XmlAttribute("OPolId")]
-	public long OriginalPolityId;
+    [ProtoMember(1)]
+    public long OriginalPolityId;
 
 	public FactionEventData () {
 

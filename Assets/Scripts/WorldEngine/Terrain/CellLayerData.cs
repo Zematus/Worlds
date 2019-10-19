@@ -1,20 +1,16 @@
-﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using System.Xml;
-using System.Xml.Serialization;
+﻿using System.Xml.Serialization;
+using ProtoBuf;
 
+[ProtoContract]
 public class CellLayerData
 {
-    [XmlAttribute]
+    [ProtoMember(1)]
     public string Id;
 
-    [XmlIgnore]
     public float Value;
-    [XmlIgnore]
     public float BaseValue;
 
-    [XmlAttribute("O")]
+    [ProtoMember(2)]
     public float Offset;
 
     public CellLayerData()

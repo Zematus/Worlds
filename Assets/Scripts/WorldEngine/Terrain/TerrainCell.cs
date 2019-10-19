@@ -1,8 +1,6 @@
 using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
-using System.Xml;
-using System.Xml.Serialization;
+using System.Linq;
 
 public enum Direction
 {
@@ -93,13 +91,7 @@ public class TerrainCell
     public float RiverLength = 0;
     public bool DrainageDone = false;
 
-    public float FlowingWater
-    {
-        get
-        {
-            return WaterAccumulation - Rainfall;
-        }
-    }
+    public float FlowingWater => WaterAccumulation - Rainfall;
 
     public float Survivability;
     public float ForagingCapacity;
@@ -263,7 +255,7 @@ public class TerrainCell
         }
 #endif
 
-        return (((date * 1000000) + ((long)Longitude * 1000) + (long)Latitude) * oom) + (offset % oom);
+        return (((date * 1000000) + ((long)Longitude * 1000) + Latitude) * oom) + (offset % oom);
     }
 
     public TerrainCellAlteration GetAlteration(bool regardless = false, bool addLayerData = true)
@@ -354,7 +346,7 @@ public class TerrainCell
                     frame++;
                 }
 
-                string callingClass = method.DeclaringType.ToString();
+                string callingClass = method.DeclaringType?.ToString();
 
                 GetNextLocalRandomCalled(callingClass + ":" + callingMethod);
             }
@@ -449,9 +441,8 @@ public class TerrainCell
         {
             Biome biome = Biome.Biomes[PresentBiomeIds[i]];
 
-            if (biome.TerrainType == type)
-
-            typePresence += BiomePresences[i];
+            if (biome.TerrainType == type) 
+                typePresence += BiomePresences[i];
         }
 
         return typePresence;
@@ -459,14 +450,7 @@ public class TerrainCell
 
     public float GetNeighborhoodBiomeTypePresence(BiomeTerrainType type)
     {
-        float presence = GetBiomeTypePresence(type);
-
-        foreach (TerrainCell nCell in Neighbors.Values)
-        {
-            presence += nCell.GetBiomeTypePresence(type);
-        }
-
-        return presence;
+        return GetBiomeTypePresence(type) + Neighbors.Values.Sum(nCell => nCell.GetBiomeTypePresence(type));
     }
 
     public float GetBiomeTraitPresence(string trait)
@@ -487,24 +471,12 @@ public class TerrainCell
 
     public float GetNeighborhoodBiomeTraitPresence(string trait)
     {
-        float presence = GetBiomeTraitPresence(trait);
-
-        foreach (TerrainCell nCell in Neighbors.Values)
-        {
-            presence += nCell.GetBiomeTraitPresence(trait);
-        }
-
-        return presence;
+        return GetBiomeTraitPresence(trait) + Neighbors.Values.Sum(nCell => nCell.GetBiomeTraitPresence(trait));
     }
 
     public float GetBiomePresence(string biomeId)
     {
-        float value = 0;
-
-        if (!_biomePresences.TryGetValue(biomeId, out value))
-            return 0;
-
-        return value;
+        return _biomePresences.TryGetValue(biomeId, out var value) ? value : 0;
     }
 
     public void ResetLayerData(Layer layer)
@@ -579,22 +551,12 @@ public class TerrainCell
 
     public CellLayerData GetLayerData(string layerId)
     {
-        CellLayerData data;
-
-        if (!_layerData.TryGetValue(layerId, out data))
-            return null;
-
-        return data;
+        return _layerData.TryGetValue(layerId, out var data) ? data : null;
     }
 
     public float GetLayerValue(string layerId)
     {
-        CellLayerData data;
-
-        if (!_layerData.TryGetValue(layerId, out data))
-            return 0;
-
-        return data.Value;
+        return _layerData.TryGetValue(layerId, out var data) ? data.Value : 0;
     }
 
     public void InitializeNeighbors()
@@ -613,24 +575,27 @@ public class TerrainCell
 
     public float CalculateDistance(TerrainCell cell, Direction direction)
     {
-        float distance = TerrainCell.MaxWidth;
+        float distance = MaxWidth;
 
-        if ((direction == Direction.Northeast) ||
-            (direction == Direction.Northwest) ||
-            (direction == Direction.Southeast) ||
-            (direction == Direction.Southwest))
+        switch (direction)
         {
-            float sqMaxWidth = TerrainCell.MaxWidth * TerrainCell.MaxWidth;
+            case Direction.Northeast:
+            case Direction.Northwest:
+            case Direction.Southeast:
+            case Direction.Southwest:
+            {
+                float sqMaxWidth = MaxWidth * MaxWidth;
 
-            float widthSum = (Width + cell.Width) / 2f;
-            float sqCellWidth = widthSum * widthSum;
+                float widthSum = (Width + cell.Width) / 2f;
+                float sqCellWidth = widthSum * widthSum;
 
-            distance = Mathf.Sqrt(sqMaxWidth + sqCellWidth);
-        }
-        else if ((direction == Direction.East) ||
-          (direction == Direction.West))
-        {
-            distance = cell.Width;
+                distance = Mathf.Sqrt(sqMaxWidth + sqCellWidth);
+                break;
+            }
+            case Direction.East:
+            case Direction.West:
+                distance = cell.Width;
+                break;
         }
 
         float altitudeDiff = Altitude - cell.Altitude;
@@ -649,12 +614,7 @@ public class TerrainCell
 
     public TerrainCell GetNeighborCell(Direction direction)
     {
-        TerrainCell nCell;
-
-        if (!Neighbors.TryGetValue(direction, out nCell))
-            return null;
-
-        return nCell;
+        return Neighbors.TryGetValue(direction, out var nCell) ? nCell : null;
     }
 
     private void SetNeighborCells()
@@ -686,21 +646,11 @@ public class TerrainCell
     {
         if (WaterBiomePresence > 0.5f)
         {
-            foreach (TerrainCell nCell in Neighbors.Values)
-            {
-                if (nCell.WaterBiomePresence < 0.5f)
-                    return true;
-            }
+            return Neighbors.Values.Any(nCell => nCell.WaterBiomePresence < 0.5f);
         }
         else
         {
-            foreach (TerrainCell nCell in Neighbors.Values)
-            {
-                if (nCell.WaterBiomePresence >= 0.5f)
-                    return true;
-            }
+            return Neighbors.Values.Any(nCell => nCell.WaterBiomePresence >= 0.5f);
         }
-
-        return false;
     }
 }

@@ -1,10 +1,7 @@
+using ProtoBuf;
 using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using System.Xml;
-using System.Xml.Serialization;
-using UnityEngine.Profiling;
 
+[ProtoContract]
 public class ShipbuildingKnowledge : CellCulturalKnowledge
 {
     public const string KnowledgeId = "shipbuilding";
@@ -56,8 +53,6 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge
 
     public static float CalculateNeighborhoodWaterPresenceIn(CellGroup group)
     {
-        float neighborhoodPresence;
-
         int groupCellBonus = 1;
         int cellCount = groupCellBonus;
 
@@ -71,7 +66,7 @@ public class ShipbuildingKnowledge : CellCulturalKnowledge
             cellCount++;
         }
 
-        neighborhoodPresence = totalPresence / cellCount;
+        float neighborhoodPresence = totalPresence / cellCount;
 
         if ((neighborhoodPresence < 0) || (neighborhoodPresence > 1))
         {

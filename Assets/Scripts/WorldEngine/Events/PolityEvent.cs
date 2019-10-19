@@ -1,21 +1,17 @@
 ﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using System.Xml;
-using System.Xml.Serialization;
+using ProtoBuf;
 
+[ProtoContract]
 public abstract class PolityEvent : WorldEvent {
 
-	[XmlAttribute("PolId")]
+	[ProtoMember(1)]
 	public long PolityId;
 
-	[XmlAttribute("OFactId")]
-	public long OriginalDominantFactionId;
+    [ProtoMember(2)]
+    public long OriginalDominantFactionId;
 
-	[XmlIgnore]
 	public Polity Polity;
 
-	[XmlIgnore]
 	public Faction OriginalDominantFaction;
 
     public PolityEvent()

@@ -1,10 +1,7 @@
 ﻿using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
-using System.Xml;
-using System.Xml.Serialization;
-using System.IO;
 using UnityEngine.Profiling;
+using ProtoBuf;
 
 public delegate void ProgressCastDelegate(float value, string message = null, bool reset = false);
 
@@ -143,7 +140,7 @@ public enum GenerationType
     LayerRegeneration = 0x40
 }
 
-[XmlRoot]
+[ProtoContract]
 public class World : ISynchronizable
 {
     public const long MaxSupportedDate = 9223372036L;
@@ -196,177 +193,231 @@ public class World : ISynchronizable
 
     public static Dictionary<string, IWorldEventGenerator> EventGenerators;
 
-    [XmlAttribute]
+    [ProtoMember(1)]
     public int Width { get; set; }
-    [XmlAttribute]
+    [ProtoMember(2)]
     public int Height { get; set; }
 
-    [XmlAttribute]
+    [ProtoMember(3)]
     public int Seed { get; set; }
 
-    [XmlAttribute]
+    [ProtoMember(4)]
     public long CurrentDate { get; set; }
 
-    [XmlAttribute]
+    [ProtoMember(5)]
     public long MaxTimeToSkip { get; set; }
 
-    [XmlAttribute]
+    [ProtoMember(6)]
     public int CellGroupCount { get; set; }
 
-    [XmlAttribute]
+    [ProtoMember(7)]
     public int MemorableAgentCount { get; set; }
 
-    [XmlAttribute]
+    [ProtoMember(8)]
     public int FactionCount { get; set; }
 
-    [XmlAttribute]
+    [ProtoMember(9)]
     public int PolityCount { get; set; }
 
-    [XmlAttribute]
+    [ProtoMember(10)]
     public int RegionCount { get; set; }
 
-    [XmlAttribute]
+    [ProtoMember(11)]
     public int LanguageCount { get; set; }
 
-    [XmlAttribute]
+    [ProtoMember(12)]
     public int TerrainCellAlterationListCount { get; set; }
 
-    [XmlAttribute]
+    [ProtoMember(13)]
     public float AltitudeScale { get; set; }
 
-    [XmlAttribute]
+    [ProtoMember(14)]
     public float SeaLevelOffset { get; set; }
 
-    [XmlAttribute]
+    [ProtoMember(15)]
     public float RiverStrength { get; set; }
 
-    [XmlAttribute]
+    [ProtoMember(16)]
     public float RainfallOffset { get; set; }
 
-    [XmlAttribute]
+    [ProtoMember(17)]
     public float TemperatureOffset { get; set; }
 
-    [XmlAttribute]
+    [ProtoMember(18)]
     public int SerializedEventCount { get; set; }
 
-    public List<string> ModPaths;
+    [ProtoMember(19, OverwriteList = true)]
+    private List<string> _ModPaths;
+    public List<string> ModPaths
+    {
+        get => _ModPaths ?? (_ModPaths = new List<string>());
+        set => _ModPaths = value;
+    }
 
-    public List<LayerSettings> LayerSettings;
+    [ProtoMember(20, OverwriteList = true)]
+    private List<LayerSettings> _LayerSettings;
+    public List<LayerSettings> LayerSettings
+    {
+        get => _LayerSettings ?? (_LayerSettings = new List<LayerSettings>());
+        set => _LayerSettings = value;
+    }
 
     // Start wonky segment (save failures might happen here)
 
-    [XmlArrayItem(Type = typeof(UpdateCellGroupEvent)),
-        XmlArrayItem(Type = typeof(MigrateGroupEvent)),
-        XmlArrayItem(Type = typeof(ExpandPolityProminenceEvent)),
-        XmlArrayItem(Type = typeof(TribeFormationEvent)),
-        XmlArrayItem(Type = typeof(ClanSplitDecisionEvent)),
-        XmlArrayItem(Type = typeof(TribeSplitDecisionEvent)),
-        XmlArrayItem(Type = typeof(ClanDemandsInfluenceDecisionEvent)),
-        XmlArrayItem(Type = typeof(ClanCoreMigrationEvent)),
-        XmlArrayItem(Type = typeof(FosterTribeRelationDecisionEvent)),
-        XmlArrayItem(Type = typeof(MergeTribesDecisionEvent)),
-        XmlArrayItem(Type = typeof(OpenTribeDecisionEvent)),
-        XmlArrayItem(Type = typeof(Discovery.Event))]
-    public List<WorldEvent> EventsToHappen;
+    [ProtoMember(21, OverwriteList = true)]
+    private List<WorldEvent> _EventsToHappen;
+    public List<WorldEvent> EventsToHappen
+    {
+        get => _EventsToHappen ?? (_EventsToHappen = new List<WorldEvent>());
+        set => _EventsToHappen = value;
+    }
 
-    public List<TerrainCellAlteration> TerrainCellAlterationList = new List<TerrainCellAlteration>();
+    [ProtoMember(22, OverwriteList = true)]
+    private List<TerrainCellAlteration> _TerrainCellAlterationList;
+    public List<TerrainCellAlteration> TerrainCellAlterationList
+    {
+        get => _TerrainCellAlterationList ?? (_TerrainCellAlterationList = new List<TerrainCellAlteration>());
+        set => _TerrainCellAlterationList = value;
+    }
 
-    public List<CulturalPreferenceInfo> CulturalPreferenceInfoList = new List<CulturalPreferenceInfo>();
-    public List<CulturalActivityInfo> CulturalActivityInfoList = new List<CulturalActivityInfo>();
-    public List<CulturalSkillInfo> CulturalSkillInfoList = new List<CulturalSkillInfo>();
-    public List<CulturalKnowledgeInfo> CulturalKnowledgeInfoList = new List<CulturalKnowledgeInfo>();
+    [ProtoMember(23, OverwriteList = true)]
+    private List<CulturalPreferenceInfo> _CulturalPreferenceInfoList;
+    public List<CulturalPreferenceInfo> CulturalPreferenceInfoList
+    {
+        get => _CulturalPreferenceInfoList ?? (_CulturalPreferenceInfoList = new List<CulturalPreferenceInfo>());
+        set => _CulturalPreferenceInfoList = value;
+    }
+    [ProtoMember(24, OverwriteList = true)]
+    private List<CulturalActivityInfo> _CulturalActivityInfoList;
+    public List<CulturalActivityInfo> CulturalActivityInfoList
+    {
+        get => _CulturalActivityInfoList ?? (_CulturalActivityInfoList = new List<CulturalActivityInfo>());
+        set => _CulturalActivityInfoList = value;
+    }
+    [ProtoMember(25, OverwriteList = true)]
+    private List<CulturalSkillInfo> _CulturalSkillInfoList;
+    public List<CulturalSkillInfo> CulturalSkillInfoList
+    {
+        get => _CulturalSkillInfoList ?? (_CulturalSkillInfoList = new List<CulturalSkillInfo>());
+        set => _CulturalSkillInfoList = value;
+    }
+    [ProtoMember(26, OverwriteList = true)]
+    private List<CulturalKnowledgeInfo> _CulturalKnowledgeInfoList;
+    public List<CulturalKnowledgeInfo> CulturalKnowledgeInfoList
+    {
+        get => _CulturalKnowledgeInfoList ?? (_CulturalKnowledgeInfoList = new List<CulturalKnowledgeInfo>());
+        set => _CulturalKnowledgeInfoList = value;
+    }
 
-    public List<string> ExistingDiscoveryIds = new List<string>();
-    
-    public List<CellGroup> CellGroups;
+    [ProtoMember(27, OverwriteList = true)]
+    private List<string> _ExistingDiscoveryIds;
+    public List<string> ExistingDiscoveryIds
+    {
+        get => _ExistingDiscoveryIds ?? (_ExistingDiscoveryIds = new List<string>());
+        set => _ExistingDiscoveryIds = value;
+    }
 
-    [XmlArrayItem(Type = typeof(Agent))]
-    public List<Agent> MemorableAgents;
+    [ProtoMember(28, OverwriteList = true)]
+    private List<CellGroup> _CellGroups;
+    public List<CellGroup> CellGroups
+    {
+        get => _CellGroups ?? (_CellGroups = new List<CellGroup>());
+        set => _CellGroups = value;
+    }
 
-    public List<FactionInfo> FactionInfos = null;
-    public List<PolityInfo> PolityInfos = null;
-    public List<RegionInfo> RegionInfos = null;
+    [ProtoMember(29, OverwriteList = true)]
+    private List<Agent> _MemorableAgents;
+    public List<Agent> MemorableAgents
+    {
+        get => _MemorableAgents ?? (_MemorableAgents = new List<Agent>());
+        set => _MemorableAgents = value;
+    }
 
-    public List<Language> Languages = null;
+    [ProtoMember(30, OverwriteList = true)]
+    private List<FactionInfo> _FactionInfos;
+    public List<FactionInfo> FactionInfos
+    {
+        get => _FactionInfos ?? (_FactionInfos = new List<FactionInfo>());
+        set => _FactionInfos = value;
+    }
+    [ProtoMember(31, OverwriteList = true)]
+    private List<PolityInfo> _PolityInfos;
+    public List<PolityInfo> PolityInfos
+    {
+        get => _PolityInfos ?? (_PolityInfos = new List<PolityInfo>());
+        set => _PolityInfos = value;
+    }
+    [ProtoMember(32, OverwriteList = true)]
+    private List<RegionInfo> _RegionInfos;
+    public List<RegionInfo> RegionInfos
+    {
+        get => _RegionInfos ?? (_RegionInfos = new List<RegionInfo>());
+        set => _RegionInfos = value;
+    }
+
+    [ProtoMember(33, OverwriteList = true)]
+    private List<Language> _Languages;
+    public List<Language> Languages
+    {
+        get => _Languages ?? (_Languages = new List<Language>());
+        set => _Languages = value;
+    }
 
     // End wonky segment 
 
-    public List<long> EventMessageIds;
+    [ProtoMember(34, OverwriteList = true)]
+    private List<long> _EventMessageIds;
+    public List<long> EventMessageIds
+    {
+        get => _EventMessageIds ?? (_EventMessageIds = new List<long>());
+        set => _EventMessageIds = value;
+    }
 
-    [XmlIgnore]
     public int EventsToHappenCount { get; private set; }
 
-    [XmlIgnore]
     public TerrainCell SelectedCell = null;
-    [XmlIgnore]
     public Region SelectedRegion = null;
-    [XmlIgnore]
     public Territory SelectedTerritory = null;
-    [XmlIgnore]
     public Faction GuidedFaction = null;
-    [XmlIgnore]
     public HashSet<Polity> PolitiesUnderPlayerFocus = new HashSet<Polity>();
 
-    [XmlIgnore]
     public float MinPossibleAltitudeWithOffset = MinPossibleAltitude - Manager.SeaLevelOffset;
-    [XmlIgnore]
     public float MaxPossibleAltitudeWithOffset = MaxPossibleAltitude - Manager.SeaLevelOffset;
 
-    [XmlIgnore]
     public float MinPossibleRainfallWithOffset = MinPossibleRainfall + Manager.RainfallOffset;
-    [XmlIgnore]
     public float MaxPossibleRainfallWithOffset = MaxPossibleRainfall + Manager.RainfallOffset;
 
-    [XmlIgnore]
     public float MinPossibleTemperatureWithOffset = MinPossibleTemperature + Manager.TemperatureOffset;
-    [XmlIgnore]
     public float MaxPossibleTemperatureWithOffset = MaxPossibleTemperature + Manager.TemperatureOffset;
 
-    [XmlIgnore]
     public float MaxAltitude = MaxPossibleAltitude;
-    [XmlIgnore]
     public float MinAltitude = MinPossibleAltitude;
 
-    [XmlIgnore]
     public float MaxRainfall = MaxPossibleRainfall;
-    [XmlIgnore]
     public float MinRainfall = MinPossibleRainfall;
 
-    [XmlIgnore]
     public float MaxTemperature = MaxPossibleTemperature;
-    [XmlIgnore]
     public float MinTemperature = MinPossibleTemperature;
 
-    [XmlIgnore]
     public float MaxWaterAccumulation = 0;
 
-    [XmlIgnore]
     public TerrainCell[][] TerrainCells;
 
-    [XmlIgnore]
     public CellGroup MostPopulousGroup = null;
 
-    [XmlIgnore]
     public ProgressCastDelegate ProgressCastMethod { get; set; }
 
-    [XmlIgnore]
     public HumanGroup MigrationTaggedGroup = null;
 
-    [XmlIgnore]
     public bool GroupsHaveBeenUpdated = false;
-    [XmlIgnore]
     public bool FactionsHaveBeenUpdated = false;
-    [XmlIgnore]
     public bool PolitiesHaveBeenUpdated = false;
-    [XmlIgnore]
     public bool PolityClustersHaveBeenUpdated = false;
 
 #if DEBUG
-    [XmlIgnore]
     public int PolityMergeCount = 0;
 #endif
 
-    [XmlIgnore]
     public Dictionary<string, Discovery> ExistingDiscoveries = new Dictionary<string, Discovery>();
 
     private Dictionary<long, FactionInfo> _factionInfos = new Dictionary<long, FactionInfo>();
@@ -635,14 +686,7 @@ public class World : ISynchronizable
 
     public static IWorldEventGenerator GetEventGenerator(string id)
     {
-        IWorldEventGenerator generator;
-
-        if (!EventGenerators.TryGetValue(id, out generator))
-        {
-            return null;
-        }
-
-        return generator;
+        return EventGenerators.TryGetValue(id, out var generator) ? generator : null;
     }
 
     public List<WorldEvent> GetFilteredEventsToHappenForSerialization()
@@ -1481,10 +1525,7 @@ public class World : ISynchronizable
     public void AddMigratingGroup(MigratingGroup group)
     {
 #if DEBUG
-        if (AddMigratingGroupCalled != null)
-        {
-            AddMigratingGroupCalled();
-        }
+        AddMigratingGroupCalled?.Invoke();
 #endif
 
         _migratingGroups.Add(group);
@@ -1524,9 +1565,7 @@ public class World : ISynchronizable
 
     public CellGroup GetGroup(long id)
     {
-        CellGroup group;
-
-        _cellGroups.TryGetValue(id, out group);
+        _cellGroups.TryGetValue(id, out CellGroup group);
 
         return group;
     }
@@ -1628,28 +1667,24 @@ public class World : ISynchronizable
 
     public RegionInfo GetRegionInfo(long id)
     {
-        RegionInfo regionInfo;
-
-        _regionInfos.TryGetValue(id, out regionInfo);
+        _regionInfos.TryGetValue(id, out var regionInfo);
 
         return regionInfo;
     }
 
     public void AddMemorableAgent(Agent agent)
     {
-        if (!_memorableAgents.ContainsKey(agent.Id))
-        {
-            _memorableAgents.Add(agent.Id, agent);
+        if (_memorableAgents.ContainsKey(agent.Id))
+            return;
+        
+        _memorableAgents.Add(agent.Id, agent);
 
-            MemorableAgentCount++;
-        }
+        MemorableAgentCount++;
     }
 
     public Agent GetMemorableAgent(long id)
     {
-        Agent agent;
-
-        _memorableAgents.TryGetValue(id, out agent);
+        _memorableAgents.TryGetValue(id, out var agent);
 
         return agent;
     }
@@ -1663,23 +1698,14 @@ public class World : ISynchronizable
 
     public FactionInfo GetFactionInfo(long id)
     {
-        FactionInfo factionInfo = null;
-
-        _factionInfos.TryGetValue(id, out factionInfo);
+        _factionInfos.TryGetValue(id, out var factionInfo);
 
         return factionInfo;
     }
 
     public Faction GetFaction(long id)
     {
-        FactionInfo factionInfo;
-
-        if (!_factionInfos.TryGetValue(id, out factionInfo))
-        {
-            return null;
-        }
-
-        return factionInfo.Faction;
+        return _factionInfos.TryGetValue(id, out var factionInfo) ? factionInfo.Faction : null;
     }
 
     public bool ContainsFactionInfo(long id)
@@ -1721,9 +1747,7 @@ public class World : ISynchronizable
 
                 string callingClass = method.DeclaringType.ToString();
 
-                int knowledgeValue = 0;
-
-                faction.Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.KnowledgeId, out knowledgeValue);
+                faction.Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.KnowledgeId, out var knowledgeValue);
 
                 SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
                     "World:AddFactionToUpdate - Faction Id:" + faction.Id,

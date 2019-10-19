@@ -1,11 +1,17 @@
 using UnityEngine;
 using System.Collections.Generic;
-using System.Xml.Serialization;
-using System.Linq;
+using ProtoBuf;
 
+[ProtoContract]
 public class CellRegion : Region
 {
-    public List<WorldPosition> CellPositions;
+    [ProtoMember(1, OverwriteList = true)]
+    private List<WorldPosition> _CellPositions;
+    public List<WorldPosition> CellPositions
+    { 
+        get => _CellPositions ?? (_CellPositions = new List<WorldPosition>());
+        set => _CellPositions = value;
+    }
 
     private HashSet<TerrainCell> _cells = new HashSet<TerrainCell>();
 

@@ -1,8 +1,5 @@
 ﻿using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
-using System.Xml;
-using System.Xml.Serialization;
 
 // Clan Leadership:
 // -- Authority factors:
@@ -90,17 +87,17 @@ public class Clan : Faction
 
     protected override void UpdateInternal()
     {
-        if (NewCoreGroup != null)
+        if (NewCoreGroup == null)
+            return;
+
+        if (IsGroupValidCore(NewCoreGroup))
         {
-            if (IsGroupValidCore(NewCoreGroup))
-            {
-                MigrateToNewCoreGroup();
-            }
-
-            NewCoreGroup = null;
-
-            ResetEvent(WorldEvent.ClanCoreMigrationEventId, ClanCoreMigrationEvent.CalculateTriggerDate(this));
+            MigrateToNewCoreGroup();
         }
+
+        NewCoreGroup = null;
+
+        ResetEvent(WorldEvent.ClanCoreMigrationEventId, ClanCoreMigrationEvent.CalculateTriggerDate(this));
     }
 
     protected override void GenerateName(Faction parentFaction)
@@ -232,9 +229,7 @@ public class Clan : Faction
             return false;
         }
 
-        int value = 0;
-
-        if (!group.Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.KnowledgeId, out value))
+        if (!group.Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.KnowledgeId, out var value))
         {
             return false;
         }
@@ -273,15 +268,13 @@ public class Clan : Faction
 
         PolityProminence piTarget = targetGroup.GetPolityProminence(Polity);
 
-        if (piTarget != null)
-        {
-            int targetGroupPopulation = targetGroup.Population;
-            float targetGroupProminence = piTarget.Value;
+        if (piTarget == null)
+            return false;
 
-            return ShouldMigrateFactionCore(sourceGroup, targetGroup.Cell, targetGroupProminence, targetGroupPopulation);
-        }
+        int targetGroupPopulation = targetGroup.Population;
+        float targetGroupProminence = piTarget.Value;
 
-        return false;
+        return ShouldMigrateFactionCore(sourceGroup, targetGroup.Cell, targetGroupProminence, targetGroupPopulation);
     }
 
     public override bool ShouldMigrateFactionCore(CellGroup sourceGroup, TerrainCell targetCell, float targetProminence, int targetPopulation)
@@ -462,9 +455,7 @@ public class Clan : Faction
 
     public float CalculateAdministrativeLoad()
     {
-        int socialOrganizationValue = 0;
-
-        Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.KnowledgeId, out socialOrganizationValue);
+        Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.KnowledgeId, out var socialOrganizationValue);
         
         if (socialOrganizationValue <= 0)
         {

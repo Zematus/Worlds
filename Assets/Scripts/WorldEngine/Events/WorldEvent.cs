@@ -1,9 +1,22 @@
-﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using System.Xml;
-using System.Xml.Serialization;
+﻿using ProtoBuf;
 
+[ProtoContract]
+[ProtoInclude(100, typeof(UpdateCellGroupEvent))]
+[ProtoInclude(200, typeof(MigrateGroupEvent))]
+[ProtoInclude(300, typeof(ExpandPolityProminenceEvent))]
+[ProtoInclude(400, typeof(TribeFormationEvent))]
+[ProtoInclude(500, typeof(ClanSplitDecisionEvent))]
+[ProtoInclude(600, typeof(TribeSplitDecisionEvent))]
+[ProtoInclude(700, typeof(ClanDemandsInfluenceDecisionEvent))]
+[ProtoInclude(800, typeof(ClanCoreMigrationEvent))]
+[ProtoInclude(900, typeof(FosterTribeRelationDecisionEvent))]
+[ProtoInclude(1000, typeof(MergeTribesDecisionEvent))]
+[ProtoInclude(1100, typeof(OpenTribeDecisionEvent))]
+[ProtoInclude(1200, typeof(Discovery.Event))]
+[ProtoInclude(1300, typeof(CellEvent))]
+[ProtoInclude(1400, typeof(CellGroupEvent))]
+[ProtoInclude(1500, typeof(FactionEvent))]
+[ProtoInclude(1600, typeof(PolityEvent))]
 public abstract class WorldEvent : ISynchronizable
 {
     public const long UpdateCellGroupEventId = 0;
@@ -44,28 +57,24 @@ public abstract class WorldEvent : ISynchronizable
     public const long OpenTribeDecisionEventId = 30;
     public const long AvoidOpenTribeDecisionEventId = 31;
 
-    [XmlIgnore]
     public World World;
 
-    [XmlIgnore]
     public bool DoNotSerialize = false;
 
-    [XmlIgnore]
     public bool FailedToTrigger = false;
 
-    [XmlIgnore]
     public BinaryTreeNode<long, WorldEvent> Node = null;
 
-    [XmlAttribute("TId")]
+    [ProtoMember(1)]
     public long TypeId;
 
-    [XmlAttribute("TD")]
+    [ProtoMember(2)]
     public long TriggerDate;
 
-    [XmlAttribute("SD")]
+    [ProtoMember(3)]
     public long SpawnDate;
 
-    [XmlAttribute]
+    [ProtoMember(4)]
     public long Id;
 
     public WorldEvent()
@@ -91,24 +100,22 @@ public abstract class WorldEvent : ISynchronizable
         World = world;
         TriggerDate = triggerDate;
 
-        if (originalSpawnDate > -1)
-            SpawnDate = originalSpawnDate; // This is used for some events recreated after load
-        else
-            SpawnDate = World.CurrentDate;
+        // This is used for some events recreated after load
+        SpawnDate = originalSpawnDate > -1 ? originalSpawnDate : World.CurrentDate;
 
         Id = id;
 
 #if DEBUG
-        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-        {
-            if (!this.GetType().IsSubclassOf(typeof(CellGroupEvent)))
-            {
-                SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("WorldEvent - Id: " + id + ", Type: " + this.GetType(), 
-                    "TriggerDate: " + TriggerDate, SpawnDate);
+        if ((Manager.RegisterDebugEvent == null) || (Manager.TracingData.Priority > 0))
+            return;
 
-                Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-            }
-        }
+        if (this.GetType().IsSubclassOf(typeof(CellGroupEvent)))
+            return;
+
+        SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("WorldEvent - Id: " + id + ", Type: " + this.GetType(), 
+            "TriggerDate: " + TriggerDate, SpawnDate);
+
+        Manager.RegisterDebugEvent("DebugMessage", debugMessage);
 #endif
     }
 

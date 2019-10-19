@@ -1,48 +1,32 @@
-﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using System.Xml;
-using System.Xml.Serialization;
-using UnityEngine.Profiling;
+﻿using ProtoBuf;
 
+[ProtoContract]
 public class PolityProminence : IKeyedValue<long>
 {
-    [XmlAttribute("PId")]
+    [ProtoMember(1)]
     public long PolityId;
-    [XmlAttribute("V")]
+    [ProtoMember(2)]
     public float Value;
-    [XmlAttribute("FCT")]
+    [ProtoMember(3)]
     public float FactionCoreDistance;
-    [XmlAttribute("PD")]
+    [ProtoMember(4)]
     public float PolityCoreDistance;
-    [XmlAttribute("AC")]
+    [ProtoMember(5)]
     public float AdministrativeCost;
 
-    [XmlIgnore]
     public float NewValue;
-    [XmlIgnore]
     public float NewFactionCoreDistance;
-    [XmlIgnore]
     public float NewPolityCoreDistance;
 
-    [XmlIgnore]
     public PolityProminenceCluster Cluster;
 
     //private bool _isMigratingGroup;
 
-    [XmlIgnore]
     public Polity Polity;
 
-    [XmlIgnore]
     public CellGroup Group;
 
-    public long Id
-    {
-        get
-        {
-            return Group.Id;
-        }
-    }
+    public long Id => Group.Id;
 
     public PolityProminence()
     {
@@ -103,10 +87,7 @@ public class PolityProminence : IKeyedValue<long>
         PolityCoreDistance = NewPolityCoreDistance;
         FactionCoreDistance = NewFactionCoreDistance;
 
-        if (Cluster != null)
-        {
-            Cluster.RequireNewCensus(true);
-        }
+        Cluster?.RequireNewCensus(true);
 
 #if DEBUG
         if (FactionCoreDistance == -1)

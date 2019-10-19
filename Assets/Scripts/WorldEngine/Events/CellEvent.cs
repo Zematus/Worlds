@@ -1,17 +1,13 @@
-﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using System.Xml;
-using System.Xml.Serialization;
+﻿using ProtoBuf;
 
+[ProtoContract]
 public abstract class CellEvent : WorldEvent {
 
-	[XmlAttribute]
+	[ProtoMember(1)]
 	public int CellLongitude;
-	[XmlAttribute]
+	[ProtoMember(2)]
 	public int CellLatitude;
 
-	[XmlIgnore]
 	public TerrainCell Cell;
 
 	public CellEvent () {

@@ -1,13 +1,9 @@
+using ProtoBuf;
 using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using System.Xml;
-using System.Xml.Serialization;
-using UnityEngine.Profiling;
 
+[ProtoContract]
 public class PolityCulturalKnowledge : CulturalKnowledge
 {
-    [XmlIgnore]
     public float AccValue = 0;
     
     public PolityCulturalKnowledge()

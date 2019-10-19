@@ -1,16 +1,13 @@
-using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using System.Xml;
-using System.Xml.Serialization;
+using ProtoBuf;
 
+[ProtoContract]
 public struct WorldPosition
 {
     public static WorldPosition NoPosition = new WorldPosition(-1, -1);
 
-    [XmlAttribute("X")]
+    [ProtoMember(1)]
     public int Longitude;
-    [XmlAttribute("Y")]
+    [ProtoMember(2)]
     public int Latitude;
 
     public WorldPosition(int longitude, int latitude)
@@ -36,8 +33,8 @@ public struct WorldPosition
 
     public override bool Equals(object p)
     {
-        if (p is WorldPosition)
-            return Equals((WorldPosition)p);
+        if (p is WorldPosition position)
+            return Equals(position);
 
         return false;
     }

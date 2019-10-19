@@ -1,26 +1,21 @@
 ﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using System.Xml;
-using System.Xml.Serialization;
-using UnityEngine.Profiling;
+using ProtoBuf;
 
+[ProtoContract]
 public class MigrateGroupEvent : CellGroupEvent
 {
     public static int MigrationEventCount = 0;
 
-    [XmlAttribute("TLon")]
+    [ProtoMember(1)]
     public int TargetCellLongitude;
-    [XmlAttribute("TLat")]
+    [ProtoMember(2)]
     public int TargetCellLatitude;
 
-    [XmlAttribute("MigDir")]
+    [ProtoMember(3)]
     public int MigrationDirectionInt;
 
-    [XmlIgnore]
     public TerrainCell TargetCell;
 
-    [XmlIgnore]
     public Direction MigrationDirection;
 
     public MigrateGroupEvent()

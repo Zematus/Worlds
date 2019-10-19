@@ -1,55 +1,57 @@
-using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
-using System.Xml;
-using System.Xml.Serialization;
+using ProtoBuf;
 
-[XmlType(TypeName = "CellAlt")]
+[ProtoContract]
 public class TerrainCellAlteration
 {
-    [XmlAttribute("Lon")]
+    [ProtoMember(1)]
     public int Longitude;
-    [XmlAttribute("Lat")]
+    [ProtoMember(2)]
     public int Latitude;
 
-    [XmlAttribute("BA")]
+    [ProtoMember(3)]
     public float BaseAltitudeValue;
-    [XmlAttribute("BT")]
+    [ProtoMember(4)]
     public float BaseTemperatureValue;
-    [XmlAttribute("BR")]
+    [ProtoMember(5)]
     public float BaseRainfallValue;
 
-    [XmlAttribute("BTO")]
+    [ProtoMember(6)]
     public float BaseTemperatureOffset;
-    [XmlAttribute("BRO")]
+    [ProtoMember(7)]
     public float BaseRainfallOffset;
 
-    [XmlAttribute("A")]
+    [ProtoMember(8)]
     public float Altitude;
-    [XmlAttribute("OA")]
+    [ProtoMember(9)]
     public float OriginalAltitude;
-    [XmlAttribute("T")]
+    [ProtoMember(10)]
     public float Temperature;
-    [XmlAttribute("OT")]
+    [ProtoMember(11)]
     public float OriginalTemperature;
-    [XmlAttribute("R")]
+    [ProtoMember(12)]
     public float Rainfall;
-    [XmlAttribute("W")]
+    [ProtoMember(13)]
     public float WaterAccumulation;
 
-    [XmlAttribute("Fp")]
+    [ProtoMember(14)]
     public float FarmlandPercentage = 0;
-    [XmlAttribute("Ar")]
+    [ProtoMember(15)]
     public float Arability = 0;
-    [XmlAttribute("Acc")]
+    [ProtoMember(16)]
     public float Accessibility = 0;
 
-    [XmlAttribute("M")]
+    [ProtoMember(17)]
     public bool Modified;
 
-    public List<CellLayerData> LayerData = new List<CellLayerData>();
+    [ProtoMember(18)]
+    private List<CellLayerData> _LayerData;
+    public List<CellLayerData> LayerData
+    {
+        get => _LayerData ?? (_LayerData = new List<CellLayerData>());
+        set => _LayerData = value;
+    }
 
-    [XmlIgnore]
     public WorldPosition Position;
 
     public TerrainCellAlteration()

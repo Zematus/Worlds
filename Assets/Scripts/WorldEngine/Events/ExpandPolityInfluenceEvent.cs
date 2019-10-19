@@ -1,20 +1,16 @@
 ﻿using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
-using System.Xml;
-using System.Xml.Serialization;
-using UnityEngine.Profiling;
+using ProtoBuf;
 
+[ProtoContract]
 public class ExpandPolityProminenceEvent : CellGroupEvent
 {
-    [XmlAttribute("TGrpId")]
+    [ProtoMember(1)]
     public long TargetGroupId;
-    [XmlAttribute("PolId")]
+    [ProtoMember(2)]
     public long PolityId;
 
-    [XmlIgnore]
     public CellGroup TargetGroup;
-    [XmlIgnore]
     public Polity Polity;
 
     public ExpandPolityProminenceEvent()

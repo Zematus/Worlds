@@ -1,9 +1,6 @@
-﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using System.Xml.Serialization;
+﻿using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using System.Linq;
+using ProtoBuf;
 
 public class Variation
 {
@@ -97,32 +94,20 @@ public static class NameTools
     }
 }
 
+[ProtoContract]
 public class Name : ISynchronizable
 {
-    [XmlAttribute("Lid")]
+    [ProtoMember(1)]
     public long LanguageId;
 
-    [XmlAttribute("Tm")]
+    [ProtoMember(2)]
     public string TaggedMeaning;
 
-    [XmlIgnore]
     public World World;
 
-    [XmlIgnore]
     public Language Language;
 
-    public Phrase Value
-    {
-        get
-        {
-            if (_value == null)
-            {
-                _value = Language.TranslatePhrase(TaggedMeaning);
-            }
-
-            return _value;
-        }
-    }
+    public Phrase Value => _value ?? (_value = Language.TranslatePhrase(TaggedMeaning));
 
     private Phrase _value = null;
 
@@ -141,20 +126,11 @@ public class Name : ISynchronizable
         TaggedMeaning = taggedMeaning;
     }
 
-    public string BoldText
-    {
-        get { return Value.Text.ToBoldFormat(); }
-    }
+    public string BoldText => Value.Text.ToBoldFormat();
 
-    public string Text
-    {
-        get { return Value.Text; }
-    }
+    public string Text => Value.Text;
 
-    public string Meaning
-    {
-        get { return Value.Meaning; }
-    }
+    public string Meaning => Value.Meaning;
 
 
     public void Synchronize()

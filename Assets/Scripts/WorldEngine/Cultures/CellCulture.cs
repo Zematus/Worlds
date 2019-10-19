@@ -1,24 +1,17 @@
 using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
-using System.Xml;
-using System.Xml.Serialization;
-using UnityEngine.Profiling;
+using System.Linq;
+using ProtoBuf;
 
+[ProtoContract]
 public class CellCulture : Culture
 {
-    [XmlIgnore]
     public CellGroup Group;
 
-    [XmlIgnore]
     public Dictionary<string, CellCulturalPreference> PreferencesToAcquire = new Dictionary<string, CellCulturalPreference>();
-    [XmlIgnore]
     public Dictionary<string, CellCulturalActivity> ActivitiesToPerform = new Dictionary<string, CellCulturalActivity>();
-    [XmlIgnore]
     public Dictionary<string, CellCulturalSkill> SkillsToLearn = new Dictionary<string, CellCulturalSkill>();
-    [XmlIgnore]
     public Dictionary<string, CellCulturalKnowledge> KnowledgesToLearn = new Dictionary<string, CellCulturalKnowledge>();
-    [XmlIgnore]
     public Dictionary<string, Discovery> DiscoveriesToFind = new Dictionary<string, Discovery>();
 
     private HashSet<CellCulturalPreference> _preferencesToLose = new HashSet<CellCulturalPreference>();
@@ -139,26 +132,19 @@ public class CellCulture : Culture
 
     public CellCulturalKnowledge TryAddKnowledgeToLearn(string id, int initialValue, int initialLimit = -1)
     {
-        CellCulturalKnowledge knowledge = GetKnowledge(id) as CellCulturalKnowledge;
-        
-        if (knowledge != null)
+        if (GetKnowledge(id) is CellCulturalKnowledge knowledge)
         {
             knowledge.SetLevelLimit(initialLimit);
             return knowledge;
         }
 
-        CellCulturalKnowledge tempKnowledge;
-
-        if (KnowledgesToLearn.TryGetValue(id, out tempKnowledge))
+        if (KnowledgesToLearn.TryGetValue(id, out var tempKnowledge))
         {
             tempKnowledge.SetLevelLimit(initialLimit);
             return tempKnowledge;
         }
 
-        if (knowledge == null)
-        {
-            knowledge = CellCulturalKnowledge.CreateCellInstance(id, Group, initialValue, initialLimit);
-        }
+        knowledge = CellCulturalKnowledge.CreateCellInstance(id, Group, initialValue, initialLimit);
 
         KnowledgesToLearn.Add(id, knowledge);
 
@@ -178,9 +164,7 @@ public class CellCulture : Culture
 
     public CellCulturalPreference GetAcquiredPreferenceOrToAcquire(string id)
     {
-        CellCulturalPreference preference = GetPreference(id) as CellCulturalPreference;
-
-        if (preference != null)
+        if (GetPreference(id) is CellCulturalPreference preference)
             return preference;
 
         if (PreferencesToAcquire.TryGetValue(id, out preference))
@@ -191,9 +175,7 @@ public class CellCulture : Culture
 
     public CellCulturalActivity GetPerformedActivityOrToPerform(string id)
     {
-        CellCulturalActivity activity = GetActivity(id) as CellCulturalActivity;
-
-        if (activity != null)
+        if (GetActivity(id) is CellCulturalActivity activity)
             return activity;
 
         if (ActivitiesToPerform.TryGetValue(id, out activity))
@@ -204,9 +186,7 @@ public class CellCulture : Culture
 
     public CellCulturalSkill GetLearnedSkillOrToLearn(string id)
     {
-        CellCulturalSkill skill = GetSkill(id) as CellCulturalSkill;
-
-        if (skill != null)
+        if (GetSkill(id) is CellCulturalSkill skill)
             return skill;
 
         if (SkillsToLearn.TryGetValue(id, out skill))
@@ -624,9 +604,7 @@ public class CellCulture : Culture
 
     public void AddKnowledgeToLose(string knowledgeId)
     {
-        CulturalKnowledge knowledge = null;
-
-        if (!_knowledges.TryGetValue(knowledgeId, out knowledge))
+        if (!_knowledges.TryGetValue(knowledgeId, out var knowledge))
         {
             Debug.LogWarning("CellCulture: Trying to remove knowledge that is not present: " + knowledgeId);
 
@@ -638,9 +616,7 @@ public class CellCulture : Culture
 
     public void AddActivityToStop(string activityId)
     {
-        CulturalActivity activity = null;
-
-        if (!_activities.TryGetValue(activityId, out activity))
+        if (!_activities.TryGetValue(activityId, out var activity))
         {
             Debug.LogWarning("CellCulture: Trying to remove activity that is not present: " + activityId);
 
@@ -652,9 +628,7 @@ public class CellCulture : Culture
 
     public void AddSkillToLose(string skillId)
     {
-        CulturalSkill skill = null;
-
-        if (!_skills.TryGetValue(skillId, out skill))
+        if (!_skills.TryGetValue(skillId, out var skill))
         {
             Debug.LogWarning("CellCulture: Trying to remove skill that is not present: " + skillId);
 
@@ -666,19 +640,7 @@ public class CellCulture : Culture
 
     public float MinimumSkillAdaptationLevel()
     {
-        float minAdaptationLevel = 1f;
-
-        foreach (CellCulturalSkill skill in _skills.Values)
-        {
-            float level = skill.AdaptationLevel;
-
-            if (level < minAdaptationLevel)
-            {
-                minAdaptationLevel = level;
-            }
-        }
-
-        return minAdaptationLevel;
+        return (from CellCulturalSkill skill in _skills.Values select skill.AdaptationLevel).Concat(new[] {1f}).Min();
     }
 
     public float MinimumKnowledgeProgressLevel()

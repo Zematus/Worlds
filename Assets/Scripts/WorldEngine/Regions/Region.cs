@@ -1,9 +1,9 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
-using System.Xml.Serialization;
-using System.Linq;
+using ProtoBuf;
 
-[XmlInclude(typeof(CellRegion))]
+[ProtoContract]
+[ProtoInclude(100, typeof(CellRegion))]
 public abstract class Region : ISynchronizable
 {
     public const float BaseMaxAltitudeDifference = 1000;
@@ -11,100 +11,45 @@ public abstract class Region : ISynchronizable
 
     public const float MaxClosedness = 0.5f;
 
-    [XmlIgnore]
     public RegionInfo Info;
 
-    [XmlIgnore]
     public bool IsSelected = false;
 
-    [XmlIgnore]
     public float AverageAltitude;
-    [XmlIgnore]
     public float AverageRainfall;
-    [XmlIgnore]
     public float AverageTemperature;
-    [XmlIgnore]
     public float AverageFlowingWater;
 
-    [XmlIgnore]
     public float AverageSurvivability;
-    [XmlIgnore]
     public float AverageForagingCapacity;
-    [XmlIgnore]
     public float AverageAccessibility;
-    [XmlIgnore]
     public float AverageArability;
 
-    [XmlIgnore]
     public float AverageFarmlandPercentage;
 
-    [XmlIgnore]
     public float TotalArea;
 
-    [XmlIgnore]
     public string BiomeWithMostPresence = null;
-    [XmlIgnore]
     public float MostBiomePresence;
 
-    [XmlIgnore]
     public List<string> PresentBiomeIds = new List<string>();
-    [XmlIgnore]
     public List<float> BiomePresences = new List<float>();
 
-    [XmlIgnore]
     public float AverageOuterBorderAltitude;
-    [XmlIgnore]
     public float MinAltitude;
-    [XmlIgnore]
     public float MaxAltitude;
-    [XmlIgnore]
     public float CoastPercentage;
-    [XmlIgnore]
     public float WaterPercentage;
 
-    [XmlIgnore]
-    public long Id
-    {
-        get
-        {
-            return Info.Id;
-        }
-    }
+    public long Id => Info.Id;
 
-    [XmlIgnore]
-    public Name Name
-    {
-        get
-        {
-            return Info.Name;
-        }
-    }
+    public Name Name => Info.Name;
 
-    [XmlIgnore]
-    public Dictionary<string, RegionAttribute.Instance> Attributes
-    {
-        get
-        {
-            return Info.Attributes;
-        }
-    }
+    public Dictionary<string, RegionAttribute.Instance> Attributes => Info.Attributes;
 
-    [XmlIgnore]
-    public List<Element.Instance> Elements
-    {
-        get
-        {
-            return Info.Elements;
-        }
-    }
+    public List<Element.Instance> Elements => Info.Elements;
 
-    public World World
-    {
-        get
-        {
-            return Info.World;
-        }
-    }
+    public World World => Info.World;
 
     protected Dictionary<string, float> _biomePresences;
 
@@ -144,14 +89,7 @@ public abstract class Region : ISynchronizable
 
     public float GetBiomePresence(string biomeId)
     {
-        float presence;
-
-        if (!_biomePresences.TryGetValue(biomeId, out presence))
-        {
-            return 0.0f;
-        }
-
-        return presence;
+        return !_biomePresences.TryGetValue(biomeId, out var presence) ? 0.0f : presence;
     }
 
     public static Region TryGenerateRegion(TerrainCell startCell, Language establishmentLanguage)

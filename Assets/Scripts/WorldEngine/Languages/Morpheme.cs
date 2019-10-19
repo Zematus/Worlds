@@ -1,25 +1,19 @@
-﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using System.Text.RegularExpressions;
-using System.Linq;
-using System.Xml.Serialization;
-using System.ComponentModel;
+﻿using ProtoBuf;
 
+[ProtoContract]
 public class Morpheme : ISynchronizable
 {
-    [XmlAttribute("M")]
+    [ProtoMember(1)]
     public string Meaning;
-    [XmlAttribute("V")]
+    [ProtoMember(2)]
     public string Value;
 
-    [XmlAttribute("T")]
+    [ProtoMember(3)]
     public WordType Type;
 
-    [XmlAttribute("P")]
+    [ProtoMember(4)]
     public int PropertiesInt;
 
-    [XmlIgnore]
     public MorphemeProperties Properties;
 
     public Morpheme()

@@ -1,10 +1,7 @@
+using ProtoBuf;
 using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using System.Xml;
-using System.Xml.Serialization;
-using UnityEngine.Profiling;
 
+[ProtoContract]
 public class AgricultureKnowledge : CellCulturalKnowledge
 {
     public const string KnowledgeId = "agriculture";
@@ -22,7 +19,6 @@ public class AgricultureKnowledge : CellCulturalKnowledge
 
     public static int HighestLimit = 0;
 
-    [XmlIgnore]
     public float TerrainFactor;
 
     public AgricultureKnowledge()

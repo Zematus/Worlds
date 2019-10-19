@@ -1,19 +1,18 @@
-﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using System.Xml;
-using System.Xml.Serialization;
+﻿using ProtoBuf;
 
+[ProtoContract]
+[ProtoInclude(100, typeof(PolityEventData))]
+[ProtoInclude(200, typeof(FactionEventData))]
 public class WorldEventData {
 
-	[XmlAttribute("TId")]
+	[ProtoMember(1)]
 	public long TypeId;
 
-    [XmlAttribute("SDate")]
+    [ProtoMember(2)]
     public long SpawnDate;
 
-    [XmlAttribute("TDate")]
-	public long TriggerDate;
+    [ProtoMember(3)]
+    public long TriggerDate;
 
 	public WorldEventData () {
 	

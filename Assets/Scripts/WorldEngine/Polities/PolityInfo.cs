@@ -1,11 +1,4 @@
-﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using System.Xml;
-using System.Xml.Serialization;
-using UnityEngine.Profiling;
-using System.Linq;
-using System.Xml.Schema;
+﻿using ProtoBuf;
 
 public enum PolityType
 {
@@ -13,16 +6,19 @@ public enum PolityType
     Tribe
 }
 
+[ProtoContract]
 public class PolityInfo : ISynchronizable, IKeyedValue<long>
 {
-	[XmlAttribute("T")]
-	public string Type;
+    [ProtoMember(1)]
+    public string Type;
 
-	[XmlAttribute]
-	public long Id;
-    
+    [ProtoMember(2)]
+    public long Id;
+
+    [ProtoMember(3)]
     public Name Name;
-    
+
+    [ProtoMember(4)]
     public Polity Polity;
 
     private string _nameFormat;
@@ -88,15 +84,13 @@ public class PolityInfo : ISynchronizable, IKeyedValue<long>
 
     public void FinalizeLoad()
     {
-        if (Polity != null)
-            Polity.FinalizeLoad();
-        
+        Polity?.FinalizeLoad();
+
         SetType(Type);
     }
 
     public void Synchronize()
     {
-        if (Polity != null)
-            Polity.Synchronize();
+        Polity?.Synchronize();
     }
 }

@@ -1,24 +1,18 @@
-﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using System.Text.RegularExpressions;
-using System.Linq;
-using System.Xml.Serialization;
-using System.ComponentModel;
+﻿using ProtoBuf;
 
+[ProtoContract]
 public class Phrase : ISynchronizable
 {
-    [XmlAttribute("O")]
+    [ProtoMember(1)]
     public string Original;
-    [XmlAttribute("M")]
+    [ProtoMember(2)]
     public string Meaning;
-    [XmlAttribute("T")]
+    [ProtoMember(3)]
     public string Text;
 
-    [XmlAttribute("P")]
+    [ProtoMember(4)]
     public int PropertiesInt;
 
-    [XmlIgnore]
     public PhraseProperties Properties;
 
     public void Synchronize()

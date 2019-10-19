@@ -1,18 +1,13 @@
-using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using System.Xml;
-using System.Xml.Serialization;
+using ProtoBuf;
 
+[ProtoContract]
 public abstract class CellGroupEventGeneratorEvent : CellGroupEvent
 {
-    [XmlAttribute("GnId")]
+    [ProtoMember(1)]
     public string GeneratorId;
 
-    [XmlIgnore]
     public ICellGroupEventGenerator Generator;
 
-    [XmlIgnore]
     public string EventSetFlag;
 
     public CellGroupEventGeneratorEvent()
@@ -47,10 +42,7 @@ public abstract class CellGroupEventGeneratorEvent : CellGroupEvent
 
     protected override void DestroyInternal()
     {
-        if (Group != null)
-        {
-            Group.UnsetFlag(EventSetFlag);
-        }
+        Group?.UnsetFlag(EventSetFlag);
 
         base.DestroyInternal();
     }

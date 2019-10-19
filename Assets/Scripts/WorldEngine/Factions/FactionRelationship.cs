@@ -1,19 +1,14 @@
-﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using System.Xml;
-using System.Xml.Serialization;
-using UnityEngine.Profiling;
+﻿using ProtoBuf;
 
+[ProtoContract]
 public class FactionRelationship {
 
-	[XmlAttribute("Id")]
-	public long Id;
+    [ProtoMember(1)]
+    public long Id;
 
-	[XmlAttribute("Val")]
+	[ProtoMember(2)]
 	public float Value;
 
-	[XmlIgnore]
 	public Faction Faction;
 
 	public FactionRelationship () {

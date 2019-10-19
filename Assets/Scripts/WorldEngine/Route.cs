@@ -1,55 +1,43 @@
-﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using System.Xml;
-using System.Xml.Serialization;
+﻿using System.Collections.Generic;
+using ProtoBuf;
 
+[ProtoContract]
 public class Route : ISynchronizable
 {
     //public List<WorldPosition> CellPositions = new List<WorldPosition>();
 
-    [XmlAttribute("U")]
+    [ProtoMember(1)]
     public bool Used = false;
 
-    [XmlAttribute("C")]
+    [ProtoMember(2)]
     public bool Consolidated = false;
 
-    [XmlAttribute("CD")]
+    [ProtoMember(3)]
     public long CreationDate;
 
-    [XmlAttribute("SLo")]
+    [ProtoMember(4)]
     public int StartLongitude;
 
-    [XmlAttribute("SLa")]
+    [ProtoMember(5)]
     public int StartLatitude;
 
-    [XmlIgnore]
     public float Length = 0;
 
-    [XmlIgnore]
     public int MigrationDirectionInt = -1;
 
-    [XmlIgnore]
     public World World;
 
-    [XmlIgnore]
     public TerrainCell FirstCell;
 
-    [XmlIgnore]
     public TerrainCell LastCell;
 
-    [XmlIgnore]
     public List<TerrainCell> Cells = new List<TerrainCell>();
 
 //#if DEBUG
-//    [XmlIgnore]
 //    public List<string> DebugLogs = new List<string>();
 //#endif
 
-    public Direction MigrationDirection
-    {
-        get { return (Direction)MigrationDirectionInt; }
-    }
+    public Direction MigrationDirection => (Direction)MigrationDirectionInt;
 
     private const float CoastPreferenceIncrement = 400;
 
@@ -122,7 +110,6 @@ public class Route : ISynchronizable
         LastCell = FirstCell;
 
         TerrainCell nextCell = FirstCell;
-        Direction nextDirection;
 
         int rngOffset = 0;
 
@@ -132,7 +119,7 @@ public class Route : ISynchronizable
             //            TerrainCell prevCell = nextCell;
             //#endif
 
-            nextCell = ChooseNextSeaCell(nextCell, rngOffset++, out nextDirection);
+            nextCell = ChooseNextSeaCell(nextCell, rngOffset++, out var nextDirection);
 
             //#if DEBUG
             //            if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
@@ -164,7 +151,7 @@ public class Route : ISynchronizable
 
             if (nextCell == null)
             {
-                LastCell = nextCell;
+                LastCell = null;
                 break;
             }
 

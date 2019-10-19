@@ -1,14 +1,13 @@
-﻿using UnityEngine;
-using System.Collections;
-using System.Xml;
-using System.Xml.Serialization;
+﻿using ProtoBuf;
 
+[ProtoContract]
+[ProtoInclude(100, typeof(CellGroup))]
+[ProtoInclude(200, typeof(MigratingGroup))]
 public abstract class HumanGroup : ISynchronizable {
 
-	[XmlAttribute("MT")]
-	public bool MigrationTagged;
+    [ProtoMember(1)]
+    public bool MigrationTagged;
 
-	[XmlIgnore]
 	public World World;
 
 	public HumanGroup () {

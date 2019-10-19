@@ -1,8 +1,5 @@
-using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
-using System.Xml;
-using System.Xml.Serialization;
+using System.Linq;
 
 public class Discovery : ICellGroupEventGenerator
 {
@@ -38,18 +35,20 @@ public class Discovery : ICellGroupEventGenerator
                 world.AddEventMessage(eventMessage);
             }
 
-            if (cell.EncompassingTerritory != null)
+            if (cell.EncompassingTerritory == null)
+                return;
+
+            Polity encompassingPolity = cell.EncompassingTerritory.Polity;
+
+            if (encompassingPolity.HasEventMessage(_discovery.UId))
+                return;
+
+            if (eventMessage == null)
             {
-                Polity encompassingPolity = cell.EncompassingTerritory.Polity;
-
-                if (!encompassingPolity.HasEventMessage(_discovery.UId))
-                {
-                    if (eventMessage == null)
-                        eventMessage = new DiscoveryEventMessage(_discovery, cell, _discovery.UId, TriggerDate);
-
-                    encompassingPolity.AddEventMessage(eventMessage);
-                }
+                eventMessage = new DiscoveryEventMessage(_discovery, cell, _discovery.UId, TriggerDate);
             }
+
+            encompassingPolity.AddEventMessage(eventMessage);
         }
 
         public override void Trigger()
@@ -63,10 +62,7 @@ public class Discovery : ICellGroupEventGenerator
 
         public override bool CanTrigger()
         {
-            if (!base.CanTrigger())
-                return false;
-
-            return _discovery.CanBeGained(Group);
+            return base.CanTrigger() && _discovery.CanBeGained(Group);
         }
 
         public override void FinalizeLoad()
@@ -129,14 +125,7 @@ public class Discovery : ICellGroupEventGenerator
 
     public static Discovery GetDiscovery(string id)
     {
-        Discovery d;
-
-        if (!Discoveries.TryGetValue(id, out d))
-        {
-            return null;
-        }
-
-        return d;
+        return Discoveries.TryGetValue(id, out var d) ? d : null;
     }
 
     public void Initialize()
@@ -206,24 +195,12 @@ public class Discovery : ICellGroupEventGenerator
 
     public bool CanBeHeld(CellGroup group)
     {
-        if (HoldConditions == null)
-            return true;
-
-        foreach (Condition condition in HoldConditions)
-        {
-            if (!condition.Evaluate(group))
-                return false;
-        }
-
-        return true;
+        return HoldConditions == null || HoldConditions.All(condition => condition.Evaluate(group));
     }
 
     public bool CanAssignEventTypeToGroup(CellGroup group)
     {
-        if (group.IsFlagSet(EventSetFlag))
-            return false;
-
-        return CanBeGained(group);
+        return !group.IsFlagSet(EventSetFlag) && CanBeGained(group);
     }
 
     private long CalculateTriggerDate(CellGroup group)
@@ -280,18 +257,18 @@ public class Discovery : ICellGroupEventGenerator
 
     public void OnLoss(CellGroup group)
     {
-        if (LossEffects != null)
-        {
-            foreach (Effect effect in LossEffects)
-            {
-                if (effect.IsDeferred())
-                {
-                    effect.Defer(group);
-                    continue;
-                }
+        if (LossEffects == null)
+            return;
 
-                effect.Apply(group);
+        foreach (Effect effect in LossEffects)
+        {
+            if (effect.IsDeferred())
+            {
+                effect.Defer(group);
+                continue;
             }
+
+            effect.Apply(group);
         }
     }
 

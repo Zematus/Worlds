@@ -1,92 +1,83 @@
 ﻿using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
-using System.Xml;
-using System.Xml.Serialization;
 using UnityEngine.Profiling;
+using ProtoBuf;
 
-[XmlInclude(typeof(Clan))]
+[ProtoContract]
+[ProtoInclude(100, typeof(Clan))]
 public abstract class Faction : ISynchronizable
 {
-    [XmlAttribute("PolId")]
+    [ProtoMember(1)]
     public long PolityId;
 
-    [XmlAttribute("CGrpId")]
+    [ProtoMember(2)]
     public long CoreGroupId;
 
-    [XmlAttribute("Prom")]
+    [ProtoMember(3)]
     public float Influence;
 
-    [XmlAttribute("StilPres")]
+    [ProtoMember(4)]
     public bool StillPresent = true;
 
-    [XmlAttribute("IsDom")]
+    [ProtoMember(5)]
     public bool IsDominant = false;
 
-    [XmlAttribute("LastUpDate")]
+    [ProtoMember(6)]
     public long LastUpdateDate;
 
-    [XmlAttribute("LeadStDate")]
+    [ProtoMember(7)]
     public long LeaderStartDate;
 
-    [XmlAttribute("IsCon")]
+    [ProtoMember(8)]
     public bool IsUnderPlayerGuidance = false;
 
-    [XmlIgnore]
     public bool IsBeingUpdated = false;
 
+    [ProtoMember(9)]
     public FactionCulture Culture;
 
-    public List<FactionRelationship> Relationships = new List<FactionRelationship>();
+    [ProtoMember(10, OverwriteList = true)]
+    private List<FactionRelationship> _Relationships;
+    public List<FactionRelationship> Relationships
+    {
+        get => _Relationships ?? (_Relationships = new List<FactionRelationship>());
+        set => _Relationships = value;
+    }
 
-    public List<FactionEventData> EventDataList = new List<FactionEventData>();
+    [ProtoMember(11, OverwriteList = true)]
+    private List<FactionEventData> _EventDataList;
+    public List<FactionEventData> EventDataList
+    {
+        get => _EventDataList ?? (_EventDataList = new List<FactionEventData>());
+        set => _EventDataList = value;
+    }
 
     // Do not call this property directly, only for serialization
+    [ProtoMember(12)]
     public Agent LastLeader = null;
 
     //public List<string> Flags;
 
-    [XmlIgnore]
     public FactionInfo Info;
 
-    [XmlIgnore]
     public World World;
 
-    [XmlIgnore]
     public Polity Polity;
 
-    [XmlIgnore]
     public CellGroup CoreGroup;
 
-    [XmlIgnore]
     public CellGroup NewCoreGroup = null;
 
-    [XmlIgnore]
     public bool IsInitialized = true;
 
     // Use this instead to get the leader
-    public Agent CurrentLeader
-    {
-        get
-        {
-            return RequestCurrentLeader();
-        }
-    }
+    public Agent CurrentLeader => RequestCurrentLeader();
 
-    public string Type
-    {
-        get { return Info.Type; }
-    }
+    public string Type => Info.Type;
 
-    public long Id
-    {
-        get { return Info.Id; }
-    }
+    public long Id => Info.Id;
 
-    public Name Name
-    {
-        get { return Info.Name; }
-    }
+    public Name Name => Info.Name;
 
     protected long _splitFactionEventId;
     protected CellGroup _splitFactionCoreGroup;
@@ -252,7 +243,7 @@ public abstract class Faction : ISynchronizable
         // Set a default neutral relationship
         if (!_relationships.ContainsKey(faction.Id))
         {
-            Faction.SetRelationship(this, faction, 0.5f);
+            SetRelationship(this, faction, 0.5f);
         }
 
         return _relationships[faction.Id].Value;
@@ -512,10 +503,7 @@ public abstract class Faction : ISynchronizable
 
     public FactionEvent GetEvent(long typeId)
     {
-        if (!_events.ContainsKey(typeId))
-            return null;
-
-        return _events[typeId];
+        return _events.ContainsKey(typeId) ? _events[typeId] : null;
     }
 
     public void ResetEvent(long typeId, long newTriggerDate)

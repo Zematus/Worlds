@@ -1,19 +1,14 @@
-﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using System.Xml;
-using System.Xml.Serialization;
-using UnityEngine.Profiling;
+﻿using ProtoBuf;
 
+[ProtoContract]
 public class PolityContact :IKeyedValue<long>
 {
-	[XmlAttribute("Id")]
+	[ProtoMember(1)]
 	public long Id;
 
-	[XmlAttribute("GCount")]
+	[ProtoMember(2)]
 	public int GroupCount;
 
-	[XmlIgnore]
 	public Polity Polity;
 
 	public PolityContact () {

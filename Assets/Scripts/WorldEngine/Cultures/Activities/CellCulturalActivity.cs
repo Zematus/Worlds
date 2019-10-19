@@ -1,9 +1,7 @@
+using ProtoBuf;
 using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using System.Xml;
-using System.Xml.Serialization;
 
+[ProtoContract]
 public class CellCulturalActivity : CulturalActivity
 {
     public const float TimeEffectConstant = CellGroup.GenerationSpan * 500;
@@ -20,7 +18,6 @@ public class CellCulturalActivity : CulturalActivity
     public const int FarmingActivityRngOffset = 100;
     public const int FishingActivityRngOffset = 200;
 
-    [XmlIgnore]
     public CellGroup Group;
 
     private const float MaxChangeDelta = 0.2f;
@@ -74,7 +71,7 @@ public class CellCulturalActivity : CulturalActivity
     // This method should be called only once after a Activity is copied from another source group
     public void DecreaseValue(float percentage)
     {
-        _newValue = _newValue * percentage;
+        _newValue *= percentage;
     }
 
     public void Update(long timeSpan)
@@ -117,7 +114,7 @@ public class CellCulturalActivity : CulturalActivity
         // _newvalue should have been set correctly either by the constructor or by the Update function
         float change = (targetValue - _newValue) * prominenceEffect * timeEffect * randomEffect;
 
-        _newValue = _newValue + change;
+        _newValue += change;
     }
 
     public void PostUpdate()

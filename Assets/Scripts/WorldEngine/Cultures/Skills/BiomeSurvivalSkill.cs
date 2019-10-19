@@ -1,9 +1,6 @@
-using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using System.Xml;
-using System.Xml.Serialization;
+using ProtoBuf;
 
+[ProtoContract]
 public class BiomeSurvivalSkill : CellCulturalSkill
 {
     public const float TimeEffectConstant = CellGroup.GenerationSpan * 1500;
@@ -11,7 +8,6 @@ public class BiomeSurvivalSkill : CellCulturalSkill
     public const string SkillIdSuffix = "_survival";
     public const int BiomeSurvivalSkillRngOffsetBase = 1000;
 
-    [XmlIgnore]
     public string BiomeId;
 
     private float _neighborhoodBiomePresence;

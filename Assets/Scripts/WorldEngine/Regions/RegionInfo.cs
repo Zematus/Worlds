@@ -1,45 +1,40 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
-using System.Xml.Serialization;
 using System.Linq;
+using ProtoBuf;
 
+[ProtoContract]
 public class RegionInfo : ISynchronizable, IKeyedValue<long>
 {
-    [XmlAttribute]
+    [ProtoMember(1)]
     public long Id;
 
-    [XmlAttribute("LId")]
+    [ProtoMember(2)]
     public long LanguageId;
 
-    [XmlAttribute("ED")]
+    [ProtoMember(3)]
     public long EstablishmentDate;
 
+    [ProtoMember(4)]
     public Region Region;
 
+    [ProtoMember(5)]
     public WorldPosition OriginCellPosition;
 
 #if DEBUG
-    [XmlIgnore]
     public List<string> ElementIds = new List<string>();
-    [XmlIgnore]
     public List<string> AttributeNames = new List<string>();
 #endif
 
-    [XmlIgnore]
     public Dictionary<string, RegionAttribute.Instance> Attributes = new Dictionary<string, RegionAttribute.Instance>();
-    [XmlIgnore]
     public List<RegionAttribute.Instance> AttributeList = new List<RegionAttribute.Instance>();
 
-    [XmlIgnore]
     public List<Element.Instance> Elements = new List<Element.Instance>();
 
-    [XmlIgnore]
     public World World;
 
-    [XmlIgnore]
     public Language Language;
 
-    [XmlIgnore]
     public TerrainCell OriginCell;
     
     public Name Name

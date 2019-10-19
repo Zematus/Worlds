@@ -5,6 +5,7 @@
 [Ss]aves/
 [Hh]eightmaps/
 [Ii]mages/
+[Pp]ackages/
 *_Data/
 .vs/
 
@@ -21,6 +22,7 @@
 /*.dll
 /*.settings
 /*.log
+/*.config
 **/*.suo
 
 #Unity3D Generated File On Crash Reports

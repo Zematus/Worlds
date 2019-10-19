@@ -1,14 +1,10 @@
-using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using System.Xml;
-using System.Xml.Serialization;
+using ProtoBuf;
 
-[XmlInclude(typeof(BiomeSurvivalSkill))]
-[XmlInclude(typeof(SeafaringSkill))]
+[ProtoContract]
+[ProtoInclude(100, typeof(CellCulturalSkill))]
 public class CulturalSkill : CulturalSkillInfo
 {
-    [XmlAttribute("V")]
+    [ProtoMember(1)]
     public float Value;
 
     public CulturalSkill()

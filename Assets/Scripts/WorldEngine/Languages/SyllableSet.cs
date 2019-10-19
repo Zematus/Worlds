@@ -1,10 +1,7 @@
 ﻿using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
 using System.Linq;
-using System.Xml.Serialization;
-using System.ComponentModel;
+using ProtoBuf;
 
 public class Letter : CollectionUtility.ElementWeightPair<string>
 {
@@ -13,12 +10,13 @@ public class Letter : CollectionUtility.ElementWeightPair<string>
     }
 }
 
+[ProtoContract]
 public class SyllableSet
 {
     public const int MaxNumberOfSyllables = 500;
 
     // based on frequency of consonants across languages. source: http://phoible.org/
-    private static readonly Letter[] OnsetLetters = new Letter[] {
+    private static readonly Letter[] OnsetLetters = {
         new Letter ("m", 0.95f),
         new Letter ("k", 0.94f),
         new Letter ("j", 0.88f),
@@ -71,7 +69,7 @@ public class SyllableSet
     };
 
     // based on frequency of vowels across languages. source: http://phoible.org/
-    private static readonly Letter[] NucleusLetters = new Letter[] {
+    private static readonly Letter[] NucleusLetters = {
         new Letter ("i", 0.93f),
         new Letter ("a", 0.91f),
         new Letter ("u", 0.87f),
@@ -97,7 +95,7 @@ public class SyllableSet
     };
 
     // based on frequency of consonants across languages. source: http://phoible.org/
-    private static readonly Letter[] CodaLetters = new Letter[] {
+    private static readonly Letter[] CodaLetters = {
         new Letter ("m", 0.95f),
         new Letter ("k", 0.94f),
         new Letter ("j", 0.88f),
@@ -149,13 +147,13 @@ public class SyllableSet
         new Letter ("qn", 0.00046f)
     };
 
-    [XmlAttribute("OSALC")]
+    [ProtoMember(1)]
     public float OnsetChance;
 
-    [XmlAttribute("NSALC")]
+    [ProtoMember(2)]
     public float NucleusChance;
 
-    [XmlAttribute("CSALC")]
+    [ProtoMember(3)]
     public float CodaChance;
 
     private Dictionary<int, string> _syllables = new Dictionary<int, string>();
@@ -174,26 +172,17 @@ public class SyllableSet
         {
             return _syllables[randOption];
         }
-        else
-        {
-            string syllable = GenerateSyllable(OnsetLetters, OnsetChance, NucleusLetters, NucleusChance, CodaLetters, CodaChance, getRandomFloat);
 
-            _syllables.Add(randOption, syllable);
+        string syllable = GenerateSyllable(OnsetLetters, OnsetChance, NucleusLetters, NucleusChance, CodaLetters, CodaChance, getRandomFloat);
 
-            return syllable;
-        }
+        _syllables.Add(randOption, syllable);
+
+        return syllable;
     }
 
     private static float GetLettersTotalWeight(Letter[] letters)
     {
-        float totalWeight = 0;
-
-        foreach (Letter letter in letters)
-        {
-            totalWeight += letter.Weight;
-        }
-
-        return totalWeight;
+        return letters.Sum(letter => letter.Weight);
     }
 
     private static string GenerateSyllable(

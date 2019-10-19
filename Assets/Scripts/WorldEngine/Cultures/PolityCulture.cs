@@ -1,13 +1,8 @@
-using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
-using System.Xml;
-using System.Xml.Serialization;
 using UnityEngine.Profiling;
 
 public class PolityCulture : Culture
 {
-    [XmlIgnore]
     public Polity Polity;
 
     public PolityCulture()
@@ -104,9 +99,7 @@ public class PolityCulture : Culture
 
         foreach (CulturalKnowledge k in knowledges)
         {
-            var knowledge = k as PolityCulturalKnowledge;
-
-            if (knowledge == null)
+            if (!(k is PolityCulturalKnowledge knowledge))
             {
                 throw new System.Exception("FinalizeUpdateFromFactions: CulturalKnowledge is not a PolityCulturalKnowledge. Polity Id: " + Polity.Id + ", knowledge Id: " + k.Id);
             }

@@ -1,14 +1,8 @@
-using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using System.Xml;
-using System.Xml.Serialization;
-using UnityEngine.Profiling;
+using ProtoBuf;
 
-[XmlInclude(typeof(ShipbuildingKnowledge))]
-[XmlInclude(typeof(AgricultureKnowledge))]
-[XmlInclude(typeof(SocialOrganizationKnowledge))]
-[XmlInclude(typeof(PolityCulturalKnowledge))]
+[ProtoContract]
+[ProtoInclude(100, typeof(CellCulturalKnowledge))]
+[ProtoInclude(200, typeof(PolityCulturalKnowledge))]
 public class CulturalKnowledge : CulturalKnowledgeInfo
 {
     public const int ScaledMaxLimitValue = 10000;
@@ -17,10 +11,10 @@ public class CulturalKnowledge : CulturalKnowledgeInfo
     public const int MinLimitValue = ScaledMinLimitValue * MathUtility.FloatToIntScalingFactor;
     public const int MaxLimitValue = ScaledMaxLimitValue * MathUtility.FloatToIntScalingFactor;
 
-    [XmlAttribute("V")]
+    [ProtoMember(1)]
     public int Value;
 
-    [XmlAttribute("PL")]
+    [ProtoMember(2)]
     public float ProgressLevel;
 
     public CulturalKnowledge()
@@ -37,10 +31,7 @@ public class CulturalKnowledge : CulturalKnowledgeInfo
         Value = baseKnowledge.Value;
     }
 
-    public float ScaledValue
-    {
-        get { return Value * MathUtility.IntToFloatScalingFactor; }
-    }
+    public float ScaledValue => Value * MathUtility.IntToFloatScalingFactor;
 
     public int GetHighestLimit()
     {

@@ -1,29 +1,57 @@
-using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
-using System.Xml;
-using System.Xml.Serialization;
-using UnityEngine.Profiling;
+using ProtoBuf;
 
+[ProtoContract]
+[ProtoInclude(100, typeof(PolityCulture))]
+[ProtoInclude(200, typeof(CellCulture))]
+[ProtoInclude(300, typeof(FactionCulture))]
+[ProtoInclude(400, typeof(BufferCulture))]
 public class Culture : ISynchronizable
 {
-    [XmlAttribute("LId")]
+    [ProtoMember(1)]
     public long LanguageId = -1;
-    
-    public List<CulturalPreference> Preferences = null;
-    public List<CulturalActivity> Activities = null;
-    public List<CulturalSkill> Skills = null;
-    public List<CulturalKnowledge> Knowledges = null;
 
-    public List<string> DiscoveryIds;
+    [ProtoMember(2, OverwriteList = true)]
+    private List<CulturalPreference> _Preferences;
+    public List<CulturalPreference> Preferences
+    {
+        get => _Preferences ?? (_Preferences = new List<CulturalPreference>());
+        set => _Preferences = value;
+    }
+    [ProtoMember(3, OverwriteList = true)]
+    private List<CulturalActivity> _Activities;
+    public List<CulturalActivity> Activities
+    {
+        get => _Activities ?? (_Activities = new List<CulturalActivity>());
+        set => _Activities = value;
+    }
+    [ProtoMember(4, OverwriteList = true)]
+    private List<CulturalSkill> _Skills;
+    public List<CulturalSkill> Skills
+    {
+        get => _Skills ?? (_Skills = new List<CulturalSkill>());
+        set => _Skills = value;
+    }
+    [ProtoMember(5, OverwriteList = true)]
+    private List<CulturalKnowledge> _Knowledges;
+    public List<CulturalKnowledge> Knowledges
+    {
+        get => _Knowledges ?? (_Knowledges = new List<CulturalKnowledge>());
+        set => _Knowledges = value;
+    }
 
-    [XmlIgnore]
+    [ProtoMember(6, OverwriteList = true)]
+    private List<string> _DiscoveryIds;
+    public List<string> DiscoveryIds
+    {
+        get => _DiscoveryIds ?? (_DiscoveryIds = new List<string>());
+        set => _DiscoveryIds = value;
+    }
+
     public World World;
 
-    [XmlIgnore]
     public Language Language { get; protected set; }
 
-    [XmlIgnore]
     public Dictionary<string, Discovery> Discoveries = new Dictionary<string, Discovery>();
 
     protected Dictionary<string, CulturalPreference> _preferences = new Dictionary<string, CulturalPreference>();
@@ -214,10 +242,7 @@ public class Culture : ISynchronizable
 
     public CulturalPreference GetPreference(string id)
     {
-        if (!_preferences.TryGetValue(id, out CulturalPreference preference))
-            return null;
-
-        return preference;
+        return _preferences.TryGetValue(id, out CulturalPreference preference) ? preference : null;
     }
 
     public ICollection<CulturalActivity> GetActivities()
@@ -227,10 +252,7 @@ public class Culture : ISynchronizable
 
     public CulturalActivity GetActivity(string id)
     {
-        if (!_activities.TryGetValue(id, out CulturalActivity activity))
-            return null;
-
-        return activity;
+        return _activities.TryGetValue(id, out CulturalActivity activity) ? activity : null;
     }
 
     public bool HasActivity(string id)
@@ -245,10 +267,7 @@ public class Culture : ISynchronizable
 
     public CulturalSkill GetSkill(string id)
     {
-        if (!_skills.TryGetValue(id, out CulturalSkill skill))
-            return null;
-
-        return skill;
+        return _skills.TryGetValue(id, out CulturalSkill skill) ? skill : null;
     }
 
     public bool TryGetSkillValue(string id, out float value)
@@ -257,14 +276,12 @@ public class Culture : ISynchronizable
 
         CulturalSkill skill = GetSkill(id);
 
-        if (skill != null)
-        {
-            value = skill.Value;
+        if (skill == null)
+            return false;
 
-            return true;
-        }
+        value = skill.Value;
 
-        return false;
+        return true;
     }
 
     public ICollection<CulturalKnowledge> GetKnowledges()
@@ -274,10 +291,7 @@ public class Culture : ISynchronizable
 
     public CulturalKnowledge GetKnowledge(string id)
     {
-        if (!_knowledges.TryGetValue(id, out CulturalKnowledge knowledge))
-            return null;
-
-        return knowledge;
+        return _knowledges.TryGetValue(id, out CulturalKnowledge knowledge) ? knowledge : null;
     }
 
     public bool TryGetKnowledgeValue(string id, out int value)
@@ -285,15 +299,13 @@ public class Culture : ISynchronizable
         value = 0;
 
         CulturalKnowledge knowledge = GetKnowledge(id);
-        
-        if (knowledge != null)
-        {
-            value = knowledge.Value;
 
-            return true;
-        }
+        if (knowledge == null)
+            return false;
 
-        return false;
+        value = knowledge.Value;
+
+        return true;
     }
 
     public bool TryGetKnowledgeScaledValue(string id, out float scaledValue)
@@ -301,43 +313,28 @@ public class Culture : ISynchronizable
         scaledValue = 0;
 
         CulturalKnowledge knowledge = GetKnowledge(id);
-        
-        if (knowledge != null)
-        {
-            scaledValue = knowledge.ScaledValue;
 
-            return true;
-        }
+        if (knowledge == null)
+            return false;
 
-        return false;
+        scaledValue = knowledge.ScaledValue;
+
+        return true;
     }
 
     public bool HasKnowledge(string id)
     {
-        CulturalKnowledge knowledge = GetKnowledge(id);
-        
-        if (knowledge != null)
-            return true;
-
-        return false;
+        return GetKnowledge(id) != null;
     }
 
     public Discovery GetDiscovery(string id)
     {
-        if (!Discoveries.TryGetValue(id, out Discovery discovery))
-            return null;
-
-        return discovery;
+        return Discoveries.TryGetValue(id, out Discovery discovery) ? discovery : null;
     }
 
     public bool HasDiscovery(string id)
     {
-        Discovery discovery = GetDiscovery(id);
-        
-        if (discovery != null)
-            return true;
-
-        return false;
+        return GetDiscovery(id) != null;
     }
 
     public void ResetAttributes()

@@ -1,11 +1,9 @@
 ﻿using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
-using System.Xml;
-using System.Xml.Serialization;
-using System.Linq;
 using UnityEngine.Profiling;
+using ProtoBuf;
 
+[ProtoContract]
 public class CellGroup : HumanGroup
 {
     public const long GenerationSpan = 25 * World.YearLength;
@@ -37,184 +35,169 @@ public class CellGroup : HumanGroup
     public static float TravelWidthFactor;
 
     public static List<ICellGroupEventGenerator> OnSpawnEventGenerators;
-    
-    [XmlAttribute]
+
+    [ProtoMember(1)]
     public long Id;
-    
-    [XmlAttribute("PMD")]
+
+    [ProtoMember(2)]
     public int PreferredMigrationDirectionInt;
-    
-    [XmlAttribute("PEP")]
+
+    [ProtoMember(3)]
     public float PreviousExactPopulation;
-    
-    [XmlAttribute("EP")]
+
+    [ProtoMember(4)]
     public float ExactPopulation; // TODO: Get rid of 'float' population values
-    
-    [XmlAttribute("P")]
+
+    [ProtoMember(5)]
     public bool StillPresent = true;
-    
-    [XmlAttribute("ID")]
+
+    [ProtoMember(6)]
     public long InitDate;
-    
-    [XmlAttribute("LUD")]
+
+    [ProtoMember(7)]
     public long LastUpdateDate;
-    [XmlAttribute("NUD")]
+    [ProtoMember(8)]
     public long NextUpdateDate;
-    [XmlAttribute("UESD")]
+    [ProtoMember(9)]
     public long UpdateEventSpawnDate;
-    
-    [XmlAttribute("OP")]
+
+    [ProtoMember(10)]
     public int OptimalPopulation;
-    
-    [XmlAttribute("Lo")]
+
+    [ProtoMember(11)]
     public int Longitude;
-    [XmlAttribute("La")]
+    [ProtoMember(12)]
     public int Latitude;
-    
-    [XmlAttribute("STF")]
+
+    [ProtoMember(13)]
     public float SeaTravelFactor = 0;
-    
-    [XmlAttribute("TPP")]
+
+    [ProtoMember(14)]
     public float TotalPolityProminenceValueFloat = 0;
-    
-    [XmlAttribute("MV")]
+
+    [ProtoMember(15)]
     public float MigrationValue;
-    
-    [XmlAttribute("TMV")]
+
+    [ProtoMember(16)]
     public float TotalMigrationValue;
-    
-    [XmlAttribute("PE")]
+
+    [ProtoMember(17)]
     public float PolityExpansionValue;
-    
-    [XmlAttribute("TPE")]
+
+    [ProtoMember(18)]
     public float TotalPolityExpansionValue;
-    
-    [XmlAttribute("MEv")]
+
+    [ProtoMember(19)]
     public bool HasMigrationEvent = false;
-    [XmlAttribute("MD")]
+    [ProtoMember(20)]
     public long MigrationEventDate;
-    [XmlAttribute("MSD")]
+    [ProtoMember(21)]
     public long MigrationEventSpawnDate;
-    [XmlAttribute("MLo")]
+    [ProtoMember(22)]
     public int MigrationTargetLongitude;
-    [XmlAttribute("MLa")]
+    [ProtoMember(23)]
     public int MigrationTargetLatitude;
-    [XmlAttribute("MED")]
+    [ProtoMember(24)]
     public int MigrationEventDirectionInt;
-    
-    [XmlAttribute("PEEv")]
+
+    [ProtoMember(25)]
     public bool HasPolityExpansionEvent = false;
-    [XmlAttribute("PED")]
+    [ProtoMember(26)]
     public long PolityExpansionEventDate;
-    [XmlAttribute("EGId")]
+    [ProtoMember(27)]
     public long ExpansionTargetGroupId;
-    [XmlAttribute("EPId")]
+    [ProtoMember(28)]
     public long ExpandingPolityId;
-    
-    [XmlAttribute("TFEv")]
+
+    [ProtoMember(29)]
     public bool HasTribeFormationEvent = false;
-    [XmlAttribute("TFD")]
+    [ProtoMember(30)]
     public long TribeFormationEventDate;
-    
-    [XmlAttribute("ArM")]
+
+    [ProtoMember(31)]
     public int ArabilityModifier = 0;
-    [XmlAttribute("AcM")]
+    [ProtoMember(32)]
     public int AccessibilityModifier = 0;
-    [XmlAttribute("NvM")]
+    [ProtoMember(33)]
     public int NavigationRangeModifier = 0;
-    
+
+    [ProtoMember(34)]
     public Route SeaMigrationRoute = null;
-    
-    public List<string> Flags;
-    
+
+    [ProtoMember(35, OverwriteList = true)]
+    private List<string> _Flags;
+    public List<string> Flags
+    {
+        get => _Flags ?? (_Flags = new List<string>());
+        set => _Flags = value;
+    }
+
+    [ProtoMember(36)]
     public CellCulture Culture;
-    
-    public List<string> Properties;
-    
-    public List<long> FactionCoreIds;
 
-    public List<PolityProminence> PolityProminences = null;
-    
-    [XmlIgnore]
-    public WorldPosition Position
+    [ProtoMember(37, OverwriteList = true)]
+    private List<string> _Properties;
+    public List<string> Properties
     {
-        get
-        {
-            return Cell.Position;
-        }
+        get => _Properties ?? (_Properties = new List<string>());
+        set => _Properties = value;
     }
 
-    [XmlIgnore]
-    public float ScaledArabilityModifier
+    [ProtoMember(38, OverwriteList = true)]
+    private List<long> _FactionCoreIds;
+    public List<long> FactionCoreIds
     {
-        get
-        {
-            return Mathf.Clamp01(ArabilityModifier * MathUtility.IntToFloatScalingFactor);
-        }
+        get => _FactionCoreIds ?? (_FactionCoreIds = new List<long>());
+        set => _FactionCoreIds = value;
     }
 
-    [XmlIgnore]
-    public float ScaledAccessibilityModifier
+    [ProtoMember(39, OverwriteList = true)]
+    private List<PolityProminence> _PolityProminences;
+    public List<PolityProminence> PolityProminences
     {
-        get
-        {
-            return Mathf.Clamp01(AccessibilityModifier * MathUtility.IntToFloatScalingFactor);
-        }
+        get => _PolityProminences ?? (_PolityProminences = new List<PolityProminence>());
+        set => _PolityProminences = value;
     }
 
-    [XmlIgnore]
+    public WorldPosition Position => Cell.Position;
+
+    public float ScaledArabilityModifier => Mathf.Clamp01(ArabilityModifier * MathUtility.IntToFloatScalingFactor);
+
+    public float ScaledAccessibilityModifier => Mathf.Clamp01(AccessibilityModifier * MathUtility.IntToFloatScalingFactor);
+
     public float TotalPolityProminenceValue
     {
-        get
-        {
-            return TotalPolityProminenceValueFloat;
-        }
-        set
-        {
-            TotalPolityProminenceValueFloat = MathUtility.RoundToSixDecimals(Mathf.Clamp01(value));
-        }
+        get => TotalPolityProminenceValueFloat;
+        set => TotalPolityProminenceValueFloat = MathUtility.RoundToSixDecimals(Mathf.Clamp01(value));
     }
 
-    [XmlIgnore]
     public Direction PreferredMigrationDirection;
 
-    [XmlIgnore]
     public Dictionary<long, Faction> FactionCores = new Dictionary<long, Faction>();
 
-    [XmlIgnore]
     public UpdateCellGroupEvent UpdateEvent;
 
-    [XmlIgnore]
     public MigrateGroupEvent MigrationEvent;
 
-    [XmlIgnore]
     public ExpandPolityProminenceEvent PolityExpansionEvent;
 
-    [XmlIgnore]
     public TribeFormationEvent TribeFormationEvent;
 
-    [XmlIgnore]
     public TerrainCell Cell;
 
-    [XmlIgnore]
     public MigratingGroup MigratingGroup = null;
 
-    [XmlIgnore]
     public bool WillBecomeFactionCore = false;
 
 #if DEBUG
-    [XmlIgnore]
     public bool DebugTagged = false;
 #endif
 
-    [XmlIgnore]
     public Dictionary<string, BiomeSurvivalSkill> _biomeSurvivalSkills = new Dictionary<string, BiomeSurvivalSkill>(Biome.Biomes.Count);
 
-    [XmlIgnore]
     public Dictionary<Direction, CellGroup> Neighbors;
 
     //#if DEBUG
-    //    [XmlIgnore]
     //    public PolityProminence HighestPolityProminence
     //    {
     //        get
@@ -237,7 +220,6 @@ public class CellGroup : HumanGroup
 
     //    private PolityProminence _highestPolityProminence = null;
     //#else
-    [XmlIgnore]
     public PolityProminence HighestPolityProminence = null;
     //#endif
 
@@ -260,16 +242,8 @@ public class CellGroup : HumanGroup
     private HashSet<string> _propertiesToAquire = new HashSet<string>();
     private HashSet<string> _propertiesToLose = new HashSet<string>();
 
-    [XmlIgnore]
-    public int PreviousPopulation
-    {
-        get
-        {
-            return (int)Mathf.Floor(PreviousExactPopulation);
-        }
-    }
+    public int PreviousPopulation => (int)Mathf.Floor(PreviousExactPopulation);
 
-    [XmlIgnore]
     public int Population
     {
         get
@@ -404,7 +378,6 @@ public class CellGroup : HumanGroup
         World.AddUpdatedGroup(this);
     }
 
-    [XmlIgnore]
     public IEnumerable<CellGroup> NeighborGroups // This method ensures neighbors are always accessed in the same order
     {
         get

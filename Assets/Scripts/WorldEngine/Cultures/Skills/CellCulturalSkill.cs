@@ -1,15 +1,14 @@
 using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using System.Xml;
-using System.Xml.Serialization;
+using ProtoBuf;
 
+[ProtoContract]
+[ProtoInclude(100, typeof(BiomeSurvivalSkill))]
+[ProtoInclude(200, typeof(SeafaringSkill))]
 public abstract class CellCulturalSkill : CulturalSkill
 {
-    [XmlAttribute("AL")]
+    [ProtoMember(1)]
     public float AdaptationLevel;
 
-    [XmlIgnore]
     public CellGroup Group;
 
     private float _newValue;
@@ -229,7 +228,7 @@ public abstract class CellCulturalSkill : CulturalSkill
 //        }
 //#endif
 
-        _newValue = _newValue + change;
+        _newValue += change;
     }
 
     protected void RecalculateAdaptation(float targetValue)

@@ -1,9 +1,5 @@
-﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Xml;
-using System.Xml.Serialization;
+﻿using System.Collections.Generic;
+using ProtoBuf;
 
 // Agent Attributes
 // -- Charisma
@@ -12,6 +8,7 @@ using System.Xml.Serialization;
 // -- Strength
 using UnityEngine.Profiling;
 
+[ProtoContract]
 public class Agent : ISynchronizable
 {
     public const int MaxAttributeValue = 30;
@@ -24,45 +21,41 @@ public class Agent : ISynchronizable
     public const int WisdomAgeOffset = 7;
     public const int WisdomAgeFactor = 5 * World.YearLength;
 
-    [XmlAttribute]
+    [ProtoMember(1)]
     public long Id;
 
-    [XmlAttribute("Birth")]
+    [ProtoMember(2)]
     public long BirthDate;
 
-    [XmlAttribute("Fem")]
+    [ProtoMember(3)]
     public bool IsFemale;
 
-    [XmlAttribute("Cha")]
+    [ProtoMember(4)]
     public int BaseCharisma;
 
-    [XmlAttribute("Wis")]
+    [ProtoMember(5)]
     public int BaseWisdom;
 
-    [XmlAttribute("StilPres")]
+    [ProtoMember(6)]
     public bool StillPresent = true;
 
-    [XmlAttribute("LanId")]
+    [ProtoMember(7)]
     public long LanguageId;
 
-    [XmlAttribute("RenId")]
+    [ProtoMember(8)]
     public long BirthRegionInfoId;
 
+    [ProtoMember(9)]
     public WorldPosition BirthCellPosition;
 
-    [XmlIgnore]
     public World World;
 
-    [XmlIgnore]
     public Language Language;
 
-    [XmlIgnore]
     public RegionInfo BirthRegionInfo;
 
-    [XmlIgnore]
     public TerrainCell BirthCell;
 
-    [XmlIgnore]
     public Name Name
     {
         get
@@ -80,25 +73,10 @@ public class Agent : ISynchronizable
         }
     }
 
-    [XmlIgnore]
-    public long Age
-    {
-        get
-        {
-            return World.CurrentDate - BirthDate;
-        }
-    }
+    public long Age => World.CurrentDate - BirthDate;
 
-    [XmlIgnore]
-    public int Charisma
-    {
-        get
-        {
-            return BaseCharisma;
-        }
-    }
+    public int Charisma => BaseCharisma;
 
-    [XmlIgnore]
     public int Wisdom
     {
         get

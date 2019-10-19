@@ -1,20 +1,21 @@
-﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using System.Xml;
-using System.Xml.Serialization;
+﻿using System.Collections.Generic;
+using ProtoBuf;
 
+[ProtoContract]
 public class Territory : ISynchronizable
 {
-    public List<WorldPosition> CellPositions;
+    [ProtoMember(1, OverwriteList = true)]
+    private List<WorldPosition> _CellPositions;
+    public List<WorldPosition> CellPositions
+    {
+        get => _CellPositions ?? (_CellPositions = new List<WorldPosition>());
+        set => _CellPositions = value;
+    }
 
-    [XmlIgnore]
     public bool IsSelected = false;
 
-    [XmlIgnore]
     public World World;
 
-    [XmlIgnore]
     public Polity Polity;
 
     private HashSet<TerrainCell> _cells = new HashSet<TerrainCell>();

@@ -1,14 +1,11 @@
+using ProtoBuf;
 using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using System.Xml;
-using System.Xml.Serialization;
 
+[ProtoContract]
 public class CellCulturalPreference : CulturalPreference
 {
     public const float TimeEffectConstant = CellGroup.GenerationSpan * 500;
 
-    [XmlIgnore]
     public CellGroup Group;
 
     private const float MaxChangeDelta = 0.2f;
@@ -60,7 +57,7 @@ public class CellCulturalPreference : CulturalPreference
     // This method should be called only once after a Cultural Value is copied from another source group
     public void DecreaseValue(float percentage)
     {
-        _newValue = _newValue * percentage;
+        _newValue *= percentage;
     }
 
     public void Update(long timeSpan)
@@ -84,7 +81,7 @@ public class CellCulturalPreference : CulturalPreference
             targetValue = Value - (minTargetValue - Value) * randomFactor;
         }
 
-        float timeEffect = timeSpan / (float)(timeSpan + TimeEffectConstant);
+        float timeEffect = timeSpan / (timeSpan + TimeEffectConstant);
 
         _newValue = (Value * (1 - timeEffect)) + (targetValue * timeEffect);
     }
@@ -98,12 +95,12 @@ public class CellCulturalPreference : CulturalPreference
 
         float randomEffect = groupCell.GetNextLocalRandomFloat(RngOffsets.PREFERENCE_POLITY_PROMINENCE + RngOffset + unchecked((int)polityProminence.PolityId));
 
-        float timeEffect = timeSpan / (float)(timeSpan + TimeEffectConstant);
+        float timeEffect = timeSpan / (timeSpan + TimeEffectConstant);
 
         // _newvalue should have been set correctly either by the constructor or by the Update function
         float change = (targetValue - _newValue) * prominenceEffect * timeEffect * randomEffect;
 
-        _newValue = _newValue + change;
+        _newValue += change;
     }
 
     public void PostUpdate()
