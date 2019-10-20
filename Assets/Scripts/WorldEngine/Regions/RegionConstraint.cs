@@ -55,90 +55,90 @@ public class RegionConstraint
             case "coast_percentage_above":
                 float coast_percentage_above;
                 if (!float.TryParse(valueStr, out coast_percentage_above))
-                    throw new System.ArgumentException("Invalid constraint coast_percentage_above value: " + coast_percentage_above);
+                    throw new System.ArgumentException("Invalid constraint 'coast_percentage_above' value: " + coast_percentage_above);
 
                 if (!coast_percentage_above.IsInsideRange(0, 1))
-                    throw new System.ArgumentException("coast_percentage_above must be a value between 0 and 1 (inclusive)");
+                    throw new System.ArgumentException("'coast_percentage_above' must be a value between 0 and 1 (inclusive)");
 
                 return new RegionConstraint() { Type = ConstraintType.CoastPercentageAbove, Value = coast_percentage_above };
 
             case "coast_percentage_below":
                 float coast_percentage_below;
                 if (!float.TryParse(valueStr, out coast_percentage_below))
-                    throw new System.ArgumentException("Invalid constraint coast_percentage_above value: " + coast_percentage_below);
+                    throw new System.ArgumentException("Invalid constraint 'coast_percentage_above' value: " + coast_percentage_below);
 
                 if (!coast_percentage_below.IsInsideRange(0, 1))
-                    throw new System.ArgumentException("coast_percentage_below must be a value between 0 and 1 (inclusive)");
+                    throw new System.ArgumentException("'coast_percentage_below' must be a value between 0 and 1 (inclusive)");
 
                 return new RegionConstraint() { Type = ConstraintType.CoastPercentageBelow, Value = coast_percentage_below };
 
             case "relative_altitude_above":
                 float relative_altitude_above;
                 if (!float.TryParse(valueStr, out relative_altitude_above))
-                    throw new System.ArgumentException("Invalid constraint relative_altitude_above value: " + relative_altitude_above);
+                    throw new System.ArgumentException("Invalid constraint 'relative_altitude_above' value: " + relative_altitude_above);
 
                 return new RegionConstraint() { Type = ConstraintType.RelativeAltitudeAbove, Value = relative_altitude_above };
 
             case "relative_altitude_below":
                 float relative_altitude_below;
                 if (!float.TryParse(valueStr, out relative_altitude_below))
-                    throw new System.ArgumentException("Invalid constraint relative_altitude_below value: " + relative_altitude_below);
+                    throw new System.ArgumentException("Invalid constraint 'relative_altitude_below' value: " + relative_altitude_below);
 
                 return new RegionConstraint() { Type = ConstraintType.RelativeAltitudeBelow, Value = relative_altitude_below };
 
             case "altitude_above":
                 float altitude_above;
                 if (!float.TryParse(valueStr, out altitude_above))
-                    throw new System.ArgumentException("Invalid constraint altitude_above value: " + altitude_above);
+                    throw new System.ArgumentException("Invalid constraint 'altitude_above' value: " + altitude_above);
 
                 return new RegionConstraint() { Type = ConstraintType.AltitudeAbove, Value = altitude_above };
 
             case "altitude_below":
                 float altitude_below;
                 if (!float.TryParse(valueStr, out altitude_below))
-                    throw new System.ArgumentException("Invalid constraint altitude_below value: " + altitude_below);
+                    throw new System.ArgumentException("Invalid constraint 'altitude_below' value: " + altitude_below);
 
                 return new RegionConstraint() { Type = ConstraintType.AltitudeBelow, Value = altitude_below };
 
             case "rainfall_above":
                 float rainfall_above;
                 if (!float.TryParse(valueStr, out rainfall_above))
-                    throw new System.ArgumentException("Invalid constraint rainfall_above value: " + rainfall_above);
+                    throw new System.ArgumentException("Invalid constraint 'rainfall_above' value: " + rainfall_above);
 
                 return new RegionConstraint() { Type = ConstraintType.RainfallAbove, Value = rainfall_above };
 
             case "rainfall_below":
                 float rainfall_below;
                 if (!float.TryParse(valueStr, out rainfall_below))
-                    throw new System.ArgumentException("Invalid constraint rainfall_below value: " + rainfall_below);
+                    throw new System.ArgumentException("Invalid constraint 'rainfall_below' value: " + rainfall_below);
 
                 return new RegionConstraint() { Type = ConstraintType.RainfallBelow, Value = rainfall_below };
 
             case "temperature_above":
                 float temperature_above;
                 if (!float.TryParse(valueStr, out temperature_above))
-                    throw new System.ArgumentException("Invalid constraint temperature_above value: " + temperature_above);
+                    throw new System.ArgumentException("Invalid constraint 'temperature_above' value: " + temperature_above);
 
                 return new RegionConstraint() { Type = ConstraintType.TemperatureAbove, Value = temperature_above };
 
             case "temperature_below":
                 float temperature_below;
                 if (!float.TryParse(valueStr, out temperature_below))
-                    throw new System.ArgumentException("Invalid constraint temperature_below value: " + temperature_below);
+                    throw new System.ArgumentException("Invalid constraint 'temperature_below' value: " + temperature_below);
 
                 return new RegionConstraint() { Type = ConstraintType.TemperatureBelow, Value = temperature_below };
 
             case "flowing_water_above":
                 float flowing_water_above;
                 if (!float.TryParse(valueStr, out flowing_water_above))
-                    throw new System.ArgumentException("Invalid constraint flowing_water_above value: " + flowing_water_above);
+                    throw new System.ArgumentException("Invalid constraint 'flowing_water_above' value: " + flowing_water_above);
 
                 return new RegionConstraint() { Type = ConstraintType.FlowingWaterAbove, Value = flowing_water_above };
 
             case "flowing_water_below":
                 float flowing_water_below;
                 if (!float.TryParse(valueStr, out flowing_water_below))
-                    throw new System.ArgumentException("Invalid constraint flowing_water_below value: " + flowing_water_below);
+                    throw new System.ArgumentException("Invalid constraint 'flowing_water_below' value: " + flowing_water_below);
 
                 return new RegionConstraint() { Type = ConstraintType.FlowingWaterBelow, Value = flowing_water_below };
 
@@ -150,10 +150,10 @@ public class RegionConstraint
 
                 float presence_above;
                 if (!float.TryParse(valueStrs[1], out presence_above))
-                    throw new System.ArgumentException("Invalid constraint biome_presence_above second input value: " + presence_above);
+                    throw new System.ArgumentException("Invalid constraint 'biome_presence_above' second input value: " + presence_above);
 
                 if (!presence_above.IsInsideRange(0, 1))
-                    throw new System.ArgumentException("biome_presence_above second input must be a value between 0 and 1 (inclusive)");
+                    throw new System.ArgumentException("'biome_presence_above' second input must be a value between 0 and 1 (inclusive):" + presence_above);
 
                 IdentifierValuePair biomePresencePair = new IdentifierValuePair(valueStrs[0], presence_above);
 
@@ -167,10 +167,10 @@ public class RegionConstraint
 
                 float presence_below;
                 if (!float.TryParse(valueStrs[1], out presence_below))
-                    throw new System.ArgumentException("Invalid constraint biome_presence_below second input value: " + presence_below);
+                    throw new System.ArgumentException("Invalid constraint 'biome_presence_below' second input value: " + presence_below);
 
                 if (!presence_below.IsInsideRange(0, 1))
-                    throw new System.ArgumentException("biome_presence_below second input must be a value between 0 and 1 (inclusive)");
+                    throw new System.ArgumentException("'biome_presence_below' second input must be a value between 0 and 1 (inclusive):" + presence_below);
 
                 biomePresencePair = new IdentifierValuePair(valueStrs[0], presence_below);
 
@@ -184,7 +184,7 @@ public class RegionConstraint
 
                 float value_above;
                 if (!float.TryParse(valueStrs[1], out value_above))
-                    throw new System.ArgumentException("Invalid constraint layer_value_above second input value: " + value_above);
+                    throw new System.ArgumentException("Invalid constraint 'layer_value_above' second input value: " + value_above);
 
                 IdentifierValuePair layerValuePair = new IdentifierValuePair(valueStrs[0], value_above);
 
@@ -198,7 +198,7 @@ public class RegionConstraint
 
                 float value_below;
                 if (!float.TryParse(valueStrs[1], out value_below))
-                    throw new System.ArgumentException("Invalid constraint layer_value_below second input value: " + value_below);
+                    throw new System.ArgumentException("Invalid constraint 'layer_value_below' second input value: " + value_below);
 
                 layerValuePair = new IdentifierValuePair(valueStrs[0], value_below);
 

@@ -36,6 +36,10 @@ public class TerrainCellAlteration
     public float Rainfall;
     [XmlAttribute("W")]
     public float WaterAccumulation;
+    [XmlAttribute("RId")]
+    public int RiverId = -1;
+    [XmlAttribute("RL")]
+    public float RiverLength = 0;
 
     [XmlAttribute("Fp")]
     public float FarmlandPercentage = 0;
@@ -77,7 +81,9 @@ public class TerrainCellAlteration
         OriginalTemperature = cell.OriginalTemperature;
         Rainfall = cell.Rainfall;
         WaterAccumulation = cell.WaterAccumulation;
-        
+        RiverId = cell.RiverId;
+        RiverLength = cell.RiverLength;
+
         FarmlandPercentage = cell.FarmlandPercentage;
         Accessibility = cell.Accessibility;
         Arability = cell.Arability;

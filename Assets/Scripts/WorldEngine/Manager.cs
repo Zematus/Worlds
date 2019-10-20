@@ -926,49 +926,65 @@ public class Manager
         return new Vector2(mapPosition.Longitude / (float)CurrentWorld.Width, mapPosition.Latitude / (float)CurrentWorld.Height);
     }
 
+    /// <summary>Generates a texture based on the current map and overlay and exports it to an image file.</summary>
+    /// <param name="path">The target path and file to write the image to.</param>
+    /// <param name="uvRect">The texture offset to use when reading pixels from the map and overlay textures.</param>
     public static void ExportMapTextureToFile(string path, Rect uvRect)
     {
         Texture2D mapTexture = _manager._currentMapTexture;
+        Texture2D overlayTexture = _manager._currentMapOverlayTexture;
         Texture2D exportTexture = null;
-
-        Manager.EnqueueTaskAndWait(() =>
+        
+        // Enqueue (and wait for) the operations that need to be executed in the 3D engine's main thread
+        EnqueueTaskAndWait(() =>
         {
             int width = mapTexture.width;
             int height = mapTexture.height;
 
-            int xOffset = (int)Mathf.Floor(uvRect.x * width);
-
             exportTexture = new Texture2D(
-                width,
-                height,
-                mapTexture.format,
-                false);
+                    width,
+                    height,
+                    mapTexture.format,
+                    false);
+
+            Debug.Log("ExportMapTextureToFile part 2, width: " + width);
+
+            int xOffset = (int)Mathf.Floor(uvRect.x * width);
 
             for (int i = 0; i < width; i++)
             {
                 for (int j = 0; j < height; j++)
                 {
-
                     int finalX = (i + xOffset) % width;
 
-                    exportTexture.SetPixel(i, j, mapTexture.GetPixel(finalX, j));
+                    Color mapPixelColor = mapTexture.GetPixel(finalX, j);
+                    Color overlayPixelColor = overlayTexture.GetPixel(finalX, j);
+                    float overlayAlpha = overlayPixelColor.a;
+
+                    // paint overlay pixel color on top of map pixel color
+                    Color mixedColor = Color.Lerp(mapPixelColor, overlayPixelColor, overlayAlpha);
+                    mixedColor.a = 1; // make sure final color is not transparent
+
+                    exportTexture.SetPixel(i, j, mixedColor);
                 }
             }
-
-            return true;
         });
 
-        ManagerTask<byte[]> bytes = Manager.EnqueueTask(() => exportTexture.EncodeToPNG());
+        ManagerTask<byte[]> bytes = EnqueueTask(() => exportTexture.EncodeToPNG());
 
         File.WriteAllBytes(path, bytes);
 
-        Manager.EnqueueTaskAndWait(() =>
+        EnqueueTaskAndWait(() =>
         {
             Object.Destroy(exportTexture);
             return true;
         });
     }
 
+    /// <summary>Initializes a job to start an export map texture to image operation</summary>
+    /// <param name="path">The target path and file to write the image to.</param>
+    /// <param name="uvRect">The texture offset to use when reading pixels from the map and overlay textures.</param>
+    /// <param name="progressCastMethod">handler for tracking the job's progress.</param>
     public static void ExportMapTextureToFileAsync(string path, Rect uvRect, ProgressCastDelegate progressCastMethod = null)
     {
         _manager._simulationRunning = false;
@@ -983,9 +999,22 @@ public class Manager
 
         Debug.Log("Trying to export world map to .png file: " + Path.GetFileName(path));
 
+        // Launch the thread job that will handle the async export task
         ThreadPool.QueueUserWorkItem(state =>
         {
-            ExportMapTextureToFile(path, uvRect);
+            try
+            {
+                ExportMapTextureToFile(path, uvRect);
+            }
+            catch (System.Exception e)
+            {
+                // To display the exception on screen we need to queue a task on the rendering engine's main thread
+                // and rethrow the exception inside that task
+                EnqueueTaskAndWait(() =>
+                {
+                    throw new System.Exception("Unhandled exception in ExportMapTextureToFile with path: " + path, e);
+                });
+            }
 
             _manager._performingAsyncTask = false;
             _manager._simulationRunning = true;
@@ -1444,6 +1473,9 @@ public class Manager
         ForceWorldCleanup();
     }
 
+    /// <summary>Initializes a job to start loading a world save file.</summary>
+    /// <param name="path">The target path and file to load the world from.</param>
+    /// <param name="progressCastMethod">handler for tracking the job's progress.</param>
     public static void LoadWorldAsync(string path, ProgressCastDelegate progressCastMethod = null)
     {
 #if DEBUG
@@ -1462,25 +1494,17 @@ public class Manager
 
         Debug.Log("Trying to load world from file: " + Path.GetFileName(path));
 
+        // Launch the thread job that will handle the async load task
         ThreadPool.QueueUserWorkItem(state =>
         {
             try
             {
                 LoadWorld(path);
             }
-            //catch (IOException e)
-            //{
-            //    // DEBUG: This is a workaround. We shouldn't ignore file sharing violations
-            //    if (System.Runtime.InteropServices.Marshal.GetHRForException(e) != 0x00000020)
-            //    {
-            //        EnqueueTaskAndWait(() =>
-            //        {
-            //            throw new System.Exception("Unhandled exception in LoadWorld with path: " + path, e);
-            //        });
-            //    }
-            //}
             catch (System.Exception e)
             {
+                // To display the exception on screen we need to queue a task on the rendering engine's main thread
+                // and rethrow the exception inside that task
                 EnqueueTaskAndWait(() =>
                 {
                     throw new System.Exception("Unhandled exception in LoadWorld with path: " + path, e);
@@ -1949,8 +1973,11 @@ public class Manager
         }
         else if (ActiveEditorBrushAction != null)
         {
-            CurrentWorld.PerformTerrainAlterationDrainageRegen();
-            CurrentWorld.RepeatTerrainAlterationDrainageRegen();
+            CurrentWorld.PerformTerrainAlterationDrainageRegen(); // do a test drainage expansion to find all cells that need to be recalculated. changes will not persist
+
+            CurrentWorld.GenerateDrainageBasins(true); // redo drainage expansion to modify terrain
+            CurrentWorld.GenerateDrainageBasins(false); // final proper drainage expansion with already modified terrain
+
             CurrentWorld.FinalizeTerrainAlterationDrainageRegen();
 
             ActiveEditorBrushAction.FinalizeCellModifications();

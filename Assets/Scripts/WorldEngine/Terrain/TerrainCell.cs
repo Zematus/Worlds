@@ -91,7 +91,8 @@ public class TerrainCell
     public float Buffer3 = 0;
     public int RiverId = -1;
     public float RiverLength = 0;
-    public bool DrainageDone = false;
+    public bool DrainageDone = true;
+    public bool TerrainAlteredBeforeDrainageRegen = false;
 
     public float FlowingWater
     {
@@ -302,6 +303,8 @@ public class TerrainCell
         OriginalTemperature = alteration.OriginalTemperature;
         Rainfall = alteration.Rainfall;
         WaterAccumulation = alteration.WaterAccumulation;
+        RiverId = alteration.RiverId;
+        RiverLength = alteration.RiverLength;
 
         FarmlandPercentage = alteration.FarmlandPercentage;
         Accessibility = alteration.Accessibility;
