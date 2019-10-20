@@ -172,7 +172,7 @@ public class GuiManagerScript : MonoBehaviour
     private string _progressMessage = null;
     private float _progressValue = 0;
 
-    private bool _hasToSetInitialPopulation = true;
+    private bool _hasToSetInitialPopulation = false;
     private bool _worldCouldBeSavedAfterEdit = false;
 
     private event PostProgressOperation _postProgressOp = null;
@@ -610,6 +610,7 @@ public class GuiManagerScript : MonoBehaviour
         }
     }
 
+    /// <summary>Changes the active play mode to Simulator mode.</summary>
     public void SetSimulatorMode()
     {
         Manager.GameMode = GameMode.Simulator;
@@ -620,13 +621,11 @@ public class GuiManagerScript : MonoBehaviour
 
         if (_worldCouldBeSavedAfterEdit)
         {
-            _hasToSetInitialPopulation = true;
-
             SaveEditedWorldBeforeStarting();
         }
         else
         {
-            AddPopulationDialogScript.InitializeAndShow();
+            AttemptToSetInitialPopulation();
         }
 
         EnteredSimulationMode.Invoke();
@@ -1395,6 +1394,8 @@ public class GuiManagerScript : MonoBehaviour
         {
             ToggleGlobeView(); // It's more safe to return to map mode after loading or generating a new world
         }
+        
+        _hasToSetInitialPopulation = true;
 
         ValidateLayersPresent();
         OpenModeSelectionDialog();
@@ -1772,17 +1773,33 @@ public class GuiManagerScript : MonoBehaviour
         InterruptSimulation(true);
     }
 
+    /// <summary>Open the intial population setup dialog if needed.</summary>
+    /// <returns>
+    ///   <c>true</c> if the initial population setup dialog is activated; otherwise, <c>false</c>.
+    /// </returns>
+    public bool AttemptToSetInitialPopulation()
+    {
+        if (_hasToSetInitialPopulation)
+        {
+            AddPopulationDialogScript.InitializeAndShow();
+
+            _hasToSetInitialPopulation = false;
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>Called after a save attempt is finished (save completed) or canceled.</summary>
     public void SaveAttemptCompleted()
     {
         if (Manager.GameMode == GameMode.Simulator)
         {
             _worldCouldBeSavedAfterEdit = false;
 
-            if (_hasToSetInitialPopulation)
+            if (AttemptToSetInitialPopulation())
             {
-                AddPopulationDialogScript.InitializeAndShow();
-
-                _hasToSetInitialPopulation = false;
                 return;
             }
         }
@@ -1941,6 +1958,8 @@ public class GuiManagerScript : MonoBehaviour
     {
         if (!Manager.SimulationCanRun)
         {
+            _hasToSetInitialPopulation = true;
+
             OpenModeSelectionDialog();
         }
         else

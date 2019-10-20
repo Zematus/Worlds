@@ -208,7 +208,7 @@ public class CellGroup : HumanGroup
 #endif
 
     [XmlIgnore]
-    public Dictionary<string, BiomeSurvivalSkill> _biomeSurvivalSkills = new Dictionary<string, BiomeSurvivalSkill>(Biome.Biomes.Count);
+    public Dictionary<string, BiomeSurvivalSkill> _biomeSurvivalSkills = new Dictionary<string, BiomeSurvivalSkill>();
 
     [XmlIgnore]
     public Dictionary<Direction, CellGroup> Neighbors;
@@ -3392,7 +3392,7 @@ public class CellGroup : HumanGroup
     public override void FinalizeLoad()
     {
         base.FinalizeLoad();
-
+        
         PreferredMigrationDirection = (Direction)PreferredMigrationDirectionInt;
 
         foreach (long id in FactionCoreIds)
