@@ -2665,6 +2665,19 @@ public class World : ISynchronizable
         _drainageHeap.Clear();
     }
 
+    /// <summary>
+    /// This function will add a cell to the heap of cells that need their drainage values regenerated
+    /// after applying a terrain modification editor brush.
+    /// </summary>
+    /// <param name="cell"> The cell to regenerate drainage for.</param>
+    /// <param name="resetDrainage"> Indicate if the cells drainage values should be reset 
+    /// to defaults before adding to the heap.</param>
+    /// <param name="resetTerrain"> Indicate if the cell's altitude and temperature should also be reset 
+    /// to their original values before adding to the heap.</param>
+    /// <returns>
+    ///   <c>true</c> if this is the first time this function has been called on this 
+    ///   particular cell during this regeneration cycle. Otherwise, <c>false</c>.
+    /// </returns>
     public bool AddToDrainageRegen(TerrainCell cell, bool resetDrainage = true, bool resetTerrain = true)
     {
         bool justAdded = true;
