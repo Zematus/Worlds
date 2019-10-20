@@ -2,6 +2,7 @@
 [Tt]emp/
 [Oo]bj/
 [Bb]uild/
+[Bb]ugs/
 [Ss]aves/
 [Hh]eightmaps/
 [Ii]mages/
@@ -74,3 +75,4 @@ $RECYCLE.BIN/
 *.lnk
 *.suo
 bug_output.txt
+*.log

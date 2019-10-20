@@ -5,7 +5,11 @@ using System.Collections;
 
 public class TextInputDialogPanelScript : MenuPanelScript
 {
+    public Text RecText;
+
     public InputField TextInputField;
+
+    public Text CancelButtonText;
 
     public void SetText(string text)
     {
@@ -15,5 +19,15 @@ public class TextInputDialogPanelScript : MenuPanelScript
     public string GetText()
     {
         return TextInputField.text;
+    }
+
+    public void SetRecommendationTextVisible(bool state)
+    {
+        RecText.gameObject.SetActive(state);
+    }
+
+    public void SetCancelButtonText(string text)
+    {
+        CancelButtonText.text = text;
     }
 }

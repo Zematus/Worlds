@@ -172,6 +172,9 @@ public class GuiManagerScript : MonoBehaviour
     private string _progressMessage = null;
     private float _progressValue = 0;
 
+    private bool _hasToSetInitialPopulation = false;
+    private bool _worldCouldBeSavedAfterEdit = false;
+
     private event PostProgressOperation _postProgressOp = null;
     private event PostProgressOperation _generateWorldPostProgressOp = null;
     private event PostProgressOperation _regenerateWorldPostProgressOp = null;
@@ -607,6 +610,7 @@ public class GuiManagerScript : MonoBehaviour
         }
     }
 
+    /// <summary>Changes the active play mode to Simulator mode.</summary>
     public void SetSimulatorMode()
     {
         Manager.GameMode = GameMode.Simulator;
@@ -614,6 +618,15 @@ public class GuiManagerScript : MonoBehaviour
         MapScript.EnablePointerOverlay(false);
 
         Debug.Log("Game entered history simulator mode.");
+
+        if (_worldCouldBeSavedAfterEdit)
+        {
+            SaveEditedWorldBeforeStarting();
+        }
+        else
+        {
+            AttemptToSetInitialPopulation();
+        }
 
         EnteredSimulationMode.Invoke();
 
@@ -631,6 +644,8 @@ public class GuiManagerScript : MonoBehaviour
         MapScript.EnablePointerOverlay(true);
 
         Debug.Log("Game entered map editor mode.");
+
+        _worldCouldBeSavedAfterEdit = true;
 
         EnteredEditorMode.Invoke();
 
@@ -1228,7 +1243,7 @@ public class GuiManagerScript : MonoBehaviour
 
         int seed = Random.Range(0, int.MaxValue);
 
-        SetSeedDialogPanelScript.SetSeedString(seed.ToString());
+        SetSeedDialogPanelScript.SetSeed(seed);
 
         SetSeedDialogPanelScript.SetVisible(true);
 
@@ -1344,20 +1359,21 @@ public class GuiManagerScript : MonoBehaviour
         GenerateWorldInternal(seed, useHeightmap);
     }
 
+    private void ShowErrorMessage(string message)
+    {
+        ErrorMessageDialogPanelScript.SetDialogText(message);
+        ErrorMessageDialogPanelScript.SetVisible(true);
+    }
+
     public void GenerateWorldWithCustomSeed()
     {
-        int seed = 0;
-        string seedStr = SetSeedDialogPanelScript.GetSeedString();
+        int seed = SetSeedDialogPanelScript.GetSeed();
 
-        if (!int.TryParse(seedStr, out seed))
-        {
-            ErrorMessageDialogPanelScript.SetVisible(true);
-            return;
-        }
+        string errorMessage = "Invalid Input, please use a value between 0 and " + int.MaxValue;
 
         if (seed < 0)
         {
-            ErrorMessageDialogPanelScript.SetVisible(true);
+            ShowErrorMessage(errorMessage);
             return;
         }
 
@@ -1378,6 +1394,8 @@ public class GuiManagerScript : MonoBehaviour
         {
             ToggleGlobeView(); // It's more safe to return to map mode after loading or generating a new world
         }
+        
+        _hasToSetInitialPopulation = true;
 
         ValidateLayersPresent();
         OpenModeSelectionDialog();
@@ -1742,10 +1760,56 @@ public class GuiManagerScript : MonoBehaviour
             default: throw new System.Exception("Unexpected planet overlay type: " + _planetOverlay);
         }
 
-        ExportMapDialogPanelScript.SetText(Manager.AddDateToWorldName(Manager.WorldName) + planetViewStr + planetOverlayStr);
+        string worldName = Manager.WorldName;
+
+        if (Manager.GameMode == GameMode.Simulator)
+        {
+            worldName = Manager.AddDateToWorldName(worldName);
+        }
+
+        ExportMapDialogPanelScript.SetText(worldName + planetViewStr + planetOverlayStr);
         ExportMapDialogPanelScript.SetVisible(true);
 
         InterruptSimulation(true);
+    }
+
+    /// <summary>Open the intial population setup dialog if needed.</summary>
+    /// <returns>
+    ///   <c>true</c> if the initial population setup dialog is activated; otherwise, <c>false</c>.
+    /// </returns>
+    public bool AttemptToSetInitialPopulation()
+    {
+        if (_hasToSetInitialPopulation)
+        {
+            AddPopulationDialogScript.InitializeAndShow();
+
+            _hasToSetInitialPopulation = false;
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>Called after a save attempt is finished (save completed) or canceled.</summary>
+    public void SaveAttemptCompleted()
+    {
+        if (Manager.GameMode == GameMode.Simulator)
+        {
+            _worldCouldBeSavedAfterEdit = false;
+
+            if (AttemptToSetInitialPopulation())
+            {
+                return;
+            }
+        }
+
+        if (!_eventPauseActive)
+        {
+            InterruptSimulation(!Manager.SimulationCanRun);
+        }
+
+        ShowHiddenInteractionPanels();
     }
 
     public void PostProgressOp_SaveAction()
@@ -1756,12 +1820,7 @@ public class GuiManagerScript : MonoBehaviour
 
         _postProgressOp -= PostProgressOp_SaveAction;
 
-        if (!_eventPauseActive)
-        {
-            InterruptSimulation(!Manager.SimulationCanRun);
-        }
-
-        ShowHiddenInteractionPanels();
+        SaveAttemptCompleted();
     }
 
     public void PostProgressOp_ExportAction()
@@ -1801,10 +1860,29 @@ public class GuiManagerScript : MonoBehaviour
     {
         MainMenuDialogPanelScript.SetVisible(false);
 
-        SaveFileDialogPanelScript.SetText(Manager.AddDateToWorldName(Manager.WorldName));
+        string worldName = Manager.WorldName;
+
+        if (Manager.GameMode == GameMode.Simulator)
+        {
+            worldName = Manager.AddDateToWorldName(worldName);
+        }
+
+        SaveFileDialogPanelScript.SetText(worldName);
+        SaveFileDialogPanelScript.SetCancelButtonText("Cancel");
+        SaveFileDialogPanelScript.SetRecommendationTextVisible(false);
+
         SaveFileDialogPanelScript.SetVisible(true);
 
         InterruptSimulation(true);
+    }
+
+    public void SaveEditedWorldBeforeStarting()
+    {
+        SaveFileDialogPanelScript.SetText(Manager.WorldName);
+        SaveFileDialogPanelScript.SetCancelButtonText("Skip");
+        SaveFileDialogPanelScript.SetRecommendationTextVisible(true);
+
+        SaveFileDialogPanelScript.SetVisible(true);
     }
 
     public void GetMaxSpeedOptionFromCurrentWorld()
@@ -1880,6 +1958,8 @@ public class GuiManagerScript : MonoBehaviour
     {
         if (!Manager.SimulationCanRun)
         {
+            _hasToSetInitialPopulation = true;
+
             OpenModeSelectionDialog();
         }
         else

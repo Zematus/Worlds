@@ -142,13 +142,7 @@ public class Tribe : Polity
             throw new System.Exception("Pulling clan influence equal or less than zero.");
         }
 #endif
-
-        //		#if DEBUG
-        //		if (sourcePolity.Territory.IsSelected) {
-        //			bool debug = true;
-        //		}
-        //		#endif
-
+        
         int maxGroupCount = sourcePolity.Groups.Count;
 
         Dictionary<CellGroup, float> groupDistances = new Dictionary<CellGroup, float>(maxGroupCount);

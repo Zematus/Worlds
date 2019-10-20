@@ -83,7 +83,7 @@ public class StartGuiManagerScript : MonoBehaviour
         SetUIScaling(Manager.UIScalingEnabled);
 
         Manager.UpdateMainThreadReference();
-        
+
         ProgressDialogPanelScript.SetVisible(false);
         MessageDialogPanelScript.SetVisible(false);
         ExceptionDialogPanelScript.SetVisible(false);
@@ -236,11 +236,11 @@ public class StartGuiManagerScript : MonoBehaviour
         MainMenuDialogPanelScript.SetVisible(false);
 
         LoadFileDialogPanelScript.Initialize(
-            "Select World to Load...", 
-            "Load", 
+            "Select World to Load...",
+            "Load",
             LoadSaveAction,
             CancelLoadSaveAction,
-            Manager.SavePath, 
+            Manager.SavePath,
             new string[] { ".PLNT" });
 
         LoadFileDialogPanelScript.SetVisible(true);
@@ -305,7 +305,7 @@ public class StartGuiManagerScript : MonoBehaviour
 
         int seed = Random.Range(0, int.MaxValue);
 
-        SetSeedDialogPanelScript.SetSeedString(seed.ToString());
+        SetSeedDialogPanelScript.SetSeed(seed);
 
         SetSeedDialogPanelScript.SetVisible(true);
     }
@@ -378,20 +378,24 @@ public class StartGuiManagerScript : MonoBehaviour
         SetGenerationSeed();
     }
 
+    /// <summary>Displays the error message dialog with a custom message.</summary>
+    /// <param name="message">The message to display.</param>
+    private void ShowErrorMessage(string message)
+    {
+        MessageDialogPanelScript.SetDialogText(message);
+        MessageDialogPanelScript.SetVisible(true);
+    }
+
     /// <summary>Generates the world with a custom seed.</summary>
     public void GenerateWorldWithCustomSeed()
     {
-        string seedStr = SetSeedDialogPanelScript.GetSeedString();
+        int seed = SetSeedDialogPanelScript.GetSeed();
 
-        if (!int.TryParse(seedStr, out int seed))
-        {
-            MessageDialogPanelScript.SetVisible(true);
-            return;
-        }
+        string errorMessage = "Invalid Input, please use a value between 0 and " + int.MaxValue;
 
         if (seed < 0)
         {
-            MessageDialogPanelScript.SetVisible(true);
+            ShowErrorMessage(errorMessage);
             return;
         }
 
