@@ -37,6 +37,9 @@ public class MapEditorToolbarScript : MonoBehaviour
     public LayerValueSetEvent RegenerateWorldLayerFrequencyChangeEvent;
     public LayerValueSetEvent RegenerateWorldLayerNoiseInfluenceChangeEvent;
 
+    public UnityEvent DrainageRegenRequested;
+    public UnityEvent DrainageRegenUnrequested;
+
     // Use this for initialization
     void Start()
     {
@@ -367,6 +370,15 @@ public class MapEditorToolbarScript : MonoBehaviour
     private void OnUndoStackUpdate()
     {
         UndoActionButton.interactable = Manager.UndoableEditorActionsCount > 0;
+
+        if (Manager.CurrentWorld.NeedsDrainageRegeneration)
+        {
+            DrainageRegenRequested.Invoke();
+        }
+        else
+        {
+            DrainageRegenUnrequested.Invoke();
+        }
     }
 
     private void OnRedoStackUpdate()

@@ -539,30 +539,31 @@ public class Manager
     {
         _undoableEditorActions.Push(action);
 
-        if (_onUndoStackUpdate != null)
-        {
-            _onUndoStackUpdate.Invoke();
-        }
+        // The world needs drainage regen if the pushed action is a brush action
+        CurrentWorld.NeedsDrainageRegeneration |= action is BrushAction;
+
+        _onUndoStackUpdate?.Invoke();
     }
 
     public static void PushRedoableAction(EditorAction action)
     {
         _redoableEditorActions.Push(action);
 
-        if (_onRedoStackUpdate != null)
-        {
-            _onRedoStackUpdate.Invoke();
-        }
+        _onRedoStackUpdate?.Invoke();
     }
 
     public static EditorAction PopUndoableAction()
     {
         EditorAction action = _undoableEditorActions.Pop();
 
-        if (_onUndoStackUpdate != null)
-        {
-            _onUndoStackUpdate.Invoke();
-        }
+        // The world needs drainage regen if both the popped action 
+        // and the new action at top of the stack are brush actions
+        CurrentWorld.NeedsDrainageRegeneration =
+            (_undoableEditorActions.Count > 0) &&
+            (action is BrushAction) &&
+            (_undoableEditorActions.Peek() is BrushAction);
+
+        _onUndoStackUpdate?.Invoke();
 
         return action;
     }
@@ -571,10 +572,7 @@ public class Manager
     {
         EditorAction action = _redoableEditorActions.Pop();
 
-        if (_onRedoStackUpdate != null)
-        {
-            _onRedoStackUpdate.Invoke();
-        }
+        _onRedoStackUpdate?.Invoke();
 
         return action;
     }
@@ -1962,6 +1960,9 @@ public class Manager
 
         if (state)
         {
+            // Applying any kind of brush will make it necessary to do drainage regeneration
+            CurrentWorld.NeedsDrainageRegeneration = true;
+
             if (useLayerBrush)
             {
                 ActiveEditorBrushAction = new LayerBrushAction(_planetOverlaySubtype);
@@ -1973,12 +1974,16 @@ public class Manager
         }
         else if (ActiveEditorBrushAction != null)
         {
-            CurrentWorld.PerformTerrainAlterationDrainageRegen(); // do a test drainage expansion to find all cells that need to be recalculated. changes will not persist
-
-            CurrentWorld.GenerateDrainageBasins(true); // redo drainage expansion to modify terrain
-            CurrentWorld.GenerateDrainageBasins(false); // final proper drainage expansion with already modified terrain
-
-            CurrentWorld.FinalizeTerrainAlterationDrainageRegen();
+            ////
+            // TODO: Figure out how to make drainage regen work
+            //
+            //CurrentWorld.PerformTerrainAlterationDrainageRegen(); // do a test drainage expansion to find all cells that need to be recalculated. changes will not persist
+            //
+            //CurrentWorld.GenerateDrainageBasins(true); // redo drainage expansion to modify terrain
+            //CurrentWorld.GenerateDrainageBasins(false); // final proper drainage expansion with already modified terrain
+            //
+            //CurrentWorld.FinalizeTerrainAlterationDrainageRegen();
+            ////
 
             ActiveEditorBrushAction.FinalizeCellModifications();
 

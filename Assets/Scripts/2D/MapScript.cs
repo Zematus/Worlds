@@ -17,6 +17,8 @@ public class MapScript : MonoBehaviour
     public Material DefaultMaterial;
     public Material DrainageMaterial;
 
+    public ToggleEvent ActivatedBrush;
+
     private bool _isDraggingMap = false;
     private Vector2 _beginDragPosition;
     private Rect _beginDragMapUvRect;
@@ -210,6 +212,7 @@ public class MapScript : MonoBehaviour
             if (!Manager.ViewingGlobe && !_isDraggingMap)
             {
                 Manager.ActivateEditorBrush(true);
+                ActivatedBrush.Invoke(true);
             }
         }
     }
@@ -220,6 +223,7 @@ public class MapScript : MonoBehaviour
 
         if (pointerData.button == PointerEventData.InputButton.Left)
         {
+            ActivatedBrush.Invoke(false);
             Manager.ActivateEditorBrush(false);
         }
     }
