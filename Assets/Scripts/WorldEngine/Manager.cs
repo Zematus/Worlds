@@ -201,7 +201,7 @@ public class Manager
     public static int LastPixelUpdateCount = 0;
     public static long LastDateSpan = 0;
 
-    public static bool InputFieldInUse = false;
+    public static bool DisableShortcuts = false;
 
     private static bool _isLoadReady = false;
 
@@ -344,7 +344,7 @@ public class Manager
         if (requireShift != (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)))
             return false;
 
-        if (InputFieldInUse)
+        if (DisableShortcuts)
             return false;
 
         return true;

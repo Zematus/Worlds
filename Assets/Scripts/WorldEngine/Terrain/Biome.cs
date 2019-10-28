@@ -40,7 +40,7 @@ public class Biome
     public static float MaxLoadedIceBiomeAltitude = float.MinValue;
     public static float MinLoadedIceBiomeAltitude = float.MaxValue;
 
-    public static Dictionary<string, Biome> Biomes = new Dictionary<string, Biome>();
+    public static Dictionary<string, Biome> Biomes = null; // Only initialize during mod reset
 
     public static HashSet<string> AllTraits = new HashSet<string>();
 
