@@ -290,6 +290,14 @@ public class TerrainCell
         
         OriginalAltitude = alteration.OriginalAltitude;
         Altitude = alteration.Altitude;
+
+#if DEBUG
+        if (!alteration.Temperature.IsInsideRange(World.MinPossibleTemperatureWithOffset - 0.5f, World.MaxPossibleTemperatureWithOffset + 0.5f))
+        {
+            Debug.Log("Invalid alteration.Temperature: " + alteration.Temperature);
+        }
+#endif
+
         Temperature = alteration.Temperature;
         OriginalTemperature = alteration.OriginalTemperature;
         Rainfall = alteration.Rainfall;

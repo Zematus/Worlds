@@ -208,7 +208,7 @@ public class CellGroup : HumanGroup
 #endif
 
     [XmlIgnore]
-    public Dictionary<string, BiomeSurvivalSkill> _biomeSurvivalSkills = new Dictionary<string, BiomeSurvivalSkill>(Biome.Biomes.Count);
+    public Dictionary<string, BiomeSurvivalSkill> _biomeSurvivalSkills = new Dictionary<string, BiomeSurvivalSkill>();
 
     [XmlIgnore]
     public Dictionary<Direction, CellGroup> Neighbors;
@@ -1777,12 +1777,6 @@ public class CellGroup : HumanGroup
 
     public void ConsiderPolityProminenceExpansion()
     {
-        //		#if DEBUG
-        //		if (Cell.IsSelected) {
-        //			bool debug = true;
-        //		}
-        //		#endif
-
         //#if DEBUG
         //        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
         //        {
@@ -2399,14 +2393,7 @@ public class CellGroup : HumanGroup
 
         Culture.TryGetSkillValue(SeafaringSkill.SkillId, out seafaringValue);
         Culture.TryGetKnowledgeScaledValue(ShipbuildingKnowledge.KnowledgeId, out shipbuildingValue);
-
-        //#if DEBUG
-        //        if (Cell.IsSelected)
-        //        {
-        //            bool debug = true;
-        //        }
-        //#endif
-
+        
         float rangeFactor = 1 + (NavigationRangeModifier * MathUtility.IntToFloatScalingFactor);
 
         SeaTravelFactor = SeaTravelBaseFactor * seafaringValue * shipbuildingValue * TravelWidthFactor * rangeFactor;
@@ -2622,12 +2609,6 @@ public class CellGroup : HumanGroup
 
     public long CalculateNextUpdateDate()
     {
-        //		#if DEBUG
-        //		if (Cell.IsSelected) {
-        //			bool debug = true;
-        //		}
-        //		#endif
-
 #if DEBUG
         if (FactionCores.Count > 0)
         {
@@ -2640,12 +2621,6 @@ public class CellGroup : HumanGroup
             }
         }
 #endif
-
-        //		#if DEBUG
-        //		if (Cell.IsSelected) {
-        //			bool debug = true;
-        //		}
-        //		#endif
 
         float randomFactor = Cell.GetNextLocalRandomFloat(RngOffsets.CELL_GROUP_CALCULATE_NEXT_UPDATE);
         randomFactor = 1f - Mathf.Pow(randomFactor, 4);
@@ -2671,13 +2646,7 @@ public class CellGroup : HumanGroup
 
         float populationFactor = 0.0001f + Mathf.Abs(OptimalPopulation - Population);
         populationFactor = 100 * OptimalPopulation / populationFactor;
-
-        //		#if DEBUG
-        //		if (Cell.IsSelected) {
-        //			bool debug = true;
-        //		}
-        //		#endif
-
+        
         populationFactor = Mathf.Min(populationFactor, MaxUpdateSpanFactor);
 
         float mixFactor = randomFactor * migrationFactor * polityExpansionFactor * skillLevelFactor * knowledgeLevelFactor * populationFactor;
@@ -2717,13 +2686,7 @@ public class CellGroup : HumanGroup
             }
         }
 #endif
-
-        //		#if DEBUG
-        //		if (Cell.IsSelected) {
-        //			bool debug = true;
-        //		}
-        //		#endif
-
+        
         return World.CurrentDate + updateSpan;
     }
 
@@ -3180,18 +3143,10 @@ public class CellGroup : HumanGroup
         //            }
         //        }
         //#endif
-
-        //		#if DEBUG
-        //		if (Cell.IsSelected) {
-        //			bool debug = true;
-        //		}
-        //		#endif
-
-        PolityProminence polityProminence;
-
+        
         _polityProminencesToRemove.Remove(polity.Id);
 
-        if (!_polityProminences.TryGetValue(polity.Id, out polityProminence))
+        if (!_polityProminences.TryGetValue(polity.Id, out PolityProminence polityProminence))
         {
             _polityProminencesToAdd.TryGetValue(polity.Id, out polityProminence);
         }
@@ -3437,7 +3392,7 @@ public class CellGroup : HumanGroup
     public override void FinalizeLoad()
     {
         base.FinalizeLoad();
-
+        
         PreferredMigrationDirection = (Direction)PreferredMigrationDirectionInt;
 
         foreach (long id in FactionCoreIds)

@@ -60,7 +60,7 @@ public class SliderControlsScript : MonoBehaviour
         {
             if (!InputField.isFocused)
             {
-                Manager.InputFieldInUse = false;
+                Manager.DisableShortcuts = false;
                 _inputFieldFocused = false;
             }
         }
@@ -68,7 +68,7 @@ public class SliderControlsScript : MonoBehaviour
         {
             if (InputField.isFocused)
             {
-                Manager.InputFieldInUse = true;
+                Manager.DisableShortcuts = true;
                 _inputFieldFocused = true;
             }
         }
