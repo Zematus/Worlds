@@ -949,7 +949,7 @@ public class Manager
             int width = mapTexture.width;
             int height = mapTexture.height;
 
-            int xOffset = (int)Mathf.Floor(uvRect.x * width);
+            int xOffset = (int) Mathf.Floor(uvRect.x * width);
 
             exportTexture = new Texture2D(
                 width,
@@ -961,8 +961,7 @@ public class Manager
             {
                 for (int j = 0; j < height; j++)
                 {
-
-                    int finalX = (i + xOffset) % width;
+                    int finalX = (i + xOffset) % width; // What does this do?
 
                     exportTexture.SetPixel(i, j, mapTexture.GetPixel(finalX, j));
                 }
@@ -1524,12 +1523,14 @@ public class Manager
         });
     }
 
-    /// <summary>Resets the world load progress.</summary>
+    /// <summary>Resets the world load progress value.</summary>
     public static void ResetWorldLoadTrack()
     {
         _isLoadReady = false;
     }
 
+
+    /// <summary>Initializes the world load progress value.</summary>
     public static void InitializeWorldLoadTrack()
     {
         _isLoadReady = true;
@@ -1541,6 +1542,7 @@ public class Manager
         _loadTicks = 0;
     }
 
+    /// <summary>Updates the world load progress value.</summary>
     public static void UpdateWorldLoadTrackEventCount()
     {
         if (!_isLoadReady)
@@ -1553,6 +1555,9 @@ public class Manager
         _manager._progressCastMethod?.Invoke(Mathf.Min(1, value));
     }
 
+    /// <summary>Sets the observable update types based on the current displayed overlay.</summary>
+    /// <param name="overlay">The current displayed overlay.</param>
+    /// <param name="planetOverlaySubtype">The current displayed overlay subtype.</param>
     private static void SetObservableUpdateTypes(PlanetOverlay overlay, string planetOverlaySubtype = "None")
     {
         switch (overlay)
@@ -1596,6 +1601,9 @@ public class Manager
         }
     }
 
+    /// <summary>Sets the observable update subtypes based on the current displayed overlay.</summary>
+    /// <param name="overlay">The current displayed overlay.</param>
+    /// <param name="planetOverlaySubtype">The current displayed overlay subtype.</param>
     private static void SetObservableUpdateSubtypes(PlanetOverlay overlay, string planetOverlaySubtype = "None")
     {
         switch (overlay)
@@ -1639,6 +1647,9 @@ public class Manager
         }
     }
 
+    /// <summary>Sets the current displayed planet overlay.</summary>
+    /// <param name="overlay">The overlay to be displayed.</param>
+    /// <param name="planetOverlaySubtype">The overlay subtype to be displayed.</param>
     public static void SetPlanetOverlay(PlanetOverlay overlay, string planetOverlaySubtype = "None")
     {
         SetObservableUpdateTypes(overlay, planetOverlaySubtype);
@@ -1648,6 +1659,8 @@ public class Manager
         _planetOverlaySubtype = planetOverlaySubtype;
     }
 
+    /// <summary>Displays routes based on <c>value</c>.</summary>
+    /// <param name="value">If set to <c>true</c>, displays routes.</param>
     public static void SetDisplayRoutes(bool value)
     {
         if (value)
@@ -1658,26 +1671,39 @@ public class Manager
         _displayRoutes = value;
     }
 
+    /// <summary>Displays group activity based on <c>value</c>.</summary>
+    /// <param name="value">If set to <c>true</c>, displays group activity.</param>
     public static void SetDisplayGroupActivity(bool value)
     {
         _displayGroupActivity = value;
     }
 
+    /// <summary>Sets the planet view to <c>value</c>.</summary>
+    /// <param name="value">The planet view to be set.</param>
     public static void SetPlanetView(PlanetView value)
     {
         _planetView = value;
     }
 
+    /// <summary>
+    ///   Sets the currently selected cell to the cell at the given <c>latitude</c> and <c>longitude</c>.
+    /// </summary>
+    /// <param name="longitude">The longitude of the cell to be set to selectd.</param>
+    /// <param name="latitude">The latitude of the cell to be set to selected.</param>
     public static void SetSelectedCell(int longitude, int latitude)
     {
         SetSelectedCell(CurrentWorld.GetCell(longitude, latitude));
     }
 
+    /// <summary>Sets the selected cell to the cell at the given <c>position</c>.</summary>
+    /// <param name="position">The world position of the cell to be set to selected.</param>
     public static void SetSelectedCell(WorldPosition position)
     {
         SetSelectedCell(CurrentWorld.GetCell(position));
     }
 
+    /// <summary>Sets the selected region to <c>region</c>.</summary>
+    /// <param name="region">The region to be set to selected.</param>
     public static void SetSelectedRegion(Region region)
     {
         if (CurrentWorld.SelectedRegion != null)
@@ -1697,6 +1723,8 @@ public class Manager
         }
     }
 
+    /// <summary>Sets the selected territory to <c>territory</c>.</summary>
+    /// <param name="territory">The territory to be set to selected.</param>
     public static void SetSelectedTerritory(Territory territory)
     {
         if (CurrentWorld.SelectedTerritory != null)
@@ -1736,7 +1764,9 @@ public class Manager
         }
     }
 
-	public static void SetSelectedCell(TerrainCell cell)
+    /// <summary>Sets the selected cell to <c>cell</c>.</summary>
+    /// <param name="cell">The terrain cell to be set to selected.</param>
+    public static void SetSelectedCell(TerrainCell cell)
     {
         if (CurrentWorld.SelectedCell != null)
         {
@@ -1758,6 +1788,8 @@ public class Manager
         SetSelectedTerritory(cell.EncompassingTerritory);
     }
 
+    /// <summary>Puts the given <c>polity</c> under player focus.</summary>
+    /// <param name="polity">The polity to be put under player focus.</param>
     public static void SetFocusOnPolity (Polity polity) {
 
 		if (polity == null)
@@ -1770,6 +1802,8 @@ public class Manager
 		CurrentWorld.PolitiesUnderPlayerFocus.Add (polity);
 	}
 
+    /// <summary>Removes the given <c>polity</c> from player focus.</summary>
+    /// <param name="polity">The polity to be removed from player focus.</param>
 	public static void UnsetFocusOnPolity (Polity polity) {
 
 		if (polity == null)
@@ -1782,6 +1816,9 @@ public class Manager
 		CurrentWorld.PolitiesUnderPlayerFocus.Remove (polity);
     }
 
+    /// <summary>Puts the given <c>faction</c> under player guidance.</summary>
+    /// <param name="faction">The faction to be put under player guidance.</param>
+    /// <remarks>Only one faction can be under player guidance per world.</remarks>
     public static void SetGuidedFaction(Faction faction)
     {
         if (CurrentWorld.GuidedFaction == faction)
@@ -1794,6 +1831,7 @@ public class Manager
         CurrentWorld.GuidedFaction = faction;
     }
 
+    /// <summary>Resets the currently updated and highlighted cells.</summary>
     public static void ResetUpdatedAndHighlightedCells()
     {
         _lastUpdatedCells.Clear();
@@ -1804,6 +1842,7 @@ public class Manager
         HighlightedCells.Clear();
     }
 
+    /// <summary>Updates the pointer overlay textures in the world editor.</summary>
     public static void UpdatePointerOverlayTextures()
     {
         if (_editorBrushWasVisible || EditorBrushIsVisible)
@@ -1821,6 +1860,7 @@ public class Manager
         }
     }
 
+    /// <summary>Applies the editor brush to the world map in the editor.</summary>
     public static void ApplyEditorBrush()
     {
         if (EditorBrushIsVisible && EditorBrushIsActive &&
@@ -1855,7 +1895,7 @@ public class Manager
                 }
 
                 int jDiff = j - centerY;
-                int iRadius = (int)MathUtility.GetComponent(fRadius, jDiff);
+                int iRadius = (int) MathUtility.GetComponent(fRadius, jDiff);
                 
                 int offsetI = centerX - iRadius;
                 mOffsetI = (mOffsetI + offsetI + sizeX) % sizeX; // make sure the brush wraps around the x-axis and account for radial y-axis wraps
@@ -1884,6 +1924,10 @@ public class Manager
         }
     }
 
+    /// <summary>Determines what layer to apply the editor brush at.</summary>
+    /// <param name="longitude">The longitude the editor brush was applied at.</param>
+    /// <param name="latitude">The latitude the editor brush was applied at.</param>
+    /// <param name="distanceFactor">The distance the editor brush extends.</param>
     private static void ApplyEditorBrush(int longitude, int latitude, float distanceFactor)
     {
         switch (EditorBrushType)
@@ -1905,6 +1949,10 @@ public class Manager
         }
     }
 
+    /// <summary>Determines what layer to apply the flattened editor brush at.</summary>
+    /// <param name="longitude">The longitude the editor brush was applied at.</param>
+    /// <param name="latitude">The latitude the editor brush was applied at.</param>
+    /// <param name="distanceFactor">The distance the editor brush extends.</param>
     private static void ApplyEditorBrushFlatten(int longitude, int latitude, float distanceFactor)
     {
         switch (EditorBrushType)
