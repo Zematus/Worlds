@@ -403,7 +403,7 @@ public class Manager
         LayerSettings.Clear();
     }
 
-    /// <summary>Sets the layer settings.</summary>
+    /// <summary>Sets the layer settings after reseting the old layer settings.</summary>
     /// <param name="layerSettings">The list of layer settings to be set.</param>
     public static void SetLayerSettings(List<LayerSettings> layerSettings)
     {
@@ -774,8 +774,7 @@ public class Manager
         UIScalingEnabled = state;
     }
 
-    /// <summary>Initializes the screen.</summary>
-    /// <remarks>Fullscreen and UI scaling options are initialized here.</remarks>
+    /// <summary>Initializes the screen altering options like fullscreen and UI scaling.</summary>
     public static void InitializeScreen()
     {
         if (_resolutionInitialized)
@@ -804,7 +803,7 @@ public class Manager
         }
     }
 
-    /// <summary>Executes the next task.</summary>
+    /// <summary>Executes the next task in the manager's task queue.</summary>
     /// <returns>
     ///   <c>true</c> if there is another task to execute; otherwise, <c>false</c>.
     /// </returns>
@@ -826,6 +825,7 @@ public class Manager
     }
 
     /// <summary>Enqueues the generic type task identified by <c>taskDelegate</c>.</summary>
+    /// <remarks>If the function is executed on the main thread, the <c>task</c> will be immediately executed.</remarks>
     /// <param name="taskDelegate">The generic type task to be enqueued.</param>
     /// <returns>
     ///   The task that was just enqueued.
@@ -852,7 +852,7 @@ public class Manager
     /// <summary>Enqueues the generic type task identified by <c>taskDelegate</c> and waits for the result.</summary>
     /// <param name="taskDelegate">The generic type task to be enqueued.</param>
     /// <returns>
-    ///   The result of the enqueued task.
+    ///   The generic type result of the enqueued task.
     /// </returns>
     public static T EnqueueTaskAndWait<T>(ManagerTaskDelegate<T> taskDelegate)
     {
@@ -860,6 +860,7 @@ public class Manager
     }
 
     /// <summary>Enqueues the task identified by <c>taskDelegate</c>.</summary>
+    /// <remarks>If the function is executed on the main thread, the <c>task</c> will be immediately executed.</remarks>
     /// <param name="taskDelegate">The task to be enqueued.</param>
     /// <returns>
     ///   The task that was just enqueued.
@@ -961,7 +962,7 @@ public class Manager
             {
                 for (int j = 0; j < height; j++)
                 {
-                    int finalX = (i + xOffset) % width; // What does this do?
+                    int finalX = (i + xOffset) % width; // What is this used for?
 
                     exportTexture.SetPixel(i, j, mapTexture.GetPixel(finalX, j));
                 }
@@ -1010,8 +1011,8 @@ public class Manager
     }
 
     /// <summary>Generates the map textures.</summary>
-    /// <param name="doMapTexture">If set to <c>true</c>, map textures are generated from the current world.</param>
-    /// <param name="doOverlayMapTexture">If set to <c>true</c>, map overlay textures are generated from the current world.</param>
+    /// <param name="doMapTexture">If set to <c>true</c>, the map texture is generated from the current world.</param>
+    /// <param name="doOverlayMapTexture">If set to <c>true</c>, all the map overlay textures are generated from the current world.</param>
     public static void GenerateTextures(bool doMapTexture, bool doOverlayMapTexture)
     {
         if (DebugModeEnabled)
@@ -1285,7 +1286,7 @@ public class Manager
         ForceWorldCleanup();
     }
 
-    /// <summary>Regenerates the world asynchronous.</summary>
+    /// <summary>Regenerates one type of the generation in the world asynchronous.</summary>
     /// <param name="type">The type to be regenerated; i.e., terrain, temperature, rain, etc.</param>
     /// <param name="progressCastMethod">The progress cast method.</param>
     public static void RegenerateWorldAsync(GenerationType type, ProgressCastDelegate progressCastMethod = null)
@@ -1706,7 +1707,7 @@ public class Manager
     /// <param name="region">The region to be set to selected.</param>
     public static void SetSelectedRegion(Region region)
     {
-        if (CurrentWorld.SelectedRegion != null)
+        if (CurrentWorld.SelectedRegion != null) // Why add the current selected region to highlighted cells?
         {
             AddHighlightedCells(CurrentWorld.SelectedRegion.GetCells(), CellUpdateType.Region);
 
@@ -1776,16 +1777,16 @@ public class Manager
             CurrentWorld.SelectedCell = null;
         }
 
-        if (cell == null)
-            return;
+        if (cell != null)
+        {
+            CurrentWorld.SelectedCell = cell;
+            CurrentWorld.SelectedCell.IsSelected = true;
 
-        CurrentWorld.SelectedCell = cell;
-        CurrentWorld.SelectedCell.IsSelected = true;
+            AddHighlightedCell(CurrentWorld.SelectedCell, CellUpdateType.All);
 
-        AddHighlightedCell(CurrentWorld.SelectedCell, CellUpdateType.All);
-
-        SetSelectedRegion(cell.Region);
-        SetSelectedTerritory(cell.EncompassingTerritory);
+            SetSelectedRegion(cell.Region);
+            SetSelectedTerritory(cell.EncompassingTerritory);
+        }
     }
 
     /// <summary>Puts the given <c>polity</c> under player focus.</summary>
@@ -1861,7 +1862,7 @@ public class Manager
     }
 
     /// <summary>Applies the editor brush to the world map in the editor.</summary>
-    public static void ApplyEditorBrush()
+    public static void ApplyEditorBrush() // This is a pretty complex function that could use some more comments
     {
         if (EditorBrushIsVisible && EditorBrushIsActive &&
             (EditorBrushType != EditorBrushType.None) &&
@@ -1974,7 +1975,9 @@ public class Manager
         }
     }
 
-    public static void ResetSlantsAround(TerrainCell cell)
+    /// <summary>Resets the slants of all the neighbor cells around <c>cell</c>.</summary>
+    /// <param name="cell">The cell where the neighbors are derived from.</param>
+    public static void ResetSlantsAround(TerrainCell cell) // What is a cell slant?
     {
         foreach (TerrainCell nCell in cell.Neighbors.Values)
         {
@@ -1984,6 +1987,8 @@ public class Manager
         _manager._currentCellSlants[cell.Longitude, cell.Latitude] = null;
     }
 
+    /// <summary>Activates the editor brush based on the given <c>state</c>.</summary>
+    /// <param name="state">If set to <c>true</c>, the editor brush is activated; otherwise, false.</param>
     public static void ActivateEditorBrush(bool state)
     {
         bool useLayerBrush = false;
@@ -2026,6 +2031,10 @@ public class Manager
         }
     }
 
+    /// <summary>Applies the editor brush on the altitude layer.</summary>
+    /// <param name="longitude">The longitude to be applied at.</param>
+    /// <param name="latitude">The latitude to be applied at.</param>
+    /// <param name="distanceFactor">The distance the editor brush extends.</param>
     private static void ApplyEditorBrush_Altitude(int longitude, int latitude, float distanceFactor)
     {
         float strength = EditorBrushStrength / AltitudeScale;
@@ -2042,6 +2051,10 @@ public class Manager
         ResetSlantsAround(cell);
     }
 
+    /// <summary>Applies the flattened editor brush on the altitude layer.</summary>
+    /// <param name="longitude">The longitude to be applied at.</param>
+    /// <param name="latitude">The latitude to be applied at.</param>
+    /// <param name="distanceFactor">The distance the editor brush extends.</param>
     private static void ApplyEditorBrushFlatten_Altitude(int longitude, int latitude, float distanceFactor)
     {
         float strength = EditorBrushStrength / AltitudeScale;
@@ -2072,6 +2085,10 @@ public class Manager
         ResetSlantsAround(cell);
     }
 
+    /// <summary>Applies the editor brush on the temperature layer.</summary>
+    /// <param name="longitude">The longitude to be applied at.</param>
+    /// <param name="latitude">The latitude to be applied at.</param>
+    /// <param name="distanceFactor">The distance the editor brush extends.</param>
     private static void ApplyEditorBrush_Temperature(int longitude, int latitude, float distanceFactor)
     {
         float noiseRadius = BrushNoiseRadiusFactor / EditorBrushRadius;
@@ -2085,6 +2102,10 @@ public class Manager
         CurrentWorld.ModifyCellTemperature(cell, valueOffset, EditorBrushNoise, noiseRadius);
     }
 
+    /// <summary>Applies the flattened editor brush on the altitude layer.</summary>
+    /// <param name="longitude">The longitude to be applied at.</param>
+    /// <param name="latitude">The latitude to be applied at.</param>
+    /// <param name="distanceFactor">The distance the editor brush extends.</param>
     private static void ApplyEditorBrushFlatten_Temperature(int longitude, int latitude, float distanceFactor)
     {
         int sampleRadius = 1;
@@ -2112,6 +2133,10 @@ public class Manager
         CurrentWorld.ModifyCellTemperature(cell, valueOffset);
     }
 
+    /// <summary>Applies the editor brush on the generic? layer.</summary>
+    /// <param name="longitude">The longitude to be applied at.</param>
+    /// <param name="latitude">The latitude to be applied at.</param>
+    /// <param name="distanceFactor">The distance the editor brush extends.</param>
     private static void ApplyEditorBrush_Layer(int longitude, int latitude, float distanceFactor)
     {
         if (!Layer.IsValidLayerId(_planetOverlaySubtype))
@@ -2130,6 +2155,10 @@ public class Manager
         CurrentWorld.ModifyCellLayerData(cell, valueOffset, _planetOverlaySubtype, EditorBrushNoise, noiseRadius);
     }
 
+    /// <summary>Applies the flattened editor brush on the generic? layer.</summary>
+    /// <param name="longitude">The longitude to be applied at.</param>
+    /// <param name="latitude">The latitude to be applied at.</param>
+    /// <param name="distanceFactor">The distance the editor brush extends.</param>
     private static void ApplyEditorBrushFlatten_Layer(int longitude, int latitude, float distanceFactor)
     {
         if (!Layer.IsValidLayerId(_planetOverlaySubtype))
@@ -2162,6 +2191,10 @@ public class Manager
         CurrentWorld.ModifyCellLayerData(cell, valueOffset, _planetOverlaySubtype);
     }
 
+    /// <summary>Applies the editor brush on the rainfall layer.</summary>
+    /// <param name="longitude">The longitude to be applied at.</param>
+    /// <param name="latitude">The latitude to be applied at.</param>
+    /// <param name="distanceFactor">The distance the editor brush extends.</param>
     private static void ApplyEditorBrush_Rainfall(int longitude, int latitude, float distanceFactor)
     {
         float noiseRadius = BrushNoiseRadiusFactor / EditorBrushRadius;
@@ -2175,6 +2208,10 @@ public class Manager
         CurrentWorld.ModifyCellRainfall(cell, valueOffset, EditorBrushNoise, noiseRadius);
     }
 
+    /// <summary>Applies the flattened editor brush on the rainfall layer.</summary>
+    /// <param name="longitude">The longitude to be applied at.</param>
+    /// <param name="latitude">The latitude to be applied at.</param>
+    /// <param name="distanceFactor">The distance the editor brush extends.</param>
     private static void ApplyEditorBrushFlatten_Rainfall(int longitude, int latitude, float distanceFactor)
     {
         int sampleRadius = 1;
@@ -2202,6 +2239,7 @@ public class Manager
         CurrentWorld.ModifyCellRainfall(cell, valueOffset);
     }
 
+    /// <summary>Updates the state of the editor brush.</summary>
     public static void UpdateEditorBrushState()
     {
         _lastEditorBrushTargetCell = EditorBrushTargetCell;
@@ -2209,6 +2247,8 @@ public class Manager
         _editorBrushWasVisible = EditorBrushIsVisible;
     }
 
+    /// <summary>Updates the texture colors of the map, map overlays, and map activity.</summary>
+    /// <remarks>If shaders are enabled, those will be updated as well.</remarks>
     public static void UpdateTextures()
     {
         if (DebugModeEnabled)
@@ -2262,6 +2302,8 @@ public class Manager
         //Profiler.EndSample();
     }
 
+    /// <summary>Updates the pointer overlay texture colors with a new array of RBGA colors from <c>textureColors</c>.</summary>
+    /// <param name="textureColors">The texture colors that will be used to update the pointer overlay texture colors.</param>
     public static void UpdatePointerOverlayTextureColors(Color32[] textureColors)
     {
         if (_editorBrushWasVisible && (_lastEditorBrushTargetCell != null))
@@ -2275,6 +2317,7 @@ public class Manager
         }
     }
 
+    /// <summary>Updates the map texture colors by applying the current map RBGA array to every terrain cell.</summary>
     public static void UpdateMapTextureColors()
     {
         Color32[] textureColors = _manager._currentMapTextureColors;
@@ -2285,6 +2328,9 @@ public class Manager
         }
     }
 
+    /// <summary>
+    ///   Updates the map overlay texture colors by applying the current map overlay RBGA array to every terrain cell.
+    /// </summary>
     public static void UpdateMapOverlayTextureColors()
     {
         Color32[] textureColors = _manager._currentMapOverlayTextureColors;
@@ -2295,6 +2341,10 @@ public class Manager
         }
     }
 
+    /// <summary>
+    ///   Updates the map activity texture colors by applying the current map activity RBGA array to every terrain cell.
+    /// </summary>
+    /// <remarks>Conditionally will update group activity and routes if each respective option is true.</remarks>
     public static void UpdateMapActivityTextureColors()
     {
         Color32[] textureColors = _manager._currentMapActivityTextureColors;
@@ -2332,6 +2382,9 @@ public class Manager
         }
     }
 
+    /// <summary>
+    ///   Updates the map overlay shader texture colors by applying the current map overlay shader RBGA array to every terrain cell.
+    /// </summary>
     public static void UpdateMapOverlayShaderTextureColors()
     {
         Color32[] overlayShaderInfoColors = _manager._currentMapOverlayShaderInfoColor;
@@ -2342,6 +2395,9 @@ public class Manager
         }
     }
 
+    /// <summary>Determines if the given <c>cell</c> should be highlighted.</summary>
+    /// <param name="cell">The cell to be evaluated.</param>
+    /// <returns></returns>
     public static bool CellShouldBeHighlighted(TerrainCell cell)
     {
         if (cell.IsSelected)
@@ -2362,9 +2418,14 @@ public class Manager
         return false;
     }
 
+    /// <summary>Updates the pointer overlay texture colors from the editor brush.</summary>
+    /// <param name="textureColors">The updated texture colors.</param>
+    /// <param name="centerCell">The center cell of the editor brush.</param>
+    /// <param name="radius">The radius of the editor brush.</param>
+    /// <param name="erase">If set to <c>true</c>, will erase.</param>
     public static void UpdatePointerOverlayTextureColorsFromBrush(Color32[] textureColors, TerrainCell centerCell, int radius, bool erase = false)
     {
-        World world = centerCell.World;
+        World world = centerCell.World; // Please document this function :(
 
         int sizeX = world.Width;
         int sizeY = world.Height;
@@ -2431,6 +2492,9 @@ public class Manager
         }
     }
 
+    /// <summary>Updates the map texture colors from the given <c>cell</c> using <c>textureColors</c>.</summary>
+    /// <param name="textureColors">The texture colors to be updated.</param>
+    /// <param name="cell">The cell which will be used to update the map texture colors.</param>
     public static void UpdateMapTextureColorsFromCell(Color32[] textureColors, TerrainCell cell)
     {
         World world = cell.World;
@@ -2461,6 +2525,9 @@ public class Manager
         }
     }
 
+    /// <summary>Updates the map overlay texture colors from the given <c>cell</c> using <c>textureColors</c>.</summary>
+    /// <param name="textureColors">The texture colors to be updated.</param>
+    /// <param name="cell">The cell which will be used to update the map overlay texture colors.</param>
     public static void UpdateMapOverlayTextureColorsFromCell(Color32[] textureColors, TerrainCell cell)
     {
         World world = cell.World;
@@ -2491,6 +2558,10 @@ public class Manager
         }
     }
 
+    /// <summary>Updates the map activity texture colors from the given <c>cell</c> using <c>textureColors</c>.</summary>
+    /// <param name="textureColors">The texture colors to be updated.</param>
+    /// <param name="cell">The cell which will be used to update the map activity texture colors.</param>
+    /// <param name="displayActivityCells">If set to <c>true</c>, activity cells will be displayed.</param>
     public static void UpdateMapActivityTextureColorsFromCell(Color32[] textureColors, TerrainCell cell, bool displayActivityCells = false)
     {
         World world = cell.World;
@@ -2521,6 +2592,9 @@ public class Manager
         }
     }
 
+    /// <summary>Updates the map overlay shader texture colors from the given <c>cell</c> using <c>textureColors</c>.</summary>
+    /// <param name="textureColors">The texture colors to be updated.</param>
+    /// <param name="cell">The cell which will be used to update the map overlay shader texture colors.</param>
     public static void UpdateMapOverlayShaderTextureColorsFromCell(Color32[] textureColors, TerrainCell cell)
     {
         World world = cell.World;
@@ -2551,6 +2625,9 @@ public class Manager
         }
     }
 
+    /// <summary>Generates the pointer overlay texture from the given <c>world</c>.</summary>
+    /// <param name="world">The world to generate the pointer overlay texture from.</param>
+    /// <returns>The pointer overlay texture generated from <c>world</c>.</returns>
     public static Texture2D GeneratePointerOverlayTextureFromWorld(World world)
     {
         int sizeX = world.Width;
@@ -4027,6 +4104,10 @@ public class Manager
         return color;
     }
 
+    /// <summary>Enables the XmlSerializer to override the default way of serializing a set of objects.</summary>
+    /// <returns>
+    ///   The newly instantiated XmlAttributeOverrides object.
+    /// </returns>
     private static XmlAttributeOverrides GenerateAttributeOverrides()
     {
         XmlAttributeOverrides attrOverrides = new XmlAttributeOverrides();
@@ -4046,6 +4127,11 @@ public class Manager
         return texture.LoadImage(data) ? texture : null;
     }
 
+    /// <summary>Determines if the given <c>texture</c> is valid.</summary>
+    /// <param name="texture">The texture to be validated.</param>
+    /// <returns>
+    ///   The <c>TextureValidationResult</c> which will be 1 for not valid or 0 for valid.
+    /// </returns>
     public static TextureValidationResult ValidateTexture(Texture2D texture)
     {
         if ((texture.width < WorldWidth) && (texture.height < WorldHeight))
@@ -4056,6 +4142,8 @@ public class Manager
         return TextureValidationResult.Ok;
     }
 
+    /// <summary>Loads the mods from a given <c>path</c>.</summary>
+    /// <param name="paths">The list of paths to load the mods from.</param>
     public static void LoadMods(ICollection<string> paths)
     {
         if (paths.Count == 0)
@@ -4096,6 +4184,10 @@ public class Manager
 
     delegate void LoadModFileDelegate(string filename);
 
+    /// <summary>Tries to load the mod files of a particular type.</summary>
+    /// <param name="loadModFile">The delegate for loading a particular mod file.</param>
+    /// <param name="path">The path to the mod files trying to be loaded.</param>
+    /// <param name="progressPerModSegment">The progress per mod segment value.</param>
     private static void TryLoadModFiles(LoadModFileDelegate loadModFile, string path, float progressPerModSegment)
     {
         if (!Directory.Exists(path))
@@ -4103,22 +4195,25 @@ public class Manager
 
         string[] files = Directory.GetFiles(path, "*.json");
 
-        if (files.Length > 0)
+        if (files.Length <= 0)
+            return;
+
+        float progressPerFile = progressPerModSegment / files.Length;
+        float accProgress = LastStageProgress;
+
+        foreach (string file in files)
         {
-            float progressPerFile = progressPerModSegment / files.Length;
-            float accProgress = LastStageProgress;
+            loadModFile(file);
 
-            foreach (string file in files)
-            {
-                loadModFile(file);
+            accProgress += progressPerFile;
 
-                accProgress += progressPerFile;
-
-                _manager._progressCastMethod?.Invoke(accProgress);
-            }
+            _manager._progressCastMethod?.Invoke(accProgress);
         }
     }
 
+    /// <summary>Loads the mod at the location identified by <c>path</c>.</summary>
+    /// <param name="path">The path from where to load the mod.</param>
+    /// <param name="progressPerMod">The progress value per mod.</param>
     private static void LoadMod(string path, float progressPerMod)
     {
         float progressPerSegment = progressPerMod / 6f;
