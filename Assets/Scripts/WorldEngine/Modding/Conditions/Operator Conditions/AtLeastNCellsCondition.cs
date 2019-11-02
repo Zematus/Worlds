@@ -9,7 +9,7 @@ public class AtLeastNCellsCondition : UnaryOpCellCondition
 
     public AtLeastNCellsCondition(string conditionStr, string minQuantityStr) : base(conditionStr)
     {
-        if (!int.TryParse(minQuantityStr, out _minQuantity))
+        if (!MathUtility.TryParseCultureInvariant(minQuantityStr, out _minQuantity))
         {
             throw new System.ArgumentException("AtLeastNCellsCondition: Unparseable integer parameter input: " + minQuantityStr);
         }

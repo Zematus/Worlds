@@ -14,7 +14,7 @@ public class CellTemperatureCondition : CellCondition
     {
         string valueStr = match.Groups["value"].Value;
 
-        if (!float.TryParse(valueStr, out MinValue))
+        if (!MathUtility.TryParseCultureInvariant(valueStr, out MinValue))
         {
             throw new System.ArgumentException("CellTemperatureCondition: Min value can't be parsed into a valid floating point number: " + valueStr);
         }

@@ -23,7 +23,7 @@ public class GroupHasKnowledgeCondition : GroupCondition
             string valueStr = match.Groups["value"].Value;
             float value;
 
-            if (!float.TryParse(valueStr, out value))
+            if (!MathUtility.TryParseCultureInvariant(valueStr, out value))
             {
                 throw new System.ArgumentException("GroupHasKnowledgeCondition: Min value can't be parsed into a valid floating point number: " + valueStr);
             }
