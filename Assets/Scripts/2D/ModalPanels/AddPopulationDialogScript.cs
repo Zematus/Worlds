@@ -17,15 +17,16 @@ public class AddPopulationDialogScript : ModalPanelScript
         ReadKeyboardInput();
     }
 
+    /// <summary>Handler for changes to the population input field.</summary>
     public void PopulationValueChange()
     {
-        int value = 0;
-
-        int.TryParse(PopulationInputField.text, out value);
+        int.TryParse(PopulationInputField.text, out int value);
 
         SetPopulationValue(value);
     }
 
+    /// <summary>Sets the initial value to display int the input field.</summary>
+    /// <param name="value">The population value to set on the field</param>
     public void SetPopulationValue(int value)
     {
         value = Mathf.Clamp(value, World.MinStartingPopulation, World.MaxStartingPopulation);
@@ -35,6 +36,7 @@ public class AddPopulationDialogScript : ModalPanelScript
         PopulationInputField.text = value.ToString();
     }
 
+    /// <summary>Handler for cancelling the add population operation.</summary>
     public void CancelOperation()
     {
         SetVisible(false);
@@ -42,6 +44,7 @@ public class AddPopulationDialogScript : ModalPanelScript
         OperationCanceled.Invoke();
     }
 
+    /// <summary>Initializes the dialog and shows it on screen.</summary>
     public void InitializeAndShow()
     {
         int defaultPopulationValue = (int)Mathf.Ceil(World.StartPopulationDensity * TerrainCell.MaxArea);
@@ -53,6 +56,7 @@ public class AddPopulationDialogScript : ModalPanelScript
         SetVisible(true);
     }
 
+    /// <summary>Handles keyboard shortcuts for this dialog.</summary>
     private void ReadKeyboardInput()
     {
         Manager.HandleKeyUp(KeyCode.Escape, false, false, CancelOperation);

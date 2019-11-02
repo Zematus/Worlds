@@ -81,6 +81,10 @@ public class GuiManagerScript : MonoBehaviour
     public UnityEvent EnteredEditorMode;
     public UnityEvent EnteredSimulationMode;
 
+    public UnityEvent WorldGenerated;
+    public UnityEvent WorldRegenerated;
+    public UnityEvent WorldLoaded;
+
     public ToggleEvent ToggledGlobeViewing;
 
     public SpeedChangeEvent OnSimulationSpeedChanged;
@@ -247,7 +251,7 @@ public class GuiManagerScript : MonoBehaviour
         _loadWorldPostProgressOp -= op;
     }
 
-    public void ResetAllDialogs()
+    private void ResetAllDialogs()
     {
         SelectionPanelScript.RemoveAllOptions();
         SelectionPanelScript.SetVisible(false);
@@ -431,8 +435,7 @@ public class GuiManagerScript : MonoBehaviour
 
             _backgroundProcessActive = false;
 
-            if (_postProgressOp != null)
-                _postProgressOp();
+            _postProgressOp?.Invoke();
 
             ShowHiddenInteractionPanels();
         }
@@ -1022,7 +1025,7 @@ public class GuiManagerScript : MonoBehaviour
         }
     }
 
-    public void SelectAndCenterOnCell(WorldPosition position)
+    private void SelectAndCenterOnCell(WorldPosition position)
     {
         ShiftSurfaceToPosition(position);
 
@@ -1031,12 +1034,12 @@ public class GuiManagerScript : MonoBehaviour
         MapEntitySelected.Invoke();
     }
 
-    public string GetMessageToShow(WorldEventMessage eventMessage)
+    private string GetMessageToShow(WorldEventMessage eventMessage)
     {
         return Manager.GetDateString(eventMessage.Date) + " - " + eventMessage.Message;
     }
 
-    public void ShowEventMessageForPolity(WorldEventMessage eventMessage, long polityId)
+    private void ShowEventMessageForPolity(WorldEventMessage eventMessage, long polityId)
     {
         Polity polity = Manager.CurrentWorld.GetPolity(polityId);
 
@@ -1058,7 +1061,7 @@ public class GuiManagerScript : MonoBehaviour
         }
     }
 
-    public void ShowEventMessage(WorldEventMessage eventMessage)
+    private void ShowEventMessage(WorldEventMessage eventMessage)
     {
         if (eventMessage is TribeSplitEventMessage)
         {
@@ -1276,8 +1279,13 @@ public class GuiManagerScript : MonoBehaviour
 
         _postProgressOp -= PostProgressOp_RegenerateWorld;
 
-        if (_regenerateWorldPostProgressOp != null)
-            _regenerateWorldPostProgressOp.Invoke();
+        _regenerateWorldPostProgressOp?.Invoke();
+        WorldRegenerated.Invoke();
+    }
+
+    public void RegenerateWorldDrainage()
+    {
+        RegenerateWorld(GenerationType.TerrainRegeneration);
     }
 
     public void RegenerateWorldAltitudeScaleChange(float value)
@@ -1304,15 +1312,15 @@ public class GuiManagerScript : MonoBehaviour
     public void RegenerateWorldTemperatureOffsetChange(float value)
     {
         Manager.TemperatureOffset = value;
-
-        RegenerateWorld(GenerationType.TemperatureRegeneration);
+        
+        RegenerateWorld(GenerationType.TerrainRegeneration);
     }
 
     public void RegenerateWorldRainfallOffsetChange(float value)
     {
         Manager.RainfallOffset = value;
-
-        RegenerateWorld(GenerationType.RainfallRegeneration);
+        
+        RegenerateWorld(GenerationType.TerrainRegeneration);
     }
 
     public void RegenerateWorldLayerFrequencyChange(string layerId, float value)
@@ -1320,8 +1328,8 @@ public class GuiManagerScript : MonoBehaviour
         LayerSettings settings = Manager.GetLayerSettings(layerId);
 
         settings.Frequency = value;
-
-        RegenerateWorld(GenerationType.LayerRegeneration);
+        
+        RegenerateWorld(GenerationType.TerrainRegeneration);
     }
 
     public void RegenerateWorldLayerNoiseInfluenceChange(string layerId, float value)
@@ -1329,8 +1337,8 @@ public class GuiManagerScript : MonoBehaviour
         LayerSettings settings = Manager.GetLayerSettings(layerId);
 
         settings.SecondaryNoiseInfluence = value;
-
-        RegenerateWorld(GenerationType.LayerRegeneration);
+        
+        RegenerateWorld(GenerationType.TerrainRegeneration);
     }
 
     private void RegenerateWorld(GenerationType type)
@@ -1349,7 +1357,7 @@ public class GuiManagerScript : MonoBehaviour
         _regenMapOverlayTexture = true;
     }
 
-    public void GenerateWorld(bool randomSeed = true, int seed = 0, bool useHeightmap = false)
+    private void GenerateWorld(bool randomSeed = true, int seed = 0, bool useHeightmap = false)
     {
         if (randomSeed)
         {
@@ -1406,8 +1414,8 @@ public class GuiManagerScript : MonoBehaviour
 
         _postProgressOp -= PostProgressOp_GenerateWorld;
 
-        if (_generateWorldPostProgressOp != null)
-            _generateWorldPostProgressOp.Invoke();
+        _generateWorldPostProgressOp?.Invoke();
+        WorldGenerated.Invoke();
     }
 
     private void GenerateWorldInternal(int seed, bool useHeightmap = false)
@@ -1516,7 +1524,7 @@ public class GuiManagerScript : MonoBehaviour
         _mapLeftClickOp += ClickOp_SelectPopulationPlacement;
     }
 
-    public bool AddPopulationGroupAtPosition(Vector2 mapPosition, int population)
+    private bool AddPopulationGroupAtPosition(Vector2 mapPosition, int population)
     {
         World world = Manager.CurrentWorld;
 
@@ -1539,7 +1547,7 @@ public class GuiManagerScript : MonoBehaviour
         return true;
     }
 
-    public void DisplayTip_InitialPopulationPlacement()
+    private void DisplayTip_InitialPopulationPlacement()
     {
         if (_displayedTip_initialPopulation)
         {
@@ -1565,7 +1573,7 @@ public class GuiManagerScript : MonoBehaviour
         _displayedTip_mapScroll = true;
     }
 
-    public void DisplayTip_MapScroll()
+    private void DisplayTip_MapScroll()
     {
         if (_displayedTip_mapScroll)
         {
@@ -1812,7 +1820,7 @@ public class GuiManagerScript : MonoBehaviour
         ShowHiddenInteractionPanels();
     }
 
-    public void PostProgressOp_SaveAction()
+    private void PostProgressOp_SaveAction()
     {
         Debug.Log("Finished saving world to file.");
 
@@ -1823,7 +1831,7 @@ public class GuiManagerScript : MonoBehaviour
         SaveAttemptCompleted();
     }
 
-    public void PostProgressOp_ExportAction()
+    private void PostProgressOp_ExportAction()
     {
         Debug.Log("Finished exporting world map to .png file.");
 
@@ -1858,6 +1866,10 @@ public class GuiManagerScript : MonoBehaviour
 
     public void SaveWorldAs()
     {
+        // We can't try saving a world that is not completely generated
+        if (Manager.CurrentWorld.NeedsDrainageRegeneration)
+            return;
+
         MainMenuDialogPanelScript.SetVisible(false);
 
         string worldName = Manager.WorldName;
@@ -1885,7 +1897,7 @@ public class GuiManagerScript : MonoBehaviour
         SaveFileDialogPanelScript.SetVisible(true);
     }
 
-    public void GetMaxSpeedOptionFromCurrentWorld()
+    private void GetMaxSpeedOptionFromCurrentWorld()
     {
         long maxSpeed = Manager.CurrentWorld.MaxTimeToSkip;
 
@@ -1972,7 +1984,7 @@ public class GuiManagerScript : MonoBehaviour
         GetMaxSpeedOptionFromCurrentWorld();
     }
 
-    public void ValidateLayersPresent()
+    private void ValidateLayersPresent()
     {
         Manager.LayersPresent = Layer.Layers.Count > 0;
 
@@ -1980,7 +1992,7 @@ public class GuiManagerScript : MonoBehaviour
         OverlayDialogPanelScript.SetLayerOverlay(Manager.LayersPresent);
     }
 
-    public void PostProgressOp_LoadAction()
+    private void PostProgressOp_LoadAction()
     {
         EventPanelScript.DestroyMessagePanels(); // We don't want to keep messages referencing previous worlds
 
@@ -2005,8 +2017,8 @@ public class GuiManagerScript : MonoBehaviour
 
         _postProgressOp -= PostProgressOp_LoadAction;
 
-        if (_loadWorldPostProgressOp != null)
-            _loadWorldPostProgressOp.Invoke();
+        _loadWorldPostProgressOp?.Invoke();
+        WorldLoaded.Invoke();
     }
 
     private void ResetOverlaySelection()
@@ -2061,7 +2073,7 @@ public class GuiManagerScript : MonoBehaviour
         InterruptSimulation(true);
     }
 
-    public void RequestDecisionResolution()
+    private void RequestDecisionResolution()
     {
         Decision decisionToResolve = Manager.CurrentWorld.PullDecisionToResolve();
 
@@ -2640,12 +2652,12 @@ public class GuiManagerScript : MonoBehaviour
         SelectionPanelScript.SetVisible(true);
     }
 
-    public void SetPopCulturalDiscoveryOverlay(string planetOverlaySubtype, bool invokeEvent = true)
+    private void SetPopCulturalDiscoveryOverlay(string planetOverlaySubtype, bool invokeEvent = true)
     {
         ChangePlanetOverlay(PlanetOverlay.PopCulturalDiscovery, planetOverlaySubtype, invokeEvent);
     }
 
-    public void AddSelectionPanelOption(string optionName, string optionId)
+    private void AddSelectionPanelOption(string optionName, string optionId)
     {
         SelectionPanelScript.AddOption(optionId, optionName, (state) =>
         {

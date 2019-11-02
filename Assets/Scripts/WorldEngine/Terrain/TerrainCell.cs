@@ -91,7 +91,8 @@ public class TerrainCell
     public float Buffer3 = 0;
     public int RiverId = -1;
     public float RiverLength = 0;
-    public bool DrainageDone = false;
+    public bool DrainageDone = true;
+    public bool TerrainAlteredBeforeDrainageRegen = false;
 
     public float FlowingWater
     {
@@ -287,21 +288,6 @@ public class TerrainCell
 
         BaseTemperatureOffset = alteration.BaseTemperatureOffset;
         BaseRainfallOffset = alteration.BaseRainfallOffset;
-        
-        OriginalAltitude = alteration.OriginalAltitude;
-        Altitude = alteration.Altitude;
-
-#if DEBUG
-        if (!alteration.Temperature.IsInsideRange(World.MinPossibleTemperatureWithOffset - 0.5f, World.MaxPossibleTemperatureWithOffset + 0.5f))
-        {
-            Debug.Log("Invalid alteration.Temperature: " + alteration.Temperature);
-        }
-#endif
-
-        Temperature = alteration.Temperature;
-        OriginalTemperature = alteration.OriginalTemperature;
-        Rainfall = alteration.Rainfall;
-        WaterAccumulation = alteration.WaterAccumulation;
 
         FarmlandPercentage = alteration.FarmlandPercentage;
         Accessibility = alteration.Accessibility;
