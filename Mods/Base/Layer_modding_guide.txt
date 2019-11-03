@@ -19,13 +19,15 @@ Layer modding files are located within the 'Layers' folder. To be valid, mod fil
 
       "minAltitude":                -- (optional) Minimum cell altitude at which this layer can be present, a value of '0' refers to sea level (meters)
       "maxAltitude":                -- (optional) Maximum cell altitude at which this layer can be present, a value of '0' refers to sea level (meters)
-      "altitudeSaturationSlope":    -- (optional) Slope with which the biome will reach max saturation within the cell (between 0.001 and 1000 inclusive) (see note #4)
+      "altitudeSaturationSlope":    -- (optional) Slope with which the layer will reach max saturation within the cell (between 0.001 and 1000 inclusive) (see note #4)
       "minRainfall":                -- (optional) Minimum cell rainfall at which this layer can be present (mm per year)
       "maxRainfall":                -- (optional) Maximum cell rainfall at which this layer can be present (mm per year)
-      "rainfallSaturationSlope":    -- (optional) Slope with which the biome will reach max saturation within the cell (between 0.001 and 1000 inclusive) (see note #4)
+      "minFlowingWater":            -- (optional) Minimum cell non-sea flowing water accumulation at which this layer can be present (mm per m^2)
+      "maxFlowingWater":            -- (optional) Maximum cell non-sea flowing water accumulation at which this layer can be present (mm per m^2)
+      "waterSaturationSlope":       -- (optional) Slope with which the layer will reach max rainfall or moisture saturation within the cell (between 0.001 and 1000 inclusive) (see note #7)
       "minTemperature":             -- (optional) Minimum cell temperature at which this layer can be present (centigrade, yearly average)
       "maxTemperature":             -- (optional) Maximum cell temperature at which this layer can be present (centigrade, yearly average)
-      "temperatureSaturationSlope": -- (optional) Slope with which the biome will reach max saturation within the cell (between 0.001 and 1000 inclusive) (see note #4)
+      "temperatureSaturationSlope": -- (optional) Slope with which the layer will reach max saturation within the cell (between 0.001 and 1000 inclusive) (see note #4)
     },
     ... -- additional layers --
   ]

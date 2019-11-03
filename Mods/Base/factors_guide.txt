@@ -66,7 +66,7 @@ Here's a list of the current types of factors (more to be added in future versio
 
     Examples: 'cell_biome_trait_presence:sea', '[INV]cell_biome_trait_presence:wood'
 
-- 'neighborhood_biome_ttrait_presence'
+- 'neighborhood_biome_trait_presence'
     Calculates the total presence of a particular biome trait in the target cell and all neighboring cells surrounding the cell. The factor's value will fall within the range of 0 (no trait presence in the target cell nor any surrounding cell) and 1 (all 9 cells have 100% biome presence of trait)
 
     Examples: 'neighborhood_biome_trait_presence:sea', '[INV]neighborhood_biome_trait_presence:wood'
