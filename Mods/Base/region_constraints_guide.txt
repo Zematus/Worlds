@@ -1,6 +1,6 @@
 ---- Region Constraints Guide ----
 
-Region Constraints are rules that are used by region attributes and elements do decide whether or not to be assigned or associated with a particular region. When a new region is created, every attribute and every element tests their constraints against the region. If any of the constraints assigned to the element or attribute fail, then the element or attribute is ignored.
+Region Constraints are rules that are used by region attributes and elements to decide whether or not to be assigned or associated with a particular region. When a new region is created, every attribute and every element tests their constraints against the region. If any of the constraints assigned to the element or attribute fail, then the element or attribute is ignored.
 
 Here's a list of the current types of region constraints (more to be added in future versions) and how they work:
 

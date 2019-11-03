@@ -9,7 +9,7 @@ public class AtLeastNGroupsCondition : UnaryOpGroupCondition
 
     public AtLeastNGroupsCondition(string conditionStr, string minQuantityStr) : base(conditionStr)
     {
-        if (!int.TryParse(minQuantityStr, out _minQuantity))
+        if (!MathUtility.TryParseCultureInvariant(minQuantityStr, out _minQuantity))
         {
             throw new System.ArgumentException("AtLeastNGroupsCondition: Unparseable integer parameter input: " + minQuantityStr);
         }

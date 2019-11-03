@@ -17,7 +17,7 @@ public class CellFlowingWaterFactor : Factor
     {
         string valueStr = match.Groups["value"].Value;
 
-        if (!float.TryParse(valueStr, out MaxValue))
+        if (!MathUtility.TryParseCultureInvariant(valueStr, out MaxValue))
         {
             throw new System.ArgumentException("CellFlowingWaterFactor: Max value can't be parsed into a valid floating point number: " + valueStr);
         }

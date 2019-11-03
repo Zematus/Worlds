@@ -1942,19 +1942,31 @@ public class Manager
         _manager._currentCellSlants[cell.Longitude, cell.Latitude] = null;
     }
 
-    public static void ActivateEditorBrush(bool state)
+    /// <summary>
+    /// Tests if the selected editor brush can be activated.
+    /// </summary>
+    /// <returns>
+    ///   <c>true</c> if the brush can be activated. Otherwise, <c>false</c>.
+    /// </returns>
+    public static bool CanActivateBrush()
     {
-        bool useLayerBrush = false;
-
         if (EditorBrushType == EditorBrushType.Layer)
         {
-            if (!Layer.IsValidLayerId(_planetOverlaySubtype))
-            {
-                return;
-            }
-
-            useLayerBrush = true;
+            return Layer.IsValidLayerId(_planetOverlaySubtype);
         }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Tells if the manager should activate the selected editor brush or not.
+    /// </summary>
+    /// <param name="state">
+    /// Indicates if the brush should be activated.
+    /// </param>
+    public static void ActivateEditorBrush(bool state)
+    {
+        bool useLayerBrush = EditorBrushType == EditorBrushType.Layer;
 
         EditorBrushIsActive = state;
 

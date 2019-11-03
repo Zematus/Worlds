@@ -22,7 +22,7 @@ public class AddGroupKnowledgeEffect : Effect
         string valueStr = match.Groups["value"].Value;
         float value;
 
-        if (!float.TryParse(valueStr, out value))
+        if (!MathUtility.TryParseCultureInvariant(valueStr, out value))
         {
             throw new System.ArgumentException("AddGroupKnowledgeEffect: Level limit can't be parsed into a valid floating point number: " + valueStr);
         }

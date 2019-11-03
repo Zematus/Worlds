@@ -14,6 +14,48 @@ public static class MathUtility
     public const float NormalAt4 = 0.000134f;
     public const float NormalAt5 = 0.000001f;
 
+    /// <summary>
+    /// Parses a float number using a culture invariant format.
+    /// </summary>
+    /// <param name="s">
+    /// The float number string to parse.
+    /// </param>
+    /// <param name="result">
+    /// (out paramenter) The float where to copy the parsed value.
+    /// </param>
+    /// <returns>
+    ///   <c>true</c> if the string could be parsed into a float value correctly. Otherwise, <c>false</c>.
+    /// </returns>
+    public static bool TryParseCultureInvariant(string s, out float result)
+    {
+        return float.TryParse(
+            s, 
+            System.Globalization.NumberStyles.Float, 
+            System.Globalization.CultureInfo.InvariantCulture, 
+            out result);
+    }
+
+    /// <summary>
+    /// Parses an integer number using a culture invariant format.
+    /// </summary>
+    /// <param name="s">
+    /// The integer number string to parse.
+    /// </param>
+    /// <param name="result">
+    /// (out paramenter) The integer where to copy the parsed value.
+    /// </param>
+    /// <returns>
+    ///   <c>true</c> if the string could be parsed into a integer value correctly. Otherwise, <c>false</c>.
+    /// </returns>
+    public static bool TryParseCultureInvariant(string s, out int result)
+    {
+        return int.TryParse(
+            s,
+            System.Globalization.NumberStyles.Integer,
+            System.Globalization.CultureInfo.InvariantCulture,
+            out result);
+    }
+
     public static bool IsInsideRange(this float value, float minValue, float maxValue)
     {
         return (value >= minValue) && (value <= maxValue);

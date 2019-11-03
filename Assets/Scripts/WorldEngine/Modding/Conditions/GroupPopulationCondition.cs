@@ -15,7 +15,7 @@ public class GroupPopulationCondition : GroupCondition
         string valueStr = match.Groups["value"].Value;
         int value;
 
-        if (!int.TryParse(valueStr, out value))
+        if (!MathUtility.TryParseCultureInvariant(valueStr, out value))
         {
             throw new System.ArgumentException("GroupPopulationCondition: Min value can't be parsed into a valid integer point number: " + valueStr);
         }

@@ -109,9 +109,7 @@ public class SliderControlsScript : MonoBehaviour
 
     public void SetValueFromInputField(string valueStr)
     {
-        float value = 0;
-
-        float.TryParse(valueStr, out value);
+        float.TryParse(valueStr, out float value);
 
         if (IsPercentFormat)
         {

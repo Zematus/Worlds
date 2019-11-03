@@ -102,7 +102,7 @@ public class LayerLoader
 
         if (l.secondaryNoiseInfluence != null)
         {
-            if (!float.TryParse(l.secondaryNoiseInfluence, out layer.SecondaryNoiseInfluence))
+            if (!MathUtility.TryParseCultureInvariant(l.secondaryNoiseInfluence, out layer.SecondaryNoiseInfluence))
             {
                 throw new ArgumentException("Invalid secondaryNoiseInfluence value: " + l.secondaryNoiseInfluence);
             }
@@ -119,7 +119,7 @@ public class LayerLoader
 
         if (l.maxAltitude != null)
         {
-            if (!float.TryParse(l.maxAltitude, out layer.MaxAltitude))
+            if (!MathUtility.TryParseCultureInvariant(l.maxAltitude, out layer.MaxAltitude))
             {
                 throw new ArgumentException("Invalid maxAltitude value: " + l.maxAltitude);
             }
@@ -136,7 +136,7 @@ public class LayerLoader
 
         if (l.minAltitude != null)
         {
-            if (!float.TryParse(l.minAltitude, out layer.MinAltitude))
+            if (!MathUtility.TryParseCultureInvariant(l.minAltitude, out layer.MinAltitude))
             {
                 throw new ArgumentException("Invalid minAltitude value: " + l.minAltitude);
             }
@@ -153,7 +153,7 @@ public class LayerLoader
 
         if (l.altitudeSaturationSlope != null)
         {
-            if (!float.TryParse(l.altitudeSaturationSlope, out layer.AltSaturationSlope))
+            if (!MathUtility.TryParseCultureInvariant(l.altitudeSaturationSlope, out layer.AltSaturationSlope))
             {
                 throw new ArgumentException("Invalid altitudeSaturationSlope value: " + l.altitudeSaturationSlope);
             }
@@ -170,7 +170,7 @@ public class LayerLoader
 
         if (l.maxRainfall != null)
         {
-            if (!float.TryParse(l.maxRainfall, out layer.MaxRainfall))
+            if (!MathUtility.TryParseCultureInvariant(l.maxRainfall, out layer.MaxRainfall))
             {
                 throw new ArgumentException("Invalid maxRainfall value: " + l.maxRainfall);
             }
@@ -187,7 +187,7 @@ public class LayerLoader
 
         if (l.minRainfall != null)
         {
-            if (!float.TryParse(l.minRainfall, out layer.MinRainfall))
+            if (!MathUtility.TryParseCultureInvariant(l.minRainfall, out layer.MinRainfall))
             {
                 throw new ArgumentException("Invalid minRainfall value: " + l.minRainfall);
             }
@@ -204,7 +204,7 @@ public class LayerLoader
 
         if (l.maxFlowingWater != null)
         {
-            if (!float.TryParse(l.maxFlowingWater, out layer.MaxFlowingWater))
+            if (!MathUtility.TryParseCultureInvariant(l.maxFlowingWater, out layer.MaxFlowingWater))
             {
                 throw new ArgumentException("Invalid minFlowingWater value: " + l.maxFlowingWater);
             }
@@ -221,7 +221,7 @@ public class LayerLoader
 
         if (l.minFlowingWater != null)
         {
-            if (!float.TryParse(l.minFlowingWater, out layer.MinFlowingWater))
+            if (!MathUtility.TryParseCultureInvariant(l.minFlowingWater, out layer.MinFlowingWater))
             {
                 throw new ArgumentException("Invalid minFlowingWater value: " + l.minFlowingWater);
             }
@@ -238,7 +238,7 @@ public class LayerLoader
 
         if (l.waterSaturationSlope != null)
         {
-            if (!float.TryParse(l.waterSaturationSlope, out layer.WaterSaturationSlope))
+            if (!MathUtility.TryParseCultureInvariant(l.waterSaturationSlope, out layer.WaterSaturationSlope))
             {
                 throw new ArgumentException("Invalid waterSaturationSlope value: " + l.waterSaturationSlope);
             }
@@ -255,7 +255,7 @@ public class LayerLoader
 
         if (l.maxTemperature != null)
         {
-            if (!float.TryParse(l.maxTemperature, out layer.MaxTemperature))
+            if (!MathUtility.TryParseCultureInvariant(l.maxTemperature, out layer.MaxTemperature))
             {
                 throw new ArgumentException("Invalid maxTemperature value: " + l.maxTemperature);
             }
@@ -272,7 +272,7 @@ public class LayerLoader
 
         if (l.minTemperature != null)
         {
-            if (!float.TryParse(l.minTemperature, out layer.MinTemperature))
+            if (!MathUtility.TryParseCultureInvariant(l.minTemperature, out layer.MinTemperature))
             {
                 throw new ArgumentException("Invalid minTemperature value: " + l.minTemperature);
             }
@@ -289,7 +289,7 @@ public class LayerLoader
 
         if (l.temperatureSaturationSlope != null)
         {
-            if (!float.TryParse(l.temperatureSaturationSlope, out layer.TempSaturationSlope))
+            if (!MathUtility.TryParseCultureInvariant(l.temperatureSaturationSlope, out layer.TempSaturationSlope))
             {
                 throw new ArgumentException("Invalid temperatureSaturationSlope value: " + l.temperatureSaturationSlope);
             }
