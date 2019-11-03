@@ -360,8 +360,29 @@ public class World : ISynchronizable
     public bool PolitiesHaveBeenUpdated = false;
     [XmlIgnore]
     public bool PolityClustersHaveBeenUpdated = false;
+
+#if DEBUG
+    private bool _needsDrainageRegeneration = true;
+
+    [XmlIgnore]
+    public bool NeedsDrainageRegeneration
+    {
+        get {
+            return _needsDrainageRegeneration;
+        }
+        set {
+            if (value == true)
+            {
+                Debug.Log("NeedsDrainageRegeneration set to true");
+            }
+
+            _needsDrainageRegeneration = value;
+        }
+    }
+#else
     [XmlIgnore]
     public bool NeedsDrainageRegeneration = true;
+#endif
 
 #if DEBUG
     [XmlIgnore]

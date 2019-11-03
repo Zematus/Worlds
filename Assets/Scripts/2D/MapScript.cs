@@ -17,7 +17,7 @@ public class MapScript : MonoBehaviour
     public Material DefaultMaterial;
     public Material DrainageMaterial;
 
-    public ToggleEvent ActivatedBrush;
+    public UnityEvent ActivatedBrush;
 
     private bool _isDraggingMap = false;
     private Vector2 _beginDragPosition;
@@ -203,16 +203,25 @@ public class MapScript : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Handler for pointer down events within the map.
+    /// </summary>
+    /// <param name="data">
+    /// Mouse data related to the event.
+    /// </param>
     public void PointerDown(BaseEventData data)
     {
         PointerEventData pointerData = data as PointerEventData;
 
         if (pointerData.button == PointerEventData.InputButton.Left)
         {
-            if (!Manager.ViewingGlobe && !_isDraggingMap)
+            if (!Manager.ViewingGlobe &&
+                !_isDraggingMap &&
+                (Manager.GameMode == GameMode.Editor) &&
+                Manager.CanActivateBrush())
             {
                 Manager.ActivateEditorBrush(true);
-                ActivatedBrush.Invoke(true);
+                ActivatedBrush.Invoke();
             }
         }
     }
@@ -223,7 +232,6 @@ public class MapScript : MonoBehaviour
 
         if (pointerData.button == PointerEventData.InputButton.Left)
         {
-            ActivatedBrush.Invoke(false);
             Manager.ActivateEditorBrush(false);
         }
     }

@@ -18,10 +18,10 @@ public static class MathUtility
     /// Parses a float number using a culture invariant format.
     /// </summary>
     /// <param name="s">
-    /// the float number string to parse.
+    /// The float number string to parse.
     /// </param>
     /// <param name="result">
-    /// (out paramenter) the float where to copy the parsed value.
+    /// (out paramenter) The float where to copy the parsed value.
     /// </param>
     /// <returns>
     ///   <c>true</c> if the string could be parsed into a float value correctly. Otherwise, <c>false</c>.
@@ -39,10 +39,10 @@ public static class MathUtility
     /// Parses an integer number using a culture invariant format.
     /// </summary>
     /// <param name="s">
-    /// the integer number string to parse.
+    /// The integer number string to parse.
     /// </param>
     /// <param name="result">
-    /// (out paramenter) the integer where to copy the parsed value.
+    /// (out paramenter) The integer where to copy the parsed value.
     /// </param>
     /// <returns>
     ///   <c>true</c> if the string could be parsed into a integer value correctly. Otherwise, <c>false</c>.
