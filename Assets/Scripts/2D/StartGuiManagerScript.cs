@@ -17,6 +17,7 @@ public class StartGuiManagerScript : MonoBehaviour
     public DialogPanelScript MessageDialogPanelScript;
     public WorldCustomizationDialogPanelScript SetSeedDialogPanelScript;
     public ModalPanelScript CreditsDialogPanelScript;
+    public ModalPanelScript ExitDialogPanelScript;
 
     public Text VersionText;
 
@@ -331,6 +332,14 @@ public class StartGuiManagerScript : MonoBehaviour
         CreditsDialogPanelScript.SetVisible(true);
     }
 
+    /// <summary>Opens the exit dialog.</summary>
+    public void OpenExitDialog()
+    {
+        MainMenuDialogPanelScript.SetVisible(false);
+
+        ExitDialogPanelScript.SetVisible(true);
+    }
+
     /// <summary>Sets the game's fullscreen option.</summary>
     /// <param name="state">If set to <c>true</c>, the game goes fullscreen.</param>
     public void SetFullscreen(bool state)
@@ -376,6 +385,14 @@ public class StartGuiManagerScript : MonoBehaviour
         MessageDialogPanelScript.SetVisible(false);
 
         SetGenerationSeed();
+    }
+
+    /// <summary>Closes the exit dialog.</summary>
+    public void CloseExitDialog()
+    {
+        ExitDialogPanelScript.SetVisible(false);
+
+        MainMenuDialogPanelScript.SetVisible(true);
     }
 
     /// <summary>Displays the error message dialog with a custom message.</summary>

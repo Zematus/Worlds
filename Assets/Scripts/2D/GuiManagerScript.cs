@@ -55,6 +55,7 @@ public class GuiManagerScript : MonoBehaviour
     public FocusPanelScript FocusPanelScript;
     public GuidingPanelScript GuidingPanelScript;
     public ModalPanelScript CreditsDialogPanelScript;
+    public ModalPanelScript ExitDialogPanelScript;
 
     public PaletteScript BiomePaletteScript;
     public PaletteScript MapPaletteScript;
@@ -265,6 +266,7 @@ public class GuiManagerScript : MonoBehaviour
         ErrorMessageDialogPanelScript.SetVisible(false);
         ExceptionDialogPanelScript.SetVisible(false);
         AddPopulationDialogScript.SetVisible(false);
+        ExitDialogPanelScript.SetVisible(false);
 
         FocusPanelScript.SetVisible(false);
         GuidingPanelScript.SetVisible(false);
@@ -1161,6 +1163,13 @@ public class GuiManagerScript : MonoBehaviour
         MenuUninterruptSimulationInternal();
     }
 
+    public void CloseExitDialog()
+    {
+        ExitDialogPanelScript.SetVisible(false);
+
+        MenuUninterruptSimulationInternal();
+    }
+
     public void Exit()
     {
         Application.Quit();
@@ -1185,6 +1194,15 @@ public class GuiManagerScript : MonoBehaviour
         MainMenuDialogPanelScript.SetVisible(false);
 
         CreditsDialogPanelScript.SetVisible(true);
+
+        InterruptSimulation(true);
+    }
+
+    public void OpenExitDialog()
+    {
+        MainMenuDialogPanelScript.SetVisible(false);
+
+        ExitDialogPanelScript.SetVisible(true);
 
         InterruptSimulation(true);
     }
