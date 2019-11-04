@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class LocalizationManagerScript : MonoBehaviour
 {
@@ -10,7 +11,9 @@ public class LocalizationManagerScript : MonoBehaviour
 
     private static readonly List<Dictionary<string, string>> _localizations = new List<Dictionary<string, string>>();
 
-    private Dictionary<string, string> _currentLocalization;
+    private static List<LocalizationUITextScript> _localizationUITextScripts = new List<LocalizationUITextScript>();
+
+    private static Dictionary<string, string> _currentLocalization;
 
     void Awake()
     {
@@ -31,13 +34,19 @@ public class LocalizationManagerScript : MonoBehaviour
         return _currentLocalization[key];
     }
 
-    public void SetCurrentLocalization(string language)
+    public static void SetCurrentLocalization(string language)
     {
         foreach (Dictionary<string, string> localization in _localizations)
         {
             if (localization["LANGUAGE"].Equals(language))
             {
                 _currentLocalization = localization;
+
+                foreach (LocalizationUITextScript localizationUITextScript in _localizationUITextScripts)
+                {
+                    localizationUITextScript.UpdateText();
+                }
+
                 return;
             }
         }
@@ -55,10 +64,25 @@ public class LocalizationManagerScript : MonoBehaviour
             if (localization["LANGUAGE"].Equals(language["LANGUAGE"]))
             {
                 language.ToList().ForEach(x => localization[x.Key] = x.Value);
+
                 return;
             }
         }
 
         Debug.LogError("The specified language does not exist: " + language["LANGUAGE"]);
+    }
+
+    public static void AddInstance(LocalizationUITextScript localizationUITextScript)
+    {
+        _localizationUITextScripts.Add(localizationUITextScript);
+    }
+
+    public void UpdateCurrentLocalization()
+    {
+        GameObject LanguageDropdown = GameObject.Find("LanguageDropdown");
+
+        Dropdown Dropdown = LanguageDropdown.GetComponent<Dropdown>();
+
+        SetCurrentLocalization(Dropdown.options[Dropdown.value].text);
     }
 }
