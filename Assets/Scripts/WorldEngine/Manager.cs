@@ -4123,5 +4123,6 @@ public class Manager
         TryLoadModFiles(RegionAttribute.LoadRegionAttributesFile, path + @"RegionAttributes", progressPerSegment);
         TryLoadModFiles(Element.LoadElementsFile, path + @"Elements", progressPerSegment);
         TryLoadModFiles(Discovery.LoadDiscoveriesFile, path + @"Discoveries", progressPerSegment);
+        TryLoadModFiles(LocalizationManagerScript.LoadLanguagesFile, path + @"Languages", progressPerSegment);
     }
 }
