@@ -209,7 +209,7 @@ public class StartGuiManagerScript : MonoBehaviour
     {
         LoadFileDialogPanelScript.Initialize(
             "Select Heightmap Image to Load...",
-            "Load",
+            LocalizationManagerScript.Instance.GetText("LOAD"),
             LoadHeightmapAction,
             CancelLoadHeightmapAction,
             Manager.HeightmapsPath,
@@ -238,7 +238,7 @@ public class StartGuiManagerScript : MonoBehaviour
 
         LoadFileDialogPanelScript.Initialize(
             "Select World to Load...",
-            "Load",
+            LocalizationManagerScript.Instance.GetText("LOAD"),
             LoadSaveAction,
             CancelLoadSaveAction,
             Manager.SavePath,
