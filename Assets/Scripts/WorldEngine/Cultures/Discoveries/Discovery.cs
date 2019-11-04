@@ -232,15 +232,42 @@ public class Discovery : ICellGroupEventGenerator
 
         float dateSpan = randomFactor * EventTimeToTrigger;
 
+#if DEBUG
+        string factorData = "";
+#endif
+
         if (EventTimeToTriggerFactors != null)
         {
             foreach (Factor factor in EventTimeToTriggerFactors)
             {
-                dateSpan *= factor.Calculate(group);
+                float factorValue = factor.Calculate(group);
+
+#if DEBUG
+                factorData += "\nfactor: " + factor + ", value: " + factorValue;
+#endif
+
+                dateSpan *= Mathf.Clamp01(factorValue);
             }
         }
 
-        long targetDate = (long)(group.World.CurrentDate + dateSpan) + 1;
+        long targetDate = group.World.CurrentDate + (long)dateSpan + 1;
+
+        if ((targetDate <= group.World.CurrentDate) || (targetDate > World.MaxSupportedDate))
+        {
+            // log details about invalid date
+            Debug.LogWarning("Discovery+Event.CalculateTriggerDate - targetDate (" + targetDate + 
+                ") less than or equal to World.CurrentDate (" + group.World.CurrentDate +
+                "), randomFactor: " + randomFactor + 
+                ", EventTimeToTrigger: " + EventTimeToTrigger +
+                ", dateSpan: " + dateSpan
+#if DEBUG
+                + ", factorData: " + factorData);
+#else
+                );
+#endif
+
+            return long.MinValue;
+        }
 
         return targetDate;
     }
@@ -248,6 +275,12 @@ public class Discovery : ICellGroupEventGenerator
     public CellGroupEvent GenerateAndAssignEvent(CellGroup group)
     {
         long triggerDate = CalculateTriggerDate(group);
+
+        if (triggerDate == long.MinValue)
+        {
+            // Do not generate an event. CalculateTriggerDate() should have logged a reason why
+            return null;
+        }
 
         Event discoveryEvent = new Event(this, group, triggerDate, IdHash);
 

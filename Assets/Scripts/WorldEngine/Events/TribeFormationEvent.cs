@@ -25,9 +25,7 @@ public class TribeFormationEvent : CellGroupEvent
 
     public static long CalculateTriggerDate(CellGroup group)
     {
-        int socialOrganizationValue = 0;
-
-        group.Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.KnowledgeId, out socialOrganizationValue);
+        group.Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.KnowledgeId, out int socialOrganizationValue);
 
         float randomFactor = group.Cell.GetNextLocalRandomFloat(RngOffsets.TRIBE_FORMATION_EVENT_CALCULATE_TRIGGER_DATE);
         randomFactor = Mathf.Pow(randomFactor, 2);
@@ -41,7 +39,25 @@ public class TribeFormationEvent : CellGroupEvent
         long targetDate = (long)(group.World.CurrentDate + dateSpan) + CellGroup.GenerationSpan;
 
         if (targetDate <= group.World.CurrentDate)
+        {
+            // targetDate is invalid, generate report
+            Debug.LogWarning("TribeFormationEvent.CalculateTriggerDate - targetDate (" + targetDate +
+                ") less or equal to World.CurrentDate (" + group.World.CurrentDate +
+                "). dateSpan: " + dateSpan + ", DateSpanFactorConstant: " + DateSpanFactorConstant +
+                ", socialOrganizationFactor: " + socialOrganizationFactor + ", randomFactor: " + randomFactor);
+
             targetDate = int.MinValue;
+        }
+        else if (targetDate > World.MaxSupportedDate)
+        {
+            // targetDate is invalid, generate report
+            Debug.LogWarning("TribeFormationEvent.CalculateTriggerDate - targetDate (" + targetDate +
+                ") greater than MaxSupportedDate (" + World.MaxSupportedDate +
+                "). dateSpan: " + dateSpan + ", DateSpanFactorConstant: " + DateSpanFactorConstant +
+                ", socialOrganizationFactor: " + socialOrganizationFactor + ", randomFactor: " + randomFactor);
+
+            targetDate = int.MinValue;
+        }
 
         return targetDate;
     }

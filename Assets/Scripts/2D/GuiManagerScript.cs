@@ -326,12 +326,13 @@ public class GuiManagerScript : MonoBehaviour
 
         _mapLeftClickOp += ClickOp_SelectCell;
 
+#if DEBUG
         if (!Manager.WorldIsReady)
         {
             _heightmap = Manager.LoadTexture(@"Heightmaps\mergetest_4b_3600x1800.png");
 
-            //Manager.SetActiveModPaths(new string[] { @"Mods\Base", @"Mods\WeirdBiomesMod" });
-            Manager.SetActiveModPaths(new string[] { @"Mods\Base" });
+            Manager.SetActiveModPaths(new string[] { @"Mods\Base", @"Mods\WeirdBiomesMod" });
+            //Manager.SetActiveModPaths(new string[] { @"Mods\Base" });
 
             //GenerateWorld(false, 1142453343, useHeightmap: true);
             //GenerateWorld(false, 1582997248);
@@ -341,8 +342,9 @@ public class GuiManagerScript : MonoBehaviour
             //GenerateWorld(false, 483016245);
             //GenerateWorld(false, 1060158945);
             //GenerateWorld(false, 1645709120);
-            GenerateWorld(false, 888101979);
+            //GenerateWorld(false, 888101979);
             //GenerateWorld(false, 6353535);
+            GenerateWorld(false, 1137426545);
         }
         else
         {
@@ -350,6 +352,11 @@ public class GuiManagerScript : MonoBehaviour
 
             SetGameModeAccordingToCurrentWorld();
         }
+#else
+        ValidateLayersPresent();
+
+        SetGameModeAccordingToCurrentWorld();
+#endif
 
         LoadButton.interactable = HasFilesToLoad();
 
