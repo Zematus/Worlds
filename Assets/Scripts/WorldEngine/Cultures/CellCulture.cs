@@ -687,24 +687,25 @@ public class CellCulture : Culture
 
         foreach (CellCulturalKnowledge knowledge in _knowledges.Values)
         {
-//#if DEBUG
-//            if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-//            {
-//                if (Group.Id == Manager.TracingData.GroupId)
-//                {
-//                    SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
-//                        "CellCulture.MinimumKnowledgeProgressLevel - knowledge.Id:" + knowledge.Id + ", Group.Id:" + Group.Id,
-//                        "CurrentDate: " + Group.World.CurrentDate +
-//                        ", knowledge.IsPresent: " + knowledge.IsPresent +
-//                        //", knowledge.WasPresent: " + knowledge.WasPresent +
-//                        "");
+            //#if DEBUG
+            //            if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
+            //            {
+            //                if (Group.Id == Manager.TracingData.GroupId)
+            //                {
+            //                    SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
+            //                        "CellCulture.MinimumKnowledgeProgressLevel - knowledge.Id:" + knowledge.Id + ", Group.Id:" + Group.Id,
+            //                        "CurrentDate: " + Group.World.CurrentDate +
+            //                        ", knowledge.IsPresent: " + knowledge.IsPresent +
+            //                        //", knowledge.WasPresent: " + knowledge.WasPresent +
+            //                        "");
 
-//                    Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-//                }
-//            }
-//#endif
+            //                    Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+            //                }
+            //            }
+            //#endif
 
-            float level = knowledge.CalculateExpectedProgressLevel();
+            // if progress level equals 0 that means the knowledge can't really progress. So we ignore it
+            float level = (knowledge.ProgressLevel > 0) ? knowledge.CalculateExpectedProgressLevel() : 1;
 
             if (level < minProgressLevel)
             {
