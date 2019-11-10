@@ -49,12 +49,10 @@ public enum CellUpdateSubType
 public class TerrainCell
 {
 #if DEBUG
-
     public delegate void GetNextLocalRandomCalledDelegate(string callerMethod);
 
     //	public static int LastRandomInteger = 0; 
     public static GetNextLocalRandomCalledDelegate GetNextLocalRandomCalled = null;
-
 #endif
 
     public const int MaxNeighborDirections = 8;

@@ -1384,15 +1384,15 @@ public class World : ISynchronizable
 
         Profiler.EndSample();
 
-        Profiler.BeginSample("UpdateFactions");
-
-        UpdateFactions();
-
-        Profiler.EndSample();
-
         Profiler.BeginSample("RemoveFactions");
 
         RemoveFactions();
+
+        Profiler.EndSample();
+
+        Profiler.BeginSample("UpdateFactions");
+
+        UpdateFactions();
 
         Profiler.EndSample();
 
@@ -1754,9 +1754,7 @@ public class World : ISynchronizable
 
                 string callingClass = method.DeclaringType.ToString();
 
-                int knowledgeValue = 0;
-
-                faction.Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.KnowledgeId, out knowledgeValue);
+                faction.Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.KnowledgeId, out int knowledgeValue);
 
                 SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
                     "World:AddFactionToUpdate - Faction Id:" + faction.Id,
@@ -1774,24 +1772,9 @@ public class World : ISynchronizable
         {
             System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
 
-            System.Reflection.MethodBase method = stackTrace.GetFrame(1).GetMethod();
-            string callingMethod = method.Name;
-
-            int frame = 2;
-            while (callingMethod.Contains("SetFactionUpdates")
-                || callingMethod.Contains("SetToUpdate"))
-            {
-                method = stackTrace.GetFrame(frame).GetMethod();
-                callingMethod = method.Name;
-
-                frame++;
-            }
-
-            string callingClass = method.DeclaringType.ToString();
-
             Debug.LogWarning(
                 "Trying to add faction to update after factions have already been updated this iteration. Id: " +
-                faction.Id + ", Calling method: " + callingClass + "." + callingMethod);
+                faction.Id + ", stackTrace:\n" + stackTrace);
         }
 
         if (!faction.StillPresent)
@@ -3816,13 +3799,11 @@ public class World : ISynchronizable
         }
 
         float temperature = CalculateTemperature(value + cell.BaseTemperatureOffset);
-
-#if DEBUG
+        
         if (!temperature.IsInsideRange(MinPossibleTemperatureWithOffset - 0.5f, MaxPossibleTemperatureWithOffset + 0.5f))
         {
             Debug.LogWarning("CalculateAndSetTemperature - Invalid temperature: " + temperature);
         }
-#endif
 
         cell.Temperature = temperature;
         cell.OriginalTemperature = temperature;
@@ -3841,13 +3822,11 @@ public class World : ISynchronizable
         float offset = cell.BaseTemperatureOffset;
 
         float temperature = CalculateTemperature(value + offset);
-
-#if DEBUG
+        
         if (!temperature.IsInsideRange(MinPossibleTemperatureWithOffset - 0.5f, MaxPossibleTemperatureWithOffset + 0.5f))
         {
             Debug.LogWarning("RecalculateAndSetTemperature - Invalid temperature: " + temperature);
         }
-#endif
 
         cell.Temperature = temperature;
         cell.OriginalTemperature = temperature;

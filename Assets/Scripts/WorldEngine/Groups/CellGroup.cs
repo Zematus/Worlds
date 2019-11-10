@@ -275,13 +275,11 @@ public class CellGroup : HumanGroup
         get
         {
             int population = (int)Mathf.Floor(ExactPopulation);
-
-#if DEBUG
+            
             if (population < 0)
             {
                 throw new System.Exception("Negative Population: " + population + ", Id: " + Id);
             }
-#endif
 
             return population;
         }
@@ -535,7 +533,6 @@ public class CellGroup : HumanGroup
 
     public void SetHighestPolityProminence(PolityProminence prominence)
     {
-#if DEBUG
         if (prominence == null)
         {
             if (_polityProminences.Count > 0)
@@ -543,7 +540,6 @@ public class CellGroup : HumanGroup
                 throw new System.Exception("Trying to set HighestPolityProminence to null when there are still polity prominences in group");
             }
         }
-#endif
 
         if (HighestPolityProminence == prominence)
             return;
@@ -742,6 +738,13 @@ public class CellGroup : HumanGroup
 
         float percentage = group.Population / newPopulation;
 
+        if (!percentage.IsInsideRange(0, 1))
+        {
+            Debug.LogWarning("MergeGroup, percentage increase outside of range (0,1): " + percentage);
+        }
+
+        percentage = Mathf.Clamp01(percentage);
+
         //		#if DEBUG
         //		float oldExactPopulation = ExactPopulation;
         //		#endif
@@ -925,13 +928,11 @@ public class CellGroup : HumanGroup
         //			}
         //		}
         //		#endif
-
-#if DEBUG
+        
         if (Population < 0)
         {
             throw new System.Exception("Population less than 0");
         }
-#endif
 
         return splitPopulation;
     }
@@ -1170,13 +1171,11 @@ public class CellGroup : HumanGroup
 
         float altitudeDeltaFactor = CalculateAltitudeDeltaFactor(cell);
         float altitudeDeltaFactorPow = Mathf.Pow(altitudeDeltaFactor, 4);
-
-#if DEBUG
+        
         if (float.IsNaN(altitudeDeltaFactorPow))
         {
-            throw new System.Exception("float.IsNaN (altitudeDeltaFactorPow)");
+            throw new System.Exception("float.IsNaN(altitudeDeltaFactorPow)");
         }
-#endif
 
         int existingPopulation = 0;
 
@@ -1209,14 +1208,11 @@ public class CellGroup : HumanGroup
         }
 
         float cellValue = altitudeDeltaFactorPow * areaFactor * popDifferenceFactor * noMigrationFactor * targetOptimalPopulationFactor;
-
-#if DEBUG
+        
         if (float.IsNaN(cellValue))
         {
-            Debug.Break();
-            throw new System.Exception("float.IsNaN (cellValue)");
+            throw new System.Exception("float.IsNaN(cellValue)");
         }
-#endif
 
         //#if DEBUG
         //        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
@@ -1425,13 +1421,11 @@ public class CellGroup : HumanGroup
         MigrationValue = CalculateMigrationValue(Cell);
 
         TotalMigrationValue = MigrationValue;
-
-#if DEBUG
+        
         if (float.IsNaN(TotalMigrationValue))
         {
-            throw new System.Exception("float.IsNaN (TotalMigrationValue)");
+            throw new System.Exception("float.IsNaN(TotalMigrationValue)");
         }
-#endif
     }
 
     private class CellWeight : CollectionUtility.ElementWeightPair<TerrainCell>
@@ -1857,17 +1851,17 @@ public class CellGroup : HumanGroup
 
         List<PolityProminenceWeight> polityProminenceWeights = new List<PolityProminenceWeight>(_polityProminences.Count);
 
-#if DEBUG
-        string polityProminencesStr = "";
-#endif
+//#if DEBUG
+//        string polityProminencesStr = "";
+//#endif
 
         foreach (PolityProminence pi in _polityProminences.Values)
         {
             polityProminenceWeights.Add(new PolityProminenceWeight(pi, pi.Value));
 
-#if DEBUG
-            polityProminencesStr += "[" + pi.PolityId + "|" + pi.Value + "],";
-#endif
+//#if DEBUG
+//            polityProminencesStr += "[" + pi.PolityId + "|" + pi.Value + "],";
+//#endif
         }
 
         float selectionValue = Cell.GetNextLocalRandomFloat(RngOffsets.CELL_GROUP_CONSIDER_POLITY_PROMINENCE_EXPANSION_POLITY);
@@ -2129,10 +2123,7 @@ public class CellGroup : HumanGroup
             return;
 
 #if DEBUG
-        if (UpdateCalled != null)
-        {
-            UpdateCalled();
-        }
+        UpdateCalled?.Invoke();
 #endif
 
         _alreadyUpdated = true;

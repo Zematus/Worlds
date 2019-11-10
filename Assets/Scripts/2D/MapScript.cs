@@ -346,11 +346,6 @@ public class MapScript : MonoBehaviour
         float oldZoomFactor = _zoomFactor;
         _zoomFactor = Mathf.Clamp(_zoomFactor - delta, _minZoomFactor, _maxZoomFactor);
 
-#if DEBUG
-        if (_zoomFactor <= 0)
-            throw new System.Exception("invalid _zoomFactor: " + _zoomFactor);
-#endif
-
         float maxUvY = 1f - _zoomFactor;
 
         Rect newUvRect = MapImage.uvRect;

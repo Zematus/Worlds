@@ -107,20 +107,16 @@ public class PolityProminence : IKeyedValue<long>
         {
             Cluster.RequireNewCensus(true);
         }
-
-#if DEBUG
+        
         if (FactionCoreDistance == -1)
         {
             throw new System.Exception("Core distance is not properly initialized");
         }
-#endif
 
-#if DEBUG
         if (PolityCoreDistance == -1)
         {
             throw new System.Exception("Core distance is not properly initialized");
         }
-#endif
     }
 
     public long GetKey()

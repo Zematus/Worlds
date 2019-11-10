@@ -163,10 +163,7 @@ public class ClanSplitDecision : FactionDecision
 
     public static void LeaderAllowsSplit(Clan clan, CellGroup newClanCoreGroup, long eventId)
     {
-        float minInfluence;
-        float maxInfluence;
-
-        CalculateMinMaxInfluence(clan, out minInfluence, out maxInfluence);
+        CalculateMinMaxInfluence(clan, out float minInfluence, out float maxInfluence);
 
         newClanCoreGroup.SetToUpdate();
 

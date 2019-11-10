@@ -227,13 +227,6 @@ public class CellCulture : Culture
 
     public void MergeCulture(Culture sourceCulture, float percentage)
     {
-#if DEBUG
-        if ((percentage < 0) || (percentage > 1))
-        {
-            Debug.LogWarning("percentage value outside the [0,1] range");
-        }
-#endif
-
         foreach (CulturalPreference p in sourceCulture.GetPreferences())
         {
             CellCulturalPreference preference = GetAcquiredPreferenceOrToAcquire(p.Id);

@@ -232,19 +232,11 @@ public class Discovery : ICellGroupEventGenerator
 
         float dateSpan = randomFactor * EventTimeToTrigger;
 
-#if DEBUG
-        string factorData = "";
-#endif
-
         if (EventTimeToTriggerFactors != null)
         {
             foreach (Factor factor in EventTimeToTriggerFactors)
             {
                 float factorValue = factor.Calculate(group);
-
-#if DEBUG
-                factorData += "\nfactor: " + factor + ", value: " + factorValue;
-#endif
 
                 dateSpan *= Mathf.Clamp01(factorValue);
             }
@@ -259,12 +251,7 @@ public class Discovery : ICellGroupEventGenerator
                 ") less than or equal to World.CurrentDate (" + group.World.CurrentDate +
                 "), randomFactor: " + randomFactor + 
                 ", EventTimeToTrigger: " + EventTimeToTrigger +
-                ", dateSpan: " + dateSpan
-#if DEBUG
-                + ", factorData: " + factorData);
-#else
-                );
-#endif
+                ", dateSpan: " + dateSpan);
 
             return long.MinValue;
         }
