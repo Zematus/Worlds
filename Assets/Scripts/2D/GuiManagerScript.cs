@@ -394,6 +394,9 @@ public class GuiManagerScript : MonoBehaviour
 
             if (_timeSinceLastMapUpdate > 1) // Every second
             {
+                Manager.LastEventsTriggeredCount = Manager.CurrentWorld.EventsTriggered;
+                Manager.CurrentWorld.EventsTriggered = 0;
+
                 Manager.LastMapUpdateCount = _mapUpdateCount;
                 _mapUpdateCount = 0;
 
@@ -1222,10 +1225,12 @@ public class GuiManagerScript : MonoBehaviour
 
         if (state)
         {
+            Manager.CurrentWorld.EventsTriggered = 0;
             _mapUpdateCount = 0;
             _pixelUpdateCount = 0;
             _timeSinceLastMapUpdate = 0;
 
+            Manager.LastEventsTriggeredCount = 0;
             Manager.LastMapUpdateCount = 0;
             Manager.LastPixelUpdateCount = 0;
             Manager.LastDateSpan = 0;

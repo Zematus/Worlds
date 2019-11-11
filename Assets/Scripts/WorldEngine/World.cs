@@ -196,6 +196,8 @@ public class World : ISynchronizable
 
     public static Dictionary<string, IWorldEventGenerator> EventGenerators;
 
+    public int EventsTriggered = 0;
+
     [XmlAttribute]
     public int Width { get; set; }
     [XmlAttribute]
@@ -1316,6 +1318,11 @@ public class World : ISynchronizable
 #endif
 
             eventToHappen.Trigger();
+
+            if (Manager.DebugModeEnabled)
+            {
+                EventsTriggered++;
+            }
 
 #if DEBUG
             Profiler.EndSample();

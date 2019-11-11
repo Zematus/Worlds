@@ -199,6 +199,7 @@ public class Manager
 
     public static bool ViewingGlobe = false;
 
+    public static int LastEventsTriggeredCount = 0;
     public static int LastMapUpdateCount = 0;
     public static int LastPixelUpdateCount = 0;
     public static long LastDateSpan = 0;

@@ -7,8 +7,6 @@ using UnityEngine.Profiling;
 
 public class MigrateGroupEvent : CellGroupEvent
 {
-    public static int MigrationEventCount = 0;
-
     [XmlAttribute("TLon")]
     public int TargetCellLongitude;
     [XmlAttribute("TLat")]
@@ -25,20 +23,12 @@ public class MigrateGroupEvent : CellGroupEvent
 
     public MigrateGroupEvent()
     {
-#if DEBUG
-        MigrationEventCount++;
-#endif
-
         DoNotSerialize = true;
     }
 
     public MigrateGroupEvent(CellGroup group, TerrainCell targetCell, Direction migrationDirection, long triggerDate, long originalSpawnDate = - 1) : 
         base(group, triggerDate, MigrateGroupEventId, originalSpawnDate: originalSpawnDate)
     {
-#if DEBUG
-        MigrationEventCount++;
-#endif
-
         TargetCell = targetCell;
 
         TargetCellLongitude = TargetCell.Longitude;
@@ -127,10 +117,6 @@ public class MigrateGroupEvent : CellGroupEvent
 
     protected override void DestroyInternal()
     {
-#if DEBUG
-        MigrationEventCount--;
-#endif
-
         if (Group != null)
         {
             Group.HasMigrationEvent = false;
@@ -141,10 +127,6 @@ public class MigrateGroupEvent : CellGroupEvent
 
     public void Reset(TerrainCell targetCell, Direction migrationDirection, long triggerDate)
     {
-#if DEBUG
-        MigrationEventCount++;
-#endif
-
         TargetCell = targetCell;
 
         TargetCellLongitude = TargetCell.Longitude;
