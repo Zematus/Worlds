@@ -326,6 +326,7 @@ public class GuiManagerScript : MonoBehaviour
 
         _mapLeftClickOp += ClickOp_SelectCell;
 
+#if DEBUG
         if (!Manager.WorldIsReady)
         {
             _heightmap = Manager.LoadTexture(@"Heightmaps\mergetest_4b_3600x1800.png");
@@ -341,8 +342,10 @@ public class GuiManagerScript : MonoBehaviour
             //GenerateWorld(false, 483016245);
             //GenerateWorld(false, 1060158945);
             //GenerateWorld(false, 1645709120);
-            GenerateWorld(false, 888101979);
+            //GenerateWorld(false, 888101979);
             //GenerateWorld(false, 6353535);
+            //GenerateWorld(false, 1137426545);
+            GenerateWorld(false, 1277025723);
         }
         else
         {
@@ -350,6 +353,11 @@ public class GuiManagerScript : MonoBehaviour
 
             SetGameModeAccordingToCurrentWorld();
         }
+#else
+        ValidateLayersPresent();
+
+        SetGameModeAccordingToCurrentWorld();
+#endif
 
         LoadButton.interactable = HasFilesToLoad();
 
@@ -386,6 +394,9 @@ public class GuiManagerScript : MonoBehaviour
 
             if (_timeSinceLastMapUpdate > 1) // Every second
             {
+                Manager.LastEventsTriggeredCount = Manager.CurrentWorld.EventsTriggered;
+                Manager.CurrentWorld.EventsTriggered = 0;
+
                 Manager.LastMapUpdateCount = _mapUpdateCount;
                 _mapUpdateCount = 0;
 
@@ -1214,10 +1225,12 @@ public class GuiManagerScript : MonoBehaviour
 
         if (state)
         {
+            Manager.CurrentWorld.EventsTriggered = 0;
             _mapUpdateCount = 0;
             _pixelUpdateCount = 0;
             _timeSinceLastMapUpdate = 0;
 
+            Manager.LastEventsTriggeredCount = 0;
             Manager.LastMapUpdateCount = 0;
             Manager.LastPixelUpdateCount = 0;
             Manager.LastDateSpan = 0;

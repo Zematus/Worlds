@@ -75,9 +75,7 @@ public class ClanDemandsInfluenceDecisionEvent : FactionEvent
 
         if (triggerDateSpan < 0)
         {
-#if DEBUG
             Debug.LogWarning("updateSpan less than 0: " + triggerDateSpan);
-#endif
 
             triggerDateSpan = CellGroup.MaxUpdateSpan;
         }

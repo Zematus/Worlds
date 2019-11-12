@@ -49,11 +49,11 @@ public class InfoPanelScript : MonoBehaviour
             }
 
             InfoText.text += "\n";
-            InfoText.text += "\nNumber of Migration Events: " + MigrateGroupEvent.MigrationEventCount;
+            InfoText.text += "\nEvents Triggered Per Second: " + Manager.LastEventsTriggeredCount;
 
             InfoText.text += "\n";
-            InfoText.text += "\nMap Updates Per RTS: " + Manager.LastMapUpdateCount;
-            InfoText.text += "\nPixel Updates Per RTS: " + Manager.LastPixelUpdateCount;
+            InfoText.text += "\nMap Updates Per Second: " + Manager.LastMapUpdateCount;
+            InfoText.text += "\nPixel Updates Per Second: " + Manager.LastPixelUpdateCount;
 
             if (Manager.LastMapUpdateCount > 0)
             {

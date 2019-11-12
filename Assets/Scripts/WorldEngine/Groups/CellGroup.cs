@@ -275,13 +275,11 @@ public class CellGroup : HumanGroup
         get
         {
             int population = (int)Mathf.Floor(ExactPopulation);
-
-#if DEBUG
+            
             if (population < 0)
             {
                 throw new System.Exception("Negative Population: " + population + ", Id: " + Id);
             }
-#endif
 
             return population;
         }
@@ -535,7 +533,6 @@ public class CellGroup : HumanGroup
 
     public void SetHighestPolityProminence(PolityProminence prominence)
     {
-#if DEBUG
         if (prominence == null)
         {
             if (_polityProminences.Count > 0)
@@ -543,7 +540,6 @@ public class CellGroup : HumanGroup
                 throw new System.Exception("Trying to set HighestPolityProminence to null when there are still polity prominences in group");
             }
         }
-#endif
 
         if (HighestPolityProminence == prominence)
             return;
@@ -742,6 +738,13 @@ public class CellGroup : HumanGroup
 
         float percentage = group.Population / newPopulation;
 
+        if (!percentage.IsInsideRange(0, 1))
+        {
+            Debug.LogWarning("MergeGroup, percentage increase outside of range (0,1): " + percentage);
+        }
+
+        percentage = Mathf.Clamp01(percentage);
+
         //		#if DEBUG
         //		float oldExactPopulation = ExactPopulation;
         //		#endif
@@ -925,13 +928,11 @@ public class CellGroup : HumanGroup
         //			}
         //		}
         //		#endif
-
-#if DEBUG
+        
         if (Population < 0)
         {
             throw new System.Exception("Population less than 0");
         }
-#endif
 
         return splitPopulation;
     }
@@ -1123,6 +1124,12 @@ public class CellGroup : HumanGroup
 
         LastUpdateDate = World.CurrentDate;
 
+        if (NextUpdateDate == long.MinValue)
+        {
+            // Do not generate event
+            return;
+        }
+
         if (UpdateEvent == null)
         {
             UpdateEvent = new UpdateCellGroupEvent(this, NextUpdateDate);
@@ -1164,13 +1171,11 @@ public class CellGroup : HumanGroup
 
         float altitudeDeltaFactor = CalculateAltitudeDeltaFactor(cell);
         float altitudeDeltaFactorPow = Mathf.Pow(altitudeDeltaFactor, 4);
-
-#if DEBUG
+        
         if (float.IsNaN(altitudeDeltaFactorPow))
         {
-            throw new System.Exception("float.IsNaN (altitudeDeltaFactorPow)");
+            throw new System.Exception("float.IsNaN(altitudeDeltaFactorPow)");
         }
-#endif
 
         int existingPopulation = 0;
 
@@ -1203,14 +1208,11 @@ public class CellGroup : HumanGroup
         }
 
         float cellValue = altitudeDeltaFactorPow * areaFactor * popDifferenceFactor * noMigrationFactor * targetOptimalPopulationFactor;
-
-#if DEBUG
+        
         if (float.IsNaN(cellValue))
         {
-            Debug.Break();
-            throw new System.Exception("float.IsNaN (cellValue)");
+            throw new System.Exception("float.IsNaN(cellValue)");
         }
-#endif
 
         //#if DEBUG
         //        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
@@ -1419,13 +1421,11 @@ public class CellGroup : HumanGroup
         MigrationValue = CalculateMigrationValue(Cell);
 
         TotalMigrationValue = MigrationValue;
-
-#if DEBUG
+        
         if (float.IsNaN(TotalMigrationValue))
         {
-            throw new System.Exception("float.IsNaN (TotalMigrationValue)");
+            throw new System.Exception("float.IsNaN(TotalMigrationValue)");
         }
-#endif
     }
 
     private class CellWeight : CollectionUtility.ElementWeightPair<TerrainCell>
@@ -1522,12 +1522,9 @@ public class CellGroup : HumanGroup
         if (rollValue > migrationChance)
             return;
 
-        float cellSurvivability = 0;
-        float cellForagingCapacity = 0;
-
         Profiler.BeginSample("CalculateAdaptionToCell");
 
-        CalculateAdaptionToCell(targetCell, out cellForagingCapacity, out cellSurvivability);
+        CalculateAdaptionToCell(targetCell, out float cellForagingCapacity, out float cellSurvivability);
 
         Profiler.EndSample();
 
@@ -1549,6 +1546,29 @@ public class CellGroup : HumanGroup
         int travelTime = (int)Mathf.Ceil(World.YearLength * Cell.Width / (TravelWidthFactor * travelFactor));
 
         long nextDate = World.CurrentDate + travelTime;
+
+        if (nextDate <= World.CurrentDate)
+        {
+            // nextDate is invalid, generate report
+            Debug.LogWarning("CellGroup.ConsiderLandMigration - nextDate (" + nextDate +
+                ") less or equal to World.CurrentDate (" + World.CurrentDate +
+                "). travelTime: " + travelTime + ", Cell.Width: " + Cell.Width + 
+                ", TravelWidthFactor: " + TravelWidthFactor + ", travelFactor: " + travelFactor);
+
+            // Do not generate event
+            return;
+        }
+        else if (nextDate > World.MaxSupportedDate)
+        {
+            // nextDate is invalid, generate report
+            Debug.LogWarning("CellGroup.ConsiderLandMigration - nextDate (" + nextDate +
+                ") greater than MaxSupportedDate (" + World.MaxSupportedDate +
+                "). travelTime: " + travelTime + ", Cell.Width: " + Cell.Width +
+                ", TravelWidthFactor: " + TravelWidthFactor + ", travelFactor: " + travelFactor);
+
+            // Do not generate event
+            return;
+        }
 
         //#if DEBUG
         //        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
@@ -1657,10 +1677,7 @@ public class CellGroup : HumanGroup
             throw new System.Exception("float.IsNaN (TotalMigrationValue)");
         }
 
-        float cellSurvivability = 0;
-        float cellForagingCapacity = 0;
-
-        CalculateAdaptionToCell(targetCell, out cellForagingCapacity, out cellSurvivability);
+        CalculateAdaptionToCell(targetCell, out float cellForagingCapacity, out float cellSurvivability);
 
         if (cellSurvivability <= 0)
             return;
@@ -1711,11 +1728,32 @@ public class CellGroup : HumanGroup
         if (attemptValue > successChance)
             return;
 
-        SeaMigrationRoute.Used = true;
-
         int travelTime = (int)Mathf.Ceil(World.YearLength * routeLength / SeaTravelFactor);
 
         long nextDate = World.CurrentDate + travelTime;
+
+        if (nextDate <= World.CurrentDate)
+        {
+            // nextDate is invalid, generate report
+            Debug.LogWarning("CellGroup.ConsiderSeaMigration - nextDate (" + nextDate + 
+                ") less or equal to World.CurrentDate (" + World.CurrentDate + 
+                "). travelTime: " + travelTime + ", routeLength: " + routeLength + ", SeaTravelFactor: " + SeaTravelFactor);
+
+            // Do not generate event
+            return;
+        }
+        else if (nextDate > World.MaxSupportedDate)
+        {
+            // nextDate is invalid, generate report
+            Debug.LogWarning("CellGroup.ConsiderSeaMigration - nextDate (" + nextDate +
+                ") greater than MaxSupportedDate (" + World.MaxSupportedDate +
+                "). travelTime: " + travelTime + ", routeLength: " + routeLength + ", SeaTravelFactor: " + SeaTravelFactor);
+
+            // Do not generate event
+            return;
+        }
+
+        SeaMigrationRoute.Used = true;
 
         //#if DEBUG
         //        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
@@ -1813,17 +1851,17 @@ public class CellGroup : HumanGroup
 
         List<PolityProminenceWeight> polityProminenceWeights = new List<PolityProminenceWeight>(_polityProminences.Count);
 
-#if DEBUG
-        string polityProminencesStr = "";
-#endif
+//#if DEBUG
+//        string polityProminencesStr = "";
+//#endif
 
         foreach (PolityProminence pi in _polityProminences.Values)
         {
             polityProminenceWeights.Add(new PolityProminenceWeight(pi, pi.Value));
 
-#if DEBUG
-            polityProminencesStr += "[" + pi.PolityId + "|" + pi.Value + "],";
-#endif
+//#if DEBUG
+//            polityProminencesStr += "[" + pi.PolityId + "|" + pi.Value + "],";
+//#endif
         }
 
         float selectionValue = Cell.GetNextLocalRandomFloat(RngOffsets.CELL_GROUP_CONSIDER_POLITY_PROMINENCE_EXPANSION_POLITY);
@@ -1934,6 +1972,29 @@ public class CellGroup : HumanGroup
         int travelTime = (int)Mathf.Ceil(World.YearLength * Cell.Width / (TravelWidthFactor * travelFactor));
 
         long nextDate = World.CurrentDate + travelTime;
+
+        if (nextDate <= World.CurrentDate)
+        {
+            // nextDate is invalid, generate report
+            Debug.LogWarning("CellGroup.ConsiderPolityProminenceExpansion - nextDate (" + nextDate +
+                ") less or equal to World.CurrentDate (" + World.CurrentDate +
+                "). travelTime: " + travelTime + ", Cell.Width: " + Cell.Width +
+                ", TravelWidthFactor: " + TravelWidthFactor + ", travelFactor: " + travelFactor);
+
+            // Do not generate event
+            return;
+        }
+        else if (nextDate > World.MaxSupportedDate)
+        {
+            // targetDate is invalid, generate report
+            Debug.LogWarning("CellGroup.ConsiderPolityProminenceExpansion - nextDate (" + nextDate +
+                ") greater than MaxSupportedDate (" + World.MaxSupportedDate +
+                "). travelTime: " + travelTime + ", Cell.Width: " + Cell.Width +
+                ", TravelWidthFactor: " + TravelWidthFactor + ", travelFactor: " + travelFactor);
+
+            // Do not generate event
+            return;
+        }
 
         //#if DEBUG
         //        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
@@ -2062,10 +2123,7 @@ public class CellGroup : HumanGroup
             return;
 
 #if DEBUG
-        if (UpdateCalled != null)
-        {
-            UpdateCalled();
-        }
+        UpdateCalled?.Invoke();
 #endif
 
         _alreadyUpdated = true;
@@ -2649,7 +2707,8 @@ public class CellGroup : HumanGroup
         
         populationFactor = Mathf.Min(populationFactor, MaxUpdateSpanFactor);
 
-        float mixFactor = randomFactor * migrationFactor * polityExpansionFactor * skillLevelFactor * knowledgeLevelFactor * populationFactor;
+        float mixFactor = randomFactor * migrationFactor * polityExpansionFactor * 
+            skillLevelFactor * knowledgeLevelFactor * populationFactor;
 
         long updateSpan = GenerationSpan * (int)mixFactor;
 
@@ -2686,8 +2745,37 @@ public class CellGroup : HumanGroup
             }
         }
 #endif
-        
-        return World.CurrentDate + updateSpan;
+
+        long nextDate = World.CurrentDate + updateSpan;
+
+        if (nextDate <= World.CurrentDate)
+        {
+            // nextDate is invalid, generate report
+            Debug.LogWarning("CellGroup.CalculateNextUpDateDate - nextDate (" + nextDate +
+                ") less or equal to World.CurrentDate (" + World.CurrentDate +
+                "). updateSpan: " + updateSpan + ", randomFactor: " + randomFactor +
+                ", migrationFactor: " + migrationFactor +
+                ", skillLevelFactor: " + skillLevelFactor +
+                ", knowledgeLevelFactor: " + knowledgeLevelFactor +
+                ", populationFactor: " + populationFactor);
+
+            nextDate = int.MinValue;
+        }
+        else if (nextDate > World.MaxSupportedDate)
+        {
+            // nextDate is invalid, generate report
+            Debug.LogWarning("CellGroup.CalculateNextUpDateDate - nextDate (" + nextDate +
+                ") greater than MaxSupportedDate (" + World.MaxSupportedDate +
+                "). updateSpan: " + updateSpan + ", randomFactor: " + randomFactor +
+                ", migrationFactor: " + migrationFactor +
+                ", skillLevelFactor: " + skillLevelFactor +
+                ", knowledgeLevelFactor: " + knowledgeLevelFactor +
+                ", populationFactor: " + populationFactor);
+
+            nextDate = int.MinValue;
+        }
+
+        return nextDate;
     }
 
     public float PopulationAfterTime(long time) // in years

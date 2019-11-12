@@ -61,18 +61,17 @@ public abstract class FactionEvent : WorldEvent {
 //#endif
     }
 
-    public static long GenerateUniqueIdentifier (Faction faction, long triggerDate, long eventTypeId) {
+    public static long GenerateUniqueIdentifier(Faction faction, long triggerDate, long eventTypeId)
+    {
+        if (triggerDate > World.MaxSupportedDate)
+        {
+            Debug.LogWarning("FactionEvent.GenerateUniqueIdentifier - 'triggerDate' is greater than " + World.MaxSupportedDate + " (triggerDate = " + triggerDate + ")");
+        }
 
-		#if DEBUG
-		if (triggerDate >= World.MaxSupportedDate) {
-			Debug.LogWarning ("'triggerDate' shouldn't be greater than " + World.MaxSupportedDate + " (triggerDate = " + triggerDate + ")");
-		}
-		#endif
+        return (triggerDate * 1000000000L) + ((faction.Id % 1000000L) * 1000L) + eventTypeId;
+    }
 
-		return (triggerDate * 1000000000L) + ((faction.Id % 1000000L) * 1000L) + eventTypeId;
-	}
-
-	public override bool IsStillValid () {
+    public override bool IsStillValid () {
 
 		if (!base.IsStillValid ())
 			return false;

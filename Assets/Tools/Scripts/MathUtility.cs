@@ -129,7 +129,7 @@ public static class MathUtility
     public static float RoundToSixDecimals(float value)
     {
 #if DEBUG
-        if ((value < 0) || (value > 1))
+        if (!value.IsInsideRange(0,1))
         {
             Debug.LogWarning("This function is meant to be used only with values between 0 and 1. Value = " + value);
         }
@@ -346,6 +346,6 @@ public static class MathUtility
             return (T)values.GetValue(0);
         }
 
-        return default(T);
+        return default;
     }
 }

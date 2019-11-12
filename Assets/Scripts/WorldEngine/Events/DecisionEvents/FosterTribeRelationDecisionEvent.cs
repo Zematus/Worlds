@@ -43,32 +43,31 @@ public class FosterTribeRelationDecisionEvent : PolityEvent {
         DoNotSerialize = true;
     }
 
-    public static long CalculateTriggerDate (Tribe tribe) {
+    public static long CalculateTriggerDate(Tribe tribe)
+    {
+        float randomFactor = tribe.GetNextLocalRandomFloat(RngOffsets.FOSTER_TRIBE_RELATION_EVENT_CALCULATE_TRIGGER_DATE);
+        randomFactor = Mathf.Pow(randomFactor, 2);
 
-		float randomFactor = tribe.GetNextLocalRandomFloat (RngOffsets.FOSTER_TRIBE_RELATION_EVENT_CALCULATE_TRIGGER_DATE);
-		randomFactor = Mathf.Pow (randomFactor, 2);
+        float isolationPreferenceValue = tribe.GetPreferenceValue(CulturalPreference.IsolationPreferenceId);
 
-		float isolationPreferenceValue = tribe.GetPreferenceValue (CulturalPreference.IsolationPreferenceId);
+        float isoloationPrefFactor = 2 * isolationPreferenceValue;
+        isoloationPrefFactor = Mathf.Pow(isoloationPrefFactor, 4);
 
-		float isoloationPrefFactor = 2 * isolationPreferenceValue;
-		isoloationPrefFactor = Mathf.Pow (isoloationPrefFactor, 4);
+        float dateSpan = (1 - randomFactor) * DateSpanFactorConstant * isoloationPrefFactor;
 
-		float dateSpan = (1 - randomFactor) * DateSpanFactorConstant * isoloationPrefFactor;
+        long triggerDateSpan = (long)dateSpan + CellGroup.GenerationSpan;
 
-		long triggerDateSpan = (long)dateSpan + CellGroup.GenerationSpan;
+        if (triggerDateSpan < 0)
+        {
+            Debug.LogWarning("updateSpan less than 0: " + triggerDateSpan);
 
-		if (triggerDateSpan < 0) {
-			#if DEBUG
-			Debug.LogWarning ("updateSpan less than 0: " + triggerDateSpan);
-			#endif
+            triggerDateSpan = CellGroup.MaxUpdateSpan;
+        }
 
-			triggerDateSpan = CellGroup.MaxUpdateSpan;
-		}
+        return tribe.World.CurrentDate + triggerDateSpan;
+    }
 
-		return tribe.World.CurrentDate + triggerDateSpan;
-	}
-
-	public float GetContactWeight (PolityContact contact) {
+    public float GetContactWeight (PolityContact contact) {
 
 		if (contact.Polity is Tribe)
 			return _sourceTribe.CalculateContactStrength (contact);

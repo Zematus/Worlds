@@ -135,13 +135,11 @@ public class Tribe : Polity
     {
         float targetPolityInfluence = triggerClan.Influence;
         float sourcePolityInfluence = 1 - targetPolityInfluence;
-
-#if DEBUG
+        
         if (targetPolityInfluence <= 0)
         {
             throw new System.Exception("Pulling clan influence equal or less than zero.");
         }
-#endif
         
         int maxGroupCount = sourcePolity.Groups.Count;
 
@@ -207,8 +205,14 @@ public class Tribe : Polity
 
                 foreach (Faction faction in group.GetFactionCores())
                 {
+                    // Do not transfer factions that belong to polities other than the source one
                     if (faction.Polity != sourcePolity)
                         continue;
+
+                    if (sourcePolity.DominantFaction == faction)
+                    {
+                        new System.Exception("Dominant Faction getting switched...");
+                    }
 
                     //					#if DEBUG
                     //					if (sourcePolity.FactionCount == 1) {
@@ -242,9 +246,7 @@ public class Tribe : Polity
 
         foreach (Faction faction in factionsToTransfer)
         {
-            Clan clan = faction as Clan;
-
-            if (clan != null)
+            if (faction is Clan clan)
             {
                 if (clan.Influence > highestInfluence)
                 {

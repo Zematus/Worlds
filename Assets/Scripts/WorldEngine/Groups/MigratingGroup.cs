@@ -58,13 +58,11 @@ public class MigratingGroup : HumanGroup
         MigrationDirection = migrationDirection;
 
         PercentPopulation = percentPopulation;
-
-#if DEBUG
+        
         if (float.IsNaN(percentPopulation))
         {
             throw new System.Exception("float.IsNaN (percentPopulation)");
         }
-#endif
 
         //		#if DEBUG
         //		if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0)) {

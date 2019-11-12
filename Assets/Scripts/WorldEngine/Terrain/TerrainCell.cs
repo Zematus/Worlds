@@ -49,12 +49,10 @@ public enum CellUpdateSubType
 public class TerrainCell
 {
 #if DEBUG
-
     public delegate void GetNextLocalRandomCalledDelegate(string callerMethod);
 
     //	public static int LastRandomInteger = 0; 
     public static GetNextLocalRandomCalledDelegate GetNextLocalRandomCalled = null;
-
 #endif
 
     public const int MaxNeighborDirections = 8;
@@ -252,7 +250,6 @@ public class TerrainCell
 
     public long GenerateUniqueIdentifier(long date, long oom = 1L, long offset = 0L)
     {
-#if DEBUG
         if (oom > 1000L)
         {
             Debug.LogWarning("'oom' shouldn't be greater than 1000 (oom = " + oom + ")");
@@ -260,9 +257,8 @@ public class TerrainCell
 
         if (date >= World.MaxSupportedDate)
         {
-            Debug.LogWarning("'date' shouldn't be greater than " + World.MaxSupportedDate + " (date = " + date + ")");
+            Debug.LogWarning("TerrainCell.GenerateUniqueIdentifier - 'date' is greater than " + World.MaxSupportedDate + " (date = " + date + ")");
         }
-#endif
 
         return (((date * 1000000) + ((long)Longitude * 1000) + (long)Latitude) * oom) + (offset % oom);
     }

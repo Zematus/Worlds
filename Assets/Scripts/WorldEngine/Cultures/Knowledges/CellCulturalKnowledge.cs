@@ -269,9 +269,7 @@ public abstract class CellCulturalKnowledge : CulturalKnowledge
         {
             throw new System.Exception("UpdateValueInternal: new value " + newValue + " above 1000000");
         }
-#endif
 
-#if DEBUG
         if ((Id == SocialOrganizationKnowledge.KnowledgeId) && (newValue < SocialOrganizationKnowledge.MinValueForTribeFormation))
         {
             if (Group.GetFactionCores().Count > 0)

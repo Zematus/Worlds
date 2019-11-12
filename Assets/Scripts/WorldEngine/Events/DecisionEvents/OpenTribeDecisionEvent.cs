@@ -36,32 +36,31 @@ public class OpenTribeDecisionEvent : PolityEvent {
         DoNotSerialize = true;
     }
 
-    public static long CalculateTriggerDate (Tribe tribe) {
+    public static long CalculateTriggerDate(Tribe tribe)
+    {
+        float randomFactor = tribe.GetNextLocalRandomFloat(RngOffsets.OPEN_TRIBE_EVENT_CALCULATE_TRIGGER_DATE);
+        randomFactor = Mathf.Pow(randomFactor, 2);
 
-		float randomFactor = tribe.GetNextLocalRandomFloat (RngOffsets.OPEN_TRIBE_EVENT_CALCULATE_TRIGGER_DATE);
-		randomFactor = Mathf.Pow (randomFactor, 2);
+        float isolationPreferenceValue = tribe.GetPreferenceValue(CulturalPreference.IsolationPreferenceId);
 
-		float isolationPreferenceValue = tribe.GetPreferenceValue (CulturalPreference.IsolationPreferenceId);
+        float isoloationPrefFactor = 2 * (1 - isolationPreferenceValue);
+        isoloationPrefFactor = Mathf.Pow(isoloationPrefFactor, 4);
 
-		float isoloationPrefFactor = 2 * (1 - isolationPreferenceValue);
-		isoloationPrefFactor = Mathf.Pow (isoloationPrefFactor, 4);
+        float dateSpan = (1 - randomFactor) * DateSpanFactorConstant * isoloationPrefFactor;
 
-		float dateSpan = (1 - randomFactor) * DateSpanFactorConstant * isoloationPrefFactor;
+        long triggerDateSpan = (long)dateSpan + CellGroup.GenerationSpan;
 
-		long triggerDateSpan = (long)dateSpan + CellGroup.GenerationSpan;
+        if (triggerDateSpan < 0)
+        {
+            Debug.LogWarning("updateSpan less than 0: " + triggerDateSpan);
 
-		if (triggerDateSpan < 0) {
-			#if DEBUG
-			Debug.LogWarning ("updateSpan less than 0: " + triggerDateSpan);
-			#endif
+            triggerDateSpan = CellGroup.MaxUpdateSpan;
+        }
 
-			triggerDateSpan = CellGroup.MaxUpdateSpan;
-		}
+        return tribe.World.CurrentDate + triggerDateSpan;
+    }
 
-		return tribe.World.CurrentDate + triggerDateSpan;
-	}
-
-	public override bool CanTrigger () {
+    public override bool CanTrigger () {
 
 		if (!base.CanTrigger ())
 			return false;

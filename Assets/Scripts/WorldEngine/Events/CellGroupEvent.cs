@@ -40,12 +40,10 @@ public abstract class CellGroupEvent : WorldEvent
 
     public static long GenerateUniqueIdentifier(CellGroup group, long triggerDate, long eventTypeId)
     {
-#if DEBUG
-        if (triggerDate >= World.MaxSupportedDate)
+        if (triggerDate > World.MaxSupportedDate)
         {
-            Debug.LogWarning("'triggerDate' shouldn't be greater than " + World.MaxSupportedDate + " (triggerDate = " + triggerDate + ")");
+            Debug.LogWarning("CellGroupEvent.GenerateUniqueIdentifier - 'triggerDate' is greater than " + World.MaxSupportedDate + " (triggerDate = " + triggerDate + ")");
         }
-#endif
 
         long id = (triggerDate * 1000000000L) + (group.Longitude * 1000000L) + (group.Latitude * 1000L) + eventTypeId;
 

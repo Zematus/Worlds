@@ -196,6 +196,8 @@ public class World : ISynchronizable
 
     public static Dictionary<string, IWorldEventGenerator> EventGenerators;
 
+    public int EventsTriggered = 0;
+
     [XmlAttribute]
     public int Width { get; set; }
     [XmlAttribute]
@@ -501,7 +503,12 @@ public class World : ISynchronizable
         Height = height;
         Seed = seed;
 
+#if DEBUG
+        CurrentDate = 0; // To set custom date for debugging
+#else
         CurrentDate = 0;
+#endif
+
         MaxTimeToSkip = MaxPossibleTimeToSkip;
         EventsToHappenCount = 0;
         CellGroupCount = 0;
@@ -940,17 +947,14 @@ public class World : ISynchronizable
         MaxTimeToSkip = (value > 1) ? value : 1;
 
         long maxDate = CurrentDate + MaxTimeToSkip;
-
-#if DEBUG
+        
         if (maxDate >= MaxSupportedDate)
         {
-            Debug.LogWarning("'maxDate' shouldn't be greater than " + World.MaxSupportedDate + " (date = " + maxDate + ")");
+            Debug.LogWarning("World.SetMaxTimeToSkip - 'maxDate' is greater than " + MaxSupportedDate + " (date = " + maxDate + ")");
         }
-#endif
 
         if (maxDate < 0)
         {
-            Debug.Break();
             throw new System.Exception("Surpassed date limit (Int64.MaxValue)");
         }
 
@@ -1214,9 +1218,15 @@ public class World : ISynchronizable
 
             WorldEvent eventToHappen = _eventsToHappen.Leftmost;
 
-            if (eventToHappen.TriggerDate < 0)
+            if (eventToHappen.TriggerDate < CurrentDate)
             {
-                throw new System.Exception("eventToHappen.TriggerDate less than zero: " + eventToHappen);
+                throw new System.Exception("World.EvaluateEventsToHappen - eventToHappen.TriggerDate (" + eventToHappen.TriggerDate +
+                    ") less than CurrentDate (" + CurrentDate + "), eventToHappen: " + eventToHappen);
+            }
+            else if (eventToHappen.TriggerDate > MaxSupportedDate)
+            {
+                throw new System.Exception("World.EvaluateEventsToHappen - eventToHappen.TriggerDate (" + eventToHappen.TriggerDate +
+                    ") greater than MaxSupportedDate (" + MaxSupportedDate + "), eventToHappen: " + eventToHappen);
             }
 
             if (eventToHappen.TriggerDate > CurrentDate)
@@ -1237,13 +1247,11 @@ public class World : ISynchronizable
 #endif
 
                 long maxDate = CurrentDate + MaxTimeToSkip;
-
-#if DEBUG
-                if (maxDate >= World.MaxSupportedDate)
+                
+                if (maxDate >= MaxSupportedDate)
                 {
-                    Debug.LogWarning("'maxDate' shouldn't be greater than " + World.MaxSupportedDate + " (date = " + maxDate + ")");
+                    Debug.LogWarning("World.EvaluateEventsToHappen - 'maxDate' is greater than " + MaxSupportedDate + " (date = " + maxDate + ")");
                 }
-#endif
 
                 if (maxDate < 0)
                 {
@@ -1310,6 +1318,11 @@ public class World : ISynchronizable
 #endif
 
             eventToHappen.Trigger();
+
+            if (Manager.DebugModeEnabled)
+            {
+                EventsTriggered++;
+            }
 
 #if DEBUG
             Profiler.EndSample();
@@ -1378,15 +1391,15 @@ public class World : ISynchronizable
 
         Profiler.EndSample();
 
-        Profiler.BeginSample("UpdateFactions");
-
-        UpdateFactions();
-
-        Profiler.EndSample();
-
         Profiler.BeginSample("RemoveFactions");
 
         RemoveFactions();
+
+        Profiler.EndSample();
+
+        Profiler.BeginSample("UpdateFactions");
+
+        UpdateFactions();
 
         Profiler.EndSample();
 
@@ -1441,12 +1454,30 @@ public class World : ISynchronizable
 #endif
 
                 _dateToSkipTo = futureEventToHappen.TriggerDate;
+
+                if (futureEventToHappen.TriggerDate <= 0)
+                {
+                    throw new System.Exception(
+                        "Update - futureEventToHappen.TriggerDate less than or equal to 0: " + 
+                        futureEventToHappen.TriggerDate + ", futureEventToHappen: " + futureEventToHappen);
+                }
             }
         }
 
         long dateSpan = _dateToSkipTo - CurrentDate;
 
         CurrentDate = _dateToSkipTo;
+
+        if (CurrentDate <= 0)
+        {
+            throw new System.Exception("Update - CurrentDate less than or equal to 0: " + CurrentDate +
+                ", _dateToSkipTo: " + _dateToSkipTo);
+        }
+        else if (CurrentDate > MaxSupportedDate)
+        {
+            throw new System.Exception("World.Update - CurrentDate (" + CurrentDate +
+                ") greater than MaxSupportedDate (" + MaxSupportedDate + "). You have reached and unnoficial end of the game...");
+        }
 
         // reset update flags
         GroupsHaveBeenUpdated = false;
@@ -1730,9 +1761,7 @@ public class World : ISynchronizable
 
                 string callingClass = method.DeclaringType.ToString();
 
-                int knowledgeValue = 0;
-
-                faction.Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.KnowledgeId, out knowledgeValue);
+                faction.Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.KnowledgeId, out int knowledgeValue);
 
                 SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage(
                     "World:AddFactionToUpdate - Faction Id:" + faction.Id,
@@ -1750,24 +1779,9 @@ public class World : ISynchronizable
         {
             System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
 
-            System.Reflection.MethodBase method = stackTrace.GetFrame(1).GetMethod();
-            string callingMethod = method.Name;
-
-            int frame = 2;
-            while (callingMethod.Contains("SetFactionUpdates")
-                || callingMethod.Contains("SetToUpdate"))
-            {
-                method = stackTrace.GetFrame(frame).GetMethod();
-                callingMethod = method.Name;
-
-                frame++;
-            }
-
-            string callingClass = method.DeclaringType.ToString();
-
             Debug.LogWarning(
                 "Trying to add faction to update after factions have already been updated this iteration. Id: " +
-                faction.Id + ", Calling method: " + callingClass + "." + callingMethod);
+                faction.Id + ", stackTrace:\n" + stackTrace);
         }
 
         if (!faction.StillPresent)
@@ -3769,7 +3783,7 @@ public class World : ISynchronizable
 #if DEBUG
             if (!newTemp.IsInsideRange(MinPossibleTemperatureWithOffset - 0.5f, MaxPossibleTemperatureWithOffset + 0.5f))
             {
-                Debug.Log("Invalid newTemp: " + newTemp + ", position: " + cell.Position);
+                Debug.LogWarning("DrainModifyCell - Invalid newTemp: " + newTemp + ", position: " + cell.Position);
             }
 #endif
 
@@ -3792,13 +3806,11 @@ public class World : ISynchronizable
         }
 
         float temperature = CalculateTemperature(value + cell.BaseTemperatureOffset);
-
-#if DEBUG
+        
         if (!temperature.IsInsideRange(MinPossibleTemperatureWithOffset - 0.5f, MaxPossibleTemperatureWithOffset + 0.5f))
         {
-            Debug.Log("Invalid temperature: " + temperature);
+            Debug.LogWarning("CalculateAndSetTemperature - Invalid temperature: " + temperature);
         }
-#endif
 
         cell.Temperature = temperature;
         cell.OriginalTemperature = temperature;
@@ -3817,13 +3829,11 @@ public class World : ISynchronizable
         float offset = cell.BaseTemperatureOffset;
 
         float temperature = CalculateTemperature(value + offset);
-
-#if DEBUG
+        
         if (!temperature.IsInsideRange(MinPossibleTemperatureWithOffset - 0.5f, MaxPossibleTemperatureWithOffset + 0.5f))
         {
-            Debug.Log("Invalid temperature: " + temperature);
+            Debug.LogWarning("RecalculateAndSetTemperature - Invalid temperature: " + temperature);
         }
-#endif
 
         cell.Temperature = temperature;
         cell.OriginalTemperature = temperature;
