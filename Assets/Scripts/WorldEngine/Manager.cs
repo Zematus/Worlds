@@ -616,14 +616,15 @@ public class Manager
 
         if (Debug.isDebugBuild)
         {
-            buildType = "debug";
+            buildType = "Debug";
         }
         else
         {
-            buildType = "release";
+            buildType = "Release";
         }
 
-        _debugLogStream.WriteLine("Running Worlds " + Application.version + " (" + buildType + ")...");
+        _debugLogStream.WriteLine("Running Worlds " + Application.version + 
+            " (" + Application.platform + " " + buildType  + ")...");
         _debugLogStream.Flush();
     }
 
