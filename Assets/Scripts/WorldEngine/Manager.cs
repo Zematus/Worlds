@@ -130,7 +130,9 @@ public class Manager
 
     public const float BrushNoiseRadiusFactor = 200;
 
-    public const string DefaultModPath = @".\Mods\";
+    public static string DefaultModPath() {
+        return Path.Combine(Directory.GetCurrentDirectory(), "Mods");
+    }
 
     public const float StageProgressIncFromLoading = 0.1f;
 
@@ -190,7 +192,7 @@ public class Manager
     public static bool DebugModeEnabled = false;
     public static bool AnimationShadersEnabled = true;
 
-    public static List<string> ActiveModPaths = new List<string>() { @"Mods\Base" };
+    public static List<string> ActiveModPaths = new List<string>() { Path.Combine(@"Mods","Base") };
     public static bool ModsAlreadyLoaded = false;
 
     public static Dictionary<string, LayerSettings> LayerSettings = new Dictionary<string, LayerSettings>();
@@ -4078,7 +4080,7 @@ public class Manager
                 _manager._progressCastMethod(LastStageProgress, "Loading Mod '" + directoryName + "'...");
             }
 
-            LoadMod(path + @"\", progressPerMod);
+            LoadMod(path, progressPerMod);
 
             LastStageProgress += progressPerMod;
         }
@@ -4119,11 +4121,11 @@ public class Manager
     {
         float progressPerSegment = progressPerMod / 6f;
 
-        TryLoadModFiles(Layer.LoadLayersFile, path + @"Layers", progressPerSegment);
-        TryLoadModFiles(Biome.LoadBiomesFile, path + @"Biomes", progressPerSegment);
-        TryLoadModFiles(Adjective.LoadAdjectivesFile, path + @"Adjectives", progressPerSegment);
-        TryLoadModFiles(RegionAttribute.LoadRegionAttributesFile, path + @"RegionAttributes", progressPerSegment);
-        TryLoadModFiles(Element.LoadElementsFile, path + @"Elements", progressPerSegment);
-        TryLoadModFiles(Discovery.LoadDiscoveriesFile, path + @"Discoveries", progressPerSegment);
+        TryLoadModFiles(Layer.LoadLayersFile, Path.Combine(path, @"Layers"), progressPerSegment);
+        TryLoadModFiles(Biome.LoadBiomesFile, Path.Combine(path, @"Biomes"), progressPerSegment);
+        TryLoadModFiles(Adjective.LoadAdjectivesFile, Path.Combine(path, @"Adjectives"), progressPerSegment);
+        TryLoadModFiles(RegionAttribute.LoadRegionAttributesFile, Path.Combine(path, @"RegionAttributes"), progressPerSegment);
+        TryLoadModFiles(Element.LoadElementsFile, Path.Combine(path, @"Elements"), progressPerSegment);
+        TryLoadModFiles(Discovery.LoadDiscoveriesFile, Path.Combine(path, @"Discoveries"), progressPerSegment);
     }
 }

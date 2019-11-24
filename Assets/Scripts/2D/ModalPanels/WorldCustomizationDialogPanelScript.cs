@@ -114,7 +114,7 @@ public class WorldCustomizationDialogPanelScript : MenuPanelScript
             "Use",
             SetActiveModsAction,
             CancelSetActiveModsAction,
-            Manager.DefaultModPath,
+            Manager.DefaultModPath(),
             loadDirectory: true,
             selectMultiple: true,
             prevSelectedItems: Manager.ActiveModPaths);
