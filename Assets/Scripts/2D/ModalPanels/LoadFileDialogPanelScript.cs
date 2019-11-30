@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 
@@ -18,18 +17,18 @@ public class LoadFileDialogPanelScript : DialogPanelScript
 
     public ToggleGroup ToggleGroup;
 
-    private List<Toggle> _fileToggles = new List<Toggle>();
+    private readonly List<Toggle> _fileToggles = new List<Toggle>();
 
     private string _basePath;
-    private HashSet<string> _pathsToLoad = new HashSet<string>();
-    private string _pathToLoad = null;
+    private readonly HashSet<string> _pathsToLoad = new HashSet<string>();
+    private string _pathToLoad;
 
     private string[] _validExtensions;
 
     private bool _loadDirectory;
     private bool _selectMultiple;
 
-    private HashSet<string> _prevSelectedItems = new HashSet<string>();
+    private readonly HashSet<string> _prevSelectedItems = new HashSet<string>();
     
     // Update is called once per frame
     void Update()
@@ -127,9 +126,9 @@ public class LoadFileDialogPanelScript : DialogPanelScript
                 if (!found) continue;
             }
 
-            string name = Path.GetFileName(file);
+            string filename = Path.GetFileName(file);
 
-            SetFileToggle(name, i, _prevSelectedItems.Contains(name));
+            SetFileToggle(filename, i, _prevSelectedItems.Contains(filename));
 
             i++;
         }
@@ -158,9 +157,9 @@ public class LoadFileDialogPanelScript : DialogPanelScript
 
         foreach (string directory in directories)
         {
-            string name = Path.GetFileName(directory);
+            string filename = Path.GetFileName(directory);
 
-            SetFileToggle(name, i, _prevSelectedItems.Contains(name));
+            SetFileToggle(filename, i, _prevSelectedItems.Contains(filename));
 
             i++;
         }
@@ -174,24 +173,24 @@ public class LoadFileDialogPanelScript : DialogPanelScript
         }
     }
 
-    private void SetFileToggle(string name, int index, bool alreadySelected)
+    private void SetFileToggle(string filename, int index, bool alreadySelected)
     {
         Toggle toggle;
 
         if (index < _fileToggles.Count)
         {
             toggle = _fileToggles[index];
-            toggle.GetComponentInChildren<Text>().text = name;
+            toggle.GetComponentInChildren<Text>().text = filename;
         }
         else
         {
-            toggle = AddFileToggle(name);
+            toggle = AddFileToggle(filename);
         }
 
         toggle.isOn = false; // We need to make sure it is untoggled first before setting it's default state. Otherwise, 'onValueChanged' won't get called
         toggle.group = _selectMultiple? null : ToggleGroup;
 
-        string path = _basePath + name;
+        string path = Path.Combine(_basePath, filename);
         
         toggle.onValueChanged.AddListener(value =>
         {
@@ -217,12 +216,12 @@ public class LoadFileDialogPanelScript : DialogPanelScript
         toggle.isOn = alreadySelected;
     }
 
-    private Toggle AddFileToggle(string name)
+    private Toggle AddFileToggle(string filename)
     {
         Toggle newToggle = Instantiate(TogglePrefab) as Toggle;
 
         newToggle.transform.SetParent(FileListPanel.transform, false);
-        newToggle.GetComponentInChildren<Text>().text = name;
+        newToggle.GetComponentInChildren<Text>().text = filename;
 
         _fileToggles.Add(newToggle);
 
