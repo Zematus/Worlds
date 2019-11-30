@@ -225,7 +225,7 @@ public class StartGuiManagerScript : MonoBehaviour
     {
         string dirPath = Manager.SavePath;
 
-        string[] files = Directory.GetFiles(dirPath, "*.PLNT");
+        string[] files = Directory.GetFiles(dirPath, "*.plnt");
 
         return files.Length > 0;
     }
@@ -241,7 +241,7 @@ public class StartGuiManagerScript : MonoBehaviour
             LoadSaveAction,
             CancelLoadSaveAction,
             Manager.SavePath,
-            new string[] { ".PLNT" });
+            new string[] { ".plnt" });
 
         LoadFileDialogPanelScript.SetVisible(true);
     }

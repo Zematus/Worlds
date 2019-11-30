@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 
 public class SaveLoadTestSettings
 {
@@ -221,7 +222,7 @@ public class SaveLoadTest : AutomatedTest
 
                     Manager.UpdateMainThreadReference();
 
-                    _savePath = Manager.SavePath + "TestSaveLoad.plnt";
+                    _savePath = Path.Combine(Manager.SavePath, "TestSaveLoad.plnt");
 
                     Debug.Log("Generating world " + _seed + "...");
                     

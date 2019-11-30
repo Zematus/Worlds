@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
+using System;
 
 public enum Direction
 {
@@ -17,6 +18,7 @@ public enum Direction
     Northwest = 7
 }
 
+[Flags]
 public enum CellUpdateType
 {
     None = 0x0,
@@ -31,6 +33,7 @@ public enum CellUpdateType
     GroupTerritoryClusterAndLanguage = Group | Territory | Cluster | Language
 }
 
+[Flags]
 public enum CellUpdateSubType
 {
     None = 0x0,

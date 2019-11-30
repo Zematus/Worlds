@@ -149,7 +149,7 @@ public class Manager
     public static string HeightmapsPath { get; private set; }
     public static string ExportPath { get; private set; }
 
-    public static string[] SupportedHeightmapFormats = new string[] { ".PSD", ".TIFF", ".JPG", ".TGA", ".PNG", ".BMP", ".PICT" };
+    public static string[] SupportedHeightmapFormats = { ".PSD", ".TIFF", ".JPG", ".TGA", ".PNG", ".BMP", ".PICT" };
 
     public static string WorldName { get; set; }
 
@@ -210,8 +210,8 @@ public class Manager
 
     private static bool _isLoadReady = false;
 
-    private static string _debugLogFilename = @".\debug";
-    private static string _debugLogExt = @".log";
+    private static string _debugLogFilename = "debug";
+    private static string _debugLogExt = ".log";
     private static StreamWriter _debugLogStream = null;
     private static bool _backupDebugLog = false;
 
@@ -677,7 +677,7 @@ public class Manager
 
     private void InitializeSavePath()
     {
-        string path = Path.GetFullPath(@"Saves\");
+        string path = Path.GetFullPath(@"Saves");
 
         if (!Directory.Exists(path))
         {
@@ -689,7 +689,7 @@ public class Manager
 
     private void InitializeHeightmapsPath()
     {
-        string path = Path.GetFullPath(@"Heightmaps\");
+        string path = Path.GetFullPath(@"Heightmaps");
 
         if (!Directory.Exists(path))
         {
@@ -701,7 +701,7 @@ public class Manager
 
     private void InitializeExportPath()
     {
-        string path = Path.GetFullPath(@"Images\");
+        string path = Path.GetFullPath(@"Images");
 
         if (!Directory.Exists(path))
         {
@@ -737,7 +737,7 @@ public class Manager
 
     public static string RemoveDateFromWorldName(string worldName)
     {
-        int dateIndex = worldName.LastIndexOf("_date_");
+        int dateIndex = worldName.LastIndexOf("_date_", System.StringComparison.Ordinal);
 
         if (dateIndex > 0)
         {

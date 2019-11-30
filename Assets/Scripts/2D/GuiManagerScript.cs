@@ -329,10 +329,13 @@ public class GuiManagerScript : MonoBehaviour
 #if DEBUG
         if (!Manager.WorldIsReady)
         {
-            _heightmap = Manager.LoadTexture(@"Heightmaps\mergetest_4b_3600x1800.png");
+            //_heightmap = Manager.LoadTexture(Path.Combine("Heightmaps", "mergetest_4b_3600x1800.png"));
 
-            //Manager.SetActiveModPaths(new string[] { @"Mods\Base", @"Mods\WeirdBiomesMod" });
-            Manager.SetActiveModPaths(new string[] { @"Mods\Base" });
+            //Manager.SetActiveModPaths(new string[] {
+            //    Path.Combine("Mods", "Base"),
+            //    Path.Combine("Mods", "WeirdBiomesMod")
+            //});
+            Manager.SetActiveModPaths(new string[] { Path.Combine("Mods", "Base") });
 
             //GenerateWorld(false, 1142453343, useHeightmap: true);
             //GenerateWorld(false, 1582997248);
@@ -388,7 +391,7 @@ public class GuiManagerScript : MonoBehaviour
 
         ReadKeyboardInput();
 
-        if (Manager.DebugModeEnabled)
+        if (Manager.DebugModeEnabled && Manager.WorldIsReady)
         {
             _timeSinceLastMapUpdate += Time.deltaTime;
 
@@ -1647,7 +1650,7 @@ public class GuiManagerScript : MonoBehaviour
     {
         string dirPath = Manager.SavePath;
 
-        string[] files = Directory.GetFiles(dirPath, "*.PLNT");
+        string[] files = Directory.GetFiles(dirPath, "*.plnt");
 
         return files.Length > 0;
     }
@@ -1660,7 +1663,7 @@ public class GuiManagerScript : MonoBehaviour
 
         string imageName = ExportMapDialogPanelScript.GetText();
 
-        string path = Manager.ExportPath + imageName + ".png";
+        string path = Path.Combine(Manager.ExportPath, imageName + ".png");
 
         Manager.ExportMapTextureToFileAsync(path, MapScript.MapImage.uvRect);
 
@@ -1868,7 +1871,7 @@ public class GuiManagerScript : MonoBehaviour
 
         Manager.WorldName = Manager.RemoveDateFromWorldName(saveName);
 
-        string path = Manager.SavePath + saveName + ".plnt";
+        string path = Path.Combine(Manager.SavePath, saveName + ".plnt");
 
         Manager.SaveWorldAsync(path);
 
@@ -2079,7 +2082,7 @@ public class GuiManagerScript : MonoBehaviour
             LoadAction,
             CancelLoadAction,
             Manager.SavePath,
-            new string[] { ".PLNT" });
+            new string[] { ".plnt" });
 
         LoadFileDialogPanelScript.SetVisible(true);
 
