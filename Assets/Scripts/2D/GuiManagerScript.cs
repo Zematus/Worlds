@@ -329,7 +329,7 @@ public class GuiManagerScript : MonoBehaviour
 #if DEBUG
         if (!Manager.WorldIsReady)
         {
-            //_heightmap = Manager.LoadTexture(Path.Combine("Heightmaps", "mergetest_4b_3600x1800.png"));
+            //_heightmap = Manager.LoadTexture(Path.Combine("Heightmaps", "CompositeEarth_3600x1800.png"));
 
             //Manager.SetActiveModPaths(new string[] {
             //    Path.Combine("Mods", "Base"),
@@ -1410,6 +1410,10 @@ public class GuiManagerScript : MonoBehaviour
 
         Debug.Log("Finished generating world with seed: " + Manager.CurrentWorld.Seed);
 
+        string activeModStrs = string.Join(",", Manager.ActiveModPaths);
+
+        Debug.Log("Active Mods: " + activeModStrs);
+
         Manager.WorldName = "world_" + Manager.CurrentWorld.Seed;
 
         SelectionPanelScript.RemoveAllOptions();
@@ -2020,6 +2024,10 @@ public class GuiManagerScript : MonoBehaviour
             Manager.CurrentWorld.SeaLevelOffset,
             Manager.CurrentWorld.RiverStrength,
             Manager.GetDateString(Manager.CurrentWorld.CurrentDate)));
+
+        string activeModStrs = string.Join(",", Manager.ActiveModPaths);
+
+        Debug.Log("Active Mods: " + activeModStrs);
 
         SelectionPanelScript.RemoveAllOptions();
 

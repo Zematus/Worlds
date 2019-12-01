@@ -130,8 +130,12 @@ public class Manager
 
     public const float BrushNoiseRadiusFactor = 200;
 
-    public static string DefaultModPath() {
-        return Path.Combine(Directory.GetCurrentDirectory(), "Mods");
+    public static string DefaultModPath
+    {
+        get
+        {
+            return Path.Combine(Directory.GetCurrentDirectory(), "Mods");
+        }
     }
 
     public const float StageProgressIncFromLoading = 0.1f;
@@ -192,7 +196,7 @@ public class Manager
     public static bool DebugModeEnabled = false;
     public static bool AnimationShadersEnabled = true;
 
-    public static List<string> ActiveModPaths = new List<string>() { Path.Combine(@"Mods","Base") };
+    public static List<string> ActiveModPaths = new List<string>() { Path.Combine(@"Mods", "Base") };
     public static bool ModsAlreadyLoaded = false;
 
     public static Dictionary<string, LayerSettings> LayerSettings = new Dictionary<string, LayerSettings>();
@@ -1175,8 +1179,15 @@ public class Manager
     public static void SetActiveModPaths(ICollection<string> paths)
     {
         ActiveModPaths.Clear();
-        ActiveModPaths.AddRange(paths);
-        ActiveModPaths.Sort();
+
+        foreach (string path in paths)
+        {
+            // Make sure mod paths are always parseable regardless of system
+            string[] splitPath = path.Split('/', '\\');
+            ActiveModPaths.Add(Path.Combine(splitPath));
+        }
+
+        ActiveModPaths.Sort(System.StringComparer.Ordinal); // order mods alphabetically before load
 
         ModsAlreadyLoaded = false;
     }
@@ -1232,6 +1243,10 @@ public class Manager
 
         Debug.Log(string.Format("Trying to generate world with seed: {0}, Altitude Scale: {1}, Sea Level Offset: {2}, River Strength: {3}, Avg. Temperature: {4}, Avg. Rainfall: {5}",
             seed, AltitudeScale, SeaLevelOffset, RiverStrength, TemperatureOffset, RainfallOffset));
+
+        string activeModStrs = string.Join(",", ActiveModPaths);
+
+        Debug.Log("Active Mods: " + activeModStrs);
 
         ThreadPool.QueueUserWorkItem(state =>
         {
@@ -1543,10 +1558,7 @@ public class Manager
 
         float value = LastStageProgress + (StageProgressIncFromLoading * _loadTicks / (float)_totalLoadTicks);
 
-        if (_manager._progressCastMethod != null)
-        {
-            _manager._progressCastMethod(Mathf.Min(1, value));
-        }
+        _manager._progressCastMethod?.Invoke(Mathf.Min(1, value));
     }
 
     private static void SetObservableUpdateTypes(PlanetOverlay overlay, string planetOverlaySubtype = "None")
@@ -2662,9 +2674,7 @@ public class Manager
         float eAltitude = 0;
 
         int c = 0;
-        TerrainCell nCell = null;
-
-        if (neighbors.TryGetValue(Direction.West, out nCell))
+        if (neighbors.TryGetValue(Direction.West, out TerrainCell nCell))
         {
             wAltitude += nCell.Altitude;
             c++;
@@ -2731,7 +2741,7 @@ public class Manager
 
     private static Color GenerateColorFromTerrainCell(TerrainCell cell)
     {
-        Color color = Color.black;
+        Color color;
 
         switch (_planetView)
         {
@@ -3193,8 +3203,6 @@ public class Manager
                 Polity territoryPolity = cell.EncompassingTerritory.Polity;
 
                 PolityProminence prominence = cell.Group.GetPolityProminence(territoryPolity);
-
-                Color clusterColor = Color.grey;
 
                 if (prominence.Cluster != null)
                 {
@@ -3667,15 +3675,12 @@ public class Manager
         if (!(territory.Polity.CoreGroup.Culture.GetKnowledge(_planetOverlaySubtype) is CellCulturalKnowledge cellKnowledge))
             return GetUnincorporatedGroupColor();
 
-        float normalizedValue = 0;
-
         float highestLimit = cellKnowledge.GetHighestLimit();
 
         if (highestLimit <= 0)
             throw new System.Exception("Highest Limit is less or equal to 0");
 
-        normalizedValue = knowledge.Value / highestLimit;
-
+        float normalizedValue = knowledge.Value / highestLimit;
         color = GetPolityCulturalAttributeOverlayColor(normalizedValue, IsTerritoryBorder(territory, cell));
 
         return color;
