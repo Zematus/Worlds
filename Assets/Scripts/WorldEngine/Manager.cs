@@ -4124,6 +4124,11 @@ public class Manager
 
     private static void LoadMod(string path, float progressPerMod)
     {
+        if (!Directory.Exists(path))
+        {
+            throw new System.ArgumentException("Mod path '" + path + "' not found");
+        }
+
         float progressPerSegment = progressPerMod / 6f;
 
         TryLoadModFiles(Layer.LoadLayersFile, Path.Combine(path, @"Layers"), progressPerSegment);
