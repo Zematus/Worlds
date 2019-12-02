@@ -14,7 +14,7 @@
       "adjectives": ["clear", "white", "blue", "grey"],
       "variants": ["[nad]ice shelf", "[nad]ice cap"],
       "regionConstraints": ["biome_presence_above:ice_shelf,0.5"],
-      "phraseAssociations": ["[iv(bear,ts,past)]born,by|near|in,ds|dp", "[rv(ts,past)]raise:d,near|in,ds|dp", "[ran]walk:er,of,ip|ns", "[ran]stride:r,of,ip|ns", "[rv(ts,past)]arrive:d,from,ds"]
+      "phraseAssociations": ["[iv(bear,ts,past)]born,by|near|in,ds", "[rv(ts,past)]raise:d,near|in,ds", "[ran]walk:er,of,ns", "[ran]stride:r,of,ns", "[rv(ts,past)]arrive:d,from,ds"]
     },
     {
       "id": "sea",
