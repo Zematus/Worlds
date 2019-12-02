@@ -137,6 +137,14 @@ public class RegionAttribute
             filteredVariations = Variations.Where(v => !v.Tags.Contains(RelationTag));
         }
 
+        if (filteredVariations.Count() == 0)
+        {
+            string variations = string.Join(", ", Variations.Select(v => v.Text));
+
+            throw new System.Exception(
+                "No regional attribute variation with plural form within available set of variations: " + variations);
+        }
+
         return filteredVariations.RandomSelect(getRandomInt).Text;
     }
 
