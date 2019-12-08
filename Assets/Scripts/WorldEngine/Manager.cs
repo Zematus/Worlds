@@ -1774,28 +1774,28 @@ public class Manager
         SetSelectedTerritory(cell.EncompassingTerritory);
     }
 
-    public static void SetFocusOnPolity (Polity polity) {
+    public static void SetFocusOnPolity(Polity polity)
+    {
+        if (polity == null)
+            return;
 
-		if (polity == null)
-			return;
+        if (CurrentWorld.PolitiesUnderPlayerFocus.Contains(polity))
+            return;
 
-		if (CurrentWorld.PolitiesUnderPlayerFocus.Contains (polity))
-			return;
+        polity.SetUnderPlayerFocus(true);
+        CurrentWorld.PolitiesUnderPlayerFocus.Add(polity);
+    }
 
-		polity.SetUnderPlayerFocus (true);
-		CurrentWorld.PolitiesUnderPlayerFocus.Add (polity);
-	}
+    public static void UnsetFocusOnPolity(Polity polity)
+    {
+        if (polity == null)
+            return;
 
-	public static void UnsetFocusOnPolity (Polity polity) {
+        if (!CurrentWorld.PolitiesUnderPlayerFocus.Contains(polity))
+            return;
 
-		if (polity == null)
-			return;
-
-		if (!CurrentWorld.PolitiesUnderPlayerFocus.Contains (polity))
-			return;
-			
-		polity.SetUnderPlayerFocus (false);
-		CurrentWorld.PolitiesUnderPlayerFocus.Remove (polity);
+        polity.SetUnderPlayerFocus(false);
+        CurrentWorld.PolitiesUnderPlayerFocus.Remove(polity);
     }
 
     public static void SetGuidedFaction(Faction faction)

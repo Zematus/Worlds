@@ -2019,6 +2019,11 @@ public class World : ISynchronizable
             {
                 pInfo.Polity.Info = pInfo;
                 pInfo.Polity.World = this;
+
+                if (pInfo.Polity.IsUnderPlayerFocus)
+                {
+                    PolitiesUnderPlayerFocus.Add(pInfo.Polity);
+                }
             }
         }
 
@@ -2028,6 +2033,11 @@ public class World : ISynchronizable
             {
                 fInfo.Faction.Info = fInfo;
                 fInfo.Faction.World = this;
+
+                if (fInfo.Faction.IsUnderPlayerGuidance)
+                {
+                    GuidedFaction = fInfo.Faction;
+                }
             }
         }
 
