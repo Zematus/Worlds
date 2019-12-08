@@ -1440,7 +1440,7 @@ public class GuiManagerScript : MonoBehaviour
 
     private void GenerateWorldInternal(int seed, bool useHeightmap = false)
     {
-        ResetOverlaySelection();
+        ResetGui();
 
         ProgressDialogPanelScript.SetVisible(true);
 
@@ -2045,16 +2045,21 @@ public class GuiManagerScript : MonoBehaviour
         WorldLoaded.Invoke();
     }
 
-    private void ResetOverlaySelection()
+    private void ResetGui()
     {
+        // Make sure we don't carry this incomplete left click operation
+        // to the next world
+        _mapLeftClickOp -= ClickOp_SelectPopulationPlacement;
+
         ChangePlanetOverlay(PlanetOverlay.None, Manager.NoOverlaySubtype);
 
         _planetOverlaySubtypeCache.Clear();
     }
 
+
     private void LoadAction()
     {
-        ResetOverlaySelection();
+        ResetGui();
 
         ProgressDialogPanelScript.SetVisible(true);
 
