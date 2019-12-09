@@ -242,45 +242,93 @@ public static class MathUtility
         return 0;
     }
 
-    // TODO: Lazy implementation. Do better...
+    /// <summary>
+    /// Scales the input so that the output equals 1 if value == max, and
+    /// equals 0 if value == min
+    /// </summary>
+    /// <param name="value">The input</param>
+    /// <param name="max">Max possible value for input</param>
+    /// <param name="min">Min possible value for input</param>
+    /// <returns>the normalized value</returns>
+    public static float Normalize(float value, float max, float min)
+    {
+        return (value - min) / (max - min);
+    }
+
+    /// <summary>
+    /// Converts value using a logaritmic scale to return a value between 0 and 1
+    /// </summary>
+    /// <param name="value">input to scale</param>
+    /// <returns>logaritmically scaled value between 0 and 1</returns>
     public static float ToPseudoLogaritmicScale01(int value)
     {
         // 1, 3, 10, 32, 100, 316, 1000, 3162, 10000, 31623, 100000, 316227
 
-        if (value >= 31623)
-            return 1f;
-
-        if (value >= 10000)
-            return 0.9f;
-
-        if (value >= 3162)
-            return 0.8f;
-
-        if (value >= 1000)
-            return 0.7f;
-
-        if (value >= 316)
-            return 0.6f;
-
         if (value >= 100)
-            return 0.5f;
+        {
+            if (value >= 3162)
+            {
+                if (value >= 10000)
+                {
+                    if (value >= 31623)
+                    {
+                        return 1f;
+                    }
 
-        if (value >= 32)
-            return 0.4f;
+                    return Mathf.Lerp(0.9f, 1f, Normalize(value, 31623f, 10000f));
+                }
 
-        if (value >= 10)
-            return 0.3f;
+                return Mathf.Lerp(0.8f, 0.9f, Normalize(value, 10000f, 3162f));
+            }
+
+            if (value >= 316)
+            {
+                if (value >= 1000)
+                {
+                    return Mathf.Lerp(0.7f, 8f, Normalize(value, 3162f, 1000f));
+                }
+
+                return Mathf.Lerp(0.6f, 0.7f, Normalize(value, 1000f, 316f));
+            }
+
+            return Mathf.Lerp(0.5f, 0.6f, Normalize(value, 316f, 100f));
+        }
 
         if (value >= 3)
-            return 0.2f;
+        {
+            if (value >= 10)
+            {
+                if (value >= 32)
+                {
+                    return Mathf.Lerp(0.4f, 0.5f, Normalize(value, 100f, 32f));
+                }
 
-        if (value >= 1)
+                return Mathf.Lerp(0.3f, 0.4f, Normalize(value, 32f, 10f));
+            }
+
+            return Mathf.Lerp(0.2f, 0.3f, Normalize(value, 10f, 3f));
+        }
+
+        if (value == 2)
+        {
+            return 0.15f;
+        }
+
+        if (value == 1)
+        {
             return 0.1f;
+        }
 
         return 0f;
     }
 
-    // TODO: Lazy implementation. Do better...
+    /// <summary>
+    /// Converts value to a value between 0 and 1 using a logaritmic scale
+    /// but first it normalizes to max
+    /// </summary>
+    /// <param name="value">input to scale</param>
+    /// <param name="max">normalization value</param>
+    /// <returns>logaritmically scaled value between 0 and 1</returns>
     public static float ToPseudoLogaritmicScale01(float value, float max)
     {
         // 1, 3, 10, 32, 100, 316, 1000, 3162, 10000, 31623, 100000, 316227
@@ -288,36 +336,59 @@ public static class MathUtility
         if (value >= max)
             return 1f;
 
-        float scaledMax = max / 31623;
+        value = 31623f * value / max;
 
-        if (value >= scaledMax * 10000)
-            return 0.9f;
+        if (value >= 100f)
+        {
+            if (value >= 3162f)
+            {
+                if (value >= 10000f)
+                {
+                    if (value >= 31623f)
+                    {
+                        return 1f;
+                    }
 
-        if (value >= scaledMax * 3162)
-            return 0.8f;
+                    return Mathf.Lerp(0.9f, 1f, Normalize(value, 31623f, 10000f));
+                }
 
-        if (value >= scaledMax * 1000)
-            return 0.7f;
+                return Mathf.Lerp(0.8f, 0.9f, Normalize(value, 10000f, 3162f));
+            }
 
-        if (value >= scaledMax * 316)
-            return 0.6f;
+            if (value >= 316f)
+            {
+                if (value >= 1000f)
+                {
+                    return Mathf.Lerp(0.7f, 8f, Normalize(value, 3162f, 1000f));
+                }
 
-        if (value >= scaledMax * 100)
-            return 0.5f;
+                return Mathf.Lerp(0.6f, 0.7f, Normalize(value, 1000f, 316f));
+            }
 
-        if (value >= scaledMax * 32)
-            return 0.4f;
+            return Mathf.Lerp(0.5f, 0.6f, Normalize(value, 316f, 100f));
+        }
 
-        if (value >= scaledMax * 10)
-            return 0.3f;
+        if (value >= 3f)
+        {
+            if (value >= 10f)
+            {
+                if (value >= 32f)
+                {
+                    return Mathf.Lerp(0.4f, 0.5f, Normalize(value, 100f, 32f));
+                }
 
-        if (value >= scaledMax * 3)
-            return 0.2f;
+                return Mathf.Lerp(0.3f, 0.4f, Normalize(value, 32f, 10f));
+            }
 
-        if (value >= scaledMax)
-            return 0.1f;
+            return Mathf.Lerp(0.2f, 0.3f, Normalize(value, 10f, 3f));
+        }
 
-        return 0f;
+        if (value >= 1f)
+        {
+            return Mathf.Lerp(0.1f, 0.2f, Normalize(value, 3f, 1f));
+        }
+
+        return Mathf.Lerp(0.0f, 0.1f, value);
     }
 
     // TODO: Lazy implementation. Do better...

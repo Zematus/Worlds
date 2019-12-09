@@ -1440,7 +1440,7 @@ public class GuiManagerScript : MonoBehaviour
 
     private void GenerateWorldInternal(int seed, bool useHeightmap = false)
     {
-        ResetGui();
+        ResetGuiManagerState();
 
         ProgressDialogPanelScript.SetVisible(true);
 
@@ -2045,12 +2045,18 @@ public class GuiManagerScript : MonoBehaviour
         WorldLoaded.Invoke();
     }
 
-    private void ResetGui()
+    /// <summary>Resets the state of the GUI manager before loading or generating a new world.</summary>
+    private void ResetGuiManagerState()
     {
+        // Ignore the result of editing a world that is being discarded
+        _worldCouldBeSavedAfterEdit = false;
+        _hasToSetInitialPopulation = false;
+
         // Make sure we don't carry this incomplete left click operation
         // to the next world
         _mapLeftClickOp -= ClickOp_SelectPopulationPlacement;
 
+        // Reset overlays to avoid showing an invalid overlay by accident
         ChangePlanetOverlay(PlanetOverlay.None, Manager.NoOverlaySubtype);
 
         _planetOverlaySubtypeCache.Clear();
@@ -2059,7 +2065,7 @@ public class GuiManagerScript : MonoBehaviour
 
     private void LoadAction()
     {
-        ResetGui();
+        ResetGuiManagerState();
 
         ProgressDialogPanelScript.SetVisible(true);
 

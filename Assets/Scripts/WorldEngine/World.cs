@@ -4337,13 +4337,13 @@ public class World : ISynchronizable
 
     private float CalculateWaterBiomeWaterFactor(TerrainCell cell, Biome biome)
     {
-        float flowwingWaterSpan = biome.MaxFlowingWater - biome.MinFlowingWater;
+        float flowingWaterSpan = biome.MaxFlowingWater - biome.MinFlowingWater;
         float flowingWaterDiff = cell.FlowingWater - biome.MinFlowingWater;
 
         if (flowingWaterDiff < 0)
             return -1f;
 
-        float waterFactor = flowingWaterDiff / flowwingWaterSpan;
+        float waterFactor = flowingWaterDiff / flowingWaterSpan;
 
         if (waterFactor > 1)
             return -1f;

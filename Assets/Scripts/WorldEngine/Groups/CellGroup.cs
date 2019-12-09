@@ -26,7 +26,7 @@ public class CellGroup : HumanGroup
 
     public const float MinKnowledgeTransferValue = 0.25f;
 
-    public const float SeaTravelBaseFactor = 100f;
+    public const float SeaTravelBaseFactor = 25f;
 
     public const float MigrationFactor = 0.1f;
 
@@ -101,7 +101,9 @@ public class CellGroup : HumanGroup
     public int MigrationTargetLatitude;
     [XmlAttribute("MED")]
     public int MigrationEventDirectionInt;
-    
+    [XmlAttribute("MET")]
+    public int MigrationEventTypeInt;
+
     [XmlAttribute("PEEv")]
     public bool HasPolityExpansionEvent = false;
     [XmlAttribute("PED")]
@@ -1364,7 +1366,7 @@ public class CellGroup : HumanGroup
         {
             if (SeaMigrationRoute.FirstCell == null)
             {
-                Debug.LogError("SeaMigrationRoute.FirstCell is null at " + Cell.Position);
+                throw new System.Exception("SeaMigrationRoute.FirstCell is null at " + Cell.Position);
             }
 
             SeaMigrationRoute.Reset();
@@ -1589,7 +1591,7 @@ public class CellGroup : HumanGroup
 
         Profiler.BeginSample("SetMigrationEvent");
 
-        SetMigrationEvent(targetCell, migrationDirection, nextDate);
+        SetMigrationEvent(targetCell, migrationDirection, MigrationType.Land, nextDate);
 
         Profiler.EndSample();
     }
@@ -1772,18 +1774,23 @@ public class CellGroup : HumanGroup
         //        }
         //#endif
 
-        SetMigrationEvent(targetCell, migrationDirection, nextDate);
+        SetMigrationEvent(targetCell, migrationDirection, MigrationType.Sea, nextDate);
     }
 
-    private void SetMigrationEvent(TerrainCell targetCell, Direction migrationDirection, long nextDate)
+    private void SetMigrationEvent(
+        TerrainCell targetCell,
+        Direction migrationDirection,
+        MigrationType migrationType,
+        long nextDate)
     {
         if (MigrationEvent == null)
         {
-            MigrationEvent = new MigrateGroupEvent(this, targetCell, migrationDirection, nextDate);
+            MigrationEvent =
+                new MigrateGroupEvent(this, targetCell, migrationDirection, migrationType, nextDate);
         }
         else
         {
-            MigrationEvent.Reset(targetCell, migrationDirection, nextDate);
+            MigrationEvent.Reset(targetCell, migrationDirection, migrationType, nextDate);
         }
 
         World.InsertEventToHappen(MigrationEvent);
@@ -1795,6 +1802,7 @@ public class CellGroup : HumanGroup
         MigrationTargetLongitude = targetCell.Longitude;
         MigrationTargetLatitude = targetCell.Latitude;
         MigrationEventDirectionInt = (int)migrationDirection;
+        MigrationEventTypeInt = (int)migrationType;
     }
 
     public Direction TryGetNeighborDirection(int offset)
@@ -2154,7 +2162,7 @@ public class CellGroup : HumanGroup
 
         Profiler.BeginSample("Update Travel Factors");
 
-        UpdateTravelFactors();
+        UpdateSeaTravelFactor();
 
         Profiler.EndSample();
 
@@ -2444,13 +2452,13 @@ public class CellGroup : HumanGroup
         }
     }
 
-    public void UpdateTravelFactors()
+    /// <summary>
+    /// Updates the travel factor for all sea voyages
+    /// </summary>
+    public void UpdateSeaTravelFactor()
     {
-        float seafaringValue = 0;
-        float shipbuildingValue = 0;
-
-        Culture.TryGetSkillValue(SeafaringSkill.SkillId, out seafaringValue);
-        Culture.TryGetKnowledgeScaledValue(ShipbuildingKnowledge.KnowledgeId, out shipbuildingValue);
+        Culture.TryGetSkillValue(SeafaringSkill.SkillId, out float seafaringValue);
+        Culture.TryGetKnowledgeScaledValue(ShipbuildingKnowledge.KnowledgeId, out float shipbuildingValue);
         
         float rangeFactor = 1 + (NavigationRangeModifier * MathUtility.IntToFloatScalingFactor);
 
@@ -2707,8 +2715,9 @@ public class CellGroup : HumanGroup
         
         populationFactor = Mathf.Min(populationFactor, MaxUpdateSpanFactor);
 
-        float mixFactor = randomFactor * migrationFactor * polityExpansionFactor * 
-            skillLevelFactor * knowledgeLevelFactor * populationFactor;
+        float mixFactor = randomFactor * migrationFactor
+            * polityExpansionFactor * skillLevelFactor
+            * knowledgeLevelFactor * populationFactor;
 
         long updateSpan = GenerationSpan * (int)mixFactor;
 
@@ -3576,7 +3585,12 @@ public class CellGroup : HumanGroup
         {
             TerrainCell targetCell = World.GetCell(MigrationTargetLongitude, MigrationTargetLatitude);
 
-            MigrationEvent = new MigrateGroupEvent(this, targetCell, (Direction)MigrationEventDirectionInt, MigrationEventDate);
+            MigrationEvent = new MigrateGroupEvent(
+                this,
+                targetCell,
+                (Direction)MigrationEventDirectionInt,
+                (MigrationType)MigrationEventTypeInt,
+                MigrationEventDate);
             World.InsertEventToHappen(MigrationEvent);
         }
 
