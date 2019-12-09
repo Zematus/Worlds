@@ -2918,10 +2918,37 @@ public class Manager
     {
         if (_displayRoutes && cell.HasCrossingRoutes)
         {
+            float maxRouteChance = float.MinValue;
+
             foreach (Route route in cell.CrossingRoutes)
             {
                 if (route.Used)
-                    return GetOverlayColor(OverlayColorId.ActiveRoute);
+                {
+                    CellGroup travelGroup = route.FirstCell.Group;
+
+                    if (travelGroup != null)
+                    {
+                        float travelFactor = travelGroup.SeaTravelFactor;
+
+                        float routeLength = route.Length;
+                        float routeLengthFactor = Mathf.Pow(routeLength, 2);
+
+                        float successChance = travelFactor / (travelFactor + routeLengthFactor);
+
+                        maxRouteChance = Mathf.Max(maxRouteChance, successChance);
+                    }
+                }
+            }
+
+            if (maxRouteChance > 0)
+            {
+                float alpha = MathUtility.ToPseudoLogaritmicScale01(maxRouteChance, 1f);
+
+                Color color = GetOverlayColor(OverlayColorId.ActiveRoute);
+                //color.a = (maxRouteChance * 0.7f) + 0.3f;
+                color.a = alpha;
+
+                return color;
             }
         }
         
@@ -3474,7 +3501,11 @@ public class Manager
 
             if (population > 0)
             {
-                float value = (population + maxPopFactor) / (maxPopulation.Value + maxPopFactor);
+                //float value = (population + maxPopFactor) / (maxPopulation.Value + maxPopFactor);
+                float value = population / maxPopulation.Value;
+
+                // Use logaritmic scale (TODO: Make this optional)
+                value = MathUtility.ToPseudoLogaritmicScale01(value, 1f);
 
                 color = Color.red * value;
             }
@@ -3888,6 +3919,7 @@ public class Manager
 
             if (!inTerritory)
             {
+                //groupColor = SetPopulationDensityOverlayColor(cell, baseColor, maxPopulation);
                 if (cell.Group.Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.KnowledgeId, out int knowledgeValue))
                 {
                     float minValue = SocialOrganizationKnowledge.MinValueForTribeFormation;

@@ -5,6 +5,12 @@ using System.Xml;
 using System.Xml.Serialization;
 using UnityEngine.Profiling;
 
+public enum MigrationType
+{
+    Land = 0,
+    Sea = 1
+}
+
 public class MigrateGroupEvent : CellGroupEvent
 {
     [XmlAttribute("TLon")]
@@ -15,18 +21,30 @@ public class MigrateGroupEvent : CellGroupEvent
     [XmlAttribute("MigDir")]
     public int MigrationDirectionInt;
 
+    [XmlAttribute("MigType")]
+    public int MigrationTypeInt;
+
     [XmlIgnore]
     public TerrainCell TargetCell;
 
     [XmlIgnore]
     public Direction MigrationDirection;
 
+    [XmlIgnore]
+    public MigrationType MigrationType;
+
     public MigrateGroupEvent()
     {
         DoNotSerialize = true;
     }
 
-    public MigrateGroupEvent(CellGroup group, TerrainCell targetCell, Direction migrationDirection, long triggerDate, long originalSpawnDate = - 1) : 
+    public MigrateGroupEvent(
+        CellGroup group,
+        TerrainCell targetCell,
+        Direction migrationDirection,
+        MigrationType migrationType,
+        long triggerDate,
+        long originalSpawnDate = - 1) : 
         base(group, triggerDate, MigrateGroupEventId, originalSpawnDate: originalSpawnDate)
     {
         TargetCell = targetCell;
@@ -35,6 +53,7 @@ public class MigrateGroupEvent : CellGroupEvent
         TargetCellLatitude = TargetCell.Latitude;
 
         MigrationDirection = migrationDirection;
+        MigrationType = migrationType;
 
         DoNotSerialize = true;
     }
@@ -102,11 +121,13 @@ public class MigrateGroupEvent : CellGroupEvent
     public override void Synchronize()
     {
         MigrationDirectionInt = (int)MigrationDirection;
+        MigrationTypeInt = (int)MigrationType;
     }
 
     public override void FinalizeLoad()
     {
         MigrationDirection = (Direction)MigrationDirectionInt;
+        MigrationType = (MigrationType)MigrationTypeInt;
 
         base.FinalizeLoad();
 
@@ -120,12 +141,21 @@ public class MigrateGroupEvent : CellGroupEvent
         if (Group != null)
         {
             Group.HasMigrationEvent = false;
+
+            if (MigrationType == MigrationType.Sea)
+            {
+                Group.ResetSeaMigrationRoute();
+            }
         }
 
         base.DestroyInternal();
     }
 
-    public void Reset(TerrainCell targetCell, Direction migrationDirection, long triggerDate)
+    public void Reset(
+        TerrainCell targetCell,
+        Direction migrationDirection,
+        MigrationType migrationType,
+        long triggerDate)
     {
         TargetCell = targetCell;
 
@@ -133,6 +163,7 @@ public class MigrateGroupEvent : CellGroupEvent
         TargetCellLatitude = TargetCell.Latitude;
 
         MigrationDirection = migrationDirection;
+        MigrationType = migrationType;
 
         Reset(triggerDate);
 
