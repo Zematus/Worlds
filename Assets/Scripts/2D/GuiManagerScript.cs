@@ -1492,6 +1492,8 @@ public class GuiManagerScript : MonoBehaviour
 
         AddPopulationDialogScript.SetVisible(false);
 
+        SetStartingSpeed(AddPopulationDialogScript.StartSpeedLevelIndex);
+
         Debug.Log(string.Format("Player chose to do random population placement of {0}...", population));
 
         if (population <= 0)
@@ -1533,6 +1535,8 @@ public class GuiManagerScript : MonoBehaviour
         int population = AddPopulationDialogScript.Population;
 
         AddPopulationDialogScript.SetVisible(false);
+
+        SetStartingSpeed(AddPopulationDialogScript.StartSpeedLevelIndex);
 
         Debug.Log(string.Format("Player chose to select cell for population placement of {0}...", population));
 
@@ -1809,7 +1813,11 @@ public class GuiManagerScript : MonoBehaviour
     {
         if (_hasToSetInitialPopulation)
         {
-            AddPopulationDialogScript.InitializeAndShow();
+            int startingPopulation = (int)Mathf.Ceil(World.StartPopulationDensity * TerrainCell.MaxArea);
+
+            startingPopulation = Mathf.Clamp(startingPopulation, World.MinStartingPopulation, World.MaxStartingPopulation);
+
+            AddPopulationDialogScript.InitializeAndShow(startingPopulation, _selectedMaxSpeedLevelIndex);
 
             _hasToSetInitialPopulation = false;
 
@@ -1960,12 +1968,14 @@ public class GuiManagerScript : MonoBehaviour
         SetMaxSpeedLevel(_selectedMaxSpeedLevelIndex);
     }
 
-    public void SetMaxSpeedLevel(int speedLevelIndex)
+    /// <summary>
+    /// Update Current World Speed to selected and update UI
+    /// </summary>
+    /// <returns></returns>
+    private Speed SetMaxSpeedToSelected()
     {
-        _selectedMaxSpeedLevelIndex = Mathf.Clamp(speedLevelIndex, 0, _topMaxSpeedLevelIndex);
-
-        OnFirstMaxSpeedOptionSet.Invoke(_pausingDialogActive || (_selectedMaxSpeedLevelIndex == 0));
-        OnLastMaxSpeedOptionSet.Invoke(_pausingDialogActive || (_selectedMaxSpeedLevelIndex == _topMaxSpeedLevelIndex));
+        OnFirstMaxSpeedOptionSet.Invoke(_selectedMaxSpeedLevelIndex == 0);
+        OnLastMaxSpeedOptionSet.Invoke(_selectedMaxSpeedLevelIndex == _topMaxSpeedLevelIndex);
 
         // This is the max amount of iterations to simulate per second
         Speed selectedSpeed = Speed.Levels[_selectedMaxSpeedLevelIndex];
@@ -1975,7 +1985,19 @@ public class GuiManagerScript : MonoBehaviour
 
         Manager.CurrentWorld.SetMaxTimeToSkip(maxSpeed);
 
-        OnSimulationSpeedChanged.Invoke(selectedSpeed);
+        return selectedSpeed;
+    }
+
+    public void SetMaxSpeedLevel(int speedLevelIndex)
+    {
+        if (_pausingDialogActive || _pauseButtonPressed)
+        {
+            return;
+        }
+
+        _selectedMaxSpeedLevelIndex = Mathf.Clamp(speedLevelIndex, 0, _topMaxSpeedLevelIndex);
+
+        OnSimulationSpeedChanged.Invoke(SetMaxSpeedToSelected());
 
         ResetAccDeltaTime();
     }
@@ -2127,6 +2149,26 @@ public class GuiManagerScript : MonoBehaviour
         InterruptSimulation(true);
 
         _eventPauseActive = true;
+    }
+
+    /// <summary>
+    /// Sets the starting simulation speed
+    /// </summary>
+    /// <param name="startSpeedLevelIndex">The index for the starting speed to use</param>
+    public void SetStartingSpeed(int startSpeedLevelIndex)
+    {
+        Debug.Log(string.Format("Player set starting speed to {0}...", startSpeedLevelIndex));
+
+        if (startSpeedLevelIndex == -1)
+        {
+            PauseSimulation(true);
+        }
+        else
+        {
+            _selectedMaxSpeedLevelIndex = Mathf.Clamp(startSpeedLevelIndex, 0, _topMaxSpeedLevelIndex);
+
+            SetMaxSpeedToSelected();
+        }
     }
 
     public void ResolveDecision()
