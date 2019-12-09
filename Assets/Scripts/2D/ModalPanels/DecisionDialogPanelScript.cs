@@ -93,17 +93,17 @@ public class DecisionDialogPanelScript : ModalPanelScript
                 continue;
             }
 
-            GameObject.Destroy(button.gameObject);
+            Destroy(button.gameObject);
         }
 
         _optionButtons.Clear();
     }
 
-    public override void SetVisible(bool value)
+    public override void SetVisible(bool state)
     {
-        base.SetVisible(value);
+        base.SetVisible(state);
 
-        if (value)
+        if (state)
         {
             SetOptions();
         }

@@ -10,7 +10,11 @@ public class AddPopulationDialogScript : ModalPanelScript
     public int Population = 0;
 
     public UnityEvent OperationCanceled;
-    
+
+    public Text SpeedButtonText;
+
+    public int StartSpeedLevelIndex;
+
     // Update is called once per frame
     void Update()
     {
@@ -44,14 +48,18 @@ public class AddPopulationDialogScript : ModalPanelScript
         OperationCanceled.Invoke();
     }
 
-    /// <summary>Initializes the dialog and shows it on screen.</summary>
-    public void InitializeAndShow()
+    /// <summary>
+    /// Initializes the population placement dialog and shows it on screen.
+    /// </summary>
+    /// <param name="startingPopulation">The default initial population to display on the dialog</param>
+    /// <param name="startingSpeedIndex">The default initial speed to display on the dialog</param>
+    public void InitializeAndShow(int startingPopulation, int startingSpeedIndex)
     {
-        int defaultPopulationValue = (int)Mathf.Ceil(World.StartPopulationDensity * TerrainCell.MaxArea);
+        SetPopulationValue(startingPopulation);
 
-        defaultPopulationValue = Mathf.Clamp(defaultPopulationValue, World.MinStartingPopulation, World.MaxStartingPopulation);
+        StartSpeedLevelIndex = startingSpeedIndex;
 
-        SetPopulationValue(defaultPopulationValue);
+        SpeedButtonText.text = Speed.Levels[startingSpeedIndex];
 
         SetVisible(true);
     }
@@ -60,5 +68,24 @@ public class AddPopulationDialogScript : ModalPanelScript
     private void ReadKeyboardInput()
     {
         Manager.HandleKeyUp(KeyCode.Escape, false, false, CancelOperation);
+    }
+
+    /// <summary>
+    /// Increase the speed level displayed on the starting speed button
+    /// </summary>
+    public void SelectNextSpeedLevel()
+    {
+        StartSpeedLevelIndex++;
+
+        if (StartSpeedLevelIndex == Speed.Levels.Length)
+        {
+            StartSpeedLevelIndex = -1;
+
+            SpeedButtonText.text = Speed.Zero;
+        }
+        else
+        {
+            SpeedButtonText.text = Speed.Levels[StartSpeedLevelIndex];
+        }
     }
 }
