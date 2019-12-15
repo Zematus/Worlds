@@ -685,52 +685,52 @@ public class GuiManagerScript : MonoBehaviour
 
     private void SetMaxSpeedLevelTo0()
     {
-        SetMaxSpeedLevel(0);
+        SetMaxSpeedLevelIfNotPaused(0);
     }
 
     private void SetMaxSpeedLevelTo1()
     {
-        SetMaxSpeedLevel(1);
+        SetMaxSpeedLevelIfNotPaused(1);
     }
 
     private void SetMaxSpeedLevelTo2()
     {
-        SetMaxSpeedLevel(2);
+        SetMaxSpeedLevelIfNotPaused(2);
     }
 
     private void SetMaxSpeedLevelTo3()
     {
-        SetMaxSpeedLevel(3);
+        SetMaxSpeedLevelIfNotPaused(3);
     }
 
     private void SetMaxSpeedLevelTo4()
     {
-        SetMaxSpeedLevel(4);
+        SetMaxSpeedLevelIfNotPaused(4);
     }
 
     private void SetMaxSpeedLevelTo5()
     {
-        SetMaxSpeedLevel(5);
+        SetMaxSpeedLevelIfNotPaused(5);
     }
 
     private void SetMaxSpeedLevelTo6()
     {
-        SetMaxSpeedLevel(6);
+        SetMaxSpeedLevelIfNotPaused(6);
     }
 
     private void SetMaxSpeedLevelTo7()
     {
-        SetMaxSpeedLevel(7);
+        SetMaxSpeedLevelIfNotPaused(7);
     }
 
     private void IncreaseMaxSpeedLevel()
     {
-        SetMaxSpeedLevel(_selectedMaxSpeedLevelIndex + 1);
+        SetMaxSpeedLevelIfNotPaused(_selectedMaxSpeedLevelIndex + 1);
     }
 
     private void DecreaseMaxSpeedLevel()
     {
-        SetMaxSpeedLevel(_selectedMaxSpeedLevelIndex - 1);
+        SetMaxSpeedLevelIfNotPaused(_selectedMaxSpeedLevelIndex - 1);
     }
 
     private void ReadKeyboardInput_TimeControls()
@@ -1290,8 +1290,6 @@ public class GuiManagerScript : MonoBehaviour
         SelectionPanelScript.RemoveAllOptions();
 
         _selectedMaxSpeedLevelIndex = _topMaxSpeedLevelIndex;
-
-        SetMaxSpeedLevel(_selectedMaxSpeedLevelIndex);
 
         _postProgressOp -= PostProgressOp_RegenerateWorld;
 
@@ -1944,9 +1942,6 @@ public class GuiManagerScript : MonoBehaviour
 
     public void IncreaseMaxSpeed()
     {
-        if (_pauseButtonPressed)
-            return;
-
         if (_selectedMaxSpeedLevelIndex == _topMaxSpeedLevelIndex)
             return;
 
@@ -1957,9 +1952,6 @@ public class GuiManagerScript : MonoBehaviour
 
     public void DecreaseMaxSpeed()
     {
-        if (_pauseButtonPressed)
-            return;
-
         if (_selectedMaxSpeedLevelIndex == 0)
             return;
 
@@ -1971,11 +1963,17 @@ public class GuiManagerScript : MonoBehaviour
     /// <summary>
     /// Update Current World Speed to selected and update UI
     /// </summary>
-    /// <returns></returns>
+    /// <returns>The now current speed</returns>
     private Speed SetMaxSpeedToSelected()
     {
-        OnFirstMaxSpeedOptionSet.Invoke(_selectedMaxSpeedLevelIndex == 0);
-        OnLastMaxSpeedOptionSet.Invoke(_selectedMaxSpeedLevelIndex == _topMaxSpeedLevelIndex);
+        bool holdState = !Manager.SimulationRunning;
+
+        SetSimulationSpeedStopped(holdState);
+
+        OnFirstMaxSpeedOptionSet.Invoke(
+            holdState || (_selectedMaxSpeedLevelIndex == 0));
+        OnLastMaxSpeedOptionSet.Invoke(
+            holdState || (_selectedMaxSpeedLevelIndex == _topMaxSpeedLevelIndex));
 
         // This is the max amount of iterations to simulate per second
         Speed selectedSpeed = Speed.Levels[_selectedMaxSpeedLevelIndex];
@@ -1988,13 +1986,26 @@ public class GuiManagerScript : MonoBehaviour
         return selectedSpeed;
     }
 
-    public void SetMaxSpeedLevel(int speedLevelIndex)
+    /// <summary>
+    /// Sets the simulation's max speed, but validates it can be done first
+    /// </summary>
+    /// <param name="speedLevelIndex">The speed level index to use</param>
+    private void SetMaxSpeedLevelIfNotPaused(int speedLevelIndex)
     {
         if (_pausingDialogActive || _pauseButtonPressed)
         {
             return;
         }
 
+        SetMaxSpeedLevel(speedLevelIndex);
+    }
+
+    /// <summary>
+    /// Sets the simulation's max speed
+    /// </summary>
+    /// <param name="speedLevelIndex">The speed level index to use</param>
+    private void SetMaxSpeedLevel(int speedLevelIndex)
+    {
         _selectedMaxSpeedLevelIndex = Mathf.Clamp(speedLevelIndex, 0, _topMaxSpeedLevelIndex);
 
         OnSimulationSpeedChanged.Invoke(SetMaxSpeedToSelected());
