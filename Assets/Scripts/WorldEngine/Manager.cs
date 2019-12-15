@@ -173,6 +173,7 @@ public class Manager
 
     public static int PixelToCellRatio = 4;
 
+    public static int StartSpeedIndex = 7;
     public static float AltitudeScale = World.DefaultAltitudeScale;
     public static float SeaLevelOffset = 0;
     public static float RiverStrength = World.DefaultRiverStrength;

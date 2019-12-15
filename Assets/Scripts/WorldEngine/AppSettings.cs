@@ -9,6 +9,7 @@ using UnityEngine.Profiling;
 
 public class AppSettings
 {
+    public int StartSpeedIndex = 7;
     public float AltitudeScale = 0;
     public float SeaLevelOffset = 0;
     public float RiverStrength = 0;
@@ -29,6 +30,7 @@ public class AppSettings
 
     public void Put()
     {
+        StartSpeedIndex = Manager.StartSpeedIndex;
         AltitudeScale = Manager.AltitudeScale;
         SeaLevelOffset = Manager.SeaLevelOffset;
         RiverStrength = Manager.RiverStrength;
@@ -48,6 +50,7 @@ public class AppSettings
 
     public void Take()
     {
+        Manager.StartSpeedIndex = StartSpeedIndex;
         Manager.AltitudeScale = AltitudeScale;
         Manager.SeaLevelOffset = SeaLevelOffset;
         Manager.RiverStrength = RiverStrength;

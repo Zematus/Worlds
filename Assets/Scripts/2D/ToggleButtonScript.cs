@@ -20,7 +20,9 @@ public class ToggleButtonScript : MonoBehaviour
     // Use this for initialization
     void Start()
     {
-        SetState(false);
+        UncheckImage.enabled = !IsOn && !_partialCheck;
+        PartialCheckImage.enabled = !IsOn && _partialCheck;
+        CheckImage.enabled = IsOn;
     }
 
     public void OnValueChanged()
