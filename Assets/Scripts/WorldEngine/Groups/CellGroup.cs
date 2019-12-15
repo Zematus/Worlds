@@ -22,7 +22,7 @@ public class CellGroup : HumanGroup
 
     public const float PopulationForagingConstant = 10;
     public const float PopulationFarmingConstant = 5;
-    public const float PopulationFishingConstant = 5;
+    public const float PopulationFishingConstant = 2;
 
     public const float MinKnowledgeTransferValue = 0.25f;
 
@@ -2566,7 +2566,7 @@ public class CellGroup : HumanGroup
 
         Culture.TryGetKnowledgeScaledValue(ShipbuildingKnowledge.KnowledgeId, out value);
         
-        float techFactor = value + noTechBaseValue;
+        float techFactor = (0.5f * value) + noTechBaseValue;
 
         float capacityFactor = techFactor * cell.NeighborhoodWaterBiomePresence;
 
