@@ -130,13 +130,7 @@ public class Manager
 
     public const float BrushNoiseRadiusFactor = 200;
 
-    public static string DefaultModPath
-    {
-        get
-        {
-            return Path.Combine(Directory.GetCurrentDirectory(), "Mods");
-        }
-    }
+    public const string DefaultModPath = "Mods";
 
     public const float StageProgressIncFromLoading = 0.1f;
 
