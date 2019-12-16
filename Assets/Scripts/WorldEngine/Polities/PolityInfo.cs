@@ -15,7 +15,10 @@ public enum PolityType
 
 public class PolityInfo : ISynchronizable, IKeyedValue<long>
 {
-	[XmlAttribute("T")]
+    [XmlAttribute("D")]
+    public long FormationDate = -1;
+
+    [XmlAttribute("T")]
 	public string Type;
 
 	[XmlAttribute]
@@ -37,6 +40,8 @@ public class PolityInfo : ISynchronizable, IKeyedValue<long>
 	public PolityInfo(string type, long id, Polity polity)
     {
         Id = id;
+
+        FormationDate = polity.World.CurrentDate;
 
         Polity = polity;
 

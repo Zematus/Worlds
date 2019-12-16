@@ -712,6 +712,11 @@ public class Manager
 
     public static string GetDateString(long date)
     {
+        if (date < 0)
+        {
+            return "Unknown";
+        }
+
         long year = date / World.YearLength;
         int day = (int)(date % World.YearLength);
 
