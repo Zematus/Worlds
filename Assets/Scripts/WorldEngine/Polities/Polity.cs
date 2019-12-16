@@ -101,6 +101,11 @@ public abstract class Polity : ISynchronizable
         get { return Info.Name; }
     }
 
+    public long FormationDate
+    {
+        get { return Info.FormationDate; }
+    }
+
     public Agent CurrentLeader
     {
         get

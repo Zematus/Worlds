@@ -33,6 +33,8 @@ public class GuiManagerScript : MonoBehaviour
     public PlanetScript PlanetScript;
     public MapScript MapScript;
 
+    public ModalActivationScript ModalActivationScript;
+
     public InfoTooltipScript InfoTooltipScript;
 
     public InfoPanelScript InfoPanelScript;
@@ -253,6 +255,8 @@ public class GuiManagerScript : MonoBehaviour
 
     private void ResetAllDialogs()
     {
+        ModalActivationScript.Activate(false);
+
         SelectionPanelScript.RemoveAllOptions();
         SelectionPanelScript.SetVisible(false);
 

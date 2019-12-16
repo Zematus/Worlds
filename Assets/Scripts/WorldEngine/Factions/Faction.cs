@@ -83,6 +83,11 @@ public abstract class Faction : ISynchronizable
         get { return Info.Id; }
     }
 
+    public long FormationDate
+    {
+        get { return Info.FormationDate; }
+    }
+
     public Name Name
     {
         get { return Info.Name; }
