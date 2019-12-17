@@ -2287,6 +2287,11 @@ public class Manager
 
         foreach (TerrainCell cell in UpdatedCells)
         {
+            if (cell == null)
+            {
+                throw new System.NullReferenceException("Updated cell is null");
+            }
+
             UpdateMapOverlayTextureColorsFromCell(textureColors, cell);
         }
     }
@@ -2769,6 +2774,11 @@ public class Manager
     private static Color GenerateOverlayColorFromTerrainCell(TerrainCell cell)
     {
         Color color = _transparentColor;
+
+        if (cell == null)
+        {
+            throw new System.NullReferenceException("cell is null");
+        }
 
         int? maxPopulation = null;
 
@@ -3919,7 +3929,11 @@ public class Manager
 
             if (!inTerritory)
             {
-                //groupColor = SetPopulationDensityOverlayColor(cell, baseColor, maxPopulation);
+                if (cell.Group.Culture == null)
+                {
+                    throw new System.NullReferenceException("group " + cell.Position + " culture not initialized...");
+                }
+
                 if (cell.Group.Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.KnowledgeId, out int knowledgeValue))
                 {
                     float minValue = SocialOrganizationKnowledge.MinValueForTribeFormation;
