@@ -263,7 +263,7 @@ public class Discovery : ICellGroupEventGenerator
     {
         long triggerDate = CalculateTriggerDate(group);
 
-        if (triggerDate == long.MinValue)
+        if (triggerDate < 0)
         {
             // Do not generate an event. CalculateTriggerDate() should have logged a reason why
             return null;

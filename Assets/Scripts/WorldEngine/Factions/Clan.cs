@@ -46,10 +46,57 @@ public class Clan : Faction
     {
         base.InitializeInternal();
 
-        AddEvent(new ClanCoreMigrationEvent(this, ClanCoreMigrationEvent.CalculateTriggerDate(this)));
-        AddEvent(new ClanSplitDecisionEvent(this, ClanSplitDecisionEvent.CalculateTriggerDate(this)));
-        AddEvent(new ClanDemandsInfluenceDecisionEvent(this, ClanDemandsInfluenceDecisionEvent.CalculateTriggerDate(this)));
-        AddEvent(new TribeSplitDecisionEvent(this, TribeSplitDecisionEvent.CalculateTriggerDate(this)));
+        long triggerDate = ClanCoreMigrationEvent.CalculateTriggerDate(this);
+        if (triggerDate > 0)
+        {
+            if (triggerDate <= World.CurrentDate)
+            {
+                throw new System.Exception(
+                    "ClanCoreMigrationEvent Trigger Date (" + triggerDate +
+                    ") less or equal to current date: " + World.CurrentDate);
+            }
+
+            AddEvent(new ClanCoreMigrationEvent(this, triggerDate));
+        }
+
+        triggerDate = ClanSplitDecisionEvent.CalculateTriggerDate(this);
+        if (triggerDate > 0)
+        {
+            if (triggerDate <= World.CurrentDate)
+            {
+                throw new System.Exception(
+                    "ClanSplitDecisionEvent Trigger Date (" + triggerDate +
+                    ") less or equal to current date: " + World.CurrentDate);
+            }
+
+            AddEvent(new ClanSplitDecisionEvent(this, triggerDate));
+        }
+
+        triggerDate = ClanDemandsInfluenceDecisionEvent.CalculateTriggerDate(this);
+        if (triggerDate > 0)
+        {
+            if (triggerDate <= World.CurrentDate)
+            {
+                throw new System.Exception(
+                    "ClanDemandsInfluenceDecisionEvent Trigger Date (" + triggerDate +
+                    ") less or equal to current date: " + World.CurrentDate);
+            }
+
+            AddEvent(new ClanDemandsInfluenceDecisionEvent(this, triggerDate));
+        }
+
+        triggerDate = TribeSplitDecisionEvent.CalculateTriggerDate(this);
+        if (triggerDate > 0)
+        {
+            if (triggerDate <= World.CurrentDate)
+            {
+                throw new System.Exception(
+                    "TribeSplitDecisionEvent Trigger Date (" + triggerDate +
+                    ") less or equal to current date: " + World.CurrentDate);
+            }
+
+            AddEvent(new TribeSplitDecisionEvent(this, triggerDate));
+        }
     }
 
     public CellGroup GetCoreGroupMigrationTarget()

@@ -562,29 +562,6 @@ public class CellGroup : HumanGroup
     public void InitializeDefaultEvents()
     {
         InitializeOnSpawnEvents();
-
-        //if (BoatMakingDiscoveryEvent.CanSpawnIn(this))
-        //{
-        //    long triggerDate = BoatMakingDiscoveryEvent.CalculateTriggerDate(this);
-
-        //    if (triggerDate > World.MaxSupportedDate)
-        //        return;
-
-        //    if (triggerDate == long.MinValue)
-        //        return;
-
-        //    World.InsertEventToHappen(new BoatMakingDiscoveryEvent(this, triggerDate));
-        //}
-
-        //if (PlantCultivationDiscoveryEvent.CanSpawnIn(this))
-        //{
-        //    long triggerDate = PlantCultivationDiscoveryEvent.CalculateTriggerDate(this);
-
-        //    if (!triggerDate.IsInsideRange(World.CurrentDate + 1, World.MaxSupportedDate))
-        //        return;
-
-        //    World.InsertEventToHappen(new PlantCultivationDiscoveryEvent(this, triggerDate));
-        //}
     }
 
     public void InitializeDefaultPreferences(bool initialGroup)
@@ -1126,7 +1103,7 @@ public class CellGroup : HumanGroup
 
         LastUpdateDate = World.CurrentDate;
 
-        if (NextUpdateDate == long.MinValue)
+        if (NextUpdateDate < 0)
         {
             // Do not generate event
             return;

@@ -54,7 +54,7 @@ public class ClanSplitDecisionEvent : FactionEvent
 
         float loadFactor = 1;
 
-        if (administrativeLoad != Mathf.Infinity)
+        if (!float.IsPositiveInfinity(administrativeLoad))
         {
             float modAdminLoad = Mathf.Max(0, administrativeLoad - MinAdministrativeLoad);
 
@@ -79,19 +79,30 @@ public class ClanSplitDecisionEvent : FactionEvent
 
         long triggerDate = clan.World.CurrentDate + triggerDateSpan;
 
-//#if DEBUG
-//        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
-//        {
-//            SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("ClanSplitDecisionEvent.CalculateTriggerDate - clan:" + clan.Id,
-//                "CurrentDate: " + clan.World.CurrentDate +
-//                ", administrativeLoad: " + administrativeLoad +
-//                ", cohesionPreferenceValue: " + cohesionPreferenceValue +
-//                ", triggerDate: " + triggerDate +
-//                "", clan.World.CurrentDate);
+        //#if DEBUG
+        //        if ((Manager.RegisterDebugEvent != null) && (Manager.TracingData.Priority <= 0))
+        //        {
+        //            SaveLoadTest.DebugMessage debugMessage = new SaveLoadTest.DebugMessage("ClanSplitDecisionEvent.CalculateTriggerDate - clan:" + clan.Id,
+        //                "CurrentDate: " + clan.World.CurrentDate +
+        //                ", administrativeLoad: " + administrativeLoad +
+        //                ", cohesionPreferenceValue: " + cohesionPreferenceValue +
+        //                ", triggerDate: " + triggerDate +
+        //                "", clan.World.CurrentDate);
 
-//            Manager.RegisterDebugEvent("DebugMessage", debugMessage);
-//        }
-//#endif
+        //            Manager.RegisterDebugEvent("DebugMessage", debugMessage);
+        //        }
+        //#endif
+
+        if (triggerDate > World.MaxSupportedDate)
+        {
+            // nextDate is invalid, generate report
+            Debug.LogWarning(
+                "CalculateTriggerDate - triggerDate (" + triggerDate +
+                ") greater than MaxSupportedDate (" + World.MaxSupportedDate +
+                "). dateSpan: " + dateSpan + ", randomFactor: " + randomFactor);
+
+            triggerDate = int.MinValue;
+        }
 
         return triggerDate;
     }
@@ -224,7 +235,7 @@ public class ClanSplitDecisionEvent : FactionEvent
     {
         float administrativeLoad = _clan.CalculateAdministrativeLoad();
 
-        if (administrativeLoad == Mathf.Infinity)
+        if (float.IsPositiveInfinity(administrativeLoad))
             return 1;
 
         float cohesionPreferenceValue = _clan.GetPreferenceValue(CulturalPreference.CohesionPreferenceId);
@@ -303,11 +314,25 @@ public class ClanSplitDecisionEvent : FactionEvent
     {
         base.DestroyInternal();
 
-        if ((Faction != null) && (Faction.StillPresent))
+        if ((Faction != null) && Faction.StillPresent)
         {
             Clan clan = Faction as Clan;
 
-            clan.ResetEvent(WorldEvent.ClanSplitDecisionEventId, CalculateTriggerDate(clan));
+            long triggerDate = CalculateTriggerDate(clan);
+            if (triggerDate < 0)
+            {
+                // skip reseting the event since the trigger date is invalid
+                return;
+            }
+
+            if (triggerDate <= clan.World.CurrentDate)
+            {
+                throw new System.Exception(
+                    "Trigger Date (" + triggerDate +
+                    ") less or equal to current date: " + clan.World.CurrentDate);
+            }
+
+            clan.ResetEvent(ClanSplitDecisionEventId, triggerDate);
         }
     }
 

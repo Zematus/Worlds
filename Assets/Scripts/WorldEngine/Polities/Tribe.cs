@@ -100,9 +100,44 @@ public class Tribe : Polity
 
     public override void InitializeInternal()
     {
-        AddEvent(new FosterTribeRelationDecisionEvent(this, FosterTribeRelationDecisionEvent.CalculateTriggerDate(this)));
-        AddEvent(new MergeTribesDecisionEvent(this, MergeTribesDecisionEvent.CalculateTriggerDate(this)));
-        AddEvent(new OpenTribeDecisionEvent(this, OpenTribeDecisionEvent.CalculateTriggerDate(this)));
+        long triggerDate = FosterTribeRelationDecisionEvent.CalculateTriggerDate(this);
+        if (triggerDate > 0)
+        {
+            if (triggerDate <= World.CurrentDate)
+            {
+                throw new System.Exception(
+                    "FosterTribeRelationDecisionEvent Trigger Date (" + triggerDate +
+                    ") less or equal to current date: " + World.CurrentDate);
+            }
+
+            AddEvent(new FosterTribeRelationDecisionEvent(this, triggerDate));
+        }
+
+        triggerDate = MergeTribesDecisionEvent.CalculateTriggerDate(this);
+        if (triggerDate > 0)
+        {
+            if (triggerDate <= World.CurrentDate)
+            {
+                throw new System.Exception(
+                    "MergeTribesDecisionEvent Trigger Date (" + triggerDate +
+                    ") less or equal to current date: " + World.CurrentDate);
+            }
+
+            AddEvent(new MergeTribesDecisionEvent(this, triggerDate));
+        }
+
+        triggerDate = OpenTribeDecisionEvent.CalculateTriggerDate(this);
+        if (triggerDate > 0)
+        {
+            if (triggerDate <= World.CurrentDate)
+            {
+                throw new System.Exception(
+                    "OpenTribeDecisionEvent Trigger Date (" + triggerDate +
+                    ") less or equal to current date: " + World.CurrentDate);
+            }
+
+            AddEvent(new OpenTribeDecisionEvent(this, triggerDate));
+        }
     }
 
     public static void GenerateTribeNounVariations()

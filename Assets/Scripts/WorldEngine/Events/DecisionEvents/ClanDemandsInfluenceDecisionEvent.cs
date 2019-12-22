@@ -57,7 +57,7 @@ public class ClanDemandsInfluenceDecisionEvent : FactionEvent
 
         float loadFactor = 1;
 
-        if (administrativeLoad != Mathf.Infinity)
+        if (!float.IsPositiveInfinity(administrativeLoad))
         {
             float modAdminLoad = Mathf.Max(0, administrativeLoad - DemandClanMinAdministrativeLoad);
 
@@ -100,6 +100,17 @@ public class ClanDemandsInfluenceDecisionEvent : FactionEvent
         //            Manager.RegisterDebugEvent("DebugMessage", debugMessage);
         //        }
         //#endif
+
+        if (triggerDate > World.MaxSupportedDate)
+        {
+            // nextDate is invalid, generate report
+            Debug.LogWarning(
+                "CalculateTriggerDate - triggerDate (" + triggerDate +
+                ") greater than MaxSupportedDate (" + World.MaxSupportedDate +
+                "). dateSpan: " + dateSpan + ", randomFactor: " + randomFactor);
+
+            triggerDate = int.MinValue;
+        }
 
         return triggerDate;
     }
@@ -185,7 +196,7 @@ public class ClanDemandsInfluenceDecisionEvent : FactionEvent
     {
         float administrativeLoad = _dominantClan.CalculateAdministrativeLoad();
 
-        if (administrativeLoad == Mathf.Infinity)
+        if (float.IsPositiveInfinity(administrativeLoad))
             return 0;
 
         float authorityPreferenceValue = _dominantClan.GetPreferenceValue(CulturalPreference.AuthorityPreferenceId);
@@ -249,7 +260,7 @@ public class ClanDemandsInfluenceDecisionEvent : FactionEvent
     {
         float administrativeLoad = _demandClan.CalculateAdministrativeLoad();
 
-        if (administrativeLoad == Mathf.Infinity)
+        if (float.IsPositiveInfinity(administrativeLoad))
             return 0;
 
         float authorityPreferenceValue = _demandClan.GetPreferenceValue(CulturalPreference.AuthorityPreferenceId);
@@ -362,11 +373,25 @@ public class ClanDemandsInfluenceDecisionEvent : FactionEvent
     {
         base.DestroyInternal();
 
-        if ((Faction != null) && (Faction.StillPresent))
+        if ((Faction != null) && Faction.StillPresent)
         {
             Clan clan = Faction as Clan;
 
-            clan.ResetEvent(WorldEvent.ClanDemandsInfluenceDecisionEventId, CalculateTriggerDate(clan));
+            long triggerDate = CalculateTriggerDate(clan);
+            if (triggerDate < 0)
+            {
+                // skip reseting the event since the trigger date is invalid
+                return;
+            }
+
+            if (triggerDate <= clan.World.CurrentDate)
+            {
+                throw new System.Exception(
+                    "Trigger Date (" + triggerDate +
+                    ") less or equal to current date: " + clan.World.CurrentDate);
+            }
+
+            clan.ResetEvent(ClanDemandsInfluenceDecisionEventId, triggerDate);
         }
     }
 
