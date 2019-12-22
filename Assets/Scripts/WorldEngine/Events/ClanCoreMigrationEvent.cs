@@ -33,9 +33,20 @@ public class ClanCoreMigrationEvent : FactionEvent
 
         float dateSpan = (1 - randomFactor) * DateSpanFactorConstant;
 
-        long targetDate = (long)(clan.World.CurrentDate + dateSpan) + CellGroup.GenerationSpan;
+        long triggerDate = (long)(clan.World.CurrentDate + dateSpan) + CellGroup.GenerationSpan;
 
-        return targetDate;
+        if (triggerDate > World.MaxSupportedDate)
+        {
+            // nextDate is invalid, generate report
+            Debug.LogWarning(
+                "CalculateTriggerDate - triggerDate (" + triggerDate +
+                ") greater than MaxSupportedDate (" + World.MaxSupportedDate +
+                "). dateSpan: " + dateSpan + ", randomFactor: " + randomFactor);
+
+            triggerDate = int.MinValue;
+        }
+
+        return triggerDate;
     }
 
     public override bool CanTrigger()
@@ -66,11 +77,25 @@ public class ClanCoreMigrationEvent : FactionEvent
     {
         base.DestroyInternal();
 
-        if ((Faction != null) && (Faction.StillPresent))
+        if ((Faction != null) && Faction.StillPresent)
         {
             Clan clan = Faction as Clan;
 
-            clan.ResetEvent(WorldEvent.ClanCoreMigrationEventId, CalculateTriggerDate(clan));
+            long triggerDate = CalculateTriggerDate(clan);
+            if (triggerDate < 0)
+            {
+                // skip reseting the event since the trigger date is invalid
+                return;
+            }
+
+            if (triggerDate <= clan.World.CurrentDate)
+            {
+                throw new System.Exception(
+                    "Trigger Date (" + triggerDate +
+                    ") less or equal to current date: " + clan.World.CurrentDate);
+            }
+
+            clan.ResetEvent(ClanCoreMigrationEventId, triggerDate);
         }
     }
 

@@ -59,7 +59,7 @@ public class TribeSplitDecisionEvent : FactionEvent
 
         float loadFactor = 1;
 
-        if (administrativeLoad != Mathf.Infinity)
+        if (!float.IsPositiveInfinity(administrativeLoad))
         {
             float modAdminLoad = Mathf.Max(0, administrativeLoad - SplitClanMinAdministrativeLoad);
             float modHalfFactorAdminLoad = SplitClanMaxAdministrativeLoad - SplitClanMinAdministrativeLoad;
@@ -83,7 +83,20 @@ public class TribeSplitDecisionEvent : FactionEvent
             triggerDateSpan = CellGroup.MaxUpdateSpan;
         }
 
-        return clan.World.CurrentDate + triggerDateSpan;
+        long triggerDate = clan.World.CurrentDate + triggerDateSpan;
+
+        if (triggerDate > World.MaxSupportedDate)
+        {
+            // nextDate is invalid, generate report
+            Debug.LogWarning(
+                "CalculateTriggerDate - triggerDate (" + triggerDate +
+                ") greater than MaxSupportedDate (" + World.MaxSupportedDate +
+                "). dateSpan: " + dateSpan + ", randomFactor: " + randomFactor);
+
+            triggerDate = int.MinValue;
+        }
+
+        return triggerDate;
     }
 
     public override bool CanTrigger()
@@ -170,7 +183,7 @@ public class TribeSplitDecisionEvent : FactionEvent
     {
         float administrativeLoad = _dominantClan.CalculateAdministrativeLoad();
 
-        if (administrativeLoad == Mathf.Infinity)
+        if (float.IsPositiveInfinity(administrativeLoad))
             return 1;
 
         float cohesionPreferenceValue = _splitClan.GetPreferenceValue(CulturalPreference.CohesionPreferenceId);
@@ -207,7 +220,7 @@ public class TribeSplitDecisionEvent : FactionEvent
     {
         float administrativeLoad = _dominantClan.CalculateAdministrativeLoad();
 
-        if (administrativeLoad == Mathf.Infinity)
+        if (float.IsPositiveInfinity(administrativeLoad))
             return 1;
 
         float cohesionPreferenceValue = _originalTribe.GetPreferenceValue(CulturalPreference.CohesionPreferenceId);
@@ -281,9 +294,23 @@ public class TribeSplitDecisionEvent : FactionEvent
     {
         base.DestroyInternal();
 
-        if ((Faction != null) && (Faction.StillPresent))
+        if ((Faction != null) && Faction.StillPresent)
         {
-            _splitClan.ResetEvent(WorldEvent.TribeSplitDecisionEventId, CalculateTriggerDate(_splitClan));
+            long triggerDate = CalculateTriggerDate(_splitClan);
+            if (triggerDate < 0)
+            {
+                // skip reseting the event since the trigger date is invalid
+                return;
+            }
+
+            if (triggerDate <= _splitClan.World.CurrentDate)
+            {
+                throw new System.Exception(
+                    "Trigger Date (" + triggerDate +
+                    ") less or equal to current date: " + _splitClan.World.CurrentDate);
+            }
+
+            _splitClan.ResetEvent(TribeSplitDecisionEventId, triggerDate);
         }
     }
 
