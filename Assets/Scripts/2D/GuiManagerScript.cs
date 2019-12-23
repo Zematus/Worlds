@@ -326,6 +326,8 @@ public class GuiManagerScript : MonoBehaviour
         SetGameModeAccordingToCurrentWorld();
 
         SetGlobeView(false);
+
+        SetMaxSpeedLevel(_selectedMaxSpeedLevelIndex);
     }
 
     // Use this for initialization
@@ -335,8 +337,6 @@ public class GuiManagerScript : MonoBehaviour
 
         _topMaxSpeedLevelIndex = Speed.Levels.Length - 1;
         _selectedMaxSpeedLevelIndex = Manager.StartSpeedIndex;
-
-        SetMaxSpeedLevel(_selectedMaxSpeedLevelIndex);
 
         Manager.UpdateMainThreadReference();
 
@@ -1977,8 +1977,6 @@ public class GuiManagerScript : MonoBehaviour
     {
         bool holdState = !Manager.SimulationRunning;
 
-        SetSimulationSpeedStopped(holdState);
-
         OnFirstMaxSpeedOptionSet.Invoke(
             holdState || (_selectedMaxSpeedLevelIndex == 0));
         OnLastMaxSpeedOptionSet.Invoke(
@@ -1991,6 +1989,9 @@ public class GuiManagerScript : MonoBehaviour
         int maxSpeed = (int)Mathf.Ceil(selectedSpeed * MaxDeltaTimeIterations);
 
         Manager.CurrentWorld.SetMaxTimeToSkip(maxSpeed);
+
+        if (holdState)
+            return Speed.Zero;
 
         return selectedSpeed;
     }
