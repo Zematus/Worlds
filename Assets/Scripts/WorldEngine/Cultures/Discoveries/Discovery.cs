@@ -261,6 +261,13 @@ public class Discovery : ICellGroupEventGenerator
 
     public CellGroupEvent GenerateAndAssignEvent(CellGroup group)
     {
+#if DEBUG
+        if (this.Id.Contains("boat"))
+        {
+            bool debug = true;
+        }
+#endif
+
         long triggerDate = CalculateTriggerDate(group);
 
         if (triggerDate < 0)

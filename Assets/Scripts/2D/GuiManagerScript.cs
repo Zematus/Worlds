@@ -316,6 +316,18 @@ public class GuiManagerScript : MonoBehaviour
 
     }
 
+    /// <summary>
+    /// Common calls executed after switching from from init view scene
+    /// </summary>
+    private void InitFromStartView()
+    {
+        ValidateLayersPresent();
+
+        SetGameModeAccordingToCurrentWorld();
+
+        SetGlobeView(false);
+    }
+
     // Use this for initialization
     void Start()
     {
@@ -358,14 +370,10 @@ public class GuiManagerScript : MonoBehaviour
         }
         else
         {
-            ValidateLayersPresent();
-
-            SetGameModeAccordingToCurrentWorld();
+            InitFromStartView();
         }
 #else
-        ValidateLayersPresent();
-
-        SetGameModeAccordingToCurrentWorld();
+        InitFromStartView();
 #endif
 
         LoadButton.interactable = HasFilesToLoad();
@@ -866,7 +874,7 @@ public class GuiManagerScript : MonoBehaviour
         if (IsMenuPanelActive())
             return; // Don't show any hidden panel if there's any menu panel still active.
 
-            foreach (ModalPanelScript panel in _hiddenInteractionPanels)
+        foreach (ModalPanelScript panel in _hiddenInteractionPanels)
         {
             panel.SetVisible(true);
         }
@@ -1419,10 +1427,8 @@ public class GuiManagerScript : MonoBehaviour
 
         SelectionPanelScript.RemoveAllOptions();
 
-        if (Manager.ViewingGlobe)
-        {
-            ToggleGlobeView(); // It's more safe to return to map mode after loading or generating a new world
-        }
+        // It's safer to return to map mode after loading or generating a new world
+        SetGlobeView(false);
         
         _hasToSetInitialPopulation = true;
 
@@ -2070,10 +2076,8 @@ public class GuiManagerScript : MonoBehaviour
 
         SelectionPanelScript.RemoveAllOptions();
 
-        if (Manager.ViewingGlobe)
-        {
-            ToggleGlobeView(); // It's more safe to return to map mode after loading or generating a new world
-        }
+        // It's safer to return to map mode after loading or generating a new world
+        SetGlobeView(false);
 
         ValidateLayersPresent();
         SetGameModeAccordingToCurrentWorld();
@@ -2412,19 +2416,18 @@ public class GuiManagerScript : MonoBehaviour
         ResetAccDeltaTime();
     }
 
-    public void ToggleGlobeView()
+    /// <summary>
+    /// Sets or resets the globe (3D) view
+    /// </summary>
+    /// <param name="state">'true' if globe view should be set, otherwise 'false'</param>
+    private void SetGlobeView(bool state)
     {
-        if (Manager.EditorBrushIsActive)
-            return; // Do not allow map projection switching while brush is active
+        Manager.ViewingGlobe = state;
 
-        bool newState = !Manager.ViewingGlobe;
+        MapScript.SetVisible(!state);
+        PlanetScript.SetVisible(state);
 
-        Manager.ViewingGlobe = newState;
-
-        MapScript.SetVisible(!newState);
-        PlanetScript.SetVisible(newState);
-
-        if (newState)
+        if (state)
         {
             MapScript.transform.SetParent(GlobeMapPanel.transform);
         }
@@ -2433,7 +2436,18 @@ public class GuiManagerScript : MonoBehaviour
             MapScript.transform.SetParent(FlatMapPanel.transform);
         }
 
-        ToggledGlobeViewing.Invoke(newState);
+        ToggledGlobeViewing.Invoke(state);
+    }
+
+    /// <summary>
+    /// Toggles between map view (2D) and globe view (3D)
+    /// </summary>
+    public void ToggleGlobeView()
+    {
+        if (Manager.EditorBrushIsActive)
+            return; // Do not allow map projection switching while brush is active
+
+        SetGlobeView(!Manager.ViewingGlobe);
     }
 
     public void SetRouteDisplayOverlay(bool value)
