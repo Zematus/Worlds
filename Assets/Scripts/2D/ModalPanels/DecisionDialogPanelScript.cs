@@ -20,7 +20,7 @@ public class DecisionDialogPanelScript : ModalPanelScript
 
     public UnityEvent OptionChosenEvent;
 
-    private List<Button> _optionButtons = new List<Button>();
+    private readonly List<Button> _optionButtons = new List<Button>();
 
     private Decision _decision;
 
