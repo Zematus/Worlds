@@ -130,7 +130,7 @@ public class Manager
 
     public const float BrushNoiseRadiusFactor = 200;
 
-    public const string DefaultModPath = @".\Mods\";
+    public const string DefaultModPath = "Mods";
 
     public const float StageProgressIncFromLoading = 0.1f;
 
@@ -147,7 +147,7 @@ public class Manager
     public static string HeightmapsPath { get; private set; }
     public static string ExportPath { get; private set; }
 
-    public static string[] SupportedHeightmapFormats = new string[] { ".PSD", ".TIFF", ".JPG", ".TGA", ".PNG", ".BMP", ".PICT" };
+    public static string[] SupportedHeightmapFormats = { ".PSD", ".TIFF", ".JPG", ".TGA", ".PNG", ".BMP", ".PICT" };
 
     public static string WorldName { get; set; }
 
@@ -173,6 +173,7 @@ public class Manager
 
     public static int PixelToCellRatio = 4;
 
+    public static int StartSpeedIndex = 7;
     public static float AltitudeScale = World.DefaultAltitudeScale;
     public static float SeaLevelOffset = 0;
     public static float RiverStrength = World.DefaultRiverStrength;
@@ -190,7 +191,7 @@ public class Manager
     public static bool DebugModeEnabled = false;
     public static bool AnimationShadersEnabled = true;
 
-    public static List<string> ActiveModPaths = new List<string>() { @"Mods\Base" };
+    public static List<string> ActiveModPaths = new List<string>() { Path.Combine(@"Mods", "Base") };
     public static bool ModsAlreadyLoaded = false;
 
     public static Dictionary<string, LayerSettings> LayerSettings = new Dictionary<string, LayerSettings>();
@@ -208,8 +209,8 @@ public class Manager
 
     private static bool _isLoadReady = false;
 
-    private static string _debugLogFilename = @".\debug";
-    private static string _debugLogExt = @".log";
+    private static string _debugLogFilename = "debug";
+    private static string _debugLogExt = ".log";
     private static StreamWriter _debugLogStream = null;
     private static bool _backupDebugLog = false;
 
@@ -675,7 +676,7 @@ public class Manager
 
     private void InitializeSavePath()
     {
-        string path = Path.GetFullPath(@"Saves\");
+        string path = Path.GetFullPath(@"Saves");
 
         if (!Directory.Exists(path))
         {
@@ -687,7 +688,7 @@ public class Manager
 
     private void InitializeHeightmapsPath()
     {
-        string path = Path.GetFullPath(@"Heightmaps\");
+        string path = Path.GetFullPath(@"Heightmaps");
 
         if (!Directory.Exists(path))
         {
@@ -699,7 +700,7 @@ public class Manager
 
     private void InitializeExportPath()
     {
-        string path = Path.GetFullPath(@"Images\");
+        string path = Path.GetFullPath(@"Images");
 
         if (!Directory.Exists(path))
         {
@@ -711,6 +712,11 @@ public class Manager
 
     public static string GetDateString(long date)
     {
+        if (date < 0)
+        {
+            return "Unknown";
+        }
+
         long year = date / World.YearLength;
         int day = (int)(date % World.YearLength);
 
@@ -735,7 +741,7 @@ public class Manager
 
     public static string RemoveDateFromWorldName(string worldName)
     {
-        int dateIndex = worldName.LastIndexOf("_date_");
+        int dateIndex = worldName.LastIndexOf("_date_", System.StringComparison.Ordinal);
 
         if (dateIndex > 0)
         {
@@ -1173,8 +1179,15 @@ public class Manager
     public static void SetActiveModPaths(ICollection<string> paths)
     {
         ActiveModPaths.Clear();
-        ActiveModPaths.AddRange(paths);
-        ActiveModPaths.Sort();
+
+        foreach (string path in paths)
+        {
+            // Make sure mod paths are always parseable regardless of system
+            string[] splitPath = path.Split('/', '\\');
+            ActiveModPaths.Add(Path.Combine(splitPath));
+        }
+
+        ActiveModPaths.Sort(System.StringComparer.Ordinal); // order mods alphabetically before load
 
         ModsAlreadyLoaded = false;
     }
@@ -1230,6 +1243,10 @@ public class Manager
 
         Debug.Log(string.Format("Trying to generate world with seed: {0}, Altitude Scale: {1}, Sea Level Offset: {2}, River Strength: {3}, Avg. Temperature: {4}, Avg. Rainfall: {5}",
             seed, AltitudeScale, SeaLevelOffset, RiverStrength, TemperatureOffset, RainfallOffset));
+
+        string activeModStrs = string.Join(",", ActiveModPaths);
+
+        Debug.Log("Active Mods: " + activeModStrs);
 
         ThreadPool.QueueUserWorkItem(state =>
         {
@@ -1541,10 +1558,7 @@ public class Manager
 
         float value = LastStageProgress + (StageProgressIncFromLoading * _loadTicks / (float)_totalLoadTicks);
 
-        if (_manager._progressCastMethod != null)
-        {
-            _manager._progressCastMethod(Mathf.Min(1, value));
-        }
+        _manager._progressCastMethod?.Invoke(Mathf.Min(1, value));
     }
 
     private static void SetObservableUpdateTypes(PlanetOverlay overlay, string planetOverlaySubtype = "None")
@@ -1760,28 +1774,28 @@ public class Manager
         SetSelectedTerritory(cell.EncompassingTerritory);
     }
 
-    public static void SetFocusOnPolity (Polity polity) {
+    public static void SetFocusOnPolity(Polity polity)
+    {
+        if (polity == null)
+            return;
 
-		if (polity == null)
-			return;
+        if (CurrentWorld.PolitiesUnderPlayerFocus.Contains(polity))
+            return;
 
-		if (CurrentWorld.PolitiesUnderPlayerFocus.Contains (polity))
-			return;
+        polity.SetUnderPlayerFocus(true);
+        CurrentWorld.PolitiesUnderPlayerFocus.Add(polity);
+    }
 
-		polity.SetUnderPlayerFocus (true);
-		CurrentWorld.PolitiesUnderPlayerFocus.Add (polity);
-	}
+    public static void UnsetFocusOnPolity(Polity polity)
+    {
+        if (polity == null)
+            return;
 
-	public static void UnsetFocusOnPolity (Polity polity) {
+        if (!CurrentWorld.PolitiesUnderPlayerFocus.Contains(polity))
+            return;
 
-		if (polity == null)
-			return;
-
-		if (!CurrentWorld.PolitiesUnderPlayerFocus.Contains (polity))
-			return;
-			
-		polity.SetUnderPlayerFocus (false);
-		CurrentWorld.PolitiesUnderPlayerFocus.Remove (polity);
+        polity.SetUnderPlayerFocus(false);
+        CurrentWorld.PolitiesUnderPlayerFocus.Remove(polity);
     }
 
     public static void SetGuidedFaction(Faction faction)
@@ -2273,6 +2287,11 @@ public class Manager
 
         foreach (TerrainCell cell in UpdatedCells)
         {
+            if (cell == null)
+            {
+                throw new System.NullReferenceException("Updated cell is null");
+            }
+
             UpdateMapOverlayTextureColorsFromCell(textureColors, cell);
         }
     }
@@ -2660,9 +2679,7 @@ public class Manager
         float eAltitude = 0;
 
         int c = 0;
-        TerrainCell nCell = null;
-
-        if (neighbors.TryGetValue(Direction.West, out nCell))
+        if (neighbors.TryGetValue(Direction.West, out TerrainCell nCell))
         {
             wAltitude += nCell.Altitude;
             c++;
@@ -2729,7 +2746,7 @@ public class Manager
 
     private static Color GenerateColorFromTerrainCell(TerrainCell cell)
     {
-        Color color = Color.black;
+        Color color;
 
         switch (_planetView)
         {
@@ -2757,6 +2774,11 @@ public class Manager
     private static Color GenerateOverlayColorFromTerrainCell(TerrainCell cell)
     {
         Color color = _transparentColor;
+
+        if (cell == null)
+        {
+            throw new System.NullReferenceException("cell is null");
+        }
 
         int? maxPopulation = null;
 
@@ -2906,10 +2928,37 @@ public class Manager
     {
         if (_displayRoutes && cell.HasCrossingRoutes)
         {
+            float maxRouteChance = float.MinValue;
+
             foreach (Route route in cell.CrossingRoutes)
             {
                 if (route.Used)
-                    return GetOverlayColor(OverlayColorId.ActiveRoute);
+                {
+                    CellGroup travelGroup = route.FirstCell.Group;
+
+                    if (travelGroup != null)
+                    {
+                        float travelFactor = travelGroup.SeaTravelFactor;
+
+                        float routeLength = route.Length;
+                        float routeLengthFactor = Mathf.Pow(routeLength, 2);
+
+                        float successChance = travelFactor / (travelFactor + routeLengthFactor);
+
+                        maxRouteChance = Mathf.Max(maxRouteChance, successChance);
+                    }
+                }
+            }
+
+            if (maxRouteChance > 0)
+            {
+                float alpha = MathUtility.ToPseudoLogaritmicScale01(maxRouteChance, 1f);
+
+                Color color = GetOverlayColor(OverlayColorId.ActiveRoute);
+                //color.a = (maxRouteChance * 0.7f) + 0.3f;
+                color.a = alpha;
+
+                return color;
             }
         }
         
@@ -3192,8 +3241,6 @@ public class Manager
 
                 PolityProminence prominence = cell.Group.GetPolityProminence(territoryPolity);
 
-                Color clusterColor = Color.grey;
-
                 if (prominence.Cluster != null)
                 {
                     color = GenerateColorFromId(prominence.Cluster.Id, 100);
@@ -3464,7 +3511,11 @@ public class Manager
 
             if (population > 0)
             {
-                float value = (population + maxPopFactor) / (maxPopulation.Value + maxPopFactor);
+                //float value = (population + maxPopFactor) / (maxPopulation.Value + maxPopFactor);
+                float value = population / maxPopulation.Value;
+
+                // Use logaritmic scale (TODO: Make this optional)
+                value = MathUtility.ToPseudoLogaritmicScale01(value, 1f);
 
                 color = Color.red * value;
             }
@@ -3665,15 +3716,12 @@ public class Manager
         if (!(territory.Polity.CoreGroup.Culture.GetKnowledge(_planetOverlaySubtype) is CellCulturalKnowledge cellKnowledge))
             return GetUnincorporatedGroupColor();
 
-        float normalizedValue = 0;
-
         float highestLimit = cellKnowledge.GetHighestLimit();
 
         if (highestLimit <= 0)
             throw new System.Exception("Highest Limit is less or equal to 0");
 
-        normalizedValue = knowledge.Value / highestLimit;
-
+        float normalizedValue = knowledge.Value / highestLimit;
         color = GetPolityCulturalAttributeOverlayColor(normalizedValue, IsTerritoryBorder(territory, cell));
 
         return color;
@@ -3881,6 +3929,11 @@ public class Manager
 
             if (!inTerritory)
             {
+                if (cell.Group.Culture == null)
+                {
+                    throw new System.NullReferenceException("group " + cell.Position + " culture not initialized...");
+                }
+
                 if (cell.Group.Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.KnowledgeId, out int knowledgeValue))
                 {
                     float minValue = SocialOrganizationKnowledge.MinValueForTribeFormation;
@@ -4078,7 +4131,7 @@ public class Manager
                 _manager._progressCastMethod(LastStageProgress, "Loading Mod '" + directoryName + "'...");
             }
 
-            LoadMod(path + @"\", progressPerMod);
+            LoadMod(path, progressPerMod);
 
             LastStageProgress += progressPerMod;
         }
@@ -4117,13 +4170,18 @@ public class Manager
 
     private static void LoadMod(string path, float progressPerMod)
     {
+        if (!Directory.Exists(path))
+        {
+            throw new System.ArgumentException("Mod path '" + path + "' not found");
+        }
+
         float progressPerSegment = progressPerMod / 6f;
 
-        TryLoadModFiles(Layer.LoadLayersFile, path + @"Layers", progressPerSegment);
-        TryLoadModFiles(Biome.LoadBiomesFile, path + @"Biomes", progressPerSegment);
-        TryLoadModFiles(Adjective.LoadAdjectivesFile, path + @"Adjectives", progressPerSegment);
-        TryLoadModFiles(RegionAttribute.LoadRegionAttributesFile, path + @"RegionAttributes", progressPerSegment);
-        TryLoadModFiles(Element.LoadElementsFile, path + @"Elements", progressPerSegment);
-        TryLoadModFiles(Discovery.LoadDiscoveriesFile, path + @"Discoveries", progressPerSegment);
+        TryLoadModFiles(Layer.LoadLayersFile, Path.Combine(path, @"Layers"), progressPerSegment);
+        TryLoadModFiles(Biome.LoadBiomesFile, Path.Combine(path, @"Biomes"), progressPerSegment);
+        TryLoadModFiles(Adjective.LoadAdjectivesFile, Path.Combine(path, @"Adjectives"), progressPerSegment);
+        TryLoadModFiles(RegionAttribute.LoadRegionAttributesFile, Path.Combine(path, @"RegionAttributes"), progressPerSegment);
+        TryLoadModFiles(Element.LoadElementsFile, Path.Combine(path, @"Elements"), progressPerSegment);
+        TryLoadModFiles(Discovery.LoadDiscoveriesFile, Path.Combine(path, @"Discoveries"), progressPerSegment);
     }
 }

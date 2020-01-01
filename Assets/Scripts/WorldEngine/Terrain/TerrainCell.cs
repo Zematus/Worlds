@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
+using System;
 
 public enum Direction
 {
@@ -17,6 +18,7 @@ public enum Direction
     Northwest = 7
 }
 
+[Flags]
 public enum CellUpdateType
 {
     None = 0x0,
@@ -31,6 +33,7 @@ public enum CellUpdateType
     GroupTerritoryClusterAndLanguage = Group | Territory | Cluster | Language
 }
 
+[Flags]
 public enum CellUpdateSubType
 {
     None = 0x0,
@@ -373,11 +376,13 @@ public class TerrainCell
 
         maxValue = Mathf.Min(PerlinNoise.MaxPermutationValue, maxValue);
 
-        int dateFactor = unchecked((int)((date % 256) + (date % 7843))); // This operation will reduce to zero or almost zero the number of artifacts resulting from (date & 255) being a constant value in some circumstances
+        // This operation will reduce to zero or almost zero the number of artifacts 
+        // resulting from (date & 255) being a constant value in some circumstances
+        int dateFactor = unchecked((int)((date % 256) + (date % 7843)));
 
-        int x = Mathf.Abs(unchecked(World.Seed + Longitude + queryOffset));
-        int y = Mathf.Abs(unchecked(World.Seed + Latitude + queryOffset));
-        int z = Mathf.Abs(unchecked(World.Seed + dateFactor + queryOffset));
+        int x = MathUtility.ProtectedAbs(unchecked(World.Seed + Longitude + queryOffset));
+        int y = MathUtility.ProtectedAbs(unchecked(World.Seed + Latitude + queryOffset));
+        int z = MathUtility.ProtectedAbs(unchecked(World.Seed + dateFactor + queryOffset));
 
         int value = PerlinNoise.GetPermutationValue(x, y, z) % maxValue;
 

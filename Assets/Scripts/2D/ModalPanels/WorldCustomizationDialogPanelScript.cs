@@ -124,9 +124,7 @@ public class WorldCustomizationDialogPanelScript : MenuPanelScript
 
     private void SetActiveModsAction()
     {
-        ICollection<string> paths = LoadFileDialogPanel.GetPathsToLoad();
-
-        Manager.SetActiveModPaths(paths);
+        Manager.SetActiveModPaths(LoadFileDialogPanel.GetPathsToLoad());
         Manager.ResetLayerSettings();
 
         SetVisible(true);

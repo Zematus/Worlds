@@ -182,6 +182,10 @@ public class StartGuiManagerScript : MonoBehaviour
     {
         Debug.Log("Finished generating world with seed: " + Manager.CurrentWorld.Seed);
 
+        string activeModStrs = string.Join(",", Manager.ActiveModPaths);
+
+        Debug.Log("Active Mods: " + activeModStrs);
+
         Manager.WorldName = "world_" + Manager.CurrentWorld.Seed;
 
         _postProgressOp -= PostProgressOp_GenerateWorld;
@@ -199,6 +203,10 @@ public class StartGuiManagerScript : MonoBehaviour
             Manager.CurrentWorld.TemperatureOffset,
             Manager.CurrentWorld.RainfallOffset,
             Manager.GetDateString(Manager.CurrentWorld.CurrentDate)));
+
+        string activeModStrs = string.Join(",", Manager.ActiveModPaths);
+
+        Debug.Log("Active Mods: " + activeModStrs);
 
         _postProgressOp -= PostProgressOp_LoadAction;
     }
@@ -225,7 +233,7 @@ public class StartGuiManagerScript : MonoBehaviour
     {
         string dirPath = Manager.SavePath;
 
-        string[] files = Directory.GetFiles(dirPath, "*.PLNT");
+        string[] files = Directory.GetFiles(dirPath, "*.plnt");
 
         return files.Length > 0;
     }
@@ -241,7 +249,7 @@ public class StartGuiManagerScript : MonoBehaviour
             LoadSaveAction,
             CancelLoadSaveAction,
             Manager.SavePath,
-            new string[] { ".PLNT" });
+            new string[] { ".plnt" });
 
         LoadFileDialogPanelScript.SetVisible(true);
     }

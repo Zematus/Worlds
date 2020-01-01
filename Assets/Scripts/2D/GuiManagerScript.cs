@@ -33,6 +33,8 @@ public class GuiManagerScript : MonoBehaviour
     public PlanetScript PlanetScript;
     public MapScript MapScript;
 
+    public ModalActivationScript ModalActivationScript;
+
     public InfoTooltipScript InfoTooltipScript;
 
     public InfoPanelScript InfoPanelScript;
@@ -253,6 +255,8 @@ public class GuiManagerScript : MonoBehaviour
 
     private void ResetAllDialogs()
     {
+        ModalActivationScript.Activate(false);
+
         SelectionPanelScript.RemoveAllOptions();
         SelectionPanelScript.SetVisible(false);
 
@@ -312,13 +316,27 @@ public class GuiManagerScript : MonoBehaviour
 
     }
 
+    /// <summary>
+    /// Common calls executed after switching from from init view scene
+    /// </summary>
+    private void InitFromStartView()
+    {
+        ValidateLayersPresent();
+
+        SetGameModeAccordingToCurrentWorld();
+
+        SetGlobeView(false);
+
+        SetMaxSpeedLevel(_selectedMaxSpeedLevelIndex);
+    }
+
     // Use this for initialization
     void Start()
     {
         SetUIScaling(Manager.UIScalingEnabled);
 
         _topMaxSpeedLevelIndex = Speed.Levels.Length - 1;
-        _selectedMaxSpeedLevelIndex = _topMaxSpeedLevelIndex;
+        _selectedMaxSpeedLevelIndex = Manager.StartSpeedIndex;
 
         Manager.UpdateMainThreadReference();
 
@@ -329,10 +347,13 @@ public class GuiManagerScript : MonoBehaviour
 #if DEBUG
         if (!Manager.WorldIsReady)
         {
-            _heightmap = Manager.LoadTexture(@"Heightmaps\mergetest_4b_3600x1800.png");
+            //_heightmap = Manager.LoadTexture(Path.Combine("Heightmaps", "CompositeEarth_3600x1800.png"));
 
-            //Manager.SetActiveModPaths(new string[] { @"Mods\Base", @"Mods\WeirdBiomesMod" });
-            Manager.SetActiveModPaths(new string[] { @"Mods\Base" });
+            //Manager.SetActiveModPaths(new string[] {
+            //    Path.Combine("Mods", "Base"),
+            //    Path.Combine("Mods", "WeirdBiomesMod")
+            //});
+            Manager.SetActiveModPaths(new string[] { Path.Combine("Mods", "Base") });
 
             //GenerateWorld(false, 1142453343, useHeightmap: true);
             //GenerateWorld(false, 1582997248);
@@ -349,14 +370,10 @@ public class GuiManagerScript : MonoBehaviour
         }
         else
         {
-            ValidateLayersPresent();
-
-            SetGameModeAccordingToCurrentWorld();
+            InitFromStartView();
         }
 #else
-        ValidateLayersPresent();
-
-        SetGameModeAccordingToCurrentWorld();
+        InitFromStartView();
 #endif
 
         LoadButton.interactable = HasFilesToLoad();
@@ -388,7 +405,7 @@ public class GuiManagerScript : MonoBehaviour
 
         ReadKeyboardInput();
 
-        if (Manager.DebugModeEnabled)
+        if (Manager.DebugModeEnabled && Manager.WorldIsReady)
         {
             _timeSinceLastMapUpdate += Time.deltaTime;
 
@@ -459,7 +476,7 @@ public class GuiManagerScript : MonoBehaviour
 
             World world = Manager.CurrentWorld;
 
-            Speed maxSpeed = Speed.Levels[_selectedMaxSpeedLevelIndex];
+            Speed selectedSpeed = Speed.Levels[_selectedMaxSpeedLevelIndex];
 
             _accDeltaTime += Time.deltaTime;
 
@@ -469,12 +486,12 @@ public class GuiManagerScript : MonoBehaviour
                 _simulationDateSpan = 0;
             }
 
-            int maxSimulationDateSpan = (int)Mathf.Ceil(maxSpeed * _accDeltaTime);
+            int maxSimulationDateSpan = (int)Mathf.Ceil(selectedSpeed * _accDeltaTime);
 
             // Simulate additional iterations if we haven't reached the max amount of iterations allowed per the percentage of transpired real time during this cycle
             if (_simulationDateSpan < maxSimulationDateSpan)
             {
-                long maxDateSpanBetweenUpdates = (int)Mathf.Ceil(maxSpeed * MaxDeltaTimeIterations);
+                long maxDateSpanBetweenUpdates = (int)Mathf.Ceil(selectedSpeed * MaxDeltaTimeIterations);
                 long lastUpdateDate = world.CurrentDate;
 
                 long dateSpan = 0;
@@ -484,7 +501,6 @@ public class GuiManagerScript : MonoBehaviour
                 // Simulate up to the max amout of iterations allowed per frame
                 while ((lastUpdateDate + maxDateSpanBetweenUpdates) > world.CurrentDate)
                 {
-
                     if (_resolvedDecision)
                     {
                         _resolvedDecision = false;
@@ -682,52 +698,52 @@ public class GuiManagerScript : MonoBehaviour
 
     private void SetMaxSpeedLevelTo0()
     {
-        SetMaxSpeedLevel(0);
+        SetMaxSpeedLevelIfNotPaused(0);
     }
 
     private void SetMaxSpeedLevelTo1()
     {
-        SetMaxSpeedLevel(1);
+        SetMaxSpeedLevelIfNotPaused(1);
     }
 
     private void SetMaxSpeedLevelTo2()
     {
-        SetMaxSpeedLevel(2);
+        SetMaxSpeedLevelIfNotPaused(2);
     }
 
     private void SetMaxSpeedLevelTo3()
     {
-        SetMaxSpeedLevel(3);
+        SetMaxSpeedLevelIfNotPaused(3);
     }
 
     private void SetMaxSpeedLevelTo4()
     {
-        SetMaxSpeedLevel(4);
+        SetMaxSpeedLevelIfNotPaused(4);
     }
 
     private void SetMaxSpeedLevelTo5()
     {
-        SetMaxSpeedLevel(5);
+        SetMaxSpeedLevelIfNotPaused(5);
     }
 
     private void SetMaxSpeedLevelTo6()
     {
-        SetMaxSpeedLevel(6);
+        SetMaxSpeedLevelIfNotPaused(6);
     }
 
     private void SetMaxSpeedLevelTo7()
     {
-        SetMaxSpeedLevel(7);
+        SetMaxSpeedLevelIfNotPaused(7);
     }
 
     private void IncreaseMaxSpeedLevel()
     {
-        SetMaxSpeedLevel(_selectedMaxSpeedLevelIndex + 1);
+        SetMaxSpeedLevelIfNotPaused(_selectedMaxSpeedLevelIndex + 1);
     }
 
     private void DecreaseMaxSpeedLevel()
     {
-        SetMaxSpeedLevel(_selectedMaxSpeedLevelIndex - 1);
+        SetMaxSpeedLevelIfNotPaused(_selectedMaxSpeedLevelIndex - 1);
     }
 
     private void ReadKeyboardInput_TimeControls()
@@ -858,7 +874,7 @@ public class GuiManagerScript : MonoBehaviour
         if (IsMenuPanelActive())
             return; // Don't show any hidden panel if there's any menu panel still active.
 
-            foreach (ModalPanelScript panel in _hiddenInteractionPanels)
+        foreach (ModalPanelScript panel in _hiddenInteractionPanels)
         {
             panel.SetVisible(true);
         }
@@ -1286,10 +1302,6 @@ public class GuiManagerScript : MonoBehaviour
 
         SelectionPanelScript.RemoveAllOptions();
 
-        _selectedMaxSpeedLevelIndex = _topMaxSpeedLevelIndex;
-
-        SetMaxSpeedLevel(_selectedMaxSpeedLevelIndex);
-
         _postProgressOp -= PostProgressOp_RegenerateWorld;
 
         _regenerateWorldPostProgressOp?.Invoke();
@@ -1407,21 +1419,23 @@ public class GuiManagerScript : MonoBehaviour
 
         Debug.Log("Finished generating world with seed: " + Manager.CurrentWorld.Seed);
 
+        string activeModStrs = string.Join(",", Manager.ActiveModPaths);
+
+        Debug.Log("Active Mods: " + activeModStrs);
+
         Manager.WorldName = "world_" + Manager.CurrentWorld.Seed;
 
         SelectionPanelScript.RemoveAllOptions();
 
-        if (Manager.ViewingGlobe)
-        {
-            ToggleGlobeView(); // It's more safe to return to map mode after loading or generating a new world
-        }
+        // It's safer to return to map mode after loading or generating a new world
+        SetGlobeView(false);
         
         _hasToSetInitialPopulation = true;
 
         ValidateLayersPresent();
         OpenModeSelectionDialog();
 
-        _selectedMaxSpeedLevelIndex = _topMaxSpeedLevelIndex;
+        _selectedMaxSpeedLevelIndex = Manager.StartSpeedIndex;
 
         SetMaxSpeedLevel(_selectedMaxSpeedLevelIndex);
 
@@ -1433,7 +1447,7 @@ public class GuiManagerScript : MonoBehaviour
 
     private void GenerateWorldInternal(int seed, bool useHeightmap = false)
     {
-        ResetOverlaySelection();
+        ResetGuiManagerState();
 
         ProgressDialogPanelScript.SetVisible(true);
 
@@ -1485,6 +1499,8 @@ public class GuiManagerScript : MonoBehaviour
 
         AddPopulationDialogScript.SetVisible(false);
 
+        SetStartingSpeed(AddPopulationDialogScript.StartSpeedLevelIndex);
+
         Debug.Log(string.Format("Player chose to do random population placement of {0}...", population));
 
         if (population <= 0)
@@ -1526,6 +1542,8 @@ public class GuiManagerScript : MonoBehaviour
         int population = AddPopulationDialogScript.Population;
 
         AddPopulationDialogScript.SetVisible(false);
+
+        SetStartingSpeed(AddPopulationDialogScript.StartSpeedLevelIndex);
 
         Debug.Log(string.Format("Player chose to select cell for population placement of {0}...", population));
 
@@ -1647,7 +1665,7 @@ public class GuiManagerScript : MonoBehaviour
     {
         string dirPath = Manager.SavePath;
 
-        string[] files = Directory.GetFiles(dirPath, "*.PLNT");
+        string[] files = Directory.GetFiles(dirPath, "*.plnt");
 
         return files.Length > 0;
     }
@@ -1660,7 +1678,7 @@ public class GuiManagerScript : MonoBehaviour
 
         string imageName = ExportMapDialogPanelScript.GetText();
 
-        string path = Manager.ExportPath + imageName + ".png";
+        string path = Path.Combine(Manager.ExportPath, imageName + ".png");
 
         Manager.ExportMapTextureToFileAsync(path, MapScript.MapImage.uvRect);
 
@@ -1802,7 +1820,11 @@ public class GuiManagerScript : MonoBehaviour
     {
         if (_hasToSetInitialPopulation)
         {
-            AddPopulationDialogScript.InitializeAndShow();
+            int startingPopulation = (int)Mathf.Ceil(World.StartPopulationDensity * TerrainCell.MaxArea);
+
+            startingPopulation = Mathf.Clamp(startingPopulation, World.MinStartingPopulation, World.MaxStartingPopulation);
+
+            AddPopulationDialogScript.InitializeAndShow(startingPopulation, _selectedMaxSpeedLevelIndex);
 
             _hasToSetInitialPopulation = false;
 
@@ -1868,7 +1890,7 @@ public class GuiManagerScript : MonoBehaviour
 
         Manager.WorldName = Manager.RemoveDateFromWorldName(saveName);
 
-        string path = Manager.SavePath + saveName + ".plnt";
+        string path = Path.Combine(Manager.SavePath, saveName + ".plnt");
 
         Manager.SaveWorldAsync(path);
 
@@ -1912,7 +1934,7 @@ public class GuiManagerScript : MonoBehaviour
 
     private void GetMaxSpeedOptionFromCurrentWorld()
     {
-        long maxSpeed = Manager.CurrentWorld.MaxTimeToSkip;
+        float maxSpeed = Manager.CurrentWorld.MaxTimeToSkip / MaxDeltaTimeIterations;
 
         for (int i = 0; i < Speed.Levels.Length; i++)
         {
@@ -1929,9 +1951,6 @@ public class GuiManagerScript : MonoBehaviour
 
     public void IncreaseMaxSpeed()
     {
-        if (_pauseButtonPressed)
-            return;
-
         if (_selectedMaxSpeedLevelIndex == _topMaxSpeedLevelIndex)
             return;
 
@@ -1942,9 +1961,6 @@ public class GuiManagerScript : MonoBehaviour
 
     public void DecreaseMaxSpeed()
     {
-        if (_pauseButtonPressed)
-            return;
-
         if (_selectedMaxSpeedLevelIndex == 0)
             return;
 
@@ -1953,12 +1969,18 @@ public class GuiManagerScript : MonoBehaviour
         SetMaxSpeedLevel(_selectedMaxSpeedLevelIndex);
     }
 
-    public void SetMaxSpeedLevel(int speedLevelIndex)
+    /// <summary>
+    /// Update Current World Speed to selected and update UI
+    /// </summary>
+    /// <returns>The now current speed</returns>
+    private Speed SetMaxSpeedToSelected()
     {
-        _selectedMaxSpeedLevelIndex = Mathf.Clamp(speedLevelIndex, 0, _topMaxSpeedLevelIndex);
+        bool holdState = !Manager.SimulationRunning;
 
-        OnFirstMaxSpeedOptionSet.Invoke(_pausingDialogActive || (_selectedMaxSpeedLevelIndex == 0));
-        OnLastMaxSpeedOptionSet.Invoke(_pausingDialogActive || (_selectedMaxSpeedLevelIndex == _topMaxSpeedLevelIndex));
+        OnFirstMaxSpeedOptionSet.Invoke(
+            holdState || (_selectedMaxSpeedLevelIndex == 0));
+        OnLastMaxSpeedOptionSet.Invoke(
+            holdState || (_selectedMaxSpeedLevelIndex == _topMaxSpeedLevelIndex));
 
         // This is the max amount of iterations to simulate per second
         Speed selectedSpeed = Speed.Levels[_selectedMaxSpeedLevelIndex];
@@ -1968,7 +1990,35 @@ public class GuiManagerScript : MonoBehaviour
 
         Manager.CurrentWorld.SetMaxTimeToSkip(maxSpeed);
 
-        OnSimulationSpeedChanged.Invoke(selectedSpeed);
+        if (holdState)
+            return Speed.Zero;
+
+        return selectedSpeed;
+    }
+
+    /// <summary>
+    /// Sets the simulation's max speed, but validates it can be done first
+    /// </summary>
+    /// <param name="speedLevelIndex">The speed level index to use</param>
+    private void SetMaxSpeedLevelIfNotPaused(int speedLevelIndex)
+    {
+        if (_pausingDialogActive || _pauseButtonPressed)
+        {
+            return;
+        }
+
+        SetMaxSpeedLevel(speedLevelIndex);
+    }
+
+    /// <summary>
+    /// Sets the simulation's max speed
+    /// </summary>
+    /// <param name="speedLevelIndex">The speed level index to use</param>
+    private void SetMaxSpeedLevel(int speedLevelIndex)
+    {
+        _selectedMaxSpeedLevelIndex = Mathf.Clamp(speedLevelIndex, 0, _topMaxSpeedLevelIndex);
+
+        OnSimulationSpeedChanged.Invoke(SetMaxSpeedToSelected());
 
         ResetAccDeltaTime();
     }
@@ -1992,9 +2042,12 @@ public class GuiManagerScript : MonoBehaviour
             MenuUninterruptSimulationInternal();
 
             SetSimulatorMode();
-        }
 
-        GetMaxSpeedOptionFromCurrentWorld();
+            GetMaxSpeedOptionFromCurrentWorld();
+
+            // Always start paused for running worlds
+            PauseSimulation(true);
+        }
     }
 
     private void ValidateLayersPresent()
@@ -2018,12 +2071,14 @@ public class GuiManagerScript : MonoBehaviour
             Manager.CurrentWorld.RiverStrength,
             Manager.GetDateString(Manager.CurrentWorld.CurrentDate)));
 
+        string activeModStrs = string.Join(",", Manager.ActiveModPaths);
+
+        Debug.Log("Active Mods: " + activeModStrs);
+
         SelectionPanelScript.RemoveAllOptions();
 
-        if (Manager.ViewingGlobe)
-        {
-            ToggleGlobeView(); // It's more safe to return to map mode after loading or generating a new world
-        }
+        // It's safer to return to map mode after loading or generating a new world
+        SetGlobeView(false);
 
         ValidateLayersPresent();
         SetGameModeAccordingToCurrentWorld();
@@ -2034,16 +2089,27 @@ public class GuiManagerScript : MonoBehaviour
         WorldLoaded.Invoke();
     }
 
-    private void ResetOverlaySelection()
+    /// <summary>Resets the state of the GUI manager before loading or generating a new world.</summary>
+    private void ResetGuiManagerState()
     {
+        // Ignore the result of editing a world that is being discarded
+        _worldCouldBeSavedAfterEdit = false;
+        _hasToSetInitialPopulation = false;
+
+        // Make sure we don't carry this incomplete left click operation
+        // to the next world
+        _mapLeftClickOp -= ClickOp_SelectPopulationPlacement;
+
+        // Reset overlays to avoid showing an invalid overlay by accident
         ChangePlanetOverlay(PlanetOverlay.None, Manager.NoOverlaySubtype);
 
         _planetOverlaySubtypeCache.Clear();
     }
 
+
     private void LoadAction()
     {
-        ResetOverlaySelection();
+        ResetGuiManagerState();
 
         ProgressDialogPanelScript.SetVisible(true);
 
@@ -2079,7 +2145,7 @@ public class GuiManagerScript : MonoBehaviour
             LoadAction,
             CancelLoadAction,
             Manager.SavePath,
-            new string[] { ".PLNT" });
+            new string[] { ".plnt" });
 
         LoadFileDialogPanelScript.SetVisible(true);
 
@@ -2105,6 +2171,27 @@ public class GuiManagerScript : MonoBehaviour
         InterruptSimulation(true);
 
         _eventPauseActive = true;
+    }
+
+    /// <summary>
+    /// Sets the starting simulation speed
+    /// </summary>
+    /// <param name="startSpeedLevelIndex">The index for the starting speed to use</param>
+    public void SetStartingSpeed(int startSpeedLevelIndex)
+    {
+        Debug.Log(string.Format("Player set starting speed to {0}...", startSpeedLevelIndex));
+
+        if (startSpeedLevelIndex == -1)
+        {
+            PauseSimulation(true);
+        }
+        else
+        {
+            _selectedMaxSpeedLevelIndex = Mathf.Clamp(startSpeedLevelIndex, 0, _topMaxSpeedLevelIndex);
+            Manager.StartSpeedIndex = _selectedMaxSpeedLevelIndex; // set it as the new default
+
+            SetMaxSpeedToSelected();
+        }
     }
 
     public void ResolveDecision()
@@ -2330,19 +2417,18 @@ public class GuiManagerScript : MonoBehaviour
         ResetAccDeltaTime();
     }
 
-    public void ToggleGlobeView()
+    /// <summary>
+    /// Sets or resets the globe (3D) view
+    /// </summary>
+    /// <param name="state">'true' if globe view should be set, otherwise 'false'</param>
+    private void SetGlobeView(bool state)
     {
-        if (Manager.EditorBrushIsActive)
-            return; // Do not allow map projection switching while brush is active
+        Manager.ViewingGlobe = state;
 
-        bool newState = !Manager.ViewingGlobe;
+        MapScript.SetVisible(!state);
+        PlanetScript.SetVisible(state);
 
-        Manager.ViewingGlobe = newState;
-
-        MapScript.SetVisible(!newState);
-        PlanetScript.SetVisible(newState);
-
-        if (newState)
+        if (state)
         {
             MapScript.transform.SetParent(GlobeMapPanel.transform);
         }
@@ -2351,7 +2437,18 @@ public class GuiManagerScript : MonoBehaviour
             MapScript.transform.SetParent(FlatMapPanel.transform);
         }
 
-        ToggledGlobeViewing.Invoke(newState);
+        ToggledGlobeViewing.Invoke(state);
+    }
+
+    /// <summary>
+    /// Toggles between map view (2D) and globe view (3D)
+    /// </summary>
+    public void ToggleGlobeView()
+    {
+        if (Manager.EditorBrushIsActive)
+            return; // Do not allow map projection switching while brush is active
+
+        SetGlobeView(!Manager.ViewingGlobe);
     }
 
     public void SetRouteDisplayOverlay(bool value)

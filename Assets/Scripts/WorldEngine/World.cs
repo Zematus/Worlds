@@ -75,12 +75,7 @@ public static class RngOffsets
     public const int ROUTE_CHOOSE_NEXT_COASTAL_CELL = 110000;
     public const int ROUTE_CHOOSE_NEXT_COASTAL_CELL_2 = 120000;
 
-    public const int FARM_DEGRADATION_EVENT_CALCULATE_TRIGGER_DATE = 900000;
-    public const int SAILING_DISCOVERY_EVENT_CALCULATE_TRIGGER_DATE = 900001;
-    public const int TRIBALISM_DISCOVERY_EVENT_CALCULATE_TRIGGER_DATE = 900002;
     public const int TRIBE_FORMATION_EVENT_CALCULATE_TRIGGER_DATE = 900003;
-    public const int BOAT_MAKING_DISCOVERY_EVENT_CALCULATE_TRIGGER_DATE = 900004;
-    public const int PLANT_CULTIVATION_DISCOVERY_EVENT_CALCULATE_TRIGGER_DATE = 900005;
 
     public const int CLAN_SPLITTING_EVENT_CALCULATE_TRIGGER_DATE = 900006;
     public const int CLAN_SPLITTING_EVENT_PREFER_SPLIT = 900007;
@@ -2019,6 +2014,11 @@ public class World : ISynchronizable
             {
                 pInfo.Polity.Info = pInfo;
                 pInfo.Polity.World = this;
+
+                if (pInfo.Polity.IsUnderPlayerFocus)
+                {
+                    PolitiesUnderPlayerFocus.Add(pInfo.Polity);
+                }
             }
         }
 
@@ -2028,6 +2028,11 @@ public class World : ISynchronizable
             {
                 fInfo.Faction.Info = fInfo;
                 fInfo.Faction.World = this;
+
+                if (fInfo.Faction.IsUnderPlayerGuidance)
+                {
+                    GuidedFaction = fInfo.Faction;
+                }
             }
         }
 
@@ -4327,13 +4332,13 @@ public class World : ISynchronizable
 
     private float CalculateWaterBiomeWaterFactor(TerrainCell cell, Biome biome)
     {
-        float flowwingWaterSpan = biome.MaxFlowingWater - biome.MinFlowingWater;
+        float flowingWaterSpan = biome.MaxFlowingWater - biome.MinFlowingWater;
         float flowingWaterDiff = cell.FlowingWater - biome.MinFlowingWater;
 
         if (flowingWaterDiff < 0)
             return -1f;
 
-        float waterFactor = flowingWaterDiff / flowwingWaterSpan;
+        float waterFactor = flowingWaterDiff / flowingWaterSpan;
 
         if (waterFactor > 1)
             return -1f;

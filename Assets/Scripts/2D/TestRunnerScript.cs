@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 
 public class TestRunnerScript : MonoBehaviour
 {
@@ -36,8 +37,8 @@ public class TestRunnerScript : MonoBehaviour
         //SaveLoadTestSettings testSettings = new SaveLoadTestSettings {
         //    Seed = 1142453343,
         //    SaveCondition = saveCondition,
-        //    HeightmapFilename = @"TestData\Earth_3600x1800.png",
-        //    AppSettingsFilename = @"TestData\Earth_3600x1800.settings"
+        //    HeightmapFilename = Path.Combine("TestData", "Earth_3600x1800.png)",
+        //    AppSettingsFilename = Path.Combine("TestData", "Earth_3600x1800.settings)"
         //};
 
         //tests.Add(new SaveLoadTest("after 20 polities and 10 polity merges", testSettings, 20000000, 10));
@@ -53,7 +54,7 @@ public class TestRunnerScript : MonoBehaviour
         {
             Seed = 783909167,
             SaveCondition = saveCondition,
-            AppSettingsFilename = @"TestData\Default.settings"
+            AppSettingsFilename = Path.Combine("TestData", "Default.settings")
         };
 
         tests.Add(new SaveLoadTest("after 20 polities and 10 polity merges", testSettings, 20000000, 10));

@@ -75,7 +75,21 @@ public class MergeTribesDecisionEvent : PolityEvent
             triggerDateSpan = CellGroup.MaxUpdateSpan;
         }
 
-        return tribe.World.CurrentDate + triggerDateSpan;
+        long triggerDate = tribe.World.CurrentDate + triggerDateSpan;
+
+        if (triggerDate > World.MaxSupportedDate)
+        {
+            // nextDate is invalid, generate report
+            Debug.LogWarning(
+                "MergeTribesDecisionEvent.CalculateTriggerDate - triggerDate (" + triggerDate +
+                ") greater than MaxSupportedDate (" + World.MaxSupportedDate +
+                "). triggerDateSpan: " + triggerDateSpan + ", randomFactor: " + randomFactor +
+                ", cohesionPrefFactor: " + cohesionPrefFactor);
+
+            triggerDate = int.MinValue;
+        }
+
+        return triggerDate;
     }
 
     public float GetContactWeight(PolityContact contact)
@@ -164,7 +178,7 @@ public class MergeTribesDecisionEvent : PolityEvent
     {
         float administrativeLoad = _targetTribe.CalculateAdministrativeLoad();
 
-        if (administrativeLoad == Mathf.Infinity)
+        if (float.IsPositiveInfinity(administrativeLoad))
             return 1;
 
         float numFactors = 0;
@@ -215,7 +229,7 @@ public class MergeTribesDecisionEvent : PolityEvent
     {
         float administrativeLoad = _sourceTribe.CalculateAdministrativeLoad();
 
-        if (administrativeLoad == Mathf.Infinity)
+        if (float.IsPositiveInfinity(administrativeLoad))
             return 0;
 
         float numFactors = 0;
@@ -303,11 +317,25 @@ public class MergeTribesDecisionEvent : PolityEvent
     {
         base.DestroyInternal();
 
-        if ((Polity != null) && (Polity.StillPresent))
+        if ((Polity != null) && Polity.StillPresent)
         {
             Tribe tribe = Polity as Tribe;
 
-            tribe.ResetEvent(WorldEvent.MergeTribesDecisionEventId, CalculateTriggerDate(tribe));
+            long triggerDate = CalculateTriggerDate(tribe);
+            if (triggerDate < 0)
+            {
+                // skip reseting the event since the trigger date is invalid
+                return;
+            }
+
+            if (triggerDate <= tribe.World.CurrentDate)
+            {
+                throw new System.Exception(
+                    "Trigger Date (" + triggerDate +
+                    ") less or equal to current date: " + tribe.World.CurrentDate);
+            }
+
+            tribe.ResetEvent(MergeTribesDecisionEventId, triggerDate);
         }
     }
 

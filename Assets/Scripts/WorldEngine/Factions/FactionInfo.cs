@@ -7,6 +7,9 @@ using UnityEngine.Profiling;
 
 public class FactionInfo : ISynchronizable, IKeyedValue<long>
 {
+    [XmlAttribute("D")]
+    public long FormationDate = -1;
+
     [XmlAttribute("T")]
     public string Type;
 
@@ -28,6 +31,8 @@ public class FactionInfo : ISynchronizable, IKeyedValue<long>
     {
         Type = type;
         Id = id;
+
+        FormationDate = faction.World.CurrentDate;
 
         Faction = faction;
 

@@ -459,6 +459,7 @@ public class InfoPanelScript : MonoBehaviour
 
         InfoText.text += "\nTerritory of the " + polity.Name.Text + " " + polity.Type.ToLower();
         InfoText.text += "\nTranslates to: " + polity.Name.Meaning;
+        InfoText.text += "\nFormation Date: " + Manager.GetDateString(polity.FormationDate);
         InfoText.text += "\n";
 
         if (polity.GetContacts().Count <= 0)
@@ -527,6 +528,7 @@ public class InfoPanelScript : MonoBehaviour
 
             InfoText.text += "Territory of the " + polity.Name.Text + " " + polity.Type.ToLower();
             InfoText.text += "\nTranslates to: " + polity.Name.Meaning;
+            InfoText.text += "\nFormation Date: " + Manager.GetDateString(polity.FormationDate);
             InfoText.text += "\n";
 
             Agent leader = polity.CurrentLeader;
@@ -590,6 +592,7 @@ public class InfoPanelScript : MonoBehaviour
 
         InfoText.text += "\nTerritory of the " + polity.Name.Text + " " + polity.Type.ToLower();
         InfoText.text += "\nTranslates to: " + polity.Name.Meaning;
+        InfoText.text += "\nFormation Date: " + Manager.GetDateString(polity.FormationDate);
         InfoText.text += "\n";
 
         int totalPopulation = (int)Mathf.Floor(polity.TotalPopulation);
@@ -631,6 +634,7 @@ public class InfoPanelScript : MonoBehaviour
         {
             InfoText.text += "\n\t" + faction.Type + " " + faction.Name;
             InfoText.text += "\n\t\tCore: " + faction.CoreGroup.Position;
+            InfoText.text += "\n\t\tFormation Date: " + Manager.GetDateString(faction.FormationDate);
             InfoText.text += "\n\t\tInfluence: " + faction.Influence.ToString("P");
 
             Agent factionLeader = faction.CurrentLeader;
