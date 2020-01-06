@@ -509,10 +509,8 @@ public class Clan : Faction
 
     public float CalculateAdministrativeLoad()
     {
-        int socialOrganizationValue = 0;
+        Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.KnowledgeId, out int socialOrganizationValue);
 
-        Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.KnowledgeId, out socialOrganizationValue);
-        
         if (socialOrganizationValue <= 0)
         {
             return Mathf.Infinity;

@@ -1,0 +1,65 @@
+{
+  "decisions": [
+    {
+      "id": "clan_split",
+      "name": "clan split",
+      "parameters": ["faction"],
+      "description": [
+        {
+          "id": "clan_split_description_intro"
+          "text": "Several minor bands within clan <faction.name> have been distancing themselves from the rest of the clan, and now they desire to form their own clan.\n"
+        },
+        {
+          "id": "clan_split_description_can_not_prevent_split_low_authority",
+          "text": "Unfortunately, <faction.leader.name> can't do anything about it as <faction.name> has not enough respect for authority",
+          "conditions": ["[NOT]preference:authority,0.4"]
+        },
+        {
+          "id": "clan_split_description_can_not_prevent_split_low_cohesion",
+          "text": "Unfortunately, <faction.leader.name> can't do anything about it as <faction.name> has not enough cohesion.",
+          "conditions": ["preference:authority,0.4", "[NOT]preference:cohesion,0.2"]
+        },
+        {
+          "id": "clan_split_description_can_not_prevent_split_high_administrative_load",
+          "text": "Unfortunately, <faction.leader.name> can't do anything about it as <faction.name> as the clan has grown too big.",
+          "conditions": ["preference:authority,0.4", "preference:cohesion,0.2", "administrative_load:0.9"]
+        },
+        {
+          "id": "clan_split_description_can_prevent_split"
+          "text": "Should the clan leader, <faction.leader.name>, try to reach out to them to keep them from splitting into their own clan?",
+          "conditions": ["preference:authority,0.4", "preference:cohesion,0.2", "[NOT]administrative_load:0.9"]
+        }
+      ],
+      "options": [
+        {
+          "id": "clan_split_option_allow_split",
+          "text": "Allow clan to split in two...",
+          "conditions": ["preference:authority,0.4", "preference:cohesion,0.2", "[NOT]administrative_load:0.9"],
+          "effects": [
+
+          ],
+          "weight": 1,
+          "weightFactors": ["preference:authority"]
+        },
+        {
+          "id": "clan_split_option_prevent_split",
+          "text": "Prevent clan from splitting...",
+          "conditions": ["preference:authority,0.4", "preference:cohesion,0.2", "[NOT]administrative_load:0.9"],
+          "effects": [
+
+          ],
+          "weight": 2,
+          "weightFactors": ["preference:cohesion"]
+        },
+        {
+          "id": "clan_split_option_cant_prevent_split",
+          "text": "Oh well...",
+          "conditions": ["[NOT]preference:authority,0.4 [OR] [NOT]preference:cohesion,0.2 [OR] administrative_load:0.9"],
+          "effects": [
+
+          ]
+        }
+      ]
+    }
+  ]
+}
