@@ -4,20 +4,37 @@
       "id": "boat_making",
       "name": "boat making",
       "target": "group",
-      "assignmentConditions": ["[NOT]group_has_knowledge:shipbuilding", "[ANY_N_CELL]cell_biome_type_presence:water", "cell_biome_trait_presence:wood,0.3"],
-      "timeToTrigger": 456250000,
-      "timeToTriggerFactors": ["[INV]neighborhood_biome_type_presence:water", "[INV]cell_biome_trait_presence:wood"],
-      "triggerEffects": ["add_discovery:boat_making,target", "add_knowledge:shipbuilding,10,target", "add_skill:seafaring,target"]
+      "properties": [
+        {
+          "id": "neighborhood_water_presence",
+          "type": "value",
+          "value": "(group.cell.biome_trait_presence(water) + group.cell.neighborhood.sum(cell.biome_type_presence(water))) / 9"
+        }
+      ],
+      "assignmentConditions": [
+        "!group.has_knowledge(shipbuilding)",
+        "group.cell.neighborhood.any(cell.biome_type_presence(water) > 0)",
+        "group.cell.biome_trait_presence(wood) > 0.3"],
+      "timeToTrigger": "456250000 * lerp(1, 0.2, neighborhood_water_presence.value) * lerp(1, 0.2, group.cell.biome_trait_presence(wood))",
+      "effects": [
+        "group.add_discovery(boat_making)",
+        "group.add_knowledge(shipbuilding, 10)",
+        "group.add_skill(seafaring)"
+      ]
     },
     {
       "id": "clan_split",
       "name": "clan split",
       "target": "faction",
-      "assignmentConditions": ["faction_type:clan"],
-      "triggerConditions": ["administrative_load:0.5", "[NOT]preference:cohesion,0.7"],
-      "timeToTrigger": 91250,
-      "timeToTriggerFactors": ["[RANGE:0.2,1][INV]administrative_load:0.5,1", "[RANGE:0.2,1]preference:cohesion,0,0.7"],
-      "triggerEffects": ["decision:clan_split,target"]
+      "assignmentConditions": ["faction.type == clan"],
+      "triggerConditions": [
+        "faction.administrative_load > 0.5",
+        "!faction.preference.cohesion > 0.7"
+      ],
+      "timeToTrigger": "91250 * faction.administrative_load * faction.preference.cohesion",
+      "effects": [
+        "target.trigger_decision(clan_split)"
+      ]
     }
   ]
 }
