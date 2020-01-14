@@ -3,7 +3,11 @@
     {
       "id": "boat_making",
       "name": "boat making",
-      "gainConditions": ["[NOT]group_has_knowledge:shipbuilding", "[ANY_N_CELL]cell_biome_type_presence:water", "cell_biome_trait_presence:wood,0.3"],
+      "gainConditions": [
+        "[NOT]group_has_knowledge:shipbuilding",
+        "[ANY_N_CELL]cell_biome_type_presence:water",
+        "cell_biome_trait_presence:wood,0.3"
+      ],
       "holdConditions": ["group_has_knowledge:shipbuilding,0.1"],
       "gainEffects": ["add_group_knowledge:shipbuilding,10", "add_group_skill:seafaring"],
       "lossEffects": ["remove_group_knowledge:shipbuilding", "remove_group_skill:seafaring"],

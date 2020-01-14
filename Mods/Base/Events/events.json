@@ -8,12 +8,12 @@
         {
           "id": "neighborhood_water_presence",
           "type": "value",
-          "value": "(group.cell.biome_trait_presence(water) + group.cell.neighborhood.sum(cell.biome_type_presence(water))) / 9"
+          "value": "(group.cell.biome_trait_presence(water) + group.cell.neighborhood.sum(member.biome_type_presence(water))) / 9"
         }
       ],
       "assignmentConditions": [
         "!group.has_knowledge(shipbuilding)",
-        "group.cell.neighborhood.any(cell.biome_type_presence(water) > 0)",
+        "group.cell.neighborhood.any(member.biome_type_presence(water) > 0)",
         "group.cell.biome_trait_presence(wood) > 0.3"],
       "timeToTrigger": "456250000 * lerp(1, 0.2, neighborhood_water_presence.value) * lerp(1, 0.2, group.cell.biome_trait_presence(wood))",
       "effects": [
