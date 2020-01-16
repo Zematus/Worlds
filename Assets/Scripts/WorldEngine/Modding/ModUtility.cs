@@ -9,10 +9,10 @@ public static class ModUtility
     public const string AttributeRegexPart = @"[a-zA-Z_][a-zA-Z0-9_:]*";
     public const string NumberRegexPart = @"-?\d+(?:\.\d+)?";
 
-    public const string OperatorRegexPart = @"\[(?<opStr>\w+)(?::(?<opParam>[^\[\]]))?\]";
+    public const string OperatorRegexPart = @"\s*(?<opStr>[!+-*/])\s*";
     
     public const string BaseStatementRegexPart = 
-        @"[^\[\]\(\)]+";
+        @"[^\(\)]+";
     public const string InnerStatementRegexPart =
         @"(?:(?:" + 
             @"(?<open>\()" + 

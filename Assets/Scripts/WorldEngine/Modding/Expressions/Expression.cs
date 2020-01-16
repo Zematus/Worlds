@@ -12,22 +12,22 @@ public abstract class Expression
         Match match = Regex.Match(expressionStr, ModUtility.UnaryOpStatementRegex);
         if (match.Success == true)
         {
-            //Debug.Log("match: " + match.Value);
-            //Debug.Log("statement: " + ModUtility.Debug_CapturesToString(match.Groups["statement"]));
-            //Debug.Log("unaryOp: " + ModUtility.Debug_CapturesToString(match.Groups["unaryOp"]));
+            Debug.Log("match: " + match.Value);
+            Debug.Log("statement: " + ModUtility.Debug_CapturesToString(match.Groups["statement"]));
+            Debug.Log("unaryOp: " + ModUtility.Debug_CapturesToString(match.Groups["unaryOp"]));
 
-            return BuildUnaryOpFactor(match);
+            return BuildUnaryOpExpression(match);
         }
 
         match = Regex.Match(expressionStr, ModUtility.InnerStatementRegex);
         if (match.Success == true)
         {
-            //Debug.Log("match: " + match.Value);
-            //Debug.Log("innerStatement: " + ModUtility.Debug_CapturesToString(match.Groups["innerStatement"]));
+            Debug.Log("match: " + match.Value);
+            Debug.Log("innerStatement: " + ModUtility.Debug_CapturesToString(match.Groups["innerStatement"]));
 
             expressionStr = match.Groups["innerStatement"].Value;
 
-            return BuildFactor(expressionStr);
+            return BuildExpression(expressionStr);
         }
 
         match = Regex.Match(expressionStr, ModUtility.BaseStatementRegex);
@@ -35,29 +35,29 @@ public abstract class Expression
         {
             expressionStr = match.Groups["statement"].Value;
 
-            return BuildBaseFactor(expressionStr);
+            return BuildBaseExpression(expressionStr);
         }
 
         throw new System.ArgumentException("Not a valid parseable expression: " + expressionStr);
     }
 
-    private static Factor BuildUnaryOpFactor(Match match)
+    private static Expression BuildUnaryOpExpression(Match match)
     {
-        string factorStr = match.Groups["statement"].Value;
+        string expressionStr = match.Groups["statement"].Value;
         string unaryOp = match.Groups["unaryOp"].Value.Trim().ToUpper();
 
         switch (unaryOp)
         {
-            case "[INV]":
-                return new InvFactor(factorStr);
-            case "[SQ]":
-                return new SqFactor(factorStr);
+            case "!":
+                return new InvFactor(expressionStr);
+            case "-":
+                return new SqFactor(expressionStr);
         }
 
         throw new System.ArgumentException("Unrecognized unary op: " + unaryOp);
     }
 
-    private static Factor BuildBaseFactor(string factorStr)
+    private static Expression BuildBaseExpression(string factorStr)
     {
         Match match = Regex.Match(factorStr, NeighborhoodBiomeTypePresenceFactor.Regex);
         if (match.Success == true)
@@ -128,17 +128,17 @@ public abstract class Expression
         throw new System.ArgumentException("Not a recognized factor: " + factorStr);
     }
 
-    public static Factor[] BuildFactors(ICollection<string> factorStrs)
+    public static Expression[] BuildExpressions(ICollection<string> expressionStrs)
     {
-        Factor[] factors = new Factor[factorStrs.Count];
+        Expression[] expression = new Expression[expressionStrs.Count];
 
         int i = 0;
-        foreach (string factorStr in factorStrs)
+        foreach (string expressionStr in expressionStrs)
         {
-            factors[i++] = BuildFactor(factorStr);
+            expression[i++] = BuildExpression(expressionStr);
         }
 
-        return factors;
+        return expression;
     }
 
     public abstract float Calculate(CellGroup group);

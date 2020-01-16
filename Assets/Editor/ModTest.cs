@@ -8,18 +8,10 @@ public class ModTest
     [Test]
     public void ExpressionParseTest()
     {
-        int factCounter = 1;
+        int expCounter = 1;
 
-        Factor factor = Factor.BuildFactor("[INV]([SQ]cell_biome_type_presence:water)");
+        Expression expression = Expression.BuildExpression("1 + 1");
 
-        Debug.Log("Test factor " + (factCounter++) + ": " + factor.ToString());
-
-        factor = Factor.BuildFactor("[SQ]([INV]cell_biome_type_presence:water)");
-
-        Debug.Log("Test factor " + (factCounter++) + ": " + factor.ToString());
-
-        factor = Factor.BuildFactor("[SQ]([INV](cell_biome_type_presence:water))");
-
-        Debug.Log("Test factor " + (factCounter++) + ": " + factor.ToString());
+        Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
     }
 }
