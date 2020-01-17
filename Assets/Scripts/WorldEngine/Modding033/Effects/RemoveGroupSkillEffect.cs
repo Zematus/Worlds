@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 public class RemoveGroupSkillEffect : Effect
 {
     public const string Regex = @"^\s*remove_group_skill\s*" +
-        @":\s*(?<id>" + ModUtility.IdentifierRegexPart + @")\s*$";
+        @":\s*(?<id>" + ModUtility033.IdentifierRegexPart + @")\s*$";
 
     public string SkillId;
 

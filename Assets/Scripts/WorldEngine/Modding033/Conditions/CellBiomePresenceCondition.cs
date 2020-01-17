@@ -8,8 +8,8 @@ public class CellBiomePresenceCondition : CellCondition
     public const float DefaultMinValue = 0.01f;
     
     public const string Regex = @"^\s*cell_biome_presence\s*" +
-        @":\s*(?<id>" + ModUtility.IdentifierRegexPart + @")\s*" +
-        @"(?:,\s*(?<value>" + ModUtility.NumberRegexPart + @")\s*)?$";
+        @":\s*(?<id>" + ModUtility033.IdentifierRegexPart + @")\s*" +
+        @"(?:,\s*(?<value>" + ModUtility033.NumberRegexPart + @")\s*)?$";
 
     private string _biomeId;
 

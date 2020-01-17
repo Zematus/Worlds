@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 public class CellTemperatureCondition : CellCondition
 {
     public const string Regex = @"^\s*cell_temperature\s*" +
-        @":\s*(?<value>" + ModUtility.NumberRegexPart + @")\s*$";
+        @":\s*(?<value>" + ModUtility033.NumberRegexPart + @")\s*$";
 
     public float MinValue;
 

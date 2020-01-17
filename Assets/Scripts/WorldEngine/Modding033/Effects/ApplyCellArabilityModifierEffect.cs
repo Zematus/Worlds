@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 public class ApplyCellArabilityModifierEffect : Effect
 {
     public const string Regex = @"^\s*apply_cell_arability_modifier\s*" +
-        @":\s*(?<value>" + ModUtility.NumberRegexPart + @")\s*$";
+        @":\s*(?<value>" + ModUtility033.NumberRegexPart + @")\s*$";
     
     public int ArabilityDelta;
 

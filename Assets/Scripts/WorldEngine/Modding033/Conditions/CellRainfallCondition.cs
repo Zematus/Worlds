@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 public class CellRainfallCondition : CellCondition
 {
     public const string Regex = @"^\s*cell_rainfall\s*" +
-        @":\s*(?<value>" + ModUtility.NumberRegexPart + @")\s*$";
+        @":\s*(?<value>" + ModUtility033.NumberRegexPart + @")\s*$";
 
     public float MinValue;
 

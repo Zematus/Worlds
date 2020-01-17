@@ -8,8 +8,8 @@ public class GroupHasKnowledgeCondition : GroupCondition
     public const int DefaultMinValue = 1;
 
     public const string Regex = @"^\s*group_has_knowledge\s*" +
-        @":\s*(?<id>" + ModUtility.IdentifierRegexPart + @")\s*" +
-        @"(?:,\s*(?<value>" + ModUtility.NumberRegexPart + @")\s*)?$";
+        @":\s*(?<id>" + ModUtility033.IdentifierRegexPart + @")\s*" +
+        @"(?:,\s*(?<value>" + ModUtility033.NumberRegexPart + @")\s*)?$";
 
     public string KnowledgeId;
     public int MinValue;

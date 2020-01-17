@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 public class RemoveGroupActivityEffect : Effect
 {
     public const string Regex = @"^\s*remove_group_activity\s*" +
-        @":\s*(?<id>" + ModUtility.IdentifierRegexPart + @")\s*$";
+        @":\s*(?<id>" + ModUtility033.IdentifierRegexPart + @")\s*$";
 
     public string ActivityId;
 

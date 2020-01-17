@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 public class RemoveGroupPropertyEffect : Effect
 {
     public const string Regex = @"^\s*remove_group_property\s*" +
-        @":\s*(?<value>" + ModUtility.AttributeRegexPart + @")\s*$";
+        @":\s*(?<value>" + ModUtility033.AttributeRegexPart + @")\s*$";
 
     public string Property;
 

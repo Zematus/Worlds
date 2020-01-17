@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 public class GroupPopulationCondition : GroupCondition
 {
     public const string Regex = @"^\s*group_population\s*" +
-        @":\s*(?<value>" + ModUtility.NumberRegexPart + @")\s*$";
+        @":\s*(?<value>" + ModUtility033.NumberRegexPart + @")\s*$";
     
     public int MinPopulation;
 

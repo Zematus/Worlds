@@ -9,7 +9,7 @@ public class CellFlowingWaterCondition : CellCondition
     public const float MinPossibleValue = 1f;
 
     public const string Regex = @"^\s*cell_flowing_water\s*" +
-        @":\s*(?<value>" + ModUtility.NumberRegexPart + @")\s*$";
+        @":\s*(?<value>" + ModUtility033.NumberRegexPart + @")\s*$";
 
     public float MinValue;
 

@@ -21,7 +21,7 @@ public abstract class Condition
     {
         //Debug.Log("parsing: " + conditionStr);
 
-        Match match = Regex.Match(conditionStr, ModUtility.BinaryOpStatementRegex);
+        Match match = Regex.Match(conditionStr, ModUtility033.BinaryOpStatementRegex);
 
         if (match.Success == true)
         {
@@ -33,7 +33,7 @@ public abstract class Condition
             return BuildBinaryOpCondition(match);
         }
 
-        match = Regex.Match(conditionStr, ModUtility.UnaryOpStatementRegex);
+        match = Regex.Match(conditionStr, ModUtility033.UnaryOpStatementRegex);
         if (match.Success == true)
         {
             //Debug.Log("match: " + match.Value);
@@ -43,7 +43,7 @@ public abstract class Condition
             return BuildUnaryOpCondition(match);
         }
 
-        match = Regex.Match(conditionStr, ModUtility.InnerStatementRegex);
+        match = Regex.Match(conditionStr, ModUtility033.InnerStatementRegex);
         if (match.Success == true)
         {
             //Debug.Log("match: " + match.Value);
@@ -54,7 +54,7 @@ public abstract class Condition
             return BuildCondition(conditionStr);
         }
 
-        match = Regex.Match(conditionStr, ModUtility.BaseStatementRegex);
+        match = Regex.Match(conditionStr, ModUtility033.BaseStatementRegex);
         if (match.Success == true)
         {
             conditionStr = match.Groups["statement"].Value;

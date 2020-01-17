@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 public class AddGroupSkillEffect : Effect
 {
     public const string Regex = @"^\s*add_group_skill\s*" +
-        @":\s*(?<id>" + ModUtility.IdentifierRegexPart + @")\s*$";
+        @":\s*(?<id>" + ModUtility033.IdentifierRegexPart + @")\s*$";
 
     public string SkillId;
 

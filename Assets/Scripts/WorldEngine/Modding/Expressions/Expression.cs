@@ -7,9 +7,21 @@ public abstract class Expression
 {
     public static Expression BuildExpression(string expressionStr)
     {
-        //Debug.Log("parsing: " + expressionStr);
+        Debug.Log("parsing: " + expressionStr);
 
-        Match match = Regex.Match(expressionStr, ModUtility.UnaryOpStatementRegex);
+        Match match = Regex.Match(expressionStr, ModUtility.BinaryOpStatementRegex);
+
+        if (match.Success == true)
+        {
+            Debug.Log("match: " + match.Value);
+            Debug.Log("statement1: " + ModUtility.Debug_CapturesToString(match.Groups["statement1"]));
+            Debug.Log("binaryOp: " + ModUtility.Debug_CapturesToString(match.Groups["binaryOp"]));
+            Debug.Log("statement2: " + ModUtility.Debug_CapturesToString(match.Groups["statement2"]));
+
+            return BuildBinaryOpExpression(match);
+        }
+
+        match = Regex.Match(expressionStr, ModUtility.UnaryOpStatementRegex);
         if (match.Success == true)
         {
             Debug.Log("match: " + match.Value);
@@ -48,84 +60,57 @@ public abstract class Expression
 
         switch (unaryOp)
         {
-            case "!":
-                return new InvFactor(expressionStr);
             case "-":
-                return new SqFactor(expressionStr);
+                return NegateExpression.Build(expressionStr);
+            case "!":
+                return null;
         }
 
         throw new System.ArgumentException("Unrecognized unary op: " + unaryOp);
     }
 
-    private static Expression BuildBaseExpression(string factorStr)
+    private static Expression BuildBinaryOpExpression(Match match)
     {
-        Match match = Regex.Match(factorStr, NeighborhoodBiomeTypePresenceFactor.Regex);
-        if (match.Success == true)
+        string expressionAStr = match.Groups["statement1"].Value;
+        string expressionBStr = match.Groups["statement2"].Value;
+        string opStr = match.Groups["opStr"].Value.Trim().ToUpper();
+
+        switch (opStr)
         {
-            return new NeighborhoodBiomeTypePresenceFactor(match);
+            case "+":
+                return SumExpression.Build(expressionAStr, expressionBStr);
+            case "-":
+                return null;
+            case "*":
+                return null;
+            case "/":
+                return null;
+            case "=":
+                return null;
+            case "==":
+                return null;
+            case ">=":
+                return null;
+            case "<=":
+                return null;
+            case ">":
+                return null;
+            case "<":
+                return null;
         }
 
-        match = Regex.Match(factorStr, NeighborhoodBiomeTraitPresenceFactor.Regex);
+        throw new System.ArgumentException("Unrecognized binary op: " + opStr);
+    }
+
+    private static Expression BuildBaseExpression(string expressionStr)
+    {
+        Match match = Regex.Match(expressionStr, NumberExpression.Regex);
         if (match.Success == true)
         {
-            return new NeighborhoodBiomeTraitPresenceFactor(match);
+            return new NumberExpression(expressionStr);
         }
 
-        match = Regex.Match(factorStr, CellAccessibilityFactor.Regex);
-        if (match.Success == true)
-        {
-            return new CellAccessibilityFactor(match);
-        }
-
-        match = Regex.Match(factorStr, CellArabilityFactor.Regex);
-        if (match.Success == true)
-        {
-            return new CellArabilityFactor(match);
-        }
-
-        match = Regex.Match(factorStr, CellForagingCapacityFactor.Regex);
-        if (match.Success == true)
-        {
-            return new CellForagingCapacityFactor(match);
-        }
-
-        match = Regex.Match(factorStr, CellSurvivabilityFactor.Regex);
-        if (match.Success == true)
-        {
-            return new CellSurvivabilityFactor(match);
-        }
-
-        match = Regex.Match(factorStr, CellBiomePresenceFactor.Regex);
-        if (match.Success == true)
-        {
-            return new CellBiomePresenceFactor(match);
-        }
-
-        match = Regex.Match(factorStr, CellHillinessFactor.Regex);
-        if (match.Success == true)
-        {
-            return new CellHillinessFactor(match);
-        }
-
-        match = Regex.Match(factorStr, CellFlowingWaterFactor.Regex);
-        if (match.Success == true)
-        {
-            return new CellFlowingWaterFactor(match);
-        }
-
-        match = Regex.Match(factorStr, CellBiomeTraitPresenceFactor.Regex);
-        if (match.Success == true)
-        {
-            return new CellBiomeTraitPresenceFactor(match);
-        }
-
-        match = Regex.Match(factorStr, CellBiomeTypePresenceFactor.Regex);
-        if (match.Success == true)
-        {
-            return new CellBiomeTypePresenceFactor(match);
-        }
-
-        throw new System.ArgumentException("Not a recognized factor: " + factorStr);
+        throw new System.ArgumentException("Not a recognized factor: " + expressionStr);
     }
 
     public static Expression[] BuildExpressions(ICollection<string> expressionStrs)
@@ -141,7 +126,5 @@ public abstract class Expression
         return expression;
     }
 
-    public abstract float Calculate(CellGroup group);
-
-    public abstract float Calculate(TerrainCell cell);
+    public abstract float Evaluate();
 }

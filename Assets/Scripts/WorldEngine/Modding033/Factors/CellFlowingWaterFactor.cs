@@ -9,7 +9,7 @@ public class CellFlowingWaterFactor : Factor
     public const float MinPossibleValue = 10f;
 
     public const string Regex = @"^\s*cell_flowing_water\s*" +
-        @":\s*(?<value>" + ModUtility.NumberRegexPart + @")\s*$";
+        @":\s*(?<value>" + ModUtility033.NumberRegexPart + @")\s*$";
 
     public float MaxValue;
 

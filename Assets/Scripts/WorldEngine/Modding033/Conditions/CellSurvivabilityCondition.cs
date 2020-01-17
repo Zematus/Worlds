@@ -8,7 +8,7 @@ public class CellSurvivabilityCondition : CellCondition
     public const float DefaultMinValue = 0.01f;
     
     public const string Regex = @"^\s*cell_survivability\s*" +
-        @"(?::\s*(?<value>" + ModUtility.NumberRegexPart + @")\s*)?$";
+        @"(?::\s*(?<value>" + ModUtility033.NumberRegexPart + @")\s*)?$";
 
     public float MinValue;
 

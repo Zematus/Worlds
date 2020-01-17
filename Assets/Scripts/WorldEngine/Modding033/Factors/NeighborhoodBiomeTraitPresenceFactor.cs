@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 public class NeighborhoodBiomeTraitPresenceFactor : Factor
 {
     public const string Regex = @"^\s*neighborhood_biome_trait_presence\s*" +
-        @":\s*(?<trait>" + ModUtility.IdentifierRegexPart + @")\s*$";
+        @":\s*(?<trait>" + ModUtility033.IdentifierRegexPart + @")\s*$";
 
     public string Trait;
 

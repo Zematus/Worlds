@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 public class ApplyGroupNavigationRangeModifierEffect : Effect
 {
     public const string Regex = @"^\s*apply_group_navigation_range_modifier\s*" +
-        @":\s*(?<value>" + ModUtility.NumberRegexPart + @")\s*$";
+        @":\s*(?<value>" + ModUtility033.NumberRegexPart + @")\s*$";
     
     public int RangeDelta;
 

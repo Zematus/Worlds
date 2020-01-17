@@ -8,8 +8,8 @@ public class CellBiomeTypePresenceCondition : CellCondition
     public const float DefaultMinValue = 0.01f;
     
     public const string Regex = @"^\s*cell_biome_type_presence\s*" +
-        @":\s*(?<type>" + ModUtility.IdentifierRegexPart + @")\s*" +
-        @"(?:,\s*(?<value>" + ModUtility.NumberRegexPart + @")\s*)?$";
+        @":\s*(?<type>" + ModUtility033.IdentifierRegexPart + @")\s*" +
+        @"(?:,\s*(?<value>" + ModUtility033.NumberRegexPart + @")\s*)?$";
 
     public BiomeTerrainType TerrainType;
     public float MinValue;

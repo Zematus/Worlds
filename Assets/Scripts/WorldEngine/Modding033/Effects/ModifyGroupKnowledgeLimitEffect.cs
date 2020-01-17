@@ -8,8 +8,8 @@ public class ModifyGroupKnowledgeLimitEffect : Effect
     private const int _initialValue = 100;
 
     public const string Regex = @"^\s*modify_group_knowledge_limit\s*" +
-        @":\s*(?<id>" + ModUtility.IdentifierRegexPart + @")\s*" +
-        @",\s*(?<value>" + ModUtility.NumberRegexPart + @")\s*$";
+        @":\s*(?<id>" + ModUtility033.IdentifierRegexPart + @")\s*" +
+        @",\s*(?<value>" + ModUtility033.NumberRegexPart + @")\s*$";
 
     public string KnowledgeId;
     public int LevelLimitDelta;

@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 public class AddGroupPropertyEffect : Effect
 {
     public const string Regex = @"^\s*add_group_property\s*" +
-        @":\s*(?<value>" + ModUtility.AttributeRegexPart + @")\s*$";
+        @":\s*(?<value>" + ModUtility033.AttributeRegexPart + @")\s*$";
 
     public string Property;
 

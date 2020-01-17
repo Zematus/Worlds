@@ -6,8 +6,8 @@ using System.Text.RegularExpressions;
 public class CellLayerValueCondition : CellCondition
 {
     public const string Regex = @"^\s*cell_layer_value\s*" +
-        @":\s*(?<id>" + ModUtility.IdentifierRegexPart + @")\s*" +
-        @",\s*(?<value>" + ModUtility.NumberRegexPart + @")\s*$";
+        @":\s*(?<id>" + ModUtility033.IdentifierRegexPart + @")\s*" +
+        @",\s*(?<value>" + ModUtility033.NumberRegexPart + @")\s*$";
 
     private string _layerId;
 

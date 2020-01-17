@@ -8,7 +8,7 @@ public class CellHillinessCondition : CellCondition
     public const float DefaultMinValue = 0.01f;
     
     public const string Regex = @"^\s*cell_hilliness\s*" +
-        @"(?::\s*(?<value>" + ModUtility.NumberRegexPart + @")\s*)?$";
+        @"(?::\s*(?<value>" + ModUtility033.NumberRegexPart + @")\s*)?$";
 
     public float MinValue;
 

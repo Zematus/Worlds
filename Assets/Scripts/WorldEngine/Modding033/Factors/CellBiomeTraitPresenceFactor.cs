@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 public class CellBiomeTraitPresenceFactor : Factor
 {
     public const string Regex = @"^\s*cell_biome_trait_presence\s*" +
-        @":\s*(?<trait>" + ModUtility.IdentifierRegexPart + @")\s*$";
+        @":\s*(?<trait>" + ModUtility033.IdentifierRegexPart + @")\s*$";
 
     public string Trait;
 

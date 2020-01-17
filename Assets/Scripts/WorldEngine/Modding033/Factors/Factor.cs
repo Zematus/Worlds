@@ -9,7 +9,7 @@ public abstract class Factor
     {
         //Debug.Log("parsing: " + factorStr);
 
-        Match match = Regex.Match(factorStr, ModUtility.UnaryOpStatementRegex);
+        Match match = Regex.Match(factorStr, ModUtility033.UnaryOpStatementRegex);
         if (match.Success == true)
         {
             //Debug.Log("match: " + match.Value);
@@ -19,7 +19,7 @@ public abstract class Factor
             return BuildUnaryOpFactor(match);
         }
 
-        match = Regex.Match(factorStr, ModUtility.InnerStatementRegex);
+        match = Regex.Match(factorStr, ModUtility033.InnerStatementRegex);
         if (match.Success == true)
         {
             //Debug.Log("match: " + match.Value);
@@ -30,7 +30,7 @@ public abstract class Factor
             return BuildFactor(factorStr);
         }
 
-        match = Regex.Match(factorStr, ModUtility.BaseStatementRegex);
+        match = Regex.Match(factorStr, ModUtility033.BaseStatementRegex);
         if (match.Success == true)
         {
             factorStr = match.Groups["statement"].Value;

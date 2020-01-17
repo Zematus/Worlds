@@ -10,7 +10,11 @@ public class ModTest
     {
         int expCounter = 1;
 
-        Expression expression = Expression.BuildExpression("1 + 1");
+        Expression expression = Expression.BuildExpression("-5");
+
+        Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
+
+        expression = Expression.BuildExpression("1 + 1");
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
     }

@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 public class AddGroupActivityEffect : Effect
 {
     public const string Regex = @"^\s*add_group_activity\s*" +
-        @":\s*(?<id>" + ModUtility.IdentifierRegexPart + @")\s*$";
+        @":\s*(?<id>" + ModUtility033.IdentifierRegexPart + @")\s*$";
 
     public string ActivityId;
 
