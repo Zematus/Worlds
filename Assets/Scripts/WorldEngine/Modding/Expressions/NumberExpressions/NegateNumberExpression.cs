@@ -3,13 +3,13 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class NegateNumberExpression : UnaryNumberOpExpression
+public class NegateNumberValueExpression : UnaryOpNumericExpression
 {
-    public NegateNumberExpression(string expressionStr) : base(expressionStr)
+    public NegateNumberValueExpression(string expressionStr) : base(expressionStr)
     {
     }
 
-    public NegateNumberExpression(Expression expression) : base(expression)
+    public NegateNumberValueExpression(Expression expression) : base(expression)
     {
     }
 
@@ -17,16 +17,16 @@ public class NegateNumberExpression : UnaryNumberOpExpression
     {
         Expression expression = BuildExpression(expressionStr);
 
-        if (expression is NumberExpression)
+        if (expression is NumberValueExpression)
         {
-            NumberExpression numExp = expression as NumberExpression;
+            NumberValueExpression numExp = expression as NumberValueExpression;
 
             numExp.NumberValue = -numExp.NumberValue;
 
             return numExp;
         }
 
-        return new NegateNumberExpression(expression);
+        return new NegateNumberValueExpression(expression);
     }
 
     public override float Evaluate()

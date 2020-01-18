@@ -61,9 +61,9 @@ public abstract class Expression
         switch (unaryOp)
         {
             case "-":
-                return NegateNumberExpression.Build(expressionStr);
+                return NegateNumberValueExpression.Build(expressionStr);
             case "!":
-                return NegateBooleanExpression.Build(expressionStr);
+                return NegateBooleanValueExpression.Build(expressionStr);
         }
 
         throw new System.ArgumentException("Unrecognized unary op: " + unaryOp);
@@ -108,16 +108,16 @@ public abstract class Expression
 
     private static Expression BuildBaseExpression(string expressionStr)
     {
-        Match match = Regex.Match(expressionStr, NumberExpression.Regex);
+        Match match = Regex.Match(expressionStr, NumberValueExpression.Regex);
         if (match.Success == true)
         {
-            return new NumberExpression(expressionStr);
+            return new NumberValueExpression(expressionStr);
         }
 
-        match = Regex.Match(expressionStr, BooleanExpression.Regex);
+        match = Regex.Match(expressionStr, BooleanValueExpression.Regex);
         if (match.Success == true)
         {
-            return new BooleanExpression(expressionStr);
+            return new BooleanValueExpression(expressionStr);
         }
 
         throw new System.ArgumentException("Not a recognized expression: " + expressionStr);

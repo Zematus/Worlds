@@ -3,18 +3,18 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public abstract class BinaryBooleanOpExpression : EvalToBooleanExpression
+public abstract class BinaryOpBooleanExpression : BooleanExpression
 {
-    public EvalToBooleanExpression ExpressionA;
-    public EvalToBooleanExpression ExpressionB;
+    public BooleanExpression ExpressionA;
+    public BooleanExpression ExpressionB;
 
-    public BinaryBooleanOpExpression(string expressionAStr, string expressionBStr)
+    public BinaryOpBooleanExpression(string expressionAStr, string expressionBStr)
     {
         ExpressionA = ValidateExpression(BuildExpression(expressionAStr));
         ExpressionB = ValidateExpression(BuildExpression(expressionBStr));
     }
 
-    public BinaryBooleanOpExpression(Expression expressionA, Expression expressionB)
+    public BinaryOpBooleanExpression(Expression expressionA, Expression expressionB)
     {
         ExpressionA = ValidateExpression(expressionA);
         ExpressionB = ValidateExpression(expressionB);

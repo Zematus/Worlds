@@ -3,16 +3,16 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public abstract class UnaryBooleanOpExpression : EvalToBooleanExpression
+public abstract class UnaryOpNumericExpression : NumericExpression
 {
-    public EvalToBooleanExpression Expression;
+    public NumericExpression Expression;
 
-    public UnaryBooleanOpExpression(string expressionStr)
+    public UnaryOpNumericExpression(string expressionStr)
     {
         Expression = ValidateExpression(BuildExpression(expressionStr));
     }
 
-    public UnaryBooleanOpExpression(Expression expression)
+    public UnaryOpNumericExpression(Expression expression)
     {
         Expression = ValidateExpression(expression);
     }

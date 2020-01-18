@@ -3,18 +3,18 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public abstract class BinaryNumberOpExpression : EvalToNumberExpression
+public abstract class BinaryOpNumericExpression : NumericExpression
 {
-    public EvalToNumberExpression ExpressionA;
-    public EvalToNumberExpression ExpressionB;
+    public NumericExpression ExpressionA;
+    public NumericExpression ExpressionB;
 
-    public BinaryNumberOpExpression(string expressionAStr, string expressionBStr)
+    public BinaryOpNumericExpression(string expressionAStr, string expressionBStr)
     {
         ExpressionA = ValidateExpression(BuildExpression(expressionAStr));
         ExpressionB = ValidateExpression(BuildExpression(expressionBStr));
     }
 
-    public BinaryNumberOpExpression(Expression expressionA, Expression expressionB)
+    public BinaryOpNumericExpression(Expression expressionA, Expression expressionB)
     {
         ExpressionA = ValidateExpression(expressionA);
         ExpressionB = ValidateExpression(expressionB);

@@ -3,34 +3,17 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class BooleanExpression : EvalToBooleanExpression
+public abstract class BooleanExpression : Expression
 {
-    public const string Regex = @"^" + ModUtility.BooleanRegexPart + @"\s*$";
+    public abstract bool Evaluate();
 
-    public bool BooleanValue;
-
-    public static bool ParseExpression(string booleanStr)
+    protected BooleanExpression ValidateExpression(Expression expression)
     {
-        if (!bool.TryParse(booleanStr, out bool value))
+        if (!(expression is BooleanExpression boolExpression))
         {
-            throw new System.ArgumentException("Not a valid boolean value: " + booleanStr);
+            throw new System.ArgumentException(expression + " is not a valid boolean expression");
         }
 
-        return value;
-    }
-
-    public BooleanExpression(string numberStr)
-    {
-        BooleanValue = ParseExpression(numberStr);
-    }
-
-    public override bool Evaluate()
-    {
-        return BooleanValue;
-    }
-
-    public override string ToString()
-    {
-        return BooleanValue.ToString();
+        return boolExpression;
     }
 }

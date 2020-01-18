@@ -3,13 +3,13 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class NegateBooleanExpression : UnaryBooleanOpExpression
+public class NegateBooleanValueExpression : UnaryOpBooleanExpression
 {
-    public NegateBooleanExpression(string expressionStr) : base(expressionStr)
+    public NegateBooleanValueExpression(string expressionStr) : base(expressionStr)
     {
     }
 
-    public NegateBooleanExpression(Expression expression) : base(expression)
+    public NegateBooleanValueExpression(Expression expression) : base(expression)
     {
     }
 
@@ -17,16 +17,16 @@ public class NegateBooleanExpression : UnaryBooleanOpExpression
     {
         Expression expression = BuildExpression(expressionStr);
 
-        if (expression is BooleanExpression)
+        if (expression is BooleanValueExpression)
         {
-            BooleanExpression boolExp = expression as BooleanExpression;
+            BooleanValueExpression boolExp = expression as BooleanValueExpression;
 
             boolExp.BooleanValue = !boolExp.BooleanValue;
 
             return boolExp;
         }
 
-        return new NegateBooleanExpression(expression);
+        return new NegateBooleanValueExpression(expression);
     }
 
     public override bool Evaluate()

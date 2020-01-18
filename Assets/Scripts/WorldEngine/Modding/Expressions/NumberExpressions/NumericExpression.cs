@@ -3,13 +3,13 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public abstract class EvalToNumberExpression : Expression
+public abstract class NumericExpression : Expression
 {
     public abstract float Evaluate();
 
-    protected EvalToNumberExpression ValidateExpression(Expression expression)
+    protected NumericExpression ValidateExpression(Expression expression)
     {
-        if (!(expression is EvalToNumberExpression numExpression))
+        if (!(expression is NumericExpression numExpression))
         {
             throw new System.ArgumentException(expression + " is not a valid number expression");
         }

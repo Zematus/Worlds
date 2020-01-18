@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class SumExpression : BinaryNumberOpExpression
+public class SumExpression : BinaryOpNumericExpression
 {
     public SumExpression(string expressionAStr, string expressionBStr) : base(expressionAStr, expressionBStr)
     {
@@ -18,11 +18,11 @@ public class SumExpression : BinaryNumberOpExpression
         Expression expressionA = BuildExpression(expressionAStr);
         Expression expressionB = BuildExpression(expressionBStr);
 
-        if ((expressionA is NumberExpression) &&
-            (expressionB is NumberExpression))
+        if ((expressionA is NumberValueExpression) &&
+            (expressionB is NumberValueExpression))
         {
-            NumberExpression numExpA = expressionA as NumberExpression;
-            NumberExpression numExpB = expressionB as NumberExpression;
+            NumberValueExpression numExpA = expressionA as NumberValueExpression;
+            NumberValueExpression numExpB = expressionB as NumberValueExpression;
 
             numExpA.NumberValue += numExpB.NumberValue;
 
