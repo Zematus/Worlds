@@ -61,9 +61,9 @@ public abstract class Expression
         switch (unaryOp)
         {
             case "-":
-                return NegateExpression.Build(expressionStr);
+                return NegateNumberExpression.Build(expressionStr);
             case "!":
-                return null;
+                return NegateBooleanExpression.Build(expressionStr);
         }
 
         throw new System.ArgumentException("Unrecognized unary op: " + unaryOp);
@@ -97,6 +97,10 @@ public abstract class Expression
                 return null;
             case "<":
                 return null;
+            case "&&":
+                return null;
+            case "||":
+                return null;
         }
 
         throw new System.ArgumentException("Unrecognized binary op: " + opStr);
@@ -110,7 +114,13 @@ public abstract class Expression
             return new NumberExpression(expressionStr);
         }
 
-        throw new System.ArgumentException("Not a recognized factor: " + expressionStr);
+        match = Regex.Match(expressionStr, BooleanExpression.Regex);
+        if (match.Success == true)
+        {
+            return new BooleanExpression(expressionStr);
+        }
+
+        throw new System.ArgumentException("Not a recognized expression: " + expressionStr);
     }
 
     public static Expression[] BuildExpressions(ICollection<string> expressionStrs)
@@ -125,6 +135,4 @@ public abstract class Expression
 
         return expression;
     }
-
-    public abstract float Evaluate();
 }

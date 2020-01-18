@@ -14,6 +14,10 @@ public class ModTest
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
 
+        expression = Expression.BuildExpression("!false");
+
+        Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
+
         expression = Expression.BuildExpression("1 + 1");
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());

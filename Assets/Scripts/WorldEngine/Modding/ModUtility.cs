@@ -8,6 +8,7 @@ public static class ModUtility
     public const string IdentifierRegexPart = @"[a-zA-Z_][a-zA-Z0-9_]*";
     public const string AttributeRegexPart = @"[a-zA-Z_][a-zA-Z0-9_:]*";
     public const string NumberRegexPart = @"-?\d+(?:\.\d+)?";
+    public const string BooleanRegexPart = @"(true|false)";
 
     public const string OperatorRegexPart = @"\s*(?<opStr>[\!\+\-\*\/])\s*";
     
