@@ -5,21 +5,17 @@ using System.Text.RegularExpressions;
 
 public class NegateBooleanValueExpression : UnaryOpBooleanExpression
 {
-    public NegateBooleanValueExpression(string expressionStr) : base(expressionStr)
-    {
-    }
-
     public NegateBooleanValueExpression(Expression expression) : base(expression)
     {
     }
 
-    public static Expression Build(string expressionStr)
+    public static Expression Build(Context context, string expressionStr)
     {
-        Expression expression = BuildExpression(expressionStr);
+        Expression expression = BuildExpression(context, expressionStr);
 
-        if (expression is BooleanValueExpression)
+        if (expression is FixedBooleanValueExpression)
         {
-            BooleanValueExpression boolExp = expression as BooleanValueExpression;
+            FixedBooleanValueExpression boolExp = expression as FixedBooleanValueExpression;
 
             boolExp.BooleanValue = !boolExp.BooleanValue;
 

@@ -5,24 +5,20 @@ using System.Text.RegularExpressions;
 
 public class SumExpression : BinaryOpNumericExpression
 {
-    public SumExpression(string expressionAStr, string expressionBStr) : base(expressionAStr, expressionBStr)
-    {
-    }
-
     public SumExpression(Expression expressionA, Expression expressionB) : base(expressionA, expressionB)
     {
     }
 
-    public static Expression Build(string expressionAStr, string expressionBStr)
+    public static Expression Build(Context context, string expressionAStr, string expressionBStr)
     {
-        Expression expressionA = BuildExpression(expressionAStr);
-        Expression expressionB = BuildExpression(expressionBStr);
+        Expression expressionA = BuildExpression(context, expressionAStr);
+        Expression expressionB = BuildExpression(context, expressionBStr);
 
-        if ((expressionA is NumberValueExpression) &&
-            (expressionB is NumberValueExpression))
+        if ((expressionA is FixedNumberValueExpression) &&
+            (expressionB is FixedNumberValueExpression))
         {
-            NumberValueExpression numExpA = expressionA as NumberValueExpression;
-            NumberValueExpression numExpB = expressionB as NumberValueExpression;
+            FixedNumberValueExpression numExpA = expressionA as FixedNumberValueExpression;
+            FixedNumberValueExpression numExpB = expressionB as FixedNumberValueExpression;
 
             numExpA.NumberValue += numExpB.NumberValue;
 

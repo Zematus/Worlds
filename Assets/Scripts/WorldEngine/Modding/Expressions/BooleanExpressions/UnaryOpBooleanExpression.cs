@@ -7,9 +7,9 @@ public abstract class UnaryOpBooleanExpression : BooleanExpression
 {
     public BooleanExpression Expression;
 
-    public UnaryOpBooleanExpression(string expressionStr)
+    public UnaryOpBooleanExpression(Context context, string expressionStr)
     {
-        Expression = ValidateExpression(BuildExpression(expressionStr));
+        Expression = ValidateExpression(BuildExpression(context, expressionStr));
     }
 
     public UnaryOpBooleanExpression(Expression expression)

@@ -5,21 +5,17 @@ using System.Text.RegularExpressions;
 
 public class NegateNumberValueExpression : UnaryOpNumericExpression
 {
-    public NegateNumberValueExpression(string expressionStr) : base(expressionStr)
-    {
-    }
-
     public NegateNumberValueExpression(Expression expression) : base(expression)
     {
     }
 
-    public static Expression Build(string expressionStr)
+    public static Expression Build(Context context, string expressionStr)
     {
-        Expression expression = BuildExpression(expressionStr);
+        Expression expression = BuildExpression(context, expressionStr);
 
-        if (expression is NumberValueExpression)
+        if (expression is FixedNumberValueExpression)
         {
-            NumberValueExpression numExp = expression as NumberValueExpression;
+            FixedNumberValueExpression numExp = expression as FixedNumberValueExpression;
 
             numExp.NumberValue = -numExp.NumberValue;
 

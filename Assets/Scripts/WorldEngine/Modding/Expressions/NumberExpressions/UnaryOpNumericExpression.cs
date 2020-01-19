@@ -7,9 +7,9 @@ public abstract class UnaryOpNumericExpression : NumericExpression
 {
     public NumericExpression Expression;
 
-    public UnaryOpNumericExpression(string expressionStr)
+    public UnaryOpNumericExpression(Context context, string expressionStr)
     {
-        Expression = ValidateExpression(BuildExpression(expressionStr));
+        Expression = ValidateExpression(BuildExpression(context, expressionStr));
     }
 
     public UnaryOpNumericExpression(Expression expression)

@@ -5,5 +5,12 @@ using System.Text.RegularExpressions;
 
 public abstract class Context
 {
-    Dictionary<string, object> Values = new Dictionary<string, object>();
+    readonly public string Id;
+
+    readonly public Dictionary<string, Expression> Expressions = new Dictionary<string, Expression>();
+
+    public Context(string id)
+    {
+        Id = id;
+    }
 }

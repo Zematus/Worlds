@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class NumberValueExpression : NumericExpression
+public class FixedNumberValueExpression : NumericExpression
 {
     public const string Regex = @"^" + ModUtility.NumberRegexPart + @"\s*$";
 
@@ -19,7 +19,7 @@ public class NumberValueExpression : NumericExpression
         return value;
     }
 
-    public NumberValueExpression(string numberStr)
+    public FixedNumberValueExpression(string numberStr)
     {
         NumberValue = ParseExpression(numberStr);
     }

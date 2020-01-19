@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 
 public abstract class Expression
 {
-    public static Expression BuildExpression(string expressionStr)
+    public static Expression BuildExpression(Context context, string expressionStr)
     {
         Debug.Log("parsing: " + expressionStr);
 
@@ -18,7 +18,7 @@ public abstract class Expression
             Debug.Log("binaryOp: " + ModUtility.Debug_CapturesToString(match.Groups["binaryOp"]));
             Debug.Log("statement2: " + ModUtility.Debug_CapturesToString(match.Groups["statement2"]));
 
-            return BuildBinaryOpExpression(match);
+            return BuildBinaryOpExpression(context, match);
         }
 
         match = Regex.Match(expressionStr, ModUtility.UnaryOpStatementRegex);
@@ -28,7 +28,7 @@ public abstract class Expression
             Debug.Log("statement: " + ModUtility.Debug_CapturesToString(match.Groups["statement"]));
             Debug.Log("unaryOp: " + ModUtility.Debug_CapturesToString(match.Groups["unaryOp"]));
 
-            return BuildUnaryOpExpression(match);
+            return BuildUnaryOpExpression(context, match);
         }
 
         match = Regex.Match(expressionStr, ModUtility.InnerStatementRegex);
@@ -39,7 +39,7 @@ public abstract class Expression
 
             expressionStr = match.Groups["innerStatement"].Value;
 
-            return BuildExpression(expressionStr);
+            return BuildExpression(context, expressionStr);
         }
 
         match = Regex.Match(expressionStr, ModUtility.BaseStatementRegex);
@@ -47,13 +47,13 @@ public abstract class Expression
         {
             expressionStr = match.Groups["statement"].Value;
 
-            return BuildBaseExpression(expressionStr);
+            return BuildBaseExpression(context, expressionStr);
         }
 
         throw new System.ArgumentException("Not a valid parseable expression: " + expressionStr);
     }
 
-    private static Expression BuildUnaryOpExpression(Match match)
+    private static Expression BuildUnaryOpExpression(Context context, Match match)
     {
         string expressionStr = match.Groups["statement"].Value;
         string unaryOp = match.Groups["unaryOp"].Value.Trim().ToUpper();
@@ -61,15 +61,15 @@ public abstract class Expression
         switch (unaryOp)
         {
             case "-":
-                return NegateNumberValueExpression.Build(expressionStr);
+                return NegateNumberValueExpression.Build(context, expressionStr);
             case "!":
-                return NegateBooleanValueExpression.Build(expressionStr);
+                return NegateBooleanValueExpression.Build(context, expressionStr);
         }
 
         throw new System.ArgumentException("Unrecognized unary op: " + unaryOp);
     }
 
-    private static Expression BuildBinaryOpExpression(Match match)
+    private static Expression BuildBinaryOpExpression(Context context, Match match)
     {
         string expressionAStr = match.Groups["statement1"].Value;
         string expressionBStr = match.Groups["statement2"].Value;
@@ -78,7 +78,7 @@ public abstract class Expression
         switch (opStr)
         {
             case "+":
-                return SumExpression.Build(expressionAStr, expressionBStr);
+                return SumExpression.Build(context, expressionAStr, expressionBStr);
             case "-":
                 return null;
             case "*":
@@ -106,33 +106,34 @@ public abstract class Expression
         throw new System.ArgumentException("Unrecognized binary op: " + opStr);
     }
 
-    private static Expression BuildBaseExpression(string expressionStr)
+    private static Expression BuildBaseExpression(Context context, string expressionStr)
     {
-        Match match = Regex.Match(expressionStr, NumberValueExpression.Regex);
+        Match match = Regex.Match(expressionStr, FixedNumberValueExpression.Regex);
         if (match.Success == true)
         {
-            return new NumberValueExpression(expressionStr);
+            return new FixedNumberValueExpression(expressionStr);
         }
 
-        match = Regex.Match(expressionStr, BooleanValueExpression.Regex);
+        match = Regex.Match(expressionStr, FixedBooleanValueExpression.Regex);
         if (match.Success == true)
         {
-            return new BooleanValueExpression(expressionStr);
+            return new FixedBooleanValueExpression(expressionStr);
+        }
+
+        match = Regex.Match(expressionStr, ContextBooleanExpression.Regex);
+        if ((match.Success == true) &&
+            ContextBooleanExpression.IsBooleanExpression(context, expressionStr))
+        {
+            return new ContextBooleanExpression(context, expressionStr);
+        }
+
+        match = Regex.Match(expressionStr, ContextNumericExpression.Regex);
+        if ((match.Success == true) &&
+            ContextNumericExpression.IsNumericExpression(context, expressionStr))
+        {
+            return new ContextNumericExpression(context, expressionStr);
         }
 
         throw new System.ArgumentException("Not a recognized expression: " + expressionStr);
-    }
-
-    public static Expression[] BuildExpressions(ICollection<string> expressionStrs)
-    {
-        Expression[] expression = new Expression[expressionStrs.Count];
-
-        int i = 0;
-        foreach (string expressionStr in expressionStrs)
-        {
-            expression[i++] = BuildExpression(expressionStr);
-        }
-
-        return expression;
     }
 }

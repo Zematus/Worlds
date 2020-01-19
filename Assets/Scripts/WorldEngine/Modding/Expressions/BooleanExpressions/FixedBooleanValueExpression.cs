@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class BooleanValueExpression : BooleanExpression
+public class FixedBooleanValueExpression : BooleanExpression
 {
     public const string Regex = @"^" + ModUtility.BooleanRegexPart + @"\s*$";
 
@@ -19,7 +19,7 @@ public class BooleanValueExpression : BooleanExpression
         return value;
     }
 
-    public BooleanValueExpression(string numberStr)
+    public FixedBooleanValueExpression(string numberStr)
     {
         BooleanValue = ParseExpression(numberStr);
     }
