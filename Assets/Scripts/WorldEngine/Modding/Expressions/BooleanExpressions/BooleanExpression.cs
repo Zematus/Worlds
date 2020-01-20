@@ -5,7 +5,26 @@ using System.Text.RegularExpressions;
 
 public abstract class BooleanExpression : Expression
 {
-    public abstract bool Evaluate();
+    private bool Evaluated = false;
+    private bool CachedValue;
+
+    protected abstract bool Evaluate();
+
+    public virtual bool GetValue()
+    {
+        if (!Evaluated)
+        {
+            CachedValue = Evaluate();
+            Evaluated = true;
+        }
+
+        return CachedValue;
+    }
+
+    public override void ResetCache()
+    {
+        Evaluated = false;
+    }
 
     protected BooleanExpression ValidateExpression(Expression expression)
     {

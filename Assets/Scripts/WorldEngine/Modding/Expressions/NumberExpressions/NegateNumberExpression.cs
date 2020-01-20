@@ -25,9 +25,9 @@ public class NegateNumberValueExpression : UnaryOpNumericExpression
         return new NegateNumberValueExpression(expression);
     }
 
-    public override float Evaluate()
+    protected override float Evaluate()
     {
-        return -Expression.Evaluate();
+        return -Expression.GetValue();
     }
 
     public override string ToString()

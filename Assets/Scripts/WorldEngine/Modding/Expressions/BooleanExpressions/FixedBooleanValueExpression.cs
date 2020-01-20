@@ -24,7 +24,12 @@ public class FixedBooleanValueExpression : BooleanExpression
         BooleanValue = ParseExpression(numberStr);
     }
 
-    public override bool Evaluate()
+    protected override bool Evaluate()
+    {
+        return BooleanValue;
+    }
+
+    public override bool GetValue()
     {
         return BooleanValue;
     }

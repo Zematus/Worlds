@@ -13,4 +13,12 @@ public abstract class Context
     {
         Id = id;
     }
+
+    public void ResetExpressionCaches()
+    {
+        foreach (Expression expression in Expressions.Values)
+        {
+            expression.ResetCache();
+        }
+    }
 }

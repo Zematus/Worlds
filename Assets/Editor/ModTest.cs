@@ -37,6 +37,18 @@ public class ModTest
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
 
+        expression = Expression.BuildExpression(testContext, "1 + -1 + 2");
+
+        Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
+
+        expression = Expression.BuildExpression(testContext, "-1 + 2 + 2");
+
+        Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
+
+        expression = Expression.BuildExpression(testContext, "2 +2+3");
+
+        Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
+
         expression = Expression.BuildExpression(testContext, "testContextNumericExpression");
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());

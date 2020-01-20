@@ -34,11 +34,11 @@ public class ContextBooleanExpression : BooleanExpression
         Identifier = identifier;
     }
 
-    public override bool Evaluate()
+    protected override bool Evaluate()
     {
         BooleanExpression expression = ValidateExpression(Context.Expressions[Identifier]);
 
-        return expression.Evaluate();
+        return expression.GetValue();
     }
 
     public override string ToString()

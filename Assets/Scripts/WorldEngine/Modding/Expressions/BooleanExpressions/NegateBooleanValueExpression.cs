@@ -25,9 +25,9 @@ public class NegateBooleanValueExpression : UnaryOpBooleanExpression
         return new NegateBooleanValueExpression(expression);
     }
 
-    public override bool Evaluate()
+    protected override bool Evaluate()
     {
-        return !Expression.Evaluate();
+        return !Expression.GetValue();
     }
 
     public override string ToString()

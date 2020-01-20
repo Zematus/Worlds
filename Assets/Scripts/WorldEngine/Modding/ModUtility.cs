@@ -10,9 +10,11 @@ public static class ModUtility
     public const string BooleanRegexPart = @"(true|false)";
 
     public const string OperatorRegexPart = @"\s*(?<opStr>[\!\+\-\*\/])\s*";
-    
+    public const string AccessorRegexPart = @"\.";
+
     public const string BaseStatementRegexPart =
         @"[^\s\(\)]+";
+
     public const string InnerStatementRegexPart =
         @"(?:(?:" + 
             @"(?<open>\()" + 
@@ -33,22 +35,37 @@ public static class ModUtility
         @"(?<unaryOp>" + OperatorRegexPart + @")" +
         @"(?<statement>" + OperandStatementRegexPart + @")\s*" +
         @"$";
+
     public const string BinaryOpStatementRegex =
         @"^\s*" +
         @"(?<statement1>" + OperandStatementRegexPart + @")\s*" +
         @"(?<binaryOp>" + OperatorRegexPart + @")\s*" +
         @"(?<statement2>" +
             @"(?:" + OperandStatementRegexPart + @")" +
-            @"(?:\s*" + 
+            @"(?:\s*" +
                 @"(?:" + OperatorRegexPart + @")\s*" +
                 @"(?:" + OperandStatementRegexPart + @")" +
-            @")*" + 
+            @")*" +
         @")\s*" +
+        @"$";
+
+    public const string AccessorOpStatementRegex =
+        @"^\s*" +
+        @"(?<statement>" +
+            @"(?:" + OperandStatementRegexPart + @")" +
+            @"(?:" +
+                AccessorRegexPart +
+                IdentifierRegexPart +
+            @")*" +
+        @")" +
+        AccessorRegexPart +
+        @"(?<attribute>" + IdentifierRegexPart + @")\s*" +
         @"$";
     
     public const string BaseStatementRegex = @"^\s*(?<statement>" + BaseStatementRegexPart + @")\s*$";
     public const string OperandStatementRegex = @"^\s*(?<statement>" + OperandStatementRegexPart + @")\s*$";
     public const string InnerStatementRegex = @"^\s*(?<statement>" + InnerStatementRegexPart + @")\s*$";
+    public const string IdentifierRegex = @"^" + IdentifierRegexPart + @"\s*$";
 
 #if DEBUG
     public static string Debug_CapturesToString(Group group)

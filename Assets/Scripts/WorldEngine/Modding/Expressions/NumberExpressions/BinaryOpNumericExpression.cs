@@ -19,4 +19,12 @@ public abstract class BinaryOpNumericExpression : NumericExpression
         ExpressionA = ValidateExpression(expressionA);
         ExpressionB = ValidateExpression(expressionB);
     }
+
+    public override void ResetCache()
+    {
+        ExpressionA.ResetCache();
+        ExpressionB.ResetCache();
+
+        base.ResetCache();
+    }
 }

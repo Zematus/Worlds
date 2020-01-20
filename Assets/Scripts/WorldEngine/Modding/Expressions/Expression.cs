@@ -9,7 +9,18 @@ public abstract class Expression
     {
         Debug.Log("parsing: " + expressionStr);
 
-        Match match = Regex.Match(expressionStr, ModUtility.BinaryOpStatementRegex);
+        Match match = Regex.Match(expressionStr, ModUtility.AccessorOpStatementRegex);
+
+        if (match.Success == true)
+        {
+            Debug.Log("match: " + match.Value);
+            Debug.Log("statement: " + ModUtility.Debug_CapturesToString(match.Groups["statement"]));
+            Debug.Log("property: " + ModUtility.Debug_CapturesToString(match.Groups["property"]));
+
+            return BuildAccessorOpExpression(context, match);
+        }
+
+        match = Regex.Match(expressionStr, ModUtility.BinaryOpStatementRegex);
 
         if (match.Success == true)
         {
@@ -51,6 +62,28 @@ public abstract class Expression
         }
 
         throw new System.ArgumentException("Not a valid parseable expression: " + expressionStr);
+    }
+
+    private static Expression BuildAccessorOpExpression(Context context, Match match)
+    {
+        string expressionStr = match.Groups["statement"].Value;
+        string attributeId = match.Groups["attribute"].Value;
+
+        Expression expression = BuildExpression(context, expressionStr);
+
+        if (!(expression is EntityExpression entExpression))
+        {
+            throw new System.ArgumentException("Not a valid entity expression: " + expression);
+        }
+
+        System.Type attrType = entExpression.GetAttributeType(attributeId);
+
+        if (attrType == typeof(BooleanEntityAttribute))
+        {
+            return new EntityBooleanAttributeExpression(entExpression, attributeId);
+        }
+
+        throw new System.ArgumentException("Unrecognized attribute type: " + attrType);
     }
 
     private static Expression BuildUnaryOpExpression(Context context, Match match)
@@ -120,20 +153,22 @@ public abstract class Expression
             return new FixedBooleanValueExpression(expressionStr);
         }
 
-        match = Regex.Match(expressionStr, ContextBooleanExpression.Regex);
-        if ((match.Success == true) &&
-            ContextBooleanExpression.IsBooleanExpression(context, expressionStr))
+        match = Regex.Match(expressionStr, ModUtility.IdentifierRegex);
+        if (match.Success == true)
         {
-            return new ContextBooleanExpression(context, expressionStr);
-        }
+            if (ContextBooleanExpression.IsBooleanExpression(context, expressionStr))
+            {
+                return new ContextBooleanExpression(context, expressionStr);
+            }
 
-        match = Regex.Match(expressionStr, ContextNumericExpression.Regex);
-        if ((match.Success == true) &&
-            ContextNumericExpression.IsNumericExpression(context, expressionStr))
-        {
-            return new ContextNumericExpression(context, expressionStr);
+            if (ContextNumericExpression.IsNumericExpression(context, expressionStr))
+            {
+                return new ContextNumericExpression(context, expressionStr);
+            }
         }
 
         throw new System.ArgumentException("Not a recognized expression: " + expressionStr);
     }
+
+    public abstract void ResetCache();
 }

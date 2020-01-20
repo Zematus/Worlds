@@ -5,7 +5,26 @@ using System.Text.RegularExpressions;
 
 public abstract class NumericExpression : Expression
 {
-    public abstract float Evaluate();
+    private bool Evaluated = false;
+    private float CachedValue;
+
+    protected abstract float Evaluate();
+
+    public virtual float GetValue()
+    {
+        if (!Evaluated)
+        {
+            CachedValue = Evaluate();
+            Evaluated = true;
+        }
+
+        return CachedValue;
+    }
+
+    public override void ResetCache()
+    {
+        Evaluated = false;
+    }
 
     protected NumericExpression ValidateExpression(Expression expression)
     {

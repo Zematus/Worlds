@@ -28,9 +28,9 @@ public class SumExpression : BinaryOpNumericExpression
         return new SumExpression(expressionA, expressionB);
     }
 
-    public override float Evaluate()
+    protected override float Evaluate()
     {
-        return ExpressionA.Evaluate() + ExpressionB.Evaluate();
+        return ExpressionA.GetValue() + ExpressionB.GetValue();
     }
 
     public override string ToString()

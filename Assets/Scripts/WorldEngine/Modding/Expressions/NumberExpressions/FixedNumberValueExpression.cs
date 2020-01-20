@@ -24,7 +24,12 @@ public class FixedNumberValueExpression : NumericExpression
         NumberValue = ParseExpression(numberStr);
     }
 
-    public override float Evaluate()
+    protected override float Evaluate()
+    {
+        return NumberValue;
+    }
+
+    public override float GetValue()
     {
         return NumberValue;
     }

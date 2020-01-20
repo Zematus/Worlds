@@ -34,11 +34,11 @@ public class ContextNumericExpression : NumericExpression
         Identifier = identifier;
     }
 
-    public override float Evaluate()
+    protected override float Evaluate()
     {
         NumericExpression expression = ValidateExpression(Context.Expressions[Identifier]);
 
-        return expression.Evaluate();
+        return expression.GetValue();
     }
 
     public override string ToString()
