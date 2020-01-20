@@ -8,6 +8,7 @@ public abstract class Context
     readonly public string Id;
 
     readonly public Dictionary<string, Expression> Expressions = new Dictionary<string, Expression>();
+    readonly public Dictionary<string, Entity> Entities = new Dictionary<string, Entity>();
 
     public Context(string id)
     {

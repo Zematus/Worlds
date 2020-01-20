@@ -2,6 +2,7 @@
 using UnityEditor;
 using NUnit.Framework;
 using System.IO;
+using System;
 
 public class ModTest
 {
@@ -12,18 +13,56 @@ public class ModTest
         }
     }
 
+    public class TestBooleanEntityAttribute : BooleanEntityAttribute
+    {
+        public override bool GetValue()
+        {
+            return true;
+        }
+    }
+
+    public class TestEntity : Entity
+    {
+        private TestBooleanEntityAttribute _boolAttribute = new TestBooleanEntityAttribute();
+
+        public override EntityAttribute GetAttribute(string attributeId)
+        {
+            switch (attributeId)
+            {
+                case "testBoolAttribute":
+                    return _boolAttribute;
+            }
+
+            return null;
+        }
+
+        public override Type GetAttributeType(string attributeId)
+        {
+            switch (attributeId)
+            {
+                case "testBoolAttribute":
+                    return _boolAttribute.GetType();
+            }
+
+            return null;
+        }
+    }
+
     [Test]
     public void ExpressionParseTest()
     {
         int expCounter = 1;
 
         TestContext testContext = new TestContext();
+
         testContext.Expressions.Add(
             "testContextNumericExpression",
             Expression.BuildExpression(testContext, "-15"));
         testContext.Expressions.Add(
             "testContextBooleanExpression",
             Expression.BuildExpression(testContext, "!true"));
+
+        testContext.Entities.Add("testEntity", new TestEntity());
 
         Expression expression = Expression.BuildExpression(testContext, "-5");
 
@@ -54,6 +93,10 @@ public class ModTest
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
 
         expression = Expression.BuildExpression(testContext, "testContextBooleanExpression");
+
+        Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
+
+        expression = Expression.BuildExpression(testContext, "testEntity.testBoolAttribute");
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
     }

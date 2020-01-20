@@ -83,6 +83,11 @@ public abstract class Expression
             return new EntityBooleanAttributeExpression(entExpression, attributeId);
         }
 
+        if (attrType == typeof(EntityEntityAttribute))
+        {
+            return new EntityEntityAttributeExpression(entExpression, attributeId);
+        }
+
         throw new System.ArgumentException("Unrecognized attribute type: " + attrType);
     }
 
@@ -94,7 +99,7 @@ public abstract class Expression
         switch (unaryOp)
         {
             case "-":
-                return NegateNumberValueExpression.Build(context, expressionStr);
+                return NegateNumberExpression.Build(context, expressionStr);
             case "!":
                 return NegateBooleanValueExpression.Build(context, expressionStr);
         }
@@ -141,10 +146,10 @@ public abstract class Expression
 
     private static Expression BuildBaseExpression(Context context, string expressionStr)
     {
-        Match match = Regex.Match(expressionStr, FixedNumberValueExpression.Regex);
+        Match match = Regex.Match(expressionStr, FixedNumberExpression.Regex);
         if (match.Success == true)
         {
-            return new FixedNumberValueExpression(expressionStr);
+            return new FixedNumberExpression(expressionStr);
         }
 
         match = Regex.Match(expressionStr, FixedBooleanValueExpression.Regex);

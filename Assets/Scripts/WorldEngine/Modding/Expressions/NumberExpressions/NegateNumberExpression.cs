@@ -3,9 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class NegateNumberValueExpression : UnaryOpNumericExpression
+public class NegateNumberExpression : UnaryOpNumericExpression
 {
-    public NegateNumberValueExpression(Expression expression) : base(expression)
+    public NegateNumberExpression(Expression expression) : base(expression)
     {
     }
 
@@ -13,16 +13,16 @@ public class NegateNumberValueExpression : UnaryOpNumericExpression
     {
         Expression expression = BuildExpression(context, expressionStr);
 
-        if (expression is FixedNumberValueExpression)
+        if (expression is FixedNumberExpression)
         {
-            FixedNumberValueExpression numExp = expression as FixedNumberValueExpression;
+            FixedNumberExpression numExp = expression as FixedNumberExpression;
 
             numExp.NumberValue = -numExp.NumberValue;
 
             return numExp;
         }
 
-        return new NegateNumberValueExpression(expression);
+        return new NegateNumberExpression(expression);
     }
 
     protected override float Evaluate()

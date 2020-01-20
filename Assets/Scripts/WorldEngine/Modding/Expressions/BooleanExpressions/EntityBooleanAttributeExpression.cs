@@ -18,9 +18,10 @@ public class EntityBooleanAttributeExpression : BooleanExpression
 
     protected override bool Evaluate()
     {
-        Expression.GetValue().Attributes.TryGetValue(AttributeId, out EntityAtribute attribute);
+        BooleanEntityAttribute attribute =
+            Expression.GetValue().GetAttribute(AttributeId) as BooleanEntityAttribute;
 
-        return (attribute as BooleanEntityAttribute).GetValue();
+        return attribute.GetValue();
     }
 
     public override string ToString()

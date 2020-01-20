@@ -12,8 +12,6 @@ public abstract class EntityExpression : Expression
 
     public abstract System.Type GetAttributeType(string attributeId);
 
-    public abstract bool HasAttribute(string attribute);
-
     public virtual Entity GetValue()
     {
         if (!Evaluated)

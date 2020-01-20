@@ -14,11 +14,11 @@ public class SumExpression : BinaryOpNumericExpression
         Expression expressionA = BuildExpression(context, expressionAStr);
         Expression expressionB = BuildExpression(context, expressionBStr);
 
-        if ((expressionA is FixedNumberValueExpression) &&
-            (expressionB is FixedNumberValueExpression))
+        if ((expressionA is FixedNumberExpression) &&
+            (expressionB is FixedNumberExpression))
         {
-            FixedNumberValueExpression numExpA = expressionA as FixedNumberValueExpression;
-            FixedNumberValueExpression numExpB = expressionB as FixedNumberValueExpression;
+            FixedNumberExpression numExpA = expressionA as FixedNumberExpression;
+            FixedNumberExpression numExpB = expressionB as FixedNumberExpression;
 
             numExpA.NumberValue += numExpB.NumberValue;
 

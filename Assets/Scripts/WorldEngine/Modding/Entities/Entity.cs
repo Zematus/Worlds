@@ -5,5 +5,6 @@ using System.Text.RegularExpressions;
 
 public abstract class Entity
 {
-    readonly public Dictionary<string, EntityAtribute> Attributes = new Dictionary<string, EntityAtribute>();
+    public abstract EntityAttribute GetAttribute(string attributeId);
+    public abstract System.Type GetAttributeType(string attributeId);
 }
