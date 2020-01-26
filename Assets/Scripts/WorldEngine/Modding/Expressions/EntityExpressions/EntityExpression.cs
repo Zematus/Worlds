@@ -5,27 +5,10 @@ using System.Text.RegularExpressions;
 
 public abstract class EntityExpression : Expression
 {
-    private bool Evaluated = false;
-    private Entity CachedValue;
+    public abstract Entity GetEntity();
 
-    protected abstract Entity Evaluate();
-
-    public abstract System.Type GetAttributeType(string attributeId);
-
-    public virtual Entity GetValue()
+    public override void Reset()
     {
-        if (!Evaluated)
-        {
-            CachedValue = Evaluate();
-            Evaluated = true;
-        }
-
-        return CachedValue;
-    }
-
-    public override void ResetCache()
-    {
-        Evaluated = false;
     }
 
     protected EntityExpression ValidateExpression(Expression expression)

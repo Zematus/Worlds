@@ -6,36 +6,20 @@ using System;
 
 public class FixedEntityExpression : EntityExpression
 {
-    public const string Regex = ModUtility.IdentifierRegex;
+    private readonly Entity _entity;
 
-    public Entity Entity;
-
-    public FixedEntityExpression(Context context, string entityId)
+    public FixedEntityExpression(Entity entity)
     {
-        if (context.Entities.TryGetValue(entityId, out Entity))
-        {
-            throw new System.ArgumentException(
-                "context '" + context.Id + "' doesn't contain entity '" + entityId + "'");
-        }
-    }
-
-    protected override Entity Evaluate()
-    {
-        return Entity;
-    }
-
-    public override Entity GetValue()
-    {
-        return Entity;
+        _entity = entity;
     }
 
     public override string ToString()
     {
-        return Entity.ToString();
+        return _entity.Id;
     }
 
-    public override Type GetAttributeType(string attributeId)
+    public override Entity GetEntity()
     {
-        return Entity.GetAttributeType(attributeId);
+        return _entity;
     }
 }

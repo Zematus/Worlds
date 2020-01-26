@@ -17,10 +17,10 @@ public abstract class UnaryOpNumericExpression : NumericExpression
         Expression = ValidateExpression(expression);
     }
 
-    public override void ResetCache()
+    public override void Reset()
     {
-        Expression.ResetCache();
+        Expression.Reset();
 
-        base.ResetCache();
+        base.Reset();
     }
 }

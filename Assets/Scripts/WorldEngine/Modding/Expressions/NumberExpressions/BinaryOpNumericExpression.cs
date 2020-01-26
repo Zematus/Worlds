@@ -20,11 +20,11 @@ public abstract class BinaryOpNumericExpression : NumericExpression
         ExpressionB = ValidateExpression(expressionB);
     }
 
-    public override void ResetCache()
+    public override void Reset()
     {
-        ExpressionA.ResetCache();
-        ExpressionB.ResetCache();
+        ExpressionA.Reset();
+        ExpressionB.Reset();
 
-        base.ResetCache();
+        base.Reset();
     }
 }

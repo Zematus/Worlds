@@ -15,15 +15,62 @@ public class ModTest
 
     public class TestBooleanEntityAttribute : BooleanEntityAttribute
     {
+        private bool _value;
+
+        public TestBooleanEntityAttribute(bool value)
+        {
+            _value = value;
+        }
+
         public override bool GetValue()
         {
-            return true;
+            return _value;
+        }
+    }
+
+    public class TestEntityEntityAttribute : EntityEntityAttribute
+    {
+        private Entity _entity;
+
+        public TestEntityEntityAttribute(Entity entity)
+        {
+            _entity = entity;
+        }
+
+        public override Entity GetEntity()
+        {
+            return _entity;
         }
     }
 
     public class TestEntity : Entity
     {
-        private TestBooleanEntityAttribute _boolAttribute = new TestBooleanEntityAttribute();
+        private class InternalEntity : Entity
+        {
+            private TestBooleanEntityAttribute _boolAttribute = new TestBooleanEntityAttribute(true);
+
+            public override EntityAttribute GetAttribute(string attributeId)
+            {
+                switch (attributeId)
+                {
+                    case "testBoolAttribute":
+                        return _boolAttribute;
+                }
+
+                return null;
+            }
+        }
+
+        private InternalEntity _internalEntity = new InternalEntity();
+
+        private TestBooleanEntityAttribute _boolAttribute = new TestBooleanEntityAttribute(false);
+
+        private TestEntityEntityAttribute _entityAttribute;
+
+        public TestEntity()
+        {
+            _entityAttribute = new TestEntityEntityAttribute(_internalEntity);
+        }
 
         public override EntityAttribute GetAttribute(string attributeId)
         {
@@ -31,17 +78,9 @@ public class ModTest
             {
                 case "testBoolAttribute":
                     return _boolAttribute;
-            }
 
-            return null;
-        }
-
-        public override Type GetAttributeType(string attributeId)
-        {
-            switch (attributeId)
-            {
-                case "testBoolAttribute":
-                    return _boolAttribute.GetType();
+                case "testEntityAttribute":
+                    return _entityAttribute;
             }
 
             return null;
@@ -97,6 +136,11 @@ public class ModTest
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
 
         expression = Expression.BuildExpression(testContext, "testEntity.testBoolAttribute");
+
+        Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
+
+        expression = Expression.BuildExpression(
+            testContext, "testEntity.testEntityAttribute.testBoolAttribute");
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
     }

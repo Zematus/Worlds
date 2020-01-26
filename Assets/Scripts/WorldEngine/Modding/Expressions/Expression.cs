@@ -15,7 +15,7 @@ public abstract class Expression
         {
             Debug.Log("match: " + match.Value);
             Debug.Log("statement: " + ModUtility.Debug_CapturesToString(match.Groups["statement"]));
-            Debug.Log("property: " + ModUtility.Debug_CapturesToString(match.Groups["property"]));
+            Debug.Log("attribute: " + ModUtility.Debug_CapturesToString(match.Groups["attribute"]));
 
             return BuildAccessorOpExpression(context, match);
         }
@@ -76,19 +76,19 @@ public abstract class Expression
             throw new System.ArgumentException("Not a valid entity expression: " + expression);
         }
 
-        System.Type attrType = entExpression.GetAttributeType(attributeId);
+        EntityAttribute attribute = entExpression.GetEntity().GetAttribute(attributeId);
 
-        if (attrType == typeof(BooleanEntityAttribute))
+        if (attribute is BooleanEntityAttribute)
         {
-            return new EntityBooleanAttributeExpression(entExpression, attributeId);
+            return new BooleanEntityAttributeExpression(attribute, expressionStr, attributeId);
         }
 
-        if (attrType == typeof(EntityEntityAttribute))
+        if (attribute is EntityEntityAttribute)
         {
-            return new EntityEntityAttributeExpression(entExpression, attributeId);
+            return new EntityEntityAttributeExpression(attribute, expressionStr, attributeId);
         }
 
-        throw new System.ArgumentException("Unrecognized attribute type: " + attrType);
+        throw new System.ArgumentException("Unrecognized attribute type: " + attribute.GetType());
     }
 
     private static Expression BuildUnaryOpExpression(Context context, Match match)
@@ -161,19 +161,19 @@ public abstract class Expression
         match = Regex.Match(expressionStr, ModUtility.IdentifierRegex);
         if (match.Success == true)
         {
-            if (ContextBooleanExpression.IsBooleanExpression(context, expressionStr))
+            if (context.Entities.TryGetValue(expressionStr, out Entity entity))
             {
-                return new ContextBooleanExpression(context, expressionStr);
+                return new FixedEntityExpression(entity);
             }
 
-            if (ContextNumericExpression.IsNumericExpression(context, expressionStr))
+            if (context.Expressions.TryGetValue(expressionStr, out Expression expression))
             {
-                return new ContextNumericExpression(context, expressionStr);
+                return expression;
             }
         }
 
         throw new System.ArgumentException("Not a recognized expression: " + expressionStr);
     }
 
-    public abstract void ResetCache();
+    public abstract void Reset();
 }

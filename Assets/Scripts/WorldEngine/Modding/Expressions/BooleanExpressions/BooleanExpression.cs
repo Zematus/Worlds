@@ -5,25 +5,25 @@ using System.Text.RegularExpressions;
 
 public abstract class BooleanExpression : Expression
 {
-    private bool Evaluated = false;
-    private bool CachedValue;
+    private bool _evaluated = false;
+    private bool _cachedValue;
 
     protected abstract bool Evaluate();
 
     public virtual bool GetValue()
     {
-        if (!Evaluated)
+        if (!_evaluated)
         {
-            CachedValue = Evaluate();
-            Evaluated = true;
+            _cachedValue = Evaluate();
+            _evaluated = true;
         }
 
-        return CachedValue;
+        return _cachedValue;
     }
 
-    public override void ResetCache()
+    public override void Reset()
     {
-        Evaluated = false;
+        _evaluated = false;
     }
 
     protected BooleanExpression ValidateExpression(Expression expression)

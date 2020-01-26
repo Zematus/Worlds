@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 
 public abstract class Entity
 {
+    public string Id;
+
     public abstract EntityAttribute GetAttribute(string attributeId);
-    public abstract System.Type GetAttributeType(string attributeId);
 }

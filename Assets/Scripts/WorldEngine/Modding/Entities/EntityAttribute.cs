@@ -5,4 +5,7 @@ using System.Text.RegularExpressions;
 
 public abstract class EntityAttribute
 {
+    public virtual void Reset()
+    {
+    }
 }

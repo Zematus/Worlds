@@ -17,10 +17,10 @@ public abstract class UnaryOpBooleanExpression : BooleanExpression
         Expression = ValidateExpression(expression);
     }
 
-    public override void ResetCache()
+    public override void Reset()
     {
-        Expression.ResetCache();
+        Expression.Reset();
 
-        base.ResetCache();
+        base.Reset();
     }
 }

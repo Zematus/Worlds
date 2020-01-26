@@ -19,7 +19,7 @@ public abstract class Context
     {
         foreach (Expression expression in Expressions.Values)
         {
-            expression.ResetCache();
+            expression.Reset();
         }
     }
 }
