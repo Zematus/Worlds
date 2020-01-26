@@ -161,13 +161,13 @@ public class ModTest
         //Assert.AreEqual((expression as BooleanExpression).GetValue(), true);
 
         expression = Expression.BuildExpression(
-            testContext, "testFunction2(arg1)");
+            testContext, "testFunction2(true)");
 
         //Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
         //Assert.AreEqual((expression as BooleanExpression).GetValue(), true);
 
         expression = Expression.BuildExpression(
-            testContext, "testFunction3(arg1,arg2,arg3)");
+            testContext, "testFunction3(false ,3 +3, -5)");
 
         //Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
         //Assert.AreEqual((expression as BooleanExpression).GetValue(), true);

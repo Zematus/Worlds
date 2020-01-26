@@ -39,31 +39,45 @@ public static class ModUtility
         @")[^\(\)]*?)+" +
         @"(?(open)(?!))";
 
-    public const string ArgumentListRegexPart =
+    public const string ArgumentListRegex =
         @"^\s*" +
-        @"(?<argument>" + OperandStatementRegexPart + @")\s*" +
+        @"(?<argument>" + ArgumentRegexPart + @")\s*" +
         @"(?:," +
             @"(?<otherArgs>" +
-                @"(?:\s*" + OperandStatementRegexPart + @"\s*)" +
-                @"(?:,\s*" + OperandStatementRegexPart + @"\s*)*" +
+                @"(?:\s*" + ArgumentRegexPart + @"\s*)" +
+                @"(?:,\s*" + ArgumentRegexPart + @"\s*)*" +
             @")" +
         @")?" +
         @"$";
 
-    public const string FunctionStatementRegex =
-        @"^\s*" +
+    public const string ArgumentRegexPart =
+        @"(?:" +
+            FunctionStatementRegexPart +
+        @")|(?:" +
+            UnaryOpStatementRegexPart +
+        @")|(?:" +
+            BinaryOpStatementRegexPart +
+        @")|(?:" +
+            AccessorOpStatementRegexPart +
+        @")|(?:" +
+            OperandStatementRegexPart +
+        @")";
+
+    public const string FunctionStatementRegexPart =
         @"(?<funcName>" + IdentifierRegexPart + @")\s*" +
-        ArgumentsRegexPart + @"\s*" +
-        @"$";
+        ArgumentsRegexPart;
+
+    public const string FunctionStatementRegex =
+        @"^\s*" + FunctionStatementRegexPart + @"\s*$";
+
+    public const string UnaryOpStatementRegexPart =
+        @"(?<unaryOp>" + OperatorRegexPart + @")" +
+        @"(?<statement>" + OperandStatementRegexPart + @")";
 
     public const string UnaryOpStatementRegex =
-        @"^\s*" +
-        @"(?<unaryOp>" + OperatorRegexPart + @")" +
-        @"(?<statement>" + OperandStatementRegexPart + @")\s*" +
-        @"$";
+        @"^\s*" + UnaryOpStatementRegexPart + @"\s*$";
 
-    public const string BinaryOpStatementRegex =
-        @"^\s*" +
+    public const string BinaryOpStatementRegexPart =
         @"(?<statement1>" + OperandStatementRegexPart + @")\s*" +
         @"(?<binaryOp>" + OperatorRegexPart + @")\s*" +
         @"(?<statement2>" +
@@ -72,11 +86,12 @@ public static class ModUtility
                 @"(?:" + OperatorRegexPart + @")\s*" +
                 @"(?:" + OperandStatementRegexPart + @")" +
             @")*" +
-        @")\s*" +
-        @"$";
+        @")";
 
-    public const string AccessorOpStatementRegex =
-        @"^\s*" +
+    public const string BinaryOpStatementRegex =
+        @"^\s*" + BinaryOpStatementRegexPart + @"\s*$";
+
+    public const string AccessorOpStatementRegexPart =
         @"(?<statement>" +
             @"(?:" + OperandStatementRegexPart + @")" +
             @"(?:" +
@@ -85,8 +100,10 @@ public static class ModUtility
             @")*" +
         @")" +
         AccessorRegexPart +
-        @"(?<attribute>" + IdentifierRegexPart + @")\s*" +
-        @"$";
+        @"(?<attribute>" + IdentifierRegexPart + @")";
+
+    public const string AccessorOpStatementRegex =
+        @"^\s*" + AccessorOpStatementRegexPart + @"\s*$";
     
     public const string BaseStatementRegex = @"^\s*(?<statement>" + BaseStatementRegexPart + @")\s*$";
     public const string OperandStatementRegex = @"^\s*(?<statement>" + OperandStatementRegexPart + @")\s*$";

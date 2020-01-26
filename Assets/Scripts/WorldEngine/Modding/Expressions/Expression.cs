@@ -101,14 +101,41 @@ public abstract class Expression
         throw new System.ArgumentException("Unrecognized attribute type: " + attribute.GetType());
     }
 
+    private static Expression[] BuildFunctionArgumentExpressions(Context context, string arguments)
+    {
+        List<Expression> argExpressions = new List<Expression>();
+
+        Match match = Regex.Match(arguments, ModUtility.ArgumentListRegex);
+
+        while (match.Success == true)
+        {
+            string argument = match.Groups["argument"].Value;
+            string otherArgs = match.Groups["otherArgs"].Value;
+
+            Debug.Log("match: " + match.Value);
+            Debug.Log("argument: " + ModUtility.Debug_CapturesToString(match.Groups["argument"]));
+            Debug.Log("otherArgs: " + ModUtility.Debug_CapturesToString(match.Groups["otherArgs"]));
+
+            argExpressions.Add(BuildExpression(context, argument));
+
+            match = Regex.Match(otherArgs, ModUtility.ArgumentListRegex);
+        }
+
+        return argExpressions.ToArray();
+    }
+
     private static Expression BuildFunctionExpression(Context context, Match match)
     {
-        string arguments = match.Groups["arguments"].Value;
         string funcName = match.Groups["funcName"].Value.Trim();
+        string arguments = match.Groups["arguments"].Value;
 
-        //switch (funcName)
-        //{
-        //}
+        Expression[] argExpressions = BuildFunctionArgumentExpressions(context, arguments);
+
+        switch (funcName)
+        {
+            case "lerp":
+                return null;
+        }
 
         //throw new System.ArgumentException("Unrecognized function: " + funcName);
 
@@ -117,8 +144,8 @@ public abstract class Expression
 
     private static Expression BuildUnaryOpExpression(Context context, Match match)
     {
+        string unaryOp = match.Groups["unaryOp"].Value.Trim();
         string expressionStr = match.Groups["statement"].Value;
-        string unaryOp = match.Groups["unaryOp"].Value.Trim().ToUpper();
 
         switch (unaryOp)
         {
@@ -133,9 +160,9 @@ public abstract class Expression
 
     private static Expression BuildBinaryOpExpression(Context context, Match match)
     {
+        string opStr = match.Groups["opStr"].Value.Trim();
         string expressionAStr = match.Groups["statement1"].Value;
         string expressionBStr = match.Groups["statement2"].Value;
-        string opStr = match.Groups["opStr"].Value.Trim();
 
         switch (opStr)
         {
