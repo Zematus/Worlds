@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using System.Linq;
 
 public static class ModUtility
 {
@@ -29,6 +30,31 @@ public static class ModUtility
         @")|(?:" +
             InnerStatementRegexPart +
         @")";
+
+    public const string ArgumentsRegexPart =
+        @"(?:(?:" +
+            @"(?<open>\()" +
+        @"|" +
+            @"(?<arguments-open>\))" +
+        @")[^\(\)]*?)+" +
+        @"(?(open)(?!))";
+
+    public const string ArgumentListRegexPart =
+        @"^\s*" +
+        @"(?<argument>" + OperandStatementRegexPart + @")\s*" +
+        @"(?:," +
+            @"(?<otherArgs>" +
+                @"(?:\s*" + OperandStatementRegexPart + @"\s*)" +
+                @"(?:,\s*" + OperandStatementRegexPart + @"\s*)*" +
+            @")" +
+        @")?" +
+        @"$";
+
+    public const string FunctionStatementRegex =
+        @"^\s*" +
+        @"(?<funcName>" + IdentifierRegexPart + @")\s*" +
+        ArgumentsRegexPart + @"\s*" +
+        @"$";
 
     public const string UnaryOpStatementRegex =
         @"^\s*" +
@@ -70,14 +96,10 @@ public static class ModUtility
 #if DEBUG
     public static string Debug_CapturesToString(Group group)
     {
-        string cString = "";
+        Capture[] captures = new Capture[group.Captures.Count];
+        group.Captures.CopyTo(captures, 0);
 
-        foreach (Capture c in group.Captures)
-        {
-            cString += c.Value + "; ";
-        }
-
-        return cString;
+        return string.Join("; ", captures.Select(c => c.Value));
     }
 #endif
 }

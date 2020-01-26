@@ -7,15 +7,15 @@ public abstract class Expression
 {
     public static Expression BuildExpression(Context context, string expressionStr)
     {
-        Debug.Log("parsing: " + expressionStr);
+        //Debug.Log("parsing: " + expressionStr);
 
         Match match = Regex.Match(expressionStr, ModUtility.AccessorOpStatementRegex);
 
         if (match.Success == true)
         {
-            Debug.Log("match: " + match.Value);
-            Debug.Log("statement: " + ModUtility.Debug_CapturesToString(match.Groups["statement"]));
-            Debug.Log("attribute: " + ModUtility.Debug_CapturesToString(match.Groups["attribute"]));
+            //Debug.Log("match: " + match.Value);
+            //Debug.Log("statement: " + ModUtility.Debug_CapturesToString(match.Groups["statement"]));
+            //Debug.Log("attribute: " + ModUtility.Debug_CapturesToString(match.Groups["attribute"]));
 
             return BuildAccessorOpExpression(context, match);
         }
@@ -24,10 +24,10 @@ public abstract class Expression
 
         if (match.Success == true)
         {
-            Debug.Log("match: " + match.Value);
-            Debug.Log("statement1: " + ModUtility.Debug_CapturesToString(match.Groups["statement1"]));
-            Debug.Log("binaryOp: " + ModUtility.Debug_CapturesToString(match.Groups["binaryOp"]));
-            Debug.Log("statement2: " + ModUtility.Debug_CapturesToString(match.Groups["statement2"]));
+            //Debug.Log("match: " + match.Value);
+            //Debug.Log("statement1: " + ModUtility.Debug_CapturesToString(match.Groups["statement1"]));
+            //Debug.Log("binaryOp: " + ModUtility.Debug_CapturesToString(match.Groups["binaryOp"]));
+            //Debug.Log("statement2: " + ModUtility.Debug_CapturesToString(match.Groups["statement2"]));
 
             return BuildBinaryOpExpression(context, match);
         }
@@ -35,18 +35,28 @@ public abstract class Expression
         match = Regex.Match(expressionStr, ModUtility.UnaryOpStatementRegex);
         if (match.Success == true)
         {
-            Debug.Log("match: " + match.Value);
-            Debug.Log("statement: " + ModUtility.Debug_CapturesToString(match.Groups["statement"]));
-            Debug.Log("unaryOp: " + ModUtility.Debug_CapturesToString(match.Groups["unaryOp"]));
+            //Debug.Log("match: " + match.Value);
+            //Debug.Log("statement: " + ModUtility.Debug_CapturesToString(match.Groups["statement"]));
+            //Debug.Log("unaryOp: " + ModUtility.Debug_CapturesToString(match.Groups["unaryOp"]));
 
             return BuildUnaryOpExpression(context, match);
+        }
+
+        match = Regex.Match(expressionStr, ModUtility.FunctionStatementRegex);
+        if (match.Success == true)
+        {
+            Debug.Log("match: " + match.Value);
+            Debug.Log("funcName: " + ModUtility.Debug_CapturesToString(match.Groups["funcName"]));
+            Debug.Log("arguments: " + ModUtility.Debug_CapturesToString(match.Groups["arguments"]));
+
+            return BuildFunctionExpression(context, match);
         }
 
         match = Regex.Match(expressionStr, ModUtility.InnerStatementRegex);
         if (match.Success == true)
         {
-            Debug.Log("match: " + match.Value);
-            Debug.Log("innerStatement: " + ModUtility.Debug_CapturesToString(match.Groups["innerStatement"]));
+            //Debug.Log("match: " + match.Value);
+            //Debug.Log("innerStatement: " + ModUtility.Debug_CapturesToString(match.Groups["innerStatement"]));
 
             expressionStr = match.Groups["innerStatement"].Value;
 
@@ -91,6 +101,20 @@ public abstract class Expression
         throw new System.ArgumentException("Unrecognized attribute type: " + attribute.GetType());
     }
 
+    private static Expression BuildFunctionExpression(Context context, Match match)
+    {
+        string arguments = match.Groups["arguments"].Value;
+        string funcName = match.Groups["funcName"].Value.Trim();
+
+        //switch (funcName)
+        //{
+        //}
+
+        //throw new System.ArgumentException("Unrecognized function: " + funcName);
+
+        return null;
+    }
+
     private static Expression BuildUnaryOpExpression(Context context, Match match)
     {
         string expressionStr = match.Groups["statement"].Value;
@@ -111,7 +135,7 @@ public abstract class Expression
     {
         string expressionAStr = match.Groups["statement1"].Value;
         string expressionBStr = match.Groups["statement2"].Value;
-        string opStr = match.Groups["opStr"].Value.Trim().ToUpper();
+        string opStr = match.Groups["opStr"].Value.Trim();
 
         switch (opStr)
         {

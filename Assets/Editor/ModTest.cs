@@ -106,42 +106,70 @@ public class ModTest
         Expression expression = Expression.BuildExpression(testContext, "-5");
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
+        Assert.AreEqual((expression as NumericExpression).GetValue(), -5);
 
         expression = Expression.BuildExpression(testContext, "!false");
+        Assert.AreEqual((expression as BooleanExpression).GetValue(), true);
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
 
         expression = Expression.BuildExpression(testContext, "1 + 1");
+        Assert.AreEqual((expression as NumericExpression).GetValue(), 2);
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
 
         expression = Expression.BuildExpression(testContext, "1 + -1 + 2");
+        Assert.AreEqual((expression as NumericExpression).GetValue(), 2);
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
 
         expression = Expression.BuildExpression(testContext, "-1 + 2 + 2");
+        Assert.AreEqual((expression as NumericExpression).GetValue(), 3);
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
 
         expression = Expression.BuildExpression(testContext, "2 +2+3");
+        Assert.AreEqual((expression as NumericExpression).GetValue(), 7);
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
 
         expression = Expression.BuildExpression(testContext, "testContextNumericExpression");
+        Assert.AreEqual((expression as NumericExpression).GetValue(), -15);
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
 
         expression = Expression.BuildExpression(testContext, "testContextBooleanExpression");
+        Assert.AreEqual((expression as BooleanExpression).GetValue(), false);
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
 
         expression = Expression.BuildExpression(testContext, "testEntity.testBoolAttribute");
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
+        Assert.AreEqual((expression as BooleanExpression).GetValue(), false);
 
         expression = Expression.BuildExpression(
             testContext, "testEntity.testEntityAttribute.testBoolAttribute");
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
+        Assert.AreEqual((expression as BooleanExpression).GetValue(), true);
+
+        expression = Expression.BuildExpression(
+            testContext, "testFunction1()");
+
+        //Debug.Log("Test expressio/zn " + (expCounter++) + ": " + expression.ToString());
+        //Assert.AreEqual((expression as BooleanExpression).GetValue(), true);
+
+        expression = Expression.BuildExpression(
+            testContext, "testFunction2(arg1)");
+
+        //Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
+        //Assert.AreEqual((expression as BooleanExpression).GetValue(), true);
+
+        expression = Expression.BuildExpression(
+            testContext, "testFunction3(arg1,arg2,arg3)");
+
+        //Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
+        //Assert.AreEqual((expression as BooleanExpression).GetValue(), true);
     }
 }
