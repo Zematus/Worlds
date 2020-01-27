@@ -32,6 +32,6 @@ public class NegateBooleanValueExpression : UnaryOpBooleanExpression
 
     public override string ToString()
     {
-        return "!(" + Expression.ToString() + ")";
+        return "!" + Expression.ToString();
     }
 }

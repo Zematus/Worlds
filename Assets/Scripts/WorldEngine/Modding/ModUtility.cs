@@ -24,13 +24,6 @@ public static class ModUtility
         @")[^\(\)]*?)+" +
         @"(?(open)(?!))";
 
-    public const string OperandStatementRegexPart =
-        @"(?<baseStatement>" +
-            BaseStatementRegexPart +
-        @")|(?<innerStatement>" +
-            InnerStatementRegexPart +
-        @")";
-
     public const string ArgumentsRegexPart =
         @"(?:(?:" +
             @"(?<open>\()" +
@@ -43,23 +36,32 @@ public static class ModUtility
         @"^\s*" +
         @"(?<argument>" + ArgumentRegexPart + @")\s*" +
         @"(?:," +
-            //@".*" +
             @"(?<otherArgs>" +
                 @".*" +
             @")" +
         @")?$";
 
     public const string ArgumentRegexPart =
-        @"(?:" +
-            FunctionStatementRegexPart +
-        @")|(?:" +
+        @"(?<unaryOpStatement>" +
             UnaryOpStatementRegexPart +
-        @")|(?:" +
+        @")|(?<binaryOpStatement>" +
             BinaryOpStatementRegexPart +
-        @")|(?:" +
+        @")|" +
+        OperandStatementRegexPart;
+
+    public const string OperandStatementRegexPart =
+        @"(?<accessorOpStatement>" +
             AccessorOpStatementRegexPart +
-        @")|(?:" +
-            OperandStatementRegexPart +
+        @")|" +
+        AccessibleStatementRegexPart;
+
+    public const string AccessibleStatementRegexPart =
+        @"(?<functionStatement>" +
+            FunctionStatementRegexPart +
+        @")|(?<baseStatement>" +
+            BaseStatementRegexPart +
+        @")|(?<innerStatement>" +
+            InnerStatementRegexPart +
         @")";
 
     public const string FunctionStatementRegexPart =
@@ -92,7 +94,7 @@ public static class ModUtility
 
     public const string AccessorOpStatementRegexPart =
         @"(?<statement>" +
-            @"(?:" + OperandStatementRegexPart + @")" +
+            @"(?:" + AccessibleStatementRegexPart + @")" +
             @"(?:" +
                 AccessorRegexPart +
                 IdentifierRegexPart +

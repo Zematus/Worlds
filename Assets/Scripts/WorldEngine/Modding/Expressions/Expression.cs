@@ -188,9 +188,15 @@ public abstract class Expression
             string argument = match.Groups["argument"].Value;
             string otherArgs = match.Groups["otherArgs"].Value;
 
-            //Debug.Log("match: " + match.Value);
-            //Debug.Log("argument: " + ModUtility.Debug_CapturesToString(match.Groups["argument"]));
-            //Debug.Log("otherArgs: " + ModUtility.Debug_CapturesToString(match.Groups["otherArgs"]));
+            //Debug.Log("- match: " + match.Value);
+            //Debug.Log("- argument: " + ModUtility.Debug_CapturesToString(match.Groups["argument"]));
+            //Debug.Log("-- unaryOpStatement: " + ModUtility.Debug_CapturesToString(match.Groups["unaryOpStatement"]));
+            //Debug.Log("-- binaryOpStatement: " + ModUtility.Debug_CapturesToString(match.Groups["binaryOpStatement"]));
+            //Debug.Log("-- accessorOpStatement: " + ModUtility.Debug_CapturesToString(match.Groups["accessorOpStatement"]));
+            //Debug.Log("-- functionStatement: " + ModUtility.Debug_CapturesToString(match.Groups["functionStatement"]));
+            //Debug.Log("-- baseStatement: " + ModUtility.Debug_CapturesToString(match.Groups["baseStatement"]));
+            //Debug.Log("-- innerStatement: " + ModUtility.Debug_CapturesToString(match.Groups["innerStatement"]));
+            //Debug.Log("- otherArgs: " + ModUtility.Debug_CapturesToString(match.Groups["otherArgs"]));
 
             argExpressions.Add(BuildExpression(context, argument));
 
@@ -250,7 +256,7 @@ public abstract class Expression
             case "+":
                 return SumExpression.Build(context, expressionAStr, expressionBStr);
             case "-":
-                return null;
+                return SubstractExpression.Build(context, expressionAStr, expressionBStr);
             case "*":
                 return null;
             case "/":

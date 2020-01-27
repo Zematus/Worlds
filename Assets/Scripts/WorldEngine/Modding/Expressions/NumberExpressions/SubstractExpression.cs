@@ -3,9 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class SumExpression : BinaryOpNumericExpression
+public class SubstractExpression : BinaryOpNumericExpression
 {
-    public SumExpression(Expression expressionA, Expression expressionB) : base(expressionA, expressionB)
+    public SubstractExpression(Expression expressionA, Expression expressionB) : base(expressionA, expressionB)
     {
     }
 
@@ -20,21 +20,21 @@ public class SumExpression : BinaryOpNumericExpression
             FixedNumberExpression numExpA = expressionA as FixedNumberExpression;
             FixedNumberExpression numExpB = expressionB as FixedNumberExpression;
 
-            numExpA.NumberValue += numExpB.NumberValue;
+            numExpA.NumberValue -= numExpB.NumberValue;
 
             return numExpA;
         }
 
-        return new SumExpression(expressionA, expressionB);
+        return new SubstractExpression(expressionA, expressionB);
     }
 
     protected override float Evaluate()
     {
-        return ExpressionA.GetValue() + ExpressionB.GetValue();
+        return ExpressionA.GetValue() - ExpressionB.GetValue();
     }
 
     public override string ToString()
     {
-        return ExpressionA.ToString() + " + " + ExpressionB.ToString();
+        return ExpressionA.ToString() + " - " + ExpressionB.ToString();
     }
 }

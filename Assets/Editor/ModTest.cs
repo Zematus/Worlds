@@ -161,6 +161,24 @@ public class ModTest
         Assert.AreEqual((expression as NumericExpression).GetValue(), 1);
 
         expression = Expression.BuildExpression(
+            testContext, "lerp(4, (1 - 2), 0.1)");
+
+        Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
+        Assert.AreEqual((expression as NumericExpression).GetValue(), 3.5f);
+
+        expression = Expression.BuildExpression(
+            testContext, "2 + (1 + lerp(3, -1, 0.5))");
+
+        Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
+        Assert.AreEqual((expression as NumericExpression).GetValue(), 4);
+
+        expression = Expression.BuildExpression(
+            testContext, "2 + lerp(0.5 + 0.5 + 2, -1, 0.5) + 1");
+
+        Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
+        Assert.AreEqual((expression as NumericExpression).GetValue(), 4);
+
+        expression = Expression.BuildExpression(
             testContext, "testFunction1()");
 
         //Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());

@@ -32,6 +32,6 @@ public class NegateNumberExpression : UnaryOpNumericExpression
 
     public override string ToString()
     {
-        return "-(" + Expression.ToString() + ")";
+        return "-" + Expression.ToString();
     }
 }
