@@ -155,9 +155,15 @@ public class ModTest
         Assert.AreEqual((expression as BooleanExpression).GetValue(), true);
 
         expression = Expression.BuildExpression(
+            testContext, "lerp(3, -1, 0.5)");
+
+        Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
+        Assert.AreEqual((expression as NumericExpression).GetValue(), 1);
+
+        expression = Expression.BuildExpression(
             testContext, "testFunction1()");
 
-        //Debug.Log("Test expressio/zn " + (expCounter++) + ": " + expression.ToString());
+        //Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
         //Assert.AreEqual((expression as BooleanExpression).GetValue(), true);
 
         expression = Expression.BuildExpression(

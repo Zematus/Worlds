@@ -10,11 +10,11 @@ public static class ModUtility
     public const string NumberRegexPart = @"-?\d+(?:\.\d+)?";
     public const string BooleanRegexPart = @"(true|false)";
 
-    public const string OperatorRegexPart = @"\s*(?<opStr>[\!\+\-\*\/])\s*";
+    public const string OperatorRegexPart = @"[\!\+\-\*\/]";
     public const string AccessorRegexPart = @"\.";
 
     public const string BaseStatementRegexPart =
-        @"[^\s\(\)]+";
+        @"[^\,\s\(\)]+";
 
     public const string InnerStatementRegexPart =
         @"(?:(?:" + 
@@ -25,9 +25,9 @@ public static class ModUtility
         @"(?(open)(?!))";
 
     public const string OperandStatementRegexPart =
-        @"(?:" +
+        @"(?<baseStatement>" +
             BaseStatementRegexPart +
-        @")|(?:" +
+        @")|(?<innerStatement>" +
             InnerStatementRegexPart +
         @")";
 
@@ -43,12 +43,11 @@ public static class ModUtility
         @"^\s*" +
         @"(?<argument>" + ArgumentRegexPart + @")\s*" +
         @"(?:," +
+            //@".*" +
             @"(?<otherArgs>" +
-                @"(?:\s*" + ArgumentRegexPart + @"\s*)" +
-                @"(?:,\s*" + ArgumentRegexPart + @"\s*)*" +
+                @".*" +
             @")" +
-        @")?" +
-        @"$";
+        @")?$";
 
     public const string ArgumentRegexPart =
         @"(?:" +
@@ -81,9 +80,9 @@ public static class ModUtility
         @"(?<statement1>" + OperandStatementRegexPart + @")\s*" +
         @"(?<binaryOp>" + OperatorRegexPart + @")\s*" +
         @"(?<statement2>" +
-            @"(?:" + OperandStatementRegexPart + @")" +
-            @"(?:\s*" +
-                @"(?:" + OperatorRegexPart + @")\s*" +
+            @"(?<operand2>" + OperandStatementRegexPart + @")\s*" +
+            @"(?<restOp>" +
+                OperatorRegexPart + @"\s*" +
                 @"(?:" + OperandStatementRegexPart + @")" +
             @")*" +
         @")";

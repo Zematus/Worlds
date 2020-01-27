@@ -45,9 +45,9 @@ public abstract class Expression
         match = Regex.Match(expressionStr, ModUtility.FunctionStatementRegex);
         if (match.Success == true)
         {
-            Debug.Log("match: " + match.Value);
-            Debug.Log("funcName: " + ModUtility.Debug_CapturesToString(match.Groups["funcName"]));
-            Debug.Log("arguments: " + ModUtility.Debug_CapturesToString(match.Groups["arguments"]));
+            //Debug.Log("match: " + match.Value);
+            //Debug.Log("funcName: " + ModUtility.Debug_CapturesToString(match.Groups["funcName"]));
+            //Debug.Log("arguments: " + ModUtility.Debug_CapturesToString(match.Groups["arguments"]));
 
             return BuildFunctionExpression(context, match);
         }
@@ -101,24 +101,105 @@ public abstract class Expression
         throw new System.ArgumentException("Unrecognized attribute type: " + attribute.GetType());
     }
 
+#if DEBUG
+    private static void TestMatch(Context context, string text)
+    {
+        bool matched = false;
+
+        Match match = Regex.Match(text, ModUtility.FunctionStatementRegex);
+
+        if (match.Success == true)
+        {
+            matched = true;
+            Debug.Log("Matched FunctionStatementRegex");
+        }
+
+        match = Regex.Match(text, ModUtility.UnaryOpStatementRegex);
+
+        if (match.Success == true)
+        {
+            matched = true;
+            Debug.Log("Matched UnaryOpStatementRegex");
+        }
+
+        match = Regex.Match(text, ModUtility.BinaryOpStatementRegex);
+
+        if (match.Success == true)
+        {
+            matched = true;
+            Debug.Log("Matched BinaryOpStatementRegex");
+            Debug.Log("-- match: " + match.Value);
+            Debug.Log("-- statement1: " + ModUtility.Debug_CapturesToString(match.Groups["statement1"]));
+            Debug.Log("-- binaryOp: " + ModUtility.Debug_CapturesToString(match.Groups["binaryOp"]));
+            Debug.Log("-- statement2: " + ModUtility.Debug_CapturesToString(match.Groups["statement2"]));
+            Debug.Log("-- operand2: " + ModUtility.Debug_CapturesToString(match.Groups["operand2"]));
+            Debug.Log("-- restOp: " + ModUtility.Debug_CapturesToString(match.Groups["restOp"]));
+        }
+
+        match = Regex.Match(text, ModUtility.AccessorOpStatementRegex);
+
+        if (match.Success == true)
+        {
+            matched = true;
+            Debug.Log("Matched AccessorOpStatementRegex");
+        }
+
+        match = Regex.Match(text, ModUtility.OperandStatementRegex);
+
+        if (match.Success == true)
+        {
+            matched = true;
+            Debug.Log("Matched OperandStatementRegex");
+            Debug.Log("-- match: " + match.Value);
+            Debug.Log("-- baseStatement: " + ModUtility.Debug_CapturesToString(match.Groups["baseStatement"]));
+            Debug.Log("-- innerStatement: " + ModUtility.Debug_CapturesToString(match.Groups["innerStatement"]));
+        }
+
+        match = Regex.Match(text, ModUtility.ArgumentListRegex);
+
+        if (match.Success == true)
+        {
+            matched = true;
+            Debug.Log("Matched ArgumentListRegex");
+            Debug.Log("-- match: " + match.Value);
+            Debug.Log("-- argument: " + ModUtility.Debug_CapturesToString(match.Groups["argument"]));
+            Debug.Log("-- otherArgs: " + ModUtility.Debug_CapturesToString(match.Groups["otherArgs"]));
+        }
+
+        if (!matched)
+        {
+            Debug.Log("Test match failed");
+        }
+    }
+#endif
+
     private static Expression[] BuildFunctionArgumentExpressions(Context context, string arguments)
     {
         List<Expression> argExpressions = new List<Expression>();
 
         Match match = Regex.Match(arguments, ModUtility.ArgumentListRegex);
+//
+//#if DEBUG
+//        TestMatch(context, arguments);
+//#endif
 
         while (match.Success == true)
         {
             string argument = match.Groups["argument"].Value;
             string otherArgs = match.Groups["otherArgs"].Value;
 
-            Debug.Log("match: " + match.Value);
-            Debug.Log("argument: " + ModUtility.Debug_CapturesToString(match.Groups["argument"]));
-            Debug.Log("otherArgs: " + ModUtility.Debug_CapturesToString(match.Groups["otherArgs"]));
+            //Debug.Log("match: " + match.Value);
+            //Debug.Log("argument: " + ModUtility.Debug_CapturesToString(match.Groups["argument"]));
+            //Debug.Log("otherArgs: " + ModUtility.Debug_CapturesToString(match.Groups["otherArgs"]));
 
             argExpressions.Add(BuildExpression(context, argument));
 
             match = Regex.Match(otherArgs, ModUtility.ArgumentListRegex);
+//
+//#if DEBUG
+//            //TestMatch(context, argument);
+//            TestMatch(context, otherArgs);
+//#endif
         }
 
         return argExpressions.ToArray();
@@ -134,7 +215,7 @@ public abstract class Expression
         switch (funcName)
         {
             case "lerp":
-                return null;
+                return new LerpFunctionExpression(argExpressions);
         }
 
         //throw new System.ArgumentException("Unrecognized function: " + funcName);
@@ -160,11 +241,11 @@ public abstract class Expression
 
     private static Expression BuildBinaryOpExpression(Context context, Match match)
     {
-        string opStr = match.Groups["opStr"].Value.Trim();
+        string binaryOp = match.Groups["binaryOp"].Value.Trim();
         string expressionAStr = match.Groups["statement1"].Value;
         string expressionBStr = match.Groups["statement2"].Value;
 
-        switch (opStr)
+        switch (binaryOp)
         {
             case "+":
                 return SumExpression.Build(context, expressionAStr, expressionBStr);
@@ -192,7 +273,7 @@ public abstract class Expression
                 return null;
         }
 
-        throw new System.ArgumentException("Unrecognized binary op: " + opStr);
+        throw new System.ArgumentException("Unrecognized binary op: " + binaryOp);
     }
 
     private static Expression BuildBaseExpression(Context context, string expressionStr)
