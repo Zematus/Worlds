@@ -42,15 +42,15 @@ public abstract class Expression
             return BuildUnaryOpExpression(context, match);
         }
 
-        match = Regex.Match(expressionStr, ModUtility.FunctionStatementRegex);
-        if (match.Success == true)
-        {
-            //Debug.Log("match: " + match.Value);
-            //Debug.Log("funcName: " + ModUtility.Debug_CapturesToString(match.Groups["funcName"]));
-            //Debug.Log("arguments: " + ModUtility.Debug_CapturesToString(match.Groups["arguments"]));
+        //match = Regex.Match(expressionStr, ModUtility.FunctionStatementRegex);
+        //if (match.Success == true)
+        //{
+        //    //Debug.Log("match: " + match.Value);
+        //    //Debug.Log("funcName: " + ModUtility.Debug_CapturesToString(match.Groups["funcName"]));
+        //    //Debug.Log("arguments: " + ModUtility.Debug_CapturesToString(match.Groups["arguments"]));
 
-            return BuildFunctionExpression(context, match);
-        }
+        //    return BuildFunctionExpression(context, match);
+        //}
 
         match = Regex.Match(expressionStr, ModUtility.InnerStatementRegex);
         if (match.Success == true)
@@ -106,15 +106,15 @@ public abstract class Expression
     {
         bool matched = false;
 
-        Match match = Regex.Match(text, ModUtility.FunctionStatementRegex);
+        //Match match = Regex.Match(text, ModUtility.FunctionStatementRegex);
 
-        if (match.Success == true)
-        {
-            matched = true;
-            Debug.Log("Matched FunctionStatementRegex");
-        }
+        //if (match.Success == true)
+        //{
+        //    matched = true;
+        //    Debug.Log("Matched FunctionStatementRegex");
+        //}
 
-        match = Regex.Match(text, ModUtility.UnaryOpStatementRegex);
+        Match match = Regex.Match(text, ModUtility.UnaryOpStatementRegex);
 
         if (match.Success == true)
         {
@@ -211,20 +211,24 @@ public abstract class Expression
         return argExpressions.ToArray();
     }
 
-    private static Expression BuildFunctionExpression(Context context, Match match)
+    private static Expression BuildIdentifierExpression(Context context, Match match)
     {
-        string funcName = match.Groups["funcName"].Value.Trim();
+        string identifier = match.Groups["identifier"].Value.Trim();
         string arguments = match.Groups["arguments"].Value;
 
-        Expression[] argExpressions = BuildFunctionArgumentExpressions(context, arguments);
+        Expression[] argExpressions = null;
+        if (string.IsNullOrWhiteSpace(arguments))
+        {
+            argExpressions = BuildFunctionArgumentExpressions(context, arguments);
+        }
 
-        switch (funcName)
+        switch (identifier)
         {
             case "lerp":
                 return new LerpFunctionExpression(argExpressions);
         }
 
-        //throw new System.ArgumentException("Unrecognized function: " + funcName);
+        //throw new System.ArgumentException("Unrecognized function: " + identifier);
 
         return null;
     }
@@ -296,7 +300,7 @@ public abstract class Expression
             return new FixedBooleanValueExpression(expressionStr);
         }
 
-        match = Regex.Match(expressionStr, ModUtility.IdentifierRegex);
+        match = Regex.Match(expressionStr, ModUtility.IdentifierStatementRegex);
         if (match.Success == true)
         {
             if (context.Entities.TryGetValue(expressionStr, out Entity entity))
@@ -308,6 +312,16 @@ public abstract class Expression
             {
                 return expression;
             }
+        }
+
+        match = Regex.Match(expressionStr, ModUtility.IdentifierStatementRegex);
+        if (match.Success == true)
+        {
+            //Debug.Log("match: " + match.Value);
+            //Debug.Log("funcName: " + ModUtility.Debug_CapturesToString(match.Groups["funcName"]));
+            //Debug.Log("arguments: " + ModUtility.Debug_CapturesToString(match.Groups["arguments"]));
+
+            return BuildIdentifierExpression(context, match);
         }
 
         throw new System.ArgumentException("Not a recognized expression: " + expressionStr);

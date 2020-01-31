@@ -13,8 +13,11 @@ public static class ModUtility
     public const string OperatorRegexPart = @"[\!\+\-\*\/]";
     public const string AccessorRegexPart = @"\.";
 
-    public const string BaseStatementRegexPart =
-        @"[^\,\s\(\)]+";
+    public const string BaseStatementRegexPart = 
+        @"(" + IdentifierRegexPart +
+        @")|(" + NumberRegexPart +
+        @")|(" + BooleanRegexPart +
+        @")";
 
     public const string InnerStatementRegexPart =
         @"(?:(?:" + 
@@ -55,21 +58,42 @@ public static class ModUtility
         @")|" +
         AccessibleStatementRegexPart;
 
+    //public const string AccessibleStatementRegexPart =
+    //    @"(?<functionStatement>" +
+    //        FunctionStatementRegexPart +
+    //    @")|(?<baseStatement>" +
+    //        BaseStatementRegexPart +
+    //    @")|(?<innerStatement>" +
+    //        InnerStatementRegexPart +
+    //    @")";
+
     public const string AccessibleStatementRegexPart =
-        @"(?<functionStatement>" +
-            FunctionStatementRegexPart +
-        @")|(?<baseStatement>" +
-            BaseStatementRegexPart +
+        @"(?<identifierStatement>" +
+            IdentifierStatementRegexPart +
         @")|(?<innerStatement>" +
             InnerStatementRegexPart +
         @")";
 
-    public const string FunctionStatementRegexPart =
-        @"(?<funcName>" + IdentifierRegexPart + @")\s*" +
-        ArgumentsRegexPart;
+    //public const string PropertyStatementRegexPart =
+    //    @"(?<functionStatement>" +
+    //        FunctionStatementRegexPart +
+    //    @")|(?<indetifierStatement>" +
+    //        IdentifierRegexPart +
+    //    @")";
 
-    public const string FunctionStatementRegex =
-        @"^\s*" + FunctionStatementRegexPart + @"\s*$";
+    //public const string FunctionStatementRegexPart =
+    //    @"(?<funcName>" + IdentifierRegexPart + @")\s*" +
+    //    ArgumentsRegexPart;
+
+    public const string IdentifierStatementRegexPart =
+        @"(?<identifier>" + IdentifierRegexPart + @")\s*" +
+        @"(?:" + ArgumentsRegexPart + @")?";
+
+    //public const string FunctionStatementRegex =
+    //    @"^\s*" + FunctionStatementRegexPart + @"\s*$";
+
+    public const string IdentifierStatementRegex =
+        @"^\s*" + IdentifierStatementRegexPart + @"\s*$";
 
     public const string UnaryOpStatementRegexPart =
         @"(?<unaryOp>" + OperatorRegexPart + @")" +
@@ -92,16 +116,27 @@ public static class ModUtility
     public const string BinaryOpStatementRegex =
         @"^\s*" + BinaryOpStatementRegexPart + @"\s*$";
 
+    //public const string AccessorOpStatementRegexPart =
+    //    @"(?<statement>" +
+    //        @"(?:" + AccessibleStatementRegexPart + @")" +
+    //        @"(?:" +
+    //            AccessorRegexPart +
+    //            PropertyStatementRegexPart +
+    //        @")*" +
+    //    @")" +
+    //    AccessorRegexPart +
+    //    @"(?<attribute>" + PropertyStatementRegexPart + @")";
+
     public const string AccessorOpStatementRegexPart =
         @"(?<statement>" +
             @"(?:" + AccessibleStatementRegexPart + @")" +
             @"(?:" +
                 AccessorRegexPart +
-                IdentifierRegexPart +
+                IdentifierStatementRegexPart +
             @")*" +
         @")" +
         AccessorRegexPart +
-        @"(?<attribute>" + IdentifierRegexPart + @")";
+        @"(?<attribute>" + IdentifierStatementRegexPart + @")";
 
     public const string AccessorOpStatementRegex =
         @"^\s*" + AccessorOpStatementRegexPart + @"\s*$";
@@ -109,7 +144,7 @@ public static class ModUtility
     public const string BaseStatementRegex = @"^\s*(?<statement>" + BaseStatementRegexPart + @")\s*$";
     public const string OperandStatementRegex = @"^\s*(?<statement>" + OperandStatementRegexPart + @")\s*$";
     public const string InnerStatementRegex = @"^\s*(?<statement>" + InnerStatementRegexPart + @")\s*$";
-    public const string IdentifierRegex = @"^" + IdentifierRegexPart + @"\s*$";
+    //public const string IdentifierRegex = @"^" + IdentifierRegexPart + @"\s*$";
 
 #if DEBUG
     public static string Debug_CapturesToString(Group group)
