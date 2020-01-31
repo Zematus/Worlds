@@ -144,6 +144,7 @@ public static class ModUtility
     public const string BaseStatementRegex = @"^\s*(?<statement>" + BaseStatementRegexPart + @")\s*$";
     public const string OperandStatementRegex = @"^\s*(?<statement>" + OperandStatementRegexPart + @")\s*$";
     public const string InnerStatementRegex = @"^\s*(?<statement>" + InnerStatementRegexPart + @")\s*$";
+    //public const string ArgumentsRegex = @"^\s*" + ArgumentsRegexPart + @"\s*$";
     //public const string IdentifierRegex = @"^" + IdentifierRegexPart + @"\s*$";
 
 #if DEBUG

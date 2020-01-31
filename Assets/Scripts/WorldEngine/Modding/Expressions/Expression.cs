@@ -77,7 +77,7 @@ public abstract class Expression
     private static Expression BuildAccessorOpExpression(Context context, Match match)
     {
         string expressionStr = match.Groups["statement"].Value;
-        string attributeId = match.Groups["attribute"].Value;
+        string attributeStr = match.Groups["attribute"].Value;
 
         Expression expression = BuildExpression(context, expressionStr);
 
@@ -86,16 +86,20 @@ public abstract class Expression
             throw new System.ArgumentException("Not a valid entity expression: " + expression);
         }
 
-        EntityAttribute attribute = entExpression.GetEntity().GetAttribute(attributeId);
+        Match identifierMatch = Regex.Match(attributeStr, ModUtility.IdentifierStatementRegex);
+
+        string identifierStr = match.Groups["identifier"].Value;
+
+        EntityAttribute attribute = entExpression.GetEntity().GetAttribute(identifierStr);
 
         if (attribute is BooleanEntityAttribute)
         {
-            return new BooleanEntityAttributeExpression(attribute, expressionStr, attributeId);
+            return new BooleanEntityAttributeExpression(attribute, expressionStr, identifierStr);
         }
 
         if (attribute is EntityEntityAttribute)
         {
-            return new EntityEntityAttributeExpression(attribute, expressionStr, attributeId);
+            return new EntityEntityAttributeExpression(attribute, expressionStr, identifierStr);
         }
 
         throw new System.ArgumentException("Unrecognized attribute type: " + attribute.GetType());
