@@ -7,7 +7,9 @@ public abstract class Expression
 {
     public static Expression BuildExpression(Context context, string expressionStr)
     {
-        //Debug.Log("parsing: " + expressionStr);
+#if DEBUG
+        TestMatch(context, expressionStr);
+#endif
 
         Match match = Regex.Match(expressionStr, ModUtility.AccessorOpStatementRegex);
 
@@ -41,16 +43,6 @@ public abstract class Expression
 
             return BuildUnaryOpExpression(context, match);
         }
-
-        //match = Regex.Match(expressionStr, ModUtility.FunctionStatementRegex);
-        //if (match.Success == true)
-        //{
-        //    //Debug.Log("match: " + match.Value);
-        //    //Debug.Log("funcName: " + ModUtility.Debug_CapturesToString(match.Groups["funcName"]));
-        //    //Debug.Log("arguments: " + ModUtility.Debug_CapturesToString(match.Groups["arguments"]));
-
-        //    return BuildFunctionExpression(context, match);
-        //}
 
         match = Regex.Match(expressionStr, ModUtility.InnerStatementRegex);
         if (match.Success == true)
@@ -110,6 +102,8 @@ public abstract class Expression
     {
         bool matched = false;
 
+        Debug.Log("- Test parsing: " + text);
+
         //Match match = Regex.Match(text, ModUtility.FunctionStatementRegex);
 
         //if (match.Success == true)
@@ -123,7 +117,8 @@ public abstract class Expression
         if (match.Success == true)
         {
             matched = true;
-            Debug.Log("Matched UnaryOpStatementRegex");
+            Debug.Log("-- Matched UnaryOpStatementRegex");
+            //Debug.Log("-- -- match: " + match.Value);
         }
 
         match = Regex.Match(text, ModUtility.BinaryOpStatementRegex);
@@ -131,13 +126,13 @@ public abstract class Expression
         if (match.Success == true)
         {
             matched = true;
-            Debug.Log("Matched BinaryOpStatementRegex");
-            Debug.Log("-- match: " + match.Value);
-            Debug.Log("-- statement1: " + ModUtility.Debug_CapturesToString(match.Groups["statement1"]));
-            Debug.Log("-- binaryOp: " + ModUtility.Debug_CapturesToString(match.Groups["binaryOp"]));
-            Debug.Log("-- statement2: " + ModUtility.Debug_CapturesToString(match.Groups["statement2"]));
-            Debug.Log("-- operand2: " + ModUtility.Debug_CapturesToString(match.Groups["operand2"]));
-            Debug.Log("-- restOp: " + ModUtility.Debug_CapturesToString(match.Groups["restOp"]));
+            Debug.Log("-- Matched BinaryOpStatementRegex");
+            //Debug.Log("-- -- match: " + match.Value);
+            //Debug.Log("-- -- statement1: " + ModUtility.Debug_CapturesToString(match.Groups["statement1"]));
+            //Debug.Log("-- -- binaryOp: " + ModUtility.Debug_CapturesToString(match.Groups["binaryOp"]));
+            //Debug.Log("-- -- statement2: " + ModUtility.Debug_CapturesToString(match.Groups["statement2"]));
+            //Debug.Log("-- -- operand2: " + ModUtility.Debug_CapturesToString(match.Groups["operand2"]));
+            //Debug.Log("-- -- restOp: " + ModUtility.Debug_CapturesToString(match.Groups["restOp"]));
         }
 
         match = Regex.Match(text, ModUtility.AccessorOpStatementRegex);
@@ -145,7 +140,8 @@ public abstract class Expression
         if (match.Success == true)
         {
             matched = true;
-            Debug.Log("Matched AccessorOpStatementRegex");
+            Debug.Log("-- Matched AccessorOpStatementRegex");
+            //Debug.Log("-- -- match: " + match.Value);
         }
 
         match = Regex.Match(text, ModUtility.OperandStatementRegex);
@@ -153,10 +149,10 @@ public abstract class Expression
         if (match.Success == true)
         {
             matched = true;
-            Debug.Log("Matched OperandStatementRegex");
-            Debug.Log("-- match: " + match.Value);
-            Debug.Log("-- baseStatement: " + ModUtility.Debug_CapturesToString(match.Groups["baseStatement"]));
-            Debug.Log("-- innerStatement: " + ModUtility.Debug_CapturesToString(match.Groups["innerStatement"]));
+            Debug.Log("-- Matched OperandStatementRegex");
+            //Debug.Log("-- -- match: " + match.Value);
+            //Debug.Log("-- -- baseStatement: " + ModUtility.Debug_CapturesToString(match.Groups["baseStatement"]));
+            //Debug.Log("-- -- innerStatement: " + ModUtility.Debug_CapturesToString(match.Groups["innerStatement"]));
         }
 
         match = Regex.Match(text, ModUtility.ArgumentListRegex);
@@ -164,15 +160,34 @@ public abstract class Expression
         if (match.Success == true)
         {
             matched = true;
-            Debug.Log("Matched ArgumentListRegex");
-            Debug.Log("-- match: " + match.Value);
-            Debug.Log("-- argument: " + ModUtility.Debug_CapturesToString(match.Groups["argument"]));
-            Debug.Log("-- otherArgs: " + ModUtility.Debug_CapturesToString(match.Groups["otherArgs"]));
+            Debug.Log("-- Matched ArgumentListRegex");
+            //Debug.Log("-- -- match: " + match.Value);
+            //Debug.Log("-- -- argument: " + ModUtility.Debug_CapturesToString(match.Groups["argument"]));
+            //Debug.Log("-- -- otherArgs: " + ModUtility.Debug_CapturesToString(match.Groups["otherArgs"]));
+        }
+
+        match = Regex.Match(text, ModUtility.IdentifierStatementRegex);
+
+        if (match.Success == true)
+        {
+            matched = true;
+            Debug.Log("-- Matched IdentifierStatementRegex");
+            //Debug.Log("-- -- match: " + match.Value);
+            //Debug.Log("-- -- identifier: " + ModUtility.Debug_CapturesToString(match.Groups["argument"]));
+        }
+
+        match = Regex.Match(text, ModUtility.BaseStatementRegex);
+
+        if (match.Success == true)
+        {
+            matched = true;
+            Debug.Log("-- Matched BaseStatementRegex");
+            //Debug.Log("-- -- match: " + match.Value);
         }
 
         if (!matched)
         {
-            Debug.Log("Test match failed");
+            Debug.Log("-- Test match failed");
         }
     }
 #endif
@@ -207,7 +222,6 @@ public abstract class Expression
             match = Regex.Match(otherArgs, ModUtility.ArgumentListRegex);
 //
 //#if DEBUG
-//            //TestMatch(context, argument);
 //            TestMatch(context, otherArgs);
 //#endif
         }
@@ -221,7 +235,7 @@ public abstract class Expression
         string arguments = match.Groups["arguments"].Value;
 
         Expression[] argExpressions = null;
-        if (string.IsNullOrWhiteSpace(arguments))
+        if (!string.IsNullOrWhiteSpace(arguments))
         {
             argExpressions = BuildFunctionArgumentExpressions(context, arguments);
         }
@@ -318,7 +332,6 @@ public abstract class Expression
             }
         }
 
-        match = Regex.Match(expressionStr, ModUtility.IdentifierStatementRegex);
         if (match.Success == true)
         {
             //Debug.Log("match: " + match.Value);

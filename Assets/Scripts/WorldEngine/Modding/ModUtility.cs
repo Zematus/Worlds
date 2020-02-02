@@ -14,9 +14,9 @@ public static class ModUtility
     public const string AccessorRegexPart = @"\.";
 
     public const string BaseStatementRegexPart = 
-        @"(" + IdentifierRegexPart +
-        @")|(" + NumberRegexPart +
+        @"(" + NumberRegexPart +
         @")|(" + BooleanRegexPart +
+        @")|(" + IdentifierStatementRegexPart +
         @")";
 
     public const string InnerStatementRegexPart =
@@ -55,17 +55,11 @@ public static class ModUtility
     public const string OperandStatementRegexPart =
         @"(?<accessorOpStatement>" +
             AccessorOpStatementRegexPart +
-        @")|" +
-        AccessibleStatementRegexPart;
-
-    //public const string AccessibleStatementRegexPart =
-    //    @"(?<functionStatement>" +
-    //        FunctionStatementRegexPart +
-    //    @")|(?<baseStatement>" +
-    //        BaseStatementRegexPart +
-    //    @")|(?<innerStatement>" +
-    //        InnerStatementRegexPart +
-    //    @")";
+        @")|(?<baseStatement>" +
+            BaseStatementRegexPart +
+        @")|(?<innerStatement>" +
+            InnerStatementRegexPart +
+        @")";
 
     public const string AccessibleStatementRegexPart =
         @"(?<identifierStatement>" +
@@ -74,23 +68,9 @@ public static class ModUtility
             InnerStatementRegexPart +
         @")";
 
-    //public const string PropertyStatementRegexPart =
-    //    @"(?<functionStatement>" +
-    //        FunctionStatementRegexPart +
-    //    @")|(?<indetifierStatement>" +
-    //        IdentifierRegexPart +
-    //    @")";
-
-    //public const string FunctionStatementRegexPart =
-    //    @"(?<funcName>" + IdentifierRegexPart + @")\s*" +
-    //    ArgumentsRegexPart;
-
     public const string IdentifierStatementRegexPart =
         @"(?<identifier>" + IdentifierRegexPart + @")\s*" +
         @"(?:" + ArgumentsRegexPart + @")?";
-
-    //public const string FunctionStatementRegex =
-    //    @"^\s*" + FunctionStatementRegexPart + @"\s*$";
 
     public const string IdentifierStatementRegex =
         @"^\s*" + IdentifierStatementRegexPart + @"\s*$";
@@ -116,17 +96,6 @@ public static class ModUtility
     public const string BinaryOpStatementRegex =
         @"^\s*" + BinaryOpStatementRegexPart + @"\s*$";
 
-    //public const string AccessorOpStatementRegexPart =
-    //    @"(?<statement>" +
-    //        @"(?:" + AccessibleStatementRegexPart + @")" +
-    //        @"(?:" +
-    //            AccessorRegexPart +
-    //            PropertyStatementRegexPart +
-    //        @")*" +
-    //    @")" +
-    //    AccessorRegexPart +
-    //    @"(?<attribute>" + PropertyStatementRegexPart + @")";
-
     public const string AccessorOpStatementRegexPart =
         @"(?<statement>" +
             @"(?:" + AccessibleStatementRegexPart + @")" +
@@ -141,11 +110,14 @@ public static class ModUtility
     public const string AccessorOpStatementRegex =
         @"^\s*" + AccessorOpStatementRegexPart + @"\s*$";
     
-    public const string BaseStatementRegex = @"^\s*(?<statement>" + BaseStatementRegexPart + @")\s*$";
-    public const string OperandStatementRegex = @"^\s*(?<statement>" + OperandStatementRegexPart + @")\s*$";
-    public const string InnerStatementRegex = @"^\s*(?<statement>" + InnerStatementRegexPart + @")\s*$";
-    //public const string ArgumentsRegex = @"^\s*" + ArgumentsRegexPart + @"\s*$";
-    //public const string IdentifierRegex = @"^" + IdentifierRegexPart + @"\s*$";
+    public const string BaseStatementRegex =
+        @"^\s*(?<statement>" + BaseStatementRegexPart + @")\s*$";
+    public const string OperandStatementRegex =
+        @"^\s*(?<statement>" + OperandStatementRegexPart + @")\s*$";
+    public const string InnerStatementRegex =
+        @"^\s*(?<statement>" + InnerStatementRegexPart + @")\s*$";
+    public const string AccessibleStatementRegex =
+        @"^\s*(?<statement>" + AccessibleStatementRegexPart + @")\s*$";
 
 #if DEBUG
     public static string Debug_CapturesToString(Group group)
