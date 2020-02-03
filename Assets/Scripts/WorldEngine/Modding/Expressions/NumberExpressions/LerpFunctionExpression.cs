@@ -11,7 +11,7 @@ public class LerpFunctionExpression : NumericExpression
 
     public LerpFunctionExpression(Expression[] arguments)
     {
-        if (arguments.Length < 3)
+        if ((arguments == null) || (arguments.Length < 3))
         {
             throw new System.ArgumentException("Number of arguments less than 3");
         }

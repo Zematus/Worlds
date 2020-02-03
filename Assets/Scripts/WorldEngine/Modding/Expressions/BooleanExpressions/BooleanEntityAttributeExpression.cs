@@ -7,13 +7,16 @@ public class BooleanEntityAttributeExpression : BooleanExpression
 {
     private readonly string _expressionStr;
     private readonly string _attributeId;
+    private readonly string _arguments;
     private readonly BooleanEntityAttribute _attribute;
 
-    public BooleanEntityAttributeExpression(EntityAttribute attribute, string expStr, string attrId)
+    public BooleanEntityAttributeExpression(
+        EntityAttribute attribute, string expStr, string attrId, string args)
     {
         _attribute = attribute as BooleanEntityAttribute;
         _expressionStr = expStr;
         _attributeId = attrId;
+        _arguments = args;
     }
 
     protected override bool Evaluate()
@@ -30,6 +33,6 @@ public class BooleanEntityAttributeExpression : BooleanExpression
 
     public override string ToString()
     {
-        return _expressionStr + "." + _attributeId;
+        return _expressionStr + "." + _attributeId + "(" + _arguments + ")";
     }
 }

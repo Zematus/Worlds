@@ -15,7 +15,7 @@ public abstract class Context
         Id = id;
     }
 
-    public void ResetExpressionCaches()
+    public void Reset()
     {
         foreach (Expression expression in Expressions.Values)
         {

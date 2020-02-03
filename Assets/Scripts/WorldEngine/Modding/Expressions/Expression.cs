@@ -8,7 +8,7 @@ public abstract class Expression
     public static Expression BuildExpression(Context context, string expressionStr)
     {
 #if DEBUG
-        TestMatch(context, expressionStr);
+        //TestMatch(context, expressionStr);
 #endif
 
         Match match = Regex.Match(expressionStr, ModUtility.AccessorOpStatementRegex);
@@ -80,18 +80,30 @@ public abstract class Expression
 
         Match identifierMatch = Regex.Match(attributeStr, ModUtility.IdentifierStatementRegex);
 
-        string identifierStr = match.Groups["identifier"].Value;
+        string identifier = match.Groups["identifier"].Value;
+        string arguments = match.Groups["arguments"].Value;
 
-        EntityAttribute attribute = entExpression.GetEntity().GetAttribute(identifierStr);
+        Expression[] argExpressions = null;
+        if (!string.IsNullOrWhiteSpace(arguments))
+        {
+            argExpressions = BuildFunctionArgumentExpressions(context, arguments);
+        }
+
+        EntityAttribute attribute = entExpression.GetEntity().GetAttribute(identifier, argExpressions);
 
         if (attribute is BooleanEntityAttribute)
         {
-            return new BooleanEntityAttributeExpression(attribute, expressionStr, identifierStr);
+            return new BooleanEntityAttributeExpression(attribute, expressionStr, identifier, arguments);
         }
 
         if (attribute is EntityEntityAttribute)
         {
-            return new EntityEntityAttributeExpression(attribute, expressionStr, identifierStr);
+            return new EntityEntityAttributeExpression(attribute, expressionStr, identifier, arguments);
+        }
+
+        if (attribute is NumericEntityAttribute)
+        {
+            return new NumericEntityAttributeExpression(attribute, expressionStr, identifier, arguments);
         }
 
         throw new System.ArgumentException("Unrecognized attribute type: " + attribute.GetType());
@@ -246,9 +258,7 @@ public abstract class Expression
                 return new LerpFunctionExpression(argExpressions);
         }
 
-        //throw new System.ArgumentException("Unrecognized function: " + identifier);
-
-        return null;
+        throw new System.ArgumentException("Unrecognized identifer: " + identifier);
     }
 
     private static Expression BuildUnaryOpExpression(Context context, Match match)
@@ -330,13 +340,6 @@ public abstract class Expression
             {
                 return expression;
             }
-        }
-
-        if (match.Success == true)
-        {
-            //Debug.Log("match: " + match.Value);
-            //Debug.Log("funcName: " + ModUtility.Debug_CapturesToString(match.Groups["funcName"]));
-            //Debug.Log("arguments: " + ModUtility.Debug_CapturesToString(match.Groups["arguments"]));
 
             return BuildIdentifierExpression(context, match);
         }

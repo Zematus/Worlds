@@ -7,5 +7,5 @@ public abstract class Entity
 {
     public string Id;
 
-    public abstract EntityAttribute GetAttribute(string attributeId);
+    public abstract EntityAttribute GetAttribute(string attributeId, Expression[] arguments = null);
 }

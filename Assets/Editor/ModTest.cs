@@ -28,6 +28,26 @@ public class ModTest
         }
     }
 
+    public class TestNumericFunctionEntityAttribute : NumericEntityAttribute
+    {
+        private BooleanExpression _argument;
+
+        public TestNumericFunctionEntityAttribute(Expression[] arguments)
+        {
+            if ((arguments == null) || (arguments.Length < 1))
+            {
+                throw new System.ArgumentException("Number of arguments less than 1");
+            }
+
+            _argument = BooleanExpression.ValidateExpression(arguments[0]);
+        }
+
+        public override float GetValue()
+        {
+            return (_argument.GetValue()) ? 10 : 2;
+        }
+    }
+
     public class TestEntityEntityAttribute : EntityEntityAttribute
     {
         private Entity _entity;
@@ -49,7 +69,7 @@ public class ModTest
         {
             private TestBooleanEntityAttribute _boolAttribute = new TestBooleanEntityAttribute(true);
 
-            public override EntityAttribute GetAttribute(string attributeId)
+            public override EntityAttribute GetAttribute(string attributeId, Expression[] arguments = null)
             {
                 switch (attributeId)
                 {
@@ -72,7 +92,7 @@ public class ModTest
             _entityAttribute = new TestEntityEntityAttribute(_internalEntity);
         }
 
-        public override EntityAttribute GetAttribute(string attributeId)
+        public override EntityAttribute GetAttribute(string attributeId, Expression[] arguments = null)
         {
             switch (attributeId)
             {
@@ -81,6 +101,9 @@ public class ModTest
 
                 case "testEntityAttribute":
                     return _entityAttribute;
+
+                case "testNumericFunctionAttribute":
+                    return new TestNumericFunctionEntityAttribute(arguments);
             }
 
             return null;
@@ -178,20 +201,32 @@ public class ModTest
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
         Assert.AreEqual((expression as NumericExpression).GetValue(), 4);
 
-        expression = Expression.BuildExpression(
-            testContext, "testFunction1()");
+        expression =
+            Expression.BuildExpression(testContext, "testEntity.testNumericFunctionAttribute(true)");
+
+        Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
+        Assert.AreEqual((expression as NumericExpression).GetValue(), 10);
+
+        expression =
+            Expression.BuildExpression(testContext, "testEntity.testNumericFunctionAttribute(false)");
+
+        Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
+        Assert.AreEqual((expression as NumericExpression).GetValue(), 2);
+
+        //expression = Expression.BuildExpression(
+        //    testContext, "testFunction1()");
 
         //Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
         //Assert.AreEqual((expression as BooleanExpression).GetValue(), true);
 
-        expression = Expression.BuildExpression(
-            testContext, "testFunction2(true)");
+        //expression = Expression.BuildExpression(
+        //    testContext, "testFunction2(true)");
 
         //Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
         //Assert.AreEqual((expression as BooleanExpression).GetValue(), true);
 
-        expression = Expression.BuildExpression(
-            testContext, "testFunction3(false ,3 +3, -5)");
+        //expression = Expression.BuildExpression(
+        //    testContext, "testFunction3(false ,3 +3, -5)");
 
         //Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
         //Assert.AreEqual((expression as BooleanExpression).GetValue(), true);

@@ -11,7 +11,7 @@ public abstract class EntityExpression : Expression
     {
     }
 
-    protected EntityExpression ValidateExpression(Expression expression)
+    public static EntityExpression ValidateExpression(Expression expression)
     {
         if (!(expression is EntityExpression entExpression))
         {

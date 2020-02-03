@@ -26,7 +26,7 @@ public abstract class BooleanExpression : Expression
         _evaluated = false;
     }
 
-    protected BooleanExpression ValidateExpression(Expression expression)
+    public static BooleanExpression ValidateExpression(Expression expression)
     {
         if (!(expression is BooleanExpression boolExpression))
         {

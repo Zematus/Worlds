@@ -26,7 +26,7 @@ public abstract class NumericExpression : Expression
         _evaluated = false;
     }
 
-    protected NumericExpression ValidateExpression(Expression expression)
+    public static NumericExpression ValidateExpression(Expression expression)
     {
         if (!(expression is NumericExpression numExpression))
         {
