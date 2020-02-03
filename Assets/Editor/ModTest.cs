@@ -48,21 +48,6 @@ public class ModTest
         }
     }
 
-    public class TestEntityEntityAttribute : EntityEntityAttribute
-    {
-        private Entity _entity;
-
-        public TestEntityEntityAttribute(Entity entity)
-        {
-            _entity = entity;
-        }
-
-        public override Entity GetEntity()
-        {
-            return _entity;
-        }
-    }
-
     public class TestEntity : Entity
     {
         private class InternalEntity : Entity
@@ -85,11 +70,11 @@ public class ModTest
 
         private TestBooleanEntityAttribute _boolAttribute = new TestBooleanEntityAttribute(false);
 
-        private TestEntityEntityAttribute _entityAttribute;
+        private FixedEntityEntityAttribute _entityAttribute;
 
         public TestEntity()
         {
-            _entityAttribute = new TestEntityEntityAttribute(_internalEntity);
+            _entityAttribute = new FixedEntityEntityAttribute(_internalEntity);
         }
 
         public override EntityAttribute GetAttribute(string attributeId, Expression[] arguments = null)

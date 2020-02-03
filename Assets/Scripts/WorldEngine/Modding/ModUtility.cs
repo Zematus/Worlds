@@ -10,7 +10,7 @@ public static class ModUtility
     public const string NumberRegexPart = @"-?\d+(?:\.\d+)?";
     public const string BooleanRegexPart = @"(true|false)";
 
-    public const string OperatorRegexPart = @"[\!\+\-\*\/]";
+    public const string OperatorRegexPart = @"[\!\+\-\*\/\<\>\=]=?";
     public const string AccessorRegexPart = @"\.";
 
     public const string BaseStatementRegexPart = 
