@@ -14,9 +14,9 @@ public static class ModUtility
     public const string AccessorRegexPart = @"\.";
 
     public const string BaseStatementRegexPart = 
-        @"(" + NumberRegexPart +
-        @")|(" + BooleanRegexPart +
-        @")|(" + IdentifierStatementRegexPart +
+        @"(?<number>" + NumberRegexPart +
+        @")|(?<boolean>" + BooleanRegexPart +
+        @")|(?<identifierStatement>" + IdentifierStatementRegexPart +
         @")";
 
     public const string InnerStatementRegexPart =

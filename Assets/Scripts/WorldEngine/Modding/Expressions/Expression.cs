@@ -58,9 +58,7 @@ public abstract class Expression
         match = Regex.Match(expressionStr, ModUtility.BaseStatementRegex);
         if (match.Success == true)
         {
-            expressionStr = match.Groups["statement"].Value;
-
-            return BuildBaseExpression(context, expressionStr);
+            return BuildBaseExpression(context, match);
         }
 
         throw new System.ArgumentException("Not a valid parseable expression: " + expressionStr);
@@ -115,14 +113,6 @@ public abstract class Expression
         bool matched = false;
 
         Debug.Log("- Test parsing: " + text);
-
-        //Match match = Regex.Match(text, ModUtility.FunctionStatementRegex);
-
-        //if (match.Success == true)
-        //{
-        //    matched = true;
-        //    Debug.Log("Matched FunctionStatementRegex");
-        //}
 
         Match match = Regex.Match(text, ModUtility.UnaryOpStatementRegex);
 
@@ -258,7 +248,12 @@ public abstract class Expression
                 return new LerpFunctionExpression(argExpressions);
         }
 
-        throw new System.ArgumentException("Unrecognized identifer: " + identifier);
+        if (string.IsNullOrWhiteSpace(arguments))
+        {
+            return new FixedStringValueExpression(identifier);
+        }
+
+        throw new System.ArgumentException("Unrecognized function identifier: " + identifier);
     }
 
     private static Expression BuildUnaryOpExpression(Context context, Match match)
@@ -314,29 +309,30 @@ public abstract class Expression
         throw new System.ArgumentException("Unrecognized binary op: " + binaryOp);
     }
 
-    private static Expression BuildBaseExpression(Context context, string expressionStr)
+    private static Expression BuildBaseExpression(Context context, Match match)
     {
-        Match match = Regex.Match(expressionStr, FixedNumberExpression.Regex);
-        if (match.Success == true)
+        string number = match.Groups["number"].Value;
+        string boolean = match.Groups["boolean"].Value;
+        string identifierStatement = match.Groups["identifierStatement"].Value;
+
+        if (!string.IsNullOrWhiteSpace(number))
         {
-            return new FixedNumberExpression(expressionStr);
+            return new FixedNumberExpression(number);
         }
 
-        match = Regex.Match(expressionStr, FixedBooleanValueExpression.Regex);
-        if (match.Success == true)
+        if (!string.IsNullOrWhiteSpace(boolean))
         {
-            return new FixedBooleanValueExpression(expressionStr);
+            return new FixedBooleanValueExpression(boolean);
         }
 
-        match = Regex.Match(expressionStr, ModUtility.IdentifierStatementRegex);
-        if (match.Success == true)
+        if (!string.IsNullOrWhiteSpace(identifierStatement))
         {
-            if (context.Entities.TryGetValue(expressionStr, out Entity entity))
+            if (context.Entities.TryGetValue(identifierStatement, out Entity entity))
             {
                 return new FixedEntityExpression(entity);
             }
 
-            if (context.Expressions.TryGetValue(expressionStr, out Expression expression))
+            if (context.Expressions.TryGetValue(identifierStatement, out Expression expression))
             {
                 return expression;
             }
@@ -344,7 +340,7 @@ public abstract class Expression
             return BuildIdentifierExpression(context, match);
         }
 
-        throw new System.ArgumentException("Not a recognized expression: " + expressionStr);
+        throw new System.ArgumentException("Unrecognized statement: " + match.Value);
     }
 
     public abstract void Reset();
