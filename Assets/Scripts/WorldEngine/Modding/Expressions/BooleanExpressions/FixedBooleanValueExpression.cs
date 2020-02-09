@@ -19,9 +19,14 @@ public class FixedBooleanValueExpression : BooleanExpression
         return value;
     }
 
-    public FixedBooleanValueExpression(string numberStr)
+    public FixedBooleanValueExpression(string boolStr)
     {
-        BooleanValue = ParseExpression(numberStr);
+        BooleanValue = ParseExpression(boolStr);
+    }
+
+    public FixedBooleanValueExpression(bool booleanValue)
+    {
+        BooleanValue = booleanValue;
     }
 
     protected override bool Evaluate()

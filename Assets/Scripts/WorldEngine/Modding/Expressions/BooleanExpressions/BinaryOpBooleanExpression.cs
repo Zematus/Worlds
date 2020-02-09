@@ -5,19 +5,19 @@ using System.Text.RegularExpressions;
 
 public abstract class BinaryOpBooleanExpression : BooleanExpression
 {
-    public BooleanExpression ExpressionA;
-    public BooleanExpression ExpressionB;
+    public Expression ExpressionA;
+    public Expression ExpressionB;
 
     public BinaryOpBooleanExpression(Context context, string expressionAStr, string expressionBStr)
     {
-        ExpressionA = ValidateExpression(BuildExpression(context, expressionAStr));
-        ExpressionB = ValidateExpression(BuildExpression(context, expressionBStr));
+        ExpressionA = BuildExpression(context, expressionAStr);
+        ExpressionB = BuildExpression(context, expressionBStr);
     }
 
     public BinaryOpBooleanExpression(Expression expressionA, Expression expressionB)
     {
-        ExpressionA = ValidateExpression(expressionA);
-        ExpressionB = ValidateExpression(expressionB);
+        ExpressionA = expressionA;
+        ExpressionB = expressionB;
     }
 
     public override void Reset()

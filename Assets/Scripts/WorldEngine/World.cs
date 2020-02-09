@@ -554,12 +554,11 @@ public class World : ISynchronizable
         });
     }
 
-    public void StartInitialization(float accumulatedProgress, float maxExpectedProgress, bool justLoaded = false)
+    /// <summary>
+    /// Initialize the world's terrain cells and other general parameters
+    /// </summary>
+    public void TerrainInitialization()
     {
-        //_openSimplexNoise = new OpenSimplexNoise(Seed);
-
-        InitializeTerrainLimitsAndSettings(justLoaded);
-
         MaxAltitude = float.MinValue;
         MinAltitude = float.MaxValue;
 
@@ -568,9 +567,6 @@ public class World : ISynchronizable
 
         MaxTemperature = float.MinValue;
         MinTemperature = float.MaxValue;
-
-        _accumulatedProgress = accumulatedProgress;
-        _progressIncrement = (maxExpectedProgress - _accumulatedProgress) / TerrainGenerationSteps;
 
         _cellMaxSideLength = Circumference / Width;
         TerrainCell.MaxArea = _cellMaxSideLength * _cellMaxSideLength;
@@ -612,6 +608,25 @@ public class World : ISynchronizable
         _continentHeights = new float[NumContinents];
         _continentWidths = new float[NumContinents];
         _continentAltitudeOffsets = new float[NumContinents];
+    }
+
+    /// <summary>
+    /// Performs the general initialization steps of a generated or loaded world
+    /// </summary>
+    /// <param name="accumulatedProgress">
+    /// How much progress has the world generation/load has already been carried out</param>
+    /// <param name="maxExpectedProgress">How much progress is expected to be completed by this process</param>
+    /// <param name="justLoaded">Has the world just been loaded from a save file?</param>
+    public void StartInitialization(float accumulatedProgress, float maxExpectedProgress, bool justLoaded = false)
+    {
+        //_openSimplexNoise = new OpenSimplexNoise(Seed);
+
+        InitializeTerrainLimitsAndSettings(justLoaded);
+
+        _accumulatedProgress = accumulatedProgress;
+        _progressIncrement = (maxExpectedProgress - _accumulatedProgress) / TerrainGenerationSteps;
+
+        TerrainInitialization();
 
         // When it's a loaded world there might be already terrain modifications that we need to set
         foreach (TerrainCellAlteration changes in TerrainCellAlterationList)

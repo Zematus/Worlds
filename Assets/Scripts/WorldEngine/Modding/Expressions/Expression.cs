@@ -11,19 +11,7 @@ public abstract class Expression
         //TestMatch(context, expressionStr);
 #endif
 
-        Match match = Regex.Match(expressionStr, ModUtility.AccessorOpStatementRegex);
-
-        if (match.Success == true)
-        {
-            //Debug.Log("match: " + match.Value);
-            //Debug.Log("statement: " + ModUtility.Debug_CapturesToString(match.Groups["statement"]));
-            //Debug.Log("attribute: " + ModUtility.Debug_CapturesToString(match.Groups["attribute"]));
-
-            return BuildAccessorOpExpression(context, match);
-        }
-
-        match = Regex.Match(expressionStr, ModUtility.BinaryOpStatementRegex);
-
+        Match match = Regex.Match(expressionStr, ModUtility.BinaryOpStatementRegex);
         if (match.Success == true)
         {
             //Debug.Log("match: " + match.Value);
@@ -42,6 +30,19 @@ public abstract class Expression
             //Debug.Log("unaryOp: " + ModUtility.Debug_CapturesToString(match.Groups["unaryOp"]));
 
             return BuildUnaryOpExpression(context, match);
+        }
+
+        match = Regex.Match(expressionStr, ModUtility.AccessorOpStatementRegex);
+
+        if (match.Success == true)
+        {
+            //Debug.Log("match: " + match.Value);
+            //Debug.Log("statement: " + ModUtility.Debug_CapturesToString(match.Groups["statement"]));
+            //Debug.Log("attribute: " + ModUtility.Debug_CapturesToString(match.Groups["attribute"]));
+            //Debug.Log("identifier: " + ModUtility.Debug_CapturesToString(match.Groups["identifier"]));
+            //Debug.Log("arguments: " + ModUtility.Debug_CapturesToString(match.Groups["arguments"]));
+
+            return BuildAccessorOpExpression(context, match);
         }
 
         match = Regex.Match(expressionStr, ModUtility.InnerStatementRegex);
@@ -102,6 +103,11 @@ public abstract class Expression
         if (attribute is NumericEntityAttribute)
         {
             return new NumericEntityAttributeExpression(attribute, expressionStr, identifier, arguments);
+        }
+
+        if (attribute is StringEntityAttribute)
+        {
+            return new StringEntityAttributeExpression(attribute, expressionStr, identifier, arguments);
         }
 
         throw new System.ArgumentException("Unrecognized attribute type: " + attribute.GetType());
@@ -297,9 +303,9 @@ public abstract class Expression
             case "<=":
                 return null;
             case ">":
-                return null;
+                return MoreThanExpression.Build(context, expressionAStr, expressionBStr);
             case "<":
-                return null;
+                return LessThanExpression.Build(context, expressionAStr, expressionBStr);
             case "&&":
                 return null;
             case "||":

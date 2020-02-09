@@ -29,7 +29,7 @@ public class Clan : Faction
     public const float ClanSplitRelationshipValueSpread = 0.1f;
     public const float ClanSplitRelationshipValueCharismaFactor = 50f;
 
-    public const string FactionType = "Clan";
+    public const string FactionType = "clan";
     public const string FactionNameFormat = "clan {0}";
 
     public Clan()

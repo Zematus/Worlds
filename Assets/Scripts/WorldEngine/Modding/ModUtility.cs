@@ -20,19 +20,23 @@ public static class ModUtility
         @")";
 
     public const string InnerStatementRegexPart =
-        @"(?:(?:" + 
-            @"(?<open>\()" + 
-        @"|" + 
-            @"(?<innerStatement-open>\))" + 
-        @")[^\(\)]*?)+" +
+        @"(?:" +
+            @"(?:" +
+                @"(?<open>\()" +
+            @"|" +
+                @"(?<innerStatement-open>\))" +
+            @")" +
+        @"[^\(\)]*?)+" +
         @"(?(open)(?!))";
 
     public const string ArgumentsRegexPart =
-        @"(?:(?:" +
-            @"(?<open>\()" +
-        @"|" +
-            @"(?<arguments-open>\))" +
-        @")[^\(\)]*?)+" +
+        @"(?:" +
+            @"(?:" +
+                @"(?<open>\()" +
+            @"|" +
+                @"(?<arguments-open>\))" +
+            @")" +
+        @"[^\(\)]*?)+" +
         @"(?(open)(?!))";
 
     public const string ArgumentListRegex =
