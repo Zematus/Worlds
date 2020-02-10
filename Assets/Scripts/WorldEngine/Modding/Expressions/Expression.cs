@@ -297,7 +297,7 @@ public abstract class Expression
             case "=":
                 return null;
             case "==":
-                return null;
+                return EqualsExpression.Build(context, expressionAStr, expressionBStr);
             case ">=":
                 return null;
             case "<=":

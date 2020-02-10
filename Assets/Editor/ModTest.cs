@@ -253,7 +253,7 @@ public class ModTest
 
         testContext.Entities.Add("group", testGroupEntity);
 
-        Expression expression = 
+        Expression expression =
             Expression.BuildExpression(testContext, "group.cell.biome_trait_presence(wood)");
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
@@ -315,29 +315,27 @@ public class ModTest
         TerrainCell testCell1 = testWorld.TerrainCells[0][0];
         CellGroup testGroup1 = new CellGroup(testWorld, testCell1, 1234);
 
-        TerrainCell testCell2 = testWorld.TerrainCells[10][10];
-        CellGroup testGroup2 = new CellGroup(testWorld, testCell2, 2345);
-
-        Tribe testTribe1 = new Tribe(testGroup1);
-        Clan testClan1 = new Clan(testTribe1, testGroup1, 0);
-        Clan testClan2 = new Clan(testTribe1, testGroup2, 0);
+        TestPolity testPolity1 = new TestPolity("tribe", testGroup1);
+        TestFaction testFaction1 = new TestFaction("clan", testPolity1, testGroup1, 0);
 
         Expression expression =
             Expression.BuildExpression(testContext, "faction.type");
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
 
-        testFactionEntity.Set(testClan1);
+        testFactionEntity.Set(testFaction1);
 
         string type = (expression as StringExpression).GetValue();
-        Debug.Log("Expression evaluation result - 'testClan1': " + type);
+        Debug.Log("Expression evaluation result - 'testFaction1': " + type);
         Assert.AreEqual("clan", type);
 
-        testFactionEntity.Set(testClan2);
-        expression.Reset();
+        expression =
+            Expression.BuildExpression(testContext, "faction.type == clan");
 
-        type = (expression as StringExpression).GetValue();
-        Debug.Log("Expression evaluation result - 'testClan2': " + type);
-        Assert.AreEqual("clan", type);
+        Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
+
+        bool boolResult = (expression as BooleanExpression).GetValue();
+        Debug.Log("Expression evaluation result - 'testFaction1': " + boolResult);
+        Assert.AreEqual(true, boolResult);
     }
 }
