@@ -53,7 +53,7 @@ public class ClanDemandsInfluenceDecisionEvent : FactionEvent
         float randomFactor = clan.GetNextLocalRandomFloat(RngOffsets.CLAN_DEMANDS_INFLUENCE_EVENT_CALCULATE_TRIGGER_DATE + unchecked((int)clan.Id));
         randomFactor = Mathf.Pow(randomFactor, 2);
 
-        float administrativeLoad = clan.CalculateAdministrativeLoad();
+        float administrativeLoad = clan.AdministrativeLoad;
 
         float loadFactor = 1;
 
@@ -194,7 +194,7 @@ public class ClanDemandsInfluenceDecisionEvent : FactionEvent
 
     public float CalculateChanceOfRefusingDemand()
     {
-        float administrativeLoad = _dominantClan.CalculateAdministrativeLoad();
+        float administrativeLoad = _dominantClan.AdministrativeLoad;
 
         if (float.IsPositiveInfinity(administrativeLoad))
             return 0;
@@ -258,7 +258,7 @@ public class ClanDemandsInfluenceDecisionEvent : FactionEvent
 
     public float CalculateChanceOfMakingDemand()
     {
-        float administrativeLoad = _demandClan.CalculateAdministrativeLoad();
+        float administrativeLoad = _demandClan.AdministrativeLoad;
 
         if (float.IsPositiveInfinity(administrativeLoad))
             return 0;

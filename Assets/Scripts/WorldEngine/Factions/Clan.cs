@@ -507,7 +507,7 @@ public class Clan : Faction
         parentTribe.AddEventMessage(new ClanSplitEventMessage(this, newClan, World.CurrentDate));
     }
 
-    public float CalculateAdministrativeLoad()
+    protected override float CalculateAdministrativeLoad()
     {
         Culture.TryGetKnowledgeValue(SocialOrganizationKnowledge.KnowledgeId, out int socialOrganizationValue);
 

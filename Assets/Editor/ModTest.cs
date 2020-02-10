@@ -313,10 +313,13 @@ public class ModTest
         testWorld.TerrainInitialization();
 
         TerrainCell testCell1 = testWorld.TerrainCells[0][0];
+        TerrainCell testCell2 = testWorld.TerrainCells[10][10];
         CellGroup testGroup1 = new CellGroup(testWorld, testCell1, 1234);
+        CellGroup testGroup2 = new CellGroup(testWorld, testCell1, 1234);
 
         TestPolity testPolity1 = new TestPolity("tribe", testGroup1);
-        TestFaction testFaction1 = new TestFaction("clan", testPolity1, testGroup1, 0);
+        TestFaction testFaction1 = new TestFaction("clan", testPolity1, testGroup1, 0, 0.4f);
+        TestFaction testFaction2 = new TestFaction("clan", testPolity1, testGroup2, 0, 0.6f);
 
         Expression expression =
             Expression.BuildExpression(testContext, "faction.type");
@@ -336,6 +339,40 @@ public class ModTest
 
         bool boolResult = (expression as BooleanExpression).GetValue();
         Debug.Log("Expression evaluation result - 'testFaction1': " + boolResult);
-        Assert.AreEqual(true, boolResult);
+        Assert.IsTrue(boolResult);
+
+        expression =
+            Expression.BuildExpression(testContext, "faction.administrative_load");
+
+        Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
+
+        float floatResult = (expression as NumericExpression).GetValue();
+        Debug.Log("Expression evaluation result - 'testFaction1': " + floatResult);
+        Assert.AreEqual(0.4f, floatResult);
+
+        testFactionEntity.Set(testFaction2);
+        expression.Reset();
+
+        floatResult = (expression as NumericExpression).GetValue();
+        Debug.Log("Expression evaluation result - 'testFaction2': " + floatResult);
+        Assert.AreEqual(0.6f, floatResult);
+
+        expression =
+            Expression.BuildExpression(testContext, "faction.administrative_load > 0.5");
+
+        testFactionEntity.Set(testFaction1);
+
+        Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
+
+        boolResult = (expression as BooleanExpression).GetValue();
+        Debug.Log("Expression evaluation result - 'testFaction1': " + boolResult);
+        Assert.IsFalse(boolResult);
+
+        testFactionEntity.Set(testFaction2);
+        expression.Reset();
+
+        boolResult = (expression as BooleanExpression).GetValue();
+        Debug.Log("Expression evaluation result - 'testFaction2': " + boolResult);
+        Assert.IsTrue(boolResult);
     }
 }

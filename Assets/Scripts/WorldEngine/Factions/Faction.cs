@@ -64,6 +64,22 @@ public abstract class Faction : ISynchronizable
     [XmlIgnore]
     public bool IsInitialized = true;
 
+    [XmlIgnore]
+    public float AdministrativeLoad
+    {
+        get
+        {
+            if (_lastAdministrativeLoadUpdateDate < World.CurrentDate)
+            {
+                _administrativeLoad = CalculateAdministrativeLoad();
+
+                _lastAdministrativeLoadUpdateDate = World.CurrentDate;
+            }
+
+            return _administrativeLoad;
+        }
+    }
+
     // Use this instead to get the leader
     public Agent CurrentLeader
     {
@@ -103,6 +119,9 @@ public abstract class Faction : ISynchronizable
     protected Dictionary<long, FactionEvent> _events = new Dictionary<long, FactionEvent>();
 
     private bool _preupdated = false;
+
+    private long _lastAdministrativeLoadUpdateDate = -1;
+    private float _administrativeLoad = 0;
 
     public Faction()
     {
@@ -154,6 +173,8 @@ public abstract class Faction : ISynchronizable
     {
 
     }
+
+    protected abstract float CalculateAdministrativeLoad();
 
     public string GetNameAndTypeString()
     {

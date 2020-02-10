@@ -127,13 +127,23 @@ public class TestPolity : Polity
 
 public class TestFaction : Faction
 {
-    public TestFaction(string type, Polity polity, CellGroup coreGroup, float influence)
+    private float _adminLoad;
+
+    public TestFaction(
+        string type, Polity polity, CellGroup coreGroup, float influence, float adminLoad)
         : base(type, polity, coreGroup, influence)
-    { }
+    {
+        _adminLoad = adminLoad;
+    }
 
     public override void Split()
     {
         throw new NotImplementedException();
+    }
+
+    protected override float CalculateAdministrativeLoad()
+    {
+        return _adminLoad;
     }
 
     protected override void GenerateEventsFromData()

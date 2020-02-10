@@ -33,6 +33,7 @@ public class StringEntityAttributeExpression : StringExpression
 
     public override string ToString()
     {
-        return _expressionStr + "." + _attributeId + "(" + _arguments + ")";
+        return _expressionStr + "." + _attributeId
+            + (string.IsNullOrWhiteSpace(_arguments) ? "" : "(" + _arguments + ")");
     }
 }

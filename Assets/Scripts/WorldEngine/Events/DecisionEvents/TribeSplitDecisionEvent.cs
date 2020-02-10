@@ -55,7 +55,7 @@ public class TribeSplitDecisionEvent : FactionEvent
 
         Clan dominantClan = clan.Polity.DominantFaction as Clan;
 
-        float administrativeLoad = dominantClan.CalculateAdministrativeLoad();
+        float administrativeLoad = dominantClan.AdministrativeLoad;
 
         float loadFactor = 1;
 
@@ -181,7 +181,7 @@ public class TribeSplitDecisionEvent : FactionEvent
 
     public float CalculateChanceOfSplittingForSplitClan()
     {
-        float administrativeLoad = _dominantClan.CalculateAdministrativeLoad();
+        float administrativeLoad = _dominantClan.AdministrativeLoad;
 
         if (float.IsPositiveInfinity(administrativeLoad))
             return 1;
@@ -218,7 +218,7 @@ public class TribeSplitDecisionEvent : FactionEvent
 
     public float CalculateChanceOfSplittingForTribe()
     {
-        float administrativeLoad = _dominantClan.CalculateAdministrativeLoad();
+        float administrativeLoad = _dominantClan.AdministrativeLoad;
 
         if (float.IsPositiveInfinity(administrativeLoad))
             return 1;

@@ -50,7 +50,7 @@ public class ClanSplitDecisionEvent : FactionEvent
         float randomFactor = clan.GetNextLocalRandomFloat(RngOffsets.CLAN_SPLITTING_EVENT_CALCULATE_TRIGGER_DATE + unchecked((int)clan.Id));
         randomFactor = Mathf.Pow(randomFactor, 2);
 
-        float administrativeLoad = clan.CalculateAdministrativeLoad();
+        float administrativeLoad = clan.AdministrativeLoad;
 
         float loadFactor = 1;
 
@@ -233,7 +233,7 @@ public class ClanSplitDecisionEvent : FactionEvent
 
     public float CalculateChanceOfSplitting()
     {
-        float administrativeLoad = _clan.CalculateAdministrativeLoad();
+        float administrativeLoad = _clan.AdministrativeLoad;
 
         if (float.IsPositiveInfinity(administrativeLoad))
             return 1;
