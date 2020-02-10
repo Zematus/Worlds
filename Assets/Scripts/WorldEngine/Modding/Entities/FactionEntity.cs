@@ -11,6 +11,9 @@ public class FactionEntity : Entity
 
     private AdministrativeLoadAttribute _administrativeLoadAttribute;
 
+    private CulturalPreferencesEntity _preferencesEntity;
+    private EntityAttribute _preferencesAttribute;
+
     public class TypeAttribute : StringEntityAttribute
     {
         private FactionEntity _factionEntity;
@@ -54,6 +57,11 @@ public class FactionEntity : Entity
                 _administrativeLoadAttribute =
                     _administrativeLoadAttribute ?? new AdministrativeLoadAttribute(this);
                 return _administrativeLoadAttribute;
+
+            case "preferences":
+                _preferencesAttribute =
+                    _preferencesAttribute ?? new FixedEntityEntityAttribute(_preferencesEntity);
+                return _preferencesAttribute;
         }
 
         throw new System.ArgumentException("Faction: Unable to find attribute: " + attributeId);
@@ -62,5 +70,7 @@ public class FactionEntity : Entity
     public void Set(Faction faction)
     {
         Faction = faction;
+
+        _preferencesEntity.Set(faction.Culture);
     }
 }
