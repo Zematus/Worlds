@@ -70,7 +70,11 @@ public class Culture : ISynchronizable
         }
     }
 
-    protected void AddPreference(CulturalPreference preference)
+    /// <summary>
+    /// Adds a new preference if not already present to the ulture
+    /// </summary>
+    /// <param name="preference">The preference to try to add</param>
+    public void AddPreference(CulturalPreference preference)
     {
         if (_preferences.ContainsKey(preference.Id))
             return;
@@ -80,7 +84,11 @@ public class Culture : ISynchronizable
         _preferences.Add(preference.Id, preference);
     }
 
-    protected void RemovePreference(CulturalPreference preference)
+    /// <summary>
+    /// Removes a preference from the culture
+    /// </summary>
+    /// <param name="preference">The preference to remove</param>
+    public void RemovePreference(CulturalPreference preference)
     {
         if (!_preferences.ContainsKey(preference.Id))
             return;

@@ -7,13 +7,8 @@ public class GroupEntity : Entity
 {
     private CellGroup _group;
 
-    private CellEntity _cellEntity;
+    private CellEntity _cellEntity = new CellEntity();
     private EntityAttribute _cellEntityAttribute;
-
-    public GroupEntity()
-    {
-        _cellEntity = new CellEntity();
-    }
 
     public override EntityAttribute GetAttribute(string attributeId, Expression[] arguments = null)
     {

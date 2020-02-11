@@ -11,7 +11,7 @@ public class FactionEntity : Entity
 
     private AdministrativeLoadAttribute _administrativeLoadAttribute;
 
-    private CulturalPreferencesEntity _preferencesEntity;
+    private CulturalPreferencesEntity _preferencesEntity = new CulturalPreferencesEntity();
     private EntityAttribute _preferencesAttribute;
 
     public class TypeAttribute : StringEntityAttribute

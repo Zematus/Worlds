@@ -321,6 +321,14 @@ public class ModTest
         TestFaction testFaction1 = new TestFaction("clan", testPolity1, testGroup1, 0, 0.4f);
         TestFaction testFaction2 = new TestFaction("clan", testPolity1, testGroup2, 0, 0.6f);
 
+        testFaction1.Culture.GetPreference("authority").Value = 0.5f;
+        testFaction1.Culture.GetPreference("cohesion").Value = 0.6f;
+
+        testFaction2.Culture.GetPreference("authority").Value = 0.6f;
+        testFaction2.Culture.GetPreference("cohesion").Value = 0.8f;
+
+        ////
+
         Expression expression =
             Expression.BuildExpression(testContext, "faction.type");
 
@@ -332,6 +340,8 @@ public class ModTest
         Debug.Log("Expression evaluation result - 'testFaction1': " + type);
         Assert.AreEqual("clan", type);
 
+        ////
+
         expression =
             Expression.BuildExpression(testContext, "faction.type == clan");
 
@@ -340,6 +350,8 @@ public class ModTest
         bool boolResult = (expression as BooleanExpression).GetValue();
         Debug.Log("Expression evaluation result - 'testFaction1': " + boolResult);
         Assert.IsTrue(boolResult);
+
+        ////
 
         expression =
             Expression.BuildExpression(testContext, "faction.administrative_load");
@@ -357,8 +369,30 @@ public class ModTest
         Debug.Log("Expression evaluation result - 'testFaction2': " + floatResult);
         Assert.AreEqual(0.6f, floatResult);
 
+        ////
+
         expression =
             Expression.BuildExpression(testContext, "faction.administrative_load > 0.5");
+
+        testFactionEntity.Set(testFaction1);
+
+        Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
+
+        boolResult = (expression as BooleanExpression).GetValue();
+        Debug.Log("Expression evaluation result - 'testFaction1': " + boolResult);
+        Assert.IsFalse(boolResult);
+
+        testFactionEntity.Set(testFaction2);
+        expression.Reset();
+
+        boolResult = (expression as BooleanExpression).GetValue();
+        Debug.Log("Expression evaluation result - 'testFaction2': " + boolResult);
+        Assert.IsTrue(boolResult);
+
+        ////
+
+        expression =
+            Expression.BuildExpression(testContext, "faction.preference.cohesion < 0.7");
 
         testFactionEntity.Set(testFaction1);
 

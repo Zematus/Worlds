@@ -134,6 +134,26 @@ public class TestFaction : Faction
         : base(type, polity, coreGroup, influence)
     {
         _adminLoad = adminLoad;
+
+        Culture = new FactionCulture(this);
+
+        Culture.AddPreference(new CulturalPreference(
+            CulturalPreference.AuthorityPreferenceId,
+            CulturalPreference.AuthorityPreferenceName,
+            CulturalPreference.AuthorityPreferenceRngOffset,
+            0));
+
+        Culture.AddPreference(new CulturalPreference(
+            CulturalPreference.CohesionPreferenceId,
+            CulturalPreference.CohesionPreferenceName,
+            CulturalPreference.CohesionPreferenceRngOffset,
+            0));
+
+        Culture.AddPreference(new CulturalPreference(
+            CulturalPreference.IsolationPreferenceId,
+            CulturalPreference.IsolationPreferenceName,
+            CulturalPreference.IsolationPreferenceRngOffset,
+            0));
     }
 
     public override void Split()
