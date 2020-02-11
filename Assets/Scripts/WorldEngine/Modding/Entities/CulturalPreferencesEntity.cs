@@ -33,6 +33,12 @@ public class CulturalPreferencesEntity : Entity
 
     public override EntityAttribute GetAttribute(string attributeId, Expression[] arguments = null)
     {
+        if (!CulturalPreference.Preferences.Contains(attributeId))
+        {
+            throw new System.ArgumentException(
+                "Unrecognized cultural preference in entity attribute: " + attributeId);
+        }
+
         return new PreferenceAttribute(this, attributeId);
     }
 
