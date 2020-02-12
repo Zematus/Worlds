@@ -319,8 +319,8 @@ public class ModTest
         CellGroup testGroup2 = new CellGroup(testWorld, testCell1, 1234);
 
         TestPolity testPolity1 = new TestPolity("tribe", testGroup1);
-        TestFaction testFaction1 = new TestFaction("clan", testPolity1, testGroup1, 0, 0.4f);
-        TestFaction testFaction2 = new TestFaction("clan", testPolity1, testGroup2, 0, 0.6f);
+        TestFaction testFaction1 = new TestFaction("clan", testPolity1, testGroup1, 0, 0.3f);
+        TestFaction testFaction2 = new TestFaction("clan", testPolity1, testGroup2, 0, 0.7f);
 
         testFaction1.Culture.GetPreference("authority").Value = 0.4f;
         testFaction1.Culture.GetPreference("cohesion").Value = 0.6f;
@@ -361,14 +361,14 @@ public class ModTest
 
         float floatResult = (expression as NumericExpression).GetValue();
         Debug.Log("Expression evaluation result - 'testFaction1': " + floatResult);
-        Assert.AreEqual(0.4f, floatResult);
+        Assert.AreEqual(0.3f, floatResult);
 
         testFactionEntity.Set(testFaction2);
         expression.Reset();
 
         floatResult = (expression as NumericExpression).GetValue();
         Debug.Log("Expression evaluation result - 'testFaction2': " + floatResult);
-        Assert.AreEqual(0.6f, floatResult);
+        Assert.AreEqual(0.7f, floatResult);
 
         ////
 
@@ -429,5 +429,26 @@ public class ModTest
         boolResult = (expression as BooleanExpression).GetValue();
         Debug.Log("Expression evaluation result - 'testFaction2': " + boolResult);
         Assert.IsTrue(boolResult);
+
+        ////
+
+        expression = Expression.BuildExpression(
+            testContext,
+            "91250 * (1 - faction.administrative_load) * faction.preferences.cohesion");
+
+        testFactionEntity.Set(testFaction1);
+
+        Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
+
+        floatResult = (expression as NumericExpression).GetValue();
+        Debug.Log("Expression evaluation result - 'testFaction1': " + floatResult);
+        Assert.AreEqual(91251.2969f, floatResult);
+
+        testFactionEntity.Set(testFaction2);
+        expression.Reset();
+
+        floatResult = (expression as NumericExpression).GetValue();
+        Debug.Log("Expression evaluation result - 'testFaction2': " + floatResult);
+        Assert.AreEqual(91251.1016f, floatResult);
     }
 }

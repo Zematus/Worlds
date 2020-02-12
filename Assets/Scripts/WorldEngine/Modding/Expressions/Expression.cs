@@ -291,7 +291,7 @@ public abstract class Expression
             case "-":
                 return SubstractExpression.Build(context, expressionAStr, expressionBStr);
             case "*":
-                return null;
+                return MultiplyExpression.Build(context, expressionAStr, expressionBStr);
             case "/":
                 return null;
             case "=":
