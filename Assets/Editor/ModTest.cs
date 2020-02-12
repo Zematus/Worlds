@@ -308,6 +308,7 @@ public class ModTest
         CellGroup.ResetEventGenerators();
         Knowledge.ResetKnowledges();
         Knowledge.InitializeKnowledges();
+        CulturalPreference.InitializePreferences();
 
         World testWorld = new World(400, 200, 1);
         testWorld.TerrainInitialization();
@@ -321,7 +322,7 @@ public class ModTest
         TestFaction testFaction1 = new TestFaction("clan", testPolity1, testGroup1, 0, 0.4f);
         TestFaction testFaction2 = new TestFaction("clan", testPolity1, testGroup2, 0, 0.6f);
 
-        testFaction1.Culture.GetPreference("authority").Value = 0.5f;
+        testFaction1.Culture.GetPreference("authority").Value = 0.4f;
         testFaction1.Culture.GetPreference("cohesion").Value = 0.6f;
 
         testFaction2.Culture.GetPreference("authority").Value = 0.6f;
@@ -392,7 +393,27 @@ public class ModTest
         ////
 
         expression =
-            Expression.BuildExpression(testContext, "faction.preference.cohesion < 0.7");
+            Expression.BuildExpression(testContext, "faction.preferences.cohesion < 0.7");
+
+        testFactionEntity.Set(testFaction1);
+
+        Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
+
+        boolResult = (expression as BooleanExpression).GetValue();
+        Debug.Log("Expression evaluation result - 'testFaction1': " + boolResult);
+        Assert.IsTrue(boolResult);
+
+        testFactionEntity.Set(testFaction2);
+        expression.Reset();
+
+        boolResult = (expression as BooleanExpression).GetValue();
+        Debug.Log("Expression evaluation result - 'testFaction2': " + boolResult);
+        Assert.IsFalse(boolResult);
+
+        ////
+
+        expression =
+            Expression.BuildExpression(testContext, "faction.preferences.authority > 0.5");
 
         testFactionEntity.Set(testFaction1);
 
