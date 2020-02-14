@@ -67,10 +67,10 @@ public abstract class Expression
 
     private static Expression BuildAccessorOpExpression(Context context, Match match)
     {
-        string expressionStr = match.Groups["statement"].Value;
+        string entityStr = match.Groups["statement"].Value;
         string attributeStr = match.Groups["attribute"].Value;
 
-        Expression expression = BuildExpression(context, expressionStr);
+        Expression expression = BuildExpression(context, entityStr);
 
         if (!(expression is EntityExpression entExpression))
         {
@@ -92,22 +92,22 @@ public abstract class Expression
 
         if (attribute is BooleanEntityAttribute)
         {
-            return new BooleanEntityAttributeExpression(attribute, expressionStr, identifier, arguments);
+            return new BooleanEntityAttributeExpression(attribute, entityStr, identifier, arguments);
         }
 
         if (attribute is EntityEntityAttribute)
         {
-            return new EntityEntityAttributeExpression(attribute, expressionStr, identifier, arguments);
+            return new EntityEntityAttributeExpression(attribute, entityStr, identifier, arguments);
         }
 
         if (attribute is NumericEntityAttribute)
         {
-            return new NumericEntityAttributeExpression(attribute, expressionStr, identifier, arguments);
+            return new NumericEntityAttributeExpression(attribute, entityStr, identifier, arguments);
         }
 
         if (attribute is StringEntityAttribute)
         {
-            return new StringEntityAttributeExpression(attribute, expressionStr, identifier, arguments);
+            return new StringEntityAttributeExpression(attribute, entityStr, identifier, arguments);
         }
 
         throw new System.ArgumentException("Unrecognized attribute type: " + attribute.GetType());
@@ -349,5 +349,13 @@ public abstract class Expression
         throw new System.ArgumentException("Unrecognized statement: " + match.Value);
     }
 
-    public abstract void Reset();
+    public static IStringExpression ValidateStringExpression(Expression expression)
+    {
+        if (!(expression is IStringExpression strExpression))
+        {
+            throw new System.ArgumentException(expression + " is not a valid string expression");
+        }
+
+        return strExpression;
+    }
 }

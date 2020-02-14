@@ -5,12 +5,12 @@ using System.Text.RegularExpressions;
 
 public class StringEqualsExpression : EqualsExpression
 {
-    protected StringEqualsExpression(Expression expressionA, Expression expressionB) :
+    protected StringEqualsExpression(IExpression expressionA, IExpression expressionB) :
         base(expressionA, expressionB)
     {
     }
 
-    public static Expression Build(StringExpression expressionA, StringExpression expressionB)
+    public static Expression Build(IStringExpression expressionA, IStringExpression expressionB)
     {
         if ((expressionA is FixedStringValueExpression) &&
             (expressionB is FixedStringValueExpression))
@@ -18,7 +18,7 @@ public class StringEqualsExpression : EqualsExpression
             FixedStringValueExpression boolExpA = expressionA as FixedStringValueExpression;
             FixedStringValueExpression boolExpB = expressionB as FixedStringValueExpression;
 
-            return new FixedBooleanValueExpression(boolExpA.StringValue == boolExpB.StringValue);
+            return new FixedBooleanValueExpression(boolExpA.Value == boolExpB.Value);
         }
 
         return new StringEqualsExpression(expressionA, expressionB);
@@ -27,7 +27,7 @@ public class StringEqualsExpression : EqualsExpression
     protected override bool Evaluate()
     {
         return
-            (ExpressionA as StringExpression).GetValue()
-            == (ExpressionB as StringExpression).GetValue();
+            (ExpressionA as IStringExpression).Value
+            == (ExpressionB as IStringExpression).Value;
     }
 }

@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class FixedStringValueExpression : StringExpression
+public class FixedStringValueExpression : IStringExpression
 {
     public const string Regex = @"^" + ModUtility.IdentifierRegexPart + @"\s*$";
 
@@ -14,15 +14,7 @@ public class FixedStringValueExpression : StringExpression
         StringValue = identifier;
     }
 
-    protected override string Evaluate()
-    {
-        return StringValue;
-    }
-
-    public override string GetValue()
-    {
-        return StringValue;
-    }
+    public string Value => StringValue;
 
     public override string ToString()
     {

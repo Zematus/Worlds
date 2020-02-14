@@ -11,7 +11,7 @@ public class CellEntity : Entity
     {
         private CellEntity _cellEntity;
 
-        private StringExpression _argument;
+        private IStringExpression _argument;
 
         public BiomeTraitPresenceAttribute(CellEntity cellEntity, Expression[] arguments)
         {
@@ -22,12 +22,12 @@ public class CellEntity : Entity
                 throw new System.ArgumentException("Number of arguments less than 1");
             }
 
-            _argument = StringExpression.ValidateExpression(arguments[0]);
+            _argument = Expression.ValidateStringExpression(arguments[0]);
         }
 
         public override float GetValue()
         {
-            return _cellEntity.Cell.GetBiomeTraitPresence(_argument.GetValue());
+            return _cellEntity.Cell.GetBiomeTraitPresence(_argument.Value);
         }
     }
 

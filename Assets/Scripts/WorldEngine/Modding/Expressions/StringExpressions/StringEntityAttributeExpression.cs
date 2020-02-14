@@ -3,37 +3,27 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class StringEntityAttributeExpression : StringExpression
+public class StringEntityAttributeExpression : IStringExpression
 {
-    private readonly string _expressionStr;
+    private readonly string _entityExpr;
     private readonly string _attributeId;
     private readonly string _arguments;
     private readonly StringEntityAttribute _attribute;
 
     public StringEntityAttributeExpression(
-        EntityAttribute attribute, string expStr, string attrId, string args)
+        EntityAttribute attribute, string entityExpr, string attrId, string args)
     {
         _attribute = attribute as StringEntityAttribute;
-        _expressionStr = expStr;
+        _entityExpr = entityExpr;
         _attributeId = attrId;
         _arguments = args;
     }
 
-    protected override string Evaluate()
-    {
-        return _attribute.GetValue();
-    }
-
-    public override void Reset()
-    {
-        _attribute.Reset();
-
-        base.Reset();
-    }
-
     public override string ToString()
     {
-        return _expressionStr + "." + _attributeId
+        return _entityExpr + "." + _attributeId
             + (string.IsNullOrWhiteSpace(_arguments) ? "" : "(" + _arguments + ")");
     }
+
+    public string Value => _attribute.GetValue();
 }
