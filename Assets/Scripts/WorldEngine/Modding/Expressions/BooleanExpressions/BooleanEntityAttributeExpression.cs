@@ -24,13 +24,6 @@ public class BooleanEntityAttributeExpression : BooleanExpression
         return _attribute.GetValue();
     }
 
-    public override void Reset()
-    {
-        _attribute.Reset();
-
-        base.Reset();
-    }
-
     public override string ToString()
     {
         return _expressionStr + "." + _attributeId

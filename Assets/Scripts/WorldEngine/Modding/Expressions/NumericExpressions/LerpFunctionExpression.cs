@@ -3,39 +3,30 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class LerpFunctionExpression : NumericExpression
+public class LerpFunctionExpression : INumericExpression
 {
-    private NumericExpression _startArg;
-    private NumericExpression _endArg;
-    private NumericExpression _percentArg;
+    private INumericExpression _startArg;
+    private INumericExpression _endArg;
+    private INumericExpression _percentArg;
 
-    public LerpFunctionExpression(Expression[] arguments)
+    public LerpFunctionExpression(IExpression[] arguments)
     {
         if ((arguments == null) || (arguments.Length < 3))
         {
             throw new System.ArgumentException("Number of arguments less than 3");
         }
 
-        _startArg = ValidateExpression(arguments[0]);
-        _endArg = ValidateExpression(arguments[1]);
-        _percentArg = ValidateExpression(arguments[2]);
+        _startArg = ExpressionBuilder.ValidateNumericExpression(arguments[0]);
+        _endArg = ExpressionBuilder.ValidateNumericExpression(arguments[1]);
+        _percentArg = ExpressionBuilder.ValidateNumericExpression(arguments[2]);
     }
 
-    protected override float Evaluate()
+    public float GetValue()
     {
         return Mathf.Lerp(
             _startArg.GetValue(),
             _endArg.GetValue(),
             _percentArg.GetValue());
-    }
-
-    public override void Reset()
-    {
-        _startArg.Reset();
-        _endArg.Reset();
-        _percentArg.Reset();
-
-        base.Reset();
     }
 
     public override string ToString()

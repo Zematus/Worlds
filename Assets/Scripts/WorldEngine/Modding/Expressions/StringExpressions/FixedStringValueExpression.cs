@@ -7,17 +7,17 @@ public class FixedStringValueExpression : IStringExpression
 {
     public const string Regex = @"^" + ModUtility.IdentifierRegexPart + @"\s*$";
 
-    public string StringValue;
+    private string _value;
 
     public FixedStringValueExpression(string identifier)
     {
-        StringValue = identifier;
+        _value = identifier;
     }
 
-    public string Value => StringValue;
+    public string Value => _value;
 
     public override string ToString()
     {
-        return StringValue.ToString();
+        return _value;
     }
 }

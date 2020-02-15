@@ -5,14 +5,15 @@ using System.Text.RegularExpressions;
 
 public class SumExpression : BinaryOpNumericExpression
 {
-    public SumExpression(Expression expressionA, Expression expressionB) : base(expressionA, expressionB)
+    public SumExpression(IExpression expressionA, IExpression expressionB)
+        : base("+", expressionA, expressionB)
     {
     }
 
-    public static Expression Build(Context context, string expressionAStr, string expressionBStr)
+    public static IExpression Build(Context context, string expressionAStr, string expressionBStr)
     {
-        Expression expressionA = BuildExpression(context, expressionAStr);
-        Expression expressionB = BuildExpression(context, expressionBStr);
+        IExpression expressionA = ExpressionBuilder.BuildExpression(context, expressionAStr);
+        IExpression expressionB = ExpressionBuilder.BuildExpression(context, expressionBStr);
 
         if ((expressionA is FixedNumberExpression) &&
             (expressionB is FixedNumberExpression))
@@ -28,13 +29,8 @@ public class SumExpression : BinaryOpNumericExpression
         return new SumExpression(expressionA, expressionB);
     }
 
-    protected override float Evaluate()
+    public override float GetValue()
     {
-        return ExpressionA.GetValue() + ExpressionB.GetValue();
-    }
-
-    public override string ToString()
-    {
-        return ExpressionA.ToString() + " + " + ExpressionB.ToString();
+        return _numExpressionA.GetValue() + _numExpressionB.GetValue();
     }
 }

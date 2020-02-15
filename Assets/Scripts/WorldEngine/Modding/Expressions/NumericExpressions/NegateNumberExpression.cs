@@ -5,13 +5,13 @@ using System.Text.RegularExpressions;
 
 public class NegateNumberExpression : UnaryOpNumericExpression
 {
-    public NegateNumberExpression(Expression expression) : base(expression)
+    public NegateNumberExpression(IExpression expression) : base("-", expression)
     {
     }
 
-    public static Expression Build(Context context, string expressionStr)
+    public static IExpression Build(Context context, string expressionStr)
     {
-        Expression expression = BuildExpression(context, expressionStr);
+        IExpression expression = ExpressionBuilder.BuildExpression(context, expressionStr);
 
         if (expression is FixedNumberExpression)
         {
@@ -25,13 +25,8 @@ public class NegateNumberExpression : UnaryOpNumericExpression
         return new NegateNumberExpression(expression);
     }
 
-    protected override float Evaluate()
+    public override float GetValue()
     {
-        return -Expression.GetValue();
-    }
-
-    public override string ToString()
-    {
-        return "-" + Expression.ToString();
+        return -_numExpression.GetValue();
     }
 }

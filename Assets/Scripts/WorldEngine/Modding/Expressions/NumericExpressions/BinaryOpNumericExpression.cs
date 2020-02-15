@@ -3,28 +3,17 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public abstract class BinaryOpNumericExpression : NumericExpression
+public abstract class BinaryOpNumericExpression : BinaryOpExpression, INumericExpression
 {
-    public NumericExpression ExpressionA;
-    public NumericExpression ExpressionB;
+    protected INumericExpression _numExpressionA;
+    protected INumericExpression _numExpressionB;
 
-    public BinaryOpNumericExpression(Context context, string expressionAStr, string expressionBStr)
+    public BinaryOpNumericExpression(string opStr, IExpression expressionA, IExpression expressionB)
+        : base(opStr, expressionA, expressionB)
     {
-        ExpressionA = ValidateExpression(BuildExpression(context, expressionAStr));
-        ExpressionB = ValidateExpression(BuildExpression(context, expressionBStr));
+        _numExpressionA = ExpressionBuilder.ValidateNumericExpression(expressionA);
+        _numExpressionA = ExpressionBuilder.ValidateNumericExpression(expressionB);
     }
 
-    public BinaryOpNumericExpression(Expression expressionA, Expression expressionB)
-    {
-        ExpressionA = ValidateExpression(expressionA);
-        ExpressionB = ValidateExpression(expressionB);
-    }
-
-    public override void Reset()
-    {
-        ExpressionA.Reset();
-        ExpressionB.Reset();
-
-        base.Reset();
-    }
+    public abstract float GetValue();
 }

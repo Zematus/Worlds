@@ -21,11 +21,6 @@ public abstract class BooleanExpression : Expression
         return _cachedValue;
     }
 
-    public override void Reset()
-    {
-        _evaluated = false;
-    }
-
     public static BooleanExpression ValidateExpression(Expression expression)
     {
         if (!(expression is BooleanExpression boolExpression))

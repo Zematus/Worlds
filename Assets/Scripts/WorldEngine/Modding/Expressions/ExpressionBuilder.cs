@@ -3,9 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public abstract class Expression
+public static class ExpressionBuilder
 {
-    public static Expression BuildExpression(Context context, string expressionStr)
+    public static IExpression BuildExpression(Context context, string expressionStr)
     {
 #if DEBUG
         //TestMatch(context, expressionStr);
@@ -65,12 +65,12 @@ public abstract class Expression
         throw new System.ArgumentException("Not a valid parseable expression: " + expressionStr);
     }
 
-    private static Expression BuildAccessorOpExpression(Context context, Match match)
+    private static IExpression BuildAccessorOpExpression(Context context, Match match)
     {
         string entityStr = match.Groups["statement"].Value;
         string attributeStr = match.Groups["attribute"].Value;
 
-        Expression expression = BuildExpression(context, entityStr);
+        IExpression expression = BuildExpression(context, entityStr);
 
         if (!(expression is EntityExpression entExpression))
         {
@@ -82,7 +82,7 @@ public abstract class Expression
         string identifier = match.Groups["identifier"].Value;
         string arguments = match.Groups["arguments"].Value;
 
-        Expression[] argExpressions = null;
+        IExpression[] argExpressions = null;
         if (!string.IsNullOrWhiteSpace(arguments))
         {
             argExpressions = BuildFunctionArgumentExpressions(context, arguments);
@@ -200,9 +200,9 @@ public abstract class Expression
     }
 #endif
 
-    private static Expression[] BuildFunctionArgumentExpressions(Context context, string arguments)
+    private static IExpression[] BuildFunctionArgumentExpressions(Context context, string arguments)
     {
-        List<Expression> argExpressions = new List<Expression>();
+        List<IExpression> argExpressions = new List<IExpression>();
 
         Match match = Regex.Match(arguments, ModUtility.ArgumentListRegex);
 //
@@ -237,12 +237,12 @@ public abstract class Expression
         return argExpressions.ToArray();
     }
 
-    private static Expression BuildIdentifierExpression(Context context, Match match)
+    private static IExpression BuildIdentifierExpression(Context context, Match match)
     {
         string identifier = match.Groups["identifier"].Value.Trim();
         string arguments = match.Groups["arguments"].Value;
 
-        Expression[] argExpressions = null;
+        IExpression[] argExpressions = null;
         if (!string.IsNullOrWhiteSpace(arguments))
         {
             argExpressions = BuildFunctionArgumentExpressions(context, arguments);
@@ -262,7 +262,7 @@ public abstract class Expression
         throw new System.ArgumentException("Unrecognized function identifier: " + identifier);
     }
 
-    private static Expression BuildUnaryOpExpression(Context context, Match match)
+    private static IExpression BuildUnaryOpExpression(Context context, Match match)
     {
         string unaryOp = match.Groups["unaryOp"].Value.Trim();
         string expressionStr = match.Groups["statement"].Value;
@@ -278,7 +278,7 @@ public abstract class Expression
         throw new System.ArgumentException("Unrecognized unary op: " + unaryOp);
     }
 
-    private static Expression BuildBinaryOpExpression(Context context, Match match)
+    private static IExpression BuildBinaryOpExpression(Context context, Match match)
     {
         string binaryOp = match.Groups["binaryOp"].Value.Trim();
         string expressionAStr = match.Groups["statement1"].Value;
@@ -315,7 +315,7 @@ public abstract class Expression
         throw new System.ArgumentException("Unrecognized binary op: " + binaryOp);
     }
 
-    private static Expression BuildBaseExpression(Context context, Match match)
+    private static IExpression BuildBaseExpression(Context context, Match match)
     {
         string number = match.Groups["number"].Value;
         string boolean = match.Groups["boolean"].Value;
@@ -338,7 +338,7 @@ public abstract class Expression
                 return new FixedEntityExpression(entity);
             }
 
-            if (context.Expressions.TryGetValue(identifierStatement, out Expression expression))
+            if (context.Expressions.TryGetValue(identifierStatement, out IExpression expression))
             {
                 return expression;
             }
@@ -349,7 +349,7 @@ public abstract class Expression
         throw new System.ArgumentException("Unrecognized statement: " + match.Value);
     }
 
-    public static IStringExpression ValidateStringExpression(Expression expression)
+    public static IStringExpression ValidateStringExpression(IExpression expression)
     {
         if (!(expression is IStringExpression strExpression))
         {
@@ -357,5 +357,25 @@ public abstract class Expression
         }
 
         return strExpression;
+    }
+
+    public static IEntityExpression ValidateEntityExpression(IExpression expression)
+    {
+        if (!(expression is IEntityExpression entExpression))
+        {
+            throw new System.ArgumentException(expression + " is not a valid entity expression");
+        }
+
+        return entExpression;
+    }
+
+    public static INumericExpression ValidateNumericExpression(IExpression expression)
+    {
+        if (!(expression is INumericExpression numExpression))
+        {
+            throw new System.ArgumentException(expression + " is not a valid number expression");
+        }
+
+        return numExpression;
     }
 }

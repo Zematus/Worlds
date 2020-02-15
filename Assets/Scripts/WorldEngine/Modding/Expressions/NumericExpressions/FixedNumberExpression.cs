@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class FixedNumberExpression : NumericExpression
+public class FixedNumberExpression : INumericExpression
 {
     public const string Regex = @"^" + ModUtility.NumberRegexPart + @"\s*$";
 
@@ -29,12 +29,7 @@ public class FixedNumberExpression : NumericExpression
         NumberValue = value;
     }
 
-    protected override float Evaluate()
-    {
-        return NumberValue;
-    }
-
-    public override float GetValue()
+    public float GetValue()
     {
         return NumberValue;
     }

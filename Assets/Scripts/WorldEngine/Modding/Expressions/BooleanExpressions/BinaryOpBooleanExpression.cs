@@ -19,12 +19,4 @@ public abstract class BinaryOpBooleanExpression : BooleanExpression
         ExpressionA = expressionA;
         ExpressionB = expressionB;
     }
-
-    public override void Reset()
-    {
-        ExpressionA.Reset();
-        ExpressionB.Reset();
-
-        base.Reset();
-    }
 }

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System;
 
-public class EntityEntityAttributeExpression : EntityExpression
+public class EntityEntityAttributeExpression : IEntityExpression
 {
     private readonly string _expressionStr;
     private readonly string _attributeId;
@@ -20,17 +20,7 @@ public class EntityEntityAttributeExpression : EntityExpression
         _arguments = args;
     }
 
-    public override Entity GetEntity()
-    {
-        return _attribute.GetEntity();
-    }
-
-    public override void Reset()
-    {
-        _attribute.Reset();
-
-        base.Reset();
-    }
+    public Entity Entity => _attribute.GetEntity();
 
     public override string ToString()
     {

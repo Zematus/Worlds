@@ -3,24 +3,15 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public abstract class UnaryOpNumericExpression : NumericExpression
+public abstract class UnaryOpNumericExpression : UnaryOpExpression, INumericExpression
 {
-    public NumericExpression Expression;
+    protected INumericExpression _numExpression;
 
-    public UnaryOpNumericExpression(Context context, string expressionStr)
+    public UnaryOpNumericExpression(string opStr, IExpression expression) :
+        base(opStr, expression)
     {
-        Expression = ValidateExpression(BuildExpression(context, expressionStr));
+        _numExpression = ExpressionBuilder.ValidateNumericExpression(expression);
     }
 
-    public UnaryOpNumericExpression(Expression expression)
-    {
-        Expression = ValidateExpression(expression);
-    }
-
-    public override void Reset()
-    {
-        Expression.Reset();
-
-        base.Reset();
-    }
+    public abstract float GetValue();
 }

@@ -5,14 +5,15 @@ using System.Text.RegularExpressions;
 
 public class SubstractExpression : BinaryOpNumericExpression
 {
-    public SubstractExpression(Expression expressionA, Expression expressionB) : base(expressionA, expressionB)
+    public SubstractExpression(IExpression expressionA, IExpression expressionB)
+        : base("-", expressionA, expressionB)
     {
     }
 
-    public static Expression Build(Context context, string expressionAStr, string expressionBStr)
+    public static IExpression Build(Context context, string expressionAStr, string expressionBStr)
     {
-        Expression expressionA = BuildExpression(context, expressionAStr);
-        Expression expressionB = BuildExpression(context, expressionBStr);
+        IExpression expressionA = ExpressionBuilder.BuildExpression(context, expressionAStr);
+        IExpression expressionB = ExpressionBuilder.BuildExpression(context, expressionBStr);
 
         if ((expressionA is FixedNumberExpression) &&
             (expressionB is FixedNumberExpression))
@@ -28,13 +29,8 @@ public class SubstractExpression : BinaryOpNumericExpression
         return new SubstractExpression(expressionA, expressionB);
     }
 
-    protected override float Evaluate()
+    public override float GetValue()
     {
-        return ExpressionA.GetValue() - ExpressionB.GetValue();
-    }
-
-    public override string ToString()
-    {
-        return ExpressionA.ToString() + " - " + ExpressionB.ToString();
+        return _numExpressionA.GetValue() - _numExpressionB.GetValue();
     }
 }

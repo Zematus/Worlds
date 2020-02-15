@@ -7,7 +7,7 @@ public abstract class Context
 {
     readonly public string Id;
 
-    readonly public Dictionary<string, Expression> Expressions = new Dictionary<string, Expression>();
+    readonly public Dictionary<string, IExpression> Expressions = new Dictionary<string, IExpression>();
     readonly public Dictionary<string, Entity> Entities = new Dictionary<string, Entity>();
 
     public Context(string id)
@@ -17,7 +17,7 @@ public abstract class Context
 
     public void Reset()
     {
-        foreach (Expression expression in Expressions.Values)
+        foreach (IExpression expression in Expressions.Values)
         {
             //expression.Reset();
         }

@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class NumericEntityAttributeExpression : NumericExpression
+public class NumericEntityAttributeExpression : INumericExpression
 {
     private readonly string _expressionStr;
     private readonly string _attributeId;
@@ -19,16 +19,9 @@ public class NumericEntityAttributeExpression : NumericExpression
         _arguments = args;
     }
 
-    protected override float Evaluate()
+    public float GetValue()
     {
         return _attribute.GetValue();
-    }
-
-    public override void Reset()
-    {
-        _attribute.Reset();
-
-        base.Reset();
     }
 
     public override string ToString()

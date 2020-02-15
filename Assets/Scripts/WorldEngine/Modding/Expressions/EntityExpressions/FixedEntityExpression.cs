@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System;
 
-public class FixedEntityExpression : EntityExpression
+public class FixedEntityExpression : IEntityExpression
 {
     private readonly Entity _entity;
 
@@ -18,8 +18,5 @@ public class FixedEntityExpression : EntityExpression
         return _entity.Id;
     }
 
-    public override Entity GetEntity()
-    {
-        return _entity;
-    }
+    public Entity Entity => _entity;
 }

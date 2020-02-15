@@ -16,11 +16,4 @@ public abstract class UnaryOpBooleanExpression : BooleanExpression
     {
         Expression = ValidateExpression(expression);
     }
-
-    public override void Reset()
-    {
-        Expression.Reset();
-
-        base.Reset();
-    }
 }
