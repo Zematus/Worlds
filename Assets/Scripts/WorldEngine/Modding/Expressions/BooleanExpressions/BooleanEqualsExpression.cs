@@ -5,12 +5,17 @@ using System.Text.RegularExpressions;
 
 public class BooleanEqualsExpression : EqualsExpression
 {
-    protected BooleanEqualsExpression(BooleanExpression expressionA, BooleanExpression expressionB) :
+    private IBooleanExpression _boolExpressionA;
+    private IBooleanExpression _boolExpressionB;
+
+    protected BooleanEqualsExpression(IBooleanExpression expressionA, IBooleanExpression expressionB) :
         base(expressionA, expressionB)
     {
+        _boolExpressionA = ExpressionBuilder.ValidateBooleanExpression(expressionA);
+        _boolExpressionB = ExpressionBuilder.ValidateBooleanExpression(expressionB);
     }
 
-    public static Expression Build(BooleanExpression expressionA, BooleanExpression expressionB)
+    public static IExpression Build(IBooleanExpression expressionA, IBooleanExpression expressionB)
     {
         if ((expressionA is FixedBooleanValueExpression) &&
             (expressionB is FixedBooleanValueExpression))
@@ -24,10 +29,5 @@ public class BooleanEqualsExpression : EqualsExpression
         return new BooleanEqualsExpression(expressionA, expressionB);
     }
 
-    protected override bool Evaluate()
-    {
-        return
-            (ExpressionA as BooleanExpression).GetValue()
-            == (ExpressionB as BooleanExpression).GetValue();
-    }
+    public override bool Value => _boolExpressionA.Value == _boolExpressionB.Value;
 }

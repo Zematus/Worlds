@@ -72,7 +72,7 @@ public static class ExpressionBuilder
 
         IExpression expression = BuildExpression(context, entityStr);
 
-        if (!(expression is EntityExpression entExpression))
+        if (!(expression is IEntityExpression entExpression))
         {
             throw new System.ArgumentException("Not a valid entity expression: " + expression);
         }
@@ -88,26 +88,26 @@ public static class ExpressionBuilder
             argExpressions = BuildFunctionArgumentExpressions(context, arguments);
         }
 
-        EntityAttribute attribute = entExpression.GetEntity().GetAttribute(identifier, argExpressions);
+        EntityAttribute attribute = entExpression.Entity.GetAttribute(identifier, argExpressions);
 
         if (attribute is BooleanEntityAttribute)
         {
-            return new BooleanEntityAttributeExpression(attribute, entityStr, identifier, arguments);
+            return new BooleanEntityAttributeExpression(attribute, arguments);
         }
 
         if (attribute is EntityEntityAttribute)
         {
-            return new EntityEntityAttributeExpression(attribute, entityStr, identifier, arguments);
+            return new EntityEntityAttributeExpression(attribute, arguments);
         }
 
         if (attribute is NumericEntityAttribute)
         {
-            return new NumericEntityAttributeExpression(attribute, entityStr, identifier, arguments);
+            return new NumericEntityAttributeExpression(attribute, arguments);
         }
 
         if (attribute is StringEntityAttribute)
         {
-            return new StringEntityAttributeExpression(attribute, entityStr, identifier, arguments);
+            return new StringEntityAttributeExpression(attribute, arguments);
         }
 
         throw new System.ArgumentException("Unrecognized attribute type: " + attribute.GetType());
@@ -335,7 +335,7 @@ public static class ExpressionBuilder
         {
             if (context.Entities.TryGetValue(identifierStatement, out Entity entity))
             {
-                return new FixedEntityExpression(entity);
+                return new EntityExpression(entity);
             }
 
             if (context.Expressions.TryGetValue(identifierStatement, out IExpression expression))
@@ -377,5 +377,15 @@ public static class ExpressionBuilder
         }
 
         return numExpression;
+    }
+
+    public static IBooleanExpression ValidateBooleanExpression(IExpression expression)
+    {
+        if (!(expression is IBooleanExpression boolExpression))
+        {
+            throw new System.ArgumentException(expression + " is not a valid boolean expression");
+        }
+
+        return boolExpression;
     }
 }

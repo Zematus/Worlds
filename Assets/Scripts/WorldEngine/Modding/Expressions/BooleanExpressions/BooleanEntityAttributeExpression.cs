@@ -3,30 +3,16 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class BooleanEntityAttributeExpression : BooleanExpression
+public class BooleanEntityAttributeExpression : EntityAttributeExpression, IBooleanExpression
 {
-    private readonly string _expressionStr;
-    private readonly string _attributeId;
-    private readonly string _arguments;
-    private readonly BooleanEntityAttribute _attribute;
+    private readonly BooleanEntityAttribute _boolAttribute;
 
     public BooleanEntityAttributeExpression(
-        EntityAttribute attribute, string expStr, string attrId, string args)
+        EntityAttribute attribute, string args)
+        : base(attribute, args)
     {
-        _attribute = attribute as BooleanEntityAttribute;
-        _expressionStr = expStr;
-        _attributeId = attrId;
-        _arguments = args;
+        _boolAttribute = attribute as BooleanEntityAttribute;
     }
 
-    protected override bool Evaluate()
-    {
-        return _attribute.GetValue();
-    }
-
-    public override string ToString()
-    {
-        return _expressionStr + "." + _attributeId
-            + (string.IsNullOrWhiteSpace(_arguments) ? "" : "(" + _arguments + ")");
-    }
+    public bool Value => _boolAttribute.Value;
 }

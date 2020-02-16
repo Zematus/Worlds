@@ -5,15 +5,20 @@ using System.Text.RegularExpressions;
 
 public class CellEntity : Entity
 {
+    public const string BiomeTraitPresenceAttributeId = "biome_trait_presence";
+
     public TerrainCell Cell;
 
-    public class BiomeTraitPresenceAttribute : NumericEntityAttribute
+    protected override object _reference => Cell;
+
+    private class BiomeTraitPresenceAttribute : NumericEntityAttribute
     {
         private CellEntity _cellEntity;
 
         private IStringExpression _argument;
 
-        public BiomeTraitPresenceAttribute(CellEntity cellEntity, Expression[] arguments)
+        public BiomeTraitPresenceAttribute(CellEntity cellEntity, IExpression[] arguments)
+            : base(BiomeTraitPresenceAttributeId, cellEntity)
         {
             _cellEntity = cellEntity;
 
@@ -22,20 +27,21 @@ public class CellEntity : Entity
                 throw new System.ArgumentException("Number of arguments less than 1");
             }
 
-            _argument = Expression.ValidateStringExpression(arguments[0]);
+            _argument = ExpressionBuilder.ValidateStringExpression(arguments[0]);
         }
 
-        public override float GetValue()
-        {
-            return _cellEntity.Cell.GetBiomeTraitPresence(_argument.Value);
-        }
+        public override float Value => _cellEntity.Cell.GetBiomeTraitPresence(_argument.Value);
     }
 
-    public override EntityAttribute GetAttribute(string attributeId, Expression[] arguments = null)
+    public CellEntity(string id) : base(id)
+    {
+    }
+
+    public override EntityAttribute GetAttribute(string attributeId, IExpression[] arguments = null)
     {
         switch (attributeId)
         {
-            case "biome_trait_presence":
+            case BiomeTraitPresenceAttributeId:
                 return new BiomeTraitPresenceAttribute(this, arguments);
         }
 

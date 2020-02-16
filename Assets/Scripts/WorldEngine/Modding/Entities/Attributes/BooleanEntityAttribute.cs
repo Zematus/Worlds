@@ -5,5 +5,8 @@ using System.Text.RegularExpressions;
 
 public abstract class BooleanEntityAttribute : EntityAttribute
 {
-    public abstract bool GetValue();
+    public BooleanEntityAttribute(string id, Entity entity) : base(id, entity)
+    { }
+
+    public abstract bool Value { get; }
 }

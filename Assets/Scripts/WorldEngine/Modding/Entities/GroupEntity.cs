@@ -5,18 +5,27 @@ using System.Text.RegularExpressions;
 
 public class GroupEntity : Entity
 {
+    public const string CellAttributeId = "cell";
+
     private CellGroup _group;
 
-    private CellEntity _cellEntity = new CellEntity();
+    private CellEntity _cellEntity = new CellEntity(CellAttributeId);
     private EntityAttribute _cellEntityAttribute;
 
-    public override EntityAttribute GetAttribute(string attributeId, Expression[] arguments = null)
+    public GroupEntity(string id) : base(id)
+    {
+    }
+
+    protected override object _reference => _group;
+
+    public override EntityAttribute GetAttribute(string attributeId, IExpression[] arguments = null)
     {
         switch (attributeId)
         {
-            case "cell":
+            case CellAttributeId:
                 _cellEntityAttribute =
-                    _cellEntityAttribute ?? new FixedEntityEntityAttribute(_cellEntity);
+                    _cellEntityAttribute ??
+                    new FixedEntityEntityAttribute(_cellEntity, CellAttributeId, this);
                 return _cellEntityAttribute;
         }
 

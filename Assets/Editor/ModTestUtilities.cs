@@ -13,50 +13,61 @@ public class TestContext : Context
 
 public class TestBooleanEntityAttribute : BooleanEntityAttribute
 {
+    public const string TestId = "testBoolAttribute";
+
     private bool _value;
 
-    public TestBooleanEntityAttribute(bool value)
+    public TestBooleanEntityAttribute(Entity entity, bool value)
+        : base(TestId, entity)
     {
         _value = value;
     }
 
-    public override bool GetValue()
-    {
-        return _value;
-    }
+    public override bool Value => _value;
 }
 
 public class TestNumericFunctionEntityAttribute : NumericEntityAttribute
 {
-    private BooleanExpression _argument;
+    public const string TestId = "testNumericFunctionAttribute";
 
-    public TestNumericFunctionEntityAttribute(Expression[] arguments)
+    private IBooleanExpression _argument;
+
+    public TestNumericFunctionEntityAttribute(Entity entity, IExpression[] arguments)
+        : base(TestId, entity)
     {
         if ((arguments == null) || (arguments.Length < 1))
         {
             throw new System.ArgumentException("Number of arguments less than 1");
         }
 
-        _argument = BooleanExpression.ValidateExpression(arguments[0]);
+        _argument = ExpressionBuilder.ValidateBooleanExpression(arguments[0]);
     }
 
-    public override float GetValue()
-    {
-        return (_argument.GetValue()) ? 10 : 2;
-    }
+    public override float Value => (_argument.Value) ? 10 : 2;
 }
 
 public class TestEntity : Entity
 {
+    public const string TestEntityAttributeId = "testEntityAttribute";
+
     private class InternalEntity : Entity
     {
-        private TestBooleanEntityAttribute _boolAttribute = new TestBooleanEntityAttribute(true);
+        public const string TestId = "internalEntity";
 
-        public override EntityAttribute GetAttribute(string attributeId, Expression[] arguments = null)
+        private TestBooleanEntityAttribute _boolAttribute;
+
+        public InternalEntity() : base(TestId)
+        {
+            _boolAttribute = new TestBooleanEntityAttribute(this, true);
+        }
+
+        protected override object _reference => this;
+
+        public override EntityAttribute GetAttribute(string attributeId, IExpression[] arguments = null)
         {
             switch (attributeId)
             {
-                case "testBoolAttribute":
+                case TestBooleanEntityAttribute.TestId:
                     return _boolAttribute;
             }
 
@@ -66,27 +77,32 @@ public class TestEntity : Entity
 
     private InternalEntity _internalEntity = new InternalEntity();
 
-    private TestBooleanEntityAttribute _boolAttribute = new TestBooleanEntityAttribute(false);
+    private TestBooleanEntityAttribute _boolAttribute;
 
     private FixedEntityEntityAttribute _entityAttribute;
 
-    public TestEntity()
+    protected override object _reference => this;
+
+    public TestEntity() : base("testEntity")
     {
-        _entityAttribute = new FixedEntityEntityAttribute(_internalEntity);
+        _boolAttribute =
+            new TestBooleanEntityAttribute(this, false);
+        _entityAttribute =
+            new FixedEntityEntityAttribute(_internalEntity, TestEntityAttributeId, this);
     }
 
-    public override EntityAttribute GetAttribute(string attributeId, Expression[] arguments = null)
+    public override EntityAttribute GetAttribute(string attributeId, IExpression[] arguments = null)
     {
         switch (attributeId)
         {
-            case "testBoolAttribute":
+            case TestBooleanEntityAttribute.TestId:
                 return _boolAttribute;
 
-            case "testEntityAttribute":
+            case TestEntityAttributeId:
                 return _entityAttribute;
 
-            case "testNumericFunctionAttribute":
-                return new TestNumericFunctionEntityAttribute(arguments);
+            case TestNumericFunctionEntityAttribute.TestId:
+                return new TestNumericFunctionEntityAttribute(this, arguments);
         }
 
         return null;

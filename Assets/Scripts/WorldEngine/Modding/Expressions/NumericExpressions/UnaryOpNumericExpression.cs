@@ -13,5 +13,5 @@ public abstract class UnaryOpNumericExpression : UnaryOpExpression, INumericExpr
         _numExpression = ExpressionBuilder.ValidateNumericExpression(expression);
     }
 
-    public abstract float GetValue();
+    public abstract float Value { get; }
 }

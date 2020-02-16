@@ -5,29 +5,29 @@ using System.Text.RegularExpressions;
 
 public class StringEqualsExpression : EqualsExpression
 {
-    protected StringEqualsExpression(IExpression expressionA, IExpression expressionB) :
+    private IStringExpression _strExpressionA;
+    private IStringExpression _strExpressionB;
+
+    protected StringEqualsExpression(IStringExpression expressionA, IStringExpression expressionB) :
         base(expressionA, expressionB)
     {
+        _strExpressionA = ExpressionBuilder.ValidateStringExpression(expressionA);
+        _strExpressionB = ExpressionBuilder.ValidateStringExpression(expressionB);
     }
 
-    public static Expression Build(IStringExpression expressionA, IStringExpression expressionB)
+    public static IExpression Build(IStringExpression expressionA, IStringExpression expressionB)
     {
         if ((expressionA is FixedStringValueExpression) &&
             (expressionB is FixedStringValueExpression))
         {
-            FixedStringValueExpression boolExpA = expressionA as FixedStringValueExpression;
-            FixedStringValueExpression boolExpB = expressionB as FixedStringValueExpression;
+            FixedStringValueExpression expA = expressionA as FixedStringValueExpression;
+            FixedStringValueExpression expB = expressionB as FixedStringValueExpression;
 
-            return new FixedBooleanValueExpression(boolExpA.Value == boolExpB.Value);
+            return new FixedBooleanValueExpression(expA.Value == expB.Value);
         }
 
         return new StringEqualsExpression(expressionA, expressionB);
     }
 
-    protected override bool Evaluate()
-    {
-        return
-            (ExpressionA as IStringExpression).Value
-            == (ExpressionB as IStringExpression).Value;
-    }
+    public override bool Value => _strExpressionA.Value == _strExpressionB.Value;
 }

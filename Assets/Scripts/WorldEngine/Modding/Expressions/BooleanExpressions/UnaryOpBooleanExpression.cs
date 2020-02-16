@@ -3,17 +3,15 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public abstract class UnaryOpBooleanExpression : BooleanExpression
+public abstract class UnaryOpBooleanExpression : UnaryOpExpression, IBooleanExpression
 {
-    public BooleanExpression Expression;
+    protected IBooleanExpression _boolExpression;
 
-    public UnaryOpBooleanExpression(Context context, string expressionStr)
+    public UnaryOpBooleanExpression(string opStr, IExpression expression) :
+        base(opStr, expression)
     {
-        Expression = ValidateExpression(BuildExpression(context, expressionStr));
+        _boolExpression = ExpressionBuilder.ValidateBooleanExpression(expression);
     }
 
-    public UnaryOpBooleanExpression(Expression expression)
-    {
-        Expression = ValidateExpression(expression);
-    }
+    public abstract bool Value { get; }
 }

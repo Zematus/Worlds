@@ -5,28 +5,33 @@ using System.Text.RegularExpressions;
 
 public class FactionEntity : Entity
 {
+    public const string TypeAttributeId = "type";
+    public const string AdministrativeLoadAttributeId = "administrative_load";
+    public const string PreferencesAttributeId = "preferences";
+
     public Faction Faction;
 
     private TypeAttribute _typeAttribute;
 
     private AdministrativeLoadAttribute _administrativeLoadAttribute;
 
-    private CulturalPreferencesEntity _preferencesEntity = new CulturalPreferencesEntity();
+    private CulturalPreferencesEntity _preferencesEntity =
+        new CulturalPreferencesEntity(PreferencesAttributeId);
     private EntityAttribute _preferencesAttribute;
+
+    protected override object _reference => Faction;
 
     public class TypeAttribute : StringEntityAttribute
     {
         private FactionEntity _factionEntity;
 
         public TypeAttribute(FactionEntity factionEntity)
+            : base(TypeAttributeId, factionEntity)
         {
             _factionEntity = factionEntity;
         }
 
-        public override string GetValue()
-        {
-            return _factionEntity.Faction.Type;
-        }
+        public override string Value => _factionEntity.Faction.Type;
     }
 
     public class AdministrativeLoadAttribute : NumericEntityAttribute
@@ -34,33 +39,36 @@ public class FactionEntity : Entity
         private FactionEntity _factionEntity;
 
         public AdministrativeLoadAttribute(FactionEntity factionEntity)
+            : base(AdministrativeLoadAttributeId, factionEntity)
         {
             _factionEntity = factionEntity;
         }
 
-        public override float GetValue()
-        {
-            return _factionEntity.Faction.AdministrativeLoad;
-        }
+        public override float Value => _factionEntity.Faction.AdministrativeLoad;
     }
 
-    public override EntityAttribute GetAttribute(string attributeId, Expression[] arguments = null)
+    public FactionEntity(string id) : base(id)
+    {
+    }
+
+    public override EntityAttribute GetAttribute(string attributeId, IExpression[] arguments = null)
     {
         switch (attributeId)
         {
-            case "type":
+            case TypeAttributeId:
                 _typeAttribute =
                     _typeAttribute ?? new TypeAttribute(this);
                 return _typeAttribute;
 
-            case "administrative_load":
+            case AdministrativeLoadAttributeId:
                 _administrativeLoadAttribute =
                     _administrativeLoadAttribute ?? new AdministrativeLoadAttribute(this);
                 return _administrativeLoadAttribute;
 
-            case "preferences":
+            case PreferencesAttributeId:
                 _preferencesAttribute =
-                    _preferencesAttribute ?? new FixedEntityEntityAttribute(_preferencesEntity);
+                    _preferencesAttribute ??
+                    new FixedEntityEntityAttribute(_preferencesEntity, PreferencesAttributeId, this);
                 return _preferencesAttribute;
         }
 

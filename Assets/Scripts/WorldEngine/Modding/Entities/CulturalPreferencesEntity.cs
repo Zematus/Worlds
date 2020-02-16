@@ -7,31 +7,41 @@ public class CulturalPreferencesEntity : Entity
 {
     public Culture Culture;
 
+    protected override object _reference => Culture;
+
     public class PreferenceAttribute : NumericEntityAttribute
     {
         private CulturalPreferencesEntity _preferencesEntity;
         private string _preferenceId;
 
         public PreferenceAttribute(CulturalPreferencesEntity preferencesEntity, string preferenceId)
+            : base(preferenceId, preferencesEntity)
         {
             _preferencesEntity = preferencesEntity;
             _preferenceId = preferenceId;
         }
 
-        public override float GetValue()
+        public override float Value
         {
-            CulturalPreference preference = _preferencesEntity.Culture.GetPreference(_preferenceId);
-
-            if (preference == null)
+            get
             {
-                return 0;
-            }
+                CulturalPreference preference = _preferencesEntity.Culture.GetPreference(_preferenceId);
 
-            return preference.Value;
+                if (preference == null)
+                {
+                    return 0;
+                }
+
+                return preference.Value;
+            }
         }
     }
 
-    public override EntityAttribute GetAttribute(string attributeId, Expression[] arguments = null)
+    public CulturalPreferencesEntity(string id) : base(id)
+    {
+    }
+
+    public override EntityAttribute GetAttribute(string attributeId, IExpression[] arguments = null)
     {
         if (!CulturalPreference.Preferences.Contains(attributeId))
         {

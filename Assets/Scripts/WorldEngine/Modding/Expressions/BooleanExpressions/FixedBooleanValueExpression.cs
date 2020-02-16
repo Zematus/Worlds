@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class FixedBooleanValueExpression : BooleanExpression
+public class FixedBooleanValueExpression : IBooleanExpression
 {
     public const string Regex = @"^" + ModUtility.BooleanRegexPart + @"\s*$";
 
@@ -29,15 +29,7 @@ public class FixedBooleanValueExpression : BooleanExpression
         BooleanValue = booleanValue;
     }
 
-    protected override bool Evaluate()
-    {
-        return BooleanValue;
-    }
-
-    public override bool GetValue()
-    {
-        return BooleanValue;
-    }
+    public bool Value => BooleanValue;
 
     public override string ToString()
     {

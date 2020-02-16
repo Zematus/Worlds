@@ -6,95 +6,6 @@ using System;
 
 public class ModTest
 {
-    public class TestContext : Context
-    {
-        public TestContext() : base("testContext")
-        {
-        }
-    }
-
-    public class TestBooleanEntityAttribute : BooleanEntityAttribute
-    {
-        private bool _value;
-
-        public TestBooleanEntityAttribute(bool value)
-        {
-            _value = value;
-        }
-
-        public override bool GetValue()
-        {
-            return _value;
-        }
-    }
-
-    public class TestNumericFunctionEntityAttribute : NumericEntityAttribute
-    {
-        private BooleanExpression _argument;
-
-        public TestNumericFunctionEntityAttribute(Expression[] arguments)
-        {
-            if ((arguments == null) || (arguments.Length < 1))
-            {
-                throw new System.ArgumentException("Number of arguments less than 1");
-            }
-
-            _argument = BooleanExpression.ValidateExpression(arguments[0]);
-        }
-
-        public override float GetValue()
-        {
-            return (_argument.GetValue()) ? 10 : 2;
-        }
-    }
-
-    public class TestEntity : Entity
-    {
-        private class InternalEntity : Entity
-        {
-            private TestBooleanEntityAttribute _boolAttribute = new TestBooleanEntityAttribute(true);
-
-            public override EntityAttribute GetAttribute(string attributeId, Expression[] arguments = null)
-            {
-                switch (attributeId)
-                {
-                    case "testBoolAttribute":
-                        return _boolAttribute;
-                }
-
-                return null;
-            }
-        }
-
-        private InternalEntity _internalEntity = new InternalEntity();
-
-        private TestBooleanEntityAttribute _boolAttribute = new TestBooleanEntityAttribute(false);
-
-        private FixedEntityEntityAttribute _entityAttribute;
-
-        public TestEntity()
-        {
-            _entityAttribute = new FixedEntityEntityAttribute(_internalEntity);
-        }
-
-        public override EntityAttribute GetAttribute(string attributeId, Expression[] arguments = null)
-        {
-            switch (attributeId)
-            {
-                case "testBoolAttribute":
-                    return _boolAttribute;
-
-                case "testEntityAttribute":
-                    return _entityAttribute;
-
-                case "testNumericFunctionAttribute":
-                    return new TestNumericFunctionEntityAttribute(arguments);
-            }
-
-            return null;
-        }
-    }
-
     [Test]
     public void ExpressionParseTest()
     {
@@ -104,117 +15,99 @@ public class ModTest
 
         testContext.Expressions.Add(
             "testContextNumericExpression",
-            Expression.BuildExpression(testContext, "-15"));
+            ExpressionBuilder.BuildExpression(testContext, "-15"));
         testContext.Expressions.Add(
             "testContextBooleanExpression",
-            Expression.BuildExpression(testContext, "!true"));
+            ExpressionBuilder.BuildExpression(testContext, "!true"));
 
         testContext.Entities.Add("testEntity", new TestEntity());
 
-        Expression expression = Expression.BuildExpression(testContext, "-5");
+        IExpression expression = ExpressionBuilder.BuildExpression(testContext, "-5");
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
-        Assert.AreEqual(-5, (expression as NumericExpression).GetValue());
+        Assert.AreEqual(-5, (expression as INumericExpression).Value);
 
-        expression = Expression.BuildExpression(testContext, "!false");
-        Assert.AreEqual(true, (expression as BooleanExpression).GetValue());
-
-        Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
-
-        expression = Expression.BuildExpression(testContext, "1 + 1");
-        Assert.AreEqual(2, (expression as NumericExpression).GetValue());
+        expression = ExpressionBuilder.BuildExpression(testContext, "!false");
+        Assert.AreEqual(true, (expression as IBooleanExpression).Value);
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
 
-        expression = Expression.BuildExpression(testContext, "1 + -1 + 2");
-        Assert.AreEqual(2, (expression as NumericExpression).GetValue());
+        expression = ExpressionBuilder.BuildExpression(testContext, "1 + 1");
+        Assert.AreEqual(2, (expression as INumericExpression).Value);
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
 
-        expression = Expression.BuildExpression(testContext, "-1 + 2 + 2");
-        Assert.AreEqual(3, (expression as NumericExpression).GetValue());
+        expression = ExpressionBuilder.BuildExpression(testContext, "1 + -1 + 2");
+        Assert.AreEqual(2, (expression as INumericExpression).Value);
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
 
-        expression = Expression.BuildExpression(testContext, "2 +2+3");
-        Assert.AreEqual(7, (expression as NumericExpression).GetValue());
+        expression = ExpressionBuilder.BuildExpression(testContext, "-1 + 2 + 2");
+        Assert.AreEqual(3, (expression as INumericExpression).Value);
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
 
-        expression = Expression.BuildExpression(testContext, "testContextNumericExpression");
-        Assert.AreEqual(-15, (expression as NumericExpression).GetValue());
+        expression = ExpressionBuilder.BuildExpression(testContext, "2 +2+3");
+        Assert.AreEqual(7, (expression as INumericExpression).Value);
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
 
-        expression = Expression.BuildExpression(testContext, "testContextBooleanExpression");
-        Assert.AreEqual(false, (expression as BooleanExpression).GetValue());
+        expression = ExpressionBuilder.BuildExpression(testContext, "testContextNumericExpression");
+        Assert.AreEqual(-15, (expression as INumericExpression).Value);
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
 
-        expression = Expression.BuildExpression(testContext, "testEntity.testBoolAttribute");
+        expression = ExpressionBuilder.BuildExpression(testContext, "testContextBooleanExpression");
+        Assert.AreEqual(false, (expression as IBooleanExpression).Value);
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
-        Assert.AreEqual(false, (expression as BooleanExpression).GetValue());
 
-        expression = Expression.BuildExpression(
+        expression = ExpressionBuilder.BuildExpression(testContext, "testEntity.testBoolAttribute");
+
+        Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
+        Assert.AreEqual(false, (expression as IBooleanExpression).Value);
+
+        expression = ExpressionBuilder.BuildExpression(
             testContext, "testEntity.testEntityAttribute.testBoolAttribute");
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
-        Assert.AreEqual(true, (expression as BooleanExpression).GetValue());
+        Assert.AreEqual(true, (expression as IBooleanExpression).Value);
 
-        expression = Expression.BuildExpression(
+        expression = ExpressionBuilder.BuildExpression(
             testContext, "lerp(3, -1, 0.5)");
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
-        Assert.AreEqual(1, (expression as NumericExpression).GetValue());
+        Assert.AreEqual(1, (expression as INumericExpression).Value);
 
-        expression = Expression.BuildExpression(
+        expression = ExpressionBuilder.BuildExpression(
             testContext, "lerp(4, (1 - 2), 0.1)");
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
-        Assert.AreEqual(3.5f, (expression as NumericExpression).GetValue());
+        Assert.AreEqual(3.5f, (expression as INumericExpression).Value);
 
-        expression = Expression.BuildExpression(
+        expression = ExpressionBuilder.BuildExpression(
             testContext, "2 + (1 + lerp(3, -1, 0.5))");
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
-        Assert.AreEqual(4, (expression as NumericExpression).GetValue());
+        Assert.AreEqual(4, (expression as INumericExpression).Value);
 
-        expression = Expression.BuildExpression(
+        expression = ExpressionBuilder.BuildExpression(
             testContext, "2 + lerp(0.5 + 0.5 + 2, -1, 0.5) + 1");
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
-        Assert.AreEqual(4, (expression as NumericExpression).GetValue());
+        Assert.AreEqual(4, (expression as INumericExpression).Value);
 
         expression =
-            Expression.BuildExpression(testContext, "testEntity.testNumericFunctionAttribute(true)");
+            ExpressionBuilder.BuildExpression(testContext, "testEntity.testNumericFunctionAttribute(true)");
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
-        Assert.AreEqual(10, (expression as NumericExpression).GetValue());
+        Assert.AreEqual(10, (expression as INumericExpression).Value);
 
         expression =
-            Expression.BuildExpression(testContext, "testEntity.testNumericFunctionAttribute(false)");
+            ExpressionBuilder.BuildExpression(testContext, "testEntity.testNumericFunctionAttribute(false)");
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
-        Assert.AreEqual(2, (expression as NumericExpression).GetValue());
-
-        //expression = Expression.BuildExpression(
-        //    testContext, "testFunction1()");
-
-        //Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
-        //Assert.AreEqual((expression as BooleanExpression).GetValue(), true);
-
-        //expression = Expression.BuildExpression(
-        //    testContext, "testFunction2(true)");
-
-        //Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
-        //Assert.AreEqual((expression as BooleanExpression).GetValue(), true);
-
-        //expression = Expression.BuildExpression(
-        //    testContext, "testFunction3(false ,3 +3, -5)");
-
-        //Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
-        //Assert.AreEqual((expression as BooleanExpression).GetValue(), true);
+        Assert.AreEqual(2, (expression as INumericExpression).Value);
     }
 
     [Test]
@@ -226,7 +119,7 @@ public class ModTest
 
         TestContext testContext = new TestContext();
 
-        GroupEntity testGroupEntity = new GroupEntity();
+        GroupEntity testGroupEntity = new GroupEntity("group");
 
         Biome.ResetBiomes();
         Biome.LoadBiomesFile(Path.Combine("Mods", "Base", "Biomes", "biomes.json"));
@@ -253,41 +146,39 @@ public class ModTest
 
         testContext.Entities.Add("group", testGroupEntity);
 
-        Expression expression =
-            Expression.BuildExpression(testContext, "group.cell.biome_trait_presence(wood)");
+        IExpression expression =
+            ExpressionBuilder.BuildExpression(testContext, "group.cell.biome_trait_presence(wood)");
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
 
         testGroupEntity.Set(testGroup1);
 
-        float numResult = (expression as NumericExpression).GetValue();
+        float numResult = (expression as INumericExpression).Value;
         Debug.Log("Expression evaluation result - 'testGroup1': " + numResult);
         Assert.IsTrue(numResult.IsInsideRange(0.29f, 0.31f));
 
         testGroupEntity.Set(testGroup2);
-        expression.Reset();
 
-        numResult = (expression as NumericExpression).GetValue();
+        numResult = (expression as INumericExpression).Value;
         Debug.Log("Expression evaluation result - 'testGroup2': " + numResult);
         Assert.IsTrue(numResult.IsInsideRange(0.44f, 0.46f));
 
         /////
 
         expression =
-             Expression.BuildExpression(testContext, "group.cell.biome_trait_presence(wood) > 0.4");
+             ExpressionBuilder.BuildExpression(testContext, "group.cell.biome_trait_presence(wood) > 0.4");
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
 
         testGroupEntity.Set(testGroup1);
 
-        bool boolResult = (expression as BooleanExpression).GetValue();
+        bool boolResult = (expression as IBooleanExpression).Value;
         Debug.Log("Expression evaluation result - 'testGroup1': " + boolResult);
         Assert.AreEqual(false, boolResult);
 
         testGroupEntity.Set(testGroup2);
-        expression.Reset();
 
-        boolResult = (expression as BooleanExpression).GetValue();
+        boolResult = (expression as IBooleanExpression).Value;
         Debug.Log("Expression evaluation result - 'testGroup2': " + boolResult);
         Assert.AreEqual(true, boolResult);
     }
@@ -301,7 +192,7 @@ public class ModTest
 
         TestContext testContext = new TestContext();
 
-        FactionEntity testFactionEntity = new FactionEntity();
+        FactionEntity testFactionEntity = new FactionEntity("faction");
 
         testContext.Entities.Add("faction", testFactionEntity);
 
@@ -330,109 +221,105 @@ public class ModTest
 
         ////
 
-        Expression expression =
-            Expression.BuildExpression(testContext, "faction.type");
+        IExpression expression =
+            ExpressionBuilder.BuildExpression(testContext, "faction.type");
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
 
         testFactionEntity.Set(testFaction1);
 
-        string type = (expression as StringExpression).GetValue();
+        string type = (expression as IStringExpression).Value;
         Debug.Log("Expression evaluation result - 'testFaction1': " + type);
         Assert.AreEqual("clan", type);
 
         ////
 
         expression =
-            Expression.BuildExpression(testContext, "faction.type == clan");
+            ExpressionBuilder.BuildExpression(testContext, "faction.type == clan");
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
 
-        bool boolResult = (expression as BooleanExpression).GetValue();
+        bool boolResult = (expression as IBooleanExpression).Value;
         Debug.Log("Expression evaluation result - 'testFaction1': " + boolResult);
         Assert.IsTrue(boolResult);
 
         ////
 
         expression =
-            Expression.BuildExpression(testContext, "faction.administrative_load");
+            ExpressionBuilder.BuildExpression(testContext, "faction.administrative_load");
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
 
-        float floatResult = (expression as NumericExpression).GetValue();
+        float floatResult = (expression as INumericExpression).Value;
         Debug.Log("Expression evaluation result - 'testFaction1': " + floatResult);
         Assert.AreEqual(0.3f, floatResult);
 
         testFactionEntity.Set(testFaction2);
-        expression.Reset();
 
-        floatResult = (expression as NumericExpression).GetValue();
+        floatResult = (expression as INumericExpression).Value;
         Debug.Log("Expression evaluation result - 'testFaction2': " + floatResult);
         Assert.AreEqual(0.7f, floatResult);
 
         ////
 
         expression =
-            Expression.BuildExpression(testContext, "faction.administrative_load > 0.5");
+            ExpressionBuilder.BuildExpression(testContext, "faction.administrative_load > 0.5");
 
         testFactionEntity.Set(testFaction1);
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
 
-        boolResult = (expression as BooleanExpression).GetValue();
+        boolResult = (expression as IBooleanExpression).Value;
         Debug.Log("Expression evaluation result - 'testFaction1': " + boolResult);
         Assert.IsFalse(boolResult);
 
         testFactionEntity.Set(testFaction2);
-        expression.Reset();
 
-        boolResult = (expression as BooleanExpression).GetValue();
+        boolResult = (expression as IBooleanExpression).Value;
         Debug.Log("Expression evaluation result - 'testFaction2': " + boolResult);
         Assert.IsTrue(boolResult);
 
         ////
 
         expression =
-            Expression.BuildExpression(testContext, "faction.preferences.cohesion < 0.7");
+            ExpressionBuilder.BuildExpression(testContext, "faction.preferences.cohesion < 0.7");
 
         testFactionEntity.Set(testFaction1);
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
 
-        boolResult = (expression as BooleanExpression).GetValue();
+        boolResult = (expression as IBooleanExpression).Value;
         Debug.Log("Expression evaluation result - 'testFaction1': " + boolResult);
         Assert.IsTrue(boolResult);
 
         testFactionEntity.Set(testFaction2);
-        expression.Reset();
 
-        boolResult = (expression as BooleanExpression).GetValue();
+        boolResult = (expression as IBooleanExpression).Value;
         Debug.Log("Expression evaluation result - 'testFaction2': " + boolResult);
         Assert.IsFalse(boolResult);
 
         ////
 
         expression =
-            Expression.BuildExpression(testContext, "faction.preferences.authority > 0.5");
+            ExpressionBuilder.BuildExpression(testContext, "faction.preferences.authority > 0.5");
 
         testFactionEntity.Set(testFaction1);
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
 
-        boolResult = (expression as BooleanExpression).GetValue();
+        boolResult = (expression as IBooleanExpression).Value;
         Debug.Log("Expression evaluation result - 'testFaction1': " + boolResult);
         Assert.IsFalse(boolResult);
 
         testFactionEntity.Set(testFaction2);
-        expression.Reset();
 
-        boolResult = (expression as BooleanExpression).GetValue();
+        boolResult = (expression as IBooleanExpression).Value;
         Debug.Log("Expression evaluation result - 'testFaction2': " + boolResult);
         Assert.IsTrue(boolResult);
 
         ////
 
-        expression = Expression.BuildExpression(
+        expression = ExpressionBuilder.BuildExpression(
             testContext,
             "91250 * (1 - faction.administrative_load) * faction.preferences.cohesion");
 
@@ -440,15 +327,14 @@ public class ModTest
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
 
-        floatResult = (expression as NumericExpression).GetValue();
+        floatResult = (expression as INumericExpression).Value;
         Debug.Log("Expression evaluation result - 'testFaction1': " + floatResult);
-        Assert.AreEqual(91251.2969f, floatResult);
+        Assert.AreEqual(38325, floatResult);
 
         testFactionEntity.Set(testFaction2);
-        expression.Reset();
 
-        floatResult = (expression as NumericExpression).GetValue();
+        floatResult = (expression as INumericExpression).Value;
         Debug.Log("Expression evaluation result - 'testFaction2': " + floatResult);
-        Assert.AreEqual(91251.1016f, floatResult);
+        Assert.AreEqual(21900, floatResult);
     }
 }

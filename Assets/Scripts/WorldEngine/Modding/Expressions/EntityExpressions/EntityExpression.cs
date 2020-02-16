@@ -4,11 +4,11 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System;
 
-public class FixedEntityExpression : IEntityExpression
+public class EntityExpression : IEntityExpression
 {
     private readonly Entity _entity;
 
-    public FixedEntityExpression(Entity entity)
+    public EntityExpression(Entity entity)
     {
         _entity = entity;
     }

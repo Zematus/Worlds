@@ -29,8 +29,5 @@ public class MultiplyExpression : BinaryOpNumericExpression
         return new MultiplyExpression(expressionA, expressionB);
     }
 
-    public override float GetValue()
-    {
-        return _numExpressionA.GetValue() * _numExpressionB.GetValue();
-    }
+    public override float Value => _numExpressionA.Value * _numExpressionB.Value;
 }

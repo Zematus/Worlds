@@ -5,44 +5,39 @@ using System.Text.RegularExpressions;
 
 public abstract class EqualsExpression : BinaryOpBooleanExpression
 {
-    protected EqualsExpression(Expression expressionA, Expression expressionB) :
-        base(expressionA, expressionB)
+    protected EqualsExpression(IExpression expressionA, IExpression expressionB) :
+        base("==", expressionA, expressionB)
     {
     }
 
-    public static Expression Build(Context context, string expressionAStr, string expressionBStr)
+    public static IExpression Build(Context context, string expressionAStr, string expressionBStr)
     {
-        Expression expressionA = BuildExpression(context, expressionAStr);
-        Expression expressionB = BuildExpression(context, expressionBStr);
+        IExpression expressionA = ExpressionBuilder.BuildExpression(context, expressionAStr);
+        IExpression expressionB = ExpressionBuilder.BuildExpression(context, expressionBStr);
 
-        if ((expressionA is NumericExpression) &&
-            (expressionB is NumericExpression))
+        if ((expressionA is INumericExpression) &&
+            (expressionB is INumericExpression))
         {
             return NumericEqualsExpression.Build(
-                expressionA as NumericExpression, expressionB as NumericExpression);
+                expressionA as INumericExpression, expressionB as INumericExpression);
         }
 
-        if ((expressionA is BooleanExpression) &&
-            (expressionB is BooleanExpression))
+        if ((expressionA is IBooleanExpression) &&
+            (expressionB is IBooleanExpression))
         {
             return BooleanEqualsExpression.Build(
-                expressionA as BooleanExpression, expressionB as BooleanExpression);
+                expressionA as IBooleanExpression, expressionB as IBooleanExpression);
         }
 
-        if ((expressionA is StringExpression) &&
-            (expressionB is StringExpression))
+        if ((expressionA is IStringExpression) &&
+            (expressionB is IStringExpression))
         {
             return StringEqualsExpression.Build(
-                expressionA as StringExpression, expressionB as StringExpression);
+                expressionA as IStringExpression, expressionB as IStringExpression);
         }
 
         throw new System.ArgumentException(
-            "Unable to compare '" + expressionA.ToString() + "' with '"
-            + expressionB.ToString() + "': expression type mismatch...");
-    }
-
-    public override string ToString()
-    {
-        return ExpressionA.ToString() + " == " + ExpressionB.ToString();
+            "Unable to compare '" + expressionA + "' with '"
+            + expressionB + "': expression type mismatch...");
     }
 }

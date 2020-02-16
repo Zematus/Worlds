@@ -29,10 +29,7 @@ public class FixedNumberExpression : INumericExpression
         NumberValue = value;
     }
 
-    public float GetValue()
-    {
-        return NumberValue;
-    }
+    public float Value => NumberValue;
 
     public override string ToString()
     {

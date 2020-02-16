@@ -5,17 +5,24 @@ using System.Text.RegularExpressions;
 
 public class MoreThanExpression : BinaryOpBooleanExpression
 {
-    public MoreThanExpression(Expression expressionA, Expression expressionB) :
-        base(expressionA, expressionB)
+    private INumericExpression _numExpressionA;
+    private INumericExpression _numExpressionB;
+
+    public MoreThanExpression(IExpression expressionA, IExpression expressionB) :
+        base(">", expressionA, expressionB)
     {
+        _numExpressionA = ExpressionBuilder.ValidateNumericExpression(expressionA);
+        _numExpressionB = ExpressionBuilder.ValidateNumericExpression(expressionB);
     }
 
-    public static Expression Build(Context context, string expressionAStr, string expressionBStr)
+    public static IExpression Build(Context context, string expressionAStr, string expressionBStr)
     {
-        NumericExpression expressionA =
-            NumericExpression.ValidateExpression(BuildExpression(context, expressionAStr));
-        NumericExpression expressionB =
-            NumericExpression.ValidateExpression(BuildExpression(context, expressionBStr));
+        INumericExpression expressionA =
+            ExpressionBuilder.ValidateNumericExpression(
+                ExpressionBuilder.BuildExpression(context, expressionAStr));
+        INumericExpression expressionB =
+            ExpressionBuilder.ValidateNumericExpression(
+                ExpressionBuilder.BuildExpression(context, expressionBStr));
 
         if ((expressionA is FixedNumberExpression) &&
             (expressionB is FixedNumberExpression))
@@ -29,13 +36,5 @@ public class MoreThanExpression : BinaryOpBooleanExpression
         return new MoreThanExpression(expressionA, expressionB);
     }
 
-    protected override bool Evaluate()
-    {
-        return (ExpressionA as NumericExpression).GetValue() > (ExpressionB as NumericExpression).GetValue();
-    }
-
-    public override string ToString()
-    {
-        return ExpressionA.ToString() + " > " + ExpressionB.ToString();
-    }
+    public override bool Value => _numExpressionA.Value > _numExpressionB.Value;
 }

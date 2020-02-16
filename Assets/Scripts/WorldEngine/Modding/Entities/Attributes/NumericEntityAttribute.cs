@@ -5,5 +5,8 @@ using System.Text.RegularExpressions;
 
 public abstract class NumericEntityAttribute : EntityAttribute
 {
-    public abstract float GetValue();
+    public NumericEntityAttribute(string id, Entity entity) : base(id, entity)
+    { }
+
+    public abstract float Value { get; }
 }

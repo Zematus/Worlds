@@ -12,8 +12,8 @@ public abstract class BinaryOpNumericExpression : BinaryOpExpression, INumericEx
         : base(opStr, expressionA, expressionB)
     {
         _numExpressionA = ExpressionBuilder.ValidateNumericExpression(expressionA);
-        _numExpressionA = ExpressionBuilder.ValidateNumericExpression(expressionB);
+        _numExpressionB = ExpressionBuilder.ValidateNumericExpression(expressionB);
     }
 
-    public abstract float GetValue();
+    public abstract float Value { get; }
 }

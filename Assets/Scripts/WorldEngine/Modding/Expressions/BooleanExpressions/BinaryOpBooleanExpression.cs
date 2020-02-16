@@ -3,20 +3,12 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public abstract class BinaryOpBooleanExpression : BooleanExpression
+public abstract class BinaryOpBooleanExpression : BinaryOpExpression, IBooleanExpression
 {
-    public Expression ExpressionA;
-    public Expression ExpressionB;
-
-    public BinaryOpBooleanExpression(Context context, string expressionAStr, string expressionBStr)
+    public BinaryOpBooleanExpression(string opStr, IExpression expressionA, IExpression expressionB)
+        : base(opStr, expressionA, expressionB)
     {
-        ExpressionA = BuildExpression(context, expressionAStr);
-        ExpressionB = BuildExpression(context, expressionBStr);
     }
 
-    public BinaryOpBooleanExpression(Expression expressionA, Expression expressionB)
-    {
-        ExpressionA = expressionA;
-        ExpressionB = expressionB;
-    }
+    public abstract bool Value { get; }
 }

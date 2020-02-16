@@ -5,15 +5,13 @@ using System.Text.RegularExpressions;
 
 public class FixedEntityEntityAttribute : EntityEntityAttribute
 {
-    private readonly Entity _entity;
+    private readonly Entity _atrEntity;
 
-    public FixedEntityEntityAttribute(Entity entity)
+    public FixedEntityEntityAttribute(Entity attrEntity, string id, Entity entity)
+        : base(id, entity)
     {
-        _entity = entity;
+        _atrEntity = attrEntity;
     }
 
-    public override Entity GetEntity()
-    {
-        return _entity;
-    }
+    public override Entity AttributeEntity => _atrEntity;
 }

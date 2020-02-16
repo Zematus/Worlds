@@ -21,13 +21,10 @@ public class LerpFunctionExpression : INumericExpression
         _percentArg = ExpressionBuilder.ValidateNumericExpression(arguments[2]);
     }
 
-    public float GetValue()
-    {
-        return Mathf.Lerp(
-            _startArg.GetValue(),
-            _endArg.GetValue(),
-            _percentArg.GetValue());
-    }
+    public float Value => Mathf.Lerp(
+            _startArg.Value,
+            _endArg.Value,
+            _percentArg.Value);
 
     public override string ToString()
     {

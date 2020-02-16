@@ -5,5 +5,5 @@ using System.Text.RegularExpressions;
 
 public interface INumericExpression : IExpression
 {
-    float GetValue();
+    float Value { get; }
 }
