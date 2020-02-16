@@ -7,8 +7,8 @@ public class FixedEntityEntityAttribute : EntityEntityAttribute
 {
     private readonly Entity _atrEntity;
 
-    public FixedEntityEntityAttribute(Entity attrEntity, string id, Entity entity)
-        : base(id, entity)
+    public FixedEntityEntityAttribute(Entity attrEntity, string id, Entity entity, IExpression[] arguments)
+        : base(id, entity, arguments)
     {
         _atrEntity = attrEntity;
     }

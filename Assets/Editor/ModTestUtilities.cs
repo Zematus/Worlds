@@ -18,7 +18,7 @@ public class TestBooleanEntityAttribute : BooleanEntityAttribute
     private bool _value;
 
     public TestBooleanEntityAttribute(Entity entity, bool value)
-        : base(TestId, entity)
+        : base(TestId, entity, null)
     {
         _value = value;
     }
@@ -33,7 +33,7 @@ public class TestNumericFunctionEntityAttribute : NumericEntityAttribute
     private IBooleanExpression _argument;
 
     public TestNumericFunctionEntityAttribute(Entity entity, IExpression[] arguments)
-        : base(TestId, entity)
+        : base(TestId, entity, null)
     {
         if ((arguments == null) || (arguments.Length < 1))
         {
@@ -88,7 +88,7 @@ public class TestEntity : Entity
         _boolAttribute =
             new TestBooleanEntityAttribute(this, false);
         _entityAttribute =
-            new FixedEntityEntityAttribute(_internalEntity, TestEntityAttributeId, this);
+            new FixedEntityEntityAttribute(_internalEntity, TestEntityAttributeId, this, null);
     }
 
     public override EntityAttribute GetAttribute(string attributeId, IExpression[] arguments = null)

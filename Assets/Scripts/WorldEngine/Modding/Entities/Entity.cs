@@ -14,6 +14,11 @@ public abstract class Entity
         Id = id;
     }
 
+    protected string BuildInternalEntityId(string entityId)
+    {
+        return Id + "." + entityId;
+    }
+
     public abstract EntityAttribute GetAttribute(string attributeId, IExpression[] arguments = null);
 
     public override bool Equals(object obj)

@@ -5,8 +5,14 @@ using System.Text.RegularExpressions;
 
 public abstract class EntityEntityAttribute : EntityAttribute
 {
-    public EntityEntityAttribute(string id, Entity entity) : base(id, entity)
+    public EntityEntityAttribute(string id, Entity entity, IExpression[] arguments)
+        : base(id, entity, arguments)
     { }
 
     public abstract Entity AttributeEntity { get; }
+
+    protected override EntityAttributeExpression BuildExpression()
+    {
+        return new EntityEntityAttributeExpression(this);
+    }
 }

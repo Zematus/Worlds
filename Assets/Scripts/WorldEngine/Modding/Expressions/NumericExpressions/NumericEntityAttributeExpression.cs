@@ -8,8 +8,7 @@ public class NumericEntityAttributeExpression : EntityAttributeExpression, INume
     private readonly NumericEntityAttribute _numAttribute;
 
     public NumericEntityAttributeExpression(
-        EntityAttribute attribute, string args)
-        : base(attribute, args)
+        EntityAttribute attribute) : base(attribute)
     {
         _numAttribute = attribute as NumericEntityAttribute;
     }

@@ -90,27 +90,7 @@ public static class ExpressionBuilder
 
         EntityAttribute attribute = entExpression.Entity.GetAttribute(identifier, argExpressions);
 
-        if (attribute is BooleanEntityAttribute)
-        {
-            return new BooleanEntityAttributeExpression(attribute, arguments);
-        }
-
-        if (attribute is EntityEntityAttribute)
-        {
-            return new EntityEntityAttributeExpression(attribute, arguments);
-        }
-
-        if (attribute is NumericEntityAttribute)
-        {
-            return new NumericEntityAttributeExpression(attribute, arguments);
-        }
-
-        if (attribute is StringEntityAttribute)
-        {
-            return new StringEntityAttributeExpression(attribute, arguments);
-        }
-
-        throw new System.ArgumentException("Unrecognized attribute type: " + attribute.GetType());
+        return attribute.GetExpression();
     }
 
 #if DEBUG
@@ -387,5 +367,15 @@ public static class ExpressionBuilder
         }
 
         return boolExpression;
+    }
+
+    public static IEffectExpression ValidateEffectExpression(IExpression expression)
+    {
+        if (!(expression is IEffectExpression effectExpression))
+        {
+            throw new System.ArgumentException(expression + " is not a valid effect expression");
+        }
+
+        return effectExpression;
     }
 }

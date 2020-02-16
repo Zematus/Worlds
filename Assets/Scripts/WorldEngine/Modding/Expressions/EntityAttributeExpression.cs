@@ -5,19 +5,26 @@ using System.Text.RegularExpressions;
 
 public abstract class EntityAttributeExpression : IExpression
 {
-    private readonly string _arguments;
     private readonly EntityAttribute _attribute;
 
-    public EntityAttributeExpression(
-        EntityAttribute attribute, string args)
+    public EntityAttributeExpression(EntityAttribute attribute)
     {
         _attribute = attribute;
-        _arguments = args;
     }
 
     public override string ToString()
     {
-        return _attribute.Entity.Id + "." + _attribute.Id
-            + (string.IsNullOrWhiteSpace(_arguments) ? "" : "(" + _arguments + ")");
+        string output = _attribute.Entity.Id + "." + _attribute.Id;
+
+        if (_attribute.Arguments == null)
+        {
+            return output;
+        }
+
+        output += "(";
+        output += string.Join<IExpression>(", ", _attribute.Arguments);
+        output += ")";
+
+        return output;
     }
 }

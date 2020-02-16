@@ -14,8 +14,11 @@ public class CulturalPreferencesEntity : Entity
         private CulturalPreferencesEntity _preferencesEntity;
         private string _preferenceId;
 
-        public PreferenceAttribute(CulturalPreferencesEntity preferencesEntity, string preferenceId)
-            : base(preferenceId, preferencesEntity)
+        public PreferenceAttribute(
+            CulturalPreferencesEntity preferencesEntity,
+            string preferenceId,
+            IExpression[] arguments)
+            : base(preferenceId, preferencesEntity, arguments)
         {
             _preferencesEntity = preferencesEntity;
             _preferenceId = preferenceId;
@@ -49,7 +52,7 @@ public class CulturalPreferencesEntity : Entity
                 "Unrecognized cultural preference in entity attribute: " + attributeId);
         }
 
-        return new PreferenceAttribute(this, attributeId);
+        return new PreferenceAttribute(this, attributeId, arguments);
     }
 
     public void Set(Culture culture)

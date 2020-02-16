@@ -18,7 +18,7 @@ public class CellEntity : Entity
         private IStringExpression _argument;
 
         public BiomeTraitPresenceAttribute(CellEntity cellEntity, IExpression[] arguments)
-            : base(BiomeTraitPresenceAttributeId, cellEntity)
+            : base(BiomeTraitPresenceAttributeId, cellEntity, arguments)
         {
             _cellEntity = cellEntity;
 

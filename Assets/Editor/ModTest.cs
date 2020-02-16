@@ -119,7 +119,7 @@ public class ModTest
 
         TestContext testContext = new TestContext();
 
-        GroupEntity testGroupEntity = new GroupEntity("group");
+        GroupEntity testGroupEntity = new GroupEntity("target");
 
         Biome.ResetBiomes();
         Biome.LoadBiomesFile(Path.Combine("Mods", "Base", "Biomes", "biomes.json"));
@@ -144,10 +144,10 @@ public class ModTest
 
         CellGroup testGroup2 = new CellGroup(testWorld, testCell2, 35000);
 
-        testContext.Entities.Add("group", testGroupEntity);
+        testContext.Entities.Add("target", testGroupEntity);
 
         IExpression expression =
-            ExpressionBuilder.BuildExpression(testContext, "group.cell.biome_trait_presence(wood)");
+            ExpressionBuilder.BuildExpression(testContext, "target.cell.biome_trait_presence(wood)");
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
 
@@ -166,7 +166,7 @@ public class ModTest
         /////
 
         expression =
-             ExpressionBuilder.BuildExpression(testContext, "group.cell.biome_trait_presence(wood) > 0.4");
+             ExpressionBuilder.BuildExpression(testContext, "target.cell.biome_trait_presence(wood) > 0.4");
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
 
@@ -192,9 +192,9 @@ public class ModTest
 
         TestContext testContext = new TestContext();
 
-        FactionEntity testFactionEntity = new FactionEntity("faction");
+        FactionEntity testFactionEntity = new FactionEntity("target");
 
-        testContext.Entities.Add("faction", testFactionEntity);
+        testContext.Entities.Add("target", testFactionEntity);
 
         CellGroup.ResetEventGenerators();
         Knowledge.ResetKnowledges();
@@ -222,7 +222,7 @@ public class ModTest
         ////
 
         IExpression expression =
-            ExpressionBuilder.BuildExpression(testContext, "faction.type");
+            ExpressionBuilder.BuildExpression(testContext, "target.type");
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
 
@@ -235,7 +235,7 @@ public class ModTest
         ////
 
         expression =
-            ExpressionBuilder.BuildExpression(testContext, "faction.type == clan");
+            ExpressionBuilder.BuildExpression(testContext, "target.type == clan");
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
 
@@ -246,7 +246,7 @@ public class ModTest
         ////
 
         expression =
-            ExpressionBuilder.BuildExpression(testContext, "faction.administrative_load");
+            ExpressionBuilder.BuildExpression(testContext, "target.administrative_load");
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
 
@@ -263,7 +263,7 @@ public class ModTest
         ////
 
         expression =
-            ExpressionBuilder.BuildExpression(testContext, "faction.administrative_load > 0.5");
+            ExpressionBuilder.BuildExpression(testContext, "target.administrative_load > 0.5");
 
         testFactionEntity.Set(testFaction1);
 
@@ -282,7 +282,7 @@ public class ModTest
         ////
 
         expression =
-            ExpressionBuilder.BuildExpression(testContext, "faction.preferences.cohesion < 0.7");
+            ExpressionBuilder.BuildExpression(testContext, "target.preferences.cohesion < 0.7");
 
         testFactionEntity.Set(testFaction1);
 
@@ -301,7 +301,7 @@ public class ModTest
         ////
 
         expression =
-            ExpressionBuilder.BuildExpression(testContext, "faction.preferences.authority > 0.5");
+            ExpressionBuilder.BuildExpression(testContext, "target.preferences.authority > 0.5");
 
         testFactionEntity.Set(testFaction1);
 
@@ -321,7 +321,7 @@ public class ModTest
 
         expression = ExpressionBuilder.BuildExpression(
             testContext,
-            "91250 * (1 - faction.administrative_load) * faction.preferences.cohesion");
+            "91250 * (1 - target.administrative_load) * target.preferences.cohesion");
 
         testFactionEntity.Set(testFaction1);
 

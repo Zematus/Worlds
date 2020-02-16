@@ -8,8 +8,7 @@ public class StringEntityAttributeExpression : EntityAttributeExpression, IStrin
     private readonly StringEntityAttribute _strAttribute;
 
     public StringEntityAttributeExpression(
-        EntityAttribute attribute, string args)
-        : base(attribute, args)
+        EntityAttribute attribute) : base(attribute)
     {
         _strAttribute = attribute as StringEntityAttribute;
     }

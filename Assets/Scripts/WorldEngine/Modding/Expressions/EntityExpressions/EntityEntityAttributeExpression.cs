@@ -9,8 +9,7 @@ public class EntityEntityAttributeExpression : EntityAttributeExpression, IEntit
     private readonly EntityEntityAttribute _entAttribute;
 
     public EntityEntityAttributeExpression(
-        EntityAttribute attribute, string args)
-        : base(attribute, args)
+        EntityAttribute attribute) : base(attribute)
     {
         _entAttribute = attribute as EntityEntityAttribute;
     }

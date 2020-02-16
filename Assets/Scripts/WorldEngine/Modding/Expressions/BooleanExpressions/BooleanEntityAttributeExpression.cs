@@ -8,8 +8,7 @@ public class BooleanEntityAttributeExpression : EntityAttributeExpression, IBool
     private readonly BooleanEntityAttribute _boolAttribute;
 
     public BooleanEntityAttributeExpression(
-        EntityAttribute attribute, string args)
-        : base(attribute, args)
+        EntityAttribute attribute) : base(attribute)
     {
         _boolAttribute = attribute as BooleanEntityAttribute;
     }

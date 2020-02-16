@@ -7,10 +7,23 @@ public abstract class EntityAttribute
 {
     public string Id;
     public Entity Entity;
+    public IExpression[] Arguments;
 
-    public EntityAttribute(string id, Entity entity)
+    private EntityAttributeExpression _attrExpression = null;
+
+    public EntityAttribute(string id, Entity entity, IExpression[] arguments)
     {
         Id = id;
         Entity = entity;
+        Arguments = arguments;
+    }
+
+    protected abstract EntityAttributeExpression BuildExpression();
+
+    public EntityAttributeExpression GetExpression()
+    {
+        _attrExpression = _attrExpression ?? BuildExpression();
+
+        return _attrExpression;
     }
 }

@@ -9,11 +9,12 @@ public class GroupEntity : Entity
 
     private CellGroup _group;
 
-    private CellEntity _cellEntity = new CellEntity(CellAttributeId);
+    private CellEntity _cellEntity;
     private EntityAttribute _cellEntityAttribute;
 
     public GroupEntity(string id) : base(id)
     {
+        _cellEntity = new CellEntity(BuildInternalEntityId(CellAttributeId));
     }
 
     protected override object _reference => _group;
@@ -25,7 +26,7 @@ public class GroupEntity : Entity
             case CellAttributeId:
                 _cellEntityAttribute =
                     _cellEntityAttribute ??
-                    new FixedEntityEntityAttribute(_cellEntity, CellAttributeId, this);
+                    new FixedEntityEntityAttribute(_cellEntity, CellAttributeId, this, arguments);
                 return _cellEntityAttribute;
         }
 

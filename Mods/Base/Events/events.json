@@ -8,30 +8,29 @@
         {
           "id": "neighborhood_water_presence",
           "type": "value",
-          "value": "(group.cell.biome_trait_presence(water) + group.cell.neighborhood.sum(member.biome_type_presence(water))) / 9"
+          "value": "(target.cell.biome_trait_presence(water) + target.cell.neighborhood.sum(member.biome_type_presence(water))) / 9"
         }
       ],
       "assignmentConditions": [
-        "!group.has_knowledge(shipbuilding)",
-        "group.cell.neighborhood.any(member.biome_type_presence(water) > 0)",
-        "group.cell.biome_trait_presence(wood) > 0.3"],
-      "timeToTrigger": "456250000 * lerp(1, 0.2, neighborhood_water_presence.value) * lerp(1, 0.2, group.cell.biome_trait_presence(wood))",
+        "!target.has_knowledge(shipbuilding)",
+        "target.cell.neighborhood.any(member.biome_type_presence(water) > 0)",
+        "target.cell.biome_trait_presence(wood) > 0.3"],
+      "timeToTrigger": "456250000 * lerp(1, 0.2, neighborhood_water_presence.value) * lerp(1, 0.2, target.cell.biome_trait_presence(wood))",
       "effects": [
-        "group.add_discovery(boat_making)",
-        "group.add_knowledge(shipbuilding, 10)",
-        "group.add_skill(seafaring)"
+        "target.add_discovery(boat_making)",
+        "target.add_knowledge(shipbuilding, 10)",
+        "target.add_skill(seafaring)"
       ]
     },
     {
       "id": "clan_split",
       "name": "clan split",
       "target": "faction",
-      "assignmentConditions": ["faction.type == clan"],
       "triggerConditions": [
-        "faction.administrative_load > 0.5",
-        "!faction.preference.cohesion > 0.7"
+        "target.administrative_load > 0.5",
+        "!target.preference.cohesion > 0.7"
       ],
-      "timeToTrigger": "91250 * faction.administrative_load * faction.preference.cohesion",
+      "timeToTrigger": "91250 * target.administrative_load * target.preference.cohesion",
       "effects": [
         "target.trigger_decision(clan_split)"
       ]
