@@ -263,7 +263,7 @@ public class World : ISynchronizable
         XmlArrayItem(Type = typeof(FosterTribeRelationDecisionEvent)),
         XmlArrayItem(Type = typeof(MergeTribesDecisionEvent)),
         XmlArrayItem(Type = typeof(OpenTribeDecisionEvent)),
-        XmlArrayItem(Type = typeof(Discovery.Event))]
+        XmlArrayItem(Type = typeof(Discovery.DiscoveryEvent))]
     public List<WorldEvent> EventsToHappen;
 
     public List<TerrainCellAlteration> TerrainCellAlterationList = new List<TerrainCellAlteration>();
@@ -544,7 +544,7 @@ public class World : ISynchronizable
     {
         InitializeTerrainLimitsAndSettings(false);
 
-           _accumulatedProgress = accumulatedProgress;
+        _accumulatedProgress = accumulatedProgress;
         _progressIncrement = (maxExpectedProgress - _accumulatedProgress) / TerrainGenerationSteps;
 
         Manager.EnqueueTaskAndWait(() =>
@@ -957,7 +957,7 @@ public class World : ISynchronizable
         MaxTimeToSkip = (value > 1) ? value : 1;
 
         long maxDate = CurrentDate + MaxTimeToSkip;
-        
+
         if (maxDate >= MaxSupportedDate)
         {
             Debug.LogWarning("World.SetMaxTimeToSkip - 'maxDate' is greater than " + MaxSupportedDate + " (date = " + maxDate + ")");
@@ -1257,7 +1257,7 @@ public class World : ISynchronizable
 #endif
 
                 long maxDate = CurrentDate + MaxTimeToSkip;
-                
+
                 if (maxDate >= MaxSupportedDate)
                 {
                     Debug.LogWarning("World.EvaluateEventsToHappen - 'maxDate' is greater than " + MaxSupportedDate + " (date = " + maxDate + ")");
@@ -1468,7 +1468,7 @@ public class World : ISynchronizable
                 if (futureEventToHappen.TriggerDate <= 0)
                 {
                     throw new System.Exception(
-                        "Update - futureEventToHappen.TriggerDate less than or equal to 0: " + 
+                        "Update - futureEventToHappen.TriggerDate less than or equal to 0: " +
                         futureEventToHappen.TriggerDate + ", futureEventToHappen: " + futureEventToHappen);
                 }
             }
@@ -3398,7 +3398,7 @@ public class World : ISynchronizable
             for (int j = 0; j < sizeY; j++)
             {
                 TerrainCell cell = TerrainCells[i][j];
-                
+
                 cell.Altitude = cell.OriginalAltitude;
             }
 
@@ -3418,7 +3418,7 @@ public class World : ISynchronizable
             for (int j = 0; j < sizeY; j++)
             {
                 TerrainCell cell = TerrainCells[i][j];
-                
+
                 cell.Temperature = cell.OriginalTemperature;
             }
 
@@ -3531,7 +3531,7 @@ public class World : ISynchronizable
                 totalAltDifference -= diff;
                 continue;
             }
-            
+
             cellsToKeep.Add(nPair);
         }
 
@@ -3543,12 +3543,12 @@ public class World : ISynchronizable
             if (!redoDrainageForAll && nCell.DrainageDone)
                 continue;
 
-//#if DEBUG
-//            if (nCell == _lowestEvaluatedCell)
-//            {
-//                Debug.Log("_lowestEvaluatedCell (" + nCell.Position + ") being drained on again, now from " + cell.Position);
-//            }
-//#endif
+            //#if DEBUG
+            //            if (nCell == _lowestEvaluatedCell)
+            //            {
+            //                Debug.Log("_lowestEvaluatedCell (" + nCell.Position + ") being drained on again, now from " + cell.Position);
+            //            }
+            //#endif
 
             float nCellAltitude = nAltitudes[nCell];
 
@@ -3593,7 +3593,7 @@ public class World : ISynchronizable
             for (int j = 0; j < Height; j++)
             {
                 TerrainCell cell = TerrainCells[i][j];
-                
+
                 _cellsToDrain.Add(cell);
             }
         }
@@ -3826,7 +3826,7 @@ public class World : ISynchronizable
         }
 
         float temperature = CalculateTemperature(value + cell.BaseTemperatureOffset);
-        
+
         if (!temperature.IsInsideRange(MinPossibleTemperatureWithOffset - 0.5f, MaxPossibleTemperatureWithOffset + 0.5f))
         {
             Debug.LogWarning("CalculateAndSetTemperature - Invalid temperature: " + temperature);
@@ -3849,7 +3849,7 @@ public class World : ISynchronizable
         float offset = cell.BaseTemperatureOffset;
 
         float temperature = CalculateTemperature(value + offset);
-        
+
         if (!temperature.IsInsideRange(MinPossibleTemperatureWithOffset - 0.5f, MaxPossibleTemperatureWithOffset + 0.5f))
         {
             Debug.LogWarning("RecalculateAndSetTemperature - Invalid temperature: " + temperature);

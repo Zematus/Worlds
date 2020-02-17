@@ -6,15 +6,15 @@ using System.Xml.Serialization;
 
 public class Discovery : ICellGroupEventGenerator
 {
-    public class Event : CellGroupEventGeneratorEvent
+    public class DiscoveryEvent : CellGroupEventGeneratorEvent
     {
         private Discovery _discovery;
 
-        public Event()
+        public DiscoveryEvent()
         {
         }
 
-        public Event(
+        public DiscoveryEvent(
             Discovery discovery,
             CellGroup group,
             long triggerDate,
@@ -106,7 +106,7 @@ public class Discovery : ICellGroupEventGenerator
 
     public static void LoadDiscoveriesFile(string filename)
     {
-        foreach (Discovery discovery in DiscoveryLoader.Load(filename))
+        foreach (Discovery discovery in DiscoveryLoader033.Load(filename))
         {
             if (Discoveries.ContainsKey(discovery.Id))
             {
@@ -269,7 +269,7 @@ public class Discovery : ICellGroupEventGenerator
             return null;
         }
 
-        Event discoveryEvent = new Event(this, group, triggerDate, IdHash);
+        DiscoveryEvent discoveryEvent = new DiscoveryEvent(this, group, triggerDate, IdHash);
 
         group.World.InsertEventToHappen(discoveryEvent);
 

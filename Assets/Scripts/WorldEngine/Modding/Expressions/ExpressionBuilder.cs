@@ -329,6 +329,34 @@ public static class ExpressionBuilder
         throw new System.ArgumentException("Unrecognized statement: " + match.Value);
     }
 
+    public static IBooleanExpression[] BuildBooleanExpressions(
+        Context context, ICollection<string> expressionStrs)
+    {
+        IBooleanExpression[] expressions = new IBooleanExpression[expressionStrs.Count];
+
+        int i = 0;
+        foreach (string expStr in expressionStrs)
+        {
+            expressions[i++] = ValidateBooleanExpression(BuildExpression(context, expStr));
+        }
+
+        return expressions;
+    }
+
+    public static IEffectExpression[] BuildEffectExpressions(
+        Context context, ICollection<string> expressionStrs)
+    {
+        IEffectExpression[] expressions = new IEffectExpression[expressionStrs.Count];
+
+        int i = 0;
+        foreach (string expStr in expressionStrs)
+        {
+            expressions[i++] = ValidateEffectExpression(BuildExpression(context, expStr));
+        }
+
+        return expressions;
+    }
+
     public static IStringExpression ValidateStringExpression(IExpression expression)
     {
         if (!(expression is IStringExpression strExpression))

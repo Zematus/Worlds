@@ -6,7 +6,7 @@ using System.IO;
 using System.Text.RegularExpressions;
 
 [Serializable]
-public class DiscoveryLoader
+public class DiscoveryLoader033
 {
 #pragma warning disable 0649
 
@@ -31,7 +31,7 @@ public class DiscoveryLoader
     {
         string jsonStr = File.ReadAllText(filename);
 
-        DiscoveryLoader loader = JsonUtility.FromJson<DiscoveryLoader>(jsonStr);
+        DiscoveryLoader033 loader = JsonUtility.FromJson<DiscoveryLoader033>(jsonStr);
 
         for (int i = 0; i < loader.discoveries.Length; i++)
         {
