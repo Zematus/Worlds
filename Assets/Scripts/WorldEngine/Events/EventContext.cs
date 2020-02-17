@@ -19,10 +19,10 @@ public class EventContext : Context
     {
         switch (targetStr)
         {
-            case Event.FactionTargetType:
+            case EventGenerator.FactionTargetType:
                 Target = new FactionEntity(TargetId);
                 break;
-            case Event.GroupTargetType:
+            case EventGenerator.GroupTargetType:
                 Target = new GroupEntity(TargetId);
                 break;
             default:

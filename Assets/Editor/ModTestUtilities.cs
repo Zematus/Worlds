@@ -6,9 +6,6 @@ using System;
 
 public class TestContext : Context
 {
-    public TestContext() : base("testContext")
-    {
-    }
 }
 
 public class TestBooleanEntityAttribute : BooleanEntityAttribute
