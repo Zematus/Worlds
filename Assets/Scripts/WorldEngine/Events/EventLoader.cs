@@ -25,7 +25,7 @@ public class EventLoader
 
 #pragma warning restore 0649
 
-    public static IEnumerable<Event> Load(string filename)
+    public static IEnumerable<EventGenerator> Load(string filename)
     {
         string jsonStr = File.ReadAllText(filename);
 
@@ -33,11 +33,11 @@ public class EventLoader
 
         for (int i = 0; i < loader.events.Length; i++)
         {
-            Event ev = null;
+            EventGenerator generator = null;
 
             try
             {
-                ev = CreateEvent(loader.events[i]);
+                generator = CreateEventGenerator(loader.events[i]);
             }
             catch (Exception e)
             {
@@ -46,11 +46,11 @@ public class EventLoader
                     + e.Message, e);
             }
 
-            yield return ev;
+            yield return generator;
         }
     }
 
-    private static Event CreateEvent(LoadedEvent e)
+    private static EventGenerator CreateEventGenerator(LoadedEvent e)
     {
         if (string.IsNullOrEmpty(e.id))
         {
@@ -101,22 +101,18 @@ public class EventLoader
 
         effects = ExpressionBuilder.BuildEffectExpressions(context, e.effects);
 
-        //////
-
-        Discovery discovery = new Discovery()
+        EventGenerator generator = new EventGenerator()
         {
             Id = e.id,
             IdHash = e.id.GetHashCode(),
-            UId = Discovery.CurrentUId++,
+            UId = EventGenerator.CurrentUId++,
             Name = e.name,
-            GainConditions = gainConditions,
-            HoldConditions = holdConditions,
-            GainEffects = gainEffects,
-            LossEffects = lossEffects,
-            EventTimeToTrigger = e.eventTimeToTrigger,
-            EventTimeToTriggerFactors = eventTimeToTriggerFactors,
+            AssignmentConditions = assignmentConditions,
+            TriggerConditions = triggerConditions,
+            TimeToTrigger = timeToTrigger,
+            Effects = effects
         };
 
-        return discovery;
+        return generator;
     }
 }

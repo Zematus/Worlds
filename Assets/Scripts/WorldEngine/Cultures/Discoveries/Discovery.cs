@@ -87,7 +87,8 @@ public class Discovery : ICellGroupEventGenerator
     public string EventGeneratorId;
 
     public int IdHash;
-    public int UId; // Do not use as seed or part of (no consistency guarantee after reload). TODO: Get rid of it if possible
+    public int UId;
+
     public string EventSetFlag;
 
     public Condition[] GainConditions = null;
