@@ -103,6 +103,7 @@ public class EventLoader
 
         EventGenerator generator = new EventGenerator()
         {
+            Context = context,
             Id = e.id,
             IdHash = e.id.GetHashCode(),
             UId = EventGenerator.CurrentUId++,

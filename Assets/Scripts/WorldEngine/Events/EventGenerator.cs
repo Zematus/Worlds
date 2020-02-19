@@ -11,6 +11,8 @@ public class EventGenerator
 
     public static long CurrentUId = StartUId;
 
+    public EventContext Context;
+
     public long UId;
 
     public int IdHash;
@@ -38,5 +40,21 @@ public class EventGenerator
             doOnce = false;
         }
 #endif
+    }
+
+    public bool CanAssignToTarget(IEventTarget target)
+    {
+        return false;
+    }
+
+    public SimulationEvent GenerateEvent()
+    {
+        SimulationEvent simEvent = new SimulationEvent()
+        {
+            Context = Context,
+            Generator = this
+        };
+
+        return simEvent;
     }
 }
