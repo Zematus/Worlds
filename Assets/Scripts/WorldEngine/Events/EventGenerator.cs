@@ -42,11 +42,6 @@ public class EventGenerator
 #endif
     }
 
-    public bool CanAssignToTarget(IEventTarget target)
-    {
-        return false;
-    }
-
     public SimulationEvent GenerateEvent()
     {
         SimulationEvent simEvent = new SimulationEvent()
