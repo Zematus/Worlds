@@ -10,7 +10,7 @@ public class FactionEntity : Entity
     public const string PreferencesAttributeId = "preferences";
     public const string TriggerDecisionAttributeId = "trigger_decision";
 
-    public Faction Faction;
+    public Faction Faction { get; private set; }
 
     private TypeAttribute _typeAttribute;
 

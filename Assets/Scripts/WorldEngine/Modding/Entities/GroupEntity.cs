@@ -7,7 +7,7 @@ public class GroupEntity : Entity
 {
     public const string CellAttributeId = "cell";
 
-    private CellGroup _group;
+    public CellGroup Group { get; private set; }
 
     private CellEntity _cellEntity;
     private EntityAttribute _cellEntityAttribute;
@@ -17,7 +17,7 @@ public class GroupEntity : Entity
         _cellEntity = new CellEntity(BuildInternalEntityId(CellAttributeId));
     }
 
-    protected override object _reference => _group;
+    protected override object _reference => Group;
 
     public override EntityAttribute GetAttribute(string attributeId, IExpression[] arguments = null)
     {
@@ -35,8 +35,8 @@ public class GroupEntity : Entity
 
     public void Set(CellGroup group)
     {
-        _group = group;
+        Group = group;
 
-        _cellEntity.Set(_group.Cell);
+        _cellEntity.Set(Group.Cell);
     }
 }

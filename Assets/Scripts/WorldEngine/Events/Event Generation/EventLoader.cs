@@ -102,8 +102,8 @@ public class EventLoader
             throw new ArgumentException("'effects' list can't be empty");
         }
 
-        // Generate a new event context object to use when evaluating expressions
-        EventContext context = new EventContext(e.target);
+        // Generate a new event generator
+        EventGenerator generator = EventGenerator.BuildGenerator(e.target);
 
         IBooleanExpression[] assignmentConditions = null;
         IBooleanExpression[] triggerConditions = null;
@@ -114,36 +114,31 @@ public class EventLoader
         {
             // Build the assignment condition expressions (must evaluate to bool values)
             assignmentConditions =
-                ExpressionBuilder.BuildBooleanExpressions(context, e.assignmentConditions);
+                ExpressionBuilder.BuildBooleanExpressions(generator, e.assignmentConditions);
         }
 
         if (e.triggerConditions != null)
         {
             // Build the trigger condition expressions (must evaluate to bool values)
             triggerConditions =
-                ExpressionBuilder.BuildBooleanExpressions(context, e.triggerConditions);
+                ExpressionBuilder.BuildBooleanExpressions(generator, e.triggerConditions);
         }
 
         // Build the time-to-trigger expression (must evaluate to a number (int or float))
         timeToTrigger = ExpressionBuilder.ValidateNumericExpression(
-            ExpressionBuilder.BuildExpression(context, e.timeToTrigger));
+            ExpressionBuilder.BuildExpression(generator, e.timeToTrigger));
 
         // Build the effect expressions (must produce side effects)
-        effects = ExpressionBuilder.BuildEffectExpressions(context, e.effects);
+        effects = ExpressionBuilder.BuildEffectExpressions(generator, e.effects);
 
-        // Buikd generator object and return it
-        EventGenerator generator = new EventGenerator()
-        {
-            Context = context,
-            Id = e.id,
-            IdHash = e.id.GetHashCode(),
-            UId = EventGenerator.CurrentUId++,
-            Name = e.name,
-            AssignmentConditions = assignmentConditions,
-            TriggerConditions = triggerConditions,
-            TimeToTrigger = timeToTrigger,
-            Effects = effects
-        };
+        generator.Id = e.id;
+        generator.IdHash = e.id.GetHashCode();
+        generator.UId = EventGenerator.CurrentUId++;
+        generator.Name = e.name;
+        generator.AssignmentConditions = assignmentConditions;
+        generator.TriggerConditions = triggerConditions;
+        generator.TimeToTrigger = timeToTrigger;
+        generator.Effects = effects;
 
         return generator;
     }
