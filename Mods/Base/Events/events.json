@@ -4,15 +4,17 @@
       "id": "clan_split",
       "name": "clan split",
       "target": "faction",
-      "assignmentConditions": ["faction.type == clan"],
+      "assigners" : ["world"],
+      "assignmentConditions": ["target.type == clan"],
       "triggerConditions": [
         "target.administrative_load > 0.5",
-        "!target.preference.cohesion > 0.7"
+        "(!target.preferences.cohesion) > 0.7"
       ],
-      "timeToTrigger": "91250 * target.administrative_load * target.preference.cohesion",
+      "maxTimeToTrigger": "91250 * target.administrative_load * target.preferences.cohesion",
       "effects": [
         "target.trigger_decision(clan_split)"
-      ]
+      ],
+      "repeatable" : true
     }
   ]
 }

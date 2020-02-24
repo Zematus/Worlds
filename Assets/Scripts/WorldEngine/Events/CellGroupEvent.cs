@@ -95,11 +95,6 @@ public abstract class CellGroupEvent : WorldEvent
         }
     }
 
-    protected override void DestroyInternal()
-    {
-        base.DestroyInternal();
-    }
-
     public virtual void Reset(long newTriggerDate)
     {
         Reset(newTriggerDate, GenerateUniqueIdentifier(Group, newTriggerDate, TypeId));

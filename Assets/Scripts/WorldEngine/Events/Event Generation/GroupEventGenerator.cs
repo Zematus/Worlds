@@ -8,42 +8,61 @@ public class GroupEventGenerator : EventGenerator
 {
     private readonly GroupEntity _target;
 
-    public GroupEventGenerator(string targetStr)
+    public GroupEventGenerator()
     {
-        _target = new GroupEntity(targetStr);
+        _target = new GroupEntity(TargetEntityId);
 
         // Add the target to the context's entity map
-        Entities.Add(targetStr, _target);
+        Entities.Add(TargetEntityId, _target);
     }
 
-    public override ModEvent GenerateEvent(long triggerDate)
+    protected override WorldEvent GenerateEvent(long triggerDate)
     {
-        GroupModEvent modEvent = new GroupModEvent(_target.Group, this, triggerDate);
+        GroupModEvent modEvent = new GroupModEvent(this, _target.Group, triggerDate);
 
         return modEvent;
     }
 
-    public void SetTargetGroup(CellGroup target)
+    public void SetTarget(CellGroup group) => _target.Set(group);
+
+    protected override float GetNextRandomFloat(int seed) =>
+        _target.Group.GetNextLocalRandomFloat(seed);
+
+    public bool TryGenerateEventAndAssign(CellGroup group)
     {
-        _target.Set(target);
+        SetTarget(group);
+
+        return TryGenerateEventAndAssign(group.World);
     }
 
-    public override long GenerateUniqueIdentifier(long triggerDate)
+    public bool TryReasignEvent(GroupModEvent modEvent)
     {
-        CellGroup group = _target.Group;
-
-        if (triggerDate > World.MaxSupportedDate)
+        if (!Repeteable)
         {
-            Debug.LogWarning("GroupEventGenerator.GenerateUniqueIdentifier - 'triggerDate' is greater than " + World.MaxSupportedDate + " (triggerDate = " + triggerDate + ")");
+            return false;
         }
 
-        long id = (triggerDate * 1000000000L) + (group.Longitude * 1000000L) + (group.Latitude * 1000L) + IdHash;
+        SetTarget(modEvent.Group);
 
-        return id;
-    }
+        World world = modEvent.Group.World;
 
-    protected override float GetNextRandomFloat(int seed)
-    {
-        return _target.Group.GetNextLocalRandomFloat(seed);
+        if (!CanAssignEventToTarget())
+        {
+            return false;
+        }
+
+        long triggerDate = CalculateEventTriggerDate(world);
+
+        if (triggerDate < 0)
+        {
+            // Do not generate an event. CalculateTriggerDate() should have logged a reason why
+            return false;
+        }
+
+        modEvent.Reset(triggerDate);
+
+        world.InsertEventToHappen(modEvent);
+
+        return true;
     }
 }

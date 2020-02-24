@@ -337,4 +337,22 @@ public class ModTest
         Debug.Log("Expression evaluation result - 'testFaction2': " + floatResult);
         Assert.AreEqual(21900, floatResult);
     }
+
+    [Test]
+    public void LoadEventsModTest()
+    {
+        Manager.UpdateMainThreadReference();
+
+        Debug.Log("loading event mod file...");
+
+        CulturalPreference.InitializePreferences();
+
+        EventGenerator.ResetGenerators();
+        EventGenerator.LoadEventFile(Path.Combine("Mods", "Base", "Events", "events.json"));
+
+        foreach (EventGenerator generator in EventGenerator.Generators.Values)
+        {
+            Debug.Log("created event generator: " + generator.Name);
+        }
+    }
 }

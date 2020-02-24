@@ -28,10 +28,12 @@ public class EventLoader
         public string id;
         public string name;
         public string target;
+        public string[] assigners;
         public string[] assignmentConditions;
         public string[] triggerConditions;
-        public string timeToTrigger;
+        public string maxTimeToTrigger;
         public string[] effects;
+        public bool repeatable;
     }
 
 #pragma warning restore 0649
@@ -92,7 +94,12 @@ public class EventLoader
             throw new ArgumentException("'target' can't be null or empty");
         }
 
-        if (string.IsNullOrEmpty(e.timeToTrigger))
+        if (e.assigners == null)
+        {
+            throw new ArgumentException("'assigners' list can't be empty");
+        }
+
+        if (string.IsNullOrEmpty(e.maxTimeToTrigger))
         {
             throw new ArgumentException("'timeToTrigger' can't be null or empty");
         }
@@ -107,8 +114,6 @@ public class EventLoader
 
         IBooleanExpression[] assignmentConditions = null;
         IBooleanExpression[] triggerConditions = null;
-        INumericExpression timeToTrigger = null;
-        IEffectExpression[] effects = null;
 
         if (e.assignmentConditions != null)
         {
@@ -125,20 +130,22 @@ public class EventLoader
         }
 
         // Build the time-to-trigger expression (must evaluate to a number (int or float))
-        timeToTrigger = ExpressionBuilder.ValidateNumericExpression(
-            ExpressionBuilder.BuildExpression(generator, e.timeToTrigger));
+        INumericExpression maxTimeToTrigger = ExpressionBuilder.ValidateNumericExpression(
+            ExpressionBuilder.BuildExpression(generator, e.maxTimeToTrigger));
 
         // Build the effect expressions (must produce side effects)
-        effects = ExpressionBuilder.BuildEffectExpressions(generator, e.effects);
+        IEffectExpression[] effects = ExpressionBuilder.BuildEffectExpressions(generator, e.effects);
 
         generator.Id = e.id;
         generator.IdHash = e.id.GetHashCode();
         generator.UId = EventGenerator.CurrentUId++;
         generator.Name = e.name;
+        generator.Assigners = e.assigners;
         generator.AssignmentConditions = assignmentConditions;
         generator.TriggerConditions = triggerConditions;
-        generator.TimeToTrigger = timeToTrigger;
+        generator.MaxTimeToTrigger = maxTimeToTrigger;
         generator.Effects = effects;
+        generator.Repeteable = e.repeatable;
 
         return generator;
     }

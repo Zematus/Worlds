@@ -9,8 +9,15 @@ using System.Xml.Serialization;
 /// </summary>
 public abstract class EventGenerator : Context
 {
+    public const string AssignerIdWorld = "world";
+    public const string AssignerIdEvent = "event";
+
     public const string FactionTargetType = "faction";
     public const string GroupTargetType = "group";
+
+    public const string TargetEntityId = "target";
+
+    public static Dictionary<string, EventGenerator> Generators;
 
     /// <summary>
     /// Global UId counter
@@ -36,6 +43,10 @@ public abstract class EventGenerator : Context
     /// </summary>
     public int IdHash;
 
+    public bool Repeteable = false;
+
+    public string[] Assigners = null;
+
     /// <summary>
     /// Conditions that decide if an event should be assigned to a target
     /// </summary>
@@ -48,7 +59,7 @@ public abstract class EventGenerator : Context
     /// <summary>
     /// Maximum time to pass before event triggers (since assignment date)
     /// </summary>
-    public INumericExpression TimeToTrigger;
+    public INumericExpression MaxTimeToTrigger;
 
     /// <summary>
     /// Effects to occur after an event triggers
@@ -60,20 +71,45 @@ public abstract class EventGenerator : Context
     /// </summary>
     protected const long StartUId = WorldEvent.PlantCultivationDiscoveryEventId + 1;
 
+    public static void ResetGenerators()
+    {
+        Generators = new Dictionary<string, EventGenerator>();
+    }
+
+    public static void LoadEventFile(string filename)
+    {
+        foreach (EventGenerator generator in EventLoader.Load(filename))
+        {
+            if (Generators.ContainsKey(generator.Id))
+            {
+                Generators[generator.Id] = generator;
+            }
+            else
+            {
+                Generators.Add(generator.Id, generator);
+            }
+        }
+    }
+
+    public static EventGenerator GetGenerator(string id)
+    {
+        return !Generators.TryGetValue(id, out EventGenerator g) ? null : g;
+    }
+
     public static EventGenerator BuildGenerator(string targetStr)
     {
         switch (targetStr)
         {
             case FactionTargetType:
-                return new FactionEventGenerator(targetStr);
+                return new FactionEventGenerator();
             case GroupTargetType:
-                return new GroupEventGenerator(targetStr);
+                return new GroupEventGenerator();
         }
 
         throw new System.ArgumentException("Invalid target type: " + targetStr);
     }
 
-    public bool CanAssignEventToTarget()
+    protected bool CanAssignEventToTarget()
     {
         foreach (IBooleanExpression exp in AssignmentConditions)
         {
@@ -95,23 +131,23 @@ public abstract class EventGenerator : Context
         return true;
     }
 
-    public long CalculateEventTriggerDate(World world)
+    protected long CalculateEventTriggerDate(World world)
     {
         float randomFactor = GetNextRandomFloat(IdHash);
 
-        float timeToTrigger = TimeToTrigger.Value;
+        float maxTimeToTrigger = MaxTimeToTrigger.Value;
 
-        float dateSpan = randomFactor * timeToTrigger;
+        float dateSpan = randomFactor * maxTimeToTrigger;
 
         long targetDate = world.CurrentDate + (long)dateSpan + 1;
 
         if ((targetDate <= world.CurrentDate) || (targetDate > World.MaxSupportedDate))
         {
             // log details about invalid date
-            Debug.LogWarning("Discovery+Event.CalculateTriggerDate - targetDate (" + targetDate +
+            Debug.LogWarning("EventGenerator.CalculateTriggerDate - targetDate (" + targetDate +
                 ") less than or equal to world.CurrentDate (" + world.CurrentDate +
                 "), randomFactor: " + randomFactor +
-                ", timeToTrigger: " + timeToTrigger +
+                ", maxTimeToTrigger: " + maxTimeToTrigger +
                 ", dateSpan: " + dateSpan);
 
             return long.MinValue;
@@ -128,8 +164,29 @@ public abstract class EventGenerator : Context
         }
     }
 
-    public abstract ModEvent GenerateEvent(long triggerDate);
-    public abstract long GenerateUniqueIdentifier(long triggerDate);
+    protected abstract WorldEvent GenerateEvent(long triggerDate);
 
     protected abstract float GetNextRandomFloat(int seed);
+
+    protected bool TryGenerateEventAndAssign(World world)
+    {
+        if (!CanAssignEventToTarget())
+        {
+            return false;
+        }
+
+        long triggerDate = CalculateEventTriggerDate(world);
+
+        if (triggerDate < 0)
+        {
+            // Do not generate an event. CalculateTriggerDate() should have logged a reason why
+            return false;
+        }
+
+        WorldEvent modEvent = GenerateEvent(triggerDate);
+
+        world.InsertEventToHappen(modEvent);
+
+        return true;
+    }
 }

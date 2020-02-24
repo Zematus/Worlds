@@ -8,28 +8,61 @@ public class FactionEventGenerator : EventGenerator
 {
     private readonly FactionEntity _target;
 
-    public FactionEventGenerator(string targetStr)
+    public FactionEventGenerator()
     {
-        _target = new FactionEntity(targetStr);
+        _target = new FactionEntity(TargetEntityId);
 
         // Add the target to the context's entity map
-        Entities.Add(targetStr, _target);
+        Entities.Add(TargetEntityId, _target);
     }
 
-    public override ModEvent GenerateEvent()
+    protected override WorldEvent GenerateEvent(long triggerDate)
     {
-        FactionModEvent modEvent = new FactionModEvent(_target.Faction, this);
+        FactionModEvent modEvent = new FactionModEvent(this, _target.Faction, triggerDate);
 
         return modEvent;
     }
 
-    public void SetTargetFaction(Faction target)
+    public void SetTarget(Faction faction) => _target.Set(faction);
+
+    protected override float GetNextRandomFloat(int seed) =>
+        _target.Faction.GetNextLocalRandomFloat(seed);
+
+    public bool TryGenerateEventAndAssign(Faction faction)
     {
-        _target.Set(target);
+        SetTarget(faction);
+
+        return TryGenerateEventAndAssign(faction.World);
     }
 
-    protected override float GetNextRandomFloat(int seed)
+    public bool TryReasignEvent(FactionModEvent modEvent)
     {
-        return _target.Faction.GetNextLocalRandomFloat(seed);
+        if (!Repeteable)
+        {
+            return false;
+        }
+
+        SetTarget(modEvent.Faction);
+
+        World world = modEvent.Faction.World;
+
+        if (!CanAssignEventToTarget())
+        {
+            return false;
+        }
+
+        long triggerDate = CalculateEventTriggerDate(world);
+
+        if (triggerDate < 0)
+        {
+            // Do not generate an event. CalculateTriggerDate() should have logged a reason why
+            return false;
+        }
+
+        modEvent.Reset(triggerDate);
+
+        world.InsertEventToHappen(modEvent);
+
+        return true;
     }
 }
