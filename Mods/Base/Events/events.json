@@ -8,7 +8,7 @@
       "assignmentConditions": ["target.type == clan"],
       "triggerConditions": [
         "target.administrative_load > 0.5",
-        "(!target.preferences.cohesion) > 0.7"
+        "!(target.preferences.cohesion > 0.7)"
       ],
       "maxTimeToTrigger": "91250 * target.administrative_load * target.preferences.cohesion",
       "effects": [

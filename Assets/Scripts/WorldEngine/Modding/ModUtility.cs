@@ -67,17 +67,15 @@ public static class ModUtility
     /// Regex used to indetify a single valid argument statement
     /// </summary>
     public const string ArgumentRegexPart =
-        @"(?<unaryOpStatement>" +
-            UnaryOpStatementRegexPart +
-        @")|(?<binaryOpStatement>" +
+        @"(?<binaryOpStatement>" +
             BinaryOpStatementRegexPart +
         @")|" +
-        OperandStatementRegexPart;
+        BinaryOperandStatementRegexPart;
 
     /// <summary>
-    /// Regex used to identify an operation's operand statements
+    /// Regex used to identify an unary operation's operand statements
     /// </summary>
-    public const string OperandStatementRegexPart =
+    public const string UnaryOperandStatementRegexPart =
         @"(?<accessorOpStatement>" +
             AccessorOpStatementRegexPart +
         @")|(?<baseStatement>" +
@@ -85,6 +83,15 @@ public static class ModUtility
         @")|(?<innerStatement>" +
             InnerStatementRegexPart +
         @")";
+
+    /// <summary>
+    /// Regex used to identify an binary operation's operand statements
+    /// </summary>
+    public const string BinaryOperandStatementRegexPart =
+        @"(?<unaryOpStatement>" +
+            UnaryOpStatementRegexPart +
+        @")|" +
+        UnaryOperandStatementRegexPart;
 
     /// <summary>
     /// Regex used to indetify an accessible statement or entity
@@ -114,7 +121,7 @@ public static class ModUtility
     /// </summary>
     public const string UnaryOpStatementRegexPart =
         @"(?<unaryOp>" + OperatorRegexPart + @")" +
-        @"(?<statement>" + OperandStatementRegexPart + @")";
+        @"(?<statement>" + UnaryOperandStatementRegexPart + @")";
 
     /// <summary>
     /// Regex used to indentify an unary operation (bounded)
@@ -126,13 +133,13 @@ public static class ModUtility
     /// Regex used to indentify a binary operation
     /// </summary>
     public const string BinaryOpStatementRegexPart =
-        @"(?<statement1>" + OperandStatementRegexPart + @")\s*" +
+        @"(?<statement1>" + BinaryOperandStatementRegexPart + @")\s*" +
         @"(?<binaryOp>" + OperatorRegexPart + @")\s*" +
         @"(?<statement2>" +
-            @"(?<operand2>" + OperandStatementRegexPart + @")\s*" +
+            @"(?<operand2>" + BinaryOperandStatementRegexPart + @")\s*" +
             @"(?<restOp>" +
                 OperatorRegexPart + @"\s*" +
-                @"(?:" + OperandStatementRegexPart + @")" +
+                @"(?:" + BinaryOperandStatementRegexPart + @")" +
             @")*" +
         @")";
 
@@ -170,8 +177,8 @@ public static class ModUtility
     /// <summary>
     /// Regex used to capture an operation operands (bounded)
     /// </summary>
-    public const string OperandStatementRegex =
-        @"^\s*(?<statement>" + OperandStatementRegexPart + @")\s*$";
+    public const string BinaryOperandStatementRegex =
+        @"^\s*(?<statement>" + BinaryOperandStatementRegexPart + @")\s*$";
     /// <summary>
     /// Regex used to capture an statement enclosed within parenthesis (bounded)
     /// </summary>

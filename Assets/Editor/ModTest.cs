@@ -336,6 +336,26 @@ public class ModTest
         floatResult = (expression as INumericExpression).Value;
         Debug.Log("Expression evaluation result - 'testFaction2': " + floatResult);
         Assert.AreEqual(21900, floatResult);
+
+        ////
+
+        expression = ExpressionBuilder.BuildExpression(
+            testContext,
+            "!(target.preferences.cohesion > 0.7)");
+
+        testFactionEntity.Set(testFaction1);
+
+        Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
+
+        boolResult = (expression as IBooleanExpression).Value;
+        Debug.Log("Expression evaluation result - 'testFaction1': " + boolResult);
+        Assert.IsTrue(boolResult);
+
+        testFactionEntity.Set(testFaction2);
+
+        boolResult = (expression as IBooleanExpression).Value;
+        Debug.Log("Expression evaluation result - 'testFaction2': " + boolResult);
+        Assert.IsFalse(boolResult);
     }
 
     [Test]

@@ -132,7 +132,7 @@ public static class ExpressionBuilder
             //Debug.Log("-- -- match: " + match.Value);
         }
 
-        match = Regex.Match(text, ModUtility.OperandStatementRegex);
+        match = Regex.Match(text, ModUtility.BinaryOperandStatementRegex);
 
         if (match.Success == true)
         {
