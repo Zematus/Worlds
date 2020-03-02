@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
 using System;
 using System.IO;
@@ -19,7 +18,7 @@ public class EventLoader
     public LoadedEvent[] events;
 
     /// <summary>
-    /// Object defininf an event entry. Structure must match that of
+    /// Object defining an event entry. Structure must match that of
     /// an event entry in the mod file
     /// </summary>
     [Serializable]
