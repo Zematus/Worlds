@@ -9,9 +9,14 @@ public abstract class PropertyEntity : Entity
 
     protected override object _reference => this;
 
+    protected readonly Context _context;
+    protected readonly int _idHash;
+
     public PropertyEntity(Context context, Context.LoadedProperty p)
         : base(p.id)
     {
+        _context = context;
+        _idHash = p.id.GetHashCode();
     }
 
     public void Reset()

@@ -30,30 +30,23 @@ public abstract class Context
     readonly public Dictionary<string, Entity> Entities =
         new Dictionary<string, Entity>();
 
-    public static PropertyEntity CreatePropertyEntity(Context context, LoadedProperty p)
+    public PropertyEntity CreatePropertyEntity(LoadedProperty p)
     {
         if (string.IsNullOrEmpty(p.type))
         {
             throw new ArgumentException("'type' can't be null or empty");
         }
 
-        PropertyEntity propEntity = null;
-
         switch (p.type)
         {
             case PropertyEntity.ConditionSetType:
-                propEntity = new ConditionSetPropertyEntity(context, p);
-                break;
+                return new ConditionSetPropertyEntity(this, p);
 
             case PropertyEntity.RandomRangeType:
-                propEntity = new RandomRangePropertyEntity(context, p);
-                break;
-
-            default:
-                throw new ArgumentException("Property type not recognized: " + p.type);
+                return new RandomRangePropertyEntity(this, p);
         }
 
-        return propEntity;
+        throw new ArgumentException("Property type not recognized: " + p.type);
     }
 
     public abstract float GetNextRandomFloat(int iterOffset);

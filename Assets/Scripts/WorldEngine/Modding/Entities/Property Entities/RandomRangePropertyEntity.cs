@@ -18,9 +18,6 @@ public class RandomRangePropertyEntity : PropertyEntity
     private EntityAttribute _maxAttribute;
     private EntityAttribute _valueAttribute;
 
-    private Context _context;
-    private int _idHash;
-
     private class RandomRangeMinAttribute : NumericEntityAttribute
     {
         private RandomRangePropertyEntity _propertyEntity;
@@ -77,10 +74,6 @@ public class RandomRangePropertyEntity : PropertyEntity
             ExpressionBuilder.BuildExpression(context, p.min));
         Max = ExpressionBuilder.ValidateNumericExpression(
             ExpressionBuilder.BuildExpression(context, p.max));
-
-        _context = context;
-
-        _idHash = p.id.GetHashCode();
     }
 
     public override EntityAttribute GetAttribute(string attributeId, IExpression[] arguments = null)
