@@ -1,7 +1,5 @@
-﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using System.Text.RegularExpressions;
+﻿using System.Collections.Generic;
+using System;
 
 public abstract class Entity
 {
@@ -11,6 +9,11 @@ public abstract class Entity
 
     public Entity(string id)
     {
+        if (string.IsNullOrEmpty(id))
+        {
+            throw new ArgumentException("'id' can't be null or empty");
+        }
+
         Id = id;
     }
 

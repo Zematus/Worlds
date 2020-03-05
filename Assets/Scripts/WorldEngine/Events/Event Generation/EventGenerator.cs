@@ -166,8 +166,6 @@ public abstract class EventGenerator : Context
 
     protected abstract WorldEvent GenerateEvent(long triggerDate);
 
-    protected abstract float GetNextRandomFloat(int seed);
-
     protected bool TryGenerateEventAndAssign(World world)
     {
         if (!CanAssignEventToTarget())

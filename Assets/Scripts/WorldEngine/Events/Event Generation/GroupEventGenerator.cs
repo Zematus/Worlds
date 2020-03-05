@@ -25,8 +25,11 @@ public class GroupEventGenerator : EventGenerator
 
     public void SetTarget(CellGroup group) => _target.Set(group);
 
-    protected override float GetNextRandomFloat(int seed) =>
-        _target.Group.GetNextLocalRandomFloat(seed);
+    public override float GetNextRandomInt(int iterOffset, int maxValue) =>
+        _target.Group.GetNextLocalRandomInt(iterOffset, maxValue);
+
+    public override float GetNextRandomFloat(int iterOffset) =>
+        _target.Group.GetNextLocalRandomFloat(iterOffset);
 
     public bool TryGenerateEventAndAssign(CellGroup group)
     {

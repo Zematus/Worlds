@@ -6,6 +6,15 @@ using System;
 
 public class TestContext : Context
 {
+    public override float GetNextRandomFloat(int iterOffset)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override float GetNextRandomInt(int iterOffset, int maxValue)
+    {
+        throw new NotImplementedException();
+    }
 }
 
 public class TestBooleanEntityAttribute : BooleanEntityAttribute

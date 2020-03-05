@@ -25,8 +25,11 @@ public class FactionEventGenerator : EventGenerator
 
     public void SetTarget(Faction faction) => _target.Set(faction);
 
-    protected override float GetNextRandomFloat(int seed) =>
-        _target.Faction.GetNextLocalRandomFloat(seed);
+    public override float GetNextRandomInt(int iterOffset, int maxValue) =>
+        _target.Faction.GetNextLocalRandomInt(iterOffset, maxValue);
+
+    public override float GetNextRandomFloat(int iterOffset) =>
+        _target.Faction.GetNextLocalRandomFloat(iterOffset);
 
     public bool TryGenerateEventAndAssign(Faction faction)
     {
