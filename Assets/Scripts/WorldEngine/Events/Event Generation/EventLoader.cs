@@ -61,7 +61,7 @@ public class EventLoader
             {
                 // If theres a failure while loading an event entry. Report
                 // the file from which the event came from and its index within
-                // the file..
+                // the file...
                 throw new Exception(
                     "Failure loading event #" + i + " in " + filename + ": "
                     + e.Message, e);
@@ -80,35 +80,34 @@ public class EventLoader
     {
         if (string.IsNullOrEmpty(e.id))
         {
-            throw new ArgumentException("'id' can't be null or empty");
+            throw new ArgumentException("event 'id' can't be null or empty");
         }
 
         if (string.IsNullOrEmpty(e.name))
         {
-            throw new ArgumentException("'name' can't be null or empty");
+            throw new ArgumentException("event 'name' can't be null or empty");
         }
 
         if (string.IsNullOrEmpty(e.target))
         {
-            throw new ArgumentException("'target' can't be null or empty");
+            throw new ArgumentException("event 'target' can't be null or empty");
         }
 
         if (e.assigners == null)
         {
-            throw new ArgumentException("'assigners' list can't be empty");
+            throw new ArgumentException("event 'assigners' list can't be empty");
         }
 
         if (string.IsNullOrEmpty(e.maxTimeToTrigger))
         {
-            throw new ArgumentException("'timeToTrigger' can't be null or empty");
+            throw new ArgumentException("event 'timeToTrigger' can't be null or empty");
         }
 
         if (e.effects == null)
         {
-            throw new ArgumentException("'effects' list can't be empty");
+            throw new ArgumentException("event 'effects' list can't be empty");
         }
 
-        // Generate a new event generator
         EventGenerator generator = EventGenerator.BuildGenerator(e.target);
 
         IBooleanExpression[] assignmentConditions = null;

@@ -38,6 +38,31 @@ public static class ModUtility
         @"[^\(\)]*?)+" +
         @"(?(open)(?!))";
 
+    public const string ModTextStringRegexPart =
+        @"(?<string>(?:(?!\<\<|\>\>).)+)";
+
+    public const string ModTextExpressionRegexPart =
+        @"\<\<" +
+            @"(?<expression>" +
+                @"(?:" +
+                    @"(?:" +
+                        @"(?!\<\<|\>\>)." +
+                        @"|(?<open>\<\<).+?)" +
+                        @"|(?:(?<-open>\>\>).*?" +
+                    @")" +
+                @")+" +
+            @")" +
+            @"(?(open)(?!))" +
+        @"\>\>";
+
+    /// <summary>
+    /// Regex used to indentify composite texts used within mods
+    /// </summary>
+    public const string ModTextRegexPart =
+        ModTextStringRegexPart +
+        @"|" +
+        ModTextExpressionRegexPart;
+
     /// <summary>
     /// Regex used to indentify a set of argument statements given to a function
     /// </summary>

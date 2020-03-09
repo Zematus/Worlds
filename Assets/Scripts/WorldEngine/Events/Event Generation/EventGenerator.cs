@@ -30,11 +30,11 @@ public abstract class EventGenerator : Context
     public long UId;
 
     /// <summary>
-    /// String Id for the events
+    /// String Id for events of this type
     /// </summary>
     public string Id;
     /// <summary>
-    /// Name to use in the UI for the events
+    /// Name to use in the UI for events of this type
     /// </summary>
     public string Name;
 

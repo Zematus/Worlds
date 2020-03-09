@@ -13,7 +13,7 @@ public class FactionEventGenerator : EventGenerator
         _target = new FactionEntity(TargetEntityId);
 
         // Add the target to the context's entity map
-        Entities.Add(TargetEntityId, _target);
+        AddEntity(_target);
     }
 
     protected override WorldEvent GenerateEvent(long triggerDate)

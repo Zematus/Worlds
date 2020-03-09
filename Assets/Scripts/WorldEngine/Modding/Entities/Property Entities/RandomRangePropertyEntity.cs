@@ -18,11 +18,11 @@ public class RandomRangePropertyEntity : PropertyEntity
     private EntityAttribute _maxAttribute;
     private EntityAttribute _valueAttribute;
 
-    private class RandomRangeMinAttribute : NumericEntityAttribute
+    private class MinAttribute : NumericEntityAttribute
     {
         private RandomRangePropertyEntity _propertyEntity;
 
-        public RandomRangeMinAttribute(RandomRangePropertyEntity propertyEntity)
+        public MinAttribute(RandomRangePropertyEntity propertyEntity)
             : base(ValueId, propertyEntity, null)
         {
             _propertyEntity = propertyEntity;
@@ -31,11 +31,11 @@ public class RandomRangePropertyEntity : PropertyEntity
         public override float Value => _propertyEntity.GetMin();
     }
 
-    private class RandomRangeMaxAttribute : NumericEntityAttribute
+    private class MaxAttribute : NumericEntityAttribute
     {
         private RandomRangePropertyEntity _propertyEntity;
 
-        public RandomRangeMaxAttribute(RandomRangePropertyEntity propertyEntity)
+        public MaxAttribute(RandomRangePropertyEntity propertyEntity)
             : base(ValueId, propertyEntity, null)
         {
             _propertyEntity = propertyEntity;
@@ -44,11 +44,11 @@ public class RandomRangePropertyEntity : PropertyEntity
         public override float Value => _propertyEntity.GetMax();
     }
 
-    private class RandomRangeValueAttribute : NumericEntityAttribute
+    private class ValueAttribute : NumericEntityAttribute
     {
         private RandomRangePropertyEntity _propertyEntity;
 
-        public RandomRangeValueAttribute(RandomRangePropertyEntity propertyEntity)
+        public ValueAttribute(RandomRangePropertyEntity propertyEntity)
             : base(ValueId, propertyEntity, null)
         {
             _propertyEntity = propertyEntity;
@@ -83,23 +83,23 @@ public class RandomRangePropertyEntity : PropertyEntity
             case ValueId:
                 _valueAttribute =
                     _valueAttribute ??
-                    new RandomRangeValueAttribute(this);
+                    new ValueAttribute(this);
                 return _valueAttribute;
 
             case MinId:
                 _minAttribute =
                     _minAttribute ??
-                    new RandomRangeMinAttribute(this);
+                    new MinAttribute(this);
                 return _minAttribute;
 
             case MaxId:
                 _maxAttribute =
                     _maxAttribute ??
-                    new RandomRangeMaxAttribute(this);
+                    new MaxAttribute(this);
                 return _maxAttribute;
         }
 
-        throw new System.ArgumentException("Cell: Unable to find attribute: " + attributeId);
+        throw new System.ArgumentException(Id + " property: Unable to find attribute: " + attributeId);
     }
 
     public float GetMin()

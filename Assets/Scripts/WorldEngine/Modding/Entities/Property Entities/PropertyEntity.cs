@@ -4,6 +4,7 @@ public abstract class PropertyEntity : Entity
 {
     public const string ConditionSetType = "condition_set";
     public const string RandomRangeType = "random_range";
+    public const string ValueType = "value";
 
     private bool _evaluated = false;
 
@@ -17,6 +18,13 @@ public abstract class PropertyEntity : Entity
     {
         _context = context;
         _idHash = p.id.GetHashCode();
+    }
+
+    protected PropertyEntity(Context context, string id)
+        : base(id)
+    {
+        _context = context;
+        _idHash = id.GetHashCode();
     }
 
     public void Reset()

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public static class ExpressionBuilder
+public static class ModTextBuilder
 {
     public static IExpression BuildExpression(Context context, string expressionStr)
     {

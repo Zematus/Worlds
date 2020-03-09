@@ -40,14 +40,14 @@
         },
         {
           "id": "clan_split_description_can_not_prevent_split_low_authority",
-          "text": "Unfortunately, <target.leader.name> can't do anything about it as <target.name> has not enough respect for authority",
+          "text": "Unfortunately, <<target.leader.name>> can't do anything about it as <<target.name>> has not enough respect for authority",
           "conditions": [
             "target.preferences.authority < (-target.leader.charisma * 0.4)"
           ]
         },
         {
           "id": "clan_split_description_can_not_prevent_split_low_cohesion",
-          "text": "Unfortunately, <target.leader.name> can't do anything about it as <target.name> has not enough cohesion.",
+          "text": "Unfortunately, <<target.leader.name>> can't do anything about it as <<target.name>> has not enough cohesion.",
           "conditions": [
             "target.preferences.authority >= (-target.leader.charisma * 0.4)",
             "target.preferences.cohesion < 0.2"
@@ -55,7 +55,7 @@
         },
         {
           "id": "clan_split_description_can_not_prevent_split_high_administrative_load",
-          "text": "Unfortunately, <target.leader.name> can't do anything about it as <target.name> as the clan has grown too big.",
+          "text": "Unfortunately, <<target.leader.name>> can't do anything about it as <<target.name>> as the clan has grown too big.",
           "conditions": [
             "target.preferences.authority >= (-target.leader.charisma * 0.4)",
             "target.preferences.cohesion >= 0.2",
@@ -64,7 +64,7 @@
         },
         {
           "id": "clan_split_description_can_prevent_split"
-          "text": "Should the clan leader, <target.leader.name>, try to reach out to them to keep them from splitting into their own clan?",
+          "text": "Should the clan leader, <<target.leader.name>>, try to reach out to them to keep them from splitting into their own clan?",
           "conditions": ["can_prevent_split.value"]
         }
       ],
@@ -77,12 +77,12 @@
           "effects": [
             {
               "id": "clan_split_option_split_decrease_influence",
-              "text": "Clan <target.name>: tribal influence (<target.influence>) decreases to: <new_influence.min> - <new_influence.max>",
+              "text": "Clan <<target.name>>: tribal influence (<<target.influence>>) decreases to: <<new_influence.min>> - <<new_influence.max>>",
               "result": "target.influence = new_influence.value"
             },
             {
               "id": "clan_split_option_split",
-              "text": "A new clan with influence <target.influence - new_influence.max> - <target.influence - new_influence.min> splits from <target.name>",
+              "text": "A new clan with influence <<target.influence - new_influence.max>> - <<target.influence - new_influence.min>> splits from <<target.name>>",
               "result": "split_target(target, target.influence - new_influence.value)"
             }
           ]
@@ -95,12 +95,12 @@
           "effects": [
             {
               "id": "clan_split_option_prevent_split_decrease_authority",
-              "text": "Clan <target.name>: authority preference (<target.preferences.authority>) decreases to: <new_authority_preference.min> - <new_authority_preference.max>",
+              "text": "Clan <<target.name>>: authority preference (<<target.preferences.authority>>) decreases to: <<new_authority_preference.min>> - <<new_authority_preference.max>>",
               "result": "target.preferences.authority = new_authority_preference.value"
             },
             {
               "id": "clan_split_option_prevent_split_increase_cohesion",
-              "text": "Clan <target.name>: cohesion preference (<target.preferences.cohesion>) increases to: <new_cohesion_preference.min> - <new_cohesion_preference.max>",
+              "text": "Clan <<target.name>>: cohesion preference (<<target.preferences.cohesion>>) increases to: <<new_cohesion_preference.min>> - <<new_cohesion_preference.max>>",
               "result": "target.preferences.cohesion = new_cohesion_preference.value"
             }
           ]
@@ -112,12 +112,12 @@
           "effects": [
             {
               "id": "clan_split_option_split_decrease_influence",
-              "text": "Clan <target.name>: tribal influence (<target.influence>) decreases to: <new_influence.min> - <new_influence.max>",
+              "text": "Clan <<target.name>>: tribal influence (<<target.influence>>) decreases to: <<new_influence.min>> - <<new_influence.max>>",
               "result": "target.influence = new_influence.value"
             },
             {
               "id": "clan_split_option_split",
-              "text": "A new clan with influence <target.influence - new_influence.max> - <target.influence - new_influence.min> splits from <target.name>",
+              "text": "A new clan with influence <<target.influence - new_influence.max>> - <<target.influence - new_influence.min>> splits from <<target.name>>",
               "result": "split_target(target, target.influence - new_influence.value)"
             }
           ]

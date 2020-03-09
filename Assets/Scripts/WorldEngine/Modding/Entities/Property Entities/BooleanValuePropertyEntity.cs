@@ -1,20 +1,16 @@
 ﻿using System;
 
-public class ConditionSetPropertyEntity : PropertyEntity
+public class BooleanValuePropertyEntity : ValuePropertyEntity
 {
-    public const string ValueId = "value";
-
     private bool _value;
 
-    public IBooleanExpression[] Conditions;
-
-    private EntityAttribute _valueAttribute;
+    private IBooleanExpression _expression;
 
     private class ValueAttribute : BooleanEntityAttribute
     {
-        private ConditionSetPropertyEntity _propertyEntity;
+        private BooleanValuePropertyEntity _propertyEntity;
 
-        public ValueAttribute(ConditionSetPropertyEntity propertyEntity)
+        public ValueAttribute(BooleanValuePropertyEntity propertyEntity)
             : base(ValueId, propertyEntity, null)
         {
             _propertyEntity = propertyEntity;
@@ -23,15 +19,10 @@ public class ConditionSetPropertyEntity : PropertyEntity
         public override bool Value => _propertyEntity.GetValue();
     }
 
-    public ConditionSetPropertyEntity(Context context, Context.LoadedProperty p)
-        : base(context, p)
+    public BooleanValuePropertyEntity(Context context, string id, IExpression exp)
+        : base(context, id)
     {
-        if (p.conditions == null)
-        {
-            throw new ArgumentException("'conditions' list can't be empty");
-        }
-
-        Conditions = ExpressionBuilder.BuildBooleanExpressions(context, p.conditions);
+        _expression = ExpressionBuilder.ValidateBooleanExpression(exp);
     }
 
     public override EntityAttribute GetAttribute(string attributeId, IExpression[] arguments = null)
@@ -57,14 +48,6 @@ public class ConditionSetPropertyEntity : PropertyEntity
 
     protected override void Calculate()
     {
-        _value = true;
-
-        foreach (IBooleanExpression exp in Conditions)
-        {
-            _value &= exp.Value;
-
-            if (!_value)
-                break;
-        }
+        _value = _expression.Value;
     }
 }

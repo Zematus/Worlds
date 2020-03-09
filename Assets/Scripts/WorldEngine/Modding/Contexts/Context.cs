@@ -8,6 +8,8 @@ using UnityEngine;
 /// </summary>
 public abstract class Context
 {
+    protected Context _parentContext = null;
+
     [Serializable]
     public class LoadedProperty
     {
@@ -16,39 +18,72 @@ public abstract class Context
         public string min;
         public string max;
         public string[] conditions;
+        public string value;
     }
-
-    /// <summary>
-    /// List of expressions that can be referenced by other expressions using this context
-    /// </summary>
-    readonly public Dictionary<string, IExpression> Expressions =
-        new Dictionary<string, IExpression>();
 
     /// <summary>
     /// List of entities that can be referenced by expressions using this context
     /// </summary>
-    readonly public Dictionary<string, Entity> Entities =
+    readonly private Dictionary<string, Entity> _entities =
         new Dictionary<string, Entity>();
 
-    public PropertyEntity CreatePropertyEntity(LoadedProperty p)
+    public PropertyEntity AddPropertyEntity(LoadedProperty p)
     {
         if (string.IsNullOrEmpty(p.type))
         {
             throw new ArgumentException("'type' can't be null or empty");
         }
 
+        PropertyEntity entity = null;
+
         switch (p.type)
         {
             case PropertyEntity.ConditionSetType:
-                return new ConditionSetPropertyEntity(this, p);
+                entity = new ConditionSetPropertyEntity(this, p);
+                break;
 
             case PropertyEntity.RandomRangeType:
-                return new RandomRangePropertyEntity(this, p);
+                entity = new RandomRangePropertyEntity(this, p);
+                break;
+
+            case PropertyEntity.ValueType:
+                entity = ValuePropertyEntity.BuildValuePropertyEntity(this, p);
+                break;
+
+            default:
+                throw new ArgumentException("Property type not recognized: " + p.type);
         }
 
-        throw new ArgumentException("Property type not recognized: " + p.type);
+        _entities.Add(entity.Id, entity);
+
+        return entity;
+    }
+
+    public Context(Context parent = null)
+    {
+        _parentContext = parent;
     }
 
     public abstract float GetNextRandomFloat(int iterOffset);
     public abstract float GetNextRandomInt(int iterOffset, int maxValue);
+
+    public void AddEntity(Entity entity)
+    {
+        _entities.Add(entity.Id, entity);
+    }
+
+    public bool TryGetEntity(string id, out Entity e)
+    {
+        if (_entities.TryGetValue(id, out e))
+        {
+            return true;
+        }
+
+        if (_parentContext == null)
+        {
+            return false;
+        }
+
+        return _parentContext.TryGetEntity(id, out e);
+    }
 }

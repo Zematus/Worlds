@@ -11,14 +11,7 @@ public class ModTest
 
         TestContext testContext = new TestContext();
 
-        testContext.Expressions.Add(
-            "testContextNumericExpression",
-            ExpressionBuilder.BuildExpression(testContext, "-15"));
-        testContext.Expressions.Add(
-            "testContextBooleanExpression",
-            ExpressionBuilder.BuildExpression(testContext, "!true"));
-
-        testContext.Entities.Add("testEntity", new TestEntity());
+        testContext.AddEntity(new TestEntity());
 
         IExpression expression = ExpressionBuilder.BuildExpression(testContext, "-5");
 
@@ -47,16 +40,6 @@ public class ModTest
 
         expression = ExpressionBuilder.BuildExpression(testContext, "2 +2+3");
         Assert.AreEqual(7, (expression as INumericExpression).Value);
-
-        Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
-
-        expression = ExpressionBuilder.BuildExpression(testContext, "testContextNumericExpression");
-        Assert.AreEqual(-15, (expression as INumericExpression).Value);
-
-        Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
-
-        expression = ExpressionBuilder.BuildExpression(testContext, "testContextBooleanExpression");
-        Assert.AreEqual(false, (expression as IBooleanExpression).Value);
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
 
@@ -142,7 +125,7 @@ public class ModTest
 
         CellGroup testGroup2 = new CellGroup(testWorld, testCell2, 35000);
 
-        testContext.Entities.Add("target", testGroupEntity);
+        testContext.AddEntity(testGroupEntity);
 
         IExpression expression =
             ExpressionBuilder.BuildExpression(testContext, "target.cell.biome_trait_presence(wood)");
@@ -192,7 +175,7 @@ public class ModTest
 
         FactionEntity testFactionEntity = new FactionEntity("target");
 
-        testContext.Entities.Add("target", testFactionEntity);
+        testContext.AddEntity(testFactionEntity);
 
         CellGroup.ResetEventGenerators();
         Knowledge.ResetKnowledges();
