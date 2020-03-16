@@ -7,6 +7,8 @@ public class ModDecision : Context
 
     public const string TargetEntityId = "target";
 
+    private readonly FactionEntity _target;
+
     public static Dictionary<string, ModDecision> Decisions;
 
     /// <summary>
@@ -26,19 +28,18 @@ public class ModDecision : Context
     public OptionalDescription[] DescriptionSegments;
     public DecisionOption[] Options;
 
-    /// <summary>
-    /// Conditions that decide if an event should be assigned to a target
-    /// </summary>
-    public IBooleanExpression[] AssignmentConditions;
-    /// <summary>
-    /// Conditions that decide if an event should trigger
-    /// </summary>
-    public IBooleanExpression[] TriggerConditions;
+    public ModDecision(string targetStr)
+    {
+        if (targetStr != FactionTargetType)
+        {
+            throw new System.ArgumentException("Invalid target type: " + targetStr);
+        }
 
-    /// <summary>
-    /// First UId to use for decisions loaded from mods
-    /// </summary>
-    protected const long StartUId = 0;
+        _target = new FactionEntity(TargetEntityId);
+
+        // Add the target to the context's entity map
+        AddEntity(_target);
+    }
 
     public static void ResetDecisions()
     {

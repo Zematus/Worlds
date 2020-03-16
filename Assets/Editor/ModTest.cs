@@ -396,4 +396,22 @@ public class ModTest
             Debug.Log("created event generator: " + generator.Name);
         }
     }
+
+    [Test]
+    public void LoadDecisionsModTest()
+    {
+        Manager.UpdateMainThreadReference();
+
+        Debug.Log("loading clans split decision mod file...");
+
+        CulturalPreference.InitializePreferences();
+
+        ModDecision.ResetDecisions();
+        ModDecision.LoadDecisionFile(Path.Combine("Mods", "Base", "Decisions", "clan_split.json"));
+
+        foreach (ModDecision decision in ModDecision.Decisions.Values)
+        {
+            Debug.Log("created decision: " + decision.Name);
+        }
+    }
 }

@@ -5,8 +5,8 @@ using System.Text.RegularExpressions;
 
 public class MoreThanExpression : BinaryOpBooleanExpression
 {
-    private INumericExpression _numExpressionA;
-    private INumericExpression _numExpressionB;
+    private readonly INumericExpression _numExpressionA;
+    private readonly INumericExpression _numExpressionB;
 
     public MoreThanExpression(IExpression expressionA, IExpression expressionB) :
         base(">", expressionA, expressionB)

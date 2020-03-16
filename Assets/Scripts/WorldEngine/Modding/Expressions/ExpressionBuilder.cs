@@ -278,9 +278,9 @@ public static class ExpressionBuilder
             case "==":
                 return EqualsExpression.Build(context, expressionAStr, expressionBStr);
             case ">=":
-                return null;
+                return MoreThanOrEqualExpression.Build(context, expressionAStr, expressionBStr);
             case "<=":
-                return null;
+                return LessThanOrEqualExpression.Build(context, expressionAStr, expressionBStr);
             case ">":
                 return MoreThanExpression.Build(context, expressionAStr, expressionBStr);
             case "<":

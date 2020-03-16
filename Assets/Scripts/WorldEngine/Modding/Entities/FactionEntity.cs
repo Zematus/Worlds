@@ -5,16 +5,20 @@ using System.Text.RegularExpressions;
 
 public class FactionEntity : Entity
 {
-    public const string TypeAttributeId = "type";
     public const string AdministrativeLoadAttributeId = "administrative_load";
+    public const string LeaderAttributeId = "leader";
     public const string PreferencesAttributeId = "preferences";
     public const string TriggerDecisionAttributeId = "trigger_decision";
+    public const string TypeAttributeId = "type";
 
     public Faction Faction { get; private set; }
 
     private TypeAttribute _typeAttribute;
 
     private AdministrativeLoadAttribute _administrativeLoadAttribute;
+
+    private AgentEntity _leaderEntity;
+    private EntityAttribute _leaderEntityAttribute;
 
     private CulturalPreferencesEntity _preferencesEntity =
         new CulturalPreferencesEntity(PreferencesAttributeId);
@@ -96,6 +100,7 @@ public class FactionEntity : Entity
 
     public FactionEntity(string id) : base(id)
     {
+        _leaderEntity = new AgentEntity(BuildInternalEntityId(LeaderAttributeId));
     }
 
     public override EntityAttribute GetAttribute(string attributeId, IExpression[] arguments = null)
@@ -121,6 +126,13 @@ public class FactionEntity : Entity
 
             case TriggerDecisionAttributeId:
                 return new TriggerDecisionAttribute(this, arguments);
+
+            case LeaderAttributeId:
+                _leaderEntityAttribute =
+                    _leaderEntityAttribute ??
+                    new FixedEntityEntityAttribute(
+                        _leaderEntity, LeaderAttributeId, this, arguments);
+                return _leaderEntityAttribute;
         }
 
         throw new System.ArgumentException("Faction: Unable to find attribute: " + attributeId);
@@ -131,5 +143,7 @@ public class FactionEntity : Entity
         Faction = faction;
 
         _preferencesEntity.Set(faction.Culture);
+
+        _leaderEntity.Set(faction.CurrentLeader);
     }
 }

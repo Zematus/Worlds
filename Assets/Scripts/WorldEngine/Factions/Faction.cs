@@ -81,11 +81,19 @@ public abstract class Faction : ISynchronizable
     }
 
     // Use this instead to get the leader
+    [XmlIgnore]
     public Agent CurrentLeader
     {
         get
         {
-            return RequestCurrentLeader();
+            if (_lastLeaderUpdateDate < World.CurrentDate)
+            {
+                _currentLeader = RequestCurrentLeader();
+
+                _lastLeaderUpdateDate = World.CurrentDate;
+            }
+
+            return _currentLeader;
         }
     }
 
@@ -122,6 +130,9 @@ public abstract class Faction : ISynchronizable
 
     private long _lastAdministrativeLoadUpdateDate = -1;
     private float _administrativeLoad = 0;
+
+    private long _lastLeaderUpdateDate = -1;
+    private Agent _currentLeader = null;
 
     public Faction()
     {

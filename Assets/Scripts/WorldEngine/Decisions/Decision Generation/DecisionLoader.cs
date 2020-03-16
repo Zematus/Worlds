@@ -212,7 +212,7 @@ public class DecisionLoader
             throw new ArgumentException("decsion 'description' list can't be empty");
         }
 
-        ModDecision decision = new ModDecision();
+        ModDecision decision = new ModDecision(d.target);
 
         if (d.properties != null)
         {

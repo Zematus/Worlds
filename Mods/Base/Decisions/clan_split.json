@@ -35,7 +35,7 @@
       ],
       "description": [
         {
-          "id": "clan_split_description_intro"
+          "id": "clan_split_description_intro",
           "text": "Several minor bands within clan <target.name> have been distancing themselves from the rest of the clan, and now they desire to form their own clan.\n"
         },
         {
@@ -63,7 +63,7 @@
           ]
         },
         {
-          "id": "clan_split_description_can_prevent_split"
+          "id": "clan_split_description_can_prevent_split",
           "text": "Should the clan leader, <<target.leader.name>>, try to reach out to them to keep them from splitting into their own clan?",
           "conditions": ["can_prevent_split.value"]
         }

@@ -3,13 +3,13 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class LessThanExpression : BinaryOpBooleanExpression
+public class LessThanOrEqualExpression : BinaryOpBooleanExpression
 {
     private readonly INumericExpression _numExpressionA;
     private readonly INumericExpression _numExpressionB;
 
-    public LessThanExpression(IExpression expressionA, IExpression expressionB) :
-        base("<", expressionA, expressionB)
+    public LessThanOrEqualExpression(IExpression expressionA, IExpression expressionB) :
+        base("<=", expressionA, expressionB)
     {
         _numExpressionA = ExpressionBuilder.ValidateNumericExpression(expressionA);
         _numExpressionB = ExpressionBuilder.ValidateNumericExpression(expressionB);
@@ -30,11 +30,11 @@ public class LessThanExpression : BinaryOpBooleanExpression
             FixedNumberExpression numExpA = expressionA as FixedNumberExpression;
             FixedNumberExpression numExpB = expressionB as FixedNumberExpression;
 
-            return new FixedBooleanValueExpression(numExpA.NumberValue < numExpB.NumberValue);
+            return new FixedBooleanValueExpression(numExpA.NumberValue <= numExpB.NumberValue);
         }
 
-        return new LessThanExpression(expressionA, expressionB);
+        return new LessThanOrEqualExpression(expressionA, expressionB);
     }
 
-    public override bool Value => _numExpressionA.Value < _numExpressionB.Value;
+    public override bool Value => _numExpressionA.Value <= _numExpressionB.Value;
 }
