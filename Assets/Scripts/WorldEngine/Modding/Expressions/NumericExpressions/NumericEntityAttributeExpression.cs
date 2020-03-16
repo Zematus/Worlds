@@ -14,4 +14,6 @@ public class NumericEntityAttributeExpression : EntityAttributeExpression, INume
     }
 
     public float Value => _numAttribute.Value;
+
+    public string GetString() => Value.ToString();
 }

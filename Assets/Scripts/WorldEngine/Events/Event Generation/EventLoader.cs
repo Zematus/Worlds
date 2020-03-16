@@ -59,7 +59,7 @@ public class EventLoader
             }
             catch (Exception e)
             {
-                // If theres a failure while loading an event entry. Report
+                // If there's a failure while loading an event entry, report
                 // the file from which the event came from and its index within
                 // the file...
                 throw new Exception(
@@ -132,7 +132,8 @@ public class EventLoader
             ExpressionBuilder.BuildExpression(generator, e.maxTimeToTrigger));
 
         // Build the effect expressions (must produce side effects)
-        IEffectExpression[] effects = ExpressionBuilder.BuildEffectExpressions(generator, e.effects);
+        IEffectExpression[] effects =
+            ExpressionBuilder.BuildEffectExpressions(generator, e.effects);
 
         generator.Id = e.id;
         generator.IdHash = e.id.GetHashCode();

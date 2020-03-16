@@ -26,6 +26,8 @@ public class LerpFunctionExpression : INumericExpression
             _endArg.Value,
             _percentArg.Value);
 
+    public string GetString() => Value.ToString();
+
     public override string ToString()
     {
         return "lerp(" +

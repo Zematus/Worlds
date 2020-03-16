@@ -14,4 +14,6 @@ public class StringEntityAttributeExpression : EntityAttributeExpression, IStrin
     }
 
     public string Value => _strAttribute.Value;
+
+    public string GetString() => Value.ToString();
 }

@@ -5,6 +5,46 @@ using System.IO;
 public class ModTest
 {
     [Test]
+    public void ModTextParseTest()
+    {
+        int testCounter = 1;
+
+        TestContext testContext = new TestContext();
+
+        testContext.AddEntity(new TestEntity());
+
+        Debug.Log("Test text " + (testCounter++));
+        ModText text = new ModText(testContext, "normal string");
+        Debug.Log("evaluated text: " + text.EvaluateString());
+        Assert.AreEqual("normal string", text.EvaluateString());
+
+        Debug.Log("Test text " + (testCounter++));
+        text = new ModText(testContext, "1 + 1 equals <<1 + 1>>");
+        Debug.Log("evaluated text: " + text.EvaluateString());
+        Assert.AreEqual("1 + 1 equals 2", text.EvaluateString());
+
+        Debug.Log("Test text " + (testCounter++));
+        text = new ModText(testContext, "<<2 > 3>>, 2 is not greater than 3");
+        Debug.Log("evaluated text: " + text.EvaluateString());
+        Assert.AreEqual("False, 2 is not greater than 3", text.EvaluateString());
+
+        Debug.Log("Test text " + (testCounter++));
+        text = new ModText(testContext, "<<string>> and <<anotherString>>");
+        Debug.Log("evaluated text: " + text.EvaluateString());
+        Assert.AreEqual("string and anotherString", text.EvaluateString());
+
+        Debug.Log("Test text " + (testCounter++));
+        text = new ModText(testContext, "lerp(2,4,0.5) equals <<lerp(2,4,0.5)>>");
+        Debug.Log("evaluated text: " + text.EvaluateString());
+        Assert.AreEqual("lerp(2,4,0.5) equals 3", text.EvaluateString());
+
+        Debug.Log("Test text " + (testCounter++));
+        text = new ModText(testContext, "space between the numbers <<5 + 2>> <<7>>");
+        Debug.Log("evaluated text: " + text.EvaluateString());
+        Assert.AreEqual("space between the numbers 7 7", text.EvaluateString());
+    }
+
+    [Test]
     public void ExpressionParseTest()
     {
         int expCounter = 1;

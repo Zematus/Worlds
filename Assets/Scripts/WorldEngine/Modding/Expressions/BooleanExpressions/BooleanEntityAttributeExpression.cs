@@ -14,4 +14,6 @@ public class BooleanEntityAttributeExpression : EntityAttributeExpression, IBool
     }
 
     public bool Value => _boolAttribute.Value;
+
+    public string GetString() => Value.ToString();
 }

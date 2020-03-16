@@ -14,4 +14,6 @@ public abstract class UnaryOpBooleanExpression : UnaryOpExpression, IBooleanExpr
     }
 
     public abstract bool Value { get; }
+
+    public string GetString() => Value.ToString();
 }

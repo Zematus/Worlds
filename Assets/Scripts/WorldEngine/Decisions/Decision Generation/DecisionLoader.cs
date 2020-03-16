@@ -18,27 +18,27 @@ public class DecisionLoader
     public class LoadedDecision
     {
         [Serializable]
-        public class LoadedDescriptionSegment
+        public class LoadedDescription
         {
             public string id;
             public string text;
+        }
+
+        [Serializable]
+        public class LoadedOptionalDescription : LoadedDescription
+        {
             public string[] conditions;
         }
 
         [Serializable]
-        public class LoadedOption
+        public class LoadedOption : LoadedOptionalDescription
         {
             [Serializable]
-            public class LoadedEffect
+            public class LoadedEffect : LoadedDescription
             {
-                public string id;
-                public string text;
                 public string result;
             }
 
-            public string id;
-            public string text;
-            public string[] conditions;
             public string weight;
             public LoadedEffect[] effects;
         }
@@ -47,7 +47,7 @@ public class DecisionLoader
         public string name;
         public string target;
         public Context.LoadedProperty[] properties;
-        public LoadedDescriptionSegment[] description;
+        public LoadedOptionalDescription[] description;
         public LoadedOption[] options;
     }
 
@@ -69,7 +69,7 @@ public class DecisionLoader
             }
             catch (Exception e)
             {
-                // If theres a failure while loading a decision entry. Report
+                // If there's a failure while loading a decision entry, report
                 // the file from which the event came from and its index within
                 // the file...
                 throw new Exception(
@@ -81,36 +81,113 @@ public class DecisionLoader
         }
     }
 
-    private static DescriptionSegment CreateDescriptionSegment(
-        ModDecision decision,
-        LoadedDecision.LoadedDescriptionSegment ds)
+    private static void InitializeDescription(
+        Description segment,
+        LoadedDecision.LoadedDescription d)
     {
-        if (string.IsNullOrEmpty(ds.id))
+        if (string.IsNullOrEmpty(d.id))
         {
             throw new ArgumentException("description 'id' can't be null or empty");
         }
 
-        if (string.IsNullOrEmpty(ds.text))
+        if (string.IsNullOrEmpty(d.text))
         {
             throw new ArgumentException("description 'text' can't be null or empty");
         }
 
-        DescriptionSegment segment = new DescriptionSegment(decision);
+        segment.Id = d.id;
+        segment.Text = new ModText(segment, d.text);
+    }
+
+    private static void InitializeOptionalDescription(
+        OptionalDescription segment,
+        LoadedDecision.LoadedOptionalDescription od)
+    {
+        InitializeDescription(segment, od);
 
         IBooleanExpression[] conditions = null;
 
-        if (ds.conditions != null)
+        if (od.conditions != null)
         {
             // Build the condition expressions (must evaluate to bool values)
-            conditions =
-                ExpressionBuilder.BuildBooleanExpressions(segment, ds.conditions);
+            conditions = ExpressionBuilder.BuildBooleanExpressions(segment, od.conditions);
         }
 
-        segment.Id = ds.id;
-        segment.Text = ds.text;
         segment.Conditions = conditions;
+    }
+
+    private static OptionalDescription CreateDescriptionSegment(
+        ModDecision decision,
+        LoadedDecision.LoadedOptionalDescription ds)
+    {
+        OptionalDescription segment = new OptionalDescription(decision);
+
+        InitializeOptionalDescription(segment, ds);
 
         return segment;
+    }
+
+    private static DecisionOptionEffect CreateOptionEffect(
+        DecisionOption option,
+        LoadedDecision.LoadedOption.LoadedEffect oe)
+    {
+        DecisionOptionEffect effect = new DecisionOptionEffect(option);
+
+        InitializeDescription(effect, oe);
+
+        IEffectExpression result = null;
+        if (oe.result != null)
+        {
+            result = ExpressionBuilder.ValidateEffectExpression(
+                ExpressionBuilder.BuildExpression(effect, oe.result));
+        }
+
+        effect.Result = result;
+
+        return effect;
+    }
+
+    private static DecisionOption CreateOption(
+        ModDecision decision,
+        LoadedDecision.LoadedOption o)
+    {
+        DecisionOption option = new DecisionOption(decision);
+
+        InitializeOptionalDescription(option, o);
+
+        INumericExpression weight = null;
+        if (!string.IsNullOrWhiteSpace(o.weight))
+        {
+            weight = ExpressionBuilder.ValidateNumericExpression(
+                ExpressionBuilder.BuildExpression(option, o.weight));
+        }
+
+        DecisionOptionEffect[] effects = null;
+        if (o.effects != null)
+        {
+            effects = new DecisionOptionEffect[o.effects.Length];
+
+            for (int i = 0; i < o.effects.Length; i++)
+            {
+                try
+                {
+                    effects[i] = CreateOptionEffect(option, o.effects[i]);
+                }
+                catch (Exception e)
+                {
+                    // If there's a failure while loading a option effect entry,
+                    // report the index within the option...
+                    throw new Exception(
+                        "Failure loading option effect #" + i + " in option '" + o.id + "': "
+                        + e.Message, e);
+                }
+            }
+        }
+
+        option.Weight = weight;
+        option.Effects = effects;
+
+        return option;
     }
 
     private static ModDecision CreateDecision(LoadedDecision d)
@@ -130,6 +207,11 @@ public class DecisionLoader
             throw new ArgumentException("decision 'target' can't be null or empty");
         }
 
+        if (d.description == null)
+        {
+            throw new ArgumentException("decsion 'description' list can't be empty");
+        }
+
         ModDecision decision = new ModDecision();
 
         if (d.properties != null)
@@ -140,11 +222,47 @@ public class DecisionLoader
             }
         }
 
-        DescriptionSegment[] segments = null;
+        OptionalDescription[] segments = new OptionalDescription[d.description.Length];
+
+        for (int i = 0; i < d.description.Length; i++)
+        {
+            try
+            {
+                segments[i] = CreateDescriptionSegment(decision, d.description[i]);
+            }
+            catch (Exception e)
+            {
+                // If there's a failure while loading a description entry,
+                // report the index within the decision...
+                throw new Exception(
+                    "Failure loading description segment #" + i + " in decision '" + d.id + "': "
+                    + e.Message, e);
+            }
+        }
+
+        DecisionOption[] options = new DecisionOption[d.options.Length];
+
+        for (int i = 0; i < d.options.Length; i++)
+        {
+            try
+            {
+                options[i] = CreateOption(decision, d.options[i]);
+            }
+            catch (Exception e)
+            {
+                // If there's a failure while loading an option entry,
+                // report the index within the decision...
+                throw new Exception(
+                    "Failure loading option #" + i + " in decision '" + d.id + "': "
+                    + e.Message, e);
+            }
+        }
 
         decision.Id = d.id;
         decision.IdHash = d.id.GetHashCode();
         decision.Name = d.name;
+        decision.DescriptionSegments = segments;
+        decision.Options = options;
 
         return decision;
     }

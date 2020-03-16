@@ -31,8 +31,7 @@ public class FixedBooleanValueExpression : IBooleanExpression
 
     public bool Value => BooleanValue;
 
-    public override string ToString()
-    {
-        return BooleanValue.ToString();
-    }
+    public override string ToString() => BooleanValue.ToString();
+
+    public string GetString() => Value.ToString();
 }

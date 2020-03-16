@@ -11,4 +11,6 @@ public abstract class BinaryOpBooleanExpression : BinaryOpExpression, IBooleanEx
     }
 
     public abstract bool Value { get; }
+
+    public string GetString() => Value.ToString();
 }

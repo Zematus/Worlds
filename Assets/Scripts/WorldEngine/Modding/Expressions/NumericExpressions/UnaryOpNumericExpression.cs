@@ -14,4 +14,6 @@ public abstract class UnaryOpNumericExpression : UnaryOpExpression, INumericExpr
     }
 
     public abstract float Value { get; }
+
+    public string GetString() => Value.ToString();
 }

@@ -23,7 +23,8 @@ public class ModDecision : Context
     /// </summary>
     public int IdHash;
 
-    public DescriptionSegment descriptionSegments;
+    public OptionalDescription[] DescriptionSegments;
+    public DecisionOption[] Options;
 
     /// <summary>
     /// Conditions that decide if an event should be assigned to a target
@@ -46,15 +47,15 @@ public class ModDecision : Context
 
     public static void LoadDecisionFile(string filename)
     {
-        foreach (ModDecision generator in DecisionLoader.Load(filename))
+        foreach (ModDecision decision in DecisionLoader.Load(filename))
         {
-            if (Decisions.ContainsKey(generator.Id))
+            if (Decisions.ContainsKey(decision.Id))
             {
-                Decisions[generator.Id] = generator;
+                Decisions[decision.Id] = decision;
             }
             else
             {
-                Decisions.Add(generator.Id, generator);
+                Decisions.Add(decision.Id, decision);
             }
         }
     }

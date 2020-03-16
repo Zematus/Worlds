@@ -35,4 +35,6 @@ public class FixedNumberExpression : INumericExpression
     {
         return NumberValue.ToString();
     }
+
+    public string GetString() => Value.ToString();
 }

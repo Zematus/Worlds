@@ -34,7 +34,7 @@ public abstract class Context
             throw new ArgumentException("'type' can't be null or empty");
         }
 
-        PropertyEntity entity = null;
+        PropertyEntity entity;
 
         switch (p.type)
         {

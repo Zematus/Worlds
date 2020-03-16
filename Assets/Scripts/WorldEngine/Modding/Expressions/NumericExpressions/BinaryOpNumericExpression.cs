@@ -16,4 +16,6 @@ public abstract class BinaryOpNumericExpression : BinaryOpExpression, INumericEx
     }
 
     public abstract float Value { get; }
+
+    public string GetString() => Value.ToString();
 }
