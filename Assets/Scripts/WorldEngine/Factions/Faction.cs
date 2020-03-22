@@ -6,7 +6,7 @@ using System.Xml.Serialization;
 using UnityEngine.Profiling;
 
 [XmlInclude(typeof(Clan))]
-public abstract class Faction : ISynchronizable
+public abstract class Faction : ISynchronizable, IWorldDateGetter
 {
     [XmlAttribute("PolId")]
     public long PolityId;
@@ -14,7 +14,7 @@ public abstract class Faction : ISynchronizable
     [XmlAttribute("CGrpId")]
     public long CoreGroupId;
 
-    [XmlAttribute("Prom")]
+    [XmlAttribute("Inf")]
     public float Influence;
 
     [XmlAttribute("StilPres")]
@@ -65,57 +65,21 @@ public abstract class Faction : ISynchronizable
     public bool IsInitialized = true;
 
     [XmlIgnore]
-    public float AdministrativeLoad
-    {
-        get
-        {
-            if (_lastAdministrativeLoadUpdateDate < World.CurrentDate)
-            {
-                _administrativeLoad = CalculateAdministrativeLoad();
-
-                _lastAdministrativeLoadUpdateDate = World.CurrentDate;
-            }
-
-            return _administrativeLoad;
-        }
-    }
+    public float AdministrativeLoad => _administrativeLoad.Value;
 
     // Use this instead to get the leader
     [XmlIgnore]
-    public Agent CurrentLeader
-    {
-        get
-        {
-            if (_lastLeaderUpdateDate < World.CurrentDate)
-            {
-                _currentLeader = RequestCurrentLeader();
+    public Agent CurrentLeader => _currentLeader.Value;
 
-                _lastLeaderUpdateDate = World.CurrentDate;
-            }
+    public string Type => Info.Type;
 
-            return _currentLeader;
-        }
-    }
+    public long Id => Info.Id;
 
-    public string Type
-    {
-        get { return Info.Type; }
-    }
+    public long FormationDate => Info.FormationDate;
 
-    public long Id
-    {
-        get { return Info.Id; }
-    }
+    public Name Name => Info.Name;
 
-    public long FormationDate
-    {
-        get { return Info.FormationDate; }
-    }
-
-    public Name Name
-    {
-        get { return Info.Name; }
-    }
+    public long CurrentDate => World.CurrentDate;
 
     protected long _splitFactionEventId;
     protected CellGroup _splitFactionCoreGroup;
@@ -126,20 +90,24 @@ public abstract class Faction : ISynchronizable
 
     protected Dictionary<long, FactionEvent> _events = new Dictionary<long, FactionEvent>();
 
+    private readonly DatedValue<float> _administrativeLoad;
+    private readonly DatedValue<Agent> _currentLeader;
+
     private bool _preupdated = false;
-
-    private long _lastAdministrativeLoadUpdateDate = -1;
-    private float _administrativeLoad = 0;
-
-    private long _lastLeaderUpdateDate = -1;
-    private Agent _currentLeader = null;
 
     public Faction()
     {
-
+        _administrativeLoad = new DatedValue<float>(this, CalculateAdministrativeLoad);
+        _currentLeader = new DatedValue<Agent>(this, RequestCurrentLeader);
     }
 
-    public Faction(string type, Polity polity, CellGroup coreGroup, float influence, Faction parentFaction = null)
+    public Faction(
+        string type,
+        Polity polity,
+        CellGroup coreGroup,
+        float influence,
+        Faction parentFaction = null)
+        : this()
     {
         World = polity.World;
 

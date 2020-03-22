@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 public class FactionEntity : Entity
 {
     public const string AdministrativeLoadAttributeId = "administrative_load";
+    public const string InfluenceAttributeId = "influence";
     public const string LeaderAttributeId = "leader";
     public const string PreferencesAttributeId = "preferences";
     public const string TriggerDecisionAttributeId = "trigger_decision";
@@ -16,6 +17,7 @@ public class FactionEntity : Entity
     private TypeAttribute _typeAttribute;
 
     private AdministrativeLoadAttribute _administrativeLoadAttribute;
+    private InfluenceAttribute influenceAttribute;
 
     private AgentEntity _leaderEntity;
     private EntityAttribute _leaderEntityAttribute;
@@ -50,6 +52,19 @@ public class FactionEntity : Entity
         }
 
         public override float Value => _factionEntity.Faction.AdministrativeLoad;
+    }
+
+    public class InfluenceAttribute : NumericEntityAttribute
+    {
+        private FactionEntity _factionEntity;
+
+        public InfluenceAttribute(FactionEntity factionEntity)
+            : base(InfluenceAttributeId, factionEntity, null)
+        {
+            _factionEntity = factionEntity;
+        }
+
+        public override float Value => _factionEntity.Faction.Influence;
     }
 
     public class TriggerDecisionAttribute : EffectEntityAttribute
@@ -116,6 +131,11 @@ public class FactionEntity : Entity
                 _administrativeLoadAttribute =
                     _administrativeLoadAttribute ?? new AdministrativeLoadAttribute(this);
                 return _administrativeLoadAttribute;
+
+            case InfluenceAttributeId:
+                influenceAttribute =
+                    influenceAttribute ?? new InfluenceAttribute(this);
+                return influenceAttribute;
 
             case PreferencesAttributeId:
                 _preferencesAttribute =
