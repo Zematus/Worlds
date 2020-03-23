@@ -105,12 +105,12 @@ public class DecisionLoader
     {
         InitializeDescription(segment, od);
 
-        IBooleanExpression[] conditions = null;
+        IValueExpression<bool>[] conditions = null;
 
         if (od.conditions != null)
         {
             // Build the condition expressions (must evaluate to bool values)
-            conditions = ExpressionBuilder.BuildBooleanExpressions(segment, od.conditions);
+            conditions = ExpressionBuilder.BuildValueExpressions<bool>(segment, od.conditions);
         }
 
         segment.Conditions = conditions;
@@ -155,10 +155,10 @@ public class DecisionLoader
 
         InitializeOptionalDescription(option, o);
 
-        INumericExpression weight = null;
+        IValueExpression<float> weight = null;
         if (!string.IsNullOrWhiteSpace(o.weight))
         {
-            weight = ExpressionBuilder.ValidateNumericExpression(
+            weight = ExpressionBuilder.ValidateValueExpression<float>(
                 ExpressionBuilder.BuildExpression(option, o.weight));
         }
 

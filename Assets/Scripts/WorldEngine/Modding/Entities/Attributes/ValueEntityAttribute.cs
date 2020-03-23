@@ -3,16 +3,16 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public abstract class NumericEntityAttribute : EntityAttribute
+public abstract class ValueEntityAttribute<T> : EntityAttribute
 {
-    public NumericEntityAttribute(string id, Entity entity, IExpression[] arguments)
+    public ValueEntityAttribute(string id, Entity entity, IExpression[] arguments)
         : base(id, entity, arguments)
     { }
 
-    public abstract float Value { get; }
+    public abstract T Value { get; }
 
     protected override EntityAttributeExpression BuildExpression()
     {
-        return new NumericEntityAttributeExpression(this);
+        return new ValueEntityAttributeExpression<T>(this);
     }
 }

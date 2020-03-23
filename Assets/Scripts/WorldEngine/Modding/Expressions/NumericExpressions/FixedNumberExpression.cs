@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class FixedNumberExpression : INumericExpression
+public class FixedNumberExpression : IValueExpression<float>
 {
     public const string Regex = @"^" + ModUtility.NumberRegexPart + @"\s*$";
 

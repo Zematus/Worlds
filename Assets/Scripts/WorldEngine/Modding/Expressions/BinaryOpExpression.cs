@@ -6,12 +6,12 @@ using System.Text.RegularExpressions;
 /// <summary>
 /// Base class for all binary operation expressions (i.e. '2 + 2', 'A && B')
 /// </summary>
-public abstract class BinaryOpExpression : IExpression
+public abstract class BinaryOpExpression<T> : IValueExpression<T>
 {
     protected IExpression _expressionA;
     protected IExpression _expressionB;
 
-    private string _opStr;
+    private readonly string _opStr;
 
     /// <summary>
     /// Constructor
@@ -30,4 +30,8 @@ public abstract class BinaryOpExpression : IExpression
     {
         return "(" + _expressionA + " " + _opStr + " " + _expressionB + ")";
     }
+
+    public string GetString() => Value.ToString();
+
+    public abstract T Value { get; }
 }

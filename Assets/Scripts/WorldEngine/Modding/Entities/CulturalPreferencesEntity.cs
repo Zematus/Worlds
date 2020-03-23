@@ -9,7 +9,7 @@ public class CulturalPreferencesEntity : Entity
 
     protected override object _reference => Culture;
 
-    public class PreferenceAttribute : NumericEntityAttribute
+    public class PreferenceAttribute : ValueEntityAttribute<float>
     {
         private CulturalPreferencesEntity _preferencesEntity;
         private string _preferenceId;

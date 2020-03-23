@@ -4,19 +4,23 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System;
 
-public class EntityExpression : IEntityExpression
+public class EntityExpression : IValueExpression<Entity>
 {
-    private readonly Entity _entity;
-
     public EntityExpression(Entity entity)
     {
-        _entity = entity;
+        Value = entity;
     }
 
     public override string ToString()
     {
-        return _entity.Id;
+        return Value.Id;
     }
 
-    public Entity Entity => _entity;
+    public string GetString()
+    {
+        // This method should not be called for an entity expression
+        throw new NotImplementedException();
+    }
+
+    public Entity Value { get; }
 }

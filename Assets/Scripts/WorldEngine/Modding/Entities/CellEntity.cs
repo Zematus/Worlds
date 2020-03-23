@@ -11,11 +11,11 @@ public class CellEntity : Entity
 
     protected override object _reference => Cell;
 
-    private class BiomeTraitPresenceAttribute : NumericEntityAttribute
+    private class BiomeTraitPresenceAttribute : ValueEntityAttribute<float>
     {
         private CellEntity _cellEntity;
 
-        private IStringExpression _argument;
+        private readonly IValueExpression<string> _argument;
 
         public BiomeTraitPresenceAttribute(CellEntity cellEntity, IExpression[] arguments)
             : base(BiomeTraitPresenceAttributeId, cellEntity, arguments)
@@ -27,7 +27,7 @@ public class CellEntity : Entity
                 throw new System.ArgumentException("Number of arguments less than 1");
             }
 
-            _argument = ExpressionBuilder.ValidateStringExpression(arguments[0]);
+            _argument = ExpressionBuilder.ValidateValueExpression<string>(arguments[0]);
         }
 
         public override float Value => _cellEntity.Cell.GetBiomeTraitPresence(_argument.Value);

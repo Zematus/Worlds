@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using System;
 
 public static class ExpressionBuilder
 {
@@ -71,7 +72,7 @@ public static class ExpressionBuilder
 
         IExpression expression = BuildExpression(context, entityStr);
 
-        if (!(expression is IEntityExpression entExpression))
+        if (!(expression is IValueExpression<Entity> entExpression))
         {
             throw new System.ArgumentException("Not a valid entity expression: " + expression);
         }
@@ -87,7 +88,7 @@ public static class ExpressionBuilder
             argExpressions = BuildFunctionArgumentExpressions(context, arguments);
         }
 
-        EntityAttribute attribute = entExpression.Entity.GetAttribute(identifier, argExpressions);
+        EntityAttribute attribute = entExpression.Value.GetAttribute(identifier, argExpressions);
 
         return attribute.GetExpression();
     }
@@ -276,7 +277,8 @@ public static class ExpressionBuilder
             case "=":
                 return null;
             case "==":
-                return EqualsExpression.Build(context, expressionAStr, expressionBStr);
+                return EqualsExpressionBuilder.BuildEqualsExpression(
+                    context, expressionAStr, expressionBStr);
             case ">=":
                 return MoreThanOrEqualExpression.Build(context, expressionAStr, expressionBStr);
             case "<=":
@@ -323,15 +325,15 @@ public static class ExpressionBuilder
         throw new System.ArgumentException("Unrecognized statement: " + match.Value);
     }
 
-    public static IBooleanExpression[] BuildBooleanExpressions(
+    public static IValueExpression<T>[] BuildValueExpressions<T>(
         Context context, ICollection<string> expressionStrs)
     {
-        IBooleanExpression[] expressions = new IBooleanExpression[expressionStrs.Count];
+        IValueExpression<T>[] expressions = new IValueExpression<T>[expressionStrs.Count];
 
         int i = 0;
         foreach (string expStr in expressionStrs)
         {
-            expressions[i++] = ValidateBooleanExpression(BuildExpression(context, expStr));
+            expressions[i++] = ValidateValueExpression<T>(BuildExpression(context, expStr));
         }
 
         return expressions;
@@ -351,51 +353,43 @@ public static class ExpressionBuilder
         return expressions;
     }
 
-    public static IStringExpression ValidateStringExpression(IExpression expression)
+    private static string GetModValueTypeString(Type type)
     {
-        if (!(expression is IStringExpression strExpression))
+        if (type == typeof(string))
         {
-            throw new System.ArgumentException(expression + " is not a valid string expression");
+            return "string";
         }
 
-        return strExpression;
+        if (type == typeof(bool))
+        {
+            return "boolean";
+        }
+
+        if (type == typeof(float))
+        {
+            return "number";
+        }
+
+        throw new Exception("Internal: Unexpected type " + type);
     }
 
-    public static IEntityExpression ValidateEntityExpression(IExpression expression)
+    public static IValueExpression<T> ValidateValueExpression<T>(IExpression expression)
     {
-        if (!(expression is IEntityExpression entExpression))
+        if (!(expression is IValueExpression<T> valExpression))
         {
-            throw new System.ArgumentException(expression + " is not a valid entity expression");
+            throw new ArgumentException(
+                expression + " is not a valid " +
+                GetModValueTypeString(typeof(T)) + " expression");
         }
 
-        return entExpression;
-    }
-
-    public static INumericExpression ValidateNumericExpression(IExpression expression)
-    {
-        if (!(expression is INumericExpression numExpression))
-        {
-            throw new System.ArgumentException(expression + " is not a valid number expression");
-        }
-
-        return numExpression;
-    }
-
-    public static IBooleanExpression ValidateBooleanExpression(IExpression expression)
-    {
-        if (!(expression is IBooleanExpression boolExpression))
-        {
-            throw new System.ArgumentException(expression + " is not a valid boolean expression");
-        }
-
-        return boolExpression;
+        return valExpression;
     }
 
     public static IEffectExpression ValidateEffectExpression(IExpression expression)
     {
         if (!(expression is IEffectExpression effectExpression))
         {
-            throw new System.ArgumentException(expression + " is not a valid effect expression");
+            throw new ArgumentException(expression + " is not a valid effect expression");
         }
 
         return effectExpression;

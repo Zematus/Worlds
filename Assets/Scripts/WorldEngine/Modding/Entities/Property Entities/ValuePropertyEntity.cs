@@ -1,46 +1,44 @@
 ﻿using System;
 
-public abstract class ValuePropertyEntity : PropertyEntity
+public class ValuePropertyEntity<T> : PropertyEntity
 {
+    private T _value;
+
+    private IValueExpression<T> _expression;
+
     public const string ValueId = "value";
 
     protected EntityAttribute _valueAttribute;
 
-    protected ValuePropertyEntity(Context context, string id)
+    public ValuePropertyEntity(Context context, string id, IExpression exp)
         : base(context, id)
     {
+        _expression = ExpressionBuilder.ValidateValueExpression<T>(exp);
     }
 
-    public static ValuePropertyEntity BuildValuePropertyEntity(
-        Context context, Context.LoadedProperty p)
+    public override EntityAttribute GetAttribute(string attributeId, IExpression[] arguments = null)
     {
-        if (string.IsNullOrEmpty(p.value))
+        switch (attributeId)
         {
-            throw new ArgumentException("'value' can't be null or empty");
+            case ValueId:
+                _valueAttribute =
+                    _valueAttribute ?? new ValueGetterEntityAttribute<T>(
+                        ValueId, this, GetValue);
+                return _valueAttribute;
         }
 
-        IExpression exp = ExpressionBuilder.BuildExpression(context, p.value);
+        throw new System.ArgumentException(Id + " property: Unable to find attribute: " + attributeId);
+    }
 
-        if (exp is INumericExpression)
-        {
-            return new NumericValuePropertyEntity(context, p.id, exp);
-        }
+    public T GetValue()
+    {
+        EvaluateIfNeeded();
 
-        if (exp is IBooleanExpression)
-        {
-            return new BooleanValuePropertyEntity(context, p.id, exp);
-        }
+        return _value;
+    }
 
-        if (exp is IStringExpression)
-        {
-            return new StringValuePropertyEntity(context, p.id, exp);
-        }
-
-        if (exp is IEntityExpression)
-        {
-            return new EntityValuePropertyEntity(context, p.id, exp);
-        }
-
-        throw new ArgumentException("Unhandled expression type: " + exp.GetType());
+    protected override void Calculate()
+    {
+        _value = _expression.Value;
     }
 }

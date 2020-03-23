@@ -56,79 +56,79 @@ public class ModTest
         IExpression expression = ExpressionBuilder.BuildExpression(testContext, "-5");
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
-        Assert.AreEqual(-5, (expression as INumericExpression).Value);
+        Assert.AreEqual(-5, (expression as IValueExpression<float>).Value);
 
         expression = ExpressionBuilder.BuildExpression(testContext, "!false");
-        Assert.AreEqual(true, (expression as IBooleanExpression).Value);
+        Assert.AreEqual(true, (expression as IValueExpression<bool>).Value);
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
 
         expression = ExpressionBuilder.BuildExpression(testContext, "1 + 1");
-        Assert.AreEqual(2, (expression as INumericExpression).Value);
+        Assert.AreEqual(2, (expression as IValueExpression<float>).Value);
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
 
         expression = ExpressionBuilder.BuildExpression(testContext, "1 + -1 + 2");
-        Assert.AreEqual(2, (expression as INumericExpression).Value);
+        Assert.AreEqual(2, (expression as IValueExpression<float>).Value);
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
 
         expression = ExpressionBuilder.BuildExpression(testContext, "-1 + 2 + 2");
-        Assert.AreEqual(3, (expression as INumericExpression).Value);
+        Assert.AreEqual(3, (expression as IValueExpression<float>).Value);
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
 
         expression = ExpressionBuilder.BuildExpression(testContext, "2 +2+3");
-        Assert.AreEqual(7, (expression as INumericExpression).Value);
+        Assert.AreEqual(7, (expression as IValueExpression<float>).Value);
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
 
         expression = ExpressionBuilder.BuildExpression(testContext, "testEntity.testBoolAttribute");
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
-        Assert.AreEqual(false, (expression as IBooleanExpression).Value);
+        Assert.AreEqual(false, (expression as IValueExpression<bool>).Value);
 
         expression = ExpressionBuilder.BuildExpression(
             testContext, "testEntity.testEntityAttribute.testBoolAttribute");
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
-        Assert.AreEqual(true, (expression as IBooleanExpression).Value);
+        Assert.AreEqual(true, (expression as IValueExpression<bool>).Value);
 
         expression = ExpressionBuilder.BuildExpression(
             testContext, "lerp(3, -1, 0.5)");
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
-        Assert.AreEqual(1, (expression as INumericExpression).Value);
+        Assert.AreEqual(1, (expression as IValueExpression<float>).Value);
 
         expression = ExpressionBuilder.BuildExpression(
             testContext, "lerp(4, (1 - 2), 0.1)");
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
-        Assert.AreEqual(3.5f, (expression as INumericExpression).Value);
+        Assert.AreEqual(3.5f, (expression as IValueExpression<float>).Value);
 
         expression = ExpressionBuilder.BuildExpression(
             testContext, "2 + (1 + lerp(3, -1, 0.5))");
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
-        Assert.AreEqual(4, (expression as INumericExpression).Value);
+        Assert.AreEqual(4, (expression as IValueExpression<float>).Value);
 
         expression = ExpressionBuilder.BuildExpression(
             testContext, "2 + lerp(0.5 + 0.5 + 2, -1, 0.5) + 1");
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
-        Assert.AreEqual(4, (expression as INumericExpression).Value);
+        Assert.AreEqual(4, (expression as IValueExpression<float>).Value);
 
         expression =
             ExpressionBuilder.BuildExpression(testContext, "testEntity.testNumericFunctionAttribute(true)");
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
-        Assert.AreEqual(10, (expression as INumericExpression).Value);
+        Assert.AreEqual(10, (expression as IValueExpression<float>).Value);
 
         expression =
             ExpressionBuilder.BuildExpression(testContext, "testEntity.testNumericFunctionAttribute(false)");
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
-        Assert.AreEqual(2, (expression as INumericExpression).Value);
+        Assert.AreEqual(2, (expression as IValueExpression<float>).Value);
     }
 
     [Test]
@@ -174,13 +174,13 @@ public class ModTest
 
         testGroupEntity.Set(testGroup1);
 
-        float numResult = (expression as INumericExpression).Value;
+        float numResult = (expression as IValueExpression<float>).Value;
         Debug.Log("Expression evaluation result - 'testGroup1': " + numResult);
         Assert.IsTrue(numResult.IsInsideRange(0.29f, 0.31f));
 
         testGroupEntity.Set(testGroup2);
 
-        numResult = (expression as INumericExpression).Value;
+        numResult = (expression as IValueExpression<float>).Value;
         Debug.Log("Expression evaluation result - 'testGroup2': " + numResult);
         Assert.IsTrue(numResult.IsInsideRange(0.44f, 0.46f));
 
@@ -193,13 +193,13 @@ public class ModTest
 
         testGroupEntity.Set(testGroup1);
 
-        bool boolResult = (expression as IBooleanExpression).Value;
+        bool boolResult = (expression as IValueExpression<bool>).Value;
         Debug.Log("Expression evaluation result - 'testGroup1': " + boolResult);
         Assert.AreEqual(false, boolResult);
 
         testGroupEntity.Set(testGroup2);
 
-        boolResult = (expression as IBooleanExpression).Value;
+        boolResult = (expression as IValueExpression<bool>).Value;
         Debug.Log("Expression evaluation result - 'testGroup2': " + boolResult);
         Assert.AreEqual(true, boolResult);
     }
@@ -249,7 +249,7 @@ public class ModTest
 
         testFactionEntity.Set(testFaction1);
 
-        string type = (expression as IStringExpression).Value;
+        string type = (expression as IValueExpression<string>).Value;
         Debug.Log("Expression evaluation result - 'testFaction1': " + type);
         Assert.AreEqual("clan", type);
 
@@ -260,7 +260,7 @@ public class ModTest
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
 
-        bool boolResult = (expression as IBooleanExpression).Value;
+        bool boolResult = (expression as IValueExpression<bool>).Value;
         Debug.Log("Expression evaluation result - 'testFaction1': " + boolResult);
         Assert.IsTrue(boolResult);
 
@@ -271,13 +271,13 @@ public class ModTest
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
 
-        float floatResult = (expression as INumericExpression).Value;
+        float floatResult = (expression as IValueExpression<float>).Value;
         Debug.Log("Expression evaluation result - 'testFaction1': " + floatResult);
         Assert.AreEqual(0.3f, floatResult);
 
         testFactionEntity.Set(testFaction2);
 
-        floatResult = (expression as INumericExpression).Value;
+        floatResult = (expression as IValueExpression<float>).Value;
         Debug.Log("Expression evaluation result - 'testFaction2': " + floatResult);
         Assert.AreEqual(0.7f, floatResult);
 
@@ -290,13 +290,13 @@ public class ModTest
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
 
-        boolResult = (expression as IBooleanExpression).Value;
+        boolResult = (expression as IValueExpression<bool>).Value;
         Debug.Log("Expression evaluation result - 'testFaction1': " + boolResult);
         Assert.IsFalse(boolResult);
 
         testFactionEntity.Set(testFaction2);
 
-        boolResult = (expression as IBooleanExpression).Value;
+        boolResult = (expression as IValueExpression<bool>).Value;
         Debug.Log("Expression evaluation result - 'testFaction2': " + boolResult);
         Assert.IsTrue(boolResult);
 
@@ -309,13 +309,13 @@ public class ModTest
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
 
-        boolResult = (expression as IBooleanExpression).Value;
+        boolResult = (expression as IValueExpression<bool>).Value;
         Debug.Log("Expression evaluation result - 'testFaction1': " + boolResult);
         Assert.IsTrue(boolResult);
 
         testFactionEntity.Set(testFaction2);
 
-        boolResult = (expression as IBooleanExpression).Value;
+        boolResult = (expression as IValueExpression<bool>).Value;
         Debug.Log("Expression evaluation result - 'testFaction2': " + boolResult);
         Assert.IsFalse(boolResult);
 
@@ -328,13 +328,13 @@ public class ModTest
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
 
-        boolResult = (expression as IBooleanExpression).Value;
+        boolResult = (expression as IValueExpression<bool>).Value;
         Debug.Log("Expression evaluation result - 'testFaction1': " + boolResult);
         Assert.IsFalse(boolResult);
 
         testFactionEntity.Set(testFaction2);
 
-        boolResult = (expression as IBooleanExpression).Value;
+        boolResult = (expression as IValueExpression<bool>).Value;
         Debug.Log("Expression evaluation result - 'testFaction2': " + boolResult);
         Assert.IsTrue(boolResult);
 
@@ -348,13 +348,13 @@ public class ModTest
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
 
-        floatResult = (expression as INumericExpression).Value;
+        floatResult = (expression as IValueExpression<float>).Value;
         Debug.Log("Expression evaluation result - 'testFaction1': " + floatResult);
         Assert.AreEqual(38325, floatResult);
 
         testFactionEntity.Set(testFaction2);
 
-        floatResult = (expression as INumericExpression).Value;
+        floatResult = (expression as IValueExpression<float>).Value;
         Debug.Log("Expression evaluation result - 'testFaction2': " + floatResult);
         Assert.AreEqual(21900, floatResult);
 
@@ -368,13 +368,13 @@ public class ModTest
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
 
-        boolResult = (expression as IBooleanExpression).Value;
+        boolResult = (expression as IValueExpression<bool>).Value;
         Debug.Log("Expression evaluation result - 'testFaction1': " + boolResult);
         Assert.IsTrue(boolResult);
 
         testFactionEntity.Set(testFaction2);
 
-        boolResult = (expression as IBooleanExpression).Value;
+        boolResult = (expression as IValueExpression<bool>).Value;
         Debug.Log("Expression evaluation result - 'testFaction2': " + boolResult);
         Assert.IsFalse(boolResult);
     }

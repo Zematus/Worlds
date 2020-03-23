@@ -3,10 +3,13 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class NegateNumberExpression : UnaryOpNumericExpression
+public class NegateNumberExpression : UnaryOpExpression<float>
 {
+    protected IValueExpression<float> _numExpression;
+
     public NegateNumberExpression(IExpression expression) : base("-", expression)
     {
+        _numExpression = ExpressionBuilder.ValidateValueExpression<float>(expression);
     }
 
     public static IExpression Build(Context context, string expressionStr)

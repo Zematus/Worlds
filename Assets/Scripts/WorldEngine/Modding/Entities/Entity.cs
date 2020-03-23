@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System;
 
-public abstract class Entity
+public abstract class Entity : IComparable<object>
 {
     public string Id;
 
@@ -35,13 +35,18 @@ public abstract class Entity
         return -417141133 + EqualityComparer<object>.Default.GetHashCode(_reference);
     }
 
+    public int CompareTo(object other)
+    {
+        throw new NotImplementedException();
+    }
+
     public static bool operator ==(Entity left, Entity right)
     {
-        return EqualityComparer<Entity>.Default.Equals(left, right);
+        return left.Equals(right);
     }
 
     public static bool operator !=(Entity left, Entity right)
     {
-        return !(left == right);
+        return !left.Equals(right);
     }
 }

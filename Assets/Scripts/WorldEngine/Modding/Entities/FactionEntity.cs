@@ -14,10 +14,9 @@ public class FactionEntity : Entity
 
     public Faction Faction { get; private set; }
 
-    private TypeAttribute _typeAttribute;
-
-    private AdministrativeLoadAttribute _administrativeLoadAttribute;
-    private InfluenceAttribute influenceAttribute;
+    private ValueGetterEntityAttribute<string> _typeAttribute;
+    private ValueGetterEntityAttribute<float> _administrativeLoadAttribute;
+    private ValueGetterEntityAttribute<float> _influenceAttribute;
 
     private AgentEntity _leaderEntity;
     private EntityAttribute _leaderEntityAttribute;
@@ -28,45 +27,6 @@ public class FactionEntity : Entity
 
     protected override object _reference => Faction;
 
-    public class TypeAttribute : StringEntityAttribute
-    {
-        private FactionEntity _factionEntity;
-
-        public TypeAttribute(FactionEntity factionEntity)
-            : base(TypeAttributeId, factionEntity, null)
-        {
-            _factionEntity = factionEntity;
-        }
-
-        public override string Value => _factionEntity.Faction.Type;
-    }
-
-    public class AdministrativeLoadAttribute : NumericEntityAttribute
-    {
-        private FactionEntity _factionEntity;
-
-        public AdministrativeLoadAttribute(FactionEntity factionEntity)
-            : base(AdministrativeLoadAttributeId, factionEntity, null)
-        {
-            _factionEntity = factionEntity;
-        }
-
-        public override float Value => _factionEntity.Faction.AdministrativeLoad;
-    }
-
-    public class InfluenceAttribute : NumericEntityAttribute
-    {
-        private FactionEntity _factionEntity;
-
-        public InfluenceAttribute(FactionEntity factionEntity)
-            : base(InfluenceAttributeId, factionEntity, null)
-        {
-            _factionEntity = factionEntity;
-        }
-
-        public override float Value => _factionEntity.Faction.Influence;
-    }
-
     public class TriggerDecisionAttribute : EffectEntityAttribute
     {
         private FactionEntity _factionEntity;
@@ -74,7 +34,7 @@ public class FactionEntity : Entity
         private Decision _decisionToTrigger = null;
         private bool _unfixedDecision = true;
 
-        private IStringExpression _argumentExp;
+        private readonly IValueExpression<string> _argumentExp;
 
         public TriggerDecisionAttribute(FactionEntity factionEntity, IExpression[] arguments)
             : base(TriggerDecisionAttributeId, factionEntity, arguments)
@@ -86,7 +46,7 @@ public class FactionEntity : Entity
                 throw new System.ArgumentException("Number of arguments less than 1");
             }
 
-            _argumentExp = ExpressionBuilder.ValidateStringExpression(arguments[0]);
+            _argumentExp = ExpressionBuilder.ValidateValueExpression<string>(arguments[0]);
 
             if (_argumentExp is FixedStringValueExpression)
             {
@@ -124,24 +84,26 @@ public class FactionEntity : Entity
         {
             case TypeAttributeId:
                 _typeAttribute =
-                    _typeAttribute ?? new TypeAttribute(this);
+                    _typeAttribute ?? new ValueGetterEntityAttribute<string>(
+                        TypeAttributeId, this, () => Faction.Type);
                 return _typeAttribute;
 
             case AdministrativeLoadAttributeId:
                 _administrativeLoadAttribute =
-                    _administrativeLoadAttribute ?? new AdministrativeLoadAttribute(this);
+                    _administrativeLoadAttribute ?? new ValueGetterEntityAttribute<float>(
+                        AdministrativeLoadAttributeId, this, () => Faction.AdministrativeLoad);
                 return _administrativeLoadAttribute;
 
             case InfluenceAttributeId:
-                influenceAttribute =
-                    influenceAttribute ?? new InfluenceAttribute(this);
-                return influenceAttribute;
+                _influenceAttribute =
+                    _influenceAttribute ?? new ValueGetterEntityAttribute<float>(
+                        InfluenceAttributeId, this, () => Faction.Influence);
+                return _influenceAttribute;
 
             case PreferencesAttributeId:
                 _preferencesAttribute =
-                    _preferencesAttribute ??
-                    new FixedEntityEntityAttribute(
-                        _preferencesEntity, PreferencesAttributeId, this, arguments);
+                    _preferencesAttribute ?? new FixedValueEntityAttribute<Entity>(
+                        _preferencesEntity, PreferencesAttributeId, this);
                 return _preferencesAttribute;
 
             case TriggerDecisionAttributeId:
@@ -149,9 +111,8 @@ public class FactionEntity : Entity
 
             case LeaderAttributeId:
                 _leaderEntityAttribute =
-                    _leaderEntityAttribute ??
-                    new FixedEntityEntityAttribute(
-                        _leaderEntity, LeaderAttributeId, this, arguments);
+                    _leaderEntityAttribute ?? new FixedValueEntityAttribute<Entity>(
+                        _leaderEntity, LeaderAttributeId, this);
                 return _leaderEntityAttribute;
         }
 

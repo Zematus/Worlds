@@ -3,11 +3,11 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class LerpFunctionExpression : INumericExpression
+public class LerpFunctionExpression : IValueExpression<float>
 {
-    private INumericExpression _startArg;
-    private INumericExpression _endArg;
-    private INumericExpression _percentArg;
+    private IValueExpression<float> _startArg;
+    private IValueExpression<float> _endArg;
+    private IValueExpression<float> _percentArg;
 
     public LerpFunctionExpression(IExpression[] arguments)
     {
@@ -16,9 +16,9 @@ public class LerpFunctionExpression : INumericExpression
             throw new System.ArgumentException("Number of arguments less than 3");
         }
 
-        _startArg = ExpressionBuilder.ValidateNumericExpression(arguments[0]);
-        _endArg = ExpressionBuilder.ValidateNumericExpression(arguments[1]);
-        _percentArg = ExpressionBuilder.ValidateNumericExpression(arguments[2]);
+        _startArg = ExpressionBuilder.ValidateValueExpression<float>(arguments[0]);
+        _endArg = ExpressionBuilder.ValidateValueExpression<float>(arguments[1]);
+        _percentArg = ExpressionBuilder.ValidateValueExpression<float>(arguments[2]);
     }
 
     public float Value => Mathf.Lerp(

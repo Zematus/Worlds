@@ -3,10 +3,13 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class NegateBooleanValueExpression : UnaryOpBooleanExpression
+public class NegateBooleanValueExpression : UnaryOpExpression<bool>
 {
+    IValueExpression<bool> _boolExpression;
+
     public NegateBooleanValueExpression(IExpression expression) : base("!", expression)
     {
+        _boolExpression = ExpressionBuilder.ValidateValueExpression<bool>(expression);
     }
 
     public static IExpression Build(Context context, string expressionStr)

@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class FixedBooleanValueExpression : IBooleanExpression
+public class FixedBooleanValueExpression : IValueExpression<bool>
 {
     public const string Regex = @"^" + ModUtility.BooleanRegexPart + @"\s*$";
 

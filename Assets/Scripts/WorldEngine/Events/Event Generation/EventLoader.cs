@@ -110,26 +110,27 @@ public class EventLoader
 
         EventGenerator generator = EventGenerator.BuildGenerator(e.target);
 
-        IBooleanExpression[] assignmentConditions = null;
-        IBooleanExpression[] triggerConditions = null;
+        IValueExpression<bool>[] assignmentConditions = null;
+        IValueExpression<bool>[] triggerConditions = null;
 
         if (e.assignmentConditions != null)
         {
             // Build the assignment condition expressions (must evaluate to bool values)
             assignmentConditions =
-                ExpressionBuilder.BuildBooleanExpressions(generator, e.assignmentConditions);
+                ExpressionBuilder.BuildValueExpressions<bool>(generator, e.assignmentConditions);
         }
 
         if (e.triggerConditions != null)
         {
             // Build the trigger condition expressions (must evaluate to bool values)
             triggerConditions =
-                ExpressionBuilder.BuildBooleanExpressions(generator, e.triggerConditions);
+                ExpressionBuilder.BuildValueExpressions<bool>(generator, e.triggerConditions);
         }
 
         // Build the time-to-trigger expression (must evaluate to a number (int or float))
-        INumericExpression maxTimeToTrigger = ExpressionBuilder.ValidateNumericExpression(
-            ExpressionBuilder.BuildExpression(generator, e.maxTimeToTrigger));
+        IValueExpression<float> maxTimeToTrigger =
+            ExpressionBuilder.ValidateValueExpression<float>(
+                ExpressionBuilder.BuildExpression(generator, e.maxTimeToTrigger));
 
         // Build the effect expressions (must produce side effects)
         IEffectExpression[] effects =

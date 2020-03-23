@@ -3,11 +3,16 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class MultiplyExpression : BinaryOpNumericExpression
+public class MultiplyExpression : BinaryOpExpression<float>
 {
+    protected IValueExpression<float> _numExpressionA;
+    protected IValueExpression<float> _numExpressionB;
+
     public MultiplyExpression(IExpression expressionA, IExpression expressionB)
         : base("*", expressionA, expressionB)
     {
+        _numExpressionA = ExpressionBuilder.ValidateValueExpression<float>(expressionA);
+        _numExpressionB = ExpressionBuilder.ValidateValueExpression<float>(expressionB);
     }
 
     public static IExpression Build(Context context, string expressionAStr, string expressionBStr)

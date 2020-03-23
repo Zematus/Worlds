@@ -17,11 +17,11 @@ public class TestContext : Context
     }
 }
 
-public class TestBooleanEntityAttribute : BooleanEntityAttribute
+public class TestBooleanEntityAttribute : ValueEntityAttribute<bool>
 {
     public const string TestId = "testBoolAttribute";
 
-    private bool _value;
+    private readonly bool _value;
 
     public TestBooleanEntityAttribute(Entity entity, bool value)
         : base(TestId, entity, null)
@@ -32,11 +32,11 @@ public class TestBooleanEntityAttribute : BooleanEntityAttribute
     public override bool Value => _value;
 }
 
-public class TestNumericFunctionEntityAttribute : NumericEntityAttribute
+public class TestNumericFunctionEntityAttribute : ValueEntityAttribute<float>
 {
     public const string TestId = "testNumericFunctionAttribute";
 
-    private IBooleanExpression _argument;
+    private IValueExpression<bool> _argument;
 
     public TestNumericFunctionEntityAttribute(Entity entity, IExpression[] arguments)
         : base(TestId, entity, null)
@@ -46,7 +46,7 @@ public class TestNumericFunctionEntityAttribute : NumericEntityAttribute
             throw new System.ArgumentException("Number of arguments less than 1");
         }
 
-        _argument = ExpressionBuilder.ValidateBooleanExpression(arguments[0]);
+        _argument = ExpressionBuilder.ValidateValueExpression<bool>(arguments[0]);
     }
 
     public override float Value => (_argument.Value) ? 10 : 2;
@@ -81,11 +81,11 @@ public class TestEntity : Entity
         }
     }
 
-    private InternalEntity _internalEntity = new InternalEntity();
+    private readonly InternalEntity _internalEntity = new InternalEntity();
 
-    private TestBooleanEntityAttribute _boolAttribute;
+    private readonly TestBooleanEntityAttribute _boolAttribute;
 
-    private FixedEntityEntityAttribute _entityAttribute;
+    private readonly FixedValueEntityAttribute<Entity> _entityAttribute;
 
     protected override object _reference => this;
 
@@ -94,7 +94,7 @@ public class TestEntity : Entity
         _boolAttribute =
             new TestBooleanEntityAttribute(this, false);
         _entityAttribute =
-            new FixedEntityEntityAttribute(_internalEntity, TestEntityAttributeId, this, null);
+            new FixedValueEntityAttribute<Entity>(_internalEntity, TestEntityAttributeId, this);
     }
 
     public override EntityAttribute GetAttribute(string attributeId, IExpression[] arguments = null)

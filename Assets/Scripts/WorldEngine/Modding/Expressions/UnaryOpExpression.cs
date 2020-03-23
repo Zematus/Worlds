@@ -6,11 +6,11 @@ using System.Text.RegularExpressions;
 /// <summary>
 /// Base class for all unary operation expressions (i.e. -3, !true)
 /// </summary>
-public abstract class UnaryOpExpression : IExpression
+public abstract class UnaryOpExpression<T> : IValueExpression<T>
 {
     protected IExpression _expression;
 
-    private string _opStr;
+    private readonly string _opStr;
 
     /// <summary>
     /// Constructor
@@ -27,4 +27,8 @@ public abstract class UnaryOpExpression : IExpression
     {
         return "(" + _opStr + _expression + ")";
     }
+
+    public string GetString() => Value.ToString();
+
+    public abstract T Value { get; }
 }

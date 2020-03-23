@@ -26,7 +26,7 @@ public class GroupEntity : Entity
             case CellAttributeId:
                 _cellEntityAttribute =
                     _cellEntityAttribute ??
-                    new FixedEntityEntityAttribute(_cellEntity, CellAttributeId, this, arguments);
+                    new FixedValueEntityAttribute<Entity>(_cellEntity, CellAttributeId, this);
                 return _cellEntityAttribute;
         }
 

@@ -34,17 +34,9 @@ public class ModText
                     IExpression exp =
                         ExpressionBuilder.BuildExpression(context, value);
 
-                    if (exp is IStringExpression)
+                    if (exp is IModTextPart)
                     {
-                        textParts.Add(exp as IStringExpression);
-                    }
-                    else if (exp is INumericExpression)
-                    {
-                        textParts.Add(exp as INumericExpression);
-                    }
-                    else if (exp is IBooleanExpression)
-                    {
-                        textParts.Add(exp as IBooleanExpression);
+                        textParts.Add(exp as IModTextPart);
                     }
                     else
                     {

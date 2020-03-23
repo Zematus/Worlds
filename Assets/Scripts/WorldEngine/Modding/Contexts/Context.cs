@@ -47,7 +47,7 @@ public abstract class Context
                 break;
 
             case PropertyEntity.ValueType:
-                entity = ValuePropertyEntity.BuildValuePropertyEntity(this, p);
+                entity = BuildValuePropertyEntity(this, p);
                 break;
 
             default:
@@ -57,6 +57,39 @@ public abstract class Context
         _entities.Add(entity.Id, entity);
 
         return entity;
+    }
+
+    public static PropertyEntity BuildValuePropertyEntity(
+        Context context, Context.LoadedProperty p)
+    {
+        if (string.IsNullOrEmpty(p.value))
+        {
+            throw new ArgumentException("'value' can't be null or empty");
+        }
+
+        IExpression exp = ExpressionBuilder.BuildExpression(context, p.value);
+
+        if (exp is IValueExpression<float>)
+        {
+            return new ValuePropertyEntity<float>(context, p.id, exp);
+        }
+
+        if (exp is IValueExpression<bool>)
+        {
+            return new ValuePropertyEntity<bool>(context, p.id, exp);
+        }
+
+        if (exp is IValueExpression<string>)
+        {
+            return new ValuePropertyEntity<string>(context, p.id, exp);
+        }
+
+        if (exp is IValueExpression<Entity>)
+        {
+            return new ValuePropertyEntity<Entity>(context, p.id, exp);
+        }
+
+        throw new ArgumentException("Unhandled expression type: " + exp.GetType());
     }
 
     public Context(Context parent = null)

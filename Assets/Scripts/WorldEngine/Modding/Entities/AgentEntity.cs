@@ -8,38 +8,12 @@ public class AgentEntity : Entity
     public const string CharismaAttributeId = "charisma";
     public const string WisdomAttributeId = "wisdom";
 
-    private CharismaAttribute _charismaAttribute;
-    private WisdomAttribute _wisdomAttribute;
+    private ValueGetterEntityAttribute<float> _charismaAttribute;
+    private ValueGetterEntityAttribute<float> _wisdomAttribute;
 
     public Agent Agent;
 
     protected override object _reference => Agent;
-
-    public class CharismaAttribute : NumericEntityAttribute
-    {
-        private AgentEntity _agentEntity;
-
-        public CharismaAttribute(AgentEntity agentEntity)
-            : base(CharismaAttributeId, agentEntity, null)
-        {
-            _agentEntity = agentEntity;
-        }
-
-        public override float Value => _agentEntity.Agent.Charisma;
-    }
-
-    public class WisdomAttribute : NumericEntityAttribute
-    {
-        private AgentEntity _agentEntity;
-
-        public WisdomAttribute(AgentEntity agentEntity)
-            : base(CharismaAttributeId, agentEntity, null)
-        {
-            _agentEntity = agentEntity;
-        }
-
-        public override float Value => _agentEntity.Agent.Wisdom;
-    }
 
     public AgentEntity(string id) : base(id)
     {
@@ -51,12 +25,14 @@ public class AgentEntity : Entity
         {
             case CharismaAttributeId:
                 _charismaAttribute =
-                    _charismaAttribute ?? new CharismaAttribute(this);
+                    _charismaAttribute ?? new ValueGetterEntityAttribute<float>(
+                        CharismaAttributeId, this, () => Agent.Charisma);
                 return _charismaAttribute;
 
             case WisdomAttributeId:
                 _wisdomAttribute =
-                    _wisdomAttribute ?? new WisdomAttribute(this);
+                    _wisdomAttribute ?? new ValueGetterEntityAttribute<float>(
+                        WisdomAttributeId, this, () => Agent.Wisdom);
                 return _wisdomAttribute;
         }
 

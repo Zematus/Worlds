@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 public class DecisionOption : OptionalDescription
 {
-    public INumericExpression Weight;
+    public IValueExpression<float> Weight;
 
     public DecisionOptionEffect[] Effects;
 

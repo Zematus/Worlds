@@ -11,51 +11,12 @@ public class RandomRangePropertyEntity : PropertyEntity
     private float _max;
     private float _value;
 
-    public INumericExpression Min;
-    public INumericExpression Max;
+    public IValueExpression<float> Min;
+    public IValueExpression<float> Max;
 
     private EntityAttribute _minAttribute;
     private EntityAttribute _maxAttribute;
     private EntityAttribute _valueAttribute;
-
-    private class MinAttribute : NumericEntityAttribute
-    {
-        private RandomRangePropertyEntity _propertyEntity;
-
-        public MinAttribute(RandomRangePropertyEntity propertyEntity)
-            : base(ValueId, propertyEntity, null)
-        {
-            _propertyEntity = propertyEntity;
-        }
-
-        public override float Value => _propertyEntity.GetMin();
-    }
-
-    private class MaxAttribute : NumericEntityAttribute
-    {
-        private RandomRangePropertyEntity _propertyEntity;
-
-        public MaxAttribute(RandomRangePropertyEntity propertyEntity)
-            : base(ValueId, propertyEntity, null)
-        {
-            _propertyEntity = propertyEntity;
-        }
-
-        public override float Value => _propertyEntity.GetMax();
-    }
-
-    private class ValueAttribute : NumericEntityAttribute
-    {
-        private RandomRangePropertyEntity _propertyEntity;
-
-        public ValueAttribute(RandomRangePropertyEntity propertyEntity)
-            : base(ValueId, propertyEntity, null)
-        {
-            _propertyEntity = propertyEntity;
-        }
-
-        public override float Value => _propertyEntity.GetValue();
-    }
 
     public RandomRangePropertyEntity(Context context, Context.LoadedProperty p)
         : base(context, p)
@@ -70,9 +31,9 @@ public class RandomRangePropertyEntity : PropertyEntity
             throw new ArgumentException("'max' can't be null or empty");
         }
 
-        Min = ExpressionBuilder.ValidateNumericExpression(
+        Min = ExpressionBuilder.ValidateValueExpression<float>(
             ExpressionBuilder.BuildExpression(context, p.min));
-        Max = ExpressionBuilder.ValidateNumericExpression(
+        Max = ExpressionBuilder.ValidateValueExpression<float>(
             ExpressionBuilder.BuildExpression(context, p.max));
     }
 
@@ -82,20 +43,20 @@ public class RandomRangePropertyEntity : PropertyEntity
         {
             case ValueId:
                 _valueAttribute =
-                    _valueAttribute ??
-                    new ValueAttribute(this);
+                    _valueAttribute ?? new ValueGetterEntityAttribute<float>(
+                        ValueId, this, GetValue);
                 return _valueAttribute;
 
             case MinId:
                 _minAttribute =
-                    _minAttribute ??
-                    new MinAttribute(this);
+                    _minAttribute ?? new ValueGetterEntityAttribute<float>(
+                        MinId, this, GetMin);
                 return _minAttribute;
 
             case MaxId:
                 _maxAttribute =
-                    _maxAttribute ??
-                    new MaxAttribute(this);
+                    _maxAttribute ?? new ValueGetterEntityAttribute<float>(
+                        MaxId, this, GetMax);
                 return _maxAttribute;
         }
 

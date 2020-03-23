@@ -6,7 +6,7 @@ public class OptionalDescription : Description
     /// <summary>
     /// Conditions that decide if this description segment should be shown
     /// </summary>
-    public IBooleanExpression[] Conditions;
+    public IValueExpression<bool>[] Conditions;
 
     public OptionalDescription(Context context) : base(context)
     {
@@ -19,7 +19,7 @@ public class OptionalDescription : Description
             return true;
         }
 
-        foreach (IBooleanExpression exp in Conditions)
+        foreach (IValueExpression<bool> exp in Conditions)
         {
             if (!exp.Value)
                 return false;

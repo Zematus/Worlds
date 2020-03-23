@@ -50,16 +50,16 @@ public abstract class EventGenerator : Context
     /// <summary>
     /// Conditions that decide if an event should be assigned to a target
     /// </summary>
-    public IBooleanExpression[] AssignmentConditions;
+    public IValueExpression<bool>[] AssignmentConditions;
     /// <summary>
     /// Conditions that decide if an event should trigger
     /// </summary>
-    public IBooleanExpression[] TriggerConditions;
+    public IValueExpression<bool>[] TriggerConditions;
 
     /// <summary>
     /// Maximum time to pass before event triggers (since assignment date)
     /// </summary>
-    public INumericExpression MaxTimeToTrigger;
+    public IValueExpression<float> MaxTimeToTrigger;
 
     /// <summary>
     /// Effects to occur after an event triggers
@@ -111,7 +111,7 @@ public abstract class EventGenerator : Context
 
     protected bool CanAssignEventToTarget()
     {
-        foreach (IBooleanExpression exp in AssignmentConditions)
+        foreach (IValueExpression<bool> exp in AssignmentConditions)
         {
             if (!exp.Value)
                 return false;
@@ -122,7 +122,7 @@ public abstract class EventGenerator : Context
 
     public bool CanTriggerEvent()
     {
-        foreach (IBooleanExpression exp in TriggerConditions)
+        foreach (IValueExpression<bool> exp in TriggerConditions)
         {
             if (!exp.Value)
                 return false;

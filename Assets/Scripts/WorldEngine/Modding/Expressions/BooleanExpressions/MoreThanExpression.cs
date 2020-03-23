@@ -3,25 +3,27 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class MoreThanExpression : BinaryOpBooleanExpression
+public class MoreThanExpression : BinaryOpExpression<bool>
 {
-    private readonly INumericExpression _numExpressionA;
-    private readonly INumericExpression _numExpressionB;
+    private readonly IValueExpression<float> _numExpressionA;
+    private readonly IValueExpression<float> _numExpressionB;
 
-    public MoreThanExpression(IExpression expressionA, IExpression expressionB) :
+    public MoreThanExpression(
+        IValueExpression<float> expressionA,
+        IValueExpression<float> expressionB) :
         base(">", expressionA, expressionB)
     {
-        _numExpressionA = ExpressionBuilder.ValidateNumericExpression(expressionA);
-        _numExpressionB = ExpressionBuilder.ValidateNumericExpression(expressionB);
+        _numExpressionA = expressionA;
+        _numExpressionB = expressionB;
     }
 
     public static IExpression Build(Context context, string expressionAStr, string expressionBStr)
     {
-        INumericExpression expressionA =
-            ExpressionBuilder.ValidateNumericExpression(
+        IValueExpression<float> expressionA =
+            ExpressionBuilder.ValidateValueExpression<float>(
                 ExpressionBuilder.BuildExpression(context, expressionAStr));
-        INumericExpression expressionB =
-            ExpressionBuilder.ValidateNumericExpression(
+        IValueExpression<float> expressionB =
+            ExpressionBuilder.ValidateValueExpression<float>(
                 ExpressionBuilder.BuildExpression(context, expressionBStr));
 
         if ((expressionA is FixedNumberExpression) &&
