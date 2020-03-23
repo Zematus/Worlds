@@ -43,4 +43,9 @@ public class AgentEntity : Entity
     {
         Agent = agent;
     }
+
+    public override string GetFormattedString()
+    {
+        return Agent.Name.BoldText;
+    }
 }

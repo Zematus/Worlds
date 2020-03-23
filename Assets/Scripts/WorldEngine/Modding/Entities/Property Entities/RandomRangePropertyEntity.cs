@@ -91,4 +91,11 @@ public class RandomRangePropertyEntity : PropertyEntity
 
         _value = Mathf.Lerp(_min, _max, _context.GetNextRandomFloat(_idHash));
     }
+
+    public override string GetFormattedString()
+    {
+        EvaluateIfNeeded();
+
+        return "(" + _min.ToString("0.00") + " - " + _max.ToString("0.00") + ")";
+    }
 }

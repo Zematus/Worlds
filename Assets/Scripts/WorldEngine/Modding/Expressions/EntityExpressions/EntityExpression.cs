@@ -16,10 +16,9 @@ public class EntityExpression : IValueExpression<Entity>
         return Value.Id;
     }
 
-    public string GetString()
+    public string GetFormattedString()
     {
-        // This method should not be called for an entity expression
-        throw new NotImplementedException();
+        return Value.GetFormattedString();
     }
 
     public Entity Value { get; }

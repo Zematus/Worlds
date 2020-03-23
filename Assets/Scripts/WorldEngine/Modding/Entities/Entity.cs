@@ -24,6 +24,13 @@ public abstract class Entity : IComparable<object>
 
     public abstract EntityAttribute GetAttribute(string attributeId, IExpression[] arguments = null);
 
+    public abstract string GetFormattedString();
+
+    public override string ToString()
+    {
+        return GetFormattedString();
+    }
+
     public override bool Equals(object obj)
     {
         return obj is Entity entity &&

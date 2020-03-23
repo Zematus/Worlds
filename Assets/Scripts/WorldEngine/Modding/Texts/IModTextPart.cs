@@ -5,5 +5,5 @@ using System.Text.RegularExpressions;
 
 public interface IModTextPart
 {
-    string GetString();
+    string GetFormattedString();
 }

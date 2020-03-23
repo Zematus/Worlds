@@ -228,11 +228,21 @@ public class ModTest
         TerrainCell testCell1 = testWorld.TerrainCells[0][0];
         TerrainCell testCell2 = testWorld.TerrainCells[10][10];
         CellGroup testGroup1 = new CellGroup(testWorld, testCell1, 1234);
-        CellGroup testGroup2 = new CellGroup(testWorld, testCell1, 1234);
+        CellGroup testGroup2 = new CellGroup(testWorld, testCell2, 1234);
 
         TestPolity testPolity1 = new TestPolity("tribe", testGroup1);
         TestFaction testFaction1 = new TestFaction("clan", testPolity1, testGroup1, 0, 0.3f);
         TestFaction testFaction2 = new TestFaction("clan", testPolity1, testGroup2, 0, 0.7f);
+
+        testGroup1.Culture.Language = testPolity1.Culture.Language;
+        testGroup2.Culture.Language = testPolity1.Culture.Language;
+
+        CellRegion testRegion = new CellRegion(testCell1, testGroup1.Culture.Language);
+        testCell1.Region = testRegion;
+        testCell2.Region = testRegion;
+
+        testFaction1.TestLeader = new Agent(testFaction1.CoreGroup, 0, 0);
+        testFaction2.TestLeader = new Agent(testFaction2.CoreGroup, 0, 0);
 
         testFaction1.Culture.GetPreference("authority").Value = 0.4f;
         testFaction1.Culture.GetPreference("cohesion").Value = 0.6f;

@@ -16,7 +16,7 @@ public class FixedStringValueExpression : IValueExpression<string>
 
     public string Value => _value;
 
-    public string GetString() => Value.ToString();
+    public string GetFormattedString() => Value.ToString();
 
     public override string ToString() => _value;
 }

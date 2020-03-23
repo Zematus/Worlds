@@ -28,7 +28,7 @@ public abstract class UnaryOpExpression<T> : IValueExpression<T>
         return "(" + _opStr + _expression + ")";
     }
 
-    public string GetString() => Value.ToString();
+    public string GetFormattedString() => Value.ToString();
 
     public abstract T Value { get; }
 }

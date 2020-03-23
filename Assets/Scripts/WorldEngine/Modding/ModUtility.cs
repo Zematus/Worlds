@@ -39,7 +39,7 @@ public static class ModUtility
         @"(?(open)(?!))";
 
     public const string ModTextStringRegexPart =
-        @"(?<string>(?:(?!\<\<|\>\>).)+)";
+        @"(?<string>(?:(?!\<\<|\>\>).|\n)+)";
 
     public const string ModTextExpressionRegexPart =
         @"\<\<" +

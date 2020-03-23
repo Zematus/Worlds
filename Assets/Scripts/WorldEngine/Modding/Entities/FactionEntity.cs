@@ -18,14 +18,19 @@ public class FactionEntity : Entity
     private ValueGetterEntityAttribute<float> _administrativeLoadAttribute;
     private ValueGetterEntityAttribute<float> _influenceAttribute;
 
-    private AgentEntity _leaderEntity;
+    private readonly AgentEntity _leaderEntity;
     private EntityAttribute _leaderEntityAttribute;
 
-    private CulturalPreferencesEntity _preferencesEntity =
+    private readonly CulturalPreferencesEntity _preferencesEntity =
         new CulturalPreferencesEntity(PreferencesAttributeId);
     private EntityAttribute _preferencesAttribute;
 
     protected override object _reference => Faction;
+
+    public override string GetFormattedString()
+    {
+        return Faction.Name.BoldText;
+    }
 
     public class TriggerDecisionAttribute : EffectEntityAttribute
     {

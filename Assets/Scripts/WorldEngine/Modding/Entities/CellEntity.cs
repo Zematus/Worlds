@@ -52,4 +52,9 @@ public class CellEntity : Entity
     {
         Cell = cell;
     }
+
+    public override string GetFormattedString()
+    {
+        return Cell.Position.ToString();
+    }
 }

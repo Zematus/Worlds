@@ -41,4 +41,11 @@ public class ValuePropertyEntity<T> : PropertyEntity
     {
         _value = _expression.Value;
     }
+
+    public override string GetFormattedString()
+    {
+        EvaluateIfNeeded();
+
+        return _value.ToString();
+    }
 }

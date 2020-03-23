@@ -31,7 +31,7 @@ public abstract class BinaryOpExpression<T> : IValueExpression<T>
         return "(" + _expressionA + " " + _opStr + " " + _expressionB + ")";
     }
 
-    public string GetString() => Value.ToString();
+    public string GetFormattedString() => Value.ToString();
 
     public abstract T Value { get; }
 }

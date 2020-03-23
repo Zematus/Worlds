@@ -12,5 +12,5 @@ public class StringTextPart : IModTextPart
         _str = str;
     }
 
-    public string GetString() => _str;
+    public string GetFormattedString() => _str;
 }

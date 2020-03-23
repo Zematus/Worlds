@@ -15,5 +15,5 @@ public class ValueEntityAttributeExpression<T> : EntityAttributeExpression, IVal
 
     public T Value => _valAttribute.Value;
 
-    public string GetString() => Value.ToString();
+    public string GetFormattedString() => Value.ToString();
 }

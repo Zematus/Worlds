@@ -79,6 +79,11 @@ public class TestEntity : Entity
 
             return null;
         }
+
+        public override string GetFormattedString()
+        {
+            throw new NotImplementedException();
+        }
     }
 
     private readonly InternalEntity _internalEntity = new InternalEntity();
@@ -112,6 +117,11 @@ public class TestEntity : Entity
         }
 
         return null;
+    }
+
+    public override string GetFormattedString()
+    {
+        throw new NotImplementedException();
     }
 }
 
@@ -150,6 +160,8 @@ public class TestPolity : Polity
 public class TestFaction : Faction
 {
     private float _adminLoad;
+
+    public Agent TestLeader;
 
     public TestFaction(
         string type, Polity polity, CellGroup coreGroup, float influence, float adminLoad)
@@ -199,7 +211,7 @@ public class TestFaction : Faction
 
     protected override Agent RequestCurrentLeader()
     {
-        throw new NotImplementedException();
+        return TestLeader;
     }
 
     protected override Agent RequestNewLeader()

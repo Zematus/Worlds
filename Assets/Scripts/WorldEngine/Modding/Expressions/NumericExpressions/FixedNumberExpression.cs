@@ -36,5 +36,5 @@ public class FixedNumberExpression : IValueExpression<float>
         return NumberValue.ToString();
     }
 
-    public string GetString() => Value.ToString();
+    public string GetFormattedString() => Value.ToString();
 }

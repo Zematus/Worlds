@@ -21,7 +21,7 @@ public class Culture : ISynchronizable
     public World World;
 
     [XmlIgnore]
-    public Language Language { get; protected set; }
+    public Language Language { get; set; }
 
     [XmlIgnore]
     public Dictionary<string, Discovery> Discoveries = new Dictionary<string, Discovery>();

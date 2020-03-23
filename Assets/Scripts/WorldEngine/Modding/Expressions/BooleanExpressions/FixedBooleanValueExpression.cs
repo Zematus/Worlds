@@ -33,5 +33,5 @@ public class FixedBooleanValueExpression : IValueExpression<bool>
 
     public override string ToString() => BooleanValue.ToString();
 
-    public string GetString() => Value.ToString();
+    public string GetFormattedString() => Value.ToString();
 }

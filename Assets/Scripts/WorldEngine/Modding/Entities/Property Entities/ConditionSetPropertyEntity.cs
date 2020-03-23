@@ -54,4 +54,11 @@ public class ConditionSetPropertyEntity : PropertyEntity
                 break;
         }
     }
+
+    public override string GetFormattedString()
+    {
+        EvaluateIfNeeded();
+
+        return _value.ToString();
+    }
 }

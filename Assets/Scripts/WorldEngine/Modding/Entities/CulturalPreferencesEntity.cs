@@ -59,4 +59,9 @@ public class CulturalPreferencesEntity : Entity
     {
         Culture = culture;
     }
+
+    public override string GetFormattedString()
+    {
+        return "<i>cultural preference</i>";
+    }
 }

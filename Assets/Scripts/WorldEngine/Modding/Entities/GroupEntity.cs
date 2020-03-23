@@ -39,4 +39,9 @@ public class GroupEntity : Entity
 
         _cellEntity.Set(Group.Cell);
     }
+
+    public override string GetFormattedString()
+    {
+        return Group.Cell.Position.ToString();
+    }
 }

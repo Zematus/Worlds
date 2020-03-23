@@ -74,7 +74,7 @@ public class ModText
 
         foreach (IModTextPart part in textParts)
         {
-            output += part.GetString();
+            output += part.GetFormattedString();
         }
 
         return output;
