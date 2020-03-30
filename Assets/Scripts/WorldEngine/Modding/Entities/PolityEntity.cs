@@ -13,35 +13,24 @@ public class PolityEntity : Entity
 
     public int RandomGroupId = 0;
 
-    public List<GroupEntity> RandomGroupEntitiesToSet = new List<GroupEntity>();
+    public Dictionary<int, GroupEntity> RandomGroupEntitiesToSet =
+        new Dictionary<int, GroupEntity>();
 
     public override string GetFormattedString()
     {
         return Polity.Name.BoldText;
     }
 
-    public class GetRandomGroupAttribute : ValueEntityAttribute<Entity>
+    public Entity GetRandomGroupEntity()
     {
-        private PolityEntity _polityEntity;
+        int groupId = RandomGroupId++;
 
-        public GetRandomGroupAttribute(PolityEntity polityEntity, IExpression[] arguments)
-            : base(GetRandomGroupAttributeId, polityEntity, arguments)
-        {
-            _polityEntity = polityEntity;
-        }
+        GroupEntity entity =
+            new GroupEntity(BuildInternalEntityId("random_group_" + groupId));
 
-        public override Entity Value
-        {
-            get
-            {
-                GroupEntity entity = new GroupEntity(
-                    _polityEntity.Id + ".random_group_" + _polityEntity.RandomGroupId++);
+        RandomGroupEntitiesToSet.Add(groupId, entity);
 
-                _polityEntity.RandomGroupEntitiesToSet.Add(entity);
-
-                return entity;
-            }
-        }
+        return entity;
     }
 
     public PolityEntity(string id) : base(id)
@@ -53,7 +42,8 @@ public class PolityEntity : Entity
         switch (attributeId)
         {
             case GetRandomGroupAttributeId:
-                return new GetRandomGroupAttribute(this, arguments);
+                return new ValueGetterEntityAttribute<Entity>(
+                    GetRandomGroupAttributeId, this, GetRandomGroupEntity);
         }
 
         throw new System.ArgumentException("Faction: Unable to find attribute: " + attributeId);
@@ -65,9 +55,9 @@ public class PolityEntity : Entity
 
         int offset = (int)polity.Id;
 
-        foreach (GroupEntity entity in RandomGroupEntitiesToSet)
+        foreach (KeyValuePair<int,GroupEntity> pair in RandomGroupEntitiesToSet)
         {
-            entity.Set(Polity.GetRandomGroup(offset++));
+            pair.Value.Set(polity.GetRandomGroup(offset + pair.Key));
         }
     }
 }

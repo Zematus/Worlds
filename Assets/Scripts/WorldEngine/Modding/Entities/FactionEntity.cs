@@ -8,6 +8,7 @@ public class FactionEntity : Entity
     public const string AdministrativeLoadAttributeId = "administrative_load";
     public const string InfluenceAttributeId = "influence";
     public const string LeaderAttributeId = "leader";
+    public const string PolityAttributeId = "polity";
     public const string PreferencesAttributeId = "preferences";
     public const string TriggerDecisionAttributeId = "trigger_decision";
     public const string TypeAttributeId = "type";
@@ -20,6 +21,9 @@ public class FactionEntity : Entity
 
     private readonly AgentEntity _leaderEntity;
     private EntityAttribute _leaderEntityAttribute;
+
+    private readonly PolityEntity _polityEntity;
+    private EntityAttribute _polityEntityAttribute;
 
     private readonly CulturalPreferencesEntity _preferencesEntity =
         new CulturalPreferencesEntity(PreferencesAttributeId);
@@ -83,6 +87,7 @@ public class FactionEntity : Entity
     public FactionEntity(string id) : base(id)
     {
         _leaderEntity = new AgentEntity(BuildInternalEntityId(LeaderAttributeId));
+        _polityEntity = new PolityEntity(BuildInternalEntityId(PolityAttributeId));
     }
 
     public override EntityAttribute GetAttribute(string attributeId, IExpression[] arguments = null)
@@ -121,6 +126,12 @@ public class FactionEntity : Entity
                     _leaderEntityAttribute ?? new FixedValueEntityAttribute<Entity>(
                         _leaderEntity, LeaderAttributeId, this);
                 return _leaderEntityAttribute;
+
+            case PolityAttributeId:
+                _polityEntityAttribute =
+                    _polityEntityAttribute ?? new FixedValueEntityAttribute<Entity>(
+                        _polityEntity, PolityAttributeId, this);
+                return _polityEntityAttribute;
         }
 
         throw new System.ArgumentException("Faction: Unable to find attribute: " + attributeId);
@@ -133,5 +144,7 @@ public class FactionEntity : Entity
         _preferencesEntity.Set(faction.Culture);
 
         _leaderEntity.Set(faction.CurrentLeader);
+
+        _polityEntity.Set(faction.Polity);
     }
 }
