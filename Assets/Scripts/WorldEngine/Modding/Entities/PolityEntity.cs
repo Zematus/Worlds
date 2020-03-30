@@ -11,7 +11,9 @@ public class PolityEntity : Entity
 
     protected override object _reference => Polity;
 
-    public int GetRandomGroupOffset;
+    public int RandomGroupId = 0;
+
+    public List<GroupEntity> RandomGroupEntitiesToSet = new List<GroupEntity>();
 
     public override string GetFormattedString()
     {
@@ -32,8 +34,10 @@ public class PolityEntity : Entity
         {
             get
             {
-                GroupEntity entity = new GroupEntity("__" + GetRandomGroupAttributeId + "__group");
-                entity.Set(_polityEntity.Polity.GetRandomGroup(_polityEntity.GetRandomGroupOffset++));
+                GroupEntity entity = new GroupEntity(
+                    _polityEntity.Id + ".random_group_" + _polityEntity.RandomGroupId++);
+
+                _polityEntity.RandomGroupEntitiesToSet.Add(entity);
 
                 return entity;
             }
@@ -59,6 +63,11 @@ public class PolityEntity : Entity
     {
         Polity = polity;
 
-        GetRandomGroupOffset = (int)polity.Id;
+        int offset = (int)polity.Id;
+
+        foreach (GroupEntity entity in RandomGroupEntitiesToSet)
+        {
+            entity.Set(Polity.GetRandomGroup(offset++));
+        }
     }
 }
