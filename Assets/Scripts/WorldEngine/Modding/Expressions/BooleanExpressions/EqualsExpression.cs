@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System;
 
-public class EqualsExpression<T> : BinaryOpExpression<bool> where T : IComparable<T>
+public class EqualsExpression<T> : BinaryOpExpressionWithOutput<bool> where T : IComparable<T>
 {
     private readonly IValueExpression<T> _valueExpressionA;
     private readonly IValueExpression<T> _valueExpressionB;
@@ -13,9 +13,9 @@ public class EqualsExpression<T> : BinaryOpExpression<bool> where T : IComparabl
         base("==", expressionA, expressionB)
     {
         _valueExpressionA =
-            ExpressionBuilder.ValidateValueExpression<T>(expressionA);
+            ValueExpressionBuilder.ValidateValueExpression<T>(expressionA);
         _valueExpressionB =
-            ExpressionBuilder.ValidateValueExpression<T>(expressionB);
+            ValueExpressionBuilder.ValidateValueExpression<T>(expressionB);
     }
 
     public override bool Value => _valueExpressionA.Value.Equals(_valueExpressionB.Value);

@@ -9,7 +9,7 @@ public class NegateNumberExpression : UnaryOpExpression<float>
 
     public NegateNumberExpression(IExpression expression) : base("-", expression)
     {
-        _numExpression = ExpressionBuilder.ValidateValueExpression<float>(expression);
+        _numExpression = ValueExpressionBuilder.ValidateValueExpression<float>(expression);
     }
 
     public static IExpression Build(Context context, string expressionStr)

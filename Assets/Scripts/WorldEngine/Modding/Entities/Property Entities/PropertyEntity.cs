@@ -13,7 +13,8 @@ public abstract class PropertyEntity : Entity
     protected readonly Context _context;
     protected readonly int _idHash;
 
-    public PropertyEntity(Context context, Context.LoadedProperty p)
+    public PropertyEntity(
+        Context context, Context.LoadedContext.LoadedProperty p)
         : base(p.id)
     {
         _context = context;

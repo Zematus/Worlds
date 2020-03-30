@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 using UnityEngine.Profiling;
+using System;
 
 [XmlInclude(typeof(Clan))]
 public abstract class Faction : ISynchronizable, IWorldDateGetter
@@ -81,9 +82,13 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter
 
     public long CurrentDate => World.CurrentDate;
 
+    [Obsolete]
     protected long _splitFactionEventId;
+    [Obsolete]
     protected CellGroup _splitFactionCoreGroup;
+    [Obsolete]
     protected float _splitFactionMinInfluence;
+    [Obsolete]
     protected float _splitFactionMaxInfluence;
 
     protected Dictionary<long, FactionRelationship> _relationships = new Dictionary<long, FactionRelationship>();
@@ -268,6 +273,7 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter
         return _relationships.ContainsKey(faction.Id);
     }
 
+    [Obsolete]
     public void SetToSplit(CellGroup splitFactionCoreGroup, float splitFactionMinInfluence, float splitFactionMaxInfluence, long eventId)
     {
         _splitFactionEventId = eventId;
@@ -329,6 +335,94 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter
     protected abstract Agent RequestCurrentLeader();
     protected abstract Agent RequestNewLeader();
 
+    public static Faction CreateFaction(
+        string type,
+        Polity polity,
+        CellGroup coreGroup,
+        float influence,
+        Faction parentFaction = null)
+    {
+        switch (type)
+        {
+            case Clan.FactionType:
+                return new Clan(polity, coreGroup, influence, parentFaction);
+            default:
+                throw new Exception("Unhandled faction type: " + type);
+        }
+    }
+
+    public void Split(
+        string factionType,
+        CellGroup newFactionCoreGroup,
+        float influenceToTransfer,
+        float initialRelationshipValue,
+        long eventId)
+    {
+        Influence -= influenceToTransfer;
+
+        newFactionCoreGroup.SetToUpdate();
+        newFactionCoreGroup.SetToBecomeFactionCore();
+
+        if (newFactionCoreGroup == null)
+        {
+            throw new Exception("_splitFactionCoreGroup is null - Faction Id: " + Id + ", Event Id: " + _splitFactionEventId);
+        }
+
+        float polityProminenceValue = newFactionCoreGroup.GetPolityProminenceValue(Polity);
+        PolityProminence highestPolityProminence = newFactionCoreGroup.HighestPolityProminence;
+
+        if (highestPolityProminence == null)
+        {
+            throw new Exception(
+                "highestPolityProminence is null - Faction Id: " + Id +
+                ", Group Id: " + newFactionCoreGroup.Id +
+                ", Event Id: " + eventId);
+        }
+
+        if (CurrentLeader == null)
+        {
+            throw new Exception("CurrentLeader is null - Faction Id: " + Id + ", Event Id: " + eventId);
+        }
+
+        Polity newPolity = Polity;
+
+        if (newPolity == null)
+        {
+            throw new Exception("newPolity is null - Faction Id: " + Id + ", Event Id: " + eventId);
+        }
+
+        // If the polity with the highest prominence is different than the source faction's polity and it's value is twice greater switch the new clan's polity to this one.
+        // NOTE: This is sort of a hack to avoid issues with faction/polity split coincidences (issue #8 github). Try finding a better solution...
+        if (highestPolityProminence.Value > (polityProminenceValue * 2))
+        {
+            newPolity = highestPolityProminence.Polity;
+        }
+
+        Faction newFaction =
+            CreateFaction(factionType, newPolity, newFactionCoreGroup, influenceToTransfer, this);
+
+        if (newFaction == null)
+        {
+            throw new Exception("newFaction is null - Faction Id: " + Id + ", Event Id: " + eventId);
+        }
+
+        newFaction.Initialize(); // We can initialize right away since the containing polity is already initialized
+
+        // set relationship within parent and child faction
+        SetRelationship(this, newFaction, initialRelationshipValue);
+
+        newPolity.AddFaction(newFaction);
+
+        newPolity.UpdateDominantFaction();
+
+        World.AddFactionToUpdate(this);
+        World.AddFactionToUpdate(newFaction);
+        World.AddPolityToUpdate(Polity);
+
+        newPolity.AddEventMessage(new FactionSplitEventMessage(this, newFaction, World.CurrentDate));
+    }
+
+    [Obsolete]
     public abstract void Split();
 
     public virtual void HandleUpdateEvent()

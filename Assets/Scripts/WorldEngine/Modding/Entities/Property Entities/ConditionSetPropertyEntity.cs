@@ -10,7 +10,8 @@ public class ConditionSetPropertyEntity : PropertyEntity
 
     private EntityAttribute _valueAttribute;
 
-    public ConditionSetPropertyEntity(Context context, Context.LoadedProperty p)
+    public ConditionSetPropertyEntity(
+        Context context, Context.LoadedContext.LoadedProperty p)
         : base(context, p)
     {
         if (p.conditions == null)
@@ -18,7 +19,7 @@ public class ConditionSetPropertyEntity : PropertyEntity
             throw new ArgumentException("'conditions' list can't be empty");
         }
 
-        Conditions = ExpressionBuilder.BuildValueExpressions<bool>(context, p.conditions);
+        Conditions = ValueExpressionBuilder.BuildValueExpressions<bool>(context, p.conditions);
     }
 
     public override EntityAttribute GetAttribute(string attributeId, IExpression[] arguments = null)

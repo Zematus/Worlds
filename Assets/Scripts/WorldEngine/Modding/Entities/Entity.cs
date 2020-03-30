@@ -7,6 +7,8 @@ public abstract class Entity : IComparable<object>
 
     protected abstract object _reference { get; }
 
+    private EntityExpression _expression = null;
+
     public Entity(string id)
     {
         if (string.IsNullOrEmpty(id))
@@ -55,5 +57,15 @@ public abstract class Entity : IComparable<object>
     public static bool operator !=(Entity left, Entity right)
     {
         return !left.Equals(right);
+    }
+
+    public IValueExpression<Entity> Expression
+    {
+        get
+        {
+            _expression = _expression ?? new EntityExpression(this);
+
+            return _expression;
+        }
     }
 }

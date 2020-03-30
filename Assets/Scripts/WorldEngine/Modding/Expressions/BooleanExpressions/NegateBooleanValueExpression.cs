@@ -9,7 +9,7 @@ public class NegateBooleanValueExpression : UnaryOpExpression<bool>
 
     public NegateBooleanValueExpression(IExpression expression) : base("!", expression)
     {
-        _boolExpression = ExpressionBuilder.ValidateValueExpression<bool>(expression);
+        _boolExpression = ValueExpressionBuilder.ValidateValueExpression<bool>(expression);
     }
 
     public static IExpression Build(Context context, string expressionStr)

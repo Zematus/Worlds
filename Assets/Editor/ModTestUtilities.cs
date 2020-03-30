@@ -46,7 +46,7 @@ public class TestNumericFunctionEntityAttribute : ValueEntityAttribute<float>
             throw new System.ArgumentException("Number of arguments less than 1");
         }
 
-        _argument = ExpressionBuilder.ValidateValueExpression<bool>(arguments[0]);
+        _argument = ValueExpressionBuilder.ValidateValueExpression<bool>(arguments[0]);
     }
 
     public override float Value => (_argument.Value) ? 10 : 2;

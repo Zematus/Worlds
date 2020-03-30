@@ -22,7 +22,7 @@ public class EventLoader
     /// an event entry in the mod file
     /// </summary>
     [Serializable]
-    public class LoadedEvent
+    public class LoadedEvent : Context.LoadedContext
     {
         public string id;
         public string name;
@@ -109,6 +109,7 @@ public class EventLoader
         }
 
         EventGenerator generator = EventGenerator.BuildGenerator(e.target);
+        generator.Initialize(e);
 
         IValueExpression<bool>[] assignmentConditions = null;
         IValueExpression<bool>[] triggerConditions = null;
@@ -117,20 +118,19 @@ public class EventLoader
         {
             // Build the assignment condition expressions (must evaluate to bool values)
             assignmentConditions =
-                ExpressionBuilder.BuildValueExpressions<bool>(generator, e.assignmentConditions);
+                ValueExpressionBuilder.BuildValueExpressions<bool>(generator, e.assignmentConditions);
         }
 
         if (e.triggerConditions != null)
         {
             // Build the trigger condition expressions (must evaluate to bool values)
             triggerConditions =
-                ExpressionBuilder.BuildValueExpressions<bool>(generator, e.triggerConditions);
+                ValueExpressionBuilder.BuildValueExpressions<bool>(generator, e.triggerConditions);
         }
 
         // Build the time-to-trigger expression (must evaluate to a number (int or float))
         IValueExpression<float> maxTimeToTrigger =
-            ExpressionBuilder.ValidateValueExpression<float>(
-                ExpressionBuilder.BuildExpression(generator, e.maxTimeToTrigger));
+            ValueExpressionBuilder.BuildValueExpression<float>(generator, e.maxTimeToTrigger);
 
         // Build the effect expressions (must produce side effects)
         IEffectExpression[] effects =

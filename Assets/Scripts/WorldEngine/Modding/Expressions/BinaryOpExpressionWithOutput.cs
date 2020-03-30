@@ -6,29 +6,21 @@ using System.Text.RegularExpressions;
 /// <summary>
 /// Base class for all binary operation expressions (i.e. '2 + 2', 'A && B')
 /// </summary>
-public abstract class BinaryOpExpression
+public abstract class BinaryOpExpressionWithOutput<T> : BinaryOpExpression, IValueExpression<T>
 {
-    protected IExpression _expressionA;
-    protected IExpression _expressionB;
-
-    private readonly string _opStr;
-
     /// <summary>
     /// Constructor
     /// </summary>
     /// <param name="opStr">Operator string (i.e. '+', '-', '!', '*')</param>
     /// <param name="expressionA">First operand expression</param>
     /// <param name="expressionB">Second operand expression</param>
-    public BinaryOpExpression(
+    public BinaryOpExpressionWithOutput(
         string opStr, IExpression expressionA, IExpression expressionB)
+        : base(opStr, expressionA, expressionB)
     {
-        _opStr = opStr;
-        _expressionA = expressionA;
-        _expressionB = expressionB;
     }
 
-    public override string ToString()
-    {
-        return "(" + _expressionA + " " + _opStr + " " + _expressionB + ")";
-    }
+    public string GetFormattedString() => Value.ToString();
+
+    public abstract T Value { get; }
 }

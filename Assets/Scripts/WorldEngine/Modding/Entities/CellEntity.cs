@@ -27,7 +27,7 @@ public class CellEntity : Entity
                 throw new System.ArgumentException("Number of arguments less than 1");
             }
 
-            _argument = ExpressionBuilder.ValidateValueExpression<string>(arguments[0]);
+            _argument = ValueExpressionBuilder.ValidateValueExpression<string>(arguments[0]);
         }
 
         public override float Value => _cellEntity.Cell.GetBiomeTraitPresence(_argument.Value);

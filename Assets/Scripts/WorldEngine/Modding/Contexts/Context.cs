@@ -11,14 +11,20 @@ public abstract class Context
     protected Context _parentContext = null;
 
     [Serializable]
-    public class LoadedProperty
+    public class LoadedContext
     {
-        public string id;
-        public string type;
-        public string min;
-        public string max;
-        public string[] conditions;
-        public string value;
+        [Serializable]
+        public class LoadedProperty
+        {
+            public string id;
+            public string type;
+            public string min;
+            public string max;
+            public string[] conditions;
+            public string value;
+        }
+
+        public LoadedProperty[] properties;
     }
 
     /// <summary>
@@ -27,7 +33,18 @@ public abstract class Context
     readonly private Dictionary<string, Entity> _entities =
         new Dictionary<string, Entity>();
 
-    public PropertyEntity AddPropertyEntity(LoadedProperty p)
+    public void Initialize(LoadedContext c)
+    {
+        if (c.properties != null)
+        {
+            foreach (LoadedContext.LoadedProperty lp in c.properties)
+            {
+                AddPropertyEntity(lp);
+            }
+        }
+    }
+
+    private void AddPropertyEntity(LoadedContext.LoadedProperty p)
     {
         if (string.IsNullOrEmpty(p.type))
         {
@@ -55,12 +72,10 @@ public abstract class Context
         }
 
         _entities.Add(entity.Id, entity);
-
-        return entity;
     }
 
-    public static PropertyEntity BuildValuePropertyEntity(
-        Context context, Context.LoadedProperty p)
+    private static PropertyEntity BuildValuePropertyEntity(
+        Context context, LoadedContext.LoadedProperty p)
     {
         if (string.IsNullOrEmpty(p.value))
         {

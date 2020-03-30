@@ -51,7 +51,7 @@ public class FactionEntity : Entity
                 throw new System.ArgumentException("Number of arguments less than 1");
             }
 
-            _argumentExp = ExpressionBuilder.ValidateValueExpression<string>(arguments[0]);
+            _argumentExp = ValueExpressionBuilder.ValidateValueExpression<string>(arguments[0]);
 
             if (_argumentExp is FixedStringValueExpression)
             {
@@ -65,6 +65,7 @@ public class FactionEntity : Entity
         private void SetDecision()
         {
             //_decisionToTrigger = Decision.Decisions[_argumentExp.Value];
+            throw new System.NotImplementedException();
         }
 
         public override void Apply()
@@ -75,6 +76,7 @@ public class FactionEntity : Entity
             }
 
             //_decisionToTrigger.Trigger();
+            throw new System.NotImplementedException();
         }
     }
 

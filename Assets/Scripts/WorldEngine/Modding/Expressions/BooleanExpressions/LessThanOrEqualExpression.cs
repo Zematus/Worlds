@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class LessThanOrEqualExpression : BinaryOpExpression<bool>
+public class LessThanOrEqualExpression : BinaryOpExpressionWithOutput<bool>
 {
     private readonly IValueExpression<float> _numExpressionA;
     private readonly IValueExpression<float> _numExpressionB;
@@ -20,11 +20,9 @@ public class LessThanOrEqualExpression : BinaryOpExpression<bool>
     public static IExpression Build(Context context, string expressionAStr, string expressionBStr)
     {
         IValueExpression<float> expressionA =
-            ExpressionBuilder.ValidateValueExpression<float>(
-                ExpressionBuilder.BuildExpression(context, expressionAStr));
+            ValueExpressionBuilder.BuildValueExpression<float>(context, expressionAStr);
         IValueExpression<float> expressionB =
-            ExpressionBuilder.ValidateValueExpression<float>(
-                ExpressionBuilder.BuildExpression(context, expressionBStr));
+            ValueExpressionBuilder.BuildValueExpression<float>(context, expressionBStr);
 
         if ((expressionA is FixedNumberExpression) &&
             (expressionB is FixedNumberExpression))

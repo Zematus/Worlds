@@ -15,7 +15,7 @@ public class DecisionLoader
     public LoadedDecision[] decisions;
 
     [Serializable]
-    public class LoadedDecision
+    public class LoadedDecision : Context.LoadedContext
     {
         [Serializable]
         public class LoadedDescription
@@ -46,7 +46,6 @@ public class DecisionLoader
         public string id;
         public string name;
         public string target;
-        public Context.LoadedProperty[] properties;
         public LoadedOptionalDescription[] description;
         public LoadedOption[] options;
     }
@@ -110,7 +109,7 @@ public class DecisionLoader
         if (od.conditions != null)
         {
             // Build the condition expressions (must evaluate to bool values)
-            conditions = ExpressionBuilder.BuildValueExpressions<bool>(segment, od.conditions);
+            conditions = ValueExpressionBuilder.BuildValueExpressions<bool>(segment, od.conditions);
         }
 
         segment.Conditions = conditions;
@@ -158,8 +157,7 @@ public class DecisionLoader
         IValueExpression<float> weight = null;
         if (!string.IsNullOrWhiteSpace(o.weight))
         {
-            weight = ExpressionBuilder.ValidateValueExpression<float>(
-                ExpressionBuilder.BuildExpression(option, o.weight));
+            weight = ValueExpressionBuilder.BuildValueExpression<float>(option, o.weight);
         }
 
         DecisionOptionEffect[] effects = null;
@@ -209,18 +207,11 @@ public class DecisionLoader
 
         if (d.description == null)
         {
-            throw new ArgumentException("decsion 'description' list can't be empty");
+            throw new ArgumentException("decision 'description' list can't be empty");
         }
 
         ModDecision decision = new ModDecision(d.target);
-
-        if (d.properties != null)
-        {
-            foreach (Context.LoadedProperty lp in d.properties)
-            {
-                decision.AddPropertyEntity(lp);
-            }
-        }
+        decision.Initialize(d);
 
         OptionalDescription[] segments = new OptionalDescription[d.description.Length];
 

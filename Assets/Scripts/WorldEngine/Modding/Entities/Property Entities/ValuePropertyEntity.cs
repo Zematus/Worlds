@@ -13,7 +13,7 @@ public class ValuePropertyEntity<T> : PropertyEntity
     public ValuePropertyEntity(Context context, string id, IExpression exp)
         : base(context, id)
     {
-        _expression = ExpressionBuilder.ValidateValueExpression<T>(exp);
+        _expression = ValueExpressionBuilder.ValidateValueExpression<T>(exp);
     }
 
     public override EntityAttribute GetAttribute(string attributeId, IExpression[] arguments = null)

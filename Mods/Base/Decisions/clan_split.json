@@ -4,6 +4,7 @@
       "id": "clan_split",
       "name": "clan split",
       "target": "faction",
+      "parameters": ["new_core_group"],
       "properties": [
         {
           "id": "can_prevent_split",
@@ -15,10 +16,16 @@
           ]
         },
         {
-          "id": "new_influence",
+          "id": "new_clan_influence",
           "type": "random_range",
-          "min": "lerp(target.influence, 0, (0.25 * (2 - target.leader.charisma)))",
-          "max": "lerp(target.influence, 0, (0.1 * (2 - target.leader.charisma)))"
+          "min": "target.influence - lerp(target.influence, 0, (0.25 * (2 - target.leader.charisma)))",
+          "max": "target.influence - lerp(target.influence, 0, (0.1 * (2 - target.leader.charisma)))"
+        },
+        {
+          "id": "new_clan_relationship_value",
+          "type": "random_range",
+          "min": "0.1 + (0.4 * target.leader.charisma)",
+          "max": "0.5 + (0.4 * target.leader.charisma)"
         },
         {
           "id": "new_authority_preference",
@@ -65,60 +72,50 @@
         {
           "id": "clan_split_description_can_prevent_split",
           "text": "Should the clan leader, <<target.leader>>, try to reach out to them to keep them from splitting into their own clan?",
-          "conditions": ["can_prevent_split.value"]
+          "conditions": ["can_prevent_split"]
         }
       ],
       "options": [
         {
           "id": "clan_split_option_allow_split",
           "text": "Allow clan to split in two...",
-          "conditions": ["can_prevent_split.value"],
+          "conditions": ["can_prevent_split"],
           "weight": "1 * target.preferences.authority * target.leader.wisdom",
           "effects": [
             {
-              "id": "clan_split_option_split_decrease_influence",
-              "text": "Clan <<target>>: tribal influence (<<target.influence>>) decreases to: <<new_influence.min>> - <<new_influence.max>>",
-              "result": "target.influence = new_influence.value"
-            },
-            {
               "id": "clan_split_option_split",
-              "text": "A new clan with influence <<target.influence - new_influence.max>> - <<target.influence - new_influence.min>> splits from <<target>>",
-              "result": "split_target(target, target.influence - new_influence.value)"
+              "text": "A new clan splits from <<target>> taking <<percent(new_clan_influence.min)>> - <<percent(new_clan_influence.max)>> influence from it",
+              "result": "split_faction(target, new_core_group, new_clan_influence, new_clan_relationship_value)"
             }
           ]
         },
         {
           "id": "clan_split_option_prevent_split",
           "text": "Prevent clan from splitting...",
-          "conditions": ["can_prevent_split.value"],
+          "conditions": ["can_prevent_split"],
           "weight": "2 * target.preferences.cohesion * target.leader.charisma",
           "effects": [
             {
               "id": "clan_split_option_prevent_split_decrease_authority",
               "text": "Clan <<target>>: authority preference (<<target.preferences.authority>>) decreases to: <<new_authority_preference.min>> - <<new_authority_preference.max>>",
-              "result": "target.preferences.authority = new_authority_preference.value"
+              "result": "target.preferences.authority = new_authority_preference"
             },
             {
               "id": "clan_split_option_prevent_split_increase_cohesion",
               "text": "Clan <<target>>: cohesion preference (<<target.preferences.cohesion>>) increases to: <<new_cohesion_preference.min>> - <<new_cohesion_preference.max>>",
-              "result": "target.preferences.cohesion = new_cohesion_preference.value"
+              "result": "target.preferences.cohesion = new_cohesion_preference"
             }
           ]
         },
         {
           "id": "clan_split_option_cant_prevent_split",
           "text": "Oh well...",
-          "conditions": ["!can_prevent_split.value"],
+          "conditions": ["!can_prevent_split"],
           "effects": [
             {
-              "id": "clan_split_option_split_decrease_influence",
-              "text": "Clan <<target>>: tribal influence (<<target.influence>>) decreases to: <<new_influence.min>> - <<new_influence.max>>",
-              "result": "target.influence = new_influence.value"
-            },
-            {
               "id": "clan_split_option_split",
-              "text": "A new clan with influence <<target.influence - new_influence.max>> - <<target.influence - new_influence.min>> splits from <<target>>",
-              "result": "split_target(target, target.influence - new_influence.value)"
+              "text": "A new clan splits from <<target>> taking <<percent(new_clan_influence.min)>> - <<percent(new_clan_influence.max)>> influence from it",
+              "result": "split_faction(target, new_core_group, new_clan_influence, new_clan_relationship_value)"
             }
           ]
         }

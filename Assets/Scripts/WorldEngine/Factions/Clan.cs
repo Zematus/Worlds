@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
+using System;
 
 // Clan Leadership:
 // -- Authority factors:
@@ -37,7 +38,12 @@ public class Clan : Faction
 
     }
 
-    public Clan(Polity polity, CellGroup coreGroup, float influence, Clan parentClan = null) : base(FactionType, polity, coreGroup, influence, parentClan)
+    public Clan(
+        Polity polity,
+        CellGroup coreGroup,
+        float influence,
+        Faction parentFaction = null)
+        : base(FactionType, polity, coreGroup, influence, parentFaction)
     {
 
     }

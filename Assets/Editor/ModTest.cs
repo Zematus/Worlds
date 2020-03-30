@@ -118,8 +118,14 @@ public class ModTest
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
         Assert.AreEqual(4, (expression as IValueExpression<float>).Value);
 
-        expression =
-            ExpressionBuilder.BuildExpression(testContext, "testEntity.testNumericFunctionAttribute(true)");
+        expression = ExpressionBuilder.BuildExpression(
+            testContext, "percent(0.58756)");
+
+        Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
+        Assert.AreEqual("58.76 %", (expression as IValueExpression<string>).Value);
+
+        expression = ExpressionBuilder.BuildExpression(
+            testContext, "testEntity.testNumericFunctionAttribute(true)");
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
         Assert.AreEqual(10, (expression as IValueExpression<float>).Value);

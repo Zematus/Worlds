@@ -230,8 +230,10 @@ public static class ExpressionBuilder
 
         switch (identifier)
         {
-            case "lerp":
+            case LerpFunctionExpression.FunctionId:
                 return new LerpFunctionExpression(argExpressions);
+            case PercentFunctionExpression.FunctionId:
+                return new PercentFunctionExpression(argExpressions);
         }
 
         if (string.IsNullOrWhiteSpace(arguments))
@@ -316,27 +318,13 @@ public static class ExpressionBuilder
         {
             if (context.TryGetEntity(identifierStatement, out Entity entity))
             {
-                return new EntityExpression(entity);
+                return entity.Expression;
             }
 
             return BuildIdentifierExpression(context, match);
         }
 
         throw new System.ArgumentException("Unrecognized statement: " + match.Value);
-    }
-
-    public static IValueExpression<T>[] BuildValueExpressions<T>(
-        Context context, ICollection<string> expressionStrs)
-    {
-        IValueExpression<T>[] expressions = new IValueExpression<T>[expressionStrs.Count];
-
-        int i = 0;
-        foreach (string expStr in expressionStrs)
-        {
-            expressions[i++] = ValidateValueExpression<T>(BuildExpression(context, expStr));
-        }
-
-        return expressions;
     }
 
     public static IEffectExpression[] BuildEffectExpressions(
@@ -351,38 +339,6 @@ public static class ExpressionBuilder
         }
 
         return expressions;
-    }
-
-    private static string GetModValueTypeString(Type type)
-    {
-        if (type == typeof(string))
-        {
-            return "string";
-        }
-
-        if (type == typeof(bool))
-        {
-            return "boolean";
-        }
-
-        if (type == typeof(float))
-        {
-            return "number";
-        }
-
-        throw new Exception("Internal: Unexpected type " + type);
-    }
-
-    public static IValueExpression<T> ValidateValueExpression<T>(IExpression expression)
-    {
-        if (!(expression is IValueExpression<T> valExpression))
-        {
-            throw new ArgumentException(
-                expression + " is not a valid " +
-                GetModValueTypeString(typeof(T)) + " expression");
-        }
-
-        return valExpression;
     }
 
     public static IEffectExpression ValidateEffectExpression(IExpression expression)
