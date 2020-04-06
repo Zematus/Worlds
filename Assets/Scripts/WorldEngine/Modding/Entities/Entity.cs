@@ -7,7 +7,7 @@ public abstract class Entity : IComparable<object>
 
     protected abstract object _reference { get; }
 
-    private EntityExpression _expression = null;
+    protected IValueExpression<Entity> _expression = null;
 
     public Entity(string id)
     {
@@ -59,7 +59,7 @@ public abstract class Entity : IComparable<object>
         return !left.Equals(right);
     }
 
-    public IValueExpression<Entity> Expression
+    public virtual IValueExpression<Entity> Expression
     {
         get
         {
@@ -68,4 +68,8 @@ public abstract class Entity : IComparable<object>
             return _expression;
         }
     }
+
+    public object GetObject() => _reference;
+
+    public abstract void Set(object o);
 }

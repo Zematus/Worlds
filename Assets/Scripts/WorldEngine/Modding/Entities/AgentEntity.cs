@@ -39,13 +39,16 @@ public class AgentEntity : Entity
         throw new System.ArgumentException("Agent: Unable to find attribute: " + attributeId);
     }
 
-    public void Set(Agent agent)
-    {
-        Agent = agent;
-    }
-
     public override string GetFormattedString()
     {
         return Agent.Name.BoldText;
+    }
+
+    public override void Set(object o)
+    {
+        if ((Agent = o as Agent) == null)
+        {
+            throw new System.Exception("Entity reference is not of type " + typeof(Agent));
+        }
     }
 }

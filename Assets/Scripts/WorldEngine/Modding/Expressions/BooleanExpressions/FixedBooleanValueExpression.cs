@@ -3,11 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class FixedBooleanValueExpression : IValueExpression<bool>
+public class FixedBooleanValueExpression : FixedValueExpression<bool>
 {
     public const string Regex = @"^" + ModUtility.BooleanRegexPart + @"\s*$";
-
-    public bool BooleanValue;
 
     public static bool ParseExpression(string booleanStr)
     {
@@ -20,18 +18,11 @@ public class FixedBooleanValueExpression : IValueExpression<bool>
     }
 
     public FixedBooleanValueExpression(string boolStr)
+        : base(ParseExpression(boolStr))
     {
-        BooleanValue = ParseExpression(boolStr);
     }
 
-    public FixedBooleanValueExpression(bool booleanValue)
+    public FixedBooleanValueExpression(bool value) : base(value)
     {
-        BooleanValue = booleanValue;
     }
-
-    public bool Value => BooleanValue;
-
-    public override string ToString() => BooleanValue.ToString();
-
-    public string GetFormattedString() => Value.ToString();
 }

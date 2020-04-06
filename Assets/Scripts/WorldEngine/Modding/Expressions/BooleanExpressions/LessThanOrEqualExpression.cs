@@ -24,13 +24,10 @@ public class LessThanOrEqualExpression : BinaryOpExpressionWithOutput<bool>
         IValueExpression<float> expressionB =
             ValueExpressionBuilder.BuildValueExpression<float>(context, expressionBStr);
 
-        if ((expressionA is FixedNumberExpression) &&
-            (expressionB is FixedNumberExpression))
+        if ((expressionA is FixedValueExpression<float> numExpA) &&
+            (expressionB is FixedValueExpression<float> numExpB))
         {
-            FixedNumberExpression numExpA = expressionA as FixedNumberExpression;
-            FixedNumberExpression numExpB = expressionB as FixedNumberExpression;
-
-            return new FixedBooleanValueExpression(numExpA.NumberValue <= numExpB.NumberValue);
+            return new FixedBooleanValueExpression(numExpA.FixedValue <= numExpB.FixedValue);
         }
 
         return new LessThanOrEqualExpression(expressionA, expressionB);

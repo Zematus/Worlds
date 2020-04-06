@@ -62,4 +62,9 @@ public class ConditionSetPropertyEntity : PropertyEntity
 
         return _value.ToString();
     }
+
+    public override void Set(object o)
+    {
+        throw new NotImplementedException();
+    }
 }

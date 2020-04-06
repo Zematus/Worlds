@@ -97,4 +97,9 @@ public class RandomRangePropertyEntity : PropertyEntity
 
         return "(" + _min.ToString("0.00") + " - " + _max.ToString("0.00") + ")";
     }
+
+    public override void Set(object o)
+    {
+        throw new NotImplementedException();
+    }
 }

@@ -84,6 +84,11 @@ public class TestEntity : Entity
         {
             throw new NotImplementedException();
         }
+
+        public override void Set(object o)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     private readonly InternalEntity _internalEntity = new InternalEntity();
@@ -120,6 +125,11 @@ public class TestEntity : Entity
     }
 
     public override string GetFormattedString()
+    {
+        throw new NotImplementedException();
+    }
+
+    public override void Set(object o)
     {
         throw new NotImplementedException();
     }

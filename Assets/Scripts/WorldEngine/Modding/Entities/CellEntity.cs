@@ -48,13 +48,16 @@ public class CellEntity : Entity
         throw new System.ArgumentException("Cell: Unable to find attribute: " + attributeId);
     }
 
-    public void Set(TerrainCell cell)
-    {
-        Cell = cell;
-    }
-
     public override string GetFormattedString()
     {
         return Cell.Position.ToString();
+    }
+
+    public override void Set(object o)
+    {
+        if ((Cell = o as TerrainCell) == null)
+        {
+            throw new System.Exception("Entity reference is not of type " + typeof(TerrainCell));
+        }
     }
 }

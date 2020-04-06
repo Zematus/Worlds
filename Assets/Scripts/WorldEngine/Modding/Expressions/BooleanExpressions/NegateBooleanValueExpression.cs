@@ -16,11 +16,9 @@ public class NegateBooleanValueExpression : UnaryOpExpression<bool>
     {
         IExpression expression = ExpressionBuilder.BuildExpression(context, expressionStr);
 
-        if (expression is FixedBooleanValueExpression)
+        if (expression is FixedValueExpression<bool> boolExp)
         {
-            FixedBooleanValueExpression boolExp = expression as FixedBooleanValueExpression;
-
-            boolExp.BooleanValue = !boolExp.BooleanValue;
+            boolExp.FixedValue = !boolExp.FixedValue;
 
             return boolExp;
         }

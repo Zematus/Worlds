@@ -23,4 +23,6 @@ public abstract class BinaryOpExpressionWithOutput<T> : BinaryOpExpression, IVal
     public string GetFormattedString() => Value.ToString();
 
     public abstract T Value { get; }
+
+    public object ValueObject => Value;
 }

@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public interface IValueExpression<T> : IBaseValueExpression
+public interface IBaseValueExpression : IExpression, IModTextPart
 {
-    T Value { get; }
+    object ValueObject { get; }
 }

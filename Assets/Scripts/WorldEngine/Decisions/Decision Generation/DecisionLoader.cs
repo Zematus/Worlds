@@ -18,6 +18,13 @@ public class DecisionLoader
     public class LoadedDecision : Context.LoadedContext
     {
         [Serializable]
+        public class LoadedParameter
+        {
+            public string id;
+            public string type;
+        }
+
+        [Serializable]
         public class LoadedDescription
         {
             public string id;
@@ -46,6 +53,7 @@ public class DecisionLoader
         public string id;
         public string name;
         public string target;
+        public LoadedParameter[] parameters;
         public LoadedOptionalDescription[] description;
         public LoadedOption[] options;
     }
@@ -188,6 +196,54 @@ public class DecisionLoader
         return option;
     }
 
+    private static Entity[] CreateParameterEntities(LoadedDecision.LoadedParameter[] ps)
+    {
+        Entity[] entities = new Entity[ps.Length];
+
+        for (int i = 0; i < ps.Length; i++)
+        {
+            entities[i] = CreateParameterEntity(ps[i]);
+        }
+
+        return entities;
+    }
+
+    private static Entity CreateParameterEntity(LoadedDecision.LoadedParameter p)
+    {
+        switch (p.type)
+        {
+            case "group":
+                return new GroupEntity(p.id);
+
+            case "faction":
+                return new FactionEntity(p.id);
+
+            case "polity":
+                return new PolityEntity(p.id);
+
+            case "cell":
+                return new CellEntity(p.id);
+
+            case "agent":
+                return new AgentEntity(p.id);
+
+            case "string":
+                return new ValueEntity<string>(p.id);
+
+            case "text":
+                return new ValueEntity<string>(p.id);
+
+            case "number":
+                return new ValueEntity<float>(p.id);
+
+            case "boolean":
+                return new ValueEntity<bool>(p.id);
+
+            default:
+                throw new Exception("Unhandled parameter type: " + p.type);
+        }
+    }
+
     private static ModDecision CreateDecision(LoadedDecision d)
     {
         if (string.IsNullOrEmpty(d.id))
@@ -210,7 +266,14 @@ public class DecisionLoader
             throw new ArgumentException("decision 'description' list can't be empty");
         }
 
-        ModDecision decision = new ModDecision(d.target);
+        Entity[] parameterEntities = null;
+
+        if (d.parameters != null)
+        {
+            parameterEntities = CreateParameterEntities(d.parameters);
+        }
+
+        ModDecision decision = new ModDecision(d.target, parameterEntities);
         decision.Initialize(d);
 
         OptionalDescription[] segments = new OptionalDescription[d.description.Length];

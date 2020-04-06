@@ -55,13 +55,16 @@ public class CulturalPreferencesEntity : Entity
         return new PreferenceAttribute(this, attributeId, arguments);
     }
 
-    public void Set(Culture culture)
-    {
-        Culture = culture;
-    }
-
     public override string GetFormattedString()
     {
         return "<i>cultural preference</i>";
+    }
+
+    public override void Set(object o)
+    {
+        if ((Culture = o as Culture) == null)
+        {
+            throw new System.Exception("Entity reference is not of type " + typeof(Culture));
+        }
     }
 }

@@ -4,7 +4,7 @@ public class ValuePropertyEntity<T> : PropertyEntity
 {
     private T _value;
 
-    private IValueExpression<T> _expression;
+    private IValueExpression<T> _valExpression;
 
     public const string ValueId = "value";
 
@@ -13,7 +13,7 @@ public class ValuePropertyEntity<T> : PropertyEntity
     public ValuePropertyEntity(Context context, string id, IExpression exp)
         : base(context, id)
     {
-        _expression = ValueExpressionBuilder.ValidateValueExpression<T>(exp);
+        _valExpression = ValueExpressionBuilder.ValidateValueExpression<T>(exp);
     }
 
     public override EntityAttribute GetAttribute(string attributeId, IExpression[] arguments = null)
@@ -39,7 +39,7 @@ public class ValuePropertyEntity<T> : PropertyEntity
 
     protected override void Calculate()
     {
-        _value = _expression.Value;
+        _value = _valExpression.Value;
     }
 
     public override string GetFormattedString()
@@ -47,5 +47,10 @@ public class ValuePropertyEntity<T> : PropertyEntity
         EvaluateIfNeeded();
 
         return _value.ToString();
+    }
+
+    public override void Set(object o)
+    {
+        throw new NotImplementedException();
     }
 }

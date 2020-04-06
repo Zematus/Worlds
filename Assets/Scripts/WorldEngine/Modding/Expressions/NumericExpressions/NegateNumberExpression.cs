@@ -16,13 +16,11 @@ public class NegateNumberExpression : UnaryOpExpression<float>
     {
         IExpression expression = ExpressionBuilder.BuildExpression(context, expressionStr);
 
-        if (expression is FixedNumberExpression)
+        if (expression is FixedValueExpression<float> exp)
         {
-            FixedNumberExpression numExp = expression as FixedNumberExpression;
+            exp.FixedValue = -exp.FixedValue;
 
-            numExp.NumberValue = -numExp.NumberValue;
-
-            return numExp;
+            return exp;
         }
 
         return new NegateNumberExpression(expression);

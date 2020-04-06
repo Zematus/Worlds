@@ -26,5 +26,7 @@ public class AssignableValueEntityAttributeExpression<T>
         set => _valAttribute.Value = value;
     }
 
+    public object ValueObject => Value;
+
     public string GetFormattedString() => Value.ToString();
 }

@@ -12,31 +12,22 @@ public static class EqualsExpressionBuilder
         IExpression expressionA = ExpressionBuilder.BuildExpression(context, expressionAStr);
         IExpression expressionB = ExpressionBuilder.BuildExpression(context, expressionBStr);
 
-        if ((expressionA is FixedNumberExpression) &&
-            (expressionB is FixedNumberExpression))
+        if ((expressionA is FixedValueExpression<float> nExpA) &&
+            (expressionB is FixedValueExpression<float> nExpB))
         {
-            FixedNumberExpression expA = expressionA as FixedNumberExpression;
-            FixedNumberExpression expB = expressionB as FixedNumberExpression;
-
-            return new FixedBooleanValueExpression(expA.NumberValue == expB.NumberValue);
+            return new FixedBooleanValueExpression(nExpA.FixedValue == nExpB.FixedValue);
         }
 
-        if ((expressionA is FixedBooleanValueExpression) &&
-            (expressionB is FixedBooleanValueExpression))
+        if ((expressionA is FixedValueExpression<bool> bExpA) &&
+            (expressionB is FixedValueExpression<bool> bExpB))
         {
-            FixedBooleanValueExpression expA = expressionA as FixedBooleanValueExpression;
-            FixedBooleanValueExpression expB = expressionB as FixedBooleanValueExpression;
-
-            return new FixedBooleanValueExpression(expA.BooleanValue == expB.BooleanValue);
+            return new FixedBooleanValueExpression(bExpA.FixedValue == bExpB.FixedValue);
         }
 
-        if ((expressionA is FixedStringValueExpression) &&
-            (expressionB is FixedStringValueExpression))
+        if ((expressionA is FixedValueExpression<string> sExpA) &&
+            (expressionB is FixedValueExpression<string> sExpB))
         {
-            FixedStringValueExpression expA = expressionA as FixedStringValueExpression;
-            FixedStringValueExpression expB = expressionB as FixedStringValueExpression;
-
-            return new FixedBooleanValueExpression(expA.Value == expB.Value);
+            return new FixedBooleanValueExpression(sExpA.FixedValue == sExpB.FixedValue);
         }
 
         if ((expressionA is IValueExpression<float>) &&

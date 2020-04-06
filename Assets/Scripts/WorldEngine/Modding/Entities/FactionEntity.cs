@@ -36,54 +36,6 @@ public class FactionEntity : Entity
         return Faction.Name.BoldText;
     }
 
-    public class TriggerDecisionAttribute : EffectEntityAttribute
-    {
-        private FactionEntity _factionEntity;
-
-        private Decision _decisionToTrigger = null;
-        private bool _unfixedDecision = true;
-
-        private readonly IValueExpression<string> _argumentExp;
-
-        public TriggerDecisionAttribute(FactionEntity factionEntity, IExpression[] arguments)
-            : base(TriggerDecisionAttributeId, factionEntity, arguments)
-        {
-            _factionEntity = factionEntity;
-
-            if ((arguments == null) || (arguments.Length < 1))
-            {
-                throw new System.ArgumentException("Number of arguments less than 1");
-            }
-
-            _argumentExp = ValueExpressionBuilder.ValidateValueExpression<string>(arguments[0]);
-
-            if (_argumentExp is FixedStringValueExpression)
-            {
-                // The decision to trigger won't change in the future
-                // so we can set it now
-                SetDecision();
-                _unfixedDecision = false;
-            }
-        }
-
-        private void SetDecision()
-        {
-            //_decisionToTrigger = Decision.Decisions[_argumentExp.Value];
-            throw new System.NotImplementedException();
-        }
-
-        public override void Apply()
-        {
-            if (_unfixedDecision)
-            {
-                SetDecision();
-            }
-
-            //_decisionToTrigger.Trigger();
-            throw new System.NotImplementedException();
-        }
-    }
-
     public FactionEntity(string id) : base(id)
     {
         _leaderEntity = new AgentEntity(BuildInternalEntityId(LeaderAttributeId));
@@ -137,14 +89,17 @@ public class FactionEntity : Entity
         throw new System.ArgumentException("Faction: Unable to find attribute: " + attributeId);
     }
 
-    public void Set(Faction faction)
+    public override void Set(object o)
     {
-        Faction = faction;
+        if ((Faction = o as Faction) == null)
+        {
+            throw new System.Exception("Entity reference is not of type " + typeof(Faction));
+        }
 
-        _preferencesEntity.Set(faction.Culture);
+        _preferencesEntity.Set(Faction.Culture);
 
-        _leaderEntity.Set(faction.CurrentLeader);
+        _leaderEntity.Set(Faction.CurrentLeader);
 
-        _polityEntity.Set(faction.Polity);
+        _polityEntity.Set(Faction.Polity);
     }
 }

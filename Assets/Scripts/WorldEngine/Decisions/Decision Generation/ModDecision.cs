@@ -9,6 +9,8 @@ public class ModDecision : Context
 
     private readonly FactionEntity _target;
 
+    private readonly Entity[] _parameterEntities;
+
     public static Dictionary<string, ModDecision> Decisions;
 
     /// <summary>
@@ -28,7 +30,7 @@ public class ModDecision : Context
     public OptionalDescription[] DescriptionSegments;
     public DecisionOption[] Options;
 
-    public ModDecision(string targetStr)
+    public ModDecision(string targetStr, Entity[] parameterEntities)
     {
         if (targetStr != FactionTargetType)
         {
@@ -39,6 +41,17 @@ public class ModDecision : Context
 
         // Add the target to the context's entity map
         AddEntity(_target);
+
+        _parameterEntities = parameterEntities;
+
+        if (parameterEntities != null)
+        {
+            // Add the parameters to the context's entity map
+            foreach (Entity p in parameterEntities)
+            {
+                AddEntity(p);
+            }
+        }
     }
 
     public static void ResetDecisions()
@@ -61,13 +74,30 @@ public class ModDecision : Context
         }
     }
 
-    public override float GetNextRandomFloat(int iterOffset)
+    public override float GetNextRandomInt(int iterOffset, int maxValue) =>
+        _target.Faction.GetNextLocalRandomInt(iterOffset, maxValue);
+
+    public override float GetNextRandomFloat(int iterOffset) =>
+        _target.Faction.GetNextLocalRandomFloat(iterOffset);
+
+    public void Set(Faction targetFaction, object[] parameters)
     {
-        throw new System.NotImplementedException();
+        _target.Set(targetFaction);
+
+        if (parameters.Length < _parameterEntities.Length)
+        {
+            throw new System.Exception(
+                "Number of parameters given to decision '" + Id +
+                "', " + parameters.Length + ", below minimum expected: " + _parameterEntities.Length);
+        }
+
+        for (int i = 0; i < _parameterEntities.Length; i++)
+        {
+            _parameterEntities[i].Set(parameters[i]);
+        }
     }
 
-    public override float GetNextRandomInt(int iterOffset, int maxValue)
+    public void Evaluate()
     {
-        throw new System.NotImplementedException();
     }
 }

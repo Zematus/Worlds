@@ -4,7 +4,12 @@
       "id": "clan_split",
       "name": "clan split",
       "target": "faction",
-      "parameters": ["new_core_group"],
+      "parameters": [
+        {
+          "id": "new_core_group",
+          "type": "group"
+        }
+      ],
       "properties": [
         {
           "id": "can_prevent_split",

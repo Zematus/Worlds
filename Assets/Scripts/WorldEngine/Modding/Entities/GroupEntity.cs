@@ -33,15 +33,18 @@ public class GroupEntity : Entity
         throw new System.ArgumentException("Group: Unable to find attribute: " + attributeId);
     }
 
-    public void Set(CellGroup group)
-    {
-        Group = group;
-
-        _cellEntity.Set(Group.Cell);
-    }
-
     public override string GetFormattedString()
     {
         return Group.Cell.Position.ToString();
+    }
+
+    public override void Set(object o)
+    {
+        if ((Group = o as CellGroup) == null)
+        {
+            throw new System.Exception("Entity reference is not of type " + typeof(CellGroup));
+        }
+
+        _cellEntity.Set(Group.Cell);
     }
 }

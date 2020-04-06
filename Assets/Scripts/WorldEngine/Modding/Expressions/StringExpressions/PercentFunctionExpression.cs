@@ -21,6 +21,8 @@ public class PercentFunctionExpression : IValueExpression<string>
 
     public string Value => _arg.Value.ToString("P");
 
+    public object ValueObject => Value;
+
     public string GetFormattedString() => Value;
 
     public override string ToString()

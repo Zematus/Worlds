@@ -28,6 +28,8 @@ public class LerpFunctionExpression : IValueExpression<float>
             _endArg.Value,
             _percentArg.Value);
 
+    public object ValueObject => Value;
+
     public string GetFormattedString() => Value.ToString();
 
     public override string ToString()

@@ -22,5 +22,7 @@ public class ValueEntityAttributeExpression<T>
 
     public T Value => _valAttribute.Value;
 
+    public object ValueObject => Value;
+
     public string GetFormattedString() => Value.ToString();
 }

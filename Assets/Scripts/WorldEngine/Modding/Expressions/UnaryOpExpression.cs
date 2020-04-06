@@ -31,4 +31,6 @@ public abstract class UnaryOpExpression<T> : IValueExpression<T>
     public string GetFormattedString() => Value.ToString();
 
     public abstract T Value { get; }
+
+    public object ValueObject => Value;
 }

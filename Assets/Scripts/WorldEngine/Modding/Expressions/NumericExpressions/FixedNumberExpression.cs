@@ -3,11 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class FixedNumberExpression : IValueExpression<float>
+public class FixedNumberExpression : FixedValueExpression<float>
 {
     public const string Regex = @"^" + ModUtility.NumberRegexPart + @"\s*$";
-
-    public float NumberValue;
 
     public static float ParseExpression(string numberStr)
     {
@@ -20,21 +18,11 @@ public class FixedNumberExpression : IValueExpression<float>
     }
 
     public FixedNumberExpression(string numberStr)
+        : base(ParseExpression(numberStr))
     {
-        NumberValue = ParseExpression(numberStr);
     }
 
-    public FixedNumberExpression(float value)
+    public FixedNumberExpression(float value) : base(value)
     {
-        NumberValue = value;
     }
-
-    public float Value => NumberValue;
-
-    public override string ToString()
-    {
-        return NumberValue.ToString();
-    }
-
-    public string GetFormattedString() => Value.ToString();
 }
