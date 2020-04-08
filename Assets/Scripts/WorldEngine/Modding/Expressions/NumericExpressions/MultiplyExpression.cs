@@ -20,14 +20,6 @@ public class MultiplyExpression : BinaryOpExpressionWithOutput<float>
         IExpression expressionA = ExpressionBuilder.BuildExpression(context, expressionAStr);
         IExpression expressionB = ExpressionBuilder.BuildExpression(context, expressionBStr);
 
-        if ((expressionA is FixedValueExpression<float> numExpA) &&
-            (expressionB is FixedValueExpression<float> numExpB))
-        {
-            numExpA.FixedValue -= numExpB.FixedValue;
-
-            return numExpA;
-        }
-
         return new MultiplyExpression(expressionA, expressionB);
     }
 

@@ -26,14 +26,14 @@ public static class ValueExpressionBuilder
             return vEntityExp.ValueEntity.ValueExpression;
         }
 
-        if (!(expression is IValueExpression<T> valExpression))
+        if (expression is IValueExpression<T> valExpression)
         {
-            throw new ArgumentException(
-                expression + " is not a valid " +
-                GetModValueTypeString(typeof(T)) + " expression");
+            return valExpression;
         }
 
-        return valExpression;
+        throw new ArgumentException(
+            expression + " is not a valid " +
+            GetModValueTypeString(typeof(T)) + " expression");
     }
 
     public static IValueExpression<T>[] BuildValueExpressions<T>(

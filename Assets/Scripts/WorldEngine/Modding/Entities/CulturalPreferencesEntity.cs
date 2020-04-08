@@ -60,11 +60,21 @@ public class CulturalPreferencesEntity : Entity
         return "<i>cultural preference</i>";
     }
 
+    public void Set(Culture c) => Culture = c;
+
     public override void Set(object o)
     {
-        if ((Culture = o as Culture) == null)
+        if (o is CulturalPreferencesEntity e)
         {
-            throw new System.Exception("Entity reference is not of type " + typeof(Culture));
+            Set(e.Culture);
+        }
+        else if (o is Culture c)
+        {
+            Set(c);
+        }
+        else
+        {
+            throw new System.ArgumentException("Unexpected type: " + o.GetType());
         }
     }
 }

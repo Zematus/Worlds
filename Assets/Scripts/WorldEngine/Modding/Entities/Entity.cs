@@ -69,7 +69,5 @@ public abstract class Entity : IComparable<object>
         }
     }
 
-    public object GetObject() => _reference;
-
     public abstract void Set(object o);
 }

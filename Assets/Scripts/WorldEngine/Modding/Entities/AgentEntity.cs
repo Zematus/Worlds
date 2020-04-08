@@ -44,11 +44,21 @@ public class AgentEntity : Entity
         return Agent.Name.BoldText;
     }
 
+    public void Set(Agent a) => Agent = a;
+
     public override void Set(object o)
     {
-        if ((Agent = o as Agent) == null)
+        if (o is AgentEntity e)
         {
-            throw new System.Exception("Entity reference is not of type " + typeof(Agent));
+            Set(e.Agent);
+        }
+        else if (o is Agent a)
+        {
+            Set(a);
+        }
+        else
+        {
+            throw new System.ArgumentException("Unexpected type: " + o.GetType());
         }
     }
 }

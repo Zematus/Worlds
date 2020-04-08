@@ -23,5 +23,5 @@ public class EntityExpression : IValueExpression<Entity>
 
     public Entity Value { get; }
 
-    public object ValueObject => Value.GetObject();
+    public object ValueObject => Value;
 }

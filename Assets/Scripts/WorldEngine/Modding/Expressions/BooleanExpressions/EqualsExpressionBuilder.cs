@@ -12,24 +12,6 @@ public static class EqualsExpressionBuilder
         IExpression expressionA = ExpressionBuilder.BuildExpression(context, expressionAStr);
         IExpression expressionB = ExpressionBuilder.BuildExpression(context, expressionBStr);
 
-        if ((expressionA is FixedValueExpression<float> nExpA) &&
-            (expressionB is FixedValueExpression<float> nExpB))
-        {
-            return new FixedBooleanValueExpression(nExpA.FixedValue == nExpB.FixedValue);
-        }
-
-        if ((expressionA is FixedValueExpression<bool> bExpA) &&
-            (expressionB is FixedValueExpression<bool> bExpB))
-        {
-            return new FixedBooleanValueExpression(bExpA.FixedValue == bExpB.FixedValue);
-        }
-
-        if ((expressionA is FixedValueExpression<string> sExpA) &&
-            (expressionB is FixedValueExpression<string> sExpB))
-        {
-            return new FixedBooleanValueExpression(sExpA.FixedValue == sExpB.FixedValue);
-        }
-
         if ((expressionA is IValueExpression<float>) &&
             (expressionB is IValueExpression<float>))
         {

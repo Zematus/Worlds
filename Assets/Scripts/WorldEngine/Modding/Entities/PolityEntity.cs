@@ -49,18 +49,31 @@ public class PolityEntity : Entity
         throw new System.ArgumentException("Faction: Unable to find attribute: " + attributeId);
     }
 
-    public override void Set(object o)
+    public void Set(Polity p)
     {
-        if ((Polity = o as Polity) == null)
-        {
-            throw new System.Exception("Entity reference is not of type " + typeof(Polity));
-        }
+        Polity = p;
 
         int offset = (int)Polity.Id;
 
         foreach (KeyValuePair<int, GroupEntity> pair in RandomGroupEntitiesToSet)
         {
             pair.Value.Set(Polity.GetRandomGroup(offset + pair.Key));
+        }
+    }
+
+    public override void Set(object o)
+    {
+        if (o is PolityEntity e)
+        {
+            Set(e.Polity);
+        }
+        else if (o is Polity p)
+        {
+            Set(p);
+        }
+        else
+        {
+            throw new System.ArgumentException("Unexpected type: " + o.GetType());
         }
     }
 }

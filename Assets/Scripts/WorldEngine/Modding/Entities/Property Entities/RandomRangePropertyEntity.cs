@@ -1,22 +1,19 @@
 ﻿using System;
 using UnityEngine;
 
-public class RandomRangePropertyEntity : PropertyEntity
+public class RandomRangePropertyEntity : PropertyEntity<float>
 {
-    public const string ValueId = "value";
-    public const string MinId = "min";
-    public const string MaxId = "max";
+    public const string MinAttributeId = "min";
+    public const string MaxAttributeId = "max";
 
     private float _min;
     private float _max;
-    private float _value;
 
     public IValueExpression<float> Min;
     public IValueExpression<float> Max;
 
     private EntityAttribute _minAttribute;
     private EntityAttribute _maxAttribute;
-    private EntityAttribute _valueAttribute;
 
     public RandomRangePropertyEntity(
         Context context, Context.LoadedContext.LoadedProperty p)
@@ -40,26 +37,20 @@ public class RandomRangePropertyEntity : PropertyEntity
     {
         switch (attributeId)
         {
-            case ValueId:
-                _valueAttribute =
-                    _valueAttribute ?? new ValueGetterEntityAttribute<float>(
-                        ValueId, this, GetValue);
-                return _valueAttribute;
-
-            case MinId:
+            case MinAttributeId:
                 _minAttribute =
                     _minAttribute ?? new ValueGetterEntityAttribute<float>(
-                        MinId, this, GetMin);
+                        MinAttributeId, this, GetMin);
                 return _minAttribute;
 
-            case MaxId:
+            case MaxAttributeId:
                 _maxAttribute =
                     _maxAttribute ?? new ValueGetterEntityAttribute<float>(
-                        MaxId, this, GetMax);
+                        MaxAttributeId, this, GetMax);
                 return _maxAttribute;
         }
 
-        throw new System.ArgumentException(Id + " property: Unable to find attribute: " + attributeId);
+        return base.GetAttribute(attributeId, arguments);
     }
 
     public float GetMin()
@@ -76,11 +67,11 @@ public class RandomRangePropertyEntity : PropertyEntity
         return _max;
     }
 
-    public float GetValue()
+    public override float GetValue()
     {
         EvaluateIfNeeded();
 
-        return _value;
+        return Value;
     }
 
     protected override void Calculate()
@@ -88,7 +79,7 @@ public class RandomRangePropertyEntity : PropertyEntity
         _min = Min.Value;
         _max = Max.Value;
 
-        _value = Mathf.Lerp(_min, _max, _context.GetNextRandomFloat(_idHash));
+        Value = Mathf.Lerp(_min, _max, _context.GetNextRandomFloat(_idHash));
     }
 
     public override string GetFormattedString()
@@ -96,10 +87,5 @@ public class RandomRangePropertyEntity : PropertyEntity
         EvaluateIfNeeded();
 
         return "(" + _min.ToString("0.00") + " - " + _max.ToString("0.00") + ")";
-    }
-
-    public override void Set(object o)
-    {
-        throw new NotImplementedException();
     }
 }

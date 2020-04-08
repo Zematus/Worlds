@@ -53,11 +53,21 @@ public class CellEntity : Entity
         return Cell.Position.ToString();
     }
 
+    public void Set(TerrainCell c) => Cell = c;
+
     public override void Set(object o)
     {
-        if ((Cell = o as TerrainCell) == null)
+        if (o is CellEntity e)
         {
-            throw new System.Exception("Entity reference is not of type " + typeof(TerrainCell));
+            Set(e.Cell);
+        }
+        else if (o is TerrainCell c)
+        {
+            Set(c);
+        }
+        else
+        {
+            throw new System.ArgumentException("Unexpected type: " + o.GetType());
         }
     }
 }

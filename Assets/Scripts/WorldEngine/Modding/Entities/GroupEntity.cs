@@ -38,13 +38,26 @@ public class GroupEntity : Entity
         return Group.Cell.Position.ToString();
     }
 
-    public override void Set(object o)
+    public void Set(CellGroup g)
     {
-        if ((Group = o as CellGroup) == null)
-        {
-            throw new System.Exception("Entity reference is not of type " + typeof(CellGroup));
-        }
+        Group = g;
 
         _cellEntity.Set(Group.Cell);
+    }
+
+    public override void Set(object o)
+    {
+        if (o is GroupEntity e)
+        {
+            Set(e.Group);
+        }
+        else if (o is CellGroup g)
+        {
+            Set(g);
+        }
+        else
+        {
+            throw new System.ArgumentException("Unexpected type: " + o.GetType());
+        }
     }
 }

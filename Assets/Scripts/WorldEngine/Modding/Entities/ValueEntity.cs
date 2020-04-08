@@ -7,9 +7,9 @@ public class ValueEntity<T> : Entity
 {
     public const string ValueAttributeId = "value";
 
-    private ValueGetterEntityAttribute<T> _valueAttribute;
+    protected ValueGetterEntityAttribute<T> _valueAttribute;
 
-    public T Value { get; private set; }
+    public T Value { get; protected set; }
 
     protected override object _reference => Value;
 
@@ -26,21 +26,27 @@ public class ValueEntity<T> : Entity
             case ValueAttributeId:
                 _valueAttribute =
                     _valueAttribute ?? new ValueGetterEntityAttribute<T>(
-                        ValueAttributeId, this, () => Value);
+                        ValueAttributeId, this, GetValue);
                 return _valueAttribute;
         }
 
         throw new System.ArgumentException("Faction: Unable to find attribute: " + attributeId);
     }
 
+    public virtual T GetValue() => Value;
+
+    public virtual void Set(T v) => Value = v;
+
     public override void Set(object o)
     {
-        if (!(o is T))
+        if (o is T v)
+        {
+            Value = v;
+        }
+        else
         {
             throw new System.Exception("Input reference is not of type " + typeof(T));
         }
-
-        Value = (T)o;
     }
 
     public override string GetFormattedString()
@@ -52,7 +58,7 @@ public class ValueEntity<T> : Entity
     {
         get
         {
-            _valueExpression = _valueExpression ?? new FixedValueExpression<T>(Value);
+            _valueExpression = _valueExpression ?? new ValueGetterExpression<T>(GetValue);
 
             return _valueExpression;
         }

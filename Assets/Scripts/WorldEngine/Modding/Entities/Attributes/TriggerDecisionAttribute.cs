@@ -8,7 +8,6 @@ public class TriggerDecisionAttribute : EffectEntityAttribute
     private FactionEntity _factionEntity;
 
     private ModDecision _decisionToTrigger = null;
-    private readonly bool _unfixedDecision = true;
 
     private readonly IValueExpression<string> _argumentExp;
 
@@ -26,14 +25,6 @@ public class TriggerDecisionAttribute : EffectEntityAttribute
 
         _argumentExp = ValueExpressionBuilder.ValidateValueExpression<string>(arguments[0]);
 
-        if (_argumentExp is FixedValueExpression<string>)
-        {
-            // The decision to trigger won't change in the future
-            // so we can set it now
-            SetDecision();
-            _unfixedDecision = false;
-        }
-
         if (arguments.Length > 1)
         {
             _parameterExps = new IValueExpression<Entity>[arguments.Length - 1];
@@ -50,17 +41,9 @@ public class TriggerDecisionAttribute : EffectEntityAttribute
         }
     }
 
-    private void SetDecision()
-    {
-        _decisionToTrigger = ModDecision.Decisions[_argumentExp.Value];
-    }
-
     public override void Apply()
     {
-        if (_unfixedDecision)
-        {
-            SetDecision();
-        }
+        _decisionToTrigger = ModDecision.Decisions[_argumentExp.Value];
 
         object[] parameters = null;
 

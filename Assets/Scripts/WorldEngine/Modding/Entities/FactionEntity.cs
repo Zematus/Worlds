@@ -89,17 +89,30 @@ public class FactionEntity : Entity
         throw new System.ArgumentException("Faction: Unable to find attribute: " + attributeId);
     }
 
-    public override void Set(object o)
+    public void Set(Faction f)
     {
-        if ((Faction = o as Faction) == null)
-        {
-            throw new System.Exception("Entity reference is not of type " + typeof(Faction));
-        }
+        Faction = f;
 
         _preferencesEntity.Set(Faction.Culture);
 
         _leaderEntity.Set(Faction.CurrentLeader);
 
         _polityEntity.Set(Faction.Polity);
+    }
+
+    public override void Set(object o)
+    {
+        if (o is FactionEntity e)
+        {
+            Set(e.Faction);
+        }
+        else if (o is Faction f)
+        {
+            Set(f);
+        }
+        else
+        {
+            throw new System.ArgumentException("Unexpected type: " + o.GetType());
+        }
     }
 }
