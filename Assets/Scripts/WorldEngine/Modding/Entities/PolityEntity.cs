@@ -46,7 +46,7 @@ public class PolityEntity : Entity
                     GetRandomGroupAttributeId, this, GetRandomGroupEntity);
         }
 
-        throw new System.ArgumentException("Faction: Unable to find attribute: " + attributeId);
+        throw new System.ArgumentException("Polity: Unable to find attribute: " + attributeId);
     }
 
     public void Set(Polity p)

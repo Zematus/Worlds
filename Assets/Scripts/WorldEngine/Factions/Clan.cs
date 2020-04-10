@@ -25,6 +25,7 @@ public class Clan : Faction
 
     public const int MinCorePopulation = 500;
     public const float MinCorePolityProminence = 0.3f;
+    public const float MinCoreDistance = 1000f;
 
     public const float AvgClanSplitRelationshipValue = 0.5f;
     public const float ClanSplitRelationshipValueSpread = 0.1f;
@@ -145,7 +146,7 @@ public class Clan : Faction
     {
         if (NewCoreGroup != null)
         {
-            if (IsGroupValidCore(NewCoreGroup))
+            if (GroupCanBeCore(NewCoreGroup))
             {
                 MigrateToNewCoreGroup();
             }
@@ -297,27 +298,55 @@ public class Clan : Faction
         return hasMinSocialOrg;
     }
 
-    public bool IsGroupValidCore(CellGroup group)
+    public override float GetGroupWeight(CellGroup group)
     {
-        if (!CanBeClanCore(group))
-            return false;
-
-        if (!group.HasProperty(Polity.CanFormPolityAttribute + "tribe"))
-            return false;
+        if (group == CoreGroup)
+            return 0;
 
         PolityProminence pi = group.GetPolityProminence(Polity);
 
-        if (pi == null)
-            return false;
+        if (group.HighestPolityProminence != pi)
+            return 0;
 
-        if (pi.Value < MinCorePolityProminence)
-            return false;
+        if (!CanBeClanCore(group))
+            return 0;
 
         if (group.Population < MinCorePopulation)
-            return false;
+            return 0;
 
-        return true;
+        float coreDistance = pi.FactionCoreDistance - MinCoreDistance;
+
+        if (coreDistance <= 0)
+            return 0;
+
+        float coreDistanceFactor = MinCoreDistance / (MinCoreDistance + coreDistance);
+
+        float minCoreProminenceValue = Mathf.Max(coreDistanceFactor, MinCorePolityProminence);
+
+        return pi.Value - minCoreProminenceValue;
     }
+
+    //
+    // TODO: Make sure replacing the below function for the new version in Faction would work.
+    //
+    //public bool GroupCanBeCore(CellGroup group)
+    //{
+    //    if (!CanBeClanCore(group))
+    //        return false;
+
+    //    PolityProminence pi = group.GetPolityProminence(Polity);
+
+    //    if (pi == null)
+    //        return false;
+
+    //    if (pi.Value < MinCorePolityProminence)
+    //        return false;
+
+    //    if (group.Population < MinCorePopulation)
+    //        return false;
+
+    //    return true;
+    //}
 
     public override bool ShouldMigrateFactionCore(CellGroup sourceGroup, CellGroup targetGroup)
     {

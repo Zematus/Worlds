@@ -9,7 +9,7 @@
         {
           "id": "new_core_group",
           "type": "value",
-          "value": "target.polity.get_random_member_group()"
+          "value": "target.polity.get_random_group()"
         }
       ],
       "assignmentConditions": [
@@ -18,7 +18,7 @@
       "triggerConditions": [
         "target.administrative_load > 0.5",
         "!(target.preferences.cohesion > 0.7)",
-        "target.can_be_core_group(new_core_group)"
+        "target.group_can_be_core(new_core_group)"
       ],
       "maxTimeToTrigger": "91250 * target.administrative_load * target.preferences.cohesion",
       "effects": [

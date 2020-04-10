@@ -233,4 +233,9 @@ public class TestFaction : Faction
     {
         throw new NotImplementedException();
     }
+
+    public override float GetGroupWeight(CellGroup group)
+    {
+        throw new NotImplementedException();
+    }
 }

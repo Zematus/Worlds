@@ -11,6 +11,7 @@ public class FactionEntity : Entity
     public const string PolityAttributeId = "polity";
     public const string PreferencesAttributeId = "preferences";
     public const string TriggerDecisionAttributeId = "trigger_decision";
+    public const string GroupCanBeCoreAttributeId = "group_can_be_core";
     public const string TypeAttributeId = "type";
 
     public Faction Faction { get; private set; }
@@ -72,6 +73,9 @@ public class FactionEntity : Entity
 
             case TriggerDecisionAttributeId:
                 return new TriggerDecisionAttribute(this, arguments);
+
+            case GroupCanBeCoreAttributeId:
+                return new GroupCanBeCoreAttribute(this, arguments);
 
             case LeaderAttributeId:
                 _leaderEntityAttribute =
