@@ -70,14 +70,10 @@ public static class ExpressionBuilder
         string entityStr = match.Groups["statement"].Value;
         string attributeStr = match.Groups["attribute"].Value;
 
-        IExpression expression = BuildExpression(context, entityStr);
+        IValueExpression<Entity> entExpression =
+            ValueExpressionBuilder.BuildValueExpression<Entity>(context, entityStr);
 
-        if (!(expression is IValueExpression<Entity> entExpression))
-        {
-            throw new System.ArgumentException("Not a valid entity expression: " + expression);
-        }
-
-        Match identifierMatch = Regex.Match(attributeStr, ModUtility.IdentifierStatementRegex);
+        //Match identifierMatch = Regex.Match(attributeStr, ModUtility.IdentifierStatementRegex);
 
         string identifier = match.Groups["identifier"].Value;
         string arguments = match.Groups["arguments"].Value;
@@ -277,7 +273,8 @@ public static class ExpressionBuilder
             case "/":
                 return null;
             case "=":
-                return null;
+                return ValueAssignmentExpressionBuilder.BuildValueAssignmentExpression(
+                    context, expressionAStr, expressionBStr);
             case "==":
                 return EqualsExpressionBuilder.BuildEqualsExpression(
                     context, expressionAStr, expressionBStr);

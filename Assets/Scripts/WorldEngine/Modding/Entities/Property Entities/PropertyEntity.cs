@@ -46,7 +46,7 @@ public static class PropertyEntityBuilder
             throw new ArgumentException("'value' can't be null or empty");
         }
 
-        IExpression exp = ExpressionBuilder.BuildExpression(context, p.value);
+        IBaseValueExpression exp = ValueExpressionBuilder.BuildValueExpression(context, p.value);
 
         if (exp is IValueExpression<float>)
         {

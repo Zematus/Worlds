@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class ValueEntity<T> : Entity
+public class ValueEntity<T> : BaseValueEntity
 {
     public const string ValueAttributeId = "value";
 
@@ -73,4 +73,6 @@ public class ValueEntity<T> : Entity
             return _expression;
         }
     }
+
+    public override IBaseValueExpression BaseValueExpression => ValueExpression;
 }

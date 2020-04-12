@@ -90,7 +90,7 @@
             {
               "id": "clan_split_option_split",
               "text": "A new clan splits from <<target>> taking <<percent(new_clan_influence.min)>> - <<percent(new_clan_influence.max)>> influence from it",
-              "result": "split_faction(target, new_core_group, new_clan_influence, new_clan_relationship_value)"
+              "result": "target.split(new_core_group, new_clan_influence, new_clan_relationship_value)"
             }
           ]
         },
@@ -120,7 +120,7 @@
             {
               "id": "clan_split_option_split",
               "text": "A new clan splits from <<target>> taking <<percent(new_clan_influence.min)>> - <<percent(new_clan_influence.max)>> influence from it",
-              "result": "split_faction(target, new_core_group, new_clan_influence, new_clan_relationship_value)"
+              "result": "target.split(new_core_group, new_clan_influence, new_clan_relationship_value)"
             }
           ]
         }

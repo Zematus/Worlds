@@ -8,8 +8,18 @@ public static class ValueExpressionBuilder
         return ValidateValueExpression<T>(ExpressionBuilder.BuildExpression(context, expressionStr));
     }
 
+    public static IBaseValueExpression BuildValueExpression(Context context, string expressionStr)
+    {
+        return ValidateValueExpression(ExpressionBuilder.BuildExpression(context, expressionStr));
+    }
+
     public static IBaseValueExpression ValidateValueExpression(IExpression expression)
     {
+        if (expression is BaseValueEntityExpression vEntityExp)
+        {
+            return vEntityExp.BaseValueEntity.BaseValueExpression;
+        }
+
         if (!(expression is IBaseValueExpression valExpression))
         {
             throw new ArgumentException(

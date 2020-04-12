@@ -9,7 +9,7 @@ public class CulturalPreferencesEntity : Entity
 
     protected override object _reference => Culture;
 
-    public class PreferenceAttribute : ValueEntityAttribute<float>
+    public class PreferenceAttribute : AssignableValueEntityAttribute<float>
     {
         private CulturalPreferencesEntity _preferencesEntity;
         private string _preferenceId;
@@ -28,7 +28,8 @@ public class CulturalPreferencesEntity : Entity
         {
             get
             {
-                CulturalPreference preference = _preferencesEntity.Culture.GetPreference(_preferenceId);
+                CulturalPreference preference =
+                    _preferencesEntity.Culture.GetPreference(_preferenceId);
 
                 if (preference == null)
                 {
@@ -36,6 +37,25 @@ public class CulturalPreferencesEntity : Entity
                 }
 
                 return preference.Value;
+            }
+            set
+            {
+                if (!value.IsInsideRange(0,1))
+                {
+                    throw new System.ArgumentException(
+                        "Cultural preference can only be assigned values in the range [0,1]");
+                }
+
+                CulturalPreference preference =
+                    _preferencesEntity.Culture.GetPreference(_preferenceId);
+
+                if (preference == null)
+                {
+                    throw new System.NotImplementedException();
+                }
+
+                // TODO: Make sure this value is set only during or after UpdatePreferences
+                preference.Value = value;
             }
         }
     }

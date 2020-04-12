@@ -12,7 +12,7 @@ public class OptionalDescription : Description
     {
     }
 
-    protected bool CanShow()
+    public bool CanShow()
     {
         if (Conditions == null)
         {

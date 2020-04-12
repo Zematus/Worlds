@@ -99,5 +99,21 @@ public class ModDecision : Context
 
     public void Evaluate()
     {
+        Faction targetFaction = _target.Faction;
+
+        targetFaction.CoreGroup.SetToUpdate();
+
+        if (targetFaction.Polity.IsUnderPlayerFocus || targetFaction.IsUnderPlayerGuidance)
+        {
+            string dialogText = "";
+
+            foreach (OptionalDescription description in DescriptionSegments)
+            {
+                if (description.CanShow())
+                {
+                    dialogText += description.Text.EvaluateString();
+                }
+            }
+        }
     }
 }

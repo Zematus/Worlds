@@ -9,8 +9,10 @@ public static class EqualsExpressionBuilder
     public static IExpression BuildEqualsExpression(
         Context context, string expressionAStr, string expressionBStr)
     {
-        IExpression expressionA = ExpressionBuilder.BuildExpression(context, expressionAStr);
-        IExpression expressionB = ExpressionBuilder.BuildExpression(context, expressionBStr);
+        IBaseValueExpression expressionA =
+            ValueExpressionBuilder.BuildValueExpression(context, expressionAStr);
+        IBaseValueExpression expressionB =
+            ValueExpressionBuilder.BuildValueExpression(context, expressionBStr);
 
         if ((expressionA is IValueExpression<float>) &&
             (expressionB is IValueExpression<float>))
@@ -37,7 +39,7 @@ public static class EqualsExpressionBuilder
         }
 
         throw new System.Exception(
-            "Unhandled binary op expression type combination: (" +
+            "Unhandled 'equals' expression type combination: (" +
             expressionA.GetType() + ", " + expressionB.GetType() + ")");
     }
 }

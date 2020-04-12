@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System;
 
-public class ValueEntityExpression<T> : EntityExpression
+public class ValueEntityExpression<T> : BaseValueEntityExpression
 {
     public readonly ValueEntity<T> ValueEntity;
 

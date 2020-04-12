@@ -355,8 +355,7 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter
         string factionType,
         CellGroup newFactionCoreGroup,
         float influenceToTransfer,
-        float initialRelationshipValue,
-        long eventId)
+        float initialRelationshipValue)
     {
         Influence -= influenceToTransfer;
 
@@ -365,7 +364,7 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter
 
         if (newFactionCoreGroup == null)
         {
-            throw new Exception("_splitFactionCoreGroup is null - Faction Id: " + Id + ", Event Id: " + _splitFactionEventId);
+            throw new Exception("_splitFactionCoreGroup is null - Faction Id: " + Id);
         }
 
         float polityProminenceValue = newFactionCoreGroup.GetPolityProminenceValue(Polity);
@@ -375,20 +374,19 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter
         {
             throw new Exception(
                 "highestPolityProminence is null - Faction Id: " + Id +
-                ", Group Id: " + newFactionCoreGroup.Id +
-                ", Event Id: " + eventId);
+                ", Group Id: " + newFactionCoreGroup.Id);
         }
 
         if (CurrentLeader == null)
         {
-            throw new Exception("CurrentLeader is null - Faction Id: " + Id + ", Event Id: " + eventId);
+            throw new Exception("CurrentLeader is null - Faction Id: " + Id);
         }
 
         Polity newPolity = Polity;
 
         if (newPolity == null)
         {
-            throw new Exception("newPolity is null - Faction Id: " + Id + ", Event Id: " + eventId);
+            throw new Exception("newPolity is null - Faction Id: " + Id);
         }
 
         // If the polity with the highest prominence is different than the source faction's polity and it's value is twice greater switch the new clan's polity to this one.
@@ -403,7 +401,7 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter
 
         if (newFaction == null)
         {
-            throw new Exception("newFaction is null - Faction Id: " + Id + ", Event Id: " + eventId);
+            throw new Exception("newFaction is null - Faction Id: " + Id);
         }
 
         newFaction.Initialize(); // We can initialize right away since the containing polity is already initialized
