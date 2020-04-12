@@ -273,7 +273,7 @@ public class DecisionLoader
             parameterEntities = CreateParameterEntities(d.parameters);
         }
 
-        ModDecision decision = new ModDecision(d.target, parameterEntities);
+        ModDecision decision = new ModDecision(d.id, d.target, parameterEntities);
         decision.Initialize(d);
 
         OptionalDescription[] segments = new OptionalDescription[d.description.Length];
@@ -312,11 +312,11 @@ public class DecisionLoader
             }
         }
 
-        decision.Id = d.id;
-        decision.IdHash = d.id.GetHashCode();
         decision.Name = d.name;
         decision.DescriptionSegments = segments;
         decision.Options = options;
+
+        decision.FinishInitialization();
 
         return decision;
     }

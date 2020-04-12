@@ -7,6 +7,9 @@ public class ModDecision : Context
 
     public const string TargetEntityId = "target";
 
+    private int _randomOffset;
+    private int _evalRandomOffset;
+
     private readonly FactionEntity _target;
 
     private readonly Entity[] _parameterEntities;
@@ -30,12 +33,17 @@ public class ModDecision : Context
     public OptionalDescription[] DescriptionSegments;
     public DecisionOption[] Options;
 
-    public ModDecision(string targetStr, Entity[] parameterEntities)
+    public ModDecision(string id, string targetStr, Entity[] parameterEntities)
     {
         if (targetStr != FactionTargetType)
         {
             throw new System.ArgumentException("Invalid target type: " + targetStr);
         }
+
+        Id = id;
+        IdHash = id.GetHashCode();
+
+        _randomOffset = IdHash;
 
         _target = new FactionEntity(TargetEntityId);
 
@@ -52,6 +60,11 @@ public class ModDecision : Context
                 AddEntity(p);
             }
         }
+    }
+
+    public void FinishInitialization()
+    {
+        _evalRandomOffset = _randomOffset;
     }
 
     public static void ResetDecisions()
@@ -97,13 +110,61 @@ public class ModDecision : Context
         }
     }
 
+    /// <summary>
+    /// This function will be called by the AI when the target faction is not controlled by a player
+    /// </summary>
+    private void AutoEvaluate()
+    {
+        float totalWeight = 0;
+        float[] optionWeights = new float[Options.Length];
+
+        // Calculate the current weights for all options
+        for (int i = 0; i < Options.Length; i++)
+        {
+            DecisionOption option = Options[i];
+
+            // If option is not available set its weight to 0
+            float weight = 0;
+            if (option.CanShow())
+            {
+                weight = option.Weight.Value;
+            }
+
+            totalWeight += weight;
+            optionWeights[i] = totalWeight;
+        }
+
+        if (totalWeight <= 0)
+        {
+            // Something went wrong, at least one option should be
+            // available everytime we evaluate a decision
+            throw new System.Exception(
+                "Total decision option weight is equal or less than zero: " + totalWeight);
+        }
+
+        float randValue = GetNextRandomFloat(_evalRandomOffset) * totalWeight;
+
+        // Figure out which option we should apply
+        int chossenIndex = 0;
+        while (optionWeights[chossenIndex] < randValue)
+        {
+            chossenIndex++;
+        }
+
+        // Apply all option effects
+        foreach (DecisionOptionEffect effect in Options[chossenIndex].Effects)
+        {
+            effect.Result.Apply();
+        }
+    }
+
     public void Evaluate()
     {
         Faction targetFaction = _target.Faction;
 
         targetFaction.CoreGroup.SetToUpdate();
 
-        if (targetFaction.Polity.IsUnderPlayerFocus || targetFaction.IsUnderPlayerGuidance)
+        if (targetFaction.IsUnderPlayerGuidance)
         {
             string dialogText = "";
 
@@ -114,6 +175,10 @@ public class ModDecision : Context
                     dialogText += description.Text.EvaluateString();
                 }
             }
+        }
+        else
+        {
+            AutoEvaluate();
         }
     }
 }
