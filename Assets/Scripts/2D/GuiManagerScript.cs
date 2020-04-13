@@ -6,6 +6,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine.Profiling;
+using System;
 
 public delegate void PostProgressOperation();
 public delegate void PointerOperation(Vector2 position);
@@ -41,7 +42,9 @@ public class GuiManagerScript : MonoBehaviour
 
     public TextInputDialogPanelScript SaveFileDialogPanelScript;
     public TextInputDialogPanelScript ExportMapDialogPanelScript;
+    [Obsolete]
     public DecisionDialogPanelScript DecisionDialogPanelScript;
+    public ModDecisionDialogPanelScript ModDecisionDialogPanelScript;
     public LoadFileDialogPanelScript LoadFileDialogPanelScript;
     public SelectFactionDialogPanelScript SelectFactionDialogPanelScript;
     public OverlayDialogPanelScript OverlayDialogPanelScript;
@@ -193,7 +196,7 @@ public class GuiManagerScript : MonoBehaviour
     private float _accDeltaTime = 0;
     private long _simulationDateSpan = 0;
 
-    private bool _resolvedDecision = false;
+    //private bool _resolvedDecision = false;
 
     private int _mapUpdateCount = 0;
     private int _pixelUpdateCount = 0;
@@ -261,6 +264,7 @@ public class GuiManagerScript : MonoBehaviour
         SelectionPanelScript.SetVisible(false);
 
         DecisionDialogPanelScript.SetVisible(false);
+        ModDecisionDialogPanelScript.SetVisible(false);
         SelectFactionDialogPanelScript.SetVisible(false);
         MainMenuDialogPanelScript.SetVisible(false);
         ProgressDialogPanelScript.SetVisible(false);
@@ -501,18 +505,24 @@ public class GuiManagerScript : MonoBehaviour
                 // Simulate up to the max amout of iterations allowed per frame
                 while ((lastUpdateDate + maxDateSpanBetweenUpdates) > world.CurrentDate)
                 {
-                    if (_resolvedDecision)
-                    {
-                        _resolvedDecision = false;
-                    }
-                    else
-                    {
+                    //if (_resolvedDecision)
+                    //{
+                    //    _resolvedDecision = false;
+                    //}
+                    //else
+                    //{
                         world.EvaluateEventsToHappen();
-                    }
+                    //}
 
                     if (world.HasDecisionsToResolve())
                     {
                         RequestDecisionResolution();
+                        break;
+                    }
+
+                    if (world.HasModDecisionsToResolve())
+                    {
+                        RequestModDecisionResolution();
                         break;
                     }
 
@@ -2152,6 +2162,7 @@ public class GuiManagerScript : MonoBehaviour
         InterruptSimulation(true);
     }
 
+    [Obsolete]
     private void RequestDecisionResolution()
     {
         Decision decisionToResolve = Manager.CurrentWorld.PullDecisionToResolve();
@@ -2166,6 +2177,27 @@ public class GuiManagerScript : MonoBehaviour
         {
             // Hide the decision dialog until all menu panels are inactive
             HideInteractionPanel(DecisionDialogPanelScript);
+        }
+
+        InterruptSimulation(true);
+
+        _eventPauseActive = true;
+    }
+
+    private void RequestModDecisionResolution()
+    {
+        ModDecision decisionToResolve = Manager.CurrentWorld.PullModDecisionToResolve();
+
+        ModDecisionDialogPanelScript.Set(decisionToResolve, _selectedMaxSpeedLevelIndex);
+
+        if (!IsMenuPanelActive())
+        {
+            ModDecisionDialogPanelScript.SetVisible(true);
+        }
+        else
+        {
+            // Hide the decision dialog until all menu panels are inactive
+            HideInteractionPanel(ModDecisionDialogPanelScript);
         }
 
         InterruptSimulation(true);
@@ -2194,29 +2226,54 @@ public class GuiManagerScript : MonoBehaviour
         }
     }
 
-    public void ResolveDecision()
-    {
-        DecisionDialogPanelScript.SetVisible(false);
+    //[Obsolete]
+    //public void ResolveDecision()
+    //{
+    //    DecisionDialogPanelScript.SetVisible(false);
 
-        int resumeSpeedLevelIndex = DecisionDialogPanelScript.ResumeSpeedLevelIndex;
+    //    int resumeSpeedLevelIndex = DecisionDialogPanelScript.ResumeSpeedLevelIndex;
 
-        if (resumeSpeedLevelIndex == -1)
-        {
-            PauseSimulation(true);
-        }
-        else
-        {
-            _selectedMaxSpeedLevelIndex = resumeSpeedLevelIndex;
+    //    if (resumeSpeedLevelIndex == -1)
+    //    {
+    //        PauseSimulation(true);
+    //    }
+    //    else
+    //    {
+    //        _selectedMaxSpeedLevelIndex = resumeSpeedLevelIndex;
 
-            SetMaxSpeedLevel(_selectedMaxSpeedLevelIndex);
-        }
+    //        SetMaxSpeedLevel(_selectedMaxSpeedLevelIndex);
+    //    }
 
-        InterruptSimulation(false);
+    //    InterruptSimulation(false);
 
-        _eventPauseActive = false;
+    //    _eventPauseActive = false;
 
-        _resolvedDecision = true;
-    }
+    //    _resolvedDecision = true;
+    //}
+
+    //public void ResolveModDecision()
+    //{
+    //    ModDecisionDialogPanelScript.SetVisible(false);
+
+    //    int resumeSpeedLevelIndex = ModDecisionDialogPanelScript.ResumeSpeedLevelIndex;
+
+    //    if (resumeSpeedLevelIndex == -1)
+    //    {
+    //        PauseSimulation(true);
+    //    }
+    //    else
+    //    {
+    //        _selectedMaxSpeedLevelIndex = resumeSpeedLevelIndex;
+
+    //        SetMaxSpeedLevel(_selectedMaxSpeedLevelIndex);
+    //    }
+
+    //    InterruptSimulation(false);
+
+    //    _eventPauseActive = false;
+
+    //    _resolvedDecision = true;
+    //}
 
     public void ChangePlanetOverlayToSelected()
     {

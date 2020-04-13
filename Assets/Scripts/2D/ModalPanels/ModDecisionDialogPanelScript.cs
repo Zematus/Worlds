@@ -7,8 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System;
 
-[Obsolete]
-public class DecisionDialogPanelScript : ModalPanelScript
+public class ModDecisionDialogPanelScript : ModalPanelScript
 {
     public Text DecisionText;
 
@@ -24,30 +23,48 @@ public class DecisionDialogPanelScript : ModalPanelScript
 
     private readonly List<Button> _optionButtons = new List<Button>();
 
-    private Decision _decision;
+    private ModDecision _decision;
 
     private void SetOptions()
     {
         _optionButtons.Add(OptionButtonPrefab);
 
-        Decision.Option[] options = _decision.GetOptions();
+        DecisionOption[] options = _decision.Options;
 
         int i = 0;
 
-        foreach (Decision.Option option in options)
+        foreach (DecisionOption option in options)
         {
+            if (!option.CanShow())
+            {
+                continue;
+            }
+
             SetOptionButton(option, i);
 
             i++;
         }
     }
 
-    private void SetOptionButton(Decision.Option option, int index)
+    private void SetOptionButton(DecisionOption option, int index)
     {
         Button button;
 
-        string text = option.Text;
-        string descriptionText = option.DescriptionText;
+        string text = option.Text.EvaluateString();
+
+        string descriptionText = "Effects:";
+
+        if (option.Effects != null)
+        {
+            foreach (DecisionOptionEffect effect in option.Effects)
+            {
+                descriptionText += "\n\t• " + effect.Text.EvaluateString();
+            }
+        }
+        else
+        {
+            descriptionText += "\n\t• None";
+        }
 
         if (index < _optionButtons.Count)
         {
@@ -67,7 +84,14 @@ public class DecisionDialogPanelScript : ModalPanelScript
 
         button.onClick.AddListener(() =>
         {
-            option.Execute();
+            if (option.Effects != null)
+            {
+                foreach (DecisionOptionEffect effect in option.Effects)
+                {
+                    effect.Result.Apply();
+                }
+            }
+
             OptionChosenEvent.Invoke();
         });
     }
@@ -115,13 +139,31 @@ public class DecisionDialogPanelScript : ModalPanelScript
         }
     }
 
-    public void Set(Decision decision, int currentSpeedIndex)
+    public void Set(ModDecision decision, int currentSpeedIndex)
     {
         ResumeSpeedLevelIndex = currentSpeedIndex;
 
         SpeedButtonText.text = Speed.Levels[currentSpeedIndex];
 
-        DecisionText.text = decision.Description;
+        string dialogText = "";
+
+        bool notFirst = false;
+        foreach (OptionalDescription description in decision.DescriptionSegments)
+        {
+            if (description.CanShow())
+            {
+                // every new description segment should start on a new line
+                if (notFirst)
+                {
+                    dialogText += "\n";
+                }
+
+                dialogText += description.Text.EvaluateString();
+                notFirst = true;
+            }
+        }
+
+        DecisionText.text = dialogText;
 
         _decision = decision;
     }

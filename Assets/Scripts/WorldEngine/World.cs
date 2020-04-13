@@ -5,6 +5,7 @@ using System.Xml;
 using System.Xml.Serialization;
 using System.IO;
 using UnityEngine.Profiling;
+using System;
 
 public delegate void ProgressCastDelegate(float value, string message = null, bool reset = false);
 
@@ -428,7 +429,9 @@ public class World : ISynchronizable
     private HashSet<long> _eventMessageIds = new HashSet<long>();
     private Queue<WorldEventMessage> _eventMessagesToShow = new Queue<WorldEventMessage>();
 
+    [Obsolete]
     private Queue<Decision> _decisionsToResolve = new Queue<Decision>();
+    private readonly Queue<ModDecision> _modDecisionsToResolve = new Queue<ModDecision>();
 
     private Vector2[] _continentOffsets;
     private float[] _continentWidths;
@@ -1906,19 +1909,37 @@ public class World : ISynchronizable
         _politiesToRemove.Add(polity);
     }
 
+    [Obsolete]
     public void AddDecisionToResolve(Decision decision)
     {
         _decisionsToResolve.Enqueue(decision);
     }
 
+    public void AddDecisionToResolve(ModDecision decision)
+    {
+        _modDecisionsToResolve.Enqueue(decision);
+    }
+
+    [Obsolete]
     public bool HasDecisionsToResolve()
     {
         return _decisionsToResolve.Count > 0;
     }
 
+    public bool HasModDecisionsToResolve()
+    {
+        return _modDecisionsToResolve.Count > 0;
+    }
+
+    [Obsolete]
     public Decision PullDecisionToResolve()
     {
         return _decisionsToResolve.Dequeue();
+    }
+
+    public ModDecision PullModDecisionToResolve()
+    {
+        return _modDecisionsToResolve.Dequeue();
     }
 
     public void AddEventMessage(WorldEventMessage eventMessage)

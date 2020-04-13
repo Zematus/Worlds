@@ -151,10 +151,15 @@ public class ModDecision : Context
             chossenIndex++;
         }
 
-        // Apply all option effects
-        foreach (DecisionOptionEffect effect in Options[chossenIndex].Effects)
+        DecisionOptionEffect[] effects = Options[chossenIndex].Effects;
+
+        if (effects != null)
         {
-            effect.Result.Apply();
+            // Apply all option effects
+            foreach (DecisionOptionEffect effect in effects)
+            {
+                effect.Result.Apply();
+            }
         }
     }
 
@@ -166,15 +171,7 @@ public class ModDecision : Context
 
         if (targetFaction.IsUnderPlayerGuidance)
         {
-            string dialogText = "";
-
-            foreach (OptionalDescription description in DescriptionSegments)
-            {
-                if (description.CanShow())
-                {
-                    dialogText += description.Text.EvaluateString();
-                }
-            }
+            targetFaction.World.AddDecisionToResolve(this);
         }
         else
         {
