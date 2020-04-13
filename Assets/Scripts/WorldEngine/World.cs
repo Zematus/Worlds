@@ -5,7 +5,6 @@ using System.Xml;
 using System.Xml.Serialization;
 using System.IO;
 using UnityEngine.Profiling;
-using System;
 
 public delegate void ProgressCastDelegate(float value, string message = null, bool reset = false);
 
@@ -429,7 +428,7 @@ public class World : ISynchronizable
     private HashSet<long> _eventMessageIds = new HashSet<long>();
     private Queue<WorldEventMessage> _eventMessagesToShow = new Queue<WorldEventMessage>();
 
-    [Obsolete]
+    [System.Obsolete]
     private Queue<Decision> _decisionsToResolve = new Queue<Decision>();
     private readonly Queue<ModDecision> _modDecisionsToResolve = new Queue<ModDecision>();
 
@@ -1909,7 +1908,7 @@ public class World : ISynchronizable
         _politiesToRemove.Add(polity);
     }
 
-    [Obsolete]
+    [System.Obsolete]
     public void AddDecisionToResolve(Decision decision)
     {
         _decisionsToResolve.Enqueue(decision);
@@ -1920,7 +1919,7 @@ public class World : ISynchronizable
         _modDecisionsToResolve.Enqueue(decision);
     }
 
-    [Obsolete]
+    [System.Obsolete]
     public bool HasDecisionsToResolve()
     {
         return _decisionsToResolve.Count > 0;
@@ -1931,7 +1930,7 @@ public class World : ISynchronizable
         return _modDecisionsToResolve.Count > 0;
     }
 
-    [Obsolete]
+    [System.Obsolete]
     public Decision PullDecisionToResolve()
     {
         return _decisionsToResolve.Dequeue();

@@ -6,7 +6,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine.Profiling;
-using System;
 
 public delegate void PostProgressOperation();
 public delegate void PointerOperation(Vector2 position);
@@ -42,7 +41,7 @@ public class GuiManagerScript : MonoBehaviour
 
     public TextInputDialogPanelScript SaveFileDialogPanelScript;
     public TextInputDialogPanelScript ExportMapDialogPanelScript;
-    [Obsolete]
+    [System.Obsolete]
     public DecisionDialogPanelScript DecisionDialogPanelScript;
     public ModDecisionDialogPanelScript ModDecisionDialogPanelScript;
     public LoadFileDialogPanelScript LoadFileDialogPanelScript;
@@ -2162,7 +2161,7 @@ public class GuiManagerScript : MonoBehaviour
         InterruptSimulation(true);
     }
 
-    [Obsolete]
+    [System.Obsolete]
     private void RequestDecisionResolution()
     {
         Decision decisionToResolve = Manager.CurrentWorld.PullDecisionToResolve();
@@ -2226,7 +2225,7 @@ public class GuiManagerScript : MonoBehaviour
         }
     }
 
-    //[Obsolete]
+    //[System.Obsolete]
     //public void ResolveDecision()
     //{
     //    DecisionDialogPanelScript.SetVisible(false);
