@@ -4120,6 +4120,10 @@ public class Manager
         Discovery.ResetDiscoveries();
         Knowledge.ResetKnowledges();
 
+        // TODO: This should happend after mods are loaded. And preferences
+        // should be loaded from mods...
+        CulturalPreference.InitializePreferences();
+
         float progressPerMod = 0.1f / paths.Count;
 
         foreach (string path in paths)
