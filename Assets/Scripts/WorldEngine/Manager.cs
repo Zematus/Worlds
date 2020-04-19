@@ -4120,6 +4120,8 @@ public class Manager
         Discovery.ResetDiscoveries();
         Knowledge.ResetKnowledges();
 
+        EventGenerator.ResetGenerators();
+
         // TODO: This should happend after mods are loaded. And preferences
         // should be loaded from mods...
         CulturalPreference.InitializePreferences();
