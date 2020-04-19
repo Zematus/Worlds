@@ -4142,7 +4142,10 @@ public class Manager
 
     delegate void LoadModFileDelegate(string filename);
 
-    private static void TryLoadModFiles(LoadModFileDelegate loadModFile, string path, float progressPerModSegment)
+    private static void TryLoadModFiles(
+        LoadModFileDelegate loadModFile,
+        string path,
+        float progressPerModSegment)
     {
         if (!Directory.Exists(path))
             return;
@@ -4160,15 +4163,48 @@ public class Manager
 
                 accProgress += progressPerFile;
 
-                if (_manager._progressCastMethod != null)
-                {
-                    _manager._progressCastMethod(accProgress);
-                }
+                _manager._progressCastMethod?.Invoke(accProgress);
             }
         }
     }
 
     private static void LoadMod(string path, float progressPerMod)
+    {
+        string version = ModVersionReader.GetLoaderVersion(path);
+
+        if (version.StartsWith(ModVersionReader.LoaderVersion033))
+        {
+            LoadMod033(path, progressPerMod);
+        }
+        else if (version.StartsWith(ModVersionReader.LoaderVersion034))
+        {
+            LoadMod034(path, progressPerMod);
+        }
+        else
+        {
+            throw new System.Exception("Unsupported mod version: " + version);
+        }
+    }
+
+    private static void LoadMod034(string path, float progressPerMod)
+    {
+        if (!Directory.Exists(path))
+        {
+            throw new System.ArgumentException("Mod path '" + path + "' not found");
+        }
+
+        float progressPerSegment = progressPerMod / 7f;
+
+        TryLoadModFiles(Layer.LoadLayersFile, Path.Combine(path, @"Layers"), progressPerSegment);
+        TryLoadModFiles(Biome.LoadBiomesFile, Path.Combine(path, @"Biomes"), progressPerSegment);
+        TryLoadModFiles(Adjective.LoadAdjectivesFile, Path.Combine(path, @"Adjectives"), progressPerSegment);
+        TryLoadModFiles(RegionAttribute.LoadRegionAttributesFile, Path.Combine(path, @"RegionAttributes"), progressPerSegment);
+        TryLoadModFiles(Element.LoadElementsFile, Path.Combine(path, @"Elements"), progressPerSegment);
+        TryLoadModFiles(Discovery.LoadDiscoveriesFile033, Path.Combine(path, @"Discoveries"), progressPerSegment);
+        TryLoadModFiles(EventGenerator.LoadEventFile, Path.Combine(path, @"Events"), progressPerSegment);
+    }
+
+    private static void LoadMod033(string path, float progressPerMod)
     {
         if (!Directory.Exists(path))
         {
@@ -4182,6 +4218,6 @@ public class Manager
         TryLoadModFiles(Adjective.LoadAdjectivesFile, Path.Combine(path, @"Adjectives"), progressPerSegment);
         TryLoadModFiles(RegionAttribute.LoadRegionAttributesFile, Path.Combine(path, @"RegionAttributes"), progressPerSegment);
         TryLoadModFiles(Element.LoadElementsFile, Path.Combine(path, @"Elements"), progressPerSegment);
-        TryLoadModFiles(Discovery.LoadDiscoveriesFile, Path.Combine(path, @"Discoveries"), progressPerSegment);
+        TryLoadModFiles(Discovery.LoadDiscoveriesFile033, Path.Combine(path, @"Discoveries"), progressPerSegment);
     }
 }

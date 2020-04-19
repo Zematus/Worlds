@@ -11,7 +11,7 @@ public static class ExpressionBuilder
         //TestMatch(context, expressionStr);
 #endif
 
-        Match match = Regex.Match(expressionStr, ModUtility.BinaryOpStatementRegex);
+        Match match = Regex.Match(expressionStr, ModParseUtility.BinaryOpStatementRegex);
         if (match.Success == true)
         {
             //Debug.Log("match: " + match.Value);
@@ -22,7 +22,7 @@ public static class ExpressionBuilder
             return BuildBinaryOpExpression(context, match);
         }
 
-        match = Regex.Match(expressionStr, ModUtility.UnaryOpStatementRegex);
+        match = Regex.Match(expressionStr, ModParseUtility.UnaryOpStatementRegex);
         if (match.Success == true)
         {
             //Debug.Log("match: " + match.Value);
@@ -32,7 +32,7 @@ public static class ExpressionBuilder
             return BuildUnaryOpExpression(context, match);
         }
 
-        match = Regex.Match(expressionStr, ModUtility.AccessorOpStatementRegex);
+        match = Regex.Match(expressionStr, ModParseUtility.AccessorOpStatementRegex);
 
         if (match.Success == true)
         {
@@ -45,7 +45,7 @@ public static class ExpressionBuilder
             return BuildAccessorOpExpression(context, match);
         }
 
-        match = Regex.Match(expressionStr, ModUtility.InnerStatementRegex);
+        match = Regex.Match(expressionStr, ModParseUtility.InnerStatementRegex);
         if (match.Success == true)
         {
             //Debug.Log("match: " + match.Value);
@@ -56,7 +56,7 @@ public static class ExpressionBuilder
             return BuildExpression(context, expressionStr);
         }
 
-        match = Regex.Match(expressionStr, ModUtility.BaseStatementRegex);
+        match = Regex.Match(expressionStr, ModParseUtility.BaseStatementRegex);
         if (match.Success == true)
         {
             return BuildBaseExpression(context, match);
@@ -96,7 +96,7 @@ public static class ExpressionBuilder
 
         Debug.Log("- Test parsing: " + text);
 
-        Match match = Regex.Match(text, ModUtility.UnaryOpStatementRegex);
+        Match match = Regex.Match(text, ModParseUtility.UnaryOpStatementRegex);
 
         if (match.Success == true)
         {
@@ -105,7 +105,7 @@ public static class ExpressionBuilder
             //Debug.Log("-- -- match: " + match.Value);
         }
 
-        match = Regex.Match(text, ModUtility.BinaryOpStatementRegex);
+        match = Regex.Match(text, ModParseUtility.BinaryOpStatementRegex);
 
         if (match.Success == true)
         {
@@ -119,7 +119,7 @@ public static class ExpressionBuilder
             //Debug.Log("-- -- restOp: " + ModUtility.Debug_CapturesToString(match.Groups["restOp"]));
         }
 
-        match = Regex.Match(text, ModUtility.AccessorOpStatementRegex);
+        match = Regex.Match(text, ModParseUtility.AccessorOpStatementRegex);
 
         if (match.Success == true)
         {
@@ -128,7 +128,7 @@ public static class ExpressionBuilder
             //Debug.Log("-- -- match: " + match.Value);
         }
 
-        match = Regex.Match(text, ModUtility.BinaryOperandStatementRegex);
+        match = Regex.Match(text, ModParseUtility.BinaryOperandStatementRegex);
 
         if (match.Success == true)
         {
@@ -139,7 +139,7 @@ public static class ExpressionBuilder
             //Debug.Log("-- -- innerStatement: " + ModUtility.Debug_CapturesToString(match.Groups["innerStatement"]));
         }
 
-        match = Regex.Match(text, ModUtility.ArgumentListRegex);
+        match = Regex.Match(text, ModParseUtility.ArgumentListRegex);
 
         if (match.Success == true)
         {
@@ -150,7 +150,7 @@ public static class ExpressionBuilder
             //Debug.Log("-- -- otherArgs: " + ModUtility.Debug_CapturesToString(match.Groups["otherArgs"]));
         }
 
-        match = Regex.Match(text, ModUtility.IdentifierStatementRegex);
+        match = Regex.Match(text, ModParseUtility.IdentifierStatementRegex);
 
         if (match.Success == true)
         {
@@ -160,7 +160,7 @@ public static class ExpressionBuilder
             //Debug.Log("-- -- identifier: " + ModUtility.Debug_CapturesToString(match.Groups["argument"]));
         }
 
-        match = Regex.Match(text, ModUtility.BaseStatementRegex);
+        match = Regex.Match(text, ModParseUtility.BaseStatementRegex);
 
         if (match.Success == true)
         {
@@ -180,11 +180,11 @@ public static class ExpressionBuilder
     {
         List<IExpression> argExpressions = new List<IExpression>();
 
-        Match match = Regex.Match(arguments, ModUtility.ArgumentListRegex);
-//
-//#if DEBUG
-//        TestMatch(context, arguments);
-//#endif
+        Match match = Regex.Match(arguments, ModParseUtility.ArgumentListRegex);
+        //
+        //#if DEBUG
+        //        TestMatch(context, arguments);
+        //#endif
 
         while (match.Success == true)
         {
@@ -203,11 +203,11 @@ public static class ExpressionBuilder
 
             argExpressions.Add(BuildExpression(context, argument));
 
-            match = Regex.Match(otherArgs, ModUtility.ArgumentListRegex);
-//
-//#if DEBUG
-//            TestMatch(context, otherArgs);
-//#endif
+            match = Regex.Match(otherArgs, ModParseUtility.ArgumentListRegex);
+            //
+            //#if DEBUG
+            //            TestMatch(context, otherArgs);
+            //#endif
         }
 
         return argExpressions.ToArray();

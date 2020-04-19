@@ -13,7 +13,7 @@ public class ModText
     {
         _partsString = "";
 
-        foreach (Match match in Regex.Matches(textStr, ModUtility.ModTextRegexPart))
+        foreach (Match match in Regex.Matches(textStr, ModParseUtility.ModTextRegexPart))
         {
             string value = match.Groups["string"].Value;
 

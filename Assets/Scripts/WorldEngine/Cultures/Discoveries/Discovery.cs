@@ -105,7 +105,7 @@ public class Discovery : ICellGroupEventGenerator
         Discoveries = new Dictionary<string, Discovery>();
     }
 
-    public static void LoadDiscoveriesFile(string filename)
+    public static void LoadDiscoveriesFile033(string filename)
     {
         foreach (Discovery discovery in DiscoveryLoader033.Load(filename))
         {

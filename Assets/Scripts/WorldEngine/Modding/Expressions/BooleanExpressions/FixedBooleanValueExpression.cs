@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 
 public class FixedBooleanValueExpression : FixedValueExpression<bool>
 {
-    public const string Regex = @"^" + ModUtility.BooleanRegexPart + @"\s*$";
+    public const string Regex = @"^" + ModParseUtility.BooleanRegexPart + @"\s*$";
 
     public static bool ParseExpression(string booleanStr)
     {

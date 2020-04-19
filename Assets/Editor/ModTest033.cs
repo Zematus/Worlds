@@ -80,7 +80,7 @@ public class ModTest033
         Debug.Log("loading discovery mod file...");
 
         Discovery.ResetDiscoveries();
-        Discovery.LoadDiscoveriesFile(Path.Combine("Mods", "Base", "Discoveries", "discoveries.json"));
+        Discovery.LoadDiscoveriesFile033(Path.Combine("Mods", "Base", "Discoveries", "discoveries.json"));
 
         foreach (Discovery discovery in Discovery.Discoveries.Values)
         {

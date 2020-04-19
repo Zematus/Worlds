@@ -195,7 +195,7 @@ public class GuiManagerScript : MonoBehaviour
     private float _accDeltaTime = 0;
     private long _simulationDateSpan = 0;
 
-    //private bool _resolvedDecision = false;
+    private bool _resolvedDecision = false;
 
     private int _mapUpdateCount = 0;
     private int _pixelUpdateCount = 0;
@@ -504,14 +504,14 @@ public class GuiManagerScript : MonoBehaviour
                 // Simulate up to the max amout of iterations allowed per frame
                 while ((lastUpdateDate + maxDateSpanBetweenUpdates) > world.CurrentDate)
                 {
-                    //if (_resolvedDecision)
-                    //{
-                    //    _resolvedDecision = false;
-                    //}
-                    //else
-                    //{
+                    if (_resolvedDecision)
+                    {
+                        _resolvedDecision = false;
+                    }
+                    else
+                    {
                         world.EvaluateEventsToHappen();
-                    //}
+                    }
 
                     if (world.HasDecisionsToResolve())
                     {
@@ -2225,54 +2225,54 @@ public class GuiManagerScript : MonoBehaviour
         }
     }
 
-    //[System.Obsolete]
-    //public void ResolveDecision()
-    //{
-    //    DecisionDialogPanelScript.SetVisible(false);
+    [System.Obsolete]
+    public void ResolveDecision()
+    {
+        DecisionDialogPanelScript.SetVisible(false);
 
-    //    int resumeSpeedLevelIndex = DecisionDialogPanelScript.ResumeSpeedLevelIndex;
+        int resumeSpeedLevelIndex = DecisionDialogPanelScript.ResumeSpeedLevelIndex;
 
-    //    if (resumeSpeedLevelIndex == -1)
-    //    {
-    //        PauseSimulation(true);
-    //    }
-    //    else
-    //    {
-    //        _selectedMaxSpeedLevelIndex = resumeSpeedLevelIndex;
+        if (resumeSpeedLevelIndex == -1)
+        {
+            PauseSimulation(true);
+        }
+        else
+        {
+            _selectedMaxSpeedLevelIndex = resumeSpeedLevelIndex;
 
-    //        SetMaxSpeedLevel(_selectedMaxSpeedLevelIndex);
-    //    }
+            SetMaxSpeedLevel(_selectedMaxSpeedLevelIndex);
+        }
 
-    //    InterruptSimulation(false);
+        InterruptSimulation(false);
 
-    //    _eventPauseActive = false;
+        _eventPauseActive = false;
 
-    //    _resolvedDecision = true;
-    //}
+        _resolvedDecision = true;
+    }
 
-    //public void ResolveModDecision()
-    //{
-    //    ModDecisionDialogPanelScript.SetVisible(false);
+    public void ResolveModDecision()
+    {
+        ModDecisionDialogPanelScript.SetVisible(false);
 
-    //    int resumeSpeedLevelIndex = ModDecisionDialogPanelScript.ResumeSpeedLevelIndex;
+        int resumeSpeedLevelIndex = ModDecisionDialogPanelScript.ResumeSpeedLevelIndex;
 
-    //    if (resumeSpeedLevelIndex == -1)
-    //    {
-    //        PauseSimulation(true);
-    //    }
-    //    else
-    //    {
-    //        _selectedMaxSpeedLevelIndex = resumeSpeedLevelIndex;
+        if (resumeSpeedLevelIndex == -1)
+        {
+            PauseSimulation(true);
+        }
+        else
+        {
+            _selectedMaxSpeedLevelIndex = resumeSpeedLevelIndex;
 
-    //        SetMaxSpeedLevel(_selectedMaxSpeedLevelIndex);
-    //    }
+            SetMaxSpeedLevel(_selectedMaxSpeedLevelIndex);
+        }
 
-    //    InterruptSimulation(false);
+        InterruptSimulation(false);
 
-    //    _eventPauseActive = false;
+        _eventPauseActive = false;
 
-    //    _resolvedDecision = true;
-    //}
+        _resolvedDecision = true;
+    }
 
     public void ChangePlanetOverlayToSelected()
     {

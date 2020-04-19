@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 
 public class FixedNumberExpression : FixedValueExpression<float>
 {
-    public const string Regex = @"^" + ModUtility.NumberRegexPart + @"\s*$";
+    public const string Regex = @"^" + ModParseUtility.NumberRegexPart + @"\s*$";
 
     public static float ParseExpression(string numberStr)
     {

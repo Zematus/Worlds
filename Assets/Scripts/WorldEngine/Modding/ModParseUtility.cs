@@ -7,7 +7,7 @@ using System.Linq;
 /// <summary>
 /// Utility class containing all regular expressions used to parse mod expressions
 /// </summary>
-public static class ModUtility
+public static class ModParseUtility
 {
     public const string IdentifierRegexPart = @"[a-zA-Z_][a-zA-Z0-9_]*";
     public const string NumberRegexPart = @"-?\d+(?:\.\d+)?";
