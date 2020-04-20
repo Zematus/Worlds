@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
-public class FactionEventGenerator : EventGenerator
+public class FactionEventGenerator : EventGenerator, IFactionEventGenerator
 {
     private readonly FactionEntity _target;
 
@@ -14,6 +14,13 @@ public class FactionEventGenerator : EventGenerator
 
         // Add the target to the context's entity map
         AddEntity(_target);
+    }
+
+    public override void Initialize()
+    {
+        base.Initialize();
+
+        //Faction.OnSpawnEventGenerators.Add(this);
     }
 
     protected override WorldEvent GenerateEvent(long triggerDate)
@@ -31,11 +38,19 @@ public class FactionEventGenerator : EventGenerator
     public override float GetNextRandomFloat(int iterOffset) =>
         _target.Faction.GetNextLocalRandomFloat(iterOffset);
 
-    public bool TryGenerateEventAndAssign(Faction faction)
+    public bool TryGenerateEventAndAssign(
+        Faction faction,
+        WorldEvent originalEvent = null,
+        bool reassign = false)
     {
+        if (!reassign && faction.IsFlagSet(EventSetFlag))
+        {
+            return false;
+        }
+
         SetTarget(faction);
 
-        return TryGenerateEventAndAssign(faction.World);
+        return TryGenerateEventAndAssign(faction.World, originalEvent);
     }
 
     public bool TryReasignEvent(FactionModEvent modEvent)
@@ -45,27 +60,6 @@ public class FactionEventGenerator : EventGenerator
             return false;
         }
 
-        SetTarget(modEvent.Faction);
-
-        World world = modEvent.Faction.World;
-
-        if (!CanAssignEventToTarget())
-        {
-            return false;
-        }
-
-        long triggerDate = CalculateEventTriggerDate(world);
-
-        if (triggerDate < 0)
-        {
-            // Do not generate an event. CalculateTriggerDate() should have logged a reason why
-            return false;
-        }
-
-        modEvent.Reset(triggerDate);
-
-        world.InsertEventToHappen(modEvent);
-
-        return true;
+        return TryGenerateEventAndAssign(modEvent.Faction, modEvent, true);
     }
 }

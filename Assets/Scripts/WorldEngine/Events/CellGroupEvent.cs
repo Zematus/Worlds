@@ -95,7 +95,7 @@ public abstract class CellGroupEvent : WorldEvent
         }
     }
 
-    public virtual void Reset(long newTriggerDate)
+    public override void Reset(long newTriggerDate)
     {
         Reset(newTriggerDate, GenerateUniqueIdentifier(Group, newTriggerDate, TypeId));
 

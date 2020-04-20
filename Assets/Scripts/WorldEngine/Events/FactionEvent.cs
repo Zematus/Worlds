@@ -112,7 +112,7 @@ public abstract class FactionEvent : WorldEvent {
 		}
 	}
 
-	public virtual void Reset (long newTriggerDate)
+	public override void Reset (long newTriggerDate)
     {
         OriginalPolity = Faction.Polity;
 		OriginalPolityId = OriginalPolity.Id;

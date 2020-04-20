@@ -7,7 +7,7 @@ using System.Xml.Serialization;
 /// <summary>
 /// Object that generates events of a certain type during the simulation run
 /// </summary>
-public abstract class EventGenerator : Context
+public abstract class EventGenerator : Context, IWorldEventGenerator
 {
     public const string AssignerIdWorld = "world";
     public const string AssignerIdEvent = "event";
@@ -42,6 +42,11 @@ public abstract class EventGenerator : Context
     /// Hash to use for RNGs that use events of this type
     /// </summary>
     public int IdHash;
+
+    /// <summary>
+    /// Id for flag to set when this event has already been assigned to target
+    /// </summary>
+    public string EventSetFlag { get; private set; }
 
     public bool Repeteable = false;
 
@@ -91,6 +96,21 @@ public abstract class EventGenerator : Context
         }
     }
 
+    public static void InitializeGenerators()
+    {
+        foreach (EventGenerator generator in Generators.Values)
+        {
+            generator.Initialize();
+        }
+    }
+
+    public virtual void Initialize()
+    {
+        EventSetFlag = Id + "_set";
+
+        World.EventGenerators.Add(Id, this);
+    }
+
     public static EventGenerator GetGenerator(string id)
     {
         return !Generators.TryGetValue(id, out EventGenerator g) ? null : g;
@@ -103,7 +123,7 @@ public abstract class EventGenerator : Context
             case FactionTargetType:
                 return new FactionEventGenerator();
             case GroupTargetType:
-                return new GroupEventGenerator();
+                return new CellGroupEventGenerator();
         }
 
         throw new System.ArgumentException("Invalid target type: " + targetStr);
@@ -166,7 +186,9 @@ public abstract class EventGenerator : Context
 
     protected abstract WorldEvent GenerateEvent(long triggerDate);
 
-    protected bool TryGenerateEventAndAssign(World world)
+    protected bool TryGenerateEventAndAssign(
+        World world,
+        WorldEvent originalEvent)
     {
         if (!CanAssignEventToTarget())
         {
@@ -177,14 +199,30 @@ public abstract class EventGenerator : Context
 
         if (triggerDate < 0)
         {
-            // Do not generate an event. CalculateTriggerDate() should have logged a reason why
+            // Do not generate an event. CalculateTriggerDate() should have
+            // logged more details...
+            Debug.LogWarning(
+                "EventGenerator.TryGenerateEventAndAssign - failed to generate a valid trigger date: " +
+                triggerDate);
             return false;
         }
 
-        WorldEvent modEvent = GenerateEvent(triggerDate);
+        if (originalEvent == null)
+        {
+            originalEvent = GenerateEvent(triggerDate);
+        }
+        else
+        {
+            originalEvent.Reset(triggerDate);
+        }
 
-        world.InsertEventToHappen(modEvent);
+        world.InsertEventToHappen(originalEvent);
 
         return true;
+    }
+
+    public string GetEventGeneratorId()
+    {
+        return Id;
     }
 }

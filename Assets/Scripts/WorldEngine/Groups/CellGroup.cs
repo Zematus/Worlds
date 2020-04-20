@@ -1,12 +1,10 @@
 ﻿using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
-using System.Linq;
 using UnityEngine.Profiling;
 
-public class CellGroup : HumanGroup
+public class CellGroup : HumanGroup, IFlagHolder
 {
     public const long GenerationSpan = 25 * World.YearLength;
 
@@ -37,58 +35,58 @@ public class CellGroup : HumanGroup
     public static float TravelWidthFactor;
 
     public static List<ICellGroupEventGenerator> OnSpawnEventGenerators;
-    
+
     [XmlAttribute]
     public long Id;
-    
+
     [XmlAttribute("PMD")]
     public int PreferredMigrationDirectionInt;
-    
+
     [XmlAttribute("PEP")]
     public float PreviousExactPopulation;
-    
+
     [XmlAttribute("EP")]
     public float ExactPopulation; // TODO: Get rid of 'float' population values
-    
+
     [XmlAttribute("P")]
     public bool StillPresent = true;
-    
+
     [XmlAttribute("ID")]
     public long InitDate;
-    
+
     [XmlAttribute("LUD")]
     public long LastUpdateDate;
     [XmlAttribute("NUD")]
     public long NextUpdateDate;
     [XmlAttribute("UESD")]
     public long UpdateEventSpawnDate;
-    
+
     [XmlAttribute("OP")]
     public int OptimalPopulation;
-    
+
     [XmlAttribute("Lo")]
     public int Longitude;
     [XmlAttribute("La")]
     public int Latitude;
-    
+
     [XmlAttribute("STF")]
     public float SeaTravelFactor = 0;
-    
+
     [XmlAttribute("TPP")]
     public float TotalPolityProminenceValueFloat = 0;
-    
+
     [XmlAttribute("MV")]
     public float MigrationValue;
-    
+
     [XmlAttribute("TMV")]
     public float TotalMigrationValue;
-    
+
     [XmlAttribute("PE")]
     public float PolityExpansionValue;
-    
+
     [XmlAttribute("TPE")]
     public float TotalPolityExpansionValue;
-    
+
     [XmlAttribute("MEv")]
     public bool HasMigrationEvent = false;
     [XmlAttribute("MD")]
@@ -112,31 +110,31 @@ public class CellGroup : HumanGroup
     public long ExpansionTargetGroupId;
     [XmlAttribute("EPId")]
     public long ExpandingPolityId;
-    
+
     [XmlAttribute("TFEv")]
     public bool HasTribeFormationEvent = false;
     [XmlAttribute("TFD")]
     public long TribeFormationEventDate;
-    
+
     [XmlAttribute("ArM")]
     public int ArabilityModifier = 0;
     [XmlAttribute("AcM")]
     public int AccessibilityModifier = 0;
     [XmlAttribute("NvM")]
     public int NavigationRangeModifier = 0;
-    
+
     public Route SeaMigrationRoute = null;
-    
+
     public List<string> Flags;
-    
+
     public CellCulture Culture;
-    
+
     public List<string> Properties;
-    
+
     public List<long> FactionCoreIds;
 
     public List<PolityProminence> PolityProminences = null;
-    
+
     [XmlIgnore]
     public WorldPosition Position
     {
@@ -277,7 +275,7 @@ public class CellGroup : HumanGroup
         get
         {
             int population = (int)Mathf.Floor(ExactPopulation);
-            
+
             if (population < 0)
             {
                 throw new System.Exception("Negative Population: " + population + ", Id: " + Id);
@@ -444,10 +442,7 @@ public class CellGroup : HumanGroup
     {
         foreach (ICellGroupEventGenerator generator in OnSpawnEventGenerators)
         {
-            if (generator.CanAssignEventTypeToGroup(this))
-            {
-                generator.GenerateAndAssignEvent(this);
-            }
+            generator.TryGenerateEventAndAssign(this);
         }
     }
 
@@ -907,7 +902,7 @@ public class CellGroup : HumanGroup
         //			}
         //		}
         //		#endif
-        
+
         if (Population < 0)
         {
             throw new System.Exception("Population less than 0");
@@ -1150,7 +1145,7 @@ public class CellGroup : HumanGroup
 
         float altitudeDeltaFactor = CalculateAltitudeDeltaFactor(cell);
         float altitudeDeltaFactorPow = Mathf.Pow(altitudeDeltaFactor, 4);
-        
+
         if (float.IsNaN(altitudeDeltaFactorPow))
         {
             throw new System.Exception("float.IsNaN(altitudeDeltaFactorPow)");
@@ -1187,7 +1182,7 @@ public class CellGroup : HumanGroup
         }
 
         float cellValue = altitudeDeltaFactorPow * areaFactor * popDifferenceFactor * noMigrationFactor * targetOptimalPopulationFactor;
-        
+
         if (float.IsNaN(cellValue))
         {
             throw new System.Exception("float.IsNaN(cellValue)");
@@ -1400,7 +1395,7 @@ public class CellGroup : HumanGroup
         MigrationValue = CalculateMigrationValue(Cell);
 
         TotalMigrationValue = MigrationValue;
-        
+
         if (float.IsNaN(TotalMigrationValue))
         {
             throw new System.Exception("float.IsNaN(TotalMigrationValue)");
@@ -1531,7 +1526,7 @@ public class CellGroup : HumanGroup
             // nextDate is invalid, generate report
             Debug.LogWarning("CellGroup.ConsiderLandMigration - nextDate (" + nextDate +
                 ") less or equal to World.CurrentDate (" + World.CurrentDate +
-                "). travelTime: " + travelTime + ", Cell.Width: " + Cell.Width + 
+                "). travelTime: " + travelTime + ", Cell.Width: " + Cell.Width +
                 ", TravelWidthFactor: " + TravelWidthFactor + ", travelFactor: " + travelFactor);
 
             // Do not generate event
@@ -1714,8 +1709,8 @@ public class CellGroup : HumanGroup
         if (nextDate <= World.CurrentDate)
         {
             // nextDate is invalid, generate report
-            Debug.LogWarning("CellGroup.ConsiderSeaMigration - nextDate (" + nextDate + 
-                ") less or equal to World.CurrentDate (" + World.CurrentDate + 
+            Debug.LogWarning("CellGroup.ConsiderSeaMigration - nextDate (" + nextDate +
+                ") less or equal to World.CurrentDate (" + World.CurrentDate +
                 "). travelTime: " + travelTime + ", routeLength: " + routeLength + ", SeaTravelFactor: " + SeaTravelFactor);
 
             // Do not generate event
@@ -1836,17 +1831,17 @@ public class CellGroup : HumanGroup
 
         List<PolityProminenceWeight> polityProminenceWeights = new List<PolityProminenceWeight>(_polityProminences.Count);
 
-//#if DEBUG
-//        string polityProminencesStr = "";
-//#endif
+        //#if DEBUG
+        //        string polityProminencesStr = "";
+        //#endif
 
         foreach (PolityProminence pi in _polityProminences.Values)
         {
             polityProminenceWeights.Add(new PolityProminenceWeight(pi, pi.Value));
 
-//#if DEBUG
-//            polityProminencesStr += "[" + pi.PolityId + "|" + pi.Value + "],";
-//#endif
+            //#if DEBUG
+            //            polityProminencesStr += "[" + pi.PolityId + "|" + pi.Value + "],";
+            //#endif
         }
 
         float selectionValue = Cell.GetNextLocalRandomFloat(RngOffsets.CELL_GROUP_CONSIDER_POLITY_PROMINENCE_EXPANSION_POLITY);
@@ -2120,7 +2115,7 @@ public class CellGroup : HumanGroup
         Profiler.EndSample();
 
         Profiler.BeginSample("Update Culture");
-        
+
         Culture.Update(timeSpan);
 
         Profiler.EndSample();
@@ -2436,7 +2431,7 @@ public class CellGroup : HumanGroup
     {
         Culture.TryGetSkillValue(SeafaringSkill.SkillId, out float seafaringValue);
         Culture.TryGetKnowledgeScaledValue(ShipbuildingKnowledge.KnowledgeId, out float shipbuildingValue);
-        
+
         float rangeFactor = 1 + (NavigationRangeModifier * MathUtility.IntToFloatScalingFactor);
 
         SeaTravelFactor = SeaTravelBaseFactor * seafaringValue * shipbuildingValue * TravelWidthFactor * rangeFactor;
@@ -2542,7 +2537,7 @@ public class CellGroup : HumanGroup
         float value = 0;
 
         Culture.TryGetKnowledgeScaledValue(ShipbuildingKnowledge.KnowledgeId, out value);
-        
+
         float techFactor = (0.5f * value) + noTechBaseValue;
 
         float capacityFactor = techFactor * cell.NeighborhoodWaterBiomePresence;
@@ -2689,7 +2684,7 @@ public class CellGroup : HumanGroup
 
         float populationFactor = 0.0001f + Mathf.Abs(OptimalPopulation - Population);
         populationFactor = 100 * OptimalPopulation / populationFactor;
-        
+
         populationFactor = Mathf.Min(populationFactor, MaxUpdateSpanFactor);
 
         float mixFactor = randomFactor * migrationFactor
@@ -3217,7 +3212,7 @@ public class CellGroup : HumanGroup
         //            }
         //        }
         //#endif
-        
+
         _polityProminencesToRemove.Remove(polity.Id);
 
         if (!_polityProminences.TryGetValue(polity.Id, out PolityProminence polityProminence))
@@ -3466,7 +3461,7 @@ public class CellGroup : HumanGroup
     public override void FinalizeLoad()
     {
         base.FinalizeLoad();
-        
+
         PreferredMigrationDirection = (Direction)PreferredMigrationDirectionInt;
 
         foreach (long id in FactionCoreIds)

@@ -663,9 +663,7 @@ public class World : ISynchronizable
 
     public static IWorldEventGenerator GetEventGenerator(string id)
     {
-        IWorldEventGenerator generator;
-
-        if (!EventGenerators.TryGetValue(id, out generator))
+        if (!EventGenerators.TryGetValue(id, out IWorldEventGenerator generator))
         {
             return null;
         }

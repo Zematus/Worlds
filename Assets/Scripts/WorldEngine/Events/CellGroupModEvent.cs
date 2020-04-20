@@ -4,20 +4,28 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
-public class GroupModEvent : CellGroupEvent
+public class CellGroupModEvent : CellGroupEvent
 {
     [XmlAttribute("GenId")]
     public string GeneratorId;
 
-    private GroupEventGenerator _generator;
+    private CellGroupEventGenerator _generator;
 
-    public GroupModEvent(
-        GroupEventGenerator generator,
+    [XmlIgnore]
+    public string EventSetFlag;
+
+    public CellGroupModEvent(
+        CellGroupEventGenerator generator,
         CellGroup group,
         long triggerDate)
         : base(group, triggerDate, generator.IdHash)
     {
         _generator = generator;
+
+        GeneratorId = generator.Id;
+        EventSetFlag = generator.EventSetFlag;
+
+        group.SetFlag(EventSetFlag);
     }
 
     public override bool CanTrigger()
@@ -46,16 +54,25 @@ public class GroupModEvent : CellGroupEvent
 
     protected override void DestroyInternal()
     {
-        base.DestroyInternal();
+        if (_generator.TryReasignEvent(this))
+        {
+            // If reasigned then we don't need to fully destroy the event
+            return;
+        }
 
-        _generator.TryReasignEvent(this);
+        if (Group != null)
+        {
+            Group.UnsetFlag(EventSetFlag);
+        }
+
+        base.DestroyInternal();
     }
 
     public override void FinalizeLoad()
     {
         base.FinalizeLoad();
 
-        _generator = EventGenerator.GetGenerator(GeneratorId) as GroupEventGenerator;
+        _generator = EventGenerator.GetGenerator(GeneratorId) as CellGroupEventGenerator;
 
         if (_generator == null)
         {

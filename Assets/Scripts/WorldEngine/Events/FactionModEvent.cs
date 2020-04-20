@@ -11,6 +11,9 @@ public class FactionModEvent : FactionEvent
 
     private FactionEventGenerator _generator;
 
+    [XmlIgnore]
+    public string EventSetFlag;
+
     public FactionModEvent(
         FactionEventGenerator generator,
         Faction faction,
@@ -18,6 +21,11 @@ public class FactionModEvent : FactionEvent
         : base(faction, triggerDate, generator.IdHash)
     {
         _generator = generator;
+
+        GeneratorId = generator.Id;
+        EventSetFlag = generator.EventSetFlag;
+
+        faction.SetFlag(EventSetFlag);
     }
 
     public override bool CanTrigger()
@@ -46,9 +54,18 @@ public class FactionModEvent : FactionEvent
 
     protected override void DestroyInternal()
     {
-        base.DestroyInternal();
+        if (_generator.TryReasignEvent(this))
+        {
+            // If reasigned then we don't need to fully destroy the event
+            return;
+        }
 
-        _generator.TryReasignEvent(this);
+        if (Faction != null)
+        {
+            Faction.UnsetFlag(EventSetFlag);
+        }
+
+        base.DestroyInternal();
     }
 
     public override void FinalizeLoad()

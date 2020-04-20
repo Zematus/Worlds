@@ -5,6 +5,7 @@ using System;
 using System.IO;
 using System.Text.RegularExpressions;
 
+[Obsolete]
 [Serializable]
 public class DiscoveryLoader033
 {

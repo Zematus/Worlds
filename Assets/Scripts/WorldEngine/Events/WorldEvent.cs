@@ -180,4 +180,10 @@ public abstract class WorldEvent : ISynchronizable
 
         FailedToTrigger = false;
     }
+
+    public virtual void Reset(long newTriggerDate)
+    {
+        throw new System.NotImplementedException(
+            "Needs to be implemented in children or call Reset(long newTriggerDate, long newId) instead...");
+    }
 }

@@ -3,11 +3,14 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
+using System;
 
 public interface ICellGroupEventGenerator : IWorldEventGenerator
 {
-    bool CanAssignEventTypeToGroup(CellGroup group);
-    CellGroupEvent GenerateAndAssignEvent(CellGroup group);
+    bool TryGenerateEventAndAssign(
+        CellGroup group,
+        WorldEvent originalEvent = null,
+        bool reassign = false);
 
-    string GetEventSetFlag();
+    string EventSetFlag { get; }
 }

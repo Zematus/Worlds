@@ -4,11 +4,11 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
-public class GroupEventGenerator : EventGenerator
+public class CellGroupEventGenerator : EventGenerator, ICellGroupEventGenerator
 {
     private readonly GroupEntity _target;
 
-    public GroupEventGenerator()
+    public CellGroupEventGenerator()
     {
         _target = new GroupEntity(TargetEntityId);
 
@@ -16,9 +16,17 @@ public class GroupEventGenerator : EventGenerator
         AddEntity(_target);
     }
 
+    public override void Initialize()
+    {
+        base.Initialize();
+
+        CellGroup.OnSpawnEventGenerators.Add(this);
+    }
+
     protected override WorldEvent GenerateEvent(long triggerDate)
     {
-        GroupModEvent modEvent = new GroupModEvent(this, _target.Group, triggerDate);
+        CellGroupModEvent modEvent =
+            new CellGroupModEvent(this, _target.Group, triggerDate);
 
         return modEvent;
     }
@@ -31,41 +39,28 @@ public class GroupEventGenerator : EventGenerator
     public override float GetNextRandomFloat(int iterOffset) =>
         _target.Group.GetNextLocalRandomFloat(iterOffset);
 
-    public bool TryGenerateEventAndAssign(CellGroup group)
+    public bool TryGenerateEventAndAssign(
+        CellGroup group,
+        WorldEvent originalEvent = null,
+        bool reassign = false)
     {
+        if (!reassign && group.IsFlagSet(EventSetFlag))
+        {
+            return false;
+        }
+
         SetTarget(group);
 
-        return TryGenerateEventAndAssign(group.World);
+        return TryGenerateEventAndAssign(group.World, originalEvent);
     }
 
-    public bool TryReasignEvent(GroupModEvent modEvent)
+    public bool TryReasignEvent(CellGroupModEvent modEvent)
     {
         if (!Repeteable)
         {
             return false;
         }
 
-        SetTarget(modEvent.Group);
-
-        World world = modEvent.Group.World;
-
-        if (!CanAssignEventToTarget())
-        {
-            return false;
-        }
-
-        long triggerDate = CalculateEventTriggerDate(world);
-
-        if (triggerDate < 0)
-        {
-            // Do not generate an event. CalculateTriggerDate() should have logged a reason why
-            return false;
-        }
-
-        modEvent.Reset(triggerDate);
-
-        world.InsertEventToHappen(modEvent);
-
-        return true;
+        return TryGenerateEventAndAssign(modEvent.Group, modEvent, true);
     }
 }

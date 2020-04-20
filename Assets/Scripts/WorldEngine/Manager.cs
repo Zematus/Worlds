@@ -4144,6 +4144,8 @@ public class Manager
 
         Knowledge.InitializeKnowledges();
         Discovery.InitializeDiscoveries();
+
+        EventGenerator.InitializeGenerators();
     }
 
     delegate void LoadModFileDelegate(string filename);

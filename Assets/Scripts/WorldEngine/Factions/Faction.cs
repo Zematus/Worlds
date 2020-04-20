@@ -7,7 +7,7 @@ using UnityEngine.Profiling;
 using System;
 
 [XmlInclude(typeof(Clan))]
-public abstract class Faction : ISynchronizable, IWorldDateGetter
+public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
 {
     [XmlAttribute("PolId")]
     public long PolityId;
@@ -35,6 +35,8 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter
 
     [XmlIgnore]
     public bool IsBeingUpdated = false;
+
+    public List<string> Flags;
 
     public FactionCulture Culture;
 
@@ -97,6 +99,8 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter
 
     private readonly DatedValue<float> _administrativeLoad;
     private readonly DatedValue<Agent> _currentLeader;
+
+    private HashSet<string> _flags = new HashSet<string>();
 
     private bool _preupdated = false;
 
@@ -552,6 +556,8 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter
 
     public virtual void Synchronize()
     {
+        Flags = new List<string>(_flags);
+
         EventDataList.Clear();
 
         foreach (FactionEvent e in _events.Values)
@@ -568,6 +574,11 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter
     {
         Name.World = World;
         Name.FinalizeLoad();
+
+        foreach (string f in Flags)
+        {
+            _flags.Add(f);
+        }
 
         CoreGroup = World.GetGroup(CoreGroupId);
 
@@ -719,5 +730,20 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter
     public bool GroupCanBeCore(CellGroup group)
     {
         return GetGroupWeight(group) > 0;
+    }
+
+    public void SetFlag(string flag)
+    {
+        _flags.Add(flag);
+    }
+
+    public bool IsFlagSet(string flag)
+    {
+        return _flags.Contains(flag);
+    }
+
+    public void UnsetFlag(string flag)
+    {
+        _flags.Remove(flag);
     }
 }
