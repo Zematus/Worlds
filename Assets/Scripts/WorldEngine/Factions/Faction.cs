@@ -36,6 +36,8 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
     [XmlIgnore]
     public bool IsBeingUpdated = false;
 
+    public static List<IFactionEventGenerator> OnSpawnEventGenerators;
+
     public List<string> Flags;
 
     public FactionCulture Culture;
@@ -146,6 +148,8 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         Influence = influence;
 
         GenerateName(parentFaction);
+
+        InitializeDefaultEvents();
 
         IsInitialized = false;
     }
@@ -745,5 +749,23 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
     public void UnsetFlag(string flag)
     {
         _flags.Remove(flag);
+    }
+
+    public static void ResetEventGenerators()
+    {
+        OnSpawnEventGenerators = new List<IFactionEventGenerator>();
+    }
+
+    public void InitializeOnSpawnEvents()
+    {
+        foreach (IFactionEventGenerator generator in OnSpawnEventGenerators)
+        {
+            generator.TryGenerateEventAndAssign(this);
+        }
+    }
+
+    public void InitializeDefaultEvents()
+    {
+        InitializeOnSpawnEvents();
     }
 }

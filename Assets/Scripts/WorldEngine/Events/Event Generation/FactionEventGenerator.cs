@@ -20,7 +20,7 @@ public class FactionEventGenerator : EventGenerator, IFactionEventGenerator
     {
         base.Initialize();
 
-        //Faction.OnSpawnEventGenerators.Add(this);
+        Faction.OnSpawnEventGenerators.Add(this);
     }
 
     protected override WorldEvent GenerateEvent(long triggerDate)

@@ -145,10 +145,10 @@ public class Discovery : ICellGroupEventGenerator
 
     public void Initialize()
     {
-        string eventPrefix = Id + "_discovery_event";
+        string eventId = Id + "_discovery_event";
 
-        EventGeneratorId = eventPrefix + "_generator";
-        EventSetFlag = eventPrefix + "_set";
+        EventGeneratorId = eventId;
+        EventSetFlag = eventId + "_set";
 
         World.EventGenerators.Add(EventGeneratorId, this);
         CellGroup.OnSpawnEventGenerators.Add(this);
