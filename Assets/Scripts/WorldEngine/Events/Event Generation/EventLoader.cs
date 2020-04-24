@@ -27,7 +27,7 @@ public class EventLoader
         public string id;
         public string name;
         public string target;
-        public string[] assigners;
+        public string[] assignOn;
         public string[] assignmentConditions;
         public string[] triggerConditions;
         public string maxTimeToTrigger;
@@ -93,7 +93,7 @@ public class EventLoader
             throw new ArgumentException("event 'target' can't be null or empty");
         }
 
-        if (e.assigners == null)
+        if (e.assignOn == null)
         {
             throw new ArgumentException("event 'assigners' list can't be empty");
         }
@@ -140,7 +140,7 @@ public class EventLoader
         generator.IdHash = e.id.GetHashCode();
         generator.UId = EventGenerator.CurrentUId++;
         generator.Name = e.name;
-        generator.Assigners = e.assigners;
+        generator.AssignOn = e.assignOn;
         generator.AssignmentConditions = assignmentConditions;
         generator.TriggerConditions = triggerConditions;
         generator.MaxTimeToTrigger = maxTimeToTrigger;

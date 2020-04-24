@@ -4,7 +4,7 @@
       "id": "clan_split",
       "name": "clan split",
       "target": "faction",
-      "assigners" : ["world"],
+      "assignOn" : ["spawn"],
       "properties": [
         {
           "id": "new_core_group",

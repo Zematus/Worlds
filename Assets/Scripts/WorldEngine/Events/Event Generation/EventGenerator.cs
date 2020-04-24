@@ -9,8 +9,8 @@ using System.Xml.Serialization;
 /// </summary>
 public abstract class EventGenerator : Context, IWorldEventGenerator
 {
-    public const string AssignerIdWorld = "world";
-    public const string AssignerIdEvent = "event";
+    public const string AssignOnSpawn = "spawn";
+    public const string AssignOnEvent = "event";
 
     public const string FactionTargetType = "faction";
     public const string GroupTargetType = "group";
@@ -50,7 +50,7 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
 
     public bool Repeteable = false;
 
-    public string[] Assigners = null;
+    public string[] AssignOn = null;
 
     /// <summary>
     /// Conditions that decide if an event should be assigned to a target
@@ -104,11 +104,32 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
         }
     }
 
+    public abstract void SetToAssignOnSpawn();
+    public abstract void SetToAssignOnEvent();
+
     public virtual void Initialize()
     {
         EventSetFlag = Id + "_set";
 
         World.EventGenerators.Add(Id, this);
+
+        foreach (string assignOn in AssignOn)
+        {
+            switch (assignOn)
+            {
+                case AssignOnSpawn:
+                    SetToAssignOnSpawn();
+                    break;
+
+                case AssignOnEvent:
+                    SetToAssignOnEvent();
+                    break;
+
+                default:
+                    throw new System.Exception(
+                        "Unhandled event assignOn type: " + assignOn);
+            }
+        }
     }
 
     public static EventGenerator GetGenerator(string id)

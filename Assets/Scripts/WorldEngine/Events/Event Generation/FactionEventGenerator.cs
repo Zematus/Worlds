@@ -16,11 +16,13 @@ public class FactionEventGenerator : EventGenerator, IFactionEventGenerator
         AddEntity(_target);
     }
 
-    public override void Initialize()
+    public override void SetToAssignOnSpawn()
     {
-        base.Initialize();
-
         Faction.OnSpawnEventGenerators.Add(this);
+    }
+
+    public override void SetToAssignOnEvent()
+    {
     }
 
     protected override WorldEvent GenerateEvent(long triggerDate)

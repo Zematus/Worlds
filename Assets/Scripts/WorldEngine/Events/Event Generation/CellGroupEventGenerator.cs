@@ -16,11 +16,13 @@ public class CellGroupEventGenerator : EventGenerator, ICellGroupEventGenerator
         AddEntity(_target);
     }
 
-    public override void Initialize()
+    public override void SetToAssignOnSpawn()
     {
-        base.Initialize();
-
         CellGroup.OnSpawnEventGenerators.Add(this);
+    }
+
+    public override void SetToAssignOnEvent()
+    {
     }
 
     protected override WorldEvent GenerateEvent(long triggerDate)

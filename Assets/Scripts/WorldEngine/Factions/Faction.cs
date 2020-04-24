@@ -149,14 +149,14 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
 
         GenerateName(parentFaction);
 
-        InitializeDefaultEvents();
-
         IsInitialized = false;
     }
 
     public void Initialize()
     {
         InitializeInternal();
+
+        InitializeDefaultEvents();
 
         IsInitialized = true;
     }

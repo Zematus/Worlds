@@ -228,6 +228,8 @@ public class ModTest
         Knowledge.InitializeKnowledges();
         CulturalPreference.InitializePreferences();
 
+        Faction.ResetEventGenerators();
+
         World testWorld = new World(400, 200, 1);
         testWorld.TerrainInitialization();
 
@@ -239,6 +241,9 @@ public class ModTest
         TestPolity testPolity1 = new TestPolity("tribe", testGroup1);
         TestFaction testFaction1 = new TestFaction("clan", testPolity1, testGroup1, 0, 0.3f);
         TestFaction testFaction2 = new TestFaction("clan", testPolity1, testGroup2, 0, 0.7f);
+
+        testFaction1.Initialize();
+        testFaction2.Initialize();
 
         testGroup1.Culture.Language = testPolity1.Culture.Language;
         testGroup2.Culture.Language = testPolity1.Culture.Language;
