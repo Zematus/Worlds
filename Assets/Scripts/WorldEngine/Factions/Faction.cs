@@ -756,7 +756,7 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         OnSpawnEventGenerators = new List<IFactionEventGenerator>();
     }
 
-    public void InitializeOnSpawnEvents()
+    private void InitializeOnSpawnEvents()
     {
         foreach (IFactionEventGenerator generator in OnSpawnEventGenerators)
         {

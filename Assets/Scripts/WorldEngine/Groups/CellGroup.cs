@@ -438,7 +438,7 @@ public class CellGroup : HumanGroup, IFlagHolder
         OnSpawnEventGenerators = new List<ICellGroupEventGenerator>();
     }
 
-    public void InitializeOnSpawnEvents()
+    private void InitializeOnSpawnEvents()
     {
         foreach (ICellGroupEventGenerator generator in OnSpawnEventGenerators)
         {

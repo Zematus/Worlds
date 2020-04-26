@@ -4122,6 +4122,7 @@ public class Manager
         Knowledge.ResetKnowledges();
 
         EventGenerator.ResetGenerators();
+        ModDecision.ResetDecisions();
 
         // TODO: This should happend after mods are loaded. And preferences
         // should be loaded from mods...
@@ -4202,7 +4203,7 @@ public class Manager
             throw new System.ArgumentException("Mod path '" + path + "' not found");
         }
 
-        float progressPerSegment = progressPerMod / 7f;
+        float progressPerSegment = progressPerMod / 8f;
 
         TryLoadModFiles(Layer.LoadLayersFile, Path.Combine(path, @"Layers"), progressPerSegment);
         TryLoadModFiles(Biome.LoadBiomesFile, Path.Combine(path, @"Biomes"), progressPerSegment);
@@ -4211,6 +4212,7 @@ public class Manager
         TryLoadModFiles(Element.LoadElementsFile, Path.Combine(path, @"Elements"), progressPerSegment);
         TryLoadModFiles(Discovery.LoadDiscoveriesFile033, Path.Combine(path, @"Discoveries"), progressPerSegment);
         TryLoadModFiles(EventGenerator.LoadEventFile, Path.Combine(path, @"Events"), progressPerSegment);
+        TryLoadModFiles(ModDecision.LoadDecisionFile, Path.Combine(path, @"Decisions"), progressPerSegment);
     }
 
     private static void LoadMod033(string path, float progressPerMod)
