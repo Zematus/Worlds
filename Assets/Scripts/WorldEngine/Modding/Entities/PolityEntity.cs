@@ -11,7 +11,7 @@ public class PolityEntity : Entity
 
     protected override object _reference => Polity;
 
-    public int RandomGroupId = 0;
+    public int RandomGroupIndex = 0;
 
     public Dictionary<int, GroupEntity> RandomGroupEntitiesToSet =
         new Dictionary<int, GroupEntity>();
@@ -21,20 +21,21 @@ public class PolityEntity : Entity
         return Polity.Name.BoldText;
     }
 
-    public Entity GetRandomGroupEntity()
-    {
-        int groupId = RandomGroupId++;
-
-        GroupEntity entity =
-            new GroupEntity(BuildInternalEntityId("random_group_" + groupId));
-
-        RandomGroupEntitiesToSet.Add(groupId, entity);
-
-        return entity;
-    }
-
     public PolityEntity(string id) : base(id)
     {
+    }
+
+    private FixedValueEntityAttribute<Entity> GenerateRandomGroupEntity()
+    {
+        int groupIndex = RandomGroupIndex++;
+        string groupId = "random_group_" + groupIndex;
+
+        GroupEntity entity =
+            new GroupEntity(BuildInternalEntityId(groupId));
+
+        RandomGroupEntitiesToSet.Add(groupIndex, entity);
+
+        return new FixedValueEntityAttribute<Entity>(entity, groupId, this);
     }
 
     public override EntityAttribute GetAttribute(string attributeId, IExpression[] arguments = null)
@@ -42,8 +43,7 @@ public class PolityEntity : Entity
         switch (attributeId)
         {
             case GetRandomGroupAttributeId:
-                return new ValueGetterEntityAttribute<Entity>(
-                    GetRandomGroupAttributeId, this, GetRandomGroupEntity);
+                return GenerateRandomGroupEntity();
         }
 
         throw new System.ArgumentException("Polity: Unable to find attribute: " + attributeId);

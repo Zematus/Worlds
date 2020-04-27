@@ -47,7 +47,8 @@ public class FactionModEvent : FactionEvent
 
     public override void Trigger()
     {
-        _generator.SetTarget(Faction);
+        // This operation assumes that CanTrigger() has been called beforehand,
+        // and within, _generator.SetTarget(Faction)...
 
         _generator.TriggerEvent();
     }

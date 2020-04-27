@@ -47,7 +47,8 @@ public class CellGroupModEvent : CellGroupEvent
 
     public override void Trigger()
     {
-        _generator.SetTarget(Group);
+        // This operation assumes that CanTrigger() has been called beforehand,
+        // and within, _generator.SetTarget(Group)...
 
         _generator.TriggerEvent();
     }

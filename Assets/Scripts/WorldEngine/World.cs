@@ -1807,6 +1807,13 @@ public class World : ISynchronizable
         _factionsToRemove.Add(faction);
     }
 
+    public void AddPolityInfo(Polity polity)
+    {
+        _polityInfos.Add(polity.Id, polity.Info);
+
+        PolityCount++;
+    }
+
     public void AddPolityInfo(PolityInfo polityInfo)
     {
         _polityInfos.Add(polityInfo.Id, polityInfo);

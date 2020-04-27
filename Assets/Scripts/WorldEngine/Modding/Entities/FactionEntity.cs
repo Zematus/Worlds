@@ -97,8 +97,13 @@ public class FactionEntity : Entity
         throw new System.ArgumentException("Faction: Unable to find attribute: " + attributeId);
     }
 
-    public void Set(Faction f)
+    public void Set(Faction f, bool noReset = false)
     {
+        if (noReset && (Faction == f))
+        {
+            return;
+        }
+
         Faction = f;
 
         _preferencesEntity.Set(Faction.Culture);

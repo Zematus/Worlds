@@ -318,7 +318,7 @@ public abstract class Polity : ISynchronizable
 
             polity.Initialize();
 
-            world.AddPolityInfo(polity.Info);
+            world.AddPolityInfo(polity);
             world.AddPolityToUpdate(polity);
 
             TryGenerateNewPolityMessages(polity);
@@ -1341,6 +1341,12 @@ public abstract class Polity : ISynchronizable
 
     public CellGroup GetRandomGroup(int rngOffset)
     {
+        if (ProminenceClusters.Count <= 0)
+        {
+            throw new System.Exception(
+                "Invalid number of prominence clusters in polity: " + ProminenceClusters.Count);
+        }
+
         // Pick a random cluster
         int clusterIndex = GetNextLocalRandomInt(rngOffset++, ProminenceClusters.Count);
         PolityProminenceCluster cluster = ProminenceClusters[clusterIndex];

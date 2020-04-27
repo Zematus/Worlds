@@ -8,11 +8,14 @@ public class ModTest
     private World _testWorld;
     private TerrainCell _testCell1;
     private TerrainCell _testCell2;
+    private TerrainCell _testCell3;
     private CellGroup _testGroup1;
     private CellGroup _testGroup2;
+    private CellGroup _testGroup3;
     CellRegion _testRegion1;
     private TestFaction _testFaction1;
     private TestFaction _testFaction2;
+    private TestFaction _testFaction3;
     TestPolity _testPolity1;
 
     [Test]
@@ -188,6 +191,12 @@ public class ModTest
         _testCell2.AddBiomeRelPresence(Biome.Biomes["desert"], 0.55f);
 
         _testGroup2 = new CellGroup(_testWorld, _testCell2, 35000);
+
+        _testCell3 = _testWorld.TerrainCells[100][100];
+        _testCell3.AddBiomeRelPresence(Biome.Biomes["forest"], 0.3f);
+        _testCell3.AddBiomeRelPresence(Biome.Biomes["grassland"], 0.7f);
+
+        _testGroup3 = new CellGroup(_testWorld, _testCell3, 12345);
     }
 
     [Test]
@@ -249,25 +258,35 @@ public class ModTest
         _testPolity1 = new TestPolity("tribe", _testGroup1);
         _testFaction1 = new TestFaction("clan", _testPolity1, _testGroup1, 0, 0.3f);
         _testFaction2 = new TestFaction("clan", _testPolity1, _testGroup2, 0, 0.7f);
+        _testFaction3 = new TestFaction("clan", _testPolity1, _testGroup3, 0, 0.7f);
 
         _testFaction1.Initialize();
         _testFaction2.Initialize();
+        _testFaction3.Initialize();
+
+        _testWorld.AddPolityInfo(_testPolity1);
 
         _testGroup1.Culture.Language = _testPolity1.Culture.Language;
         _testGroup2.Culture.Language = _testPolity1.Culture.Language;
+        _testGroup3.Culture.Language = _testPolity1.Culture.Language;
 
         _testRegion1 = new CellRegion(_testCell1, _testGroup1.Culture.Language);
         _testCell1.Region = _testRegion1;
         _testCell2.Region = _testRegion1;
+        _testCell3.Region = _testRegion1;
 
         _testFaction1.TestLeader = new Agent(_testFaction1.CoreGroup, 0, 0);
         _testFaction2.TestLeader = new Agent(_testFaction2.CoreGroup, 0, 0);
+        _testFaction3.TestLeader = new Agent(_testFaction3.CoreGroup, 0, 0);
 
         _testFaction1.Culture.GetPreference("authority").Value = 0.4f;
         _testFaction1.Culture.GetPreference("cohesion").Value = 0.6f;
 
         _testFaction2.Culture.GetPreference("authority").Value = 0.6f;
         _testFaction2.Culture.GetPreference("cohesion").Value = 0.8f;
+
+        _testFaction3.Culture.GetPreference("authority").Value = 0.6f;
+        _testFaction3.Culture.GetPreference("cohesion").Value = 0.6f;
     }
 
     [Test]
@@ -478,7 +497,7 @@ public class ModTest
 
         EventGenerator.InitializeGenerators();
 
-        _testFaction1.InitializeDefaultEvents();
+        _testFaction3.InitializeDefaultEvents();
 
         List<WorldEvent> eventsToHappen = _testWorld.GetEventsToHappen();
 
@@ -496,5 +515,7 @@ public class ModTest
 
         Assert.IsNotNull(splitEvent);
         Assert.IsTrue(splitEvent.CanTrigger());
+
+        splitEvent.Trigger();
     }
 }

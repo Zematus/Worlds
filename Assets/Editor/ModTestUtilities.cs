@@ -236,6 +236,6 @@ public class TestFaction : Faction
 
     public override float GetGroupWeight(CellGroup group)
     {
-        throw new NotImplementedException();
+        return 1;
     }
 }
