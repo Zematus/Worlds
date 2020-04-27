@@ -7,7 +7,7 @@ public class GroupEntity : Entity
 {
     public const string CellAttributeId = "cell";
 
-    public CellGroup Group { get; private set; }
+    public virtual CellGroup Group { get; private set; }
 
     private CellEntity _cellEntity;
     private EntityAttribute _cellEntityAttribute;

@@ -13,8 +13,8 @@ public class PolityEntity : Entity
 
     public int RandomGroupIndex = 0;
 
-    public Dictionary<int, GroupEntity> RandomGroupEntitiesToSet =
-        new Dictionary<int, GroupEntity>();
+    private readonly List<RandomGroupEntity>
+        _randomGroupEntitiesToSet = new List<RandomGroupEntity>();
 
     public override string GetFormattedString()
     {
@@ -25,17 +25,54 @@ public class PolityEntity : Entity
     {
     }
 
+    private class RandomGroupEntity : GroupEntity
+    {
+        private int _index;
+        private PolityEntity _polityEntity;
+
+        private CellGroup _group = null;
+
+        public RandomGroupEntity(int index, PolityEntity entity)
+            : base(entity.Id + ".random_group_" + index)
+        {
+            _index = index;
+            _polityEntity = entity;
+        }
+
+        public void Reset()
+        {
+            _group = null;
+        }
+
+        public override CellGroup Group
+        {
+            get
+            {
+                if (_group == null)
+                {
+                    Polity polity = _polityEntity.Polity;
+
+                    int offset = (int)polity.Id;
+
+                    _group = polity.GetRandomGroup(offset + _index);
+
+                    Set(_group);
+                }
+
+                return _group;
+            }
+        }
+    }
+
     private FixedValueEntityAttribute<Entity> GenerateRandomGroupEntity()
     {
         int groupIndex = RandomGroupIndex++;
-        string groupId = "random_group_" + groupIndex;
 
-        GroupEntity entity =
-            new GroupEntity(BuildInternalEntityId(groupId));
+        RandomGroupEntity entity = new RandomGroupEntity(groupIndex, this);
 
-        RandomGroupEntitiesToSet.Add(groupIndex, entity);
+        _randomGroupEntitiesToSet.Add(entity);
 
-        return new FixedValueEntityAttribute<Entity>(entity, groupId, this);
+        return new FixedValueEntityAttribute<Entity>(entity, entity.Id, this);
     }
 
     public override EntityAttribute GetAttribute(string attributeId, IExpression[] arguments = null)
@@ -53,11 +90,9 @@ public class PolityEntity : Entity
     {
         Polity = p;
 
-        int offset = (int)Polity.Id;
-
-        foreach (KeyValuePair<int, GroupEntity> pair in RandomGroupEntitiesToSet)
+        foreach (RandomGroupEntity groupEntity in _randomGroupEntitiesToSet)
         {
-            pair.Value.Set(Polity.GetRandomGroup(offset + pair.Key));
+            groupEntity.Reset();
         }
     }
 
