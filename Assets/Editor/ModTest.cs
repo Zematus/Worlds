@@ -266,6 +266,10 @@ public class ModTest
 
         _testWorld.AddPolityInfo(_testPolity1);
 
+        _testGroup1.SetPolityProminence(_testPolity1, 1);
+        _testGroup2.SetPolityProminence(_testPolity1, 1);
+        _testGroup3.SetPolityProminence(_testPolity1, 1);
+
         _testGroup1.Culture.Language = _testPolity1.Culture.Language;
         _testGroup2.Culture.Language = _testPolity1.Culture.Language;
         _testGroup3.Culture.Language = _testPolity1.Culture.Language;
@@ -287,6 +291,12 @@ public class ModTest
 
         _testFaction3.Culture.GetPreference("authority").Value = 0.6f;
         _testFaction3.Culture.GetPreference("cohesion").Value = 0.6f;
+
+        _testGroup1.PostUpdatePolityProminences_BeforePolityUpdates();
+        _testGroup2.PostUpdatePolityProminences_BeforePolityUpdates();
+        _testGroup3.PostUpdatePolityProminences_BeforePolityUpdates();
+
+        _testPolity1.ClusterUpdate();
     }
 
     [Test]

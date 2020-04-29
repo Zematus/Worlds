@@ -1,4 +1,5 @@
 ﻿using System;
+using UnityEngine;
 
 public abstract class PropertyEntity<T> : ValueEntity<T>
 {
@@ -33,6 +34,10 @@ public abstract class PropertyEntity<T> : ValueEntity<T>
 
     protected void EvaluateIfNeeded()
     {
+        string logStr = "DEBUG: PropertyEntity.EvaluateIfNeeded - _evaluated: " + _evaluated;
+
+        Debug.Log(logStr);
+
         if (!_evaluated)
         {
             Calculate();
