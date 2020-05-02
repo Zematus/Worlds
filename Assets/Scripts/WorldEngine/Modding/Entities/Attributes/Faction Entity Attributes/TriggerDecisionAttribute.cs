@@ -49,8 +49,15 @@ public class TriggerDecisionAttribute : EffectEntityAttribute
 
         if (_parameterExps != null)
         {
+            parameters = new object[_parameterExps.Length];
+
             for (int i = 0; i < _parameterExps.Length; i++)
             {
+                if (_parameterExps[i] == null)
+                {
+                    Debug.Assert(false);
+                }
+
                 parameters[i] = _parameterExps[i].ValueObject;
             }
         }

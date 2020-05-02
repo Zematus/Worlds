@@ -97,11 +97,22 @@ public class ModDecision : Context
     {
         _target.Set(targetFaction);
 
+        if (_parameterEntities == null) // we are expecting no parameters
+        {
+            return;
+        }
+
+        if (parameters == null)
+        {
+            throw new System.Exception(
+                "No parameters given to decision '" + Id + "' when expected " + _parameterEntities.Length);
+        }
+
         if (parameters.Length < _parameterEntities.Length)
         {
             throw new System.Exception(
                 "Number of parameters given to decision '" + Id +
-                "', " + parameters.Length + ", below minimum expected: " + _parameterEntities.Length);
+                "', " + parameters.Length + ", below minimum expected " + _parameterEntities.Length);
         }
 
         for (int i = 0; i < _parameterEntities.Length; i++)
