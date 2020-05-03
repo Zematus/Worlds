@@ -138,7 +138,7 @@ public class ModDecision : Context
             float weight = 0;
             if (option.CanShow())
             {
-                weight = option.Weight.Value;
+                weight = (option.Weight != null ) ? option.Weight.Value : 1;
             }
 
             totalWeight += weight;
