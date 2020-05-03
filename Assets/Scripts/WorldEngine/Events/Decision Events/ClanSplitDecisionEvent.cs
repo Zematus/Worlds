@@ -5,6 +5,7 @@ using System.Xml;
 using System.Xml.Serialization;
 using UnityEngine.Profiling;
 
+[System.Obsolete]
 public class ClanSplitDecisionEvent : FactionEvent
 {
     public const long DateSpanFactorConstant = CellGroup.GenerationSpan * 10;

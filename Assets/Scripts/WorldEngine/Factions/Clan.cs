@@ -146,7 +146,7 @@ public class Clan : Faction
     {
         if (NewCoreGroup != null)
         {
-            if (GroupCanBeCore(NewCoreGroup))
+            if (GroupCanBeCore(NewCoreGroup) && (NewCoreGroup != CoreGroup))
             {
                 MigrateToNewCoreGroup();
             }
@@ -300,9 +300,6 @@ public class Clan : Faction
 
     public override float GetGroupWeight(CellGroup group)
     {
-        if (group == CoreGroup)
-            return 0;
-
         PolityProminence pi = group.GetPolityProminence(Polity);
 
         if (group.HighestPolityProminence != pi)

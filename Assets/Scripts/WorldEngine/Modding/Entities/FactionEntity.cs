@@ -13,6 +13,7 @@ public class FactionEntity : Entity
     public const string TriggerDecisionAttributeId = "trigger_decision";
     public const string SplitFactionAttributeId = "split";
     public const string GroupCanBeCoreAttributeId = "group_can_be_core";
+    public const string CoreGroupId = "core_group";
     public const string TypeAttributeId = "type";
 
     public Faction Faction { get; private set; }
@@ -26,6 +27,9 @@ public class FactionEntity : Entity
 
     private readonly PolityEntity _polityEntity;
     private EntityAttribute _polityEntityAttribute;
+
+    private readonly GroupEntity _coreGroupEntity;
+    private EntityAttribute _coreGroupEntityAttribute;
 
     private readonly CulturalPreferencesEntity _preferencesEntity =
         new CulturalPreferencesEntity(PreferencesAttributeId);
@@ -42,6 +46,7 @@ public class FactionEntity : Entity
     {
         _leaderEntity = new AgentEntity(BuildInternalEntityId(LeaderAttributeId));
         _polityEntity = new PolityEntity(BuildInternalEntityId(PolityAttributeId));
+        _coreGroupEntity = new GroupEntity(BuildInternalEntityId(CoreGroupId));
     }
 
     public override EntityAttribute GetAttribute(string attributeId, IExpression[] arguments = null)
@@ -92,6 +97,12 @@ public class FactionEntity : Entity
                     _polityEntityAttribute ?? new FixedValueEntityAttribute<Entity>(
                         _polityEntity, PolityAttributeId, this);
                 return _polityEntityAttribute;
+
+            case CoreGroupId:
+                _coreGroupEntityAttribute =
+                    _coreGroupEntityAttribute ?? new FixedValueEntityAttribute<Entity>(
+                        _coreGroupEntity, PolityAttributeId, this);
+                return _coreGroupEntityAttribute;
         }
 
         throw new System.ArgumentException("Faction: Unable to find attribute: " + attributeId);
@@ -111,6 +122,8 @@ public class FactionEntity : Entity
         _leaderEntity.Set(Faction.CurrentLeader);
 
         _polityEntity.Set(Faction.Polity);
+
+        _coreGroupEntity.Set(Faction.CoreGroup);
     }
 
     public override void Set(object o)

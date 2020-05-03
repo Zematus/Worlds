@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Serialization;
 
+[System.Obsolete]
 public class ClanSplitDecision : FactionDecision
 {
     public const float BaseMinPreferencePercentChange = 0.15f;

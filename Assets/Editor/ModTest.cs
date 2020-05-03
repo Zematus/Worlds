@@ -9,9 +9,11 @@ public class ModTest
     private TerrainCell _testCell1;
     private TerrainCell _testCell2;
     private TerrainCell _testCell3;
+    private TerrainCell _testCell4;
     private CellGroup _testGroup1;
     private CellGroup _testGroup2;
     private CellGroup _testGroup3;
+    private CellGroup _testGroup4;
     CellRegion _testRegion1;
     private TestFaction _testFaction1;
     private TestFaction _testFaction2;
@@ -197,6 +199,12 @@ public class ModTest
         _testCell3.AddBiomeRelPresence(Biome.Biomes["grassland"], 0.7f);
 
         _testGroup3 = new CellGroup(_testWorld, _testCell3, 12345);
+
+        _testCell4 = _testWorld.TerrainCells[150][150];
+        _testCell4.AddBiomeRelPresence(Biome.Biomes["forest"], 0.3f);
+        _testCell4.AddBiomeRelPresence(Biome.Biomes["grassland"], 0.7f);
+
+        _testGroup4 = new CellGroup(_testWorld, _testCell4, 54321);
     }
 
     [Test]
@@ -269,15 +277,18 @@ public class ModTest
         _testGroup1.SetPolityProminence(_testPolity1, 1);
         _testGroup2.SetPolityProminence(_testPolity1, 1);
         _testGroup3.SetPolityProminence(_testPolity1, 1);
+        _testGroup4.SetPolityProminence(_testPolity1, 1);
 
         _testGroup1.Culture.Language = _testPolity1.Culture.Language;
         _testGroup2.Culture.Language = _testPolity1.Culture.Language;
         _testGroup3.Culture.Language = _testPolity1.Culture.Language;
+        _testGroup4.Culture.Language = _testPolity1.Culture.Language;
 
         _testRegion1 = new CellRegion(_testCell1, _testGroup1.Culture.Language);
         _testCell1.Region = _testRegion1;
         _testCell2.Region = _testRegion1;
         _testCell3.Region = _testRegion1;
+        _testCell4.Region = _testRegion1;
 
         _testFaction1.TestLeader = new Agent(_testFaction1.CoreGroup, 0, 0);
         _testFaction2.TestLeader = new Agent(_testFaction2.CoreGroup, 0, 0);
@@ -295,6 +306,7 @@ public class ModTest
         _testGroup1.PostUpdatePolityProminences_BeforePolityUpdates();
         _testGroup2.PostUpdatePolityProminences_BeforePolityUpdates();
         _testGroup3.PostUpdatePolityProminences_BeforePolityUpdates();
+        _testGroup4.PostUpdatePolityProminences_BeforePolityUpdates();
 
         _testPolity1.ClusterUpdate();
     }
@@ -523,9 +535,13 @@ public class ModTest
             }
         }
 
+        Debug.Log("Assert.IsNotNull(splitEvent)");
         Assert.IsNotNull(splitEvent);
+
+        Debug.Log("Assert.IsTrue(splitEvent.CanTrigger())");
         Assert.IsTrue(splitEvent.CanTrigger());
 
+        Debug.Log("splitEvent.Trigger()");
         splitEvent.Trigger();
     }
 }
