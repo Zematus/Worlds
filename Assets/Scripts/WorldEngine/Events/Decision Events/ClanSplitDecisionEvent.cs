@@ -39,12 +39,12 @@ public class ClanSplitDecisionEvent : FactionEvent
         DoNotSerialize = true;
     }
 
-    public ClanSplitDecisionEvent(Clan clan, long triggerDate) : base(clan, triggerDate, ClanSplitDecisionEventId)
-    {
-        _clan = clan;
+    //public ClanSplitDecisionEvent(Clan clan, long triggerDate) : base(clan, triggerDate, ClanSplitDecisionEventId)
+    //{
+    //    _clan = clan;
 
-        DoNotSerialize = true;
-    }
+    //    DoNotSerialize = true;
+    //}
 
     public static long CalculateTriggerDate(Clan clan)
     {
@@ -333,7 +333,7 @@ public class ClanSplitDecisionEvent : FactionEvent
                     ") less or equal to current date: " + clan.World.CurrentDate);
             }
 
-            clan.ResetEvent(ClanSplitDecisionEventId, triggerDate);
+            //clan.ResetEvent(ClanSplitDecisionEventId, triggerDate);
         }
     }
 

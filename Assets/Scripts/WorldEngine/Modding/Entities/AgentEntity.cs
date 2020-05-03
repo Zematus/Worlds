@@ -11,7 +11,7 @@ public class AgentEntity : Entity
     private ValueGetterEntityAttribute<float> _charismaAttribute;
     private ValueGetterEntityAttribute<float> _wisdomAttribute;
 
-    public Agent Agent;
+    public virtual Agent Agent { get; private set; }
 
     protected override object _reference => Agent;
 

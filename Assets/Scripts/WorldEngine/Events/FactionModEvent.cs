@@ -20,6 +20,8 @@ public class FactionModEvent : FactionEvent
         long triggerDate)
         : base(faction, triggerDate, generator.IdHash)
     {
+        Debug.Log("DEBUG: Creating FactionModEvent...");
+
         _generator = generator;
 
         GeneratorId = generator.Id;
@@ -30,6 +32,8 @@ public class FactionModEvent : FactionEvent
 
     public override bool CanTrigger()
     {
+        Debug.Log("DEBUG: Calling FactionModEvent CanTrigger...");
+
         if (!base.CanTrigger())
         {
             return false;
@@ -47,6 +51,8 @@ public class FactionModEvent : FactionEvent
 
     public override void Trigger()
     {
+        Debug.Log("DEBUG: Calling FactionModEvent Trigger...");
+
         // This operation assumes that CanTrigger() has been called beforehand,
         // and within, _generator.SetTarget(Faction)...
 

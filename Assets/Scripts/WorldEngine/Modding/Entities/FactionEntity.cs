@@ -22,7 +22,7 @@ public class FactionEntity : Entity
     private ValueGetterEntityAttribute<float> _administrativeLoadAttribute;
     private ValueGetterEntityAttribute<float> _influenceAttribute;
 
-    private readonly AgentEntity _leaderEntity;
+    private readonly DelayedSetAgentEntity _leaderEntity;
     private EntityAttribute _leaderEntityAttribute;
 
     private readonly PolityEntity _polityEntity;
@@ -44,7 +44,10 @@ public class FactionEntity : Entity
 
     public FactionEntity(string id) : base(id)
     {
-        _leaderEntity = new AgentEntity(BuildInternalEntityId(LeaderAttributeId));
+        _leaderEntity = new DelayedSetAgentEntity(
+            GetLeader,
+            BuildInternalEntityId(LeaderAttributeId));
+
         _polityEntity = new PolityEntity(BuildInternalEntityId(PolityAttributeId));
         _coreGroupEntity = new GroupEntity(BuildInternalEntityId(CoreGroupId));
     }
@@ -119,11 +122,16 @@ public class FactionEntity : Entity
 
         _preferencesEntity.Set(Faction.Culture);
 
-        _leaderEntity.Set(Faction.CurrentLeader);
+        _leaderEntity.Reset();
 
         _polityEntity.Set(Faction.Polity);
 
         _coreGroupEntity.Set(Faction.CoreGroup);
+    }
+
+    public Agent GetLeader()
+    {
+        return Faction.CurrentLeader;
     }
 
     public override void Set(object o)
