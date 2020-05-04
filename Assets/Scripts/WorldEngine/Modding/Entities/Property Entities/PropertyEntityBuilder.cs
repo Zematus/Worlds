@@ -8,6 +8,8 @@ public abstract class PropertyEntity<T> : ValueEntity<T>
     protected override object _reference => this;
 
     protected readonly Context _context;
+
+    protected readonly string _id;
     protected readonly int _idHash;
 
     public PropertyEntity(
@@ -15,6 +17,8 @@ public abstract class PropertyEntity<T> : ValueEntity<T>
         : base(p.id)
     {
         _context = context;
+
+        _id = p.id;
         _idHash = p.id.GetHashCode();
     }
 
@@ -22,6 +26,8 @@ public abstract class PropertyEntity<T> : ValueEntity<T>
         : base(id)
     {
         _context = context;
+
+        _id = id;
         _idHash = id.GetHashCode();
     }
 

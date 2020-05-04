@@ -26,13 +26,13 @@ public class AgentEntity : Entity
             case CharismaAttributeId:
                 _charismaAttribute =
                     _charismaAttribute ?? new ValueGetterEntityAttribute<float>(
-                        CharismaAttributeId, this, () => Agent.Charisma);
+                        CharismaAttributeId, this, () => Mathf.Clamp01(Agent.Charisma / 20f));
                 return _charismaAttribute;
 
             case WisdomAttributeId:
                 _wisdomAttribute =
                     _wisdomAttribute ?? new ValueGetterEntityAttribute<float>(
-                        WisdomAttributeId, this, () => Agent.Wisdom);
+                        WisdomAttributeId, this, () => Mathf.Clamp01(Agent.Wisdom / 20f));
                 return _wisdomAttribute;
         }
 

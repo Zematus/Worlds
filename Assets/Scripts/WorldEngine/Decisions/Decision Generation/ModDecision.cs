@@ -178,6 +178,9 @@ public class ModDecision : Context
     {
         Faction targetFaction = _target.Faction;
 
+        // Uncomment this line to test the decision dialog
+        //Manager.SetGuidedFaction(targetFaction);
+
         targetFaction.CoreGroup.SetToUpdate();
 
         if (targetFaction.IsUnderPlayerGuidance)

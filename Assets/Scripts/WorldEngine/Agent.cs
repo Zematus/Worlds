@@ -14,14 +14,18 @@ using UnityEngine.Profiling;
 
 public class Agent : ISynchronizable
 {
+    [System.Obsolete] //TODO: attributes now should be values between 0 and 1 instead of max 30
     public const int MaxAttributeValue = 30;
+    [System.Obsolete] //TODO: attributes now should be values between 0 and 1 instead of max 30
     public const int MinAttributeValue = 3;
 
     public const int AttributeGenMax = 18;
 
     public const long MaxLifespan = 40151; // Prime number to hide birthdate cycle artifacts
 
+    [System.Obsolete] //TODO: attributes now should be values between 0 and 1 instead of max 30
     public const int WisdomAgeOffset = 7;
+    [System.Obsolete] //TODO: attributes now should be values between 0 and 1 instead of max 30
     public const int WisdomAgeFactor = 5 * World.YearLength;
 
     [XmlAttribute]
