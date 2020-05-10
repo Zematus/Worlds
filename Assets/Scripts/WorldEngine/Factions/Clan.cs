@@ -170,6 +170,14 @@ public class Clan : Faction
         Language language = Polity.Culture.Language;
         Region region = CoreGroup.Cell.Region;
 
+#if DEBUG //TODO: Make sure we don't need this in unit tests
+        if (region is TestCellRegion)
+        {
+            // We are executing this within a test that doesn't care about names, so skip the rest
+            return;
+        }
+#endif
+
         string untranslatedName = "";
 
         if (region.Elements.Count <= 0)

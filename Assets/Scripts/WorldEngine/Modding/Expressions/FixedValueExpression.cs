@@ -15,6 +15,8 @@ public class FixedValueExpression<T> : IValueExpression<T>
 
     public string GetFormattedString() => Value.ToString();
 
+    public string ToPartiallyEvaluatedString(bool evaluate) => ToString();
+
     public FixedValueExpression(T value)
     {
         FixedValue = value;

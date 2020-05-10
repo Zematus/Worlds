@@ -230,6 +230,8 @@ public static class ExpressionBuilder
                 return new LerpFunctionExpression(argExpressions);
             case PercentFunctionExpression.FunctionId:
                 return new PercentFunctionExpression(argExpressions);
+            case SaturationFunctionExpression.FunctionId:
+                return new SaturationFunctionExpression(argExpressions);
         }
 
         if (string.IsNullOrWhiteSpace(arguments))

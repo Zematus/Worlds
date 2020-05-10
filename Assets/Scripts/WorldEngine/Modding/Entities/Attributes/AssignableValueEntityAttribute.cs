@@ -16,4 +16,14 @@ public abstract class AssignableValueEntityAttribute<T> : EntityAttribute
     {
         return new AssignableValueEntityAttributeExpression<T>(this);
     }
+
+    public override string ToPartiallyEvaluatedString(bool evaluate)
+    {
+        if (evaluate)
+        {
+            return Value.ToString();
+        }
+
+        return base.ToPartiallyEvaluatedString(evaluate);
+    }
 }

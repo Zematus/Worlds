@@ -15,8 +15,30 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
     [XmlAttribute("CGrpId")]
     public long CoreGroupId;
 
+#if DEBUG
+    [XmlAttribute("Inf")]
+    public float InfluenceInternal;
+
+    public float Influence
+    {
+        get
+        {
+            return InfluenceInternal;
+        }
+        set
+        {
+            if (value < 0)
+            {
+                throw new System.Exception("Influence set to less than zero: " + value);
+            }
+
+            InfluenceInternal = value;
+        }
+    }
+#else
     [XmlAttribute("Inf")]
     public float Influence;
+#endif
 
     [XmlAttribute("StilPres")]
     public bool StillPresent = true;
@@ -350,6 +372,14 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         float influence,
         Faction parentFaction = null)
     {
+
+#if DEBUG //TODO: Make sure we don't need this in unit tests
+        if (parentFaction is TestFaction)
+        {
+            return new TestFaction("clan", polity, coreGroup, influence, parentFaction);
+        }
+#endif
+
         switch (type)
         {
             case Clan.FactionType:

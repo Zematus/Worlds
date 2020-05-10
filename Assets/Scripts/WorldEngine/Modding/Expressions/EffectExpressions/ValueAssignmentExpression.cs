@@ -32,4 +32,11 @@ public class ValueAssignmentExpression<T> : BinaryOpExpression, IEffectExpressio
     {
         _targetValueExp.Value = _sourceValueExp.Value;
     }
+
+    public override string ToPartiallyEvaluatedString(bool evaluate)
+    {
+        return
+            "(" + _expressionA.ToPartiallyEvaluatedString(false) +
+            " = " + _expressionB.ToPartiallyEvaluatedString(evaluate) + ")";
+    }
 }

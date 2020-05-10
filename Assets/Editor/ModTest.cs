@@ -264,9 +264,9 @@ public class ModTest
         InitializeTestGroups();
 
         _testPolity1 = new TestPolity("tribe", _testGroup1);
-        _testFaction1 = new TestFaction("clan", _testPolity1, _testGroup1, 0, 0.3f);
-        _testFaction2 = new TestFaction("clan", _testPolity1, _testGroup2, 0, 0.7f);
-        _testFaction3 = new TestFaction("clan", _testPolity1, _testGroup3, 0, 0.7f);
+        _testFaction1 = new TestFaction("clan", _testPolity1, _testGroup1, 0, null, 0.3f);
+        _testFaction2 = new TestFaction("clan", _testPolity1, _testGroup2, 0, null, 0.7f);
+        _testFaction3 = new TestFaction("clan", _testPolity1, _testGroup3, 0, null, 0.7f);
 
         _testFaction1.Initialize();
         _testFaction2.Initialize();
@@ -284,7 +284,7 @@ public class ModTest
         _testGroup3.Culture.Language = _testPolity1.Culture.Language;
         _testGroup4.Culture.Language = _testPolity1.Culture.Language;
 
-        _testRegion1 = new CellRegion(_testCell1, _testGroup1.Culture.Language);
+        _testRegion1 = new TestCellRegion(_testCell1, _testGroup1.Culture.Language);
         _testCell1.Region = _testRegion1;
         _testCell2.Region = _testRegion1;
         _testCell3.Region = _testRegion1;

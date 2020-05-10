@@ -39,4 +39,12 @@ public class LerpFunctionExpression : IValueExpression<float>
             _endArg.ToString() + ", " +
             _percentArg.ToString() + ")";
     }
+
+    public string ToPartiallyEvaluatedString(bool evaluate)
+    {
+        return "lerp(" +
+            _startArg.ToPartiallyEvaluatedString(evaluate) + ", " +
+            _endArg.ToPartiallyEvaluatedString(evaluate) + ", " +
+            _percentArg.ToPartiallyEvaluatedString(evaluate) + ")";
+    }
 }

@@ -26,4 +26,11 @@ public abstract class EntityAttribute
 
         return _attrExpression;
     }
+
+    public override string ToString()
+    {
+        return Entity.Id + "." + Id;
+    }
+
+    public virtual string ToPartiallyEvaluatedString(bool evaluate) => ToString();
 }

@@ -178,6 +178,15 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
 
         float maxTimeToTrigger = MaxTimeToTrigger.Value;
 
+        if (maxTimeToTrigger <= 0)
+        {
+            throw new System.Exception(
+                "ERROR: EventGenerator.CalculateEventTriggerDate - maxTimeToTrigger less or equal to 0" +
+                "\n - event id: " + Id +
+                "\n - partial maxTimeToTrigger expression: " + MaxTimeToTrigger.ToPartiallyEvaluatedString(true) +
+                "\n - result: " + maxTimeToTrigger);
+        }
+
         float dateSpan = randomFactor * maxTimeToTrigger;
 
         long targetDate = world.CurrentDate + (long)dateSpan + 1;
@@ -185,11 +194,13 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
         if ((targetDate <= world.CurrentDate) || (targetDate > World.MaxSupportedDate))
         {
             // log details about invalid date
-            Debug.LogWarning("EventGenerator.CalculateTriggerDate - targetDate (" + targetDate +
+            Debug.LogWarning("EventGenerator.CalculateEventTriggerDate - targetDate (" + targetDate +
                 ") less than or equal to world.CurrentDate (" + world.CurrentDate +
-                "), randomFactor: " + randomFactor +
-                ", maxTimeToTrigger: " + maxTimeToTrigger +
-                ", dateSpan: " + dateSpan);
+                ")\n - event id: " + Id +
+                "\n - partial maxTimeToTrigger expression: " + MaxTimeToTrigger.ToPartiallyEvaluatedString(true) +
+                "\n - randomFactor: " + randomFactor +
+                "\n - maxTimeToTrigger: " + maxTimeToTrigger +
+                "\n - dateSpan: " + dateSpan);
 
             return long.MinValue;
         }

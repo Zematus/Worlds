@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 /// <summary>
 /// Base class for all binary operation expressions (i.e. '2 + 2', 'A && B')
 /// </summary>
-public abstract class BinaryOpExpression
+public abstract class BinaryOpExpression : IExpression
 {
     protected IExpression _expressionA;
     protected IExpression _expressionB;
@@ -30,5 +30,13 @@ public abstract class BinaryOpExpression
     public override string ToString()
     {
         return "(" + _expressionA + " " + _opStr + " " + _expressionB + ")";
+    }
+
+    public virtual string ToPartiallyEvaluatedString(bool evaluate)
+    {
+        return
+            "(" + _expressionA.ToPartiallyEvaluatedString(evaluate) +
+            " " + _opStr +
+            " " + _expressionB.ToPartiallyEvaluatedString(evaluate) + ")";
     }
 }

@@ -25,6 +25,11 @@ public class PercentFunctionExpression : IValueExpression<string>
 
     public string GetFormattedString() => Value;
 
+    public string ToPartiallyEvaluatedString(bool evaluate)
+    {
+        return "percent(" + _arg.ToPartiallyEvaluatedString(evaluate) + ")";
+    }
+
     public override string ToString()
     {
         return "percent(" + _arg.ToString() + ")";

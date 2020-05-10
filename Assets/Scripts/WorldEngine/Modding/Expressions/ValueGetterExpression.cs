@@ -15,6 +15,8 @@ public class ValueGetterExpression<T> : IValueExpression<T>
 
     public string GetFormattedString() => Value.ToString();
 
+    public string ToPartiallyEvaluatedString(bool evaluate) => ToString();
+
     public ValueGetterExpression(ValueGetterMethod<T> getterMethod)
     {
         _getterMethod = getterMethod;

@@ -15,4 +15,9 @@ public abstract class ValueEntityAttribute<T> : EntityAttribute
     {
         return new ValueEntityAttributeExpression<T>(this);
     }
+
+    public override string ToPartiallyEvaluatedString(bool evaluate)
+    {
+        return Value.ToString();
+    }
 }

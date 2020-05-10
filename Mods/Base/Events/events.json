@@ -21,7 +21,7 @@
         "target.core_group != new_core_group",
         "target.group_can_be_core(new_core_group)"
       ],
-      "maxTimeToTrigger": "91250 * target.administrative_load * target.preferences.cohesion",
+      "maxTimeToTrigger": "9125 + (91250 * (1 - saturation(400000, target.administrative_load)) * target.preferences.cohesion)",
       "effects": [
         "target.trigger_decision(clan_split, new_core_group)"
       ],

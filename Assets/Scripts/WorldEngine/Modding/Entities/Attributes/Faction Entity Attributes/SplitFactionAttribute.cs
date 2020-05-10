@@ -58,10 +58,21 @@ public class SplitFactionAttribute : EffectEntityAttribute
             newFactionType = faction.Type;
         }
 
+        float influenceToTransfer = _influenceTransferArg.Value;
+
+        if (influenceToTransfer >= faction.Influence)
+        {
+            throw new System.Exception(
+                "ERROR: SplitFactionAttribute.Apply - influence to transfer greater or equal to original faction influence" +
+                "\n - attribute id: " + Id +
+                "\n - partial influence to transfer expression: " + _influenceTransferArg.ToPartiallyEvaluatedString(true) +
+                "\n - result: " + influenceToTransfer);
+        }
+
         faction.Split(
             newFactionType,
             groupEntity.Group,
-            _influenceTransferArg.Value,
+            influenceToTransfer,
             _relationshipValueArg.Value);
     }
 }

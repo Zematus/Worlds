@@ -1,8 +1,5 @@
-﻿using UnityEngine;
-using UnityEditor;
-using NUnit.Framework;
-using System.IO;
-using System;
+﻿using System;
+using System.Collections.Generic;
 
 public class TestContext : Context
 {
@@ -174,8 +171,8 @@ public class TestFaction : Faction
     public Agent TestLeader;
 
     public TestFaction(
-        string type, Polity polity, CellGroup coreGroup, float influence, float adminLoad)
-        : base(type, polity, coreGroup, influence)
+        string type, Polity polity, CellGroup coreGroup, float influence = 0, Faction parentFaction = null, float adminLoad = 0)
+        : base(type, polity, coreGroup, influence, parentFaction)
     {
         _adminLoad = adminLoad;
 
@@ -237,5 +234,13 @@ public class TestFaction : Faction
     public override float GetGroupWeight(CellGroup group)
     {
         return 1;
+    }
+}
+
+public class TestCellRegion : CellRegion
+{
+    public TestCellRegion(TerrainCell originCell, Language language) : base(originCell, language)
+    {
+
     }
 }
