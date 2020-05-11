@@ -27,4 +27,9 @@ public class ValuePropertyEntity<T> : PropertyEntity<T>
     {
         return GetValue().ToString();
     }
+
+    public override string ToPartiallyEvaluatedString(bool evaluate)
+    {
+        return _valExpression.ToPartiallyEvaluatedString(evaluate);
+    }
 }

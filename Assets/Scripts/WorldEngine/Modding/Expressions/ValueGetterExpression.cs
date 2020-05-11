@@ -3,9 +3,14 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
+public delegate T ValueGetterMethod<T>();
+public delegate string PartiallyEvaluatedStringConverter(bool evaluate);
+
 public class ValueGetterExpression<T> : IValueExpression<T>
 {
     private readonly ValueGetterMethod<T> _getterMethod;
+
+    private readonly PartiallyEvaluatedStringConverter _partialEvalStringConverter;
 
     public T Value => _getterMethod();
 
@@ -15,10 +20,16 @@ public class ValueGetterExpression<T> : IValueExpression<T>
 
     public string GetFormattedString() => Value.ToString();
 
-    public string ToPartiallyEvaluatedString(bool evaluate) => ToString();
-
-    public ValueGetterExpression(ValueGetterMethod<T> getterMethod)
+    public ValueGetterExpression(
+        ValueGetterMethod<T> getterMethod,
+        PartiallyEvaluatedStringConverter partialEvalStringConverter = null)
     {
         _getterMethod = getterMethod;
+        _partialEvalStringConverter = partialEvalStringConverter;
+    }
+
+    public string ToPartiallyEvaluatedString(bool evaluate)
+    {
+        return _partialEvalStringConverter?.Invoke(evaluate) ?? Value.ToString();
     }
 }

@@ -33,7 +33,12 @@ public class CellGroupEventGenerator : EventGenerator, ICellGroupEventGenerator
         return modEvent;
     }
 
-    public void SetTarget(CellGroup group) => _target.Set(group);
+    public void SetTarget(CellGroup group)
+    {
+        Reset();
+
+        _target.Set(group);
+    }
 
     public override float GetNextRandomInt(int iterOffset, int maxValue) =>
         _target.Group.GetNextLocalRandomInt(iterOffset, maxValue);

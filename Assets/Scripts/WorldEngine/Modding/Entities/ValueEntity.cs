@@ -9,6 +9,8 @@ public class ValueEntity<T> : BaseValueEntity
 
     protected ValueGetterEntityAttribute<T> _valueAttribute;
 
+    protected PartiallyEvaluatedStringConverter _partialEvalStringConverter { private get; set; }
+
     public T Value { get; protected set; }
 
     protected override object _reference => Value;
@@ -26,7 +28,7 @@ public class ValueEntity<T> : BaseValueEntity
             case ValueAttributeId:
                 _valueAttribute =
                     _valueAttribute ?? new ValueGetterEntityAttribute<T>(
-                        ValueAttributeId, this, GetValue);
+                        ValueAttributeId, this, GetValue, _partialEvalStringConverter);
                 return _valueAttribute;
         }
 
@@ -49,6 +51,15 @@ public class ValueEntity<T> : BaseValueEntity
         }
     }
 
+    public override void Set(
+        object o,
+        PartiallyEvaluatedStringConverter converter)
+    {
+        _partialEvalStringConverter = converter;
+
+        Set(o);
+    }
+
     public override string GetFormattedString()
     {
         return Value.ToString();
@@ -58,7 +69,8 @@ public class ValueEntity<T> : BaseValueEntity
     {
         get
         {
-            _valueExpression = _valueExpression ?? new ValueGetterExpression<T>(GetValue);
+            _valueExpression = _valueExpression ??
+                new ValueGetterExpression<T>(GetValue, _partialEvalStringConverter);
 
             return _valueExpression;
         }

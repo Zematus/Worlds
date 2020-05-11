@@ -93,8 +93,25 @@ public class ModDecision : Context
     public override float GetNextRandomFloat(int iterOffset) =>
         _target.Faction.GetNextLocalRandomFloat(iterOffset);
 
-    public void Set(Faction targetFaction, object[] parameters)
+    public override void Reset()
     {
+        base.Reset();
+
+        foreach (OptionalDescription d in DescriptionSegments)
+        {
+            d.Reset();
+        }
+
+        foreach (DecisionOption o in Options)
+        {
+            o.Reset();
+        }
+    }
+
+    public void Set(Faction targetFaction, IBaseValueExpression[] parameters)
+    {
+        Reset();
+
         _target.Set(targetFaction);
 
         if (_parameterEntities == null) // we are expecting no parameters
@@ -117,7 +134,9 @@ public class ModDecision : Context
 
         for (int i = 0; i < _parameterEntities.Length; i++)
         {
-            _parameterEntities[i].Set(parameters[i]);
+            _parameterEntities[i].Set(
+                parameters[i].ValueObject,
+                parameters[i].ToPartiallyEvaluatedString);
         }
     }
 

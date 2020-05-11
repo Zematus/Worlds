@@ -30,6 +30,7 @@ public abstract class EntityAttributeExpression : IExpression
             }
 
             output += argument.ToPartiallyEvaluatedString(true);
+            notFirst = true;
         }
 
         output += ")";

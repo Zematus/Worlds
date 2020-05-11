@@ -1,59 +1,73 @@
 ﻿using System;
-using UnityEngine;
 
-public abstract class PropertyEntity<T> : ValueEntity<T>
+public static class PropertyEntityBuilder
 {
-    private bool _evaluated = false;
+    public const string ConditionSetType = "condition_set";
+    public const string RandomRangeType = "random_range";
+    public const string ValueType = "value";
 
-    protected override object _reference => this;
-
-    protected readonly Context _context;
-
-    protected readonly string _id;
-    protected readonly int _idHash;
-
-    public PropertyEntity(
-        Context context, Context.LoadedContext.LoadedProperty p)
-        : base(p.id)
+    public static IReseteableEntity BuildPropertyEntity(
+        Context context,
+        Context.LoadedContext.LoadedProperty p)
     {
-        _context = context;
-
-        _id = p.id;
-        _idHash = p.id.GetHashCode();
-    }
-
-    protected PropertyEntity(Context context, string id)
-        : base(id)
-    {
-        _context = context;
-
-        _id = id;
-        _idHash = id.GetHashCode();
-    }
-
-    public void Reset()
-    {
-        _evaluated = false;
-    }
-
-    protected abstract void Calculate();
-
-    protected void EvaluateIfNeeded()
-    {
-        if (!_evaluated)
+        if (string.IsNullOrEmpty(p.type))
         {
-            Calculate();
-            _evaluated = true;
+            throw new ArgumentException("'type' can't be null or empty");
         }
+
+        IReseteableEntity entity;
+
+        switch (p.type)
+        {
+            case ConditionSetType:
+                entity = new ConditionSetPropertyEntity(context, p);
+                break;
+
+            case RandomRangeType:
+                entity = new RandomRangePropertyEntity(context, p);
+                break;
+
+            case ValueType:
+                entity = BuildValuePropertyEntity(context, p);
+                break;
+
+            default:
+                throw new ArgumentException("Property type not recognized: " + p.type);
+        }
+
+        return entity;
     }
 
-    public override void Set(T v)
+    public static IReseteableEntity BuildValuePropertyEntity(
+        Context context, Context.LoadedContext.LoadedProperty p)
     {
-        throw new System.Exception("Set() should be never be called for " + this.GetType());
-    }
+        if (string.IsNullOrEmpty(p.value))
+        {
+            throw new ArgumentException("'value' can't be null or empty");
+        }
 
-    public override void Set(object o)
-    {
-        throw new System.Exception("Set() should be never be called for " + this.GetType());
+        IBaseValueExpression exp = ValueExpressionBuilder.BuildValueExpression(context, p.value);
+
+        if (exp is IValueExpression<float>)
+        {
+            return new ValuePropertyEntity<float>(context, p.id, exp);
+        }
+
+        if (exp is IValueExpression<bool>)
+        {
+            return new ValuePropertyEntity<bool>(context, p.id, exp);
+        }
+
+        if (exp is IValueExpression<string>)
+        {
+            return new ValuePropertyEntity<string>(context, p.id, exp);
+        }
+
+        if (exp is IValueExpression<Entity>)
+        {
+            return new ValuePropertyEntity<Entity>(context, p.id, exp);
+        }
+
+        throw new ArgumentException("Unhandled expression type: " + exp.GetType());
     }
 }

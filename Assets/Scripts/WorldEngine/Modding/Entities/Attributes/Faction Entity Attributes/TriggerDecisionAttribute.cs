@@ -45,24 +45,7 @@ public class TriggerDecisionAttribute : EffectEntityAttribute
     {
         _decisionToTrigger = ModDecision.Decisions[_argumentExp.Value];
 
-        object[] parameters = null;
-
-        if (_parameterExps != null)
-        {
-            parameters = new object[_parameterExps.Length];
-
-            for (int i = 0; i < _parameterExps.Length; i++)
-            {
-                if (_parameterExps[i] == null)
-                {
-                    Debug.Assert(false);
-                }
-
-                parameters[i] = _parameterExps[i].ValueObject;
-            }
-        }
-
-        _decisionToTrigger.Set(_factionEntity.Faction, parameters);
+        _decisionToTrigger.Set(_factionEntity.Faction, _parameterExps);
         _decisionToTrigger.Evaluate();
     }
 }

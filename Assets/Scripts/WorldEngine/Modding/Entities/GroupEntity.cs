@@ -14,7 +14,7 @@ public class GroupEntity : Entity
 
     public GroupEntity(string id) : base(id)
     {
-        _cellEntity = new CellEntity(BuildInternalEntityId(CellAttributeId));
+        _cellEntity = new CellEntity(BuildAttributeId(CellAttributeId));
     }
 
     protected override object _reference => Group;

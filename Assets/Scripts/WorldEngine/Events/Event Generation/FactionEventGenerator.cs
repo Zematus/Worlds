@@ -32,7 +32,12 @@ public class FactionEventGenerator : EventGenerator, IFactionEventGenerator
         return modEvent;
     }
 
-    public void SetTarget(Faction faction) => _target.Set(faction);
+    public void SetTarget(Faction faction)
+    {
+        Reset();
+
+        _target.Set(faction);
+    }
 
     public override float GetNextRandomInt(int iterOffset, int maxValue) =>
         _target.Faction.GetNextLocalRandomInt(iterOffset, maxValue);

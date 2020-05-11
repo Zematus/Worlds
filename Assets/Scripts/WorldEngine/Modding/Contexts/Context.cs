@@ -33,6 +33,9 @@ public abstract class Context
     readonly private Dictionary<string, Entity> _entities =
         new Dictionary<string, Entity>();
 
+    readonly private List<IReseteableEntity> _propertyEntities =
+        new List<IReseteableEntity>();
+
     public void Initialize(LoadedContext c)
     {
         if (c.properties != null)
@@ -46,9 +49,19 @@ public abstract class Context
 
     private void AddPropertyEntity(LoadedContext.LoadedProperty p)
     {
-        Entity entity = PropertyEntityBuilder.BuildPropertyEntity(this, p);
+        IReseteableEntity propEntity = PropertyEntityBuilder.BuildPropertyEntity(this, p);
+        Entity entity = propEntity as Entity;
 
         _entities.Add(entity.Id, entity);
+        _propertyEntities.Add(propEntity);
+    }
+
+    public virtual void Reset()
+    {
+        foreach (IReseteableEntity entity in _propertyEntities)
+        {
+            entity.Reset();
+        }
     }
 
     public Context(Context parent = null)

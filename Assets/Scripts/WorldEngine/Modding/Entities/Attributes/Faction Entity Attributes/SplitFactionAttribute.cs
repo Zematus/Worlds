@@ -15,7 +15,7 @@ public class SplitFactionAttribute : EffectEntityAttribute
     private readonly IValueExpression<string> _newFactionTypeArg = null;
 
     public SplitFactionAttribute(FactionEntity factionEntity, IExpression[] arguments)
-        : base(FactionEntity.SplitFactionAttributeId, factionEntity, arguments)
+        : base(factionEntity.BuildAttributeId(FactionEntity.SplitFactionAttributeId), factionEntity, arguments)
     {
         _factionEntity = factionEntity;
 
@@ -66,7 +66,10 @@ public class SplitFactionAttribute : EffectEntityAttribute
                 "ERROR: SplitFactionAttribute.Apply - influence to transfer greater or equal to original faction influence" +
                 "\n - attribute id: " + Id +
                 "\n - partial influence to transfer expression: " + _influenceTransferArg.ToPartiallyEvaluatedString(true) +
-                "\n - result: " + influenceToTransfer);
+                "\n - world date: " + faction.World.CurrentDate +
+                "\n - faction id: " + faction.Id +
+                "\n - faction influence: " + faction.Influence +
+                "\n - expression result: " + influenceToTransfer);
         }
 
         faction.Split(

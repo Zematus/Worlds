@@ -1,73 +1,64 @@
 ﻿using System;
+using UnityEngine;
 
-public static class PropertyEntityBuilder
+public abstract class PropertyEntity<T> : ValueEntity<T>, IReseteableEntity
 {
-    public const string ConditionSetType = "condition_set";
-    public const string RandomRangeType = "random_range";
-    public const string ValueType = "value";
+    private bool _evaluated = false;
 
-    public static Entity BuildPropertyEntity(
-        Context context,
-        Context.LoadedContext.LoadedProperty p)
+    protected override object _reference => this;
+
+    protected readonly Context _context;
+
+    protected readonly string _id;
+    protected readonly int _idHash;
+
+    public PropertyEntity(Context context, Context.LoadedContext.LoadedProperty p)
+        : base(p.id)
     {
-        if (string.IsNullOrEmpty(p.type))
-        {
-            throw new ArgumentException("'type' can't be null or empty");
-        }
+        _context = context;
 
-        Entity entity;
+        _id = p.id;
+        _idHash = p.id.GetHashCode();
 
-        switch (p.type)
-        {
-            case ConditionSetType:
-                entity = new ConditionSetPropertyEntity(context, p);
-                break;
-
-            case RandomRangeType:
-                entity = new RandomRangePropertyEntity(context, p);
-                break;
-
-            case ValueType:
-                entity = BuildValuePropertyEntity(context, p);
-                break;
-
-            default:
-                throw new ArgumentException("Property type not recognized: " + p.type);
-        }
-
-        return entity;
+        _partialEvalStringConverter = ToPartiallyEvaluatedString;
     }
 
-    public static Entity BuildValuePropertyEntity(
-        Context context, Context.LoadedContext.LoadedProperty p)
+    protected PropertyEntity(Context context, string id)
+        : base(id)
     {
-        if (string.IsNullOrEmpty(p.value))
-        {
-            throw new ArgumentException("'value' can't be null or empty");
-        }
+        _context = context;
 
-        IBaseValueExpression exp = ValueExpressionBuilder.BuildValueExpression(context, p.value);
+        _id = id;
+        _idHash = id.GetHashCode();
 
-        if (exp is IValueExpression<float>)
-        {
-            return new ValuePropertyEntity<float>(context, p.id, exp);
-        }
-
-        if (exp is IValueExpression<bool>)
-        {
-            return new ValuePropertyEntity<bool>(context, p.id, exp);
-        }
-
-        if (exp is IValueExpression<string>)
-        {
-            return new ValuePropertyEntity<string>(context, p.id, exp);
-        }
-
-        if (exp is IValueExpression<Entity>)
-        {
-            return new ValuePropertyEntity<Entity>(context, p.id, exp);
-        }
-
-        throw new ArgumentException("Unhandled expression type: " + exp.GetType());
+        _partialEvalStringConverter = ToPartiallyEvaluatedString;
     }
+
+    public void Reset()
+    {
+        _evaluated = false;
+    }
+
+    protected abstract void Calculate();
+
+    protected void EvaluateIfNeeded()
+    {
+        if (!_evaluated)
+        {
+            Calculate();
+            _evaluated = true;
+        }
+    }
+
+    public override void Set(T v)
+    {
+        throw new System.Exception("Set() should be never be called for " + this.GetType());
+    }
+
+    public override void Set(object o)
+    {
+        throw new System.Exception("Set() should be never be called for " + this.GetType());
+    }
+
+    public abstract string ToPartiallyEvaluatedString(bool evaluate);
 }

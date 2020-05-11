@@ -264,9 +264,9 @@ public class ModTest
         InitializeTestGroups();
 
         _testPolity1 = new TestPolity("tribe", _testGroup1);
-        _testFaction1 = new TestFaction("clan", _testPolity1, _testGroup1, 0, null, 0.3f);
-        _testFaction2 = new TestFaction("clan", _testPolity1, _testGroup2, 0, null, 0.7f);
-        _testFaction3 = new TestFaction("clan", _testPolity1, _testGroup3, 0, null, 0.7f);
+        _testFaction1 = new TestFaction("clan", _testPolity1, _testGroup1, 0.5f, null, 0.3f);
+        _testFaction2 = new TestFaction("clan", _testPolity1, _testGroup2, 0.3f, null, 0.7f);
+        _testFaction3 = new TestFaction("clan", _testPolity1, _testGroup3, 0.2f, null, 0.7f);
 
         _testFaction1.Initialize();
         _testFaction2.Initialize();

@@ -7,7 +7,7 @@ public class PolityEntity : Entity
 {
     public const string GetRandomGroupAttributeId = "get_random_group";
 
-    public Polity Polity { get; private set; }
+    public virtual Polity Polity { get; private set; }
 
     protected override object _reference => Polity;
 

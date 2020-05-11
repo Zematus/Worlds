@@ -40,4 +40,23 @@ public class ConditionSetPropertyEntity : PropertyEntity<bool>
     {
         return GetValue().ToString();
     }
+
+    public override string ToPartiallyEvaluatedString(bool evaluate)
+    {
+        string output = "(";
+
+        bool notFirst = false;
+        foreach (IValueExpression<bool> exp in Conditions)
+        {
+            if (notFirst)
+            {
+                output += " && ";
+            }
+
+            output += exp.ToPartiallyEvaluatedString(evaluate);
+            notFirst = true;
+        }
+
+        return output + ")";
+    }
 }

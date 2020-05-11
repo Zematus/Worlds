@@ -86,6 +86,13 @@ public class RandomRangePropertyEntity : PropertyEntity<float>
     {
         EvaluateIfNeeded();
 
-        return "(" + _min.ToString("0.00") + " - " + _max.ToString("0.00") + ")";
+        return "(min: " + _min.ToString("0.00") + ", max: " + _max.ToString("0.00") + ")";
+    }
+
+    public override string ToPartiallyEvaluatedString(bool evaluate)
+    {
+        return
+            "(min: " + Min.ToPartiallyEvaluatedString(evaluate) +
+            ", max: " + Max.ToPartiallyEvaluatedString(evaluate) + ")";
     }
 }

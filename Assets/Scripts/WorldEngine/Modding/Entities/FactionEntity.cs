@@ -25,10 +25,10 @@ public class FactionEntity : Entity
     private readonly DelayedSetAgentEntity _leaderEntity;
     private EntityAttribute _leaderEntityAttribute;
 
-    private readonly PolityEntity _polityEntity;
+    private readonly DelayedSetPolityEntity _polityEntity;
     private EntityAttribute _polityEntityAttribute;
 
-    private readonly GroupEntity _coreGroupEntity;
+    private readonly DelayedSetGroupEntity _coreGroupEntity;
     private EntityAttribute _coreGroupEntityAttribute;
 
     private readonly CulturalPreferencesEntity _preferencesEntity =
@@ -46,10 +46,15 @@ public class FactionEntity : Entity
     {
         _leaderEntity = new DelayedSetAgentEntity(
             GetLeader,
-            BuildInternalEntityId(LeaderAttributeId));
+            BuildAttributeId(LeaderAttributeId));
 
-        _polityEntity = new PolityEntity(BuildInternalEntityId(PolityAttributeId));
-        _coreGroupEntity = new GroupEntity(BuildInternalEntityId(CoreGroupId));
+        _polityEntity = new DelayedSetPolityEntity(
+            GetPolity,
+            BuildAttributeId(PolityAttributeId));
+
+        _coreGroupEntity = new DelayedSetGroupEntity(
+            GetCoreGroup,
+            BuildAttributeId(CoreGroupId));
     }
 
     public override EntityAttribute GetAttribute(string attributeId, IExpression[] arguments = null)
@@ -123,16 +128,15 @@ public class FactionEntity : Entity
         _preferencesEntity.Set(Faction.Culture);
 
         _leaderEntity.Reset();
-
-        _polityEntity.Set(Faction.Polity);
-
-        _coreGroupEntity.Set(Faction.CoreGroup);
+        _polityEntity.Reset();
+        _coreGroupEntity.Reset();
     }
 
-    public Agent GetLeader()
-    {
-        return Faction.CurrentLeader;
-    }
+    public Agent GetLeader() => Faction.CurrentLeader;
+
+    public Polity GetPolity() => Faction.Polity;
+
+    public CellGroup GetCoreGroup() => Faction.CoreGroup;
 
     public override void Set(object o)
     {

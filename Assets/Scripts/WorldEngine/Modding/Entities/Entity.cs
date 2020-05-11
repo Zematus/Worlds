@@ -19,9 +19,9 @@ public abstract class Entity : IComparable<object>
         Id = id;
     }
 
-    protected string BuildInternalEntityId(string entityId)
+    public string BuildAttributeId(string attrId)
     {
-        return Id + "." + entityId;
+        return Id + "." + attrId;
     }
 
     public abstract EntityAttribute GetAttribute(string attributeId, IExpression[] arguments = null);
@@ -70,4 +70,11 @@ public abstract class Entity : IComparable<object>
     }
 
     public abstract void Set(object o);
+
+    public virtual void Set(
+        object o,
+        PartiallyEvaluatedStringConverter converter)
+    {
+        Set(o);
+    }
 }
