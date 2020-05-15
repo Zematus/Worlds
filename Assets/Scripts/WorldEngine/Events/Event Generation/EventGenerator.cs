@@ -178,13 +178,13 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
 
         float maxTimeToTrigger = MaxTimeToTrigger.Value;
 
-        if (maxTimeToTrigger <= 0)
+        if (maxTimeToTrigger < 0)
         {
             throw new System.Exception(
-                "ERROR: EventGenerator.CalculateEventTriggerDate - maxTimeToTrigger less or equal to 0" +
+                "ERROR: EventGenerator.CalculateEventTriggerDate - maxTimeToTrigger less than 0" +
                 "\n - event id: " + Id +
-                "\n - partial maxTimeToTrigger expression: " + MaxTimeToTrigger.ToPartiallyEvaluatedString(true) +
-                "\n - result: " + maxTimeToTrigger);
+                "\n - maxTimeToTrigger expression: " + MaxTimeToTrigger.ToPartiallyEvaluatedString(true) +
+                "\n - max time to trigger (days): " + maxTimeToTrigger);
         }
 
         float dateSpan = randomFactor * maxTimeToTrigger;
@@ -194,13 +194,13 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
         if ((targetDate <= world.CurrentDate) || (targetDate > World.MaxSupportedDate))
         {
             // log details about invalid date
-            Debug.LogWarning("EventGenerator.CalculateEventTriggerDate - targetDate (" + targetDate +
-                ") less than or equal to world.CurrentDate (" + world.CurrentDate +
+            Debug.LogWarning("EventGenerator.CalculateEventTriggerDate - target date (" + Manager.GetDateString(targetDate) +
+                ") less than or equal to world's current date (" + Manager.GetDateString(world.CurrentDate) +
                 ")\n - event id: " + Id +
-                "\n - partial maxTimeToTrigger expression: " + MaxTimeToTrigger.ToPartiallyEvaluatedString(true) +
+                "\n - maxTimeToTrigger expression: " + MaxTimeToTrigger.ToPartiallyEvaluatedString(true) +
                 "\n - randomFactor: " + randomFactor +
-                "\n - maxTimeToTrigger: " + maxTimeToTrigger +
-                "\n - dateSpan: " + dateSpan);
+                "\n - max time to trigger (days): " + maxTimeToTrigger +
+                "\n - date span (days): " + dateSpan);
 
             return long.MinValue;
         }

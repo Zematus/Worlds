@@ -16,7 +16,7 @@
         "target.type == clan"
       ],
       "triggerConditions": [
-        "target.administrative_load > 0.5",
+        "target.administrative_load > 100000",
         "!(target.preferences.cohesion > 0.7)",
         "target.core_group != new_core_group",
         "target.group_can_be_core(new_core_group)"
@@ -24,6 +24,33 @@
       "maxTimeToTrigger": "9125 + (91250 * (1 - saturation(400000, target.administrative_load)) * target.preferences.cohesion)",
       "effects": [
         "target.trigger_decision(clan_split, new_core_group)"
+      ],
+      "repeatable" : true
+    },
+    {
+      "id": "clan_demands_influence",
+      "name": "clan demands influence",
+      "target": "faction",
+      "assignOn" : ["status_change"],
+      "properties": [
+        {
+          "id": "dominant_faction",
+          "type": "value",
+          "value": "target.polity.dominant_faction"
+        }
+      ],
+      "assignmentConditions": [
+        "target.type == clan",
+        "target != dominant_faction",
+        "dominant_faction.type == clan"
+      ],
+      "triggerConditions": [
+        "dominant_faction.administrative_load > 50000",
+        "target.preferences.authority > dominant_faction.preferences.authority"
+      ],
+      "maxTimeToTrigger": "9125 + (91250 * (1 - saturation(200000, target.administrative_load)) * target.preferences.authority)",
+      "effects": [
+        "target.trigger_decision(clan_demands_influence, dominant_faction)"
       ],
       "repeatable" : true
     }

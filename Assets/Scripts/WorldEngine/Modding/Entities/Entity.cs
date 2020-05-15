@@ -9,6 +9,8 @@ public abstract class Entity : IComparable<object>
 
     protected IValueExpression<Entity> _expression = null;
 
+    private EntityAttribute _thisAttribute;
+
     public Entity(string id)
     {
         if (string.IsNullOrEmpty(id))
@@ -76,5 +78,14 @@ public abstract class Entity : IComparable<object>
         PartiallyEvaluatedStringConverter converter)
     {
         Set(o);
+    }
+
+    public EntityAttribute GetThisEntityAttribute(Entity parent)
+    {
+        _thisAttribute =
+            _thisAttribute ?? new FixedValueEntityAttribute<Entity>(
+                this, Id, parent);
+
+        return _thisAttribute;
     }
 }

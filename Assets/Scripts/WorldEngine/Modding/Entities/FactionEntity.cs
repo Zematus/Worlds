@@ -13,27 +13,20 @@ public class FactionEntity : Entity
     public const string TriggerDecisionAttributeId = "trigger_decision";
     public const string SplitFactionAttributeId = "split";
     public const string GroupCanBeCoreAttributeId = "group_can_be_core";
-    public const string CoreGroupId = "core_group";
+    public const string CoreGroupAttributeId = "core_group";
     public const string TypeAttributeId = "type";
 
-    public Faction Faction { get; private set; }
+    public virtual Faction Faction { get; private set; }
 
     private ValueGetterEntityAttribute<string> _typeAttribute;
     private ValueGetterEntityAttribute<float> _administrativeLoadAttribute;
     private ValueGetterEntityAttribute<float> _influenceAttribute;
 
-    private readonly DelayedSetAgentEntity _leaderEntity;
-    private EntityAttribute _leaderEntityAttribute;
+    private DelayedSetAgentEntity _leaderEntity = null;
+    private DelayedSetPolityEntity _polityEntity = null;
+    private DelayedSetGroupEntity _coreGroupEntity = null;
 
-    private readonly DelayedSetPolityEntity _polityEntity;
-    private EntityAttribute _polityEntityAttribute;
-
-    private readonly DelayedSetGroupEntity _coreGroupEntity;
-    private EntityAttribute _coreGroupEntityAttribute;
-
-    private readonly CulturalPreferencesEntity _preferencesEntity =
-        new CulturalPreferencesEntity(PreferencesAttributeId);
-    private EntityAttribute _preferencesAttribute;
+    private CulturalPreferencesEntity _preferencesEntity = null;
 
     protected override object _reference => Faction;
 
@@ -44,17 +37,45 @@ public class FactionEntity : Entity
 
     public FactionEntity(string id) : base(id)
     {
-        _leaderEntity = new DelayedSetAgentEntity(
-            GetLeader,
-            BuildAttributeId(LeaderAttributeId));
+    }
 
-        _polityEntity = new DelayedSetPolityEntity(
-            GetPolity,
-            BuildAttributeId(PolityAttributeId));
+    public EntityAttribute GetPreferencesAttribute()
+    {
+        _preferencesEntity =
+            _preferencesEntity ?? new CulturalPreferencesEntity(
+                BuildAttributeId(PreferencesAttributeId));
 
-        _coreGroupEntity = new DelayedSetGroupEntity(
-            GetCoreGroup,
-            BuildAttributeId(CoreGroupId));
+        return _preferencesEntity.GetThisEntityAttribute(this);
+    }
+
+    public EntityAttribute GetLeaderAttribute()
+    {
+        _leaderEntity =
+            _leaderEntity ?? new DelayedSetAgentEntity(
+                GetLeader,
+                BuildAttributeId(LeaderAttributeId));
+
+        return _leaderEntity.GetThisEntityAttribute(this);
+    }
+
+    public EntityAttribute GetPolityAttribute()
+    {
+        _polityEntity =
+            _polityEntity ?? new DelayedSetPolityEntity(
+                GetPolity,
+                BuildAttributeId(PolityAttributeId));
+
+        return _polityEntity.GetThisEntityAttribute(this);
+    }
+
+    public EntityAttribute GetCoreGroupAttribute()
+    {
+        _coreGroupEntity =
+            _coreGroupEntity ?? new DelayedSetGroupEntity(
+                GetCoreGroup,
+                BuildAttributeId(CoreGroupAttributeId));
+
+        return _coreGroupEntity.GetThisEntityAttribute(this);
     }
 
     public override EntityAttribute GetAttribute(string attributeId, IExpression[] arguments = null)
@@ -80,10 +101,7 @@ public class FactionEntity : Entity
                 return _influenceAttribute;
 
             case PreferencesAttributeId:
-                _preferencesAttribute =
-                    _preferencesAttribute ?? new FixedValueEntityAttribute<Entity>(
-                        _preferencesEntity, PreferencesAttributeId, this);
-                return _preferencesAttribute;
+                return GetPreferencesAttribute();
 
             case TriggerDecisionAttributeId:
                 return new TriggerDecisionAttribute(this, arguments);
@@ -95,22 +113,13 @@ public class FactionEntity : Entity
                 return new GroupCanBeCoreAttribute(this, arguments);
 
             case LeaderAttributeId:
-                _leaderEntityAttribute =
-                    _leaderEntityAttribute ?? new FixedValueEntityAttribute<Entity>(
-                        _leaderEntity, LeaderAttributeId, this);
-                return _leaderEntityAttribute;
+                return GetLeaderAttribute();
 
             case PolityAttributeId:
-                _polityEntityAttribute =
-                    _polityEntityAttribute ?? new FixedValueEntityAttribute<Entity>(
-                        _polityEntity, PolityAttributeId, this);
-                return _polityEntityAttribute;
+                return GetPolityAttribute();
 
-            case CoreGroupId:
-                _coreGroupEntityAttribute =
-                    _coreGroupEntityAttribute ?? new FixedValueEntityAttribute<Entity>(
-                        _coreGroupEntity, PolityAttributeId, this);
-                return _coreGroupEntityAttribute;
+            case CoreGroupAttributeId:
+                return GetCoreGroupAttribute();
         }
 
         throw new System.ArgumentException("Faction: Unable to find attribute: " + attributeId);
@@ -125,11 +134,11 @@ public class FactionEntity : Entity
 
         Faction = f;
 
-        _preferencesEntity.Set(Faction.Culture);
+        _preferencesEntity?.Set(Faction.Culture);
 
-        _leaderEntity.Reset();
-        _polityEntity.Reset();
-        _coreGroupEntity.Reset();
+        _leaderEntity?.Reset();
+        _polityEntity?.Reset();
+        _coreGroupEntity?.Reset();
     }
 
     public Agent GetLeader() => Faction.CurrentLeader;

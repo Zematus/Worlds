@@ -9,12 +9,19 @@ public class GroupEntity : Entity
 
     public virtual CellGroup Group { get; private set; }
 
-    private CellEntity _cellEntity;
-    private EntityAttribute _cellEntityAttribute;
+    private CellEntity _cellEntity = null;
 
     public GroupEntity(string id) : base(id)
     {
-        _cellEntity = new CellEntity(BuildAttributeId(CellAttributeId));
+    }
+
+    public EntityAttribute GetCellAttribute()
+    {
+        _cellEntity =
+            _cellEntity ?? new CellEntity(
+                BuildAttributeId(CellAttributeId));
+
+        return _cellEntity.GetThisEntityAttribute(this);
     }
 
     protected override object _reference => Group;
@@ -24,10 +31,7 @@ public class GroupEntity : Entity
         switch (attributeId)
         {
             case CellAttributeId:
-                _cellEntityAttribute =
-                    _cellEntityAttribute ??
-                    new FixedValueEntityAttribute<Entity>(_cellEntity, CellAttributeId, this);
-                return _cellEntityAttribute;
+                return GetCellAttribute();
         }
 
         throw new System.ArgumentException("Group: Unable to find attribute: " + attributeId);
@@ -42,7 +46,7 @@ public class GroupEntity : Entity
     {
         Group = g;
 
-        _cellEntity.Set(Group.Cell);
+        _cellEntity?.Set(Group.Cell);
     }
 
     public override void Set(object o)

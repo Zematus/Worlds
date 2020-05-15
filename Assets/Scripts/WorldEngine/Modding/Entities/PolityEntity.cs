@@ -6,8 +6,11 @@ using System.Text.RegularExpressions;
 public class PolityEntity : Entity
 {
     public const string GetRandomGroupAttributeId = "get_random_group";
+    public const string DominantFactionAttributeId = "dominant_faction";
 
     public virtual Polity Polity { get; private set; }
+
+    private DelayedSetFactionEntity _dominantFactionEntity = null;
 
     protected override object _reference => Polity;
 
@@ -23,6 +26,16 @@ public class PolityEntity : Entity
 
     public PolityEntity(string id) : base(id)
     {
+    }
+
+    public EntityAttribute GetDominantFactionAttribute()
+    {
+        _dominantFactionEntity =
+            _dominantFactionEntity ?? new DelayedSetFactionEntity(
+            GetDominantFaction,
+            BuildAttributeId(DominantFactionAttributeId));
+
+        return _dominantFactionEntity.GetThisEntityAttribute(this);
     }
 
     private class RandomGroupEntity : GroupEntity
@@ -64,7 +77,7 @@ public class PolityEntity : Entity
         }
     }
 
-    private FixedValueEntityAttribute<Entity> GenerateRandomGroupEntity()
+    private EntityAttribute GenerateRandomGroupEntityAttribute()
     {
         int groupIndex = RandomGroupIndex++;
 
@@ -72,15 +85,20 @@ public class PolityEntity : Entity
 
         _randomGroupEntitiesToSet.Add(entity);
 
-        return new FixedValueEntityAttribute<Entity>(entity, entity.Id, this);
+        return entity.GetThisEntityAttribute(this);
     }
+
+    public Faction GetDominantFaction() => Polity.DominantFaction;
 
     public override EntityAttribute GetAttribute(string attributeId, IExpression[] arguments = null)
     {
         switch (attributeId)
         {
             case GetRandomGroupAttributeId:
-                return GenerateRandomGroupEntity();
+                return GenerateRandomGroupEntityAttribute();
+
+            case DominantFactionAttributeId:
+                return GetDominantFactionAttribute();
         }
 
         throw new System.ArgumentException("Polity: Unable to find attribute: " + attributeId);
@@ -94,6 +112,8 @@ public class PolityEntity : Entity
         {
             groupEntity.Reset();
         }
+
+        _dominantFactionEntity?.Reset();
     }
 
     public override void Set(object o)
