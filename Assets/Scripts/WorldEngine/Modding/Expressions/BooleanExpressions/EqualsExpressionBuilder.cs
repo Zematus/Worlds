@@ -40,6 +40,8 @@ public static class EqualsExpressionBuilder
 
         throw new System.Exception(
             "Unhandled 'equals' expression type combination: (" +
-            expressionA.GetType() + ", " + expressionB.GetType() + ")");
+            expressionA.GetType() + ", " +
+            expressionB.GetType() + "), original: " +
+            expressionAStr + " == " + expressionBStr);
     }
 }

@@ -51,7 +51,7 @@ public static class ExpressionBuilder
             //Debug.Log("match: " + match.Value);
             //Debug.Log("innerStatement: " + ModUtility.Debug_CapturesToString(match.Groups["innerStatement"]));
 
-            expressionStr = match.Groups["innerStatement"].Value;
+            expressionStr = match.Groups["innerStatement"].Value.Trim();
 
             return BuildExpression(context, expressionStr);
         }
@@ -67,16 +67,13 @@ public static class ExpressionBuilder
 
     private static IExpression BuildAccessorOpExpression(Context context, Match match)
     {
-        string entityStr = match.Groups["statement"].Value;
-        string attributeStr = match.Groups["attribute"].Value;
+        string entityStr = match.Groups["statement"].Value.Trim();
 
         IValueExpression<Entity> entExpression =
             ValueExpressionBuilder.BuildValueExpression<Entity>(context, entityStr);
 
-        //Match identifierMatch = Regex.Match(attributeStr, ModUtility.IdentifierStatementRegex);
-
-        string identifier = match.Groups["identifier"].Value;
-        string arguments = match.Groups["arguments"].Value;
+        string identifier = match.Groups["identifier"].Value.Trim();
+        string arguments = match.Groups["arguments"].Value.Trim();
 
         IExpression[] argExpressions = null;
         if (!string.IsNullOrWhiteSpace(arguments))
@@ -188,8 +185,8 @@ public static class ExpressionBuilder
 
         while (match.Success == true)
         {
-            string argument = match.Groups["argument"].Value;
-            string otherArgs = match.Groups["otherArgs"].Value;
+            string argument = match.Groups["argument"].Value.Trim();
+            string otherArgs = match.Groups["otherArgs"].Value.Trim();
 
             //Debug.Log("- match: " + match.Value);
             //Debug.Log("- argument: " + ModUtility.Debug_CapturesToString(match.Groups["argument"]));
@@ -216,7 +213,7 @@ public static class ExpressionBuilder
     private static IExpression BuildIdentifierExpression(Context context, Match match)
     {
         string identifier = match.Groups["identifier"].Value.Trim();
-        string arguments = match.Groups["arguments"].Value;
+        string arguments = match.Groups["arguments"].Value.Trim();
 
         IExpression[] argExpressions = null;
         if (!string.IsNullOrWhiteSpace(arguments))
@@ -245,7 +242,7 @@ public static class ExpressionBuilder
     private static IExpression BuildUnaryOpExpression(Context context, Match match)
     {
         string unaryOp = match.Groups["unaryOp"].Value.Trim();
-        string expressionStr = match.Groups["statement"].Value;
+        string expressionStr = match.Groups["statement"].Value.Trim();
 
         switch (unaryOp)
         {
@@ -261,8 +258,8 @@ public static class ExpressionBuilder
     private static IExpression BuildBinaryOpExpression(Context context, Match match)
     {
         string binaryOp = match.Groups["binaryOp"].Value.Trim();
-        string expressionAStr = match.Groups["statement1"].Value;
-        string expressionBStr = match.Groups["statement2"].Value;
+        string expressionAStr = match.Groups["statement1"].Value.Trim();
+        string expressionBStr = match.Groups["statement2"].Value.Trim();
 
         switch (binaryOp)
         {
@@ -302,9 +299,9 @@ public static class ExpressionBuilder
 
     private static IExpression BuildBaseExpression(Context context, Match match)
     {
-        string number = match.Groups["number"].Value;
-        string boolean = match.Groups["boolean"].Value;
-        string identifierStatement = match.Groups["identifierStatement"].Value;
+        string number = match.Groups["number"].Value.Trim();
+        string boolean = match.Groups["boolean"].Value.Trim();
+        string identifierStatement = match.Groups["identifierStatement"].Value.Trim();
 
         if (!string.IsNullOrWhiteSpace(number))
         {

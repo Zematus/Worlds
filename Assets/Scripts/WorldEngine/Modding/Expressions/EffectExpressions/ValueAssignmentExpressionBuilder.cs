@@ -40,6 +40,8 @@ public static class ValueAssignmentExpressionBuilder
 
         throw new System.Exception(
             "Unhandled value assignment expression type combination: (" +
-            expressionA.GetType() + ", " + expressionB.GetType() + ")");
+            expressionA.GetType() + ", " +
+            expressionB.GetType() + "), original: " +
+            expressionAStr + " = " + expressionBStr);
     }
 }
