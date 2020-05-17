@@ -8,5 +8,5 @@ using System.Text.RegularExpressions;
 /// </summary>
 public interface IExpression
 {
-    string ToPartiallyEvaluatedString(bool evaluate);
+    string ToPartiallyEvaluatedString(bool evaluate = true);
 }

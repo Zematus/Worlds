@@ -31,7 +31,7 @@
       "id": "clan_demands_influence",
       "name": "clan demands influence",
       "target": "faction",
-      "assignOn" : ["status_change"],
+      "assignOn" : ["spawn", "status_change"],
       "properties": [
         {
           "id": "dominant_faction",
@@ -41,12 +41,12 @@
       ],
       "assignmentConditions": [
         "target.type == clan",
-        "target != dominant_faction",
-        "dominant_faction.type == clan"
+        "dominant_faction.type == clan",
+        "target != dominant_faction"
       ],
       "triggerConditions": [
-        "dominant_faction.administrative_load > 50000",
-        "target.preferences.authority > dominant_faction.preferences.authority"
+        "target.preferences.authority > 0.5",
+        "(target.preferences.authority > dominant_faction.preferences.authority) || (dominant_faction.administrative_load > 100000)"
       ],
       "maxTimeToTrigger": "9125 + (91250 * (1 - saturation(200000, target.administrative_load)) * target.preferences.authority)",
       "effects": [

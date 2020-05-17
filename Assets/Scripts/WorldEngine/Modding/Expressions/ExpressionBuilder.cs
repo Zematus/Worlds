@@ -270,7 +270,7 @@ public static class ExpressionBuilder
             case "*":
                 return MultiplyExpression.Build(context, expressionAStr, expressionBStr);
             case "/":
-                return null;
+                return DivideExpression.Build(context, expressionAStr, expressionBStr);
             case "=":
                 return ValueAssignmentExpressionBuilder.BuildValueAssignmentExpression(
                     context, expressionAStr, expressionBStr);
@@ -289,9 +289,9 @@ public static class ExpressionBuilder
             case "<":
                 return LessThanExpression.Build(context, expressionAStr, expressionBStr);
             case "&&":
-                return null;
+                return AndExpression.Build(context, expressionAStr, expressionBStr);
             case "||":
-                return null;
+                return OrExpression.Build(context, expressionAStr, expressionBStr);
         }
 
         throw new System.ArgumentException("Unrecognized binary op: " + binaryOp);

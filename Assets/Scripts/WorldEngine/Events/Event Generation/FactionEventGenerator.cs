@@ -23,6 +23,13 @@ public class FactionEventGenerator : EventGenerator, IFactionEventGenerator
 
     public override void SetToAssignOnEvent()
     {
+        // Normally there's nothing to do here as all events
+        // can be assigned by other events by default
+    }
+
+    public override void SetToAssignOnStatusChange()
+    {
+        Faction.OnStatusChangeEventGenerators.Add(this);
     }
 
     protected override WorldEvent GenerateEvent(long triggerDate)
@@ -48,9 +55,9 @@ public class FactionEventGenerator : EventGenerator, IFactionEventGenerator
     public bool TryGenerateEventAndAssign(
         Faction faction,
         WorldEvent originalEvent = null,
-        bool reassign = false)
+        bool reassigning = false)
     {
-        if (!reassign && faction.IsFlagSet(EventSetFlag))
+        if (!reassigning && faction.IsFlagSet(EventSetFlag))
         {
             return false;
         }

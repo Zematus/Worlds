@@ -11,6 +11,7 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
 {
     public const string AssignOnSpawn = "spawn";
     public const string AssignOnEvent = "event";
+    public const string AssignOnStatusChange = "status_change";
 
     public const string FactionTargetType = "faction";
     public const string GroupTargetType = "group";
@@ -106,6 +107,7 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
 
     public abstract void SetToAssignOnSpawn();
     public abstract void SetToAssignOnEvent();
+    public abstract void SetToAssignOnStatusChange();
 
     public virtual void Initialize()
     {
@@ -123,6 +125,10 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
 
                 case AssignOnEvent:
                     SetToAssignOnEvent();
+                    break;
+
+                case AssignOnStatusChange:
+                    SetToAssignOnStatusChange();
                     break;
 
                 default:
@@ -163,6 +169,12 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
 
     public bool CanTriggerEvent()
     {
+        // Always validate that the target is still valid
+        if (!CanAssignEventToTarget())
+        {
+            return false;
+        }
+
         foreach (IValueExpression<bool> exp in TriggerConditions)
         {
             if (!exp.Value)
@@ -183,7 +195,7 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
             throw new System.Exception(
                 "ERROR: EventGenerator.CalculateEventTriggerDate - maxTimeToTrigger less than 0" +
                 "\n - event id: " + Id +
-                "\n - maxTimeToTrigger expression: " + MaxTimeToTrigger.ToPartiallyEvaluatedString(true) +
+                "\n - maxTimeToTrigger expression: " + MaxTimeToTrigger.ToPartiallyEvaluatedString() +
                 "\n - max time to trigger (days): " + maxTimeToTrigger);
         }
 
@@ -197,7 +209,7 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
             Debug.LogWarning("EventGenerator.CalculateEventTriggerDate - target date (" + Manager.GetDateString(targetDate) +
                 ") less than or equal to world's current date (" + Manager.GetDateString(world.CurrentDate) +
                 ")\n - event id: " + Id +
-                "\n - maxTimeToTrigger expression: " + MaxTimeToTrigger.ToPartiallyEvaluatedString(true) +
+                "\n - maxTimeToTrigger expression: " + MaxTimeToTrigger.ToPartiallyEvaluatedString() +
                 "\n - randomFactor: " + randomFactor +
                 "\n - max time to trigger (days): " + maxTimeToTrigger +
                 "\n - date span (days): " + dateSpan);

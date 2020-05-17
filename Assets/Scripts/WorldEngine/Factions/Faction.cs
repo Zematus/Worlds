@@ -59,6 +59,7 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
     public bool IsBeingUpdated = false;
 
     public static List<IFactionEventGenerator> OnSpawnEventGenerators;
+    public static List<IFactionEventGenerator> OnStatusChangeEventGenerators;
 
     public List<string> Flags;
 
@@ -127,6 +128,8 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
     private HashSet<string> _flags = new HashSet<string>();
 
     private bool _preupdated = false;
+
+    private bool _statusChanged = false;
 
     public Faction()
     {
@@ -501,7 +504,11 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
 
         if (World.FactionsHaveBeenUpdated && !IsBeingUpdated)
         {
-            Debug.LogWarning("Trying to  preupdate faction after factions have already been updated this iteration. Id: " + Id);
+            System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
+
+            Debug.LogWarning(
+                "Trying to  preupdate faction after or during faction update. Id: " +
+                Id + ", stackTrace:\n" + stackTrace);
         }
 
         if (!StillPresent)
@@ -556,6 +563,8 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         PreUpdate();
 
         UpdateInternal();
+
+        ValidateStatusChange();
 
         LastUpdateDate = World.CurrentDate;
 
@@ -694,6 +703,8 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
     public virtual void SetDominant(bool state)
     {
         IsDominant = state;
+
+        SetStatusChange(true);
     }
 
     public void SetUnderPlayerGuidance(bool state)
@@ -784,6 +795,7 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
     public static void ResetEventGenerators()
     {
         OnSpawnEventGenerators = new List<IFactionEventGenerator>();
+        OnStatusChangeEventGenerators = new List<IFactionEventGenerator>();
     }
 
     private void InitializeOnSpawnEvents()
@@ -792,6 +804,35 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         {
             generator.TryGenerateEventAndAssign(this);
         }
+    }
+
+    public void SetStatusChange(bool state)
+    {
+        if (World.FactionsHaveBeenUpdated && !IsBeingUpdated)
+        {
+            System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();
+
+            Debug.LogWarning(
+                "Trying to set faction's status change after or during faction update. Id: " +
+                Id + ", stackTrace:\n" + stackTrace);
+        }
+
+        _statusChanged = state;
+    }
+
+    private void ValidateStatusChange()
+    {
+        if (!_statusChanged)
+        {
+            return;
+        }
+
+        foreach (IFactionEventGenerator generator in OnStatusChangeEventGenerators)
+        {
+            generator.TryGenerateEventAndAssign(this);
+        }
+
+        _statusChanged = false;
     }
 
     public void InitializeDefaultEvents()

@@ -264,9 +264,11 @@ public class ModTest
         InitializeTestGroups();
 
         _testPolity1 = new TestPolity("tribe", _testGroup1);
-        _testFaction1 = new TestFaction("clan", _testPolity1, _testGroup1, 0.5f, null, 0.3f);
-        _testFaction2 = new TestFaction("clan", _testPolity1, _testGroup2, 0.3f, null, 0.7f);
-        _testFaction3 = new TestFaction("clan", _testPolity1, _testGroup3, 0.2f, null, 0.7f);
+        _testFaction1 = new TestFaction("clan", _testPolity1, _testGroup1, 0.5f, null, 200000f);
+        _testFaction2 = new TestFaction("clan", _testPolity1, _testGroup2, 0.3f, null, 300000f);
+        _testFaction3 = new TestFaction("clan", _testPolity1, _testGroup3, 0.2f, null, 200000f);
+
+        _testPolity1.SetDominantFaction(_testFaction2);
 
         _testFaction1.Initialize();
         _testFaction2.Initialize();
@@ -357,18 +359,18 @@ public class ModTest
 
         float floatResult = (expression as IValueExpression<float>).Value;
         Debug.Log("Expression evaluation result - 'testFaction1': " + floatResult);
-        Assert.AreEqual(0.3f, floatResult);
+        Assert.AreEqual(200000f, floatResult);
 
         testFactionEntity.Set(_testFaction2);
 
         floatResult = (expression as IValueExpression<float>).Value;
         Debug.Log("Expression evaluation result - 'testFaction2': " + floatResult);
-        Assert.AreEqual(0.7f, floatResult);
+        Assert.AreEqual(300000f, floatResult);
 
         ////
 
         expression =
-            ExpressionBuilder.BuildExpression(testContext, "target.administrative_load > 0.5");
+            ExpressionBuilder.BuildExpression(testContext, "target.administrative_load > 250000");
 
         testFactionEntity.Set(_testFaction1);
 
@@ -426,7 +428,7 @@ public class ModTest
 
         expression = ExpressionBuilder.BuildExpression(
             testContext,
-            "91250 * (1 - target.administrative_load) * target.preferences.cohesion");
+            "9125 + (91250 * (1 - saturation(400000, target.administrative_load)) * target.preferences.cohesion)");
 
         testFactionEntity.Set(_testFaction1);
 
@@ -434,13 +436,13 @@ public class ModTest
 
         floatResult = (expression as IValueExpression<float>).Value;
         Debug.Log("Expression evaluation result - 'testFaction1': " + floatResult);
-        Assert.AreEqual(38325, floatResult);
+        Assert.AreEqual(45625, floatResult);
 
         testFactionEntity.Set(_testFaction2);
 
         floatResult = (expression as IValueExpression<float>).Value;
         Debug.Log("Expression evaluation result - 'testFaction2': " + floatResult);
-        Assert.AreEqual(21900, floatResult);
+        Assert.AreEqual(50839.2852f, floatResult);
 
         ////
 

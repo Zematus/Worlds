@@ -23,6 +23,13 @@ public class CellGroupEventGenerator : EventGenerator, ICellGroupEventGenerator
 
     public override void SetToAssignOnEvent()
     {
+        // Normally there's nothing to do here as all events
+        // can be assigned by other events by default
+    }
+
+    public override void SetToAssignOnStatusChange()
+    {
+        throw new System.InvalidOperationException("OnAssign does not support 'status_change' for Cell Groups");
     }
 
     protected override WorldEvent GenerateEvent(long triggerDate)
