@@ -3,33 +3,32 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class SaturationFunctionExpression : IValueExpression<float>
+public class SaturationFunctionExpression : FunctionExpression, IValueExpression<float>
 {
     public const string FunctionId = "saturation";
 
     private readonly IValueExpression<float> _maxSatArg;
     private readonly IValueExpression<float> _valueArg;
 
-    public SaturationFunctionExpression(IExpression[] arguments)
+    public SaturationFunctionExpression(IExpression[] arguments) : base(FunctionId, 2, arguments)
     {
-        if ((arguments == null) || (arguments.Length < 2))
-        {
-            throw new System.ArgumentException("Number of arguments less than 2");
-        }
-
         _maxSatArg = ValueExpressionBuilder.ValidateValueExpression<float>(arguments[0]);
         _valueArg = ValueExpressionBuilder.ValidateValueExpression<float>(arguments[1]);
     }
 
     public float Value
     {
-        get {
+        get
+        {
             float value = _valueArg.Value;
 
             if (value < 0)
             {
-                throw new System.Exception(
-                    "saturation: input value can't be lower than zero, input: " + value);
+                throw new System.ArgumentException(
+                    FunctionId + ": input value can't be lower than zero" +
+                    " - expression: " + ToString() +
+                    " - max saturation: " + _maxSatArg.ToPartiallyEvaluatedString() +
+                    " - input value: " + _valueArg.ToPartiallyEvaluatedString());
             }
 
             return value / (value + _maxSatArg.Value);
@@ -39,18 +38,4 @@ public class SaturationFunctionExpression : IValueExpression<float>
     public object ValueObject => Value;
 
     public string GetFormattedString() => Value.ToString();
-
-    public override string ToString()
-    {
-        return "saturation(" +
-            _maxSatArg.ToString() + ", " +
-            _valueArg.ToString() + ")";
-    }
-
-    public string ToPartiallyEvaluatedString(bool evaluate)
-    {
-        return "saturation(" +
-            _maxSatArg.ToPartiallyEvaluatedString(evaluate) + ", " +
-            _valueArg.ToPartiallyEvaluatedString(evaluate) + ")";
-    }
 }

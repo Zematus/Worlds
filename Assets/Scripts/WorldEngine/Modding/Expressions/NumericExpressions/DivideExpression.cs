@@ -32,8 +32,10 @@ public class DivideExpression : BinaryOpExpressionWithOutput<float>
             if (valueB == 0)
             {
                 throw new System.DivideByZeroException(
-                    "Expression results in division by zero: " +
-                    ToPartiallyEvaluatedString());
+                    "Expression results in division by zero" +
+                    "\n - expression: " + ToString() +
+                    "\n - dividend: " + _numExpressionA.ToPartiallyEvaluatedString() +
+                    "\n - divisor: " + _numExpressionB.ToPartiallyEvaluatedString());
             }
 
             return _numExpressionA.Value / valueB;

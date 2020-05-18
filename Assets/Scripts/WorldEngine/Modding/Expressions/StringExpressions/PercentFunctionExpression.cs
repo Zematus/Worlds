@@ -3,19 +3,14 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class PercentFunctionExpression : IValueExpression<string>
+public class PercentFunctionExpression : FunctionExpression, IValueExpression<string>
 {
     public const string FunctionId = "percent";
 
     private readonly IValueExpression<float> _arg;
 
-    public PercentFunctionExpression(IExpression[] arguments)
+    public PercentFunctionExpression(IExpression[] arguments) : base(FunctionId, 1, arguments)
     {
-        if ((arguments == null) || (arguments.Length < 1))
-        {
-            throw new System.ArgumentException("Number of arguments less than 1");
-        }
-
         _arg = ValueExpressionBuilder.ValidateValueExpression<float>(arguments[0]);
     }
 
@@ -24,14 +19,4 @@ public class PercentFunctionExpression : IValueExpression<string>
     public object ValueObject => Value;
 
     public string GetFormattedString() => Value;
-
-    public string ToPartiallyEvaluatedString(bool evaluate)
-    {
-        return "percent(" + _arg.ToPartiallyEvaluatedString(evaluate) + ")";
-    }
-
-    public override string ToString()
-    {
-        return "percent(" + _arg.ToString() + ")";
-    }
 }

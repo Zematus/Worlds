@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class LerpFunctionExpression : IValueExpression<float>
+public class LerpFunctionExpression : FunctionExpression, IValueExpression<float>
 {
     public const string FunctionId = "lerp";
 
@@ -11,13 +11,8 @@ public class LerpFunctionExpression : IValueExpression<float>
     private readonly IValueExpression<float> _endArg;
     private readonly IValueExpression<float> _percentArg;
 
-    public LerpFunctionExpression(IExpression[] arguments)
+    public LerpFunctionExpression(IExpression[] arguments) : base (FunctionId, 3, arguments)
     {
-        if ((arguments == null) || (arguments.Length < 3))
-        {
-            throw new System.ArgumentException("Number of arguments less than 3");
-        }
-
         _startArg = ValueExpressionBuilder.ValidateValueExpression<float>(arguments[0]);
         _endArg = ValueExpressionBuilder.ValidateValueExpression<float>(arguments[1]);
         _percentArg = ValueExpressionBuilder.ValidateValueExpression<float>(arguments[2]);
@@ -31,20 +26,4 @@ public class LerpFunctionExpression : IValueExpression<float>
     public object ValueObject => Value;
 
     public string GetFormattedString() => Value.ToString();
-
-    public override string ToString()
-    {
-        return "lerp(" +
-            _startArg.ToString() + ", " +
-            _endArg.ToString() + ", " +
-            _percentArg.ToString() + ")";
-    }
-
-    public string ToPartiallyEvaluatedString(bool evaluate)
-    {
-        return "lerp(" +
-            _startArg.ToPartiallyEvaluatedString(evaluate) + ", " +
-            _endArg.ToPartiallyEvaluatedString(evaluate) + ", " +
-            _percentArg.ToPartiallyEvaluatedString(evaluate) + ")";
-    }
 }

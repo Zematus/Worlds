@@ -229,6 +229,8 @@ public static class ExpressionBuilder
                 return new PercentFunctionExpression(argExpressions);
             case SaturationFunctionExpression.FunctionId:
                 return new SaturationFunctionExpression(argExpressions);
+            case NormalizeFunctionExpression.FunctionId:
+                return new NormalizeFunctionExpression(argExpressions);
         }
 
         if (string.IsNullOrWhiteSpace(arguments))

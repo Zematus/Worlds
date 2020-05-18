@@ -127,6 +127,8 @@ public class FactionEntity : Entity
 
     public void Set(Faction f, bool noReset = false)
     {
+        f.PreUpdate();
+
         if (noReset && (Faction == f))
         {
             return;

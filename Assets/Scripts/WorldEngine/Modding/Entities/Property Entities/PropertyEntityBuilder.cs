@@ -10,14 +10,16 @@ public static class PropertyEntityBuilder
         Context context,
         Context.LoadedContext.LoadedProperty p)
     {
-        if (string.IsNullOrEmpty(p.type))
+        string pType = p.type;
+
+        if (string.IsNullOrEmpty(pType))
         {
-            throw new ArgumentException("'type' can't be null or empty");
+            pType = ValueType;
         }
 
         IReseteableEntity entity;
 
-        switch (p.type)
+        switch (pType)
         {
             case ConditionSetType:
                 entity = new ConditionSetPropertyEntity(context, p);
