@@ -15,6 +15,7 @@ public class FactionEntity : Entity
     public const string GroupCanBeCoreAttributeId = "group_can_be_core";
     public const string CoreGroupAttributeId = "core_group";
     public const string TypeAttributeId = "type";
+    public const string RelationshipToAttributeId = "relationship_to";
 
     public virtual Faction Faction { get; private set; }
 
@@ -111,6 +112,9 @@ public class FactionEntity : Entity
 
             case GroupCanBeCoreAttributeId:
                 return new GroupCanBeCoreAttribute(this, arguments);
+
+            case RelationshipToAttributeId:
+                return new RelationshipToAttribute(this, arguments);
 
             case LeaderAttributeId:
                 return GetLeaderAttribute();

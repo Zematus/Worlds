@@ -3,13 +3,13 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-public class GroupCanBeCoreAttribute : ValueEntityAttribute<bool>
+public class RelationshipToAttribute : ValueEntityAttribute<float>
 {
     private FactionEntity _factionEntity;
 
     private readonly IValueExpression<Entity> _argumentExp;
 
-    public GroupCanBeCoreAttribute(FactionEntity factionEntity, IExpression[] arguments)
+    public RelationshipToAttribute(FactionEntity factionEntity, IExpression[] arguments)
         : base(FactionEntity.GroupCanBeCoreAttributeId, factionEntity, arguments)
     {
         _factionEntity = factionEntity;
@@ -22,17 +22,17 @@ public class GroupCanBeCoreAttribute : ValueEntityAttribute<bool>
         _argumentExp = ValueExpressionBuilder.ValidateValueExpression<Entity>(arguments[0]);
     }
 
-    public override bool Value
+    public override float Value
     {
         get
         {
-            if (_argumentExp.Value is GroupEntity gEntity)
+            if (_argumentExp.Value is FactionEntity fEntity)
             {
-                return _factionEntity.Faction.GroupCanBeCore(gEntity.Group);
+                return _factionEntity.Faction.GetRelationshipValue(fEntity.Faction);
             }
 
             throw new System.Exception(
-                "Input parameter is not of a valid group entity: " + _argumentExp.Value.GetType() +
+                "Input parameter is not of a valid faction entity: " + _argumentExp.Value.GetType() +
                 "\n - expression: " + _argumentExp.ToString() +
                 "\n - value: " + _argumentExp.ToPartiallyEvaluatedString());
         }

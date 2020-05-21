@@ -27,7 +27,7 @@ public class TriggerDecisionAttribute : EffectEntityAttribute
 
         if (arguments.Length > 1)
         {
-            _parameterExps = new IValueExpression<Entity>[arguments.Length - 1];
+            _parameterExps = new IBaseValueExpression[arguments.Length - 1];
 
             for (int i = 0; i < _parameterExps.Length; i++)
             {
