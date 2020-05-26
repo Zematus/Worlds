@@ -7,8 +7,11 @@ public class PolityEntity : Entity
 {
     public const string GetRandomGroupAttributeId = "get_random_group";
     public const string DominantFactionAttributeId = "dominant_faction";
+    public const string TypeAttributeId = "type";
 
     public virtual Polity Polity { get; private set; }
+
+    private ValueGetterEntityAttribute<string> _typeAttribute;
 
     private DelayedSetFactionEntity _dominantFactionEntity = null;
 
@@ -18,6 +21,11 @@ public class PolityEntity : Entity
 
     private readonly List<RandomGroupEntity>
         _randomGroupEntitiesToSet = new List<RandomGroupEntity>();
+
+    public override string GetDebugString()
+    {
+        return "polity:" + Polity.Name.Text;
+    }
 
     public override string GetFormattedString()
     {
@@ -94,6 +102,12 @@ public class PolityEntity : Entity
     {
         switch (attributeId)
         {
+            case TypeAttributeId:
+                _typeAttribute =
+                    _typeAttribute ?? new ValueGetterEntityAttribute<string>(
+                        TypeAttributeId, this, () => Polity.Type);
+                return _typeAttribute;
+
             case GetRandomGroupAttributeId:
                 return GenerateRandomGroupEntityAttribute();
 

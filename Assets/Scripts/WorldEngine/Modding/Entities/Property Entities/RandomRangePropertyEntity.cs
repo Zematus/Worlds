@@ -82,11 +82,18 @@ public class RandomRangePropertyEntity : PropertyEntity<float>
         Value = Mathf.Lerp(_min, _max, _context.GetNextRandomFloat(_idHash));
     }
 
+    public override string GetDebugString()
+    {
+        EvaluateIfNeeded();
+
+        return "(min:" + _min.ToString("0.00") + ", max:" + _max.ToString("0.00") + ")";
+    }
+
     public override string GetFormattedString()
     {
         EvaluateIfNeeded();
 
-        return "(min: " + _min.ToString("0.00") + ", max: " + _max.ToString("0.00") + ")";
+        return "<b>(min: " + _min.ToString("0.00") + ", max: " + _max.ToString("0.00") + ")</b>";
     }
 
     public override string ToPartiallyEvaluatedString(bool evaluate)

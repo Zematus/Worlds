@@ -25,5 +25,8 @@ public class EntityExpression : IValueExpression<Entity>
 
     public object ValueObject => Value;
 
-    public string ToPartiallyEvaluatedString(bool evaluate) => ToString();
+    public string ToPartiallyEvaluatedString(bool evaluate)
+    {
+        return Value.ToPartiallyEvaluatedString(evaluate);
+    }
 }

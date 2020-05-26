@@ -25,7 +25,7 @@ public class DecisionLoader
         }
 
         [Serializable]
-        public class LoadedDescription
+        public class LoadedDescription : Context.LoadedContext
         {
             public string id;
             public string text;
@@ -128,6 +128,7 @@ public class DecisionLoader
         LoadedDecision.LoadedOptionalDescription ds)
     {
         OptionalDescription segment = new OptionalDescription(decision);
+        segment.Initialize(ds);
 
         InitializeOptionalDescription(segment, ds);
 
@@ -139,6 +140,7 @@ public class DecisionLoader
         LoadedDecision.LoadedOption.LoadedEffect oe)
     {
         DecisionOptionEffect effect = new DecisionOptionEffect(option);
+        effect.Initialize(oe);
 
         InitializeDescription(effect, oe);
 
@@ -159,6 +161,7 @@ public class DecisionLoader
         LoadedDecision.LoadedOption o)
     {
         DecisionOption option = new DecisionOption(decision);
+        option.Initialize(o);
 
         InitializeOptionalDescription(option, o);
 

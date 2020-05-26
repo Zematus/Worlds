@@ -59,6 +59,4 @@ public abstract class PropertyEntity<T> : ValueEntity<T>, IReseteableEntity
     {
         throw new System.Exception("Set() should be never be called for " + this.GetType());
     }
-
-    public abstract string ToPartiallyEvaluatedString(bool evaluate);
 }

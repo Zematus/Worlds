@@ -77,6 +77,11 @@ public class TestEntity : Entity
             return null;
         }
 
+        public override string GetDebugString()
+        {
+            throw new NotImplementedException();
+        }
+
         public override string GetFormattedString()
         {
             throw new NotImplementedException();
@@ -119,6 +124,11 @@ public class TestEntity : Entity
         }
 
         return null;
+    }
+
+    public override string GetDebugString()
+    {
+        throw new NotImplementedException();
     }
 
     public override string GetFormattedString()
@@ -166,14 +176,25 @@ public class TestPolity : Polity
 
 public class TestFaction : Faction
 {
+    public static int _testCounter = 0;
+
+    private int _testId;
+
     private float _adminLoad;
 
     public Agent TestLeader;
 
     public TestFaction(
-        string type, Polity polity, CellGroup coreGroup, float influence = 0, Faction parentFaction = null, float adminLoad = 0)
+        string type,
+        Polity polity,
+        CellGroup coreGroup,
+        float influence = 0,
+        Faction parentFaction = null,
+        float adminLoad = 0)
         : base(type, polity, coreGroup, influence, parentFaction)
     {
+        _testId = _testCounter++;
+
         _adminLoad = adminLoad;
 
         Culture = new FactionCulture(this);
@@ -195,6 +216,16 @@ public class TestFaction : Faction
             CulturalPreference.IsolationPreferenceName,
             CulturalPreference.IsolationPreferenceRngOffset,
             0));
+    }
+
+    public override string GetName()
+    {
+        return "test_faction_" + _testId;
+    }
+
+    public override string GetNameBold()
+    {
+        return "<b>test faction " + _testId + "</b>";
     }
 
     public override void Split()

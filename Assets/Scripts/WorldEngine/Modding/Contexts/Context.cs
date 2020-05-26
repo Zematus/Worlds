@@ -8,6 +8,8 @@ using UnityEngine;
 /// </summary>
 public abstract class Context
 {
+    protected int _currentIterOffset = 0;
+
     protected Context _parentContext = null;
 
     [Serializable]
@@ -67,6 +69,16 @@ public abstract class Context
     public Context(Context parent = null)
     {
         _parentContext = parent;
+    }
+
+    public virtual int GetNextIterOffset()
+    {
+        if (_parentContext != null)
+        {
+            return _parentContext.GetNextIterOffset();
+        }
+
+        return _currentIterOffset++;
     }
 
     public abstract float GetNextRandomFloat(int iterOffset);

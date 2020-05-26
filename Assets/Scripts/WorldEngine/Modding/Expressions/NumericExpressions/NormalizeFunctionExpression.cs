@@ -26,12 +26,16 @@ public class NormalizeFunctionExpression : FunctionExpression, IValueExpression<
 
             if (max <= min)
             {
+                string inputValueStr = _valueArg.ToPartiallyEvaluatedString();
+                string minValueStr = _minArg.ToPartiallyEvaluatedString();
+                string maxValueStr = _maxArg.ToPartiallyEvaluatedString();
+
                 throw new System.ArgumentException(
                     FunctionId + ": max value can't be equal or less than min value" +
-                    " - expression: " + ToString() +
-                    " - input value: " + _valueArg.ToPartiallyEvaluatedString() +
-                    " - min value: " + _minArg.ToPartiallyEvaluatedString() +
-                    " - max value: " + _maxArg.ToPartiallyEvaluatedString());
+                    "\n - expression: " + ToString() +
+                    "\n - input value: " + inputValueStr +
+                    "\n - min value: " + minValueStr +
+                    "\n - max value: " + maxValueStr);
             }
 
             return (_valueArg.Value - min) / (max - min);
@@ -40,5 +44,5 @@ public class NormalizeFunctionExpression : FunctionExpression, IValueExpression<
 
     public object ValueObject => Value;
 
-    public string GetFormattedString() => Value.ToString();
+    public string GetFormattedString() => Value.ToString().ToBoldFormat();
 }

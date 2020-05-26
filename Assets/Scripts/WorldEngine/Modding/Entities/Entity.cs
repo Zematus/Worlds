@@ -30,9 +30,11 @@ public abstract class Entity : IComparable<object>
 
     public abstract string GetFormattedString();
 
+    public abstract string GetDebugString();
+
     public override string ToString()
     {
-        return GetFormattedString();
+        return GetDebugString();
     }
 
     public override bool Equals(object obj)
@@ -87,5 +89,10 @@ public abstract class Entity : IComparable<object>
                 this, Id, parent);
 
         return _thisAttribute;
+    }
+
+    public virtual string ToPartiallyEvaluatedString(bool evaluate)
+    {
+        return Id;
     }
 }

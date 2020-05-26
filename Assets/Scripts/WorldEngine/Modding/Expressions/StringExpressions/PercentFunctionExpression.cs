@@ -18,5 +18,5 @@ public class PercentFunctionExpression : FunctionExpression, IValueExpression<st
 
     public object ValueObject => Value;
 
-    public string GetFormattedString() => Value;
+    public string GetFormattedString() => Value.ToBoldFormat();
 }

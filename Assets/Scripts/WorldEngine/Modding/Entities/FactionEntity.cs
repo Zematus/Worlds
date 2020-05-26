@@ -15,7 +15,8 @@ public class FactionEntity : Entity
     public const string GroupCanBeCoreAttributeId = "group_can_be_core";
     public const string CoreGroupAttributeId = "core_group";
     public const string TypeAttributeId = "type";
-    public const string RelationshipToAttributeId = "relationship_to";
+    public const string RelationshipAttributeId = "relationship";
+    public const string SetRelationshipAttributeId = "set_relationship";
 
     public virtual Faction Faction { get; private set; }
 
@@ -31,9 +32,14 @@ public class FactionEntity : Entity
 
     protected override object _reference => Faction;
 
+    public override string GetDebugString()
+    {
+        return "faction:" + Faction.GetName();
+    }
+
     public override string GetFormattedString()
     {
-        return Faction.Name.BoldText;
+        return Faction.GetNameBold();
     }
 
     public FactionEntity(string id) : base(id)
@@ -113,8 +119,11 @@ public class FactionEntity : Entity
             case GroupCanBeCoreAttributeId:
                 return new GroupCanBeCoreAttribute(this, arguments);
 
-            case RelationshipToAttributeId:
-                return new RelationshipToAttribute(this, arguments);
+            case RelationshipAttributeId:
+                return new RelationshipAttribute(this, arguments);
+
+            case SetRelationshipAttributeId:
+                return new SetRelationshipAttribute(this, arguments);
 
             case LeaderAttributeId:
                 return GetLeaderAttribute();

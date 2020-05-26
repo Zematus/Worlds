@@ -28,5 +28,5 @@ public class AssignableValueEntityAttributeExpression<T>
 
     public object ValueObject => Value;
 
-    public string GetFormattedString() => Value.ToString();
+    public string GetFormattedString() => Value.ToString().ToBoldFormat();
 }

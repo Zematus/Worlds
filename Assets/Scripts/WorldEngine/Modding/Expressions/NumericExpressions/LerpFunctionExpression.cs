@@ -25,5 +25,5 @@ public class LerpFunctionExpression : FunctionExpression, IValueExpression<float
 
     public object ValueObject => Value;
 
-    public string GetFormattedString() => Value.ToString();
+    public string GetFormattedString() => Value.ToString().ToBoldFormat();
 }

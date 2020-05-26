@@ -26,9 +26,9 @@ public class SaturationFunctionExpression : FunctionExpression, IValueExpression
             {
                 throw new System.ArgumentException(
                     FunctionId + ": input value can't be lower than zero" +
-                    " - expression: " + ToString() +
-                    " - max saturation: " + _maxSatArg.ToPartiallyEvaluatedString() +
-                    " - input value: " + _valueArg.ToPartiallyEvaluatedString());
+                    "\n - expression: " + ToString() +
+                    "\n - max saturation: " + _maxSatArg.ToPartiallyEvaluatedString() +
+                    "\n - input value: " + _valueArg.ToPartiallyEvaluatedString());
             }
 
             return value / (value + _maxSatArg.Value);
@@ -37,5 +37,5 @@ public class SaturationFunctionExpression : FunctionExpression, IValueExpression
 
     public object ValueObject => Value;
 
-    public string GetFormattedString() => Value.ToString();
+    public string GetFormattedString() => Value.ToString().ToBoldFormat();
 }

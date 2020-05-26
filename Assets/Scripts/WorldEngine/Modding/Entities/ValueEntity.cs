@@ -60,9 +60,14 @@ public class ValueEntity<T> : BaseValueEntity
         Set(o);
     }
 
-    public override string GetFormattedString()
+    public override string GetDebugString()
     {
         return Value.ToString();
+    }
+
+    public override string GetFormattedString()
+    {
+        return Value.ToString().ToBoldFormat();
     }
 
     public IValueExpression<T> ValueExpression

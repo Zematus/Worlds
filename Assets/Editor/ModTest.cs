@@ -37,27 +37,27 @@ public class ModTest
         Debug.Log("Test text " + (testCounter++));
         text = new ModText(testContext, "1 + 1 equals <<1 + 1>>");
         Debug.Log("evaluated text: " + text.EvaluateString());
-        Assert.AreEqual("1 + 1 equals 2", text.EvaluateString());
+        Assert.AreEqual("1 + 1 equals <b>2</b>", text.EvaluateString());
 
         Debug.Log("Test text " + (testCounter++));
         text = new ModText(testContext, "<<2 > 3>>, 2 is not greater than 3");
         Debug.Log("evaluated text: " + text.EvaluateString());
-        Assert.AreEqual("False, 2 is not greater than 3", text.EvaluateString());
+        Assert.AreEqual("<b>False</b>, 2 is not greater than 3", text.EvaluateString());
 
         Debug.Log("Test text " + (testCounter++));
         text = new ModText(testContext, "<<string>> and <<anotherString>>");
         Debug.Log("evaluated text: " + text.EvaluateString());
-        Assert.AreEqual("string and anotherString", text.EvaluateString());
+        Assert.AreEqual("<b>string</b> and <b>anotherString</b>", text.EvaluateString());
 
         Debug.Log("Test text " + (testCounter++));
         text = new ModText(testContext, "lerp(2,4,0.5) equals <<lerp(2,4,0.5)>>");
         Debug.Log("evaluated text: " + text.EvaluateString());
-        Assert.AreEqual("lerp(2,4,0.5) equals 3", text.EvaluateString());
+        Assert.AreEqual("lerp(2,4,0.5) equals <b>3</b>", text.EvaluateString());
 
         Debug.Log("Test text " + (testCounter++));
         text = new ModText(testContext, "space between the numbers <<5 + 2>> <<7>>");
         Debug.Log("evaluated text: " + text.EvaluateString());
-        Assert.AreEqual("space between the numbers 7 7", text.EvaluateString());
+        Assert.AreEqual("space between the numbers <b>7</b> <b>7</b>", text.EvaluateString());
     }
 
     [Test]
@@ -262,6 +262,8 @@ public class ModTest
     private void InitializeTestFactions()
     {
         InitializeTestGroups();
+
+        TestFaction._testCounter = 0;
 
         _testPolity1 = new TestPolity("tribe", _testGroup1);
         _testFaction1 = new TestFaction("clan", _testPolity1, _testGroup1, 0.5f, null, 200000f);
@@ -495,7 +497,11 @@ public class ModTest
         CulturalPreference.InitializePreferences();
 
         ModDecision.ResetDecisions();
-        ModDecision.LoadDecisionFile(Path.Combine("Mods", "Base", "Decisions", "clan_split.json"));
+
+        ModDecision.LoadDecisionFile(
+            Path.Combine("Mods", "Base", "Decisions", "clan_splits.json"));
+        ModDecision.LoadDecisionFile(
+            Path.Combine("Mods", "Base", "Decisions", "clan_demands_influence.json"));
     }
 
     [Test]
@@ -531,7 +537,7 @@ public class ModTest
 
         foreach (FactionModEvent e in eventsToHappen)
         {
-            if (e.GeneratorId == "clan_split")
+            if (e.GeneratorId == "clan_splits")
             {
                 splitEvent = e;
             }

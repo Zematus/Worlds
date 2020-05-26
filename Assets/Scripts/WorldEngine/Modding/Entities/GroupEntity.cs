@@ -37,9 +37,14 @@ public class GroupEntity : Entity
         throw new System.ArgumentException("Group: Unable to find attribute: " + attributeId);
     }
 
+    public override string GetDebugString()
+    {
+        return "group:" + Group.Cell.Position.ToString();
+    }
+
     public override string GetFormattedString()
     {
-        return Group.Cell.Position.ToString();
+        return Group.Cell.Position.ToString().ToBoldFormat();
     }
 
     public void Set(CellGroup g)

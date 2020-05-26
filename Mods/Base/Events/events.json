@@ -1,8 +1,8 @@
 {
   "events": [
     {
-      "id": "clan_split",
-      "name": "clan split",
+      "id": "clan_splits",
+      "name": "clan splits",
       "target": "faction",
       "assignOn" : ["spawn"],
       "properties": [
@@ -22,18 +22,18 @@
       ],
       "maxTimeToTrigger": "9125 + (91250 * (1 - saturation(400000, target.administrative_load)) * target.preferences.cohesion)",
       "effects": [
-        "target.trigger_decision(clan_split, new_core_group)"
+        "target.trigger_decision(clan_splits, new_core_group)"
       ],
       "repeatable" : true
     },
     {
-      "id": "clan_demand_influence",
-      "name": "clan demand influence",
+      "id": "clan_demands_influence",
+      "name": "clan demands influence",
       "target": "faction",
       "assignOn" : ["spawn", "status_change"],
       "properties": [
         { "id": "dominant_faction", "value": "target.polity.dominant_faction" },
-        { "id": "relationship_value", "value": "target.relationship_to(dominant_faction)" },
+        { "id": "relationship_value", "value": "target.relationship(dominant_faction)" },
         { "id": "influence_delta", "value": "dominant_faction.influence - target.influence" },
         { "id": "target_authority", "value": "target.preferences.authority" },
         { "id": "target_admin_factors", "value": "relationship_value * influence_delta * target_authority" },
@@ -50,17 +50,18 @@
       ],
       "assignmentConditions": [
         "target.type == clan",
+        "target.polity.type == tribe",
         "dominant_faction.type == clan",
         "target != dominant_faction",
         "target_chance_of_making_demand > 0"
       ],
       "triggerConditions": [
-        "target.preferences.authority > 0.5",
-        "(target.preferences.authority > dominant_faction.preferences.authority) || (dominant_faction.administrative_load > 100000)"
+        "target_authority > 0.5",
+        "(target_authority > dominant_faction.preferences.authority) || (dominant_faction.administrative_load > 100000)"
       ],
       "maxTimeToTrigger": "9125 + (91250 * (1 - saturation(200000, target.administrative_load)) * target.preferences.authority)",
       "effects": [
-        "target.trigger_decision(clan_demand_influence, dominant_faction, target_chance_of_making_demand, dominant_chance_of_rejecting_demand)"
+        "target.trigger_decision(clan_demands_influence, dominant_faction, target_chance_of_making_demand, dominant_chance_of_rejecting_demand)"
       ],
       "repeatable" : true
     }

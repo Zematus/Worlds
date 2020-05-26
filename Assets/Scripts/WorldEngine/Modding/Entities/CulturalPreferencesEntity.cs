@@ -75,9 +75,14 @@ public class CulturalPreferencesEntity : Entity
         return new PreferenceAttribute(this, attributeId, arguments);
     }
 
+    public override string GetDebugString()
+    {
+        return "cultural_preferences";
+    }
+
     public override string GetFormattedString()
     {
-        return "<i>cultural preference</i>";
+        return "<i>cultural preferences</i>";
     }
 
     public void Set(Culture c) => Culture = c;

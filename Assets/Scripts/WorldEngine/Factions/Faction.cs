@@ -193,6 +193,16 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
 
     protected abstract float CalculateAdministrativeLoad();
 
+    public virtual string GetName()
+    {
+        return Info.Name.Text;
+    }
+
+    public virtual string GetNameBold()
+    {
+        return Info.Name.BoldText;
+    }
+
     public string GetNameAndTypeString()
     {
         return Info.GetNameAndTypeString();
@@ -379,7 +389,21 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
 #if DEBUG //TODO: Make sure we don't need this in unit tests
         if (parentFaction is TestFaction)
         {
-            return new TestFaction("clan", polity, coreGroup, influence, parentFaction);
+            TestFaction testFaction =
+                new TestFaction(
+                    "clan",
+                    polity,
+                    coreGroup,
+                    influence,
+                    parentFaction,
+                    parentFaction.AdministrativeLoad);
+
+            testFaction.Culture.GetPreference("authority").Value =
+                parentFaction.Culture.GetPreference("authority").Value;
+            testFaction.Culture.GetPreference("cohesion").Value =
+                parentFaction.Culture.GetPreference("cohesion").Value;
+
+            return testFaction;
         }
 #endif
 

@@ -36,9 +36,14 @@ public class ConditionSetPropertyEntity : PropertyEntity<bool>
         }
     }
 
+    public override string GetDebugString()
+    {
+        return "condition_set:" + GetValue().ToString();
+    }
+
     public override string GetFormattedString()
     {
-        return GetValue().ToString();
+        return GetValue().ToString().ToBoldFormat();
     }
 
     public override string ToPartiallyEvaluatedString(bool evaluate)

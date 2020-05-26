@@ -48,9 +48,14 @@ public class CellEntity : Entity
         throw new System.ArgumentException("Cell: Unable to find attribute: " + attributeId);
     }
 
+    public override string GetDebugString()
+    {
+        return "cell:" + Cell.Position.ToString();
+    }
+
     public override string GetFormattedString()
     {
-        return Cell.Position.ToString();
+        return Cell.Position.ToString().ToBoldFormat();
     }
 
     public void Set(TerrainCell c) => Cell = c;

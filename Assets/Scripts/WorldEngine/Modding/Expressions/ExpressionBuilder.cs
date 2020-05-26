@@ -231,6 +231,8 @@ public static class ExpressionBuilder
                 return new SaturationFunctionExpression(argExpressions);
             case NormalizeFunctionExpression.FunctionId:
                 return new NormalizeFunctionExpression(argExpressions);
+            case RandomFunctionExpression.FunctionId:
+                return new RandomFunctionExpression(context, argExpressions);
         }
 
         if (string.IsNullOrWhiteSpace(arguments))

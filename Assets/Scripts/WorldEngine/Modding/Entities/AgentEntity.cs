@@ -39,6 +39,11 @@ public class AgentEntity : Entity
         throw new System.ArgumentException("Agent: Unable to find attribute: " + attributeId);
     }
 
+    public override string GetDebugString()
+    {
+        return "agent:" + Agent.Name.Text;
+    }
+
     public override string GetFormattedString()
     {
         return Agent.Name.BoldText;

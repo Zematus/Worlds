@@ -18,7 +18,7 @@ public class ValueGetterExpression<T> : IValueExpression<T>
 
     public override string ToString() => Value.ToString();
 
-    public string GetFormattedString() => Value.ToString();
+    public string GetFormattedString() => Value.ToString().ToBoldFormat();
 
     public ValueGetterExpression(
         ValueGetterMethod<T> getterMethod,

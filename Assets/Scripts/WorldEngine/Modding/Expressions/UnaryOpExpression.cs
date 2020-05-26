@@ -33,7 +33,7 @@ public abstract class UnaryOpExpression<T> : IValueExpression<T>
         return "(" + _opStr + _expression.ToPartiallyEvaluatedString(evaluate) + ")";
     }
 
-    public string GetFormattedString() => Value.ToString();
+    public string GetFormattedString() => Value.ToString().ToBoldFormat();
 
     public abstract T Value { get; }
 

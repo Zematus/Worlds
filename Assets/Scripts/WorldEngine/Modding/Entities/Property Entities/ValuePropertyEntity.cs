@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class ValuePropertyEntity<T> : PropertyEntity<T>
 {
-    private IValueExpression<T> _valExpression;
+    private IValueExpression<T> _valExpression = null;
 
     public ValuePropertyEntity(Context context, string id, IExpression exp)
         : base(context, id)
@@ -23,9 +23,14 @@ public class ValuePropertyEntity<T> : PropertyEntity<T>
         Value = _valExpression.Value;
     }
 
-    public override string GetFormattedString()
+    public override string GetDebugString()
     {
         return GetValue().ToString();
+    }
+
+    public override string GetFormattedString()
+    {
+        return GetValue().ToString().ToBoldFormat();
     }
 
     public override string ToPartiallyEvaluatedString(bool evaluate)

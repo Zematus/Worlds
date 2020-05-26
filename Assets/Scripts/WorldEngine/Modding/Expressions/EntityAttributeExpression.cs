@@ -21,7 +21,7 @@ public abstract class EntityAttributeExpression : IExpression
 
         string output = _attribute.Entity.Id + "." + _attribute.Id + "(";
 
-        bool notFirst = true;
+        bool notFirst = false;
         foreach (IExpression argument in _attribute.Arguments)
         {
             if (notFirst)

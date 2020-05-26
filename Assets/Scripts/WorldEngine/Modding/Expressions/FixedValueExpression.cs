@@ -13,7 +13,7 @@ public class FixedValueExpression<T> : IValueExpression<T>
 
     public override string ToString() => FixedValue.ToString();
 
-    public string GetFormattedString() => Value.ToString();
+    public string GetFormattedString() => Value.ToString().ToBoldFormat();
 
     public string ToPartiallyEvaluatedString(bool evaluate) => ToString();
 
