@@ -11,39 +11,12 @@
         }
       ],
       "properties": [
-        {
-          "id": "can_prevent_split",
-          "type": "condition_set",
-          "conditions": [
-            "target.preferences.authority >= (-target.leader.charisma * 0.4)",
-            "target.preferences.cohesion >= 0.2",
-            "target.administrative_load <= (0.6 + (target.leader.wisdom * 0.3))"
-          ]
-        },
-        {
-          "id": "new_clan_influence",
-          "type": "random_range",
-          "min": "target.influence - lerp(target.influence, 0, (0.1 * (2 - target.leader.charisma)))",
-          "max": "target.influence - lerp(target.influence, 0, (0.25 * (2 - target.leader.charisma)))"
-        },
-        {
-          "id": "new_clan_relationship_value",
-          "type": "random_range",
-          "min": "0.1 + (0.4 * target.leader.charisma)",
-          "max": "0.5 + (0.4 * target.leader.charisma)"
-        },
-        {
-          "id": "new_authority_preference",
-          "type": "random_range",
-          "min": "lerp(target.preferences.authority, 0, (0.2 * (1.5 - target.leader.wisdom)))",
-          "max": "lerp(target.preferences.authority, 0, (0.1 * (1.5 - target.leader.wisdom)))"
-        },
-        {
-          "id": "new_cohesion_preference",
-          "type": "random_range",
-          "min": "lerp(target.preferences.cohesion, 1, (0.1 * (0.5 + target.leader.charisma)))",
-          "max": "lerp(target.preferences.cohesion, 1, (0.2 * (0.5 + target.leader.charisma)))"
-        }
+        { "id": "can_prevent_split", "value": "(target.preferences.authority >= (-target.leader.charisma * 0.4)) && (target.preferences.cohesion >= 0.2) && (target.administrative_load <= (0.6 + (target.leader.wisdom * 0.3)))" },
+        { "id": "influence_charisma_factor", "value": "2 - target.leader.charisma" },
+        { "id": "min_new_clan_influence", "value": "target.influence - lerp(target.influence, 0, (0.1 * influence_charisma_factor))" },
+        { "id": "max_new_clan_influence", "value": "target.influence - lerp(target.influence, 0, (0.25 * influence_charisma_factor))" },
+        { "id": "min_new_clan_relationship", "value": "0.1 + (0.4 * target.leader.charisma)" },
+        { "id": "max_new_clan_relationship", "value": "0.5 + (0.4 * target.leader.charisma)" }
       ],
       "description": [
         {
@@ -89,8 +62,8 @@
           "effects": [
             {
               "id": "clan_splits_option_split",
-              "text": "A new clan splits from clan <<target>> taking from <<percent(new_clan_influence.min)>> to <<percent(new_clan_influence.max)>> influence from it",
-              "result": "target.split(new_core_group, new_clan_influence, new_clan_relationship_value)"
+              "text": "A new clan splits from clan <<target>> taking from <<percent(min_new_clan_influence)>> to <<percent(max_new_clan_influence)>> influence from it",
+              "result": "target.split(new_core_group, random(min_new_clan_influence, max_new_clan_influence), random(min_new_clan_relationship, max_new_clan_relationship))"
             }
           ]
         },
@@ -102,13 +75,23 @@
           "effects": [
             {
               "id": "clan_splits_option_prevent_split_decrease_authority",
-              "text": "Clan <<target>>: authority preference (<<target.preferences.authority>>) decreases to: <<new_authority_preference.min>> - <<new_authority_preference.max>>",
-              "result": "target.preferences.authority = new_authority_preference"
+              "properties": [
+                { "id": "wisdom_factor", "value": "1.5 - target.leader.wisdom" },
+                { "id": "min_new_authority_preference", "value": "lerp(target.preferences.authority, 0, 0.2 * wisdom_factor)" },
+                { "id": "max_new_authority_preference", "value": "lerp(target.preferences.authority, 0, 0.1 * wisdom_factor)" }
+              ],
+              "text": "Clan <<target>>: authority preference (<<target.preferences.authority>>) decreases to: <<min_new_authority_preference>> - <<max_new_authority_preference>>",
+              "result": "target.preferences.authority = random(min_new_authority_preference, max_new_authority_preference)"
             },
             {
               "id": "clan_splits_option_prevent_split_increase_cohesion",
-              "text": "Clan <<target>>: cohesion preference (<<target.preferences.cohesion>>) increases to: <<new_cohesion_preference.min>> - <<new_cohesion_preference.max>>",
-              "result": "target.preferences.cohesion = new_cohesion_preference"
+              "properties": [
+                { "id": "charisma_factor", "value": "0.5 + target.leader.charisma" },
+                { "id": "min_new_cohesion_preference", "value": "lerp(target.preferences.cohesion, 1, 0.1 * charisma_factor)" },
+                { "id": "max_new_cohesion_preference", "value": "lerp(target.preferences.cohesion, 1, 0.2 * charisma_factor)" }
+              ],
+              "text": "Clan <<target>>: cohesion preference (<<target.preferences.cohesion>>) increases to: <<min_new_cohesion_preference>> - <<max_new_cohesion_preference>>",
+              "result": "target.preferences.cohesion = random(min_new_cohesion_preference, max_new_cohesion_preference)"
             }
           ]
         },
@@ -119,8 +102,8 @@
           "effects": [
             {
               "id": "clan_splits_option_split",
-              "text": "A new clan splits from clan <<target>> taking from <<percent(new_clan_influence.min)>> to <<percent(new_clan_influence.max)>> influence from it",
-              "result": "target.split(new_core_group, new_clan_influence, new_clan_relationship_value)"
+              "text": "A new clan splits from clan <<target>> taking from <<percent(min_new_clan_influence)>> to <<percent(max_new_clan_influence)>> influence from it",
+              "result": "target.split(new_core_group, random(min_new_clan_influence, max_new_clan_influence), random(min_new_clan_relationship, max_new_clan_relationship))"
             }
           ]
         }
