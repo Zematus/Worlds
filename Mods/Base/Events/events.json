@@ -20,7 +20,7 @@
         "target.core_group != new_core_group",
         "target.group_can_be_core(new_core_group)"
       ],
-      "maxTimeToTrigger": "9125 + (91250 * (1 - saturation(400000, target.administrative_load)) * target.preferences.cohesion)",
+      "timeToTrigger": "9125 + random(91250 * (1 - saturation(400000, target.administrative_load)) * target.preferences.cohesion)",
       "effects": [
         "target.trigger_decision(clan_splits, new_core_group)"
       ],
@@ -59,7 +59,7 @@
         "target_authority > 0.5",
         "(target_authority > dominant_faction.preferences.authority) || (dominant_faction.administrative_load > 100000)"
       ],
-      "maxTimeToTrigger": "9125 + (91250 * (1 - saturation(200000, target.administrative_load)) * target.preferences.authority)",
+      "timeToTrigger": "9125 + random(91250 * (1 - saturation(200000, target.administrative_load)) * target.preferences.authority)",
       "effects": [
         "target.trigger_decision(clan_demands_influence, dominant_faction, target_chance_of_making_demand, dominant_chance_of_rejecting_demand)"
       ],

@@ -65,7 +65,7 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
     /// <summary>
     /// Maximum time to pass before event triggers (since assignment date)
     /// </summary>
-    public IValueExpression<float> MaxTimeToTrigger;
+    public IValueExpression<float> TimeToTrigger;
 
     /// <summary>
     /// Effects to occur after an event triggers
@@ -186,22 +186,18 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
 
     protected long CalculateEventTriggerDate(World world)
     {
-        float randomFactor = GetNextRandomFloat(IdHash);
+        float timeToTrigger = TimeToTrigger.Value;
 
-        float maxTimeToTrigger = MaxTimeToTrigger.Value;
-
-        if (maxTimeToTrigger < 0)
+        if (timeToTrigger < 0)
         {
             throw new System.Exception(
-                "ERROR: EventGenerator.CalculateEventTriggerDate - maxTimeToTrigger less than 0" +
+                "ERROR: EventGenerator.CalculateEventTriggerDate - timeToTrigger less than 0" +
                 "\n - event id: " + Id +
-                "\n - maxTimeToTrigger expression: " + MaxTimeToTrigger.ToPartiallyEvaluatedString() +
-                "\n - max time to trigger (days): " + maxTimeToTrigger);
+                "\n - timeToTrigger expression: " + TimeToTrigger.ToPartiallyEvaluatedString() +
+                "\n - time to trigger (days): " + timeToTrigger);
         }
 
-        float dateSpan = randomFactor * maxTimeToTrigger;
-
-        long targetDate = world.CurrentDate + (long)dateSpan + 1;
+        long targetDate = world.CurrentDate + (long)timeToTrigger + 1;
 
         if ((targetDate <= world.CurrentDate) || (targetDate > World.MaxSupportedDate))
         {
@@ -209,10 +205,8 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
             Debug.LogWarning("EventGenerator.CalculateEventTriggerDate - target date (" + Manager.GetDateString(targetDate) +
                 ") less than or equal to world's current date (" + Manager.GetDateString(world.CurrentDate) +
                 ")\n - event id: " + Id +
-                "\n - maxTimeToTrigger expression: " + MaxTimeToTrigger.ToPartiallyEvaluatedString() +
-                "\n - randomFactor: " + randomFactor +
-                "\n - max time to trigger (days): " + maxTimeToTrigger +
-                "\n - date span (days): " + dateSpan);
+                "\n - timeToTrigger expression: " + TimeToTrigger.ToPartiallyEvaluatedString() +
+                "\n - time to trigger (days): " + timeToTrigger);
 
             return long.MinValue;
         }

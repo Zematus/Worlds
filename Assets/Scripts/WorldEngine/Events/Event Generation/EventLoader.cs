@@ -30,7 +30,7 @@ public class EventLoader
         public string[] assignOn;
         public string[] assignmentConditions;
         public string[] triggerConditions;
-        public string maxTimeToTrigger;
+        public string timeToTrigger;
         public string[] effects;
         public bool repeatable;
     }
@@ -98,7 +98,7 @@ public class EventLoader
             throw new ArgumentException("event 'assigners' list can't be empty");
         }
 
-        if (string.IsNullOrEmpty(e.maxTimeToTrigger))
+        if (string.IsNullOrEmpty(e.timeToTrigger))
         {
             throw new ArgumentException("event 'timeToTrigger' can't be null or empty");
         }
@@ -129,8 +129,8 @@ public class EventLoader
         }
 
         // Build the time-to-trigger expression (must evaluate to a number (int or float))
-        IValueExpression<float> maxTimeToTrigger =
-            ValueExpressionBuilder.BuildValueExpression<float>(generator, e.maxTimeToTrigger);
+        IValueExpression<float> timeToTrigger =
+            ValueExpressionBuilder.BuildValueExpression<float>(generator, e.timeToTrigger);
 
         // Build the effect expressions (must produce side effects)
         IEffectExpression[] effects =
@@ -143,7 +143,7 @@ public class EventLoader
         generator.AssignOn = e.assignOn;
         generator.AssignmentConditions = assignmentConditions;
         generator.TriggerConditions = triggerConditions;
-        generator.MaxTimeToTrigger = maxTimeToTrigger;
+        generator.TimeToTrigger = timeToTrigger;
         generator.Effects = effects;
         generator.Repeteable = e.repeatable;
 
