@@ -5,10 +5,7 @@
       "name": "clan splits",
       "target": "faction",
       "parameters": [
-        {
-          "id": "new_core_group",
-          "type": "group"
-        }
+        { "id": "new_core_group", "type": "group" }
       ],
       "properties": [
         { "id": "can_prevent_split", "value": "(target.preferences.authority >= (-target.leader.charisma * 0.4)) && (target.preferences.cohesion >= 0.2) && (target.administrative_load <= (0.6 + (target.leader.wisdom * 0.3)))" },

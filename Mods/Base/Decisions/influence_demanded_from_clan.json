@@ -1,12 +1,20 @@
 {
   "decisions": [
     {
-      "id": "clan_demands_influence",
-      "name": "clan demands influence",
+      "id": "influence_demanded_from_clan",
+      "name": "influence demanded from clan",
       "target": "faction",
       "parameters": [
-        { "id": "dominant_faction", "type": "faction" },
-        { "id": "chance_of_making_demand", "type": "number" }
+        { "id": "demanding_faction", "type": "faction" },
+      ],
+      "properties": [
+        { "id": "relationship_value", "value": "target.relationship(demanding_faction)" },
+        { "id": "influence_delta", "value": "max(0, target.influence - demanding_faction.influence)" },
+        { "id": "target_authority", "value": "target.preferences.authority" },
+        { "id": "admin_factors", "value": "relationship_value * influence_delta * target_authority" },
+        { "id": "min_admin_load", "value": "0 * admin_factors" },
+        { "id": "max_admin_load", "value": "3000000 * admin_factors" },
+        { "id": "chance_of_rejecting_demand", "value": "1 - normalize(target.administrative_load, min_admin_load, max_admin_load)" }
       ],
       "description": [
         {
@@ -18,7 +26,7 @@
         {
           "id": "clan_demands_influence_make_demand",
           "text": "Demand more influence from <<dominant_faction>>...",
-          "weight": "min (1, chance_of_making_demand)",
+          "weight": "target_chance_of_making_demand",
           "effects": [
             {
               "id": "clan_demands_influence_make_demand_increase_authority",
@@ -34,14 +42,14 @@
             {
               "id": "clan_demands_influence_make_demand",
               "text": "The current leader of clan <<dominant_faction>> will receive a demand for infuence from clan <<target>>",
-              "result": "dominant_faction.trigger_decision(influence_demanded_from_clan, target)"
+              "result": "dominant_faction.trigger_decision(influence_demanded_from_clan, target, dominant_chance_of_rejecting_demand)"
             }
           ]
         },
         {
           "id": "clan_demands_influence_dont_make_demand",
           "text": "Avoid making any demands at this time...",
-          "weight": "1 - min(1, chance_of_making_demand)",
+          "weight": "1 - target_chance_of_making_demand",
           "effects": [
             {
               "id": "clan_demands_influence_dont_make_demand_decrease_authority",

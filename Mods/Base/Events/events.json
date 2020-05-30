@@ -34,34 +34,27 @@
       "properties": [
         { "id": "dominant_faction", "value": "target.polity.dominant_faction" },
         { "id": "relationship_value", "value": "target.relationship(dominant_faction)" },
-        { "id": "influence_delta", "value": "dominant_faction.influence - target.influence" },
+        { "id": "influence_delta", "value": "max(0, dominant_faction.influence - target.influence)" },
         { "id": "target_authority", "value": "target.preferences.authority" },
-        { "id": "target_admin_factors", "value": "relationship_value * influence_delta * target_authority" },
-        { "id": "target_min_admin_load", "value": "100000 * target_admin_factors" },
-        { "id": "target_max_admin_load", "value": "5000000 * target_admin_factors" },
-        { "id": "dominant_authority", "value": "dominant_faction.preferences.authority" },
-        { "id": "dominant_admin_factors", "value": "relationship_value * influence_delta * dominant_authority" },
-        { "id": "dominant_min_admin_load", "value": "0 * dominant_admin_factors" },
-        { "id": "dominant_max_admin_load", "value": "3000000 * dominant_admin_factors" },
-        { "id": "target_chance_of_making_demand",
-          "value": "1 - normalize(target.administrative_load, target_min_admin_load, target_max_admin_load)" },
-        { "id": "dominant_chance_of_rejecting_demand",
-          "value": "1 - normalize(dominant_faction.administrative_load, dominant_min_admin_load, dominant_max_admin_load)" }
+        { "id": "admin_factors", "value": "relationship_value * influence_delta * target.preferences.authority" },
+        { "id": "min_admin_load", "value": "100000 * admin_factors" },
+        { "id": "max_admin_load", "value": "5000000 * admin_factors" },
+        { "id": "chance_of_making_demand", "value": "1 - normalize(target.administrative_load, min_admin_load, max_admin_load)" }
       ],
       "assignmentConditions": [
         "target.type == clan",
         "target.polity.type == tribe",
         "dominant_faction.type == clan",
         "target != dominant_faction",
-        "target_chance_of_making_demand > 0"
+        "chance_of_making_demand > 0"
       ],
       "triggerConditions": [
         "target_authority > 0.5",
         "(target_authority > dominant_faction.preferences.authority) || (dominant_faction.administrative_load > 100000)"
       ],
-      "timeToTrigger": "9125 + random(91250 * (1 - saturation(200000, target.administrative_load)) * target.preferences.authority)",
+      "timeToTrigger": "9125 + random(91250 * (1 - saturation(200000, target.administrative_load)) * target_authority)",
       "effects": [
-        "target.trigger_decision(clan_demands_influence, dominant_faction, target_chance_of_making_demand, dominant_chance_of_rejecting_demand)"
+        "target.trigger_decision(clan_demands_influence, dominant_faction, chance_of_making_demand)"
       ],
       "repeatable" : true
     }

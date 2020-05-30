@@ -233,6 +233,10 @@ public static class ExpressionBuilder
                 return new NormalizeFunctionExpression(argExpressions);
             case RandomFunctionExpression.FunctionId:
                 return new RandomFunctionExpression(context, argExpressions);
+            case MaxFunctionExpression.FunctionId:
+                return new MaxFunctionExpression(argExpressions);
+            case MinFunctionExpression.FunctionId:
+                return new MinFunctionExpression(argExpressions);
         }
 
         if (string.IsNullOrWhiteSpace(arguments))
