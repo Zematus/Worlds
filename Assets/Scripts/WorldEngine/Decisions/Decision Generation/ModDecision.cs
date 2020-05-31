@@ -160,6 +160,19 @@ public class ModDecision : Context
                 weight = (option.Weight != null ) ? option.Weight.Value : 1;
             }
 
+            if (weight < 0)
+            {
+                string weightPartialExpression =
+                    (option.Weight != null) ?
+                    ("\n - expression: " + option.Weight.ToPartiallyEvaluatedString(true)) :
+                    string.Empty;
+
+                throw new System.Exception(
+                    Id + "->" + option.Id + ", decision option weight is less than zero: " +
+                    weightPartialExpression +
+                    "\n - weight: " + weight);
+            }
+
             totalWeight += weight;
             optionWeights[i] = totalWeight;
         }
@@ -168,8 +181,10 @@ public class ModDecision : Context
         {
             // Something went wrong, at least one option should be
             // available everytime we evaluate a decision
+
             throw new System.Exception(
-                "Total decision option weight is equal or less than zero: " + totalWeight);
+                Id + ", total decision option weight is equal or less than zero: " +
+                "\n - total weight: " + totalWeight);
         }
 
         float randValue = GetNextRandomFloat(_evalRandomOffset) * totalWeight;

@@ -499,9 +499,9 @@ public class ModTest
         ModDecision.ResetDecisions();
 
         ModDecision.LoadDecisionFile(
-            Path.Combine("Mods", "Base", "Decisions", "clan_splits.json"));
-        ModDecision.LoadDecisionFile(
-            Path.Combine("Mods", "Base", "Decisions", "clan_demands_influence.json"));
+            Path.Combine("Mods", "Base", "Decisions", "clan_split.json"));
+        //ModDecision.LoadDecisionFile(
+        //    Path.Combine("Mods", "Base", "Decisions", "influence_demand.json"));
     }
 
     [Test]

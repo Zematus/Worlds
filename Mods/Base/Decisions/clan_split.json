@@ -1,14 +1,18 @@
 {
   "decisions": [
     {
-      "id": "clan_splits",
-      "name": "clan splits",
+      "id": "clan_decide_split
+      ",
+      "name": "clan decide split",
       "target": "faction",
       "parameters": [
         { "id": "new_core_group", "type": "group" }
       ],
       "properties": [
-        { "id": "can_prevent_split", "value": "(target.preferences.authority >= (-target.leader.charisma * 0.4)) && (target.preferences.cohesion >= 0.2) && (target.administrative_load <= (0.6 + (target.leader.wisdom * 0.3)))" },
+        { "id": "enough_authority", "value": "target.preferences.authority >= (-target.leader.charisma * 0.4)" },
+        { "id": "enough_cohesion", "value": "target.preferences.cohesion >= 0.2" },
+        { "id": "low_administrative_load", "value": "target.administrative_load <= (0.6 + (target.leader.wisdom * 0.3))" },
+        { "id": "can_prevent_split", "value": "enough_authority && enough_cohesion && low_administrative_load" },
         { "id": "influence_charisma_factor", "value": "2 - target.leader.charisma" },
         { "id": "min_new_clan_influence", "value": "target.influence - lerp(target.influence, 0, (0.1 * influence_charisma_factor))" },
         { "id": "max_new_clan_influence", "value": "target.influence - lerp(target.influence, 0, (0.25 * influence_charisma_factor))" },
@@ -17,61 +21,52 @@
       ],
       "description": [
         {
-          "id": "clan_splits_description_intro",
+          "id": "description_intro",
           "text": "Several minor bands within clan <<target>> have been distancing themselves from the rest of the clan, and now they desire to form their own clan.\n"
         },
         {
-          "id": "clan_splits_description_can_not_prevent_split_low_authority",
+          "id": "description_can_not_prevent_split_low_authority",
           "text": "Unfortunately, <<target.leader>> can't do anything about it as clan <<target>> members have not enough respect for authority",
-          "conditions": [
-            "target.preferences.authority < (-target.leader.charisma * 0.4)"
-          ]
+          "conditions": [ "!enough_authority" ]
         },
         {
-          "id": "clan_splits_description_can_not_prevent_split_low_cohesion",
+          "id": "description_can_not_prevent_split_low_cohesion",
           "text": "Unfortunately, <<target.leader>> can't do anything about it as clan <<target>> has very low internal cohesion",
-          "conditions": [
-            "target.preferences.authority >= (-target.leader.charisma * 0.4)",
-            "target.preferences.cohesion < 0.2"
-          ]
+          "conditions": [ "enough_authority", "!enough_cohesion" ]
         },
         {
-          "id": "clan_splits_description_can_not_prevent_split_high_administrative_load",
+          "id": "description_can_not_prevent_split_high_administrative_load",
           "text": "Unfortunately, <<target.leader>> can't do anything about it as clan <<target>> has become too large",
-          "conditions": [
-            "target.preferences.authority >= (-target.leader.charisma * 0.4)",
-            "target.preferences.cohesion >= 0.2",
-            "target.administrative_load > (0.6 + (target.leader.wisdom * 0.3))"
-          ]
+          "conditions": [ "enough_authority", "enough_cohesion", "!low_administrative_load" ]
         },
         {
-          "id": "clan_splits_description_can_prevent_split",
+          "id": "description_can_prevent_split",
           "text": "Should the clan leader, <<target.leader>>, try to reach out to them to keep them from splitting into their own clan?",
           "conditions": ["can_prevent_split"]
         }
       ],
       "options": [
         {
-          "id": "clan_splits_option_allow_split",
+          "id": "option_allow_split",
           "text": "Allow clan to split in two...",
           "conditions": ["can_prevent_split"],
           "weight": "1 * target.preferences.authority * target.leader.wisdom",
           "effects": [
             {
-              "id": "clan_splits_option_split",
+              "id": "split",
               "text": "A new clan splits from clan <<target>> taking from <<percent(min_new_clan_influence)>> to <<percent(max_new_clan_influence)>> influence from it",
               "result": "target.split(new_core_group, random(min_new_clan_influence, max_new_clan_influence), random(min_new_clan_relationship, max_new_clan_relationship))"
             }
           ]
         },
         {
-          "id": "clan_splits_option_prevent_split",
+          "id": "option_prevent_split",
           "text": "Prevent clan from splitting...",
           "conditions": ["can_prevent_split"],
           "weight": "2 * target.preferences.cohesion * target.leader.charisma",
           "effects": [
             {
-              "id": "clan_splits_option_prevent_split_decrease_authority",
+              "id": "decrease_authority",
               "properties": [
                 { "id": "wisdom_factor", "value": "1.5 - target.leader.wisdom" },
                 { "id": "min_new_authority_preference", "value": "lerp(target.preferences.authority, 0, 0.2 * wisdom_factor)" },
@@ -81,7 +76,7 @@
               "result": "target.preferences.authority = random(min_new_authority_preference, max_new_authority_preference)"
             },
             {
-              "id": "clan_splits_option_prevent_split_increase_cohesion",
+              "id": "increase_cohesion",
               "properties": [
                 { "id": "charisma_factor", "value": "0.5 + target.leader.charisma" },
                 { "id": "min_new_cohesion_preference", "value": "lerp(target.preferences.cohesion, 1, 0.1 * charisma_factor)" },
@@ -93,12 +88,12 @@
           ]
         },
         {
-          "id": "clan_splits_option_cant_prevent_split",
+          "id": "option_cant_prevent_split",
           "text": "Oh well...",
           "conditions": ["!can_prevent_split"],
           "effects": [
             {
-              "id": "clan_splits_option_split",
+              "id": "split",
               "text": "A new clan splits from clan <<target>> taking from <<percent(min_new_clan_influence)>> to <<percent(max_new_clan_influence)>> influence from it",
               "result": "target.split(new_core_group, random(min_new_clan_influence, max_new_clan_influence), random(min_new_clan_relationship, max_new_clan_relationship))"
             }
