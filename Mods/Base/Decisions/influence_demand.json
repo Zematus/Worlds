@@ -74,7 +74,7 @@
       "name": "influence demanded from clan",
       "target": "faction",
       "parameters": [
-        { "id": "demanding_faction", "type": "faction" },
+        { "id": "demanding_faction", "type": "faction" }
       ],
       "properties": [
         { "id": "relationship_value", "value": "target.relationship(demanding_faction)" },
@@ -105,7 +105,7 @@
         {
           "id": "reject_demand",
           "text": "Reject demand from <<demanding_faction>>...",
-          "conditions": [ "chance_of_rejecting_demand > 0" ]
+          "conditions": [ "chance_of_rejecting_demand > 0" ],
           "weight": "max(0, chance_of_rejecting_demand)",
           "effects": [
             {
@@ -123,22 +123,17 @@
               "id": "decrease_relation",
               "properties": [
                 { "id": "charisma_factor", "value": "1.5 - target.leader.charisma" },
-                { "id": "relationship_value", "value": "target.relationship(dominant_faction)" },
+                { "id": "relationship_value", "value": "target.relationship(demanding_faction)" },
                 { "id": "relationship_min", "value": "lerp(relationship_value, 0, (0.2 * charisma_factor))" },
                 { "id": "relationship_max", "value": "lerp(relationship_value, 0, (0.1 * charisma_factor))" }
               ],
-              "text": "Clan <<target>>: relationship with <<dominant_faction>> decreases from <<relationship_value>> to: <<relationship_min>> - <<relationship_max>>",
-              "result": "target.set_relationship(dominant_faction, random(relationship_min, relationship_max))"
+              "text": "Clan <<target>>: relationship with <<demanding_faction>> decreases from <<relationship_value>> to: <<relationship_min>> - <<relationship_max>>",
+              "result": "target.set_relationship(demanding_faction, random(relationship_min, relationship_max))"
             }
           ]
         },
         {
           "id": "accept_demand",
-          "properties": [
-            { "id": "charisma_factor", "value": "1.5 - target.leader.charisma" },
-            { "id": "influence_change_max", "value": "target.influence - lerp(target.influence, 0, (0.1 * charisma_factor))" },
-            { "id": "influence_change_min", "value": "target.influence - lerp(target.influence, 0, (0.05 * charisma_factor))" }
-          ],
           "text": "Accept demand from <<demanding_faction>>...",
           "conditions": [ "chance_of_rejecting_demand > 0" ],
           "weight": "1 - min(1, chance_of_rejecting_demand)",
@@ -146,20 +141,12 @@
             {
               "id": "decrease_dominant_clan_influence",
               "properties": [
-                { "id": "influence_min", "value": "target.influence - influence_change_max" },
-                { "id": "influence_max", "value": "target.influence - influence_change_min" },
+                { "id": "charisma_factor", "value": "1.5 - target.leader.charisma" },
+                { "id": "influence_transfer_max", "value": "0.3 * charisma_factor" },
+                { "id": "influence_transfer_min", "value": "0.1 * charisma_factor" }
               ],
-              "text": "Clan <<target>>: influence (<<target.influence>>) on the <<target.polity>> tribe decreases to: <<influence_min>> - <<influence_max>>",
-              "result": "target.influence = random(influence_min, influence_max)"
-            },
-            {
-              "id": "increase_demanding_clan_influence",
-              "properties": [
-                { "id": "influence_min", "value": "demanding_faction.influence + influence_change_min" },
-                { "id": "influence_max", "value": "demanding_faction.influence + influence_change_max" },
-              ],
-              "text": "Clan <<demanding_faction>>: influence (<<demanding_faction.influence>>) on the <<target.polity>> tribe increases to: <<influence_min>> - <<influence_max>>",
-              "result": "demanding_faction.influence = random(influence_min, influence_max)"
+              "text": "Clan <<target>> influence (<<target.influence>>) on the <<target.polity>> tribe decreases to: <<influence_min>> - <<influence_max>>, and Clan <<demanding_faction>> influence (<<demanding_faction.influence>>) on the <<target.polity>> tribe increases to: <<influence_min>> - <<influence_max>>",
+              "result": "target.polity.transfer_influence(target, demanding_faction, random(influence_transfer_min, influence_transfer_max))"
             },
             {
               "id": "decrease_authority",
@@ -176,42 +163,29 @@
               "id": "increase_relation",
               "properties": [
                 { "id": "charisma_factor", "value": "0.5 + target.leader.charisma" },
-                { "id": "relationship_value", "value": "target.relationship(dominant_faction)" },
+                { "id": "relationship_value", "value": "target.relationship(demanding_faction)" },
                 { "id": "relationship_min", "value": "lerp(relationship_value, 1, (0.1 * charisma_factor))" },
                 { "id": "relationship_max", "value": "lerp(relationship_value, 1, (0.2 * charisma_factor))" }
               ],
-              "text": "Clan <<target>>: relationship with <<dominant_faction>> increases from <<relationship_value>> to: <<relationship_min>> - <<relationship_max>>",
-              "result": "target.set_relationship(dominant_faction, random(relationship_min, relationship_max))"
+              "text": "Clan <<target>>: relationship with <<demanding_faction>> increases from <<relationship_value>> to: <<relationship_min>> - <<relationship_max>>",
+              "result": "target.set_relationship(demanding_faction, random(relationship_min, relationship_max))"
             }
           ]
         },
         {
           "id": "cant_reject_demand",
-          "properties": [
-            { "id": "charisma_factor", "value": "1.5 - target.leader.charisma" },
-            { "id": "influence_change_max", "value": "target.influence - lerp(target.influence, 0, (0.1 * charisma_factor))" },
-            { "id": "influence_change_min", "value": "target.influence - lerp(target.influence, 0, (0.05 * charisma_factor))" }
-          ],
           "text": "Oh well...",
           "conditions": [ "chance_of_rejecting_demand <= 0" ],
           "effects": [
             {
               "id": "decrease_dominant_clan_influence",
               "properties": [
-                { "id": "influence_min", "value": "target.influence - influence_change_max" },
-                { "id": "influence_max", "value": "target.influence - influence_change_min" },
+                { "id": "charisma_factor", "value": "1.5 - target.leader.charisma" },
+                { "id": "influence_transfer_max", "value": "0.3 * charisma_factor" },
+                { "id": "influence_transfer_min", "value": "0.1 * charisma_factor" }
               ],
-              "text": "Clan <<target>>: influence (<<target.influence>>) on the <<target.polity>> tribe decreases to: <<influence_min>> - <<influence_max>>",
-              "result": "target.influence = random(influence_min, influence_max)"
-            },
-            {
-              "id": "increase_demanding_clan_influence",
-              "properties": [
-                { "id": "influence_min", "value": "demanding_faction.influence + influence_change_min" },
-                { "id": "influence_max", "value": "demanding_faction.influence + influence_change_max" },
-              ],
-              "text": "Clan <<demanding_faction>>: influence (<<demanding_faction.influence>>) on the <<target.polity>> tribe increases to: <<influence_min>> - <<influence_max>>",
-              "result": "demanding_faction.influence = random(influence_min, influence_max)"
+              "text": "Clan <<target>> influence (<<target.influence>>) on the <<target.polity>> tribe decreases to: <<influence_min>> - <<influence_max>>, and Clan <<demanding_faction>> influence (<<demanding_faction.influence>>) on the <<target.polity>> tribe increases to: <<influence_min>> - <<influence_max>>",
+              "result": "target.polity.transfer_influence(target, demanding_faction, random(influence_transfer_min, influence_transfer_max))"
             },
             {
               "id": "decrease_authority",
@@ -228,12 +202,12 @@
               "id": "increase_relation",
               "properties": [
                 { "id": "charisma_factor", "value": "0.5 + target.leader.charisma" },
-                { "id": "relationship_value", "value": "target.relationship(dominant_faction)" },
+                { "id": "relationship_value", "value": "target.relationship(demanding_faction)" },
                 { "id": "relationship_min", "value": "lerp(relationship_value, 1, (0.1 * charisma_factor))" },
                 { "id": "relationship_max", "value": "lerp(relationship_value, 1, (0.2 * charisma_factor))" }
               ],
-              "text": "Clan <<target>>: relationship with <<dominant_faction>> increases from <<relationship_value>> to: <<relationship_min>> - <<relationship_max>>",
-              "result": "target.set_relationship(dominant_faction, random(relationship_min, relationship_max))"
+              "text": "Clan <<target>>: relationship with <<demanding_faction>> increases from <<relationship_value>> to: <<relationship_min>> - <<relationship_max>>",
+              "result": "target.set_relationship(demanding_faction, random(relationship_min, relationship_max))"
             }
           ]
         }

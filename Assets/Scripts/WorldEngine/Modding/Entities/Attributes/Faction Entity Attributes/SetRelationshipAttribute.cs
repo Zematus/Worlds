@@ -11,14 +11,9 @@ public class SetRelationshipAttribute : EffectEntityAttribute
     private readonly IValueExpression<float> _valueExp;
 
     public SetRelationshipAttribute(FactionEntity factionEntity, IExpression[] arguments)
-        : base(FactionEntity.SetRelationshipAttributeId, factionEntity, arguments)
+        : base(FactionEntity.SetRelationshipAttributeId, factionEntity, arguments, 2)
     {
         _factionEntity = factionEntity;
-
-        if ((arguments == null) || (arguments.Length < 2))
-        {
-            throw new System.ArgumentException("Number of arguments less than 2");
-        }
 
         _factionExp = ValueExpressionBuilder.ValidateValueExpression<Entity>(arguments[0]);
         _valueExp = ValueExpressionBuilder.ValidateValueExpression<float>(arguments[1]);

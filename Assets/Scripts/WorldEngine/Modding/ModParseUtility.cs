@@ -13,7 +13,7 @@ public static class ModParseUtility
     public const string NumberRegexPart = @"-?\d+(?:\.\d+)?";
     public const string BooleanRegexPart = @"(true|false)";
 
-    public const string OperatorRegexPart = @"[\!\+\-\*\/\<\>\=]=?";
+    public const string OperatorRegexPart = @"\|\||&&|([\!\+\-\*\/\<\>\=]=?)";
     public const string AccessorRegexPart = @"\.";
 
     /// <summary>
@@ -163,7 +163,7 @@ public static class ModParseUtility
         @"(?<statement2>" +
             @"(?<operand2>" + BinaryOperandStatementRegexPart + @")\s*" +
             @"(?<restOp>" +
-                OperatorRegexPart + @"\s*" +
+                @"(?<binaryOp2>" + OperatorRegexPart + @")\s*" +
                 @"(?:" + BinaryOperandStatementRegexPart + @")" +
             @")*" +
         @")";

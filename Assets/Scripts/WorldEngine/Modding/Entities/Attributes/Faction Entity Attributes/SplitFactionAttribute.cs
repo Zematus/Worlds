@@ -15,14 +15,9 @@ public class SplitFactionAttribute : EffectEntityAttribute
     private readonly IValueExpression<string> _newFactionTypeArg = null;
 
     public SplitFactionAttribute(FactionEntity factionEntity, IExpression[] arguments)
-        : base(factionEntity.BuildAttributeId(FactionEntity.SplitFactionAttributeId), factionEntity, arguments)
+        : base(factionEntity.BuildAttributeId(FactionEntity.SplitFactionAttributeId), factionEntity, arguments, 1)
     {
         _factionEntity = factionEntity;
-
-        if ((arguments == null) || (arguments.Length < 1))
-        {
-            throw new System.ArgumentException("Number of arguments less than 3");
-        }
 
         _coreGroupArg =
             ValueExpressionBuilder.ValidateValueExpression<Entity>(arguments[0]);

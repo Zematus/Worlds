@@ -10,14 +10,9 @@ public class GroupCanBeCoreAttribute : ValueEntityAttribute<bool>
     private readonly IValueExpression<Entity> _argumentExp;
 
     public GroupCanBeCoreAttribute(FactionEntity factionEntity, IExpression[] arguments)
-        : base(FactionEntity.GroupCanBeCoreAttributeId, factionEntity, arguments)
+        : base(FactionEntity.GroupCanBeCoreAttributeId, factionEntity, arguments, 1)
     {
         _factionEntity = factionEntity;
-
-        if ((arguments == null) || (arguments.Length < 1))
-        {
-            throw new System.ArgumentException("Number of arguments less than 1");
-        }
 
         _argumentExp = ValueExpressionBuilder.ValidateValueExpression<Entity>(arguments[0]);
     }

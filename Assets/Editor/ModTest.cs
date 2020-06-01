@@ -69,7 +69,29 @@ public class ModTest
 
         testContext.AddEntity(new TestEntity());
 
-        IExpression expression = ExpressionBuilder.BuildExpression(testContext, "-5");
+        IExpression expression;
+
+        expression = ExpressionBuilder.BuildExpression(testContext, "true && false");
+
+        Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
+        Assert.AreEqual(false, (expression as IValueExpression<bool>).Value);
+
+        expression = ExpressionBuilder.BuildExpression(testContext, "true && true && true");
+
+        Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
+        Assert.AreEqual(true, (expression as IValueExpression<bool>).Value);
+
+        expression = ExpressionBuilder.BuildExpression(testContext, "true && true && true && true");
+
+        Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
+        Assert.AreEqual(true, (expression as IValueExpression<bool>).Value);
+
+        expression = ExpressionBuilder.BuildExpression(testContext, "false || false || true");
+
+        Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
+        Assert.AreEqual(true, (expression as IValueExpression<bool>).Value);
+
+        expression = ExpressionBuilder.BuildExpression(testContext, "-5");
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
         Assert.AreEqual(-5, (expression as IValueExpression<float>).Value);
@@ -81,6 +103,11 @@ public class ModTest
 
         expression = ExpressionBuilder.BuildExpression(testContext, "1 + 1");
         Assert.AreEqual(2, (expression as IValueExpression<float>).Value);
+
+        Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
+
+        expression = ExpressionBuilder.BuildExpression(testContext, "1 + 1 + 2");
+        Assert.AreEqual(4, (expression as IValueExpression<float>).Value);
 
         Debug.Log("Test expression " + (expCounter++) + ": " + expression.ToString());
 
@@ -500,8 +527,8 @@ public class ModTest
 
         ModDecision.LoadDecisionFile(
             Path.Combine("Mods", "Base", "Decisions", "clan_split.json"));
-        //ModDecision.LoadDecisionFile(
-        //    Path.Combine("Mods", "Base", "Decisions", "influence_demand.json"));
+        ModDecision.LoadDecisionFile(
+            Path.Combine("Mods", "Base", "Decisions", "influence_demand.json"));
     }
 
     [Test]

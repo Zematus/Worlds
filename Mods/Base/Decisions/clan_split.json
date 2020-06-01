@@ -1,8 +1,7 @@
 {
   "decisions": [
     {
-      "id": "clan_decide_split
-      ",
+      "id": "clan_decide_split",
       "name": "clan decide split",
       "target": "faction",
       "parameters": [

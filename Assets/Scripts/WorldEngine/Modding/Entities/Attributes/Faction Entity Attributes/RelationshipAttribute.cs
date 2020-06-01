@@ -10,14 +10,9 @@ public class RelationshipAttribute : ValueEntityAttribute<float>
     private readonly IValueExpression<Entity> _argumentExp;
 
     public RelationshipAttribute(FactionEntity factionEntity, IExpression[] arguments)
-        : base(FactionEntity.RelationshipAttributeId, factionEntity, arguments)
+        : base(FactionEntity.RelationshipAttributeId, factionEntity, arguments, 1)
     {
         _factionEntity = factionEntity;
-
-        if ((arguments == null) || (arguments.Length < 1))
-        {
-            throw new System.ArgumentException("Number of arguments less than 1");
-        }
 
         _argumentExp = ValueExpressionBuilder.ValidateValueExpression<Entity>(arguments[0]);
     }

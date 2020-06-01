@@ -24,7 +24,7 @@ public class AndExpression : BinaryOpExpressionWithOutput<bool>
         IValueExpression<bool> expressionB =
             ValueExpressionBuilder.BuildValueExpression<bool>(context, expressionBStr);
 
-        return new OrExpression(expressionA, expressionB);
+        return new AndExpression(expressionA, expressionB);
     }
 
     public override bool Value => _boolExpressionA.Value && _boolExpressionB.Value;

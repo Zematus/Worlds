@@ -7,6 +7,7 @@ public class PolityEntity : Entity
 {
     public const string GetRandomGroupAttributeId = "get_random_group";
     public const string DominantFactionAttributeId = "dominant_faction";
+    public const string TransferInfluenceAttributeId = "transfer_influence";
     public const string TypeAttributeId = "type";
 
     public virtual Polity Polity { get; private set; }
@@ -113,6 +114,9 @@ public class PolityEntity : Entity
 
             case DominantFactionAttributeId:
                 return GetDominantFactionAttribute();
+
+            case TransferInfluenceAttributeId:
+                return new TransferInfluenceAttribute(this, arguments);
         }
 
         throw new System.ArgumentException("Polity: Unable to find attribute: " + attributeId);

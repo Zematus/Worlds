@@ -14,14 +14,9 @@ public class TriggerDecisionAttribute : EffectEntityAttribute
     private readonly IBaseValueExpression[] _parameterExps;
 
     public TriggerDecisionAttribute(FactionEntity factionEntity, IExpression[] arguments)
-        : base(FactionEntity.TriggerDecisionAttributeId, factionEntity, arguments)
+        : base(FactionEntity.TriggerDecisionAttributeId, factionEntity, arguments, 1)
     {
         _factionEntity = factionEntity;
-
-        if ((arguments == null) || (arguments.Length < 1))
-        {
-            throw new System.ArgumentException("Number of arguments less than 1");
-        }
 
         _argumentExp = ValueExpressionBuilder.ValidateValueExpression<string>(arguments[0]);
 
