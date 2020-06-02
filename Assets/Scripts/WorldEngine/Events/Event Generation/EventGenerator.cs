@@ -160,7 +160,16 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
     {
         foreach (IValueExpression<bool> exp in AssignmentConditions)
         {
-            if (!exp.Value)
+            bool value = exp.Value;
+
+            if (Manager.DebugModeEnabled)
+            {
+                Debug.Log("Assigment Condition: " + exp +
+                 "\n - Partial eval: " + exp.ToPartiallyEvaluatedString(true) +
+                 "\n - Result: " + value);
+            }
+
+            if (!value)
                 return false;
         }
 

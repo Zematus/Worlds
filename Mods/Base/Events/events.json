@@ -1,8 +1,8 @@
 {
   "events": [
     {
-      "id": "clan_splits",
-      "name": "clan splits",
+      "id": "clan_decide_split",
+      "name": "clan decide split",
       "target": "faction",
       "assignOn" : ["spawn"],
       "properties": [
@@ -22,13 +22,13 @@
       ],
       "timeToTrigger": "9125 + random(91250 * (1 - saturation(400000, target.administrative_load)) * target.preferences.cohesion)",
       "effects": [
-        "target.trigger_decision(clan_splits, new_core_group)"
+        "target.trigger_decision(clan_decide_split, new_core_group)"
       ],
       "repeatable" : true
     },
     {
-      "id": "clan_demands_influence",
-      "name": "clan demands influence",
+      "id": "clan_decide_performing_influence_demand",
+      "name": "clan decide performing influence demand",
       "target": "faction",
       "assignOn" : ["spawn", "status_change"],
       "properties": [
@@ -54,7 +54,7 @@
       ],
       "timeToTrigger": "9125 + random(91250 * (1 - saturation(200000, target.administrative_load)) * target_authority)",
       "effects": [
-        "target.trigger_decision(clan_demands_influence, dominant_faction, chance_of_making_demand)"
+        "target.trigger_decision(clan_decide_performing_influence_demand, dominant_faction, chance_of_making_demand)"
       ],
       "repeatable" : true
     }

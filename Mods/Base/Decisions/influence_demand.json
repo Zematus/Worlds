@@ -1,8 +1,8 @@
 {
   "decisions": [
     {
-      "id": "clan_decide_perform_influence_demand",
-      "name": "clan decide influence demand",
+      "id": "clan_decide_performing_influence_demand",
+      "name": "clan decide performing influence demand",
       "target": "faction",
       "parameters": [
         { "id": "dominant_faction", "type": "faction" },

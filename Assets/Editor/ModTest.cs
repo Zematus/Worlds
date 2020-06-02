@@ -10,15 +10,23 @@ public class ModTest
     private TerrainCell _testCell2;
     private TerrainCell _testCell3;
     private TerrainCell _testCell4;
+    private TerrainCell _testCell5;
+    private TerrainCell _testCell6;
     private CellGroup _testGroup1;
     private CellGroup _testGroup2;
     private CellGroup _testGroup3;
     private CellGroup _testGroup4;
+    private CellGroup _testGroup5;
+    private CellGroup _testGroup6;
     CellRegion _testRegion1;
+    CellRegion _testRegion2;
     private TestFaction _testFaction1;
     private TestFaction _testFaction2;
     private TestFaction _testFaction3;
+    private TestFaction _testFaction4;
+    private TestFaction _testFaction5;
     TestPolity _testPolity1;
+    TestPolity _testPolity2;
 
     [Test]
     public void ModTextParseTest()
@@ -221,17 +229,29 @@ public class ModTest
 
         _testGroup2 = new CellGroup(_testWorld, _testCell2, 35000);
 
-        _testCell3 = _testWorld.TerrainCells[100][100];
+        _testCell3 = _testWorld.TerrainCells[70][70];
         _testCell3.AddBiomeRelPresence(Biome.Biomes["forest"], 0.3f);
         _testCell3.AddBiomeRelPresence(Biome.Biomes["grassland"], 0.7f);
 
         _testGroup3 = new CellGroup(_testWorld, _testCell3, 12345);
 
-        _testCell4 = _testWorld.TerrainCells[150][150];
+        _testCell4 = _testWorld.TerrainCells[90][90];
         _testCell4.AddBiomeRelPresence(Biome.Biomes["forest"], 0.3f);
         _testCell4.AddBiomeRelPresence(Biome.Biomes["grassland"], 0.7f);
 
         _testGroup4 = new CellGroup(_testWorld, _testCell4, 54321);
+
+        _testCell5 = _testWorld.TerrainCells[110][110];
+        _testCell5.AddBiomeRelPresence(Biome.Biomes["forest"], 0.3f);
+        _testCell5.AddBiomeRelPresence(Biome.Biomes["grassland"], 0.7f);
+
+        _testGroup5 = new CellGroup(_testWorld, _testCell5, 54321);
+
+        _testCell6 = _testWorld.TerrainCells[130][130];
+        _testCell6.AddBiomeRelPresence(Biome.Biomes["forest"], 0.3f);
+        _testCell6.AddBiomeRelPresence(Biome.Biomes["grassland"], 0.7f);
+
+        _testGroup6 = new CellGroup(_testWorld, _testCell6, 54321);
     }
 
     [Test]
@@ -299,21 +319,35 @@ public class ModTest
 
         _testPolity1.SetDominantFaction(_testFaction2);
 
+        _testPolity2 = new TestPolity("tribe", _testGroup5);
+        _testFaction4 = new TestFaction("clan", _testPolity2, _testGroup5, 0.55f, null, 200000f);
+        _testFaction5 = new TestFaction("clan", _testPolity2, _testGroup6, 0.45f, null, 300000f);
+
+        _testPolity2.SetDominantFaction(_testFaction4);
+
         _testFaction1.Initialize();
         _testFaction2.Initialize();
         _testFaction3.Initialize();
 
+        _testFaction4.Initialize();
+        _testFaction5.Initialize();
+
         _testWorld.AddPolityInfo(_testPolity1);
+        _testWorld.AddPolityInfo(_testPolity2);
 
         _testGroup1.SetPolityProminence(_testPolity1, 1);
         _testGroup2.SetPolityProminence(_testPolity1, 1);
         _testGroup3.SetPolityProminence(_testPolity1, 1);
         _testGroup4.SetPolityProminence(_testPolity1, 1);
+        _testGroup5.SetPolityProminence(_testPolity2, 1);
+        _testGroup6.SetPolityProminence(_testPolity2, 1);
 
         _testGroup1.Culture.Language = _testPolity1.Culture.Language;
         _testGroup2.Culture.Language = _testPolity1.Culture.Language;
         _testGroup3.Culture.Language = _testPolity1.Culture.Language;
         _testGroup4.Culture.Language = _testPolity1.Culture.Language;
+        _testGroup5.Culture.Language = _testPolity2.Culture.Language;
+        _testGroup6.Culture.Language = _testPolity2.Culture.Language;
 
         _testRegion1 = new TestCellRegion(_testCell1, _testGroup1.Culture.Language);
         _testCell1.Region = _testRegion1;
@@ -321,9 +355,15 @@ public class ModTest
         _testCell3.Region = _testRegion1;
         _testCell4.Region = _testRegion1;
 
+        _testRegion2 = new TestCellRegion(_testCell5, _testGroup5.Culture.Language);
+        _testCell5.Region = _testRegion2;
+        _testCell6.Region = _testRegion2;
+
         _testFaction1.TestLeader = new Agent(_testFaction1.CoreGroup, 0, 0);
         _testFaction2.TestLeader = new Agent(_testFaction2.CoreGroup, 0, 0);
         _testFaction3.TestLeader = new Agent(_testFaction3.CoreGroup, 0, 0);
+        _testFaction4.TestLeader = new Agent(_testFaction4.CoreGroup, 0, 0);
+        _testFaction5.TestLeader = new Agent(_testFaction5.CoreGroup, 0, 0);
 
         _testFaction1.Culture.GetPreference("authority").Value = 0.4f;
         _testFaction1.Culture.GetPreference("cohesion").Value = 0.6f;
@@ -334,12 +374,21 @@ public class ModTest
         _testFaction3.Culture.GetPreference("authority").Value = 0.6f;
         _testFaction3.Culture.GetPreference("cohesion").Value = 0.6f;
 
+        _testFaction4.Culture.GetPreference("authority").Value = 0.6f;
+        _testFaction4.Culture.GetPreference("cohesion").Value = 0.6f;
+
+        _testFaction5.Culture.GetPreference("authority").Value = 0.6f;
+        _testFaction5.Culture.GetPreference("cohesion").Value = 0.6f;
+
         _testGroup1.PostUpdatePolityProminences_BeforePolityUpdates();
         _testGroup2.PostUpdatePolityProminences_BeforePolityUpdates();
         _testGroup3.PostUpdatePolityProminences_BeforePolityUpdates();
         _testGroup4.PostUpdatePolityProminences_BeforePolityUpdates();
+        _testGroup5.PostUpdatePolityProminences_BeforePolityUpdates();
+        _testGroup6.PostUpdatePolityProminences_BeforePolityUpdates();
 
         _testPolity1.ClusterUpdate();
+        _testPolity2.ClusterUpdate();
     }
 
     [Test]
@@ -564,7 +613,7 @@ public class ModTest
 
         foreach (FactionModEvent e in eventsToHappen)
         {
-            if (e.GeneratorId == "clan_splits")
+            if (e.GeneratorId == "clan_decide_split")
             {
                 splitEvent = e;
             }
@@ -578,5 +627,43 @@ public class ModTest
 
         Debug.Log("splitEvent.Trigger()");
         splitEvent.Trigger();
+    }
+
+    [Test]
+    public void TriggerDemandInfluenceDecision()
+    {
+        Manager.DebugModeEnabled = true;
+
+        InitializeTestFactions();
+
+        LoadBaseEventsMod();
+        LoadBaseDecisionsMod();
+
+        EventGenerator.InitializeGenerators();
+
+        _testFaction2.InitializeDefaultEvents();
+
+        List<WorldEvent> eventsToHappen = _testWorld.GetEventsToHappen();
+
+        Debug.Log("Number of events to happen: " + eventsToHappen.Count);
+
+        FactionModEvent demandEvent = null;
+
+        foreach (FactionModEvent e in eventsToHappen)
+        {
+            if (e.GeneratorId == "clan_decide_performing_influence_demand")
+            {
+                demandEvent = e;
+            }
+        }
+
+        Debug.Log("Assert.IsNotNull(demandEvent)");
+        Assert.IsNotNull(demandEvent);
+
+        Debug.Log("Assert.IsTrue(demandEvent.CanTrigger())");
+        Assert.IsTrue(demandEvent.CanTrigger());
+
+        Debug.Log("demandEvent.Trigger()");
+        demandEvent.Trigger();
     }
 }
