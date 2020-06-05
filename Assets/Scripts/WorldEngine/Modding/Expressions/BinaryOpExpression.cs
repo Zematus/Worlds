@@ -34,9 +34,9 @@ public abstract class BinaryOpExpression : IExpression
 
     public virtual string ToPartiallyEvaluatedString(bool evaluate = true)
     {
-        return
-            "(" + _expressionA.ToPartiallyEvaluatedString(evaluate) +
-            " " + _opStr +
-            " " + _expressionB.ToPartiallyEvaluatedString(evaluate) + ")";
+        string expAPartial = _expressionA.ToPartiallyEvaluatedString(evaluate);
+        string expBPartial = _expressionB.ToPartiallyEvaluatedString(evaluate);
+
+        return "(" + expAPartial + " " + _opStr + " " + expBPartial + ")";
     }
 }

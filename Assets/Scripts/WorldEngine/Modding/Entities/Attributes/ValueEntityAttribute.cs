@@ -25,6 +25,11 @@ public abstract class ValueEntityAttribute<T> : EntityAttribute
 
     public override string ToPartiallyEvaluatedString(bool evaluate)
     {
+        if (Value is Entity e)
+        {
+            return e.ToPartiallyEvaluatedString(evaluate);
+        }
+
         return Value.ToString();
     }
 }

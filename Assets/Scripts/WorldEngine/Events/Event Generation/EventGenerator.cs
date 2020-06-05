@@ -164,8 +164,11 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
 
             if (Manager.DebugModeEnabled)
             {
-                Debug.Log("Assigment Condition: " + exp +
-                 "\n - Partial eval: " + exp.ToPartiallyEvaluatedString(true) +
+                string expStr = exp.ToString();
+                string expPartialStr = exp.ToPartiallyEvaluatedString(true);
+
+                Debug.Log("Assigment Condition: " + expStr +
+                 "\n - Partial eval: " + expPartialStr +
                  "\n - Result: " + value);
             }
 
