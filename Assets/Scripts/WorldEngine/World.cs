@@ -256,9 +256,10 @@ public class World : ISynchronizable
         XmlArrayItem(Type = typeof(MigrateGroupEvent)),
         XmlArrayItem(Type = typeof(ExpandPolityProminenceEvent)),
         XmlArrayItem(Type = typeof(TribeFormationEvent)),
+        // TODO: cleanup
         //XmlArrayItem(Type = typeof(ClanSplitDecisionEvent)),
+        //XmlArrayItem(Type = typeof(ClanDemandsInfluenceDecisionEvent)),
         XmlArrayItem(Type = typeof(TribeSplitDecisionEvent)),
-        XmlArrayItem(Type = typeof(ClanDemandsInfluenceDecisionEvent)),
         XmlArrayItem(Type = typeof(ClanCoreMigrationEvent)),
         XmlArrayItem(Type = typeof(FosterTribeRelationDecisionEvent)),
         XmlArrayItem(Type = typeof(MergeTribesDecisionEvent)),

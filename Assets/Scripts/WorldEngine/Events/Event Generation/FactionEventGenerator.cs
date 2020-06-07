@@ -6,14 +6,14 @@ using System.Xml.Serialization;
 
 public class FactionEventGenerator : EventGenerator, IFactionEventGenerator
 {
-    private readonly FactionEntity _target;
+    public readonly FactionEntity Target;
 
     public FactionEventGenerator()
     {
-        _target = new FactionEntity(TargetEntityId);
+        Target = new FactionEntity(TargetEntityId);
 
         // Add the target to the context's entity map
-        AddEntity(_target);
+        AddEntity(Target);
     }
 
     public override void SetToAssignOnSpawn()
@@ -34,7 +34,7 @@ public class FactionEventGenerator : EventGenerator, IFactionEventGenerator
 
     protected override WorldEvent GenerateEvent(long triggerDate)
     {
-        FactionModEvent modEvent = new FactionModEvent(this, _target.Faction, triggerDate);
+        FactionModEvent modEvent = new FactionModEvent(this, Target.Faction, triggerDate);
 
         return modEvent;
     }
@@ -43,14 +43,14 @@ public class FactionEventGenerator : EventGenerator, IFactionEventGenerator
     {
         Reset();
 
-        _target.Set(faction);
+        Target.Set(faction);
     }
 
     public override float GetNextRandomInt(int iterOffset, int maxValue) =>
-        _target.Faction.GetNextLocalRandomInt(iterOffset, maxValue);
+        Target.Faction.GetNextLocalRandomInt(iterOffset, maxValue);
 
     public override float GetNextRandomFloat(int iterOffset) =>
-        _target.Faction.GetNextLocalRandomFloat(iterOffset);
+        Target.Faction.GetNextLocalRandomFloat(iterOffset);
 
     public bool TryGenerateEventAndAssign(
         Faction faction,

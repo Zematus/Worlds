@@ -250,7 +250,6 @@ public abstract class Polity : ISynchronizable
         {
             if (!faction.IsInitialized)
             {
-
                 faction.Initialize();
             }
         }

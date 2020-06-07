@@ -8,6 +8,8 @@ using UnityEngine;
 /// </summary>
 public abstract class Context
 {
+    public bool Debug = false;
+
     protected int _currentIterOffset = 0;
 
     protected Context _parentContext = null;
@@ -15,6 +17,8 @@ public abstract class Context
     [Serializable]
     public class LoadedContext
     {
+        public bool debug;
+
         [Serializable]
         public class LoadedProperty
         {
@@ -47,6 +51,8 @@ public abstract class Context
                 AddPropertyEntity(lp);
             }
         }
+
+        Debug = c.debug;
     }
 
     private void AddPropertyEntity(LoadedContext.LoadedProperty p)

@@ -9,7 +9,8 @@ public class FactionModEvent : FactionEvent
     [XmlAttribute("GenId")]
     public string GeneratorId;
 
-    private FactionEventGenerator _generator;
+    [XmlIgnore]
+    public FactionEventGenerator Generator;
 
     [XmlIgnore]
     public string EventSetFlag;
@@ -20,7 +21,7 @@ public class FactionModEvent : FactionEvent
         long triggerDate)
         : base(faction, triggerDate, generator.IdHash)
     {
-        _generator = generator;
+        Generator = generator;
 
         GeneratorId = generator.Id;
         EventSetFlag = generator.EventSetFlag;
@@ -35,9 +36,9 @@ public class FactionModEvent : FactionEvent
             return false;
         }
 
-        _generator.SetTarget(Faction);
+        Generator.SetTarget(Faction);
 
-        if (!_generator.CanTriggerEvent())
+        if (!Generator.CanTriggerEvent())
         {
             return false;
         }
@@ -50,12 +51,12 @@ public class FactionModEvent : FactionEvent
         // This operation assumes that CanTrigger() has been called beforehand,
         // and within, _generator.SetTarget(Faction)...
 
-        _generator.TriggerEvent();
+        Generator.TriggerEvent();
     }
 
     protected override void DestroyInternal()
     {
-        if (_generator.TryReasignEvent(this))
+        if (Generator.TryReasignEvent(this))
         {
             // If reasigned then we don't need to fully destroy the event
             return;
@@ -73,9 +74,9 @@ public class FactionModEvent : FactionEvent
     {
         base.FinalizeLoad();
 
-        _generator = EventGenerator.GetGenerator(GeneratorId) as FactionEventGenerator;
+        Generator = EventGenerator.GetGenerator(GeneratorId) as FactionEventGenerator;
 
-        if (_generator == null)
+        if (Generator == null)
         {
             throw new System.Exception(
                 "FactionModEvent: Generator with Id:" + GeneratorId + " not found");

@@ -24,6 +24,7 @@ public class ClanDemandsInfluenceDecision : FactionDecision {
 	private Clan _dominantClan;
 	private Clan _demandClan;
 
+	[System.Obsolete]
 	public ClanDemandsInfluenceDecision (Tribe tribe, Clan demandClan, Clan dominantClan, bool performDemand, float chanceOfRejecting, long eventId) : base (demandClan, eventId) {
 
 		_tribe = tribe;

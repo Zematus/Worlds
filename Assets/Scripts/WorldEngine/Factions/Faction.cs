@@ -90,7 +90,7 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
     public CellGroup NewCoreGroup = null;
 
     [XmlIgnore]
-    public bool IsInitialized = true;
+    public bool IsInitialized = false;
 
     [XmlIgnore]
     public float AdministrativeLoad => _administrativeLoad.Value;
@@ -173,8 +173,6 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
         Influence = influence;
 
         GenerateName(parentFaction);
-
-        IsInitialized = false;
     }
 
     public void Initialize()
@@ -495,6 +493,11 @@ public abstract class Faction : ISynchronizable, IWorldDateGetter, IFlagHolder
 
     public void PreUpdate()
     {
+        if (!IsInitialized)
+        {
+            return;
+        }
+
         Profiler.BeginSample("Faction - PreUpdate");
 
 //#if DEBUG

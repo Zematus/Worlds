@@ -66,6 +66,10 @@ public class Clan : Faction
             AddEvent(new ClanCoreMigrationEvent(this, triggerDate));
         }
 
+        //
+        //TODO: cleanup commented code
+        //
+
         //triggerDate = ClanSplitDecisionEvent.CalculateTriggerDate(this);
         //if (triggerDate > 0)
         //{
@@ -79,18 +83,18 @@ public class Clan : Faction
         //    AddEvent(new ClanSplitDecisionEvent(this, triggerDate));
         //}
 
-        triggerDate = ClanDemandsInfluenceDecisionEvent.CalculateTriggerDate(this);
-        if (triggerDate > 0)
-        {
-            if (triggerDate <= World.CurrentDate)
-            {
-                throw new System.Exception(
-                    "ClanDemandsInfluenceDecisionEvent Trigger Date (" + triggerDate +
-                    ") less or equal to current date: " + World.CurrentDate);
-            }
+        //triggerDate = ClanDemandsInfluenceDecisionEvent.CalculateTriggerDate(this);
+        //if (triggerDate > 0)
+        //{
+        //    if (triggerDate <= World.CurrentDate)
+        //    {
+        //        throw new System.Exception(
+        //            "ClanDemandsInfluenceDecisionEvent Trigger Date (" + triggerDate +
+        //            ") less or equal to current date: " + World.CurrentDate);
+        //    }
 
-            AddEvent(new ClanDemandsInfluenceDecisionEvent(this, triggerDate));
-        }
+        //    AddEvent(new ClanDemandsInfluenceDecisionEvent(this, triggerDate));
+        //}
 
         triggerDate = TribeSplitDecisionEvent.CalculateTriggerDate(this);
         if (triggerDate > 0)
@@ -127,15 +131,16 @@ public class Clan : Faction
                 case WorldEvent.ClanCoreMigrationEventId:
                     AddEvent(new ClanCoreMigrationEvent(this, eData));
                     break;
-                //case WorldEvent.ClanSplitDecisionEventId:
-                //    AddEvent(new ClanSplitDecisionEvent(this, eData));
-                //    break;
                 case WorldEvent.TribeSplitDecisionEventId:
                     AddEvent(new TribeSplitDecisionEvent(this, eData));
                     break;
-                case WorldEvent.ClanDemandsInfluenceDecisionEventId:
-                    AddEvent(new ClanDemandsInfluenceDecisionEvent(this, eData));
-                    break;
+                // TODO: cleanup
+                //case WorldEvent.ClanSplitDecisionEventId:
+                //    AddEvent(new ClanSplitDecisionEvent(this, eData));
+                //    break;
+                //case WorldEvent.ClanDemandsInfluenceDecisionEventId:
+                //    AddEvent(new ClanDemandsInfluenceDecisionEvent(this, eData));
+                //    break;
                 default:
                     throw new System.Exception("Unhandled faction event type id: " + eData.TypeId);
             }

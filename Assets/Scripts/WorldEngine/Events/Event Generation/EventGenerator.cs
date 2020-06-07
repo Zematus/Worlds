@@ -162,12 +162,12 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
         {
             bool value = exp.Value;
 
-            if (Manager.DebugModeEnabled)
+            if (Manager.DebugModeEnabled && Debug)
             {
                 string expStr = exp.ToString();
                 string expPartialStr = exp.ToPartiallyEvaluatedString(true);
 
-                Debug.Log("Assigment Condition: " + expStr +
+                UnityEngine.Debug.Log("Assigment Condition: " + expStr +
                  "\n - Partial eval: " + expPartialStr +
                  "\n - Result: " + value);
             }
@@ -189,7 +189,19 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
 
         foreach (IValueExpression<bool> exp in TriggerConditions)
         {
-            if (!exp.Value)
+            bool value = exp.Value;
+
+            if (Manager.DebugModeEnabled && Debug)
+            {
+                string expStr = exp.ToString();
+                string expPartialStr = exp.ToPartiallyEvaluatedString(true);
+
+                UnityEngine.Debug.Log("Trigger Condition: " + expStr +
+                 "\n - Partial eval: " + expPartialStr +
+                 "\n - Result: " + value);
+            }
+
+            if (!value)
                 return false;
         }
 
@@ -214,7 +226,7 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
         if ((targetDate <= world.CurrentDate) || (targetDate > World.MaxSupportedDate))
         {
             // log details about invalid date
-            Debug.LogWarning("EventGenerator.CalculateEventTriggerDate - target date (" + Manager.GetDateString(targetDate) +
+            UnityEngine.Debug.LogWarning("EventGenerator.CalculateEventTriggerDate - target date (" + Manager.GetDateString(targetDate) +
                 ") less than or equal to world's current date (" + Manager.GetDateString(world.CurrentDate) +
                 ")\n - event id: " + Id +
                 "\n - timeToTrigger expression: " + TimeToTrigger.ToPartiallyEvaluatedString() +
@@ -251,7 +263,7 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
         {
             // Do not generate an event. CalculateTriggerDate() should have
             // logged more details...
-            Debug.LogWarning(
+            UnityEngine.Debug.LogWarning(
                 "EventGenerator.TryGenerateEventAndAssign - failed to generate a valid trigger date: " +
                 triggerDate);
             return false;
