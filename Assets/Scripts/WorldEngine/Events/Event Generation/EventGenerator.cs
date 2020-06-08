@@ -156,7 +156,7 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
         throw new System.ArgumentException("Invalid target type: " + targetStr);
     }
 
-    protected bool CanAssignEventToTarget(bool doLog = false)
+    protected bool CanAssignEventToTarget()
     {
         OpenDebugOutput("Evaluating Assigment Conditions:");
 
@@ -176,12 +176,12 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
 
             if (!value)
             {
-                CloseDebugOutput("Assigment Result: False", doLog);
+                CloseDebugOutput("Assigment Result: False");
                 return false;
             }
         }
 
-        CloseDebugOutput("Assigment Result: True", doLog);
+        CloseDebugOutput("Assigment Result: True");
         return true;
     }
 
@@ -190,9 +190,9 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
         OpenDebugOutput("Evaluating Trigger Conditions:");
 
         // Always validate that the target is still valid
-        if (!CanAssignEventToTarget(true))
+        if (!CanAssignEventToTarget())
         {
-            CloseDebugOutput("Trigger Result: False", false);
+            CloseDebugOutput("Trigger Result: False");
             return false;
         }
 
@@ -212,7 +212,7 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
 
             if (!value)
             {
-                CloseDebugOutput("Trigger Result: False", false);
+                CloseDebugOutput("Trigger Result: False");
                 return false;
             }
         }

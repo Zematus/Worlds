@@ -10,15 +10,17 @@ public class PolityEntity : Entity
     public const string TransferInfluenceAttributeId = "transfer_influence";
     public const string TypeAttributeId = "type";
 
-    public virtual Polity Polity { get; private set; }
+    public virtual Polity Polity { get; protected set; }
+
+    public int RandomGroupIndex = 0;
+
+    protected override object _reference => Polity;
 
     private ValueGetterEntityAttribute<string> _typeAttribute;
 
     private DelayedSetFactionEntity _dominantFactionEntity = null;
 
-    protected override object _reference => Polity;
-
-    public int RandomGroupIndex = 0;
+    private bool _alreadyReset = false;
 
     private readonly List<RandomGroupEntity>
         _randomGroupEntitiesToSet = new List<RandomGroupEntity>();
@@ -122,9 +124,12 @@ public class PolityEntity : Entity
         throw new System.ArgumentException("Polity: Unable to find attribute: " + attributeId);
     }
 
-    public void Set(Polity p)
+    protected void ResetInternal()
     {
-        Polity = p;
+        if (_alreadyReset)
+        {
+            return;
+        }
 
         foreach (RandomGroupEntity groupEntity in _randomGroupEntitiesToSet)
         {
@@ -132,6 +137,17 @@ public class PolityEntity : Entity
         }
 
         _dominantFactionEntity?.Reset();
+
+        _alreadyReset = true;
+    }
+
+    public void Set(Polity p)
+    {
+        Polity = p;
+
+        ResetInternal();
+
+        _alreadyReset = false;
     }
 
     public override void Set(object o)

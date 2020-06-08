@@ -18,6 +18,8 @@ public class DelayedSetFactionEntity : FactionEntity
     public void Reset()
     {
         _faction = null;
+
+        ResetInternal();
     }
 
     public override Faction Faction

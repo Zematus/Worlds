@@ -149,7 +149,7 @@ public abstract class Context
         }
     }
 
-    public void CloseDebugOutput(string message, bool doLog = true)
+    public void CloseDebugOutput(string message)
     {
         AddDebugOutput(message);
 
@@ -161,10 +161,7 @@ public abstract class Context
             {
                 if (_dbgStr != null)
                 {
-                    if (doLog)
-                    {
-                        UnityEngine.Debug.Log(_dbgStr);
-                    }
+                    UnityEngine.Debug.Log(_dbgStr);
                     _dbgStr = null;
                 }
             }

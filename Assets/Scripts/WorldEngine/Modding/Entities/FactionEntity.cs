@@ -20,6 +20,8 @@ public class FactionEntity : Entity
 
     public virtual Faction Faction { get; private set; }
 
+    private bool _alreadyReset = false;
+
     private ValueGetterEntityAttribute<string> _typeAttribute;
     private ValueGetterEntityAttribute<float> _administrativeLoadAttribute;
     private ValueGetterEntityAttribute<float> _influenceAttribute;
@@ -138,22 +140,31 @@ public class FactionEntity : Entity
         throw new System.ArgumentException("Faction: Unable to find attribute: " + attributeId);
     }
 
-    public void Set(Faction f, bool noReset = false)
+    protected void ResetInternal()
     {
-        f.PreUpdate();
-
-        if (noReset && (Faction == f))
+        if (_alreadyReset)
         {
             return;
         }
+
+        _leaderEntity?.Reset();
+        _polityEntity?.Reset();
+        _coreGroupEntity?.Reset();
+
+        _alreadyReset = true;
+    }
+
+    public virtual void Set(Faction f)
+    {
+        f.PreUpdate();
 
         Faction = f;
 
         _preferencesEntity?.Set(Faction.Culture);
 
-        _leaderEntity?.Reset();
-        _polityEntity?.Reset();
-        _coreGroupEntity?.Reset();
+        ResetInternal();
+
+        _alreadyReset = false;
     }
 
     public Agent GetLeader() => Faction.CurrentLeader;

@@ -18,6 +18,8 @@ public class DelayedSetPolityEntity : PolityEntity
     public void Reset()
     {
         _polity = null;
+
+        ResetInternal();
     }
 
     public override Polity Polity
