@@ -1105,6 +1105,11 @@ public class Manager
         {
             TerrainUpdatedCells.Add(cell);
         }
+
+        if (CellShouldBeHighlighted(cell))
+        {
+            HighlightedCells.Add(cell);
+        }
     }
 
     public static void AddUpdatedCells(Polity polity, CellUpdateType updateType, CellUpdateSubType updateSubType)
@@ -1118,9 +1123,14 @@ public class Manager
         {
             TerrainUpdatedCells.UnionWith(polity.Territory.GetCells());
         }
+
+        if (polity.Territory.IsSelected)
+        {
+            HighlightedCells.UnionWith(polity.Territory.GetCells());
+        }
     }
 
-    public static void AddUpdatedCells(ICollection<TerrainCell> cells, CellUpdateType updateType, CellUpdateSubType updateSubType)
+    public static void AddUpdatedCells(ICollection<TerrainCell> cells, CellUpdateType updateType, CellUpdateSubType updateSubType, bool highlight)
     {
         if (!ValidUpdateTypeAndSubtype(updateType, updateSubType))
             return;
@@ -1130,6 +1140,11 @@ public class Manager
         if ((updateSubType & CellUpdateSubType.Terrain) == CellUpdateSubType.Terrain)
         {
             TerrainUpdatedCells.UnionWith(cells);
+        }
+
+        if (highlight)
+        {
+            HighlightedCells.UnionWith(cells);
         }
     }
 

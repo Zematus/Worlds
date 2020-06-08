@@ -774,7 +774,7 @@ public abstract class Polity : ISynchronizable
 
         Profiler.EndSample();
 
-        Manager.AddUpdatedCells(Territory.GetCells(), CellUpdateType.Territory, CellUpdateSubType.Culture);
+        Manager.AddUpdatedCells(Territory.GetCells(), CellUpdateType.Territory, CellUpdateSubType.Culture, Territory.IsSelected);
     }
 
     protected abstract void UpdateInternal();

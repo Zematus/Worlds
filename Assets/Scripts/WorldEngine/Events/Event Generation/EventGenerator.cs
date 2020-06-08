@@ -156,34 +156,43 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
         throw new System.ArgumentException("Invalid target type: " + targetStr);
     }
 
-    protected bool CanAssignEventToTarget()
+    protected bool CanAssignEventToTarget(bool doLog = false)
     {
+        OpenDebugOutput("Evaluating Assigment Conditions:");
+
         foreach (IValueExpression<bool> exp in AssignmentConditions)
         {
             bool value = exp.Value;
 
-            if (Manager.DebugModeEnabled && Debug)
+            if (DebugEnabled)
             {
                 string expStr = exp.ToString();
                 string expPartialStr = exp.ToPartiallyEvaluatedString(true);
 
-                UnityEngine.Debug.Log("Assigment Condition: " + expStr +
-                 "\n - Partial eval: " + expPartialStr +
-                 "\n - Result: " + value);
+                AddDebugOutput("  Condition: " + expStr +
+                 "\n   - Partial eval: " + expPartialStr +
+                 "\n   - Result: " + value);
             }
 
             if (!value)
+            {
+                CloseDebugOutput("Assigment Result: False", doLog);
                 return false;
+            }
         }
 
+        CloseDebugOutput("Assigment Result: True", doLog);
         return true;
     }
 
     public bool CanTriggerEvent()
     {
+        OpenDebugOutput("Evaluating Trigger Conditions:");
+
         // Always validate that the target is still valid
-        if (!CanAssignEventToTarget())
+        if (!CanAssignEventToTarget(true))
         {
+            CloseDebugOutput("Trigger Result: False", false);
             return false;
         }
 
@@ -191,20 +200,24 @@ public abstract class EventGenerator : Context, IWorldEventGenerator
         {
             bool value = exp.Value;
 
-            if (Manager.DebugModeEnabled && Debug)
+            if (DebugEnabled)
             {
                 string expStr = exp.ToString();
                 string expPartialStr = exp.ToPartiallyEvaluatedString(true);
 
-                UnityEngine.Debug.Log("Trigger Condition: " + expStr +
-                 "\n - Partial eval: " + expPartialStr +
-                 "\n - Result: " + value);
+                AddDebugOutput("  Condition: " + expStr +
+                 "\n   - Partial eval: " + expPartialStr +
+                 "\n   - Result: " + value);
             }
 
             if (!value)
+            {
+                CloseDebugOutput("Trigger Result: False", false);
                 return false;
+            }
         }
 
+        CloseDebugOutput("Trigger Result: True");
         return true;
     }
 

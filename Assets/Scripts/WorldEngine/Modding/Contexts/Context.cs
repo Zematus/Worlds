@@ -8,11 +8,17 @@ using UnityEngine;
 /// </summary>
 public abstract class Context
 {
-    public bool Debug = false;
+    public bool DebugEnabled => Manager.DebugModeEnabled && _debug;
 
     protected int _currentIterOffset = 0;
 
     protected Context _parentContext = null;
+
+    protected bool _debug = false;
+
+    private string _dbgStr = null;
+    private int _dbgTabCount = -1;
+    private string _dbgTab;
 
     [Serializable]
     public class LoadedContext
@@ -52,7 +58,7 @@ public abstract class Context
             }
         }
 
-        Debug = c.debug;
+        _debug = c.debug;
     }
 
     private void AddPropertyEntity(LoadedContext.LoadedProperty p)
@@ -108,5 +114,68 @@ public abstract class Context
         }
 
         return _parentContext.TryGetEntity(id, out e);
+    }
+
+    public void OpenDebugOutput(string message)
+    {
+        if (DebugEnabled)
+        {
+            _dbgTabCount++;
+
+            if (_dbgTabCount > 0)
+            {
+                _dbgTab += "\t";
+            }
+        }
+
+        AddDebugOutput(message);
+    }
+
+    public void AddDebugOutput(string message)
+    {
+        if (DebugEnabled)
+        {
+            if (_dbgStr == null)
+            {
+                _dbgStr = "";
+            }
+            else
+            {
+                _dbgStr += "\n";
+            }
+
+            message = message.Replace("\n", "\n" + _dbgTab);
+            _dbgStr += _dbgTab + message;
+        }
+    }
+
+    public void CloseDebugOutput(string message, bool doLog = true)
+    {
+        AddDebugOutput(message);
+
+        if (DebugEnabled)
+        {
+            _dbgTabCount--;
+
+            if (_dbgTabCount < 0)
+            {
+                if (_dbgStr != null)
+                {
+                    if (doLog)
+                    {
+                        UnityEngine.Debug.Log(_dbgStr);
+                    }
+                    _dbgStr = null;
+                }
+            }
+            else
+            {
+                _dbgTab = "";
+                for (int i = 0; i < _dbgTabCount; i++)
+                {
+                    _dbgTab += "\t";
+                }
+            }
+        }
     }
 }
